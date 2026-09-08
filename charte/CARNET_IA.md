@@ -171,3 +171,37 @@ Le protocole d'océrisation d'une bible prescrivait fermement **sans marque** : 
 ⚠️ **Le noyau a GROSSI de 3 700 signes, et c'est le résultat attendu** : il ne mesure pas la brièveté de la charte, il mesure ce qu'on peut en extraire sans l'ouvrir. Un chapitre mal marqué le fait paraître court en cachant sa loi.
 
 **Ce qui reste au § 48** : les gras y sont des ÉTIQUETTES DE PASSE — « **Passe 0 — Préflight documentaire** » — et non des impératifs. L'extracteur prend le gras de tête quand il y en a un ; sur ces paragraphes-là il prend donc l'étiquette. La passe règle-d'abord complète, qui mettrait l'impératif AVANT l'étiquette, reste à faire ; le marquage était le préalable.
+
+### 2026-09-08 — Le marquage étendu à huit chapitres, et le relevé de couverture refermé
+
+La passe du § 48 a été reprise sur les huit chapitres que le relevé désignait ensuite, dans l'ordre où il les nommait. **Rien n'a été déplacé, rien n'a été réécrit** : l'impératif est marqué là où il est, et mis en gras. L'ordre de lecture, la démonstration et le contenu ne bougent pas d'un mot.
+
+| chapitre | signes | marques | énoncés au noyau | pour mille |
+|---|---:|---:|---:|---:|
+| § 48 · Océrisation d'une bible | 46 262 | 13 → **54** | 13 → **51** | 0,3 → **1,1** |
+| § 26 · Chronologie et frise | 24 153 | 0 → **39** | 0 → **35** | 0,0 → **1,4** |
+| § 31 · Atelier La Gueule | 12 211 | 0 → **22** | 0 → **22** | 0,0 → **1,8** |
+| § 23 · Protocole de modification | 26 022 | 2 → **38** | 2 → **37** | 0,1 → **1,4** |
+| § 29 · Valeur académique | 10 633 | 1 → **25** | 1 → **25** | 0,1 → **2,4** |
+| § 11 · Format d'échange et import | 8 943 | 1 → **25** | 1 → **24** | 0,1 → **2,7** |
+| § 19 · Modèle de données | 16 938 | 4 → **45** | 4 → **44** | 0,2 → **2,6** |
+| § 16 · Auteurs, œuvres et catalogue | 24 584 | 3 → **54** | 3 → **53** | 0,1 → **2,2** |
+| § 14 · OCR, HTR et transcription | 12 974 | 4 → **47** | 4 → **46** | 0,3 → **3,5** |
+
+**Le noyau passe de 1 212 à 1 527 énoncés**, de 163 814 à 203 429 signes, et couvre 265 sections au lieu de 180.
+
+⚠️ **Il a donc GROSSI d'un quart, et c'est le résultat attendu** : il ne mesure pas la brièveté de la charte, il mesure ce qu'on peut en extraire sans l'ouvrir. Neuf chapitres le faisaient paraître court en cachant leur loi.
+
+**Le relevé de couverture s'est refermé, et c'est lui qui dit d'arrêter.** Il nommait successivement les chapitres à 0,0 · 0,1 · 0,2 ; il nomme maintenant § 3 (0,7), § 15 (0,7), § 6 (0,8), § 35 (1,0) et § 48 (1,1). Plus aucun chapitre ne se détache. ⛔ **Au-dessus de 0,7 on mesure une CONVENTION D'ÉCRITURE, non un manque** — le corollaire tiré du § 48 vaut dans les deux sens, et il interdit de poursuivre la passe pour faire monter un chiffre.
+
+### 2026-09-08 — Dix suites « antislash + n » avaient survécu à l'unification du 24 août
+
+Cherchées après coup, sur tout le fichier : **dix** suites `\n` écrites en toutes lettres, hors de tout intervalle de code. L'unification du 24 août 2026 en avait réparé vingt et une et déclaré le cas clos.
+
+Neuf collaient un sous-titre en gras à la fin du paragraphe précédent — donc **l'effaçaient au rendu** : « Capitale initiale après fin de phrase », « Numérotation historique des livres des Rois », « Troisième règle : la ponctuation ne se double jamais », « Numéros de notes », « Contrôle bloquant supplémentaire », « Lien entre la pièce et la notice ». Une dixième, à un seul `n`, collait deux entrées d'une liste du § 13.8.1. Une onzième a été trouvée en marquant le § 23.12, et corrigée avec lui.
+
+⚠️ **Ces titres étaient dans le fichier et ne paraissaient nulle part.** Ils ne se voient ni au compte de signes, ni au compte de titres — le titre n'en est pas un pour l'analyseur — ni au relevé de couverture, qui ne compte que des marques.
+
+⛔ **Six suites RESTENT, et elles sont justes** : elles vivent dans un intervalle de code, où elles DÉSIGNENT la valeur au lieu de la subir — le `join_before` d'un vers au § 7.4, le séparateur de paragraphe du § 13.8.1, l'interdit du § 45.2. Le contrôle compte donc les accents graves qui précèdent, et ne relève que ce qui tombe hors du code.
+
+**Corollaire de méthode** : un défaut qui rend un titre INVISIBLE ne se trouve par aucun compte, puisqu'il retire l'objet qu'on compterait. Il se cherche par son symptôme matériel — ici, deux caractères — sur le fichier entier.

@@ -224,7 +224,9 @@ Les intervalles ordinaires emploient un trait d’union simple sans espaces : `2
 
 Le premier niveau français emploie `« … »`. Une citation enchâssée emploie `“ … ”` ou la forme attestée par l’édition si elle est cohérente. Les guillemets droits issus de l’OCR sont corrigés.
 
-Lorsqu’une citation entre guillemets français constitue un énoncé autonome, fermé sur lui-même, et ne poursuit pas la syntaxe de la phrase d’accueil, son premier mot prend une majuscule : `« D’abord… »`. Une citation intégrée à la syntaxe de la phrase d’accueil conserve la minuscule requise par cette syntaxe. Cette distinction est contextuelle : la seule présence d’un deux-points ne suffit pas à conclure.\n\n**Capitale initiale après fin de phrase — règle translinguistique.** Dans toute couche éditoriale de lecture de Corpus Scriptura, quelle que soit la langue — français, latin, grec translittéré ou autre — une phrase qui commence après un point final, un point d’interrogation ou un point d’exclamation prend obligatoirement une capitale initiale. La règle vaut donc explicitement pour le latin. Elle ne s’applique ni au seul fait de commencer un segment, ni à un point abréviatif qui ne ferme pas la phrase. ⛔ La casse ne sert jamais à justifier ou à inventer la ponctuation : avant de capitaliser, établir que le signe fort appartient réellement au texte éditorial retenu. Si le témoin porte une virgule là où l’OCR ou une transcription secondaire porte un point, on corrige d’abord la ponctuation et l’on conserve la minuscule syntaxiquement requise : `… et maiores sunt, sed nox illa sit dolor :`, non `… et maiores sunt. Sed nox…`.
+Lorsqu’une citation entre guillemets français constitue un énoncé autonome, fermé sur lui-même, et ne poursuit pas la syntaxe de la phrase d’accueil, son premier mot prend une majuscule : `« D’abord… »`. Une citation intégrée à la syntaxe de la phrase d’accueil conserve la minuscule requise par cette syntaxe. Cette distinction est contextuelle : la seule présence d’un deux-points ne suffit pas à conclure.
+
+**Capitale initiale après fin de phrase — règle translinguistique.** Dans toute couche éditoriale de lecture de Corpus Scriptura, quelle que soit la langue — français, latin, grec translittéré ou autre — une phrase qui commence après un point final, un point d’interrogation ou un point d’exclamation prend obligatoirement une capitale initiale. La règle vaut donc explicitement pour le latin. Elle ne s’applique ni au seul fait de commencer un segment, ni à un point abréviatif qui ne ferme pas la phrase. ⛔ La casse ne sert jamais à justifier ou à inventer la ponctuation : avant de capitaliser, établir que le signe fort appartient réellement au texte éditorial retenu. Si le témoin porte une virgule là où l’OCR ou une transcription secondaire porte un point, on corrige d’abord la ponctuation et l’on conserve la minuscule syntaxiquement requise : `… et maiores sunt, sed nox illa sit dolor :`, non `… et maiores sunt. Sed nox…`.
 
 La ponctuation d’une citation, sa place de part et d’autre du guillemet fermant et la sortie des citations longues relèvent du § 3.8.
 
@@ -284,7 +286,9 @@ La notation biblique suit une convention unique dans toutes les surfaces compos�
 
 **Abréviations normatives.** Ancien Testament : `Gn`, `Ex`, `Lv`, `Nb`, `Dt` ; `Jos`, `Jg`, `Rt`, `1 S`, `2 S`, `1 R`, `2 R`, `1 Ch`, `2 Ch`, `Esd`, `Ne`, `Tb`, `Jdt`, `Est`, `1 M`, `2 M` ; `Jb`, `Ps`, `Pr`, `Qo`, `Ct`, `Sg`, `Si` ; `Is`, `Jr`, `Lm`, `Ba`, `Ez`, `Dn`, `Os`, `Jl`, `Am`, `Ab`, `Jon`, `Mi`, `Na`, `Ha`, `So`, `Ag`, `Za`, `Ml`. Lorsque la Lettre de Jérémie est traitée comme division autonome dans le modèle AELF du projet, employer `Lt-Jr`. Nouveau Testament : `Mt`, `Mc`, `Lc`, `Jn`, `Ac`, `Rm`, `1 Co`, `2 Co`, `Ga`, `Ep`, `Ph`, `Col`, `1 Th`, `2 Th`, `1 Tm`, `2 Tm`, `Tt`, `Phm`, `He`, `Jc`, `1 P`, `2 P`, `1 Jn`, `2 Jn`, `3 Jn`, `Jude`, `Ap`.
 
-Les chiffres placés devant une abréviation sont séparés de celle-ci par une espace : `1 S`, `2 R`, `1 Co`, `3 Jn`.\n\n**Numérotation historique des livres des Rois.** Lorsqu’une édition source emploie l’ancienne série `I Rois` à `IV Rois`, l’ordinal imprimé est conservé et seulement modernisé en chiffre arabe dans la référence : `I Rois` → `1 R`, `II Rois` → `2 R`, `III Rois` → `3 R`, `IV Rois` → `4 R`. Cette normalisation de transcription n’anticipe pas la résolution canonique des liens bibliques, qui constitue une opération distincte.
+Les chiffres placés devant une abréviation sont séparés de celle-ci par une espace : `1 S`, `2 R`, `1 Co`, `3 Jn`.
+
+**Numérotation historique des livres des Rois.** Lorsqu’une édition source emploie l’ancienne série `I Rois` à `IV Rois`, l’ordinal imprimé est conservé et seulement modernisé en chiffre arabe dans la référence : `I Rois` → `1 R`, `II Rois` → `2 R`, `III Rois` → `3 R`, `IV Rois` → `4 R`. Cette normalisation de transcription n’anticipe pas la résolution canonique des liens bibliques, qui constitue une opération distincte.
 
 **Syntaxe des références.**
 
@@ -352,7 +356,9 @@ L’indice mécanique est la façon dont la citation est amenée. Un deux-points
 
 ⚠️ **Un deux-points ne suffit donc pas à conclure.** Une citation annoncée par un deux-points peut être suivie d’une suite de phrase (Jean a dit : « Mangez et buvez », puis il se tut.) : elle est alors close mais non terminale, et la ponctuation forte appartient à la phrase d’accueil. La règle mécanique ne s’applique qu’à une citation isolée ET terminale, c’est-à-dire qui n’est suivie d’aucun texte avant la fin de la phrase.
 
-**Cas particulier — citation biblique autonome suivie de sa référence.** Lorsqu’une citation biblique constitue un ensemble indépendant et qu’elle est immédiatement suivie de sa référence entre parenthèses, le point final ordinaire ne reste pas à l’intérieur des guillemets : il est retiré avant le guillemet fermant et le point de phrase est placé après la parenthèse. Exemple normatif : `« Tu as agi en secret : moi, j’agirai au grand jour et à la face du soleil que voilà » (2 R 12, 12).` Les points d’interrogation et d’exclamation qui appartiennent intrinsèquement à la citation restent avant le guillemet fermant ; la référence parenthétique est ensuite suivie du point de phrase. Dans ce contexte parenthétique, la référence est modernisée avec l’abréviation biblique normative et les chapitres en chiffres arabes ; la composition validée suit le modèle `(2 R 12, 12)`. Il n’y a jamais de virgule entre l’abréviation du livre et le chapitre : `Mt 5, 3`, `2 R 12, 7-11`, non `Mt, 5, 3` ni `2 R, 12, 7-11`. Cette règle ne s’applique pas aux citations enchâssées dans la syntaxe de la phrase ni aux parenthèses explicatives qui ne sont pas des références bibliques.\n\n**Troisième règle : la ponctuation ne se double jamais de part et d’autre du guillemet fermant.** Quand la citation est déjà close, au dedans, par un point, un point d’exclamation ou un point d’interrogation, tout signe qui suit le guillemet fermant est supprimé. Le guillemet absorbe la ponctuation de la phrase d’accueil, il ne la répète pas.
+**Cas particulier — citation biblique autonome suivie de sa référence.** Lorsqu’une citation biblique constitue un ensemble indépendant et qu’elle est immédiatement suivie de sa référence entre parenthèses, le point final ordinaire ne reste pas à l’intérieur des guillemets : il est retiré avant le guillemet fermant et le point de phrase est placé après la parenthèse. Exemple normatif : `« Tu as agi en secret : moi, j’agirai au grand jour et à la face du soleil que voilà » (2 R 12, 12).` Les points d’interrogation et d’exclamation qui appartiennent intrinsèquement à la citation restent avant le guillemet fermant ; la référence parenthétique est ensuite suivie du point de phrase. Dans ce contexte parenthétique, la référence est modernisée avec l’abréviation biblique normative et les chapitres en chiffres arabes ; la composition validée suit le modèle `(2 R 12, 12)`. Il n’y a jamais de virgule entre l’abréviation du livre et le chapitre : `Mt 5, 3`, `2 R 12, 7-11`, non `Mt, 5, 3` ni `2 R, 12, 7-11`. Cette règle ne s’applique pas aux citations enchâssées dans la syntaxe de la phrase ni aux parenthèses explicatives qui ne sont pas des références bibliques.
+
+**Troisième règle : la ponctuation ne se double jamais de part et d’autre du guillemet fermant.** Quand la citation est déjà close, au dedans, par un point, un point d’exclamation ou un point d’interrogation, tout signe qui suit le guillemet fermant est supprimé. Le guillemet absorbe la ponctuation de la phrase d’accueil, il ne la répète pas.
 
     Jean dit à Lucien : « Mon frère, tu es bon ! ».     faux
     Jean dit à Lucien : « Mon frère, tu es bon ! »,     faux
@@ -1391,25 +1397,25 @@ Un agent peut inscrire `vérifié` uniquement après lecture effective du segmen
 
 ### 11.0 Manifeste des traductions nouvelles
 
-Une traduction nouvelle produite pour Corpus Scriptura est un texte éditorial dérivé d’un original identifié. Elle ne se substitue jamais au témoin source et ne doit jamais être présentée comme une traduction historique. Lorsqu’elle est produite, même partiellement, par une intelligence artificielle, cette origine est indiquée sans ambiguïté dans la version, la notice et les métadonnées : **« Traduction produite par intelligence artificielle »**, avec le modèle, l’organisme et la date ou la campagne de production. Une validation humaine n’est jamais déduite d’une relecture technique ou d’un accord global : elle n’est déclarée que si elle a réellement eu lieu et selon son périmètre exact.
+Une traduction nouvelle produite pour Corpus Scriptura est un texte éditorial dérivé d’un original identifié. ⛔ **Elle ne se substitue jamais au témoin source et ne doit jamais être présentée comme une traduction historique.** Lorsqu’elle est produite, même partiellement, par une intelligence artificielle, cette origine est indiquée sans ambiguïté dans la version, la notice et les métadonnées : **« Traduction produite par intelligence artificielle »**, avec le modèle, l’organisme et la date ou la campagne de production. ⛔ **Une validation humaine n’est jamais déduite d’une relecture technique ou d’un accord global : elle n’est déclarée que si elle a réellement eu lieu et selon son périmètre exact.**
 
-La traduction part du texte original établi dans Corpus Scriptura. Les traductions antérieures peuvent servir de témoins de contrôle, jamais de texte à paraphraser silencieusement. Tout emprunt volontaire, toute dépendance substantielle ou toute comparaison décisive avec une traduction existante est documenté.
+La traduction part du texte original établi dans Corpus Scriptura. ⛔ **Les traductions antérieures peuvent servir de témoins de contrôle, jamais de texte à paraphraser silencieusement.** ⛔ **Tout emprunt volontaire, toute dépendance substantielle ou toute comparaison décisive avec une traduction existante est documenté.**
 
-**Principe de langue.** La fidélité lexicale, morphologique, sémantique et, lorsqu’elle éclaire le sens, étymologique prime sur l’élégance moderne. On conserve autant que le français le permet les répétitions, les familles de mots, les parallélismes, les termes techniques, les images et les étrangetés signifiantes de l’original. On ne lisse pas une syntaxe rugueuse simplement pour rendre la phrase plus plaisante. Le français doit rester intelligible, grammatical et exact ; il peut être savant, rare ou légèrement étrange si cette étrangeté répond à celle du texte. ⛔ Aucun archaïsme décoratif, aucun faux médiévisme et aucune amplification rhétorique ne sont ajoutés pour donner une couleur ancienne.
+**Principe de langue.** ⛔ **La fidélité lexicale, morphologique, sémantique et, lorsqu’elle éclaire le sens, étymologique prime sur l’élégance moderne.** On conserve autant que le français le permet les répétitions, les familles de mots, les parallélismes, les termes techniques, les images et les étrangetés signifiantes de l’original. ⛔ **On ne lisse pas une syntaxe rugueuse simplement pour rendre la phrase plus plaisante.** Le français doit rester intelligible, grammatical et exact ; il peut être savant, rare ou légèrement étrange si cette étrangeté répond à celle du texte. ⛔ **Aucun archaïsme décoratif, aucun faux médiévisme et aucune amplification rhétorique ne sont ajoutés pour donner une couleur ancienne.**
 
-Une transposition syntaxique n’est admise que lorsqu’une conservation plus étroite produirait un contresens, une ambiguïté indue ou un français réellement inintelligible. Dans ce cas, le mouvement logique de la phrase, les rapports de dépendance et les reprises lexicales sont conservés autant que possible. Les mots ajoutés pour la seule intelligibilité restent minimaux.
+⛔ **Une transposition syntaxique n’est admise que lorsqu’une conservation plus étroite produirait un contresens, une ambiguïté indue ou un français réellement inintelligible.** Dans ce cas, le mouvement logique de la phrase, les rapports de dépendance et les reprises lexicales sont conservés autant que possible. ⛔ **Les mots ajoutés pour la seule intelligibilité restent minimaux.**
 
-**Lexique de contrôle.** Les dictionnaires sont employés selon leur domaine, non selon une hiérarchie mécanique : Albert Blaise pour le latin chrétien ; le Mittellateinisches Wörterbuch, Niermeyer et Du Cange pour le latin médiéval, en privilégiant les attestations contemporaines ou propres à l’auteur lorsqu’elles existent ; Gaffiot et, au besoin, Lewis & Short pour le fonds classique et les filiations sémantiques. Les emplois bibliques sont contrôlés contre la Vulgate ou le témoin scripturaire pertinent. Le contexte de l’auteur et du passage prévaut toujours sur une équivalence de dictionnaire isolée. Une traduction destinée à être stabilisée tient un relevé des termes récurrents et de leurs choix français afin d’éviter les variations gratuites.
+**Lexique de contrôle.** Les dictionnaires sont employés selon leur domaine, non selon une hiérarchie mécanique : Albert Blaise pour le latin chrétien ; le Mittellateinisches Wörterbuch, Niermeyer et Du Cange pour le latin médiéval, en privilégiant les attestations contemporaines ou propres à l’auteur lorsqu’elles existent ; Gaffiot et, au besoin, Lewis & Short pour le fonds classique et les filiations sémantiques. Les emplois bibliques sont contrôlés contre la Vulgate ou le témoin scripturaire pertinent. ⛔ **Le contexte de l’auteur et du passage prévaut toujours sur une équivalence de dictionnaire isolée.** Une traduction destinée à être stabilisée tient un relevé des termes récurrents et de leurs choix français afin d’éviter les variations gratuites.
 
-**Notes de traduction.** Une note est requise lorsqu’un choix difficile infléchit sensiblement le sens, lorsqu’un terme chrétien ou médiéval possède une valeur technique, lorsqu’un mot français rare ou étymologiquement proche risque d’être mal compris, lorsqu’une ambiguïté de l’original ne peut être conservée sans explication, ou lorsqu’un problème textuel affecte la traduction. La note indique aussi brièvement que nécessaire le lemme ou la construction source, le choix retenu, l’alternative importante et la raison de l’arbitrage ; le dictionnaire de contrôle peut être nommé lorsqu’il a réellement déterminé la décision. Les choix évidents ne sont pas surannotés.
+**Notes de traduction.** Une note est requise lorsqu’un choix difficile infléchit sensiblement le sens, lorsqu’un terme chrétien ou médiéval possède une valeur technique, lorsqu’un mot français rare ou étymologiquement proche risque d’être mal compris, lorsqu’une ambiguïté de l’original ne peut être conservée sans explication, ou lorsqu’un problème textuel affecte la traduction. La note indique aussi brièvement que nécessaire le lemme ou la construction source, le choix retenu, l’alternative importante et la raison de l’arbitrage ; le dictionnaire de contrôle peut être nommé lorsqu’il a réellement déterminé la décision. ⚠️ **Les choix évidents ne sont pas surannotés.**
 
-**Forme littéraire.** La forme de la traduction cible est déclarée par mission. Quand la mission conserve la poésie en vers, la ligne de vers est maintenue sans chercher à reproduire le mètre : sauf consigne contraire, on n’imite ni le mètre, ni la rime, ni une compensation métrique. Si la mission demande une traduction en prose, la ligne de vers n’est pas recréée. La structure poétique de l’original demeure conservée dans son propre texte et ses métadonnées ; les effets poétiques indispensables au sens peuvent être signalés en note.
+**Forme littéraire.** La forme de la traduction cible est déclarée par mission. Quand la mission conserve la poésie en vers, la ligne de vers est maintenue sans chercher à reproduire le mètre : ⛔ **sauf consigne contraire, on n’imite ni le mètre, ni la rime, ni une compensation métrique**. ⛔ **Si la mission demande une traduction en prose, la ligne de vers n’est pas recréée.** La structure poétique de l’original demeure conservée dans son propre texte et ses métadonnées ; les effets poétiques indispensables au sens peuvent être signalés en note.
 
-**Phase d’essai.** Des essais peuvent être produits hors publication avant création ou promotion d’une version textuelle. Tant que le protocole lexical et stylistique n’est pas approuvé, ces essais restent expérimentaux, privés et non validés humainement. La matérialisation en base ne commence qu’après fixation du profil de traduction de la mission, de son étiquetage d’origine et de sa méthode d’alignement avec l’original.
+**Phase d’essai.** Des essais peuvent être produits hors publication avant création ou promotion d’une version textuelle. Tant que le protocole lexical et stylistique n’est pas approuvé, ⛔ **ces essais restent expérimentaux, privés et non validés humainement**. ⛔ **La matérialisation en base ne commence qu’après fixation du profil de traduction de la mission**, de son étiquetage d’origine et de sa méthode d’alignement avec l’original.
 
 ### 11.1 Objets et identifiants
 
-Une œuvre (`oeuvres`) peut posséder plusieurs versions textuelles dans `oeuvre_textes` lorsqu’elles relèvent de la même œuvre éditoriale : traductions, éditions ou états distincts destinés à rester sous le même `id_oeuvre`. Toute nouvelle importation textuelle reçoit un `id_texte` stable et appartient à un seul `id_oeuvre`. **Un original latin ou grec destiné à exister comme œuvre autonome n’est pas une simple version de la traduction : il reçoit sa propre ligne dans `oeuvres`, conformément au § 12.1 et au § 19.2.**
+Une œuvre (`oeuvres`) peut posséder plusieurs versions textuelles dans `oeuvre_textes` lorsqu’elles relèvent de la même œuvre éditoriale : traductions, éditions ou états distincts destinés à rester sous le même `id_oeuvre`. ⛔ **Toute nouvelle importation textuelle reçoit un `id_texte` stable et appartient à un seul `id_oeuvre`.** **Un original latin ou grec destiné à exister comme œuvre autonome n’est pas une simple version de la traduction : il reçoit sa propre ligne dans `oeuvres`, conformément au § 12.1 et au § 19.2.**
 
 La version porte notamment son identité d’édition, sa langue, son traducteur le cas échéant, son lien vers `catalogue_notices`, son statut, ses indicateurs `is_default` et `is_public`, ses empreintes de sources et ses métadonnées.
 
@@ -1419,11 +1425,11 @@ Le format d’échange des segments comprend au minimum :
 
 `id_texte`, `id_oeuvre`, `segment_key`, `source_unit_id` lorsque disponible, `segment_numero`, `segment_texte`, `ref_niv1` à `ref_niv5`, `ref_niv1_texte` à `ref_niv5_texte`, `paragraphe`, `rang`, `nature`, `espace_textuel`, ainsi que les offsets, `join_before` et métadonnées lorsqu’ils existent.
 
-`segments.notes` et `segments.texte_original` sont des champs hérités ou de compatibilité. Ils ne constituent plus la source normative d’une nouvelle note structurée ni d’un nouvel alignement entre versions. Toute œuvre ancienne encore dépendante de `segments.notes` doit être inscrite à la migration progressive définie au § 8.1 ; une nouvelle importation constitue ses notes directement dans le modèle structuré.
+`segments.notes` et `segments.texte_original` sont des champs hérités ou de compatibilité. ⛔ **Ils ne constituent plus la source normative d’une nouvelle note structurée ni d’un nouvel alignement entre versions.** Toute œuvre ancienne encore dépendante de `segments.notes` doit être inscrite à la migration progressive définie au § 8.1 ; une nouvelle importation constitue ses notes directement dans le modèle structuré.
 
-Les liens bibliques ne sont jamais importés comme colonnes de segment : ils suivent leur propre phase et leur propre table.
+⛔ **Les liens bibliques ne sont jamais importés comme colonnes de segment : ils suivent leur propre phase et leur propre table.**
 
-Tout CSV reste encodé en UTF-8. Les retours de ligne internes, guillemets et séparateurs sont échappés selon la norme CSV. Un import ne doit jamais perdre silencieusement une colonne inconnue : il la refuse ou la signale avant écriture.
+⚠️ **Tout CSV reste encodé en UTF-8.** Les retours de ligne internes, guillemets et séparateurs sont échappés selon la norme CSV. ⛔ **Un import ne doit jamais perdre silencieusement une colonne inconnue : il la refuse ou la signale avant écriture.**
 
 ### 11.2 Préparation
 
@@ -1437,13 +1443,13 @@ Avant import :
 6. contrôler l’unicité de `(id_texte, segment_numero)` et de `(id_texte, segment_key)` ;
 7. contrôler les clés de paragraphes et les rangs ;
 8. contrôler les notes structurées, leurs ancres et leur numérotation ;
-9. contrôler les alignements éventuels sans supposer de cardinalité `1:1` ;
+9. ⛔ **contrôler les alignements éventuels sans supposer de cardinalité `1:1`** ;
 10. recomposer chaque unité et la version entière pour détecter pertes, doublons et inversions ;
 11. effectuer des sondages répartis contre la source.
 
 ### 11.3 Écriture
 
-Importer par lots bornés et transactionnels. Une erreur arrête l’opération et déclenche le retour arrière du seul périmètre créé par l’import. Ne jamais supprimer une œuvre ou une version préexistante pour contourner un conflit d’identifiant. Les importeurs construisent `oeuvre_textes.edition_label` depuis les champs structurés validés — lieu, autorité d’éditeur et année de référence — au lieu d’y recopier une citation bibliographique développée ou une chaîne spécifique à un ouvrage. Une réimportation ne doit jamais réintroduire une variante d’éditeur, une collection, un tome, une pagination, une mention de responsabilité ou une chronologie détaillée dans ce libellé. Les informations supprimées du libellé restent conservées dans leurs champs structurés, les métadonnées de provenance ou les notes appropriées.
+⛔ **Importer par lots bornés et transactionnels. Une erreur arrête l’opération et déclenche le retour arrière du seul périmètre créé par l’import.** ⛔ **Ne jamais supprimer une œuvre ou une version préexistante pour contourner un conflit d’identifiant.** Les importeurs construisent `oeuvre_textes.edition_label` depuis les champs structurés validés — lieu, autorité d’éditeur et année de référence — au lieu d’y recopier une citation bibliographique développée ou une chaîne spécifique à un ouvrage. ⛔ **Une réimportation ne doit jamais réintroduire une variante d’éditeur, une collection, un tome, une pagination, une mention de responsabilité ou une chronologie détaillée dans ce libellé.** ⚠️ **Les informations supprimées du libellé restent conservées dans leurs champs structurés, les métadonnées de provenance ou les notes appropriées.**
 
 Après import, relire depuis la base `oeuvre_textes`, les unités, les segments, les notes, les ancres et les alignements concernés ; comparer les décomptes, les empreintes, les recompositions et des passages répartis.
 
@@ -1668,7 +1674,9 @@ Deux représentations d’un appel sont admises, mais elles ne doivent jamais ê
 
 Pour une cible `source_target = 'segment_texte'`, `segment_offset_unicode` désigne la frontière où l’appel doit paraître. **Les offsets sont comptés en points de code Unicode et sont indexés à partir de zéro.** La valeur `0` place l’appel au début ; une valeur égale à la longueur Unicode place l’appel à la fin. `anchor_text_left` et `anchor_text_right` servent à contrôler la position contre le texte source ; ils ne remplacent ni le texte ni l’offset et ne servent pas à deviner une position différente.
 
-`source_target` nomme toujours le champ réellement ciblé : il ne contient ni `note_key`, ni identifiant de note, ni libellé arbitraire. Quand `anchor_id` encode lui-même une cible — par exemple avec le suffixe `:segment_texte` — cette cible et `source_target` doivent être identiques. Aux longueurs déclarées, le suffixe de `anchor_text_left` et le préfixe de `anchor_text_right` coïncident exactement avec le texte placé de part et d’autre de l’offset. Une différence de casse dans une phrase témoin est corrigée dans la métadonnée témoin, jamais en déplaçant un offset qui correspond déjà au texte.\n\nAprès une resegmentation, ces fenêtres contextuelles restent des témoins de l’unité source : elles peuvent donc franchir une frontière de segment. Dans ce cas, leur validation se fait contre `oeuvre_texte_unites.clean_text`, via `source_unit_id` et `source_unit_offset_unicode`, et non en exigeant que toute la fenêtre tienne dans le seul `segment_texte`. Si le marqueur et `segment_offset_unicode` sont exacts dans le segment, une continuation de `anchor_text_right` dans le segment suivant n’est pas une ancre fautive.
+`source_target` nomme toujours le champ réellement ciblé : il ne contient ni `note_key`, ni identifiant de note, ni libellé arbitraire. Quand `anchor_id` encode lui-même une cible — par exemple avec le suffixe `:segment_texte` — cette cible et `source_target` doivent être identiques. Aux longueurs déclarées, le suffixe de `anchor_text_left` et le préfixe de `anchor_text_right` coïncident exactement avec le texte placé de part et d’autre de l’offset. Une différence de casse dans une phrase témoin est corrigée dans la métadonnée témoin, jamais en déplaçant un offset qui correspond déjà au texte.
+
+Après une resegmentation, ces fenêtres contextuelles restent des témoins de l’unité source : elles peuvent donc franchir une frontière de segment. Dans ce cas, leur validation se fait contre `oeuvre_texte_unites.clean_text`, via `source_unit_id` et `source_unit_offset_unicode`, et non en exigeant que toute la fenêtre tienne dans le seul `segment_texte`. Si le marqueur et `segment_offset_unicode` sont exacts dans le segment, une continuation de `anchor_text_right` dans le segment suivant n’est pas une ancre fautive.
 
 L’application reconstruit au rendu une **projection textuelle** en insérant les marqueurs aux frontières déclarées, puis confie cette projection au moteur commun des appels de note. Elle ne réécrit jamais `segments.segment_texte` pour satisfaire l’interface. Le calcul suit les points de code Unicode, applique les insertions de la fin vers le début, ordonne de manière stable plusieurs appels à la même frontière et demeure idempotent : un marqueur déjà matériel n’est pas dupliqué. La copie, le signalement et l’édition administrative continuent d’utiliser le texte canonique sans projection.
 
@@ -1917,7 +1925,7 @@ Demandé par l’auteur le 5 septembre 2026 : « Il faut évidemment lister les 
 
 ## 14. OCR, HTR et transcription patrimoniale
 
-Cette section régit deux opérations différentes : l’océrisation des imprimés anciens et la transcription assistée des manuscrits. Un moteur d’OCR ou de HTR produit un brouillon. Il ne produit jamais, à lui seul, un texte éditorial validé.
+Cette section régit deux opérations différentes : l’océrisation des imprimés anciens et la transcription assistée des manuscrits. ⛔ **Un moteur d’OCR ou de HTR produit un brouillon. Il ne produit jamais, à lui seul, un texte éditorial validé.**
 
 ### 14.1 Niveaux de texte et statuts
 
@@ -1930,13 +1938,13 @@ Toujours distinguer :
 - le texte validé et importé ;
 - les éventuelles couches développée ou modernisée.
 
-Les mots `transcrit`, `relu`, `validé` et `importé` ne sont pas synonymes. Le statut public indique le niveau réellement atteint. Un lot non relu reste explicitement provisoire, même si son XML est valide et si les tests techniques réussissent.
+⛔ **Les mots `transcrit`, `relu`, `validé` et `importé` ne sont pas synonymes. Le statut public indique le niveau réellement atteint.** ⛔ **Un lot non relu reste explicitement provisoire, même si son XML est valide et si les tests techniques réussissent.**
 
 ### 14.2 Autorité de la source et traçabilité
 
-Le fac-similé demeure l’autorité. Une couche texte, un OCR, une HTR, une édition moderne, une traduction parallèle ou le contexte attendu ne peuvent le remplacer.
+⛔ **Le fac-similé demeure l’autorité. Une couche texte, un OCR, une HTR, une édition moderne, une traduction parallèle ou le contexte attendu ne peuvent le remplacer.**
 
-Chaque unité conserve un lien stable avec la source : pour un imprimé, la page ou la vue du fac-similé peut être conservée comme localisateur de preuve dans le dossier de travail ou les métadonnées de source, sans être projetée comme pagination structurelle dans les segments ; pour un manuscrit, feuillet, face, colonne et ligne restent les localisateurs matériels. Les identifiants suivent l’ordre matériel et ne sont jamais recréés pour satisfaire un comptage attendu.
+Chaque unité conserve un lien stable avec la source : pour un imprimé, la page ou la vue du fac-similé peut être conservée comme localisateur de preuve dans le dossier de travail ou les métadonnées de source, ⛔ **sans être projetée comme pagination structurelle dans les segments** ; pour un manuscrit, feuillet, face, colonne et ligne restent les localisateurs matériels. ⛔ **Les identifiants suivent l’ordre matériel et ne sont jamais recréés pour satisfaire un comptage attendu.**
 
 Conserver, selon le cas :
 
@@ -1947,12 +1955,12 @@ Conserver, selon le cas :
 - les bornes exactes du lot ;
 - les scripts, conventions et rapports nécessaires à la reproduction du travail.
 
-Ne jamais inventer une zone, une ligne ou une coordonnée absente. Une colonne vide ou partielle reste vide ou partielle.
+⛔ **Ne jamais inventer une zone, une ligne ou une coordonnée absente. Une colonne vide ou partielle reste vide ou partielle.**
 
 
 ### 14.3 Imprimés et éditions non médiévales
 
-Extraire le texte page par page. Comparer toute couche texte du PDF avec l’image. Si elle est défectueuse, lancer un OCR contrôlé sur les pages concernées.
+⛔ **Extraire le texte page par page. Comparer toute couche texte du PDF avec l’image.** Si elle est défectueuse, lancer un OCR contrôlé sur les pages concernées.
 
 La relecture vérifie notamment :
 
@@ -1966,19 +1974,19 @@ La relecture vérifie notamment :
 - italiques et autres enrichissements ;
 - début et fin de chaque division.
 
-Une erreur d’OCR est corrigée contre le fac-similé : le texte éditorial reprend ce qui est réellement imprimé. Une erreur certaine de l’édition imprimée elle-même est également corrigée dans le texte publié. Lorsqu’une émendation reste discutable, que la leçon source peut présenter un intérêt ou que la correction n’est pas absolument univoque, ajouter une note éditoriale explicite, par exemple : `Note de l’éditeur : la version d’origine donne « XXXX ».` La note distingue toujours la leçon imprimée de la correction retenue.
+⛔ **Une erreur d’OCR est corrigée contre le fac-similé : le texte éditorial reprend ce qui est réellement imprimé.** Une erreur certaine de l’édition imprimée elle-même est également corrigée dans le texte publié. Lorsqu’une émendation reste discutable, que la leçon source peut présenter un intérêt ou que la correction n’est pas absolument univoque, ajouter une note éditoriale explicite, par exemple : `Note de l’éditeur : la version d’origine donne « XXXX ».` ⛔ **La note distingue toujours la leçon imprimée de la correction retenue.**
 
-Réunir un mot coupé typographiquement en fin de ligne ou de page. Conserver un trait d’union lexical réel. Pour les éditions non médiévales, appliquer la normalisation typographique et glyphique du § 3, notamment `ſ` vers `s` et les ligatures équivalentes, sans moderniser l’orthographe, les désinences, le vocabulaire ou la syntaxe.
+⛔ **Réunir un mot coupé typographiquement en fin de ligne ou de page. Conserver un trait d’union lexical réel.** Pour les éditions non médiévales, appliquer la normalisation typographique et glyphique du § 3, notamment `ſ` vers `s` et les ligatures équivalentes, ⛔ **sans moderniser l’orthographe, les désinences, le vocabulaire ou la syntaxe**.
 
-Cette règle d’émendation des éditions imprimées ne transforme pas une transcription diplomatique médiévale en édition corrigée. Les témoins médiévaux et manuscrits suivent les conventions spécifiques des §§ 14.4 à 14.6.
+⛔ **Cette règle d’émendation des éditions imprimées ne transforme pas une transcription diplomatique médiévale en édition corrigée.** Les témoins médiévaux et manuscrits suivent les conventions spécifiques des §§ 14.4 à 14.6.
 
 ### 14.4 Manuscrits et HTR
 
-La HTR sert au repérage et à la préparation d’un brouillon. Chaque ligne destinée au corpus doit être confrontée visuellement au manuscrit.
+La HTR sert au repérage et à la préparation d’un brouillon. ⛔ **Chaque ligne destinée au corpus doit être confrontée visuellement au manuscrit.**
 
 La transcription diplomatique conserve ce qui est effectivement visible, selon les conventions du projet : graphies, signes tironiens, abréviations, coupures matérielles, formes fautives ou inhabituelles, lacunes, ajouts et lectures incertaines.
 
-Ne jamais corriger un passage parce qu’une autre Bible, une édition critique, la grammaire ou le sens attendu proposent une forme plus vraisemblable. Ces sources peuvent signaler une difficulté ; elles ne décident pas de la lecture.
+⛔ **Ne jamais corriger un passage parce qu’une autre Bible, une édition critique, la grammaire ou le sens attendu proposent une forme plus vraisemblable. Ces sources peuvent signaler une difficulté ; elles ne décident pas de la lecture.**
 
 Pour chaque ligne, vérifier particulièrement :
 
@@ -1991,40 +1999,40 @@ Pour chaque ligne, vérifier particulièrement :
 
 ### 14.5 Encodage des difficultés
 
-Une lecture indécidable reste incertaine. Employer les structures prévues, notamment `unclear`, `gap`, `add`, `choice`, `abbr`, `expan`, `fw` et `break="no"`, sans les détourner pour rendre le texte plus lisible.
+⛔ **Une lecture indécidable reste incertaine.** Employer les structures prévues, notamment `unclear`, `gap`, `add`, `choice`, `abbr`, `expan`, `fw` et `break="no"`, ⛔ **sans les détourner pour rendre le texte plus lisible**.
 
-`unclear` porte sur une difficulté réelle de lecture, non sur une simple absence de relecture. Une suite manifestement fautive ne devient pas acceptable parce qu’elle est placée dans `unclear` : décrire au moins les lettres certaines et réexaminer la ligne.
+⛔ **`unclear` porte sur une difficulté réelle de lecture, non sur une simple absence de relecture.** ⛔ **Une suite manifestement fautive ne devient pas acceptable parce qu’elle est placée dans `unclear`** : décrire au moins les lettres certaines et réexaminer la ligne.
 
-`break="no"` signale la continuation d’un même mot. Vérifier les raccords entre lignes, colonnes, feuillets et lots. Les comptages globaux ne doivent jamais conduire à ajouter ou retirer artificiellement une coupure.
+`break="no"` signale la continuation d’un même mot. Vérifier les raccords entre lignes, colonnes, feuillets et lots. ⛔ **Les comptages globaux ne doivent jamais conduire à ajouter ou retirer artificiellement une coupure.**
 
 ### 14.6 Couches diplomatique, développée et modernisée
 
 Ces trois niveaux sont distincts.
 
 - La couche diplomatique transcrit le témoin.
-- La couche développée résout uniquement les abréviations prévues par les conventions. Elle ne corrige ni l’orthographe, ni la syntaxe, ni le vocabulaire.
+- La couche développée résout uniquement les abréviations prévues par les conventions. ⛔ **Elle ne corrige ni l’orthographe, ni la syntaxe, ni le vocabulaire.**
 - La graphie modernisée constitue une édition dérivée. Elle exige une charte propre, une reconstruction depuis la transcription active et des liens explicites vers les unités sources.
 
-Il est interdit de fabriquer une graphie modernisée par simple concaténation des lignes développées. Les mots coupés doivent être réunis, les transformations doivent être explicites et les lacunes ou incertitudes doivent rester représentées.
+⛔ **Il est interdit de fabriquer une graphie modernisée par simple concaténation des lignes développées.** Les mots coupés doivent être réunis, les transformations doivent être explicites et les lacunes ou incertitudes doivent rester représentées.
 
-Une couche modernisée partielle, hétérogène, non synchronisée ou identique au texte développé reçoit un statut provisoire et n’est pas affichée publiquement. Toute correction de la transcription source doit pouvoir être propagée ou détectée par un test de synchronisation.
+⛔ **Une couche modernisée partielle, hétérogène, non synchronisée ou identique au texte développé reçoit un statut provisoire et n’est pas affichée publiquement.** ⛔ **Toute correction de la transcription source doit pouvoir être propagée ou détectée par un test de synchronisation.**
 
 ### 14.7 Lots, premières passes et relectures
 
 De grands lots sont admis si la traçabilité est conservée. Les diviser en blocs internes servant aux sauvegardes, aux empreintes et aux contrôles de structure. Ces blocs ne deviennent pas nécessairement des lots éditoriaux distincts.
 
-Une première passe assistée n’équivaut pas à une relecture. Après la transcription, effectuer selon le risque :
+⛔ **Une première passe assistée n’équivaut pas à une relecture.** Après la transcription, effectuer selon le risque :
 
 - une relecture complète ligne par ligne ;
 - ou un contrôle ciblé des lectures incertaines, complété par des sondages répartis sur le lot.
 
-Si les sondages découvrent plusieurs erreurs certaines dans des colonnes différentes, le contrôle ciblé est insuffisant : reprendre une passe visuelle sur l’ensemble du lot, en corrigeant le brouillon existant sans le ressaisir inutilement.
+⛔ **Si les sondages découvrent plusieurs erreurs certaines dans des colonnes différentes, le contrôle ciblé est insuffisant** : reprendre une passe visuelle sur l’ensemble du lot, en corrigeant le brouillon existant sans le ressaisir inutilement.
 
-Un nombre élevé de lignes déclaré relu dans un temps matériellement invraisemblable constitue un signal d’alerte, non une preuve de qualité. Les mentions telles que `direct_visual_review` ne sont inscrites que lorsqu’une comparaison visuelle a réellement eu lieu.
+⚠️ **Un nombre élevé de lignes déclaré relu dans un temps matériellement invraisemblable constitue un signal d’alerte, non une preuve de qualité.** ⛔ **Les mentions telles que `direct_visual_review` ne sont inscrites que lorsqu’une comparaison visuelle a réellement eu lieu.**
 
 ### 14.8 Contrôles éditoriaux
 
-Les contrôles automatiques prouvent la cohérence du fichier, non l’exactitude paléographique. Un faux déchiffrement parfaitement encodé peut réussir XML, Relax NG, les tests et le build.
+⛔ **Les contrôles automatiques prouvent la cohérence du fichier, non l’exactitude paléographique. Un faux déchiffrement parfaitement encodé peut réussir XML, Relax NG, les tests et le build.**
 
 Avant validation d’un lot :
 
@@ -2034,11 +2042,11 @@ Avant validation d’un lot :
 - comparer les corrections annoncées avec les images ;
 - consigner les erreurs certaines, les corrections probables et les doutes maintenus.
 
-Les preuves visuelles sont réservées aux cas difficiles, contestables ou structurants. Elles ne sont pas exigées pour chaque ligne correcte.
+⚠️ **Les preuves visuelles sont réservées aux cas difficiles, contestables ou structurants.** Elles ne sont pas exigées pour chaque ligne correcte.
 
 ### 14.9 Versions, candidats et import
 
-Le candidat reste séparé du TEI actif jusqu’à validation. Avant tout import :
+⛔ **Le candidat reste séparé du TEI actif jusqu’à validation.** Avant tout import :
 
 - calculer l’empreinte du TEI actif et du manifeste ;
 - vérifier qu’ils correspondent à la base attendue ;
@@ -2047,9 +2055,9 @@ Le candidat reste séparé du TEI actif jusqu’à validation. Avant tout import
 - produire un diff intégral et vérifier qu’il reconstruit le candidat octet pour octet ;
 - valider XML, Relax NG, identifiants, images, parseur, tests, lint et build.
 
-L’import est transactionnel. Après import, régénérer le manifeste, vérifier les images et les comptages, puis contrôler quelques lectures repères.
+⛔ **L’import est transactionnel.** Après import, régénérer le manifeste, vérifier les images et les comptages, puis contrôler quelques lectures repères.
 
-L’empreinte d’un candidat peut changer lors de sa promotion si seules les métadonnées passent de `candidate` à `active`. Cette nouvelle empreinte doit être certifiée par un diff montrant qu’aucun texte n’a changé. On ne restaure jamais automatiquement un ancien fichier sur la seule base d’une différence d’empreinte.
+L’empreinte d’un candidat peut changer lors de sa promotion si seules les métadonnées passent de `candidate` à `active`. ⛔ **Cette nouvelle empreinte doit être certifiée par un diff montrant qu’aucun texte n’a changé. On ne restaure jamais automatiquement un ancien fichier sur la seule base d’une différence d’empreinte.**
 
 ### 14.10 Comptages et avancement
 
@@ -2063,21 +2071,21 @@ Distinguer toujours :
 - unités relues ;
 - unités importées.
 
-Un champ nommé `folios` ne doit pas contenir un nombre de faces. Les pourcentages d’avancement précisent leur dénominateur et leur statut : matériellement transcrit, relu ou intégré dans le corpus actif.
+⛔ **Un champ nommé `folios` ne doit pas contenir un nombre de faces.** ⛔ **Les pourcentages d’avancement précisent leur dénominateur et leur statut** : matériellement transcrit, relu ou intégré dans le corpus actif.
 
-Les nombres de `unclear`, `gap`, `choice`, `add`, `fw` et `break="no"` sont comptés selon une couche et un parseur explicitement nommés. Ne pas confondre les occurrences diplomatiques avec celles de l’ensemble du XML.
+Les nombres de `unclear`, `gap`, `choice`, `add`, `fw` et `break="no"` sont comptés selon une couche et un parseur explicitement nommés. ⛔ **Ne pas confondre les occurrences diplomatiques avec celles de l’ensemble du XML.**
 
 ### 14.11 Paquets de contrôle et archives
 
 Conserver localement une archive complète contenant le candidat, les images, les rapports, les CSV, le manifeste, les comptages, le diff et les empreintes.
 
-Pour un contrôle distant, produire si nécessaire un paquet léger contenant le TEI, le diff, les rapports, les CSV et un choix d’images ou de recadrages. Le paquet léger ne remplace pas l’archive complète.
+Pour un contrôle distant, produire si nécessaire un paquet léger contenant le TEI, le diff, les rapports, les CSV et un choix d’images ou de recadrages. ⛔ **Le paquet léger ne remplace pas l’archive complète.**
 
-Tous les fichiers annoncés dans un manifeste ou un index de preuves doivent être présents. Supprimer les références mortes plutôt que prétendre fournir des images absentes.
+⛔ **Tous les fichiers annoncés dans un manifeste ou un index de preuves doivent être présents. Supprimer les références mortes plutôt que prétendre fournir des images absentes.**
 
 ### 14.12 Nettoyage
 
-Nettoyer seulement après vérification de l’archive finale et réussite de l’import.
+⛔ **Nettoyer seulement après vérification de l’archive finale et réussite de l’import.**
 
 Conserver impérativement :
 
@@ -2088,11 +2096,11 @@ Conserver impérativement :
 - les schémas, tests et scripts utiles ;
 - les rapports d’import et de validation.
 
-Supprimer seulement les caches, environnements temporaires, doubles pages redondantes, planches-contact et copies de travail intégralement contenues dans une archive finale vérifiée. Ne supprimer aucun fichier ambigu. Consigner les suppressions importantes.
+Supprimer seulement les caches, environnements temporaires, doubles pages redondantes, planches-contact et copies de travail intégralement contenues dans une archive finale vérifiée. ⛔ **Ne supprimer aucun fichier ambigu. Consigner les suppressions importantes.**
 
 ### 14.13 Césures de mots entre unités source
 
-Une césure typographique/OCR située à la frontière de deux unités source ne doit jamais être absorbée artificiellement par une seule unité de lecture. Les deux fragments lexicaux restent rattachés à leurs unités source respectives et sont réunis au rendu par `join_before = ''`. Le trait de césure de fin de ligne/page est un signe matériel du témoin : il n’entre pas dans le mot normalisé. Les guillemets de continuation ajoutés par l’OCR ou par la mise en page ne sont pas réinjectés s’ils ne correspondent pas à un nouveau guillemet sémantique. Avant toute correction, contrôler les deux unités voisines ; ne jamais reconstruire un mot à partir d’une seule unité si le second fragment appartient à la suivante. Exemples validés : `représente-` + `t-il` → `représente-t-il` ; `mou-` + `vements` → `mouvements` ; `si-` + `gnalé` → `signalé`.
+⛔ **Une césure typographique/OCR située à la frontière de deux unités source ne doit jamais être absorbée artificiellement par une seule unité de lecture.** Les deux fragments lexicaux restent rattachés à leurs unités source respectives et sont réunis au rendu par `join_before = ''`. ⛔ **Le trait de césure de fin de ligne/page est un signe matériel du témoin : il n’entre pas dans le mot normalisé.** Les guillemets de continuation ajoutés par l’OCR ou par la mise en page ne sont pas réinjectés s’ils ne correspondent pas à un nouveau guillemet sémantique. Avant toute correction, contrôler les deux unités voisines ; ⛔ **ne jamais reconstruire un mot à partir d’une seule unité si le second fragment appartient à la suivante**. Exemples validés : `représente-` + `t-il` → `représente-t-il` ; `mou-` + `vements` → `mouvements` ; `si-` + `gnalé` → `signalé`.
 
 
 ### 14.14 Transposition de lignes OCR et provenance
@@ -2180,35 +2188,35 @@ La table `traductions` tient deux choses. Les traductions de la BIBLE, qui porte
 
 ## 16. Auteurs, œuvres et catalogue
 
-Les identifiants sont stables et ne sont pas recyclés. Supprimer une coquille vide ou une œuvre explicitement abandonnée exige de vérifier d’abord ses segments, liens, dépendances et statut de publication.
+⛔ **Les identifiants sont stables et ne sont pas recyclés.** ⛔ **Supprimer une coquille vide ou une œuvre explicitement abandonnée exige de vérifier d’abord ses segments, liens, dépendances et statut de publication.**
 
-Publier une œuvre signifie que sa notice, son texte, sa structure et ses contrôles minimaux sont prêts. **La publication tient à UN SEUL drapeau, `oeuvres.acces_public` (3 septembre 2026)** : c’est lui que lisent les politiques RLS, le trigger `oeuvres_depublication_textes` et toutes les listes du site. ⛔ Le marqueur `[Corpus Scriptura:depublie]` dans `oeuvres.note` n’existe plus, ni la colonne `note` : un champ de prose qui portait un drapeau de contrôle faisait perdre la note éditoriale à chaque dépublication, et le site et la base jugeaient sur deux colonnes qui pouvaient se contredire. Une œuvre en préparation, notamment un original autonome encore incomplet, reste à `acces_public = false` tant qu’elle ne doit pas paraître, et son motif s’écrit dans `acces_public_note`. Dépublier ne détruit aucune donnée. La première date de mise en ligne reste attachée à l’édition en ligne et n’est pas réécrite lors d’une republication.
+Publier une œuvre signifie que sa notice, son texte, sa structure et ses contrôles minimaux sont prêts. **La publication tient à UN SEUL drapeau, `oeuvres.acces_public` (3 septembre 2026)** : c’est lui que lisent les politiques RLS, le trigger `oeuvres_depublication_textes` et toutes les listes du site. ⛔ Le marqueur `[Corpus Scriptura:depublie]` dans `oeuvres.note` n’existe plus, ni la colonne `note` : un champ de prose qui portait un drapeau de contrôle faisait perdre la note éditoriale à chaque dépublication, et le site et la base jugeaient sur deux colonnes qui pouvaient se contredire. Une œuvre en préparation, notamment un original autonome encore incomplet, reste à `acces_public = false` tant qu’elle ne doit pas paraître, et son motif s’écrit dans `acces_public_note`. ⚠️ **Dépublier ne détruit aucune donnée.** ⛔ **La première date de mise en ligne reste attachée à l’édition en ligne et n’est pas réécrite lors d’une republication.**
 
-Les statuts de `oeuvre_textes` continuent de qualifier les versions textuelles elles-mêmes ; ils ne remplacent pas `acces_public`, qui seul décide de la visibilité de l’œuvre dans la bibliothèque.
+Les statuts de `oeuvre_textes` continuent de qualifier les versions textuelles elles-mêmes ; ⛔ **ils ne remplacent pas `acces_public`, qui seul décide de la visibilité de l’œuvre dans la bibliothèque**.
 
-Les chiffres affichés par le site sont calculés à partir de l’état courant de la base. Ils ne sont jamais consignés en dur dans la charte.
+⛔ **Les chiffres affichés par le site sont calculés à partir de l’état courant de la base. Ils ne sont jamais consignés en dur dans la charte.**
 
 ### 16.1 Catalogue des traductions patristiques
 
 La table `catalogue_notices` recense des traductions, éditions, témoins bibliographiques et composantes documentaires liés aux œuvres patristiques. Une notice n’est pas nécessairement un texte importable ni une œuvre publiée. Elle décrit un objet bibliographique contrôlé et conserve la trace des décisions prises sur cet objet.
 
-`id_ligne` identifie la notice : il est unique, stable, jamais recyclé. `id_oeuvre_stable` rattache la notice à l’œuvre canonique. `id_traduction` identifie une traduction déterminée d’une œuvre déterminée. Un même `id_traduction` ne peut appartenir qu’à une seule notice active, c’est-à-dire non refusée administrativement. Un recueil commun à plusieurs auteurs reçoit donc un identifiant distinct pour chaque couple œuvre–traduction, même si le traducteur, l’édition et le volume sont communs.
+`id_ligne` identifie la notice : ⛔ **il est unique, stable, jamais recyclé**. `id_oeuvre_stable` rattache la notice à l’œuvre canonique. `id_traduction` identifie une traduction déterminée d’une œuvre déterminée. ⛔ **Un même `id_traduction` ne peut appartenir qu’à une seule notice active**, c’est-à-dire non refusée administrativement. Un recueil commun à plusieurs auteurs reçoit donc un identifiant distinct pour chaque couple œuvre–traduction, même si le traducteur, l’édition et le volume sont communs.
 
-Lorsqu’une traduction s’étend sur plusieurs volumes, une notice canonique peut regrouper l’ensemble. Un volume sans traduction autonome ne conserve pas d’`id_traduction` propre : il est relié à la notice canonique comme composante ou comme notice regroupée.
+Lorsqu’une traduction s’étend sur plusieurs volumes, une notice canonique peut regrouper l’ensemble. ⛔ **Un volume sans traduction autonome ne conserve pas d’`id_traduction` propre** : il est relié à la notice canonique comme composante ou comme notice regroupée.
 
 ### 16.2 Statuts contrôlés et notes
 
-Les statuts sont séparés de leur justification. Les colonnes terminées par `_code` ne contiennent que les valeurs contrôlées ci-dessous ; les colonnes terminées par `_note` conservent les explications, réserves, sources, décisions et détails bibliographiques. Une phrase libre ne doit jamais être inscrite dans une colonne de code. Un cas incertain reçoit `A_CONTROLER` ou `NON_DETERMINE` ; il n’est pas classé par intuition.
+Les statuts sont séparés de leur justification. Les colonnes terminées par `_code` ne contiennent que les valeurs contrôlées ci-dessous ; les colonnes terminées par `_note` conservent les explications, réserves, sources, décisions et détails bibliographiques. ⛔ **Une phrase libre ne doit jamais être inscrite dans une colonne de code. Un cas incertain reçoit `A_CONTROLER` ou `NON_DETERMINE` ; il n’est pas classé par intuition.**
 
 - `decision_import_code` : `IMPORTE`, `IMPORTER`, `IMPORT_PARTIEL`, `A_CONTROLER`, `BIBLIOGRAPHIE`, `CONSERVER`, `ECARTER`, `NON_DETERMINE`.
-- `verification_code` : `NON_VERIFIE`, `REPERAGE`, `NOTICE_VERIFIEE`, `EXEMPLAIRE_VERIFIE`, `TEXTE_VERIFIE`, `CONTROLE_COMPLET`. Les contrôles négatifs de recherche ne sont pas des notices publiques : ils sont conservés dans `internal.catalogue_controles_negatifs`.
+- `verification_code` : `NON_VERIFIE`, `REPERAGE`, `NOTICE_VERIFIEE`, `EXEMPLAIRE_VERIFIE`, `TEXTE_VERIFIE`, `CONTROLE_COMPLET`. ⛔ **Les contrôles négatifs de recherche ne sont pas des notices publiques** : ils sont conservés dans `internal.catalogue_controles_negatifs`.
 - `statut_juridique_code` : `DOMAINE_PUBLIC`, `PROTEGE`, `MIXTE`, `A_CONTROLER`, `SANS_OBJET`, `NON_DETERMINE`.
 - `authenticite_code` : `AUTHENTIQUE`, `PROBABLE`, `ATTRIBUE`, `PSEUDEPIGRAPHE`, `ANONYME`, `APOCRYPHE`, `COMPOSITE`, `FRAGMENTAIRE`, `DISCUTEE`, `A_CONTROLER`, `NON_DETERMINE`.
 - `priorite_code` : `TRES_HAUTE`, `HAUTE`, `MOYENNE`, `BASSE`, `A_ARBITRER`, `A_ECARTER`, `NON_DETERMINE`.
 
 #### 16.2.1 Niveaux de vérification
 
-`verification_code` indique le niveau le plus élevé effectivement atteint, non une impression générale de fiabilité :
+⛔ **`verification_code` indique le niveau le plus élevé effectivement atteint, non une impression générale de fiabilité** :
 
 - `NON_VERIFIE` : aucun contrôle documentaire suffisant n’a encore été effectué ;
 - `REPERAGE` : l’objet a été repéré, mais sa description reste provisoire ;
@@ -2217,11 +2225,11 @@ Les statuts sont séparés de leur justification. Les colonnes terminées par `_
 - `TEXTE_VERIFIE` : un texte intégral accessible a été rattaché à la notice et son identité, son périmètre, ses divisions principales et son appartenance à l’édition décrite ont été contrôlés à partir de l’exemplaire, de sa table ou d’une transcription institutionnelle. Ce statut ne signifie ni relecture mot à mot, ni correction complète de l’OCR ;
 - `CONTROLE_COMPLET` : la notice, l’exemplaire et le texte ont fait l’objet des contrôles précédents, ainsi que des vérifications particulières nécessaires à leur emploi éditorial ;
 
-La présence d’une URL ne suffit jamais à promouvoir une notice. Toute promotion à `TEXTE_VERIFIE` exige une note indiquant ce qui a été contrôlé et par rapport à quelle édition. Un statut supérieur remplace le statut inférieur ; les détails des étapes précédentes demeurent dans `verification_note` et les notes de source. Un résultat négatif utile – absence de traduction française, fausse attribution, doublon ou objet hors périmètre – est enregistré dans `internal.catalogue_controles_negatifs` avec son périmètre et ses preuves, sans créer ni conserver une pseudo-notice négative dans `catalogue_notices`.
+⛔ **La présence d’une URL ne suffit jamais à promouvoir une notice. Toute promotion à `TEXTE_VERIFIE` exige une note indiquant ce qui a été contrôlé et par rapport à quelle édition.** Un statut supérieur remplace le statut inférieur ; les détails des étapes précédentes demeurent dans `verification_note` et les notes de source. Un résultat négatif utile – absence de traduction française, fausse attribution, doublon ou objet hors périmètre – est enregistré dans `internal.catalogue_controles_negatifs` avec son périmètre et ses preuves, ⛔ **sans créer ni conserver une pseudo-notice négative dans `catalogue_notices`**.
 
 #### 16.2.2 Date d’édition
 
-Une date n’est renseignée que lorsqu’une édition française réelle et bibliographiquement identifiée est décrite. La date d’une édition latine, grecque, syriaque, anglaise ou d’une page web de republication ne doit jamais combler la date manquante d’une traduction française.
+Une date n’est renseignée que lorsqu’une édition française réelle et bibliographiquement identifiée est décrite. ⛔ **La date d’une édition latine, grecque, syriaque, anglaise ou d’une page web de republication ne doit jamais combler la date manquante d’une traduction française.**
 
 `date_edition_status_code` distingue quatre états :
 
@@ -2230,19 +2238,19 @@ Une date n’est renseignée que lorsqu’une édition française réelle et bib
 - `SANS_OBJET` : la notice décrit un contrôle négatif, une œuvre perdue, un doublon, un agrégat, une fausse attribution, une édition non française ou tout autre objet sans édition française datable ;
 - `NON_TRAITEE` : la question de la date n’a pas encore été instruite.
 
-`date_edition_note` justifie les états `A_CONTROLER` et `SANS_OBJET`. Une valeur `SANS_OBJET` ne signifie pas que l’œuvre ou les éditions étrangères sont sans date : elle signifie qu’aucune date d’édition française ne doit être portée par cette notice. Lorsqu’une date est établie, le statut et les champs de date sont mis à jour dans la même opération.
+`date_edition_note` justifie les états `A_CONTROLER` et `SANS_OBJET`. Une valeur `SANS_OBJET` ne signifie pas que l’œuvre ou les éditions étrangères sont sans date : elle signifie qu’aucune date d’édition française ne doit être portée par cette notice. ⛔ **Lorsqu’une date est établie, le statut et les champs de date sont mis à jour dans la même opération.**
 
-Les anciennes colonnes narratives peuvent être conservées pour compatibilité et historique, mais elles ne constituent plus la source normative d’un statut et ne doivent pas servir aux filtres. Toute nouvelle intervention met à jour le couple code–note correspondant.
+Les anciennes colonnes narratives peuvent être conservées pour compatibilité et historique, mais ⛔ **elles ne constituent plus la source normative d’un statut et ne doivent pas servir aux filtres**. Toute nouvelle intervention met à jour le couple code–note correspondant.
 
 ### 16.3 Notices remplacées, composantes et regroupements
 
-Une notice obsolète n’est pas supprimée. Elle conserve ses données et reçoit conjointement `notice_relation_code` et `notice_reference_id_ligne`. Les deux champs sont soit remplis ensemble, soit laissés vides ensemble.
+⛔ **Une notice obsolète n’est pas supprimée.** Elle conserve ses données et reçoit conjointement `notice_relation_code` et `notice_reference_id_ligne`. ⛔ **Les deux champs sont soit remplis ensemble, soit laissés vides ensemble.**
 
 - `REMPLACEE_PAR` : ancienne notice remplacée par une notice canonique corrigée.
 - `COMPOSANTE_DE` : volume, annexe ou élément éditorial dépendant d’une notice canonique.
 - `REGROUPEE_DANS` : notice particulière absorbée dans une notice d’ensemble.
 
-Une notice ainsi neutralisée n’est ni publiée ni porteuse de l’identifiant actif de traduction. Elle est normalement refusée administrativement, tandis que sa cible demeure active. Avant toute relation, vérifier que la cible existe, n’est pas refusée et ne pointe pas à son tour vers la notice source.
+Une notice ainsi neutralisée n’est ni publiée ni porteuse de l’identifiant actif de traduction. Elle est normalement refusée administrativement, tandis que sa cible demeure active. ⛔ **Avant toute relation, vérifier que la cible existe, n’est pas refusée et ne pointe pas à son tour vers la notice source.**
 
 ### 16.4 Workflow des notices
 
@@ -2253,13 +2261,13 @@ Les indicateurs historiques ont des sens distincts :
 - `refuse_admin` : la notice a été refusée, neutralisée ou archivée par décision administrative ; elle peut néanmoins rester `verifie = true` si son contenu bibliographique a été contrôlé.
 - `presence_sur_le_site` : la notice ou la traduction correspondante est effectivement utilisée ou affichée sur le site.
 
-`workflow_status_code` est calculé, non saisi : `REFUSE_ADMIN`, `PUBLIE`, `VALIDE_ADMIN`, `VERIFIE` ou `A_VERIFIER`. Une notice publiée est nécessairement vérifiée et non refusée. Une notice ne peut être à la fois validée et refusée. Toute décision administrative suppose un contrôle préalable. Les quatre indicateurs sont toujours renseignés, jamais nuls.
+⛔ **`workflow_status_code` est calculé, non saisi** : `REFUSE_ADMIN`, `PUBLIE`, `VALIDE_ADMIN`, `VERIFIE` ou `A_VERIFIER`. Une notice publiée est nécessairement vérifiée et non refusée. ⛔ **Une notice ne peut être à la fois validée et refusée. Toute décision administrative suppose un contrôle préalable. Les quatre indicateurs sont toujours renseignés, jamais nuls.**
 
 ### 16.5 Protocole de modification du catalogue
 
-Toute passe sur `catalogue_notices` suit une méthode non destructive : sauvegarder les lignes visées ; distinguer les corrections certaines des cas à instruire ; préserver les formulations historiques dans les notes ; relier les notices remplacées plutôt que les supprimer ; vérifier après écriture les identifiants actifs dupliqués, les cibles absentes, les relations incomplètes et les combinaisons de workflow interdites.
+⛔ **Toute passe sur `catalogue_notices` suit une méthode non destructive** : sauvegarder les lignes visées ; distinguer les corrections certaines des cas à instruire ; préserver les formulations historiques dans les notes ; relier les notices remplacées plutôt que les supprimer ; vérifier après écriture les identifiants actifs dupliqués, les cibles absentes, les relations incomplètes et les combinaisons de workflow interdites.
 
-Une règle générale découverte au cours d’un audit est ajoutée immédiatement à la présente charte. Les listes de lignes corrigées, volumes traités et comptages provisoires restent dans le rapport de passe, non dans la charte.
+⛔ **Une règle générale découverte au cours d’un audit est ajoutée immédiatement à la présente charte. Les listes de lignes corrigées, volumes traités et comptages provisoires restent dans le rapport de passe, non dans la charte.**
 
 ### 16.6 Éditeur et lieu d’édition
 
@@ -2272,33 +2280,33 @@ Les statuts autorisés sont :
 - `SANS_OBJET` : aucune édition française autonome n’est caractérisée, ou la forme de publication retenue — article, publication nativement en ligne, plateforme éditoriale — ne requiert pas ce lieu dans la citation ;
 - `NON_TRAITE` : la question n’a pas encore été instruite.
 
-Une valeur de travail telle que `À établir`, `à identifier`, `Divers`, `Non établi`, `RTF / catalogues français` ou une mention entre crochets ne constitue jamais un éditeur renseigné. Elle peut être conservée provisoirement dans le champ historique, mais son statut reste `A_CONTROLER`. Les notes expliquent la lacune, les divergences entre catalogues ou la raison pour laquelle la donnée est sans objet. Une notice agrégeant des fragments transmis dans plusieurs éditions ne reçoit ni éditeur composite ni lieu unique : ces deux statuts sont `SANS_OBJET`, et les éditions de transmission sont détaillées dans les notes ou dans des notices distinctes.
+⛔ **Une valeur de travail telle que `À établir`, `à identifier`, `Divers`, `Non établi`, `RTF / catalogues français` ou une mention entre crochets ne constitue jamais un éditeur renseigné.** Elle peut être conservée provisoirement dans le champ historique, mais son statut reste `A_CONTROLER`. Les notes expliquent la lacune, les divergences entre catalogues ou la raison pour laquelle la donnée est sans objet. Une notice agrégeant des fragments transmis dans plusieurs éditions ne reçoit ni éditeur composite ni lieu unique : ces deux statuts sont `SANS_OBJET`, et les éditions de transmission sont détaillées dans les notes ou dans des notices distinctes.
 
-Lorsque `date_edition_status_code = SANS_OBJET`, les statuts de l’éditeur et du lieu sont également `SANS_OBJET`. Une ville ne se déduit ni du siège actuel d’une maison, ni de l’hébergeur d’une transcription, ni d’une édition différente. Pour une publication en ligne, le responsable éditorial peut être renseigné, tandis que le lieu demeure `SANS_OBJET`. En cas de fausse adresse, de millésime corrigé ou de divergence entre l’adresse imprimée et l’identification matérielle moderne, le champ normalisé suit l’exemplaire décrit par le catalogue patrimonial le plus précis ; l’adresse portée et la divergence sont conservées dans la note. Toute correction du nom d’éditeur ou du lieu met à jour simultanément le champ, son statut et sa note.
+Lorsque `date_edition_status_code = SANS_OBJET`, les statuts de l’éditeur et du lieu sont également `SANS_OBJET`. ⛔ **Une ville ne se déduit ni du siège actuel d’une maison, ni de l’hébergeur d’une transcription, ni d’une édition différente.** Pour une publication en ligne, le responsable éditorial peut être renseigné, tandis que le lieu demeure `SANS_OBJET`. En cas de fausse adresse, de millésime corrigé ou de divergence entre l’adresse imprimée et l’identification matérielle moderne, le champ normalisé suit l’exemplaire décrit par le catalogue patrimonial le plus précis ; l’adresse portée et la divergence sont conservées dans la note. ⛔ **Toute correction du nom d’éditeur ou du lieu met à jour simultanément le champ, son statut et sa note.**
 
-**Forme d’autorité de l’éditeur.** La table `editeurs` est la source de vérité des formes publiques d’éditeur. Lorsqu’une forme bibliographique correspond sans ambiguïté à une autorité, `catalogue_notices.editeur` et `oeuvres.editeur` reprennent exactement `editeurs.nom_complet`, et non une variante imprimée, une raison sociale développée ou une abréviation. Les variantes attestées sont conservées dans `editeurs.variantes` et, lorsqu’une explication est utile, dans les notes de source. Plusieurs éditeurs partageant réellement la responsabilité sont séparés par ` ; `. Si aucune autorité n’existe encore, elle est établie avant publication à partir de l’édition décrite ; on ne déduit jamais un nom historique du nom actuel d’une maison. Une propagation automatique n’est admise que lorsque la correspondance entre variante et autorité est unique et contrôlée.
+**Forme d’autorité de l’éditeur.** La table `editeurs` est la source de vérité des formes publiques d’éditeur. Lorsqu’une forme bibliographique correspond sans ambiguïté à une autorité, `catalogue_notices.editeur` et `oeuvres.editeur` reprennent exactement `editeurs.nom_complet`, et non une variante imprimée, une raison sociale développée ou une abréviation. Les variantes attestées sont conservées dans `editeurs.variantes` et, lorsqu’une explication est utile, dans les notes de source. Plusieurs éditeurs partageant réellement la responsabilité sont séparés par ` ; `. Si aucune autorité n’existe encore, elle est établie avant publication à partir de l’édition décrite ; ⛔ **on ne déduit jamais un nom historique du nom actuel d’une maison**. ⛔ **Une propagation automatique n’est admise que lorsque la correspondance entre variante et autorité est unique et contrôlée.**
 
 ### 16.7 Traducteurs et formes d’autorité
 
-Le champ `traducteur` conserve la formulation bibliographique ou éditoriale rencontrée dans la source, y compris les réserves, responsabilités secondaires et indications de répartition. `traducteur_uniformise` ne contient que la forme d’autorité retenue pour le ou les traducteurs : un nom pour une personne, plusieurs noms séparés par ` ; ` lorsqu’ils partagent la responsabilité. Les mentions de direction, édition, introduction, révision, annotation ou mise en ligne ne sont pas intégrées à ce champ.
+Le champ `traducteur` conserve la formulation bibliographique ou éditoriale rencontrée dans la source, y compris les réserves, responsabilités secondaires et indications de répartition. `traducteur_uniformise` ne contient que la forme d’autorité retenue pour le ou les traducteurs : un nom pour une personne, plusieurs noms séparés par ` ; ` lorsqu’ils partagent la responsabilité. ⛔ **Les mentions de direction, édition, introduction, révision, annotation ou mise en ligne ne sont pas intégrées à ce champ.**
 
-Le champ `trad_auteur` d’une œuvre publiée suit la même règle : une liste de noms séparés par ` ; `, et rien d’autre. Ni « et », ni virgule, ni esperluette, aucune formule ajoutée. Le site ne recopie jamais ce champ tel quel : il en fait la phrase de la page de titre (« Traduction par A et B ») et le fragment bibliographique d’une citation (« trad. A et B »). Un point-virgule visible à l’écran signale donc un défaut d’affichage, jamais un défaut de saisie.
+Le champ `trad_auteur` d’une œuvre publiée suit la même règle : ⛔ **une liste de noms séparés par ` ; `, et rien d’autre. Ni « et », ni virgule, ni esperluette, aucune formule ajoutée.** ⛔ **Le site ne recopie jamais ce champ tel quel** : il en fait la phrase de la page de titre (« Traduction par A et B ») et le fragment bibliographique d’une citation (« trad. A et B »). ⚠️ **Un point-virgule visible à l’écran signale donc un défaut d’affichage, jamais un défaut de saisie.**
 
 ⛔ **UNE MENTION DE RÉGIME N’EST PAS UN NOM**, et ne se compose pas comme tel. « Traduction IA — Corpus Scriptura » nomme l’instrument et la maison qui en répond, non une personne ; prise pour un nom, elle donnait « Traduction par Traduction IA — Corpus Scriptura » en page de titre — le mot deux fois, et un instrument présenté comme un traducteur — et « Scriptura 2026 » en tête de la colonne française du texte en regard, en face de « Bondurand 1887 », le dernier mot du champ pris pour un patronyme.
 
 Le site la RÉDIGE (décision de l’auteur, 8 septembre 2026) : **« Traduction par intelligence artificielle sous la direction de Corpus Scriptura »** en page de titre et partout où paraît la phrase de responsabilité ; la même formule en bas de casse et sans « trad. » dans une ligne bibliographique, comme une formule de direction ; « Traduction IA 2026 » là où il faut un label court. ⚠️ La donnée, elle, reste INTACTE en base : c’est l’affichage qui rédige, et la règle vit dans `app/lib/traducteurs.ts` avec le reste des mentions de responsabilité.
 
-`traducteur_status_code` distingue : `PERSONNE`, `PLUSIEURS_PERSONNES`, `COLLECTIF`, `ANONYME`, `NON_ETABLI`, `SANS_OBJET` et `A_CONTROLER`. Une personne ou une liste de personnes exige une valeur non vide dans `traducteur_uniformise`. Les statuts `PERSONNE` et `PLUSIEURS_PERSONNES` sont réservés aux formes d’autorité stables et précisément établies. Un patronyme seul, une initiale non résolue, un titre religieux sans identité complète ou une liste comprenant au moins une autorité partielle reçoit `A_CONTROLER`, même lorsque l’attribution imprimée est certaine. `ANONYME`, `NON_ETABLI` et `SANS_OBJET` sont des statuts, jamais des noms d’autorité. Une responsabilité communautaire ou institutionnelle reçoit `COLLECTIF` ; son appellation peut être portée dans `traducteur_uniformise` lorsqu’elle est stable et précisément établie.
+`traducteur_status_code` distingue : `PERSONNE`, `PLUSIEURS_PERSONNES`, `COLLECTIF`, `ANONYME`, `NON_ETABLI`, `SANS_OBJET` et `A_CONTROLER`. Une personne ou une liste de personnes exige une valeur non vide dans `traducteur_uniformise`. Les statuts `PERSONNE` et `PLUSIEURS_PERSONNES` sont réservés aux formes d’autorité stables et précisément établies. Un patronyme seul, une initiale non résolue, un titre religieux sans identité complète ou une liste comprenant au moins une autorité partielle reçoit `A_CONTROLER`, même lorsque l’attribution imprimée est certaine. ⛔ **`ANONYME`, `NON_ETABLI` et `SANS_OBJET` sont des statuts, jamais des noms d’autorité.** Une responsabilité communautaire ou institutionnelle reçoit `COLLECTIF` ; son appellation peut être portée dans `traducteur_uniformise` lorsqu’elle est stable et précisément établie.
 
-Une forme religieuse, un pseudonyme ou un nom imprimé est conservé dans `pseudonyme_ou_nom_imprime_traducteur` lorsque l’identité civile ou la forme d’autorité est connue. Les titres tels que `M.`, `P.`, `abbé` ou `dom` ne sont supprimés que si le nom complet est établi ; une identité partielle comme `Abbé Burleraux` reste telle quelle jusqu’à identification plus précise. Les variantes d’un même nom sont harmonisées sur une seule forme, sans réécrire le champ brut.
+Une forme religieuse, un pseudonyme ou un nom imprimé est conservé dans `pseudonyme_ou_nom_imprime_traducteur` lorsque l’identité civile ou la forme d’autorité est connue. ⛔ **Les titres tels que `M.`, `P.`, `abbé` ou `dom` ne sont supprimés que si le nom complet est établi** ; une identité partielle comme `Abbé Burleraux` reste telle quelle jusqu’à identification plus précise. Les variantes d’un même nom sont harmonisées sur une seule forme, sans réécrire le champ brut.
 
-Lorsqu’une notice mêle traducteur, éditeur scientifique, réviseur ou collaborateur et que la répartition n’est pas certaine, elle reste `A_CONTROLER`. Une normalisation n’est propagée automatiquement que si la même forme brute possède une cible unique déjà validée. Toute correction met à jour ensemble la forme uniformisée, le statut et, lorsque nécessaire, `traducteur_note`.
+⛔ **Lorsqu’une notice mêle traducteur, éditeur scientifique, réviseur ou collaborateur et que la répartition n’est pas certaine, elle reste `A_CONTROLER`.** Une normalisation n’est propagée automatiquement que si la même forme brute possède une cible unique déjà validée. Toute correction met à jour ensemble la forme uniformisée, le statut et, lorsque nécessaire, `traducteur_note`.
 
 ### 16.8 Auteurs et formes d’autorité
 
-La table `auteurs` est la source de vérité des formes d’autorité. Dans `catalogue_notices`, le champ historique `auteur` peut conserver une graphie ancienne ou importée ; `auteur_uniformise` reprend exactement `auteurs.nom` pour le même `id_auteur`. Une forme d’autorité n’est jamais saisie librement dans le catalogue : tout nouvel auteur ou corpus est d’abord créé ou corrigé dans `auteurs`, puis propagé par identifiant.
+La table `auteurs` est la source de vérité des formes d’autorité. Dans `catalogue_notices`, le champ historique `auteur` peut conserver une graphie ancienne ou importée ; `auteur_uniformise` reprend exactement `auteurs.nom` pour le même `id_auteur`. ⛔ **Une forme d’autorité n’est jamais saisie librement dans le catalogue** : tout nouvel auteur ou corpus est d’abord créé ou corrigé dans `auteurs`, puis propagé par identifiant.
 
-Les apostrophes des formes d’autorité sont typographiques. Une divergence entre `auteur_uniformise` et `auteurs.nom` est une anomalie. La correction porte d’abord sur la table maîtresse lorsque celle-ci est fautive ; les notices sont ensuite réalignées sans réécrire leur champ historique.
+⛔ **Les apostrophes des formes d’autorité sont typographiques. Une divergence entre `auteur_uniformise` et `auteurs.nom` est une anomalie.** La correction porte d’abord sur la table maîtresse lorsque celle-ci est fautive ; les notices sont ensuite réalignées sans réécrire leur champ historique.
 
 `auteur_status_code` distingue :
 
@@ -2309,25 +2317,25 @@ Les apostrophes des formes d’autorité sont typographiques. Une divergence ent
 - `INSTITUTION_COLLECTIVE` : autorité institutionnelle ou conciliaire collective ;
 - `A_CONTROLER` : identifiant absent, conflit de rattachement ou autorité non encore arbitrée.
 
-Un pseudo-auteur n’est pas rabattu sur l’auteur ancien auquel le texte fut attribué. Un corpus collectif n’est pas transformé en personne. Les précisions telles que `Anonyme / À Diognète` ou `Anonyme / Tradition apostolique` appartiennent à la forme d’autorité et doivent être conservées. `auteur_note` explicite la nature de l’autorité sans contenir de variante concurrente non arbitrée.
+⛔ **Un pseudo-auteur n’est pas rabattu sur l’auteur ancien auquel le texte fut attribué. Un corpus collectif n’est pas transformé en personne.** Les précisions telles que `Anonyme / À Diognète` ou `Anonyme / Tradition apostolique` appartiennent à la forme d’autorité et doivent être conservées. `auteur_note` explicite la nature de l’autorité sans contenir de variante concurrente non arbitrée.
 
 ### 16.9 Sources des notices
 
-`url_source` porte la source bibliographique ou institutionnelle qui justifie la notice ; `url_texte_integral` porte, lorsqu’il existe, un accès au texte lui-même. Une plateforme de consultation ne doit pas être présentée comme l’éditeur de la traduction. Plusieurs sources peuvent être séparées par ` ; ` lorsqu’elles remplissent des fonctions distinctes.
+`url_source` porte la source bibliographique ou institutionnelle qui justifie la notice ; `url_texte_integral` porte, lorsqu’il existe, un accès au texte lui-même. ⛔ **Une plateforme de consultation ne doit pas être présentée comme l’éditeur de la traduction.** Plusieurs sources peuvent être séparées par ` ; ` lorsqu’elles remplissent des fonctions distinctes.
 
 `source_status_code` distingue : `RENSEIGNEE`, `SOURCE_LOCALE`, `A_RECHERCHER`, `SANS_OBJET` et `NON_TRAITEE`. `RENSEIGNEE` exige une URL non vide. `SOURCE_LOCALE` désigne un fichier effectivement contrôlé, identifié par son nom et, de préférence, son empreinte, mais dépourvu de lien public stable. `A_RECHERCHER` signale une lacune bibliographique réelle. `SANS_OBJET` est réservé aux variantes, doublons ou composantes dont la source est portée par la notice canonique.
 
-Une URL générale de catalogue n’est retenue que si elle permet réellement de retrouver l’objet décrit. Les pages commerciales, reproductions secondaires et transcriptions non attribuées peuvent compléter une source patrimoniale, jamais s’y substituer silencieusement. Toute nouvelle source met à jour simultanément l’URL, le statut et `source_note`.
+Une URL générale de catalogue n’est retenue que si elle permet réellement de retrouver l’objet décrit. ⛔ **Les pages commerciales, reproductions secondaires et transcriptions non attribuées peuvent compléter une source patrimoniale, jamais s’y substituer silencieusement.** ⛔ **Toute nouvelle source met à jour simultanément l’URL, le statut et `source_note`.**
 
 ### 16.10 Statut juridique des traductions
 
-`statut_juridique_code` qualifie la traduction française et non l’œuvre ancienne elle-même. Les valeurs normatives sont : `DOMAINE_PUBLIC`, `PROTEGE`, `MIXTE`, `A_CONTROLER`, `SANS_OBJET` et `NON_DETERMINE`. `MIXTE` s’emploie lorsque la traduction est libre mais que l’établissement du texte, l’appareil critique, les notes, la révision ou la présentation moderne demeurent protégés.
+⛔ **`statut_juridique_code` qualifie la traduction française et non l’œuvre ancienne elle-même.** Les valeurs normatives sont : `DOMAINE_PUBLIC`, `PROTEGE`, `MIXTE`, `A_CONTROLER`, `SANS_OBJET` et `NON_DETERMINE`. `MIXTE` s’emploie lorsque la traduction est libre mais que l’établissement du texte, l’appareil critique, les notes, la révision ou la présentation moderne demeurent protégés.
 
-La qualification repose sur le Code de la propriété intellectuelle et sur des données vérifiables : identité et date de décès du traducteur, caractère anonyme, pseudonyme ou collectif, date de première publication et nature des contributions. Une date d’édition ancienne ne suffit pas à elle seule lorsque le traducteur est nommé. Une édition étrangère ou latine ne détermine pas les droits d’une traduction française.
+La qualification repose sur le Code de la propriété intellectuelle et sur des données vérifiables : identité et date de décès du traducteur, caractère anonyme, pseudonyme ou collectif, date de première publication et nature des contributions. ⛔ **Une date d’édition ancienne ne suffit pas à elle seule lorsque le traducteur est nommé. Une édition étrangère ou latine ne détermine pas les droits d’une traduction française.**
 
-Pour une traduction anonyme, pseudonyme ou collective, le délai applicable est examiné à partir de la publication selon le régime légal correspondant. Pour une traduction attribuée, le décès du traducteur est recherché dans une autorité fiable. Les révisions substantielles et traductions refondues sont traitées comme des contributions distinctes. En cas d’identité incertaine, d’attribution disputée ou de responsabilité non répartie, conserver `A_CONTROLER` plutôt que présumer la liberté.
+Pour une traduction anonyme, pseudonyme ou collective, le délai applicable est examiné à partir de la publication selon le régime légal correspondant. Pour une traduction attribuée, le décès du traducteur est recherché dans une autorité fiable. Les révisions substantielles et traductions refondues sont traitées comme des contributions distinctes. ⛔ **En cas d’identité incertaine, d’attribution disputée ou de responsabilité non répartie, conserver `A_CONTROLER` plutôt que présumer la liberté.**
 
-`SANS_OBJET` s’applique lorsqu’aucune traduction française autonome n’est décrite. Toute décision est justifiée dans `statut_juridique_note`; le champ historique `domaine_public` peut être conservé pour mémoire, mais il n’est plus normatif.
+`SANS_OBJET` s’applique lorsqu’aucune traduction française autonome n’est décrite. Toute décision est justifiée dans `statut_juridique_note`; ⚠️ **le champ historique `domaine_public` peut être conservé pour mémoire, mais il n’est plus normatif**.
 
 Lorsqu’un statut `MIXTE` porte sur des composantes distinctes et que seules certaines sont juridiquement réutilisables, `decision_import_code` vaut `IMPORT_PARTIEL`. La note délimite les livres, sermons, fascicules ou contributions importables. `IMPORTER` peut être conservé pour un texte ancien intégralement réutilisable depuis une source indépendante — notamment un manuscrit — même si l’édition critique moderne qui le décrit demeure protégée.
 
@@ -2335,15 +2343,15 @@ Lorsqu’un statut `MIXTE` porte sur des composantes distinctes et que seules ce
 
 Une œuvre peut avoir plusieurs auteurs, **à égalité** : ni auteur principal ni auteur second, aucun n'est subordonné à l'autre. Elle paraît alors **une fois sous le nom de chacun** — sur l'étagère de chaque auteur dans la bibliothèque, dans la liste d'œuvres de chaque fiche — et elle **porte les deux noms** partout où elle est nommée : page de titre, cartes de la bibliothèque, citations, titre de la page. Le lecteur voit la même chose d'où qu'il vienne.
 
-Modèle : le PREMIER auteur nommé reste dans `oeuvres.id_auteur`, les suivants dans `oeuvres_auteurs` (`rang` ≥ 2). Le rang ne règle QUE l'ordre d'affichage, il n'ordonne pas les responsabilités. La vue `v_oeuvres_auteurs` réconcilie les deux : c'est elle, et elle seule, qu'on interroge pour « les auteurs d'une œuvre » comme pour « les œuvres d'un auteur ». Un même auteur ne peut pas figurer deux fois sur une œuvre.
+Modèle : le PREMIER auteur nommé reste dans `oeuvres.id_auteur`, les suivants dans `oeuvres_auteurs` (`rang` ≥ 2). ⛔ **Le rang ne règle QUE l'ordre d'affichage, il n'ordonne pas les responsabilités.** La vue `v_oeuvres_auteurs` réconcilie les deux : ⛔ **c'est elle, et elle seule, qu'on interroge pour « les auteurs d'une œuvre » comme pour « les œuvres d'un auteur »**. ⛔ **Un même auteur ne peut pas figurer deux fois sur une œuvre.**
 
 Ce dispositif nomme des CO-AUTEURS. Il ne dit pas une attribution incertaine (« l'un ou l'autre »), qui reste une question de notice, ni une responsabilité de traduction, qui vit dans `trad_auteur`.
 
 ### 16.12 Langue et traditions : l’étiquette et le détail
 
-`auteurs.langue_principale` est saisie en bas de casse (« latin », « grec ; latin ») et la base n’est pas touchée. Mais partout où la langue paraît comme ÉTIQUETTE — pastille du filtre de la bibliothèque, ligne de métadonnées de la fiche d’auteur et de son aperçu —, elle prend la capitale, comme le siècle et la tradition qui l’encadrent. Nommée dans une phrase (« Texte original latin »), elle garde son bas de casse. La règle est tenue par `app/lib/langues.ts`.
+`auteurs.langue_principale` est saisie en bas de casse (« latin », « grec ; latin ») et la base n’est pas touchée. Mais partout où la langue paraît comme ÉTIQUETTE — pastille du filtre de la bibliothèque, ligne de métadonnées de la fiche d’auteur et de son aperçu —, elle prend la capitale, comme le siècle et la tradition qui l’encadrent. ⚠️ **Nommée dans une phrase (« Texte original latin »), elle garde son bas de casse.** La règle est tenue par `app/lib/langues.ts`.
 
-`auteurs.traditions` est un vocabulaire libre, taillé au plus juste pour chaque auteur : cinq étiquettes par auteur, cent quarante-deux distinctes en base le 23 août 2026, dont la plupart ne désignent qu’un seul auteur. Ce détail est juste et se conserve — la fiche de l’auteur le donne en toutes lettres. Le FILTRE, lui, ne peut pas le porter : seize auteurs y alignaient soixante-dix pastilles, et l’on n’y cherchait plus rien. Il n’offre donc que sept familles : écoles et milieux, époques et courants, spiritualité et monachisme, exégèse et lettres, doctrine, philosophie, apologétique et polémique. Le rattachement se fait par MOTIFS et non par table nominative (`app/lib/traditions.ts`), pour qu’une étiquette nouvelle se range d’elle-même ; celle qu’aucune famille ne reconnaît reste sur la fiche mais ne paraît pas dans le filtre — mieux vaut une pastille de moins qu’une pastille fausse. Un test passe au crible tout le vocabulaire relevé en base : aucune étiquette n’y reste orpheline.
+`auteurs.traditions` est un vocabulaire libre, taillé au plus juste pour chaque auteur : cinq étiquettes par auteur, cent quarante-deux distinctes en base le 23 août 2026, dont la plupart ne désignent qu’un seul auteur. Ce détail est juste et se conserve — la fiche de l’auteur le donne en toutes lettres. Le FILTRE, lui, ne peut pas le porter : seize auteurs y alignaient soixante-dix pastilles, et l’on n’y cherchait plus rien. Il n’offre donc que sept familles : écoles et milieux, époques et courants, spiritualité et monachisme, exégèse et lettres, doctrine, philosophie, apologétique et polémique. Le rattachement se fait par MOTIFS et non par table nominative (`app/lib/traditions.ts`), pour qu’une étiquette nouvelle se range d’elle-même ; ⛔ **celle qu’aucune famille ne reconnaît reste sur la fiche mais ne paraît pas dans le filtre — mieux vaut une pastille de moins qu’une pastille fausse**. Un test passe au crible tout le vocabulaire relevé en base : aucune étiquette n’y reste orpheline.
 
 ## 17. Écritures, droits et sécurité
 
@@ -2455,7 +2463,9 @@ Le cas qui l’a imposé. Le 5 septembre 2026, pendant qu’une écriture en bas
 
 **Contrat des champs — Boèce.** Dans l’architecture actuelle de `A0064O0001`, la fonction de chaque champ est fixée et ne doit plus être déduite de sa casse. Pour les **titres de livre affichés**, `segments.ref_niv1`, `oeuvre_texte_unites.ref_niv1`, `metadata.display_title` et `segment_metadata.display_title` sont des champs éditoriaux et doivent être en casse française (`Livre premier` … `Livre cinquième`). **Aucun sous-titre éditorial n’est retenu pour Boèce** : `metadata.display_subtitle` et `segment_metadata.display_subtitle` doivent être absents ; le lecteur ne doit pas reconstituer un sous-titre à partir des champs source. Les **témoins source** restent intangibles : `oeuvre_texte_unites.book_heading`, `metadata.source_title`, `segment_metadata.source_title` et `segment_metadata.printed_title` conservent exactement la casse, la numérotation, l’orthographe et les éventuelles coquilles imprimées. Chez Ceriziers, `segment_metadata.source_title` conserve le titre de livre imprimé et `segment_metadata.printed_title` la rubrique imprimée (`II. POESIE.`, `II. PROSE.`, etc.). En revanche, `segments.ref_niv1_texte` à `segments.ref_niv5_texte` doivent rester NULL dans le corps de Boèce : ces anciennes projections dupliquent les niveaux déjà structurés et ne doivent jamais être rendues. `ref_niv2` reste l’ordinal structurel de division (chiffre romain), non un sous-titre visible. ⛔ Le lecteur ne doit jamais prendre `book_heading`, `source_title` ou `printed_title` comme libellé éditorial de remplacement, ni réafficher une projection `ref_nivN_texte`. Contrôles bloquants Boèce : 0 titre éditorial intégralement en capitales ; 0 `display_subtitle` ; 0 `ref_niv1_texte` à `ref_niv5_texte` dans le corps ; formes imprimées conservées uniquement dans les métadonnées source.
 
-**Appareils et paratextes — état de référence du 5 septembre 2026.** Pour `TXT_A0064O0001_FR_1646_CERIZIERS`, les quatre pièces préliminaires restent toutes dans `espace_textuel = 'apparat_critique'`. Leur fonction est cependant distinguée explicitement : l’**Épître dédicatoire**, l’**Approbation de P. Dozet** et l’**Approbation de I. Godinot** sont des unités d’`apparat_critique` à part entière (`type_unite = 'apparat_critique'`). Leurs segments de prose portent `nature = 'apparat_critique'`, mais leurs trois lignes de signature conservent impérativement `nature = 'signature'` ; l’ensemble représente 3 unités / 15 segments, dont 12 segments `apparat_critique` et 3 `signature` ; leurs titres éditoriaux les distinguent, tandis que le titre source `Approbation` reste conservé pour les deux approbations. L’**Esclaircissement nécessaire à l’intelligence de cet ouvrage** demeure distinctement `apparat_editeur` (`type_unite = 'liminaire'`), soit 1 unité / 45 segments, mais dans le même espace `apparat_critique`. Les deux rubriques imprimées fautives `II. PROSE.` et `V. PROSE.` restent également dans cet espace comme soutien critique ; leurs segments portent `nature = 'apparat_critique'` tandis que `type_unite = 'rubrique'` conserve leur fonction matérielle, soit 2 unités / 2 segments avec leurs notes explicatives ; elles ne deviennent jamais des headings de lecture. L’apparat Ceriziers totalise donc 6 unités / 62 segments. ⛔ Ne jamais replacer l’Épître ou les deux Approbations en `introduction`, ni les requalifier en simple `apparat_editeur`, sans décision éditoriale explicite de l’auteur. Pour `TXT_A0064O0001_FR_1861_MIRANDOL`, les 213 unités / 443 segments préliminaires appartiennent à `introduction`, dont 142 unités bibliographiques ; aucune de cette matière ne relève de `apparat_critique`. `A0064O0001T0001` ne porte aucun faux appareil ou paratexte. Les notes restent indépendantes de ce classement : 4 chez Ceriziers et 235 chez Mirandol. Toute évolution de ces espaces doit satisfaire le protocole § 7.0 bis, notamment la synchronisation unité/segment et l’interdiction de modifier le texte pour une simple correction de classement.\n\n**Numéros de notes.** `texte_notes.note_number` reste l’identifiant numérique global et continu de la version ; il ne doit pas être renuméroté. Lorsque `printed_note_number` existe, l’interface peut et, pour Mirandol, doit l’utiliser comme **libellé visible** de l’appel et de la fenêtre de note, avec repli sur `note_number` s’il est absent. L’identité technique et la navigation restent fondées sur la note structurée et son `anchor_id`/`note_key`/`note_number`, jamais sur `printed_note_number`, qui peut se répéter. Exemple de contrôle : « Hélas ! avant le temps, le malheur m’a fait vieux ; » pointe vers la note interne globale 99 mais doit afficher le numéro imprimé **2**, non 99.
+**Appareils et paratextes — état de référence du 5 septembre 2026.** Pour `TXT_A0064O0001_FR_1646_CERIZIERS`, les quatre pièces préliminaires restent toutes dans `espace_textuel = 'apparat_critique'`. Leur fonction est cependant distinguée explicitement : l’**Épître dédicatoire**, l’**Approbation de P. Dozet** et l’**Approbation de I. Godinot** sont des unités d’`apparat_critique` à part entière (`type_unite = 'apparat_critique'`). Leurs segments de prose portent `nature = 'apparat_critique'`, mais leurs trois lignes de signature conservent impérativement `nature = 'signature'` ; l’ensemble représente 3 unités / 15 segments, dont 12 segments `apparat_critique` et 3 `signature` ; leurs titres éditoriaux les distinguent, tandis que le titre source `Approbation` reste conservé pour les deux approbations. L’**Esclaircissement nécessaire à l’intelligence de cet ouvrage** demeure distinctement `apparat_editeur` (`type_unite = 'liminaire'`), soit 1 unité / 45 segments, mais dans le même espace `apparat_critique`. Les deux rubriques imprimées fautives `II. PROSE.` et `V. PROSE.` restent également dans cet espace comme soutien critique ; leurs segments portent `nature = 'apparat_critique'` tandis que `type_unite = 'rubrique'` conserve leur fonction matérielle, soit 2 unités / 2 segments avec leurs notes explicatives ; elles ne deviennent jamais des headings de lecture. L’apparat Ceriziers totalise donc 6 unités / 62 segments. ⛔ Ne jamais replacer l’Épître ou les deux Approbations en `introduction`, ni les requalifier en simple `apparat_editeur`, sans décision éditoriale explicite de l’auteur. Pour `TXT_A0064O0001_FR_1861_MIRANDOL`, les 213 unités / 443 segments préliminaires appartiennent à `introduction`, dont 142 unités bibliographiques ; aucune de cette matière ne relève de `apparat_critique`. `A0064O0001T0001` ne porte aucun faux appareil ou paratexte. Les notes restent indépendantes de ce classement : 4 chez Ceriziers et 235 chez Mirandol. Toute évolution de ces espaces doit satisfaire le protocole § 7.0 bis, notamment la synchronisation unité/segment et l’interdiction de modifier le texte pour une simple correction de classement.
+
+**Numéros de notes.** `texte_notes.note_number` reste l’identifiant numérique global et continu de la version ; il ne doit pas être renuméroté. Lorsque `printed_note_number` existe, l’interface peut et, pour Mirandol, doit l’utiliser comme **libellé visible** de l’appel et de la fenêtre de note, avec repli sur `note_number` s’il est absent. L’identité technique et la navigation restent fondées sur la note structurée et son `anchor_id`/`note_key`/`note_number`, jamais sur `printed_note_number`, qui peut se répéter. Exemple de contrôle : « Hélas ! avant le temps, le malheur m’a fait vieux ; » pointe vers la note interne globale 99 mais doit afficher le numéro imprimé **2**, non 99.
 
 **Alignements.** ⛔ Ne pas recomposer côté client un alignement transitif par Mirandol. Employer l’ensemble direct correspondant au couple actif : `ALNSET-A0064O0001-MIR1861-CER1646`, `ALNSET-A0064O0001-MIR1861-MIG1847` ou `ALNSET-A0064O0001-CER1646-MIG1847`. Les statuts `reviewed_ai`/`uncertain` qualifient les groupes ; ils ne justifient pas de masquer toute une version.
 
@@ -2513,39 +2523,39 @@ Le cas qui l’a imposé. Le 5 septembre 2026, pendant qu’une écriture en bas
 
 ### 19.1 `oeuvres`
 
-`oeuvres` porte l’identité intellectuelle de l’œuvre : auteur, titres, langue originale, langue de traduction lorsqu’il s’agit d’une traduction, datation, genre, état de publication et données éditoriales générales. Une œuvre n’est pas une édition déterminée et ne doit pas absorber les métadonnées propres à plusieurs versions.
+`oeuvres` porte l’identité intellectuelle de l’œuvre : auteur, titres, langue originale, langue de traduction lorsqu’il s’agit d’une traduction, datation, genre, état de publication et données éditoriales générales. ⛔ **Une œuvre n’est pas une édition déterminée et ne doit pas absorber les métadonnées propres à plusieurs versions.**
 
-**Commentaires publics des œuvres.** `commentaire_traduction` est le champ public d’explication de l’ÉDITION, non une notice bibliographique bis ; les trois notes éditoriales de l’œuvre, ci-dessous, parlent de l’ŒUVRE. Leur absence est la norme. Ils ne contiennent une information que lorsqu’un lecteur a besoin d’une précision que les champs structurés affichés à proximité ne peuvent pas exprimer : répartition d’une œuvre entre plusieurs traducteurs, traduction indirecte, caractère partiel ou composite du texte, particularité de transmission ou de présentation réellement utile. Ils ne répètent jamais le seul nom du traducteur, l’éditeur, la collection, le lieu, la date, le numéro de tome, l’édition, la pagination ni toute autre donnée déjà structurée. Le nom d’un traducteur n’y est répété que pour expliquer une répartition ou une responsabilité qui resterait incompréhensible autrement. Chaque idée occupe sa propre ligne ; les lignes sont brèves, rédigées comme des phrases explicatives et ne prennent pas de point final. Le rendu honore ces sauts de ligne : la page de titre, comme la carte « Édition de référence » d'« À propos de cette édition », compose le commentaire en `white-space: pre-line` (corrigé le 21 août 2026 ; le front les avalait jusque-là). Les détails de travail, preuves, hésitations, variantes fines, justifications d’attribution, états de contrôle et mécanismes internes sont conservés dans `oeuvres_commentaires_prives`, jamais exposés au lecteur.
+**Commentaires publics des œuvres.** `commentaire_traduction` est le champ public d’explication de l’ÉDITION, non une notice bibliographique bis ; les trois notes éditoriales de l’œuvre, ci-dessous, parlent de l’ŒUVRE. ⚠️ **Leur absence est la norme.** Ils ne contiennent une information que lorsqu’un lecteur a besoin d’une précision que les champs structurés affichés à proximité ne peuvent pas exprimer : répartition d’une œuvre entre plusieurs traducteurs, traduction indirecte, caractère partiel ou composite du texte, particularité de transmission ou de présentation réellement utile. ⛔ **Ils ne répètent jamais le seul nom du traducteur, l’éditeur, la collection, le lieu, la date, le numéro de tome, l’édition, la pagination ni toute autre donnée déjà structurée.** Le nom d’un traducteur n’y est répété que pour expliquer une répartition ou une responsabilité qui resterait incompréhensible autrement. ⛔ **Chaque idée occupe sa propre ligne ; les lignes sont brèves, rédigées comme des phrases explicatives et ne prennent pas de point final.** Le rendu honore ces sauts de ligne : la page de titre, comme la carte « Édition de référence » d'« À propos de cette édition », compose le commentaire en `white-space: pre-line` (corrigé le 21 août 2026 ; le front les avalait jusque-là). ⛔ **Les détails de travail, preuves, hésitations, variantes fines, justifications d’attribution, états de contrôle et mécanismes internes sont conservés dans `oeuvres_commentaires_prives`, jamais exposés au lecteur.**
 
-Une traduction et une **œuvre originale autonome** sont deux lignes distinctes d’`oeuvres`. L’original autonome est reconnu par `langue_trad` vide et `langue_originale` renseignée. Il garde exactement le même titre français dans `titre` que sa sœur traduite et porte le titre latin, grec ou autre dans `titre_original`. L’auteur et le titre normalisé constituent le mécanisme d’appariement ; aucun identifiant de liaison supplémentaire n’est créé.
+Une traduction et une **œuvre originale autonome** sont deux lignes distinctes d’`oeuvres`. L’original autonome est reconnu par `langue_trad` vide et `langue_originale` renseignée. Il garde exactement le même titre français dans `titre` que sa sœur traduite et porte le titre latin, grec ou autre dans `titre_original`. ⛔ **L’auteur et le titre normalisé constituent le mécanisme d’appariement ; aucun identifiant de liaison supplémentaire n’est créé.**
 
 **Les trois notes éditoriales d’une œuvre** (décision de l’auteur, 3 septembre 2026), toutes publiques, chacune à sa place : `note_editoriale_complete` dit ce que l’œuvre EST — son intérêt, sa substance — et paraît dans la fiche « À propos de cette édition » ; `note_editoriale_complement` dit les points de détail de l’œuvre telle qu’on la parcourt — un chapitre déplacé ou refondu, une attribution discutée, une transmission lacunaire — dans la même fiche, sous « Notes éditoriales » ; `note_editoriale_titre` est un résumé qui ne paraît que sur la page de titre, et qui est vide le plus souvent. Elles s’écrivent depuis le formulaire « Modifier l’œuvre » de l’administration. ⛔ Elles ne redisent pas ce que les champs structurés disent déjà, et `note_editoriale_complement` a recueilli l’ancienne `note` (dix-neuf notes en prose, que le site ne montrait nulle part) et l’ancienne `note_editoriale_secondaire`. Ce que l’auteur pense de l’édition reste dans `commentaire_traduction` ; ce qui est travail interne reste dans `oeuvres_commentaires_prives`.
 
-**Principe de rédaction d’une note éditoriale publique.** Une note éditoriale s’adresse au lecteur de l’œuvre. Elle lui fait comprendre, en peu de phrases, une particularité intellectuelle ou documentaire que les champs structurés et la lecture du texte ne suffisent pas à expliquer : attribution discutée, constitution composite, transmission lacunaire, remaniement ou disposition inhabituelle. Elle expose concrètement la cause et la portée de la difficulté — qui a constitué le texte, quelle part revient à l’auteur, quelle forme ne vient probablement pas de lui, ou ce que la lacune change pour la lecture. Elle ne se borne jamais à une étiquette abstraite telle que « compilation incertaine ».
+**Principe de rédaction d’une note éditoriale publique.** Une note éditoriale s’adresse au lecteur de l’œuvre. Elle lui fait comprendre, en peu de phrases, une particularité intellectuelle ou documentaire que les champs structurés et la lecture du texte ne suffisent pas à expliquer : attribution discutée, constitution composite, transmission lacunaire, remaniement ou disposition inhabituelle. ⚠️ **Elle expose concrètement la cause et la portée de la difficulté** — qui a constitué le texte, quelle part revient à l’auteur, quelle forme ne vient probablement pas de lui, ou ce que la lacune change pour la lecture. ⛔ **Elle ne se borne jamais à une étiquette abstraite telle que « compilation incertaine ».**
 
-⛔ **Une note publique n’est jamais un rapport de chantier.** N’y paraissent ni la méthode de contrôle, ni le nombre de lectures ou de pages examinées, ni les échantillons, empreintes, statuts de validation, noms de missions, états de workflow ou conclusions techniques. Une phrase dont le sujet réel est « ce que nous avons contrôlé » plutôt que « ce que le lecteur doit comprendre de l’œuvre » est privée, même si elle est exacte. Ces éléments restent dans les métadonnées de la version (`oeuvre_textes.metadata`), dans `oeuvres_commentaires_prives` ou dans le journal du centre de contrôle. De même, une note éditoriale ne répète pas l’adresse bibliographique, la pagination, le nom du traducteur ou les autres informations déjà portées par les champs structurés.
+⛔ **Une note publique n’est jamais un rapport de chantier.** N’y paraissent ni la méthode de contrôle, ni le nombre de lectures ou de pages examinées, ni les échantillons, empreintes, statuts de validation, noms de missions, états de workflow ou conclusions techniques. ⛔ **Une phrase dont le sujet réel est « ce que nous avons contrôlé » plutôt que « ce que le lecteur doit comprendre de l’œuvre » est privée, même si elle est exacte.** Ces éléments restent dans les métadonnées de la version (`oeuvre_textes.metadata`), dans `oeuvres_commentaires_prives` ou dans le journal du centre de contrôle. ⛔ **De même, une note éditoriale ne répète pas l’adresse bibliographique, la pagination, le nom du traducteur ou les autres informations déjà portées par les champs structurés.**
 
-**Typographie des titres dans la prose publique.** Dans les champs de prose rendus par `rendreTexteEnrichi` — notamment `note_editoriale_complete`, `note_editoriale_complement`, `note_editoriale_titre`, `commentaire_traduction` et les notes publiques du catalogue — tout véritable titre d’œuvre ou d’ouvrage est délimité dans la donnée par `*…*` afin d’être composé en italique. Les noms des livres sacrés restent en romain conformément au § 3.6 : on écrit ainsi `les *Rétractations*`, `les *Adnotationes in Iob*`, mais `le livre de Job`. Les champs structurés dont la valeur est elle-même un titre — `titre`, `titre_original`, `titre_edition` et leurs équivalents — ne reçoivent pas d’astérisques décoratifs : leur composant d’interface porte la mise en forme.
+**Typographie des titres dans la prose publique.** Dans les champs de prose rendus par `rendreTexteEnrichi` — notamment `note_editoriale_complete`, `note_editoriale_complement`, `note_editoriale_titre`, `commentaire_traduction` et les notes publiques du catalogue — ⛔ **tout véritable titre d’œuvre ou d’ouvrage est délimité dans la donnée par `*…*` afin d’être composé en italique**. ⛔ **Les noms des livres sacrés restent en romain conformément au § 3.6** : on écrit ainsi `les *Rétractations*`, `les *Adnotationes in Iob*`, mais `le livre de Job`. Les champs structurés dont la valeur est elle-même un titre — `titre`, `titre_original`, `titre_edition` et leurs équivalents — ⛔ **ne reçoivent pas d’astérisques décoratifs : leur composant d’interface porte la mise en forme**.
 
-**Test de lecture avant publication.** Relire la note sans connaître le chantier qui l’a produite. Si elle exige de savoir ce qu’est un audit, une passe, un lot ou une validation, elle n’est pas prête. Si elle explique immédiatement au lecteur pourquoi l’œuvre se présente sous cette forme et ce que cette particularité signifie, sans redoubler la bibliographie, elle remplit sa fonction.
+**Test de lecture avant publication.** ⛔ **Relire la note sans connaître le chantier qui l’a produite. Si elle exige de savoir ce qu’est un audit, une passe, un lot ou une validation, elle n’est pas prête.** Si elle explique immédiatement au lecteur pourquoi l’œuvre se présente sous cette forme et ce que cette particularité signifie, sans redoubler la bibliographie, elle remplit sa fonction.
 
-La visibilité de l’œuvre dans les listes suit le § 16 : `acces_public`, et lui seul.
+⛔ **La visibilité de l’œuvre dans les listes suit le § 16 : `acces_public`, et lui seul.**
 
 ### 19.2 `oeuvre_textes`
 
-**Libellé court d’édition.** `oeuvre_textes.edition_label` est un libellé public minimal, non une notice bibliographique. Sa forme normative est exactement `Ville, éditeur normalisé, année`. Le champ ne contient ni la formule « D’après l’édition de », ajoutée seulement par l’interface, ni point final. Le lieu est celui de l’édition décrite ; l’éditeur reprend exactement `editeurs.nom_complet` lorsqu’une autorité existe ; plusieurs éditeurs réellement responsables sont séparés par ` ; `. L’année est une année unique portée par `oeuvre_textes.annee_edition` et choisie comme année de référence de la version. Même lorsqu’une édition est multivolume ou s’étend sur plusieurs années, `edition_label` ne fabrique pas automatiquement une plage chronologique : le détail tome par tome et la chronologie complète restent dans `collection`, `date_publication`, les métadonnées de version ou les données de source. Une date plus précise peut être conservée ailleurs, mais le libellé public reste à l’année.
+**Libellé court d’édition.** ⛔ **`oeuvre_textes.edition_label` est un libellé public minimal, non une notice bibliographique. Sa forme normative est exactement `Ville, éditeur normalisé, année`.** ⛔ **Le champ ne contient ni la formule « D’après l’édition de », ajoutée seulement par l’interface, ni point final.** Le lieu est celui de l’édition décrite ; l’éditeur reprend exactement `editeurs.nom_complet` lorsqu’une autorité existe ; plusieurs éditeurs réellement responsables sont séparés par ` ; `. L’année est une année unique portée par `oeuvre_textes.annee_edition` et choisie comme année de référence de la version. Même lorsqu’une édition est multivolume ou s’étend sur plusieurs années, ⛔ **`edition_label` ne fabrique pas automatiquement une plage chronologique** : le détail tome par tome et la chronologie complète restent dans `collection`, `date_publication`, les métadonnées de version ou les données de source. Une date plus précise peut être conservée ailleurs, mais le libellé public reste à l’année.
 
-Sont exclus de `edition_label` : titre de l’œuvre ou de l’édition, collection, série, tome, volume, pagination, étendue de livres ou de chapitres, nom du traducteur, éditeur scientifique, réviseur, directeur, numéro ou mention d’édition, texte latin ou grec en regard, notes, appareil critique et toute autre précision déjà portée par un champ structuré ou une métadonnée de provenance. On ne conserve pas une information dans le libellé au seul motif qu’elle figurait dans une ancienne citation développée. La réduction du libellé n’entraîne aucune perte documentaire : les détails utiles sont déplacés ou maintenus dans leurs champs propres.
+Sont exclus de `edition_label` : titre de l’œuvre ou de l’édition, collection, série, tome, volume, pagination, étendue de livres ou de chapitres, nom du traducteur, éditeur scientifique, réviseur, directeur, numéro ou mention d’édition, texte latin ou grec en regard, notes, appareil critique et toute autre précision déjà portée par un champ structuré ou une métadonnée de provenance. ⛔ **On ne conserve pas une information dans le libellé au seul motif qu’elle figurait dans une ancienne citation développée.** ⚠️ **La réduction du libellé n’entraîne aucune perte documentaire** : les détails utiles sont déplacés ou maintenus dans leurs champs propres.
 
-L’interface compose la seule formule `D’après l’édition de <edition_label>`. Elle ne concatène à cette phrase ni `collection`, ni `date_publication`, ni `annee_edition`, ni pagination, ni commentaire public. Exemple normatif : `edition_label = Paris, Louis Vivès, 1873` produit « D’après l’édition de Paris, Louis Vivès, 1873 ». Les précisions bibliographiques supplémentaires, lorsqu’elles ont une utilité réelle pour le lecteur, sont affichées séparément et ne rallongent pas ce libellé.
+L’interface compose la seule formule `D’après l’édition de <edition_label>`. ⛔ **Elle ne concatène à cette phrase ni `collection`, ni `date_publication`, ni `annee_edition`, ni pagination, ni commentaire public.** Exemple normatif : `edition_label = Paris, Louis Vivès, 1873` produit « D’après l’édition de Paris, Louis Vivès, 1873 ». Les précisions bibliographiques supplémentaires, lorsqu’elles ont une utilité réelle pour le lecteur, sont affichées séparément et ne rallongent pas ce libellé.
 
-**Éditeur d’œuvre.** Lorsqu’une autorité existe dans `editeurs`, `oeuvres.editeur` reprend exactement `editeurs.nom_complet`, et non une variante d’adresse bibliographique. Les variantes imprimées demeurent dans `editeurs.variantes`, les notices et les métadonnées de source. Une discordance entre une variante reconnue et l’autorité d’`oeuvres.editeur` est une anomalie à corriger.
+**Éditeur d’œuvre.** Lorsqu’une autorité existe dans `editeurs`, ⛔ **`oeuvres.editeur` reprend exactement `editeurs.nom_complet`, et non une variante d’adresse bibliographique**. Les variantes imprimées demeurent dans `editeurs.variantes`, les notices et les métadonnées de source. ⚠️ **Une discordance entre une variante reconnue et l’autorité d’`oeuvres.editeur` est une anomalie à corriger.**
 
 `oeuvre_textes` porte les versions éditoriales concrètes d’une œuvre. `id_texte` est stable et identifie une traduction, un état d’édition ou le texte d’une œuvre originale autonome. Une version peut être reliée à une notice de `catalogue_notices` et conserve ses empreintes de sources.
 
-**Original embarqué et original autonome sont deux objets différents.** Le premier vit dans `segments.texte_original` de la traduction et alimente ses modes `?mt=bilingue` et `?mt=la`. Le second possède un autre `id_oeuvre` et sa propre ligne `oeuvre_textes` ; il ouvre une page d’œuvre normale et peut être mis en favori. ⛔ Un texte n’existe qu’à un seul endroit. Dès que l’original possède son propre `id_texte`, la copie embarquée devient redondante et se retire : l’alignement suffit à la lecture bilingue.
+**Original embarqué et original autonome sont deux objets différents.** Le premier vit dans `segments.texte_original` de la traduction et alimente ses modes `?mt=bilingue` et `?mt=la`. Le second possède un autre `id_oeuvre` et sa propre ligne `oeuvre_textes` ; il ouvre une page d’œuvre normale et peut être mis en favori. ⛔ **Un texte n’existe qu’à un seul endroit.** Dès que l’original possède son propre `id_texte`, la copie embarquée devient redondante et se retire : l’alignement suffit à la lecture bilingue.
 
-La bibliothèque et la page d’œuvre rapprochent les œuvres sœurs par même auteur + même titre normalisé. Dans un groupe ainsi formé, chaque œuvre garde son URL propre. Le menu de langue navigue vers l’`id_oeuvre` de l’original autonome quand il existe ; le mode bilingue reste sur l’œuvre traduite. L’original embarqué ne reçoit jamais une étoile de favori, tandis que l’œuvre originale autonome utilise le mécanisme normal `favoris(type='oeuvre', ref_id=id_oeuvre)`.
+La bibliothèque et la page d’œuvre rapprochent les œuvres sœurs par même auteur + même titre normalisé. Dans un groupe ainsi formé, chaque œuvre garde son URL propre. Le menu de langue navigue vers l’`id_oeuvre` de l’original autonome quand il existe ; le mode bilingue reste sur l’œuvre traduite. ⛔ **L’original embarqué ne reçoit jamais une étoile de favori**, tandis que l’œuvre originale autonome utilise le mécanisme normal `favoris(type='oeuvre', ref_id=id_oeuvre)`.
 
 ⚠️ **Ne pas généraliser cette séparation à deux traductions que l’on veut lire par un alignement sémantique explicite.** `texte_alignement_ensembles` porte un seul `id_oeuvre` et relie des `id_texte` de cette œuvre ; deux traductions telles que celles de Boèce qui doivent rester dans le même système d’alignement demeurent donc sous le même `id_oeuvre`. L’original autonome est un cas différent : sa navigation comme œuvre sœur repose sur l’auteur et le titre, tandis que le bilingue se compose depuis l’alignement des deux textes.
 
@@ -2556,45 +2566,45 @@ Le workflow des versions est :
 - `published` : version techniquement publiable ;
 - `retired` : version remplacée ou retirée.
 
-`is_default` désigne la version privilégiée à l’intérieur d’un `id_oeuvre`. Une œuvre disposant de versions doit en avoir exactement une avant clôture ou publication ; cette version ne peut jamais être `retired`. `is_public` reste un indicateur de visibilité de version et doit rester cohérent avec son statut, mais il ne remplace pas `acces_public`, le drapeau de publication de l’œuvre défini au § 16.
+`is_default` désigne la version privilégiée à l’intérieur d’un `id_oeuvre`. ⛔ **Une œuvre disposant de versions doit en avoir exactement une avant clôture ou publication ; cette version ne peut jamais être `retired`.** `is_public` reste un indicateur de visibilité de version et doit rester cohérent avec son statut, mais ⛔ **il ne remplace pas `acces_public`, le drapeau de publication de l’œuvre défini au § 16**.
 
-**Complétude documentaire et transmission lacunaire.** La complétude d’une version s’évalue sur le périmètre effectivement transmis par le témoin ou l’édition de référence et annoncé par la version, non sur l’intégralité hypothétique d’une œuvre antique dont une partie est perdue. Une version peut donc être cohérente, complète sur son périmètre et techniquement publiable lorsqu’elle restitue intégralement le corpus conservé, même si l’œuvre antique n’est plus transmise qu’en partie. La lacune historique est qualifiée dans les données d’authenticité ou de transmission et, lorsqu’elle est utile au lecteur, dans `note_editoriale_complement` ; elle ne transforme pas, à elle seule, la version en import incomplet. À l’inverse, des pages, divisions ou unités attendues dans le témoin choisi mais absentes de l’import constituent une incomplétude de version et interdisent le statut `published`. Les métadonnées legacy `complete_work` et `publication_target`, lorsqu’elles subsistent, ne commandent jamais la visibilité : elles doivent respecter cette distinction et ne jamais contredire `statut`, `is_public` ni `acces_public`.
+**Complétude documentaire et transmission lacunaire.** ⛔ **La complétude d’une version s’évalue sur le périmètre effectivement transmis par le témoin ou l’édition de référence et annoncé par la version, non sur l’intégralité hypothétique d’une œuvre antique dont une partie est perdue.** Une version peut donc être cohérente, complète sur son périmètre et techniquement publiable lorsqu’elle restitue intégralement le corpus conservé, même si l’œuvre antique n’est plus transmise qu’en partie. La lacune historique est qualifiée dans les données d’authenticité ou de transmission et, lorsqu’elle est utile au lecteur, dans `note_editoriale_complement` ; elle ne transforme pas, à elle seule, la version en import incomplet. À l’inverse, ⛔ **des pages, divisions ou unités attendues dans le témoin choisi mais absentes de l’import constituent une incomplétude de version et interdisent le statut `published`**. ⛔ **Les métadonnées legacy `complete_work` et `publication_target`, lorsqu’elles subsistent, ne commandent jamais la visibilité** : elles doivent respecter cette distinction et ne jamais contredire `statut`, `is_public` ni `acces_public`.
 
-Changer la version par défaut, publier, retirer ou remplacer une version est une opération explicite. Aucune version n’est supprimée ni retirée automatiquement du seul fait qu’une nouvelle version existe.
+⛔ **Changer la version par défaut, publier, retirer ou remplacer une version est une opération explicite. Aucune version n’est supprimée ni retirée automatiquement du seul fait qu’une nouvelle version existe.**
 
-**Menu commun des traductions.** Toutes les versions rattachées au même `id_oeuvre` reçoivent le même menu, quel que soit l’`id_texte` actif. La rubrique s’intitule « Traductions ». Une traduction française s’y donne sous la forme exacte `Nom du traducteur (dates de vie), édition de AAAA` ; les dates proviennent d’une donnée structurée et l’année de `oeuvre_textes.annee_edition`. Le texte original reste dans le menu de langue : lorsqu’il existe mais n’est pas aligné avec la portée affichée, son choix demeure visible et grisé. Le mode « Traductions parallèles » n’est pas proposé tant que son parcours de lecture n’est pas réactivé explicitement.
+**Menu commun des traductions.** ⛔ **Toutes les versions rattachées au même `id_oeuvre` reçoivent le même menu, quel que soit l’`id_texte` actif.** La rubrique s’intitule « Traductions ». Une traduction française s’y donne sous la forme exacte `Nom du traducteur (dates de vie), édition de AAAA` ; les dates proviennent d’une donnée structurée et l’année de `oeuvre_textes.annee_edition`. Le texte original reste dans le menu de langue : lorsqu’il existe mais n’est pas aligné avec la portée affichée, son choix demeure visible et grisé. Le mode « Traductions parallèles » n’est pas proposé tant que son parcours de lecture n’est pas réactivé explicitement.
 
 ### 19.3 `oeuvre_texte_unites`
 
-`oeuvre_texte_unites` conserve la structure source d’une version : unités documentaires stables, ordre global, niveaux, paragraphes sources, localisateurs, texte propre, empreintes et métadonnées. Les numéros de page peuvent figurer dans un localisateur de preuve, mais ne constituent pas une structure éditoriale à reconstruire ni à projeter dans les segments. Le couple `(id_texte, source_unit_id)` est l’identité de l’unité ; `(id_texte, global_order)` en fixe l’ordre sans confondre les versions.
+`oeuvre_texte_unites` conserve la structure source d’une version : unités documentaires stables, ordre global, niveaux, paragraphes sources, localisateurs, texte propre, empreintes et métadonnées. ⛔ **Les numéros de page peuvent figurer dans un localisateur de preuve, mais ne constituent pas une structure éditoriale à reconstruire ni à projeter dans les segments.** Le couple `(id_texte, source_unit_id)` est l’identité de l’unité ; `(id_texte, global_order)` en fixe l’ordre sans confondre les versions.
 
-Les unités sources servent de couche de preuve et de recomposition. Elles ne sont pas remodelées pour correspondre artificiellement aux segments sémantiques.
+Les unités sources servent de couche de preuve et de recomposition. ⛔ **Elles ne sont pas remodelées pour correspondre artificiellement aux segments sémantiques.**
 
 ### 19.4 `segments`
 
 `segments` porte la segmentation éditoriale destinée à la lecture, à la recherche et aux liens. Les invariants principaux sont ceux des §§ 6 et 11 : unicité de `(id_texte, segment_numero)` et `(id_texte, segment_key)`, rattachement à la version et, lorsque disponible, à l’unité source, cohérence des offsets, paragraphes, rangs, pages, niveaux, natures et espaces textuels.
 
-Les anciennes colonnes `lien_1` à `lien_4`, `fiabilite`, `notes` et `texte_original` sont des champs hérités ou des projections de compatibilité. Elles ne doivent pas redevenir la source normative d’un nouveau chantier lorsque les tables spécialisées existent.
+Les anciennes colonnes `lien_1` à `lien_4`, `fiabilite`, `notes` et `texte_original` sont des champs hérités ou des projections de compatibilité. ⛔ **Elles ne doivent pas redevenir la source normative d’un nouveau chantier lorsque les tables spécialisées existent.**
 
 ### 19.5 Notes structurées
 
-`texte_notes`, `texte_note_ancres`, `texte_note_blocs` et `texte_note_relations` sont la source normative des notes structurées des nouvelles versions. Une projection dans `segments.notes` doit être reconstructible et ne doit jamais diverger silencieusement de ces tables.
+`texte_notes`, `texte_note_ancres`, `texte_note_blocs` et `texte_note_relations` sont la source normative des notes structurées des nouvelles versions. ⛔ **Une projection dans `segments.notes` doit être reconstructible et ne doit jamais diverger silencieusement de ces tables.**
 
 ### 19.6 Alignements et relations entre versions
 
-`texte_alignement_ensembles`, `texte_alignements` et `texte_alignement_membres` portent les alignements sémantiques entre versions conformément au § 12. `texte_groupes_logiques`, `texte_groupe_membres` et `texte_relations_logiques` décrivent des regroupements ou relations internes qui ne doivent pas être confondus avec l’alignement bilingue lui-même.
+`texte_alignement_ensembles`, `texte_alignements` et `texte_alignement_membres` portent les alignements sémantiques entre versions conformément au § 12. `texte_groupes_logiques`, `texte_groupe_membres` et `texte_relations_logiques` décrivent des regroupements ou relations internes qui ⚠️ **ne doivent pas être confondus avec l’alignement bilingue lui-même**.
 
 ### 19.7 `liens_bibliques`
 
-Chaque ligne associe un segment à une cible canonique et porte au minimum le type, la fiabilité, la provenance, le motif et l’état d’arbitrage. Une contrainte d’unicité doit empêcher les doublons exacts sans interdire plusieurs cibles légitimes pour un même segment. Les liens restent ancrés sur `segments.id`, mais leur interprétation doit tenir compte de `id_texte` et des alignements éventuels.
+Chaque ligne associe un segment à une cible canonique et porte au minimum le type, la fiabilité, la provenance, le motif et l’état d’arbitrage. ⛔ **Une contrainte d’unicité doit empêcher les doublons exacts sans interdire plusieurs cibles légitimes pour un même segment.** Les liens restent ancrés sur `segments.id`, mais leur interprétation doit tenir compte de `id_texte` et des alignements éventuels.
 
 ### 19.8 Autorité du schéma
 
-Avant de générer un import ou une migration, interroger le schéma actuel. Une liste de colonnes copiée depuis un ancien script n’est jamais une autorité. Tout changement de modèle est accompagné d’une migration versionnée, d’une mise à jour des importateurs, du lecteur et des tests pertinents.
+⛔ **Avant de générer un import ou une migration, interroger le schéma actuel. Une liste de colonnes copiée depuis un ancien script n’est jamais une autorité.** ⛔ **Tout changement de modèle est accompagné d’une migration versionnée, d’une mise à jour des importateurs, du lecteur et des tests pertinents.**
 
 Une seule base sert le poste de travail et le site en ligne. Une migration prend donc effet immédiatement sur le site, dont le code, lui, n’a pas changé. Une migration qui touche la forme des relations est ainsi capable de casser une page à laquelle personne n’a touché : ajouter une table de liaison rend ambigus les embeds imbriqués du code déjà déployé, qui cessent de renvoyer des données. Le poste de travail ne voit rien, puisqu’il porte le correctif.
 
-Règle : une telle migration ne s’applique qu’une fois le correctif publié, ou bien il est publié dans la foulée. Aucune séance ne se termine sur une migration en base dont le correctif dort dans un commit non publié. Pour vérifier ce qu’il en est, on rejoue la requête telle que la sert le code en ligne, jamais le code local.
+Règle : ⛔ **une telle migration ne s’applique qu’une fois le correctif publié, ou bien il est publié dans la foulée. Aucune séance ne se termine sur une migration en base dont le correctif dort dans un commit non publié.** Pour vérifier ce qu’il en est, ⛔ **on rejoue la requête telle que la sert le code en ligne, jamais le code local**.
 
 ## 20. Contrôles structurels obligatoires
 
@@ -2633,41 +2643,43 @@ Les deux apparats sont contrôlés comme des ensembles textuels à part entière
 
 L’`apparat_auteur` reste dans le parcours de lecture du corps. L’`apparat_editeur` est rendu hors du flux ordinaire. Ne pas déduire la responsabilité de la seule position liminaire : une préface de l’auteur n’est pas une préface éditoriale, et une préface du traducteur n’est pas un texte de l’auteur.
 
-Les références bibliques suivent la règle du § 8 : une référence grammaticalement intégrée demeure dans la phrase ; une référence isolée est transformée en note. Leur constitution en liens reste une sous-phase explicite de la phase B.\n\n⛔ **Une référence bibliographique présente dans un apparat n’échappe jamais au normalisateur.** Qu’elle se trouve dans une note, une introduction, une liste d’ouvrages, une liste de traductions, une rubrique critique ou tout autre paratexte, son emplacement documentaire ne change pas son contrat bibliographique. Dès qu’une œuvre ou une édition est identifiable, elle passe par **Normaliser**, réemploie ou crée `ouvrages_bibliographiques`, reçoit son `ouvrage_id` et ses autorités structurées, puis se compose depuis ces données conformément aux §§ 29.0 et 47.1–35.6.4. La chaîne imprimée/OCR reste une provenance ; elle n’est jamais la notice publique finale. Un apparat dont une référence identifiable est encore rendue depuis une chaîne libre n’est pas conforme et ne peut être déclaré clos.
+Les références bibliques suivent la règle du § 8 : une référence grammaticalement intégrée demeure dans la phrase ; une référence isolée est transformée en note. Leur constitution en liens reste une sous-phase explicite de la phase B.
+
+⛔ **Une référence bibliographique présente dans un apparat n’échappe jamais au normalisateur.** Qu’elle se trouve dans une note, une introduction, une liste d’ouvrages, une liste de traductions, une rubrique critique ou tout autre paratexte, son emplacement documentaire ne change pas son contrat bibliographique. Dès qu’une œuvre ou une édition est identifiable, elle passe par **Normaliser**, réemploie ou crée `ouvrages_bibliographiques`, reçoit son `ouvrage_id` et ses autorités structurées, puis se compose depuis ces données conformément aux §§ 29.0 et 47.1–35.6.4. La chaîne imprimée/OCR reste une provenance ; elle n’est jamais la notice publique finale. Un apparat dont une référence identifiable est encore rendue depuis une chaîne libre n’est pas conforme et ne peut être déclaré clos.
 
 ## 23. Protocole de modification
 
 
 ### 23.0 Manifeste constitutionnel de révision des textes
 
-**Statut.** Le présent article fixe la procédure canonique de toute révision textuelle dans Corpus Scriptura : reprise d’un import ancien, collation d’une édition, correction OCR/HTR, restructuration, normalisation éditoriale, reprise des notes, alignement ou audit final. Il n’énonce pas une seconde fois les règles de détail : il en fixe l’ordre, les dépendances et les conditions de clôture. Les prescriptions spécialisées des autres sections et des chantiers particuliers s’y ajoutent ; elles ne peuvent supprimer une étape applicable ni abaisser le niveau de preuve exigé. Une étape sans objet peut être déclarée non applicable, mais cette décision doit être explicite et vérifiable.
+**Statut.** Le présent article fixe la procédure canonique de toute révision textuelle dans Corpus Scriptura : reprise d’un import ancien, collation d’une édition, correction OCR/HTR, restructuration, normalisation éditoriale, reprise des notes, alignement ou audit final. Il n’énonce pas une seconde fois les règles de détail : il en fixe l’ordre, les dépendances et les conditions de clôture. Les prescriptions spécialisées des autres sections et des chantiers particuliers s’y ajoutent ; ⛔ **elles ne peuvent supprimer une étape applicable ni abaisser le niveau de preuve exigé**. Une étape sans objet peut être déclarée non applicable, mais cette décision doit être explicite et vérifiable.
 
-**Principe de nécessité.** Le corpus actif ne conserve que ce qui remplit une fonction textuelle, documentaire, structurelle, philologique, sémantique, bibliographique, d’alignement, de provenance, de rendu ou de contrôle durable. Un artefact d’import, une analyse de travail, une unité technique, un libellé redondant, une projection périmée ou une métadonnée sans fonction ne sont pas conservés par inertie. Leur suppression n’intervient qu’après vérification des dépendances et après transfert de l’information utile vers sa donnée normative. L’archive et la sauvegarde gardent la mémoire du chantier ; le corpus actif ne sert pas d’entrepôt aux étapes devenues inutiles.
+**Principe de nécessité.** Le corpus actif ne conserve que ce qui remplit une fonction textuelle, documentaire, structurelle, philologique, sémantique, bibliographique, d’alignement, de provenance, de rendu ou de contrôle durable. Un artefact d’import, une analyse de travail, une unité technique, un libellé redondant, une projection périmée ou une métadonnée sans fonction ne sont pas conservés par inertie. Leur suppression n’intervient qu’après vérification des dépendances et après transfert de l’information utile vers sa donnée normative. ⚠️ **L’archive et la sauvegarde gardent la mémoire du chantier ; le corpus actif ne sert pas d’entrepôt aux étapes devenues inutiles.**
 
-**Ordre de dépendance.** La révision suit l’ordre ci-dessous. Toute correction tardive qui modifie une couche déjà contrôlée rouvre cette couche et toutes les étapes postérieures qui en dépendent. Une œuvre n’est jamais déclarée « propre », « close » ou « vérifiée » parce qu’un contrôle partiel est à zéro.
+**Ordre de dépendance.** La révision suit l’ordre ci-dessous. Toute correction tardive qui modifie une couche déjà contrôlée rouvre cette couche et toutes les étapes postérieures qui en dépendent. ⛔ **Une œuvre n’est jamais déclarée « propre », « close » ou « vérifiée » parce qu’un contrôle partiel est à zéro.**
 
 1. **Ouvrir la mission.** Consulter le centre de contrôle (§ 30), identifier la mission par une clé stable, lire les missions parallèles et inscrire l’état initial mesuré. Plusieurs missions peuvent coexister dans une même section ; une seule tâche active existe pour une même mission. Définir le périmètre exact : œuvre, version, témoin, langue, pages ou divisions, couches concernées et ce qui est explicitement hors périmètre.
 
-2. **Établir l’autorité documentaire.** Identifier l’édition ou le témoin exact, sa source de vérité, son étendue matérielle, son statut juridique et éditorial, ses éventuels textes parallèles et le régime de transcription applicable. Vérifier la notice et les métadonnées indispensables (§§ 2, 5, 11, 14, 16, 19). Aucune correction de fond ne précède cette identification.
+2. **Établir l’autorité documentaire.** Identifier l’édition ou le témoin exact, sa source de vérité, son étendue matérielle, son statut juridique et éditorial, ses éventuels textes parallèles et le régime de transcription applicable. Vérifier la notice et les métadonnées indispensables (§§ 2, 5, 11, 14, 16, 19). ⛔ **Aucune correction de fond ne précède cette identification.**
 
-3. **Faire l’état des lieux en lecture seule.** Mesurer l’existant et cartographier toutes les surfaces réellement utilisées : unités source, segments, niveaux, paragraphes, rangs, pages, natures, raccords, offsets, empreintes, titres et chapeaux, enrichissements, notes et apparats, métadonnées, textes parallèles, alignements, liens existants et projections de rendu. **L’inventaire des natures est obligatoire : matrice `nature × espace_textuel × type_unite/source_kind`, effectifs, exemples et recherche des contradictions sémantiques selon le § 7.0 ter.** Classer chaque constat comme erreur certaine, anomalie à examiner, réserve documentée ou dette étrangère au périmètre. Le diagnostic ne modifie rien (§ 23.1).
+3. **Faire l’état des lieux en lecture seule.** Mesurer l’existant et cartographier toutes les surfaces réellement utilisées : unités source, segments, niveaux, paragraphes, rangs, pages, natures, raccords, offsets, empreintes, titres et chapeaux, enrichissements, notes et apparats, métadonnées, textes parallèles, alignements, liens existants et projections de rendu. **L’inventaire des natures est obligatoire : matrice `nature × espace_textuel × type_unite/source_kind`, effectifs, exemples et recherche des contradictions sémantiques selon le § 7.0 ter.** Classer chaque constat comme erreur certaine, anomalie à examiner, réserve documentée ou dette étrangère au périmètre. ⛔ **Le diagnostic ne modifie rien** (§ 23.1).
 
-4. **Rétablir d’abord la structure réelle de l’édition.** Comparer le sommaire, les têtes, les lemmes, les divisions et le fac-similé ; distinguer titre d’œuvre, paratexte, chapitre, sous-titre, chapeau, lemme, subdivision numérotée, paragraphe et simple repère. Supprimer les niveaux inventés, doublons structurels et contenants techniques sans fonction ; restituer les natures et les espaces textuels corrects. Les paragraphes, rangs, pagination et segmentation sont ensuite remis en cohérence avec cette structure (§§ 6, 7, 20, 22). L’interface ne commande jamais la structure.
+4. **Rétablir d’abord la structure réelle de l’édition.** Comparer le sommaire, les têtes, les lemmes, les divisions et le fac-similé ; distinguer titre d’œuvre, paratexte, chapitre, sous-titre, chapeau, lemme, subdivision numérotée, paragraphe et simple repère. Supprimer les niveaux inventés, doublons structurels et contenants techniques sans fonction ; restituer les natures et les espaces textuels corrects. Les paragraphes, rangs, pagination et segmentation sont ensuite remis en cohérence avec cette structure (§§ 6, 7, 20, 22). ⛔ **L’interface ne commande jamais la structure.**
 
-5. **Établir le texte.** Collationner le texte contre la source et corriger les erreurs certaines de transcription, OCR, contamination, omission, duplication, raccord ou déplacement. Conserver les leçons surprenantes mais attestées ; signaler les incertitudes ; ne pas moderniser silencieusement (§§ 1, 14, 23.6–23.11, 25). Une couche diplomatique ou source n’est pas réécrite pour corriger une couche éditoriale dérivée.
+5. **Établir le texte.** Collationner le texte contre la source et corriger les erreurs certaines de transcription, OCR, contamination, omission, duplication, raccord ou déplacement. Conserver les leçons surprenantes mais attestées ; signaler les incertitudes ; ne pas moderniser silencieusement (§§ 1, 14, 23.6–23.11, 25). ⛔ **Une couche diplomatique ou source n’est pas réécrite pour corriger une couche éditoriale dérivée.**
 
-6. **Stabiliser la segmentation et la provenance.** Après toute correction textuelle ou structurelle, vérifier les unités source, la recomposition, les paragraphes, rangs, `segment_numero`, `segment_key`, `join_before`, offsets, limites de source, pagination et empreintes. Une segmentation ne sacrifie ni l’unité syntaxique ni la reconstruction exacte du témoin. Les contrôles du § 20 sont des conditions nécessaires, jamais une preuve suffisante d’exactitude.
+6. **Stabiliser la segmentation et la provenance.** Après toute correction textuelle ou structurelle, vérifier les unités source, la recomposition, les paragraphes, rangs, `segment_numero`, `segment_key`, `join_before`, offsets, limites de source, pagination et empreintes. Une segmentation ne sacrifie ni l’unité syntaxique ni la reconstruction exacte du témoin. ⛔ **Les contrôles du § 20 sont des conditions nécessaires, jamais une preuve suffisante d’exactitude.**
 
 
    **Contrôle obligatoire de poésie et de lineation (§ 7.4).** Inventorier tous les segments `forme = vers`, les regrouper en séquences continues par pièce, confronter leurs lignes au témoin et contrôler les jointures internes. Une frontière de page, d’unité source ou d’OCR ne doit produire ni `join_before` nul, ni espace, ni blanc de paragraphe entre deux vers d’une même séquence. Toute rupture plus forte doit être attestée comme strophe ou changement réel de pièce. Relever et arbitrer aussi les blocs mêlant prose et vers.
 
-7. **Appliquer la couche éditoriale.** Une fois texte et structure stabilisés, traiter la typographie, la ponctuation des citations, les guillemets, langues et écritures, italiques, références intégrées, lemmes et enrichissements selon le § 3 et les conventions propres au témoin. **Passage obligatoire sur les titres :** inventorier toutes les formes visibles (`ref_niv*`, `ref_niv*_texte`, headings, titres/sous-titres d’unités, rubriques, chapeaux et projections), distinguer pour chacune la forme source de la forme d’affichage, puis rechercher les chaînes entièrement ou majoritairement en capitales lexicales. Toute forme non justifiée est normalisée dans la seule couche d’affichage ; la forme diplomatique reste conservée dans la provenance. Le postcontrôle de cette étape doit établir **0 séquence de capitales d’affichage non justifiée**. Contrôler toutes les projections et surfaces rendues : une correction incomplète dans une projection secondaire reste une correction inachevée. Le rendu ne doit pas masquer une donnée fautive.
+7. **Appliquer la couche éditoriale.** Une fois texte et structure stabilisés, traiter la typographie, la ponctuation des citations, les guillemets, langues et écritures, italiques, références intégrées, lemmes et enrichissements selon le § 3 et les conventions propres au témoin. **Passage obligatoire sur les titres :** inventorier toutes les formes visibles (`ref_niv*`, `ref_niv*_texte`, headings, titres/sous-titres d’unités, rubriques, chapeaux et projections), distinguer pour chacune la forme source de la forme d’affichage, puis rechercher les chaînes entièrement ou majoritairement en capitales lexicales. Toute forme non justifiée est normalisée dans la seule couche d’affichage ; la forme diplomatique reste conservée dans la provenance. Le postcontrôle de cette étape doit établir **0 séquence de capitales d’affichage non justifiée**. Contrôler toutes les projections et surfaces rendues : ⛔ **une correction incomplète dans une projection secondaire reste une correction inachevée. Le rendu ne doit pas masquer une donnée fautive.**
 
 8. **Reprendre notes, apparats et références bibliographiques.** Contrôler l’appartenance documentaire des apparats, puis les notes comme un système complet : identité, numérotation, blocs, ancres, cible réelle, offsets, portée, ponctuation, enrichissements, références et éventuelles ancres de titre (§§ 8, 13, 22). Dans la même étape, inventorier **toute référence bibliographique rencontrée sur les surfaces rendues**, y compris hors d’une pièce intitulée « Bibliographie ». Chaque référence identifiable passe obligatoirement par l’outil **Normaliser** : recherche de doublon par clé normalisée, réemploi ou création de `ouvrages_bibliographiques`, complétion documentée des champs disponibles, rattachement à `ouvrage_id`, autorités de contributeurs et d’éditeurs, `type_ouvrage` et état de revue si nécessaire (§§ 29.0, 47.1, 47.4). Aucune note, aucun appel ni aucun apparat n’est conservé sous une forme technique redondante lorsque le modèle normatif le représente déjà. ⛔ Cette étape n’est close que si 0 référence identifiable est rendue depuis une chaîne libre lorsqu’une représentation structurée existe, 0 ouvrage identifiable reste sans recherche de correspondance, 0 doublon de notice ou d’autorité a été créé, et toute projection matérialisée est traçable à son `ouvrage_id` ou, pour un renvoi, à ses `related_ouvrage_ids`.
 
-9. **Contrôler les textes parallèles et alignements, s’ils existent.** Toute resegmentation ou modification de frontières oblige à revalider les alignements concernés et leurs projections. L’alignement est sémantique et ne force jamais du `1:1` (§ 12). Si une division source traverse une frontière absolue du texte traduit, scinder le groupe d’alignement sans scinder artificiellement le texte ni l’unité source ; vérifier alors séparément le nombre de divisions source et le nombre de groupes. Après bascule vers l’ensemble canonique, tout ensemble concurrent conservé seulement pour mémoire est passé en `retired`, et les compteurs de clôture distinguent ensembles actifs, ensembles retirés, groupes actifs et groupes historiques. Les caches ou projections dérivés sont régénérés après la donnée normative, jamais l’inverse.
+9. **Contrôler les textes parallèles et alignements, s’ils existent.** Toute resegmentation ou modification de frontières oblige à revalider les alignements concernés et leurs projections. ⛔ **L’alignement est sémantique et ne force jamais du `1:1`** (§ 12). Si une division source traverse une frontière absolue du texte traduit, scinder le groupe d’alignement sans scinder artificiellement le texte ni l’unité source ; vérifier alors séparément le nombre de divisions source et le nombre de groupes. Après bascule vers l’ensemble canonique, tout ensemble concurrent conservé seulement pour mémoire est passé en `retired`, et les compteurs de clôture distinguent ensembles actifs, ensembles retirés, groupes actifs et groupes historiques. ⛔ **Les caches ou projections dérivés sont régénérés après la donnée normative, jamais l’inverse.**
 
-10. **Nettoyer les métadonnées et résidus de chantier.** Réconcilier les compteurs, statuts, niveaux déclarés, notices, provenances et métadonnées avec l’état réel. Rechercher les champs vides artificiels, marqueurs obsolètes, anciens niveaux, unités sans fonction, copies d’import et données devenues redondantes. Ce nettoyage suit le principe de nécessité ci-dessus et les règles de suppression du § 23.8 ; il ne supprime jamais une preuve documentaire unique.
+10. **Nettoyer les métadonnées et résidus de chantier.** Réconcilier les compteurs, statuts, niveaux déclarés, notices, provenances et métadonnées avec l’état réel. Rechercher les champs vides artificiels, marqueurs obsolètes, anciens niveaux, unités sans fonction, copies d’import et données devenues redondantes. Ce nettoyage suit le principe de nécessité ci-dessus et les règles de suppression du § 23.8 ; ⛔ **il ne supprime jamais une preuve documentaire unique.**
 
 11. **Clore la phase A par une vérification exhaustive.** Rejouer les contrôles structurels (§ 20), contrôler les apparats, rechercher les omissions et doublons, relire directement les zones à risque et effectuer des sondages reproductibles répartis (§§ 14.7–14.8, 21). **Rejouer intégralement l’audit des natures du § 7.0 ter : 100 % des segments du périmètre doivent être classés et 0 candidat de nature ne peut rester non arbitré.** Une erreur trouvée par sondage définit une famille : rechercher tous les cas analogues, corriger la famille entière, puis rejouer les contrôles. La phase A n’est close que si le périmètre annoncé a été effectivement relu, que les invariants applicables sont conformes et que les réserves restantes sont explicitement nommées.
 
@@ -2675,9 +2687,9 @@ Les références bibliques suivent la règle du § 8 : une référence grammatic
 
 13. **Effectuer l’audit final indépendant.** Après la dernière écriture, relire l’état depuis la base et non le plan de correction ; recomposer les unités et projections, vérifier les empreintes et dépendances, rechercher les résidus des familles déjà rencontrées et effectuer un dernier sondage indépendant. **Rejouer obligatoirement le balayage de casse d’affichage du § 3.5 sur toutes les surfaces de titres du périmètre et consigner son décompte ; la clôture exige 0 séquence de capitales non justifiée. Rejouer aussi la matrice des natures du § 7.0 ter et vérifier que 0 nature contradictoire ou non arbitrée subsiste après les dernières écritures.** **Rejouer aussi le contrôle de poésie et de lineation du § 7.4 : décompter les segments en vers, les séquences continues, les ruptures internes non justifiées et les blocs mixtes prose/vers ; la clôture exige 0 rupture technique non arbitrée.** Si la présentation a été affectée, vérifier également le rendu réel. Les procédures des §§ 23.1–23.11 s’appliquent à chaque mutation intermédiaire comme à cette passe finale.
 
-14. **Clore sans surdéclarer.** Mettre à jour uniquement la mission correspondante dans le centre de contrôle avec des chiffres issus de requêtes, consigner les réserves, retirer l’état « en cours » et conserver les sauvegardes et preuves utiles. **Avant de déclarer une œuvre close, rechercher dans le centre de contrôle les tâches et synthèses qui mentionnent cette même œuvre ou cette même mission et solder seulement celles que l’état live rend objectivement périmées.** Une dette distincte — autre témoin, publication future, enrichissement non bloquant ou mission parallèle — reste ouverte et explicitement qualifiée ; elle n’est jamais fermée par simple proximité de sujet. Une clôture technique ou éditoriale ne crée jamais une validation humaine, une publication ou un statut scientifique qui n’a pas été explicitement accordé. La publication est une décision distincte, soumise aux droits, à la sécurité et aux conditions de livraison (§§ 17, 27, 31.6).
+14. **Clore sans surdéclarer.** Mettre à jour uniquement la mission correspondante dans le centre de contrôle avec des chiffres issus de requêtes, consigner les réserves, retirer l’état « en cours » et conserver les sauvegardes et preuves utiles. **Avant de déclarer une œuvre close, rechercher dans le centre de contrôle les tâches et synthèses qui mentionnent cette même œuvre ou cette même mission et solder seulement celles que l’état live rend objectivement périmées.** Une dette distincte — autre témoin, publication future, enrichissement non bloquant ou mission parallèle — reste ouverte et explicitement qualifiée ; ⛔ **elle n’est jamais fermée par simple proximité de sujet.** ⛔ **Une clôture technique ou éditoriale ne crée jamais une validation humaine, une publication ou un statut scientifique qui n’a pas été explicitement accordé.** La publication est une décision distincte, soumise aux droits, à la sécurité et aux conditions de livraison (§§ 17, 27, 31.6).
 
-15. **Rouvrir et raffiner.** Toute erreur certaine découverte après clôture rouvre la dernière étape dont elle révèle l’insuffisance ainsi que les étapes dépendantes. Si elle révèle un angle mort de méthode et non un accident isolé, la procédure ou la règle spécialisée correspondante est raffinée dans la charte conformément au § 27. Le précédent état n’est pas réécrit comme s’il avait toujours été correct : le journal de mission conserve la succession réelle des contrôles.
+15. **Rouvrir et raffiner.** Toute erreur certaine découverte après clôture rouvre la dernière étape dont elle révèle l’insuffisance ainsi que les étapes dépendantes. Si elle révèle un angle mort de méthode et non un accident isolé, la procédure ou la règle spécialisée correspondante est raffinée dans la charte conformément au § 27. ⚠️ **Le précédent état n’est pas réécrit comme s’il avait toujours été correct** : le journal de mission conserve la succession réelle des contrôles.
 
 **Discipline de mutation.** À l’intérieur de chacune de ces étapes, toute écriture suit le cycle obligatoire des §§ 23.1–23.11 : diagnostic, proposition à blanc, sauvegarde, écriture bornée et gardée, relecture depuis la base, recomposition, contrôles et rapport. Les règles spécifiques de schéma et d’écriture en vigueur priment sur tout script historique.
 
@@ -2686,33 +2698,33 @@ Les références bibliques suivent la règle du § 8 : une référence grammatic
 
 ### 23.1 Diagnostic
 
-Commencer par un audit en lecture seule. Définir le périmètre, la source, les invariants et le résultat attendu. Ne pas écrire pendant la découverte du problème.
+Commencer par un audit en lecture seule. Définir le périmètre, la source, les invariants et le résultat attendu. ⛔ **Ne pas écrire pendant la découverte du problème.**
 
 ### 23.2 Plan et mode à blanc
 
-Produire une proposition calculée, avec les lignes avant et après, les décomptes et les contrôles. Le mode à blanc ne change ni fichier source ni base.
+Produire une proposition calculée, avec les lignes avant et après, les décomptes et les contrôles. ⛔ **Le mode à blanc ne change ni fichier source ni base.**
 
 ### 23.3 Écriture bornée
 
-Écrire par identifiants explicites, lots limités et conditions de garde. Une mise à jour ne doit pas toucher une ligne dont l’état a changé depuis le diagnostic.
+Écrire par identifiants explicites, lots limités et conditions de garde. ⛔ **Une mise à jour ne doit pas toucher une ligne dont l’état a changé depuis le diagnostic.**
 
 ### 23.4 Vérification
 
-Relire depuis la base, recomposer les données, comparer les empreintes pertinentes et exécuter les contrôles aléatoires. Un message de succès de l’API ne suffit pas.
+Relire depuis la base, recomposer les données, comparer les empreintes pertinentes et exécuter les contrôles aléatoires. ⛔ **Un message de succès de l’API ne suffit pas.**
 
 ### 23.5 Rapport
 
-Le rapport indique ce qui a été modifié, contrôlé et laissé en attente. Il donne les chemins des sauvegardes et artefacts utiles. Les bilans propres à une œuvre restent dans `audit/` ou dans les scripts de chantier, jamais dans la charte.
+Le rapport indique ce qui a été modifié, contrôlé et laissé en attente. Il donne les chemins des sauvegardes et artefacts utiles. ⚠️ **Les bilans propres à une œuvre restent dans `audit/` ou dans les scripts de chantier, jamais dans la charte.**
 
 ### 23.6 Non-modernisation
 
-Une correction éditoriale ne modernise pas silencieusement le texte. Si l’édition est normalisée selon une politique particulière, cette politique doit être explicitement approuvée et appliquée de manière cohérente.
+⛔ **Une correction éditoriale ne modernise pas silencieusement le texte.** Si l’édition est normalisée selon une politique particulière, cette politique doit être explicitement approuvée et appliquée de manière cohérente.
 
 #### 23.6.1. Préflight de schéma et staging avant resegmentation
 
-Avant toute mutation textuelle ou structurelle, interroger le schéma réel des colonnes touchées (`information_schema.columns`, contraintes et dépendances). Une règle historique d’écriture ne doit jamais conduire à écrire explicitement dans une colonne devenue générée. Si une colonne dérivée est déclarée `GENERATED ALWAYS`, sa valeur est recalculée par PostgreSQL dans la même mutation de la colonne source : on modifie uniquement la colonne source et l’on vérifie ensuite la valeur générée. Dans l’état actuel de `segments`, `texte_norm` est générée par `public.norm_fr(segment_texte)` ; il est donc interdit de la placer explicitement dans le `SET` tant que cette définition de schéma demeure active. Si le schéma change de nouveau, la règle d’écriture doit être réévaluée avant la première mutation.
+Avant toute mutation textuelle ou structurelle, interroger le schéma réel des colonnes touchées (`information_schema.columns`, contraintes et dépendances). ⛔ **Une règle historique d’écriture ne doit jamais conduire à écrire explicitement dans une colonne devenue générée.** Si une colonne dérivée est déclarée `GENERATED ALWAYS`, sa valeur est recalculée par PostgreSQL dans la même mutation de la colonne source : on modifie uniquement la colonne source et l’on vérifie ensuite la valeur générée. Dans l’état actuel de `segments`, `texte_norm` est générée par `public.norm_fr(segment_texte)` ; il est donc interdit de la placer explicitement dans le `SET` tant que cette définition de schéma demeure active. Si le schéma change de nouveau, la règle d’écriture doit être réévaluée avant la première mutation.
 
-**Identifiants générés et colonnes `IDENTITY`.** Le préflight de schéma contrôle aussi `is_identity`, `identity_generation`, la valeur par défaut et la séquence éventuelle de toute clé insérée. Une clé déclarée `GENERATED ALWAYS AS IDENTITY` n’est jamais traitée comme une colonne libre au seul motif qu’une séquence est connue : appeler `nextval()` ne rend pas licite une insertion explicite. Par défaut, laisser PostgreSQL produire l’identifiant et récupérer le mapping par `INSERT ... RETURNING`. `OVERRIDING SYSTEM VALUE` n’est admis que lorsqu’un identifiant déjà réservé ou une correspondance de staging doit réellement être conservé, avec sauvegarde, justification explicite et vérification d’unicité avant et après écriture.
+**Identifiants générés et colonnes `IDENTITY`.** Le préflight de schéma contrôle aussi `is_identity`, `identity_generation`, la valeur par défaut et la séquence éventuelle de toute clé insérée. Une clé déclarée `GENERATED ALWAYS AS IDENTITY` n’est jamais traitée comme une colonne libre au seul motif qu’une séquence est connue : ⛔ **appeler `nextval()` ne rend pas licite une insertion explicite.** Par défaut, laisser PostgreSQL produire l’identifiant et récupérer le mapping par `INSERT ... RETURNING`. `OVERRIDING SYSTEM VALUE` n’est admis que lorsqu’un identifiant déjà réservé ou une correspondance de staging doit réellement être conservé, avec sauvegarde, justification explicite et vérification d’unicité avant et après écriture.
 
 Toute resegmentation non triviale doit être préparée hors du corpus actif, de préférence dans `internal`, puis soumise avant remplacement à des contrôles déterministes : nombre d’unités et de segments, recomposition exacte de chaque unité, validité des offsets, empreintes SHA, conservation et position des marqueurs de notes, dépendances, absence de perte textuelle et distribution des longueurs. Le remplacement du live ne se fait qu’après réussite de ces contrôles et dans une transaction unique. Les rubriques ou titres structurels sont portés par des unités de type `heading` et par la hiérarchie ; ils ne doivent pas être dupliqués comme segments de corps. Lorsqu’un chantier nécessite des insertions répétées dans l’ordre documentaire, on peut créer une seule fois des intervalles d’ordre suffisamment larges, après audit des dépendances, puis resynchroniser les références vivantes qui mémorisent cet ordre ; on évite ainsi les renumérotations globales à chaque passe et on ne compacte qu’à la clôture. Après toute renumérotation de segments, rechercher explicitement les tables qui mémorisent un `segment_numero` en plus d’un identifiant stable (`segment_id`, `segment_key` ou équivalent) — notamment `prelevements` — et recalculer ce numéro dénormalisé depuis l’identifiant stable. La passe n’est conforme que si le contrôle final ne trouve aucun écart entre le numéro mémorisé et le segment vivant.
 
@@ -2720,52 +2732,54 @@ Une resegmentation qui supprime ou remplace des segments peut déclencher des su
 
 #### 23.6.2. Frontières documentaires et frontières sémantiques
 
-Une frontière produite par un OCR, un HTML, une API, un export Word ou un moteur de lecture ne vaut jamais, par elle-même, preuve d’un alinéa de l’édition. Les paragraphes, retours intentionnels et changements de niveau sont établis d’abord par le fac-similé ou par un encodage source dont la fonction documentaire est certaine. Les fins de page, de colonne, de ligne OCR et les découpages d’un extracteur ne doivent pas être promus en paragraphes.
+⛔ **Une frontière produite par un OCR, un HTML, une API, un export Word ou un moteur de lecture ne vaut jamais, par elle-même, preuve d’un alinéa de l’édition.** Les paragraphes, retours intentionnels et changements de niveau sont établis d’abord par le fac-similé ou par un encodage source dont la fonction documentaire est certaine. ⛔ **Les fins de page, de colonne, de ligne OCR et les découpages d’un extracteur ne doivent pas être promus en paragraphes.**
 
 Lorsqu’une resegmentation doit avancer avant que tous les alinéas aient pu être attestés, employer la frontière documentaire certaine la plus proche et la plus large — par exemple chapitre, section numérotée, paragraphe explicitement balisé — comme `source_unit_id`. À l’intérieur de cette unité, créer des segments sémantiques avec offsets exacts et rangs continus, sans prétendre que ces segments sont des paragraphes de la source. Le statut de la frontière documentaire encore à contrôler doit rester explicite dans les métadonnées. Une vérification ultérieure du fac-similé peut subdiviser l’unité source sans réécrire le texte.
 
-La longueur ne décide jamais seule d’une coupure. Elle sert à repérer un segment à relire. Une coupure n’est admise qu’à une articulation syntaxique ou argumentative sûre ; un découpage à la phrase peut servir de présélection, mais les périodes longues, citations, objections, réponses et énumérations sont relues avant publication. Si le texte legacy présente une fusion, une inversion, une répétition ou une lacune à une jonction de page, la source est recollationnée avant toute resegmentation définitive.
+⛔ **La longueur ne décide jamais seule d’une coupure.** Elle sert à repérer un segment à relire. Une coupure n’est admise qu’à une articulation syntaxique ou argumentative sûre ; un découpage à la phrase peut servir de présélection, mais les périodes longues, citations, objections, réponses et énumérations sont relues avant publication. Si le texte legacy présente une fusion, une inversion, une répétition ou une lacune à une jonction de page, la source est recollationnée avant toute resegmentation définitive.
 
-Lorsqu’un paragraphe de lecture est créé sans correspondre à un alinéa attesté de la source, il s’agit d’une frontière éditoriale, non documentaire. La source reste découpée selon ses paragraphes attestés dans `oeuvre_texte_unites`; la couche de lecture peut subdiviser ces unités par `segments.paragraphe` pour améliorer la lisibilité. La première frontière d’un paragraphe de lecture doit conserver dans les métadonnées une origine explicite (`source` ou `editorial`) ainsi que le paragraphe source auquel elle appartient. Une frontière éditoriale ne doit jamais être présentée ultérieurement comme un alinéa du témoin.
+Lorsqu’un paragraphe de lecture est créé sans correspondre à un alinéa attesté de la source, il s’agit d’une frontière éditoriale, non documentaire. La source reste découpée selon ses paragraphes attestés dans `oeuvre_texte_unites`; la couche de lecture peut subdiviser ces unités par `segments.paragraphe` pour améliorer la lisibilité. La première frontière d’un paragraphe de lecture doit conserver dans les métadonnées une origine explicite (`source` ou `editorial`) ainsi que le paragraphe source auquel elle appartient. ⛔ **Une frontière éditoriale ne doit jamais être présentée ultérieurement comme un alinéa du témoin.**
 
 ### 23.7 Respect de l’édition
 
-La segmentation, la ponctuation, les titres et la numérotation se fondent sur l’édition. Une difficulté d’interface ou d’algorithme ne justifie pas leur réécriture.
+La segmentation, la ponctuation, les titres et la numérotation se fondent sur l’édition. ⛔ **Une difficulté d’interface ou d’algorithme ne justifie pas leur réécriture.**
 
 ### 23.8 Opérations destructrices
 
-Avant suppression, identifier exactement les lignes et dépendances, produire une sauvegarde et vérifier le chemin ou l’identifiant cible. Une suppression globale, un chemin racine ou une variable non résolue sont interdits.
+Avant suppression, identifier exactement les lignes et dépendances, produire une sauvegarde et vérifier le chemin ou l’identifiant cible. ⛔ **Une suppression globale, un chemin racine ou une variable non résolue sont interdits.**
 
 ### 23.9 Contrôle des outils
 
-Les scripts historiques peuvent contenir des hypothèses périmées. Avant réemploi, vérifier leurs colonnes, valeurs, filtres et garde-fous contre la présente charte et le schéma courant.
+⚠️ **Les scripts historiques peuvent contenir des hypothèses périmées.** Avant réemploi, vérifier leurs colonnes, valeurs, filtres et garde-fous contre la présente charte et le schéma courant.
 
 
 ### 23.10 Sauvegarde obligatoire
 
 Avant toute mutation substantielle, exporter les lignes concernées avec leurs identifiants et toutes les colonnes susceptibles d’être touchées. La sauvegarde est datée, lisible et placée dans un emplacement explicitement identifié. `audit/` ou `tmp/` dans le dépôt local restent les emplacements préférés pour les sauvegardes de chantier.
 
-OneDrive peut recevoir une sauvegarde ou une copie lorsque cela est utile ; il n’est pas interdit. Une synchronisation distante ne doit toutefois pas être la seule protection d’une opération sensible et ne remplace ni la sauvegarde bornée préalable, ni les contrôles de restauration ou d’empreinte.
+OneDrive peut recevoir une sauvegarde ou une copie lorsque cela est utile ; il n’est pas interdit. ⛔ **Une synchronisation distante ne doit toutefois pas être la seule protection d’une opération sensible** et ne remplace ni la sauvegarde bornée préalable, ni les contrôles de restauration ou d’empreinte.
 
 ### 23.11 Fidélité des caractères
 
-Les sauvegardes, transformations et comparaisons préservent Unicode, les espaces insécables, les accents, les écritures grecque et hébraïque, ainsi que les retours significatifs. Ne pas appliquer `trim()` ou une normalisation globale lorsqu’elle détruirait une distinction contrôlée.
+Les sauvegardes, transformations et comparaisons préservent Unicode, les espaces insécables, les accents, les écritures grecque et hébraïque, ainsi que les retours significatifs. ⛔ **Ne pas appliquer `trim()` ou une normalisation globale lorsqu’elle détruirait une distinction contrôlée.**
 
 ### 23.11 bis Contrôle matériel exhaustif des liminaires et paratextes
 
 Lorsqu’un témoin comporte des liminaires, sommaires, lemmes, chapeaux, épigraphes, préambules ou autres paratextes susceptibles d’être absents de l’import courant, leur contrôle ne peut pas se limiter aux lignes déjà présentes dans le staging ou dans `segments`. Avant toute promotion, établir un **inventaire matériel page par page** du témoin et comparer cet inventaire à toutes les lignes déjà matérialisées. La clôture exige donc non seulement 100 % des candidats existants vérifiés, mais aussi **0 texte matériel du périmètre resté hors staging**.
 
-Le fac-similé exact est l’autorité de promotion. Une concordance entre plusieurs OCR, transcriptions secondaires ou fichiers dérivés peut servir à préparer ou à prioriser une lecture, mais ne vaut pas contrôle pixel et ne permet pas de poser `facsimile_verified`, `facsimile_pixels_checked` ou un statut équivalent. Les pages de source sont déterminées depuis la structure documentaire ou les données de staging puis vérifiées directement ; elles ne sont jamais déduites seulement d’un décalage supposé entre page imprimée et page PDF.
+⛔ **Le fac-similé exact est l’autorité de promotion.** Une concordance entre plusieurs OCR, transcriptions secondaires ou fichiers dérivés peut servir à préparer ou à prioriser une lecture, mais ⛔ **ne vaut pas contrôle pixel et ne permet pas de poser `facsimile_verified`**, `facsimile_pixels_checked` ou un statut équivalent. Les pages de source sont déterminées depuis la structure documentaire ou les données de staging puis vérifiées directement ; elles ne sont jamais déduites seulement d’un décalage supposé entre page imprimée et page PDF.
 
 Toute promotion de liminaires suit ce cycle : 1) inventaire matériel du périmètre ; 2) comparaison fac-similé ↔ staging, y compris recherche de texte absent ; 3) correction étroite des seules lignes fautives ; 4) recomposition et validation de toutes les projections ; 5) contrôle des clés, numéros, paragraphes, rangs, notes, ancres, références et liens dépendants ; 6) promotion atomique ; 7) contre-audit live établissant le nombre exact de lignes attendues et promues, ainsi que 0 réserve non nommée. Une découverte tardive d’un préambule ou d’un liminaire non stagé rouvre cette étape et interdit de considérer le lot comme complet tant qu’il n’est pas intégré ou explicitement documenté comme hors corpus.
 
-La sauvegarde antérieure à la promotion doit couvrir à la fois les lignes de staging concernées et les lignes live susceptibles de changer d’ordre, de rang, de numéro ou de rattachement. Les contrôles finaux doivent distinguer sans ambiguïté : `staged`, `facsimile_verified`, `promoted`, `unstaged_detected`, `unstaged_resolved` et les éventuelles réserves restantes. Aucun de ces décomptes ne peut être estimé.
+La sauvegarde antérieure à la promotion doit couvrir à la fois les lignes de staging concernées et les lignes live susceptibles de changer d’ordre, de rang, de numéro ou de rattachement. Les contrôles finaux doivent distinguer sans ambiguïté : `staged`, `facsimile_verified`, `promoted`, `unstaged_detected`, `unstaged_resolved` et les éventuelles réserves restantes. ⛔ **Aucun de ces décomptes ne peut être estimé.**
 
 ### 23.12. Validation humaine par couche
 
 La validation humaine est **attachée à la couche réellement vérifiée** et ne se propage jamais automatiquement entre objets. `oeuvre_texte_unites.metadata.validated_human=true` atteste la transcription ou l’unité source telle qu’elle a été contrôlée ; il ne vaut pas validation de la segmentation, des raccords, de la normalisation éditoriale ni du contenu de chaque `segments.segment_texte` dérivé. Inversement, `segments.controle_verifie=true` atteste le segment éditorial contrôlé et n’autorise pas à déclarer l’unité source entière validée si elle ne l’est pas déjà.
 
-Les bilans chiffrent séparément ces deux couches et, si nécessaire, leur intersection. ⛔ Aucun drapeau humain n’est hérité, extrapolé ou créé par une passe IA, même lorsque la recomposition source/lecture est exacte.\n\n`segments.segment_metadata.validated_human`, lorsqu’il subsiste dans des imports anciens, est une métadonnée historique non canonique : pour la validation humaine du segment, seule `segments.controle_verifie` fait foi. Ne pas synchroniser ce drapeau JSON automatiquement, ni dans un sens ni dans l’autre. Une divergence historique entre les deux champs doit être documentée ; elle n’autorise jamais une passe IA à créer ou retirer une validation humaine.
+Les bilans chiffrent séparément ces deux couches et, si nécessaire, leur intersection. ⛔ Aucun drapeau humain n’est hérité, extrapolé ou créé par une passe IA, même lorsque la recomposition source/lecture est exacte.
+
+`segments.segment_metadata.validated_human`, lorsqu’il subsiste dans des imports anciens, est une métadonnée historique non canonique : pour la validation humaine du segment, seule `segments.controle_verifie` fait foi. ⛔ **Ne pas synchroniser ce drapeau JSON automatiquement, ni dans un sens ni dans l’autre.** Une divergence historique entre les deux champs doit être documentée ; elle n’autorise jamais une passe IA à créer ou retirer une validation humaine.
 
 ## 24. Contrôle des liens en base
 
@@ -2841,7 +2855,7 @@ Un chantier de liens n’est clos qu’après lecture du périmètre annoncé, r
 
 La chronologie générale, les séries historiques et les chronologies d’auteurs reposent sur un même réservoir d’événements. La base ne contient pas plusieurs copies concurrentes d’un même fait : elle contient des événements centraux uniques, enrichis par des classements, des relations et des associations.
 
-La frise complète peut accueillir tout événement distinct, documenté et pertinent pour l’histoire du christianisme. Sa lecture publique demeure cependant hiérarchisée. L’exhaustivité du réservoir ne doit jamais produire une frise principale illisible.
+La frise complète peut accueillir tout événement distinct, documenté et pertinent pour l’histoire du christianisme. Sa lecture publique demeure cependant hiérarchisée. ⛔ **L’exhaustivité du réservoir ne doit jamais produire une frise principale illisible.**
 
 ### 26.1 Objets normatifs et source de vérité
 
@@ -2857,9 +2871,9 @@ Le module repose notamment sur les objets suivants :
 - `series_evenements` et `series_evenements_membres` : regroupement de plusieurs étapes sous un jalon principal ;
 - `auteurs_evenements` : association sélective entre un auteur existant et un événement.
 
-Les identifiants d’événements sont des clés métier stables de la forme `EVT000001`. Ils sont opaques, permanents et indépendants du titre, de la date, de l’auteur, de la période ou du genre. Ils ne sont jamais recyclés ni modifiés à la suite d’une correction éditoriale.
+Les identifiants d’événements sont des clés métier stables de la forme `EVT000001`. Ils sont opaques, permanents et indépendants du titre, de la date, de l’auteur, de la période ou du genre. ⛔ **Ils ne sont jamais recyclés ni modifiés à la suite d’une correction éditoriale.**
 
-La famille se déduit toujours du genre. Elle n’est jamais recopiée en dur dans `evenements`, un fichier d’import ou le code.
+⛔ **La famille se déduit toujours du genre.** Elle n’est jamais recopiée en dur dans `evenements`, un fichier d’import ou le code.
 
 ### 26.2 Familles et genres
 
@@ -2873,7 +2887,7 @@ Les cinq familles normatives sont :
 
 La liste normative des genres est celle de `genres_evenements`. La charte ne fige pas une copie textuelle de ce référentiel, afin d’éviter qu’elle devienne obsolète après une migration contrôlée.
 
-Les genres doivent rester génériques, définis et réutilisables. On ne crée jamais un genre pour un événement particulier. Une forme telle que `destruction de telle ville`, `investiture de tel pape` ou `guerre contre tel peuple` appartient au titre, non au référentiel.
+Les genres doivent rester génériques, définis et réutilisables. ⛔ **On ne crée jamais un genre pour un événement particulier.** Une forme telle que `destruction de telle ville`, `investiture de tel pape` ou `guerre contre tel peuple` appartient au titre, non au référentiel.
 
 Toute création, fusion ou suppression de genre exige une définition d’usage, une famille unique, la vérification qu’un genre existant ne couvre pas déjà le cas, la migration des événements concernés, une sauvegarde préalable et le contrôle qu’aucun événement ni genre ne devient orphelin.
 
@@ -2887,7 +2901,7 @@ Les portées admises sont :
 - `biographique` : événement propre à la vie d’un auteur ;
 - `bibliographique` : événement propre à une œuvre, sa composition, sa transmission ou sa réception.
 
-Un événement général et un événement biographique ou bibliographique ne décrivent jamais deux fois exactement le même fait. Lorsqu’un fait sert à plusieurs parcours, un seul événement central est réutilisé.
+⛔ **Un événement général et un événement biographique ou bibliographique ne décrivent jamais deux fois exactement le même fait.** Lorsqu’un fait sert à plusieurs parcours, un seul événement central est réutilisé.
 
 ### 26.4 Importance historique et niveau de lecture
 
@@ -2900,7 +2914,7 @@ Un événement général porte une importance parmi :
 - `B — majeur` : événement important pour comprendre une séquence, sans être indispensable à son découpage général ;
 - `C — complément` : repère utile, spécialisé ou secondaire.
 
-Le rang `S` reste exceptionnel. Un concile, une première édition, une guerre, une œuvre, un pontificat ou une nouveauté ne reçoit jamais automatiquement ce rang. L’importance générale ne dépend ni de la proximité géographique avec la France ni de la place de l’événement dans un parcours spécialisé.
+⛔ **Le rang `S` reste exceptionnel.** Un concile, une première édition, une guerre, une œuvre, un pontificat ou une nouveauté ne reçoit jamais automatiquement ce rang. ⛔ **L’importance générale ne dépend ni de la proximité géographique avec la France ni de la place de l’événement dans un parcours spécialisé.**
 
 Le niveau de lecture francophone est stocké dans `niveau_lecture_fr` :
 
@@ -2911,7 +2925,7 @@ Le niveau de lecture francophone est stocké dans `niveau_lecture_fr` :
 
 Un événement historiquement structurant peut rester un simple repère dans le parcours francophone. Inversement, un événement de portée historique plus limitée peut être essentiel pour comprendre directement l’histoire religieuse française.
 
-`motif_niveau_fr` justifie le classement. `niveau_lecture_fr_verrouille` protège un classement validé contre un recalcul automatique. Aucun quota par siècle, région, tradition ou genre ne détermine mécaniquement le niveau.
+`motif_niveau_fr` justifie le classement. `niveau_lecture_fr_verrouille` protège un classement validé contre un recalcul automatique. ⛔ **Aucun quota par siècle, région, tradition ou genre ne détermine mécaniquement le niveau.**
 
 ### 26.5 Trois axes de l’essentiel
 
@@ -2921,13 +2935,13 @@ Le niveau `Essentiel` est l’union de trois axes indépendants :
 - `est_essentiel_europe` : événement structurant durablement le christianisme européen ;
 - `est_essentiel_eglise` : événement indispensable à l’histoire commune ou universelle de l’Église.
 
-Un événement peut relever de plusieurs axes. Les vues publiques exposent les badges `France`, `Europe` et `Église universelle` ; le front ne les reconstitue pas.
+Un événement peut relever de plusieurs axes. Les vues publiques exposent les badges `France`, `Europe` et `Église universelle` ; ⛔ **le front ne les reconstitue pas.**
 
 Relèvent notamment de l’axe universel les origines communes, les conciles œcuméniques ou généraux réellement structurants, les grandes définitions dogmatiques, les schismes majeurs, les principales réformes canoniques ou liturgiques universelles et les actes pontificaux qui transforment durablement l’ensemble de l’Église catholique.
 
 Un événement extérieur à l’Europe peut donc être essentiel lorsqu’il appartient aux origines communes ou transforme durablement l’ensemble du christianisme. En revanche, la plupart des missions, persécutions, réveils, créations de sièges ou développements confessionnels propres à une région lointaine relèvent de `Repère` ou d’`Approfondissement`, même lorsqu’ils sont historiquement importants.
 
-La proximité française ou européenne ne relève jamais artificiellement `importance_generale`. Elle intervient seulement dans le niveau de lecture et les badges.
+⛔ **La proximité française ou européenne ne relève jamais artificiellement `importance_generale`.** Elle intervient seulement dans le niveau de lecture et les badges.
 
 ### 26.6 Dates et périodisation
 
@@ -2937,7 +2951,7 @@ La base distingue les valeurs de tri et la formulation de lecture :
 - `date_exacte` contient la formulation éditoriale lorsque celle-ci est connue ou utile ;
 - `qualification_date` qualifie la certitude ou la forme de la datation.
 
-`date_fin` ne peut être antérieure à `date_debut`. Une date incertaine reste incertaine : on emploie les qualifications contrôlées `exacte`, `année certaine`, `vers`, `entre`, `après`, `avant`, `traditionnellement`, `période`. On ne fabrique jamais une date pour satisfaire un composant.
+⛔ **`date_fin` ne peut être antérieure à `date_debut`.** Une date incertaine reste incertaine : on emploie les qualifications contrôlées `exacte`, `année certaine`, `vers`, `entre`, `après`, `avant`, `traditionnellement`, `période`. ⛔ **On ne fabrique jamais une date pour satisfaire un composant.**
 
 Les vues publiques fournissent `date_affichage`. Le front l’utilise directement.
 
@@ -2961,15 +2975,15 @@ L’attribution automatique se fonde normalement sur `date_debut`. Une correctio
 
 ### 26.7 Traditions chrétiennes et portée ecclésiale
 
-Un événement peut concerner plusieurs traditions. Les rattachements sont stockés dans `evenements_traditions` ; aucune liste séparée n’est recopiée dans l’événement.
+Un événement peut concerner plusieurs traditions. Les rattachements sont stockés dans `evenements_traditions` ; ⛔ **aucune liste séparée n’est recopiée dans l’événement.**
 
 Le référentiel actuel comprend : Christianisme commun ; Catholicisme latin ; Églises catholiques orientales ; Orthodoxie byzantine ; Églises orthodoxes orientales ; Église de l’Orient ; Anglicanisme ; Luthéranisme ; Tradition réformée ; Anabaptisme et mennonitisme ; Méthodisme ; Baptisme ; Église morave ; Évangélisme ; Pentecôtisme et renouveaux charismatiques ; Adventisme ; Mouvements restaurationnistes modernes ; Œcuménisme.
 
-`Christianisme commun` et `Œcuménisme` sont des axes transversaux. `Œcuménisme` n’est attribué qu’à un dialogue, une convergence, une union, une institution commune ou une réception pluriconfessionnelle explicite. Une coexistence, une guerre ou une controverse entre confessions ne suffit pas. De même, le mot générique `réforme` ne suffit jamais à rattacher un événement à la `Tradition réformée`.
+`Christianisme commun` et `Œcuménisme` sont des axes transversaux. `Œcuménisme` n’est attribué qu’à un dialogue, une convergence, une union, une institution commune ou une réception pluriconfessionnelle explicite. Une coexistence, une guerre ou une controverse entre confessions ne suffit pas. De même, ⚠️ **le mot générique `réforme` ne suffit jamais à rattacher un événement à la `Tradition réformée`.**
 
 Tout événement général publié possède au moins un rattachement de tradition. Les rattachements automatiques sont des propositions structurées : ils doivent être contrôlés lorsqu’un nouvel événement est ajouté ou substantiellement modifié.
 
-`portee_ecclesiale` décrit l’étendue ecclésiale selon les valeurs : `universelle`, `pluriconfessionnelle`, `propre à une tradition`, `régionale`, `locale`. Cette portée ne remplace ni `portee`, ni l’importance, ni le niveau de lecture.
+`portee_ecclesiale` décrit l’étendue ecclésiale selon les valeurs : `universelle`, `pluriconfessionnelle`, `propre à une tradition`, `régionale`, `locale`. ⚠️ **Cette portée ne remplace ni `portee`, ni l’importance, ni le niveau de lecture.**
 
 ### 26.8 Relations entre événements
 
@@ -2986,9 +3000,9 @@ Les types admis sont :
 - `remplace` ;
 - `met fin à`.
 
-Chaque relation porte une justification précise. La seule proximité chronologique, le même genre ou une ressemblance de titre ne suffisent jamais. Deux relations opposées entre les mêmes événements ne sont admises que si elles expriment deux vérités distinctes et non une duplication mécanique.
+Chaque relation porte une justification précise. ⛔ **La seule proximité chronologique, le même genre ou une ressemblance de titre ne suffisent jamais.** Deux relations opposées entre les mêmes événements ne sont admises que si elles expriment deux vérités distinctes et non une duplication mécanique.
 
-Les relations complètent les notices ; elles ne servent pas à fabriquer une causalité incertaine. Une relation contestable reste absente.
+⛔ **Les relations complètent les notices ; elles ne servent pas à fabriquer une causalité incertaine.** Une relation contestable reste absente.
 
 ### 26.9 Séries historiques et condensation
 
@@ -3000,21 +3014,21 @@ Toute série possède exactement un événement principal publié, lui-même pr�
 
 La série sert à condenser l’affichage : le jalon principal reste visible, tandis que les préparations, révisions et prolongements peuvent être déployés. Un membre secondaire n’est pas supprimé de la frise complète et demeure accessible par recherche, filtre ou affichage développé.
 
-Les titres de série sont intégrés à la recherche. Une série ne doit pas devenir un fourre-tout thématique : ses membres doivent former une chaîne identifiable.
+Les titres de série sont intégrés à la recherche. ⚠️ **Une série ne doit pas devenir un fourre-tout thématique** : ses membres doivent former une chaîne identifiable.
 
 ### 26.10 Association progressive aux auteurs
 
-Une association ne peut viser qu’un `auteur_id` déjà présent dans `auteurs`. Un import ne crée jamais implicitement une fiche d’auteur à partir d’un nom.
+Une association ne peut viser qu’un `auteur_id` déjà présent dans `auteurs`. ⛔ **Un import ne crée jamais implicitement une fiche d’auteur à partir d’un nom.**
 
 Les liens entre auteurs et événements sont créés progressivement lors de l’ajout ou de la reprise d’un auteur. Il n’existe pas de campagne automatique destinée à rattacher rétrospectivement tous les événements à tous les auteurs existants.
 
 Le couple `auteur_id + evenement_id` est unique. L’association porte notamment `nature_lien`, `pertinence`, `justification`, `titre_personnalise`, `notice_personnalisee`, `origine_association`, `source_lien`, `est_affiche`, `a_controler` et, exceptionnellement, `ordre_force`.
 
-La contemporanéité ne suffit jamais. Un événement n’est associé à un auteur que s’il éclaire sa vie, une œuvre déterminée, une controverse où il intervient réellement, son siège ou son aire d’activité, une institution à laquelle il appartient, une décision dont il subit directement les conséquences ou la réception de son œuvre.
+⛔ **La contemporanéité ne suffit jamais.** Un événement n’est associé à un auteur que s’il éclaire sa vie, une œuvre déterminée, une controverse où il intervient réellement, son siège ou son aire d’activité, une institution à laquelle il appartient, une décision dont il subit directement les conséquences ou la réception de son œuvre.
 
 Chaque association doit répondre précisément à la question : pourquoi cet événement figure-t-il chez cet auteur plutôt que chez tout autre contemporain ? La réponse est consignée dans `justification` et appuyée par `source_lien`.
 
-Un événement postérieur à la mort de l’auteur n’est associé que s’il concerne explicitement sa réception, sa condamnation, sa réhabilitation, sa doctrine ou la transmission de son œuvre.
+⚠️ **Un événement postérieur à la mort de l’auteur n’est associé que s’il concerne explicitement sa réception, sa condamnation, sa réhabilitation, sa doctrine ou la transmission de son œuvre.**
 
 ### 26.11 Publication et workflow des futurs ajouts
 
@@ -3031,9 +3045,9 @@ Tout nouvel événement général reçoit automatiquement :
 
 Une modification substantielle du titre, des dates, du genre, de la portée ou de la géographie réouvre le contrôle. Après vérification, le classement peut être validé, son motif précisé et, si nécessaire, verrouillé.
 
-Une réinsertion présentant le même titre normalisé et les mêmes bornes est bloquée comme doublon exact. Les ressemblances sémantiques sont signalées par l’audit mais ne sont jamais fusionnées sans examen éditorial.
+Une réinsertion présentant le même titre normalisé et les mêmes bornes est bloquée comme doublon exact. ⛔ **Les ressemblances sémantiques sont signalées par l’audit mais ne sont jamais fusionnées sans examen éditorial.**
 
-`est_publie` décide de la visibilité de l’événement ; `est_affiche` décide de celle d’une association, d’une relation ou d’un membre de série. Masquer une association ou une relation ne supprime jamais l’événement central.
+`est_publie` décide de la visibilité de l’événement ; `est_affiche` décide de celle d’une association, d’une relation ou d’un membre de série. ⛔ **Masquer une association ou une relation ne supprime jamais l’événement central.**
 
 `statut_source = 'à consolider'` est préférable à une certitude artificielle lorsque la datation ou la source demande encore un approfondissement.
 
@@ -3041,13 +3055,13 @@ Une réinsertion présentant le même titre normalisé et les mêmes bornes est 
 
 Lorsqu’une œuvre publiée possède une datation exploitable, sa composition, sa publication, sa transmission ou sa réception peut recevoir un événement bibliographique lié par `evenements.oeuvre_id`.
 
-Ce lien permet d’ouvrir l’œuvre depuis la frise et d’éviter les divergences avec sa fiche. Une œuvre sans datation exploitable ne reçoit pas de date inventée.
+Ce lien permet d’ouvrir l’œuvre depuis la frise et d’éviter les divergences avec sa fiche. ⛔ **Une œuvre sans datation exploitable ne reçoit pas de date inventée.**
 
 Un événement général et un événement bibliographique ne décrivent pas deux fois le même fait. Lorsqu’une œuvre majeure est aussi un repère général, un seul événement central est réutilisé et peut être associé à l’auteur.
 
 ### 26.13 Vues publiques et API de lecture
 
-Le site ne lit jamais directement les tables normatives depuis une page publique. Il utilise les vues et fonctions prévues, définies avec `security_invoker = true` lorsque cela s’applique et protégées par les politiques RLS.
+⛔ **Le site ne lit jamais directement les tables normatives depuis une page publique.** Il utilise les vues et fonctions prévues, définies avec `security_invoker = true` lorsque cela s’applique et protégées par les politiques RLS.
 
 Les objets publics principaux sont :
 
@@ -3060,11 +3074,11 @@ Les objets publics principaux sont :
 - `v_chronologie_auteurs` : associations affichées vers des événements publiés ;
 - `rechercher_frise(...)` : recherche et filtrage serveur.
 
-Le front ne redéduit pas les valeurs par des heuristiques parallèles. Il utilise directement `ordre_affichage`, `date_affichage`, `niveau_lecture_fr`, `badges_essentiel`, `tradition_codes`, `periode_code`, les champs de série et les booléens de modes.
+⛔ **Le front ne redéduit pas les valeurs par des heuristiques parallèles.** Il utilise directement `ordre_affichage`, `date_affichage`, `niveau_lecture_fr`, `badges_essentiel`, `tradition_codes`, `periode_code`, les champs de série et les booléens de modes.
 
-Le filtrage par pays actuel utilise exclusivement `pays_filtre_codes` ou `pays_filtres`, jamais le champ historique `pays`.
+⛔ **Le filtrage par pays actuel utilise exclusivement `pays_filtre_codes` ou `pays_filtres`, jamais le champ historique `pays`.**
 
-Les sources sont présentées par un libellé de domaine et ouvertes dans un nouvel onglet avec `rel="noopener noreferrer"`, jamais sous forme d’URL brute.
+Les sources sont présentées par un libellé de domaine et ouvertes dans un nouvel onglet avec `rel="noopener noreferrer"`, ⛔ **jamais sous forme d’URL brute.**
 
 ### 26.14 Modes de lecture et présentation
 
@@ -3083,13 +3097,13 @@ Les filtres peuvent porter sur la période, la famille, le genre, le niveau, l�
 
 ### 26.15 Recherche intégrale
 
-La recherche de la frise est effectuée par `rechercher_frise(...)`, non par un filtrage partiel dans le navigateur.
+⛔ **La recherche de la frise est effectuée par `rechercher_frise(...)`, non par un filtrage partiel dans le navigateur.**
 
 Elle interroge le titre, la notice, le genre, la famille, les lieux, la période, les traditions et les titres de séries. Elle combine recherche plein texte française et similarité trigramme ; elle tolère les accents absents et les fautes raisonnables.
 
 Ses paramètres permettent de choisir le mode de lecture, les traditions, les périodes, les bornes de dates, l’affichage condensé et la limite de résultats.
 
-Le score de recherche mesure la proximité avec la requête ; il ne remplace ni l’importance historique ni le niveau de lecture.
+Le score de recherche mesure la proximité avec la requête ; ⚠️ **il ne remplace ni l’importance historique ni le niveau de lecture.**
 
 ### 26.16 Trois brins dans une chronologie d’auteur
 
@@ -3099,7 +3113,7 @@ La chronologie d’une fiche auteur se lit selon trois types d’affichage fourn
 - `œuvre` : événements bibliographiques ;
 - `contexte` : événements généraux associés.
 
-Vie et Œuvres dominent visuellement ; Contexte reste plus discret. Les œuvres sont en italique et cliquables lorsque `oeuvre_id` existe. La frise d’un auteur demeure sélective et ne devient jamais un résumé exhaustif de son siècle.
+Vie et Œuvres dominent visuellement ; Contexte reste plus discret. Les œuvres sont en italique et cliquables lorsque `oeuvre_id` existe. ⛔ **La frise d’un auteur demeure sélective et ne devient jamais un résumé exhaustif de son siècle.**
 
 ### 26.17 Langage visuel des familles
 
@@ -3111,7 +3125,7 @@ Les familles se distinguent par une couleur stable reprise dans la légende, les
 - `Pouvoirs, conflits et ruptures` : rouge brique, par exemple `#B54D3F` ;
 - `Culture et contexte` : violet grisé, par exemple `#746187`.
 
-Le titre reste sombre et neutre. La couleur apparaît dans le point, le filet, la date ou le libellé ; on ne colore pas toute la ligne.
+Le titre reste sombre et neutre. La couleur apparaît dans le point, le filet, la date ou le libellé ; ⚠️ **on ne colore pas toute la ligne.**
 
 Les badges France, Europe et Église universelle expliquent le choix éditorial sans remplacer les couleurs de famille.
 
@@ -3124,17 +3138,17 @@ Chaque événement peut porter :
 - `region` : région historique, administrative ou physique ;
 - `ville` : ville ou site principal.
 
-Ces champs décrivent le lieu historiquement intelligible. Ils ne sont pas modernisés artificiellement pour satisfaire un filtre.
+Ces champs décrivent le lieu historiquement intelligible. ⛔ **Ils ne sont pas modernisés artificiellement pour satisfaire un filtre.**
 
 Le filtrage contemporain utilise `evenements_pays_filtres`. Une désignation historique étendue ne reçoit pas automatiquement tous les pays modernes qu’elle pourrait théoriquement recouvrir : chaque rattachement est établi selon la localisation effectivement documentée.
 
-Un événement couvrant plusieurs territoires reçoit la macro-zone la plus fidèle ; les niveaux trop précis restent vides plutôt que fabriqués. Une hypothèse de localisation se conserve dans la notice ou la note, non dans un champ structuré.
+Un événement couvrant plusieurs territoires reçoit la macro-zone la plus fidèle ; ⛔ **les niveaux trop précis restent vides plutôt que fabriqués**. Une hypothèse de localisation se conserve dans la notice ou la note, non dans un champ structuré.
 
 Le champ historique `evenements.lieu` est déprécié et conservé seulement comme trace de migration.
 
 ### 26.19 Import, contrôles et sauvegardes
 
-Un import d’événements est idempotent : l’identifiant stable met à jour l’événement existant au lieu d’en créer une copie.
+⛔ **Un import d’événements est idempotent** : l’identifiant stable met à jour l’événement existant au lieu d’en créer une copie.
 
 Avant écriture, vérifier : les auteurs et œuvres référencés ; le genre ; le format de l’identifiant ; les bornes de dates ; la source principale ; la géographie ; le niveau proposé ; la période ; les traditions ; la portée ecclésiale ; les relations ou séries éventuelles ; l’absence de doublon exact ou conceptuel.
 
@@ -3150,7 +3164,7 @@ Après écriture, contrôler depuis la base :
 - aucun doublon exact ;
 - lecture anonyme effective des vues et de la fonction de recherche.
 
-Toute opération structurelle ou destructive est précédée d’une sauvegarde bornée des tables concernées et suivie d’un audit complet.
+⛔ **Toute opération structurelle ou destructive est précédée d’une sauvegarde bornée des tables concernées et suivie d’un audit complet.**
 
 ### 26.20 Prudence éditoriale et priorité géographique
 
@@ -3163,13 +3177,13 @@ L’enrichissement accorde une priorité assumée :
 3. aux événements importants pour l’Église universelle, quel que soit leur lieu ;
 4. aux autres régions lorsqu’elles corrigent une lacune réelle, éclairent une tradition présente dans le corpus ou entretiennent un lien substantiel avec les espaces prioritaires.
 
-Cette priorité n’instaure ni quota ni équilibre artificiel. Un siècle peu fourni ne justifie pas l’ajout de dates faibles. Un événement étranger déjà présent n’est pas supprimé pour sa seule localisation ; son niveau de lecture reflète simplement sa pertinence pour le parcours francophone.
+⛔ **Cette priorité n’instaure ni quota ni équilibre artificiel.** Un siècle peu fourni ne justifie pas l’ajout de dates faibles. Un événement étranger déjà présent n’est pas supprimé pour sa seule localisation ; son niveau de lecture reflète simplement sa pertinence pour le parcours francophone.
 
 Les conciles, schismes, dogmes, réformes générales, textes bibliques fondamentaux et actes universels restent visibles lorsqu’ils sont nécessaires à l’intelligence de l’Église, même s’ils se déroulent hors de France ou d’Europe.
 
-Une source encyclopédique peut servir au repérage. Les datations contestées, les événements essentiels et les relations causales doivent être recoupés par une source institutionnelle, universitaire ou primaire. Une absence de lien ou un statut `à consolider` valent mieux qu’une certitude artificielle.
+Une source encyclopédique peut servir au repérage. Les datations contestées, les événements essentiels et les relations causales doivent être recoupés par une source institutionnelle, universitaire ou primaire. ⛔ **Une absence de lien ou un statut `à consolider` valent mieux qu’une certitude artificielle.**
 
-Les vues internes d’audit doivent rester vides d’anomalies avant la clôture d’une passe. Les comptages de chantier et états provisoires appartiennent aux rapports et sauvegardes, non à la charte normative.
+Les vues internes d’audit doivent rester vides d’anomalies avant la clôture d’une passe. ⚠️ **Les comptages de chantier et états provisoires appartiennent aux rapports et sauvegardes, non à la charte normative.**
 
 
 
@@ -3253,39 +3267,39 @@ Le recalcul s’accompagne d’un contrôle de conformité du périmètre : iden
 
 ⛔ **Toute référence d’ouvrage rencontrée doit être normalisée, structurée et rattachée à une autorité bibliographique.** Cette obligation vaut dans tout le corpus, pas seulement dans les bibliographies de péricopes ni dans les chantiers Fillion. Une liste de traductions, une liste d’ouvrages cités, une bibliographie, une liste d’éditions, un « Du même auteur » ou toute énumération analogue est un objet bibliographique dès lors que ses lignes désignent des ouvrages ou des éditions.
 
-Le traitement passe par l’outil **« Normaliser »** de l’administration : rechercher d’abord la fiche existante avec la clé bibliographique normalisée, la réutiliser si elle existe, et créer la fiche d’ouvrage dans `ouvrages_bibliographiques` si elle manque. La création d’une nouvelle fiche n’est permise qu’après recherche de doublon. Une variation de casse, ponctuation, abréviation, ordre des éléments, langue du titre ou forme ancienne du nom ne justifie jamais deux ouvrages distincts.
+Le traitement passe par l’outil **« Normaliser »** de l’administration : rechercher d’abord la fiche existante avec la clé bibliographique normalisée, la réutiliser si elle existe, et créer la fiche d’ouvrage dans `ouvrages_bibliographiques` si elle manque. ⛔ **La création d’une nouvelle fiche n’est permise qu’après recherche de doublon.** ⛔ **Une variation de casse, ponctuation, abréviation, ordre des éléments, langue du titre ou forme ancienne du nom ne justifie jamais deux ouvrages distincts.**
 
-La fiche est complétée autant que les preuves le permettent : titre, sous-titre, auteur(s), traducteur(s), directeur(s), langue, lieu, éditeur, année, mention d’édition, collection, numéro de collection, ISBN si pertinent, `type_ouvrage`, provenance et commentaire de contrôle. Les autorités de personnes, d’éditeurs et de collections déjà présentes sont réutilisées et reliées. Une donnée non prouvée reste vide ou en revue ; elle n’est pas inventée pour rendre la notice plus complète.
+La fiche est complétée autant que les preuves le permettent : titre, sous-titre, auteur(s), traducteur(s), directeur(s), langue, lieu, éditeur, année, mention d’édition, collection, numéro de collection, ISBN si pertinent, `type_ouvrage`, provenance et commentaire de contrôle. Les autorités de personnes, d’éditeurs et de collections déjà présentes sont réutilisées et reliées. ⛔ **Une donnée non prouvée reste vide ou en revue ; elle n’est pas inventée pour rendre la notice plus complète.**
 
-La **nature documentaire** doit correspondre au contenu et non au titre arbitraire de la pièce : une unité qui est une entrée de bibliographie porte `type_unite = 'bibliographie'`; ses segments relèvent de `nature = 'apparat_editeur'`; la présentation bibliographique utilise le style structuré `bibliographie`. Une liste de traductions est donc traitée comme une bibliographie d’éditions/traductions, et non comme du `paratexte` générique. La catégorie scientifique de la fiche est renseignée dans `ouvrages_bibliographiques.type_ouvrage` avec le vocabulaire contrôlé existant ; elle ne se déduit pas mécaniquement du titre de la rubrique.
+La **nature documentaire** doit correspondre au contenu et non au titre arbitraire de la pièce : une unité qui est une entrée de bibliographie porte `type_unite = 'bibliographie'`; ses segments relèvent de `nature = 'apparat_editeur'`; la présentation bibliographique utilise le style structuré `bibliographie`. Une liste de traductions est donc traitée comme une bibliographie d’éditions/traductions, et non comme du `paratexte` générique. La catégorie scientifique de la fiche est renseignée dans `ouvrages_bibliographiques.type_ouvrage` avec le vocabulaire contrôlé existant ; ⛔ **elle ne se déduit pas mécaniquement du titre de la rubrique**.
 
-La chaîne imprimée ou OCR du témoin reste conservée comme **provenance source**. Elle ne dispense jamais de la normalisation et ne devient pas la notice finale si une fiche structurée existe. Lorsqu’une couche de relations bibliographiques est disponible, chaque entrée est rattachée à son `ouvrage_id`; son rang matériel reste une donnée de provenance, pas son identité.
+La chaîne imprimée ou OCR du témoin reste conservée comme **provenance source**. ⛔ **Elle ne dispense jamais de la normalisation et ne devient pas la notice finale si une fiche structurée existe.** Lorsqu’une couche de relations bibliographiques est disponible, chaque entrée est rattachée à son `ouvrage_id`; ⚠️ **son rang matériel reste une donnée de provenance, pas son identité**.
 
 **Contrôle bloquant de clôture :** annoncer le nombre d’entrées rencontrées, réutilisées, créées, complétées et laissées en revue ; exiger 0 entrée identifiable laissée sans recherche d’autorité, 0 doublon créé par variante de forme, 0 ouvrage structuré sans titre, 0 liste d’ouvrages laissée en paratexte générique et 0 rendu final fondé sur la chaîne brute lorsqu’une notice structurée existe. La règle détaillée de composition et de rendu se trouve au § 47.1.
 
-Chaque référence bibliographique reçoit, par son éditeur et par son auteur, une **valeur académique** fondée sur des critères objectifs, notée de **1 (le plus fiable) à 5**. C'est une évaluation de la source, jamais un jugement de la personne.
+Chaque référence bibliographique reçoit, par son éditeur et par son auteur, une **valeur académique** fondée sur des critères objectifs, notée de **1 (le plus fiable) à 5**. ⛔ **C'est une évaluation de la source, jamais un jugement de la personne.**
 
-Deux listes contrôlées portent cette note : `editeurs_valeur` (éditeur → score) et `auteurs_valeur` (auteur → score, plus un drapeau `reserve`). Elles couvrent les éditeurs et les auteurs RÉELLEMENT cités dans la bibliographie (`ouvrages_bibliographiques`) et se peuplent depuis ces valeurs distinctes : jamais une liste inventée. Ne pas les confondre avec la table `editeurs`, qui recense les éditeurs des éditions primaires (autre usage).
+Deux listes contrôlées portent cette note : `editeurs_valeur` (éditeur → score) et `auteurs_valeur` (auteur → score, plus un drapeau `reserve`). Elles couvrent les éditeurs et les auteurs RÉELLEMENT cités dans la bibliographie (`ouvrages_bibliographiques`) et ⛔ **se peuplent depuis ces valeurs distinctes : jamais une liste inventée**. Ne pas les confondre avec la table `editeurs`, qui recense les éditeurs des éditions primaires (autre usage).
 
-Règle d'affichage : une référence de faible valeur n'est jamais montrée ; une valeur intermédiaire ne l'est qu'à défaut d'une meilleure disponible pour la même péricope. On présente d'abord les meilleures sources, les moyennes seulement faute de mieux.
+Règle d'affichage : ⛔ **une référence de faible valeur n'est jamais montrée ; une valeur intermédiaire ne l'est qu'à défaut d'une meilleure disponible pour la même péricope**. On présente d'abord les meilleures sources, les moyennes seulement faute de mieux.
 
-Réserve (auteurs) : un auteur en réserve voit ses références écartées, afin de protéger un public fragile d'une mise en avant susceptible de heurter, par exemple celle de bourreaux. La réserve ne juge pas la personne et ne préjuge pas de sa valeur académique.
+Réserve (auteurs) : un auteur en réserve voit ses références écartées, afin de protéger un public fragile d'une mise en avant susceptible de heurter, par exemple celle de bourreaux. ⚠️ **La réserve ne juge pas la personne et ne préjuge pas de sa valeur académique.**
 
-La notation relève de l'autorité éditoriale, sur des critères objectifs et documentés : aucune personne ni maison réelle n'est étiquetée à la légère, en particulier aux niveaux bas.
+La notation relève de l'autorité éditoriale, sur des critères objectifs et documentés : ⛔ **aucune personne ni maison réelle n'est étiquetée à la légère, en particulier aux niveaux bas**.
 
 ### 29.1 Système de qualification scientifique déployé (règles de code)
 
-La valeur scientifique FINALE d'un ouvrage est CALCULÉE par la base dans `ouvrages_bibliographiques.statut_scientifique`, qui vaut `retenu`, `secondaire`, `a_verifier` ou `exclu`. Le code applicatif ne recalcule jamais cette valeur à partir des scores. Il la lit, l'affiche, et permet à l'administrateur de saisir une décision manuelle.
+La valeur scientifique FINALE d'un ouvrage est CALCULÉE par la base dans `ouvrages_bibliographiques.statut_scientifique`, qui vaut `retenu`, `secondaire`, `a_verifier` ou `exclu`. ⛔ **Le code applicatif ne recalcule jamais cette valeur à partir des scores.** Il la lit, l'affiche, et permet à l'administrateur de saisir une décision manuelle.
 
-La décision manuelle passe par `statut_scientifique_override`. La commande « Revenir au calcul automatique » remet cet override à `null` et rend la main au calcul de la base. Une exclusion manuelle exige un motif, et la base refuse l'écriture sans lui.
+La décision manuelle passe par `statut_scientifique_override`. La commande « Revenir au calcul automatique » remet cet override à `null` et rend la main au calcul de la base. ⛔ **Une exclusion manuelle exige un motif, et la base refuse l'écriture sans lui.**
 
-La correspondance entre le score de rang et le statut d'usage est imposée par la base. Un score de 1 donne `reference`, 2 donne `solide`, 3 et 4 donnent `secondaire`, 5 donne `exclu`, et l'absence de score donne `a_verifier`. Le code écrit toujours le statut d'usage accordé au score, faute de quoi la base rejette l'écriture. Un changement de score, de statut ou de réserve déclenche côté base le recalcul des ouvrages concernés.
+La correspondance entre le score de rang et le statut d'usage est imposée par la base. Un score de 1 donne `reference`, 2 donne `solide`, 3 et 4 donnent `secondaire`, 5 donne `exclu`, et l'absence de score donne `a_verifier`. ⛔ **Le code écrit toujours le statut d'usage accordé au score, faute de quoi la base rejette l'écriture.** Un changement de score, de statut ou de réserve déclenche côté base le recalcul des ouvrages concernés.
 
-Quatre vues servent selon le contexte, et le code choisit la bonne plutôt que d'approcher le filtrage en TypeScript. La documentation interne d'une péricope emploie `pericopes_documentation`. La recherche et la sélection bibliographiques internes emploient `bibliographie_admissible`, qui écarte les ouvrages exclus ou à vérifier. La publication publique et l'export définitif emploient `bibliographie_publiable`, qui exige en plus un lien vérifié et un ouvrage éditorialement validé. Le contrôle de la qualité scientifique en administration emploie `v_ouvrages_bibliographiques_qualite`. La page de lecture d'une péricope lit provisoirement `bibliographie_admissible` pour rester peuplée, et devra passer à `bibliographie_publiable` une fois les liens vérifiés.
+Quatre vues servent selon le contexte, et ⛔ **le code choisit la bonne plutôt que d'approcher le filtrage en TypeScript**. La documentation interne d'une péricope emploie `pericopes_documentation`. La recherche et la sélection bibliographiques internes emploient `bibliographie_admissible`, qui écarte les ouvrages exclus ou à vérifier. La publication publique et l'export définitif emploient `bibliographie_publiable`, qui exige en plus un lien vérifié et un ouvrage éditorialement validé. Le contrôle de la qualité scientifique en administration emploie `v_ouvrages_bibliographiques_qualite`. La page de lecture d'une péricope lit provisoirement `bibliographie_admissible` pour rester peuplée, et devra passer à `bibliographie_publiable` une fois les liens vérifiés.
 
-L'affichage public ne montre jamais le score interne, la réserve, les motifs sensibles, les notes d'administration ni les sources d'évaluation. Un ouvrage exclu ne paraît nulle part côté public. Un ouvrage à vérifier n'est pas présenté comme une référence validée. Une source secondaire peut paraître si elle est par ailleurs vérifiée et validée, sans exposer son rang interne.
+⛔ **L'affichage public ne montre jamais le score interne, la réserve, les motifs sensibles, les notes d'administration ni les sources d'évaluation.** ⛔ **Un ouvrage exclu ne paraît nulle part côté public.** ⛔ **Un ouvrage à vérifier n'est pas présenté comme une référence validée.** Une source secondaire peut paraître si elle est par ailleurs vérifiée et validée, sans exposer son rang interne.
 
-L'administration des ouvrages se trouve dans l'onglet « Ouvrages ». On y consulte le statut calculé, on saisit la décision manuelle, on rattache l'ouvrage à son autorité éditrice, à sa collection et à ses contributeurs. Un chercheur moderne reçoit une fiche notée dans `auteurs_valeur`. Un Père ou un autre auteur ancien, comme un collectif, n'a jamais de fiche notée : il figure comme source, sans note. L'écriture sur `ouvrages_bibliographiques` est réservée aux administrateurs authentifiés par une politique RLS `ouvrages_bibliographiques_admin_all`, calquée sur les tables sœurs. Les refus de la base, qu'il s'agisse d'un lien vers un ouvrage inadmissible, de la validation d'un ouvrage non retenu ou d'une exclusion sans motif, sont interceptés et expliqués sans mise à jour optimiste définitive.
+L'administration des ouvrages se trouve dans l'onglet « Ouvrages ». On y consulte le statut calculé, on saisit la décision manuelle, on rattache l'ouvrage à son autorité éditrice, à sa collection et à ses contributeurs. Un chercheur moderne reçoit une fiche notée dans `auteurs_valeur`. ⛔ **Un Père ou un autre auteur ancien, comme un collectif, n'a jamais de fiche notée : il figure comme source, sans note.** L'écriture sur `ouvrages_bibliographiques` est réservée aux administrateurs authentifiés par une politique RLS `ouvrages_bibliographiques_admin_all`, calquée sur les tables sœurs. Les refus de la base, qu'il s'agisse d'un lien vers un ouvrage inadmissible, de la validation d'un ouvrage non retenu ou d'une exclusion sans motif, sont interceptés et expliqués sans mise à jour optimiste définitive.
 
 ### 29.2 Précision thématique des bibliographies de péricopes
 
@@ -3298,15 +3312,15 @@ Le champ `pericope_bibliographie.niveau_precision` qualifie ce rapport et prend 
 - `generale` : commentaire d’un livre biblique, introduction, synthèse de vaste portée ou ouvrage de fond qui éclaire la péricope sans lui être spécialement consacré ;
 - `indeterminee` : rattachement dont la précision n’a pas encore été relue.
 
-La sélection visible est portée par `retenu_notice` et `ordre_notice`. Elle est éditoriale et distincte de la bibliographie documentaire complète. Elle comporte au plus quatre références, conformément à la contrainte de base. Lorsqu’une étude `directe` de valeur scientifique suffisante existe, au moins une telle étude doit précéder les références `generale`. Une référence classique directement consacrée au sujet a priorité sur l’accumulation de commentaires généraux, même lorsque ceux-ci sont plus récents. À défaut d’étude directe, rechercher d’abord une étude de `motif` avant de compléter par les meilleurs commentaires généraux.
+La sélection visible est portée par `retenu_notice` et `ordre_notice`. Elle est éditoriale et distincte de la bibliographie documentaire complète. Elle comporte au plus quatre références, conformément à la contrainte de base. ⛔ **Lorsqu’une étude `directe` de valeur scientifique suffisante existe, au moins une telle étude doit précéder les références `generale`.** Une référence classique directement consacrée au sujet a priorité sur l’accumulation de commentaires généraux, même lorsque ceux-ci sont plus récents. À défaut d’étude directe, rechercher d’abord une étude de `motif` avant de compléter par les meilleurs commentaires généraux.
 
-Ordre de préférence pour une sélection : 1. étude directe de référence ; 2. seconde étude directe ou étude de motif réellement utile ; 3. commentaire général de référence ; 4. second commentaire, étude de tradition ou autre complément nécessaire. Il ne s’agit pas d’un quota : deux références redondantes ne sont pas retenues pour remplir artificiellement quatre places.
+Ordre de préférence pour une sélection : 1. étude directe de référence ; 2. seconde étude directe ou étude de motif réellement utile ; 3. commentaire général de référence ; 4. second commentaire, étude de tradition ou autre complément nécessaire. ⛔ **Il ne s’agit pas d’un quota : deux références redondantes ne sont pas retenues pour remplir artificiellement quatre places.**
 
-La règle francophone du présent système reste applicable : un ouvrage non admissible comme `citation_francophone` peut demeurer dans la documentation interne, mais n’est pas marqué `retenu_notice`. Son absence de la sélection publique ne diminue pas sa valeur scientifique.
+La règle francophone du présent système reste applicable : un ouvrage non admissible comme `citation_francophone` peut demeurer dans la documentation interne, mais n’est pas marqué `retenu_notice`. ⚠️ **Son absence de la sélection publique ne diminue pas sa valeur scientifique.**
 
-Le nombre de péricopes auxquelles un ouvrage est rattaché, le type d’ouvrage ou la présence de mots communs dans les titres servent seulement de présélection. Ils ne déterminent jamais automatiquement `niveau_precision`. La qualification est faite par lecture bibliographique. `motif_selection` explique brièvement pourquoi une référence a été retenue.
+Le nombre de péricopes auxquelles un ouvrage est rattaché, le type d’ouvrage ou la présence de mots communs dans les titres servent seulement de présélection. ⛔ **Ils ne déterminent jamais automatiquement `niveau_precision`. La qualification est faite par lecture bibliographique.** `motif_selection` explique brièvement pourquoi une référence a été retenue.
 
-Quand aucune étude directe ou de motif satisfaisante n’est identifiée, cette absence est consignée dans la file de révision ; elle n’est jamais masquée par la multiplication de références générales.
+Quand aucune étude directe ou de motif satisfaisante n’est identifiée, cette absence est consignée dans la file de révision ; ⛔ **elle n’est jamais masquée par la multiplication de références générales**.
 
 
 ## 29 bis. Le nom d’une personne — nom, prénom, pseudonyme
@@ -3377,7 +3391,7 @@ Rejouer un diagnostic se fait avec le pipeline du dépôt, sans toucher aux poid
 
 ## 31. Atelier La Gueule — contrôle, correction et validation ciblée
 
-L'atelier La Gueule océrise les imprimés et les manuscrits pour alimenter le corpus. Tout ce qu'il produit est un candidat, jamais une donnée validée. Le fac-similé et la transcription brute de la machine restent immuables : toute intervention agit dans une couche candidate tracée, réversible et exportable. La transcription brute est conservée à côté de l'état éditorial courant, qui est seul lu par les exports.
+L'atelier La Gueule océrise les imprimés et les manuscrits pour alimenter le corpus. ⛔ **Tout ce qu'il produit est un candidat, jamais une donnée validée.** ⛔ **Le fac-similé et la transcription brute de la machine restent immuables** : toute intervention agit dans une couche candidate tracée, réversible et exportable. La transcription brute est conservée à côté de l'état éditorial courant, qui est seul lu par les exports.
 
 
 ### 31.1 Contrôle déterministe de toutes les pages et assistance ciblée
@@ -3386,19 +3400,19 @@ Après l’océrisation, chaque page du lot passe par des contrôles locaux et d
 
 L’assistance IA ne relit pas indistinctement toutes les pages. Elle reçoit les pages, lignes ou recadrages sélectionnés par les contrôles déterministes, par un échantillonnage de qualité ou par une demande explicite. Elle propose des corrections de texte ou des reclassements de rôle pour les éléments qui ne sont pas du texte d’œuvre. Un sondage peut volontairement lui soumettre des zones non signalées afin de mesurer les erreurs manquées.
 
-Aucune donnée ne part vers un service distant sans consentement enregistré, et aucun secret n’est transmis. Le fait qu’une page n’ait pas été envoyée à l’IA n’empêche pas son contrôle local ni les sondages humains prévus par la charte.
+⛔ **Aucune donnée ne part vers un service distant sans consentement enregistré, et aucun secret n’est transmis.** Le fait qu’une page n’ait pas été envoyée à l’IA n’empêche pas son contrôle local ni les sondages humains prévus par la charte.
 
 ### 31.2 Corrections effectives et réversibles
 
-Une correction acceptée modifie réellement le texte candidat et se retrouve dans tous les exports ; la transcription brute d'origine n'est jamais touchée. Chaque correction conserve son avant, son après, sa provenance, sa date et son statut, et peut être annulée exactement. Une correction n'écrase jamais silencieusement une modification humaine ou une correction plus récente : le conflit est signalé et laissé à l'arbitrage. Une correction acceptée reste un candidat ; le statut de texte formellement vérifié exige une validation humaine explicite, jamais acquise par la seule acceptation d'une règle ou d'un échantillon.
+Une correction acceptée modifie réellement le texte candidat et se retrouve dans tous les exports ; ⛔ **la transcription brute d'origine n'est jamais touchée**. Chaque correction conserve son avant, son après, sa provenance, sa date et son statut, et peut être annulée exactement. ⛔ **Une correction n'écrase jamais silencieusement une modification humaine ou une correction plus récente** : le conflit est signalé et laissé à l'arbitrage. Une correction acceptée reste un candidat ; ⛔ **le statut de texte formellement vérifié exige une validation humaine explicite, jamais acquise par la seule acceptation d'une règle ou d'un échantillon.**
 
 ### 31.3 Périmètre de travail
 
-L'avancement de l'océrisation se mesure sur le lot effectivement traité, distinct du document entier. Un lot est terminé lorsque toutes ses pages sont océrisées, en erreur ou volontairement exclues ; les pages du document non incluses dans le lot ne sont pas comptées comme manquantes. L'état du document et l'état du lot sont présentés séparément.
+L'avancement de l'océrisation se mesure sur le lot effectivement traité, distinct du document entier. Un lot est terminé lorsque toutes ses pages sont océrisées, en erreur ou volontairement exclues ; ⚠️ **les pages du document non incluses dans le lot ne sont pas comptées comme manquantes**. L'état du document et l'état du lot sont présentés séparément.
 
 ### 31.4 Reclassement des éléments non textuels
 
-Un filet gravé, un bandeau, un titre courant, un numéro de page, une signature de cahier, une réclame ou un simple bruit de reconnaissance peuvent être reclassés hors du corps. La ligne reclassée est écartée du texte exporté, mais conservée dans la source et dans les formats d'échange ; son texte et sa transcription brute ne sont pas supprimés. Le vocabulaire des rôles est unique et partagé avec le reste de l'atelier.
+Un filet gravé, un bandeau, un titre courant, un numéro de page, une signature de cahier, une réclame ou un simple bruit de reconnaissance peuvent être reclassés hors du corps. La ligne reclassée est écartée du texte exporté, mais conservée dans la source et dans les formats d'échange ; ⛔ **son texte et sa transcription brute ne sont pas supprimés.** Le vocabulaire des rôles est unique et partagé avec le reste de l'atelier.
 
 ### 31.5 Validation ciblée
 
@@ -3406,12 +3420,12 @@ L'utilisateur ne valide pas toutes les corrections. Les corrections simples, qui
 
 ### 31.6 Blocages proportionnés et livraison
 
-Les blocages d'export correspondent à des impossibilités réelles : une page du périmètre restée sans océrisation et non exclue, une page en erreur, un conflit empêchant d'établir le texte, une restitution conjecturale non signalée. Une particularité éditoriale n'est pas un blocage : une page de titre courte, un faux-titre, une page d'ornement ou une fin de chapitre brève sont des avertissements. La livraison indique son état — candidat complet, candidat avec réserves, ou candidat incomplet — et n'affirme jamais une validation humaine qui n'a pas eu lieu.
+Les blocages d'export correspondent à des impossibilités réelles : une page du périmètre restée sans océrisation et non exclue, une page en erreur, un conflit empêchant d'établir le texte, une restitution conjecturale non signalée. ⚠️ **Une particularité éditoriale n'est pas un blocage** : une page de titre courte, un faux-titre, une page d'ornement ou une fin de chapitre brève sont des avertissements. La livraison indique son état — candidat complet, candidat avec réserves, ou candidat incomplet — et ⛔ **n'affirme jamais une validation humaine qui n'a pas eu lieu.**
 
 
 ### 31.7 Couche linguistique post-OCR
 
-Avant tout recours à une passe assistée distante, La Gueule applique une couche locale et déterministe de contrôle linguistique. Cette couche sert à repérer et hiérarchiser les anomalies ; un dictionnaire ou un lexique ne constitue jamais, à lui seul, une preuve de faute et n’autorise aucune modernisation silencieuse. Une forme absente des ressources lexicales reste possible tant que le fac-similé ne l’infirme pas.
+Avant tout recours à une passe assistée distante, La Gueule applique une couche locale et déterministe de contrôle linguistique. Cette couche sert à repérer et hiérarchiser les anomalies ; ⛔ **un dictionnaire ou un lexique ne constitue jamais, à lui seul, une preuve de faute et n’autorise aucune modernisation silencieuse.** ⛔ **Une forme absente des ressources lexicales reste possible tant que le fac-similé ne l’infirme pas.**
 
 Le contrôle lexical combine, selon la langue et la période :
 
@@ -3420,19 +3434,19 @@ Le contrôle lexical combine, selon la langue et la période :
 - des lexiques spécialisés du projet : latin, vocabulaire biblique, théologique et patristique, noms propres, abréviations et formes éditoriales récurrentes ;
 - un lexique dynamique propre à chaque ouvrage et, lorsque cela est pertinent, à chaque édition.
 
-Les conditions de licence et de redistribution de chaque ressource sont vérifiées avant son intégration locale. Si une ressource ne peut être embarquée, elle n’est pas copiée illicitement : on lui substitue une ressource réutilisable ou un accès conforme à ses conditions.
+Les conditions de licence et de redistribution de chaque ressource sont vérifiées avant son intégration locale. ⛔ **Si une ressource ne peut être embarquée, elle n’est pas copiée illicitement** : on lui substitue une ressource réutilisable ou un accès conforme à ses conditions.
 
 ### 31.8 Lexique dynamique de l’ouvrage
 
 La Gueule compte les formes rencontrées dans le lot et dans l’ouvrage. Une graphie ancienne récurrente, cohérente et déjà attestée par des lectures sûres voit son niveau de suspicion diminuer. À l’inverse, un hapax très proche d’une forme récurrente peut être signalé comme erreur OCR probable.
 
-La fréquence n’est jamais une preuve suffisante : une erreur systématique du moteur peut elle-même se répéter. Les formes validées humainement ont un poids supérieur aux formes seulement produites par la machine. Le système conserve la provenance et le niveau de confiance de toute entrée ajoutée au lexique dynamique.
+⛔ **La fréquence n’est jamais une preuve suffisante** : une erreur systématique du moteur peut elle-même se répéter. Les formes validées humainement ont un poids supérieur aux formes seulement produites par la machine. Le système conserve la provenance et le niveau de confiance de toute entrée ajoutée au lexique dynamique.
 
 ### 31.9 Concordance des moteurs et scores de confiance
 
 Conserver, lorsque le moteur les fournit, les scores de confiance au niveau du mot et du caractère. Lorsque Kraken et Tesseract, ou deux configurations OCR indépendantes, sont disponibles sur une même zone, aligner leurs sorties et exploiter leur accord ou leur désaccord comme indice.
 
-Un accord entre moteurs, une confiance élevée et une forme lexicalement ou localement attestée diminuent la suspicion. Un désaccord, une confiance faible, une forme isolée, une proximité forte avec une forme attestée et une confusion OCR connue l’augmentent. Aucun de ces indices ne décide seul d’une correction.
+Un accord entre moteurs, une confiance élevée et une forme lexicalement ou localement attestée diminuent la suspicion. Un désaccord, une confiance faible, une forme isolée, une proximité forte avec une forme attestée et une confusion OCR connue l’augmentent. ⛔ **Aucun de ces indices ne décide seul d’une correction.**
 
 ### 31.10 Score de suspicion et recherche de formes proches
 
@@ -3446,7 +3460,7 @@ Chaque token ou groupe de tokens peut recevoir un score de suspicion explicable,
 - désaccord entre moteurs ;
 - anomalies de segmentation, de coupure ou de structure.
 
-La recherche de formes proches, par exemple au moyen d’un algorithme de distance d’édition ou de type SymSpell, fournit des candidats et non des corrections. Le score, ses composantes et les candidats proposés doivent rester consultables afin qu’une décision puisse être auditée.
+La recherche de formes proches, par exemple au moyen d’un algorithme de distance d’édition ou de type SymSpell, ⛔ **fournit des candidats et non des corrections.** ⚠️ **Le score, ses composantes et les candidats proposés doivent rester consultables afin qu’une décision puisse être auditée.**
 
 Le routage suit le risque : absence d’anomalie significative, aucune intervention ; erreur fortement convergente et de faible risque, correction automatique dans la seule couche candidate ; ambiguïté réelle, contrôle assisté ciblé ; doute persistant ou enjeu éditorial important, arbitrage humain.
 
@@ -3454,15 +3468,15 @@ Le routage suit le risque : absence d’anomalie significative, aucune intervent
 
 L’assistance IA n’a pas vocation à relire indistinctement tout ce que les contrôles déterministes savent déjà classer. Pour un cas suspect, lui transmettre seulement les éléments utiles : recadrage de l’image, ligne et contexte proche, sortie des moteurs, scores de confiance, formes proches, occurrences comparables dans l’ouvrage et règles éditoriales applicables.
 
-Avant escalade humaine, une zone difficile peut être ré-océrisée localement avec plusieurs prétraitements ou configurations. Ces nouvelles sorties sont des témoins supplémentaires ; elles ne remplacent jamais le fac-similé.
+Avant escalade humaine, une zone difficile peut être ré-océrisée localement avec plusieurs prétraitements ou configurations. ⛔ **Ces nouvelles sorties sont des témoins supplémentaires ; elles ne remplacent jamais le fac-similé.**
 
-La passe assistée classe au minimum le cas comme `erreur OCR probable`, `forme attestée ou historiquement plausible`, ou `indécidable`. Une proposition qui modernise seulement parce que la forme ancienne est absente d’un dictionnaire moderne doit être rejetée.
+La passe assistée classe au minimum le cas comme `erreur OCR probable`, `forme attestée ou historiquement plausible`, ou `indécidable`. ⛔ **Une proposition qui modernise seulement parce que la forme ancienne est absente d’un dictionnaire moderne doit être rejetée.**
 
 ### 31.12 Mémoire des erreurs OCR validées
 
 Toute correction acceptée ou refusée alimente un historique structuré distinguant la sortie OCR, la lecture retenue, le moteur, le modèle, la page ou zone, le type de confusion et le niveau de validation. Cet historique sert à mesurer les confusions réelles — par exemple lettres proches, ligatures, `rn/m`, `I/l`, `cl/d`, `s/ſ` — et à améliorer le score de suspicion.
 
-Une confusion apprise n’est promue en règle automatique qu’après un nombre suffisant d’exemples indépendants et des contrôles de faux positifs. L’apprentissage ne doit jamais transformer une correction propre à un livre en règle générale sans preuve.
+Une confusion apprise n’est promue en règle automatique qu’après un nombre suffisant d’exemples indépendants et des contrôles de faux positifs. ⛔ **L’apprentissage ne doit jamais transformer une correction propre à un livre en règle générale sans preuve.**
 
 ### 31.13 Plan de mise en œuvre
 
@@ -3480,7 +3494,7 @@ Le MVP prioritaire est donc : **LGeRM + lexique dynamique de l’ouvrage + confi
 
 ### 31.14 Mesure de qualité
 
-L’objectif n’est pas de minimiser artificiellement le nombre de propositions, mais de concentrer la vérification humaine sans augmenter les erreurs résiduelles. Pour chaque évolution, mesurer au minimum :
+⚠️ **L’objectif n’est pas de minimiser artificiellement le nombre de propositions, mais de concentrer la vérification humaine sans augmenter les erreurs résiduelles.** Pour chaque évolution, mesurer au minimum :
 
 - la proportion d’erreurs certaines effectivement détectées sur un jeu de référence ;
 - le taux de faux positifs, en particulier sur les graphies anciennes légitimes ;
@@ -3489,7 +3503,7 @@ L’objectif n’est pas de minimiser artificiellement le nombre de propositions
 - les erreurs découvertes ensuite par sondage ;
 - le temps ou le volume de validation humaine économisé.
 
-Une baisse du nombre de propositions n’est un progrès que si les sondages ne montrent pas une hausse des erreurs manquées. Les seuils sont ajustés sur des corpus représentatifs et restent configurables par période, langue, moteur et qualité matérielle de la source.
+⚠️ **Une baisse du nombre de propositions n’est un progrès que si les sondages ne montrent pas une hausse des erreurs manquées.** Les seuils sont ajustés sur des corpus représentatifs et restent configurables par période, langue, moteur et qualité matérielle de la source.
 
 ## 32. Centralisation des DOCX finaux
 
@@ -3980,7 +3994,8 @@ Une clôture d’œuvre ne repose jamais sur les seuls totaux globaux. Après to
 - **Majuscules accentuées.** Le contrôle porte sur toute la couche de lecture ET sur les titres projetés, non sur les seuls incipits. Les formes françaises `É`, `À`, `È`, `Ê`, `Î`, `Ô`, etc. sont obligatoires quand la minuscule correspondante est accentuée. Les sigles, translittérations et vrais noms non accentués sont exclus par contexte, jamais par une règle aveugle.
 - **Références `Ibid.`.** Dans la couche de lecture finale, développer `Ibid.` dès que sa cible a été résolue et vérifiée. Résoudre d’abord le livre, le chapitre et la versification par la source et le contenu ; n’expanser jamais un `Ibid.` encore ambigu. Le texte visible et le lien canonique doivent rester concordants.
 - **Unicité et coexistence fonctionnelle des liens.** Appliquer la règle du § 9.4 bis : pour un même couple `segment × cible biblique`, un seul lien est admis par type. La coexistence de types différents n’est admise que si le segment remplit réellement plusieurs fonctions distinctes, chacune motivée séparément. Une citation explicite du verset intégrée à son commentaire peut donc porter T1 + T3 ; sinon conserver seulement le type qui décrit la fonction réellement exercée.
-- **Offsets de provenance.** Une égalité après `norm_fr` est un indice de contrôle, jamais une preuve suffisante pour écrire des offsets Unicode bruts. Écrire `source_start_offset_unicode` / `source_end_offset_unicode` seulement lorsque les positions sont exactes et déterministes dans le témoin brut, ou qu’une méthode de bornage validée établit sans ambiguïté les limites. Les coupures de mot éditorialement recollées entre deux unités restent documentées sans offsets inventés.\n- **Couverture d’une unité source.** Un écart entre `source_end_offset_unicode` d’un segment et `source_start_offset_unicode` du suivant n’est pas automatiquement un trou. Lire le sous-texte source correspondant : une espace simple ou un séparateur intentionnel de paragraphe (`\\n\\n`) peut rester hors empans tout en appartenant à la structure de recomposition. Un audit de couverture échoue sur du texte source non blanc laissé découvert, un chevauchement, des bornes invalides, ou un séparateur inexpliqué incompatible avec la structure — jamais sur la seule existence d’un intervalle numérique.
+- **Offsets de provenance.** Une égalité après `norm_fr` est un indice de contrôle, jamais une preuve suffisante pour écrire des offsets Unicode bruts. Écrire `source_start_offset_unicode` / `source_end_offset_unicode` seulement lorsque les positions sont exactes et déterministes dans le témoin brut, ou qu’une méthode de bornage validée établit sans ambiguïté les limites. Les coupures de mot éditorialement recollées entre deux unités restent documentées sans offsets inventés.
+- **Couverture d’une unité source.** Un écart entre `source_end_offset_unicode` d’un segment et `source_start_offset_unicode` du suivant n’est pas automatiquement un trou. Lire le sous-texte source correspondant : une espace simple ou un séparateur intentionnel de paragraphe (`\\n\\n`) peut rester hors empans tout en appartenant à la structure de recomposition. Un audit de couverture échoue sur du texte source non blanc laissé découvert, un chevauchement, des bornes invalides, ou un séparateur inexpliqué incompatible avec la structure — jamais sur la seule existence d’un intervalle numérique.
 - **Métadonnées finales.** Après les dernières mutations structurelles, recalculer depuis les tables live les nombres de segments, unités et signes, les statuts de phase et les indicateurs de publication. Les drapeaux œuvre/texte ne doivent pas contredire une note éditoriale explicite de non-publication.
 - **Niveaux de validation.** Distinguer strictement contrôle mécanique, relecture IA et validation humaine. Aucun marqueur IA ou mécanique ne permet de déduire `validated_human=true` ou `controle_verifie=true`.
 
@@ -5039,7 +5054,13 @@ Dans une liste bibliographique éditoriale, la casse du fac-similé ou de l’OC
 
 **Nature et structure obligatoires.** Une liste dont les entrées sont des références bibliographiques est une pièce bibliographique, même si son titre ne contient pas le mot « Bibliographie ». Dans le modèle actuel, ses unités portent `type_unite = 'bibliographie'`, les segments qui la matérialisent relèvent de `nature = 'apparat_editeur'`, et la présentation utilise le style `bibliographie` ou son équivalent structuré. Une « Liste des traductions françaises » est donc bibliographique au même titre qu’une « Liste alphabétique des ouvrages cités » : ⛔ elle ne reste pas en `type_unite = 'paratexte'` générique si ses lignes sont des notices d’éditions ou de traductions. `ouvrages_bibliographiques.type_ouvrage` reçoit la catégorie scientifique réellement appropriée parmi le vocabulaire contrôlé du projet (`source_primaire`, `edition_critique`, `commentaire_critique`, `monographie`, `introduction`, `theologie_biblique`, `histoire_reception`, `outil_philologique`, `autre_scientifique`) ; on ne crée pas une valeur ad hoc pour imiter le titre de la pièce.
 
-**Espace documentaire ≠ normalisation bibliographique.** Le classement d’une pièce dans `introduction`, `apparat_critique`, `corps` ou toute autre surface est ORTHOGONAL à son contrat bibliographique. Déplacer une liste dans le bon `espace_textuel` ne la normalise pas et ne l’autorise jamais à retomber sur sa chaîne source. Toute unité `type_unite = 'bibliographie'`, où qu’elle soit placée, reste soumise intégralement aux §§ 29.0 et 47.0 : `ouvrage_id` comme identité, autorités normalisées, `presentation.style = bibliographie`, composition champ par champ et ponctuation générée. Les champs `espace_textuel`, `display_surface`, `clean_text`, `segment_texte` ou une chaîne `bibliographic_display_text` matérialisée ne peuvent jamais devenir la source de vérité à la place des données structurées.\n\nLorsqu’une projection textuelle est matérialisée pour compatibilité avec le lecteur, elle est exclusivement un CACHE dérivé de `ouvrage_id`. Elle porte explicitement son contrat de normalisation et sa provenance structurée, et doit être régénérée dès qu’un titre, sous-titre, contributeur, lieu, éditeur, date ou autre autorité change. Si le modèle de rendu supporte les fragments sémantiques, une notice structurée expose les rôles normalisés `bibliographie-titre-ouvrage`, `bibliographie-sous-titre`, `bibliographie-auteur`, `bibliographie-nom-auteur` et `bibliographie-donnees`; une chaîne recomposée sans ces rôles ne suffit pas à déclarer la notice conforme. La chaîne OCR/imprimée reste uniquement dans la provenance source.\n\n**Contrôle bloquant supplémentaire :** pour toute bibliographie affichée dans un apparat ou un liminaire, vérifier séparément (1) son emplacement documentaire et (2) son contrat bibliographique. Une passe ne peut être close avec « emplacement correct » si une seule entrée structurée est encore rendue depuis le brut, si un pseudo-éditeur matériel a été créé comme autorité, si un titre contient encore une mention de contributeur déjà portée par un champ dédié, ou si une projection matérialisée n’est pas traçable à son `ouvrage_id`.\n\n**Lien entre la pièce et la notice.** Lorsque la pièce utilise la couche bibliographique éditoriale, chaque entrée est rattachée à `bible_editorial_bibliography_entries.ouvrage_id` (ou à la relation structurée équivalente du contexte concerné) ; le rang matériel de la source reste une donnée de provenance, tandis que l’identité vient de l’ouvrage. Le texte bibliographique brut du témoin demeure conservé dans la couche source pour contrôle, mais il ne sert pas de notice finale et ne doit pas être recopié comme pseudo-normalisation.
+**Espace documentaire ≠ normalisation bibliographique.** Le classement d’une pièce dans `introduction`, `apparat_critique`, `corps` ou toute autre surface est ORTHOGONAL à son contrat bibliographique. Déplacer une liste dans le bon `espace_textuel` ne la normalise pas et ne l’autorise jamais à retomber sur sa chaîne source. Toute unité `type_unite = 'bibliographie'`, où qu’elle soit placée, reste soumise intégralement aux §§ 29.0 et 47.0 : `ouvrage_id` comme identité, autorités normalisées, `presentation.style = bibliographie`, composition champ par champ et ponctuation générée. Les champs `espace_textuel`, `display_surface`, `clean_text`, `segment_texte` ou une chaîne `bibliographic_display_text` matérialisée ne peuvent jamais devenir la source de vérité à la place des données structurées.
+
+Lorsqu’une projection textuelle est matérialisée pour compatibilité avec le lecteur, elle est exclusivement un CACHE dérivé de `ouvrage_id`. Elle porte explicitement son contrat de normalisation et sa provenance structurée, et doit être régénérée dès qu’un titre, sous-titre, contributeur, lieu, éditeur, date ou autre autorité change. Si le modèle de rendu supporte les fragments sémantiques, une notice structurée expose les rôles normalisés `bibliographie-titre-ouvrage`, `bibliographie-sous-titre`, `bibliographie-auteur`, `bibliographie-nom-auteur` et `bibliographie-donnees`; une chaîne recomposée sans ces rôles ne suffit pas à déclarer la notice conforme. La chaîne OCR/imprimée reste uniquement dans la provenance source.
+
+**Contrôle bloquant supplémentaire :** pour toute bibliographie affichée dans un apparat ou un liminaire, vérifier séparément (1) son emplacement documentaire et (2) son contrat bibliographique. Une passe ne peut être close avec « emplacement correct » si une seule entrée structurée est encore rendue depuis le brut, si un pseudo-éditeur matériel a été créé comme autorité, si un titre contient encore une mention de contributeur déjà portée par un champ dédié, ou si une projection matérialisée n’est pas traçable à son `ouvrage_id`.
+
+**Lien entre la pièce et la notice.** Lorsque la pièce utilise la couche bibliographique éditoriale, chaque entrée est rattachée à `bible_editorial_bibliography_entries.ouvrage_id` (ou à la relation structurée équivalente du contexte concerné) ; le rang matériel de la source reste une donnée de provenance, tandis que l’identité vient de l’ouvrage. Le texte bibliographique brut du témoin demeure conservé dans la couche source pour contrôle, mais il ne sert pas de notice finale et ne doit pas être recopié comme pseudo-normalisation.
 
 **Contrôles bloquants avant clôture.** Pour toute liste bibliographique reprise : 0 entrée identifiable laissée sans recherche de correspondance ; 0 doublon de fiche créé par variation de forme ; 0 ouvrage structuré sans titre ; 0 valeur éditoriale ajoutée sans provenance lorsqu’elle n’est pas directement attestée ; 0 liste d’ouvrages laissée en paratexte générique ; 0 entrée bibliographique rendue depuis la chaîne source quand un `ouvrage_id` structuré existe. Le bilan de passe donne au minimum le nombre d’entrées rencontrées, réutilisées, créées, encore en revue, complétées éditorialement et correctement rattachées à leur nature bibliographique.
 

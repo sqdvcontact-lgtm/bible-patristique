@@ -95,6 +95,17 @@
 - ⛔ Un aperçu d’administration compose EXACTEMENT comme la surface publique.
 - ⚠️ Une règle CSS que rien ne porte fausse un relevé comme elle fausse une lecture.
 
+## § 5. Métadonnées et page de titre
+
+**§ 5.5 — La page de titre du site**
+
+- ⛔ LA PAGE DE TITRE EST CELLE DE L’ÉDITION AFFICHÉE (demande de l’auteur, 8 septembre 2026 : « elle doit correspondre à l’édition qui est affichée ; si on a deux éditions, la latine et la française, il faut faire en conséquence »).
+- ⚠️ Une version active dit TOUT de son édition, son silence compris.
+- ⛔ Une adresse se prend ENTIÈRE, ou pas du tout.
+- ⛔ Deux éditions à l’écran, deux mentions sur la page de titre.
+- ⚠️ Il ne se nomme que s’il existe vraiment : une colonne en regard tirée du repli `segments.texte_original` n’est pas une autre édition, c’est la même qui porte son original avec elle, et il n’y a rien de plus à nommer.
+- ⚠️ L’invite de l’administrateur suit le crayon.
+
 ## § 6. Structure, niveaux, paragraphes et rangs
 
 **§ 6.1.1 — La jonction entre deux segments**
@@ -227,7 +238,39 @@
 
 **§ 11.0 — Manifeste des traductions nouvelles**
 
+- ⛔ Elle ne se substitue jamais au témoin source et ne doit jamais être présentée comme une traduction historique.
+- ⛔ Une validation humaine n’est jamais déduite d’une relecture technique ou d’un accord global : elle n’est déclarée que si elle a réellement eu lieu et selon son périmètre exact.
+- ⛔ Les traductions antérieures peuvent servir de témoins de contrôle, jamais de texte à paraphraser silencieusement.
+- ⛔ Tout emprunt volontaire, toute dépendance substantielle ou toute comparaison décisive avec une traduction existante est documenté.
+- ⛔ La fidélité lexicale, morphologique, sémantique et, lorsqu’elle éclaire le sens, étymologique prime sur l’élégance moderne.
+- ⛔ On ne lisse pas une syntaxe rugueuse simplement pour rendre la phrase plus plaisante.
 - ⛔ Aucun archaïsme décoratif, aucun faux médiévisme et aucune amplification rhétorique ne sont ajoutés pour donner une couleur ancienne.
+- ⛔ Une transposition syntaxique n’est admise que lorsqu’une conservation plus étroite produirait un contresens, une ambiguïté indue ou un français réellement inintelligible.
+- ⛔ Les mots ajoutés pour la seule intelligibilité restent minimaux.
+- ⛔ Le contexte de l’auteur et du passage prévaut toujours sur une équivalence de dictionnaire isolée.
+- ⚠️ Les choix évidents ne sont pas surannotés.
+- ⛔ sauf consigne contraire, on n’imite ni le mètre, ni la rime, ni une compensation métrique.
+- ⛔ Si la mission demande une traduction en prose, la ligne de vers n’est pas recréée.
+- ⛔ ces essais restent expérimentaux, privés et non validés humainement.
+- ⛔ La matérialisation en base ne commence qu’après fixation du profil de traduction de la mission — de son étiquetage d’origine et de sa méthode d’alignement avec l’original.
+
+**§ 11.1 — Objets et identifiants**
+
+- ⛔ Toute nouvelle importation textuelle reçoit un `id_texte` stable et appartient à un seul `id_oeuvre`.
+- ⛔ Ils ne constituent plus la source normative d’une nouvelle note structurée ni d’un nouvel alignement entre versions.
+- ⛔ Les liens bibliques ne sont jamais importés comme colonnes de segment : ils suivent leur propre phase et leur propre table.
+- ⛔ Un import ne doit jamais perdre silencieusement une colonne inconnue : il la refuse ou la signale avant écriture.
+
+**§ 11.2 — Préparation**
+
+- ⛔ contrôler les alignements éventuels sans supposer de cardinalité `1:1`
+
+**§ 11.3 — Écriture**
+
+- ⛔ Importer par lots bornés et transactionnels. Une erreur arrête l’opération et déclenche le retour arrière du seul périmètre créé par l’import.
+- ⛔ Ne jamais supprimer une œuvre ou une version préexistante pour contourner un conflit d’identifiant.
+- ⛔ Une réimportation ne doit jamais réintroduire une variante d’éditeur, une collection, un tome, une pagination, une mention de responsabilité ou une chronologie détaillée dans ce libellé.
+- ⚠️ Les informations supprimées du libellé restent conservées dans leurs champs structurés, les métadonnées de provenance ou les notes appropriées.
 
 ## § 12. Textes parallèles et alignements sémantiques
 
@@ -399,6 +442,90 @@
 
 ## § 14. OCR, HTR et transcription patrimoniale
 
+**§ 14 — OCR, HTR et transcription patrimoniale**
+
+- ⛔ Un moteur d’OCR ou de HTR produit un brouillon. Il ne produit jamais, à lui seul, un texte éditorial validé.
+
+**§ 14.1 — Niveaux de texte et statuts**
+
+- ⛔ Les mots `transcrit`, `relu`, `validé` et `importé` ne sont pas synonymes. Le statut public indique le niveau réellement atteint.
+- ⛔ Un lot non relu reste explicitement provisoire, même si son XML est valide et si les tests techniques réussissent.
+
+**§ 14.2 — Autorité de la source et traçabilité**
+
+- ⛔ Le fac-similé demeure l’autorité. Une couche texte, un OCR, une HTR, une édition moderne, une traduction parallèle ou le contexte attendu ne peuvent le remplacer.
+- ⛔ sans être projetée comme pagination structurelle dans les segments — pour un manuscrit, feuillet, face, colonne et ligne restent les localisateurs matériels.
+- ⛔ Les identifiants suivent l’ordre matériel et ne sont jamais recréés pour satisfaire un comptage attendu.
+- ⛔ Ne jamais inventer une zone, une ligne ou une coordonnée absente. Une colonne vide ou partielle reste vide ou partielle.
+
+**§ 14.3 — Imprimés et éditions non médiévales**
+
+- ⛔ Extraire le texte page par page. Comparer toute couche texte du PDF avec l’image.
+- ⛔ Une erreur d’OCR est corrigée contre le fac-similé : le texte éditorial reprend ce qui est réellement imprimé.
+- ⛔ La note distingue toujours la leçon imprimée de la correction retenue.
+- ⛔ Réunir un mot coupé typographiquement en fin de ligne ou de page. Conserver un trait d’union lexical réel.
+- ⛔ sans moderniser l’orthographe, les désinences, le vocabulaire ou la syntaxe.
+- ⛔ Cette règle d’émendation des éditions imprimées ne transforme pas une transcription diplomatique médiévale en édition corrigée.
+
+**§ 14.4 — Manuscrits et HTR**
+
+- ⛔ Chaque ligne destinée au corpus doit être confrontée visuellement au manuscrit.
+- ⛔ Ne jamais corriger un passage parce qu’une autre Bible, une édition critique, la grammaire ou le sens attendu proposent une forme plus vraisemblable. Ces sources peuvent signaler une difficulté ; elles ne décident pas de la lecture.
+
+**§ 14.5 — Encodage des difficultés**
+
+- ⛔ Une lecture indécidable reste incertaine.
+- ⛔ sans les détourner pour rendre le texte plus lisible.
+- ⛔ `unclear` porte sur une difficulté réelle de lecture, non sur une simple absence de relecture.
+- ⛔ Une suite manifestement fautive ne devient pas acceptable parce qu’elle est placée dans `unclear` — décrire au moins les lettres certaines et réexaminer la ligne.
+- ⛔ Les comptages globaux ne doivent jamais conduire à ajouter ou retirer artificiellement une coupure.
+
+**§ 14.6 — Couches diplomatique, développée et modernisée**
+
+- ⛔ Elle ne corrige ni l’orthographe, ni la syntaxe, ni le vocabulaire.
+- ⛔ Il est interdit de fabriquer une graphie modernisée par simple concaténation des lignes développées.
+- ⛔ Une couche modernisée partielle, hétérogène, non synchronisée ou identique au texte développé reçoit un statut provisoire et n’est pas affichée publiquement.
+- ⛔ Toute correction de la transcription source doit pouvoir être propagée ou détectée par un test de synchronisation.
+
+**§ 14.7 — Lots, premières passes et relectures**
+
+- ⛔ Une première passe assistée n’équivaut pas à une relecture.
+- ⛔ Si les sondages découvrent plusieurs erreurs certaines dans des colonnes différentes, le contrôle ciblé est insuffisant — reprendre une passe visuelle sur l’ensemble du lot, en corrigeant le brouillon existant sans le ressaisir inutilement.
+- ⚠️ Un nombre élevé de lignes déclaré relu dans un temps matériellement invraisemblable constitue un signal d’alerte, non une preuve de qualité.
+- ⛔ Les mentions telles que `direct_visual_review` ne sont inscrites que lorsqu’une comparaison visuelle a réellement eu lieu.
+
+**§ 14.8 — Contrôles éditoriaux**
+
+- ⛔ Les contrôles automatiques prouvent la cohérence du fichier, non l’exactitude paléographique. Un faux déchiffrement parfaitement encodé peut réussir XML, Relax NG, les tests et le build.
+- ⚠️ Les preuves visuelles sont réservées aux cas difficiles, contestables ou structurants.
+
+**§ 14.9 — Versions, candidats et import**
+
+- ⛔ Le candidat reste séparé du TEI actif jusqu’à validation.
+- ⛔ Cette nouvelle empreinte doit être certifiée par un diff montrant qu’aucun texte n’a changé. On ne restaure jamais automatiquement un ancien fichier sur la seule base d’une différence d’empreinte.
+
+**§ 14.10 — Comptages et avancement**
+
+- ⛔ Un champ nommé `folios` ne doit pas contenir un nombre de faces.
+- ⛔ Les pourcentages d’avancement précisent leur dénominateur et leur statut — matériellement transcrit, relu ou intégré dans le corpus actif.
+- ⛔ Ne pas confondre les occurrences diplomatiques avec celles de l’ensemble du XML.
+
+**§ 14.11 — Paquets de contrôle et archives**
+
+- ⛔ Le paquet léger ne remplace pas l’archive complète.
+- ⛔ Tous les fichiers annoncés dans un manifeste ou un index de preuves doivent être présents. Supprimer les références mortes plutôt que prétendre fournir des images absentes.
+
+**§ 14.12 — Nettoyage**
+
+- ⛔ Nettoyer seulement après vérification de l’archive finale et réussite de l’import.
+- ⛔ Ne supprimer aucun fichier ambigu. Consigner les suppressions importantes.
+
+**§ 14.13 — Césures de mots entre unités source**
+
+- ⛔ Une césure typographique/OCR située à la frontière de deux unités source ne doit jamais être absorbée artificiellement par une seule unité de lecture.
+- ⛔ Le trait de césure de fin de ligne/page est un signe matériel du témoin : il n’entre pas dans le mot normalisé.
+- ⛔ ne jamais reconstruire un mot à partir d’une seule unité si le second fragment appartient à la suivante.
+
 **§ 14.14 — Transposition de lignes OCR et provenance**
 
 - ⛔ Lorsqu'une unité source OCR porte des lignes ou des fragments matériellement TRANSPOSÉS, on ne fabrique NI offsets continus contre cet ordre corrompu, NI offsets discontinus pour l'épouser, et l'on ne force aucun alignement sur le texte éditorial.
@@ -429,12 +556,101 @@
 
 **§ 16 — Auteurs, œuvres et catalogue**
 
+- ⛔ Les identifiants sont stables et ne sont pas recyclés.
+- ⛔ Supprimer une coquille vide ou une œuvre explicitement abandonnée exige de vérifier d’abord ses segments, liens, dépendances et statut de publication.
 - ⛔ Le marqueur `[Corpus Scriptura:depublie]` dans `oeuvres.note` n’existe plus, ni la colonne `note` : un champ de prose qui portait un drapeau de contrôle faisait perdre la note éditoriale à chaque dépublication, et le site et la base jugeaient sur deux colonnes qui pouvaient se contredire.
+- ⛔ La première date de mise en ligne reste attachée à l’édition en ligne et n’est pas réécrite lors d’une republication.
+- ⛔ ils ne remplacent pas `acces_public`, qui seul décide de la visibilité de l’œuvre dans la bibliothèque.
+- ⛔ Les chiffres affichés par le site sont calculés à partir de l’état courant de la base. Ils ne sont jamais consignés en dur dans la charte.
+
+**§ 16.1 — Catalogue des traductions patristiques**
+
+- ⛔ il est unique, stable, jamais recyclé.
+- ⛔ Un même `id_traduction` ne peut appartenir qu’à une seule notice active — c’est-à-dire non refusée administrativement.
+- ⛔ Un volume sans traduction autonome ne conserve pas d’`id_traduction` propre — il est relié à la notice canonique comme composante ou comme notice regroupée.
+
+**§ 16.2 — Statuts contrôlés et notes**
+
+- ⛔ Une phrase libre ne doit jamais être inscrite dans une colonne de code. Un cas incertain reçoit `A_CONTROLER` ou `NON_DETERMINE` ; il n’est pas classé par intuition.
+- ⛔ Les contrôles négatifs de recherche ne sont pas des notices publiques — ils sont conservés dans `internal.catalogue_controles_negatifs`.
+
+**§ 16.2.1 — Niveaux de vérification**
+
+- ⛔ `verification_code` indique le niveau le plus élevé effectivement atteint, non une impression générale de fiabilité
+- ⛔ La présence d’une URL ne suffit jamais à promouvoir une notice. Toute promotion à `TEXTE_VERIFIE` exige une note indiquant ce qui a été contrôlé et par rapport à quelle édition.
+- ⛔ sans créer ni conserver une pseudo-notice négative dans `catalogue_notices`.
+
+**§ 16.2.2 — Date d’édition**
+
+- ⛔ La date d’une édition latine, grecque, syriaque, anglaise ou d’une page web de republication ne doit jamais combler la date manquante d’une traduction française.
+- ⛔ Lorsqu’une date est établie, le statut et les champs de date sont mis à jour dans la même opération.
+- ⛔ elles ne constituent plus la source normative d’un statut et ne doivent pas servir aux filtres.
+
+**§ 16.3 — Notices remplacées, composantes et regroupements**
+
+- ⛔ Une notice obsolète n’est pas supprimée.
+- ⛔ Les deux champs sont soit remplis ensemble, soit laissés vides ensemble.
+- ⛔ Avant toute relation, vérifier que la cible existe, n’est pas refusée et ne pointe pas à son tour vers la notice source.
+
+**§ 16.4 — Workflow des notices**
+
+- ⛔ `workflow_status_code` est calculé, non saisi — `REFUSE_ADMIN`, `PUBLIE`, `VALIDE_ADMIN`, `VERIFIE` ou `A_VERIFIER`.
+- ⛔ Une notice ne peut être à la fois validée et refusée. Toute décision administrative suppose un contrôle préalable. Les quatre indicateurs sont toujours renseignés, jamais nuls.
+
+**§ 16.5 — Protocole de modification du catalogue**
+
+- ⛔ Toute passe sur `catalogue_notices` suit une méthode non destructive
+- ⛔ Une règle générale découverte au cours d’un audit est ajoutée immédiatement à la présente charte. Les listes de lignes corrigées, volumes traités et comptages provisoires restent dans le rapport de passe, non dans la charte.
+
+**§ 16.6 — Éditeur et lieu d’édition**
+
+- ⛔ Une valeur de travail telle que `À établir`, `à identifier`, `Divers`, `Non établi`, `RTF / catalogues français` ou une mention entre crochets ne constitue jamais un éditeur renseigné.
+- ⛔ Une ville ne se déduit ni du siège actuel d’une maison, ni de l’hébergeur d’une transcription, ni d’une édition différente.
+- ⛔ Toute correction du nom d’éditeur ou du lieu met à jour simultanément le champ, son statut et sa note.
+- ⛔ on ne déduit jamais un nom historique du nom actuel d’une maison.
+- ⛔ Une propagation automatique n’est admise que lorsque la correspondance entre variante et autorité est unique et contrôlée.
 
 **§ 16.7 — Traducteurs et formes d’autorité**
 
+- ⛔ Les mentions de direction, édition, introduction, révision, annotation ou mise en ligne ne sont pas intégrées à ce champ.
+- ⛔ une liste de noms séparés par ` ; `, et rien d’autre. Ni « et », ni virgule, ni esperluette, aucune formule ajoutée.
+- ⛔ Le site ne recopie jamais ce champ tel quel — il en fait la phrase de la page de titre (« Traduction par A et B ») et le fragment bibliographique d’une citation (« trad. A et B »).
+- ⚠️ Un point-virgule visible à l’écran signale donc un défaut d’affichage, jamais un défaut de saisie.
 - ⛔ UNE MENTION DE RÉGIME N’EST PAS UN NOM — et ne se compose pas comme tel.
 - ⚠️ La donnée, elle, reste INTACTE en base : c’est l’affichage qui rédige, et la règle vit dans `app/lib/traducteurs.ts` avec le reste des mentions de responsabilité.
+- ⛔ `ANONYME`, `NON_ETABLI` et `SANS_OBJET` sont des statuts, jamais des noms d’autorité.
+- ⛔ Les titres tels que `M.`, `P.`, `abbé` ou `dom` ne sont supprimés que si le nom complet est établi — une identité partielle comme `Abbé Burleraux` reste telle quelle jusqu’à identification plus précise.
+- ⛔ Lorsqu’une notice mêle traducteur, éditeur scientifique, réviseur ou collaborateur et que la répartition n’est pas certaine, elle reste `A_CONTROLER`.
+
+**§ 16.8 — Auteurs et formes d’autorité**
+
+- ⛔ Une forme d’autorité n’est jamais saisie librement dans le catalogue — tout nouvel auteur ou corpus est d’abord créé ou corrigé dans `auteurs`, puis propagé par identifiant.
+- ⛔ Les apostrophes des formes d’autorité sont typographiques. Une divergence entre `auteur_uniformise` et `auteurs.nom` est une anomalie.
+- ⛔ Un pseudo-auteur n’est pas rabattu sur l’auteur ancien auquel le texte fut attribué. Un corpus collectif n’est pas transformé en personne.
+
+**§ 16.9 — Sources des notices**
+
+- ⛔ Une plateforme de consultation ne doit pas être présentée comme l’éditeur de la traduction.
+- ⛔ Les pages commerciales, reproductions secondaires et transcriptions non attribuées peuvent compléter une source patrimoniale, jamais s’y substituer silencieusement.
+- ⛔ Toute nouvelle source met à jour simultanément l’URL, le statut et `source_note`.
+
+**§ 16.10 — Statut juridique des traductions**
+
+- ⛔ `statut_juridique_code` qualifie la traduction française et non l’œuvre ancienne elle-même.
+- ⛔ Une date d’édition ancienne ne suffit pas à elle seule lorsque le traducteur est nommé. Une édition étrangère ou latine ne détermine pas les droits d’une traduction française.
+- ⛔ En cas d’identité incertaine, d’attribution disputée ou de responsabilité non répartie, conserver `A_CONTROLER` plutôt que présumer la liberté.
+- ⚠️ le champ historique `domaine_public` peut être conservé pour mémoire, mais il n’est plus normatif.
+
+**§ 16.11 — Une œuvre à plusieurs auteurs**
+
+- ⛔ Le rang ne règle QUE l'ordre d'affichage, il n'ordonne pas les responsabilités.
+- ⛔ c'est elle, et elle seule, qu'on interroge pour « les auteurs d'une œuvre » comme pour « les œuvres d'un auteur ».
+- ⛔ Un même auteur ne peut pas figurer deux fois sur une œuvre.
+
+**§ 16.12 — Langue et traditions : l’étiquette et le détail**
+
+- ⚠️ Nommée dans une phrase (« Texte original latin »), elle garde son bas de casse.
+- ⛔ celle qu’aucune famille ne reconnaît reste sur la fiche mais ne paraît pas dans le filtre — mieux vaut une pastille de moins qu’une pastille fausse.
 
 ## § 18. Interface de lecture
 
@@ -527,13 +743,71 @@
 
 **§ 19.1 — `oeuvres`**
 
+- ⛔ Une œuvre n’est pas une édition déterminée et ne doit pas absorber les métadonnées propres à plusieurs versions.
+- ⛔ Ils ne répètent jamais le seul nom du traducteur, l’éditeur, la collection, le lieu, la date, le numéro de tome, l’édition, la pagination ni toute autre donnée déjà structurée.
+- ⛔ Chaque idée occupe sa propre ligne ; les lignes sont brèves, rédigées comme des phrases explicatives et ne prennent pas de point final.
+- ⛔ Les détails de travail, preuves, hésitations, variantes fines, justifications d’attribution, états de contrôle et mécanismes internes sont conservés dans `oeuvres_commentaires_prives`, jamais exposés au lecteur.
+- ⛔ L’auteur et le titre normalisé constituent le mécanisme d’appariement ; aucun identifiant de liaison supplémentaire n’est créé.
 - ⛔ Elles ne redisent pas ce que les champs structurés disent déjà, et `note_editoriale_complement` a recueilli l’ancienne `note` (dix-neuf notes en prose, que le site ne montrait nulle part) et l’ancienne `note_editoriale_secondaire`.
+- ⚠️ Elle expose concrètement la cause et la portée de la difficulté — qui a constitué le texte, quelle part revient à l’auteur, quelle forme ne vient probablement pas de lui, ou ce que la lacune change pour la lecture.
+- ⛔ Elle ne se borne jamais à une étiquette abstraite telle que « compilation incertaine ».
 - ⛔ Une note publique n’est jamais un rapport de chantier.
+- ⛔ Une phrase dont le sujet réel est « ce que nous avons contrôlé » plutôt que « ce que le lecteur doit comprendre de l’œuvre » est privée, même si elle est exacte.
+- ⛔ De même, une note éditoriale ne répète pas l’adresse bibliographique, la pagination, le nom du traducteur ou les autres informations déjà portées par les champs structurés.
+- ⛔ tout véritable titre d’œuvre ou d’ouvrage est délimité dans la donnée par `*…*` afin d’être composé en italique.
+- ⛔ Les noms des livres sacrés restent en romain conformément au § 3.6 — on écrit ainsi `les *Rétractations*`, `les *Adnotationes in Iob*`, mais `le livre de Job`.
+- ⛔ ne reçoivent pas d’astérisques décoratifs : leur composant d’interface porte la mise en forme.
+- ⛔ Relire la note sans connaître le chantier qui l’a produite. Si elle exige de savoir ce qu’est un audit, une passe, un lot ou une validation, elle n’est pas prête.
+- ⛔ La visibilité de l’œuvre dans les listes suit le § 16 : `acces_public`, et lui seul.
 
 **§ 19.2 — `oeuvre_textes`**
 
+- ⛔ `oeuvre_textes.edition_label` est un libellé public minimal, non une notice bibliographique. Sa forme normative est exactement `Ville, éditeur normalisé, année`.
+- ⛔ Le champ ne contient ni la formule « D’après l’édition de », ajoutée seulement par l’interface, ni point final.
+- ⛔ `edition_label` ne fabrique pas automatiquement une plage chronologique — le détail tome par tome et la chronologie complète restent dans `collection`, `date_publication`, les métadonnées de version ou les données de source.
+- ⛔ On ne conserve pas une information dans le libellé au seul motif qu’elle figurait dans une ancienne citation développée.
+- ⚠️ La réduction du libellé n’entraîne aucune perte documentaire — les détails utiles sont déplacés ou maintenus dans leurs champs propres.
+- ⛔ Elle ne concatène à cette phrase ni `collection`, ni `date_publication`, ni `annee_edition`, ni pagination, ni commentaire public.
+- ⛔ `oeuvres.editeur` reprend exactement `editeurs.nom_complet`, et non une variante d’adresse bibliographique.
+- ⚠️ Une discordance entre une variante reconnue et l’autorité d’`oeuvres.editeur` est une anomalie à corriger.
 - ⛔ Un texte n’existe qu’à un seul endroit.
+- ⛔ L’original embarqué ne reçoit jamais une étoile de favori — tandis que l’œuvre originale autonome utilise le mécanisme normal `favoris(type='oeuvre', ref_id=id_oeuvre)`.
 - ⚠️ Ne pas généraliser cette séparation à deux traductions que l’on veut lire par un alignement sémantique explicite.
+- ⛔ Une œuvre disposant de versions doit en avoir exactement une avant clôture ou publication ; cette version ne peut jamais être `retired`.
+- ⛔ il ne remplace pas `acces_public`, le drapeau de publication de l’œuvre défini au § 16.
+- ⛔ La complétude d’une version s’évalue sur le périmètre effectivement transmis par le témoin ou l’édition de référence et annoncé par la version, non sur l’intégralité hypothétique d’une œuvre antique dont une partie est perdue.
+- ⛔ des pages, divisions ou unités attendues dans le témoin choisi mais absentes de l’import constituent une incomplétude de version et interdisent le statut `published`.
+- ⛔ Les métadonnées legacy `complete_work` et `publication_target`, lorsqu’elles subsistent, ne commandent jamais la visibilité — elles doivent respecter cette distinction et ne jamais contredire `statut`, `is_public` ni `acces_public`.
+- ⛔ Changer la version par défaut, publier, retirer ou remplacer une version est une opération explicite. Aucune version n’est supprimée ni retirée automatiquement du seul fait qu’une nouvelle version existe.
+- ⛔ Toutes les versions rattachées au même `id_oeuvre` reçoivent le même menu, quel que soit l’`id_texte` actif.
+
+**§ 19.3 — `oeuvre_texte_unites`**
+
+- ⛔ Les numéros de page peuvent figurer dans un localisateur de preuve, mais ne constituent pas une structure éditoriale à reconstruire ni à projeter dans les segments.
+- ⛔ Elles ne sont pas remodelées pour correspondre artificiellement aux segments sémantiques.
+
+**§ 19.4 — `segments`**
+
+- ⛔ Elles ne doivent pas redevenir la source normative d’un nouveau chantier lorsque les tables spécialisées existent.
+
+**§ 19.5 — Notes structurées**
+
+- ⛔ Une projection dans `segments.notes` doit être reconstructible et ne doit jamais diverger silencieusement de ces tables.
+
+**§ 19.6 — Alignements et relations entre versions**
+
+- ⚠️ ne doivent pas être confondus avec l’alignement bilingue lui-même.
+
+**§ 19.7 — `liens_bibliques`**
+
+- ⛔ Une contrainte d’unicité doit empêcher les doublons exacts sans interdire plusieurs cibles légitimes pour un même segment.
+
+**§ 19.8 — Autorité du schéma**
+
+- ⛔ Avant de générer un import ou une migration, interroger le schéma actuel. Une liste de colonnes copiée depuis un ancien script n’est jamais une autorité.
+- ⛔ Tout changement de modèle est accompagné d’une migration versionnée, d’une mise à jour des importateurs, du lecteur et des tests pertinents.
+- ⛔ une telle migration ne s’applique qu’une fois le correctif publié, ou bien il est publié dans la foulée. Aucune séance ne se termine sur une migration en base dont le correctif dort dans un commit non publié.
+- ⛔ on rejoue la requête telle que la sert le code en ligne, jamais le code local.
 
 ## § 22. Contrôle des apparats
 
@@ -545,11 +819,182 @@
 
 **§ 23.0 — Manifeste constitutionnel de révision des textes**
 
+- ⛔ elles ne peuvent supprimer une étape applicable ni abaisser le niveau de preuve exigé.
+- ⚠️ L’archive et la sauvegarde gardent la mémoire du chantier ; le corpus actif ne sert pas d’entrepôt aux étapes devenues inutiles.
+- ⛔ Une œuvre n’est jamais déclarée « propre », « close » ou « vérifiée » parce qu’un contrôle partiel est à zéro.
+- ⛔ Aucune correction de fond ne précède cette identification.
+- ⛔ L’interface ne commande jamais la structure.
+- ⛔ Une couche diplomatique ou source n’est pas réécrite pour corriger une couche éditoriale dérivée.
+- ⛔ Les contrôles du § 20 sont des conditions nécessaires, jamais une preuve suffisante d’exactitude.
+- ⛔ une correction incomplète dans une projection secondaire reste une correction inachevée. Le rendu ne doit pas masquer une donnée fautive.
 - ⛔ Cette étape n’est close que si 0 référence identifiable est rendue depuis une chaîne libre lorsqu’une représentation structurée existe, 0 ouvrage identifiable reste sans recherche de correspondance, 0 doublon de notice ou d’autorité a été créé, et toute projection matérialisée est traçable à son `ouvrage_id` ou, pour un renvoi, à ses `related_ouvrage_ids`.
+- ⛔ L’alignement est sémantique et ne force jamais du `1:1`.
+- ⛔ Les caches ou projections dérivés sont régénérés après la donnée normative, jamais l’inverse.
+- ⛔ il ne supprime jamais une preuve documentaire unique.
+- ⛔ elle n’est jamais fermée par simple proximité de sujet.
+- ⛔ Une clôture technique ou éditoriale ne crée jamais une validation humaine, une publication ou un statut scientifique qui n’a pas été explicitement accordé.
+- ⚠️ Le précédent état n’est pas réécrit comme s’il avait toujours été correct — le journal de mission conserve la succession réelle des contrôles.
+
+**§ 23.1 — Diagnostic**
+
+- ⛔ Ne pas écrire pendant la découverte du problème.
+
+**§ 23.2 — Plan et mode à blanc**
+
+- ⛔ Le mode à blanc ne change ni fichier source ni base.
+
+**§ 23.3 — Écriture bornée**
+
+- ⛔ Une mise à jour ne doit pas toucher une ligne dont l’état a changé depuis le diagnostic.
+
+**§ 23.4 — Vérification**
+
+- ⛔ Un message de succès de l’API ne suffit pas.
+
+**§ 23.5 — Rapport**
+
+- ⚠️ Les bilans propres à une œuvre restent dans `audit/` ou dans les scripts de chantier, jamais dans la charte.
+
+**§ 23.6 — Non-modernisation**
+
+- ⛔ Une correction éditoriale ne modernise pas silencieusement le texte.
+
+**§ 23.6.1 — Préflight de schéma et staging avant resegmentation**
+
+- ⛔ Une règle historique d’écriture ne doit jamais conduire à écrire explicitement dans une colonne devenue générée.
+- ⛔ appeler `nextval()` ne rend pas licite une insertion explicite.
+
+**§ 23.6.2 — Frontières documentaires et frontières sémantiques**
+
+- ⛔ Une frontière produite par un OCR, un HTML, une API, un export Word ou un moteur de lecture ne vaut jamais, par elle-même, preuve d’un alinéa de l’édition.
+- ⛔ Les fins de page, de colonne, de ligne OCR et les découpages d’un extracteur ne doivent pas être promus en paragraphes.
+- ⛔ La longueur ne décide jamais seule d’une coupure.
+- ⛔ Une frontière éditoriale ne doit jamais être présentée ultérieurement comme un alinéa du témoin.
+
+**§ 23.7 — Respect de l’édition**
+
+- ⛔ Une difficulté d’interface ou d’algorithme ne justifie pas leur réécriture.
+
+**§ 23.8 — Opérations destructrices**
+
+- ⛔ Une suppression globale, un chemin racine ou une variable non résolue sont interdits.
+
+**§ 23.9 — Contrôle des outils**
+
+- ⚠️ Les scripts historiques peuvent contenir des hypothèses périmées.
+
+**§ 23.10 — Sauvegarde obligatoire**
+
+- ⛔ Une synchronisation distante ne doit toutefois pas être la seule protection d’une opération sensible — et ne remplace ni la sauvegarde bornée préalable, ni les contrôles de restauration ou d’empreinte.
+
+**§ 23.11 — Fidélité des caractères**
+
+- ⛔ Ne pas appliquer `trim()` ou une normalisation globale lorsqu’elle détruirait une distinction contrôlée.
+
+**§ 23.11 bis — Contrôle matériel exhaustif des liminaires et paratextes**
+
+- ⛔ Le fac-similé exact est l’autorité de promotion.
+- ⛔ ne vaut pas contrôle pixel et ne permet pas de poser `facsimile_verified` — `facsimile_pixels_checked` ou un statut équivalent.
+- ⛔ Aucun de ces décomptes ne peut être estimé.
 
 **§ 23.12 — Validation humaine par couche**
 
-- ⛔ Aucun drapeau humain n’est hérité, extrapolé ou créé par une passe IA, même lorsque la recomposition source/lecture est exacte.\n\n`segments.segment_metadata.validated_human`, lorsqu’il subsiste dans des imports anciens, est une métadonnée historique non canonique : pour la validation humaine du segment, seule `segments.controle_verifie` fait foi.
+- ⛔ Aucun drapeau humain n’est hérité, extrapolé ou créé par une passe IA, même lorsque la recomposition source/lecture est exacte.
+- ⛔ Ne pas synchroniser ce drapeau JSON automatiquement, ni dans un sens ni dans l’autre.
+
+## § 26. Chronologie et frise des événements
+
+**§ 26 — Chronologie et frise des événements**
+
+- ⛔ L’exhaustivité du réservoir ne doit jamais produire une frise principale illisible.
+
+**§ 26.1 — Objets normatifs et source de vérité**
+
+- ⛔ Ils ne sont jamais recyclés ni modifiés à la suite d’une correction éditoriale.
+- ⛔ La famille se déduit toujours du genre.
+
+**§ 26.2 — Familles et genres**
+
+- ⛔ On ne crée jamais un genre pour un événement particulier.
+
+**§ 26.3 — Événement central et portées**
+
+- ⛔ Un événement général et un événement biographique ou bibliographique ne décrivent jamais deux fois exactement le même fait.
+
+**§ 26.4 — Importance historique et niveau de lecture**
+
+- ⛔ L’importance générale ne dépend ni de la proximité géographique avec la France ni de la place de l’événement dans un parcours spécialisé.
+- ⛔ Aucun quota par siècle, région, tradition ou genre ne détermine mécaniquement le niveau.
+
+**§ 26.5 — Trois axes de l’essentiel**
+
+- ⛔ La proximité française ou européenne ne relève jamais artificiellement `importance_generale`.
+
+**§ 26.6 — Dates et périodisation**
+
+- ⛔ `date_fin` ne peut être antérieure à `date_debut`.
+- ⛔ On ne fabrique jamais une date pour satisfaire un composant.
+
+**§ 26.7 — Traditions chrétiennes et portée ecclésiale**
+
+- ⛔ aucune liste séparée n’est recopiée dans l’événement.
+- ⚠️ le mot générique `réforme` ne suffit jamais à rattacher un événement à la `Tradition réformée`.
+- ⚠️ Cette portée ne remplace ni `portee`, ni l’importance, ni le niveau de lecture.
+
+**§ 26.8 — Relations entre événements**
+
+- ⛔ La seule proximité chronologique, le même genre ou une ressemblance de titre ne suffisent jamais.
+- ⛔ Les relations complètent les notices ; elles ne servent pas à fabriquer une causalité incertaine.
+
+**§ 26.9 — Séries historiques et condensation**
+
+- ⚠️ Une série ne doit pas devenir un fourre-tout thématique — ses membres doivent former une chaîne identifiable.
+
+**§ 26.10 — Association progressive aux auteurs**
+
+- ⛔ Un import ne crée jamais implicitement une fiche d’auteur à partir d’un nom.
+- ⛔ La contemporanéité ne suffit jamais.
+- ⚠️ Un événement postérieur à la mort de l’auteur n’est associé que s’il concerne explicitement sa réception, sa condamnation, sa réhabilitation, sa doctrine ou la transmission de son œuvre.
+
+**§ 26.11 — Publication et workflow des futurs ajouts**
+
+- ⛔ Les ressemblances sémantiques sont signalées par l’audit mais ne sont jamais fusionnées sans examen éditorial.
+- ⛔ Masquer une association ou une relation ne supprime jamais l’événement central.
+
+**§ 26.12 — Œuvres et événements bibliographiques**
+
+- ⛔ Une œuvre sans datation exploitable ne reçoit pas de date inventée.
+
+**§ 26.13 — Vues publiques et API de lecture**
+
+- ⛔ Le site ne lit jamais directement les tables normatives depuis une page publique.
+- ⛔ Le front ne redéduit pas les valeurs par des heuristiques parallèles.
+- ⛔ Le filtrage par pays actuel utilise exclusivement `pays_filtre_codes` ou `pays_filtres`, jamais le champ historique `pays`.
+
+**§ 26.15 — Recherche intégrale**
+
+- ⛔ La recherche de la frise est effectuée par `rechercher_frise(...)`, non par un filtrage partiel dans le navigateur.
+- ⚠️ il ne remplace ni l’importance historique ni le niveau de lecture.
+
+**§ 26.16 — Trois brins dans une chronologie d’auteur**
+
+- ⛔ La frise d’un auteur demeure sélective et ne devient jamais un résumé exhaustif de son siècle.
+
+**§ 26.18 — Localisation historique et filtres géographiques**
+
+- ⛔ Ils ne sont pas modernisés artificiellement pour satisfaire un filtre.
+- ⛔ les niveaux trop précis restent vides plutôt que fabriqués.
+
+**§ 26.19 — Import, contrôles et sauvegardes**
+
+- ⛔ Un import d’événements est idempotent — l’identifiant stable met à jour l’événement existant au lieu d’en créer une copie.
+- ⛔ Toute opération structurelle ou destructive est précédée d’une sauvegarde bornée des tables concernées et suivie d’un audit complet.
+
+**§ 26.20 — Prudence éditoriale et priorité géographique**
+
+- ⛔ Cette priorité n’instaure ni quota ni équilibre artificiel.
+- ⛔ Une absence de lien ou un statut `à consolider` valent mieux qu’une certitude artificielle.
+- ⚠️ Les comptages de chantier et états provisoires appartiennent aux rapports et sauvegardes, non à la charte normative.
 
 ## § 27. Entretien de la charte
 
@@ -572,6 +1017,36 @@
 **§ 29.0 — Constitution obligatoire des notices bibliographiques**
 
 - ⛔ Toute référence d’ouvrage rencontrée doit être normalisée, structurée et rattachée à une autorité bibliographique.
+- ⛔ La création d’une nouvelle fiche n’est permise qu’après recherche de doublon.
+- ⛔ Une variation de casse, ponctuation, abréviation, ordre des éléments, langue du titre ou forme ancienne du nom ne justifie jamais deux ouvrages distincts.
+- ⛔ Une donnée non prouvée reste vide ou en revue ; elle n’est pas inventée pour rendre la notice plus complète.
+- ⛔ elle ne se déduit pas mécaniquement du titre de la rubrique.
+- ⛔ Elle ne dispense jamais de la normalisation et ne devient pas la notice finale si une fiche structurée existe.
+- ⚠️ son rang matériel reste une donnée de provenance, pas son identité.
+- ⛔ C'est une évaluation de la source, jamais un jugement de la personne.
+- ⛔ se peuplent depuis ces valeurs distinctes : jamais une liste inventée.
+- ⛔ une référence de faible valeur n'est jamais montrée ; une valeur intermédiaire ne l'est qu'à défaut d'une meilleure disponible pour la même péricope.
+- ⚠️ La réserve ne juge pas la personne et ne préjuge pas de sa valeur académique.
+- ⛔ aucune personne ni maison réelle n'est étiquetée à la légère, en particulier aux niveaux bas.
+
+**§ 29.1 — Système de qualification scientifique déployé (règles de code)**
+
+- ⛔ Le code applicatif ne recalcule jamais cette valeur à partir des scores.
+- ⛔ Une exclusion manuelle exige un motif, et la base refuse l'écriture sans lui.
+- ⛔ Le code écrit toujours le statut d'usage accordé au score, faute de quoi la base rejette l'écriture.
+- ⛔ le code choisit la bonne plutôt que d'approcher le filtrage en TypeScript.
+- ⛔ L'affichage public ne montre jamais le score interne, la réserve, les motifs sensibles, les notes d'administration ni les sources d'évaluation.
+- ⛔ Un ouvrage exclu ne paraît nulle part côté public.
+- ⛔ Un ouvrage à vérifier n'est pas présenté comme une référence validée.
+- ⛔ Un Père ou un autre auteur ancien, comme un collectif, n'a jamais de fiche notée : il figure comme source, sans note.
+
+**§ 29.2 — Précision thématique des bibliographies de péricopes**
+
+- ⛔ Lorsqu’une étude `directe` de valeur scientifique suffisante existe, au moins une telle étude doit précéder les références `generale`.
+- ⛔ Il ne s’agit pas d’un quota : deux références redondantes ne sont pas retenues pour remplir artificiellement quatre places.
+- ⚠️ Son absence de la sélection publique ne diminue pas sa valeur scientifique.
+- ⛔ Ils ne déterminent jamais automatiquement `niveau_precision`. La qualification est faite par lecture bibliographique.
+- ⛔ elle n’est jamais masquée par la multiplication de références générales.
 
 ## § 29 bis. Le nom d’une personne — nom, prénom, pseudonyme
 
@@ -582,6 +1057,69 @@
 - ⛔ Un nom qui ne paraît que dans le texte libre d’une notice, sans fiche ni ligne de contributeur, est SIGNALÉ et non créé.
 - ⚠️ Un renvoi vers `auteurs` NOMME, il n’évalue pas : il n’entre pas dans le calcul de la valeur scientifique, et rattacher une ligne ne change donc aucun statut.
 - ⚠️ Rattacher une ligne dont le nom diffère de celui du registre inscrit ce nom parmi les variantes de la fiche : c’est exactement ce qu’est une variante, la forme sous laquelle on rencontre la personne.
+
+## § 31. Atelier La Gueule — contrôle, correction et validation ciblée
+
+**§ 31 — Atelier La Gueule — contrôle, correction et validation ciblée**
+
+- ⛔ Tout ce qu'il produit est un candidat, jamais une donnée validée.
+- ⛔ Le fac-similé et la transcription brute de la machine restent immuables — toute intervention agit dans une couche candidate tracée, réversible et exportable.
+
+**§ 31.1 — Contrôle déterministe de toutes les pages et assistance ciblée**
+
+- ⛔ Aucune donnée ne part vers un service distant sans consentement enregistré, et aucun secret n’est transmis.
+
+**§ 31.2 — Corrections effectives et réversibles**
+
+- ⛔ la transcription brute d'origine n'est jamais touchée.
+- ⛔ Une correction n'écrase jamais silencieusement une modification humaine ou une correction plus récente — le conflit est signalé et laissé à l'arbitrage.
+- ⛔ le statut de texte formellement vérifié exige une validation humaine explicite, jamais acquise par la seule acceptation d'une règle ou d'un échantillon.
+
+**§ 31.3 — Périmètre de travail**
+
+- ⚠️ les pages du document non incluses dans le lot ne sont pas comptées comme manquantes.
+
+**§ 31.4 — Reclassement des éléments non textuels**
+
+- ⛔ son texte et sa transcription brute ne sont pas supprimés.
+
+**§ 31.6 — Blocages proportionnés et livraison**
+
+- ⚠️ Une particularité éditoriale n'est pas un blocage — une page de titre courte, un faux-titre, une page d'ornement ou une fin de chapitre brève sont des avertissements.
+- ⛔ n'affirme jamais une validation humaine qui n'a pas eu lieu.
+
+**§ 31.7 — Couche linguistique post-OCR**
+
+- ⛔ un dictionnaire ou un lexique ne constitue jamais, à lui seul, une preuve de faute et n’autorise aucune modernisation silencieuse.
+- ⛔ Une forme absente des ressources lexicales reste possible tant que le fac-similé ne l’infirme pas.
+- ⛔ Si une ressource ne peut être embarquée, elle n’est pas copiée illicitement — on lui substitue une ressource réutilisable ou un accès conforme à ses conditions.
+
+**§ 31.8 — Lexique dynamique de l’ouvrage**
+
+- ⛔ La fréquence n’est jamais une preuve suffisante — une erreur systématique du moteur peut elle-même se répéter.
+
+**§ 31.9 — Concordance des moteurs et scores de confiance**
+
+- ⛔ Aucun de ces indices ne décide seul d’une correction.
+
+**§ 31.10 — Score de suspicion et recherche de formes proches**
+
+- ⛔ fournit des candidats et non des corrections.
+- ⚠️ Le score, ses composantes et les candidats proposés doivent rester consultables afin qu’une décision puisse être auditée.
+
+**§ 31.11 — Contrôle assisté ciblé et ré-OCR local**
+
+- ⛔ Ces nouvelles sorties sont des témoins supplémentaires ; elles ne remplacent jamais le fac-similé.
+- ⛔ Une proposition qui modernise seulement parce que la forme ancienne est absente d’un dictionnaire moderne doit être rejetée.
+
+**§ 31.12 — Mémoire des erreurs OCR validées**
+
+- ⛔ L’apprentissage ne doit jamais transformer une correction propre à un livre en règle générale sans preuve.
+
+**§ 31.14 — Mesure de qualité**
+
+- ⚠️ L’objectif n’est pas de minimiser artificiellement le nombre de propositions, mais de concentrer la vérification humaine sans augmenter les erreurs résiduelles.
+- ⚠️ Une baisse du nombre de propositions n’est un progrès que si les sondages ne montrent pas une hausse des erreurs manquées.
 
 ## § 34. La marque du site
 
@@ -1874,11 +2412,11 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 
 | § | chapitre | signes | énoncés | pour mille signes |
 |---|---|---:|---:|---:|
-| 26 | Chronologie et frise des événements | 23 912 | 0 | **0.0** |
-| 31 | Atelier La Gueule — contrôle, correction et va | 12 074 | 0 | **0.0** |
-| 23 | Protocole de modification | 25 804 | 2 | **0.1** |
-| 29 | Valeur académique des sources bibliographiques | 10 486 | 1 | **0.1** |
-| 11 | Format d’échange et import des versions textue | 8 792 | 1 | **0.1** |
-| 16 | Auteurs, œuvres et catalogue | 24 274 | 3 | **0.1** |
-| 19 | Modèle de données des œuvres et versions | 16 683 | 4 | **0.2** |
-| 14 | OCR, HTR et transcription patrimoniale | 12 714 | 4 | **0.3** |
+| 3 | Typographie — les signes, les espaces, l’enric | 64 407 | 46 | **0.7** |
+| 15 | Corpus biblique et traductions | 15 369 | 11 | **0.7** |
+| 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
+| 35 | Chantier Fillion — la composition du paratexte | 79 344 | 79 | **1.0** |
+| 48 | Le protocole d’océrisation d’une bible | 46 262 | 51 | **1.1** |
+| 37 | La notice d’une traduction — le bandeau et l’e | 8 621 | 10 | **1.2** |
+| 12 | Textes parallèles et alignements sémantiques | 26 706 | 32 | **1.2** |
+| 49 | Les gravures d’une édition biblique | 49 477 | 60 | **1.2** |
