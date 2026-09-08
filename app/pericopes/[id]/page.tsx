@@ -17,10 +17,12 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { normaliserEspacesOriginal } from '@/app/lib/typographie'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
 import {
+  cleAuteurNotice,
   noticeDepuisChampsLibres,
   pagesLisibles,
   type NoticeBibliographique,
 } from '@/app/lib/referenceBibliographique'
+import { CLASSES_BIBLIOGRAPHIE } from '@/app/lib/apparatBibliographie'
 import { chargerNoticesBibliographiques, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
 import {
   libelleDuLien, nomsAttestes, noticeDeSource,
@@ -396,7 +398,12 @@ export default function PericopePage() {
       chapitreActif={chapPrincipale}
       nomLivre={nomLivreReference(principale.livre)}
       plage={{ livre: principale.livre, canonDebut: principale.canon_id_debut, canonFin: principale.canon_id_fin }}
-      refAffichee={formaterPlageCanonique(principale.canon_id_debut, principale.canon_id_fin)}
+      // ⛔ PLUS DE `refAffichee` (demande de l'auteur, 2026-09-08 : « “Romains 7, 14-25”
+      // affiché en tête du volet de droite : supprimer »). Elle avait été gardée au motif
+      // que « la page d'une péricope donne au volet une plage canonique que rien d'autre
+      // n'écrit à l'écran » — motif devenu faux : la page l'écrit DEUX fois, sous le titre
+      // au centre et en « Référence » dans le volet de gauche. Une référence qu'on déduit
+      // de ce qu'on affiche déjà ne se montre pas.
       mobile={mobile}
       presentation={mobile ? 'inline' : 'drawer'}
       sousBarres={false}
@@ -443,7 +450,13 @@ export default function PericopePage() {
               {texteLoading ? (
                 <MotAttente>Chargement du texte…</MotAttente>
               ) : vs.length === 0 ? (
-                <p style={{ fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Texte indisponible dans cette traduction.</p>
+                /* ⚠️ LA VOIX DE L'ÉDITEUR, et elle se compose comme telle : sérif
+                   italique, CENTRÉE dans la colonne (demande de l'auteur, 2026-09-08).
+                   Elle tient la place d'un texte — c'est la forme que le site donne
+                   déjà à « Absent de cette traduction » et à « Lacune du manuscrit »,
+                   et un constat posé au fer à gauche en sans se lisait comme une
+                   première ligne du passage. */
+                <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', margin: '1.25rem 0' }}>Texte indisponible dans cette traduction.</p>
               ) : <BlocVersets vs={vs} ctx={{ ...ctxBase, livre: o.livre }} />}
             </div>
           )
@@ -513,74 +526,92 @@ export default function PericopePage() {
         </section>
       )}
 
-      {/* ATTESTATION DES NOMS — la signature éditoriale du site, et elle ne paraissait
-          nulle part. Nommer un passage est la seule écriture entièrement propre au site :
-          « Les noces de Cana », « Le premier signe » ne se lisent dans aucun texte biblique.
-          Chaque nom porte en base son dossier documentaire, et 785 de ces liens désignent
-          une source EXTERNE sur un nom visible, dans les 249 péricopes du catalogue.
-          ⛔ La section se pose ENTRE la notice et la bibliographie : c'est de l'apparat,
-          et les deux apparats de cette colonne se composent par le même moteur.
-          ⚠️ Ce qui l'ouvre est la liste des attestations, non le nombre de noms : un nom
-          que rien d'externe n'atteste ne paraît pas ici (voir app/lib/provenanceNoms.ts). */}
-      {attestations.length > 0 && (
-        <section style={{ borderTop: `1px solid ${SEP}`, paddingTop: '14px' }}>
-          <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 10px' }}>Attestation des noms</p>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '13px' }}>
-            {attestations.map(n => (
-              <li key={n.nomId}>
-                {/* Le nom se compose comme partout ailleurs sur la page : c'est le même
-                    objet, et un nom cité dans son propre dossier ne change pas de face. */}
-                <p style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-encre)', margin: '0 0 5px', lineHeight: 1.3 }}>
-                  {rendreTexteEnrichi(typo(n.nom))}
-                </p>
-                <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {n.liens.map((l, i) => (
-                    <li key={`${l.source.code}-${i}`} style={{ borderLeft: `2px solid ${SEP}`, paddingLeft: '8px' }}>
-                      <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 3px' }}>
-                        {libelleDuLien(l)}
-                      </p>
-                      <div style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.4 }}>
-                        <ReferenceBibliographique notice={noticeDeSource(l.source, i)} />
-                        {/* ⛔ Jamais d'adresse brute : le nom de domaine, et le lien
-                            dessus (charte § 26). */}
-                        {l.source.url && hoteDeLAdresse(l.source.url) && (
-                          <>
-                            {' '}
-                            <a href={l.source.url} target="_blank" rel="noopener noreferrer"
-                              style={{ color: 'var(--cs-vert)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                              {hoteDeLAdresse(l.source.url)}
-                            </a>
-                          </>
-                        )}
-                      </div>
-                      {l.referenceInterne && (
-                        <p style={{ fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', margin: '3px 0 0', lineHeight: 1.35 }}>
-                          {typo(l.referenceInterne)}
-                        </p>
-                      )}
-                      {/* La voix de l'éditeur : ce que ce lien établit, et ce qu'il
-                          n'établit pas. C'est elle qui vaut le détour, non le renvoi. */}
-                      {l.note && (
-                        <p style={{ fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-mention)', margin: '3px 0 0', lineHeight: 1.4, textAlign: 'justify', hyphens: 'auto' } as React.CSSProperties}>
-                          {rendreTexteEnrichi(typo(l.note))}
-                        </p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {/* Bibliographie : liste SIMPLE et élégante des ouvrages (vue bibliographie_admissible,
-          qui écarte les exclus/à vérifier). Au plus bref : pas de regroupement par discipline,
-          pas de renvoi de passage. Les groupes sont aplatis puis dédupliqués. */}
+      {/* ATTESTATION DES NOMS — la signature éditoriale du site, et elle ne paraissait
+          nulle part. Nommer un passage est la seule écriture entièrement propre au site :
+          « Les noces de Cana », « Le premier signe » ne se lisent dans aucun texte biblique.
+          Chaque nom porte en base son dossier documentaire, et 785 de ces liens désignent
+          une source EXTERNE sur un nom visible, dans les 249 péricopes du catalogue.
+          ⛔ La section se pose ENTRE la notice et la bibliographie : c'est de l'apparat,
+          et les deux apparats de cette colonne se composent par le même moteur.
+          ⚠️ Ce qui l'ouvre est la liste des attestations, non le nombre de noms : un nom
+          que rien d'externe n'atteste ne paraît pas ici (voir app/lib/provenanceNoms.ts). */}
+      {attestations.length > 0 && (
+        <section style={{ borderTop: `1px solid ${SEP}`, paddingTop: '14px' }}>
+          <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 10px' }}>Attestation des noms</p>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '13px' }}>
+            {attestations.map(n => (
+              <li key={n.nomId}>
+                {/* Le nom se compose comme partout ailleurs sur la page : c'est le même
+                    objet, et un nom cité dans son propre dossier ne change pas de face. */}
+                <p style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-encre)', margin: '0 0 5px', lineHeight: 1.3 }}>
+                  {rendreTexteEnrichi(typo(n.nom))}
+                </p>
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {n.liens.map((l, i) => (
+                    <li key={`${l.source.code}-${i}`} style={{ borderLeft: `2px solid ${SEP}`, paddingLeft: '8px' }}>
+                      <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 3px' }}>
+                        {libelleDuLien(l)}
+                      </p>
+                      <div style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.4 }}>
+                        <ReferenceBibliographique notice={noticeDeSource(l.source, i)} />
+                        {/* ⛔ Jamais d'adresse brute : le nom de domaine, et le lien
+                            dessus (charte § 26). */}
+                        {l.source.url && hoteDeLAdresse(l.source.url) && (
+                          <>
+                            {' '}
+                            <a href={l.source.url} target="_blank" rel="noopener noreferrer"
+                              style={{ color: 'var(--cs-vert)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                              {hoteDeLAdresse(l.source.url)}
+                            </a>
+                          </>
+                        )}
+                      </div>
+                      {l.referenceInterne && (
+                        <p style={{ fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', margin: '3px 0 0', lineHeight: 1.35 }}>
+                          {typo(l.referenceInterne)}
+                        </p>
+                      )}
+                      {/* La voix de l'éditeur : ce que ce lien établit, et ce qu'il
+                          n'établit pas. C'est elle qui vaut le détour, non le renvoi. */}
+                      {l.note && (
+                        <p style={{ fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-mention)', margin: '3px 0 0', lineHeight: 1.4, textAlign: 'justify', hyphens: 'auto' } as React.CSSProperties}>
+                          {rendreTexteEnrichi(typo(l.note))}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Bibliographie : liste SIMPLE des ouvrages (vue bibliographie_admissible, qui
+          écarte les exclus/à vérifier). Au plus bref : pas de regroupement par
+          discipline, pas de renvoi de passage. Les groupes sont aplatis puis dédupliqués.
+
+          ⛔ ELLE SE COMPOSE DANS LA FAMILLE COMMUNE (`CLASSES_BIBLIOGRAPHIE`, charte
+          § 47.0), et non dans une forme à elle. Elle portait une liste en SANS de
+          0,71875 rem, à interligne de prose et sans retrait suspendu : c'est-à-dire tout
+          ce que la famille refuse — la charte veut le sérif, un cran sous le corps de la
+          colonne, l'interligne serré, le blanc large entre deux notices, et le retrait
+          suspendu des bibliographies imprimées, qui seul dit où commence l'entrée
+          suivante. Quatre surfaces composent des notices sur ce site ; celle-ci était la
+          seule à le faire de son côté.
+          ⚠️ `sansHote` : rien au-dessus ne pose la composition — le volet n'est pas un
+          bloc d'apparat —, et sans lui le cran relatif se calculerait sur la page.
+
+          ⛔ ET ELLE SE CLASSE PAR AUTEUR (demande de l'auteur, 2026-09-08). Elle suivait
+          l'ordre où la vue rendait les groupes, c'est-à-dire aucun ordre qu'un lecteur
+          puisse prévoir. La clé vit dans le moteur (`cleAuteurNotice`) : une
+          bibliographie se classe de la même façon partout. ⚠️ L'ANNÉE départage deux
+          entrées du même auteur, puis le titre : c'est l'usage, et deux notices d'un même
+          nom se rangeaient sinon au hasard de la déduplication. */}
       {groupesBiblio.length > 0 && (
         <section style={{ borderTop: `1px solid ${SEP}`, paddingTop: '14px' }}>
           <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 10px' }}>Bibliographie</p>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '9px' }}>
+          <ul className={`${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.sansHote} ${CLASSES_BIBLIOGRAPHIE.liste}`}>
             {(() => {
               const vus = new Set<string>()
               return groupesBiblio.flatMap(g => g.refs).filter(r => {
@@ -592,14 +623,18 @@ export default function PericopePage() {
                 if (vus.has(cle)) return false
                 vus.add(cle); return true
               })
-            })().map((r, i) => {
               // La notice STRUCTURÉE quand l'entrée porte un `ouvrage_id` et que la vue
               // a répondu ; sinon les champs libres, passés au MÊME moteur. Les pages
               // sont celles du LIEN à la péricope, non de l'ouvrage, et suivent.
-              const notice = (r.ouvrage_id != null ? notices[r.ouvrage_id] : undefined) ?? noticeLibre(r)
+              .map((r, i) => ({ r, i, notice: (r.ouvrage_id != null ? notices[r.ouvrage_id] : undefined) ?? noticeLibre(r) }))
+              .sort((a, b) =>
+                cleAuteurNotice(a.notice).localeCompare(cleAuteurNotice(b.notice), 'fr')
+                || (a.notice.annee ?? 0) - (b.notice.annee ?? 0)
+                || a.notice.titre.localeCompare(b.notice.titre, 'fr'))
+            })().map(({ r, i, notice }) => {
               const pages = pagesDuLien(r, notice)
               return (
-                <li key={r.ouvrage_id ?? `libre-${i}`} style={{ fontFamily: SANS, fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.45 }}>
+                <li key={r.ouvrage_id ?? `libre-${i}`} className={CLASSES_BIBLIOGRAPHIE.entree}>
                   <ReferenceBibliographique notice={notice} />
                   {pages && <span style={{ color: 'var(--cs-texte-faible)' }}> {typo(pages)}</span>}
                 </li>

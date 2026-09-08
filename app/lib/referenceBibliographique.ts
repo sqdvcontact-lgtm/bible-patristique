@@ -26,6 +26,7 @@
 
 import type { StyleCaractereBibliographie } from './apparatBibliographie'
 import { SEPARATEUR_COEDITEURS } from './editeursNormalisation'
+import { cleTriTitre } from './titres'
 
 /**
  * La FORME d'une notice décide de sa composition, non de sa valeur scientifique
@@ -519,6 +520,55 @@ export function noticeDepuisChampsLibres(champs: ChampsLibresNotice): NoticeBibl
     editeurs_lies: [],
     contributeurs: [],
   })
+}
+
+/**
+ * LA CLÉ DE CLASSEMENT d'une notice : ce sous quoi elle se range dans une
+ * bibliographie, c'est-à-dire le NOM DE FAMILLE de son premier auteur.
+ *
+ * ⛔ Elle vit ICI, avec le modèle de notice, et non dans la page qui trie : une
+ * bibliographie se classe de la même façon partout, et une règle écrite au point de
+ * tri se serait dédoublée à la deuxième liste — c'est ce que ce module a déjà réuni
+ * pour la composition (§ 47.5).
+ *
+ * ⚠️ L'ORDRE DES REPLIS EST CELUI DE L'USAGE BIBLIOGRAPHIQUE, et chacun a sa raison :
+ *  1. l'AUTORITÉ structurée d'abord — `nomFamille` seul, jamais `nomAffiche`, qui
+ *     porte le prénom en tête sur certaines fiches et rangerait Marrou sous « H » ;
+ *  2. le texte libre ensuite, borné à ce qui précède la première virgule : les champs
+ *     libres écrivent « Marrou, Henri-Irénée » aussi bien que « H.-I. Marrou » ;
+ *  3. les DIRECTEURS, pour un ouvrage collectif, qui se range sous eux ;
+ *  4. le TITRE en dernier recours : une œuvre anonyme se classe à son titre, article
+ *     de tête écarté — c'est la règle des catalogues, et `cleTriTitre` la porte déjà.
+ *
+ * ⚠️ La clé est REPLIÉE (sans accents, en bas de casse) pour que le tri soit stable ;
+ * le classement lui-même se fait au `localeCompare('fr')` de l'appelant, qui seul sait
+ * ranger « Œ » et « É ».
+ */
+export function cleAuteurNotice(notice: NoticeBibliographique): string {
+  const replier = (v: string | null | undefined): string =>
+    (v ?? '').normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim()
+  const premierLibre = (v: string | null | undefined): string => replier((v ?? '').split(/[,;]/)[0])
+
+  const auteurs = notice.contributeurs
+    .filter(c => c.role === 'auteur_scientifique' || c.role === 'auteur_source')
+    .sort((a, b) => a.ordre - b.ordre)
+  const structure = auteurs[0]
+  if (structure) {
+    const nom = replier(structure.nomFamille) || replier(structure.pseudonyme)
+      || premierLibre(structure.nomAutorite) || premierLibre(structure.nomAffiche)
+    if (nom) return nom
+  }
+  const libre = premierLibre(notice.auteursTexte)
+  if (libre) return libre
+
+  const directeurs = notice.contributeurs.filter(c => c.role === 'directeur').sort((a, b) => a.ordre - b.ordre)
+  const directeur = directeurs[0]
+  const nomDirecteur = directeur
+    ? (replier(directeur.nomFamille) || premierLibre(directeur.nomAutorite) || premierLibre(directeur.nomAffiche))
+    : premierLibre(notice.directeursTexte)
+  if (nomDirecteur) return nomDirecteur
+
+  return cleTriTitre(notice.titre)
 }
 
 /** L'identifiant d'ouvrage porté par une métadonnée (`segment_metadata.ouvrage_id`,

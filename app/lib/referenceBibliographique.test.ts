@@ -6,6 +6,7 @@ import {
   GUILLEMET_OUVRANT,
   formeDeLaNotice,
   fragmentsReference,
+  cleAuteurNotice,
   identifiantOuvrage,
   noticeDepuisChampsLibres,
   noticeDepuisVue,
@@ -307,5 +308,48 @@ describe('une collection qui redit l’hôte ne se compose pas', () => {
       collection: 'Studia patristica', numero_collection: '12', annee: 1990,
     })
     expect(texteReference(notice)).toContain(', coll. ' + OUV + 'Studia patristica' + FER + ', 12, 1990.')
+  })
+})
+
+// ── La CLÉ DE CLASSEMENT ───────────────────────────────────────────────────────
+//
+// ⛔ Elle vit dans le moteur et non au point de tri : une bibliographie se classe de
+// la même façon partout, et une règle écrite dans la page qui trie se serait dédoublée
+// à la deuxième liste.
+describe('la clé de classement d’une notice', () => {
+  it('range sous le NOM DE FAMILLE de l’autorité, jamais sous le nom affiché', () => {
+    // ⚠️ « Henri-Irénée Marrou » rangerait sous « H » si l'on lisait `nomAffiche`.
+    const notice = { ...vide(1, 'Titre'), contributeurs: [chercheur('auteur_scientifique', 1, 'Henri-Irénée', 'Marrou')] }
+    expect(cleAuteurNotice(notice)).toBe('marrou')
+  })
+
+  it('prend le PREMIER auteur, dans l’ordre déclaré', () => {
+    const notice = { ...vide(1, 'Titre'), contributeurs: [
+      chercheur('auteur_scientifique', 2, 'Pierre', 'Zorn'),
+      chercheur('auteur_scientifique', 1, 'Anne', 'Bardy'),
+    ] }
+    expect(cleAuteurNotice(notice)).toBe('bardy')
+  })
+
+  it('replie les accents et la casse, pour que le tri soit stable', () => {
+    const notice = { ...vide(1, 'Titre'), contributeurs: [chercheur('auteur_scientifique', 1, 'Étienne', 'Évrard')] }
+    expect(cleAuteurNotice(notice)).toBe('evrard')
+  })
+
+  // ⚠️ Le texte libre écrit « Marrou, Henri-Irénée » aussi bien que « H.-I. Marrou » :
+  // on ne garde que ce qui précède la première virgule.
+  it('à défaut d’autorité, lit le texte libre jusqu’à la première virgule', () => {
+    expect(cleAuteurNotice({ ...vide(1, 'Titre'), auteursTexte: 'Marrou, Henri-Irénée' })).toBe('marrou')
+    expect(cleAuteurNotice({ ...vide(1, 'Titre'), auteursTexte: 'Bardy ; Doignon' })).toBe('bardy')
+  })
+
+  it('range un collectif sous ses DIRECTEURS', () => {
+    expect(cleAuteurNotice({ ...vide(1, 'Dictionnaire'), directeursTexte: 'Dupont, Jean' })).toBe('dupont')
+  })
+
+  // ⛔ Une œuvre anonyme se classe à son TITRE, article de tête écarté : c'est la règle
+  // des catalogues, et `cleTriTitre` la porte déjà.
+  it('range une notice sans nom sous son titre, article écarté', () => {
+    expect(cleAuteurNotice(vide(1, 'La Cité de Dieu'))).toBe('cite de dieu')
   })
 })
