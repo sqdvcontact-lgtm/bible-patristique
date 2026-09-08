@@ -57,6 +57,34 @@ Sans quoi une correction « ne se voit pas » et l'on croit à tort qu'elle a é
 
 **Trouvaille de contexte (2026-08-05)** : la Bible de Sacy (`TR0001`) avait conservé le **numéro de verset imprimé en tête du texte** (« 1. MAis il faut… »), résidu d'un lot d'import — sur ~180 versets (2 Co 7-13, Galates 1, titres de psaumes). Corrigé dans `versets_v2` (retrait du seul préfixe `^\d+\.\s*`, sauvegarde `backup_tr0001_numerotation_20260805`), **puis refresh de la vue**. Segond et Crampon étaient propres : le défaut était propre à un import Sacy.
 
+# Typer une lecture Supabase : la forme du `select`, jamais celle de la table
+
+⛔ **Un `as any[]` sur un `.select()` n'est pas un raccourci, c'est un trou.** Il laisse
+passer une colonne mal orthographiée, une colonne retirée du `select`, un `null` là où le
+rendu attend une chaîne — et la faute ne se voit que chez le lecteur.
+
+⚠️ **Le type à écrire décrit ce que le `select` DEMANDE, pas ce que la table contient.**
+C'est ce qui le rend vérifiable : une colonne retirée d'un `select` casse alors à la
+compilation. Un type calqué sur la table, lui, ment dès qu'on ne lit qu'une partie des
+colonnes, et il oblige à mentir sur la nullabilité.
+
+⚠️ **Deux nuances qui reviennent.** Une colonne peut n'être PAS nullable *ici* alors qu'elle
+l'est en base — `reponse_a` filtré par `.in('reponse_a', ids)` en est le cas d'école ; on le
+type non nul et on dit pourquoi. Et certaines colonnes sont caméléons (`verifies` : tableau
+en base, chaîne JSON sur des lignes anciennes) : le type porte l'union, une fonction
+réconcilie.
+
+⚠️ **Le typage FAIT TOMBER des défauts**, c'est même son intérêt principal. Passe du
+2026-09-08 sur trois fichiers : un état déclaré `'loading' | 'ok' | 'err'` qui portait aussi
+le message d'erreur sous une autre clé (le type était faux), un `oeuvres[seg.id_oeuvre]` qui
+indexait avec une valeur nullable, un texte nullable passé au rendu enrichi. Aucun de ces
+trois n'était visible tant que `any` couvrait la ligne.
+
+⚠️ **Où commencer.** La dette `no-explicit-any` se reprend d'abord là où elle ne demande
+aucun œil sur la page : modules de données, routes serveur, planches d'administration. `tsc`
+et les tests suffisent alors à prouver le résultat. Les composants de lecture viennent après,
+et un par un.
+
 # Valeur académique des éditeurs / auteurs (bibliographie)
 
 Notation éditoriale des sources bibliographiques — **doctrine : charte §29 et §29.1**. Tables `editeurs_valeur` et `auteurs_valeur` (`nom`, `score` 1..5, `statut_usage`, `reserve`+`motif` pour les auteurs, plus `confiance_evaluation`/`source_evaluation`/`evalue_par`/`evalue_at`), RLS **admin uniquement**. Score de **1 (le plus fiable) à 5**. Admin : onglet « Valeur académique » (`/admin?onglet=fiabilite`, `app/admin/SectionFiabilite.tsx`).
