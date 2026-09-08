@@ -500,6 +500,94 @@ function EditeurTags({ initial, onValider, onAnnuler }: { initial: string[]; onV
   )
 }
 
+// ── Les lignes de la fiche d'édition ─────────────────────────────────────────
+//
+// ⛔ CES TROIS COMPOSANTS ÉTAIENT DÉFINIS DANS `PanneauEditionApparat`. Un
+// composant créé au rendu change d'identité à chaque rendu : React ne le
+// reconnaît pas, démonte l'ancien et en monte un neuf. Comme `setBrouillon`
+// re-rend le parent à chaque frappe, l'`<input autoFocus>` était détruit et
+// recréé LETTRE PAR LETTRE — curseur ramené en fin de champ, sélection perdue,
+// et tout le sous-arbre reconstruit pour un caractère. Ils vivent désormais au
+// niveau du module, où leur identité est stable ; ce qu'ils lisaient par
+// fermeture passe par `ctx`.
+type ContexteFiche = {
+  local: EditionSource | undefined
+  champEdit: keyof EditionSource | null
+  brouillon: string
+  setBrouillon: (v: string) => void
+  setChampEdit: (k: keyof EditionSource | null) => void
+  enregistrer: (patch: Partial<EditionSource>) => void | Promise<void>
+  editerSingle: (k: keyof EditionSource) => void
+  validerSingle: (k: keyof EditionSource, numeric?: boolean) => void
+}
+
+// Ligne (libellé à gauche, valeur à droite) — présentation sobre en lignes, texte réduit.
+const labelLigne: React.CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', lineHeight: 1.35 }
+const tiret = <span style={{ color: 'var(--cs-bord)' }}>—</span>
+
+function Ligne({ cle, children }: { cle: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid var(--cs-fond-doux)', alignItems: 'baseline' }}>
+      <span style={labelLigne}>{cle}</span>
+      <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte)', lineHeight: 1.4, wordBreak: 'break-word', flex: 1 }}>{children}</span>
+    </div>
+  )
+}
+
+// Ligne éditable au clic. `multi` → tags (séparés par « ; ») ; `numeric` → nombre ;
+// `rendu` transforme la valeur affichée (ex. « 1re édition »).
+function LigneEd({ ctx, cle, champ: k, multi, numeric, rendu }: { ctx: ContexteFiche; cle: string; champ: keyof EditionSource; multi?: boolean; numeric?: boolean; rendu?: (v: string) => React.ReactNode }) {
+  const { local, champEdit, brouillon, setBrouillon, setChampEdit, enregistrer, editerSingle, validerSingle } = ctx
+  const brut = (local as Record<string, unknown> | undefined)?.[k]
+  const enEd = champEdit === k
+  return (
+    <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid var(--cs-fond-doux)', alignItems: enEd ? 'flex-start' : 'baseline' }}>
+      <span style={labelLigne}>{cle}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {enEd ? (
+          multi ? (
+            <EditeurTags initial={enValeurs(brut as string)} onAnnuler={() => setChampEdit(null)}
+              onValider={(vals) => enregistrer({ [k]: vals.length ? vals.join(' ; ') : null } as Partial<EditionSource>)} />
+          ) : (
+            <input autoFocus value={brouillon} onChange={ev => setBrouillon(ev.target.value)}
+              onKeyDown={ev => { if (ev.key === 'Enter') validerSingle(k, numeric); if (ev.key === 'Escape') setChampEdit(null) }}
+              onBlur={() => validerSingle(k, numeric)} style={styleInput} />
+          )
+        ) : (
+          <span onClick={() => multi ? setChampEdit(k) : editerSingle(k)} title="Cliquer pour modifier"
+            style={{ fontSize: '0.75rem', color: 'var(--cs-texte)', lineHeight: 1.4, wordBreak: 'break-word', cursor: 'pointer', ...(multi ? {} : { borderBottom: '1px dotted var(--cs-bord)' }) }}>
+            {multi
+              ? (enValeurs(brut as string).length ? <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '4px' }}>{enValeurs(brut as string).map((v, i) => <span key={i} style={styleTag}>{v}</span>)}</span> : tiret)
+              : (brut != null && String(brut) !== '' ? (rendu ? rendu(String(brut)) : String(brut)) : tiret)}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Ligne éditable en texte long (particularités, notes) — textarea au clic.
+function LigneEdTexte({ ctx, cle, champ: k }: { ctx: ContexteFiche; cle: string; champ: keyof EditionSource }) {
+  const { local, champEdit, brouillon, setBrouillon, setChampEdit, enregistrer, editerSingle } = ctx
+  const brut = (local as Record<string, unknown> | undefined)?.[k]
+  const enEd = champEdit === k
+  return (
+    <div style={{ padding: '5px 0', borderTop: '1px solid var(--cs-fond-doux)' }}>
+      <span style={{ ...labelLigne, width: 'auto', display: 'block', marginBottom: '3px' }}>{cle}</span>
+      {enEd ? (
+        <textarea autoFocus value={brouillon} rows={3} onChange={ev => setBrouillon(ev.target.value)}
+          onKeyDown={ev => { if (ev.key === 'Escape') setChampEdit(null) }}
+          onBlur={() => enregistrer({ [k]: brouillon.trim() || null } as Partial<EditionSource>)}
+          style={{ ...styleInput, resize: 'vertical', lineHeight: 1.5 }} />
+      ) : (
+        <span onClick={() => editerSingle(k)} title="Cliquer pour modifier"
+          style={{ fontSize: '0.75rem', color: 'var(--cs-texte)', lineHeight: 1.5, cursor: 'pointer', whiteSpace: 'pre-wrap', display: 'block' }}>
+          {brut && String(brut).trim() ? String(brut) : <em style={{ color: 'var(--cs-bord)' }}>Cliquer pour renseigner…</em>}
+        </span>
+      )}
+    </div>
+  )
+}
 function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: EditionSource; pieces: ApparatPiece[]; nomBref: string }) {
   // Un seul apparat ouvert à la fois : on n'affiche que les titres, le texte s'ouvre en grand au clic.
   const [pieceOuverte, setPieceOuverte] = React.useState<number | null>(null)
@@ -536,66 +624,10 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
   const sousTitre: React.CSSProperties = { fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 4px' }
   const vide: React.CSSProperties = { fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }
   const cleStyle: React.CSSProperties = { display: 'block', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', marginBottom: '1px' }
-  // Ligne (libellé à gauche, valeur à droite) — présentation sobre en lignes, texte réduit.
-  const labelLigne: React.CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', lineHeight: 1.35 }
-  const tiret = <span style={{ color: 'var(--cs-bord)' }}>—</span>
-  const Ligne = ({ cle, children }: { cle: string; children: React.ReactNode }) => (
-    <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid var(--cs-fond-doux)', alignItems: 'baseline' }}>
-      <span style={labelLigne}>{cle}</span>
-      <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte)', lineHeight: 1.4, wordBreak: 'break-word', flex: 1 }}>{children}</span>
-    </div>
-  )
-  // Ligne éditable au clic. `multi` → tags (séparés par « ; ») ; `numeric` → nombre ;
-  // `rendu` transforme la valeur affichée (ex. « 1re édition »).
-  const LigneEd = ({ cle, champ: k, multi, numeric, rendu }: { cle: string; champ: keyof EditionSource; multi?: boolean; numeric?: boolean; rendu?: (v: string) => React.ReactNode }) => {
-    const brut = (local as Record<string, unknown> | undefined)?.[k]
-    const enEd = champEdit === k
-    return (
-      <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid var(--cs-fond-doux)', alignItems: enEd ? 'flex-start' : 'baseline' }}>
-        <span style={labelLigne}>{cle}</span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {enEd ? (
-            multi ? (
-              <EditeurTags initial={enValeurs(brut as string)} onAnnuler={() => setChampEdit(null)}
-                onValider={(vals) => enregistrer({ [k]: vals.length ? vals.join(' ; ') : null } as Partial<EditionSource>)} />
-            ) : (
-              <input autoFocus value={brouillon} onChange={ev => setBrouillon(ev.target.value)}
-                onKeyDown={ev => { if (ev.key === 'Enter') validerSingle(k, numeric); if (ev.key === 'Escape') setChampEdit(null) }}
-                onBlur={() => validerSingle(k, numeric)} style={styleInput} />
-            )
-          ) : (
-            <span onClick={() => multi ? setChampEdit(k) : editerSingle(k)} title="Cliquer pour modifier"
-              style={{ fontSize: '0.75rem', color: 'var(--cs-texte)', lineHeight: 1.4, wordBreak: 'break-word', cursor: 'pointer', ...(multi ? {} : { borderBottom: '1px dotted var(--cs-bord)' }) }}>
-              {multi
-                ? (enValeurs(brut as string).length ? <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '4px' }}>{enValeurs(brut as string).map((v, i) => <span key={i} style={styleTag}>{v}</span>)}</span> : tiret)
-                : (brut != null && String(brut) !== '' ? (rendu ? rendu(String(brut)) : String(brut)) : tiret)}
-            </span>
-          )}
-        </div>
-      </div>
-    )
-  }
-  // Ligne éditable en texte long (particularités, notes) — textarea au clic.
-  const LigneEdTexte = ({ cle, champ: k }: { cle: string; champ: keyof EditionSource }) => {
-    const brut = (local as Record<string, unknown> | undefined)?.[k]
-    const enEd = champEdit === k
-    return (
-      <div style={{ padding: '5px 0', borderTop: '1px solid var(--cs-fond-doux)' }}>
-        <span style={{ ...labelLigne, width: 'auto', display: 'block', marginBottom: '3px' }}>{cle}</span>
-        {enEd ? (
-          <textarea autoFocus value={brouillon} rows={3} onChange={ev => setBrouillon(ev.target.value)}
-            onKeyDown={ev => { if (ev.key === 'Escape') setChampEdit(null) }}
-            onBlur={() => enregistrer({ [k]: brouillon.trim() || null } as Partial<EditionSource>)}
-            style={{ ...styleInput, resize: 'vertical', lineHeight: 1.5 }} />
-        ) : (
-          <span onClick={() => editerSingle(k)} title="Cliquer pour modifier"
-            style={{ fontSize: '0.75rem', color: 'var(--cs-texte)', lineHeight: 1.5, cursor: 'pointer', whiteSpace: 'pre-wrap', display: 'block' }}>
-            {brut && String(brut).trim() ? String(brut) : <em style={{ color: 'var(--cs-bord)' }}>Cliquer pour renseigner…</em>}
-          </span>
-        )}
-      </div>
-    )
-  }
+  // Ce que les lignes de la fiche lisaient autrefois par fermeture. L'objet se
+  // recrée à chaque rendu, et c'est sans conséquence : ce qui comptait, c'est que
+  // l'IDENTITÉ des composants, elle, ne bouge plus (voir `ContexteFiche`).
+  const ctx: ContexteFiche = { local, champEdit, brouillon, setBrouillon, setChampEdit, enregistrer, editerSingle, validerSingle }
   const e = local
   const ongletBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.6875rem', fontWeight: 600, padding: '5px 13px', borderRadius: '8px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'rgba(var(--cs-vert-rgb),0.09)' : 'var(--cs-surface)', color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', cursor: 'pointer' })
   const navBtn = (actif: boolean): React.CSSProperties => ({ fontSize: '0.71875rem', padding: '4px 12px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-bord)' : 'var(--cs-fond-doux)'}`, background: 'var(--cs-surface)', color: actif ? 'var(--cs-vert)' : 'var(--cs-bord)', cursor: actif ? 'pointer' : 'default' })
@@ -614,8 +646,8 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
           {e && (
             <div style={{ marginBottom: '16px' }}>
               <p style={sousTitre}>Notes de cette édition</p>
-              <LigneEdTexte cle="Particularités" champ="particularites" />
-              <LigneEdTexte cle="Notes" champ="notes" />
+              <LigneEdTexte ctx={ctx} cle="Particularités" champ="particularites" />
+              <LigneEdTexte ctx={ctx} cle="Notes" champ="notes" />
             </div>
           )}
           <p style={sousTitre}>Journal des commentaires IA</p>
@@ -683,25 +715,25 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
           {/* Le reste en LIGNES éditables au clic ; les champs à occurrences multiples en tags. */}
           <p style={sousTitre}>Titre</p>
           <Ligne cle="Titre bref">{nomBref || tiret}</Ligne>
-          <LigneEd cle="Titre d’origine" champ="titre_edition" />
-          <LigneEd cle="Sous-titre d’origine" champ="sous_titre_edition" />
+          <LigneEd ctx={ctx} cle="Titre d’origine" champ="titre_edition" />
+          <LigneEd ctx={ctx} cle="Sous-titre d’origine" champ="sous_titre_edition" />
 
           <p style={{ ...sousTitre, marginTop: '14px' }}>Publication</p>
-          <LigneEd cle="Traducteur(s)" champ="traducteur" multi />
-          <LigneEd cle="Éditeur(s)" champ="editeur" multi />
-          <LigneEd cle="Lieu de publication" champ="lieu_edition" multi />
-          <LigneEd cle="Année de publication" champ="annee_edition" />
-          <LigneEd cle="Édition" champ="numero_edition" numeric rendu={v => mentionEdition(Number(v))} />
+          <LigneEd ctx={ctx} cle="Traducteur(s)" champ="traducteur" multi />
+          <LigneEd ctx={ctx} cle="Éditeur(s)" champ="editeur" multi />
+          <LigneEd ctx={ctx} cle="Lieu de publication" champ="lieu_edition" multi />
+          <LigneEd ctx={ctx} cle="Année de publication" champ="annee_edition" />
+          <LigneEd ctx={ctx} cle="Édition" champ="numero_edition" numeric rendu={v => mentionEdition(Number(v))} />
 
           <p style={{ ...sousTitre, marginTop: '14px' }}>Tomes</p>
-          <LigneEd cle="Nombre de tomes" champ="nombre_tomes" numeric rendu={v => `${v} ${Number(v) > 1 ? 'tomes' : 'tome'}`} />
+          <LigneEd ctx={ctx} cle="Nombre de tomes" champ="nombre_tomes" numeric rendu={v => `${v} ${Number(v) > 1 ? 'tomes' : 'tome'}`} />
 
           <p style={{ ...sousTitre, marginTop: '14px' }}>Caractéristiques</p>
-          <LigneEd cle="Langue" champ="langue" />
-          <LigneEd cle="Confession" champ="confession" />
-          <LigneEd cle="Graphie" champ="graphie" />
-          <LigneEd cle="Source (nom)" champ="source_nom" />
-          <LigneEd cle="Source (type)" champ="source_type" />
+          <LigneEd ctx={ctx} cle="Langue" champ="langue" />
+          <LigneEd ctx={ctx} cle="Confession" champ="confession" />
+          <LigneEd ctx={ctx} cle="Graphie" champ="graphie" />
+          <LigneEd ctx={ctx} cle="Source (nom)" champ="source_nom" />
+          <LigneEd ctx={ctx} cle="Source (type)" champ="source_type" />
         </>
       ) : (
         <p style={{ ...vide, marginBottom: '16px' }}>Aucune fiche d’édition source (<code style={{ fontSize: '0.78125rem' }}>editions_sources</code>) n’est enregistrée pour cette traduction.</p>

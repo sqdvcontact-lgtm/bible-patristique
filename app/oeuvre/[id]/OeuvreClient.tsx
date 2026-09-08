@@ -1797,7 +1797,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     () => (auteursOeuvre.length > 0 ? auteursOeuvre : auteurId && auteur ? [{ id_auteur: auteurId, nom: auteur, rang: 1 }] : []),
     [auteursOeuvre, auteurId, auteur],
   )
-  const NomsAuteurs = () => (
+  // Un fragment, pas un composant : `NomsAuteurs` était déclaré au rendu, donc de
+  // type neuf à chaque passage, ce que React ne reconnaît pas. Il ne porte aucun état
+  // et ne sert qu'une fois — le rendre en valeur suffit, et l'identité cesse d'être
+  // en jeu (même motif que les lignes de fiche dans SectionTraductions).
+  const nomsAuteurs = (
     <span style={{ minWidth: 0 }}>
       {auteursCliquables.map((a, i) => (
         <Fragment key={a.id_auteur}>
@@ -2528,7 +2532,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           />}
           <div data-visite="oeuvre-tete" style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <NomsAuteurs />
+              {nomsAuteurs}
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                 {estAdmin && (
                   <button onClick={() => setConfigOuverte(true)} title="Configurer les niveaux d'affichage"

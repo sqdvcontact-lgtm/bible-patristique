@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { checkRateLimit } from '@/app/lib/rateLimiter'
+import { adresseDuClient, empreinteAnonyme } from '@/app/lib/empreinteAnonyme'
 
 // Recueille une adresse depuis la page du chantier, pour prévenir la personne à
 // l'ouverture. La table est fermée par RLS : c'est cette route, et elle seule,
@@ -15,34 +17,18 @@ const FORME = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 // ── Limitation de débit ──────────────────────────────────────────────────────
 // La route est publique par nécessité. Sans garde-fou, une boucle de douze
-// requêtes suffisait à insérer douze lignes — donc autant qu'on veut, et la
-// table devient un dépotoir.
-//
-// Le compteur vit en mémoire du processus : il ne survit pas à un redémarrage et
-// n'est pas partagé entre instances. C'est assez pour décourager un script
-// ordinaire ; ce n'est PAS une protection contre une attaque distribuée, qui
-// demanderait un magasin partagé (Redis, ou la base) et un captcha.
+// requêtes suffisait à insérer douze lignes — donc autant qu'on veut, et la table
+// devient un dépotoir. Le compteur est celui de `app/lib/rateLimiter.ts`, partagé
+// avec les autres routes publiques : il y en avait trois copies, dont une qui ne
+// purgeait pas sa carte.
 const FENETRE_MS = 10 * 60 * 1000
 const MAX_PAR_FENETRE = 5
-const visites = new Map<string, number[]>()
-
-function tropDeRequetes(cle: string): boolean {
-  const now = Date.now()
-  const recentes = (visites.get(cle) ?? []).filter(t => now - t < FENETRE_MS)
-  recentes.push(now)
-  visites.set(cle, recentes)
-
-  // Purge : sans cela, la carte enfle indéfiniment et finit par peser.
-  if (visites.size > 5000) {
-    for (const [k, v] of visites) if (v.every(t => now - t >= FENETRE_MS)) visites.delete(k)
-  }
-  return recentes.length > MAX_PAR_FENETRE
-}
 
 export async function POST(request: Request) {
-  // Vercel place l'adresse réelle du client en tête de `x-forwarded-for`.
-  const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'inconnue'
-  if (tropDeRequetes(ip)) {
+  // L'adresse ne sert qu'à compter : une empreinte salée du jour la remplace, comme
+  // dans /api/contact — le débit se limite sans qu'aucune adresse ne soit retenue.
+  const empreinte = empreinteAnonyme(adresseDuClient(request), request.headers.get('user-agent') ?? '')
+  if (!checkRateLimit(`attente:${empreinte}`, MAX_PAR_FENETRE, FENETRE_MS)) {
     return NextResponse.json(
       { error: 'Trop de tentatives. Réessayez dans quelques minutes.' },
       { status: 429, headers: { 'Retry-After': String(FENETRE_MS / 1000) } }

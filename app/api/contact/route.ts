@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { adresseDuClient, empreinteAnonyme } from '@/app/lib/empreinteAnonyme'
+import { checkRateLimit } from '@/app/lib/rateLimiter'
 
 // Formulaire de contact. Deux garanties, dans cet ordre :
 //   1. le message est ENREGISTRÉ en base (table fermée par RLS, clé de service) —
@@ -17,18 +18,11 @@ const DESTINATAIRE = process.env.CONTACT_DESTINATAIRE ?? 'sqdv.contact@gmail.com
 
 const FORME_COURRIEL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
-// ── Limitation de débit (en mémoire du processus, comme /api/attente) ─────────
+// ── Limitation de débit ──────────────────────────────────────────────────────
+// Compteur partagé (`app/lib/rateLimiter.ts`), en mémoire du processus : il ne
+// survit pas à un redémarrage et n'est pas partagé entre instances.
 const FENETRE_MS = 10 * 60 * 1000
 const MAX_PAR_FENETRE = 5
-const visites = new Map<string, number[]>()
-function tropDeRequetes(cle: string): boolean {
-  const now = Date.now()
-  const recentes = (visites.get(cle) ?? []).filter(t => now - t < FENETRE_MS)
-  recentes.push(now)
-  visites.set(cle, recentes)
-  if (visites.size > 5000) for (const [k, v] of visites) if (v.every(t => now - t >= FENETRE_MS)) visites.delete(k)
-  return recentes.length > MAX_PAR_FENETRE
-}
 
 const propre = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
 
@@ -36,7 +30,7 @@ export async function POST(request: Request) {
   // L'adresse ne s'écrit nulle part : une empreinte salée du jour la remplace,
   // pour le débit comme pour la trace (voir app/lib/empreinteAnonyme.ts).
   const empreinte = empreinteAnonyme(adresseDuClient(request), request.headers.get('user-agent') ?? '')
-  if (tropDeRequetes(empreinte)) {
+  if (!checkRateLimit(`contact:${empreinte}`, MAX_PAR_FENETRE, FENETRE_MS)) {
     return NextResponse.json({ error: 'Trop de messages envoyés. Réessayez dans quelques minutes.' },
       { status: 429, headers: { 'Retry-After': String(FENETRE_MS / 1000) } })
   }
