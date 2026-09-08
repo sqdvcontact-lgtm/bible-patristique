@@ -96,6 +96,44 @@ describe('écran très bas', () => {
   })
 })
 
+describe('au doigt, la fenêtre s’ouvre au-dessus', () => {
+  // ⚠️ Sous le point de frappe il y a la main : une note posée dessous se lit à
+  // travers les doigts. Au-dessus, rien ne la couvre.
+  const auDoigt = (a: Ancre, hauteurSouhaitee = 300) =>
+    placerFenetre({
+      ancre: a, largeur: 320, hauteurSouhaitee, vue: VUE, hautNavbar: NAVBAR,
+      prefereDessus: true,
+    })
+
+  it('se retourne alors même que le dessous suffirait', () => {
+    // Sans le drapeau, cette ancre reçoit sa fenêtre DESSOUS.
+    expect(placer(ancre(400)).auDessus).toBe(false)
+    const p = auDoigt(ancre(400))
+    expect(p.auDessus).toBe(true)
+    expect(p.top).toBe(400 - 6 - 300)
+    expect(p.hauteurMax).toBe(300)
+  })
+
+  it('reste dessous quand le dessus ne peut pas la porter', () => {
+    // Ancre collée sous la barre : il n’y a rien au-dessus, et le dessous est
+    // largement plus vaste.
+    const p = auDoigt(ancre(80))
+    expect(p.auDessus).toBe(false)
+    expect(p.top).toBe(106)
+  })
+
+  it('se retourne quand même sur une fenêtre trop haute pour les deux côtés, le dessus étant plus large', () => {
+    const p = auDoigt(ancre(600), 900)
+    expect(p.auDessus).toBe(true)
+    expect(p.top).toBeGreaterThanOrEqual(HAUT_UTILE)
+    expect(p.top + p.hauteurMax).toBeLessThanOrEqual(BAS_UTILE)
+  })
+
+  it('ne change rien au calcul horizontal', () => {
+    expect(auDoigt(ancre(400)).left).toBe(placer(ancre(400)).left)
+  })
+})
+
 describe('fenêtre centrée', () => {
   it('occupe la bande utile, marges comprises', () => {
     expect(hauteurMaxModale(VUE, NAVBAR)).toBe(800 - 56 - 24)

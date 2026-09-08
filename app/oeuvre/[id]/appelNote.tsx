@@ -7,9 +7,15 @@ import { normaliserTitreTechnique } from '@/app/lib/titres'
 import { terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
-import { libelleDeLaNote, LIBELLE_NOTE_SANS_TYPE } from '@/app/lib/typeNote'
+import { intituleDeLaNote, libelleDeLaNote, LIBELLE_NOTE_SANS_TYPE } from '@/app/lib/typeNote'
 import type { NoteAffichee } from './oeuvreTypes'
-import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
+import { hauteurNavbarPx, placerFenetre, tailleRacinePx } from '@/app/lib/fenetreContextuelle'
+// Le CADRE de l'encart, un seul pour les trois surfaces, et sa composition.
+import { EncartNote } from '@/app/components/EncartNote'
+import { hauteurSouhaiteeNote, largeurEncartPx, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
+// L'axe est la CAPACITÉ DU POINTEUR, jamais la largeur : une tablette de 1024 px
+// en paysage n'a pas de souris (charte, « LE DOIGT »).
+import { useSansSurvol } from '@/app/lib/useEstMobile'
 import {
   PONCTUATION_ATTACHEE,
   detacherDernierMot,
@@ -148,34 +154,39 @@ export function lireSuiteAppels(texte: string, debut: number) {
   return { marqueurs, ponctuation, fin: fin + ponctuation.length }
 }
 
-// ── Info-bulle de note ────────────────────────────────────────────────────────
+// ── L'ENCART D'UNE NOTE ───────────────────────────────────────────────────────
+// Le CADRE vient de `EncartNote`, un seul pour les trois surfaces du site ; ce qui
+// vit ici est le GESTE — survoler, cliquer, fermer — et lui seul.
 export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
   numeroVisible: number
   contenu: NoteAffichee
   variante?: VarianteAppelNote
 }) {
-  // LE TYPE DE LA NOTE S'ANNONCE ICI, et nulle part ailleurs : « Note du
-  // traducteur 12 », « Apparat critique 7 ». Le lecteur doit voir du premier coup
-  // d'œil qui parle — une variante de manuscrits n'est pas une remarque de
-  // commentaire, et une note du traducteur n'engage pas le Père qu'on lit.
+  // LE TYPE DE LA NOTE S'ANNONCE DANS L'ENCART, et nulle part ailleurs : « Note du
+  // traducteur », « Apparat critique ». Le lecteur doit voir du premier coup d'œil
+  // qui parle — une variante de manuscrits n'est pas une remarque de commentaire,
+  // et une note du traducteur n'engage pas le Père qu'on lit.
   //
   // ⛔ Jamais dans le TEXTE de la note, où l'on n'ajoute rien : la mention se
   // répète des milliers de fois, et c'est ce qui commande sa forme — la plus
   // discrète de la note, portée par la métadonnée (charte § 13.8).
   //
-  // ⚠️ Une note HÉRITÉE (une chaîne, non un objet) ne porte pas de type : elle
-  // s'annonce « Note », comme un bloc dont le rôle n'est pas encore posé.
+  // ⛔ Et il SE TAIT quand la note ne déclare aucun type — 58 % du corpus : c'est
+  // alors le NUMÉRO, dans sa gouttière, qui dit à quelle note l'encart répond. Une
+  // note HÉRITÉE (une chaîne, non un objet) n'en déclare jamais.
+  const intitule = typeof contenu === 'string' ? null : intituleDeLaNote(contenu)
+  // ⚠️ Le nom accessible, lui, NOMME toujours : « Note 277 » est exactement ce
+  // qu'il faut dire à qui ne voit pas l'exposant.
   const libelle = typeof contenu === 'string' ? LIBELLE_NOTE_SANS_TYPE : libelleDeLaNote(contenu)
 
   const [visible, setVisible] = useState(false)
   const [figee, setFigee] = useState(false)
   const [rect, setRect] = useState<{ left: number; top: number; bottom: number } | null>(null)
   const marceurRef = useRef<HTMLElement>(null)
-  const timerFiger = useRef<ReturnType<typeof setTimeout> | null>(null)
   const timerMasquer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sansSurvol = useSansSurvol()
 
   const effacerTimers = () => {
-    if (timerFiger.current) { clearTimeout(timerFiger.current); timerFiger.current = null }
     if (timerMasquer.current) { clearTimeout(timerMasquer.current); timerMasquer.current = null }
   }
 
@@ -185,41 +196,42 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
     setFigee(false)
   }, [])
 
+  const mesurer = () => {
+    if (!marceurRef.current) return
+    const r = marceurRef.current.getBoundingClientRect()
+    setRect({ left: r.left, top: r.top, bottom: r.bottom })
+  }
+
   const survolMarceur = () => {
     effacerTimers()
-    if (marceurRef.current) {
-      const r = marceurRef.current.getBoundingClientRect()
-      setRect({ left: r.left, top: r.top, bottom: r.bottom })
-    }
+    mesurer()
     setVisible(true)
-    timerFiger.current = setTimeout(() => setFigee(true), 4000)
+    // ⛔ PLUS DE GEL AU BOUT DE QUATRE SECONDES. Un survol qui s'attardait rendait
+    // l'encart persistant SANS que rien ne le dise, et la croix paraissait alors
+    // sous le curseur : l'objet changeait de forme tout seul, et il fallait ensuite
+    // un clic pour défaire ce qu'on n'avait pas demandé. Un encart de survol se
+    // ferme quand la main s'en va ; un encart persistant se demande d'un clic.
   }
 
   const quitterMarceur = () => {
-    if (timerFiger.current) { clearTimeout(timerFiger.current); timerFiger.current = null }
-    if (!figee) {
-      timerMasquer.current = setTimeout(() => setVisible(false), 200)
-    }
+    if (!figee) timerMasquer.current = setTimeout(() => setVisible(false), 200)
   }
 
-  const entrerTooltip = () => {
-    effacerTimers()
-    setFigee(true)
-  }
+  // Entrer DANS l'encart le retient — on va y lire, et parfois le faire défiler —
+  // mais ne le fige pas : la croix n'a pas à paraître sous le curseur.
+  const entrerEncart = () => { effacerTimers() }
+  const quitterEncart = () => { if (!figee) timerMasquer.current = setTimeout(() => setVisible(false), 200) }
 
-  const basculerTooltip = (e: React.MouseEvent | React.KeyboardEvent) => {
+  const basculerEncart = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation()
     if (visible && figee) { fermer(); return }
     effacerTimers()
-    if (marceurRef.current) {
-      const r = marceurRef.current.getBoundingClientRect()
-      setRect({ left: r.left, top: r.top, bottom: r.bottom })
-    }
+    mesurer()
     setVisible(true)
     setFigee(true)
   }
 
-  // Fermeture sur Échap ou clic extérieur quand figée
+  // Fermeture sur Échap ou clic extérieur quand l'encart est persistant
   useEffect(() => {
     if (!figee || !visible) return
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') fermer() }
@@ -244,60 +256,38 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
 
   useEffect(() => () => effacerTimers(), [])
 
-  const W = 340
-  // Le côté ne se décide plus sur un seuil de 180 px, qui ignorait le bas de
+  // Le côté ne se décide pas sur un seuil en pixels, qui ignorait le bas de
   // l'écran : la note ne passe jamais sous la barre de navigation et ne déborde
   // jamais du bas. Calcul pur, testé (voir fenetreContextuelle.ts).
+  const racine = tailleRacinePx()
   const vue = typeof window === 'undefined'
     ? { largeur: 900, hauteur: 800 }
     : { largeur: window.innerWidth, hauteur: window.innerHeight }
   const placement = placerFenetre({
     ancre: rect ?? { top: 300, bottom: 316, left: 0, right: 0 },
-    largeur: W, hauteurSouhaitee: 340, vue, hautNavbar: hauteurNavbarPx(), ecart: 8,
+    largeur: largeurEncartPx(racine),
+    // La hauteur SUIT la note, au lieu des 340 px que le placeur recevait pour
+    // toutes : un renvoi de treize signes n'a pas à réserver la place d'un
+    // développement, et un développement n'a pas à se croire court.
+    hauteurSouhaitee: hauteurSouhaiteeNote({ signes: signesDeLaNote(contenu), racine, avecIntitule: Boolean(intitule) }),
+    vue, hautNavbar: hauteurNavbarPx(), ecart: 8,
+    prefereDessus: sansSurvol,
   })
 
-  const tooltip = visible ? (
-    <div
-      data-note-tooltip=""
-      onMouseEnter={entrerTooltip}
-      style={{
-        position: 'fixed',
-        left: placement.left,
-        top: placement.top,
-        width: W,
-        maxWidth: 'calc(100vw - 16px)',
-        maxHeight: placement.hauteurMax,
-        overflowY: 'auto',
-        background: 'var(--cs-fond)',
-        border: '1px solid var(--cs-or-doux)',
-        borderRadius: 4,
-        boxShadow: 'var(--cs-ombre-flottante)',
-        padding: '10px 12px',
-        zIndex: 9999,
-        fontFamily: "var(--font-source-serif), Georgia, serif",
-        fontSize: '0.78125rem',
-        lineHeight: 1.45,
-        color: 'var(--cs-texte-fort)',
-      }}
+  const encart = visible ? (
+    <EncartNote
+      numero={numeroVisible}
+      intitule={intitule}
+      placement={placement}
+      onFermer={figee ? fermer : null}
+      marque="data-note-tooltip"
+      onMouseEnter={entrerEncart}
+      onMouseLeave={quitterEncart}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>
-          {libelle} {numeroVisible}
-        </span>
-        {figee && (
-          <button
-            onClick={fermer}
-            aria-label="Fermer" className="cs-cible-fine"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a08a', fontSize: '0.9375rem', lineHeight: 1, padding: '0 2px' }}
-          >×</button>
-        )}
-      </div>
-      <div style={{ whiteSpace: 'pre-line' }}>
-        {typeof contenu === 'string'
-          ? (terminerNote(contenu) || <em style={{ color: '#b0a08a' }}>Note indisponible</em>)
-          : <ContenuNoteStructuree note={contenu} />}
-      </div>
-    </div>
+      {typeof contenu === 'string'
+        ? (terminerNote(contenu) || <em style={{ color: 'var(--cs-texte-faible)' }}>Note indisponible</em>)
+        : <ContenuNoteStructuree note={contenu} />}
+    </EncartNote>
   ) : null
 
   return (
@@ -306,17 +296,20 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
         ref={marceurRef as React.RefObject<HTMLElement>}
         onMouseEnter={survolMarceur}
         onMouseLeave={quitterMarceur}
-        onClick={basculerTooltip}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') basculerTooltip(e) }}
+        onClick={basculerEncart}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') basculerEncart(e) }}
         role="button"
         tabIndex={0}
         aria-label={`${libelle} ${numeroVisible}`}
+        aria-expanded={visible}
         className="cs-appel-cible"
-        style={styleAppelNote(variante)}
+        // L'appel MARQUÉ tant que son encart est ouvert : c'est le second lien
+        // entre l'appel et sa note, celui qu'on suit des yeux en revenant au texte.
+        style={visible ? { ...styleAppelNote(variante), ...STYLE_APPEL_OUVERT } : styleAppelNote(variante)}
       >
         {numeroVisible}
       </sup>
-      {visible && typeof document !== 'undefined' && createPortal(tooltip, document.body)}
+      {visible && typeof document !== 'undefined' && createPortal(encart, document.body)}
     </>
   )
 }

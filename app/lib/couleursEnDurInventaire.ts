@@ -105,10 +105,8 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'librairies/page.tsx': ['#153f78', '#5d3a6e', '#5e3a1c', 'rgba(124,88,47,0.38)', 'rgba(151,30,37,0.36)', 'rgba(22,63,125,0.32)', 'rgba(31,90,90,0.34)', 'rgba(93,58,110,0.34)'],
   'manuscrits/bible-899/bible899.module.css': ['#4c4942', '#4f5e54', '#514a42', '#5e574e', '#5f503d', '#73664f', '#765718', '#777168', '#7d746a', '#8d432e', '#b57735', '#c9c1b6', '#f2e7c9', 'rgba(255,253,248,0.97)', 'rgba(53,44,32,0.1)', 'rgba(58,48,35,0.08)'],
   'messagerie/[pseudo]/page.tsx': ['#c87070'],
-  'oeuvre/[id]/appelNote.tsx': ['#b0a08a'],
   'oeuvre/[id]/AssocierVerset.tsx': ['#b8cdc0'],
   'oeuvre/[id]/ComparaisonStatut.tsx': ['#7a5a2d', 'rgba(142,102,38,0.32)', 'rgba(190,145,66,0.09)'],
-  'oeuvre/[id]/ComparaisonTraductions.tsx': ['#b0a08a'],
   // Le CALQUE d'une modale : une forme que la charte prescrit, et qui ne se
   // transpose pas. ⚠️ Le brun très sombre plutôt qu'un noir neutre, qui refroidirait
   // la page qu'il assombrit — le site est chaud jusque dans son ombre.

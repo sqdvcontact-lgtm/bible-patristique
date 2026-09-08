@@ -67,7 +67,10 @@ const REMONTEE_APPEL = 0.31
 export function styleAppelNote(variante: VarianteAppelNote = 'corps'): CSSProperties {
   const taille = TAILLE_APPEL[variante]
   return {
-    cursor: 'help',
+    // ⛔ `pointer`, jamais `help` : le point d'interrogation promet une explication
+    // qui viendrait d'elle-même, quand l'appel OUVRE une note d'un clic. Il est un
+    // bouton, et le curseur du site pour un bouton est le doigt.
+    cursor: 'pointer',
     fontFamily: 'inherit',
     // ⛔ `normal`, jamais `inherit` : voir la règle du romain ci-dessus.
     fontStyle: 'normal',

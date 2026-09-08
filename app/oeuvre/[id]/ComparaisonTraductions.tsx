@@ -18,7 +18,11 @@ import { BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } f
 import { CelluleActions, useCelluleActions } from '@/app/components/CelluleActions'
 import type { AlignementDisponible, NoteBlocData, NoteStructuree, SegData } from './oeuvreTypes'
 import { estColonneOriginale } from './oeuvreTypes'
-import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
+import { hauteurNavbarPx, placerFenetre, tailleRacinePx } from '@/app/lib/fenetreContextuelle'
+// Le CADRE de l'encart, un seul pour les trois surfaces, et sa composition.
+import { EncartNote } from '@/app/components/EncartNote'
+import { hauteurSouhaiteeNote, largeurEncartPx, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
+import { intituleDeLaNote, libelleDeLaNote } from '@/app/lib/typeNote'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, estEnVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { CLE_NUMERO_VERSET, NATURE_VERSET, estBlocVersets, numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { NATURE_EXERGUE, RAPPORT_CORPS_EXERGUE, RETRAIT_EXERGUE, estBlocExergue } from '@/app/lib/compositionExergue'
@@ -30,7 +34,7 @@ import {
   type AncreNoteStructureeProjection,
 } from '@/app/lib/appelsNotesStructurees'
 import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
-import { estNoteApparatCritique, lireMetadonneesBlocNote } from '@/app/lib/apparatCritique'
+import { lireMetadonneesBlocNote } from '@/app/lib/apparatCritique'
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import {
   groupesSelonFiltre,
@@ -80,15 +84,22 @@ function lots<T>(items: T[], taille = 180) {
   return resultat
 }
 
-// Appel de note en infobulle, repris de la lecture : exposant brun sans
-// soulignement, clic pour déplier le contenu structuré de la note.
+// Appel de note, repris de la lecture : exposant brun sans soulignement, clic
+// pour ouvrir l'encart commun du site (`EncartNote`). Ce qui vit ici est le
+// GESTE ; le cadre, sa gouttière et son intitulé viennent de `compositionNote.ts`.
 function AppelNote({ note }: { note: NoteStructuree }) {
-  // Même règle que dans la lecture : l'apparat s'annonce dans l'en-tête.
-  const apparat = estNoteApparatCritique(note)
-  const libelle = apparat ? 'Apparat critique' : 'Note'
+  // ⛔ LE NUMÉRO QU'ON AFFICHE EST CELUI DU LECTEUR. Cette surface montrait le
+  // numéro INTERNE (`noteNumber`), si bien que le même appel ne portait pas le même
+  // chiffre ici et dans la lecture — le `displayNumber` repart à 1 à chaque division
+  // et l'apparat tient sa propre série (charte § 13.8).
+  const numero = note.displayNumber ?? note.noteNumber
+  // L'intitulé nomme le TYPE de la note, et se tait quand elle n'en déclare aucun.
+  const intitule = intituleDeLaNote(note)
+  const libelle = libelleDeLaNote(note)
   const [ouvert, setOuvert] = useState(false)
   const ancre = useRef<HTMLElement>(null)
   const [rect, setRect] = useState<{ left: number; top: number; bottom: number } | null>(null)
+  const sansSurvol = useSansSurvol()
   const basculer = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation()
     if (ancre.current) { const r = ancre.current.getBoundingClientRect(); setRect({ left: r.left, top: r.top, bottom: r.bottom }) }
@@ -102,34 +113,38 @@ function AppelNote({ note }: { note: NoteStructuree }) {
     document.addEventListener('keydown', onKey)
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
   }, [ouvert])
-  const W = 340
   // Même règle que dans la lecture : la note ne passe jamais sous la barre de
-  // navigation et ne déborde jamais du bas de l'écran. L'ancien seuil de 180 px
-  // ignorait le bas, et une note appelée en pied de colonne sortait de la vue.
+  // navigation et ne déborde jamais du bas de l'écran.
+  const racine = tailleRacinePx()
   const vue = typeof window === 'undefined'
     ? { largeur: 900, hauteur: 800 }
     : { largeur: window.innerWidth, hauteur: window.innerHeight }
   const placement = placerFenetre({
     ancre: rect ?? { top: 300, bottom: 316, left: 0 },
-    largeur: W, hauteurSouhaitee: 340, vue, hautNavbar: hauteurNavbarPx(), ecart: 8,
+    largeur: largeurEncartPx(racine),
+    hauteurSouhaitee: hauteurSouhaiteeNote({ signes: signesDeLaNote(note), racine, avecIntitule: Boolean(intitule) }),
+    vue, hautNavbar: hauteurNavbarPx(), ecart: 8,
+    prefereDessus: sansSurvol,
   })
   return (
     <>
       <sup ref={ancre as React.RefObject<HTMLElement>} data-appel-note="" role="button" tabIndex={0}
         onClick={basculer} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') basculer(e) }}
-        aria-label={`Consulter ${apparat ? "l'apparat critique" : 'la note'} ${note.noteNumber}`}
-        style={styleAppelNote()}>
-        {note.noteNumber}
+        aria-label={`${libelle} ${numero}`}
+        aria-expanded={ouvert}
+        style={ouvert ? { ...styleAppelNote(), ...STYLE_APPEL_OUVERT } : styleAppelNote()}>
+        {numero}
       </sup>
       {ouvert && typeof document !== 'undefined' && createPortal(
-        <div data-appel-note="" onMouseDown={e => e.stopPropagation()}
-          style={{ position: 'fixed', left: placement.left, top: placement.top, width: W, maxWidth: 'calc(100vw - 16px)', maxHeight: placement.hauteurMax, overflowY: 'auto', background: 'var(--cs-fond)', border: '1px solid var(--cs-or-doux)', borderRadius: 4, boxShadow: 'var(--cs-ombre-flottante)', padding: '10px 12px', zIndex: 9999, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', lineHeight: 1.45, color: 'var(--cs-texte-fort)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>{libelle} {note.noteNumber}</span>
-            <button onClick={() => setOuvert(false)} aria-label="Fermer" className="cs-cible-fine" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b0a08a', fontSize: '0.9375rem', lineHeight: 1, padding: '0 2px' }}>×</button>
-          </div>
+        <EncartNote
+          numero={numero}
+          intitule={intitule}
+          placement={placement}
+          onFermer={() => setOuvert(false)}
+          marque="data-appel-note"
+        >
           <ContenuNoteStructuree note={note} />
-        </div>,
+        </EncartNote>,
         document.body,
       )}
     </>

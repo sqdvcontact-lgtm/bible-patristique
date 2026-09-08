@@ -53,6 +53,7 @@ export type PlacementFenetre = {
  *  bornait ; elle sert à choisir le côté, jamais à sortir de la bande. */
 export function placerFenetre({
   ancre, largeur, hauteurSouhaitee, vue, hautNavbar, marge = MARGE_FENETRE, ecart = 6,
+  prefereDessus = false,
 }: {
   ancre: Ancre
   largeur: number
@@ -62,6 +63,12 @@ export function placerFenetre({
   marge?: number
   /** Jeu entre l'ancre et la fenêtre. */
   ecart?: number
+  /** AU DOIGT, la fenêtre s'ouvre AU-DESSUS de son ancre. Sous le point de frappe
+   *  il y a la main : une note posée dessous se lit à travers les doigts, et le
+   *  lecteur retire la main pour voir ce qu'il vient d'ouvrir. Au-dessus, rien ne
+   *  la couvre. ⚠️ Ce n'est pas un ordre : on ne se retourne que si le dessus tient
+   *  la fenêtre, ou s'il est au moins aussi large que le dessous. */
+  prefereDessus?: boolean
 }): PlacementFenetre {
   const hautUtile = hautNavbar + marge
   const basUtile = vue.hauteur - marge
@@ -72,7 +79,10 @@ export function placerFenetre({
   const placeDessus = (ancre.top - ecart) - hautUtile
 
   // On ne se retourne que si le dessous ne suffit pas ET que le dessus fait mieux.
-  const auDessus = hauteurSouhaitee > placeDessous && placeDessus > placeDessous
+  // Au doigt, l'inverse : on se retourne dès que le dessus peut porter la fenêtre.
+  const auDessus = prefereDessus
+    ? hauteurSouhaitee <= placeDessus || placeDessus >= placeDessous
+    : hauteurSouhaitee > placeDessous && placeDessus > placeDessous
 
   const hauteurMax = Math.max(0, Math.min(hauteurSouhaitee, bandeUtile, auDessus ? placeDessus : placeDessous))
 

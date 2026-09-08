@@ -7,24 +7,27 @@
 // forme de l'appel vient de `styleAppelNote`, seule définition du site — ⛔ pas
 // de pointillé sous un appel, jamais, nulle part.
 //
-// Une seule différence, voulue : la fenêtre est PLUS GRANDE qu'ailleurs. Une
-// note de Fillion n'est pas une glose de trois mots ; la réduire à l'infobulle
-// des œuvres obligerait à défiler dès la première phrase.
+// ⛔ ET C'EST LE MÊME ENCART QUE PARTOUT AILLEURS depuis le 8 septembre 2026.
+// Cette page composait le sien, plus large et plus haut que celui des œuvres, au
+// motif qu'une note de Fillion n'est pas une glose de trois mots. C'était vrai de
+// la note, non de la boîte : l'encart commun est plus large que les deux qu'il
+// remplace, et sa hauteur SUIT la note qu'on ouvre. Trois copies d'une même forme
+// ne restent identiques que par accident — elles avaient divergé sur neuf points.
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-import { hauteurNavbarPx, MARGE_FENETRE, placerFenetre } from '@/app/lib/fenetreContextuelle'
+import { hauteurNavbarPx, placerFenetre, tailleRacinePx } from '@/app/lib/fenetreContextuelle'
 import { styleAppelNote, type VarianteAppelNote } from '@/app/lib/appelsDeNote'
+import { EncartNote } from './EncartNote'
+import { hauteurSouhaiteeNote, largeurEncartPx, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
+// L'axe est la CAPACITÉ DU POINTEUR, jamais la largeur (charte, « LE DOIGT »).
+import { useSansSurvol } from '@/app/lib/useEstMobile'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { composerBibliographie } from '@/app/lib/bibleBibliographie'
 import { ancreAppelNoteBible, type BibleEditionDisplayNote } from '@/app/lib/bibleEdition'
 import { SEUIL_CITATION_SORTIE } from '@/app/lib/citationSortie'
 import BibliographieBible from './BibleBibliographie'
-
-/** Plus large et plus haute que l'infobulle des œuvres (340 × 340). */
-const LARGEUR = 460
-const HAUTEUR = 420
 
 export function ContenuNoteBiblique({ note }: { note: Pick<BibleEditionDisplayNote, 'blocks'> }) {
   return (
@@ -113,16 +116,30 @@ export default function AppelNoteBiblique({
     }
   }, [ouvert])
 
+  const sansSurvol = useSansSurvol()
+  const racine = tailleRacinePx()
   const vue = typeof window === 'undefined'
     ? { largeur: 900, hauteur: 800 }
     : { largeur: window.innerWidth, hauteur: window.innerHeight }
+  // ⛔ UNE NOTE BIBLIQUE NE DÉCLARE AUCUN TYPE, et c'est le type qui le dit : les
+  // blocs d'une édition biblique n'ont pas de `editorialRole` — l'axe « qui parle »
+  // de la charte § 13.8 n'existe que du côté patristique. L'encart n'a donc pas
+  // d'intitulé à porter, et il se tait : c'est le NUMÉRO, dans sa gouttière, qui dit
+  // à quelle note il répond. ⚠️ Le jour où la donnée portera ce rôle,
+  // `intituleDeLaNote` (`app/lib/typeNote.ts`) le composera, comme ailleurs.
+  // ⛔ Jamais « Note » écrit en dur, qui n'apprenait rien à qui venait de cliquer.
+  const intitule: string | null = null
   const placement = placerFenetre({
     ancre: rect ?? { top: 300, bottom: 316, left: 0 },
-    largeur: LARGEUR,
-    hauteurSouhaitee: HAUTEUR,
+    largeur: largeurEncartPx(racine),
+    // La hauteur SUIT la note. Elle valait 420 px pour toutes, ce qui promettait
+    // une page à un renvoi de deux mots et n'en promettait pas assez à un
+    // développement de Fillion.
+    hauteurSouhaitee: hauteurSouhaiteeNote({ signes: signesDeLaNote(note), racine, avecIntitule: Boolean(intitule) }),
     vue,
     hautNavbar: hauteurNavbarPx(),
     ecart: 8,
+    prefereDessus: sansSurvol,
   })
 
   return (
@@ -137,45 +154,26 @@ export default function AppelNoteBiblique({
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') basculer(e) }}
         aria-label={`Consulter la note ${note.displayNumber}`}
         aria-expanded={ouvert}
-        style={styleAppelNote(variante)}
+        // L'appel MARQUÉ tant que son encart est ouvert : le second lien entre
+        // l'appel et sa note, celui qu'on suit des yeux en revenant au texte.
+        style={ouvert ? { ...styleAppelNote(variante), ...STYLE_APPEL_OUVERT } : styleAppelNote(variante)}
       >
         {note.displayNumber}
       </sup>
       {ouvert && typeof document !== 'undefined' && createPortal(
-        <div
-          data-note-biblique=""
-          onMouseDown={(e) => e.stopPropagation()}
-          style={{
-            position: 'fixed', left: placement.left, top: placement.top,
-            width: LARGEUR,
-            // Le placeur promet MARGE_FENETRE de chaque côté. Sur un écran plus
-            // étroit que 460 px, `100vw - 16px` ne laissait pourtant que 4 px à
-            // droite : la largeur CSS et le calcul de placement ne parlaient pas
-            // de la même marge. La fenêtre prend désormais exactement la bande
-            // horizontale que le placeur lui réserve.
-            maxWidth: `calc(100vw - ${MARGE_FENETRE * 2}px)`,
-            maxHeight: placement.hauteurMax, overflowY: 'auto',
-            background: 'var(--cs-fond)', border: '1px solid var(--cs-or-doux)',
-            borderRadius: '4px', boxShadow: 'var(--cs-ombre-flottante)',
-            padding: '12px 14px', zIndex: 9999,
-            fontFamily: 'var(--font-source-serif), Georgia, serif',
-            fontSize: '0.8125rem', lineHeight: 1.45, color: 'var(--cs-texte-fort)',
-          }}
+        <EncartNote
+          numero={note.displayNumber}
+          // ⛔ Plus de « Note » écrit en dur : l'intitulé nomme le TYPE de la note,
+          // et se tait quand la donnée n'en déclare aucun — ce qui est le cas de
+          // toutes les notes bibliques aujourd'hui. Le numéro, dans sa gouttière,
+          // dit à quelle note l'encart répond.
+          intitule={intitule}
+          placement={placement}
+          onFermer={() => setOuvert(false)}
+          marque="data-note-biblique"
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>
-              Note {note.displayNumber}
-            </span>
-            <button
-              onClick={() => setOuvert(false)}
-              aria-label="Fermer" className="cs-cible-fine"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-faible)', fontSize: '0.9375rem', lineHeight: 1, padding: '0 2px' }}
-            >
-              ×
-            </button>
-          </div>
           <ContenuNoteBiblique note={note} />
-        </div>,
+        </EncartNote>,
         document.body,
       )}
     </>

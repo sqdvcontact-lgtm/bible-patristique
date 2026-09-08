@@ -86,3 +86,28 @@ export function libelleDeLaNote(
 ): string {
   return libelleTypeNote(typeDeLaNote(note))
 }
+
+/**
+ * L'INTITULÉ que porte l'encart, ou `null` quand la note ne déclare aucun type.
+ *
+ * ⛔ Il se TAIT au lieu d'écrire « Note », et c'est une décision de l'auteur du
+ * 8 septembre 2026. 14 077 notes sur 24 168 — 58 % — n'ont pas de rôle éditorial :
+ * leur bandeau annonçait « NOTE 277 » à quelqu'un qui venait de cliquer le 277,
+ * c'est-à-dire une ligne de capitales pour ne rien apprendre. La règle du site est
+ * déjà écrite ailleurs : on n'explique pas ce qui s'écrit déjà.
+ *
+ * ⚠️ Ce qui identifie la note ne disparaît pas pour autant — le NUMÉRO passe dans
+ * la gouttière de l'encart (voir `compositionNote.ts`). L'intitulé ne reste que là
+ * où il apprend quelque chose : l'apparat critique, la note du traducteur, celle
+ * de l'édition.
+ *
+ * ⛔ Ne pas confondre avec `libelleDeLaNote`, qui rend TOUJOURS un libellé : il
+ * sert encore le nom accessible de l'appel, où « Note 277 » est exactement ce
+ * qu'il faut dire à qui ne voit pas l'exposant.
+ */
+export function intituleDeLaNote(
+  note: { blocks: readonly { editorialRole?: string | null }[] },
+): string | null {
+  const type = typeDeLaNote(note)
+  return type ? LIBELLES[type] : null
+}
