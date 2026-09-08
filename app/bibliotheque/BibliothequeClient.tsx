@@ -1257,7 +1257,11 @@ function ChampFige({ valeur }: { valeur: string }) {
 function ComboAuteur({ value, onChange, onAuteurId }: {
   value: string
   onChange: (v: string) => void
-  onAuteurId: (id: string | null) => void
+  // ⚠️ Facultatif : `propositions_oeuvres` n'a PAS de colonne `auteur_id`, et la
+  // proposition ne part donc qu'avec le nom. Le rappel reste offert par le combo —
+  // il sait ce qu'il a reconnu — mais personne ne le prend tant que la colonne
+  // n'existe pas. L'ajouter est une décision de modèle de données, pas d'interface.
+  onAuteurId?: (id: string | null) => void
 }) {
   const [saisie, setSaisie] = useState(value)
   const [suggestions, setSuggestions] = useState<{ nom: string; id_auteur: string }[]>([])
@@ -1282,12 +1286,12 @@ function ComboAuteur({ value, onChange, onAuteurId }: {
   }, [saisie, libre])
 
   function choisir(nom: string, id: string) {
-    setSaisie(nom); onChange(nom); onAuteurId(id)
+    setSaisie(nom); onChange(nom); onAuteurId?.(id)
     setSuggestions([]); setOuvert(false); setLibre(false)
   }
 
   function choisirAutre() {
-    setSaisie(''); onChange(''); onAuteurId(null)
+    setSaisie(''); onChange(''); onAuteurId?.(null)
     setSuggestions([]); setOuvert(false); setLibre(true)
   }
 
@@ -1295,7 +1299,7 @@ function ComboAuteur({ value, onChange, onAuteurId }: {
     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
       <input autoFocus value={saisie} onChange={e => { setSaisie(e.target.value); onChange(e.target.value) }}
         placeholder="Nom de l'auteur" style={CHAMP_STYLE} />
-      <button type="button" onClick={() => { setLibre(false); setSaisie(''); onChange(''); onAuteurId(null) }}
+      <button type="button" onClick={() => { setLibre(false); setSaisie(''); onChange(''); onAuteurId?.(null) }}
         style={{ fontSize: '0.6875rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-gris)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
         ← Catalogue
       </button>
@@ -1304,7 +1308,7 @@ function ComboAuteur({ value, onChange, onAuteurId }: {
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
-      <input value={saisie} onChange={e => { setSaisie(e.target.value); onChange(''); onAuteurId(null) }}
+      <input value={saisie} onChange={e => { setSaisie(e.target.value); onChange(''); onAuteurId?.(null) }}
         onFocus={() => saisie.trim().length >= 2 && setOuvert(true)}
         placeholder="Commencez à taper…" style={CHAMP_STYLE} autoComplete="off" />
       {ouvert && (
@@ -1424,7 +1428,6 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
   const [afficherNom, setAfficherNom] = useState(false)
   const [droitsGarantis, setDroitsGarantis] = useState(false)
   const [quotaRestant, setQuotaRestant] = useState<number | null>(null)
-  const [auteurId, setAuteurId] = useState<string | null>(null)
   const valeursDepart = useRef<FormProposition>({
     auteur_nom: '', titre: '', traducteur: '', editeur: '',
     collection: '', ville: '', date_publication: '', siecle: '', langue: '', note: '', texte: '',
@@ -1491,7 +1494,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
     setStatut('ok')
     if (typeof json.restantes === 'number') setQuotaRestant(json.restantes)
     setForm({ auteur_nom: '', titre: '', traducteur: '', editeur: '', collection: '', ville: '', date_publication: '', siecle: '', langue: '', note: '', texte: '' })
-    setAuteurId(null); setDroitsGarantis(false); setAfficherNom(false)
+    setDroitsGarantis(false); setAfficherNom(false)
   }
 
   if (connecte === null) return null
@@ -1564,8 +1567,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
             {fige('auteur_nom')
               ? <ChampFige valeur={form.auteur_nom} />
               : <ComboAuteur value={form.auteur_nom}
-                  onChange={v => setForm(prev => ({ ...prev, auteur_nom: v }))}
-                  onAuteurId={id => setAuteurId(id)} />}
+                  onChange={v => setForm(prev => ({ ...prev, auteur_nom: v }))} />}
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>

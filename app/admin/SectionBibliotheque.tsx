@@ -954,7 +954,6 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   const [importing, setImporting] = useState(false)
   const [resultat, setResultat] = useState<{ idOeuvre: string; msg: string; ok: boolean } | null>(null)
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({})
-  const [profondeurs, setProfondeurs] = useState<Record<string, number>>({})
 
   // ── Gestion des auteurs (recherche, création, édition, photo) ──────────────
   const [recherche, setRecherche] = useState('')
@@ -1368,12 +1367,13 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   const [formOeuvreGenres, setFormOeuvreGenres] = useState<string[]>([])
   const [statutOeuvre, setStatutOeuvre] = useState<{ id: string; ok: boolean; msg: string } | null>(null)
 
-  // Initialiser profondeurs depuis les données
+  // Initialiser la configuration des niveaux depuis les données.
+  // ⚠️ On y remplissait aussi une carte `profondeurs`, tirée de l'ancienne colonne
+  // `profondeur_sommaire` : plus rien ne la lisait depuis que `niveaux_sommaire` l'a
+  // supplantée (la colonne survit en repli, ci-dessous et dans la page d'œuvre).
   React.useEffect(() => {
-    const init: Record<string, number> = {}
     const initNiv: Record<string, { sommaire: number; corps: number; txtSommaire: boolean[]; txtCorps: boolean[]; afficherNumeros: boolean }> = {}
     auteurs.forEach(a => a.oeuvres.forEach(o => {
-      if (o.profondeur_sommaire) init[o.id_oeuvre] = o.profondeur_sommaire
       const parseBool = (s: string | null | undefined) => (s ?? '0,0,0,0,0').split(',').map(v => v === '1')
       initNiv[o.id_oeuvre] = {
         sommaire: o.niveaux_sommaire ?? o.profondeur_sommaire ?? 1,
@@ -1383,7 +1383,6 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
         afficherNumeros: o.afficher_numeros !== false,
       }
     }))
-    setProfondeurs(init)
     setNiveauxConfig(initNiv)
   }, [auteurs])
 

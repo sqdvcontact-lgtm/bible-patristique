@@ -306,7 +306,6 @@ export default function RechercheClient() {
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
   const [lastQuery, setLastQuery] = useState('')
-  const [lastScope, setLastScope] = useState<string>('TR0001')
   const [onglet, setOnglet] = useState<Onglet>('bible')
   const [pageV, setPageV] = useState(0)
   const [pageS, setPageS] = useState(0)
@@ -472,7 +471,7 @@ export default function RechercheClient() {
     // montrer la carte (relevé sur le site, 2026-09-06). La carte se pose seule.
     const ref = referenceBiblique(q)
     setReference(ref)
-    if (ref) { setLastQuery(q); setLastScope(scopeActif); setLoading(false); setDone(false); return }
+    if (ref) { setLastQuery(q); setLoading(false); setDone(false); return }
 
     try {
       // ⛔ UNE SEULE VOIE, un mot ou plusieurs (audit du 2026-09-06). La base reçoit les
@@ -535,7 +534,7 @@ export default function RechercheClient() {
       setVersetsPage({ cle: cleDePage(requeteNeuve, 0, null), lignes: (resPageV.data ?? []) as VersetResult[] })
       setSegmentsPage({ cle: cleDePage(requeteNeuve, 0, null), lignes: ((resPageS.data ?? []) as Record<string, unknown>[]).map(segmentDepuisRpc) })
       setRequete(requeteNeuve)
-      setLastQuery(q); setLastScope(scopeActif)
+      setLastQuery(q)
       setLoading(false); setDone(true)
       if (zoneResultatsRef.current) zoneResultatsRef.current.scrollTop = 0
 

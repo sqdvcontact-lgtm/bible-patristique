@@ -423,7 +423,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // `lien_4` n'existent plus. Il a été rebâti sur `liens_bibliques`, puis retiré : ce
   // travail relève de l'atelier, non du volet de lecture d'un lecteur.
   const [ongletDroit, setOngletDroit] = useState<'refs' | 'commentaires'>('refs')
-  const { exigerCompte } = useCompte()
   const [userId, setUserId] = useState<string | null>(null)
   const [sauvegardesSegs, setSauvegardesSegs] = useState<Set<number>>(new Set())
   const [vue, setVue] = useState<'texte' | 'apparat'>(vueInitiale)
@@ -582,6 +581,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     params.delete('division')
     router.replace(`${window.location.pathname}${params.size ? `?${params.toString()}` : ''}`, { scroll: false })
   }
+  // ⛔ NE PAS SUPPRIMER PARCE QUE « PERSONNE NE L'APPELLE ». Cette fonction n'a plus de
+  // bouton depuis la refonte des sélecteurs de lecture (18 août 2026), et c'est VOULU :
+  // tout l'appareil de comparaison dort derrière `COMPARAISON_ACTIVE = false`, quelques
+  // lignes plus haut, où il est dit réversible d'une ligne. Le linter la signale comme
+  // morte ; elle est en sommeil, ce qui n'est pas la même chose. La rétablir demande de
+  // remettre `COMPARAISON_ACTIVE` à vrai ET de lui rendre un point d'entrée.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- en sommeil, voir ci-dessus
   const ouvrirLectureParallele = (setId: string) => {
     setVue('texte')
     setAlignmentSetId(setId)

@@ -16,7 +16,10 @@ const BTN_NOTE: CSSProperties = {
 }
 
 function EditeurNoteWysiwyg({ valeur, mode, onChange, onEnregistrer }: {
-  valeur: string; mode: 'creation' | 'modification'; onChange: (s: string) => void; onEnregistrer: (s: string) => void
+  // ⚠️ `onChange` est facultatif : `onEnregistrer` reçoit `valeurCourante()`, lue dans
+  // la zone éditable au moment du clic. Le parent n'a donc rien à tenir en double —
+  // il le faisait, dans un état que personne ne relisait.
+  valeur: string; mode: 'creation' | 'modification'; onChange?: (s: string) => void; onEnregistrer: (s: string) => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const chargeRef = useRef(false)
@@ -31,7 +34,7 @@ function EditeurNoteWysiwyg({ valeur, mode, onChange, onEnregistrer }: {
     }
   }, [valeur])
 
-  const synchroniser = () => { if (ref.current) onChange(htmlVersSyntaxe(ref.current.innerHTML)) }
+  const synchroniser = () => { if (ref.current) onChange?.(htmlVersSyntaxe(ref.current.innerHTML)) }
   const commande = (cmd: string) => { ref.current?.focus(); document.execCommand(cmd); synchroniser() }
   const petitesCapitales = () => {
     ref.current?.focus()
@@ -80,7 +83,6 @@ type Props = {
 
 export default function VoletEssai({ element, onFermer, toujoursVisible, inline, enTete, editionNote, onEnregistrerNote }: Props) {
   const [contenu, setContenu] = useState<string | null>(null)
-  const [texteNote, setTexteNote] = useState('')
   const [chargement, setChargement] = useState(false)
   const [elementInterne, setElementInterne] = useState<ElementPanneau | null>(null)
   const elementActif = elementInterne ?? element
@@ -97,7 +99,6 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
     if (!elementActif) return
     if (elementActif.type === 'note') {
       setContenu(elementActif.texte)
-      setTexteNote(elementActif.texte)
       return
     }
     setChargement(true)
@@ -164,7 +165,6 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
               key={cleEdition}
               valeur={elementActif.texte}
               mode={editionNote.mode}
-              onChange={setTexteNote}
               onEnregistrer={onEnregistrerNote}
             />
           ) : (
