@@ -974,6 +974,16 @@ Audit d'harmonie, dix constats. Les corrections, dans l'ordre de leur importance
 
 **Fonds de page** : cinq sols coexistaient pour un seul « fond du site » — `var(--cs-fond)`, `#f4f0eb` (Histoire, catalogue des péricopes), `#f6f2e8` (Polyglotte, dont la constante était pourtant annotée « fond commun aux autres pages du site »), `#f3efe2` (Profil), `#e8eceb` (Administration, un gris-bleu franchement hors de la famille chaude, alors que `/admin/controle` employait déjà le token). Tous ramenés à `var(--cs-fond)`.
 
+## ⛔ Une carte de commentaire est UNE boîte (2026-09-08)
+
+Le dessin vit dans **`app/lib/styleCommentaire.ts`**, et les trois écritures le lisent : le volet d'un verset (`PanneauPatristique`), l'onglet d'une œuvre (`OngletCommentaires`), le pied d'un essai (`EssaiCommentaires`). Elles en portaient trois copies, à quelques dixièmes de rem l'une de l'autre, et c'est ainsi qu'elles avaient divergé — un rang de texte, un creux, un rayon différents pour le même objet.
+
+- ⛔ **Pas de bandeau latéral décoratif.** Un `borderLeft: 4px` peint dans la couleur de la BORDURE n'est pas un signe, c'est un côté épaissi : il coûtait du bruit sur chaque carte pour une information — certifié, en révision — qui est rare, et que le badge et la teinte de fond disaient déjà deux fois. Un état se dit par la bordure ENTIÈRE et le fond.
+- ⛔ **Pas de boîte dans la boîte.** Le texte recevait fond, rayon et creux propres, à un pixel de ceux de la carte. Deux boîtes concentriques pour un seul objet ; et son fond était un `rgba(255,255,255,0.54)` en dur, c'est-à-dire un voile laiteux sur le sol du Cuir. Le corps se pose à MÊME la carte.
+- **Une réponse s'indente** (`RETRAIT_REPONSE`, 14 px) et son fond rentre d'un cran (`--cs-fond-doux`). ⚠️ Pas `--cs-fond-clair`, qui vaut EXACTEMENT `--cs-surface` en Cuir : la réponse y serait invisible. Un filet vertical n'est pas la réponse à un bandeau qu'on vient de retirer.
+- **Le rouge du contrôle passe par `--cs-danger-fond` / `-bord` / `-fonce`**, qui se retournent avec le thème. Onze valeurs de `rgba(176,58,42,…)`, plus `#b0392b` et `#6f3d35`, ont quitté l'inventaire des couleurs en dur ce jour-là ; deux fichiers en sont entièrement sortis.
+- ⚠️ **Un compteur de votes à ZÉRO ne s'écrit pas** : c'est l'état de presque tous les commentaires, et deux zéros sous chaque carte font du bruit pour ne rien dire. Le chiffre paraît au premier vote. De même, une ligne d'actions vide ne se rend pas : elle ne laissait qu'un blanc, et la carte paraissait mal fermée.
+
 # Mode sombre — le Cuir (2026-08-23)
 
 Le chantier « confort de lecture », ouvert le 4 août et mis en pause le lendemain, est repris et **servi**. Le thème sombre s'appelle **Cuir** dans le code (`data-theme="sombre"`), et c'est désormais le SEUL thème alternatif.
