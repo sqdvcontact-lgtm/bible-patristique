@@ -17,7 +17,7 @@ composantes de la page, qui est celle des lettres, et l'on ne retient que ce qui
 la dépasse franchement — EN HAUTEUR seule, voir le corps.
 
 CALIBRÉ SUR LES ONZE PAGES DE MARC, dont les boîtes sont en base et servent de
-témoin (charte § 35.16.15) : la bonne gravure sort au RANG 1 sur les onze, et la
+témoin (charte § 49.15) : la bonne gravure sort au RANG 1 sur les onze, et la
 boîte s'accorde à ±1 % de la page sur neuf. Les deux écarts restants portent sur
 l'ÉTENDUE — un élément voisin au-dessus — et demandent un œil.
 
