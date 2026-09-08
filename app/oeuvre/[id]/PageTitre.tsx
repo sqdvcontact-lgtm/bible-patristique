@@ -257,10 +257,14 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
       )}
 
       {/* Traducteur — vient AVANT la marque d'imprimeur */}
-      {(traducteur || estAdmin) && (
+      {/* ⚠️ L'INVITE DE L'ADMINISTRATEUR SUIT LE CRAYON, et le crayon ne paraît que
+          sur l'œuvre : sur une version, « Traduction de… » invitait à remplir un champ
+          qu'on ne peut pas corriger là — et sur un texte latin, à lui donner un
+          traducteur qu'il n'a pas. */}
+      {(traducteur || (estAdmin && !versionActive)) && (
         <div style={{ position: 'relative' }}>
           <p style={{ fontFamily: SERIF, fontSize: '0.875rem', color: 'var(--cs-texte-second)', marginBottom: '6px' }}>
-            {traducteur ? <>{traducteurLabel}</> : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.75rem' }}>Traduction de…</span> : null}
+            {traducteur ? <>{traducteurLabel}</> : <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.75rem' }}>Traduction de…</span>}
           </p>
           {estAdmin && !versionActive && (
             <button onClick={() => onModifier('trad_auteur', oeuvre.trad_auteur ?? '')} title="Modifier le traducteur"
