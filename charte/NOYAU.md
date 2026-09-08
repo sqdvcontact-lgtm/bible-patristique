@@ -461,6 +461,20 @@
 - ⛔ Le mécanisme se pose AVANT la passe, non pendant, et il vaudra pour tout bloc qu’on voudra retenir — non pour les seuls treize « ibid. » orphelins.
 - ⚠️ Le RENVOI INTERNE reste un texte, non un lien.
 
+**§ 13.13 — L’ENCART d’une note — un seul, pour toutes les surfaces**
+
+- ⛔ Une note s’ouvre partout dans le MÊME encart.
+- ⛔ Et cette hauteur se compte en REM, jamais en pixels.
+- ⛔ L’INTITULÉ nomme le TYPE de la note, et il SE TAIT quand elle n’en déclare aucun.
+- ⛔ Et jamais « Note » écrit en dur, qui n’est pas un type mais l’aveu qu’on n’en connaît aucun.
+- ⚠️ Ce qui identifie la note ne disparaît pas pour autant : le NUMÉRO passe dans une gouttière — au fer à droite contre le texte, dans la face du numéro de verset de la page Bible.
+- ⛔ Le numéro affiché est celui du LECTEUR, jamais le numéro interne : celui-ci porte l’identité et l’ordre, non l’adresse que le lecteur vient de cliquer.
+- ⛔ La croix ne paraît que sur un encart PERSISTANT.
+- ⛔ Un encart de survol ne se fige pas non plus tout seul au bout d’un délai : il se ferme quand la main s’en va, et un encart persistant se demande d’un clic.
+- ⚠️ L’appel se MARQUE tant que sa note est ouverte — de la surbrillance du segment actif de la lecture : c’est le second lien entre l’appel et sa note, celui qu’on suit des yeux en revenant au texte.
+- ⛔ Une seconde grammaire pour le même office serait une grammaire de trop.
+- ⛔ Au DOIGT, l’encart s’ouvre AU-DESSUS de son appel.
+
 ## § 14. OCR, HTR et transcription patrimoniale
 
 **§ 14 — OCR, HTR et transcription patrimoniale**

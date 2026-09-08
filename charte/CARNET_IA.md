@@ -205,3 +205,33 @@ Neuf collaient un sous-titre en gras à la fin du paragraphe précédent — don
 ⛔ **Six suites RESTENT, et elles sont justes** : elles vivent dans un intervalle de code, où elles DÉSIGNENT la valeur au lieu de la subir — le `join_before` d'un vers au § 7.4, le séparateur de paragraphe du § 13.8.1, l'interdit du § 45.2. Le contrôle compte donc les accents graves qui précèdent, et ne relève que ce qui tombe hors du code.
 
 **Corollaire de méthode** : un défaut qui rend un titre INVISIBLE ne se trouve par aucun compte, puisqu'il retire l'objet qu'on compterait. Il se cherche par son symptôme matériel — ici, deux caractères — sur le fichier entier.
+
+### 2026-09-08 — L'encart de note : les neuf divergences, et ce que la mesure a décidé
+
+Demande de l'auteur, après avoir écarté les notes en marge : « Je veux un encart propre, avec des marges, épuré, large, avec un élément qui permet de savoir à quelle note il est associé ; dans l'esprit du site. » Puis, sur l'intitulé : « Je propose qu'il disparaisse pour les 58 % de notes sans type, - ok ». La doctrine est au § 13.13 ; voici les chiffres.
+
+**Les neuf divergences des trois encarts**, relevées avant reprise :
+
+| | lecture d'une œuvre | traductions parallèles | page Bible |
+|---|---|---|---|
+| largeur | 340 px | 340 px | 460 px |
+| hauteur demandée | 340 px | 340 px | 420 px |
+| corps du texte | 0,78125 rem | 0,78125 rem | 0,8125 rem |
+| rembourrage | 10 / 12 px | 10 / 12 px | 12 / 14 px |
+| croix | une fois figée | toujours | toujours |
+| intitulé | le TYPE de la note | apparat ou « Note » | « Note » en dur |
+| numéro affiché | celui du lecteur | le numéro INTERNE | celui du lecteur |
+| encre de la croix | `#b0a08a` en dur | `#b0a08a` en dur | jeton |
+| marge du placeur | 16 px | 16 px | `MARGE_FENETRE` |
+
+**Ce que le corpus dit** (24 168 notes, 24 729 blocs, mesuré le jour même) : médiane **29 signes**, neuvième décile **88**, maximum **10 094**. 73 % tiennent en quarante signes, 92,6 % en cent vingt, 2,4 % passent quatre cents. **14 077 notes — 58 % — ne déclarent aucun type** ; 8 425 sont un apparat critique. ⚠️ **Aucune note du corpus n'est unanimement `translator_note`** : le type existe au vocabulaire et personne ne le porte encore.
+
+**La hauteur, calibrée sur la composition réelle** (planche du jour, encart de 29 rem à la racine 16, piste de 355 px quand la barre de défilement paraît) : la médiane de 29 signes demande **65 px**, une note de 340 signes en demande **162**, un apparat de 90 signes avec son intitulé **91**. L'estimation rend 66, 163 et 103 — elle couvre les trois, et le plafond de 30 rem retient les 1 721 px que réclame la note de 3 963 signes de Boèce. ⚠️ Sa première écriture oubliait la marge de queue du dernier paragraphe et les deux filets : une note d'une seule ligne défilait.
+
+**Trois défauts corrigés en chemin**, tous invisibles depuis une seule surface : les traductions parallèles affichaient le numéro interne ; la page Bible écrivait « Note » en dur ; et l'infobulle de la lecture se figeait au bout de quatre secondes de survol, sans que rien ne le dise — la croix paraissait alors sous le curseur.
+
+⚠️ **Un quatrième s'est vu à la PLANCHE, et nulle part ailleurs** : la croix se pose au coin du cadre, la barre de défilement au bord du corps, et une barre système de quinze pixels passait exactement dessous. L'encart prend donc la barre discrète du site, six pixels, qui rend en outre six pixels de piste au texte.
+
+⚠️ **Ce que la planche a d'abord fait dire de faux** : rendue sans la préflight de Tailwind, elle mesurait ses boîtes en `content-box` et donnait 366 px de large à l'encart d'hier, qui en fait 340. Une planche qui inline la feuille du site doit inliner aussi ce que la préflight y pose.
+
+**Reste ouvert** : les blocs d'une note biblique ne portent aucun `editorial_role` — l'axe « qui parle » n'existe que du côté patristique — et l'encart s'y tait donc toujours ; le jour où la donnée le portera, la règle du § 13.13 le composera sans qu'on y touche.

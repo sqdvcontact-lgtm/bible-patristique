@@ -2476,6 +2476,78 @@ Une cellule d’actions flottante — celle de la lecture d’une œuvre, celle 
 
 ⚠️ **Recette de reproduction, sans serveur de développement** : sous la session de l’auteur, envelopper `window.fetch` pour journaliser la table visée, puis provoquer le survol par `el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))`. ⛔ **Sans `relatedTarget`** : React abandonne l’événement si la cible liée appartient déjà à son arbre (`getClosestInstanceFromNode`), et `document.body` EST le conteneur racine — la cellule ne s’ouvre alors jamais, et l’on croit le composant hors d’atteinte.
 
+# ⛔ UN SEUL ENCART DE NOTE — `EncartNote` + `compositionNote.ts` (2026-09-08)
+
+Doctrine : charte `parametres.charte_ia`, **§ 13.13** (ce qu'est l'encart, l'intitulé qui
+se tait, le numéro dans sa gouttière) ; les neuf divergences et les mesures sont au
+carnet. Ici, ce qu'il faut savoir pour y toucher.
+
+- ⛔ **DEUX modules, et ils ne font pas la même chose.** `app/lib/compositionNote.ts`
+  porte la COMPOSITION — pure, testée, sans une ligne de React : largeur, rembourrage,
+  corps, gouttière, cadre, corps défilant, et `hauteurSouhaiteeNote`.
+  `app/components/EncartNote.tsx` porte le CADRE, et il ne connaît ni la donnée ni la
+  façon dont on l'ouvre : un numéro, un intitulé s'il y en a un, une place, et le propos
+  en enfants. ⛔ Ne recomposer un encart de note nulle part ailleurs : ils étaient trois.
+- ⛔ **Le CONTENU reste à chaque surface, et c'est voulu** : la page Bible compose ses
+  blocs par `ContenuNoteBiblique`, la lecture d'une œuvre et les traductions parallèles
+  par `ContenuNoteStructuree`, et ce sont deux modèles de donnée. Ce qui se réunit est le
+  cadre, où vivaient les neuf divergences.
+- ⚠️ **`EncartNote` ne porte AUCUN crochet** : c'est un composant pur, que
+  `renderToStaticMarkup` rend hors du navigateur. C'est ce qui permet à une planche de le
+  juger, et c'est la même coupure que `ContenuFicheTraduction` ou `ProposVisite`.
+- ⛔ **DEUX ÉLÉMENTS, cadre et corps, et non un.** Une croix posée en absolu DANS la zone
+  qui défile s'en va avec elle : son bloc conteneur est la boîte de rembourrage, et le
+  décalage du défilement s'y applique. Le cadre est un flex en colonne, le corps prend la
+  hauteur qui reste (`flex: 1 1 auto; min-height: 0`) — ⚠️ pas un `max-height: inherit`,
+  qui hérite de la valeur du cadre, laquelle vaut sa boîte de BORDURE : deux pixels du bas
+  de la zone défilante passaient sous le filet.
+- ⛔ **LA BARRE DE DÉFILEMENT EST `.cs-defilement-discret`, et ce n'est pas un ornement** :
+  la croix se pose au coin du CADRE, la barre au bord du CORPS, et une barre système de
+  quinze pixels passe exactement dessous. Six pixels, et la croix est dégagée ; le texte y
+  gagne six pixels de piste au passage. Mesuré sur la planche, invisible à la lecture.
+- ⛔ **La largeur s'écrit DEUX fois, et les deux viennent de la même constante** :
+  `LARGEUR_ENCART` en rem pour la feuille, `largeurEncartPx(racine)` en nombre pour
+  `placerFenetre`, qui compte en pixels. La police racine est fluide : un nombre écrit à
+  part se désaccorderait de la boîte au premier grand écran.
+- ⛔ **`hauteurSouhaiteeNote({ signes, racine, avecIntitule })` se compte en REM.** Elle ne
+  se mesure pas dans le document — le placeur en a besoin AVANT de poser la boîte, et pour
+  choisir son côté —, et elle est PLAFONNÉE : une note de dix mille signes qui demanderait
+  six mille pixels ferait basculer toutes les notes longues vers le haut, où elles n'ont
+  pas plus de place. ⚠️ Le chrome compte la marge de queue du dernier paragraphe et les
+  deux filets : les oublier faisait défiler une note d'UNE ligne.
+- ⛔ **L'INTITULÉ passe par `intituleDeLaNote` (`app/lib/typeNote.ts`), qui rend `null`
+  quand la note ne déclare aucun type.** ⚠️ Ne pas le confondre avec `libelleDeLaNote`,
+  qui rend TOUJOURS un libellé : celui-ci sert encore le NOM ACCESSIBLE de l'appel, où
+  « Note 277 » est exactement ce qu'il faut dire à qui ne voit pas l'exposant.
+- ⚠️ **Une note BIBLIQUE ne déclare aucun type, et le type le dit** :
+  `BibleEditionDisplayTextBlock` n'a pas d'`editorialRole`, si bien que l'appel de
+  `intituleDeLaNote` ne compile pas — `NoteBibliqueFenetre` passe donc `null` avec sa
+  raison écrite. ⛔ Ne pas ajouter le champ au type pour « faire passer » l'appel : un
+  champ que rien ne remplit n'est pas une réserve pour plus tard.
+- ⛔ **Le numéro affiché est `displayNumber ?? noteNumber`**, jamais le numéro interne
+  seul : celui-ci porte l'identité et l'ordre, non l'adresse que le lecteur vient de
+  cliquer. Les traductions parallèles montraient l'interne, si bien que le même appel ne
+  portait pas le même chiffre d'une surface à l'autre.
+- **`placerFenetre` prend `prefereDessus`** (`fenetreContextuelle.ts`, pur, testé), passé
+  par `useSansSurvol` : au doigt l'encart s'ouvre au-dessus, sous le point de frappe il y
+  a la main. ⛔ L'axe est la capacité du POINTEUR, jamais la largeur de l'écran.
+- ⛔ **Plus de gel au bout de quatre secondes de survol** dans `appelNote.tsx` : l'encart
+  devenait persistant sans que rien ne le dise, la croix paraissait sous le curseur, et il
+  fallait un clic pour défaire ce qu'on n'avait pas demandé. Entrer dans l'encart le
+  RETIENT (`onMouseEnter` / `onMouseLeave`, portés par le composant), sans le figer.
+- ⚠️ **`STYLE_APPEL_OUVERT` est EXACTEMENT la surbrillance du segment actif**
+  (`.seg-inline--actif`), jeton compris et SANS rayon d'angle. Un rayon de 2 px y a vécu
+  une heure, hors de l'échelle des rayons — et c'est `formes.test.ts` qui l'a refusé.
+- **La planche est `tmp/planche-encart-note.tsx`** : quatre notes RÉELLES prises en base,
+  le côté « après » rendu par les modules mêmes de la page, le côté « avant » transcrit
+  des styles en ligne de `git show HEAD:…`. ⚠️ Elle inline la feuille du site ET le peu de
+  la préflight de Tailwind qui la touche : sans `box-sizing: border-box` elle donnait
+  366 px à un encart qui en fait 340, et sans la remise à zéro des marges les paragraphes
+  d'une note reprenaient celles du navigateur.
+- ⚠️ **Le curseur d'un appel de note est `pointer`, non `help`** : le point
+  d'interrogation promet une explication qui viendrait d'elle-même, quand l'appel OUVRE
+  une note d'un clic.
+
 # ⛔ LE BOUTON-LIEN — `.cs-bouton-lien` / `.cs-lien-phrase` (2026-09-07)
 
 Doctrine : charte `parametres.charte_ia`, **§ 51.3**. Ici, ce qu'il faut savoir pour y toucher.

@@ -2011,6 +2011,24 @@ Demandé par l’auteur le 5 septembre 2026 : « Il faut évidemment lister les 
 
 ⚠️ **Le RENVOI INTERNE reste un texte, non un lien.** La nature `internal_cross_reference` existe (§ 13.10) et sépare déjà ce qui pointe au dedans de ce qui pointe au dehors ; mais rien ne DÉSIGNE encore le segment ou la note visés. La décision 4 le prépare — on lit, on juge, on range — et la cible se posera quand le modèle saura la porter.
 
+### 13.13 L’ENCART d’une note — un seul, pour toutes les surfaces
+
+⛔ **Une note s’ouvre partout dans le MÊME encart.** Il y en avait trois — la lecture d’une œuvre, la page Bible, les traductions parallèles — et ils avaient divergé sur neuf points : la largeur, la hauteur, le corps du texte, le rembourrage, le moment où paraît la croix, ce qu’annonce l’intitulé, le numéro affiché, l’encre de la croix. *Trois copies d’une même forme ne restent identiques que par accident.* Le CADRE est commun ; le CONTENU reste à chaque surface, la page Bible et la lecture d’une œuvre n’ayant pas le même modèle de donnée.
+
+⛔ **La largeur NE SUIT PAS le contenu.** Une boîte qui épouserait les treize signes d’un renvoi changerait de taille à chaque appel survolé, et la lecture d’une ligne qui en porte trois deviendrait un clignotement. Une seule largeur, large, et le calme avec elle. C’est la HAUTEUR qui suit la note, plafonnée : au delà, l’encart défile en dedans.
+
+⛔ **Et cette hauteur se compte en REM, jamais en pixels.** La police racine du site est fluide, tout ce que la boîte contient grandit avec elle, et un chiffre écrit en pixels ne serait juste qu’à une seule taille d’écran — il sous-estimerait d’un tiers sur un grand, ce qui ferait défiler une note de deux lignes. Seuls les filets restent en pixels, n’ayant jamais suivi la racine.
+
+⛔ **L’INTITULÉ nomme le TYPE de la note, et il SE TAIT quand elle n’en déclare aucun.** C’est le cas de trois notes sur cinq : leur bandeau annonçait « NOTE 277 » à quelqu’un qui venait de cliquer le 277, c’est-à-dire une ligne de capitales pour ne rien apprendre. Il ne reste que là où il apprend quelque chose — l’apparat critique, la note du traducteur, celle de l’édition. C’est la règle déjà posée ailleurs : on n’explique pas ce qui s’écrit déjà. ⛔ Et jamais « Note » écrit en dur, qui n’est pas un type mais l’aveu qu’on n’en connaît aucun.
+
+⚠️ **Ce qui identifie la note ne disparaît pas pour autant : le NUMÉRO passe dans une gouttière**, au fer à droite contre le texte, dans la face du numéro de verset de la page Bible. Il est là quand l’intitulé n’y est pas, il coûte une gouttière au lieu d’une ligne, et c’est ainsi que le site pose déjà tout chiffre qui accompagne un texte sans lui appartenir. ⛔ Le numéro affiché est celui du LECTEUR, jamais le numéro interne : celui-ci porte l’identité et l’ordre, non l’adresse que le lecteur vient de cliquer.
+
+⛔ **La croix ne paraît que sur un encart PERSISTANT.** Sur un survol elle promettrait un geste inutile et changerait la forme de l’objet sous le curseur. ⛔ Un encart de survol ne se fige pas non plus tout seul au bout d’un délai : il se ferme quand la main s’en va, et un encart persistant se demande d’un clic. Entrer dans la boîte la retient — on va y lire, et parfois la faire défiler — sans la figer.
+
+⚠️ **L’appel se MARQUE tant que sa note est ouverte**, de la surbrillance du segment actif de la lecture : c’est le second lien entre l’appel et sa note, celui qu’on suit des yeux en revenant au texte. ⛔ Une seconde grammaire pour le même office serait une grammaire de trop.
+
+⛔ **Au DOIGT, l’encart s’ouvre AU-DESSUS de son appel.** Sous le point de frappe il y a la main : une note posée dessous se lit à travers les doigts, et le lecteur retire la main pour voir ce qu’il vient d’ouvrir. L’axe est la capacité du pointeur, jamais la largeur de l’écran.
+
 ## 14. OCR, HTR et transcription patrimoniale
 
 Cette section régit deux opérations différentes : l’océrisation des imprimés anciens et la transcription assistée des manuscrits. ⛔ **Un moteur d’OCR ou de HTR produit un brouillon. Il ne produit jamais, à lui seul, un texte éditorial validé.**
