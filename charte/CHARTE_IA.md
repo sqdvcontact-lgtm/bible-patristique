@@ -636,7 +636,7 @@ Le vocabulaire éditorial autorisé est :
 | `citation` | citation longue ou bloc cité, lorsqu’une distinction d’affichage est utile |
 | `verset` | verset d’une citation biblique que l’édition pose verset par verset : un segment, un verset, et la suite des versets consécutifs forme la citation (§ 3.8) |
 | `lemme` | fragment cité servant de point de départ au commentaire |
-| `exergue` | le verset posé en SEUIL d’une pièce — catéchèse, homélie, sermon — et sa traduction : il annonce ce que la pièce entière va déplier, et se compose en retrait (§ 7.8). ⚠️ À distinguer du `lemme`, qui est la phrase qu’un commentaire explique à sa place, dans le fil |
+| `exergue` | le verset posé en SEUIL d’une pièce — catéchèse, homélie, sermon : il annonce ce que la pièce entière va déplier, et se compose en retrait (§ 7.8). ⚠️ La langue originale n’y est pas : elle va en NOTE, que l’exergue appelle en fin de phrase. ⚠️ À distinguer du `lemme`, qui est la phrase qu’un commentaire explique à sa place, dans le fil |
 | `signature` | bloc de signatures fermant un volume — approbations, censeurs, souscripteurs : une suite de lignes courtes que l’édition compose au fer à droite. ⚠️ À distinguer d’`apparat_editeur`, qui porte le paratexte rédigé quand `signature` n’en porte que les noms et les qualités |
 | `rubrique` | rubrique éditoriale qui n’est pas un niveau de titre |
 | `dialogue` | réplique ou bloc dialogué lorsque la distinction est utile |
@@ -1124,7 +1124,7 @@ trente-huit exergues sortent des lemmes, et le compte de `lemme` avait dérivé.
 | `apparat_editeur` | préface du traducteur, privilège, approbation : un paratexte EXTÉRIEUR à l'œuvre | l'apparat de l'auteur, qui appartient au corps | 323 |
 | `apparat_auteur` | prologue, avertissement, dédicace écrits par L'AUTEUR | ⛔ pas `apparat_editeur`, qui porte le paratexte de l'ÉDITION : celui-ci appartient au CORPS et se lit à sa place | 96 |
 | `lemme` | le verset biblique qu'un commentaire pose en tête du paragraphe qu'il commente | ⛔ ne se détache pas : un lemme se lit au fil du texte (décision du 20 août 2026). ⛔ Et ce n'est PAS un `exergue` : le lemme s'explique, l'exergue annonce | 220 |
-| `exergue` | le verset posé en seuil d'une pièce, et sa traduction : rentré du quart de la mesure, justifié (§ 7.8) | ⛔ pas un `lemme` : un exergue ne se commente pas ligne à ligne, et il quitte le fil | 38 |
+| `exergue` | le verset posé en seuil d'une pièce : rentré du quart de la mesure, justifié, la langue originale en note (§ 7.8) | ⛔ pas un `lemme` : un exergue ne se commente pas ligne à ligne, et il quitte le fil | 19 |
 | `rubrique` | une rubrique éditoriale qui n'est PAS un niveau de titre | un titre : elle ne prend ni balise `h*` ni place au plan | 43 |
 | `introduction` | un préambule appartenant au texte | | 57 |
 | `verset` | un verset d'une citation que l'ÉDITION pose verset par verset | ⛔ pas toute citation biblique : c'est la coupure IMPRIMÉE qui le fonde | 12 |
@@ -1282,6 +1282,29 @@ ANNONCE et ne se commente pas ligne à ligne. Les trente-huit segments des *Cat�
 baptismales* de Cyrille de Jérusalem portaient la première nature faute de la seconde,
 et se composaient donc en prose ordinaire, au fil du texte.
 
+⛔ **LA LANGUE ORIGINALE VA EN NOTE, ET L’EXERGUE EST CE QU’ON LIT.** Décision de
+l’auteur du 8 septembre 2026 : « mets le latin en note ». Faivre imprime le verset deux
+fois, en latin puis en français ; posés l’un sur l’autre en tête de la pièce, ils font
+deux seuils là où il n’y en a qu’un, et le lecteur traverse un texte qu’il ne lit pas
+avant d’atteindre celui qu’il lit. Le latin quitte donc le corps pour devenir le PREMIER
+BLOC de la note que l’exergue appelle, en nature `quotation` et en langue `la` ; le renvoi
+biblique de l’édition le suit dans la même note, où il identifie le passage cité (§ 13.5).
+⚠️ Rien n’est perdu ni caché : le verset se lit d’un clic, le témoin matériel reste dans
+`oeuvre_texte_unites`, et la note porte dans ses métadonnées le segment d’où elle vient.
+
+⛔ **L’APPEL SE POSE EN FIN DE PHRASE, SELON LE § 13.4** : il suit immédiatement le
+dernier mot du passage annoté et précède la ponctuation qui le clôt, guillemet fermant
+compris — `… le mal[[1]]. »`, `… à mes yeux[[531]] ? »`. ⚠️ Après une abréviation, la
+règle ne change pas : le point d’`etc.` ferme la phrase, et l’appel le précède —
+`… si avantageux, etc[[277]].`, comme le corpus l’écrit déjà vingt-trois fois contre
+huit. ⛔ Et l’appel ne se glisse pas dans une glose du traducteur : sur la Douzième
+catéchèse, il se pose après « Emmanuel » et non dans « (Dieu avec nous.) », qui n’est pas
+d’Isaïe.
+
+⚠️ **Un exergue peut encore en appeler un autre**, et la forme le prévoit : une édition
+qui poserait deux versets en tête garde entre eux la COUTURE décrite plus bas. Le corpus
+n’en compte plus aucun cas depuis que le latin est passé en note.
+
 **La forme, arrêtée par l’auteur le 8 septembre 2026.** Le bloc est RENTRÉ à gauche du
 quart de la mesure et JUSTIFIÉ : ses deux bords sont droits, et il pend au bord droit de
 la colonne, comme l’épigraphe du livre ancien. Il prend le corps de la citation sortie,
@@ -1305,11 +1328,11 @@ mesure minimale garde donc la main : le retrait vaut le quart, mais jamais plus 
 reste au-dessus d’elle, et il tombe à zéro quand la colonne descend au-dessous.
 
 ⛔ **LES DEUX BLANCS NE DISENT PAS LA MÊME CHOSE**, et c’est la règle du bloc de signatures
-prise sur un autre objet. Entre le verset et sa traduction, une COUTURE, la moitié du blanc
-de paragraphe : c’est un seul seuil dit deux fois, et le blanc entier en ferait deux seuils
-l’un derrière l’autre. Quand le texte s’ouvre, une COUPURE, une ligne de prose entière : on
-doit voir qu’on franchit quelque chose. ⚠️ La place d’un exergue dans son bloc se juge sur
-le bloc SUIVANT, jamais sur le segment.
+prise sur un autre objet. Entre deux exergues qui se suivent, une COUTURE, la moitié du
+blanc de paragraphe : ils sont un seul seuil dit deux fois, et le blanc entier en ferait
+deux seuils l’un derrière l’autre. Quand le texte s’ouvre, une COUPURE, une ligne de prose
+entière : on doit voir qu’on franchit quelque chose. ⚠️ La place d’un exergue dans son bloc
+se juge sur le bloc SUIVANT, jamais sur le segment.
 
 ⛔ **IL SORT DU PARAGRAPHE DE PROSE, que la donnée l’y range ou non.** Un bloc ne peut pas
 être rentré sur une partie seulement de ses lignes. La donnée des Catéchèses lui donne bien

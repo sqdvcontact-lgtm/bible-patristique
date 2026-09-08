@@ -1950,6 +1950,60 @@ style-nature exergue, et faire une mise en forme propre ». Règles de code :
   autres que `nature`. ⚠️ Les **220** autres `lemme` du corpus — Jonas, Joël et Abdias de
   Jérôme — n'ont PAS bougé : là, le lemme est bien la phrase que le commentaire explique.
 
+## Le LATIN passe en NOTE, l'appel en fin de phrase (2026-09-08, le soir)
+
+Décision de l'auteur, quelques heures après la pose du style : « mets le latin en note ;
+la note à la fin de la phrase, selon les règles ». Doctrine à la charte, § 7.8. Ici, ce
+qu'il faut savoir pour y revenir.
+
+- **Il ne reste que DIX-NEUF exergues**, les français. Le verset latin est devenu le
+  premier bloc (`quotation` / `prose` / `la`, rang 1) de la note que l'exergue appelle,
+  et le renvoi biblique de l'édition l'y suit au rang 2 : une seule note, un seul appel.
+  ⛔ On n'a pas créé dix-neuf notes neuves — la numérotation est CONTINUE et globale à
+  l'échelle du texte (§ 13.3), et en insérer au milieu aurait renuméroté les 1 849 notes.
+  On a REMPLOYÉ la note que le latin portait déjà, en y ajoutant un bloc et en déplaçant
+  son ancre. Le numéro ne bouge pas, son rang de lecture non plus.
+- ⛔ **Le bloc latin ne porte AUCUN marqueur d'italique** : `language = 'la'` l'italise au
+  rendu (`ContenuNoteStructuree`, charte § 13.8), et l'écrire des deux façons ne se verrait
+  pas à l'écran en laissant deux vérités. Les deux astérisques du segment sont donc ôtés.
+- ⛔ **L'appel se pose AVANT la ponctuation finale**, guillemet compris (§ 13.4), et le
+  corpus le dit aussi bien que la charte : **5 748** `mot[[n]].` contre 18 `mot.[[n]]`, et
+  **23** `etc[[n]].` contre 8 `etc.[[n]]`. C'est ce compte, non un goût, qui a tranché le
+  cas de l'abréviation.
+- ⚠️ **La règle mécanique ne suffit pas partout, et une exception est NOMMÉE** : sur la
+  Douzième catéchèse, reculer jusqu'au dernier caractère alphanumérique posait l'appel
+  dans « (Dieu avec nous.) », qui est la glose du traducteur et non le texte d'Isaïe. Il
+  se pose après « Emmanuel ».
+- ⚠️ **L'offset d'ancre se compte dans le texte QUI PORTE le marqueur.** C'est la
+  convention de ce texte, vérifiée sur les ancres d'avant : `segment_offset_unicode` est
+  l'index du marqueur lui-même, non une frontière dans un texte qui en serait dépouillé.
+  Les fenêtres témoins (`anchor_text_left` / `right`) se prennent dans le même texte.
+- ⛔ **On ne touche PAS `source_target`**, qui vaut ici la clé de la note (`…:limref:…`)
+  au lieu de nommer le champ visé, contre le § 13.6. Ces notes rendent par leur marqueur
+  MATÉRIEL, non par la projection ; le corriger ajouterait un second mécanisme faisant le
+  même travail. **C'est un défaut à signaler, non à corriger en passant.**
+- **Trouvé en chemin, et corrigé** : l'appel `[[38]]` était matériel dans DEUX segments
+  (108 et 109) alors que son ancre ne désigne que le second. Celui de 108 n'ouvrait donc
+  aucune note — `rendreTexteAvecNotes` rend `notes[marqueur] ?? ''`, c'est-à-dire un
+  exposant muet. Retiré là où l'ancre n'est pas. ⛔ La note, son ancre et son contenu
+  n'ont pas bougé : dire qu'elle appartient à l'exergue plutôt qu'au paragraphe suivant
+  est un arbitrage philologique, et il n'est pas de ce ressort.
+- **Le contrôle passe par le VRAI chargeur** : `tmp/controle-exergue-note.mts` appelle
+  `chargerNotesStructurees` et `notesPourTexte`, ceux de la page, et exige pour chaque
+  exergue un bloc `quotation`/`la` et aucun appel sans note. Dix-neuf sur dix-neuf, zéro
+  dégradation. ⛔ Trouver les lignes en base ne prouve rien sur ce que le lecteur voit.
+- **Retour arrière** : `sql/rollback_exergue_latin_en_note_20260908.sql`. Sauvegardes
+  `internal.backup_exergue_segments_20260908` (38 lignes),
+  `internal.backup_exergue_ancres_20260908` (20 ancres) et le plan appliqué,
+  `internal.plan_exergue_latin_20260908`.
+- ⚠️ **`A0044O0003TFR-V11` est sous une passe de NORMALISATION des notes** (métadonnées
+  `reference_normalization_mission: A0044O0003|controle-protocole-20260906`, rebasées le
+  2026-09-07). La base bouge sous les pieds : relire l'état avant toute reprise.
+- ⚠️ **Reste OUVERT, et signalé** : la note 1468 (titre de la Seizième catéchèse) porte
+  une ancre `source_target = 'ref_niv1_texte'` sans marqueur matériel nulle part, et la
+  projection ne connaît que `segment_texte` — son appel ne paraît donc pas. Antérieur à
+  cette passe, vérifié dans la sauvegarde.
+
 # Composition des VERS — l'alinéa de base, et les alinéas qui se lisent (2026-08-23)
 
 Toute la règle vit dans **`app/lib/compositionVers.ts`** (module pur, 15 tests sur les mesures RÉELLES de Boèce). `OeuvreClient` et `ComparaisonTraductions` s'y rapportent tous les deux : une seule composition, deux surfaces.

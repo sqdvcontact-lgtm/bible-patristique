@@ -123,6 +123,7 @@
 
 **§ 7 — Natures de segment**
 
+- ⚠️ La langue originale n’y est pas : elle va en NOTE, que l’exergue appelle en fin de phrase.
 - ⚠️ À distinguer du `lemme`, qui est la phrase qu’un commentaire explique à sa place, dans le fil |
 - ⚠️ À distinguer d’`apparat_editeur`, qui porte le paratexte rédigé quand `signature` n’en porte que les noms et les qualités |
 - ⛔ Elles sont QUATORZE, et `vers` n’en est pas.
@@ -205,7 +206,7 @@
 - ⛔ pas `apparat_editeur`, qui porte le paratexte de l'ÉDITION : celui-ci appartient au CORPS et se lit à sa place | 96 |
 - ⛔ ne se détache pas : un lemme se lit au fil du texte (décision du 20 août 2026).
 - ⛔ Et ce n'est PAS un `exergue` : le lemme s'explique, l'exergue annonce | 220 |
-- ⛔ pas un `lemme` : un exergue ne se commente pas ligne à ligne, et il quitte le fil | 38 |
+- ⛔ pas un `lemme` : un exergue ne se commente pas ligne à ligne, et il quitte le fil | 19 |
 - ⛔ pas toute citation biblique : c'est la coupure IMPRIMÉE qui le fonde | 12 |
 - ⛔ Le VERS n'est PAS dans cette table, et c'est le point à retenir
 
@@ -238,9 +239,13 @@
 **§ 7.8 — L’EXERGUE — le verset posé en seuil d’une pièce**
 
 - ⛔ CE N’EST PAS UN LEMME, ET C’EST TOUT L’OBJET.
+- ⛔ LA LANGUE ORIGINALE VA EN NOTE, ET L’EXERGUE EST CE QU’ON LIT.
+- ⚠️ Rien n’est perdu ni caché : le verset se lit d’un clic, le témoin matériel reste dans
+- ⛔ L’APPEL SE POSE EN FIN DE PHRASE, SELON LE § 13.4
+- ⛔ Et l’appel ne se glisse pas dans une glose du traducteur : sur la Douzième
+- ⚠️ Un exergue peut encore en appeler un autre
 - ⚠️ LE RETRAIT CÈDE QUAND LA MESURE NE PEUT PLUS LE PAYER.
 - ⛔ LES DEUX BLANCS NE DISENT PAS LA MÊME CHOSE
-- ⚠️ La place d’un exergue dans son bloc se juge sur
 - ⛔ IL SORT DU PARAGRAPHE DE PROSE, que la donnée l’y range ou non.
 - ⚠️ Ne pas le confondre avec l’exergue de l’INTERFACE
 
