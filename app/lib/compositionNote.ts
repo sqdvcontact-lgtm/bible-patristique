@@ -137,6 +137,28 @@ const REMBOURRAGE_VERTICAL_REM = Number.parseFloat(REMBOURRAGE_ENCART) * 2
 export const MARGE_PARAGRAPHE_ENCART_REM = 0.375
 export const MARGE_PARAGRAPHE_ENCART = `${MARGE_PARAGRAPHE_ENCART_REM}rem`
 const MARGE_QUEUE_REM = MARGE_PARAGRAPHE_ENCART_REM
+
+/* ── L'APPARAT CRITIQUE, DANS LE MÊME ENCART ───────────────────────────────────
+ *
+ * ⛔ SA COMPOSITION VIT ICI, avec celle de la note (demande de l'auteur, 2026-09-08 :
+ * « l'apparat critique doit suivre le même modèle »). Elle vivait dans le composant,
+ * en deux constantes écrites à part et un blanc en PIXELS : c'est exactement la
+ * divergence que ce module a réunie en septembre, et elle repoussait déjà — le corps
+ * de la note a bougé le 8 au soir, l'apparat ne l'a su que parce qu'il se dit en `em`.
+ *
+ * ⚠️ Il se compose UN CRAN SOUS la note, et le rapport est le sens même de ces deux
+ * valeurs : l'apparat se parcourt, il ne se lit pas comme de la prose — c'est le pied
+ * de page d'une édition critique, où les variantes s'entassent au plus serré. ⛔ Le
+ * corps se dit donc en `em` DE LA NOTE, jamais en rem : il en descend, il ne s'en
+ * détache pas, et il suivra tout resserrement futur sans qu'on y pense.
+ */
+export const CORPS_APPARAT = '0.94em'
+export const INTERLIGNE_APPARAT = 1.34
+/** Le blanc entre deux entrées d'apparat : deux tiers de celui d'une note, et en rem
+ *  comme tout le reste de l'encart. ⚠️ Il valait 4 px — la seule mesure de l'encart
+ *  qui ne suivait pas la police racine, et qui se resserrait donc toute seule sur un
+ *  grand écran, là précisément où la place ne manque pas. */
+export const MARGE_ENTREE_APPARAT = '0.25rem'
 /** L'intitulé et son blanc, quand il y en a un. */
 const INTITULE_ENCART_REM = 1.125
 /** Les deux filets. ⚠️ En PIXELS, comme tout filet du site : un rem les rendrait flous. */

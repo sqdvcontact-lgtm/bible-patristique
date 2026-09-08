@@ -1,4 +1,5 @@
 import { ROLE_APPARAT_CRITIQUE, texteApparatAffiche } from '@/app/lib/apparatCritique'
+import { CORPS_APPARAT, INTERLIGNE_APPARAT, MARGE_ENTREE_APPARAT } from '@/app/lib/compositionNote'
 import type { NoteBlocData, NoteStructuree } from './oeuvreTypes'
 
 // L'APPARAT CRITIQUE d'une édition savante — les variantes des manuscrits, non
@@ -25,11 +26,12 @@ import type { NoteBlocData, NoteStructuree } from './oeuvreTypes'
 // d'administration les lit sans que la lecture publique en porte un gramme. Un
 // état de collation ne se décide pas dans un renderer.
 
-// Un peu plus compact que la note ordinaire, et l'interligne resserré : l'apparat
-// se lit d'un bloc, comme au pied d'une page d'édition critique. Aucun encadré,
-// aucune carte — la composition seule le distingue de la prose.
-const CORPS = '0.94em'
-const INTERLIGNE = 1.34
+// ⛔ SA COMPOSITION N'EST PLUS ÉCRITE ICI : corps, interligne et blanc d'entrée
+// vivent avec ceux de la note, dans `compositionNote.ts` (demande de l'auteur,
+// 2026-09-08 : « l'apparat critique doit suivre le même modèle »). Deux constantes
+// dans un composant et un blanc en pixels, c'était la divergence même que ce module
+// a réunie — et elle repoussait. Aucun encadré, aucune carte : la composition seule
+// distingue l'apparat de la prose.
 
 function EntreeApparat({ bloc, dernier }: { bloc: NoteBlocData; dernier: boolean }) {
   return (
@@ -48,7 +50,7 @@ function EntreeApparat({ bloc, dernier }: { bloc: NoteBlocData; dernier: boolean
       // Seul le fait qu'un contrôle soit demandé l'est.
       data-controle-visuel={bloc.visualReviewReason ? 'true' : undefined}
       style={{
-        margin: dernier ? 0 : '0 0 4px',
+        margin: dernier ? 0 : `0 0 ${MARGE_ENTREE_APPARAT}`,
         // `pre-wrap` : les blancs de l'édition sont rendus tels quels, et la
         // sélection rapporte le texte au caractère près.
         whiteSpace: 'pre-wrap',
@@ -56,6 +58,22 @@ function EntreeApparat({ bloc, dernier }: { bloc: NoteBlocData; dernier: boolean
         // Une ligature joindrait le « fl » de « indiflnite » ou le « fi » d'une
         // lecture douteuse, et donnerait à voir un mot que le manuscrit n'a pas.
         fontVariantLigatures: 'none',
+        // ⛔ JUSTIFIÉ COMME LA NOTE — il l'hérite du corps de l'encart —, MAIS SANS
+        // CÉSURE, et les deux vont ensemble.
+        // ⚠️ La justification est la forme même d'un apparat : au pied d'une page
+        // d'édition critique, les variantes se rangent au fer des deux côtés. Elle ne
+        // creuse pas ici les lézardes qu'on lui craint, et deux mesures le disent :
+        // une entrée d'apparat est faite de JETONS COURTS séparés d'espaces et de
+        // ponctuation — donc de nombreuses occasions de répartir le blanc —, et sur
+        // les 8 486 entrées du corpus la médiane fait 31 signes et 87,5 % tiennent sur
+        // UNE SEULE ligne — la piste en porte 70, mesurées —, si bien que la
+        // justification ne travaille que sur un huitième d'entre elles. ⛔ Et pas une de
+        // ces entrées ne porte deux blancs de suite ni de tabulation : le `pre-wrap`
+        // ci-dessus ne lui donne donc aucun blanc d'éditeur à étirer, ce qui aurait été
+        // le vrai danger — un apparat où l'espacement fait sens.
+        // ⛔ La césure, elle, reste refusée : couper « BPQ » ou « phantasmatibus » sur
+        // deux lignes donnerait à lire un sigle et une leçon que l'éditeur n'a pas
+        // écrits. Aucun navigateur ne sait d'ailleurs couper le latin.
         hyphens: 'none',
         fontStyle: 'normal',
       }}
@@ -78,7 +96,7 @@ export function ContenuApparatCritique({ note }: { note: NoteStructuree }) {
       data-note-key={note.noteKey}
       data-note-number={note.noteNumber}
       data-apparat-critique=""
-      style={{ fontSize: CORPS, lineHeight: INTERLIGNE }}
+      style={{ fontSize: CORPS_APPARAT, lineHeight: INTERLIGNE_APPARAT }}
     >
       {blocs.map((bloc, i) => (
         <EntreeApparat key={bloc.blockId} bloc={bloc} dernier={i === blocs.length - 1} />

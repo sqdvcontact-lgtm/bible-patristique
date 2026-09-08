@@ -3,6 +3,10 @@ import { describe, expect, it } from 'vitest'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
 import { projeterAppelsNotesStructurees } from '@/app/lib/appelsNotesStructurees'
 import { ROLE_APPARAT_CRITIQUE } from '@/app/lib/apparatCritique'
+import {
+  CORPS_APPARAT, INTERLIGNE_APPARAT, INTERLIGNE_ENCART,
+  MARGE_ENTREE_APPARAT, MARGE_PARAGRAPHE_ENCART_REM,
+} from '@/app/lib/compositionNote'
 import type { NoteBlocData, NoteStructuree } from './oeuvreTypes'
 
 // Rendu de l'APPARAT CRITIQUE. On passe volontairement par `ContenuNoteStructuree`
@@ -94,11 +98,32 @@ describe('rendu d’un bloc critical_apparatus', () => {
     expect(html).toContain('white-space:pre-wrap')
   })
 
+  // ⛔ LES VALEURS SE LISENT AU MODULE COMMUN, elles ne se recopient pas : écrites à la
+  // main, elles rendraient ce test aveugle au jour où l'apparat se resserre — c'est ce
+  // qui est arrivé à deux constantes de `compositionNote.test.ts` le 8 septembre 2026.
   it('compose plus serré que la note ordinaire, et sans encadré', () => {
     const html = renderToStaticMarkup(<ContenuNoteStructuree note={noteApparat()} />)
-    expect(html).toContain('font-size:0.94em')
-    expect(html).toContain('line-height:1.34')
+    expect(html).toContain(`font-size:${CORPS_APPARAT}`)
+    expect(html).toContain(`line-height:${INTERLIGNE_APPARAT}`)
     expect(html).not.toContain('border')
+  })
+
+  // ⚠️ « Plus serré » n'est pas une figure de style : le rapport à la note EST le sens
+  // de ces deux valeurs, et il se vérifie plutôt que de se dire en commentaire.
+  it('se compose bien SOUS la note, et en em d’elle', () => {
+    expect(CORPS_APPARAT.endsWith('em')).toBe(true)
+    expect(Number.parseFloat(CORPS_APPARAT)).toBeLessThan(1)
+    expect(INTERLIGNE_APPARAT).toBeLessThan(INTERLIGNE_ENCART)
+    expect(Number.parseFloat(MARGE_ENTREE_APPARAT))
+      .toBeLessThan(MARGE_PARAGRAPHE_ENCART_REM)
+  })
+
+  // ⛔ Le blanc d'une entrée se compte en REM, comme tout l'encart : la police racine du
+  // site est fluide, et un blanc en pixels se resserrerait tout seul sur un grand écran.
+  it('sépare ses entrées d’un blanc qui suit la police racine', () => {
+    const html = renderToStaticMarkup(<ContenuNoteStructuree note={noteApparat()} />)
+    expect(MARGE_ENTREE_APPARAT.endsWith('rem')).toBe(true)
+    expect(html).not.toMatch(/margin:0 0 \d+px/)
   })
 
   it('n’affiche le numéro de ligne nulle part dans le TEXTE lu, et le garde en métadonnée', () => {
