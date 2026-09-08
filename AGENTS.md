@@ -2492,18 +2492,34 @@ code :
 - ⚠️ **La colonne se mesure AU GESTE, jamais pendant un rendu** : `colonneDeLecture` est
   une lecture de mise en page, et elle est rangée dans l'état à côté du rectangle de
   l'appel.
-- ⛔ **La marge se compte jusqu'au bord de la FENÊTRE, non jusqu'au volet.** Un volet est
-  une navigation, non ce qu'on lit : l'encart a le droit de s'y poser. C'est ce qui fait
-  la différence entre 366 px et rien du tout sur un écran de 1280.
-- ⚠️ **À égalité, la DROITE l'emporte** : la marge de gauche porte la manchette des
-  renvois.
+- ⛔ **La marge se compte jusqu'au bord du BLOC DE LECTURE, non jusqu'au bord de la
+  fenêtre** (renversé par l'auteur le soir du 8 septembre 2026 : « il faut que l'encart de
+  la note s'arrête au volet de droite (ou de gauche) »). `colonneDeLecture` rend donc
+  QUATRE nombres — la colonne et sa borne, cette dernière lue sur le PARENT de la colonne,
+  qui est le bloc entre les deux volets. C'est la lecture que `useManchetteRenvois` fait
+  déjà, et c'est pourquoi elle n'a rien coûté.
+- ⚠️ **Le prix est lourd, et il se mesure.** Relevé au navigateur en répliquant la
+  structure des deux pages (`tmp/mesure-borne-volet.mjs`, iframes aux largeurs voulues :
+  un `vw` s'y résout sur la largeur de l'iframe, police racine fluide comprise), les deux
+  volets OUVERTS — œuvre 98 · 169 · 281 · 475 px à 1280, 1440, 1920 et 2560 ; page Bible
+  68 · 136 · 238 · 432 ; lecture en regard 12 · 83 · 179 · 356. Les deux volets REPLIÉS à
+  leur rail, l'œuvre en laisse 329 dès 1280 et 603 à 1920. ⛔ À 20 rem de plancher,
+  l'encart ne gagne donc la marge qu'à 2560 sur une œuvre, jamais sur la page Bible, et
+  toujours dès qu'un volet se replie. ⛔ Ce n'est PAS une raison de baisser le plancher :
+  un encart de dix rem porterait douze signes par ligne.
+- ⛔ **LA DROITE L'EMPORTE DÈS QU'ELLE PORTE `largeurMin`**, et non plus à la seule
+  égalité : la marge de gauche porte la manchette des renvois. ⚠️ Bornée au volet, la
+  marge est EXACTEMENT symétrique tant que les deux volets sont ouverts ; un seul volet
+  replié la rend franchement dissymétrique, et l'ancien « le plus large gagne » aurait
+  envoyé l'encart sur la manchette.
 - ⛔ **L'encart SE RESSERRE à la place disponible** (`largeurMin`, `placement.largeur`,
   `styleCadreEncart({ largeur })`). Ce n'est pas la largeur qui suit le CONTENU, que le
   § 13.13 proscrit : elle suit la PLACE, elle est la même pour toutes les notes d'une
   page, et elle ne change que si le lecteur ouvre un volet lui-même.
 - ⚠️ **`LARGEUR_ENCART_MIN_REM` vaut 20**, vingt pixels de moins que le plus étroit des
-  trois encarts d'hier. ⛔ Le relever d'un rem renverrait l'encart par-dessus le texte sur
-  tous les portables : à 1280, la marge n'offre que 366 px.
+  trois encarts d'hier. ⛔ Ni le relever, ni le baisser : sous ce plancher une note ne se
+  lit plus, et `placerEnMarge` rend alors `null` — l'encart repasse sous son appel, comme
+  avant le 8 septembre 2026.
 
 # ⛔ LE NUMÉRO DE L'ENCART FLOTTE (2026-09-08)
 

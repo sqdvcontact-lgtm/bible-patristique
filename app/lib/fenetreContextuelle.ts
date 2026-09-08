@@ -101,9 +101,22 @@ export function hauteurMaxModale(vue: Vue, hautNavbar: number, marge = MARGE_FEN
   return Math.max(0, vue.hauteur - hautNavbar - marge * 2)
 }
 
-/** La colonne de lecture d'une page, en coordonnées de fenêtre. C'est elle que
- *  l'encart d'une note ne doit jamais couvrir. */
-export type ColonneLecture = { gauche: number; droite: number }
+/**
+ * La colonne de lecture d'une page, en coordonnées de fenêtre, et LA BORNE dans
+ * laquelle elle vit.
+ *
+ * ⛔ La borne est le bloc de lecture, c'est-à-dire ce qui reste ENTRE LES DEUX
+ * VOLETS. L'encart d'une note ne couvre ni la colonne ni les volets : il vit dans
+ * ce qui les sépare (décision de l'auteur, 8 septembre 2026). ⚠️ La règle d'avant
+ * l'autorisait à déborder sur un volet, au motif qu'un volet n'est pas ce qu'on
+ * lit ; elle est abolie.
+ */
+export type ColonneLecture = {
+  gauche: number
+  droite: number
+  borneGauche: number
+  borneDroite: number
+}
 
 /** L'attribut par lequel une page déclare sa colonne de lecture. */
 export const MARQUE_COLONNE_LECTURE = 'data-colonne-lecture'
@@ -114,7 +127,16 @@ export function colonneDeLecture(depuis: Element | null | undefined): ColonneLec
   const colonne = depuis?.closest(`[${MARQUE_COLONNE_LECTURE}]`)
   if (!colonne) return null
   const boite = colonne.getBoundingClientRect()
-  return { gauche: boite.left, droite: boite.right }
+  // ⚠️ La BORNE est le parent : le bloc de lecture, dont les volets sont les frères.
+  // C'est la même lecture que celle de la manchette. ⛔ Intercaler une enveloppe
+  // entre la colonne et ce bloc rendrait la borne plus étroite qu'elle n'est.
+  const borne = colonne.parentElement?.getBoundingClientRect()
+  return {
+    gauche: boite.left,
+    droite: boite.right,
+    borneGauche: borne?.left ?? boite.left,
+    borneDroite: borne?.right ?? boite.right,
+  }
 }
 
 export type PlacementEnMarge = PlacementFenetre & {
@@ -135,20 +157,26 @@ export type PlacementEnMarge = PlacementFenetre & {
  * ⚠️ Elle se pose À HAUTEUR de son appel, non dessous : c'est ce qui la rattache à
  * la ligne d'où elle vient. Elle ne descend que si le bas de l'écran l'y oblige.
  *
- * ⚠️ ELLE SE RESSERRE plutôt que de renoncer. Mesuré le 8 septembre 2026 : la
- * colonne de lecture d'une œuvre laisse 561 px à droite sur un écran de 1920, mais
- * 366 seulement sur un écran de 1280 — moins que les 29 rem de l'encart. Exiger la
- * largeur pleine l'aurait renvoyé par-dessus le texte sur la plupart des portables.
- * ⛔ Ce n'est PAS la largeur qui suit le contenu, que la charte proscrit : elle suit
- * la PLACE, elle est la même pour toutes les notes d'une même page, et elle ne change
- * que si le lecteur ouvre un volet lui-même.
+ * ⛔ ELLE S'ARRÊTE AU VOLET, et la règle d'avant disait l'inverse (décision de l'auteur,
+ * 8 septembre 2026). La marge se compte jusqu'au bord du BLOC DE LECTURE — `borneGauche`,
+ * `borneDroite` —, non jusqu'au bord de la fenêtre. Un volet est bien une navigation, mais
+ * une fenêtre posée dessus le RECOUVRE, et le lecteur qui l'a ouvert l'a ouvert pour le voir.
  *
- * ⛔ On ne rend RIEN sous `largeurMin` : une note ne se lit plus dans une colonne
- * trop étroite, et mieux vaut alors la poser sous son appel, comme avant.
+ * ⚠️ ELLE SE RESSERRE plutôt que de renoncer, et la place qui lui reste est bien plus
+ * étroite qu'on ne croit. Mesuré le 8 septembre 2026, les deux volets OUVERTS, en
+ * répliquant la structure des deux pages : la lecture d'une œuvre laisse 98 px de chaque
+ * côté à 1280, 169 à 1440, 281 à 1920 et 475 à 2560 ; la page Bible, 68 · 136 · 238 · 432 ;
+ * la lecture en regard, 12 · 83 · 179 · 356. ⛔ Ce n'est PAS la largeur qui suit le contenu,
+ * que la charte proscrit : elle suit la PLACE, elle est la même pour toutes les notes d'une
+ * même page, et elle ne change que si le lecteur touche à un volet lui-même.
  *
- * ⚠️ Elle peut en revanche déborder sur un VOLET, et c'est voulu : un volet est une
- * navigation, non ce qu'on est en train de lire, et une fenêtre flottante a le droit
- * de s'y poser. Seule la colonne de texte est sacrée.
+ * ⛔ On ne rend RIEN sous `largeurMin` : une note ne se lit plus dans une colonne trop
+ * étroite, et mieux vaut alors la poser sous son appel, comme avant. ⚠️ Le PRIX de la borne
+ * est donc là, et il est lourd : à 20 rem de plancher, les deux volets ouverts, l'encart ne
+ * gagne la marge qu'à partir de 2560 sur une œuvre et jamais sur la page Bible. ⛔ Ce n'est
+ * pas une raison de baisser le plancher : un encart de dix rem porterait douze signes par
+ * ligne. C'est le VOLET qui rend la place — replié à son rail, il laisse 328 px dès 1280 et
+ * 603 à 1920 — et le repli est un geste que le lecteur a déjà sous la main.
  */
 export function placerEnMarge({
   ancre, largeur, largeurMin, hauteurSouhaitee, vue, hautNavbar, colonne,
@@ -166,12 +194,19 @@ export function placerEnMarge({
   /** Le jeu entre la colonne de texte et l'encart. */
   ecart?: number
 }): PlacementEnMarge | null {
-  const placeDroite = vue.largeur - marge - (colonne.droite + ecart)
-  const placeGauche = (colonne.gauche - ecart) - marge
+  // ⛔ La borne est le VOLET, non la fenêtre : `marge` garde son office — le blanc qu'on
+  // laisse au bord utile — et c'est le bord utile qui a changé.
+  const placeDroite = (colonne.borneDroite - marge) - (colonne.droite + ecart)
+  const placeGauche = (colonne.gauche - ecart) - (colonne.borneGauche + marge)
 
-  // ⚠️ À égalité, la DROITE l'emporte : sur la page de lecture d'une œuvre, la marge
-  // de gauche porte la manchette des renvois, et l'encart la couvrirait.
-  const cote: 'gauche' | 'droite' = placeGauche > placeDroite ? 'gauche' : 'droite'
+  // ⛔ LA DROITE L'EMPORTE DÈS QU'ELLE PORTE LE MINIMUM, et non plus à la seule égalité.
+  // La marge de gauche porte la manchette des renvois, que l'encart couvrirait : elle ne
+  // sert donc que faute de mieux. ⚠️ Bornée au volet, la marge est SYMÉTRIQUE tant que
+  // les deux volets sont ouverts (mesuré : 280,7 px de chaque côté à 1920) ; un seul
+  // volet replié ferait sinon gagner son côté, et la gauche l'emporterait sur un écran
+  // où rien ne l'exige.
+  const cote: 'gauche' | 'droite' = placeDroite >= largeurMin || placeDroite >= placeGauche
+    ? 'droite' : 'gauche'
   const place = cote === 'gauche' ? placeGauche : placeDroite
   if (place < largeurMin) return null
   const largeurRetenue = Math.min(largeur, place)

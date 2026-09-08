@@ -496,10 +496,14 @@
 
 - ⛔ UNE NOTE S’OUVRE DANS LA MARGE, jamais par-dessus la colonne.
 - ⚠️ Elle se pose À HAUTEUR de son appel, non dessous : c’est ce qui la rattache à la ligne d’où elle vient, et elle ne descend que si le bas de l’écran l’y oblige.
-- ⚠️ Le côté est celui où il reste le plus de place ; à égalité, la droite.
-- ⚠️ Elle peut déborder sur un VOLET, et c’est voulu — un volet est une navigation, non ce qu’on est en train de lire.
-- ⛔ Elle SE RESSERRE plutôt que de renoncer.
-- ⛔ Ce n’est pas la largeur qui suit le CONTENU, que le § 13.13 proscrit : elle suit la PLACE, elle est la même pour toutes les notes d’une même page, et elle ne change que si le lecteur ouvre un volet lui-même.
+- ⛔ LA DROITE L’EMPORTE DÈS QU’ELLE PORTE LA LARGEUR PLANCHER — et la gauche ne sert que faute de mieux : la marge de gauche porte la manchette des renvois, et l’encart la couvrirait.
+- ⚠️ La règle d’avant prenait le côté le plus large, ce qui suffisait tant que la marge se comptait jusqu’au bord de la fenêtre et restait presque symétrique.
+- ⛔ L’ENCART S’ARRÊTE AU VOLET : la marge se compte jusqu’au bord du BLOC DE LECTURE, non jusqu’au bord de la fenêtre.
+- ⚠️ La règle inverse a valu quelques heures le 8 septembre 2026, et l’auteur l’a renversée le soir même.
+- ⛔ Le prix en est lourd, et il faut le connaître : les deux volets OUVERTS, la lecture d’une œuvre ne laisse plus que six rem de marge sur un portable, dix sur un écran ordinaire et quinze sur un grand écran, quand le plancher en demande vingt.
+- ⛔ Ce n’est pas une raison de baisser le plancher : un encart de dix rem porterait douze signes par ligne, et ce ne serait plus une note.
+- ⛔ Elle SE RESSERRE plutôt que de renoncer — et la place qui lui reste se MESURE, elle ne se suppose pas.
+- ⛔ Ce n’est pas la largeur qui suit le CONTENU, que le § 13.13 proscrit : elle suit la PLACE, elle est la même pour toutes les notes d’une même page, et elle ne change que si le lecteur touche à un volet lui-même.
 - ⛔ Sous une largeur plancher, l’encart repasse SOUS son appel — comme avant : une note ne se lit plus dans une colonne trop étroite, et mieux vaut couvrir le texte que sortir de l’écran.
 - ⛔ LE NUMÉRO FLOTTE, il n’occupe pas une colonne.
 - ⛔ UN RENVOI EN MARGE SE POSE SUR LA LIGNE DE BASE DE SA LIGNE — et cet accord se MESURE.

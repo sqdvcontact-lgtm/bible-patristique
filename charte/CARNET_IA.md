@@ -292,3 +292,30 @@ Décision de l'auteur, devant la manchette : « Ne pas afficher le titre "Réfé
 ⚠️ **ET `block_id` N'EST PAS UNIQUE.** 24 729 blocs pour 24 157 identifiants distincts : **492 sont portés par deux blocs**. La clé est `(id_texte, note_key, block_id)`, et un postcheck qui joint sur le seul `block_id` compare n'importe quoi avec n'importe quoi — il a rendu 3 271 « textes inattendus » qui n'existaient pas. ⛔ Toute écriture ou tout contrôle sur `texte_note_blocs` passe par la clé entière.
 
 ⚠️ **Reste, et c'est un choix** : 309 blocs ouvrent encore sur « Référence imprimée (…) » ou « Référence imprimée conservée / divergente ». Leur qualificatif porte une information ; le reformuler est une décision éditoriale, non un nettoyage.
+
+## 2026-09-08 — Ce que le VOLET laisse à l’encart d’une note
+
+L’auteur renverse le soir la règle du matin : « il faut que l’encart de la note s’arrête au volet de droite (ou de gauche) ». La marge ne se compte donc plus jusqu’au bord de la fenêtre mais jusqu’au bord du bloc de lecture. Relevé AVANT de trancher le plancher, parce qu’un raisonnement sur la cascade ne dit pas ce qu’un navigateur compose.
+
+**LA MÉTHODE.** `tmp/mesure-borne-volet.mjs` réplique la structure des deux pages — les formules de largeur des volets telles que les composants les écrivent, le rembourrage de `<main>`, la mesure de la colonne — dans des IFRAMES aux largeurs voulues, et lit les boîtes. ⚠️ Un `vw` dans une iframe se résout sur la LARGEUR DE L’IFRAME : c’est ce qui permet de mesurer cinq écrans sans redimensionner la fenêtre, la police racine fluide comprise. Trente cadres, deux états de volets.
+
+**LA MARGE UTILISABLE, de chaque côté, marge et écart ôtés** (px) :
+
+| surface | 1280 | 1440 | 1600 | 1920 | 2560 |
+|---|---:|---:|---:|---:|---:|
+| œuvre, volets ouverts | 98 | 169 | 211 | 281 | 475 |
+| œuvre, volets repliés | 329 | 409 | 474 | 603 | 875 |
+| Bible, volets ouverts | 68 | 136 | 172 | 238 | 432 |
+| Bible, volets repliés | 268 | 349 | 411 | 532 | 792 |
+| en regard, volets ouverts | 12 | 83 | 120 | 179 | 356 |
+| en regard, volets repliés | 243 | 323 | 384 | 502 | 757 |
+
+⚠️ **La police racine est fluide, donc le rem ne suit pas le pixel** : 16 à 1280 et 1440, 16,91 à 1600, 18,91 à 1920, 22 à 2560. En rem, l’œuvre volets ouverts donne **6,2 · 10,6 · 12,5 · 14,8 · 21,6** — c’est ce compte-là qui décide, le plancher étant en rem.
+
+⛔ **CE QUE LA BORNE COÛTE.** À 20 rem de plancher, l’encart ne gagne la marge qu’à partir de 2560 sur une œuvre, et JAMAIS sur la page Bible tant que les deux volets sont ouverts. Il repasse donc sous son appel presque partout, c’est-à-dire au comportement d’avant le 8 septembre. ⛔ Baisser le plancher pour le garder en vie serait la largeur qui suit la place poussée au-delà du lisible : à dix rem, l’encart porterait douze signes par ligne. **C’est le volet qui rend la place**, et son repli est un geste que le lecteur a déjà sous la main : replié, l’encart revient dès 1280.
+
+⚠️ **UN EFFET DE BORD QUE LA BORNE OUVRE, et qu’il a fallu fermer.** Comptée jusqu’à la fenêtre, la marge était toujours un peu plus large à DROITE (954 contre 854 à 2560), et la règle « le côté le plus large » y suffisait. Bornée au volet, elle est EXACTEMENT symétrique — 280,7 px des deux côtés à 1920 — et un seul volet replié la rend franchement dissymétrique du côté replié. La gauche, qui porte la manchette des renvois, l’aurait donc emporté sur des écrans où rien ne l’exige. La droite gagne désormais dès qu’elle porte le plancher.
+
+⚠️ **Le panneau navigateur refuse `file://` dans cette session** : la planche a été servie par un serveur statique de quinze lignes sur un port dédié, coupé aussitôt. Ce n’est pas le serveur de développement.
+
+✅ **Contrôle** : la planche `tmp/planche-encart-note.tsx`, qui recalcule les mêmes cas depuis le modèle de mise en page, rend 475 · 278 · 167 · 99 · 603 · 329 px — le navigateur avait mesuré 474,8 · 280,7 · 168,9 · 98,5 · 603,1 · 328,5. Deux chemins indépendants, le même résultat au pixel près.
