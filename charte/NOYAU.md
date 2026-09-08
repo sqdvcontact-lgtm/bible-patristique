@@ -486,6 +486,19 @@
 - ⛔ Un renvoi en marge n’est pas un ornement — et le seuil de contraste de 4,5 s’applique : il est le SEUL porteur de sa coordonnée, et c’est lui qu’on vient chercher au bord de la ligne.
 - ⚠️ Faute de place, le renvoi reprend son appel et son encart.
 
+**§ 13.15 — L’encart NE COUVRE PAS le texte, et le numéro flotte**
+
+- ⛔ UNE NOTE S’OUVRE DANS LA MARGE, jamais par-dessus la colonne.
+- ⚠️ Elle se pose À HAUTEUR de son appel, non dessous : c’est ce qui la rattache à la ligne d’où elle vient, et elle ne descend que si le bas de l’écran l’y oblige.
+- ⚠️ Le côté est celui où il reste le plus de place ; à égalité, la droite.
+- ⚠️ Elle peut déborder sur un VOLET, et c’est voulu — un volet est une navigation, non ce qu’on est en train de lire.
+- ⛔ Elle SE RESSERRE plutôt que de renoncer.
+- ⛔ Ce n’est pas la largeur qui suit le CONTENU, que le § 13.13 proscrit : elle suit la PLACE, elle est la même pour toutes les notes d’une même page, et elle ne change que si le lecteur ouvre un volet lui-même.
+- ⛔ Sous une largeur plancher, l’encart repasse SOUS son appel — comme avant : une note ne se lit plus dans une colonne trop étroite, et mieux vaut couvrir le texte que sortir de l’écran.
+- ⛔ LE NUMÉRO FLOTTE, il n’occupe pas une colonne.
+- ⛔ UN RENVOI EN MARGE SE POSE SUR LA LIGNE DE BASE DE SA LIGNE — et cet accord se MESURE.
+- ⚠️ La correction ne s’écrit pas en pixels : les deux corps sont en rem, la police racine du site est fluide, et un nombre ne serait juste qu’à une seule taille d’écran.
+
 ## § 14. OCR, HTR et transcription patrimoniale
 
 **§ 14 — OCR, HTR et transcription patrimoniale**

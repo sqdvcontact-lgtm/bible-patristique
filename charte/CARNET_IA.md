@@ -253,3 +253,24 @@ Le partage renvoi / commentaire est au § 13.14 ; voici les chiffres et ce qui r
 **AUCUN renvoi pur ne porte de notice bibliographique** : 244 blocs du corpus sont liés à un ouvrage, tous dans des notes qui disent autre chose. La règle du § 13.14 le prévoit tout de même.
 
 **Le pire cas du corpus** est l'« Explication sur le psaume IV » du Commentaire sur les Psaumes de Chrysostome (Jeannin 1865), dont le texte porte 1 798 renvois purs à lui seul. La planche montre sa fenêtre la plus dense : huit renvois en dix lignes.
+
+### 2026-09-08 — L'encart en marge : les quatre largeurs mesurées, et les six pixels du renvoi
+
+La doctrine est au § 13.15 ; voici les chiffres.
+
+**CE QUE LA MARGE OFFRE**, colonne de lecture d'une œuvre (31,25 rem) centrée entre deux volets d'environ 250 px chacun, encart de 29 rem :
+
+| fenêtre | marge à droite | encart retenu |
+|---|---:|---|
+| 1920 | 686 px | 464 px, sa mesure pleine |
+| 1440 | 446 px | 446 px, resserré |
+| 1280 | 366 px | 366 px, resserré |
+| 1024 | 238 px | aucun : il repasse sous son appel |
+
+⚠️ La marge se compte jusqu'au bord de la FENÊTRE, non jusqu'au volet : l'encart a le droit de se poser dessus. C'est ce qui fait la différence entre 366 px et rien du tout à 1280.
+
+**LE PLANCHER EST À 20 rem — 320 px**, vingt de moins que le plus étroit des trois encarts d'hier, et c'est un choix : c'est ce qui permet à la marge de servir dès 1280 px, où elle n'offre que 366. La piste de texte y vaut encore quarante-quatre signes par ligne. ⛔ Le relever d'un rem renverrait l'encart par-dessus le texte sur tous les portables.
+
+**LES SIX PIXELS DU RENVOI.** Mesurés sur la planche, ligne de base contre ligne de base, sur toutes les entrées : **−6,0 px**, parfaitement constant. La cause est que la position statique d'un bloc absolu est le haut de sa LIGNE, quand ce qu'il faut aligner est la ligne de BASE, et que le renvoi (0,625 rem) et le texte (0,8125 rem) n'ont pas la même ascendante. ⚠️ Corrigé par MESURE et non par constante — deux sondes de hauteur nulle alignées sur la ligne de base, une par passe : les deux corps sont en rem et la police racine est fluide. Après : **0,0 px** sur toutes les entrées, et toujours zéro chevauchement.
+
+**LE NUMÉRO DE L'ENCART.** Il tenait une colonne de grille de 2,25 rem sur toute la hauteur de la note. Sur la note de 3 963 signes de Boèce — dix-sept blocs, vingt lignes rendues —, cela faisait dix-neuf lignes de blanc à gauche pour deux chiffres. Passé en flottant, la mesure entière revient au texte dès la deuxième ligne.

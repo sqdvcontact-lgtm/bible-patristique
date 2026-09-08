@@ -2476,6 +2476,67 @@ Une cellule d’actions flottante — celle de la lecture d’une œuvre, celle 
 
 ⚠️ **Recette de reproduction, sans serveur de développement** : sous la session de l’auteur, envelopper `window.fetch` pour journaliser la table visée, puis provoquer le survol par `el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))`. ⛔ **Sans `relatedTarget`** : React abandonne l’événement si la cible liée appartient déjà à son arbre (`getClosestInstanceFromNode`), et `document.body` EST le conteneur racine — la cellule ne s’ouvre alors jamais, et l’on croit le composant hors d’atteinte.
 
+# ⛔ L'ENCART SE RANGE DANS LA MARGE — `placerEnMarge` (2026-09-08)
+
+Doctrine : charte **§ 13.15** ; les quatre largeurs mesurées sont au carnet. Règles de
+code :
+
+- ⛔ **`placerEnMarge` (`fenetreContextuelle.ts`, pur, 12 tests) D'ABORD, `placerFenetre`
+  en repli.** Elle rend `null` quand aucune marge ne peut porter la largeur MINIMALE, et
+  l'appelant retombe alors sur la fenêtre posée sous l'appel : mieux vaut couvrir le texte
+  que sortir de l'écran.
+- ⛔ **La colonne se DÉCLARE, elle ne se devine pas** : `data-colonne-lecture`
+  (`MARQUE_COLONNE_LECTURE`), porté par la colonne de `OeuvreClient` — d'où les
+  traductions parallèles héritent, y étant rendues — et par `.cs-lecture-colonne` de
+  `TexteBible`. Une surface qui ne le porte pas garde le placement d'avant.
+- ⚠️ **La colonne se mesure AU GESTE, jamais pendant un rendu** : `colonneDeLecture` est
+  une lecture de mise en page, et elle est rangée dans l'état à côté du rectangle de
+  l'appel.
+- ⛔ **La marge se compte jusqu'au bord de la FENÊTRE, non jusqu'au volet.** Un volet est
+  une navigation, non ce qu'on lit : l'encart a le droit de s'y poser. C'est ce qui fait
+  la différence entre 366 px et rien du tout sur un écran de 1280.
+- ⚠️ **À égalité, la DROITE l'emporte** : la marge de gauche porte la manchette des
+  renvois.
+- ⛔ **L'encart SE RESSERRE à la place disponible** (`largeurMin`, `placement.largeur`,
+  `styleCadreEncart({ largeur })`). Ce n'est pas la largeur qui suit le CONTENU, que le
+  § 13.13 proscrit : elle suit la PLACE, elle est la même pour toutes les notes d'une
+  page, et elle ne change que si le lecteur ouvre un volet lui-même.
+- ⚠️ **`LARGEUR_ENCART_MIN_REM` vaut 20**, vingt pixels de moins que le plus étroit des
+  trois encarts d'hier. ⛔ Le relever d'un rem renverrait l'encart par-dessus le texte sur
+  tous les portables : à 1280, la marge n'offre que 366 px.
+
+# ⛔ LE NUMÉRO DE L'ENCART FLOTTE (2026-09-08)
+
+- ⛔ `STYLE_NUMERO_ENCART` porte `float: left`, et `STYLE_GRILLE_ENCART` n'existe plus.
+  Rangé dans une colonne de grille, le numéro réservait ses 2,25 rem sur TOUTE la hauteur
+  de la note — dix-neuf lignes de blanc à gauche d'un développement de vingt.
+- ⚠️ **Le flottant est CONTENU par le corps de l'encart**, qui défile : un bloc qui défile
+  forme un contexte de formatage et enferme ses flottants sans qu'on le lui demande.
+- ⚠️ **Sa `line-height` est celle du TEXTE, non la sienne** : un chiffre de 0,625 rem posé
+  sur son propre interligne flotterait au-dessus de la première ligne du propos. Elle se
+  CALCULE depuis `CORPS_ENCART` et `INTERLIGNE_ENCART`, jamais écrite à part.
+
+# ⛔ UN RENVOI EN MARGE SE POSE SUR LA LIGNE DE BASE, ET CELA SE MESURE (2026-09-08)
+
+- ⛔ **La position statique d'un bloc absolu est le haut de sa LIGNE, non sa ligne de
+  base.** Un renvoi de 0,625 rem posé contre un texte de 0,8125 rem se posait **six pixels
+  trop haut**, de façon constante — et un renvoi qui ne s'aligne pas sur sa ligne ne
+  désigne plus rien.
+- ⛔ **La correction se MESURE à chaque passe** (`ligneDeBase`, `decalageDeLigne` dans
+  `useManchetteRenvois.ts`) : deux sondes de hauteur nulle en `vertical-align: baseline`,
+  dont le bord BAS se pose exactement sur la ligne de base. ⚠️ Elle ne s'écrit pas en
+  pixels : les deux corps sont en rem, la police racine est fluide, et un nombre ne serait
+  juste qu'à une seule taille d'écran. C'est la leçon de la marge de référence de la
+  Polyglotte.
+- ⚠️ **Une seule mesure par passe** : les métriques sont les mêmes pour toutes les entrées,
+  et chaque sonde force une mise en page.
+- ⚠️ **`top` se pose désormais sur TOUTES les entrées**, non sur les seules poussées : la
+  correction vaut pour chacune, et la position statique ne la porte pas.
+- ⚠️ **Une planche MENT tant que les polices ne sont pas là** : mesurée avant elles, les
+  hauteurs sont celles d'une police de secours, l'empilement se cale faux et les entrées
+  se recouvrent. La planche rejoue sur `document.fonts.ready` ; le crochet du site a son
+  `ResizeObserver`.
+
 # ⛔ LA MANCHETTE DES RENVOIS — `manchetteRenvois.ts` (2026-09-08)
 
 Doctrine : charte `parametres.charte_ia`, **§ 13.14** ; les mesures et ce qui reste
@@ -2551,6 +2612,8 @@ carnet. Ici, ce qu'il faut savoir pour y toucher.
 - ⚠️ **`EncartNote` ne porte AUCUN crochet** : c'est un composant pur, que
   `renderToStaticMarkup` rend hors du navigateur. C'est ce qui permet à une planche de le
   juger, et c'est la même coupure que `ContenuFicheTraduction` ou `ProposVisite`.
+- ⛔ **Le NUMÉRO FLOTTE depuis le 8 septembre 2026**, il n'occupe plus une colonne de
+  grille : voir la section qui suit. `STYLE_GRILLE_ENCART` n'existe plus.
 - ⛔ **DEUX ÉLÉMENTS, cadre et corps, et non un.** Une croix posée en absolu DANS la zone
   qui défile s'en va avec elle : son bloc conteneur est la boîte de rembourrage, et le
   décalage du défilement s'y applique. Le cadre est un flex en colonne, le corps prend la

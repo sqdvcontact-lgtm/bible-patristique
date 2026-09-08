@@ -2051,6 +2051,24 @@ Décision de l’auteur, 8 septembre 2026 : « plutôt placer la note dans la ma
 
 ⚠️ **Faute de place, le renvoi reprend son appel et son encart.** La marge se mesure sur le CONTENEUR et non sur la fenêtre : les volets s’ouvrent, se ferment et se traînent à la poignée sans que la fenêtre bouge.
 
+### 13.15 L’encart NE COUVRE PAS le texte, et le numéro flotte
+
+Décisions de l’auteur, 8 septembre 2026.
+
+⛔ **UNE NOTE S’OUVRE DANS LA MARGE, jamais par-dessus la colonne.** Posée sur le texte, elle cache précisément le passage qu’elle commente, et il faut la refermer pour relire ce qu’on vient de lire. Rangée à côté, elle se lit EN MÊME TEMPS que le texte, comme la note d’une édition imprimée. ⚠️ Elle se pose À HAUTEUR de son appel, non dessous : c’est ce qui la rattache à la ligne d’où elle vient, et elle ne descend que si le bas de l’écran l’y oblige.
+
+⚠️ **Le côté est celui où il reste le plus de place ; à égalité, la droite.** La marge de gauche porte la manchette des renvois, et l’encart la couvrirait.
+
+⚠️ **Elle peut déborder sur un VOLET, et c’est voulu** : un volet est une navigation, non ce qu’on est en train de lire. Seule la colonne de texte est sacrée.
+
+⛔ **Elle SE RESSERRE plutôt que de renoncer.** La colonne de lecture d’une œuvre laisse près de sept cents pixels de marge sur un grand écran et moins de quatre cents sur un portable, quand l’encart en demande quatre cent soixante-quatre : exiger la mesure pleine l’aurait renvoyé par-dessus le texte sur la plupart des écrans. ⛔ Ce n’est pas la largeur qui suit le CONTENU, que le § 13.13 proscrit : elle suit la PLACE, elle est la même pour toutes les notes d’une même page, et elle ne change que si le lecteur ouvre un volet lui-même.
+
+⛔ **Sous une largeur plancher, l’encart repasse SOUS son appel**, comme avant : une note ne se lit plus dans une colonne trop étroite, et mieux vaut couvrir le texte que sortir de l’écran. C’est le cas d’un téléphone et d’une fenêtre étroite.
+
+⛔ **LE NUMÉRO FLOTTE, il n’occupe pas une colonne.** Rangé dans une gouttière, il réservait sa mesure sur TOUTE la hauteur de la note : deux chiffres en face d’un développement de vingt lignes, et dix-neuf lignes de blanc perdu à gauche. Le texte l’habille — la première ligne le contourne, les suivantes reprennent la mesure entière. C’est la manchette d’un livre imprimé, et c’est déjà ce que fait le repère d’un commentaire de Fillion.
+
+⛔ **UN RENVOI EN MARGE SE POSE SUR LA LIGNE DE BASE DE SA LIGNE**, et cet accord se MESURE. La position naturelle d’une boîte détachée est le haut de sa ligne, non sa ligne de base : un renvoi composé plus petit que le texte qu’il borde se pose alors trop haut, de façon constante, et un renvoi qui ne s’aligne pas sur sa ligne ne désigne plus rien. ⚠️ La correction ne s’écrit pas en pixels : les deux corps sont en rem, la police racine du site est fluide, et un nombre ne serait juste qu’à une seule taille d’écran.
+
 ## 14. OCR, HTR et transcription patrimoniale
 
 Cette section régit deux opérations différentes : l’océrisation des imprimés anciens et la transcription assistée des manuscrits. ⛔ **Un moteur d’OCR ou de HTR produit un brouillon. Il ne produit jamais, à lui seul, un texte éditorial validé.**
