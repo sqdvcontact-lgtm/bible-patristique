@@ -652,6 +652,19 @@
 - ⚠️ Nommée dans une phrase (« Texte original latin »), elle garde son bas de casse.
 - ⛔ celle qu’aucune famille ne reconnaît reste sur la fiche mais ne paraît pas dans le filtre — mieux vaut une pastille de moins qu’une pastille fausse.
 
+## § 17. Écritures, droits et sécurité
+
+**§ 17.1 — Le verrou de bêta ne protège que les pages**
+
+- ⛔ Tant que le site est fermé, le rôle `anon` n'a AUCUN droit dans le schéma `public` — ni `select` sur une table, une vue ou une vue matérialisée, ni `execute` sur une fonction.
+- ⛔ Une fonction `SECURITY DEFINER` contourne la RLS par définition.
+
+**§ 17.2 — Les sauvegardes de travail vivent dans `internal`, et se purgent**
+
+- ⛔ Une sauvegarde prise avant une écriture (§1.4) vit dans le schéma `internal`, jamais dans `public`.
+- ⛔ Ces tables se purgent à quinze jours, et c'est la BASE qui le fait.
+- ⚠️ Une règle de rétention qu'il faut penser à lancer n'est pas une règle, c'est une corvée — et une corvée s'oublie.
+
 ## § 18. Interface de lecture
 
 **§ 18 — Interface de lecture**
@@ -2403,6 +2416,8 @@
 - ⚠️ Le verrou se déduit de ce qui a été PASSÉ, non d’un drapeau : le formulaire ouvert seul, qui ne préremplit rien, reste entièrement libre.
 - ⛔ Un champ figé n’est ni grisé ni « en lecture seule » : c’est une VALEUR qu’on montre, non une saisie qu’on refuse, et elle se compose comme une valeur — dans le cadre du champ, pour que la colonne garde son aplomb.
 - ⚠️ Et l’on dit UNE fois pourquoi ces cases ne s’ouvrent pas : un champ figé sans un mot se lit comme un champ en panne.
+- ⛔ Un composant se déclare au niveau du MODULE, jamais dans le corps d'un autre.
+- ⚠️ Sur un champ de saisie, l'effet est immédiat et ruineux.
 
 ---
 
