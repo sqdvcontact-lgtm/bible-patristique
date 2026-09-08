@@ -51,9 +51,9 @@
 
 import { Fragment, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { LIVRES, ABREV_FR } from '@/app/lib/bible'
+import { LIVRES } from '@/app/lib/bible'
 import { useEstMobile } from '@/app/lib/useEstMobile'
-import { formaterPlageCanonique, parsePointCanonique } from '@/app/lib/referencesBibliques'
+import { parsePointCanonique } from '@/app/lib/referencesBibliques'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { allerAAncre } from '@/app/lib/defilement'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
@@ -64,7 +64,7 @@ import {
   libelleCategoriePericope,
   type PericopeCatalogueItem,
 } from '@/app/lib/pericopes'
-import { filtrerCatalogue, TESTAMENT_LIVRE, type RequetePericope } from '@/app/lib/pericopesRecherche'
+import { filtrerCatalogue, TESTAMENT_LIVRE } from '@/app/lib/pericopesRecherche'
 
 const FOND = 'var(--cs-fond)'
 const BORD = 'var(--cs-bord)'
@@ -125,13 +125,6 @@ function gloseEntree(it: PericopeCatalogueItem): string {
   return parts.join(', ')
 }
 
-/** « Matthieu 5 », « Psaume 22, 1 » — le Psautier au singulier, comme partout. */
-function libelleReference(req: RequetePericope): string {
-  if (!req.livre || req.chapitre == null) return ''
-  const canon = `${req.livre}.${req.chapitre}${req.verset != null ? `.${req.verset}` : ''}`
-  return formaterPlageCanonique(canon, null) || ''
-}
-
 // ── Le volet : deux registres visuels, et ils ne se ressemblent pas ──────────
 // Une RUBRIQUE ouvre un registre (parcourir / filtrer) ; un GROUPE nomme une liste à
 // l'intérieur. C'est ce qui manquait : l'index des livres et les cases de filtre
@@ -183,6 +176,15 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
   const [registres, setRegistres] = useState<Set<string>>(new Set())
   const [tousRegistres, setTousRegistres] = useState(false)
   const [panneauOuvert, setPanneauOuvert] = useState(false)
+  // Les deux Testaments s'ouvrent d'emblée, les « Autres écrits » restent repliés :
+  // c'est exactement le parti du volet de la Bible classique, où les « Écrits non
+  // canoniques » sont le rang qu'on parcourt le moins.
+  const [sectionsOuvertes, setSectionsOuvertes] = useState<Set<string>>(new Set(['AT', 'NT']))
+  const basculerSection = (code: string) => setSectionsOuvertes(s => {
+    const n = new Set(s)
+    if (n.has(code)) n.delete(code); else n.add(code)
+    return n
+  })
 
   const compteTestament = useMemo(() => {
     const c: Record<string, number> = { AT: 0, NT: 0, AUTRES: 0 }
@@ -197,7 +199,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
   }, [items])
 
   // Toute la décision de filtrage vit dans le module pur `pericopesRecherche`.
-  const { items: itemsFiltres, via: viaAppellation, reference } = useMemo(
+  const { items: itemsFiltres, via: viaAppellation } = useMemo(
     () => filtrerCatalogue(items, q, testament === 'TOUT' ? new Set() : new Set([testament]), registres),
     [items, q, testament, registres],
   )
@@ -235,15 +237,12 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
     : registresPresents.filter(([cat], i) => i < REGISTRES_VISIBLES || registres.has(cat))
   const registresCaches = registresPresents.length - registresMontres.length
 
-  // Le compte : ce que la page ne disait nulle part. Au repos c'est l'étendue du
-  // catalogue, sous filtre c'est le résultat — annoncé aux lecteurs d'écran.
-  const libelleCompte = (() => {
-    const n = itemsFiltres.length
-    if (!filtresActifs) return `${items.length} péricopes`
-    const ref = reference ? `${libelleReference(reference)} · ` : ''
-    if (n === 0) return `${ref}aucune péricope`
-    return `${ref}${n} péricope${n > 1 ? 's' : ''}`
-  })()
+  // ⛔ PLUS DE COMPTE SOUS LE CHAMP (demande de l'auteur, 2026-09-08). « 249 péricopes »
+  //    n'apprenait rien que la liste ne montre, et sous filtre le compte redisait ce que
+  //    la liste venait de rendre. Une recherche qui ne rend rien le dit toujours, en clair
+  //    et à la place de la liste (« Aucune péricope ne correspond aux filtres retenus »).
+  //    ⚠️ Le compte de la MARGE était parti pour la même raison le 2026-08-23 ; celui-ci
+  //    était le dernier.
 
   // Saut à un livre. En mobile on referme d'abord le panneau pour dégager la liste.
   // ⛔ Jamais de `scrollIntoView` doux et nu : il ne s'exécute pas sur certains postes
@@ -270,35 +269,38 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         )}
       </div>
 
-      <p aria-live="polite" style={{ margin: '7px 0 0', fontFamily: SANS, fontSize: '0.625rem', letterSpacing: '0.04em', color: filtresActifs ? VERT : 'var(--cs-texte-second)' }}>
-        {libelleCompte}
-      </p>
-
+      {/* ⛔ LE SOMMAIRE PREND LE MODÈLE DU VOLET DE LA BIBLE CLASSIQUE (demande de
+          l'auteur, 2026-09-08) : le testament se donne en capitales vertes au fer à
+          gauche, sa flèche de repli au fer à droite, et les livres se nomment EN
+          TOUTES LETTRES, un par ligne. Voir `NavLivres`, qui est le modèle.
+          ⛔ Les deux étiquettes qui coiffaient cette liste — « Parcourir », puis
+          « Aller à un livre » — sont retirées : deux rangs de mots pour annoncer un
+          index que la page porte déjà en clair, et que sa forme suffit à désigner.
+          ⚠️ La grille de quatre colonnes d'abréviations est partie avec elles : dans
+          un volet de 15,5 rem, il y a la place d'écrire « Deutéronome ». */}
       {groupes.length > 0 && (
-        <>
-          <Rubrique>Parcourir</Rubrique>
-          <GroupeFiltre label="Aller à un livre">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {TESTAMENTS.map(grp => {
-                const livres = groupes.filter(g => (TESTAMENT_LIVRE[g.livre] ?? 'AUTRES') === grp.code)
-                if (livres.length === 0) return null
-                return (
-                  <div key={grp.code}>
-                    <p style={{ fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 3px' }}>{grp.label}</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px 8px' }}>
-                      {livres.map(g => (
-                        <button key={g.livre} type="button" className="peri-lien-livre" onClick={() => allerAuLivre(g.livre)}
-                          title={`${NOM_LIVRE[g.livre] ?? g.livre} — ${g.list.length} péricope${g.list.length > 1 ? 's' : ''}`}>
-                          {ABREV_FR[g.livre] ?? g.livre}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </GroupeFiltre>
-        </>
+        <div style={{ marginTop: '14px' }}>
+          {TESTAMENTS.map(grp => {
+            const livres = groupes.filter(g => (TESTAMENT_LIVRE[g.livre] ?? 'AUTRES') === grp.code)
+            if (livres.length === 0) return null
+            const ouvert = sectionsOuvertes.has(grp.code)
+            return (
+              <div key={grp.code}>
+                <button type="button" onClick={() => basculerSection(grp.code)} aria-expanded={ouvert}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '9px 2px 5px 0', textAlign: 'left' }}>
+                  <span style={{ fontFamily: SANS, fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-vert-fonce)' }}>{grp.label}</span>
+                  <span aria-hidden style={{ fontSize: '0.53125rem', color: 'var(--cs-texte-faible)' }}>{ouvert ? '▲' : '▼'}</span>
+                </button>
+                {ouvert && livres.map(g => (
+                  <button key={g.livre} type="button" className="peri-lien-livre" onClick={() => allerAuLivre(g.livre)}
+                    title={`${NOM_LIVRE[g.livre] ?? g.livre} — ${g.list.length} péricope${g.list.length > 1 ? 's' : ''}`}>
+                    {NOM_LIVRE[g.livre] ?? g.livre}
+                  </button>
+                ))}
+              </div>
+            )
+          })}
+        </div>
       )}
 
       <Rubrique>Filtrer</Rubrique>
@@ -333,13 +335,18 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         /* ── Le volet ───────────────────────────────────────────────────────── */
         /* Naviguer et filtrer ne se ressemblent pas : un lien de livre prend le vert
            et se souligne au survol, une case de filtre porte son marqueur carré. */
+        /* La rangée d'un livre est celle du volet de la Bible classique : pleine largeur,
+           au fer à gauche, dans la police et le corps de la liste des livres. ⚠️ Le nom
+           s'enroule plutôt que d'être coupé — « 1 Thessaloniciens » tient sur une ligne à
+           la racine 16, non sur un volet resserré, et un nom de livre rogné ne se lit pas. */
         .peri-lien-livre {
-          display: flex; align-items: center; min-height: 24px; padding: 0 2px 0 0;
-          font-family: ${SANS}; font-size: 0.6875rem; color: var(--cs-texte-second);
-          background: none; border: none; text-align: left; cursor: pointer; white-space: nowrap;
-          transition: color 0.12s;
+          display: flex; align-items: center; width: 100%; min-height: 24px;
+          padding: 4px 6px; border-radius: 4px; box-sizing: border-box;
+          font-family: ${SANS}; font-size: 0.84375rem; line-height: 1.4; color: var(--cs-texte-second);
+          background: none; border: none; text-align: left; cursor: pointer;
+          transition: color 0.12s, background 0.12s;
         }
-        .peri-lien-livre:hover { color: ${VERT}; text-decoration: underline; text-underline-offset: 3px; }
+        .peri-lien-livre:hover { color: var(--cs-encre); background: rgba(var(--cs-vert-rgb),0.10); }
         .peri-lien-discret {
           background: none; border: none; padding: 4px 0; cursor: pointer;
           font-family: ${SERIF}; font-size: 0.6875rem; font-style: italic; color: var(--cs-texte-second);

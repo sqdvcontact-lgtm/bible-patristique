@@ -65,20 +65,26 @@ export default function LibrairiesPage() {
           <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.15, marginBottom: '8px' }}>
             Acheter des livres
           </h1>
-          <div style={{ width: '36px', height: '1px', background: 'var(--cs-bord)', margin: '0 auto 10px' }} />
-          <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', margin: 0 }}>
-            Où trouver les textes, en éditions neuves, anciennes ou critiques.
-          </p>
+          {/* ⛔ PLUS DE GLOSE SOUS LE TITRE (demande de l'auteur, 2026-09-08). « Où trouver
+              les textes, en éditions neuves, anciennes ou critiques » redisait en italique
+              ce que le mot de tête énonce en prose deux lignes plus bas, et ce que la liste
+              montre aussitôt. Le filet reste : c'est lui qui sépare le titre de ce qui suit.
+              ⚠️ La description des métadonnées la garde : elle sert le résultat de recherche,
+              où la page n'a que son titre pour se présenter. */}
+          <div style={{ width: '36px', height: '1px', background: 'var(--cs-bord)', margin: '0 auto' }} />
         </div>
         {/* ⚠️ LE MOT DE TÊTE (texte de l'auteur, 2026-09-04). La page ouvrait sur une
             liste d'enseignes, sans dire pourquoi elle existe : c'est la première page
             d'« Aller plus loin » depuis le même jour, et elle accueille donc quelqu'un
             qui n'a rien demandé de précis.
-            ⛔ Il n'est PAS en italique, à la différence de la ligne au-dessus : celle-ci
-            glose le titre, celui-ci est de la prose qu'on lit. */}
+            ⚠️ Deux phrases, deux lignes (demande de l'auteur, 2026-09-08) : la première
+            dit pourquoi la page existe, la seconde ce qu'on y trouve. Coulées à la suite,
+            elles se lisaient comme une seule période et l'annonce se perdait dedans. */}
         <p style={{ maxWidth: '34rem', margin: '0 auto 20px', fontSize: '0.8125rem', lineHeight: 1.62, color: 'var(--cs-texte)', textAlign: 'center' }}>
-          Les livres demeurent des instruments de travail indispensables. Les adresses
-          ci-dessous proposent des ouvrages solides, utiles à l’étude comme à la recherche.
+          Les livres demeurent des instruments de travail indispensables.
+          <br />
+          Les adresses ci-dessous proposent des ouvrages solides, utiles à l’étude comme
+          à la recherche.
         </p>
       </div>
 
