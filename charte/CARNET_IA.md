@@ -132,3 +132,25 @@ Un ancien numéro doit rester résoluble : voici où chaque chose est passée.
 Un de moins qu'au départ, aucun cassé. ⚠️ Les 17 pendants sont pour la plupart des faux positifs — WCAG § 2.5.8, CSS 2.1 § 10.4, un « § 1127 » qui est un numéro de colonne de Migne — et quatre vrais, dans de vieux scripts qui citent des sections disparues avant aujourd'hui.
 
 ⚠️ **Neuf fichiers portant des chantiers d'autrui n'ont pas été indexés**, bien que mes réécritures de renvoi s'y soient appliquées sur le disque : elles partiront avec leur travail. Si l'un d'eux est annulé, un renvoi ancien y reparaîtra — le relevé le dira.
+
+### 2026-09-08 — Abrogations, et le rang d'un titre fixé
+
+**Le § 13.8.1 déclarait ouvert un travail fait, sur un chiffre faux.** « Reste connu, non corrigé : 1 716 renvois gardent un chapitre romain parce qu'il est écrit en MINUSCULES […] il attend une décision. » Or `RE_RENVOI` porte `[ivxlcdm]{1,6}` depuis le 5 septembre, et le § 13.12 rectifiait le chiffre douze lignes plus bas : **355 occurrences, dont 223 réécrites**. La mention est supprimée (288 signes) et la rectification du § 13.12 réaccordée, sa phrase ne rebattant plus rien.
+
+**Le § 49.17 est abrogé** — 24 lignes, 1 399 signes. Il déclarait que `app/lib/partIllustration.test.ts` tenait la règle du régime des gravures ; ce fichier n'existe pas, et la question a été fermée autrement le 3 septembre, par les colonnes `regime` et `part_colonne` (§ 49.23). ⚠️ Il portait seul un principe général — « une règle recopiée dans deux fichiers ne reste la même que par accident » — qui est greffé sur le § 49.23 avec la conséquence mesurée qui le prouve : dix-neuf gravures larges au trait fabriquées détourées puis composées comme des photogravures, noires sur le cuir, servies à 1,43 fois leur taille. **On abroge une règle périmée, on ne jette pas la leçon qu'elle portait.**
+
+⚠️ **C'était le DERNIER chemin de fichier mort de la charte** : elle en cite désormais zéro.
+
+**Le rang d'un titre est fixé** : il répond à la profondeur du numéro. Vingt-sept titres s'écrivaient `###` là où leur numéro en appelle quatre — § 3.5.1, § 13.12.2, § 15.1.1, § 16.2.1, les six du § 35.14… Tous corrigés ; il n'en reste aucun.
+
+**Deux numéros vacants**, et la règle qui les explique est posée en § 27.3 : le **§ 41** (la densité des textes a rejoint le § 3.11) et le **§ 49.17**. ⚠️ Ils font monter le compte des renvois pendants de 17 à 19, et c'est normal : ce sont les deux que le § 27.3 cite pour les déclarer vacants.
+
+### 2026-09-08 — Le § 48 ne manque pas d'interdits, il parle un autre dialecte
+
+J'avais annoncé le protocole d'océrisation comme le chapitre le moins prescriptif de la charte, sur sa densité de marques : **0,3 ⛔ ou ⚠️ pour mille signes**, contre 2,6 aux chapitres récents. La mesure est juste, le diagnostic était faux.
+
+Le § 48.1 porte 5 marques mais **42 passages en gras**, et sa prose prescrit sans marqueur : « on ne mélange pas plusieurs familles de correction dans une même passe », « on ne corrige jamais seulement l'exemple rencontré ». La doctrine y est.
+
+⛔ **Mais la conséquence tient, et elle est mécanique** : un noyau dérivé qui s'extrait sur `⛔`/`⚠️` sauterait **45 979 signes de protocole** pour n'en tirer que treize lignes. Ce n'est pas une passe d'écriture qu'il faut, c'est une passe de **marquage**.
+
+**Corollaire de méthode** : une densité de marques mesure une CONVENTION D'ÉCRITURE, pas une densité de règle. Ne pas conclure d'un chiffre bas qu'un chapitre prescrit peu — l'ouvrir d'abord.

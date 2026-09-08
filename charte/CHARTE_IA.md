@@ -278,7 +278,7 @@ La casse, l’orthographe et la ponctuation interne et finale d’un titre trans
 
 **Composition des titres et sous-titres de division à l’écran (3 septembre 2026).** Les intitulés de niveau de la colonne de lecture, titres et sous-titres des rangs 1 à 3, se composent avec `text-wrap: balance`, comme le sommaire : le navigateur égalise les lignes d’un intitulé qui en prend plusieurs, au lieu de rejeter deux syllabes seules à la dernière (« … un commerce / impur ? »). Le texte suivi, justifié, n’est pas concerné, et l’équilibrage ne change rien à la donnée. Deux insécables s’y ajoutent à l’affichage seulement, dans `preparerTitreColophon` : un gluon U+2060 après tout trait d’union placé entre deux lettres, parce que le navigateur coupe librement après un trait d’union et rendait « a- / t-elle » ; et une espace insécable après les mots d’une ou deux lettres (à, de, et, la…), qui ne restent donc jamais seuls en fin de ligne. ⛔ Le trait d’union insécable U+2011 n’est pas employé : Source Serif 4 et Source Sans 3, telles que Google les sert, n’en ont pas le glyphe, et le navigateur l’emprunte à une police de secours. ⚠️ Un saut de ligne SAISI dans un intitulé est une frontière que l’équilibrage ne franchit pas, mais il ne rend pas chaque tronçon indépendant : le navigateur équilibre en réduisant une seule largeur commune à toutes les lignes, et dès qu’un tronçon forcé occupe une ligne entière, les tronçons suivants retombent dans l’enroulement ordinaire (mesuré sur les Questions sur l’Heptateuque, 2 007 intitulés dont 652 avec saut saisi). Des coupes conditionnelles posées à la main, activées selon la largeur du conteneur, restent possibles pour un titre rebelle, mais elles ne valent que si chaque tronçon tient sur sa ligne à chaque largeur ; on les réserve, et on ne les pose pas avant d’avoir vu l’intitulé résister aux deux règles automatiques.
 
-### 3.5.1 Références bibliques
+#### 3.5.1 Références bibliques
 
 La notation biblique suit une convention unique dans toutes les surfaces composées ou normalisées par Corpus Scriptura. Un nom de livre écrit en toutes lettres dans l’édition source peut être conservé (`Genèse`, `Exode`, etc.). En revanche, toute abréviation biblique est ramenée à la forme française catholique normative. Le référentiel `public.abreviations_bibliques` sert à reconnaître les variantes historiques ; lorsqu’il contient plusieurs formes héritées, la liste ci-dessous décide seule de la forme d’affichage normalisée.
 
@@ -372,7 +372,7 @@ Trois conditions à la sortie, faute de quoi la mise en page se brise : la citat
 
 Le style reprend celui de la citation sortie : corps légèrement réduit, justification, ni guillemets ni filet, et le même retrait de 8 mm, ramené à 5 mm sur écran étroit. Il en change deux choses. Le retrait ne se pose qu’à **gauche** : la citation sortie est un bloc unique que deux marges égales enferment, tandis qu’une suite de versets est déjà rentrée, et une seconde marge ne ferait qu’étrangler la colonne. Et deux versets ne sont pas séparés par le blanc de paragraphe, qui dirait qu’on change de sujet à chaque verset : un **léger blanc** suffit. Le blanc de paragraphe entier, lui, reste AUTOUR du bloc, car c’est la citation qui est un paragraphe, non chacun de ses versets.
 
-### 3.8.1. Versets cités dans les commentaires bibliques
+#### 3.8.1. Versets cités dans les commentaires bibliques
 
 ⛔ **La nature `verset` ne dit PAS qu’un passage est une citation biblique : elle dit que l’ÉDITION le pose verset par verset**, hors du fil de sa prose. C’est la coupure IMPRIMÉE qui la fonde, et c’est pourquoi le rendu ne la recolle pas, quand il recolle au contraire les segments d’une `citation` : effacer cette coupure-là serait effacer le verset. Une citation biblique que l’édition coule DANS sa prose — fût-elle lemme, reprise de verset ou unité autonome d’explication — reste une `citation` et se lit au fil du texte. La marque n’altère jamais la couche source : les mots, l’ordre, la ponctuation et la disposition attestée restent conservés dans `oeuvre_texte_unites`, les offsets et les métadonnées de provenance.
 
@@ -391,7 +391,7 @@ Une coupure de page, de colonne, d’OCR ou d’unité source ne crée jamais un
 
 Le numéro se rend dans la **face de la page Bible** — même graisse, même teinte effacée, même rapport de corps au texte qu’il accompagne. La page Bible le pose dans une gouttière, à droite d’une colonne étroite ; dans un bloc de versets, cette gouttière se battrait avec le retrait gauche, et le numéro passe donc en **exposant**, sans changer de face pour autant. ⚠️ L’exposant se cale comme partout ailleurs sur le site, par un déport et non par `vertical-align`, faute de quoi il gonflerait la boîte de ligne et rouvrirait le blanc entre versets, qui est léger. Enfin, le numéro de SEGMENT s’efface dans le bloc : deux nombres en exposant sur la même ligne ne se lisent pas, et c’est le verset que le lecteur cherche.
 
-### 3.8.2. Analyses éditoriales dans les commentaires
+#### 3.8.2. Analyses éditoriales dans les commentaires
 
 Lorsqu’une édition de commentaire biblique place, sous une rubrique telle que `ANALYSE`, un sommaire des développements qui suivent, cette structure est documentaire et doit être conservée intégralement dans la couche source : rubrique, texte de chaque entrée, ordre et numérotation imprimée. Le sommaire constitue en outre, lorsque la correspondance avec les divisions du commentaire est certaine, une **réserve de titres éditoriaux**.
 
@@ -568,7 +568,7 @@ Dans chaque clé composite, les rangs sont des entiers strictement positifs, uni
 
 La numérotation des paragraphes suit la source lorsqu’elle existe. À défaut, elle est séquentielle dans chaque division. Dans un commentaire sélectif, elle peut reprendre le numéro du verset commenté ; des lacunes sont alors normales et ne doivent pas être comblées. Une œuvre ancienne dont paragraphes et rangs sont absents n’est jamais normalisée en copiant mécaniquement `segment_numero` ou une valeur constante : reprendre la source ou consigner la dette.
 
-### 6.1.1 La jonction entre deux segments
+#### 6.1.1 La jonction entre deux segments
 
 `join_before` porte le séparateur à poser AVANT le segment courant lorsque plusieurs segments se recomposent en un texte suivi. ⛔ C’est une INSTRUCTION, jamais du texte : sa valeur ne se concatène pas au corps, elle se matérialise. Le défaut relevé le 24 août 2026 est exactement celui-là, et il se lisait à l’écran : le latin de Zycha des « Questions sur l’Heptateuque » composait « ut multos gignerent?spacenon enim et Adam ipse », le mot technique `space` paraissant au beau milieu d’Augustin. La donnée était juste, la recomposition stockée dans `oeuvre_texte_unites.clean_text` aussi ; seul le rendu concaténait.
 
@@ -1718,7 +1718,7 @@ Chantier ouvert le 5 septembre 2026 à la demande de l’auteur (« normaliser l
 
 ⚠️ **69 % des blocs (16 873 sur 24 264) ne déclarent aucun type** : c’est le plus gros manque de l’appareil, et rien ne peut s’afficher tant qu’il n’est pas posé. ⛔ **Un type faux est pire qu’un type absent** — il attribue à un Père une remarque de son traducteur du XIXe siècle. Le doute laisse la note sans type et se signale.
 
-### 13.8.1 Deux corruptions du normaliseur, trouvées en le mesurant
+#### 13.8.1 Deux corruptions du normaliseur, trouvées en le mesurant
 
 Le 5 septembre 2026, les 11 916 renvois du corpus ont été passés par `normaliserReferencesDansTexte` elle-même — jamais par une copie de ses règles. Deux défauts en sont sortis, tous deux visibles du lecteur.
 
@@ -1728,7 +1728,6 @@ Le 5 septembre 2026, les 11 916 renvois du corpus ont été passés par `normali
 
 ⚠️ **Corollaire de méthode, et c’est le troisième du même ordre cette semaine** : une fonction de normalisation ne se juge pas sur ses tests, mais sur le CORPUS qu’elle traite. Les dix-sept tests de ce module passaient tous, et aucun ne portait sur un point suivi d’un chiffre.
 
-⚠️ **Reste connu, non corrigé** : **1 716 renvois** gardent un chapitre romain parce qu’il est écrit en MINUSCULES (« Matth. x, 22 », « Ps. xv, 2 »), et le motif n’accepte que les capitales. L’étendre est un élargissement de la reconnaissance, non une correction : il attend une décision.
 
 
 ### 13.9 RECTIFICATION du § 13.8 — la ponctuation et la typographie se normalisent DANS LA DONNÉE
@@ -1803,7 +1802,7 @@ Les huit natures du § 13.10 ne forment pas une liste plate. Chacune appartient 
 
 ⛔ **UNE NATURE INCONNUE NE FAIT PAS DISPARAÎTRE SON BLOC.** Le vocabulaire se lit avec indulgence : une valeur hors liste retombe sur `commentary` et le bloc reste LISIBLE, fût-ce sans sa composition propre. ⚠️ C'est le contraire du défaut payé quatre fois avec `NATURES_CORPS`, où le bloc s'évanouissait en silence. *Un vocabulaire en avance sur son rendu est un désagrément ; un texte qui manque à la page est une perte.*
 
-### 13.11.1 Ce que le CODE porte depuis le 5 septembre 2026
+#### 13.11.1 Ce que le CODE porte depuis le 5 septembre 2026
 
 ⛔ **Le vocabulaire a une SOURCE UNIQUE, et elle est double par nécessité** : `app/lib/naturesNote.ts` et la contrainte `texte_note_blocs_kind_check`. Les deux se modifient ENSEMBLE, dans l'ordre du § 7.6 — la charte, la contrainte, le vocabulaire du code, la composition, l'épreuve à l'écran, et *seulement ensuite* on sème. Migration `sql/20260905_natures_bloc_note.sql`, retour arrière en regard.
 
@@ -1840,7 +1839,7 @@ Douze questions posées dans `work/notes/QUESTIONS_NOTES_20260905.txt`, toutes M
 
 **10. DES DEUX NOMS D’UNE MÊME MÉTADONNÉE, LE PLUS RÉPANDU SURVIT.** `human_validated` (14 000 blocs) contre `validated_human` (5 662) ; `reference_normalized` (1 682) contre `normalised_reference` (1 032). ⚠️ L’unification est sans risque, et c’est mesuré : les **901 blocs qui portent les deux premiers s’accordent tous**, sans une seule contradiction, et les deux seconds ne se rencontrent jamais sur un même bloc. ⛔ Et le nom retenu est déjà celui que le code lit (`lireMetadonneesBlocNote`) : le plus répandu n’est pas le plus régulier, mais il est le seul qui ne demande pas de toucher au rendu.
 
-**11. LE MOTIF DU NORMALISEUR RECONNAÎT LE CHAPITRE ROMAIN EN MINUSCULES.** ⚠️ **Le § 13.8.1 annonce 1 716 renvois : le chiffre est FAUX**, et la mesure du 5 septembre 2026 le rectifie — **355 occurrences** de la forme « <mot>. <romain minuscule>, <nombre> », dans 355 blocs et 14 textes, dont **223 seulement seraient réécrites**. ⛔ Le risque est borné par le motif lui-même : il n’agit que si le mot qui précède résout vers un livre du référentiel, et « Cor. » (58 occurrences), « Ibid. » (26), « Thess. » et « Eccl. » en sont volontairement absents comme équivoques. Vérifié sur la vraie fonction : « Cor. XV, 22 » et « Ibid. V, 12 » ne bougent pas. ⚠️ Chaque bloc touché se signale, pour un contrôle par sondage.
+**11. LE MOTIF DU NORMALISEUR RECONNAÎT LE CHAPITRE ROMAIN EN MINUSCULES.** ⚠️ **Le chiffre de 1 716 renvois, longtemps annoncé, était FAUX** ; la mesure du 5 septembre 2026 le rectifie — **355 occurrences** de la forme « <mot>. <romain minuscule>, <nombre> », dans 355 blocs et 14 textes, dont **223 seulement seraient réécrites**. ⛔ Le risque est borné par le motif lui-même : il n’agit que si le mot qui précède résout vers un livre du référentiel, et « Cor. » (58 occurrences), « Ibid. » (26), « Thess. » et « Eccl. » en sont volontairement absents comme équivoques. Vérifié sur la vraie fonction : « Cor. XV, 22 » et « Ibid. V, 12 » ne bougent pas. ⚠️ Chaque bloc touché se signale, pour un contrôle par sondage.
 
 ✅ **SERVI le 5 septembre 2026**, et la mesure sur le corpus a fait paraître une borne que la charte ne portait pas. Le motif élargi rend **264 réécritures neuves et n’en perd aucune** ; les 235 formes distinctes ont été relues une par une, et toutes sont justes.
 
@@ -1854,7 +1853,7 @@ Douze questions posées dans `work/notes/QUESTIONS_NOTES_20260905.txt`, toutes M
 
 **13. LE JOURNAL D’ATELIER DE `metadata` RESTE EN BASE, MAIS LA PAGE CESSE DE LE TRANSPORTER.** `metadata` porte plus de 150 clés distinctes, pour l’essentiel un journal de travail daté (`facsimile_pixel_review_20260903`, `p3_canonicalization_audit_20260904`…), et **554 blocs y portent une copie complète d’un bloc** — `text`, `kind`, `form`, `rank`, `language` et le reste, tous à 554. Le site n’en lit que quatre scalaires, mais le `jsonb` ENTIER voyage jusqu’au navigateur, pour 24 264 blocs. ⛔ **On restreint donc la LECTURE aux clés qu’on projette** : gain sans arbitrage, sans toucher une donnée. ⚠️ Le journal lui-même appartient à GPT, et l’auteur ajoute qu’**il faut le supprimer s’il ne sert à rien** : la décision lui revient. ⛔ Les 554 copies de bloc, elles, sont une seconde vérité au sens de la charte et se regardent à part.
 
-### 13.12.1 Les CINQ TYPES de note, et comment les reconnaître
+#### 13.12.1 Les CINQ TYPES de note, et comment les reconnaître
 
 Demandé par l’auteur le 5 septembre 2026 : « Il faut évidemment lister les types de notes dans la charte pour que GPT, qui fera ce travail d’identification, ait une ligne directrice. » Le type vit dans `metadata.editorial_role`, jamais dans le texte du bloc.
 
@@ -1883,7 +1882,7 @@ Demandé par l’auteur le 5 septembre 2026 : « Il faut évidemment lister les 
 
 ⚠️ **« Note de l’édition », et non « note de l’éditeur »** : le libellé nomme une RESPONSABILITÉ, et « éditeur » se dispute en français entre la maison qui publie et le savant qui établit.
 
-### 13.12.2 L’ITALIQUE du latin enchâssé
+#### 13.12.2 L’ITALIQUE du latin enchâssé
 
 ⛔ **Le latin cité DANS une note française se compose en italique.** Décision de l’auteur du 5 septembre 2026 : « Il faut simplement le mettre en italique. GPT s’en chargera. » Le § 13.8 réglait le bloc entièrement latin ; celui-ci règle le cas le plus fréquent, et le plus coûteux.
 
@@ -1894,7 +1893,7 @@ Demandé par l’auteur le 5 septembre 2026 : « Il faut évidemment lister les 
 - ⚠️ **Le grec ne suit pas** : son alphabet le distingue déjà, et l’italique y déforme la lettre au lieu de changer la graisse (§ 13.8).
 - ⚠️ **Sur les cinq textes enrichis, l’imprimeur a déjà fait le travail** : la règle 1 rend l’italique de Faivre, dont une part est du latin — 2 341 empans dans le seul `A0044O0003TFR-V11`. Ailleurs, il faut lire.
 
-### 13.12.3 Ce qui reste OUVERT
+#### 13.12.3 Ce qui reste OUVERT
 
 ⚠️ **LA FENTE DU BLOC À TROIS TÊTES ATTEND UNE SÉANCE À PART.** 396 blocs de Faivre agglomèrent dans un seul paragraphe une coordonnée imprimée, un lemme et un commentaire : « (V) pag. 178. — Avec les démons les plus féroces. On peut consulter… ». La passe 3 les fend en trois blocs, et la question est de savoir SUR QUOI. Fendre sur la PONCTUATION est une supposition : on parie que la première phrase après le tiret est le lemme. Fendre sur l’ITALIQUE est un fait relevé : Faivre imprime son lemme en italique, et l’OCR en a gardé les bornes. Mesuré : **une italique ouvre juste après le tiret dans 378 blocs sur 396 (95,5 %)** ; et une fois rejoints les empans que l’OCR coupe en fin de LIGNE IMPRIMÉE (24 blocs sont dans ce cas), **345 sur 378 (91,3 %) se ferment sur une ponctuation forte, celle-ci comprise DANS l’italique**, comme l’imprimeur l’a composée. ⛔ Rien ne s’écrit tant que l’auteur n’a pas tranché : « C’est un cas particulier. On va en discuter spécialement ensemble. »
 
@@ -2098,7 +2097,7 @@ La réserve se documente au niveau de l'unité et se chiffre au centre de contr�
 
 L’ossature canonique sert à aligner les traductions. Elle ne remplace pas leur numérotation native. Une traduction ne reçoit dans un créneau que le texte attesté par son édition.
 
-### 15.1.1 Référence canonique ultime : TOL/AELF
+#### 15.1.1 Référence canonique ultime : TOL/AELF
 
 Pour tous les alignements bibliques de Corpus Scriptura, la référence canonique et sémantique ultime est la **Traduction officielle liturgique de l’AELF**, dans sa capture de référence enregistrée sous `TR0012` / `TOL_WEB_20260821`.
 
@@ -2110,7 +2109,7 @@ La référence native AELF doit elle aussi rester reconstructible et inchangée.
 
 Si le site de l’AELF publie ultérieurement une révision, **ne jamais écraser ni synchroniser silencieusement** `TOL_WEB_20260821`. Toute nouvelle capture constitue une nouvelle version distincte. Le remplacement éventuel de la référence ultime exige une décision éditoriale explicite, un audit des différences et une migration documentée des alignements existants.
 
-### 15.1.2 Affichage des traductions alignées
+#### 15.1.2 Affichage des traductions alignées
 
 Corpus Scriptura distingue deux axes de lecture sans jamais confondre leurs références.
 
@@ -2193,7 +2192,7 @@ Les statuts sont séparés de leur justification. Les colonnes terminées par `_
 - `authenticite_code` : `AUTHENTIQUE`, `PROBABLE`, `ATTRIBUE`, `PSEUDEPIGRAPHE`, `ANONYME`, `APOCRYPHE`, `COMPOSITE`, `FRAGMENTAIRE`, `DISCUTEE`, `A_CONTROLER`, `NON_DETERMINE`.
 - `priorite_code` : `TRES_HAUTE`, `HAUTE`, `MOYENNE`, `BASSE`, `A_ARBITRER`, `A_ECARTER`, `NON_DETERMINE`.
 
-### 16.2.1 Niveaux de vérification
+#### 16.2.1 Niveaux de vérification
 
 `verification_code` indique le niveau le plus élevé effectivement atteint, non une impression générale de fiabilité :
 
@@ -2206,7 +2205,7 @@ Les statuts sont séparés de leur justification. Les colonnes terminées par `_
 
 La présence d’une URL ne suffit jamais à promouvoir une notice. Toute promotion à `TEXTE_VERIFIE` exige une note indiquant ce qui a été contrôlé et par rapport à quelle édition. Un statut supérieur remplace le statut inférieur ; les détails des étapes précédentes demeurent dans `verification_note` et les notes de source. Un résultat négatif utile – absence de traduction française, fausse attribution, doublon ou objet hors périmètre – est enregistré dans `internal.catalogue_controles_negatifs` avec son périmètre et ses preuves, sans créer ni conserver une pseudo-notice négative dans `catalogue_notices`.
 
-### 16.2.2 Date d’édition
+#### 16.2.2 Date d’édition
 
 Une date n’est renseignée que lorsqu’une édition française réelle et bibliographiquement identifiée est décrite. La date d’une édition latine, grecque, syriaque, anglaise ou d’une page web de republication ne doit jamais combler la date manquante d’une traduction française.
 
@@ -2691,7 +2690,7 @@ Le rapport indique ce qui a été modifié, contrôlé et laissé en attente. Il
 
 Une correction éditoriale ne modernise pas silencieusement le texte. Si l’édition est normalisée selon une politique particulière, cette politique doit être explicitement approuvée et appliquée de manière cohérente.
 
-### 23.6.1. Préflight de schéma et staging avant resegmentation
+#### 23.6.1. Préflight de schéma et staging avant resegmentation
 
 Avant toute mutation textuelle ou structurelle, interroger le schéma réel des colonnes touchées (`information_schema.columns`, contraintes et dépendances). Une règle historique d’écriture ne doit jamais conduire à écrire explicitement dans une colonne devenue générée. Si une colonne dérivée est déclarée `GENERATED ALWAYS`, sa valeur est recalculée par PostgreSQL dans la même mutation de la colonne source : on modifie uniquement la colonne source et l’on vérifie ensuite la valeur générée. Dans l’état actuel de `segments`, `texte_norm` est générée par `public.norm_fr(segment_texte)` ; il est donc interdit de la placer explicitement dans le `SET` tant que cette définition de schéma demeure active. Si le schéma change de nouveau, la règle d’écriture doit être réévaluée avant la première mutation.
 
@@ -2701,7 +2700,7 @@ Toute resegmentation non triviale doit être préparée hors du corpus actif, de
 
 Une resegmentation qui supprime ou remplace des segments peut déclencher des suppressions en cascade dans les tables dépendantes, notamment les ancres de notes. Avant le `DELETE`, inventorier les dépendances et sauvegarder les lignes dépendantes. Si le remplacement exige de nouveaux `segment_key`, `segment_numero` ou `source_unit_id`, les ancres doivent être remappées ou recréées dans la même transaction que les nouveaux segments, puis vérifiées depuis la base avant `COMMIT`. Un `UPDATE` prévu après la suppression ne constitue pas une protection si la ligne dépendante peut déjà avoir été supprimée par cascade.
 
-### 23.6.2. Frontières documentaires et frontières sémantiques
+#### 23.6.2. Frontières documentaires et frontières sémantiques
 
 Une frontière produite par un OCR, un HTML, une API, un export Word ou un moteur de lecture ne vaut jamais, par elle-même, preuve d’un alinéa de l’édition. Les paragraphes, retours intentionnels et changements de niveau sont établis d’abord par le fac-similé ou par un encodage source dont la fonction documentaire est certaine. Les fins de page, de colonne, de ligne OCR et les découpages d’un extracteur ne doivent pas être promus en paragraphes.
 
@@ -3192,6 +3191,15 @@ Avant publication d’une nouvelle version :
 
 `parametres.charte_ia` est l’unique version normative de la charte. Le fichier `charte/CHARTE_IA.md` n’est qu’un miroir régénéré depuis cette source et ne se modifie jamais directement. Le centre de contrôle (`controle_sections`) n’est pas une seconde charte : `commentaire_ia` conserve la synthèse globale actuelle de la section et `todos` le journal des missions. Une évolution de protocole est écrite dans `parametres.charte_ia`, puis son effet de chantier est consigné dans la mission concernée lorsque cela est utile ; on n’injecte jamais le texte intégral de la charte dans le centre de contrôle. Une divergence entre la charte normative et son miroir de dépôt se résout par régénération du miroir depuis Supabase, jamais par une seconde édition concurrente.
 
+### 27.3 Un numéro ABROGÉ reste vacant
+
+⛔ **Quand une section est abrogée ou déplacée, son numéro ne se réattribue pas et le trou ne se referme pas.** Refermer la suite obligerait à renuméroter tout ce qui suit, donc à réécrire chaque renvoi du dépôt — la charte, `AGENTS.md`, le code, les scripts, les migrations. Le coût est hors de proportion avec un gain purement cosmétique, et chaque renumérotation est une occasion d'erreur.
+
+⚠️ **Un numéro vacant DIT quelque chose** : que la matière a été retirée ou déplacée, et non qu'elle n'a jamais existé. C'est la pratique d'une constitution, où un article abrogé garde son rang.
+
+Vacants au 2026-09-08 : le **§ 41**, dont la densité des textes a rejoint le § 3.11 ; le **§ 49.17**, abrogé — il déclarait une garde qui n'existe plus, la question ayant été fermée autrement par des colonnes en base (§ 49.23). ⛔ La concordance des numéros déplacés vit au carnet, non ici : c'est un constat daté, non une règle.
+
+
 ## 28. Suivi permanent de l’avancement des notices
 
 ### 28.1 Emplacement unique
@@ -3603,7 +3611,7 @@ Le commentaire de Fillion part très souvent d’un lemme latin de la Vulgate. P
 
 Le lemme latin reste le témoin historique et se compose en italique, entre guillemets français romains lorsqu’il s’agit d’une citation. Lorsqu’une partie du texte cité est éludée, l’omission est signalée par `[…]`, jamais par `…` ni par `...` : `« *Fili David […] Abraham* »`. Les points de suspension véritables qui appartiennent au discours et ne marquent pas une omission conservent naturellement le caractère `…`. Le lemme français se compose en romain. Les deux lemmes sont stockés séparément dans les métadonnées du commentaire avec leur ancre biblique et leur statut de correspondance. Si la correspondance n’est pas certaine, on conserve seulement le lemme latin et on soumet l’ambiguïté à révision ; on ne fabrique pas de lemme français. Un commentaire général portant sur tout un verset ou un groupe de versets ne reçoit pas artificiellement de double lemme.
 
-### 35.3.1. Paragraphes du commentaire et transitions de lemme
+#### 35.3.1. Paragraphes du commentaire et transitions de lemme
 
 Dans le commentaire de Fillion, le tiret long imprimé sert fréquemment à séparer deux unités successives d’explication. Dans la couche éditoriale de lecture, ce séparateur n’est pas reproduit comme ponctuation : chaque nouvelle unité, notamment chaque reprise de lemme latin ou grec, ouvre un paragraphe distinct. La règle vaut même lorsque l’unité suivante commence par une phrase explicative plutôt que par un lemme formel. Les tirets qui appartiennent réellement à la syntaxe d’une phrase, à une incise ou à une citation sont conservés. La séparation est matérialisée dans `editorial_normalization.blocks`, jamais par CSS, pseudo-élément ou expression régulière au rendu. La couche source ou diplomatique demeure inchangée. Matthieu constitue le modèle de composition pour cette règle.
 
@@ -3617,7 +3625,7 @@ Deux rôles sont arrêtés. Le sous-titre d’une partie n’est pas un préambu
 
 Un bloc sans corps ne rend aucun paragraphe. L’axe `title` impose un corps vide, et le paragraphe fantôme que ces blocs produisaient posait un blanc sous chaque titre, qui séparait « Première partie » de son sous-titre.
 
-### 35.4.1. Longues introductions, notes et continuité de lecture
+#### 35.4.1. Longues introductions, notes et continuité de lecture
 
 Le style sémantique `introduction` est réservé aux préambules brefs qui se tiennent réellement à l’écart du fil. Lorsqu’une introduction de livre est longue et structurée en subdivisions, le bloc racine et son titre conservent leur fonction d’« Introduction », mais les développements placés sous les sous-titres se composent comme de la prose normale : romain, justification ordinaire, mesure normale de la colonne, sans centrage ni retrait bilatéral propre aux préambules. Dans la donnée, ces développements prennent un style de prose/commentaire du niveau correspondant (`commentaire_section` ou équivalent) ; ⛔ ils ne restent pas `introduction_section` ou `introduction_sous_section` par le seul fait qu’ils appartiennent matériellement à une introduction.
 
@@ -3631,7 +3639,7 @@ Pour une longue introduction déjà structurée dans une seule unité de lecture
 
 Contrôle obligatoire après toute reprise d’une longue introduction : vérifier que les paragraphes rendus et les blocs de notes ne contiennent aucun retour de ligne ou blanc artificiel ; que tous les appels attendus sont résolus ; qu’aucune note appelée ne subsiste dans l’apparat résiduel ; et que les titres, notes et développements s’enchaînent sans blanc vertical produit par un bloc vide, une ancre périmée ou une frontière matérielle. Ces contrôles portent sur la couche de lecture et ne justifient jamais la réécriture de la transcription source.
 
-### 35.4.3. Corps des introductions longues
+#### 35.4.3. Corps des introductions longues
 
 Le style de composition `introduction` est réservé aux préambules brefs qui se tiennent réellement à l’écart du fil de lecture. Lorsqu’une introduction de livre est longue et structurée en plusieurs divisions, son titre ou son conteneur conserve sa nature d’introduction, mais les développements placés sous les titres analytiques se composent comme de la prose normale : romain, justification ordinaire, mesure et marges ordinaires. Dans le registre Fillion, ces développements emploient le style de rendu `commentaire_section` (I3), et non `introduction_sous_section`. Les vrais titres analytiques restent à leur niveau T4. La transcription source n’est jamais modifiée pour cette distinction de composition. Une brève introduction de péricope ou un véritable préambule court peut conserver un style `introduction_*` lorsque sa fonction éditoriale le justifie.
 
@@ -3648,7 +3656,7 @@ Un titre porté par l’axe matériel ne commande donc pas l’axe analytique : 
 
 Et le parent ne se déduit jamais du seul rang du jeton : quand la donnée nomme son parent par `semantic_parent_key`, c’est ce nom qui fait foi, et la profondeur reprend l’état où ce parent l’a laissée. ⛔ Ce qui ne se rend pas n’entre pas au plan : une entrée de sommaire pointant vers une mention masquée serait une ancre sans cible.
 
-### 35.5.1. Liminaires Fillion : casse, repères analytiques et références de portée
+#### 35.5.1. Liminaires Fillion : casse, repères analytiques et références de portée
 
 Dans la couche éditoriale Fillion, les têtes liminaires qui transcrivent le nom du livre ou une mention d’introduction conservent la casse imprimée : `ÉVANGILE SELON SAINT LUC` reste `ÉVANGILE SELON SAINT LUC` ; `INTRODUCTION` reste `INTRODUCTION`. Une variante en casse française n’est admise que pour un libellé distinct composé par Corpus Scriptura et ne remplace jamais le heading source.
 
@@ -3663,7 +3671,7 @@ Aucune rubrique courte ne doit être inventée pour rendre la série régulière
 Lorsqu’un titre ou un chapeau analytique est suivi d’une référence biblique qui en définit la portée, la référence est placée entre parenthèses immédiatement après l’intitulé : `Quelques récits relatifs à l’enfance de Jésus (Luc 1, 1 - 2, 52).`
 
 
-### 35.5.2. Sous-sections et références bibliques des titres Fillion
+#### 35.5.2. Sous-sections et références bibliques des titres Fillion
 
 Dans la couche éditoriale de lecture, les marqueurs imprimés `§ I.`, `§ II.`, `§ III.`, etc. ne s’affichent pas lorsqu’ils ne font que répéter la hiérarchie déjà portée par le niveau de titre. On conserve l’intitulé descriptif qui suit, ainsi que le niveau sémantique nécessaire à la structure ; on ne modifie pas globalement le style T4 et on ne supprime pas le témoin source. Exemple : `§ I. — Prédiction de la naissance du précurseur. I, 1-25.` → `Prédiction de la naissance du précurseur (1, 1-25)`.
 
@@ -3671,7 +3679,7 @@ Les désignations structurelles de section qui transcrivent un titre imprimé co
 
 Dans tous les titres et chapeaux analytiques Fillion, la référence biblique finale est normalisée dans la couche de lecture : les numéros de chapitres sont écrits en chiffres arabes, la référence est placée entre parenthèses et le nom du livre n’est pas répété lorsque le contexte du livre est sans ambiguïté. Aucun point final n’est ajouté après la parenthèse. Une plage dans un même chapitre garde le trait d’union sans espaces (`1, 1-25`) ; une plage interchapitres emploie un trait d’union simple entouré d’espaces (`3, 21 - 4, 13`). La forme imprimée reste conservée dans `facsimile_heading` ou une provenance équivalente ; `text_content` et `source_markup` ne sont jamais réécrits pour cette normalisation.
 
-### 35.5.3. Repère romain et sous-titre descriptif
+#### 35.5.3. Repère romain et sous-titre descriptif
 
 Lorsqu’un véritable titre structurel Fillion associe un repère romain à un intitulé descriptif — par exemple `§ I — Ce qu’est la Bible` ou `I. La division de la Bible` dans le témoin — la couche de lecture dissocie TYPOGRAPHIQUEMENT les deux fonctions sans créer deux niveaux hiérarchiques : le titre proprement dit est le chiffre romain seul (`I`, `II`, `III`…), sans signe `§` ni point ; l’intitulé verbal devient le sous-titre ou chapeau immédiatement rattaché au même titre. La donnée de rendu se normalise sous la forme `I — Ce qu’est la Bible`, que le lecteur décompose en titre `I` et sous-titre `Ce qu’est la Bible`. La forme imprimée intégrale demeure conservée dans le témoin ou sa provenance. Cette règle est systématique dans Fillion pour tout titre structurel de cette forme ; un repère romain isolé, sans intitulé descriptif, reste simplement un titre romain sans sous-titre.
 
@@ -3753,7 +3761,7 @@ Un bloc de versets ne touche pas le commentaire qui l’entoure. Mesuré avant r
 
 ### 35.14. Le sommaire de l’édition — ses pièces liminaires
 
-### 35.14.1. Pages de titre imprimées et imprimatur — conservation sans affichage
+#### 35.14.1. Pages de titre imprimées et imprimatur — conservation sans affichage
 
 La page de titre imprimée d’une édition est un élément du témoin matériel, non une pièce de l’apparat destinée au lecteur. Conformément au § 5.1, elle est conservée dans les données de source et ses renseignements utiles sont distribués dans les métadonnées, mais elle n’est reproduite ni dans le corps de l’œuvre, ni dans les apparats, ni dans le Sommaire. ⛔ Aucune entrée « Page de titre », aucun contenu de page de titre imprimée et aucun titre technique équivalent ne doivent apparaître dans l’interface de lecture. Cette exclusion porte sur l’affichage : elle ne justifie jamais la suppression du témoin source ni de sa provenance.
 
@@ -3761,7 +3769,7 @@ L’imprimatur suit la même règle d’affichage : le formulaire imprimé n’e
 
 Les pièces liminaires qui peuvent entrer au Sommaire sont notamment « Du même auteur », dédicace, avant-propos, tableau de transcription de l’hébreu, abréviations, introduction générale, introduction du Testament et introduction du groupe de livres. Elles s’impriment avant le premier verset de la Bible ; la page de titre et l’imprimatur en sont exclus à l’affichage.
 
-### 35.14.2. Dédicaces — restitution éditoriale
+#### 35.14.2. Dédicaces — restitution éditoriale
 
 Une dédicace demeure une véritable pièce liminaire de lecture. Son titre de pièce ne s’écrit qu’une fois ; la formule dédicatoire imprimée à l’intérieur (« À Monsieur… », qualité du dédicataire, formule d’hommage) n’est pas promue en niveaux de titre supplémentaires. Elle est restituée comme composition interne, centrée et ramenée à la casse éditoriale normale lorsque le fac-similé emploie des capitales de présentation.
 
@@ -3771,7 +3779,7 @@ Lorsqu’une dédicace s’étend sur plusieurs pages matérielles, celles-ci ne
 
 Les fonctions typographiques restent sémantiques : une expression étrangère se compose selon la règle des langues étrangères ; les titres d’ouvrages cités sont en italique ; une traduction française citée reste en romain entre guillemets français. Ces choix sont portés par `editorial_normalization.blocks` et leurs `inline_spans`, jamais déduits par CSS ou par analyse du texte brut. La transcription source, sa pagination et sa provenance demeurent intégralement conservées.
 
-### 35.14.3. Avant-propos et préfaces liminaires
+#### 35.14.3. Avant-propos et préfaces liminaires
 
 Un avant-propos ou une préface liminaire constitue une seule pièce logique, même lorsqu’il s’étend sur plusieurs pages matérielles. Le titre de pièce n’est écrit qu’une fois. Les coupures de page, titres courants, folios, césures de fin de ligne et autres accidents de l’OCR ne produisent ni nouveaux blocs visibles ni blancs supplémentaires dans la couche de lecture. Les unités source demeurent distinctes pour la provenance, mais leurs continuations sont projetées dans une seule suite de lecture.
 
@@ -3779,7 +3787,7 @@ Les divisions internes attestées (`I.`, `II.`, `III.`, etc.) restent dans le co
 
 Les fonctions typographiques sont portées sémantiquement : expressions étrangères et titres d’ouvrages sont composés selon leur nature. Une date finale isolée est alignée à droite et ne prend pas de point final. La transcription source reste inchangée.
 
-### 35.14.4. Tableaux de transcription — structure et composition
+#### 35.14.4. Tableaux de transcription — structure et composition
 
 Un tableau de transcription est une donnée structurée, non un paragraphe typographique. Chaque entrée conserve séparément le signe ou caractère source, son nom, sa transcription et, lorsqu’elle existe, la remarque de prononciation. L’ordre des entrées appartient à la donnée ; le rendu ne le reconstruit jamais à partir d’une chaîne précomposée.
 
@@ -3787,7 +3795,7 @@ Dans la couche de lecture, les lignes du tableau se composent au fer à gauche, 
 
 Les caractères hébreux demeurent en caractères hébreux et les signes de transcription ne sont ni modernisés ni remplacés sans collation certaine. Toute diacritique dont la lecture exacte n’est pas établie reste explicitement en `review` ; une table visuellement propre ne vaut jamais validation philologique.
 
-### 35.14.5. Listes d’abréviations — références bibliographiques normalisées
+#### 35.14.5. Listes d’abréviations — références bibliographiques normalisées
 
 Une liste d’abréviations est une table de correspondance dont chaque ligne se termine par un point. Lorsqu’un sigle renvoie à un ouvrage, l’expansion est traitée par le normalisateur bibliographique commun : auteurs sous leurs formes d’autorité, titre et sous-titre selon la norme bibliographique active, lieu, éditeur, mention d’édition lorsqu’elle est nécessaire pour identifier l’édition citée, puis date. Le rendu s’arrête à la date ; si aucune date fiable n’est établie, il s’arrête au dernier champ bibliographique vérifié.
 
@@ -3807,7 +3815,7 @@ Le nom de la pièce s’écrit UNE fois, en tête. Les blocs qui le redisent per
 
 **Il se compose comme le sommaire d’une ŒUVRE** (décision de l’auteur, 28 août 2026). C’est le même objet, la table des matières d’un livre, et il n’avait pas à se présenter de deux façons. ⛔ Le sérif sur pastille verte qu’il portait venait de la liste des LIVRES, laquelle n’est pas une table des matières mais un index : on y cherche un nom qu’on connaît déjà, tandis qu’un sommaire se parcourt. ⚠️ Les rangs s’apparient par la FONCTION, non par la profondeur : la pièce est ce qu’on ouvre, elle prend donc le rang du premier niveau du sommaire d’une œuvre, vert et demi-gras quand elle est ouverte ; la portée ne s’ouvre pas, elle coiffe, et prend celui des rubriques du volet, en petit, espacé et pâle. Le premier essai les avait pris pour deux niveaux emboîtés, et les pièces, seul contenu de l’onglet, s’y lisaient comme les sous-entrées d’une rubrique qui n’existe pas.
 
-### 35.14.6. Introductions générales, testamentaires et de groupes de livres — pièce logique et appareil intégré
+#### 35.14.6. Introductions générales, testamentaires et de groupes de livres — pièce logique et appareil intégré
 
 Une introduction de portée Bible, Testament ou groupe de livres constitue une seule pièce logique, quel que soit le nombre de pages matérielles qu’elle occupe. Son titre de pièce n’est écrit qu’une fois. Les blocs physiques de page restent conservés comme témoins de provenance, mais une seule tête de pièce est rendue ; les continuations matérielles ne produisent ni nouvelle entrée de Sommaire, ni blanc de nouvelle notice, ni répétition du titre.
 
@@ -5771,30 +5779,6 @@ octets en base contre 372 446 servis — qui n'existait pas : l'objet, relu par
 l'API de stockage, concordait au sha256 près. Le contrôle se refait **après** le
 dépôt, et une discordance isolée se confirme sur l'objet avant d'être crue.
 
-### 49.17. LE RÉGIME EST ÉCRIT DEUX FOIS, ET LES DEUX ONT DIVERGÉ
-
-⛔ **Une règle recopiée dans deux fichiers ne reste la même que par accident, et
-c’est vrai d’une RÈGLE comme d’une mesure.** Le § 49.4 a fait lire la légende
-imprimée à la chaîne d’image le 30 août 2026. La page, elle, décidait encore sur la
-seule largeur, et l’a fait un jour de plus.
-
-Conséquence, mesurée le 31 août : **dix-neuf gravures larges AU TRAIT** — le massacre
-des Innocents d’après un ivoire du Vᵉ siècle, Jésus séparant les brebis et les boucs
-d’après un bas-relief, le plan cavalier du temple d’Hérode — étaient FABRIQUÉES
-détourées et COMPOSÉES comme des photogravures. Deux effets, tous deux invisibles au
-dépôt :
-
-- leur encre ne passait plus par `--cs-gravure`, la page les rendant en `<img>` au
-  lieu d’un masque : elles restaient **noires sur le cuir** ;
-- elles étaient servies à **1,43 fois** leur taille d’affichage au lieu de deux.
-
-⚠️ **Rien ne pouvait le dire.** Les deux écritures sont justes chacune de son côté,
-les types passent, les tests passent, et relire l’une ou l’autre ne montre rien.
-`app/lib/partIllustration.test.ts` tenait déjà les BORNES accordées ; il tient
-désormais la RÈGLE, motif de reconnaissance compris, **tiré de la source du script**
-et non recopié. Éprouvée dans les deux sens : la garde devient rouge sur le motif
-comme sur le seuil, et revient au vert la divergence défaite.
-
 ### 49.18. LA PART SUIT LA LARGEUR IMPRIMÉE, ET LE RÉGIME NE DÉCIDE QUE DU DÉTOURAGE
 
 ⛔ **Deux parts FIXES restaient, et la seconde a survécu à la correction de la
@@ -5984,6 +5968,8 @@ Sur `test_only`, la requête rend trois lignes : deux le refusent, une l’exige
 ⛔ Une seule suffit pour qu’aucun état ne soit tenable, et rien ne le signale —
 ni erreur, ni ligne manquante, seulement du texte qui n’arrive pas.
 ### 49.23. LE RÉGIME ET LA PART SONT ÉCRITS PAR LA CHAÎNE, LUS PAR LA PAGE (2026-09-03)
+
+⛔ **Une règle recopiée dans deux fichiers ne reste la même que par accident, et c’est vrai d’une RÈGLE comme d’une mesure.** Le régime des gravures l’a payé : la chaîne d’image et la page le dérivaient chacune de son côté, et elles ont divergé un jour durant — dix-neuf gravures larges AU TRAIT fabriquées détourées puis composées comme des photogravures, donc noires sur le cuir et servies à 1,43 fois leur taille d’affichage au lieu de deux. ⚠️ **Rien ne pouvait le dire** : les deux écritures étaient justes chacune de son côté, les types passaient, les tests passaient, et relire l’une ou l’autre ne montrait rien. La colonne en base ferme la question, parce qu’il n’y a plus deux écritures.
 
 **Le constat.** Le corpus portait 233 illustrations, non plus 43, et la page de
 lecture DÉRIVAIT encore le régime de composition et la part de colonne à chaque
