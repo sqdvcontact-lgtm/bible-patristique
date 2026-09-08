@@ -218,10 +218,15 @@ export default function ProfilPublicPage() {
           font-size: 0.8125rem; font-style: italic; line-height: 1.6;
           color: var(--cs-texte-fort); margin: 0 0 4px;
         }
+        /* ⚠️ La référence est le SEUL porteur de l'identité du passage : le seuil de
+           4,5 s'applique, comme à la manchette des renvois et à la mention d'absence
+           de la Polyglotte. Mesurée sur la page servie, --cs-texte-gris rendait 3,57
+           à 13 px ; --cs-texte-second en rend 5,9. ⛔ L'étiquette de section, elle,
+           garde --cs-etiquette : une rubrique EST faite pour s'effacer. */
         .profil-citation-ref {
           font-family: var(--font-source-serif), Georgia, serif;
           font-size: 0.59375rem; letter-spacing: 0.04em;
-          color: var(--cs-texte-gris); margin: 0;
+          color: var(--cs-texte-second); margin: 0;
         }
         .profil-action {
           display: inline-flex; align-items: center; justify-content: center; gap: 7px;
@@ -238,7 +243,19 @@ export default function ProfilPublicPage() {
 
       <div style={{ maxWidth: '37.5rem', margin: '0 auto' }}>
 
-        {/* ── EN-TÊTE CENTRÉ ────────────────────────────────────────────────── */}
+        {/* ── EN-TÊTE CENTRÉ ──────────────────────────────────────────────────
+            ⛔ CE BLOC EST UN APLAT, ET IL PREND LA FAMILLE DES APLATS. Son dégradé
+            se composait de `--cs-vert-fonce` et de `--cs-encre`, qui sont des ENCRES :
+            en Cuir elles valent #ead2a2 et #cdbb98, c'est-à-dire des crèmes, et toute
+            la carte s'y retournait en beige clair — la date y rendait 1,97 et le
+            pseudonyme 1,16 une fois le sol rétabli. Cinquième fois que ce piège se
+            paie ; la charte le nomme « encre contre aplat ».
+            ⚠️ Le sol restant SOMBRE dans les deux thèmes, ses encres viennent de la
+            famille `-clair`, la seule qui reste claire de part et d'autre : le nom et
+            le portrait en `--cs-vert-clair` (5,14 au Clair, 8,95 en Cuir), toutes les
+            mentions dorées en `--cs-or-clair` (4,68 et 7,14). Mesuré sur la page
+            servie. ⛔ Ni `--cs-fond-doux` ni `--cs-or-doux` ici : les deux s'inversent
+            ou passent sous le seuil. */}
         <div style={{
           textAlign: 'center', marginBottom: '10px', border: '1px solid rgba(198,169,100,.42)',
           borderRadius: '8px', padding: '30px 28px 24px', position: 'relative', overflow: 'hidden',
@@ -252,7 +269,7 @@ export default function ProfilPublicPage() {
             'radial-gradient(circle at 68% 68%, rgba(222,190,111,.20) 0 1.1px, transparent 1.8px)',
             'radial-gradient(circle at 82% 30%, rgba(233,204,136,.30) 0 1px, transparent 1.7px)',
             'radial-gradient(circle at 92% 79%, rgba(222,190,111,.18) 0 1px, transparent 1.6px)',
-            'linear-gradient(145deg, var(--cs-vert-fonce) 0%, var(--cs-vert-fonce) 48%, var(--cs-encre) 100%)',
+            'linear-gradient(145deg, var(--cs-vert-aplat-fonce) 0%, var(--cs-vert-aplat-fonce) 48%, var(--cs-vert-aplat-profond) 100%)',
           ].join(', '),
           boxShadow: 'var(--cs-ombre-flottante)',
         }}>
@@ -284,7 +301,7 @@ export default function ProfilPublicPage() {
 
           {/* Pseudo — et, pour un mécène, le grain à sa suite. ⚠️ Sur cet en-tête vert
               sombre, l'or de la charte est illisible : c'est sa version pâle qui sert. */}
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', fontWeight: 'normal', color: 'var(--cs-fond-doux)', margin: '0 0 4px', letterSpacing: '0.01em' }}>
+          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', fontWeight: 'normal', color: 'var(--cs-vert-clair)', margin: '0 0 4px', letterSpacing: '0.01em' }}>
             {profil.pseudo}
             {profil.mecene_depuis && (
               <>
@@ -298,13 +315,13 @@ export default function ProfilPublicPage() {
               rangé dans la famille du danger, et le vrai nom paraissait en rose sur
               le vert sombre. C'est l'or doux qui porte les mentions de cet en-tête. */}
           {profil.nom_reel && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.75rem', color: 'var(--cs-or-doux)', margin: '0 0 6px', fontStyle: 'italic' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.75rem', color: 'var(--cs-or-clair)', margin: '0 0 6px', fontStyle: 'italic' }}>
               {profil.nom_reel}
             </p>
           )}
 
           {/* Date + email */}
-          <p style={{ fontSize: '0.625rem', color: 'var(--cs-or-doux)', margin: '0 0 12px', letterSpacing: '0.05em' }}>
+          <p style={{ fontSize: '0.625rem', color: 'var(--cs-or-clair)', margin: '0 0 12px', letterSpacing: '0.05em' }}>
             Lecteur depuis {annee}
             {/* ⚠️ Le grain est nommé ICI, en toutes lettres, et nulle part ailleurs. Son
                 infobulle suffit à la souris, mais elle n'existe pas sur un téléphone :
@@ -315,12 +332,12 @@ export default function ProfilPublicPage() {
               <>
                 {' · '}
                 {emailVisible ? (
-                  <a href={`mailto:${profil.contact_email}`} style={{ color: '#ead9a9', textDecoration: 'none' }}>
+                  <a href={`mailto:${profil.contact_email}`} style={{ color: 'var(--cs-or-clair)', textDecoration: 'none' }}>
                     {profil.contact_email}
                   </a>
                 ) : (
                   <button onClick={() => setEmailVisible(true)}
-                    className="cs-lien-phrase" style={{ color: '#ead9a9' }}>
+                    className="cs-lien-phrase" style={{ color: 'var(--cs-or-clair)' }}>
                     Afficher l&apos;adresse mail
                   </button>
                 )}
@@ -336,13 +353,13 @@ export default function ProfilPublicPage() {
           {/* Rang */}
           {rang && couleurs && (
             <div style={{ marginBottom: profil.bio ? '14px' : '0' }}>
-              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.6875rem', fontStyle: 'normal', color: '#e2c98d' }}>
+              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.6875rem', fontStyle: 'normal', color: 'var(--cs-or-clair)' }}>
                 {rang.rang}
               </span>
               {/* ⚠️ Le point médian sépare à lui seul : la marge de 8 px qu'il portait
                   en plus ouvrait un blanc d'un côté et pas de l'autre, et le titre
                   paraissait détaché de son compte. */}
-              <span style={{ fontSize: '0.625rem', color: 'var(--cs-or-doux)', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+              <span style={{ fontSize: '0.625rem', color: 'var(--cs-or-clair)', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                 {' · '}{profil.lecture!.nb_auteurs} Père{profil.lecture!.nb_auteurs !== 1 ? 's' : ''} retenu{profil.lecture!.nb_auteurs !== 1 ? 's' : ''}
               </span>
             </div>
@@ -356,7 +373,7 @@ export default function ProfilPublicPage() {
               portrait devait se composer en paragraphe, c'est le centrage qu'il faudrait
               lui retirer d'abord. */}
           {profil.bio && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-fond-doux)', lineHeight: 1.52, margin: rang ? '18px 0 0' : '0', fontStyle: 'italic', maxWidth: '27.5rem', marginLeft: 'auto', marginRight: 'auto' }}>
+            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-vert-clair)', lineHeight: 1.52, margin: rang ? '18px 0 0' : '0', fontStyle: 'italic', maxWidth: '27.5rem', marginLeft: 'auto', marginRight: 'auto' }}>
               {profil.bio}
             </p>
           )}
