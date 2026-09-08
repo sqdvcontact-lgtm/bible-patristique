@@ -17,6 +17,7 @@
 // n'atteint pas (même segment), compose son titre entier — d'où `avecNomDuSite`.
 
 import { enumererNoms } from './traducteurs'
+import { deNom } from './elision'
 
 export const NOM_SITE = 'Corpus Scriptura'
 /** Le séparateur du site, celui du gabarit de `app/layout.tsx`. */
@@ -54,15 +55,10 @@ export function couperDescription(texte: string, longueur = LONGUEUR_DESCRIPTION
 }
 
 // ── Élision ──────────────────────────────────────────────────────────────────
-// « de Augustin » ne s'écrit pas. La règle vaut devant une voyelle et devant un
-// h muet, qui est le cas de tous les noms du corpus (Hilaire, Hippolyte,
-// Hermas). Un h aspiré s'éliderait à tort : c'est le seul défaut connu, et il
-// ne se rencontre pas ici.
-const INITIALE_ELIDABLE = /^[aàâäeéèêëiîïoôöuùûüyh]/i
-
-export function deNom(nom: string): string {
-  return INITIALE_ELIDABLE.test(nom.trim()) ? `d’${nom.trim()}` : `de ${nom.trim()}`
-}
+// La règle vit dans `elision.ts` : les mentions de traducteur en ont besoin aussi
+// (« sous la direction de Corpus Scriptura »), et une orthographe écrite à deux
+// endroits finit par diverger. Ré-exportée ici pour les appelants historiques.
+export { deNom }
 
 // ── Nombres en toutes lettres ────────────────────────────────────────────────
 // Une description est une phrase : « et de six autres auteurs », non « et de 6 ».

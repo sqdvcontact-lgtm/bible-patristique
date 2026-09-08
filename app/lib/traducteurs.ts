@@ -3,6 +3,8 @@
 // appelants historiques. La donnée du catalogue reste intacte : on ne met en forme
 // qu'à l'affichage.
 
+import { deNom } from './elision'
+
 const TITRES_RE = /^(M\.|Mme\.?|Mlle\.?|Dr\.?|Pr\.?|Dom |Père |Frère |Sœur |Abbé |Saint |Sainte |Rev\.? ?|Mgr\.?|R\.\s*P\.|l['’]abbé|le père)/i
 
 // Titres à passer en minuscule à l'affichage (ils suivent « Traduction … », donc pas
@@ -119,6 +121,38 @@ function libelleDirection(mention: string): string {
   return `Traduction ${minusculeInitiale(mention.replace(TETE_COLLECTIVE_RE, ''))}`
 }
 
+// ── Traduction produite par la machine ───────────────────────────────────────
+// Le catalogue porte « Traduction IA — Corpus Scriptura » : une mention de RÉGIME
+// suivie de la maison qui en répond, non un nom de personne. Prise pour un nom, elle
+// donnait « Traduction par Traduction IA — Corpus Scriptura » en page de titre
+// (relevé de l'auteur, 2026-09-08) : le mot « traduction » deux fois, et un instrument
+// présenté comme un traducteur. Une page de titre nomme l'instrument en toutes lettres
+// et la direction éditoriale comme telle.
+// ⚠️ La donnée reste INTACTE en base : c'est l'affichage qui rédige.
+const IA_RE = /^(?:traductions?\s+)?(?:(?:réalisée?|produite?|faite?)\s+)?(?:par\s+)?(?:i\.?\s?a\.?|intelligence\s+artificielle)(?:\s*[—–-]\s*(.+))?$/i
+
+/** La direction éditoriale d'une traduction faite par la machine : le nom qui suit le
+ *  tiret, la chaîne vide quand la mention n'en porte pas — et `null` quand la mention
+ *  n'est pas de ce régime, seul cas où il y a un traducteur à nommer. */
+function directionIA(trad: string | null | undefined): string | null {
+  const trouve = IA_RE.exec((trad ?? '').trim())
+  return trouve ? (trouve[1]?.trim() ?? '') : null
+}
+
+/** « Traduction par intelligence artificielle sous la direction de Corpus Scriptura » :
+ *  l'instrument en toutes lettres, la direction éditoriale nommée comme telle. */
+function libelleIA(direction: string): string {
+  const socle = 'Traduction par intelligence artificielle'
+  return direction ? `${socle} sous la direction ${deNom(direction)}` : socle
+}
+
+/** La mention nomme-t-elle la MACHINE plutôt qu'une personne ? Un appelant qui
+ *  découpe un patronyme (une tête de colonne, un label court) doit le savoir :
+ *  « Traduction IA — Corpus Scriptura » n'a pas de nom de famille à prendre. */
+export function estTraductionMachine(trad: string | null | undefined): boolean {
+  return directionIA(trad) !== null
+}
+
 /** Découpe brute : le catalogue sépare les noms par un point-virgule, et lui seul. */
 function decouper(trad: string | null | undefined): string[] {
   return (trad ?? '').split(';').map(s => s.trim()).filter(Boolean)
@@ -145,6 +179,10 @@ export function enumererTraducteurs(trad: string | null | undefined): string {
 }
 
 export function mentionTraducteurs(trad: string | null | undefined): string {
+  // Comme une formule de direction, elle se suffit à elle-même : pas de « trad. ».
+  const directionMachine = directionIA(trad)
+  if (directionMachine !== null) return minusculeInitiale(libelleIA(directionMachine))
+
   const noms = nomsTraducteurs(trad)
   if (noms.length === 0) return ''
   const direction = noms.find(n => DIRECTION_RE.test(n))
@@ -157,6 +195,10 @@ export function mentionTraducteurs(trad: string | null | undefined): string {
 }
 
 export function libelleTrad(trad: string | null | undefined): string {
+  // Une mention de régime commande tout le libellé : il n'y a pas de nom à composer.
+  const directionMachine = directionIA(trad)
+  if (directionMachine !== null) return libelleIA(directionMachine)
+
   const noms = nomsTraducteurs(trad)
   if (noms.length === 0) {
     return decouper(trad).some(b => EST_NON_ETABLI.test(b)) ? 'Traducteur non identifié' : ''

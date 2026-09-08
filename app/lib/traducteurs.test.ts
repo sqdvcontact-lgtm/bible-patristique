@@ -132,6 +132,51 @@ describe('libelleTrad — cas ordinaires inchangés', () => {
   })
 })
 
+// ── Une traduction produite par la machine ──────────────────────────────────
+// Cas RÉEL : Dhuoda, « Manuel pour mon fils » (mise en ligne du 2026-09-07), seule
+// œuvre du corpus dont le champ porte cette mention. Elle donnait « Traduction par
+// Traduction IA — Corpus Scriptura » en page de titre.
+describe('libelleTrad — traduction produite par la machine', () => {
+  it('nomme l’instrument en toutes lettres, et la direction comme telle', () => {
+    expect(libelleTrad('Traduction IA — Corpus Scriptura'))
+      .toBe('Traduction par intelligence artificielle sous la direction de Corpus Scriptura')
+  })
+
+  it('reconnaît la mention sous ses autres formes', () => {
+    for (const brut of [
+      'IA — Corpus Scriptura',
+      'Traduction par IA — Corpus Scriptura',
+      'Traduction réalisée par intelligence artificielle — Corpus Scriptura',
+      'traduction i.a. — Corpus Scriptura',
+    ]) {
+      expect(libelleTrad(brut), brut)
+        .toBe('Traduction par intelligence artificielle sous la direction de Corpus Scriptura')
+    }
+  })
+
+  it('s’arrête à l’instrument quand la mention ne nomme aucune direction', () => {
+    expect(libelleTrad('Traduction IA')).toBe('Traduction par intelligence artificielle')
+    expect(libelleTrad('Intelligence artificielle')).toBe('Traduction par intelligence artificielle')
+  })
+
+  it('élide devant une voyelle', () => {
+    expect(libelleTrad('Traduction IA — Ambroise Bonnet'))
+      .toBe('Traduction par intelligence artificielle sous la direction d’Ambroise Bonnet')
+  })
+
+  it('entre dans une ligne bibliographique sans « trad. », comme une direction', () => {
+    expect(mentionTraducteurs('Traduction IA — Corpus Scriptura'))
+      .toBe('traduction par intelligence artificielle sous la direction de Corpus Scriptura')
+  })
+
+  it('⛔ ne prend pas un nom propre pour une mention de machine', () => {
+    // Formes réelles du catalogue : « Ian » et « I. A. » ouvrent comme la mention.
+    expect(libelleTrad('Ian Short')).toBe('Traduction par Ian Short')
+    expect(libelleTrad('Isaac Kéchichian')).toBe('Traduction par Isaac Kéchichian')
+    expect(libelleTrad('I. A. Richards')).toBe('Traduction par I. A. Richards')
+  })
+})
+
 // ── La mention du CATALOGUE, telle qu'une notice peut la porter ──────────────
 // Le champ `catalogue_notices.traducteur` est de la PROSE, écrite par le
 // dépouillement des notices : il y voisine des noms, des réserves d'attribution et

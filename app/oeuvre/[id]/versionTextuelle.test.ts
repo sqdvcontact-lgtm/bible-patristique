@@ -32,4 +32,14 @@ describe('métadonnées du texte actif', () => {
     expect(libelleTraducteurVersion(version)).toBe('Traduction de René de Ceriziers')
     expect(labelCourtVersion(version)).toBe('Ceriziers 1646')
   })
+
+  it('⛔ ne découpe pas un patronyme dans une mention de machine', () => {
+    // Dhuoda, « Manuel pour mon fils » : la colonne française du texte en regard
+    // s’intitulait « Scriptura 2026 », en face de « Bondurand 1887 ».
+    expect(labelCourtVersion({
+      titre: 'Traduction française IA — publication progressive',
+      traducteur: 'Traduction IA — Corpus Scriptura',
+      anneeEdition: 2026,
+    })).toBe('Traduction IA 2026')
+  })
 })

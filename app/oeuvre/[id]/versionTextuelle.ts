@@ -1,6 +1,6 @@
 import type { VersionTextuelle } from './oeuvreTypes'
 import { adresseEdition } from '@/app/lib/adresseEdition'
-import { libelleTrad } from '@/app/lib/traducteurs'
+import { estTraductionMachine, libelleTrad } from '@/app/lib/traducteurs'
 import {
   editeursDuSegment,
   estVilleConnue,
@@ -16,6 +16,12 @@ function capitaleInitiale(texte: string) {
 
 export function labelCourtVersion(version: Pick<VersionTextuelle, 'traducteur' | 'titre' | 'anneeEdition'>) {
   const nom = version.traducteur?.trim()
+  // ⚠️ Une mention de machine n'a pas de patronyme à donner : « Traduction IA —
+  //    Corpus Scriptura » mettait « Scriptura 2026 » en tête de la colonne française
+  //    du texte en regard, en face de « Bondurand 1887 ».
+  if (nom && estTraductionMachine(nom)) {
+    return ['Traduction IA', version.anneeEdition].filter(Boolean).join(' ')
+  }
   const personne = nom?.split(/\s+/u).at(-1) || version.titre
   return [personne, version.anneeEdition].filter(Boolean).join(' ')
 }
