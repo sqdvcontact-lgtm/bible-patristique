@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { MARGE_FENETRE } from './fenetreContextuelle'
 import {
   CORPS_ENCART,
+  INTERLIGNE_ENCART,
   HAUTEUR_ENCART_MAX_REM,
   LARGEUR_ENCART,
   LARGEUR_ENCART_REM,
@@ -47,7 +48,7 @@ describe('la hauteur que l’encart demanderait', () => {
   })
 
   it('garde un plancher : un renvoi de treize signes reste une boîte, pas un filet', () => {
-    expect(haut(0)).toBeGreaterThanOrEqual(56)
+    expect(haut(0)).toBeGreaterThanOrEqual(53)
     expect(haut(13)).toBe(haut(0))
   })
 
@@ -77,13 +78,18 @@ describe('la hauteur que l’encart demanderait', () => {
     expect(haut(400000, 22)).toBe(HAUTEUR_ENCART_MAX_REM * 22)
   })
 
-  // ⚠️ Le compte de contrôle : ces trois-là sont MESURÉS sur la planche du
-  // 8 septembre 2026, sur des notes réelles, encart de 29 rem à la racine 16. La
-  // boîte doit porter au moins ce que le propos demande.
+  // ⚠️ Le compte de contrôle : ces trois-là sont MESURÉS dans un navigateur, sur la
+  // composition SERVIE, encart de 29 rem à la racine 16, réserve de la croix comprise.
+  // La boîte doit porter au moins ce que le propos demande.
+  // ⛔ ILS SE REMESURENT DÈS QUE LE CORPS OU LE BLANC BOUGENT, et c'est arrivé le
+  // 8 septembre 2026 au soir — note passée à 0,75 rem, interligne à 1,42, rembourrage à
+  // 0,875/1 rem, blanc de paragraphe à 0,375 : 65 · 162 · 91 sont devenus 53 · 139 · 89.
+  // Une demande périmée ne rendrait pas le test faux, elle le rendrait MOU — il passerait
+  // sur une boîte deux fois trop haute sans rien dire.
   it.each([
-    ['la médiane du corpus, 29 signes', 29, false, 65],
-    ['une note moyenne, 340 signes', 340, false, 162],
-    ['un apparat critique de 90 signes, avec intitulé', 90, true, 91],
+    ['la médiane du corpus, 29 signes', 29, false, 53],
+    ['une note moyenne, 340 signes', 340, false, 139],
+    ['un apparat critique de 90 signes, avec intitulé', 90, true, 89],
   ])('couvre %s', (_nom, signes, avecIntitule, demande) => {
     expect(haut(signes as number, 16, avecIntitule as boolean)).toBeGreaterThanOrEqual(demande as number)
   })
@@ -152,15 +158,35 @@ describe('le numéro de la note', () => {
     expect(STYLE_NUMERO_ENCART.width).toBeTruthy()
   })
 
-  it('se ferre à droite, contre le texte', () => {
-    expect(STYLE_NUMERO_ENCART.textAlign).toBe('right')
+  // ⛔ AU FER À GAUCHE, et c'est une décision (2026-09-08) : « supprime l'alinéa avant
+  // le numéro de note ». Ferré à droite d'une gouttière fixe, un numéro d'un ou deux
+  // signes s'écartait du bord, et l'encart s'ouvrait sur un alinéa. Le fer à droite est
+  // la règle d'un chiffre qui accompagne un TEXTE SUIVI, où cinquante repères s'alignent
+  // les uns sous les autres ; il n'y en a qu'un ici, en tête d'un objet.
+  it('se ferre à GAUCHE : pas d’alinéa avant le numéro', () => {
+    expect(STYLE_NUMERO_ENCART.textAlign).toBe('left')
   })
 
   // ⚠️ Sa ligne est celle du TEXTE : un chiffre de 0,625 rem posé sur son propre
   // interligne flotterait au-dessus de la première ligne du propos.
+  // ⛔ Elle se DÉRIVE des deux constantes, elle ne les recopie pas : écrites à la main,
+  // elles ont fait échouer ce test le jour où le corps de la note a changé, ce qui est
+  // exactement le défaut que ce module existe pour empêcher.
   it('prend l’interligne du texte, non le sien', () => {
-    const ligneTexte = 0.8125 * 1.5
+    const ligneTexte = Number.parseFloat(CORPS_ENCART) * INTERLIGNE_ENCART
     expect(Number(STYLE_NUMERO_ENCART.lineHeight) * 0.625).toBeCloseTo(ligneTexte, 5)
+  })
+})
+
+describe('la composition du propos', () => {
+  // ⛔ JUSTIFIÉ ET CÉSURÉ, sur le corps de l'encart et non sur chaque paragraphe : la
+  // page Bible justifiait les siens, la lecture d'une œuvre non, et le même encart
+  // rendait deux compositions selon la surface qui l'ouvrait.
+  it('justifie, coupe les mots, et rend la dernière ligne au fer à gauche', () => {
+    const style = styleCorpsEncart(true)
+    expect(style.textAlign).toBe('justify')
+    expect(style.textAlignLast).toBe('left')
+    expect(style.hyphens).toBe('auto')
   })
 })
 

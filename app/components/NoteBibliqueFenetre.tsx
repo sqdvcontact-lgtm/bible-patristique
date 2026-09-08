@@ -23,7 +23,7 @@ import {
 } from '@/app/lib/fenetreContextuelle'
 import { styleAppelNote, type VarianteAppelNote } from '@/app/lib/appelsDeNote'
 import { EncartNote } from './EncartNote'
-import { hauteurSouhaiteeNote, largeurEncartMinPx, largeurEncartPx, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
+import { hauteurSouhaiteeNote, largeurEncartMinPx, largeurEncartPx, MARGE_PARAGRAPHE_ENCART, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
 // L'axe est la CAPACITÉ DU POINTEUR, jamais la largeur (charte, « LE DOIGT »).
 import { useSansSurvol } from '@/app/lib/useEstMobile'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -65,12 +65,17 @@ export function ContenuNoteBiblique({ note }: { note: Pick<BibleEditionDisplayNo
             lang={bloc.language ?? undefined}
             className={citationSortie ? 'citation-sortie' : undefined}
             style={{
-              margin: citationSortie ? undefined : (discret ? '0.35rem 0 0' : '0 0 0.5rem'),
+              margin: citationSortie ? undefined : (discret ? `${MARGE_PARAGRAPHE_ENCART} 0 0` : `0 0 ${MARGE_PARAGRAPHE_ENCART}`),
               fontStyle: bloc.kind === 'lemma' ? 'italic' : 'normal',
               color: discret ? 'var(--cs-texte-second)' : 'var(--cs-texte-fort)',
               whiteSpace: bloc.form === 'verse' ? 'pre-line' : 'pre-wrap',
-              textAlign: 'justify',
-              hyphens: 'auto',
+              // ⛔ NI `textAlign` NI `hyphens` ICI : la justification et la césure vivent
+              // sur le CORPS de l'encart (`styleCorpsEncart`), pour les trois surfaces à
+              // la fois. Elles étaient déclarées là, et la lecture d'une œuvre ne les
+              // avait donc pas — le même encart rendait deux compositions selon la page
+              // qui l'ouvrait, ce que le module commun existe pour empêcher. Redites ici,
+              // elles écrasaient en outre `text-align-last`, et une dernière ligne de
+              // trois mots s'étirait d'un bord à l'autre.
             }}
           >
             {rendreTexteEnrichi(bloc.text)}

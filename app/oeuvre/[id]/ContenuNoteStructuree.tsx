@@ -9,6 +9,7 @@ import { familleDeNature, natureSeNormaliseCommeReference } from '@/app/lib/natu
 import { ContenuApparatCritique } from './ApparatCritique'
 import { rendreTexteEnrichi } from './texteEnrichi'
 import * as BibliographieNote from './noteBibliographie'
+import { MARGE_PARAGRAPHE_ENCART } from '@/app/lib/compositionNote'
 
 // Le texte d'un bloc de RENVOI EXTÉRIEUR (kind='reference') est normalisé au rendu :
 // « 1Co. 2, 16 » → « 1 Co 2, 16 », chapitre romain → arabe, virgule avant le verset.
@@ -263,7 +264,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
             data-rendering={block.rendering ?? undefined}
             data-needs-review={String(block.needsReview)}
             style={{
-              margin: '0 0 7px',
+              margin: `0 0 ${MARGE_PARAGRAPHE_ENCART}`,
               whiteSpace: verse || referencesApresVers.length > 0 ? 'pre-line' : 'normal',
               fontStyle: estBlocEnLatin(block) ? 'italic' : 'normal',
               // Les vers cités dans une note ne portent plus d'étiquette « Vers » : ils se

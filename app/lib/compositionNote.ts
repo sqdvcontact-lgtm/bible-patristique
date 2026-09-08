@@ -69,21 +69,35 @@ export function largeurEncartMinPx(racine: number): number {
   return LARGEUR_ENCART_MIN_REM * racine
 }
 
-/** La gouttière du numéro, celle d'un verset sur la page Bible portée à l'échelle
- *  de l'encart : le chiffre s'y range au fer à droite, contre le texte. */
-export const GOUTTIERE_NUMERO = '2.25rem'
+/** La gouttière du numéro.
+ *
+ *  ⛔ LE CHIFFRE S'Y RANGE AU FER À GAUCHE, contre le bord du blanc intérieur, et non
+ *  plus au fer à droite contre le texte (demande de l'auteur, 2026-09-08 : « supprime
+ *  l'alinéa avant le numéro de note »). Le fer à droite est la règle du site pour un
+ *  chiffre qui accompagne un TEXTE SUIVI — un numéro de verset dans une colonne de
+ *  lecture —, où il aligne cinquante repères les uns sous les autres. Ici il n'y en a
+ *  qu'un, en tête d'un objet : à droite d'une gouttière fixe, un numéro à un ou deux
+ *  signes s'écartait du bord de deux à sept dixièmes de rem, et l'encart s'ouvrait sur
+ *  un alinéa que rien ne justifiait. La gouttière se resserre du même coup. */
+export const GOUTTIERE_NUMERO = '1.75rem'
 
-/** Le blanc intérieur. ⚠️ Trois fois celui d'avant sur l'axe vertical : « avec des
- *  marges, épuré » (demande de l'auteur). Une note est un objet posé, pas une bulle. */
-export const REMBOURRAGE_ENCART = '1.125rem 1.25rem'
+/** Le blanc intérieur. ⚠️ Resserré d'un quart (demande de l'auteur, 2026-09-08 :
+ *  « réduis légèrement les marges ») : il valait 1,125/1,25 rem, soit trois fois celui
+ *  des anciens encarts, ce qui donnait à une note de deux lignes un cadre de six. Une
+ *  note reste un objet posé — elle garde un blanc franc, elle ne l'étale plus. */
+export const REMBOURRAGE_ENCART = '0.875rem 1rem'
 
-/** Le corps du texte d'une note : celui de la lecture. ⚠️ Les trois encarts
- *  hésitaient entre 0,78125 et 0,8125 rem ; on prend le plus lisible des deux. */
-export const CORPS_ENCART = '0.8125rem'
+/** Le corps du texte d'une note. ⚠️ Il descend de 0,8125 à 0,75 rem (demande de
+ *  l'auteur, 2026-09-08 : « plus condensées, avec un corps de texte plus petit »). Une
+ *  note n'est pas de la lecture suivie : on y va, on la lit, on revient au texte — et
+ *  son corps se distingue mieux de celui de la page quand il s'en écarte franchement. */
+export const CORPS_ENCART = '0.75rem'
 
-/** L'interligne. Entre celui de l'apparat (1,3) et celui de la lecture (1,62) :
- *  l'encart tient une soixantaine de signes par ligne, il respire. */
-export const INTERLIGNE_ENCART = 1.5
+/** L'interligne, resserré avec le corps : 1,42, celui du verset de la page Bible.
+ *  ⚠️ Il commande AUSSI la ligne du numéro en manchette et l'estimation de hauteur
+ *  ci-dessous — les trois se tiennent par cette constante, jamais par des valeurs
+ *  recopiées. */
+export const INTERLIGNE_ENCART = 1.42
 
 /**
  * La hauteur que l'encart PRENDRAIT si rien ne le bornait, estimée sur la longueur
@@ -112,18 +126,32 @@ export const HAUTEUR_ENCART_MAX_REM = 30
 const LIGNE_ENCART_REM = Number.parseFloat(CORPS_ENCART) * INTERLIGNE_ENCART
 /** Les deux rembourrages, en rem — `REMBOURRAGE_ENCART` ouvre sur l'axe vertical. */
 const REMBOURRAGE_VERTICAL_REM = Number.parseFloat(REMBOURRAGE_ENCART) * 2
-/** ⚠️ Le DERNIER paragraphe d'une note garde sa marge de queue : elle appartient au
- *  propos, non au cadre, et l'oublier faisait défiler une note d'une seule ligne. */
-const MARGE_QUEUE_REM = 0.5
+/** Le blanc qui SÉPARE deux paragraphes d'une note, et que le dernier garde en queue.
+ *
+ *  ⚠️ Il appartient au propos, non au cadre, et l'oublier dans l'estimation faisait
+ *  défiler une note d'une seule ligne. ⛔ Il s'écrit ICI et se lit là où les blocs se
+ *  composent : `ContenuNoteStructuree` en portait sa propre valeur, en PIXELS (7 px),
+ *  quand tout le reste de l'encart se compte en rem — la police racine du site étant
+ *  fluide, un blanc en pixels se resserre tout seul sur un grand écran.
+ *  ⚠️ Resserré de 0,5 à 0,375 rem avec le corps de la note (2026-09-08). */
+export const MARGE_PARAGRAPHE_ENCART_REM = 0.375
+export const MARGE_PARAGRAPHE_ENCART = `${MARGE_PARAGRAPHE_ENCART_REM}rem`
+const MARGE_QUEUE_REM = MARGE_PARAGRAPHE_ENCART_REM
 /** L'intitulé et son blanc, quand il y en a un. */
 const INTITULE_ENCART_REM = 1.125
 /** Les deux filets. ⚠️ En PIXELS, comme tout filet du site : un rem les rendrait flous. */
 const FILETS_ENCART_PX = 2
 
-/** Signes par ligne dans la mesure de l'encart. ⚠️ MESURÉ sur la composition réelle
- *  (planche du 8 septembre 2026) : 355 px de piste — la mesure quand la barre de
- *  défilement paraît, donc le pire cas — pour 6,25 px le signe. */
-const SIGNES_PAR_LIGNE = 63
+/** Signes par ligne dans la mesure de l'encart.
+ *
+ *  ⛔ IL SE REMESURE À CHAQUE FOIS QUE LE CORPS OU LE REMBOURRAGE BOUGENT, sans quoi
+ *  l'estimation de hauteur ment et une note de deux lignes s'ouvre avec un ascenseur.
+ *  ⚠️ Remesuré le 8 septembre 2026 au soir, la note étant passée à 0,75 rem et son
+ *  blanc à 0,875/1 rem : 412 px de piste — rembourrage de la croix compris, donc le
+ *  cas le plus étroit du cadre — et 66,4 signes par ligne sur un échantillon de 332.
+ *  On en retient 65 : la barre de défilement rend six pixels de moins quand elle
+ *  paraît, et sous-estimer la ligne fait une boîte trop haute, jamais trop courte. */
+const SIGNES_PAR_LIGNE = 65
 
 export function hauteurSouhaiteeNote(
   { signes, racine, avecIntitule = false }:
@@ -205,6 +233,21 @@ export function styleCorpsEncart(avecCroix: boolean): CSSProperties {
     fontSize: CORPS_ENCART,
     lineHeight: INTERLIGNE_ENCART,
     color: 'var(--cs-texte-fort)',
+    // ⛔ JUSTIFIÉ, et sur le CORPS plutôt que sur chaque paragraphe (demande de
+    // l'auteur, 2026-09-08). La page Bible justifiait déjà les siens, la lecture d'une
+    // œuvre non : le même encart rendait donc deux compositions selon la surface qui
+    // l'ouvrait, ce que ce module existe précisément pour empêcher. Posé ici, il vaut
+    // pour les trois, et une règle de paragraphe n'a plus à le redire.
+    // ⚠️ La CÉSURE va avec, elle n'est pas une option : la piste fait une soixantaine
+    // de signes, et une justification sans coupure y creuse des lézardes. La langue
+    // vient du document ou du bloc, qui porte son `lang` quand il n'est pas français.
+    // ⚠️ `textAlignLast` rend la DERNIÈRE ligne au fer à gauche : justifiée, une ligne
+    // de trois mots s'étirerait d'un bord à l'autre.
+    textAlign: 'justify',
+    textAlignLast: 'left',
+    hyphens: 'auto',
+    WebkitHyphens: 'auto',
+    overflowWrap: 'break-word',
   }
 }
 
@@ -224,8 +267,9 @@ export function styleCorpsEncart(avecCroix: boolean): CSSProperties {
  * à le lui demander.
  *
  * ⚠️ Il prend la face du numéro de verset de la page Bible — sans, graisse 600,
- * encre faible — et son fer à droite : le site pose déjà ainsi tout chiffre qui
- * accompagne un texte sans lui appartenir.
+ * encre faible. ⛔ MAIS PAS SON FER À DROITE : voir `GOUTTIERE_NUMERO`. Un numéro de
+ * verset s'aligne à droite parce qu'il en a cinquante sous lui ; celui-ci est seul, en
+ * tête d'un objet, et le fer à droite n'y produisait qu'un alinéa.
  */
 export const STYLE_NUMERO_ENCART: CSSProperties = {
   float: 'left',
@@ -234,8 +278,8 @@ export const STYLE_NUMERO_ENCART: CSSProperties = {
   fontSize: '0.625rem',
   fontWeight: 600,
   color: 'var(--cs-texte-faible)',
-  textAlign: 'right',
-  paddingRight: '0.625rem',
+  textAlign: 'left',
+  paddingRight: '0.5rem',
   // ⚠️ Sa ligne est celle du TEXTE, non la sienne : un chiffre de 0,625 rem posé sur
   // son propre interligne flotterait au-dessus de la première ligne du propos.
   lineHeight: INTERLIGNE_ENCART * Number.parseFloat(CORPS_ENCART) / 0.625,
