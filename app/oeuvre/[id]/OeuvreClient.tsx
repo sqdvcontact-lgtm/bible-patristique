@@ -69,7 +69,7 @@ import {
 } from '@/app/lib/citationSortie'
 import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, rendreTitreColophonAvecNotes, notesPourTexte } from './appelNote'
 import { chargerAuteursParOeuvre, separateurAuteurs } from '@/app/lib/auteursOeuvre'
-import { libelleVersionComplet } from './versionTextuelle'
+import { identiteEdition, libelleVersionComplet } from './versionTextuelle'
 import { editionsOffertes } from './editionsDuTexte'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
@@ -431,17 +431,24 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const [titreAffiche, setTitreAffiche] = useState(oeuvre.titre)
   const [oeuvreLocale, setOeuvreLocale] = useState<Props['oeuvre']>(oeuvre)
   const versionActive = versionsTextuelles.find(version => version.idTexte === idTexte) ?? null
-  const oeuvreAffichee = useMemo<Props['oeuvre']>(() => ({
-    ...oeuvreLocale,
-    trad_auteur: versionActive?.traducteur ?? oeuvreLocale.trad_auteur,
-    editeur: versionActive?.editeurEdition ?? oeuvreLocale.editeur,
-    ville: versionActive?.villeEdition ?? oeuvreLocale.ville,
-    date_publication: versionActive?.dateEdition ?? oeuvreLocale.date_publication,
-    url_source: versionActive?.sourceUrl ?? oeuvreLocale.url_source,
-    commentaire_traduction: versionActive && !versionActive.isDefault
-      ? null
-      : oeuvreLocale.commentaire_traduction,
-  }), [oeuvreLocale, versionActive])
+  // ⛔ L'identité de l'édition qu'on lit se prend à la version active, silence compris :
+  //    le repli champ par champ mêlait deux éditions (voir `identiteEdition`).
+  const oeuvreAffichee = useMemo<Props['oeuvre']>(() => {
+    const identite = identiteEdition(oeuvreLocale, versionActive)
+    return {
+      ...oeuvreLocale,
+      // `Props['oeuvre']` ne connaît pas le null sur ces champs : une identité absente
+      // s'y écrit undefined, et les gardes de rendu la lisent pareil.
+      trad_auteur: identite.traducteur ?? undefined,
+      editeur: identite.editeur ?? undefined,
+      ville: identite.ville ?? undefined,
+      date_publication: identite.datePublication ?? undefined,
+      url_source: versionActive?.sourceUrl ?? oeuvreLocale.url_source,
+      commentaire_traduction: versionActive && !versionActive.isDefault
+        ? null
+        : oeuvreLocale.commentaire_traduction,
+    }
+  }, [oeuvreLocale, versionActive])
   const [navOuverte, setNavOuverte] = useState(true)
   const [panneauOuvert, setPanneauOuvert] = useState(true)
   // ≤ 900px : nav et apparat en barres fixes + tiroirs (voir AGENTS § mobile).
@@ -669,6 +676,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const enRegardSurPlace = paireDeLecture.enRegardSurPlace
   const modeTexteEffectif = modeDeLectureEffectif(modeTexte, paireDeLecture)
   const affichageBilingue = modeTexteEffectif === 'bilingue'
+  // L'ÉDITION MISE EN REGARD, quand c'en est une autre : la page de titre la nomme au
+  // même titre que celle qu'on lit. ⚠️ `ensembleBilingue` est la garde qui compte —
+  // une colonne tirée du repli `segments.texte_original` n'est pas une autre édition,
+  // c'est la même qui porte son original avec elle, et il n'y a rien de plus à nommer.
+  const versionEnRegard = affichageBilingue && ensembleBilingue && idTexteEnRegard
+    ? versionsTextuelles.find(version => version.idTexte === idTexteEnRegard) ?? null
+    : null
   const afficherOriginalSeul = modeTexteEffectif === 'la'
   // ⚠️ Une colonne originale se compose dans les DEUX modes : en regard du français, ou
   // seule à sa place. Les deux surfaces qui la portent — la lecture et l'argument — le
@@ -2852,7 +2866,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               composant, même rembourrage symétrique, le titre centré sur toute la largeur
               du bloc. Les deux traductions comparées sont nommées en tête de colonnes plus
               bas. */}
-          <PageTitre auteur={auteur} oeuvre={oeuvreLocale} versionActive={versionActive} titre={titreAffiche} estAdmin={estAdmin} mobile={mobile}
+          <PageTitre auteur={auteur} oeuvre={oeuvreLocale} versionActive={versionActive} versionEnRegard={versionEnRegard} titre={titreAffiche} estAdmin={estAdmin} mobile={mobile}
             notes={notesDuTitre([oeuvreLocale.titre_affichage, titreAffiche, oeuvreLocale.sous_titre, oeuvreLocale.titre_original])}
             onModifier={(champ, va) => setEditionCible({
               type: 'titre_oeuvre', champ, texteActuel: va,

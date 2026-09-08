@@ -7,6 +7,7 @@ import IconeCrayon from '@/app/components/IconeCrayon'
 import { MarqueImprimeur } from './Ornements'
 import { memeIntitule, sansPointFinal } from '@/app/lib/titres'
 import { adresseEdition } from '@/app/lib/adresseEdition'
+import { identiteEdition } from './versionTextuelle'
 
 // Libellé du traducteur : logique pure dans `app/lib/traducteurs.ts` (testée),
 // ré-exportée ici pour les appelants historiques.
@@ -76,16 +77,56 @@ export function formulerProvenance(
   return `D’après l’édition de ${ed}${suffixe}`;
 }
 
+/** Passe l'initiale en bas de casse : « D'après l'édition de… » entre alors dans une
+ *  phrase commencée (« Texte latin d'après l'édition de… »). */
+function minusculeInitiale(texte: string): string {
+  return texte ? `${texte.charAt(0).toLocaleLowerCase('fr-FR')}${texte.slice(1)}` : texte
+}
+
+/**
+ * La mention de l'ÉDITION MISE EN REGARD, sur la page de titre d'une lecture bilingue.
+ *
+ * ⛔ **Deux éditions à l'écran, deux mentions sur la page de titre** (demande de
+ * l'auteur, 8 septembre 2026 : « elle doit correspondre à l'édition qui est affichée ;
+ * si on a deux éditions, il faut faire en conséquence »). « Français & Latin » composait
+ * la page de titre de la seule traduction : le lecteur avait le latin de Bondurand sous
+ * les yeux, et rien ne le nommait. Le texte établi vient EN PREMIER, la traduction
+ * ensuite — l'ordre du titre d'un bilingue.
+ *
+ * ⚠️ Elle ne paraît QUE lorsqu'une seconde édition existe réellement. Une colonne en
+ * regard tirée du repli `segments.texte_original` n'est pas une autre édition : c'est
+ * la même, qui porte son original avec elle, et il n'y a rien de plus à nommer.
+ */
+export function mentionEditionEnRegard(
+  version: Pick<VersionTextuelle, 'langue' | 'titre' | 'villeEdition' | 'editeurEdition' | 'dateEdition'>,
+): string {
+  const langue = version.langue?.trim()
+  const tete = langue ? `Texte ${langue.toLocaleLowerCase('fr-FR')}` : 'Texte original'
+  const provenance = formulerProvenance(
+    version.editeurEdition,
+    version.villeEdition,
+    formaterDateHistorique(version.dateEdition),
+  )
+  // Sans adresse, la version se nomme par son intitulé (« Texte latin — Bondurand
+  // 1887 ») : mieux vaut un titre de version qu'une tête toute seule.
+  if (!provenance) return version.titre?.trim() || tete
+  return `${tete} ${minusculeInitiale(provenance)}`
+}
+
 const BTN: React.CSSProperties = {
   position: 'absolute', fontSize: '0.6875rem', color: 'var(--cs-bord)',
   background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1,
 }
 
 // ── Page de titre ─────────────────────────────────────────────────────────────
-export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdmin, onModifier, mobile = false, notes = {} }: {
+export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRegard, titre, estAdmin, onModifier, mobile = false, notes = {} }: {
   auteur: string
   oeuvre: Props['oeuvre']
   versionActive?: VersionTextuelle | null
+  // L'édition MISE EN REGARD en lecture bilingue, quand c'en est une autre. Elle se
+  // nomme sur la page de titre au même titre que celle qu'on lit : deux éditions à
+  // l'écran, deux mentions.
+  versionEnRegard?: VersionTextuelle | null
   titre: string
   estAdmin: boolean
   onModifier: (champ: ChampOeuvre, valeurActuelle: string) => void
@@ -109,14 +150,17 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
   const titreOriginal = oeuvre.titre_original ?? ''
   const titreOriginalVisible = titreOriginal !== ''
     && (!memeIntitule(titreOriginal, titreAffiche) || estAdmin)
-  const traducteur = versionActive?.traducteur ?? oeuvre.trad_auteur
-  const traducteurLabel = versionActive?.traducteurLabel ?? libelleTrad(traducteur)
+  // ⛔ L'identité de l'édition ne se compose pas de deux éditions : elle se prend à la
+  //    version active, silence compris (voir `identiteEdition`).
+  const identite = identiteEdition(oeuvre, versionActive)
+  const traducteur = identite.traducteur
+  const traducteurLabel = identite.traducteurLabel ?? libelleTrad(traducteur)
   const commentaireTraduction = versionActive && !versionActive.isDefault
     ? null
     : oeuvre.commentaire_traduction
-  const editeur = versionActive?.editeurEdition ?? oeuvre.editeur
-  const ville = versionActive?.villeEdition ?? oeuvre.ville
-  const datePublication = versionActive?.dateEdition ?? oeuvre.date_publication
+  const editeur = identite.editeur
+  const ville = identite.ville
+  const datePublication = identite.datePublication
   // Millésime de l'édition en ligne (colophon), estampillé en base à la première
   // publication de l'œuvre (colonne `date_mise_en_ligne`). Absent → ligne masquée.
   const anneeEnLigne = oeuvre.date_mise_en_ligne
@@ -201,6 +245,14 @@ export default function PageTitre({ auteur, oeuvre, versionActive, titre, estAdm
       {oeuvre.note_editoriale_titre?.trim() && (
         <p style={{ fontFamily: SERIF, fontSize: 'clamp(0.875rem, 1.6vw, 1rem)', color: 'var(--cs-texte-second)', maxWidth: '30rem', lineHeight: 1.5, margin: '0 0 1.4em', whiteSpace: 'pre-line' }}>
           {rendreIntitule(sansPointFinal(oeuvre.note_editoriale_titre))}
+        </p>
+      )}
+
+      {/* L'ÉDITION EN REGARD — le texte établi vient AVANT la traduction, comme sur
+          le titre d'un bilingue. */}
+      {versionEnRegard && (
+        <p style={{ fontFamily: SERIF, fontSize: '0.875rem', color: 'var(--cs-texte-second)', marginBottom: '6px' }}>
+          {mentionEditionEnRegard(versionEnRegard)}
         </p>
       )}
 

@@ -288,7 +288,11 @@ export async function GET(requete: NextRequest, contexte: { params: Promise<{ id
       sousTitre: oeuvre.sous_titre as string | null,
       titreOriginal: oeuvre.titre_original as string | null,
       auteur,
-      traducteur: texteActif.traducteur ?? (oeuvre.trad_auteur as string | null),
+      // ⛔ Le SILENCE d'une version n'est pas une lacune à combler par l'œuvre : le
+      //    texte latin de Bondurand, qui n'a pas de traducteur, empruntait celui de
+      //    l'œuvre et son frontispice annonçait « Traduction par intelligence
+      //    artificielle… » (voir `identiteEdition`, dix-neuf textes dans ce cas).
+      traducteur: texteActif.traducteur,
       // ⛔ Une COÉDITION ne se rend jamais telle quelle : « A ; B » est le point-virgule
       // du catalogue, non un nom de maison. Chaque maison se résout pour son compte.
       editeur: normaliserNomEditeur(oeuvre.editeur as string | null, indexEditeurs) || null,

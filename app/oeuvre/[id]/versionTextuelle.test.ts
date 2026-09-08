@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decomposerEdition, labelCourtVersion, libelleTraducteurVersion } from './versionTextuelle'
+import { decomposerEdition, identiteEdition, labelCourtVersion, libelleTraducteurVersion } from './versionTextuelle'
 
 describe('métadonnées du texte actif', () => {
   it('sépare une mention d’édition de la publication sans identifiant spécifique', () => {
@@ -41,5 +41,57 @@ describe('métadonnées du texte actif', () => {
       traducteur: 'Traduction IA — Corpus Scriptura',
       anneeEdition: 2026,
     })).toBe('Traduction IA 2026')
+  })
+})
+
+// ── L'identité de l'édition qu'on lit ────────────────────────────────────────
+describe('identiteEdition', () => {
+  const oeuvre = {
+    trad_auteur: 'Traduction IA — Corpus Scriptura',
+    editeur: 'Alphonse Picard',
+    ville: 'Paris',
+    date_publication: '1887',
+  }
+  const version = {
+    traducteur: null as string | null,
+    traducteurLabel: null as string | null,
+    villeEdition: null as string | null,
+    editeurEdition: null as string | null,
+    dateEdition: null as string | null,
+    isDefault: false,
+  }
+
+  it('rend l’œuvre elle-même quand aucune version n’est active', () => {
+    expect(identiteEdition(oeuvre, null)).toEqual({
+      traducteur: 'Traduction IA — Corpus Scriptura',
+      traducteurLabel: null,
+      editeur: 'Alphonse Picard',
+      ville: 'Paris',
+      datePublication: '1887',
+    })
+  })
+
+  it('⛔ n’emprunte pas un traducteur à l’œuvre : le silence d’une version est un fait', () => {
+    const latin = { ...version, villeEdition: 'Paris', editeurEdition: 'Alphonse Picard', dateEdition: '1887' }
+    expect(identiteEdition(oeuvre, latin).traducteur).toBeNull()
+  })
+
+  it('⛔ ne compose pas une adresse de deux éditions', () => {
+    // La traduction n’a pas de ville : elle n’en prend pas une à l’édition latine.
+    const francais = { ...version, traducteur: 'Traduction IA — Corpus Scriptura', isDefault: true,
+      editeurEdition: 'Corpus Scriptura', dateEdition: '2026' }
+    expect(identiteEdition(oeuvre, francais)).toEqual({
+      traducteur: 'Traduction IA — Corpus Scriptura',
+      traducteurLabel: null,
+      editeur: 'Corpus Scriptura',
+      ville: null,
+      datePublication: '2026',
+    })
+  })
+
+  it('laisse l’œuvre parler pour la version PAR DÉFAUT qui ne porte aucune adresse', () => {
+    expect(identiteEdition(oeuvre, { ...version, isDefault: true }).ville).toBe('Paris')
+    // Une version qui n’est pas celle que l’œuvre décrit ne lui emprunte rien.
+    expect(identiteEdition(oeuvre, version).ville).toBeNull()
   })
 })

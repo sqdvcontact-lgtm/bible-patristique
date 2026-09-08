@@ -135,3 +135,69 @@ export function decomposerEdition(
     annee,
   }
 }
+
+// ── L'IDENTITÉ DE L'ÉDITION QU'ON LIT ────────────────────────────────────────
+// ⛔ **ELLE NE SE COMPOSE PAS DE DEUX ÉDITIONS.** Le repli se faisait champ par champ
+// (`versionActive?.champ ?? oeuvre.champ`), si bien que le SILENCE d'une version
+// passait pour une lacune à combler par l'œuvre. Deux conséquences, relevées par
+// l'auteur le 8 septembre 2026 sur le Manuel de Dhuoda :
+//
+//  - le texte latin de Bondurand, qui n'a pas de traducteur, empruntait celui de
+//    l'œuvre, et sa page de titre annonçait « Traduction par intelligence artificielle
+//    sous la direction de Corpus Scriptura ». Dix-neuf textes du corpus étaient dans ce
+//    cas, et tous les dix-neuf sont des textes en LANGUE ORIGINALE ;
+//  - l'adresse de la traduction française prenait sa ville à l'édition latine et
+//    donnait « Paris, Corpus Scriptura, 2026 » — une adresse qui ne nomme aucune
+//    édition réelle.
+//
+// ⚠️ **Une version active dit TOUT de son édition, son silence compris.** L'œuvre ne
+// parle qu'à défaut de version active — ou, quand la version ne porte aucune adresse,
+// pour la version PAR DÉFAUT, seule dont les champs de l'œuvre répondent.
+
+export type OeuvreIdentifiable = {
+  trad_auteur?: string | null
+  editeur?: string | null
+  ville?: string | null
+  date_publication?: string | null
+}
+
+export type VersionIdentifiable = Pick<
+  VersionTextuelle,
+  'traducteur' | 'traducteurLabel' | 'villeEdition' | 'editeurEdition' | 'dateEdition' | 'isDefault'
+>
+
+export type IdentiteEdition = {
+  traducteur: string | null
+  traducteurLabel: string | null
+  editeur: string | null
+  ville: string | null
+  datePublication: string | null
+}
+
+export function identiteEdition(
+  oeuvre: OeuvreIdentifiable,
+  versionActive: VersionIdentifiable | null | undefined,
+): IdentiteEdition {
+  if (!versionActive) {
+    return {
+      traducteur: oeuvre.trad_auteur ?? null,
+      traducteurLabel: null,
+      editeur: oeuvre.editeur ?? null,
+      ville: oeuvre.ville ?? null,
+      datePublication: oeuvre.date_publication ?? null,
+    }
+  }
+  // L'adresse se prend ENTIÈRE, ou pas du tout : une ville d'une édition et un éditeur
+  // d'une autre ne font pas une adresse.
+  const porteSonAdresse = Boolean(
+    versionActive.villeEdition || versionActive.editeurEdition || versionActive.dateEdition,
+  )
+  const adresseDeLOeuvre = !porteSonAdresse && versionActive.isDefault
+  return {
+    traducteur: versionActive.traducteur,
+    traducteurLabel: versionActive.traducteurLabel,
+    editeur: adresseDeLOeuvre ? oeuvre.editeur ?? null : versionActive.editeurEdition,
+    ville: adresseDeLOeuvre ? oeuvre.ville ?? null : versionActive.villeEdition,
+    datePublication: adresseDeLOeuvre ? oeuvre.date_publication ?? null : versionActive.dateEdition,
+  }
+}
