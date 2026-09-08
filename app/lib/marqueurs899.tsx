@@ -20,11 +20,25 @@ import { normaliserEspaces } from './typographie'
 const STYLE_INCERTAINE: React.CSSProperties = {
   color: 'var(--cs-texte-second)',
 }
-// Lacune dans le fil (au milieu d’un verset par ailleurs porté) : le manque se dit
-// « […] », entre CROCHETS — le signe que la philologie donne à ce qu’un témoin a perdu,
-// et celui que la donnée écrit déjà. Mise en forme demandée par l’auteur le 2026-09-05 :
-// un corps légèrement plus petit, un léger espace avant et après les crochets, l’ocre des
-// absences. Le motif exact (déchirure, fin du manuscrit) reste à l’infobulle.
+// Lacune dans le fil (au milieu d’un verset par ailleurs porté) : le manque se dit entre
+// CROCHETS — le signe que la philologie donne à ce qu’un témoin a perdu, et celui que la
+// donnée écrit déjà. Mise en forme demandée par l’auteur le 2026-09-05 : un corps
+// légèrement plus petit, un léger espace avant et après les crochets, l’ocre des absences.
+//
+// ⛔ ET CE QUI S’IMPRIME ENTRE LES CROCHETS EST LA CAUSE, non des points de suspension
+// (demande de l’auteur, 2026-09-08 : « plutôt que des “…”, indiquer la nature de la lacune
+// ou du problème »). La marque valait « […] » dans tous les cas, et le motif que la donnée
+// porte — « [lacune : déchirure] » — était MASQUÉ à l’écran comme s’il n’existait pas. Il
+// existe pourtant, et il est même EXIGÉ : `tei.ts` refuse tout `<gap>` privé de `reason`
+// et de `cause`, et écrit cette cause dans le marqueur. Un lecteur voyait donc trois points
+// là où l’édition avait pris la peine de dire « déchirure » ou « fin du manuscrit ».
+//
+// ⚠️ L’ITALIQUE N’EST PAS UN ORNEMENT : elle devient nécessaire le jour où la marque porte
+// un MOT. « [déchirure] » et « [m’exauça] » s’écrivent de la même façon, et le second est
+// une RESTITUTION — du texte, rendu au témoin par l’éditeur —, que la traduction moderne
+// emploie quatre-vingt-cinq fois. L’italique est la voix éditoriale du site (sérif italique
+// et teinte, comme toute mention) : elle sépare ici ce qui parle DU manuscrit de ce qui
+// parle POUR lui.
 //
 // ⚠️ L’air est une MARGE, non une espace du texte : une espace serait une occasion de
 // couper la ligne entre le crochet et le mot qui le précède, et elle s’emporterait en
@@ -32,6 +46,7 @@ const STYLE_INCERTAINE: React.CSSProperties = {
 export const STYLE_LACUNE: React.CSSProperties = {
   color: 'var(--cs-lacune)',
   fontFamily: 'var(--font-source-serif), Georgia, serif',
+  fontStyle: 'italic',
   fontSize: '0.85em',
   margin: '0 0.15em',
   whiteSpace: 'nowrap',
@@ -40,13 +55,28 @@ export const STYLE_LACUNE: React.CSSProperties = {
 // coupe un MOT (« por[…]er »), elle sépare le marqueur du fragment resté collé, pour ne
 // l’attacher ni le détacher comme un mot entier.
 const FINE = ' '
-export const MARQUEUR_LACUNE = '[…]'
 export const TITRE_LACUNE = 'Lacune matérielle du manuscrit'
+/** Ce qu’on écrit quand le témoin ne dit pas POURQUOI il manque quelque chose : le mot de
+ *  la philologie, et celui que le site emploie déjà pour un verset entier perdu. */
+export const LACUNE_SANS_CAUSE = 'lacune'
 
-// Un token, dans cet ordre : une lacune NUE « […] », qui se ferme d’elle-même ; une
-// ouverture « [<type> : » ; une fermeture « ] ». La lacune nue passe en TÊTE pour que son
-// crochet fermant ne soit jamais pris pour la fin d’une portée ouverte au verset d’avant.
-const RE_TOKEN = /\[\s*(?:…|\.\.\.)\s*\]|\[(lecture incertaine|lacune|ajout marginal)\s*:\s*|\]/gu
+/**
+ * Le libellé visible d’une lacune : sa CAUSE quand l’édition la donne, le mot « lacune »
+ * sinon — jamais des points de suspension.
+ * ⚠️ « non précisée » est ce que `tei.ts` écrit quand un `<gap>` n’a ni `reason` ni
+ * `cause` : c’est un aveu d’ignorance, non une cause, et il retombe donc sur le mot nu.
+ */
+export function libelleLacune(cause?: string | null): string {
+  const c = (cause ?? '').trim()
+  return `[${!c || /^non\s+pr[ée]cis/iu.test(c) ? LACUNE_SANS_CAUSE : c}]`
+}
+
+// Un token, dans cet ordre : une lacune NUE « […] », qui se ferme d’elle-même ; une lacune
+// MOTIVÉE et complète « [lacune : déchirure] », dont on retient la cause ; une ouverture
+// « [<type> : » restée sans sa fermeture ; une fermeture « ] ». Les deux formes COMPLÈTES
+// passent en TÊTE pour que leur crochet fermant ne soit jamais pris pour la fin d’une
+// portée ouverte au verset d’avant.
+const RE_TOKEN = /\[\s*(?:…|\.\.\.)\s*\]|\[\s*lacune\s*:\s*(?<cause>[^\]]*)\]|\[(?<type>lecture incertaine|lacune|ajout marginal)\s*:\s*|\]/gu
 
 type Mode = 'normal' | 'incertaine' | 'ajout' | 'lacune'
 
@@ -100,8 +130,8 @@ export function rendreMarqueurs899(texteBrut: string): ReactNode {
     )
   }
 
-  const marqueLacune = () => (
-    <span key={`m${cle++}`} title={TITRE_LACUNE} style={STYLE_LACUNE}>{MARQUEUR_LACUNE}</span>
+  const marqueLacune = (cause?: string) => (
+    <span key={`m${cle++}`} title={TITRE_LACUNE} style={STYLE_LACUNE}>{libelleLacune(cause)}</span>
   )
   /** Une fine quand la marque se colle au caractère qui la borde (lacune au milieu d'un mot). */
   const fineSiColle = (index: number) => {
@@ -114,23 +144,32 @@ export function rendreMarqueurs899(texteBrut: string): ReactNode {
   while ((m = RE_TOKEN.exec(texte)) !== null) {
     pousser(texte.slice(dernier, m.index), mode)
     const fin = m.index + m[0].length
+    const { cause, type } = m.groups ?? {}
     if (m[0] === ']') {
       // Fermeture d'une lacune collée à la suite (« …]er ») : une fine, pas un mot recollé.
       if (mode === 'lacune') fineSiColle(fin)
       mode = 'normal'
-    } else if (m[1] === undefined) {
-      // Lacune NUE « […] » : la donnée porte déjà la marque, il n'y a aucun motif à masquer,
-      // et elle se referme d'elle-même — le mode courant n'en est pas changé.
+    } else if (cause !== undefined) {
+      // Lacune MOTIVÉE et complète : c'est LA CAUSE qui s'imprime, et la marque se referme
+      // d'elle-même — le mode courant n'en est pas changé.
+      fineSiColle(m.index - 1)
+      noeuds.push(marqueLacune(cause))
+      fineSiColle(fin)
+    } else if (type === undefined) {
+      // Lacune NUE « […] » : la donnée ne dit pas pourquoi, on écrit le mot nu.
       fineSiColle(m.index - 1)
       noeuds.push(marqueLacune())
       fineSiColle(fin)
-    } else if (m[1] === 'lacune') {
-      // Ouverture collée au texte précédent (« por[… ») : une fine avant le marqueur.
+    } else if (type === 'lacune') {
+      // ⚠️ Une ouverture de lacune SANS sa fermeture : le marqueur est à cheval, et sa
+      // cause tombe dans le verset suivant, où elle sera masquée. On ne peut donc pas la
+      // dire ici, et la marque retombe sur le mot nu. Ouverture collée au texte précédent
+      // (« por[… ») : une fine avant le marqueur.
       fineSiColle(m.index - 1)
       noeuds.push(marqueLacune())
       mode = 'lacune'
     } else {
-      mode = m[1] === 'ajout marginal' ? 'ajout' : 'incertaine'
+      mode = type === 'ajout marginal' ? 'ajout' : 'incertaine'
     }
     dernier = fin
   }
@@ -141,31 +180,49 @@ export function rendreMarqueurs899(texteBrut: string): ReactNode {
   return noeuds
 }
 
-// ── La lacune du témoin dans un texte QUI N'EST PAS RECOMPOSÉ ─────────────────────────
+// ── Les marqueurs du témoin dans un texte QUI N'EST PAS RECOMPOSÉ ─────────────────────
 //
-// La traduction moderne du même témoin (TR0013) porte les mêmes LACUNES que le manuscrit
-// — « […] », et neuf fois « [lacune : motif] » — mais son texte vit dans `versets_v2`, un
-// verset par ligne, et passe donc par `rendreTexteEnrichi` comme n'importe quelle bible.
-// Les crochets s'y imprimaient bruts.
+// La traduction moderne du même témoin (TR0013) porte les mêmes faits éditoriaux que le
+// manuscrit — 46 lacunes nues « […] », neuf motivées (huit « déchirure », une « fin du
+// manuscrit »), et 588 versets de LECTURE INCERTAINE —, mais son texte vit dans
+// `versets_v2`, un verset par ligne, et passe donc par `rendreTexteEnrichi` comme
+// n'importe quelle bible.
 //
-// ⛔ On ne lui passe PAS `rendreMarqueurs899`, et ce n'est pas une commodité : ce
-// tokeniseur tolère un « ] » orphelin parce que la recomposition par créneau canonique
+// ⛔ ET CES MARQUEURS S'Y IMPRIMAIENT BRUTS. Seule la lacune était mise en forme : un
+// lecteur de la traduction moderne trouvait « et [lecture incertaine : preig] » au milieu
+// d'une phrase française, c'est-à-dire un terme d'atelier posé dans le texte, quand la
+// colonne du manuscrit rendait le MÊME fait d'une simple teinte. Un fait de l'édition ne
+// se dit pas de deux façons selon la colonne où on le lit.
+//
+// ⛔ ON NE LUI PASSE POURTANT PAS `rendreMarqueurs899`, et ce n'est pas une commodité :
+// ce tokeniseur consomme tout « ] », parce que la recomposition par créneau canonique
 // coupe un marqueur en deux. Cette traduction, elle, porte 85 RESTITUTIONS entre crochets
-// (« il [m'exauça] »), qui sont l'usage philologique et doivent s'imprimer telles quelles :
-// le tokeniseur y verrait autant de fermetures orphelines et griserait tout ce qui les
-// précède. On ne reconnaît donc ici que la lacune, et par PAIRES COMPLÈTES.
+// (« il [m'exauça] ») — du texte rendu au témoin par l'éditeur, qui doit s'imprimer tel
+// quel. Le tokeniseur y mangerait le crochet fermant, et grièserait ce qui précède une
+// restitution ouvrant un verset.
 //
-// La forme rendue est la même des deux côtés — même marque, même style, même infobulle :
-// c'est le même fait dans les deux membres d'une même édition.
-const RE_LACUNE_NUE = /\[\s*(?:…|\.\.\.)\s*\]|\[lacune\s*:[^\]]*\]/gu
+// ⚠️ D'où la règle de cette fonction, et elle se démontre : ON NE CONSOMME JAMAIS UN
+// « ] » QUI SUIT UN « [ » DANS LA MÊME PORTION. Ne sont donc reconnues que des formes
+// EXPLICITES — un marqueur nommé, complet ou ouvert jusqu'à la fin — et une fermeture
+// orpheline, définie comme un « ] » qui précède TOUT crochet ouvrant : aucune restitution
+// ne peut prendre cette place, puisqu'il lui faudrait un « [ » avant elle.
+//
+// La forme rendue est alors la même des deux côtés — même marque, même style, même
+// infobulle : c'est le même fait dans les deux membres d'une même édition.
+const RE_MARQUEUR_TEMOIN = /\[\s*(?:…|\.\.\.)\s*\]|\[\s*lacune\s*:\s*(?<cause>[^\]]*)\]|\[\s*(?<type>lecture incertaine|ajout marginal)\s*:\s*(?<contenu>[^\]]*)\]|\[\s*(?<ouvert>lecture incertaine|ajout marginal|lacune)\s*:\s*(?<reste>[^\]]*)$/gu
 
 /**
- * Transformation à passer à `rendreTexteEnrichi` : elle rend la marque de lacune dans les
- * portions de texte NATUREL, sans toucher à l'enrichissement ni au surlignage.
- * Le texte sans lacune ressort littéralement.
+ * Transformation à passer à `rendreTexteEnrichi` : elle met en forme les marqueurs du
+ * témoin dans les portions de texte NATUREL, sans toucher à l'enrichissement ni au
+ * surlignage. Le texte sans marqueur ressort littéralement.
+ *
+ * ⚠️ `cle` vaut « t0 » pour la portion qui OUVRE le texte, et c'est la seule où une
+ * fermeture orpheline peut se lire comme telle : ailleurs, le « [ » qui l'appareille peut
+ * vivre dans une portion précédente, et le crochet resterait littéral. La règle dégrade
+ * donc du bon côté — un marqueur non reconnu s'imprime, aucune restitution n'est mangée.
  */
 export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
-  if (!texte || !texte.includes('[')) return texte
+  if (!texte || (!texte.includes('[') && !texte.includes(']'))) return texte
 
   const noeuds: ReactNode[] = []
   let n = 0
@@ -174,21 +231,52 @@ export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
     const c = texte[index]
     if (c && !/\s/.test(c)) noeuds.push(FINE)
   }
+  const marqueTexte = (contenu: string, nom?: string) => (
+    <span key={`${cle}-i${n++}`} title={infobulle(nom === 'ajout marginal' ? 'ajout' : 'incertaine')} style={STYLE_INCERTAINE}>{contenu}</span>
+  )
 
-  RE_LACUNE_NUE.lastIndex = 0
+  // La FERMETURE ORPHELINE qui ouvre le verset : un marqueur commencé au verset d'avant se
+  // termine ici. ⛔ Elle ne se reconnaît qu'AVANT tout crochet ouvrant — voir l'en-tête.
+  const iFerme = texte.indexOf(']')
+  const iOuvre = texte.indexOf('[')
+  if (cle === 't0' && iFerme >= 0 && (iOuvre < 0 || iFerme < iOuvre)) {
+    if (iFerme > 0) noeuds.push(marqueTexte(texte.slice(0, iFerme)))
+    dernier = iFerme + 1
+  }
+
+  RE_MARQUEUR_TEMOIN.lastIndex = dernier
   let m: RegExpExecArray | null
-  while ((m = RE_LACUNE_NUE.exec(texte)) !== null) {
+  while ((m = RE_MARQUEUR_TEMOIN.exec(texte)) !== null) {
+    const { cause, type, contenu, ouvert, reste } = m.groups ?? {}
     const avant = texte.slice(dernier, m.index)
     if (avant) noeuds.push(avant)
-    fineSiColle(m.index - 1)
-    noeuds.push(
-      <span key={`${cle}-l${n++}`} title={TITRE_LACUNE} style={STYLE_LACUNE}>{MARQUEUR_LACUNE}</span>,
-    )
+    if (type !== undefined) {
+      // Marqueur nommé et COMPLET : son contenu est du texte à lire, la teinte dit le
+      // doute, l'infobulle porte le sens savant. Pas de crochets à l'écran.
+      noeuds.push(marqueTexte(contenu ?? '', type))
+    } else if (ouvert !== undefined) {
+      // Marqueur OUVERT jusqu'au bout du verset : la portée se ferme au verset suivant.
+      // ⚠️ Une LACUNE ouverte n'a pas de cause lisible — celle qu'on voit est tronquée —,
+      // elle retombe donc sur le mot nu ; les 43 marqueurs coupés du témoin sont d'ailleurs
+      // tous des lectures incertaines.
+      if (ouvert === 'lacune') {
+        fineSiColle(m.index - 1)
+        noeuds.push(<span key={`${cle}-l${n++}`} title={TITRE_LACUNE} style={STYLE_LACUNE}>{libelleLacune()}</span>)
+      } else {
+        noeuds.push(marqueTexte(reste ?? '', ouvert))
+      }
+    } else {
+      // Lacune, nue ou motivée : la CAUSE s'imprime quand la donnée la porte.
+      fineSiColle(m.index - 1)
+      noeuds.push(
+        <span key={`${cle}-l${n++}`} title={TITRE_LACUNE} style={STYLE_LACUNE}>{libelleLacune(cause)}</span>,
+      )
+      fineSiColle(m.index + m[0].length)
+    }
     dernier = m.index + m[0].length
-    fineSiColle(dernier)
   }
   if (noeuds.length === 0) return texte
-  const reste = texte.slice(dernier)
-  if (reste) noeuds.push(reste)
+  const suite = texte.slice(dernier)
+  if (suite) noeuds.push(suite)
   return noeuds
 }

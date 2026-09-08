@@ -300,8 +300,8 @@ const BIBLE: Unite[] = [
   },
   {
     style: 'bible/marqueurs éditoriaux — Bible 899',
-    note: 'Les marques de la transcription diplomatique, rendues discrètement dans le fil : lecture incertaine, ajout marginal, lacune matérielle. La teinte seule signale une lecture incertaine, et l’infobulle porte le sens savant. La LACUNE, elle, garde ses crochets — le signe que la philologie donne à ce qu’un témoin a perdu — d’un cran sous le texte, dans l’ocre des absences, et avec un léger espace de part et d’autre pour qu’elle ne se soude pas aux mots.',
-    alerte: '⛔ Ces marqueurs peuvent être À CHEVAL sur deux versets : la recomposition par créneau canonique en ouvre un dans l’un et le ferme dans l’autre. `rendreMarqueurs899` est donc un TOKENISEUR tolérant, qui accepte un marqueur non ouvert comme un marqueur non fermé — sans quoi un crochet brut s’imprimerait. ⚠️ Le crochet fermant d’une lacune NUE (« […] ») n’est pas une fermeture orpheline : un verset qui s’ouvre sur elle basculerait tout entier en lecture incertaine.',
+    note: 'Les marques de la transcription diplomatique, rendues discrètement dans le fil : lecture incertaine, ajout marginal, lacune matérielle. La teinte seule signale une lecture incertaine, et l’infobulle porte le sens savant. La LACUNE, elle, garde ses crochets — le signe que la philologie donne à ce qu’un témoin a perdu — d’un cran sous le texte, dans l’ocre des absences, et avec un léger espace de part et d’autre pour qu’elle ne se soude pas aux mots. Ce qui s’imprime entre ces crochets est la CAUSE du manque, « déchirure », « fin du manuscrit » : le marqueur la porte, `tei.ts` l’exige de tout `gap`, et des points de suspension n’en auraient rien dit.',
+    alerte: '⛔ Ces marqueurs peuvent être À CHEVAL sur deux versets : la recomposition par créneau canonique en ouvre un dans l’un et le ferme dans l’autre. `rendreMarqueurs899` est donc un TOKENISEUR tolérant, qui accepte un marqueur non ouvert comme un marqueur non fermé — sans quoi un crochet brut s’imprimerait. ⚠️ Le crochet fermant d’une lacune COMPLÈTE — nue « […] » ou motivée « [lacune : déchirure] » — n’est pas une fermeture orpheline : un verset qui s’ouvre sur elle basculerait tout entier en lecture incertaine. ⚠️ Et une lacune coupée entre deux versets retombe sur le mot nu « [lacune] » : sa cause tombe dans le verset suivant, et l’on n’invente pas ce qu’on ne peut pas lire.',
     contenu: (
       <>
         <Rangee n="11">
@@ -311,24 +311,33 @@ const BIBLE: Unite[] = [
           {rendreMarqueurs899('La terre produisit donc de l’herbe verte [ajout marginal : selon son espèce] et des arbres qui portent du fruit.')}
         </Rangee>
         <Rangee n="13">
-          {rendreMarqueurs899('Et Dieu vit que cela était bon. [lacune : et du soir et du matin]')}
+          {rendreMarqueurs899('Et Dieu vit que cela était bon. […]')}
         </Rangee>
         <Rangee n="14">
           {rendreMarqueurs899('Le Seigneur Dieu [lacune : déchirure] hors du paradis de délices pour [lacune : déchirure]er la terre dont il fut pris.')}
+        </Rangee>
+        <Rangee n="15">
+          {rendreMarqueurs899('Et il mourut, et fut enseveli en Égypte. [lacune : fin du manuscrit]')}
         </Rangee>
       </>
     ),
   },
   {
-    style: 'bible/lacune en clair — traduction moderne du témoin',
-    note: 'La traduction moderne de la Bible du XIIIᵉ siècle porte les mêmes lacunes que le manuscrit, mais écrites en clair dans son texte (« […] »). Elle n’est pas recomposée : elle passe par l’enrichissement ordinaire, et la lacune seule y reçoit sa mise en forme. Même marque, même corps, même ocre que dans la colonne du témoin — c’est le même fait dans les deux membres d’une seule édition.',
-    alerte: '⛔ On ne lui passe PAS le tokeniseur du témoin : elle porte quatre-vingt-cinq RESTITUTIONS entre crochets (« il [m’exauça] »), qui sont l’usage philologique et doivent s’imprimer telles quelles. Le tokeniseur y verrait autant de fermetures orphelines et griserait tout ce qui les précède. `marquerLacunesDuTemoin` ne reconnaît donc que la lacune, et par PAIRES COMPLÈTES.',
+    style: 'bible/marqueurs en clair — traduction moderne du témoin',
+    note: 'La traduction moderne de la Bible du XIIIᵉ siècle porte les mêmes faits que le manuscrit, mais écrits en clair dans son texte : quarante-six lacunes nues, neuf avec leur cause, et cinq cent quatre-vingt-huit lectures incertaines. Elle n’est pas recomposée — elle passe par l’enrichissement ordinaire —, et ces marqueurs y reçoivent la MÊME forme que dans la colonne du témoin : même ocre pour la lacune, même teinte effacée pour le doute, mêmes infobulles. C’est le même fait dans les deux membres d’une seule édition, et il ne se dit pas de deux façons selon la colonne où on le lit.',
+    alerte: '⛔ On ne lui passe PAS le tokeniseur du témoin : elle porte quatre-vingt-cinq RESTITUTIONS entre crochets (« il [m’exauça] »), qui sont l’usage philologique et doivent s’imprimer telles quelles. Le tokeniseur y mangerait leur crochet fermant. D’où la règle de `marquerLacunesDuTemoin`, et elle se démontre : ON NE CONSOMME JAMAIS UN « ] » QUI SUIT UN « [ » DANS LA MÊME PORTION — seules des formes nommées (« [lecture incertaine : … ») et une fermeture qui précède TOUT crochet ouvrant sont reconnues, place qu’aucune restitution ne peut occuper. ⚠️ C’est encore la restitution qui commande l’ITALIQUE de la lacune : depuis qu’elle porte un mot et non trois points, « [déchirure] » et « [m’exauça] » ont la même forme, et seule la voix éditoriale — sérif italique, ocre — dit lequel parle DU manuscrit et lequel parle POUR lui.',
     contenu: (
       <>
-        <Rangee n="15">
+        <Rangee n="16">
           {rendreTexteEnrichi('Après qu’il eut mangé et bu […]', marquerLacunesDuTemoin)}
         </Rangee>
-        <Rangee n="16">
+        <Rangee n="17">
+          {rendreTexteEnrichi('Le Seigneur Dieu le chassa [lacune : déchirure] hors du paradis de délices.', marquerLacunesDuTemoin)}
+        </Rangee>
+        <Rangee n="18">
+          {rendreTexteEnrichi('Or je crains qu’il ne prenne [lecture incertaine : par aventure] la main, et qu’il ne mange de l’arbre de vie.', marquerLacunesDuTemoin)}
+        </Rangee>
+        <Rangee n="19">
           {rendreTexteEnrichi('Pharaon laissa les fils d’Israël sortir du pays lorsque le Seigneur [les eut frappés].', marquerLacunesDuTemoin)}
         </Rangee>
       </>
