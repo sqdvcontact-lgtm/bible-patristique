@@ -278,8 +278,14 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
           index que la page porte déjà en clair, et que sa forme suffit à désigner.
           ⚠️ La grille de quatre colonnes d'abréviations est partie avec elles : dans
           un volet de 15,5 rem, il y a la place d'écrire « Deutéronome ». */}
+      {/* ⚠️ Le bloc DÉBORDE sa colonne de six pixels de chaque côté, et c'est ce qui
+          l'aligne : le nom d'un testament et celui d'un livre portent tous deux six
+          pixels de rembourrage — c'est le fond de survol d'une rangée qui les demande —
+          et sans ce débord les deux paraîtraient rentrés par rapport au champ de
+          recherche qui les surmonte. Même parti que le volet de la Bible classique, dont
+          le défileur retire d'avance ces six pixels à sa gouttière. */}
       {groupes.length > 0 && (
-        <div style={{ marginTop: '14px' }}>
+        <div style={{ marginTop: '14px', marginLeft: '-6px', marginRight: '-6px' }}>
           {TESTAMENTS.map(grp => {
             const livres = groupes.filter(g => (TESTAMENT_LIVRE[g.livre] ?? 'AUTRES') === grp.code)
             if (livres.length === 0) return null
@@ -287,7 +293,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
             return (
               <div key={grp.code}>
                 <button type="button" onClick={() => basculerSection(grp.code)} aria-expanded={ouvert}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '9px 2px 5px 0', textAlign: 'left' }}>
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '9px 6px 5px', textAlign: 'left' }}>
                   <span style={{ fontFamily: SANS, fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-vert-fonce)' }}>{grp.label}</span>
                   <span aria-hidden style={{ fontSize: '0.53125rem', color: 'var(--cs-texte-faible)' }}>{ouvert ? '▲' : '▼'}</span>
                 </button>
