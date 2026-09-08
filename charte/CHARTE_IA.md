@@ -14,6 +14,91 @@
 
 ⛔ **Une section neuve se pose à SA PLACE, jamais à la fin.** Les scripts d'ajout exigeaient que le texte neuf PROLONGE le distant : garde-fou juste, qui rend impossible de tronquer neuf cent mille signes par accident, et qui rendait du même coup impossible d'insérer une section où elle appartient. Un quart de la charte a fini par vivre loin du chapitre dont elle porte le numéro, trois numéros étaient pris deux fois, et toute poussée en a été bloquée treize jours. **Un garde-fou qui n'admet qu'un seul geste finit par imposer ce geste.**
 
+---
+
+**SOMMAIRE — où chercher.** ⛔ La charte fait plus de neuf cent mille signes et **ne se lit pas d'un bout à l'autre** : on vient ici d'abord, on ouvre ensuite le seul chapitre qui répond. Une règle qu'on n'a pas trouvée n'a pas cessé d'exister.
+
+**Par question posée**
+
+| ce qu'on cherche | où |
+|---|---|
+| une règle **typographique** : espaces, guillemets, ponctuation, apostrophe, capitales, césures | **§ 3**, et § 3.2 pour la normalisation |
+| la **mise en forme** d'un texte servi : justification, interligne, gris, blancs | **§ 41**, § 6, § 35.17 |
+| la **typographie d'une édition biblique** : titres, manchettes, lemmes, petites capitales | § 35.0, § 35.7, § 35.10 |
+| une **nature de segment**, un **style**, comment en créer un | **§ 7**, et § 7.6 pour en créer un |
+| les **niveaux, rangs, paragraphes** d'une œuvre | § 6 |
+| **réviser et corriger une œuvre avant publication** | **§ 23**, dont § 23.0, le manifeste de révision |
+| **océriser une œuvre patristique** | **§ 14**, et § 31 pour l'atelier La Gueule |
+| **océriser une bible** | **§ 35.8**, le cycle canonique de travail |
+| **importer** une version textuelle | § 11, § 14.9 |
+| modifier le **catalogue**, une **œuvre**, un **auteur** | § 16, dont § 16.5 |
+| poser des **liens bibliques** | § 9, dont § 9.0 le protocole, et § 10 |
+| **aligner** deux textes, composer une lecture en regard | § 12 |
+| les **notes** et l'**apparat critique** | § 13, § 8 |
+| la **bibliographie** : notice, autorités, valeur académique | § 29, § 35.6, § 42 |
+| ce qu'un **contrôle doit refuser** | § 20, § 21, § 22, § 24, § 25 |
+| la **chronologie** et la frise | § 26 |
+| l'**interface de lecture** et ses volets | § 18, § 36, § 37, § 38 |
+| l'**espace du lecteur**, points et hauts faits | § 40 |
+| la **recherche** | § 43 |
+| **entretenir la charte** elle-même | § 27 |
+
+**Par numéro**
+
+| § | ce que le chapitre porte |
+|---|---|
+| 1 | Principes directeurs — fidélité, prudence, ce qui prime sur quoi |
+| 2 | Sources, fichiers et espace de travail |
+| 3 | **Typographie et enrichissement** — le socle de toute mise en forme de texte |
+| 4 | Lacunes, absences et alignement biblique |
+| 5 | Métadonnées et page de titre |
+| 6 | Structure, niveaux, paragraphes et rangs |
+| 7 | **Natures de segment** — le vocabulaire clos des styles, et comment l'étendre |
+| 8 | Notes structurées et références présentes dans le texte |
+| 9 | Liens bibliques — les quatre types, et le protocole obligatoire |
+| 10 | Fiabilité des liens |
+| 11 | Format d'échange et import des versions textuelles |
+| 12 | Textes parallèles et alignements sémantiques — le grain de l'empan, la lecture en regard |
+| 13 | **Notes et apparats** — natures, familles, normalisation des renvois |
+| 14 | **OCR, HTR et transcription patrimoniale** — le protocole d'océrisation d'une œuvre |
+| 15 | Corpus biblique et traductions |
+| 16 | Auteurs, œuvres et catalogue |
+| 17 | Écritures, droits et sécurité |
+| 18 | Interface de lecture |
+| 19 | Modèle de données des œuvres et versions |
+| 20 | Contrôles structurels obligatoires |
+| 21 | Contrôles aléatoires |
+| 22 | Contrôle des apparats |
+| 23 | **Protocole de modification** — dont § 23.0, le manifeste de révision des textes |
+| 24 | Contrôle des liens en base |
+| 25 | Doctrine de prudence |
+| 26 | Chronologie et frise des événements |
+| 27 | Entretien de la charte |
+| 28 | Suivi permanent de l'avancement des notices |
+| 29 | Valeur académique des sources bibliographiques |
+| 29 bis | Le nom d'une personne — nom, prénom, pseudonyme |
+| 30 | Suivi de l'avancement — le centre de contrôle |
+| 31 | Atelier La Gueule — contrôle, correction et validation ciblée |
+| 32 | Centralisation des DOCX finaux |
+| 33 | Longueur d'une œuvre et opuscules |
+| 34 | La marque du site |
+| 35 | **Chantier Fillion** — ortho-typographie, gravures, paratexte, protocole d'océrisation biblique |
+| 36 | Le modèle d'onglets |
+| 37 | La notice d'une traduction — le bandeau et l'encart |
+| 38 | **Les surfaces de lecture** — fiche, Polyglotte, cellule d'actions, relevés d'ossature |
+| 39 | La mesure d'audience |
+| 40 | L'espace du lecteur — ce qui se règle, ce qui se gagne |
+| 41 | **La densité des textes** — le gris typographique |
+| 42 | L'outil bibliographique — la page « Bibliographie » |
+| 43 | La recherche — normalisation, modes, trilinguisme |
+| 44 | L'attestation d'un nom de péricope |
+| 45 | La frise — ce que sa vue lui tendait |
+| 46 | La visite — ce qu'une page montre d'elle-même à la première ouverture |
+
+⚠️ **Deux chapitres pèsent à eux seuls 38 % de la charte** : le § 35 (75 sous-sections) et le § 38 (34). Ce ne sont plus des sujets mais des dépôts, et leur titre ne décrit plus ce qu'ils portent. Les casser en vrais chapitres est un acte éditorial, et il reste à trancher.
+
+---
+
 ## 1. Principes directeurs
 
 ### 1.1 Fidélité
@@ -1392,6 +1477,68 @@ La fusion passe par les clés étrangères. `oeuvre_textes.id_texte` et `id_oeuv
 Une fois les deux textes réunis, `segments.texte_original` cesse d’être une source et devient un cache dérivé, recopié verbatim du texte original par l’ensemble d’alignement. Toute correction du latin se fait sur le texte, puis se reporte.
 
 
+### 12.4 UNE COLONNE EN REGARD SE COMPOSE SUR LA SURFACE QUI REND LE TEXTE
+
+Relevé de l'auteur le 7 septembre 2026, sur le *Manuel pour mon fils* de Dhuoda : « je
+sais pas pourquoi j'ai pas le lien entre le latin et le français ». Il n'y avait rien à
+réparer dans la donnée.
+
+**Ce qui était mesuré** : l'œuvre est ouverte, ses deux textes sont publics et publiés,
+le latin de Bondurand 1887 porte 809 segments et la traduction française treize.
+L'ensemble d'alignement `A0176O0001:BONDURAND1887-CSIA2026:LA-FR:PARAGRAPH` existe, il
+est sain, il couvre EXACTEMENT les treize segments traduits en cinq groupes, et un
+second ensemble, plus grossier, est `retired` et correctement écarté. La paire de
+lecture se calculait juste, `enRegardSurPlace` valait vrai, et le menu offrait
+« Français & latin ». Le lecteur n'obtenait qu'une colonne.
+
+⛔ **LA CAUSE EST LA SURFACE, ET ELLE SE COMPTE AU CHEMIN DE RENDU.** Les treize
+segments français sont tous de nature `introduction` — la traduction a commencé par les
+prolégomènes, et le typage est juste. Or l'introduction se rend hors des groupes, par un
+chemin à elle (§ 7.4), et ce chemin ne composait AUCUNE colonne en regard : la grille ne
+vit que dans la boucle des groupes, laquelle écarte les segments d'introduction et rend
+`null` sur un groupe qui n'en porte pas d'autres. Le texte passait donc tout entier par
+une surface qui n'avait jamais appris à mettre quoi que ce soit en face de lui.
+
+⚠️ **C'est le défaut du § 7.4 pris par l'autre bout, et le même jour.** Cette surface a
+reçu le VERS le matin, elle n'avait toujours pas reçu le BILINGUE le soir. **Une surface
+nouvelle hérite de toutes les questions des autres**, et l'on ne peut pas se contenter
+de lui donner ce qui manquait la dernière fois.
+
+⛔ **UNE GARDE QUI VÉRIFIE LA DONNÉE NE VÉRIFIE PAS LE RENDU.** La paire de lecture
+avait été écrite pour empêcher exactement ce symptôme, bouton allumé et une seule
+colonne, et elle n'y pouvait rien : elle contrôle qu'une colonne PEUT se composer,
+jamais que la surface qui rend ce texte SAIT la composer. La distinction est générale :
+une condition d'affichage nomme la donnée, elle ne nomme pas la surface.
+
+**Ce que la règle prescrit désormais.**
+
+- ⛔ **Le CORPS et l'ENCRE d'une colonne en regard viennent de la SURFACE**, jamais d'une
+  valeur recopiée d'ailleurs. Une colonne SEULE prend le gabarit du français qu'elle
+  remplace ; une colonne EN REGARD descend d'un rang, pour que l'œil sache laquelle des
+  deux il lit. Ce qui SÉPARE les deux colonnes reste la police, le change de caractère,
+  mieux qu'un filet.
+- ⛔ **L'encre d'un argument ne peut pas être celle d'un original de CORPS, et c'est
+  mesuré.** L'échelle du Clair est `--cs-texte` #3a3530, `--cs-original` #575048,
+  `--cs-texte-second` #6b6560 : l'encre de l'original est plus FONCÉE que celle d'un
+  argument. En regard du corps elle s'efface ; en regard d'un argument elle pèserait
+  davantage que le français qu'elle accompagne. Et au Cuir elle ne s'inverse pas
+  (#e6ded0 › #cdc2ab › #bdb3a0), si bien que le même jeton dirait deux choses contraires
+  selon le thème, ce qui est le défaut relevé sur `--cs-danger-fonce`, transposé à
+  l'envers. Un argument garde donc SON encre des deux côtés.
+- ⛔ **Dans une grille en regard, le blanc appartient à la RANGÉE, non à la cellule.**
+  Les deux colonnes doivent rester de niveau : un blanc posé par le seul français
+  pousserait le français et laisserait l'original en arrière.
+- ⚠️ **Hors grille, on n'enveloppe rien.** Une boîte de plus autour de chaque bloc ferait
+  une géométrie que la lecture ordinaire n'a jamais eue, et c'est elle qui est le cas de
+  presque tout le corpus.
+
+⚠️ **CE QUI RESTE, ET QUI N'EST PAS DU RENDU.** La traduction ne couvre que les
+prolégomènes : treize segments contre 690 de corps latin. La grille réparée ne met donc
+en regard que le prologue et l'épigramme, et l'alignement le dit lui-même, qui se
+déclare traduction incrémentale. **Une surface qui sait composer ne remplace pas un
+texte qui n'existe pas encore**, et les deux questions ne se répondent pas au même
+endroit.
+
 ## 13. Notes et apparats
 
 ### 13.1 Notes structurées et conservation
@@ -1476,6 +1623,214 @@ La forme de l’appel s’accorde au style où il se trouve, au lieu d’imposer
 Sur la page Bible, la note d’un développement éditorial (introduction, commentaire, notice) s’ouvre AU CLIC sur son appel, dans la même fenêtre que la note de verset. Elle ne s’imprime plus au bas du développement : une liste plantée au milieu du corps coupe la lecture de ce qu’elle commente. ⛔ La liste ne subsiste que pour les notes dont la transcription n’a relevé aucun point d’appel, faute de quoi elles disparaîtraient du site, et elles la quitteront une à une à mesure de leur ancrage.
 
 La note appelée dans un titre est cherchée dans **toute la section chargée**, et non sur le seul premier segment du groupe : dans les imports à notes structurées, l’ancre tombe couramment quelques segments plus loin, et s’en tenir au premier ouvrirait une note vide.
+
+### 13.8 La NORMALISATION des notes — ce que le site compose, ce que la base porte
+
+Chantier ouvert le 5 septembre 2026 à la demande de l’auteur (« normaliser l’ensemble des notes »). Le mode opératoire, passe par passe, vit dans `work/notes/PROTOCOLE_NOTES.md` ; ce qui suit est la doctrine.
+
+⛔ **LE SITE COMPOSE, LA BASE CONSERVE.** C’est la règle du § 3.2 appliquée aux notes, et elle décide de tout le reste : on ne réécrit une donnée que lorsque le rendu ne PEUT pas la composer — parce que l’information manque, parce qu’elle est fausse, ou parce qu’elle n’est pas là où le rendu la cherche.
+
+⚠️ **Mesuré avant d’écrire une seule ligne : une bonne moitié de ce qu’on croit à corriger l’est déjà.** Sur les 16 408 notes hors apparat, **6 431 (39 %) n’ont aucune ponctuation finale dans la donnée**, et `terminerNote` les termine toutes ; **3 392 renvois bibliques sur 11 916** sont réécrits à l’affichage par `normaliserReferencesDansTexte`. Les corriger en base serait du travail perdu, et pire : ce serait effacer la leçon imprimée que le § 8.1 demande de conserver.
+
+⛔ **L’APPARAT CRITIQUE reste hors de toute passe de normalisation** — 7 379 blocs, 30 % de l’appareil. Ni ponctuation ajoutée, ni référence normalisée, ni typographie de lecture, ni italique (§ 22).
+
+**Quatre points arbitrés par l’auteur le 5 septembre 2026.**
+
+⛔ **1. Le numéro AFFICHÉ recommence à chaque début de NIVEAU 1**, et le numéro INTERNE ne bouge pas. `note_key` et `note_number` portent l’identité et l’ordre de lecture, dont dépendent 23 569 ancres. ⚠️ **Cette décision RECTIFIE le § 13.3**, qui dit encore que « la numérotation ne recommence ni à une partie, ni à un livre, ni à un espace textuel » : la règle valait pour un numéro unique, et il y en a désormais deux. La Bible faisait déjà ainsi, et sa règle cesse d’être une exception.
+
+⛔ **L’apparat critique forme sa propre série de numéros.** Mêlé aux notes de lecture, il les noie : les Confessions passent de **1 039** à moins de 90 par livre dès qu’on l’en sort — leur gros numéro était l’apparat de Knöll, non l’appareil de lecture. ⚠️ Treize textes sur quarante-sept garderont malgré tout trois chiffres, la Cité de Dieu latine en tête avec **731** dans un seul livre ; c’est une conséquence connue de l’arbitrage, non un défaut.
+
+⛔ **2. Les œuvres CITÉES en note entrent dans `ouvrages_bibliographiques`**, le catalogue des ouvrages, et la référence se COMPOSE depuis ses champs — jamais rédigée à la main dans un bloc. C’est le modèle du § 35.6.1, étendu aux notes. **Deux gardes** : un auteur ancien n’y reçoit jamais de fiche notée (§ 29), sans quoi inscrire l’Énéide dégraderait la valeur scientifique de la notice qui la cite ; et les champs d’édition (lieu, éditeur, année, ISBN) restent vides tant qu’on ne cite que l’œuvre.
+
+⛔ **3. Un bloc de note entièrement LATIN se compose en italique, quelle que soit sa longueur** — y compris les 27 blocs qui dépassent 900 signes. ⚠️ Le grec ne suit pas : son alphabet le distingue déjà, et l’italique y déforme la lettre au lieu de changer la graisse. ⚠️ Le latin ENCHÂSSÉ dans une note française est un cas distinct : aucune donnée ne dit où il commence, et il demande une écriture.
+
+⛔ **4. Le type de note paraît sur TOUTES les notes, sans exception** — auteur, traducteur, éditeur de la source, Corpus Scriptura. ⚠️ Il se répète donc des milliers de fois, et **c’est la forme qui doit en tenir compte** : la mention est la chose la plus discrète de la note, jamais une étiquette encadrée ni une ligne à elle. ⛔ Elle vit dans `metadata.editorial_role`, jamais dans le texte du bloc : les 136 « (Note du Traducteur.) » écrits en clair dans le corpus se retirent à mesure que le type se pose.
+
+⚠️ **69 % des blocs (16 873 sur 24 264) ne déclarent aucun type** : c’est le plus gros manque de l’appareil, et rien ne peut s’afficher tant qu’il n’est pas posé. ⛔ **Un type faux est pire qu’un type absent** — il attribue à un Père une remarque de son traducteur du XIXe siècle. Le doute laisse la note sans type et se signale.
+
+### 13.8.1 Deux corruptions du normaliseur, trouvées en le mesurant
+
+Le 5 septembre 2026, les 11 916 renvois du corpus ont été passés par `normaliserReferencesDansTexte` elle-même — jamais par une copie de ses règles. Deux défauts en sont sortis, tous deux visibles du lecteur.
+
+⛔ **Le point n’est un séparateur chapitre/verset que s’il est SUIVI D’UN BLANC.** La fonction acceptait tout point, si bien que « Gn 1.5 » — qui désigne les CHAPITRES 1 et 5 (§ 3.5.1) — devenait « Gn 1, 5 », le chapitre 1 verset 5. **Elle changeait le sens de la référence.** Le blanc sépare les deux cas : une édition ancienne écrit « Psal. 65. 29 » avec un blanc, l’énumération de chapitres s’écrit sans.
+
+⛔ **Le point final ne se mange pas quand un CHIFFRE le suit.** « (Lc 7, 11.15) » — les versets 11 et 15 — rendait « (Lc 7, 1115) » : le point était consommé comme ponctuation de fin et les deux nombres se collaient. **216 blocs de neuf textes**, et le lecteur y lisait un verset qui n’existe pas.
+
+⚠️ **Corollaire de méthode, et c’est le troisième du même ordre cette semaine** : une fonction de normalisation ne se juge pas sur ses tests, mais sur le CORPUS qu’elle traite. Les dix-sept tests de ce module passaient tous, et aucun ne portait sur un point suivi d’un chiffre.
+
+⚠️ **Reste connu, non corrigé** : **1 716 renvois** gardent un chapitre romain parce qu’il est écrit en MINUSCULES (« Matth. x, 22 », « Ps. xv, 2 »), et le motif n’accepte que les capitales. L’étendre est un élargissement de la reconnaissance, non une correction : il attend une décision.
+
+
+### 13.9 RECTIFICATION du § 13.8 — la ponctuation et la typographie se normalisent DANS LA DONNÉE
+
+Le § 13.8 ouvrait sur « le site compose, la base conserve », et l’auteur l’a corrigé le jour même : « il faut corriger dans les données des informations importantes, et notamment la ponctuation ; sauf évidemment pour certains écrits spécifiques ; mais la règle veut qu’on normalise la ponctuation et la typo ».
+
+⛔ **LA RÈGLE EST DONC L’INVERSE, ET ELLE VAUT POUR L’APPAREIL DE NOTES.** La ponctuation, la typographie et les abréviations bibliques se normalisent **dans la donnée**. La forme normalisée EST la note ; la leçon imprimée se conserve en `metadata` (§ 8.1), elle ne tient plus le champ `text`.
+
+⚠️ **Pourquoi la règle du § 3.2 ne s’applique pas ici, et c’est la leçon de la rectification.** « Au rendu, sans réécrire la donnée » a été posé pour le TEXTE DE CORPUS, qui est un témoin : la graphie d’Arnauld d’Andilly ou de Knöll fait preuve, et l’on ne touche pas à un témoin. **Une note n’est pas un témoin, c’est un appareil que nous constituons** — nous en fixons la numérotation, le type, l’ordre et les renvois. La transposer sans y penser laissait le champ `text` durablement incomplet : une note sans point final le restait dans tout export, toute copie, toute surface qui ne passe pas par le composant de lecture, et le point n’existait que le temps d’un affichage.
+
+⛔ **QUATRE EXCEPTIONS, ET ELLES SE NOMMENT.** Ce sont les « écrits spécifiques » de la consigne, c’est-à-dire tout ce dont la FORME fait témoignage :
+
+1. **l’apparat critique** (7 379 blocs, § 22) — une notation philologique se rend telle quelle : ni ponctuation ajoutée, ni sigle développé, ni référence normalisée ;
+2. **toute citation dont la GRAPHIE fait preuve** — une leçon ancienne, une orthographe attestée, un latin cité pour sa lettre ;
+3. **la transcription diplomatique** (Bible 899 et tout témoin manuscrit) ;
+4. **le texte reproduit d’un document daté** — privilège, imprimatur, approbation, dont la ponctuation appartient à la pièce.
+
+⚠️ **Le rendu ne disparaît pas pour autant, il devient un FILET.** `terminerNote`, `normaliserReferencesDansTexte` et `normaliserTypographieLecture` sont **idempotentes** : sur une donnée déjà normalisée elles ne font rien, et sur un import qui aurait manqué la passe elles rattrapent. ⛔ Les retirer serait faire dépendre l’affichage de la qualité d’une campagne.
+
+⚠️ **Ce que le rendu garde pour lui, et pour de bon** : ce qui n’appartient pas au texte de la note — l’italique de la langue, le type de note, le numéro affiché, la mise à la ligne d’une référence par rang, l’appel. Aucun de ces quatre ne s’écrit dans `text`.
+
+### 13.10 Les NATURES d’un bloc de note
+
+Demande de l’auteur du 5 septembre 2026 : « il faut aussi mettre en place des “natures” pour constituer des styles dans les notes ». Une note se compose de blocs, et chaque bloc a une FONCTION : c’est elle qui décide de sa composition, comme la nature d’un segment décide de la sienne (§ 7.1).
+
+⛔ **Les trois axes du § 7.1 valent ici**, et il ne faut pas les confondre : la **NATURE** dit ce que le bloc EST (`kind`) ; la **FORME** dit s’il est prose ou vers (`form`) ; le **TYPE** dit qui parle (`metadata.editorial_role`, § 13.8). ⛔ Une nature ne se préfixe pas par sa surface : `texte_note_blocs` EST la table des notes, et le redire dans la valeur serait la dérive que le § 7.1 ferme.
+
+**Le vocabulaire, arrêté sur mesure du corpus au 5 septembre 2026 :**
+
+| Nature | Ce que c’est | Blocs |
+|---|---|---|
+| `reference` | un renvoi, biblique ou bibliographique | 11 916 |
+| `commentary` | la prose de la note | 12 008 |
+| `lemma` | le mot ou la phrase commentés, que la note reprend avant de la commenter | 126 |
+| `quotation` | un passage cité | 115 |
+| `translation` | la traduction du passage cité | 76 |
+| `attribution` | l’attribution d’une citation | 17 |
+| **`source_locator`** *(neuve)* | la coordonnée de la note dans le livre imprimé | ~396 |
+| **`internal_cross_reference`** *(neuve)* | le renvoi à une AUTRE note, ou à un autre endroit de la même œuvre | ~116 |
+
+⛔ **DEUX NATURES SEULEMENT SONT CRÉÉES, et chacune répond aux trois questions du § 7.6.**
+
+**`source_locator`** — « (V) pag. 178. — », « (DD) pag. 185. — ». Aucune nature existante ne le compose : ce n’est ni un renvoi bibliographique, ni de la prose, ni un lemme, mais une COORDONNÉE dans l’exemplaire imprimé — la lettre d’appel de l’édition et sa page. Il se voit à la lecture : aujourd’hui il ouvre le paragraphe dans la même face que le commentaire, et le lecteur le prend pour le début de la note. Il se compose en repère discret, jamais en prose.
+
+**`internal_cross_reference`** — « Voyez la note I, p. 150 », « Voy. Catéch. XIV, 9 ». `reference` le composerait comme un renvoi BIBLIOGRAPHIQUE, avec auteur et titre tirés du catalogue ; or il ne pointe hors de rien : il désigne un autre endroit du même livre. La distinction n’est pas cosmétique, c’est ce qui permettra de le rendre CLIQUABLE le jour où les notes se lieront entre elles.
+
+⛔ **CE QU’ON NE CRÉE PAS, et pourquoi.** Une note de note — « (1) Hieronymus (de Viris Illustr.) » — ne reçoit pas de nature : c’est une RELATION entre deux blocs, et `texte_note_relations` existe pour cela (§ 8.1). Créer une nature reviendrait à dire dans le vocabulaire des fonctions ce que le modèle dit déjà dans celui des liens.
+
+⛔ **Et la LONGUEUR n’est pas une nature.** 2 958 blocs de commentaire tiennent en quatre-vingts signes, 62 en dépassent deux mille : c’est le même acte éditorial, et la composition s’adapte à la mesure sans qu’on ait à nommer deux styles. La charte l’a déjà tranché pour les segments ; on ne rouvre pas.
+
+⚠️ **`lemma` existe et ne sert qu’à UNE œuvre** (126 blocs, un seul texte). Chez Faivre, le lemme est noyé dans le bloc de commentaire, derrière la coordonnée : « (V) pag. 178. — *Avec les démons les plus féroces* … ». Les 396 blocs de cette forme portent donc **trois** natures agglomérées, et c’est la passe la plus rentable de l’appareil.
+
+⛔ **LA CHARTE D’ABORD, LA DONNÉE ENSUITE** (§ 7.6) : le vocabulaire est fixé ici, il entre dans la contrainte de la base, puis on sème, puis on compose, puis on éprouve. ⛔ Jamais un `insert` à la main qui poserait une nature que rien ne sait rendre.
+
+
+### 13.11 Les QUATRE FAMILLES de natures, et ce qu'elles commandent
+
+Les huit natures du § 13.10 ne forment pas une liste plate. Chacune appartient à une **FAMILLE**, qui dit ce que le bloc FAIT dans l'économie de la note — et c'est la famille, non la nature, qui commande la composition.
+
+⚠️ **Pourquoi une famille plutôt que huit règles.** Une liste plate oblige à trancher huit fois, et rien n'y empêche deux natures voisines de recevoir deux compositions sans raison. La famille pose la règle une seule fois : **deux natures d'une même famille se composent de même, sauf raison NOMMÉE ; deux natures de familles différentes ne se composent jamais de même.** C'est en les rangeant qu'on a vu ce qui sépare réellement les deux renvois : non pas leur forme, qui est la même, mais leur DESTINATION.
+
+| Famille | Ce que le bloc fait | Natures | Ce qu'elle commande à la composition |
+|---|---|---|---|
+| **ancrage** | ce à quoi la note TIENT | `lemma`, `source_locator` | discret, et en tête, sur la ligne du propos |
+| **propos** | ce que la note DIT d'elle-même | `commentary` | la prose ordinaire, pleine mesure |
+| **témoignage** | ce qu'elle RAPPORTE d'un tiers | `quotation`, `translation`, `attribution` | les marques de la citation : langue, retrait, filet |
+| **renvoi** | ce vers quoi elle ENVOIE | `reference`, `internal_cross_reference` | la destination décide de la normalisation |
+
+⛔ **L'ANCRAGE EN TÊTE NE FAIT PAS PARAGRAPHE.** Chez Faivre, « (V) pag. 178. — *Avec les démons les plus féroces* — On peut consulter… » tient sur **un seul paragraphe imprimé**. La passe 3 du protocole le fend en trois blocs, parce que ce sont trois fonctions ; mais fendre est une opération de STRUCTURE, et *une opération de structure ne doit pas se voir en lecture*. Les blocs d'ancrage qui OUVRENT une note se composent donc sur la ligne du propos, en repère discret, et non empilés au-dessus de lui. ⚠️ **En tête seulement** : un lemme qui reparaît au milieu d'une note y joue un autre rôle, et une note faite du seul ancrage se rend seule plutôt que de disparaître.
+
+⛔ **DANS LA FAMILLE DU RENVOI, C'EST LA DESTINATION QUI COMMANDE.** Un renvoi vers le DEHORS (`reference`) se normalise : il a un auteur, un titre, un locus, et le site sait les composer. Un renvoi vers le DEDANS (`internal_cross_reference`) ne le peut pas — il n'a ni auteur ni titre — et le lui appliquer serait une CORRUPTION, non une maladresse : dans « Voyez la note I, p. 150 », le « I » est un numéro de note, que `normaliserReferencesDansTexte` convertirait en chapitre arabe. *Deux blocs de même apparence, deux traitements opposés : c'est la nature qui les départage, et rien d'autre ne le pouvait.*
+
+⛔ **UNE NATURE INCONNUE NE FAIT PAS DISPARAÎTRE SON BLOC.** Le vocabulaire se lit avec indulgence : une valeur hors liste retombe sur `commentary` et le bloc reste LISIBLE, fût-ce sans sa composition propre. ⚠️ C'est le contraire du défaut payé quatre fois avec `NATURES_CORPS`, où le bloc s'évanouissait en silence. *Un vocabulaire en avance sur son rendu est un désagrément ; un texte qui manque à la page est une perte.*
+
+### 13.11.1 Ce que le CODE porte depuis le 5 septembre 2026
+
+⛔ **Le vocabulaire a une SOURCE UNIQUE, et elle est double par nécessité** : `app/lib/naturesNote.ts` et la contrainte `texte_note_blocs_kind_check`. Les deux se modifient ENSEMBLE, dans l'ordre du § 7.6 — la charte, la contrainte, le vocabulaire du code, la composition, l'épreuve à l'écran, et *seulement ensuite* on sème. Migration `sql/20260905_natures_bloc_note.sql`, retour arrière en regard.
+
+⛔ **Le NUMÉRO AFFICHÉ se calcule à la lecture, jamais en base** (`app/lib/numerotationNotes.ts`) : `note_number` reste l'identité et l'ordre de lecture, dont dépendent 23 569 ancres, et `texte_note_ancres.marker` vaut exactement `[[note_number]]` — renuméroter en base, ce serait réécrire les deux et perdre l'ancrage.
+
+⚠️ **La division d'une note ne se lit PAS dans `texte_notes.book`, qui la porte pourtant.** Mesuré le 5 septembre 2026 : sur les 23 729 notes du corpus, **8 580 (36 %, dans 39 textes sur 47) ont un `book` différent du `ref_niv1` du segment qu'elles ancrent** ; sur `A0044O0003TFR-V11`, les 1 830 notes diffèrent sans une seule exception. `book` est une métadonnée d'IMPORT ; la division est une propriété du texte SERVI. **C'est l'ancre qui fait foi**, et les 747 notes dont l'ancre ne porte aucun niveau 1 forment une série à part, comme les liminaires dans la numérotation des paragraphes.
+
+⛔ **Le TYPE s'annonce dans l'en-tête de la fenêtre de note, et nulle part ailleurs** (`app/lib/typeNote.ts`) : « Note du traducteur 12 », « Apparat critique 7 ». ⚠️ **Il exige l'unanimité des blocs** : une note mixte — le commentaire de l'édition, puis le renvoi que NOUS ajoutons — n'annonce rien, car *mieux vaut « Note » qu'une attribution à demi fausse*. Le libellé nomme une RESPONSABILITÉ, jamais une position dans la page : « note de l'édition », et non « note de l'éditeur », que la maison d'édition et l'éditeur scientifique se disputent en français.
+
+⛔ **L'ITALIQUE DE LA LANGUE ne porte que sur le bloc ENTIER**, celui dont `language` déclare la langue. Le latin ENCHÂSSÉ dans une note française — le cas le plus fréquent et le plus coûteux — n'est pas de ce ressort : aucune donnée ne dit où il commence, et le deviner au rendu italiserait du français. Il s'écrit par marqueur, dans le texte, à la passe 5.
+
+
+### 13.12 Ce que l’auteur a TRANCHÉ le 5 septembre 2026
+
+Douze questions posées dans `work/notes/QUESTIONS_NOTES_20260905.txt`, toutes MESURÉES sur le corpus réel avant d’être posées, et par les fonctions du site elles-mêmes plutôt que par une copie de leurs règles. Ce qui suit est la réponse de l’auteur : elle commande les passes du protocole. ⚠️ Aucune donnée n’a été écrite le jour de l’arbitrage — la charte d’abord (§ 7.6), la donnée ensuite.
+
+**1. LES ITALIQUES DE L’OCR DEVIENNENT DES MARQUEURS.** 420 blocs de cinq textes portent dans `metadata.enrichments` les italiques, petites capitales et exposants relevés sur la page imprimée : **3 569 empans ancrés par offset**, et **aucune ligne du site ne les lit**. Ils se convertissent en `*italique*`, `++petites capitales++` et `^^exposant^^`, écrits dans le texte, que `rendreTexteEnrichi` compose déjà. ⚠️ Mesuré : **406 blocs sur 420 (96,7 %)** se convertissent sans réserve ; aucun de ces textes ne porte déjà `*`, `+`, `^` ni `<i>` ; **14 blocs** ont des empans qui se chevauchent et se relisent un par un. ⛔ C’est le § 13.11.1 pris par l’autre bout : *un champ que rien ne lit n’est pas une réserve pour plus tard, c’est une seconde vérité qui attend de contredire la première* — et celle-ci est le SEUL témoin des italiques de Faivre.
+
+**2. UN RENVOI « RÉFÉRENCE IMPRIMÉE : » SE NORMALISE COMME LES AUTRES.** 4 883 blocs de 27 textes ouvrent sur ce préfixe (le protocole en annonçait 3 622, et le chiffre est rectifié) ; il se retire, `metadata.provenance_note` dit d’où vient le renvoi, et le texte passe par le normaliseur comme le reste du corpus. ⛔ **La provenance dit d’OÙ vient un renvoi, jamais qu’il doive garder sa graphie** : sans quoi le site écrirait « Ps. 5, 8. » ici et « Ps 5, 8 » partout ailleurs, pour la même référence. La leçon imprimée se conserve en `metadata`, ce qui rend la provenance vérifiable au lieu d’en faire une étiquette.
+
+**3. LA LEÇON IMPRIMÉE SE CONSERVE QUAND LE CHANGEMENT DÉPASSE LA TYPOGRAPHIE**, et seulement alors : ponctuation finale ajoutée, abréviation développée, référence recomposée. ⛔ Jamais pour une espace fine. `normaliserTypographieLecture` ne change pas la longueur d’un texte, elle convertit un type d’espace ; conserver une leçon pour cela ferait de `metadata` un double du champ `text` sur des milliers de blocs, sans qu’aucune preuve y gagne. ⚠️ Repères mesurés : 6 431 notes sur 16 408 (39 %) reçoivent une ponctuation finale, 3 392 renvois sur 11 916 sont recomposés — ce sont ces blocs-là qui gardent leur leçon.
+
+**4. UN RENVOI INTERNE SE RECONNAÎT À LA LECTURE, JAMAIS À SON MOT D’OUVERTURE.** Sur les 79 blocs qui ouvrent par « Voy. », « Voir » ou « Consulter », les uns renvoient à Paul Monceaux et à la *Revue d’histoire ecclésiastique*, donc hors de l’œuvre ; les autres à « la note L, tome I, p. 131 ». **Sept seulement nomment une note.** ⛔ « Il faut systématiquement faire un contrôle logique. Il faut que l’IA regarde de près ce qui est écrit et réfléchisse. On ne peut pas automatiser » (l’auteur). D’autant moins que ce renvoi devra un jour DÉSIGNER un segment de la même œuvre, parfois lointain : une cible fausse coûte plus qu’une cible absente.
+
+**5. LE TYPE DE NOTE S’ATTRIBUE AU CAS PAR CAS**, et la charte porte la liste des types pour que l’identification ait une ligne directrice (§ 13.12.1). ⚠️ 16 873 blocs sur 24 264 (69 %) n’en portent aucun : c’est le plus gros manque de l’appareil.
+
+**6. LA MENTION « (NOTE DU TRADUCTEUR.) » ÉCRITE EN CLAIR SE RETIRE** dès que le type est posé — 136 notes. « On transpose cette information dans la case dédiée » (l’auteur, confirmant le § 13.8). ⛔ Sans quoi le lecteur la lit deux fois, l’en-tête de la fenêtre l’annonçant déjà.
+
+**7. LE LATIN ENCHÂSSÉ SE MET EN ITALIQUE** (§ 13.12.2).
+
+**8. UN « IBID. » SANS AMONT SE DÉPUBLIE, PUIS SE CHERCHE.** 116 blocs ouvrent sur « ibid. » ou « id. » ; en remontant l’ordre de lecture, 43 trouvent leur œuvre dans la note qui précède, 60 en remontant de deux à douze notes, et **13 ne se résolvent par aucun moyen mécanique**. La marche arrêtée par l’auteur, dans cet ordre : **on les dépublie ; on cherche ensuite au cas par cas, au besoin dans le fac-similé ; on corrige si la réponse est trouvée, on reconstitue avec une note éditoriale si on le peut, on supprime si on ne le peut pas.** ⚠️ « Dépublier » n’existe pas encore pour une note : voir § 13.12.3.
+
+**9. UN « IBID. » RÉSOLU SE COMPOSE ENTIER.** Le lecteur lira « Augustin, *La Cité de Dieu*, XI, 25 » et ne lira plus jamais « Ibid., 25 ». La forme imprimée se conserve en `metadata`, la règle 3 s’appliquant : le changement dépasse de loin la typographie.
+
+**10. DES DEUX NOMS D’UNE MÊME MÉTADONNÉE, LE PLUS RÉPANDU SURVIT.** `human_validated` (14 000 blocs) contre `validated_human` (5 662) ; `reference_normalized` (1 682) contre `normalised_reference` (1 032). ⚠️ L’unification est sans risque, et c’est mesuré : les **901 blocs qui portent les deux premiers s’accordent tous**, sans une seule contradiction, et les deux seconds ne se rencontrent jamais sur un même bloc. ⛔ Et le nom retenu est déjà celui que le code lit (`lireMetadonneesBlocNote`) : le plus répandu n’est pas le plus régulier, mais il est le seul qui ne demande pas de toucher au rendu.
+
+**11. LE MOTIF DU NORMALISEUR RECONNAÎT LE CHAPITRE ROMAIN EN MINUSCULES.** ⚠️ **Le § 13.8.1 annonce 1 716 renvois : le chiffre est FAUX**, et la mesure du 5 septembre 2026 le rectifie — **355 occurrences** de la forme « <mot>. <romain minuscule>, <nombre> », dans 355 blocs et 14 textes, dont **223 seulement seraient réécrites**. ⛔ Le risque est borné par le motif lui-même : il n’agit que si le mot qui précède résout vers un livre du référentiel, et « Cor. » (58 occurrences), « Ibid. » (26), « Thess. » et « Eccl. » en sont volontairement absents comme équivoques. Vérifié sur la vraie fonction : « Cor. XV, 22 » et « Ibid. V, 12 » ne bougent pas. ⚠️ Chaque bloc touché se signale, pour un contrôle par sondage.
+
+✅ **SERVI le 5 septembre 2026**, et la mesure sur le corpus a fait paraître une borne que la charte ne portait pas. Le motif élargi rend **264 réécritures neuves et n’en perd aucune** ; les 235 formes distinctes ont été relues une par une, et toutes sont justes.
+
+⛔ **AUCUN LIVRE DU CANON N’A PLUS DE 150 CHAPITRES**, le Psautier étant le plus long. Un nombre au-delà ne désigne donc rien : c’est le signe que le motif a lu comme un chiffre romain ce qui n’en est pas un. Sans cette borne, l’élargissement fabriquait **six corruptions** — « na m. 2 » rendu « Na 1000, 2 », et « Psalm. 77. » rendu « Ps 1000, 77 », où le « m » d’un mot est pris pour mille. ⚠️ Elle ne coûte rien à l’existant : des 4 038 réécritures d’avant, **pas une** ne dépassait 150.
+
+⚠️ **LE MOTIF RECULE DANS LE MOT QUI PRÉCÈDE, et il faut le lui laisser.** C’est ce recul qui rend « Abdi. 1 » lisible — « Abd » et « i » font Abdias, chapitre 1, et le livre n’en a qu’un. Le lui interdire par un groupe atomique paraissait le remède au « Psalm. 77 » ; mesuré, cela coûterait **treize réécritures justes** et n’écarterait aucune corruption que la borne n’écarte déjà. *Une garde se choisit sur ce qu’elle coûte, non sur ce qu’elle a l’air de protéger.*
+
+⚠️ **Trois sources sont elles-mêmes fautives, et le normaliseur les recopie fidèlement** : « I Cor. xxv, 24 » (la première épître aux Corinthiens n’a que seize chapitres), « I Thess. vi, 12 » (cinq chapitres), « Ap. v, 15 » (le chapitre 5 n’a que quatorze versets). ⛔ On ne CORRIGE pas une référence : on la recompose. Ce sont trois cas pour le sondage, non trois défauts du motif.
+
+**12. LE RÉFÉRENTIEL D’ABRÉVIATIONS ACCUEILLE LES VARIANTES NON ÉQUIVOQUES**, une à une, chacune vérifiée sur ses occurrences réelles : « Ephés. », « Ephes. », « Math. », « Galat. », « Apocal. », « Nomb. », « Sag. ». ⛔ Les équivoques restent dehors, et la charte l’a déjà tranché : « Cor. », « Thess. », « Eccl. », « Tim. », « Par. ».
+
+**13. LE JOURNAL D’ATELIER DE `metadata` RESTE EN BASE, MAIS LA PAGE CESSE DE LE TRANSPORTER.** `metadata` porte plus de 150 clés distinctes, pour l’essentiel un journal de travail daté (`facsimile_pixel_review_20260903`, `p3_canonicalization_audit_20260904`…), et **554 blocs y portent une copie complète d’un bloc** — `text`, `kind`, `form`, `rank`, `language` et le reste, tous à 554. Le site n’en lit que quatre scalaires, mais le `jsonb` ENTIER voyage jusqu’au navigateur, pour 24 264 blocs. ⛔ **On restreint donc la LECTURE aux clés qu’on projette** : gain sans arbitrage, sans toucher une donnée. ⚠️ Le journal lui-même appartient à GPT, et l’auteur ajoute qu’**il faut le supprimer s’il ne sert à rien** : la décision lui revient. ⛔ Les 554 copies de bloc, elles, sont une seconde vérité au sens de la charte et se regardent à part.
+
+### 13.12.1 Les CINQ TYPES de note, et comment les reconnaître
+
+Demandé par l’auteur le 5 septembre 2026 : « Il faut évidemment lister les types de notes dans la charte pour que GPT, qui fera ce travail d’identification, ait une ligne directrice. » Le type vit dans `metadata.editorial_role`, jamais dans le texte du bloc.
+
+| `editorial_role` | Ce qu’il dit | Ce que le lecteur voit |
+|---|---|---|
+| `author_note` | la note est de l’AUTEUR ancien lui-même | Note de l’auteur |
+| `translator_note` | elle est du TRADUCTEUR | Note du traducteur |
+| `source_editorial_note` | elle est de l’ÉDITION dont le texte est tiré | Note de l’édition |
+| `corpus_editorial_note` | elle est de NOUS | Note de Corpus Scriptura |
+| `critical_apparatus` | c’est une entrée d’apparat critique (§ 22) | Apparat critique |
+| *(absent)* | on ne sait pas | Note |
+
+**Les repères, dans l’ordre où ils tranchent :**
+
+- `translator_note` — elle parle de la LANGUE et de son propre travail : « nous avons traduit », « le mot grec », « notre version », « littéralement ». C’est la seule voix qui se justifie d’un choix de mot.
+- `source_editorial_note` — elle DOCUMENTE : elle date, situe, identifie un personnage, renvoie à la littérature savante, cite une édition. C’est le cas ORDINAIRE d’une édition du XIXe siècle, et donc le lot par défaut d’un texte entier.
+- `author_note` — elle parle depuis le temps de l’ŒUVRE : elle renvoie à un autre endroit du même ouvrage, elle ne peut nommer aucun auteur postérieur. ⛔ Ne pas la confondre avec le fait que l’auteur parle dans le TEXTE : ce qui est en cause est qui a écrit la NOTE.
+- `corpus_editorial_note` — **elle n’existe que si nous l’avons écrite.** ⛔ Jamais attribuée à une note importée, si utile soit-elle.
+- `critical_apparatus` — la notation philologique, hors de toute passe de normalisation (§ 13.9, § 22).
+
+**La méthode, arrêtée avec l’auteur : EN LOT PAR TEXTE, SAUF EXCEPTIONS NOMMÉES.** Une édition a un responsable, et ses notes sont de lui. Mesuré en cherchant les notes qui trahissent une seconde voix : **34 textes (10 348 blocs) n’en portent aucune** et se traitent d’un coup ; **10 textes (6 525 blocs) en portent au moins une** et demandent la lecture. Sortent du lot pour être jugés à part : les blocs qui disent « nous », ceux qui nomment le traducteur, ceux qui portent déjà leur type en clair. Un sondage de contrôle ferme chaque texte.
+
+⛔ **UN TYPE FAUX EST PIRE QU’UN TYPE ABSENT** : il attribue à un Père une remarque de son traducteur du XIXe siècle. Le doute laisse la note sans type, et se signale.
+
+⚠️ **Le type se pose sur le BLOC ; la note ne l’ANNONCE que si tous ses blocs s’accordent** (§ 13.11.1). Une note mixte — le commentaire de l’édition, puis le renvoi que nous ajoutons — n’annonce rien, et vaut mieux ainsi.
+
+⚠️ **« Note de l’édition », et non « note de l’éditeur »** : le libellé nomme une RESPONSABILITÉ, et « éditeur » se dispute en français entre la maison qui publie et le savant qui établit.
+
+### 13.12.2 L’ITALIQUE du latin enchâssé
+
+⛔ **Le latin cité DANS une note française se compose en italique.** Décision de l’auteur du 5 septembre 2026 : « Il faut simplement le mettre en italique. GPT s’en chargera. » Le § 13.8 réglait le bloc entièrement latin ; celui-ci règle le cas le plus fréquent, et le plus coûteux.
+
+- ⛔ **Il s’écrit par MARQUEUR, dans le texte** (`*…*`), jamais par un offset ni par une devinette au rendu. Aucune donnée ne dit où le latin commence : le deviner italiserait du français, et la charte a déjà écarté cette voie (§ 13.11.1).
+- ⛔ **C’est une LECTURE, non une passe mécanique.** On ne reconnaît pas une langue à un dictionnaire de mots courts, et une phrase française porte assez de mots d’origine latine pour qu’un automate s’y trompe à chaque page.
+- ⚠️ **Une abréviation de renvoi n’est pas du latin CITÉ** : « ibid. », « id. », « op. cit. », « cf. », « passim » sont des conventions bibliographiques et ne s’italisent pas. Ce qui s’italise est ce que l’auteur ou l’éditeur CITE en latin.
+- ⛔ **Ne pas cumuler avec l’italique de la langue.** Un bloc entièrement latin est italisé au RENDU, sur `language = 'la'`, et son texte ne porte aucun marqueur : l’écrire des deux façons ne se verrait pas à l’écran et laisserait deux vérités.
+- ⚠️ **Le grec ne suit pas** : son alphabet le distingue déjà, et l’italique y déforme la lettre au lieu de changer la graisse (§ 13.8).
+- ⚠️ **Sur les cinq textes enrichis, l’imprimeur a déjà fait le travail** : la règle 1 rend l’italique de Faivre, dont une part est du latin — 2 341 empans dans le seul `A0044O0003TFR-V11`. Ailleurs, il faut lire.
+
+### 13.12.3 Ce qui reste OUVERT
+
+⚠️ **LA FENTE DU BLOC À TROIS TÊTES ATTEND UNE SÉANCE À PART.** 396 blocs de Faivre agglomèrent dans un seul paragraphe une coordonnée imprimée, un lemme et un commentaire : « (V) pag. 178. — Avec les démons les plus féroces. On peut consulter… ». La passe 3 les fend en trois blocs, et la question est de savoir SUR QUOI. Fendre sur la PONCTUATION est une supposition : on parie que la première phrase après le tiret est le lemme. Fendre sur l’ITALIQUE est un fait relevé : Faivre imprime son lemme en italique, et l’OCR en a gardé les bornes. Mesuré : **une italique ouvre juste après le tiret dans 378 blocs sur 396 (95,5 %)** ; et une fois rejoints les empans que l’OCR coupe en fin de LIGNE IMPRIMÉE (24 blocs sont dans ce cas), **345 sur 378 (91,3 %) se ferment sur une ponctuation forte, celle-ci comprise DANS l’italique**, comme l’imprimeur l’a composée. ⛔ Rien ne s’écrit tant que l’auteur n’a pas tranché : « C’est un cas particulier. On va en discuter spécialement ensemble. »
+
+⚠️ **« DÉPUBLIER » N’EXISTE PAS ENCORE POUR UNE NOTE**, et la décision 8 le demande. `texte_note_blocs` porte `needs_review`, que la charte tient pour un signal de prudence et qui ne masque rien par lui-même ; aucune colonne, aucune métadonnée lue par le site ne retire un bloc de la lecture. ⛔ Le mécanisme se pose AVANT la passe, non pendant, et il vaudra pour tout bloc qu’on voudra retenir — non pour les seuls treize « ibid. » orphelins.
+
+⚠️ **Le RENVOI INTERNE reste un texte, non un lien.** La nature `internal_cross_reference` existe (§ 13.10) et sépare déjà ce qui pointe au dedans de ce qui pointe au dehors ; mais rien ne DÉSIGNE encore le segment ou la note visés. La décision 4 le prépare — on lit, on juge, on range — et la cible se posera quand le modèle saura la porter.
 
 ## 14. OCR, HTR et transcription patrimoniale
 
@@ -1651,6 +2006,18 @@ Conserver impérativement :
 - les rapports d’import et de validation.
 
 Supprimer seulement les caches, environnements temporaires, doubles pages redondantes, planches-contact et copies de travail intégralement contenues dans une archive finale vérifiée. Ne supprimer aucun fichier ambigu. Consigner les suppressions importantes.
+
+### 14.13 Césures de mots entre unités source
+
+Une césure typographique/OCR située à la frontière de deux unités source ne doit jamais être absorbée artificiellement par une seule unité de lecture. Les deux fragments lexicaux restent rattachés à leurs unités source respectives et sont réunis au rendu par `join_before = ''`. Le trait de césure de fin de ligne/page est un signe matériel du témoin : il n’entre pas dans le mot normalisé. Les guillemets de continuation ajoutés par l’OCR ou par la mise en page ne sont pas réinjectés s’ils ne correspondent pas à un nouveau guillemet sémantique. Avant toute correction, contrôler les deux unités voisines ; ne jamais reconstruire un mot à partir d’une seule unité si le second fragment appartient à la suivante. Exemples validés : `représente-` + `t-il` → `représente-t-il` ; `mou-` + `vements` → `mouvements` ; `si-` + `gnalé` → `signalé`.
+
+
+### 14.14 Transposition de lignes dans une transcription OCR source
+Lorsqu’une unité source OCR contient des lignes ou fragments matériellement transposés, on ne force jamais des offsets continus contre cet ordre corrompu. Les segments concernés restent sans bornes jusqu’à correction de la transcription diplomatique à partir du fac-similé. Une transcription secondaire peut corroborer l’ordre attendu, mais ne remplace pas le fac-similé lorsqu’il faut réécrire la couche source. La réserve doit être documentée au niveau de l’unité et chiffrée au centre de contrôle.
+
+### 14.15 Transposition de lignes OCR et provenance
+Lorsqu’une unité OCR présente des lignes ou fragments matériellement transposés, ne jamais fabriquer des offsets discontinus ni forcer un alignement sur le texte éditorial. Revenir au fac-similé, corriger d’abord l’unité source dans l’ordre attesté, documenter la correction, puis seulement recalculer les offsets des segments. La source corrigée devient la base de provenance ; le texte de lecture n’est pas réécrit s’il était déjà conforme au fac-similé.
+
 
 ## 15. Corpus biblique et traductions
 
@@ -2251,6 +2618,26 @@ Le rapport indique ce qui a été modifié, contrôlé et laissé en attente. Il
 
 Une correction éditoriale ne modernise pas silencieusement le texte. Si l’édition est normalisée selon une politique particulière, cette politique doit être explicitement approuvée et appliquée de manière cohérente.
 
+### 23.6.1. Préflight de schéma et staging avant resegmentation
+
+Avant toute mutation textuelle ou structurelle, interroger le schéma réel des colonnes touchées (`information_schema.columns`, contraintes et dépendances). Une règle historique d’écriture ne doit jamais conduire à écrire explicitement dans une colonne devenue générée. Si une colonne dérivée est déclarée `GENERATED ALWAYS`, sa valeur est recalculée par PostgreSQL dans la même mutation de la colonne source : on modifie uniquement la colonne source et l’on vérifie ensuite la valeur générée. Dans l’état actuel de `segments`, `texte_norm` est générée par `public.norm_fr(segment_texte)` ; il est donc interdit de la placer explicitement dans le `SET` tant que cette définition de schéma demeure active. Si le schéma change de nouveau, la règle d’écriture doit être réévaluée avant la première mutation.
+
+**Identifiants générés et colonnes `IDENTITY`.** Le préflight de schéma contrôle aussi `is_identity`, `identity_generation`, la valeur par défaut et la séquence éventuelle de toute clé insérée. Une clé déclarée `GENERATED ALWAYS AS IDENTITY` n’est jamais traitée comme une colonne libre au seul motif qu’une séquence est connue : appeler `nextval()` ne rend pas licite une insertion explicite. Par défaut, laisser PostgreSQL produire l’identifiant et récupérer le mapping par `INSERT ... RETURNING`. `OVERRIDING SYSTEM VALUE` n’est admis que lorsqu’un identifiant déjà réservé ou une correspondance de staging doit réellement être conservé, avec sauvegarde, justification explicite et vérification d’unicité avant et après écriture.
+
+Toute resegmentation non triviale doit être préparée hors du corpus actif, de préférence dans `internal`, puis soumise avant remplacement à des contrôles déterministes : nombre d’unités et de segments, recomposition exacte de chaque unité, validité des offsets, empreintes SHA, conservation et position des marqueurs de notes, dépendances, absence de perte textuelle et distribution des longueurs. Le remplacement du live ne se fait qu’après réussite de ces contrôles et dans une transaction unique. Les rubriques ou titres structurels sont portés par des unités de type `heading` et par la hiérarchie ; ils ne doivent pas être dupliqués comme segments de corps. Lorsqu’un chantier nécessite des insertions répétées dans l’ordre documentaire, on peut créer une seule fois des intervalles d’ordre suffisamment larges, après audit des dépendances, puis resynchroniser les références vivantes qui mémorisent cet ordre ; on évite ainsi les renumérotations globales à chaque passe et on ne compacte qu’à la clôture. Après toute renumérotation de segments, rechercher explicitement les tables qui mémorisent un `segment_numero` en plus d’un identifiant stable (`segment_id`, `segment_key` ou équivalent) — notamment `prelevements` — et recalculer ce numéro dénormalisé depuis l’identifiant stable. La passe n’est conforme que si le contrôle final ne trouve aucun écart entre le numéro mémorisé et le segment vivant.
+
+Une resegmentation qui supprime ou remplace des segments peut déclencher des suppressions en cascade dans les tables dépendantes, notamment les ancres de notes. Avant le `DELETE`, inventorier les dépendances et sauvegarder les lignes dépendantes. Si le remplacement exige de nouveaux `segment_key`, `segment_numero` ou `source_unit_id`, les ancres doivent être remappées ou recréées dans la même transaction que les nouveaux segments, puis vérifiées depuis la base avant `COMMIT`. Un `UPDATE` prévu après la suppression ne constitue pas une protection si la ligne dépendante peut déjà avoir été supprimée par cascade.
+
+### 23.6.2. Frontières documentaires et frontières sémantiques
+
+Une frontière produite par un OCR, un HTML, une API, un export Word ou un moteur de lecture ne vaut jamais, par elle-même, preuve d’un alinéa de l’édition. Les paragraphes, retours intentionnels et changements de niveau sont établis d’abord par le fac-similé ou par un encodage source dont la fonction documentaire est certaine. Les fins de page, de colonne, de ligne OCR et les découpages d’un extracteur ne doivent pas être promus en paragraphes.
+
+Lorsqu’une resegmentation doit avancer avant que tous les alinéas aient pu être attestés, employer la frontière documentaire certaine la plus proche et la plus large — par exemple chapitre, section numérotée, paragraphe explicitement balisé — comme `source_unit_id`. À l’intérieur de cette unité, créer des segments sémantiques avec offsets exacts et rangs continus, sans prétendre que ces segments sont des paragraphes de la source. Le statut de la frontière documentaire encore à contrôler doit rester explicite dans les métadonnées. Une vérification ultérieure du fac-similé peut subdiviser l’unité source sans réécrire le texte.
+
+La longueur ne décide jamais seule d’une coupure. Elle sert à repérer un segment à relire. Une coupure n’est admise qu’à une articulation syntaxique ou argumentative sûre ; un découpage à la phrase peut servir de présélection, mais les périodes longues, citations, objections, réponses et énumérations sont relues avant publication. Si le texte legacy présente une fusion, une inversion, une répétition ou une lacune à une jonction de page, la source est recollationnée avant toute resegmentation définitive.
+
+Lorsqu’un paragraphe de lecture est créé sans correspondre à un alinéa attesté de la source, il s’agit d’une frontière éditoriale, non documentaire. La source reste découpée selon ses paragraphes attestés dans `oeuvre_texte_unites`; la couche de lecture peut subdiviser ces unités par `segments.paragraphe` pour améliorer la lisibilité. La première frontière d’un paragraphe de lecture doit conserver dans les métadonnées une origine explicite (`source` ou `editorial`) ainsi que le paragraphe source auquel elle appartient. Une frontière éditoriale ne doit jamais être présentée ultérieurement comme un alinéa du témoin.
+
 ### 23.7 Respect de l’édition
 
 La segmentation, la ponctuation, les titres et la numérotation se fondent sur l’édition. Une difficulté d’interface ou d’algorithme ne justifie pas leur réécriture.
@@ -2283,6 +2670,12 @@ Le fac-similé exact est l’autorité de promotion. Une concordance entre plusi
 Toute promotion de liminaires suit ce cycle : 1) inventaire matériel du périmètre ; 2) comparaison fac-similé ↔ staging, y compris recherche de texte absent ; 3) correction étroite des seules lignes fautives ; 4) recomposition et validation de toutes les projections ; 5) contrôle des clés, numéros, paragraphes, rangs, notes, ancres, références et liens dépendants ; 6) promotion atomique ; 7) contre-audit live établissant le nombre exact de lignes attendues et promues, ainsi que 0 réserve non nommée. Une découverte tardive d’un préambule ou d’un liminaire non stagé rouvre cette étape et interdit de considérer le lot comme complet tant qu’il n’est pas intégré ou explicitement documenté comme hors corpus.
 
 La sauvegarde antérieure à la promotion doit couvrir à la fois les lignes de staging concernées et les lignes live susceptibles de changer d’ordre, de rang, de numéro ou de rattachement. Les contrôles finaux doivent distinguer sans ambiguïté : `staged`, `facsimile_verified`, `promoted`, `unstaged_detected`, `unstaged_resolved` et les éventuelles réserves restantes. Aucun de ces décomptes ne peut être estimé.
+
+### 23.12. Validation humaine par couche
+
+La validation humaine est **attachée à la couche réellement vérifiée** et ne se propage jamais automatiquement entre objets. `oeuvre_texte_unites.metadata.validated_human=true` atteste la transcription ou l’unité source telle qu’elle a été contrôlée ; il ne vaut pas validation de la segmentation, des raccords, de la normalisation éditoriale ni du contenu de chaque `segments.segment_texte` dérivé. Inversement, `segments.controle_verifie=true` atteste le segment éditorial contrôlé et n’autorise pas à déclarer l’unité source entière validée si elle ne l’est pas déjà.
+
+Les bilans chiffrent séparément ces deux couches et, si nécessaire, leur intersection. ⛔ Aucun drapeau humain n’est hérité, extrapolé ou créé par une passe IA, même lorsque la recomposition source/lecture est exacte.\n\n`segments.segment_metadata.validated_human`, lorsqu’il subsiste dans des imports anciens, est une métadonnée historique non canonique : pour la validation humaine du segment, seule `segments.controle_verifie` fait foi. Ne pas synchroniser ce drapeau JSON automatiquement, ni dans un sens ni dans l’autre. Une divergence historique entre les deux champs doit être documentée ; elle n’autorise jamais une passe IA à créer ou retirer une validation humaine.
 
 ## 24. Contrôle des liens en base
 
@@ -3149,6 +3542,28 @@ Pour une longue introduction déjà structurée dans une seule unité de lecture
 
 Contrôle obligatoire après toute reprise d’une longue introduction : vérifier que les paragraphes rendus et les blocs de notes ne contiennent aucun retour de ligne ou blanc artificiel ; que tous les appels attendus sont résolus ; qu’aucune note appelée ne subsiste dans l’apparat résiduel ; et que les titres, notes et développements s’enchaînent sans blanc vertical produit par un bloc vide, une ancre périmée ou une frontière matérielle. Ces contrôles portent sur la couche de lecture et ne justifient jamais la réécriture de la transcription source.
 
+### 35.4.3. Corps des introductions longues
+
+Le style de composition `introduction` est réservé aux préambules brefs qui se tiennent réellement à l’écart du fil de lecture. Lorsqu’une introduction de livre est longue et structurée en plusieurs divisions, son titre ou son conteneur conserve sa nature d’introduction, mais les développements placés sous les titres analytiques se composent comme de la prose normale : romain, justification ordinaire, mesure et marges ordinaires. Dans le registre Fillion, ces développements emploient le style de rendu `commentaire_section` (I3), et non `introduction_sous_section`. Les vrais titres analytiques restent à leur niveau T4. La transcription source n’est jamais modifiée pour cette distinction de composition. Une brève introduction de péricope ou un véritable préambule court peut conserver un style `introduction_*` lorsque sa fonction éditoriale le justifie.
+
+
+**Numéros de verset hors guillemets.** Les numéros de verset éditoriaux notés entre parenthèses ne font pas partie du texte cité et doivent être placés hors des guillemets : `« texte » (7)`, jamais `« texte (7) »`. Si plusieurs numéros scandent une citation continue, fermer puis rouvrir les guillemets autour de chaque repère. Le point final ordinaire se place après le numéro : `« texte » (7).` Les signes `?` et `!` intrinsèques à la citation restent avant le guillemet fermant : `« texte ? » (7)`.
+
+### Contrôle de clôture après resegmentation ou projection
+
+Une clôture d’œuvre ne repose jamais sur les seuls totaux globaux. Après toute resegmentation, projection de titres ou reprise de liens, effectuer aussi les contrôles suivants :
+
+- **Ponctuation par paragraphe.** Vérifier l’équilibre des guillemets et des parenthèses à l’échelle de chaque paragraphe éditorial. Un équilibre global peut masquer deux paragraphes fautifs qui se compensent. Une référence biblique, une parenthèse ou une citation ne doit jamais être coupée par une frontière de paragraphe artificielle.
+- **Continuités inter-unités.** Une coupure de page, d’OCR ou d’unité source ne crée pas d’espace si elle tombe au milieu d’un mot, d’un nombre ou d’une plage de référence. Conserver chaque caractère dans son unité source ; employer `join_before = ''` lorsque le rendu doit concaténer les deux fragments. Ne jamais déplacer un caractère vers une autre unité uniquement pour embellir le segment.
+- **Analyses projetées en N2.** Reconstituer chaque item imprimé de l’ANALYSE avant de le projeter. Une ligne ou une unité source peut contenir la fin de l’item précédent et le début du suivant. La concordance du numéro seul ne suffit pas : contrôler le libellé complet et sa continuation matérielle.
+- **Majuscules accentuées.** Le contrôle porte sur toute la couche de lecture ET sur les titres projetés, non sur les seuls incipits. Les formes françaises `É`, `À`, `È`, `Ê`, `Î`, `Ô`, etc. sont obligatoires quand la minuscule correspondante est accentuée. Les sigles, translittérations et vrais noms non accentués sont exclus par contexte, jamais par une règle aveugle.
+- **Références `Ibid.`.** Dans la couche de lecture finale, développer `Ibid.` dès que sa cible a été résolue et vérifiée. Résoudre d’abord le livre, le chapitre et la versification par la source et le contenu ; n’expanser jamais un `Ibid.` encore ambigu. Le texte visible et le lien canonique doivent rester concordants.
+- **Unicité et coexistence fonctionnelle des liens.** Appliquer la règle du § 9.4 bis : pour un même couple `segment × cible biblique`, un seul lien est admis par type. La coexistence de types différents n’est admise que si le segment remplit réellement plusieurs fonctions distinctes, chacune motivée séparément. Une citation explicite du verset intégrée à son commentaire peut donc porter T1 + T3 ; sinon conserver seulement le type qui décrit la fonction réellement exercée.
+- **Offsets de provenance.** Une égalité après `norm_fr` est un indice de contrôle, jamais une preuve suffisante pour écrire des offsets Unicode bruts. Écrire `source_start_offset_unicode` / `source_end_offset_unicode` seulement lorsque les positions sont exactes et déterministes dans le témoin brut, ou qu’une méthode de bornage validée établit sans ambiguïté les limites. Les coupures de mot éditorialement recollées entre deux unités restent documentées sans offsets inventés.\n- **Couverture d’une unité source.** Un écart entre `source_end_offset_unicode` d’un segment et `source_start_offset_unicode` du suivant n’est pas automatiquement un trou. Lire le sous-texte source correspondant : une espace simple ou un séparateur intentionnel de paragraphe (`\\n\\n`) peut rester hors empans tout en appartenant à la structure de recomposition. Un audit de couverture échoue sur du texte source non blanc laissé découvert, un chevauchement, des bornes invalides, ou un séparateur inexpliqué incompatible avec la structure — jamais sur la seule existence d’un intervalle numérique.
+- **Métadonnées finales.** Après les dernières mutations structurelles, recalculer depuis les tables live les nombres de segments, unités et signes, les statuts de phase et les indicateurs de publication. Les drapeaux œuvre/texte ne doivent pas contredire une note éditoriale explicite de non-publication.
+- **Niveaux de validation.** Distinguer strictement contrôle mécanique, relecture IA et validation humaine. Aucun marqueur IA ou mécanique ne permet de déduire `validated_human=true` ou `controle_verifie=true`.
+
+
 ### 35.5. Deux axes de hiérarchie, et ils ne se confondent pas
 
 Fillion superpose l’analyse de l’auteur, partie, section, § I, § II, puis 1°, 2°, 3°, et la matière du livre imprimé, chapitre I, chapitre II. La seconde traverse la première : sous le § II, le 1° précède le chapitre II et le 2° le suit. Ce n’est pas une faute de la source, c’est sa manière, et l’ordre imprimé se préserve sans jamais réordonner les titres.
@@ -3528,6 +3943,34 @@ Dans toute la couche éditoriale Fillion, les formes autonomes `h. l.`, `H. L.` 
 - En cas de référence impossible, conserver la forme source dans la provenance, confronter le témoin imprimé/OCR et le contexte scripturaire, puis enregistrer explicitement la correction éditoriale et sa justification.
 - Ne jamais transformer silencieusement une conjecture en transcription diplomatique. Si l’identification du locus reste incertaine, maintenir le bloc en `review` et signaler l’incertitude.
 
+#### 35.8.7. Matrice de clôture et contrôles transversaux obligatoires
+
+**Le dénominateur de clôture vient toujours de l’état live.** Avant tout bilan `n/n`, la passe finale reconstruit depuis la base l’inventaire courant du périmètre, par source, membre d’édition, livre, langue, `block_kind`, statut public/source-only et surface effectivement rendue. Un sous-lot ciblé doit être nommé comme tel : quatre chapeaux contrôlés ne deviennent jamais « 4/4 introductions » si l’inventaire live comporte d’autres blocs d’introduction. Aucun compteur historique, staging ancien ou todo antérieur ne remplace ce dénominateur.
+
+**La clôture utilise une matrice de surfaces.** Le rapport final distingue au minimum, lorsqu’ils existent : témoin/source ; texte biblique par langue ; titres et sous-titres ; corps racine ; sous-blocs de lecture ; notes, blocs et ancres ; illustrations et fichiers ; bibliographie structurée ; alignements canoniques ; vues/projections réellement consommées par le lecteur. Chaque ligne de la matrice donne son dénominateur live, le nombre contrôlé et les réserves. Une mission portant seulement sur l’apparat ou le commentaire ne clôt pas par implication le texte biblique, les images, l’alignement ou une langue parallèle.
+
+**Égalité obligatoire des projections dérivées.** Après toute mutation d’un texte ou d’une normalisation, le `reading_text` racine doit être exactement la recomposition ordonnée des `reading_text` de ses sous-blocs avec de vrais séparateurs de paragraphes ; les séquences littérales d’échappement `\\n`, `\\r` ou `\\t` sont interdites dans toute surface rendue. Les transformations et enrichissements doivent rester dans leurs bornes et viser exactement leur chaîne source ou leur chaîne de lecture. Dans la même micro-passe, recalculer depuis l’état live toutes les métadonnées dérivées applicables : SHA, `source_characters`, `paragraph_count`, dernier offset, empreintes de correction et compteurs analogues. Un SHA exact n’excuse jamais une longueur ou une recomposition périmée.
+
+**Titre, repère et sous-titre forment une seule fonction structurelle.** Lorsqu’un titre imprimé associe un repère (`Livre I`, `Section I`, `§ I`, etc.) à un intitulé descriptif et éventuellement à une portée, le modèle de lecture ne crée jamais un titre amputé suivi d’un faux bloc de commentaire contenant le sous-titre. Le témoin complet est conservé dans `facsimile_heading` ou une provenance équivalente ; la tête éditoriale porte le repère normalisé et son intitulé selon les §§ 35.5.2–35.5.3. Un bloc autonome qui ne fait que répéter le sous-titre est une dette structurelle à supprimer du rendu après vérification des dépendances.
+
+**Les marqueurs imprimés résiduels sont recherchés après toute fusion ou reconstruction.** Le postcontrôle balaie le corps racine et les sous-blocs à la recherche de `Chap.`, numéros de versets ou de plages, lettres de sous-verset et autres repères susceptibles d’avoir été absorbés au milieu d’un paragraphe. Chaque candidat est comparé à la structure source : un vrai repère de commentaire est extrait ou documenté ; une énumération sémantique réelle reste dans la prose. ⛔ Aucune suppression par expression régulière sans classification contextuelle.
+
+**La clôture typographique est une matrice de codepoints et de langues.** Pour chaque catégorie rendue — texte biblique, commentaire, introduction, heading et note — compter séparément les U+0020, U+00A0 et U+202F aux positions normées, ainsi que les apostrophes ASCII, guillemets non conformes, ellipses ASCII et ordinaux numériques. Les compteurs doivent être à zéro sauf exception explicitement motivée. La passe langues produit en outre un inventaire des `inline_spans` par langue et fonction et vérifie la couverture des lemmes, locutions, translittérations et titres d’œuvres réellement étrangers ; le grec en caractères grecs reste en romain et ne doit chevaucher aucun span italique. Une simple lecture visuelle ne remplace pas ces contrôles.
+
+**Un crosswalk vérifié est une preuve, jamais une autorité absolue sur un autre témoin.** L’alignement canonique du témoin courant est confronté au texte et aux frontières réellement imprimées. Si un témoin distribue sur un même verset une matière que le crosswalk de référence sépare ailleurs, la correspondance propre au témoin peut différer, à condition d’être justifiée et de préserver la couverture. ⛔ Ne jamais copier en masse des cibles ou un statut `verified` depuis un crosswalk sans contrôle des frontières du témoin courant.
+
+**Vérification du mapping et collation textuelle sont deux statuts distincts.** La couverture complète de l’ossature canonique, même vérifiée, ne prouve ni l’exactitude lexicale ni la collation visuelle du texte biblique. Pour chaque langue du témoin, le bilan sépare : unités présentes, unités alignées, unités collationnées au fac-similé, unités encore candidates et mappings vérifiés. Une colonne parallèle — notamment latin/français — est auditée comme un témoin à part entière ; l’achèvement du commentaire ne la valide pas.
+
+**Le contrat des vues et du lecteur fait partie de l’intégrité.** La passe 9 vérifie non seulement les métadonnées stockées, mais aussi les champs réellement lus par les vues/RPC/composants servant le corpus. Une valeur correcte rangée sous une clé que la vue ne consulte pas est une donnée fonctionnellement absente. Les clés de statut, niveau, parenté, présentation et collation exposées par la projection doivent être comparées à leur source normative avant clôture.
+
+**Tout périmètre déclaré privé ou `test_only` reçoit un test RLS réel.** Depuis un contexte privilégié, exécuter une lecture sous le rôle `anon` sur les sources, segments/blocs, notes, assets et fichiers concernés. Si une ligne interdite au public est visible, la mention « privé », une route applicative protégée ou un champ `test_only=true` ne suffisent pas : la clôture de confidentialité est refusée jusqu’à correction de la politique ou des statuts. Une correction RLS transversale qui toucherait d’autres livres ou missions est isolée et ne se fait jamais par ricochet depuis un audit local.
+
+**Réserve de transcription et anomalie du témoin sont comptées séparément.** Une leçon imprimée fautive mais confirmée, une attribution patristique douteuse ou un renvoi source impossible peut être textuellement clos tout en conservant un `source_integrity_note`. Le rapport distingue donc : réserves encore ouvertes sur la transcription ; anomalies du témoin confirmées et conservées ; notes critiques d’attribution. `requires_review=false` ne doit jamais effacer cette information critique.
+
+**Les illustrations entrent dans la matrice de clôture.** Pour chaque asset : identité, ordre, ancrage, page imprimée, page source, crop, provenance, famille graphique, fichier dérivé, dimensions et SHA sont contrôlés. `alt_text` et légende éditoriale sont présents lorsqu’ils sont nécessaires. Un contrôle automatique de traitement d’image ou un `PASS` technique ne vaut pas validation visuelle du cadrage ni validation humaine de la planche.
+
+**La formule de clôture nomme exactement ce qui est clos.** On peut déclarer « apparat clos », « mapping canonique clos » ou « commentaire collationné » si ces matrices sont conformes. ⛔ On ne déclare pas un livre globalement « clos » tant qu’une surface applicable de la matrice demeure en attente — notamment texte biblique d’une langue, titres/sous-titres, typographie, vue de projection, assets ou confidentialité. Les dettes restantes sont chiffrées depuis la base et deviennent des tâches distinctes, sans réécrire l’historique de la mission déjà achevée.
+
 ### 35.9. Le repère d’un commentaire se pose en manchette
 
 Le repère qui ouvre un commentaire de péricope — « 59-61. Jésus est mis au tombeau. » — n’est pas un titre : il n’entre ni dans le plan d’accessibilité ni au sommaire. Il ne prend pas non plus une ligne pleine au-dessus du développement. Il se pose en manchette, au fer à gauche, et le commentaire l’habille comme le texte habille une lettrine. Le fac-similé compose ainsi : Fillion imprime son repère et enchaîne ses notes dans la foulée, sans lui donner de ligne à lui seul.
@@ -3661,463 +4104,6 @@ L’apparat de bas de page est intégré à la pièce sous forme de notes struct
 Une introduction propre à un livre biblique appartient au livre lui-même et non au Sommaire général de l’édition. Si la même matière a été importée à la fois comme pièce liminaire matérielle et comme introduction structurée du livre, la version structurée du livre est la surface de lecture normative ; la copie liminaire reste seulement comme provenance et ne se rend pas en doublon.
 
 La restructuration, la normalisation typographique et le placement des notes n’altèrent jamais `text_content` ni le témoin source. Une projection reconstruite depuis OCR ou collation secondaire reste en `review` tant qu’une validation documentaire plus forte n’a pas été établie.
-
-## 36. Le modèle d’onglets
-
-Une barre d’onglets de PAGE se compose partout de la même façon. Elles étaient trois — Bibliothèque, Communauté, catalogue des Péricopes — et se distinguaient sur quatre axes à la fois : deux polices, trois corps, deux gris d’inactif, avec ou sans parts égales, avec ou sans séparateurs. Six barres du site donnaient six combinaisons différentes, sans qu’aucune décision les sépare. C’est la dérive déjà rencontrée sur les tailles de texte, les rayons d’angle et la couleur, transposée à un composant.
-
-**La structure.** Les onglets se partagent la mesure à parts ÉGALES, chaque libellé centré dans sa case, un filet fin entre deux cases, le filet plein dessous et le trait de l’onglet retenu POSÉ sur ce filet, jamais ajouté dessous — sans quoi la barre gagne deux pixels au premier clic. ⛔ Les parts égales ne sont pas un ornement : à largeur libre, la barre se range au fer à gauche et le filet court seul sur la moitié droite de la mesure.
-
-⚠️ **La barre prend la mesure de CE QU’ELLE COMMANDE, jamais celle de son conteneur.** La Communauté range ses couvertures sur 46,7 rem au milieu d’un conteneur qui en fait 71 : la barre, elle, courait sur les 71 et surmontait de très loin tout ce qu’elle annonçait, ses trois libellés jetés aux quatre coins. Chaque page pose donc sa mesure et la barre s’y centre. Là où cette mesure se calcule — la largeur d’une couverture et l’écart entre deux —, elle vit dans une seule paire de valeurs dont la grille et la barre dérivent toutes deux, faute de quoi elles se sépareraient au premier réglage.
-
-**La police est celle du CHROME, c’est-à-dire le sans.** Le sérif appartient aux textes d’œuvre, corps comme titres (§ 18) ; une barre d’onglets n’est pas du corpus, c’est de l’interface. Deux des trois barres portaient pourtant le sérif.
-
-⛔ **L’onglet retenu change de graisse ET d’encre ET reçoit son trait.** Deux rangs ne se distinguent jamais par la seule couleur. ⚠️ Le gris de l’inactif est le plus SOMBRE de ceux qui coexistaient : un onglet est un bouton, il se lit avant qu’on le clique.
-
-⛔ **La graisse ne déplace RIEN, et cela ne peut pas reposer sur les parts égales seules.** Dès qu’une barre n’a plus de jeu à distribuer — un volet étroit, un téléphone —, passer un libellé en 600 l’élargit et pousse ses voisins. Mesuré sur « Nouveau Testament » : 113,67 px en 400 contre 116,14 px en 600, soit près de deux pixels et demi qui se propagent à toute la barre. Chaque libellé réserve donc d’avance sa largeur en 600, par un double invisible et de hauteur nulle. C’est ce qui rend le modèle vrai par construction plutôt que par coïncidence de mise en page, et ce qui a rendu au catalogue des péricopes la graisse qu’il avait dû abandonner en mobile.
-
-**Un onglet qui commande des PANNEAUX et un onglet qui FILTRE ne se déclarent pas pareil.** Le premier est un `tablist`, et il promet des panneaux derrière lui. Une barre qui ne fait que restreindre une même liste — le partage par testament du catalogue des péricopes — est un groupe de filtres nommé, avec `aria-pressed`. Le dessin est le même, l’annonce ne l’est pas.
-
-⛔ **Et la liste qu’une telle barre filtre ne REDIT pas ce que la barre dit.** Le catalogue des péricopes portait, sous « Tout », une rubrique « Ancien Testament » puis « Nouveau Testament », en capitales espacées et suivies d’un filet, qui coupait en deux la course des livres. Elle ne paraissait déjà plus lorsqu’un seul testament était à l’écran — l’onglet le nommant — ; elle est maintenant retirée aussi de « Tout ». La liste court d’une seule venue, de la Genèse à l’Apocalypse. L’ordre des livres marque le passage à qui le cherche, les onglets l’isolent à qui le veut, et une barre de titre au milieu de la course n’ajoutait qu’une halte.
-
-⚠️ Le volet « Aller à un livre » garde, lui, ses deux intitulés. Là, ils ne coupent rien : ils rangent une grille d’abréviations sur quatre colonnes, où l’ordre seul ne suffirait pas à s’orienter. Une rubrique qui ORIENTE n’est pas une rubrique qui SÉPARE.
-
-**Ce qui reste hors du modèle, et pourquoi.** Les barres de VOLET — les onglets du panneau de lecture d’une œuvre, ceux du volet des notifications — et la barre fixe des trois volets de la page Bible en mobile appartiennent à un autre registre : elles coiffent un panneau, non une page, et la dernière se compose en capitales espacées. Les unifier avec les onglets de page reviendrait à effacer une distinction qui porte du sens. La sous-barre de l’administration, elle, a ses propres règles, tenues par le nombre de ses entrées.
-
-⛔ **Le nom `.cs-onglet` appartient à ce modèle, et à lui seul.** Les liens de la barre de NAVIGATION portaient ce nom bien avant lui. Le jour où le modèle a été posé dans la feuille globale, ils ont hérité de tout ce qui fait une barre de page : les parts égales, le filet bas de deux pixels, le décalage d’un pixel qui pose le trait sur le filet. Un seul lien en a souffert — « Communauté », le seul enfant DIRECT du flex de la barre, les autres étant enveloppés d’un `span` pour porter leur menu déroulant —, et il s’est étalé sur toute la place restante : 204,8 px mesurés en ligne pour un mot qui en demande 95. Les onglets de la barre de navigation s’appellent depuis `.cs-nav-onglet`. ⚠️ Le style écrit EN LIGNE n’a protégé de rien : il couvrait le remplissage, le corps et l’encre, et laissait passer `flex`, `text-align` et le filet — c’est-à-dire tout ce qui déplace. Deux dessins sans rapport ne partagent pas un nom de classe.
-
-**Ce qui SURMONTE la barre se compose aussi partout de la même façon.** Un titre de page, puis la barre, et un rythme chiffré : vingt-deux pixels au-dessus du titre, quatorze entre le titre et la barre, quatorze sous elle. Le titre s’y compose sur un interligne de 1,1 et une chasse de 0,01 em — un interligne normal lui donnait quarante-deux pixels de haut pour vingt-huit de corps, soit onze pixels de blanc que rien ne justifiait. ⛔ Et le décalage sous la barre de navigation fixe ne se repose PAS sur la page : il est posé une seule fois pour tout le site, par `#cs-corps` ; le répéter le compte deux fois.
-
-⛔ **Aucun ornement ne s’intercale entre le titre et la barre.** La Communauté portait un losange d’or sous le sien, la Bibliothèque n’en portait pas : deux pages sœurs ne s’annoncent pas de deux façons. Le losange a été retiré le 27 août 2026. ⚠️ Il tenait à lui seul l’écart entre le titre et la barre — un ornement qui sert de cale n’est plus un ornement ; l’écart est désormais une marge chiffrée, et il se lit dans le code.
-
-⚠️ **La MESURE, elle, ne se copie pas.** La Communauté range trois couvertures de front et prend 71 rem ; la Bibliothèque n’a que du texte à ranger et en prend 56,25. C’est le rythme vertical qui est commun aux deux, non la largeur — chaque page prend la mesure de ce qu’elle contient, et sa barre la mesure de ce qu’elle commande.
-
-### 36.1. La gouttière de défilement se réserve toujours
-
-Presque toutes les pages du site sont un bloc centré par une marge automatique. Le jour où le contenu cesse de dépasser, la barre de défilement disparaît, la largeur utile gagne une quinzaine de pixels et le bloc SAUTE de sept vers la droite. Le défaut se lit comme un défaut du composant qu’on vient d’actionner, alors qu’il n’en vient pas : mesuré sur la Bibliothèque, passer à « Catalogue des traductions », dont la liste est courte, déplaçait toute la page de sept pixels sans que les onglets aient bougé d’un cheveu.
-
-La gouttière est donc réservée en permanence sur le document, qu’il y ait de quoi défiler ou non. ⚠️ Le prix est une bande vide d’une quinzaine de pixels sur les pages qui ne défilent pas ; il est moindre qu’une page qui se déplace sous les yeux du lecteur au moindre changement d’onglet.
-
-### 36.2. Un menu de navigation DIT ce qu’il ouvre
-
-Une liste de noms de pages n’apprend rien à qui ne connaît pas déjà le site, et « Statistiques » ou « Péricopes » surtout ne s’expliquent pas d’eux-mêmes. Chaque entrée du menu « Aller plus loin » porte donc, sous son nom, une ligne qui dit ce que la page contient, tirée de la description de cette page : ⛔ on n’y promet que ce qu’elle porte. Devant le nom vient un emblème au trait.
-
-Les emblèmes suivent la grammaire de ceux des couvertures : une viewBox carrée, aucune couleur écrite, tout en `currentColor`, si bien qu’ils prennent l’encre de la ligne qui les accueille et suivent le thème sans être déclinés deux fois. ⛔ Aucun ne doit se confondre avec une marque déjà employée : l’étoile dit « favori », le quadrilobe « citation choisie », le cœur « soutenir », la loupe « chercher », le chevron « avancer ».
-
-⚠️ Ils se jugent à la taille RÉELLE, autour de dix-sept pixels, jamais dans l’éditeur. Deux des cinq ont dû être redessinés à ce titre : une accolade se lisait comme une simple parenthèse, et une frise à repères comme trois petits points, indiscernable des barres voisines. C’est la leçon déjà apprise sur les emblèmes de couverture, dont cinq des neuf premières ébauches passaient pour autre chose une fois rendues.
-
-Sur un téléphone il n’y a pas de survol, donc pas de glose : l’emblème y est le seul indice de ce que la page contient, et il accompagne l’entrée dans le panneau déplié. Le panneau garde en revanche une ligne par entrée — quinze entrées à deux lignes en feraient un rouleau.
-
-### 36.3. La recherche rapide : sur quoi elle se mesure, et ce qu’elle montre
-
-⛔ **Un panneau de résultats ne prend pas la mesure de son CHAMP.** Celui de la barre s’accrochait par ses deux bords au conteneur du champ, et valait donc la largeur du champ plus la loupe : 154 px mesurés en ligne à 1 280, où « Anonyme / Symboles et confessions de foi » se pliait en trois lignes. Le rapport est même inverse : le champ se resserre par paliers quand la barre manque de place, si bien que le panneau rétrécissait à mesure qu’il avait davantage à dire. Il s’accroche donc par la DROITE, au bord des outils, et se déplie vers la gauche sur la place libre du milieu de la barre — le seul côté où l’on est sûr de ne buter contre rien. Sa largeur est en rem, comme tout ce qui se mesure ici : la police racine grandit avec la fenêtre au-delà de 1 440 px, et un panneau posé en pixels resterait le même ruban à 2 400.
-
-**Une œuvre trouvée dit son ÉDITION.** Un même titre du même auteur paraît plusieurs fois — la Cité de Dieu chez Migne en 1845 pour le latin, chez Louis Vivès en 1870-1873 pour la traduction de H. Barreau et M. Charpentier —, et un titre suivi de son auteur ne dit pas laquelle on va ouvrir. Sous l’auteur viennent donc le traducteur, la maison, la ville et l’année, composés comme à l’étagère de la bibliothèque et sur la page de titre : une phrase et des virgules, jamais une suite d’abréviations. ⚠️ Faute de traducteur, c’est la LANGUE qui désigne l’édition — « Texte original latin » — et non un blanc : une édition en langue originale n’a personne à nommer, ce qui ne la dispense pas de se distinguer de la traduction du même titre.
-
-⚠️ **Ce qu’une recherche va chercher EN SECOND se borne à ce qu’elle montre.** Le RPC de la recherche rapide rend un titre et son auteur, et rien de plus : c’est une recherche, non un catalogue. Les colonnes de l’édition viennent d’une seconde lecture, bornée aux trois œuvres affichées, qui ne retarde pas les titres — ils sont déjà posés quand elle part. De même la table des éditeurs, qui rend aux maisons leur nom répertorié : elle n’est lue qu’à la première œuvre trouvée qui porte un éditeur, la barre étant sur toutes les pages et n’ayant pas à charger une table de référence tant qu’on ne cherche rien.
-
-⛔ **La barre du volet de lecture de la Bible entre au modèle, et ses libellés perdent leurs CAPITALES** (décision de l’auteur, 28 août 2026). « Livres » et « Sommaire » s’y écrivaient en capitales espacées, composées à la main : deux mots criés en tête d’un volet de lecture, quand aucune autre barre du site n’en porte. C’était la sixième barre recomposée hors du modèle, ce que la présente section proscrit depuis qu’elle existe. La règle vaut pour toute barre à venir : on prend le modèle, on ne le redessine pas.
-
-## 37. La notice d’une traduction — le bandeau et l’encart
-
-Une notice de traduction porte DEUX images, et non une seule cadrée deux fois. Le bandeau est horizontal : il coiffe la carte, le titre s’y écrit par-dessus, et c’est lui que l’on voit quand la notice est fermée. L’encart est au format portrait : il ne paraît que dans le bloc déplié. ⛔ On ne dérive jamais l’un de l’autre. Une vue large de monastère serrée dans une boîte de deux tiers ne rend qu’une bande de ciel, et une image debout écrasée dans quatre-vingt-douze pixels de haut ne montre qu’un col : c’est exactement ce que faisait l’image unique jusqu’ici. Les deux vivent dans `traductions.photo` et `traductions.photo_encart`, se déposent séparément, se cadrent séparément — `photo_position.bandeau` et `photo_position.encart` — et se réduisent dans deux boîtes dont l’une est couchée et l’autre debout. Tant qu’une notice n’a pas reçu son portrait, le bandeau en tient lieu, cadré en portrait : elle ne se troue pas en attendant.
-
-**Le bandeau prend TOUT son bloc, ouvert comme fermé.** Il tient la carte bord à bord, sans marge ni filet, et le titre s’écrit sur l’image même, non sur une marge. ⛔ Le cadre a été essayé puis écarté le 27 août 2026 : déplié, le bandeau reculait de dix pixels sur ses quatre côtés, le fond de la carte lui tenant lieu de passe-partout, un filet le bordant et le titre entrant avec lui. Décision de l’auteur, l’essai fait : un bandeau occupe entièrement l’espace de son bloc. L’encart en portrait, lui, demeure — c’est là, et là seulement, que la notice porte une image détachée.
-
-**L’encre du bandeau est TOUJOURS le crème, et c’est un VOILE qui la rend lisible.** Le bandeau mesurait auparavant la luminance de sa photo pour choisir entre une encre crème et une encre noire ; le noir revenait sur les images pâles — la Segond, son lac, son ciel. ⛔ Une encre noire cernée d’un halo blanc posée sur une peinture n’est pas une composition, c’est un pis-aller : elle est écartée, et la mesure de luminance avec elle — un décodage en canevas par notice et une dépendance au CORS en moins. C’est désormais un dégradé brun très sombre, ancré à gauche et éteint avant le milieu de l’image, qui fabrique le contraste que la peinture ne promet pas. Toutes les notices reçoivent ainsi le MÊME sol, quelle que soit la peinture qui les coiffe.
-
-⚠️ Trois réglages tiennent avec lui. Le voile est BRUN, non noir : un noir neutre posé sur une peinture ancienne la refroidit et la fait paraître grise. L’ombre du texte se réduit à UNE couche courte, le voile portant le contraste : les trois halos de vingt pixels qui la précédaient bavaient autour des lettres et se lisaient comme une salissure. Et aucune ligne ne court au-delà du voile — la mesure du bloc de texte est bornée, si bien qu’une méta trop longue, celle de la Bible française du XIIIe siècle, se plie dans le sombre au lieu de finir sur les quadrilobes de l’enluminure. L’assombrissement général de l’image, lui, redevient léger : écrasé, il éteignait la moitié droite du tableau, qu’aucune ligne ne recouvre.
-
-⚠️ Ces valeurs vivent dans un module partagé, non dans la page. L’aperçu de cadrage de l’administration se veut une COPIE EXACTE du bandeau public : deux jeux de constantes auraient dérivé au premier réglage, et l’administrateur aurait cadré sur un rendu qui n’existe pas.
-
-**L’encart flotte dans le texte ; il ne tient pas une colonne.** ⛔ Le volet déplié n’est pas deux colonnes. L’image y a tenu une colonne entière, collée à trois bords et séparée du texte par un filet : sa forme dépendait alors de la longueur de la notice — une bande de cent quarante sur six cents quand le commentaire était long — et il restait sous elle une bande blanche que rien ne venait remplir. L’encart a donc une proportion FIXE, deux tiers, il ne touche aucun bord, et le texte l’entoure puis reprend toute la mesure sous lui. Le bloc de texte est un contexte de formatage à lui seul, faute de quoi une notice plus courte que l’encart le laisserait dépasser hors de la carte.
-
-⚠️ **Sous sept cents pixels, l’encart s’efface.** Sur un téléphone de trois cent soixante-quinze, la carte dispose de trois cent vingt-sept pixels : l’encart en prenait cent quarante et un, et il restait cent quarante-quatre pixels de texte JUSTIFIÉ, soit dix-sept signes par ligne. C’est la règle déjà posée pour la carte d’auteur. Le bandeau, lui, demeure : le téléphone voit donc une image des deux, et non aucune.
-
-**Le fond de la fiche prend la TEINTE de son encart — et rien d’autre.** Le volet déplié n’est plus le blanc uni de la carte : il reçoit la teinte dominante de l’image en portrait, et sa saturation. ⛔ Il n’en reçoit PAS la clarté. La clarté appartient au THÈME, et à lui seul : très haute au Clair, très basse au Cuir, où la saturation est de surcroît divisée — à clarté basse, une même saturation pousse beaucoup plus de couleur, et le brun du thème tournait au roux. Une fiche se lit sur un fond CLAIR au Clair, quelle que soit la couleur du tableau qui la surmonte : le tableau n’a de droit que sur la teinte. La teinte se pose en ligne, en deux propriétés personnalisées ; les deux clartés sont écrites une fois pour toutes dans la feuille globale, une par thème. ⚠️ CLAIR ne veut pas dire BLANC. La clarté du Clair a d’abord été posée à 96,5 %, par crainte de salir la fiche : il n’en restait, sur le blanc de la carte, qu’un écart de six à douze valeurs sur deux cent cinquante-cinq, et l’auteur ne voyait rien paraître. À 91 % le ton se voyait enfin ; il est remonté à 95 % à mesure que l’enduit s’est épaissi, le gris de celui-ci assombrissant déjà le fond de son côté. La Bible Crampon y donne rgb(246 242 239) contre le #fff de la carte : une craie chaude, et non plus un ivoire.
-
-**Le fond porte un ENDUIT.** Deux bruits gris se posent sur le ton : un grain serré, qui donne le sable de l’enduit, et une NUÉE très large, qui donne les inégalités de la pose. ⛔ Un seul ne suffit pas — le grain seul fait du bruit de capteur, la nuée seule fait une tache. Tous deux sont désaturés, la couleur venant de la teinte et jamais de la texture.
-
-⛔ **C’est la NUÉE qui porte le travail, non le grain.** Posée d’abord à une fréquence de 0,014 et à six pour cent, elle laissait le fond « encore trop uniforme » : ses taches étaient plus petites que le bloc, et leur moyenne redonnait un aplat. Il faut des plaques PLUS LARGES QUE LA COLONNE DE TEXTE — la fréquence est descendue à 0,006, soit deux cents pixels — et une amplitude franche, treize pour cent, en `turbulence` plutôt qu’en `fractalNoise`, qui veine au lieu de nuager. Le grain, lui, redescend à quatre et demi : il n’est là que pour le sable. ⚠️ Le bruit étant gris, il assombrit un fond clair et ÉCLAIRCIT un fond sombre, et il se voit deux fois plus au Cuir pour la même opacité : l’enduit y est donc dessiné à part, deux fois plus discret. Aucun fichier image n’est déposé pour cela — le motif est un SVG écrit en ligne qui se répète sans couture.
-
-⛔ **Un ton COMPLET a été essayé, puis écarté le même jour.** Teinte, saturation ET clarté prises à l’image, puis mêlées au fond par color-mix : les peintures étant sombres — elles le sont presque toutes —, le blanc de la fiche se salissait d’un beige sourd au lieu de se teinter, et la dose qui faisait paraître la plus terne des six assombrissait toutes les autres. C’est le même partage que pour l’encre écrite SUR une photographie, pris par l’autre bout : là, une couleur qui n’a pas de sol thématique se compose en dur ; ici, une clarté qui en a un se compose en jeton.
-
-**La dominante n’est pas la moyenne des pixels** : la moyenne d’un paysage est une boue grise, les complémentaires s’y annulant. Les teintes se rangent en vingt-quatre seaux de quinze degrés, pondérées par leur saturation, gris, noirs et blancs écartés d’avance — ils sont les plus nombreux dans une photographie ancienne et n’ont pas de teinte à donner ; le seau le plus lourd donne le ton, par moyenne CIRCULAIRE, faute de quoi le milieu de deux rouges à 350° et à 10° tomberait sur le cyan. ⛔ Sa saturation est bornée TRÈS BAS, et l’écart entre les bornes est étroit : quatorze à vingt-huit pour cent. Un fond de fiche n’est pas un aplat de couleur, c’est un LAIT DE CHAUX — il porte une teinte sans porter une couleur. Les bornes ont d’abord été posées à trente-deux et soixante ; l’auteur a jugé le résultat trop vif, et il l’était : la même image y donnait un pastel là où il faut une craie teintée. Le calcul n’a lieu qu’à la PREMIÈRE ouverture d’une notice et son résultat est retenu : six décodages au chargement d’une page dont on n’ouvrira qu’une fiche ne se justifieraient pas.
-
-## 38. La fiche « À propos de cette traduction » — au modèle de la fiche d’auteur
-
-La fiche qui s’ouvre depuis le volet de lecture de la Bible se compose désormais comme la FICHE D’AUTEUR, et non plus pour elle-même. Décision de l’auteur, 28 août 2026. Même cadre, même en-tête, mêmes titres de section, mêmes deux colonnes : à gauche ce qui se lit, à droite ce qui le documente. Les deux fiches disent la même chose d’objets voisins, un homme et le livre qu’il a traduit, et rien ne justifiait qu’elles se présentent chacune à sa façon. Celle-ci était restée une liste d’étiquettes sous un titre.
-
-**Elle s’ouvre sur un PORTRAIT.** C’est l’encart, l’image debout de la section 37, et jamais le bandeau : une image couchée serrée dans un cadre debout ne montre pas ce qu’un portrait montre, et le cadre est celui de la fiche d’auteur, au trait près. Une notice sans portrait ouvre sur son seul nom, sans cadre vide.
-
-⛔ **IL N’Y A PLUS DE REPÈRES SOUS LE NOM** — « Français · Catholique · 1888 - 1904 » (décision de l’auteur, 4 septembre 2026 : « ne pas afficher »). Ils avaient été montés là le 28 août depuis la section repliable, au motif qu’on ne range pas derrière un dépli ce qui identifie l’objet qu’on lit ; c’était vrai de la langue et de la confession, moins de la date, qui était la date RÉDIGÉE de la base, avec ses points-virgules et ses annonces. Ils disaient en télégramme ce que la notice dit en prose deux centimètres plus bas, et langue comme confession se lisent entières dans le dépli.
-
-⚠️ **LE CADRE DU PORTRAIT EST UN FLEX, et la zone d’image s’y étire.** Le bord bas du cadre se pose sur la dernière ligne qui l’habille, et la mesure lui écrit une HAUTEUR ; la zone d’image, qui tenait la sienne de son seul rapport 2/3, ne suivait pas, et la rallonge se voyait en passe-partout sous l’image — un bandeau blanc en bas là où les trois autres côtés portent cinq pixels (l’auteur, 4 septembre 2026 : « comme si elle n’entrait pas dans le bloc »). ⛔ La leçon est générale : une boîte dont on écrit la hauteur DU DEHORS doit pouvoir la transmettre à ce qu’elle contient, sans quoi la mesure se voit au lieu de se lire.
-
-**La notice prend la composition de la fiche d’auteur** : ses intertitres deviennent des titres de section, en sérif italique et à l’encre d’accent, et sa prose devient la prose justifiée de la vie d’un auteur. ⚠️ Une bibliographie en est une part, et elle se compose comme la prose qu’elle accompagne : laissée au navigateur, elle paraissait plus grosse que le texte qu’elle sert.
-
-**Ce qui reste replié ne concerne plus que l’ÉDITION** : son titre, son année, son lieu, son éditeur, sa source numérique, sa graphie, sa licence, son état de vérification. Une section repliable est faite pour ce qu’on consulte, non pour ce qu’on lit. Elle tient toute la mesure, sous les deux colonnes, sa colonne d’étiquettes n’entrant pas dans une colonne de fiche.
-
-⛔ **LA FICHE NE MONTRE PAS LES GRAVURES DE L’ÉDITION** (décision de l’auteur, 4 septembre 2026 : « ne pas afficher la famille “Gravures” »). Six planches prises en échantillon régulier y ouvraient, du 28 août au 4 septembre, une mosaïque que deux requêtes portaient et qu’un clic agrandissait par-dessus la fiche. Une gravure se regarde À SA PLACE, dans le texte, où l’édition l’a mise ; une vignette en tête de fiche apprend qu’il y en a, elle n’en montre aucune. Sont partis avec la rubrique l’échantillon régulier, le passe-partout des vignettes, la planche agrandie et les deux allers-retours qu’elles coûtaient à chaque ouverture.
-
-**L’ÉDITION UTILISÉE A SA RUBRIQUE, et ce n’est pas une bibliographie sélective** (décision de l’auteur, 4 septembre 2026 : « ce n’est pas une bibliographie sélective, mais la référence bibliographique des volumes utilisés »). La fiche portait, dans le HTML de sa notice, une liste titrée « Bibliographie sélective » dont la première entrée redisait à la main l’édition d’où le texte est tiré. La référence se compose désormais CHAMP PAR CHAMP depuis `editions_sources` — titre, sous-titre, lieu, éditeur, millésimes, nombre de tomes —, aux normes de toutes les bibliographies du site (§ 35.6.1) et dans leur famille de styles. ⛔ Sans titre d’édition en base, la rubrique ne paraît pas. ⛔ Aucun AUTEUR en tête : la fiche le nomme deux lignes plus haut, et c’est la règle déjà écrite pour « Du même auteur » — une rubrique qui établit son auteur ne le répète pas sous elle. ⚠️ Le nombre de tomes est la seule donnée matérielle admise, parce que la rubrique répond des VOLUMES ; le format, la pagination, les planches et les dimensions en restent exclus. ⚠️ Les millésimes sont un TEXTE — « 1888-1904 », « vol. I : 1909 ; vol. II : 1907 » —, et c’est pourquoi la référence ne passe pas par `ouvrages_bibliographiques`, dont l’année est un entier : un catalogue d’œuvres ne sait pas dire une collection multivolume.
-
-**LES OUVRAGES QUE L’ÉDITION CITE ont leur rubrique, et elle ne paraît pas si elle est vide** (même décision : « une nouvelle rubrique contenant, proprement, tous les ouvrages cités dans l’édition utilisée ; c’est surtout utile pour Fillion »). Elle lit `v_bible_editorial_bibliography_entries`, la source des bibliographies de l’apparat, et se compose par le même composant : une édition ne dit pas ses auteurs de deux façons. ⚠️ Toutes pièces confondues, dédoublonnées par `ouvrage_id`, rangées par auteur puis par titre — une bibliographie d’édition ne se range pas dans l’ordre d’apparition des volumes. ⛔ Aucun repli sur le texte des blocs matériels : ce qui n’est pas catalogué n’est pas affiché, et c’est ce silence-là qui appelle le catalogage (§ 35.6.4).
-
-**LA LICENCE DIT AUSSI CE QU’ELLE NE DONNE PAS** (même décision : « ajouter les restrictions de licence ; expliquer que le travail éditorial est protégé »). La fiche affichait « Domaine public » en une rangée d’étiquette, ce dont un lecteur conclut que tout est libre ; ce qui l’est est le TEXTE. Une rubrique « Conditions d’usage » dit désormais les deux : la licence du texte servi, avec sa mention obligatoire s’il en porte une ; puis que la transcription, la structuration des données, la segmentation, les alignements et les liens établis entre versets et textes patristiques constituent un travail éditorial original, protégé par le droit d’auteur, dont la reproduction substantielle à des fins commerciales demande une autorisation préalable, et qu’une citation reprise publiquement garde la mention de sa source. ⛔ La formule ne s’invente pas dans la fiche : elle dit en trois phrases le § 6 des conditions d’utilisation, et renvoie à cette page, qui fait foi.
-
-⛔ **La chronologie d’une traduction n’avait AUCUNE date, depuis l’origine.** La frise, partagée avec la fiche d’auteur, lisait la date courte ; la vue des traductions ne porte que la date rédigée, et la colonne des dates restait donc vide sur les six chronologies du corpus. Une chronologie sans dates n’est plus une chronologie, c’est une liste. La frise lit maintenant la date courte, sinon la date rédigée. ⚠️ La trouvaille de méthode vaut au-delà de ce cas : le défaut était couvert par un changement de type en deux temps, qui promettait à la frise un champ que la vue n’a jamais eu. Une colonne qui « ne s’affiche pas » se cherche là.
-
-
-### 38.1 La carte du volet de lecture — le nom, le traducteur, l’adresse de l’édition
-
-La carte qui coiffe le volet de gauche de la Bible porte trois lignes, et trois seulement : le NOM de la bible, qui ouvre sa fiche ; le TRADUCTEUR, avec ses dates ; l’ADRESSE de l’édition servie. ⛔ Elle ne porte pas le relevé des tomes. Celui de Fillion dénombrait huit volumes et six millésimes ; dans un volet de deux cent cinquante pixels, il faisait un pavé au bas duquel la liste des livres commençait. Verdict de l’auteur, 3 septembre 2026 : « je veux seulement des informations sur la bible ; généralistes ». Le relevé reste dans la fiche « En savoir plus », où l’on va le chercher quand on le cherche.
-
-**L’ADRESSE EST UNE PHRASE, et elle nomme le lieu, l’éditeur et les dates** : « D’après l’édition de Paris, Letouzey et Ané, 1888-1904 » (décision de l’auteur, 4 septembre 2026 : « doit mentionner l’éditeur, le lieu d’édition et les dates d’édition »). C’est la forme normative du libellé court d’édition, `Ville, éditeur, année` (§ 5), et l’interface y ajoute seule la formule « D’après l’édition de ». Le lieu et l’éditeur viennent d’`editions_sources` ; ⛔ ils ne se devinent jamais du nom de la bible, et un champ absent emporte son séparateur. ⚠️ C’est la DATE qui décide qu’il y a une édition à nommer : sans elle, rien ne paraît, quand bien même le lieu serait connu — la fiche d’édition du manuscrit Français 899 porte « Paris », qui est le lieu du MANUSCRIT, et la carte annoncerait sans cette garde « l’édition de Paris » là où il n’y a pas d’édition du tout.
-
-⛔ IL N’Y A PLUS DE REPÈRES — la langue, la confession et l’année alignées derrière des points médians. Ils disaient en télégramme ce qu’EST la bible, et jamais d’où vient le texte qu’on a sous les yeux ; la phrase d’édition le dit, et se lit. Langue et confession se lisent entières dans la fiche.
-
-⚠️ **UNE FLÈCHE COURTE SUIT LE NOM**, et c’est elle qui dit qu’il y a une fiche derrière (décision de l’auteur, 4 septembre 2026 : « ajouter un petit symbole à côté du titre pour suggérer l’existence de “À propos de cette traduction” ; une flèche propre, épurée, courte »). Rien ne l’annonçait : le nom se composait comme un titre vert, et le survol ne le soulignait qu’une fois la souris dessus. ⚠️ Elle vit dans `NomVolet`, donc aussi sous le nom d’AUTEUR des pages patristiques : c’est le même geste, et il ne s’annonce pas de deux façons. ⛔ Elle ne paraît pas quand le bouton est inactif — une œuvre sans auteur identifié n’ouvre aucune fiche, et la flèche promettrait une page qui n’existe pas. ⚠️ Elle reste HORS de l’écrêtage du nom : c’est le nom qui se coupe par la fin, jamais la flèche, sans quoi l’annonce disparaîtrait sur les noms longs — les seuls où l’on hésite. ⚠️ Le soulignement de survol se pose sur le NOM et non sur le bouton : porté par le bouton, il courait sous la flèche et la barrait par le milieu.
-
-⛔ ON NE MESURE PAS UN TEXTE AVANT DE S’ÊTRE DEMANDÉ S’IL DOIT PARAÎTRE. Pour loger cette référence, la carte avait reçu une sonde invisible qui comptait ses lignes, un observateur qui la remesurait à chaque changement de largeur du volet, et un budget de lignes que la feuille faisait monter en trois seuils. Tout cela est parti avec le texte, et rien n’a manqué. C’est la seconde fois dans cette même carte : l’étiquette « Traduction » avait été condensée le 30 août 2026, puis supprimée le lendemain.
-
-⚠️ La forme se prend au volet des pages patristiques, qui est le modèle : le nom en vert qui ouvre la fiche, puis ce qu’on lit, puis l’adresse de l’édition, à une seule interligne (1,35). Deux volets de lecture ne se composent pas chacun à sa façon.
-
-### 38.2 Le volet de gauche — la recherche s’efface, le livre grisé s’explique
-
-**LA RECHERCHE D’UN LIVRE N’EST PAS UNE BOÎTE : elle EST son bloc** (décision de l’auteur, 4 septembre 2026 : « la barre de recherche doit être plus claire, moins visible spontanément, et occuper l’ensemble du bloc où le bloc d’écriture existe actuellement »). Le champ portait un filet, un fond plus sombre que le volet et un rayon de quatre pixels, posés dans un bloc rembourré : quatre traits pour l’objet le moins employé du volet, et il se lisait avant la liste des livres qu’il commande. Le rembourrage du bloc est passé DANS le champ — même blanc, même gouttière —, si bien que rien n’a bougé de place ; ce sont le filet, le fond et le rayon qui sont partis. ⚠️ Il se donne à voir quand on s’en sert, et alors seulement : au foyer, un fond léger paraît sous lui. ⛔ Pas de filet au foyer non plus, qui redessinerait la boîte qu’on vient d’ôter. Le filet du BAS reste : c’est la séparation d’avec la liste, non l’encadrement du champ.
-
-**UN LIVRE GRISÉ, CLIQUÉ, S’EXPLIQUE** (même décision). Le clic se perdait dans un `return` : la rangée était bien un bouton, elle répondait au survol, et son geste ne faisait rien du tout — le lecteur en concluait ce qu’il pouvait, que le site était cassé le plus souvent, puisqu’un gris n’explique rien. Une fenêtre dit maintenant que le livre ne figure pas dans la bible qu’on lit, et propose celles qui le portent ; le choix d’une autre bible mène au chapitre 1 du LIVRE DEMANDÉ, non au chapitre qu’on lisait ailleurs, qui n’a rien à voir avec lui. ⛔ Elle ne dit PAS pourquoi le livre manque : une édition partielle, un tome qui n’est pas encore importé et un livre qu’une confession ne reçoit pas se ressemblent de l’extérieur, et mieux vaut une phrase vraie qu’une raison inventée. ⚠️ Les bibles proposées se cherchent aux DEUX sources — `livres_par_traduction` pour celles qui se lisent au verset, la structure éditoriale pour les autres —, faute de quoi Fillion et la Bible 899 seraient tues. ⚠️ La fenêtre s’ouvre TOUT DE SUITE, avec ce qu’on sait déjà, et la liste arrive ensuite : un clic qui n’ouvre rien pendant une requête serait le défaut qu’on vient de corriger.
-
-**L’EN-TÊTE DU VOLET DE DROITE NE REDIT PLUS LA RÉFÉRENCE** — « Genèse 13, 5 » (même décision : « supprimer cette indication redondante »). Le volet commente le verset qu’on vient de désigner d’un clic, à trois centimètres de là, dans une colonne qui porte déjà le nom du livre, le numéro du chapitre et le verset en surbrillance : la ligne ne disait rien que l’écran ne montrât. ⚠️ Une référence REÇUE se montre, elle : la page d’une péricope donne au volet une PLAGE canonique (« Gn 12, 1-9 ») que rien d’autre n’écrit à l’écran. Une référence qu’on DÉDUIT de ce qu’on affiche déjà ne se montre pas. ⚠️ L’en-tête vidé ne laissait qu’une bande de trente-huit pixels et son filet : il ne paraît plus que s’il a quelque chose à porter — une référence reçue, ou la flèche de repli.
-
-### 38.3 La Bible polyglotte — le réglage, le menu, l’en-tête de colonne
-
-Sept demandes de l’auteur du 4 septembre 2026.
-
-⛔ **UN RÉGLAGE DE VOLET NE SE COMPOSE PAS EN BOUTONS** (« remettre en forme de façon plus élégante, sans effet “bouton” »). « Traductions visibles » alignait cinq pilules bordées et arrondies pour un réglage qu’on touche une fois par visite : cinq cadres, cinq fonds, cinq rayons, dans un volet où la liste des livres n’en porte aucun. Les valeurs se lisent en clair ; la retenue prend l’accent et la demi-graisse, les autres l’encre douce, et le survol ne fonce que ce qui n’est pas retenu. ⛔ Ni cadre, ni fond, ni rayon.
-
-⚠️ **UNE ÉCHELLE se lit en RANG, des interrupteurs INDÉPENDANTS se lisent en COLONNE.** « Auto · 2 · 3 · 4 · 5 » est une échelle de cinq valeurs courtes dont on ne retient qu’une : le rang la donne d’un coup d’œil, et le point médian est le séparateur du site. « Lignes problématiques » et « Surnuméraires » sont deux états qu’on allume ou qu’on éteint, et longs : une option par ligne, comme le volet de la page Bible (§ 38.2). La même forme discrète sert les deux, seule la disposition change.
-
-⛔ **UNE TRADUCTION DÉJÀ AFFICHÉE AILLEURS SE GRISE, elle ne s’annonce pas en OCRE** (« grise légèrement le bloc de l’œuvre déjà utilisée ; n’utilise pas d’ocre pour le texte qui signale ça »). L’ocre est la teinte de l’ATTENTE — « à normaliser », « brouillon » — et une colonne déjà prise n’est ni l’un ni l’autre : c’est un fait, non un défaut. Le bloc prend le fond doux, le nom l’encre grise, la mention d’échange l’encre faible ; le choix reste offert, et les deux colonnes s’échangent alors leur place. ⛔ Une FAMILLE ne se grise pas quand un seul de ses textes est affiché ailleurs : les autres restent libres, et la griser dirait le contraire. Le gris se pose sur les MEMBRES, dans leur volet.
-
-**LE MENU SE RANGE PAR MILLÉSIME**, groupe de langue par groupe de langue, une famille prenant le millésime de son membre principal. ⛔ **On range sur la date QU’ON MONTRE, jamais sur une autre** : la première parution d’une traduction et le millésime de l’édition servie ne coïncident presque jamais — Sacy paraît de 1667 à 1696 et l’on sert l’édition de 1730, la Vulgate clémentine est de 1592 et l’on sert Madrid 1946 —, si bien qu’un menu rangé sur la première et affichant la seconde donnerait à lire 1946, 1730, 1912 dans cet ordre : il passerait pour cassé. ⛔ Une entrée SANS millésime se range à la FIN, jamais au début : on ne devine pas une date, et une date manquante ne vaut pas zéro. Le rang de la base départage deux entrées de même millésime.
-
-**LES NOMS SE COMPOSENT**, dans le menu comme en tête de colonne : « Bible française du XIIIe siècle » y prend ses petites capitales et son exposant, un titre entre astérisques son italique. C’est le module partagé avec les notices d’auteur. ⛔ Jamais un rendu HTML sur une colonne rédigée hors du dépôt. ⚠️ La rubrique d’un volet de famille en est exemptée : elle se compose en capitales espacées, où des petites capitales seraient plus petites que ce qui les entoure.
-
-⛔ **SOUS LE TITRE D’UNE COLONNE, C’EST LA DATE, et rien d’autre ne prend sa place** (« c’est indiqué “Texte du manuscrit” et non une date ; c’est problématique »). L’état du texte s’y substituait dès que l’édition en porte plusieurs, si bien que la Bible du XIIIe siècle était la seule colonne du tableau sans millésime — celle, précisément, dont la date importe le plus. ⚠️ L’état du texte reste NÉCESSAIRE, deux colonnes d’une même édition ne se distinguant pas autrement : il descend d’une ligne, sous la date, dans une encre plus pâle et sans la chasse du millésime — c’est une glose, pas un second repère. La date se rapproche par ailleurs du titre : elle en était écartée de huit pixels, elle l’est de trois.
-
-⚠️ **Le « vers » ACCOLÉ au millésime part avec lui.** La notice du manuscrit Français 899 écrit « Paris, XIIIe siècle (vers 1260) » : rendre « 1260 » tout court donnerait à un témoin daté par approximation la précision d’un colophon. ⛔ Ce n’est pas une lecture de la prose : on ne prend que le qualificatif que la source a écrit devant le millésime. La dérivation et l’ordre vivent dans un module pur, éprouvé sur les dix notices réelles du corpus — lire une date dans de la prose est la partie fragile du dispositif, et elle ne s’éprouve pas depuis une page.
-
-⛔ **PAS DE FILET AUTOUR DU TITRE quand le menu s’ouvre.** Un cadre d’un pixel posé sur un en-tête de colonne redessine une boîte là où la page n’en porte aucune, et il paraissait au CLIC de souris — une règle « focus-within » sur un bouton sans enfant focalisable n’est qu’un « focus ». Le menu ouvert garde le sol du survol : la colonne reste désignée, sans qu’un trait s’ajoute à la réglure du tableau. ⚠️ Le clavier garde son anneau, qui est la règle « focus-visible » globale du site : elle pose un contour, non un cadre intérieur.
-
-⚠️ **ET LE SURVOL DE CE TITRE NE S’APPLIQUAIT PAS**, ce qu’aucune lecture du code ne disait. Le bouton portait son fond dans son style EN LIGNE, et une déclaration en ligne bat toujours une règle de feuille sans « important » : la règle de survol était morte depuis qu’elle avait été écrite, et l’anneau de foyer restait le seul état visible de la colonne — c’est-à-dire précisément ce que l’auteur a relevé comme malvenu. Retirer l’anneau sans voir cela aurait laissé l’en-tête sans aucun état. ⛔ **Le piège du style en ligne ne borne pas les seules média-queries : il bloque TOUTE règle de feuille sur la même propriété.** Avant de retirer un état visible, mesurer celui qui est censé le remplacer.
-
-⛔ **RECTIFICATION DU MÊME JOUR, AU SOIR : trois de ces règles se reprennent, et toutes pour la même raison** — on avait chaque fois retiré un ornement DE TROP. ⚠️ Règle générale, qui vaut au delà de cette page : **retirer un ornement n'est pas gratuit ; il faut regarder ce qui reste**. Cinq pilules valaient mieux qu'un rang de mots, un aplat gris valait mieux qu'un ocre mais moins que rien, et une glose descendue d'une ligne vaut moins que pas de glose. La bonne mesure ne se trouve pas en enlevant tant qu'on peut.
-
-⚠️ **L'ÉCHELLE SE COMPOSE EN CASES, sur toute la largeur du volet** (« pas de points médians moches ; plutôt de jolies cases propres sur l'ensemble de la largeur »). Cinq valeurs en clair séparées par le point médian ne se lisaient plus comme un réglage : elles se lisaient comme une ligne de texte, et rien ne disait qu'on pouvait les toucher. ⛔ Ce n'est PAS le retour des pilules, et la différence est celle d'un objet et de cinq : une pilule est un objet PAR VALEUR — cinq cadres, cinq fonds, cinq rayons —, quand un contrôle segmenté n'a qu'UN cadre et qu'UN rayon pour toutes ses cases, qui n'existent que par le filet qui les sépare. Il occupe la mesure du volet, et l'on voit d'un coup d'œil combien de valeurs il offre et laquelle est retenue. ⚠️ Les interrupteurs INDÉPENDANTS gardent leur colonne et leur clair : ils ne forment pas une échelle, et une case autour de « Lignes problématiques » en referait un bouton.
-
-⛔ **UNE COLONNE DÉJÀ PRISE SE GRISE PAR SON TEXTE, ET PAR RIEN D'AUTRE** (« ne griser que le texte ; pas de fond gris »). L'ocre était faux — c'est la teinte de l'attente —, et le fond doux qui l'avait remplacé l'était aussi : une liste ne se lit plus quand un rang sur deux y porte son propre sol. Le fait se dit dans l'ENCRE du nom et de sa date ; le fond du menu reste d'une seule teinte, où l'accent ne désigne que la ligne retenue.
-
-⚠️ **ET CETTE ENCRE DESCEND D’UN RANG** (« griser un peu plus le texte des non disponibles »). Le fond retiré, l'encre reste SEULE à porter le fait, et le rang qui suffisait quand un aplat l'accompagnait ne suffit plus : le nom prend l'encre du sous-titre d'une ligne ordinaire, et la ligne entière recule d'un cran. ⛔ **Pas deux rangs** : la ligne reste CLIQUABLE — la choisir échange les deux colonnes — et une ligne qu'on ne lit plus n'est plus une option ; le rang le plus ténu est d'ailleurs le plancher de l'échelle, et la date y est déjà. ⚠️ Sa hiérarchie interne tient alors par le CORPS et la POLICE, non par l'encre : un sérif de treize pixels sur un sans de dix se distingue sans qu'on l'y aide.
-
-⚠️ **Règle générale, et c'est la rectification du même jour prise par l'autre bout : retirer un ornement DÉCHARGE ce qui reste, et ce qui reste doit alors en porter davantage.** On avait mesuré ce qu'on enlevait ; on n'avait pas remesuré ce qui restait seul. Un état qui se disait par deux moyens ne se dit pas de la même façon quand il n'en garde qu'un.
-
-⛔ **SOUS LE NOM D'UNE COLONNE, IL N'Y A QUE LA DATE** (« “Texte du manuscrit” : ne pas l'indiquer ; seulement indiquer une date »). L'état du texte prenait d'abord la place du millésime ; on l'avait fait descendre d'une ligne dessous, en glose — il n'y est plus du tout. Un en-tête de colonne NOMME et DATE, et une troisième ligne y faisait un second repère. ⚠️ L'état du texte se lit LÀ OÙ L'ON CHOISIT, dans le volet de la famille : c'est le menu qui distingue, l'en-tête qui nomme. ⛔ Conséquence assumée : deux états d'un même témoin ouverts côte à côte portent le même en-tête.
-
-⚠️ **UN BLOC TEINTÉ A BESOIN D'AIR DANS SA CASE.** La cellule d'en-tête n'avait aucun rembourrage vertical — mesuré, le bouton faisait soixante-neuf pixels dans une cellule de soixante-neuf —, si bien que le fond du survol et du menu ouvert courait d'un filet à l'autre et venait toucher la réglure. Un fond qui touche le bord de sa case cesse de se lire comme un ÉTAT : il se lit comme une colonne d'une autre couleur.
-
-⛔ **UN ANNEAU DE FOYER SE POSE DEDANS DÈS QUE LE CHAMP EST SON PROPRE BLOC** (« l'encadrement vert dépasse, mord du texte, ou du texte passe dessus »). L'anneau global du site se pose à un pixel À L'EXTÉRIEUR de la boîte, ce qui convient à un champ posé DANS un bloc rembourré. Le champ de recherche des volets EST son bloc depuis qu'il en occupe toute la mesure — mesuré, 319 sur 45 dans un bloc de 319 sur 46 — et l'anneau tombait donc par-dessus le filet du bas, par-dessus le bloc voisin en haut, et sortait du volet sur les deux côtés, où il se faisait couper. Un décalage NÉGATIF le rend au champ. ⛔ On ne le retire pas : c'est le seul repère du clavier, et un champ sans filet ni fond au repos n'a rien d'autre à montrer. ⚠️ **Règle générale : quand un objet cesse d'être posé DANS un bloc pour DEVENIR le bloc, tout ce qui se dessinait autour de lui se relit.** Le rembourrage, le filet, l'ombre et l'anneau ne visaient pas la même boîte.
-
-### 38.4 La PROVENANCE d’un texte biblique — la carte, la fiche, la chronologie
-
-Six demandes de l’auteur du 4 septembre 2026, en seconde passe sur la page « Bible classique ».
-
-⛔ **DANS UNE PHRASE, TOUT SE SÉPARE PAR DES VIRGULES, ET RIEN D’AUTRE** (« il faut utiliser la version normalisée ; on doit avoir “Jean Desessartz et Guillaume Desprez” ; tout séparé par des virgules »). La carte du volet rendait la co-édition telle que la base l’écrit — « Paris, Jean Desessartz ; Guillaume Desprez, 1667-1696 » —, et le point-virgule y ouvrait au milieu de la phrase un second niveau de ponctuation où l’on ne voyait plus où l’éditeur commence. Chaque maison se résout POUR SON PROPRE COMPTE dans la table de référence, et « et » les joint ; trois maisons font une énumération française. ⛔ Le point-virgule reste le séparateur normatif dans une COLONNE et dans une notice de catalogue (§ 5) : la règle ne le remplace pas partout, elle compose une énumération là où l’on écrit une phrase. ⚠️ La résolution se fait CÔTÉ SERVEUR : l’index des éditeurs n’a pas à voyager jusqu’au navigateur pour composer deux mots.
-
-⚠️ **LA DATE D’UNE ADRESSE EST CELLE DE LA FICHE D’ÉDITION, non de la première parution.** Le lieu et l’éditeur viennent de la fiche d’édition : y prendre aussi la date est la seule façon que les trois mentions parlent du même livre. La carte de Sacy datait de 1667-1696 l’adresse de l’édition de 1730, si bien que deux maisons qui ne se sont associées qu’au siècle suivant s’y trouvaient nommées ensemble soixante ans trop tôt. ⚠️ Le champ est un TEXTE et porte parfois le détail des volumes — « vol. I : 1909 ; vol. II : 1907 ; vol. III : 1912 » : une phrase de carte en retient les deux bornes, l’énumération n’apprenant rien à qui veut savoir de quand date ce qu’il lit.
-
-⛔ **UN TÉMOIN MANUSCRIT N’A PAS D’ÉDITION : il a un dépôt et une cote** (« aucun texte pour la bible du XIIIe siècle ; à corriger, d’après le manuscrit machin machin »). La carte se taisait pour lui, une garde de la veille refusant de nommer une « édition » là où la fiche ne porte qu’un lieu de copie. La garde était juste et la conclusion trop courte : ce n’est pas la phrase qu’il fallait taire, c’est l’autre phrase qu’il fallait écrire — « D’après le manuscrit Paris, Bibliothèque nationale de France, Français 899, vers 1260 », qui est la forme savante d’une cote. ⛔ Elle ne se DÉDUIT PAS de la prose : l’intitulé de l’édition et le nom de la source numérique portent bien la cote, mais l’en tirer par découpe serait lire une donnée dans un titre. Deux champs de plus, et c’est la COTE qui décide — pas un type à interpréter, pas une mention à reconnaître. ⚠️ Un manuscrit se nomme même sans date : sa cote l’identifie à elle seule, quand une édition sans année n’a rien à annoncer.
-
-⛔ **UNE FICHE NE REPLIE PAS CE QU’ON VIENT Y LIRE** (« “Édition et état du texte” doit être visible sans être développé ; revoir l’ensemble avec cette nouvelle donne »). C’était la seule section repliée de la fiche « À propos de cette traduction », et le dépli cachait une REDONDANCE autant qu’un contenu : le titre, l’année, le lieu et l’éditeur y reparaissaient en rangées un cran sous une référence qui venait de les composer, et la notice rédigée de la base les disait une troisième fois. La référence devient la TÊTE de la rubrique — ce que l’édition EST —, et les rangées ne portent plus que ce qu’elle ne dit pas : ce qui a établi le texte, d’où vient sa copie numérique, sa graphie, ses particularités, son état de vérification. ⛔ La notice rédigée ne paraît plus : elle était la seconde vérité, celle qu’on avait cessé de composer. ⚠️ Trois rubriques ferment la fiche, dans cet ordre : l’édition, les ouvrages qu’elle cite, les conditions d’usage. On va de ce que l’édition EST à ce qu’on peut en faire.
-
-⚠️ **UNE MENTION D’ÉDITION NE SE COMPOSE QUE SI ELLE APPREND QUELQUE CHOSE.** « Édition révisée » est une vraie mention de page de titre et prend sa place après l’intitulé. Deux cas la font taire, et tous deux sont dans la donnée réelle : un TÉMOIN MANUSCRIT n’en a pas — « Témoin manuscrit » est une classification, et la cote suit deux mots plus loin —, et une mention que le TITRE contient déjà ne se répète pas (« La Bible : traduction officielle liturgique »). C’est la règle du complément qui redit son titre, appliquée à l’adresse d’une édition.
-
-⚠️ **UNE BIBLIOGRAPHIE PREND LE RETRAIT SUSPENDU, où qu’elle paraisse** (« pour la bibliographie, il faut un retrait négatif pour les secondes lignes d’un paragraphe »). Les listes que portent les notices éditoriales sont des bibliographies — « Études sur cette traduction », cinq références chez la Bible du XIIIe siècle —, et une référence de deux lignes ne se lit que si la seconde rentre : c’est ce qui sépare deux notices à l’œil. Même mesure que toutes les bibliographies du site (§ 35.6.2), et la puce part avec le retrait : une liste à puces et une bibliographie ne sont pas la même chose.
-
-**LA CHRONOLOGIE D’UNE BIBLE SE COMPOSE COMME CELLE D’UN AUTEUR** (« ajouter une chronologie assez petite inspirée du modèle de la page auteur ; composer pour l’occasion des liens chronologiques »). ⛔ Composer une chronologie, ce n’est PAS inventer des faits datés : c’est CHOISIR et ORDONNER ce que le corpus sait déjà. On ne rattache que des événements existants, datés, sourcés et validés, et le lien porte « à contrôler » — l’interface choisit, l’auteur valide. Inventer un événement pour garnir une frise serait une décision philologique prise par une décision d’interface. ⚠️ Trois brins pour une bible : ce qui l’a FORMÉE, l’ÉDITION servie, sa RÉCEPTION, plus le CONTEXTE qui l’explique ; cinq entrées suffisent, et l’ordre est chronologique.
-
-⛔ **DEUX VUES QUI NOMMENT LA MÊME CHOSE DOIVENT SE RÉPONDRE.** La chronologie des auteurs écrit ses types d’affichage sans accents, celle des traductions écrit « édition » et « réception » avec les leurs : DEUX brins sur trois ne trouvaient donc ni couleur ni libellé, et leurs puces tombaient sur le gris de repli. La frise ne distinguait plus ce qu’elle range, et c’est pour cela que sa légende avait été éteinte sur les traductions. ⚠️ On replie la CLÉ, on ne renomme pas la donnée : la vue dit ce qu’elle dit, et le rendu s’y accorde. La légende revient avec les couleurs — trois brins ne se devinent pas plus pour une bible que pour un Père.
-
-⛔ **NI DÉGRADÉ, NI EMBLÈME, NI BOUTONS dans une petite fenêtre d’explication** (« je n’aime guère la mise en forme, surtout le dégradé ; le site n’a aucun dégradé ; fais simple, élégant, propre, proportionné »). La fenêtre du livre absent avait pris le cadre de la fenêtre « compte requis » : un bandeau teinté qui s’éteignait vers le bas, un livre fermé dessiné dans son anneau, et autant de cartouches bordés que de bibles proposées — trois ornements pour dire une phrase et nommer deux titres. Reste la composition que la fiche emploie déjà : une rubrique en capitales espacées, le nom en sérif, un filet, la phrase, puis une LISTE où chaque rangée n’est qu’un nom et sa flèche. ⚠️ Une fenêtre de la page Bible ne s’invente pas un dessin : elle prend celui de la page.
-
-⚠️ **UN NOM DE BIBLE SE COMPOSE PARTOUT DE LA MÊME FAÇON** (demande de l'auteur, 2026-09-04). « Bible française du XIIIe siècle » prend ses petites capitales et son exposant dans le menu central de la page Bible, dans la liste qu'il déploie, dans la fiche « À propos de cette traduction » et dans la référence de son édition — comme elle les prend déjà dans le menu de la Polyglotte et dans les notices d'auteur. Un titre entre astérisques y prend son italique. C'est le module partagé, et il n'y a pas deux façons d'écrire un nom selon l'écran où il paraît. ⛔ Les DATES d'un intitulé se composent AVEC lui : elles en étaient sorties, si bien que « (XIIIe siècle) » restait en chiffres ordinaires dans la fiche même de la bible qui porte ce siècle dans son nom.
-
-⛔ **DANS UNE RÉFÉRENCE BIBLIOGRAPHIQUE, ON NE COMPOSE QUE LES SIÈCLES.** Un fragment de notice porte déjà son rôle — intitulé, nom d'autorité, données —, et c'est le RÔLE qui décide de son italique et de ses petites capitales. Y ajouter la composition des astérisques poserait un italique DANS un fragment déjà italique, où il ne se verrait pas, et ferait décider par le texte ce que la donnée nomme.
-
-⚠️ **À GAUCHE CE QU'ON LIT, À DROITE CE QUI LE DOCUMENTE — et la colonne de droite va jusqu'en bas** (« peut-on envisager que “Édition et état du texte” soit sous la chronologie ? proprement ? »). La rubrique tenait toute la mesure, SOUS les deux colonnes ; or une frise de cinq entrées s'arrête à mi-hauteur d'une notice qui continue, et la fiche montrait donc un grand vide à droite avec sa rubrique reléguée dessous. Elle remplit ce vide, où elle est à sa place. ⚠️ Ses rangées y EMPILENT l'étiquette et sa valeur : une colonne d'étiquettes de 8,5 rem ne laisserait pas cent soixante-dix pixels à la valeur dans une colonne étroite. C'est la forme que la fiche d'édition emploie déjà, et c'est le MÊME composant — une rangée recopiée à deux endroits ne reste identique que par accident.
-
-⚠️ **L'INTERLIGNE D'UNE BIBLIOGRAPHIE EST SERRÉ, LE BLANC ENTRE DEUX NOTICES EST LARGE** (« réduire légèrement l'interligne ; augmenter légèrement le blanc entre deux œuvres »). Une bibliographie n'est pas de la prose : les lignes d'une même référence se lisent d'un trait, tandis que deux références sont deux objets. Le blanc doit donc être plus grand ENTRE les entrées qu'à l'intérieur de l'une d'elles — sans quoi la liste se lit comme un paragraphe, et le retrait suspendu reste seul à dire où commence la suivante. ⛔ La mesure vaut pour TOUTE la famille, l'apparat des bibles comme les listes des notices : il n'y a qu'une composition bibliographique sur le site.
-
-⛔ **LA CARTE DE TRADUCTION SE COMPOSE EN SANS** (citant la carte de Segond : « Louis Segond (1810-1885) D’après l’édition de Paris, Société biblique britannique et étrangère, 1910 // sans sérif »). Elle avait pris la SERIF du volet des œuvres, dont elle est copiée ; mais ce volet-là surmonte un texte en serif, et sa carte est de la même encre que ce qu’elle annonce. Celle-ci surmonte une LISTE DE LIVRES, qui est en sans, et le nom de la bible qui la coiffe l’est aussi : la serif y faisait deux régimes dans une carte de trois lignes. ⚠️ **Règle générale : UNE CARTE DE VOLET PREND LA POLICE DE CE QU’ELLE SURMONTE, non celle du volet dont on l’a copiée.** Que deux volets se ressemblent ne dit rien de ce qu’ils annoncent, et c’est ce qu’ils annoncent qui décide. ⚠️ La divergence avec le volet des œuvres est donc assumée : ce n’est pas la même page.
-
-### 38.5 Le RAIL d’un volet replié — un seul dessin, et il nomme l’action
-
-Demande de l’auteur du 4 septembre 2026 : « remettre en place le système permettant de fermer un volet gauche ou droite ; ajouter un titre clair sur la barre quand elle est fermée ».
-
-⚠️ **UN VOLET DE LECTURE SE FERME, ET CE QUI RESTE DE LUI EST UN RAIL** : une bande de trente pixels, un chevron en tête, et le nom de l’action écrit en hauteur, dans le sens d’un dos de livre français. Les deux volets de la page Bible — les livres à gauche, les commentaires à droite — et le volet de la Polyglotte le partagent. ⛔ Il y en avait TROIS, voisins et déjà divergents : celui de la Polyglotte portait le passage lu, celui des livres écrivait son nom de bas en haut, celui des Pères de haut en bas et deux crans plus petit. Un seul composant désormais. ⚠️ Le rail se FONCE au survol : une surface qui ne porte ni cadre ni fond propre n’a pas d’autre façon de dire qu’on peut la toucher.
-
-⚠️ **LE RAIL NOMME L’ACTION, JAMAIS LE CONTENU.** « Commentaires » écrit sur une bande fermée décrit ce qu’on ne voit pas ; « Ouvrir les commentaires » dit ce qu’un clic fera, et c’est la seule chose qu’un rail ait à dire. ⚠️ Un repère peut s’y ajouter EN SECOND, dans le sérif de lecture et sans capitales : la Polyglotte y garde le passage ouvert, que le tableau ne nomme plus une fois le volet replié.
-
-⛔ **UN RÉGLAGE DE DISPOSITION MOBILE NE DÉCIDE JAMAIS D’UN CONTRÔLE DE BUREAU**, et c’est la vraie leçon de cette reprise. Le système existait : les deux volets savaient se replier, rail compris. C’est la FLÈCHE qui les repliait qui avait disparu, gardée par une condition sur la présentation mobile — « en onglets ou en tiroir » — juste sur un téléphone, où les onglets font office de navigation, et sans objet sur un bureau. La page Bible passant « onglets » en toutes circonstances, le bureau perdait un contrôle pour une raison qui ne le regardait pas, et rien dans le rendu ne le montrait. **Une condition d’affichage nomme d’abord la surface qu’elle vise.**
-
-⛔ **UN CONTRÔLE DE VOLET NE DÉPEND NI DE L’ONGLET QU’ON REGARDE, NI DE SA PLACE.** La flèche vivait dans la rangée du champ de recherche ; sous l’onglet « Sommaire » ce champ n’a pas d’objet — il cherche des LIVRES — et la rangée disparaissait avec lui, emportant le seul moyen de fermer le volet. Elle paraît désormais tant qu’elle porte la flèche, réduite alors au fer à droite. ⚠️ Et elle se pose EN TÊTE, sous les onglets : rendue après une liste qui prend toute la hauteur restante, elle tombait à deux mille pixels de l’endroit où elle se trouve sous l’autre onglet, et un contrôle qui change de bout d’écran ne s’apprend jamais.
-
-⛔ **UN CONTRÔLE NE SE RANGE PAS DANS UN OBJET QUI EN PORTE DÉJÀ.** La flèche qui replie le volet de gauche vivait au bout du CHAMP DE RECHERCHE, et l'auteur l'a cherchée sans la voir : à cet endroit, un chevron de quatorze pixels se lit comme une marque du champ — une croix d'effacement, une loupe —, non comme un contrôle du volet. Elle se pose dans le COIN INTÉRIEUR du volet, au bout de la ligne du nom, là où celui de la Polyglotte se tient depuis toujours et où le volet de droite porte le sien : le nom à gauche, le repli à sa droite, et il pointe vers le bord où le volet va se ranger. ⚠️ Il ne se confond pas avec la flèche qui annonce une fiche : celle-là suit le TEXTE, à l'intérieur du lien ; celui-ci se tient au BORD de la carte.
-
-⚠️ **ET UN CONTRÔLE DE QUATORZE PIXELS NE PREND PAS L'ENCRE LA PLUS TÉNUE DE L'ÉCHELLE.** Un rang au-dessus, et l'accent au survol, qui dit qu'on peut le toucher. ⛔ La couleur se déclare dans la FEUILLE : posée en style en ligne, elle battrait la règle de survol — le piège est payé quatre fois dans ce dépôt.
-
-⛔ **UNE RUBRIQUE NE REDIT PAS CE QUE LA FICHE PORTE EN TÊTE.** « Responsable de l'édition » quitte « Édition et état du texte » (« fait un peu tache ; supprimer ») : il portait le plus souvent le nom déjà écrit deux centimètres plus haut — « Louis-Claude Fillion ; édition numérique : Corpus Scriptura » sous « Traduction de Louis-Claude Fillion ». ⚠️ Le champ reste LU : il nomme le responsable d'une ÉDITION CRITIQUE dans l'intitulé qui suit le nom, là où il apprend quelque chose.
-
-⚠️ **LE RAIL CENTRE SON TEXTE, ET SON CHEVRON RESTE EN TÊTE** (« centrer verticalement le texte ; réduire un peu la taille de police »). Un rail fait toute la hauteur de la lecture : le libellé posé sous le chevron pendait en haut d’une bande de huit cents pixels, quand un dos de livre porte son titre au milieu. ⛔ Le chevron, lui, ne descend pas avec lui — il est là où l’œil arrive, et c’est la cible qu’on vise, non le mot. ⚠️ Le groupe se centre d’un BLOC, le libellé et le repère ensemble : les centrer chacun pour soi détacherait le passage lu du nom qu’il accompagne.
-
-⚠️ **Et son texte descend d’un rang** — le libellé de onze pixels à dix et demi, le repère de onze et demi à onze. Sur une bande de trente pixels de large, un texte plus menu se lit encore et pèse moins : la contrainte n’est pas la lisibilité mais l’encombrement, un rail devant se faire oublier tant qu’on ne le cherche pas.
-
-### 38.6 La COULEUR d’un corpus se prend là où le lecteur l’a déjà vue
-
-Demande de l’auteur du 4 septembre 2026 : « dans la barre de recherche, recherche, résultats qui s’affichent, etc., utiliser plutôt le maroquin de la page d’accueil pour les résultats liés à la patristique ».
-
-⛔ **UNE MATIÈRE NE SE NOMME PAS DE DEUX FAÇONS SELON L’ÉCRAN.** Les Pères portaient un POURPRE DE RUBRIQUE dans la recherche et un MAROQUIN sur la page d’accueil, dont le carton est une reliure rouge depuis le 31 août. Chacune des deux teintes se défendait pour elle-même, et c’est le piège : le lecteur, lui, n’a pas deux Patristiques. La couleur d’un corpus se prend donc là où il l’a déjà rencontrée, et l’accueil est la première page de toutes. ⚠️ Le pourpre n’était pas faux — il tenait ses écarts et sa lisibilité ; il n’était simplement nulle part ailleurs sur le site.
-
-⚠️ **Une teinte reprise garde son RANG là où elle peut, et le change là où elle doit.** L’aplat de la rubrique prend la teinte du carton telle quelle : c’est le même office, un fond coloré qui porte un texte clair. L’ENCRE du Cuir ne le peut pas, les deux teintes du carton y étant sombres quand il faut là une encre CLAIRE ; c’est alors le même maroquin monté au rang d’encre, teinte tenue. ⛔ Ce qui se transpose est la TEINTE, jamais la valeur.
-
-⚠️ **Et la reprise se paie en profondeur, ce qui est assumé.** Le maroquin est plus sombre que le vert de l’Écriture et que l’or de la Communauté — L* 23,6 contre 41,3 et 41,9 — si bien que la bande des Pères se lit plus sombre que les deux autres. C’est le caractère d’un maroquin, non un écart à corriger : sur l’accueil, les cartons de la Bible et des Pères sont tous deux à cette profondeur, « maroquin vert et maroquin rouge, les deux reliures d’un même ensemble ». ⛔ L’éclaircir pour l’aligner sur ses sœurs, ce serait le reprendre à l’accueil, qui est justement d’où il vient.
-
-⚠️ **Les deux exemplaires restent LITTÉRAUX, et se renvoient l’un à l’autre.** Le carton est une gamme DESSINÉE, le jeton une teinte de RÔLE, et la charte les tient séparés depuis le jour où des jetons d’encre ont fait s’inverser les cartons en Cuir. Chacun porte donc sa valeur en clair, et un renvoi vers l’autre : reteinter le carton sans reteinter les jetons ferait dire deux choses au même corpus.
-
-### 38.7 Une page de lecture s’ouvre sur un TEXTE, et elle s’y ouvre en fondu
-
-Deux demandes de l’auteur du 4 septembre 2026 : « supprimer le dessin et afficher soit le dernier emplacement de lecture de l’utilisateur — il faut donc l’enregistrer — soit la Genèse » ; « à l’ouverture de la page, que ce soit en Polyglotte ou en Classique, faire un affichage plus doux que le texte qui apparaît brutalement ».
-
-⛔ **UNE PAGE DE LECTURE NE S’OUVRE PAS SUR UN ÉCRAN D’ATTENTE.** La Polyglotte montrait la tour de Babel ruinée et l’invite « Ouvrez un livre » tant qu’aucun livre n’était choisi : une gravure pour tout contenu, et un geste à faire avant de lire quoi que ce soit. Elle s’ouvre désormais sur un texte, toujours — le dernier passage lu, à défaut celui de la Bible classique, à défaut la Genèse. ⚠️ La gravure ne disparaît pas du dépôt : elle passe en RÉSERVE, où l’inventaire des illustrations la garde avec son histoire.
-
-⚠️ **LE LECTEUR N’A QU’UNE LECTURE EN COURS, MÊME S’IL LA MÈNE SUR DEUX PAGES.** La Polyglotte retient sa propre place, mais sa PREMIÈRE visite s’ouvre là où la Bible classique en était : ouvrir sur un livre choisi pour lui quand on sait où il lisait serait le renvoyer au commencement. La Genèse ne sert que le tout premier passage. ⛔ Et l’on ne retient JAMAIS « le livre entier » : c’est un geste explicite et coûteux — les Psaumes entiers sur quatre colonnes — et une ouverture de page doit être brève ; un livre entier laissé à la dernière visite rouvre à son premier chapitre.
-
-⛔ **DEUX PAGES S’OUVRENT EN FONDU, ET PAS PAR LE MÊME CHEMIN : C’EST LA PROVENANCE DU TEXTE QUI DÉCIDE.** Le texte de la Bible classique est rendu par le SERVEUR, donc peint avant même que la page s’anime : son fondu se déclare dans le rendu — le HTML servi le porte — et joue dès la première peinture. ⚠️ Poser ce fondu après coup ferait DISPARAÎTRE un texte déjà lisible pour le ramener, c’est-à-dire pire que le défaut qu’on corrige. Le texte de la Polyglotte, lui, vient du NAVIGATEUR : rien n’est à l’écran avant lui, et c’est l’arrivée déjà en place qui se joue — la première n’avait simplement pas de départ pour l’appeler.
-
-⚠️ **L’ouverture n’est pas ÉCHELONNÉE, à la différence d’une arrivée**, et ce n’est pas un choix de goût : le rang d’un bloc se mesure dans le navigateur, ce qui est trop tard pour une page dont le serveur a déjà peint le texte. La colonne entière paraît d’un seul fondu. ⛔ Et ce fondu ne porte QUE l’opacité, quand celui d’une arrivée translate de six pixels : une transformation ferait de la colonne le bloc conteneur des cellules d’actions posées en position fixe.
-
-⚠️ **Une place retenue se relit dans UN SEUL module.** Les deux clés vivaient à la main dans les pages qui les écrivent et dans celles qui les lisent ; le cœur en est désormais pur et prouvé sans navigateur, et le contrôle du livre demandé se fait contre la liste RÉELLEMENT servie — un code retenu de longue date peut avoir disparu du canon offert, et la page doit ouvrir tout de même.
-
-### 38.8 Le volet patristique se lit EN FRANÇAIS, et d’un trait
-
-Cinq demandes de l’auteur du 4 septembre 2026, au soir.
-
-⚠️ **LE FRANÇAIS OUVRE TOUTE LECTURE EN REGARD** (« sur le Français – Ancien français : le français doit toujours être à gauche »). La règle valait pour Fillion depuis le 20 août ; elle vaut pour toute famille éditoriale. ⛔ C’est une DONNÉE — l’ordre des membres —, jamais une constante du code, et les deux ordres étant sous contrainte d’unicité, l’échange passe par un rang temporaire.
-
-⛔ **LA GOUTTIÈRE D’UN VERSET NE PORTE QUE SA RÉFÉRENCE** (« je trouve “ACT 1,22” comme référence biblique : c’est une erreur ; on indique seulement “1, 22”, avec l’espace et sans le nom abrégé du livre »). La page dit déjà quel livre on lit, en titre et dans le volet. ⚠️ Le code venait d’un REPLI, non d’une donnée voulue : la référence seule vit dans une métadonnée que 28 656 segments portent, et les 18 197 autres retombaient sur le LIBELLÉ humain du segment, qui porte son livre. On corrige à l’affichage ; la donnée reste ce qu’elle est.
-
-⚠️ **UN EXTRAIT PATRISTIQUE COMMENCE PAR UNE CAPITALE**, à l’affichage seul (« toute référence patristique citée dans le volet de droite doit comporter une majuscule en début de phrase »). Un extrait commence là où le lien le prend, c’est-à-dire souvent au milieu d’une phrase de l’édition, et il se lit alors comme une phrase amputée. ⛔ La capitalisation ne change JAMAIS la longueur du texte : les appels de note s’y posent par offset.
-
-⛔ **ON NE SERT PAS DU LATIN À QUI VIENT LIRE LES PÈRES EN FRANÇAIS** (« dans le volet de droite, toujours afficher une traduction française, la plus récente »). Un lien biblique désigne parfois un texte en langue originale — 2 468 segments liés sur 39 823, six œuvres, toutes pourvues d’un français public et d’un alignement qui l’y relie. ⛔ Re-pointer les liens serait le remède le plus simple et le plus faux : le lien a été établi sur le LATIN. La correspondance se fait à l’affichage, par les tables d’alignement, qui sont faites pour cela.
-
-⛔ **ET LA CARDINALITÉ DU GROUPE DÉCIDE, car on n’invente aucune correspondance.** L’alignement est au PARAGRAPHE et rarement un pour un : mesuré, La Cité de Dieu compte 1 039 groupes dont 802 aux effectifs inégaux, 4,8 latins pour 6,0 français en moyenne et 22 au plus. À effectifs ÉGAUX, le nième latin répond au nième français et la contrepartie est un seul paragraphe ; à effectifs INÉGAUX, on rend TOUT l’empan français du groupe. ⚠️ Choisir le premier, ou le nième « à peu près », donnerait un passage que le lien ne désigne pas : une erreur de philologie présentée comme une citation, ce qui est pire qu’un latin qu’on ne lit pas. ⚠️ Le prix est visible et assumé : un empan inégal peut faire une occurrence de plusieurs milliers de signes là où les autres en font trois cents.
-
-⚠️ **LES CITATIONS D’UNE MÊME ŒUVRE SE RÉUNISSENT, L’ÉLISION MARQUÉE D’UN « […] »** (« regrouper les citations d’une même œuvre patristique — seulement, non biblique — comme c’est déjà le cas pour les segments qui se suivent ; il faut remplacer l’élision par un « […] » et que l’élision soit de taille raisonnable, disons au maximum 500 caractères »). ⛔ **On ne réunit que ce qu’on peut MESURER** : un écart se juge en signes élidés, non en nombre de segments — une édition en découpe un en dix, une autre en fait un seul —, il faut donc connaître le texte élidé, c’est-à-dire l’avoir lu. Un écart dont un seul segment manque à l’appel ne se réunit pas : un « […] » qui cacherait une quantité inconnue ne dit rien au lecteur.
-
-⛔ **ET L’ON NE RÉUNIT QUE DANS UN MÊME TEXTE, non dans une même œuvre.** Une œuvre en porte plusieurs — La Cité de Dieu son latin et son français, tous deux liés à des versets — et leurs numéros de segment se recouvrent : le regroupement collait un paragraphe latin à un paragraphe français dès que leurs numéros se suivaient, et le défaut était là depuis l’origine du regroupement. ⚠️ Rien de tout cela ne concerne les VERSETS bibliques : une suite de versets se réunit déjà, et par une tout autre règle — elle garde ses bornes, et une élision y ferait disparaître un verset sans le dire.
-
-### 38.9 Le DOMINO de l’ouverture, et les BLANCS de la justification
-
-Quatre demandes de l’auteur du 4 septembre 2026, sur la Polyglotte.
-
-⚠️ **À L’OUVERTURE, LE TEXTE TOMBE EN DOMINO** — colonne par colonne, de gauche à droite (« peut-on imaginer que le texte s’affiche progressivement, colonne par colonne, pour donner un effet de domino ? ça peut être joli, mais il faut que ce soit rapide »). C’est le dispositif d’arrivée déjà en place, dont le rang se prend sur la COLONNE au lieu de la hauteur. ⚠️ Le pas DOUBLE : cinq colonnes au pas ordinaire se joueraient en cent vingt millisecondes, et la chute ne se verrait pas. ⛔ Et cela À L’OUVERTURE SEULEMENT : la même chute jouée à chaque chapitre tourné cesserait d’être un accueil pour devenir une attente ; les arrivées suivantes gardent la chute ligne par ligne, qui suit la lecture.
-
-⛔ **UN CLIC QUI NE FAIT RIEN DE PLUS QUE LE SURVOL EST UN CLIC PERDU** (« quand je clique sur le nom d’une traduction qui a un menu déroulant secondaire, ne pas bloquer le clic : afficher la première traduction du menu déroulant »). Cliquer une édition à plusieurs textes ne faisait que déployer le volet, que le survol déployait déjà. Le clic choisit désormais le PREMIER texte, celui que le volet met en tête, et le volet reste ouvert pour en prendre un autre. ⚠️ Le clavier suit le clic : Entrée et Espace choisissent, la flèche déploie — un clavier qui n’aurait plus que le déploiement n’atteindrait jamais le premier texte.
-
-⛔ **LE FLOTTANT QUI OUVRE UN VERSET NE PREND PAS SUR LE TEXTE** (« affiner encore la densité du texte, les césures, renvois, pour éviter les blancs ignobles et contre-natures entre mots »). Mesuré sur la page servie : la lettrine de référence valait 28,8 pixels et sa marge 8, soit 12 % de la mesure — et sur soixante-sept blancs de plus de trois espaces, SOIXANTE étaient sur la ligne qu’elle rétrécit. ⚠️ **La cause d’un blanc ignoble n’est presque jamais la césure : c’est une ligne trop courte.** Une marge gauche négative range le flottant dans le rembourrage de la cellule, qui perd d’autant : le texte retrouve sa mesure pleine dès la première ligne, et le repère reste où l’œil le cherche.
-
-⛔ **RECTIFICATION DU MÊME JOUR, ET ELLE PORTE SUR LES DEUX MOITIÉS DE CETTE RÈGLE** (relevé de l’auteur le soir même : « la référence canonique dans la cellule de chaque verset, celle qui est grise, doit être alignée en marge gauche avec le texte contenu dans la même cellule »). Le flottant est rendu au **FER DU TEXTE**. Mesuré sur la page servie, la marge négative le posait à **−10,00 px** du fer, sur les quarante-huit cellules relevées et sans une exception : chaque verset ouvrait donc sur un repère en saillie, et le bord gauche de la colonne était ragué d’un bout à l’autre.
-
-⛔ **ET LE GAIN N’EN ÉTAIT PAS UN**, mesuré avant et après sur la même page : le plus grand blanc passe de **5,47 à 4,86** espaces naturelles, le neuvième décile de 2,78 à 2,66, et les blancs de plus du triple de **147 à 123**. Rendre le fer au texte n’aggrave pas la justification, il l’améliore d’un cheveu. ⚠️ **Ce qui coûte à la justification est la LARGEUR d’un flottant, non sa POSITION** : la première ligne perd les mêmes pixels de mesure quel que soit le côté où on le range. C’est un RAISONNEMENT, non une mesure, qui avait conclu l’inverse le matin — *une règle tirée d’un raisonnement se vérifie avant d’être écrite, et celle-ci n’aura vécu qu’une matinée.*
-
-⛔ **UN VOILE D’ATTENTE COUVRE TOUT CE QUI ATTEND, EN-TÊTE COMPRIS** (même relevé : « quand on charge un texte, le fond change légèrement de couleur ; c’est ok, mais il faut aussi qu’il change au niveau des en-têtes de colonne »). Il ne couvrait que le corps du tableau : la teinte s’arrêtait net sous le filet, et la bande qui porte le nom des éditions — c’est-à-dire ce qu’on vient précisément de changer — restait la seule chose qui ne bougeait pas. La page se donnait comme à moitié en attente.
-
-⚠️ **C’EST LE BLOC POSITIONNÉ QUI DÉCIDE DE CE QU’UN VOILE COUVRE**, puisqu’un voile s’étend à son parent positionné et à rien d’autre. Le remonter d’un cran suffit, et le corps garde le sien, dont dépendent les cellules d’actions. ⚠️ Un en-tête COLLANT porte un rang d’empilement : le voile monte plus haut que lui et le recouvre donc, à l’arrêt comme au défilement — sans lui prendre ses événements de pointeur, car on doit pouvoir changer une colonne pendant qu’une autre charge. ⛔ Et l’ANNEAU ne bouge pas d’un pixel : il vit dans un enfant collant sous l’en-tête, dont la boîte est bornée par la hauteur restante, que le voile plus haut ne change pas.
-
-⛔ **ET UNE ESPACE ÉTROITE AGGRAVE LA JUSTIFICATION AU LIEU DE LA SERVIR.** La justification ajoute le MÊME blanc absolu quelle que soit l’espace de départ : resserrer l’espace naturelle ne resserre donc que les lignes déjà justes, et rend l’écart plus criant partout ailleurs. ⚠️ C’est le contraire de ce qu’on croit en la resserrant pour gagner en densité. Mesuré : l’espace remontée d’un demi-cran, le plus grand blanc d’une page passe de 7,5 à 5,6 fois l’espace naturelle, et les blancs de plus du double tombent d’un quart. ⛔ La densité n’y perd rien, le flottant rendu au texte raccourcissant la page d’autant.
-
-⚠️ **Ce qui a été mesuré et ÉCARTÉ, pour n’y pas revenir.** « text-wrap: pretty » fait PIRE sur du texte justifié — le plus grand blanc y triple. Un plafond de césure plus permissif (« hyphenate-limit-chars ») ne change rien du tout. Et une césure française posée à la main sur les mots longs ne gagne presque rien : le dictionnaire du navigateur fait déjà le travail — sans lui, les blancs de plus du double augmentent de moitié —, et ce qui reste est fait de NOMS PROPRES, qu’aucune règle ne coupe sans risque. ⛔ Un blanc résiduel dans une colonne étroite n’est pas un défaut de réglage : c’est le prix d’une colonne étroite justifiée, et l’on ne le paie pas en inventant des coupures.
-
-### 38.10 La lecture EN REGARD — la référence des deux côtés, le verset cliquable
-
-Cinq demandes de l’auteur du 4 septembre 2026, sur la page « Bible classique ».
-
-⚠️ **LA RÉFÉRENCE PARAÎT DES DEUX CÔTÉS** (« la référence biblique doit apparaître des deux côtés : français, et ancien français »). Une édition ne dit sa numérotation PROPRE que lorsqu’elle DIFFÈRE du canon : la colonne qui n’en a pas portait donc une gouttière vide, et le lecteur n’avait de numéro que d’un bord. Elle retombe sur la référence canonique, « 3, 1 », composée comme la native — chiffres arabes, espace après la virgule, jamais le code du livre. ⛔ Ce repli ne prétend pas être une numérotation d’édition : il dit le CRÉNEAU, c’est-à-dire ce que les deux colonnes ont en commun.
-
-⛔ **CLIQUER UN VERSET OUVRE SON APPARAT, ET LA CIBLE EST LA RANGÉE** (« permettre de cliquer sur un verset pour afficher les liens patristiques, sur l’AF et le Français »). Les deux colonnes d’une rangée sont le MÊME verset canonique, et le volet de droite se charge sur ce créneau : il n’y a rien à départager entre elles, et cliquer l’une ou l’autre ouvre le même apparat. ⚠️ Une rangée dont une colonne est vide se clique aussi — l’apparat tient au créneau, non à ce que telle édition en porte. ⚠️ Un second clic relâche, et les teintes sont celles de la lecture simple, pour que le geste se reconnaisse d’une lecture à l’autre. ⛔ Aucun comptage de lecture ici : les lignes d’une segmentation éditoriale ne visent pas la table des versets, et la lecture simple s’en abstient déjà pour elles. ⚠️ L’appel de note, lui, arrête le clic : ouvrir une note ne sélectionne pas le verset qui la porte.
-
-⛔ **UNE MARQUE POSÉE SUR UNE RANGÉE NE DÉPLACE RIEN.** Le fond du survol déborde de quelques pixels sur les côtés, et ce débord se prend en marge NÉGATIVE : pris en rembourrage, il rétrécirait les colonnes, et le fer du texte des versets cesserait de répondre à celui de l’appareil, que la feuille déduit des mêmes mesures. ⚠️ Et il se déclare dans la FEUILLE, jamais en style en ligne — une déclaration en ligne bat toute règle de feuille sans passe-droit, et c’est ainsi qu’un survol meurt sans que rien ne le dise.
-
-⛔ **UNE ÉLISION QUI SUIT UNE PONCTUATION FORTE OUVRE UNE PHRASE** (« à l’affichage, afficher une majuscule après une élision précédée par une ponctuation forte »). Ce qu’on élide entre deux phrases, ce sont des phrases entières : la suivante commence donc comme une phrase, et prend la capitale. ⛔ Rien ne change après un deux-points, un point-virgule ou une virgule, où la phrase n’était pas finie. ⚠️ Le guillemet et la parenthèse fermants ne rompent pas la ponctuation forte : « Il le dit. » finit bien une phrase. ⚠️ C’est la règle de l’initiale d’un extrait, et la même main : elle ne change jamais la longueur du texte, les appels de note s’y posant par décompte de signes.
-
-⛔ **UN ÉTAT QU’ON TRAVERSE NE SE COMPOSE PAS COMME UNE PAGE DE TITRE** (« ouvrir Bible classique soit sur la Genèse, soit sur le dernier livre ouvert par l’utilisateur ; supprimer le dessin »). La barre rouvre désormais la Bible où l’on en était — le dernier livre lu, la Genèse à la première visite — et la gravure des ruines quitte l’écran qui dit qu’une traduction ne comporte pas le livre demandé. Elle y disait bien ce qu’il fallait ; mais l’écran se rencontre plus souvent depuis que la barre rouvre un livre qui n’est pas toujours dans la bible qu’on retrouve, et une planche de soixante pour cent de la hauteur y devient une cérémonie pour un passage. La mention seule reste. ⛔ Et la planche passe en RÉSERVE dans l’inventaire des illustrations : une gravure qu’on cesse de poser se déclasse, elle ne s’oublie pas.
-
-⛔ **LES RÉFÉRENCES DU PASSAGE QU’ON QUITTE S’EFFACENT AUSSITÔT** (« quand je change de segment, au moment du chargement, supprimer immédiatement, de façon smooth, les références déjà affichées ; afficher un petit symbole de chargement »). Le volet gardait la liste précédente sous un mot « Chargement… » : on lisait donc, une seconde durant, l’apparat d’un verset qu’on venait de quitter, et rien ne disait que ce n’était plus le bon. ⚠️ La PLACE, elle, reste : retirer la liste du flux ferait sauter le volet au clic, puis sauter de nouveau à l’arrivée. ⚠️ Et la marque d’attente ne se pose que là où l’on attend vraiment — le volet de la page Bible va chercher ses liens, celui d’une page d’œuvre les a reçus avec sa tranche de texte et ne montre qu’un fondu.
-
-### 38.11 Le CHAPITRE vient de l’ossature, et la COLONNE se charge seule
-
-Huit points de l’auteur du 4 septembre 2026, sur la Bible polyglotte.
-
-⛔ **LE NOMBRE DE CHAPITRES VIENT DE L’OSSATURE, jamais d’une table écrite à la main** (« le Siracide ne contient qu’un chapitre ; c’est normal ? »). Elle ne portait que les soixante-six livres protocanoniques, et tout deutérocanonique y retombait sur UN chapitre : le Siracide en a cinquante et un, la Sagesse dix-neuf, les deux livres des Maccabées seize et quinze, Tobie quatorze, Judith seize, Baruch six — quelque vingt-deux mille versets que le volet n’offrait pas d’ouvrir, sur les DEUX pages de lecture. ⚠️ Et elle avait déjà DÉRIVÉ sur ce qu’elle prétendait couvrir : Joël y valait trois chapitres pour quatre, Daniel quatorze pour douze. Elle existait en TROIS exemplaires. C’est la règle déjà payée sur les natures de segment et sur le sommaire d’une œuvre, prise par un troisième bout : **une liste recopiée finit toujours par coûter du texte au lecteur.**
-
-⛔ **UN LIVRE QU’ON NE PEUT PAS OUVRIR NE SE LISTE PAS** (« j’ai un Esther (grec) qui s’affiche dans le sommaire : ça doit disparaître »). Le tableau se compose sur les créneaux canoniques : un livre que l’ossature ne porte pas s’ouvre donc sur une page vide, et l’offrir est un cul-de-sac. ⚠️ La règle vaut pour tous, non pour celui qu’on a nommé : la Lettre de Jérémie et les douze écrits non canoniques encore à charger s’en vont avec lui, et leur rubrique disparaît faute d’entrées. ⛔ Le raisonnement d’avant — « ce sont de vraies œuvres à charger, gardons-leur leur place » — est abandonné : une promesse qui ne s’ouvre pas se lit comme une panne.
-
-⛔ **CHANGER UNE COLONNE NE RECHARGE PAS LA TABLE** (« quand je change de traduction sur une colonne, il ne faut pas tout recharger ; seulement le texte de cette colonne »). L’attente était GLOBALE : elle voilait le tableau entier et rejouait le passage, quand les autres colonnes n’avaient pas bougé et que leur texte était déjà en mémoire. Mêmes livres et même chapitre : la table ne bouge plus, et seule la colonne neuve dit qu’elle arrive. ⚠️ Elle le DIT, au lieu de se donner pour absente : « Absent de cette traduction » sur une colonne qui charge est un mensonge d’une seconde, et c’est celui que le lecteur retient.
-
-⛔ **UNE MARQUE D’ATTENTE SE CENTRE SUR LA PART VISIBLE DE SON BLOC**, et cette part ne commence pas toujours sous la barre de navigation : la Polyglotte pose au-dessus de son tableau un en-tête collant de soixante-douze pixels, sous lequel rien ne se lit. Mesuré sur la page servie, l’anneau tombait trente-six pixels à côté du centre. ⚠️ La LARGEUR n’a jamais demandé de réglage : le voile couvre son bloc, et l’anneau s’y centre. ⚠️ Et le bloc garde la hauteur du tableau tant que rien n’est chargé, sans quoi l’anneau se centrerait dans une bande de douze rem posée en haut d’un écran vide.
-
-⚠️ **Les marges d’une colonne s’ouvrent, l’interligne se resserre** (« augmenter légèrement les marges, y compris pour le numéro de référence non canonique » ; « resserrer très très légèrement l’interligne »). Gouttière de dix à treize pixels, blanc de sept-huit à huit-neuf, interligne de 1,36 à 1,34. ⛔ Et le numéro d’origine reprend trois pixels contre la réglure, qu’il TOUCHAIT : sa marge négative valait exactement la gouttière. Les trois mesures sont nommées une fois et se répondent — elles s’étaient déjà désaccordées.
-
-⛔ **UN CURSEUR QUI PROMET UNE EXPLICATION DOIT EN AVOIR UNE** (« au survol de "Absent de cette traduction" j’ai un curseur avec un point d’interrogation, mais aucun texte ne s’affiche ; ça n’a donc aucun sens »). L’infobulle disait « cette traduction ne porte pas ce verset », c’est-à-dire la mention elle-même en d’autres mots. La mention se suffit : c’est ce pour quoi elle a été écrite, et le curseur s’en va. ⚠️ Là où l’infobulle dit vraiment quelque chose de plus — pourquoi une case deutérocanonique est vide —, les deux restent.
-
-### 38.12 Un état qui ne VARIE pas n’informe pas, et ce qui est PRÉREMPLI est figé
-
-Trois points de l’auteur du 4 septembre 2026, sur l’onglet « Catalogue des traductions ».
-
-⛔ **UN ÉTAT QUI NE VARIE PAS N’INFORME PAS : ON LE RETIRE.** La mention « ✦ Référence en cours de vérification » paraissait sur **2 488 notices sur 2 499** — les onze autres seules disaient autre chose, et le troisième état, « Non vérifié », n’existait sur aucune. Elle ne distinguait donc rien, et jetait sur tout le catalogue un doute qu’aucune de ces références ne méritait. ⚠️ La tentation est de la RAFFINER — un degré de vérification plus fin, un statut d’import — et l’auteur l’a écartée : « rien de spécial ; en fait, il faut tout bonnement supprimer ». Une ligne qui dit la même chose partout coûte de la place et de l’attention sans rien rendre ; on la retire plutôt que de la farder. ⛔ Et les colonnes qui la servaient cessent d’être demandées : un champ que rien ne lit finit par contredire ce qu’on affiche.
-
-⛔ **UNE ABRÉVIATION QU’IL FAUT SURVOLER POUR LA COMPRENDRE N’EST PAS UNE ÉCONOMIE.** « DP » tenait deux signes et demandait un geste, et son infobulle ne faisait que développer le sigle : deux gestes pour deux mots. « Domaine public » s’écrit en toutes lettres, sans infobulle et sans curseur d’aide. ⚠️ C’est la même règle que celle de la case vide de la Polyglotte, prise par l’autre bout : là on retirait une infobulle qui ne disait rien de plus que le texte ; ici on écrit le texte pour n’avoir plus besoin d’infobulle.
-
-⛔ **CE QUI EST PRÉREMPLI EST FIGÉ.** Une proposition d’œuvre lancée depuis une notice du catalogue en porte l’auteur et le titre : ils SONT la notice, et les laisser modifiables laissait partir une proposition qui ne désignait plus la ligne qu’on avait sous les yeux — l’équipe éditoriale recevait une œuvre sans savoir d’où elle venait. ⚠️ Le verrou se déduit de ce qui a été PASSÉ, non d’un drapeau : le formulaire ouvert seul, qui ne préremplit rien, reste entièrement libre. ⛔ Un champ figé n’est ni grisé ni « en lecture seule » : c’est une VALEUR qu’on montre, non une saisie qu’on refuse, et elle se compose comme une valeur — dans le cadre du champ, pour que la colonne garde son aplomb. ⚠️ Et l’on dit UNE fois pourquoi ces cases ne s’ouvrent pas : un champ figé sans un mot se lit comme un champ en panne.
-
-### 38.13 Les deux SÉRIES du Budé — l’hommage est discret par sa TAILLE, non par sa pâleur
-
-Demande de l’auteur du 4 septembre 2026 : « pour rendre hommage discrètement aux Budé, mettre le petit encart contenant les initiales de l’auteur en couleurs ; en rouge pour les latins, en jaune pour les grecs ; s’inspirer des couleurs Budé et adapter à l’harmonie du site ». La Collection des Universités de France relie ses volumes grecs en jaune safran et ses latins en rouge : sur un rayon, la série se lit avant le titre.
-
-⛔ **L’HOMMAGE EST DISCRET PAR SA TAILLE, NON PAR SA PÂLEUR.** Un premier jeu de teintes lavées a été mesuré puis écarté : ΔE 9,7 entre les deux séries, et 5,0 entre le rouge et la case NEUTRE — on ne les aurait distinguées ni l’une de l’autre, ni d’une case sans couleur. Or ce qui fait le Budé, c’est justement qu’on reconnaît la série de loin. Les teintes sont donc franches, et c’est le CARRÉ qui est petit : quarante-quatre pixels dans une carte de trois cent cinquante. ⚠️ La règle vaut au delà de ce cas : *délaver une couleur pour la rendre discrète, c’est lui retirer ce qu’on lui demandait de dire.*
-
-⛔ **ET CE NE SONT PAS DES COULEURS DE PLUS DANS LA PALETTE.** Elles tombent sur les axes que le site a déjà : le rouge est à 37° de teinte, entre le danger confirmé (31°) et le danger (48°), et sa chroma est celle du premier ; le safran est à 81°, la teinte de la lacune (82°) et de l’or (83°), monté en clarté et en chroma jusqu’au rang d’un aplat. Mesuré : ΔE 51,8 entre les deux séries, 72,9 et 61,6 avec la case neutre — on ne les confond avec rien.
-
-⛔ **CE SONT DES JETONS À ELLES, non deux jetons de rôle réemployés.** Une série de collection n’est ni un danger ni un apparat, et un jeton de RÔLE prêté à une CATÉGORIE finit par changer sous elle le jour où le rôle bouge. ⚠️ En Cuir, elles GARDENT leur teinte — ce sont des catégories encodées par la couleur, comme la frise de l’histoire et les catégories de modération, et les rabattre au monochrome effacerait ce qu’elles disent. Elles s’y RELISENT pourtant : le rouge descend d’un cran, le safran de sept, le second étant seul à risquer l’éclat sur une page sombre.
-
-⛔ **LÀ OÙ LA COLLECTION SE TAIT, LA CASE SE TAIT.** Le Budé ne connaît que ces deux séries : le syriaque, l’arménien, l’arabe et le copte gardent la teinte neutre du site. ⚠️ Et un corpus que les DEUX séries se disputent n’en reçoit aucune — les Actes des martyrs anciens portent quinze notices latines et seize grecques, les Apophtegmes deux et trois : les colorer serait mentir. Une langue TIERCE, elle, ne conteste rien : un auteur latin dont une œuvre n’est conservée qu’en syriaque reste de la série latine. Mesuré sur les 417 auteurs du catalogue : 196 latins, 154 grecs, 5 partagés, 62 d’une autre langue ou sans langue.
-
-⚠️ **La langue se prend sur la PREMIÈRE nommée**, le champ étant du texte libre qui porte souvent une chaîne de transmission : « grec ; version latine de Rufin », « grec perdu ; version syriaque conservée ». L’original ouvre la phrase, et c’est lui qui décide — une œuvre grecque conservée en latin reste grecque. ⛔ On ne cherche pas la langue ailleurs que dans la tête : « ancien français » ne doit pas devenir du latin parce que le mot y paraîtrait plus loin.
-
-⚠️ **Une information portée par la seule COULEUR n’est lisible que de qui connaît le code** : la case porte donc aussi son mot, « Œuvres en latin », « Œuvres en grec ». Ce n’est pas l’infobulle en l’air du § 38.12 : celle-ci dit ce que la couleur seule ne peut pas dire.
-
-⛔ **ET LA TROISIÈME CASE N’EST PAS UN GRIS VIDE — c’est un VÉLIN** (demande de l’auteur, le jour même : « j’aimerais au moins des tons un peu plus nobles, plutôt que ce gris vide »). Le volume broché posé entre deux reliures : là où la collection se tait, la case ne prétend rien, mais elle le dit comme une DÉCISION et non comme une donnée manquante. ⚠️ Et le gris n’était pas seulement vide : mesuré, les initiales n’y rendaient que **2,25** de contraste au Clair et 4,09 en Cuir, pour 4,5 exigés à cette taille — le gris de bordure portait l’encre la plus ténue de l’échelle, et cela depuis toujours. Le défaut est antérieur à la couleur des séries ; il se voyait d’autant plus depuis qu’il voisinait deux cases lisibles. 7,12 et 6,70 désormais.
-
-⛔ **ET SURTOUT PAS LE VERT**, essayé et écarté. Le jeton de l’Écriture vaut EXACTEMENT la teinte du vert du site : deux choses différentes auraient été vertes sur le même site, et un carré vert aurait dit « biblique » devant un Père syriaque. Le vert est en outre l’ACCENT, celui qui signifie « actif, c’est ici » : l’exception aurait crié plus fort que la règle. ⚠️ Et un vert PÂLE, pour éviter cela, retombait dans le piège des teintes lavées — ΔE 5,5 de l’ancien gris, on ne l’aurait pas vu.
-
-⚠️ **LE VÉLIN SE DISTINGUE DES DEUX SÉRIES PAR LA CHROMA, NON PAR LA TEINTE** : 15,3 contre 53,8 et 60,9. Une MATIÈRE, non une couleur — et c’est ce qui l’empêche de se lire comme une troisième série, alors même qu’il partage l’axe chaud du safran (84° contre 81°). ⛔ La règle vaut au delà de ce cas : *quand on veut marquer sans classer, on baisse la chroma, jamais la lisibilité.* Mesuré : ΔE 25,8 de la carte, contre 8,8 pour l’ancien gris, qui s’y noyait.
-
-### 38.14 Une RÉFÉRENCE emprunte le strut de son texte, et un FILTRE qui ne compte pas ne sert à rien
-
-⛔ **CE QUI ALIGNE UNE RÉFÉRENCE SUR SA LIGNE DE TEXTE, C'EST UN RAPPORT, NON UN NOMBRE** (relevé de l'auteur, 2026-09-04 : « aligner la référence en marge de gauche avec le texte »). Mesuré sur la Polyglotte servie : la référence canonique en marge ET le numéro d'origine en lettrine tombaient tous deux **2,40 px au-dessus** de la ligne de base du verset. La règle est qu'une référence EMPRUNTE le strut de la cellule qu'elle accompagne — même police, même corps, même interligne, même blanc du haut —, et que son numéro se compose en plus petit DANS cette boîte : un enfant en ligne plus petit se pose sur la ligne de base du strut sans la déplacer. Les deux écarts tombent à 0,00.
-
-⚠️ **LA POLICE COMPTE AUTANT QUE LE CORPS.** L'ascendante d'une sans n'est pas celle d'une sérif : c'est ce qui restait de travers — huit dixièmes de pixel — quand le corps, l'interligne et le rembourrage s'accordaient déjà. Le strut se prend donc dans la police du TEXTE, et la police du numéro ne vit que sur l'enfant qui le porte.
-
-⛔ **ET UN RÉGLAGE EN PIXELS NE PEUT PAS COMPENSER UNE DIFFÉRENCE MESURÉE EN REM.** L'ancien dispositif était un interligne absolu et un rembourrage calibrés une fois au navigateur, avec le tableau des écarts consigné en commentaire. Il n'était juste qu'à une SEULE taille de police racine — le site en a une fluide, de 16 à 22 — et il s'est déréglé le jour même où le blanc de la cellule est passé de 7 à 8 px et l'interligne de 1,36 à 1,34. ⚠️ Le commentaire disait pourtant « à remesurer si l'un des deux corps ou l'interligne change » : *une consigne de remesure est le signe qu'on a posé un nombre là où il fallait poser un rapport.*
-
-⚠️ **UN BLANC DE LISTE SE MESURE DANS L'ENCRE, NON DANS LES BOÎTES** (relevé de l'auteur sur la Bibliothèque : « je devine un déséquilibre ; éloigner un peu la première ligne du titre, et rapprocher les lignes entre elles »). En marges, les trois écarts valaient un pixel et paraissaient égaux ; d'encre à encre, il y avait **4,0 px entre le titre et sa première édition et 8,7 px entre deux éditions** — les sœurs s'écartaient deux fois plus qu'elles ne s'écartaient de leur propre titre, et la liste ne se lisait pas comme un bloc. Les libellés étant plus petits que leur ligne, le demi-interligne ajoute près de deux pixels qu'un calcul en marges ne voit pas. ⛔ Le blanc d'après-titre et le blanc d'entre lignes sont donc DEUX mesures, non une.
-
-⛔ **UN FILTRE DIT CE QU'IL AJOUTERAIT, ou il ne sert à rien.** Chaque pastille porte le nombre d'auteurs qu'elle rendrait, compté sur la recherche et tous les AUTRES filtres, jamais le sien : c'est ainsi qu'une facette dit ce qu'elle ajoute, et non ce qui reste une fois qu'elle a agi. ⚠️ Et une facette qui ne rendrait RIEN ne se montre pas — sauf si elle est active : *on ne cache jamais un filtre qui agit*, sans quoi le lecteur ne saurait plus pourquoi sa liste est courte. ⛔ La période, seule des trois facettes, ne se dérivait pas des données : ses cinq empans s'affichaient toujours, et l'on pouvait cliquer un siècle que la bibliothèque ne porte pas.
-
-⛔ **ET UNE FACETTE N'A PAS BESOIN D'UNE COULEUR À ELLE.** Les trois axes portaient trois teintes — brun, bleu, vert —, ce qui faisait de la couleur une décoration : la rubrique au-dessus de chaque rang dit déjà de quel axe il s'agit. Le bleu était en outre la seule teinte froide de l'écran, hors de la bande du Cuir. ⚠️ Ce n'est pas contraire au § 38.13 : là, la couleur EST l'information — elle dit la série d'une œuvre, que rien d'autre ne dit ; ici, elle répétait une étiquette déjà écrite.
-
-⚠️ **Les espaces fines : rien à faire, et c'est mesuré.** Le tableau porte bien l'insécable pleine chasse devant le deux-points et la fine insécable devant le point-virgule — relevé sur un chapitre servi : 21 U+00A0 et 18 U+202F —, et Source Serif les rend à leur juste chasse, 2,04 px contre 4,06 pour une espace ordinaire, soit 14,6 % du cadratin contre 29,1. Elles ne tombent donc ni à la lecture ni à l'affichage.
-
-### 38.15 Une FICHE dit ce que le LECTEUR peut en faire, jamais ce que l’ATELIER en sait
-
-Quatre demandes de l’auteur du 2026-09-04, sur la fiche « En savoir plus sur cette traduction ». Elles disent toutes la même chose par quatre bouts : **une fiche publique n’est pas un carnet de travail**, et ce qu’un lecteur ne peut pas employer ne doit pas lui être montré.
-
-⛔ **UN ÉTAT DE TRAVAIL N’EST PAS UN RENSEIGNEMENT** (« VérificationContrôle en cours // ne pas afficher »). La rangée disait « Contrôle en cours » sur **six bibles sur neuf**, et il fallait cliquer un mot souligné de pointillés pour apprendre ce qu’elle recouvrait : « Corpus intégralement aligné ; collation imprimée à poursuivre ». C’est l’état de NOTRE travail, pas une propriété du texte qu’on lit. ⚠️ Conséquence assumée : `statut_corpus_public` et `lacunes_publiques` ne paraissent désormais NULLE PART sur le site. Le seul de leurs contenus qui soit un fait de lecteur — l’Ecclésiaste absent de la Septante — a été porté dans la notice de l’édition, où il ouvre le propos.
-
-⛔ **UN RENVOI À UN ARTICLE NUMÉROTÉ N’EST PAS UNE EXPLICATION** (« Conditions d’utilisation, § 6 // supprimer »). Il envoyait chercher ailleurs ce que les deux paragraphes venaient de dire en clair, et il le disait dans la langue d’un acte. La page des conditions reste au pied du site, où on la cherche quand on la cherche.
-
-⛔ **UNE ADRESSE, UN OBJET** (« Source numériqueeBible.org / BibleNLP corpus (fra-fraLSG) · Voir la source // remettre en forme pour faire au plus clair »). La rangée en alignait trois pour une seule adresse : le nom, un point médian, et un lien dont le libellé — « Voir la source » — redisait l’étiquette de sa propre rangée. On hésitait donc sur ce qu’on cliquait. **Le nom EST la source : il mène à elle**, et rien ne l’accompagne. ⚠️ Le nom se rend toujours, lien ou pas : un composant qui ne rend rien sur une adresse malformée emporterait le nom avec elle.
-
-⛔ **UNE NOTICE NE NOMME AUCUN OBJET DE LA BASE.** Celle de la Segond disait : « Numérotation hébraïque/protestante (alignée sur versets_canon via ch_heb/v_heb) […] Texte aligné verset par verset sur le vref eBible. » Trois noms d’objets internes en deux phrases, dans une fiche que le lecteur ouvre pour savoir quelle Bible il lit. Partent avec eux : la balise `<i>` de la Sacy, et les « 75 codes techniques dans la base » de la Crampon.
-
-⛔ **ET ELLE NE PORTE PAS DE JOURNAL DE TRAVAIL.** La Vulgate publiait ses comptes d’alignement — « 36 004 lignes ; 35 721 rattachées à l’ossature ; […] 36 004 alignements vérifiés » —, la Septante une décision datée avec son motif juridique et son renvoi à la charte, plus deux voies de rattrapage. Ce sont des pièces d’atelier ; elles se tiennent à l’atelier.
-
-⚠️ **HIÉRARCHISER, C’EST METTRE EN TÊTE CE QUI SERT LE LECTEUR.** La notice de la Septante ouvrait sur son format d’import — « un mot par ligne dans la source, réassemblé au verset » — et gardait pour la fin, après un tiret cadratin, la seule chose qui change sa lecture : **l’Ecclésiaste manque**. Elle ouvre maintenant dessus. L’ordre d’une notice suit l’importance, jamais l’ordre où l’import a rencontré les faits.
-
-⛔ **CE QU’UNE RANGÉE DIT DÉJÀ NE SE REDIT PAS.** La Segond annonçait sa numérotation hébraïque dans sa notice, deux centimètres sous la rangée « Numérotation — Hébraïque ». Une notice ne porte que ce qui n’a pas de rangée à soi. C’est la règle du complément de titre (§ 3.8) transposée à une fiche.
-
-⚠️ **RIEN DU FOND N’EST PERDU, et c’est la condition.** Chaque fait éditorial est conservé : les deux recensions de Daniel, Suzanne et Bel, la lacune de l’Ecclésiaste et son motif, les italiques de la Sacy relevées sur le fac-similé, les deux cent quatre-vingt-trois lignes de la Vulgate hors du découpage canonique, les suscriptions de la Crampon comptées comme premier verset. On a réécrit la formulation, jamais le fond. Mesuré : la Septante passe de 897 à 519 signes, la Segond de 198 à 159, la Vulgate de 399 à 379 ; la Sacy MONTE de 208 à 320, parce qu’expliquer une italique coûte plus de mots que de nommer une balise.
-
-⚠️ **UNE PROSE NE SE COMPOSE PAS COMME UNE ÉTIQUETTE.** « Particularités » porte quatre phrases dans une rangée dessinée pour un mot : la valeur y prend l’interligne et la césure d’un paragraphe, non celui d’une étiquette de 0,5 rem. ⛔ Sans justification : la colonne fait environ 314 px, soit quarante-cinq signes par ligne, et le justifié y creuse les blancs que le § 38.9 apprend à fermer.
-
-⚠️ **ET LA NORME FRANÇAISE SE POSE AU RENDU, ici comme partout** (§ 3.2). Mesuré le même jour : les cinq notices bibliques ne portaient QUE des espaces ordinaires (U+0020), guillemets et deux-points compris — la fiche les servait telles quelles, faute de passer par la normalisation. Les champs de prose y passent désormais. ⛔ On n’écrit donc pas de fine dans la donnée : elle resterait la seule table du site à en porter.
-
-### 38.16 Un CHOIX ne s’offre que s’il en est UN
-
-Relevé de l’auteur sur le volet de la page Œuvre, 2026-09-04 : « Éditions de ce texte : je constate pas mal de problèmes. Souvent, on a deux fois la même édition qui s’affiche, le texte latin ou d’origine n’est pas sous la bonne édition, etc. Fais un audit. Je veux que ce choix s’affiche seulement si on a le choix entre deux éditions différentes pour une même langue. »
-
-⛔ **DEUX MENUS POUR UNE SEULE QUESTION EN FONT UN DE TROP.** Le volet en portait deux, avec deux intitulés et deux règles : « Édition » listait les ŒUVRES SŒURS — des lignes d’`oeuvres` au même titre normalisé —, « Éditions de ce texte » les TEXTES de l’œuvre courante. Le lecteur, lui, ne choisit pas entre deux sortes d’identifiants : il choisit une édition. Ils n’en font plus qu’un. ⚠️ Et celui des œuvres sœurs ne s’était **jamais ouvert** : aucune œuvre publiée ne partage son titre normalisé avec une autre, la seule paire — La Cité de Dieu et son latin de Migne — ayant été dépubliée le 2026-08-26. *Un menu qu’on n’a jamais vu s’ouvrir n’est pas une réserve pour plus tard : c’est une seconde règle qui attend de contredire la première.*
-
-⛔ **UN INSTANTANÉ DE TRAVAIL N’EST PAS UNE ÉDITION.** `oeuvre_textes` garde les états d’avant une reprise — `TXT_A0010O0100_FR_1866_JOYEUX_PRE_RESEG_20260903` à côté de `TXT_A0010O0100_LEGACY`, même traducteur, même millésime, même mention d’édition. Ils portent `is_public = false`, et le menu les offrait pourtant : la politique de lecture de la table dit `is_admin() OR (is_public AND …)`. ⚠️ **Le défaut était donc invisible depuis un compte de lecteur, et visible depuis le seul compte qui regarde la page tous les jours.** C’est la forme la plus coûteuse d’un défaut : celui que le propriétaire du site est seul à voir, et qu’il finit par prendre pour l’état normal des choses.
-
-⚠️ **CE QU’ON LIT PARAÎT TOUJOURS, fût-il à l’atelier.** Un menu qui tairait la ligne courante mentirait sur l’endroit où l’on se trouve. C’est déjà la règle du menu des bibles, où le catalogue ne liste que les bibles lisibles mais liste toujours celle qu’on lit.
-
-⛔ **DEUX EXEMPLAIRES D’UNE MÊME ÉDITION SE FONDENT EN UN.** Ce qui identifie une édition est le TRADUCTEUR, le MILLÉSIME et la MENTION D’ÉDITION — jamais l’identifiant du texte. Deux lignes qui ne diffèrent que par lui sont deux exemplaires d’une seule édition, et le lecteur qui les voit côte à côte n’a aucun moyen de choisir. Les Homélies sur l’Hexaéméron portent ainsi **deux fois le même Migne 1857** en grec. ⚠️ L’exemplaire retenu est celui qu’on LIT, sinon celui qui fait défaut, sinon celui qui est publié.
-
-⛔ **ET LE TRI SE FAIT SUR LA LANGUE, non sur l’original.** La règle d’avant comparait « ceci EST le texte original » à « je LIS le texte original », ce qui n’est pas la même question : un texte sans traducteur dans une langue tierce tombait du mauvais côté. La langue vient du TEXTE qu’on lit, et d’abord de lui ; ⚠️ une version qui n’en déclare aucune ne se range sous aucune, et le menu se tait plutôt que de deviner.
-
-⚠️ **APRÈS QUOI UNE SEULE ŒUVRE DU CORPUS OFFRE ENCORE CE CHOIX** : la Consolation de la philosophie, en français, entre Ceriziers 1646 et Mirandol 1861. C’est le résultat attendu et non un effet de bord — le site n’a qu’un texte par langue partout ailleurs. *Un menu qui ne paraît presque jamais n’est pas un menu inutile : c’est un menu qui dit la vérité sur ce que le corpus contient.*
-
-⛔ **UN MÊME GESTE SE PRÉSENTE DE LA MÊME FAÇON DES DEUX CÔTÉS DU SITE** (même relevé : « mettre à jour la mise en forme de Lecture et Éditions de ce texte pour correspondre à la mise en forme qu’on trouve dans Bible classique »). Choisir comment on lit ce qu’on a sous les yeux est le même geste sur la Bible et sur une œuvre : il prend donc la même rubrique en casse ordinaire et la même option par ligne, sur la pastille verte de la liste. La page Œuvre portait encore l’étiquette en capitales espacées et les boutons encadrés d’un filet, c’est-à-dire la forme d’avant la décision du 28 août 2026, restée là parce qu’elle vivait dans un autre fichier. ⚠️ Il n’y a plus qu’une seule définition, et les deux jetons de l’ancienne sont retirés : une forme qu’on garde « au cas où » est une divergence qui attend.
-
-⚠️ **Un seul écart demeure, et il est motivé** : la page Œuvre garde son témoin d’attente au bout de chaque ligne de « Lecture ». « Latin » y vise une AUTRE adresse, donc un rendu serveur entier, quand les axes de la Bible se règlent le plus souvent sur place.
-
-⛔ **UNE LIGNE DE MENU RÉPOND À UNE SEULE QUESTION** — quelle édition je lis —, et rien d’autre (relevé de l’auteur, le soir même : « ne pas afficher les dates de vie et de mort de l’auteur dans l’onglet de choix de la traduction dans le volet gauche »). « Traduction par René de Ceriziers (1603–1662), 1646 » portait DEUX empans de dates sur la même ligne, dont l’un ne dit rien de l’édition, et l’œil hésitait sur ce que le millésime désignait. ⚠️ **La fiche « À propos de cette édition » est l’endroit d’une notice ; un volet de lecture est l’endroit d’un choix.** Ce qui documente une édition et ce qui la désigne ne se composent pas au même endroit, et la même ligne ne peut pas faire les deux.
-
-⚠️ **La donnée reste en base**, et c’est l’AFFICHAGE qui s’en passe : les dates vivent dans `metadata`, portées par les deux seuls textes du corpus à les avoir. ⛔ Mais la fonction qui les lisait est retirée, et la donnée a quitté la SIGNATURE du libellé — *une signature qui ne reçoit plus ce qu’elle ne doit plus afficher est une garde plus sûre qu’un test*, et une fonction que plus rien n’appelle est une seconde vérité qui attend.
-
-### 38.17 Une NOTIFICATION est une lettre, et un BLOC ne se pose pas dans un BLOC
-
-Cinq relevés de l’auteur sur le volet des notifications, 2026-09-04 : « ne pas faire un bloc dans un bloc ; utiliser tout l’espace disponible » ; « se passer du bandeau vert sur le côté gauche » ; « chaque ligne a un niveau de hiérarchie, ça brouille tout : simplifier » ; « un message de validation doit être vert ; un message de refus doit être rouge (maroquin ?) ; un message basique reste grisâtre » ; « pas de "archiver" ; au survol, s’affiche "archiver" ».
-
-⛔ **UN BLOC NE SE POSE PAS DANS UN BLOC.** Chaque notification était une CARTE — fond propre, filet, coins arrondis, rembourrage — posée dans un volet qui a déjà tout cela. Deux cadres emboîtés, et une gouttière perdue de chaque côté pour un volet de 26 rem : le texte y perdait le sixième de sa mesure sans rien y gagner. ⚠️ **Une liste dans un cadre se compose en RANGÉES**, pleine largeur, séparées d’un filet, et son rembourrage est celui de l’en-tête du cadre — sans quoi les fers ne tombent pas au même endroit. ⛔ Et pas de bandeau au flanc : il disait « nouvelle », ce que l’onglet dit déjà, et il rentrait le texte de trois pixels de plus.
-
-⛔ **UNE NOTIFICATION PORTE QUATRE CHOSES : expéditeur, objet, message, date**, et un lien au bas. C’est le modèle de la LETTRE, et il suffit. Elle en portait SIX, sur six rangs typographiques — un titre en capitales vertes, l’objet en sérif, la date, un « À propos : … » en italique, une ligne « Message de X », le corps. ⚠️ **Trois de ces six disaient la même chose sous trois formes** : « Publication acceptée », puis « Votre publication a été acceptée et publiée. », et le titre du document ailleurs. *Un rang de plus n’ajoute pas un renseignement : il ajoute une hésitation sur l’ordre de lecture.*
-
-⛔ **LE CORPS EST VIDE QUAND L’OBJET DIT TOUT.** Une phrase par défaut qui paraphrase l’objet est pire qu’une ligne absente : elle occupe le rang où l’on cherche ce que la modération a réellement écrit. Le message ne paraît donc que s’il porte des mots de quelqu’un.
-
-⛔ **LE TON EST UNE COULEUR, non un titre.** Vert pour une validation, l’encre du danger confirmé pour un refus, gris pour le reste : la couleur dit en un coup d’œil ce que six mots en capitales disaient à la ligne au-dessus. ⚠️ **Elle ne colore QUE l’objet** — un rang coloré parmi trois se lit ; trois rangs colorés ne se lisent plus. ⚠️ Et « à revoir » se range avec les REFUS : la publication n’a pas été acceptée en l’état, et le lecteur a quelque chose à faire.
-
-⛔ **LE MAROQUIN NE SERT PAS AU REFUS, et la question méritait d’être tranchée.** Il est `--cs-peres` : il DIT un domaine du corpus, sur la page de recherche comme sur le carton de l’accueil, et le prêter à un rôle d’interface le ferait dire deux choses. C’est `--cs-danger-fonce` qui convient, l’encre du danger CONFIRMÉ, déjà transposée dans les deux thèmes. *Une teinte qui encode une catégorie ne se prête pas à un rôle, et l’inverse est déjà écrit au § « Palette ».*
-
-⛔ **UNE ACTION QUI NE VIENT QU’AU SURVOL EST HORS D’ATTEINTE.** « Archiver » ne paraît plus qu’au survol, comme demandé — mais aussi au FOYER et sur un écran TACTILE, où rien ne se survole. C’est la règle déjà payée sur la gouttière d’actions des prélèvements. ⚠️ Et il garde sa PLACE quand il ne se voit pas — opacité, non `display` — sans quoi la ligne se recomposerait sous le curseur au moment même où on le vise.
-
-⚠️ **Un lien ne s’écrit que s’il mène quelque part.** « Aller au commentaire » se composait depuis toujours et ne paraissait jamais : la notification ne portait pas d’adresse. Elle la tire maintenant de `id_verset`, ⛔ sans traduction imposée — la page biblique choisit alors celle du lecteur, et il retrouve son verset dans SA bible.
-
-### Règle d’autorité et de journalisation de la charte
-
-`parametres.charte_ia` est l’unique version normative de la charte. Le fichier `charte/CHARTE_IA.md` n’est qu’un miroir régénéré depuis cette source et ne se modifie jamais directement. Le centre de contrôle (`controle_sections`) n’est pas une seconde charte : `commentaire_ia` conserve la synthèse globale actuelle de la section et `todos` le journal des missions. Une évolution de protocole est écrite dans `parametres.charte_ia`, puis son effet de chantier est consigné dans la mission concernée lorsque cela est utile ; on n’injecte jamais le texte intégral de la charte dans le centre de contrôle. Une divergence entre la charte normative et son miroir de dépôt se résout par régénération du miroir depuis Supabase, jamais par une seconde édition concurrente.
-
-### 23.6.1. Préflight de schéma et staging avant resegmentation
-
-Avant toute mutation textuelle ou structurelle, interroger le schéma réel des colonnes touchées (`information_schema.columns`, contraintes et dépendances). Une règle historique d’écriture ne doit jamais conduire à écrire explicitement dans une colonne devenue générée. Si une colonne dérivée est déclarée `GENERATED ALWAYS`, sa valeur est recalculée par PostgreSQL dans la même mutation de la colonne source : on modifie uniquement la colonne source et l’on vérifie ensuite la valeur générée. Dans l’état actuel de `segments`, `texte_norm` est générée par `public.norm_fr(segment_texte)` ; il est donc interdit de la placer explicitement dans le `SET` tant que cette définition de schéma demeure active. Si le schéma change de nouveau, la règle d’écriture doit être réévaluée avant la première mutation.
-
-**Identifiants générés et colonnes `IDENTITY`.** Le préflight de schéma contrôle aussi `is_identity`, `identity_generation`, la valeur par défaut et la séquence éventuelle de toute clé insérée. Une clé déclarée `GENERATED ALWAYS AS IDENTITY` n’est jamais traitée comme une colonne libre au seul motif qu’une séquence est connue : appeler `nextval()` ne rend pas licite une insertion explicite. Par défaut, laisser PostgreSQL produire l’identifiant et récupérer le mapping par `INSERT ... RETURNING`. `OVERRIDING SYSTEM VALUE` n’est admis que lorsqu’un identifiant déjà réservé ou une correspondance de staging doit réellement être conservé, avec sauvegarde, justification explicite et vérification d’unicité avant et après écriture.
-
-Toute resegmentation non triviale doit être préparée hors du corpus actif, de préférence dans `internal`, puis soumise avant remplacement à des contrôles déterministes : nombre d’unités et de segments, recomposition exacte de chaque unité, validité des offsets, empreintes SHA, conservation et position des marqueurs de notes, dépendances, absence de perte textuelle et distribution des longueurs. Le remplacement du live ne se fait qu’après réussite de ces contrôles et dans une transaction unique. Les rubriques ou titres structurels sont portés par des unités de type `heading` et par la hiérarchie ; ils ne doivent pas être dupliqués comme segments de corps. Lorsqu’un chantier nécessite des insertions répétées dans l’ordre documentaire, on peut créer une seule fois des intervalles d’ordre suffisamment larges, après audit des dépendances, puis resynchroniser les références vivantes qui mémorisent cet ordre ; on évite ainsi les renumérotations globales à chaque passe et on ne compacte qu’à la clôture. Après toute renumérotation de segments, rechercher explicitement les tables qui mémorisent un `segment_numero` en plus d’un identifiant stable (`segment_id`, `segment_key` ou équivalent) — notamment `prelevements` — et recalculer ce numéro dénormalisé depuis l’identifiant stable. La passe n’est conforme que si le contrôle final ne trouve aucun écart entre le numéro mémorisé et le segment vivant.
-
-Une resegmentation qui supprime ou remplace des segments peut déclencher des suppressions en cascade dans les tables dépendantes, notamment les ancres de notes. Avant le `DELETE`, inventorier les dépendances et sauvegarder les lignes dépendantes. Si le remplacement exige de nouveaux `segment_key`, `segment_numero` ou `source_unit_id`, les ancres doivent être remappées ou recréées dans la même transaction que les nouveaux segments, puis vérifiées depuis la base avant `COMMIT`. Un `UPDATE` prévu après la suppression ne constitue pas une protection si la ligne dépendante peut déjà avoir été supprimée par cascade.
-
-### 23.6.2. Frontières documentaires et frontières sémantiques
-
-Une frontière produite par un OCR, un HTML, une API, un export Word ou un moteur de lecture ne vaut jamais, par elle-même, preuve d’un alinéa de l’édition. Les paragraphes, retours intentionnels et changements de niveau sont établis d’abord par le fac-similé ou par un encodage source dont la fonction documentaire est certaine. Les fins de page, de colonne, de ligne OCR et les découpages d’un extracteur ne doivent pas être promus en paragraphes.
-
-Lorsqu’une resegmentation doit avancer avant que tous les alinéas aient pu être attestés, employer la frontière documentaire certaine la plus proche et la plus large — par exemple chapitre, section numérotée, paragraphe explicitement balisé — comme `source_unit_id`. À l’intérieur de cette unité, créer des segments sémantiques avec offsets exacts et rangs continus, sans prétendre que ces segments sont des paragraphes de la source. Le statut de la frontière documentaire encore à contrôler doit rester explicite dans les métadonnées. Une vérification ultérieure du fac-similé peut subdiviser l’unité source sans réécrire le texte.
-
-La longueur ne décide jamais seule d’une coupure. Elle sert à repérer un segment à relire. Une coupure n’est admise qu’à une articulation syntaxique ou argumentative sûre ; un découpage à la phrase peut servir de présélection, mais les périodes longues, citations, objections, réponses et énumérations sont relues avant publication. Si le texte legacy présente une fusion, une inversion, une répétition ou une lacune à une jonction de page, la source est recollationnée avant toute resegmentation définitive.
-
-Lorsqu’un paragraphe de lecture est créé sans correspondre à un alinéa attesté de la source, il s’agit d’une frontière éditoriale, non documentaire. La source reste découpée selon ses paragraphes attestés dans `oeuvre_texte_unites`; la couche de lecture peut subdiviser ces unités par `segments.paragraphe` pour améliorer la lisibilité. La première frontière d’un paragraphe de lecture doit conserver dans les métadonnées une origine explicite (`source` ou `editorial`) ainsi que le paragraphe source auquel elle appartient. Une frontière éditoriale ne doit jamais être présentée ultérieurement comme un alinéa du témoin.
 
 ### 35.15. L’apparat n’a qu’UN gris de titre, et la sous-section est un titre centré
 
@@ -4939,73 +4925,849 @@ L’appareil a d’abord pris la mesure du bloc de lecture simple, 31,25 rem, ce
 
 ⚠️ Deux colonnes de commentaire à la manière du fac-similé de Fillion ont été maquettées le même jour, sur la page réelle, et écartées : elles remplissaient la largeur, quand la largeur elle-même était le défaut. ⚠️ Sur téléphone, où les colonnes sont empilées à la largeur de l’écran, rien ne se borne.
 
-### 35.4.3. Corps des introductions longues
+## 36. Le modèle d’onglets
 
-Le style de composition `introduction` est réservé aux préambules brefs qui se tiennent réellement à l’écart du fil de lecture. Lorsqu’une introduction de livre est longue et structurée en plusieurs divisions, son titre ou son conteneur conserve sa nature d’introduction, mais les développements placés sous les titres analytiques se composent comme de la prose normale : romain, justification ordinaire, mesure et marges ordinaires. Dans le registre Fillion, ces développements emploient le style de rendu `commentaire_section` (I3), et non `introduction_sous_section`. Les vrais titres analytiques restent à leur niveau T4. La transcription source n’est jamais modifiée pour cette distinction de composition. Une brève introduction de péricope ou un véritable préambule court peut conserver un style `introduction_*` lorsque sa fonction éditoriale le justifie.
+Une barre d’onglets de PAGE se compose partout de la même façon. Elles étaient trois — Bibliothèque, Communauté, catalogue des Péricopes — et se distinguaient sur quatre axes à la fois : deux polices, trois corps, deux gris d’inactif, avec ou sans parts égales, avec ou sans séparateurs. Six barres du site donnaient six combinaisons différentes, sans qu’aucune décision les sépare. C’est la dérive déjà rencontrée sur les tailles de texte, les rayons d’angle et la couleur, transposée à un composant.
+
+**La structure.** Les onglets se partagent la mesure à parts ÉGALES, chaque libellé centré dans sa case, un filet fin entre deux cases, le filet plein dessous et le trait de l’onglet retenu POSÉ sur ce filet, jamais ajouté dessous — sans quoi la barre gagne deux pixels au premier clic. ⛔ Les parts égales ne sont pas un ornement : à largeur libre, la barre se range au fer à gauche et le filet court seul sur la moitié droite de la mesure.
+
+⚠️ **La barre prend la mesure de CE QU’ELLE COMMANDE, jamais celle de son conteneur.** La Communauté range ses couvertures sur 46,7 rem au milieu d’un conteneur qui en fait 71 : la barre, elle, courait sur les 71 et surmontait de très loin tout ce qu’elle annonçait, ses trois libellés jetés aux quatre coins. Chaque page pose donc sa mesure et la barre s’y centre. Là où cette mesure se calcule — la largeur d’une couverture et l’écart entre deux —, elle vit dans une seule paire de valeurs dont la grille et la barre dérivent toutes deux, faute de quoi elles se sépareraient au premier réglage.
+
+**La police est celle du CHROME, c’est-à-dire le sans.** Le sérif appartient aux textes d’œuvre, corps comme titres (§ 18) ; une barre d’onglets n’est pas du corpus, c’est de l’interface. Deux des trois barres portaient pourtant le sérif.
+
+⛔ **L’onglet retenu change de graisse ET d’encre ET reçoit son trait.** Deux rangs ne se distinguent jamais par la seule couleur. ⚠️ Le gris de l’inactif est le plus SOMBRE de ceux qui coexistaient : un onglet est un bouton, il se lit avant qu’on le clique.
+
+⛔ **La graisse ne déplace RIEN, et cela ne peut pas reposer sur les parts égales seules.** Dès qu’une barre n’a plus de jeu à distribuer — un volet étroit, un téléphone —, passer un libellé en 600 l’élargit et pousse ses voisins. Mesuré sur « Nouveau Testament » : 113,67 px en 400 contre 116,14 px en 600, soit près de deux pixels et demi qui se propagent à toute la barre. Chaque libellé réserve donc d’avance sa largeur en 600, par un double invisible et de hauteur nulle. C’est ce qui rend le modèle vrai par construction plutôt que par coïncidence de mise en page, et ce qui a rendu au catalogue des péricopes la graisse qu’il avait dû abandonner en mobile.
+
+**Un onglet qui commande des PANNEAUX et un onglet qui FILTRE ne se déclarent pas pareil.** Le premier est un `tablist`, et il promet des panneaux derrière lui. Une barre qui ne fait que restreindre une même liste — le partage par testament du catalogue des péricopes — est un groupe de filtres nommé, avec `aria-pressed`. Le dessin est le même, l’annonce ne l’est pas.
+
+⛔ **Et la liste qu’une telle barre filtre ne REDIT pas ce que la barre dit.** Le catalogue des péricopes portait, sous « Tout », une rubrique « Ancien Testament » puis « Nouveau Testament », en capitales espacées et suivies d’un filet, qui coupait en deux la course des livres. Elle ne paraissait déjà plus lorsqu’un seul testament était à l’écran — l’onglet le nommant — ; elle est maintenant retirée aussi de « Tout ». La liste court d’une seule venue, de la Genèse à l’Apocalypse. L’ordre des livres marque le passage à qui le cherche, les onglets l’isolent à qui le veut, et une barre de titre au milieu de la course n’ajoutait qu’une halte.
+
+⚠️ Le volet « Aller à un livre » garde, lui, ses deux intitulés. Là, ils ne coupent rien : ils rangent une grille d’abréviations sur quatre colonnes, où l’ordre seul ne suffirait pas à s’orienter. Une rubrique qui ORIENTE n’est pas une rubrique qui SÉPARE.
+
+**Ce qui reste hors du modèle, et pourquoi.** Les barres de VOLET — les onglets du panneau de lecture d’une œuvre, ceux du volet des notifications — et la barre fixe des trois volets de la page Bible en mobile appartiennent à un autre registre : elles coiffent un panneau, non une page, et la dernière se compose en capitales espacées. Les unifier avec les onglets de page reviendrait à effacer une distinction qui porte du sens. La sous-barre de l’administration, elle, a ses propres règles, tenues par le nombre de ses entrées.
+
+⛔ **Le nom `.cs-onglet` appartient à ce modèle, et à lui seul.** Les liens de la barre de NAVIGATION portaient ce nom bien avant lui. Le jour où le modèle a été posé dans la feuille globale, ils ont hérité de tout ce qui fait une barre de page : les parts égales, le filet bas de deux pixels, le décalage d’un pixel qui pose le trait sur le filet. Un seul lien en a souffert — « Communauté », le seul enfant DIRECT du flex de la barre, les autres étant enveloppés d’un `span` pour porter leur menu déroulant —, et il s’est étalé sur toute la place restante : 204,8 px mesurés en ligne pour un mot qui en demande 95. Les onglets de la barre de navigation s’appellent depuis `.cs-nav-onglet`. ⚠️ Le style écrit EN LIGNE n’a protégé de rien : il couvrait le remplissage, le corps et l’encre, et laissait passer `flex`, `text-align` et le filet — c’est-à-dire tout ce qui déplace. Deux dessins sans rapport ne partagent pas un nom de classe.
+
+**Ce qui SURMONTE la barre se compose aussi partout de la même façon.** Un titre de page, puis la barre, et un rythme chiffré : vingt-deux pixels au-dessus du titre, quatorze entre le titre et la barre, quatorze sous elle. Le titre s’y compose sur un interligne de 1,1 et une chasse de 0,01 em — un interligne normal lui donnait quarante-deux pixels de haut pour vingt-huit de corps, soit onze pixels de blanc que rien ne justifiait. ⛔ Et le décalage sous la barre de navigation fixe ne se repose PAS sur la page : il est posé une seule fois pour tout le site, par `#cs-corps` ; le répéter le compte deux fois.
+
+⛔ **Aucun ornement ne s’intercale entre le titre et la barre.** La Communauté portait un losange d’or sous le sien, la Bibliothèque n’en portait pas : deux pages sœurs ne s’annoncent pas de deux façons. Le losange a été retiré le 27 août 2026. ⚠️ Il tenait à lui seul l’écart entre le titre et la barre — un ornement qui sert de cale n’est plus un ornement ; l’écart est désormais une marge chiffrée, et il se lit dans le code.
+
+⚠️ **La MESURE, elle, ne se copie pas.** La Communauté range trois couvertures de front et prend 71 rem ; la Bibliothèque n’a que du texte à ranger et en prend 56,25. C’est le rythme vertical qui est commun aux deux, non la largeur — chaque page prend la mesure de ce qu’elle contient, et sa barre la mesure de ce qu’elle commande.
+
+### 36.1. La gouttière de défilement se réserve toujours
+
+Presque toutes les pages du site sont un bloc centré par une marge automatique. Le jour où le contenu cesse de dépasser, la barre de défilement disparaît, la largeur utile gagne une quinzaine de pixels et le bloc SAUTE de sept vers la droite. Le défaut se lit comme un défaut du composant qu’on vient d’actionner, alors qu’il n’en vient pas : mesuré sur la Bibliothèque, passer à « Catalogue des traductions », dont la liste est courte, déplaçait toute la page de sept pixels sans que les onglets aient bougé d’un cheveu.
+
+La gouttière est donc réservée en permanence sur le document, qu’il y ait de quoi défiler ou non. ⚠️ Le prix est une bande vide d’une quinzaine de pixels sur les pages qui ne défilent pas ; il est moindre qu’une page qui se déplace sous les yeux du lecteur au moindre changement d’onglet.
+
+### 36.2. Un menu de navigation DIT ce qu’il ouvre
+
+Une liste de noms de pages n’apprend rien à qui ne connaît pas déjà le site, et « Statistiques » ou « Péricopes » surtout ne s’expliquent pas d’eux-mêmes. Chaque entrée du menu « Aller plus loin » porte donc, sous son nom, une ligne qui dit ce que la page contient, tirée de la description de cette page : ⛔ on n’y promet que ce qu’elle porte. Devant le nom vient un emblème au trait.
+
+Les emblèmes suivent la grammaire de ceux des couvertures : une viewBox carrée, aucune couleur écrite, tout en `currentColor`, si bien qu’ils prennent l’encre de la ligne qui les accueille et suivent le thème sans être déclinés deux fois. ⛔ Aucun ne doit se confondre avec une marque déjà employée : l’étoile dit « favori », le quadrilobe « citation choisie », le cœur « soutenir », la loupe « chercher », le chevron « avancer ».
+
+⚠️ Ils se jugent à la taille RÉELLE, autour de dix-sept pixels, jamais dans l’éditeur. Deux des cinq ont dû être redessinés à ce titre : une accolade se lisait comme une simple parenthèse, et une frise à repères comme trois petits points, indiscernable des barres voisines. C’est la leçon déjà apprise sur les emblèmes de couverture, dont cinq des neuf premières ébauches passaient pour autre chose une fois rendues.
+
+Sur un téléphone il n’y a pas de survol, donc pas de glose : l’emblème y est le seul indice de ce que la page contient, et il accompagne l’entrée dans le panneau déplié. Le panneau garde en revanche une ligne par entrée — quinze entrées à deux lignes en feraient un rouleau.
+
+### 36.3. La recherche rapide : sur quoi elle se mesure, et ce qu’elle montre
+
+⛔ **Un panneau de résultats ne prend pas la mesure de son CHAMP.** Celui de la barre s’accrochait par ses deux bords au conteneur du champ, et valait donc la largeur du champ plus la loupe : 154 px mesurés en ligne à 1 280, où « Anonyme / Symboles et confessions de foi » se pliait en trois lignes. Le rapport est même inverse : le champ se resserre par paliers quand la barre manque de place, si bien que le panneau rétrécissait à mesure qu’il avait davantage à dire. Il s’accroche donc par la DROITE, au bord des outils, et se déplie vers la gauche sur la place libre du milieu de la barre — le seul côté où l’on est sûr de ne buter contre rien. Sa largeur est en rem, comme tout ce qui se mesure ici : la police racine grandit avec la fenêtre au-delà de 1 440 px, et un panneau posé en pixels resterait le même ruban à 2 400.
+
+**Une œuvre trouvée dit son ÉDITION.** Un même titre du même auteur paraît plusieurs fois — la Cité de Dieu chez Migne en 1845 pour le latin, chez Louis Vivès en 1870-1873 pour la traduction de H. Barreau et M. Charpentier —, et un titre suivi de son auteur ne dit pas laquelle on va ouvrir. Sous l’auteur viennent donc le traducteur, la maison, la ville et l’année, composés comme à l’étagère de la bibliothèque et sur la page de titre : une phrase et des virgules, jamais une suite d’abréviations. ⚠️ Faute de traducteur, c’est la LANGUE qui désigne l’édition — « Texte original latin » — et non un blanc : une édition en langue originale n’a personne à nommer, ce qui ne la dispense pas de se distinguer de la traduction du même titre.
+
+⚠️ **Ce qu’une recherche va chercher EN SECOND se borne à ce qu’elle montre.** Le RPC de la recherche rapide rend un titre et son auteur, et rien de plus : c’est une recherche, non un catalogue. Les colonnes de l’édition viennent d’une seconde lecture, bornée aux trois œuvres affichées, qui ne retarde pas les titres — ils sont déjà posés quand elle part. De même la table des éditeurs, qui rend aux maisons leur nom répertorié : elle n’est lue qu’à la première œuvre trouvée qui porte un éditeur, la barre étant sur toutes les pages et n’ayant pas à charger une table de référence tant qu’on ne cherche rien.
+
+⛔ **La barre du volet de lecture de la Bible entre au modèle, et ses libellés perdent leurs CAPITALES** (décision de l’auteur, 28 août 2026). « Livres » et « Sommaire » s’y écrivaient en capitales espacées, composées à la main : deux mots criés en tête d’un volet de lecture, quand aucune autre barre du site n’en porte. C’était la sixième barre recomposée hors du modèle, ce que la présente section proscrit depuis qu’elle existe. La règle vaut pour toute barre à venir : on prend le modèle, on ne le redessine pas.
+
+## 37. La notice d’une traduction — le bandeau et l’encart
+
+Une notice de traduction porte DEUX images, et non une seule cadrée deux fois. Le bandeau est horizontal : il coiffe la carte, le titre s’y écrit par-dessus, et c’est lui que l’on voit quand la notice est fermée. L’encart est au format portrait : il ne paraît que dans le bloc déplié. ⛔ On ne dérive jamais l’un de l’autre. Une vue large de monastère serrée dans une boîte de deux tiers ne rend qu’une bande de ciel, et une image debout écrasée dans quatre-vingt-douze pixels de haut ne montre qu’un col : c’est exactement ce que faisait l’image unique jusqu’ici. Les deux vivent dans `traductions.photo` et `traductions.photo_encart`, se déposent séparément, se cadrent séparément — `photo_position.bandeau` et `photo_position.encart` — et se réduisent dans deux boîtes dont l’une est couchée et l’autre debout. Tant qu’une notice n’a pas reçu son portrait, le bandeau en tient lieu, cadré en portrait : elle ne se troue pas en attendant.
+
+**Le bandeau prend TOUT son bloc, ouvert comme fermé.** Il tient la carte bord à bord, sans marge ni filet, et le titre s’écrit sur l’image même, non sur une marge. ⛔ Le cadre a été essayé puis écarté le 27 août 2026 : déplié, le bandeau reculait de dix pixels sur ses quatre côtés, le fond de la carte lui tenant lieu de passe-partout, un filet le bordant et le titre entrant avec lui. Décision de l’auteur, l’essai fait : un bandeau occupe entièrement l’espace de son bloc. L’encart en portrait, lui, demeure — c’est là, et là seulement, que la notice porte une image détachée.
+
+**L’encre du bandeau est TOUJOURS le crème, et c’est un VOILE qui la rend lisible.** Le bandeau mesurait auparavant la luminance de sa photo pour choisir entre une encre crème et une encre noire ; le noir revenait sur les images pâles — la Segond, son lac, son ciel. ⛔ Une encre noire cernée d’un halo blanc posée sur une peinture n’est pas une composition, c’est un pis-aller : elle est écartée, et la mesure de luminance avec elle — un décodage en canevas par notice et une dépendance au CORS en moins. C’est désormais un dégradé brun très sombre, ancré à gauche et éteint avant le milieu de l’image, qui fabrique le contraste que la peinture ne promet pas. Toutes les notices reçoivent ainsi le MÊME sol, quelle que soit la peinture qui les coiffe.
+
+⚠️ Trois réglages tiennent avec lui. Le voile est BRUN, non noir : un noir neutre posé sur une peinture ancienne la refroidit et la fait paraître grise. L’ombre du texte se réduit à UNE couche courte, le voile portant le contraste : les trois halos de vingt pixels qui la précédaient bavaient autour des lettres et se lisaient comme une salissure. Et aucune ligne ne court au-delà du voile — la mesure du bloc de texte est bornée, si bien qu’une méta trop longue, celle de la Bible française du XIIIe siècle, se plie dans le sombre au lieu de finir sur les quadrilobes de l’enluminure. L’assombrissement général de l’image, lui, redevient léger : écrasé, il éteignait la moitié droite du tableau, qu’aucune ligne ne recouvre.
+
+⚠️ Ces valeurs vivent dans un module partagé, non dans la page. L’aperçu de cadrage de l’administration se veut une COPIE EXACTE du bandeau public : deux jeux de constantes auraient dérivé au premier réglage, et l’administrateur aurait cadré sur un rendu qui n’existe pas.
+
+**L’encart flotte dans le texte ; il ne tient pas une colonne.** ⛔ Le volet déplié n’est pas deux colonnes. L’image y a tenu une colonne entière, collée à trois bords et séparée du texte par un filet : sa forme dépendait alors de la longueur de la notice — une bande de cent quarante sur six cents quand le commentaire était long — et il restait sous elle une bande blanche que rien ne venait remplir. L’encart a donc une proportion FIXE, deux tiers, il ne touche aucun bord, et le texte l’entoure puis reprend toute la mesure sous lui. Le bloc de texte est un contexte de formatage à lui seul, faute de quoi une notice plus courte que l’encart le laisserait dépasser hors de la carte.
+
+⚠️ **Sous sept cents pixels, l’encart s’efface.** Sur un téléphone de trois cent soixante-quinze, la carte dispose de trois cent vingt-sept pixels : l’encart en prenait cent quarante et un, et il restait cent quarante-quatre pixels de texte JUSTIFIÉ, soit dix-sept signes par ligne. C’est la règle déjà posée pour la carte d’auteur. Le bandeau, lui, demeure : le téléphone voit donc une image des deux, et non aucune.
+
+**Le fond de la fiche prend la TEINTE de son encart — et rien d’autre.** Le volet déplié n’est plus le blanc uni de la carte : il reçoit la teinte dominante de l’image en portrait, et sa saturation. ⛔ Il n’en reçoit PAS la clarté. La clarté appartient au THÈME, et à lui seul : très haute au Clair, très basse au Cuir, où la saturation est de surcroît divisée — à clarté basse, une même saturation pousse beaucoup plus de couleur, et le brun du thème tournait au roux. Une fiche se lit sur un fond CLAIR au Clair, quelle que soit la couleur du tableau qui la surmonte : le tableau n’a de droit que sur la teinte. La teinte se pose en ligne, en deux propriétés personnalisées ; les deux clartés sont écrites une fois pour toutes dans la feuille globale, une par thème. ⚠️ CLAIR ne veut pas dire BLANC. La clarté du Clair a d’abord été posée à 96,5 %, par crainte de salir la fiche : il n’en restait, sur le blanc de la carte, qu’un écart de six à douze valeurs sur deux cent cinquante-cinq, et l’auteur ne voyait rien paraître. À 91 % le ton se voyait enfin ; il est remonté à 95 % à mesure que l’enduit s’est épaissi, le gris de celui-ci assombrissant déjà le fond de son côté. La Bible Crampon y donne rgb(246 242 239) contre le #fff de la carte : une craie chaude, et non plus un ivoire.
+
+**Le fond porte un ENDUIT.** Deux bruits gris se posent sur le ton : un grain serré, qui donne le sable de l’enduit, et une NUÉE très large, qui donne les inégalités de la pose. ⛔ Un seul ne suffit pas — le grain seul fait du bruit de capteur, la nuée seule fait une tache. Tous deux sont désaturés, la couleur venant de la teinte et jamais de la texture.
+
+⛔ **C’est la NUÉE qui porte le travail, non le grain.** Posée d’abord à une fréquence de 0,014 et à six pour cent, elle laissait le fond « encore trop uniforme » : ses taches étaient plus petites que le bloc, et leur moyenne redonnait un aplat. Il faut des plaques PLUS LARGES QUE LA COLONNE DE TEXTE — la fréquence est descendue à 0,006, soit deux cents pixels — et une amplitude franche, treize pour cent, en `turbulence` plutôt qu’en `fractalNoise`, qui veine au lieu de nuager. Le grain, lui, redescend à quatre et demi : il n’est là que pour le sable. ⚠️ Le bruit étant gris, il assombrit un fond clair et ÉCLAIRCIT un fond sombre, et il se voit deux fois plus au Cuir pour la même opacité : l’enduit y est donc dessiné à part, deux fois plus discret. Aucun fichier image n’est déposé pour cela — le motif est un SVG écrit en ligne qui se répète sans couture.
+
+⛔ **Un ton COMPLET a été essayé, puis écarté le même jour.** Teinte, saturation ET clarté prises à l’image, puis mêlées au fond par color-mix : les peintures étant sombres — elles le sont presque toutes —, le blanc de la fiche se salissait d’un beige sourd au lieu de se teinter, et la dose qui faisait paraître la plus terne des six assombrissait toutes les autres. C’est le même partage que pour l’encre écrite SUR une photographie, pris par l’autre bout : là, une couleur qui n’a pas de sol thématique se compose en dur ; ici, une clarté qui en a un se compose en jeton.
+
+**La dominante n’est pas la moyenne des pixels** : la moyenne d’un paysage est une boue grise, les complémentaires s’y annulant. Les teintes se rangent en vingt-quatre seaux de quinze degrés, pondérées par leur saturation, gris, noirs et blancs écartés d’avance — ils sont les plus nombreux dans une photographie ancienne et n’ont pas de teinte à donner ; le seau le plus lourd donne le ton, par moyenne CIRCULAIRE, faute de quoi le milieu de deux rouges à 350° et à 10° tomberait sur le cyan. ⛔ Sa saturation est bornée TRÈS BAS, et l’écart entre les bornes est étroit : quatorze à vingt-huit pour cent. Un fond de fiche n’est pas un aplat de couleur, c’est un LAIT DE CHAUX — il porte une teinte sans porter une couleur. Les bornes ont d’abord été posées à trente-deux et soixante ; l’auteur a jugé le résultat trop vif, et il l’était : la même image y donnait un pastel là où il faut une craie teintée. Le calcul n’a lieu qu’à la PREMIÈRE ouverture d’une notice et son résultat est retenu : six décodages au chargement d’une page dont on n’ouvrira qu’une fiche ne se justifieraient pas.
+
+## 38. La fiche « À propos de cette traduction » — au modèle de la fiche d’auteur
+
+La fiche qui s’ouvre depuis le volet de lecture de la Bible se compose désormais comme la FICHE D’AUTEUR, et non plus pour elle-même. Décision de l’auteur, 28 août 2026. Même cadre, même en-tête, mêmes titres de section, mêmes deux colonnes : à gauche ce qui se lit, à droite ce qui le documente. Les deux fiches disent la même chose d’objets voisins, un homme et le livre qu’il a traduit, et rien ne justifiait qu’elles se présentent chacune à sa façon. Celle-ci était restée une liste d’étiquettes sous un titre.
+
+**Elle s’ouvre sur un PORTRAIT.** C’est l’encart, l’image debout de la section 37, et jamais le bandeau : une image couchée serrée dans un cadre debout ne montre pas ce qu’un portrait montre, et le cadre est celui de la fiche d’auteur, au trait près. Une notice sans portrait ouvre sur son seul nom, sans cadre vide.
+
+⛔ **IL N’Y A PLUS DE REPÈRES SOUS LE NOM** — « Français · Catholique · 1888 - 1904 » (décision de l’auteur, 4 septembre 2026 : « ne pas afficher »). Ils avaient été montés là le 28 août depuis la section repliable, au motif qu’on ne range pas derrière un dépli ce qui identifie l’objet qu’on lit ; c’était vrai de la langue et de la confession, moins de la date, qui était la date RÉDIGÉE de la base, avec ses points-virgules et ses annonces. Ils disaient en télégramme ce que la notice dit en prose deux centimètres plus bas, et langue comme confession se lisent entières dans le dépli.
+
+⚠️ **LE CADRE DU PORTRAIT EST UN FLEX, et la zone d’image s’y étire.** Le bord bas du cadre se pose sur la dernière ligne qui l’habille, et la mesure lui écrit une HAUTEUR ; la zone d’image, qui tenait la sienne de son seul rapport 2/3, ne suivait pas, et la rallonge se voyait en passe-partout sous l’image — un bandeau blanc en bas là où les trois autres côtés portent cinq pixels (l’auteur, 4 septembre 2026 : « comme si elle n’entrait pas dans le bloc »). ⛔ La leçon est générale : une boîte dont on écrit la hauteur DU DEHORS doit pouvoir la transmettre à ce qu’elle contient, sans quoi la mesure se voit au lieu de se lire.
+
+**La notice prend la composition de la fiche d’auteur** : ses intertitres deviennent des titres de section, en sérif italique et à l’encre d’accent, et sa prose devient la prose justifiée de la vie d’un auteur. ⚠️ Une bibliographie en est une part, et elle se compose comme la prose qu’elle accompagne : laissée au navigateur, elle paraissait plus grosse que le texte qu’elle sert.
+
+**Ce qui reste replié ne concerne plus que l’ÉDITION** : son titre, son année, son lieu, son éditeur, sa source numérique, sa graphie, sa licence, son état de vérification. Une section repliable est faite pour ce qu’on consulte, non pour ce qu’on lit. Elle tient toute la mesure, sous les deux colonnes, sa colonne d’étiquettes n’entrant pas dans une colonne de fiche.
+
+⛔ **LA FICHE NE MONTRE PAS LES GRAVURES DE L’ÉDITION** (décision de l’auteur, 4 septembre 2026 : « ne pas afficher la famille “Gravures” »). Six planches prises en échantillon régulier y ouvraient, du 28 août au 4 septembre, une mosaïque que deux requêtes portaient et qu’un clic agrandissait par-dessus la fiche. Une gravure se regarde À SA PLACE, dans le texte, où l’édition l’a mise ; une vignette en tête de fiche apprend qu’il y en a, elle n’en montre aucune. Sont partis avec la rubrique l’échantillon régulier, le passe-partout des vignettes, la planche agrandie et les deux allers-retours qu’elles coûtaient à chaque ouverture.
+
+**L’ÉDITION UTILISÉE A SA RUBRIQUE, et ce n’est pas une bibliographie sélective** (décision de l’auteur, 4 septembre 2026 : « ce n’est pas une bibliographie sélective, mais la référence bibliographique des volumes utilisés »). La fiche portait, dans le HTML de sa notice, une liste titrée « Bibliographie sélective » dont la première entrée redisait à la main l’édition d’où le texte est tiré. La référence se compose désormais CHAMP PAR CHAMP depuis `editions_sources` — titre, sous-titre, lieu, éditeur, millésimes, nombre de tomes —, aux normes de toutes les bibliographies du site (§ 35.6.1) et dans leur famille de styles. ⛔ Sans titre d’édition en base, la rubrique ne paraît pas. ⛔ Aucun AUTEUR en tête : la fiche le nomme deux lignes plus haut, et c’est la règle déjà écrite pour « Du même auteur » — une rubrique qui établit son auteur ne le répète pas sous elle. ⚠️ Le nombre de tomes est la seule donnée matérielle admise, parce que la rubrique répond des VOLUMES ; le format, la pagination, les planches et les dimensions en restent exclus. ⚠️ Les millésimes sont un TEXTE — « 1888-1904 », « vol. I : 1909 ; vol. II : 1907 » —, et c’est pourquoi la référence ne passe pas par `ouvrages_bibliographiques`, dont l’année est un entier : un catalogue d’œuvres ne sait pas dire une collection multivolume.
+
+**LES OUVRAGES QUE L’ÉDITION CITE ont leur rubrique, et elle ne paraît pas si elle est vide** (même décision : « une nouvelle rubrique contenant, proprement, tous les ouvrages cités dans l’édition utilisée ; c’est surtout utile pour Fillion »). Elle lit `v_bible_editorial_bibliography_entries`, la source des bibliographies de l’apparat, et se compose par le même composant : une édition ne dit pas ses auteurs de deux façons. ⚠️ Toutes pièces confondues, dédoublonnées par `ouvrage_id`, rangées par auteur puis par titre — une bibliographie d’édition ne se range pas dans l’ordre d’apparition des volumes. ⛔ Aucun repli sur le texte des blocs matériels : ce qui n’est pas catalogué n’est pas affiché, et c’est ce silence-là qui appelle le catalogage (§ 35.6.4).
+
+**LA LICENCE DIT AUSSI CE QU’ELLE NE DONNE PAS** (même décision : « ajouter les restrictions de licence ; expliquer que le travail éditorial est protégé »). La fiche affichait « Domaine public » en une rangée d’étiquette, ce dont un lecteur conclut que tout est libre ; ce qui l’est est le TEXTE. Une rubrique « Conditions d’usage » dit désormais les deux : la licence du texte servi, avec sa mention obligatoire s’il en porte une ; puis que la transcription, la structuration des données, la segmentation, les alignements et les liens établis entre versets et textes patristiques constituent un travail éditorial original, protégé par le droit d’auteur, dont la reproduction substantielle à des fins commerciales demande une autorisation préalable, et qu’une citation reprise publiquement garde la mention de sa source. ⛔ La formule ne s’invente pas dans la fiche : elle dit en trois phrases le § 6 des conditions d’utilisation, et renvoie à cette page, qui fait foi.
+
+⛔ **La chronologie d’une traduction n’avait AUCUNE date, depuis l’origine.** La frise, partagée avec la fiche d’auteur, lisait la date courte ; la vue des traductions ne porte que la date rédigée, et la colonne des dates restait donc vide sur les six chronologies du corpus. Une chronologie sans dates n’est plus une chronologie, c’est une liste. La frise lit maintenant la date courte, sinon la date rédigée. ⚠️ La trouvaille de méthode vaut au-delà de ce cas : le défaut était couvert par un changement de type en deux temps, qui promettait à la frise un champ que la vue n’a jamais eu. Une colonne qui « ne s’affiche pas » se cherche là.
 
 
-**Numéros de verset hors guillemets.** Les numéros de verset éditoriaux notés entre parenthèses ne font pas partie du texte cité et doivent être placés hors des guillemets : `« texte » (7)`, jamais `« texte (7) »`. Si plusieurs numéros scandent une citation continue, fermer puis rouvrir les guillemets autour de chaque repère. Le point final ordinaire se place après le numéro : `« texte » (7).` Les signes `?` et `!` intrinsèques à la citation restent avant le guillemet fermant : `« texte ? » (7)`.
+### 38.1 La carte du volet de lecture — le nom, le traducteur, l’adresse de l’édition
 
-### Contrôle de clôture après resegmentation ou projection
+La carte qui coiffe le volet de gauche de la Bible porte trois lignes, et trois seulement : le NOM de la bible, qui ouvre sa fiche ; le TRADUCTEUR, avec ses dates ; l’ADRESSE de l’édition servie. ⛔ Elle ne porte pas le relevé des tomes. Celui de Fillion dénombrait huit volumes et six millésimes ; dans un volet de deux cent cinquante pixels, il faisait un pavé au bas duquel la liste des livres commençait. Verdict de l’auteur, 3 septembre 2026 : « je veux seulement des informations sur la bible ; généralistes ». Le relevé reste dans la fiche « En savoir plus », où l’on va le chercher quand on le cherche.
 
-Une clôture d’œuvre ne repose jamais sur les seuls totaux globaux. Après toute resegmentation, projection de titres ou reprise de liens, effectuer aussi les contrôles suivants :
+**L’ADRESSE EST UNE PHRASE, et elle nomme le lieu, l’éditeur et les dates** : « D’après l’édition de Paris, Letouzey et Ané, 1888-1904 » (décision de l’auteur, 4 septembre 2026 : « doit mentionner l’éditeur, le lieu d’édition et les dates d’édition »). C’est la forme normative du libellé court d’édition, `Ville, éditeur, année` (§ 5), et l’interface y ajoute seule la formule « D’après l’édition de ». Le lieu et l’éditeur viennent d’`editions_sources` ; ⛔ ils ne se devinent jamais du nom de la bible, et un champ absent emporte son séparateur. ⚠️ C’est la DATE qui décide qu’il y a une édition à nommer : sans elle, rien ne paraît, quand bien même le lieu serait connu — la fiche d’édition du manuscrit Français 899 porte « Paris », qui est le lieu du MANUSCRIT, et la carte annoncerait sans cette garde « l’édition de Paris » là où il n’y a pas d’édition du tout.
 
-- **Ponctuation par paragraphe.** Vérifier l’équilibre des guillemets et des parenthèses à l’échelle de chaque paragraphe éditorial. Un équilibre global peut masquer deux paragraphes fautifs qui se compensent. Une référence biblique, une parenthèse ou une citation ne doit jamais être coupée par une frontière de paragraphe artificielle.
-- **Continuités inter-unités.** Une coupure de page, d’OCR ou d’unité source ne crée pas d’espace si elle tombe au milieu d’un mot, d’un nombre ou d’une plage de référence. Conserver chaque caractère dans son unité source ; employer `join_before = ''` lorsque le rendu doit concaténer les deux fragments. Ne jamais déplacer un caractère vers une autre unité uniquement pour embellir le segment.
-- **Analyses projetées en N2.** Reconstituer chaque item imprimé de l’ANALYSE avant de le projeter. Une ligne ou une unité source peut contenir la fin de l’item précédent et le début du suivant. La concordance du numéro seul ne suffit pas : contrôler le libellé complet et sa continuation matérielle.
-- **Majuscules accentuées.** Le contrôle porte sur toute la couche de lecture ET sur les titres projetés, non sur les seuls incipits. Les formes françaises `É`, `À`, `È`, `Ê`, `Î`, `Ô`, etc. sont obligatoires quand la minuscule correspondante est accentuée. Les sigles, translittérations et vrais noms non accentués sont exclus par contexte, jamais par une règle aveugle.
-- **Références `Ibid.`.** Dans la couche de lecture finale, développer `Ibid.` dès que sa cible a été résolue et vérifiée. Résoudre d’abord le livre, le chapitre et la versification par la source et le contenu ; n’expanser jamais un `Ibid.` encore ambigu. Le texte visible et le lien canonique doivent rester concordants.
-- **Unicité et coexistence fonctionnelle des liens.** Appliquer la règle du § 9.4 bis : pour un même couple `segment × cible biblique`, un seul lien est admis par type. La coexistence de types différents n’est admise que si le segment remplit réellement plusieurs fonctions distinctes, chacune motivée séparément. Une citation explicite du verset intégrée à son commentaire peut donc porter T1 + T3 ; sinon conserver seulement le type qui décrit la fonction réellement exercée.
-- **Offsets de provenance.** Une égalité après `norm_fr` est un indice de contrôle, jamais une preuve suffisante pour écrire des offsets Unicode bruts. Écrire `source_start_offset_unicode` / `source_end_offset_unicode` seulement lorsque les positions sont exactes et déterministes dans le témoin brut, ou qu’une méthode de bornage validée établit sans ambiguïté les limites. Les coupures de mot éditorialement recollées entre deux unités restent documentées sans offsets inventés.\n- **Couverture d’une unité source.** Un écart entre `source_end_offset_unicode` d’un segment et `source_start_offset_unicode` du suivant n’est pas automatiquement un trou. Lire le sous-texte source correspondant : une espace simple ou un séparateur intentionnel de paragraphe (`\\n\\n`) peut rester hors empans tout en appartenant à la structure de recomposition. Un audit de couverture échoue sur du texte source non blanc laissé découvert, un chevauchement, des bornes invalides, ou un séparateur inexpliqué incompatible avec la structure — jamais sur la seule existence d’un intervalle numérique.
-- **Métadonnées finales.** Après les dernières mutations structurelles, recalculer depuis les tables live les nombres de segments, unités et signes, les statuts de phase et les indicateurs de publication. Les drapeaux œuvre/texte ne doivent pas contredire une note éditoriale explicite de non-publication.
-- **Niveaux de validation.** Distinguer strictement contrôle mécanique, relecture IA et validation humaine. Aucun marqueur IA ou mécanique ne permet de déduire `validated_human=true` ou `controle_verifie=true`.
+⛔ IL N’Y A PLUS DE REPÈRES — la langue, la confession et l’année alignées derrière des points médians. Ils disaient en télégramme ce qu’EST la bible, et jamais d’où vient le texte qu’on a sous les yeux ; la phrase d’édition le dit, et se lit. Langue et confession se lisent entières dans la fiche.
+
+⚠️ **UNE FLÈCHE COURTE SUIT LE NOM**, et c’est elle qui dit qu’il y a une fiche derrière (décision de l’auteur, 4 septembre 2026 : « ajouter un petit symbole à côté du titre pour suggérer l’existence de “À propos de cette traduction” ; une flèche propre, épurée, courte »). Rien ne l’annonçait : le nom se composait comme un titre vert, et le survol ne le soulignait qu’une fois la souris dessus. ⚠️ Elle vit dans `NomVolet`, donc aussi sous le nom d’AUTEUR des pages patristiques : c’est le même geste, et il ne s’annonce pas de deux façons. ⛔ Elle ne paraît pas quand le bouton est inactif — une œuvre sans auteur identifié n’ouvre aucune fiche, et la flèche promettrait une page qui n’existe pas. ⚠️ Elle reste HORS de l’écrêtage du nom : c’est le nom qui se coupe par la fin, jamais la flèche, sans quoi l’annonce disparaîtrait sur les noms longs — les seuls où l’on hésite. ⚠️ Le soulignement de survol se pose sur le NOM et non sur le bouton : porté par le bouton, il courait sous la flèche et la barrait par le milieu.
+
+⛔ ON NE MESURE PAS UN TEXTE AVANT DE S’ÊTRE DEMANDÉ S’IL DOIT PARAÎTRE. Pour loger cette référence, la carte avait reçu une sonde invisible qui comptait ses lignes, un observateur qui la remesurait à chaque changement de largeur du volet, et un budget de lignes que la feuille faisait monter en trois seuils. Tout cela est parti avec le texte, et rien n’a manqué. C’est la seconde fois dans cette même carte : l’étiquette « Traduction » avait été condensée le 30 août 2026, puis supprimée le lendemain.
+
+⚠️ La forme se prend au volet des pages patristiques, qui est le modèle : le nom en vert qui ouvre la fiche, puis ce qu’on lit, puis l’adresse de l’édition, à une seule interligne (1,35). Deux volets de lecture ne se composent pas chacun à sa façon.
+
+### 38.2 Le volet de gauche — la recherche s’efface, le livre grisé s’explique
+
+**LA RECHERCHE D’UN LIVRE N’EST PAS UNE BOÎTE : elle EST son bloc** (décision de l’auteur, 4 septembre 2026 : « la barre de recherche doit être plus claire, moins visible spontanément, et occuper l’ensemble du bloc où le bloc d’écriture existe actuellement »). Le champ portait un filet, un fond plus sombre que le volet et un rayon de quatre pixels, posés dans un bloc rembourré : quatre traits pour l’objet le moins employé du volet, et il se lisait avant la liste des livres qu’il commande. Le rembourrage du bloc est passé DANS le champ — même blanc, même gouttière —, si bien que rien n’a bougé de place ; ce sont le filet, le fond et le rayon qui sont partis. ⚠️ Il se donne à voir quand on s’en sert, et alors seulement : au foyer, un fond léger paraît sous lui. ⛔ Pas de filet au foyer non plus, qui redessinerait la boîte qu’on vient d’ôter. Le filet du BAS reste : c’est la séparation d’avec la liste, non l’encadrement du champ.
+
+**UN LIVRE GRISÉ, CLIQUÉ, S’EXPLIQUE** (même décision). Le clic se perdait dans un `return` : la rangée était bien un bouton, elle répondait au survol, et son geste ne faisait rien du tout — le lecteur en concluait ce qu’il pouvait, que le site était cassé le plus souvent, puisqu’un gris n’explique rien. Une fenêtre dit maintenant que le livre ne figure pas dans la bible qu’on lit, et propose celles qui le portent ; le choix d’une autre bible mène au chapitre 1 du LIVRE DEMANDÉ, non au chapitre qu’on lisait ailleurs, qui n’a rien à voir avec lui. ⛔ Elle ne dit PAS pourquoi le livre manque : une édition partielle, un tome qui n’est pas encore importé et un livre qu’une confession ne reçoit pas se ressemblent de l’extérieur, et mieux vaut une phrase vraie qu’une raison inventée. ⚠️ Les bibles proposées se cherchent aux DEUX sources — `livres_par_traduction` pour celles qui se lisent au verset, la structure éditoriale pour les autres —, faute de quoi Fillion et la Bible 899 seraient tues. ⚠️ La fenêtre s’ouvre TOUT DE SUITE, avec ce qu’on sait déjà, et la liste arrive ensuite : un clic qui n’ouvre rien pendant une requête serait le défaut qu’on vient de corriger.
+
+**L’EN-TÊTE DU VOLET DE DROITE NE REDIT PLUS LA RÉFÉRENCE** — « Genèse 13, 5 » (même décision : « supprimer cette indication redondante »). Le volet commente le verset qu’on vient de désigner d’un clic, à trois centimètres de là, dans une colonne qui porte déjà le nom du livre, le numéro du chapitre et le verset en surbrillance : la ligne ne disait rien que l’écran ne montrât. ⚠️ Une référence REÇUE se montre, elle : la page d’une péricope donne au volet une PLAGE canonique (« Gn 12, 1-9 ») que rien d’autre n’écrit à l’écran. Une référence qu’on DÉDUIT de ce qu’on affiche déjà ne se montre pas. ⚠️ L’en-tête vidé ne laissait qu’une bande de trente-huit pixels et son filet : il ne paraît plus que s’il a quelque chose à porter — une référence reçue, ou la flèche de repli.
+
+### 38.3 La Bible polyglotte — le réglage, le menu, l’en-tête de colonne
+
+Sept demandes de l’auteur du 4 septembre 2026.
+
+⛔ **UN RÉGLAGE DE VOLET NE SE COMPOSE PAS EN BOUTONS** (« remettre en forme de façon plus élégante, sans effet “bouton” »). « Traductions visibles » alignait cinq pilules bordées et arrondies pour un réglage qu’on touche une fois par visite : cinq cadres, cinq fonds, cinq rayons, dans un volet où la liste des livres n’en porte aucun. Les valeurs se lisent en clair ; la retenue prend l’accent et la demi-graisse, les autres l’encre douce, et le survol ne fonce que ce qui n’est pas retenu. ⛔ Ni cadre, ni fond, ni rayon.
+
+⚠️ **UNE ÉCHELLE se lit en RANG, des interrupteurs INDÉPENDANTS se lisent en COLONNE.** « Auto · 2 · 3 · 4 · 5 » est une échelle de cinq valeurs courtes dont on ne retient qu’une : le rang la donne d’un coup d’œil, et le point médian est le séparateur du site. « Lignes problématiques » et « Surnuméraires » sont deux états qu’on allume ou qu’on éteint, et longs : une option par ligne, comme le volet de la page Bible (§ 38.2). La même forme discrète sert les deux, seule la disposition change.
+
+⛔ **UNE TRADUCTION DÉJÀ AFFICHÉE AILLEURS SE GRISE, elle ne s’annonce pas en OCRE** (« grise légèrement le bloc de l’œuvre déjà utilisée ; n’utilise pas d’ocre pour le texte qui signale ça »). L’ocre est la teinte de l’ATTENTE — « à normaliser », « brouillon » — et une colonne déjà prise n’est ni l’un ni l’autre : c’est un fait, non un défaut. Le bloc prend le fond doux, le nom l’encre grise, la mention d’échange l’encre faible ; le choix reste offert, et les deux colonnes s’échangent alors leur place. ⛔ Une FAMILLE ne se grise pas quand un seul de ses textes est affiché ailleurs : les autres restent libres, et la griser dirait le contraire. Le gris se pose sur les MEMBRES, dans leur volet.
+
+**LE MENU SE RANGE PAR MILLÉSIME**, groupe de langue par groupe de langue, une famille prenant le millésime de son membre principal. ⛔ **On range sur la date QU’ON MONTRE, jamais sur une autre** : la première parution d’une traduction et le millésime de l’édition servie ne coïncident presque jamais — Sacy paraît de 1667 à 1696 et l’on sert l’édition de 1730, la Vulgate clémentine est de 1592 et l’on sert Madrid 1946 —, si bien qu’un menu rangé sur la première et affichant la seconde donnerait à lire 1946, 1730, 1912 dans cet ordre : il passerait pour cassé. ⛔ Une entrée SANS millésime se range à la FIN, jamais au début : on ne devine pas une date, et une date manquante ne vaut pas zéro. Le rang de la base départage deux entrées de même millésime.
+
+**LES NOMS SE COMPOSENT**, dans le menu comme en tête de colonne : « Bible française du XIIIe siècle » y prend ses petites capitales et son exposant, un titre entre astérisques son italique. C’est le module partagé avec les notices d’auteur. ⛔ Jamais un rendu HTML sur une colonne rédigée hors du dépôt. ⚠️ La rubrique d’un volet de famille en est exemptée : elle se compose en capitales espacées, où des petites capitales seraient plus petites que ce qui les entoure.
+
+⛔ **SOUS LE TITRE D’UNE COLONNE, C’EST LA DATE, et rien d’autre ne prend sa place** (« c’est indiqué “Texte du manuscrit” et non une date ; c’est problématique »). L’état du texte s’y substituait dès que l’édition en porte plusieurs, si bien que la Bible du XIIIe siècle était la seule colonne du tableau sans millésime — celle, précisément, dont la date importe le plus. ⚠️ L’état du texte reste NÉCESSAIRE, deux colonnes d’une même édition ne se distinguant pas autrement : il descend d’une ligne, sous la date, dans une encre plus pâle et sans la chasse du millésime — c’est une glose, pas un second repère. La date se rapproche par ailleurs du titre : elle en était écartée de huit pixels, elle l’est de trois.
+
+⚠️ **Le « vers » ACCOLÉ au millésime part avec lui.** La notice du manuscrit Français 899 écrit « Paris, XIIIe siècle (vers 1260) » : rendre « 1260 » tout court donnerait à un témoin daté par approximation la précision d’un colophon. ⛔ Ce n’est pas une lecture de la prose : on ne prend que le qualificatif que la source a écrit devant le millésime. La dérivation et l’ordre vivent dans un module pur, éprouvé sur les dix notices réelles du corpus — lire une date dans de la prose est la partie fragile du dispositif, et elle ne s’éprouve pas depuis une page.
+
+⛔ **PAS DE FILET AUTOUR DU TITRE quand le menu s’ouvre.** Un cadre d’un pixel posé sur un en-tête de colonne redessine une boîte là où la page n’en porte aucune, et il paraissait au CLIC de souris — une règle « focus-within » sur un bouton sans enfant focalisable n’est qu’un « focus ». Le menu ouvert garde le sol du survol : la colonne reste désignée, sans qu’un trait s’ajoute à la réglure du tableau. ⚠️ Le clavier garde son anneau, qui est la règle « focus-visible » globale du site : elle pose un contour, non un cadre intérieur.
+
+⚠️ **ET LE SURVOL DE CE TITRE NE S’APPLIQUAIT PAS**, ce qu’aucune lecture du code ne disait. Le bouton portait son fond dans son style EN LIGNE, et une déclaration en ligne bat toujours une règle de feuille sans « important » : la règle de survol était morte depuis qu’elle avait été écrite, et l’anneau de foyer restait le seul état visible de la colonne — c’est-à-dire précisément ce que l’auteur a relevé comme malvenu. Retirer l’anneau sans voir cela aurait laissé l’en-tête sans aucun état. ⛔ **Le piège du style en ligne ne borne pas les seules média-queries : il bloque TOUTE règle de feuille sur la même propriété.** Avant de retirer un état visible, mesurer celui qui est censé le remplacer.
+
+⛔ **RECTIFICATION DU MÊME JOUR, AU SOIR : trois de ces règles se reprennent, et toutes pour la même raison** — on avait chaque fois retiré un ornement DE TROP. ⚠️ Règle générale, qui vaut au delà de cette page : **retirer un ornement n'est pas gratuit ; il faut regarder ce qui reste**. Cinq pilules valaient mieux qu'un rang de mots, un aplat gris valait mieux qu'un ocre mais moins que rien, et une glose descendue d'une ligne vaut moins que pas de glose. La bonne mesure ne se trouve pas en enlevant tant qu'on peut.
+
+⚠️ **L'ÉCHELLE SE COMPOSE EN CASES, sur toute la largeur du volet** (« pas de points médians moches ; plutôt de jolies cases propres sur l'ensemble de la largeur »). Cinq valeurs en clair séparées par le point médian ne se lisaient plus comme un réglage : elles se lisaient comme une ligne de texte, et rien ne disait qu'on pouvait les toucher. ⛔ Ce n'est PAS le retour des pilules, et la différence est celle d'un objet et de cinq : une pilule est un objet PAR VALEUR — cinq cadres, cinq fonds, cinq rayons —, quand un contrôle segmenté n'a qu'UN cadre et qu'UN rayon pour toutes ses cases, qui n'existent que par le filet qui les sépare. Il occupe la mesure du volet, et l'on voit d'un coup d'œil combien de valeurs il offre et laquelle est retenue. ⚠️ Les interrupteurs INDÉPENDANTS gardent leur colonne et leur clair : ils ne forment pas une échelle, et une case autour de « Lignes problématiques » en referait un bouton.
+
+⛔ **UNE COLONNE DÉJÀ PRISE SE GRISE PAR SON TEXTE, ET PAR RIEN D'AUTRE** (« ne griser que le texte ; pas de fond gris »). L'ocre était faux — c'est la teinte de l'attente —, et le fond doux qui l'avait remplacé l'était aussi : une liste ne se lit plus quand un rang sur deux y porte son propre sol. Le fait se dit dans l'ENCRE du nom et de sa date ; le fond du menu reste d'une seule teinte, où l'accent ne désigne que la ligne retenue.
+
+⚠️ **ET CETTE ENCRE DESCEND D’UN RANG** (« griser un peu plus le texte des non disponibles »). Le fond retiré, l'encre reste SEULE à porter le fait, et le rang qui suffisait quand un aplat l'accompagnait ne suffit plus : le nom prend l'encre du sous-titre d'une ligne ordinaire, et la ligne entière recule d'un cran. ⛔ **Pas deux rangs** : la ligne reste CLIQUABLE — la choisir échange les deux colonnes — et une ligne qu'on ne lit plus n'est plus une option ; le rang le plus ténu est d'ailleurs le plancher de l'échelle, et la date y est déjà. ⚠️ Sa hiérarchie interne tient alors par le CORPS et la POLICE, non par l'encre : un sérif de treize pixels sur un sans de dix se distingue sans qu'on l'y aide.
+
+⚠️ **Règle générale, et c'est la rectification du même jour prise par l'autre bout : retirer un ornement DÉCHARGE ce qui reste, et ce qui reste doit alors en porter davantage.** On avait mesuré ce qu'on enlevait ; on n'avait pas remesuré ce qui restait seul. Un état qui se disait par deux moyens ne se dit pas de la même façon quand il n'en garde qu'un.
+
+⛔ **SOUS LE NOM D'UNE COLONNE, IL N'Y A QUE LA DATE** (« “Texte du manuscrit” : ne pas l'indiquer ; seulement indiquer une date »). L'état du texte prenait d'abord la place du millésime ; on l'avait fait descendre d'une ligne dessous, en glose — il n'y est plus du tout. Un en-tête de colonne NOMME et DATE, et une troisième ligne y faisait un second repère. ⚠️ L'état du texte se lit LÀ OÙ L'ON CHOISIT, dans le volet de la famille : c'est le menu qui distingue, l'en-tête qui nomme. ⛔ Conséquence assumée : deux états d'un même témoin ouverts côte à côte portent le même en-tête.
+
+⚠️ **UN BLOC TEINTÉ A BESOIN D'AIR DANS SA CASE.** La cellule d'en-tête n'avait aucun rembourrage vertical — mesuré, le bouton faisait soixante-neuf pixels dans une cellule de soixante-neuf —, si bien que le fond du survol et du menu ouvert courait d'un filet à l'autre et venait toucher la réglure. Un fond qui touche le bord de sa case cesse de se lire comme un ÉTAT : il se lit comme une colonne d'une autre couleur.
+
+⛔ **UN ANNEAU DE FOYER SE POSE DEDANS DÈS QUE LE CHAMP EST SON PROPRE BLOC** (« l'encadrement vert dépasse, mord du texte, ou du texte passe dessus »). L'anneau global du site se pose à un pixel À L'EXTÉRIEUR de la boîte, ce qui convient à un champ posé DANS un bloc rembourré. Le champ de recherche des volets EST son bloc depuis qu'il en occupe toute la mesure — mesuré, 319 sur 45 dans un bloc de 319 sur 46 — et l'anneau tombait donc par-dessus le filet du bas, par-dessus le bloc voisin en haut, et sortait du volet sur les deux côtés, où il se faisait couper. Un décalage NÉGATIF le rend au champ. ⛔ On ne le retire pas : c'est le seul repère du clavier, et un champ sans filet ni fond au repos n'a rien d'autre à montrer. ⚠️ **Règle générale : quand un objet cesse d'être posé DANS un bloc pour DEVENIR le bloc, tout ce qui se dessinait autour de lui se relit.** Le rembourrage, le filet, l'ombre et l'anneau ne visaient pas la même boîte.
+
+### 38.4 La PROVENANCE d’un texte biblique — la carte, la fiche, la chronologie
+
+Six demandes de l’auteur du 4 septembre 2026, en seconde passe sur la page « Bible classique ».
+
+⛔ **DANS UNE PHRASE, TOUT SE SÉPARE PAR DES VIRGULES, ET RIEN D’AUTRE** (« il faut utiliser la version normalisée ; on doit avoir “Jean Desessartz et Guillaume Desprez” ; tout séparé par des virgules »). La carte du volet rendait la co-édition telle que la base l’écrit — « Paris, Jean Desessartz ; Guillaume Desprez, 1667-1696 » —, et le point-virgule y ouvrait au milieu de la phrase un second niveau de ponctuation où l’on ne voyait plus où l’éditeur commence. Chaque maison se résout POUR SON PROPRE COMPTE dans la table de référence, et « et » les joint ; trois maisons font une énumération française. ⛔ Le point-virgule reste le séparateur normatif dans une COLONNE et dans une notice de catalogue (§ 5) : la règle ne le remplace pas partout, elle compose une énumération là où l’on écrit une phrase. ⚠️ La résolution se fait CÔTÉ SERVEUR : l’index des éditeurs n’a pas à voyager jusqu’au navigateur pour composer deux mots.
+
+⚠️ **LA DATE D’UNE ADRESSE EST CELLE DE LA FICHE D’ÉDITION, non de la première parution.** Le lieu et l’éditeur viennent de la fiche d’édition : y prendre aussi la date est la seule façon que les trois mentions parlent du même livre. La carte de Sacy datait de 1667-1696 l’adresse de l’édition de 1730, si bien que deux maisons qui ne se sont associées qu’au siècle suivant s’y trouvaient nommées ensemble soixante ans trop tôt. ⚠️ Le champ est un TEXTE et porte parfois le détail des volumes — « vol. I : 1909 ; vol. II : 1907 ; vol. III : 1912 » : une phrase de carte en retient les deux bornes, l’énumération n’apprenant rien à qui veut savoir de quand date ce qu’il lit.
+
+⛔ **UN TÉMOIN MANUSCRIT N’A PAS D’ÉDITION : il a un dépôt et une cote** (« aucun texte pour la bible du XIIIe siècle ; à corriger, d’après le manuscrit machin machin »). La carte se taisait pour lui, une garde de la veille refusant de nommer une « édition » là où la fiche ne porte qu’un lieu de copie. La garde était juste et la conclusion trop courte : ce n’est pas la phrase qu’il fallait taire, c’est l’autre phrase qu’il fallait écrire — « D’après le manuscrit Paris, Bibliothèque nationale de France, Français 899, vers 1260 », qui est la forme savante d’une cote. ⛔ Elle ne se DÉDUIT PAS de la prose : l’intitulé de l’édition et le nom de la source numérique portent bien la cote, mais l’en tirer par découpe serait lire une donnée dans un titre. Deux champs de plus, et c’est la COTE qui décide — pas un type à interpréter, pas une mention à reconnaître. ⚠️ Un manuscrit se nomme même sans date : sa cote l’identifie à elle seule, quand une édition sans année n’a rien à annoncer.
+
+⛔ **UNE FICHE NE REPLIE PAS CE QU’ON VIENT Y LIRE** (« “Édition et état du texte” doit être visible sans être développé ; revoir l’ensemble avec cette nouvelle donne »). C’était la seule section repliée de la fiche « À propos de cette traduction », et le dépli cachait une REDONDANCE autant qu’un contenu : le titre, l’année, le lieu et l’éditeur y reparaissaient en rangées un cran sous une référence qui venait de les composer, et la notice rédigée de la base les disait une troisième fois. La référence devient la TÊTE de la rubrique — ce que l’édition EST —, et les rangées ne portent plus que ce qu’elle ne dit pas : ce qui a établi le texte, d’où vient sa copie numérique, sa graphie, ses particularités, son état de vérification. ⛔ La notice rédigée ne paraît plus : elle était la seconde vérité, celle qu’on avait cessé de composer. ⚠️ Trois rubriques ferment la fiche, dans cet ordre : l’édition, les ouvrages qu’elle cite, les conditions d’usage. On va de ce que l’édition EST à ce qu’on peut en faire.
+
+⚠️ **UNE MENTION D’ÉDITION NE SE COMPOSE QUE SI ELLE APPREND QUELQUE CHOSE.** « Édition révisée » est une vraie mention de page de titre et prend sa place après l’intitulé. Deux cas la font taire, et tous deux sont dans la donnée réelle : un TÉMOIN MANUSCRIT n’en a pas — « Témoin manuscrit » est une classification, et la cote suit deux mots plus loin —, et une mention que le TITRE contient déjà ne se répète pas (« La Bible : traduction officielle liturgique »). C’est la règle du complément qui redit son titre, appliquée à l’adresse d’une édition.
+
+⚠️ **UNE BIBLIOGRAPHIE PREND LE RETRAIT SUSPENDU, où qu’elle paraisse** (« pour la bibliographie, il faut un retrait négatif pour les secondes lignes d’un paragraphe »). Les listes que portent les notices éditoriales sont des bibliographies — « Études sur cette traduction », cinq références chez la Bible du XIIIe siècle —, et une référence de deux lignes ne se lit que si la seconde rentre : c’est ce qui sépare deux notices à l’œil. Même mesure que toutes les bibliographies du site (§ 35.6.2), et la puce part avec le retrait : une liste à puces et une bibliographie ne sont pas la même chose.
+
+**LA CHRONOLOGIE D’UNE BIBLE SE COMPOSE COMME CELLE D’UN AUTEUR** (« ajouter une chronologie assez petite inspirée du modèle de la page auteur ; composer pour l’occasion des liens chronologiques »). ⛔ Composer une chronologie, ce n’est PAS inventer des faits datés : c’est CHOISIR et ORDONNER ce que le corpus sait déjà. On ne rattache que des événements existants, datés, sourcés et validés, et le lien porte « à contrôler » — l’interface choisit, l’auteur valide. Inventer un événement pour garnir une frise serait une décision philologique prise par une décision d’interface. ⚠️ Trois brins pour une bible : ce qui l’a FORMÉE, l’ÉDITION servie, sa RÉCEPTION, plus le CONTEXTE qui l’explique ; cinq entrées suffisent, et l’ordre est chronologique.
+
+⛔ **DEUX VUES QUI NOMMENT LA MÊME CHOSE DOIVENT SE RÉPONDRE.** La chronologie des auteurs écrit ses types d’affichage sans accents, celle des traductions écrit « édition » et « réception » avec les leurs : DEUX brins sur trois ne trouvaient donc ni couleur ni libellé, et leurs puces tombaient sur le gris de repli. La frise ne distinguait plus ce qu’elle range, et c’est pour cela que sa légende avait été éteinte sur les traductions. ⚠️ On replie la CLÉ, on ne renomme pas la donnée : la vue dit ce qu’elle dit, et le rendu s’y accorde. La légende revient avec les couleurs — trois brins ne se devinent pas plus pour une bible que pour un Père.
+
+⛔ **NI DÉGRADÉ, NI EMBLÈME, NI BOUTONS dans une petite fenêtre d’explication** (« je n’aime guère la mise en forme, surtout le dégradé ; le site n’a aucun dégradé ; fais simple, élégant, propre, proportionné »). La fenêtre du livre absent avait pris le cadre de la fenêtre « compte requis » : un bandeau teinté qui s’éteignait vers le bas, un livre fermé dessiné dans son anneau, et autant de cartouches bordés que de bibles proposées — trois ornements pour dire une phrase et nommer deux titres. Reste la composition que la fiche emploie déjà : une rubrique en capitales espacées, le nom en sérif, un filet, la phrase, puis une LISTE où chaque rangée n’est qu’un nom et sa flèche. ⚠️ Une fenêtre de la page Bible ne s’invente pas un dessin : elle prend celui de la page.
+
+⚠️ **UN NOM DE BIBLE SE COMPOSE PARTOUT DE LA MÊME FAÇON** (demande de l'auteur, 2026-09-04). « Bible française du XIIIe siècle » prend ses petites capitales et son exposant dans le menu central de la page Bible, dans la liste qu'il déploie, dans la fiche « À propos de cette traduction » et dans la référence de son édition — comme elle les prend déjà dans le menu de la Polyglotte et dans les notices d'auteur. Un titre entre astérisques y prend son italique. C'est le module partagé, et il n'y a pas deux façons d'écrire un nom selon l'écran où il paraît. ⛔ Les DATES d'un intitulé se composent AVEC lui : elles en étaient sorties, si bien que « (XIIIe siècle) » restait en chiffres ordinaires dans la fiche même de la bible qui porte ce siècle dans son nom.
+
+⛔ **DANS UNE RÉFÉRENCE BIBLIOGRAPHIQUE, ON NE COMPOSE QUE LES SIÈCLES.** Un fragment de notice porte déjà son rôle — intitulé, nom d'autorité, données —, et c'est le RÔLE qui décide de son italique et de ses petites capitales. Y ajouter la composition des astérisques poserait un italique DANS un fragment déjà italique, où il ne se verrait pas, et ferait décider par le texte ce que la donnée nomme.
+
+⚠️ **À GAUCHE CE QU'ON LIT, À DROITE CE QUI LE DOCUMENTE — et la colonne de droite va jusqu'en bas** (« peut-on envisager que “Édition et état du texte” soit sous la chronologie ? proprement ? »). La rubrique tenait toute la mesure, SOUS les deux colonnes ; or une frise de cinq entrées s'arrête à mi-hauteur d'une notice qui continue, et la fiche montrait donc un grand vide à droite avec sa rubrique reléguée dessous. Elle remplit ce vide, où elle est à sa place. ⚠️ Ses rangées y EMPILENT l'étiquette et sa valeur : une colonne d'étiquettes de 8,5 rem ne laisserait pas cent soixante-dix pixels à la valeur dans une colonne étroite. C'est la forme que la fiche d'édition emploie déjà, et c'est le MÊME composant — une rangée recopiée à deux endroits ne reste identique que par accident.
+
+⚠️ **L'INTERLIGNE D'UNE BIBLIOGRAPHIE EST SERRÉ, LE BLANC ENTRE DEUX NOTICES EST LARGE** (« réduire légèrement l'interligne ; augmenter légèrement le blanc entre deux œuvres »). Une bibliographie n'est pas de la prose : les lignes d'une même référence se lisent d'un trait, tandis que deux références sont deux objets. Le blanc doit donc être plus grand ENTRE les entrées qu'à l'intérieur de l'une d'elles — sans quoi la liste se lit comme un paragraphe, et le retrait suspendu reste seul à dire où commence la suivante. ⛔ La mesure vaut pour TOUTE la famille, l'apparat des bibles comme les listes des notices : il n'y a qu'une composition bibliographique sur le site.
+
+⛔ **LA CARTE DE TRADUCTION SE COMPOSE EN SANS** (citant la carte de Segond : « Louis Segond (1810-1885) D’après l’édition de Paris, Société biblique britannique et étrangère, 1910 // sans sérif »). Elle avait pris la SERIF du volet des œuvres, dont elle est copiée ; mais ce volet-là surmonte un texte en serif, et sa carte est de la même encre que ce qu’elle annonce. Celle-ci surmonte une LISTE DE LIVRES, qui est en sans, et le nom de la bible qui la coiffe l’est aussi : la serif y faisait deux régimes dans une carte de trois lignes. ⚠️ **Règle générale : UNE CARTE DE VOLET PREND LA POLICE DE CE QU’ELLE SURMONTE, non celle du volet dont on l’a copiée.** Que deux volets se ressemblent ne dit rien de ce qu’ils annoncent, et c’est ce qu’ils annoncent qui décide. ⚠️ La divergence avec le volet des œuvres est donc assumée : ce n’est pas la même page.
+
+### 38.5 Le RAIL d’un volet replié — un seul dessin, et il nomme l’action
+
+Demande de l’auteur du 4 septembre 2026 : « remettre en place le système permettant de fermer un volet gauche ou droite ; ajouter un titre clair sur la barre quand elle est fermée ».
+
+⚠️ **UN VOLET DE LECTURE SE FERME, ET CE QUI RESTE DE LUI EST UN RAIL** : une bande de trente pixels, un chevron en tête, et le nom de l’action écrit en hauteur, dans le sens d’un dos de livre français. Les deux volets de la page Bible — les livres à gauche, les commentaires à droite — et le volet de la Polyglotte le partagent. ⛔ Il y en avait TROIS, voisins et déjà divergents : celui de la Polyglotte portait le passage lu, celui des livres écrivait son nom de bas en haut, celui des Pères de haut en bas et deux crans plus petit. Un seul composant désormais. ⚠️ Le rail se FONCE au survol : une surface qui ne porte ni cadre ni fond propre n’a pas d’autre façon de dire qu’on peut la toucher.
+
+⚠️ **LE RAIL NOMME L’ACTION, JAMAIS LE CONTENU.** « Commentaires » écrit sur une bande fermée décrit ce qu’on ne voit pas ; « Ouvrir les commentaires » dit ce qu’un clic fera, et c’est la seule chose qu’un rail ait à dire. ⚠️ Un repère peut s’y ajouter EN SECOND, dans le sérif de lecture et sans capitales : la Polyglotte y garde le passage ouvert, que le tableau ne nomme plus une fois le volet replié.
+
+⛔ **UN RÉGLAGE DE DISPOSITION MOBILE NE DÉCIDE JAMAIS D’UN CONTRÔLE DE BUREAU**, et c’est la vraie leçon de cette reprise. Le système existait : les deux volets savaient se replier, rail compris. C’est la FLÈCHE qui les repliait qui avait disparu, gardée par une condition sur la présentation mobile — « en onglets ou en tiroir » — juste sur un téléphone, où les onglets font office de navigation, et sans objet sur un bureau. La page Bible passant « onglets » en toutes circonstances, le bureau perdait un contrôle pour une raison qui ne le regardait pas, et rien dans le rendu ne le montrait. **Une condition d’affichage nomme d’abord la surface qu’elle vise.**
+
+⛔ **UN CONTRÔLE DE VOLET NE DÉPEND NI DE L’ONGLET QU’ON REGARDE, NI DE SA PLACE.** La flèche vivait dans la rangée du champ de recherche ; sous l’onglet « Sommaire » ce champ n’a pas d’objet — il cherche des LIVRES — et la rangée disparaissait avec lui, emportant le seul moyen de fermer le volet. Elle paraît désormais tant qu’elle porte la flèche, réduite alors au fer à droite. ⚠️ Et elle se pose EN TÊTE, sous les onglets : rendue après une liste qui prend toute la hauteur restante, elle tombait à deux mille pixels de l’endroit où elle se trouve sous l’autre onglet, et un contrôle qui change de bout d’écran ne s’apprend jamais.
+
+⛔ **UN CONTRÔLE NE SE RANGE PAS DANS UN OBJET QUI EN PORTE DÉJÀ.** La flèche qui replie le volet de gauche vivait au bout du CHAMP DE RECHERCHE, et l'auteur l'a cherchée sans la voir : à cet endroit, un chevron de quatorze pixels se lit comme une marque du champ — une croix d'effacement, une loupe —, non comme un contrôle du volet. Elle se pose dans le COIN INTÉRIEUR du volet, au bout de la ligne du nom, là où celui de la Polyglotte se tient depuis toujours et où le volet de droite porte le sien : le nom à gauche, le repli à sa droite, et il pointe vers le bord où le volet va se ranger. ⚠️ Il ne se confond pas avec la flèche qui annonce une fiche : celle-là suit le TEXTE, à l'intérieur du lien ; celui-ci se tient au BORD de la carte.
+
+⚠️ **ET UN CONTRÔLE DE QUATORZE PIXELS NE PREND PAS L'ENCRE LA PLUS TÉNUE DE L'ÉCHELLE.** Un rang au-dessus, et l'accent au survol, qui dit qu'on peut le toucher. ⛔ La couleur se déclare dans la FEUILLE : posée en style en ligne, elle battrait la règle de survol — le piège est payé quatre fois dans ce dépôt.
+
+⛔ **UNE RUBRIQUE NE REDIT PAS CE QUE LA FICHE PORTE EN TÊTE.** « Responsable de l'édition » quitte « Édition et état du texte » (« fait un peu tache ; supprimer ») : il portait le plus souvent le nom déjà écrit deux centimètres plus haut — « Louis-Claude Fillion ; édition numérique : Corpus Scriptura » sous « Traduction de Louis-Claude Fillion ». ⚠️ Le champ reste LU : il nomme le responsable d'une ÉDITION CRITIQUE dans l'intitulé qui suit le nom, là où il apprend quelque chose.
+
+⚠️ **LE RAIL CENTRE SON TEXTE, ET SON CHEVRON RESTE EN TÊTE** (« centrer verticalement le texte ; réduire un peu la taille de police »). Un rail fait toute la hauteur de la lecture : le libellé posé sous le chevron pendait en haut d’une bande de huit cents pixels, quand un dos de livre porte son titre au milieu. ⛔ Le chevron, lui, ne descend pas avec lui — il est là où l’œil arrive, et c’est la cible qu’on vise, non le mot. ⚠️ Le groupe se centre d’un BLOC, le libellé et le repère ensemble : les centrer chacun pour soi détacherait le passage lu du nom qu’il accompagne.
+
+⚠️ **Et son texte descend d’un rang** — le libellé de onze pixels à dix et demi, le repère de onze et demi à onze. Sur une bande de trente pixels de large, un texte plus menu se lit encore et pèse moins : la contrainte n’est pas la lisibilité mais l’encombrement, un rail devant se faire oublier tant qu’on ne le cherche pas.
+
+### 38.6 La COULEUR d’un corpus se prend là où le lecteur l’a déjà vue
+
+Demande de l’auteur du 4 septembre 2026 : « dans la barre de recherche, recherche, résultats qui s’affichent, etc., utiliser plutôt le maroquin de la page d’accueil pour les résultats liés à la patristique ».
+
+⛔ **UNE MATIÈRE NE SE NOMME PAS DE DEUX FAÇONS SELON L’ÉCRAN.** Les Pères portaient un POURPRE DE RUBRIQUE dans la recherche et un MAROQUIN sur la page d’accueil, dont le carton est une reliure rouge depuis le 31 août. Chacune des deux teintes se défendait pour elle-même, et c’est le piège : le lecteur, lui, n’a pas deux Patristiques. La couleur d’un corpus se prend donc là où il l’a déjà rencontrée, et l’accueil est la première page de toutes. ⚠️ Le pourpre n’était pas faux — il tenait ses écarts et sa lisibilité ; il n’était simplement nulle part ailleurs sur le site.
+
+⚠️ **Une teinte reprise garde son RANG là où elle peut, et le change là où elle doit.** L’aplat de la rubrique prend la teinte du carton telle quelle : c’est le même office, un fond coloré qui porte un texte clair. L’ENCRE du Cuir ne le peut pas, les deux teintes du carton y étant sombres quand il faut là une encre CLAIRE ; c’est alors le même maroquin monté au rang d’encre, teinte tenue. ⛔ Ce qui se transpose est la TEINTE, jamais la valeur.
+
+⚠️ **Et la reprise se paie en profondeur, ce qui est assumé.** Le maroquin est plus sombre que le vert de l’Écriture et que l’or de la Communauté — L* 23,6 contre 41,3 et 41,9 — si bien que la bande des Pères se lit plus sombre que les deux autres. C’est le caractère d’un maroquin, non un écart à corriger : sur l’accueil, les cartons de la Bible et des Pères sont tous deux à cette profondeur, « maroquin vert et maroquin rouge, les deux reliures d’un même ensemble ». ⛔ L’éclaircir pour l’aligner sur ses sœurs, ce serait le reprendre à l’accueil, qui est justement d’où il vient.
+
+⚠️ **Les deux exemplaires restent LITTÉRAUX, et se renvoient l’un à l’autre.** Le carton est une gamme DESSINÉE, le jeton une teinte de RÔLE, et la charte les tient séparés depuis le jour où des jetons d’encre ont fait s’inverser les cartons en Cuir. Chacun porte donc sa valeur en clair, et un renvoi vers l’autre : reteinter le carton sans reteinter les jetons ferait dire deux choses au même corpus.
+
+### 38.7 Une page de lecture s’ouvre sur un TEXTE, et elle s’y ouvre en fondu
+
+Deux demandes de l’auteur du 4 septembre 2026 : « supprimer le dessin et afficher soit le dernier emplacement de lecture de l’utilisateur — il faut donc l’enregistrer — soit la Genèse » ; « à l’ouverture de la page, que ce soit en Polyglotte ou en Classique, faire un affichage plus doux que le texte qui apparaît brutalement ».
+
+⛔ **UNE PAGE DE LECTURE NE S’OUVRE PAS SUR UN ÉCRAN D’ATTENTE.** La Polyglotte montrait la tour de Babel ruinée et l’invite « Ouvrez un livre » tant qu’aucun livre n’était choisi : une gravure pour tout contenu, et un geste à faire avant de lire quoi que ce soit. Elle s’ouvre désormais sur un texte, toujours — le dernier passage lu, à défaut celui de la Bible classique, à défaut la Genèse. ⚠️ La gravure ne disparaît pas du dépôt : elle passe en RÉSERVE, où l’inventaire des illustrations la garde avec son histoire.
+
+⚠️ **LE LECTEUR N’A QU’UNE LECTURE EN COURS, MÊME S’IL LA MÈNE SUR DEUX PAGES.** La Polyglotte retient sa propre place, mais sa PREMIÈRE visite s’ouvre là où la Bible classique en était : ouvrir sur un livre choisi pour lui quand on sait où il lisait serait le renvoyer au commencement. La Genèse ne sert que le tout premier passage. ⛔ Et l’on ne retient JAMAIS « le livre entier » : c’est un geste explicite et coûteux — les Psaumes entiers sur quatre colonnes — et une ouverture de page doit être brève ; un livre entier laissé à la dernière visite rouvre à son premier chapitre.
+
+⛔ **DEUX PAGES S’OUVRENT EN FONDU, ET PAS PAR LE MÊME CHEMIN : C’EST LA PROVENANCE DU TEXTE QUI DÉCIDE.** Le texte de la Bible classique est rendu par le SERVEUR, donc peint avant même que la page s’anime : son fondu se déclare dans le rendu — le HTML servi le porte — et joue dès la première peinture. ⚠️ Poser ce fondu après coup ferait DISPARAÎTRE un texte déjà lisible pour le ramener, c’est-à-dire pire que le défaut qu’on corrige. Le texte de la Polyglotte, lui, vient du NAVIGATEUR : rien n’est à l’écran avant lui, et c’est l’arrivée déjà en place qui se joue — la première n’avait simplement pas de départ pour l’appeler.
+
+⚠️ **L’ouverture n’est pas ÉCHELONNÉE, à la différence d’une arrivée**, et ce n’est pas un choix de goût : le rang d’un bloc se mesure dans le navigateur, ce qui est trop tard pour une page dont le serveur a déjà peint le texte. La colonne entière paraît d’un seul fondu. ⛔ Et ce fondu ne porte QUE l’opacité, quand celui d’une arrivée translate de six pixels : une transformation ferait de la colonne le bloc conteneur des cellules d’actions posées en position fixe.
+
+⚠️ **Une place retenue se relit dans UN SEUL module.** Les deux clés vivaient à la main dans les pages qui les écrivent et dans celles qui les lisent ; le cœur en est désormais pur et prouvé sans navigateur, et le contrôle du livre demandé se fait contre la liste RÉELLEMENT servie — un code retenu de longue date peut avoir disparu du canon offert, et la page doit ouvrir tout de même.
+
+### 38.8 Le volet patristique se lit EN FRANÇAIS, et d’un trait
+
+Cinq demandes de l’auteur du 4 septembre 2026, au soir.
+
+⚠️ **LE FRANÇAIS OUVRE TOUTE LECTURE EN REGARD** (« sur le Français – Ancien français : le français doit toujours être à gauche »). La règle valait pour Fillion depuis le 20 août ; elle vaut pour toute famille éditoriale. ⛔ C’est une DONNÉE — l’ordre des membres —, jamais une constante du code, et les deux ordres étant sous contrainte d’unicité, l’échange passe par un rang temporaire.
+
+⛔ **LA GOUTTIÈRE D’UN VERSET NE PORTE QUE SA RÉFÉRENCE** (« je trouve “ACT 1,22” comme référence biblique : c’est une erreur ; on indique seulement “1, 22”, avec l’espace et sans le nom abrégé du livre »). La page dit déjà quel livre on lit, en titre et dans le volet. ⚠️ Le code venait d’un REPLI, non d’une donnée voulue : la référence seule vit dans une métadonnée que 28 656 segments portent, et les 18 197 autres retombaient sur le LIBELLÉ humain du segment, qui porte son livre. On corrige à l’affichage ; la donnée reste ce qu’elle est.
+
+⚠️ **UN EXTRAIT PATRISTIQUE COMMENCE PAR UNE CAPITALE**, à l’affichage seul (« toute référence patristique citée dans le volet de droite doit comporter une majuscule en début de phrase »). Un extrait commence là où le lien le prend, c’est-à-dire souvent au milieu d’une phrase de l’édition, et il se lit alors comme une phrase amputée. ⛔ La capitalisation ne change JAMAIS la longueur du texte : les appels de note s’y posent par offset.
+
+⛔ **ON NE SERT PAS DU LATIN À QUI VIENT LIRE LES PÈRES EN FRANÇAIS** (« dans le volet de droite, toujours afficher une traduction française, la plus récente »). Un lien biblique désigne parfois un texte en langue originale — 2 468 segments liés sur 39 823, six œuvres, toutes pourvues d’un français public et d’un alignement qui l’y relie. ⛔ Re-pointer les liens serait le remède le plus simple et le plus faux : le lien a été établi sur le LATIN. La correspondance se fait à l’affichage, par les tables d’alignement, qui sont faites pour cela.
+
+⛔ **ET LA CARDINALITÉ DU GROUPE DÉCIDE, car on n’invente aucune correspondance.** L’alignement est au PARAGRAPHE et rarement un pour un : mesuré, La Cité de Dieu compte 1 039 groupes dont 802 aux effectifs inégaux, 4,8 latins pour 6,0 français en moyenne et 22 au plus. À effectifs ÉGAUX, le nième latin répond au nième français et la contrepartie est un seul paragraphe ; à effectifs INÉGAUX, on rend TOUT l’empan français du groupe. ⚠️ Choisir le premier, ou le nième « à peu près », donnerait un passage que le lien ne désigne pas : une erreur de philologie présentée comme une citation, ce qui est pire qu’un latin qu’on ne lit pas. ⚠️ Le prix est visible et assumé : un empan inégal peut faire une occurrence de plusieurs milliers de signes là où les autres en font trois cents.
+
+⚠️ **LES CITATIONS D’UNE MÊME ŒUVRE SE RÉUNISSENT, L’ÉLISION MARQUÉE D’UN « […] »** (« regrouper les citations d’une même œuvre patristique — seulement, non biblique — comme c’est déjà le cas pour les segments qui se suivent ; il faut remplacer l’élision par un « […] » et que l’élision soit de taille raisonnable, disons au maximum 500 caractères »). ⛔ **On ne réunit que ce qu’on peut MESURER** : un écart se juge en signes élidés, non en nombre de segments — une édition en découpe un en dix, une autre en fait un seul —, il faut donc connaître le texte élidé, c’est-à-dire l’avoir lu. Un écart dont un seul segment manque à l’appel ne se réunit pas : un « […] » qui cacherait une quantité inconnue ne dit rien au lecteur.
+
+⛔ **ET L’ON NE RÉUNIT QUE DANS UN MÊME TEXTE, non dans une même œuvre.** Une œuvre en porte plusieurs — La Cité de Dieu son latin et son français, tous deux liés à des versets — et leurs numéros de segment se recouvrent : le regroupement collait un paragraphe latin à un paragraphe français dès que leurs numéros se suivaient, et le défaut était là depuis l’origine du regroupement. ⚠️ Rien de tout cela ne concerne les VERSETS bibliques : une suite de versets se réunit déjà, et par une tout autre règle — elle garde ses bornes, et une élision y ferait disparaître un verset sans le dire.
+
+### 38.9 Le DOMINO de l’ouverture, et les BLANCS de la justification
+
+Quatre demandes de l’auteur du 4 septembre 2026, sur la Polyglotte.
+
+⚠️ **À L’OUVERTURE, LE TEXTE TOMBE EN DOMINO** — colonne par colonne, de gauche à droite (« peut-on imaginer que le texte s’affiche progressivement, colonne par colonne, pour donner un effet de domino ? ça peut être joli, mais il faut que ce soit rapide »). C’est le dispositif d’arrivée déjà en place, dont le rang se prend sur la COLONNE au lieu de la hauteur. ⚠️ Le pas DOUBLE : cinq colonnes au pas ordinaire se joueraient en cent vingt millisecondes, et la chute ne se verrait pas. ⛔ Et cela À L’OUVERTURE SEULEMENT : la même chute jouée à chaque chapitre tourné cesserait d’être un accueil pour devenir une attente ; les arrivées suivantes gardent la chute ligne par ligne, qui suit la lecture.
+
+⛔ **UN CLIC QUI NE FAIT RIEN DE PLUS QUE LE SURVOL EST UN CLIC PERDU** (« quand je clique sur le nom d’une traduction qui a un menu déroulant secondaire, ne pas bloquer le clic : afficher la première traduction du menu déroulant »). Cliquer une édition à plusieurs textes ne faisait que déployer le volet, que le survol déployait déjà. Le clic choisit désormais le PREMIER texte, celui que le volet met en tête, et le volet reste ouvert pour en prendre un autre. ⚠️ Le clavier suit le clic : Entrée et Espace choisissent, la flèche déploie — un clavier qui n’aurait plus que le déploiement n’atteindrait jamais le premier texte.
+
+⛔ **LE FLOTTANT QUI OUVRE UN VERSET NE PREND PAS SUR LE TEXTE** (« affiner encore la densité du texte, les césures, renvois, pour éviter les blancs ignobles et contre-natures entre mots »). Mesuré sur la page servie : la lettrine de référence valait 28,8 pixels et sa marge 8, soit 12 % de la mesure — et sur soixante-sept blancs de plus de trois espaces, SOIXANTE étaient sur la ligne qu’elle rétrécit. ⚠️ **La cause d’un blanc ignoble n’est presque jamais la césure : c’est une ligne trop courte.** Une marge gauche négative range le flottant dans le rembourrage de la cellule, qui perd d’autant : le texte retrouve sa mesure pleine dès la première ligne, et le repère reste où l’œil le cherche.
+
+⛔ **RECTIFICATION DU MÊME JOUR, ET ELLE PORTE SUR LES DEUX MOITIÉS DE CETTE RÈGLE** (relevé de l’auteur le soir même : « la référence canonique dans la cellule de chaque verset, celle qui est grise, doit être alignée en marge gauche avec le texte contenu dans la même cellule »). Le flottant est rendu au **FER DU TEXTE**. Mesuré sur la page servie, la marge négative le posait à **−10,00 px** du fer, sur les quarante-huit cellules relevées et sans une exception : chaque verset ouvrait donc sur un repère en saillie, et le bord gauche de la colonne était ragué d’un bout à l’autre.
+
+⛔ **ET LE GAIN N’EN ÉTAIT PAS UN**, mesuré avant et après sur la même page : le plus grand blanc passe de **5,47 à 4,86** espaces naturelles, le neuvième décile de 2,78 à 2,66, et les blancs de plus du triple de **147 à 123**. Rendre le fer au texte n’aggrave pas la justification, il l’améliore d’un cheveu. ⚠️ **Ce qui coûte à la justification est la LARGEUR d’un flottant, non sa POSITION** : la première ligne perd les mêmes pixels de mesure quel que soit le côté où on le range. C’est un RAISONNEMENT, non une mesure, qui avait conclu l’inverse le matin — *une règle tirée d’un raisonnement se vérifie avant d’être écrite, et celle-ci n’aura vécu qu’une matinée.*
+
+⛔ **UN VOILE D’ATTENTE COUVRE TOUT CE QUI ATTEND, EN-TÊTE COMPRIS** (même relevé : « quand on charge un texte, le fond change légèrement de couleur ; c’est ok, mais il faut aussi qu’il change au niveau des en-têtes de colonne »). Il ne couvrait que le corps du tableau : la teinte s’arrêtait net sous le filet, et la bande qui porte le nom des éditions — c’est-à-dire ce qu’on vient précisément de changer — restait la seule chose qui ne bougeait pas. La page se donnait comme à moitié en attente.
+
+⚠️ **C’EST LE BLOC POSITIONNÉ QUI DÉCIDE DE CE QU’UN VOILE COUVRE**, puisqu’un voile s’étend à son parent positionné et à rien d’autre. Le remonter d’un cran suffit, et le corps garde le sien, dont dépendent les cellules d’actions. ⚠️ Un en-tête COLLANT porte un rang d’empilement : le voile monte plus haut que lui et le recouvre donc, à l’arrêt comme au défilement — sans lui prendre ses événements de pointeur, car on doit pouvoir changer une colonne pendant qu’une autre charge. ⛔ Et l’ANNEAU ne bouge pas d’un pixel : il vit dans un enfant collant sous l’en-tête, dont la boîte est bornée par la hauteur restante, que le voile plus haut ne change pas.
+
+⛔ **ET UNE ESPACE ÉTROITE AGGRAVE LA JUSTIFICATION AU LIEU DE LA SERVIR.** La justification ajoute le MÊME blanc absolu quelle que soit l’espace de départ : resserrer l’espace naturelle ne resserre donc que les lignes déjà justes, et rend l’écart plus criant partout ailleurs. ⚠️ C’est le contraire de ce qu’on croit en la resserrant pour gagner en densité. Mesuré : l’espace remontée d’un demi-cran, le plus grand blanc d’une page passe de 7,5 à 5,6 fois l’espace naturelle, et les blancs de plus du double tombent d’un quart. ⛔ La densité n’y perd rien, le flottant rendu au texte raccourcissant la page d’autant.
+
+⚠️ **Ce qui a été mesuré et ÉCARTÉ, pour n’y pas revenir.** « text-wrap: pretty » fait PIRE sur du texte justifié — le plus grand blanc y triple. Un plafond de césure plus permissif (« hyphenate-limit-chars ») ne change rien du tout. Et une césure française posée à la main sur les mots longs ne gagne presque rien : le dictionnaire du navigateur fait déjà le travail — sans lui, les blancs de plus du double augmentent de moitié —, et ce qui reste est fait de NOMS PROPRES, qu’aucune règle ne coupe sans risque. ⛔ Un blanc résiduel dans une colonne étroite n’est pas un défaut de réglage : c’est le prix d’une colonne étroite justifiée, et l’on ne le paie pas en inventant des coupures.
+
+### 38.10 La lecture EN REGARD — la référence des deux côtés, le verset cliquable
+
+Cinq demandes de l’auteur du 4 septembre 2026, sur la page « Bible classique ».
+
+⚠️ **LA RÉFÉRENCE PARAÎT DES DEUX CÔTÉS** (« la référence biblique doit apparaître des deux côtés : français, et ancien français »). Une édition ne dit sa numérotation PROPRE que lorsqu’elle DIFFÈRE du canon : la colonne qui n’en a pas portait donc une gouttière vide, et le lecteur n’avait de numéro que d’un bord. Elle retombe sur la référence canonique, « 3, 1 », composée comme la native — chiffres arabes, espace après la virgule, jamais le code du livre. ⛔ Ce repli ne prétend pas être une numérotation d’édition : il dit le CRÉNEAU, c’est-à-dire ce que les deux colonnes ont en commun.
+
+⛔ **CLIQUER UN VERSET OUVRE SON APPARAT, ET LA CIBLE EST LA RANGÉE** (« permettre de cliquer sur un verset pour afficher les liens patristiques, sur l’AF et le Français »). Les deux colonnes d’une rangée sont le MÊME verset canonique, et le volet de droite se charge sur ce créneau : il n’y a rien à départager entre elles, et cliquer l’une ou l’autre ouvre le même apparat. ⚠️ Une rangée dont une colonne est vide se clique aussi — l’apparat tient au créneau, non à ce que telle édition en porte. ⚠️ Un second clic relâche, et les teintes sont celles de la lecture simple, pour que le geste se reconnaisse d’une lecture à l’autre. ⛔ Aucun comptage de lecture ici : les lignes d’une segmentation éditoriale ne visent pas la table des versets, et la lecture simple s’en abstient déjà pour elles. ⚠️ L’appel de note, lui, arrête le clic : ouvrir une note ne sélectionne pas le verset qui la porte.
+
+⛔ **UNE MARQUE POSÉE SUR UNE RANGÉE NE DÉPLACE RIEN.** Le fond du survol déborde de quelques pixels sur les côtés, et ce débord se prend en marge NÉGATIVE : pris en rembourrage, il rétrécirait les colonnes, et le fer du texte des versets cesserait de répondre à celui de l’appareil, que la feuille déduit des mêmes mesures. ⚠️ Et il se déclare dans la FEUILLE, jamais en style en ligne — une déclaration en ligne bat toute règle de feuille sans passe-droit, et c’est ainsi qu’un survol meurt sans que rien ne le dise.
+
+⛔ **UNE ÉLISION QUI SUIT UNE PONCTUATION FORTE OUVRE UNE PHRASE** (« à l’affichage, afficher une majuscule après une élision précédée par une ponctuation forte »). Ce qu’on élide entre deux phrases, ce sont des phrases entières : la suivante commence donc comme une phrase, et prend la capitale. ⛔ Rien ne change après un deux-points, un point-virgule ou une virgule, où la phrase n’était pas finie. ⚠️ Le guillemet et la parenthèse fermants ne rompent pas la ponctuation forte : « Il le dit. » finit bien une phrase. ⚠️ C’est la règle de l’initiale d’un extrait, et la même main : elle ne change jamais la longueur du texte, les appels de note s’y posant par décompte de signes.
+
+⛔ **UN ÉTAT QU’ON TRAVERSE NE SE COMPOSE PAS COMME UNE PAGE DE TITRE** (« ouvrir Bible classique soit sur la Genèse, soit sur le dernier livre ouvert par l’utilisateur ; supprimer le dessin »). La barre rouvre désormais la Bible où l’on en était — le dernier livre lu, la Genèse à la première visite — et la gravure des ruines quitte l’écran qui dit qu’une traduction ne comporte pas le livre demandé. Elle y disait bien ce qu’il fallait ; mais l’écran se rencontre plus souvent depuis que la barre rouvre un livre qui n’est pas toujours dans la bible qu’on retrouve, et une planche de soixante pour cent de la hauteur y devient une cérémonie pour un passage. La mention seule reste. ⛔ Et la planche passe en RÉSERVE dans l’inventaire des illustrations : une gravure qu’on cesse de poser se déclasse, elle ne s’oublie pas.
+
+⛔ **LES RÉFÉRENCES DU PASSAGE QU’ON QUITTE S’EFFACENT AUSSITÔT** (« quand je change de segment, au moment du chargement, supprimer immédiatement, de façon smooth, les références déjà affichées ; afficher un petit symbole de chargement »). Le volet gardait la liste précédente sous un mot « Chargement… » : on lisait donc, une seconde durant, l’apparat d’un verset qu’on venait de quitter, et rien ne disait que ce n’était plus le bon. ⚠️ La PLACE, elle, reste : retirer la liste du flux ferait sauter le volet au clic, puis sauter de nouveau à l’arrivée. ⚠️ Et la marque d’attente ne se pose que là où l’on attend vraiment — le volet de la page Bible va chercher ses liens, celui d’une page d’œuvre les a reçus avec sa tranche de texte et ne montre qu’un fondu.
+
+### 38.11 Le CHAPITRE vient de l’ossature, et la COLONNE se charge seule
+
+Huit points de l’auteur du 4 septembre 2026, sur la Bible polyglotte.
+
+⛔ **LE NOMBRE DE CHAPITRES VIENT DE L’OSSATURE, jamais d’une table écrite à la main** (« le Siracide ne contient qu’un chapitre ; c’est normal ? »). Elle ne portait que les soixante-six livres protocanoniques, et tout deutérocanonique y retombait sur UN chapitre : le Siracide en a cinquante et un, la Sagesse dix-neuf, les deux livres des Maccabées seize et quinze, Tobie quatorze, Judith seize, Baruch six — quelque vingt-deux mille versets que le volet n’offrait pas d’ouvrir, sur les DEUX pages de lecture. ⚠️ Et elle avait déjà DÉRIVÉ sur ce qu’elle prétendait couvrir : Joël y valait trois chapitres pour quatre, Daniel quatorze pour douze. Elle existait en TROIS exemplaires. C’est la règle déjà payée sur les natures de segment et sur le sommaire d’une œuvre, prise par un troisième bout : **une liste recopiée finit toujours par coûter du texte au lecteur.**
+
+⛔ **UN LIVRE QU’ON NE PEUT PAS OUVRIR NE SE LISTE PAS** (« j’ai un Esther (grec) qui s’affiche dans le sommaire : ça doit disparaître »). Le tableau se compose sur les créneaux canoniques : un livre que l’ossature ne porte pas s’ouvre donc sur une page vide, et l’offrir est un cul-de-sac. ⚠️ La règle vaut pour tous, non pour celui qu’on a nommé : la Lettre de Jérémie et les douze écrits non canoniques encore à charger s’en vont avec lui, et leur rubrique disparaît faute d’entrées. ⛔ Le raisonnement d’avant — « ce sont de vraies œuvres à charger, gardons-leur leur place » — est abandonné : une promesse qui ne s’ouvre pas se lit comme une panne.
+
+⛔ **CHANGER UNE COLONNE NE RECHARGE PAS LA TABLE** (« quand je change de traduction sur une colonne, il ne faut pas tout recharger ; seulement le texte de cette colonne »). L’attente était GLOBALE : elle voilait le tableau entier et rejouait le passage, quand les autres colonnes n’avaient pas bougé et que leur texte était déjà en mémoire. Mêmes livres et même chapitre : la table ne bouge plus, et seule la colonne neuve dit qu’elle arrive. ⚠️ Elle le DIT, au lieu de se donner pour absente : « Absent de cette traduction » sur une colonne qui charge est un mensonge d’une seconde, et c’est celui que le lecteur retient.
+
+⛔ **UNE MARQUE D’ATTENTE SE CENTRE SUR LA PART VISIBLE DE SON BLOC**, et cette part ne commence pas toujours sous la barre de navigation : la Polyglotte pose au-dessus de son tableau un en-tête collant de soixante-douze pixels, sous lequel rien ne se lit. Mesuré sur la page servie, l’anneau tombait trente-six pixels à côté du centre. ⚠️ La LARGEUR n’a jamais demandé de réglage : le voile couvre son bloc, et l’anneau s’y centre. ⚠️ Et le bloc garde la hauteur du tableau tant que rien n’est chargé, sans quoi l’anneau se centrerait dans une bande de douze rem posée en haut d’un écran vide.
+
+⚠️ **Les marges d’une colonne s’ouvrent, l’interligne se resserre** (« augmenter légèrement les marges, y compris pour le numéro de référence non canonique » ; « resserrer très très légèrement l’interligne »). Gouttière de dix à treize pixels, blanc de sept-huit à huit-neuf, interligne de 1,36 à 1,34. ⛔ Et le numéro d’origine reprend trois pixels contre la réglure, qu’il TOUCHAIT : sa marge négative valait exactement la gouttière. Les trois mesures sont nommées une fois et se répondent — elles s’étaient déjà désaccordées.
+
+⛔ **UN CURSEUR QUI PROMET UNE EXPLICATION DOIT EN AVOIR UNE** (« au survol de "Absent de cette traduction" j’ai un curseur avec un point d’interrogation, mais aucun texte ne s’affiche ; ça n’a donc aucun sens »). L’infobulle disait « cette traduction ne porte pas ce verset », c’est-à-dire la mention elle-même en d’autres mots. La mention se suffit : c’est ce pour quoi elle a été écrite, et le curseur s’en va. ⚠️ Là où l’infobulle dit vraiment quelque chose de plus — pourquoi une case deutérocanonique est vide —, les deux restent.
+
+### 38.12 Un état qui ne VARIE pas n’informe pas, et ce qui est PRÉREMPLI est figé
+
+Trois points de l’auteur du 4 septembre 2026, sur l’onglet « Catalogue des traductions ».
+
+⛔ **UN ÉTAT QUI NE VARIE PAS N’INFORME PAS : ON LE RETIRE.** La mention « ✦ Référence en cours de vérification » paraissait sur **2 488 notices sur 2 499** — les onze autres seules disaient autre chose, et le troisième état, « Non vérifié », n’existait sur aucune. Elle ne distinguait donc rien, et jetait sur tout le catalogue un doute qu’aucune de ces références ne méritait. ⚠️ La tentation est de la RAFFINER — un degré de vérification plus fin, un statut d’import — et l’auteur l’a écartée : « rien de spécial ; en fait, il faut tout bonnement supprimer ». Une ligne qui dit la même chose partout coûte de la place et de l’attention sans rien rendre ; on la retire plutôt que de la farder. ⛔ Et les colonnes qui la servaient cessent d’être demandées : un champ que rien ne lit finit par contredire ce qu’on affiche.
+
+⛔ **UNE ABRÉVIATION QU’IL FAUT SURVOLER POUR LA COMPRENDRE N’EST PAS UNE ÉCONOMIE.** « DP » tenait deux signes et demandait un geste, et son infobulle ne faisait que développer le sigle : deux gestes pour deux mots. « Domaine public » s’écrit en toutes lettres, sans infobulle et sans curseur d’aide. ⚠️ C’est la même règle que celle de la case vide de la Polyglotte, prise par l’autre bout : là on retirait une infobulle qui ne disait rien de plus que le texte ; ici on écrit le texte pour n’avoir plus besoin d’infobulle.
+
+⛔ **CE QUI EST PRÉREMPLI EST FIGÉ.** Une proposition d’œuvre lancée depuis une notice du catalogue en porte l’auteur et le titre : ils SONT la notice, et les laisser modifiables laissait partir une proposition qui ne désignait plus la ligne qu’on avait sous les yeux — l’équipe éditoriale recevait une œuvre sans savoir d’où elle venait. ⚠️ Le verrou se déduit de ce qui a été PASSÉ, non d’un drapeau : le formulaire ouvert seul, qui ne préremplit rien, reste entièrement libre. ⛔ Un champ figé n’est ni grisé ni « en lecture seule » : c’est une VALEUR qu’on montre, non une saisie qu’on refuse, et elle se compose comme une valeur — dans le cadre du champ, pour que la colonne garde son aplomb. ⚠️ Et l’on dit UNE fois pourquoi ces cases ne s’ouvrent pas : un champ figé sans un mot se lit comme un champ en panne.
+
+### 38.13 Les deux SÉRIES du Budé — l’hommage est discret par sa TAILLE, non par sa pâleur
+
+Demande de l’auteur du 4 septembre 2026 : « pour rendre hommage discrètement aux Budé, mettre le petit encart contenant les initiales de l’auteur en couleurs ; en rouge pour les latins, en jaune pour les grecs ; s’inspirer des couleurs Budé et adapter à l’harmonie du site ». La Collection des Universités de France relie ses volumes grecs en jaune safran et ses latins en rouge : sur un rayon, la série se lit avant le titre.
+
+⛔ **L’HOMMAGE EST DISCRET PAR SA TAILLE, NON PAR SA PÂLEUR.** Un premier jeu de teintes lavées a été mesuré puis écarté : ΔE 9,7 entre les deux séries, et 5,0 entre le rouge et la case NEUTRE — on ne les aurait distinguées ni l’une de l’autre, ni d’une case sans couleur. Or ce qui fait le Budé, c’est justement qu’on reconnaît la série de loin. Les teintes sont donc franches, et c’est le CARRÉ qui est petit : quarante-quatre pixels dans une carte de trois cent cinquante. ⚠️ La règle vaut au delà de ce cas : *délaver une couleur pour la rendre discrète, c’est lui retirer ce qu’on lui demandait de dire.*
+
+⛔ **ET CE NE SONT PAS DES COULEURS DE PLUS DANS LA PALETTE.** Elles tombent sur les axes que le site a déjà : le rouge est à 37° de teinte, entre le danger confirmé (31°) et le danger (48°), et sa chroma est celle du premier ; le safran est à 81°, la teinte de la lacune (82°) et de l’or (83°), monté en clarté et en chroma jusqu’au rang d’un aplat. Mesuré : ΔE 51,8 entre les deux séries, 72,9 et 61,6 avec la case neutre — on ne les confond avec rien.
+
+⛔ **CE SONT DES JETONS À ELLES, non deux jetons de rôle réemployés.** Une série de collection n’est ni un danger ni un apparat, et un jeton de RÔLE prêté à une CATÉGORIE finit par changer sous elle le jour où le rôle bouge. ⚠️ En Cuir, elles GARDENT leur teinte — ce sont des catégories encodées par la couleur, comme la frise de l’histoire et les catégories de modération, et les rabattre au monochrome effacerait ce qu’elles disent. Elles s’y RELISENT pourtant : le rouge descend d’un cran, le safran de sept, le second étant seul à risquer l’éclat sur une page sombre.
+
+⛔ **LÀ OÙ LA COLLECTION SE TAIT, LA CASE SE TAIT.** Le Budé ne connaît que ces deux séries : le syriaque, l’arménien, l’arabe et le copte gardent la teinte neutre du site. ⚠️ Et un corpus que les DEUX séries se disputent n’en reçoit aucune — les Actes des martyrs anciens portent quinze notices latines et seize grecques, les Apophtegmes deux et trois : les colorer serait mentir. Une langue TIERCE, elle, ne conteste rien : un auteur latin dont une œuvre n’est conservée qu’en syriaque reste de la série latine. Mesuré sur les 417 auteurs du catalogue : 196 latins, 154 grecs, 5 partagés, 62 d’une autre langue ou sans langue.
+
+⚠️ **La langue se prend sur la PREMIÈRE nommée**, le champ étant du texte libre qui porte souvent une chaîne de transmission : « grec ; version latine de Rufin », « grec perdu ; version syriaque conservée ». L’original ouvre la phrase, et c’est lui qui décide — une œuvre grecque conservée en latin reste grecque. ⛔ On ne cherche pas la langue ailleurs que dans la tête : « ancien français » ne doit pas devenir du latin parce que le mot y paraîtrait plus loin.
+
+⚠️ **Une information portée par la seule COULEUR n’est lisible que de qui connaît le code** : la case porte donc aussi son mot, « Œuvres en latin », « Œuvres en grec ». Ce n’est pas l’infobulle en l’air du § 38.12 : celle-ci dit ce que la couleur seule ne peut pas dire.
+
+⛔ **ET LA TROISIÈME CASE N’EST PAS UN GRIS VIDE — c’est un VÉLIN** (demande de l’auteur, le jour même : « j’aimerais au moins des tons un peu plus nobles, plutôt que ce gris vide »). Le volume broché posé entre deux reliures : là où la collection se tait, la case ne prétend rien, mais elle le dit comme une DÉCISION et non comme une donnée manquante. ⚠️ Et le gris n’était pas seulement vide : mesuré, les initiales n’y rendaient que **2,25** de contraste au Clair et 4,09 en Cuir, pour 4,5 exigés à cette taille — le gris de bordure portait l’encre la plus ténue de l’échelle, et cela depuis toujours. Le défaut est antérieur à la couleur des séries ; il se voyait d’autant plus depuis qu’il voisinait deux cases lisibles. 7,12 et 6,70 désormais.
+
+⛔ **ET SURTOUT PAS LE VERT**, essayé et écarté. Le jeton de l’Écriture vaut EXACTEMENT la teinte du vert du site : deux choses différentes auraient été vertes sur le même site, et un carré vert aurait dit « biblique » devant un Père syriaque. Le vert est en outre l’ACCENT, celui qui signifie « actif, c’est ici » : l’exception aurait crié plus fort que la règle. ⚠️ Et un vert PÂLE, pour éviter cela, retombait dans le piège des teintes lavées — ΔE 5,5 de l’ancien gris, on ne l’aurait pas vu.
+
+⚠️ **LE VÉLIN SE DISTINGUE DES DEUX SÉRIES PAR LA CHROMA, NON PAR LA TEINTE** : 15,3 contre 53,8 et 60,9. Une MATIÈRE, non une couleur — et c’est ce qui l’empêche de se lire comme une troisième série, alors même qu’il partage l’axe chaud du safran (84° contre 81°). ⛔ La règle vaut au delà de ce cas : *quand on veut marquer sans classer, on baisse la chroma, jamais la lisibilité.* Mesuré : ΔE 25,8 de la carte, contre 8,8 pour l’ancien gris, qui s’y noyait.
+
+### 38.14 Une RÉFÉRENCE emprunte le strut de son texte, et un FILTRE qui ne compte pas ne sert à rien
+
+⛔ **CE QUI ALIGNE UNE RÉFÉRENCE SUR SA LIGNE DE TEXTE, C'EST UN RAPPORT, NON UN NOMBRE** (relevé de l'auteur, 2026-09-04 : « aligner la référence en marge de gauche avec le texte »). Mesuré sur la Polyglotte servie : la référence canonique en marge ET le numéro d'origine en lettrine tombaient tous deux **2,40 px au-dessus** de la ligne de base du verset. La règle est qu'une référence EMPRUNTE le strut de la cellule qu'elle accompagne — même police, même corps, même interligne, même blanc du haut —, et que son numéro se compose en plus petit DANS cette boîte : un enfant en ligne plus petit se pose sur la ligne de base du strut sans la déplacer. Les deux écarts tombent à 0,00.
+
+⚠️ **LA POLICE COMPTE AUTANT QUE LE CORPS.** L'ascendante d'une sans n'est pas celle d'une sérif : c'est ce qui restait de travers — huit dixièmes de pixel — quand le corps, l'interligne et le rembourrage s'accordaient déjà. Le strut se prend donc dans la police du TEXTE, et la police du numéro ne vit que sur l'enfant qui le porte.
+
+⛔ **ET UN RÉGLAGE EN PIXELS NE PEUT PAS COMPENSER UNE DIFFÉRENCE MESURÉE EN REM.** L'ancien dispositif était un interligne absolu et un rembourrage calibrés une fois au navigateur, avec le tableau des écarts consigné en commentaire. Il n'était juste qu'à une SEULE taille de police racine — le site en a une fluide, de 16 à 22 — et il s'est déréglé le jour même où le blanc de la cellule est passé de 7 à 8 px et l'interligne de 1,36 à 1,34. ⚠️ Le commentaire disait pourtant « à remesurer si l'un des deux corps ou l'interligne change » : *une consigne de remesure est le signe qu'on a posé un nombre là où il fallait poser un rapport.*
+
+⚠️ **UN BLANC DE LISTE SE MESURE DANS L'ENCRE, NON DANS LES BOÎTES** (relevé de l'auteur sur la Bibliothèque : « je devine un déséquilibre ; éloigner un peu la première ligne du titre, et rapprocher les lignes entre elles »). En marges, les trois écarts valaient un pixel et paraissaient égaux ; d'encre à encre, il y avait **4,0 px entre le titre et sa première édition et 8,7 px entre deux éditions** — les sœurs s'écartaient deux fois plus qu'elles ne s'écartaient de leur propre titre, et la liste ne se lisait pas comme un bloc. Les libellés étant plus petits que leur ligne, le demi-interligne ajoute près de deux pixels qu'un calcul en marges ne voit pas. ⛔ Le blanc d'après-titre et le blanc d'entre lignes sont donc DEUX mesures, non une.
+
+⛔ **UN FILTRE DIT CE QU'IL AJOUTERAIT, ou il ne sert à rien.** Chaque pastille porte le nombre d'auteurs qu'elle rendrait, compté sur la recherche et tous les AUTRES filtres, jamais le sien : c'est ainsi qu'une facette dit ce qu'elle ajoute, et non ce qui reste une fois qu'elle a agi. ⚠️ Et une facette qui ne rendrait RIEN ne se montre pas — sauf si elle est active : *on ne cache jamais un filtre qui agit*, sans quoi le lecteur ne saurait plus pourquoi sa liste est courte. ⛔ La période, seule des trois facettes, ne se dérivait pas des données : ses cinq empans s'affichaient toujours, et l'on pouvait cliquer un siècle que la bibliothèque ne porte pas.
+
+⛔ **ET UNE FACETTE N'A PAS BESOIN D'UNE COULEUR À ELLE.** Les trois axes portaient trois teintes — brun, bleu, vert —, ce qui faisait de la couleur une décoration : la rubrique au-dessus de chaque rang dit déjà de quel axe il s'agit. Le bleu était en outre la seule teinte froide de l'écran, hors de la bande du Cuir. ⚠️ Ce n'est pas contraire au § 38.13 : là, la couleur EST l'information — elle dit la série d'une œuvre, que rien d'autre ne dit ; ici, elle répétait une étiquette déjà écrite.
+
+⚠️ **Les espaces fines : rien à faire, et c'est mesuré.** Le tableau porte bien l'insécable pleine chasse devant le deux-points et la fine insécable devant le point-virgule — relevé sur un chapitre servi : 21 U+00A0 et 18 U+202F —, et Source Serif les rend à leur juste chasse, 2,04 px contre 4,06 pour une espace ordinaire, soit 14,6 % du cadratin contre 29,1. Elles ne tombent donc ni à la lecture ni à l'affichage.
+
+### 38.15 Une FICHE dit ce que le LECTEUR peut en faire, jamais ce que l’ATELIER en sait
+
+Quatre demandes de l’auteur du 2026-09-04, sur la fiche « En savoir plus sur cette traduction ». Elles disent toutes la même chose par quatre bouts : **une fiche publique n’est pas un carnet de travail**, et ce qu’un lecteur ne peut pas employer ne doit pas lui être montré.
+
+⛔ **UN ÉTAT DE TRAVAIL N’EST PAS UN RENSEIGNEMENT** (« VérificationContrôle en cours // ne pas afficher »). La rangée disait « Contrôle en cours » sur **six bibles sur neuf**, et il fallait cliquer un mot souligné de pointillés pour apprendre ce qu’elle recouvrait : « Corpus intégralement aligné ; collation imprimée à poursuivre ». C’est l’état de NOTRE travail, pas une propriété du texte qu’on lit. ⚠️ Conséquence assumée : `statut_corpus_public` et `lacunes_publiques` ne paraissent désormais NULLE PART sur le site. Le seul de leurs contenus qui soit un fait de lecteur — l’Ecclésiaste absent de la Septante — a été porté dans la notice de l’édition, où il ouvre le propos.
+
+⛔ **UN RENVOI À UN ARTICLE NUMÉROTÉ N’EST PAS UNE EXPLICATION** (« Conditions d’utilisation, § 6 // supprimer »). Il envoyait chercher ailleurs ce que les deux paragraphes venaient de dire en clair, et il le disait dans la langue d’un acte. La page des conditions reste au pied du site, où on la cherche quand on la cherche.
+
+⛔ **UNE ADRESSE, UN OBJET** (« Source numériqueeBible.org / BibleNLP corpus (fra-fraLSG) · Voir la source // remettre en forme pour faire au plus clair »). La rangée en alignait trois pour une seule adresse : le nom, un point médian, et un lien dont le libellé — « Voir la source » — redisait l’étiquette de sa propre rangée. On hésitait donc sur ce qu’on cliquait. **Le nom EST la source : il mène à elle**, et rien ne l’accompagne. ⚠️ Le nom se rend toujours, lien ou pas : un composant qui ne rend rien sur une adresse malformée emporterait le nom avec elle.
+
+⛔ **UNE NOTICE NE NOMME AUCUN OBJET DE LA BASE.** Celle de la Segond disait : « Numérotation hébraïque/protestante (alignée sur versets_canon via ch_heb/v_heb) […] Texte aligné verset par verset sur le vref eBible. » Trois noms d’objets internes en deux phrases, dans une fiche que le lecteur ouvre pour savoir quelle Bible il lit. Partent avec eux : la balise `<i>` de la Sacy, et les « 75 codes techniques dans la base » de la Crampon.
+
+⛔ **ET ELLE NE PORTE PAS DE JOURNAL DE TRAVAIL.** La Vulgate publiait ses comptes d’alignement — « 36 004 lignes ; 35 721 rattachées à l’ossature ; […] 36 004 alignements vérifiés » —, la Septante une décision datée avec son motif juridique et son renvoi à la charte, plus deux voies de rattrapage. Ce sont des pièces d’atelier ; elles se tiennent à l’atelier.
+
+⚠️ **HIÉRARCHISER, C’EST METTRE EN TÊTE CE QUI SERT LE LECTEUR.** La notice de la Septante ouvrait sur son format d’import — « un mot par ligne dans la source, réassemblé au verset » — et gardait pour la fin, après un tiret cadratin, la seule chose qui change sa lecture : **l’Ecclésiaste manque**. Elle ouvre maintenant dessus. L’ordre d’une notice suit l’importance, jamais l’ordre où l’import a rencontré les faits.
+
+⛔ **CE QU’UNE RANGÉE DIT DÉJÀ NE SE REDIT PAS.** La Segond annonçait sa numérotation hébraïque dans sa notice, deux centimètres sous la rangée « Numérotation — Hébraïque ». Une notice ne porte que ce qui n’a pas de rangée à soi. C’est la règle du complément de titre (§ 3.8) transposée à une fiche.
+
+⚠️ **RIEN DU FOND N’EST PERDU, et c’est la condition.** Chaque fait éditorial est conservé : les deux recensions de Daniel, Suzanne et Bel, la lacune de l’Ecclésiaste et son motif, les italiques de la Sacy relevées sur le fac-similé, les deux cent quatre-vingt-trois lignes de la Vulgate hors du découpage canonique, les suscriptions de la Crampon comptées comme premier verset. On a réécrit la formulation, jamais le fond. Mesuré : la Septante passe de 897 à 519 signes, la Segond de 198 à 159, la Vulgate de 399 à 379 ; la Sacy MONTE de 208 à 320, parce qu’expliquer une italique coûte plus de mots que de nommer une balise.
+
+⚠️ **UNE PROSE NE SE COMPOSE PAS COMME UNE ÉTIQUETTE.** « Particularités » porte quatre phrases dans une rangée dessinée pour un mot : la valeur y prend l’interligne et la césure d’un paragraphe, non celui d’une étiquette de 0,5 rem. ⛔ Sans justification : la colonne fait environ 314 px, soit quarante-cinq signes par ligne, et le justifié y creuse les blancs que le § 38.9 apprend à fermer.
+
+⚠️ **ET LA NORME FRANÇAISE SE POSE AU RENDU, ici comme partout** (§ 3.2). Mesuré le même jour : les cinq notices bibliques ne portaient QUE des espaces ordinaires (U+0020), guillemets et deux-points compris — la fiche les servait telles quelles, faute de passer par la normalisation. Les champs de prose y passent désormais. ⛔ On n’écrit donc pas de fine dans la donnée : elle resterait la seule table du site à en porter.
+
+### 38.16 Un CHOIX ne s’offre que s’il en est UN
+
+Relevé de l’auteur sur le volet de la page Œuvre, 2026-09-04 : « Éditions de ce texte : je constate pas mal de problèmes. Souvent, on a deux fois la même édition qui s’affiche, le texte latin ou d’origine n’est pas sous la bonne édition, etc. Fais un audit. Je veux que ce choix s’affiche seulement si on a le choix entre deux éditions différentes pour une même langue. »
+
+⛔ **DEUX MENUS POUR UNE SEULE QUESTION EN FONT UN DE TROP.** Le volet en portait deux, avec deux intitulés et deux règles : « Édition » listait les ŒUVRES SŒURS — des lignes d’`oeuvres` au même titre normalisé —, « Éditions de ce texte » les TEXTES de l’œuvre courante. Le lecteur, lui, ne choisit pas entre deux sortes d’identifiants : il choisit une édition. Ils n’en font plus qu’un. ⚠️ Et celui des œuvres sœurs ne s’était **jamais ouvert** : aucune œuvre publiée ne partage son titre normalisé avec une autre, la seule paire — La Cité de Dieu et son latin de Migne — ayant été dépubliée le 2026-08-26. *Un menu qu’on n’a jamais vu s’ouvrir n’est pas une réserve pour plus tard : c’est une seconde règle qui attend de contredire la première.*
+
+⛔ **UN INSTANTANÉ DE TRAVAIL N’EST PAS UNE ÉDITION.** `oeuvre_textes` garde les états d’avant une reprise — `TXT_A0010O0100_FR_1866_JOYEUX_PRE_RESEG_20260903` à côté de `TXT_A0010O0100_LEGACY`, même traducteur, même millésime, même mention d’édition. Ils portent `is_public = false`, et le menu les offrait pourtant : la politique de lecture de la table dit `is_admin() OR (is_public AND …)`. ⚠️ **Le défaut était donc invisible depuis un compte de lecteur, et visible depuis le seul compte qui regarde la page tous les jours.** C’est la forme la plus coûteuse d’un défaut : celui que le propriétaire du site est seul à voir, et qu’il finit par prendre pour l’état normal des choses.
+
+⚠️ **CE QU’ON LIT PARAÎT TOUJOURS, fût-il à l’atelier.** Un menu qui tairait la ligne courante mentirait sur l’endroit où l’on se trouve. C’est déjà la règle du menu des bibles, où le catalogue ne liste que les bibles lisibles mais liste toujours celle qu’on lit.
+
+⛔ **DEUX EXEMPLAIRES D’UNE MÊME ÉDITION SE FONDENT EN UN.** Ce qui identifie une édition est le TRADUCTEUR, le MILLÉSIME et la MENTION D’ÉDITION — jamais l’identifiant du texte. Deux lignes qui ne diffèrent que par lui sont deux exemplaires d’une seule édition, et le lecteur qui les voit côte à côte n’a aucun moyen de choisir. Les Homélies sur l’Hexaéméron portent ainsi **deux fois le même Migne 1857** en grec. ⚠️ L’exemplaire retenu est celui qu’on LIT, sinon celui qui fait défaut, sinon celui qui est publié.
+
+⛔ **ET LE TRI SE FAIT SUR LA LANGUE, non sur l’original.** La règle d’avant comparait « ceci EST le texte original » à « je LIS le texte original », ce qui n’est pas la même question : un texte sans traducteur dans une langue tierce tombait du mauvais côté. La langue vient du TEXTE qu’on lit, et d’abord de lui ; ⚠️ une version qui n’en déclare aucune ne se range sous aucune, et le menu se tait plutôt que de deviner.
+
+⚠️ **APRÈS QUOI UNE SEULE ŒUVRE DU CORPUS OFFRE ENCORE CE CHOIX** : la Consolation de la philosophie, en français, entre Ceriziers 1646 et Mirandol 1861. C’est le résultat attendu et non un effet de bord — le site n’a qu’un texte par langue partout ailleurs. *Un menu qui ne paraît presque jamais n’est pas un menu inutile : c’est un menu qui dit la vérité sur ce que le corpus contient.*
+
+⛔ **UN MÊME GESTE SE PRÉSENTE DE LA MÊME FAÇON DES DEUX CÔTÉS DU SITE** (même relevé : « mettre à jour la mise en forme de Lecture et Éditions de ce texte pour correspondre à la mise en forme qu’on trouve dans Bible classique »). Choisir comment on lit ce qu’on a sous les yeux est le même geste sur la Bible et sur une œuvre : il prend donc la même rubrique en casse ordinaire et la même option par ligne, sur la pastille verte de la liste. La page Œuvre portait encore l’étiquette en capitales espacées et les boutons encadrés d’un filet, c’est-à-dire la forme d’avant la décision du 28 août 2026, restée là parce qu’elle vivait dans un autre fichier. ⚠️ Il n’y a plus qu’une seule définition, et les deux jetons de l’ancienne sont retirés : une forme qu’on garde « au cas où » est une divergence qui attend.
+
+⚠️ **Un seul écart demeure, et il est motivé** : la page Œuvre garde son témoin d’attente au bout de chaque ligne de « Lecture ». « Latin » y vise une AUTRE adresse, donc un rendu serveur entier, quand les axes de la Bible se règlent le plus souvent sur place.
+
+⛔ **UNE LIGNE DE MENU RÉPOND À UNE SEULE QUESTION** — quelle édition je lis —, et rien d’autre (relevé de l’auteur, le soir même : « ne pas afficher les dates de vie et de mort de l’auteur dans l’onglet de choix de la traduction dans le volet gauche »). « Traduction par René de Ceriziers (1603–1662), 1646 » portait DEUX empans de dates sur la même ligne, dont l’un ne dit rien de l’édition, et l’œil hésitait sur ce que le millésime désignait. ⚠️ **La fiche « À propos de cette édition » est l’endroit d’une notice ; un volet de lecture est l’endroit d’un choix.** Ce qui documente une édition et ce qui la désigne ne se composent pas au même endroit, et la même ligne ne peut pas faire les deux.
+
+⚠️ **La donnée reste en base**, et c’est l’AFFICHAGE qui s’en passe : les dates vivent dans `metadata`, portées par les deux seuls textes du corpus à les avoir. ⛔ Mais la fonction qui les lisait est retirée, et la donnée a quitté la SIGNATURE du libellé — *une signature qui ne reçoit plus ce qu’elle ne doit plus afficher est une garde plus sûre qu’un test*, et une fonction que plus rien n’appelle est une seconde vérité qui attend.
+
+### 38.17 Une NOTIFICATION est une lettre, et un BLOC ne se pose pas dans un BLOC
+
+Cinq relevés de l’auteur sur le volet des notifications, 2026-09-04 : « ne pas faire un bloc dans un bloc ; utiliser tout l’espace disponible » ; « se passer du bandeau vert sur le côté gauche » ; « chaque ligne a un niveau de hiérarchie, ça brouille tout : simplifier » ; « un message de validation doit être vert ; un message de refus doit être rouge (maroquin ?) ; un message basique reste grisâtre » ; « pas de "archiver" ; au survol, s’affiche "archiver" ».
+
+⛔ **UN BLOC NE SE POSE PAS DANS UN BLOC.** Chaque notification était une CARTE — fond propre, filet, coins arrondis, rembourrage — posée dans un volet qui a déjà tout cela. Deux cadres emboîtés, et une gouttière perdue de chaque côté pour un volet de 26 rem : le texte y perdait le sixième de sa mesure sans rien y gagner. ⚠️ **Une liste dans un cadre se compose en RANGÉES**, pleine largeur, séparées d’un filet, et son rembourrage est celui de l’en-tête du cadre — sans quoi les fers ne tombent pas au même endroit. ⛔ Et pas de bandeau au flanc : il disait « nouvelle », ce que l’onglet dit déjà, et il rentrait le texte de trois pixels de plus.
+
+⛔ **UNE NOTIFICATION PORTE QUATRE CHOSES : expéditeur, objet, message, date**, et un lien au bas. C’est le modèle de la LETTRE, et il suffit. Elle en portait SIX, sur six rangs typographiques — un titre en capitales vertes, l’objet en sérif, la date, un « À propos : … » en italique, une ligne « Message de X », le corps. ⚠️ **Trois de ces six disaient la même chose sous trois formes** : « Publication acceptée », puis « Votre publication a été acceptée et publiée. », et le titre du document ailleurs. *Un rang de plus n’ajoute pas un renseignement : il ajoute une hésitation sur l’ordre de lecture.*
+
+⛔ **LE CORPS EST VIDE QUAND L’OBJET DIT TOUT.** Une phrase par défaut qui paraphrase l’objet est pire qu’une ligne absente : elle occupe le rang où l’on cherche ce que la modération a réellement écrit. Le message ne paraît donc que s’il porte des mots de quelqu’un.
+
+⛔ **LE TON EST UNE COULEUR, non un titre.** Vert pour une validation, l’encre du danger confirmé pour un refus, gris pour le reste : la couleur dit en un coup d’œil ce que six mots en capitales disaient à la ligne au-dessus. ⚠️ **Elle ne colore QUE l’objet** — un rang coloré parmi trois se lit ; trois rangs colorés ne se lisent plus. ⚠️ Et « à revoir » se range avec les REFUS : la publication n’a pas été acceptée en l’état, et le lecteur a quelque chose à faire.
+
+⛔ **LE MAROQUIN NE SERT PAS AU REFUS, et la question méritait d’être tranchée.** Il est `--cs-peres` : il DIT un domaine du corpus, sur la page de recherche comme sur le carton de l’accueil, et le prêter à un rôle d’interface le ferait dire deux choses. C’est `--cs-danger-fonce` qui convient, l’encre du danger CONFIRMÉ, déjà transposée dans les deux thèmes. *Une teinte qui encode une catégorie ne se prête pas à un rôle, et l’inverse est déjà écrit au § « Palette ».*
+
+⛔ **UNE ACTION QUI NE VIENT QU’AU SURVOL EST HORS D’ATTEINTE.** « Archiver » ne paraît plus qu’au survol, comme demandé — mais aussi au FOYER et sur un écran TACTILE, où rien ne se survole. C’est la règle déjà payée sur la gouttière d’actions des prélèvements. ⚠️ Et il garde sa PLACE quand il ne se voit pas — opacité, non `display` — sans quoi la ligne se recomposerait sous le curseur au moment même où on le vise.
+
+⚠️ **Un lien ne s’écrit que s’il mène quelque part.** « Aller au commentaire » se composait depuis toujours et ne paraissait jamais : la notification ne portait pas d’adresse. Elle la tire maintenant de `id_verset`, ⛔ sans traduction imposée — la page biblique choisit alors celle du lecteur, et il retrouve son verset dans SA bible.
+
+### Règle d’autorité et de journalisation de la charte
+
+`parametres.charte_ia` est l’unique version normative de la charte. Le fichier `charte/CHARTE_IA.md` n’est qu’un miroir régénéré depuis cette source et ne se modifie jamais directement. Le centre de contrôle (`controle_sections`) n’est pas une seconde charte : `commentaire_ia` conserve la synthèse globale actuelle de la section et `todos` le journal des missions. Une évolution de protocole est écrite dans `parametres.charte_ia`, puis son effet de chantier est consigné dans la mission concernée lorsque cela est utile ; on n’injecte jamais le texte intégral de la charte dans le centre de contrôle. Une divergence entre la charte normative et son miroir de dépôt se résout par régénération du miroir depuis Supabase, jamais par une seconde édition concurrente.
+
+### 38.18 La recherche de PÉRICOPES se limite au titre, aux appellations et à la référence
+
+Demande de l’auteur, le 4 septembre 2026 : « limiter la recherche dans les péricopes au titre, appellations, références ». Trois choses sont nommées ; la barre de recherche en servait deux, et mal.
+
+⛔ **Une RESSEMBLANCE n’est ni un titre, ni une appellation, ni une référence.** La recherche retenait un nom dès que sa parenté de trigrammes atteignait 0,22 — 0,30 sous quatre signes —, c’est-à-dire sur une proximité de lettres, sans qu’un seul mot cherché y figure. Mesuré sur vingt termes courants, quatre-vingt-deux résultats : cinq ne portaient pas le terme, et ils se glissaient sous les vrais sans que rien ne dise pourquoi ils étaient là. « Noces » rendait « Nativité », par « Noël », et « Le Déluge », par « Noé » ; « brebis perdue » rendait « La drachme perdue » et « Pais mes brebis » ; « samaritaine » rendait « Le bon Samaritain ». Après correction : aucun sur soixante-dix-sept.
+
+⚠️ **La ressemblance survit en SECOURS, et là seulement.** Elle rattrape une faute de frappe — « nocse de cana » retrouve les Noces de Cana, « multiplicaton des pains » la multiplication des pains —, ce que personne n’a demandé de retirer. Elle ne s’exécute que si la recherche stricte ne rend RIEN : tant qu’un seul nom porte le terme, elle est éteinte, et la largeur qu’on lui reproche n’existe plus. *Une voie de secours ne se juge pas sur ce qu’elle rend, mais sur le moment où elle s’ouvre.*
+
+⛔ **Ce qu’une consigne ÉNUMÈRE, on le sert en entier.** La référence était le seul des trois termes que la barre ne servait pas du tout : « Mt 5 » n’y trouvait aucune péricope, quand le catalogue le sert depuis toujours. La consigne dit « limiter », et l’on a donc aussi ajouté — parce qu’une des trois choses nommées manquait. Les deux surfaces de recherche disent enfin la même chose du même corpus.
+
+⛔ **Le code d’un livre se comprend CÔTÉ SITE, jamais en SQL.** La table des noms et des abréviations bibliques vit dans un seul module, et la base ne reçoit qu’un code de livre et deux nombres. Une seconde liste écrite en SQL divergerait au premier livre ajouté.
+
+⛔ **Un NOM DE LIVRE SEUL n’est pas une référence.** « Matthieu » n’ouvre pas la voie de la référence : une référence est chiffrée. Le catalogue, qui a la place de les montrer, réunit le livre et les titres qui portent le mot ; une barre de recherche n’a que huit rangs, où les cinquante-deux péricopes de Matthieu chasseraient tout le reste.
+
+⚠️ **Ce qui n’a pas bougé, et pourquoi.** Les huit usages de nom du corpus — titre principal, descriptif, équivalent, référence, paraphrase, élargi, populaire inexact, contextuel — restent tous cherchés. Un nom masqué sert à TROUVER une péricope sans jamais s’afficher à sa place : c’est la règle déjà écrite ailleurs (« baleine » mène à « Jonas et le grand poisson », jamais à « Jonas dans la baleine »), et la restreindre reviendrait à retirer au lecteur les mots par lesquels il cherche vraiment.
+
+### 38.19 La page des RÉSULTATS — le volet, le mot trouvé, la Polyglotte
+
+⛔ **Le dernier volet du site prend la forme des autres.** Il portait ses rubriques en capitales espacées, son mode de recherche dans un contrôle segmenté encadré d’un filet, son champ dans une boîte à rayon et à ombre, et ses deux menus dans des cadres : autant d’objets encadrés dans le seul volet du site qui n’avait pas été repris. Il prend la forme des volets de lecture — rubrique en casse ordinaire, une option par ligne sur pastille verte, champ sans cadre, menu dépouillé. ⚠️ Les deux axes qui portent NEUF bibles gardent un menu : neuf lignes ne se posent pas dans un volet, et la règle de l’option par ligne n’a jamais visé que des axes de deux ou trois états.
+
+⚠️ **Une page de résultats a un TITRE, elle aussi.** Celle-ci n’avait aucun titre de niveau 1 : son nom était une étiquette de trois quarts de rem, plus pâle et plus petite que la première rubrique en dessous.
+
+⛔ **Le mot trouvé se marque par la GRAISSE, et par rien d’autre** (« ne pas surligner en jaune les termes trouvés ; le gras suffit »). Le jaune était la troisième teinte à occuper cette place : un vert l’avait précédé, retiré parce qu’il disait « Bible » au milieu d’un résultat patristique. Le raisonnement qui l’avait posé distinguait les deux surfaces — dans une liste déroulante on sait ce qu’on vient de taper, sur une page de prose on cherche le mot des yeux —, et il était juste pour la liste et faux pour la page : sur un paragraphe qui porte le mot cinq fois, cinq pastilles à rayon et à rembourrage font que le texte cesse de se lire comme un texte. La graisse, sur une encre d’un rang plus profonde, le détache sans le peindre. ⚠️ La balise reste : elle DIT que le mot répond à la recherche, ce qu’aucune graisse ne dit à qui n’y voit pas ; c’est sa peinture, que le navigateur pose en jaune par défaut, qu’il faut éteindre.
+
+⛔ **Deux surfaces qui portent les MÊMES noms de classe doivent porter la même composition.** La Polyglotte de la page des résultats annonçait dans son commentaire des classes « reprises telles quelles de la page de lecture ». Elles ne l’étaient plus : sans de douze pixels contre une sérif de quatorze, référence canonique enfermée dans une colonne bordée et centrée au lieu d’accompagner le verset en marge, numéro d’édition centré dans son étui au lieu de se poser sur la ligne de base du texte, et trois teintes écrites à la main là où la page de lecture emploie des jetons. La composition vit désormais dans la feuille commune : une déclaration, deux surfaces, et chaque page n’ajoute que ce qui lui appartient — ses filets, et le fond d’un verset dont la traduction affichée ne porte pas le mot.
+
+⚠️ **Un commentaire qui promet une identité ne la maintient pas.** C’est la troisième fois que le dépôt paie cette leçon, après les deux copies de la forme des volets et les trois surligneurs de la barre de recherche. Une forme recopiée ne reste identique que par accident, et le commentaire qui l’affirme vieillit plus vite que le code qu’il décrit.
 
 
-## Césures de mots entre unités source — règle normative
+### 38.20 Un mode qu’on n’emploiera jamais se RETIRE, il ne se répare pas
 
-Une césure typographique/OCR située à la frontière de deux unités source ne doit jamais être absorbée artificiellement par une seule unité de lecture. Les deux fragments lexicaux restent rattachés à leurs unités source respectives et sont réunis au rendu par `join_before = ''`. Le trait de césure de fin de ligne/page est un signe matériel du témoin : il n’entre pas dans le mot normalisé. Les guillemets de continuation ajoutés par l’OCR ou par la mise en page ne sont pas réinjectés s’ils ne correspondent pas à un nouveau guillemet sémantique. Avant toute correction, contrôler les deux unités voisines ; ne jamais reconstruire un mot à partir d’une seule unité si le second fragment appartient à la suivante. Exemples validés : `représente-` + `t-il` → `représente-t-il` ; `mou-` + `vements` → `mouvements` ; `si-` + `gnalé` → `signalé`.
+Décision de l’auteur, le 5 septembre 2026 : « à l’échelle, on pourra jamais l’utiliser ; supprime ça ». La frise de l’histoire de l’Église avait deux dispositions — la liste, et une frise « à l’échelle » où chaque famille tenait une colonne, chaque événement une barre proportionnelle à sa durée, le tout posé sur un axe temporel réel. Elle n’en a plus qu’une.
+
+⛔ **Trois partis avaient été mis devant l’auteur la veille**, après mesure : la barre seule avec l’intitulé au survol, les couloirs plafonnés, ou le retrait du mode. C’est le troisième qui est arbitré, et c’est le seul qui referme la question au lieu de la déplacer. *Un écran qu’on garde en se promettant de le régler un jour est une dette qui ne se voit pas dans un compte.*
+
+⚠️ **Ce que la mesure avait déjà dit.** La frise partait en largeur pour des raisons qui ne devaient rien à la chronologie : un bloc réserve la hauteur de son TEXTE, si bien qu’une famille dense ouvre autant de couloirs qu’elle a d’événements dont les intitulés se chevauchent. Ce sont les titres qui décidaient de la largeur, non la simultanéité — et c’est pour cela qu’aucun réglage de l’axe n’aurait suffi.
+
+⛔ **Et la donnée ne portait pas non plus ce que la barre promettait.** Mesuré le 5 septembre 2026 sur les 1 170 repères de la frise : tous portent une date de fin, mais **456 seulement — 39 % — couvrent un empan réel** ; les 714 autres sont des points, où la fin égale le début. Près de deux repères sur trois se rendaient donc par une barre de hauteur minimale, c’est-à-dire par une barre qui ne dit rien. ⚠️ Le fait est consigné parce qu’il resservira : le jour où l’on reproposera une vue chronologique — ici ou ailleurs —, c’est par lui qu’il faudra commencer.
+
+⚠️ **Une première rédaction de cette note affirmait que la date de fin était “le plus souvent absente”.** Elle ne l’est jamais : la colonne est renseignée sur les 1 170 repères. Le raisonnement était juste — un repère sans durée n’a rien à mettre à l’échelle — et le fait invoqué était faux. C’est la règle du § 38.9 prise par un autre bout : **une règle tirée d’un raisonnement se vérifie avant d’être écrite**, et un commentaire de code n’en est pas dispensé.
 
 
-### Transposition de lignes dans une transcription OCR source
-Lorsqu’une unité source OCR contient des lignes ou fragments matériellement transposés, on ne force jamais des offsets continus contre cet ordre corrompu. Les segments concernés restent sans bornes jusqu’à correction de la transcription diplomatique à partir du fac-similé. Une transcription secondaire peut corroborer l’ordre attendu, mais ne remplace pas le fac-similé lorsqu’il faut réécrire la couche source. La réserve doit être documentée au niveau de l’unité et chiffrée au centre de contrôle.
+### 38.21 La LACUNE du témoin garde ses CROCHETS, et les met en forme
 
-### Règle — transposition de lignes OCR et provenance
-Lorsqu’une unité OCR présente des lignes ou fragments matériellement transposés, ne jamais fabriquer des offsets discontinus ni forcer un alignement sur le texte éditorial. Revenir au fac-similé, corriger d’abord l’unité source dans l’ordre attesté, documenter la correction, puis seulement recalculer les offsets des segments. La source corrigée devient la base de provenance ; le texte de lecture n’est pas réécrit s’il était déjà conforme au fac-similé.
+Demande de l’auteur, 2026-09-05 : « les “lacunes” doivent être mises en forme : corps légèrement plus petit, léger espace avant et après les crochets, ocre ou maroquin ». Elles s’imprimaient BRUTES dans la traduction moderne de la Bible du XIIIᵉ siècle, où la donnée écrit « […] » quarante-six fois et « [lacune : motif] » neuf fois.
+
+⛔ **Le manque se dit ENTRE CROCHETS**, dans les DEUX membres de l’édition. C’est le signe que la philologie donne depuis toujours à ce qu’un témoin a perdu, et c’est celui que la donnée écrit déjà ; les chevrons « ⟨ Lacune ⟩ » de la colonne du manuscrit y reviennent, de sorte que le même fait se dise du même signe des deux côtés d’une seule édition. Le motif exact — déchirure, fin du manuscrit — reste à l’infobulle, jamais à l’écran.
+
+**La forme** : un cran sous le texte qui l’entoure (0,85 em), l’OCRE des absences, et un léger air de part et d’autre. ⚠️ **Cet air est une MARGE, non une espace du texte.** Une espace serait une occasion de couper la ligne entre le crochet et le mot qui le précède, et elle s’emporterait en copiant le verset ; la marque se garde d’ailleurs d’un seul tenant. ⚠️ La FINE insécable demeure, et pour son seul office : quand la lacune coupe un MOT (« por[…]er »), elle sépare la marque du fragment resté collé, sans l’attacher ni le détacher comme un mot entier.
+
+⛔ **UNE TRADUCTION NON RECOMPOSÉE NE PASSE PAS PAR LE TOKENISEUR DU TÉMOIN.** Celui-ci tolère un crochet fermant orphelin, parce que la recomposition par créneau canonique coupe un marqueur en deux ; la traduction moderne, elle, porte QUATRE-VINGT-CINQ RESTITUTIONS entre crochets (« il [m’exauça] »), qui sont l’usage philologique et doivent s’imprimer telles quelles. Le tokeniseur y verrait autant de fermetures et griserait tout ce qui les précède. On ne reconnaît donc, dans un texte non recomposé, que la LACUNE, et par PAIRES COMPLÈTES.
+
+⚠️ **Le crochet fermant d’une lacune nue n’est pas une fermeture orpheline**, et c’est le défaut que la mise en forme a fait paraître : un verset qui s’ouvre sur « […] » basculait TOUT ENTIER en lecture incertaine. Le début d’un verset se juge donc sur le premier TOKEN, jamais sur la première occurrence d’un crochet.
+
+⚠️ **RESTE À TRANCHER, et c’est une affaire de DONNÉE.** Six cent cinquante-deux versets de cette traduction portent « [lecture incertaine : … ] » et s’impriment bruts, avec une douzaine d’étiquettes de plus que le vocabulaire du témoin ne connaît pas — « lecture difficile », « Fragment », « Suite incertaine », « Suite corrompue », « Restitution incertaine », « Passage altéré », « reprise ». Les rendre demande de savoir les distinguer d’une restitution, ce qui ne se devine pas ; et soixante versets y portent des crochets déséquilibrés, donc des marqueurs à cheval. ⛔ Rien n’a été fait de ce côté sans arbitrage.
+
+### 38.22 Le panneau de FILTRES — la rubrique en marge, et un filtre qui agit se MONTRE
+
+Demande de l’auteur, 2026-09-05 : revoir les filtres de la bibliothèque, en termes esthétiques et pratiques.
+
+⛔ **UNE RUBRIQUE DE FACETTE SE POSE EN MARGE, ELLE NE COIFFE PAS SON RANG.** Les trois rubriques se posaient en bannière CENTRÉE au-dessus de leurs pastilles : trois titres empilés faisaient du panneau une page de titre à trois titres, et chacun coûtait une ligne entière pour un mot de neuf pixels. ⛔ Et les pastilles centrées n’offraient AUCUN BORD GAUCHE où l’œil revienne — cinq larges, deux étroites, sept larges, chaque rang ragué des deux côtés. La rubrique passe donc au fer à droite d’une colonne étroite, les pastilles au fer à gauche, et le panneau perd deux cinquièmes de sa hauteur sans rien retrancher.
+
+⚠️ **Elle se pose sur la LIGNE DE BASE de la première pastille, jamais sur le milieu de sa boîte** : deux corps différents centrés l’un sur l’autre font flotter le plus petit au-dessus de la ligne de l’autre. C’est la grille qui l’aligne, sans un pixel écrit — la règle est déjà celle du lien de la carte de traduction (§ 38.5).
+
+⛔ **UN FILTRE QUI AGIT SE MONTRE.** Refermer le panneau ne laissait qu’une pastille de compte sur le bouton : on savait qu’il agissait deux filtres, jamais LESQUELS, et « Effacer » devenait hors d’atteinte. Les filtres retenus se rappellent donc sous la barre de recherche, chacun retirable d’un clic. C’est la même règle qui garde déjà visible, dans le panneau, une facette active qui ne rendrait rien : *on ne cache jamais un filtre qui agit, sans quoi le lecteur ne sait plus pourquoi sa liste est courte.* ⚠️ Ce rappel ne se double pas du panneau OUVERT, qui montre déjà les mêmes pastilles à l’état actif.
+
+⛔ **ET LE BOUTON CESSE DE COMPTER CE QUE LES JETONS NOMMENT** : « ❷ » se lisait à quarante pixels des deux jetons, soit deux comptes de la même chose sur une seule ligne, dont l’un ne dit pas lesquels. Ce que le bouton doit encore porter — qu’un filtre agit — son encre et son filet le disent.
+
+**La page ne disait nulle part combien d’auteurs répondent** : seul le pied « Page 1 sur 3 » le laissait deviner, et le total ne se lisait qu’en tournant les pages jusqu’au bout. Une ligne discrète le dit dès qu’une recherche ou un filtre restreint la liste — « Trois auteurs sur quinze » —, et elle donne le total au passage. ⛔ Elle ne paraît PAS quand rien ne restreint : un compte qui ne bouge jamais n’est pas une information (§ 38.12).
+
+⚠️ **« Tout effacer » se range sous la COLONNE DES PASTILLES**, non au bord du panneau : posé au fer à gauche sous trois rangs qui commencent cinq rem plus loin, il ne se rattachait à rien et faisait un objet de plus en bas d’écran.
+
+⚠️ **La forme de la pastille s’écrit UNE fois** et sert les deux surfaces, celle où l’on choisit et celle où l’on retire : deux définitions d’un même objet divergent au premier réglage. Et son COMPTE se lit — il était deux rangs sous son libellé et à demi effacé, quand c’est lui qui dit qu’un filtre ne servira à rien avant qu’on l’essaie.
+
+### 38.23 Des requêtes qui ne s’ATTENDENT pas partent ENSEMBLE
+
+Relevé de l’auteur, 2026-09-05 : « le temps d’affichage me paraît un peu lent » sur l’onglet « Catalogue des traductions ». Mesuré : **1 807 ms** avant que la liste paraisse, en **quatre allers-retours EN SÉRIE** — la session, puis trois pages de notices, puis les votes — dont **aucun n’avait besoin de ce que le précédent rapportait**. Lancés ensemble : **932 ms**.
+
+⛔ **Une cascade se juge sur les DÉPENDANCES, non sur l’ordre où l’on a écrit les lignes.** C’est la règle déjà payée sur la page Bible (§ « le coût, c’est le NOMBRE d’allers-retours ») et sur la page d’œuvre ; elle vaut à l’identique pour une liste chargée par le navigateur. Une requête n’attend que ce qu’elle CONSOMME.
+
+⚠️ **Le plafond de PostgREST est de mille lignes, et il ne se contourne pas** : pour 2 499 notices, trois pages sont inévitables. Ce qui ne l’était pas, c’est qu’elles s’attendent.
+
+⛔ **Une page SPÉCULÉE au-delà de la fin n’est pas gratuite.** Une pagination par tranche ne sait jamais d’avance combien de pages elle aura : demander une vague en parallèle, c’est parier. Or sur une vue qui CALCULE ses colonnes, le nœud de calcul s’exécute pour toutes les lignes jusqu’à la borne haute avant de n’en rendre aucune — mesuré, 569 ms pour une page qui ne rendrait rien. La vague se taille donc sur la liste qu’on charge, jamais « large pour être tranquille », et l’on n’en demande une seconde que si la dernière page revenue était PLEINE, c’est-à-dire sur une preuve.
+
+⛔ **ON NE DEMANDE PAS DEUX MILLE CINQ CENTS IDENTIFIANTS POUR EN RAPPORTER TROIS.** La table des votes en compte trois, et sa politique de lecture est déjà publique : la clause `in.(…)` pesait douze kilo-octets d’adresse. ⚠️ Et elle était plus fragile qu’il n’y paraît — PostgREST renvoie l’adresse ENTIÈRE dans son en-tête de réponse, si bien qu’un client node refuse déjà la réponse pour dépassement d’en-tête. Un navigateur tolère davantage ; la clause était à un millier de notices de casser, et sans un mot. C’est la règle des lots d’une clause `in`, prise par l’autre bout : *quand le filtre coûte plus cher que ce qu’il écarte, on ne filtre pas.*
+
+⛔ **UNE PANNE SE DIT.** Les quatre requêtes de cet onglet ne lisaient jamais leur `error` : un échec s’y rendait « Aucun auteur ne correspond à ces critères », c’est-à-dire un catalogue vide donné pour un catalogue sans réponse. C’est la règle déjà écrite pour la carte « Bibliothèque » du compte — *un panneau discret journalise son erreur, sans quoi rien ne distingue « vide » de « cassé »* — et le remède est le même : le chargeur lève, la page le dit, et propose de réessayer.
+
+⚠️ **Ce que l’audit a démenti, et qui vaut d’être écrit.** Le regroupement de 2 499 notices à chaque rendu — deux mille `localeCompare` en français, sans collateur réemployé — était le premier suspect. Mesuré : **3 ms**, et un `Intl.Collator` gardé sous la main n’y change rien, le moteur le mettant déjà en cache. *Un soupçon de lenteur se mesure avant d’être corrigé : celui-là aurait coûté une refonte pour trois millisecondes.*
+
+⚠️ **Et ce qui reste, qui est de la BASE.** Les trois colonnes de date de la vue du catalogue coûtent à elles seules **1,3 s** sur les trois pages : cinq fonctions PL/pgSQL, aucune sous-expression partagée — la même est calculée deux fois par ligne — pour 515 dates distinctes sur 2 499 lignes. Deux barrières d’optimisation suffiraient à la faire tomber de 597 à 148 ms, le planificateur y ajoutant de lui-même un cache par valeur. Éprouvé, à l’identique au caractère près sur les 2 645 lignes ; non appliqué, faute d’arbitrage.
+
+⚠️ **Comment on mesure une liste chargée par le NAVIGATEUR** : depuis le poste, en rejouant ses requêtes exactes. Le chemin réseau est le même que celui du lecteur, puisque c’est son navigateur qui parle à la base — à la différence d’une page servie, où il faut mesurer en ligne (§ 18).
+
+### 38.24 La fiche d’une ŒUVRE porte une FRISE, et un sommaire vide ne paraît pas
+
+Trois demandes de l’auteur, 2026-09-05.
+
+⛔ **LA FICHE D’UNE ŒUVRE PORTE UNE CHRONOLOGIE, ET C’EST CELLE DE SON AUTEUR.** Il n’y en a pas d’autre : douze événements sur 1 346 nomment une œuvre, **un seul par œuvre**, et une frise d’un point n’est pas une frise. Mais la question qu’on pose à cette fenêtre — *où ce livre tombe-t-il ?* — se répond précisément là, entre la naissance et la mort de celui qui l’a écrite.
+
+⚠️ **La ligne qui nomme l’œuvre lue s’y DÉTACHE**, à l’accent et à la graisse — le marqueur de l’entrée active d’un sommaire, et rien de plus. Sans elle, la fiche de l’œuvre montrerait la fiche de l’auteur et ne répondrait à rien. ⛔ La chronologie OUVRE la colonne de droite, comme dans la fiche d’une traduction : on situe avant de documenter ; et elle ne paraît pas quand l’auteur n’en a pas.
+
+⚠️ **Le champ existait et rien ne le lisait.** Les deux vues de chronologie portent `oeuvre_id` depuis l’origine ; aucune ligne du site ne l’avait jamais demandé. *Un champ qu’aucune surface ne lit n’est pas une réserve pour plus tard : c’est une porte qu’on a oublié d’ouvrir.*
+
+⛔ **UN SOMMAIRE QUI N’A RIEN À SOMMER NE PARAÎT PAS.** Le volet de lecture posait la rubrique « SOMMAIRE » et, dessous, la mention « Texte complet » : une rubrique qui annonce une table des matières, et une ligne qui dit qu’il n’y en a pas. Deux objets pour rien, et ils s’en vont ensemble. L’apparat critique prend alors toute la hauteur du volet, son plafond de moitié ne partageant plus avec personne.
+
+⚠️ **La règle porte sur le CONTENU, non sur le mode de lecture**, et la distinction n’est pas de forme. Le cas se rencontre aujourd’hui en TEXTE ENTIER — une seule œuvre publique, « De la vanité des idoles » — mais un texte sans niveaux le rendrait tout aussi absurde ailleurs. ⛔ Et l’on ne retire pas le sommaire du mode « texte entier » : **vingt-trois œuvres s’y lisent AVEC le leur**, dont l’Apologétique (52 chapitres) et les Homélies sur la Genèse (68), où il est la seule navigation — c’est même son unique office là, puisque tout est déjà chargé dans la page.
+
+⛔ **UNE SOURCE NUMÉRIQUE NE DONNE QUE LE NOM DU SITE** (« toujours illisible ; se contenter de donner le nom du site »). Le champ n’est pas un nom mais une PHRASE — le site, puis ce qu’on y a pris : « eBible.org — corpus BibleNLP, édition fra-fraLSG » —, et dans la colonne étroite d’une fiche elle ne se lit pas.
+
+⛔ **Et ce nom n’est PAS l’hôte de l’adresse.** Trois des sept sources du corpus sont hébergées sur un même dépôt public, où le lecteur ne reconnaîtrait aucun des trois sites. C’est le DÉBUT du nom qui nomme, la suite qui précise ; l’hôte ne sert que de dernier repli, quand aucun nom n’est écrit. ⚠️ La coupe se fait sur un séparateur EXPLICITE — le tiret, ou l’incise « , d’après … » —, jamais sur une position ni sur la première virgule : « Gallica, Bibliothèque nationale de France » porte la sienne dans son nom même.
+
+### 38.25 La CELLULE D’ACTIONS — un seul objet, et il ne couvre jamais ce qu’il commande
+
+Relevé de l’auteur, le 7 septembre 2026 : « le système signaler / copier / prélever n’est pas uniforme, et parfois il cache le texte qu’on survole et le masque en partie ».
+
+⛔ **LA RÈGLE N’A PAS CHANGÉ, ELLE VAUT DÉSORMAIS PARTOUT.** À DROITE du segment ou du verset quand la place y est ; AU-DESSUS de son bloc de texte quand elle manque ; JAMAIS par-dessus. Elle est écrite depuis le 22 août 2026 dans `app/lib/celluleActions.ts`, avec ses tests, et deux surfaces sur cinq ne l’appliquaient pas.
+
+**Ce que l’audit a trouvé — cinq surfaces, quatre systèmes :**
+
+| Surface | Ce qu’elle faisait | Verdict |
+|---|---|---|
+| Bible classique, écran large | gouttière réservée de 2,375 rem à droite du bloc | conforme |
+| Bible classique, au doigt | pavé flottant au-dessus du verset, après un appui long | conforme |
+| Lecture d’une œuvre, paragraphes | cellule flottante par `positionCellule` | conforme, c’est la règle même |
+| **Traductions en regard** | `Math.min(droite + 6, largeurEcran − 132)` | ⛔ le calcul BRIDÉ que le module donne en contre-exemple |
+| **Polyglotte** | `position: absolute; top: 2px; right: 4px` DANS la cellule | ⛔ posé sur la première ligne du verset |
+| **Arguments d’une œuvre** | idem, dans le coin haut droit du bloc | ⛔ même défaut |
+
+⛔ **BRIDER N’EST PAS DÉPLACER**, et c’est la même faute qu’en août : quand la place manque, `Math.min` ne fait pas de place, il ramène la cellule sur la fin de la ligne. Le module le disait en toutes lettres et portait le test qui l’interdit ; les traductions en regard avaient gardé le calcul d’avant, sans que rien ne le signale — un contre-exemple écrit dans un module ne protège que ceux qui l’emploient.
+
+⛔ **L’ESPACE DISPONIBLE N’EST PAS TOUJOURS LA FENÊTRE.** Dans une grille de colonnes — la Polyglotte, les traductions en regard —, « à droite de la ligne » tombe sur la colonne voisine, c’est-à-dire sur un AUTRE texte. La règle prend donc les bornes de l’espace où la cellule a le droit de se poser : la fenêtre en lecture ordinaire, la COLONNE en grille. Une colonne étant par construction aussi large que sa ligne, la cellule y passe toujours au-dessus, ce qui est le bon résultat. ⚠️ Et la borne GAUCHE l’emporte sur l’alignement à droite : dans une colonne plus étroite que la cellule, mieux vaut déborder d’un cheveu à droite que couvrir la colonne d’à côté.
+
+⛔ **LA CELLULE SE MESURE ELLE-MÊME.** Le gabarit ne sert qu’au premier placement ; un effet de MISE EN PAGE le corrige avant la peinture, si bien que le lecteur ne voit jamais la position estimée. Sans cela il faudrait supposer à la cellule son plus grand gabarit — quatre boutons — et elle passerait au-dessus là où trois tiennent à droite. ⚠️ Le gabarit d’avant valait 132 px pour une cellule qui en fait 88 au plus.
+
+⚠️ **ELLE SUIT SON TEXTE AU DÉFILEMENT.** Elle est en `position: fixed` : une molette actionnée pendant qu’elle est ouverte la laissait sur place tandis que le texte glissait dessous, c’est-à-dire le défaut qu’on corrige, sous une autre forme. L’écoute se fait en CAPTURE sur la fenêtre — un événement de défilement ne remonte pas, mais il descend, et c’est la seule façon d’entendre un défileur interne sans savoir lequel c’est. ⛔ Au doigt elle se referme : un repositionnement continu y est saccadé.
+
+⚠️ **LE SOMMET SE MESURE, il ne vaut pas 56.** `HAUTEUR_NAVBAR` vaut 3,5 rem et la racine du site est fluide : la barre fait 56 px à la racine 16 et 77 à la racine 22. Une page qui porte en outre un en-tête COLLANT — la Polyglotte — passe le bas de cet en-tête, sans quoi la cellule monte derrière les noms d’édition.
+
+⛔ **LE GARDE-FOU DU CURSEUR EN MOUVEMENT DE LA POLYGLOTTE EST RETIRÉ.** Une classe allumait ses actions au survol tant que le curseur bougeait, et les effaçait après une seconde d’immobilité « pour ne pas encombrer la lecture ». Elle n’existait que parce que le pavé se posait SUR le texte : c’est le défaut lui-même qui avait engendré son pansement. La cellule passant au-dessus, il n’a plus rien à garder, et une surface qui se comporterait autrement que les quatre autres rouvrirait la disparité qu’on vient de fermer. ⚠️ Une seconde d’immobilité effaçait au demeurant les boutons sous le curseur qui les visait.
+
+⛔ **UN BOUTON D’ACTION A LA MÊME BOÎTE PARTOUT** (`COTE_BOUTON`, 18 px). Le même drapeau se montrait dans des boîtes de 16, 18 et 19 px selon la page ; le dessin ne changeait pas, seulement sa boîte, et rien ne disait laquelle avait raison. Le pavé aussi : filet, rayon, rembourrage et ombre viennent d’une seule déclaration, `--cs-ombre-nette` étant l’élévation que la charte donne déjà à « un petit objet qui flotte : bascule, infobulle, cellule d’actions ».
+
+⚠️ **UNE CELLULE EN PORTAIL NE REÇOIT PLUS LE CSS DE SA PAGE**, et c’est le piège de la migration. Les règles qui l’éteignaient au repos — `.poly-act { opacity: 0 }`, `.seg-wrapper .seg-btn-action` — exigent un ancêtre que le portail n’a pas : laissées en place, elles n’auraient RIEN atteint, ni pour éteindre ni pour allumer. Elles sont retirées avec ce qu’elles gardaient ; c’est la cellule qui paraît ou non, et une cellule qui paraît est pleine.
+
+⚠️ **CE QUI NE BOUGE PAS, ET POURQUOI** : la gouttière de 2,375 rem de la Bible classique. Elle est « à droite quand la place y est », donc conforme, et la charte interdit depuis le 22 août de « corriger » le décalage de dix-neuf pixels qu’elle impose au titre — il aligne le titre sur ce qu’on lit.
+
+⛔ **ET SI LE DESSUS EST BOUCHÉ, ON PASSE DESSOUS.** La règle n’avait que DEUX réponses, et bornait la troisième au sommet : une ligne posée juste sous un en-tête collant recevait donc sa cellule PAR-DESSUS, c’est-à-dire l’inverse exact de ce que la règle promet. ⚠️ Le défaut dormait depuis le 22 août 2026 et ne s’est vu qu’en MESURANT la Polyglotte servie : ce n’est pas un cas limite mais le premier verset visible sous l’en-tête des éditions, c’est-à-dire celui qu’on survole d’abord en arrivant sur la page. Le blanc de l’interligne SUIVANT vaut celui du précédent — dessous ne coûte pas plus que dessus, il ne se lit simplement pas d’abord.
+
+⛔ **On ne descend pas sous un bloc dont on IGNORE le bas** : un appelant qui ne passe que `{ top, right }` garde le bornage au sommet, la règle d’hier valant mieux qu’une pose au jugé. ⚠️ Et un bloc plus haut que la fenêtre n’a ni dessus ni dessous VISIBLES : on revient alors au sommet, une cellule posée hors de l’écran valant moins qu’une cellule qui mord. C’est le seul cas où elle mord encore, et il est nommé.
+
+⚠️ **CE QUE LA MESURE A APPRIS, ET QUE LES TESTS N’AVAIENT PAS DIT.** Dix-sept cas éprouvaient la règle, dont le contre-exemple du bridage, et tous passaient. Le trou tenait à ce que le sommet n’était jusque-là qu’un garde-fou contre la barre de navigation — un cas rare — et qu’aucune surface ne lui passait le bas d’un en-tête collant. En le lui passant, on a rendu ORDINAIRE une branche qui ne l’était pas, et le défaut s’est montré à la première ligne survolée. ⛔ **Une règle éprouvée sur les cas qu’on a imaginés ne l’est pas sur ceux que la page produit : on mesure sur la page SERVIE.** Recette : sous la session de l’auteur, provoquer le survol par `dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))` — ⛔ SANS `relatedTarget` —, puis comparer la boîte de `[data-cellule-actions]` aux rectangles de `Range.getClientRects()` du texte survolé. Le nombre de fragments recouverts doit valoir ZÉRO.
+
+⛔ **ET LA LECTURE EN REGARD D’UNE ŒUVRE EST UNE GRILLE, ELLE AUSSI.** Elle emploie la cellule de la lecture ordinaire, et on l’avait crue hors de cause pour cette raison : elle ne l’était pas. À droite d’un segment FRANÇAIS il y a la colonne du LATIN, et la cellule s’y posait — le défaut de la Polyglotte, à l’identique, sur la surface d’à côté. ⚠️ La colonne se retrouve comme l’enfant DIRECT de la grille qui porte le segment, sans marquer les trois formes que le français y prend — paragraphe, bloc de vers, citation en versets —, car marquer trois formes fait trois endroits où l’oublier.
+
+⚠️ **CE QUE CELA APPREND : une surface qui emploie déjà la bonne cellule n’est pas pour autant en règle.** Ce qui décide n’est pas le composant mais l’ESPACE qu’on lui donne, et l’espace se lit dans la mise en page, non dans le code du composant. ⛔ Avant de tenir une surface pour saine, se demander ce qu’il y a À DROITE de son texte.
+
+⚠️ **« Traductions parallèles » est ÉTEINT sur le site** (`COMPARAISON_ACTIVE = false`, mode jugé trop complexe) : le calcul bridé qu’il portait n’atteignait donc aucun lecteur. Il est corrigé quand même — un mode qu’on rallumera un jour ne se rallume pas avec son défaut — mais on ne peut pas l’éprouver en ligne, et il faudra le faire le jour où il reparaîtra.
+
+⛔ **UNE CELLULE QU’ON NE PEUT PAS ATTEINDRE N’EXISTE PAS** (relevé de l’auteur, 2026-09-07 : « le petit encart qui s’ouvre au survol est difficile à atteindre avant sa disparition »). Deux causes, et elles ne se recouvrent pas.
+
+⚠️ **La GRÂCE de sortie valait 200 ms, et le trajet n’est pas la marge de six pixels**, qui se franchit en un clin d’œil. La cellule se pose au HAUT du segment survolé, et l’on part souvent de sa dernière ligne : mesuré sur la lecture d’une œuvre servie, un segment de cinq lignes met la cellule à quelque cent soixante pixels en diagonale, soit deux à trois cents millisecondes à la vitesse ordinaire d’une main. Deux cents ne suffisaient qu’aux trajets les plus courts. Elle vaut **400 ms**.
+
+⛔ **ET LA CELLULE S’ENFUYAIT.** Posée au-dessus du texte, elle occupe la ligne d’au-dessus — qui est elle-même survolable. Monter vers les boutons faisait donc entrer le pointeur dans cette ligne, qui prenait aussitôt l’ancre, et la cellule remontait d’un rang : on la poursuivait sans jamais l’atteindre. Une cellule DÉJÀ POSÉE ne se déplace donc qu’après un **temps de pose de 140 ms** sur la nouvelle cible. ⚠️ Rien n’attend quand rien n’est ouvert — une première cellule paraît à l’instant —, et un TAP ne s’attend jamais : le temps de pose vaut pour une main qui glisse, non pour un doigt qui désigne. Il rend en outre le balayage d’un texte plus calme : la cellule ne clignote plus d’un segment à l’autre quand le regard ne fait que passer.
+
+⛔ **COROLLAIRE, ET C’ÉTAIT UN DÉFAUT LATENT : LA FERMETURE NE VISE PAS UNE CLÉ, elle ferme ce qui est ouvert.** Traverser un voisin en chemin appelle le relâchement avec la clé du VOISIN ; un minuteur retenu sur cette clé-là n’aurait jamais fermé la cellule qu’on venait de quitter, et celle-ci serait restée jusqu’au geste suivant.
+
+⚠️ **Règle générale, au-delà de cette cellule : un objet qui paraît au survol et qu’on doit ATTEINDRE se juge sur le trajet, non sur le geste qui l’ouvre.** Trois questions : combien de temps dure le trajet, que traverse-t-on en chemin, et qu’est-ce qui, sur ce chemin, peut prendre la main. Mesuré en ligne après correction : la cellule paraît à l’instant, une traversée de 90 ms ne la vole plus, elle est encore là 250 ms après qu’on a tout quitté et fermée à 600, et une pose franche de 300 ms sur une autre cible la déplace bien.
 
 
-### 23.12. Validation humaine par couche
+### 38.26 La marque du SIGNALEMENT — un point d’exclamation dans un cercle
 
-La validation humaine est **attachée à la couche réellement vérifiée** et ne se propage jamais automatiquement entre objets. `oeuvre_texte_unites.metadata.validated_human=true` atteste la transcription ou l’unité source telle qu’elle a été contrôlée ; il ne vaut pas validation de la segmentation, des raccords, de la normalisation éditoriale ni du contenu de chaque `segments.segment_texte` dérivé. Inversement, `segments.controle_verifie=true` atteste le segment éditorial contrôlé et n’autorise pas à déclarer l’unité source entière validée si elle ne l’est pas déjà.
+⛔ **LE FANION EST RETIRÉ (décision de l’auteur, 2026-09-07).** « Signaler » sur ce site, c’est avertir l’éditeur d’une coquille ou d’une erreur de texte. Le drapeau, lui, est devenu partout ailleurs la marque de la DÉNONCIATION — on « flague » un abus, un contenu, quelqu’un. Le registre était faux, et il l’était depuis l’origine.
 
-Les bilans chiffrent séparément ces deux couches et, si nécessaire, leur intersection. ⛔ Aucun drapeau humain n’est hérité, extrapolé ou créé par une passe IA, même lorsque la recomposition source/lecture est exacte.\n\n`segments.segment_metadata.validated_human`, lorsqu’il subsiste dans des imports anciens, est une métadonnée historique non canonique : pour la validation humaine du segment, seule `segments.controle_verifie` fait foi. Ne pas synchroniser ce drapeau JSON automatiquement, ni dans un sens ni dans l’autre. Une divergence historique entre les deux champs doit être documentée ; elle n’autorise jamais une passe IA à créer ou retirer une validation humaine.
+⛔ **UNE MARQUE QUI DEMANDE QU’ON LA CONNAISSE N’EST PAS UNE ICÔNE**, et c’est la leçon du premier tour. Huit marques ont été dessinées et éprouvées à leur taille réelle ; les plus JUSTES pour un corpus patristique se sont trouvées être les plus illisibles. L’**obèle** d’Aristarque — le signe même du passage douteux, repris par Origène dans les Hexaples, historiquement exact et unique sur le site — se lit « ÷ ». Le **caret du correcteur** se lit comme un bonhomme, et deux tracés n’y ont rien changé. Les **crochets éditoriaux** passent pour un gabarit vide, le **filet ondulé** pour un soulignement, le **point d’interrogation** pour une aide. La **manicule** était écartée d’avance, illisible à douze pixels. Verdict de l’auteur : « il y a trop d’ambiguïtés ». ⚠️ Une érudition qui ne se lit pas est une érudition qui ne sert pas : elle appartient à la charte, non au bouton.
 
-#### 35.8.7. Matrice de clôture et contrôles transversaux obligatoires
+⚠️ **LE CERCLE PLUTÔT QUE LE TRIANGLE OU LE LOSANGE.** Les trois cadres disent la même chose ; mais le triangle EST le panneau de danger, et le losange en descend. Le rond dit « à noter » sans crier, ce qui est le ton du site, et il s’accorde aux formes arrondies de la cellule d’actions, dont il est le troisième bouton. Le point d’exclamation NU a été essayé : sans ambiguïté, mais seul entre deux objets dessinés il pèse trop peu et passe pour une coquille plutôt que pour un bouton.
 
-**Le dénominateur de clôture vient toujours de l’état live.** Avant tout bilan `n/n`, la passe finale reconstruit depuis la base l’inventaire courant du périmètre, par source, membre d’édition, livre, langue, `block_kind`, statut public/source-only et surface effectivement rendue. Un sous-lot ciblé doit être nommé comme tel : quatre chapeaux contrôlés ne deviennent jamais « 4/4 introductions » si l’inventaire live comporte d’autres blocs d’introduction. Aucun compteur historique, staging ancien ou todo antérieur ne remplace ce dénominateur.
+⚠️ **LE GABARIT NE BOUGE PAS.** Même boîte que `IconeSignet` et `IconeCopier` — 11 × 12, `viewBox 0 0 12 13` — si bien que les trois occupent toujours la même place, quelle que soit la police du système. Le cercle y devient une ellipse de trois centièmes de pixel (les facteurs d’échelle valent 0,9167 et 0,9231) : cela ne se voit pas, et ne vaut pas d’ouvrir une seconde boîte.
 
-**La clôture utilise une matrice de surfaces.** Le rapport final distingue au minimum, lorsqu’ils existent : témoin/source ; texte biblique par langue ; titres et sous-titres ; corps racine ; sous-blocs de lecture ; notes, blocs et ancres ; illustrations et fichiers ; bibliographie structurée ; alignements canoniques ; vues/projections réellement consommées par le lecteur. Chaque ligne de la matrice donne son dénominateur live, le nombre contrôlé et les réserves. Une mission portant seulement sur l’apparat ou le commentaire ne clôt pas par implication le texte biblique, les images, l’alignement ou une langue parallèle.
+⛔ **LE COMPOSANT EST RENOMMÉ `IconeSignalement`**, et ce n’est pas un rangement : un fichier qui s’appelle `IconeDrapeau` et qui ne dessine plus de drapeau ment sur ce qu’il contient, et c’est ainsi qu’un dessin finit par revenir à son nom. Dix surfaces l’importent ; il n’y a toujours qu’un seul tracé, à un seul endroit.
 
-**Égalité obligatoire des projections dérivées.** Après toute mutation d’un texte ou d’une normalisation, le `reading_text` racine doit être exactement la recomposition ordonnée des `reading_text` de ses sous-blocs avec de vrais séparateurs de paragraphes ; les séquences littérales d’échappement `\\n`, `\\r` ou `\\t` sont interdites dans toute surface rendue. Les transformations et enrichissements doivent rester dans leurs bornes et viser exactement leur chaîne source ou leur chaîne de lecture. Dans la même micro-passe, recalculer depuis l’état live toutes les métadonnées dérivées applicables : SHA, `source_characters`, `paragraph_count`, dernier offset, empreintes de correction et compteurs analogues. Un SHA exact n’excuse jamais une longueur ou une recomposition périmée.
+⚠️ **MÉTHODE, et elle a servi deux fois de suite** : les onze tracés du second tour ont été rendus sur une planche, à leur TAILLE RÉELLE dans la cellule, agrandis cinq fois, sur les DEUX sols, et une fois de plus au bout d’une ligne de lecture. C’est à cette échelle-là que deux d’entre eux sont tombés — le fanion évidé, dont le crénelage fait un « P », et le point d’exclamation posé sur un filet, dont le filet se confond avec un soulignement. ⛔ Un dessin ne se juge ni dans l’éditeur ni au quintuple : au quintuple, tous les tracés se ressemblent.
 
-**Titre, repère et sous-titre forment une seule fonction structurelle.** Lorsqu’un titre imprimé associe un repère (`Livre I`, `Section I`, `§ I`, etc.) à un intitulé descriptif et éventuellement à une portée, le modèle de lecture ne crée jamais un titre amputé suivi d’un faux bloc de commentaire contenant le sous-titre. Le témoin complet est conservé dans `facsimile_heading` ou une provenance équivalente ; la tête éditoriale porte le repère normalisé et son intitulé selon les §§ 35.5.2–35.5.3. Un bloc autonome qui ne fait que répéter le sous-titre est une dette structurelle à supprimer du rendu après vérification des dépendances.
 
-**Les marqueurs imprimés résiduels sont recherchés après toute fusion ou reconstruction.** Le postcontrôle balaie le corps racine et les sous-blocs à la recherche de `Chap.`, numéros de versets ou de plages, lettres de sous-verset et autres repères susceptibles d’avoir été absorbés au milieu d’un paragraphe. Chaque candidat est comparé à la structure source : un vrai repère de commentaire est extrait ou documenté ; une énumération sémantique réelle reste dans la prose. ⛔ Aucune suppression par expression régulière sans classification contextuelle.
+### 38.27 Le BOUTON-LIEN — souligné, en romain, plus petit
 
-**La clôture typographique est une matrice de codepoints et de langues.** Pour chaque catégorie rendue — texte biblique, commentaire, introduction, heading et note — compter séparément les U+0020, U+00A0 et U+202F aux positions normées, ainsi que les apostrophes ASCII, guillemets non conformes, ellipses ASCII et ordinaux numériques. Les compteurs doivent être à zéro sauf exception explicitement motivée. La passe langues produit en outre un inventaire des `inline_spans` par langue et fonction et vérifie la couverture des lemmes, locutions, translittérations et titres d’œuvres réellement étrangers ; le grec en caractères grecs reste en romain et ne doit chevaucher aucun span italique. Une simple lecture visuelle ne remplace pas ces contrôles.
+Demande de l’auteur, 2026-09-07, devant « Sources et détail » et « En savoir plus… » : « il faut uniformiser, partout, ce type de boutons-liens. Je propose : souligné ; en romain ; corps plus petit. »
 
-**Un crosswalk vérifié est une preuve, jamais une autorité absolue sur un autre témoin.** L’alignement canonique du témoin courant est confronté au texte et aux frontières réellement imprimées. Si un témoin distribue sur un même verset une matière que le crosswalk de référence sépare ailleurs, la correspondance propre au témoin peut différer, à condition d’être justifiée et de préserver la couverture. ⛔ Ne jamais copier en masse des cibles ou un statut `verified` depuis un crosswalk sans contrôle des frontières du témoin courant.
+⛔ **IL Y AVAIT ONZE FORMES POUR UN SEUL OBJET**, et le désordre se compte : **six corps** (de 9,5 à 13 px), **cinq encres**, **trois styles** — romain, italique, gras 500, 600 et 700 — et **trois décorations**, le trait plein, le pointillé et un soulignement TRANSPARENT au repos. C’est la dérive déjà connue des tailles de texte et des rayons d’angle, transposée aux contrôles : un lecteur ne pouvait pas apprendre ce qu’est un bouton-lien sur ce site, puisqu’il n’en avait jamais vu deux pareils.
 
-**Vérification du mapping et collation textuelle sont deux statuts distincts.** La couverture complète de l’ossature canonique, même vérifiée, ne prouve ni l’exactitude lexicale ni la collation visuelle du texte biblique. Pour chaque langue du témoin, le bilan sépare : unités présentes, unités alignées, unités collationnées au fac-similé, unités encore candidates et mappings vérifiés. Une colonne parallèle — notamment latin/français — est auditée comme un témoin à part entière ; l’achèvement du commentaire ne la valide pas.
+⛔ **DEUX FAMILLES, ET LA DISTINCTION EST LA VRAIE RÈGLE.**
 
-**Le contrat des vues et du lecteur fait partie de l’intégrité.** La passe 9 vérifie non seulement les métadonnées stockées, mais aussi les champs réellement lus par les vues/RPC/composants servant le corpus. Une valeur correcte rangée sous une clé que la vue ne consulte pas est une donnée fonctionnellement absente. Les clés de statut, niveau, parenté, présentation et collation exposées par la projection doivent être comparées à leur source normative avant clôture.
+- Le **BOUTON-LIEN** se tient SEUL sous ou à côté d’un bloc — « Sources et détail », « À propos de cette édition », « Afficher plus », « Tout effacer », « Consulter la source », « Réinit. ». Il a donc un corps À LUI, et c’est là que la forme commune s’applique tout entière (`.cs-bouton-lien`).
+- Le **LIEN PRIS DANS UNE PHRASE** — « Le chargement a échoué. **Réessayer**. », un renvoi au fil d’une note, une adresse rendue en lien — garde `font: inherit` et ne prend de la forme que le TRAIT et la TEINTE (`.cs-lien-phrase`). ⚠️ Rapetissé, il creuserait un trou dans sa ligne.
 
-**Tout périmètre déclaré privé ou `test_only` reçoit un test RLS réel.** Depuis un contexte privilégié, exécuter une lecture sous le rôle `anon` sur les sources, segments/blocs, notes, assets et fichiers concernés. Si une ligne interdite au public est visible, la mention « privé », une route applicative protégée ou un champ `test_only=true` ne suffisent pas : la clôture de confidentialité est refusée jusqu’à correction de la politique ou des statuts. Une correction RLS transversale qui toucherait d’autres livres ou missions est isolée et ne se fait jamais par ricochet depuis un audit local.
+⚠️ **LE CORPS EST ABSOLU, non relatif, et c’est ce que « uniformiser » demande.** Ces boutons vivent dans des cartes, des volets et des fiches dont les corps vont de 10 à 14 px : une mesure relative les ferait tous différer, c’est-à-dire exactement ce qu’on défait. **0,625 rem** est le rang que quatre d’entre eux portaient déjà — la valeur dominante, comme le veut la méthode de l’échelle — et il est plus petit que le plus petit des textes qu’ils accompagnent, ce qui est la condition pour qu’aucun ne paraisse plus gros que son hôte.
 
-**Réserve de transcription et anomalie du témoin sont comptées séparément.** Une leçon imprimée fautive mais confirmée, une attribution patristique douteuse ou un renvoi source impossible peut être textuellement clos tout en conservant un `source_integrity_note`. Le rapport distingue donc : réserves encore ouvertes sur la transcription ; anomalies du témoin confirmées et conservées ; notes critiques d’attribution. `requires_review=false` ne doit jamais effacer cette information critique.
+⛔ **L’ENCRE EST L’ACCENT, ET CE N’EST PAS UN GOÛT.** Cinq d’entre eux portaient un gris de l’échelle de TEXTE. Mesuré sur le papier, `--cs-texte-doux` rend **2,6** et `--cs-texte-faible` **2,0**, quand la charte en exige 4,5 sous 24 px : la moitié de la famille était donc illisible au sens de la règle, et ce depuis l’origine. Un bouton-lien n’est pas une ombre d’interface, c’est un LIEN, et le jeton des liens est le vert — **5,6** sur le papier, **10,1** sur le cuir. ⚠️ Un bouton-lien posé sur un fond COLORÉ garde une teinte littérale (l’en-tête sombre d’un profil) : c’est la règle des couleurs posées sur un sol qui ne suit aucun thème.
 
-**Les illustrations entrent dans la matrice de clôture.** Pour chaque asset : identité, ordre, ancrage, page imprimée, page source, crop, provenance, famille graphique, fichier dérivé, dimensions et SHA sont contrôlés. `alt_text` et légende éditoriale sont présents lorsqu’ils sont nécessaires. Un contrôle automatique de traitement d’image ou un `PASS` technique ne vaut pas validation visuelle du cadrage ni validation humaine de la planche.
+⚠️ **LA ZONE DE FRAPPE DÉBORDE EN HAUTEUR SEULEMENT.** Dix pixels de haut, c’est moins de la moitié du plancher de WCAG 2.2 ; sept pixels de part et d’autre portent la cible à 24. ⛔ Pas de débord LATÉRAL comme `.cs-cible-fine` : ces boutons se posent souvent au ras d’une liste de pastilles, et douze pixels de chaque côté y avaleraient les taps du voisin — c’est le raisonnement déjà tenu pour `.cs-appel-cible`.
 
-**La formule de clôture nomme exactement ce qui est clos.** On peut déclarer « apparat clos », « mapping canonique clos » ou « commentaire collationné » si ces matrices sont conformes. ⛔ On ne déclare pas un livre globalement « clos » tant qu’une surface applicable de la matrice demeure en attente — notamment texte biblique d’une langue, titres/sous-titres, typographie, vue de projection, assets ou confidentialité. Les dettes restantes sont chiffrées depuis la base et deviennent des tâches distinctes, sans réécrire l’historique de la mission déjà achevée.
+⛔ **UN BOUTON-LIEN NE SE DESSINE PAS SELON SON VOISINAGE.** « À propos de cette édition » portait un dessin à lui — serif italique, sans soulignement au repos — décidé le 2026-09-03 au motif que « dans un volet où rien d’autre n’en porte, il tirait l’œil plus que le titre au-dessus de lui ». Le motif était juste DANS CE VOLET, et c’est précisément ce que la règle générale refuse : une forme accordée à chaque voisinage ne s’apprend nulle part, et c’est ainsi qu’on obtient onze formes. La rectification est de l’auteur, qui a nommé ce lien parmi les exemples du désordre.
+
+⚠️ **CE QUI RESTE HORS DE LA RÈGLE, et il faut le savoir** : les hyperliens de PROSE des pages légales et des textes enrichis (`<a>` au fil d’un paragraphe). Ils sont déjà d’accord entre eux — vert, souligné, corps hérité — et leur seule variance est un décalage de soulignement tantôt posé, tantôt non. ⚠️ Et la VALEUR d’un champ d’administration rendue en lien parce qu’elle se trouve être une adresse n’est pas un bouton-lien : son corps suit celui du champ, et la rapetisser ferait qu’un champ change de taille selon ce qu’il contient.
+
+
+### 38.28 Le ROUGE de la Polyglotte dit « à vérifier », il ne dit pas « on en a parlé »
+
+Relevé structurel du 2026-09-07, et règle fixée le même jour.
+
+⛔ **UNE LIGNE NE SE TEINT QUE SI SON POINT EST OUVERT.** `points_sensibles` est à la fois
+un journal — ce qu'on a trouvé, ce qu'on a corrigé — et une file de travail, et le filtre
+« Lignes problématiques » ne sert que la seconde. Un point clos (corrigé, documenté,
+constaté, résolu, vérifié, validé) a été traité : le rendre rouge use le seul signal dont
+l'administrateur dispose pour retrouver ce qui l'attend. La liste comptait déjà 121 points
+clos sur 210 quand le relevé structurel l'a portée à 634 ; sans ce partage, le rouge aurait
+cessé de désigner quoi que ce soit.
+
+⚠️ **Le LIBELLÉ, lui, se nourrit de TOUS les points**, et l'infobulle de la marge paraît
+désormais sur un chapitre dont le point est clos. Un point corrigé garde tout son pouvoir
+d'explication quand il a cessé d'être une tâche : c'est là que se lit pourquoi telle case
+est vide. Ce qu'on retire est la teinte, jamais le savoir.
+
+⚠️ **La liste nomme les statuts CLOS, non les statuts ouverts.** Un statut qu'on n'aurait
+pas prévu tombe alors du côté rouge, c'est-à-dire du côté qui se voit. Une valeur inconnue
+mérite un regard, pas un silence.
+
+⛔ **Le rose garde sa priorité** : un cas qui a RÉSISTÉ à la correction est plus précis
+qu'un point simplement à vérifier, et il reste ouvert.
+
+### 38.28.1 Le RELEVÉ STRUCTUREL — ce qu'on cherche, et ce qu'on n'y cherche pas
+
+`scripts/audit-structure-versets.mjs` regarde l'OSSATURE quand `audit-versets.mjs` regarde
+le TEXTE. Il ne présuppose aucune liste de traductions : il audite toutes celles que porte
+`versets_v2`, l'AELF et la Bible du XIIIe siècle comprises, que l'outil de 2026-08 ignorait
+parce que sa table de facteurs de longueur ne nommait que les cinq bibles historiques.
+
+Cinq constats, et ils ne se valent pas :
+
+- **le créneau ABSENT** d'une traduction qui couvre pourtant le livre, trois témoins au
+  moins le portant ;
+- le **REGROUPEMENT** : plusieurs versets de l'édition source dans un même créneau ;
+- la **SCISSION** : un verset source étalé sur plusieurs créneaux ;
+- le **SURNUMÉRAIRE** : un verset source qu'aucun créneau ne reçoit ;
+- le **DÉCALAGE** : une numérotation d'origine qui rompt le régime de son chapitre.
+
+⛔ **UN ÉCART CONSTANT N'EST PAS UN DÉFAUT, ET LE DÉTECTEUR NE DOIT JAMAIS LE DIRE.**
+`ch_orig` et `v_orig` décrivent la numérotation de l'édition source : la Vulgate compte le
+titre du psaume comme verset premier, et tout le psautier s'en trouve décalé d'un cran.
+Ce qui se lit est la RUPTURE de cet écart à l'intérieur d'un chapitre — l'écart le plus
+porté fait le régime, et l'on ne signale que ce qui s'en écarte. Mesuré : 3 138 versets
+hors de leur régime avant cette règle, 2 145 après, et les 993 de différence étaient des
+chapitres entiers rangés sous un régime que rien ne dominait.
+
+⚠️ **Un chapitre dont aucun écart ne tient la moitié des versets n'a pas de régime** : on
+rend le CHAPITRE, non chacun de ses versets. Soixante-dix chapitres sont dans ce cas, et
+désigner au hasard la moitié de leurs versets aurait été une réponse en l'air.
+
+⚠️ **On ne mesure l'écart que sur les créneaux UN-POUR-UN** : un regroupement ou une
+scission fait varier la numérotation par construction, et les compter là ferait signaler
+deux fois la même chose.
+
+⛔ **UN SURNUMÉRAIRE N'A PAS DE RÉFÉRENCE CANONIQUE, ET L'ON NE LUI EN INVENTE PAS.** C'est
+sa définition. Lui donner une référence que la Polyglotte relit teindrait le créneau qui
+porte par hasard le même numéro dans l'édition : sa désignation reste donc en clair, et ses
+coordonnées d'origine vont aux notes, où rien ne les prend pour du canon.
+
+⚠️ **Le partage systématique / isolé se fait à HUIT occurrences dans un même livre**, le
+seuil de l'audit de 2026-08. Au-delà, la cause est tenue pour systématique — recension
+différente, canon plus court, numérotation propre — et le lot se documente au lieu de se
+corriger. C'est ce partage qui rend un relevé de 5 040 versets utilisable.
+
+### 38.28.2 Ce que le relevé du 2026-09-07 a trouvé
+
+**5 040 couples (traduction, créneau) portent au moins un défaut d'ossature**, en 424 cas :
+1 742 créneaux absents, 1 131 regroupés, 1 128 surnuméraires, 31 scindés, 2 145 décalés et
+70 chapitres sans régime. Trois cent six cas font la file à examiner, cent dix-huit se
+documentent.
+
+⚠️ **Deux traductions n'avaient JAMAIS été auditées** : l'AELF (337 absences, 306
+surnuméraires) et la traduction moderne du témoin de 1899 (539 absences, 181
+surnuméraires), toutes deux entrées au corpus après l'audit d'août. Un outil qui nomme ses
+traductions dans une constante cesse de voir le corpus dès qu'il grandit.
+
+⚠️ **Le décalage de Sacy que la liste consignait dès juillet 2026 se retrouve tout seul** :
+la suscription non numérotée y rompt le régime de son psaume, et le détecteur la relève au
+même endroit. Une règle qui redécouvre ce qu'on savait déjà est une règle qu'on peut croire
+sur ce qu'on ne savait pas.
+
+⛔ **Le relevé PROPOSE, il ne corrige rien.** Ni le texte, ni `canon_id`, ni la numérotation
+native n'ont été touchés. Le versement dans `points_sensibles` est un geste séparé
+(`scripts/points-sensibles-verser-audit-structure.mjs`), et chaque ligne versée porte sa
+provenance dans ses notes : le lot entier se retrouve et se retire d'une requête, ce qui
+est la condition pour qu'une passe automatique n'abîme jamais les points écrits à la main.
+
+### 38.29 Une case COUVERTE n’est pas une case vide
+
+Contrôle philologique du 2026-09-07, sur les créneaux que le relevé structurel donnait pour
+absents.
+
+⛔ **UN VERSET ÉTALÉ PORTE TOUS LES CRÉNEAUX QU’IL COUVRE, ET PAS SEULEMENT LE PREMIER.**
+`canon_id` dit où il commence, `canon_id_fin` où il finit, et ce qui est entre les deux
+n’est pas absent. La règle vaut pour qui LIT cette donnée comme pour qui la mesure :
+
+- **le relevé** l’ignorait et annonçait 28 absences qui n’en étaient pas — dont Nb 15, 14
+  et 15, 16, que la Vulgate couvre bel et bien d’un seul verset. Corrigé : 1 714 absences
+  au lieu de 1 742, 62 isolées au lieu de 66 ;
+- **la Polyglotte** ne lisait pas cette colonne du tout, et écrivait « Absent de cette
+  traduction » sur **32 cellules** que l’édition porte. Trois d’entre elles étaient dans la
+  colonne de l’AELF, c’est-à-dire dans la référence même de l’ossature.
+
+⚠️ **La case couverte renvoie au verset où le texte se lit, elle ne le RÉPÈTE pas** : un
+verset ne se lit qu’une fois. Et elle y renvoie dans la numérotation de l’ÉDITION, jamais
+par le numéro du canon (§ 15.1.2).
+
+⛔ **UN EMPAN DONT LA FIN PRÉCÈDE LE DÉPART EST UNE DONNÉE FAUTIVE, ET L’ON NE DEVINE PAS
+L’INTENTION** : la ligne ne couvre alors que son créneau de départ, ni plus ni moins.
+
+⚠️ **Corollaire de méthode, et il est plus large que ce cas** : une colonne d’alignement que
+personne ne lit finit par ne plus rien vouloir dire. `versets_v2.canon_id_fin` était
+renseignée, exacte, documentée par la charte — et aucune surface du site ne la demandait.
+La donnée était juste et l’écran mentait. *Avant de conclure qu’un texte manque, vérifier
+que la surface qui le dit sait lire ce qui le porte.*
+
+### 38.29.1 Ce que le contrôle des cinq divergences a établi
+
+Cinq créneaux manquaient à DEUX témoins indépendants à la fois, ce qui fait soupçonner la
+case plutôt que le texte. Confrontation faite, **l’alignement était juste dans les cinq
+cas**, et l’absence est une divergence réelle de la tradition vulgate, que les comptes de
+versets natifs confirment :
+
+| créneau | ce que dit l’édition |
+|---|---|
+| `GEN.49.32` | Gn 49 compte 32 versets dans la Vulgate et chez Sacy, 33 au canon ; leur v. 32 répond au v. 33 |
+| `EXO.40.14` | leur v. 13 couvre les v. 13 et 15 du canon ; le v. 14 n’a pas d’équivalent |
+| `NUM.15.12` | leurs v. 11 et 12 répondent ensemble au v. 11 du canon |
+| `SIR.22.17` | l’Ecclésiastique latin relève d’une autre recension : 33 versets au chapitre contre 27 |
+| `SNG.1.1` | l’édition ne numérote pas le titre du livre ; son v. 1 répond au v. 2, et le chapitre compte 16 versets contre 17 |
+
+⛔ **Rien n’a été réaligné là où l’alignement était juste**, et rien n’a été ajouté dans une
+case vide. Chacune de ces cinq divergences a reçu une **note éditoriale courte** sur la
+première ligne où la numérotation diverge — celle que le lecteur voit —, qui nomme la
+référence native et la correspondance TOL/AELF sans déclarer fautive une tradition qui est
+seulement différente. ⚠️ Deux de ces lignes portaient déjà une note : elle a été ALLONGÉE,
+jamais réécrite.
+
+### 38.29.2 Deux empans manquaient à l’AELF elle-même
+
+⛔ **Sg 9, 18 et 1 M 12, 53 de la TOL/AELF couvrent chacun DEUX créneaux du canon**, et ne
+le déclaraient pas : la colonne de la référence était vide en Sg 9, 19 et en 1 M 12, 54.
+Mesuré : l’AELF compte 18 versets en Sg 9 quand l’ossature en compte 19, et 53 en 1 M 12
+quand l’ossature en compte 54 ; le texte de son verset porte, mot pour mot, ce que les
+autres traductions rangent dans le créneau suivant.
+
+⚠️ **C’est un champ d’ALIGNEMENT, et le § 15.1.1 permet expressément de le corriger** : « la
+référence native AELF doit rester reconstructible et inchangée. Les champs d’alignement
+peuvent être corrigés ; le texte de `TR0012` ne doit pas l’être. » Le texte, la
+numérotation native et l’ordre n’ont pas bougé — postcheck à zéro sur les deux lignes.
+
+⚠️ **L’ossature et l’AELF ne coïncident donc pas partout**, ce que la charte signale déjà
+comme une dette ouverte. Ces deux cas la documentent d’un exemple mesuré : ce ne sont pas
+des versets manquants, ce sont des versets réunis.
+
+### 38.30 Deux décalages de la Vulgate, corrigés ; deux lacunes, signalées
+
+Suite du contrôle du 2026-09-07. Les cinq divergences du § 38.29.1 étaient des faits de
+tradition ; les trois créneaux qui restaient à Sacy et à la Vulgate ne l’étaient pas.
+
+⛔ **QUAND DEUX TÉMOINS PORTENT LE MÊME VERSET SOUS LE MÊME NUMÉRO ET TOMBENT DANS DEUX
+CRÉNEAUX DIFFÉRENTS, L’UN DES DEUX EST FAUX.** C’est le signal le plus sûr du relevé, et
+il a joué deux fois. Sacy traduit la Vulgate : quand leurs alignements divergent, ils ne
+peuvent pas avoir raison tous les deux, et le texte de la TOL/AELF tranche.
+
+- **Lv 15 — la Vulgate était décalée d’un cran sur quatre versets, et Sacy était juste.**
+  Le verset 20 de la Vulgate (« Omnis qui tetigerit eam, immundus erit usque ad
+  vesperum ») n’est pas un verset à lui : c’est la QUEUE du verset 19 de la TOL/AELF, qui
+  finit sur « Quiconque la touchera sera impur jusqu’au soir ». Les versets 20 à 23 sont
+  descendus d’un créneau, et Lv 15, 23 du canon — que la Vulgate ne porte pas — a cessé
+  d’être occupé par un verset qui n’est pas le sien. ⚠️ Le décalage MASQUAIT l’absence :
+  le relevé compte désormais une absence de plus chez la Vulgate, et c’est le signe qu’il
+  dit enfin la vérité.
+- **Nb 20 — le verset 29 de la Vulgate appartient au créneau 28.** La TOL/AELF dit en son
+  verset 28 le dévêtement, la mort ET la descente ; la Vulgate les répartit sur ses
+  versets 28 et 29, comme Sacy le faisait déjà correctement. Le verset 30 répond seul au
+  verset 29 du canon.
+
+⛔ **UNE NOTE DEVENUE FAUSSE SE REMPLACE, ELLE NE S’ALLONGE PAS.** Nb 20, 30 de la Vulgate
+portait « Verset propre à la Vulgate, sans créneau dans l’ossature : porté en surnuméraire
+à l’emplacement choisi par la Vulgate. » Il a un créneau, et il n’est pas surnuméraire. On
+allonge une note exacte à laquelle il manque quelque chose ; on remplace une note qui dit
+le contraire de ce qui est.
+
+⛔ **ET DEUX LIGNES MANQUENT, QU’ON NE RECONSTITUE PAS** (§ 4.1) :
+
+| | ce qui manque | pourquoi ce n’est pas une divergence |
+|---|---|---|
+| Sacy | Nb 20, 30 — le deuil d’Aaron | son chapitre compte 29 versets contre 30 à la Vulgate qu’il traduit, et le 29 de Crampon comme de l’AELF EST ce deuil |
+| Vulgate | la suscription du Ps 12 | Sacy, Crampon et la Septante portent les 67 suscriptions du canon ; la Vulgate n’en porte que 66, et c’est la seule qui manque |
+
+⚠️ **Une absence ISOLÉE dans une série complète est une ligne perdue, non une convention
+d’édition.** C’est le critère qui sépare ces deux cas des six précédents : là, tout un
+chapitre est plus court et la tradition l’explique ; ici, une seule ligne manque au milieu
+d’une série que la même édition tient partout ailleurs. Les deux sont inscrites à la liste
+des points sensibles, écrites à la main pour survivre aux relevés, et ⛔ elles attendent le
+fac-similé — on ne les reconstitue pas d’après une édition voisine.
 
 ## 39. La mesure d’audience
 
@@ -5208,325 +5970,66 @@ Trois façons de signer, choisies dans l’éditeur et changeables à tout momen
 ⚠️ **Quatre défauts trouvés en chemin, réparés le même jour.** « Supprimer » dans « Mes écrits » ne supprimait rien : aucune politique DELETE, la RLS refusant en silence, et l’erreur n’était pas lue. Le rang des commentateurs d’une publication lisait encore `classement_utilisateurs` avec des colonnes qui n’y sont pas, si bien que tout commentateur y paraissait « Catéchumène » depuis le 1er septembre (§ 40.5). La couverture choisie par l’auteur était lue en base et jamais passée au carton du rayon : chaque publication retombait sur la couleur tirée de son identifiant. Et la sauvegarde de l’éditeur lisait la couverture sans l’avoir dans ses dépendances, si bien qu’un brouillon enregistré juste après le choix gardait la couverture d’avant. Un cinquième, hors du périmètre mais grave : la vue `mecenes_publics`, créée le matin même, laissait INSERT, UPDATE et DELETE à `authenticated` sur une vue DEFINER auto-modifiable, c’est-à-dire le droit d’effacer les profils des mécènes en contournant la RLS. Révoqué dans l’heure. Une vue de lecture ne porte pas de droit d’écriture, et la règle vaut le jour où l’on crée la vue.
 
 
-### 38.18 La recherche de PÉRICOPES se limite au titre, aux appellations et à la référence
+### 40.9 LA CHAÎNE DU LECTEUR — ce qu’il a écrit, rangé dans l’ordre du canon
 
-Demande de l’auteur, le 4 septembre 2026 : « limiter la recherche dans les péricopes au titre, appellations, références ». Trois choses sont nommées ; la barre de recherche en servait deux, et mal.
+Demande de l’auteur, 2026-09-07 : « une liste des versets commentés et des notes (polyglotte), pour que l’utilisateur puisse retrouver une chaîne exégétique, à l’ancienne, avec ses commentaires ».
 
-⛔ **Une RESSEMBLANCE n’est ni un titre, ni une appellation, ni une référence.** La recherche retenait un nom dès que sa parenté de trigrammes atteignait 0,22 — 0,30 sous quatre signes —, c’est-à-dire sur une proximité de lettres, sans qu’un seul mot cherché y figure. Mesuré sur vingt termes courants, quatre-vingt-deux résultats : cinq ne portaient pas le terme, et ils se glissaient sous les vrais sans que rien ne dise pourquoi ils étaient là. « Noces » rendait « Nativité », par « Noël », et « Le Déluge », par « Noé » ; « brebis perdue » rendait « La drachme perdue » et « Pais mes brebis » ; « samaritaine » rendait « Le bon Samaritain ». Après correction : aucun sur soixante-dix-sept.
+Le lecteur écrit sur les versets à DEUX endroits, et ne les revoyait jamais ensemble : une NOTE dans la colonne de droite de la Polyglotte, qui ne regarde que lui, un COMMENTAIRE sous le verset de la page Bible, qui s’adresse aux autres. Les deux disent la même chose de la même main sur le même verset, et il fallait retrouver le chapitre pour retrouver ce qu’on y avait pensé.
 
-⚠️ **La ressemblance survit en SECOURS, et là seulement.** Elle rattrape une faute de frappe — « nocse de cana » retrouve les Noces de Cana, « multiplicaton des pains » la multiplication des pains —, ce que personne n’a demandé de retirer. Elle ne s’exécute que si la recherche stricte ne rend RIEN : tant qu’un seul nom porte le terme, elle est éteinte, et la largeur qu’on lui reproche n’existe plus. *Une voie de secours ne se juge pas sur ce qu’elle rend, mais sur le moment où elle s’ouvre.*
+⛔ **C’EST UNE TROISIÈME NATURE, ET C’EST À CE TITRE SEULEMENT QU’ELLE A UNE PAGE.** Le § 40 partageait l’espace en deux — ce qu’on RÈGLE, ce qu’on GAGNE — et la règle disait « deux, et pas une de plus ». Elle tient : une page ne s’ajoute que si elle porte une nature que les autres n’ont pas. La chaîne n’est ni un réglage ni une gratification, c’est la MATIÈRE du lecteur, ce qu’il a écrit lui-même. ⚠️ Elle ne découpe donc pas les deux premières, et rien n’en est retiré.
 
-⛔ **Ce qu’une consigne ÉNUMÈRE, on le sert en entier.** La référence était le seul des trois termes que la barre ne servait pas du tout : « Mt 5 » n’y trouvait aucune péricope, quand le catalogue le sert depuis toujours. La consigne dit « limiter », et l’on a donc aussi ajouté — parce qu’une des trois choses nommées manquait. Les deux surfaces de recherche disent enfin la même chose du même corpus.
+⛔ **LA FORME EST CELLE D’UNE CHAÎNE, non celle d’un journal.** Un lemme — la référence en manchette, puis le verset dans la bible du lecteur —, et sous lui les scholies qu’il a écrites, dans l’ordre où elles sont venues. Les entrées se suivent dans l’ordre du CANON, jamais par date : c’est ce qui fait une chaîne, et c’est ainsi qu’on la relit, par le livre qu’on étudie. Le sommaire porte les livres sous leur testament, comme le volet de la Bible porte les siens.
 
-⛔ **Le code d’un livre se comprend CÔTÉ SITE, jamais en SQL.** La table des noms et des abréviations bibliques vit dans un seul module, et la base ne reçoit qu’un code de livre et deux nombres. Une seconde liste écrite en SQL divergerait au premier livre ajouté.
+⛔ **RIEN NE SÉPARE DEUX ENTRÉES QU’UN BLANC** : ni filet, ni fond, ni carte. C’est la règle de la manchette (§ 35.9), et une chaîne imprimée ne fait pas autrement. La manchette tient sa COLONNE, et sa largeur ne suit pas son texte, faute de quoi le fer des scholies sauterait d’une entrée à l’autre.
 
-⛔ **Un NOM DE LIVRE SEUL n’est pas une référence.** « Matthieu » n’ouvre pas la voie de la référence : une référence est chiffrée. Le catalogue, qui a la place de les montrer, réunit le livre et les titres qui portent le mot ; une barre de recherche n’a que huit rangs, où les cinquante-deux péricopes de Matthieu chasseraient tout le reste.
+⛔ **ELLE NE MODIFIE RIEN.** Une note se reprend là où elle s’écrit, dans la Polyglotte ; un commentaire dans le fil où il a été posté. Deux surfaces qui écrivent la même donnée divergent au premier réglage, et celle-ci n’a rien à décider : elle rassemble. La référence est donc le seul lien de la page, et elle mène au passage.
 
-⚠️ **Ce qui n’a pas bougé, et pourquoi.** Les huit usages de nom du corpus — titre principal, descriptif, équivalent, référence, paraphrase, élargi, populaire inexact, contextuel — restent tous cherchés. Un nom masqué sert à TROUVER une péricope sans jamais s’afficher à sa place : c’est la règle déjà écrite ailleurs (« baleine » mène à « Jonas et le grand poisson », jamais à « Jonas dans la baleine »), et la restreindre reviendrait à retirer au lecteur les mots par lesquels il cherche vraiment.
+⚠️ **UNE GLOSE VIDE NE PARAÎT PAS.** La colonne « Notes » de la Polyglotte enregistre dès qu’on y touche : une note ouverte puis refermée laisse une ligne de texte vide, qui n’est pas une pensée mais la trace d’un clic. Un commentaire SUPPRIMÉ ne paraît pas davantage — il ne reste en base que pour ne pas trouer un fil de réponses. Le compte du bandeau se fait sur la chaîne COMPOSÉE, une fois les vides écartés, jamais sur les lignes brutes.
 
-### 38.19 La page des RÉSULTATS — le volet, le mot trouvé, la Polyglotte
+⚠️ **CE QUI ATTEND LA MODÉRATION LE DIT**, du même mot que le panneau de la Bible : « en révision ». Un commentaire écrit en réponse à un autre le dit aussi, faute de quoi il paraîtrait comme une pensée qu’il n’est pas.
 
-⛔ **Le dernier volet du site prend la forme des autres.** Il portait ses rubriques en capitales espacées, son mode de recherche dans un contrôle segmenté encadré d’un filet, son champ dans une boîte à rayon et à ombre, et ses deux menus dans des cadres : autant d’objets encadrés dans le seul volet du site qui n’avait pas été repris. Il prend la forme des volets de lecture — rubrique en casse ordinaire, une option par ligne sur pastille verte, champ sans cadre, menu dépouillé. ⚠️ Les deux axes qui portent NEUF bibles gardent un menu : neuf lignes ne se posent pas dans un volet, et la règle de l’option par ligne n’a jamais visé que des axes de deux ou trois états.
+⛔ **UN IDENTIFIANT QUI NE DÉSIGNE PLUS RIEN NE SE PERD PAS.** Les identifiants du premier modèle — « B000015 » — ne se résolvent dans aucune table : ni livre, ni chapitre, ni verset. Ce sont pourtant des lignes que le lecteur a écrites, et une page qui les tairait lui ferait croire qu’il n’a rien écrit là. Elles se rangent ensemble, en fin de chaîne, sous leur identifiant nu et sans lien.
 
-⚠️ **Une page de résultats a un TITRE, elle aussi.** Celle-ci n’avait aucun titre de niveau 1 : son nom était une étiquette de trois quarts de rem, plus pâle et plus petite que la première rubrique en dessous.
+⚠️ **CE QUI RESTE OUVERT**, et qui n’est pas un oubli : la table des commentaires porte une colonne pour les SEGMENTS d’œuvres, qu’aucun commentaire du corpus n’emploie (mesuré à zéro le 2026-09-07) ; le jour où l’on commentera un passage patristique, la chaîne aura une seconde matière, et il faudra décider si elle se range avec les versets ou à côté. Rien n’est prévu non plus pour EXPORTER la chaîne : elle se lit, elle ne se copie pas encore.
 
-⛔ **Le mot trouvé se marque par la GRAISSE, et par rien d’autre** (« ne pas surligner en jaune les termes trouvés ; le gras suffit »). Le jaune était la troisième teinte à occuper cette place : un vert l’avait précédé, retiré parce qu’il disait « Bible » au milieu d’un résultat patristique. Le raisonnement qui l’avait posé distinguait les deux surfaces — dans une liste déroulante on sait ce qu’on vient de taper, sur une page de prose on cherche le mot des yeux —, et il était juste pour la liste et faux pour la page : sur un paragraphe qui porte le mot cinq fois, cinq pastilles à rayon et à rembourrage font que le texte cesse de se lire comme un texte. La graisse, sur une encre d’un rang plus profonde, le détache sans le peindre. ⚠️ La balise reste : elle DIT que le mot répond à la recherche, ce qu’aucune graisse ne dit à qui n’y voit pas ; c’est sa peinture, que le navigateur pose en jaune par défaut, qu’il faut éteindre.
 
-⛔ **Deux surfaces qui portent les MÊMES noms de classe doivent porter la même composition.** La Polyglotte de la page des résultats annonçait dans son commentaire des classes « reprises telles quelles de la page de lecture ». Elles ne l’étaient plus : sans de douze pixels contre une sérif de quatorze, référence canonique enfermée dans une colonne bordée et centrée au lieu d’accompagner le verset en marge, numéro d’édition centré dans son étui au lieu de se poser sur la ligne de base du texte, et trois teintes écrites à la main là où la page de lecture emploie des jetons. La composition vit désormais dans la feuille commune : une déclaration, deux surfaces, et chaque page n’ajoute que ce qui lui appartient — ses filets, et le fond d’un verset dont la traduction affichée ne porte pas le mot.
+### 40.10 L’ESPACE SE PARCOURT EN COLONNE, et « Mes citations » y entre
 
-⚠️ **Un commentaire qui promet une identité ne la maintient pas.** C’est la troisième fois que le dépôt paie cette leçon, après les deux copies de la forme des volets et les trois surligneurs de la barre de recherche. Une forme recopiée ne reste identique que par accident, et le commentaire qui l’affirme vieillit plus vite que le code qu’il décrit.
+Demande de l’auteur, 2026-09-07 : « il faut déplacer mes prélèvements dans la page Mon compte, à côté de celle-ci ». La page vivait seule à `/prelevements`, avec sa tête, son sol et sa mesure à elle.
 
+⛔ **CE QU’ON RETIENT EST DE LA MÊME NATURE QUE CE QU’ON ÉCRIT**, et se visite à la même heure. C’est le critère du § 40.9, pris par l’autre bout : la chaîne est ce que le lecteur a écrit, les citations ce qu’il a retenu, et ni l’une ni l’autre n’est un réglage ou une gratification. L’espace compte donc quatre pages, et le titre, le compte et le sol de celle-ci lui viennent du cadre.
 
-### 38.20 Un mode qu’on n’emploiera jamais se RETIRE, il ne se répare pas
+⚠️ **CE QUI RESTE À LA PAGE** : ses deux onglets de corpus, ses groupes repliables, sa gouttière d’actions, sa citation favorite et son filet à quadrilobe — l’emblème qui enseigne la marque qu’on retrouve dans la liste (§ 34.2). Il a perdu le titre qu’il soulignait, que le bandeau porte désormais, mais non son office. Le compte que la tête disait passe dans la ligne de repères du bandeau.
 
-Décision de l’auteur, le 5 septembre 2026 : « à l’échelle, on pourra jamais l’utiliser ; supprime ça ». La frise de l’histoire de l’Église avait deux dispositions — la liste, et une frise « à l’échelle » où chaque famille tenait une colonne, chaque événement une barre proportionnelle à sa durée, le tout posé sur un axe temporel réel. Elle n’en a plus qu’une.
+⛔ **LES PAGES DE L’ESPACE SE LISENT EN COLONNE, une par ligne, DEPUIS QU’ELLES SONT QUATRE.** En onglets, elles demandaient 288 px dans une colonne qui en offre 216, et « Mon parcours » se coupait en deux. ⚠️ Une barre d’onglets sur deux rangées n’est plus une barre mais une grille — la sous-barre de l’administration a tranché ce cas le 2026-08-22, et l’on ne rouvre pas un arbitrage rendu. La forme est celle des OPTIONS d’un volet de lecture (§ 38.3), qui est déjà celle des ancres du même sommaire : une seule grammaire pour toute la colonne, et un filet pour dire ce qui NAVIGUE et ce qui SAUTE.
 
-⛔ **Trois partis avaient été mis devant l’auteur la veille**, après mesure : la barre seule avec l’intitulé au survol, les couloirs plafonnés, ou le retrait du mode. C’est le troisième qui est arbitré, et c’est le seul qui referme la question au lieu de la déplacer. *Un écran qu’on garde en se promettant de le régler un jour est une dette qui ne se voit pas dans un compte.*
+⚠️ **LE SOMMAIRE PORTE CE QUE L’ONGLET COURANT MONTRE** : les livres d’un côté, les auteurs de l’autre. Un auteur qui revient sous deux œuvres prend son titre en second — deux entrées du même nom dans un sommaire ne se départagent pas. ⛔ Et sauter à un groupe le DÉPLIE : une ancre qui mènerait à un titre fermé ne montrerait rien. Déplier ne déplace pas la cible, ce qui s’ouvre s’ouvrant SOUS elle.
 
-⚠️ **Ce que la mesure avait déjà dit.** La frise partait en largeur pour des raisons qui ne devaient rien à la chronologie : un bloc réserve la hauteur de son TEXTE, si bien qu’une famille dense ouvre autant de couloirs qu’elle a d’événements dont les intitulés se chevauchent. Ce sont les titres qui décidaient de la largeur, non la simultanéité — et c’est pour cela qu’aucun réglage de l’axe n’aurait suffi.
+⛔ **L’ANCIENNE ADRESSE REDIRIGE EN 308, jamais en 307** : le déplacement est définitif, et seul le permanent transmet les signaux. L’adresse a circulé — elle est dans les favoris des lecteurs de la bêta, et le menu de compte l’a portée un mois durant. ⚠️ La rubrique d’audience `prelevements` est gardée pour l’HISTORIQUE : les vues d’avant ce jour la portent encore.
 
-⛔ **Et la donnée ne portait pas non plus ce que la barre promettait.** Mesuré le 5 septembre 2026 sur les 1 170 repères de la frise : tous portent une date de fin, mais **456 seulement — 39 % — couvrent un empan réel** ; les 714 autres sont des points, où la fin égale le début. Près de deux repères sur trois se rendaient donc par une barre de hauteur minimale, c’est-à-dire par une barre qui ne dit rien. ⚠️ Le fait est consigné parce qu’il resservira : le jour où l’on reproposera une vue chronologique — ici ou ailleurs —, c’est par lui qu’il faudra commencer.
+⚠️ **CE QUI RESTE OUVERT** : la barre d’onglets INTERNE de la page (« Versets bibliques » / « Textes patristiques ») est encore composée en styles en ligne, alors que le site a un modèle unique depuis le 2026-08-28 (`OngletsPage`, § 36). Elle porte un compte que le modèle ne connaît pas ; l’y faire entrer demande de mettre le compte dans le libellé, ce qui change le dessin de la page et n’a pas été demandé.
 
-⚠️ **Une première rédaction de cette note affirmait que la date de fin était “le plus souvent absente”.** Elle ne l’est jamais : la colonne est renseignée sur les 1 170 repères. Le raisonnement était juste — un repère sans durée n’a rien à mettre à l’échelle — et le fait invoqué était faux. C’est la règle du § 38.9 prise par un autre bout : **une règle tirée d’un raisonnement se vérifie avant d’être écrite**, et un commentaire de code n’en est pas dispensé.
 
+### 40.11 LA GRAMMAIRE DE L’ESPACE — un rang, une forme, et le vert ne dit qu’une chose
 
-### 13.8 La NORMALISATION des notes — ce que le site compose, ce que la base porte
+Relevé de l’auteur, 2026-09-07, devant « Ma chaîne » et « Mes citations » : « la mise en forme n’est pas très claire ; revois tout ça ». Trois défauts, mesurés sur les pages servies, et le premier explique les autres.
 
-Chantier ouvert le 5 septembre 2026 à la demande de l’auteur (« normaliser l’ensemble des notes »). Le mode opératoire, passe par passe, vit dans `work/notes/PROTOCOLE_NOTES.md` ; ce qui suit est la doctrine.
+⛔ **TROIS OBJETS PORTAIENT LE MÊME VERT** sur une seule page : le titre du livre, la référence du verset et la marque de la glose. Deux d’entre eux se composaient de la même façon — sérif italique vert — à un pixel de corps près. C’est la règle du § 35.10 prise à l’envers : deux rangs voisins doivent différer sur DEUX axes au moins, et ici trois rangs n’en changeaient aucun. **Le vert est le jeton des LIENS et l’encre des TITRES de section ; il ne peut pas être en plus la marque d’un appareil.**
 
-⛔ **LE SITE COMPOSE, LA BASE CONSERVE.** C’est la règle du § 3.2 appliquée aux notes, et elle décide de tout le reste : on ne réécrit une donnée que lorsque le rendu ne PEUT pas la composer — parce que l’information manque, parce qu’elle est fausse, ou parce qu’elle n’est pas là où le rendu la cherche.
+⛔ **LA RÉFÉRENCE ÉTAIT CE QU’ON LISAIT LE MOINS.** Sur « Mes citations », elle se composait à 9 px en gris clair au bas de chaque item, sous le seuil de contraste (3,4 mesuré, quand la règle en exige 4,5 sous 24 px), alors que c’est elle qui identifie le passage. Elle passe en MANCHETTE, dans sa colonne, et rend 13,8.
 
-⚠️ **Mesuré avant d’écrire une seule ligne : une bonne moitié de ce qu’on croit à corriger l’est déjà.** Sur les 16 408 notes hors apparat, **6 431 (39 %) n’ont aucune ponctuation finale dans la donnée**, et `terminerNote` les termine toutes ; **3 392 renvois bibliques sur 11 916** sont réécrits à l’affichage par `normaliserReferencesDansTexte`. Les corriger en base serait du travail perdu, et pire : ce serait effacer la leçon imprimée que le § 8.1 demande de conserver.
+⛔ **ET LE MÊME CORPUS SE COMPOSAIT DANS DEUX POLICES** : les citations en sans sur une page, les lemmes en sérif sur l’autre. Une citation biblique ou patristique est du CORPUS : elle prend le sérif du verset, celui de la page de lecture. Le sans est réservé à ce que le LECTEUR écrit — ses notes, ses commentaires — et la distinction se lit alors sans un mot.
 
-⛔ **L’APPARAT CRITIQUE reste hors de toute passe de normalisation** — 7 379 blocs, 30 % de l’appareil. Ni ponctuation ajoutée, ni référence normalisée, ni typographie de lecture, ni italique (§ 22).
+**La grammaire, pour les quatre pages :**
 
-**Quatre points arbitrés par l’auteur le 5 septembre 2026.**
+- un LIVRE ou un AUTEUR est un titre de SECTION : sérif italique vert, le rang que l’espace donne déjà à ses sections. ⛔ Jamais une bande à capitales espacées, qui est le vocabulaire d’une interface ;
+- une RÉFÉRENCE est une MANCHETTE : sérif, colonne de largeur fixe, ⛔ jamais une ligne sous le texte. Elle est VERTE quand elle mène au passage, à l’encre du texte quand elle ne fait que le nommer — là où une gouttière d’actions porte déjà le chemin, deux façons d’y aller en font une de trop ;
+- le CORPUS se compose en sérif, à la mesure et à l’interligne du verset ;
+- ce que le LECTEUR a écrit se compose en sans, un cran plus petit, et RENTRE sous le texte qu’il commente : c’est la composition d’une chaîne imprimée, et c’est elle qui dit ce qui commente quoi ;
+- un REPÈRE — la nature d’une glose, sa date, son état — est une RUBRIQUE : petites capitales espacées, `--cs-texte-second`, réunies sur UNE ligne de tête. ⚠️ Réunies, précisément : la date pendait sous chaque texte et hachait la colonne en deux fois plus de blocs qu’il n’y avait de gloses ;
+- ⚠️ une glose qui se RÉPÈTE n’est pas une rubrique. « Prélevé dans la Bible de Sacy » paraît vingt fois sur une page ; en petites capitales elle appelait l’œil autant que la référence. Elle se compose en italique grise. *Un état qui ne varie pas n’informe pas* (§ 38.12), et il ne doit pas peser comme s’il informait.
 
-⛔ **1. Le numéro AFFICHÉ recommence à chaque début de NIVEAU 1**, et le numéro INTERNE ne bouge pas. `note_key` et `note_number` portent l’identité et l’ordre de lecture, dont dépendent 23 569 ancres. ⚠️ **Cette décision RECTIFIE le § 13.3**, qui dit encore que « la numérotation ne recommence ni à une partie, ni à un livre, ni à un espace textuel » : la règle valait pour un numéro unique, et il y en a désormais deux. La Bible faisait déjà ainsi, et sa règle cesse d’être une exception.
-
-⛔ **L’apparat critique forme sa propre série de numéros.** Mêlé aux notes de lecture, il les noie : les Confessions passent de **1 039** à moins de 90 par livre dès qu’on l’en sort — leur gros numéro était l’apparat de Knöll, non l’appareil de lecture. ⚠️ Treize textes sur quarante-sept garderont malgré tout trois chiffres, la Cité de Dieu latine en tête avec **731** dans un seul livre ; c’est une conséquence connue de l’arbitrage, non un défaut.
-
-⛔ **2. Les œuvres CITÉES en note entrent dans `ouvrages_bibliographiques`**, le catalogue des ouvrages, et la référence se COMPOSE depuis ses champs — jamais rédigée à la main dans un bloc. C’est le modèle du § 35.6.1, étendu aux notes. **Deux gardes** : un auteur ancien n’y reçoit jamais de fiche notée (§ 29), sans quoi inscrire l’Énéide dégraderait la valeur scientifique de la notice qui la cite ; et les champs d’édition (lieu, éditeur, année, ISBN) restent vides tant qu’on ne cite que l’œuvre.
-
-⛔ **3. Un bloc de note entièrement LATIN se compose en italique, quelle que soit sa longueur** — y compris les 27 blocs qui dépassent 900 signes. ⚠️ Le grec ne suit pas : son alphabet le distingue déjà, et l’italique y déforme la lettre au lieu de changer la graisse. ⚠️ Le latin ENCHÂSSÉ dans une note française est un cas distinct : aucune donnée ne dit où il commence, et il demande une écriture.
-
-⛔ **4. Le type de note paraît sur TOUTES les notes, sans exception** — auteur, traducteur, éditeur de la source, Corpus Scriptura. ⚠️ Il se répète donc des milliers de fois, et **c’est la forme qui doit en tenir compte** : la mention est la chose la plus discrète de la note, jamais une étiquette encadrée ni une ligne à elle. ⛔ Elle vit dans `metadata.editorial_role`, jamais dans le texte du bloc : les 136 « (Note du Traducteur.) » écrits en clair dans le corpus se retirent à mesure que le type se pose.
-
-⚠️ **69 % des blocs (16 873 sur 24 264) ne déclarent aucun type** : c’est le plus gros manque de l’appareil, et rien ne peut s’afficher tant qu’il n’est pas posé. ⛔ **Un type faux est pire qu’un type absent** — il attribue à un Père une remarque de son traducteur du XIXe siècle. Le doute laisse la note sans type et se signale.
-
-### 13.8.1 Deux corruptions du normaliseur, trouvées en le mesurant
-
-Le 5 septembre 2026, les 11 916 renvois du corpus ont été passés par `normaliserReferencesDansTexte` elle-même — jamais par une copie de ses règles. Deux défauts en sont sortis, tous deux visibles du lecteur.
-
-⛔ **Le point n’est un séparateur chapitre/verset que s’il est SUIVI D’UN BLANC.** La fonction acceptait tout point, si bien que « Gn 1.5 » — qui désigne les CHAPITRES 1 et 5 (§ 3.5.1) — devenait « Gn 1, 5 », le chapitre 1 verset 5. **Elle changeait le sens de la référence.** Le blanc sépare les deux cas : une édition ancienne écrit « Psal. 65. 29 » avec un blanc, l’énumération de chapitres s’écrit sans.
-
-⛔ **Le point final ne se mange pas quand un CHIFFRE le suit.** « (Lc 7, 11.15) » — les versets 11 et 15 — rendait « (Lc 7, 1115) » : le point était consommé comme ponctuation de fin et les deux nombres se collaient. **216 blocs de neuf textes**, et le lecteur y lisait un verset qui n’existe pas.
-
-⚠️ **Corollaire de méthode, et c’est le troisième du même ordre cette semaine** : une fonction de normalisation ne se juge pas sur ses tests, mais sur le CORPUS qu’elle traite. Les dix-sept tests de ce module passaient tous, et aucun ne portait sur un point suivi d’un chiffre.
-
-⚠️ **Reste connu, non corrigé** : **1 716 renvois** gardent un chapitre romain parce qu’il est écrit en MINUSCULES (« Matth. x, 22 », « Ps. xv, 2 »), et le motif n’accepte que les capitales. L’étendre est un élargissement de la reconnaissance, non une correction : il attend une décision.
-
-
-### 13.9 RECTIFICATION du § 13.8 — la ponctuation et la typographie se normalisent DANS LA DONNÉE
-
-Le § 13.8 ouvrait sur « le site compose, la base conserve », et l’auteur l’a corrigé le jour même : « il faut corriger dans les données des informations importantes, et notamment la ponctuation ; sauf évidemment pour certains écrits spécifiques ; mais la règle veut qu’on normalise la ponctuation et la typo ».
-
-⛔ **LA RÈGLE EST DONC L’INVERSE, ET ELLE VAUT POUR L’APPAREIL DE NOTES.** La ponctuation, la typographie et les abréviations bibliques se normalisent **dans la donnée**. La forme normalisée EST la note ; la leçon imprimée se conserve en `metadata` (§ 8.1), elle ne tient plus le champ `text`.
-
-⚠️ **Pourquoi la règle du § 3.2 ne s’applique pas ici, et c’est la leçon de la rectification.** « Au rendu, sans réécrire la donnée » a été posé pour le TEXTE DE CORPUS, qui est un témoin : la graphie d’Arnauld d’Andilly ou de Knöll fait preuve, et l’on ne touche pas à un témoin. **Une note n’est pas un témoin, c’est un appareil que nous constituons** — nous en fixons la numérotation, le type, l’ordre et les renvois. La transposer sans y penser laissait le champ `text` durablement incomplet : une note sans point final le restait dans tout export, toute copie, toute surface qui ne passe pas par le composant de lecture, et le point n’existait que le temps d’un affichage.
-
-⛔ **QUATRE EXCEPTIONS, ET ELLES SE NOMMENT.** Ce sont les « écrits spécifiques » de la consigne, c’est-à-dire tout ce dont la FORME fait témoignage :
-
-1. **l’apparat critique** (7 379 blocs, § 22) — une notation philologique se rend telle quelle : ni ponctuation ajoutée, ni sigle développé, ni référence normalisée ;
-2. **toute citation dont la GRAPHIE fait preuve** — une leçon ancienne, une orthographe attestée, un latin cité pour sa lettre ;
-3. **la transcription diplomatique** (Bible 899 et tout témoin manuscrit) ;
-4. **le texte reproduit d’un document daté** — privilège, imprimatur, approbation, dont la ponctuation appartient à la pièce.
-
-⚠️ **Le rendu ne disparaît pas pour autant, il devient un FILET.** `terminerNote`, `normaliserReferencesDansTexte` et `normaliserTypographieLecture` sont **idempotentes** : sur une donnée déjà normalisée elles ne font rien, et sur un import qui aurait manqué la passe elles rattrapent. ⛔ Les retirer serait faire dépendre l’affichage de la qualité d’une campagne.
-
-⚠️ **Ce que le rendu garde pour lui, et pour de bon** : ce qui n’appartient pas au texte de la note — l’italique de la langue, le type de note, le numéro affiché, la mise à la ligne d’une référence par rang, l’appel. Aucun de ces quatre ne s’écrit dans `text`.
-
-### 13.10 Les NATURES d’un bloc de note
-
-Demande de l’auteur du 5 septembre 2026 : « il faut aussi mettre en place des “natures” pour constituer des styles dans les notes ». Une note se compose de blocs, et chaque bloc a une FONCTION : c’est elle qui décide de sa composition, comme la nature d’un segment décide de la sienne (§ 7.1).
-
-⛔ **Les trois axes du § 7.1 valent ici**, et il ne faut pas les confondre : la **NATURE** dit ce que le bloc EST (`kind`) ; la **FORME** dit s’il est prose ou vers (`form`) ; le **TYPE** dit qui parle (`metadata.editorial_role`, § 13.8). ⛔ Une nature ne se préfixe pas par sa surface : `texte_note_blocs` EST la table des notes, et le redire dans la valeur serait la dérive que le § 7.1 ferme.
-
-**Le vocabulaire, arrêté sur mesure du corpus au 5 septembre 2026 :**
-
-| Nature | Ce que c’est | Blocs |
-|---|---|---|
-| `reference` | un renvoi, biblique ou bibliographique | 11 916 |
-| `commentary` | la prose de la note | 12 008 |
-| `lemma` | le mot ou la phrase commentés, que la note reprend avant de la commenter | 126 |
-| `quotation` | un passage cité | 115 |
-| `translation` | la traduction du passage cité | 76 |
-| `attribution` | l’attribution d’une citation | 17 |
-| **`source_locator`** *(neuve)* | la coordonnée de la note dans le livre imprimé | ~396 |
-| **`internal_cross_reference`** *(neuve)* | le renvoi à une AUTRE note, ou à un autre endroit de la même œuvre | ~116 |
-
-⛔ **DEUX NATURES SEULEMENT SONT CRÉÉES, et chacune répond aux trois questions du § 7.6.**
-
-**`source_locator`** — « (V) pag. 178. — », « (DD) pag. 185. — ». Aucune nature existante ne le compose : ce n’est ni un renvoi bibliographique, ni de la prose, ni un lemme, mais une COORDONNÉE dans l’exemplaire imprimé — la lettre d’appel de l’édition et sa page. Il se voit à la lecture : aujourd’hui il ouvre le paragraphe dans la même face que le commentaire, et le lecteur le prend pour le début de la note. Il se compose en repère discret, jamais en prose.
-
-**`internal_cross_reference`** — « Voyez la note I, p. 150 », « Voy. Catéch. XIV, 9 ». `reference` le composerait comme un renvoi BIBLIOGRAPHIQUE, avec auteur et titre tirés du catalogue ; or il ne pointe hors de rien : il désigne un autre endroit du même livre. La distinction n’est pas cosmétique, c’est ce qui permettra de le rendre CLIQUABLE le jour où les notes se lieront entre elles.
-
-⛔ **CE QU’ON NE CRÉE PAS, et pourquoi.** Une note de note — « (1) Hieronymus (de Viris Illustr.) » — ne reçoit pas de nature : c’est une RELATION entre deux blocs, et `texte_note_relations` existe pour cela (§ 8.1). Créer une nature reviendrait à dire dans le vocabulaire des fonctions ce que le modèle dit déjà dans celui des liens.
-
-⛔ **Et la LONGUEUR n’est pas une nature.** 2 958 blocs de commentaire tiennent en quatre-vingts signes, 62 en dépassent deux mille : c’est le même acte éditorial, et la composition s’adapte à la mesure sans qu’on ait à nommer deux styles. La charte l’a déjà tranché pour les segments ; on ne rouvre pas.
-
-⚠️ **`lemma` existe et ne sert qu’à UNE œuvre** (126 blocs, un seul texte). Chez Faivre, le lemme est noyé dans le bloc de commentaire, derrière la coordonnée : « (V) pag. 178. — *Avec les démons les plus féroces* … ». Les 396 blocs de cette forme portent donc **trois** natures agglomérées, et c’est la passe la plus rentable de l’appareil.
-
-⛔ **LA CHARTE D’ABORD, LA DONNÉE ENSUITE** (§ 7.6) : le vocabulaire est fixé ici, il entre dans la contrainte de la base, puis on sème, puis on compose, puis on éprouve. ⛔ Jamais un `insert` à la main qui poserait une nature que rien ne sait rendre.
-
-
-### 13.11 Les QUATRE FAMILLES de natures, et ce qu'elles commandent
-
-Les huit natures du § 13.10 ne forment pas une liste plate. Chacune appartient à une **FAMILLE**, qui dit ce que le bloc FAIT dans l'économie de la note — et c'est la famille, non la nature, qui commande la composition.
-
-⚠️ **Pourquoi une famille plutôt que huit règles.** Une liste plate oblige à trancher huit fois, et rien n'y empêche deux natures voisines de recevoir deux compositions sans raison. La famille pose la règle une seule fois : **deux natures d'une même famille se composent de même, sauf raison NOMMÉE ; deux natures de familles différentes ne se composent jamais de même.** C'est en les rangeant qu'on a vu ce qui sépare réellement les deux renvois : non pas leur forme, qui est la même, mais leur DESTINATION.
-
-| Famille | Ce que le bloc fait | Natures | Ce qu'elle commande à la composition |
-|---|---|---|---|
-| **ancrage** | ce à quoi la note TIENT | `lemma`, `source_locator` | discret, et en tête, sur la ligne du propos |
-| **propos** | ce que la note DIT d'elle-même | `commentary` | la prose ordinaire, pleine mesure |
-| **témoignage** | ce qu'elle RAPPORTE d'un tiers | `quotation`, `translation`, `attribution` | les marques de la citation : langue, retrait, filet |
-| **renvoi** | ce vers quoi elle ENVOIE | `reference`, `internal_cross_reference` | la destination décide de la normalisation |
-
-⛔ **L'ANCRAGE EN TÊTE NE FAIT PAS PARAGRAPHE.** Chez Faivre, « (V) pag. 178. — *Avec les démons les plus féroces* — On peut consulter… » tient sur **un seul paragraphe imprimé**. La passe 3 du protocole le fend en trois blocs, parce que ce sont trois fonctions ; mais fendre est une opération de STRUCTURE, et *une opération de structure ne doit pas se voir en lecture*. Les blocs d'ancrage qui OUVRENT une note se composent donc sur la ligne du propos, en repère discret, et non empilés au-dessus de lui. ⚠️ **En tête seulement** : un lemme qui reparaît au milieu d'une note y joue un autre rôle, et une note faite du seul ancrage se rend seule plutôt que de disparaître.
-
-⛔ **DANS LA FAMILLE DU RENVOI, C'EST LA DESTINATION QUI COMMANDE.** Un renvoi vers le DEHORS (`reference`) se normalise : il a un auteur, un titre, un locus, et le site sait les composer. Un renvoi vers le DEDANS (`internal_cross_reference`) ne le peut pas — il n'a ni auteur ni titre — et le lui appliquer serait une CORRUPTION, non une maladresse : dans « Voyez la note I, p. 150 », le « I » est un numéro de note, que `normaliserReferencesDansTexte` convertirait en chapitre arabe. *Deux blocs de même apparence, deux traitements opposés : c'est la nature qui les départage, et rien d'autre ne le pouvait.*
-
-⛔ **UNE NATURE INCONNUE NE FAIT PAS DISPARAÎTRE SON BLOC.** Le vocabulaire se lit avec indulgence : une valeur hors liste retombe sur `commentary` et le bloc reste LISIBLE, fût-ce sans sa composition propre. ⚠️ C'est le contraire du défaut payé quatre fois avec `NATURES_CORPS`, où le bloc s'évanouissait en silence. *Un vocabulaire en avance sur son rendu est un désagrément ; un texte qui manque à la page est une perte.*
-
-### 13.11.1 Ce que le CODE porte depuis le 5 septembre 2026
-
-⛔ **Le vocabulaire a une SOURCE UNIQUE, et elle est double par nécessité** : `app/lib/naturesNote.ts` et la contrainte `texte_note_blocs_kind_check`. Les deux se modifient ENSEMBLE, dans l'ordre du § 7.6 — la charte, la contrainte, le vocabulaire du code, la composition, l'épreuve à l'écran, et *seulement ensuite* on sème. Migration `sql/20260905_natures_bloc_note.sql`, retour arrière en regard.
-
-⛔ **Le NUMÉRO AFFICHÉ se calcule à la lecture, jamais en base** (`app/lib/numerotationNotes.ts`) : `note_number` reste l'identité et l'ordre de lecture, dont dépendent 23 569 ancres, et `texte_note_ancres.marker` vaut exactement `[[note_number]]` — renuméroter en base, ce serait réécrire les deux et perdre l'ancrage.
-
-⚠️ **La division d'une note ne se lit PAS dans `texte_notes.book`, qui la porte pourtant.** Mesuré le 5 septembre 2026 : sur les 23 729 notes du corpus, **8 580 (36 %, dans 39 textes sur 47) ont un `book` différent du `ref_niv1` du segment qu'elles ancrent** ; sur `A0044O0003TFR-V11`, les 1 830 notes diffèrent sans une seule exception. `book` est une métadonnée d'IMPORT ; la division est une propriété du texte SERVI. **C'est l'ancre qui fait foi**, et les 747 notes dont l'ancre ne porte aucun niveau 1 forment une série à part, comme les liminaires dans la numérotation des paragraphes.
-
-⛔ **Le TYPE s'annonce dans l'en-tête de la fenêtre de note, et nulle part ailleurs** (`app/lib/typeNote.ts`) : « Note du traducteur 12 », « Apparat critique 7 ». ⚠️ **Il exige l'unanimité des blocs** : une note mixte — le commentaire de l'édition, puis le renvoi que NOUS ajoutons — n'annonce rien, car *mieux vaut « Note » qu'une attribution à demi fausse*. Le libellé nomme une RESPONSABILITÉ, jamais une position dans la page : « note de l'édition », et non « note de l'éditeur », que la maison d'édition et l'éditeur scientifique se disputent en français.
-
-⛔ **L'ITALIQUE DE LA LANGUE ne porte que sur le bloc ENTIER**, celui dont `language` déclare la langue. Le latin ENCHÂSSÉ dans une note française — le cas le plus fréquent et le plus coûteux — n'est pas de ce ressort : aucune donnée ne dit où il commence, et le deviner au rendu italiserait du français. Il s'écrit par marqueur, dans le texte, à la passe 5.
-
-
-### 13.12 Ce que l’auteur a TRANCHÉ le 5 septembre 2026
-
-Douze questions posées dans `work/notes/QUESTIONS_NOTES_20260905.txt`, toutes MESURÉES sur le corpus réel avant d’être posées, et par les fonctions du site elles-mêmes plutôt que par une copie de leurs règles. Ce qui suit est la réponse de l’auteur : elle commande les passes du protocole. ⚠️ Aucune donnée n’a été écrite le jour de l’arbitrage — la charte d’abord (§ 7.6), la donnée ensuite.
-
-**1. LES ITALIQUES DE L’OCR DEVIENNENT DES MARQUEURS.** 420 blocs de cinq textes portent dans `metadata.enrichments` les italiques, petites capitales et exposants relevés sur la page imprimée : **3 569 empans ancrés par offset**, et **aucune ligne du site ne les lit**. Ils se convertissent en `*italique*`, `++petites capitales++` et `^^exposant^^`, écrits dans le texte, que `rendreTexteEnrichi` compose déjà. ⚠️ Mesuré : **406 blocs sur 420 (96,7 %)** se convertissent sans réserve ; aucun de ces textes ne porte déjà `*`, `+`, `^` ni `<i>` ; **14 blocs** ont des empans qui se chevauchent et se relisent un par un. ⛔ C’est le § 13.11.1 pris par l’autre bout : *un champ que rien ne lit n’est pas une réserve pour plus tard, c’est une seconde vérité qui attend de contredire la première* — et celle-ci est le SEUL témoin des italiques de Faivre.
-
-**2. UN RENVOI « RÉFÉRENCE IMPRIMÉE : » SE NORMALISE COMME LES AUTRES.** 4 883 blocs de 27 textes ouvrent sur ce préfixe (le protocole en annonçait 3 622, et le chiffre est rectifié) ; il se retire, `metadata.provenance_note` dit d’où vient le renvoi, et le texte passe par le normaliseur comme le reste du corpus. ⛔ **La provenance dit d’OÙ vient un renvoi, jamais qu’il doive garder sa graphie** : sans quoi le site écrirait « Ps. 5, 8. » ici et « Ps 5, 8 » partout ailleurs, pour la même référence. La leçon imprimée se conserve en `metadata`, ce qui rend la provenance vérifiable au lieu d’en faire une étiquette.
-
-**3. LA LEÇON IMPRIMÉE SE CONSERVE QUAND LE CHANGEMENT DÉPASSE LA TYPOGRAPHIE**, et seulement alors : ponctuation finale ajoutée, abréviation développée, référence recomposée. ⛔ Jamais pour une espace fine. `normaliserTypographieLecture` ne change pas la longueur d’un texte, elle convertit un type d’espace ; conserver une leçon pour cela ferait de `metadata` un double du champ `text` sur des milliers de blocs, sans qu’aucune preuve y gagne. ⚠️ Repères mesurés : 6 431 notes sur 16 408 (39 %) reçoivent une ponctuation finale, 3 392 renvois sur 11 916 sont recomposés — ce sont ces blocs-là qui gardent leur leçon.
-
-**4. UN RENVOI INTERNE SE RECONNAÎT À LA LECTURE, JAMAIS À SON MOT D’OUVERTURE.** Sur les 79 blocs qui ouvrent par « Voy. », « Voir » ou « Consulter », les uns renvoient à Paul Monceaux et à la *Revue d’histoire ecclésiastique*, donc hors de l’œuvre ; les autres à « la note L, tome I, p. 131 ». **Sept seulement nomment une note.** ⛔ « Il faut systématiquement faire un contrôle logique. Il faut que l’IA regarde de près ce qui est écrit et réfléchisse. On ne peut pas automatiser » (l’auteur). D’autant moins que ce renvoi devra un jour DÉSIGNER un segment de la même œuvre, parfois lointain : une cible fausse coûte plus qu’une cible absente.
-
-**5. LE TYPE DE NOTE S’ATTRIBUE AU CAS PAR CAS**, et la charte porte la liste des types pour que l’identification ait une ligne directrice (§ 13.12.1). ⚠️ 16 873 blocs sur 24 264 (69 %) n’en portent aucun : c’est le plus gros manque de l’appareil.
-
-**6. LA MENTION « (NOTE DU TRADUCTEUR.) » ÉCRITE EN CLAIR SE RETIRE** dès que le type est posé — 136 notes. « On transpose cette information dans la case dédiée » (l’auteur, confirmant le § 13.8). ⛔ Sans quoi le lecteur la lit deux fois, l’en-tête de la fenêtre l’annonçant déjà.
-
-**7. LE LATIN ENCHÂSSÉ SE MET EN ITALIQUE** (§ 13.12.2).
-
-**8. UN « IBID. » SANS AMONT SE DÉPUBLIE, PUIS SE CHERCHE.** 116 blocs ouvrent sur « ibid. » ou « id. » ; en remontant l’ordre de lecture, 43 trouvent leur œuvre dans la note qui précède, 60 en remontant de deux à douze notes, et **13 ne se résolvent par aucun moyen mécanique**. La marche arrêtée par l’auteur, dans cet ordre : **on les dépublie ; on cherche ensuite au cas par cas, au besoin dans le fac-similé ; on corrige si la réponse est trouvée, on reconstitue avec une note éditoriale si on le peut, on supprime si on ne le peut pas.** ⚠️ « Dépublier » n’existe pas encore pour une note : voir § 13.12.3.
-
-**9. UN « IBID. » RÉSOLU SE COMPOSE ENTIER.** Le lecteur lira « Augustin, *La Cité de Dieu*, XI, 25 » et ne lira plus jamais « Ibid., 25 ». La forme imprimée se conserve en `metadata`, la règle 3 s’appliquant : le changement dépasse de loin la typographie.
-
-**10. DES DEUX NOMS D’UNE MÊME MÉTADONNÉE, LE PLUS RÉPANDU SURVIT.** `human_validated` (14 000 blocs) contre `validated_human` (5 662) ; `reference_normalized` (1 682) contre `normalised_reference` (1 032). ⚠️ L’unification est sans risque, et c’est mesuré : les **901 blocs qui portent les deux premiers s’accordent tous**, sans une seule contradiction, et les deux seconds ne se rencontrent jamais sur un même bloc. ⛔ Et le nom retenu est déjà celui que le code lit (`lireMetadonneesBlocNote`) : le plus répandu n’est pas le plus régulier, mais il est le seul qui ne demande pas de toucher au rendu.
-
-**11. LE MOTIF DU NORMALISEUR RECONNAÎT LE CHAPITRE ROMAIN EN MINUSCULES.** ⚠️ **Le § 13.8.1 annonce 1 716 renvois : le chiffre est FAUX**, et la mesure du 5 septembre 2026 le rectifie — **355 occurrences** de la forme « <mot>. <romain minuscule>, <nombre> », dans 355 blocs et 14 textes, dont **223 seulement seraient réécrites**. ⛔ Le risque est borné par le motif lui-même : il n’agit que si le mot qui précède résout vers un livre du référentiel, et « Cor. » (58 occurrences), « Ibid. » (26), « Thess. » et « Eccl. » en sont volontairement absents comme équivoques. Vérifié sur la vraie fonction : « Cor. XV, 22 » et « Ibid. V, 12 » ne bougent pas. ⚠️ Chaque bloc touché se signale, pour un contrôle par sondage.
-
-✅ **SERVI le 5 septembre 2026**, et la mesure sur le corpus a fait paraître une borne que la charte ne portait pas. Le motif élargi rend **264 réécritures neuves et n’en perd aucune** ; les 235 formes distinctes ont été relues une par une, et toutes sont justes.
-
-⛔ **AUCUN LIVRE DU CANON N’A PLUS DE 150 CHAPITRES**, le Psautier étant le plus long. Un nombre au-delà ne désigne donc rien : c’est le signe que le motif a lu comme un chiffre romain ce qui n’en est pas un. Sans cette borne, l’élargissement fabriquait **six corruptions** — « na m. 2 » rendu « Na 1000, 2 », et « Psalm. 77. » rendu « Ps 1000, 77 », où le « m » d’un mot est pris pour mille. ⚠️ Elle ne coûte rien à l’existant : des 4 038 réécritures d’avant, **pas une** ne dépassait 150.
-
-⚠️ **LE MOTIF RECULE DANS LE MOT QUI PRÉCÈDE, et il faut le lui laisser.** C’est ce recul qui rend « Abdi. 1 » lisible — « Abd » et « i » font Abdias, chapitre 1, et le livre n’en a qu’un. Le lui interdire par un groupe atomique paraissait le remède au « Psalm. 77 » ; mesuré, cela coûterait **treize réécritures justes** et n’écarterait aucune corruption que la borne n’écarte déjà. *Une garde se choisit sur ce qu’elle coûte, non sur ce qu’elle a l’air de protéger.*
-
-⚠️ **Trois sources sont elles-mêmes fautives, et le normaliseur les recopie fidèlement** : « I Cor. xxv, 24 » (la première épître aux Corinthiens n’a que seize chapitres), « I Thess. vi, 12 » (cinq chapitres), « Ap. v, 15 » (le chapitre 5 n’a que quatorze versets). ⛔ On ne CORRIGE pas une référence : on la recompose. Ce sont trois cas pour le sondage, non trois défauts du motif.
-
-**12. LE RÉFÉRENTIEL D’ABRÉVIATIONS ACCUEILLE LES VARIANTES NON ÉQUIVOQUES**, une à une, chacune vérifiée sur ses occurrences réelles : « Ephés. », « Ephes. », « Math. », « Galat. », « Apocal. », « Nomb. », « Sag. ». ⛔ Les équivoques restent dehors, et la charte l’a déjà tranché : « Cor. », « Thess. », « Eccl. », « Tim. », « Par. ».
-
-**13. LE JOURNAL D’ATELIER DE `metadata` RESTE EN BASE, MAIS LA PAGE CESSE DE LE TRANSPORTER.** `metadata` porte plus de 150 clés distinctes, pour l’essentiel un journal de travail daté (`facsimile_pixel_review_20260903`, `p3_canonicalization_audit_20260904`…), et **554 blocs y portent une copie complète d’un bloc** — `text`, `kind`, `form`, `rank`, `language` et le reste, tous à 554. Le site n’en lit que quatre scalaires, mais le `jsonb` ENTIER voyage jusqu’au navigateur, pour 24 264 blocs. ⛔ **On restreint donc la LECTURE aux clés qu’on projette** : gain sans arbitrage, sans toucher une donnée. ⚠️ Le journal lui-même appartient à GPT, et l’auteur ajoute qu’**il faut le supprimer s’il ne sert à rien** : la décision lui revient. ⛔ Les 554 copies de bloc, elles, sont une seconde vérité au sens de la charte et se regardent à part.
-
-### 13.12.1 Les CINQ TYPES de note, et comment les reconnaître
-
-Demandé par l’auteur le 5 septembre 2026 : « Il faut évidemment lister les types de notes dans la charte pour que GPT, qui fera ce travail d’identification, ait une ligne directrice. » Le type vit dans `metadata.editorial_role`, jamais dans le texte du bloc.
-
-| `editorial_role` | Ce qu’il dit | Ce que le lecteur voit |
-|---|---|---|
-| `author_note` | la note est de l’AUTEUR ancien lui-même | Note de l’auteur |
-| `translator_note` | elle est du TRADUCTEUR | Note du traducteur |
-| `source_editorial_note` | elle est de l’ÉDITION dont le texte est tiré | Note de l’édition |
-| `corpus_editorial_note` | elle est de NOUS | Note de Corpus Scriptura |
-| `critical_apparatus` | c’est une entrée d’apparat critique (§ 22) | Apparat critique |
-| *(absent)* | on ne sait pas | Note |
-
-**Les repères, dans l’ordre où ils tranchent :**
-
-- `translator_note` — elle parle de la LANGUE et de son propre travail : « nous avons traduit », « le mot grec », « notre version », « littéralement ». C’est la seule voix qui se justifie d’un choix de mot.
-- `source_editorial_note` — elle DOCUMENTE : elle date, situe, identifie un personnage, renvoie à la littérature savante, cite une édition. C’est le cas ORDINAIRE d’une édition du XIXe siècle, et donc le lot par défaut d’un texte entier.
-- `author_note` — elle parle depuis le temps de l’ŒUVRE : elle renvoie à un autre endroit du même ouvrage, elle ne peut nommer aucun auteur postérieur. ⛔ Ne pas la confondre avec le fait que l’auteur parle dans le TEXTE : ce qui est en cause est qui a écrit la NOTE.
-- `corpus_editorial_note` — **elle n’existe que si nous l’avons écrite.** ⛔ Jamais attribuée à une note importée, si utile soit-elle.
-- `critical_apparatus` — la notation philologique, hors de toute passe de normalisation (§ 13.9, § 22).
-
-**La méthode, arrêtée avec l’auteur : EN LOT PAR TEXTE, SAUF EXCEPTIONS NOMMÉES.** Une édition a un responsable, et ses notes sont de lui. Mesuré en cherchant les notes qui trahissent une seconde voix : **34 textes (10 348 blocs) n’en portent aucune** et se traitent d’un coup ; **10 textes (6 525 blocs) en portent au moins une** et demandent la lecture. Sortent du lot pour être jugés à part : les blocs qui disent « nous », ceux qui nomment le traducteur, ceux qui portent déjà leur type en clair. Un sondage de contrôle ferme chaque texte.
-
-⛔ **UN TYPE FAUX EST PIRE QU’UN TYPE ABSENT** : il attribue à un Père une remarque de son traducteur du XIXe siècle. Le doute laisse la note sans type, et se signale.
-
-⚠️ **Le type se pose sur le BLOC ; la note ne l’ANNONCE que si tous ses blocs s’accordent** (§ 13.11.1). Une note mixte — le commentaire de l’édition, puis le renvoi que nous ajoutons — n’annonce rien, et vaut mieux ainsi.
-
-⚠️ **« Note de l’édition », et non « note de l’éditeur »** : le libellé nomme une RESPONSABILITÉ, et « éditeur » se dispute en français entre la maison qui publie et le savant qui établit.
-
-### 13.12.2 L’ITALIQUE du latin enchâssé
-
-⛔ **Le latin cité DANS une note française se compose en italique.** Décision de l’auteur du 5 septembre 2026 : « Il faut simplement le mettre en italique. GPT s’en chargera. » Le § 13.8 réglait le bloc entièrement latin ; celui-ci règle le cas le plus fréquent, et le plus coûteux.
-
-- ⛔ **Il s’écrit par MARQUEUR, dans le texte** (`*…*`), jamais par un offset ni par une devinette au rendu. Aucune donnée ne dit où le latin commence : le deviner italiserait du français, et la charte a déjà écarté cette voie (§ 13.11.1).
-- ⛔ **C’est une LECTURE, non une passe mécanique.** On ne reconnaît pas une langue à un dictionnaire de mots courts, et une phrase française porte assez de mots d’origine latine pour qu’un automate s’y trompe à chaque page.
-- ⚠️ **Une abréviation de renvoi n’est pas du latin CITÉ** : « ibid. », « id. », « op. cit. », « cf. », « passim » sont des conventions bibliographiques et ne s’italisent pas. Ce qui s’italise est ce que l’auteur ou l’éditeur CITE en latin.
-- ⛔ **Ne pas cumuler avec l’italique de la langue.** Un bloc entièrement latin est italisé au RENDU, sur `language = 'la'`, et son texte ne porte aucun marqueur : l’écrire des deux façons ne se verrait pas à l’écran et laisserait deux vérités.
-- ⚠️ **Le grec ne suit pas** : son alphabet le distingue déjà, et l’italique y déforme la lettre au lieu de changer la graisse (§ 13.8).
-- ⚠️ **Sur les cinq textes enrichis, l’imprimeur a déjà fait le travail** : la règle 1 rend l’italique de Faivre, dont une part est du latin — 2 341 empans dans le seul `A0044O0003TFR-V11`. Ailleurs, il faut lire.
-
-### 13.12.3 Ce qui reste OUVERT
-
-⚠️ **LA FENTE DU BLOC À TROIS TÊTES ATTEND UNE SÉANCE À PART.** 396 blocs de Faivre agglomèrent dans un seul paragraphe une coordonnée imprimée, un lemme et un commentaire : « (V) pag. 178. — Avec les démons les plus féroces. On peut consulter… ». La passe 3 les fend en trois blocs, et la question est de savoir SUR QUOI. Fendre sur la PONCTUATION est une supposition : on parie que la première phrase après le tiret est le lemme. Fendre sur l’ITALIQUE est un fait relevé : Faivre imprime son lemme en italique, et l’OCR en a gardé les bornes. Mesuré : **une italique ouvre juste après le tiret dans 378 blocs sur 396 (95,5 %)** ; et une fois rejoints les empans que l’OCR coupe en fin de LIGNE IMPRIMÉE (24 blocs sont dans ce cas), **345 sur 378 (91,3 %) se ferment sur une ponctuation forte, celle-ci comprise DANS l’italique**, comme l’imprimeur l’a composée. ⛔ Rien ne s’écrit tant que l’auteur n’a pas tranché : « C’est un cas particulier. On va en discuter spécialement ensemble. »
-
-⚠️ **« DÉPUBLIER » N’EXISTE PAS ENCORE POUR UNE NOTE**, et la décision 8 le demande. `texte_note_blocs` porte `needs_review`, que la charte tient pour un signal de prudence et qui ne masque rien par lui-même ; aucune colonne, aucune métadonnée lue par le site ne retire un bloc de la lecture. ⛔ Le mécanisme se pose AVANT la passe, non pendant, et il vaudra pour tout bloc qu’on voudra retenir — non pour les seuls treize « ibid. » orphelins.
-
-⚠️ **Le RENVOI INTERNE reste un texte, non un lien.** La nature `internal_cross_reference` existe (§ 13.10) et sépare déjà ce qui pointe au dedans de ce qui pointe au dehors ; mais rien ne DÉSIGNE encore le segment ou la note visés. La décision 4 le prépare — on lit, on juge, on range — et la cible se posera quand le modèle saura la porter.
-
-### 38.21 La LACUNE du témoin garde ses CROCHETS, et les met en forme
-
-Demande de l’auteur, 2026-09-05 : « les “lacunes” doivent être mises en forme : corps légèrement plus petit, léger espace avant et après les crochets, ocre ou maroquin ». Elles s’imprimaient BRUTES dans la traduction moderne de la Bible du XIIIᵉ siècle, où la donnée écrit « […] » quarante-six fois et « [lacune : motif] » neuf fois.
-
-⛔ **Le manque se dit ENTRE CROCHETS**, dans les DEUX membres de l’édition. C’est le signe que la philologie donne depuis toujours à ce qu’un témoin a perdu, et c’est celui que la donnée écrit déjà ; les chevrons « ⟨ Lacune ⟩ » de la colonne du manuscrit y reviennent, de sorte que le même fait se dise du même signe des deux côtés d’une seule édition. Le motif exact — déchirure, fin du manuscrit — reste à l’infobulle, jamais à l’écran.
-
-**La forme** : un cran sous le texte qui l’entoure (0,85 em), l’OCRE des absences, et un léger air de part et d’autre. ⚠️ **Cet air est une MARGE, non une espace du texte.** Une espace serait une occasion de couper la ligne entre le crochet et le mot qui le précède, et elle s’emporterait en copiant le verset ; la marque se garde d’ailleurs d’un seul tenant. ⚠️ La FINE insécable demeure, et pour son seul office : quand la lacune coupe un MOT (« por[…]er »), elle sépare la marque du fragment resté collé, sans l’attacher ni le détacher comme un mot entier.
-
-⛔ **UNE TRADUCTION NON RECOMPOSÉE NE PASSE PAS PAR LE TOKENISEUR DU TÉMOIN.** Celui-ci tolère un crochet fermant orphelin, parce que la recomposition par créneau canonique coupe un marqueur en deux ; la traduction moderne, elle, porte QUATRE-VINGT-CINQ RESTITUTIONS entre crochets (« il [m’exauça] »), qui sont l’usage philologique et doivent s’imprimer telles quelles. Le tokeniseur y verrait autant de fermetures et griserait tout ce qui les précède. On ne reconnaît donc, dans un texte non recomposé, que la LACUNE, et par PAIRES COMPLÈTES.
-
-⚠️ **Le crochet fermant d’une lacune nue n’est pas une fermeture orpheline**, et c’est le défaut que la mise en forme a fait paraître : un verset qui s’ouvre sur « […] » basculait TOUT ENTIER en lecture incertaine. Le début d’un verset se juge donc sur le premier TOKEN, jamais sur la première occurrence d’un crochet.
-
-⚠️ **RESTE À TRANCHER, et c’est une affaire de DONNÉE.** Six cent cinquante-deux versets de cette traduction portent « [lecture incertaine : … ] » et s’impriment bruts, avec une douzaine d’étiquettes de plus que le vocabulaire du témoin ne connaît pas — « lecture difficile », « Fragment », « Suite incertaine », « Suite corrompue », « Restitution incertaine », « Passage altéré », « reprise ». Les rendre demande de savoir les distinguer d’une restitution, ce qui ne se devine pas ; et soixante versets y portent des crochets déséquilibrés, donc des marqueurs à cheval. ⛔ Rien n’a été fait de ce côté sans arbitrage.
-
-### 38.22 Le panneau de FILTRES — la rubrique en marge, et un filtre qui agit se MONTRE
-
-Demande de l’auteur, 2026-09-05 : revoir les filtres de la bibliothèque, en termes esthétiques et pratiques.
-
-⛔ **UNE RUBRIQUE DE FACETTE SE POSE EN MARGE, ELLE NE COIFFE PAS SON RANG.** Les trois rubriques se posaient en bannière CENTRÉE au-dessus de leurs pastilles : trois titres empilés faisaient du panneau une page de titre à trois titres, et chacun coûtait une ligne entière pour un mot de neuf pixels. ⛔ Et les pastilles centrées n’offraient AUCUN BORD GAUCHE où l’œil revienne — cinq larges, deux étroites, sept larges, chaque rang ragué des deux côtés. La rubrique passe donc au fer à droite d’une colonne étroite, les pastilles au fer à gauche, et le panneau perd deux cinquièmes de sa hauteur sans rien retrancher.
-
-⚠️ **Elle se pose sur la LIGNE DE BASE de la première pastille, jamais sur le milieu de sa boîte** : deux corps différents centrés l’un sur l’autre font flotter le plus petit au-dessus de la ligne de l’autre. C’est la grille qui l’aligne, sans un pixel écrit — la règle est déjà celle du lien de la carte de traduction (§ 38.5).
-
-⛔ **UN FILTRE QUI AGIT SE MONTRE.** Refermer le panneau ne laissait qu’une pastille de compte sur le bouton : on savait qu’il agissait deux filtres, jamais LESQUELS, et « Effacer » devenait hors d’atteinte. Les filtres retenus se rappellent donc sous la barre de recherche, chacun retirable d’un clic. C’est la même règle qui garde déjà visible, dans le panneau, une facette active qui ne rendrait rien : *on ne cache jamais un filtre qui agit, sans quoi le lecteur ne sait plus pourquoi sa liste est courte.* ⚠️ Ce rappel ne se double pas du panneau OUVERT, qui montre déjà les mêmes pastilles à l’état actif.
-
-⛔ **ET LE BOUTON CESSE DE COMPTER CE QUE LES JETONS NOMMENT** : « ❷ » se lisait à quarante pixels des deux jetons, soit deux comptes de la même chose sur une seule ligne, dont l’un ne dit pas lesquels. Ce que le bouton doit encore porter — qu’un filtre agit — son encre et son filet le disent.
-
-**La page ne disait nulle part combien d’auteurs répondent** : seul le pied « Page 1 sur 3 » le laissait deviner, et le total ne se lisait qu’en tournant les pages jusqu’au bout. Une ligne discrète le dit dès qu’une recherche ou un filtre restreint la liste — « Trois auteurs sur quinze » —, et elle donne le total au passage. ⛔ Elle ne paraît PAS quand rien ne restreint : un compte qui ne bouge jamais n’est pas une information (§ 38.12).
-
-⚠️ **« Tout effacer » se range sous la COLONNE DES PASTILLES**, non au bord du panneau : posé au fer à gauche sous trois rangs qui commencent cinq rem plus loin, il ne se rattachait à rien et faisait un objet de plus en bas d’écran.
-
-⚠️ **La forme de la pastille s’écrit UNE fois** et sert les deux surfaces, celle où l’on choisit et celle où l’on retire : deux définitions d’un même objet divergent au premier réglage. Et son COMPTE se lit — il était deux rangs sous son libellé et à demi effacé, quand c’est lui qui dit qu’un filtre ne servira à rien avant qu’on l’essaie.
-
-### 38.23 Des requêtes qui ne s’ATTENDENT pas partent ENSEMBLE
-
-Relevé de l’auteur, 2026-09-05 : « le temps d’affichage me paraît un peu lent » sur l’onglet « Catalogue des traductions ». Mesuré : **1 807 ms** avant que la liste paraisse, en **quatre allers-retours EN SÉRIE** — la session, puis trois pages de notices, puis les votes — dont **aucun n’avait besoin de ce que le précédent rapportait**. Lancés ensemble : **932 ms**.
-
-⛔ **Une cascade se juge sur les DÉPENDANCES, non sur l’ordre où l’on a écrit les lignes.** C’est la règle déjà payée sur la page Bible (§ « le coût, c’est le NOMBRE d’allers-retours ») et sur la page d’œuvre ; elle vaut à l’identique pour une liste chargée par le navigateur. Une requête n’attend que ce qu’elle CONSOMME.
-
-⚠️ **Le plafond de PostgREST est de mille lignes, et il ne se contourne pas** : pour 2 499 notices, trois pages sont inévitables. Ce qui ne l’était pas, c’est qu’elles s’attendent.
-
-⛔ **Une page SPÉCULÉE au-delà de la fin n’est pas gratuite.** Une pagination par tranche ne sait jamais d’avance combien de pages elle aura : demander une vague en parallèle, c’est parier. Or sur une vue qui CALCULE ses colonnes, le nœud de calcul s’exécute pour toutes les lignes jusqu’à la borne haute avant de n’en rendre aucune — mesuré, 569 ms pour une page qui ne rendrait rien. La vague se taille donc sur la liste qu’on charge, jamais « large pour être tranquille », et l’on n’en demande une seconde que si la dernière page revenue était PLEINE, c’est-à-dire sur une preuve.
-
-⛔ **ON NE DEMANDE PAS DEUX MILLE CINQ CENTS IDENTIFIANTS POUR EN RAPPORTER TROIS.** La table des votes en compte trois, et sa politique de lecture est déjà publique : la clause `in.(…)` pesait douze kilo-octets d’adresse. ⚠️ Et elle était plus fragile qu’il n’y paraît — PostgREST renvoie l’adresse ENTIÈRE dans son en-tête de réponse, si bien qu’un client node refuse déjà la réponse pour dépassement d’en-tête. Un navigateur tolère davantage ; la clause était à un millier de notices de casser, et sans un mot. C’est la règle des lots d’une clause `in`, prise par l’autre bout : *quand le filtre coûte plus cher que ce qu’il écarte, on ne filtre pas.*
-
-⛔ **UNE PANNE SE DIT.** Les quatre requêtes de cet onglet ne lisaient jamais leur `error` : un échec s’y rendait « Aucun auteur ne correspond à ces critères », c’est-à-dire un catalogue vide donné pour un catalogue sans réponse. C’est la règle déjà écrite pour la carte « Bibliothèque » du compte — *un panneau discret journalise son erreur, sans quoi rien ne distingue « vide » de « cassé »* — et le remède est le même : le chargeur lève, la page le dit, et propose de réessayer.
-
-⚠️ **Ce que l’audit a démenti, et qui vaut d’être écrit.** Le regroupement de 2 499 notices à chaque rendu — deux mille `localeCompare` en français, sans collateur réemployé — était le premier suspect. Mesuré : **3 ms**, et un `Intl.Collator` gardé sous la main n’y change rien, le moteur le mettant déjà en cache. *Un soupçon de lenteur se mesure avant d’être corrigé : celui-là aurait coûté une refonte pour trois millisecondes.*
-
-⚠️ **Et ce qui reste, qui est de la BASE.** Les trois colonnes de date de la vue du catalogue coûtent à elles seules **1,3 s** sur les trois pages : cinq fonctions PL/pgSQL, aucune sous-expression partagée — la même est calculée deux fois par ligne — pour 515 dates distinctes sur 2 499 lignes. Deux barrières d’optimisation suffiraient à la faire tomber de 597 à 148 ms, le planificateur y ajoutant de lui-même un cache par valeur. Éprouvé, à l’identique au caractère près sur les 2 645 lignes ; non appliqué, faute d’arbitrage.
-
-⚠️ **Comment on mesure une liste chargée par le NAVIGATEUR** : depuis le poste, en rejouant ses requêtes exactes. Le chemin réseau est le même que celui du lecteur, puisque c’est son navigateur qui parle à la base — à la différence d’une page servie, où il faut mesurer en ligne (§ 18).
-
-### 38.24 La fiche d’une ŒUVRE porte une FRISE, et un sommaire vide ne paraît pas
-
-Trois demandes de l’auteur, 2026-09-05.
-
-⛔ **LA FICHE D’UNE ŒUVRE PORTE UNE CHRONOLOGIE, ET C’EST CELLE DE SON AUTEUR.** Il n’y en a pas d’autre : douze événements sur 1 346 nomment une œuvre, **un seul par œuvre**, et une frise d’un point n’est pas une frise. Mais la question qu’on pose à cette fenêtre — *où ce livre tombe-t-il ?* — se répond précisément là, entre la naissance et la mort de celui qui l’a écrite.
-
-⚠️ **La ligne qui nomme l’œuvre lue s’y DÉTACHE**, à l’accent et à la graisse — le marqueur de l’entrée active d’un sommaire, et rien de plus. Sans elle, la fiche de l’œuvre montrerait la fiche de l’auteur et ne répondrait à rien. ⛔ La chronologie OUVRE la colonne de droite, comme dans la fiche d’une traduction : on situe avant de documenter ; et elle ne paraît pas quand l’auteur n’en a pas.
-
-⚠️ **Le champ existait et rien ne le lisait.** Les deux vues de chronologie portent `oeuvre_id` depuis l’origine ; aucune ligne du site ne l’avait jamais demandé. *Un champ qu’aucune surface ne lit n’est pas une réserve pour plus tard : c’est une porte qu’on a oublié d’ouvrir.*
-
-⛔ **UN SOMMAIRE QUI N’A RIEN À SOMMER NE PARAÎT PAS.** Le volet de lecture posait la rubrique « SOMMAIRE » et, dessous, la mention « Texte complet » : une rubrique qui annonce une table des matières, et une ligne qui dit qu’il n’y en a pas. Deux objets pour rien, et ils s’en vont ensemble. L’apparat critique prend alors toute la hauteur du volet, son plafond de moitié ne partageant plus avec personne.
-
-⚠️ **La règle porte sur le CONTENU, non sur le mode de lecture**, et la distinction n’est pas de forme. Le cas se rencontre aujourd’hui en TEXTE ENTIER — une seule œuvre publique, « De la vanité des idoles » — mais un texte sans niveaux le rendrait tout aussi absurde ailleurs. ⛔ Et l’on ne retire pas le sommaire du mode « texte entier » : **vingt-trois œuvres s’y lisent AVEC le leur**, dont l’Apologétique (52 chapitres) et les Homélies sur la Genèse (68), où il est la seule navigation — c’est même son unique office là, puisque tout est déjà chargé dans la page.
-
-⛔ **UNE SOURCE NUMÉRIQUE NE DONNE QUE LE NOM DU SITE** (« toujours illisible ; se contenter de donner le nom du site »). Le champ n’est pas un nom mais une PHRASE — le site, puis ce qu’on y a pris : « eBible.org — corpus BibleNLP, édition fra-fraLSG » —, et dans la colonne étroite d’une fiche elle ne se lit pas.
-
-⛔ **Et ce nom n’est PAS l’hôte de l’adresse.** Trois des sept sources du corpus sont hébergées sur un même dépôt public, où le lecteur ne reconnaîtrait aucun des trois sites. C’est le DÉBUT du nom qui nomme, la suite qui précise ; l’hôte ne sert que de dernier repli, quand aucun nom n’est écrit. ⚠️ La coupe se fait sur un séparateur EXPLICITE — le tiret, ou l’incise « , d’après … » —, jamais sur une position ni sur la première virgule : « Gallica, Bibliothèque nationale de France » porte la sienne dans son nom même.
+⛔ **TOUT SE FERRE SUR LA MESURE.** Une page de l’espace est au fer à gauche ; trois de ses objets se centraient — la barre d’onglets, le sélecteur de traduction, l’emblème de la page — si bien que l’œil ne trouvait aucun bord commun. La barre passe au MODÈLE du site (§ 36), le sélecteur se ferre, et l’emblème prend la mesure entière, où il sépare au lieu de flotter. ⚠️ Un ornement CENTRÉ reste légitime (§ 41.5), mais alors il tient toute la mesure : centré sur treize rem au milieu de huit cents pixels, il ne sépare rien.
 
 ## 41. La densité des textes — le gris typographique
 
@@ -5909,421 +6412,3 @@ Une page qu’un lecteur ouvre pour la première fois se présente. Elle ne le f
 ⚠️ **Ce qu’une étape sur la barre coûterait, si l’on y revenait.** Il a fallu faire passer le voile par-dessus elle, faute de quoi aucun cadre ne pouvait s’y poser — et la barre s’assombrissait alors à chaque étape de chaque visite. Il a fallu de surcroît deux gardes de géométrie, dont l’une s’est révélée fausse à son premier essai : écrite sur le seul bord haut du sujet, elle écartait aussi tout sujet passé AU-DESSUS de la fenêtre, si bien qu’un retour en arrière après avoir descendu la page laissait le cadre échoué en haut de l’écran. ⛔ Les trois sont retirées avec l’étape : on ne garde pas une garde que plus rien n’exerce.
 
 ⛔ **ON N’EXPLIQUE PAS CE QUI S’ÉCRIT DÉJÀ.** L’étape de la pagination de la Bibliothèque est retirée le même soir : le pied de la liste porte « Page 1 sur 2 » en toutes lettres. ⚠️ Elle coûtait en outre la descente de toute la liste pour remonter ensuite, le plus long défilement qu’une visite du site ait demandé.
-
-### 38.25 La CELLULE D’ACTIONS — un seul objet, et il ne couvre jamais ce qu’il commande
-
-Relevé de l’auteur, le 7 septembre 2026 : « le système signaler / copier / prélever n’est pas uniforme, et parfois il cache le texte qu’on survole et le masque en partie ».
-
-⛔ **LA RÈGLE N’A PAS CHANGÉ, ELLE VAUT DÉSORMAIS PARTOUT.** À DROITE du segment ou du verset quand la place y est ; AU-DESSUS de son bloc de texte quand elle manque ; JAMAIS par-dessus. Elle est écrite depuis le 22 août 2026 dans `app/lib/celluleActions.ts`, avec ses tests, et deux surfaces sur cinq ne l’appliquaient pas.
-
-**Ce que l’audit a trouvé — cinq surfaces, quatre systèmes :**
-
-| Surface | Ce qu’elle faisait | Verdict |
-|---|---|---|
-| Bible classique, écran large | gouttière réservée de 2,375 rem à droite du bloc | conforme |
-| Bible classique, au doigt | pavé flottant au-dessus du verset, après un appui long | conforme |
-| Lecture d’une œuvre, paragraphes | cellule flottante par `positionCellule` | conforme, c’est la règle même |
-| **Traductions en regard** | `Math.min(droite + 6, largeurEcran − 132)` | ⛔ le calcul BRIDÉ que le module donne en contre-exemple |
-| **Polyglotte** | `position: absolute; top: 2px; right: 4px` DANS la cellule | ⛔ posé sur la première ligne du verset |
-| **Arguments d’une œuvre** | idem, dans le coin haut droit du bloc | ⛔ même défaut |
-
-⛔ **BRIDER N’EST PAS DÉPLACER**, et c’est la même faute qu’en août : quand la place manque, `Math.min` ne fait pas de place, il ramène la cellule sur la fin de la ligne. Le module le disait en toutes lettres et portait le test qui l’interdit ; les traductions en regard avaient gardé le calcul d’avant, sans que rien ne le signale — un contre-exemple écrit dans un module ne protège que ceux qui l’emploient.
-
-⛔ **L’ESPACE DISPONIBLE N’EST PAS TOUJOURS LA FENÊTRE.** Dans une grille de colonnes — la Polyglotte, les traductions en regard —, « à droite de la ligne » tombe sur la colonne voisine, c’est-à-dire sur un AUTRE texte. La règle prend donc les bornes de l’espace où la cellule a le droit de se poser : la fenêtre en lecture ordinaire, la COLONNE en grille. Une colonne étant par construction aussi large que sa ligne, la cellule y passe toujours au-dessus, ce qui est le bon résultat. ⚠️ Et la borne GAUCHE l’emporte sur l’alignement à droite : dans une colonne plus étroite que la cellule, mieux vaut déborder d’un cheveu à droite que couvrir la colonne d’à côté.
-
-⛔ **LA CELLULE SE MESURE ELLE-MÊME.** Le gabarit ne sert qu’au premier placement ; un effet de MISE EN PAGE le corrige avant la peinture, si bien que le lecteur ne voit jamais la position estimée. Sans cela il faudrait supposer à la cellule son plus grand gabarit — quatre boutons — et elle passerait au-dessus là où trois tiennent à droite. ⚠️ Le gabarit d’avant valait 132 px pour une cellule qui en fait 88 au plus.
-
-⚠️ **ELLE SUIT SON TEXTE AU DÉFILEMENT.** Elle est en `position: fixed` : une molette actionnée pendant qu’elle est ouverte la laissait sur place tandis que le texte glissait dessous, c’est-à-dire le défaut qu’on corrige, sous une autre forme. L’écoute se fait en CAPTURE sur la fenêtre — un événement de défilement ne remonte pas, mais il descend, et c’est la seule façon d’entendre un défileur interne sans savoir lequel c’est. ⛔ Au doigt elle se referme : un repositionnement continu y est saccadé.
-
-⚠️ **LE SOMMET SE MESURE, il ne vaut pas 56.** `HAUTEUR_NAVBAR` vaut 3,5 rem et la racine du site est fluide : la barre fait 56 px à la racine 16 et 77 à la racine 22. Une page qui porte en outre un en-tête COLLANT — la Polyglotte — passe le bas de cet en-tête, sans quoi la cellule monte derrière les noms d’édition.
-
-⛔ **LE GARDE-FOU DU CURSEUR EN MOUVEMENT DE LA POLYGLOTTE EST RETIRÉ.** Une classe allumait ses actions au survol tant que le curseur bougeait, et les effaçait après une seconde d’immobilité « pour ne pas encombrer la lecture ». Elle n’existait que parce que le pavé se posait SUR le texte : c’est le défaut lui-même qui avait engendré son pansement. La cellule passant au-dessus, il n’a plus rien à garder, et une surface qui se comporterait autrement que les quatre autres rouvrirait la disparité qu’on vient de fermer. ⚠️ Une seconde d’immobilité effaçait au demeurant les boutons sous le curseur qui les visait.
-
-⛔ **UN BOUTON D’ACTION A LA MÊME BOÎTE PARTOUT** (`COTE_BOUTON`, 18 px). Le même drapeau se montrait dans des boîtes de 16, 18 et 19 px selon la page ; le dessin ne changeait pas, seulement sa boîte, et rien ne disait laquelle avait raison. Le pavé aussi : filet, rayon, rembourrage et ombre viennent d’une seule déclaration, `--cs-ombre-nette` étant l’élévation que la charte donne déjà à « un petit objet qui flotte : bascule, infobulle, cellule d’actions ».
-
-⚠️ **UNE CELLULE EN PORTAIL NE REÇOIT PLUS LE CSS DE SA PAGE**, et c’est le piège de la migration. Les règles qui l’éteignaient au repos — `.poly-act { opacity: 0 }`, `.seg-wrapper .seg-btn-action` — exigent un ancêtre que le portail n’a pas : laissées en place, elles n’auraient RIEN atteint, ni pour éteindre ni pour allumer. Elles sont retirées avec ce qu’elles gardaient ; c’est la cellule qui paraît ou non, et une cellule qui paraît est pleine.
-
-⚠️ **CE QUI NE BOUGE PAS, ET POURQUOI** : la gouttière de 2,375 rem de la Bible classique. Elle est « à droite quand la place y est », donc conforme, et la charte interdit depuis le 22 août de « corriger » le décalage de dix-neuf pixels qu’elle impose au titre — il aligne le titre sur ce qu’on lit.
-
-⛔ **ET SI LE DESSUS EST BOUCHÉ, ON PASSE DESSOUS.** La règle n’avait que DEUX réponses, et bornait la troisième au sommet : une ligne posée juste sous un en-tête collant recevait donc sa cellule PAR-DESSUS, c’est-à-dire l’inverse exact de ce que la règle promet. ⚠️ Le défaut dormait depuis le 22 août 2026 et ne s’est vu qu’en MESURANT la Polyglotte servie : ce n’est pas un cas limite mais le premier verset visible sous l’en-tête des éditions, c’est-à-dire celui qu’on survole d’abord en arrivant sur la page. Le blanc de l’interligne SUIVANT vaut celui du précédent — dessous ne coûte pas plus que dessus, il ne se lit simplement pas d’abord.
-
-⛔ **On ne descend pas sous un bloc dont on IGNORE le bas** : un appelant qui ne passe que `{ top, right }` garde le bornage au sommet, la règle d’hier valant mieux qu’une pose au jugé. ⚠️ Et un bloc plus haut que la fenêtre n’a ni dessus ni dessous VISIBLES : on revient alors au sommet, une cellule posée hors de l’écran valant moins qu’une cellule qui mord. C’est le seul cas où elle mord encore, et il est nommé.
-
-⚠️ **CE QUE LA MESURE A APPRIS, ET QUE LES TESTS N’AVAIENT PAS DIT.** Dix-sept cas éprouvaient la règle, dont le contre-exemple du bridage, et tous passaient. Le trou tenait à ce que le sommet n’était jusque-là qu’un garde-fou contre la barre de navigation — un cas rare — et qu’aucune surface ne lui passait le bas d’un en-tête collant. En le lui passant, on a rendu ORDINAIRE une branche qui ne l’était pas, et le défaut s’est montré à la première ligne survolée. ⛔ **Une règle éprouvée sur les cas qu’on a imaginés ne l’est pas sur ceux que la page produit : on mesure sur la page SERVIE.** Recette : sous la session de l’auteur, provoquer le survol par `dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))` — ⛔ SANS `relatedTarget` —, puis comparer la boîte de `[data-cellule-actions]` aux rectangles de `Range.getClientRects()` du texte survolé. Le nombre de fragments recouverts doit valoir ZÉRO.
-
-⛔ **ET LA LECTURE EN REGARD D’UNE ŒUVRE EST UNE GRILLE, ELLE AUSSI.** Elle emploie la cellule de la lecture ordinaire, et on l’avait crue hors de cause pour cette raison : elle ne l’était pas. À droite d’un segment FRANÇAIS il y a la colonne du LATIN, et la cellule s’y posait — le défaut de la Polyglotte, à l’identique, sur la surface d’à côté. ⚠️ La colonne se retrouve comme l’enfant DIRECT de la grille qui porte le segment, sans marquer les trois formes que le français y prend — paragraphe, bloc de vers, citation en versets —, car marquer trois formes fait trois endroits où l’oublier.
-
-⚠️ **CE QUE CELA APPREND : une surface qui emploie déjà la bonne cellule n’est pas pour autant en règle.** Ce qui décide n’est pas le composant mais l’ESPACE qu’on lui donne, et l’espace se lit dans la mise en page, non dans le code du composant. ⛔ Avant de tenir une surface pour saine, se demander ce qu’il y a À DROITE de son texte.
-
-⚠️ **« Traductions parallèles » est ÉTEINT sur le site** (`COMPARAISON_ACTIVE = false`, mode jugé trop complexe) : le calcul bridé qu’il portait n’atteignait donc aucun lecteur. Il est corrigé quand même — un mode qu’on rallumera un jour ne se rallume pas avec son défaut — mais on ne peut pas l’éprouver en ligne, et il faudra le faire le jour où il reparaîtra.
-
-⛔ **UNE CELLULE QU’ON NE PEUT PAS ATTEINDRE N’EXISTE PAS** (relevé de l’auteur, 2026-09-07 : « le petit encart qui s’ouvre au survol est difficile à atteindre avant sa disparition »). Deux causes, et elles ne se recouvrent pas.
-
-⚠️ **La GRÂCE de sortie valait 200 ms, et le trajet n’est pas la marge de six pixels**, qui se franchit en un clin d’œil. La cellule se pose au HAUT du segment survolé, et l’on part souvent de sa dernière ligne : mesuré sur la lecture d’une œuvre servie, un segment de cinq lignes met la cellule à quelque cent soixante pixels en diagonale, soit deux à trois cents millisecondes à la vitesse ordinaire d’une main. Deux cents ne suffisaient qu’aux trajets les plus courts. Elle vaut **400 ms**.
-
-⛔ **ET LA CELLULE S’ENFUYAIT.** Posée au-dessus du texte, elle occupe la ligne d’au-dessus — qui est elle-même survolable. Monter vers les boutons faisait donc entrer le pointeur dans cette ligne, qui prenait aussitôt l’ancre, et la cellule remontait d’un rang : on la poursuivait sans jamais l’atteindre. Une cellule DÉJÀ POSÉE ne se déplace donc qu’après un **temps de pose de 140 ms** sur la nouvelle cible. ⚠️ Rien n’attend quand rien n’est ouvert — une première cellule paraît à l’instant —, et un TAP ne s’attend jamais : le temps de pose vaut pour une main qui glisse, non pour un doigt qui désigne. Il rend en outre le balayage d’un texte plus calme : la cellule ne clignote plus d’un segment à l’autre quand le regard ne fait que passer.
-
-⛔ **COROLLAIRE, ET C’ÉTAIT UN DÉFAUT LATENT : LA FERMETURE NE VISE PAS UNE CLÉ, elle ferme ce qui est ouvert.** Traverser un voisin en chemin appelle le relâchement avec la clé du VOISIN ; un minuteur retenu sur cette clé-là n’aurait jamais fermé la cellule qu’on venait de quitter, et celle-ci serait restée jusqu’au geste suivant.
-
-⚠️ **Règle générale, au-delà de cette cellule : un objet qui paraît au survol et qu’on doit ATTEINDRE se juge sur le trajet, non sur le geste qui l’ouvre.** Trois questions : combien de temps dure le trajet, que traverse-t-on en chemin, et qu’est-ce qui, sur ce chemin, peut prendre la main. Mesuré en ligne après correction : la cellule paraît à l’instant, une traversée de 90 ms ne la vole plus, elle est encore là 250 ms après qu’on a tout quitté et fermée à 600, et une pose franche de 300 ms sur une autre cible la déplace bien.
-
-
-### 38.26 La marque du SIGNALEMENT — un point d’exclamation dans un cercle
-
-⛔ **LE FANION EST RETIRÉ (décision de l’auteur, 2026-09-07).** « Signaler » sur ce site, c’est avertir l’éditeur d’une coquille ou d’une erreur de texte. Le drapeau, lui, est devenu partout ailleurs la marque de la DÉNONCIATION — on « flague » un abus, un contenu, quelqu’un. Le registre était faux, et il l’était depuis l’origine.
-
-⛔ **UNE MARQUE QUI DEMANDE QU’ON LA CONNAISSE N’EST PAS UNE ICÔNE**, et c’est la leçon du premier tour. Huit marques ont été dessinées et éprouvées à leur taille réelle ; les plus JUSTES pour un corpus patristique se sont trouvées être les plus illisibles. L’**obèle** d’Aristarque — le signe même du passage douteux, repris par Origène dans les Hexaples, historiquement exact et unique sur le site — se lit « ÷ ». Le **caret du correcteur** se lit comme un bonhomme, et deux tracés n’y ont rien changé. Les **crochets éditoriaux** passent pour un gabarit vide, le **filet ondulé** pour un soulignement, le **point d’interrogation** pour une aide. La **manicule** était écartée d’avance, illisible à douze pixels. Verdict de l’auteur : « il y a trop d’ambiguïtés ». ⚠️ Une érudition qui ne se lit pas est une érudition qui ne sert pas : elle appartient à la charte, non au bouton.
-
-⚠️ **LE CERCLE PLUTÔT QUE LE TRIANGLE OU LE LOSANGE.** Les trois cadres disent la même chose ; mais le triangle EST le panneau de danger, et le losange en descend. Le rond dit « à noter » sans crier, ce qui est le ton du site, et il s’accorde aux formes arrondies de la cellule d’actions, dont il est le troisième bouton. Le point d’exclamation NU a été essayé : sans ambiguïté, mais seul entre deux objets dessinés il pèse trop peu et passe pour une coquille plutôt que pour un bouton.
-
-⚠️ **LE GABARIT NE BOUGE PAS.** Même boîte que `IconeSignet` et `IconeCopier` — 11 × 12, `viewBox 0 0 12 13` — si bien que les trois occupent toujours la même place, quelle que soit la police du système. Le cercle y devient une ellipse de trois centièmes de pixel (les facteurs d’échelle valent 0,9167 et 0,9231) : cela ne se voit pas, et ne vaut pas d’ouvrir une seconde boîte.
-
-⛔ **LE COMPOSANT EST RENOMMÉ `IconeSignalement`**, et ce n’est pas un rangement : un fichier qui s’appelle `IconeDrapeau` et qui ne dessine plus de drapeau ment sur ce qu’il contient, et c’est ainsi qu’un dessin finit par revenir à son nom. Dix surfaces l’importent ; il n’y a toujours qu’un seul tracé, à un seul endroit.
-
-⚠️ **MÉTHODE, et elle a servi deux fois de suite** : les onze tracés du second tour ont été rendus sur une planche, à leur TAILLE RÉELLE dans la cellule, agrandis cinq fois, sur les DEUX sols, et une fois de plus au bout d’une ligne de lecture. C’est à cette échelle-là que deux d’entre eux sont tombés — le fanion évidé, dont le crénelage fait un « P », et le point d’exclamation posé sur un filet, dont le filet se confond avec un soulignement. ⛔ Un dessin ne se juge ni dans l’éditeur ni au quintuple : au quintuple, tous les tracés se ressemblent.
-
-
-### 38.27 Le BOUTON-LIEN — souligné, en romain, plus petit
-
-Demande de l’auteur, 2026-09-07, devant « Sources et détail » et « En savoir plus… » : « il faut uniformiser, partout, ce type de boutons-liens. Je propose : souligné ; en romain ; corps plus petit. »
-
-⛔ **IL Y AVAIT ONZE FORMES POUR UN SEUL OBJET**, et le désordre se compte : **six corps** (de 9,5 à 13 px), **cinq encres**, **trois styles** — romain, italique, gras 500, 600 et 700 — et **trois décorations**, le trait plein, le pointillé et un soulignement TRANSPARENT au repos. C’est la dérive déjà connue des tailles de texte et des rayons d’angle, transposée aux contrôles : un lecteur ne pouvait pas apprendre ce qu’est un bouton-lien sur ce site, puisqu’il n’en avait jamais vu deux pareils.
-
-⛔ **DEUX FAMILLES, ET LA DISTINCTION EST LA VRAIE RÈGLE.**
-
-- Le **BOUTON-LIEN** se tient SEUL sous ou à côté d’un bloc — « Sources et détail », « À propos de cette édition », « Afficher plus », « Tout effacer », « Consulter la source », « Réinit. ». Il a donc un corps À LUI, et c’est là que la forme commune s’applique tout entière (`.cs-bouton-lien`).
-- Le **LIEN PRIS DANS UNE PHRASE** — « Le chargement a échoué. **Réessayer**. », un renvoi au fil d’une note, une adresse rendue en lien — garde `font: inherit` et ne prend de la forme que le TRAIT et la TEINTE (`.cs-lien-phrase`). ⚠️ Rapetissé, il creuserait un trou dans sa ligne.
-
-⚠️ **LE CORPS EST ABSOLU, non relatif, et c’est ce que « uniformiser » demande.** Ces boutons vivent dans des cartes, des volets et des fiches dont les corps vont de 10 à 14 px : une mesure relative les ferait tous différer, c’est-à-dire exactement ce qu’on défait. **0,625 rem** est le rang que quatre d’entre eux portaient déjà — la valeur dominante, comme le veut la méthode de l’échelle — et il est plus petit que le plus petit des textes qu’ils accompagnent, ce qui est la condition pour qu’aucun ne paraisse plus gros que son hôte.
-
-⛔ **L’ENCRE EST L’ACCENT, ET CE N’EST PAS UN GOÛT.** Cinq d’entre eux portaient un gris de l’échelle de TEXTE. Mesuré sur le papier, `--cs-texte-doux` rend **2,6** et `--cs-texte-faible` **2,0**, quand la charte en exige 4,5 sous 24 px : la moitié de la famille était donc illisible au sens de la règle, et ce depuis l’origine. Un bouton-lien n’est pas une ombre d’interface, c’est un LIEN, et le jeton des liens est le vert — **5,6** sur le papier, **10,1** sur le cuir. ⚠️ Un bouton-lien posé sur un fond COLORÉ garde une teinte littérale (l’en-tête sombre d’un profil) : c’est la règle des couleurs posées sur un sol qui ne suit aucun thème.
-
-⚠️ **LA ZONE DE FRAPPE DÉBORDE EN HAUTEUR SEULEMENT.** Dix pixels de haut, c’est moins de la moitié du plancher de WCAG 2.2 ; sept pixels de part et d’autre portent la cible à 24. ⛔ Pas de débord LATÉRAL comme `.cs-cible-fine` : ces boutons se posent souvent au ras d’une liste de pastilles, et douze pixels de chaque côté y avaleraient les taps du voisin — c’est le raisonnement déjà tenu pour `.cs-appel-cible`.
-
-⛔ **UN BOUTON-LIEN NE SE DESSINE PAS SELON SON VOISINAGE.** « À propos de cette édition » portait un dessin à lui — serif italique, sans soulignement au repos — décidé le 2026-09-03 au motif que « dans un volet où rien d’autre n’en porte, il tirait l’œil plus que le titre au-dessus de lui ». Le motif était juste DANS CE VOLET, et c’est précisément ce que la règle générale refuse : une forme accordée à chaque voisinage ne s’apprend nulle part, et c’est ainsi qu’on obtient onze formes. La rectification est de l’auteur, qui a nommé ce lien parmi les exemples du désordre.
-
-⚠️ **CE QUI RESTE HORS DE LA RÈGLE, et il faut le savoir** : les hyperliens de PROSE des pages légales et des textes enrichis (`<a>` au fil d’un paragraphe). Ils sont déjà d’accord entre eux — vert, souligné, corps hérité — et leur seule variance est un décalage de soulignement tantôt posé, tantôt non. ⚠️ Et la VALEUR d’un champ d’administration rendue en lien parce qu’elle se trouve être une adresse n’est pas un bouton-lien : son corps suit celui du champ, et la rapetisser ferait qu’un champ change de taille selon ce qu’il contient.
-
-
-### 40.9 LA CHAÎNE DU LECTEUR — ce qu’il a écrit, rangé dans l’ordre du canon
-
-Demande de l’auteur, 2026-09-07 : « une liste des versets commentés et des notes (polyglotte), pour que l’utilisateur puisse retrouver une chaîne exégétique, à l’ancienne, avec ses commentaires ».
-
-Le lecteur écrit sur les versets à DEUX endroits, et ne les revoyait jamais ensemble : une NOTE dans la colonne de droite de la Polyglotte, qui ne regarde que lui, un COMMENTAIRE sous le verset de la page Bible, qui s’adresse aux autres. Les deux disent la même chose de la même main sur le même verset, et il fallait retrouver le chapitre pour retrouver ce qu’on y avait pensé.
-
-⛔ **C’EST UNE TROISIÈME NATURE, ET C’EST À CE TITRE SEULEMENT QU’ELLE A UNE PAGE.** Le § 40 partageait l’espace en deux — ce qu’on RÈGLE, ce qu’on GAGNE — et la règle disait « deux, et pas une de plus ». Elle tient : une page ne s’ajoute que si elle porte une nature que les autres n’ont pas. La chaîne n’est ni un réglage ni une gratification, c’est la MATIÈRE du lecteur, ce qu’il a écrit lui-même. ⚠️ Elle ne découpe donc pas les deux premières, et rien n’en est retiré.
-
-⛔ **LA FORME EST CELLE D’UNE CHAÎNE, non celle d’un journal.** Un lemme — la référence en manchette, puis le verset dans la bible du lecteur —, et sous lui les scholies qu’il a écrites, dans l’ordre où elles sont venues. Les entrées se suivent dans l’ordre du CANON, jamais par date : c’est ce qui fait une chaîne, et c’est ainsi qu’on la relit, par le livre qu’on étudie. Le sommaire porte les livres sous leur testament, comme le volet de la Bible porte les siens.
-
-⛔ **RIEN NE SÉPARE DEUX ENTRÉES QU’UN BLANC** : ni filet, ni fond, ni carte. C’est la règle de la manchette (§ 35.9), et une chaîne imprimée ne fait pas autrement. La manchette tient sa COLONNE, et sa largeur ne suit pas son texte, faute de quoi le fer des scholies sauterait d’une entrée à l’autre.
-
-⛔ **ELLE NE MODIFIE RIEN.** Une note se reprend là où elle s’écrit, dans la Polyglotte ; un commentaire dans le fil où il a été posté. Deux surfaces qui écrivent la même donnée divergent au premier réglage, et celle-ci n’a rien à décider : elle rassemble. La référence est donc le seul lien de la page, et elle mène au passage.
-
-⚠️ **UNE GLOSE VIDE NE PARAÎT PAS.** La colonne « Notes » de la Polyglotte enregistre dès qu’on y touche : une note ouverte puis refermée laisse une ligne de texte vide, qui n’est pas une pensée mais la trace d’un clic. Un commentaire SUPPRIMÉ ne paraît pas davantage — il ne reste en base que pour ne pas trouer un fil de réponses. Le compte du bandeau se fait sur la chaîne COMPOSÉE, une fois les vides écartés, jamais sur les lignes brutes.
-
-⚠️ **CE QUI ATTEND LA MODÉRATION LE DIT**, du même mot que le panneau de la Bible : « en révision ». Un commentaire écrit en réponse à un autre le dit aussi, faute de quoi il paraîtrait comme une pensée qu’il n’est pas.
-
-⛔ **UN IDENTIFIANT QUI NE DÉSIGNE PLUS RIEN NE SE PERD PAS.** Les identifiants du premier modèle — « B000015 » — ne se résolvent dans aucune table : ni livre, ni chapitre, ni verset. Ce sont pourtant des lignes que le lecteur a écrites, et une page qui les tairait lui ferait croire qu’il n’a rien écrit là. Elles se rangent ensemble, en fin de chaîne, sous leur identifiant nu et sans lien.
-
-⚠️ **CE QUI RESTE OUVERT**, et qui n’est pas un oubli : la table des commentaires porte une colonne pour les SEGMENTS d’œuvres, qu’aucun commentaire du corpus n’emploie (mesuré à zéro le 2026-09-07) ; le jour où l’on commentera un passage patristique, la chaîne aura une seconde matière, et il faudra décider si elle se range avec les versets ou à côté. Rien n’est prévu non plus pour EXPORTER la chaîne : elle se lit, elle ne se copie pas encore.
-
-
-### 40.10 L’ESPACE SE PARCOURT EN COLONNE, et « Mes citations » y entre
-
-Demande de l’auteur, 2026-09-07 : « il faut déplacer mes prélèvements dans la page Mon compte, à côté de celle-ci ». La page vivait seule à `/prelevements`, avec sa tête, son sol et sa mesure à elle.
-
-⛔ **CE QU’ON RETIENT EST DE LA MÊME NATURE QUE CE QU’ON ÉCRIT**, et se visite à la même heure. C’est le critère du § 40.9, pris par l’autre bout : la chaîne est ce que le lecteur a écrit, les citations ce qu’il a retenu, et ni l’une ni l’autre n’est un réglage ou une gratification. L’espace compte donc quatre pages, et le titre, le compte et le sol de celle-ci lui viennent du cadre.
-
-⚠️ **CE QUI RESTE À LA PAGE** : ses deux onglets de corpus, ses groupes repliables, sa gouttière d’actions, sa citation favorite et son filet à quadrilobe — l’emblème qui enseigne la marque qu’on retrouve dans la liste (§ 34.2). Il a perdu le titre qu’il soulignait, que le bandeau porte désormais, mais non son office. Le compte que la tête disait passe dans la ligne de repères du bandeau.
-
-⛔ **LES PAGES DE L’ESPACE SE LISENT EN COLONNE, une par ligne, DEPUIS QU’ELLES SONT QUATRE.** En onglets, elles demandaient 288 px dans une colonne qui en offre 216, et « Mon parcours » se coupait en deux. ⚠️ Une barre d’onglets sur deux rangées n’est plus une barre mais une grille — la sous-barre de l’administration a tranché ce cas le 2026-08-22, et l’on ne rouvre pas un arbitrage rendu. La forme est celle des OPTIONS d’un volet de lecture (§ 38.3), qui est déjà celle des ancres du même sommaire : une seule grammaire pour toute la colonne, et un filet pour dire ce qui NAVIGUE et ce qui SAUTE.
-
-⚠️ **LE SOMMAIRE PORTE CE QUE L’ONGLET COURANT MONTRE** : les livres d’un côté, les auteurs de l’autre. Un auteur qui revient sous deux œuvres prend son titre en second — deux entrées du même nom dans un sommaire ne se départagent pas. ⛔ Et sauter à un groupe le DÉPLIE : une ancre qui mènerait à un titre fermé ne montrerait rien. Déplier ne déplace pas la cible, ce qui s’ouvre s’ouvrant SOUS elle.
-
-⛔ **L’ANCIENNE ADRESSE REDIRIGE EN 308, jamais en 307** : le déplacement est définitif, et seul le permanent transmet les signaux. L’adresse a circulé — elle est dans les favoris des lecteurs de la bêta, et le menu de compte l’a portée un mois durant. ⚠️ La rubrique d’audience `prelevements` est gardée pour l’HISTORIQUE : les vues d’avant ce jour la portent encore.
-
-⚠️ **CE QUI RESTE OUVERT** : la barre d’onglets INTERNE de la page (« Versets bibliques » / « Textes patristiques ») est encore composée en styles en ligne, alors que le site a un modèle unique depuis le 2026-08-28 (`OngletsPage`, § 36). Elle porte un compte que le modèle ne connaît pas ; l’y faire entrer demande de mettre le compte dans le libellé, ce qui change le dessin de la page et n’a pas été demandé.
-
-
-### 40.11 LA GRAMMAIRE DE L’ESPACE — un rang, une forme, et le vert ne dit qu’une chose
-
-Relevé de l’auteur, 2026-09-07, devant « Ma chaîne » et « Mes citations » : « la mise en forme n’est pas très claire ; revois tout ça ». Trois défauts, mesurés sur les pages servies, et le premier explique les autres.
-
-⛔ **TROIS OBJETS PORTAIENT LE MÊME VERT** sur une seule page : le titre du livre, la référence du verset et la marque de la glose. Deux d’entre eux se composaient de la même façon — sérif italique vert — à un pixel de corps près. C’est la règle du § 35.10 prise à l’envers : deux rangs voisins doivent différer sur DEUX axes au moins, et ici trois rangs n’en changeaient aucun. **Le vert est le jeton des LIENS et l’encre des TITRES de section ; il ne peut pas être en plus la marque d’un appareil.**
-
-⛔ **LA RÉFÉRENCE ÉTAIT CE QU’ON LISAIT LE MOINS.** Sur « Mes citations », elle se composait à 9 px en gris clair au bas de chaque item, sous le seuil de contraste (3,4 mesuré, quand la règle en exige 4,5 sous 24 px), alors que c’est elle qui identifie le passage. Elle passe en MANCHETTE, dans sa colonne, et rend 13,8.
-
-⛔ **ET LE MÊME CORPUS SE COMPOSAIT DANS DEUX POLICES** : les citations en sans sur une page, les lemmes en sérif sur l’autre. Une citation biblique ou patristique est du CORPUS : elle prend le sérif du verset, celui de la page de lecture. Le sans est réservé à ce que le LECTEUR écrit — ses notes, ses commentaires — et la distinction se lit alors sans un mot.
-
-**La grammaire, pour les quatre pages :**
-
-- un LIVRE ou un AUTEUR est un titre de SECTION : sérif italique vert, le rang que l’espace donne déjà à ses sections. ⛔ Jamais une bande à capitales espacées, qui est le vocabulaire d’une interface ;
-- une RÉFÉRENCE est une MANCHETTE : sérif, colonne de largeur fixe, ⛔ jamais une ligne sous le texte. Elle est VERTE quand elle mène au passage, à l’encre du texte quand elle ne fait que le nommer — là où une gouttière d’actions porte déjà le chemin, deux façons d’y aller en font une de trop ;
-- le CORPUS se compose en sérif, à la mesure et à l’interligne du verset ;
-- ce que le LECTEUR a écrit se compose en sans, un cran plus petit, et RENTRE sous le texte qu’il commente : c’est la composition d’une chaîne imprimée, et c’est elle qui dit ce qui commente quoi ;
-- un REPÈRE — la nature d’une glose, sa date, son état — est une RUBRIQUE : petites capitales espacées, `--cs-texte-second`, réunies sur UNE ligne de tête. ⚠️ Réunies, précisément : la date pendait sous chaque texte et hachait la colonne en deux fois plus de blocs qu’il n’y avait de gloses ;
-- ⚠️ une glose qui se RÉPÈTE n’est pas une rubrique. « Prélevé dans la Bible de Sacy » paraît vingt fois sur une page ; en petites capitales elle appelait l’œil autant que la référence. Elle se compose en italique grise. *Un état qui ne varie pas n’informe pas* (§ 38.12), et il ne doit pas peser comme s’il informait.
-
-⛔ **TOUT SE FERRE SUR LA MESURE.** Une page de l’espace est au fer à gauche ; trois de ses objets se centraient — la barre d’onglets, le sélecteur de traduction, l’emblème de la page — si bien que l’œil ne trouvait aucun bord commun. La barre passe au MODÈLE du site (§ 36), le sélecteur se ferre, et l’emblème prend la mesure entière, où il sépare au lieu de flotter. ⚠️ Un ornement CENTRÉ reste légitime (§ 41.5), mais alors il tient toute la mesure : centré sur treize rem au milieu de huit cents pixels, il ne sépare rien.
-
-### 12.4 UNE COLONNE EN REGARD SE COMPOSE SUR LA SURFACE QUI REND LE TEXTE
-
-Relevé de l'auteur le 7 septembre 2026, sur le *Manuel pour mon fils* de Dhuoda : « je
-sais pas pourquoi j'ai pas le lien entre le latin et le français ». Il n'y avait rien à
-réparer dans la donnée.
-
-**Ce qui était mesuré** : l'œuvre est ouverte, ses deux textes sont publics et publiés,
-le latin de Bondurand 1887 porte 809 segments et la traduction française treize.
-L'ensemble d'alignement `A0176O0001:BONDURAND1887-CSIA2026:LA-FR:PARAGRAPH` existe, il
-est sain, il couvre EXACTEMENT les treize segments traduits en cinq groupes, et un
-second ensemble, plus grossier, est `retired` et correctement écarté. La paire de
-lecture se calculait juste, `enRegardSurPlace` valait vrai, et le menu offrait
-« Français & latin ». Le lecteur n'obtenait qu'une colonne.
-
-⛔ **LA CAUSE EST LA SURFACE, ET ELLE SE COMPTE AU CHEMIN DE RENDU.** Les treize
-segments français sont tous de nature `introduction` — la traduction a commencé par les
-prolégomènes, et le typage est juste. Or l'introduction se rend hors des groupes, par un
-chemin à elle (§ 7.4), et ce chemin ne composait AUCUNE colonne en regard : la grille ne
-vit que dans la boucle des groupes, laquelle écarte les segments d'introduction et rend
-`null` sur un groupe qui n'en porte pas d'autres. Le texte passait donc tout entier par
-une surface qui n'avait jamais appris à mettre quoi que ce soit en face de lui.
-
-⚠️ **C'est le défaut du § 7.4 pris par l'autre bout, et le même jour.** Cette surface a
-reçu le VERS le matin, elle n'avait toujours pas reçu le BILINGUE le soir. **Une surface
-nouvelle hérite de toutes les questions des autres**, et l'on ne peut pas se contenter
-de lui donner ce qui manquait la dernière fois.
-
-⛔ **UNE GARDE QUI VÉRIFIE LA DONNÉE NE VÉRIFIE PAS LE RENDU.** La paire de lecture
-avait été écrite pour empêcher exactement ce symptôme, bouton allumé et une seule
-colonne, et elle n'y pouvait rien : elle contrôle qu'une colonne PEUT se composer,
-jamais que la surface qui rend ce texte SAIT la composer. La distinction est générale :
-une condition d'affichage nomme la donnée, elle ne nomme pas la surface.
-
-**Ce que la règle prescrit désormais.**
-
-- ⛔ **Le CORPS et l'ENCRE d'une colonne en regard viennent de la SURFACE**, jamais d'une
-  valeur recopiée d'ailleurs. Une colonne SEULE prend le gabarit du français qu'elle
-  remplace ; une colonne EN REGARD descend d'un rang, pour que l'œil sache laquelle des
-  deux il lit. Ce qui SÉPARE les deux colonnes reste la police, le change de caractère,
-  mieux qu'un filet.
-- ⛔ **L'encre d'un argument ne peut pas être celle d'un original de CORPS, et c'est
-  mesuré.** L'échelle du Clair est `--cs-texte` #3a3530, `--cs-original` #575048,
-  `--cs-texte-second` #6b6560 : l'encre de l'original est plus FONCÉE que celle d'un
-  argument. En regard du corps elle s'efface ; en regard d'un argument elle pèserait
-  davantage que le français qu'elle accompagne. Et au Cuir elle ne s'inverse pas
-  (#e6ded0 › #cdc2ab › #bdb3a0), si bien que le même jeton dirait deux choses contraires
-  selon le thème, ce qui est le défaut relevé sur `--cs-danger-fonce`, transposé à
-  l'envers. Un argument garde donc SON encre des deux côtés.
-- ⛔ **Dans une grille en regard, le blanc appartient à la RANGÉE, non à la cellule.**
-  Les deux colonnes doivent rester de niveau : un blanc posé par le seul français
-  pousserait le français et laisserait l'original en arrière.
-- ⚠️ **Hors grille, on n'enveloppe rien.** Une boîte de plus autour de chaque bloc ferait
-  une géométrie que la lecture ordinaire n'a jamais eue, et c'est elle qui est le cas de
-  presque tout le corpus.
-
-⚠️ **CE QUI RESTE, ET QUI N'EST PAS DU RENDU.** La traduction ne couvre que les
-prolégomènes : treize segments contre 690 de corps latin. La grille réparée ne met donc
-en regard que le prologue et l'épigramme, et l'alignement le dit lui-même, qui se
-déclare traduction incrémentale. **Une surface qui sait composer ne remplace pas un
-texte qui n'existe pas encore**, et les deux questions ne se répondent pas au même
-endroit.
-
-### 38.28 Le ROUGE de la Polyglotte dit « à vérifier », il ne dit pas « on en a parlé »
-
-Relevé structurel du 2026-09-07, et règle fixée le même jour.
-
-⛔ **UNE LIGNE NE SE TEINT QUE SI SON POINT EST OUVERT.** `points_sensibles` est à la fois
-un journal — ce qu'on a trouvé, ce qu'on a corrigé — et une file de travail, et le filtre
-« Lignes problématiques » ne sert que la seconde. Un point clos (corrigé, documenté,
-constaté, résolu, vérifié, validé) a été traité : le rendre rouge use le seul signal dont
-l'administrateur dispose pour retrouver ce qui l'attend. La liste comptait déjà 121 points
-clos sur 210 quand le relevé structurel l'a portée à 634 ; sans ce partage, le rouge aurait
-cessé de désigner quoi que ce soit.
-
-⚠️ **Le LIBELLÉ, lui, se nourrit de TOUS les points**, et l'infobulle de la marge paraît
-désormais sur un chapitre dont le point est clos. Un point corrigé garde tout son pouvoir
-d'explication quand il a cessé d'être une tâche : c'est là que se lit pourquoi telle case
-est vide. Ce qu'on retire est la teinte, jamais le savoir.
-
-⚠️ **La liste nomme les statuts CLOS, non les statuts ouverts.** Un statut qu'on n'aurait
-pas prévu tombe alors du côté rouge, c'est-à-dire du côté qui se voit. Une valeur inconnue
-mérite un regard, pas un silence.
-
-⛔ **Le rose garde sa priorité** : un cas qui a RÉSISTÉ à la correction est plus précis
-qu'un point simplement à vérifier, et il reste ouvert.
-
-### 38.28.1 Le RELEVÉ STRUCTUREL — ce qu'on cherche, et ce qu'on n'y cherche pas
-
-`scripts/audit-structure-versets.mjs` regarde l'OSSATURE quand `audit-versets.mjs` regarde
-le TEXTE. Il ne présuppose aucune liste de traductions : il audite toutes celles que porte
-`versets_v2`, l'AELF et la Bible du XIIIe siècle comprises, que l'outil de 2026-08 ignorait
-parce que sa table de facteurs de longueur ne nommait que les cinq bibles historiques.
-
-Cinq constats, et ils ne se valent pas :
-
-- **le créneau ABSENT** d'une traduction qui couvre pourtant le livre, trois témoins au
-  moins le portant ;
-- le **REGROUPEMENT** : plusieurs versets de l'édition source dans un même créneau ;
-- la **SCISSION** : un verset source étalé sur plusieurs créneaux ;
-- le **SURNUMÉRAIRE** : un verset source qu'aucun créneau ne reçoit ;
-- le **DÉCALAGE** : une numérotation d'origine qui rompt le régime de son chapitre.
-
-⛔ **UN ÉCART CONSTANT N'EST PAS UN DÉFAUT, ET LE DÉTECTEUR NE DOIT JAMAIS LE DIRE.**
-`ch_orig` et `v_orig` décrivent la numérotation de l'édition source : la Vulgate compte le
-titre du psaume comme verset premier, et tout le psautier s'en trouve décalé d'un cran.
-Ce qui se lit est la RUPTURE de cet écart à l'intérieur d'un chapitre — l'écart le plus
-porté fait le régime, et l'on ne signale que ce qui s'en écarte. Mesuré : 3 138 versets
-hors de leur régime avant cette règle, 2 145 après, et les 993 de différence étaient des
-chapitres entiers rangés sous un régime que rien ne dominait.
-
-⚠️ **Un chapitre dont aucun écart ne tient la moitié des versets n'a pas de régime** : on
-rend le CHAPITRE, non chacun de ses versets. Soixante-dix chapitres sont dans ce cas, et
-désigner au hasard la moitié de leurs versets aurait été une réponse en l'air.
-
-⚠️ **On ne mesure l'écart que sur les créneaux UN-POUR-UN** : un regroupement ou une
-scission fait varier la numérotation par construction, et les compter là ferait signaler
-deux fois la même chose.
-
-⛔ **UN SURNUMÉRAIRE N'A PAS DE RÉFÉRENCE CANONIQUE, ET L'ON NE LUI EN INVENTE PAS.** C'est
-sa définition. Lui donner une référence que la Polyglotte relit teindrait le créneau qui
-porte par hasard le même numéro dans l'édition : sa désignation reste donc en clair, et ses
-coordonnées d'origine vont aux notes, où rien ne les prend pour du canon.
-
-⚠️ **Le partage systématique / isolé se fait à HUIT occurrences dans un même livre**, le
-seuil de l'audit de 2026-08. Au-delà, la cause est tenue pour systématique — recension
-différente, canon plus court, numérotation propre — et le lot se documente au lieu de se
-corriger. C'est ce partage qui rend un relevé de 5 040 versets utilisable.
-
-### 38.28.2 Ce que le relevé du 2026-09-07 a trouvé
-
-**5 040 couples (traduction, créneau) portent au moins un défaut d'ossature**, en 424 cas :
-1 742 créneaux absents, 1 131 regroupés, 1 128 surnuméraires, 31 scindés, 2 145 décalés et
-70 chapitres sans régime. Trois cent six cas font la file à examiner, cent dix-huit se
-documentent.
-
-⚠️ **Deux traductions n'avaient JAMAIS été auditées** : l'AELF (337 absences, 306
-surnuméraires) et la traduction moderne du témoin de 1899 (539 absences, 181
-surnuméraires), toutes deux entrées au corpus après l'audit d'août. Un outil qui nomme ses
-traductions dans une constante cesse de voir le corpus dès qu'il grandit.
-
-⚠️ **Le décalage de Sacy que la liste consignait dès juillet 2026 se retrouve tout seul** :
-la suscription non numérotée y rompt le régime de son psaume, et le détecteur la relève au
-même endroit. Une règle qui redécouvre ce qu'on savait déjà est une règle qu'on peut croire
-sur ce qu'on ne savait pas.
-
-⛔ **Le relevé PROPOSE, il ne corrige rien.** Ni le texte, ni `canon_id`, ni la numérotation
-native n'ont été touchés. Le versement dans `points_sensibles` est un geste séparé
-(`scripts/points-sensibles-verser-audit-structure.mjs`), et chaque ligne versée porte sa
-provenance dans ses notes : le lot entier se retrouve et se retire d'une requête, ce qui
-est la condition pour qu'une passe automatique n'abîme jamais les points écrits à la main.
-
-### 38.29 Une case COUVERTE n’est pas une case vide
-
-Contrôle philologique du 2026-09-07, sur les créneaux que le relevé structurel donnait pour
-absents.
-
-⛔ **UN VERSET ÉTALÉ PORTE TOUS LES CRÉNEAUX QU’IL COUVRE, ET PAS SEULEMENT LE PREMIER.**
-`canon_id` dit où il commence, `canon_id_fin` où il finit, et ce qui est entre les deux
-n’est pas absent. La règle vaut pour qui LIT cette donnée comme pour qui la mesure :
-
-- **le relevé** l’ignorait et annonçait 28 absences qui n’en étaient pas — dont Nb 15, 14
-  et 15, 16, que la Vulgate couvre bel et bien d’un seul verset. Corrigé : 1 714 absences
-  au lieu de 1 742, 62 isolées au lieu de 66 ;
-- **la Polyglotte** ne lisait pas cette colonne du tout, et écrivait « Absent de cette
-  traduction » sur **32 cellules** que l’édition porte. Trois d’entre elles étaient dans la
-  colonne de l’AELF, c’est-à-dire dans la référence même de l’ossature.
-
-⚠️ **La case couverte renvoie au verset où le texte se lit, elle ne le RÉPÈTE pas** : un
-verset ne se lit qu’une fois. Et elle y renvoie dans la numérotation de l’ÉDITION, jamais
-par le numéro du canon (§ 15.1.2).
-
-⛔ **UN EMPAN DONT LA FIN PRÉCÈDE LE DÉPART EST UNE DONNÉE FAUTIVE, ET L’ON NE DEVINE PAS
-L’INTENTION** : la ligne ne couvre alors que son créneau de départ, ni plus ni moins.
-
-⚠️ **Corollaire de méthode, et il est plus large que ce cas** : une colonne d’alignement que
-personne ne lit finit par ne plus rien vouloir dire. `versets_v2.canon_id_fin` était
-renseignée, exacte, documentée par la charte — et aucune surface du site ne la demandait.
-La donnée était juste et l’écran mentait. *Avant de conclure qu’un texte manque, vérifier
-que la surface qui le dit sait lire ce qui le porte.*
-
-### 38.29.1 Ce que le contrôle des cinq divergences a établi
-
-Cinq créneaux manquaient à DEUX témoins indépendants à la fois, ce qui fait soupçonner la
-case plutôt que le texte. Confrontation faite, **l’alignement était juste dans les cinq
-cas**, et l’absence est une divergence réelle de la tradition vulgate, que les comptes de
-versets natifs confirment :
-
-| créneau | ce que dit l’édition |
-|---|---|
-| `GEN.49.32` | Gn 49 compte 32 versets dans la Vulgate et chez Sacy, 33 au canon ; leur v. 32 répond au v. 33 |
-| `EXO.40.14` | leur v. 13 couvre les v. 13 et 15 du canon ; le v. 14 n’a pas d’équivalent |
-| `NUM.15.12` | leurs v. 11 et 12 répondent ensemble au v. 11 du canon |
-| `SIR.22.17` | l’Ecclésiastique latin relève d’une autre recension : 33 versets au chapitre contre 27 |
-| `SNG.1.1` | l’édition ne numérote pas le titre du livre ; son v. 1 répond au v. 2, et le chapitre compte 16 versets contre 17 |
-
-⛔ **Rien n’a été réaligné là où l’alignement était juste**, et rien n’a été ajouté dans une
-case vide. Chacune de ces cinq divergences a reçu une **note éditoriale courte** sur la
-première ligne où la numérotation diverge — celle que le lecteur voit —, qui nomme la
-référence native et la correspondance TOL/AELF sans déclarer fautive une tradition qui est
-seulement différente. ⚠️ Deux de ces lignes portaient déjà une note : elle a été ALLONGÉE,
-jamais réécrite.
-
-### 38.29.2 Deux empans manquaient à l’AELF elle-même
-
-⛔ **Sg 9, 18 et 1 M 12, 53 de la TOL/AELF couvrent chacun DEUX créneaux du canon**, et ne
-le déclaraient pas : la colonne de la référence était vide en Sg 9, 19 et en 1 M 12, 54.
-Mesuré : l’AELF compte 18 versets en Sg 9 quand l’ossature en compte 19, et 53 en 1 M 12
-quand l’ossature en compte 54 ; le texte de son verset porte, mot pour mot, ce que les
-autres traductions rangent dans le créneau suivant.
-
-⚠️ **C’est un champ d’ALIGNEMENT, et le § 15.1.1 permet expressément de le corriger** : « la
-référence native AELF doit rester reconstructible et inchangée. Les champs d’alignement
-peuvent être corrigés ; le texte de `TR0012` ne doit pas l’être. » Le texte, la
-numérotation native et l’ordre n’ont pas bougé — postcheck à zéro sur les deux lignes.
-
-⚠️ **L’ossature et l’AELF ne coïncident donc pas partout**, ce que la charte signale déjà
-comme une dette ouverte. Ces deux cas la documentent d’un exemple mesuré : ce ne sont pas
-des versets manquants, ce sont des versets réunis.
-
-### 38.30 Deux décalages de la Vulgate, corrigés ; deux lacunes, signalées
-
-Suite du contrôle du 2026-09-07. Les cinq divergences du § 38.29.1 étaient des faits de
-tradition ; les trois créneaux qui restaient à Sacy et à la Vulgate ne l’étaient pas.
-
-⛔ **QUAND DEUX TÉMOINS PORTENT LE MÊME VERSET SOUS LE MÊME NUMÉRO ET TOMBENT DANS DEUX
-CRÉNEAUX DIFFÉRENTS, L’UN DES DEUX EST FAUX.** C’est le signal le plus sûr du relevé, et
-il a joué deux fois. Sacy traduit la Vulgate : quand leurs alignements divergent, ils ne
-peuvent pas avoir raison tous les deux, et le texte de la TOL/AELF tranche.
-
-- **Lv 15 — la Vulgate était décalée d’un cran sur quatre versets, et Sacy était juste.**
-  Le verset 20 de la Vulgate (« Omnis qui tetigerit eam, immundus erit usque ad
-  vesperum ») n’est pas un verset à lui : c’est la QUEUE du verset 19 de la TOL/AELF, qui
-  finit sur « Quiconque la touchera sera impur jusqu’au soir ». Les versets 20 à 23 sont
-  descendus d’un créneau, et Lv 15, 23 du canon — que la Vulgate ne porte pas — a cessé
-  d’être occupé par un verset qui n’est pas le sien. ⚠️ Le décalage MASQUAIT l’absence :
-  le relevé compte désormais une absence de plus chez la Vulgate, et c’est le signe qu’il
-  dit enfin la vérité.
-- **Nb 20 — le verset 29 de la Vulgate appartient au créneau 28.** La TOL/AELF dit en son
-  verset 28 le dévêtement, la mort ET la descente ; la Vulgate les répartit sur ses
-  versets 28 et 29, comme Sacy le faisait déjà correctement. Le verset 30 répond seul au
-  verset 29 du canon.
-
-⛔ **UNE NOTE DEVENUE FAUSSE SE REMPLACE, ELLE NE S’ALLONGE PAS.** Nb 20, 30 de la Vulgate
-portait « Verset propre à la Vulgate, sans créneau dans l’ossature : porté en surnuméraire
-à l’emplacement choisi par la Vulgate. » Il a un créneau, et il n’est pas surnuméraire. On
-allonge une note exacte à laquelle il manque quelque chose ; on remplace une note qui dit
-le contraire de ce qui est.
-
-⛔ **ET DEUX LIGNES MANQUENT, QU’ON NE RECONSTITUE PAS** (§ 4.1) :
-
-| | ce qui manque | pourquoi ce n’est pas une divergence |
-|---|---|---|
-| Sacy | Nb 20, 30 — le deuil d’Aaron | son chapitre compte 29 versets contre 30 à la Vulgate qu’il traduit, et le 29 de Crampon comme de l’AELF EST ce deuil |
-| Vulgate | la suscription du Ps 12 | Sacy, Crampon et la Septante portent les 67 suscriptions du canon ; la Vulgate n’en porte que 66, et c’est la seule qui manque |
-
-⚠️ **Une absence ISOLÉE dans une série complète est une ligne perdue, non une convention
-d’édition.** C’est le critère qui sépare ces deux cas des six précédents : là, tout un
-chapitre est plus court et la tradition l’explique ; ici, une seule ligne manque au milieu
-d’une série que la même édition tient partout ailleurs. Les deux sont inscrites à la liste
-des points sensibles, écrites à la main pour survivre aux relevés, et ⛔ elles attendent le
-fac-similé — on ne les reconstitue pas d’après une édition voisine.
