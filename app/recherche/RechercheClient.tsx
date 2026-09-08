@@ -844,9 +844,13 @@ export default function RechercheClient() {
         .grp-ligne + .grp-ligne { border-top:1px solid color-mix(in srgb, var(--fam) 22%, var(--cs-surface)); }
         .grp-ligne:hover { background:color-mix(in srgb, var(--fam) 14%, var(--cs-surface)); }
         /* Le verset dont la traduction AFFICHÉE ne porte pas le mot : le fond d'absence,
-           et le sigle barré sur la ligne du haut disent lequel. */
-        .grp-ligne--absent { background:var(--cs-danger-fond); }
-        .grp-ligne--absent:hover { background:var(--cs-danger-fond); }
+           et le sigle barré sur la ligne du haut disent lequel.
+           ⛔ « --cs-absence-fond » et non « --cs-danger-fond » : le second est le fond
+           d'un encart d'alerte, trop pâle pour parler seul, et l'absence n'est pas une
+           alerte. Le jeton est le MÊME que celui de la cellule polyglotte : c'est le
+           même constat, sur la même page, et il ne se dit pas de deux façons. */
+        .grp-ligne--absent { background:var(--cs-absence-fond); }
+        .grp-ligne--absent:hover { background:var(--cs-absence-fond); }
         /* ── Sigles de bible ──
            Sept noms entiers ne tiennent pas sur une ligne et repoussaient le verset à un
            troisième rang ; sept sigles y tiennent. Le nom entier reste en title. */
@@ -935,8 +939,14 @@ export default function RechercheClient() {
         .poly-texte-cell { border-left:1px solid var(--cs-bord-clair); color:var(--cs-encre-fonce); }
         /* La cellule dont la bible ne porte pas le mot : le fond d'absence, et rien
            d'autre — l'encre reste celle du texte. Elle se lisait en rouge sombre, ce qui
-           faisait d'un verset ordinaire une alerte. */
-        .poly-texte-cell--absent { background:var(--cs-danger-fond); }
+           faisait d'un verset ordinaire une alerte.
+           ⚠️ Le fond est le SEUL signal ici — la colonne polyglotte n'a pas le sigle barré
+           de l'onglet Bible pour le doubler —, et il portait « --cs-danger-fond », le fond
+           d'un encart d'alerte : une teinte faite pour ACCOMPAGNER une bordure et un
+           libellé, qui, nue sur le crème de la page, ne se voyait plus (relevé de
+           l'auteur, 2026-09-08). Le jeton dédié tient la même famille à la dose d'un fond
+           qui parle seul. */
+        .poly-texte-cell--absent { background:var(--cs-absence-fond); }
         @media (prefers-reduced-motion: reduce) { .poly-row { transition:none; } }
         /* ⛔ UN MENU DU VOLET NE PORTE NI CADRE NI FOND. Neuf bibles ne se posent pas en
            neuf lignes dans un volet — c'est pourquoi ces deux axes gardent un menu là où

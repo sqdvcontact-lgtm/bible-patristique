@@ -164,6 +164,23 @@
   --cs-danger-aplat: #c0562a;
   --cs-danger-fond: #fdf2ee;
   --cs-danger-bord: #e4c4b8;
+  /* ── LE FOND D'ABSENCE ────────────────────────────────────────────────────
+     La colonne d'une bible qui NE PORTE PAS le mot cherché, dans les résultats de
+     recherche. Ce n'est pas une alerte — c'est un constat de collation —, mais
+     c'est le SEUL signal de la cellule : ni cadre, ni pictogramme, ni encre
+     particulière, rien que le fond. Il doit donc se voir d'un coup d'œil sur une
+     page de quatre à neuf colonnes.
+     ⛔ Il ne peut PAS être --cs-danger-fond, qui est le fond d'un ENCART D'ALERTE :
+     une bande pâle sous une bordure et un libellé, où la teinte n'a qu'à
+     accompagner. Nu, ce même #fdf2ee ne se distingue plus du crème de la page
+     (l'auteur l'a relevé, 2026-09-08) et la colonne muette passe pour une colonne
+     ordinaire. La famille reste celle du danger — c'est le rouge du site —, mais
+     la DOSE est celle d'un fond qui parle seul.
+     ⚠️ Le rapport se relit dans chaque thème plutôt que de se recopier : au Clair
+     l'aplat FONCE le crème, en Cuir il ÉCLAIRE le brun, et il en faut la moitié
+     pour que le rouge se voie sur un sol sombre. Encre du texte sur ce fond :
+     8,3 au Clair, 7,6 en Cuir. */
+  --cs-absence-fond: color-mix(in srgb, var(--cs-danger-aplat) 34%, var(--cs-fond));
   /* Attente — « à normaliser », « brouillon », « en cours ». Un état de FILE, pas une
      alerte : le danger est destructif, l'or est un accent d'apparat, et l'ocre de lacune
      dit l'absence d'un témoin. Aucun ne convenait, d'où ce terre de Sienne dédié. */
@@ -647,6 +664,12 @@
   --cs-danger-aplat: #8a3d29;
   --cs-danger-fond: #2f211b;
   --cs-danger-bord: #4a3a30;
+  /* Le fond d'absence, relu sur le sol brun (voir la note du Clair). ⚠️ Il prend
+     presque la moitié de l'aplat là où le Clair en prend un tiers : sur un sol
+     sombre, un tiers de brique ne fait qu'un brun de plus, et la colonne muette
+     redevient muette. Le résultat est une BRIQUE SOMBRE, non un rouge clair — le
+     Cuir reste monochrome, et le danger y est la seule couleur admise. */
+  --cs-absence-fond: color-mix(in srgb, var(--cs-danger-aplat) 48%, var(--cs-fond));
   /* ⚠️ Les trois familles du panneau mobile CESSENT d'être hors thème en Cuir.
      La charte les déclarait sans surcouche parce que ce panneau était vert sombre
      en toutes circonstances — il devient cuir avec la barre, et ses libellés
