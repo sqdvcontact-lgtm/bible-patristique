@@ -475,6 +475,17 @@
 - ⛔ Une seconde grammaire pour le même office serait une grammaire de trop.
 - ⛔ Au DOIGT, l’encart s’ouvre AU-DESSUS de son appel.
 
+**§ 13.14 — LA MANCHETTE — un renvoi se lit dans la marge, il ne s’ouvre pas**
+
+- ⚠️ Ce ne sont donc pas deux modes d’ouverture : il n’y en a toujours qu’un, et à côté une chose qu’on ne clique pas.
+- ⚠️ Le corpus se partage en deux presque exactement
+- ⛔ L’unanimité décide, comme pour le type d’une note.
+- ⛔ La manchette ne dit jamais MOINS que la note.
+- ⚠️ Le renvoi se pose à hauteur de sa ligne, et rien ne le calcule — sa position est celle du texte où l’appel se tenait.
+- ⛔ Ce qui se calcule est le seul cas où deux renvois se heurtent, et c’est alors CELUI DU DESSOUS qui cède : un renvoi remonté au-dessus de son appel annoncerait un passage qu’on n’a pas encore lu. Mesuré : 1 618 couples de renvois voisins dans un même segment, écart médian 1,46 ligne, 366 couples qui se heurtent — environ 3 % des renvois.
+- ⛔ Un renvoi en marge n’est pas un ornement — et le seuil de contraste de 4,5 s’applique : il est le SEUL porteur de sa coordonnée, et c’est lui qu’on vient chercher au bord de la ligne.
+- ⚠️ Faute de place, le renvoi reprend son appel et son encart.
+
 ## § 14. OCR, HTR et transcription patrimoniale
 
 **§ 14 — OCR, HTR et transcription patrimoniale**

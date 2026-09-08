@@ -2476,6 +2476,62 @@ Une cellule d’actions flottante — celle de la lecture d’une œuvre, celle 
 
 ⚠️ **Recette de reproduction, sans serveur de développement** : sous la session de l’auteur, envelopper `window.fetch` pour journaliser la table visée, puis provoquer le survol par `el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))`. ⛔ **Sans `relatedTarget`** : React abandonne l’événement si la cible liée appartient déjà à son arbre (`getClosestInstanceFromNode`), et `document.body` EST le conteneur racine — la cellule ne s’ouvre alors jamais, et l’on croit le composant hors d’atteinte.
 
+# ⛔ LA MANCHETTE DES RENVOIS — `manchetteRenvois.ts` (2026-09-08)
+
+Doctrine : charte `parametres.charte_ia`, **§ 13.14** ; les mesures et ce qui reste
+ouvert sont au carnet. Ici, ce qu'il faut savoir pour y toucher.
+
+- ⛔ **DEUX modules, et ils ne font pas la même chose.** `app/lib/manchetteRenvois.ts`
+  porte la RÈGLE — pure, testée, sans une ligne de React : `estRenvoiSeul`,
+  `placerManchette`, `manchetteTient` et la forme. `app/oeuvre/[id]/useManchetteRenvois.ts`
+  porte le DOCUMENT : la place mesurée, l'empilement rejoué à chaque reflux.
+- ⛔ **LE PLACEMENT ORDINAIRE NE SE CALCULE PAS.** Le renvoi est posé en
+  `position: absolute` **sans `top`** : sa position statique EST la ligne où son appel
+  se tenait, et le navigateur la tient à jour tout seul quand la colonne se recompose.
+  Seul l'empilement des heurts se calcule — un couple sur cinq, 3 % des renvois.
+- ⚠️ **Le bloc conteneur est la COLONNE de lecture**, qui porte `position: relative`.
+  Aucun bloc du chemin de rendu n'est positionné entre les deux (vérifié sur
+  `styleParagrapheLecture`, `.para-bilingue`, `.seg-inline`). ⛔ Poser un
+  `position: relative` sur un paragraphe ferait tomber toute la manchette dedans, et
+  elle sortirait par la gauche du paragraphe au lieu de la colonne.
+- ⛔ **UN `<div>` DANS UN `<p>` FERME LE PARAGRAPHE**, et c'est pour cela que
+  `ContenuRenvoiEnLigne` existe. `ContenuNoteStructuree` compose ses blocs en `<div>` ;
+  l'analyseur du navigateur clôt alors le `<p>`, remonte le `<div>` d'un cran et repart
+  en paragraphe implicite — quatre renvois de la première planche rendaient une boîte
+  VIDE. ⚠️ Ce n'est pas affaire de CSS : `position: absolute` fait bien une boîte de
+  bloc, mais l'analyseur ne lit que le NOM de la balise. ⛔ Le nouveau composant ne
+  rejoue rien : il partage `texteBloc` et `texteFinal` avec l'encart, et ne change que
+  la boîte.
+- ⛔ **TROIS HÉRITAGES À COUPER dans `STYLE_RENVOI_MANCHETTE`**, et chacun a coûté
+  ailleurs : `text-indent` (l'alinéa d'un paragraphe tirerait le renvoi hors de sa
+  boîte — défaut payé le 7 septembre sur les appels de Dhuoda), `white-space` (un bloc
+  de vers vaut `pre-line`), `font-style` (l'italique du latin n'atteint pas une
+  coordonnée). Un test les tient.
+- ⛔ **L'encre est `--cs-texte-second`.** Un renvoi en marge est le SEUL porteur de sa
+  coordonnée : le seuil de 4,5 s'applique, comme à la mention d'absence de la
+  Polyglotte. Mesuré à 10 px sur le papier du site — `--cs-texte-doux` 2,71,
+  `--cs-texte-gris` 3,45, `--cs-texte-second` **5,24** (10,01 en Cuir).
+- **`rendreTexteAvecNotes` prend une option `enManchette`** qui rend CE QU'IL FAUT
+  POSER DANS LA MARGE, ou `null`. ⛔ La surface décide de la règle ET de la
+  composition ; le moteur ne fait que poser un repère sans chasse à la place de
+  l'appel. ⚠️ Le séparateur d'une suite ne compte que les appels VISIBLES : « 2 & 3 »
+  n'a de sens qu'entre deux exposants.
+- ⚠️ **`actif` est dans les dépendances de l'effet, et il le faut** : au premier rendu
+  la manchette n'existe pas encore, ce sont les appels qui sont dans le texte, et la
+  passe d'empilement n'aurait rien à empiler. Il ne boucle pas — reposer la même valeur
+  ne redéclenche aucun rendu.
+- ⚠️ **La place se mesure sur le CONTENEUR**, jamais sur la fenêtre : les deux volets de
+  la page d'œuvre s'ouvrent, se ferment et se traînent à la poignée sans que la fenêtre
+  bouge. Même règle que la carte de traduction du volet de la Bible.
+- **La planche est `tmp/planche-manchette.tsx`** : elle CHERCHE la division la plus
+  dense du corpus au lieu de la nommer, charge par les chargeurs du site, et joue
+  l'empilement avec le module RÉEL — `manchetteRenvois.ts` empaqueté par esbuild et
+  inliné. ⚠️ Elle rejoue sur `document.fonts.ready` : mesurée avant les polices, les
+  hauteurs sont celles d'une police de secours et les entrées se recouvrent.
+- ⚠️ **Portée : la LECTURE d'une œuvre, et elle seule.** L'apparat, les traductions
+  parallèles et la page Bible n'ont pas reçu la manchette — chacune a sa géométrie, et
+  la page Bible flanque déjà sa colonne du numéro de verset à gauche.
+
 # ⛔ UN SEUL ENCART DE NOTE — `EncartNote` + `compositionNote.ts` (2026-09-08)
 
 Doctrine : charte `parametres.charte_ia`, **§ 13.13** (ce qu'est l'encart, l'intitulé qui

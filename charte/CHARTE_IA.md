@@ -2029,6 +2029,28 @@ Demandé par l’auteur le 5 septembre 2026 : « Il faut évidemment lister les 
 
 ⛔ **Au DOIGT, l’encart s’ouvre AU-DESSUS de son appel.** Sous le point de frappe il y a la main : une note posée dessous se lit à travers les doigts, et le lecteur retire la main pour voir ce qu’il vient d’ouvrir. L’axe est la capacité du pointeur, jamais la largeur de l’écran.
 
+### 13.14 LA MANCHETTE — un renvoi se lit dans la marge, il ne s’ouvre pas
+
+Décision de l’auteur, 8 septembre 2026 : « plutôt placer la note dans la marge ».
+
+⛔ **Mais PAS sur le critère de la place.** Ce qui reste de marge dépend de trois choses qu’un lecteur ne contrôle ni ne voit : la largeur de sa fenêtre, l’ouverture des volets, la distance entre deux appels voisins. Une forme qui change avec elles ne s’apprend jamais — le lecteur retiendrait que les notes sont en marge, puis un jour elles n’y seraient plus, et il croirait le site cassé.
+
+⛔ **LE CRITÈRE EST LA NATURE DE LA NOTE.** Une note qui n’est QU’UN RENVOI se compose dans la marge et n’a plus d’appel du tout ; tout ce qui dit autre chose garde son appel et son encart. ⚠️ Ce ne sont donc pas deux modes d’ouverture : il n’y en a toujours qu’un, et à côté une chose qu’on ne clique pas. C’est le partage des éditions imprimées — la manchette porte les coordonnées, le bas de page porte le discours — et le site le parle déjà dans l’apparat de Fillion.
+
+⚠️ **Le corpus se partage en deux presque exactement**, mesuré sur ses 24 168 notes : 11 829 (48,9 %) ne portent que des références, médiane 20 signes, neuvième décile 37 ; les 12 339 autres portent autre chose, médiane 38, neuvième décile 189, maximum 10 094.
+
+⛔ **L’unanimité décide, comme pour le type d’une note.** Une note qui mêle un renvoi à un commentaire est un commentaire. Mieux vaut ne rien changer qu’attribuer à demi.
+
+⛔ **Un renvoi INTERNE reste à l’encart.** « Voyez la note I, p. 150 » est une phrase, non une coordonnée, et la manchette est faite pour ce qui se lit d’un coup d’œil au bord de la ligne.
+
+⛔ **La manchette ne dit jamais MOINS que la note.** Le jour où un renvoi porterait une notice bibliographique, il retourne à l’encart plutôt que de servir sa citation source en clair.
+
+⚠️ **Le renvoi se pose à hauteur de sa ligne, et rien ne le calcule** : sa position est celle du texte où l’appel se tenait. ⛔ Ce qui se calcule est le seul cas où deux renvois se heurtent, et c’est alors CELUI DU DESSOUS qui cède : un renvoi remonté au-dessus de son appel annoncerait un passage qu’on n’a pas encore lu. Mesuré : 1 618 couples de renvois voisins dans un même segment, écart médian 1,46 ligne, 366 couples qui se heurtent — environ 3 % des renvois.
+
+⛔ **Un renvoi en marge n’est pas un ornement**, et le seuil de contraste de 4,5 s’applique : il est le SEUL porteur de sa coordonnée, et c’est lui qu’on vient chercher au bord de la ligne. C’est la règle déjà posée pour la mention d’absence de la Polyglotte.
+
+⚠️ **Faute de place, le renvoi reprend son appel et son encart.** La marge se mesure sur le CONTENEUR et non sur la fenêtre : les volets s’ouvrent, se ferment et se traînent à la poignée sans que la fenêtre bouge.
+
 ## 14. OCR, HTR et transcription patrimoniale
 
 Cette section régit deux opérations différentes : l’océrisation des imprimés anciens et la transcription assistée des manuscrits. ⛔ **Un moteur d’OCR ou de HTR produit un brouillon. Il ne produit jamais, à lui seul, un texte éditorial validé.**

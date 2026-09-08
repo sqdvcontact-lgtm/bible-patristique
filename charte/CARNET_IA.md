@@ -235,3 +235,21 @@ Demande de l'auteur, après avoir écarté les notes en marge : « Je veux un en
 ⚠️ **Ce que la planche a d'abord fait dire de faux** : rendue sans la préflight de Tailwind, elle mesurait ses boîtes en `content-box` et donnait 366 px de large à l'encart d'hier, qui en fait 340. Une planche qui inline la feuille du site doit inliner aussi ce que la préflight y pose.
 
 **Reste ouvert** : les blocs d'une note biblique ne portent aucun `editorial_role` — l'axe « qui parle » n'existe que du côté patristique — et l'encart s'y tait donc toujours ; le jour où la donnée le portera, la règle du § 13.13 le composera sans qu'on y touche.
+
+### 2026-09-08 — La manchette : le partage du corpus, la collision, et deux défauts que seule la planche a vus
+
+Le partage renvoi / commentaire est au § 13.14 ; voici les chiffres et ce qui reste ouvert.
+
+**LA COLLISION.** 1 618 couples de renvois voisins dans un même segment (ancres de `texte_note_ancres`, écart converti en lignes à 83 signes la ligne de la colonne de lecture) : écart médian **1,46 ligne**, premier quartile 0,95, premier décile 0,63 ; **26,4 % sont sous une ligne**, et **366 couples se heurtent** — 22,6 % des couples, environ 3 % des 11 829 renvois. L'empilement est donc l'exception. ⚠️ 3 353 ancres sur 24 007 n'ont pas d'offset exploitable et restent à l'encart. Rejouable : `tmp/renvois-marge-collision.mjs`.
+
+**UN `<div>` DANS UN `<p>` FERME LE PARAGRAPHE.** Première planche : quatre renvois sur treize rendaient une boîte VIDE, et la même note se rendait très bien hors du paragraphe. `ContenuNoteStructuree` compose ses blocs en `<div>` ; l'analyseur du navigateur clôt alors le `<p>`, remonte le `<div>` d'un cran et repart en paragraphe implicite. ⚠️ Ce n'est pas affaire de CSS : `position: absolute` fait bien une boîte de bloc, mais l'analyseur ne lit que le nom de la balise. D'où `ContenuRenvoiEnLigne`, qui partage les mêmes fonctions de normalisation et ne change que la boîte.
+
+**L'ENCRE.** `--cs-texte-doux` rend **2,71** au corps de 10 px sur le papier du site, `--cs-texte-gris` 3,45, `--cs-texte-second` **5,24** (10,01 en Cuir). C'est le second qui sert.
+
+**LA PLANCHE MENT TANT QUE LES POLICES NE SONT PAS LÀ.** Mesuré avant elles, les hauteurs sont celles d'une police de secours, l'empilement se cale faux, et les entrées se recouvrent. Elle rejoue donc sur `document.fonts.ready` ; le crochet du site, lui, a son `ResizeObserver`. Après quoi : 13 renvois, 4 poussés, **zéro chevauchement**.
+
+**RESTE OUVERT — LE PRÉFIXE « Référence imprimée : ».** **5 002 renvois sur 11 828 (42,3 %)** ouvrent sur ces trois mots. Dans une manchette de 104 px ils prennent une ligne entière à eux seuls : la plupart des entrées font deux lignes là où elles en feraient une, et c'est ce qui rend la zone dense difficile à composer. La question est déjà posée au registre des propositions de GPT (« Faut-il conserver le préfixe dans le texte de la note ? ») et elle attend un arbitrage. ⛔ Elle ne se règle pas au rendu : depuis le § 13.9 la normalisation se fait DANS la donnée.
+
+**AUCUN renvoi pur ne porte de notice bibliographique** : 244 blocs du corpus sont liés à un ouvrage, tous dans des notes qui disent autre chose. La règle du § 13.14 le prévoit tout de même.
+
+**Le pire cas du corpus** est l'« Explication sur le psaume IV » du Commentaire sur les Psaumes de Chrysostome (Jeannin 1865), dont le texte porte 1 798 renvois purs à lui seul. La planche montre sa fenêtre la plus dense : huit renvois en dix lignes.
