@@ -6582,3 +6582,60 @@ Un composant défini DANS le corps d'un autre composant change d'identité à ch
 ⛔ **Un composant se déclare au niveau du MODULE, jamais dans le corps d'un autre.** Ce qu'il lisait par fermeture se passe en props, au besoin en un seul objet de contexte qu'on a le droit de reconstruire à chaque rendu : ce qui compte n'est pas l'identité de l'objet, c'est celle du composant. Et si le fragment ne porte aucun état et ne sert qu'une fois, il n'a pas besoin d'être un composant du tout — une valeur JSX suffit.
 
 ⚠️ **Sur un champ de saisie, l'effet est immédiat et ruineux.** Le parent se re-rendant à chaque frappe, l'`<input>` est détruit et recréé LETTRE PAR LETTRE : le curseur revient en fin de champ et la sélection est perdue. L'`autoFocus` masque le symptôme sans le corriger, ce qui rend la panne difficile à nommer. Le linter, lui, la nomme : `react-hooks/static-components`, « Cannot create components during render » — quatorze occurrences dans la fiche d'édition d'une traduction et une dans la page d'œuvre, corrigées le 8 septembre 2026.
+
+### 51.6 Une ÉTIQUETTE qui redit ce que la page MONTRE ne se pose pas
+
+Décisions de l’auteur du 8 septembre 2026, sur les deux pages d’« Aller plus loin ».
+
+⛔ **Un index n’a pas à s’annoncer : sa forme le désigne.** Le catalogue des péricopes
+coiffait sa liste de livres de DEUX rangs de mots, la rubrique « Parcourir » puis le groupe
+« Aller à un livre ». Une liste de noms de livres, sous un champ de recherche, dans un volet
+de navigation, ne peut pas être prise pour autre chose. Les deux étiquettes sont retirées, et
+il ne reste au-dessus des cases de filtre que « Filtrer », qui sépare ce qui NAVIGUE de ce qui
+RESTREINT.
+
+⛔ **Un COMPTE que la liste montre déjà ne s’écrit pas.** « 249 péricopes » disait au repos
+l’étendue d’un catalogue que la page déroule sous les yeux, et sous filtre le nombre de lignes
+qu’elle venait de rendre. ⚠️ Ce n’est pas retirer un signal : une recherche qui ne rend rien le
+dit toujours en clair, et À LA PLACE de la liste, ce qui est le seul endroit où on le cherche.
+Le compte de la marge était parti pour la même raison le 23 août 2026 ; celui-ci était le
+dernier.
+
+⛔ **Une GLOSE qui redit le mot de tête ne se pose pas non plus.** « Acheter des livres »
+portait sous son titre, en italique, « Où trouver les textes, en éditions neuves, anciennes ou
+critiques », et deux lignes plus bas la même chose en prose, suivie de la liste des enseignes
+qui la montre. Le filet reste, c’est lui qui sépare le titre de ce qui suit. ⚠️ La description
+des métadonnées la garde : elle sert le résultat d’un moteur de recherche, où la page n’a que
+son titre pour se présenter, et ce n’est donc pas la même redite.
+
+⚠️ **Le critère est la REDITE, non la brièveté.** Une étiquette qui nomme un axe dont la forme
+ne dit rien reste nécessaire, et « Filtrer » en est l’exemple à quelques pixels de là. Ce qu’on
+retire, ce sont les mots qui répètent ce que l’œil vient de lire.
+
+### 51.7 Un INDEX DES LIVRES se présente d’une seule façon
+
+Demande de l’auteur du 8 septembre 2026 : « le sommaire AT et NT doit reprendre le modèle de
+celui de la page Bible classique ». C’est le même objet, l’index des livres d’un corpus, et il
+n’avait pas à se présenter de deux façons selon la page.
+
+⛔ **Le modèle est le volet de lecture de la Bible classique, et on le REPREND, on ne le
+redessine pas.** Deux sections dépliables, Ancien et Nouveau Testament ouvertes d’emblée, ce
+qui n’est pas canonique replié ; le nom du testament en capitales espacées sur l’encre verte,
+au fer à gauche, et sa flèche de repli au fer à droite ; puis les livres NOMMÉS EN TOUTES
+LETTRES, un par ligne, au corps de la liste des livres.
+
+⛔ **Une abréviation ne s’emploie que là où la place manque.** Le catalogue rangeait ses livres
+en quatre colonnes d’abréviations, où il fallait déchiffrer « Dt », « Ct » et « Ez » ; dans un
+volet de quinze rem et demie, il y a la place d’écrire « Deutéronome ». Mesuré sur la page
+servie : quatre-vingt-douze livres, aucun ne s’enroule.
+
+⚠️ **Le nom d’une section et celui d’un livre partagent leur FER, et cela se paie d’un débord.**
+Une rangée de livre porte un rembourrage, parce que son fond de survol le demande ; le nom de
+la section doit donc porter le même, et le bloc entier déborde sa colonne d’autant, sinon les
+deux paraissent rentrés par rapport au champ de recherche qui les surmonte. C’est le parti du
+volet de lecture, dont le défileur retire d’avance ces pixels à sa gouttière.
+
+⚠️ **Une rangée d’index est plus grosse que les cases de filtre qui la suivent, et c’est le
+modèle qui le veut** : dans un volet de lecture, la liste des livres est l’objet principal, et
+elle l’est ici aussi. ⛔ Ne pas la rabattre sur les filtres sans décision : ce serait quitter
+le modèle qu’on vient de reprendre.

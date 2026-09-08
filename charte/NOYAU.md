@@ -2437,6 +2437,22 @@
 - ⛔ Un composant se déclare au niveau du MODULE, jamais dans le corps d'un autre.
 - ⚠️ Sur un champ de saisie, l'effet est immédiat et ruineux.
 
+**§ 51.6 — Une ÉTIQUETTE qui redit ce que la page MONTRE ne se pose pas**
+
+- ⛔ Un index n’a pas à s’annoncer : sa forme le désigne.
+- ⛔ Un COMPTE que la liste montre déjà ne s’écrit pas.
+- ⚠️ Ce n’est pas retirer un signal : une recherche qui ne rend rien le
+- ⛔ Une GLOSE qui redit le mot de tête ne se pose pas non plus.
+- ⚠️ Le critère est la REDITE, non la brièveté.
+
+**§ 51.7 — Un INDEX DES LIVRES se présente d’une seule façon**
+
+- ⛔ **Le modèle est le volet de lecture de la Bible classique, et on le REPREND, on ne le
+- ⛔ Une abréviation ne s’emploie que là où la place manque.
+- ⚠️ Le nom d’une section et celui d’un livre partagent leur FER, et cela se paie d’un débord.
+- ⚠️ **Une rangée d’index est plus grosse que les cases de filtre qui la suivent, et c’est le
+- ⛔ Ne pas la rabattre sur les filtres sans décision : ce serait quitter
+
 ---
 
 ## Couverture — les chapitres que le noyau représente le moins
