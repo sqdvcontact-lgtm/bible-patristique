@@ -483,6 +483,24 @@ const OEUVRES: Unite[] = [
     ),
   },
   {
+    style: 'patristique/exergue',
+    note: 'Le verset posé en SEUIL d’une pièce, et sa traduction. Rentré du quart de la mesure et justifié : ses deux bords sont droits, et le bloc pend au bord droit de la colonne, comme l’épigraphe du livre ancien. Corps réduit de la citation sortie, et deux blancs qui ne disent pas la même chose — la moitié d’un blanc de paragraphe entre le verset et sa traduction, qui sont un seul seuil ; une ligne de prose entière quand le texte s’ouvre.',
+    alerte: '⛔ Ce n’est PAS un `lemme`, et c’est tout l’objet : le lemme est la phrase qu’un commentaire explique à sa place, dans le fil ; l’exergue annonce et ne se commente pas ligne à ligne. Les trente-huit segments des Catéchèses de Cyrille portaient la première nature faute de la seconde. ⚠️ Le retrait CÈDE quand la mesure descend sous vingt rem — colonne de comparaison, téléphone étroit — plutôt que de creuser la justification de lézardes (charte § 3.11.4). ⛔ Et pas de fer à droite : c’est la composition d’un bloc de SIGNATURES, illisible sur trois lignes de texte suivi.',
+    contenu: (
+      <>
+        <p style={styleParagrapheLecture({ exergue: 'suite' })}>
+          <Segment n={496}><em>Est autem fides sperandarum substantia rerum, argumentum non apparentium. In hac enim testimonium consecuti sunt senes, etc.</em></Segment>
+        </p>
+        <p style={styleParagrapheLecture({ exergue: 'fin' })}>
+          <Segment n={497}>La foi est la substance des choses que nous espérons, et la preuve de celles que nous ne voyons pas. C’est par la foi que les anciens ont reçu un témoignage si avantageux, etc.</Segment>
+        </p>
+        <p style={styleParagrapheLecture()}>
+          <Segment n={498}>L’Apôtre saint Paul, dont nous lisons ici l’Épître, nous apprend de quelle dignité Dieu vous a revêtus en vous faisant passer de l’état de catéchumènes à celui de fidèles.</Segment>
+        </p>
+      </>
+    ),
+  },
+  {
     style: 'patristique/citation',
     note: 'Une citation STRUCTURELLE, dont le rendu RECOLLE les segments : la coupure y est technique, et le lecteur ne doit pas la voir. Le bloc se lit d’un trait, comme un seul passage cité.',
     alerte: '⛔ Ne pas confondre avec la citation EN LIGNE, qui reste dans `texte` et se détache d’elle-même au delà de 400 signes ; ni avec `verset`, où la coupure est au contraire VOULUE par l’édition et doit se voir. Ces trois-là se ressemblent et ne se composent pas de la même façon.',

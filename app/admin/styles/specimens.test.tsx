@@ -85,7 +85,7 @@ describe('⛔ la planche porte TOUS les styles des deux vocabulaires', () => {
   const porte = (labels: string[], nom: string) =>
     labels.some((l) => new RegExp(`${nom.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w_])`, 'u').test(l))
 
-  it('les treize natures de segment paraissent dans les épreuves patristiques', () => {
+  it('les quatorze natures de segment paraissent dans les épreuves patristiques', () => {
     const labels = [...EPREUVES[1].unites, ...EPREUVES[2].unites].map((u) => u.style)
     const absentes = NATURE_VALIDES.filter((n) => !porte(labels, n))
     expect(absentes).toEqual([])

@@ -87,7 +87,18 @@ describe('un `verset` se compose de la même façon sur les deux surfaces', () =
     // sortait du fil ici et y restait là. Corollaire, pris par l'autre bout, de la
     // règle déjà payée sur les vers : une nature ne se compose pas de deux façons.
     expect(sourceLecteur).toContain('estBlocVersets(chunk.ids.map(sid => segMap.get(sid)?.nature))')
-    expect(sourceParallele).toContain('estBlocVersets(naturesDuParagraphe.get(cleParagraphe(segment))')
+    // ⚠️ La comparaison lit les natures du PARAGRAPHE, rangées une fois dans
+    // `naturesVoisines` : l'exergue exige le même tout ou rien et la partage.
+    expect(sourceParallele).toContain('naturesDuParagraphe.get(cleParagraphe(segment)) ?? []')
+    expect(sourceParallele).toContain('estBlocVersets(naturesVoisines)')
+  })
+
+  it('l’exergue exige le même tout ou rien, sur les deux surfaces', () => {
+    // ⛔ Mêlé de prose, il se compose en prose : ici comme en lecture, et pour la
+    // raison qu'on a payée sur le verset.
+    expect(sourceLecteur).toContain('estBlocExergue(chunk.ids.map(sid => segMap.get(sid)?.nature))')
+    expect(sourceParallele).toContain('estBlocExergue(naturesVoisines)')
+    expect(sourceParallele).toContain("segment.nature === NATURE_EXERGUE && faitBlocExergue ? 'exergue'")
   })
 
   it('la comparaison ne fait plus bloc sur la seule nature', () => {

@@ -23,6 +23,7 @@
  */
 
 import { adresseEdition } from '@/app/lib/adresseEdition'
+import { estBlocExergue } from '@/app/lib/compositionExergue'
 import { estBlocDeSignatures, paragraphesDeSegments } from '@/app/lib/compositionOeuvre'
 import {
   estBlocDeVers, fusionnerBlocs, lignesDeVers, mesureAlinea, niveauxAlinea, ombreDeLettrine,
@@ -35,7 +36,7 @@ import { fragmentsEnrichis, type MarquesTexte } from '@/app/lib/texteEnrichiToke
 import { complementDeTitre } from '@/app/lib/titres'
 import { libelleTrad } from '@/app/lib/traducteurs'
 import { normaliserEspaces, normaliserEspacesOriginal } from '@/app/lib/typographie'
-import { CM, PAS_ALINEA_VERS, type BlocDocx, type MorceauDocx, type ParagrapheDocx, type StyleDocx } from './ooxml'
+import { CM, PAS_ALINEA_VERS, SEUIL_EXERGUE_DOCX, type BlocDocx, type MorceauDocx, type ParagrapheDocx, type StyleDocx } from './ooxml'
 
 // ── Ce que le composeur reçoit ────────────────────────────────────────────────
 
@@ -377,7 +378,11 @@ function blocsDeLaSurface(entree: EntreeDocument, segments: readonly SegmentExtr
       paragraphesDeSegments(rangs, index => division[index]).map(ids => ({ ids })),
       ids => estBlocDeVers(ids.map(index => division[index])),
     )
-    for (const decoupe of decoupes) {
+    // ⛔ Le blanc qui suit un EXERGUE se juge sur le bloc SUIVANT, comme à l'écran : il
+    // COUD l'exergue à sa traduction, ou il OUVRE le texte. Un style de paragraphe ne
+    // sait pas ce qui vient après lui ; la découpe entière, si.
+    const exergues = decoupes.map(d => estBlocExergue(d.ids.map(index => division[index].nature)))
+    for (const [rang, decoupe] of decoupes.entries()) {
       const bloc = decoupe.ids.map(index => division[index])
       const natures = bloc.map(s => s.nature)
       const paragraphes: ParagrapheDocx[] = estBlocVersets(natures)
@@ -386,11 +391,20 @@ function blocsDeLaSurface(entree: EntreeDocument, segments: readonly SegmentExtr
           ? paragraphesDeVers(bloc, entree.notes)
           : estBlocDeSignatures(natures)
             ? [{ style: 'Signature', morceaux: morceauxDuTexte(joindre(bloc), fondreLesNotes(bloc), entree.notes) }]
-            : [{
-              style: styleDeLaProse(bloc, premierDeDivision),
-              morceaux: morceauxDuTexte(joindre(bloc), fondreLesNotes(bloc), entree.notes),
-            }]
-      premierDeDivision = false
+            : exergues[rang]
+              ? [{
+                style: 'Exergue',
+                ...(exergues[rang + 1] ? {} : { espaceApres: SEUIL_EXERGUE_DOCX }),
+                morceaux: morceauxDuTexte(joindre(bloc), fondreLesNotes(bloc), entree.notes),
+              }]
+              : [{
+                style: styleDeLaProse(bloc, premierDeDivision),
+                morceaux: morceauxDuTexte(joindre(bloc), fondreLesNotes(bloc), entree.notes),
+              }]
+      // ⛔ Un exergue ne CONSOMME pas l'ouverture de la division : le texte qu'il annonce
+      // commence après lui, et son premier paragraphe ne prend donc pas d'alinéa — rien
+      // ne le précède dont il faudrait le distinguer.
+      if (!exergues[rang]) premierDeDivision = false
 
       const originaux = originauxDuBloc(entree, bloc, premierDuGroupe)
       // ⛔ UN BLOC COUVERT PAR UN GROUPE GARDE SA GRILLE, colonne de droite VIDE, même

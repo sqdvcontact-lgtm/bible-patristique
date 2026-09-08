@@ -7,7 +7,7 @@ describe('vocabulaire des importateurs génériques', () => {
     expect(NATURE_VALIDES).toEqual([
       'texte', 'citation', 'lemme', 'rubrique', 'dialogue',
       'introduction', 'apparat_critique', 'apparat_auteur', 'apparat_editeur',
-      'separateur', 'texte absent', 'signature', 'verset',
+      'separateur', 'texte absent', 'signature', 'verset', 'exergue',
     ])
   })
 
@@ -80,12 +80,12 @@ describe('le vocabulaire et la base disent la même chose', () => {
   it('reproduit exactement `chk_segments_nature`', () => {
     // ⚠️ Recopié à la main, faute qu'un test puisse interroger la base : c'est le
     // prix de la garde. Contrainte posée par les migrations 20260828120000 (verset),
-    // 20260829090000 (signature) et 20260829150000 (retrait de `vers`) ; toute
-    // migration qui la touche passe ici.
+    // 20260829090000 (signature), 20260829150000 (retrait de `vers`) et 20260908131851
+    // (exergue) ; toute migration qui la touche passe ici.
     const CONTRAINTE = [
       'texte', 'citation', 'verset', 'lemme', 'rubrique', 'dialogue',
       'signature', 'separateur', 'apparat_critique', 'apparat_auteur',
-      'apparat_editeur', 'texte absent', 'introduction',
+      'apparat_editeur', 'texte absent', 'introduction', 'exergue',
     ]
     expect([...NATURE_VALIDES].sort()).toEqual([...CONTRAINTE].sort())
   })

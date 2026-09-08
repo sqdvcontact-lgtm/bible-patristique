@@ -41,11 +41,12 @@ export const SELECT_SEGMENT = COLONNES_SEGMENT.join(',')
  * explicite ne les a déjà rangées.
  *
  * ⛔ `apparat_auteur` (prologue, avertissement, dédicace de l'auteur) en fait partie :
- * il se lit à sa place dans le texte. `lemme` en fait partie pour la même raison.
+ * il se lit à sa place dans le texte. `lemme` en fait partie pour la même raison, et
+ * `exergue`, qui ouvre la pièce et est donc la première chose qu'on y lit.
  */
 export const NATURES_CORPS = [
   'texte', 'introduction', 'citation', 'lemme', 'dialogue', 'texte absent',
-  'verset', 'rubrique', 'signature', 'apparat_auteur',
+  'verset', 'rubrique', 'signature', 'apparat_auteur', 'exergue',
 ] as const
 
 /**

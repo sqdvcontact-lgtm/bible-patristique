@@ -123,8 +123,9 @@
 
 **§ 7 — Natures de segment**
 
+- ⚠️ À distinguer du `lemme`, qui est la phrase qu’un commentaire explique à sa place, dans le fil |
 - ⚠️ À distinguer d’`apparat_editeur`, qui porte le paratexte rédigé quand `signature` n’en porte que les noms et les qualités |
-- ⛔ Elles sont TREIZE, et `vers` n’en est pas.
+- ⛔ Elles sont QUATORZE, et `vers` n’en est pas.
 - ⚠️ Un segment en vers porte donc la nature de ses FRÈRES
 - ⛔ L’espace `apparat_critique` n’est jamais un fourre-tout pour le hors-corps.
 
@@ -192,13 +193,19 @@
 - ⚠️ La largeur se MESURE, elle ne se ressent pas
 - ⚠️ Elle ne se devine pas davantage : couper un
 
+**§ 7.5 — Le CATALOGUE des styles — ce que chacun sert**
+
+- ⚠️ Deux lignes ont été remesurées le 8 septembre 2026, `lemme` et `exergue` : les
+
 **§ 7.5.1 — Les natures d'un segment patristique — `segments.nature`**
 
 - ⛔ HÉRITÉE (§ 7) : un fourre-tout de paratexte — dédicaces, privilèges, gloses de vocabulaire, arguments analytiques —, rendu dans la vue d'apparat.
 - ⛔ pas une citation en ligne : celle-là reste dans `texte` et se détache d'elle-même au delà de 400 signes | 1 221 |
 - ⛔ ne se sort jamais du fil : une réplique est entre guillemets sans être une citation d'auteur | 1 038 |
 - ⛔ pas `apparat_editeur`, qui porte le paratexte de l'ÉDITION : celui-ci appartient au CORPS et se lit à sa place | 96 |
-- ⛔ ne se détache pas : un lemme se lit au fil du texte (décision du 20 août 2026) | 68 |
+- ⛔ ne se détache pas : un lemme se lit au fil du texte (décision du 20 août 2026).
+- ⛔ Et ce n'est PAS un `exergue` : le lemme s'explique, l'exergue annonce | 220 |
+- ⛔ pas un `lemme` : un exergue ne se commente pas ligne à ligne, et il quitte le fil | 38 |
 - ⛔ pas toute citation biblique : c'est la coupure IMPRIMÉE qui le fonde | 12 |
 - ⛔ Le VERS n'est PAS dans cette table, et c'est le point à retenir
 
@@ -227,6 +234,15 @@
 - ⚠️ Corollaire, qui vaut au delà de la composition.
 - ⛔ ET LE BLANC QUI FERME UN BLOC N'EST PAS CELUI QUI LE COUD.
 - ⚠️ **La place d'une ligne dans son bloc se juge sur le bloc SUIVANT, jamais sur le
+
+**§ 7.8 — L’EXERGUE — le verset posé en seuil d’une pièce**
+
+- ⛔ CE N’EST PAS UN LEMME, ET C’EST TOUT L’OBJET.
+- ⚠️ LE RETRAIT CÈDE QUAND LA MESURE NE PEUT PLUS LE PAYER.
+- ⛔ LES DEUX BLANCS NE DISENT PAS LA MÊME CHOSE
+- ⚠️ La place d’un exergue dans son bloc se juge sur
+- ⛔ IL SORT DU PARAGRAPHE DE PROSE, que la donnée l’y range ou non.
+- ⚠️ Ne pas le confondre avec l’exergue de l’INTERFACE
 
 ## § 9. Liens bibliques
 

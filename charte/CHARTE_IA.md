@@ -636,6 +636,7 @@ Le vocabulaire éditorial autorisé est :
 | `citation` | citation longue ou bloc cité, lorsqu’une distinction d’affichage est utile |
 | `verset` | verset d’une citation biblique que l’édition pose verset par verset : un segment, un verset, et la suite des versets consécutifs forme la citation (§ 3.8) |
 | `lemme` | fragment cité servant de point de départ au commentaire |
+| `exergue` | le verset posé en SEUIL d’une pièce — catéchèse, homélie, sermon — et sa traduction : il annonce ce que la pièce entière va déplier, et se compose en retrait (§ 7.8). ⚠️ À distinguer du `lemme`, qui est la phrase qu’un commentaire explique à sa place, dans le fil |
 | `signature` | bloc de signatures fermant un volume — approbations, censeurs, souscripteurs : une suite de lignes courtes que l’édition compose au fer à droite. ⚠️ À distinguer d’`apparat_editeur`, qui porte le paratexte rédigé quand `signature` n’en porte que les noms et les qualités |
 | `rubrique` | rubrique éditoriale qui n’est pas un niveau de titre |
 | `dialogue` | réplique ou bloc dialogué lorsque la distinction est utile |
@@ -646,7 +647,7 @@ Le vocabulaire éditorial autorisé est :
 | `separateur` | héritage ancien seulement ; ne plus en créer pour représenter un alinéa |
 | `texte absent` | lacune matérielle signalée sans invention |
 
-⛔ **Elles sont TREIZE, et `vers` n’en est pas.** La poésie ne se déclare pas par une
+⛔ **Elles sont QUATORZE, et `vers` n’en est pas.** La poésie ne se déclare pas par une
 nature mais par une FORME, `segment_metadata.forme = 'vers'` (§ 7.4) : c’est la seule
 écriture qui vaille aussi dans l’apparat, où la nature est déjà prise par
 `apparat_critique` — c’est par là que le segment y est SÉLECTIONNÉ, et elle ne peut pas
@@ -1109,6 +1110,8 @@ légitime ; deviner la donnée depuis le style ne l'est pas.**
 
 Les deux vocabulaires, style par style, avec ce qu'il sert et ce qu'il ne sert pas.
 Les chiffres sont ceux du 29 août 2026 ; ils disent l'emploi réel, non une permission.
+⚠️ Deux lignes ont été remesurées le 8 septembre 2026, `lemme` et `exergue` : les
+trente-huit exergues sortent des lemmes, et le compte de `lemme` avait dérivé.
 
 #### 7.5.1. Les natures d'un segment patristique — `segments.nature`
 
@@ -1120,7 +1123,8 @@ Les chiffres sont ceux du 29 août 2026 ; ils disent l'emploi réel, non une per
 | `dialogue` | une réplique, dans un texte qui en compte | ⛔ ne se sort jamais du fil : une réplique est entre guillemets sans être une citation d'auteur | 1 038 |
 | `apparat_editeur` | préface du traducteur, privilège, approbation : un paratexte EXTÉRIEUR à l'œuvre | l'apparat de l'auteur, qui appartient au corps | 323 |
 | `apparat_auteur` | prologue, avertissement, dédicace écrits par L'AUTEUR | ⛔ pas `apparat_editeur`, qui porte le paratexte de l'ÉDITION : celui-ci appartient au CORPS et se lit à sa place | 96 |
-| `lemme` | le verset biblique qu'un commentaire pose en tête du paragraphe qu'il commente | ⛔ ne se détache pas : un lemme se lit au fil du texte (décision du 20 août 2026) | 68 |
+| `lemme` | le verset biblique qu'un commentaire pose en tête du paragraphe qu'il commente | ⛔ ne se détache pas : un lemme se lit au fil du texte (décision du 20 août 2026). ⛔ Et ce n'est PAS un `exergue` : le lemme s'explique, l'exergue annonce | 220 |
+| `exergue` | le verset posé en seuil d'une pièce, et sa traduction : rentré du quart de la mesure, justifié (§ 7.8) | ⛔ pas un `lemme` : un exergue ne se commente pas ligne à ligne, et il quitte le fil | 38 |
 | `rubrique` | une rubrique éditoriale qui n'est PAS un niveau de titre | un titre : elle ne prend ni balise `h*` ni place au plan | 43 |
 | `introduction` | un préambule appartenant au texte | | 57 |
 | `verset` | un verset d'une citation que l'ÉDITION pose verset par verset | ⛔ pas toute citation biblique : c'est la coupure IMPRIMÉE qui le fonde | 12 |
@@ -1263,6 +1267,67 @@ segment** (`placeDeLaSignature`) : deux signatures voisines font deux blocs, cha
 ligne, et c'est leur voisinage qui les réunit en liste. ⛔ Corollaire de méthode : quand
 une forme change le blanc, elle en change DEUX, et il faut les nommer séparément avant de
 poser un chiffre.
+
+### 7.8. L’EXERGUE — le verset posé en seuil d’une pièce
+
+Une catéchèse de Cyrille, une homélie, un sermon s’ouvrent souvent sur un verset que la
+pièce entière va déplier. L’édition le pose au-dessus du texte, en retrait, et le lecteur
+voit qu’il n’y est pas encore entré.
+
+⛔ **CE N’EST PAS UN LEMME, ET C’EST TOUT L’OBJET.** Le lemme est la phrase qu’un
+commentaire explique À SA PLACE, dans le fil, et il s’y lit comme n’importe quel
+paragraphe (§ 3.8, décision de l’auteur du 20 août 2026) : les commentaires de Jérôme sur
+Jonas, Joël et Abdias en portent 220, chacun suivi de son explication. L’exergue, lui,
+ANNONCE et ne se commente pas ligne à ligne. Les trente-huit segments des *Catéchèses
+baptismales* de Cyrille de Jérusalem portaient la première nature faute de la seconde,
+et se composaient donc en prose ordinaire, au fil du texte.
+
+**La forme, arrêtée par l’auteur le 8 septembre 2026.** Le bloc est RENTRÉ à gauche du
+quart de la mesure et JUSTIFIÉ : ses deux bords sont droits, et il pend au bord droit de
+la colonne, comme l’épigraphe du livre ancien. Il prend le corps de la citation sortie,
+0,95 du fil : un texte détaché se dit par son retrait et par un corps légèrement moindre,
+jamais par un ornement.
+
+⛔ **PAS DE RETRAIT À DROITE.** Deux marges enfermeraient un bloc qui doit au contraire
+s’appuyer sur la marge de la prose qu’il ouvre. C’est la règle déjà écrite pour le bloc de
+versets (§ 3.8), et pour une raison voisine.
+
+⛔ **PAS DE FER À DROITE NON PLUS.** C’est la composition d’un bloc de SIGNATURES (§ 7.7) :
+un bord gauche dentelé sur trois ou quatre lignes se lit mal, et l’exergue est du texte
+suivi, non une liste de noms. Le parti a été mis en regard de l’autre avant d’être écarté.
+
+⚠️ **LE RETRAIT CÈDE QUAND LA MESURE NE PEUT PLUS LE PAYER.** Un quart pris sur la colonne
+de lecture (31,25 rem) laisse une soixantaine de signes par ligne, largement au-dessus du
+plancher du § 3.11.4, qui veut qu’on ferre au lieu de justifier sous une quarantaine de
+signes. Pris sur la colonne d’une comparaison de traductions, ou sur un téléphone étroit,
+il laisserait des lignes de trente signes que la justification creuserait de lézardes. Une
+mesure minimale garde donc la main : le retrait vaut le quart, mais jamais plus que ce qui
+reste au-dessus d’elle, et il tombe à zéro quand la colonne descend au-dessous.
+
+⛔ **LES DEUX BLANCS NE DISENT PAS LA MÊME CHOSE**, et c’est la règle du bloc de signatures
+prise sur un autre objet. Entre le verset et sa traduction, une COUTURE, la moitié du blanc
+de paragraphe : c’est un seul seuil dit deux fois, et le blanc entier en ferait deux seuils
+l’un derrière l’autre. Quand le texte s’ouvre, une COUPURE, une ligne de prose entière : on
+doit voir qu’on franchit quelque chose. ⚠️ La place d’un exergue dans son bloc se juge sur
+le bloc SUIVANT, jamais sur le segment.
+
+⛔ **IL SORT DU PARAGRAPHE DE PROSE, que la donnée l’y range ou non.** Un bloc ne peut pas
+être rentré sur une partie seulement de ses lignes. La donnée des Catéchèses lui donne bien
+son propre `paragraphe`, mais rien n’oblige un import à le faire, et la règle ne doit pas
+dépendre de la propreté de celui qui l’écrit.
+
+⛔ **IL NE PORTE PAS LA LETTRINE** : ce n’est pas la parole de l’auteur, c’est celle de
+l’Écriture qu’il va commenter (§ 6, la lettrine n’orne que la prose de l’auteur).
+
+⚠️ **Il compose sur les TROIS surfaces** — la lecture, l’apparat, la comparaison des
+traductions —, et sur la planche des styles. Les trente-huit exergues du corpus portent
+tous `espace_textuel = 'corps'` au 8 septembre 2026 ; l’apparat le compose tout de même,
+la signature ayant coûté une forme morte pour avoir été rendue sur la seule surface où sa
+donnée ne va jamais (§ 7.7).
+
+⚠️ **Ne pas le confondre avec l’exergue de l’INTERFACE** (§ 3.11.5), une invite ou une
+devise centrée sur une page du site : celui-là est un ornement, qu’on ne justifie ni ne
+césure. Celui-ci est du corpus, et il se lit.
 
 ## 8. Notes structurées et références présentes dans le texte
 

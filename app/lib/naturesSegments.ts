@@ -49,6 +49,12 @@ export const NATURE_VALIDES = [
   // Verset d'une citation biblique longue que l'édition pose verset par verset.
   // Un segment = un verset ; la suite forme le bloc. Voir `compositionVersets.ts`.
   'verset',
+  // Le verset posé en SEUIL d'une pièce — la catéchèse, l'homélie, le sermon — et
+  // sa traduction. ⛔ Ce n'est pas un `lemme` : le lemme est la phrase qu'un
+  // commentaire explique à sa place et se lit dans le fil, quand l'exergue annonce
+  // et se compose en retrait. Voir `compositionExergue.ts`. Ajoutée le 8 septembre
+  // 2026 : migration 20260908131851.
+  'exergue',
 ] as const
 
 export type NatureSegmentValide = typeof NATURE_VALIDES[number]

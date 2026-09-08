@@ -1861,6 +1861,62 @@ Doctrine : charte `parametres.charte_ia` **§3.8** (paragraphe « Une citation P
 - ⚠️ **Exposant à la manière de la maison** (voir `siecles.tsx`) : `line-height: 0`, calage par `top: -0.5em`, **jamais** `vertical-align: super`, qui gonfle la boîte de ligne — et le blanc entre versets, qui est léger, s'en trouverait rouvert. Mesuré sur épreuve : boîte de ligne à 88,03 px avec numéro **comme sans**.
 - **Le numéro de SEGMENT s'efface dans le bloc** (décision de l'auteur) : deux nombres en exposant sur la même ligne ne se lisent pas, et c'est le verset que le lecteur cherche. Le court-circuit `NATURE_VERSET` de `rendreCorpsSegment` rend l'un à la place de l'autre.
 
+# L'EXERGUE — le verset posé en seuil d'une pièce (2026-09-08)
+
+Doctrine : charte `parametres.charte_ia` **§ 7.8** (ce qu'il est, sa forme, et pourquoi ce
+n'est pas un lemme) et **§ 7** (table des natures). Demande de l'auteur, sur les deux
+segments qui ouvrent la *Cinquième catéchèse* de Cyrille de Jérusalem : « créer une
+style-nature exergue, et faire une mise en forme propre ». Règles de code :
+
+- **Le module pur est `app/lib/compositionExergue.ts`** (9 tests), sur le modèle de
+  `compositionVersets.ts` : `NATURE_EXERGUE`, `PART_RETRAIT_EXERGUE` (le quart),
+  `MESURE_MINIMALE_EXERGUE` (20 rem), `RETRAIT_EXERGUE`, `RAPPORT_CORPS_EXERGUE` (0,95),
+  `estBlocExergue`. ⛔ Il ne connaît aucune surface : la LIGNE se compose partout pareil,
+  seul le cadre appartient à la page.
+- ⛔ **LE RETRAIT S'ÉCRIT EN CSS, PAS EN REQUÊTE DE MÉDIA** :
+  `max(0px, min(25%, 100% - 20rem))`. Le style est posé EN LIGNE — c'est ce qui permet à
+  la planche des styles de composer l'exergue exactement comme la page (règle du 2026-08-28,
+  « rien n'est rejoué ») — et un style en ligne ne porte pas de `@media`. La forme
+  fonctionnelle est donc la seule écriture possible : elle rend le quart de la mesure tant
+  qu'il reste vingt rem à lire, ce qui dépasse d'elle sinon, rien du tout sous elle.
+  ⚠️ Elle CÈDE d'elle-même dans une colonne de comparaison, qui est plus étroite : c'est
+  voulu, une justification creusée de lézardes valant moins qu'un retrait perdu.
+- ⛔ **Le retrait se pose en QUATRIÈME VALEUR du raccourci de marge**, jamais en
+  `marginLeft` écrit après lui : deux écritures de la même marge dans le même objet de
+  style ne tiendraient que par l'ordre des clés.
+- **La dérogation vit dans `FormeParagraphe.exergue`** (`compositionOeuvre.ts`), à côté de
+  `signature` et `rubrique`, avec ses deux places `'suite' | 'fin'`. ⚠️ `LIGNE_DE_PROSE`
+  (ex-`COUPURE_SIGNATURE`, 1,32 rem) est désormais PARTAGÉE : c'est le blanc qui ferme un
+  bloc dérogeant, signature ou exergue. `COUTURE_EXERGUE` se CALCULE (`BLANC_PARAGRAPHE / 2`)
+  et suit donc le blanc de paragraphe.
+- **`placeDeLExergue` et `placeDeLaSignature` délèguent à `placeDansSonBloc`** : la place
+  se juge sur le bloc SUIVANT, jamais sur le segment, et c'est la même règle des deux côtés.
+- ⛔ **`paragraphesDeSegments` SORT l'exergue du paragraphe de prose**, comme la signature :
+  `natureDerogeante` remplace le booléen `signature` de la découpe. Un bloc ne peut pas être
+  rentré sur une partie seulement de ses lignes.
+- ⛔ **QUATRE SURFACES, ou aucune** (corollaire déjà payé sur les vers et sur le verset) :
+  la lecture d'une œuvre, son apparat, la comparaison des traductions et la planche des
+  styles. Aucun exergue ne vit dans l'apparat au 2026-09-08 — les trente-huit portent tous
+  `espace_textuel = 'corps'` — mais la signature y a été une forme morte trois semaines
+  pour avoir été rendue sur la seule surface où sa donnée ne va jamais.
+- **L'extraction en `.docx`** a son style `Exergue` (basé sur `Citation`, retrait du quart
+  de la mesure utile, rien à droite, justifié). ⚠️ `ParagrapheDocx` gagne `espaceApres`,
+  posé sur le seul exergue qui FERME son bloc : un style de paragraphe ne sait pas ce qui
+  vient après lui. ⛔ Un seul `<w:spacing>` par paragraphe, le schéma n'en admet pas deux.
+  ⚠️ Un exergue ne CONSOMME pas l'ouverture d'une division : le premier paragraphe du texte
+  qu'il annonce ne prend pas d'alinéa.
+- **La migration est `20260908131851_segments_nature_exergue.sql`** : elle étend
+  `chk_segments_nature` ET redéfinit `get_niv1_list` / `get_niv1_texte`, dont
+  `oeuvreSelects.test.ts` relit la dernière définition pour exiger le miroir exact de
+  `NATURES_CORPS`. ⛔ Ajouter une nature de corps sans toucher aux deux RPC ferait sortir
+  sa division du sommaire, en silence.
+- **La donnée** : les 38 segments des *Catéchèses baptismales* (`A0044O0003`) passent de
+  `lemme` à `exergue` (19 catéchèses, un verset latin et sa traduction chacune). Sauvegarde
+  `internal.backup_segments_exergue_20260908`, retour arrière
+  `sql/rollback_exergue_catecheses_20260908.sql`, postcheck à zéro sur toutes les colonnes
+  autres que `nature`. ⚠️ Les **220** autres `lemme` du corpus — Jonas, Joël et Abdias de
+  Jérôme — n'ont PAS bougé : là, le lemme est bien la phrase que le commentaire explique.
+
 # Composition des VERS — l'alinéa de base, et les alinéas qui se lisent (2026-08-23)
 
 Toute la règle vit dans **`app/lib/compositionVers.ts`** (module pur, 15 tests sur les mesures RÉELLES de Boèce). `OeuvreClient` et `ComparaisonTraductions` s'y rapportent tous les deux : une seule composition, deux surfaces.
@@ -3457,7 +3513,7 @@ titres, quatre natures d'information, une note.
 - ⚠️ **Le survol ne se lit pas au clavier** : la liste sous l'épreuve donne les mêmes notices en clair, dans l'ordre, et chaque entrée désigne son unité au survol comme au focus. Sous 1 200 px, la marge n'ayant plus la place, c'est elle qui porte tout.
 - ⚠️ **Le bloc éditorial biblique est posé dans son AXE** (`styleAxeTexte`), comme sur la page : sans lui, le blanc de 2 rem qui le cerne disparaît en silence.
 - **71 tests** (`specimens.test.tsx`) : chaque unité est RENDUE et doit porter du texte, et six tests vérifient que la planche tire ses valeurs des modules partagés plutôt que d'en recopier.
-- ⛔ **LA PLANCHE DOIT PORTER TOUT LE VOCABULAIRE, et une garde l'y oblige** (2026-08-29). Deux tests confrontent les épreuves aux deux registres : les **treize** natures de `NATURE_VALIDES` doivent paraître dans les épreuves patristiques, les **douze** styles canoniques de `semantic_display_hierarchy.json` dans celle du paratexte biblique. ⚠️ Le registre fait foi, on ne recopie pas la liste dans le test. Le nom se cherche à la frontière de mot : `introduction` ne vaut pas pour `introduction_titree`, qui est un autre style. Étendre un vocabulaire sans étendre la planche fait donc échouer les tests, ce qui est le seul moment où l'on peut encore y penser.
+- ⛔ **LA PLANCHE DOIT PORTER TOUT LE VOCABULAIRE, et une garde l'y oblige** (2026-08-29). Deux tests confrontent les épreuves aux deux registres : les **quatorze** natures de `NATURE_VALIDES` doivent paraître dans les épreuves patristiques, les **douze** styles canoniques de `semantic_display_hierarchy.json` dans celle du paratexte biblique. ⚠️ Le registre fait foi, on ne recopie pas la liste dans le test. Le nom se cherche à la frontière de mot : `introduction` ne vaut pas pour `introduction_titree`, qui est un autre style. Étendre un vocabulaire sans étendre la planche fait donc échouer les tests, ce qui est le seul moment où l'on peut encore y penser.
 - ⛔ **UN VIDE N'EST ADMIS QUE S'IL EST NOMMÉ.** Quatre unités ne rendent rien, et chacune pour une raison écrite : `titre_chapitre_livre` et `titre_livre` (la navigation nomme déjà chapitre et livre, charte § 35.1), `note_verset` (son `placement` vaut `footnote_only`, et le type d'un bloc de corps ne l'admet même pas), `separateur` (nature éteinte, zéro segment). Un test relève TOUTES les unités qui rendent du vide et exige que la liste soit exactement celle-là : sans lui, une épreuve qui cesserait de rendre — un composant renommé, une donnée que le rendu ne reconnaît plus — passerait pour un parti pris.
 - ⚠️ **Ce que la passe du 29 août a fait ENTRER dans la planche**, et qui manquait : les quatre rangs de titre d'une œuvre et leurs sous-titres, la LETTRINE, les natures `citation`, `dialogue`, `lemme`, `texte absent` et `separateur`, les trois variantes de l'APPEL DE NOTE avec sa suite « 2 & 3 », les marqueurs éditoriaux de la Bible 899, les rangs `titre_livre` (T1) et `titre_section_livre` (T3), l'`introduction` à ses deux portées — préambule centré aux rangs hauts, dans le fil aux rangs bas —, le `commentaire` à deux rangs pour montrer la manchette et son absence, `note_verset`, et les DEUX bibliographies, la matérielle et la structurée.
 - ⛔ **Sortir une composition de son composant est le PRÉALABLE, jamais l'inverse.** Les quatre rangs de titre et la lettrine vivaient en style en ligne dans `OeuvreClient` ; les titres y étaient recopiés DEUX fois, une par flux, et **avaient déjà divergé** : le rang 2 valait 1,125 rem en graisse 400 dans la lecture et 1,0625 rem en graisse 500 dans l'apparat. Rien ne le justifiait, `styleParagrapheApparat` n'étant que `styleParagrapheLecture`. Réunis dans `styleTitreNiveau` / `styleSousTitreNiveau` sur les valeurs de la LECTURE, `STYLE_LETTRINE` et `STYLE_PREFIXE_LETTRINE` avec eux — cette dernière était une constante LOCALE, refabriquée à chaque rendu. ⚠️ Seul le CARACTÈRE est partagé : le cadre — marges, centrage, filet de gauche, place du crayon d'administration — appartient à la surface et reste chez elle.

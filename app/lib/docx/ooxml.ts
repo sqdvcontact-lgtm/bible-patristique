@@ -53,6 +53,25 @@ const MARGE_LATERALE = Math.round(3.3 * CM)
 const MARGE_HAUT = Math.round(2.5 * CM)
 const MARGE_BAS = Math.round(2.6 * CM)
 
+/** La mesure utile : ce qui reste de la page une fois ses deux marges prises. */
+const MESURE_UTILE = PAGE_LARGEUR - 2 * MARGE_LATERALE
+
+/**
+ * Le retrait de l'EXERGUE : le QUART de la mesure, comme à l'écran
+ * (`PART_RETRAIT_EXERGUE`, `compositionExergue.ts`), soit 3,6 cm sur les 14,4 du livre.
+ *
+ * ⚠️ La règle de l'écran porte en plus une mesure minimale, qui n'a pas de sens ici :
+ * une page A4 ne se rétrécit pas sous la main du lecteur.
+ */
+const RETRAIT_EXERGUE_DOCX = Math.round(MESURE_UTILE / 4)
+
+/** Le blanc qui COUD l'exergue à sa traduction. Le blanc qui FERME le bloc se pose au
+ *  paragraphe (`espaceApres`) : un style ne sait pas ce qui vient après lui. */
+const COUTURE_EXERGUE_DOCX = Math.round(0.2 * CM)
+
+/** Le blanc qui ouvre le texte après le dernier exergue. */
+export const SEUIL_EXERGUE_DOCX = Math.round(0.55 * CM)
+
 /** Le pas d'alinéa d'un vers, en twips (voir `compositionVers.ts`, qui compte en rem). */
 export const PAS_ALINEA_VERS = Math.round(0.5 * CM)
 
@@ -74,6 +93,10 @@ export type ParagrapheDocx = {
   /** Blanc AVANT le paragraphe, en twips. Réservé à la strophe, qui s'ouvre là où la
    *  source le dit et nulle part ailleurs — donc au paragraphe, jamais au style. */
   espaceAvant?: number
+  /** Blanc APRÈS le paragraphe, en twips. Réservé à l'exergue qui FERME son bloc :
+   *  le blanc qui le suit ne vaut pas celui qui le coud à sa traduction, et un style
+   *  de paragraphe ne sait pas ce qui vient après lui. */
+  espaceApres?: number
   /** Ouvre une page. Les titres de niveau 1 le portent par leur style ; ce drapeau
    *  sert au frontispice et aux pièces qui ne sont pas des divisions. */
   sautDePage?: boolean
@@ -102,7 +125,7 @@ export type StyleDocx =
   | 'Normal' | 'Corpsdetexte' | 'Corpsdetextesansalinea'
   | 'Titre1' | 'Titre2' | 'Titre3' | 'Titre4'
   | 'Titresommaire' | 'Titre' | 'Soustitre' | 'Chapeau'
-  | 'Citation' | 'Versetbiblique' | 'Vers' | 'Rubrique' | 'Signature'
+  | 'Citation' | 'Versetbiblique' | 'Vers' | 'Rubrique' | 'Signature' | 'Exergue'
   | 'Texteoriginal' | 'Frontispiceauteur' | 'Frontispicemention' | 'Colophon'
   | 'Notedebasdepage' | 'Pieddepage'
 
@@ -232,6 +255,18 @@ const STYLES: DefinitionStyle[] = [
     next: 'Corpsdetextesansalinea', priorite: 23, galerie: true,
     pPr: `<w:keepNext/><w:spacing w:before="${Math.round(0.4 * CM)}" w:after="${Math.round(0.25 * CM)}"/><w:jc w:val="center"/>`,
     rPr: `<w:smallCaps/><w:spacing w:val="20"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:color w:val="${GRIS}"/>`,
+  },
+  {
+    // L'EXERGUE : le verset posé en seuil d'une pièce, et sa traduction. Il prend de la
+    // citation sortie son corps réduit et sa justification, et il en change le retrait :
+    // le QUART de la mesure à gauche, rien à droite. ⛔ Deux marges enfermeraient un
+    // bloc qui doit au contraire s'appuyer sur celle de la prose qu'il ouvre.
+    // ⚠️ Son blanc de sortie est celui qui le COUD à sa traduction ; celui qui ouvre le
+    // texte après lui se pose au paragraphe (`espaceApres`), un style ne sachant pas ce
+    // qui vient après lui.
+    id: 'Exergue', nom: 'Exergue', maison: true, basedOn: 'Citation',
+    next: 'Exergue', priorite: 26, galerie: true,
+    pPr: `<w:spacing w:before="0" w:after="${COUTURE_EXERGUE_DOCX}"/><w:ind w:left="${RETRAIT_EXERGUE_DOCX}" w:right="0" w:firstLine="0"/><w:jc w:val="both"/>`,
   },
   {
     id: 'Signature', nom: 'Signature', maison: true, basedOn: 'Normal', next: 'Normal',
@@ -377,7 +412,13 @@ function morceau(m: MorceauDocx, contexte: Contexte): string {
 function paragraphe(p: ParagrapheDocx, contexte: Contexte): string {
   const proprietes: string[] = [`<w:pStyle w:val="${p.style}"/>`]
   if (p.sautDePage) proprietes.push('<w:pageBreakBefore/>')
-  if (p.espaceAvant) proprietes.push(`<w:spacing w:before="${p.espaceAvant}"/>`)
+  // ⛔ UN SEUL `<w:spacing>` par paragraphe : le schéma n'en admet pas deux, et Word
+  // rejette le document sans dire où. Les deux blancs se posent donc ensemble.
+  if (p.espaceAvant || p.espaceApres) {
+    const avant = p.espaceAvant ? ` w:before="${p.espaceAvant}"` : ''
+    const apres = p.espaceApres ? ` w:after="${p.espaceApres}"` : ''
+    proprietes.push(`<w:spacing${avant}${apres}/>`)
+  }
   // ⛔ Le retrait d'un vers s'ADDITIONNE à celui du style, il ne le remplace pas : le
   // style porte le retrait de base (« tout vers est rentré par rapport à la prose »),
   // le rang d'alinéa vient par-dessus.
@@ -388,7 +429,7 @@ function paragraphe(p: ParagrapheDocx, contexte: Contexte): string {
   // ⛔ `Vers` porte un espacement CONTEXTUEL, qui supprime tout blanc entre deux
   // paragraphes du même style : sans cette ligne, le blanc de strophe demandé
   // ci-dessus serait ignoré en silence.
-  if (p.espaceAvant) proprietes.push('<w:contextualSpacing w:val="0"/>')
+  if (p.espaceAvant || p.espaceApres) proprietes.push('<w:contextualSpacing w:val="0"/>')
   const corps = p.morceaux.map(m => morceau(m, contexte)).join('')
   return `<w:p><w:pPr>${proprietes.join('')}</w:pPr>${corps}</w:p>`
 }
@@ -410,7 +451,7 @@ function tableauEnRegard(
   lignes: { gauche: ParagrapheDocx[]; droite: ParagrapheDocx[] }[],
   contexte: Contexte,
 ): string {
-  const utile = PAGE_LARGEUR - 2 * MARGE_LATERALE
+  const utile = MESURE_UTILE
   const colonne = Math.floor(utile / 2)
   // ⚠️ Une cellule DOIT contenir au moins un paragraphe : une cellule vide sans `w:p`
   // rend le document illisible pour Word.

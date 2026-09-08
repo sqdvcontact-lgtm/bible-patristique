@@ -50,10 +50,12 @@ import {
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, styleLigneDeVers, estBlocDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets, numeroDUnVerset, numeroVersetLisible } from '@/app/lib/compositionVersets'
+import { estBlocExergue } from '@/app/lib/compositionExergue'
 import { paginerBlocs } from '@/app/lib/paginationLecture'
 import {
   STYLE_LETTRINE, STYLE_NUMERO_SEGMENT, STYLE_PREFIXE_LETTRINE,
-  accepteLaLettrine, estBlocDeSignatures, margeArgument, paragraphesDeSegments, placeDeLaSignature,
+  accepteLaLettrine, estBlocDeSignatures, margeArgument, paragraphesDeSegments,
+  placeDeLExergue, placeDeLaSignature,
   styleArgument, styleBlocArgumentEnVers, styleBlocDeVers, styleLigneArgumentEnVers,
   styleColonneOriginale, styleParagrapheApparat, styleParagrapheLecture,
   styleSousTitreNiveau, styleTitreNiveau,
@@ -3258,6 +3260,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       (blocs[iBloc + 1]?.ids ?? []).map(sid => segMap.get(sid)?.nature),
                     )
                     const placeSignature = placeDeLaSignature(toutSignature, signatureSuit)
+                    // EXERGUE : le verset posé en seuil de la pièce, et sa traduction.
+                    // Rentré du quart de la mesure et justifié — la règle et ses mesures
+                    // vivent dans `app/lib/compositionExergue.ts`, que la comparaison des
+                    // traductions emploie aussi : une seule composition, deux surfaces.
+                    // ⛔ Le blanc qui le suit se juge lui aussi sur le bloc SUIVANT : cousu
+                    // quand la traduction reprend le même verset, ouvert en seuil quand le
+                    // texte commence.
+                    const toutExergue = estBlocExergue(chunk.ids.map(sid => segMap.get(sid)?.nature))
+                    const exergueSuit = estBlocExergue(
+                      (blocs[iBloc + 1]?.ids ?? []).map(sid => segMap.get(sid)?.nature),
+                    )
+                    const placeExergue = placeDeLExergue(toutExergue, exergueSuit)
                     // Strophe : un poème ne se compose pas comme de la prose. Toute la
                     // règle vit dans `app/lib/compositionVers.ts`, que les traductions
                     // parallèles emploient aussi — une seule composition, deux surfaces.
@@ -3347,7 +3361,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           })}
                         </div>
                       ) : (
-                      <p lang={langueCorps} style={styleParagrapheLecture({ signature: placeSignature, rubrique: toutRubrique, masque: afficherOriginalSeul })}>
+                      <p lang={langueCorps} style={styleParagrapheLecture({ signature: placeSignature, exergue: placeExergue, rubrique: toutRubrique, masque: afficherOriginalSeul })}>
                         {regrouperCitationsStructurelles(
                           chunk.ids,
                           sid => segMap.get(sid)?.nature === 'citation',
@@ -3544,9 +3558,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         const signatureSuit = estBlocDeSignatures(
                           (chunks[iChunk + 1]?.ids ?? []).map(sid => segMapApparat.get(sid)?.nature),
                         )
+                        // ⛔ L'EXERGUE compose ici AUSSI. Aucun n'y vit au 8 septembre 2026 —
+                        // les trente-huit des Catéchèses portent tous `espace_textuel = corps` —
+                        // mais la signature a été rendue sur la seule surface où sa donnée ne
+                        // va jamais, et la forme y est restée morte jusqu'au 6 septembre 2026.
+                        const toutExergue = estBlocExergue(chunk.ids.map(sid => segMapApparat.get(sid)?.nature))
+                        const exergueSuit = estBlocExergue(
+                          (chunks[iChunk + 1]?.ids ?? []).map(sid => segMapApparat.get(sid)?.nature),
+                        )
                         return (
                         <div key={`apparat-para-${chunk.ids[0]}`}>
-                          <p lang={langueCorps} style={styleParagrapheApparat({ signature: placeDeLaSignature(toutSignature, signatureSuit) })}>
+                          <p lang={langueCorps} style={styleParagrapheApparat({ signature: placeDeLaSignature(toutSignature, signatureSuit), exergue: placeDeLExergue(toutExergue, exergueSuit) })}>
                             {chunk.ids.map((sid, i) => {
                               const s = segMapApparat.get(sid)
                               if (!s) return null

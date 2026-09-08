@@ -16,6 +16,7 @@
  */
 
 import type { CSSProperties } from 'react'
+import { NATURE_EXERGUE, RAPPORT_CORPS_EXERGUE, RETRAIT_EXERGUE } from './compositionExergue'
 import { FORME_VERS, styleLigneDeVers } from './compositionVers'
 
 const SERIF = 'var(--font-source-serif), Georgia, serif'
@@ -40,16 +41,27 @@ export const STYLE_NUMERO_SEGMENT: CSSProperties = {
 const COUTURE_SIGNATURE = '0.3rem'
 
 /**
- * Le blanc qui FERME un bloc de signatures, quand ce n'est pas une autre signature qui
- * suit : une ligne de prose entière, `1,62 × 0,8125 rem`.
+ * Le blanc qui FERME un bloc dérogeant, quand la prose reprend : une ligne de prose
+ * entière, `1,62 × 0,8125 rem`. La dernière signature d'une liste le prend, et
+ * l'exergue aussi, qui est un seuil et doit laisser voir qu'on le franchit.
  *
  * ⚠️ 1,32 rem est ici une HAUTEUR DE LIGNE, non l'interligne 1,32 de la signature : les
  * deux nombres se ressemblent et ne disent pas la même chose.
  */
-const COUPURE_SIGNATURE = '1.32rem'
+const LIGNE_DE_PROSE = '1.32rem'
 
 /** Le blanc ordinaire entre deux paragraphes de prose. */
 const BLANC_PARAGRAPHE = '0.72rem'
+
+/**
+ * Le blanc qui COUD un exergue au suivant — la moitié du blanc de paragraphe.
+ *
+ * ⛔ Le verset latin et sa traduction française sont UN SEUL exergue dit deux fois, et
+ * le blanc de paragraphe entier en ferait deux seuils l'un derrière l'autre. La couture
+ * de la signature (0,3 rem) serait à l'inverse trop serrée : deux noms dans une liste se
+ * touchent presque, deux paragraphes de trois lignes ne le peuvent pas.
+ */
+const COUTURE_EXERGUE = `${Number.parseFloat(BLANC_PARAGRAPHE) / 2}rem`
 
 export type FormeParagraphe = {
   /**
@@ -62,6 +74,15 @@ export type FormeParagraphe = {
    * signature de son secrétaire.
    */
   signature?: 'suite' | 'fin'
+  /**
+   * Exergue : le verset posé en seuil d'une pièce, rentré du quart de la mesure et
+   * justifié. Toute la règle et ses mesures vivent dans `compositionExergue.ts`.
+   *
+   * ⛔ Les deux valeurs disent, comme pour la signature, ce qui SUIT le bloc :
+   * `'suite'` — l'exergue est repris dans une autre langue, et le blanc les COUD ;
+   * `'fin'` — le texte s'ouvre après lui, et le blanc devient un SEUIL.
+   */
+  exergue?: 'suite' | 'fin'
   /** Rubrique éditoriale : centrée, en italique. */
   rubrique?: boolean
   /** Masqué parce que la page ne montre que l'original. */
@@ -78,24 +99,50 @@ export function placeDeLaSignature(
   estSignature: boolean,
   suivieDUneSignature: boolean,
 ): 'suite' | 'fin' | undefined {
-  if (!estSignature) return undefined
-  return suivieDUneSignature ? 'suite' : 'fin'
+  return placeDansSonBloc(estSignature, suivieDUneSignature)
 }
 
-/** Le paragraphe de prose de la lecture, avec ses deux dérogations de nature. */
-export function styleParagrapheLecture({ signature, rubrique, masque }: FormeParagraphe = {}): CSSProperties {
+/**
+ * La place d'un EXERGUE dans son bloc, d'où dépend le blanc qui le suit.
+ *
+ * ⚠️ Même règle et même raison que pour la signature : elle se juge sur le bloc SUIVANT.
+ * Le verset latin et sa traduction sont deux blocs — l'édition les sépare, et la donnée
+ * leur donne deux `paragraphe` — que seul leur voisinage réunit en un seul seuil.
+ */
+export function placeDeLExergue(
+  estExergue: boolean,
+  suiviDUnExergue: boolean,
+): 'suite' | 'fin' | undefined {
+  return placeDansSonBloc(estExergue, suiviDUnExergue)
+}
+
+/** Ce que les deux places ont en commun : on est dedans, et quelque chose suit ou non. */
+function placeDansSonBloc(dedans: boolean, suiviDuMeme: boolean): 'suite' | 'fin' | undefined {
+  if (!dedans) return undefined
+  return suiviDuMeme ? 'suite' : 'fin'
+}
+
+/** Le paragraphe de prose de la lecture, avec ses trois dérogations de nature. */
+export function styleParagrapheLecture({ signature, exergue, rubrique, masque }: FormeParagraphe = {}): CSSProperties {
+  // ⛔ L'EXERGUE reste justifié, comme la prose : c'est son RETRAIT qui le détache, et
+  // le retrait se pose en quatrième valeur du raccourci de marge — jamais en
+  // `marginLeft` posé après le raccourci, qui laisserait deux écritures de la même
+  // marge dans le même style et ne tiendrait que par leur ordre.
+  const blancDeSortie = signature === 'suite' ? COUTURE_SIGNATURE
+    : signature === 'fin' ? LIGNE_DE_PROSE
+    : exergue === 'suite' ? COUTURE_EXERGUE
+    : exergue === 'fin' ? LIGNE_DE_PROSE
+    : BLANC_PARAGRAPHE
   return {
     display: masque ? 'none' : undefined,
     fontFamily: SERIF,
-    fontSize: CORPS_LECTURE,
+    fontSize: exergue ? `calc(${CORPS_LECTURE} * ${RAPPORT_CORPS_EXERGUE})` : CORPS_LECTURE,
     color: 'var(--cs-texte-fort)',
     lineHeight: signature ? '1.32' : '1.62',
     textAlign: signature ? 'right' : rubrique ? 'center' : 'justify',
     textJustify: 'inter-word',
     fontStyle: rubrique ? 'italic' : undefined,
-    margin: `0 0 ${signature === 'suite' ? COUTURE_SIGNATURE
-      : signature === 'fin' ? COUPURE_SIGNATURE
-      : BLANC_PARAGRAPHE}`,
+    margin: `0 0 ${blancDeSortie}${exergue ? ` ${RETRAIT_EXERGUE}` : ''}`,
     wordSpacing: '-0.025em',
     letterSpacing: 0,
     hyphens: 'auto',
@@ -119,6 +166,19 @@ export function estBlocDeSignatures(natures: readonly (string | null | undefined
   return natures.length > 0 && natures.every(nature => nature === NATURE_SIGNATURE)
 }
 
+/**
+ * La nature qui SORT un segment du paragraphe de prose, ou `null` s'il y coule.
+ *
+ * ⛔ Les deux qu'elle nomme ne dérogent pas de la même façon — la signature se ferre à
+ * droite, l'exergue se rentre du quart de la mesure — mais elles dérogent pour une même
+ * raison : un bloc ne se compose pas à moitié. Ce qui les distingue de la `rubrique` ou
+ * du `verset`, qui dérogent aussi, est que la donnée peut les avoir rangées dans le
+ * paragraphe qu'elles bordent, et qu'il faut donc les en tirer.
+ */
+function natureDerogeante(nature: string | null | undefined): string | null {
+  return nature === NATURE_SIGNATURE || nature === NATURE_EXERGUE ? nature : null
+}
+
 /** Ce qu'il faut savoir d'un segment pour le ranger dans son paragraphe. */
 export type SegmentAParagrapher = {
   paragraphe?: number | null
@@ -140,6 +200,11 @@ export type SegmentAParagrapher = {
  * trois de Boèce, le Privilège des Confessions), héritage d'un import qui n'a marqué le
  * passage à la ligne que par `join_before`.
  *
+ * ⛔ Un EXERGUE en sort pour la même raison : il est rentré du quart de la mesure, et un
+ * bloc ne peut pas être rentré sur une partie seulement de ses lignes. La donnée des
+ * Catéchèses lui donne bien son propre `paragraphe`, mais rien n'oblige un import à le
+ * faire, et la règle ne doit pas dépendre de la propreté de celui qui l'écrit.
+ *
  * ⚠️ Elle vivait dans `OeuvreClient` (`paragraphesDe`), donc hors d'atteinte de toute
  * autre surface : l'extraction d'une œuvre en a eu besoin à son tour, et une découpe
  * recopiée ne reste identique que par accident. Générique sur l'identifiant, pour servir
@@ -150,14 +215,14 @@ export function paragraphesDeSegments<T>(
   identifiants: readonly T[],
   lire: (identifiant: T) => SegmentAParagrapher | undefined,
 ): T[][] {
-  const blocs: { par: number | null | undefined; signature: boolean; ids: T[] }[] = []
+  const blocs: { par: number | null | undefined; derogeante: string | null; ids: T[] }[] = []
   for (const identifiant of identifiants) {
     const segment = lire(identifiant)
     const par = segment?.paragraphe
-    const signature = segment?.nature === NATURE_SIGNATURE
+    const derogeante = natureDerogeante(segment?.nature)
     const dernier = blocs[blocs.length - 1]
-    if (dernier && par != null && dernier.par === par && dernier.signature === signature) dernier.ids.push(identifiant)
-    else blocs.push({ par, signature, ids: [identifiant] })
+    if (dernier && par != null && dernier.par === par && dernier.derogeante === derogeante) dernier.ids.push(identifiant)
+    else blocs.push({ par, derogeante, ids: [identifiant] })
   }
   for (const bloc of blocs) bloc.ids.sort((a, b) => {
     const ra = lire(a)?.rang, rb = lire(b)?.rang

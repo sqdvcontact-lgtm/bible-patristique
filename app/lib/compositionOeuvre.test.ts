@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
   CORPS_LECTURE, NATURE_SIGNATURE, accepteLaLettrine, estBlocDeSignatures,
-  placeDeLaSignature, styleParagrapheApparat, styleParagrapheLecture,
+  paragraphesDeSegments, placeDeLExergue, placeDeLaSignature,
+  styleParagrapheApparat, styleParagrapheLecture,
 } from './compositionOeuvre'
+import { RAPPORT_CORPS_EXERGUE, RETRAIT_EXERGUE } from './compositionExergue'
 
 /**
  * ⛔ La LETTRINE ouvre la parole de l'AUTEUR, et rien d'autre.
@@ -132,5 +134,93 @@ describe('le bloc de signatures', () => {
 
   it('la nature s’écrit à un seul endroit', () => {
     expect(NATURE_SIGNATURE).toBe('signature')
+  })
+})
+
+/**
+ * ⛔ L'EXERGUE est un SEUIL, et il se compose comme tel.
+ *
+ * Le verset qui ouvre une catéchèse de Cyrille n'est pas un lemme : le lemme est la
+ * phrase qu'un commentaire explique à sa place et se lit dans le fil ; l'exergue annonce
+ * et ne se commente pas ligne à ligne. Les trente-huit segments des Catéchèses portaient
+ * la première nature faute de la seconde.
+ */
+describe('l’exergue', () => {
+  it('reste JUSTIFIÉ, et c’est son retrait qui le détache', () => {
+    // ⛔ Pas de fer à droite : c'est la composition d'un bloc de SIGNATURES, illisible
+    // sur trois lignes de texte suivi (choix de l'auteur, 8 septembre 2026).
+    for (const place of ['suite', 'fin'] as const) {
+      const style = styleParagrapheLecture({ exergue: place })
+      expect(style.textAlign).toBe('justify')
+      expect(style.lineHeight).toBe('1.62')
+    }
+  })
+
+  it('se rentre du quart de la mesure, en quatrième valeur du raccourci', () => {
+    // ⛔ Jamais en `marginLeft` posé après le raccourci : deux écritures de la même
+    // marge dans le même style ne tiendraient que par leur ordre.
+    const marge = String(styleParagrapheLecture({ exergue: 'fin' }).margin)
+    expect(marge.endsWith(` ${RETRAIT_EXERGUE}`)).toBe(true)
+    expect(String(styleParagrapheLecture().margin)).not.toContain(RETRAIT_EXERGUE)
+  })
+
+  it('⛔ le blanc qui le SUIT n’est pas celui qui le coud à sa traduction', () => {
+    // Entre le verset et sa traduction, une COUTURE : c'est un seul seuil dit deux fois,
+    // et la moitié du blanc de paragraphe suffit à le montrer.
+    expect(styleParagrapheLecture({ exergue: 'suite' }).margin).toBe(`0 0 0.36rem ${RETRAIT_EXERGUE}`)
+    // Quand le texte s'ouvre, une ligne de prose entière — le même blanc que celui qui
+    // ferme un bloc de signatures.
+    expect(styleParagrapheLecture({ exergue: 'fin' }).margin).toBe(`0 0 1.32rem ${RETRAIT_EXERGUE}`)
+  })
+
+  it('la couture vaut la MOITIÉ du blanc de paragraphe, et se recalcule avec lui', () => {
+    const blanc = Number.parseFloat(String(styleParagrapheLecture().margin).split(' ')[2])
+    const couture = Number.parseFloat(String(styleParagrapheLecture({ exergue: 'suite' }).margin).split(' ')[2])
+    expect(couture).toBeCloseTo(blanc / 2, 3)
+  })
+
+  it('prend le corps de la citation sortie, dérivé de celui du fil', () => {
+    expect(styleParagrapheLecture({ exergue: 'fin' }).fontSize)
+      .toBe(`calc(${CORPS_LECTURE} * ${RAPPORT_CORPS_EXERGUE})`)
+    expect(styleParagrapheLecture().fontSize).toBe(CORPS_LECTURE)
+  })
+
+  it('l’apparat porte la dérogation, comme la lecture', () => {
+    // ⛔ Aucun exergue n'y vit au 8 septembre 2026 — les trente-huit des Catéchèses
+    // portent tous `espace_textuel = corps` — mais la signature a coûté une forme morte
+    // pour avoir été rendue sur la seule surface où sa donnée ne va jamais.
+    for (const place of ['suite', 'fin'] as const) {
+      expect(styleParagrapheApparat({ exergue: place })).toEqual(styleParagrapheLecture({ exergue: place }))
+    }
+  })
+
+  it('la place se juge sur le bloc SUIVANT', () => {
+    expect(placeDeLExergue(true, true)).toBe('suite')
+    expect(placeDeLExergue(true, false)).toBe('fin')
+    expect(placeDeLExergue(false, false)).toBeUndefined()
+    expect(placeDeLExergue(false, true)).toBeUndefined()
+  })
+
+  it('⛔ il SORT du paragraphe de prose, que la donnée l’y range ou non', () => {
+    // Un bloc ne peut pas être rentré sur une partie seulement de ses lignes. La donnée
+    // des Catéchèses lui donne son propre `paragraphe`, mais rien n'oblige un import à
+    // le faire, et la règle ne doit pas dépendre de la propreté de celui qui l'écrit.
+    const segments = new Map<number, { paragraphe: number; nature: string }>([
+      [1, { paragraphe: 2, nature: 'exergue' }],
+      [2, { paragraphe: 2, nature: 'texte' }],
+    ])
+    expect(paragraphesDeSegments([1, 2], id => segments.get(id))).toEqual([[1], [2]])
+  })
+
+  it('deux exergues d’un même paragraphe restent ensemble', () => {
+    const segments = new Map<number, { paragraphe: number; rang: number; nature: string }>([
+      [1, { paragraphe: 2, rang: 1, nature: 'exergue' }],
+      [2, { paragraphe: 2, rang: 2, nature: 'exergue' }],
+    ])
+    expect(paragraphesDeSegments([1, 2], id => segments.get(id))).toEqual([[1, 2]])
+  })
+
+  it('⛔ il ne porte pas la LETTRINE : ce n’est pas la parole de l’auteur', () => {
+    expect(accepteLaLettrine({ nature: 'exergue' })).toBe(false)
   })
 })

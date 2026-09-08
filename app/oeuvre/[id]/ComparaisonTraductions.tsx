@@ -21,6 +21,7 @@ import { estColonneOriginale } from './oeuvreTypes'
 import { hauteurNavbarPx, placerFenetre } from '@/app/lib/fenetreContextuelle'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, estEnVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { CLE_NUMERO_VERSET, NATURE_VERSET, estBlocVersets, numeroVersetLisible } from '@/app/lib/compositionVersets'
+import { NATURE_EXERGUE, RAPPORT_CORPS_EXERGUE, RETRAIT_EXERGUE, estBlocExergue } from '@/app/lib/compositionExergue'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
 import {
   // La projection qui ne faillit pas : une ancre hors du texte est laissée de côté
@@ -181,7 +182,7 @@ const STYLE_TEXTE_PARALLELE = {
   whiteSpace: 'pre-line',
 } as const
 
-type BlocLecture = { type: 'prose' | 'vers' | 'versets' | 'rubrique'; segs: SegmentComparaison[] }
+type BlocLecture = { type: 'prose' | 'vers' | 'versets' | 'rubrique' | 'exergue'; segs: SegmentComparaison[] }
 
 // Une colonne = une traduction. Les segments sont cliquables comme en lecture
 // (survol/clic → cellule d'actions flottante : prélever, copier, signaler). Le CSS
@@ -238,9 +239,14 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
   // biblique dont ils sont tirés ; une rubrique est isolée.
   const blocs: BlocLecture[] = []
   for (const segment of ordonnes) {
-    const faitBloc = estBlocVersets(naturesDuParagraphe.get(cleParagraphe(segment)) ?? [])
+    const naturesVoisines = naturesDuParagraphe.get(cleParagraphe(segment)) ?? []
+    const faitBloc = estBlocVersets(naturesVoisines)
+    // ⚠️ L'exergue exige le même tout ou rien, et pour la raison qu'on a payée sur le
+    // verset : mêlé de prose, il se compose en prose, ici comme en lecture.
+    const faitBlocExergue = estBlocExergue(naturesVoisines)
     const type: BlocLecture['type'] = estEnVers(segment) ? 'vers'
       : segment.nature === NATURE_VERSET && faitBloc ? 'versets'
+      : segment.nature === NATURE_EXERGUE && faitBlocExergue ? 'exergue'
       : segment.nature === 'rubrique' ? 'rubrique' : 'prose'
     const dernier = blocs.at(-1)
     const memeProse = dernier?.type === 'prose' && type === 'prose' && segment.paragraphe != null && segment.paragraphe === dernier.segs[0].paragraphe
@@ -320,8 +326,15 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
             </div>
           )
         }
+        // L'EXERGUE : le verset posé en seuil de la pièce, rentré du quart de la mesure
+        // et justifié comme la prose. Retrait et corps viennent de
+        // `app/lib/compositionExergue.ts`, que la lecture emploie aussi.
+        // ⚠️ Le retrait CÈDE de lui-même sur une colonne de comparaison, qui est plus
+        // étroite que la mesure minimale : l'exergue s'y compose alors sur toute la
+        // colonne, ce qui vaut mieux qu'une justification creusée de lézardes.
+        const exergue = bloc.type === 'exergue'
         return (
-          <p key={blocIndex} lang={codeLangue} style={{ ...STYLE_TEXTE_PARALLELE, fontFamily: police, marginTop, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto' } as React.CSSProperties}>
+          <p key={blocIndex} lang={codeLangue} style={{ ...STYLE_TEXTE_PARALLELE, fontFamily: police, marginTop, textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', ...(exergue ? { marginLeft: RETRAIT_EXERGUE, fontSize: `calc(${STYLE_TEXTE_PARALLELE.fontSize} * ${RAPPORT_CORPS_EXERGUE})` } : {}) } as React.CSSProperties}>
             {bloc.segs.map((segment, index) => (
               <Fragment key={segment.segment_key}>
                 {index > 0 ? liantAvantSegment(segment.join_before) : null}
