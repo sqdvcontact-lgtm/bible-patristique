@@ -531,6 +531,20 @@ L'enrichissement d'un champ non imprimé, tel que le titre original ou le nom co
 
 Le traitement passe par l'abonnement, sans clé d'interface de programmation, et aucune donnée ne part sans consentement explicite. Toute clé d'accès à la base employée pour l'enrichissement demeure locale : elle n'est ni journalisée ni exportée.
 
+### 5.5 La page de titre du site
+
+⛔ **LA PAGE DE TITRE EST CELLE DE L’ÉDITION AFFICHÉE** (demande de l’auteur, 8 septembre 2026 : « elle doit correspondre à l’édition qui est affichée ; si on a deux éditions, la latine et la française, il faut faire en conséquence »). Ce que le § 5.3 exige d’une notice vaut du frontispice : il décrit l’édition qu’on lit, et ne mêle pas deux témoins.
+
+⚠️ **Une version active dit TOUT de son édition, son silence compris.** Le repli sur l’œuvre se faisait champ par champ (`versionActive?.champ ?? oeuvre.champ`), si bien que l’absence d’une donnée passait pour une lacune à combler : le texte latin de Bondurand, qui n’a pas de traducteur, empruntait celui de l’œuvre et sa page de titre annonçait « Traduction par intelligence artificielle sous la direction de Corpus Scriptura ». Dix-neuf textes du corpus étaient dans ce cas, et tous les dix-neuf sont des textes en LANGUE ORIGINALE. L’œuvre ne parle qu’à défaut de version active — ou, quand la version ne porte aucune adresse, pour la version PAR DÉFAUT, seule dont les champs de l’œuvre répondent.
+
+⛔ **Une adresse se prend ENTIÈRE, ou pas du tout.** Une ville d’une édition et un éditeur d’une autre ne font pas une adresse : « D’après l’édition de Paris, Corpus Scriptura, 2026 » prenait Paris à Picard 1887 et le reste à la traduction française, et ne nommait aucune édition réelle.
+
+⛔ **Deux éditions à l’écran, deux mentions sur la page de titre.** En lecture bilingue, le texte établi se nomme AVANT la traduction — « Texte latin d’après l’édition de Paris, Alphonse Picard, 1887 », puis « Traduction par… » —, l’ordre du titre d’un bilingue. ⚠️ Il ne se nomme que s’il existe vraiment : une colonne en regard tirée du repli `segments.texte_original` n’est pas une autre édition, c’est la même qui porte son original avec elle, et il n’y a rien de plus à nommer.
+
+⚠️ **L’invite de l’administrateur suit le crayon.** « Traduction de… » ne paraît que là où le champ se corrige, c’est-à-dire sur l’œuvre : sur une version, elle proposait de remplir un champ qu’on ne peut pas atteindre de là, et sur un texte latin, de lui donner un traducteur qu’il n’a pas.
+
+La règle vit dans `identiteEdition` (`app/oeuvre/[id]/versionTextuelle.ts`) et sert la page de titre, la fiche « À propos de cette édition », la citation et l’extraction.
+
 ## 6. Structure, niveaux, paragraphes et rangs
 
 
