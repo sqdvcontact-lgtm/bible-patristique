@@ -847,14 +847,14 @@ Doctrine à la charte, § 18 (« Un menu déroulant ne paraît que si la main se
 - **L'EN-TÊTE DE LIVRE EN BANDEAU est remplacé par un nom EN MARGE, collant** (`.peri-groupe`, grille `8.5rem 1fr` ; `.peri-marge-in` en `position: sticky`). Chaque livre coûtait un en-tête, un filet traversant et un compte perdu à 600 px du titre ; or **29 livres sur 48 n'ont que trois péricopes ou moins, et 19 n'en ont qu'une**. Quatre livres à une entrée (Joël, Jonas, Habacuc, Malachie) faisaient 380 px d'escalier avec la moitié droite vide. En marge, le nom accompagne ses entrées au lieu de les annoncer, et il reste en vue pendant les 52 péricopes de Matthieu. Le compte n'a d'abord paru **qu'au-delà d'une** péricope, puis plus du tout (reprise du 2026-08-23, ci-dessous). En **mobile**, la marge n'a plus lieu d'être : le nom coiffe ses entrées au fer à gauche, prolongé du filet dégradé (`.peri-groupe--mobile`).
 - **L'ÉTIQUETTE DE REGISTRE SOUS CHAQUE TITRE est supprimée.** « Récit » se répétait sous **107 titres sur 249** et formait une trame parasite qui doublait la hauteur de chaque entrée. Le registre ne paraît plus que **lorsqu'il distingue** (tout ce qui n'est pas `recit`, cf. `REGISTRE_ORDINAIRE`), en **glose italique muette contre le titre**, au même traitement que « ensemble » — les deux se cumulent en une seule glose.
 - **La NOTICE revient, en avant-goût.** La décision du 2026-08-18 (« pas de dépli de notice en place ») tenait au **dépli**, pas à la notice : le lecteur n'avait plus qu'un titre et une référence, donc il cliquait à l'aveugle, alors que les 249 péricopes ont toutes une notice en base et que la description de la page en promettait la présence. La **première phrase** paraît sous le titre, bornée à deux lignes. ⚠️ Elle est taillée **CÔTÉ SERVEUR** par `premierePhraseNotice` (plafond 230 signes, coupe au dernier mot entier) : les notices font 660 signes en moyenne, soit **165 Ko** envoyés au navigateur si on les passait entières.
-- **Un COMPTEUR reparaît**, et il n'est pas décoratif : au repos l'étendue du catalogue (« 249 péricopes »), sous filtre le **résultat**, annoncé en `aria-live` — la page ne disait nulle part combien de péricopes répondaient. Précédé de la référence comprise quand il y en a une (« Matthieu 5 · 2 péricopes »).
+- ⛔ **Un COMPTEUR a reparu le 2026-08-22, il est RETIRÉ le 2026-09-08** (décision de l'auteur). Il disait au repos l'étendue du catalogue (« 249 péricopes »), et sous filtre le résultat, en `aria-live`. Ce que la liste montre déjà ne s'annonce pas ; et une recherche sans réponse le dit toujours en clair À LA PLACE de la liste (« Aucune péricope ne correspond aux filtres retenus »). ⚠️ `libelleReference` est parti avec lui, et `reference` n'est plus tiré de `filtrerCatalogue` : le module pur, lui, continue de le rendre.
 
-**Ce qui est CONSERVÉ de la mise en forme précédente** : la référence dorée en chiffres tabulaires (passée en **colonne propre** le 2026-08-23, ci-dessous) ; le chevron doré (`IconeChevron`) révélé au survol et toujours visible au tactile ; l'absence de couleurs de registre ; l'index « Aller à un livre » en abréviations `ABREV_FR`, séparées par Testament ; les enrichissements (`rendreTexteEnrichi`) sur les intitulés **et désormais sur les notices** ; le sur-titre « Catalogue » et le chapeau du volet.
+**Ce qui est CONSERVÉ de la mise en forme précédente** : la référence dorée en chiffres tabulaires (passée en **colonne propre** le 2026-08-23, ci-dessous) ; le chevron doré (`IconeChevron`) révélé au survol et toujours visible au tactile ; l'absence de couleurs de registre ; ⛔ (l'index « Aller à un livre » en abréviations `ABREV_FR` est refondu depuis le 2026-09-08, voir ci-dessous) ; les enrichissements (`rendreTexteEnrichi`) sur les intitulés **et désormais sur les notices** ; le sur-titre « Catalogue » et le chapeau du volet.
 
 **Ce qui s'ajoute :**
 
 - **Une rubrique de TESTAMENT** dans la liste, seul rang au-dessus du livre : la descente de 48 livres n'avait aucune articulation. (Depuis le 2026-08-23, elle ne paraît que si **deux testaments au moins** sont à l'écran : sous un onglet, l'onglet le nomme déjà.)
-- **Le volet sépare NAVIGUER de FILTRER** (composant `Rubrique`). ⚠️ Il ne porte plus les cases de **Testament** depuis le 2026-08-23 : elles sont devenues des onglets, ci-dessous. Les deux portaient le même gris, la même graisse et la même taille : rien ne permettait de prédire ce qu'un clic ferait. Un lien de livre prend le vert et se souligne au survol ; une case de filtre porte un **marqueur carré** qui se remplit. Cibles portées à **24-26 px** (elles faisaient 11 et 20 px).
+- **Le volet sépare NAVIGUER de FILTRER** (composant `Rubrique`). ⚠️ Il ne porte plus les cases de **Testament** depuis le 2026-08-23 : elles sont devenues des onglets, ci-dessous. Les deux portaient le même gris, la même graisse et la même taille : rien ne permettait de prédire ce qu'un clic ferait. ⚠️ Depuis le 2026-09-08 la rubrique « Parcourir » n'existe plus et le sommaire porte sa propre forme (ci-dessous) : `Rubrique` ne coiffe donc plus que « Filtrer ». Une rangée de livre prend le fond de survol de la liste des livres ; une case de filtre porte un **marqueur carré** qui se remplit. Cibles portées à **24-26 px** (elles faisaient 11 et 20 px).
 - **Le registre se replie au-delà de huit valeurs** (`REGISTRES_VISIBLES`) : il en compte quinze, dont trois à un seul élément, et la liste dépassait le volet. ⚠️ Un registre **retenu reste toujours visible**, replié ou non : on ne cache pas un filtre qui agit.
 - **La mesure passe à `52rem`.** Elle était de `39rem`, ce qui laissait **252 px de vide de chaque côté** sur un écran de 1440 pendant que les titres se serraient en deux colonnes. Elle fut aussi mise AU FER avec le volet ; elle se **recentre** dans sa colonne depuis le 2026-08-23, sous la barre d'onglets (ci-dessous).
 
@@ -865,7 +865,7 @@ Deux règles fixées par l'auteur, et elles tiennent ensemble : **la page ne dit
 - **La colonne des références.** `.peri-entree` devient une grille `4.75rem minmax(0, 1fr)` (mobile `4.5rem`) : la référence en première case, le titre, la glose et la notice dans la seconde. Les références partent donc toutes du **même fer** au lieu de flotter au fer à droite du titre, sur un bord ragué où l'on ne pouvait pas suivre les chapitres. C'est le geste d'un index : on descend la colonne de numéros pour retrouver un passage, et l'ordre canonique — le point capital de la page — se lit d'un trait.
 - ⚠️ **La mesure de la colonne est comptée, pas devinée.** Les deux plus longues références du corpus (« 52, 13 - 53, 12 » et « 18, 16 - 19, 29 ») font **67,2 px** en Source Serif à `0.71875rem` ; la colonne en fait 76 (72 en mobile), aucune ne déborde. À recompter si le corps de la référence change.
 - **Ligne de pied commune** : `align-items: baseline` sur la grille, sans quoi la référence flotte au-dessus de son titre.
-- **Le compte de péricopes quitte la marge** : la liste le montre déjà, et il faisait concurrence au nom du livre. Le compteur du **volet** demeure — au repos l'étendue du catalogue, sous filtre le résultat : lui seul dit ce qu'aucune liste ne montre.
+- **Le compte de péricopes quitte la marge** : la liste le montre déjà, et il faisait concurrence au nom du livre. ⛔ Le compteur du **volet** a suivi le 2026-09-08 : voir ci-dessus.
 
 ## Les ONGLETS de Testament (2026-08-23)
 
@@ -877,6 +877,39 @@ Le partage du corpus est le **premier tri** qu'on fait dans un catalogue bibliqu
 - **La mesure de la liste se CENTRE dans sa colonne** (`margin: 0 auto` sur le bloc de `52rem`). Le fer à gauche tenait tant que la liste occupait seule la colonne ; sous une barre d'onglets, il collait tout le bloc au volet et laissait le tiers droit de l'écran vide. Ce n'est pas un retour aux 39rem centrées de l'audit : la mesure ne bouge pas, c'est elle qui rendait la page creuse.
 - ⚠️ **En mobile, les parts égales seraient plus courtes que « Nouveau Testament »** : les onglets y repartent de leur propre largeur (`flex: 1 1 auto`) et ne se partagent que le jeu qui reste. Les quatre libellés tiennent tout juste — 347 px de barre pour 347 px de mesure à 375 px de large, blanc et corps resserrés (`0 8px`, `0.6875rem`) ; plus étroit, la barre glisse (`overflow-x: auto`) plutôt que d'abréger « Testament ». La graisse, elle, ne bouge pas là : sans jeu à distribuer, elle ferait glisser la barre de trois pixels. Toute retouche de ces valeurs se remesure.
 - **Ce sont des FILTRES, non des panneaux** : `role="group"` nommé et `aria-pressed`, jamais un `tablist` — il n'y a pas de `tabpanel` derrière, seulement une liste qui se restreint.
+
+## ⛔ Le SOMMAIRE des livres prend le modèle du volet de la Bible classique (2026-09-08)
+
+Demande de l'auteur : « le sommaire AT et NT doit reprendre le modèle de celui de la page
+Bible classique ». C'est le même objet — l'index des livres d'un corpus — et il n'avait pas
+à se présenter de deux façons. Le modèle est `NavLivres` ; ⛔ on le REPREND, on ne le
+redessine pas.
+
+- **Deux sections dépliables**, Ancien et Nouveau Testament ouvertes d'emblée, « Autres
+  écrits » replié — le rang qu'on parcourt le moins, comme les « Écrits non canoniques »
+  du volet de lecture. Le nom en capitales espacées `--cs-vert-fonce` (0,75 rem, graisse
+  800) au fer à gauche, la flèche ▲/▼ (0,53125 rem, `--cs-texte-faible`) au fer à droite.
+- **Les livres se nomment EN TOUTES LETTRES**, un par ligne, à 0,84375 rem : le corps de la
+  liste des livres du volet de lecture. ⛔ Plus de grille de quatre colonnes d'abréviations
+  `ABREV_FR` : dans un volet de 15,5 rem il y a la place d'écrire « Deutéronome », et
+  `ABREV_FR` n'est plus importé du tout. Mesuré sur la page servie : 92 livres, aucun
+  n'enroule.
+- ⛔ **Les deux étiquettes qui coiffaient la liste sont retirées** — la rubrique
+  « Parcourir », puis le groupe « Aller à un livre ». Deux rangs de mots pour annoncer un
+  index que sa forme désigne déjà. `Rubrique` ne coiffe donc plus que « Filtrer », et
+  c'est elle qui sépare encore ce qui NAVIGUE de ce qui FILTRE.
+- ⚠️ **Le bloc DÉBORDE sa colonne de six pixels de chaque côté**, et c'est ce qui l'aligne :
+  le nom d'un testament et celui d'un livre portent tous deux six pixels de rembourrage —
+  c'est le fond de survol d'une rangée qui les demande — et sans ce débord les deux
+  paraîtraient rentrés par rapport au champ de recherche. Même parti que le volet de la
+  Bible classique, dont le défileur retire d'avance ces six pixels à sa gouttière. Mesuré
+  en ligne : champ, testament et livre tombent tous trois sur le même fer.
+- ⚠️ **La rangée fait 34 px de haut** (24 px de plancher, plus le rembourrage), donc
+  au-dessus du minimum tactile de WCAG 2.2 § 2.5.8 ; elle en faisait 24.
+- ⚠️ **Le corps d'un livre (0,84375 rem) est plus gros que les cases de filtre (0,75 rem)**,
+  et c'est le modèle qui le veut : dans le volet de lecture, la liste des livres est
+  l'objet principal, et elle l'est ici aussi. ⛔ Ne pas le rabattre sur les filtres sans
+  décision : ce serait quitter le modèle qu'on vient de reprendre.
 
 ## La recherche comprend les RÉFÉRENCES — `app/lib/pericopesRecherche.ts`
 
