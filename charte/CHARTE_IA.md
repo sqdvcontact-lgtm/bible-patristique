@@ -5663,7 +5663,7 @@ Demande de l’auteur, le jour même : « optimise la page ». Relevé sur le si
 ⚠️ **Un alias masqué qui répond se dit** (complément du § 38.18). « Homme » rendait « Je ne fais pas le bien que je veux » sans un mot pour dire pourquoi : la paraphrase « Homme malheureux que je suis », masquée, l’avait trouvée. Un alias masqué ne paraît pas parmi les noms d’une péricope ; mais quand c’est lui qui répond à la recherche, la ligne « Correspond à » le nomme, sans quoi le résultat paraît incohérent. Seul un alias inexact se tait, visible ou non : c’est l’usage qui décide, non le drapeau de visibilité.
 
 
-## 43.1 LA RECHERCHE EST TRILINGUE, et sa normalisation effaçait le grec
+### 43.5 LA RECHERCHE EST TRILINGUE, et sa normalisation effaçait le grec
 
 Relevé le 6 septembre 2026, en construisant le lexique grec que l'auteur avait demandé.
 La normalisation de recherche — `norm_fr`, qui alimente `versets_recherche.texte_norm`
@@ -5705,7 +5705,7 @@ sens, sur la donnée réelle, avant l'écriture.
 final lui aussi, sans quoi la page rejetterait ce que la base vient de rendre. La règle
 ajoutée garde la longueur, comme toutes celles qui passent côté page.
 
-### 43.2 Le LEXIQUE GREC répond à une saisie latine, et il le faut
+### 43.6 Le LEXIQUE GREC répond à une saisie latine, et il le faut
 
 ⛔ **Un lexique grec qui n'accepte que le grec ne sert qu'à qui a un clavier grec.**
 Chaque forme du lexique porte donc TROIS clés : la forme **attestée** — accents compris,
@@ -6058,7 +6058,7 @@ Relevé de l’auteur, 2026-09-07, devant « Ma chaîne » et « Mes citations �
 
 ⛔ **TOUT SE FERRE SUR LA MESURE.** Une page de l’espace est au fer à gauche ; trois de ses objets se centraient — la barre d’onglets, le sélecteur de traduction, l’emblème de la page — si bien que l’œil ne trouvait aucun bord commun. La barre passe au MODÈLE du site (§ 36), le sélecteur se ferre, et l’emblème prend la mesure entière, où il sépare au lieu de flotter. ⚠️ Un ornement CENTRÉ reste légitime (§ 41.5), mais alors il tient toute la mesure : centré sur treize rem au milieu de huit cents pixels, il ne sépare rien.
 
-### 12.3 UNE COLONNE EN REGARD SE COMPOSE SUR LA SURFACE QUI REND LE TEXTE
+### 12.4 UNE COLONNE EN REGARD SE COMPOSE SUR LA SURFACE QUI REND LE TEXTE
 
 Relevé de l'auteur le 7 septembre 2026, sur le *Manuel pour mon fils* de Dhuoda : « je
 sais pas pourquoi j'ai pas le lien entre le latin et le français ». Il n'y avait rien à

@@ -14,7 +14,7 @@ La doctrine vit dans **`parametres.charte_ia`**, et nulle part ailleurs. `charte
 
 **Ce fichier-ci porte les règles de CODE** — pièges du dépôt, conventions de rendu, invariants d’implémentation — et renvoie à la charte pour la doctrine éditoriale. ⛔ Quand les deux se contredisent, **la charte l’emporte** : ce fichier est alors en retard et se corrige, jamais l’inverse.
 
-⛔ **`--push` est REFUSÉ depuis le 2026-08-25, et pas à cause de ce qu’on vient d’écrire.** Le garde-fou du script compte les numéros de titre en double et lève sur **`29.2`**, porté à la fois par `### 29.2 Précision thématique des bibliographies de péricopes` et par `## 29.2 Le nom d’une personne`. Le second est à un rang `##` entre `## 29` et `## 30` : c’est une coquille de numérotation, antérieure à la séance qui la découvre, et elle bloque toute poussée depuis le miroir. Tant qu’elle n’est pas arbitrée — renuméroter est un geste éditorial, pas technique —, une doctrine nouvelle s’écrit **directement dans Supabase**, puis se tire par `--pull`. ⚠️ Une poussée ponctuelle qui contourne ce seul contrôle garde tous les autres : sauvegarde de la ligne, verrou optimiste sur `mis_a_jour`, vérification que le texte local PROLONGE le distant, double relecture après écriture.
+✅ **`--push` est RENDU AU SERVICE le 2026-09-08**, après treize jours de refus. Le garde-fou compte les numéros de titre en double ; il levait sur **`12.3`**, **`43.1`** et **`43.2`**, chacun porté deux fois — jamais sur `29.2`, que ce fichier a nommé jusqu’ici et qui était résolu depuis longtemps. ⛔ **La cause n’est pas un relâchement, c’est un invariant** : chaque script `charte-*.mjs` porte `if (!attendu.startsWith(distant.trimEnd())) throw`, qui rend impossible de tronquer 900 000 signes par accident ET impossible d’insérer une section à sa place. Les 139 scripts ont donc tous écrit PAR LA FIN, et une section neuve finissait par tomber sur un numéro déjà pris. Renumérotés le 2026-09-08 : `12.3` → **`12.4`**, `## 43.1` → **`### 43.5`** (coquille de rang, comme l’ancien `29.2`), `43.2` → **`43.6`** ; aucun mot de doctrine touché, sauvegarde dans `audit/charte-sync-2026-08-21/`. ⚠️ Une doctrine nouvelle se pousse désormais depuis le miroir : le contournement par écriture directe en base n’a plus lieu d’être.
 
 ⚠️ **Les trois exemplaires avaient divergé** jusqu’au 2026-08-24 : le commit portait 116 547 signes, l’arbre de travail 187 384, Supabase 214 689, et aucun ne valait les autres. Supabase les contenait tous ; il portait en outre **21 suites « antislash + n » écrites en toutes lettres**, qui collaient listes, paragraphes et deux titres de niveau 2 sur une seule ligne — donc invisibles au rendu. Réparé et unifié par `scripts/charte-unifier-source-unique-2026-08-24.mjs`. Sauvegardes : clé `charte_ia_sauvegarde_20260824_avant_miroir` de `parametres`, et fichier `charte-locale-avant-miroir-20260824.md` déposé hors du dépôt, dans `C:\Corpus Scriptura`.
 
@@ -6974,7 +6974,7 @@ n'est pas très claire ». Ce qu'il faut savoir pour composer une page de l'espa
 
 # ⛔ LE REGARD EST UNE QUESTION QU'ON POSE À CHAQUE SURFACE (2026-09-07)
 
-Doctrine : charte `parametres.charte_ia`, **§ 12.3**. Ici, ce qu'il faut savoir pour y
+Doctrine : charte `parametres.charte_ia`, **§ 12.4**. Ici, ce qu'il faut savoir pour y
 toucher.
 
 - ⛔ **L'INTRODUCTION COMPOSE SA COLONNE EN REGARD**, comme le corps. Elle ne le faisait
@@ -7015,7 +7015,7 @@ l'argument. ⛔ Ne plus écrire un bloc `.texte-original` en styles en ligne : l
   teinte ». Il ne le tenait pas.
 - ⚠️ **Le corps d'une colonne d'ARGUMENT** vaut `0.75rem` seule (le gabarit du français
   qu'elle remplace) et `0.71875rem` en regard (un rang au-dessous). Son ENCRE reste
-  `--cs-texte-second` des deux côtés : voir la charte § 12.3, la mesure y est.
+  `--cs-texte-second` des deux côtés : voir la charte § 12.4, la mesure y est.
 
 ## ⛔ LA GARDE DE L'ÉCHELLE NE VOYAIT RIEN DANS UN TERNAIRE
 
