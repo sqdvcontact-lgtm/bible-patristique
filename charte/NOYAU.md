@@ -473,8 +473,16 @@
 - ⛔ Et cette hauteur se compte en REM, jamais en pixels.
 - ⛔ L’INTITULÉ nomme le TYPE de la note, et il SE TAIT quand elle n’en déclare aucun.
 - ⛔ Et jamais « Note » écrit en dur, qui n’est pas un type mais l’aveu qu’on n’en connaît aucun.
-- ⚠️ Ce qui identifie la note ne disparaît pas pour autant : le NUMÉRO passe dans une gouttière — au fer à droite contre le texte, dans la face du numéro de verset de la page Bible.
+- ⚠️ Ce qui identifie la note ne disparaît pas pour autant : le NUMÉRO passe dans une gouttière — dans la face du numéro de verset de la page Bible.
 - ⛔ Le numéro affiché est celui du LECTEUR, jamais le numéro interne : celui-ci porte l’identité et l’ordre, non l’adresse que le lecteur vient de cliquer.
+- ⛔ MAIS IL SE FERRE À GAUCHE, et le fer à droite est ici une règle mal transposée (décision de l’auteur, 2026-09-08 : « supprime l’alinéa avant le numéro de note »).
+- ⚠️ Règle générale : **un fer à droite ne se justifie que par une COLONNE de repères ; seul, il fait un alinéa.**
+- ⛔ UNE NOTE SE JUSTIFIE ET SE CÉSURE, et cela se pose sur le CORPS de l’encart, jamais sur ses paragraphes (même décision : « j’aimerais qu’elles soient justifiées »).
+- ⚠️ La césure n’est pas une option qui accompagne la justification, c’est sa condition : la piste fait une soixantaine de signes, et une justification sans coupure y creuse des lézardes.
+- ⚠️ Et la DERNIÈRE ligne revient au fer à gauche, faute de quoi trois mots s’étirent d’un bord à l’autre — les déclarations redites sur le paragraphe écrasaient précisément cette règle-là.
+- ⚠️ L’APPARAT CRITIQUE SUIT LE MÊME MODÈLE, UN CRAN SOUS LA NOTE (même décision).
+- ⛔ Sa seule dissidence est la CÉSURE, qu’il refuse — couper un sigle ou une leçon donnerait à lire ce que l’éditeur n’a pas écrit.
+- ⚠️ Corollaire, appris le même jour : une garde qui RECOPIE le corps et l’interligne au lieu de les lire au module échoue au premier changement, et c’est le défaut même que le module réunit pour empêcher.
 - ⛔ La croix ne paraît que sur un encart PERSISTANT.
 - ⛔ Un encart de survol ne se fige pas non plus tout seul au bout d’un délai : il se ferme quand la main s’en va, et un encart persistant se demande d’un clic.
 - ⚠️ L’appel se MARQUE tant que sa note est ouverte — de la surbrillance du segment actif de la lecture : c’est le second lien entre l’appel et sa note, celui qu’on suit des yeux en revenant au texte.
