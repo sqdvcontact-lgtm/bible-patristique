@@ -373,6 +373,12 @@
 - ⛔ Le point final ne se mange pas quand un CHIFFRE le suit.
 - ⚠️ Corollaire de méthode, et c’est le troisième du même ordre cette semaine — une fonction de normalisation ne se juge pas sur ses tests, mais sur le CORPUS qu’elle traite.
 
+**§ 13.8.2 — L’ÉTIQUETTE qui nomme la nature d’un bloc ne s’écrit pas dans son texte**
+
+- ⛔ Un bloc ne dit pas ce qu’il est, il le PORTE.
+- ⛔ On ne retire que la forme NUE, celle où le deux-points suit immédiatement le mot.
+- ⛔ Et une formule d’apparat n’est pas une étiquette.
+
 **§ 13.9 — RECTIFICATION du § 13.8 — la ponctuation et la typographie se normalisent DANS LA DONNÉE**
 
 - ⛔ LA RÈGLE EST DONC L’INVERSE, ET ELLE VAUT POUR L’APPAREIL DE NOTES.

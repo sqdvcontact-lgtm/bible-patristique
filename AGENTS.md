@@ -2537,6 +2537,34 @@ code :
   se recouvrent. La planche rejoue sur `document.fonts.ready` ; le crochet du site a son
   `ResizeObserver`.
 
+# ⛔ ÉCRIRE DANS `texte_note_blocs` — trois pièges payés le 2026-09-08
+
+Passe de retrait de l’étiquette « Référence imprimée : » (5 036 blocs, 27 textes).
+Doctrine : charte **§ 13.8.2** ; le récit et les chiffres sont au carnet. Ce qui suit
+vaut pour TOUTE écriture ou tout contrôle sur cette table.
+
+- ⛔ **LA CLÉ EST `(id_texte, note_key, block_id)`, et `block_id` SEUL n’est pas
+  unique** : 24 729 blocs pour 24 157 identifiants, **492 portés par deux blocs**. Une
+  jointure sur le seul `block_id` compare n’importe quoi avec n’importe quoi — elle a
+  rendu 3 271 « textes inattendus » qui n’existaient pas. ⚠️ La table porte DEUX clés
+  uniques, `(id_texte, note_key, rank)` et `(id_texte, note_key, block_id)` : l’une ou
+  l’autre, jamais une colonne seule.
+- ⛔ **UN POSTCHECK NE SE FAIT JAMAIS AVEC LE MOTIF DE L’OPÉRATION.** Le premier a
+  rendu « 0 étiquette restante » quand 4 756 blocs la portaient encore : il réemployait
+  le motif de l’`update`, et un motif faux se déclare satisfait de son propre travail.
+  Contrôler par un AUTRE chemin — un `like` sur le texte, un comptage par code de
+  caractère, une comparaison à la sauvegarde.
+- ⛔ **UN BLANC INVISIBLE S’ÉCRIT EN ÉCHAPPEMENT, JAMAIS TAPÉ**, dans une requête
+  comme dans un fichier. L’étiquette existait en deux formes qui ne diffèrent que par
+  l’espace devant le deux-points — ordinaire pour 589 blocs, **insécable U+00A0 pour
+  4 447** — et les classes écrites avec le signe tapé ont été aplaties en transport. En
+  Postgres : `E'[ 	   ]'`. La charte le disait déjà de
+  `typographie.ts` ; cela vaut aussi pour ce qu’on envoie à la base.
+- ⚠️ **Le contrôle qui compte n’est pas « le motif a disparu », c’est « ce qui reste
+  est le SUFFIXE exact de ce qu’il y avait »** : `avant not like '%' || apres` rend
+  zéro si l’on n’a retiré qu’un préfixe, et le dit tout de suite si l’on a mangé autre
+  chose.
+
 # ⛔ LA MANCHETTE DES RENVOIS — `manchetteRenvois.ts` (2026-09-08)
 
 Doctrine : charte `parametres.charte_ia`, **§ 13.14** ; les mesures et ce qui reste

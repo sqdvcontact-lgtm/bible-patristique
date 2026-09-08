@@ -1840,6 +1840,14 @@ Le 5 septembre 2026, les 11 916 renvois du corpus ont été passés par `normali
 
 
 
+#### 13.8.2 L’ÉTIQUETTE qui nomme la nature d’un bloc ne s’écrit pas dans son texte
+
+⛔ **Un bloc ne dit pas ce qu’il est, il le PORTE.** Sa nature vit dans `kind` ; l’écrire en tête de son texte — « Référence imprimée : Ps. 5, 8. » — c’est la dire deux fois, et la seconde coûte une ligne entière partout où la note se compose étroit. C’est la règle du § 13.8 appliquée à la NATURE comme elle l’est déjà au TYPE : on n’explique pas ce qui s’écrit déjà.
+
+⚠️ **Un QUALIFICATIF, lui, se garde.** « Référence imprimée (latin) », « (français) », « divergente », « conservée » disent de quelle colonne vient la coordonnée, ou qu’elle diverge de sa voisine : `kind` ne le dit pas, et les retirer leur ferait perdre ce qu’elles seules portent. ⛔ On ne retire que la forme NUE, celle où le deux-points suit immédiatement le mot.
+
+⛔ **Et une formule d’apparat n’est pas une étiquette.** « En interligne : », « Editi : », « P ajoute : », « La table porte : » ouvrent une phrase et sont le propos même de la note. Elles ressemblent à des étiquettes et n’en sont pas : ce qui les sépare est qu’elles APPRENNENT quelque chose, quand une étiquette répète ce que la donnée dit déjà.
+
 ### 13.9 RECTIFICATION du § 13.8 — la ponctuation et la typographie se normalisent DANS LA DONNÉE
 
 Le § 13.8 ouvrait sur « le site compose, la base conserve », et l’auteur l’a corrigé le jour même : « il faut corriger dans les données des informations importantes, et notamment la ponctuation ; sauf évidemment pour certains écrits spécifiques ; mais la règle veut qu’on normalise la ponctuation et la typo ».

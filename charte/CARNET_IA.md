@@ -274,3 +274,21 @@ La doctrine est au § 13.15 ; voici les chiffres.
 **LES SIX PIXELS DU RENVOI.** Mesurés sur la planche, ligne de base contre ligne de base, sur toutes les entrées : **−6,0 px**, parfaitement constant. La cause est que la position statique d'un bloc absolu est le haut de sa LIGNE, quand ce qu'il faut aligner est la ligne de BASE, et que le renvoi (0,625 rem) et le texte (0,8125 rem) n'ont pas la même ascendante. ⚠️ Corrigé par MESURE et non par constante — deux sondes de hauteur nulle alignées sur la ligne de base, une par passe : les deux corps sont en rem et la police racine est fluide. Après : **0,0 px** sur toutes les entrées, et toujours zéro chevauchement.
 
 **LE NUMÉRO DE L'ENCART.** Il tenait une colonne de grille de 2,25 rem sur toute la hauteur de la note. Sur la note de 3 963 signes de Boèce — dix-sept blocs, vingt lignes rendues —, cela faisait dix-neuf lignes de blanc à gauche pour deux chiffres. Passé en flottant, la mesure entière revient au texte dès la deuxième ligne.
+
+### 2026-09-08 — « Référence imprimée : » retirée, et deux pièges de méthode payés en chemin
+
+Décision de l'auteur, devant la manchette : « Ne pas afficher le titre "Référence imprimée" ». La règle est au § 13.8.2 ; voici la passe et ce qu'elle a coûté.
+
+**LE RELEVÉ.** Sur les 24 729 blocs de note, les têtes « Mots : » se rangent en trois familles. **Étiquettes de nature, à retirer** : « Référence imprimée » (5 034), « Référence » (2), « Référence éditoriale » (16). **Qualifiées, à garder** : « (latin) » 82, « (français) » 50, « divergente » 13, « conservée » 17, « (Bareille latin) » 4 — elles disent ce que `kind` ne dit pas. **Formules d'apparat, à ne pas toucher** : « En interligne : » 56, « Je propose de lire : » 16, « Editi : » 11, « P ajoute : » 9, « La table porte : » 8 — c'est le propos de la note.
+
+**LA PASSE.** 5 036 blocs, 27 textes, deux passes. Sauvegarde `internal.backup_etiquette_reference_20260908` (5 036 lignes), retour arrière `sql/rollback_etiquette_reference_20260908.sql`. Postcheck final : 5 036 réécrits, 0 inchangé, **0 suffixe rompu** — ce qui reste est exactement la fin de ce qu'il y avait —, 0 bloc vide, 0 colonne déplacée, 309 formes qualifiées intactes.
+
+**CE QUE LA MANCHETTE Y GAGNE.** Longueur rendue d'un renvoi : médiane **20 → 10 signes**, neuvième décile **35 → 21**. Sur la fenêtre la plus dense du corpus — l'Explication sur le psaume IV, treize renvois en trente-quatre segments —, les treize tiennent maintenant sur **une seule ligne** et **aucun n'est poussé**. L'étiquette était ce qui rendait le cas dense difficile.
+
+⛔ **PREMIER PIÈGE — UN POSTCHECK NE SE FAIT JAMAIS AVEC LE MOTIF DE L'OPÉRATION.** La première passe a rendu « 0 étiquette restante » alors que **4 756 blocs la portaient encore** : le contrôle réemployait le motif de l'`update`, et un motif faux se déclare satisfait de son propre travail. C'est un `like` sur le texte, puis un comptage par CODE de caractère, qui l'a démasqué. **Un contrôle se fait par un autre chemin que l'opération, ou il ne contrôle rien.**
+
+⛔ **DEUXIÈME PIÈGE — UN BLANC INVISIBLE NE SURVIT PAS AU TRANSPORT.** L'étiquette existe en deux formes qui ne diffèrent que par l'espace devant le deux-points : ordinaire pour 589 blocs, **insécable U+00A0 pour 4 447**. Les classes de caractères écrites avec le signe TAPÉ ont été aplaties en route, et le motif n'a plus vu que l'espace ordinaire. Réécrites en ÉCHAPPEMENT — `\u00a0`, `\u202f`, `\u2009` —, elles ont pris le reste. La charte le disait déjà de `typographie.ts` ; cela vaut aussi pour une requête envoyée à la base.
+
+⚠️ **ET `block_id` N'EST PAS UNIQUE.** 24 729 blocs pour 24 157 identifiants distincts : **492 sont portés par deux blocs**. La clé est `(id_texte, note_key, block_id)`, et un postcheck qui joint sur le seul `block_id` compare n'importe quoi avec n'importe quoi — il a rendu 3 271 « textes inattendus » qui n'existaient pas. ⛔ Toute écriture ou tout contrôle sur `texte_note_blocs` passe par la clé entière.
+
+⚠️ **Reste, et c'est un choix** : 309 blocs ouvrent encore sur « Référence imprimée (…) » ou « Référence imprimée conservée / divergente ». Leur qualificatif porte une information ; le reformuler est une décision éditoriale, non un nettoyage.
