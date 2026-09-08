@@ -563,26 +563,6 @@ function surlignerMatch(texte: string, query: string): React.ReactNode {
   )
 }
 
-function extraireEtSurligner(texte: string, q: string, longueur = 110): React.ReactNode {
-  const texteN = normaliserExtrait(texte)
-  const qN = normaliserExtrait(q)
-  const idx = texteN.indexOf(qN)
-  const debut = idx < 0 ? 0 : Math.max(0, idx - 40)
-  const fin = idx < 0 ? Math.min(texte.length, longueur) : Math.min(texte.length, idx + q.length + 70)
-  const prefix = debut > 0
-  const suffix = fin < texte.length
-  const extrait = texte.slice(debut, fin)
-  const extractN = normaliserExtrait(extrait)
-  const mIdx = extractN.indexOf(qN)
-  if (mIdx < 0) return <>{prefix ? '\u2026' : ''}{extrait}{suffix ? '\u2026' : ''}</>
-  return (
-    <>
-      {prefix ? '\u2026' : ''}{extrait.slice(0, mIdx)}<strong style={STYLE_TERME_TAPE}>{extrait.slice(mIdx, mIdx + q.length)}</strong>{extrait.slice(mIdx + q.length)}{suffix ? '\u2026' : ''}
-    </>
-  )
-}
-
-
 function IconCoeur() {
   return (
     <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">

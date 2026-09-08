@@ -184,7 +184,7 @@ function BoutonCopie({ citation }: { citation: CitationRendue | string }) {
   );
 }
 
-function BoutonSuppr({ ids, onSuppr }: { ids: string[]; onSuppr: () => void }) {
+function BoutonSuppr({ onSuppr }: { onSuppr: () => void }) {
   const [conf, setConf] = useState(false);
   if (conf) return (
     <span className="prel-confirm" onClick={e => e.stopPropagation()}>
@@ -707,7 +707,7 @@ export default function PagePrelevements() {
                             <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: g.ids[0], texte, type: "biblique", ref }); }} />
                             <BoutonCopie citation={citationBiblique(texteSansEnrichissement(texte), ref)} />
                             <BoutonLien href={`/?livre=${CODE_PAR_ABREV[g.ref_livre_abr] ?? g.ref_livre_abr}&chapitre=${g.ref_chapitre}&verset=${g.verset_debut}&trad=${traductionActive}`} />
-                            <BoutonSuppr ids={g.ids} onSuppr={() => supprimerIds(g.ids)} />
+                            <BoutonSuppr onSuppr={() => supprimerIds(g.ids)} />
                           </div>
                         </div>
                       );
@@ -774,7 +774,7 @@ export default function PagePrelevements() {
                             {p.id_oeuvre && (
                               <BoutonLien href={`/oeuvre/${p.id_oeuvre}${p.segment_numero ? `#s${p.segment_numero}` : ''}`} />
                             )}
-                            <BoutonSuppr ids={ids} onSuppr={() => supprimerIds(ids)} />
+                            <BoutonSuppr onSuppr={() => supprimerIds(ids)} />
                           </div>
                         </div>
                       );

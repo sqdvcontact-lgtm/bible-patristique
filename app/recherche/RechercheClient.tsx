@@ -311,7 +311,6 @@ export default function RechercheClient() {
   const [pageV, setPageV] = useState(0)
   const [pageS, setPageS] = useState(0)
   const [pageE, setPageE] = useState(0)
-  const [hoveredVerset, setHoveredVerset] = useState<string | null>(null)
   // Signature du dernier `searchParams` traité (q|mode). L'effet ci-dessous ne réagit
   // QU'À un vrai changement d'URL : sans ce garde, un simple re-rendu (survol, chargement
   // des traductions, suggestions…) rejouait l'effet, et sa branche « pas de q » effaçait

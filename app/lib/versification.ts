@@ -208,8 +208,6 @@ export function malProtVerseCath(ch: number, v: number): Ref {
 
 // ─── Fonction générale ───────────────────────────────────────────────────────
 
-type Livre = "PSA" | "EXO" | "LEV" | "NUM" | "DEU" | "HOS" | "JOL" | "MAL";
-
 const CONVERTISSEURS_CATH_PROT: Partial<
   Record<string, (ch: number, v: number) => Ref>
 > = {

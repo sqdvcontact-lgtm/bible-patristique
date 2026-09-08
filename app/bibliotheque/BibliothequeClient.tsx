@@ -20,7 +20,7 @@ import { SELECT_AUTEURS_BIBLIOTHEQUE, SELECT_OEUVRES_BIBLIOTHEQUE } from '@/app/
 import { libelleTrad, formaterEditeur } from '@/app/oeuvre/[id]/PageTitre'
 import { mentionsAdresseEdition, SEPARATEUR_ADRESSE } from '@/app/lib/adresseEdition'
 import { useEditeursCharges } from '@/app/lib/editeurs'
-import { rendreSiecles, EmpanSiecles } from '@/app/lib/siecles'
+import { EmpanSiecles } from '@/app/lib/siecles'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
 import VisiteGuidee from '@/app/components/VisiteGuidee'
@@ -127,12 +127,6 @@ function siecleEnNombre(s: string | null | undefined): number | null {
   if (rom && ROMAINS_SIECLE[rom[0]] != null) return ROMAINS_SIECLE[rom[0]];
   const ar = t.match(/\d+/);
   return ar ? parseInt(ar[0]) : null;
-}
-
-function extraireAnnee(s: string | null | undefined): number | null {
-  if (!s) return null
-  const m = s.match(/\d+/)
-  return m ? parseInt(m[0]) : null
 }
 
 const CHIFFRES_FR = ['une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix',

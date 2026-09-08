@@ -23,7 +23,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
-import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
+import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { FEUILLE_ESPACE } from '@/app/compte/piecesEspace'
 
 export type ProfilLecteur = {

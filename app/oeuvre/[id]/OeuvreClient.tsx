@@ -695,8 +695,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // laissait passer la minuscule, et un texte grec repartait alors avec les libellés
   // et le syllabateur latins.
   const estGrec = /grec/i.test(oeuvre.langue_originale ?? '')
-  const labelOriginal = estGrec ? 'Grec' : 'Latin'
-  const labelBilingue = estGrec ? 'Français & Grec' : 'Français & Latin'
   const basculerTexte = (mode: 'fr' | 'bilingue' | 'la') => {
     if (modeComparaisonActif) fermerComparaison()
     setModeTexte(mode)
@@ -822,13 +820,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     setProfondeurExistante(null)
   }
   const resetVolets = () => { setNavWidth(null); setPannWidth(null); try { localStorage.removeItem('cs_volets_oeuvre2') } catch {} }
-  const [nbCommentairesOeuvre, setNbCommentairesOeuvre] = useState<number | null>(null)
-  useEffect(() => {
-    if (segActif === null) { setNbCommentairesOeuvre(null); return }
-    supabase.from('commentaires').select('id', { count: 'exact', head: true })
-      .eq('id_segment', segActif)
-      .then(({ count }) => setNbCommentairesOeuvre(count ?? 0))
-  }, [segActif])
+  // ⛔ ICI VIVAIT UN COMPTEUR QUE PERSONNE NE LISAIT. Un effet interrogeait
+  // `commentaires` en `count: 'exact'` à CHAQUE changement de segment actif, pour
+  // ranger le nombre dans un état dont plus aucune vue ne se servait : un aller-retour
+  // à la base par clic de lecteur, pour rien. (Audit du 8 septembre 2026.)
   const tradSelectRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     try {
@@ -1718,7 +1713,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   )
   const segActifData = segActif !== null ? segMapActive.get(segActif) : null
   // idOeuvre vient des Props
-  const hasApparat = segmentsApparat.length > 0
   const tocApparatLocal = useMemo(
     () => construireNavigationApparat(groupesApparat),
     [groupesApparat],

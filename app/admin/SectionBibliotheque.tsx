@@ -1,13 +1,13 @@
 'use client'
 
 import React, { useState, useRef } from 'react'
-import { supabase, parseCSV, SiecleDisplay, headersAdmin } from './adminShared'
+import { supabase, parseCSV, headersAdmin } from './adminShared'
 import SectionRemplacerSegments from './SectionRemplacerSegments'
 import SectionAjouterOeuvre from './SectionAjouterOeuvre'
 import type { Auteur, Oeuvre, LignePreview } from './adminTypes'
 import {
   CADRES_PORTRAIT, POS_CARTE_DEFAUT, POS_FICHE_DEFAUT,
-  bornerPos, deplacerPos, parseAuteurPhotoPositions, stylePhotoAuteur,
+  bornerPos, deplacerPos, parseAuteurPhotoPositions,
   type AuteurPhotoPos, type AuteurPhotoPositions, type SurfacePortrait,
 } from '@/app/lib/photoAuteur'
 import { preparerPortrait } from '@/app/lib/preparerPortrait'
@@ -1157,15 +1157,6 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     setMsgAjoutAuteur(null)
   }
 
-  const changerProfondeur = async (idOeuvre: string, val: number) => {
-    setProfondeurs(prev => ({ ...prev, [idOeuvre]: val }))
-    await fetch('/api/admin/update-oeuvre', {
-      method: 'POST',
-      headers: await headersAdmin({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ id_oeuvre: idOeuvre, champ: 'profondeur_sommaire', valeur: val }),
-    })
-  }
-
   const CHAMPS_OEUVRE_TEXTE: { key: string; label: string }[] = [
     { key: 'titre', label: 'Titre *' },
     // Composition du titre pour la page de titre seule (sauts de ligne compris).
@@ -1615,9 +1606,9 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
           placeholder="Rechercher un auteur ou une œuvre…"
           style={{ flex: 1, fontSize: '0.875rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none' }} />
         {recherche && <button onClick={() => setRecherche('')} style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>}
-        <button onClick={() => { setAjoutAuteur(!coAuteurAAjouter); setMsgAjoutAuteur(null) }}
-          style={{ width: '7.375rem', textAlign: 'center', fontSize: '0.875rem', padding: '6px 10px', borderRadius: '4px', border: 'none', background: coAuteurAAjouter ? 'var(--cs-vert-aplat-fonce)' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
-          {coAuteurAAjouter ? 'Fermer' : '+ Nouvel auteur'}
+        <button onClick={() => { setAjoutAuteur(!ajoutAuteur); setMsgAjoutAuteur(null) }}
+          style={{ width: '7.375rem', textAlign: 'center', fontSize: '0.875rem', padding: '6px 10px', borderRadius: '4px', border: 'none', background: ajoutAuteur ? 'var(--cs-vert-aplat-fonce)' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          {ajoutAuteur ? 'Fermer' : '+ Nouvel auteur'}
         </button>
         <button onClick={() => { setAjoutOeuvre(!ajoutOeuvre); setVueBibliotheque('oeuvres') }}
           style={{ width: '8rem', textAlign: 'center', fontSize: '0.875rem', padding: '6px 10px', borderRadius: '4px', border: 'none', background: ajoutOeuvre ? 'var(--cs-vert-aplat-fonce)' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
@@ -1654,7 +1645,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
         </button>
       </div>
 
-      {vueBibliotheque === 'segments' && <SectionRemplacerSegments auteurs={auteurs} />}
+      {vueBibliotheque === 'segments' && <SectionRemplacerSegments />}
       {vueBibliotheque === 'oeuvres' && (
       <>
 
@@ -1665,7 +1656,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       )}
 
       {/* Formulaire nouvel auteur */}
-      {coAuteurAAjouter && (
+      {ajoutAuteur && (
         <div style={{ background: 'var(--cs-surface)', border: '2px solid var(--cs-vert)', borderRadius: '8px', padding: '16px 20px', marginBottom: '8px' }}>
           <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-vert)', marginBottom: '14px' }}>Nouvel auteur</p>
           <ChampsAuteur

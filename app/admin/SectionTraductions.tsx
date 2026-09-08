@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef } from 'react'
 import { preparerPortrait, BOITE_TRADUCTION, BOITE_TRADUCTION_ENCART } from '@/app/lib/preparerPortrait'
 import {
   VOILE_BANDEAU, ENCRE_SUR_PHOTO, META_SUR_PHOTO, CHEVRON_SUR_PHOTO,
@@ -337,31 +337,6 @@ function parseCSV(texte: string): string[][] {
 
 function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: string) => void }) {
   const ref = React.useRef<any>(null)
-
-  const entourer = (avant: string, apres: string) => {
-    const ta = ref.current
-    if (!ta) return
-    const debut = ta.selectionStart
-    const fin = ta.selectionEnd
-    const selection = ta.value.slice(debut, fin)
-    const nouveau = ta.value.slice(0, debut) + avant + selection + apres + ta.value.slice(fin)
-    onChange(nouveau)
-    // Repositionner le curseur aprÃ¨s insertion
-    requestAnimationFrame(() => {
-      ta.focus()
-      ta.setSelectionRange(debut + avant.length, fin + avant.length)
-    })
-  }
-
-  const insererBloc = (balise: string) => {
-    const ta = ref.current
-    if (!ta) return
-    const debut = ta.selectionStart
-    const fin = ta.selectionEnd
-    const selection = ta.value.slice(debut, fin).trim()
-    const nouveau = ta.value.slice(0, debut) + `<${balise}>${selection}</${balise}>` + ta.value.slice(fin)
-    onChange(nouveau)
-  }
 
   const btnStyle: React.CSSProperties = {
     padding: '4px 9px', fontSize: '0.8125rem', border: '1px solid var(--cs-bord)',

@@ -1454,7 +1454,7 @@ export default function PanneauPatristique({
                   ]
                   return (
                     <div style={{ display: 'flex', borderBottom: '1px solid var(--cs-fond-doux)', margin: '6px -12px 0', padding: '0 12px' }}>
-                      {subTabs.map(([key, label, nb], idx) => (
+                      {subTabs.map(([key, label, nb]) => (
                         <button key={key} onClick={() => setSousOnglet(key)}
                           style={{
                             flex: 1, background: 'none', border: 'none',

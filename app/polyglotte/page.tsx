@@ -1799,7 +1799,6 @@ export default function PolyglottePage() {
   // d'une traduction, pour les calculs qui n'ont de sens que sur du texte réel.
   const slotCols = slots.map((id, i) => ({ slot: i, trad: trads.find(t => t.trad_id === id) ?? null }));
   const colonnes = slotCols.map(s => s.trad).filter((t): t is Trad => !!t);
-  const nomDe = (code: string) => livres.find(l => l.code === code)?.nom_fr ?? code;
 
   // ── LA VISITE ──────────────────────────────────────────────────────────────
   // ⛔ ELLE NE S'OUVRE QUE LÀ OÙ LE TABLEAU EXISTE. Sous 820 px la page rend un

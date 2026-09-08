@@ -49,7 +49,7 @@ export function rendreMarquesNote(t: string, base: number = 0): React.ReactNode[
   return out
 }
 
-function rendreInline(s: string, cleNote: { n: number }, options: RenduOptions): React.ReactNode[] {
+function rendreInline(s: string, cleNote: { n: number }, _options: RenduOptions): React.ReactNode[] {
   const noeuds: React.ReactNode[] = []
   const regex = /\*\*(.+?)\*\*|\+\+(.+?)\+\+|\^\^(.+?)\^\^|\*(.+?)\*|\[\^(.+?)\]|\[(.+?)\]\((.+?)\)/g
   let dernier = 0, k = 0, m: RegExpExecArray | null

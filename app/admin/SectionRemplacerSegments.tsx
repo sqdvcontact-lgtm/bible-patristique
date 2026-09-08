@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react'
 import { supabase } from './adminShared'
-import type { Auteur } from './adminTypes'
 
-export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[] }) {
+export default function SectionRemplacerSegments() {
   const [fichier, setFichier] = useState<File | null>(null)
   const [preview, setPreview] = useState<any[] | null>(null)
   const [statut, setStatut] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle')
@@ -113,7 +112,6 @@ export default function SectionRemplacerSegments({ auteurs }: { auteurs: Auteur[
     }
   }
 
-  const inputStyle: React.CSSProperties = { width: '100%', padding: '7px 10px', fontSize: '0.875rem', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
 
   return (
     <div style={{ maxWidth: '40rem' }}>

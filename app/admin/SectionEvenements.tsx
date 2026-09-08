@@ -78,7 +78,6 @@ export default function SectionEvenements({ auteurs }: { auteurs: Auteur[] }) {
   useEffect(() => { charger() }, [charger])
 
   const familleDe = (e: Evt) => genres.get(e.genre_id)?.famille ?? ''
-  const genreNom = (e: Evt) => genres.get(e.genre_id)?.nom ?? ''
   const genresTries = useMemo(() => Array.from(genres.values()).sort((a, b) => a.nom.localeCompare(b.nom, 'fr')), [genres])
 
   const assocParEvt = useMemo(() => {

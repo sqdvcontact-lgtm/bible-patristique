@@ -36,7 +36,6 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { messageErreurQualification } from './qualification'
 import { colorMix } from '@/app/lib/couleurs'
-import { normaliserEspacesOriginal } from '@/app/lib/typographie'
 import { composerNom, separerNoms, listeDepuisVirgules, type NomStructure } from '@/app/lib/nomsPersonnes'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
 import {
@@ -126,7 +125,6 @@ const messageErreur = messageErreurQualification
 const sansAccents = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 // Même normalisation typographique que la page publique : apostrophe courbe et fines
 // insécables. La citation de la fiche doit se lire comme la référence servie au lecteur.
-const typo = (s: string) => normaliserEspacesOriginal(s.replace(/'/g, '’'))
 // Comparaison de champ de formulaire : null, undefined et chaîne vide sont un même vide.
 const vide = (v: unknown) => (v === null || v === undefined || v === '' ? '' : String(v))
 

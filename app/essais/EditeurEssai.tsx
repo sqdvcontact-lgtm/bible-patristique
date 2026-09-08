@@ -13,7 +13,7 @@ import { diffMots } from '@/app/lib/diffTexte'
 import VoletEssai from '@/app/lib/VoletEssai'
 import SelecteurCitation from '@/app/lib/SelecteurCitation'
 import { CATEGORIES_ESSAIS, CONDITIONS, RESUME_MAX, RESUME_MIN, type Metadonnees } from './EtapeMetadonnees'
-import { COUVERTURES, COUVERTURE_PAR_DEFAUT, couvertureDe } from '@/app/lib/couverturesEssai'
+import { COUVERTURES, couvertureDe } from '@/app/lib/couverturesEssai'
 import { categorieEmblemeDe, emblemeDe, emblemesAuChoix } from '@/app/lib/emblemesCouverture'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import { NOM_ANONYME, colonnesSignature, nomReel, nomSigne, signatureDe, type Signature } from '@/app/lib/signatureEssai'
@@ -297,12 +297,6 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     const texte = sel && sel.rangeCount ? sel.toString() : ''
     document.execCommand('insertText', false, `${avant}${texte}${apres}`)
     declencherChangement()
-  }
-
-  const ajouterNote = () => {
-    const texte = window.prompt('Texte de la note :\nVous pouvez y écrire un renvoi sous la forme [libellé](verset:ID) ou [libellé](segment:ID).')
-    if (!texte) return
-    insererHTML(`<span contenteditable="false" data-chip="note" data-note="${encodeURIComponent(texte)}" style="${styleNote}">note</span>&nbsp;`)
   }
 
   const ouvrirCreationNote = () => {
