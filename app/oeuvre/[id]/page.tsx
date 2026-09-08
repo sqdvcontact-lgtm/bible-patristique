@@ -83,7 +83,7 @@ export async function generateMetadata({ params, searchParams }: {
   const [{ data }, { data: textes }, auteursOeuvre, aLiensBibliques] = charge
   if (!data) return { title: { absolute: 'Corpus Scriptura' } }
   // Une œuvre signée à deux est nommée sous les deux noms, ici comme ailleurs.
-  const auteur = libelleAuteurs(auteursOeuvre) || (data.auteurs as any)?.nom
+  const auteur = libelleAuteurs(auteursOeuvre) || (data.auteurs as AuteurEmbarque | null)?.nom
   const textesPublics = textes ?? []
   const texteDemande = sp.texte ? textesPublics.find(texte => texte.id_texte === sp.texte) : undefined
   const texteActif = texteDemande
@@ -172,6 +172,16 @@ type AlignementRow = {
 
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
+
+// ⚠️ Ce que ces requetes DEMANDENT, non ce que les tables contiennent.
+/** La relation `auteurs` embarquee : PostgREST rend un objet quand la jointure
+ *  est unique. On n'en lit que deux champs, et seulement en repli du libelle. */
+type AuteurEmbarque = { nom?: string | null; id_auteur?: string | number | null }
+/** Une ligne de `versets_lecture` : les colonnes de traduction sont nommees a
+ *  l'execution (TR0001, TR0002...), d'ou l'index de chaine. */
+type LigneVersetCite = { id_verset: string; ref: string | null; [colonne: string]: string | null }
+type LigneNiv1 = { ref_niv1: string | null }
+type LigneNiv1Texte = { ref_niv1: string | null; ref_niv1_texte: string | null }
 
 type VersetsCites = Record<string, { label: string; livre: string; chapitre: string; verset: string; textes: Record<string, string> }>
 
@@ -307,12 +317,15 @@ async function enrichirAvecVersets(supabase: Client, segments: Segment[], codesT
     tousIdsArray.slice(i * batchSize, (i + 1) * batchSize))
   const results = await Promise.all(batches.map(batch =>
     supabase.from('versets_lecture').select(selectVersets).in('id_verset', batch)))
-  const versetsData = results.flatMap(r => r.data ?? []) as any[]
+  const versetsData = results.flatMap(r => r.data ?? []) as unknown as LigneVersetCite[]
 
   const versetMap: VersetsCites = {}
   versetsData.forEach(v => {
     const textes = Object.fromEntries(codesTraductions.map(code => [code, v[code] || '']))
-    const ref = detailsRefBiblique(v.ref)
+    // ⚠️ Un verset sans `ref` FAISAIT TOMBER LA PAGE : `detailsRefBiblique` appelle
+    // `ref.trim()` sur son argument. Le `any` d’au-dessus masquait la nullabilité de la
+    // colonne. À défaut de référence, l’identifiant canonique sert d’étiquette.
+    const ref = detailsRefBiblique(v.ref ?? v.id_verset)
     versetMap[v.id_verset] = {
       ...ref,
       textes,
@@ -371,7 +384,7 @@ export default async function OeuvrePage({
     chargerAuteursDOeuvre(supabase, id),
   ])
   const oeuvre = oeuvreResult.data
-  if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre as any))) return (
+  if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre))) return (
     <div className="min-h-screen flex items-center justify-center" style={{background:'var(--cs-fond)'}}>
       <p style={{color:'var(--cs-texte-gris)'}}>Œuvre introuvable.</p>
     </div>
@@ -448,7 +461,13 @@ export default async function OeuvrePage({
   // livres X et XI » n'apparaissait plus entre le titre du Livre X et « Chapitre I »).
 
   async function chargerTousSegments(filtre: Record<string, string>) {
-    // Applique le filtre à une requête (nature « texte » embarque les introductions).
+    // Applique le filtre a une requete (nature « texte » embarque les introductions).
+    // ⚠️ `any` ASSUME ICI : `q` est un constructeur de requete PostgREST, dont le type
+    // porte cinq parametres generiques qui changent a chaque maillon de la chaine
+    // (`.eq`, `.or`, `.is`, `.order`, `.range`). Le decrire de l'exterieur reviendrait a
+    // recopier une partie de la bibliotheque, et ce double divergerait a la premiere
+    // montee de version. Les trois `limiterRequete*` qu'on lui applique sont, elles,
+    // generiques et rendent le type qu'on leur donne : rien ne se perd en aval.
     const appliquer = (q: any) => {
       for (const [k, v] of Object.entries(filtre)) {
         if (k === 'nature' && v === 'texte') q = limiterRequeteSegmentsALaSurface(q, 'corps')
@@ -470,13 +489,13 @@ export default async function OeuvrePage({
       supabase.from('segments').select(SELECT_SEGMENT, { count: 'exact' }).eq('id_oeuvre', id).eq('id_texte', idTexte)
     ).order('segment_numero', { ascending: true }).range(0, 999)
 
-    const acc: any[] = [...((premier.data as any[]) ?? [])]
+    const acc: Segment[] = [...((premier.data as Segment[]) ?? [])]
     const total = premier.count ?? acc.length
     if (total > 1000) {
       const restes = await Promise.all(
         Array.from({ length: Math.ceil(total / 1000) - 1 }, (_, i) => lot((i + 1) * 1000))
       )
-      for (const r of restes) acc.push(...((r.data as any[]) ?? []))
+      for (const r of restes) acc.push(...((r.data as Segment[]) ?? []))
     }
     const surface = filtre.nature === 'apparat' ? 'apparat' : 'corps'
     const selectionnes = segmentsDeLaSurface(acc, surface)
@@ -512,11 +531,11 @@ export default async function OeuvrePage({
     const premier = await appliquer(
       supabase.from('segments').select(SELECT_SEGMENT).eq('id_oeuvre', id).eq('id_texte', idTexte)
     ).order('segment_numero', { ascending: true }).range(0, PLAFOND_TRANCHE - 1)
-    const lignes = segmentsDeLaSurface(((premier.data as any[]) ?? []), 'corps')
+    const lignes = segmentsDeLaSurface(((premier.data as Segment[]) ?? []), 'corps')
     const partiel = lignes.length >= PLAFOND_TRANCHE
-    const acc: any[] = partiel ? lignes.slice(0, PLAFOND_TRANCHE - 1) : lignes
+    const acc: Segment[] = partiel ? lignes.slice(0, PLAFOND_TRANCHE - 1) : lignes
     await tolerer(degradations, LIENS_MANQUANTS, () => hydraterLiensHerites(acc, supabase), () => acc)
-    return { segments: acc as Segment[], partiel }
+    return { segments: acc, partiel }
   }
 
   // ── Vague 1 : 6 requêtes indépendantes en parallèle ──────────────────────
@@ -626,7 +645,7 @@ export default async function OeuvrePage({
     promessePassage,
     // Les quatre couches qui suivent sont SECONDAIRES : leur échec rend la page
     // sans elles, dit au lecteur par le bandeau, jamais fermée (voir `degradations`).
-    tolerer(degradations, { quoi: 'l’apparat critique', publique: true }, () => chargerTousSegments({ nature: 'apparat' }), () => [] as any[]),
+    tolerer(degradations, { quoi: 'l’apparat critique', publique: true }, () => chargerTousSegments({ nature: 'apparat' }), () => [] as Segment[]),
     tolerer(degradations, { quoi: 'le texte des versets cités', publique: true }, () => chargerCodesTraductions(supabase), () => [] as string[]),
     tolerer(degradations, { quoi: 'les notes de l’apparat', publique: true }, () => chargerNotesStructurees(supabase, idTexte, degradations), AUCUNE_NOTE),
     tolerer(degradations, { quoi: 'les notes du texte original', publique: true }, () => chargerNotesStructurees(supabase, idTexteEnRegard, degradations), AUCUNE_NOTE),
@@ -662,10 +681,10 @@ export default async function OeuvrePage({
   // niv1 ayant du texte + libellés ref_niv1_texte : une seule RPC agrégée
   // (get_niv1_texte) remplace l'ancien N+1 (un count par niv1 pour exclure les niv1
   // uniquement apparat) et la pagination séquentielle de reconstitution des libellés.
-  const niv1Complet: string[] = (niv1Raw ?? []).map((r: any) => r.ref_niv1).filter(Boolean)
+  const niv1Complet: string[] = ((niv1Raw ?? []) as LigneNiv1[]).map(r => r.ref_niv1).filter(Boolean) as string[]
   const niv1TexteMap: Record<string, string> = {}
   const niv1AvecTexte = new Set<string>()
-  ;(niv1TexteRaw ?? []).forEach((r: any) => {
+  ;((niv1TexteRaw ?? []) as LigneNiv1Texte[]).forEach(r => {
     if (!r.ref_niv1) return
     niv1AvecTexte.add(r.ref_niv1)
     if (r.ref_niv1_texte) niv1TexteMap[r.ref_niv1] = r.ref_niv1_texte
@@ -764,8 +783,8 @@ export default async function OeuvrePage({
   // l'œuvre au frontispice, dans les citations, dans l'historique de lecture),
   // `auteurId` reste le premier, pour les surfaces qui n'en visent qu'un. Ils sont
   // chargés avec la première vague, non ici : voir plus haut.
-  const auteur = libelleAuteurs(auteursOeuvre) || (oeuvre.auteurs as any)?.nom || ''
-  const auteurId = auteursOeuvre[0]?.id_auteur ?? (oeuvre.auteurs as any)?.id_auteur?.toString() ?? ''
+  const auteur = libelleAuteurs(auteursOeuvre) || (oeuvre.auteurs as AuteurEmbarque | null)?.nom || ''
+  const auteurId = auteursOeuvre[0]?.id_auteur ?? (oeuvre.auteurs as AuteurEmbarque | null)?.id_auteur?.toString() ?? ''
 
   const groupes = grouper(segmentsTexte)
   const groupesApparat = grouper(segmentsApparat)
@@ -871,7 +890,7 @@ export default async function OeuvrePage({
   return (
     <>
       {/* Book JSON-LD — seulement pour une œuvre publique (jamais un brouillon admin). */}
-      {estOeuvrePubliee(oeuvre as any) && texteActif.is_public && (
+      {estOeuvrePubliee(oeuvre) && texteActif.is_public && (
         <>
           <JsonLd donnees={donneesLivre({
             id,

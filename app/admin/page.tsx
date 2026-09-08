@@ -101,11 +101,33 @@ async function actionRetirerDemandeCertification(id: number) {
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
 }
+// ⚠️ Ce que les requetes de cette page DEMANDENT, et rien de plus : ces types suivent
+// les `select` ci-dessous, non les tables. Une colonne retiree d'un `select` casse
+// alors ici, a la compilation, au lieu de rendre `undefined` chez l'administrateur.
+type LigneQuizSignalement = { id: number; raison: string | null; commentaire: string | null; created_at: string; id_verset: string | null; user_id: string | null }
+type LigneSegmentCtx = { id: number; segment_texte: string | null; segment_numero: number | null; id_oeuvre: string | null; id_texte: string | null }
+type LigneVersetCtx = { id_verset: string; ref: string | null; TR0001: string | null }
+type LigneProfilPseudo = { id: string; pseudo: string | null }
+type LigneProfilNom = { id: string; pseudo: string | null; nom: string | null; prenom: string | null }
+type LigneIdEssai = { id_essai: number }
+type LigneEssaiTitre = { id: number; titre: string | null }
+type LigneCommentaireParent = { id: number; auteur_nom: string | null; texte: string | null }
+type LigneAuteurAvecOeuvres = { nom: string | null; oeuvres?: { id_oeuvre: string; titre: string | null }[] | null }
+type LigneCommentairePublication = { id: number; id_essai: number; texte: string | null; auteur_nom: string | null; created_at: string; user_id: string | null }
+/** Une publication telle que les deux listes (publiees, brouillons) la demandent. */
+type LigneEssaiListe = {
+  id: number; titre: string | null; sous_titre: string | null; contenu: string | null
+  created_at: string; updated_at: string | null; publie_at: string | null
+  user_id: string; afficher_nom_reel: boolean | null; anonyme: boolean | null
+  statut: string; nb_vues: number | null
+}
+
 async function actionPublierEssai(id: number) {
   'use server'
   if (!(await estAdmin())) return
   const { data: actuel } = await supabaseAdmin.from('essais').select('publie_at').eq('id', id).single()
-  const payload: any = { statut: 'publie', note_admin: null, updated_at: new Date().toISOString() }
+  const payload: { statut: string; note_admin: null; updated_at: string; publie_at?: string } =
+    { statut: 'publie', note_admin: null, updated_at: new Date().toISOString() }
   if (!actuel?.publie_at) payload.publie_at = new Date().toISOString()
   await supabaseAdmin.from('essais').update(payload).eq('id', id)
 }
@@ -209,7 +231,7 @@ export default async function AdminPage() {
     const fallback = await supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, user_id').eq('traite', false).order('created_at', { ascending: false })
     signalements = (fallback.data ?? []).map(s => ({ ...s, id_verset: null, importance: null, url_source: null }))
   }
-  const quizMapped = ((quizResult.data) ?? []).map((s: any) => ({
+  const quizMapped = ((quizResult.data ?? []) as LigneQuizSignalement[]).map(s => ({
     id: `quiz_${s.id}`,
     message: [s.raison, s.commentaire].filter(Boolean).join(' — '),
     traite: false,
@@ -241,8 +263,8 @@ export default async function AdminPage() {
   ])]
   // Messages parents des commentaires qui sont des réponses (pour les afficher en contexte).
   const idsParents = [...new Set([
-    ...((commentaires?.map(c => (c as any).reponse_a).filter(Boolean) ?? []) as number[]),
-    ...((demandesCertification?.map(c => (c as any).reponse_a).filter(Boolean) ?? []) as number[]),
+    ...((commentaires?.map(c => c.reponse_a).filter(Boolean) ?? []) as number[]),
+    ...((demandesCertification?.map(c => c.reponse_a).filter(Boolean) ?? []) as number[]),
   ])]
   const idsAuteursEssais = [...new Set(essaisValidationRaw.map(e => e.user_id))]
   const idsAuteursModification = [...new Set(essaisModificationRaw.map(e => e.user_id))]
@@ -253,16 +275,16 @@ export default async function AdminPage() {
 
   // ── Vague 2 : 7 requêtes dépendantes en parallèle ────────────────────────
   const vague2 = await Promise.all([
-    segIdsUniques.length > 0 ? supabaseAdmin.from('segments').select('id, segment_texte, segment_numero, id_oeuvre, id_texte').in('id', segIdsUniques) : Promise.resolve({ data: [] as any[], error: null }),
-    idsVersetsCertif.length > 0 ? supabaseAdmin.from('versets_lecture').select('id_verset, ref, TR0001').in('id_verset', idsVersetsCertif) : Promise.resolve({ data: [] as any[], error: null }),
-    idsAuteursEssais.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursEssais) : Promise.resolve({ data: [] as any[], error: null }),
-    idsAuteursModification.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursModification) : Promise.resolve({ data: [] as any[], error: null }),
-    idsEssaisListes.length > 0 ? supabaseAdmin.from('essais_appreciations').select('id_essai').in('id_essai', idsEssaisListes) : Promise.resolve({ data: [] as any[], error: null }),
-    idsEssaisListes.length > 0 ? supabaseAdmin.from('essais_commentaires').select('id_essai').in('id_essai', idsEssaisListes) : Promise.resolve({ data: [] as any[], error: null }),
-    idsAuteursPublies.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo, nom, prenom').in('id', idsAuteursPublies) : Promise.resolve({ data: [] as any[], error: null }),
-    idsAuteursSignalements.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursSignalements) : Promise.resolve({ data: [] as any[], error: null }),
-    idsEssaisCommentes.length > 0 ? supabaseAdmin.from('essais').select('id, titre').in('id', idsEssaisCommentes) : Promise.resolve({ data: [] as any[], error: null }),
-    idsParents.length > 0 ? supabaseAdmin.from('commentaires').select('id, auteur_nom, texte').in('id', idsParents) : Promise.resolve({ data: [] as any[], error: null }),
+    segIdsUniques.length > 0 ? supabaseAdmin.from('segments').select('id, segment_texte, segment_numero, id_oeuvre, id_texte').in('id', segIdsUniques) : Promise.resolve({ data: [] as LigneSegmentCtx[], error: null }),
+    idsVersetsCertif.length > 0 ? supabaseAdmin.from('versets_lecture').select('id_verset, ref, TR0001').in('id_verset', idsVersetsCertif) : Promise.resolve({ data: [] as LigneVersetCtx[], error: null }),
+    idsAuteursEssais.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursEssais) : Promise.resolve({ data: [] as LigneProfilPseudo[], error: null }),
+    idsAuteursModification.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursModification) : Promise.resolve({ data: [] as LigneProfilPseudo[], error: null }),
+    idsEssaisListes.length > 0 ? supabaseAdmin.from('essais_appreciations').select('id_essai').in('id_essai', idsEssaisListes) : Promise.resolve({ data: [] as LigneIdEssai[], error: null }),
+    idsEssaisListes.length > 0 ? supabaseAdmin.from('essais_commentaires').select('id_essai').in('id_essai', idsEssaisListes) : Promise.resolve({ data: [] as LigneIdEssai[], error: null }),
+    idsAuteursPublies.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo, nom, prenom').in('id', idsAuteursPublies) : Promise.resolve({ data: [] as LigneProfilNom[], error: null }),
+    idsAuteursSignalements.length > 0 ? supabaseAdmin.from('profils').select('id, pseudo').in('id', idsAuteursSignalements) : Promise.resolve({ data: [] as LigneProfilPseudo[], error: null }),
+    idsEssaisCommentes.length > 0 ? supabaseAdmin.from('essais').select('id, titre').in('id', idsEssaisCommentes) : Promise.resolve({ data: [] as LigneEssaiTitre[], error: null }),
+    idsParents.length > 0 ? supabaseAdmin.from('commentaires').select('id, auteur_nom, texte').in('id', idsParents) : Promise.resolve({ data: [] as LigneCommentaireParent[], error: null }),
   ])
   const [
     { data: segmentsCtx },
@@ -290,49 +312,60 @@ export default async function AdminPage() {
     vague2.some(r => erreurReelle(r))
 
   // ── Traitement ─────────────────────────────────────────────────────────────
+  // ⚠️ Ces quatre colonnes sont nullables en base : la carte le disait non, et le `any`
+  // alentour couvrait la contradiction. On rend le vide explicite plutot que de le nier.
   const segMap: Record<number, { texte: string; numero: number; id_oeuvre: string; id_texte: string }> = {}
-  segmentsCtx?.forEach(s => { segMap[s.id] = { texte: s.segment_texte, numero: s.segment_numero, id_oeuvre: s.id_oeuvre, id_texte: s.id_texte } })
+  ;((segmentsCtx ?? []) as LigneSegmentCtx[]).forEach(s => {
+    segMap[s.id] = { texte: s.segment_texte ?? '', numero: s.segment_numero ?? 0, id_oeuvre: s.id_oeuvre ?? '', id_texte: s.id_texte ?? '' }
+  })
 
   const versetMap: Record<string, string> = {}
   const versetTexteMap: Record<string, string> = {}
-  versetsCtx?.forEach(v => { versetMap[v.id_verset] = v.ref; if ((v as any).TR0001) versetTexteMap[v.id_verset] = (v as any).TR0001 })
+  ;((versetsCtx ?? []) as LigneVersetCtx[]).forEach(v => {
+    versetMap[v.id_verset] = v.ref ?? ''
+    if (v.TR0001) versetTexteMap[v.id_verset] = v.TR0001
+  })
 
   // Nom de l'œuvre pour un segment (« Auteur — Titre »), et pseudo de l'auteur d'un signalement.
   const oeuvreTitreMap: Record<string, string> = {}
-  ;(auteursData ?? []).forEach((a: any) => (a.oeuvres ?? []).forEach((o: any) => { oeuvreTitreMap[o.id_oeuvre] = `${a.nom} — ${o.titre}` }))
+  ;((auteursData ?? []) as LigneAuteurAvecOeuvres[]).forEach(a => (a.oeuvres ?? []).forEach(o => { oeuvreTitreMap[o.id_oeuvre] = `${a.nom} — ${o.titre}` }))
   const signalementAuteurMap: Record<string, string> = {}
-  ;(profilsSignalements ?? []).forEach((p: any) => { if (p.pseudo) signalementAuteurMap[p.id] = p.pseudo })
+  ;((profilsSignalements ?? []) as LigneProfilPseudo[]).forEach(p => { if (p.pseudo) signalementAuteurMap[p.id] = p.pseudo })
   const commentaireParentMap: Record<number, { auteur_nom: string; texte: string }> = {}
-  ;(commentairesParents ?? []).forEach((c: any) => { commentaireParentMap[c.id] = { auteur_nom: c.auteur_nom ?? 'Anonyme', texte: c.texte ?? '' } })
+  ;((commentairesParents ?? []) as LigneCommentaireParent[]).forEach(c => { commentaireParentMap[c.id] = { auteur_nom: c.auteur_nom ?? 'Anonyme', texte: c.texte ?? '' } })
 
   // Commentaires de publications (essais) en attente de modération.
-  const titreEssaiMap: Record<number, string> = {}
-  ;(titresEssaisCommentes ?? []).forEach((e: any) => { titreEssaiMap[e.id] = e.titre })
-  const commentairesPublications = (commentairesPublicationsRaw ?? []).map((c: any) => ({
-    id: c.id, id_essai: c.id_essai, texte: c.texte, auteur_nom: c.auteur_nom ?? 'Anonyme',
+  // ⚠️ `string | null`, et non `string` : un titre absent doit tomber sur le repli
+  // « Publication N » ci-dessous, ce qu'une chaine vide empecherait.
+  const titreEssaiMap: Record<number, string | null> = {}
+  ;((titresEssaisCommentes ?? []) as LigneEssaiTitre[]).forEach(e => { titreEssaiMap[e.id] = e.titre })
+  const commentairesPublications = ((commentairesPublicationsRaw ?? []) as LigneCommentairePublication[]).map(c => ({
+    id: c.id, id_essai: c.id_essai, texte: c.texte ?? '', auteur_nom: c.auteur_nom ?? 'Anonyme',
     created_at: c.created_at, user_id: c.user_id ?? null,
     titre_essai: titreEssaiMap[c.id_essai] ?? `Publication ${c.id_essai}`,
   }))
 
-  const pseudoMap: Record<string, string> = {}
-  profilsEssais?.forEach(p => { pseudoMap[p.id] = p.pseudo })
+  // ⚠️ `string | null` : un pseudo nul doit rester nul jusqu'a `marqueAnonyme`, qu'une
+  // chaine vide tromperait.
+  const pseudoMap: Record<string, string | null> = {}
+  ;((profilsEssais ?? []) as LigneProfilPseudo[]).forEach(p => { pseudoMap[p.id] = p.pseudo })
   const essaisEnAttente = essaisValidationRaw.map(e => ({ ...e, auteur_pseudo: marqueAnonyme(pseudoMap[e.user_id] ?? null, e) }))
 
-  const pseudoMapModification: Record<string, string> = {}
-  profilsModification?.forEach(p => { pseudoMapModification[p.id] = p.pseudo })
+  const pseudoMapModification: Record<string, string | null> = {}
+  ;((profilsModification ?? []) as LigneProfilPseudo[]).forEach(p => { pseudoMapModification[p.id] = p.pseudo })
   const essaisModification = essaisModificationRaw.map(e => ({ ...e, auteur_pseudo: marqueAnonyme(pseudoMapModification[e.user_id] ?? null, e) }))
 
   const likesParEssai = new Map<number, number>()
-  ;(appreciationsEssais ?? []).forEach((a: any) => likesParEssai.set(a.id_essai, (likesParEssai.get(a.id_essai) ?? 0) + 1))
+  ;((appreciationsEssais ?? []) as LigneIdEssai[]).forEach(a => likesParEssai.set(a.id_essai, (likesParEssai.get(a.id_essai) ?? 0) + 1))
   const commentairesParEssai = new Map<number, number>()
-  ;(commentairesEssais ?? []).forEach((c: any) => commentairesParEssai.set(c.id_essai, (commentairesParEssai.get(c.id_essai) ?? 0) + 1))
+  ;((commentairesEssais ?? []) as LigneIdEssai[]).forEach(c => commentairesParEssai.set(c.id_essai, (commentairesParEssai.get(c.id_essai) ?? 0) + 1))
   const profilMapPublies: Record<string, { pseudo: string | null; nom: string | null; prenom: string | null }> = {}
-  profilsPublies?.forEach(p => { profilMapPublies[p.id] = p })
-  const resoudreEssaiListe = (e: any) => {
+  ;((profilsPublies ?? []) as LigneProfilNom[]).forEach(p => { profilMapPublies[p.id] = p })
+  const resoudreEssaiListe = (e: LigneEssaiListe) => {
     const p = profilMapPublies[e.user_id]
     const auteur = marqueAnonyme(nomSigne({ afficher_nom_reel: e.afficher_nom_reel }, p) ?? 'profil introuvable', e)
     return {
-      id: e.id, titre: e.titre, sous_titre: e.sous_titre, auteur,
+      id: e.id, titre: e.titre ?? '', sous_titre: e.sous_titre, auteur,
       created_at: e.created_at, updated_at: e.updated_at ?? null, publie_at: e.publie_at ?? null,
       statut: e.statut, nb_vues: e.nb_vues ?? 0,
       nb_likes: likesParEssai.get(e.id) ?? 0,
