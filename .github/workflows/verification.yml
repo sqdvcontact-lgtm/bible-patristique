@@ -2,11 +2,22 @@
 # et que les tests passent. Rien ne l'assurait jusqu'ici, et un test cassé a pu être
 # poussé en production sans que personne s'en aperçoive (19 août 2026).
 #
-# Le linter tourne en dernier et NE BLOQUE PAS : il relève aujourd'hui 414 erreurs
-# héritées (`no-explicit-any`, `set-state-in-effect`, `no-unescaped-entities`…), et
-# faire échouer la vérification sur cette dette rendrait le garde-fou inutilisable
-# dès le premier jour. Son compte figure dans le résumé de l'exécution : quand il
-# sera retombé à zéro, retirer `continue-on-error` et il deviendra bloquant.
+# Le linter tourne en dernier et NE BLOQUE PAS : il relève une dette héritée, et
+# faire échouer la vérification dessus rendrait le garde-fou inutilisable dès le
+# premier jour. Son compte figure dans le résumé de l'exécution : quand il sera
+# retombé à zéro, retirer `continue-on-error` et il deviendra bloquant.
+#
+# ÉTAT AU 8 SEPTEMBRE 2026 : 304 erreurs et 79 avertissements sur `app/`.
+# Trois quarts tiennent en deux règles — 177 `no-explicit-any` et 78
+# `set-state-in-effect`. Ce ne sont pas des broutilles de style : la seconde
+# désigne des effets qui posent un état au lieu de le dériver, donc des rendus
+# en cascade. Les reprendre demande de toucher au flux de données de chaque
+# composant : c'est une campagne à mener règle par règle, avec les yeux sur la
+# page à chaque fois, jamais un passage en force.
+#
+# ⚠️ Ne pas se fier au chiffre de `npm run lint` pour le comparer : sans argument,
+# `eslint` parcourt aussi `scripts/` (951 fichiers) et rend un total plus gros.
+# C'est `npx eslint app` qui fait foi ici, comme ci-dessous.
 
 name: Vérification
 

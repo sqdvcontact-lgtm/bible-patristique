@@ -1,9 +1,12 @@
 name: Bible 899 — corrections source fac-similé 2026-08-19
 
+# ⛔ BESOGNE FAITE le 19 août 2026 : ce flux ne se déclenche PLUS tout seul.
+# Il se lançait à la moindre modification de son propre fichier, avec le droit
+# d'écrire dans le dépôt (`contents: write`) et un `git push` sur master à la fin.
+# Une retouche de commentaire suffisait donc à le rejouer et à pousser un commit.
+# Il reste ici comme TRACE de ce qui a été fait, et ne part plus qu'à la main.
 on:
-  push:
-    paths:
-      - '.github/workflows/bible899-source-fixes-20260819.yml'
+  workflow_dispatch: {}
 
 permissions:
   contents: write
