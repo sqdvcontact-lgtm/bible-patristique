@@ -1,10 +1,18 @@
 # Charte éditoriale et technique de Corpus Scriptura
 
-Cette charte est la seule version normative. Elle décrit l’état voulu du corpus, de la base et des procédures. Les journaux de chantier, bilans chiffrés, listes d’œuvres traitées et anciennes décisions ne lui appartiennent pas.
+**Cette charte fait loi.** Elle est la Constitution du projet : une collection de manifestes, de protocoles et de règles qui valent pour toute séance à venir, quelle que soit la main qui travaille. En cas de divergence entre une habitude, un script ancien, un commentaire de code et cette charte, **la charte prévaut**. Si le schéma de base ou le code ne permet pas encore d'appliquer une règle, on corrige d'abord l'outil : on ne dégrade jamais les données pour les adapter à un outil obsolète.
 
-Elle vit dans **`parametres.charte_ia`**, et nulle part ailleurs : c’est l’unique boîte à règles. `charte/CHARTE_IA.md` n’en est qu’un miroir, régénéré par `node scripts/synchroniser-charte-supabase.mjs --pull` ; ⛔ ne jamais l’éditer à la main, une correction portée sur le miroir se perd au premier `--pull`. `AGENTS.md` porte les règles de CODE du dépôt et renvoie ici pour la doctrine.
+**Elle contient** les principes qui gouvernent le corpus et son édition ; les protocoles de travail, un par tâche — révision et correction d'une œuvre avant publication, océrisation des œuvres patristiques, océrisation des bibles, import, modification du catalogue ; toutes les règles typographiques en vigueur et la mise en forme des textes ; tout ce qui touche aux styles, aux natures de segment et à leur composition ; et les gardes, c'est-à-dire ce qu'un contrôle doit refuser, et pourquoi.
 
-En cas de divergence entre une habitude, un script ancien et cette charte, la charte prévaut. Si le schéma de base ou le code ne permet pas encore d’appliquer une règle, on corrige d’abord l’outil. On ne dégrade jamais les données pour les adapter à un outil obsolète.
+⛔ **ELLE NE CONTIENT PAS LE JOURNAL DU CHANTIER, et c'est la première chose à savoir avant d'y écrire.** Les journaux de séance, les bilans chiffrés, les listes d'œuvres traitées, les mesures datées, les relevés d'audit, le récit d'une correction et les décisions périmées vont dans **`parametres.carnet_ia`**, le carnet de chantier, qui n'est pas normatif. ⚠️ Cette interdiction était écrite ici depuis l'origine et n'a jamais été suivie, faute d'un lieu où déverser : au 2026-09-08, deux chapitres de journal pesaient à eux seuls un tiers de la charte (le relevé est au carnet). **Une interdiction sans destination ne s'applique pas** ; le carnet est la destination, ouvert le 2026-09-08.
+
+⚠️ **Comment on choisit entre les deux.** Une RÈGLE vaut pour la PROCHAINE séance : elle prescrit, elle interdit, elle nomme un invariant, elle dit ce qu'un contrôle doit refuser — sa place est ici. Un CONSTAT vaut pour un jour donné : une mesure, un compte, une date, ce qu'on a trouvé, ce qu'on a essayé puis écarté — sa place est au carnet. Une trouvaille de carnet FONDE souvent une règle : on écrit alors la règle ici, courte, et l'on garde là-bas la mesure qui la soutient.
+
+**Où elle vit.** Dans **`parametres.charte_ia`**, et nulle part ailleurs : c'est l'unique boîte à règles. `charte/CHARTE_IA.md` n'en est qu'un miroir. `AGENTS.md` porte les règles de CODE du dépôt et renvoie ici pour la doctrine.
+
+⛔ **Comment on l'écrit : par le MIROIR, puis on pousse.** On corrige `charte/CHARTE_IA.md`, on contrôle par `node scripts/synchroniser-charte-supabase.mjs --push --dry`, on écrit par `--push`, qui sauvegarde la ligne, tient un verrou optimiste sur `mis_a_jour` et relit deux fois. Le carnet suit le même chemin, avec `--carnet`. ⚠️ Une correction portée sur le miroir sans être poussée se perd au premier `--pull`.
+
+⛔ **Une section neuve se pose à SA PLACE, jamais à la fin.** Les scripts d'ajout exigeaient que le texte neuf PROLONGE le distant : garde-fou juste, qui rend impossible de tronquer neuf cent mille signes par accident, et qui rendait du même coup impossible d'insérer une section où elle appartient. Un quart de la charte a fini par vivre loin du chapitre dont elle porte le numéro, trois numéros étaient pris deux fois, et toute poussée en a été bloquée treize jours. **Un garde-fou qui n'admet qu'un seul geste finit par imposer ce geste.**
 
 ## 1. Principes directeurs
 

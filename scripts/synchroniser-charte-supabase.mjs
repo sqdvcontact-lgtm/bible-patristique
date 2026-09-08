@@ -10,12 +10,19 @@ import {
 import { resolve } from 'node:path'
 
 const root = resolve(import.meta.dirname, '..')
-const chartePath = resolve(root, 'charte', 'CHARTE_IA.md')
+// ⛔ DEUX cibles, et elles ne se confondent pas : la charte fait loi, le carnet porte le
+// journal de chantier. Le carnet n'a ni numérotation à tenir ni invariant de note
+// positionnelle : seul le contrôle des caractères de remplacement lui est appliqué.
+const CARNET = process.argv.includes('--carnet')
+const CIBLE = CARNET
+  ? { cle: 'carnet_ia', fichier: 'CARNET_IA.md', prefixe: 'carnet_' }
+  : { cle: 'charte_ia', fichier: 'CHARTE_IA.md', prefixe: '' }
+const chartePath = resolve(root, 'charte', CIBLE.fichier)
 const auditRoot = resolve(root, 'audit', 'charte-sync-2026-08-21')
 const mode = process.argv.includes('--pull') ? 'pull' : process.argv.includes('--push') ? 'push' : null
 const dryRun = process.argv.includes('--dry')
 
-if (!mode) throw new Error('Préciser --pull ou --push (et éventuellement --dry).')
+if (!mode) throw new Error('Préciser --pull ou --push (et éventuellement --dry, --carnet).')
 
 const env = Object.fromEntries(
   readFileSync(resolve(root, '.env.local'), 'utf8')
@@ -44,7 +51,7 @@ const local = normaliser(readFileSync(chartePath, 'utf8'))
 const { data: row, error } = await db
   .from('parametres')
   .select('cle,valeur,mis_a_jour')
-  .eq('cle', 'charte_ia')
+  .eq('cle', CIBLE.cle)
   .single()
 if (error) throw error
 
@@ -62,7 +69,9 @@ const titres = [...local.matchAll(/^#{2,6}\s+(.+)$/gmu)].map(match => match[1].t
 // ⚠️ « 9.4 bis » est un numéro à part entière, non un doublon de « 9.4 » : le
 //    suffixe fait partie du numéro (relevé le 2026-09-03, il bloquait tout envoi).
 const numeros = titres.map(titre => titre.match(/^(\d+(?:\.\d+)*(?: bis| ter)?)\.?\s/u)?.[1]).filter(Boolean)
-const controles = {
+const controles = CARNET ? {
+  replacement_characters: [...local.matchAll(/�/gu)].length,
+} : {
   duplicate_headings: [...new Set(titres.filter((titre, index) => titres.indexOf(titre) !== index))],
   duplicate_heading_numbers: [...new Set(numeros.filter((numero, index) => numeros.indexOf(numero) !== index))],
   replacement_characters: [...local.matchAll(/�/gu)].length,
@@ -72,9 +81,9 @@ const controles = {
 mkdirSync(auditRoot, { recursive: true })
 
 if (mode === 'pull') {
-  const reportPath = resolve(auditRoot, dryRun ? 'pull-dry.json' : 'pull.json')
+  const reportPath = resolve(auditRoot, `${CIBLE.prefixe}${dryRun ? 'pull-dry' : 'pull'}.json`)
   if (!dryRun && local !== distant) {
-    const backupPath = resolve(auditRoot, 'charte_locale_avant_pull.md')
+    const backupPath = resolve(auditRoot, `${CIBLE.prefixe}locale_avant_pull.md`)
     if (!existsSync(backupPath)) writeFileSync(backupPath, local, 'utf8')
     const tempPath = `${chartePath}.tmp-sync`
     writeFileSync(tempPath, distant, 'utf8')
@@ -87,21 +96,21 @@ if (mode === 'pull') {
   writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8')
   console.log(JSON.stringify(report, null, 2))
 } else {
-  if (controles.duplicate_headings.length
-    || controles.duplicate_heading_numbers.length
-    || controles.replacement_characters
-    || controles.positional_note_rule_once !== 1) {
+  if (controles.replacement_characters
+    || (!CARNET && (controles.duplicate_headings.length
+      || controles.duplicate_heading_numbers.length
+      || controles.positional_note_rule_once !== 1))) {
     throw new Error(`La charte locale est invalide : ${JSON.stringify(controles)}`)
   }
 
-  const reportPath = resolve(auditRoot, dryRun ? 'push-dry.json' : 'push.json')
+  const reportPath = resolve(auditRoot, `${CIBLE.prefixe}${dryRun ? 'push-dry' : 'push'}.json`)
   if (dryRun || local === distant) {
     const report = { ...avant, proposed: resume(local), controles, write_required: local !== distant }
     writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8')
     console.log(JSON.stringify(report, null, 2))
   } else {
     const suffixeSauvegarde = String(row.mis_a_jour ?? 'sans_date').replace(/[^0-9A-Za-z]+/gu, '-')
-    const backupPath = resolve(auditRoot, `charte_supabase_avant_push_${suffixeSauvegarde}.json`)
+    const backupPath = resolve(auditRoot, `${CIBLE.prefixe}charte_supabase_avant_push_${suffixeSauvegarde}.json`)
     if (existsSync(backupPath)) throw new Error(`La sauvegarde existe déjà : ${backupPath}`)
     writeFileSync(backupPath, `${JSON.stringify(row, null, 2)}\n`, 'utf8')
 
@@ -109,7 +118,7 @@ if (mode === 'pull') {
     const { data: updated, error: updateError } = await db
       .from('parametres')
       .update({ valeur: local, mis_a_jour: nextTimestamp })
-      .eq('cle', 'charte_ia')
+      .eq('cle', CIBLE.cle)
       .eq('mis_a_jour', row.mis_a_jour)
       .select('cle,valeur,mis_a_jour')
       .single()
@@ -119,7 +128,7 @@ if (mode === 'pull') {
     const { data: reread, error: rereadError } = await db
       .from('parametres')
       .select('cle,valeur,mis_a_jour')
-      .eq('cle', 'charte_ia')
+      .eq('cle', CIBLE.cle)
       .single()
     if (rereadError) throw rereadError
     const final = normaliser(reread.valeur)
