@@ -2012,12 +2012,15 @@ Supprimer seulement les caches, environnements temporaires, doubles pages redond
 Une césure typographique/OCR située à la frontière de deux unités source ne doit jamais être absorbée artificiellement par une seule unité de lecture. Les deux fragments lexicaux restent rattachés à leurs unités source respectives et sont réunis au rendu par `join_before = ''`. Le trait de césure de fin de ligne/page est un signe matériel du témoin : il n’entre pas dans le mot normalisé. Les guillemets de continuation ajoutés par l’OCR ou par la mise en page ne sont pas réinjectés s’ils ne correspondent pas à un nouveau guillemet sémantique. Avant toute correction, contrôler les deux unités voisines ; ne jamais reconstruire un mot à partir d’une seule unité si le second fragment appartient à la suivante. Exemples validés : `représente-` + `t-il` → `représente-t-il` ; `mou-` + `vements` → `mouvements` ; `si-` + `gnalé` → `signalé`.
 
 
-### 14.14 Transposition de lignes dans une transcription OCR source
-Lorsqu’une unité source OCR contient des lignes ou fragments matériellement transposés, on ne force jamais des offsets continus contre cet ordre corrompu. Les segments concernés restent sans bornes jusqu’à correction de la transcription diplomatique à partir du fac-similé. Une transcription secondaire peut corroborer l’ordre attendu, mais ne remplace pas le fac-similé lorsqu’il faut réécrire la couche source. La réserve doit être documentée au niveau de l’unité et chiffrée au centre de contrôle.
+### 14.14 Transposition de lignes OCR et provenance
 
-### 14.15 Transposition de lignes OCR et provenance
-Lorsqu’une unité OCR présente des lignes ou fragments matériellement transposés, ne jamais fabriquer des offsets discontinus ni forcer un alignement sur le texte éditorial. Revenir au fac-similé, corriger d’abord l’unité source dans l’ordre attesté, documenter la correction, puis seulement recalculer les offsets des segments. La source corrigée devient la base de provenance ; le texte de lecture n’est pas réécrit s’il était déjà conforme au fac-similé.
+⛔ **Lorsqu'une unité source OCR porte des lignes ou des fragments matériellement TRANSPOSÉS, on ne fabrique NI offsets continus contre cet ordre corrompu, NI offsets discontinus pour l'épouser, et l'on ne force aucun alignement sur le texte éditorial.** Les segments concernés restent SANS bornes jusqu'à correction.
 
+⛔ **L'ordre des gestes ne s'inverse pas** : revenir au fac-similé, corriger d'abord l'unité source dans l'ordre attesté, documenter la correction, puis SEULEMENT recalculer les offsets des segments. La source corrigée devient la base de provenance.
+
+⚠️ **Une transcription secondaire peut corroborer l'ordre attendu ; elle ne remplace pas le fac-similé** lorsqu'il faut réécrire la couche source. ⚠️ Et **le texte de lecture n'est pas réécrit** s'il était déjà conforme au fac-similé : c'est la couche SOURCE qui est en défaut, non lui.
+
+La réserve se documente au niveau de l'unité et se chiffre au centre de contrôle.
 
 ## 15. Corpus biblique et traductions
 
