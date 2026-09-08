@@ -364,7 +364,7 @@
 - ⛔ AUCUN LIVRE DU CANON N’A PLUS DE 150 CHAPITRES — le Psautier étant le plus long.
 - ⚠️ Elle ne coûte rien à l’existant : des 4 038 réécritures d’avant, **pas une** ne dépassait 150.
 - ⚠️ LE MOTIF RECULE DANS LE MOT QUI PRÉCÈDE, et il faut le lui laisser.
-- ⚠️ Trois sources sont elles-mêmes fautives, et le normaliseur les recopie fidèlement « I Cor.
+- ⚠️ Trois sources sont elles-mêmes fautives, et le normaliseur les recopie fidèlement.
 - ⛔ On ne CORRIGE pas une référence : on la recompose.
 - ⛔ Les équivoques restent dehors, et la charte l’a déjà tranché : « Cor.
 - ⛔ On restreint donc la LECTURE aux clés qu’on projette — gain sans arbitrage, sans toucher une donnée.
@@ -376,7 +376,7 @@
 - ⛔ Ne pas la confondre avec le fait que l’auteur parle dans le TEXTE : ce qui est en cause est qui a écrit la NOTE.
 - ⛔ Jamais attribuée à une note importée, si utile soit-elle.
 - ⛔ UN TYPE FAUX EST PIRE QU’UN TYPE ABSENT — il attribue à un Père une remarque de son traducteur du XIXe siècle.
-- ⚠️ Le type se pose sur le BLOC ; la note ne l’ANNONCE que si tous ses blocs s’accordent (§ 13.11.1).
+- ⚠️ Le type se pose sur le BLOC ; la note ne l’ANNONCE que si tous ses blocs s’accordent.
 - ⚠️ « Note de l’édition », et non « note de l’éditeur » — le libellé nomme une RESPONSABILITÉ, et « éditeur » se dispute en français entre la maison qui publie et le savant qui établit.
 
 **§ 13.12.2 — L’ITALIQUE du latin enchâssé**
@@ -1019,7 +1019,7 @@
 - ⚠️ RIEN DU FOND N’EST PERDU, et c’est la condition.
 - ⚠️ UNE PROSE NE SE COMPOSE PAS COMME UNE ÉTIQUETTE.
 - ⛔ Sans justification : la colonne fait environ 314 px, soit quarante-cinq signes par ligne, et le justifié y creuse les blancs que le § 50.2 apprend à fermer.
-- ⚠️ ET LA NORME FRANÇAISE SE POSE AU RENDU, ici comme partout (§ 3.2).
+- ⚠️ ET LA NORME FRANÇAISE SE POSE AU RENDU, ici comme partout.
 - ⛔ On n’écrit donc pas de fine dans la donnée : elle resterait la seule table du site à en porter.
 
 **§ 38.16 — Un CHOIX ne s’offre que s’il en est UN**
@@ -1252,7 +1252,7 @@
 
 **§ 42.2 — Une surface du moteur**
 
-- ⛔ L’OUTIL BIBLIOGRAPHIQUE EST UNE SURFACE DU MOTEUR, NON UN MOTEUR DE PLUS (§ 47.5).
+- ⛔ L’OUTIL BIBLIOGRAPHIQUE EST UNE SURFACE DU MOTEUR, NON UN MOTEUR DE PLUS.
 
 **§ 42.3 — Le volet**
 
@@ -1485,18 +1485,66 @@
 
 **§ 48.1 — Cycle canonique de travail — protocole vivant**
 
+- ⛔ on ne mélange pas plusieurs familles de correction dans une même passe — lorsque cela empêcherait d’en mesurer l’effet.
+- ⛔ on ne corrige jamais seulement l’exemple rencontré.
+- ⛔ Aucun « tout est bon » ne remplace ces contrôles.
+- ⛔ Une micro-passe qui échoue à son postcontrôle n’est pas poursuivie comme si elle était close.
 - ⛔ Ne jamais corriger seulement le bloc ni seulement le miroir.
+- ⛔ Toute anomalie de classification découverte est documentée pour une mission distincte, jamais corrigée par ricochet.
 - ⛔ Ne jamais effacer un indicateur de revue pour fabriquer artificiellement un état « terminé ».
+- ⛔ Un titre n’est jamais injecté dans la prose ; un bloc `title` n’a pas de corps ; un intitulé ne se répète pas comme premier paragraphe.
+- ⛔ La casse d’un heading source n’est jamais normalisée.
+- ⛔ Après TOUTE modification d’une projection de heading, contrôler immédiatement toutes les notes et ancres qui la ciblent.
+- ⛔ Ne jamais fabriquer un offset pour compenser une mauvaise classification.
 - ⛔ Ne jamais déplacer une ancre par simple delta global lorsque la typographie ou le texte intermédiaire a changé.
+- ⛔ Ne jamais déduire un italique d’un simple motif lexical lorsqu’un homographe français est possible.
+- ⚠️ Une recherche brute de toutes les chaînes `comparer` ne suffit pas.
+- ⛔ Une lecture directe est une passe à part entière ; elle n’est jamais remplacée par un compteur à zéro.
 - ⛔ Ne jamais fabriquer un `source_markup` à partir du texte courant pour satisfaire ce contrôle.
+- ⛔ Aucun saut de ligne artificiel n’est ajouté pour réparer une marge.
+- ⛔ Tous les nombres annoncés viennent de requêtes déterministes.
+- ⛔ Aucun statut humain n’est attribué automatiquement.
+- ⛔ On n’ouvre le chapitre suivant qu’après contrôle déterministe et journalisation du précédent.
 - ⛔ Ne jamais supposer leur identité, notamment aux frontières où la Vulgate et la numérotation canonique courante décalent un chapitre.
+- ⛔ On ne réécrit jamais le témoin pour faire disparaître une faute OCR.
+- ⛔ Les compteurs hérités d’une passe antérieure ne font jamais foi — ils sont recalculés en SQL depuis l’état courant.
+- ⛔ Aucune graphie ne devient certaine par simple vraisemblance philologique.
+- ⚠️ une donnée déjà conforme n’est jamais réécrite pour uniformiser artificiellement le lot.
+- ⚠️ il n’est jamais édité comme source d’autorité.
+- ⛔ Le protocole ne s’allège jamais en supprimant une garde qui a déjà empêché une erreur réelle — il peut être réorganisé pour éviter les doublons, mais sa couverture ne régresse pas.
+
+**§ 48.2 — Séparer strictement témoin source et lecture éditoriale**
+
+- ⛔ Le témoin source ou diplomatique reste immuable.
+- ⚠️ Une correction n’est complète que si toutes les projections qui exposent le même contenu sont cohérentes.
 
 **§ 48.3 — Ordre obligatoire des passes**
 
+- ⛔ Un titre ne doit jamais rester injecté dans le corps ni dans un sous-bloc de commentaire.
 - ⛔ Ne jamais convertir automatiquement `...` en `[…]` : `[…]` est réservé à une omission réelle dans une citation ou un lemme, vérifiée par le contexte ou le témoin.
+- ⛔ Ne jamais mettre en italique par simple détection lexicale un homographe français — utiliser le paragraphe, la langue déclarée, les lemmes structurés et le contexte.
+- ⚠️ Toute abréviation ambiguë reste en `review` jusqu’à identification certaine.
+- ⛔ Ne pas convertir mécaniquement les chiffres romains bibliographiques — qui restent romains et sont harmonisés en capitales.
+- ⛔ Un commentaire général sans lemme ne reçoit jamais artificiellement un couple de lemmes.
+- ⛔ ne jamais fabriquer un `source_markup` à partir du texte courant.
+
+**§ 48.3.1 — Postconditions obligatoires des transformations éditoriales**
+
+- ⛔ Une expansion ne peut absorber la ponctuation de phrase.
+- ⛔ La désabréviation doit conserver la grammaire.
+- ⚠️ Une substitution lexicalement correcte mais grammaticalement fautive est une correction inachevée.
+- ⛔ Aucun chapitre biblique isolé en chiffres romains ne doit subsister après normalisation.
+- ⛔ Ce développement n’altère jamais la forme source.
+- ⛔ Un séparateur matériel ne termine pas un heading.
+
+**§ 48.4 — Contrôles structurels obligatoires après chaque passe**
+
+- ⛔ Les contrôles ne portent jamais seulement sur `text_content`.
+- ⚠️ Un contrôle d’égalité textuelle simple est insuffisant pour les doublons.
 
 **§ 48.5 — Sondages aléatoires reproductibles**
 
+- ⛔ Un sondage n’est jamais une preuve de complétude — il sert à découvrir les angles morts des contrôles systématiques.
 - ⚠️ Si un sondage trouve une erreur, ne pas corriger seulement l’objet tiré.
 
 **§ 48.7 — Conditions de clôture**
@@ -1548,7 +1596,6 @@
 
 - ⚠️ La bride reprend l'essentiel du gain de bord — il venait justement des
 - ⛔ Un réglage qui gagne sur une mesure en perdant sur deux autres n'est
-- ⛔ Et l'on creuse les tons EN DERNIER (§ 49.11).
 - ⚠️ Une énergie de bord mesurée à travers un intermédiaire WebP est FAUSSE
 
 **§ 49.14 — Une PLANCHE hors-texte se sert au double, elle aussi**
@@ -1834,4 +1881,4 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | 11 | Format d’échange et import des versions textue | 8 792 | 1 | **0.1** |
 | 16 | Auteurs, œuvres et catalogue | 24 274 | 3 | **0.1** |
 | 19 | Modèle de données des œuvres et versions | 16 683 | 4 | **0.2** |
-| 48 | Le protocole d’océrisation d’une bible | 46 025 | 12 | **0.3** |
+| 14 | OCR, HTR et transcription patrimoniale | 12 714 | 4 | **0.3** |

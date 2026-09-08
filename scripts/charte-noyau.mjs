@@ -74,9 +74,13 @@ function imperatif(brut) {
       const f = finDePhrase(suite.slice(0, 240))
       // ⚠️ Le tiret ne se pose pas devant une parenthèse ni un deux-points : « TOUTES
       // LETTRES — (décision…) » se lit mal, quand « TOUTES LETTRES (décision…) » se lit.
+      // ⚠️ Une suite qui n'est que ponctuation n'ajoute rien : « … — . » n'est pas une
+      // phrase. On ne raccorde que si la suite porte réellement des mots.
       if (f >= 0) {
         const s = suite.slice(0, f + 1)
-        g = g.replace(/[:,;]$/, '') + (/^[(«]/u.test(s) ? ' ' : ' — ') + s
+        if (s.replace(/[^\p{L}\p{N}]/gu, '').length >= 8) {
+          g = g.replace(/[:,;]$/, '') + (/^[(«]/u.test(s) ? ' ' : ' — ') + s
+        } else if (!/[.!?]$/.test(g)) g += '.'
       }
     }
     return tete + g

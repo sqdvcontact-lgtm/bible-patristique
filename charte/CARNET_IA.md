@@ -154,3 +154,20 @@ Le § 48.1 porte 5 marques mais **42 passages en gras**, et sa prose prescrit sa
 ⛔ **Mais la conséquence tient, et elle est mécanique** : un noyau dérivé qui s'extrait sur `⛔`/`⚠️` sauterait **45 979 signes de protocole** pour n'en tirer que treize lignes. Ce n'est pas une passe d'écriture qu'il faut, c'est une passe de **marquage**.
 
 **Corollaire de méthode** : une densité de marques mesure une CONVENTION D'ÉCRITURE, pas une densité de règle. Ne pas conclure d'un chiffre bas qu'un chapitre prescrit peu — l'ouvrir d'abord.
+
+### 2026-09-08 — Passe de marquage sur le § 48, et ce qu'elle a rendu
+
+Le protocole d'océrisation d'une bible prescrivait fermement **sans marque** : 46 262 signes pour 13 ⛔ ou ⚠️, soit **0,3 pour mille**, la densité la plus faible de tous les grands chapitres. Le noyau, qui s'extrait sur ces marques, n'en tirait donc presque rien.
+
+⛔ **Rien n'a été déplacé ni réécrit.** Quarante et un impératifs enfouis dans la prose ont été marqués **là où ils sont**, et mis en gras : « on ne corrige jamais seulement l'exemple rencontré », « Aucun chiffre de suivi n'est estimé », « La casse d'un heading source n'est jamais normalisée », « On ne réécrit jamais le témoin pour faire disparaître une faute OCR », « Un sondage n'est jamais une preuve de complétude ». L'ordre de lecture, le contenu et la démonstration ne bougent pas d'un mot.
+
+| | avant | après |
+|---|---:|---:|
+| marques dans le § 48 | 13 | **54** |
+| pour mille signes | 0,3 | **1,2** |
+| énoncés que le noyau en tire | 13 | **52** |
+| noyau entier | 1 212 énoncés | **1 250** |
+
+⚠️ **Le noyau a GROSSI de 3 700 signes, et c'est le résultat attendu** : il ne mesure pas la brièveté de la charte, il mesure ce qu'on peut en extraire sans l'ouvrir. Un chapitre mal marqué le fait paraître court en cachant sa loi.
+
+**Ce qui reste au § 48** : les gras y sont des ÉTIQUETTES DE PASSE — « **Passe 0 — Préflight documentaire** » — et non des impératifs. L'extracteur prend le gras de tête quand il y en a un ; sur ces paragraphes-là il prend donc l'étiquette. La passe règle-d'abord complète, qui mettrait l'impératif AVANT l'étiquette, reste à faire ; le marquage était le préalable.
