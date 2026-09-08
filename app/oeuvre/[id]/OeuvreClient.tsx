@@ -79,7 +79,8 @@ import { identiteEdition, libelleVersionComplet } from './versionTextuelle'
 import { editionsOffertes } from './editionsDuTexte'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import ModaleEditionAdmin from './ModaleEditionAdmin'
-import FicheEdition from './FicheEdition'
+import FicheEdition, { type VoletFiche } from './FicheEdition'
+import { libelleLangue } from '@/app/lib/langues'
 import MenuExtraction from './MenuExtraction'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
 import BandeauDegradations from './BandeauDegradations'
@@ -438,8 +439,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const versionActive = versionsTextuelles.find(version => version.idTexte === idTexte) ?? null
   // ⛔ L'identité de l'édition qu'on lit se prend à la version active, silence compris :
   //    le repli champ par champ mêlait deux éditions (voir `identiteEdition`).
-  const oeuvreAffichee = useMemo<Props['oeuvre']>(() => {
-    const identite = identiteEdition(oeuvreLocale, versionActive)
+  // ⚠️ L'œuvre VUE PAR UNE ÉDITION : l'identité de la version l'emporte champ par champ.
+  //    ⛔ Elle se calcule pour une version QUELCONQUE, et non pour la seule version
+  //    active : la fiche « À propos » en compose deux en lecture bilingue, et deux
+  //    projections écrites à part auraient divergé au premier champ ajouté.
+  const oeuvrePourVersion = useCallback((v: VersionTextuelle | null): Props['oeuvre'] => {
+    const identite = identiteEdition(oeuvreLocale, v)
     return {
       ...oeuvreLocale,
       // `Props['oeuvre']` ne connaît pas le null sur ces champs : une identité absente
@@ -448,12 +453,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       editeur: identite.editeur ?? undefined,
       ville: identite.ville ?? undefined,
       date_publication: identite.datePublication ?? undefined,
-      url_source: versionActive?.sourceUrl ?? oeuvreLocale.url_source,
-      commentaire_traduction: versionActive && !versionActive.isDefault
+      url_source: v?.sourceUrl ?? oeuvreLocale.url_source,
+      commentaire_traduction: v && !v.isDefault
         ? null
         : oeuvreLocale.commentaire_traduction,
     }
-  }, [oeuvreLocale, versionActive])
+  }, [oeuvreLocale])
+  const oeuvreAffichee = useMemo<Props['oeuvre']>(
+    () => oeuvrePourVersion(versionActive), [oeuvrePourVersion, versionActive])
   const [navOuverte, setNavOuverte] = useState(true)
   const [panneauOuvert, setPanneauOuvert] = useState(true)
   // ≤ 900px : nav et apparat en barres fixes + tiroirs (voir AGENTS § mobile).
@@ -1061,13 +1068,22 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   //    « Texte complet » : une rubrique qui annonce une table des matières, et une
   //    ligne qui dit qu’il n’y en a pas. Deux objets pour rien.
   //
-  // ⚠️ La règle porte sur le CONTENU, non sur le mode de lecture : c’est en texte
-  //    entier que le cas se rencontre aujourd’hui — une seule œuvre publique, « De la
-  //    vanité des idoles » — mais un texte sans niveaux le rendrait tout aussi absurde
-  //    ailleurs. ⛔ Ne pas l’étendre au mode « texte entier » lui-même : vingt-trois
-  //    œuvres s’y lisent AVEC leur sommaire, dont l’Apologétique (52 chapitres) et les
-  //    Homélies sur la Genèse (68), où il est la seule navigation.
-  const sommaireAQuoiSommer = modeComparaisonActif || !texteSansNiveaux
+  // ⛔ ET UNE SEULE ENTRÉE NE SOMME PAS DAVANTAGE QUE ZÉRO (2026-09-08 : « en mode
+  //    “texte entier”, ne pas afficher du tout dans le volet de gauche “Sommaire” ou
+  //    “texte complet”, ni même le titre entier »). C’est la MÊME règle d’un cran plus
+  //    loin, et elle vise un cas précis : cinq œuvres publiques lues d’un tenant —
+  //    quatre homélies et la Lettre à l’empereur Constance — n’ont qu’un seul niveau 1,
+  //    dont l’intitulé EST le titre de l’œuvre. Le volet écrivait donc « SOMMAIRE », et
+  //    dessous, en unique entrée, le titre déjà imprimé trois lignes plus haut. Une
+  //    table des matières à une entrée n’offre aucun choix : elle nomme le tout.
+  //
+  // ⚠️ La règle porte sur le CONTENU, non sur le mode de lecture, et c’est ce qui la
+  //    rend sûre : c’est en texte entier que le cas se rencontre, mais un texte à une
+  //    seule division serait tout aussi vain ailleurs. ⛔ NE PAS l’étendre au mode
+  //    « texte entier » lui-même : vingt-trois œuvres s’y lisent AVEC leur sommaire,
+  //    dont l’Apologétique (52 chapitres) et les Homélies sur la Genèse (68), où il est
+  //    la seule navigation — la garde de 2026-09-05 tient toujours.
+  const sommaireAQuoiSommer = modeComparaisonActif || niv1List.length > 1
   // Carte niv1 -> titre textuel, complete des le rendu serveur.
   // Elle reste enrichie apres modifications ou chargements forces.
   const [niv1TexteMap, setNiv1TexteMap] = useState<Record<string, string>>(niv1TexteMapProp)
@@ -1806,6 +1822,42 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     () => (auteursOeuvre.length > 0 ? auteursOeuvre : auteurId && auteur ? [{ id_auteur: auteurId, nom: auteur, rang: 1 }] : []),
     [auteursOeuvre, auteurId, auteur],
   )
+
+  // ── LES VOLETS DE LA FICHE « À PROPOS » ───────────────────────────────────
+  //
+  // ⛔ DEUX COLONNES À L'ÉCRAN, DEUX VOLETS DANS LA FICHE (demande de l'auteur,
+  // 2026-09-08). En lecture bilingue, la fiche ne décrivait que le texte « principal » :
+  // on pouvait lire le latin de Knöll pendant qu'elle parlait de la traduction de
+  // Moreau, sans qu'un mot le signale. ⚠️ Le premier volet est celui qu'on LIT, la fiche
+  // s'ouvrant sur ce que le lecteur vient de cliquer ; le second est celui d'en regard.
+  //
+  // ⚠️ L'onglet prend la LANGUE pour nom : c'est ce qui sépare les deux colonnes, et le
+  // mot que le menu « Lecture » emploie déjà trois rubriques plus haut. À défaut — une
+  // version sans langue déclarée —, le libellé court de l'édition, qui la nomme toujours.
+  //
+  // ⛔ Un seul volet ne pose pas de barre : `FicheEdition` s'en charge, et la règle est
+  // celle du site — une barre d'un onglet annonce un choix qu'elle n'offre pas.
+  const voletsFiche = useMemo<VoletFiche[]>(() => {
+    const volet = (v: VersionTextuelle | null, cle: string): VoletFiche => ({
+      cle,
+      libelle: (v?.langue ? libelleLangue(v.langue) : null) || v?.labelCourt || 'Édition',
+      donnees: {
+        oeuvre: oeuvrePourVersion(v),
+        titre: titreAffiche,
+        auteurs: auteursCliquables,
+        auteurNom: auteur,
+        versionActive: v,
+        versions: versionsTextuelles,
+        aTexteOriginal,
+      },
+    })
+    const lu = volet(versionActive, versionActive?.idTexte ?? 'lu')
+    // ⚠️ `versionEnRegard` est déjà nul quand la colonne originale vient du repli
+    // `segments.texte_original` : ce n'est pas une autre édition, c'est la même qui
+    // porte son original avec elle, et il n'y aurait rien de plus à décrire.
+    if (!versionEnRegard || versionEnRegard.idTexte === versionActive?.idTexte) return [lu]
+    return [lu, volet(versionEnRegard, versionEnRegard.idTexte)]
+  }, [oeuvrePourVersion, titreAffiche, auteursCliquables, auteur, versionActive, versionEnRegard, versionsTextuelles, aTexteOriginal])
   // Un fragment, pas un composant : `NomsAuteurs` était déclaré au rendu, donc de
   // type neuf à chaque passage, ce que React ne reconnaît pas. Il ne porte aucun état
   // et ne sert qu'une fois — le rendre en valeur suffit, et l'identité cesse d'être
@@ -1843,10 +1895,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // s'ils n'ont pas pu l'être) : la liste reste peuplée, simplement sans les
     // co-signatures.
     const requete = oeuvresDesAuteurs.length > 0 ? base.in('id_oeuvre', oeuvresDesAuteurs) : base.eq('id_auteur', auteurId)
+    // ⛔ L'ŒUVRE COURANTE EST DANS LA LISTE (demande de l'auteur, 2026-09-08 : « afficher
+    //    une liste de toutes les œuvres […] y compris celle en cours, et montrer qu'elle
+    //    est sélectionnée »). Elle en était RETIRÉE par un `.neq`, et la liste devenait
+    //    alors le catalogue de tout ce qu'on ne lit pas : le lecteur y cherchait sa place
+    //    et ne l'y trouvait jamais. Une liste où l'on se voit est une carte ; une liste
+    //    d'où l'on est absent est un ailleurs.
     requete
-      .neq('id_oeuvre', idOeuvre)
       .then(({ data }) => setOeuvresAuteur(
-        ((data ?? []) as any[]).filter(estOeuvrePubliee)
+        // ⚠️ L'œuvre COURANTE échappe au filtre de publication : on est en train de la
+        //    lire. Un administrateur qui ouvre une œuvre non publiée doit s'y voir, sans
+        //    quoi la liste dirait qu'il lit ce qui n'existe pas.
+        ((data ?? []) as any[]).filter(o => o.id_oeuvre === idOeuvre || estOeuvrePubliee(o))
           // Classement alphabétique en écartant l'article/déterminant de tête
           // (« La Cité de Dieu » → à « C »), titre brut en départage.
           .sort((a, b) => cleTriTitre(a.titre).localeCompare(cleTriTitre(b.titre), 'fr')
@@ -2705,7 +2765,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           </div>
 
 
-          {oeuvresAuteur.length > 0 && (
+          {/* ⛔ UNE LISTE D'UN SEUL ÉLÉMENT N'EST PAS UNE LISTE (demande de l'auteur,
+              2026-09-08 : « sauf s'il y en a qu'une, alors ne rien afficher »). L'œuvre
+              courante étant désormais dedans, une rubrique « DU MÊME AUTEUR » qui ne
+              porterait qu'elle annoncerait un choix pour n'offrir que ce qu'on lit déjà.
+              C'est la règle qui a déjà emporté le sommaire sans matière à sommer. */}
+          {oeuvresAuteur.length > 1 && (
             <div style={{ borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
               <button onClick={() => setAuteurOuvert(!auteurOuvert)}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
@@ -2716,18 +2781,42 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 <div style={{ padding: '0 16px 12px' }}>
                   {oeuvresAuteur.map(o => {
                     const distinction = libelleDistinction(o)
-                    return (
-                      <a key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
-                        style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--cs-texte)', textDecoration: 'none', padding: '4px 0', lineHeight: 1.35, borderBottom: '1px solid var(--cs-fond-doux)' }}
-                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-vert)')}
-                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-texte)')}>
+                    const courante = o.id_oeuvre === idOeuvre
+                    // ⚠️ CELLE QU'ON LIT N'EST PAS UN LIEN, et c'est ce qui la dit
+                    //    retenue : un lien qui mène où l'on est déjà est une promesse
+                    //    vide. Elle prend la marque que le site emploie partout pour
+                    //    l'option en cours — le vert, la graisse —, comme un niveau actif
+                    //    du sommaire deux rubriques plus bas ; `aria-current` la dit à qui
+                    //    ne voit pas la couleur.
+                    const contenu = (
+                      <>
                         {o.titre}
                         {/* La ligne de distinction ne prend PAS la couleur de survol : le lien
                             est le titre, et cette ligne le renseigne. Elle garde donc sa teinte
                             faible, ce qui la tient au second rang même sous le curseur. */}
                         {distinction && (
-                          <span style={{ display: 'block', fontSize: '0.625rem', fontStyle: 'italic', color: 'var(--cs-texte-faible)', lineHeight: 1.3, marginTop: '1px' }}>{distinction}</span>
+                          <span style={{ display: 'block', fontSize: '0.625rem', fontStyle: 'italic', color: courante ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', lineHeight: 1.3, marginTop: '1px' }}>{distinction}</span>
                         )}
+                      </>
+                    )
+                    const commun: React.CSSProperties = {
+                      display: 'block', fontSize: '0.6875rem', textDecoration: 'none',
+                      padding: '4px 0', lineHeight: 1.35, borderBottom: '1px solid var(--cs-fond-doux)',
+                    }
+                    if (courante) {
+                      return (
+                        <span key={o.id_oeuvre} aria-current="page"
+                          style={{ ...commun, color: 'var(--cs-vert)', fontWeight: 600 }}>
+                          {contenu}
+                        </span>
+                      )
+                    }
+                    return (
+                      <a key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
+                        style={{ ...commun, color: 'var(--cs-texte)' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-vert)')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-texte)')}>
+                        {contenu}
                       </a>
                     )
                   })}
@@ -3906,17 +3995,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       })()}
 
 
+      {/* ⛔ EN LECTURE BILINGUE, LA FICHE PORTE LES DEUX ÉDITIONS (demande de l'auteur,
+          2026-09-08). Elle n'en montrait qu'une — celle du texte « principal » —, si bien
+          qu'on pouvait lire le latin de Knöll pendant qu'elle décrivait la traduction de
+          Moreau, sans qu'un mot le dise. Les deux colonnes sont à l'écran : les deux
+          doivent être à la fiche.
+          ⚠️ Le premier volet est TOUJOURS celui qu'on lit — `versionActive` —, l'autre
+          celui d'en regard : la fiche s'ouvre sur ce que le lecteur vient de cliquer.
+          ⚠️ L'onglet prend la LANGUE pour nom, qui est ce qui sépare les deux colonnes et
+          le mot que le menu « Lecture » emploie déjà ; à défaut, le libellé court de
+          l'édition. */}
       {infoEditionOuverte && (
         <FicheEdition
-          donnees={{
-            oeuvre: oeuvreAffichee,
-            titre: titreAffiche,
-            auteurs: auteursCliquables,
-            auteurNom: auteur,
-            versionActive,
-            versions: versionsTextuelles,
-            aTexteOriginal,
-          }}
+          volets={voletsFiche}
           onOuvrirAuteur={setAuteurModalId}
           onFermer={() => setInfoEditionOuverte(false)} />
       )}

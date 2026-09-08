@@ -25,6 +25,7 @@ import { espacerIntervallesHistoriques, formaterDateHistorique } from '@/app/lib
 import { libelleLangue } from '@/app/lib/langues'
 import { rendreSiecles } from '@/app/lib/siecles'
 import { sansPointFinal } from '@/app/lib/titres'
+import OngletsPage from '@/app/components/OngletsPage'
 import { separateurAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import {
   Consulter, FriseAuteur, LigneTech, PortraitAuteur, RangeeEmpilee, TitreSection,
@@ -269,14 +270,36 @@ export function ContenuFicheEdition({ donnees, photoPosition, chrono = [], onOuv
   )
 }
 
-export default function FicheEdition({ donnees, onOuvrirAuteur, onFermer }: {
-  donnees: DonneesEdition
+/**
+ * UN VOLET de la fiche : une édition, et le nom qu'elle prend dans la barre.
+ *
+ * ⛔ La fiche en reçoit une LISTE, et non une édition (demande de l'auteur,
+ * 2026-09-08 : « quand on est en mode Latin & Français, afficher les deux œuvres dans
+ * deux onglets différents »). En lecture bilingue, DEUX éditions sont à l'écran — la
+ * traduction et l'original —, et la fiche n'en montrait qu'une : celle qu'on lisait
+ * « principalement », c'est-à-dire un choix que le lecteur n'a pas fait. Il pouvait
+ * lire le latin de Knöll pendant que la fiche lui parlait de la traduction de Moreau,
+ * sans qu'un mot le lui dise.
+ *
+ * ⚠️ Un seul volet ne pose AUCUNE barre : une barre d'un onglet annonce un choix
+ * qu'elle n'offre pas. C'est la règle du site, celle qui a déjà emporté le sommaire
+ * sans matière à sommer et la rubrique « Du même auteur » à une seule œuvre.
+ */
+export type VoletFiche = { cle: string; libelle: string; donnees: DonneesEdition }
+
+export default function FicheEdition({ volets, onOuvrirAuteur, onFermer }: {
+  volets: readonly VoletFiche[]
   onOuvrirAuteur: (idAuteur: string) => void
   onFermer: () => void
 }) {
   const [photoPosition, setPhotoPosition] = useState<unknown>(null)
   const [chrono, setChrono] = useState<RangChrono[]>([])
-  const idPortrait = donnees.auteurs[0]?.id_auteur ?? null
+  const [voletActif, setVoletActif] = useState(volets[0]?.cle ?? '')
+  const volet = volets.find(v => v.cle === voletActif) ?? volets[0]
+  const donnees = volet?.donnees
+  // ⚠️ Le PORTRAIT et la FRISE sont ceux de l'AUTEUR, non de l'édition : ils ne
+  // changent pas d'un onglet à l'autre, et se chargent donc une fois pour la fiche.
+  const idPortrait = volets[0]?.donnees.auteurs[0]?.id_auteur ?? null
 
   // Le CADRAGE du portrait est la seule chose que la page de lecture n'a pas : elle
   // connaît le nom et l'identifiant de ses auteurs, jamais leur `photo_position`.
@@ -318,7 +341,7 @@ export default function FicheEdition({ donnees, onOuvrirAuteur, onFermer }: {
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prec }
   }, [onFermer])
 
-  if (typeof document === 'undefined') return null
+  if (typeof document === 'undefined' || !donnees) return null
 
   return createPortal(
     /* ⛔ Le calque part de HAUTEUR_NAVBAR, jamais d'un nombre de pixels : la barre
@@ -330,6 +353,19 @@ export default function FicheEdition({ donnees, onOuvrirAuteur, onFermer }: {
         style={{ position: 'relative', width: '100%', maxWidth: '52rem', maxHeight: '100%', overflowY: 'auto', overscrollBehavior: 'contain', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', boxShadow: 'var(--cs-ombre-modale)', padding: '30px 34px 28px' }}>
         <button onClick={onFermer} aria-label="Fermer" className="cs-cible-fine" title="Fermer"
           style={{ position: 'sticky', float: 'right', top: '0', marginRight: '-6px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+        {/* ⛔ LA BARRE D'ONGLETS DU SITE, jamais une barre recomposée en styles en ligne :
+            c'est ainsi que six barres en étaient venues à six dessins (voir
+            `OngletsPage`). Elle prend la mesure de ce qu'elle commande — la fiche —, et
+            se pose au-dessus d'elle avec un blanc, non collée à son titre. */}
+        {volets.length > 1 && (
+          <OngletsPage
+            intitule="Édition à consulter"
+            onglets={volets.map(v => ({ cle: v.cle, libelle: v.libelle }))}
+            actif={volet.cle}
+            choisir={setVoletActif}
+            style={{ maxWidth: '22rem', marginBottom: '20px' }}
+          />
+        )}
         <ContenuFicheEdition donnees={donnees} photoPosition={photoPosition} chrono={chrono} onOuvrirAuteur={onOuvrirAuteur} />
       </div>
     </div>,
