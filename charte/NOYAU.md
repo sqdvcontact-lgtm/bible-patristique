@@ -740,6 +740,9 @@
 
 **§ 18 — Interface de lecture**
 
+- ⛔ Le fond d’un ENCART n’est pas un fond NU, et le jeton de l’un ne sert pas l’autre.
+- ⚠️ Un fond qui porte seul le sens prend donc un jeton à lui — dans la même famille mais à sa propre dose — ainsi `--cs-absence-fond`, la colonne d’une bible qui ne porte pas le mot cherché dans les résultats de recherche.
+- ⛔ Et la dose se RELIT dans chaque thème au lieu de se recopier — un tiers d’aplat qui fonce un crème en terre cuite ne fait qu’un brun de plus sur un sol sombre, où il en faut près de la moitié pour obtenir une brique.
 - ⛔ Un « Chargement… » écrit ailleurs qu’avec ces pièces rouvre la dérive.
 - ⚠️ Les mentions de cellule de la Polyglotte (« Chargement… » à la place d’un verset qui arrive) ne sont pas une attente mais la voix de l’éditeur, au même titre qu’« Absent de cette traduction » : elles gardent leur forme.
 - ⚠️ La pastille n’introduit AUCUN marqueur de plus.
