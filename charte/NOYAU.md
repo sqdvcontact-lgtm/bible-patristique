@@ -2352,15 +2352,22 @@
 - ⚠️ Ce qui a été mesuré et ÉCARTÉ, pour n’y pas revenir.
 - ⛔ Un blanc résiduel dans une colonne étroite n’est pas un défaut de réglage : c’est le prix d’une colonne étroite justifiée, et l’on ne le paie pas en inventant des coupures.
 
-**§ 50.3 — La LACUNE du témoin garde ses CROCHETS, et les met en forme**
+**§ 50.3 — La LACUNE du témoin garde ses CROCHETS, et y écrit sa CAUSE**
 
 - ⛔ Le manque se dit ENTRE CROCHETS — dans les DEUX membres de l’édition.
+- ⛔ ET CE QUI S’IMPRIME ENTRE CES CROCHETS EST LA CAUSE, jamais des points de suspension (décision de l’auteur, 2026-09-08 : « plutôt que des “…”, indiquer la nature de la lacune ou du problème » — elle renverse la règle du 5 septembre, qui gardait le motif à l’infobulle).
+- ⚠️ Une lacune SANS cause porte le mot « lacune », qui dit au moins de quoi il s’agit ; « non précisée », que l’import écrit faute de mieux, est un aveu d’ignorance et non une cause : il retombe sur le mot nu.
+- ⚠️ Un marqueur COUPÉ entre deux versets retombe lui aussi sur le mot nu — la cause qu’on y lirait serait tronquée, et l’on n’invente pas ce qu’on ne peut pas lire.
+- ⛔ LA MARQUE PREND ALORS L’ITALIQUE, et ce n’est pas un ornement.
 - ⚠️ Cet air est une MARGE, non une espace du texte.
 - ⚠️ La FINE insécable demeure, et pour son seul office : quand la lacune coupe un MOT (« por[…]er »), elle sépare la marque du fragment resté collé, sans l’attacher ni le détacher comme un mot entier.
 - ⛔ UNE TRADUCTION NON RECOMPOSÉE NE PASSE PAS PAR LE TOKENISEUR DU TÉMOIN.
+- ⛔ LA RÈGLE QUI LES PROTÈGE SE DÉMONTRE, elle ne se soupèse pas : ON NE CONSOMME JAMAIS UN « ] » QUI SUIT UN « [ » DANS LA MÊME PORTION.
+- ⚠️ Et cette fermeture ne se lit que dans la portion qui OUVRE le texte : ailleurs, le crochet ouvrant qui l’appareille peut vivre dans une portion précédente.
 - ⚠️ Le crochet fermant d’une lacune nue n’est pas une fermeture orpheline — et c’est le défaut que la mise en forme a fait paraître : un verset qui s’ouvre sur « […] » basculait TOUT ENTIER en lecture incertaine.
-- ⚠️ RESTE À TRANCHER, et c’est une affaire de DONNÉE.
-- ⛔ Rien n’a été fait de ce côté sans arbitrage.
+- ⛔ UN FAIT DE L’ÉDITION NE SE DIT PAS DE DEUX FAÇONS SELON LA COLONNE OÙ ON LE LIT (2026-09-08).
+- ⚠️ RESTE UNE DOUZAINE D’ÉTIQUETTES QUE LE VOCABULAIRE NE CONNAÎT PAS — et elles s’impriment brutes à dessein : « lecture difficile » (2), « Fragment » (2), « Suite incertaine » (2), « Suite corrompue » (2), « Restitution », « Restitution incertaine », « Passage altéré », « reprise ».
+- ⛔ Le rendu ne DOIT PAS inférer une sémantique d’un libellé quelconque placé avant un deux-points entre crochets (§ registre GPT ↔ Claude) : « Restitution » n’est pas « lecture incertaine », et la distinguer d’une restitution philologique ne se devine pas.
 
 **§ 50.4 — Le ROUGE de la Polyglotte dit « à vérifier », il ne dit pas « on en a parlé »**
 
