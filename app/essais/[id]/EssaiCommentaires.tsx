@@ -8,6 +8,7 @@ import EditeurCommentaire from '@/app/components/EditeurCommentaire'
 import { useCompte } from '@/app/lib/contexteCompte'
 import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import MarqueMecene from '@/app/components/MarqueMecene'
+import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, CITATION_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, RETRAIT_REPONSE } from '@/app/lib/styleCommentaire'
 
 type CommentaireEssai = {
   id: number; texte: string; passage_cite: string | null; reponse_a: number | null
@@ -119,102 +120,84 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const dateHeureCommentaire = (date: string) =>
     new Date(date).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
-  const LigneActions = ({ c, petit = false }: { c: CommentaireEssai; petit?: boolean }) => (
-    <div style={{ display: 'flex', gap: petit ? '7px' : '8px', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap', marginTop: petit ? '4px' : '5px' }}>
-      {userId && !petit && (
-        <button onClick={() => setCibleReponse(c)} style={{ fontSize: '0.65625rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Répondre</button>
-      )}
-      {isAdmin && (
-        <button onClick={() => supprimerCommentaire(c.id)} style={{ fontSize: petit ? '10px' : '10.5px', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Supprimer</button>
-      )}
-      {!isAdmin && userId === c.user_id && (
-        <button onClick={() => supprimerMonCommentaire(c.id)} style={{ fontSize: petit ? '10px' : '10.5px', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Supprimer</button>
-      )}
+  const LigneActions = ({ c }: { c: CommentaireEssai }) => {
+    const peutRepondre = !!userId && c.reponse_a === null
+    const peutSupprimer = isAdmin || userId === c.user_id
+    // ⚠️ Aucune action, aucune ligne. Rendue à vide, elle ne laissait qu'un blanc
+    // sous le texte, et une carte sur deux paraissait mal fermée.
+    if (!peutRepondre && !peutSupprimer) return null
+    return (
+      <div style={PIED_COMMENTAIRE}>
+        {peutRepondre && (
+          <button onClick={() => setCibleReponse(c)} style={ACTION_COMMENTAIRE}>Répondre</button>
+        )}
+        {isAdmin ? (
+          <button onClick={() => supprimerCommentaire(c.id)} style={{ ...ACTION_COMMENTAIRE, color: 'var(--cs-danger)', marginLeft: 'auto' }}>Supprimer</button>
+        ) : userId === c.user_id && (
+          <button onClick={() => supprimerMonCommentaire(c.id)} style={{ ...ACTION_COMMENTAIRE, marginLeft: 'auto' }}>Supprimer</button>
+        )}
+      </div>
+    )
+  }
+
+  const CommentaireRetracte = ({ c, reponse }: { c: CommentaireEssai; reponse: boolean }) => (
+    <div style={{ marginLeft: reponse ? `${RETRAIT_REPONSE}px` : 0, marginBottom: '8px' }}>
+      <button className="commentaire-retracte" onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
+        style={{ width: '100%', display: 'block', position: 'relative', overflow: 'hidden', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', cursor: 'pointer', padding: '9px 12px', textAlign: 'left' }}>
+        <span className="commentaire-retracte-contenu" style={{ display: 'block', fontSize: '0.71875rem', color: 'var(--cs-danger-fonce)', fontWeight: 600 }}>
+          Commentaire en attente de contrôle.
+        </span>
+      </button>
     </div>
   )
 
-  const CommentaireRetracte = ({ c, petit = false }: { c: CommentaireEssai; petit?: boolean }) => (
-    <button className="commentaire-retracte" onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
-      style={{ width: '100%', display: 'block', position: 'relative', overflow: 'hidden', background: 'rgba(176,58,42,0.06)', border: '1px solid rgba(176,58,42,0.20)', borderRadius: petit ? '5px' : '6px', cursor: 'pointer', padding: petit ? '7px 9px' : '8px 11px', textAlign: 'left' }}>
-      <span className="commentaire-retracte-contenu" style={{ display: 'block', fontSize: petit ? '11px' : '12px', color: '#b0392b', fontWeight: 600 }}>
-        Commentaire en attente de contrôle.
-      </span>
-    </button>
+  const CommentaireEfface = ({ c, reponse }: { c: CommentaireEssai; reponse: boolean }) => (
+    <div className="commentaire-carte" style={{ ...carteCommentaire({ reponse }), viewTransitionName: `commentaire-essai-${c.id}` }}>
+      <p style={EFFACE_COMMENTAIRE}>{c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire</p>
+    </div>
   )
 
-  const Carte = ({ c }: { c: CommentaireEssai }) => {
-    const reponses = commentaires.filter(r => r.reponse_a === c.id)
-    const cache = !c.supprime && !c.valide && !revelees.has(c.id)
-    const styleCarte: React.CSSProperties = c.valide
-      ? { border: '1px solid var(--cs-bord-clair)', borderLeft: '4px solid var(--cs-bord)', background: 'var(--cs-surface)' }
-      : { border: '1px solid rgba(176,58,42,0.26)', borderLeft: '4px solid var(--cs-danger)', background: 'rgba(176,58,42,0.07)' }
+  // ⚠️ UNE seule écriture de la carte, pour la racine comme pour la réponse. Les deux
+  // vivaient côte à côte, à quelques dixièmes de rem près : c'est ainsi que le dessin
+  // s'était mis à diverger d'un rang à l'autre.
+  const CorpsCommentaire = ({ c, reponse }: { c: CommentaireEssai; reponse: boolean }) => {
     const rang = c.lecture ? calculerRang(c.lecture.nb_auteurs, c.lecture.total_auteurs).rang : null
     const rangCouleur = rang ? couleurRang(rang) : null
-
     return (
-      <article className="commentaire-carte" style={{ padding: '9px 0', borderBottom: '1px solid var(--cs-fond-doux)', viewTransitionName: `commentaire-essai-${c.id}` }}>
-        {c.supprime ? (
-          <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0, background: 'var(--cs-fond)', padding: '6px 9px', borderRadius: '4px' }}>
-            {c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
-          </p>
-        ) : cache ? (
-          <CommentaireRetracte c={c} />
-        ) : (
-          <div className="commentaire-carte" style={{ ...styleCarte, padding: '8px 10px', borderRadius: '4px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px', gap: '8px' }}>
-              <p style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-encre)', margin: 0 }}>
-                {c.auteur_nom ?? 'Anonyme'}
-                {c.mecene && <>{' '}<MarqueMecene /></>}
-                {rang && rangCouleur && <span style={{ marginLeft: '6px', fontSize: '0.53125rem', color: rangCouleur.texte, background: rangCouleur.fond, borderRadius: '4px', padding: '1px 5px' }}>{rang}</span>}
-                {!c.valide && <span style={{ marginLeft: '6px', fontSize: '0.46875rem', fontWeight: 700, color: 'var(--cs-danger)', background: 'rgba(176,58,42,0.10)', padding: '1px 5px', borderRadius: '4px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>En révision</span>}
-              </p>
-              <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateHeureCommentaire(c.created_at)}</span>
-            </div>
-            {c.passage_cite && (
-              <blockquote style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', borderLeft: '2px solid var(--cs-bord)', paddingLeft: '8px', margin: '0 0 5px' }}>
-                « {c.passage_cite} »
-              </blockquote>
-            )}
-            <div style={{ fontSize: '0.75rem', color: c.valide ? 'var(--cs-texte)' : '#6f3d35', lineHeight: 1.5, overflowWrap: 'anywhere' }}>{rendreTexteEnrichi(c.texte)}</div>
-            <LigneActions c={c} />
+      <div className="commentaire-carte" style={{ ...carteCommentaire({ enRevision: !c.valide, reponse }), viewTransitionName: `commentaire-essai-${c.id}` }}>
+        <div style={ENTETE_COMMENTAIRE}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0 }}>
+            <span style={NOM_COMMENTAIRE}>
+              {c.auteur_nom ?? 'Anonyme'}
+              {c.mecene && <>{' '}<MarqueMecene /></>}
+            </span>
+            {rang && rangCouleur && <span style={{ ...BADGE_RANG, color: rangCouleur.texte, background: rangCouleur.fond }}>{rang}</span>}
+            {!c.valide && <span style={{ ...BADGE_ETAT, color: 'var(--cs-danger-fonce)', background: 'rgba(var(--cs-danger-rgb),0.10)' }}>EN RÉVISION</span>}
           </div>
+          <span style={DATE_COMMENTAIRE}>{dateHeureCommentaire(c.created_at)}</span>
+        </div>
+        {c.passage_cite && (
+          <blockquote style={CITATION_COMMENTAIRE}>« {c.passage_cite} »</blockquote>
         )}
+        <div style={TEXTE_COMMENTAIRE}>{rendreTexteEnrichi(c.texte)}</div>
+        <LigneActions c={c} />
+      </div>
+    )
+  }
 
-        {reponses.map(r => (
-          (() => {
-            const rangR = r.lecture ? calculerRang(r.lecture.nb_auteurs, r.lecture.total_auteurs).rang : null
-            const rangCouleurR = rangR ? couleurRang(rangR) : null
-            const cacheReponse = !r.supprime && !r.valide && !revelees.has(r.id)
-            return (
-          <div className="commentaire-carte" key={r.id} style={{ marginLeft: '14px', marginTop: '7px', paddingLeft: '10px', borderLeft: '2px solid var(--cs-fond-doux)', viewTransitionName: `commentaire-essai-${r.id}` }}>
-            {r.supprime ? (
-              <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0, background: 'var(--cs-fond)', padding: '5px 8px', borderRadius: '4px' }}>
-                {r.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
-              </p>
-            ) : cacheReponse ? (
-              <CommentaireRetracte c={r} petit />
-            ) : (
-              <div className="commentaire-carte" style={{ padding: '7px 9px', borderRadius: '4px', background: r.valide ? 'var(--cs-surface)' : 'rgba(176,58,42,0.07)', border: `1px solid ${r.valide ? 'var(--cs-bord-clair)' : 'rgba(176,58,42,0.26)'}`, borderLeft: `3px solid ${r.valide ? 'var(--cs-bord)' : 'var(--cs-danger)'}` }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '3px', gap: '6px' }}>
-                  <p style={{ fontSize: '0.65625rem', fontWeight: 600, color: 'var(--cs-encre)', margin: 0 }}>
-                    {r.auteur_nom ?? 'Anonyme'}
-                    {r.mecene && <>{' '}<MarqueMecene /></>}
-                    {rangR && rangCouleurR && <span style={{ marginLeft: '5px', fontSize: '0.5rem', color: rangCouleurR.texte, background: rangCouleurR.fond, borderRadius: '4px', padding: '1px 4px' }}>{rangR}</span>}
-                    {!r.valide && <span style={{ marginLeft: '5px', fontSize: '0.4375rem', fontWeight: 700, color: 'var(--cs-danger)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>En révision</span>}
-                  </p>
-                  <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', whiteSpace: 'nowrap', flexShrink: 0 }}>{dateHeureCommentaire(r.created_at)}</span>
-                </div>
-                {r.passage_cite && (
-                  <blockquote style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', borderLeft: '2px solid var(--cs-bord)', paddingLeft: '7px', margin: '0 0 4px' }}>« {r.passage_cite} »</blockquote>
-                )}
-                <div style={{ fontSize: '0.71875rem', color: r.valide ? 'var(--cs-texte)' : '#6f3d35', lineHeight: 1.48, overflowWrap: 'anywhere' }}>{rendreTexteEnrichi(r.texte)}</div>
-                <LigneActions c={r} petit />
-              </div>
-            )}
-          </div>
-            )
-          })()
-        ))}
+  const Carte = ({ c }: { c: CommentaireEssai }) => {
+    const rendre = (x: CommentaireEssai, reponse: boolean) => {
+      if (x.supprime) return <CommentaireEfface key={x.id} c={x} reponse={reponse} />
+      if (!x.valide && !revelees.has(x.id)) return <CommentaireRetracte key={x.id} c={x} reponse={reponse} />
+      return <CorpsCommentaire key={x.id} c={x} reponse={reponse} />
+    }
+    // Le fil se sépare du suivant par un BLANC un peu plus large que celui qui règne
+    // entre ses cartes. Le filet d'avant ne servait plus qu'à couper deux cartes déjà
+    // cernées chacune par la sienne.
+    return (
+      <article style={{ marginBottom: '6px' }}>
+        {rendre(c, false)}
+        {commentaires.filter(r => r.reponse_a === c.id).map(r => rendre(r, true))}
       </article>
     )
   }
@@ -229,8 +212,8 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
           transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
         }
         .commentaire-retracte:hover {
-          background: rgba(176,58,42,0.09) !important;
-          border-color: rgba(176,58,42,0.30) !important;
+          background: color-mix(in srgb, var(--cs-danger-aplat) 10%, var(--cs-danger-fond)) !important;
+          border-color: var(--cs-danger) !important;
           transform: translateX(1px);
         }
         .commentaire-retracte-contenu {
@@ -247,7 +230,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: rgba(176,58,42,0);
+          color: transparent;
           font-size:0.75rem;
           font-weight: 800;
           letter-spacing: 0.04em;
@@ -256,7 +239,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
           transition: color 160ms ease, transform 160ms ease;
         }
         .commentaire-retracte:hover::after {
-          color: rgba(176,58,42,0.82);
+          color: var(--cs-danger-fonce);
           transform: translateX(0);
         }
       `}</style>

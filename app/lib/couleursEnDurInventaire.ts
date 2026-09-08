@@ -79,7 +79,13 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   //    --cs-communaute, et les fonds se dérivent par color-mix.
   'components/Navbar.tsx': ['#fff'],
   'components/NavLivres.tsx': ['#a9b6a6', 'rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)'],
-  'components/PanneauPatristique.tsx': ['rgba(122,96,64,0.08)', 'rgba(154,126,61,0.16)', 'rgba(176,58,42,0)', 'rgba(176,58,42,0.06)', 'rgba(176,58,42,0.07)', 'rgba(176,58,42,0.09)', 'rgba(176,58,42,0.20)', 'rgba(176,58,42,0.26)', 'rgba(176,58,42,0.30)', 'rgba(176,58,42,0.82)', 'rgba(198,184,158,0.08)'],
+  // Les trois écritures d'une CARTE DE COMMENTAIRE ont perdu leurs teintes le 2026-09-08,
+  // en même temps que leur bandeau de gauche et leur boîte dans la boîte : le rouge du
+  // contrôle — onze valeurs de rgba(176,58,42,…), plus #b0392b et #6f3d35 — passe par
+  // --cs-danger-fond, --cs-danger-bord et --cs-danger-fonce, qui se retournent en Cuir.
+  // Le dessin vit désormais dans app/lib/styleCommentaire.ts, qui n'écrit que des jetons,
+  // et deux entrées disparaissent entièrement du registre.
+  'components/PanneauPatristique.tsx': ['rgba(122,96,64,0.08)', 'rgba(154,126,61,0.16)', 'rgba(198,184,158,0.08)'],
   'components/TexteBible.tsx': ['#b0a088'],
   // 'compte/page.tsx' : retiré le 2026-09-01. La page unique de 978 lignes a été
   // découpée en rubriques, et ses trois teintes ont été transposées au passage :
@@ -87,7 +93,6 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'conditions-utilisation/page.tsx': ['#4133'],
   'contact/page.tsx': ['#566150'],
   'essais/[id]/EssaiClient.tsx': ['#e4c4a0'],
-  'essais/[id]/EssaiCommentaires.tsx': ['#6f3d35', '#b0392b', 'rgba(176,58,42,0)', 'rgba(176,58,42,0.06)', 'rgba(176,58,42,0.07)', 'rgba(176,58,42,0.09)', 'rgba(176,58,42,0.10)', 'rgba(176,58,42,0.20)', 'rgba(176,58,42,0.26)', 'rgba(176,58,42,0.30)', 'rgba(176,58,42,0.82)'],
   'essais/EditeurEssai.tsx': ['#5b544c', '#7a5a30', '#a8564d', '#e8d5a0'],
   'essais/EssaisListeClient.tsx': ['#c8d8cc', '#fff', 'rgba(0,0,0,0)', 'rgba(120,110,96,0.06)', 'rgba(255,255,255,0)', 'rgba(40,30,15,0.18)', 'rgba(40,30,15,0.22)', 'rgba(40,30,15,0.40)', 'rgba(40,30,15,0.48)'],
   'histoire/HistoireClient.tsx': ['#5a5044', '#7a6f61', '#7a746d', '#b7a06a', 'rgba(183,160,106,0.38)'],
@@ -111,7 +116,6 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // transpose pas. ⚠️ Le brun très sombre plutôt qu'un noir neutre, qui refroidirait
   // la page qu'il assombrit — le site est chaud jusque dans son ombre.
   'oeuvre/[id]/OeuvreClient.tsx': ['#9a958d', 'rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)', 'rgba(198,184,158,0.62)', 'rgba(250,246,237,0.86)'],
-  'oeuvre/[id]/OngletCommentaires.tsx': ['#6f3d35', '#b0392b', 'rgba(176,58,42,0)', 'rgba(176,58,42,0.06)', 'rgba(176,58,42,0.07)', 'rgba(176,58,42,0.09)', 'rgba(176,58,42,0.10)', 'rgba(176,58,42,0.20)', 'rgba(176,58,42,0.26)', 'rgba(176,58,42,0.30)', 'rgba(176,58,42,0.82)'],
   // ⚠️ 'rgba(30,25,20,0.4)' n'est PAS une teinte neuve : elle est dans ce fichier depuis
   // l'origine, et la garde ne la voyait pas. Un « /* » écrit dans un commentaire de LIGNE
   // — « italique <i>/* » — ouvrait pour le motif une région de bloc qui courait sur

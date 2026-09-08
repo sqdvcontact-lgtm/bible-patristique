@@ -11,6 +11,7 @@ import IconeSignalement from '@/app/components/IconeSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
 import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import MarqueMecene from '@/app/components/MarqueMecene'
+import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, RETRAIT_REPONSE } from '@/app/lib/styleCommentaire'
 
 // Pas plus de 5 majuscules consécutives (accentuées comprises).
 const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
@@ -227,20 +228,23 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   if (segActif === null) return <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', padding: '8px 0' }}>Cliquez sur un paragraphe pour voir ou ajouter des commentaires.</p>
 
   const VoteBoutons = ({ c }: { c: CommentaireAvecAuteur }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '1px', flexShrink: 0 }}>
+    // ⚠️ Un compteur À ZÉRO ne s'écrit pas : c'est l'état de presque tous les
+    // commentaires, et deux zéros sous chaque carte faisaient du bruit pour ne rien
+    // dire. Le chiffre paraît au premier vote.
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
       <button onClick={() => basculerVote(c, 1)} title="J'aime"
-        style={{ display: 'flex', alignItems: 'center', gap: '2px', color: c.monVote === 1 ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
-        <svg width="10" height="10" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        style={{ display: 'flex', alignItems: 'center', gap: '3px', color: c.monVote === 1 ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+        <svg width="12" height="12" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
         </svg>
-        <span style={{ minWidth: '10px', textAlign: 'left', fontWeight: 600, fontSize: '0.5625rem' }}>{c.nbLikes}</span>
+        {c.nbLikes > 0 && <span style={{ fontWeight: 600, fontSize: '0.625rem' }}>{c.nbLikes}</span>}
       </button>
       <button onClick={() => basculerVote(c, -1)} title="Je n'aime pas"
-        style={{ display: 'flex', alignItems: 'center', gap: '2px', color: c.monVote === -1 ? 'var(--cs-danger-fonce)' : 'var(--cs-texte-faible)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
-        <svg width="10" height="10" viewBox="0 0 20 20" fill="none" style={{ transform: 'rotate(180deg)' }} aria-hidden="true">
+        style={{ display: 'flex', alignItems: 'center', gap: '3px', color: c.monVote === -1 ? 'var(--cs-danger-fonce)' : 'var(--cs-texte-faible)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+        <svg width="12" height="12" viewBox="0 0 20 20" fill="none" style={{ transform: 'rotate(180deg)' }} aria-hidden="true">
           <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
         </svg>
-        <span style={{ minWidth: '10px', textAlign: 'left', fontWeight: 600, fontSize: '0.5625rem' }}>{c.nbDislikes}</span>
+        {c.nbDislikes > 0 && <span style={{ fontWeight: 600, fontSize: '0.625rem' }}>{c.nbDislikes}</span>}
       </button>
     </div>
   )
@@ -249,10 +253,10 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     const cache = !c.supprime && !c.valide && !revelees.has(c.id)
     if (cache) {
       return (
-        <div key={c.id} style={{ marginLeft: estReponse ? '20px' : 0, padding: '9px 0', borderBottom: '1px solid var(--cs-fond-doux)' }}>
+        <div key={c.id} style={{ marginLeft: estReponse ? `${RETRAIT_REPONSE}px` : 0, marginBottom: '8px' }}>
           <button className="commentaire-retracte" onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
-            style={{ width: '100%', display: 'block', position: 'relative', overflow: 'hidden', background: 'rgba(176,58,42,0.06)', border: '1px solid rgba(176,58,42,0.20)', borderRadius: '8px', cursor: 'pointer', padding: '8px 11px', textAlign: 'left' }}>
-            <span className="commentaire-retracte-contenu" style={{ display: 'block', fontSize: '0.6875rem', color: '#b0392b', fontWeight: 600 }}>
+            style={{ width: '100%', display: 'block', position: 'relative', overflow: 'hidden', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', cursor: 'pointer', padding: '9px 12px', textAlign: 'left' }}>
+            <span className="commentaire-retracte-contenu" style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--cs-danger-fonce)', fontWeight: 600 }}>
               Commentaire en attente de contrôle.
             </span>
           </button>
@@ -263,58 +267,52 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     const couleurs = rangInfo ? couleurRang(rangInfo.rang) : null
     const estCertifie = !!c.certifie
     const estRevision = !c.valide
-    const fondCarte = estCertifie ? 'rgba(var(--cs-vert-rgb),0.08)' : estRevision ? 'rgba(176,58,42,0.07)' : 'var(--cs-surface)'
-    const bordureCarte = estCertifie ? 'rgba(var(--cs-vert-rgb),0.28)' : estRevision ? 'rgba(176,58,42,0.26)' : 'var(--cs-bord-clair)'
-    const accentCarte = estReponse ? 'var(--cs-bord)' : estCertifie ? 'var(--cs-vert)' : estRevision ? 'var(--cs-danger)' : 'var(--cs-bord)'
-    const fondTexte = estCertifie ? 'rgba(255,255,255,0.42)' : estRevision ? 'rgba(255,255,255,0.48)' : 'rgba(255,255,255,0.54)'
-    const couleurTexte = estRevision ? '#6f3d35' : 'var(--cs-texte-fort)'
+    const aDesActionsADroite = userId === c.user_id || (estAdmin && userId !== c.user_id)
     return (
-      <div className="commentaire-carte" key={c.id} style={{ marginLeft: estReponse ? '18px' : 0, padding: '7px 9px', marginBottom:'7px', border:'1px solid ' + bordureCarte, borderLeft:'4px solid ' + accentCarte, borderRadius:'8px', background: fondCarte, viewTransitionName: `commentaire-oeuvre-${c.id}` }}>
+      <div className="commentaire-carte" key={c.id}
+        style={{ ...carteCommentaire({ certifie: estCertifie, enRevision: estRevision, reponse: estReponse }), viewTransitionName: `commentaire-oeuvre-${c.id}` }}>
         {c.supprime ? (
-          <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>
+          <p style={EFFACE_COMMENTAIRE}>
             {c.pseudo ?? 'Un utilisateur'} a supprimé un commentaire
           </p>
         ) : (
         <>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
+        <div style={ENTETE_COMMENTAIRE}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0 }}>
-            <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-encre)' }}>
+            <span style={NOM_COMMENTAIRE}>
               {c.pseudo ?? 'Anonyme'}
               {c.mecene && <>{' '}<MarqueMecene /></>}
             </span>
             {couleurs && rangInfo && (
-              <span style={{ fontSize: '0.5625rem', fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: '1px 6px', borderRadius: '4px', letterSpacing: '0.02em' }}>
-                {rangInfo.rang}
-              </span>
+              <span style={{ ...BADGE_RANG, color: couleurs.texte, background: couleurs.fond }}>{rangInfo.rang}</span>
             )}
-            {estCertifie && <span style={{ fontSize: '0.53125rem', fontWeight: 700, color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.14)', padding: '1px 6px', borderRadius: '4px', letterSpacing: '0.04em' }}>CERTIFIÉ</span>}
-            {estRevision && <span style={{ fontSize: '0.53125rem', fontWeight: 700, color: 'var(--cs-danger)', background: 'rgba(176,58,42,0.10)', padding: '1px 6px', borderRadius: '4px', letterSpacing: '0.04em' }}>EN RÉVISION</span>}
+            {estCertifie && <span style={{ ...BADGE_ETAT, color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.14)' }}>CERTIFIÉ</span>}
+            {estRevision && <span style={{ ...BADGE_ETAT, color: 'var(--cs-danger-fonce)', background: 'rgba(var(--cs-danger-rgb),0.10)' }}>EN RÉVISION</span>}
           </div>
-          <span style={{ marginLeft: 'auto', textAlign: 'right', fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', flexShrink: 0 }}>{dateHeureCommentaire(c.created_at)}</span>
+          <span style={DATE_COMMENTAIRE}>{dateHeureCommentaire(c.created_at)}</span>
         </div>
-        <div style={{ fontSize: '0.75rem', color: couleurTexte, lineHeight: 1.43, margin: 0, whiteSpace: 'pre-line', background: fondTexte, borderRadius: '4px', padding: '5px 6px' }}>{rendreTexteEnrichi(c.texte)}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '5px', flexWrap: 'nowrap', whiteSpace: 'nowrap', minWidth: 0 }}>
+        <div style={TEXTE_COMMENTAIRE}>{rendreTexteEnrichi(c.texte)}</div>
+        <div style={PIED_COMMENTAIRE}>
           <VoteBoutons c={c} />
           {!estReponse && (
-            <button onClick={() => setCibleReponse(c)}
-              style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}>
+            <button onClick={() => setCibleReponse(c)} style={ACTION_COMMENTAIRE}>
               Répondre
             </button>
           )}
           {userId === c.user_id && (
             <button onClick={() => supprimerMonCommentaire(c)} title="Supprimer mon commentaire"
-              style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: 'auto', flexShrink: 0 }}>
+              style={{ ...ACTION_COMMENTAIRE, marginLeft: 'auto' }}>
               Supprimer
             </button>
           )}
           {estAdmin && userId !== c.user_id && (
             <button onClick={() => supprimerCommentaire(c)} title="Supprimer ce commentaire"
-              style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: 'auto', flexShrink: 0 }}>
+              style={{ ...ACTION_COMMENTAIRE, color: 'var(--cs-danger)', marginLeft: 'auto' }}>
               Supprimer (admin)
             </button>
           )}
           <button onClick={() => { if (exigerCompte('signaler ce commentaire')) setCommentaireSignale(c) }} title="Signaler ce commentaire"
-            style={{ color: 'var(--cs-bord)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: userId === c.user_id || (estAdmin && userId !== c.user_id) ? 0 : 'auto', flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}>
+            style={{ ...ACTION_COMMENTAIRE, color: 'var(--cs-bord)', marginLeft: aDesActionsADroite ? 0 : 'auto', display: 'inline-flex', alignItems: 'center' }}>
             <IconeSignalement />
           </button>
         </div>
@@ -334,8 +332,8 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
         }
         .commentaire-retracte:hover {
-          background: rgba(176,58,42,0.09) !important;
-          border-color: rgba(176,58,42,0.30) !important;
+          background: color-mix(in srgb, var(--cs-danger-aplat) 10%, var(--cs-danger-fond)) !important;
+          border-color: var(--cs-danger) !important;
           transform: translateX(1px);
         }
         .commentaire-retracte-contenu {
@@ -352,7 +350,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           display: flex;
           align-items: center;
           justify-content: center;
-          color: rgba(176,58,42,0);
+          color: transparent;
           font-size:0.6875rem;
           font-weight: 800;
           letter-spacing: 0.04em;
@@ -361,7 +359,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           transition: color 160ms ease, transform 160ms ease;
         }
         .commentaire-retracte:hover::after {
-          color: rgba(176,58,42,0.82);
+          color: var(--cs-danger-fonce);
           transform: translateX(0);
         }
       `}</style>
