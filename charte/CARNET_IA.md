@@ -73,3 +73,25 @@ Mesuré sur les 416 sections, par empreintes de suites de huit mots significatif
 ⚠️ **Le seul vrai doublon ne se voyait pas aux empreintes**, parce qu'il redit la règle en d'autres mots : les anciens § 14.14 et § 14.15 prescrivaient tous deux de ne jamais fabriquer d'offsets contre un ordre OCR corrompu, de revenir au fac-similé et de corriger la source avant de recalculer. Fondus le jour même.
 
 **Conclusion de méthode :** ce qu'on prend pour un doublon dans la charte n'est presque jamais une répétition, c'est une **dispersion de sujet**. La règle typographique vit en sept endroits (§ 3, § 41, § 35.0, § 35.7, § 35.10, § 23.11, § 13.9) sans se répéter une seule fois. On ne la dédoublonne pas : on la rassemble.
+
+### 2026-09-08 — Purge des sauvegardes de `parametres`
+
+La table qui porte la charte était à **98 % un cimetière de copies**.
+
+| famille | clés | poids |
+|---|---:|---:|
+| la charte | 1 | 949 ko |
+| sauvegardes de la charte | 180 | **82 Mo** |
+| autres sauvegardes (`backup*`) | 372 | **152 Mo** |
+| le reste (doctrine, specs, catalogue) | 155 | 4,6 Mo |
+
+Cent quatre-vingts copies COMPLÈTES de la charte, écrites l'une après l'autre avant chaque écriture de doctrine, jamais relues, jamais retirées.
+
+**Contrôle avant suppression** : les 477 clés visées ne sont référencées que par des scripts datés à usage unique, déjà joués, et **uniquement en écriture** (`upsert`) — aucune ligne du site ni d'un outil ne les lit. Manifeste conservé dans `audit/parametres-purge-20260908.json` (clé, date, et ce qui est gardé).
+
+| | avant | après |
+|---|---:|---:|
+| clés | 708 | **232** |
+| poids logique | 239 Mo | **53 Mo** |
+
+Les 94 sauvegardes gardées sont celles des trois derniers jours ; elles tomberont d'elles-mêmes. Règle posée en charte § 27.1, tenue par `public.purger_sauvegardes_parametres()` et le travail périodique `purger_sauvegardes`, chaque nuit à 3 h 20. ⚠️ Le poids sur DISQUE reste à 99 Mo le temps que l'autovacuum reprenne les tuples morts : c'est normal, et ce n'est pas une purge incomplète.

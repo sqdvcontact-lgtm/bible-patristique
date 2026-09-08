@@ -3088,7 +3088,7 @@ Les vues internes d’audit doivent rester vides d’anomalies avant la clôture
 
 ## 27. Entretien de la charte
 
-Cette charte est la mémoire normative de Corpus Scriptura. Une règle générale nouvellement arrêtée au cours du travail doit y être intégrée dès qu’elle est suffisamment définie, après contrôle de compatibilité avec les règles existantes. Elle remplace la règle antérieure au lieu de s’ajouter comme amendement contradictoire. Les décisions propres à une œuvre, statistiques, journaux et états de chantier restent hors de la charte.
+Cette charte est la mémoire normative de Corpus Scriptura. Une règle générale nouvellement arrêtée au cours du travail doit y être intégrée dès qu’elle est suffisamment définie, après contrôle de compatibilité avec les règles existantes. Elle remplace la règle antérieure au lieu de s’ajouter comme amendement contradictoire. Les décisions propres à une œuvre, les statistiques, les journaux et les états de chantier restent hors de la charte : ils s’écrivent dans `parametres.carnet_ia`.
 
 Au début de toute nouvelle conversation consacrée à Corpus Scriptura, et avant toute reprise substantielle d’un chantier dans une conversation existante, lire la valeur active `public.parametres.charte_ia` avant de prendre une décision éditoriale ou d’effectuer une mutation. La mémoire conversationnelle peut aider au contexte ; elle ne remplace jamais la charte active.
 
@@ -3105,6 +3105,18 @@ Avant publication d’une nouvelle version :
 
 `public.parametres.mis_a_jour` est entretenu automatiquement par la base lors d’une mise à jour. Une date saisie manuellement ou laissée inchangée par un outil ne fait pas autorité sur la fraîcheur d’un paramètre.
 
+
+### 27.1 Une SAUVEGARDE ne se garde que TROIS JOURS
+
+⛔ **Une sauvegarde déposée dans `parametres` de plus de trois jours se supprime**, et c'est la BASE qui le fait, non l'usage : `public.purger_sauvegardes_parametres()`, appelée chaque nuit par le travail périodique `purger_sauvegardes`. Sont visées les clés qui portent `backup`, `_sauvegarde`, `_backup_` ou `_avant_`. ⛔ `charte_ia` et `carnet_ia` sont exclus **nommément**, et non par un motif : aucune expression ne doit pouvoir les emporter par accident.
+
+⚠️ **Le motif de la règle est mesuré.** Au 2026-09-08, `parametres` portait **708 clés pour 239 Mo, dont 98 % de sauvegardes** — 372 clés `backup*` et **180 copies COMPLÈTES de la charte, dans la table même qui porte la charte**. Une copie entière écrite avant chaque écriture de doctrine, jamais relue, jamais retirée : la boîte à règles était à quatre-vingt-dix-huit pour cent un cimetière. Purge du jour : 477 clés, 187 Mo, manifeste conservé.
+
+⛔ **La sauvegarde reste OBLIGATOIRE avant toute écriture** (§ 23.10) : la présente règle borne sa DURÉE DE VIE, elle ne dispense pas de la prendre. Trois jours couvrent le retour en arrière d'une séance et de celles qui l'encadrent ; au-delà, ce sont l'historique du dépôt, les fichiers de reprise de `sql/` et le journal des migrations qui répondent — eux sont faits pour durer, une ligne de `parametres` ne l'est pas.
+
+⚠️ **Ne pas déposer une copie ENTIÈRE quand une ligne suffit**, et préférer un fichier à une ligne de base quand la copie est massive. Le script de synchronisation de la charte écrit la sienne dans `audit/`, hors de la base : c'est le bon modèle, et c'est pourquoi il n'a jamais nourri le cimetière.
+
+⛔ **Et une sauvegarde ne va JAMAIS dans `public`** (§ 17), mais dans `internal`, que ni `anon` ni `authenticated` ne peuvent parcourir. `parametres` est une exception héritée, bornée désormais par la présente règle.
 
 ## 28. Suivi permanent de l’avancement des notices
 
