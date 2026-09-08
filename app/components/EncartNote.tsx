@@ -19,11 +19,18 @@
  */
 import type { CSSProperties, ReactNode } from 'react'
 import {
-  STYLE_FERMER_ENCART, STYLE_GRILLE_ENCART, STYLE_INTITULE_ENCART,
+  STYLE_FERMER_ENCART, STYLE_INTITULE_ENCART,
   STYLE_NUMERO_ENCART, styleCadreEncart, styleCorpsEncart,
 } from '@/app/lib/compositionNote'
 
-export type PlacementEncart = { left: number; top: number; hauteurMax: number }
+export type PlacementEncart = {
+  left: number
+  top: number
+  hauteurMax: number
+  /** La largeur retenue quand l'encart se range dans une marge trop étroite pour sa
+   *  mesure pleine. Absente, il prend sa mesure. */
+  largeur?: number
+}
 
 export function EncartNote({
   numero, intitule, placement, onFermer, marque, style,
@@ -74,13 +81,12 @@ export function EncartNote({
           d'une note longue était posée sur elle. Elle rend en outre six pixels de
           piste au texte. */}
       <div className="cs-defilement-discret" style={styleCorpsEncart(Boolean(onFermer))}>
-        <div style={STYLE_GRILLE_ENCART}>
-          <span style={STYLE_NUMERO_ENCART} aria-hidden="true">{numero}</span>
-          <div>
-            {intitule ? <span style={STYLE_INTITULE_ENCART}>{intitule}</span> : null}
-            <div style={{ whiteSpace: 'pre-line' }}>{children}</div>
-          </div>
-        </div>
+        {/* ⛔ Le numéro FLOTTE : le propos l'habille, et la mesure entière lui revient
+            dès la deuxième ligne. En colonne de grille, il réservait sa gouttière sur
+            toute la hauteur de la note. */}
+        <span style={STYLE_NUMERO_ENCART} aria-hidden="true">{numero}</span>
+        {intitule ? <span style={STYLE_INTITULE_ENCART}>{intitule}</span> : null}
+        <div style={{ whiteSpace: 'pre-line' }}>{children}</div>
       </div>
     </div>
   )

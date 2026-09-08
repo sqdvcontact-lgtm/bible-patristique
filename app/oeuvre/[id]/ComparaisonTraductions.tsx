@@ -18,10 +18,13 @@ import { BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } f
 import { CelluleActions, useCelluleActions } from '@/app/components/CelluleActions'
 import type { AlignementDisponible, NoteBlocData, NoteStructuree, SegData } from './oeuvreTypes'
 import { estColonneOriginale } from './oeuvreTypes'
-import { hauteurNavbarPx, placerFenetre, tailleRacinePx } from '@/app/lib/fenetreContextuelle'
+import {
+  colonneDeLecture, hauteurNavbarPx, placerEnMarge, placerFenetre, tailleRacinePx,
+  type ColonneLecture,
+} from '@/app/lib/fenetreContextuelle'
 // Le CADRE de l'encart, un seul pour les trois surfaces, et sa composition.
 import { EncartNote } from '@/app/components/EncartNote'
-import { hauteurSouhaiteeNote, largeurEncartPx, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
+import { hauteurSouhaiteeNote, largeurEncartMinPx, largeurEncartPx, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
 import { intituleDeLaNote, libelleDeLaNote } from '@/app/lib/typeNote'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, estEnVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { CLE_NUMERO_VERSET, NATURE_VERSET, estBlocVersets, numeroVersetLisible } from '@/app/lib/compositionVersets'
@@ -99,10 +102,15 @@ function AppelNote({ note }: { note: NoteStructuree }) {
   const [ouvert, setOuvert] = useState(false)
   const ancre = useRef<HTMLElement>(null)
   const [rect, setRect] = useState<{ left: number; top: number; bottom: number } | null>(null)
+  const [colonne, setColonne] = useState<ColonneLecture | null>(null)
   const sansSurvol = useSansSurvol()
   const basculer = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation()
-    if (ancre.current) { const r = ancre.current.getBoundingClientRect(); setRect({ left: r.left, top: r.top, bottom: r.bottom }) }
+    if (ancre.current) {
+      const r = ancre.current.getBoundingClientRect()
+      setRect({ left: r.left, top: r.top, bottom: r.bottom })
+      setColonne(colonneDeLecture(ancre.current))
+    }
     setOuvert(o => !o)
   }
   useEffect(() => {
@@ -119,13 +127,13 @@ function AppelNote({ note }: { note: NoteStructuree }) {
   const vue = typeof window === 'undefined'
     ? { largeur: 900, hauteur: 800 }
     : { largeur: window.innerWidth, hauteur: window.innerHeight }
-  const placement = placerFenetre({
-    ancre: rect ?? { top: 300, bottom: 316, left: 0 },
-    largeur: largeurEncartPx(racine),
-    hauteurSouhaitee: hauteurSouhaiteeNote({ signes: signesDeLaNote(note), racine, avecIntitule: Boolean(intitule) }),
-    vue, hautNavbar: hauteurNavbarPx(), ecart: 8,
-    prefereDessus: sansSurvol,
-  })
+  const boite = rect ?? { top: 300, bottom: 316, left: 0 }
+  const largeur = largeurEncartPx(racine)
+  const hauteurSouhaitee = hauteurSouhaiteeNote({ signes: signesDeLaNote(note), racine, avecIntitule: Boolean(intitule) })
+  const hautNavbar = hauteurNavbarPx()
+  // ⛔ D'ABORD LA MARGE, comme partout : l'encart ne couvre pas le texte qu'il commente.
+  const placement = (colonne && placerEnMarge({ ancre: boite, largeur, largeurMin: largeurEncartMinPx(racine), hauteurSouhaitee, vue, hautNavbar, colonne }))
+    ?? placerFenetre({ ancre: boite, largeur, hauteurSouhaitee, vue, hautNavbar, ecart: 8, prefereDessus: sansSurvol })
   return (
     <>
       <sup ref={ancre as React.RefObject<HTMLElement>} data-appel-note="" role="button" tabIndex={0}

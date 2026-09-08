@@ -28,6 +28,43 @@ import { tailleRacinePx } from '@/app/lib/fenetreContextuelle'
 // hooks d'ESLint ne le reconnaît pas (piège déjà consigné pour la carte d'auteur).
 const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
+/**
+ * LA LIGNE DE BASE d'une boîte, mesurée : une sonde de hauteur nulle alignée sur la
+ * ligne de base, dont le bord BAS s'y pose exactement.
+ *
+ * ⛔ On ne peut pas la calculer : elle dépend des métriques de la police, que le CSS
+ * n'expose pas. Et l'on ne peut pas s'en passer — la position statique d'un bloc
+ * absolu est le haut de sa LIGNE, non sa ligne de base, si bien qu'un renvoi de
+ * 0,625 rem posé contre un texte de 0,8125 rem se pose SIX PIXELS TROP HAUT (mesuré
+ * le 8 septembre 2026, constant sur toutes les entrées). Un renvoi en marge qui ne
+ * s'aligne pas sur sa ligne ne désigne plus rien.
+ *
+ * ⚠️ MESURÉE plutôt qu'écrite en constante : les deux corps sont en rem, la police
+ * racine est fluide, et un nombre de pixels serait juste à une seule taille d'écran.
+ * C'est la leçon déjà payée sur la marge de référence de la Polyglotte.
+ */
+function ligneDeBase(hote: Element, avant: Node | null): number {
+  const sonde = document.createElement('span')
+  sonde.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline'
+  hote.insertBefore(sonde, avant)
+  const bas = sonde.getBoundingClientRect().bottom
+  sonde.remove()
+  return bas
+}
+
+/** L'écart entre la ligne de base du TEXTE et celle du renvoi, laissé à zéro si
+ *  l'une des deux ne se mesure pas. ⚠️ Une seule mesure par passe : les métriques
+ *  sont les mêmes pour toutes les entrées, et chaque sonde force une mise en page. */
+function decalageDeLigne(entrees: readonly HTMLElement[]): number {
+  for (const entree of entrees) {
+    const marque = entree.parentElement
+    const premier = entree.firstElementChild ?? entree
+    if (!marque?.parentElement || !premier.firstChild) continue
+    return ligneDeBase(marque.parentElement, marque) - ligneDeBase(premier, premier.firstChild)
+  }
+  return 0
+}
+
 /** La marque que porte un renvoi posé en manchette. */
 export const CLASSE_RENVOI_MANCHETTE = 'cs-manchette-renvoi'
 
@@ -62,19 +99,25 @@ export function useManchetteRenvois(
       setActif(tient)
       if (!tient) return
 
-      // 2. L'EMPILEMENT. ⛔ On rend d'abord chaque renvoi à sa position STATIQUE :
-      //    sans cela, la passe suivante mesurerait le décalage que la précédente a
-      //    posé, et la manchette descendrait un peu plus à chaque reflux.
+      // 2. LA LIGNE, puis l'EMPILEMENT. ⛔ On rend d'abord chaque renvoi à sa position
+      //    STATIQUE : sans cela, la passe suivante mesurerait le décalage que la
+      //    précédente a posé, et la manchette descendrait un peu plus à chaque reflux.
       const entrees = Array.from(el.querySelectorAll<HTMLElement>(`.${CLASSE_RENVOI_MANCHETTE}`))
       if (entrees.length === 0) return
       for (const entree of entrees) entree.style.top = ''
+      const decalage = decalageDeLigne(entrees)
       const haut = el.getBoundingClientRect().top
       const aPlacer = entrees.map((entree, rang) => {
         const boite = entree.getBoundingClientRect()
-        return { cle: String(rang), ancre: boite.top - haut, hauteur: boite.height }
+        return { cle: String(rang), ancre: boite.top - haut + decalage, hauteur: boite.height }
       })
+      // ⚠️ On pose `top` sur TOUTES les entrées, non sur les seules poussées : la
+      //    correction de ligne de base vaut pour chacune, et la position statique ne
+      //    la porte pas.
       for (const place of placerManchette(aPlacer)) {
-        if (place.pousse) entrees[Number(place.cle)].style.top = `${place.top}px`
+        const entree = entrees[Number(place.cle)]
+        entree.style.top = `${place.top}px`
+        entree.toggleAttribute('data-pousse', place.pousse)
       }
     }
 

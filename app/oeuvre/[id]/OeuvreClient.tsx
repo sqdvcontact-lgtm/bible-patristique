@@ -2897,7 +2897,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             efface tout le bloc, et l'anneau s'effacerait avec le texte qu'il annonce.
             Aucune transformation ici non plus, pour la même raison que sur `<main>`. */}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', position: 'relative' }}>
-        <main ref={mainRef} lang="fr" className={sortie ? 'lecture-sortie' : entree ? 'lecture-entree' : undefined} style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div ref={colonneRef} style={{ maxWidth: largeurLecture, margin: '0 auto', position: 'relative', overflow: 'visible' }}>
+        <main ref={mainRef} lang="fr" className={sortie ? 'lecture-sortie' : entree ? 'lecture-entree' : undefined} style={{ flex: 1, minWidth: 0, padding: mobile ? '2.875rem 14px 3.75rem' : '0 14px 80px', position: 'relative', overflow: 'visible' }}><div ref={colonneRef} data-colonne-lecture="" style={{ maxWidth: largeurLecture, margin: '0 auto', position: 'relative', overflow: 'visible' }}>
           {/* Frontispice IDENTIQUE à la lecture (même en Traductions parallèles) : même
               composant, même rembourrage symétrique, le titre centré sur toute la largeur
               du bloc. Les deux traductions comparées sont nommées en tête de colonnes plus

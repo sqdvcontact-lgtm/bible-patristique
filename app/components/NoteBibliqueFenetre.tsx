@@ -17,10 +17,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-import { hauteurNavbarPx, placerFenetre, tailleRacinePx } from '@/app/lib/fenetreContextuelle'
+import {
+  colonneDeLecture, hauteurNavbarPx, placerEnMarge, placerFenetre, tailleRacinePx,
+  type ColonneLecture,
+} from '@/app/lib/fenetreContextuelle'
 import { styleAppelNote, type VarianteAppelNote } from '@/app/lib/appelsDeNote'
 import { EncartNote } from './EncartNote'
-import { hauteurSouhaiteeNote, largeurEncartPx, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
+import { hauteurSouhaiteeNote, largeurEncartMinPx, largeurEncartPx, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
 // L'axe est la CAPACITÉ DU POINTEUR, jamais la largeur (charte, « LE DOIGT »).
 import { useSansSurvol } from '@/app/lib/useEstMobile'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -92,12 +95,14 @@ export default function AppelNoteBiblique({
   const [ouvert, setOuvert] = useState(false)
   const ancre = useRef<HTMLElement>(null)
   const [rect, setRect] = useState<{ left: number; top: number; bottom: number } | null>(null)
+  const [colonne, setColonne] = useState<ColonneLecture | null>(null)
 
   const basculer = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation()
     if (ancre.current) {
       const r = ancre.current.getBoundingClientRect()
       setRect({ left: r.left, top: r.top, bottom: r.bottom })
+      setColonne(colonneDeLecture(ancre.current))
     }
     setOuvert((o) => !o)
   }
@@ -129,18 +134,16 @@ export default function AppelNoteBiblique({
   // `intituleDeLaNote` (`app/lib/typeNote.ts`) le composera, comme ailleurs.
   // ⛔ Jamais « Note » écrit en dur, qui n'apprenait rien à qui venait de cliquer.
   const intitule: string | null = null
-  const placement = placerFenetre({
-    ancre: rect ?? { top: 300, bottom: 316, left: 0 },
-    largeur: largeurEncartPx(racine),
-    // La hauteur SUIT la note. Elle valait 420 px pour toutes, ce qui promettait
-    // une page à un renvoi de deux mots et n'en promettait pas assez à un
-    // développement de Fillion.
-    hauteurSouhaitee: hauteurSouhaiteeNote({ signes: signesDeLaNote(note), racine, avecIntitule: Boolean(intitule) }),
-    vue,
-    hautNavbar: hauteurNavbarPx(),
-    ecart: 8,
-    prefereDessus: sansSurvol,
-  })
+  const boite = rect ?? { top: 300, bottom: 316, left: 0 }
+  const largeur = largeurEncartPx(racine)
+  // La hauteur SUIT la note. Elle valait 420 px pour toutes, ce qui promettait une
+  // page à un renvoi de deux mots et n'en promettait pas assez à un développement.
+  const hauteurSouhaitee = hauteurSouhaiteeNote({ signes: signesDeLaNote(note), racine, avecIntitule: Boolean(intitule) })
+  const hautNavbar = hauteurNavbarPx()
+  // ⛔ D'ABORD LA MARGE : une note ouverte par-dessus la colonne cache le verset
+  // qu'elle commente. ⚠️ Faute de place, on retombe sous l'appel.
+  const placement = (colonne && placerEnMarge({ ancre: boite, largeur, largeurMin: largeurEncartMinPx(racine), hauteurSouhaitee, vue, hautNavbar, colonne }))
+    ?? placerFenetre({ ancre: boite, largeur, hauteurSouhaitee, vue, hautNavbar, ecart: 8, prefereDessus: sansSurvol })
 
   return (
     <>

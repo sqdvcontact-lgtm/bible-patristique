@@ -10,6 +10,9 @@ import {
   signesDeLaNote,
   styleCadreEncart,
   styleCorpsEncart,
+  LARGEUR_ENCART_MIN_REM,
+  STYLE_NUMERO_ENCART,
+  largeurEncartMinPx,
 } from './compositionNote'
 
 const note = (...textes: string[]) => ({ blocks: textes.map(text => ({ text })) })
@@ -137,5 +140,50 @@ describe('le cadre et le corps sont deux éléments', () => {
     const corps = styleCorpsEncart(false)
     expect(String(corps.fontFamily)).toContain('source-serif')
     expect(corps.fontSize).toBe(CORPS_ENCART)
+  })
+})
+
+describe('le numéro de la note', () => {
+  // ⛔ Il FLOTTE : rangé dans une colonne de grille, il réservait sa gouttière sur
+  // toute la hauteur de la note — dix-neuf lignes de blanc à gauche d'un
+  // développement de vingt.
+  it('flotte, et le propos l’habille', () => {
+    expect(STYLE_NUMERO_ENCART.float).toBe('left')
+    expect(STYLE_NUMERO_ENCART.width).toBeTruthy()
+  })
+
+  it('se ferre à droite, contre le texte', () => {
+    expect(STYLE_NUMERO_ENCART.textAlign).toBe('right')
+  })
+
+  // ⚠️ Sa ligne est celle du TEXTE : un chiffre de 0,625 rem posé sur son propre
+  // interligne flotterait au-dessus de la première ligne du propos.
+  it('prend l’interligne du texte, non le sien', () => {
+    const ligneTexte = 0.8125 * 1.5
+    expect(Number(STYLE_NUMERO_ENCART.lineHeight) * 0.625).toBeCloseTo(ligneTexte, 5)
+  })
+})
+
+describe('l’encart qui se range dans une marge', () => {
+  it('prend la largeur RETENUE quand elle lui est donnée', () => {
+    expect(styleCadreEncart({ left: 0, top: 0, hauteurMax: 300, largeur: 366 }).width).toBe(366)
+  })
+
+  it('garde sa mesure quand rien ne la borne', () => {
+    expect(styleCadreEncart({ left: 0, top: 0, hauteurMax: 300 }).width).toBe(LARGEUR_ENCART)
+  })
+
+  // ⛔ Sous cette borne, une note ne se lit plus : elle repasse sous son appel.
+  // ⚠️ 320 px à la racine 16 : vingt de moins que le plus étroit des trois encarts
+  // d'hier, et c'est ce qui permet à la marge de servir dès 1280 px de fenêtre, où
+  // elle n'en offre que 366.
+  it('a une largeur plancher, qui tient dans la marge d’un écran de 1280', () => {
+    expect(largeurEncartMinPx(16)).toBe(LARGEUR_ENCART_MIN_REM * 16)
+    expect(largeurEncartMinPx(16)).toBeLessThanOrEqual(366)
+    expect(largeurEncartMinPx(16)).toBeGreaterThanOrEqual(300)
+  })
+
+  it('la borne SUIT la police racine', () => {
+    expect(largeurEncartMinPx(22)).toBe(LARGEUR_ENCART_MIN_REM * 22)
   })
 })

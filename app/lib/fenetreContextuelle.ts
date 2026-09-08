@@ -100,3 +100,87 @@ export function placerFenetre({
 export function hauteurMaxModale(vue: Vue, hautNavbar: number, marge = MARGE_FENETRE): number {
   return Math.max(0, vue.hauteur - hautNavbar - marge * 2)
 }
+
+/** La colonne de lecture d'une page, en coordonnées de fenêtre. C'est elle que
+ *  l'encart d'une note ne doit jamais couvrir. */
+export type ColonneLecture = { gauche: number; droite: number }
+
+/** L'attribut par lequel une page déclare sa colonne de lecture. */
+export const MARQUE_COLONNE_LECTURE = 'data-colonne-lecture'
+
+/** La colonne de lecture qui porte cet élément, mesurée. ⚠️ À lire au moment du
+ *  GESTE, jamais pendant un rendu : c'est une lecture de mise en page. */
+export function colonneDeLecture(depuis: Element | null | undefined): ColonneLecture | null {
+  const colonne = depuis?.closest(`[${MARQUE_COLONNE_LECTURE}]`)
+  if (!colonne) return null
+  const boite = colonne.getBoundingClientRect()
+  return { gauche: boite.left, droite: boite.right }
+}
+
+export type PlacementEnMarge = PlacementFenetre & {
+  cote: 'gauche' | 'droite'
+  /** La largeur RETENUE : la marge disponible quand elle est plus étroite que la
+   *  largeur demandée. */
+  largeur: number
+}
+
+/**
+ * L'ENCART SE RANGE DANS UNE MARGE, il ne couvre pas le texte.
+ *
+ * ⛔ Décision de l'auteur, 8 septembre 2026 : une note qui s'ouvre par-dessus la
+ * colonne cache précisément le passage qu'elle commente, et le lecteur doit la
+ * fermer pour relire ce qu'il vient de lire. Rangée à côté, elle se lit EN MÊME
+ * TEMPS que le texte, comme la note d'une édition imprimée.
+ *
+ * ⚠️ Elle se pose À HAUTEUR de son appel, non dessous : c'est ce qui la rattache à
+ * la ligne d'où elle vient. Elle ne descend que si le bas de l'écran l'y oblige.
+ *
+ * ⚠️ ELLE SE RESSERRE plutôt que de renoncer. Mesuré le 8 septembre 2026 : la
+ * colonne de lecture d'une œuvre laisse 561 px à droite sur un écran de 1920, mais
+ * 366 seulement sur un écran de 1280 — moins que les 29 rem de l'encart. Exiger la
+ * largeur pleine l'aurait renvoyé par-dessus le texte sur la plupart des portables.
+ * ⛔ Ce n'est PAS la largeur qui suit le contenu, que la charte proscrit : elle suit
+ * la PLACE, elle est la même pour toutes les notes d'une même page, et elle ne change
+ * que si le lecteur ouvre un volet lui-même.
+ *
+ * ⛔ On ne rend RIEN sous `largeurMin` : une note ne se lit plus dans une colonne
+ * trop étroite, et mieux vaut alors la poser sous son appel, comme avant.
+ *
+ * ⚠️ Elle peut en revanche déborder sur un VOLET, et c'est voulu : un volet est une
+ * navigation, non ce qu'on est en train de lire, et une fenêtre flottante a le droit
+ * de s'y poser. Seule la colonne de texte est sacrée.
+ */
+export function placerEnMarge({
+  ancre, largeur, largeurMin, hauteurSouhaitee, vue, hautNavbar, colonne,
+  marge = MARGE_FENETRE, ecart = 12,
+}: {
+  ancre: Ancre
+  /** La largeur voulue ; l'encart se resserre jusqu'à `largeurMin` s'il le faut. */
+  largeur: number
+  largeurMin: number
+  hauteurSouhaitee: number
+  vue: Vue
+  hautNavbar: number
+  colonne: ColonneLecture
+  marge?: number
+  /** Le jeu entre la colonne de texte et l'encart. */
+  ecart?: number
+}): PlacementEnMarge | null {
+  const placeDroite = vue.largeur - marge - (colonne.droite + ecart)
+  const placeGauche = (colonne.gauche - ecart) - marge
+
+  // ⚠️ À égalité, la DROITE l'emporte : sur la page de lecture d'une œuvre, la marge
+  // de gauche porte la manchette des renvois, et l'encart la couvrirait.
+  const cote: 'gauche' | 'droite' = placeGauche > placeDroite ? 'gauche' : 'droite'
+  const place = cote === 'gauche' ? placeGauche : placeDroite
+  if (place < largeurMin) return null
+  const largeurRetenue = Math.min(largeur, place)
+
+  const hautUtile = hautNavbar + marge
+  const basUtile = vue.hauteur - marge
+  const hauteurMax = Math.max(0, Math.min(hauteurSouhaitee, basUtile - hautUtile))
+  const top = Math.max(hautUtile, Math.min(ancre.top, basUtile - hauteurMax))
+  const left = cote === 'gauche' ? colonne.gauche - ecart - largeurRetenue : colonne.droite + ecart
+
+  return { top, left, hauteurMax, auDessus: false, cote, largeur: largeurRetenue }
+}

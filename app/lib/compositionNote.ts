@@ -53,6 +53,22 @@ export function largeurEncartPx(racine: number): number {
   return LARGEUR_ENCART_REM * racine
 }
 
+/**
+ * La largeur SOUS LAQUELLE l'encart ne se range plus dans une marge : en deçà, une
+ * note ne se lit plus, et mieux vaut la poser sous son appel comme avant.
+ *
+ * ⚠️ 20 rem, soit 320 px à la racine 16 — vingt pixels de moins que le plus étroit
+ * des trois encarts d'hier, et c'est un choix : c'est ce qui permet à la marge de
+ * servir dès 1280 px de fenêtre, où elle n'en offre que 366. Sa piste de texte y
+ * vaut encore quarante-quatre signes par ligne. ⛔ La relever d'un rem renverrait
+ * l'encart par-dessus le texte sur tous les portables.
+ */
+export const LARGEUR_ENCART_MIN_REM = 20
+
+export function largeurEncartMinPx(racine: number): number {
+  return LARGEUR_ENCART_MIN_REM * racine
+}
+
 /** La gouttière du numéro, celle d'un verset sur la page Bible portée à l'échelle
  *  de l'encart : le chiffre s'y range au fer à droite, contre le texte. */
 export const GOUTTIERE_NUMERO = '2.25rem'
@@ -140,12 +156,15 @@ export function signesDeLaNote(note: { blocks: readonly { text: string }[] } | s
  * C'est le corps, à l'intérieur, qui porte le défilement.
  */
 export function styleCadreEncart(
-  { left, top, hauteurMax }: { left: number; top: number; hauteurMax: number },
+  { left, top, hauteurMax, largeur }:
+  { left: number; top: number; hauteurMax: number; largeur?: number },
 ): CSSProperties {
   return {
     position: 'fixed',
     left, top,
-    width: LARGEUR_ENCART,
+    // ⚠️ La largeur RETENUE quand l'encart se range dans une marge plus étroite que
+    // lui ; sa mesure pleine partout ailleurs.
+    width: largeur ?? LARGEUR_ENCART,
     // ⚠️ La même marge que celle que le placeur réserve, sinon la largeur CSS et le
     // calcul de position ne parlent pas de la même bande (défaut corrigé en août
     // 2026 sur la fenêtre de la page Bible, jamais reporté sur les deux autres).
@@ -189,28 +208,37 @@ export function styleCorpsEncart(avecCroix: boolean): CSSProperties {
   }
 }
 
-/** La grille de l'encart : le numéro dans sa gouttière, le propos à côté. */
-export const STYLE_GRILLE_ENCART: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: `${GOUTTIERE_NUMERO} minmax(0, 1fr)`,
-  alignItems: 'baseline',
-}
-
 /**
- * Le NUMÉRO, dans sa gouttière. C'est lui qui dit à quelle note l'encart répond,
+ * LE NUMÉRO, EN MANCHETTE. C'est lui qui dit à quelle note l'encart répond,
  * maintenant que l'intitulé se tait pour les trois cinquièmes du corpus.
+ *
+ * ⛔ Il FLOTTE, il n'occupe pas une colonne. Rangé dans une gouttière de grille, il
+ * réservait ses 2,25 rem sur TOUTE la hauteur de la note : deux mots de large en
+ * face d'un développement de vingt lignes, et dix-neuf lignes de blanc perdu à
+ * gauche. Le texte l'habille désormais — la première ligne le contourne, les
+ * suivantes reprennent la mesure entière. C'est la manchette d'un livre imprimé,
+ * et c'est ce que fait déjà le repère d'un commentaire de Fillion.
+ *
+ * ⚠️ Le flottant est CONTENU par le corps de l'encart, qui défile : un bloc qui
+ * défile forme un contexte de formatage, et il enferme ses flottants sans qu'on ait
+ * à le lui demander.
  *
  * ⚠️ Il prend la face du numéro de verset de la page Bible — sans, graisse 600,
  * encre faible — et son fer à droite : le site pose déjà ainsi tout chiffre qui
  * accompagne un texte sans lui appartenir.
  */
 export const STYLE_NUMERO_ENCART: CSSProperties = {
+  float: 'left',
+  width: GOUTTIERE_NUMERO,
   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
   fontSize: '0.625rem',
   fontWeight: 600,
   color: 'var(--cs-texte-faible)',
   textAlign: 'right',
   paddingRight: '0.625rem',
+  // ⚠️ Sa ligne est celle du TEXTE, non la sienne : un chiffre de 0,625 rem posé sur
+  // son propre interligne flotterait au-dessus de la première ligne du propos.
+  lineHeight: INTERLIGNE_ENCART * Number.parseFloat(CORPS_ENCART) / 0.625,
   userSelect: 'none',
 }
 

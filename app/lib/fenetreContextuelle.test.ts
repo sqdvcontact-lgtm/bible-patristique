@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { MARGE_FENETRE, hauteurMaxModale, placerFenetre, type Ancre } from './fenetreContextuelle'
+import { MARGE_FENETRE, hauteurMaxModale, placerEnMarge, placerFenetre, type Ancre } from './fenetreContextuelle'
 
 const VUE = { largeur: 1200, hauteur: 800 }
 const NAVBAR = 56
@@ -131,6 +131,85 @@ describe('au doigt, la fenêtre s’ouvre au-dessus', () => {
 
   it('ne change rien au calcul horizontal', () => {
     expect(auDoigt(ancre(400)).left).toBe(placer(ancre(400)).left)
+  })
+})
+
+describe('l’encart se range dans une marge', () => {
+  // Une colonne de lecture de 500 px centrée dans une fenêtre de 1200 : il reste
+  // 350 px de chaque côté.
+  const COLONNE = { gauche: 350, droite: 850 }
+  const enMarge = (a: Ancre, largeur = 300, hauteurSouhaitee = 300, colonne = COLONNE, largeurMin = 300) =>
+    placerEnMarge({ ancre: a, largeur, largeurMin, hauteurSouhaitee, vue: VUE, hautNavbar: NAVBAR, colonne })
+
+  it('se pose À DROITE de la colonne, à hauteur de son appel', () => {
+    const p = enMarge(ancre(300))!
+    expect(p.cote).toBe('droite')
+    expect(p.left).toBe(850 + 12)
+    expect(p.top).toBe(300)
+    expect(p.auDessus).toBe(false)
+  })
+
+  it('ne couvre JAMAIS la colonne de texte', () => {
+    const p = enMarge(ancre(300))!
+    expect(p.left).toBeGreaterThanOrEqual(COLONNE.droite)
+  })
+
+  // ⚠️ À égalité, la droite l’emporte : la marge de gauche porte la manchette.
+  it('passe à GAUCHE quand la gauche est plus large', () => {
+    const p = enMarge(ancre(300), 300, 300, { gauche: 500, droite: 900 })!
+    expect(p.cote).toBe('gauche')
+    expect(p.left).toBe(500 - 12 - 300)
+    expect(p.left + 300).toBeLessThanOrEqual(500)
+  })
+
+  it('rend NULL quand aucune marge ne peut porter la largeur MINIMALE', () => {
+    expect(enMarge(ancre(300), 300, 300, { gauche: 120, droite: 1080 })).toBeNull()
+    expect(enMarge(ancre(300), 900, 300, COLONNE, 900)).toBeNull()
+  })
+
+  // ⛔ Elle SE RESSERRE plutôt que de renoncer : la colonne d'une œuvre laisse 561 px
+  // à droite sur un écran de 1920, mais 366 seulement sur un écran de 1280.
+  it('se resserre à la place disponible plutôt que de renoncer', () => {
+    const p = enMarge(ancre(300), 900, 300, COLONNE, 300)!
+    expect(p.largeur).toBe(1200 - 12 - (850 + 12))
+    expect(p.left).toBe(850 + 12)
+    expect(p.left + p.largeur).toBeLessThanOrEqual(1200 - 12)
+  })
+
+  it('garde sa mesure pleine quand la marge la porte', () => {
+    expect(enMarge(ancre(300), 300)!.largeur).toBe(300)
+  })
+
+  it('se resserre AUSSI à gauche, sans jamais entamer la colonne', () => {
+    const p = enMarge(ancre(300), 900, 300, { gauche: 500, droite: 900 }, 300)!
+    expect(p.cote).toBe('gauche')
+    expect(p.largeur).toBe(500 - 12 - 12)
+    expect(p.left).toBe(12)
+    expect(p.left + p.largeur).toBeLessThanOrEqual(500)
+  })
+
+  it('reste dans la bande utile quand l’appel est en bas', () => {
+    const p = enMarge(ancre(760))!
+    expect(p.top + p.hauteurMax).toBeLessThanOrEqual(BAS_UTILE)
+    expect(p.top).toBeGreaterThanOrEqual(HAUT_UTILE)
+  })
+
+  it('ne passe jamais sous la barre de navigation', () => {
+    const p = enMarge(ancre(0))!
+    expect(p.top).toBeGreaterThanOrEqual(HAUT_UTILE)
+  })
+
+  it('borne sa hauteur à la bande utile, et défile en dedans au-delà', () => {
+    const p = enMarge(ancre(300), 300, 5000)!
+    expect(p.hauteurMax).toBe(BAS_UTILE - HAUT_UTILE)
+  })
+
+  it('ne rend jamais une hauteur négative', () => {
+    const p = placerEnMarge({
+      ancre: ancre(10), largeur: 100, largeurMin: 100, hauteurSouhaitee: 600,
+      vue: { largeur: 1200, hauteur: 60 }, hautNavbar: NAVBAR, colonne: COLONNE,
+    })
+    expect(p!.hauteurMax).toBeGreaterThanOrEqual(0)
   })
 })
 

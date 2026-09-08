@@ -9,10 +9,13 @@ import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
 import { intituleDeLaNote, libelleDeLaNote, LIBELLE_NOTE_SANS_TYPE } from '@/app/lib/typeNote'
 import type { NoteAffichee } from './oeuvreTypes'
-import { hauteurNavbarPx, placerFenetre, tailleRacinePx } from '@/app/lib/fenetreContextuelle'
+import {
+  colonneDeLecture, hauteurNavbarPx, placerEnMarge, placerFenetre, tailleRacinePx,
+  type ColonneLecture,
+} from '@/app/lib/fenetreContextuelle'
 // Le CADRE de l'encart, un seul pour les trois surfaces, et sa composition.
 import { EncartNote } from '@/app/components/EncartNote'
-import { hauteurSouhaiteeNote, largeurEncartPx, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
+import { hauteurSouhaiteeNote, largeurEncartMinPx, largeurEncartPx, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
 // La manchette : un renvoi qui s'y compose n'a plus d'appel, seulement un repère
 // sans chasse à l'endroit où l'exposant se tenait.
 import { STYLE_ANCRE_MANCHETTE } from '@/app/lib/manchetteRenvois'
@@ -185,6 +188,8 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
   const [visible, setVisible] = useState(false)
   const [figee, setFigee] = useState(false)
   const [rect, setRect] = useState<{ left: number; top: number; bottom: number } | null>(null)
+  // La colonne de lecture, mesurée AU GESTE : c'est elle que l'encart ne couvre pas.
+  const [colonne, setColonne] = useState<ColonneLecture | null>(null)
   const marceurRef = useRef<HTMLElement>(null)
   const timerMasquer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const sansSurvol = useSansSurvol()
@@ -203,6 +208,7 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
     if (!marceurRef.current) return
     const r = marceurRef.current.getBoundingClientRect()
     setRect({ left: r.left, top: r.top, bottom: r.bottom })
+    setColonne(colonneDeLecture(marceurRef.current))
   }
 
   const survolMarceur = () => {
@@ -266,16 +272,19 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
   const vue = typeof window === 'undefined'
     ? { largeur: 900, hauteur: 800 }
     : { largeur: window.innerWidth, hauteur: window.innerHeight }
-  const placement = placerFenetre({
-    ancre: rect ?? { top: 300, bottom: 316, left: 0, right: 0 },
-    largeur: largeurEncartPx(racine),
-    // La hauteur SUIT la note, au lieu des 340 px que le placeur recevait pour
-    // toutes : un renvoi de treize signes n'a pas à réserver la place d'un
-    // développement, et un développement n'a pas à se croire court.
-    hauteurSouhaitee: hauteurSouhaiteeNote({ signes: signesDeLaNote(contenu), racine, avecIntitule: Boolean(intitule) }),
-    vue, hautNavbar: hauteurNavbarPx(), ecart: 8,
-    prefereDessus: sansSurvol,
-  })
+  const ancre = rect ?? { top: 300, bottom: 316, left: 0, right: 0 }
+  const largeur = largeurEncartPx(racine)
+  // La hauteur SUIT la note, au lieu des 340 px que le placeur recevait pour toutes :
+  // un renvoi de treize signes n'a pas à réserver la place d'un développement, et un
+  // développement n'a pas à se croire court.
+  const hauteurSouhaitee = hauteurSouhaiteeNote({ signes: signesDeLaNote(contenu), racine, avecIntitule: Boolean(intitule) })
+  const hautNavbar = hauteurNavbarPx()
+  // ⛔ D'ABORD LA MARGE : une note ouverte par-dessus la colonne cache le passage
+  // qu'elle commente. ⚠️ Faute de place — un téléphone, deux volets ouverts —, on
+  // retombe sur la fenêtre posée sous l'appel : mieux vaut couvrir le texte que
+  // sortir de l'écran.
+  const placement = (colonne && placerEnMarge({ ancre, largeur, largeurMin: largeurEncartMinPx(racine), hauteurSouhaitee, vue, hautNavbar, colonne }))
+    ?? placerFenetre({ ancre, largeur, hauteurSouhaitee, vue, hautNavbar, ecart: 8, prefereDessus: sansSurvol })
 
   const encart = visible ? (
     <EncartNote
