@@ -897,6 +897,26 @@ button:focus-visible,
 }
 
 
+/* ── LE FLEURON — une planche, deux encres ───────────────────────────────────
+   ⛔ Il se pose en MASQUE, jamais en image : son dessin est dans la couche alpha,
+   et l'encre se repose ici. C'est ce qui le fait sombre sur le papier et clair sur
+   le cuir avec UN SEUL fichier, sans le filtre d'inversion ci-dessus et sans le
+   piège de l'optimiseur d'images, qui aplatit une couche alpha sur du blanc à
+   certaines largeurs. C'est la règle du chiffre CS de la barre et du colophon, et
+   celle des gravures de l'édition juste en dessous : le détourage ne sert que
+   l'ALPHA, la couleur se repose.
+   ⚠️ L'encre est celle du glyphe qu'il remplace, --cs-texte-second : un fleuron de
+   séparation accompagne la page, il ne l'ouvre pas. */
+.cs-fleuron {
+  display: block;
+  background-color: var(--cs-texte-second);
+  -webkit-mask-size: contain; mask-size: contain;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-position: center; mask-position: center;
+  user-select: none; pointer-events: none;
+}
+
+
 /* ── Les GRAVURES de l'édition : trois régimes ────────────────────────────────
    ⛔ Le fichier d'une gravure détourée ne s'affiche pas, il DÉCOUPE : son dessin
    est dans la couche alpha, et l'encre se repose ici. C'est ce qui la fait

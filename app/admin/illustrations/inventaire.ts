@@ -265,6 +265,17 @@ export const ILLUSTRATIONS: Illustration[] = [
     note: 'Planche fournie par l’auteur, fabriquée par la chaîne commune (scripts/ornements-detourer.mjs) : pourtour rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage par la luminance, encre reposée à 33, celle de la famille. Profil de gravure au TRAIT, 83 % de transparents. Servie en 214 × 40 pour 112 px d’affichage, rapport 1,91. ⚠️ Elle avait d’abord été posée à 14 rem, deux fois trop grosse : elle écrasait le titre qu’elle ferme. ⚠️ Et le défaut de fond était ailleurs : la gravure est DIRECTIONNELLE, elle pointe vers la droite, quand toute la grammaire ornementale du site est symétrique — le filet du frontispice, le fleuron, le quadrilobe. Un ornement qui ferme un titre ne va nulle part. Deux symétrisations ont été essayées, deux pointes et deux fleurons, avant que l’auteur ne revienne au fleuron. La planche brute est conservée dans tmp/ornements-source/, hors dépôt.',
   },
 
+  {
+    chemin: '/ornements/fleuron-croix.png',
+    nom: 'Fleuron — croix fleurdelisée',
+    fonction: 'coiffer',
+    emploi: 'Sépare la page de titre du texte, sur toute page d’œuvre. Elle y remplace le glyphe ❧ depuis le 9 septembre 2026, sur demande de l’auteur : un caractère dont le dessin dépendait de la police que le système voulait bien donner cède à une planche gravée.',
+    lieu: { href: '/oeuvre/A0010O0100', label: 'Annotations sur le livre de Job', repere: 'Entre le colophon de la page de titre et le premier titre de division.' },
+    source: 'app/oeuvre/[id]/Ornements.tsx',
+    traitement: { masque: true, pose: { hauteur: '2.75rem', sol: 'papier' } },
+    note: 'Planche fournie par l’auteur, fabriquée par la chaîne commune (scripts/ornements-detourer.mjs). ⚠️ Elle a imposé une correction de la chaîne : son papier a du GRAIN — pic à 238 pour une queue qui descend à 216 — et le blanchiment au seuil « pic moins deux » laissait 84 % du plan en partiels, c’est-à-dire un voile d’encre sur tout le fond. Le nettoyage des planches de Fillion (étalement au pic, puis blanchiment des seuls pixels clairs sans encre alentour) est passé dans un module partagé, scripts/_papier-commun.mjs, et le pied du papier s’y mesure désormais sur son flanc SOMBRE. Après : 76 % de transparents, 12,6 % de partiels, profil de gravure au trait. Servie en 78 × 86 pour 40 × 44 affichés, rapport 1,95. ⚠️ La taille se mesure : sous 36 px les volutes du centre se referment en une tache. Elle est SYMÉTRIQUE sur ses deux axes, ce qu’un ornement de séparation doit être — la leçon du filet directionnel refusé le 31 août 2026. La planche brute est conservée dans tmp/ornements-source/, hors dépôt.',
+  },
+
   // ── Illustrer une carte ────────────────────────────────────────────────────
   {
     chemin: '/icons/home-bible-book.png',

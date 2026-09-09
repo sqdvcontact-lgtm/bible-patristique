@@ -102,7 +102,7 @@ import { useEditeursCharges } from '@/app/lib/editeurs'
 import { adresseEdition } from '@/app/lib/adresseEdition'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
 import NomVolet from '@/app/components/NomVolet'
-import { FeuilleVigne } from './Ornements'
+import { Fleuron } from './Ornements'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import VisiteGuidee from '@/app/components/VisiteGuidee'
 import { CLE_VISITE_OEUVRE, VISITE_OEUVRE } from '@/app/lib/visiteOeuvre'
@@ -3355,11 +3355,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               sans la couche qui manque au lieu de tomber (charte § 18). */}
           <BandeauDegradations degradations={degradations} estAdmin={estAdmin} />
 
-          {/* Fleuron (feuille de vigne) séparant la page de titre du niveau 1,
-              à la place du long filet. Il se centre sur toute la largeur du bloc, en
-              lecture comme en comparaison. */}
+          {/* Le fleuron qui sépare la page de titre du texte. Il se centre sur toute
+              la largeur du bloc, en lecture comme en comparaison. */}
           <div style={{ display: 'flex', justifyContent: 'center', margin: '40px 0 44px' }}>
-            <FeuilleVigne />
+            <Fleuron />
           </div>
 
           {/* Barre de circulation de la comparaison — jumelle de « barre-nav-niv1 » :

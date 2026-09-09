@@ -17,6 +17,10 @@
 import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
+// ⛔ Le nettoyage du papier ne s'écrit pas ici : il vit dans un module partagé avec la
+// chaîne des planches de Fillion. Deux recettes divergentes rendraient deux gravures
+// de la même famille qui ne se ressemblent pas.
+import { nettoyerLePapier } from './_papier-commun.mjs';
 
 const DOSSIER = 'public/ornements';
 const SAUVEGARDE = 'C:/Corpus Scriptura/ornements-originaux-20260823';
@@ -83,29 +87,29 @@ async function fabriquer({ source, nom, affichage }) {
   // luminance contre 247 à 249 pour le papier. Il passe sous le seuil de normalisation,
   // devient donc de l'encre, et se voit comme une barre noire le long du bord. Il
   // empêche en outre le rognage des marges, un bord sombre l'arrêtant aussitôt.
-  const brut = await sharp(source).removeAlpha()
+  const brutPng = await sharp(source).removeAlpha()
     .extract({ left: MARGE, top: MARGE, width: meta.width - 2 * MARGE, height: meta.height - 2 * MARGE })
-    .raw().toBuffer({ resolveWithObject: true });
-  const { data, info } = brut;
+    .png().toBuffer();
 
-  // ── 2. MESURER LE PAPIER, PAR SON NIVEAU DOMINANT ────────────────────────
-  // ⛔ Le papier ne se suppose pas blanc, et il ne se lit pas non plus aux quatre COINS,
-  // comme le faisait la version d'avant : celui d'une planche est à 253, celui d'une
-  // autre à 247, et leurs coins seuls sont à 255. Le script prenait alors les 90 % de
-  // papier pour une encre très pâle et rendait 87 % de partiels au lieu de 6 %.
-  // Même raisonnement que pour l'encre : c'est la valeur DOMINANTE qui fait foi.
-  const hist = new Array(256).fill(0);
-  for (let i = 0; i < data.length; i += info.channels) hist[Math.round(lum(data[i], data[i + 1], data[i + 2]))]++;
-  const papier = 200 + hist.slice(200).indexOf(Math.max(...hist.slice(200)));
-  for (let i = 0; i < data.length; i += info.channels) {
-    if (lum(data[i], data[i + 1], data[i + 2]) >= papier - 2) { data[i] = data[i + 1] = data[i + 2] = 255; }
-  }
+  // ── 2. NETTOYER LE PAPIER, PAR SES DEUX BORNES ───────────────────────────
+  // ⛔ Le papier ne se suppose pas blanc, et il ne se blanchit pas non plus au seuil
+  // « pic moins deux », comme le faisait la version d'avant : le GRAIN d'une planche
+  // s'étale bien SOUS le pic. Mesuré sur le fleuron en croix, le 9 septembre 2026 :
+  // pic à 237 pour un papier qui descend jusqu'à 208, si bien que tout ce qui restait
+  // sous le seuil devenait un voile d'encre à alpha 20 sur le fond ENTIER — 84 % de
+  // partiels pour 4 % de transparents, l'exact contraire d'un détourage, et le rognage
+  // des marges ne trouvait plus un seul rang blanc où mordre.
+  // La recette juste est celle des planches de Fillion (charte § 49.16) : étalement au
+  // PIC, qui ne perd rien, puis blanchiment des seuls pixels clairs SANS encre à moins
+  // de trois pixels — un trait clair est toujours bordé de trait sombre, le papier
+  // ouvert jamais.
+  const propre = await nettoyerLePapier(brutPng);
 
   // ── 3. ROGNER LES MARGES, puis rendre une lisière ────────────────────────
   // La lisière n'est pas décorative : sans elle, un trait qui affleure le bord se
   // retrouve coupé net par le cadre.
-  const rogne = await sharp(data, { raw: { width: info.width, height: info.height, channels: info.channels } })
-    .png().trim({ background: '#ffffff', threshold: 5 }).toBuffer({ resolveWithObject: true });
+  const rogne = await sharp(propre.png)
+    .trim({ background: '#ffffff', threshold: 5 }).toBuffer({ resolveWithObject: true });
   const borde = await sharp(rogne.data)
     .extend({ top: 12, bottom: 12, left: 12, right: 12, background: '#ffffff' }).toBuffer();
 
@@ -179,7 +183,9 @@ async function fabriquer({ source, nom, affichage }) {
   }
 
   const bilan = {
-    nom, papier, source: path.basename(source),
+    nom, source: path.basename(source),
+    papier: propre.pic, plancher: propre.plancher, noir: propre.noir,
+    blanchis: +propre.blanchis.toFixed(1),
     videOte: (W - LA) + 'x' + (H - HA),
     rogne: rogne.info.width + 'x' + rogne.info.height,
     servi: LA + 'x' + HA, affichage, rapport: +(LA / affichage).toFixed(2),
