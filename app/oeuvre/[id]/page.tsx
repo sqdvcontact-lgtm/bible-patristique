@@ -1,5 +1,3 @@
-import { mesureAlinea, marqueStrophe } from '@/app/lib/compositionVers'
-import { numeroVersetLisible } from '@/app/lib/compositionVersets'
 import {
   AUCUN_ECHO,
   estLiminaireSansNiveau,
@@ -7,7 +5,6 @@ import {
   limiterRequeteAuxLiminairesSansNiveau,
   limiterRequeteSegmentsALaSurface,
   partagerLApparat,
-  sectionDApparat,
   segmentsDeLaSurface,
   SELECT_SEGMENT,
 } from '@/app/lib/oeuvreSelects'
@@ -15,8 +12,6 @@ import { hydraterLiensHerites } from '@/app/lib/liens'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import type { Metadata } from 'next'
 import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
-import { ABREV_FR } from '@/app/lib/bible'
-import { parseNotes } from '@/app/lib/notes'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import { chargerIndexEditeurs } from '@/app/lib/editeursServeur'
@@ -25,12 +20,20 @@ import { JsonLd, donneesLivre, donneesFilAriane } from '@/app/lib/donneesStructu
 import { descriptionOeuvre, enTetesPartage, titreOeuvre } from '@/app/lib/metadonneesSeo'
 import { porteDesLiensBibliques } from '@/app/lib/metadonneesSeoServeur'
 import OeuvreClient from './OeuvreClient'
-import type { AlignementDisponible, VersionTextuelle } from './oeuvreTypes'
+import type { AlignementDisponible, TocEntry, VersionTextuelle } from './oeuvreTypes'
 import {
   chargerProjectionBilingue,
   type BlocOriginal,
 } from './bilingueAlignement'
 import { choisirPaireDeLecture, ensemblesUtilisables } from './paireDeLecture'
+import {
+  composerSegments,
+  extraireVersets,
+  indexerVersetsCites,
+  type LigneVersetCite,
+  type SegmentBrut,
+  type VersetsCites,
+} from './pipelineSegments'
 import { decomposerEdition, labelCourtVersion, libelleTraducteurVersion } from './versionTextuelle'
 import { chargerAuteursDOeuvre, libelleAuteurs } from '@/app/lib/auteursOeuvre'
 import { enumererTraducteurs } from '@/app/lib/traducteurs'
@@ -40,7 +43,7 @@ import {
 } from '@/app/lib/appelsNotesStructurees'
 import { AUCUNE_NOTE, chargerNotesStructurees } from '@/app/lib/notesStructureesChargement'
 import { noterDegradation, tolerer, type DegradationChargement } from '@/app/lib/chargementTolerant'
-import { identifiantOuvrage, type NoticeBibliographique } from '@/app/lib/referenceBibliographique'
+import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import { chargerNoticesBibliographiques, identifiantsOuvrages, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
 import { redirect } from 'next/navigation'
 import { cache } from 'react'
@@ -150,30 +153,13 @@ export async function generateMetadata({ params, searchParams }: {
   }
 }
 
-type Segment = {
-  id: number; id_texte: string; segment_key: string|null; segment_numero: number; segment_texte: string
-  ref_niv1: string|null; ref_niv2: string|null; ref_niv3: string|null
-  ref_niv4: string|null; ref_niv5: string|null
-  ref_niv1_texte: string|null; ref_niv2_texte: string|null
-  ref_niv3_texte: string|null; ref_niv4_texte: string|null
-  lien_1: string|null; lien_2: string|null; lien_3: string|null; lien_4: string|null
-  nature: string|null
-  paragraphe: number|null; rang: number|null; texte_original: string|null
-  espace_textuel: string|null; join_before: string|null
-  // ⚠️ Ces trois-là ne sont pas des colonnes mais des champs de `segment_metadata`,
-  // tirés par leur nom dans `SELECT_SEGMENT` et renommés au passage. PostgREST les
-  // rend donc en TEXTE, quel que soit leur type en base : `mesureAlinea`,
-  // `marqueStrophe` et `numeroVersetLisible` les relisent.
-  alinea: string|null; strophe_avant: string|null; numero_verset: string|null
-  /** La FORME du segment : `vers`, ou rien. Axe séparé de la nature — voir `estEnVers`. */
-  forme: string|null
-  // Même remarque : champ de `segment_metadata`, rendu en texte. Il désigne le
-  // segment du texte en langue originale dont `texte_original` est la copie.
-  cle_original: string|null
-  /** L’ouvrage que cite un segment bibliographique (`segment_metadata.ouvrage_id`) :
-   *  un entier, servi en TEXTE comme les autres champs de métadonnée. */
-  ouvrage_id: string|null
-}
+/**
+ * ⛔ Le type d'une ligne de `segments` vit désormais dans `pipelineSegments`, avec les
+ * fonctions qui la lisent. Le client en portait sa propre description ; deux types du même
+ * objet finissent par ne plus dire la même chose, et c'est ainsi que le pipeline avait
+ * divergé.
+ */
+type Segment = SegmentBrut
 
 type TexteVersionRow = {
   id_texte: string
@@ -205,13 +191,9 @@ const NIV1_LIMINAIRES = '__LIMINAIRES__'
 /** La relation `auteurs` embarquee : PostgREST rend un objet quand la jointure
  *  est unique. On n'en lit que deux champs, et seulement en repli du libelle. */
 type AuteurEmbarque = { nom?: string | null; id_auteur?: string | number | null }
-/** Une ligne de `versets_lecture` : les colonnes de traduction sont nommees a
- *  l'execution (TR0001, TR0002...), d'ou l'index de chaine. */
-type LigneVersetCite = { id_verset: string; ref: string | null; [colonne: string]: string | null }
+/** ⚠️ `LigneVersetCite` et `VersetsCites` vivent dans `./pipelineSegments`. */
 type LigneNiv1 = { ref_niv1: string | null }
 type LigneNiv1Texte = { ref_niv1: string | null; ref_niv1_texte: string | null }
-
-type VersetsCites = Record<string, { label: string; livre: string; chapitre: string; verset: string; textes: Record<string, string> }>
 
 // Les renvois bibliques sont une couche SECONDAIRE : leur échec (le délai dépassé
 // sur `liens_bibliques` du 3 septembre 2026) rend la surface sans eux, dit au
@@ -253,79 +235,9 @@ function construireVersionTextuelle(t: TexteVersionRow, indexEditeurs: IndexEdit
   }
 }
 
-// Un même verset peut être visé par plusieurs liens du même segment — chez un
-// commentateur, il est cité PUIS commenté, et l'arbitrage n°17 rend ce cumul
-// obligatoire. Il ne doit pour autant paraître qu'une fois dans le volet : on
-// dédoublonne, et l'on garde la trace des natures rencontrées pour les dire.
-const NATURE_LIEN = ['citation', 'reprise', 'doctrine', 'écho'] as const
-
-function extraireVersetsAvecNature(s: Segment): { id: string; natures: string[] }[] {
-  const ordre: string[] = []
-  const natures = new Map<string, string[]>()
-  ;[s.lien_1, s.lien_2, s.lien_3, s.lien_4].forEach((col, i) => {
-    String(col ?? '').split(';').map(v => v.trim()).filter(Boolean).forEach(vid => {
-      if (!natures.has(vid)) { natures.set(vid, []); ordre.push(vid) }
-      const n = NATURE_LIEN[i]
-      if (!natures.get(vid)!.includes(n)) natures.get(vid)!.push(n)
-    })
-  })
-  return ordre.map(id => ({ id, natures: natures.get(id)! }))
-}
-
-function extraireVersets(s: Segment): string[] {
-  return extraireVersetsAvecNature(s).map(v => v.id)
-}
-
-function segmentAffichable(s: Segment) {
-  if (s.nature === 'separateur') return false
-  return Boolean((s.segment_texte ?? '').trim() || extraireVersets(s).length > 0)
-}
-
-function grouper(segments: Segment[]) {
-  type G = { niv1:string; niv2:string; niv3:string; niv4:string
-    niv1_texte:string; niv2_texte:string; niv3_texte:string; niv4_texte:string
-    items:Segment[] }
-  const gs:G[]=[]
-  let cur={niv1:'',niv2:'',niv3:'',niv4:'',niv1_texte:'',niv2_texte:'',niv3_texte:'',niv4_texte:'',items:[] as Segment[]}
-  for(const s of segments){
-    // Ignorer les séparateurs et les rubriques réellement vides.
-    if(!segmentAffichable(s)) continue
-    // Les introductions sont rendues à part (en tête d'homélie), hors des groupes
-    // et de la pagination.
-    if(s.nature==='introduction') continue
-    const n1=s.ref_niv1||'',n2=s.ref_niv2||'',n3=s.ref_niv3||'',n4=s.ref_niv4||''
-    if(n1!==cur.niv1||n2!==cur.niv2||n3!==cur.niv3||n4!==cur.niv4){
-      if(cur.items.length>0)gs.push({...cur})
-      cur={niv1:n1,niv2:n2,niv3:n3,niv4:n4,
-        niv1_texte:s.ref_niv1_texte||'',niv2_texte:s.ref_niv2_texte||'',
-        niv3_texte:s.ref_niv3_texte||'',niv4_texte:s.ref_niv4_texte||'',
-        items:[s]}
-    }
-    else cur.items.push(s)
-  }
-  if(cur.items.length>0)gs.push({...cur})
-  return gs
-}
-
-function numerotationLocale(segments: Segment[]): Map<number,number> {
-  const map=new Map<number,number>()
-  let c=0,n1c=''
-  for(const s of segments){
-    if(!segmentAffichable(s)) continue
-    if(s.nature==='introduction') continue
-    const n1=s.ref_niv1||'';if(n1!==n1c){c=0;n1c=n1};map.set(s.id,++c)
-  }
-  return map
-}
-
-
-function detailsRefBiblique(ref:string): { label: string; livre: string; chapitre: string; verset: string } {
-  const p=ref.trim().split(' ')
-  if(p.length<2)return { label: ref, livre: '', chapitre: '', verset: '' }
-  const cv=p[1].split(':')
-  const label = cv[1]?`${ABREV_FR[p[0]]||p[0]} ${cv[0]}, ${cv[1]}`:`${ABREV_FR[p[0]]||p[0]} ${cv[0]}`
-  return { label, livre: p[0], chapitre: cv[0] || '', verset: cv[1] || '' }
-}
+// ⛔ `extraireVersetsAvecNature`, `extraireVersets`, `segmentAffichable`, `grouper`,
+// `numerotationLocale` et `detailsRefBiblique` vivaient ICI, et en copie dans
+// `OeuvreClient`. Elles sont dans `./pipelineSegments`, avec leurs tests.
 
 // N'expose que les traductions réellement matérialisées dans `versets_lecture` :
 // une colonne inexistante dans le select fait échouer toute la requête (voir
@@ -346,20 +258,9 @@ async function enrichirAvecVersets(supabase: Client, segments: Segment[], codesT
   const results = await Promise.all(batches.map(batch =>
     supabase.from('versets_lecture').select(selectVersets).in('id_verset', batch)))
   const versetsData = results.flatMap(r => r.data ?? []) as unknown as LigneVersetCite[]
-
-  const versetMap: VersetsCites = {}
-  versetsData.forEach(v => {
-    const textes = Object.fromEntries(codesTraductions.map(code => [code, v[code] || '']))
-    // ⚠️ Un verset sans `ref` FAISAIT TOMBER LA PAGE : `detailsRefBiblique` appelle
-    // `ref.trim()` sur son argument. Le `any` d’au-dessus masquait la nullabilité de la
-    // colonne. À défaut de référence, l’identifiant canonique sert d’étiquette.
-    const ref = detailsRefBiblique(v.ref ?? v.id_verset)
-    versetMap[v.id_verset] = {
-      ...ref,
-      textes,
-    }
-  })
-  return versetMap
+  // ⚠️ Le repli sur `id_verset` d'une ligne sans `ref` vit dans le pipeline, avec son
+  // test : c'est précisément le point où les deux surfaces avaient divergé.
+  return indexerVersetsCites(versetsData, codesTraductions)
 }
 
 export default async function OeuvrePage({
@@ -831,31 +732,12 @@ export default async function OeuvrePage({
   ])
   const blocsOriginal = Object.fromEntries(projectionBilingue.blocParGroupe)
 
-  const versetParSegment: Record<number, any[]> = {}
-  segmentsTexte.forEach(s => {
-    versetParSegment[s.id] = extraireVersetsAvecNature(s).map(({ id: vid, natures }) => ({
-      id: vid, natures, ...(versetMap[vid] || { label: vid, textes: {} })
-    }))
-  })
-
   // Auteurs de l'œuvre, à égalité : `auteur` est leur libellé commun (il nomme
   // l'œuvre au frontispice, dans les citations, dans l'historique de lecture),
   // `auteurId` reste le premier, pour les surfaces qui n'en visent qu'un. Ils sont
   // chargés avec la première vague, non ici : voir plus haut.
   const auteur = libelleAuteurs(auteursOeuvre) || (oeuvre.auteurs as AuteurEmbarque | null)?.nom || ''
   const auteurId = auteursOeuvre[0]?.id_auteur ?? (oeuvre.auteurs as AuteurEmbarque | null)?.id_auteur?.toString() ?? ''
-
-  const groupes = grouper(segmentsTexte)
-  const groupesApparat = [...grouper(apparatParSection.auteur), ...grouper(apparatParSection.editeur)]
-  const numLocaux = numerotationLocale(segmentsTexte)
-  const numLocauxApparat = numerotationLocale(segmentsApparat)
-
-  type TocEntry = { niv1:string; niv2:string; anchor:string }
-  const tocApparat: TocEntry[] = []
-  let la1='', la2=''
-  groupesApparat.forEach((g, i) => {
-    if (g.niv1 !== la1 || g.niv2 !== la2) { tocApparat.push({niv1:g.niv1,niv2:g.niv2,anchor:`a${i}`}); la1=g.niv1; la2=g.niv2 }
-  })
 
   // Les appels de note se posent SANS FAILLIR : une ancre hors du texte (offset
   // au-delà du segment, marqueur mal formé) est laissée de côté et comptée, le
@@ -864,61 +746,38 @@ export default async function OeuvrePage({
   const projeter = (texte: string, ancres: AncreNoteStructureeProjection[] | undefined) =>
     projeterAppelsNotesStructureesSansFaillir(texte, ancres, (_ancre, refus) => { ancresRefusees.add(refus) })
 
-  const segmentsData = segmentsTexte
-    .filter(segmentAffichable)
-    .map(s => ({
-      id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
-      numero: numLocaux.get(s.id) || s.segment_numero, numeroSource: s.segment_numero,
-      texte: s.segment_texte,
-      texteAffichage: projeter(
-        s.segment_texte,
-        s.segment_key ? ancresNotesStructurees[s.segment_key] : undefined,
-      ), versets: versetParSegment[s.id] || [],
-      notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes((s as any).notes),
-      paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
-      cleOriginal: s.cle_original,
-      texteOriginalAffichage: s.texte_original
-        ? projeter(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
-        : undefined,
-      notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
-      groupeOriginal: (s.segment_key && projectionBilingue.groupeParCle.get(s.segment_key)) || null,
-      nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
-        alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
-        numeroVerset: numeroVersetLisible(s.numero_verset),
-        forme: s.forme,
-    }))
+  // Le contexte que les DEUX surfaces partagent : ce qu'un segment ne peut pas déduire
+  // de lui-même. Ce qui les sépare tient en trois mots — l'apparat porte des notices
+  // bibliographiques, n'ouvre aucun volet biblique, et sa SECTION coupe ses groupes.
+  const contexteProjection = {
+    versetsCites: versetMap,
+    notes: notesStructurees,
+    notesOriginal: notesOriginales,
+    projeterAppels: (texte: string, cle: string | null) =>
+      projeter(texte, cle ? ancresNotesStructurees[cle] : undefined),
+    projeterAppelsOriginal: (texte: string, cle: string | null) =>
+      projeter(texte, cle ? ancresNotesOriginales[cle] : undefined),
+    groupeOriginal: (cle: string | null) => (cle && projectionBilingue.groupeParCle.get(cle)) || null,
+  }
 
-  const groupesData = groupes.map((g, gi) => ({
-    niv1: g.niv1, niv2: g.niv2, niv3: g.niv3, niv4: g.niv4,
-    niv1_texte: g.niv1_texte, niv2_texte: g.niv2_texte,
-    niv3_texte: g.niv3_texte, niv4_texte: g.niv4_texte,
-    anchor: `g${gi}`, itemIds: g.items.map(s => s.id),
-  }))
+  const { segments: segmentsData, groupes: groupesData } = composerSegments(segmentsTexte, contexteProjection)
 
-  const segmentsApparatData = segmentsApparat
-    .filter(segmentAffichable)
-    .map(s => ({
-      id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
-      numero: numLocauxApparat.get(s.id) || s.segment_numero, numeroSource: s.segment_numero,
-      texte: s.segment_texte,
-      texteAffichage: projeter(
-        s.segment_texte,
-        s.segment_key ? ancresNotesStructurees[s.segment_key] : undefined,
-      ), versets: [],
-      notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes((s as any).notes),
-      paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
-      cleOriginal: s.cle_original,
-      texteOriginalAffichage: s.texte_original
-        ? projeter(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
-        : undefined,
-      notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
-      groupeOriginal: (s.segment_key && projectionBilingue.groupeParCle.get(s.segment_key)) || null,
-      nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
-        alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
-        numeroVerset: numeroVersetLisible(s.numero_verset),
-        forme: s.forme,
-        ouvrageId: identifiantOuvrage(s.ouvrage_id),
-    }))
+  const { segments: segmentsApparatData, groupes: groupesApparatData } = composerSegments(
+    segmentsApparat,
+    { ...contexteProjection, avecOuvrage: true, sansVersets: true },
+    { prefixeAncre: 'a', avecSection: true },
+  )
+
+  // Le sommaire de l'apparat : une entrée par changement de niveau 1 ou 2.
+  const tocApparat: TocEntry[] = []
+  let la1 = '', la2 = ''
+  for (const g of groupesApparatData) {
+    if (g.niv1 !== la1 || g.niv2 !== la2) {
+      tocApparat.push({ niv1: g.niv1, niv2: g.niv2, anchor: g.anchor })
+      la1 = g.niv1; la2 = g.niv2
+    }
+  }
+
   if (ancresRefusees.size > 0) {
     noterDegradation(degradations, {
       quoi: 'quelques appels de note',
@@ -938,16 +797,6 @@ export default async function OeuvrePage({
       console.error(`Notices bibliographiques illisibles (${idTexte}) :`, erreur)
       return {} as Record<number, NoticeBibliographique>
     })
-
-  const groupesApparatData = groupesApparat.map((g, gi) => ({
-    niv1: g.niv1, niv2: g.niv2, niv3: g.niv3, niv4: g.niv4,
-    niv1_texte: g.niv1_texte, niv2_texte: g.niv2_texte,
-    niv3_texte: g.niv3_texte, niv4_texte: g.niv4_texte,
-    anchor: `a${gi}`, itemIds: g.items.map(s => s.id),
-    // ⚠️ Lue sur le PREMIER segment, et non sur un compte de groupes : les deux tranches
-    // sont groupées à part, un groupe est donc d'une seule main.
-    section: sectionDApparat(g.items[0]),
-  }))
 
   return (
     <>

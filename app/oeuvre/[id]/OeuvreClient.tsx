@@ -1,5 +1,5 @@
 'use client'
-import { ABREV_FR, LIVRES } from '@/app/lib/bible'
+import { LIVRES } from '@/app/lib/bible'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { hydraterLiensHerites } from '@/app/lib/liens'
 import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
@@ -11,7 +11,7 @@ import { codesTraductionsLecture } from '@/app/lib/traductions'
 import { projeterAppelsNotesStructureesEnSignalant as projeterAppels } from '@/app/lib/appelsNotesStructurees'
 import type { DegradationChargement } from '@/app/lib/chargementTolerant'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
-import { identifiantOuvrage, type NoticeBibliographique } from '@/app/lib/referenceBibliographique'
+import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import { chargerNoticesBibliographiques, identifiantsOuvrages, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
 
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, useTransition, Fragment } from 'react'
@@ -19,13 +19,23 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import { createPortal } from 'react-dom'
-import { parseNotes } from '@/app/lib/notes'
 import { supabase } from "@/app/lib/supabase"
 import type { SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, NoteStructuree, VersionTextuelle } from './oeuvreTypes'
 import type { BlocOriginal } from './bilingueAlignement'
 import { repartirGroupes, chargerProjectionBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, type BlocEnRegard } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
 import { construireNavigationApparat } from './apparatNavigation'
+// ⛔ LE PIPELINE DES SEGMENTS, celui-là même que le rendu serveur emploie. Cinq de ses
+// fonctions vivaient ici en copie, et c'est là qu'elles avaient divergé.
+import {
+  NATURE_LIEN,
+  composerSegments,
+  indexerVersetsCites,
+  segmentAffichable,
+  type LigneVersetCite,
+  type SegmentBrut,
+  type VersetsCites,
+} from './pipelineSegments'
 import {
   basculerChapeau,
   chapeauxEnTexte,
@@ -47,13 +57,12 @@ import {
   limiterRequeteAuxLiminairesSansNiveau,
   limiterRequeteSegmentsALaSurface,
   partagerLApparat,
-  sectionDApparat,
   segmentsDeLaSurface,
   SELECT_SEGMENT,
 } from '@/app/lib/oeuvreSelects'
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
-import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, styleLigneDeVers, estBlocDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
-import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets, numeroDUnVerset, numeroVersetLisible } from '@/app/lib/compositionVersets'
+import { niveauxAlinea, retraitVers, ouvreStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, styleLigneDeVers, estBlocDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
+import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETROIT, estBlocVersets, numeroDUnVerset } from '@/app/lib/compositionVersets'
 import { estBlocExergue } from '@/app/lib/compositionExergue'
 import { paginerBlocs } from '@/app/lib/paginationLecture'
 import {
@@ -140,16 +149,10 @@ import {
 
 const CHARS_PAR_PAGE = 15000
 
-// Même table que celle utilisée côté serveur (page.tsx) pour l'affichage
-// des références bibliques en français — doit rester identique aux deux endroits.
-
-function detailsRefBiblique(ref: string): { label: string; livre: string; chapitre: string; verset: string } {
-  const p = ref.trim().split(' ')
-  if (p.length < 2) return { label: ref, livre: '', chapitre: '', verset: '' }
-  const cv = p[1].split(':')
-  const label = cv[1] ? `${ABREV_FR[p[0]] ?? p[0]} ${cv[0]}, ${cv[1]}` : `${ABREV_FR[p[0]] ?? p[0]} ${cv[0]}`
-  return { label, livre: p[0], chapitre: cv[0] || '', verset: cv[1] || '' }
-}
+// ⛔ `detailsRefBiblique`, `NATURE_LIEN`, `extraireVersetsAvecNature` et `segmentAffichable`
+// vivaient ICI, en copie de `page.tsx`. Elles sont dans `./pipelineSegments`, avec leurs
+// tests : c'est là qu'elles avaient divergé, et une forme recopiée à deux endroits ne reste
+// identique que par accident.
 
 // ⛔ ON CLASSE AVANT DE REGROUPER. Le regroupement ci-dessous ne réunit que des entrées
 // ADJACENTES dans la liste ; or la liste arrive rangée par TYPE de lien — citation, puis
@@ -197,33 +200,6 @@ function regrouperVersetsConsecutifs<T extends { livre: string; chapitre: string
     }
   }
   return groupes
-}
-
-// Un verset cité PUIS commenté est visé par deux liens du même segment (types 1
-// et 3, cumul rendu obligatoire par l'arbitrage n°17). Il ne doit paraître qu'une
-// fois dans le volet, en portant les deux natures.
-const NATURE_LIEN = ['citation', 'reprise', 'doctrine', 'écho'] as const
-
-function extraireVersetsAvecNature(s: any): { id: string; natures: string[] }[] {
-  const ordre: string[] = []
-  const natures = new Map<string, string[]>()
-  ;[s.lien_1, s.lien_2, s.lien_3, s.lien_4].forEach((col: any, i: number) => {
-    String(col ?? '').split(';').map((v: string) => v.trim()).filter(Boolean).forEach((vid: string) => {
-      if (!natures.has(vid)) { natures.set(vid, []); ordre.push(vid) }
-      const n = NATURE_LIEN[i]
-      if (!natures.get(vid)!.includes(n)) natures.get(vid)!.push(n)
-    })
-  })
-  return ordre.map(id => ({ id, natures: natures.get(id)! }))
-}
-
-function extraireVersetsSegment(s: any): string[] {
-  return extraireVersetsAvecNature(s).map(v => v.id)
-}
-
-function segmentAffichable(s: any) {
-  if (s.nature === 'separateur') return false
-  return Boolean((s.segment_texte ?? '').trim() || extraireVersetsSegment(s).length > 0)
 }
 
 const SEUIL_TITRE_COLOPHON = 86
@@ -1374,6 +1350,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (ancre) naviguerVersAncre(ancre)
   }
 
+  // Les deux projections d'appels que le pipeline attend : l'une ferme sur les ancres du
+  // texte lu, l'autre sur celles du texte en langue originale, dont les offsets sont
+  // indexés par la clé d'origine. ⛔ Le module ne connaît ni les unes ni les autres : il
+  // ne sait que POSER, jamais où chercher.
+  const projectionsDeNotes = {
+    projeterAppels: (texte: string, cle: string | null) =>
+      projeterAppels(texte, cle ? ancresNotesStructurees[cle] : undefined),
+    projeterAppelsOriginal: (texte: string, cle: string | null) =>
+      projeterAppels(texte, cle ? ancresNotesOriginales[cle] : undefined),
+  }
+
   /**
    * Rattache à leur groupe d'alignement les segments qu'on vient de charger, et range
    * l'original de ces groupes.
@@ -1462,7 +1449,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         v.split(';').map((x: string) => x.trim()).filter(Boolean).forEach((x: string) => tousIds.add(x)))
     })
     const idsArr = Array.from(tousIds)
-      const versetMap: Record<string,{label:string;textes:Record<string,string>;livre:string;chapitre:string;verset:string}> = {}
+    let versetMap: VersetsCites = {}
     if (idsArr.length > 0) {
       const codesTraductions = await chargerCodesTraductions()
       const selectVersets = ['id_verset', 'ref', ...codesTraductions.map(code => `"${code}"`)].join(', ')
@@ -1477,64 +1464,24 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       // rechargement d'une division le défaisait.
       const lots = await Promise.all(lotsPourClauseIn(idsArr).map(lot =>
         supabase.from('versets_lecture').select(selectVersets).in('id_verset', lot)))
-      const vd = lots.flatMap(r => r.data ?? [])
-      vd.forEach((v: any) => {
-        // ⚠️ Un verset sans `ref` FERAIT TOMBER LA DIVISION : `detailsRefBiblique` appelle
-        // `ref.trim()` sur son argument. Le rendu serveur porte ce repli depuis qu'une page
-        // est tombée dessus ; il manquait ici, si bien que le premier écran aurait été juste
-        // et le rechargement d'une division l'aurait défait. À défaut de référence,
-        // l'identifiant canonique sert d'étiquette.
-        const ref = detailsRefBiblique(v.ref ?? v.id_verset)
-        const textes = Object.fromEntries(codesTraductions.map(code => [code, v[code] || '']))
-        versetMap[v.id_verset] = { ...ref, textes }
-      })
+      // ⚠️ Le repli sur `id_verset` d'une ligne sans `ref` vit dans le pipeline, avec son
+      // test : c'est précisément le point où les deux surfaces avaient divergé.
+      versetMap = indexerVersetsCites(
+        lots.flatMap(r => r.data ?? []) as unknown as LigneVersetCite[],
+        codesTraductions,
+      )
     }
 
-    let c = 0
-    const newSegs: SegData[] = segsAffichables.map((s: any) => {
-      const estIntro = s.nature === 'introduction'
-      if (!estIntro) c++
-      const versets = extraireVersetsAvecNature(s)
-        .map(({ id: vid, natures }) => ({ id: vid, natures, ...(versetMap[vid] || { label: vid, textes: {}, livre: '', chapitre: '', verset: '' }) }))
-      return {
-        id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
-        numero: estIntro ? s.segment_numero : c, numeroSource: s.segment_numero,
-        texte: s.segment_texte,
-        texteAffichage: projeterAppels(
-          s.segment_texte,
-          s.segment_key ? ancresNotesStructurees[s.segment_key] : undefined,
-        ), versets,
-        notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes(s.notes),
-        paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
-        cleOriginal: s.cle_original,
-        texteOriginalAffichage: s.texte_original
-          ? projeterAppels(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
-          : undefined,
-        notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
-        nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
-        alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
-        numeroVerset: numeroVersetLisible(s.numero_verset),
-        forme: s.forme,
-      }
+    // ⛔ LA MÊME CHAÎNE QUE LE PREMIER RENDU, et c'est tout l'objet du module : sa
+    // numérotation locale remet le compteur à zéro à chaque `ref_niv1`, ce que celui d'ici
+    // ne faisait pas — sans effet tant qu'on ne charge qu'une division, faux dès qu'on en
+    // charge deux.
+    const { segments: newSegs, groupes: newGroupes } = composerSegments(segs as SegmentBrut[], {
+      versetsCites: versetMap,
+      notes: notesStructurees,
+      notesOriginal: notesOriginales,
+      ...projectionsDeNotes,
     })
-
-    const newGroupes: GroupeData[] = []
-    let cur: any = { niv1:'', niv2:'', niv3:'', niv4:'', itemIds:[] as number[] }
-    let gi = 0
-    segsAffichables.forEach((s: any) => {
-      if (s.nature === 'introduction') return
-      const n1v = s.ref_niv1||'', n2v = s.ref_niv2||'', n3v = s.ref_niv3||'', n4v = s.ref_niv4||''
-      if (n1v !== cur.niv1 || n2v !== cur.niv2 || n3v !== cur.niv3 || n4v !== cur.niv4) {
-        if (cur.itemIds.length > 0) newGroupes.push({ ...cur, anchor: `g${gi++}` })
-        cur = {
-          niv1: n1v, niv2: n2v, niv3: n3v, niv4: n4v,
-          niv1_texte: s.ref_niv1_texte||'', niv2_texte: s.ref_niv2_texte||'',
-          niv3_texte: s.ref_niv3_texte||'', niv4_texte: s.ref_niv4_texte||'',
-          itemIds: [s.id]
-        }
-      } else cur.itemIds.push(s.id)
-    })
-    if (cur.itemIds.length > 0) newGroupes.push({ ...cur, anchor: `g${gi}` })
 
     // Enrichir la carte niv1 → niv1_texte avec ce qu'on vient de charger
     const niv1TexteEntries: Record<string, string> = {}
@@ -1586,53 +1533,20 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     const parSection = partagerLApparat(retenus)
     const segs = [...parSection.auteur, ...parSection.editeur]
 
-    let c = 0, n1c = ''
-    const newSegs: SegData[] = segs.map((s: any) => {
-      const n1v = s.ref_niv1 || ''
-      if (n1v !== n1c) { c = 0; n1c = n1v }
-      c++
-      return {
-        id: s.id, idTexte: s.id_texte, segmentKey: s.segment_key,
-        numero: c, numeroSource: s.segment_numero, texte: s.segment_texte,
-        texteAffichage: projeterAppels(
-          s.segment_texte,
-          s.segment_key ? ancresNotesStructurees[s.segment_key] : undefined,
-        ), versets: [],
-        notes: (s.segment_key && notesStructurees[s.segment_key]) || parseNotes(s.notes),
-        paragraphe: s.paragraphe, rang: s.rang, texteOriginal: s.texte_original,
-        cleOriginal: s.cle_original,
-        texteOriginalAffichage: s.texte_original
-          ? projeterAppels(s.texte_original, s.cle_original ? ancresNotesOriginales[s.cle_original] : undefined)
-          : undefined,
-        notesOriginal: (s.cle_original && notesOriginales[s.cle_original]) || undefined,
-        nature: s.nature, espaceTextuel: s.espace_textuel, joinBefore: s.join_before,
-        alinea: mesureAlinea(s.alinea), stropheAvant: marqueStrophe(s.strophe_avant),
-        numeroVerset: numeroVersetLisible(s.numero_verset),
-        forme: s.forme,
-        ouvrageId: identifiantOuvrage(s.ouvrage_id),
-      }
-    })
-
-    const newGroupes: GroupeData[] = []
-    let cur: any = { niv1: '', niv2: '', niv3: '', niv4: '', section: null, itemIds: [] as number[] }
-    let gi = 0
-    segs.forEach((s: any) => {
-      const n1v = s.ref_niv1 || '', n2v = s.ref_niv2 || '', n3v = s.ref_niv3 || '', n4v = s.ref_niv4 || ''
-      // ⛔ La SECTION coupe le groupe comme le ferait un niveau : les deux tranches sont
-      // voisines dans la liste, et deux pièces de mains différentes qui porteraient le
-      // même `ref_niv1` ne feraient qu'un groupe, sous un en-tête qui mentirait.
-      const section = sectionDApparat(s)
-      if (n1v !== cur.niv1 || n2v !== cur.niv2 || n3v !== cur.niv3 || n4v !== cur.niv4 || section !== cur.section) {
-        if (cur.itemIds.length > 0) newGroupes.push({ ...cur, anchor: `a${gi++}` })
-        cur = {
-          niv1: n1v, niv2: n2v, niv3: n3v, niv4: n4v,
-          niv1_texte: s.ref_niv1_texte || '', niv2_texte: s.ref_niv2_texte || '',
-          niv3_texte: s.ref_niv3_texte || '', niv4_texte: s.ref_niv4_texte || '',
-          section, itemIds: [s.id]
-        }
-      } else cur.itemIds.push(s.id)
-    })
-    if (cur.itemIds.length > 0) newGroupes.push({ ...cur, anchor: `a${gi}` })
+    // La MÊME chaîne que le corps, à trois mots près : l'apparat porte des notices
+    // bibliographiques, n'ouvre aucun volet biblique, et sa SECTION coupe ses groupes.
+    const { segments: newSegs, groupes: newGroupes } = composerSegments(
+      segs as SegmentBrut[],
+      {
+        versetsCites: {},
+        notes: notesStructurees,
+        notesOriginal: notesOriginales,
+        ...projectionsDeNotes,
+        avecOuvrage: true,
+        sansVersets: true,
+      },
+      { prefixeAncre: 'a', avecSection: true },
+    )
 
     setGroupesApparat(newGroupes)
     // Les notices des ouvrages cités partent AVEC l'alignement, et arrivent avant que
