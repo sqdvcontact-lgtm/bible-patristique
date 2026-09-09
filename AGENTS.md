@@ -1185,11 +1185,11 @@ C'est la trouvaille de fond de l'audit, et elle explique tout le reste. Le site 
 | **Illustrations** | `admin/illustrations/inventaire.test.ts` (**neuf, 2026-08-24**) | 58 images recensées, aucune oubliée, aucun fantôme |
 | **Syntaxe CSS** | `cssValide.test.ts` (**neuve, 2026-08-28**) | 2 feuilles passées à `postcss.parse` à chaque exécution |
 | **Feuilles EN LIGNE** | `blocsStyleSansAccentGrave.test.ts` (**neuve, 2026-09-07**) | aucun accent grave dans un bloc `<style>` de gabarit |
-| **Empilement** | **aucune** | 147 déclarations de `z-index`, **40 valeurs distinctes**, de 0 à 9999 |
+| **Empilement** | `empilement.test.ts` (**neuve, 2026-09-09**) | 11 rangs de page nommés, 22 gelés ; la liste ne peut que décroître |
 
 ⚠️ **Les 1 772 `fontSize` écrites en dur ne sont PAS de la dette**, et un audit qui les signale produit un faux positif : elles sont sur la grille, et un test le vérifie à chaque exécution. Ce qui compte n'est pas qu'une valeur soit littérale, c'est qu'elle soit sous garde.
 
-⛔ **L'empilement n'a jamais eu sa passe**, et c'est le dernier axe qui manque. Quarante valeurs pour un besoin qui en demande quatre ou cinq (page, flottant, volet, modale, alerte) : trait pour trait le désordre des 112 tailles et celui des rayons de 2 à 20. Il a déjà une conséquence consignée — la règle « fenêtres contextuelles, jamais sous la nav » est exactement le symptôme d'un empilement sans échelle.
+✅ **L'empilement a reçu sa passe le 9 septembre 2026**, et ce paragraphe le donnait jusque-là pour le dernier axe sans garde. ⚠️ **Le compte brut mentait** : sur les 51 rangs de PAGE écrits en chiffres dans 32 fichiers, 29 tombaient DÉJÀ sur l'un des onze rangs que le site emploie avec un sens constant. Le désordre était moins grand qu'annoncé ; il n'était tenu par rien. Voir « L'ÉCHELLE D'EMPILEMENT » plus bas.
 
 ## La garde du CSS — le seul axe que rien ne LISAIT (2026-08-28)
 
@@ -1214,6 +1214,41 @@ C'est la trouvaille de fond de l'audit, et elle explique tout le reste. Le site 
 - **La forme tokenisée n'entre jamais au registre** : `rgba(var(--cs-vert-rgb), 0.07)` commence par `var`, le motif ne retient que les fonctions dont le premier argument est un chiffre.
 - **Les commentaires sont retirés avant la mesure** : un commentaire qui CITE une teinte n'en pose aucune, et la charte du dépôt en cite beaucoup.
 - ⚠️ **Les CHAÎNES, elles, ne sont pas retirées**, et c'est un angle mort : une note de `inventaire.ts` qui NOMME une teinte en prose fait échouer la garde, alors qu'elle n'en pose aucune. Constaté le 2026-08-26. Écrire « à la luminance 33 » plutôt que la forme fonctionnelle, ou traiter le cas dans la garde — mais ne jamais inscrire au registre une teinte que rien ne pose.
+
+## ⛔ L'ÉCHELLE D'EMPILEMENT — `app/lib/empilement.ts` (2026-09-09)
+
+⛔ **ELLE NE GOUVERNE QUE LES RANGS DE PAGE, 900 et au-delà.** Un `z-index` de 1 à 50 vit
+DANS un contexte d’empilement — une poignée sur un volet, un chiffre sur une gravure, un
+voile sur une carte — et ne se compare à rien d’autre qu’à ses frères. L’y faire entrer
+ferait une échelle de quarante rangs pour éviter une échelle de quarante valeurs.
+
+**Onze rangs**, et ce sont ceux que le site emploie DÉJÀ : `Z_ATTENTE` 900, `Z_FENETRE`
+1200, `Z_FLOTTANT` 1500, `Z_TIROIR_VOILE` 2400, `Z_TIROIR` 2401, `Z_MODALE` 2700,
+`Z_VISITE` 2800, `Z_BARRE` 3000, `Z_VISITE_BARRE` 3200, `Z_NOTIFICATION` 4000,
+`Z_INFOBULLE` 9999.
+
+⛔ **L’échelle NE DÉPLACE RIEN**, et c’est ce qui la rend sûre : on nomme, on ne réordonne
+pas. Réordonner demande de trancher trois questions que le code ne peut pas trancher seul,
+et elles sont écrites en pied du module — la cellule flottante devant une fenêtre, le rang
+d’une fenêtre qui couvre la barre, le sort des six fenêtres à 2100 et 2600.
+
+⛔ **Les vingt-deux rangs hors échelle sont GELÉS** (`empilementInventaire.ts`), à la
+manière du registre des couleurs en dur : la garde refuse un rang neuf, et refuse aussi une
+entrée que le code ne porte plus. La dette devient visible dans chaque diff et ne peut plus
+que décroître. ⛔ Aucun script ne le regénère : on en retire une ligne quand on a rangé la
+valeur, à la main, en le sachant.
+
+⛔ **LA GARDE LIT DEUX ÉCRITURES** — le rang posé sur une propriété (`zIndex: 1200`,
+`z-index: 1200`) ET le rang rangé dans une constante (`const Z_FICHE = 1200`). Ne relever
+que la première laisserait l’angle mort que les gardes chromatique (trente-sept teintes
+cachées dans des ternaires) et typographique (deux tailles hors grille) ont déjà payé, et
+que celle des blocs `<style>` a payé le matin même. ⚠️ Elle a été éprouvée dans les DEUX
+sens avant d’être crue : rouge sur un rang inventé, rouge sur une dette disparue.
+
+⚠️ **Un rang ne s’interpole pas dans un bloc `<style>`** : PostCSS refuse
+`z-index: ${Z_BARRE};` là où il accepte `calc(… - ${HAUTEUR_NAVBAR})`, et
+`cssValide.test.ts` le dit. Le menu déroulant de la barre garde donc son chiffre en clair —
+il est sur l’échelle, la garde passe.
 
 ## Une couleur posée sur une PHOTO s'écrit en littéral
 
