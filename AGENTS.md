@@ -8236,24 +8236,70 @@ cherche l'identifiant de l'œuvre dans la PROSE des tâches) : **194 tâches ouv
 les treize que veut la charte, soit cinq fois plus qu'au 2026-08-24, où le même appel
 mettait 6,3 s.
 
-# ⚠️ 76 855 objets détachés — le dépôt pèse 34 Go pour 3 Go d'archive (2026-09-09)
+# ⛔ 34 Go de dépôt pour 452 Mo d'histoire (2026-09-09)
 
-`git count-objects -v` : **31 Go d'objets jamais compactés** contre 3,05 Go réellement
-empaquetés, plus 2 518 objets déjà présents dans un paquet et deux fichiers temporaires
-abandonnés. C'est ce qui rend toute opération git lente sur ce poste. ⚠️ Le compactage se
-compte en dizaines de minutes à cette taille : le lancer et faire autre chose.
+⛔ **UN OBJET DÉTACHÉ N'EST PAS UN DÉCHET, ET LE COMPACTAGE NE LE JETTE PAS.** Le dépôt
+portait 76 855 objets non compactés, 31 Go. `git gc` les a rangés et n'a rendu que
+**7 Go** : ce sont des fac-similés PNG et des lots ZIP, déjà compressés à la source, et
+le paquet ne gagne que par délta entre objets voisins. ⚠️ Lire `count:` et conclure
+« déchets » est une erreur : la question n'est pas s'ils sont RANGÉS, mais s'ils sont
+RATTACHÉS.
+
+**La mesure qui tranche**, et elle demande les deux :
+
+```
+git rev-list --objects --all --reflog | wc -l   # ce qui tient à une branche
+git count-objects -v                            # ce que le paquet porte
+```
+
+Ici : **25 444 rattachés pour 90 622 empaquetés**. Les **64 841 autres, 25,7 Go**, étaient
+les restes de travaux abandonnés, que `gc` GARDE deux semaines par précaution. Il faut le
+dire explicitement :
+
+```
+git reflog expire --expire-unreachable=now --all && git gc --prune=now
+```
+
+**34 Go → 452 Mo.** L'histoire véritable du dépôt pèse un demi-gigaoctet.
+
+⚠️ **SEPT ARBRES DE TRAVAIL PARTAGENT UN SEUL MAGASIN D'OBJETS** (six branches `codex/*`,
+une `agent/*`) : chaque essai abandonné dans l'un d'eux y dépose ses objets et les y
+laisse. C'est le fonctionnement normal, et c'est ce qui fait remonter le poids si vite.
+⛔ L'élagage ne touche AUCUNE branche : les sept arbres sont des références, donc hors
+d'atteinte. Ce qu'on perd est la reprise locale d'un travail abandonné.
+⚠️ **On le PROUVE plutôt que de le supposer** : relever `git for-each-ref` avant, le
+comparer après (42 références identiques ici), puis `git fsck --connectivity-only`.
 
 ⚠️ **Et l'histoire porte un `node_modules` commité** sous
 `scripts/heptateuque/segmentation-candidate/`, binaires natifs compris (26 Mo pour le plus
-gros blob du dépôt). Rien d'urgent — le compactage suffit — mais on ne l'en sortira pas
-sans réécrire le dépôt.
+gros blob). On ne l'en sortira pas sans réécrire le dépôt.
 
-⛔ **`work/` (39 Go), `outils/` (669 Mo) et `livraisons/` (556 Mo) NE SONT PAS IGNORÉS.**
-Seuls `tmp/` et `audit/` le sont. Un `git add .` les enverrait dans l'histoire, d'où on ne
-les sortirait plus. ⚠️ Ce qui protège aujourd'hui est une DISCIPLINE (« jamais `git add -A`
-»), non un verrou. Les y mettre ne détacherait aucun des 38 fichiers déjà suivis :
-`.gitignore` ne parle qu'aux fichiers que git ne connaît pas encore.
+# ⛔ `git check-ignore` sur un DOSSIER ne dit rien de son contenu (2026-09-09)
 
+L'audit du matin a conclu que `work/` (39 Go), `outils/` (669 Mo) et `livraisons/`
+(556 Mo) étaient exposés à un `git add .`. **Deux tiers de ce constat étaient faux**, et
+la faute est dans la mesure : elle éprouvait le dossier PARENT.
+
+- ⛔ **`outils/` porte 139 fichiers SUIVIS** — c'est le code source de La Gueule, non un
+  atelier. Ses 665 Mo lourds (`sorties/`, `incoming/`, `projets/`) sont déjà couverts par
+  son PROPRE `.gitignore`. Le fermer aurait sorti le logiciel du dépôt.
+- ⛔ **Fermer `work/` aurait cassé DEUX WORKFLOWS** : `bible899-final-facsimile-sheet` et
+  `bible899-source-fixes` font `git add work/bible899/<fichier>`, et git REFUSE d'ajouter
+  un fichier ignoré — les deux chaînes seraient tombées en erreur au prochain passage. Le
+  `.gitignore` le disait déjà en toutes lettres, trois lignes plus haut que là où j'écrivais.
+
+**Ce qui était réellement exposé** : dix dossiers datés de `work/fillion/` (38,5 Go),
+`livraisons/` (556 Mo) et les découpes de contrôle de La Gueule — **zéro fichier suivi
+dans aucun**, vérifié un à un avant d'écrire.
+
+⚠️ **La forme retenue est `/work/fillion/*/`**, qui ne ferme que les SOUS-dossiers : les
+21 fichiers de la racine — le registre des styles, la bibliothèque, les empreintes de
+volumes — restent suivis, et une passe d'océrisation neuve est protégée d'elle-même sans
+qu'on ait à y penser.
+
+⛔ **La mesure juste éprouve les CHEMINS LOURDS, un par un**, et vérifie après coup
+qu'aucun fichier déjà suivi n'est devenu ignoré :
+`for f in $(git ls-files <dossier>); do git check-ignore -q "$f" && echo "IGNORÉ : $f"; done`
 # ⚠️ La dette de linter se lit PAR ZONE, jamais en total (2026-09-09)
 
 402 remarques, et le total ne dit rien tant qu'on ne sait pas où elles tombent :

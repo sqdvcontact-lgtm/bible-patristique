@@ -110,3 +110,34 @@ pnpm-workspace.yaml
 /work/bible899/LOT_*_READY/
 /work/bible899/*.zip
 /work/bible899/*.zip.sha256
+
+# ── Ateliers : ce qui pèse, et que git ne doit jamais ramasser ────────────────
+# Relevé du 2026-09-09. L'historique du dépôt tenait 26 Go d'objets rattachés à
+# rien ; il en pèse 452 Mo depuis l'élagage. Ces trois lignes empêchent les
+# ateliers d'y entrer à leur tour — un `git add .` malheureux suffirait, et l'on
+# ne sort plus rien d'un historique sans le réécrire entièrement.
+#
+# ⛔ ON NE FERME PAS `work/`, NI `outils/`, ET C'EST MESURÉ.
+#   · deux workflows font `git add work/bible899/…` sur leurs fichiers de
+#     contrôle (planche des fac-similés, corrections source) : git REFUSE
+#     d'ajouter un fichier ignoré, les deux chaînes tomberaient en erreur ;
+#   · `outils/` porte 139 fichiers SUIVIS — c'est le code source de La Gueule,
+#     non un dossier d'atelier. Ses sorties lourdes (sorties/, incoming/,
+#     projets/, 665 Mo) sont déjà couvertes par son propre .gitignore.
+# ⚠️ Corollaire de méthode : `git check-ignore work` répond « non ignoré » alors
+# que le gros de son contenu l'est. On éprouve les CHEMINS LOURDS, jamais le
+# dossier parent.
+
+# Les passes d'océrisation et de paratexte de Fillion : dix dossiers datés,
+# 38,5 Go, et AUCUN fichier suivi dans aucun d'eux (vérifié un à un).
+# ⛔ La forme `*/` ne ferme que les SOUS-dossiers : les 21 fichiers de la racine
+# de work/fillion — le registre des styles, la bibliothèque, les empreintes de
+# volumes — restent suivis et s'ajoutent sans rien de particulier. Et une passe
+# neuve est protégée d'elle-même, sans qu'on ait à y penser.
+/work/fillion/*/
+
+# Lots livrés à GPT (Boèce, Cité de Dieu) : 556 Mo, aucun fichier suivi.
+/livraisons/
+
+# Découpes de contrôle de La Gueule : produites à la demande, jamais versionnées.
+/outils/la-gueule/controles/crops/
