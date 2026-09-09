@@ -423,6 +423,56 @@ export const ILLUSTRATIONS: Illustration[] = [
 
   // ── En réserve ─────────────────────────────────────────────────────────────
   {
+    chemin: '/ornements/ornement-entrelacs.png',
+    nom: 'Ornement — entrelacs',
+    fonction: 'reserve',
+    emploi: 'Quadrilobe lacé d’un seul ruban, sans commencement ni fin. Il n’est employé nulle part ; il est le plus proche parent du QUADRILOBE de la citation favorite, dont il ne faudrait pas qu’il se confonde — celui-là dit « choisi », et deux marques voisines pour deux gestes distincts promettent au lecteur une action qu’elles ne font pas.',
+    note: 'Profil de gravure au trait : 63 % de transparents pour 21,5 % de partiels, le plus grainé des sept — son papier est à 246. Servie en 84 × 112. Livrée par l’auteur le 9 septembre 2026 avec la croix fleurdelisée du frontispice, et fabriquée par la même chaîne (scripts/ornements-detourer.mjs). ⚠️ Sa taille de service est PROVISOIRE : une planche se sert au double de sa taille d’affichage, et cette taille n’existe pas tant qu’aucune page ne la pose. La rejouer coûte une commande le jour où on la place. La planche brute est conservée dans tmp/ornements-source/, hors dépôt.',
+  },
+  {
+    chemin: '/ornements/ornement-memento-mori.png',
+    nom: 'Ornement — memento mori',
+    fonction: 'reserve',
+    emploi: 'Un crâne dans un cartouche fleurdelisé, du répertoire funéraire des impressions du XVIIe siècle. Aucune page ne l’appelle, et son emploi demande une décision : c’est le seul ornement du jeu qui porte un PROPOS, non une respiration.',
+    note: 'Profil de gravure au trait : 73,9 % de transparents, 9,4 % de partiels. Servie en 86 × 114. Livrée par l’auteur le 9 septembre 2026 avec la croix fleurdelisée du frontispice, et fabriquée par la même chaîne (scripts/ornements-detourer.mjs). ⚠️ Sa taille de service est PROVISOIRE : une planche se sert au double de sa taille d’affichage, et cette taille n’existe pas tant qu’aucune page ne la pose. La rejouer coûte une commande le jour où on la place. La planche brute est conservée dans tmp/ornements-source/, hors dépôt.',
+  },
+  {
+    chemin: '/ornements/croix-gothique.png',
+    nom: 'Croix gothique',
+    fonction: 'reserve',
+    emploi: 'Croix pattée à branches fleurdelisées, pleine. Aucune page ne l’appelle. ⚠️ Elle est DIRECTIONNELLE par son axe vertical, à la différence de la croix en losange du frontispice : elle ne peut pas séparer deux blocs de texte, elle ne peut que coiffer ou signer.',
+    note: 'Profil de gravure au trait : 72,8 % de transparents, 7 % de partiels — le trait le plus franc des sept. Servie en 105 × 155. Livrée par l’auteur le 9 septembre 2026 avec la croix fleurdelisée du frontispice, et fabriquée par la même chaîne (scripts/ornements-detourer.mjs). ⚠️ Sa taille de service est PROVISOIRE : une planche se sert au double de sa taille d’affichage, et cette taille n’existe pas tant qu’aucune page ne la pose. La rejouer coûte une commande le jour où on la place. La planche brute est conservée dans tmp/ornements-source/, hors dépôt.',
+  },
+  {
+    chemin: '/ornements/poisson-ichthys.png',
+    nom: 'Poisson',
+    fonction: 'reserve',
+    emploi: 'L’ichthys, le poisson des premiers chrétiens, gravé au trait. Aucune page ne l’appelle. ⚠️ Il est FIGURATIF et tourné vers la droite : il regarde quelque part, ce qu’un ornement de séparation ne doit pas faire.',
+    note: 'Profil de gravure au trait : 73,8 % de transparents, 12,6 % de partiels. Servie en 82 × 105. Livrée par l’auteur le 9 septembre 2026 avec la croix fleurdelisée du frontispice, et fabriquée par la même chaîne (scripts/ornements-detourer.mjs). ⚠️ Sa taille de service est PROVISOIRE : une planche se sert au double de sa taille d’affichage, et cette taille n’existe pas tant qu’aucune page ne la pose. La rejouer coûte une commande le jour où on la place. La planche brute est conservée dans tmp/ornements-source/, hors dépôt.',
+  },
+  {
+    chemin: '/ornements/fleuron-acanthe.png',
+    nom: 'Fleuron — acanthe',
+    fonction: 'reserve',
+    emploi: 'Bouquet d’acanthe massif, symétrique sur son axe vertical. Aucune page ne l’appelle. C’est le plus DENSE du jeu — 32 % de son plan est de l’encre pleine —, donc celui qui pèsera le plus à taille égale : il demandera une taille plus petite que les autres, ou un blanc plus large.',
+    note: 'Profil de gravure au trait : 51,4 % de transparents, 16,6 % de partiels, 32,1 % de pleins. Servie en 110 × 153. Livrée par l’auteur le 9 septembre 2026 avec la croix fleurdelisée du frontispice, et fabriquée par la même chaîne (scripts/ornements-detourer.mjs). ⚠️ Sa taille de service est PROVISOIRE : une planche se sert au double de sa taille d’affichage, et cette taille n’existe pas tant qu’aucune page ne la pose. La rejouer coûte une commande le jour où on la place. La planche brute est conservée dans tmp/ornements-source/, hors dépôt.',
+  },
+  {
+    chemin: '/ornements/fleuron-pendentif.png',
+    nom: 'Fleuron — pendentif',
+    fonction: 'reserve',
+    emploi: 'Fleuron vertical très allongé, à pendentif de perles. Aucune page ne l’appelle. Sa proportion — deux fois et demie plus haut que large — le destine à une marge ou à un pied de page, jamais à une ligne de séparation.',
+    note: 'Profil de gravure au trait : 80,1 % de transparents, 11,6 % de partiels. ⚠️ Son trait est le plus FIN du jeu : il demandera une taille nettement plus grande pour tenir, comme le brin de lavande. Servie en 112 × 272. Livrée par l’auteur le 9 septembre 2026 avec la croix fleurdelisée du frontispice, et fabriquée par la même chaîne (scripts/ornements-detourer.mjs). ⚠️ Sa taille de service est PROVISOIRE : une planche se sert au double de sa taille d’affichage, et cette taille n’existe pas tant qu’aucune page ne la pose. La rejouer coûte une commande le jour où on la place. La planche brute est conservée dans tmp/ornements-source/, hors dépôt.',
+  },
+  {
+    chemin: '/ornements/fleuron-volutes.png',
+    nom: 'Fleuron — volutes',
+    fonction: 'reserve',
+    emploi: 'Fleuron vertical à deux grandes volutes, d’un trait fin. Aucune page ne l’appelle. Il est symétrique sur son axe vertical seulement : il coiffe ou il ferme, il ne sépare pas.',
+    note: 'Profil de gravure au trait : 82 % de transparents, 12,2 % de partiels — le plus aéré des sept. ⚠️ Trait fin, même réserve que le pendentif. Servie en 79 × 136. Livrée par l’auteur le 9 septembre 2026 avec la croix fleurdelisée du frontispice, et fabriquée par la même chaîne (scripts/ornements-detourer.mjs). ⚠️ Sa taille de service est PROVISOIRE : une planche se sert au double de sa taille d’affichage, et cette taille n’existe pas tant qu’aucune page ne la pose. La rejouer coûte une commande le jour où on la place. La planche brute est conservée dans tmp/ornements-source/, hors dépôt.',
+  },
+
+  {
     chemin: '/icons/home-publications-writing.png',
     nom: 'Main qui écrit',
     fonction: 'reserve',
