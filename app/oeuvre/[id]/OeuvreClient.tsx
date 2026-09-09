@@ -103,6 +103,7 @@ import { adresseEdition } from '@/app/lib/adresseEdition'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
 import NomVolet from '@/app/components/NomVolet'
 import { Fleuron } from './Ornements'
+import { FLEURONS, fleuronDe, FLEURON_DU_SITE } from '@/app/lib/fleurons'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import VisiteGuidee from '@/app/components/VisiteGuidee'
 import { CLE_VISITE_OEUVRE, VISITE_OEUVRE } from '@/app/lib/visiteOeuvre'
@@ -509,7 +510,7 @@ const LIBELLE_ONGLET_VOLET: Record<OngletDroit, string> = {
 
 type OngletDroit = 'refs' | 'commentaires' | 'notes'
 
-export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
+export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, fleuron = null, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -915,6 +916,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     txtSommaire, txtCorps, afficherNumeros, texteEntier: lectureTexteEntier,
   })
   const [configNiveaux, setConfigNiveaux] = useState(configInitiale)
+  // ⚠️ Le fleuron vit à CÔTÉ de la configuration des niveaux, non dedans : ce n'est pas
+  // un niveau, et `ConfigNiveaux` est un module pur dont la forme dit ce qu'elle règle.
+  // ⛔ `null` est le cas ordinaire et veut dire « celui du site » — voir `fleurons.ts`.
+  const [fleuronChoisi, setFleuronChoisi] = useState<string | null>(fleuron)
+  // Ce que le panneau montre : « Niveaux » ou « Fleuron ». La barre reprend le modèle
+  // unique du site, à la mesure du volet — le panneau fait 25 rem, non 46.
+  const [ongletConfig, setOngletConfig] = useState<'niveaux' | 'fleuron'>('niveaux')
   // ⛔ ET ELLE SE RECALE QUAND ON CHANGE D'ŒUVRE. `/oeuvre/[id]` est une seule route :
   // passer d'une œuvre à l'autre ne remonte pas ce composant, si bien que le panneau
   // gardait les niveaux de l'œuvre PRÉCÉDENTE — un réglage qui décrit autre chose que
@@ -959,6 +967,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   if (oeuvreDeLaConfig !== idOeuvre) {
     setOeuvreDeLaConfig(idOeuvre)
     setConfigNiveaux(configInitiale())
+    setFleuronChoisi(fleuron)
     setProfondeurExistante(null)
   }
   const resetVolets = () => { setNavWidth(null); setPannWidth(null); try { localStorage.removeItem('cs_volets_oeuvre2') } catch {} }
@@ -3358,7 +3367,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           {/* Le fleuron qui sépare la page de titre du texte. Il se centre sur toute
               la largeur du bloc, en lecture comme en comparaison. */}
           <div style={{ display: 'flex', justifyContent: 'center', margin: '40px 0 44px' }}>
-            <Fleuron />
+            <Fleuron cle={fleuronChoisi} />
           </div>
 
           {/* Barre de circulation de la comparaison — jumelle de « barre-nav-niv1 » :
@@ -4465,6 +4474,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 que son contenu : sans lui, le corps refuse de rétrécir et la carte déborde
                 de nouveau, le plafond de hauteur n'y faisant rien. */}
             <div className="cs-defilement-discret" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '0 22px' }}>
+            {/* ⛔ La barre reprend le MODÈLE unique du site, à la mesure du volet : le
+                modèle est dessiné pour une page de 46 rem, ce panneau en fait 25. On
+                prend le modèle, on ne le redessine pas. */}
+            <OngletsPage
+              onglets={[{ cle: 'niveaux' as const, libelle: 'Niveaux' }, { cle: 'fleuron' as const, libelle: 'Fleuron' }]}
+              actif={ongletConfig}
+              choisir={setOngletConfig}
+              intitule="Ce que règle ce panneau"
+              className="cs-onglets--volet"
+              style={{ marginBottom: '14px' }} />
+            {ongletConfig === 'niveaux' && (<>
             <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', lineHeight: 1.5, margin: '0 0 16px' }}>
               Réglez la finesse des titres affichés, séparément pour le <strong style={{ color: 'var(--cs-texte-second)' }}>sommaire</strong> (colonne de gauche) et le <strong style={{ color: 'var(--cs-texte-second)' }}>corps</strong> du texte.
             </p>
@@ -4549,6 +4569,35 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 {configNiveaux.afficherNumeros ? 'Affichés' : 'Masqués'}
               </button>
             </div>
+            </>)}
+            {ongletConfig === 'fleuron' && (<>
+            <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', lineHeight: 1.5, margin: '0 0 16px' }}>
+              L’ornement qui sépare la page de titre du texte, pour <strong style={{ color: 'var(--cs-texte-second)' }}>cette œuvre</strong>. Sans choix, elle porte le fleuron du site.
+            </p>
+            {/* ⚠️ Chaque ornement paraît À SA POSE, non à une hauteur commune : c'est ce
+                que la page en fera, et une galerie qui les mettrait tous à la même taille
+                mentirait sur ce qu'on choisit. La case est haute de la plus grande d'entre
+                elles. */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '16px' }}>
+              {[null, ...FLEURONS.map(f => f.cle)].map(cle => {
+                const choisi = fleuronChoisi === cle
+                const duSite = cle === null
+                const nom = duSite ? 'Du site' : (FLEURONS.find(f => f.cle === cle)?.nom ?? cle)
+                return (
+                  <button key={cle ?? '__site'} onClick={() => setFleuronChoisi(cle)}
+                    title={duSite ? `Le fleuron du site : ${fleuronDe(FLEURON_DU_SITE).nom}` : nom}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: '6px', minHeight: '92px', padding: '8px 4px 6px', borderRadius: '4px', border: `1px solid ${choisi ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, boxShadow: choisi ? 'inset 0 0 0 1px var(--cs-vert)' : 'none', background: 'var(--cs-surface)', cursor: 'pointer' }}>
+                    {/* ⛔ Pas d'aplat vert sous la case retenue : l'ornement est une encre
+                        grise, et il s'y perdrait. C'est le CADRE qui dit le choix. */}
+                    <span style={{ display: 'flex', flex: '1 1 auto', alignItems: 'center' }}>
+                      <Fleuron cle={duSite ? FLEURON_DU_SITE : cle} />
+                    </span>
+                    <span style={{ fontSize: '0.5625rem', lineHeight: 1.25, textAlign: 'center', color: choisi ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', fontWeight: choisi ? 700 : 400 }}>{nom}</span>
+                  </button>
+                )
+              })}
+            </div>
+            </>)}
             </div>
             {configErreur && (
               <p role="alert" style={{ flexShrink: 0, margin: 0, padding: '10px 22px 0', fontSize: '0.65625rem', lineHeight: 1.45, color: 'var(--cs-danger-fonce)' }}>{configErreur}</p>
@@ -4565,6 +4614,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   { champ: 'texte_corps', valeur: chapeauxEnTexte(configNiveaux.txtCorps) },
                   { champ: 'afficher_numeros', valeur: configNiveaux.afficherNumeros },
                   { champ: 'lecture_texte_entier', valeur: configNiveaux.texteEntier },
+                  { champ: 'fleuron', valeur: fleuronChoisi },
                 ]
                 const reponses = await Promise.all(appels.map(({ champ, valeur }) =>
                   fetch('/api/admin/update-oeuvre', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_oeuvre: idOeuvre, champ, valeur }) })

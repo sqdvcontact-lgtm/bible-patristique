@@ -101,6 +101,9 @@ export async function POST(req: NextRequest) {
     // était LUE par la page de titre mais éditable par aucune interface : une
     // correction du titre restait donc invisible sur toute œuvre qui la portait.
     'titre_affichage',
+    // Le fleuron qui sépare la page de titre du texte : une CLÉ du registre
+    // `app/lib/fleurons.ts`, ou null pour celui du site.
+    'fleuron',
   ])
   if (!CHAMPS_AUTORISES.has(champ)) {
     return NextResponse.json({ error: 'Champ non autorisé.' }, { status: 400 })

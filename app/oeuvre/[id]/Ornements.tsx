@@ -29,10 +29,7 @@ export function MarqueImprimeur({ size = 150 }: { size?: number }) {
   )
 }
 
-/** La planche du fleuron, mesurée. ⛔ La LARGEUR s'écrit depuis ces deux nombres,
- *  elle ne se déduit pas d'un rapport CSS : c'est la règle posée pour la marque de la
- *  barre, où un enfant de flex effondré à zéro ne se serait vu sur aucune page. */
-const PLANCHE_FLEURON = { largeur: 78, hauteur: 86 }
+import { adresseFleuron, fleuronDe } from '@/app/lib/fleurons'
 
 /**
  * LE FLEURON qui sépare la page de titre du texte.
@@ -40,29 +37,37 @@ const PLANCHE_FLEURON = { largeur: 78, hauteur: 86 }
  * ⛔ Ce fut le glyphe ❧ jusqu'au 9 septembre 2026, et c'était le défaut que la charte
  * relève déjà pour le monogramme de l'accueil : un CARACTÈRE, dont le dessin dépend de
  * la police que le système veut bien donner, et qui ne dit rien du site. Il cède à une
- * planche gravée — une croix fleurdelisée en losange, du répertoire typographique du
- * XVIIe siècle —, détourée par la chaîne commune et posée en MASQUE : une seule planche,
+ * planche gravée, détourée par la chaîne commune et posée en MASQUE : une seule planche,
  * deux encres, et rien à rattraper au Cuir.
  *
- * ⚠️ 2,75 rem de HAUTEUR, et cela se mesure : sous 36 px les volutes du centre se
- * referment en une tache et le fleuron n'est plus qu'un losange gris ; au-delà de 48 il
- * pèse plus que le titre qu'il précède. Jugé sur planche, à la taille RÉELLE, agrandi au
- * plus proche voisin — un ornement au trait ne se juge pas dans l'éditeur.
- * ⚠️ Le fichier est servi en 78 × 86 pour 40 × 44 affichés, soit un rapport de 1,95 :
- * une planche se sert au double de sa taille d'affichage, jamais plus.
+ * ⛔ QUELLE planche est un choix de l'auteur, œuvre par œuvre : la clé vient de
+ * `oeuvres.fleuron`, et `null` — le cas ordinaire — veut dire « celui du site ». Tout
+ * le registre, ses dimensions et ses hauteurs de pose vivent dans `app/lib/fleurons.ts`,
+ * sous garde ; ⛔ ne rien écrire ici qui les redise.
+ *
+ * ⚠️ La HAUTEUR est propre à chaque ornement, et elle se MESURE : un dessin dense pèse
+ * plus qu'un dessin ajouré à taille égale, et un fleuron très allongé disparaît si on lui
+ * donne la hauteur d'un fleuron carré. `hauteur` ne se passe que pour un APERÇU, jamais
+ * pour la page — sur elle, c'est le registre qui décide.
  */
-export function Fleuron({ hauteur = '2.75rem' }: { hauteur?: string }) {
+export function Fleuron({ cle, hauteur }: { cle?: string | null; hauteur?: string }) {
+  const f = fleuronDe(cle)
+  const h = hauteur ?? f.hauteur
+  const adresse = `url(${adresseFleuron(f)})`
   return (
     <span
       className="cs-fleuron"
       aria-hidden="true"
       style={{
-        height: hauteur,
-        width: `calc(${hauteur} * ${PLANCHE_FLEURON.largeur} / ${PLANCHE_FLEURON.hauteur})`,
+        height: h,
+        // ⛔ La LARGEUR s'écrit depuis les deux nombres du registre, elle ne se déduit pas
+        // d'un rapport CSS : c'est la règle posée pour la marque de la barre, où un enfant
+        // de flex effondré à zéro ne se serait vu sur aucune page.
+        width: `calc(${h} * ${f.planche.largeur} / ${f.planche.hauteur})`,
         // ⚠️ L'adresse appartient au composant, la composition à la feuille : c'est le
         // partage que le site fait déjà pour les gravures de l'édition.
-        WebkitMaskImage: 'url(/ornements/fleuron-croix.png)',
-        maskImage: 'url(/ornements/fleuron-croix.png)',
+        WebkitMaskImage: adresse,
+        maskImage: adresse,
       }}
     />
   )
