@@ -8009,40 +8009,95 @@ rattrapage d'erreur : un canon en échec faisait tomber la page entière au lieu
 dégrader, ce que le `.catch` était précisément là pour empêcher. ⚠️ Une case vide dans un
 destructuring est le seul signe d'un tel doublon, et elle ne se lit pas.
 
-## ⛔ LA PORTE SE RENDRA VIDE À L'OUVERTURE — migration ÉCRITE, NON APPLIQUÉE
+## ⛔ LA PORTE S'OUVRE AU RÔLE ANONYME — APPLIQUÉE le 2026-09-09
 
-`supabase/migrations/20260909120000_porte_ouverte_au_role_anonyme.sql` et son fichier de
-contrôles. Trois faits mesurés le 2026-09-09, à relire avant de la jouer :
+`supabase/migrations/20260909081309_porte_ouverte_au_role_anonyme.sql` et son fichier de
+contrôles. La porte ne lisait rien en anonyme : à l'ouverture, elle se serait rendue avec
+« Aucun ajout pour l'instant. » et SANS la galerie des auteurs, que le composant efface
+entièrement quand la liste est vide. Quatre choses à savoir.
 
-0. ⛔ **La politique existante appelle `is_admin()`, que `anon` ne peut plus exécuter.**
+1. ⛔ **LA POLITIQUE EXISTANTE APPELLE `is_admin()`, QUE `anon` NE PEUT PLUS EXÉCUTER.**
    C'est le défaut que l'ÉPREUVE a trouvé, et il aurait fait échouer la première écriture :
    ouvrir « Lecture des œuvres accessibles » à `anon` rendait 42501 sur la moindre lecture,
-   la fonction ayant été fermée à PUBLIC la veille. ⛔ On n'ouvre pas `is_admin()` pour
-   contourner cela — on AJOUTE deux politiques propres à `anon`, qui n'appellent rien.
-   ⚠️ **C'est la valeur de la transaction annulée** : une migration écrite et jamais jouée
-   n'est pas une migration éprouvée. Elle l'est désormais, relevé en pied de fichier.
-1. ⛔ **`auteurs` est fermée elle aussi, et sa politique trompe.** « Lecture publique des
-   auteurs » porte sur `{public}` avec un qual à `true`, ce qui donne à croire la table
-   ouverte ; `has_table_privilege('anon','auteurs','SELECT')` rend **faux**, le GRANT
+   `20260908095950_fermer_le_role_anonyme_les_fonctions` ayant retiré à PUBLIC l'exécution
+   des 112 fonctions du schéma. ⛔ On n'ouvre PAS `is_admin()` pour contourner — ce serait
+   défaire d'une ligne ce que la veille avait fermé. On AJOUTE deux politiques propres à
+   `anon`, qui n'appellent rien ; les politiques s'additionnent (OU) et celles
+   d'`authenticated` ne bougent pas d'un caractère.
+   ⚠️ **C'EST LA VALEUR DE LA TRANSACTION ANNULÉE.** Les GRANT et les politiques sont
+   transactionnels : une migration se joue et s'éprouve dans un `begin … rollback`, depuis
+   la place d'un anonyme (`set local role anon`), et le rapport revient par un
+   `raise exception` qui rembobine tout. Une migration écrite et jamais jouée n'est pas une
+   migration éprouvée — celle-ci avait été relue trois fois sans que le défaut paraisse.
+2. ⛔ **`auteurs` ÉTAIT FERMÉE ELLE AUSSI, ET SA POLITIQUE TROMPAIT.** « Lecture publique
+   des auteurs » porte sur `{public}` avec un qual à `true`, ce qui donne à croire la table
+   ouverte ; `has_table_privilege('anon','auteurs','SELECT')` rendait **faux**, le GRANT
    manquant en deçà de toute politique. C'est le piège que ce fichier nomme déjà au § de
-   l'ouverture, et l'audit s'y est laissé prendre une fois de plus.
-2. ⛔ **`oeuvres` porte de la prose d'atelier sur ses œuvres PUBLIQUES** : 23 des 42 portent
-   un `acces_public_note` et 23 un `note_editoriale_complement` internes (« Import de
-   préparation privé », « Édition en cours de reprise éditoriale interne », « Il n'est
-   volontairement pas… »). Un `grant select on oeuvres to anon` les publierait toutes. D'où
-   des grants **colonne par colonne**, qui n'ouvrent que ce que la porte lit. ⚠️ Pansement :
-   la doctrine veut qu'une note d'atelier vive dans une table à part (modèle
-   `oeuvres_commentaires_prives`), et tout compte connecté la lit déjà.
-3. ⛔ **La base a été fermée à `anon` la veille, délibérément**
-   (`20260908095950_fermer_le_role_anonyme_les_fonctions.sql`). Rouvrir une table
-   aujourd'hui défait une part de ce travail, sur un site encore fermé où la porte se rend
-   correctement pour tout compte connecté. Rien ne presse : c'est à l'OUVERTURE que le
-   manque se paie, et ce point est en tête de la liste de l'ouverture, avec la consigne
-   expresse de ne pas le traiter au fil de l'eau.
+   l'ouverture, et l'audit s'y est laissé prendre une fois de plus. ⛔ **Ne jamais conclure
+   qu'une table est ouverte en lisant une politique : mesurer le privilège.**
+3. ⛔ **LES GRANTS SONT COLONNE PAR COLONNE**, jamais `grant select on <table>`. Un
+   `select('*')` anonyme sur `oeuvres` ou `oeuvres_auteurs` ÉCHOUE donc, et c'est voulu :
+   la page de l'œuvre en fait un, et elle demande de toute façon `segments`, qui reste
+   fermée. Le jour où on l'ouvrira, ce sera par une VUE.
+   ⚠️ Une colonne citée dans un FILTRE ou un TRI compte comme lue — `acces_public` porte le
+   `.eq()`, `date_mise_en_ligne` et `id_oeuvre` les deux `.order()`, `id_auteur` la jointure
+   de l'embed. Les oublier rend « permission denied for column », non une liste vide.
+4. ⚠️ **CE N'EST QU'UNE TRANCHE.** Elle ouvre la PORTE et rien d'autre : un chapitre, une
+   œuvre, une fiche d'auteur continuent de se rendre vides pour un moteur, ce qui vaut un
+   *soft 404*. Le reste de la liste d'ouverture est entier.
 
-⚠️ **Et ce n'est qu'une tranche** : appliquée seule, elle ouvre la PORTE et rien d'autre —
-un chapitre, une œuvre, une fiche d'auteur continueront de se rendre vides pour un moteur,
-ce qui vaut un *soft 404*.
+**Éprouvé de bout en bout par l'API REST, avec la clé anonyme** : la requête EXACTE de la
+porte rend ses œuvres et leurs auteurs, la co-signature de Rufin d'Aquilée remonte, et
+`select=*`, `acces_public_note` et `segments` rendent 401 ou 42501.
+
+## ⛔ UNE NOTE D'ATELIER NE VIT PAS DANS UNE TABLE LUE EN `select('*')`
+
+`oeuvres.acces_public_note` — le motif d'une décision de publication — a rejoint
+`oeuvres_commentaires_prives.note_acces_public` le 2026-09-09 (migrations
+`20260909081824` et `20260909082157`). Trente notes : « Import de préparation privé ;
+aucune publication autorisée par ce paquet. », « Édition en cours de reprise éditoriale
+interne ». La page publique de l'œuvre lit `oeuvres` en `select('*')` **sous la session du
+LECTEUR** : elles étaient donc servies à tout compte connecté.
+
+- ⚠️ **DEUX PROSES DANS LA MÊME TABLE, ET ELLES NE DISENT PAS LA MÊME CHOSE.**
+  `commentaire` est le carnet de travail (état de l'import, doutes sur l'édition),
+  `note_acces_public` dit pourquoi l'œuvre est offerte ou retenue. ⛔ On ne les fond pas :
+  onze œuvres portent les deux.
+- ⛔ **UNE MIGRATION DE PROSE SE CONTRÔLE SUR LE TEXTE, JAMAIS SUR LE COMPTE.** Le report
+  lève si une seule note ne se retrouve pas au caractère près (`is distinct from`).
+  Sauvegarde dans `internal`, retour en arrière écrit en pied de la migration 2/2.
+- ⛔ **DEUX MIGRATIONS, ET L'ORDRE EST LA RÈGLE.** 1/2 ajoute la colonne et déménage les
+  notes — additive, elle ne casse rien ; le correctif de la planche d'administration est
+  DÉPLOYÉ ; 2/2 seulement retire la colonne. La base est PARTAGÉE avec le site en ligne, et
+  l'ordre inverse aurait cassé l'administration le temps d'un build. C'est la leçon
+  d'`oeuvres_auteurs`, payée une fois.
+- ⛔ **UNE FONCTION QUI NOMME LA COLONNE EST UNE MINE** : le corps d'une fonction plpgsql
+  n'est pas contrôlé au DDL, elle ne casse qu'au prochain appel.
+  `importer_mirandol_1861` — 19 Ko, un import d'un seul coup déjà joué — la nommait en
+  trois endroits : la colonne dans la liste de l'INSERT, la VALEUR qui lui répondait dans
+  le SELECT, et la reprise sur conflit. ⚠️ On la patche par **trois remplacements EXACTS
+  contrôlés** sur `pg_get_functiondef`, jamais en réécrivant à la main, et l'on sauvegarde
+  la définition d'origine. ⛔ Retirer la colonne de l'INSERT oblige à retirer SON expression
+  du SELECT : **34 de chaque côté après, contre 35 avant**, recomptés à la main.
+- ⚠️ **`acces_public_modifie_le` RESTE**, et ce n'est pas un oubli : c'est une date, non de
+  la prose, et la route d'administration l'estampille à chaque publication. La doctrine vise
+  la donnée privée RÉDIGÉE, pas l'horodatage d'une décision.
+- ⚠️ **`note_editoriale_complement` reste elle aussi, et l'audit s'était trompé** : elle
+  s'AFFICHE au lecteur, sous « Notes éditoriales » dans la fiche de l'œuvre
+  (`FicheEdition.tsx`). ⛔ Avant de déclarer une colonne interne, chercher qui la REND.
+- ⚠️ **Le motif est enfin CORRIGIBLE.** Il était chargé par la planche d'administration et
+  rendu nulle part : ni lisible, ni éditable, écrit par les seules migrations. Il a
+  maintenant sa zone de texte à côté des commentaires privés, et la route généralise sa
+  branche aux deux proses. ⛔ Elle n'efface la ligne que si les DEUX sont vides — un
+  `delete` posé sur le seul champ vidé emporterait la note voisine.
+
+## ⚠️ Deux politiques de lecture identiques sur `oeuvres_auteurs` — le doublon est retiré
+
+« Lecture des liaisons d'œuvres accessibles » et « lecture des co-signatures visibles »
+portaient EXACTEMENT le même qual, sur la même table, pour le même rôle. Deux politiques de
+lecture s'additionnent (OU) : le doublon ne changeait rien au résultat, il faisait seulement
+évaluer deux fois la même sous-requête et laissait croire à deux règles là où il n'y en a
+qu'une. Retiré dans la migration `20260909082157`.
 
 ## ⚠️ LE CHUNK HORS FLUX DE SUSPENSE NE PARAÎT QU'AU DÉPART À FROID
 
@@ -8092,6 +8147,3 @@ justifie rien à lui seul.
   Supabase par visite et `max-age=0`. À l'ouverture, le rendu anonyme sera identique pour
   tout le monde : un cache court y vaudra davantage qu'aujourd'hui — et il ferait tomber du
   même coup le départ à froid, donc le résidu ci-dessus.
-- ⚠️ **Deux politiques SELECT identiques sur `oeuvres_auteurs`** (« Lecture des liaisons
-  d'œuvres accessibles » et « lecture des co-signatures visibles ») : même table, même qual.
-  Un doublon, à ranger.
