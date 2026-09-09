@@ -2815,10 +2815,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               C'est la règle qui a déjà emporté le sommaire sans matière à sommer. */}
           {oeuvresAuteur.length > 1 && (
             <div style={{ borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
-              <button onClick={() => setAuteurOuvert(!auteurOuvert)}
+              <button onClick={() => setAuteurOuvert(!auteurOuvert)} aria-expanded={auteurOuvert}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
                 <span style={RUBRIQUE_AXE}>Du même auteur</span>
-                <span style={{ fontSize: '0.4375rem', color: 'var(--cs-texte-faible)' }}>{auteurOuvert ? '▲' : '▼'}</span>
+                <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)', flexShrink: 0 }}>
+                  <IconeChevron dir={auteurOuvert ? 'up' : 'down'} size={11} strokeWidth={1.5} />
+                </span>
               </button>
               {auteurOuvert && (
                 <div style={{ padding: '0 16px 12px' }}>
@@ -2940,10 +2942,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
             {!modeComparaisonActif && tocApparatLocal.length > 0 && (
               <div data-visite="oeuvre-apparat" style={{ ...(apparatOuvert ? { flex: sommaireAQuoiSommer ? '0 1 auto' : 1, maxHeight: sommaireAQuoiSommer ? '50%' : undefined, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
-                <button onClick={() => setApparatOuvert(!apparatOuvert)}
+                <button onClick={() => setApparatOuvert(!apparatOuvert)} aria-expanded={apparatOuvert}
                   style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
                   <span style={RUBRIQUE_AXE}>Apparat critique</span>
-                  <span style={{ fontSize: '0.4375rem', color: 'var(--cs-texte-faible)' }}>{apparatOuvert ? '▲' : '▼'}</span>
+                  <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)', flexShrink: 0 }}>
+                    <IconeChevron dir={apparatOuvert ? 'up' : 'down'} size={11} strokeWidth={1.5} />
+                  </span>
                 </button>
                 {apparatOuvert && (
                   <div style={{ flex: '0 1 auto', overflowY: 'auto', padding: '0 16px 14px' }}>
@@ -2985,10 +2989,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
             {sommaireAQuoiSommer && (
             <div data-visite="oeuvre-sommaire" style={{ ...(sommaireOuvert ? { flex: 1, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
-              <button onClick={() => setSommaireOuvert(!sommaireOuvert)}
+              <button onClick={() => setSommaireOuvert(!sommaireOuvert)} aria-expanded={sommaireOuvert}
                 style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
                 <span style={RUBRIQUE_AXE}>Sommaire</span>
-                <span style={{ fontSize: '0.4375rem', color: 'var(--cs-texte-faible)' }}>{sommaireOuvert ? '▲' : '▼'}</span>
+                <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)', flexShrink: 0 }}>
+                  <IconeChevron dir={sommaireOuvert ? 'up' : 'down'} size={11} strokeWidth={1.5} />
+                </span>
               </button>
 
               {sommaireOuvert && (
@@ -3216,7 +3222,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe: g, texteActuel: niv1Actif, schemaTexte: false })}
                           title="Modifier le titre" style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}><IconeCrayon size={12} /></button>
                         <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe: g, texteActuel: g.niv1_texte ?? '', schemaTexte: true })}
-                          title="Modifier le sous-titre" style={{ fontSize: '0.625rem', color: 'var(--cs-bord)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1, fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
+                          title="Modifier le sous-titre" style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1, fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                       </div>
                     )})()}
                   </>
@@ -3443,27 +3449,27 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2, schemaTexte: false })}
                             title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2_texte ?? '', schemaTexte: true })}
-                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-bord)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                         </div>
                       )}
                     </div>
                   )}
                   {showNiv3 && (
                     <div style={{ marginTop: isFirstGroupe ? '0' : '1rem', marginBottom: '0.4rem', paddingLeft: '11px', borderLeft: '1px solid var(--cs-bord)', position: 'relative' }}>
-                      <p style={{ ...styleTitreNiveau(3), textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophonAvecNotes(rendu('niv3', groupe.niv3), notesTitre)}</p>
+                      <h4 style={{ ...styleTitreNiveau(3), textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophonAvecNotes(rendu('niv3', groupe.niv3), notesTitre)}</h4>
                       {sousTitre3 && configNiveaux.txtCorps[2] && <p style={styleSousTitreNiveau(3)}>{rendreTitreColophonAvecNotes(rendu('niv3_texte', sousTitre3), notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '-52px', top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 3, groupe, texteActuel: groupe.niv3, schemaTexte: false })}
                             title="Modifier le titre" style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 3, groupe, texteActuel: groupe.niv3_texte ?? '', schemaTexte: true })}
-                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-bord)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                         </div>
                       )}
                     </div>
                   )}
                   {showNiv4 && (
-                    <p style={{ ...styleTitreNiveau(4), position: 'relative' }}>
+                    <h5 style={{ ...styleTitreNiveau(4), position: 'relative' }}>
                       {rendreTitreColophonAvecNotes(rendu('niv4', groupe.niv4), notesTitre)}
                       {sousTitre4 && configNiveaux.txtCorps[3] && <span style={styleSousTitreNiveau(4)}>{rendreTitreColophonAvecNotes(rendu('niv4_texte', sousTitre4), notesTitre)}</span>}
                       {estAdmin && (
@@ -3471,10 +3477,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 4, groupe, texteActuel: groupe.niv4, schemaTexte: false })}
                             title="Modifier le titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible({ type: 'titre', niveau: 4, groupe, texteActuel: groupe.niv4_texte ?? '', schemaTexte: true })}
-                            title="Modifier le sous-titre" style={{ fontSize: '0.5rem', color: 'var(--cs-bord)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.5rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
                         </span>
                       )}
-                    </p>
+                    </h5>
                   )}
                   {/* ⚠️ On refait le POÈME avant de composer. Le découpage par
                       `paragraphe` est juste pour de la prose et faux pour des vers :
@@ -4149,7 +4155,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
             {estAdmin && (
               <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" aria-label="Modifier ce segment"
-                style={{ ...BTN_STYLE, color: 'var(--cs-bord)' }}><IconeCrayon size={12} /></button>
+                style={{ ...BTN_STYLE, color: 'var(--cs-texte-faible)' }}><IconeCrayon size={12} /></button>
             )}
           </CelluleActions>
         )
