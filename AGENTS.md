@@ -1884,6 +1884,63 @@ Relevé par l’auteur sur la note « Statim » de Marc 1, 20 : « à cause de l
 
 **Le défaut reste donc OUVERT**, et il faut savoir pourquoi : aucune propriété CSS ne rend la mesure pleine à la SEULE dernière ligne d’un paragraphe qui longe un flottant. Le choix est entre deux mises en page entières — le texte habille le repère (défaut occasionnel), ou il se range à côté (retrait constant) —, et c’est une décision d’auteur, pas un réglage. Une troisième voie existe, conforme au fac-similé : le repère en RUN-IN, à même la première ligne du commentaire, sans colonne ni habillage ; elle défait la décision du 27 août 2026 qui l’a ferré à gauche en colonne.
 
+# ⛔ LE VOLET D’UNE ŒUVRE SUR TÉLÉPHONE (2026-09-09)
+
+Huit points relevés par l’auteur sur la page d’une œuvre au téléphone. La leçon qui les
+tient tous : **le tiroir mobile a hérité des règles du volet de BUREAU**, qui a une
+hauteur DÉFINIE, un rail où se replier et une souris. Aucune des trois n’existe là.
+
+⛔ **UN CONTENEUR EN `flex: 1` S’EFFONDRE DANS UN TIROIR, ET SES ENFANTS EN SORTENT.**
+C’est le défaut que l’auteur a vu comme un chevauchement entre « Apparat critique » et
+« Sommaire ». Le volet de bureau a `height: HAUTEUR_SOUS_NAVBAR` : le conteneur partagé
+y prend légitimement ce qui reste (`flex: 1` + `minHeight: 0`) pour que ses deux listes
+défilent en dedans. Le tiroir, lui, n’a qu’un PLAFOND : la base de flex vaut zéro, rien
+ne l’oblige à grandir, et ses deux blocs — en `flexShrink: 0` — débordent. Mesuré sur
+planche à 375 × 812, tiroir au plafond : **conteneur à hauteur ZÉRO**, les deux rubriques
+à 777 et 813 pour un tiroir qui finit à 772, et le défileur du tiroir ne les comptait même
+pas (`scrollHeight` 716). Avec `flex: none` : conteneur à 71 px, `scrollHeight` 792, les
+deux rubriques atteignables. ⚠️ Le plafond `maxHeight: 50%` de l’apparat tombe avec :
+un pourcentage se résout contre une hauteur, et il n’y en a pas.
+
+⛔ **LA BARRE RESTE POSÉE QUAND SON TIROIR S’OUVRE, ET C’EST ELLE QUI FERME.** Elle
+disparaissait au profit d’un en-tête de tiroir dont la flèche regardait à GAUCHE, c’est-à-dire
+vers le rail du BUREAU — « on ne sait pas où fermer ou comment revenir ». Le tiroir se
+pose donc SOUS elle (ou dessus, en pied), le chevron dit le MOUVEMENT (bas pour ouvrir,
+haut pour fermer, l’inverse en pied), et les deux flèches de repli du tiroir ne paraissent
+plus sur téléphone. ⚠️ Sa hauteur se NOMME — `HAUTEUR_BARRE_VOLET`, 2,375rem, à côté de
+`HAUTEUR_NAVBAR` — parce que le tiroir compose son `top`, son `bottom` et son plafond
+dessus : un nombre recopié les désaccorderait au premier réglage.
+
+⛔ **LE LIBELLÉ EST CENTRÉ PAR UN CHEVRON DOUBLÉ**, le double invisible. C’est le procédé
+que la charte prescrit depuis le menu des bibles : centrer chevron compris pose le mot à
+côté de l’axe. Mesuré : **0,0 px d’écart** à 375 et à 320 px, quelle que soit la longueur
+du libellé. ⚠️ Une seule écriture pour les deux barres (`BarreVoletMobile`) : elles ont
+divergé une fois, elles ne le peuvent plus.
+
+⛔ **UNE OPTION DE VOLET N’EST PAS SUR LE CHEMIN DE LECTURE** : `.cs-option-volet` passe
+de 2,75rem à 2,25rem sous `@media (hover: none)`. La charte veut 44 px sur le chemin de
+lecture — le pavé d’actions d’un verset, la flèche de chapitre — et 24 px comme plancher
+AA partout ailleurs. Mesuré, trois options à 44 px faisaient un bloc de **168 px** dans un
+tiroir qui en offre 716. 36 px passent largement le plancher, et c’est déjà la mesure de
+la grappe de boutons d’action. ⚠️ Le volet de la page Bible suit, et c’est voulu : c’est
+le même objet, et l’axe est le POINTEUR, non la page.
+
+⚠️ **TOUT EST FERMÉ À L’ARRIVÉE SUR UN TÉLÉPHONE**, le sommaire compris. Il s’ouvre
+d’office au bureau, où il est la navigation principale ; dans un tiroir il pousse hors de
+vue les trois rubriques qui le précèdent, et l’on ne voit plus ce que le volet offre.
+⚠️ « Du même auteur » se BORNE une fois ouverte (38 dvh, défilement en dedans) : elle
+compte jusqu’à cent entrées chez Augustin.
+
+⛔ **LE COMPTE DES COMMENTAIRES SE PREND DANS LA PAGE, NON DANS L’ONGLET.**
+`OngletCommentaires` ne les charge que MONTÉ, c’est-à-dire tiroir ouvert et onglet choisi :
+il ne peut rien dire à une barre FERMÉE, qui est précisément là où le compte sert. Une tête
+de comptage, sous la session du lecteur. ⛔ Elle ne part pas au-delà de 2^31 :
+`commentaires.id_segment` est un `integer` quand `segments.id` est un `bigint`, et 2 589
+segments du corpus dépassent la borne — la requête y rendrait un 400 à chaque clic. ⚠️ Et
+le compte se DÉDUIT : il est retenu AVEC le segment auquel il appartient et n’est lu que
+s’il répond au segment courant, si bien qu’une réponse tardive ne s’affiche pas sous le
+passage suivant, et que rien ne se remet à zéro dans un corps d’effet.
+
 # Page Œuvre — largeur de lecture et axe de centrage
 
 La colonne de lecture est un conteneur centré dont la largeur est nommée : `largeurLecture` dans `OeuvreClient.tsx` — **31,25rem** en lecture, **35rem** en mobile, **52rem** en traductions parallèles. **Tout ce qui se centre se centre sur l'axe de ce bloc**, et rien ne porte de compensation latérale : page de titre, fleuron, barre de circulation, titres de rang 1 et 2 (texte suivi ET apparat), blocs de paragraphes, pagination.

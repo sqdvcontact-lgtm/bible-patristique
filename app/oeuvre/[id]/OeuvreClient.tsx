@@ -124,7 +124,7 @@ import IconeChevron from '@/app/components/IconeChevron'
 import RailVolet from '@/app/components/RailVolet'
 import OngletsPage from '@/app/components/OngletsPage'
 import { enregistrerOeuvreRecente } from '@/app/lib/oeuvresRecentes'
-import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
+import { HAUTEUR_BARRE_VOLET, HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import { useCompte } from '@/app/lib/contexteCompte'
@@ -440,6 +440,56 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 const AUCUN_BLOC: Record<string, BlocOriginal> = {}
 const AUCUNE_DEGRADATION: DegradationChargement[] = []
 
+/**
+ * LA BARRE FIXE D’UN VOLET SUR TÉLÉPHONE, et elle ne disparaît jamais.
+ *
+ * ⛔ Elle reste posée tiroir OUVERT comme tiroir FERMÉ (relevé de l’auteur,
+ * 2026-09-09) : le tiroir se glisse dessous, et c’est elle qui referme. Elle
+ * disparaissait jusque-là au profit d’un en-tête de tiroir dont la flèche regardait
+ * à GAUCHE, c’est-à-dire vers le rail du BUREAU, qui n’existe pas sur un téléphone —
+ * « on ne sait pas où fermer ou comment revenir ».
+ *
+ * ⛔ LE LIBELLÉ EST CENTRÉ, ET LE CHEVRON EST DOUBLÉ pour cela, le double invisible.
+ * C’est le procédé que la charte prescrit depuis le menu des bibles (§ « Un CHEVRON
+ * n’entre pas dans le centrage du libellé qu’il accompagne ») : centrer chevron
+ * compris pose le mot à côté de l’axe, et l’écart se voit.
+ *
+ * ⚠️ Le chevron désigne le MOUVEMENT du tiroir, non un côté : vers le bas quand la
+ * barre du haut va s’ouvrir, vers le haut quand elle va se refermer, et l’inverse
+ * en pied. Une seule écriture pour les deux barres, faute de quoi elles divergent.
+ */
+function BarreVoletMobile({ cote, ouvert, libelle, titre, onBasculer, refBouton }: {
+  cote: 'haut' | 'bas'
+  ouvert: boolean
+  libelle: string
+  titre: string
+  onBasculer: () => void
+  refBouton?: React.Ref<HTMLButtonElement>
+}) {
+  const haut = cote === 'haut'
+  const dir: 'up' | 'down' = haut ? (ouvert ? 'up' : 'down') : (ouvert ? 'down' : 'up')
+  const marque = (invisible: boolean) => (
+    <span aria-hidden style={{ display: 'inline-flex', flexShrink: 0, color: 'var(--cs-texte-doux)', visibility: invisible ? 'hidden' : undefined }}>
+      <IconeChevron dir={dir} size={14} strokeWidth={1.5} />
+    </span>
+  )
+  return (
+    <button ref={refBouton} onClick={onBasculer} title={titre} aria-expanded={ouvert}
+      style={{
+        position: 'fixed', left: 0, right: 0, width: '100%', zIndex: Z_FENETRE,
+        ...(haut
+          ? { top: HAUTEUR_NAVBAR, borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)', background: 'var(--cs-fond-clair)' }
+          : { bottom: 0, borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)', background: 'var(--cs-surface)' }),
+        height: HAUTEUR_BARRE_VOLET, border: 'none', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0 1rem',
+      }}>
+      {marque(true)}
+      <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{libelle}</span>
+      {marque(false)}
+    </button>
+  )
+}
+
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
 /** Les trois onglets du volet de droite. ⛔ « notes » est réservé à l'administration. */
@@ -503,6 +553,15 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }, [oeuvreLocale])
   const oeuvreAffichee = useMemo<Props['oeuvre']>(
     () => oeuvrePourVersion(versionActive), [oeuvrePourVersion, versionActive])
+  // ⛔ LA BARRE MOBILE RESTE POSÉE QUAND SON TIROIR S’OUVRE (relevé de l’auteur,
+  //    2026-09-09 : « il faut idéalement garder la barre Sommaire intacte, identique ;
+  //    on ne sait pas où fermer ou comment revenir »). Elle disparaissait au profit
+  //    d’un en-tête de tiroir dont la flèche regardait à GAUCHE, c’est-à-dire vers le
+  //    rail du BUREAU, qui n’existe pas sur un téléphone. Le tiroir se pose donc SOUS
+  //    la barre (ou dessus, en pied), et c’est la barre qui ferme.
+  //    ⚠️ Sa hauteur se NOMME, comme celle de la barre de navigation : le tiroir compose
+  //    son `top` et son plafond dessus, et un nombre recopié les désaccorderait.
+  //    38 px = 2 × 0,6875rem de rembourrage + la ligne du libellé à 0,8125rem.
   const [navOuverte, setNavOuverte] = useState(true)
   const [panneauOuvert, setPanneauOuvert] = useState(true)
   // ≤ 900px : nav et apparat en barres fixes + tiroirs (voir AGENTS § mobile).
@@ -897,6 +956,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (typeof window !== 'undefined' && window.innerWidth < 900) {
       setNavOuverte(false)
       setPanneauOuvert(false)
+      // ⛔ ET LE SOMMAIRE AVEC EUX (décision de l’auteur, 2026-09-09 : « par défaut,
+      //    fermer tous les sous-onglets de ce volet »). Il s’ouvre d’office au BUREAU,
+      //    où il est la navigation principale et où la place ne manque pas ; dans un
+      //    tiroir de téléphone, il pousse hors de vue les trois rubriques qui le
+      //    précèdent, et l’on ne voit plus ce que le volet offre.
+      setSommaireOuvert(false)
     }
   }, [])
   useEffect(() => {
@@ -1821,6 +1886,55 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     [notesSection],
   )
   const segActifData = segActif !== null ? segMapActive.get(segActif) : null
+
+  // ⛔ LE COMPTE DES COMMENTAIRES SE PREND ICI, NON DANS L’ONGLET (demande de
+  //    l’auteur, 2026-09-09 : « afficher le nombre de résultats, références et
+  //    commentaires distinctement, dans la barre dédiée »). L’onglet ne les charge
+  //    que MONTÉ, c’est-à-dire tiroir ouvert et onglet choisi : il ne peut donc rien
+  //    dire à une barre fermée, qui est précisément là où le compte sert.
+  //    ⚠️ Une tête de comptage, sans une ligne rapatriée, et sous la session du
+  //    LECTEUR : elle rend ce que la politique lui laisse voir, non le total réel.
+  //    ⛔ Elle ne part pas au-delà de 2^31 : `commentaires.id_segment` est un
+  //    `integer` quand `segments.id` est un `bigint`, et 2 589 segments du corpus
+  //    dépassent la borne (défaut de DONNÉE relevé le 2026-09-05). La requête y
+  //    rendrait un 400 à chaque clic ; on se tait plutôt que de crier.
+  // ⛔ LE COMPTE SE DÉDUIT, IL NE SE REMET PAS À ZÉRO DANS UN EFFET. Il est retenu AVEC
+  //    le segment auquel il appartient, et l’on ne le lit que s’il répond au segment
+  //    courant : une réponse arrivée pour le passage d’avant ne peut donc pas s’afficher
+  //    sous celui d’après, et rien ne se remet à zéro dans un corps d’effet, ce que le
+  //    linter refuse à bon droit. C’est le patron de la Polyglotte (charte, § 50.1).
+  const [compteCommentaires, setCompteCommentaires] = useState<{ seg: number; n: number } | null>(null)
+  useEffect(() => {
+    if (segActif === null || segActif > 2147483647) return
+    let vivant = true
+    void supabase
+      .from('commentaires')
+      .select('id', { count: 'exact', head: true })
+      .eq('id_segment', segActif)
+      .then(({ count, error }) => {
+        if (!vivant) return
+        if (error) { console.warn('[oeuvre] compte des commentaires indisponible', error); return }
+        setCompteCommentaires({ seg: segActif, n: count ?? 0 })
+      })
+    return () => { vivant = false }
+  }, [segActif])
+  const nbCommentairesSegment = compteCommentaires && compteCommentaires.seg === segActif
+    ? compteCommentaires.n
+    : null
+
+  // Ce que la barre du volet de droite annonce quand un passage est retenu.
+  // ⚠️ Le compte des commentaires peut manquer (il arrive après, ou la borne du
+  //    `integer` l’interdit) : la barre dit alors les seules références.
+  const libelleBarreVolet = (() => {
+    if (segActif === null || !segActifData) return 'Références & commentaires'
+    const r = segActifData.versets.length
+    const parts = [`${r} référence${r > 1 ? 's' : ''}`]
+    if (nbCommentairesSegment !== null) {
+      const c = nbCommentairesSegment
+      parts.push(`${c} commentaire${c > 1 ? 's' : ''}`)
+    }
+    return parts.join(' · ')
+  })()
   // idOeuvre vient des Props
   const tocApparatLocal = useMemo(
     () => construireNavigationApparat(groupesApparat),
@@ -2682,12 +2796,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       <div style={{ display: 'flex', minHeight: HAUTEUR_SOUS_NAVBAR }}>
 
         {/* ── NAV GAUCHE ── */}
+        {mobile && (
+          <BarreVoletMobile cote="haut" ouvert={navOuverte} libelle="Sommaire" refBouton={barreSommaireRef}
+            titre={navOuverte ? 'Fermer le sommaire' : 'Ouvrir le sommaire'}
+            onBasculer={() => setNavOuverte(o => !o)} />
+        )}
         {navOuverte ? (
         <>
         {/* Mobile : tiroir par-dessus le texte, sous la navbar. */}
         {mobile && <div onClick={() => setNavOuverte(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: Z_TIROIR_VOILE }} />}
         <nav ref={refNav} data-sommaire-panneau style={mobile ? {
-          position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: Z_TIROIR, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, overflowY: 'auto', overflowX: 'hidden', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)',
+          position: 'fixed', top: `calc(${HAUTEUR_NAVBAR} + ${HAUTEUR_BARRE_VOLET})`, left: 0, right: 0, zIndex: Z_TIROIR, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - ${HAUTEUR_BARRE_VOLET} - 2.5rem)`, overflowY: 'auto', overflowX: 'hidden', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)',
         } : { width: navWidth == null ? 'clamp(240px, 16vw, 380px)' : navWidth + 'px', flexShrink: 0, position: 'sticky', top: HAUTEUR_NAVBAR, alignSelf: 'flex-start', height: HAUTEUR_SOUS_NAVBAR, overflowY: 'auto', overflowX: 'hidden', borderRight: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           {!mobile && <div data-sommaire-poignee onMouseDown={e => {
             e.preventDefault()
@@ -2707,7 +2826,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               e.currentTarget.style.boxShadow = 'none'
             }}
           />}
-          <div data-visite="oeuvre-tete" style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
+          {/* ⚠️ L’EN-TÊTE SE RESSERRE SUR UN TÉLÉPHONE (relevé de l’auteur,
+              2026-09-09 : « revoir l’en-tête qui prend trop de place »). Mesuré dans
+              le tiroir, il faisait 88 px pour un nom d’auteur, un titre et un lien,
+              soit le huitième de la hauteur offerte, avant même la première rubrique.
+              ⛔ Rien n’en est retranché : ce sont les blancs qui se referment. */}
+          <div data-visite="oeuvre-tete" style={{ padding: mobile ? '9px 14px 8px' : '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               {nomsAuteurs}
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
@@ -2747,9 +2871,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     <path d="M2.6 12.1v1.1a1 1 0 0 0 1 1h8.8a1 1 0 0 0 1-1v-1.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
                 </BoutonVolet>
-                <BoutonVolet titre="Réduire le sommaire" onClick={() => setNavOuverte(false)}>
-                  <IconeChevron dir="left" size={14} strokeWidth={1.5} />
-                </BoutonVolet>
+                {/* ⛔ ELLE NE PARAÎT PLUS SUR TÉLÉPHONE : elle y regardait à GAUCHE,
+                    c’est-à-dire vers le rail du BUREAU, qui n’existe pas là. C’est la
+                    barre « Sommaire » qui ferme, et elle reste posée pour cela. */}
+                {!mobile && (
+                  <BoutonVolet titre="Réduire le sommaire" onClick={() => setNavOuverte(false)}>
+                    <IconeChevron dir="left" size={14} strokeWidth={1.5} />
+                  </BoutonVolet>
+                )}
               </div>
             </div>
             {/* Le sommaire respecte la composition manuelle du titre de catalogue. */}
@@ -2862,7 +2991,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 </span>
               </button>
               {auteurOuvert && (
-                <div style={{ padding: '0 16px 12px' }}>
+                /* ⚠️ Sur téléphone, la liste se borne et défile en dedans : elle compte
+                   jusqu’à cent entrées chez Augustin, et déployée dans un tiroir elle
+                   pousse hors de vue les deux rubriques qui la suivent. Elle est fermée
+                   à l’arrivée ; c’est ce qu’elle fait une fois OUVERTE qu’on borne. */
+                <div style={mobile ? { padding: '0 16px 12px', maxHeight: '38dvh', overflowY: 'auto' } : { padding: '0 16px 12px' }}>
                   {(() => {
                     const rendreEntree = (o: OeuvreResumee) => {
                       const distinction = libelleDistinction(o)
@@ -2976,11 +3109,26 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             </div>
           )}
 
-          {/* Apparat critique + Sommaire — conteneur partagé à hauteur égale */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          {/* Apparat critique + Sommaire — conteneur partagé à hauteur égale.
+
+              ⛔ SUR TÉLÉPHONE, IL NE DISPUTE RIEN : IL COULE. La règle `flex: 1` +
+              `minHeight: 0` est faite pour le volet de BUREAU, qui a une hauteur DÉFINIE
+              (`height: HAUTEUR_SOUS_NAVBAR`) et où le conteneur prend légitimement ce qui
+              reste pour que ses deux listes défilent en dedans. Le tiroir mobile, lui, n’a
+              qu’un PLAFOND : la même règle y donne au conteneur une base de zéro, et
+              `minHeight: 0` le laisse s’effondrer pendant que ses deux blocs, en
+              `flexShrink: 0`, débordent. Mesuré sur planche à 375 × 812, tiroir au plafond :
+              conteneur à HAUTEUR ZÉRO, « Apparat critique » à 777 et « Sommaire » à 813
+              pour un tiroir qui finit à 772 — les deux rubriques sortaient du tiroir et son
+              défileur ne les comptait même pas. C’est ce que l’auteur a vu comme un
+              chevauchement (2026-09-09). Avec `flex: none` : conteneur à 71 px, et les deux
+              rubriques rentrent dans le défilement du tiroir. */}
+          <div style={{ ...(mobile ? { flex: 'none' } : { flex: 1, minHeight: 0 }), display: 'flex', flexDirection: 'column' }}>
 
             {!modeComparaisonActif && tocApparatLocal.length > 0 && (
-              <div data-visite="oeuvre-apparat" style={{ ...(apparatOuvert ? { flex: sommaireAQuoiSommer ? '0 1 auto' : 1, maxHeight: sommaireAQuoiSommer ? '50%' : undefined, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
+              /* ⚠️ Le partage de hauteur à moitié appartient au BUREAU : dans un tiroir,
+                  un plafond en pourcentage se résout contre un conteneur sans hauteur. */
+              <div data-visite="oeuvre-apparat" style={{ ...(!mobile && apparatOuvert ? { flex: sommaireAQuoiSommer ? '0 1 auto' : 1, maxHeight: sommaireAQuoiSommer ? '50%' : undefined, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
                 <button onClick={() => setApparatOuvert(!apparatOuvert)} aria-expanded={apparatOuvert}
                   style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
                   <span style={RUBRIQUE_AXE}>Apparat critique</span>
@@ -2989,7 +3137,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   </span>
                 </button>
                 {apparatOuvert && (
-                  <div style={{ flex: '0 1 auto', overflowY: 'auto', padding: '0 16px 14px' }}>
+                  <div style={mobile ? { padding: '0 16px 14px' } : { flex: '0 1 auto', overflowY: 'auto', padding: '0 16px 14px' }}>
                     {(() => {
                     // Le sommaire de l'apparat coupe LÀ OÙ LA VUE COUPE : les pièces de
                     // l'auteur, puis celles de l'éditeur, chacune sous sa mention. ⚠️ La
@@ -3027,7 +3175,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             )}
 
             {sommaireAQuoiSommer && (
-            <div data-visite="oeuvre-sommaire" style={{ ...(sommaireOuvert ? { flex: 1, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
+            <div data-visite="oeuvre-sommaire" style={{ ...(!mobile && sommaireOuvert ? { flex: 1, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
               <button onClick={() => setSommaireOuvert(!sommaireOuvert)} aria-expanded={sommaireOuvert}
                 style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
                 <span style={RUBRIQUE_AXE}>Sommaire</span>
@@ -3037,7 +3185,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               </button>
 
               {sommaireOuvert && (
-              <div style={{ flex: 1, overflowY: 'auto', padding: '4px 16px 24px' }}>
+              <div style={mobile ? { padding: '4px 16px 24px' } : { flex: 1, overflowY: 'auto', padding: '4px 16px 24px' }}>
             <p style={{ display: 'none' }}></p>
 
             {/* En comparaison, le sommaire liste les Livres → Divisions alignés,
@@ -3138,13 +3286,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           </div>
         </nav>
         </>
-        ) : mobile ? (
-          <button ref={barreSommaireRef} onClick={() => setNavOuverte(true)} title="Ouvrir le sommaire"
-            style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: Z_FENETRE, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: 'rotate(90deg)', color: 'var(--cs-texte-doux)' }}><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Sommaire</span>
-          </button>
-        ) : (
+        ) : mobile ? null : (
           // ⛔ LE RAIL EST LE COMPOSANT PARTAGÉ, non un quatrième dessin. La charte le
           // dit depuis le 4 septembre 2026 — « un seul composant pour les TROIS rails » —
           // et la page d'œuvre en portait deux écrits à la main : 22 px au lieu de 30, un
@@ -3939,12 +4081,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         </div>
 
         {/* ── PANNEAU DROIT ── */}
+        {mobile && (
+          <BarreVoletMobile cote="bas" ouvert={panneauOuvert} libelle={libelleBarreVolet} refBouton={barreBibleRef}
+            titre={panneauOuvert ? 'Fermer les références et commentaires' : 'Ouvrir les références et commentaires'}
+            onBasculer={() => setPanneauOuvert(o => !o)} />
+        )}
         {panneauOuvert ? (
         <>
         {/* Mobile : tiroir montant du bas, par-dessus le texte. */}
         {mobile && <div onClick={() => setPanneauOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: Z_TIROIR_VOILE }} />}
         <aside ref={refAside} data-visite="oeuvre-bible" style={mobile ? {
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: Z_TIROIR, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-modale-haut)',
+          position: 'fixed', bottom: HAUTEUR_BARRE_VOLET, left: 0, right: 0, zIndex: Z_TIROIR, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - ${HAUTEUR_BARRE_VOLET} - 2rem)`, borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-modale-haut)',
         } : { width: pannWidth == null ? 'clamp(280px, 21vw, 480px)' : pannWidth + 'px', flexShrink: 0, position: 'sticky', top: HAUTEUR_NAVBAR, alignSelf: 'flex-start', height: HAUTEUR_SOUS_NAVBAR, borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)' }}>
           <div onMouseDown={e => {
             e.preventDefault()
@@ -3975,10 +4122,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               n'en fait pas le quart. Elle retire aussi le séparateur, qui entre deux mots
               dans une colonne étroite se voit avant les mots qu'il sépare. */}
           <div style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'stretch' }}>
-            <button onClick={() => setPanneauOuvert(false)} title="Réduire le panneau" aria-label="Réduire le panneau"
+            {/* ⛔ ELLE NE PARAÎT PLUS SUR TÉLÉPHONE : elle y regardait à DROITE, vers un
+                rail de BUREAU qui n’existe pas là. C’est la barre du bas qui ferme. */}
+            {!mobile && <button onClick={() => setPanneauOuvert(false)} title="Réduire le panneau" aria-label="Réduire le panneau"
               style={{ position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 1, minWidth: '24px', padding: '0 6px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <IconeChevron dir="right" size={14} strokeWidth={1.5} />
-            </button>
+            </button>}
             <OngletsPage
               className="cs-onglets--volet"
               style={{ flex: 1, minWidth: 0 }}
@@ -4175,13 +4324,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
         </aside>
         </>
-        ) : mobile ? (
-          <button ref={barreBibleRef} onClick={() => setPanneauOuvert(true)} title="Ouvrir le panneau de références"
-            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: Z_FENETRE, width: '100%', background: 'var(--cs-surface)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: 'rotate(-90deg)', color: 'var(--cs-texte-doux)' }}><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Références &amp; commentaires</span>
-          </button>
-        ) : (
+        ) : mobile ? null : (
           // ⚠️ Le libellé nomme l'ACTION et tient sur la bande : « Commentaires et
           // références bibliques » faisait trente-six signes dans une hauteur qui en porte
           // la moitié, et s'écrêtait donc sans qu'on sache où.

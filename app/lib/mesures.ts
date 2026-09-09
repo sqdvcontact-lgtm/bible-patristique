@@ -28,6 +28,20 @@ export const HAUTEUR_NAVBAR = '3.5rem'
  *  cette barre tant qu'elle est déployée (audit de responsiveness, 2026-09-06). */
 export const HAUTEUR_SOUS_NAVBAR = `calc(100dvh - ${HAUTEUR_NAVBAR})`
 
+/** La barre fixe d’un volet sur TÉLÉPHONE — « Sommaire » sous la barre de
+ *  navigation, « Références & commentaires » en pied de page d’œuvre.
+ *
+ *  ⛔ Elle RESTE posée quand son tiroir s’ouvre, et c’est elle qui ferme : le tiroir
+ *  compose donc son `top` (ou son `bottom`) et son plafond de hauteur sur cette
+ *  valeur. Un nombre recopié de part et d’autre les désaccorderait au premier
+ *  réglage, exactement comme les treize `scrollMarginTop` en pixels que la charte a
+ *  dû rattacher à `HAUTEUR_NAVBAR`.
+ *
+ *  ⚠️ 2,375rem = 38 px à la racine 16 : deux fois 0,6875rem de rembourrage plus la
+ *  ligne du libellé à 0,8125rem. La cible passe donc le plancher de 24 px, et
+ *  largement — c’est une barre pleine largeur. */
+export const HAUTEUR_BARRE_VOLET = '2.375rem'
+
 /** Hauteur du bandeau de navigation mobile (bas de page, page Bible) : forme
  *  abrégée « Gn ❧ 1 » + flèches de chapitre. Sert aussi à décaler la barre
  *  « Commentaires » au-dessus de lui et à réserver le padding bas du texte. */
