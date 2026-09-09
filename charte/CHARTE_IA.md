@@ -1151,7 +1151,7 @@ trente-huit exergues sortent des lemmes, et le compte de `lemme` avait dérivé.
 | `introduction` | un préambule appartenant au texte | | 57 |
 | `verset` | un verset d'une citation que l'ÉDITION pose verset par verset | ⛔ pas toute citation biblique : c'est la coupure IMPRIMÉE qui le fonde | 12 |
 | `texte absent` | une lacune du témoin | | 1 |
-| `signature` | approbations, censeurs, souscripteurs : au fer à droite, interligne resserré | | 0 |
+| `signature` | approbations, censeurs, souscripteurs — et la mention de traducteur que l'édition imprime en CLÔTURE d'une pièce : au fer à droite, interligne resserré. Onze à l'apparat, sept au corps | ⛔ pas un apparat : une mention de traducteur ferme le TEXTE et se lit avec lui, à la place que l'imprimé lui donne | 18 |
 | `separateur` | ⛔ **ÉTEINTE.** Conservée pour d'anciens exports ; ne plus en créer. | | 0 |
 
 ⛔ **Le VERS n'est PAS dans cette table, et c'est le point à retenir** : ce n'est pas
@@ -1249,18 +1249,35 @@ deux tomes de nommer différemment la même chose.
 dit : elle a son nom au vocabulaire, sa contrainte en base, sa fiche à l'épreuve des
 styles, et pas un segment ne la reçoit. Éprouvé le 6 septembre 2026 sur `signature`, le
 bloc d'approbations, de censeurs et de souscripteurs qui ferme un volume ancien. La
-composition au fer à droite existait depuis l'origine dans la branche de la LECTURE ; or
-les **onze** `signature` du corpus — les quatre approbateurs du Mépris du monde, les trois
-de Boèce, le Privilège des Confessions — portent **toutes** `espace_textuel =
-'apparat_critique'`, et pas une seule ne vit dans le corps. Le fer à droite était donc
-rendu là où il n'y a personne, et absent là où ils sont tous : « A. Debreda Curé de
-S. André. » se composait en prose justifiée, comme l'approbation qu'il signe.
+composition au fer à droite existait depuis l'origine dans la branche de la LECTURE, et
+**onze** `signature` — les quatre approbateurs du Mépris du monde, les trois de Boèce, le
+Privilège des Confessions — portent `espace_textuel = 'apparat_critique'`, où la forme
+n'existait pas : « A. Debreda Curé de S. André. » se composait en prose justifiée, comme
+l'approbation qu'il signe.
+
+⚠️ **Le 9 septembre 2026, cette page a été prise à son propre piège.** Elle écrivait que
+les onze étaient TOUTES à l'apparat et que pas une ne vivait dans le corps ; le compte
+qu'elle prescrit plus bas disait le contraire depuis le 16 août 2026. SEPT `signature`
+vivent dans le corps : les mentions de traducteur que Bar-le-Duc imprime en clôture d'une
+pièce — « Traduit par M. Portelette. » au bas du neuvième Discours sur la Genèse, cinq
+psaumes du Commentaire, et « Cette traduction est l'œuvre de M. l'abbé Pognon. », qui
+ferme les Questions sur l'Heptateuque. ⛔ Écrire « toutes » sans avoir pris le compte est
+le défaut même que ce paragraphe dénonce.
+
+⛔ **Une mention de traducteur n'est pas un apparat.** Elle clôt le TEXTE, à la place que
+l'imprimé lui donne, et se lit avec lui : `nature = 'signature'`, `espace_textuel =
+'corps'`. Le Pognon des Questions sur l'Heptateuque portait `apparat_critique` sur les
+deux axes ; il paraissait donc SEUL dans la vue d'apparat, sous le titre « Livre septième
+— Questions sur les Juges », comme s'il ne créditait que ce livre-là, quand il crédite
+l'œuvre entière et que l'imprimé le pose au bas de la p. 589, sous la dernière ligne du
+livre VII. Corrigé le 9 septembre 2026 : la vue d'apparat de cette œuvre est vide, et
+disparaît.
 
 ⛔ **Un style se vérifie donc sur DEUX axes, jamais sur le premier seul.** Le vocabulaire
 dit ce qu'une donnée a le droit d'être ; l'ESPACE TEXTUEL dit où elle se lit. Les deux
 sont indépendants — `signature` appartient bien à `NATURES_CORPS`, pour les imports sans
-espace explicite, et aucun de ses segments n'est dans le corps — et une composition qui
-n'en regarde qu'un compose à côté.
+espace explicite, et ses dix-huit segments se répartissent sur les DEUX surfaces — et une
+composition qui n'en regarde qu'un compose à côté.
 
 ⚠️ **La question se pose en un compte, et il faut le prendre avant de croire une fiche
 d'épreuve** : `select nature, espace_textuel, count(*) from segments group by 1, 2`. Un
@@ -1957,6 +1974,8 @@ Les huit natures du § 13.10 ne forment pas une liste plate. Chacune appartient 
 
 ⛔ **DANS LA FAMILLE DU RENVOI, C'EST LA DESTINATION QUI COMMANDE.** Un renvoi vers le DEHORS (`reference`) se normalise : il a un auteur, un titre, un locus, et le site sait les composer. Un renvoi vers le DEDANS (`internal_cross_reference`) ne le peut pas — il n'a ni auteur ni titre — et le lui appliquer serait une CORRUPTION, non une maladresse : dans « Voyez la note I, p. 150 », le « I » est un numéro de note, que `normaliserReferencesDansTexte` convertirait en chapitre arabe. *Deux blocs de même apparence, deux traitements opposés : c'est la nature qui les départage, et rien d'autre ne le pouvait.*
 
+⛔ **LE NOM DE L’AUTEUR EST TOUJOURS L’AUTORITÉ NORMALISÉE.** Dans tout renvoi externe (`reference`), le nom de l’auteur se compose sous la forme normalisée retenue par Corpus Scriptura, jamais sous une forme abrégée ou d’usage. Ainsi : « Augustin d’Hippone, *Rétractations*, II, 13. », et non « Augustin, *Rétractations*, II, 13. ». **Cette règle vaut pour tout nom d’auteur composé dans les annotations.**
+
 ⛔ **UNE NATURE INCONNUE NE FAIT PAS DISPARAÎTRE SON BLOC.** Le vocabulaire se lit avec indulgence : une valeur hors liste retombe sur `commentary` et le bloc reste LISIBLE, fût-ce sans sa composition propre. ⚠️ C'est le contraire du défaut payé quatre fois avec `NATURES_CORPS`, où le bloc s'évanouissait en silence. *Un vocabulaire en avance sur son rendu est un désagrément ; un texte qui manque à la page est une perte.*
 
 #### 13.11.1 Ce que le CODE porte depuis le 5 septembre 2026
@@ -2160,6 +2179,118 @@ Décisions de l’auteur, 8 septembre 2026.
 ⛔ **LE NUMÉRO FLOTTE, il n’occupe pas une colonne.** Rangé dans une gouttière, il réservait sa mesure sur TOUTE la hauteur de la note : deux chiffres en face d’un développement de vingt lignes, et dix-neuf lignes de blanc perdu à gauche. Le texte l’habille — la première ligne le contourne, les suivantes reprennent la mesure entière. C’est la manchette d’un livre imprimé, et c’est déjà ce que fait le repère d’un commentaire de Fillion.
 
 ⛔ **UN RENVOI EN MARGE SE POSE SUR LA LIGNE DE BASE DE SA LIGNE**, et cet accord se MESURE. La position naturelle d’une boîte détachée est le haut de sa ligne, non sa ligne de base : un renvoi composé plus petit que le texte qu’il borde se pose alors trop haut, de façon constante, et un renvoi qui ne s’aligne pas sur sa ligne ne désigne plus rien. ⚠️ La correction ne s’écrit pas en pixels : les deux corps sont en rem, la police racine du site est fluide, et un nombre ne serait juste qu’à une seule taille d’écran.
+
+### 13.16 Politique générale de reprise des notes — norme du 9 septembre 2026
+
+Décisions de l’auteur, 9 septembre 2026. Ce paragraphe complète les §§ 13.1–13.12. En cas d’incompatibilité avec une formulation antérieure du chapitre 13, la décision explicite du 9 septembre 2026 prévaut.
+
+⛔ **FIDÉLITÉ AVANT TOUT, MAIS LA NOTE N’EST PAS LE CORPS DU TEXTE.** Le contenu, l’autorité et la portée philologique d’une note se conservent. Sa forme peut en revanche être reprise beaucoup plus librement que celle du corps : déploiement, clarification, réorganisation, explicitation, reformulation et, si une note trop technique l’exige, transformation profonde pour la rendre intelligible à un lecteur non spécialiste. Cette liberté ne permet ni d’inventer une information, ni d’effacer une réserve, ni de changer silencieusement le sens de la note.
+
+#### 13.16.1 Autorité, provenance et type
+
+⛔ **CHAQUE NOTE DIT QUI PARLE.** L’autorité est déterminée et enregistrée systématiquement selon les données disponibles : auteur, traducteur, éditeur de l’édition source, éditeur de Corpus Scriptura ou autre autorité identifiable. Une autorité incertaine ne se fabrique pas.
+
+⛔ **TYPE, PROVENANCE ET RENDU SONT TROIS AXES DISTINCTS.** Le type nomme une fonction éditoriale ; la provenance dit d’où vient matériellement la donnée ; `rendering` décrit une disposition. Un type ne sert jamais à coder une mise en page. Les décisions du § 13.12.4 demeurent applicables : `translator_note` est le type canonique de la note du traducteur ; `source_marginalia` relève de la provenance et non du type ; `reference_biblique_detachee` décrit une disposition et non une autorité. Aucun renommage massif d’un rôle ambigu ne se fait sans relecture des cas qui peuvent changer de fonction.
+
+⚠️ **UN TYPE FAUX EST PIRE QU’UN TYPE ABSENT.** Une note mixte ou incertaine reste non typée tant que l’autorité ou la fonction n’est pas établie de manière sûre.
+
+#### 13.16.2 Appels, ancres et ponctuation
+
+- L’ancre porte sur l’élément le plus précis réellement concerné : mot, groupe de mots, citation ou phrase. On n’ancre pas arbitrairement une note sur tout un segment.
+- Plusieurs ancres peuvent renvoyer à une même note lorsque celle-ci vaut réellement pour plusieurs occurrences ; cela ne justifie pas la duplication du texte de la note.
+- ⛔ **L’APPEL DE NOTE SE PLACE TOUJOURS AVANT LA PONCTUATION. IL N’Y A PAS D’EXCEPTION.**
+- Le numéro de note et l’ancre appartiennent à la structure de données ; ils ne sont pas incorporés au texte de la note.
+
+#### 13.16.3 Orthographe et typographie de chaque note
+
+⛔ **CHAQUE NOTE SUBIT UN CONTRÔLE ORTHOGRAPHIQUE ET TYPOGRAPHIQUE INTÉGRAL.** Il ne s’agit pas d’un contrôle par échantillon.
+
+- ponctuation française régulière ;
+- apostrophe typographique `’`, jamais l’apostrophe droite dans le français normalisé ;
+- points de suspension `…`, jamais trois points séparés ;
+- guillemets français `« … »`, puis guillemets anglais `“…”` au second niveau ;
+- tiret demi-cadratin `–` pour toute incise ;
+- point final cohérent pour toute note constituant une phrase ou une référence autonome ;
+- titres d’œuvres en italiques ;
+- ⛔ tout mot, syntagme ou courte expression en latin enchâssé dans une phrase française **doit** être en italiques ; les caractères grecs en alphabet grec restent en romain ; les translittérations du grec en alphabet latin sont en italiques ;
+- les séries de capitales héritées de l’édition sont revues et passent en bas de casse lorsqu’aucune raison documentaire ou sémantique ne justifie leur maintien ;
+- aucun double espace, balise parasite, parenthèse orpheline, résidu OCR, ancien numéro d’appel ou artifice de mise en page imprimée ne subsiste dans la donnée normalisée.
+
+#### 13.16.4 Abréviations : développer par défaut
+
+⛔ **LES ABRÉVIATIONS SAVANTES HÉRITÉES DE L’ÉDITION SE DÉPLOIENT.** La note de Corpus Scriptura doit être autonome et intelligible. On développe notamment, lorsque le sens est certain, les formes du type `éd.`, `trad.`, `vol.`, `chap.`, `ibid.`, `op. cit.`, `loc. cit.` et les abréviations latines anciennes. Une référence dépendante du voisinage est remplacée par une référence autonome dès que son antécédent est identifié avec certitude.
+
+Restent les abréviations qui constituent une convention utile et stable du système, notamment les sigles bibliques normalisés et `Cf.` lorsqu’il signifie réellement « comparer à ».
+
+⛔ **`Cf.` SIGNIFIE « COMPARER À ».** Lorsqu’une note invite seulement le lecteur à consulter un passage ou un ouvrage, écrire `Voir`, non `Cf.`.
+
+Pour « numéro », employer la forme typographiquement correcte avec le `o` supérieur : `nᵒ 12`, et non `n. 12`.
+
+#### 13.16.5 Références bibliques, patristiques et bibliographiques
+
+**Bible.** Employer partout la forme normalisée de Corpus Scriptura : `Mt 5, 3`, `1 Co 2, 9`, `Rm 8, 28`, avec le système normalisé pour les intervalles et les versets discontinus. Les anciennes formes matérielles peuvent être conservées en provenance, non dans la référence normalisée. Pour les Psaumes, ne jamais convertir silencieusement une numérotation Septante/Vulgate en numérotation hébraïque ; donner les deux numérotations lorsqu’elles sont nécessaires, par exemple `Ps 50 (51), 3`.
+
+**Œuvres patristiques et autres.** Employer exactement la forme d’autorité et de référence normalisée en vigueur dans le reste de Corpus Scriptura. On donne les éléments réellement établis ; lorsqu’un éditeur, une édition ou une autre donnée manque, on s’en passe au lieu de l’inventer.
+
+**Collections.** Développer les sigles de collection dans les références destinées au lecteur : par exemple `Patrologie grecque, nᵒ 54`, et non `PG 54`. La même règle vaut pour les autres collections.
+
+**Bibliographie globale.** ⛔ Toute œuvre patristique ou non rencontrée dans une note est recherchée dans la bibliographie globale. Si elle existe, l’entrée est réutilisée et complétée avec les données prouvables ; si elle manque, elle est créée ; les variantes de titre, traductions et formes abrégées ne doivent pas produire de doublons. La note est reliée à l’ouvrage structuré lorsque le modèle de données le permet.
+
+#### 13.16.6 Fidélité au témoin, corrections, réserves et `[sic]`
+
+Les fautes matérielles certaines de transcription ou d’OCR peuvent être corrigées silencieusement : caractère mal reconnu, espace parasite, apostrophe, accent ou ponctuation manifestement accidentelle, lorsque la lecture ne fait aucun doute.
+
+⛔ **TOUT CE QUI PEUT CHANGER L’INFORMATION SE CONTRÔLE SUR LA SOURCE.** Cela concerne notamment les noms propres, chiffres, citations, références, attributions et affirmations savantes.
+
+La reprise ordinaire s’appuie d’abord sur les données documentaires déjà disponibles : transcription source, staging, provenance, références structurées et contexte. Lorsqu’un point ne peut pas être établi avec certitude par ces moyens, la note est explicitement **marquée pour contrôle au fac-similé** ; on ne bloque pas les autres passes et on ne transforme pas une incertitude en certitude.
+
+La confrontation directe au fac-similé constitue la **passe ultime du protocole** et porte sur les notes ainsi marquées. Elle sert à lever les réserves de lecture, de chiffre, de nom propre, de citation, de référence, d’attribution, de ponctuation significative ou de forme grecque/latine qui n’ont pas pu être résolues de manière suffisamment sûre auparavant.
+
+Lorsqu’une erreur appartient réellement au texte ou à la note source et qu’il est éditorialement pertinent de la conserver, on peut ajouter `[sic]` pour attester que l’anomalie est dans le témoin et non dans la transcription. `[sic]` n’est jamais automatique. Si Corpus Scriptura corrige une erreur substantielle de la source, la correction doit être signalée ou justifiée selon le dispositif éditorial approprié ; elle ne se fait pas silencieusement.
+
+#### 13.16.7 Notes éditoriales de Corpus Scriptura
+
+Elles restent rares, factuelles et brèves. Elles servent notamment à identifier une source, justifier un choix de traduction significatif, expliquer un archaïsme ou une couleur médiévale volontaire, signaler une correction nécessaire de référence, ou exposer une difficulté textuelle indispensable à l’intelligence du passage. Elles ne servent ni à paraphraser le texte ni à remplir artificiellement l’appareil.
+
+Une formulation volontairement ancienne ou médiévale peut être conservée dans une traduction si elle reste intelligible et fidèle ; lorsqu’elle pourrait être prise pour une maladresse ou une erreur, une note éditoriale peut expliquer précisément ce choix.
+
+#### 13.16.8 Transformation des notes trop techniques
+
+⚠️ **UNE NOTE PEUT ÊTRE RADICALEMENT RECOMPOSÉE POUR ÊTRE LISIBLE.** On peut développer une citation abrégée, résoudre un renvoi, réordonner les informations, convertir une notation érudite en phrase claire et supprimer les artifices propres à l’imprimé. La forme éditoriale de la note source n’est pas sacrée. En revanche, chaque information conservée doit rester attribuée à la bonne autorité ; une précision ajoutée par Corpus Scriptura ne doit pas être présentée comme si elle provenait de l’auteur ou de l’éditeur ancien.
+
+#### 13.16.9 Dédoublonnage et autonomie
+
+Deux occurrences ne deviennent une seule note que si elles sont réellement une seule information éditoriale commune. Des notes historiquement distinctes ne sont pas fusionnées parce que leur formulation se ressemble. À l’inverse, une même note réellement commune peut porter plusieurs ancres plutôt que plusieurs copies identiques.
+
+Une note doit autant que possible rester intelligible lorsqu’elle est consultée isolément. C’est pourquoi les renvois du type `ibid.`, `op. cit.`, « même ouvrage » ou « même auteur » sont résolus quand leur antécédent est sûr.
+
+#### 13.16.10 Procédure obligatoire — neuf passes, œuvre par œuvre
+
+⛔ **LA REPRISE GÉNÉRALE DES NOTES SE FAIT DANS CET ORDRE.** On ne polit pas une note avant d’avoir établi qui parle et ce qu’elle dit. Une note dont un point ne peut pas être établi avec certitude est marquée pour le contrôle final au fac-similé ; cette réserve n’empêche pas les passes suivantes.
+
+**Passe 1 — Typologie, autorité et provenance.** Déterminer l’autorité de chaque note ; contrôler le type de chaque bloc ; distinguer fonction éditoriale, provenance matérielle et `rendering` ; traiter les rôles hors vocabulaire au cas par cas ; ne jamais transformer une disposition en type.
+
+**Passe 2 — Fidélité documentaire.** Contrôler chaque note contre la transcription source, le staging, les données de provenance et le contexte : omissions, OCR, noms propres, chiffres, citations, références, attributions et passages corrompus. Corriger ce qui est certain. Tout point qui exige la lecture matérielle du témoin est marqué pour la passe 9, sans correction conjecturale.
+
+**Passe 3 — Refonte intellectuelle, déploiement et clarification.** Développer les raccourcis, reformuler le télégraphique, résoudre les références implicites, réorganiser les notes trop techniques et distinguer `Cf.` de `Voir`. La forme peut changer fortement ; l’information, l’autorité et la réserve philologique ne changent pas.
+
+**Passe 4 — Orthographe et typographie.** Contrôle intégral de chaque note : langue, ponctuation, espaces, apostrophes, guillemets, points de suspension, point final, tirets, italiques, capitales et résidus techniques. Contrôle obligatoire des langues et des écritures : tout passage en alphabet grec reste en romain ; le latin et les translittérations en alphabet latin sont en italiques lorsqu’ils sont intégrés à une phrase française. Vérifier explicitement qu’aucun passage grec n’est inclus dans un empan italique.
+
+**Passe 5 — Développement des abréviations.** Déployer systématiquement les abréviations historiques et savantes qui ne sont pas des conventions utiles du système ; résoudre les références dépendantes du voisinage lorsqu’elles sont certaines.
+
+**Passe 6 — Normalisation des références.** Mettre les références bibliques, patristiques, bibliographiques et de collections sous la forme normalisée de Corpus Scriptura, sans inventer les données manquantes. Toute référence dont la correction dépend du fac-similé reste marquée pour la passe 9.
+
+**Passe 7 — Bibliographie globale.** Pour chaque œuvre citée, rechercher l’entrée existante, la vérifier, la compléter ou la créer, éviter les doublons et établir les relations structurées disponibles.
+
+**Passe 8 — Structure et contre-audit.** Contrôler ancres, appels, offsets, notes à ancres multiples, dédoublonnage, numéros incorporés, résidus OCR, rôles, `rendering`, autorité affichée et rendu public. Le contrôle des rôles doit finir sur `✅ Aucun rôle hors vocabulaire`. Aucune contrainte SQL générale n’est posée sur `rendering` tant que ses valeurs d’import, de provenance et de disposition n’ont pas été démêlées.
+
+**Passe 9 — Fac-similé et levée des réserves.** Reprendre exclusivement les notes marquées pendant les passes 1–8 comme nécessitant le témoin matériel. Les confronter directement au fac-similé ; corriger seulement ce que le témoin permet d’établir ; conserver et documenter toute lecture qui demeure matériellement incertaine. Après ces corrections éventuelles, rejouer les contrôles déterministes des passes concernées et effectuer le contre-audit final de l’appareil.
+
+⛔ **COMPTE RENDU OBLIGATOIRE APRÈS CHAQUE PASSE.** Avant d’ouvrir la suivante, donner à l’éditeur l’état chiffré et vérifiable de la passe achevée : périmètre traité, corrections appliquées, réserves ouvertes et anomalies restantes. Aucun passage silencieux d’une passe à l’autre.
+
+⛔ **LA PRUDENCE FINALE EST ASYMÉTRIQUE :** typographie, déploiement et référencement peuvent être fortement normalisés ; contenu, autorité, attribution et information philologique ne se modifient qu’avec preuve.
+
+
 
 ## 14. OCR, HTR et transcription patrimoniale
 

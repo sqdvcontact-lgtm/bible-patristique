@@ -2205,8 +2205,8 @@ style-nature exergue, et faire une mise en forme propre ». Règles de code :
 - ⛔ **QUATRE SURFACES, ou aucune** (corollaire déjà payé sur les vers et sur le verset) :
   la lecture d'une œuvre, son apparat, la comparaison des traductions et la planche des
   styles. Aucun exergue ne vit dans l'apparat au 2026-09-08 — les trente-huit portent tous
-  `espace_textuel = 'corps'` — mais la signature y a été une forme morte trois semaines
-  pour avoir été rendue sur la seule surface où sa donnée ne va jamais.
+  `espace_textuel = 'corps'` — mais la signature a manqué trois semaines à l'apparat, où
+  vivent onze de ses dix-huit segments, faute d'y avoir jamais été rendue.
 - **L'extraction en `.docx`** a son style `Exergue` (basé sur `Citation`, retrait du quart
   de la mesure utile, rien à droite, justifié). ⚠️ `ParagrapheDocx` gagne `espaceApres`,
   posé sur le seul exergue qui FERME son bloc : un style de paragraphe ne sait pas ce qui
@@ -4001,19 +4001,23 @@ police, le corps et l'encre appartiennent à la surface, et vivent dans son BLOC
   que la ligne se compose pareil partout tandis que chaque surface apporte sa seule
   police.
 
-## ⛔ La SIGNATURE — un style, UNE surface, et c'est l'APPARAT (2026-09-06)
+## ⛔ La SIGNATURE — un style, DEUX surfaces (2026-09-06, rectifié le 2026-09-09)
 
 Doctrine : charte `parametres.charte_ia`, **§ 7.7** — un style ne vit que sur la surface où
 sa donnée vit. Règles de code :
 
 - ⛔ **`styleParagrapheApparat(forme)` prend la MÊME `FormeParagraphe` que la lecture.** Il
   n'en prenait aucune, au motif qu'une nature dérogeante n'atteindrait jamais l'apparat :
-  or les **onze** `signature` du corpus portent toutes `espace_textuel =
-  'apparat_critique'`, et pas une seule n'est dans le corps. La composition au fer à droite
-  était rendue là où il n'y a personne — les quatre curés du Mépris du monde se composaient
-  en prose justifiée. ⚠️ `signature` reste dans `NATURES_CORPS` : c'est le repli des imports
-  sans espace explicite, et l'y retirer ferait disparaître un tel segment le jour où il
-  arrive.
+  or **onze** des dix-huit `signature` du corpus portent `espace_textuel =
+  'apparat_critique'`. La composition au fer à droite y manquait — les quatre curés du
+  Mépris du monde se composaient en prose justifiée.
+- ⛔ **Et SEPT vivent dans le CORPS**, ce que cette page niait jusqu'au 2026-09-09 : les
+  mentions de traducteur que Bar-le-Duc imprime en clôture d'une pièce — « Traduit par
+  M. Portelette. » au bas du neuvième Discours sur la Genèse, cinq psaumes du Commentaire,
+  et « Cette traduction est l'œuvre de M. l'abbé Pognon. », qui ferme les Questions sur
+  l'Heptateuque. Une mention de traducteur clôt le TEXTE et se lit avec lui, à la place que
+  l'imprimé lui donne ; elle n'est pas un apparat. ⚠️ `signature` appartient donc à
+  `NATURES_CORPS` pour de bon, et pas seulement en repli des imports sans espace explicite.
 - ⛔ **Le jugement s'écrit une fois** : `NATURE_SIGNATURE` et `estBlocDeSignatures`
   (`compositionOeuvre.ts`), sur le contrat d'`estBlocVersets` — tout ou rien, et une liste
   vide n'est pas un bloc. Les deux branches, corps et apparat, y passent.
@@ -4036,10 +4040,12 @@ sa donnée vit. Règles de code :
   voisinage qui les réunit. Les deux branches passent donc l'index et le tableau à leur
   `.map(...)`. ⛔ Le blanc de sortie d'un bloc en FIN de groupe se fond dans les 2,8 rem du
   titre suivant : inutile de l'y garder, mais inoffensif.
-- ⚠️ **L'épreuve des styles montre désormais la forme du côté où elle SERT**
-  (`patristique_apparat/signature`), avec la prose avant ET après pour que les deux blancs
-  se voient ; la fiche du corps dit qu'aucun segment ne l'atteint. Une planche qui montre
-  une forme sur la mauvaise surface fait autorité contre la page qu'elle décrit.
+- ⚠️ **L'épreuve des styles montre la forme des DEUX côtés** : `patristique_apparat/signature`
+  avec la prose avant ET après, pour que les deux blancs se voient ; `patristique/signature`
+  avec la dernière ligne des Questions sur l'Heptateuque et le crédit qui la ferme. La fiche
+  du corps a dit qu'aucun segment ne l'atteignait jusqu'au 2026-09-09, quand six
+  l'atteignaient depuis le 16 août. Une planche qui montre une forme sur la mauvaise surface
+  fait autorité contre la page qu'elle décrit.
 
 ## ⛔ Un titre PORTÉ par un bloc, et un titre qui vit dans son FLUX (2026-08-30)
 
