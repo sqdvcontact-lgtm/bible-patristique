@@ -124,7 +124,7 @@ function CarteAccueil({
       </Link>
       <div className="ac-hover-panel">
         {reprendreHref ? (
-          <Link href={reprendreHref} className="ac-hover-choice">
+          <Link href={reprendreHref} className="ac-hover-choice cs-focus-clair">
             <span className="ac-hover-kicker">Reprendre la lecture</span>
             <span className="ac-hover-line" title={reprendreLabel}>{abregerTexte(reprendreLabel, 31)}</span>
           </Link>
@@ -134,7 +134,7 @@ function CarteAccueil({
             <span className="ac-hover-line">Aucune lecture récente</span>
           </span>
         )}
-        <Link href={href} className="ac-hover-choice">
+        <Link href={href} className="ac-hover-choice cs-focus-clair">
           <span className="ac-hover-kicker">Nouvelle lecture</span>
         </Link>
       </div>
