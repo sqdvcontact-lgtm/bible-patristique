@@ -2555,8 +2555,26 @@ code :
   pixels : les deux corps sont en rem, la police racine est fluide, et un nombre ne serait
   juste qu'à une seule taille d'écran. C'est la leçon de la marge de référence de la
   Polyglotte.
-- ⚠️ **Une seule mesure par passe** : les métriques sont les mêmes pour toutes les entrées,
-  et chaque sonde force une mise en page.
+- ⛔ **LA CORRECTION SE MESURE PAR ENTRÉE**, et cette page a dit le contraire du 8 au
+  9 septembre 2026 (« une seule mesure par passe : les métriques sont les mêmes pour toutes
+  les entrées »). Elles ne le sont pas : l'écart vaut « demi-approche + ascendante du
+  TEXTE » moins la même chose du RENVOI, et le premier terme dépend du corps et de
+  l'interligne de la ligne qui porte l'appel. Mesuré en ligne sur La Cité de Dieu : trois
+  renvois de prose à 0,00 px, et celui qui tombe dans une CITATION SORTIE (0,95 em) à
+  **−2,22 px**. ⚠️ La portée est étroite, et elle est mesurée : aucun renvoi du corpus ne
+  tombe sur un vers, un verset, un exergue ni une signature ; le seul cas réel est la
+  citation sortie, que 1 246 segments portent dans le latin de la Cité de Dieu et 1 118
+  dans son français.
+- ⚠️ **UNE SEULE MISE EN PAGE malgré tout** : on pose TOUTES les sondes, on lit TOUS les
+  rectangles, puis on les retire. Les poser une par une en coûterait deux par entrée.
+- ⛔ **LA CLÉ DE LECTURE PORTE CE QUI EST RENDU, non seulement où l'on se trouve.** Elle ne
+  disait que la division, la page et le mode. Or une division se charge APRÈS que
+  `niv1Actif` a changé : la passe se rejouait sur une colonne encore vide, n'y trouvait
+  aucun renvoi et sortait ; quand les segments arrivaient, la clé n'avait pas rechangé et
+  rien ne la rappelait. Le placement ne tenait plus qu'au `ResizeObserver` — un effet de
+  bord, et qui n'arrive qu'après coup. Mesuré en ligne : à l'arrivée `style.top` est posé
+  et l'écart vaut 0,00 px ; après un changement de division il est VIDE, et la manchette se
+  tient **7,78 px trop haut**. La clé porte donc aussi la vue et le compte des segments.
 - ⚠️ **`top` se pose désormais sur TOUTES les entrées**, non sur les seules poussées : la
   correction vaut pour chacune, et la position statique ne la porte pas.
 - ⚠️ **Une planche MENT tant que les polices ne sont pas là** : mesurée avant elles, les

@@ -2246,7 +2246,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // ⚠️ Le critère n'est PAS la place, c'est la NATURE de la note. La place ne
   // décide que d'une chose : si la marge est trop étroite pour porter une
   // manchette, le renvoi reprend son appel et son encart, comme avant.
-  const manchetteActive = useManchetteRenvois(colonneRef, `${niv1Actif}|${pageActuelle}|${modeTexte}`)
+  // ⛔ La clé porte AUSSI ce qui est rendu — la vue et le nombre de segments —, non
+  // seulement où l'on se trouve : une division se charge après que `niv1Actif` a changé,
+  // et une passe jouée sur une colonne encore vide ne se rejouait jamais.
+  const manchetteActive = useManchetteRenvois(
+    colonneRef,
+    `${niv1Actif}|${pageActuelle}|${modeTexte}|${vue}|${segments.length}|${segmentsApparat.length}`,
+  )
   const optionsNotesCorps = useMemo<OptionsRenduNotes>(() => ({
     enManchette: contenu => manchetteActive && estRenvoiSeul(contenu)
       ? (

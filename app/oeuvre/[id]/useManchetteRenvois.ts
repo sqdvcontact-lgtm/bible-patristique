@@ -29,40 +29,62 @@ import { tailleRacinePx } from '@/app/lib/fenetreContextuelle'
 const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 /**
- * LA LIGNE DE BASE d'une boîte, mesurée : une sonde de hauteur nulle alignée sur la
- * ligne de base, dont le bord BAS s'y pose exactement.
+ * UNE SONDE DE LIGNE DE BASE : une boîte de hauteur nulle alignée sur la ligne de
+ * base, dont le bord BAS s'y pose exactement.
  *
  * ⛔ On ne peut pas la calculer : elle dépend des métriques de la police, que le CSS
  * n'expose pas. Et l'on ne peut pas s'en passer — la position statique d'un bloc
  * absolu est le haut de sa LIGNE, non sa ligne de base, si bien qu'un renvoi de
  * 0,625 rem posé contre un texte de 0,8125 rem se pose SIX PIXELS TROP HAUT (mesuré
- * le 8 septembre 2026, constant sur toutes les entrées). Un renvoi en marge qui ne
- * s'aligne pas sur sa ligne ne désigne plus rien.
+ * le 8 septembre 2026). Un renvoi en marge qui ne s'aligne pas sur sa ligne ne
+ * désigne plus rien.
  *
  * ⚠️ MESURÉE plutôt qu'écrite en constante : les deux corps sont en rem, la police
  * racine est fluide, et un nombre de pixels serait juste à une seule taille d'écran.
  * C'est la leçon déjà payée sur la marge de référence de la Polyglotte.
  */
-function ligneDeBase(hote: Element, avant: Node | null): number {
+function poserSonde(hote: Element, avant: Node | null): HTMLSpanElement {
   const sonde = document.createElement('span')
   sonde.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline'
   hote.insertBefore(sonde, avant)
-  const bas = sonde.getBoundingClientRect().bottom
-  sonde.remove()
-  return bas
+  return sonde
 }
 
-/** L'écart entre la ligne de base du TEXTE et celle du renvoi, laissé à zéro si
- *  l'une des deux ne se mesure pas. ⚠️ Une seule mesure par passe : les métriques
- *  sont les mêmes pour toutes les entrées, et chaque sonde force une mise en page. */
-function decalageDeLigne(entrees: readonly HTMLElement[]): number {
-  for (const entree of entrees) {
+/**
+ * L'écart entre la ligne de base du TEXTE et celle du renvoi, POUR CHAQUE ENTRÉE.
+ *
+ * ⛔ IL SE MESURE PAR ENTRÉE, et ce fichier a dit le contraire jusqu'au 9 septembre
+ * 2026 : « les métriques sont les mêmes pour toutes les entrées ». Elles ne le sont
+ * pas. L'écart vaut « demi-approche + ascendante du TEXTE » moins la même chose du
+ * RENVOI ; le second terme est constant, le premier dépend du corps et de
+ * l'interligne de la ligne qui porte l'appel, et une colonne de lecture en mêle
+ * plusieurs. Mesuré en ligne sur La Cité de Dieu : trois renvois de prose à 0,00 px,
+ * et celui qui tombe dans une CITATION SORTIE (0,95 em) à **−2,22 px**.
+ *
+ * ⚠️ La portée est étroite et elle est mesurée : aucun renvoi du corpus ne tombe sur
+ * un vers, un verset, un exergue ni une signature. Le seul cas réel est la citation
+ * sortie — 1 246 segments de plus de 400 signes en portent un dans le latin de la
+ * Cité de Dieu, 1 118 dans son français, 593 dans le Commentaire sur les Psaumes.
+ *
+ * ⚠️ UNE SEULE MISE EN PAGE, et c'est ce qui rend la mesure par entrée gratuite : on
+ * pose TOUTES les sondes, on lit TOUS les rectangles, puis on les retire. Les poser
+ * et les lire une par une en coûterait deux par entrée.
+ */
+function decalagesDeLigne(entrees: readonly HTMLElement[]): number[] {
+  const sondes = entrees.map(entree => {
     const marque = entree.parentElement
     const premier = entree.firstElementChild ?? entree
-    if (!marque?.parentElement || !premier.firstChild) continue
-    return ligneDeBase(marque.parentElement, marque) - ligneDeBase(premier, premier.firstChild)
-  }
-  return 0
+    if (!marque?.parentElement || !premier.firstChild) return null
+    return {
+      texte: poserSonde(marque.parentElement, marque),
+      renvoi: poserSonde(premier, premier.firstChild),
+    }
+  })
+  const ecarts = sondes.map(sonde => sonde
+    ? sonde.texte.getBoundingClientRect().bottom - sonde.renvoi.getBoundingClientRect().bottom
+    : 0)
+  for (const sonde of sondes) { sonde?.texte.remove(); sonde?.renvoi.remove() }
+  return ecarts
 }
 
 /** La marque que porte un renvoi posé en manchette. */
@@ -78,7 +100,19 @@ export const CLASSE_RENVOI_MANCHETTE = 'cs-manchette-renvoi'
  */
 export function useManchetteRenvois(
   colonne: React.RefObject<HTMLElement | null>,
-  /** Ce qui, en changeant, refait la lecture : la division, la page, le mode. */
+  /**
+   * Ce qui, en changeant, refait la lecture — et il faut y compter CE QUI EST RENDU,
+   * non seulement où l'on se trouve.
+   *
+   * ⛔ La clé ne portait que la division, la page et le mode. Or une division se charge
+   * APRÈS que `niv1Actif` a changé : la passe se rejouait donc sur une colonne encore
+   * vide, n'y trouvait aucun renvoi et sortait ; quand les segments arrivaient, la clé
+   * n'avait pas rechangé et rien ne la rappelait. Le placement ne tenait plus qu'au
+   * `ResizeObserver`, c'est-à-dire à un effet de bord — et il ne le tenait qu'après
+   * coup. Mesuré en ligne sur La Cité de Dieu, le 9 septembre 2026 : à l'arrivée
+   * `style.top` est posé et l'écart vaut 0,00 px ; après un changement de division il
+   * est VIDE, et la manchette se tient 7,78 px trop haut.
+   */
   cleDeLecture: string,
 ): boolean {
   // ⚠️ Il part à FAUX, donc au rendu serveur : la manchette PARAÎT après la première
@@ -105,12 +139,14 @@ export function useManchetteRenvois(
       const entrees = Array.from(el.querySelectorAll<HTMLElement>(`.${CLASSE_RENVOI_MANCHETTE}`))
       if (entrees.length === 0) return
       for (const entree of entrees) entree.style.top = ''
-      const decalage = decalageDeLigne(entrees)
       const haut = el.getBoundingClientRect().top
-      const aPlacer = entrees.map((entree, rang) => {
-        const boite = entree.getBoundingClientRect()
-        return { cle: String(rang), ancre: boite.top - haut + decalage, hauteur: boite.height }
-      })
+      const boites = entrees.map(entree => entree.getBoundingClientRect())
+      const decalages = decalagesDeLigne(entrees)
+      const aPlacer = entrees.map((entree, rang) => ({
+        cle: String(rang),
+        ancre: boites[rang].top - haut + decalages[rang],
+        hauteur: boites[rang].height,
+      }))
       // ⚠️ On pose `top` sur TOUTES les entrées, non sur les seules poussées : la
       //    correction de ligne de base vaut pour chacune, et la position statique ne
       //    la porte pas.
