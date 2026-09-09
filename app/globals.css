@@ -1218,9 +1218,12 @@ button:focus-visible,
      bloc de 168 px, pour un tiroir qui n’en offre que 716. La charte veut 44 px
      « sur le chemin de LECTURE » — le pavé d’actions d’un verset, la flèche de
      chapitre — et 24 px comme plancher AA partout ailleurs. Une option de volet
-     n’est pas le chemin de lecture : 36 px la passent largement, et c’est déjà la
-     mesure que la grappe de boutons d’action emploie deux règles plus haut. */
-  .cs-option-volet { min-height: 2.25rem; }
+     n’est pas le chemin de lecture. ⚠️ 36 px ont d’abord été posés, et l’auteur les a
+     trouvés « encore un peu trop hauts » : 28 px, où l’axe « Lecture » tombe de 168 à
+     120 px. La rangée fait toute la largeur du volet — c’est sa HAUTEUR seule que
+     WCAG 2.2 § 2.5.8 mesure ici — et elle garde quatre pixels de marge sur le
+     plancher de 24. ⛔ Ne pas descendre plus bas : on toucherait le plancher même. */
+  .cs-option-volet { min-height: 1.75rem; }
   .cs-notif-archiver { min-height: 2.75rem; display: inline-flex; align-items: center; padding: 0 0.5rem; }
 }
 

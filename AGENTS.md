@@ -3223,6 +3223,45 @@ Cas témoin : texte latin des *Confessions*, `A0010O0001T0001` (identifiant `TXT
 - **Correction d'un lot importé fautif** : ne rien écrire tant que le nombre de notes continue de croître. Sur un instantané stable, sélectionner seulement les ancres dont `source_target = note_key` et dont `anchor_id` annonce `:segment_texte`; vérifier note, marqueur, bloc, segment, offset et phrase témoin ; sauvegarder les lignes complètes ; remplacer la cible par `segment_texte` et reconstruire les deux contextes à longueur constante ; relire chaque ligne. Une phrase témoin qui ne diffère que par la casse est recopiée depuis le segment, sans déplacer l'offset. Ne jamais changer le latin ni passer `validated_human` à vrai pendant cette réparation structurelle. En revanche, si l'audit séparé prouve qu'un bloc non validé a été importé avec `needs_review = false`, le remettre à `true` : c'est un signal de prudence, pas une validation.
 - **Clôture d'import** : avant d'affirmer la complétude, contrôler les divisions couvertes et renseigner l'empreinte de la source structurée (`oeuvre_textes.notes_json_sha256` ou métadonnée équivalente). Une numérotation continue ne prouve que la continuité du lot importé. Un lot encore croissant n'est pas un état final.
 
+## ⛔ UN APPEL DE NOTE PORTE SON INFORMATION SEUL — le seuil de 4,5 (2026-09-09)
+
+⛔ **IL ÉTAIT RENDU, ET IL NE SE VOYAIT PAS.** Relevé de l’auteur, deux fois : « je ne
+vois toujours pas l’appel de note 1 du chapitre 1 ». La donnée, la banque et le rendu ont
+été éprouvés un par un — l’ancre existe, `notesPourTexte` la trouve, le frontispice pose
+bien l’exposant. C’est le CONTRASTE qui manquait : `currentColor` à 0,45 d’opacité rend
+**2,59 au Clair** pour un signe composé à 0,30 em, c’est-à-dire dix à dix-sept pixels.
+
+⛔ **UN APPEL DE NOTE N’EST PAS UN ORNEMENT.** C’est le seul objet qui dise qu’une note
+existe : il porte son information SEUL, et le seuil de 4,5 s’y applique, exactement comme
+à la mention d’absence de la Polyglotte. La note du Cuir — « un seuil absolu ne dit rien
+sur un thème » — vaut pour ce qui est FAIT pour s’effacer, l’or d’un fleuron, le tan d’une
+étiquette. Pas pour lui.
+
+Contrastes mesurés sur les jetons, aux deux sols, l’opacité composée sur le fond :
+
+| porteur | 0,45 | 0,55 | 0,65 | 0,70 | **0,75** |
+|---|---:|---:|---:|---:|---:|
+| Clair · `--cs-encre` (titres) | 2,39 | **3,04** | 3,91 | 4,46 | **5,12** |
+| Clair · `--cs-encre-fonce` (frontispice) | **2,59** | 3,36 | 4,47 | 5,20 | **6,00** |
+| Cuir · `--cs-encre` | 2,91 | **3,73** | 4,68 | 5,22 | **5,80** |
+| Cuir · `--cs-encre-fonce` | **3,22** | 4,14 | 5,28 | 5,94 | **6,64** |
+
+⚠️ **Les QUATRE valeurs servies étaient sous le seuil** — 0,55 pour un appel de titre,
+0,45 au frontispice —, et non la seule qui avait été signalée. ⚠️ **0,70 ne suffit pas** :
+il laisse le pire cas à 4,46. **0,75** est la première valeur qui passe les quatre.
+
+⚠️ **Et l’appel reste NETTEMENT second**, ce qui rend la hausse sûre : 5,12 contre 10,58
+pour le titre qui le porte, 6,00 contre 13,01 au frontispice. On lui rend de quoi être vu,
+non de quoi rivaliser. ⛔ Ne pas revenir à `var(--cs-lacune)` sur ces deux variantes :
+sur un titre, l’appel appartient à l’encre qui le porte, et `currentColor` est ce qui le
+fait suivre les deux thèmes sans être décliné deux fois. C’est l’OPACITÉ qui était fausse.
+
+⚠️ **Où la note 1 des Annotations sur Job se trouve, et pourquoi elle n’est pas au
+chapitre 1** : son ancre porte `source_target = work_title` et son marqueur est matériel
+dans `oeuvres.titre_affichage` (« Annotations\nsur le livre de Job[[1]] »). Elle paraît
+donc au FRONTISPICE — « sur le livre de Job¹ » —, non dans le corps du chapitre. La
+déplacer serait un arbitrage éditorial sur la DONNÉE, non un correctif d’affichage.
+
 # Appels de note — masqués au sommaire, actifs dans les titres (2026-08-16)
 
 Doctrine : charte `parametres.charte_ia` **§13.7**. Tout le rendu des appels vit dans **`app/oeuvre/[id]/appelNote.tsx`** (info-bulle, `rendreTexteAvecNotes`, `rendreTitreColophonAvecNotes`, `preparerTitreColophon`, `titreSansAppelsDeNote`, `notesPourTexte`), extrait d'`OeuvreClient` pour que **`PageTitre` puisse l'importer sans cycle** — `OeuvreClient` importe `PageTitre`, l'inverse aurait bouclé.

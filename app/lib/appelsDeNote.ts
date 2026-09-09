@@ -44,10 +44,38 @@ const TAILLE_APPEL: Record<VarianteAppelNote, number> = {
   frontispice: 0.30,
 }
 
+// ⛔ 0,75 POUR LES DEUX VARIANTES EN `currentColor`, ET C’EST UN SEUIL, NON UN GOÛT
+// (relevé de l’auteur, 2026-09-09 : « je ne vois toujours pas l’appel de note 1 du
+// chapitre 1 »). Il était RENDU — la donnée, la banque et le rendu ont été éprouvés
+// un par un — et il ne se VOYAIT pas. Un appel de note est le seul objet qui dise
+// qu’une note existe : il porte donc son information SEUL, et le seuil de 4,5 s’y
+// applique, comme à la mention d’absence de la Polyglotte. Ce n’est pas un ornement
+// qu’on laisse s’effacer, à la différence de l’or d’un fleuron.
+//
+// Contrastes mesurés sur les jetons, aux deux sols, l’opacité composée sur le fond :
+//
+//   porteur                        0,45   0,55   0,65   0,70   0,75
+//   Clair  --cs-encre              2,39   3,04   3,91   4,46   5,12
+//   Clair  --cs-encre-fonce        2,59   3,36   4,47   5,20   6,00
+//   Cuir   --cs-encre              2,91   3,73   4,68   5,22   5,80
+//   Cuir   --cs-encre-fonce        3,22   4,14   5,28   5,94   6,64
+//
+// Les quatre valeurs servies (0,55 pour un titre, 0,45 au frontispice) étaient sous
+// le seuil, et le frontispice le plus bas de tous à 2,59 — pour un signe composé à
+// 0,30 em, c’est-à-dire dix à dix-sept pixels. ⚠️ 0,70 ne suffit PAS : il laisse le
+// pire cas à 4,46. 0,75 est la première valeur qui passe les quatre.
+//
+// ⚠️ L’appel reste NETTEMENT second, et c’est ce qui rend la hausse sûre : 5,12
+// contre 10,58 pour le titre qui le porte, 6,00 contre 13,01 au frontispice. On lui
+// rend de quoi être vu, non de quoi rivaliser.
+//
+// ⛔ Ne pas revenir à `var(--cs-lacune)` ici : sur un titre, l’appel appartient à
+// l’encre qui le porte, et `currentColor` est ce qui le fait suivre les deux thèmes
+// sans être décliné deux fois. C’est l’OPACITÉ qui était fausse, pas le principe.
 const TEINTE_APPEL: Record<VarianteAppelNote, CSSProperties> = {
   corps: { color: 'var(--cs-lacune)' },
-  titre: { color: 'currentColor', opacity: 0.55 },
-  frontispice: { color: 'currentColor', opacity: 0.45 },
+  titre: { color: 'currentColor', opacity: 0.75 },
+  frontispice: { color: 'currentColor', opacity: 0.75 },
 }
 
 // ── Hauteur de l'appel ───────────────────────────────────────────────────────
