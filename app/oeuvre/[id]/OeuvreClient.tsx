@@ -106,6 +106,7 @@ import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignaler
 import { useEstMobile, useSansSurvol } from '@/app/lib/useEstMobile'
 import { COMPOSITION_INTITULE, cleTriTitre, complementDeTitre } from '@/app/lib/titres'
 import { partagerOpuscules } from '@/app/lib/opuscules'
+import IconeChevron from '@/app/components/IconeChevron'
 import { enregistrerOeuvreRecente } from '@/app/lib/oeuvresRecentes'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
@@ -2893,13 +2894,28 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     return (
                       <>
                         {lignes(grandes)}
+                        {/* ⛔ LA MARQUE D'UNE SECTION N'EST PAS CELLE D'UNE RUBRIQUE (relevé de
+                            l'auteur, 2026-09-09 : « le fait qu'Opuscules ait la même flèche pour
+                            déployer que les autres niveaux de titre me paraît bizarre »). Le volet
+                            replie ses RUBRIQUES — « Du même auteur », « Apparat critique »,
+                            « Sommaire » — par un triangle plein posé À DROITE, au bout d'une ligne
+                            en capitales. « Opuscules » n'est pas une rubrique du volet : c'est une
+                            section DANS une liste, et le même signe lui donnait le rang de ce qui
+                            la contient.
+                            Elle reprend donc la marque qu'elle porte déjà à la BIBLIOTHÈQUE, où
+                            elle est née : le chevron en trait, À GAUCHE, tourné vers le bas quand
+                            la section est ouverte et vers la droite quand elle est close. Deux
+                            replis, deux marques — et la même section a la même forme des deux côtés
+                            du site, comme elle a déjà le même seuil et le même partage. */}
                         <div style={{ marginTop: '5px' }}>
                           <button type="button" onClick={() => setOpusculesOuverts(o => !o)} aria-expanded={deployee}
                             title={deployee ? 'Replier les opuscules' : 'Les textes brefs de cet auteur'}
-                            style={{ display: 'flex', alignItems: 'center', gap: '5px', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', textAlign: 'left' }}>
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', textAlign: 'left' }}>
+                            <span style={{ display: 'inline-flex', color: 'var(--cs-texte-faible)' }}>
+                              <IconeChevron dir={deployee ? 'down' : 'right'} size={11} strokeWidth={1.4} />
+                            </span>
                             <span style={{ fontSize: '0.6875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)' }}>Opuscules</span>
                             <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)' }}>{opuscules.length}</span>
-                            <span aria-hidden="true" style={{ marginLeft: 'auto', fontSize: '0.4375rem', color: 'var(--cs-texte-faible)' }}>{deployee ? '▲' : '▼'}</span>
                           </button>
                           {deployee && lignes(opuscules)}
                         </div>
