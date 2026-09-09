@@ -155,19 +155,28 @@ export async function chargerNotesStructurees(
     }
     notesParSegment[anchor.segment_key] ??= {}
     notesParSegment[anchor.segment_key][marker] = note
-    if (anchor.source_target === 'segment_texte') {
-      if (anchor.segment_offset_unicode === null || !Number.isInteger(anchor.segment_offset_unicode)) {
-        ancresIncompletes.push(`${anchor.note_key} (offset absent)`)
-        continue
-      }
-      ancresParSegment[anchor.segment_key] ??= []
-      ancresParSegment[anchor.segment_key].push({
-        noteKey: anchor.note_key,
-        marker: `[[${marker}]]`,
-        segmentOffsetUnicode: anchor.segment_offset_unicode,
-        sourceTarget: anchor.source_target,
-      })
+    // ⛔ ON INDEXE TOUTES LES CIBLES, non le seul `segment_texte`, et c'était le
+    //    second étage du même défaut : la projection avait beau savoir viser un CHAMP
+    //    DE TITRE, l'ancre qui en vise un n'arrivait jamais jusqu'à elle. C'est le
+    //    consommateur qui choisit son champ (`projeter(…, champ)`), et sa valeur par
+    //    défaut reste `segment_texte` : un appelant qui ne demande rien ne voit rien
+    //    de plus qu'avant.
+    if (anchor.segment_offset_unicode === null || !Number.isInteger(anchor.segment_offset_unicode)) {
+      // ⚠️ Un offset absent n'est un DÉFAUT que sur le texte : là, l'appel manque au
+      //    lecteur. Sur un champ de titre il dit seulement que le marqueur est posé
+      //    MATÉRIELLEMENT — les deux ancres `work_title` du corpus sont dans ce cas,
+      //    et leur appel paraît déjà au frontispice. Le crier ferait paraître un
+      //    bandeau de dégradation sur deux œuvres qui n'ont rien perdu.
+      if (anchor.source_target === 'segment_texte') ancresIncompletes.push(`${anchor.note_key} (offset absent)`)
+      continue
     }
+    ancresParSegment[anchor.segment_key] ??= []
+    ancresParSegment[anchor.segment_key].push({
+      noteKey: anchor.note_key,
+      marker: `[[${marker}]]`,
+      segmentOffsetUnicode: anchor.segment_offset_unicode,
+      sourceTarget: anchor.source_target ?? '',
+    })
   }
   if (ancresIncompletes.length > 0) {
     noterDegradation(degradations, {
