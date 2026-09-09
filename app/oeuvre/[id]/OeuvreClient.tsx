@@ -109,7 +109,11 @@ import { oublierVisite, visiteFaite, type SceneVisite } from '@/app/lib/visiteGu
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { useFavoris } from '@/app/lib/useFavoris'
 import { refFavoriOriginal } from '@/app/lib/refsFavoris'
+import type { NoteRecensee } from './notesInventaire'
 import OngletCommentaires from './OngletCommentaires'
+// ⛔ L'inventaire des notes est chargé à la DEMANDE : il n'entre dans le paquet que
+// lorsqu'un administrateur ouvre son onglet, et jamais dans celui d'un lecteur.
+const OngletNotes = dynamic(() => import('./OngletNotes'))
 import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import { useEstMobile, useSansSurvol } from '@/app/lib/useEstMobile'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
@@ -417,6 +421,9 @@ const AUCUNE_DEGRADATION: DegradationChargement[] = []
 
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
+/** Les trois onglets du volet de droite. ⛔ « notes » est réservé à l'administration. */
+type OngletDroit = 'refs' | 'commentaires' | 'notes'
+
 export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
@@ -432,7 +439,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // le 20 juillet 2026 (charte §24.3), `segments.fiabilite` est vidée et `lien_1` à
   // `lien_4` n'existent plus. Il a été rebâti sur `liens_bibliques`, puis retiré : ce
   // travail relève de l'atelier, non du volet de lecture d'un lecteur.
-  const [ongletDroit, setOngletDroit] = useState<'refs' | 'commentaires'>('refs')
+  // ⛔ « notes » est RÉSERVÉ à l'administrateur : c'est un inventaire d'atelier, qui
+  // montre les relectures en attente et les ancres orphelines. Un onglet qu'un lecteur
+  // ne doit pas voir ne se garde pas au rendu seulement — il ne se propose pas.
+  const [ongletDroit, setOngletDroit] = useState<OngletDroit>('refs')
   const [userId, setUserId] = useState<string | null>(null)
   const [sauvegardesSegs, setSauvegardesSegs] = useState<Set<number>>(new Set())
   const [vue, setVue] = useState<'texte' | 'apparat'>(vueInitiale)
@@ -1190,6 +1200,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     pendingScrollSegRef.current = null
     const pageIdx = pages.findIndex(p => p.some(gr => gr.anchor === g.anchor))
     if (pageIdx >= 0 && pageIdx !== pageActuelle) setPageActuelle(pageIdx)
+    setSegActif(segId)
     // « Aller au passage » : on pose le passage au niveau des yeux (tiers supérieur) ;
     // à défaut du segment précis, on se rabat sur le paragraphe qui le contient.
     setTimeout(() => {
@@ -1243,6 +1254,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }, [groupesFiltres, lectureTexteEntier, vue])
 
   // Navigue vers une ancre en changeant de page si nécessaire
+  // ── L'INVENTAIRE DES NOTES (administration) ────────────────────────────────
+  // La note qu'on vient d'ouvrir depuis l'inventaire, pour la marquer dans la liste.
+  const [noteCourante, setNoteCourante] = useState<string | null>(null)
+  // ⛔ L'onglet « Notes » ne se PROPOSE pas hors administration : un onglet qu'un
+  // lecteur ne doit pas voir ne se garde pas au seul rendu de son contenu.
+  const ongletsDuVolet = useMemo<OngletDroit[]>(
+    () => (estAdmin ? ['refs', 'commentaires', 'notes'] : ['refs', 'commentaires']),
+    [estAdmin],
+  )
+
   const naviguerVersAncre = useCallback((ancre: string) => {
     const pageIdx = pages.findIndex(p => p.some(g => g.anchor === ancre))
     if (pageIdx >= 0 && pageIdx !== pageActuelle) {
@@ -1645,6 +1666,51 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }, [])
 
   // Cf. useMemo groupesFiltres / segmentsFiltres définis plus haut (après `pages`)
+
+  /**
+   * Aller à un segment DÉJÀ CHARGÉ : tourner la page de pagination s'il le faut, le
+   * retenir, et le poser au niveau des yeux. Rend faux si la division n'est pas là.
+   *
+   * ⚠️ C'est un GESTE, non un effet : le saut se joue au clic, et rien ne se repose
+   * dans le corps d'un effet — ce qui coûterait un rendu en cascade.
+   */
+  const allerAuSegment = useCallback((segId: number, surface: 'corps' | 'apparat') => {
+    const source = surface === 'apparat' ? groupesApparat : groupes
+    const g = source.find(gr => gr.itemIds.includes(segId))
+    if (!g) return false
+    if (surface === 'corps') {
+      const pageIdx = pages.findIndex(p => p.some(gr => gr.anchor === g.anchor))
+      if (pageIdx >= 0 && pageIdx !== pageActuelle) setPageActuelle(pageIdx)
+    }
+    setSegActif(segId)
+    // Le rendu de la page demandée doit avoir eu lieu avant qu'on vise.
+    setTimeout(() => {
+      if (!scrollNiveauDesYeux(`segment-${segId}`)) allerAAncre(g.anchor)
+    }, 80)
+    return true
+  }, [groupes, groupesApparat, pages, pageActuelle, scrollNiveauDesYeux])
+
+  /**
+   * Le renvoi de l'inventaire des notes vers la note DANS LE CORPS DU TEXTE.
+   *
+   * ⛔ La division visée n'est pas toujours celle qu'on lit : c'est tout l'objet de
+   * l'inventaire, qui est exhaustif sur le texte entier. Quand le segment n'est pas
+   * chargé, on retient la cible et l'on change de division — l'effet du saut la reprend
+   * dès que les groupes arrivent.
+   */
+  // ⚠️ Fonction ordinaire, non mémorisée : `changerNiv1` ne l'est pas, et un
+  // `useCallback` dont une dépendance change à chaque rendu ne mémorise rien.
+  const allerALaNote = (note: NoteRecensee) => {
+    if (!note.place) return
+    setNoteCourante(note.cle)
+    const surface = note.place.surface
+    setVue(surface === 'apparat' ? 'apparat' : 'texte')
+    if (allerAuSegment(note.place.id, surface)) return
+    if (surface === 'corps' && note.place.division) {
+      pendingScrollSegRef.current = note.place.id
+      changerNiv1(note.place.division)
+    }
+  }
 
   const trad = traductionsBible[tradIndex]?.code ?? 'TR0001'
   const segMap = new Map(segmentsFiltres.map(s => [s.id, s]))
@@ -3831,8 +3897,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
             <div style={{ display: 'flex', flex: 1 }}>
-              {(['refs', 'commentaires'] as const).map((key, idx) => {
-                const labels = { refs: 'Bible', commentaires: 'Commentaires' }
+              {ongletsDuVolet.map((key, idx) => {
+                const labels = { refs: 'Bible', commentaires: 'Commentaires', notes: 'Notes' }
                 const actif = ongletDroit === key
                 return (
                   <Fragment key={key}>
@@ -3849,9 +3915,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             </div>
           </div>
 
-          <div style={ongletDroit === 'commentaires'
-            ? { flex: 1, minHeight: 0, overflow: 'hidden', padding: '0 12px', display: 'flex', flexDirection: 'column' }
-            : { flex: 1, overflowY: 'auto', padding: '0 12px 16px' }}>
+          <div style={ongletDroit === 'refs'
+            ? { flex: 1, overflowY: 'auto', padding: '0 12px 16px' }
+            : { flex: 1, minHeight: 0, overflow: 'hidden', padding: '0 12px', display: 'flex', flexDirection: 'column' }}>
             {ongletDroit === 'refs' ? (
               <>
                 {/* Sélecteur traduction */}
@@ -4018,6 +4084,15 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 )}
                 </div>
               </>
+            ) : (ongletDroit === 'notes' && estAdmin) ? (
+              <OngletNotes
+                idTexte={idTexte}
+                notesStructurees={notesStructurees}
+                ancresNotesStructurees={ancresNotesStructurees}
+                ordreDivisions={niv1List}
+                noteCourante={noteCourante}
+                onAller={allerALaNote}
+              />
             ) : (
               <div style={{ flex: 1, minHeight: 0, paddingTop: '14px', display: 'flex', flexDirection: 'column' }}>
                 <OngletCommentaires segActif={segActif} estAdmin={estAdmin} />
