@@ -17,6 +17,7 @@
 // autres : `createPortal` n'existe pas au rendu serveur, et une planche de contrôle
 // hors session ne pourrait pas rendre la fiche si tout tenait dans un seul composant.
 
+import { Z_FENETRE } from '@/app/lib/empilement'
 import { Fragment, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '@/app/lib/supabase'
@@ -41,7 +42,7 @@ const SANS = 'var(--font-source-sans), Arial, sans-serif'
 
 // La fiche s'ouvre au-dessus de la page de lecture ; la fiche d'auteur, qu'on ouvre
 // DEPUIS elle en cliquant un nom, porte 2100 et passe donc par-dessus.
-const Z_FICHE = 1200
+const Z_FICHE = Z_FENETRE
 
 /** Tout ce que la fiche a besoin de savoir. Les données lui arrivent chargées : la
  *  page de lecture les a déjà, et la fiche n'en redemande aucune au serveur, sauf le

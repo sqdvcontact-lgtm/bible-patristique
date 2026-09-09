@@ -21,6 +21,7 @@
 // choix d'une édition se prend dans le volet, sous « Éditions de ce texte », et un second
 // endroit pour le même geste ferait deux vérités.
 
+import { Z_FENETRE } from '@/app/lib/empilement'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
@@ -31,7 +32,7 @@ import {
 } from '@/app/lib/extractionOeuvre'
 
 /** La fenêtre s'ouvre au-dessus de la page de lecture, sous la fiche d'édition. */
-const Z_MENU = 1200
+const Z_MENU = Z_FENETRE
 
 /** Au-delà, l'extraction demande un moment, et le lecteur doit le savoir avant de
  *  cliquer. ⚠️ Le seuil se compte en SIGNES du texte par défaut (`oeuvres.nb_signes`),

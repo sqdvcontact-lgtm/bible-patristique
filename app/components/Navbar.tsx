@@ -1,5 +1,6 @@
 "use client";
 
+import { Z_BARRE, Z_NOTIFICATION } from '@/app/lib/empilement'
 import IconeChevron from '@/app/components/IconeChevron'
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -1688,7 +1689,7 @@ export default function Navbar() {
       {/* `data-cs-navbar` sert de prise à la page d'ouverture, qui se passe de
           barre de navigation : rien à naviguer tant que le site est fermé. */}
       <header data-cs-navbar data-visite="nav-barre" className="fixed top-0 left-0 right-0 border-b"
-        style={{ background: "var(--cs-barre-fond)", borderColor: "rgba(255,255,255,0.10)", zIndex: 3000 }}>
+        style={{ background: "var(--cs-barre-fond)", borderColor: "rgba(255,255,255,0.10)", zIndex: Z_BARRE }}>
         <style>{cssServi(`
           /* Jauge de la vignette de notification : elle se vide de la droite vers la
              gauche pendant la durée d'affichage. On anime la transformation, pas la largeur :
@@ -2158,7 +2159,7 @@ export default function Navbar() {
         )}
         {toastNotification && (
           <div key={toastNotification.id} role="button" tabIndex={0} onClick={() => { setToastNotification(null); setNotifsOuvertes(true); }}
-            style={{ position: "fixed", top: `calc(${HAUTEUR_NAVBAR} + 0.75rem)`, right: "18px", width: "17.5rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderLeft: "3px solid var(--cs-vert-aplat)", borderRadius: "8px", boxShadow: "var(--cs-ombre-modale)", padding: "11px 13px 13px", zIndex: 4000, cursor: "pointer", overflow: "hidden" }}>
+            style={{ position: "fixed", top: `calc(${HAUTEUR_NAVBAR} + 0.75rem)`, right: "18px", width: "17.5rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderLeft: "3px solid var(--cs-vert-aplat)", borderRadius: "8px", boxShadow: "var(--cs-ombre-modale)", padding: "11px 13px 13px", zIndex: Z_NOTIFICATION, cursor: "pointer", overflow: "hidden" }}>
             <p style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-vert)", margin: "0 0 4px" }}>Nouvelle notification</p>
             <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", color: "var(--cs-encre-fonce)", margin: "0 0 4px" }}>{toastNotification.titre}</p>
             <p style={{ fontSize: "0.8125rem", color: "var(--cs-texte-second)", lineHeight: 1.35, margin: 0 }}>{toastNotification.message}</p>

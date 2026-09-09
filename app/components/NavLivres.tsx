@@ -1,5 +1,6 @@
 'use client'
 
+import { Z_FENETRE, Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
 import IconeChevron from '@/app/components/IconeChevron'
 import { useState, useRef, useEffect } from 'react'
 import { useNaviguer } from '@/app/lib/attenteNavigation'
@@ -500,7 +501,7 @@ export default function NavLivres({
       // au tap, elle ouvre le tiroir des livres (branche dépliée ci-dessous).
       return (
         <button onClick={() => setOuvert(true)} title="Ouvrir le sommaire des livres"
-          style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+          style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: Z_FENETRE, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(90deg)', color: 'var(--cs-texte-doux)' }}>
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -532,13 +533,13 @@ export default function NavLivres({
     {/* Empilé (mobile) : en mode ONGLETS (presentation='inline'), le sommaire occupe
         toute la page sous la barre d'onglets, sans fond assombri. En mode tiroir, il
         se superpose au texte avec un fond assombri qui le referme au tap. */}
-    {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
+    {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: Z_TIROIR_VOILE }} />}
     <div ref={refPanel} style={mobile ? (presentation === 'inline' ? {
       width: '100%', background: 'var(--cs-fond-clair)', display: 'flex', flexDirection: 'column',
       paddingTop: '2.875rem', minHeight: `calc(100dvh - ${HAUTEUR_NAVBAR})`,
       paddingBottom: `calc(0.75rem + 2.5rem)`,
     } : {
-      position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 2401,
+      position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: Z_TIROIR,
       background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)',
       display: 'flex', flexDirection: 'column', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`,
       boxShadow: 'var(--cs-ombre-modale)',

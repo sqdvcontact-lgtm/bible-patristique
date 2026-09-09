@@ -59,6 +59,7 @@
 // n'existe pas au rendu serveur, et une planche de contrôle hors session ne pourrait
 // pas rendre la fiche si tout tenait dans un seul composant.
 
+import { Z_MODALE } from '@/app/lib/empilement'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { createPortal } from 'react-dom'
@@ -91,7 +92,7 @@ const SANS = 'var(--font-source-sans), Arial, sans-serif'
 // La fiche s'ouvre au-dessus de la page de lecture.
 // ⛔ Même échelle que la planche agrandie : au-dessus des barres mobiles de la page
 // Bible (1300 et 1250), sous la barre de navigation (3000). Voir GravureAgrandissable.
-const Z_FICHE = 2700
+const Z_FICHE = Z_MODALE
 
 /** Fiche de présentation — la vue porte déjà l'édition source jointe. */
 export type InfoTrad = {

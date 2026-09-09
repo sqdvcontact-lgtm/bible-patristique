@@ -19,6 +19,7 @@
 // fenêtre, en grille c'est la colonne, et dans une colonne la cellule passe toujours
 // au-dessus, ce qui est le bon résultat.
 
+import { Z_FLOTTANT } from '@/app/lib/empilement'
 import type { CSSProperties } from 'react'
 
 /** Côté d'un bouton d'action, et gabarit de toutes les icônes du site (11×12).
@@ -168,7 +169,7 @@ export const STYLE_BOUTON_ACTION: CSSProperties = {
  *  `--cs-ombre-nette` est faite pour cela (charte, « Élévations » — petit objet qui
  *  flotte : bascule, infobulle, cellule d'actions). */
 export const STYLE_CELLULE: CSSProperties = {
-  position: 'fixed', zIndex: 1500,
+  position: 'fixed', zIndex: Z_FLOTTANT,
   display: 'flex', alignItems: 'center', gap: `${GOUTTIERE_BOUTON}px`,
   padding: `${REMBOURRAGE_CELLULE}px`,
   background: 'var(--cs-surface)',

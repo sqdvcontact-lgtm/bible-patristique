@@ -1,5 +1,6 @@
 'use client'
 
+import { Z_FENETRE, Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { supabase } from "@/app/lib/supabase"
@@ -1313,7 +1314,7 @@ export default function PanneauPatristique({
       // au tap, le tiroir des Pères monte depuis le bas.
       return (
         <button onClick={() => setOuvert(true)} title="Ouvrir les textes patristiques"
-          style={{ position: 'fixed', bottom: BANDEAU_NAV_MOBILE, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
+          style={{ position: 'fixed', bottom: BANDEAU_NAV_MOBILE, left: 0, right: 0, zIndex: Z_FENETRE, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(-90deg)', color: 'var(--cs-texte-doux)' }}>
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -1341,14 +1342,14 @@ export default function PanneauPatristique({
     {/* Empilé (mobile) : en mode ONGLETS (presentation='inline'), les Pères occupent
         toute la page sous la barre d'onglets, sans fond assombri. En mode tiroir, le
         panneau monte depuis le bas par-dessus le texte, avec un fond assombri. */}
-    {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
+    {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: Z_TIROIR_VOILE }} />}
     {/* `data-visite` : le repère de la visite guidée (app/lib/visiteBibleClassique.ts).
         Le volet ENTIER : l'étape parle de ce qu'il réunit, de ses filtres et de son
         onglet de commentaires, et les trois n'ont pas de boîte commune plus étroite. */}
     <div ref={refPanel} data-visite="peres" style={mobile
       ? (presentation === 'inline'
         ? { width:'100%', background:'var(--cs-surface)', display:'flex', flexDirection:'column', ...(sousBarres ? { paddingTop:'2.875rem', minHeight:`calc(100dvh - ${HAUTEUR_NAVBAR})`, paddingBottom:BANDEAU_NAV_MOBILE } : {}) }
-        : { position:'fixed', bottom:BANDEAU_NAV_MOBILE, left:0, right:0, zIndex:2401, background:'var(--cs-surface)', borderTop:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem - ${BANDEAU_NAV_MOBILE})`, minHeight:0, boxShadow:'var(--cs-ombre-modale-haut)' })
+        : { position:'fixed', bottom:BANDEAU_NAV_MOBILE, left:0, right:0, zIndex: Z_TIROIR, background:'var(--cs-surface)', borderTop:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem - ${BANDEAU_NAV_MOBILE})`, minHeight:0, boxShadow:'var(--cs-ombre-modale-haut)' })
       : { width: panelWidth == null ? 'clamp(260px, 20vw, 460px)' : panelWidth + 'px', flexShrink:0, background:'var(--cs-surface)', borderLeft:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', height:'100%', minHeight:0, position:'relative' }}>
       {/* Tag de filtre : un fantôme en gras (::after) fige la largeur, pour que la
           sélection (texte mis en gras) ne repousse pas les tags voisins. */}

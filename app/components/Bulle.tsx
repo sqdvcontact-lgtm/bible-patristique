@@ -1,5 +1,6 @@
 'use client'
 
+import { Z_INFOBULLE } from '@/app/lib/empilement'
 import { useState, useRef, useCallback, useEffect } from 'react'
 
 const DELAI_MS = 4000
@@ -104,7 +105,7 @@ export function Bulle({ texte, children, position = 'top', avecFixation = false 
           padding: '5px 9px',
           borderRadius: '4px',
           whiteSpace: 'nowrap',
-          zIndex: 9999,
+          zIndex: Z_INFOBULLE,
           display: 'flex',
           alignItems: 'center',
           gap: '7px',

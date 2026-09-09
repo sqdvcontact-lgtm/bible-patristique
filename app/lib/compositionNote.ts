@@ -34,6 +34,7 @@
  * et le calme avec elle. C'est la HAUTEUR qui suit le texte : elle ne s'arrêtait à
  * 340 px que par une constante, quand le placeur dispose souvent de huit cents.
  */
+import { Z_INFOBULLE } from '@/app/lib/empilement'
 import type { CSSProperties } from 'react'
 import { MARGE_FENETRE } from './fenetreContextuelle'
 
@@ -233,7 +234,7 @@ export function styleCadreEncart(
     // Le rang « carte, encart » de l'échelle des rayons, non celui d'une puce.
     borderRadius: '8px',
     boxShadow: 'var(--cs-ombre-flottante)',
-    zIndex: 9999,
+    zIndex: Z_INFOBULLE,
   }
 }
 

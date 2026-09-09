@@ -43,6 +43,7 @@
  * longueur du texte ; le scénario reste écrit au clavier.
  */
 
+import { Z_VISITE as Z_RANG_VISITE, Z_VISITE_BARRE as Z_RANG_VISITE_BARRE } from '@/app/lib/empilement'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { hauteurNavbarPx, tailleRacinePx } from '@/app/lib/fenetreContextuelle'
@@ -73,14 +74,14 @@ import {
  *  rendue. ⚠️ Une visite qui viserait de nouveau un sujet de la barre devrait
  *  remonter ce rang, et reprendre avec lui les deux gardes de géométrie qui
  *  l'accompagnaient. */
-const Z_VISITE = 2800
+const Z_VISITE = Z_RANG_VISITE
 
 /** Le rang d'une visite qui parle de la BARRE : au-dessus d'elle (3000) et du menu
  *  de compte (3100). ⛔ Il ne se prend que sur demande du scénario
  *  (« couvreLaBarre ») : partout ailleurs la barre garde sa lumière. ⚠️ Au-delà ne
  *  subsistent que le carton d'une notification (4000) et les infobulles de note
  *  (9999), que la page inerte n'ouvre pas. */
-const Z_VISITE_BARRE = 3200
+const Z_VISITE_BARRE = Z_RANG_VISITE_BARRE
 
 /** Au-delà, on tient l'étape pour impossible et l'on passe. ⚠️ Généreux à dessein :
  *  un volet de téléphone se monte, le volet de droite interroge la base. */

@@ -1,5 +1,6 @@
 'use client'
 
+import { Z_ATTENTE } from '@/app/lib/empilement'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useTransition, type MutableRefObject, type ReactNode } from 'react'
 import { Anneau } from '@/app/lib/attenteEnCreux'
 import { useRouter } from 'next/navigation'
@@ -193,7 +194,7 @@ export function MarqueAttente({ enAttente, sommet = HAUTEUR_NAVBAR }: {
         // pas, elle attend. ⛔ Jamais un jeton d'ENCRE ici — sur le Cuir il est
         // presque blanc, et le voile deviendrait un rideau (charte).
         background: 'rgba(0,0,0,0.04)',
-        zIndex: 900,
+        zIndex: Z_ATTENTE,
         pointerEvents: 'none',
       }}
     >

@@ -16,6 +16,7 @@
 // (app/lib/notificationsClient.ts). Une annonce est un fait d'écran, pas un fait de
 // corpus, et le pire qu'un stockage vidé puisse faire est de la remontrer une fois.
 
+import { Z_NOTIFICATION } from '@/app/lib/empilement'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useCompte } from '@/app/lib/contexteCompte'
 import type React from 'react'
@@ -186,7 +187,7 @@ export function CorpsAnnonce({ annonce, onFermer }: { annonce: Annonce; onFermer
         borderRadius: '8px',
         boxShadow: 'var(--cs-ombre-modale)',
         padding: grande ? '14px 16px 16px' : '12px 13px 14px',
-        zIndex: 4000,
+        zIndex: Z_NOTIFICATION,
         cursor: 'pointer',
         overflow: 'hidden',
       }}>
