@@ -4,6 +4,7 @@ import type { BlocOriginal } from './bilingueAlignement'
 import type { NatureBlocNote } from '@/app/lib/naturesNote'
 import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import type { DegradationChargement } from '@/app/lib/chargementTolerant'
+import type { SectionApparat } from '@/app/lib/oeuvreSelects'
 
 export type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
 export type NoteBlocData = {
@@ -109,6 +110,9 @@ export type GroupeData = {
   niv1: string; niv2: string; niv3: string; niv4: string
   niv1_texte?: string; niv2_texte?: string; niv3_texte?: string; niv4_texte?: string
   anchor: string; itemIds: number[]
+  /** L'apparat SEUL en porte une : il se lit en deux sections, l'auteur puis l'éditeur
+   *  (`partagerLApparat`). Absente au corps, qui n'a rien à distinguer. */
+  section?: SectionApparat
 }
 export type TocEntry = { niv1: string; niv2: string; anchor: string }
 export type Commentaire = { id: number; texte: string; valide: boolean; created_at: string }

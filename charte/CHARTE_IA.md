@@ -664,6 +664,25 @@ Toute nature utilisée doit être acceptée par le schéma, l’importateur, les
 
 L’`apparat_auteur` appartient au parcours de lecture de l’œuvre : il est stocké dans l’espace textuel du corps, garde sa position documentaire et apparaît dans le texte. Il ne doit pas être relégué hors lecture sous prétexte qu’il s’agit d’une préface, d’une digression ou d’un développement liminaire.
 
+**L’apparat de l’auteur paraît AUSSI dans la vue d’apparat** (décision de l’auteur du
+9 septembre 2026) : les deux apparats s’y lisent l’un après l’autre, sous deux en-têtes,
+« Apparat de l’auteur » puis « Apparat de l’éditeur ». ⛔ C’est un ÉCHO et non un
+déménagement — la pièce reste au corps, s’y lit à sa place, y garde sa lettrine et son
+entrée au sommaire, et un lien profond l’ouvre dans le TEXTE. Une seconde surface
+n’en retire aucune.
+
+⛔ **Et par PIÈCES ENTIÈRES seulement.** Seules résonnent dans l’apparat les divisions
+dont TOUT le corps est de la main de l’auteur, que nomme `get_niv1_apparat_auteur`
+(migration `20260909093419`) : neuf divisions et 152 segments au 9 septembre 2026. Les
+trente-huit autres segments d’`apparat_auteur` sont des paragraphes pris au milieu
+d’une division de prose — dix dans le « Livre I » d’Eusèbe, qui en compte 209, un seul
+dans la « Procatéchèse » de Cyrille — et ils y paraîtraient sans le texte qui les
+entoure, c’est-à-dire tronqués. ⚠️ Le compte se refait à CHAQUE affichage : une
+division cesse d’être entière dès qu’un segment d’une autre nature y entre.
+
+⚠️ L’en-tête de section ne se compose que si la vue porte les deux mains : un en-tête
+seul ne distingue rien et poserait un titre là où le lecteur n’avait qu’une matière.
+
 L’`apparat_editeur` décrit une **fonction sémantique**, non un emplacement automatique. Un paratexte du traducteur, de l’éditeur, du censeur ou de l’imprimeur — préface, avertissement, épître dédicatoire, éclaircissement au lecteur, approbation, privilège, liste bibliographique ou pièce analogue — qui appartient au parcours préliminaire de l’édition est placé dans `espace_textuel = 'introduction'`, dans son ordre documentaire réel. Sa nature fonctionnelle (`apparat_editeur`, `signature`, etc.) et, lorsqu’elle existe, sa qualification bibliographique sont conservées séparément.
 
 ⛔ L’espace `apparat_critique` n’est jamais un fourre-tout pour le hors-corps. Il est réservé aux **véritables objets de soutien critique** : leçons fautives ou atypiques du témoin qu’il faut conserver comme preuve, rubriques imprimées discordantes de la structure canonique, variantes, lacunes, corrections ou autres éléments dont la fonction est de documenter l’établissement du texte plutôt que de constituer une pièce préliminaire à lire. La forme source y est conservée ; l’affichage éditorial normal ne doit pas la réinjecter dans le corps ou dans les titres par un repli implicite.
@@ -1110,6 +1129,9 @@ légitime ; deviner la donnée depuis le style ne l'est pas.**
 
 Les deux vocabulaires, style par style, avec ce qu'il sert et ce qu'il ne sert pas.
 Les chiffres sont ceux du 29 août 2026 ; ils disent l'emploi réel, non une permission.
+⚠️ Deux autres l’ont été le 9 septembre 2026, `apparat_auteur` et `apparat_editeur` :
+onze segments du « Prologue de Rufin » ont changé de main le jour même. ⛔ Les autres
+comptes du tableau restent ceux du 29 août, et un compte n’est vrai qu’à sa date.
 ⚠️ Deux lignes ont été remesurées le 8 septembre 2026, `lemme` et `exergue` : les
 trente-huit exergues sortent des lemmes, et le compte de `lemme` avait dérivé.
 
@@ -1121,8 +1143,8 @@ trente-huit exergues sortent des lemmes, et le compte de `lemme` avait dérivé.
 | `apparat_critique` | ⛔ **HÉRITÉE** (§ 7) : un fourre-tout de paratexte — dédicaces, privilèges, gloses de vocabulaire, arguments analytiques —, rendu dans la vue d'apparat. Ne plus en créer : employer `apparat_auteur` ou `apparat_editeur` | ⛔ **PAS** l'apparat critique d'une édition savante : celui-là n'est pas une nature de segment mais un RÔLE de bloc de note (`editorial_role`), et les 7 266 entrées de Knöll vivent là. Deux choses portent le même nom | 1 295 |
 | `citation` | une citation structurelle, dont le rendu RECOLLE les segments | ⛔ pas une citation en ligne : celle-là reste dans `texte` et se détache d'elle-même au delà de 400 signes | 1 221 |
 | `dialogue` | une réplique, dans un texte qui en compte | ⛔ ne se sort jamais du fil : une réplique est entre guillemets sans être une citation d'auteur | 1 038 |
-| `apparat_editeur` | préface du traducteur, privilège, approbation : un paratexte EXTÉRIEUR à l'œuvre | l'apparat de l'auteur, qui appartient au corps | 323 |
-| `apparat_auteur` | prologue, avertissement, dédicace écrits par L'AUTEUR | ⛔ pas `apparat_editeur`, qui porte le paratexte de l'ÉDITION : celui-ci appartient au CORPS et se lit à sa place | 96 |
+| `apparat_editeur` | préface du traducteur, privilège, approbation : un paratexte EXTÉRIEUR à l'œuvre. Deux espaces lui sont ouverts et le corps lui est fermé (`segments_apparat_editeur_space_ck`) : `apparat_critique`, ou `introduction` s'il appartient aux préliminaires qu'on lit | l'apparat de l'auteur, qui appartient au corps et s'y lit à sa place | 1 978 |
+| `apparat_auteur` | prologue, avertissement, dédicace écrits par L'AUTEUR. Il appartient au CORPS, s'y lit à sa place, et paraît EN OUTRE dans la vue d'apparat quand sa division entière est de sa main (§ 7) | ⛔ pas `apparat_editeur`, qui porte le paratexte de l'ÉDITION. ⛔ Et sa seconde surface ne lui retire pas la première : l'ôter du corps avait fait disparaître le Prologue de Rufin, le 18 août 2026 | 190 |
 | `lemme` | le verset biblique qu'un commentaire pose en tête du paragraphe qu'il commente | ⛔ ne se détache pas : un lemme se lit au fil du texte (décision du 20 août 2026). ⛔ Et ce n'est PAS un `exergue` : le lemme s'explique, l'exergue annonce | 220 |
 | `exergue` | le verset posé en seuil d'une pièce : rentré du quart de la mesure, justifié, la langue originale en note (§ 7.8) | ⛔ pas un `lemme` : un exergue ne se commente pas ligne à ligne, et il quitte le fil | 19 |
 | `rubrique` | une rubrique éditoriale qui n'est PAS un niveau de titre | un titre : elle ne prend ni balise `h*` ni place au plan | 43 |
@@ -2833,7 +2855,7 @@ Un dernier audit indépendant et des sondages finaux sont requis avant de décla
 
 Les deux apparats sont contrôlés comme des ensembles textuels à part entière : texte, paragraphes, rangs, notes, niveaux éventuels, responsabilité et place documentaire sont vérifiés contre l’édition.
 
-L’`apparat_auteur` reste dans le parcours de lecture du corps. L’`apparat_editeur` est rendu hors du flux ordinaire. Ne pas déduire la responsabilité de la seule position liminaire : une préface de l’auteur n’est pas une préface éditoriale, et une préface du traducteur n’est pas un texte de l’auteur.
+L’`apparat_auteur` reste dans le parcours de lecture du corps, et paraît en outre dans la vue d’apparat lorsque sa division entière est de sa main (§ 7). L’`apparat_editeur` est rendu hors du flux ordinaire. Ne pas déduire la responsabilité de la seule position liminaire : une préface de l’auteur n’est pas une préface éditoriale, et une préface du traducteur n’est pas un texte de l’auteur.
 
 Les références bibliques suivent la règle du § 8 : une référence grammaticalement intégrée demeure dans la phrase ; une référence isolée est transformée en note. Leur constitution en liens reste une sous-phase explicite de la phase B.
 

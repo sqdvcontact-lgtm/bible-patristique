@@ -42,8 +42,11 @@ import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { CelluleActions, useCelluleActions } from '@/app/components/CelluleActions'
 import {
+  AUCUN_ECHO,
   limiterRequeteAuxLiminairesSansNiveau,
   limiterRequeteSegmentsALaSurface,
+  partagerLApparat,
+  sectionDApparat,
   segmentsDeLaSurface,
   SELECT_SEGMENT,
 } from '@/app/lib/oeuvreSelects'
@@ -53,10 +56,12 @@ import { BLANC_ENTRE_VERSETS, NATURE_VERSET, RETRAIT_VERSET, RETRAIT_VERSET_ETRO
 import { estBlocExergue } from '@/app/lib/compositionExergue'
 import { paginerBlocs } from '@/app/lib/paginationLecture'
 import {
+  LIBELLE_SECTION_APPARAT,
   STYLE_LETTRINE, STYLE_NUMERO_SEGMENT, STYLE_PREFIXE_LETTRINE,
   accepteLaLettrine, estBlocDeSignatures, margeArgument, paragraphesDeSegments,
   placeDeLExergue, placeDeLaSignature,
-  styleArgument, styleBlocArgumentEnVers, styleBlocDeVers, styleLigneArgumentEnVers,
+  styleArgument, styleBlocArgumentEnVers, styleBlocDeVers, styleEnteteSectionApparat,
+  styleLigneArgumentEnVers,
   styleColonneOriginale, styleParagrapheApparat, styleParagrapheLecture,
   styleSousTitreNiveau, styleTitreNiveau,
 } from '@/app/lib/compositionOeuvre'
@@ -1507,6 +1512,24 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     return { groupes: newGroupes, segments: await rattacherAlignement(newSegs) }
   }
 
+  // Les divisions entièrement de la main de l'auteur, qui paraissent AUSSI dans la vue
+  // d'apparat. ⚠️ Redemandées à chaque rechargement, et non reçues du serveur : une
+  // correction admin fait entrer ou sortir une pièce à l'instant même où l'on recharge,
+  // et la liste du premier rendu serait périmée de la modification qu'on vient de faire.
+  const divisionsApparatAuteur = async (): Promise<ReadonlySet<string>> => {
+    const { data, error } = await supabase.rpc('get_niv1_apparat_auteur', {
+      p_id_oeuvre: idOeuvre,
+      p_id_texte: idTexte,
+    })
+    if (error) {
+      console.error(`Divisions d'apparat d'auteur illisibles (${idTexte}) :`, error)
+      return AUCUN_ECHO
+    }
+    return new Set(((data ?? []) as { ref_niv1: string | null }[])
+      .map(ligne => String(ligne.ref_niv1 ?? '').trim())
+      .filter(Boolean))
+  }
+
   // Recharge tout l'apparat critique de l'œuvre depuis Supabase — nécessaire
   // après une modification ou une suppression admin, puisque l'apparat n'est
   // sinon chargé qu'une seule fois au rendu serveur de la page.
@@ -1523,7 +1546,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       console.error(`Chargement de l'apparat impossible (${idTexte}) :`, error)
       throw error
     }
-    const segs = segmentsDeLaSurface(((data ?? []) as any[]), 'apparat').filter(segmentAffichable)
+    // L'apparat de l'AUTEUR se lit ici comme dans le texte : il y fait écho, par pièces
+    // entières, et se compose en tête, sous son propre en-tête (`partagerLApparat`).
+    const divisions = await divisionsApparatAuteur()
+    const retenus = segmentsDeLaSurface(((data ?? []) as any[]), 'apparat', divisions).filter(segmentAffichable)
+    const parSection = partagerLApparat(retenus)
+    const segs = [...parSection.auteur, ...parSection.editeur]
 
     let c = 0, n1c = ''
     const newSegs: SegData[] = segs.map((s: any) => {
@@ -1553,17 +1581,21 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     })
 
     const newGroupes: GroupeData[] = []
-    let cur: any = { niv1: '', niv2: '', niv3: '', niv4: '', itemIds: [] as number[] }
+    let cur: any = { niv1: '', niv2: '', niv3: '', niv4: '', section: null, itemIds: [] as number[] }
     let gi = 0
     segs.forEach((s: any) => {
       const n1v = s.ref_niv1 || '', n2v = s.ref_niv2 || '', n3v = s.ref_niv3 || '', n4v = s.ref_niv4 || ''
-      if (n1v !== cur.niv1 || n2v !== cur.niv2 || n3v !== cur.niv3 || n4v !== cur.niv4) {
+      // ⛔ La SECTION coupe le groupe comme le ferait un niveau : les deux tranches sont
+      // voisines dans la liste, et deux pièces de mains différentes qui porteraient le
+      // même `ref_niv1` ne feraient qu'un groupe, sous un en-tête qui mentirait.
+      const section = sectionDApparat(s)
+      if (n1v !== cur.niv1 || n2v !== cur.niv2 || n3v !== cur.niv3 || n4v !== cur.niv4 || section !== cur.section) {
         if (cur.itemIds.length > 0) newGroupes.push({ ...cur, anchor: `a${gi++}` })
         cur = {
           niv1: n1v, niv2: n2v, niv3: n3v, niv4: n4v,
           niv1_texte: s.ref_niv1_texte || '', niv2_texte: s.ref_niv2_texte || '',
           niv3_texte: s.ref_niv3_texte || '', niv4_texte: s.ref_niv4_texte || '',
-          itemIds: [s.id]
+          section, itemIds: [s.id]
         }
       } else cur.itemIds.push(s.id)
     })
@@ -2837,8 +2869,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 </button>
                 {apparatOuvert && (
                   <div style={{ flex: '0 1 auto', overflowY: 'auto', padding: '0 16px 14px' }}>
-                    {tocApparatLocal.map((entry) => (
-                      <div key={entry.niv1} style={{ marginBottom: entry.niveaux2.length > 0 ? '5px' : undefined }}>
+                    {(() => {
+                    // Le sommaire de l'apparat coupe LÀ OÙ LA VUE COUPE : les pièces de
+                    // l'auteur, puis celles de l'éditeur, chacune sous sa mention. ⚠️ La
+                    // clé porte la section : deux « Préface », une de chaque main, ne
+                    // sont pas la même entrée et ne peuvent pas partager une clé React.
+                    const deuxMains = new Set(tocApparatLocal.map(e => e.section)).size > 1
+                    let derniereMain: string | null = null
+                    return tocApparatLocal.map((entry, rang) => {
+                    const ouvreLaSection = deuxMains && entry.section !== derniereMain
+                    if (ouvreLaSection) derniereMain = entry.section
+                    return (
+                      <div key={`${entry.section}-${entry.niv1}`} style={{ marginBottom: entry.niveaux2.length > 0 ? '5px' : undefined }}>
+                        {ouvreLaSection && (
+                          <div style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)', margin: rang === 0 ? '0 0 6px' : '12px 0 6px' }}>
+                            {LIBELLE_SECTION_APPARAT[entry.section].toUpperCase()}
+                          </div>
+                        )}
                         <a href={`#${entry.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(entry.niv1); setAncreEnAttente(entry.anchor) }} className="toc-lien-n1"
                           style={{ display: 'block', fontSize: '0.71875rem', fontWeight: apparatNiv1Actif === entry.niv1 ? 600 : 400, color: apparatNiv1Actif === entry.niv1 ? 'var(--cs-vert)' : 'var(--cs-texte)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
                           {rendreTexteEnrichi(titreSansAppelsDeNote(entry.niv1))}
@@ -2850,7 +2897,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           </a>
                         ))}
                       </div>
-                    ))}
+                    )
+                    })
+                    })()}
                   </div>
                 )}
               </div>
@@ -3586,7 +3635,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               autre livre. Un titre de rang 1 doit se reconnaître comme tel des deux côtés. */}
           {vue === 'apparat' && (() => {
             let dniv1 = '', dniv2 = ''
+            let dsection: string | null = null
             let isFirst = true
+            // ⚠️ Deux mains dans la même vue, ou une seule ? L'en-tête ne se pose que
+            // s'il DISTINGUE : la plupart des dix textes qui portent un apparat d'éditeur
+            // n'ont aucune pièce de l'auteur, et un titre seul y nommerait une opposition
+            // que le lecteur ne peut pas voir.
+            const deuxMains = new Set(groupesApparat.map(g => g.section ?? 'editeur')).size > 1
             return (
               <>
                 {groupesApparat.map((groupe) => {
@@ -3602,12 +3657,26 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   // redit son titre, ne se compose pas.
                   const sousTitre1 = complementDeTitre(groupe.niv1, groupe.niv1_texte)
                   const sousTitre2 = complementDeTitre(groupe.niv2, groupe.niv2_texte)
+                  // La MAIN change-t-elle ici ? L'apparat de l'auteur ouvre la vue, celui
+                  // de l'éditeur suit, et la coupure se voit une fois, à la frontière.
+                  const section = groupe.section ?? 'editeur'
+                  const ouvreLaSection = deuxMains && section !== dsection
+                  if (ouvreLaSection) dsection = section
                   // Même valeur qu'au niveau 1 du texte suivi : l'apparat prenait 2,5rem
                   // quand le texte en prend 2,8, écart que rien ne justifiait.
-                  const marginTop = isFirst ? '0' : '2.8rem'
+                  // ⚠️ Un en-tête de section porte DÉJÀ son blanc : le titre qui le suit
+                  // n'y ajoute rien, sans quoi la coupure et le titre s'éloigneraient
+                  // l'un de l'autre au point de ne plus se répondre.
+                  const premierGroupe = isFirst
+                  const marginTop = premierGroupe || ouvreLaSection ? '0' : '2.8rem'
                   if (isFirst) isFirst = false
                   return (
                     <div key={groupe.anchor} id={groupe.anchor} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
+                      {ouvreLaSection && (
+                        <div style={styleEnteteSectionApparat({ premiere: premierGroupe })}>
+                          {LIBELLE_SECTION_APPARAT[section as keyof typeof LIBELLE_SECTION_APPARAT]}
+                        </div>
+                      )}
                       {showNiv1 && (
                         // Mise en page reprise TELLE QUELLE du niveau 1 du texte suivi : le
                         // centrage porté par le bloc et non par chaque ligne, un demi-rem de

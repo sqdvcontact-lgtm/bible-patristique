@@ -10,8 +10,20 @@ describe('navigation hiérarchique de l’apparat', () => {
       groupe('Livre deuxième', 'V', 'a1'),
       groupe('Livre troisième', 'XI', 'a2'),
     ])).toEqual([
-      { niv1: 'Livre deuxième', anchor: 'a0', niveaux2: [{ niv2: 'V', anchor: 'a0' }] },
-      { niv1: 'Livre troisième', anchor: 'a2', niveaux2: [{ niv2: 'XI', anchor: 'a2' }] },
+      { niv1: 'Livre deuxième', anchor: 'a0', niveaux2: [{ niv2: 'V', anchor: 'a0' }], section: 'editeur' },
+      { niv1: 'Livre troisième', anchor: 'a2', niveaux2: [{ niv2: 'XI', anchor: 'a2' }], section: 'editeur' },
+    ])
+  })
+
+  it('sépare deux pièces de même titre quand elles ne sont pas de la même main', () => {
+    const navigation = construireNavigationApparat([
+      { niv1: 'Préface', niv2: '', anchor: 'a0', section: 'auteur' },
+      { niv1: 'Préface', niv2: '', anchor: 'a1', section: 'editeur' },
+    ])
+
+    expect(navigation).toEqual([
+      { niv1: 'Préface', anchor: 'a0', niveaux2: [], section: 'auteur' },
+      { niv1: 'Préface', anchor: 'a1', niveaux2: [], section: 'editeur' },
     ])
   })
 

@@ -1,10 +1,13 @@
 import { mesureAlinea, marqueStrophe } from '@/app/lib/compositionVers'
 import { numeroVersetLisible } from '@/app/lib/compositionVersets'
 import {
+  AUCUN_ECHO,
   estLiminaireSansNiveau,
   estSegmentDeLApparat,
   limiterRequeteAuxLiminairesSansNiveau,
   limiterRequeteSegmentsALaSurface,
+  partagerLApparat,
+  sectionDApparat,
   segmentsDeLaSurface,
   SELECT_SEGMENT,
 } from '@/app/lib/oeuvreSelects'
@@ -460,6 +463,27 @@ export default async function OeuvrePage({
   // fait disparaître du rendu (régression du 18 août : le « Prologue de Rufin aux
   // livres X et XI » n'apparaissait plus entre le titre du Livre X et « Chapitre I »).
 
+  // Les divisions dont TOUT le corps est de la main de l'auteur : elles paraissent AUSSI
+  // dans la vue d'apparat, où l'auteur et l'éditeur se lisent désormais côte à côte, sous
+  // deux en-têtes (décision de l'auteur du 9 septembre 2026). ⚠️ La requête part ICI,
+  // avant la vague qui charge l'apparat, et n'est attendue qu'au moment de retrancher :
+  // elle ne coûte donc aucun aller-retour de plus dans la chaîne. ⛔ Une panne ne ferme
+  // rien et ne tronque rien : sans divisions, l'apparat est celui d'hier, sans écho.
+  // ⚠️ `PromiseLike` et non `Promise` : le constructeur PostgREST est « thenable » sans
+  // être une promesse, et son `.then` en rend une autre de même espèce. On l'attend, on
+  // ne l'enchaîne pas — c'est tout ce qu'on lui demande.
+  const promesseDivisionsEcho: PromiseLike<ReadonlySet<string>> = supabase
+    .rpc('get_niv1_apparat_auteur', { p_id_oeuvre: id, p_id_texte: idTexte })
+    .then(({ data, error }) => {
+      if (error) {
+        console.error(`Divisions d'apparat d'auteur illisibles (${idTexte}) :`, error)
+        return AUCUN_ECHO
+      }
+      return new Set(((data ?? []) as { ref_niv1: string | null }[])
+        .map(ligne => String(ligne.ref_niv1 ?? '').trim())
+        .filter(Boolean))
+    })
+
   async function chargerTousSegments(filtre: Record<string, string>) {
     // Applique le filtre a une requete (nature « texte » embarque les introductions).
     // ⚠️ `any` ASSUME ICI : `q` est un constructeur de requete PostgREST, dont le type
@@ -498,7 +522,14 @@ export default async function OeuvrePage({
       for (const r of restes) acc.push(...((r.data as Segment[]) ?? []))
     }
     const surface = filtre.nature === 'apparat' ? 'apparat' : 'corps'
-    const selectionnes = segmentsDeLaSurface(acc, surface)
+    // ⛔ L'apparat retranche AVEC les divisions : son filtre PostgREST ramène tous les
+    // `apparat_auteur` du texte, et seules les pièces entières y restent. Le corps, lui,
+    // n'a pas à les connaître — elles y sont chez elles, entières ou non.
+    const selectionnes = segmentsDeLaSurface(
+      acc,
+      surface,
+      surface === 'apparat' ? await promesseDivisionsEcho : AUCUN_ECHO,
+    )
     // Les liens ne sont plus portés par le segment : on les repose au format
     // attendu, avec le client du serveur — c'est ce rendu que le lecteur voit.
     await tolerer(degradations, LIENS_MANQUANTS, () => hydraterLiensHerites(selectionnes, supabase), () => selectionnes)
@@ -732,7 +763,12 @@ export default async function OeuvrePage({
   const niv1InitialPartiel = trancheInitiale.partiel
 
   const segmentsTexte = segmentsTexteRaw as Segment[]
-  const segmentsApparat = segmentsApparatRaw as Segment[]
+  // La vue d'apparat se lit en DEUX SECTIONS : l'apparat de l'auteur d'abord, celui de
+  // l'éditeur ensuite, chacun dans son ordre documentaire. ⛔ Elles se groupent
+  // SÉPARÉMENT (voir `partagerLApparat`) : un `ref_niv1` commun de part et d'autre de la
+  // frontière fondrait les deux pièces en un seul groupe, sous un en-tête qui mentirait.
+  const apparatParSection = partagerLApparat(segmentsApparatRaw as Segment[])
+  const segmentsApparat = [...apparatParSection.auteur, ...apparatParSection.editeur]
 
   // Lecture bilingue : l'original en regard vient de SES PROPRES segments, retrouvés par
   // l'alignement. Rien n'est recopié dans la traduction (voir `bilingueAlignement.ts`).
@@ -787,7 +823,7 @@ export default async function OeuvrePage({
   const auteurId = auteursOeuvre[0]?.id_auteur ?? (oeuvre.auteurs as AuteurEmbarque | null)?.id_auteur?.toString() ?? ''
 
   const groupes = grouper(segmentsTexte)
-  const groupesApparat = grouper(segmentsApparat)
+  const groupesApparat = [...grouper(apparatParSection.auteur), ...grouper(apparatParSection.editeur)]
   const numLocaux = numerotationLocale(segmentsTexte)
   const numLocauxApparat = numerotationLocale(segmentsApparat)
 
@@ -885,6 +921,9 @@ export default async function OeuvrePage({
     niv1_texte: g.niv1_texte, niv2_texte: g.niv2_texte,
     niv3_texte: g.niv3_texte, niv4_texte: g.niv4_texte,
     anchor: `a${gi}`, itemIds: g.items.map(s => s.id),
+    // ⚠️ Lue sur le PREMIER segment, et non sur un compte de groupes : les deux tranches
+    // sont groupées à part, un groupe est donc d'une seule main.
+    section: sectionDApparat(g.items[0]),
   }))
 
   return (

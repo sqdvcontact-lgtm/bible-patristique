@@ -2,6 +2,8 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
+  appartientALaSurface,
+  AUCUN_ECHO,
   estSegmentDeLApparat,
   estSegmentDuCorps,
   ESPACE_TEXTUEL_APPARAT,
@@ -12,6 +14,9 @@ import {
   limiterRequeteSegmentsALaSurface,
   NATURES_CORPS,
   NATURES_APPARAT,
+  NATURES_ECHO_APPARAT,
+  partagerLApparat,
+  sectionDApparat,
   segmentsDeLaSurface,
   SELECT_SEGMENT,
   surfaceDuSegment,
@@ -143,10 +148,14 @@ describe('espace_textuel prime sur la nature', () => {
     expect(surfaceDuSegment({ nature: 'texte' })).toBe('corps')
   })
 
+  // ⚠️ La PLACE DE LECTURE reste unique, même depuis que l'apparat de l'auteur PARAÎT
+  // sur deux surfaces : `surfaceDuSegment` dit où le segment vit, `appartientALaSurface`
+  // dit ce qu'une surface affiche, et c'est la première que suit `vueInitiale`.
   it('ne range jamais un segment simultanément au corps et à l’apparat', () => {
     const cas = [
       corps,
       signatureApparat,
+      { nature: 'apparat_auteur', ref_niv1: 'Prologue', espace_textuel: ESPACE_TEXTUEL_CORPS },
       { nature: 'signature', espace_textuel: null },
       { nature: 'apparat_critique', espace_textuel: null },
       { nature: 'apparat_editeur', espace_textuel: ESPACE_TEXTUEL_APPARAT },
@@ -173,6 +182,88 @@ describe('espace_textuel prime sur la nature', () => {
     appels.length = 0
     limiterRequeteSegmentsALaSurface(requete, 'apparat')
     expect(appels).toEqual([['or', FILTRE_APPARAT_POSTGREST]])
+  })
+})
+
+describe('l’apparat de l’auteur paraît sur DEUX surfaces, par pièces entières', () => {
+  const PIECES = new Set(['Prologue'])
+  const prologue = {
+    ref_niv1: 'Prologue',
+    nature: 'apparat_auteur',
+    espace_textuel: ESPACE_TEXTUEL_CORPS,
+  }
+  // Les dix paragraphes d’auteur pris au milieu du « Livre I » d’Eusèbe, qui en compte
+  // 209 : la division n’est pas d’une seule main, elle n’entre donc pas dans l’apparat.
+  const digression = {
+    ref_niv1: 'Livre I',
+    nature: 'apparat_auteur',
+    espace_textuel: ESPACE_TEXTUEL_CORPS,
+  }
+
+  it('garde le corps comme PLACE DE LECTURE, quoi qu’affiche l’apparat', () => {
+    expect(surfaceDuSegment(prologue)).toBe('corps')
+    expect(estSegmentDuCorps(prologue)).toBe(true)
+    // ⛔ C’est ce que suit `vueInitiale` : un lien profond vers le Prologue de Rufin
+    // ouvre le TEXTE, où la pièce se lit à sa place, et non l’apparat, où elle résonne.
+    expect(estSegmentDeLApparat(prologue)).toBe(false)
+  })
+
+  it('affiche une pièce entière des deux côtés', () => {
+    expect(appartientALaSurface(prologue, 'corps', PIECES)).toBe(true)
+    expect(appartientALaSurface(prologue, 'apparat', PIECES)).toBe(true)
+    expect(segmentsDeLaSurface([prologue], 'apparat', PIECES)).toEqual([prologue])
+  })
+
+  it('laisse au corps SEUL le fragment pris dans une division mixte', () => {
+    expect(appartientALaSurface(digression, 'corps', PIECES)).toBe(true)
+    expect(appartientALaSurface(digression, 'apparat', PIECES)).toBe(false)
+    expect(segmentsDeLaSurface([digression], 'apparat', PIECES)).toEqual([])
+  })
+
+  it('n’écho rien quand l’appelant ne connaît pas les divisions', () => {
+    // ⚠️ Le cas de l’extraction `.docx`, où corps et apparat se suivent dans un seul
+    // document : y répéter une préface serait un doublon, non une distinction.
+    expect(segmentsDeLaSurface([prologue], 'apparat')).toEqual([])
+    expect(segmentsDeLaSurface([prologue], 'apparat', AUCUN_ECHO)).toEqual([])
+    expect(segmentsDeLaSurface([prologue], 'corps')).toEqual([prologue])
+  })
+
+  it('range l’apparat en deux sections, l’auteur d’abord, l’ordre gardé', () => {
+    const avis = { ref_niv1: 'Avis au lecteur', nature: 'apparat_editeur', espace_textuel: ESPACE_TEXTUEL_APPARAT }
+    const privilege = { ref_niv1: 'Privilège du Roi', nature: 'apparat_editeur', espace_textuel: ESPACE_TEXTUEL_APPARAT }
+    const { auteur, editeur } = partagerLApparat([avis, prologue, privilege])
+    expect(auteur).toEqual([prologue])
+    expect(editeur).toEqual([avis, privilege])
+  })
+
+  it('rend à l’éditeur la nature héritée, qu’on ne reclasse jamais en masse', () => {
+    expect(sectionDApparat(prologue)).toBe('auteur')
+    expect(sectionDApparat({ nature: 'apparat_critique', espace_textuel: ESPACE_TEXTUEL_APPARAT })).toBe('editeur')
+    expect(sectionDApparat({ nature: 'signature', espace_textuel: ESPACE_TEXTUEL_APPARAT })).toBe('editeur')
+  })
+
+  it('demande la nature d’écho au filtre PostgREST de l’apparat', () => {
+    for (const nature of NATURES_ECHO_APPARAT) {
+      expect(FILTRE_APPARAT_POSTGREST).toContain(nature)
+      // ⚠️ Le corps la porte AUSSI, dans sa liste de repli : ces segments y sont chez
+      // eux, entiers ou fragments, et une seconde surface ne leur retire pas la leur.
+      expect(FILTRE_CORPS_POSTGREST).toContain(nature)
+    }
+  })
+
+  it('la RPC des pièces entières existe, et n’ouvre pas au rôle anonyme', () => {
+    const migrations = readdirSync(join(RACINE, 'supabase/migrations')).filter(f => f.endsWith('.sql')).sort()
+    const derniere = migrations.filter(f =>
+      lire(join('supabase/migrations', f)).includes('function public.get_niv1_apparat_auteur(p_id_oeuvre text, p_id_texte text)'),
+    ).pop()
+    expect(derniere, 'aucune migration ne définit get_niv1_apparat_auteur').toBeDefined()
+    const sql = lire(join('supabase/migrations', derniere!))
+    for (const nature of NATURES_ECHO_APPARAT) expect(sql).toContain(`'${nature}'`)
+    // ⛔ Une division n'est PURE que si rien d'une autre nature ne l'habite : c'est le
+    // `having` qui le dit, et le retirer ferait entrer tout le corps dans l'apparat.
+    expect(sql).toContain('having count(*) filter (where s.nature <> \'apparat_auteur\') = 0')
+    expect(sql).toMatch(/revoke execute on function public\.get_niv1_apparat_auteur\(text, text\) from public, anon;/)
+    expect(sql).toMatch(/grant execute on function public\.get_niv1_apparat_auteur\(text, text\) to authenticated, service_role;/)
   })
 })
 

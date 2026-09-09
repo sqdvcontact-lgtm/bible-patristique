@@ -72,6 +72,12 @@ async function chargerSegments(
   })
   // La surface se retranche AUSSI en mémoire : le filtre PostgREST est un `or` large,
   // la règle est dans `surfaceDuSegment`.
+  //
+  // ⛔ SANS l'écho de l'apparat d'auteur, et c'est délibéré : sur le site, le prologue se
+  // lit dans le texte et résonne dans l'onglet d'apparat, deux surfaces qu'on ouvre l'une
+  // ou l'autre ; ici, le corps et l'apparat se suivent dans UN SEUL document, où la même
+  // préface paraîtrait deux fois à quelques pages d'intervalle. C'est le défaut de
+  // `segmentsDeLaSurface` qui protège l'extraction, non un oubli d'appelant.
   return segmentsDeLaSurface(lignes as never[], surface) as LigneSegment[]
 }
 

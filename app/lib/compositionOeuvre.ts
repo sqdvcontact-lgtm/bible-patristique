@@ -561,6 +561,45 @@ export function styleSousTitreNiveau(rang: RangTitreOeuvre): CSSProperties {
 }
 
 /**
+ * L'EN-TÊTE D'UNE SECTION D'APPARAT — « ce qui suit est de l'auteur », « de l'éditeur ».
+ *
+ * L'apparat porte depuis le 9 septembre 2026 les DEUX apparats, celui de l'auteur et
+ * celui de l'éditeur, et il faut bien qu'on sache de qui l'on lit la préface : c'est
+ * toute la demande, et c'est tout ce que cet en-tête fait.
+ *
+ * ⛔ Il n'est PAS un titre de rang 1 et ne doit pas lui ressembler. Les rangs nomment des
+ * divisions de l'ŒUVRE ; celui-ci nomme une MAIN, et il en nomme deux dans la même page.
+ * D'où la capitale espacée du rang 4, le filet qui coupe franchement, et une encre en
+ * retrait de celle des titres : au-dessus d'eux dans la page, en dessous dans la voix.
+ *
+ * ⚠️ Il ne se compose QUE si la vue porte les deux mains — un en-tête seul ne distingue
+ * rien et poserait un titre là où le lecteur n'avait qu'une matière (voir la vue
+ * d'apparat, `OeuvreClient.tsx`).
+ */
+export const LIBELLE_SECTION_APPARAT = {
+  auteur: 'Apparat de l’auteur',
+  editeur: 'Apparat de l’éditeur',
+} as const
+
+export function styleEnteteSectionApparat({ premiere = false }: { premiere?: boolean } = {}): CSSProperties {
+  return {
+    fontFamily: SERIF,
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    letterSpacing: '0.14em',
+    textTransform: 'uppercase',
+    color: 'var(--cs-texte-second)',
+    textAlign: 'center',
+    // ⚠️ Le blanc d'entrée est celui d'une COUPURE, non d'un titre : trois fois et demie
+    // le corps du texte, quand un rang 1 en prend deux fois huit dixièmes. Sur la
+    // première section il n'y a rien à couper, et il tombe à zéro.
+    margin: premiere ? '0 0 1.7rem' : '3.6rem 0 1.7rem',
+    paddingBottom: '0.55rem',
+    borderBottom: '1px solid var(--cs-bord)',
+  } as CSSProperties
+}
+
+/**
  * La LETTRINE du premier segment d'une division.
  *
  * ⛔ C'est un FLOTTANT, et c'est ce qui lui interdit un vers ou un verset : posée

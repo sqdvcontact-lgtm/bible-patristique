@@ -48,8 +48,10 @@ import {
   styleAxeTexte, styleBlocVerset, styleGrilleRangee, styleRangeeVerset, styleTexteVerset,
 } from '@/app/lib/compositionBible'
 import {
+  LIBELLE_SECTION_APPARAT,
   STYLE_LETTRINE, STYLE_NUMERO_SEGMENT, STYLE_PREFIXE_LETTRINE, margeArgument,
-  styleArgument, styleBlocArgumentEnVers, styleBlocDeVers, styleLigneArgumentEnVers,
+  styleArgument, styleBlocArgumentEnVers, styleBlocDeVers, styleEnteteSectionApparat,
+  styleLigneArgumentEnVers,
   styleParagrapheApparat, styleParagrapheLecture,
   styleSousTitreNiveau, styleTitreNiveau,
 } from '@/app/lib/compositionOeuvre'
@@ -672,9 +674,26 @@ const APPARAT_OEUVRES: Unite[] = [
     ),
   },
   {
+    style: 'patristique_apparat/section — les deux mains',
+    note: 'L’en-tête qui coupe la vue d’apparat en deux : ce qui est de l’auteur, puis ce qui est de l’éditeur. Capitale espacée du rang 4, filet franc, encre en retrait des titres — au-dessus d’eux dans la page, en dessous dans la voix. Le blanc d’entrée est celui d’une coupure, 3,6 rem, et tombe à zéro sur la première section.',
+    alerte: '⚠️ Il ne se compose QUE si la vue porte les DEUX mains : un en-tête seul ne distingue rien et poserait un titre là où le lecteur n’avait qu’une matière. Sur les dix textes qui portent un apparat d’éditeur, la plupart n’ont aucune pièce d’auteur, et ne verront donc jamais cette forme. ⛔ Ce n’est pas un titre de rang 1 et il ne doit pas lui ressembler : les rangs nomment des divisions de l’œuvre, celui-ci nomme une main.',
+    contenu: (
+      <>
+        <div style={styleEnteteSectionApparat({ premiere: true })}>{LIBELLE_SECTION_APPARAT.auteur}</div>
+        <p style={styleParagrapheApparat()}>
+          <Segment n={1}>Prologue de Rufin aux livres X et XI. Il m’a paru bon de joindre à cette traduction ce que l’auteur n’avait pas écrit.</Segment>
+        </p>
+        <div style={styleEnteteSectionApparat()}>{LIBELLE_SECTION_APPARAT.editeur}</div>
+        <p style={styleParagrapheApparat()}>
+          <Segment n={2}>Avertissement du traducteur. On a suivi pour cette édition le texte de Migne, corrigé sur les leçons de Knöll partout où le sens l’exigeait.</Segment>
+        </p>
+      </>
+    ),
+  },
+  {
     style: 'patristique_apparat/apparat_auteur',
-    note: 'Préface, digression, argument ou autre paratexte rédigé par L’AUTEUR de l’œuvre. Il appartient à `NATURES_CORPS` et se lit à sa place dans le texte, avec la composition ordinaire : c’est du texte d’auteur, pas un appareil.',
-    alerte: '⛔ Son retrait de `NATURES_CORPS` avait fait disparaître, le 18 août 2026, le « Prologue de Rufin aux livres X et XI ». À ne pas confondre avec `apparat_critique`, l’apparat de l’ÉDITEUR, qui a sa propre vue.',
+    note: 'Préface, digression, argument ou autre paratexte rédigé par L’AUTEUR de l’œuvre. Il appartient à `NATURES_CORPS` et se lit à sa place dans le texte, avec la composition ordinaire : c’est du texte d’auteur, pas un appareil. Depuis le 9 septembre 2026 il paraît AUSSI dans la vue d’apparat, sous l’en-tête ci-dessus, quand la division entière est de sa main.',
+    alerte: '⛔ Son retrait de `NATURES_CORPS` avait fait disparaître, le 18 août 2026, le « Prologue de Rufin aux livres X et XI ». La seconde surface n’en retire donc AUCUNE : la pièce se lit toujours dans le fil, et un lien profond l’y ouvre. ⚠️ Par pièces ENTIÈRES seulement : trente-huit segments du corpus sont des paragraphes pris au milieu d’une division de prose, qui y paraîtraient sans le texte qui les entoure (`get_niv1_apparat_auteur`).',
     contenu: (
       <p style={styleParagrapheLecture()}>
         <Segment n={1}>Prologue de Rufin aux livres X et XI. Il m’a paru bon de joindre à cette traduction ce que l’auteur n’avait pas écrit, afin que l’histoire ne s’arrêtât point au milieu du chemin, et que le lecteur, conduit jusqu’au seuil de son propre temps, pût mesurer d’un seul regard le chemin parcouru par l’Église.</Segment>{' '}
@@ -684,7 +703,7 @@ const APPARAT_OEUVRES: Unite[] = [
   },
   {
     style: 'patristique_apparat/apparat_editeur',
-    note: 'Préface ou avertissement du traducteur, privilège, approbation : un paratexte EXTÉRIEUR à l’œuvre de l’auteur, et qui ne prétend pas en faire partie. Une contrainte de base lui impose `espace_textuel = apparat_critique`.',
+    note: 'Préface ou avertissement du traducteur, privilège, approbation : un paratexte EXTÉRIEUR à l’œuvre de l’auteur, et qui ne prétend pas en faire partie. ⚠️ Une contrainte de base (`segments_apparat_editeur_space_ck`) lui laisse DEUX espaces et lui refuse le corps : `apparat_critique`, où il se lit dans cette vue, ou `introduction`, où il se lit dans le fil des préliminaires — l’« Avis au lecteur » des Confessions y est, quand l’Approbation et le Privilège de la même édition sont ici.',
     contenu: (
       <p style={styleParagrapheApparat()}>
         <Segment n={3}>Avertissement du traducteur. On a suivi pour cette édition le texte de Migne, corrigé sur les leçons de Knöll partout où le sens l’exigeait, et sans jamais toucher à la ponctuation sans le dire.</Segment>{' '}
