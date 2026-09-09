@@ -122,6 +122,16 @@ function placeDansSonBloc(dedans: boolean, suiviDuMeme: boolean): 'suite' | 'fin
   return suiviDuMeme ? 'suite' : 'fin'
 }
 
+/** L’interligne de la prose de lecture. ⛔ Il se NOMME depuis le 2026-09-09 : le
+ *  préfixe de la lettrine descend d’exactement une ligne pour se poser sur la
+ *  première, et deux écritures du même nombre divergeraient au premier réglage. */
+export const INTERLIGNE_LECTURE = 1.62
+
+/** Le corps de la LETTRINE, en em du texte. Le préfixe s’y rapporte : posé DANS le
+ *  flottant, son `font-size` se compte en em de la lettrine, et `1 / 3.4` lui rend
+ *  exactement le corps du texte courant. */
+export const CORPS_LETTRINE = 3.4
+
 /** Le paragraphe de prose de la lecture, avec ses trois dérogations de nature. */
 export function styleParagrapheLecture({ signature, exergue, rubrique, masque }: FormeParagraphe = {}): CSSProperties {
   // ⛔ L'EXERGUE reste justifié, comme la prose : c'est son RETRAIT qui le détache, et
@@ -138,7 +148,7 @@ export function styleParagrapheLecture({ signature, exergue, rubrique, masque }:
     fontFamily: SERIF,
     fontSize: exergue ? `calc(${CORPS_LECTURE} * ${RAPPORT_CORPS_EXERGUE})` : CORPS_LECTURE,
     color: 'var(--cs-texte-fort)',
-    lineHeight: signature ? '1.32' : '1.62',
+    lineHeight: signature ? '1.32' : String(INTERLIGNE_LECTURE),
     textAlign: signature ? 'right' : rubrique ? 'center' : 'justify',
     textJustify: 'inter-word',
     fontStyle: rubrique ? 'italic' : undefined,
@@ -612,7 +622,7 @@ export function styleEnteteSectionApparat({ premiere = false }: { premiere?: boo
 export const STYLE_LETTRINE: CSSProperties = {
   float: 'left',
   fontFamily: SERIF,
-  fontSize: '3.4em',
+  fontSize: `${CORPS_LETTRINE}em`,
   lineHeight: '0.78',
   paddingRight: '5px',
   paddingTop: '3px',
@@ -625,14 +635,41 @@ export const STYLE_LETTRINE: CSSProperties = {
  * La ponctuation qui PRÉCÈDE la lettre ornée, glissée dans le même flottant.
  *
  * ⛔ Rendue à part, le flottant la rejetterait à DROITE de la lettrine : on lirait
- * « [V] «ous… » au lieu de « «Vous… ». Elle doit donc rester solidaire, en petit
- * corps calé sur le haut de la lettre.
+ * « [V] «ous… » au lieu de « «Vous… ». Elle reste donc solidaire du flottant.
+ *
+ * ⛔ ELLE SE POSE SUR LA LIGNE DE BASE DE LA PREMIÈRE LIGNE, et elle prend le CORPS
+ * DU TEXTE (décision de l’auteur, 2026-09-09, sur planche). Elle valait 0,34 em de la
+ * lettrine et se relevait de 0,72 em : elle flottait à mi-hauteur, entre la première
+ * ligne et la seconde, sans appartenir ni à l’ornement ni à la ligne. Mesuré sur la
+ * colonne réelle, la lettrine s’en trouvait en outre poussée de 12,2 px du fer.
+ *
+ * ⚠️ Les deux nombres se DÉDUISENT, ils ne se règlent pas. `1 / CORPS_LETTRINE` rend
+ * exactement le corps du texte courant, le `font-size` se comptant en em du flottant.
+ * Et `vertical-align` vaut une ligne entière de prose : la valeur est en em de
+ * l’élément, dont le corps EST celui du texte, si bien que `INTERLIGNE_LECTURE` y
+ * descend la ponctuation d’exactement une ligne. Mesuré : 0,00 px d’écart avec la
+ * ligne de base de la première ligne — à UN PIXEL près, et il faut le dire : la
+ * lettrine elle-même n’est pas calée sur une ligne du texte. Mesuré, sa ligne de base
+ * tombe à 20,05 px sous la première pour un interligne de 21,06 ; elle est posée à
+ * l’œil, par son `padding-top` et son interligne de 0,78. Le guillemet
+ * finit donc
+ * 1,01 px trop haut, soit un vingtième de ligne. ⛔ Ne pas le rattraper par un nombre :
+ * la valeur juste (1,542 em) dépend des métriques de la police et cesserait d’être
+ * vraie à la première retouche de la lettrine.
+ *
+ * ⚠️ L’ENCRE est celle du TEXTE, non celle de l’ornement : ce guillemet ouvre une
+ * citation dans la phrase de l’auteur, il n’appartient pas à la capitale gravée.
+ *
+ * ⚠️ QUATRE PARTIS ONT ÉTÉ ÉCARTÉS, et l’un d’eux par la mesure : faire PENDRE la
+ * ponctuation dans la marge rendait le fer à la lettrine (0,0 px contre 12,2), mais
+ * à la taille de l’ornement elle pendait de 19 px dans un rembourrage qui en fait 14,
+ * donc hors de l’écran sur un téléphone. Planche : `tmp/planche-lettrine-guillemet`.
  */
 export const STYLE_PREFIXE_LETTRINE: CSSProperties = {
-  fontSize: '0.34em',
-  verticalAlign: '0.72em',
+  fontSize: `${1 / CORPS_LETTRINE}em`,
+  verticalAlign: `${INTERLIGNE_LECTURE}em`,
   lineHeight: 1,
-  paddingRight: '1px',
+  color: 'var(--cs-texte-fort)',
 }
 
 /**
