@@ -8014,6 +8014,13 @@ destructuring est le seul signe d'un tel doublon, et elle ne se lit pas.
 `supabase/migrations/20260909120000_porte_ouverte_au_role_anonyme.sql` et son fichier de
 contrôles. Trois faits mesurés le 2026-09-09, à relire avant de la jouer :
 
+0. ⛔ **La politique existante appelle `is_admin()`, que `anon` ne peut plus exécuter.**
+   C'est le défaut que l'ÉPREUVE a trouvé, et il aurait fait échouer la première écriture :
+   ouvrir « Lecture des œuvres accessibles » à `anon` rendait 42501 sur la moindre lecture,
+   la fonction ayant été fermée à PUBLIC la veille. ⛔ On n'ouvre pas `is_admin()` pour
+   contourner cela — on AJOUTE deux politiques propres à `anon`, qui n'appellent rien.
+   ⚠️ **C'est la valeur de la transaction annulée** : une migration écrite et jamais jouée
+   n'est pas une migration éprouvée. Elle l'est désormais, relevé en pied de fichier.
 1. ⛔ **`auteurs` est fermée elle aussi, et sa politique trompe.** « Lecture publique des
    auteurs » porte sur `{public}` avec un qual à `true`, ce qui donne à croire la table
    ouverte ; `has_table_privilege('anon','auteurs','SELECT')` rend **faux**, le GRANT
@@ -8037,6 +8044,32 @@ contrôles. Trois faits mesurés le 2026-09-09, à relire avant de la jouer :
 un chapitre, une œuvre, une fiche d'auteur continueront de se rendre vides pour un moteur,
 ce qui vaut un *soft 404*.
 
+## ⚠️ LE CHUNK HORS FLUX DE SUSPENSE N'EST PAS UN DÉFAUT — ON L'AVAIT MESURÉ EN PLEIN VOL
+
+Relevé, puis DÉMENTI le même jour. L'audit avait annoncé que le document gardait un
+exemplaire complet de la page dans un `<div id="S:0" hidden>`, sur tout le site. C'était
+une mesure prise PENDANT le flux : React envoie bien la coquille puis le contenu dans des
+divs cachés, et c'est son script `$RC` qui les remet en place ensuite. Mesurer une seconde
+après l'arrivée, c'est compter deux fois ce qui n'existe qu'une fois.
+
+⛔ **Une page en cours de flux ne se mesure pas.** Attendre que tout soit joué — trois à
+cinq secondes suffisent — et vérifier que les divs cachés du corps sont VIDES.
+
+Relevé du 2026-09-09, après trois à huit secondes :
+
+| page | `<main>` | résidu caché |
+|---|---:|---|
+| `/accueil` | 1 | 0 nœud, 0 Ko |
+| `/bibliotheque` | 1 | 0 nœud |
+| `/?livre=MAT&chapitre=5` (Fillion) | — | 1 nœud, 0,1 Ko ; 48 versets, aucun en double |
+| `/contact` | **2** | **20 nœuds, 3 Ko, 7 % du document** |
+
+⚠️ **`/contact` est le seul cas, et il pèse trois kilo-octets.** Son `S:0` garde un
+`<main>` de dix-neuf nœuds que `$RC` ne reprend pas. Ce n'est pas le défaut consigné plus
+haut dans ce fichier pour la page Bible en août — celui-là valait 136 000 signes — et il ne
+justifie pas de toucher au `loading.tsx` de la racine, que l'auteur a demandé. Relevé,
+laissé tel quel.
+
 ## Ce qui reste, relevé et non traité
 
 - ⚠️ **`oeuvres_auteurs` est lue EN ENTIER, sans filtre** (une ligne au 2026-09-09) : sans
@@ -8047,3 +8080,4 @@ ce qui vaut un *soft 404*.
 - ⚠️ **Deux politiques SELECT identiques sur `oeuvres_auteurs`** (« Lecture des liaisons
   d'œuvres accessibles » et « lecture des co-signatures visibles ») : même table, même qual.
   Un doublon, à ranger.
+- ⚠️ **Le résidu de `/contact`**, ci-dessus.
