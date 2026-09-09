@@ -27,7 +27,23 @@ import { numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { parseNotes } from '@/app/lib/notes'
 import { sectionDApparat, type SectionApparat } from '@/app/lib/oeuvreSelects'
 import { identifiantOuvrage } from '@/app/lib/referenceBibliographique'
-import type { GroupeData, NoteAffichee, SegData } from './oeuvreTypes'
+import type { ChampTitre, GroupeData, NoteAffichee, SegData } from './oeuvreTypes'
+
+/** Les huit champs de titre, dans l'ordre où on les compose. */
+const CHAMPS_TITRE: readonly ChampTitre[] = [
+  'niv1', 'niv1_texte', 'niv2', 'niv2_texte', 'niv3', 'niv3_texte', 'niv4', 'niv4_texte',
+]
+
+/**
+ * Pose les appels de note d'un CHAMP DE TITRE.
+ *
+ * ⛔ Elle reçoit les clés de TOUS les segments du groupe, non celle du premier : dans les
+ * imports à notes structurées, l'ancre d'un chapeau tombe quelques segments plus loin —
+ * l'appel du chapeau du « Premier discours » est ancré au huitième segment des Discours
+ * sur la Genèse. C'est déjà ce que fait `notesDuTitre` pour le CONTENU de la note ; il
+ * fallait le faire aussi pour son APPEL.
+ */
+export type ProjeterTitre = (texte: string, cles: readonly string[], champ: ChampTitre) => string
 
 /**
  * Une ligne de `segments` telle que `SELECT_SEGMENT` la DEMANDE.
@@ -132,10 +148,14 @@ function entreDansLeCorps(s: SegmentBrut): boolean {
 export function grouper(
   segments: readonly SegmentBrut[],
   prefixeAncre = 'g',
-  options: { avecSection?: boolean } = {},
+  options: { avecSection?: boolean; projeterTitre?: ProjeterTitre } = {},
 ): GroupeData[] {
   type EnCours = Omit<GroupeData, 'anchor'> & { niv1_texte: string; niv2_texte: string; niv3_texte: string; niv4_texte: string }
   const groupes: EnCours[] = []
+  // Les clés de segment de chaque groupe, dans l'ordre : c'est là que se cherchent les
+  // ancres d'un titre.
+  const clesParGroupe: string[][] = []
+  let clesCourantes: string[] = []
   let cur: EnCours = {
     niv1: '', niv2: '', niv3: '', niv4: '',
     niv1_texte: '', niv2_texte: '', niv3_texte: '', niv4_texte: '',
@@ -147,8 +167,9 @@ export function grouper(
     const n1 = s.ref_niv1 || '', n2 = s.ref_niv2 || '', n3 = s.ref_niv3 || '', n4 = s.ref_niv4 || ''
     const section = options.avecSection ? sectionDApparat(s) : undefined
     if (n1 !== cur.niv1 || n2 !== cur.niv2 || n3 !== cur.niv3 || n4 !== cur.niv4 || section !== sectionCourante) {
-      if (cur.itemIds.length > 0) groupes.push({ ...cur })
+      if (cur.itemIds.length > 0) { groupes.push({ ...cur }); clesParGroupe.push(clesCourantes) }
       sectionCourante = section
+      clesCourantes = s.segment_key ? [s.segment_key] : []
       cur = {
         niv1: n1, niv2: n2, niv3: n3, niv4: n4,
         niv1_texte: s.ref_niv1_texte || '', niv2_texte: s.ref_niv2_texte || '',
@@ -156,10 +177,26 @@ export function grouper(
         itemIds: [s.id],
         ...(section ? { section } : {}),
       }
-    } else cur.itemIds.push(s.id)
+    } else {
+      cur.itemIds.push(s.id)
+      if (s.segment_key) clesCourantes.push(s.segment_key)
+    }
   }
-  if (cur.itemIds.length > 0) groupes.push({ ...cur })
-  return groupes.map((g, i) => ({ ...g, anchor: `${prefixeAncre}${i}` }))
+  if (cur.itemIds.length > 0) { groupes.push({ ...cur }); clesParGroupe.push(clesCourantes) }
+  return groupes.map((g, i) => {
+    const groupe: GroupeData = { ...g, anchor: `${prefixeAncre}${i}` }
+    if (!options.projeterTitre) return groupe
+    // ⛔ La projection se pose À CÔTÉ du titre, jamais à sa place : `niv1` est une
+    // identité, et un « [[12]] » glissé dedans romprait la navigation.
+    const projetes: Partial<Record<ChampTitre, string>> = {}
+    for (const champ of CHAMPS_TITRE) {
+      const brut = groupe[champ] ?? ''
+      if (!brut) continue
+      const pose = options.projeterTitre(brut, clesParGroupe[i] ?? [], champ)
+      if (pose !== brut) projetes[champ] = pose
+    }
+    return Object.keys(projetes).length > 0 ? { ...groupe, titresAffichage: projetes } : groupe
+  })
 }
 
 /**
@@ -247,6 +284,13 @@ export type ContexteProjection = {
   projeterAppels: (texte: string, cle: string | null) => string
   /** Pose les appels dans le texte ORIGINAL, dont les ancres sont indexées autrement. */
   projeterAppelsOriginal: (texte: string, cle: string | null) => string
+  /**
+   * Pose les appels dans un CHAMP DE TITRE. ⛔ Sans elle, une note qui vise
+   * `ref_niv1_texte`, `ref_niv2` ou un autre champ de titre n'a AUCUN appel : la
+   * projection ne connaissait que `segment_texte`, et laissait le reste de côté sans un
+   * mot (36 ancres du corpus, mesuré le 9 septembre 2026).
+   */
+  projeterTitre?: ProjeterTitre
   /** Le groupe d'alignement d'un segment, quand la surface le connaît déjà. */
   groupeOriginal?: (cle: string | null) => string | null
   /** L'apparat SEUL porte des notices bibliographiques. */
@@ -315,7 +359,10 @@ export function composerSegments(
   const contexte: ContexteProjection = { ...ctx, ordinaux }
   return {
     segments: bruts.filter(segmentAffichable).map(s => projeterSegment(s, contexte)),
-    groupes: grouper(bruts, options.prefixeAncre ?? 'g', { avecSection: options.avecSection }),
+    groupes: grouper(bruts, options.prefixeAncre ?? 'g', {
+      avecSection: options.avecSection,
+      projeterTitre: ctx.projeterTitre,
+    }),
     ordinaux,
   }
 }

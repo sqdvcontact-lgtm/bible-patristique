@@ -106,10 +106,24 @@ export type SegData = {
    *  plus qu'une projection de secours. `null` pour tout segment ordinaire. */
   ouvrageId?: number | null
 }
+/** Les huit champs de titre d'un groupe — ceux qu'une note peut viser. */
+export type ChampTitre = 'niv1' | 'niv1_texte' | 'niv2' | 'niv2_texte' | 'niv3' | 'niv3_texte' | 'niv4' | 'niv4_texte'
+
 export type GroupeData = {
   niv1: string; niv2: string; niv3: string; niv4: string
   niv1_texte?: string; niv2_texte?: string; niv3_texte?: string; niv4_texte?: string
   anchor: string; itemIds: number[]
+  /**
+   * Les titres AVEC leurs appels de note matérialisés, quand une ancre en vise un.
+   *
+   * ⛔ À CÔTÉ des titres, jamais à leur place : `niv1` est une IDENTITÉ — la navigation,
+   * le sommaire, `changerNiv1` et la RPC `get_niv1_list` s'y appuient tous —, et y
+   * glisser un « [[12]] » romprait le rapprochement. C'est le partage que `SegData` fait
+   * déjà entre `texte` et `texteAffichage`.
+   * ⚠️ Absent quand rien n'est à projeter, c'est-à-dire presque toujours : 36 ancres du
+   * corpus sont dans ce cas (mesuré le 9 septembre 2026).
+   */
+  titresAffichage?: Partial<Record<ChampTitre, string>>
   /** L'apparat SEUL en porte une : il se lit en deux sections, l'auteur puis l'éditeur
    *  (`partagerLApparat`). Absente au corps, qui n'a rien à distinguer. */
   section?: SectionApparat

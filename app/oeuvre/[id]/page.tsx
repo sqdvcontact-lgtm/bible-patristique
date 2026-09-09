@@ -20,7 +20,7 @@ import { JsonLd, donneesLivre, donneesFilAriane } from '@/app/lib/donneesStructu
 import { descriptionOeuvre, enTetesPartage, titreOeuvre } from '@/app/lib/metadonneesSeo'
 import { porteDesLiensBibliques } from '@/app/lib/metadonneesSeoServeur'
 import OeuvreClient from './OeuvreClient'
-import type { AlignementDisponible, TocEntry, VersionTextuelle } from './oeuvreTypes'
+import type { AlignementDisponible, ChampTitre, TocEntry, VersionTextuelle } from './oeuvreTypes'
 import {
   chargerProjectionBilingue,
   type BlocOriginal,
@@ -38,6 +38,7 @@ import { decomposerEdition, labelCourtVersion, libelleTraducteurVersion } from '
 import { chargerAuteursDOeuvre, libelleAuteurs } from '@/app/lib/auteursOeuvre'
 import { enumererTraducteurs } from '@/app/lib/traducteurs'
 import {
+  champDuTitre,
   projeterAppelsNotesStructureesSansFaillir,
   type AncreNoteStructureeProjection,
 } from '@/app/lib/appelsNotesStructurees'
@@ -743,8 +744,8 @@ export default async function OeuvrePage({
   // au-delà du segment, marqueur mal formé) est laissée de côté et comptée, le
   // segment se lit. La projection stricte levait, et une seule ancre fermait la page.
   const ancresRefusees = new Set<string>()
-  const projeter = (texte: string, ancres: AncreNoteStructureeProjection[] | undefined) =>
-    projeterAppelsNotesStructureesSansFaillir(texte, ancres, (_ancre, refus) => { ancresRefusees.add(refus) })
+  const projeter = (texte: string, ancres: AncreNoteStructureeProjection[] | undefined, champ?: string) =>
+    projeterAppelsNotesStructureesSansFaillir(texte, ancres, (_ancre, refus) => { ancresRefusees.add(refus) }, champ)
 
   // Le contexte que les DEUX surfaces partagent : ce qu'un segment ne peut pas déduire
   // de lui-même. Ce qui les sépare tient en trois mots — l'apparat porte des notices
@@ -757,6 +758,11 @@ export default async function OeuvrePage({
       projeter(texte, cle ? ancresNotesStructurees[cle] : undefined),
     projeterAppelsOriginal: (texte: string, cle: string | null) =>
       projeter(texte, cle ? ancresNotesOriginales[cle] : undefined),
+    // ⛔ Un CHAMP DE TITRE se projette comme le texte, et ses ancres se cherchent dans
+    // TOUS les segments du groupe : l'ancre d'un chapeau tombe parfois quelques segments
+    // plus loin que le premier.
+    projeterTitre: (texte: string, cles: readonly string[], champ: ChampTitre) =>
+      projeter(texte, cles.flatMap(cle => ancresNotesStructurees[cle] ?? []), champDuTitre(champ)),
     groupeOriginal: (cle: string | null) => (cle && projectionBilingue.groupeParCle.get(cle)) || null,
   }
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  champDuTitre,
   projeterAppelsNotesStructurees,
   type AncreNoteStructureeProjection,
 } from './appelsNotesStructurees'
@@ -54,5 +55,30 @@ describe('projection des appels de notes structurées', () => {
       .toThrow('Marqueur de note invalide')
     expect(() => projeterAppelsNotesStructurees('abc', [ancre('[[1]]', 4, 'note-1')]))
       .toThrow('Offset Unicode hors limites')
+  })
+})
+
+describe('champDuTitre — deux vocabulaires qui ne coïncident pas', () => {
+  it('rend le nom de la COLONNE, non celui du groupe de rendu', () => {
+    expect(champDuTitre('niv1')).toBe('ref_niv1')
+    expect(champDuTitre('niv2_texte')).toBe('ref_niv2_texte')
+  })
+})
+
+describe('le CHAMP visé par la projection', () => {
+  const surTitre: AncreNoteStructureeProjection = {
+    noteKey: 'n3', marker: '[[3]]', segmentOffsetUnicode: 5, sourceTarget: 'ref_niv1_texte',
+  }
+
+  it('laisse le texte intact quand le champ ne correspond pas', () => {
+    expect(projeterAppelsNotesStructurees('Sur la Genèse', [surTitre])).toBe('Sur la Genèse')
+  })
+
+  it('pose l’appel quand le champ correspond', () => {
+    expect(projeterAppelsNotesStructurees('Sur la Genèse', [surTitre], 'ref_niv1_texte')).toBe('Sur l[[3]]a Genèse')
+  })
+
+  it('ne double jamais un marqueur déjà matériel', () => {
+    expect(projeterAppelsNotesStructurees('Sur l[[3]]a Genèse', [surTitre], 'ref_niv1_texte')).toBe('Sur l[[3]]a Genèse')
   })
 })

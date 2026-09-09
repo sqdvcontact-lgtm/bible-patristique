@@ -31,6 +31,34 @@ export function refusDAncre(ancre: AncreNoteStructureeProjection, longueur: numb
 type SurRefus = (ancre: AncreNoteStructureeProjection, refus: string) => void
 
 /**
+ * LE CHAMP dans lequel on projette — `source_target` de l'ancre (charte § 13.6).
+ *
+ * ⛔ La projection ne connaissait que `segment_texte`, et TOUT LE RESTE était laissé de
+ * côté SANS UN MOT. Mesuré le 9 septembre 2026 : 36 ancres du corpus visent un champ de
+ * TITRE sans porter leur marqueur matériellement — 30 sur `ref_niv1_texte` et 3 sur
+ * `ref_niv2` dans les Homélies sur la Genèse, une sur `ref_niv1_texte` dans les
+ * Catéchèses, deux sur `work_title` (Annotations sur le livre de Job, De la vanité des
+ * idoles). Leur appel ne paraissait NULLE PART, et rien ne le disait.
+ *
+ * ⚠️ Les 57 autres ancres de titre du corpus portent leur marqueur DANS le champ : elles
+ * se rendaient déjà, et la projection les laisse telles quelles (elle ne double jamais un
+ * marqueur matériel).
+ */
+export const CHAMP_SEGMENT = 'segment_texte'
+
+/**
+ * Le nom que `source_target` donne à un CHAMP DE TITRE.
+ *
+ * ⛔ Les deux vocabulaires ne coïncident PAS : un groupe de rendu appelle son titre
+ * `niv1`, l'ancre nomme la COLONNE de `segments`, `ref_niv1`. Projeter sur le nom du
+ * groupe ne trouverait aucune ancre, et l'appel manquerait sans un mot — c'est
+ * exactement le défaut qu'on vient de fermer.
+ */
+export function champDuTitre(champ: string): string {
+  return `ref_${champ}`
+}
+
+/**
  * Reconstruit la projection textuelle des appels de notes à partir des ancres
  * structurées. Les offsets Postgres comptent les points de code Unicode depuis
  * zéro ; `Array.from` reproduit cette convention, contrairement aux indices
@@ -47,8 +75,9 @@ type SurRefus = (ancre: AncreNoteStructureeProjection, refus: string) => void
 export function projeterAppelsNotesStructurees(
   texte: string,
   ancres: readonly AncreNoteStructureeProjection[] | null | undefined,
+  champ: string = CHAMP_SEGMENT,
 ): string {
-  return projeter(texte, ancres, (_ancre, refus) => { throw new Error(refus) })
+  return projeter(texte, ancres, (_ancre, refus) => { throw new Error(refus) }, champ)
 }
 
 /** La même projection, pour une PAGE : une ancre que le texte ne peut pas recevoir
@@ -58,8 +87,9 @@ export function projeterAppelsNotesStructureesSansFaillir(
   texte: string,
   ancres: readonly AncreNoteStructureeProjection[] | null | undefined,
   signaler: SurRefus,
+  champ: string = CHAMP_SEGMENT,
 ): string {
-  return projeter(texte, ancres, signaler)
+  return projeter(texte, ancres, signaler, champ)
 }
 
 /** Pour une surface rendue par le NAVIGATEUR (rechargement d'une division ou de
@@ -68,14 +98,16 @@ export function projeterAppelsNotesStructureesSansFaillir(
 export function projeterAppelsNotesStructureesEnSignalant(
   texte: string,
   ancres: readonly AncreNoteStructureeProjection[] | null | undefined,
+  champ: string = CHAMP_SEGMENT,
 ): string {
-  return projeter(texte, ancres, (_ancre, refus) => { console.error('[lecture] appel de note laissé de côté :', refus) })
+  return projeter(texte, ancres, (_ancre, refus) => { console.error('[lecture] appel de note laissé de côté :', refus) }, champ)
 }
 
 function projeter(
   texte: string,
   ancres: readonly AncreNoteStructureeProjection[] | null | undefined,
   surRefus: SurRefus,
+  champ: string = CHAMP_SEGMENT,
 ): string {
   if (!ancres?.length) return texte
 
@@ -84,7 +116,7 @@ function projeter(
   const dejaPlanifies = new Set<string>()
 
   for (const ancre of ancres) {
-    if (ancre.sourceTarget !== 'segment_texte') continue
+    if (ancre.sourceTarget !== champ) continue
     const refus = refusDAncre(ancre, pointsDeCode.length)
     if (refus !== null) {
       surRefus(ancre, refus)

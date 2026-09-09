@@ -216,3 +216,35 @@ describe('composerSegments', () => {
     expect(segments[1].texteOriginalAffichage).toBe('in principio')
   })
 })
+
+describe('grouper — la projection des CHAMPS DE TITRE', () => {
+  const groupeDeux = [
+    seg({ id: 1, segment_key: 'a', ref_niv1: 'Premier discours', ref_niv1_texte: 'Sur la Genèse' }),
+    seg({ id: 2, segment_key: 'b', ref_niv1: 'Premier discours', ref_niv1_texte: 'Sur la Genèse' }),
+  ]
+
+  it('pose l’appel À CÔTÉ du titre, jamais à sa place', () => {
+    const [g] = grouper(groupeDeux, 'g', { projeterTitre: (t, _c, champ) => (champ === 'niv1' ? `${t}[[7]]` : t) })
+    // ⛔ Le titre CANONIQUE ne bouge pas : c'est lui que la navigation compare.
+    expect(g.niv1).toBe('Premier discours')
+    expect(g.titresAffichage).toEqual({ niv1: 'Premier discours[[7]]' })
+  })
+
+  it('cherche les ancres dans TOUS les segments du groupe, non dans le premier', () => {
+    // Le cas des Discours sur la Genèse : l'ancre du chapeau tombe plus loin.
+    const vues: string[][] = []
+    grouper(groupeDeux, 'g', { projeterTitre: (t, cles) => { vues.push([...cles]); return t } })
+    expect(vues[0]).toEqual(['a', 'b'])
+  })
+
+  it('ne pose rien quand la projection ne change rien', () => {
+    const [g] = grouper(groupeDeux, 'g', { projeterTitre: t => t })
+    expect(g.titresAffichage).toBeUndefined()
+  })
+
+  it('sans projection, le groupe est celui d’avant', () => {
+    const [g] = grouper(groupeDeux)
+    expect(g.titresAffichage).toBeUndefined()
+    expect(g.niv1).toBe('Premier discours')
+  })
+})
