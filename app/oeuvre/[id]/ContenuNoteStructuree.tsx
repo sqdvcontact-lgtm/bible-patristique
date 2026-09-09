@@ -5,7 +5,12 @@ import type { NoteBlocData, NoteStructuree } from './oeuvreTypes'
 import { normaliserReferencesDansTexte, terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { estNoteApparatCritique } from '@/app/lib/apparatCritique'
-import { familleDeNature, natureSeNormaliseCommeReference } from '@/app/lib/naturesNote'
+import {
+  familleDeNature,
+  natureReprendLeTexte,
+  natureSeNormaliseCommeReference,
+  natureSuitSaCibleEnLigne,
+} from '@/app/lib/naturesNote'
 import { ContenuApparatCritique } from './ApparatCritique'
 import { rendreTexteEnrichi } from './texteEnrichi'
 import * as BibliographieNote from './noteBibliographie'
@@ -135,7 +140,7 @@ const STYLE_DISCRET = { fontSize: '0.92em', color: 'var(--cs-texte-second)' } as
 function estReferenceRattachee(block: NoteBlocData) {
   return Boolean(
     block.targetBlockId
-    && (block.kind === 'reference' || block.kind === 'attribution')
+    && natureSuitSaCibleEnLigne(block.kind)
     && (block.rendering === RENDU_INLINE || block.rendering === RENDU_RETOUR_VERSE),
   )
 }
@@ -266,7 +271,10 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
             style={{
               margin: `0 0 ${MARGE_PARAGRAPHE_ENCART}`,
               whiteSpace: verse || referencesApresVers.length > 0 ? 'pre-line' : 'normal',
-              fontStyle: estBlocEnLatin(block) ? 'italic' : 'normal',
+              // La reprise s'italise où qu'elle paraisse : en tête sur la ligne du
+              // propos, au milieu d'une note, ou seule. La règle se dit alors d'un
+              // trait — « le lemme est en italique » — et ne dépend pas d'un rang.
+              fontStyle: estBlocEnLatin(block) || natureReprendLeTexte(block.kind) ? 'italic' : 'normal',
               // Les vers cités dans une note ne portent plus d'étiquette « Vers » : ils se
               // signalent par une police un peu plus petite et un léger retrait à gauche.
               fontSize: verse ? '0.9em' : undefined,
@@ -274,19 +282,28 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
               borderLeft: traduction ? '2px solid var(--cs-or-doux)' : undefined,
             }}
           >
-            {ouverture.map(ancrage => (
-              <span
-                key={ancrage.blockId}
-                lang={ancrage.language ?? undefined}
-                data-block-id={ancrage.blockId}
-                data-kind={ancrage.kind}
-                data-famille="ancrage"
-                data-needs-review={String(ancrage.needsReview)}
-                style={{ ...STYLE_DISCRET, fontStyle: estBlocEnLatin(ancrage) ? 'italic' : undefined }}
-              >
-                {rendreTexteEnrichi(texteBloc(ancrage))}{' '}
-              </span>
-            ))}
+            {ouverture.map(ancrage => {
+              // La REPRISE d'un mot de l'œuvre se compose en italique, à la mesure du
+              // texte ; la COORDONNÉE de l'appareil garde le repère discret. Charte
+              // § 13.11, la raison nommée qui sépare deux natures d'une même famille.
+              const reprise = natureReprendLeTexte(ancrage.kind)
+              return (
+                <span
+                  key={ancrage.blockId}
+                  lang={ancrage.language ?? undefined}
+                  data-block-id={ancrage.blockId}
+                  data-kind={ancrage.kind}
+                  data-famille="ancrage"
+                  data-needs-review={String(ancrage.needsReview)}
+                  style={{
+                    ...(reprise ? null : STYLE_DISCRET),
+                    fontStyle: reprise || estBlocEnLatin(ancrage) ? 'italic' : undefined,
+                  }}
+                >
+                  {rendreTexteEnrichi(texteBloc(ancrage))}{' '}
+                </span>
+              )
+            })}
             {rendreBlocAvecBibliographie(block, bibliographieParBloc[block.blockId] ?? [], finSurTexte)}
             {referencesInline.map((reference, i) => (
               <span

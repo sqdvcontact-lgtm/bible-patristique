@@ -4,7 +4,9 @@ import {
   NATURES_BLOC_NOTE,
   familleDeNature,
   natureBlocNoteSur,
+  natureReprendLeTexte,
   natureSeNormaliseCommeReference,
+  natureSuitSaCibleEnLigne,
 } from './naturesNote'
 
 describe('naturesNote', () => {
@@ -47,5 +49,26 @@ describe('naturesNote', () => {
     expect(natureSeNormaliseCommeReference('source_locator')).toBe(false)
     expect(natureSeNormaliseCommeReference('commentary')).toBe(false)
     expect(natureSeNormaliseCommeReference(null)).toBe(false)
+  })
+
+  it('ne tient pour REPRISE du texte que le lemme', () => {
+    // La raison nommée qui sépare les deux ancrages : le lemme est un mot de l'œuvre,
+    // la coordonnée un repère de l'appareil. Sans elle, ils se confondraient sur la
+    // même ligne dans les 396 notes que la passe 3 va fendre.
+    expect(natureReprendLeTexte('lemma')).toBe(true)
+    expect(natureReprendLeTexte('source_locator')).toBe(false)
+    expect(natureReprendLeTexte('quotation')).toBe(false)
+    expect(natureReprendLeTexte(null)).toBe(false)
+  })
+
+  it('laisse suivre sa cible en ligne TOUTE la famille du renvoi, et l’attribution', () => {
+    expect(natureSuitSaCibleEnLigne('reference')).toBe(true)
+    expect(natureSuitSaCibleEnLigne('internal_cross_reference')).toBe(true)
+    expect(natureSuitSaCibleEnLigne('attribution')).toBe(true)
+    // Le propos, l'ancrage et la citation font paragraphe : ils ne suivent rien.
+    expect(natureSuitSaCibleEnLigne('commentary')).toBe(false)
+    expect(natureSuitSaCibleEnLigne('lemma')).toBe(false)
+    expect(natureSuitSaCibleEnLigne('quotation')).toBe(false)
+    expect(natureSuitSaCibleEnLigne(null)).toBe(false)
   })
 })

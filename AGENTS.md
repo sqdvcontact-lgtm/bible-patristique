@@ -8315,3 +8315,30 @@ qu'aucun fichier déjà suivi n'est devenu ignoré :
 passe, jamais rejoués. Les nettoyer ne change rien pour le lecteur. ⛔ C'est le tiers de la
 dette apparente, et c'est celui qui ne vaut pas d'être payé.
 ⚠️ `--fix` n'en règle que cinq : ESLint ne supprime pas du code.
+
+# ⛔ Un `editorial_role` hors vocabulaire ne se voit PAS (2026-09-09)
+
+`libelleTypeNote` rend « Note » sur toute valeur inconnue — exactement ce qu'il rend sur une
+note jamais typée. Un rôle que le code ignore n'a donc **aucun symptôme** : 1 037 blocs en
+portaient un, dont **258 notes du traducteur qui s'annonçaient « Note » depuis leur import**,
+et rien ne l'avait jamais signalé. ⛔ Le vocabulaire est CLOS (`app/lib/typeNote.ts`, plus le
+rôle d'apparat) ; un import qui invente une valeur la perd en silence.
+
+⚠️ **Le contrôle** : `node scripts/controle-roles-notes.mjs`. Il lit le vocabulaire DANS le
+code — jamais une copie —, liste les rôles hors liste texte par texte et sort en échec s'il
+en trouve un. À passer après tout import de notes. Charte § 13.12.4.
+
+⛔ Et la colonne voisine `rendering` n'a, elle, AUCUN vocabulaire : 7 787 blocs en portent un,
+le rendu n'en lit que 79, et 26 portent la chaîne `{}`, qui n'est le nom de rien.
+
+# ⚠️ Une nature neuve se cherche dans TOUTES les listes écrites à la main (2026-09-09)
+
+`internal_cross_reference` est entré au vocabulaire le 5 septembre, et le rendu qui décide
+si un bloc suit sa cible en ligne testait encore `kind === 'reference' || kind === 'attribution'`.
+Un renvoi interne posé `inline_after_target` aurait donc fait paragraphe **en silence**, et le
+défaut se serait lu comme une donnée fautive plutôt que comme un rendu qui l'ignore.
+
+⛔ **Tester la FAMILLE, non la liste** (`familleDeNature`, `natureSuitSaCibleEnLigne`) : une
+famille accueille la nature suivante sans qu'on y pense, une énumération jamais. ⚠️ Le
+vocabulaire a une source unique, mais rien n'oblige les fonctions qui le CONSOMMENT à passer
+par elle : c'est là que la prochaine nature se perdra.

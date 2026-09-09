@@ -40,6 +40,42 @@ describe('ContenuNoteStructuree — les natures neuves', () => {
     expect(html.indexOf('Avec les démons')).toBeLessThan(html.indexOf('On peut consulter'))
   })
 
+  it('sépare la REPRISE du texte de la COORDONNÉE de l’appareil', () => {
+    // Les deux sont de la famille `ancrage` et s'ouvrent sur la ligne du propos ; mais
+    // le lemme est un mot de l'œuvre, et la coordonnée un repère de l'imprimé. Chez
+    // Faivre ils se touchent, et 396 notes vont les porter ensemble : les composer
+    // pareillement les confondrait. Charte § 13.11, la raison nommée.
+    const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
+      block({ blockId: 'loc', rank: 100, kind: 'source_locator', text: '(V) pag. 178.' }),
+      block({ blockId: 'lem', rank: 200, kind: 'lemma', text: 'Avec les démons les plus féroces.' }),
+      block({ blockId: 'com', rank: 300, kind: 'commentary', text: 'On peut consulter Tertullien.' }),
+    )} />)
+    const balise = (kind: string) => html.match(new RegExp(`<span[^>]*data-kind="${kind}"[^>]*>`, 'u'))?.[0] ?? ''
+
+    expect(balise('lemma')).toContain('font-style:italic')
+    expect(balise('lemma')).not.toContain('cs-texte-second')
+    expect(balise('source_locator')).toContain('cs-texte-second')
+    expect(balise('source_locator')).not.toContain('font-style:italic')
+  })
+
+  it('laisse un RENVOI INTERNE suivre sa cible en ligne, comme l’autre renvoi', () => {
+    // Toute la famille `renvoi` se compose de même : seule la normalisation les sépare.
+    // ⛔ Sans cela, un renvoi interne posé `inline_after_target` ferait paragraphe en
+    // silence, et le défaut se lirait comme une donnée fautive.
+    const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
+      block({ blockId: 'com', rank: 100, kind: 'commentary', text: 'Le propos.' }),
+      block({
+        blockId: 'ren', rank: 200, kind: 'internal_cross_reference',
+        text: 'Voyez la note I, p. 150.', rendering: 'inline_after_target', targetBlockId: 'com',
+      }),
+    )} />)
+
+    expect(html).not.toMatch(/<div[^>]*data-kind="internal_cross_reference"/)
+    expect(html).toMatch(/<span[^>]*data-kind="internal_cross_reference"/)
+    // Il reste dans le paragraphe de sa cible, et garde ses chiffres de note.
+    expect(html).toContain('Voyez la note I, p. 150.')
+  })
+
   it('marque la famille de chaque bloc, pour que la composition s’y adosse', () => {
     const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
       block({ blockId: 'com', kind: 'commentary', text: 'Le propos.' }),

@@ -1519,6 +1519,23 @@ La traduction part du texte original établi dans Corpus Scriptura. ⛔ **Les tr
 
 **Notes de traduction.** Une note est requise lorsqu’un choix difficile infléchit sensiblement le sens, lorsqu’un terme chrétien ou médiéval possède une valeur technique, lorsqu’un mot français rare ou étymologiquement proche risque d’être mal compris, lorsqu’une ambiguïté de l’original ne peut être conservée sans explication, ou lorsqu’un problème textuel affecte la traduction. La note indique aussi brièvement que nécessaire le lemme ou la construction source, le choix retenu, l’alternative importante et la raison de l’arbitrage ; le dictionnaire de contrôle peut être nommé lorsqu’il a réellement déterminé la décision. ⚠️ **Les choix évidents ne sont pas surannotés.**
 
+**Profil particulier — Bible française du XIIIe siècle / TR0013.** La cible est un français contemporain intelligible qui conserve volontairement une couleur médiévale lorsque celle-ci naît du témoin lui-même. Cette couleur est un effet de fidélité, non une stylisation : un lexème ancien ou rare, une famille étymologique, une répétition, une image, un ordre des mots ou une construction légèrement étrangère peuvent être maintenus s’ils rendent mieux la valeur du texte médiéval sans produire de contresens ni d’opacité réelle. L’interdiction des archaïsmes décoratifs et des faux médiévismes demeure absolue.
+
+**Critère d’acceptation.** Un choix non pleinement moderne est conservé lorsqu’il réunit quatre conditions : (1) il est motivé par la lettre, la sémantique ou la texture du témoin ; (2) il ne déplace ni n’amplifie le sens ; (3) il reste intelligible dans son contexte ; (4) il est cohérent avec les choix déjà retenus pour le même lexème ou la même construction. Une modernisation n’est requise que si la forme devient trompeuse, faussement pittoresque, grammaticalement intenable ou réellement obscure.
+
+**Note éditoriale obligatoire pour les choix marqués.** Tout lexème rare ou archaïque, sens ancien d’un mot courant, calque syntaxique inhabituel ou autre forme volontairement non courante que le lecteur pourrait prendre pour une maladresse ou un archaïsme gratuit reçoit une note éditoriale locale de traduction. La note donne au minimum la forme ou construction source, le sens retenu et la raison du maintien ; elle peut fournir un équivalent français courant lorsqu’il éclaire le choix. Dans `bible_verse_notes`, ce cas relève normalement de `note_subtype='translation'`. Lorsqu’elle vise un mot ou groupe de mots déterminé, l’ancre doit être aussi précise que le modèle le permet ; le `canon_id` sert de contexte de navigation et ne remplace pas une ancre segmentaire lorsqu’une cible précise existe. La cadence générale ou une légère saveur ancienne qui ne repose pas sur un élément lexical ou syntaxique identifiable n’est pas surannotée.
+
+**Protocole obligatoire pour chaque nouvel élément traduit de TR0013.**
+1. Identifier l’empan source exact et son statut : canonique, surnuméraire, glose, dittographie, lacune, lecture incertaine ou autre phénomène ; ne jamais partir du seul AELF ou de la Vulgate.
+2. Traduire d’abord le témoin : conserver le contenu, l’ordre logique, les répétitions, les images et les étrangetés signifiantes ; ne suppléer aucune lacune depuis une autre Bible.
+3. Contrôler le lexique et les constructions récurrentes contre le contexte du témoin et le relevé terminologique de la mission ; éviter les variations gratuites.
+4. Décider explicitement du degré de modernisation. Une couleur médiévale motivée est conservée ; un archaïsme décoratif est éliminé ; une forme réellement obscure est modernisée ou expliquée.
+5. Créer ou compléter la note éditoriale locale dès qu’un choix marqué de couleur médiévale est volontairement maintenu, ou lorsqu’une ambiguïté, une restitution, une lecture incertaine ou un problème textuel influe sur la traduction.
+6. Vérifier la structure : un hors-canon reste `MANUSCRIPT_EXTRA`; une glose n’est déclarée `phenomenon='gloss'` qu’après preuve ; une intercalation intra-verset conserve l’ordre matériel et, si nécessaire, ses fragments cibles sans duplication du texte.
+7. Effectuer un contrôle anti-omission et anti-amplification sur l’empan : comparaison littérale source/cible, longueur comme simple alerte, et vérification du voisinage lorsqu’un écart est anormal. Aucun score ne vaut validation philologique.
+8. Contrôler les marques critiques et la typographie : balises d’incertitude/lacune selon le vocabulaire autorisé, délimiteurs équilibrés à l’échelle pertinente, guillemets et ponctuation cohérents.
+9. Avant clôture de l’élément, vérifier ensemble le texte cible, son alignement, son éventuel surnuméraire, ses notes et ancres, l’ordre matériel et la recomposition. Toute correction ultérieure rouvre ces contrôles dépendants.
+
 **Forme littéraire.** La forme de la traduction cible est déclarée par mission. Quand la mission conserve la poésie en vers, la ligne de vers est maintenue sans chercher à reproduire le mètre : ⛔ **sauf consigne contraire, on n’imite ni le mètre, ni la rime, ni une compensation métrique**. ⛔ **Si la mission demande une traduction en prose, la ligne de vers n’est pas recréée.** La structure poétique de l’original demeure conservée dans son propre texte et ses métadonnées ; les effets poétiques indispensables au sens peuvent être signalés en note.
 
 **Phase d’essai.** Des essais peuvent être produits hors publication avant création ou promotion d’une version textuelle. Tant que le protocole lexical et stylistique n’est pas approuvé, ⛔ **ces essais restent expérimentaux, privés et non validés humainement**. ⛔ **La matérialisation en base ne commence qu’après fixation du profil de traduction de la mission**, de son étiquetage d’origine et de sa méthode d’alignement avec l’original.
@@ -1955,6 +1972,18 @@ Les huit natures du § 13.10 ne forment pas une liste plate. Chacune appartient 
 ⛔ **L'ITALIQUE DE LA LANGUE ne porte que sur le bloc ENTIER**, celui dont `language` déclare la langue. Le latin ENCHÂSSÉ dans une note française — le cas le plus fréquent et le plus coûteux — n'est pas de ce ressort : aucune donnée ne dit où il commence, et le deviner au rendu italiserait du français. Il s'écrit par marqueur, dans le texte, à la passe 5.
 
 
+#### 13.11.2 Ce que la composition SÉPARE dans une même famille (9 septembre 2026)
+
+⛔ **LA REPRISE N'EST PAS LA COORDONNÉE.** `lemma` et `source_locator` sont tous deux de la famille `ancrage`, tous deux s'ouvrent sur la ligne du propos, et le § 13.11 les composerait donc de même. Voici la raison NOMMÉE qu'il réclame : **le lemme est un mot de l'ŒUVRE, que la note cite avant de le commenter ; la coordonnée est un repère de l'APPAREIL, que le lecteur traverse.** Un seul gris pour les deux les rendrait indiscernables précisément là où ils se touchent — chez Faivre, « (V) pag. 178. — *Avec les démons les plus féroces* — On peut consulter… » les range sur la même ligne, et la passe 3 va en poser 396 de cette forme.
+
+- **La reprise se compose en ITALIQUE**, à la teinte et à la mesure du texte, comme toute édition savante compose son lemme.
+- **La coordonnée garde le repère discret** : 0,92 em, teinte seconde.
+- ⚠️ **Où qu'elle paraisse** : en tête sur la ligne du propos, au milieu d'une note, ou seule. La règle se dit alors d'un trait — *le lemme est en italique* — et ne tient pas à un rang. Mesuré le 9 septembre 2026 : les 126 lemmes du corpus ouvrent tous leur note et sont tous suivis d'un propos, mais une règle qui tiendrait à cela se briserait au premier import qui en placerait un ailleurs.
+- ⚠️ **Rien ne se cumule** : un lemme latin est déjà italique par sa langue (§ 13.8), et les deux règles disent alors la même chose.
+
+⛔ **TOUTE LA FAMILLE DU RENVOI SUIT SA CIBLE EN LIGNE**, et non le seul `reference`. Le rendu ne rattachait que `reference` et `attribution` : un `internal_cross_reference` posé avec `rendering = 'inline_after_target'` aurait fait paragraphe **en silence**, et le défaut se serait lu comme une donnée fautive plutôt que comme un rendu qui l'ignore. C'est le § 13.11 pris à la lettre : deux natures d'une même famille se composent de même, et ici seule la NORMALISATION les sépare. `natureSuitSaCibleEnLigne`, dans `app/lib/naturesNote.ts`.
+
+
 ### 13.12 Ce que l’auteur a TRANCHÉ le 5 septembre 2026
 
 Douze questions posées dans `work/notes/QUESTIONS_NOTES_20260905.txt`, toutes MESURÉES sur le corpus réel avant d’être posées, et par les fonctions du site elles-mêmes plutôt que par une copie de leurs règles. Ce qui suit est la réponse de l’auteur : elle commande les passes du protocole. ⚠️ Aucune donnée n’a été écrite le jour de l’arbitrage — la charte d’abord (§ 7.6), la donnée ensuite.
@@ -2040,6 +2069,29 @@ Demandé par l’auteur le 5 septembre 2026 : « Il faut évidemment lister les 
 ⚠️ **« DÉPUBLIER » N’EXISTE PAS ENCORE POUR UNE NOTE**, et la décision 8 le demande. `texte_note_blocs` porte `needs_review`, que la charte tient pour un signal de prudence et qui ne masque rien par lui-même ; aucune colonne, aucune métadonnée lue par le site ne retire un bloc de la lecture. ⛔ Le mécanisme se pose AVANT la passe, non pendant, et il vaudra pour tout bloc qu’on voudra retenir — non pour les seuls treize « ibid. » orphelins.
 
 ⚠️ **Le RENVOI INTERNE reste un texte, non un lien.** La nature `internal_cross_reference` existe (§ 13.10) et sépare déjà ce qui pointe au dedans de ce qui pointe au dehors ; mais rien ne DÉSIGNE encore le segment ou la note visés. La décision 4 le prépare — on lit, on juge, on range — et la cible se posera quand le modèle saura la porter.
+
+
+#### 13.12.4 Les rôles HORS VOCABULAIRE, et l'axe `rendering` qui n'en a pas (9 septembre 2026)
+
+⛔ **UN RÔLE QUE LE SITE NE LIT PAS NE SE VOIT PAS.** `libelleTypeNote` rend « Note » sur toute valeur inconnue, exactement comme sur une note jamais typée : le défaut n'a donc aucun symptôme, et c'est ce qui l'a laissé vivre. Mesuré le 9 septembre 2026 : **1 037 blocs** portent l'un des trois rôles que `TYPES_NOTE` ignore.
+
+| Rôle en base | Blocs | Ce qu'on en fait |
+|---|---|---|
+| `translation_note` | 258, une œuvre | il DEVIENT `translator_note` |
+| `source_marginalia` | 659, six œuvres | il ne devient PAS un type |
+| `reference_biblique_detachee` | 120, une œuvre | il est dans le mauvais AXE |
+
+⛔ **QUI TRADUIT RÉPOND DE SA TRADUCTION.** Les 258 notes accompagnent notre propre traduction, et deux types s'en disputaient : `translator_note`, qui dit la fonction, et `corpus_editorial_note`, qui dit la maison. **Le type nomme une FONCTION dans l'édition** : quand nous traduisons, nos notes de traduction sont des notes du traducteur, comme celles de Vivès. `corpus_editorial_note` reste ce qu'il est — ce que NOUS ajoutons à une édition dont nous ne sommes pas le traducteur. ⛔ Sans cette règle il absorberait tout ce que le corpus produit, et l'axe cesserait de distinguer. ⚠️ C'est la décision 10 (§ 13.12) portée aux rôles : des deux noms d'une même chose, le survivant est celui que le code lit.
+
+⛔ **ON NE CRÉE PAS UN TYPE POUR REDIRE CE QUE LE RENDU CALCULE.** `source_marginalia` déclare la manchette imprimée ; or la manchette du site ne lui doit rien : elle reconnaît ses renvois à leur FORME, une note qui n'est QU'UN renvoi. Mesuré : des 383 notes qui portent ce rôle, **312 passent déjà en manchette** sans qu'il soit lu une seule fois. Il quitte l'axe du TYPE pour `metadata.provenance_note` — le champ que la décision 2 institue pour dire d'où vient un renvoi, et qui ne porte encore aucune valeur : l'axe se nettoie sans que la provenance se perde. ⚠️ Les 71 notes que la manchette ne prend pas relèvent ensuite de la lecture, non du vocabulaire.
+
+⛔ **ET UN RÔLE NE DIT JAMAIS UNE DISPOSITION.** `reference_biblique_detachee` nomme la façon dont un renvoi se pose sur la page, non celui qui parle : c'est l'affaire de `rendering`, et son nom français au milieu d'un vocabulaire anglais trahit l'import qui l'a semé. Il quitte l'axe du type, et ce qu'il dit du DÉTACHEMENT s'écrit là où se disent les dispositions.
+
+⛔ **RETIRER N'EST PAS SUPPRIMER.** Aucune de ces trois valeurs ne s'efface avant que ce qu'elle porte ait trouvé sa colonne : *un axe se nettoie en déplaçant, jamais en jetant* — sans quoi le rangement coûte une information que la mesure ne saura plus retrouver.
+
+⚠️ **CHANTIER OUVERT — `rendering` EST UN AXE SANS VOCABULAIRE.** Là où `kind` a une contrainte SQL et une source unique, la colonne voisine accepte n'importe quoi. Mesuré : **7 787 blocs en portent un, et le rendu n'en lit que 79** (`inline_after_target`, `manual_line_break_in_verse`). Le reste est de l'étiquette de chaîne d'import — `markdown` 4 641, `reference_biblique_imprimee_non_liee` 1 702, `word_paragraph` 516, `note_editoriale_imprimee` 409, `plain` 265, `word_footnote` 78, `Footnote Verse` 70 — et **26 blocs portent la chaîne `{}`**, qui n'est le nom de rien. Trois choses y sont mêlées : le format du texte source, l'outil dont il vient, la disposition voulue. ⛔ Rien ne se ferme tant qu'elles ne sont pas démêlées : une contrainte posée trop tôt ferait échouer les imports au lieu de les corriger.
+
+⛔ **LE CONTRÔLE EXISTE, ET IL LIT LE VOCABULAIRE DANS LE CODE** : `node scripts/controle-roles-notes.mjs` liste les rôles hors vocabulaire, texte par texte, et sort en échec s'il en trouve un. ⚠️ Il ne recopie aucune liste : il lit `app/lib/typeNote.ts` et `app/lib/apparatCritique.ts`, et refuse de deviner s'il ne les comprend pas. *Une copie du vocabulaire dans le contrôle serait la seconde vérité que le contrôle existe pour empêcher.*
 
 ### 13.13 L’ENCART d’une note — un seul, pour toutes les surfaces
 

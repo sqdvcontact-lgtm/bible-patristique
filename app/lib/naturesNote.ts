@@ -87,3 +87,39 @@ export function natureBlocNoteSur(value: unknown): NatureBlocNote | null {
 export function natureSeNormaliseCommeReference(nature: NatureBlocNote | null): boolean {
   return nature === 'reference'
 }
+
+/**
+ * L'ANCRAGE QUI REPREND UN MOT DU TEXTE — la raison nommée que la charte § 13.11
+ * réclame pour séparer deux natures d'une même famille.
+ *
+ * ⛔ `lemma` et `source_locator` sont tous deux de la famille `ancrage`, et tous deux
+ * s'ouvrent sur la ligne du propos ; mais l'un est un mot de l'ŒUVRE, que la note
+ * cite avant de le commenter, et l'autre une coordonnée de l'APPAREIL. Les composer
+ * pareillement les confondrait précisément là où ils se touchent : chez Faivre,
+ * « (V) pag. 178. — *Avec les démons les plus féroces* — On peut consulter… » les
+ * range côte à côte sur la même ligne, et la passe 3 va en poser 396 de cette forme.
+ *
+ * La reprise se compose donc en ITALIQUE, à la teinte et à la mesure du texte, comme
+ * toute édition savante compose son lemme ; la coordonnée garde le repère discret.
+ * ⚠️ Un lemme latin serait déjà italique par sa langue (§ 13.8) : les deux règles
+ * disent alors la même chose, et rien ne se cumule.
+ */
+export function natureReprendLeTexte(nature: NatureBlocNote | null): boolean {
+  return nature === 'lemma'
+}
+
+/**
+ * Le bloc peut-il SUIVRE SA CIBLE en ligne, plutôt que de faire paragraphe ?
+ *
+ * ⛔ TOUTE la famille `renvoi`, et non le seul `reference` : le renvoi interne se
+ * compose comme l'autre, seule la NORMALISATION les sépare (§ 13.11). Sans cela, le
+ * jour où les 116 renvois internes du corpus seront semés, celui qui porterait
+ * `rendering = 'inline_after_target'` ferait paragraphe en silence, et le défaut se
+ * lirait comme une donnée fautive plutôt que comme un rendu qui l'ignore.
+ *
+ * ⚠️ `attribution` s'y joint sans être un renvoi : « (Hieronymus.) » suit la citation
+ * qu'elle attribue, et c'est ce que le corpus porte déjà (8 blocs sur 17).
+ */
+export function natureSuitSaCibleEnLigne(nature: NatureBlocNote | null): boolean {
+  return nature !== null && (familleDeNature(nature) === 'renvoi' || nature === 'attribution')
+}
