@@ -8044,31 +8044,45 @@ contrôles. Trois faits mesurés le 2026-09-09, à relire avant de la jouer :
 un chapitre, une œuvre, une fiche d'auteur continueront de se rendre vides pour un moteur,
 ce qui vaut un *soft 404*.
 
-## ⚠️ LE CHUNK HORS FLUX DE SUSPENSE N'EST PAS UN DÉFAUT — ON L'AVAIT MESURÉ EN PLEIN VOL
+## ⚠️ LE CHUNK HORS FLUX DE SUSPENSE NE PARAÎT QU'AU DÉPART À FROID
 
-Relevé, puis DÉMENTI le même jour. L'audit avait annoncé que le document gardait un
-exemplaire complet de la page dans un `<div id="S:0" hidden>`, sur tout le site. C'était
-une mesure prise PENDANT le flux : React envoie bien la coquille puis le contenu dans des
-divs cachés, et c'est son script `$RC` qui les remet en place ensuite. Mesurer une seconde
-après l'arrivée, c'est compter deux fois ce qui n'existe qu'une fois.
+Relevé, démenti, puis rétabli — trois fois dans la même journée, et c'est la mesure qui a
+tranché chaque fois. Ce qu'il faut retenir tient en deux points.
 
-⛔ **Une page en cours de flux ne se mesure pas.** Attendre que tout soit joué — trois à
-cinq secondes suffisent — et vérifier que les divs cachés du corps sont VIDES.
+⛔ **UNE PAGE EN COURS DE FLUX NE SE MESURE PAS.** React envoie la coquille, puis le contenu
+dans des `<div id="S:n" hidden>`, et c'est son script `$RC` qui les remet en place. Mesurer
+une seconde après l'arrivée, c'est compter deux fois ce qui n'existe qu'une fois. L'audit a
+d'abord annoncé un doublon permanent sur tout le site : c'était un artefact de mesure.
 
-Relevé du 2026-09-09, après trois à huit secondes :
+⛔ **MAIS IL FAUT MESURER PLUSIEURS FOIS, ET À FROID COMME À CHAUD.** Trois chargements
+tièdes de l'accueil rendent zéro résidu ; le PREMIER après un déploiement en rend **262
+nœuds et 41,2 Ko — un tiers du document**, une copie complète de la page (style, main, onze
+sections, footer) laissée dans `S:0`. Une fonction Vercel qui s'est endormie recommence à
+froid, et un site à faible trafic dort souvent : ce n'est donc pas un cas de laboratoire,
+c'est ce que paie le premier visiteur.
 
-| page | `<main>` | résidu caché |
-|---|---:|---|
-| `/accueil` | 1 | 0 nœud, 0 Ko |
-| `/bibliotheque` | 1 | 0 nœud |
-| `/?livre=MAT&chapitre=5` (Fillion) | — | 1 nœud, 0,1 Ko ; 48 versets, aucun en double |
-| `/contact` | **2** | **20 nœuds, 3 Ko, 7 % du document** |
+Relevé du 2026-09-09, quatre secondes après l'arrivée :
 
-⚠️ **`/contact` est le seul cas, et il pèse trois kilo-octets.** Son `S:0` garde un
-`<main>` de dix-neuf nœuds que `$RC` ne reprend pas. Ce n'est pas le défaut consigné plus
-haut dans ce fichier pour la page Bible en août — celui-là valait 136 000 signes — et il ne
-justifie pas de toucher au `loading.tsx` de la racine, que l'auteur a demandé. Relevé,
-laissé tel quel.
+| page | à froid | à chaud |
+|---|---|---|
+| `/accueil` | **262 nœuds, 41,2 Ko** (2 `<main>`) | 0 nœud, 1 `<main>` |
+| `/bibliotheque` | — | 0 nœud |
+| `/?livre=MAT&chapitre=5` (Fillion) | — | 1 nœud ; 48 versets, aucun en double |
+| `/contact` | 20 nœuds, 3 Ko | **20 nœuds, 3 Ko** — toujours |
+
+⚠️ **La frontière vient de `app/loading.tsx`**, que Next pose autour du segment de route :
+elle n'est pas écrite dans le gabarit. Quand la réponse est lente, la coquille part avec le
+repli, le contenu suit dans `S:0`, et la copie du serveur reste sur le carreau au profit
+d'un rendu refait par le navigateur — c'est exactement le défaut consigné plus haut pour la
+page Bible en août 2026.
+
+⛔ **NON CORRIGÉ, ET C'EST UN ARBITRAGE, NON UN OUBLI.** Le remède connu est de retirer la
+frontière ; or l'écran d'attente de la racine a été demandé par l'auteur le 2026-09-02
+(« quand je clique sur Bible classique ou Polyglotte, j'aimerais que la page se charge,
+même avant le texte »), et le retirer rendrait ces trois secondes muettes. Le coût est de
+41 Ko de DOM mort sur un chargement à froid, à côté des 1,5 à 2,5 s que ce départ coûte
+déjà. ⚠️ `/contact`, lui, garde ses 3 Ko en toutes circonstances : c'est le seul, et il ne
+justifie rien à lui seul.
 
 ## Ce qui reste, relevé et non traité
 
@@ -8076,8 +8090,8 @@ laissé tel quel.
   conséquence aujourd'hui, mais la requête ne porte pas sa propre borne.
 - ⚠️ **La page est intégralement dynamique** (elle lit les cookies), donc deux allers-retours
   Supabase par visite et `max-age=0`. À l'ouverture, le rendu anonyme sera identique pour
-  tout le monde : un cache court y vaudra davantage qu'aujourd'hui.
+  tout le monde : un cache court y vaudra davantage qu'aujourd'hui — et il ferait tomber du
+  même coup le départ à froid, donc le résidu ci-dessus.
 - ⚠️ **Deux politiques SELECT identiques sur `oeuvres_auteurs`** (« Lecture des liaisons
   d'œuvres accessibles » et « lecture des co-signatures visibles ») : même table, même qual.
   Un doublon, à ranger.
-- ⚠️ **Le résidu de `/contact`**, ci-dessus.
