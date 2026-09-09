@@ -74,7 +74,7 @@ import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, ren
 import { ContenuRenvoiEnLigne } from './ContenuNoteStructuree'
 import { estRenvoiSeul, STYLE_RENVOI_MANCHETTE } from '@/app/lib/manchetteRenvois'
 import { CLASSE_RENVOI_MANCHETTE, useManchetteRenvois } from './useManchetteRenvois'
-import { chargerAuteursParOeuvre, separateurAuteurs } from '@/app/lib/auteursOeuvre'
+import { chargerAuteursParOeuvre } from '@/app/lib/auteursOeuvre'
 import { identiteEdition, libelleVersionComplet } from './versionTextuelle'
 import { editionsOffertes } from './editionsDuTexte'
 import { nettoyerFin } from '@/app/lib/ponctuation'
@@ -1862,14 +1862,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // type neuf à chaque passage, ce que React ne reconnaît pas. Il ne porte aucun état
   // et ne sert qu'une fois — le rendre en valeur suffit, et l'identité cesse d'être
   // en jeu (même motif que les lignes de fiche dans SectionTraductions).
+  // ⛔ AUCUNE CONJONCTION ENTRE LES NOMS (demande de l'auteur, 2026-09-09).
+  // `NomVolet` se compose en bloc : chaque nom tient sa ligne, et le « et » tombait
+  // donc seul au milieu de la colonne. Les noms se suivent, cela suffit à les lier.
   const nomsAuteurs = (
     <span style={{ minWidth: 0 }}>
-      {auteursCliquables.map((a, i) => (
-        <Fragment key={a.id_auteur}>
-          {i > 0 && separateurAuteurs(i, auteursCliquables.length)}
-          <NomVolet onOuvrir={() => setAuteurModalId(a.id_auteur)} inactif={!a.id_auteur}
-            titre="Voir la fiche de l’auteur">{a.nom}</NomVolet>
-        </Fragment>
+      {auteursCliquables.map(a => (
+        <NomVolet key={a.id_auteur} onOuvrir={() => setAuteurModalId(a.id_auteur)} inactif={!a.id_auteur}
+          titre="Voir la fiche de l’auteur">{a.nom}</NomVolet>
       ))}
     </span>
   )
