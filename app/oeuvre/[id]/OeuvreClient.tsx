@@ -15,6 +15,7 @@ import { identifiantOuvrage, type NoticeBibliographique } from '@/app/lib/refere
 import { chargerNoticesBibliographiques, identifiantsOuvrages, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
 
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, useTransition, Fragment } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import { createPortal } from 'react-dom'
@@ -83,10 +84,8 @@ import { chargerOeuvresDAuteurs } from '@/app/lib/auteursOeuvre'
 import { identiteEdition, libelleVersionComplet } from './versionTextuelle'
 import { editionsOffertes } from './editionsDuTexte'
 import { nettoyerFin } from '@/app/lib/ponctuation'
-import ModaleEditionAdmin from './ModaleEditionAdmin'
 import FicheEdition, { type VoletFiche } from './FicheEdition'
 import { libelleLangue } from '@/app/lib/langues'
-import MenuExtraction from './MenuExtraction'
 import PageTitre, { libelleTrad, formaterEditeur } from './PageTitre'
 import BandeauDegradations from './BandeauDegradations'
 import { useEditeursCharges } from '@/app/lib/editeurs'
@@ -111,7 +110,6 @@ import IconeChevron from '@/app/components/IconeChevron'
 import { enregistrerOeuvreRecente } from '@/app/lib/oeuvresRecentes'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
-import AssocierVerset from './AssocierVerset'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { insererSignalement } from './signalements'
@@ -130,7 +128,6 @@ import {
   reprendreBascule,
   segmentEnTeteDeFenetre,
 } from '@/app/lib/passageTexte'
-import ComparaisonTraductions from './ComparaisonTraductions'
 import {
   choisirAlignement,
   comparaisonDisponible,
@@ -269,6 +266,21 @@ function chargerCodesTraductions(): PromiseLike<string[]> {
   }
   return _codesTraductionsCache
 }
+
+// ── CE QUE LA PAGE NE REND QU'À LA DEMANDE ────────────────────────────────────
+// ⛔ Quatre composants que le lecteur ordinaire ne voit JAMAIS voyageaient dans le même
+// paquet que la lecture : la modale d'édition et l'association d'un verset sont réservées
+// à l'administrateur, le menu d'extraction ne paraît qu'au clic, et la comparaison de
+// traductions qu'en mode comparaison. Ensemble, un cinquième de la source de la page.
+//
+// ⚠️ SANS `ssr: false`, et c'est délibéré : le chunk CLIENT se sépare, mais le rendu
+// serveur ne bouge pas d'un caractère. `ssr: false` retarderait à l'hydratation ce que
+// l'administrateur voit aujourd'hui dès le premier écran, et une arrivée par
+// « ?compare= » ouvrirait sur du vide.
+const ModaleEditionAdmin = dynamic(() => import('./ModaleEditionAdmin'))
+const MenuExtraction = dynamic(() => import('./MenuExtraction'))
+const AssocierVerset = dynamic(() => import('./AssocierVerset'))
+const ComparaisonTraductions = dynamic(() => import('./ComparaisonTraductions'))
 
 // ── Proposition de lien biblique (non-admin) ──────────────────────────────────
 // Le lecteur dispose des DEUX moyens, et non plus du seul texte libre : il choisit ses
