@@ -137,7 +137,7 @@ export default async function Home({
   // et 744 Ko avant, 73 ms et 26 Ko après.
   const canonPromis = canonDuChapitre(supabase, livre, chapitre)
     .catch(() => ({ lignes: [] as Awaited<ReturnType<typeof canonDuChapitre>>['lignes'], bornes: null }))
-  const [catalog, editionCatalog, { data: rawTranslations }, { data: rawEditions }, tradProfil, , indexEditeurs] = await Promise.all([
+  const [catalog, editionCatalog, { data: rawTranslations }, { data: rawEditions }, tradProfil, indexEditeurs] = await Promise.all([
     loadBibleReadingCatalog(supabase),
     loadBibleEditionCatalog(supabase),
     // `dates` = vie et mort de l'auteur ; `date_publication` = la ligne d'édition
@@ -173,16 +173,19 @@ export default async function Home({
       const { data: profil } = await supabase.from('profils').select('traduction_defaut').eq('id', uid).maybeSingle()
       return codeTraductionValide(profil?.traduction_defaut)
     })(),
-    // ⚠️ Les BORNES d'ordre canonique du chapitre. Elles ne dépendent que du
-    // livre et du numéro, connus dès l'entrée : elles partent donc ici, dans la
-    // vague qui ne coûte rien, et servent ensuite aux DEUX chemins de lecture —
-    // une colonne comme deux en regard. C'est elles qui permettent de ne
-    // demander à la base que les blocs du CHAPITRE au lieu de ceux du livre
-    // entier : mesuré sur Matthieu 1, 224 ms et 744 Ko avant, 73 ms et 26 Ko
-    // après. ⛔ Une bible sans apparat paie cette lecture pour rien, mais elle
-    // pèse un kilo-octet et part en parallèle : la calculer plus tard, là où
-    // l'on sait qu'elle sert, coûterait une vague entière.
-    canonDuChapitre(supabase, livre, chapitre),
+    // ⛔ LE CANON DU CHAPITRE NE SE REDEMANDE PAS ICI : il part déjà avec la vague, par
+    // `canonPromis`, quelques lignes plus haut. Il l'a été DEUX fois du 2026-08-27 au
+    // 2026-09-09, la seconde réponse étant jetée par une case vide du destructuring —
+    // la base faisait donc le travail deux fois à chaque chapitre ouvert, et les 26 Ko
+    // mesurés sur Matthieu 1 voyageaient en double. Pire : ce second appel n'avait PAS
+    // le rattrapage d'erreur de `canonPromis`, si bien qu'un canon en échec faisait
+    // tomber la page entière au lieu de la dégrader, ce que le `.catch` de la ligne 139
+    // était précisément là pour empêcher.
+    // ⚠️ Ce qui suit décrit toujours `canonPromis` : les BORNES d'ordre canonique ne
+    // dépendent que du livre et du numéro, connus dès l'entrée, et servent aux DEUX
+    // chemins de lecture — une colonne comme deux en regard. C'est elles qui permettent
+    // de ne demander à la base que les blocs du CHAPITRE au lieu de ceux du livre entier :
+    // mesuré sur Matthieu 1, 224 ms et 744 Ko avant, 73 ms et 26 Ko après.
     // ⚠️ L'INDEX DES ÉDITEURS RÉPERTORIÉS, pour que la carte nomme les maisons
     // sous leur forme normalisée et les joigne par « et » (voir `joindreEditeurs`).
     // La table est minuscule et le module la garde cinq minutes en mémoire : la

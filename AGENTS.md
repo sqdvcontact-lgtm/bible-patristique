@@ -7823,3 +7823,169 @@ Doctrine : charte `parametres.charte_ia`, **§ 50.6**. Règles de code et de mé
   série que la même édition tient partout ailleurs est une ligne perdue ; un chapitre entier
   plus court que le canon est une tradition. Les 67 suscriptions du Psautier en sont la
   mesure : TR0001, TR0003 et TR0005 en portent 67, TR0004 en porte 66.
+
+# Révision de la page d'accueil (2026-09-09)
+
+Audit demandé par l'auteur, puis correction. La page tenait ; ce qui suit est ce qu'elle
+ne tenait pas, et deux gardes qu'il a fallu réparer en chemin.
+
+## ⛔ UNE GARDE QUI LIT DU TEXTE AU MOTIF NE VOIT PAS UNE ÉCRITURE NEUVE
+
+C'est la trouvaille de fond de la passe, et elle vaut au-delà de l'accueil.
+
+`blocsStyleSansAccentGrave.test.ts` cherchait l'ouverture littérale `<style>{` suivie d'un
+accent grave. Envelopper une feuille dans `cssServi(...)` — ce que la passe a fait sur
+trois fichiers — la faisait donc **sortir du balayage**, sans qu'un seul test s'en
+plaigne : trois feuilles du site sont passées hors garde en une commande. Quatre accents
+graves ont aussitôt vécu dans celle de l'accueil, et c'est `tsc` qui les a relevés, ce
+qu'il ne fait que par chance (deux accents graves qui se referment sur un texte sans
+ponctuation JS passent le parseur, et la feuille s'en va en silence).
+
+- **`OUVERTURES` et `FERMETURES` portent désormais les DEUX écritures**, nue et filtrée,
+  et `prochaine()` retient la plus proche. ⛔ Toute écriture nouvelle du même objet est un
+  angle mort tant qu'on ne l'a pas nommée là.
+- ⛔ **La garde est éprouvée DANS LES DEUX SENS pour chacune des deux écritures** : un test
+  de piège par forme, plus un test qui exige qu'au moins une feuille filtrée soit couverte
+  — sans lui, revenir à la seule forme nue passerait inaperçu.
+- ⚠️ C'est le troisième angle mort de la même famille consigné dans ce fichier, après celui
+  de la garde chromatique (trente-sept teintes cachées dans des ternaires) et celui de
+  l'échelle typographique (deux tailles hors grille, même cause). **Le motif se borne à la
+  PROPRIÉTÉ qu'on garde, jamais à la forme la plus fréquente de son écriture.**
+
+## ⛔ LE CSS SERVI — la liste est CLOSE, et sous garde
+
+`cssServi` existait, était testé, était juste — et n'était importé que par UN fichier. Le
+HTML d'un chargement d'accueil portait donc **23 060 signes de commentaires** : 12 904 pour
+`AnnonceHautsFaits` (servie sur TOUTES les pages), 8 972 pour `AccueilCards`, 1 184 pour la
+barre, et zéro pour la seule feuille filtrée. Les trois autres y passent.
+
+- **`FEUILLES_SERVIES_FILTREES` (`cssServi.test.ts`) est la liste**, close, et elle ne peut
+  que grandir : un second contrôle exige que **chaque** bloc `<style>` de ces fichiers passe
+  réellement par `cssServi`. Le contrôle d'avant éprouvait ce que le filtre RENDRAIT ;
+  celui-ci vérifie qu'on l'APPELLE — sans quoi retirer une enveloppe ne casse rien et ne se
+  voit nulle part.
+- ⚠️ `AccueilCards` et `AnnonceHautsFaits` sont des composants CLIENT : leur gabarit part
+  aussi dans le paquet JavaScript, que le filtrage au service ne touche pas. Le gain porte
+  sur le HTML, qui n'est jamais mis en cache — c'est le seul qui se paie à chaque visite.
+
+## ⛔ LE FOND D'UN TEXTE EST LE DERNIER APLAT POSÉ SOUS LUI, LE SIEN COMPRIS
+
+`--cs-or-lisible` passe de 74 % à **68 %**. La règle « une encre se mesure contre TOUS les
+fonds qu'un thème peut lui donner » a été prise en défaut TROIS fois de suite sur ce seul
+jeton, et chaque fois par le même oubli d'un cran : à 78 % on mesurait sur le fond de la
+carte, retirée depuis ; à 74 % sur le fond de la bande, mais **la pastille du bouton pose
+elle-même un aplat d'or à 9 %**, qui porte le sol sous l'encre à `rgb(230,223,211)` au lieu
+de `rgb(237,233,226)`. Mesuré là : **4,32**, sous le seuil, sur le seul appel à l'action de
+la page. À 68 % : 4,73 dans la pastille, 5,17 sur le papier doux, 5,71 sur celui du seuil ;
+6,76, 7,88 et 9,17 au Cuir.
+
+## ⛔ QUAND AUCUNE ENCRE NE PEUT DIRE LE RANG, C'EST LA FORME QUI LE DIT
+
+La mention « et d'autres en préparation » portait `--cs-texte-doux` : **2,71** sur le
+papier, la plus mauvaise encre de la page, sur la seule ligne que le lecteur lit après les
+noms. Or il n'existe pas, sur ce papier, d'encre à la fois plus faible que
+`--cs-texte-second` — le rang des noms, 5,24 — et lisible : la bande entre 4,5 et 5,24 est
+trop étroite pour qu'un œil y voie un rang. Elle prend donc l'encre des noms, et son rang
+tient à l'italique et à ce qu'elle n'est pas un lien.
+
+## ⛔ UN ANNEAU DE FOCUS SE MESURE CONTRE LE CARTON, NON CONTRE LE PAPIER
+
+`a:focus-visible` pose `--cs-vert`, taillé pour le papier, où il rend 5,61. Sur les deux
+portes de l'accueil il rend **1,89** et **1,90**, et **1,19** sur le volet de survol — pour
+3:1 exigé d'un indicateur qui n'est pas du texte. Les deux cartes sont ce qu'un clavier
+atteint EN PREMIER sur ce site. `cs-focus-clair` existait depuis la barre de recherche et
+ne change que la couleur de l'anneau : blanc à 0,9, **10,37** sur le carton le plus clair.
+⛔ Le poser sur les TROIS liens d'une carte : le lien principal et les deux choix du volet.
+
+## ⛔ LA PORTE NE PEUT PAS PORTER QUATRE BLOCS
+
+`.accueil-seuil` promettait « rien sous le pli », sur une mesure — « 844 px pour 844
+disponibles » — prise AVANT la galerie des auteurs. Avec elle, la porte pesait **1 084 px**
+de contenu et réclamait **1 140 px d'écran** : un 1080p en manquait 195, un portable
+1440×900 en manquait 340, un 1366×768 en manquait 470. Sur l'écran de l'auteur — 2560×1440
+rendu à 0,9, soit 1 350 px CSS — elle tenait encore, et c'est ce qui l'a cachée.
+
+⛔ **Le journal des ajouts est DESCENDU dans la bande qui suit** (décision de l'auteur).
+Reste ce qui fait une porte : le nom, les deux entrées, et les noms qu'elles ouvrent —
+835 px, soit 891 px d'écran. Un portable 1440×900 en manque encore 90, et c'est le prix
+qu'on accepte plutôt que de vider la porte. ⚠️ La promesse se REMESURE : somme des enfants
+de « .accueil-seuil » avec leurs marges, plus les rembourrages, à 1024 px de large au moins.
+
+## Structure, repères, et adresse qui fait foi
+
+- ⛔ **`<main>` coiffe TOUTE la page**, non la seule porte : le mot, le projet et les liens
+  légaux vivaient dans des `<div>` nus, hors de tout repère. Le colophon final devient un
+  `<footer>` — ⛔ **hors de `<main>`**, faute de quoi il n'est le pied que d'une section :
+  un `<footer>` n'est `contentinfo` que si aucun `<main>`, `<section>`, `<article>` ni
+  `<aside>` ne le contient. `.accueil` étant un `<div>`, il y est transparent.
+- ⛔ **Les deux rubriques de la porte sont des `h2`**, non des `span` : le plan de la page
+  sautait du nom du site à « Un mot », et qui navigue par titres ne trouvait ni les auteurs
+  ni les ajouts. `.seuil-journal-titre` devient `.accueil-rubrique`, `.seuil-journal`
+  devient `.accueil-journal` — le premier sert les deux blocs, qui ne vivent plus dans le
+  même écran.
+- ⛔ **LE LIEN D'ÉVITEMENT** (`.cs-lien-evitement`, `app/layout.tsx`) : le site n'en avait
+  aucun, et la barre porte une dizaine de liens à franchir sur chaque page tournée. ⛔ Ni
+  `display: none` ni `visibility: hidden` — les deux le retirent de l'ordre de tabulation,
+  c'est-à-dire du seul chemin par lequel on l'atteint : boîte d'un pixel et `clip-path`.
+  ⚠️ Sa cible porte `tabIndex={-1}`, sans quoi le saut déplace la vue sans déplacer le
+  FOYER, et la tabulation suivante repart du haut de la barre. ⚠️ Au foyer il se pose SOUS
+  la barre, qui est en `fixed` et monte à 3000.
+- ⛔ **`/accueil` FAIT FOI, et c'est la canonique qui le dit.** La racine sert la Bible dès
+  qu'elle porte des paramètres et redirige ici quand elle n'en a pas : le plan du site
+  pointait donc une redirection, et la page d'accueil n'y figurait pas du tout. Les deux se
+  relisent ensemble — `alternates.canonical` dans la page, l'adresse `/accueil` dans
+  `sitemap.ts`. ⚠️ Elle reprend aussi `enTetesPartage` : le layout porte bien un Open Graph,
+  mais celui du SITE, et une page qui redéfinit sa description partageait l'ancienne.
+- ⛔ **Une planche en `<img>` garde ses dimensions natives.** La gravure du frontispice
+  (2062×131) n'en portait aucune : avec `height: auto`, le navigateur ne réserve AUCUNE
+  hauteur avant qu'elle n'arrive, et la devise sautait de 36 px au chargement, juste sous le
+  titre. Les attributs ne donnent que le rapport — la taille rendue reste celle du CSS.
+
+## ⛔ `canonDuChapitre` ÉTAIT APPELÉE DEUX FOIS PAR CHAPITRE (page Bible)
+
+`app/page.tsx` la lançait en `canonPromis` (avec son rattrapage) **et** de nouveau dans le
+`Promise.all`, dont la réponse était jetée par une case vide du destructuring. Du 2026-08-27
+au 2026-09-09 : la base faisait le travail deux fois à chaque chapitre ouvert, et les 26 Ko
+mesurés sur Matthieu 1 voyageaient en double. ⛔ Pire, le second appel n'avait pas le
+rattrapage d'erreur : un canon en échec faisait tomber la page entière au lieu de la
+dégrader, ce que le `.catch` était précisément là pour empêcher. ⚠️ Une case vide dans un
+destructuring est le seul signe d'un tel doublon, et elle ne se lit pas.
+
+## ⛔ LA PORTE SE RENDRA VIDE À L'OUVERTURE — migration ÉCRITE, NON APPLIQUÉE
+
+`supabase/migrations/20260909120000_porte_ouverte_au_role_anonyme.sql` et son fichier de
+contrôles. Trois faits mesurés le 2026-09-09, à relire avant de la jouer :
+
+1. ⛔ **`auteurs` est fermée elle aussi, et sa politique trompe.** « Lecture publique des
+   auteurs » porte sur `{public}` avec un qual à `true`, ce qui donne à croire la table
+   ouverte ; `has_table_privilege('anon','auteurs','SELECT')` rend **faux**, le GRANT
+   manquant en deçà de toute politique. C'est le piège que ce fichier nomme déjà au § de
+   l'ouverture, et l'audit s'y est laissé prendre une fois de plus.
+2. ⛔ **`oeuvres` porte de la prose d'atelier sur ses œuvres PUBLIQUES** : 23 des 42 portent
+   un `acces_public_note` et 23 un `note_editoriale_complement` internes (« Import de
+   préparation privé », « Édition en cours de reprise éditoriale interne », « Il n'est
+   volontairement pas… »). Un `grant select on oeuvres to anon` les publierait toutes. D'où
+   des grants **colonne par colonne**, qui n'ouvrent que ce que la porte lit. ⚠️ Pansement :
+   la doctrine veut qu'une note d'atelier vive dans une table à part (modèle
+   `oeuvres_commentaires_prives`), et tout compte connecté la lit déjà.
+3. ⛔ **La base a été fermée à `anon` la veille, délibérément**
+   (`20260908095950_fermer_le_role_anonyme_les_fonctions.sql`). Rouvrir une table
+   aujourd'hui défait une part de ce travail, sur un site encore fermé où la porte se rend
+   correctement pour tout compte connecté. Rien ne presse : c'est à l'OUVERTURE que le
+   manque se paie, et ce point est en tête de la liste de l'ouverture, avec la consigne
+   expresse de ne pas le traiter au fil de l'eau.
+
+⚠️ **Et ce n'est qu'une tranche** : appliquée seule, elle ouvre la PORTE et rien d'autre —
+un chapitre, une œuvre, une fiche d'auteur continueront de se rendre vides pour un moteur,
+ce qui vaut un *soft 404*.
+
+## Ce qui reste, relevé et non traité
+
+- ⚠️ **`oeuvres_auteurs` est lue EN ENTIER, sans filtre** (une ligne au 2026-09-09) : sans
+  conséquence aujourd'hui, mais la requête ne porte pas sa propre borne.
+- ⚠️ **La page est intégralement dynamique** (elle lit les cookies), donc deux allers-retours
+  Supabase par visite et `max-age=0`. À l'ouverture, le rendu anonyme sera identique pour
+  tout le monde : un cache court y vaudra davantage qu'aujourd'hui.
+- ⚠️ **Deux politiques SELECT identiques sur `oeuvres_auteurs`** (« Lecture des liaisons
+  d'œuvres accessibles » et « lecture des co-signatures visibles ») : même table, même qual.
+  Un doublon, à ranger.

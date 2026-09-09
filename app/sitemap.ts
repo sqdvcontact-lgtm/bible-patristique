@@ -34,7 +34,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
 
   const entites: MetadataRoute.Sitemap = [
-    { url: `${BASE}/`, changeFrequency: "weekly", priority: 1 },
+    // ⛔ `/accueil`, JAMAIS `/`. La racine sert la Bible dès qu'elle porte des paramètres
+    // et redirige ici quand elle n'en a pas (app/page.tsx) : le plan pointait donc une
+    // redirection, et la page d'accueil n'y figurait pas du tout. La canonique de
+    // `/accueil` désigne la même adresse — les deux se relisent ensemble.
+    { url: `${BASE}/accueil`, changeFrequency: "weekly", priority: 1 },
     { url: `${BASE}/bibliotheque`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE}/pericopes`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE}/essais`, changeFrequency: "weekly", priority: 0.7 },

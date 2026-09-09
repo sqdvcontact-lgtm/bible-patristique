@@ -21,8 +21,36 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
 const RACINE = join(process.cwd(), 'app')
-const OUVERTURE = '<style>{`'
-const FERMETURE = '`}</style>'
+
+/** Les DEUX écritures d'un bloc `<style>` de gabarit : le bloc NU, et le bloc dont la
+ *  feuille est filtrée au service par « cssServi » (voir app/lib/cssServi.ts).
+ *
+ *  ⛔ La seconde n'existait pas quand cette garde a été écrite, et elle lui était donc
+ *  INVISIBLE : envelopper une feuille dans « cssServi » la faisait sortir du balayage
+ *  sans qu'un seul test s'en plaigne. Payé le 2026-09-09 — trois feuilles y sont passées
+ *  au filtre le même jour, et quatre accents graves ont vécu dans celle de l'accueil
+ *  jusqu'à ce que « tsc » les relève, ce qu'il ne fait que par chance (voir l'en-tête).
+ *
+ *  ⚠️ Corollaire, et il vaut pour toute garde qui LIT du texte au motif : une écriture
+ *  nouvelle du même objet est un angle mort tant qu'on ne l'a pas nommée ici. */
+const OUVERTURES = ['<style>{`', '<style>{cssServi(`'] as const
+const FERMETURES = ['`}</style>', '`)}</style>'] as const
+
+/** La plus proche des écritures cherchées, à partir d'une position. */
+function prochaine(source: string, depuis: number, motifs: readonly string[]): { index: number; motif: string } | null {
+  let meilleur: { index: number; motif: string } | null = null
+  for (const motif of motifs) {
+    const index = source.indexOf(motif, depuis)
+    if (index < 0) continue
+    if (!meilleur || index < meilleur.index) meilleur = { index, motif }
+  }
+  return meilleur
+}
+
+/** Un fichier porte-t-il une feuille en ligne, sous l'une ou l'autre écriture ? */
+function porteUneFeuille(source: string): boolean {
+  return OUVERTURES.some(o => source.includes(o))
+}
 
 function fichiersTsx(dossier: string): string[] {
   const sortie: string[] = []
@@ -82,14 +110,19 @@ function corpsDeFeuille(source: string, nom: string): { debut: number; contenu: 
 /** Les blocs `<style>` de gabarit d'un fichier, avec leur position. */
 function blocsDeStyle(source: string): { debut: number; contenu: string }[] {
   const blocs: { debut: number; contenu: string }[] = []
-  let i = source.indexOf(OUVERTURE)
-  while (i >= 0) {
-    const debutContenu = i + OUVERTURE.length
-    const fin = source.indexOf(FERMETURE, debutContenu)
+  let i = 0
+  for (;;) {
+    const ouverture = prochaine(source, i, OUVERTURES)
+    if (!ouverture) break
+    const debutContenu = ouverture.index + ouverture.motif.length
+    const fermeture = prochaine(source, debutContenu, FERMETURES)
     // Une ouverture sans fermeture est déjà le défaut qu'on cherche : on la signale en
     // rendant tout ce qui suit, plutôt que de l'ignorer.
-    blocs.push({ debut: debutContenu, contenu: source.slice(debutContenu, fin < 0 ? source.length : fin) })
-    i = source.indexOf(OUVERTURE, fin < 0 ? source.length : fin + FERMETURE.length)
+    blocs.push({
+      debut: debutContenu,
+      contenu: source.slice(debutContenu, fermeture ? fermeture.index : source.length),
+    })
+    i = fermeture ? fermeture.index + fermeture.motif.length : source.length
   }
   return blocs
 }
@@ -98,9 +131,16 @@ describe('les blocs `<style>` de gabarit', () => {
   const fichiers = fichiersTsx(RACINE)
 
   it('couvre bien les feuilles en ligne du site', () => {
-    const avecStyle = fichiers.filter(f => readFileSync(f, 'utf8').includes(OUVERTURE))
+    const avecStyle = fichiers.filter(f => porteUneFeuille(readFileSync(f, 'utf8')))
     // Un balayage qui ne trouve plus rien est un balayage cassé, non un dépôt propre.
     expect(avecStyle.length).toBeGreaterThan(5)
+  })
+
+  // ⛔ Et il couvre les feuilles FILTRÉES, qui sont l'écriture neuve : sans cette
+  // exigence, remettre la garde à la seule forme nue passerait inaperçu.
+  it('couvre aussi les feuilles passées à cssServi', () => {
+    const filtrees = fichiers.filter(f => readFileSync(f, 'utf8').includes(OUVERTURES[1]))
+    expect(filtrees.length).toBeGreaterThan(0)
   })
 
   it('ne porte aucun accent grave, qui refermerait le gabarit', () => {
@@ -131,6 +171,15 @@ describe('les blocs `<style>` de gabarit', () => {
   // qu'elle prétend arrêter. C'est exactement ce qui a manqué le 2026-09-07.
   it('refuse l’accent grave posé au milieu d’un commentaire CSS', () => {
     const piege = '<style>{`\n /* le `<p>` garde son blanc */\n .a { color: red; }\n`}</style>'
+    const blocs = blocsDeStyle(piege)
+    expect(blocs).toHaveLength(1)
+    expect(blocs[0].contenu).toContain('`')
+  })
+
+  // ⛔ Le même piège sous l'écriture FILTRÉE : c'est celle qui échappait à la garde, et
+  // la voir rouge est la seule preuve que le trou est refermé.
+  it('le refuse aussi dans une feuille passée à cssServi', () => {
+    const piege = '<style>{cssServi(`\n /* le `gap` de la bande */\n .a { color: red; }\n`)}</style>'
     const blocs = blocsDeStyle(piege)
     expect(blocs).toHaveLength(1)
     expect(blocs[0].contenu).toContain('`')

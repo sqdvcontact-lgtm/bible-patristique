@@ -85,6 +85,14 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_THEME }} />
       </head>
       <body className="min-h-full flex flex-col">
+        {/* ⛔ LE LIEN D'ÉVITEMENT, ET IL VIENT EN PREMIER. La barre de navigation porte une
+            dizaine de liens, plus la recherche et le menu de compte : sans lui, qui navigue
+            au clavier les franchit tous, sur chaque page tournée. C'est la première cible
+            du document, il ne paraît qu'au foyer, et il n'occupe aucune place au repos —
+            voir `.cs-lien-evitement` dans globals.css. ⚠️ Sa cible porte `tabIndex={-1}` :
+            sans quoi le saut déplace la vue sans déplacer le FOYER, et la tabulation
+            suivante repart du haut de la barre. */}
+        <a href="#cs-corps" className="cs-lien-evitement">Aller au contenu</a>
         {/* Identité du site pour les moteurs (Organisation + WebSite). Inerte tant
             que le site est fermé ; prête pour l'ouverture. */}
         <JsonLd donnees={donneesSite()} />
@@ -92,7 +100,7 @@ export default function RootLayout({
           <ProvisionCompte>
             <Navbar />
             {/* Décalage sous la navbar fixe — voir app/lib/mesures.ts */}
-            <div id="cs-corps" className="flex flex-col flex-1" style={{ paddingTop: HAUTEUR_NAVBAR }}>{children}</div>
+            <div id="cs-corps" tabIndex={-1} className="flex flex-col flex-1" style={{ paddingTop: HAUTEUR_NAVBAR }}>{children}</div>
             {/* Mesure d'audience maison, anonyme et sans cookie. N'affiche rien.
                 Elle a remplacé Google Analytics et son bandeau le 2026-08-31.
                 ⛔ La frontière Suspense est OBLIGATOIRE : le composant lit

@@ -832,6 +832,51 @@ button:focus-visible,
   outline: 2px solid var(--cs-vert);
   outline-offset: 2px;
 }
+
+/* ── LE LIEN D'ÉVITEMENT ──────────────────────────────────────────────────────
+   Première cible du document, invisible tant qu'on ne l'atteint pas au clavier.
+   ⛔ Ni `display: none` ni `visibility: hidden` : les deux le retirent de l'ordre de
+   tabulation, c'est-à-dire du seul chemin par lequel on l'atteint. On le sort de la
+   vue par une boîte d'un pixel et un `clip-path`, la recette qui garde un élément
+   focalisable — c'est ce que fait `sr-only` ailleurs, que ce dépôt n'a pas.
+   ⚠️ Au foyer il reprend une boîte ORDINAIRE et se pose SOUS la barre, non par-dessus :
+   la barre est en `fixed` et monte à 3000, un lien posé dessus disparaîtrait derrière
+   elle. `--cs-ombre-flottante` le détache de la page qui défile dessous. */
+.cs-lien-evitement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.cs-lien-evitement:focus {
+  position: fixed;
+  top: calc(3.5rem + 8px);
+  left: 8px;
+  z-index: 3100;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 10px 18px;
+  overflow: visible;
+  clip-path: none;
+  background: var(--cs-surface);
+  color: var(--cs-vert);
+  border: 1px solid var(--cs-vert);
+  border-radius: 4px;
+  box-shadow: var(--cs-ombre-flottante);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+/* ⛔ La CIBLE du saut ne prend pas d'anneau : `tabIndex={-1}` la rend focalisable pour
+   que le foyer suive le saut, mais elle enveloppe toute la page — un anneau de deux
+   pixels autour de dix mille serait un cadre, non un repère. Elle n'est atteinte
+   qu'au programme, jamais à la tabulation, et `:focus-visible` ne s'y déclenche pas. */
+#cs-corps:focus { outline: none; }
 /* ── Ornements : une ENCRE, et le sol change sous elle ─────────────────────────
    Les gravures de `public/ornements/` sont détourées : leur alpha porte le trait,
    leur couleur est une encre sombre — mesurée à 71 de luminance sur la tour de

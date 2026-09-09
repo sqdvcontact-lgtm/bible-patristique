@@ -25,6 +25,7 @@ import {
 } from '@/app/lib/hautsFaits'
 import { ENCRE_RELIURE, degradeReliure } from '@/app/lib/reliuresHautsFaits'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { cssServi } from '@/app/lib/cssServi'
 
 /** La petite vignette dure ce que dure celle de la barre. La belle annonce reste
  *  plus longtemps : elle porte une notice à lire, non une ligne à voir passer.
@@ -189,7 +190,7 @@ export function CorpsAnnonce({ annonce, onFermer }: { annonce: Annonce; onFermer
         cursor: 'pointer',
         overflow: 'hidden',
       }}>
-      <style>{`
+      <style>{cssServi(`
         @keyframes cs-annonce-jauge { from { transform: scaleX(1) } to { transform: scaleX(0) } }
         .cs-annonce-jauge { transform-origin: left center; animation-name: cs-annonce-jauge; animation-timing-function: linear; animation-fill-mode: forwards; }
         @media (prefers-reduced-motion: reduce) { .cs-annonce-jauge { animation: none; transform: scaleX(1) } }
@@ -197,7 +198,7 @@ export function CorpsAnnonce({ annonce, onFermer }: { annonce: Annonce; onFermer
            en JavaScript ferait sauter la teinte après l'hydratation (charte). */
         .cs-annonce-carte { background: var(--hf-cuir-clair); }
         :root[data-theme="sombre"] .cs-annonce-carte { background: var(--hf-cuir-sombre); }
-      `}</style>
+      `)}</style>
 
       <div style={{ display: 'flex', alignItems: 'stretch', gap: grande ? '13px' : '11px' }}>
         {/* ⛔ LA CARTE QUI VIENT DE TOMBER, à sa vraie étoffe. C'est elle qui relie

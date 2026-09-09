@@ -21,6 +21,7 @@ import { lancerLaVisite, useVisiteOfferte } from "@/app/lib/demandeDeVisite";
 import { referenceBiblique } from "@/app/lib/rechercheRequete";
 import { FAMILLES_ADMIN, entreesDeFamille } from "@/app/lib/adminNavigation";
 import PortraitLecteur from "@/app/components/PortraitLecteur";
+import { cssServi } from "@/app/lib/cssServi";
 
 const ModaleMessagerie = dynamic(() => import("@/app/components/ModaleMessagerie"), { ssr: false });
 const VoletNotifications = dynamic(() => import("@/app/components/VoletNotifications"), { ssr: false });
@@ -1136,7 +1137,7 @@ export default function Navbar() {
 
   const blocRecherche = (mobile: boolean) => (
     <div style={{ position: "relative", width: mobile ? "100%" : "fit-content" }}>
-      <style>{`
+      <style>{cssServi(`
         .recherche-rapide-input::placeholder { color: rgba(255,255,255,0.45); }
         .spinner-search { animation: spin 0.7s linear infinite; }
         /* ── LES GROUPES DE LA LISTE, au modèle de la page de résultats ──────────
@@ -1164,7 +1165,7 @@ export default function Navbar() {
            plus un gris commun : la flèche descend d'un domaine à l'autre, et le
            surlignage doit le dire. */
         [data-nav-actif] { background: color-mix(in srgb, var(--fam, var(--cs-texte-doux)) 20%, var(--cs-surface)) !important; }
-      `}</style>
+      `)}</style>
       {/* Champ + bouton page de recherche */}
       <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
         <input
@@ -1681,7 +1682,7 @@ export default function Navbar() {
           barre de navigation : rien à naviguer tant que le site est fermé. */}
       <header data-cs-navbar data-visite="nav-barre" className="fixed top-0 left-0 right-0 border-b"
         style={{ background: "var(--cs-barre-fond)", borderColor: "rgba(255,255,255,0.10)", zIndex: 3000 }}>
-        <style>{`
+        <style>{cssServi(`
           /* Jauge de la vignette de notification : elle se vide de la droite vers la
              gauche pendant la durée d'affichage. On anime la transformation, pas la largeur :
              pas de recalcul de mise en page à chaque image. La durée est posée en
@@ -1925,7 +1926,7 @@ export default function Navbar() {
           @media (prefers-reduced-motion: reduce) {
             .cs-nav-onglet, .cs-bible, .cs-bible-face, .cs-bible-split { transition: none; }
           }
-        `}</style>
+        `)}</style>
         {/* Plus de `max-w-screen-xl mx-auto` : la barre bridait sa largeur à 1 280 px et
             se centrait, si bien qu'au-delà elle se serrait — et débordait — alors que
             l'écran offrait la place de part et d'autre. Elle prend maintenant toute la

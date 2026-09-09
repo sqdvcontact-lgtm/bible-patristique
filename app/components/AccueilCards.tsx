@@ -6,6 +6,7 @@ import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile";
 import { lirePositionBible, type PositionBible } from '@/app/lib/repriseLecture'
+import { cssServi } from "@/app/lib/cssServi";
 
 // ⛔ PLUS DE TROISIÈME CARTE (décision de l'auteur, 2026-08-31). La Communauté est
 // retirée de l'accueil : les portes de la page sont la Bible et les Pères, et rien
@@ -99,8 +100,16 @@ function CarteAccueil({
   }, [ouvert])
 
   return (
+    /* ⛔ `cs-focus-clair` SUR LES TROIS LIENS DE LA CARTE, ET CE N'EST PAS DÉCORATIF.
+       L'anneau de focus du site est `--cs-vert` (globals.css, `a:focus-visible`), taillé
+       pour le papier, où il rend 5,61. Sur un carton, il disparaît : mesuré 1,89 sur le
+       vert de la Bible, 1,90 sur le maroquin, 1,19 sur le volet de survol — pour 3:1
+       exigé d'un indicateur qui n'est pas du texte. Les deux portes sont ce qu'un
+       clavier atteint EN PREMIER sur ce site, et l'on n'y voyait pas où l'on était.
+       La classe existe depuis la barre de recherche et ne change QUE la couleur de
+       l'anneau : blanc à 0,9, mesuré 10,37 sur le carton le plus clair. */
     <div ref={carteRef} className={`ac-card ${className}${ouvert ? ' ac-card--ouvert' : ''}`}>
-      <Link href={href} className="ac-card-main" aria-label={titre}
+      <Link href={href} className="ac-card-main cs-focus-clair" aria-label={titre}
         aria-expanded={choixAuTap ? ouvert : undefined}
         onClick={e => { if (choixAuTap && !ouvert) { e.preventDefault(); setOuvert(true) } }}>
         {icon}
@@ -170,7 +179,7 @@ export default function AccueilCards() {
         />
       </div>
 
-      <style>{`
+      <style>{cssServi(`
         .ac-root {
           display: flex;
           flex-direction: column;
@@ -515,7 +524,7 @@ export default function AccueilCards() {
            des règles de survol du dessin de bureau, qui en portent autant. */
         .ac-card.ac-card--ouvert .ac-card-main { opacity: 0.12; transform: scale(0.99); }
         .ac-card.ac-card--ouvert .ac-hover-panel { opacity: 1; pointer-events: auto; }
-      `}</style>
+      `)}</style>
     </div>
   );
 }

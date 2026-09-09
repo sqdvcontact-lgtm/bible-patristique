@@ -5,13 +5,26 @@ import IconeChevron from "@/app/components/IconeChevron";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
 import { auteurDeLigne, auteursDuCorpus, type AuteurDuCorpus } from "@/app/lib/auteursDuCorpus";
 import { cssServi } from "@/app/lib/cssServi";
+import { enTetesPartage } from "@/app/lib/metadonneesSeo";
+
+// La devise du frontispice, mot pour mot. « Lectures bibliques et patristiques »
+// décrivait un rayon de bibliothèque ; la phrase dit ce que le site FAIT, et que
+// nul autre ne fait.
+const DEVISE = "La Bible à la lumière des Pères, les Pères à la lumière de la Bible.";
 
 export const metadata = {
   title: { absolute: "Corpus Scriptura" },
-  // La devise du frontispice, mot pour mot. « Lectures bibliques et patristiques »
-  // décrivait un rayon de bibliothèque ; la phrase dit ce que le site FAIT, et que
-  // nul autre ne fait.
-  description: "La Bible à la lumière des Pères, les Pères à la lumière de la Bible.",
+  description: DEVISE,
+  // ⚠️ L'ACCUEIL EST À `/accueil`, ET C'EST LUI QUI FAIT FOI. La racine `/` sert la
+  // Bible dès qu'elle porte des paramètres et redirige ici quand elle n'en a pas
+  // (app/page.tsx) : sans canonique, la page la plus liée du site serait une
+  // redirection vers une page qui ne se désigne pas. Le plan du site pointe la même
+  // adresse (app/sitemap.ts) — les deux se relisent ensemble.
+  alternates: { canonical: "/accueil" },
+  // ⛔ Le layout racine porte bien un Open Graph, mais celui du SITE : sans cette
+  // reprise, une page qui redéfinit sa description partage l'ancienne. Le titre et la
+  // description de l'aperçu disent désormais ce que la page dit.
+  ...enTetesPartage("Corpus Scriptura", DEVISE),
 };
 
 // ⛔ PLUS DE BANDEAU DE CHIFFRES (décision de l'auteur, 2026-08-31). Il annonçait
@@ -49,7 +62,7 @@ export default async function AccueilPage() {
   // ⚠️ C'est désormais la SEULE lecture de la page : le bandeau en coûtait deux de
   // plus, dont un appel de fonction qui agrège tout le corpus.
 
-  // ⚠️ TROIS lectures, mais UNE SEULE VAGUE. Un aller-retour vers Supabase coûte
+  // ⚠️ DEUX lectures, mais UNE SEULE VAGUE. Un aller-retour vers Supabase coûte
   // environ 65 ms quoi qu'il transporte, et c'est leur mise en CASCADE qui se voit,
   // jamais leur nombre : celles-ci ne dépendent pas les unes des autres, elles
   // partent donc ensemble.
@@ -141,15 +154,21 @@ export default async function AccueilPage() {
            il fonce l'or, au Cuir il l'éclaircit, et le rapport tient dans les deux
            thèmes sans qu'on ait deux règles à entretenir.
 
-           ⚠️ 74 % et non 78. C'est le RETRAIT DU CADRE du mot qui l'a imposé : à 78 %,
-           l'or rendait bien 5,14 sur --cs-fond-clair, le fond de la carte, mais la
-           carte n'existe plus et le bouton comme la signature se posent maintenant sur
-           --cs-fond-doux, plus sombre d'un cran. Mesuré là : 4,49, un centième sous le
-           seuil. À 74 % il rend 4,75 sur le papier doux et 5,24 sur le papier du seuil,
-           7,51 et 8,74 au Cuir. C'est la règle de la charte prise en défaut : une encre
-           se mesure contre TOUS les fonds qu'un thème peut lui donner, jamais contre
-           le seul sol — et retirer un cadre CHANGE le fond de ce qu'il contenait. */
-        .accueil { --cs-or-lisible: color-mix(in oklab, var(--cs-or) 74%, var(--cs-texte-fort)); }
+           ⚠️ 68 %, ET LA MÊME RÈGLE PRISE EN DÉFAUT TROIS FOIS DE SUITE. Elle disait :
+           une encre se mesure contre TOUS les fonds qu'un thème peut lui donner. À 78 %
+           on l'avait mesurée sur --cs-fond-clair, le fond de la carte du mot ; le cadre
+           retiré, le vrai sol était --cs-fond-doux, et 78 % n'y rendait que 4,49. À 74 %
+           on l'a mesurée sur --cs-fond-doux — et l'on a encore oublié un fond, celui que
+           l'objet S'AJOUTE : la pastille du bouton pose sur la bande un aplat d'or à
+           9 %, qui porte le sol sous l'encre à rgb(230,223,211) au lieu de
+           rgb(237,233,226). Mesuré là : 4,32, sous le seuil, sur le SEUL appel à
+           l'action de la page.
+           ⛔ Le fond d'un texte n'est pas celui de la bande qui le porte, c'est celui
+           du dernier aplat posé sous lui — le sien compris.
+           Mesuré à 68 %, au Clair : 4,73 dans la pastille, 5,17 sur le papier doux
+           (la signature), 5,71 sur le papier du seuil (les dates). Au Cuir : 6,76,
+           7,88 et 9,17. Les trois usages du jeton montent ensemble. */
+        .accueil { --cs-or-lisible: color-mix(in oklab, var(--cs-or) 68%, var(--cs-texte-fort)); }
 
         .colophon-ornement { font-size: 1.125rem; color: var(--cs-texte-second); letter-spacing: 0.25em; }
         /* La marque qui ferme la page. C'était le fleuron ❧, un CARACTÈRE : son dessin
@@ -181,8 +200,22 @@ export default async function AccueilPage() {
         /* ── LE SEUIL : la porte occupe l'écran, et rien n'y est coupé ────────
            ⛔ 100dvh et non 100vh : sur téléphone la barre d'adresse se rétracte, et
            100vh mesure l'écran SANS elle. La porte débordait donc d'une centaine de
-           pixels à l'arrivée, exactement là où elle doit tenir entière. Mesuré au
-           bureau : 844 px pour 844 disponibles, rien sous le pli. */
+           pixels à l'arrivée, exactement là où elle doit tenir entière.
+
+           ⚠️ CETTE PROMESSE SE VÉRIFIE, ET ELLE S'ÉTAIT PÉRIMÉE. « Mesuré au bureau :
+           844 px pour 844 disponibles » datait d'avant la galerie des auteurs. Avec
+           elle, et avec le journal des ajouts, la porte pesait 1 084 px de contenu et
+           réclamait 1 140 px d'écran. Sur l'écran de l'auteur — 2560×1440 rendu à 0,9,
+           soit 1 350 px CSS — elle tenait encore, et c'est ce qui l'a cachée : sur un
+           1080p elle débordait de 195 px, sur un portable 1440×900 de 340, sur un
+           1366×768 de 470. La porte ne peut pas porter quatre blocs.
+           ⛔ Le journal des ajouts est donc DESCENDU dans la bande qui suit (décision
+           de l'auteur, 2026-09-09). Reste ce qui fait une porte : le nom, les deux
+           entrées, et les noms qu'elles ouvrent. Mesuré : 835 px de contenu, 891 px
+           d'écran nécessaires — un 1080p les a, un portable 1440×900 en manque encore
+           90, et c'est le prix qu'on accepte plutôt que de vider la porte.
+           ⚠️ Se remesure ainsi : la somme des enfants de « .accueil-seuil » avec leurs
+           marges, plus les rembourrages, à 1024 px de large au moins. */
         .accueil-seuil {
           min-height: calc(100dvh - 3.5rem);
           background: var(--cs-fond);
@@ -195,7 +228,10 @@ export default async function AccueilPage() {
         }
         /* ⚠️ Ce qui suit la porte commence sur l'AUTRE papier, et la couture se voit :
            c'est elle qui dit qu'il y a une suite. Sans ce changement de fond, la porte
-           n'a plus de bord et l'on ne sait pas qu'on la franchit. */
+           n'a plus de bord et l'on ne sait pas qu'on la franchit.
+           ⚠️ La bande porte DEUX blocs depuis que le journal y est descendu : d'abord
+           ce que la bibliothèque vient de recevoir, puis le mot de celui qui l'établit.
+           C'est l'ordre du bulletin : les nouvelles, puis la signature. */
         .accueil-suite {
           background: var(--cs-fond-doux);
           border-top: 1px solid var(--cs-bord);
@@ -203,30 +239,42 @@ export default async function AccueilPage() {
           display: flex;
           flex-direction: column;
           align-items: center;
+          gap: clamp(40px, 6vh, 72px);
         }
         /* ⚠️ 184 px et non 176 : deux cartes sur la même justification font 432 px de
            large au lieu de 282, et à hauteur inchangée elles se lisaient comme des
            bandes couchées. Le rapport revient à 2,35. */
         .ac-root { --ac-hauteur: 11.5rem; }
 
-        /* ── Le journal, dans l'écran, sous les portes ────────────────────────
+        /* ── Le journal, en tête de la bande qui suit la porte ────────────────
            Pas un carton : une simple colonne posée sur le papier. Un troisième cadre
-           sous deux cartons ferait une page de cadres. */
-        .seuil-journal {
+           sous deux cartons ferait une page de cadres.
+           ⛔ Il vivait DANS la porte, et c'est lui qui la faisait déborder : voir la
+           note de « .accueil-seuil ». Il n'a plus de marge à lui — l'écart des deux
+           blocs est celui de la bande (« gap »), qui ne se règle qu'en un endroit. */
+        .accueil-journal {
           width: 100%;
           max-width: var(--accueil-mesure);
-          margin: clamp(22px, 3.2vh, 38px) auto 0;
+          margin: 0 auto;
         }
-        .seuil-journal-titre {
+        /* La rubrique à filets — un titre entre deux traits. ⚠️ Elle sert le journal
+           ET la galerie des noms, d'où un nom qui ne dit plus « seuil » : les deux
+           blocs ne vivent plus dans le même écran. */
+        .accueil-rubrique {
           display: flex; align-items: center; justify-content: center; gap: 12px;
           margin: 0 0 14px;
         }
-        .seuil-journal-titre span {
+        /* ⛔ C'est un h2, non une étiquette. Les deux rubriques de l'accueil étaient
+           des « span » : le plan de la page sautait du nom du site à « Un mot », et qui
+           navigue par titres ne trouvait ni les auteurs ni les ajouts. Le corps ne
+           change pas, la marge du titre se reprend. */
+        .accueil-rubrique h2 {
           font-family: var(--font-source-serif), Georgia, serif;
           font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.2em;
           text-transform: uppercase; color: var(--cs-vert); white-space: nowrap;
+          margin: 0;
         }
-        .seuil-journal-titre i { flex: 1; height: 1px; background: var(--cs-bord); font-size: 0; }
+        .accueil-rubrique i { flex: 1; height: 1px; background: var(--cs-bord); font-size: 0; }
 
         /* ── La galerie de noms — ce que la porte CONTIENT ─────────────────────
            Les deux cartes disent des CATÉGORIES, « Bible » et « Patristique », et
@@ -289,9 +337,18 @@ export default async function AccueilPage() {
         }
         .seuil-noms a:hover,
         .seuil-noms a:focus-visible { color: var(--cs-vert); border-bottom-color: currentColor; }
-        /* La mention de queue. Elle ferme la liste sans en être : l'italique et
-           l'encre d'un rang plus faible l'empêchent de se lire comme un nom. */
-        .seuil-noms-suite { font-style: italic; color: var(--cs-texte-doux); white-space: nowrap; }
+        /* La mention de queue. Elle ferme la liste sans en être.
+           ⛔ C'EST L'ITALIQUE QUI LA RANGE, PLUS L'ENCRE. Elle portait --cs-texte-doux,
+           qui ne rend que 2,71 sur le papier du seuil : la plus mauvaise encre de la
+           page, arrivée après les passes qui avaient relevé les dates (2,61) et les
+           liens légaux (2,46). Or il n'existe pas, sur ce papier, d'encre à la fois
+           plus faible que --cs-texte-second — le rang des noms, 5,24 — et lisible : la
+           bande entre 4,5 et 5,24 est trop étroite pour qu'un œil y voie un rang.
+           Elle prend donc l'encre des noms, et son rang tient à ce qu'elle est en
+           italique et qu'elle n'est pas un lien : elle ne se souligne pas au survol et
+           ne porte pas de point médian à sa suite. Mesuré : 5,24 au Clair, 10,01 au
+           Cuir. */
+        .seuil-noms-suite { font-style: italic; color: var(--cs-texte-second); white-space: nowrap; }
 
         /* ── Le mot de l'auteur — HORS CADRE ─────────────────────────────────
            Il vivait dans une carte : fond clair, bordure, rayon, ombre portée. C'est
@@ -477,8 +534,13 @@ export default async function AccueilPage() {
         }
       `)}</style>
 
+      {/* ⛔ `<main>` COIFFE TOUTE LA PAGE, non la seule porte. Il ne tenait que le
+          premier écran : le mot, le projet et les liens légaux vivaient dans des
+          `<div>` nus, hors de tout repère, invisibles à qui navigue par repères. Le
+          contenu est ici, le colophon final dans le `<footer>` qui suit. */}
+      <main>
       {/* ══ LA PORTE ═════════════════════════════════════════════════════════ */}
-      <main className="accueil-seuil">
+      <section className="accueil-seuil">
         {/* Le frontispice tient en quatre temps : le nom, la gravure qui le ferme, la
             devise, le rang. Il en comptait sept jusqu'au 2026-08-19, puis quatre, la
             marque ouvrant la page ; elle en est retirée le 2026-08-27, la barre de
@@ -506,10 +568,15 @@ export default async function AccueilPage() {
           {/* Le filet du frontispice : la gravure elle-même, qui EST un filet.
               ⛔ En <img> et non en <Image> — elle porte une couche alpha, et
               l'optimiseur l'aplatit par intermittence sur du blanc, si bien que le
-              rectangle crème reparaît (charte, « Les ornements se DÉTOURENT »). */}
+              rectangle crème reparaît (charte, « Les ornements se DÉTOURENT »).
+              ⛔ MAIS ELLE GARDE SES DIMENSIONS NATIVES (2062×131). Sans elles, et avec
+              `height: auto`, le navigateur ne réserve AUCUNE hauteur avant que la
+              planche n'arrive : la devise et tout ce qui suit sautaient de 36 px au
+              chargement, juste sous le titre. Les attributs ne donnent que le rapport
+              — la taille rendue reste celle du CSS. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icons/home-title-ornament.png" alt="" aria-hidden="true"
-            className="hero-filet-grave" />
+            width={2062} height={131} className="hero-filet-grave" />
 
           {/* La devise. ⚠️ Elle est une PHRASE, et une phrase se coupe : `text-wrap:
               balance` répartit les deux membres de part et d'autre de la virgule au lieu
@@ -586,33 +653,37 @@ export default async function AccueilPage() {
         <VisiteDeLAccueil />
 
         <GalerieAuteurs auteurs={auteurs} />
+      </section>
 
-        {/* La preuve que la bibliothèque vit, dans l'écran d'entrée. Cinq lignes, pas de
-            cadre, pas de chiffre. */}
-        <div className="seuil-journal">
-          <div className="seuil-journal-titre">
+      {/* ══ LA SUITE ═════════════════════════════════════════════════════════
+          La bande dit, par son changement de papier, qu'on a franchi la porte. Elle
+          porte les ajouts, puis le mot. */}
+      <div className="accueil-suite">
+        {/* La preuve que la bibliothèque vit. Cinq lignes, pas de cadre, pas de
+            chiffre. ⛔ Elle était dans la porte, qu'elle faisait déborder de 249 px
+            sur tout écran ordinaire — voir la note de `.accueil-seuil`. */}
+        <div className="accueil-journal">
+          <div className="accueil-rubrique">
             <i />
-            <span>Ajouts récents</span>
+            <h2>Ajouts récents</h2>
             <i />
           </div>
           <ListeAjouts recentes={recentes} />
         </div>
-      </main>
-
-      {/* ══ LA SUITE ═════════════════════════════════════════════════════════
-          Le mot y est seul depuis le retrait du bandeau. La bande demeure : c'est
-          le changement de papier qui dit qu'on a franchi la porte, et une bande
-          d'un seul bloc reste une bande. */}
-      <div className="accueil-suite">
         <VoletUnMot />
       </div>
 
       {/* ── Le projet — style colophon ────────────────────────────────────── */}
-      <div id="apropos" style={{ background: "var(--cs-fond)", scrollMarginTop: "3.5rem", borderTop: "1px solid var(--cs-bord)" }}>
+      <section id="apropos" style={{ background: "var(--cs-fond)", scrollMarginTop: "3.5rem", borderTop: "1px solid var(--cs-bord)" }}>
+        {/* ⚠️ Le rembourrage du bas vaut 44 px et non 80 : le colophon FINAL est sorti
+            d'ici pour devenir le pied de la page, et il emporte son propre blanc du
+            bas. Les 44 px sont ceux qui séparaient la dernière section de la pyramide,
+            hier une marge, aujourd'hui un rembourrage. La colonne ne bouge pas d'un
+            pixel. */}
         <div style={{
           maxWidth: "35rem",
           margin: "0 auto",
-          padding: "72px 32px 80px",
+          padding: "72px 32px 44px",
           textAlign: "center",
           fontFamily: "var(--font-source-serif), Georgia, serif",
           color: "var(--cs-texte-fort)",
@@ -680,8 +751,30 @@ export default async function AccueilPage() {
             <p style={paraStyle}>L’un des objectifs de <em>Corpus Scriptura</em> est aussi de remettre en circulation des textes devenus difficiles d’accès et de conserver le travail accompli sur eux sous une forme structurée et réutilisable. Les sources, les références bibliographiques et les différentes étapes de préparation sont autant que possible documentées afin que le corpus puisse continuer à être corrigé, enrichi et transmis.</p>
           </ColophonSection>
 
-          {/* ── Colophon final — pyramide ─────────────────────────────────── */}
-          <div style={{ marginTop: "44px" }}>
+        </div>
+      </section>
+      </main>
+
+      {/* ══ LE PIED ══════════════════════════════════════════════════════════
+          Le colophon final : la pyramide, la marque, les liens légaux.
+          ⛔ IL VIT HORS DE `<main>`, ET C'EST LA CONDITION POUR QU'IL SOIT UN PIED. Un
+          `<footer>` n'est le repère `contentinfo` que si aucun `<main>`, `<section>`,
+          `<article>` ni `<aside>` ne le contient : niché dans le colophon du projet, où
+          il se trouvait, il n'aurait été le pied que de cette section. `.accueil` est un
+          `<div>`, donc transparent à cette règle.
+          ⚠️ Il reprend le papier, la mesure et la fonte du colophon qui le précède : la
+          couture ne doit pas se voir. Son rembourrage du haut est nul — la section
+          au-dessus porte déjà les 44 px. */}
+      <footer style={{ background: "var(--cs-fond)" }}>
+        <div style={{
+          maxWidth: "35rem",
+          margin: "0 auto",
+          padding: "0 32px 80px",
+          textAlign: "center",
+          fontFamily: "var(--font-source-serif), Georgia, serif",
+          color: "var(--cs-texte-fort)",
+        }}>
+          <div>
             {/* La pyramide garde un interligne PLUS LARGE que la prose : ses lignes sont
                 des lignes de colophon, chacune se lisant pour elle-même. */}
             <div style={{ fontSize: "0.8125rem", lineHeight: "1.85", color: "var(--cs-texte-second)", letterSpacing: "0.01em" }}>
@@ -727,9 +820,8 @@ export default async function AccueilPage() {
               </Link>
             </div>
           </div>
-
         </div>
-      </div>
+      </footer>
     </div>
   );
 }
@@ -822,9 +914,9 @@ function GalerieAuteurs({ auteurs }: { auteurs: AuteurDuCorpus[] }) {
   if (auteurs.length === 0) return null
   return (
     <div className="seuil-noms">
-      <div className="seuil-journal-titre">
+      <div className="accueil-rubrique">
         <i />
-        <span>Les auteurs du corpus</span>
+        <h2>Les auteurs du corpus</h2>
         <i />
       </div>
       {/* ⚠️ L'espace entre deux noms est une VRAIE espace, posée ici : React
