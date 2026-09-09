@@ -1,6 +1,7 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useId } from 'react'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { supabase } from "@/app/lib/supabase"
 import { calculerRang, couleurRang } from '@/app/lib/classement'
@@ -40,6 +41,14 @@ function ModalSignalerCommentaire({ titre, onClose, onEnvoyer }: {
 }) {
   const [message, setMessage] = useState('')
   const [statut, setStatut] = useState<'idle' | 'sending' | 'ok' | 'err'>('idle')
+  // ⛔ Échap ferme, et c'est le SEUL chemin du clavier : le voile et la croix ne
+  //    servent que le curseur.
+  const idTitre = useId()
+  useEffect(() => {
+    const surTouche = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', surTouche)
+    return () => window.removeEventListener('keydown', surTouche)
+  }, [onClose])
   const envoyer = async () => {
     if (!message.trim()) return
     setStatut('sending')
@@ -47,11 +56,20 @@ function ModalSignalerCommentaire({ titre, onClose, onEnvoyer }: {
     catch { setStatut('err') }
   }
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 2800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+    // ⛔ LE CALQUE PART DE LA BARRE, et il ne DÉFILE PAS : posé en `inset: 0`, son
+    //    contenu passait SOUS la barre de navigation, qui est peinte par-dessus. C'est
+    //    la charte des fenêtres contextuelles, consignée depuis le 17 août 2026 ; elle
+    //    survivait ici. Le CONTENU défile, jamais le calque.
+    // ⛔ Et le rang passe de 2800 à 2700 : 2800 est celui de la VISITE, et trois objets
+    //    y logeaient — lequel passait devant ne tenait plus qu'à l'ordre du document.
+    //    2700 est le rang que le site donne à une modale qui doit couvrir le reste,
+    //    tiroirs mobiles compris (2400/2401), et cette fenêtre s'ouvre depuis l'un d'eux.
+    <div onClick={onClose} role="dialog" aria-modal="true" aria-labelledby={idTitre}
+      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: 2700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
       <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', width: 'min(21.25rem, 100%)', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-danger)', margin: 0 }}>Signaler</p>
-          <button onClick={onClose} style={{ fontSize: '0.875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+          <p id={idTitre} style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-danger)', margin: 0 }}>Signaler</p>
+          <button onClick={onClose} aria-label="Fermer" style={{ fontSize: '0.875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
         <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', marginBottom: '10px', lineHeight: 1.4 }}>{titre}</p>
         {statut === 'ok' ? (

@@ -121,6 +121,7 @@ import { COMPOSITION_INTITULE, cleTriTitre, complementDeTitre } from '@/app/lib/
 import { partagerOpuscules } from '@/app/lib/opuscules'
 import IconeChevron from '@/app/components/IconeChevron'
 import RailVolet from '@/app/components/RailVolet'
+import OngletsPage from '@/app/components/OngletsPage'
 import { enregistrerOeuvreRecente } from '@/app/lib/oeuvresRecentes'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
@@ -441,6 +442,14 @@ const AUCUNE_DEGRADATION: DegradationChargement[] = []
 const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
 /** Les trois onglets du volet de droite. ⛔ « notes » est réservé à l'administration. */
+/** Ce que chaque onglet du volet de droite annonce. ⚠️ « Notes » n'est offert qu'à
+ *  l'administration : voir `ongletsDuVolet`. */
+const LIBELLE_ONGLET_VOLET: Record<OngletDroit, string> = {
+  refs: 'Bible',
+  commentaires: 'Commentaires',
+  notes: 'Notes',
+}
+
 type OngletDroit = 'refs' | 'commentaires' | 'notes'
 
 export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
@@ -2650,8 +2659,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         }
         .toc-lien-n1:hover, .toc-lien-n2:hover { color: var(--cs-vert) !important; }
         .ref-lien:hover { color: var(--cs-vert) !important; }
-        .onglet-btn { transition: color 0.12s, border-color 0.12s; }
-        .onglet-btn:hover { color: var(--cs-vert) !important; }
         .signal-btn:hover { color: var(--cs-danger) !important; }
         .trad-option:hover { background: rgba(var(--cs-vert-rgb),0.06) !important; }
       `}</style>
@@ -3938,28 +3945,28 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             }}
           />
 
-          <div style={{ position: 'relative', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0, display: 'flex', alignItems: 'stretch' }}>
-            <button onClick={() => setPanneauOuvert(false)} title="Réduire le panneau"
-              style={{ position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 1, padding: '0 6px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center' }}>
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          {/* ⛔ LA BARRE EST LE MODÈLE DU SITE, non une huitième barre recomposée.
+              Elle était écrite en styles en ligne — filet posé à la main, trait vert de
+              deux pixels, graisse qui change avec l'état, donc des libellés qui se
+              DÉPLACENT au premier clic. `OngletsPage` réserve la largeur d'avance
+              (`data-libelle`), et l'en-tête du composant partagé proscrit la recopie
+              depuis sa création. ⚠️ La variante `cs-onglets--volet` est celle du volet
+              de la Bible : le modèle est dessiné pour une page de 46 rem, et un volet
+              n'en fait pas le quart. Elle retire aussi le séparateur, qui entre deux mots
+              dans une colonne étroite se voit avant les mots qu'il sépare. */}
+          <div style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'stretch' }}>
+            <button onClick={() => setPanneauOuvert(false)} title="Réduire le panneau" aria-label="Réduire le panneau"
+              style={{ position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 1, minWidth: '24px', padding: '0 6px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <IconeChevron dir="right" size={14} strokeWidth={1.5} />
             </button>
-            <div style={{ display: 'flex', flex: 1 }}>
-              {ongletsDuVolet.map((key, idx) => {
-                const labels = { refs: 'Bible', commentaires: 'Commentaires', notes: 'Notes' }
-                const actif = ongletDroit === key
-                return (
-                  <Fragment key={key}>
-                    {idx > 0 && (
-                      <span style={{ width: '1px', background: 'var(--cs-bord-clair)', alignSelf: 'center', height: '16px', flexShrink: 0 }} />
-                    )}
-                    <button onClick={() => setOngletDroit(key)} className="onglet-btn"
-                      style={{ flex: 1, padding: '11px 4px 10px', background: 'transparent', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: actif ? '2px solid var(--cs-vert-aplat)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
-                      <span style={{ fontSize: '0.78125rem', fontWeight: actif ? 600 : 400, color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-second)', whiteSpace: 'nowrap' }}>{labels[key]}</span>
-                    </button>
-                  </Fragment>
-                )
-              })}
-            </div>
+            <OngletsPage
+              className="cs-onglets--volet"
+              style={{ flex: 1, minWidth: 0 }}
+              intitule="Ce que le volet montre"
+              onglets={ongletsDuVolet.map(cle => ({ cle, libelle: LIBELLE_ONGLET_VOLET[cle] }))}
+              actif={ongletDroit}
+              choisir={setOngletDroit}
+            />
           </div>
 
           <div style={ongletDroit === 'refs'

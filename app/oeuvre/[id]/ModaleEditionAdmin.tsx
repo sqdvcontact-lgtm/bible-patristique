@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useId } from 'react'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import type { ChampOeuvre, EditionCible, VarianteTitre } from './oeuvreTypes'
 
 const BTN_MODAL: React.CSSProperties = { fontSize: '0.6875rem', padding: '4px 9px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }
@@ -52,6 +53,14 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
   const [etape, setEtape] = useState<'edition' | 'confirmation' | 'confirmation-suppression'>('edition')
   const [statut, setStatut] = useState<'idle' | 'envoi' | 'erreur'>('idle')
   const [erreurMsg, setErreurMsg] = useState<string | null>(null)
+  // ⛔ Échap ferme, et c'est le SEUL chemin du clavier : le voile et la croix ne
+  //    servent que le curseur. C'est la règle des cinq autres fenêtres de la page.
+  const idTitre = useId()
+  useEffect(() => {
+    const surTouche = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', surTouche)
+    return () => window.removeEventListener('keydown', surTouche)
+  }, [onClose])
   const taRef = useRef<HTMLTextAreaElement>(null)
 
   // Le titre de l'œuvre a deux colonnes : celle du catalogue et celle du
@@ -139,13 +148,21 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 24px', width: '42.5rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
+    // ⛔ LE CALQUE PART DE LA BARRE, et il ne DÉFILE PAS (charte des fenêtres
+    //    contextuelles, 17 août 2026) : en `inset: 0`, la boîte remontait sous la barre
+    //    de navigation, peinte par-dessus. C'est le CONTENU qui défile, d'où le
+    //    `maxHeight: 100%` de la boîte.
+    // ⛔ Et le rang passe de 1100 à 1200, celui que la page donne à ses fenêtres : à
+    //    1100, une fenêtre d'administration ouverte derrière « Proposer un lien » ou
+    //    « Niveaux d'affichage » se serait retrouvée DESSOUS.
+    <div role="dialog" aria-modal="true" aria-labelledby={idTitre}
+      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 24px', width: '42.5rem', maxWidth: '100%', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>
+          <p id={idTitre} style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>
             {cible.type === 'segment' ? 'Modifier le segment' : cible.type === 'titre_oeuvre' ? (CHAMP_LABEL[cible.champ] ?? "Modifier le titre de l'œuvre") : `Modifier le titre de niveau ${cible.niveau}`}
           </p>
-          <button onClick={onClose} style={{ fontSize: '0.875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} aria-label="Fermer" style={{ fontSize: '0.875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
 
         {etape === 'edition' ? <>
