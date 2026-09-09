@@ -67,13 +67,17 @@ describe('ce qui peut porter la lettrine', () => {
 })
 
 /**
- * ⛔ La SIGNATURE se compose dans l'APPARAT, et nulle part ailleurs.
+ * ⛔ La SIGNATURE se compose sur LES DEUX surfaces, du même fer et du même interligne.
  *
- * Les onze `signature` du corpus — les quatre approbateurs du Mépris du monde, les trois
- * de Boèce, le Privilège des Confessions — portent toutes `espace_textuel =
- * 'apparat_critique'`. Le fer à droite existait pourtant dans la seule branche de la
- * LECTURE : la forme était rendue là où aucun segment ne va, et absente là où ils sont
- * tous. Corrigé le 6 septembre 2026.
+ * Onze des dix-huit `signature` du corpus — les quatre approbateurs du Mépris du monde,
+ * les trois de Boèce, le Privilège des Confessions — portent `espace_textuel =
+ * 'apparat_critique'`. Le fer à droite n'existait pourtant que dans la branche de la
+ * LECTURE : la forme était absente là où vivent les deux tiers des segments. Corrigé le
+ * 6 septembre 2026.
+ *
+ * ⚠️ Et les SEPT autres vivent dans le CORPS : les mentions de traducteur que Bar-le-Duc
+ * imprime en clôture d'une pièce. La branche de la lecture n'a donc jamais été morte, et
+ * le commentaire d'origine le disait à tort. Corrigé le 9 septembre 2026.
  */
 describe('le bloc de signatures', () => {
   it('l’apparat porte la dérogation de nature, comme la lecture', () => {

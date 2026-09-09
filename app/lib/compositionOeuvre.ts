@@ -245,17 +245,21 @@ export function paragraphesDeSegments<T>(
  * Le paragraphe de l'APPARAT : la même prose, et LES MÊMES DÉROGATIONS DE NATURE.
  *
  * ⛔ Il n'en prenait aucune jusqu'au 6 septembre 2026, au motif qu'une nature dérogeante
- * n'atteindrait jamais l'apparat. C'était faux, et faux à l'envers exact : les ONZE
- * `signature` du corpus — les quatre approbateurs du Mépris du monde, ceux de Boèce, le
- * Privilège des Confessions — portent TOUTES `espace_textuel = 'apparat_critique'`, et
- * pas une seule ne vit dans le corps. La composition au fer à droite existait donc dans
- * le code, avait sa nature en base et sa fiche à l'épreuve des styles, et ne touchait
- * AUCUN segment du site : « A. Debreda Curé de S. André. » se composait en prose
- * justifiée, comme l'approbation qu'il signe.
+ * n'atteindrait jamais l'apparat. C'était faux, et faux à l'envers exact : ONZE des
+ * dix-huit `signature` du corpus — les quatre approbateurs du Mépris du monde, ceux de
+ * Boèce, le Privilège des Confessions — portent `espace_textuel = 'apparat_critique'`.
+ * La composition au fer à droite existait donc dans le code, avait sa nature en base et
+ * sa fiche à l'épreuve des styles, et ne touchait AUCUN de ces onze segments :
+ * « A. Debreda Curé de S. André. » se composait en prose justifiée, comme l'approbation
+ * qu'il signe.
  *
- * ⚠️ Une forme rendue sur une surface où sa donnée ne va jamais est une forme morte, et
- * l'épreuve ne le disait pas : elle montrait la signature à l'épreuve du CORPS, là où il
- * n'y en a pas.
+ * ⛔ Les SEPT autres vivent dans le CORPS, et cette note a soutenu le contraire jusqu'au
+ * 9 septembre 2026 : ce sont les mentions de traducteur que Bar-le-Duc imprime en
+ * CLÔTURE d'une pièce — « Traduit par M. Portelette. » au bas du neuvième Discours sur
+ * la Genèse, cinq psaumes du Commentaire, et « Cette traduction est l'œuvre de M. l'abbé
+ * Pognon. », qui ferme les Questions sur l'Heptateuque. Une mention de traducteur clôt le
+ * TEXTE : elle se lit dans le corps, à la place que l'imprimé lui donne, et n'est pas un
+ * apparat critique. La lecture la composait donc déjà, et l'épreuve ne le disait pas.
  */
 export function styleParagrapheApparat(forme: FormeParagraphe = {}): CSSProperties {
   return styleParagrapheLecture(forme)

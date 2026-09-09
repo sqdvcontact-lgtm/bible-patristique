@@ -640,14 +640,15 @@ const OEUVRES: Unite[] = [
     ),
   },
   {
-    style: 'patristique/signature — ÉPREUVE SEULE',
-    note: 'Un bloc d’approbations, de censeurs, de souscripteurs — ce qui ferme un volume ancien. Au fer à droite, interligne resserré à 1,32, et un blanc de 0,3 rem seulement entre lignes de même nature : c’est une liste, non une suite de paragraphes.',
-    alerte: '⛔ AUCUN segment ne compose ici, et l’épreuve est donc un cas d’école. La nature appartient bien à `NATURES_CORPS`, pour les imports sans espace explicite ; mais les ONZE `signature` du corpus portent toutes `espace_textuel = apparat_critique`. La forme vivante est `patristique_apparat/signature`, plus bas. ⚠️ Elle ne s’y appliquait pas jusqu’au 6 septembre 2026 : `styleParagrapheApparat` ne prenait aucune dérogation de nature, et les quatre curés du Mépris du monde se composaient en prose justifiée. Une forme rendue sur une surface où sa donnée ne va jamais est une forme morte, et cette fiche-ci ne le disait pas. ⛔ Ne pas la confondre avec `apparat_editeur`, qui porte le paratexte RÉDIGÉ de l’éditeur, quand `signature` n’en porte que les noms et les qualités.',
+    style: 'patristique/signature',
+    note: 'La signature LÀ OÙ ELLE CLÔT LE TEXTE : la mention de traducteur que Bar-le-Duc imprime au bas de la dernière page d’une pièce. Au fer à droite, interligne resserré à 1,32, et une ligne de prose entière au-dessus — elle ferme, elle ne s’ajoute pas. SEPT segments du corpus la portent, dans trois œuvres.',
+    alerte: '⛔ Cette fiche a soutenu jusqu’au 9 septembre 2026 qu’AUCUN segment ne composait ici, et c’était faux depuis le 16 août : les six mentions de traducteur du Chrysostome de Jeannin — « Traduit par M. Portelette. » au bas du neuvième Discours sur la Genèse, cinq psaumes du Commentaire — portent `espace_textuel = corps` et se ferrent bien à droite. La septième, « Cette traduction est l’œuvre de M. l’abbé Pognon. », a rejoint le corps le 9 septembre 2026 : elle était rangée à l’apparat, où elle paraissait seule sous le titre « Livre septième — Questions sur les Juges », comme si elle ne créditait que ce livre-là. ⛔ Une mention de traducteur clôt le TEXTE et se lit avec lui, à la place que l’imprimé lui donne ; elle n’est pas un apparat critique. ⚠️ Les onze autres `signature` — approbations, censeurs, privilèges — vivent bien à l’apparat : voir `patristique_apparat/signature`, plus bas. ⛔ Ne pas confondre avec `apparat_editeur`, qui porte le paratexte RÉDIGÉ de l’éditeur : `signature` ne porte que des noms, leurs qualités, et la formule brève qui les donne.',
     contenu: (
       <>
-        <p style={styleParagrapheLecture({ signature: 'suite' })}><Segment>Fr. Jean de Sainte-Marie, censeur.</Segment></p>
-        <p style={styleParagrapheLecture({ signature: 'suite' })}><Segment>Fr. Étienne Dubois, prieur.</Segment></p>
-        <p style={styleParagrapheLecture({ signature: 'fin' })}><Segment>Achevé d’imprimer le troisième jour de mai.</Segment></p>
+        <p style={styleParagrapheLecture()}>
+          <Segment n={4359}>Ainsi en est-il de toutes les locutions : elles ont une énergie qui ne peut être comprise, comme les langues elles-mêmes, qu’en les entendant, ou en les étudiant.</Segment>
+        </p>
+        <p style={styleParagrapheLecture({ signature: 'fin' })}><Segment n={4360}><i>Cette traduction est l’œuvre de M. l’abbé POGNON</i>.</Segment></p>
       </>
     ),
   },

@@ -3739,9 +3739,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     const clotParagraphe = chunk.clot
                     const toutRubrique = chunk.ids.every(sid => segMap.get(sid)?.nature === 'rubrique')
                     // Bloc de signatures : composé au fer à droite, interligne resserré.
-                    // ⚠️ AUCUN segment du corpus ne l'atteint aujourd'hui — les onze
-                    // `signature` vivent toutes dans l'apparat (compositionOeuvre.ts) — mais
-                    // `NATURES_CORPS` la porte pour les imports sans espace explicite.
+                    // ⚠️ SEPT segments du corpus l'atteignent (compositionOeuvre.ts) : les
+                    // mentions de traducteur que Bar-le-Duc imprime en clôture d'une pièce,
+                    // qui ferment le texte et se lisent donc avec lui. Les onze autres
+                    // `signature` — approbations, censeurs, privilèges — vivent dans l'apparat.
                     // ⛔ Le blanc qui suit une signature se juge sur le bloc SUIVANT : cousu
                     // s'il en est une (c'est une liste), coupé sinon (elle ferme sa pièce).
                     const toutSignature = estBlocDeSignatures(chunk.ids.map(sid => segMap.get(sid)?.nature))
@@ -4057,9 +4058,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           )
                         }
                         // Bloc de SIGNATURES : au fer à droite, interligne resserré, blanc
-                        // réduit entre lignes de même nature. ⛔ C'est la SEULE surface où
-                        // la forme s'applique : les onze signatures du corpus sont toutes
-                        // dans l'apparat, et la lecture ne l'a jamais composée.
+                        // réduit entre lignes de même nature. ⛔ Onze des dix-huit signatures
+                        // du corpus vivent ici — approbations, censeurs, privilèges ; les sept
+                        // autres ferment leur pièce dans le CORPS, qui les compose de même.
                         // ⛔ Et le blanc qui la SUIT se juge sur le bloc suivant : 0,3 rem
                         // entre deux signatures, qui sont une liste ; une ligne de prose
                         // entière quand la pièce reprend — sans quoi « Signé Du Bray. » se
