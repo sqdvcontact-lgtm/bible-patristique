@@ -8147,3 +8147,121 @@ justifie rien à lui seul.
   Supabase par visite et `max-age=0`. À l'ouverture, le rendu anonyme sera identique pour
   tout le monde : un cache court y vaudra davantage qu'aujourd'hui — et il ferait tomber du
   même coup le départ à froid, donc le résidu ci-dessus.
+
+# ⛔ Un refus de robot a DEUX verrous, et ils doivent dire la même chose (2026-09-09)
+
+Décision de l'auteur : ouvrir le site aux assistants. Le défaut trouvé en le faisant vaut
+plus que la décision elle-même.
+
+⛔ **`app/robots.ts` n'était que la MOITIÉ du refus.** `proxy.ts` refuse les mêmes robots
+en **403**, sur leur seul nom d'agent, avant toute autre chose. Ouvrir l'un sans l'autre
+donne le pire des deux états : un `robots.txt` qui dit « entrez » devant une porte qui
+rend 403, et **rien ne le signale** — ni type, ni test, ni journal. Un robot poli s'en va
+sans se plaindre. ⚠️ Les deux listes sont désormais tenues d'accord, et chacune renvoie à
+l'autre en commentaire.
+
+⛔ **DEUX FAMILLES, ET ON NE LES REFOND PAS EN UNE.** Ceux qui **entraînent** aspirent le
+corpus pour nourrir un modèle : refusés, ce qui vaut réservation TDM (art. L122-5-3 CPI),
+en écho à `/.well-known/tdmrep.json`, que la décision ne touche pas. Ceux qui **citent en
+répondant** vont chercher une page pour la donner en source à un lecteur : ouverts —
+OAI-SearchBot, ChatGPT-User, ClaudeBot, Claude-User, Claude-SearchBot, PerplexityBot,
+Perplexity-User. Les refuser ne protégeait rien : cela rendait seulement le site
+introuvable de qui cherche un verset commenté par Augustin.
+
+⚠️ **Un groupe nommé REMPLACE entièrement celui de `*`** dans un `robots.txt` : un robot
+de réponse doit donc redire `/api/` et `/admin`, sans quoi il y entrerait quand tout le
+monde s'en abstient. D'où la constante `INTERDITS`, partagée.
+
+⚠️ **`ClaudeBot` sert chez Anthropic l'exploration ET la recherche** ; il est ouvert avec
+les autres, et se referme d'une ligne si l'on veut s'en tenir aux seuls `Claude-User` et
+`Claude-SearchBot`. ⚠️ Ces deux-là n'étaient déjà bloqués par aucun des deux verrous.
+
+⚠️ **Contrôle** : éprouver les DEUX sens (les sept passent, les dix-huit restent refusés),
+et qu'un navigateur ordinaire n'est jamais pris pour un robot — la regex du proxy n'est
+pas ancrée.
+
+# ⛔ Un déplacement DÉFINITIF se sert en 308 (2026-09-09)
+
+`/populaires`, `/concordance` et `/notifications` étaient servis en **307** par `redirect()`
+alors que les trois pages n'existent plus. Seul `permanentRedirect()` (308) transmet les
+signaux à la page d'arrivée ; le 307 dit « repassez plus tard », ce qui est faux.
+
+⚠️ Et `/notifications` visait `/`, qui redirige à son tour vers l'accueil : **deux
+redirections en chaîne pour une seule destination**. Elle vise `/accueil`. ⛔ C'est la même
+règle que pour le plan du site — on ne pointe jamais une redirection.
+
+# ⚠️ Un contrôle qui ne relève qu'une COMMANDE ne relève pas la table (2026-09-09)
+
+`oeuvres_auteurs` portait deux politiques d'ÉCRITURE identiques, en plus des deux de
+lecture retirées le matin même (migration `20260909082157`). Le contrôle de cette
+migration comptait les politiques `SELECT` et s'arrêtait là : il a certifié une table à
+demi corrigée. Migration `20260909090405`.
+
+⛔ **On garde le NOM de la première et la FORME de la seconde** : `(select is_admin())`
+fait évaluer la fonction UNE FOIS par requête, `is_admin()` nu une fois PAR LIGNE.
+⚠️ Repérage général : `select tablename, cmd, count(*) from pg_policies group by 1,2
+having count(*) > 1` — et lire chaque couple, la plupart sont légitimes (une politique
+d'administrateur à côté d'une politique publique n'est pas un doublon).
+
+# ⛔ LE CENTRE DE CONTRÔLE NE S'OUVRE PLUS — 13,2 s pour 8 (2026-09-09, OUVERT)
+
+`controle_v2_admin_snapshot()` met **13 236 ms** quand `authenticated` en accorde 8 000 :
+la page rend 500. Trois échecs consécutifs au journal le 2026-09-08 à 19h22. Mesuré, la
+dépense est dans UN bloc et un seul :
+
+| morceau | ms |
+|---|---:|
+| `v_controle_v2_postchecks_resume` (22 727 objets) | **4 119** |
+| `controle_v2_alignment_rerun_manifest()` | 1 021 |
+| segments non suivis portant un lien | 685 |
+| contrôles ouverts · mémoire des revues · sécurité RPC | < 200 chacun |
+
+⛔ **DIVISER LA PAGE EN SECTIONS NE LA RÉPARERAIT PAS** (question de l'auteur) : les six
+sections légères paraîtraient à l'instant et la septième continuerait d'échouer. C'est un
+bon rangement, ce n'est pas le remède.
+
+⚠️ **Le remède est celui d'`oeuvres_controle_stats_mat`, déjà écrit dans ce fichier** :
+FIGER le résumé et le recalculer sur demande. Le snapshot a déjà un cache
+(`internal.controle_v2_metrics_cache`) et ne s'en sert que pour `metrics`.
+
+⚠️ **La file n'est pas bloquée, elle est GROSSE** : 342 497 événements soldés sur 419 512,
+le dernier le jour même. Ce sont des segments corrigés par les passes éditoriales depuis le
+2026-08-26 — Somme théologique 6 488, Heptateuque 3 866, Cité de Dieu 3 345, Job 2 177.
+⛔ Et le coût est le PRODUIT des objets en file par les tâches actives (la vue de routage
+cherche l'identifiant de l'œuvre dans la PROSE des tâches) : **194 tâches ouvertes** contre
+les treize que veut la charte, soit cinq fois plus qu'au 2026-08-24, où le même appel
+mettait 6,3 s.
+
+# ⚠️ 76 855 objets détachés — le dépôt pèse 34 Go pour 3 Go d'archive (2026-09-09)
+
+`git count-objects -v` : **31 Go d'objets jamais compactés** contre 3,05 Go réellement
+empaquetés, plus 2 518 objets déjà présents dans un paquet et deux fichiers temporaires
+abandonnés. C'est ce qui rend toute opération git lente sur ce poste. ⚠️ Le compactage se
+compte en dizaines de minutes à cette taille : le lancer et faire autre chose.
+
+⚠️ **Et l'histoire porte un `node_modules` commité** sous
+`scripts/heptateuque/segmentation-candidate/`, binaires natifs compris (26 Mo pour le plus
+gros blob du dépôt). Rien d'urgent — le compactage suffit — mais on ne l'en sortira pas
+sans réécrire le dépôt.
+
+⛔ **`work/` (39 Go), `outils/` (669 Mo) et `livraisons/` (556 Mo) NE SONT PAS IGNORÉS.**
+Seuls `tmp/` et `audit/` le sont. Un `git add .` les enverrait dans l'histoire, d'où on ne
+les sortirait plus. ⚠️ Ce qui protège aujourd'hui est une DISCIPLINE (« jamais `git add -A`
+»), non un verrou. Les y mettre ne détacherait aucun des 38 fichiers déjà suivis :
+`.gitignore` ne parle qu'aux fichiers que git ne connaît pas encore.
+
+# ⚠️ La dette de linter se lit PAR ZONE, jamais en total (2026-09-09)
+
+402 remarques, et le total ne dit rien tant qu'on ne sait pas où elles tombent :
+
+| règle | dans `app/` | dans `scripts/` |
+|---|---:|---:|
+| `no-unused-vars` | **0** | 120 |
+| `no-explicit-any` | 102 | 1 |
+| `set-state-in-effect` | 77 | 0 |
+| `no-img-element` | 16 | 0 |
+
+⚠️ **Les 120 variables inutiles sont TOUTES dans des scripts d'atelier** — écrits pour une
+passe, jamais rejoués. Les nettoyer ne change rien pour le lecteur. ⛔ C'est le tiers de la
+dette apparente, et c'est celui qui ne vaut pas d'être payé.
+⚠️ `--fix` n'en règle que cinq : ESLint ne supprime pas du code.
