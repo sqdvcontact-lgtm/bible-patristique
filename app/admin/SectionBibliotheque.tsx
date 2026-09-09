@@ -1178,6 +1178,9 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     { key: 'note_editoriale_titre', label: 'Note de la page de titre' },
     // Enregistré par la même route, mais dans une table à part (voir l'API).
     { key: 'commentaire_prive', label: 'Commentaires privés' },
+    // Le motif d'une publication ou d'une retenue. Il vivait dans « oeuvres.acces_public_note »,
+    // que la page publique lit en select('*') : il a rejoint la table privée le 2026-09-09.
+    { key: 'note_acces_public', label: 'Motif de publication ou de retenue' },
   ]
 
   const ouvrirEditionOeuvre = (o: Oeuvre) => {
@@ -1194,6 +1197,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       note_editoriale_complement: o.note_editoriale_complement ?? '',
       note_editoriale_titre: o.note_editoriale_titre ?? '',
       commentaire_prive: o.commentaire_prive ?? '',
+      note_acces_public: o.note_acces_public ?? '',
     })
     setFormOeuvreGenres(Array.isArray(o.genres) ? o.genres : [])
     setStatutOeuvre(null)
@@ -2066,6 +2070,20 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                           <textarea value={formOeuvre.commentaire_prive ?? ''}
                             onChange={e => setFormOeuvre(p => ({ ...p, commentaire_prive: e.target.value }))}
                             rows={3} placeholder="Notes de travail visibles de l’administration seule."
+                            style={{ ...inputStyleAuteur, resize: 'vertical', background: 'var(--cs-fond-clair)' }} />
+                        </div>
+
+                        {/* ⛔ LE MOTIF DE PUBLICATION vit dans la MÊME table privée depuis le
+                            2026-09-09, et pour la même raison : il était une colonne d'« oeuvres »,
+                            que la page publique de l'œuvre lit en select('*') sous la session du
+                            LECTEUR — trente notes d'atelier étaient donc servies à tout compte
+                            connecté. ⚠️ Il ne se confond pas avec le carnet du dessus : celui-ci dit
+                            où en est le travail, celui-là pourquoi l'œuvre est offerte ou retenue. */}
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <label style={lbl}>Motif de publication ou de retenue</label>
+                          <textarea value={formOeuvre.note_acces_public ?? ''}
+                            onChange={e => setFormOeuvre(p => ({ ...p, note_acces_public: e.target.value }))}
+                            rows={2} placeholder="Pourquoi cette œuvre est offerte, ou pourquoi elle est retenue."
                             style={{ ...inputStyleAuteur, resize: 'vertical', background: 'var(--cs-fond-clair)' }} />
                         </div>
 

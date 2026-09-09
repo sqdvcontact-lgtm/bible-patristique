@@ -26,9 +26,9 @@ export type Oeuvre = {
   texte_sommaire?: string | null
   texte_corps?: string | null
   afficher_numeros?: boolean | null
-  // Le seul drapeau de publication (app/lib/oeuvresPublication.ts) et son motif.
+  // Le seul drapeau de publication (app/lib/oeuvresPublication.ts). ⛔ Son MOTIF n'est
+  // plus une colonne d'`oeuvres` : voir `note_acces_public`, plus bas.
   acces_public?: boolean | null
-  acces_public_note?: string | null
   commentaire_traduction?: string | null
   // Les trois notes éditoriales publiques : l'œuvre (sa substance), ses points de
   // détail, et le résumé de la page de titre. Voir la migration du 3 septembre 2026.
@@ -38,6 +38,15 @@ export type Oeuvre = {
   // Notes de travail réservées à l'administration : elles ne viennent pas de la
   // table `oeuvres` mais de `oeuvres_commentaires_prives`, lue par la clé de service.
   commentaire_prive?: string | null
+  // ⛔ LE MOTIF D'UNE PUBLICATION OU D'UNE RETENUE, et il a DÉMÉNAGÉ le 2026-09-09.
+  // Il vivait dans `oeuvres.acces_public_note`, c'est-à-dire dans une table que la page
+  // publique de l'œuvre lit en `select('*')` sous la session du LECTEUR : trente notes
+  // d'atelier — « Import de préparation privé », « Édition en cours de reprise
+  // éditoriale interne » — étaient donc servies à tout compte connecté. Elles ont
+  // rejoint `oeuvres_commentaires_prives`, à côté du carnet de travail, dans la colonne
+  // `note_acces_public`. ⚠️ Les DEUX restent distinctes : l'une dit pourquoi l'œuvre est
+  // offerte ou retenue, l'autre où en est le travail.
+  note_acces_public?: string | null
 }
 export type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 export type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }

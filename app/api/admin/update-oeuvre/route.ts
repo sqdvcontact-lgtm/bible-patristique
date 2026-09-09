@@ -25,12 +25,31 @@ export async function POST(req: NextRequest) {
   // select('*') sous la session du lecteur, une colonne de plus y aurait donc été
   // servie à tout compte connecté. Elles vivent dans une table sans droit de lecture
   // pour anon ni authenticated, atteinte ici par la clé de service.
-  if (champ === 'commentaire_prive') {
+  // ⚠️ La table porte DEUX proses, et elles ne disent pas la même chose : `commentaire`
+  // est le carnet de travail, `note_acces_public` le motif d'une publication ou d'une
+  // retenue — celui-ci a quitté `oeuvres.acces_public_note` le 2026-09-09, pour la raison
+  // même qui vaut à la première d'être ici.
+  if (champ === 'commentaire_prive' || champ === 'note_acces_public') {
+    const colonne = champ === 'commentaire_prive' ? 'commentaire' : 'note_acces_public'
+    const autre = champ === 'commentaire_prive' ? 'note_acces_public' : 'commentaire'
     const texte = typeof valeur === 'string' ? valeur.trim() : ''
-    const { error: erreurPrive } = texte
-      ? await supabaseAdmin.from('oeuvres_commentaires_prives')
-          .upsert({ id_oeuvre, commentaire: texte, modifie_le: new Date().toISOString() })
-      : await supabaseAdmin.from('oeuvres_commentaires_prives').delete().eq('id_oeuvre', id_oeuvre)
+    // ⛔ On n'EFFACE la ligne que si l'AUTRE prose est vide elle aussi : un `delete` posé
+    // sur le seul champ vidé emporterait la note voisine sans qu'on l'ait demandé.
+    if (!texte) {
+      const { data: ligne, error: erreurLecture } = await supabaseAdmin
+        .from('oeuvres_commentaires_prives').select(autre).eq('id_oeuvre', id_oeuvre).maybeSingle()
+      if (erreurLecture) return NextResponse.json({ error: erreurLecture.message }, { status: 500 })
+      const reste = (ligne as Record<string, string | null> | null)?.[autre]?.trim()
+      const { error: erreurVide } = reste
+        ? await supabaseAdmin.from('oeuvres_commentaires_prives')
+            .update({ [colonne]: null, modifie_le: new Date().toISOString() }).eq('id_oeuvre', id_oeuvre)
+        : await supabaseAdmin.from('oeuvres_commentaires_prives').delete().eq('id_oeuvre', id_oeuvre)
+      if (erreurVide) return NextResponse.json({ error: erreurVide.message }, { status: 500 })
+      return NextResponse.json({ ok: true })
+    }
+    // ⚠️ L'upsert ne pose QUE les colonnes qu'il nomme : la prose voisine est conservée.
+    const { error: erreurPrive } = await supabaseAdmin.from('oeuvres_commentaires_prives')
+      .upsert({ id_oeuvre, [colonne]: texte, modifie_le: new Date().toISOString() })
     if (erreurPrive) return NextResponse.json({ error: erreurPrive.message }, { status: 500 })
     return NextResponse.json({ ok: true })
   }
