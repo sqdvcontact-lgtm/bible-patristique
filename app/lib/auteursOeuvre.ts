@@ -71,6 +71,26 @@ export async function chargerAuteursDOeuvre(
   return ordonnerAuteurs((data as LigneVue[]).map(l => ({ id_auteur: l.id_auteur, nom: l.nom, nom_original: l.nom_original, rang: l.rang })))
 }
 
+/**
+ * Les identifiants d'œuvres de PLUSIEURS auteurs, co-signatures comprises.
+ *
+ * ⛔ La page d'une œuvre lisait pour cela `chargerAuteursParOeuvre`, c'est-à-dire la vue
+ * ENTIÈRE — tout le catalogue — pour n'en garder que les œuvres d'un ou deux auteurs. Le
+ * coût est nul aujourd'hui (la vue compte cinquante lignes) et croît avec la bibliothèque ;
+ * le filtre appartient à la base.
+ *
+ * ⚠️ Une œuvre signée à deux ne paraît qu'UNE fois : la vue rend une ligne par couple.
+ */
+export async function chargerOeuvresDAuteurs(
+  client: Pick<SupabaseClient, 'from'>,
+  idsAuteurs: readonly string[],
+): Promise<string[]> {
+  if (idsAuteurs.length === 0) return []
+  const { data, error } = await client.from('v_oeuvres_auteurs').select('id_oeuvre').in('id_auteur', idsAuteurs)
+  if (error || !data) return []
+  return [...new Set((data as { id_oeuvre: string }[]).map(l => l.id_oeuvre))]
+}
+
 /** Les identifiants d'œuvres d'un auteur, co-signatures comprises. */
 export async function chargerOeuvresDAuteur(
   client: Pick<SupabaseClient, 'from'>,

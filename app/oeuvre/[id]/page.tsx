@@ -43,11 +43,38 @@ import { noterDegradation, tolerer, type DegradationChargement } from '@/app/lib
 import { identifiantOuvrage, type NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import { chargerNoticesBibliographiques, identifiantsOuvrages, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
 import { redirect } from 'next/navigation'
+import { cache } from 'react'
 
 // Base fermée au rôle anonyme : chaque entrée serveur (métadonnées, page) crée
 // son client lisant la session du visiteur. Sans cela, la page s'exécutait en
 // `anon` et ne recevait plus ni segments ni versets.
 type Client = Awaited<ReturnType<typeof creerSupabaseServeur>>
+
+/**
+ * Les trois lectures que `generateMetadata` et la page font TOUTES DEUX : l'œuvre, ses
+ * textes, ses auteurs. Le routeur exécute les deux dans la MÊME requête HTTP, et le client
+ * Supabase n'est pas mis en cache par lui : sans `cache`, chaque ouverture d'œuvre payait
+ * ces trois allers-retours DEUX FOIS.
+ *
+ * ⛔ Le client se crée DEDANS. Passé en argument, il serait une valeur neuve à chaque appel
+ * et le cache ne servirait jamais — le piège est déjà consigné pour `presenceDuChapitre`.
+ *
+ * ⚠️ On charge le SURENSEMBLE, et chaque appelant filtre : les métadonnées ne veulent que
+ * les textes publics, la page les veut tous. Deux requêtes qui ne diffèrent que par un
+ * filtre ne se partagent pas ; deux vues d'une même liste, si.
+ */
+const chargerOeuvreEtTextes = cache(async (id: string) => {
+  const supabase = await creerSupabaseServeur()
+  const [oeuvreResult, textesResult, auteursOeuvre] = await Promise.all([
+    supabase.from('oeuvres').select('*, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom, nom_original)').eq('id_oeuvre', id).single(),
+    supabase.from('oeuvre_textes')
+      .select('id_texte,titre_version,langue,traducteur,edition_label,annee_edition,source_url,catalogue_notice_id_ligne,metadata,is_default,is_public,statut')
+      .eq('id_oeuvre', id)
+      .order('annee_edition', { ascending: true, nullsFirst: true }),
+    chargerAuteursDOeuvre(supabase, id),
+  ])
+  return { oeuvreResult, textesResult, auteursOeuvre }
+})
 
 // Métadonnées de la page d'une œuvre. Le titre nomme l'œuvre, son auteur, et —
 // À LA SEULE CONDITION QU'ELLES EXISTENT — les deux langues du texte en regard :
@@ -68,14 +95,7 @@ export async function generateMetadata({ params, searchParams }: {
   // Une seule vague : rien ici ne dépend du résultat d'autre chose. La sonde des
   // liens bibliques part avec les autres et ne coûte donc pas un aller-retour.
   const charge = await Promise.all([
-    supabase.from('oeuvres')
-      .select('titre, titre_original, sous_titre, trad_auteur, auteurs!oeuvres_id_auteur_fkey(nom, nom_original)')
-      .eq('id_oeuvre', id).maybeSingle(),
-    supabase.from('oeuvre_textes')
-      .select('id_texte,langue,traducteur,is_default,is_public')
-      .eq('id_oeuvre', id)
-      .eq('is_public', true),
-    chargerAuteursDOeuvre(supabase, id),
+    chargerOeuvreEtTextes(id),
     porteDesLiensBibliques(supabase, [id]),
   ]).catch((error: unknown) => {
     // Une métadonnée qui ne se lit pas ne ferme pas la page qu'elle décrit.
@@ -83,8 +103,13 @@ export async function generateMetadata({ params, searchParams }: {
     return null
   })
   if (!charge) return { title: { absolute: 'Corpus Scriptura' } }
-  const [{ data }, { data: textes }, auteursOeuvre, aLiensBibliques] = charge
+  const [{ oeuvreResult, textesResult, auteursOeuvre }, aLiensBibliques] = charge
+  const data = oeuvreResult.data
   if (!data) return { title: { absolute: 'Corpus Scriptura' } }
+  // ⚠️ Le filtre `is_public` se fait ICI, en mémoire, et non plus dans la requête : les
+  // langues et le traducteur se lisent sur les textes RÉELLEMENT publics, sans quoi une
+  // page annoncerait au visiteur un latin qu'il ne trouverait pas.
+  const textes = (textesResult.data ?? []).filter(texte => texte.is_public === true)
   // Une œuvre signée à deux est nommée sous les deux noms, ici comme ailleurs.
   const auteur = libelleAuteurs(auteursOeuvre) || (data.auteurs as AuteurEmbarque | null)?.nom
   const textesPublics = textes ?? []
@@ -372,20 +397,18 @@ export default async function OeuvrePage({
   // aller-retour entier après la projection bilingue, alors qu'ils ne dépendent que de
   // l'identifiant de l'œuvre — connu dès la première ligne. Une vague de plus dans une
   // chaîne qui en compte déjà cinq, pour rien.
-  const [estAdmin, oeuvreResult, textesResult, alignementsResult, indexEditeurs, auteursOeuvre] = await Promise.all([
+  const [estAdmin, partagee, alignementsResult, indexEditeurs] = await Promise.all([
     verifierEstAdmin(),
-    supabase.from('oeuvres').select('*, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom)').eq('id_oeuvre', id).single(),
-    supabase.from('oeuvre_textes')
-      .select('id_texte,titre_version,langue,traducteur,edition_label,annee_edition,source_url,catalogue_notice_id_ligne,metadata,is_default,is_public,statut')
-      .eq('id_oeuvre', id)
-      .order('annee_edition', { ascending: true, nullsFirst: true }),
+    // ⚠️ Déjà demandée par `generateMetadata`, que le routeur exécute dans la MÊME requête
+    // HTTP : `cache` rend ici le résultat sans repartir en base.
+    chargerOeuvreEtTextes(id),
     supabase.from('texte_alignement_ensembles')
       .select('alignment_set_id,reference_text_id,aligned_text_id,alignment_level,status')
       .eq('id_oeuvre', id)
       .order('created_at', { ascending: true }),
     chargerIndexEditeurs(supabase),
-    chargerAuteursDOeuvre(supabase, id),
   ])
+  const { oeuvreResult, textesResult, auteursOeuvre } = partagee
   const oeuvre = oeuvreResult.data
   if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre))) return (
     <div className="min-h-screen flex items-center justify-center" style={{background:'var(--cs-fond)'}}>

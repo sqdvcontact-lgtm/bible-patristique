@@ -79,7 +79,7 @@ import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, ren
 import { ContenuRenvoiEnLigne } from './ContenuNoteStructuree'
 import { estRenvoiSeul, STYLE_RENVOI_MANCHETTE } from '@/app/lib/manchetteRenvois'
 import { CLASSE_RENVOI_MANCHETTE, useManchetteRenvois } from './useManchetteRenvois'
-import { chargerAuteursParOeuvre } from '@/app/lib/auteursOeuvre'
+import { chargerOeuvresDAuteurs } from '@/app/lib/auteursOeuvre'
 import { identiteEdition, libelleVersionComplet } from './versionTextuelle'
 import { editionsOffertes } from './editionsDuTexte'
 import { nettoyerFin } from '@/app/lib/ponctuation'
@@ -1932,17 +1932,26 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (!cleAuteurs) { setOeuvresDesAuteurs([]); return }
     let annule = false
     const ids = cleAuteurs.split(',')
-    chargerAuteursParOeuvre(supabase).then(parOeuvre => {
+    // ⛔ Le filtre est en BASE : on lisait le catalogue ENTIER des couples auteur/œuvre
+    // pour n'en garder que les œuvres de ces auteurs-là. Voir `chargerOeuvresDAuteurs`.
+    chargerOeuvresDAuteurs(supabase, ids).then(oeuvres => {
       if (annule) return
-      setOeuvresDesAuteurs(Object.entries(parOeuvre)
-        .filter(([, auteurs]) => auteurs.some(a => ids.includes(a.id_auteur)))
-        .map(([id]) => id))
+      setOeuvresDesAuteurs(oeuvres)
     })
     return () => { annule = true }
   }, [cleAuteurs])
 
+  // ⛔ UNE SEULE LECTURE POUR DEUX LISTES. Deux effets interrogeaient `oeuvres` avec le
+  // MÊME filtre et des colonnes qui ne différaient que par `nb_signes` : deux
+  // allers-retours pour un seul ensemble de lignes. Ce qui les séparait n'était pas la
+  // requête mais ce qu'on en tire — « Du même auteur » range au titre, les traductions
+  // sœurs retiennent celles qui portent le même titre que l'œuvre lue.
+  //
+  // ⚠️ L'ordre de la requête reste celui des SŒURS (`date_publication`) : le tri au titre
+  // se fait déjà en mémoire, et un tri en mémoire ne rend pas l'ordre de la base.
   useEffect(() => {
     if (!auteurId) return
+    let annule = false
     // `nb_signes` commande le partage entre œuvres et opuscules : ne pas le retirer.
     const base = supabase.from('oeuvres').select('id_oeuvre, titre, acces_public, trad_auteur, editeur, ville, date_publication, langue_originale, langue_trad, nb_signes')
     // Repli sur le premier auteur tant que les couples ne sont pas chargés (ou
@@ -1956,33 +1965,29 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     //    et ne l'y trouvait jamais. Une liste où l'on se voit est une carte ; une liste
     //    d'où l'on est absent est un ailleurs.
     requete
-      .then(({ data }) => setOeuvresAuteur(
+      .order('date_publication', { ascending: true, nullsFirst: true })
+      .then(({ data }) => {
+        if (annule) return
+        // ⚠️ Le type décrit ce que le SELECT demande, non la table : une colonne
+        // retirée du select casse alors à la compilation (charte, « Typer une lecture »).
+        const lignes = (data ?? []) as (VersionTrad & { nb_signes: number | null })[]
         // ⚠️ L'œuvre COURANTE échappe au filtre de publication : on est en train de la
         //    lire. Un administrateur qui ouvre une œuvre non publiée doit s'y voir, sans
         //    quoi la liste dirait qu'il lit ce qui n'existe pas.
-        ((data ?? []) as any[]).filter(o => o.id_oeuvre === idOeuvre || estOeuvrePubliee(o))
+        setOeuvresAuteur(lignes
+          .filter(o => o.id_oeuvre === idOeuvre || estOeuvrePubliee(o))
           // Classement alphabétique en écartant l'article/déterminant de tête
           // (« La Cité de Dieu » → à « C »), titre brut en départage.
           .sort((a, b) => cleTriTitre(a.titre).localeCompare(cleTriTitre(b.titre), 'fr')
-            || String(a.titre).localeCompare(String(b.titre), 'fr'))
-      ))
-  }, [auteurId, idOeuvre, oeuvresDesAuteurs])
-
-  // Charge les traductions sœurs (même auteur, même titre normalisé), œuvre courante
-  // incluse. S'il y en a plus d'une, le sélecteur de traduction s'affiche.
-  useEffect(() => {
-    if (!auteurId) return
-    const norm = (s: string) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
-    const cible = norm(oeuvre?.titre || '')
-    const base = supabase.from('oeuvres').select('id_oeuvre, titre, trad_auteur, editeur, ville, date_publication, acces_public, langue_originale, langue_trad')
-    const requete = oeuvresDesAuteurs.length > 0 ? base.in('id_oeuvre', oeuvresDesAuteurs) : base.eq('id_auteur', auteurId)
-    requete
-      .order('date_publication', { ascending: true, nullsFirst: true })
-      .then(({ data }) => {
-        const soeurs = ((data ?? []) as VersionTrad[]).filter(o => norm(o.titre) === cible && estOeuvrePubliee(o))
-        setVersions(soeurs)
+            || String(a.titre).localeCompare(String(b.titre), 'fr')))
+        // Les traductions sœurs : même auteur, même titre normalisé, œuvre courante
+        // incluse. S'il y en a plus d'une, le sélecteur de traduction s'affiche.
+        const norm = (t: string) => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+        const cible = norm(oeuvre?.titre || '')
+        setVersions((lignes as VersionTrad[]).filter(o => norm(o.titre) === cible && estOeuvrePubliee(o)))
       })
-  }, [auteurId, oeuvre?.titre, oeuvresDesAuteurs])
+    return () => { annule = true }
+  }, [auteurId, idOeuvre, oeuvre?.titre, oeuvresDesAuteurs])
 
   // ── Éditions de l'ouvrage et menus de lecture (deux menus) ─────────────────
   // Menu 1 = mode de lecture (LANGUE) ; menu 2 = édition dans cette langue. Une
