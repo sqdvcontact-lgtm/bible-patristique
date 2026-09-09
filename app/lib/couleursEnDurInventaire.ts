@@ -115,7 +115,7 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // Le CALQUE d'une modale : une forme que la charte prescrit, et qui ne se
   // transpose pas. ⚠️ Le brun très sombre plutôt qu'un noir neutre, qui refroidirait
   // la page qu'il assombrit — le site est chaud jusque dans son ombre.
-  'oeuvre/[id]/OeuvreClient.tsx': ['#9a958d', 'rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)', 'rgba(198,184,158,0.62)', 'rgba(250,246,237,0.86)'],
+  'oeuvre/[id]/OeuvreClient.tsx': ['rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)', 'rgba(198,184,158,0.62)', 'rgba(250,246,237,0.86)'],
   // ⚠️ 'rgba(30,25,20,0.4)' n'est PAS une teinte neuve : elle est dans ce fichier depuis
   // l'origine, et la garde ne la voyait pas. Un « /* » écrit dans un commentaire de LIGNE
   // — « italique <i>/* » — ouvrait pour le motif une région de bloc qui courait sur

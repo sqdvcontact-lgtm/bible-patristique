@@ -120,6 +120,7 @@ import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { COMPOSITION_INTITULE, cleTriTitre, complementDeTitre } from '@/app/lib/titres'
 import { partagerOpuscules } from '@/app/lib/opuscules'
 import IconeChevron from '@/app/components/IconeChevron'
+import RailVolet from '@/app/components/RailVolet'
 import { enregistrerOeuvreRecente } from '@/app/lib/oeuvresRecentes'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
@@ -277,6 +278,24 @@ const ComparaisonTraductions = dynamic(() => import('./ComparaisonTraductions'))
  * dessine autrement cesse d'être une rangée. La forme vit ici et non en style recopié,
  * pour que les deux gestes de sortie (partager, extraire) ne divergent jamais.
  */
+/**
+ * UN BOUTON DE LA TÊTE DU VOLET — et la SEULE forme qu'ils prennent tous.
+ *
+ * ⛔ Sa cible fait 24 px, le plancher de WCAG 2.2 § 2.5.8, et il a fallu la lui donner
+ * ICI : la rangée en portait cinq, dont quatre à 19 ou 20 px, et l'étoile seule passait —
+ * parce qu'elle vient d'un composant partagé qui a reçu la passe du DOIGT, quand ce qui
+ * est écrit sur place ne l'a jamais reçue. C'est la mesure du défaut, et c'est pourquoi
+ * les cinq passent par une forme unique au lieu d'un cinquième traitement inventé sur
+ * place.
+ *
+ * ⛔ Ni `.cs-cible-fine` ni `.cs-bouton-fin` ne conviennent : les boutons sont à quatre
+ * pixels l'un de l'autre, et le débord de douze pixels de la première les ferait s'avaler.
+ * On grandit donc la BOÎTE, ce que la charte prescrit pour un contrôle EN GRAPPE.
+ *
+ * ⚠️ Le DESSIN ne bouge pas : l'icône garde ses treize pixels, et c'est la cible seule qui
+ * grandit. La place est comptée — cinq boutons et leurs écarts font 136 px, le volet en
+ * offre 208 au minimum, et il reste 72 px au nom de l'auteur, qui s'enroule déjà.
+ */
 function BoutonVolet({ titre, onClick, children }: {
   titre: string
   onClick: () => void
@@ -284,7 +303,7 @@ function BoutonVolet({ titre, onClick, children }: {
 }) {
   return (
     <button type="button" onClick={onClick} title={titre} aria-label={titre}
-      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center', lineHeight: 1, transition: 'color 0.15s' }}
+      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', minWidth: '24px', minHeight: '24px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, transition: 'color 0.15s' }}
       onMouseEnter={e => { e.currentTarget.style.color = 'var(--cs-vert)' }}
       onMouseLeave={e => { e.currentTarget.style.color = 'var(--cs-texte-faible)' }}>
       {children}
@@ -2646,7 +2665,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         {mobile && <div onClick={() => setNavOuverte(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
         <nav ref={refNav} data-sommaire-panneau style={mobile ? {
           position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, overflowY: 'auto', overflowX: 'hidden', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)',
-        } : { width: navWidth == null ? 'clamp(240px, 16vw, 380px)' : navWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100dvh - 3.5rem)', overflowY: 'auto', overflowX: 'hidden', borderRight: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        } : { width: navWidth == null ? 'clamp(240px, 16vw, 380px)' : navWidth + 'px', flexShrink: 0, position: 'sticky', top: HAUTEUR_NAVBAR, alignSelf: 'flex-start', height: HAUTEUR_SOUS_NAVBAR, overflowY: 'auto', overflowX: 'hidden', borderRight: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           {!mobile && <div data-sommaire-poignee onMouseDown={e => {
             e.preventDefault()
             const startW = navWidth ?? refNav.current?.getBoundingClientRect().width ?? 240
@@ -2670,10 +2689,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               {nomsAuteurs}
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                 {estAdmin && (
-                  <button onClick={() => setConfigOuverte(true)} title="Configurer les niveaux d'affichage"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center', lineHeight: 1 }}>
+                  <BoutonVolet titre="Configurer les niveaux d'affichage" onClick={() => setConfigOuverte(true)}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6"/></svg>
-                  </button>
+                  </BoutonVolet>
                 )}
                 {favorisPret && (
                   <EtoileFavori actif={favorisOeuvres.has(refFavori)} onToggle={() => toggleFavoriOeuvre(refFavori)} size={13}
@@ -2685,10 +2703,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     l'étoile, qui est l'autre marque du lecteur : partager le lien, extraire
                     le texte. Ils prennent la géométrie de leurs voisins — une icône de
                     treize pixels dans trois de rembourrage — pour que la rangée reste une
-                    rangée. ⚠️ Leur cible tactile reste celle du groupe, sous les 24 px de
-                    WCAG : la dette est celle de la rangée entière (roue crantée, étoile,
-                    chevron), et elle se traitera d'un coup, non par un cinquième
-                    traitement inventé ici. */}
+                    rangée. ✅ Leur cible fait 24 px depuis le 9 septembre 2026, comme
+                    celle des quatre autres : la dette de la rangée est payée, et elle
+                    l'a été d'un coup, par la forme commune. */}
                 <BoutonVolet titre="Partager cette page" onClick={partagerLOeuvre}>
                   {lienCopie ? (
                     <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.2 8.4l3.1 3.1 6.5-6.9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -2707,10 +2724,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     <path d="M2.6 12.1v1.1a1 1 0 0 0 1 1h8.8a1 1 0 0 0 1-1v-1.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
                 </BoutonVolet>
-                <button onClick={() => setNavOuverte(false)} title="Réduire le sommaire"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center' }}>
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </button>
+                <BoutonVolet titre="Réduire le sommaire" onClick={() => setNavOuverte(false)}>
+                  <IconeChevron dir="left" size={14} strokeWidth={1.5} />
+                </BoutonVolet>
               </div>
             </div>
             {/* Le sommaire respecte la composition manuelle du titre de catalogue. */}
@@ -3106,11 +3122,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Sommaire</span>
           </button>
         ) : (
-          <button onClick={() => setNavOuverte(true)} title="Ouvrir le sommaire"
-            style={{ position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', flexShrink: 0, height: 'calc(100dvh - 3.5rem)', width: '22px', background: 'var(--cs-fond-clair)', border: 'none', borderRight: '1px solid var(--cs-bord)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: 0 }}>
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}><path d="M3 1l4 4-4 4" stroke="#9a958d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{ writingMode: 'vertical-rl' as any, transform: 'rotate(180deg)', fontSize: '0.5rem', letterSpacing: '0.13em', textTransform: 'uppercase' as any, fontWeight: 600, color: 'var(--cs-texte-faible)', userSelect: 'none' }}>Sommaire</span>
-          </button>
+          // ⛔ LE RAIL EST LE COMPOSANT PARTAGÉ, non un quatrième dessin. La charte le
+          // dit depuis le 4 septembre 2026 — « un seul composant pour les TROIS rails » —
+          // et la page d'œuvre en portait deux écrits à la main : 22 px au lieu de 30, un
+          // libellé de 8 px au lieu de 10,5, le texte en tête au lieu du milieu, le nom du
+          // CONTENU au lieu de l'ACTION, et un chevron dont le gris était FIGÉ dans celui
+          // du Clair (`#9a958d`, soit `--cs-texte-doux` écrit à la main) : sur le sol du
+          // Cuir, il ne suivait pas le thème. C'était le dernier endroit du chemin de
+          // lecture à enfreindre la règle du `currentColor`.
+          // ⚠️ La bande sticky reste ICI : c'est la page qui sait où elle se colle, et le
+          // rail se contente d'y remplir la hauteur. Même parti que la Polyglotte.
+          <div style={{ position: 'sticky', top: HAUTEUR_NAVBAR, height: HAUTEUR_SOUS_NAVBAR, alignSelf: 'flex-start', flexShrink: 0, display: 'flex' }}>
+            <RailVolet cote="gauche" libelle="Ouvrir le sommaire" onOuvrir={() => setNavOuverte(true)} />
+          </div>
         )}
 
         {/* ── TEXTE CENTRAL ── */}
@@ -3894,7 +3918,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         {mobile && <div onClick={() => setPanneauOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
         <aside ref={refAside} data-visite="oeuvre-bible" style={mobile ? {
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-modale-haut)',
-        } : { width: pannWidth == null ? 'clamp(280px, 21vw, 480px)' : pannWidth + 'px', flexShrink: 0, position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', height: 'calc(100dvh - 3.5rem)', borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)' }}>
+        } : { width: pannWidth == null ? 'clamp(280px, 21vw, 480px)' : pannWidth + 'px', flexShrink: 0, position: 'sticky', top: HAUTEUR_NAVBAR, alignSelf: 'flex-start', height: HAUTEUR_SOUS_NAVBAR, borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)' }}>
           <div onMouseDown={e => {
             e.preventDefault()
             const startW = pannWidth ?? refAside.current?.getBoundingClientRect().width ?? 320
@@ -4131,11 +4155,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Références &amp; commentaires</span>
           </button>
         ) : (
-          <button onClick={() => setPanneauOuvert(true)} title="Ouvrir le panneau de références"
-            style={{ position: 'sticky', top: '3.5rem', alignSelf: 'flex-start', flexShrink: 0, height: 'calc(100dvh - 3.5rem)', width: '22px', background: 'var(--cs-surface)', border: 'none', borderLeft: '1px solid var(--cs-bord)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: 0 }}>
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}><path d="M7 1l-4 4 4 4" stroke="#9a958d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{ writingMode: 'vertical-rl' as any, fontSize: '0.5rem', letterSpacing: '0.13em', textTransform: 'uppercase' as any, fontWeight: 600, color: 'var(--cs-texte-faible)', userSelect: 'none' }}>Commentaires et références bibliques</span>
-          </button>
+          // ⚠️ Le libellé nomme l'ACTION et tient sur la bande : « Commentaires et
+          // références bibliques » faisait trente-six signes dans une hauteur qui en porte
+          // la moitié, et s'écrêtait donc sans qu'on sache où.
+          <div style={{ position: 'sticky', top: HAUTEUR_NAVBAR, height: HAUTEUR_SOUS_NAVBAR, alignSelf: 'flex-start', flexShrink: 0, display: 'flex' }}>
+            <RailVolet cote="droite" libelle="Ouvrir les références" onOuvrir={() => setPanneauOuvert(true)} />
+          </div>
         )}
       </div>
 
