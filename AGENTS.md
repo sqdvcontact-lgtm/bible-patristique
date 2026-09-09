@@ -7897,19 +7897,77 @@ atteint EN PREMIER sur ce site. `cs-focus-clair` existait depuis la barre de rec
 ne change que la couleur de l'anneau : blanc à 0,9, **10,37** sur le carton le plus clair.
 ⛔ Le poser sur les TROIS liens d'une carte : le lien principal et les deux choix du volet.
 
-## ⛔ LA PORTE NE PEUT PAS PORTER QUATRE BLOCS
+## ⛔ UNE MESURE PRISE SUR UN SEUL ÉCRAN NE SE TRANSPOSE PAS
 
-`.accueil-seuil` promettait « rien sous le pli », sur une mesure — « 844 px pour 844
-disponibles » — prise AVANT la galerie des auteurs. Avec elle, la porte pesait **1 084 px**
-de contenu et réclamait **1 140 px d'écran** : un 1080p en manquait 195, un portable
-1440×900 en manquait 340, un 1366×768 en manquait 470. Sur l'écran de l'auteur — 2560×1440
-rendu à 0,9, soit 1 350 px CSS — elle tenait encore, et c'est ce qui l'a cachée.
+C'est la correction la plus coûteuse de la passe, et elle vaut pour toute mesure de mise
+en page de ce site. La police racine est FLUIDE et suit la LARGEUR —
+`clamp(16px, 7px + 0,625vw, 22px)` — de sorte que tout ce qui est en rem se réduit avec
+elle. Un audit mené depuis un écran de 2844 px de large (racine 22) a conclu que la porte
+pesait 1 084 px et manquait de 195 à 470 px sur les écrans ordinaires. **C'était faux d'un
+facteur trois** : sur un portable, la racine vaut 16 et la même porte pèse 784 px.
 
-⛔ **Le journal des ajouts est DESCENDU dans la bande qui suit** (décision de l'auteur).
-Reste ce qui fait une porte : le nom, les deux entrées, et les noms qu'elles ouvrent —
-835 px, soit 891 px d'écran. Un portable 1440×900 en manque encore 90, et c'est le prix
-qu'on accepte plutôt que de vider la porte. ⚠️ La promesse se REMESURE : somme des enfants
-de « .accueil-seuil » avec leurs marges, plus les rembourrages, à 1024 px de large au moins.
+⚠️ **Et forcer `html { width }` ne suffit PAS à simuler un autre écran** : les unités `vw`
+se résolvent sur le VIEWPORT, non sur la boîte. La largeur forcée corrige l'enroulement du
+texte et rien d'autre — la racine et tous les `clamp(…vw…)` restent ceux de l'écran réel,
+et l'on croit mesurer un portable en mesurant son propre bureau. La mesure juste force
+TROIS choses : la largeur (pour l'enroulement), `html { font-size }` (pour les rem), et
+chaque `clamp` en `vw` à sa valeur calculée pour l'écran visé. Les `clamp` en `vh`, eux, se
+calculent à la main pour la hauteur visée.
+
+Relevé du 2026-09-09, porte à QUATRE blocs, avant crans :
+
+| écran | racine | porte | dispo | manque |
+|---|---:|---:|---:|---:|
+| 2844×1350 (celui de l'auteur) | 22 | 1 082 | 1 273 | il reste 191 |
+| 1920×1080 | 19 | 918 | 879 | 40 |
+| 1680×1050 | 17,5 | 860 | 854 | 6 |
+| 1512×982 | 16,4 | 811 | 792 | 19 |
+| 1440×900 | 16 | 784 | 744 | 40 |
+| 1366×768 | 16 | 760 | 614 | 146 |
+
+## ⛔ LA PORTE GARDE SES QUATRE BLOCS, ET ELLE SE RESSERRE EN HAUTEUR
+
+Décision de l'auteur, 2026-09-09 : « je veux les ajouts récents sur la première page ; pour
+les pages plus petites, débrouille-toi autrement ». Le journal des ajouts est descendu dans
+la bande du « mot » pendant une heure, et c'était un contresens — ⛔ **cette bande est le mot
+de celui qui établit les textes, non un bulletin ; on n'y met rien qui ne soit de sa voix.**
+
+Le manque n'étant que de quelques dizaines de pixels, il se rend par une **échelle de crans
+en HAUTEUR d'écran**. ⛔ Des requêtes de hauteur, et c'est la seule forme juste : ce qui
+manque n'est pas de la largeur, et une requête de largeur ne le dirait qu'au hasard des
+proportions — un ultra-large court y échapperait, un carré haut s'y ferait resserrer pour
+rien. ⛔ Toutes se bornent à `min-width: 641px` : sous ce seuil la porte a déjà
+`min-height: 0` et n'a plus rien à tenir.
+
+| cran | déclenchement | ce qu'il cède |
+|---|---|---|
+| **1** | `max-height: 1100px` | les BLANCS seuls, plus un demi-rem de carte |
+| **3** | `max-height: 1040px` **et** `min-width: 2400px` | titre et carte, quand la racine est à son plafond |
+| **2** | `max-height: 720px` | frontispice resserré, carte à 8,75rem, journal à 3 entrées |
+
+- ⚠️ **1100 et non 1000** au cran 1 : un 2560×1080 n'offre que 926 px utiles et le réclame
+  déjà. Un 1920×1200, qui tiendrait sans lui, s'y trouve pris — il y perd cinquante pixels
+  de blanc INTERNE, que le centrage lui rend autour.
+- ⚠️ **2400 px n'est pas un chiffre rond** : c'est la largeur où la police racine atteint son
+  maximum de 22 px. Au-delà, tout ce qui est en rem cesse de grandir, mais la porte y pèse
+  déjà un tiers de plus qu'à la racine 16 — et un écran ultra-large est souvent COURT.
+  C'est le seul format que le cran 1 ne suffit pas à servir.
+- ⛔ **Le cran 2 est écrit APRÈS le cran 3**, et il le faut : les deux se rencontrent sur un
+  très grand écran très court, et c'est le plus serré qui doit l'emporter.
+- ⛔ **Le journal passe à trois entrées, il ne disparaît pas.** Les deux dernières sont
+  masquées au RENDU, non retirées de la donnée : `NB_AJOUTS` ne bouge pas, et la liste
+  redevient entière dès qu'un écran la porte. ⚠️ La galerie, elle, garde TOUS ses auteurs —
+  c'est son interligne qui se resserre, non sa liste : une porte qui perdrait des noms
+  perdrait des liens.
+- ⛔ **Les MAXIMA des clamps ne changent nulle part** : au-dessus du premier cran, le dessin
+  est celui d'avant au pixel près, et l'écran de l'auteur ne déclenche rien.
+- ⛔ **Le blanc au-dessus des cartes a quitté le style EN LIGNE pour la feuille** (`#cartes`) :
+  un style en ligne bat toute règle de feuille sans `!important`, et les crans ne pouvaient
+  pas l'atteindre. La LARGEUR, elle, reste en ligne — ce n'est pas un réglage, c'est la
+  condition pour que les cartes existent.
+
+Vérifié sur douze configurations, crans simulés sur la page servie : toutes tiennent, de
+4 px de reste (1280×720) à 191 (l'écran de l'auteur).
 
 ## Structure, repères, et adresse qui fait foi
 

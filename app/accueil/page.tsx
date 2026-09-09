@@ -202,20 +202,30 @@ export default async function AccueilPage() {
            100vh mesure l'écran SANS elle. La porte débordait donc d'une centaine de
            pixels à l'arrivée, exactement là où elle doit tenir entière.
 
-           ⚠️ CETTE PROMESSE SE VÉRIFIE, ET ELLE S'ÉTAIT PÉRIMÉE. « Mesuré au bureau :
-           844 px pour 844 disponibles » datait d'avant la galerie des auteurs. Avec
-           elle, et avec le journal des ajouts, la porte pesait 1 084 px de contenu et
-           réclamait 1 140 px d'écran. Sur l'écran de l'auteur — 2560×1440 rendu à 0,9,
-           soit 1 350 px CSS — elle tenait encore, et c'est ce qui l'a cachée : sur un
-           1080p elle débordait de 195 px, sur un portable 1440×900 de 340, sur un
-           1366×768 de 470. La porte ne peut pas porter quatre blocs.
-           ⛔ Le journal des ajouts est donc DESCENDU dans la bande qui suit (décision
-           de l'auteur, 2026-09-09). Reste ce qui fait une porte : le nom, les deux
-           entrées, et les noms qu'elles ouvrent. Mesuré : 835 px de contenu, 891 px
-           d'écran nécessaires — un 1080p les a, un portable 1440×900 en manque encore
-           90, et c'est le prix qu'on accepte plutôt que de vider la porte.
-           ⚠️ Se remesure ainsi : la somme des enfants de « .accueil-seuil » avec leurs
-           marges, plus les rembourrages, à 1024 px de large au moins. */
+           ⚠️ CETTE PROMESSE SE VÉRIFIE, ET LA VÉRIFIER DEMANDE DE SAVOIR OÙ ON MESURE.
+           La police racine du site est FLUIDE et suit la LARGEUR — clamp(16px, 7px +
+           0,625vw, 22px) — de sorte que TOUT ce qui est en rem se réduit avec elle. Une
+           mesure prise sur un seul écran ne se transpose donc pas : l'audit du
+           2026-09-09 a d'abord conclu, depuis un écran de 2844 px de large (racine 22),
+           que la porte manquait de 195 à 470 px sur un portable. C'était faux d'un
+           facteur trois. Remesuré écran par écran, en forçant la racine ET les clamps
+           en « vw » :
+
+             2844×1350 (racine 22)  1082 pour 1273 — il RESTE 191
+             1920×1080 (racine 19)   918 pour  879 — manque  40
+             1680×1050 (racine 17,5) 860 pour  854 — manque   6
+             1512×982  (racine 16,4) 811 pour  792 — manque  19
+             1440×900  (racine 16)   784 pour  744 — manque  40
+             1366×768  (racine 16)   760 pour  614 — manque 146
+
+           ⛔ LE JOURNAL RESTE DONC DANS LA PORTE (décision de l'auteur, 2026-09-09 :
+           « je veux les ajouts récents sur la première page »). Le manque n'est que de
+           quelques dizaines de pixels, et il se rend par les BLANCS — voir l'échelle de
+           crans plus bas. Seul un 1366×768 demande davantage, et c'est là qu'on se
+           débrouille autrement.
+           ⚠️ Se remesure ainsi : forcer la racine et les clamps en vw pour l'écran visé,
+           puis sommer les enfants de « .accueil-seuil » avec leurs marges et les
+           rembourrages. Une mesure prise à une seule largeur ne dit rien des autres. */
         .accueil-seuil {
           min-height: calc(100dvh - 3.5rem);
           background: var(--cs-fond);
@@ -229,9 +239,9 @@ export default async function AccueilPage() {
         /* ⚠️ Ce qui suit la porte commence sur l'AUTRE papier, et la couture se voit :
            c'est elle qui dit qu'il y a une suite. Sans ce changement de fond, la porte
            n'a plus de bord et l'on ne sait pas qu'on la franchit.
-           ⚠️ La bande porte DEUX blocs depuis que le journal y est descendu : d'abord
-           ce que la bibliothèque vient de recevoir, puis le mot de celui qui l'établit.
-           C'est l'ordre du bulletin : les nouvelles, puis la signature. */
+           ⚠️ Le mot y est SEUL. Le journal des ajouts y a passé une heure le 2026-09-09,
+           et c'était un contresens : cette bande est le mot de celui qui établit les
+           textes, non un bulletin. ⛔ Ne rien y ajouter qui ne soit de sa voix. */
         .accueil-suite {
           background: var(--cs-fond-doux);
           border-top: 1px solid var(--cs-bord);
@@ -239,27 +249,29 @@ export default async function AccueilPage() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: clamp(40px, 6vh, 72px);
         }
         /* ⚠️ 184 px et non 176 : deux cartes sur la même justification font 432 px de
            large au lieu de 282, et à hauteur inchangée elles se lisaient comme des
            bandes couchées. Le rapport revient à 2,35. */
         .ac-root { --ac-hauteur: 11.5rem; }
 
-        /* ── Le journal, en tête de la bande qui suit la porte ────────────────
+        /* Le blanc qui sépare le frontispice des deux portes. ⚠️ Il vit ICI et non
+           dans le style en ligne de l'enveloppe : un style en ligne bat toute règle de
+           feuille sans « !important », et l'échelle de crans ne pourrait pas le
+           resserrer. */
+        #cartes { margin-top: clamp(26px, 4.5vh, 52px); }
+
+        /* ── Le journal, dans l'écran, sous les noms ──────────────────────────
            Pas un carton : une simple colonne posée sur le papier. Un troisième cadre
-           sous deux cartons ferait une page de cadres.
-           ⛔ Il vivait DANS la porte, et c'est lui qui la faisait déborder : voir la
-           note de « .accueil-seuil ». Il n'a plus de marge à lui — l'écart des deux
-           blocs est celui de la bande (« gap »), qui ne se règle qu'en un endroit. */
+           sous deux cartons ferait une page de cadres. */
         .accueil-journal {
           width: 100%;
           max-width: var(--accueil-mesure);
-          margin: 0 auto;
+          margin: clamp(22px, 3.2vh, 38px) auto 0;
         }
         /* La rubrique à filets — un titre entre deux traits. ⚠️ Elle sert le journal
-           ET la galerie des noms, d'où un nom qui ne dit plus « seuil » : les deux
-           blocs ne vivent plus dans le même écran. */
+           ET la galerie des noms, d'où un nom qui ne dit plus « seuil » : le premier a
+           quitté la porte le 2026-09-09 pendant une heure, et le nom lui a survécu. */
         .accueil-rubrique {
           display: flex; align-items: center; justify-content: center; gap: 12px;
           margin: 0 0 14px;
@@ -494,6 +506,78 @@ export default async function AccueilPage() {
           color: var(--cs-fond);
         }
 
+        /* ══ L'ÉCHELLE DES CRANS — la porte se resserre EN HAUTEUR ═══════════════
+           ⛔ CE SONT DES REQUÊTES DE HAUTEUR, ET C'EST LA SEULE FORME JUSTE. Ce qui
+           manque à la porte n'est pas de la largeur mais de la HAUTEUR, et une requête
+           de largeur ne le dirait qu'au hasard des proportions d'écran — un ultra-large
+           court y échapperait, un carré haut s'y ferait resserrer pour rien.
+           ⛔ Et elles se bornent à « min-width: 641px » : sous ce seuil la porte a déjà
+           « min-height: 0 » et n'a plus rien à tenir. Resserrer un frontispice de
+           téléphone ou retirer un ajout pour faire de la place à une contrainte qui ne
+           s'applique plus serait le contraire d'un réglage.
+           ⚠️ L'écran de l'auteur (1350 px de haut) ne déclenche AUCUN cran : ce qui va
+           bien ne bouge pas. */
+
+        /* ── Cran 1 : les BLANCS, et rien d'autre ────────────────────────────
+           Il n'y a que quelques dizaines de pixels à rendre — 40 au pire, sur un
+           1920×1080 comme sur un 1440×900 — et ils se prennent là où ils ne coûtent
+           rien. Aucun texte ne bouge, aucune gravure ne rapetisse, aucun ajout ne
+           disparaît. Les MAXIMA des clamps ne changent pas : au-dessus de ce cran, le
+           dessin est celui d'avant, au pixel près. Seules la valeur préférée et la
+           borne basse descendent, et c'est la borne basse qui travaille sur un écran
+           bas. La hauteur des cartes cède un demi-rem, le seul objet qui n'est pas du
+           blanc — 184 px à 172 à la racine 16, où le rapport de la carte reste à 2,51.
+           ⚠️ 1100 et non 1000 : un 2560×1080 n'offre que 926 px utiles et il lui faut
+           déjà ce cran. Un 1920×1200, qui tiendrait sans lui, s'y trouve pris — il y
+           perd cinquante pixels de blanc INTERNE, que le centrage lui rend autour. */
+        @media (max-height: 1100px) and (min-width: 641px) {
+          .accueil-seuil { padding-top: clamp(18px, 3vh, 56px); padding-bottom: clamp(20px, 3.6vh, 64px); }
+          #cartes { margin-top: clamp(20px, 3.4vh, 52px); }
+          .seuil-noms, .accueil-journal { margin-top: clamp(16px, 2.4vh, 38px); }
+          .ac-root { --ac-hauteur: 10.75rem; }
+        }
+
+        /* ── Cran 3 : la racine est à son PLAFOND et l'écran est court ────────
+           ⚠️ 2400 px n'est pas un chiffre rond : c'est la largeur où la police racine
+           atteint son maximum de 22 px (7 + 0,625vw). Au-delà, tout ce qui est en rem
+           cesse de grandir, mais la porte y pèse déjà un tiers de plus qu'à la racine
+           16 — et un écran ULTRA-LARGE est souvent COURT. Un 2560×1080 manque encore
+           41 px après le cran 1 ; aucun autre format n'est dans ce cas.
+           ⛔ Ce cran ne touche NI au journal NI à la galerie : à cette largeur, la place
+           ne manque que d'un cheveu, et il n'y a aucune raison de retrancher du contenu
+           là où réduire une masse suffit. */
+        @media (max-height: 1040px) and (min-width: 2400px) {
+          .accueil-seuil header h1 { font-size: clamp(2rem, 4.8vw, 3rem); margin-bottom: 6px; }
+          .accueil-seuil header p:nth-of-type(1) { margin-bottom: 6px; }
+          .hero-filet-grave { margin: 3px auto 11px; }
+          .ac-root { --ac-hauteur: 9.5rem; }
+        }
+
+        /* ── Cran 2 : « débrouille-toi autrement » ───────────────────────────
+           Un 1366×768 n'offre que 614 px : le cran 1 y rend 46 px, il en manque
+           encore une centaine, et aucun blanc ne les porte. On touche donc au dessin,
+           dans l'ordre de ce qui coûte le moins au lecteur.
+           ⛔ LE JOURNAL PASSE À TROIS ENTRÉES, IL NE DISPARAÎT PAS. C'est la
+           consigne : les ajouts récents sont sur la première page, et sur un petit
+           écran on en montre MOINS plutôt que pas du tout. ⚠️ Les deux dernières sont
+           masquées au rendu, non retirées de la donnée : « NB_AJOUTS » ne bouge pas,
+           et la liste redevient entière dès qu'un écran la porte.
+           ⚠️ La galerie des noms garde TOUS ses auteurs : c'est son interligne qui se
+           resserre, non sa liste. Une porte qui perdrait des noms perdrait des liens.
+           ⛔ Le frontispice cède le PLUS : un titre de 58 px, une gravure de 26 et
+           trente pixels de blanc, pour annoncer une page qu'on voit déjà. La devise et
+           le rang ne bougent pas — ce sont eux qui disent ce que le site fait.
+           ⚠️ Il est écrit APRÈS le cran 3, et il le faut : les deux se rencontrent sur
+           un très grand écran très court, et c'est le plus serré qui doit l'emporter. */
+        @media (max-height: 720px) and (min-width: 641px) {
+          .accueil-seuil header h1 { font-size: clamp(1.75rem, 4vw, 2.25rem); margin-bottom: 6px; }
+          .hero-filet-grave { width: min(15rem, 45vw); margin: 2px auto 10px; }
+          .accueil-seuil header p:nth-of-type(1) { margin-bottom: 6px; }
+          .ac-root { --ac-hauteur: 8.75rem; }
+          .seuil-noms p { line-height: 1.7; }
+          .accueil-journal li:nth-child(n+4) { display: none; }
+        }
+
         /* ⚠️ Le bandeau ne suit PAS le seuil des volets. Un volet de texte devient
            illisible bien avant qu'une tuile de chiffre ne manque de place : les cinq
            tuiles tiennent encore leur rang à 640 px, où deux colonnes de prose ne
@@ -644,7 +728,12 @@ export default async function AccueilPage() {
             calcule donc sur son contenu. Or tout ce qui garnit une carte est en
             `position: absolute`, si bien que la grille ne réclame pour elle-même que ses
             bordures. Toute enveloppe posée ici doit porter une largeur. */}
-        <div id="cartes" style={{ width: "100%", scrollMarginTop: "3.5rem", marginTop: "clamp(26px, 4.5vh, 52px)" }}>
+        {/* ⛔ Le blanc AU-DESSUS des cartes a quitté ce style en ligne pour la feuille
+            (« #cartes », plus haut). Un style en ligne bat toute règle de feuille sans
+            « !important », et l'échelle de crans en hauteur d'écran ne pouvait donc pas
+            le resserrer. La largeur reste ici : elle n'est pas un réglage, elle est la
+            condition pour que les cartes existent (voir la note juste au-dessus). */}
+        <div id="cartes" style={{ width: "100%", scrollMarginTop: "3.5rem" }}>
           <AccueilCards />
         </div>
 
@@ -653,15 +742,14 @@ export default async function AccueilPage() {
         <VisiteDeLAccueil />
 
         <GalerieAuteurs auteurs={auteurs} />
-      </section>
 
-      {/* ══ LA SUITE ═════════════════════════════════════════════════════════
-          La bande dit, par son changement de papier, qu'on a franchi la porte. Elle
-          porte les ajouts, puis le mot. */}
-      <div className="accueil-suite">
-        {/* La preuve que la bibliothèque vit. Cinq lignes, pas de cadre, pas de
-            chiffre. ⛔ Elle était dans la porte, qu'elle faisait déborder de 249 px
-            sur tout écran ordinaire — voir la note de `.accueil-seuil`. */}
+        {/* La preuve que la bibliothèque vit, DANS L'ÉCRAN D'ENTRÉE. Cinq lignes, pas de
+            cadre, pas de chiffre.
+            ⛔ ELLE NE DESCEND PAS DANS LA BANDE DU MOT (décision de l'auteur,
+            2026-09-09). Elle y a passé une heure, et c'était un contresens : cette bande
+            est le mot de celui qui établit les textes, et un journal d'ajouts n'y a pas
+            sa place. Ce qui l'en avait chassée — la porte qui débordait — se corrige à
+            la porte, par une échelle de crans en hauteur d'écran. */}
         <div className="accueil-journal">
           <div className="accueil-rubrique">
             <i />
@@ -670,6 +758,12 @@ export default async function AccueilPage() {
           </div>
           <ListeAjouts recentes={recentes} />
         </div>
+      </section>
+
+      {/* ══ LA SUITE ═════════════════════════════════════════════════════════
+          Le mot y est seul. La bande demeure : c'est le changement de papier qui dit
+          qu'on a franchi la porte, et une bande d'un seul bloc reste une bande. */}
+      <div className="accueil-suite">
         <VoletUnMot />
       </div>
 
