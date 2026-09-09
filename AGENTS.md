@@ -2575,6 +2575,34 @@ code :
   bord, et qui n'arrive qu'après coup. Mesuré en ligne : à l'arrivée `style.top` est posé
   et l'écart vaut 0,00 px ; après un changement de division il est VIDE, et la manchette se
   tient **7,78 px trop haut**. La clé porte donc aussi la vue et le compte des segments.
+- ⛔ **ON NE MESURE JAMAIS PENDANT UN PASSAGE, et c'est le piège le plus coûteux de la
+  manchette.** Une transformation fait de l'élément qui la porte le BLOC CONTENEUR de tous
+  ses descendants absolus, fussent-ils positionnés depuis bien plus haut — et le passage
+  d'un texte à l'autre translate CHAQUE bloc de six pixels (`cs-lecture-paraitre`,
+  `translateY(6px)`). La passe rejouée là mesure la colonne translatée, pose un `top` de
+  six pixels trop grand, et **la manchette y RESTE** : une translation ne change aucune
+  taille, le `ResizeObserver` ne dit rien, et la clé de lecture n'a pas rechangé. Prouvé en
+  ligne sur les Annotations sur Job, le 9 septembre 2026 : `top` passe de 1561,01 px à
+  1567,01 px sous `matrix(1, 0, 0, 1, 0, 6)`, et l'écart des lignes de base vaut
+  **−5,99 px** une fois le passage joué. ⚠️ L'écart VU va de 0 à 6 px : les blocs sont
+  échelonnés (`--cs-ordre` × 30 ms) et chacun est à un point différent de sa translation.
+- ⚠️ **La charte connaissait déjà ce piège par l'autre bout** : l'ouverture d'une page ne
+  porte QUE l'opacité, « une transformation ferait de la colonne le bloc conteneur des
+  cellules d'actions posées en `fixed` ». C'est la même règle un cran plus bas, et il
+  faudra s'en souvenir avant d'animer quoi que ce soit dans une colonne de lecture.
+- ⛔ **Le remède est une GARDE, non une correction** : `sousUneTransformation` remonte du
+  renvoi jusqu'à la colonne, et la passe SORT si elle trouve un `transform`, un
+  `translate`, un `scale` ou un `rotate`. Le `top` posé par la passe d'avant est juste et
+  reste en place. ⛔ Et la fin du passage la rappelle : `animationend` ET
+  `animationcancel` sur la colonne — le premier quand le passage se joue jusqu'au bout, le
+  second quand la classe est retirée avant —, les deux remontant des blocs jusqu'à elle.
+  Sans ce rappel, la manchette garderait la place du texte d'AVANT.
+- ⚠️ **Le défaut ne se reproduit PAS dans un onglet caché**, et c'est ce qui l'a fait
+  vivre : `requestAnimationFrame` n'y tourne jamais, la passe de `ResizeObserver` n'y est
+  donc jamais rejouée, et la première mesure — prise avant que la classe d'arrivée soit
+  posée — reste seule. Quatre relevés à 0,00 px dans le panneau MCP pendant que le lecteur
+  voyait le décalage. **Pour l'éprouver, on rend le `rAF` synchrone et l'on pose la classe
+  à la main**, la recette de la barre de navigation.
 - ⚠️ **`top` se pose désormais sur TOUTES les entrées**, non sur les seules poussées : la
   correction vaut pour chacune, et la position statique ne la porte pas.
 - ⚠️ **Une planche MENT tant que les polices ne sont pas là** : mesurée avant elles, les

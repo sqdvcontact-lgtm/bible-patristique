@@ -87,6 +87,35 @@ function decalagesDeLigne(entrees: readonly HTMLElement[]): number[] {
   return ecarts
 }
 
+/**
+ * Dit si une TRANSFORMATION s'interpose entre le renvoi et la colonne.
+ *
+ * ⛔ Un `transform` fait de l'élément qui le porte le BLOC CONTENEUR de tous ses
+ * descendants absolus, fussent-ils positionnés depuis bien plus haut (CSS Transforms,
+ * § « Transform rendering »). Or le passage d'un texte à l'autre translate CHAQUE bloc
+ * de six pixels — `cs-lecture-paraitre`, `translateY(6px)` — et la manchette, mesurée
+ * pendant cette translation, se pose six pixels trop bas. ⚠️ Elle y RESTE : la
+ * translation ne change aucune taille, le `ResizeObserver` ne dit rien, et la clé de
+ * lecture n'a pas rechangé. Mesuré en ligne sur les Annotations sur Job, le 9 septembre
+ * 2026 : `top` passe de 1561,01 px à 1567,01, et l'écart des lignes de base vaut
+ * −5,99 px une fois le passage joué.
+ *
+ * ⚠️ La charte connaissait déjà ce piège par l'autre bout : l'ouverture d'une page ne
+ * porte QUE l'opacité, « une transformation ferait de la colonne le bloc conteneur des
+ * cellules d'actions posées en `fixed` ». C'est la même règle, un cran plus bas.
+ *
+ * ⛔ On ne mesure donc pas : on attend la fin du passage, que l'écoute d'`animationend`
+ * rappelle. Le `top` posé par la passe d'avant, lui, est juste et reste en place.
+ */
+function sousUneTransformation(entree: HTMLElement, colonne: Element): boolean {
+  for (let n = entree.parentElement; n && n !== colonne; n = n.parentElement) {
+    const style = getComputedStyle(n)
+    if (style.transform !== 'none' || style.translate !== 'none'
+      || style.scale !== 'none' || style.rotate !== 'none') return true
+  }
+  return false
+}
+
 /** La marque que porte un renvoi posé en manchette. */
 export const CLASSE_RENVOI_MANCHETTE = 'cs-manchette-renvoi'
 
@@ -138,6 +167,9 @@ export function useManchetteRenvois(
       //    précédente a posé, et la manchette descendrait un peu plus à chaque reflux.
       const entrees = Array.from(el.querySelectorAll<HTMLElement>(`.${CLASSE_RENVOI_MANCHETTE}`))
       if (entrees.length === 0) return
+      // ⛔ Pas un pixel tant qu'un passage joue : sous une transformation, la colonne
+      //    n'est plus le bloc conteneur, et ce qu'on mesurerait là se figerait faux.
+      if (entrees.some(entree => sousUneTransformation(entree, el))) return
       for (const entree of entrees) entree.style.top = ''
       const haut = el.getBoundingClientRect().top
       const boites = entrees.map(entree => entree.getBoundingClientRect())
@@ -170,10 +202,19 @@ export function useManchetteRenvois(
     observateur.observe(el)
     observateur.observe(hote)
     window.addEventListener('resize', surReflux)
+    // ⛔ La FIN d'un passage rappelle la passe, et il le faut : c'est le seul moment où
+    //    la transformation s'en va, et rien d'autre ne le dit — une translation ne
+    //    change aucune taille. Les deux événements sont nécessaires : `animationend`
+    //    quand le passage se joue jusqu'au bout, `animationcancel` quand la classe est
+    //    retirée avant. Ils remontent des blocs jusqu'à la colonne.
+    el.addEventListener('animationend', surReflux)
+    el.addEventListener('animationcancel', surReflux)
     return () => {
       if (demande) cancelAnimationFrame(demande)
       observateur.disconnect()
       window.removeEventListener('resize', surReflux)
+      el.removeEventListener('animationend', surReflux)
+      el.removeEventListener('animationcancel', surReflux)
     }
     // ⛔ `actif` est dans les dépendances, et il le faut : au premier rendu la
     // manchette n'existe pas encore — ce sont les appels qui sont dans le texte —,
