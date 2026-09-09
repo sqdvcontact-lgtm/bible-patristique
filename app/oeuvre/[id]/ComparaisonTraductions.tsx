@@ -461,23 +461,35 @@ async function chargerNotes(segmentKeys: string[]): Promise<{
   }
   const resultat: NotesParSegment = {}
   const ancres: AncresParSegment = {}
+  // ⛔ UNE ANCRE INCOMPLÈTE EST LAISSÉE DE CÔTÉ, JAMAIS LEVÉE. C'est la règle posée
+  //    le 5 septembre 2026 après qu'une ancre restée un moment sans sa note, pendant un
+  //    import, eut fermé les Confessions à tout lecteur : un import n'est pas atomique,
+  //    et le lecteur ne paie pas l'intervalle. Cette surface levait encore.
+  // ⛔ ET L'ON INDEXE TOUTES LES CIBLES, non le seul `segment_texte` : une ancre qui vise
+  //    un CHAMP DE TITRE n'arrivait pas jusqu'à la projection, laquelle sait pourtant en
+  //    viser un depuis le 9 septembre. C'est le consommateur qui choisit son champ.
+  const laissees: string[] = []
   for (const ancre of ancresBrutes) {
     const note = notes.get(`${ancre.id_texte}|${ancre.note_key}`)
-    if (!note) throw new Error(`Note structurée introuvable : ${ancre.note_key}.`)
+    if (!note) { laissees.push(ancre.note_key); continue }
     resultat[ancre.segment_key] ??= []
     if (!resultat[ancre.segment_key].some(existante => existante.noteKey === note.noteKey)) resultat[ancre.segment_key].push(note)
-    if (ancre.source_target === 'segment_texte') {
-      if (!ancre.marker?.match(/^\[\[[A-Z0-9]+\]\]$/u) || !Number.isInteger(ancre.segment_offset_unicode)) {
-        throw new Error(`Ancre de note structurée incomplète : ${ancre.note_key}.`)
-      }
+    if (ancre.marker?.match(/^\[\[[A-Z0-9]+\]\]$/u) && Number.isInteger(ancre.segment_offset_unicode)) {
       ancres[ancre.segment_key] ??= []
       ancres[ancre.segment_key].push({
         noteKey: ancre.note_key,
         marker: ancre.marker,
         segmentOffsetUnicode: ancre.segment_offset_unicode as number,
-        sourceTarget: ancre.source_target,
+        sourceTarget: ancre.source_target ?? '',
       })
+    } else if (ancre.source_target === 'segment_texte') {
+      // ⚠️ Un offset absent n'est un défaut que sur le TEXTE : sur un champ de titre, il
+      //    dit seulement que le marqueur est posé matériellement.
+      laissees.push(ancre.note_key)
     }
+  }
+  if (laissees.length > 0) {
+    console.error('[comparaison] ancre(s) de note laissée(s) de côté :', laissees.join(', '))
   }
   return { notes: resultat, ancres }
 }
