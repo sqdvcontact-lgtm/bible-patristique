@@ -17,7 +17,7 @@
 // autres : `createPortal` n'existe pas au rendu serveur, et une planche de contrôle
 // hors session ne pourrait pas rendre la fiche si tout tenait dans un seul composant.
 
-import { Z_FENETRE } from '@/app/lib/empilement'
+import { Z_MODALE } from '@/app/lib/empilement'
 import { Fragment, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { supabase } from '@/app/lib/supabase'
@@ -36,13 +36,21 @@ import { libelleTrad, formaterEditeur } from './PageTitre'
 import { rendreTexteEnrichi } from './texteEnrichi'
 import { libelleVersionComplet } from './versionTextuelle'
 import type { Props, VersionTextuelle } from './oeuvreTypes'
+import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
 
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 
-// La fiche s'ouvre au-dessus de la page de lecture ; la fiche d'auteur, qu'on ouvre
-// DEPUIS elle en cliquant un nom, porte 2100 et passe donc par-dessus.
-const Z_FICHE = Z_FENETRE
+// ⛔ `Z_MODALE`, ET NON LE RANG DES FENÊTRES DE PAGE. L'échelle le dit déjà en toutes
+// lettres : une modale « couvre le tiroir d'où elle s'ouvre, et à Z_FENETRE elle s'y
+// cacherait ». Sur un téléphone, tout ce qui ouvre cette fenêtre vit DANS le tiroir du
+// volet (Z_TIROIR, 2401) : à 1200 elle s'ouvrait derrière le sommaire qui venait de la
+// demander. Relevé de l'auteur, 2026-09-09, sur la fiche d'édition ; les quatre autres
+// fenêtres de la page portaient le même défaut, trouvées en corrigeant celle-là.
+// ⚠️ La fiche d'AUTEUR, qu'on ouvre depuis celle-ci en cliquant un nom, porte le MÊME
+// rang et passe par-dessus par l'ordre du document, qui suffit : la seconde est portée
+// plus tard. ⛔ Ne pas inventer un rang « au-dessus des modales ».
+const Z_FICHE = Z_MODALE
 
 /** Tout ce que la fiche a besoin de savoir. Les données lui arrivent chargées : la
  *  page de lecture les a déjà, et la fiche n'en redemande aucune au serveur, sauf le
@@ -337,9 +345,8 @@ export default function FicheEdition({ volets, onOuvrirAuteur, onFermer }: {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onFermer() }
     document.addEventListener('keydown', onKey)
-    const prec = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prec }
+    const relacher = verrouillerLeDefilement()
+    return () => { document.removeEventListener('keydown', onKey); relacher() }
   }, [onFermer])
 
   if (typeof document === 'undefined' || !donnees) return null

@@ -15,6 +15,9 @@
  * Module PUR : ni requête, ni rendu, ni React.
  */
 import { estNoteApparatCritique } from '@/app/lib/apparatCritique'
+import { natureSeNormaliseCommeReference } from '@/app/lib/naturesNote'
+import { normaliserReferencesDansTexte } from '@/app/lib/referenceNote'
+import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { replier } from '@/app/lib/bibleBibliographieOuvrages'
 import { intituleDeLaNote } from '@/app/lib/typeNote'
 import type { NoteStructuree } from './oeuvreTypes'
@@ -54,21 +57,105 @@ export type NoteRecensee = {
  *  la lire : l'outil sert à la TROUVER, le corps du texte à la lire. */
 export const LONGUEUR_APERCU = 140
 
-/** Le texte d'une note, ses blocs joints dans l'ordre. */
+/** Les marques appariées que `rendreTexteEnrichi` reconnaît, de la PLUS LONGUE à
+ *  la plus courte : `*` est un préfixe de `**`, et c'est l'ordre qui les départage. */
+const MARQUES_APPARIEES = ['**', '++', '^^', '*'] as const
+
+/** Les marques d'un texte, dans l'ordre, la plus longue l'emportant sur place. */
+function marquesDe(texte: string): { type: string; index: number }[] {
+  const trouvees: { type: string; index: number }[] = []
+  for (let i = 0; i < texte.length;) {
+    const type = MARQUES_APPARIEES.find(m => texte.startsWith(m, i))
+    if (type) { trouvees.push({ type, index: i }); i += type.length } else i += 1
+  }
+  return trouvees
+}
+
+/**
+ * RECOUPE UN APERÇU POUR QU'AUCUNE MARQUE N'Y RESTE OUVERTE.
+ *
+ * ⛔ Une coupe à cent quarante signes tombe un jour au milieu d'un `*italique*`, et
+ * l'astérisque restée seule se rend alors TELLE QUELLE : le renderer n'apparie que
+ * des paires, et ce qu'il n'apparie pas, il l'imprime. Relevé de l'auteur,
+ * 2026-09-09 (« y compris les enrichissements »).
+ *
+ * ⚠️ On coupe à l'ouverture restée seule, on ne FERME pas à sa place : inventer une
+ * fermeture ferait dire à l'aperçu une italique que la note n'a pas.
+ */
+export function sansMarqueOuverte(texte: string): string {
+  let s = texte
+  for (let passe = 0; passe < 6; passe += 1) {
+    let coupe = s.length
+
+    // Un lien dont la fermeture est tombée.
+    const crochet = s.lastIndexOf('[')
+    if (crochet >= 0 && !/^\[[^\]]*\]\([^\s)]*\)/.test(s.slice(crochet))) coupe = Math.min(coupe, crochet)
+
+    // Une balise d'italique ouverte et non fermée.
+    const ouvertes = (s.match(/<i>/g) ?? []).length
+    const fermees = (s.match(/<\/i>/g) ?? []).length
+    if (ouvertes > fermees) coupe = Math.min(coupe, s.lastIndexOf('<i>'))
+
+    // Une marque appariée en nombre IMPAIR : la dernière est restée ouverte.
+    const parType = new Map<string, number[]>()
+    for (const { type, index } of marquesDe(s)) {
+      const places = parType.get(type) ?? []
+      places.push(index)
+      parType.set(type, places)
+    }
+    for (const places of parType.values()) {
+      if (places.length % 2 === 1) coupe = Math.min(coupe, places[places.length - 1])
+    }
+
+    if (coupe >= s.length) break
+    s = s.slice(0, coupe)
+  }
+  return s.replace(/\s+$/, '')
+}
+
+/**
+ * LE TEXTE D'UNE NOTE, ses blocs joints dans l'ordre.
+ *
+ * ⛔ IL SE COMPOSE COMME LA NOTE SE REND, et il ne se composait pas du tout : les
+ * blocs étaient joints BRUTS, si bien que l'aperçu montrait « Isaïe 6, 3 » avec des
+ * espaces ordinaires là où la note rend les insécables de la charte § 3.2 — et le
+ * resserrement des blancs détruisait au passage celles que la donnée portait déjà,
+ * `\s` couvrant U+00A0 et U+202F. Relevé de l'auteur, 2026-09-09.
+ *
+ * ⚠️ L'ORDRE des trois opérations est contraint : la référence se normalise PAR BLOC
+ * (elle seule connaît la nature), les blocs se joignent et les blancs se resserrent
+ * ENSUITE, et la typographie se pose EN DERNIER — posée avant, le resserrement des
+ * blancs mangerait les fines qu'elle vient d'écrire.
+ *
+ * ⛔ L'APPARAT CRITIQUE n'y passe pas, comme il n'y passe pas au rendu : « om. F » ne
+ * prend pas de point, et « B; est] » ne prend pas de fine.
+ */
 export function apercuDeLaNote(note: NoteStructuree, longueur = LONGUEUR_APERCU): string {
-  const texte = [...note.blocks]
+  const apparat = estNoteApparatCritique(note)
+  const joint = [...note.blocks]
     .sort((a, b) => a.rank - b.rank)
-    .map(bloc => (bloc.text ?? '').trim())
+    .map(bloc => {
+      const texte = (bloc.text ?? '').trim()
+      return !apparat && natureSeNormaliseCommeReference(bloc.kind)
+        ? normaliserReferencesDansTexte(texte)
+        : texte
+    })
     .filter(Boolean)
     .join(' ')
     .replace(/\s+/g, ' ')
     .trim()
+  const texte = apparat ? joint : normaliserTypographieLecture(joint)
   if (texte.length <= longueur) return texte
   // On coupe au dernier mot entier : un aperçu tranché au milieu d'un mot se lit moins
   // bien qu'un aperçu plus court (règle de `couperDescription`).
   const coupe = texte.slice(0, longueur)
   const espace = coupe.lastIndexOf(' ')
-  return (espace > longueur * 0.6 ? coupe.slice(0, espace) : coupe).trimEnd() + '…'
+  const auMot = (espace > longueur * 0.6 ? coupe.slice(0, espace) : coupe).trimEnd()
+  const sain = sansMarqueOuverte(auMot)
+  // ⚠️ Une marque ouverte au tout premier signe ne laisserait rien : mieux vaut alors
+  // une astérisque orpheline qu'un aperçu vide, qui ferait perdre la note à qui la
+  // cherche dans la liste.
+  return (sain || auMot) + '…'
 }
 
 /**

@@ -238,8 +238,26 @@ export function styleCadreEncart(
   }
 }
 
-/** LE CORPS : ce qui défile, et le seul endroit où le blanc intérieur se pose. */
-export function styleCorpsEncart(avecCroix: boolean): CSSProperties {
+/**
+ * LE CORPS : ce qui défile, et le seul endroit où le blanc intérieur se pose.
+ *
+ * ⛔ SA GÉOMÉTRIE NE DÉPEND DE RIEN, et surtout pas de la présence de la croix.
+ * Elle en dépendait — `paddingRight` valait 1 rem au survol et 2,25 rem au clic —,
+ * si bien que la note se RECOMPOSAIT sous les yeux à l’instant où on l’épinglait :
+ * la piste perdait vingt pixels, le texte se réenroulait, et la boîte n’était plus
+ * celle qu’on venait de lire. Relevé de l’auteur, 2026-09-09 : « la mise en forme
+ * change légèrement au clic ; j’en ai horreur. »
+ *
+ * ⚠️ La place de la croix est donc réservée TOUJOURS, montrée ou non. Elle coûte
+ * 1,25 rem de piste à un encart de survol, et c’est le prix d’une seule géométrie.
+ * ⛔ Ce n’est pas une perte pour l’estimation de hauteur : `SIGNES_PAR_LIGNE` a été
+ * mesuré « rembourrage de la croix compris, donc le cas le plus étroit du cadre » —
+ * il devient exact au lieu d’être prudent.
+ *
+ * ⚠️ Les deux autres surfaces ne bougent pas d’un pixel : la page Bible et les
+ * traductions parallèles passent toujours `onFermer`, donc portaient déjà ce blanc.
+ */
+export function styleCorpsEncart(): CSSProperties {
   return {
     flex: '1 1 auto',
     minHeight: 0,
@@ -250,8 +268,8 @@ export function styleCorpsEncart(avecCroix: boolean): CSSProperties {
     overscrollBehavior: 'contain',
     padding: REMBOURRAGE_ENCART,
     // ⚠️ La croix flotte au coin : on lui réserve sa place, sinon la première ligne
-    // du propos lui passe dessous.
-    paddingRight: avecCroix ? '2.25rem' : undefined,
+    // du propos lui passe dessous. ⛔ TOUJOURS, croix montrée ou non : voir ci-dessus.
+    paddingRight: '2.25rem',
     fontFamily: 'var(--font-source-serif), Georgia, serif',
     fontSize: CORPS_ENCART,
     lineHeight: INTERLIGNE_ENCART,

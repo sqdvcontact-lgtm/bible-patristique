@@ -21,7 +21,7 @@
 // choix d'une édition se prend dans le volet, sous « Éditions de ce texte », et un second
 // endroit pour le même geste ferait deux vérités.
 
-import { Z_FENETRE } from '@/app/lib/empilement'
+import { Z_MODALE } from '@/app/lib/empilement'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
@@ -30,9 +30,16 @@ import {
   OPTIONS_PAR_DEFAUT, adresseExtraction,
   type OptionsExtraction, type RegardExtraction,
 } from '@/app/lib/extractionOeuvre'
+import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
 
-/** La fenêtre s'ouvre au-dessus de la page de lecture, sous la fiche d'édition. */
-const Z_MENU = Z_FENETRE
+// ⛔ `Z_MODALE`, ET NON LE RANG DES FENÊTRES DE PAGE. L'échelle le dit déjà en toutes
+// lettres : une modale « couvre le tiroir d'où elle s'ouvre, et à Z_FENETRE elle s'y
+// cacherait ». Sur un téléphone, tout ce qui ouvre cette fenêtre vit DANS le tiroir du
+// volet (Z_TIROIR, 2401) : à 1200 elle s'ouvrait derrière le sommaire qui venait de la
+// demander. Relevé de l'auteur, 2026-09-09, sur la fiche d'édition ; les quatre autres
+// fenêtres de la page portaient le même défaut, trouvées en corrigeant celle-là.
+// Le menu s'ouvre depuis la MÊME rangée de boutons que la fiche d'édition.
+const Z_MENU = Z_MODALE
 
 /** Au-delà, l'extraction demande un moment, et le lecteur doit le savoir avant de
  *  cliquer. ⚠️ Le seuil se compte en SIGNES du texte par défaut (`oeuvres.nb_signes`),
@@ -100,9 +107,8 @@ export default function MenuExtraction({ donnees, onFermer }: {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onFermer() }
     document.addEventListener('keydown', onKey)
-    const prec = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prec }
+    const relacher = verrouillerLeDefilement()
+    return () => { document.removeEventListener('keydown', onKey); relacher() }
   }, [onFermer])
 
   const extraire = async () => {

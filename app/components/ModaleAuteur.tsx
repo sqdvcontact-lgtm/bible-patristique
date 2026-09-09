@@ -30,6 +30,7 @@ import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import HistoricalDate from '@/app/components/HistoricalDate'
 import { chargerAuteursParOeuvre, libelleAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
+import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
@@ -792,9 +793,8 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
     if (!id) return
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', onKey)
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prev }
+    const relacher = verrouillerLeDefilement()
+    return () => { document.removeEventListener('keydown', onKey); relacher() }
   }, [id, onClose])
 
   if (!id || typeof document === 'undefined') return null

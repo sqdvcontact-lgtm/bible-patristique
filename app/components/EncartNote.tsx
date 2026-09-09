@@ -33,7 +33,7 @@ export type PlacementEncart = {
 }
 
 export function EncartNote({
-  numero, intitule, placement, onFermer, marque, style,
+  numero, intitule, placement, onFermer, epinglee = false, marque, style,
   onMouseEnter, onMouseLeave, children,
 }: {
   /** Le numéro que le LECTEUR voit, celui qu'il vient de cliquer. ⛔ Jamais le
@@ -48,6 +48,13 @@ export function EncartNote({
    *  promettrait un geste inutile et changerait la forme de l'objet sous le
    *  curseur : on ne la passe pas. */
   onFermer?: (() => void) | null
+  /** L’encart est-il ÉPINGLÉ, c’est-à-dire ouvert d’un clic et non d’un survol ?
+   *
+   *  ⛔ Il ne commande AUCUNE géométrie : la boîte est la même dans les deux cas, et
+   *  c’était précisément le défaut. Il ne pose qu’un filet d’or franc et une pulsation
+   *  d’une demi-seconde, pour que le geste se VOIE (demande de l’auteur, 2026-09-09 :
+   *  « ajouter un effet pour montrer qu’elle se fixe »). */
+  epinglee?: boolean
   /** L'attribut par lequel la surface reconnaît son propre encart quand elle guette
    *  le clic extérieur. Chacune a le sien, et il n'y a pas lieu de les unifier ici. */
   marque?: string
@@ -62,11 +69,19 @@ export function EncartNote({
   const attribut = marque ? { [marque]: '' } : {}
   return (
     <div
-      data-encart-note="" {...attribut}
+      data-encart-note="" data-epingle={epinglee ? '' : undefined} {...attribut}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onMouseDown={e => e.stopPropagation()}
-      style={{ ...styleCadreEncart(placement), ...style }}
+      style={{
+        ...styleCadreEncart(placement),
+        // ⛔ EN LIGNE, et il le faut : le cadre pose son filet en style en ligne, et
+        // une règle de feuille perdrait contre lui sans `!important`. La PULSATION,
+        // elle, vit dans la feuille : une animation bat le style en ligne par l’ordre
+        // des origines de la cascade, sans qu’on ait à crier.
+        ...(epinglee ? { borderColor: 'var(--cs-or)' } : null),
+        ...style,
+      }}
     >
       {onFermer && (
         <button
@@ -80,7 +95,7 @@ export function EncartNote({
           exactement dessous — mesuré sur la planche du 8 septembre 2026, la croix
           d'une note longue était posée sur elle. Elle rend en outre six pixels de
           piste au texte. */}
-      <div className="cs-defilement-discret" style={styleCorpsEncart(Boolean(onFermer))}>
+      <div className="cs-defilement-discret" style={styleCorpsEncart()}>
         {/* ⛔ Le numéro FLOTTE : le propos l'habille, et la mesure entière lui revient
             dès la deuxième ligne. En colonne de grille, il réservait sa gouttière sur
             toute la hauteur de la note. */}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   apercuDeLaNote,
+  sansMarqueOuverte,
   clesDesNotes,
   comptesParIntitule,
   filtrerNotes,
@@ -26,6 +27,10 @@ const bloc = (p: Partial<NoteBlocData> & { blockId: string }): NoteBlocData => (
 const note = (p: Partial<NoteStructuree> & { noteKey: string; noteNumber: number }): NoteStructuree => ({
   blocks: [bloc({ blockId: `${p.noteKey}-b1` })], ...p,
 })
+
+/** Les deux espaces que la charte pose au rendu (paragraphe 3.2). */
+const FINE = String.fromCharCode(0x202F)
+const INSEC = String.fromCharCode(0x00A0)
 
 const place = (p: Partial<PlaceSegment> & { id: number; segmentKey: string }): PlaceSegment => ({
   division: 'Livre I', segmentNumero: p.id, surface: 'corps', ...p,
@@ -57,6 +62,62 @@ describe('apercuDeLaNote', () => {
 
   it('rend une chaîne vide sur une note sans texte', () => {
     expect(apercuDeLaNote(note({ noteKey: 'n1', noteNumber: 1, blocks: [] }))).toBe('')
+  })
+
+  // ── LA TYPOGRAPHIE DE LA CHARTE, comme au rendu ────────────────────────────
+  // L'aperçu joignait les blocs BRUTS : il montrait des espaces ordinaires là où la
+  // note rend les insécables du § 3.2, et le resserrement des blancs détruisait au
+  // passage celles que la donnée portait déjà. Relevé de l'auteur, 2026-09-09.
+  it('pose les espaces de la charte, comme la note rendue', () => {
+    const n = note({ noteKey: 'n1', noteNumber: 1, blocks: [bloc({ blockId: 'b', text: 'Voyez ceci : « un mot » ; et cela !' })] })
+    const vu = apercuDeLaNote(n)
+    expect(vu).toContain(INSEC + ':')
+    expect(vu).toContain('«' + FINE)
+    expect(vu).toContain(FINE + ';')
+  })
+
+  it('ne détruit pas une insécable que la donnée porte déjà', () => {
+    const n = note({ noteKey: 'n1', noteNumber: 1, blocks: [bloc({ blockId: 'b', text: 'Isaïe 6' + INSEC + ': 3' })] })
+    expect(apercuDeLaNote(n)).toContain(INSEC)
+  })
+
+  // ⛔ L'APPARAT CRITIQUE ne se normalise pas, ici comme au rendu : « om. F » ne
+  // prend pas de point, et la haute ponctuation reste collée.
+  it('laisse un apparat critique intact', () => {
+    const n = note({
+      noteKey: 'n1', noteNumber: 1,
+      blocks: [bloc({ blockId: 'b', text: 'plana M; faciunt] fecerunt Q', editorialRole: 'critical_apparatus' })],
+    })
+    expect(apercuDeLaNote(n)).toBe('plana M; faciunt] fecerunt Q')
+  })
+
+  // ── LA COUPE NE CASSE JAMAIS UN ENRICHISSEMENT ─────────────────────────────
+  // Une astérisque restée seule se rend TELLE QUELLE : le renderer n'apparie que des
+  // paires, et ce qu'il n'apparie pas, il l'imprime.
+  it('coupe avant une italique restée ouverte', () => {
+    const n = note({ noteKey: 'n1', noteNumber: 1, blocks: [bloc({ blockId: 'b', text: 'Voyez plus haut *Rétractations et le reste*' })] })
+    const vu = apercuDeLaNote(n, 24)
+    expect(vu).toBe('Voyez plus haut…')
+    expect(vu).not.toContain(String.fromCharCode(42))
+  })
+
+  it('garde une italique entière quand elle tient dans la coupe', () => {
+    const n = note({ noteKey: 'n1', noteNumber: 1, blocks: [bloc({ blockId: 'b', text: 'Voyez *Job* et puis beaucoup de texte ensuite encore' })] })
+    expect(apercuDeLaNote(n, 20)).toBe('Voyez *Job* et puis…')
+  })
+
+  it('ne casse ni le gras, ni les petites capitales, ni un lien', () => {
+    expect(sansMarqueOuverte('un **gras qui reste')).toBe('un')
+    expect(sansMarqueOuverte('un ++capitales')).toBe('un')
+    expect(sansMarqueOuverte('voir [le texte](http')).toBe('voir')
+    expect(sansMarqueOuverte('un <i>latin')).toBe('un')
+  })
+
+  // ⚠️ Une marque ouverte au tout premier signe ne laisserait RIEN : mieux vaut une
+  // astérisque orpheline qu'un aperçu vide, qui ferait perdre la note à qui la cherche.
+  it('rend tout de même quelque chose quand la coupe ne laisserait rien', () => {
+    const n = note({ noteKey: 'n1', noteNumber: 1, blocks: [bloc({ blockId: 'b', text: '*un titre très long et sans fermeture avant la coupe*' })] })
+    expect(apercuDeLaNote(n, 12)).not.toBe('…')
   })
 })
 

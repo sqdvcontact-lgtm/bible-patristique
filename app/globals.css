@@ -3217,3 +3217,29 @@ main.lecture-entree [data-cs-bloc],
    sur le texte de la cellule, et c'est précisément ce que le survol évite. */
 [data-visite-cible="actions"] .poly-act { opacity: .9 !important; }
 [data-visite-cible="actions"] .poly-cellact { background: var(--cs-surface); box-shadow: var(--cs-ombre-nette); }
+
+/* ── UNE NOTE ÉPINGLÉE LE DIT ────────────────────────────────────────────────
+   Un encart s'ouvre au survol et se FIXE au clic, et rien ne distinguait les deux
+   états que l'apparition de la croix. Ce qui les distinguait vraiment était un
+   défaut : le rembourrage de droite changeait, et la note se recomposait sous les
+   yeux (voir `compositionNote.ts`). La géométrie est désormais la même dans les
+   deux cas, et c'est une PULSATION qui dit l'épinglage, demandée par l'auteur le
+   9 septembre 2026.
+
+   ⛔ Elle ne touche à AUCUNE mesure : un halo de `box-shadow` ne participe pas à
+   la mise en page, et le filet ne change que de couleur, jamais d'épaisseur. C'est
+   la condition pour que « l'ensemble soit fixe ».
+
+   ⚠️ L'animation vit ICI plutôt qu'en style en ligne, et c'est ce qui la fait
+   gagner : le cadre pose son ombre en ligne, et une déclaration d'animation bat le
+   style en ligne par l'ordre des origines de la cascade. Le FILET, lui, se pose en
+   ligne dans `EncartNote` : une règle de feuille y perdrait sans `!important`. */
+@keyframes cs-encart-epingler {
+  from { box-shadow: 0 0 0 0 rgba(var(--cs-or-rgb), 0.5), var(--cs-ombre-flottante); }
+  to   { box-shadow: 0 0 0 8px rgba(var(--cs-or-rgb), 0), var(--cs-ombre-flottante); }
+}
+[data-encart-note][data-epingle] { animation: cs-encart-epingler 0.5s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-encart-note][data-epingle] { animation: none; }
+}

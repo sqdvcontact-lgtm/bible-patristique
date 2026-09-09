@@ -123,27 +123,34 @@ describe('le cadre et le corps sont deux éléments', () => {
   it('le cadre ne défile pas, le corps défile', () => {
     const cadre = styleCadreEncart({ left: 0, top: 0, hauteurMax: 300 })
     expect(cadre.overflow).toBe('hidden')
-    expect(styleCorpsEncart(false).overflowY).toBe('auto')
+    expect(styleCorpsEncart().overflowY).toBe('auto')
   })
 
   it('le corps prend la hauteur qui reste, il ne se borne pas lui-même', () => {
-    const corps = styleCorpsEncart(false)
+    const corps = styleCorpsEncart()
     expect(corps.flex).toBe('1 1 auto')
     expect(corps.minHeight).toBe(0)
     expect(corps.maxHeight).toBeUndefined()
   })
 
   it('le défilement ne se propage jamais à la page', () => {
-    expect(styleCorpsEncart(false).overscrollBehavior).toBe('contain')
+    expect(styleCorpsEncart().overscrollBehavior).toBe('contain')
   })
 
-  it('la croix reçoit sa place, et elle seule', () => {
-    expect(styleCorpsEncart(true).paddingRight).toBeTruthy()
-    expect(styleCorpsEncart(false).paddingRight).toBeUndefined()
+  // ⛔ LA GÉOMÉTRIE NE BOUGE PAS ENTRE LE SURVOL ET LE CLIC. Le rembourrage de
+  // droite valait 1 rem sans la croix et 2,25 rem avec : la note se recomposait à
+  // l’instant où on l’épinglait. C’est la place de la croix qui est désormais
+  // réservée toujours, montrée ou non.
+  it('la place de la croix est réservée, croix montrée ou non', () => {
+    expect(styleCorpsEncart().paddingRight).toBe('2.25rem')
+  })
+
+  it('le corps ne prend aucun argument : sa forme ne dépend de rien', () => {
+    expect(styleCorpsEncart.length).toBe(0)
   })
 
   it('le propos se compose en sérif, au corps de l’encart', () => {
-    const corps = styleCorpsEncart(false)
+    const corps = styleCorpsEncart()
     expect(String(corps.fontFamily)).toContain('source-serif')
     expect(corps.fontSize).toBe(CORPS_ENCART)
   })
@@ -183,7 +190,7 @@ describe('la composition du propos', () => {
   // page Bible justifiait les siens, la lecture d'une œuvre non, et le même encart
   // rendait deux compositions selon la surface qui l'ouvrait.
   it('justifie, coupe les mots, et rend la dernière ligne au fer à gauche', () => {
-    const style = styleCorpsEncart(true)
+    const style = styleCorpsEncart()
     expect(style.textAlign).toBe('justify')
     expect(style.textAlignLast).toBe('left')
     expect(style.hyphens).toBe('auto')

@@ -85,6 +85,7 @@ import {
 } from '@/app/lib/bibleBibliographieOuvrages'
 import { segmentsReferenceEdition } from '@/app/lib/referenceEditionServie'
 import { CLASSES_BIBLIOGRAPHIE } from '@/app/lib/apparatBibliographie'
+import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
 
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
@@ -572,9 +573,8 @@ export default function ModaleTraduction({ code, nomFallback, onFermer }: { code
   // d'auteur) : le calque, lui, ne défile pas, c'est le CONTENU de la boîte qui
   // défile.
   useEffect(() => {
-    const prec = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prec }
+    const relacher = verrouillerLeDefilement()
+    return () => relacher()
   }, [])
 
   // Échap ferme la fiche.

@@ -292,6 +292,7 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
       intitule={intitule}
       placement={placement}
       onFermer={figee ? fermer : null}
+      epinglee={figee}
       marque="data-note-tooltip"
       onMouseEnter={entrerEncart}
       onMouseLeave={quitterEncart}

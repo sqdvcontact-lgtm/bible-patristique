@@ -1,5 +1,5 @@
 'use client'
-import { Z_FENETRE, Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
+import { Z_MODALE, Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
 import { LIVRES } from '@/app/lib/bible'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { hydraterLiensHerites } from '@/app/lib/liens'
@@ -355,7 +355,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
       {/* Sous la barre de navigation et bornée en hauteur, comme les autres fenêtres de
           cette page : le pied porte le bouton d'envoi, il ne peut pas sortir de l'écran. */}
       {ouvert && (
-        <div onClick={() => setOuvert(false)} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: Z_FENETRE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}>
+        <div onClick={() => setOuvert(false)} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}>
           {/* ⚠️ `aria-modal` dit à un lecteur d'écran que le reste de la page est hors jeu
               tant que la fenêtre est là ; `aria-label` la nomme, faute d'un titre à viser
               par `aria-labelledby` — le titre vit dans un `<p>`, non dans un rang de titre. */}
@@ -476,7 +476,13 @@ function BarreVoletMobile({ cote, ouvert, libelle, titre, onBasculer, refBouton 
   return (
     <button ref={refBouton} onClick={onBasculer} title={titre} aria-expanded={ouvert}
       style={{
-        position: 'fixed', left: 0, right: 0, width: '100%', zIndex: Z_FENETRE,
+        // ⛔ `Z_TIROIR`, le rang de son PROPRE tiroir, et non celui d'une fenêtre de
+        // page. Le voile du tiroir est posé en `inset: 0` à 2400 : à 1200, la barre
+        // passait DESSOUS dès que son tiroir s'ouvrait, donc voilée de 34 % de noir,
+        // et le tap qui devait la fermer tombait sur le voile. Le résultat était le
+        // même par accident, l'affordance non : la charte veut que la barre reste
+        // POSÉE quand son tiroir s'ouvre, et que ce soit ELLE qui ferme.
+        position: 'fixed', left: 0, right: 0, width: '100%', zIndex: Z_TIROIR,
         ...(haut
           ? { top: HAUTEUR_NAVBAR, borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)', background: 'var(--cs-fond-clair)' }
           : { bottom: 0, borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)', background: 'var(--cs-surface)' }),
@@ -4423,7 +4429,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
             La largeur est en `min(25rem, 100%)` : elle suit la police racine, donc l'écran,
             et ne peut jamais dépasser la place disponible. */
-        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: Z_FENETRE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}
+        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}
           onClick={() => setConfigOuverte(false)}>
           <div role="dialog" aria-modal="true" aria-label="Niveaux d'affichage"
             onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(25rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>

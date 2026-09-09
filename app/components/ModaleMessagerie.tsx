@@ -14,6 +14,7 @@ import { createPortal } from 'react-dom'
 import { supabase } from '@/app/lib/supabase'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import MarqueMecene from '@/app/components/MarqueMecene'
+import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
 
 type Conversation = { partenaire_pseudo: string; partenaire_mecene?: boolean; dernier_message: string; dernier_at: string; nb_non_lus: number }
 type Message = { id: string; de_moi: boolean; contenu: string; lu: boolean; created_at: string }
@@ -84,9 +85,8 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
     if (!ouvert) return
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', onKey)
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prev }
+    const relacher = verrouillerLeDefilement()
+    return () => { document.removeEventListener('keydown', onKey); relacher() }
   }, [ouvert, onClose])
 
   const chargerConversation = useCallback(async (pseudo: string, tok: string) => {
