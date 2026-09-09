@@ -23,7 +23,7 @@ import { natureBlocNoteSur } from '@/app/lib/naturesNote'
 import { numerosAffiches } from '@/app/lib/numerotationNotes'
 import { noterDegradation, tolerer, type DegradationChargement } from '@/app/lib/chargementTolerant'
 import type { AncreNoteStructureeProjection } from '@/app/lib/appelsNotesStructurees'
-import type { NoteStructuree } from '@/app/oeuvre/[id]/oeuvreTypes'
+import type { NoteBlocData, NoteStructuree } from '@/app/oeuvre/[id]/oeuvreTypes'
 
 /** Le client de lecture — celui de la page, celui de la route, jamais un client à soi.
  *  ⚠️ Le type du client SSR et celui du client de service sont structurellement le même
@@ -118,22 +118,32 @@ export async function chargerNotesStructurees(
     if (!parNote.has(block.note_key)) parNote.set(block.note_key, { noteKey: block.note_key, noteNumber, blocks: [] })
     const relation = relations.get(`${block.note_key}:${block.block_id}`) ?? {}
     const meta = lireMetadonneesBlocNote(block.metadata)
-    parNote.get(block.note_key)!.blocks.push({
+    // ⛔ UN CHAMP NUL NE VOYAGE PAS. Les huit champs facultatifs d'un bloc étaient
+    // toujours émis, fussent-ils nuls, et la charge de flux les porte ESCAMPÉS — chaque
+    // guillemet compte double. Mesuré le 9 septembre 2026 sur La Cité de Dieu : quatre
+    // d'entre eux (`rendering`, `editorialRole`, `printedLine`, `visualReviewReason`)
+    // sont nuls sur les 5 564 blocs, soit 100 %, et la page en sérialisait quinze clés
+    // par bloc pour une charge de 4,3 Mo dont 265 Ko seulement de texte.
+    // ⚠️ Les huit sont DÉJÀ facultatifs dans `NoteBlocData` : un consommateur qui lit
+    // `undefined` là où il lisait `null` se comporte pareil (`x ?? …`, `x === 'la'`,
+    // `String(x)` hors vocabulaire). Rien du rendu ne change.
+    const bloc: NoteBlocData = {
       blockId: block.block_id,
       rank: block.rank,
       kind: natureBlocNoteSur(block.kind) ?? 'commentary',
       form: block.form as NoteStructuree['blocks'][number]['form'],
-      language: block.language,
       text: block.text,
-      rendering: block.rendering,
       needsReview: block.needs_review,
-      targetBlockId: relation.target_block ?? null,
-      translationOf: relation.translation_of ?? null,
-      editorialRole: meta.editorialRole,
-      printedLine: meta.printedLine,
-      visualReviewReason: meta.visualReviewReason,
-      humanValidated: meta.humanValidated,
-    })
+    }
+    if (block.language != null) bloc.language = block.language
+    if (block.rendering != null) bloc.rendering = block.rendering
+    if (relation.target_block != null) bloc.targetBlockId = relation.target_block
+    if (relation.translation_of != null) bloc.translationOf = relation.translation_of
+    if (meta.editorialRole != null) bloc.editorialRole = meta.editorialRole
+    if (meta.printedLine != null) bloc.printedLine = meta.printedLine
+    if (meta.visualReviewReason != null) bloc.visualReviewReason = meta.visualReviewReason
+    if (meta.humanValidated != null) bloc.humanValidated = meta.humanValidated
+    parNote.get(block.note_key)!.blocks.push(bloc)
   }
   const notesParSegment: Record<string, Record<string, NoteStructuree>> = {}
   const ancresParSegment: Record<string, AncreNoteStructureeProjection[]> = {}

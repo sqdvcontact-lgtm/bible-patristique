@@ -101,6 +101,10 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   const [statut, setStatut] = useState<'idle' | 'sending' | 'ok' | 'err'>('idle')
   const [motifErreur, setMotifErreur] = useState('')
   const [loading, setLoading] = useState(false)
+  // ⛔ UN ÉCHEC NE SE REND PAS « AUCUN COMMENTAIRE ». La requête ne lisait pas son
+  // erreur : une panne de lecture et un passage que personne n’a commenté rendaient
+  // exactement le même écran, et le lecteur concluait au silence.
+  const [erreurChargement, setErreurChargement] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [revelees, setRevelees] = useState<Set<number>>(new Set())
   const [cibleReponse, setCibleReponse] = useState<CommentaireAvecAuteur | null>(null)
@@ -122,9 +126,16 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   const chargerCommentaires = async () => {
     if (segActif === null) return
     setLoading(true)
-    const { data: base } = await supabase.from('commentaires')
+    setErreurChargement(false)
+    const { data: base, error: erreurBase } = await supabase.from('commentaires')
       .select('id, texte, valide, created_at, user_id, reponse_a, demande_validation, certifie, supprime')
       .eq('id_segment', segActif).order('created_at', { ascending: true })
+    if (erreurBase) {
+      console.warn('[oeuvre] commentaires non chargés', erreurBase)
+      setErreurChargement(true)
+      setLoading(false)
+      return
+    }
     const lignes = base ?? []
 
     const idsUtilisateurs = [...new Set(lignes.map(c => c.user_id).filter((id): id is string => !!id))]
@@ -386,7 +397,15 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           reste épinglé au bas du volet. */}
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingTop: '2px' }}>
         {loading && <MotAttente />}
-        {!loading && commentaires.length === 0 && (
+        {!loading && erreurChargement && (
+          <div style={{ padding: '18px 0', textAlign: 'center' }}>
+            <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', margin: '0 0 8px' }}>
+              Les commentaires de ce passage n’ont pas pu être chargés.
+            </p>
+            <button type="button" onClick={chargerCommentaires} className="cs-bouton-lien">Réessayer</button>
+          </div>
+        )}
+        {!loading && !erreurChargement && commentaires.length === 0 && (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '8px 0' }}>
             {/* La carapace vide tient le volet tant que personne n'a parlé, et elle se pose au
                 MILIEU de la zone défilante, en largeur comme en hauteur. Le centrage vertical

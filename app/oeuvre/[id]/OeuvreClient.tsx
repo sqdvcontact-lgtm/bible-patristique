@@ -752,14 +752,28 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         if (!parDivision.has(cle)) parDivision.set(cle, { book: row.book, division: row.canonical_division_order, alignmentId: row.alignment_id })
       }
       const reps = [...parDivision.values()]
-      const { data: memData } = await supabase.from('texte_alignement_membres')
-        .select('alignment_id,segment_key').eq('role', 'reference').in('alignment_id', reps.map(rep => rep.alignmentId))
+      // ⛔ LA CLAUSE SE DÉCOUPE EN OCTETS D’ADRESSE. Une liste d’identifiants
+      // d’alignement non bornée franchit les ~25 000 octets que la passerelle accorde,
+      // et rend un « 400 » NU, sans code ni message : c’est la panne du 29 août 2026,
+      // et ces deux clauses en portaient encore le motif.
+      const lotsMembres = await Promise.all(lotsPourClauseIn(reps.map(rep => rep.alignmentId)).map(lot =>
+        supabase.from('texte_alignement_membres')
+          .select('alignment_id,segment_key').eq('role', 'reference').in('alignment_id', lot)))
+      const memErreur = lotsMembres.find(r => r.error)?.error
+      if (memErreur) console.warn('[oeuvre] divisions alignées : membres non chargés', memErreur)
+      const memData = lotsMembres.flatMap(r => r.data ?? [])
       const cleParAlignement = new Map<string, string>()
       for (const row of (memData ?? []) as { alignment_id: string; segment_key: string }[]) if (!cleParAlignement.has(row.alignment_id)) cleParAlignement.set(row.alignment_id, row.segment_key)
       const segKeys = [...cleParAlignement.values()]
-      const { data: segData } = segKeys.length
-        ? await supabase.from('segments').select('segment_key,ref_niv1,ref_niv2').in('segment_key', segKeys)
-        : { data: [] }
+      // ⚠️ Une clé de segment fait de trente à quatre-vingts signes : c’est ICI que
+      // l’adresse enflait le plus vite.
+      const lotsTitres = segKeys.length
+        ? await Promise.all(lotsPourClauseIn(segKeys).map(lot =>
+            supabase.from('segments').select('segment_key,ref_niv1,ref_niv2').in('segment_key', lot)))
+        : []
+      const segErreur = lotsTitres.find(r => r.error)?.error
+      if (segErreur) console.warn('[oeuvre] divisions alignées : titres non chargés', segErreur)
+      const segData = lotsTitres.flatMap(r => r.data ?? [])
       const titreParCle = new Map<string, { niv1: string | null; niv2: string | null }>()
       for (const row of (segData ?? []) as { segment_key: string; ref_niv1: string | null; ref_niv2: string | null }[]) titreParCle.set(row.segment_key, { niv1: row.ref_niv1, niv2: row.ref_niv2 })
       const liste: DivisionAlignee[] = reps.map(rep => {
@@ -2305,7 +2319,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       // « …_PRE_ALIGN_20260903 » —, que la politique de lecture d'`oeuvre_textes`
       // (`is_admin() OR is_public`) montre à l'AUTEUR et à lui seul.
       lisible: v.isPublic,
-      indisponible: v.metadata?.indisponible === true,
+      indisponible: v.indisponible,
       prefere: v.isDefault,
     })),
     ...versions.filter(v => v.id_oeuvre !== idOeuvre).map(v => ({
@@ -2356,13 +2370,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }
 
   const chargerSauvegardesSegs = async (uid: string, oeuvreId: string, texteId: string) => {
-    const { data } = await supabase
+    // ⚠️ Une erreur lue plutôt qu’avalée : sans elle, un échec rend les signets VIDES,
+    // et le bouton propose alors de prélever ce qui l’est déjà.
+    const { data, error } = await supabase
       .from('prelevements')
       .select('segment_id')
       .eq('user_id', uid)
       .eq('type', 'patristique')
       .eq('id_oeuvre', oeuvreId)
       .eq('id_texte', texteId)
+    if (error) { console.warn('[oeuvre] signets non chargés', error); return }
     setSauvegardesSegs(new Set(
       (data ?? []).map(row => row.segment_id).filter((value): value is number => typeof value === 'number'),
     ))
@@ -3377,7 +3394,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           {/* Navigation précédent/suivant — toujours au niveau 1 */}
           {vue === 'texte' && !modeComparaisonActif && !texteSansNiveaux && !lectureTexteEntier && (
             <div id="barre-nav-niv1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
+              {/* ⛔ ELLES SE NOMMENT. Leur nom accessible était le GLYPHE : un lecteur
+                  d’écran annonçait « guillemet simple gauche », ou rien. Ce sont les
+                  contrôles les plus employés de la page après le texte lui-même, et le
+                  nom dit la DESTINATION, non le geste. */}
               <button onClick={() => niv1Prev && changerNiv1(niv1Prev)} disabled={!niv1Prev}
+                aria-label={niv1Prev ? `Aller à ${niv1Prev}` : undefined}
+                title={niv1Prev ?? undefined}
                 style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Prev ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
                 {niv1Prev ? '‹' : ''}
               </button>
@@ -3428,6 +3451,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 )}
               </h2>
               <button onClick={() => niv1Next && changerNiv1(niv1Next)} disabled={!niv1Next}
+                aria-label={niv1Next ? `Aller à ${niv1Next}` : undefined}
+                title={niv1Next ?? undefined}
                 style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Next ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Next ? 'auto' : 'none' }}>
                 {niv1Next ? '›' : ''}
               </button>
@@ -4621,10 +4646,18 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
           suivante une fin de chapitre. Le groupe se centre maintenant de lui-même. */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0', color: 'var(--cs-texte-doux)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 16px' }}>
+          {/* ⛔ 9,6 × 21 px MESURÉS le 9 septembre 2026, pour un plancher de 24 (WCAG
+              2.2 § 2.5.8). Ces deux boutons tournent la page d’un texte : ils sont sur le
+              chemin de lecture, et ils ne portaient aucune zone de frappe. ⚠️ Le débord de
+              « .cs-cible-fine » vit sous « @media (hover: none) » : rien ne bouge à la
+              souris, tout change au doigt, et c’est l’axe que la charte impose — le
+              POINTEUR, jamais la largeur de la page. */}
           <button
             onClick={() => peutReculer && setPageActuelle(pageActuelle - 1)}
             disabled={!peutReculer}
             title="Page précédente"
+            aria-label="Page précédente"
+            className="cs-cible-fine"
             style={{ background: 'none', border: 'none', cursor: peutReculer ? 'pointer' : 'default', color: peutReculer ? 'var(--cs-texte-second)' : 'var(--cs-bord)', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
             ‹
           </button>
@@ -4639,6 +4672,8 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
             onClick={() => peutAvancer && setPageActuelle(pageActuelle + 1)}
             disabled={!peutAvancer}
             title="Page suivante"
+            aria-label="Page suivante"
+            className="cs-cible-fine"
             style={{ background: 'none', border: 'none', cursor: peutAvancer ? 'pointer' : 'default', color: peutAvancer ? 'var(--cs-texte-second)' : 'var(--cs-bord)', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
             ›
           </button>

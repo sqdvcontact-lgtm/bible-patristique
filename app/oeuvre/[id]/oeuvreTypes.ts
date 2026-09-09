@@ -152,7 +152,10 @@ export type VersionTextuelle = {
   editionLabel: string | null
   sourceUrl: string | null
   catalogueNoticeIdLigne: string | null
-  metadata: Record<string, unknown>
+  /** L'édition est-elle déclarée indisponible ? ⛔ C'est la SEULE chose que le site
+   *  lisait dans `oeuvre_textes.metadata`, lequel ne voyage plus : le carnet de
+   *  l'atelier y pèse jusqu'à 72 000 signes par texte. */
+  indisponible: boolean
   isDefault: boolean
   isPublic: boolean
   statut: string | null

@@ -72,7 +72,14 @@ const chargerOeuvreEtTextes = cache(async (id: string) => {
   const [oeuvreResult, textesResult, auteursOeuvre] = await Promise.all([
     supabase.from('oeuvres').select('*, auteurs!oeuvres_id_auteur_fkey(id_auteur, nom, nom_original)').eq('id_oeuvre', id).single(),
     supabase.from('oeuvre_textes')
-      .select('id_texte,titre_version,langue,traducteur,edition_label,annee_edition,source_url,catalogue_notice_id_ligne,metadata,is_default,is_public,statut')
+            // ⛔ LE JSONB NE PART PAS ENTIER, ON EN PROJETTE LE SEUL CHAMP QUE LE SITE LIT.
+      // `oeuvre_textes.metadata` est le carnet de l'atelier : compteurs de contrôle
+      // qualité, et pour chaque chapitre un état de recollation sur fac-similé. Mesuré
+      // le 9 septembre 2026 sur La Cité de Dieu : 67 240 et 71 901 signes pour ses deux
+      // textes, soit 139 Ko servis à tout lecteur connecté, pour la lecture d'UN booléen
+      // (`indisponible`, la seule clé que le site consulte). C'est la règle que la charte
+      // pose déjà pour les blocs de note de la Bible, appliquée ici.
+      .select('id_texte,titre_version,langue,traducteur,edition_label,annee_edition,source_url,catalogue_notice_id_ligne,indisponible:metadata->>indisponible,is_default,is_public,statut')
       .eq('id_oeuvre', id)
       .order('annee_edition', { ascending: true, nullsFirst: true }),
     chargerAuteursDOeuvre(supabase, id),
@@ -171,7 +178,9 @@ type TexteVersionRow = {
   annee_edition: number | null
   source_url: string | null
   catalogue_notice_id_ligne: string | null
-  metadata: Record<string, unknown> | null
+  /** ⚠️ PROJETÉ : `metadata->>indisponible`, donc du TEXTE. Le jsonb entier ne part
+   *  plus (voir le `select` ci-dessus). */
+  indisponible: string | null
   is_default: boolean | null
   is_public: boolean | null
   statut: string | null
@@ -222,7 +231,7 @@ function construireVersionTextuelle(t: TexteVersionRow, indexEditeurs: IndexEdit
     editionLabel: t.edition_label,
     sourceUrl: t.source_url,
     catalogueNoticeIdLigne: t.catalogue_notice_id_ligne,
-    metadata: t.metadata ?? {},
+    indisponible: t.indisponible === 'true',
     isDefault: t.is_default === true,
     isPublic: t.is_public === true,
     statut: t.statut,
