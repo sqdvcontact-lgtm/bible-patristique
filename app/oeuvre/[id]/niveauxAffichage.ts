@@ -172,7 +172,8 @@ export function chapeauxEnTexte(chapeaux: readonly boolean[]): string {
  * verrait une pastille éteinte, non un bouton mort.
  *
  * Rend `null` — « on ne sait pas » — dès qu'une sonde échoue. ⛔ Une requête en échec
- * n'est pas un niveau absent : c'est ce qui grisait des niveaux existants.
+ * n'est pas un niveau absent : c'est ce qui grisait des niveaux existants, et c'est
+ * désormais ce qui empêche une sonde en défaut de FERMER un réglage.
  */
 export async function profondeurPresente(
   sonder: (niveau: number) => Promise<boolean | null>,
@@ -191,9 +192,22 @@ export async function profondeurPresente(
 /**
  * Le niveau `n` est-il VIDE, c'est-à-dire sans aucun titre dans l'œuvre ?
  *
- * ⛔ Le niveau CHOISI n'est jamais dit vide : c'est le réglage en vigueur, et une
- * pastille à la fois verte et éteinte ne se lit pas. Le panneau montre d'abord ce qui
- * est réglé ; il signale ensuite ce qui est creux.
+ * ⛔ UN NIVEAU VIDE SE GRISE **ET NE SE CLIQUE PLUS** (décision de l'auteur, 2026-09-09 :
+ * « on doit pouvoir sélectionner seulement les boutons relatifs à des niveaux de titre qui
+ * contiennent quelque chose »). La règle d'avant ne faisait que SIGNALER, par crainte
+ * qu'une sonde en défaut ne ferme un réglage ; cette crainte est couverte autrement, et
+ * elle l'est deux fois — une sonde qui échoue rend `null`, et une profondeur inconnue ne
+ * grise rien du tout ; et le niveau CHOISI ne se ferme jamais, quoi que la sonde dise.
+ *
+ * ⛔ Le niveau CHOISI n'est donc jamais dit vide, et c'est ce qui rend la règle sûre : une
+ * œuvre mal réglée reste corrigible. Les Annotations sur le livre de Job sont enregistrées
+ * à `niveaux_corps = 2` alors que leurs 1 450 segments ne portent qu'un seul niveau ; le
+ * bouton « 2 » y reste vivant, et l'on peut redescendre à « 1 ». S'il se fermait, le
+ * réglage faux serait à jamais figé.
+ *
+ * ⚠️ Il faut donc lire les DEUX moitiés ensemble : `niveauVide` décide de l'encre ET du
+ * verrou, et le `choisi` qu'elle reçoit est ce qui empêche le verrou de se refermer sur
+ * la clé.
  */
 export function niveauVide(profondeur: number | null, niveau: number, choisi: boolean): boolean {
   return profondeur !== null && !choisi && niveau > profondeur

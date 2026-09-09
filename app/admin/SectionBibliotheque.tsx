@@ -17,6 +17,19 @@ import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { chargerAuteursDOeuvre, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import { enumererTraducteurs } from '@/app/lib/traducteurs'
+// ⛔ LE MÊME MODULE QUE LA PAGE DE LECTURE. Ce panneau réglait la même donnée à sa façon :
+// cinq niveaux offerts là où la page en rend trois ou quatre, et aucune sonde — il
+// proposait donc des niveaux que l'œuvre ne porte pas, sans le dire. Deux écrans qui
+// règlent une même donnée doivent la mesurer et la borner de la même manière.
+import {
+  niveauVide,
+  niveauxOfferts,
+  poserProfondeur,
+  profondeurBornee,
+  type ConfigNiveaux,
+  type Surface,
+} from '@/app/oeuvre/[id]/niveauxAffichage'
+import { chargerProfondeurPresente } from '@/app/oeuvre/[id]/niveauxPresents'
 
 async function exporterOeuvre(idOeuvre: string, titreOeuvre: string) {
   const res = await fetch(`/api/admin/export-segments?id_oeuvre=${idOeuvre}`, { headers: await headersAdmin() })
@@ -1361,6 +1374,23 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
   }
 
   const [configOeuvre, setConfigOeuvre] = useState<string | null>(null)
+  // Les niveaux de titre que l'œuvre porte VRAIMENT. `null` = on ne sait pas encore, ou la
+  // sonde a échoué : dans les deux cas on ne ferme RIEN. La sonde est celle de la page de
+  // lecture (`niveauxPresents.ts`), et elle porte sur l'ŒUVRE, non sur un de ses textes.
+  //
+  // ⚠️ Le résultat est gardé AVEC l'œuvre à laquelle il appartient, et la profondeur s'en
+  // DÉDUIT au rendu : remettre l'état à zéro dans le corps de l'effet y déclencherait un
+  // rendu en cascade, que le linter refuse — et l'on montrerait alors, un instant, la
+  // sonde de l'œuvre précédente.
+  const [sondeNiveaux, setSondeNiveaux] = useState<{ pour: string; profondeur: number | null } | null>(null)
+  React.useEffect(() => {
+    if (!configOeuvre) return
+    let annule = false
+    chargerProfondeurPresente(configOeuvre).then(profondeur => {
+      if (!annule) setSondeNiveaux({ pour: configOeuvre, profondeur })
+    })
+    return () => { annule = true }
+  }, [configOeuvre])
   const [niveauxConfig, setNiveauxConfig] = useState<Record<string, { sommaire: number; corps: number; txtSommaire: boolean[]; txtCorps: boolean[]; afficherNumeros: boolean }>>({})
   const [editionOeuvre, setEditionOeuvre] = useState<string | null>(null)
   // Auteurs de l'œuvre en cours de modification (le premier et ses co-signataires).
@@ -1379,9 +1409,12 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     const initNiv: Record<string, { sommaire: number; corps: number; txtSommaire: boolean[]; txtCorps: boolean[]; afficherNumeros: boolean }> = {}
     auteurs.forEach(a => a.oeuvres.forEach(o => {
       const parseBool = (s: string | null | undefined) => (s ?? '0,0,0,0,0').split(',').map(v => v === '1')
+      // ⛔ Bornées à ce que la page sait RENDRE : la Somme théologique est enregistrée à
+      // `niveaux_corps = 5`, qui rend exactement comme 4. Le panneau montrait 5, et
+      // l'administrateur croyait avoir réglé quelque chose.
       initNiv[o.id_oeuvre] = {
-        sommaire: o.niveaux_sommaire ?? o.profondeur_sommaire ?? 1,
-        corps: o.niveaux_corps ?? 1,
+        sommaire: profondeurBornee(o.niveaux_sommaire ?? o.profondeur_sommaire ?? 1, 'sommaire'),
+        corps: profondeurBornee(o.niveaux_corps ?? 1, 'corps'),
         txtSommaire: parseBool(o.texte_sommaire),
         txtCorps: parseBool(o.texte_corps),
         afficherNumeros: o.afficher_numeros !== false,
@@ -1520,13 +1553,21 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
       {configOeuvre && (() => {
         const cfg = niveauxConfig[configOeuvre] ?? { sommaire: 1, corps: 1, txtSommaire: [false,false,false,false,false], txtCorps: [false,false,false,false,false], afficherNumeros: true }
         const oeuvreNom = auteurs.flatMap(a => a.oeuvres).find(o => o.id_oeuvre === configOeuvre)?.titre ?? configOeuvre
+        const profondeurOeuvre = sondeNiveaux?.pour === configOeuvre ? sondeNiveaux.profondeur : null
         const setCfg = (patch: Partial<typeof cfg>) => setNiveauxConfig(prev => ({ ...prev, [configOeuvre]: { ...prev[configOeuvre] ?? cfg, ...patch } }))
         const toggleTxt = (type: 'txtSommaire'|'txtCorps', idx: number) => {
           const arr = [...(cfg[type] ?? [false,false,false,false,false])]
           arr[idx] = !arr[idx]
           setCfg({ [type]: arr })
         }
-        const niveaux = ['Niveau 1','Niveau 2','Niveau 3','Niveau 4','Niveau 5']
+        // ⛔ Poser une profondeur ÉTEINT les chapeaux qui tombent hors de portée : sans
+        // cela, baisser le niveau laisse un chapeau allumé qu'on ne peut plus atteindre,
+        // et le remonter le rallume sans qu'on l'ait demandé.
+        const poserNiveau = (type: Surface, niv: number) => {
+          const txtKey = type === 'sommaire' ? 'txtSommaire' : 'txtCorps'
+          const applique = poserProfondeur({ ...cfg, texteEntier: false } as ConfigNiveaux, type, niv)
+          setCfg({ [type]: applique[type], [txtKey]: applique[txtKey] })
+        }
         return (
           <div onClick={() => setConfigOeuvre(null)}
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1537,7 +1578,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                 <button onClick={() => setConfigOeuvre(null)} style={{ fontSize: '1rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
               </div>
 
-              {(['sommaire', 'corps'] as const).map(type => {
+              {(['sommaire', 'corps'] as Surface[]).map(type => {
                 const txtKey = type === 'sommaire' ? 'txtSommaire' : 'txtCorps'
                 const niveauActuel = cfg[type]
                 return (
@@ -1554,16 +1595,29 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                         </tr>
                       </thead>
                       <tbody>
-                        {niveaux.map((label, i) => {
-                          const niv = i + 1
+                        {niveauxOfferts(type).map(niv => {
+                          const i = niv - 1
                           const affiche = niveauActuel >= niv
                           const txtAffiche = (cfg[txtKey] ?? [])[i] ?? false
+                          // ⛔ UN NIVEAU VIDE SE GRISE ET NE SE CLIQUE PLUS. Deux gardes le
+                          // rendent sûr : une sonde qui échoue rend « on ne sait pas », et
+                          // rien n'est alors fermé ; et le niveau AFFICHÉ n'est jamais dit
+                          // vide — une œuvre mal réglée reste corrigible.
+                          const vide = niveauVide(profondeurOeuvre, niv, affiche)
                           return (
-                            <tr key={niv} style={{ background: affiche ? 'rgba(var(--cs-vert-rgb),0.04)' : 'var(--cs-fond-clair)' }}>
-                              <td style={{ padding: '5px 8px', color: affiche ? 'var(--cs-encre)' : 'var(--cs-texte-faible)' }}>{label}</td>
-                              <td style={{ textAlign: 'center', padding: '5px 8px' }}>
-                                <button onClick={() => setCfg({ [type]: affiche && niv <= niveauActuel ? (niv === 1 ? 1 : niv - 1) : niv })}
-                                  style={{ fontSize: '0.78125rem', padding: '2px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: affiche ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: affiche ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', cursor: 'pointer' }}>
+                            <tr key={niv} style={{ background: affiche ? 'rgba(var(--cs-vert-rgb),0.04)' : 'var(--cs-fond-clair)', opacity: vide ? 0.45 : 1 }}>
+                              <td style={{ padding: '5px 8px', color: affiche ? 'var(--cs-encre)' : 'var(--cs-texte-faible)' }}
+                                title={vide ? `Le niveau ${niv} ne porte aucun titre dans cette œuvre` : undefined}>
+                                {`Niveau ${niv}`}
+                              </td>
+                              {/* ⚠️ L'infobulle est portée par la CELLULE : un bouton
+                                  désactivé ne reçoit aucun événement de pointeur sous
+                                  Chrome, et la raison du verrou ne se dirait nulle part. */}
+                              <td style={{ textAlign: 'center', padding: '5px 8px' }}
+                                title={vide ? `Le niveau ${niv} ne porte aucun titre dans cette œuvre` : undefined}>
+                                <button disabled={vide}
+                                  onClick={() => poserNiveau(type, affiche && niv <= niveauActuel ? (niv === 1 ? 1 : niv - 1) : niv)}
+                                  style={{ fontSize: '0.78125rem', padding: '2px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: affiche ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: affiche ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', cursor: vide ? 'default' : 'pointer' }}>
                                   {affiche ? '✓' : '○'}
                                 </button>
                               </td>

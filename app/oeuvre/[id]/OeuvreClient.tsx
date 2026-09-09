@@ -25,6 +25,7 @@ import type { BlocOriginal } from './bilingueAlignement'
 import { repartirGroupes, chargerProjectionBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, type BlocEnRegard } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
 import { construireNavigationApparat } from './apparatNavigation'
+import { chargerProfondeurPresente } from './niveauxPresents'
 // ⛔ LE PIPELINE DES SEGMENTS, celui-là même que le rendu serveur emploie. Cinq de ses
 // fonctions vivaient ici en copie, et c'est là qu'elles avaient divergé.
 import {
@@ -44,7 +45,6 @@ import {
   niveauxOfferts,
   normaliserConfig,
   poserProfondeur,
-  profondeurPresente,
   type Surface,
 } from './niveauxAffichage'
 
@@ -810,33 +810,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // niveau que son voisin porte — le grec de l'Hexaéméron n'a qu'un niveau quand son
   // français en a deux, et le Morel du Discours 38 n'en a aucun quand son grec en a un.
   //
-  // ⛔ ET DU PLUS HAUT AU PLUS BAS, EN SÉRIE, EN S'ARRÊTANT AU PREMIER ABSENT. Une sonde
-  // qui trouve s'arrête à la première ligne ; une sonde qui ne trouve rien parcourt tout
-  // le texte — 3,1 s sur la Somme théologique, mesuré. Les cinq partaient EN PARALLÈLE
-  // sous le délai de huit secondes du rôle `authenticated`, et une requête refusée était
-  // lue comme un niveau absent : d'où des niveaux existants grisés, une fois sur deux.
-  // La règle, ses mesures et l'emboîtement qu'elle suppose vivent dans
-  // `niveauxAffichage.ts`.
+  // ⛔ ET LA SONDE EST UNIQUE, partagée avec le panneau de l'administration
+  // (`niveauxPresents.ts`) : deux écrans qui règlent la même donnée doivent la mesurer de
+  // la même façon. La règle — du plus haut au plus bas, en série, arrêt au premier absent
+  // —, ses mesures et l'emboîtement qu'elle suppose vivent dans `niveauxAffichage.ts`.
   const [profondeurExistante, setProfondeurExistante] = useState<number | null>(null)
   useEffect(() => {
     if (!configOuverte) return
     let annule = false
-    ;(async () => {
-      // ⛔ `apparat_auteur` (prologue, avertissement de l'auteur) appartient au CORPS :
-      // il se lit à sa place dans le texte. Ne pas le retirer de cette liste — c'est
-      // ce qui l'avait fait disparaître du rendu. Distinct d'`apparat_critique`.
-      const profondeur = await profondeurPresente(async niveau => {
-        const colonne = `ref_niv${niveau}`
-        const { data, error } = await limiterRequeteSegmentsALaSurface(
-          supabase.from('segments').select('id').eq('id_oeuvre', idOeuvre),
-          'corps',
-        ).not(colonne, 'is', null).neq(colonne, '').limit(1)
-        // ⛔ Une requête en échec n'est pas un niveau absent : on rend « on ne sait pas ».
-        if (error) { console.error(`Sonde du niveau ${niveau} :`, error); return null }
-        return (data?.length ?? 0) > 0
-      })
+    chargerProfondeurPresente(idOeuvre).then(profondeur => {
       if (!annule) setProfondeurExistante(profondeur)
-    })()
+    })
     return () => { annule = true }
   }, [configOuverte, idOeuvre])
   if (oeuvreDeLaConfig !== idOeuvre) {
@@ -4191,18 +4175,25 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
                     {niveauxOfferts(type).map(n => {
                       const choisi = configNiveaux[key] === n
-                      // ⛔ La sonde SIGNALE, elle n'interdit pas : un niveau creux se
-                      // montre éteint mais reste cliquable. Une sonde qui se tromperait —
-                      // ou qui n'aurait pas répondu — ne doit jamais fermer un réglage.
-                      // ⛔ Et le niveau CHOISI ne se grise jamais : vert et éteint à la
-                      // fois, il ne se lisait plus.
+                      // ⛔ UN NIVEAU VIDE SE GRISE ET NE SE CLIQUE PLUS. Deux gardes le
+                      // rendent sûr : une sonde qui échoue rend « on ne sait pas », et
+                      // rien n'est alors fermé ; et le niveau CHOISI n'est jamais dit
+                      // vide — une œuvre mal réglée (Job, enregistré à 2 pour un seul
+                      // niveau) reste donc corrigible.
                       const vide = niveauVide(profondeurExistante, n, choisi)
+                      // ⚠️ L'infobulle est portée par l'ENVELOPPE, non par le bouton : un
+                      // bouton désactivé ne reçoit aucun événement de pointeur sous Chrome,
+                      // et la raison du verrou se serait posée sur le seul élément incapable
+                      // de la dire.
                       return (
-                        <button key={n} onClick={() => setConfigNiveaux(prev => poserProfondeur(prev, type, n))}
-                          title={vide ? `Le niveau ${n} ne porte aucun titre dans cette œuvre` : `Afficher jusqu’au niveau ${n}`}
-                          style={{ width: '34px', height: '30px', borderRadius: '4px', border: `1px solid ${choisi ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: choisi ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: choisi ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: choisi ? 700 : 400, opacity: vide ? 0.4 : 1 }}>
-                          {n}
-                        </button>
+                        <span key={n} style={{ display: 'flex' }}
+                          title={vide ? `Le niveau ${n} ne porte aucun titre dans cette œuvre` : `Afficher jusqu’au niveau ${n}`}>
+                          <button disabled={vide}
+                            onClick={() => setConfigNiveaux(prev => poserProfondeur(prev, type, n))}
+                            style={{ width: '34px', height: '30px', borderRadius: '4px', border: `1px solid ${choisi ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: choisi ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: choisi ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)', fontSize: '0.75rem', cursor: vide ? 'default' : 'pointer', fontWeight: choisi ? 700 : 400, opacity: vide ? 0.4 : 1 }}>
+                            {n}
+                          </button>
+                        </span>
                       )
                     })}
                   </div>

@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import {
   basculerChapeau,
@@ -145,7 +147,7 @@ describe('la sonde des niveaux présents', () => {
   })
 })
 
-describe('ce que le panneau grise', () => {
+describe('ce que le panneau grise ET FERME', () => {
   it('signale un niveau creux', () => {
     expect(niveauVide(2, 3, false)).toBe(true)
     expect(niveauVide(2, 2, false)).toBe(false)
@@ -160,5 +162,43 @@ describe('ce que le panneau grise', () => {
 
   it('⛔ ne grise RIEN tant que la sonde n’a pas répondu, ou si elle a échoué', () => {
     for (const n of [1, 2, 3, 4]) expect(niveauVide(null, n, false)).toBe(false)
+  })
+
+  it('⛔ LAISSE CORRIGIBLE une œuvre mal réglée', () => {
+    // Les Annotations sur le livre de Job sont enregistrées à `niveaux_corps = 2` alors
+    // que leurs 1 450 segments ne portent qu'un seul niveau (mesuré le 2026-09-09).
+    // Depuis qu'un niveau vide se FERME, c'est ce test qui garantit que le réglage faux
+    // ne se fige pas : le niveau 2 reste ouvert tant qu'il est celui qui est retenu, et
+    // le niveau 1 — qui existe — l'est aussi.
+    const profondeur = 1
+    expect(niveauVide(profondeur, 2, true)).toBe(false)
+    expect(niveauVide(profondeur, 1, false)).toBe(false)
+    // Une fois redescendu à 1, le 2 se ferme : il n'y a plus rien à corriger.
+    expect(niveauVide(profondeur, 2, false)).toBe(true)
+  })
+})
+
+describe('⛔ une surface qui OFFRE des niveaux doit les SONDER', () => {
+  // Depuis le 2026-09-09, un niveau vide n'est plus seulement grisé : il ne se clique
+  // plus. Une surface qui offrirait les niveaux sans consulter la sonde promettrait donc
+  // des réglages morts — c'est ce que faisait le panneau de l'administration, qui en
+  // proposait cinq sans jamais regarder si l'œuvre en portait un. Le garde-fou porte sur
+  // la SURFACE, non sur le nom d'une variable : une troisième s'y verrait.
+  const RACINE = join(import.meta.dirname, '..', '..')
+
+  function fichiers(dossier: string): string[] {
+    return readdirSync(dossier, { withFileTypes: true }).flatMap(e => {
+      const chemin = join(dossier, e.name)
+      if (e.isDirectory()) return e.name === 'node_modules' ? [] : fichiers(chemin)
+      return /\.tsx?$/.test(e.name) && !/\.test\.tsx?$/.test(e.name) ? [chemin] : []
+    })
+  }
+
+  it('appelle niveauVide partout où elle appelle niveauxOfferts', () => {
+    const fautives = fichiers(RACINE)
+      .map(chemin => ({ chemin, source: readFileSync(chemin, 'utf8') }))
+      .filter(({ source }) => source.includes('niveauxOfferts(') && !source.includes('niveauVide('))
+      .map(({ chemin }) => chemin)
+    expect(fautives).toEqual([])
   })
 })
