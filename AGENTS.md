@@ -2488,6 +2488,38 @@ Une cellule d’actions flottante — celle de la lecture d’une œuvre, celle 
 
 ⚠️ **Recette de reproduction, sans serveur de développement** : sous la session de l’auteur, envelopper `window.fetch` pour journaliser la table visée, puis provoquer le survol par `el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))`. ⛔ **Sans `relatedTarget`** : React abandonne l’événement si la cible liée appartient déjà à son arbre (`getClosestInstanceFromNode`), et `document.body` EST le conteneur racine — la cellule ne s’ouvre alors jamais, et l’on croit le composant hors d’atteinte.
 
+# ⛔ CE QUI EST PARTAGÉ A REÇU LES PASSES, CE QUI EST ÉCRIT SUR PLACE NON (2026-09-09)
+
+C'est la trouvaille de fond de l'audit de la page d'œuvre, et elle vaut pour tout le site :
+**une forme partagée ne corrige que les surfaces qui l'emploient.** Les passes du DOIGT, du
+CUIR et des barres d'onglets ont toutes été menées en corrigeant des COMPOSANTS ; le plus
+gros fichier d'interface du site — 4 400 lignes — n'en avait reçu aucune, parce qu'il
+n'emploie pas ces composants. Le relevé était sans appel : `CelluleActions` ✔,
+`RUBRIQUE_AXE` ✔, `MarqueAttente` ✔, `.cs-bouton-lien` ✔ — mais `RailVolet` ✘,
+`OngletsPage` ✘, `.cs-cible-fine` et `.cs-bouton-fin` ✘, zéro occurrence de chacun.
+
+⚠️ **La mesure du défaut tenait dans une ligne** : sur les cinq boutons de la tête du volet,
+le SEUL qui atteignît les 24 px de WCAG était l'étoile des favoris — le seul qui vienne d'un
+composant partagé. Les quatre autres, écrits sur place, faisaient 19 ou 20 px.
+
+⛔ **Le repérage se fait donc PAR SURFACE, jamais par composant** : après une passe qui pose
+une forme commune, on demande quels fichiers ne l'emploient PAS et si l'un d'eux devrait.
+`grep -L` sur les surfaces de lecture est le geste juste ; le compte d'occurrences dans le
+composant ne dit rien.
+
+**Corrigé le 9 septembre 2026, dans l'ordre de ce que cela coûtait au lecteur** : les rangs
+de titre 3 et 4 deviennent `h4`/`h5` et la barre de division un `h2` ; les trois chevrons
+du volet passent à `IconeChevron` ; les cinq boutons de la tête à 24 px par `BoutonVolet` ;
+les deux rails à `RailVolet` ; les deux fenêtres sans rôle reçoivent `role`, `aria-modal`,
+Échap et un calque à partir de la barre ; `--cs-bord` cesse d'être une encre ; la barre du
+volet de droite passe à `OngletsPage`.
+
+⚠️ **CE QUI RESTE, et c'est le dernier axe sans garde** : l'EMPILEMENT. La page employait
+neuf rangs, dont un heurt à 2 800 entre le signalement, la visite et `ModalSignalement` —
+lequel passait devant ne tenait qu'à l'ordre du document. Les deux fenêtres reprises sont
+rentrées dans les rangs de la page (1 200) et des modales (2 700), mais **le site n'a
+toujours pas d'échelle**, et il ne l'aura pas d'une page.
+
 # ⛔ UN APPEL DE NOTE POSÉ SUR UN TITRE (2026-09-09)
 
 ⛔ **UNE ANCRE PEUT VISER AUTRE CHOSE QUE `segment_texte`, et TOUT LE RESTE était laissé
