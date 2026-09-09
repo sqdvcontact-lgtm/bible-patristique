@@ -71,13 +71,22 @@ export function apercuDeLaNote(note: NoteStructuree, longueur = LONGUEUR_APERCU)
   return (espace > longueur * 0.6 ? coupe.slice(0, espace) : coupe).trimEnd() + '…'
 }
 
-/** Les clés de segment qu'il faut aller situer : celles, et rien de plus, que les
- *  ancres désignent. ⛔ On ne charge jamais tous les segments d'un texte pour cela —
- *  la Somme théologique en compte 32 367. */
-export function clesAncrees(
-  ancresParSegment: Readonly<Record<string, readonly unknown[]>>,
+/**
+ * Les clés de segment qu'il faut aller situer : celles, et rien de plus, que les NOTES
+ * désignent. ⛔ On ne charge jamais tous les segments d'un texte pour cela — la Somme
+ * théologique en compte 32 367.
+ *
+ * ⛔ ELLES VIENNENT DES NOTES, NON DES ANCRES PROJETÉES, et les deux ensembles ne se
+ * recouvrent pas. Une note ancrée sur le TITRE de l'œuvre (`source_target: 'work_title'')
+ * porte bien une clé de segment, mais n'entre dans aucune projection d'appel : cherchée
+ * du côté des ancres, son segment n'était pas chargé et la note se déclarait orpheline
+ * alors qu'elle ne l'est pas. Mesuré sur les Annotations sur le livre de Job, dont la
+ * note 1 renvoie aux Rétractations et paraît au frontispice.
+ */
+export function clesDesNotes(
+  notesParSegment: Readonly<Record<string, Readonly<Record<string, unknown>>>>,
 ): string[] {
-  return Object.keys(ancresParSegment).filter(cle => (ancresParSegment[cle]?.length ?? 0) > 0)
+  return Object.keys(notesParSegment).filter(cle => Object.keys(notesParSegment[cle] ?? {}).length > 0)
 }
 
 /**

@@ -19,8 +19,9 @@ import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import { surfaceDuSegment } from '@/app/lib/oeuvreSelects'
+import { rendreTexteEnrichi } from './texteEnrichi'
 import {
-  clesAncrees,
+  clesDesNotes,
   comptesParIntitule,
   filtrerNotes,
   grouperParDivision,
@@ -53,14 +54,12 @@ type Charge = { pour: string; etat: Etat }
 export default function OngletNotes({
   idTexte,
   notesStructurees,
-  ancresNotesStructurees,
   ordreDivisions,
   noteCourante,
   onAller,
 }: {
   idTexte: string
   notesStructurees: Record<string, Record<string, NoteStructuree>>
-  ancresNotesStructurees: Record<string, readonly unknown[]>
   /** L'ordre des divisions du texte, tel que le sommaire le connaît : c'est lui qui
    *  range le recensement, non l'ordre alphabétique. */
   ordreDivisions: readonly string[]
@@ -74,7 +73,7 @@ export default function OngletNotes({
   const [aRevoir, setARevoir] = useState(false)
   const [sansPlace, setSansPlace] = useState(false)
 
-  const cles = useMemo(() => clesAncrees(ancresNotesStructurees), [ancresNotesStructurees])
+  const cles = useMemo(() => clesDesNotes(notesStructurees), [notesStructurees])
   const cleDemande = `${idTexte}|${cles.length}`
 
   useEffect(() => {
@@ -294,7 +293,9 @@ function LigneNote({ note, courante, onAller }: {
           fontSize: '0.6875rem', lineHeight: 1.42, color: 'var(--cs-texte)',
           overflowWrap: 'anywhere',
         }}>
-          {note.apercu || <em style={{ color: 'var(--cs-texte-doux)' }}>note sans texte</em>}
+          {note.apercu
+            ? rendreTexteEnrichi(note.apercu)
+            : <em style={{ color: 'var(--cs-texte-doux)' }}>note sans texte</em>}
         </span>
       </span>
     </button>

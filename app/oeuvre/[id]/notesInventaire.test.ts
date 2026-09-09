@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   apercuDeLaNote,
-  clesAncrees,
+  clesDesNotes,
   comptesParIntitule,
   filtrerNotes,
   grouperParDivision,
@@ -60,10 +60,10 @@ describe('apercuDeLaNote', () => {
   })
 })
 
-describe('clesAncrees', () => {
-  it('ne retient que les clés qu’une ancre désigne', () => {
+describe('clesDesNotes', () => {
+  it('ne retient que les clés qui portent une note', () => {
     // ⛔ C'est ce qui empêche de charger les 32 367 segments de la Somme théologique.
-    expect(clesAncrees({ a: [1], b: [], c: [1, 2] })).toEqual(['a', 'c'])
+    expect(clesDesNotes({ a: { m: 1 }, b: {}, c: { m: 1, n: 2 } })).toEqual(['a', 'c'])
   })
 })
 

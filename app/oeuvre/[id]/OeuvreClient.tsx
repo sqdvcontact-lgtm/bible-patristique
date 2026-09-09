@@ -4088,7 +4088,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               <OngletNotes
                 idTexte={idTexte}
                 notesStructurees={notesStructurees}
-                ancresNotesStructurees={ancresNotesStructurees}
                 ordreDivisions={niv1List}
                 noteCourante={noteCourante}
                 onAller={allerALaNote}
