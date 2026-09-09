@@ -3217,7 +3217,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Prev ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
                 {niv1Prev ? '‹' : ''}
               </button>
-              <span style={{ fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'pre-line', overflowWrap: 'break-word', position: 'relative' }}>
+              {/* ⛔ C'EST UN TITRE, ET IL PORTE SON RANG. La barre de division compose le
+                  niveau 1 en lecture ordinaire — le corps ne le rend qu'en texte entier —,
+                  et elle le composait en SPAN : le plan de la page sautait du titre de
+                  l'œuvre au niveau 2, et la division qu'on lit n'y figurait pas du tout. */}
+              <h2 style={{ fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'pre-line', overflowWrap: 'break-word', position: 'relative' }}>
                 {niv1Erreur ? (
                   <span style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     Erreur de chargement.{' '}
@@ -3258,7 +3262,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     )})()}
                   </>
                 )}
-              </span>
+              </h2>
               <button onClick={() => niv1Next && changerNiv1(niv1Next)} disabled={!niv1Next}
                 style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Next ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Next ? 'auto' : 'none' }}>
                 {niv1Next ? '›' : ''}
