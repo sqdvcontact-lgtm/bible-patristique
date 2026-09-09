@@ -803,6 +803,21 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // ⛔ L'axe est la CAPACITÉ DU POINTEUR, jamais la largeur : une tablette de 1024 px en
   // paysage n'a pas de souris, et « mobile » y est faux (charte, « LE DOIGT »).
   const sansSurvol = useSansSurvol()
+  // ⛔ LES DEUX BARRES MOBILES DE LA LECTURE SONT DU CHROME FIXE, ET LA CELLULE
+  //    D’ACTIONS PASSE DESSOUS depuis que `Z_FLOTTANT` est descendu sous `Z_FENETRE`
+  //    (2026-09-09). Sans ces deux bornes, un segment tapé près d’un bord poserait sa
+  //    cellule DERRIÈRE une barre, c’est-à-dire nulle part. Elle les couvrait jusque-là,
+  //    ce qui n’était pas mieux : on masquait une navigation pour montrer quatre boutons.
+  //    ⚠️ Les deux se MESURENT, jamais ne se calculent : la hauteur d’une barre est en
+  //    rem (`0.6875rem` de rembourrage), et la racine du site est fluide de 16 à 22 px.
+  //    ⚠️ Hors mobile, les deux références sont nulles et la cellule reprend ses bornes
+  //    par défaut — le bas de la barre de navigation, le bas de la fenêtre.
+  const barreSommaireRef = useRef<HTMLButtonElement>(null)
+  const barreBibleRef = useRef<HTMLButtonElement>(null)
+  const bandeDeLecture = () => ({
+    sommet: barreSommaireRef.current?.getBoundingClientRect().bottom,
+    pied: barreBibleRef.current?.getBoundingClientRect().top,
+  })
   // null = largeur AUTO (responsive, s'adapte à l'écran, plancher de lisibilité) ;
   // number = largeur fixée à la main (drag), en px.
   const [navWidth, setNavWidth] = useState<number | null>(null)
@@ -2487,7 +2502,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     return n
   }
   const positionnerToolbar = (el: HTMLElement, sid: number) =>
-    cellule.ancrer(el, sid, { borne: colonneDuSegment(el) })
+    cellule.ancrer(el, sid, { borne: colonneDuSegment(el), ...bandeDeLecture() })
   const masquerToolbar = (sid: number) => cellule.relacher(sid)
 
   // Tap sur un segment. Sur un écran sans survol, la cellule n'a pas de sortie de
@@ -2495,7 +2510,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // de la repositionner indéfiniment.
   const tapSegmentParagraphe = (el: HTMLElement, sid: number, actif: boolean) => {
     if (actif) { setSegActif(null); cellule.fermer() }
-    else { setSegActif(sid); cellule.ancrer(el, sid, { borne: colonneDuSegment(el) }) }
+    else { setSegActif(sid); cellule.ancrer(el, sid, { borne: colonneDuSegment(el), ...bandeDeLecture() }) }
   }
 
   // ── LA VISITE ──────────────────────────────────────────────────────────────
@@ -3124,7 +3139,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         </nav>
         </>
         ) : mobile ? (
-          <button onClick={() => setNavOuverte(true)} title="Ouvrir le sommaire"
+          <button ref={barreSommaireRef} onClick={() => setNavOuverte(true)} title="Ouvrir le sommaire"
             style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: Z_FENETRE, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: 'rotate(90deg)', color: 'var(--cs-texte-doux)' }}><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Sommaire</span>
@@ -4161,7 +4176,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         </aside>
         </>
         ) : mobile ? (
-          <button onClick={() => setPanneauOuvert(true)} title="Ouvrir le panneau de références"
+          <button ref={barreBibleRef} onClick={() => setPanneauOuvert(true)} title="Ouvrir le panneau de références"
             style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: Z_FENETRE, width: '100%', background: 'var(--cs-surface)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ transform: 'rotate(-90deg)', color: 'var(--cs-texte-doux)' }}><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Références &amp; commentaires</span>

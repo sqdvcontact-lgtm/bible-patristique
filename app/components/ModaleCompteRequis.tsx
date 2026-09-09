@@ -1,5 +1,6 @@
 'use client'
 
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { Z_MODALE } from '@/app/lib/empilement'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
@@ -27,9 +28,9 @@ export default function ModaleCompteRequis({ contexte = '', onClose }: { context
   if (typeof document === 'undefined') return null
   return createPortal(
     <div onClick={onClose}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.5)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(30,26,20,0.5)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
       <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cs-compte-titre"
-        style={{ background: 'var(--cs-surface)', borderRadius: '12px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '25rem', boxShadow: 'var(--cs-ombre-modale)', overflow: 'hidden' }}>
+        style={{ background: 'var(--cs-surface)', borderRadius: '12px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '25rem', maxHeight: '100%', boxShadow: 'var(--cs-ombre-modale)', overflowY: 'auto' }}>
 
         {/* Bandeau — teinte vert d'encre, emblème discret (plume). */}
         <div style={{ position: 'relative', padding: '22px 24px 18px', background: 'linear-gradient(180deg, var(--cs-vert-pale) 0%, var(--cs-fond-clair) 100%)', borderBottom: '1px solid var(--cs-bord-clair)' }}>

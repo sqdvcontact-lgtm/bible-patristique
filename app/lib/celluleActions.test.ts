@@ -187,3 +187,47 @@ describe('quand ni la droite ni le dessus ne sont libres', () => {
     expect(positionCellule(bas, { ...COLONNE, pied: 900 }).cote).toBe('dessus')
   })
 })
+
+// ⛔ LA BANDE DE LECTURE D’UN TÉLÉPHONE. Mesures relevées sur la page d’une œuvre à
+// 375 × 667 : la barre de navigation finit à 56, la barre « Sommaire » à 97, et la barre
+// « Références & commentaires » ouvre à 626. Les deux dernières sont du CHROME FIXE à
+// `Z_FENETRE`, et la cellule est passée SOUS elles le 2026-09-09 : une cellule posée dans
+// l’une de ces deux bandes ne les couvre plus, elle disparaît derrière.
+describe('la bande laissée par le chrome fixe d’une page', () => {
+  const TELEPHONE = { droite: 375, sommet: 97, pied: 626 }
+
+  // ⛔ Le cas qui a imposé la règle : sans le bas de la barre haute, la cellule se pose
+  //    à 66 — c’est-à-dire DANS la bande 56-97, derrière la barre. Avec, elle descend.
+  it('ne se pose pas derrière la barre haute', () => {
+    const ligne = { top: 100, right: 359, bottom: 140 }
+    expect(positionCellule(ligne, { ...TELEPHONE, sommet: 56 }).top).toBe(66)
+    expect(positionCellule(ligne, TELEPHONE).top).toBeGreaterThanOrEqual(97)
+  })
+
+  // ⛔ Le PIED bornait la seule descente ; il borne désormais les trois branches.
+  it('ne se pose pas derrière la barre basse, même à droite', () => {
+    const p = positionCellule({ top: 640, right: 200 }, TELEPHONE)
+    expect(p.cote).toBe('droite')
+    expect(p.top + HAUTEUR_CELLULE).toBeLessThanOrEqual(626)
+  })
+
+  it('ni au-dessus d’une ligne que la barre basse recouvre', () => {
+    const p = positionCellule({ top: 700, right: 370 }, TELEPHONE)
+    expect(p.cote).toBe('dessus')
+    expect(p.top + HAUTEUR_CELLULE).toBeLessThanOrEqual(626)
+  })
+
+  // ⚠️ Une bande plus courte que la cellule : le SOMMET l’emporte. Mieux vaut une
+  //    cellule qui mord qu’une cellule qu’on ne voit pas.
+  it('mord plutôt que de disparaître quand la bande est trop courte', () => {
+    const p = positionCellule({ top: 300, right: 370 }, { ...TELEPHONE, sommet: 97, pied: 110 })
+    expect(p.top).toBe(97)
+  })
+
+  // ⚠️ Sans pied déclaré, rien ne bouge : les appelants qui n’en passent pas gardent la
+  //    règle d’hier, et c’est le cas de toute page sans chrome fixe.
+  it('ne change rien à qui ne déclare pas de pied', () => {
+    const p = positionCellule({ top: 640, right: 200 }, { droite: 375, sommet: 97 })
+    expect(p.top).toBe(636)
+  })
+})

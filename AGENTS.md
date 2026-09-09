@@ -1287,6 +1287,44 @@ occupe la place**, et son nom promet ce qu’elle ne fait pas.
 `cssValide.test.ts` le dit. Le menu déroulant de la barre garde donc son chiffre en clair —
 il est sur l’échelle, la garde passe.
 
+### ⛔ BAISSER UN RANG SE VÉRIFIE SUR LE PETIT ÉCRAN (2026-09-09, le soir)
+
+⛔ **Descendre `Z_FLOTTANT` sous `Z_FENETRE` était juste, ET CELA A RENDU LA CELLULE
+D’ACTIONS INVISIBLE SUR UN TÉLÉPHONE.** La page d’une œuvre y pose DEUX barres fixes — le
+sommaire sous la barre de navigation, le volet biblique en pied — et toutes deux vivent à
+`Z_FENETRE` : la cellule, passée dessous, s’y rangeait derrière. Mesuré sur planche à
+375 × 812, seize positions de défilement, **126 cas** : **17 cellules cachées**, zéro après
+correction ; et une cachée par écran à 320 × 568, 360 × 640, 414 × 896 et 768 × 1024.
+
+⛔ **LE REMÈDE N’EST PAS DE REMONTER LE RANG, c’est de dire à ce qui flotte où finit le
+chrome.** `OptionsAncrage` porte un `pied` à côté de son `sommet`, la page passe les DEUX
+barres MESURÉES (leur hauteur est en rem, la racine est fluide), et `positionCellule` borne
+désormais ses TROIS branches au lieu de la seule descente — le sommet les bornait toutes
+depuis toujours, le pied ne bornait que celle qui porte son nom. ⚠️ Le résultat est meilleur
+que l’état d’AVANT le changement de rang, dans les deux sens : la cellule ne se cache plus
+derrière une barre, et elle ne la couvre plus non plus — car à 1500 elle masquait une
+navigation pour montrer quatre boutons.
+
+⚠️ **Une page qui pose du chrome fixe le DÉCLARE à ce qui flotte.** Hors mobile les deux
+références sont nulles et la cellule reprend ses bornes par défaut : le bas de la barre de
+navigation, le bas de la fenêtre. Rien ne change là où il n’y a pas de barre.
+
+⛔ **ET QUATRE FENÊTRES N’AVAIENT JAMAIS REÇU LE GABARIT DE LA CHARTE** (§ Fenêtres
+contextuelles), relevé en auditant les seize fenêtres de la passe : calque en `inset: 0` au
+lieu de partir de `HAUTEUR_NAVBAR`, boîte sans plafond ni défilement. La pire est le
+RECADRAGE D’UN PORTRAIT — mesuré en PAYSAGE (667 × 375), son en-tête partait à **−73 px**,
+hors de l’écran, la boîte ne défilant pas : la croix de fermeture était inatteignable ; et à
+320 × 568 son titre passait sous la barre. Les quatre prennent le gabarit (« Rejoignez
+Corpus Scriptura », « Écraser la recherche précédente ? », « Choisir un visage »,
+« Recadrer »). ⚠️ Le défaut est ANTÉRIEUR à la passe d’empilement : c’est l’audit qu’elle a
+imposé qui l’a trouvé.
+
+⚠️ **UNE PLANCHE SANS LA PRÉFLIGHT DE TAILWIND MENT, et le piège a été payé une seconde
+fois.** Sans `box-sizing: border-box`, une boîte à `max-height: 100%` et 28 px de
+rembourrage rendait **335 px pour 279 réels** : la planche annonçait un débordement qui
+n’existait que dans la planche. Y remettre aussi `button { font-family: inherit }` et la
+remise à zéro des marges, sans quoi les hauteurs de texte ne sont pas celles du site.
+
 ## Une couleur posée sur une PHOTO s'écrit en littéral
 
 ⛔ Corollaire de « une marque en image ne se transpose pas ». `app/traductions/AllerPlusLoinClient.tsx` choisissait l'encre du titre selon la luminance mesurée de la photo, et écrivait `var(--cs-fond)` sur les photos sombres : le crème du site au Clair, mais **`#1c1813` en Cuir, du brun très sombre sur une photo sombre**. Le jeton s'est retourné avec le thème, la photo non. Le sol est une image, elle ne suit aucun thème : l'encre qu'on y pose n'a donc pas de jeton. Les deux lignes voisines (`couleurMeta`, `couleurChevron`) le faisaient déjà correctement en littéral — c'est la seule des trois qui prenait un jeton.

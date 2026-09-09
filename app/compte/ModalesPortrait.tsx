@@ -2,7 +2,8 @@
 
 // Les deux modales du portrait : le CHOIX d'une illustration, puis son CADRAGE.
 
-import { Z_MODALE } from '@/app/lib/empilement'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { Z_FENETRE, Z_MODALE } from '@/app/lib/empilement'
 import React, { useEffect, useState } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Image from 'next/image'
@@ -39,9 +40,9 @@ export function ModalePortrait({ onChoisir, onClose }: { onChoisir: (choix: Port
   const total = familles?.reduce((n, f) => n + f.portraits.length, 0) ?? 0
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+    <div onClick={onClose} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', zIndex: Z_FENETRE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
       <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="titre-portrait"
-        style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '28px', width: '37.5rem', maxWidth: '100%', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
+        style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '28px', width: '37.5rem', maxWidth: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexShrink: 0 }}>
           <h2 id="titre-portrait" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>Choisir un visage</h2>
           <button onClick={onClose} aria-label="Fermer" className="cs-cible-fine" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--cs-texte-faible)', padding: '2px' }}>✕</button>
@@ -135,9 +136,9 @@ export function ModaleCadrage({ refPortrait: ref, nom, cadrage, onSauvegarder, o
   }
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+    <div onClick={onClose} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
       <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="titre-cadrage"
-        style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '28px', width: '21.25rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
+        style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '28px', width: '21.25rem', maxWidth: '100%', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
           <h2 id="titre-cadrage" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>Recadrer</h2>
           <button onClick={onClose} aria-label="Fermer" className="cs-cible-fine" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--cs-texte-faible)', padding: '2px' }}>✕</button>

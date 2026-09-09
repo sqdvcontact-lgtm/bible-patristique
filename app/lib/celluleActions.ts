@@ -86,9 +86,21 @@ export function positionCellule(
   const gauche = e.gauche ?? MARGE_CELLULE
   const haut = e.sommet ?? sommet
 
+  // ⛔ LE PLANCHER VAUT POUR TOUTES LES BRANCHES, non pour la seule descente
+  //    (2026-09-09). `Z_FLOTTANT` est passé SOUS `Z_FENETRE` : la cellule ne couvre
+  //    plus le chrome fixe d’une page, elle passe dessous. Une ligne qui longe une
+  //    barre de pied y posait donc sa cellule, et celle-ci DISPARAISSAIT au lieu de
+  //    mordre. Le sommet bornait toutes les branches depuis toujours ; le pied ne
+  //    bornait que celle qui porte son nom.
+  //    ⚠️ Si la bande est plus courte que la cellule, le SOMMET l’emporte : mieux vaut
+  //    une cellule qui mord qu’une cellule qu’on ne voit pas.
+  const borner = (top: number) => e.pied === undefined
+    ? Math.max(top, haut)
+    : Math.max(haut, Math.min(top, e.pied - HAUTEUR_CELLULE))
+
   const tientADroite = ligne.right + MARGE_CELLULE + largeur <= e.droite
   if (tientADroite) {
-    return { top: Math.max(ligne.top - 4, haut), left: ligne.right + MARGE_CELLULE, cote: 'droite' }
+    return { top: borner(ligne.top - 4), left: ligne.right + MARGE_CELLULE, cote: 'droite' }
   }
 
   // Alignée sur la FIN de la ligne : le regard la retrouve là où il était.
@@ -98,7 +110,7 @@ export function positionCellule(
 
   // Au-dessus : elle ne recouvre que le blanc de l'interligne précédent.
   const dessus = ligne.top - HAUTEUR_CELLULE - MARGE_CELLULE
-  if (dessus >= haut) return { top: dessus, left, cote: 'dessus' }
+  if (dessus >= haut) return { top: borner(dessus), left, cote: 'dessus' }
 
   // ⛔ ET SI LE DESSUS EST BOUCHÉ, ON PASSE DESSOUS (2026-09-07). La règle n'avait que
   // deux réponses et bornait la troisième par `Math.max(dessus, sommet)` : une ligne
@@ -113,7 +125,7 @@ export function positionCellule(
   // vaut la règle d'hier qu'une cellule posée au jugé.
   const dessous = ligne.bottom === undefined ? null : ligne.bottom + MARGE_CELLULE
   if (dessous !== null && dessous >= haut && (e.pied === undefined || dessous + HAUTEUR_CELLULE <= e.pied)) {
-    return { top: dessous, left, cote: 'dessous' }
+    return { top: borner(dessous), left, cote: 'dessous' }
   }
 
   // ⚠️ Dernier recours : un bloc plus haut que la fenêtre n'a ni dessus ni dessous

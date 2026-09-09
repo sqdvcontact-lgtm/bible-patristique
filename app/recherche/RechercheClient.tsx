@@ -1,4 +1,5 @@
 'use client'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { Z_MODALE } from '@/app/lib/empilement'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 
@@ -1635,9 +1636,9 @@ export default function RechercheClient() {
           quand une autre recherche est déjà mémorisée. « Écraser » remplace la précédente. */}
       {confirmEcrasement && rechercheSauvee && (
         <div onClick={() => setConfirmEcrasement(false)}
-          style={{ position:'fixed', inset:0, background:'rgba(30,28,24,0.38)', display:'flex', alignItems:'center', justifyContent:'center', zIndex: Z_MODALE, padding:'20px' }}>
+          style={{ position:'fixed', top: HAUTEUR_NAVBAR, left:0, right:0, bottom:0, background:'rgba(30,28,24,0.38)', display:'flex', alignItems:'center', justifyContent:'center', zIndex: Z_MODALE, padding:'20px', overflow:'hidden' }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ background:'var(--cs-fond-clair)', border:'1px solid var(--cs-bord)', borderRadius:'8px', boxShadow:'var(--cs-ombre-modale)', padding:'20px 22px', maxWidth:'21.25rem', width:'100%' }}>
+            style={{ background:'var(--cs-fond-clair)', border:'1px solid var(--cs-bord)', borderRadius:'8px', boxShadow:'var(--cs-ombre-modale)', padding:'20px 22px', maxWidth:'21.25rem', width:'100%', maxHeight:'100%', overflowY:'auto' }}>
             <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.875rem', fontWeight:600, color:'var(--cs-encre)', margin:'0 0 8px' }}>Écraser la recherche précédente ?</p>
             <p style={{ fontSize:'0.75rem', color:'var(--cs-texte-second)', lineHeight:1.5, margin:'0 0 16px' }}>
               Une recherche est déjà enregistrée (« {rechercheSauvee.query} », {formatDateCourt(rechercheSauvee.ts)}).

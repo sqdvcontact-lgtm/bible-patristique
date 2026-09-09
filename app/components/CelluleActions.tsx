@@ -62,9 +62,17 @@ export type AncreCellule<K, D = undefined> = {
    *  bien que la barre fait 56 px à la racine 16 et 77 à la racine 22. Une page qui
    *  porte en plus un en-tête COLLANT (la Polyglotte) passe le bas de cet en-tête. */
   sommet?: number
+  /** Ligne sous laquelle la cellule ne descend pas. Défaut : le bas de la fenêtre.
+   *  ⛔ Une page qui pose une BARRE FIXE en pied — la lecture d’une œuvre sur
+   *  téléphone — passe le haut de cette barre : depuis que `Z_FLOTTANT` est sous
+   *  `Z_FENETRE`, une cellule posée là ne couvre plus la barre, elle disparaît
+   *  derrière. ⚠️ Mesuré, jamais calculé : la hauteur d’une barre est en rem. */
+  pied?: number
 }
 
-export type OptionsAncrage<D = undefined> = { borne?: HTMLElement | null; sommet?: number; donnees?: D }
+export type OptionsAncrage<D = undefined> = {
+  borne?: HTMLElement | null; sommet?: number; pied?: number; donnees?: D
+}
 
 /** Le survol, le tap, la grâce de sortie et la fermeture. Toute la mécanique que les
  *  surfaces réécrivaient chacune pour soi.
@@ -102,7 +110,8 @@ export function useCelluleActions<K, D = undefined>() {
   const ancrer = useCallback((el: HTMLElement, cle: K, options?: OptionsAncrage<D>) => {
     arreterFermeture()
     const poserIci = () => poser({
-      cle, el, borne: options?.borne ?? null, sommet: options?.sommet, donnees: options?.donnees,
+      cle, el, borne: options?.borne ?? null,
+      sommet: options?.sommet, pied: options?.pied, donnees: options?.donnees,
     })
     // Rien d'ouvert, ou la MÊME cible : à l'instant. ⚠️ Une première cellule ne se fait
     // jamais attendre — le délai ne gouverne que le DÉPLACEMENT d'une cellule posée.
@@ -136,7 +145,10 @@ export function useCelluleActions<K, D = undefined>() {
   const basculer = useCallback((el: HTMLElement, cle: K, actif: boolean, options?: OptionsAncrage<D>) => {
     arreterFermeture(); arreterAttente()
     if (actif) poser(null)
-    else poser({ cle, el, borne: options?.borne ?? null, sommet: options?.sommet, donnees: options?.donnees })
+    else poser({
+      cle, el, borne: options?.borne ?? null,
+      sommet: options?.sommet, pied: options?.pied, donnees: options?.donnees,
+    })
   }, [poser, arreterFermeture, arreterAttente])
 
   useEffect(() => () => { arreterFermeture(); arreterAttente() }, [arreterFermeture, arreterAttente])
@@ -190,9 +202,11 @@ function CelluleAncree<K, D>({
     const espace: EspaceCellule = {
       droite: window.innerWidth,
       sommet: ancre.sommet ?? hauteurNavbarPx(),
-      // ⚠️ Le PIED sert le troisième côté : quand le dessus est bouché, la cellule passe
-      // dessous, mais seulement si elle y reste visible.
-      pied: window.innerHeight - MARGE_CELLULE,
+      // ⚠️ Le PIED borne TOUTES les branches, non le seul troisième côté : la cellule
+      // passe sous le chrome fixe d’une page depuis que `Z_FLOTTANT` est sous
+      // `Z_FENETRE`, et une barre de pied la ferait disparaître. La page la nomme
+      // quand elle en pose une ; à défaut, c’est le bas de la fenêtre.
+      pied: ancre.pied ?? window.innerHeight - MARGE_CELLULE,
     }
     if (ancre.borne) {
       const b = ancre.borne.getBoundingClientRect()
@@ -210,7 +224,7 @@ function CelluleAncree<K, D>({
     const p = positionCellule(r, espace)
     setPos(prev =>
       prev && prev.top === p.top && prev.left === p.left && prev.cote === p.cote ? prev : p)
-  }, [ancre.el, ancre.borne, ancre.sommet, boutons, onFermer])
+  }, [ancre.el, ancre.borne, ancre.sommet, ancre.pied, boutons, onFermer])
 
   // ⛔ Effet de MISE EN PAGE, non un effet ordinaire : il s'exécute après le rendu et
   // AVANT la peinture. La correction apportée par la mesure n'est donc jamais visible.
