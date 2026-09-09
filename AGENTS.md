@@ -726,6 +726,67 @@ Le script porte désormais TOUTE la chaîne, source brute comprise : `node scrip
 
 ⚠️ **Rendu en `<img>`, pas en `<Image>`, ou alors `unoptimized`.** À certaines largeurs (640 px, mais ni 384 ni 828), l'optimiseur rend un PNG à trois canaux : la couche alpha est aplatie sur du blanc et le fond réapparaît. Le défaut est intermittent, donc facile à croire corrigé.
 
+## ⛔ LE PIED DU PAPIER SE MESURE SUR SON FLANC SOMBRE (2026-09-09)
+
+⛔ **LE NETTOYAGE DU PAPIER N'A QU'UNE RECETTE, et elle vit dans**
+**`scripts/_papier-commun.mjs`.** Elle était écrite pour les planches de Fillion
+(`reduire-planches.mjs`) ; `ornements-detourer.mjs` blanchissait de son côté, au seuil
+« pic moins deux ». Deux recettes divergentes rendaient deux gravures de la même famille
+qui ne se ressemblent pas ; le code a été DÉPLACÉ, sans une virgule de changement, pour
+que les planches déjà servies restent reproductibles.
+
+⛔ **ET LE PLANCHER DU PIC SUPPOSE UNE SYMÉTRIE QUI N'EXISTE PAS SUR UNE PLANCHE À**
+**GRAIN.** Il prend la demi-largeur du pic du côté CLAIR, le seul qu'aucune encre ne
+peuple — juste sur un papier propre, faux dès qu'il y a du grain, car le grain ne peuple
+que le flanc SOMBRE. Mesuré sur le fleuron en croix : pic à 238, flanc clair éteint à 244,
+flanc sombre qui traîne jusqu'à **216**. Le plancher tombait à 232 et laissait **14 % du**
+**plan en papier non blanchi**, à alpha 17 — un voile qui se voit, et le rognage des marges
+ne trouvait plus un seul rang blanc où mordre. La planche rendait **84 % de partiels pour**
+**4 % de transparents**, l'exact contraire d'un détourage.
+
+**`piedDuPapier` descend donc depuis le pic tant que la queue porte plus d'un millième du
+plan.** ⚠️ Sur un papier propre elle s'éteint aussitôt et le pied rejoint le plancher :
+la mesure ne change rien là où il n'y avait rien à corriger — éprouvé sur les NEUF
+planches déjà servies, où l'écart pied/plancher vaut 3 à 11 niveaux et la part non
+blanchie passe de 1,9-26,9 % à 1,6-18,4 %. Après correction, le fleuron rend **76 % de**
+**transparents pour 12,6 % de partiels**, le profil d'une gravure au trait.
+
+⛔ **IL NE SERT QU'AU BLANCHIMENT.** Le critère d'encre reste pendu au PLANCHER : le faire
+descendre avec le pied retirerait leur protection aux traits gris moyens, c'est-à-dire
+précisément à ce que le nettoyage chirurgical existe pour garder.
+
+⚠️ **Corollaire de méthode, et c'est le troisième du même ordre dans ce fichier : une**
+**recette éprouvée sur un lot ne vaut que pour ce lot tant qu'on ne l'a pas rejouée**
+**ailleurs.** Le témoin se fabrique en rejouant la chaîne sur les sources DÉJÀ SERVIES
+(`C:/Corpus Scriptura/ornements-originaux-20260823`) et en comparant avant/après. Une
+recette qui change doit prouver qu'elle ne change rien là où rien n'était à corriger.
+
+## ⛔ UN FLEURON DE SÉPARATION EST UNE PLANCHE, NON UN GLYPHE (2026-09-09)
+
+Le ❧ qui séparait la page de titre du texte d'une œuvre était un CARACTÈRE : son dessin
+dépendait de la police que le système voulait bien donner, et il ne disait rien du site.
+C'est le défaut déjà consigné pour le monogramme de l'accueil, retiré le 2026-08-27 pour
+la même raison. Il cède à une croix fleurdelisée gravée (`/ornements/fleuron-croix.png`),
+et `FeuilleVigne` devient `Fleuron` — un composant qui ne dessine plus ce que son nom
+annonce ment sur ce qu'il contient.
+
+⛔ **Elle se pose en MASQUE, jamais en image** : `.cs-fleuron` porte l'encre
+(`--cs-texte-second`, celle du glyphe qu'elle remplace), le composant porte l'adresse et
+les mesures. Une seule planche, deux encres : elle suit les deux thèmes sans le filtre
+d'inversion de `.cs-ornement` et sans le piège de l'optimiseur d'images, qui aplatit une
+couche alpha sur du blanc à certaines largeurs.
+
+⚠️ **2,75 rem de HAUTEUR, et cela se MESURE** : sous 36 px les volutes du centre se
+referment en une tache et le fleuron n'est plus qu'un losange gris ; au-delà de 48 il pèse
+plus que le titre qu'il précède. Jugé sur planche, à la taille RÉELLE, agrandi au plus
+proche voisin — un ornement au trait ne se juge pas dans l'éditeur. Servie en 78 × 86 pour
+40 × 44 affichés, rapport 1,95.
+
+⚠️ **Elle est SYMÉTRIQUE sur ses deux axes**, ce qu'un ornement de séparation doit être :
+c'est la leçon du filet directionnel refusé le 2026-08-31, « un ornement qui ferme un titre
+ne va nulle part ». ⛔ Trois des sept planches du même lot entrées en réserve ce jour-là ne
+peuvent donc PAS la remplacer — la croix gothique et les deux fleurons verticaux n'ont
+qu'un axe, le poisson est figuratif et regarde à droite.
 ## Le monogramme « CS » — deux planches, deux emplois (2026-08-19)
 
 Le site a une marque : un `C` gothique enlaçant un `S`, la haste du `S` portant une croix. Elle existe en deux planches, rangées dans `work/logo/`, et **`scripts/logo-fabriquer.mjs` fabrique tout le reste** — le relancer plutôt que retoucher un fichier produit.
