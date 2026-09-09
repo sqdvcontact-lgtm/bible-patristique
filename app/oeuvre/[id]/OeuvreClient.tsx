@@ -104,6 +104,7 @@ import { refFavoriOriginal } from '@/app/lib/refsFavoris'
 import OngletCommentaires from './OngletCommentaires'
 import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import { useEstMobile, useSansSurvol } from '@/app/lib/useEstMobile'
+import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { COMPOSITION_INTITULE, cleTriTitre, complementDeTitre } from '@/app/lib/titres'
 import { partagerOpuscules } from '@/app/lib/opuscules'
 import IconeChevron from '@/app/components/IconeChevron'
@@ -306,6 +307,9 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
   const [selection, setSelection] = useState<{ champ: ChampLienBiblique; versets: VersetLienBiblique[] } | null>(null)
   const [statut, setStatut] = useState<'idle' | 'envoi' | 'ok' | 'err'>('idle')
   const { exigerCompte } = useCompte()
+  // ⛔ Le voile et la croix ne servent que le curseur : Échap est le seul chemin du clavier.
+  const fermer = useCallback(() => setOuvert(false), [])
+  useFermerAEchap(ouvert, fermer)
 
   const versets = selection?.versets ?? []
   // Un texte SEUL reste recevable : on peut vouloir signaler un rapprochement sans savoir
@@ -339,7 +343,11 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
           cette page : le pied porte le bouton d'envoi, il ne peut pas sortir de l'écran. */}
       {ouvert && (
         <div onClick={() => setOuvert(false)} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(22.5rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
+          {/* ⚠️ `aria-modal` dit à un lecteur d'écran que le reste de la page est hors jeu
+              tant que la fenêtre est là ; `aria-label` la nomme, faute d'un titre à viser
+              par `aria-labelledby` — le titre vit dans un `<p>`, non dans un rang de titre. */}
+          <div role="dialog" aria-modal="true" aria-label="Proposer un lien biblique"
+            onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(22.5rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 22px 10px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Proposer un lien biblique</p>
               <button onClick={() => setOuvert(false)} style={{ fontSize: '0.875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
@@ -794,6 +802,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // instant. ⚠️ Sur l'œuvre courante, les retouches non enregistrées sont conservées.
   const [oeuvreDeLaConfig, setOeuvreDeLaConfig] = useState(idOeuvre)
   const [configOuverte, setConfigOuverte] = useState(false)
+  // Échap referme la fenêtre des niveaux, comme le voile et la croix le font à la souris.
+  const fermerConfig = useCallback(() => setConfigOuverte(false), [])
+  useFermerAEchap(configOuverte, fermerConfig)
   const [configEnvoi, setConfigEnvoi] = useState(false)
   // ⛔ L'enregistrement échouait SANS UN MOT : `if (reponses.some(r => !r.ok)) return`
   // remettait simplement le bouton en place. Six appels partent en parallèle ; si un
@@ -1456,7 +1467,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         supabase.from('versets_lecture').select(selectVersets).in('id_verset', lot)))
       const vd = lots.flatMap(r => r.data ?? [])
       vd.forEach((v: any) => {
-        const ref = detailsRefBiblique(v.ref)
+        // ⚠️ Un verset sans `ref` FERAIT TOMBER LA DIVISION : `detailsRefBiblique` appelle
+        // `ref.trim()` sur son argument. Le rendu serveur porte ce repli depuis qu'une page
+        // est tombée dessus ; il manquait ici, si bien que le premier écran aurait été juste
+        // et le rechargement d'une division l'aurait défait. À défaut de référence,
+        // l'identifiant canonique sert d'étiquette.
+        const ref = detailsRefBiblique(v.ref ?? v.id_verset)
         const textes = Object.fromEntries(codesTraductions.map(code => [code, v[code] || '']))
         versetMap[v.id_verset] = { ...ref, textes }
       })
@@ -2809,7 +2825,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             <div style={{ borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
               <button onClick={() => setAuteurOuvert(!auteurOuvert)}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
-                <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)' }}>DU MÊME AUTEUR</span>
+                <span style={RUBRIQUE_AXE}>Du même auteur</span>
                 <span style={{ fontSize: '0.4375rem', color: 'var(--cs-texte-faible)' }}>{auteurOuvert ? '▲' : '▼'}</span>
               </button>
               {auteurOuvert && (
@@ -2934,7 +2950,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               <div data-visite="oeuvre-apparat" style={{ ...(apparatOuvert ? { flex: sommaireAQuoiSommer ? '0 1 auto' : 1, maxHeight: sommaireAQuoiSommer ? '50%' : undefined, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
                 <button onClick={() => setApparatOuvert(!apparatOuvert)}
                   style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
-                  <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)' }}>APPARAT CRITIQUE</span>
+                  <span style={RUBRIQUE_AXE}>Apparat critique</span>
                   <span style={{ fontSize: '0.4375rem', color: 'var(--cs-texte-faible)' }}>{apparatOuvert ? '▲' : '▼'}</span>
                 </button>
                 {apparatOuvert && (
@@ -2952,8 +2968,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     return (
                       <div key={`${entry.section}-${entry.niv1}`} style={{ marginBottom: entry.niveaux2.length > 0 ? '5px' : undefined }}>
                         {ouvreLaSection && (
-                          <div style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)', margin: rang === 0 ? '0 0 6px' : '12px 0 6px' }}>
-                            {LIBELLE_SECTION_APPARAT[entry.section].toUpperCase()}
+                          <div style={{ ...RUBRIQUE_AXE, margin: rang === 0 ? '0 0 6px' : '12px 0 6px' }}>
+                            {LIBELLE_SECTION_APPARAT[entry.section]}
                           </div>
                         )}
                         <a href={`#${entry.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(entry.niv1); setAncreEnAttente(entry.anchor) }} className="toc-lien-n1"
@@ -2979,7 +2995,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             <div data-visite="oeuvre-sommaire" style={{ ...(sommaireOuvert ? { flex: 1, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
               <button onClick={() => setSommaireOuvert(!sommaireOuvert)}
                 style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
-                <span style={{ fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)' }}>SOMMAIRE</span>
+                <span style={RUBRIQUE_AXE}>Sommaire</span>
                 <span style={{ fontSize: '0.4375rem', color: 'var(--cs-texte-faible)' }}>{sommaireOuvert ? '▲' : '▼'}</span>
               </button>
 
@@ -4202,7 +4218,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             et ne peut jamais dépasser la place disponible. */
         <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}
           onClick={() => setConfigOuverte(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(25rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
+          <div role="dialog" aria-modal="true" aria-label="Niveaux d'affichage"
+            onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(25rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 22px 12px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Niveaux d'affichage</p>
               <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
