@@ -1,5 +1,6 @@
 'use client'
 
+import IconeChevron from '@/app/components/IconeChevron'
 import { useEffect, useMemo, useState } from 'react'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import OngletsPage, { type OngletPage } from '@/app/components/OngletsPage'
@@ -265,7 +266,7 @@ export default function PlancheIllustrations({ familles, gravures, planches, pla
         return (
           <section key={g.cle} className="ill-section">
             <button className="ill-section-tete" onClick={() => basculer(g.cle)} aria-expanded={!replie}>
-              <span className="ill-chevron" aria-hidden="true">{replie ? '▸' : '▾'}</span>
+              <span className="ill-chevron" aria-hidden="true"><IconeChevron dir={replie ? 'right' : 'down'} size={11} strokeWidth={1.5} /></span>
               <h2 className="ill-section-titre">{g.titre}</h2>
               <span className="ill-compte">{g.images.length}</span>
             </button>

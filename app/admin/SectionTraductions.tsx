@@ -1,5 +1,6 @@
 'use client'
 
+import IconeChevron from '@/app/components/IconeChevron'
 import React, { useState, useRef } from 'react'
 import { preparerPortrait, BOITE_TRADUCTION, BOITE_TRADUCTION_ENCART } from '@/app/lib/preparerPortrait'
 import {
@@ -205,7 +206,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
                 </span>
               )}
             </div>
-            <span style={{ position: 'relative', zIndex: 1, fontSize: '0.71875rem', flexShrink: 0, marginRight: '18px', color: imageBandeau ? CHEVRON_SUR_PHOTO : 'var(--cs-bord)', textShadow: imageBandeau ? ombre : 'none' }}>▼</span>
+            <span style={{ position: 'relative', zIndex: 1, display: 'inline-flex', flexShrink: 0, marginRight: '18px', color: imageBandeau ? CHEVRON_SUR_PHOTO : 'var(--cs-bord)', filter: imageBandeau ? `drop-shadow(${ombre})` : 'none' }}><IconeChevron dir="down" size={11} strokeWidth={1.6} /></span>
             {/* Calque drag invisible par-dessus tout */}
             {imageBandeau && <div onMouseDown={startDrag('bandeau')} style={{ position: 'absolute', inset: 0, zIndex: 2, cursor: isDragging ? 'grabbing' : 'grab' }} />}
             {active === 'bandeau' && <div style={{ ...badgeStyle, top: 6, right: 6 }}>bandeau</div>}
@@ -417,7 +418,7 @@ function BoutonSource({ label, urls }: { label: string; urls: string[] }) {
   return (
     <span style={{ position: 'relative', display: 'inline-block' }}>
       <button onClick={() => setOuvert(o => !o)} style={{ ...base, cursor: 'pointer' }}>
-        {label}<span style={{ color: 'var(--cs-texte-doux)' }}>· {urls.length}</span><span aria-hidden="true" style={{ opacity: 0.7 }}>▾</span>
+        {label}<span style={{ color: 'var(--cs-texte-doux)' }}>· {urls.length}</span><span aria-hidden="true" style={{ display: 'inline-flex', alignSelf: 'center', opacity: 0.7 }}><IconeChevron dir="down" size={9} strokeWidth={1.6} /></span>
       </button>
       {ouvert && (
         <>
@@ -730,7 +731,7 @@ function PanneauEditionApparat({ edition, pieces, nomBref }: { edition?: Edition
                     <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-encre)' }}>{[p.livre, p.piece].filter(Boolean).join(' · ') || 'Apparat'}</span>
                     {p.source && <span style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{p.source}</span>}
                   </span>
-                  <span style={{ fontSize: '0.6875rem', color: ouv ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', flexShrink: 0, fontWeight: 600 }}>{ouv ? 'Réduire ▲' : 'Ouvrir ▾'}</span>
+                  <span style={{ fontSize: '0.6875rem', color: ouv ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', flexShrink: 0, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>{ouv ? 'Réduire' : 'Ouvrir'}<IconeChevron dir={ouv ? 'up' : 'down'} size={9} strokeWidth={1.6} /></span>
                 </button>
                 {ouv && (
                   <div style={{ padding: '11px 14px', fontSize: '0.875rem', color: 'var(--cs-texte-fort)', lineHeight: 1.65, maxHeight: '480px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>

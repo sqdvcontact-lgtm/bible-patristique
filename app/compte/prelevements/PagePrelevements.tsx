@@ -8,6 +8,7 @@
 // à la même heure. Le titre, le compte et le sol lui viennent donc du cadre ; ⛔ elle ne
 // pose plus de <main> ni de fond, que le cadre porte déjà.
 
+import IconeChevron from '@/app/components/IconeChevron'
 import { useEffect, useState } from "react";
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Link from "next/link";
@@ -227,7 +228,7 @@ function GroupeRepliable({ ancre, label, count, ouvert, onToggle, children }: {
       <button type="button" className="prel-groupe-tete" onClick={onToggle} aria-expanded={ouvert}>
         <h2>{label}</h2>
         <span className="prel-groupe-compte">{count}</span>
-        <span className="prel-groupe-chevron" data-ouvert={ouvert} aria-hidden="true">▾</span>
+        <span className="prel-groupe-chevron" data-ouvert={ouvert} aria-hidden="true"><IconeChevron dir="down" size={10} strokeWidth={1.5} /></span>
       </button>
       {ouvert && <div>{children}</div>}
     </section>
@@ -543,8 +544,8 @@ export default function PagePrelevements() {
           color: var(--cs-vert); margin: 0; }
         .prel-groupe-compte { font-size: 0.625rem; letter-spacing: 0.06em;
           color: var(--cs-texte-second); }
-        .prel-groupe-chevron { margin-left: auto; font-size: 0.625rem;
-          color: var(--cs-texte-doux); transition: transform 0.18s; display: inline-block; }
+        .prel-groupe-chevron { margin-left: auto;
+          color: var(--cs-texte-doux); transition: transform 0.18s; display: inline-flex; }
         .prel-groupe-chevron[data-ouvert="false"] { transform: rotate(-90deg); }
 
         /* ⛔ UNE CITATION SE COMPOSE COMME LE VERSET QU'ELLE EST : la référence en

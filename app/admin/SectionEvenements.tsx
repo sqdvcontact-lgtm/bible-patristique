@@ -1,5 +1,6 @@
 'use client'
 
+import IconeChevron from '@/app/components/IconeChevron'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import type { Auteur } from './adminTypes'
@@ -197,7 +198,7 @@ export default function SectionEvenements({ auteurs }: { auteurs: Auteur[] }) {
                     {!e.est_publie && <Etiquette texte="dépublié" coul="var(--cs-danger)" />}
                     {nControl > 0 && <Etiquette texte={`${nControl} à contrôler`} coul="var(--cs-attente)" />}
                     <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)' }}>{liens.length} lien{liens.length > 1 ? 's' : ''}</span>
-                    <span style={{ color: 'var(--cs-texte-faible)', fontSize: '0.8125rem' }}>{estOuvert ? '▲' : '▼'}</span>
+                    <span style={{ display: 'inline-flex', color: 'var(--cs-texte-faible)' }}><IconeChevron dir={estOuvert ? 'up' : 'down'} size={12} strokeWidth={1.5} /></span>
                   </span>
                 </button>
 

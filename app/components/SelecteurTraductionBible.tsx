@@ -11,6 +11,7 @@
 // changer de bible, quelle que soit la manière dont on lit celle qu'on a sous les
 // yeux.
 
+import IconeChevron from '@/app/components/IconeChevron'
 import { useEffect, useId, useRef, useState } from 'react'
 
 import { rendreEnrichi } from '@/app/lib/enrichissements'
@@ -24,18 +25,26 @@ type Traduction = { code: string; label: string }
  * `--cs-texte-gris`), et non plus un vert clair : c'est une marque d'ouverture, pas
  * un accent, et le vert y appelait l'œil avant le nom qu'il accompagne.
  *
- * ⚠️ Sa taille est en `em`, donc relative au nom : le glyphe ▼ remplit presque tout
- * son cadratin, si bien qu'à taille égale il pèse bien plus qu'une lettre. À 0,5625
- * em du nom, il vaut 6,5 px pour un nom de 11,5 — un cran sous les 7 px d'avant, et
- * l'échelle typographique n'a pas de rang au-dessous de 7.
+ * ⛔ C'ÉTAIT UN GLYPHE DE TEXTE, `▼`, absent de Source Serif comme de Source Sans :
+ * le menu central de la page Bible le rendait donc dans une police système. C'est
+ * `IconeChevron`, le chevron unique du site, depuis le 9 septembre 2026.
+ *
+ * ⚠️ Sa taille reste RELATIVE au nom, et il le faut : la police racine du site est
+ * fluide, et un dessin posé en pixels rapetisserait à mesure que le nom grandit.
+ * ⚠️ Elle passe de 0,5625 à 0,85 em, et ce n'est pas un agrandissement : le glyphe
+ * remplissait presque tout son cadratin quand un chevron dessiné n'en occupe qu'une
+ * fraction. À 0,85 em d'un nom de 11,5 px il vaut 9,8 px, la mesure des autres
+ * chevrons du site posés contre un texte de ce corps. La raison qui imposait l'unité
+ * relative — le poids du glyphe — a disparu ; celle qui l'impose encore est la
+ * police racine.
  *
  * ⚠️ `lineHeight: 1` et aucun décalage : le bouton aligne ses enfants sur leur
- * milieu, et le glyphe est centré dans son cadratin. Le `top: 1.5px` d'avant le
- * faisait descendre sous la ligne du nom.
+ * milieu. Le `top: 1.5px` d'avant faisait descendre le chevron sous la ligne du nom.
  */
+const TAILLE_CHEVRON = '0.85em'
 const STYLE_CHEVRON: React.CSSProperties = {
   color: 'var(--cs-texte-doux)',
-  fontSize: '0.5625em',
+  display: 'inline-flex',
   fontStyle: 'normal',
   lineHeight: 1,
 }
@@ -133,14 +142,18 @@ export default function SelecteurTraductionBible({ traductions, traductionIndex,
               donc porté d'une dizaine de pixels à gauche de l'axe du titre qui le
               surmonte. C'est le même procédé que le double de `.cs-onglet-libelle`,
               qui réserve d'avance la largeur d'un libellé en graisse 600. */}
-          <span aria-hidden="true" style={{ ...STYLE_CHEVRON, visibility: 'hidden' }}>▼</span>
+          <span aria-hidden="true" style={{ ...STYLE_CHEVRON, visibility: 'hidden' }}>
+            <IconeChevron dir="down" taille={TAILLE_CHEVRON} strokeWidth={1.6} />
+          </span>
           {/* ⚠️ LE NOM SE COMPOSE (demande de l'auteur, 2026-09-04) : « Bible française
               du XIIIe siècle » y prend ses petites capitales et son exposant, et un titre
               entre astérisques son italique. C'est le module partagé avec les notices
               d'auteur et avec le menu de la Polyglotte : un nom de bible ne se compose pas
               d'une façon là et d'une autre ici. */}
           <span>{rendreEnrichi(label)}</span>
-          <span aria-hidden="true" style={STYLE_CHEVRON}>{ouvert ? '▲' : '▼'}</span>
+          <span aria-hidden="true" style={STYLE_CHEVRON}>
+            <IconeChevron dir={ouvert ? 'up' : 'down'} taille={TAILLE_CHEVRON} strokeWidth={1.6} />
+          </span>
         </button>
         {ouvert && (
           <div id={idListe} role="listbox" aria-label="Bibles disponibles"

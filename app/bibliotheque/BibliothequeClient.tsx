@@ -348,7 +348,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
           <div style={{ marginTop: 'auto', paddingTop: compact ? '2px' : '6px', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
             <button onClick={() => setOuvert(!ouvert)}
               style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'baseline', gap: '4px', lineHeight: 1 }}>
-              <span style={{ fontSize: '0.5rem' }}>{listeOuverte ? '▲' : '▼'}</span>
+              <span style={{ display: 'inline-flex', alignSelf: 'center' }}><IconeChevron dir={listeOuverte ? 'up' : 'down'} size={9} strokeWidth={1.5} /></span>
               <span>{nbMot.charAt(0).toUpperCase() + nbMot.slice(1)} œuvre{nb > 1 ? 's' : ''} disponible{nb > 1 ? 's' : ''}</span>
             </button>
           </div>
@@ -871,7 +871,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
 
           <button onClick={() => setOuvert(!ouvert)}
             style={{ fontSize: '0.65625rem', color: '#8a7a5a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}>
-            <span style={{ fontSize: '0.5rem' }}>{ouvert ? '▲' : '▼'}</span>
+            <span style={{ display: 'inline-flex' }}><IconeChevron dir={ouvert ? 'up' : 'down'} size={9} strokeWidth={1.5} /></span>
             {nbMot.charAt(0).toUpperCase() + nbMot.slice(1)} œuvre{nb > 1 ? 's' : ''} répertoriée{nb > 1 ? 's' : ''}
           </button>
         </div>

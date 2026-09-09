@@ -414,7 +414,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
               <button type="button" onClick={() => setPanneauOuvert(o => !o)} aria-expanded={panneauOuvert} aria-controls="bibliographie-filtres"
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderBottom: panneauOuvert ? `1px solid ${SEP}` : 'none', background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-texte)' }}>
                 <span>Rechercher et filtrer{actifs ? ' (actifs)' : ''}</span>
-                <span aria-hidden style={{ color: 'var(--cs-texte-second)', fontSize: '0.6875rem' }}>{panneauOuvert ? '▲' : '▼'}</span>
+                <span aria-hidden style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={panneauOuvert ? 'up' : 'down'} size={11} strokeWidth={1.5} /></span>
               </button>
               {panneauOuvert && <div id="bibliographie-filtres" style={{ padding: '0 15px 18px' }}>{contenuFiltres}</div>}
             </>

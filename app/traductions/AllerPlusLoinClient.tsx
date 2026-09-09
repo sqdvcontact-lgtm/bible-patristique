@@ -1,5 +1,6 @@
 'use client'
 
+import IconeChevron from '@/app/components/IconeChevron'
 import { useEffect, useState, type CSSProperties } from 'react'
 import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
@@ -215,13 +216,15 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
             se lit dans le dépli, sous la notice. */}
       </div>
 
+      {/* Sur une PHOTO, l'ombre du texte devient une ombre PORTÉE : `drop-shadow` prend
+          la même écriture que `text-shadow` et suit le tracé au lieu de la boîte. */}
       <span style={{
-        position: 'relative', zIndex: 1, fontSize: '0.625rem', flexShrink: 0,
+        position: 'relative', zIndex: 1, flexShrink: 0,
         marginRight: '18px', color: couleurChevron,
-        textShadow: t.photo ? ombreTexte : 'none',
-        display: 'inline-block', transition: 'transform 0.18s, color 0.2s',
+        filter: t.photo ? `drop-shadow(${ombreTexte})` : 'none',
+        display: 'inline-flex', transition: 'transform 0.18s, color 0.2s',
         transform: estOuvert ? 'rotate(180deg)' : 'none',
-      }}>▼</span>
+      }}><IconeChevron dir="down" size={10} strokeWidth={1.6} /></span>
     </button>
   )
 }

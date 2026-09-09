@@ -1,5 +1,6 @@
 'use client'
 
+import IconeChevron from '@/app/components/IconeChevron'
 import React, { useState, useRef } from 'react'
 import { supabase, parseCSV, headersAdmin } from './adminShared'
 import SectionRemplacerSegments from './SectionRemplacerSegments'
@@ -649,7 +650,7 @@ function BlocCatalogueAuteurSeul({ nom, notices, onValiderAdmin, onRefuser }: {
       <button onClick={() => setOuvert(o => !o)}
         style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '8px 14px', background: 'var(--cs-fond)', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
         <span style={{ display: 'flex', alignItems: 'baseline', gap: '9px', minWidth: 0 }}>
-          <span style={{ fontSize: '0.5625rem', color: '#b0a480' }}>{ouvert ? '▲' : '▼'}</span>
+          <span style={{ display: 'inline-flex', alignSelf: 'center', color: '#b0a480' }}><IconeChevron dir={ouvert ? 'up' : 'down'} size={10} strokeWidth={1.5} /></span>
           <span style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.875rem', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#7a6a48' }}>{nom}</span>
           <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)' }}>{notices.length} œuvre{notices.length > 1 ? 's' : ''} au catalogue</span>
         </span>
@@ -1677,7 +1678,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
             title="Filtrer les auteurs affichés"
             style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.875rem', padding: '6px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: filtreAuteurs === 'publiees' ? 'var(--cs-surface)' : 'var(--cs-fond)', color: 'var(--cs-texte-second)', cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}>
             {FILTRES_AUTEURS.find(f => f.code === filtreAuteurs)?.label ?? 'Filtrer'}
-            <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)' }}>▼</span>
+            <span style={{ display: 'inline-flex', color: 'var(--cs-texte-faible)' }}><IconeChevron dir="down" size={10} strokeWidth={1.5} /></span>
           </button>
           {menuFiltreOuvert && (
             <>
@@ -1801,8 +1802,8 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                   style={{ fontSize: '0.78125rem', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-vert)', cursor: 'pointer' }}>
                   {editionAuteur === auteur.id_auteur ? 'Fermer' : 'Modifier'}
                 </button>
-                <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', cursor: 'pointer' }} onClick={() => setAuteurOuvert(auteurOuvert === auteur.id_auteur ? null : auteur.id_auteur)}>
-                  {auteurOuvert === auteur.id_auteur ? '▲' : '▼'}
+                <span style={{ display: 'inline-flex', color: 'var(--cs-texte-faible)', cursor: 'pointer' }} onClick={() => setAuteurOuvert(auteurOuvert === auteur.id_auteur ? null : auteur.id_auteur)}>
+                  <IconeChevron dir={auteurOuvert === auteur.id_auteur ? 'up' : 'down'} size={11} strokeWidth={1.5} />
                 </span>
               </div>
             </div>

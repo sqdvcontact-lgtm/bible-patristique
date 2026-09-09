@@ -1,5 +1,6 @@
 "use client";
 
+import IconeChevron from '@/app/components/IconeChevron'
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
@@ -344,10 +345,9 @@ function OngletMenu({ href, label, style, actif, classeMenu, auSurvol, repere, c
         {label}
         {/* Le chevron dit qu'il y a un menu là-dessous. Les quatre onglets le
             portent — un seul qui s'en passerait ferait douter des trois autres. */}
-        <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true"
-          style={{ opacity: 0.55, flexShrink: 0 }}>
-          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <span style={{ display: 'inline-flex', opacity: 0.55, flexShrink: 0 }}>
+          <IconeChevron dir="down" size={8} strokeWidth={1.4} />
+        </span>
       </Link>
       {children ? (
         <div className={classeMenu ? `cs-plus-menu cs-defilement-discret ${classeMenu}` : "cs-plus-menu cs-defilement-discret"}>
@@ -1489,7 +1489,14 @@ export default function Navbar() {
               pas d'avance (jusqu'à 6rem). À l'étroit il s'efface : c'est ce qui rend la
               tenue de la barre calculable, et non dépendante de la longueur d'un nom. */}
           {!pseudoMasque && <span style={{ maxWidth: "6rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email.split("@")[0]}</span>}
-          <span style={{ fontSize: "0.625rem", opacity: 0.6 }}>▼</span>
+          {/* ⛔ C'ÉTAIT UN GLYPHE DE TEXTE, `▼`, absent de Source Serif comme de Source
+              Sans : il tombait sur une police système, et sa chasse n'était donc connue
+              d'aucune mesure. Or ce bouton est le SEUL de la barre dont la largeur ne se
+              prédit pas — c'est écrit deux lignes plus haut. Le dessin du site a une
+              largeur, lui. */}
+          <span style={{ display: "inline-flex", opacity: 0.6, flexShrink: 0 }}>
+            <IconeChevron dir="down" size={9} strokeWidth={1.5} />
+          </span>
         </button>
       )}
       <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "8px", overflow: "hidden" } : { position: "absolute", top: `calc(100% + ${SOUS_LA_BARRE})`, right: 0, background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: "var(--cs-ombre-flottante)", minWidth: "190px", zIndex: 3100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
@@ -2109,10 +2116,9 @@ export default function Navbar() {
                     aria-expanded={adminMobileOuvert} aria-controls="cs-admin-mobile"
                     style={{ ...styleSectionMobile, display: "flex", alignItems: "center", gap: "6px", width: "100%", background: "none", border: "none", cursor: "pointer", padding: "8px 10px 4px", textAlign: "left" }}>
                     Administration
-                    <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true"
-                      style={{ opacity: 0.7, transform: adminMobileOuvert ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>
-                      <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <span style={{ display: "inline-flex", opacity: 0.7 }}>
+                      <IconeChevron dir={adminMobileOuvert ? "up" : "down"} size={8} strokeWidth={1.4} />
+                    </span>
                   </button>
                   {adminMobileOuvert && (
                     <div id="cs-admin-mobile">

@@ -1,5 +1,6 @@
 'use client'
 
+import IconeChevron from '@/app/components/IconeChevron'
 import { useState } from 'react'
 import Link from 'next/link'
 import type { Essai, EssaiPublie } from './adminTypes'
@@ -316,7 +317,7 @@ function Th({ children, align = 'left' }: { children: React.ReactNode; align?: '
 function ThSort({ label, active, dir, onClick }: { label: string; active: boolean; dir: Dir; onClick: () => void }) {
   return (
     <th onClick={onClick} style={{ padding: '7px 8px', fontSize: '0.65625rem', color: active ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', letterSpacing: '0.06em', textTransform: 'uppercase', textAlign: 'left', fontWeight: 700, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}>
-      {label} <span style={{ opacity: active ? 1 : 0.3, fontSize: '0.5625rem' }}>{active && dir === 'desc' ? '▼' : '▲'}</span>
+      {label} <span style={{ display: 'inline-flex', verticalAlign: 'middle', opacity: active ? 1 : 0.3 }}><IconeChevron dir={active && dir === 'desc' ? 'down' : 'up'} size={9} strokeWidth={1.6} /></span>
     </th>
   )
 }

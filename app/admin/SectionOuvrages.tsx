@@ -32,6 +32,7 @@
 // de champs. Ce qui fonde le calcul (autorité éditrice, collection, contributeurs et
 // leurs rangs) est réuni sous un seul intitulé, à côté du statut qui en découle.
 
+import IconeChevron from '@/app/components/IconeChevron'
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { messageErreurQualification } from './qualification'
@@ -930,7 +931,7 @@ function PersonneLigne({ c, rang, fiche, registre, ouverte, onOuvrir, onMajFiche
       <div style={{ display: 'flex', gap: '9px', alignItems: 'center', padding: '6px 9px' }}>
         <button onClick={onOuvrir} aria-expanded={ouverte}
           style={{ flex: 1, minWidth: 0, textAlign: 'left', border: 'none', background: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
-          <span aria-hidden style={{ fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-texte-faible)' }}>{ouverte ? '▾' : '▸'}</span>
+          <span aria-hidden style={{ display: 'inline-flex', alignSelf: 'center', color: 'var(--cs-texte-faible)' }}><IconeChevron dir={ouverte ? 'down' : 'right'} size={10} strokeWidth={1.5} /></span>
           <span style={{ fontFamily: SERIF, fontSize: '0.84375rem', color: 'var(--cs-texte)' }}>{affiche}</span>
           <span style={{ fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-texte-faible)' }}>{L_ROLE[c.role_contributeur] ?? c.role_contributeur}</span>
           {detache && <span style={{ fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-attente)' }}>hors registre</span>}

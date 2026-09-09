@@ -1,5 +1,6 @@
 'use client'
 
+import IconeChevron from '@/app/components/IconeChevron'
 import { useState, useRef, useEffect } from 'react'
 import { useNaviguer } from '@/app/lib/attenteNavigation'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
@@ -414,7 +415,11 @@ export default function NavLivres({
               rangent à leur place traditionnelle depuis le 2026-09-06, donc au milieu de
               l'Ancien Testament, et c'est elle seule qui les en distingue. */}
           <span>{livre.nom}{estLivreNonCanonique(livre.code) && <MarqueNonCanonique />}</span>
-          {!vide && !sansChapitres && <span style={{ color: '#a9b6a6', fontSize: '0.5rem', flexShrink: 0, opacity: 0.55 }}>{ouvert ? '▲' : '▼'}</span>}
+          {!vide && !sansChapitres && (
+            <span style={{ display: 'inline-flex', color: 'var(--cs-texte-faible)', flexShrink: 0, opacity: 0.75 }}>
+              <IconeChevron dir={ouvert ? 'up' : 'down'} size={9} strokeWidth={1.5} />
+            </span>
+          )}
         </button>
 
         {montrerOptions && polyMode && onChoisirLivreEntier && (
@@ -787,7 +792,7 @@ export default function NavLivres({
               padding: 'calc(var(--volet-air-fin) + 3px) 6px var(--volet-air-fin)', textAlign: 'left',
             }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', color: 'var(--cs-vert-fonce)', textTransform: 'uppercase' }}>Ancien Testament</span>
-              <span style={{ fontSize: '0.53125rem', color: 'var(--cs-texte-faible)' }}>{atOuvert ? '▲' : '▼'}</span>
+              <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={atOuvert ? 'up' : 'down'} size={10} strokeWidth={1.5} /></span>
             </button>
             {atOuvert && AT.map(renderLivre)}
           </>
@@ -801,7 +806,7 @@ export default function NavLivres({
               padding: 'calc(var(--volet-air-fin) + 5px) 6px var(--volet-air-fin)', textAlign: 'left',
             }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', color: 'var(--cs-vert-fonce)', textTransform: 'uppercase' }}>Nouveau Testament</span>
-              <span style={{ fontSize: '0.53125rem', color: 'var(--cs-texte-faible)' }}>{ntOuvert ? '▲' : '▼'}</span>
+              <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={ntOuvert ? 'up' : 'down'} size={10} strokeWidth={1.5} /></span>
             </button>
             {ntOuvert && NT.map(renderLivre)}
           </>
@@ -815,7 +820,7 @@ export default function NavLivres({
               padding: 'calc(var(--volet-air-fin) + 5px) 6px var(--volet-air-fin)', textAlign: 'left',
             }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', color: 'var(--cs-texte-gris)', textTransform: 'uppercase' }}>Écrits non canoniques</span>
-              <span style={{ fontSize: '0.53125rem', color: 'var(--cs-texte-faible)' }}>{autresOuvert ? '▲' : '▼'}</span>
+              <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={autresOuvert ? 'up' : 'down'} size={10} strokeWidth={1.5} /></span>
             </button>
             {autresOuvert && AUTRES.map(renderLivre)}
           </>
