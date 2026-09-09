@@ -3746,6 +3746,10 @@ Une œuvre dont la longueur est inférieure au seuil d’opuscule est un texte b
 
 ⛔ **Sans la mesure, la règle ne se déclenche jamais — en silence.** La surface qui replie doit lire `nb_signes` : la bibliothèque l’a lu six semaines au rechargement client et pas au rendu serveur, si bien qu’aucune section n’a paru en ligne pendant que ses tests passaient. Une surface qui oublie la colonne n’affiche pas une erreur, elle affiche une liste entière.
 
+⛔ **DEUX REPLIS, DEUX MARQUES.** Une section DANS une liste et une rubrique DU volet ne portent pas le même signe. La rubrique du volet — « Du même auteur », « Apparat critique », « Sommaire » — se replie par un triangle plein posé À DROITE, au bout d’une ligne en capitales espacées. La section, elle, prend le chevron en trait posé À GAUCHE, devant son nom en italique bas de casse, tourné vers la droite quand elle est close et vers le bas quand elle est ouverte. ⚠️ « Opuscules » a d’abord paru dans le volet avec le triangle des rubriques (relevé de l’auteur, 9 septembre 2026 : « la même flèche pour déployer que les autres niveaux de titre me paraît bizarre ») : le signe lui donnait le RANG de ce qui la contient, et le lecteur ne voyait plus quel repli emporte quoi.
+
+⚠️ **La section garde la même forme sur toutes ses surfaces**, comme elle y garde le même seuil et le même partage : celle qu’elle porte à la bibliothèque, où elle est née.
+
 Le seuil se justifie par le corpus et non par une idée de la longueur : il se place dans un intervalle vide du classement des œuvres publiées. Il ne se place jamais sur la médiane, qui rangerait une œuvre sur deux parmi les opuscules et couperait des séries éditoriales cohérentes.
 
 Le repli exige deux conditions : un nombre minimal d’opuscules, et au moins une œuvre longue. Sans la seconde, l’étagère d’un auteur qui n’a que des textes brefs serait repliée tout entière et paraîtrait vide.
