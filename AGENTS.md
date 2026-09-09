@@ -2940,6 +2940,91 @@ ouvert sont au carnet. Ici, ce qu'il faut savoir pour y toucher.
   parallèles et la page Bible n'ont pas reçu la manchette — chacune a sa géométrie, et
   la page Bible flanque déjà sa colonne du numéro de verset à gauche.
 
+# ⛔ RIEN NE BOUGE ENTRE LE SURVOL ET LE CLIC (2026-09-09)
+
+Quatre défauts relevés par l’auteur sur la lecture d’une œuvre, et deux trouvés en les
+corrigeant. Ce qui les tient tous : **une différence de GÉOMÉTRIE entre deux états d’un
+même objet est un défaut, une différence de COULEUR est un signal.**
+
+⛔ **LA GÉOMÉTRIE D’UN ENCART NE DÉPEND PAS DE LA CROIX.** `styleCorpsEncart` posait un
+`paddingRight` de 1 rem au survol et de 2,25 rem au clic, quand la croix paraissait : la
+piste perdait vingt pixels et le texte se réenroulait à l’instant précis où l’on épinglait
+la note. « La mise en forme change légèrement au clic ; j’en ai horreur. » La place de la
+croix est donc réservée TOUJOURS, montrée ou non, et la fonction ne prend plus d’argument.
+⚠️ Les deux autres surfaces ne bougent pas d’un pixel : la page Bible et les traductions
+parallèles passent toujours `onFermer`, donc portaient déjà ce blanc. ⚠️ Et l’estimation de
+hauteur y GAGNE : `SIGNES_PAR_LIGNE` avait été mesuré « rembourrage de la croix compris,
+donc le cas le plus étroit du cadre » — il devient exact au lieu d’être prudent.
+
+⛔ **ET L’ÉPINGLAGE SE VOIT, sans qu’une mesure bouge.** Un filet d’or franc, plus une
+pulsation d’une demi-seconde. ⚠️ Les deux ne vivent PAS au même endroit, et c’est la
+cascade qui décide : le FILET se pose en ligne, parce que le cadre pose le sien en ligne et
+qu’une règle de feuille y perdrait sans `!important` ; la PULSATION vit dans la feuille,
+parce qu’une déclaration d’animation bat le style en ligne par l’ordre des origines. ⛔ Ni
+l’un ni l’autre ne touche à une mesure : un halo de `box-shadow` ne participe pas à la mise
+en page, et un filet ne change que de couleur. `prefers-reduced-motion` éteint la pulsation.
+
+⛔ **UN APERÇU DE NOTE SE COMPOSE COMME LA NOTE SE REND**, et celui de la barre des notes ne
+se composait pas du tout : `apercuDeLaNote` joignait les blocs BRUTS. Il montrait des espaces
+ordinaires là où la note rend les insécables du § 3.2, et son `replace(/\s+/g, . .)` détruisait
+au passage celles que la donnée portait déjà — ⚠️ `\s` couvre U+00A0 et U+202F. ⛔ L’ORDRE des
+trois opérations est contraint : la référence se normalise PAR BLOC (elle seule connaît la
+nature), les blocs se joignent et les blancs se resserrent ENSUITE, la typographie se pose
+EN DERNIER. Posée avant, le resserrement mangerait les fines qu’elle vient d’écrire.
+⚠️ L’apparat critique n’y passe pas, comme il n’y passe pas au rendu.
+
+⛔ **ET UNE COUPE NE CASSE JAMAIS UN ENRICHISSEMENT.** Cent quarante signes tombent un jour
+au milieu d’un `*italique*`, et l’astérisque restée seule se rend TELLE QUELLE : le renderer
+n’apparie que des paires, et ce qu’il n’apparie pas, il l’imprime. `sansMarqueOuverte` recoupe
+avant l’ouverture orpheline — les quatre marques appariées, la plus longue l’emportant sur
+place, plus le lien et la balise `<i>`. ⛔ On ne FERME pas à sa place : inventer une fermeture
+ferait dire à l’aperçu une italique que la note n’a pas. ⚠️ Une marque ouverte au tout
+premier signe ne laisserait rien : on rend alors l’astérisque plutôt qu’un aperçu vide, qui
+ferait perdre la note à qui la cherche.
+
+## ⛔ CINQ FENÊTRES S’OUVRAIENT SOUS LE TIROIR QUI LES DEMANDAIT
+
+⚠️ **La règle était écrite, et personne ne l’avait appliquée là.** L’échelle d’empilement le
+dit en toutes lettres depuis le 9 septembre au matin : une modale « couvre le tiroir d’où
+elle s’ouvre, et à `Z_FENETRE` elle s’y cacherait ». Or CINQ fenêtres de la page d’une œuvre
+portaient encore 1200, alors que tout ce qui les ouvre vit dans le tiroir du volet
+(`Z_TIROIR`, 2401) sur un téléphone : la fiche d’édition, le menu d’extraction, les niveaux
+d’affichage, la proposition de lien biblique, l’édition d’un segment. L’auteur en a relevé
+UNE ; les quatre autres se sont trouvées en la corrigeant. ⛔ **Le critère n’est pas la
+modalité en général, c’est : peut-on l’ouvrir depuis un tiroir ?**
+
+⛔ **ET LA BARRE D’UN VOLET MOBILE VIT AU RANG DE SON PROPRE TIROIR.** Le voile du tiroir est
+posé en `inset: 0` à 2400, la barre était à 1200 : dès que le tiroir s’ouvrait, la barre
+passait DESSOUS, donc voilée de 34 % de noir, et le tap qui devait la fermer tombait sur le
+voile. ⚠️ Le résultat était le même PAR ACCIDENT — le voile ferme aussi — mais l’affordance
+non, et la charte veut que la barre reste posée et que ce soit ELLE qui ferme. Elle prend
+`Z_TIROIR`. *Corollaire : un voile en `inset: 0` couvre tout ce qui est sous son rang, la barre
+qui l’a ouvert comprise — on regarde ce qu’il recouvre avant de le poser.*
+
+## ⛔ LE VERROU DE DÉFILEMENT EST UN COMPTEUR, JAMAIS UN « JE RETIENS LA VALEUR D’AVANT »
+
+⛔ **CINQ COMPOSANTS POSAIENT CHACUN LE LEUR, ET DE LA MÊME FAÇON FAUSSE** : lire
+`document.body.style.overflow`, écrire « hidden », rendre la valeur lue à la fermeture. Le
+patron est juste quand une seule fenêtre s’ouvre à la fois, et FAUX dès qu’il y en a deux —
+ce qui est le cas ordinaire de la page d’une œuvre, où la fiche d’édition ouvre la fiche
+d’auteur, laquelle ouvre celle d’une traduction. La seconde lit « hidden » comme valeur
+d’avant ; si elle se ferme la DERNIÈRE, elle la repose, et plus rien ne la retire.
+
+⚠️ **Le symptôme ne ressemble pas à sa cause** : la page reste figée à un seul emplacement
+**et les clics continuent de fonctionner**, puisque seul le défilement est verrouillé. C’est
+ce que l’auteur a relevé, et c’est ce qui fait chercher du côté du tactile.
+
+**`app/lib/verrouDefilement.ts`** tient un COMPTEUR : le premier verrou retient l’état du
+document, le dernier le rend. ⛔ Il ne dépend pas de l’ordre des fermetures, et c’est tout
+son objet : une pile LIFO se défait au premier démontage qui ne la suit pas, et React n’en
+garantit aucun. ⚠️ Le relâchement est IDEMPOTENT — appelé deux fois il ne décompte qu’une —
+sans quoi le double montage du mode strict ferait tomber le compte sous zéro et
+déverrouillerait une fenêtre encore ouverte. Les DEUX ordres sont éprouvés.
+
+⚠️ **Piège d’outillage payé ce jour-là** : une insertion d’import par « la dernière ligne qui
+commence par `import` » tombe DANS un import multi-ligne et casse le fichier. Seul `tsc` l’a
+vu. Une insertion se borne à une ancre de FIN explicite, jamais à un motif de début.
+
 # ⛔ UN SEUL ENCART DE NOTE — `EncartNote` + `compositionNote.ts` (2026-09-08)
 
 Doctrine : charte `parametres.charte_ia`, **§ 13.13** (ce qu'est l'encart, l'intitulé qui
