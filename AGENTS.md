@@ -6197,6 +6197,43 @@ versions privées.
   l'Hexaéméron, la paire ne CHANGE pas mais cesse d'être un coup de dé : ses deux grecs de
   1857 se départageaient jusque-là par l'ordre des lignes.
 
+# ⛔ LE PIPELINE DES SEGMENTS n'est écrit qu'UNE fois (2026-09-09)
+
+Le chemin « lignes brutes de `segments` → segments qu'on lit » vivait en DOUBLE : dans
+`app/oeuvre/[id]/page.tsx` pour le premier rendu, dans `OeuvreClient` pour chaque division
+rechargée. Cinq fonctions y étaient recopiées mot pour mot, trois autres refaites autrement.
+Tout vit désormais dans **`app/oeuvre/[id]/pipelineSegments.ts`** (module PUR, 25 tests) :
+`extraireVersetsAvecNature`, `segmentAffichable`, `grouper`, `numerotationLocale`,
+`detailsRefBiblique`, `indexerVersetsCites`, `versetsDuSegment`, `projeterSegment` et
+`composerSegments`, qui fait la chaîne entière.
+
+- ⛔ **LES DEUX SURFACES AVAIENT DÉJÀ DIVERGÉ, et c'est ce qui a imposé l'extraction.** La
+  NUMÉROTATION LOCALE remet son compteur à zéro à chaque `ref_niv1` côté serveur et jamais
+  côté client — sans effet tant qu'on ne charge qu'une division, faux dès qu'on en charge
+  deux. Et le REPLI d'une ligne de `versets_lecture` sans `ref` n'existait que côté
+  serveur : le premier écran était juste, et le rechargement d'une division l'aurait
+  défait (`detailsRefBiblique` appelle `trim()`, et une page était déjà tombée dessus).
+- ⛔ **LA SECTION D'APPARAT EST UN AXE DE `grouper`, non deux appels.** Le serveur groupait
+  ses deux tranches — l'auteur, puis l'éditeur — par deux `grouper` successifs à ancres
+  continues (`premierRang`) ; le client par une passe qui comparait `sectionDApparat`.
+  Même découpage, deux écritures. `grouper(segments, 'a', { avecSection: true })` le fait
+  une fois, et `premierRang` a disparu.
+- ⛔ **L'APPARAT DÉCLARE qu'il n'a pas de volet biblique** (`sansVersets`), au lieu de s'en
+  remettre à ce que la table contient : aucun de ses 2 195 segments ne porte de lien au
+  9 septembre 2026, mais un lien posé demain y ferait paraître un volet que personne n'a
+  décidé d'ouvrir. Même raison pour `avecOuvrage` : la notice bibliographique n'appartient
+  qu'à l'apparat, et la poser sur un segment de corps ferait chercher un ouvrage à des
+  milliers de lignes qui n'en citent aucune.
+- ⚠️ **Ce qui reste à CHAQUE surface, et qui ne peut pas venir là** : le CHARGEMENT (le
+  serveur lit par `Promise.all`, le client par lots successifs), la projection bilingue (le
+  serveur la reçoit toute faite, le client la rattache après coup par `rattacherAlignement`),
+  et les notices bibliographiques, dont seul le serveur tire la première fournée. Les deux
+  projections d'appels de note sont passées en CONTEXTE (`projeterAppels`,
+  `projeterAppelsOriginal`) : le module sait POSER un appel, jamais où chercher son ancre.
+- ⚠️ **Le module est PUR** — ni React, ni Supabase, ni `window` — et c'est la seule garantie
+  que les deux surfaces feront la même chose : un test ne peut pas éprouver ce qui vit dans
+  un composant de 4 400 lignes.
+
 # ⛔ Le panneau des NIVEAUX D'AFFICHAGE dit la vérité (2026-09-05)
 
 La roue crantée du volet règle, séparément pour le SOMMAIRE et pour le CORPS, jusqu'à
@@ -6233,10 +6270,36 @@ toujours les niveaux existants ». Trois causes, et elles n'ont rien en commun.
   fois. ⚠️ Cela suppose les niveaux emboîtés, ce que la donnée dit (aucune des 46 œuvres
   ne porte un niveau sans celui du dessus) — d'où la règle suivante, qui rend l'hypothèse
   inoffensive.
-- ⛔ **LA SONDE SIGNALE, ELLE N'INTERDIT PAS.** Un niveau creux se montre éteint et reste
-  CLIQUABLE ; une sonde qui se tromperait ne peut donc pas fermer un réglage. Et le niveau
-  CHOISI ne se grise jamais : vert et éteint à la fois, il ne se lisait plus — c'est ce
-  que voyait toute œuvre sans aucun titre (Cyprien, le Morel du Discours 38).
+- ⛔ **UN NIVEAU VIDE SE GRISE ET NE SE CLIQUE PLUS** (décision de l'auteur, 2026-09-09 :
+  « on doit pouvoir sélectionner seulement les boutons relatifs à des niveaux de titre qui
+  contiennent quelque chose »). ⚠️ Cette page a dit l'inverse du 5 au 9 septembre 2026 —
+  « la sonde signale, elle n'interdit pas » — par crainte qu'une sonde en défaut ne ferme
+  un réglage. **La crainte est couverte deux fois, et les deux gardes sont testées** : une
+  sonde qui échoue rend `null`, et une profondeur inconnue ne ferme rien du tout ; le
+  niveau CHOISI n'est JAMAIS dit vide, si bien qu'une œuvre mal réglée reste corrigible.
+  ⛔ C'est cette seconde garde qui rend la règle sûre, et il faut lire les deux moitiés de
+  `niveauVide` ensemble : elle décide de l'encre ET du verrou, et le `choisi` qu'elle
+  reçoit est ce qui empêche le verrou de se refermer sur la clé.
+- ⚠️ **L'INFOBULLE QUI DIT POURQUOI UN BOUTON EST MORT SE POSE SUR SON ENVELOPPE**, jamais
+  sur lui : un bouton `disabled` ne reçoit aucun événement de pointeur sous Chrome, et la
+  raison du verrou se serait posée sur le seul élément incapable de la dire. Un `<span>`
+  sur la page de lecture, la cellule du tableau en administration.
+- ⛔ **ET LA RÈGLE VAUT DANS LES DEUX PANNEAUX.** Celui de l'administration
+  (`SectionBibliotheque`) réglait la même donnée à sa façon : cinq niveaux offerts là où
+  la page en rend trois ou quatre, et AUCUNE sonde — il proposait donc des niveaux que
+  l'œuvre ne porte pas, sans le dire, et ne bornait pas non plus ce qu'il lisait en base.
+  Il prend `niveauxOfferts`, `niveauVide`, `poserProfondeur` et `profondeurBornee`.
+  ⚠️ La sonde elle-même est UNIQUE, `app/oeuvre/[id]/niveauxPresents.ts` : deux écrans qui
+  règlent une même donnée doivent la mesurer de la même façon, sinon l'un grise ce que
+  l'autre propose. Garde : une surface qui appelle `niveauxOfferts` doit appeler
+  `niveauVide` — elle porte sur la SURFACE, non sur le nom d'une variable, et une
+  troisième s'y verrait.
+- ⚠️ **DIX ŒUVRES SONT RÉGLÉES AU-DESSUS DE CE QU'ELLES PORTENT** (mesuré le 2026-09-09),
+  dont six publiques : Annotations sur le livre de Job (corps 2 pour un seul niveau),
+  Somme théologique (5 pour 3), Discours sur la Genèse et Homélies sur la Genèse (3 pour
+  2), La Cité de Dieu (3 pour 2), De la vanité des idoles (1 pour aucun titre). Le panneau
+  le MONTRE désormais ; le corriger reste un geste d'auteur. ⛔ Un réglage à 1 sur une
+  œuvre sans aucun titre ne se ferme jamais : 1 est le plancher, il n'y a rien à corriger.
 - ⛔ **ELLE PORTE SUR L'ŒUVRE, NON SUR LE TEXTE LU.** Le réglage est œuvre-wide : mesurer
   le seul texte ouvert grisait un niveau que son voisin porte — le grec de l'Hexaéméron
   n'a qu'un niveau quand son français en a deux.
