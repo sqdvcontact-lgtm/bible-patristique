@@ -26,6 +26,7 @@
  * 11,19), d'où un tracé de quatre arcs, sans une seule courbe de Bézier à régler.
  */
 
+import { Z_MODALE } from '@/app/lib/empilement'
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { colorMix } from '@/app/lib/couleurs'
@@ -156,7 +157,7 @@ export function ModaleRemplacerCitation({ actuelle, nouvelle, onConfirmer, onAnn
     <div onClick={onAnnuler}
       style={{
         position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0,
-        background: 'rgba(0, 0, 0, 0.52)', zIndex: 2600,
+        background: 'rgba(0, 0, 0, 0.52)', zIndex: Z_MODALE,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '20px', overflow: 'hidden',
       }}>

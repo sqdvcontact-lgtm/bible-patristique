@@ -1,5 +1,6 @@
 'use client'
 
+import { Z_MODALE } from '@/app/lib/empilement'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { createPortal } from 'react-dom'
@@ -866,7 +867,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
           en a) piège le `position: fixed` et la fenêtre n'est plus centrée sur la page.
           Resserrée et épurée. */}
       {confirmPublier && typeof document !== 'undefined' && createPortal(
-        <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
               Soumettre cette publication ?

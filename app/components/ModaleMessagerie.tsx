@@ -7,6 +7,7 @@
 // PAS d'émoticônes (elles sont filtrées à la saisie). Fermeture par la croix, un
 // clic hors du cadre, ou Échap.
 
+import { Z_MODALE } from '@/app/lib/empilement'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { createPortal } from 'react-dom'
@@ -153,7 +154,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
 
   return createPortal(
     <div onClick={onClose} className="msg-backdrop"
-      style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.42)', zIndex: 2100 }}>
+      style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.42)', zIndex: Z_MODALE }}>
       {/* Ouverture fluide : le fond se pose en fondu, le volet glisse depuis la droite,
           sous la navbar, et surplombe le contenu sur toute la hauteur. */}
       <style>{`

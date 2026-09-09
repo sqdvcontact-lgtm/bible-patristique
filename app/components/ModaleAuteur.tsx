@@ -7,6 +7,7 @@
 // (à gauche la vie, à droite la chronologie), liste d'œuvres compacte incluant les œuvres
 // répertoriées mais non encore présentes.
 
+import { Z_MODALE } from '@/app/lib/empilement'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
@@ -806,7 +807,7 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
          l'impression qu'elle passait dessous. C'est le CONTENU de la boîte qui
          défile désormais ; la boîte, elle, garde toujours sa marge en haut comme
          en bas, quelle que soit la hauteur de l'écran. */
-      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(30,26,20,0.42)', zIndex: 2100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', overflow: 'hidden' }}>
+      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(30,26,20,0.42)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', overflow: 'hidden' }}>
       <div onClick={e => e.stopPropagation()} className="auteur-modale-inner"
         style={{ position: 'relative', width: '100%', maxWidth: '52rem', maxHeight: '100%', overflowY: 'auto', overscrollBehavior: 'contain', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', boxShadow: 'var(--cs-ombre-modale)', padding: '30px 34px 28px' }}>
         <button onClick={onClose} aria-label="Fermer" className="cs-cible-fine" title="Fermer"

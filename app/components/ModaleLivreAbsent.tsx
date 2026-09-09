@@ -32,6 +32,7 @@
 // éditoriale — Fillion, la Bible 899 — n'est pas dans `livres_par_traduction`, et
 // une fenêtre qui n'interrogerait que cette table les tairait toutes les deux.
 
+import { Z_MODALE } from '@/app/lib/empilement'
 import { createPortal } from 'react-dom'
 import { useEffect, useState } from 'react'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
@@ -104,7 +105,7 @@ export default function ModaleLivreAbsent({
       /* ⚠️ Le calque est un NOIR translucide, non un jeton d'encre : c'est une
          ombre, et un jeton se retournerait avec le thème — au Cuir il tirerait un
          rideau clair sur la page (charte, § Encre contre aplat). */
-      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.45)', zIndex: 2600, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.45)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cs-livre-absent-titre"
         style={{ position: 'relative', background: 'var(--cs-surface)', borderRadius: '12px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '22rem', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)', padding: '20px 24px 22px' }}>
 

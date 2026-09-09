@@ -96,8 +96,10 @@ describe('empilement', () => {
   it('l’échelle est strictement croissante, et sans doublon', () => {
     const triee = [...ECHELLE_EMPILEMENT].sort((a, b) => a - b)
     expect(new Set(triee).size).toBe(ECHELLE_EMPILEMENT.length)
-    // ⚠️ La barre passe SOUS la visite qui la couvre, et au-dessus de tout le reste
-    //    hormis la notification et l'infobulle : c'est l'ordre que le site tient déjà.
-    expect(triee).toEqual(ECHELLE_EMPILEMENT.slice().sort((a, b) => a - b))
+    // ⛔ On compare la liste DÉCLARÉE à sa version triée, jamais deux copies triées :
+    //    l'écriture d'avant (`triee` contre un second tri) était vraie quoi qu'il arrive,
+    //    et n'aurait rien dit d'un rang déplacé dans la déclaration. C'est l'ORDRE du
+    //    module qui enseigne l'échelle à qui la lit.
+    expect([...ECHELLE_EMPILEMENT]).toEqual(triee)
   })
 })

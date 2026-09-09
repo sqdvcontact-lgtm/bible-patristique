@@ -1,5 +1,6 @@
 'use client'
 
+import { Z_MODALE } from '@/app/lib/empilement'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 
@@ -26,7 +27,7 @@ export default function ModaleCompteRequis({ contexte = '', onClose }: { context
   if (typeof document === 'undefined') return null
   return createPortal(
     <div onClick={onClose}
-      style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.5)', zIndex: 2600, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.5)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cs-compte-titre"
         style={{ background: 'var(--cs-surface)', borderRadius: '12px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '25rem', boxShadow: 'var(--cs-ombre-modale)', overflow: 'hidden' }}>
 

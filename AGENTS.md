@@ -1185,7 +1185,7 @@ C'est la trouvaille de fond de l'audit, et elle explique tout le reste. Le site 
 | **Illustrations** | `admin/illustrations/inventaire.test.ts` (**neuf, 2026-08-24**) | 58 images recensées, aucune oubliée, aucun fantôme |
 | **Syntaxe CSS** | `cssValide.test.ts` (**neuve, 2026-08-28**) | 2 feuilles passées à `postcss.parse` à chaque exécution |
 | **Feuilles EN LIGNE** | `blocsStyleSansAccentGrave.test.ts` (**neuve, 2026-09-07**) | aucun accent grave dans un bloc `<style>` de gabarit |
-| **Empilement** | `empilement.test.ts` (**neuve, 2026-09-09**) | 11 rangs de page nommés, 22 gelés ; la liste ne peut que décroître |
+| **Empilement** | `empilement.test.ts` (**neuve, 2026-09-09**) | 11 rangs de page nommés et ORDONNÉS, 10 gelés ; la liste ne peut que décroître |
 
 ⚠️ **Les 1 772 `fontSize` écrites en dur ne sont PAS de la dette**, et un audit qui les signale produit un faux positif : elles sont sur la grille, et un test le vérifie à chaque exécution. Ce qui compte n'est pas qu'une valeur soit littérale, c'est qu'elle soit sous garde.
 
@@ -1222,21 +1222,50 @@ DANS un contexte d’empilement — une poignée sur un volet, un chiffre sur un
 voile sur une carte — et ne se compare à rien d’autre qu’à ses frères. L’y faire entrer
 ferait une échelle de quarante rangs pour éviter une échelle de quarante valeurs.
 
-**Onze rangs**, et ce sont ceux que le site emploie DÉJÀ : `Z_ATTENTE` 900, `Z_FENETRE`
-1200, `Z_FLOTTANT` 1500, `Z_TIROIR_VOILE` 2400, `Z_TIROIR` 2401, `Z_MODALE` 2700,
-`Z_VISITE` 2800, `Z_BARRE` 3000, `Z_VISITE_BARRE` 3200, `Z_NOTIFICATION` 4000,
-`Z_INFOBULLE` 9999.
+**Onze rangs, DANS L’ORDRE** : `Z_ATTENTE` 900, `Z_FLOTTANT` 1100, `Z_FENETRE` 1200,
+`Z_TIROIR_VOILE` 2400, `Z_TIROIR` 2401, `Z_MODALE` 2700, `Z_VISITE` 2800, `Z_BARRE` 3000,
+`Z_VISITE_BARRE` 3200, `Z_NOTIFICATION` 4000, `Z_INFOBULLE` 9999.
 
-⛔ **L’échelle NE DÉPLACE RIEN**, et c’est ce qui la rend sûre : on nomme, on ne réordonne
-pas. Réordonner demande de trancher trois questions que le code ne peut pas trancher seul,
-et elles sont écrites en pied du module — la cellule flottante devant une fenêtre, le rang
-d’une fenêtre qui couvre la barre, le sort des six fenêtres à 2100 et 2600.
+⛔ **ELLE A ÉTÉ POSÉE SANS RIEN DÉPLACER, PUIS RÉORDONNÉE LE MÊME JOUR**, et les deux temps
+comptent. On NOMME d’abord ce que le site fait, sans rien bouger : une échelle qui déplacerait
+en même temps qu’elle nomme ne se relirait plus, et l’on ne saurait plus ce qui a changé de
+ce qui a seulement reçu un nom. On RÉORDONNE ensuite, sur décision, question par question.
+⚠️ Les trois arbitrages de l’auteur (2026-09-09, « fais au plus logique ») restent écrits en
+pied du module avec ce qu’ils ont déplacé — **un rang qui bouge sans laisser sa raison**
+**redevient une valeur en dur**.
 
-⛔ **Les vingt-deux rangs hors échelle sont GELÉS** (`empilementInventaire.ts`), à la
-manière du registre des couleurs en dur : la garde refuse un rang neuf, et refuse aussi une
-entrée que le code ne porte plus. La dette devient visible dans chaque diff et ne peut plus
-que décroître. ⛔ Aucun script ne le regénère : on en retire une ligne quand on a rangé la
-valeur, à la main, en le sachant.
+⛔ **LA CELLULE D’ACTIONS PASSE SOUS LA FENÊTRE** (1500 → 1100). Une fenêtre est modale, et
+ce qui accompagne la lecture — le pavé qui suit le curseur, un segment, un verset — s’efface
+devant elle. C’était l’inverse depuis toujours.
+
+⛔ **UNE MODALE EST UNE MODALE, et elles vivent TOUTES à `Z_MODALE`.** Elles étaient
+éparpillées à 1000, 1300, 2000, 2100, 2600 et 5000 selon l’écran qui les avait écrites, et
+`SectionBibliotheque` en portait à elle seule trois, à DEUX rangs différents. Une modale
+ouverte depuis une autre se pose dessus par l’ordre du document, qui suffit : la seconde est
+portée plus tard. ⛔ Ne pas inventer un rang « au-dessus des modales » pour un cas qui ne
+s’est pas présenté.
+
+⛔ **DESCENDRE UNE FENÊTRE SOUS LA BARRE DEMANDE DEUX GESTES, ET LE SECOND EST LE VRAI.**
+`ModalLienBiblique` vivait à 5000, seule du site, et couvrait donc la barre ; la ramener à
+`Z_MODALE` la faisait passer DESSOUS, ce qui est pire. Son calque part donc de
+`HAUTEUR_NAVBAR`, en `overflow: hidden`, la boîte à `maxHeight: 100%` — le gabarit que la
+charte prescrit depuis toujours (§ Fenêtres contextuelles) et qu’elle seule n’avait jamais
+reçu. **Un rang qu’on baisse sans reprendre la géométrie qui le justifiait laisse la fenêtre
+sous ce qu’elle couvrait.**
+
+⛔ **Les DIX rangs hors échelle sont GELÉS** (`empilementInventaire.ts`), à la manière du
+registre des couleurs en dur : la garde refuse un rang neuf, et refuse aussi une entrée que
+le code ne porte plus. La dette devient visible dans chaque diff et ne peut plus que
+décroître. ⛔ Aucun script ne le regénère : on en retire une ligne quand on a rangé la valeur,
+à la main, en le sachant. Ils étaient **vingt-deux** le matin du 2026-09-09 ; les douze partis
+étaient tous des modales.
+
+⚠️ **CE QUI RESTE N’EST PLUS DE LA MÊME FAMILLE, et c’est pourquoi il n’a pas suivi.** Deux
+groupes, deux arbitrages distincts, et aucun des deux n’était la question posée : le CHROME
+DE PAGE (1250, 1300, 2500 — les deux barres fixes de la lecture biblique sur téléphone, la
+pastille qui rend au lecteur la largeur de ses volets), qui n’est ni fenêtre ni tiroir et se
+compare d’abord à lui-même ; et les rangs INTERNES DE LA BARRE (3001, 3090, 3100), qui ne se
+comparent qu’à `Z_BARRE` et doivent la dépasser d’un cran pour se poser dessus.
 
 ⛔ **LA GARDE LIT DEUX ÉCRITURES** — le rang posé sur une propriété (`zIndex: 1200`,
 `z-index: 1200`) ET le rang rangé dans une constante (`const Z_FICHE = 1200`). Ne relever
@@ -1244,6 +1273,14 @@ que la première laisserait l’angle mort que les gardes chromatique (trente-se
 cachées dans des ternaires) et typographique (deux tailles hors grille) ont déjà payé, et
 que celle des blocs `<style>` a payé le matin même. ⚠️ Elle a été éprouvée dans les DEUX
 sens avant d’être crue : rouge sur un rang inventé, rouge sur une dette disparue.
+
+⛔ **ET SON TROISIÈME TEST NE VÉRIFIAIT RIEN.** « L’échelle est strictement croissante »
+comparait `[...ECHELLE].sort()` à `ECHELLE.slice().sort()`, c’est-à-dire deux copies triées :
+l’assertion était vraie quoi qu’il arrive, et un rang déplacé dans la DÉCLARATION n’aurait
+rien fait rougir — c’est-à-dire précisément ce que la passe du 9 septembre allait faire. Elle
+compare désormais la liste déclarée à sa version triée, et cela a été éprouvé en
+intervertissant deux rangs. ⚠️ **Une garde tautologique est pire qu’une garde absente : elle
+occupe la place**, et son nom promet ce qu’elle ne fait pas.
 
 ⚠️ **Un rang ne s’interpole pas dans un bloc `<style>`** : PostCSS refuse
 `z-index: ${Z_BARRE};` là où il accepte `calc(… - ${HAUTEUR_NAVBAR})`, et

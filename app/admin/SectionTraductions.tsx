@@ -1,5 +1,6 @@
 'use client'
 
+import { Z_MODALE } from '@/app/lib/empilement'
 import IconeChevron from '@/app/components/IconeChevron'
 import React, { useState, useRef } from 'react'
 import { preparerPortrait, BOITE_TRADUCTION, BOITE_TRADUCTION_ENCART } from '@/app/lib/preparerPortrait'
@@ -144,7 +145,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
     : ''
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 2000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: Z_MODALE, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' }}>
       <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-fond)', borderRadius: '8px', padding: '18px 18px 16px', maxWidth: '42.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
 
         {/* En-tête */}
@@ -1301,7 +1302,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
         const t = lignes.find(l => l.trad_id === replaceModal)
         if (!t) return null
         return (
-          <div onClick={() => { if (replaceStatut !== 'loading') setReplaceModal(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+          <div onClick={() => { if (replaceStatut !== 'loading') setReplaceModal(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
             <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-fond)', borderRadius: '8px', padding: '22px 24px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                 <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>

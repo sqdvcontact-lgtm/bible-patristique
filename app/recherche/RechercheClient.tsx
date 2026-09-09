@@ -1,4 +1,5 @@
 'use client'
+import { Z_MODALE } from '@/app/lib/empilement'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -1634,7 +1635,7 @@ export default function RechercheClient() {
           quand une autre recherche est déjà mémorisée. « Écraser » remplace la précédente. */}
       {confirmEcrasement && rechercheSauvee && (
         <div onClick={() => setConfirmEcrasement(false)}
-          style={{ position:'fixed', inset:0, background:'rgba(30,28,24,0.38)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:'20px' }}>
+          style={{ position:'fixed', inset:0, background:'rgba(30,28,24,0.38)', display:'flex', alignItems:'center', justifyContent:'center', zIndex: Z_MODALE, padding:'20px' }}>
           <div onClick={e => e.stopPropagation()}
             style={{ background:'var(--cs-fond-clair)', border:'1px solid var(--cs-bord)', borderRadius:'8px', boxShadow:'var(--cs-ombre-modale)', padding:'20px 22px', maxWidth:'21.25rem', width:'100%' }}>
             <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.875rem', fontWeight:600, color:'var(--cs-encre)', margin:'0 0 8px' }}>Écraser la recherche précédente ?</p>

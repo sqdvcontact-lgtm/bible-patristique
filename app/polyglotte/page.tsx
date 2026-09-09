@@ -14,6 +14,7 @@
 // Écran large requis : la page est signalée indisponible sous 820 px.
 // ────────────────────────────────────────────────────────────────────────────
 
+import { Z_MODALE } from '@/app/lib/empilement'
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cesurerGrec, codeLangue, copierSansCesures } from "@/app/lib/grec";
@@ -551,7 +552,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
     setTimeout(() => { el.focus(); el.setSelectionRange(d + t.length, d + t.length); }, 0);
   };
   return (
-    <div onClick={onFermer} style={{ position: "fixed", inset: 0, background: "rgba(30,25,20,0.4)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+    <div onClick={onFermer} style={{ position: "fixed", inset: 0, background: "rgba(30,25,20,0.4)", zIndex: Z_MODALE, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div onClick={e => e.stopPropagation()} style={{ background: "var(--cs-surface)", borderRadius: 8, padding: "18px 20px", width: 520, maxWidth: "100%", boxShadow: "var(--cs-ombre-modale)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
           <p style={{ margin: 0, fontSize: '0.78125rem', fontWeight: 600, color: VERT }}>Modifier — {reference}</p>

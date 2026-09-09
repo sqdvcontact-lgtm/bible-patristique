@@ -1,5 +1,6 @@
 'use client'
 
+import { Z_MODALE } from '@/app/lib/empilement'
 import IconeChevron from '@/app/components/IconeChevron'
 import React, { useState, useRef } from 'react'
 import { supabase, parseCSV, headersAdmin } from './adminShared'
@@ -45,7 +46,7 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
   const modifiees = lignes.filter(l => l._modifie)
   const inchangees = lignes.length - modifiees.length
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(30,26,22,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: Z_MODALE, background: 'rgba(30,26,22,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: '100%', maxWidth: '53.75rem', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--cs-bord-clair)', flexShrink: 0 }}>
           <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.25rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 6px' }}>Validation de l’import</h2>
@@ -171,7 +172,7 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
   const cadreManipule: SurfacePortrait = reglageActif === 'carte' ? 'carte' : 'fiche'
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 2100, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '28px 16px', overflowY: 'auto' }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: Z_MODALE, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '28px 16px', overflowY: 'auto' }}>
       <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '41rem', background: 'var(--cs-fond)', borderRadius: '8px', padding: '18px', boxShadow: 'var(--cs-ombre-modale)' }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -1571,7 +1572,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
         }
         return (
           <div onClick={() => setConfigOeuvre(null)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div onClick={e => e.stopPropagation()}
               style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '24px 28px', width: '30rem', maxHeight: '80vh', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
