@@ -288,7 +288,7 @@ export type ContexteProjection = {
    * Pose les appels dans un CHAMP DE TITRE. ⛔ Sans elle, une note qui vise
    * `ref_niv1_texte`, `ref_niv2` ou un autre champ de titre n'a AUCUN appel : la
    * projection ne connaissait que `segment_texte`, et laissait le reste de côté sans un
-   * mot (36 ancres du corpus, mesuré le 9 septembre 2026).
+   * mot (34 ancres du corpus, mesuré le 9 septembre 2026).
    */
   projeterTitre?: ProjeterTitre
   /** Le groupe d'alignement d'un segment, quand la surface le connaît déjà. */

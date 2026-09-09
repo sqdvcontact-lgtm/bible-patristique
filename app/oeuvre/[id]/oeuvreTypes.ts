@@ -120,7 +120,7 @@ export type GroupeData = {
    * le sommaire, `changerNiv1` et la RPC `get_niv1_list` s'y appuient tous —, et y
    * glisser un « [[12]] » romprait le rapprochement. C'est le partage que `SegData` fait
    * déjà entre `texte` et `texteAffichage`.
-   * ⚠️ Absent quand rien n'est à projeter, c'est-à-dire presque toujours : 36 ancres du
+   * ⚠️ Absent quand rien n'est à projeter, c'est-à-dire presque toujours : 34 ancres du
    * corpus sont dans ce cas (mesuré le 9 septembre 2026).
    */
   titresAffichage?: Partial<Record<ChampTitre, string>>

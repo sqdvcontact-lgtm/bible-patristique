@@ -34,15 +34,16 @@ type SurRefus = (ancre: AncreNoteStructureeProjection, refus: string) => void
  * LE CHAMP dans lequel on projette — `source_target` de l'ancre (charte § 13.6).
  *
  * ⛔ La projection ne connaissait que `segment_texte`, et TOUT LE RESTE était laissé de
- * côté SANS UN MOT. Mesuré le 9 septembre 2026 : 36 ancres du corpus visent un champ de
- * TITRE sans porter leur marqueur matériellement — 30 sur `ref_niv1_texte` et 3 sur
- * `ref_niv2` dans les Homélies sur la Genèse, une sur `ref_niv1_texte` dans les
- * Catéchèses, deux sur `work_title` (Annotations sur le livre de Job, De la vanité des
- * idoles). Leur appel ne paraissait NULLE PART, et rien ne le disait.
+ * côté SANS UN MOT. Mesuré le 9 septembre 2026 : le corpus porte 93 ancres qui visent un
+ * champ de TITRE, et **34 d'entre elles ne portaient leur marqueur nulle part** — 30 sur
+ * `ref_niv1_texte` et 3 sur `ref_niv2` dans les Homélies sur la Genèse, une sur
+ * `ref_niv1_texte` dans les Catéchèses. Leur appel ne paraissait NULLE PART, et rien ne
+ * le disait.
  *
- * ⚠️ Les 57 autres ancres de titre du corpus portent leur marqueur DANS le champ : elles
- * se rendaient déjà, et la projection les laisse telles quelles (elle ne double jamais un
- * marqueur matériel).
+ * ⚠️ Les 59 autres portent leur marqueur DANS le champ — les deux ancres `work_title`
+ * comprises, dont le marqueur vit dans `oeuvres.titre_affichage` et se rend au
+ * frontispice. Elles se composaient déjà, et la projection les laisse telles quelles :
+ * elle ne double jamais un marqueur matériel.
  */
 export const CHAMP_SEGMENT = 'segment_texte'
 

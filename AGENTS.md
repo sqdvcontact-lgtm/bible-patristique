@@ -2010,9 +2010,10 @@ qu'il faut savoir pour y revenir.
 - ⚠️ **`A0044O0003TFR-V11` est sous une passe de NORMALISATION des notes** (métadonnées
   `reference_normalization_mission: A0044O0003|controle-protocole-20260906`, rebasées le
   2026-09-07). La base bouge sous les pieds : relire l'état avant toute reprise.
-- ⚠️ **Reste OUVERT, et signalé** : la note 1468 (titre de la Seizième catéchèse) porte
-  une ancre `source_target = 'ref_niv1_texte'` sans marqueur matériel nulle part, et la
-  projection ne connaît que `segment_texte` — son appel ne paraît donc pas. Antérieur à
+- ✅ **La note 1468 est SERVIE depuis le 9 septembre 2026** (titre de la Seizième
+  catéchèse, `source_target = 'ref_niv1_texte'`, sans marqueur matériel) : « le
+  Paraclet¹⁴⁶⁸ qui a parlé par les Prophètes ». Voir ci-dessous, « Un appel de note posé
+  sur un TITRE ». Antérieur à
   cette passe, vérifié dans la sauvegarde.
 
 # Composition des VERS — l'alinéa de base, et les alinéas qui se lisent (2026-08-23)
@@ -2486,6 +2487,52 @@ Une cellule d’actions flottante — celle de la lecture d’une œuvre, celle 
 - ⚠️ **Ni les types, ni les 1 606 tests, ni la relecture du composant ne le voient** : le composant est juste, c’est sa RÉUTILISATION qui ne l’est pas. Il se reproduit en survolant deux cibles à la suite, dans la page servie.
 
 ⚠️ **Recette de reproduction, sans serveur de développement** : sous la session de l’auteur, envelopper `window.fetch` pour journaliser la table visée, puis provoquer le survol par `el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))`. ⛔ **Sans `relatedTarget`** : React abandonne l’événement si la cible liée appartient déjà à son arbre (`getClosestInstanceFromNode`), et `document.body` EST le conteneur racine — la cellule ne s’ouvre alors jamais, et l’on croit le composant hors d’atteinte.
+
+# ⛔ UN APPEL DE NOTE POSÉ SUR UN TITRE (2026-09-09)
+
+⛔ **UNE ANCRE PEUT VISER AUTRE CHOSE QUE `segment_texte`, et TOUT LE RESTE était laissé
+de côté SANS UN MOT** — dans la projection ET dans le chargeur, deux étages, chacun
+suffisant à faire disparaître l'appel. Mesuré le 9 septembre 2026 : le corpus porte
+**93 ancres qui visent un champ de TITRE**, et **34 ne portaient leur marqueur nulle
+part** — 30 sur `ref_niv1_texte` et 3 sur `ref_niv2` dans les Homélies sur la Genèse,
+une sur `ref_niv1_texte` dans les Catéchèses. ⚠️ Les 59 autres portent leur marqueur DANS
+le champ, les deux `work_title` comprises, dont le marqueur vit dans
+`oeuvres.titre_affichage` et se rend au frontispice : « Annotations sur le livre de
+Job¹ ». Elles se composaient déjà.
+
+- ⛔ **LE TITRE RENDU PORTE SES APPELS, LE TITRE CANONIQUE NE BOUGE PAS.**
+  `GroupeData.titresAffichage` se pose À CÔTÉ de `niv1`, jamais à sa place : c'est sur
+  `niv1` que s'appuient la navigation, le sommaire, `changerNiv1` et la RPC
+  `get_niv1_list`, et y glisser un « [[12]] » romprait le rapprochement. C'est le partage
+  que `SegData` fait déjà entre `texte` et `texteAffichage`.
+- ⛔ **DEUX VOCABULAIRES QUI NE COÏNCIDENT PAS, et c'est le piège du jour** : un groupe de
+  rendu appelle son titre `niv1`, l'ancre nomme la COLONNE de `segments`, `ref_niv1`.
+  Projeter sur le nom du groupe ne trouve AUCUNE ancre, et l'appel manque sans un mot.
+  `champDuTitre` les réconcilie en un seul endroit.
+- ⛔ **LE CHARGEUR FILTRAIT LUI AUSSI, et il annulait la correction.**
+  `chargerNotesStructurees` ne rangeait dans `ancresParSegment` que les cibles
+  `segment_texte` : la projection avait beau savoir viser un champ de titre, l'ancre qui en
+  vise un n'arrivait jamais jusqu'à elle. Il indexe désormais TOUTES les cibles, et c'est le
+  CONSOMMATEUR qui choisit son champ — la valeur par défaut restant `segment_texte`, un
+  appelant qui ne demande rien ne voit rien de plus qu'avant. ⚠️ **Corriger un étage sans
+  l'autre ne change rien à l'écran**, et le premier correctif a été déployé, mesuré en
+  ligne, et trouvé sans effet : c'est la charge servie (`titresAffichage` absent de tout le
+  document) qui a nommé le second étage.
+- ⚠️ **UN OFFSET ABSENT N'EST UN DÉFAUT QUE SUR LE TEXTE**, où l'appel manque alors au
+  lecteur. Sur un champ de titre, il dit seulement que le marqueur est posé MATÉRIELLEMENT
+  — les deux ancres `work_title` du corpus sont dans ce cas. Le compter ferait paraître un
+  bandeau de dégradation sur deux œuvres qui n'ont rien perdu.
+- ⛔ **L'ancre d'un chapeau ne tombe pas sur le PREMIER segment du groupe** : `grouper`
+  passe les clés de TOUS ses segments, comme `notesDuTitre` le fait déjà pour le CONTENU de
+  la note.
+- ⛔ **ET LA BARRE DE DIVISION N'EST PAS UN SITE DE RENDU DE MOINS.** C'est LÀ que le titre
+  de niveau 1 se compose en lecture ordinaire — le corps ne le rend qu'en texte entier, et
+  les deux s'excluent (`!lectureTexteEntier` d'un côté, `showNiv1` de l'autre). L'oublier,
+  c'est perdre l'appel sur la seule surface où l'on lit ce titre : douze sites de rendu dans
+  `OeuvreClient`, plus celui-là.
+- ⚠️ **`ComparaisonTraductions` garde SA copie du chargeur**, avec le même filtre. La
+  surface est éteinte (`COMPARAISON_ACTIVE = false`) ; à reprendre le jour où elle
+  rallumera, et c'est la seconde écriture que la charte signale déjà.
 
 # ⛔ L'ENCART SE RANGE DANS LA MARGE — `placerEnMarge` (2026-09-08)
 
