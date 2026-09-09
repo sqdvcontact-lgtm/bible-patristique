@@ -123,6 +123,10 @@ export type OeuvreResumee = {
   id_oeuvre: string; titre: string; note?: string | null
   trad_auteur?: string | null; editeur?: string | null; ville?: string | null
   date_publication?: string | null; langue_originale?: string | null; langue_trad?: string | null
+  /** La mesure qui partage les œuvres des OPUSCULES (`app/lib/opuscules.ts`), la même
+   *  qu'à la bibliothèque. ⚠️ Sans elle aucune entrée n'est un opuscule et la section ne
+   *  paraît jamais : c'est la panne exacte que la bibliothèque a portée six semaines. */
+  nb_signes?: number | null
 }
 
 export type VersionTextuelle = {

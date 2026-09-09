@@ -105,6 +105,7 @@ import OngletCommentaires from './OngletCommentaires'
 import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import { useEstMobile, useSansSurvol } from '@/app/lib/useEstMobile'
 import { COMPOSITION_INTITULE, cleTriTitre, complementDeTitre } from '@/app/lib/titres'
+import { partagerOpuscules } from '@/app/lib/opuscules'
 import { enregistrerOeuvreRecente } from '@/app/lib/oeuvresRecentes'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
@@ -1054,6 +1055,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   type VersionTrad = { id_oeuvre: string; titre: string; trad_auteur: string | null; editeur: string | null; ville: string | null; date_publication: string | null; acces_public: boolean | null; langue_originale: string | null; langue_trad: string | null }
   const [versions, setVersions] = useState<VersionTrad[]>([])
   const [auteurOuvert, setAuteurOuvert] = useState(false)
+  // La sous-section « Opuscules » de la rubrique ci-dessus. Repliée par défaut, comme
+  // à la bibliothèque : c'est tout son objet.
+  const [opusculesOuverts, setOpusculesOuverts] = useState(false)
   const [apparatOuvert, setApparatOuvert] = useState(false)
   const [sommaireOuvert, setSommaireOuvert] = useState(true)
   const [apparatNiv1Actif, setApparatNiv1Actif] = useState<string | null>(null)
@@ -1922,7 +1926,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   useEffect(() => {
     if (!auteurId) return
-    const base = supabase.from('oeuvres').select('id_oeuvre, titre, acces_public, trad_auteur, editeur, ville, date_publication, langue_originale, langue_trad')
+    // `nb_signes` commande le partage entre œuvres et opuscules : ne pas le retirer.
+    const base = supabase.from('oeuvres').select('id_oeuvre, titre, acces_public, trad_auteur, editeur, ville, date_publication, langue_originale, langue_trad, nb_signes')
     // Repli sur le premier auteur tant que les couples ne sont pas chargés (ou
     // s'ils n'ont pas pu l'être) : la liste reste peuplée, simplement sans les
     // co-signatures.
@@ -2155,17 +2160,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // donc rigoureusement le même intitulé : la liste proposait deux liens que rien ne
   // distinguait, et le lecteur ne pouvait que tirer au sort.
   //
-  // On ne reprend pas `libelleEdition` tel quel : il TAIT la langue des traductions,
-  // sous-entendue française dans le sélecteur d'édition, où l'on ne compare que des
-  // sœurs du même texte. Ici les entrées sont des œuvres différentes, et la langue est
-  // justement l'une des trois choses qui les séparent. Elle vient donc en tête, puis le
-  // traducteur, puis l'édition.
+  // ⛔ SANS LA LANGUE (demande de l'auteur, 2026-09-09 : « ne pas indiquer la langue du
+  // texte »). Elle ouvrait la ligne, et c'était le rang le plus long pour le moins de
+  // renseignement : sur une étagère d'auteur, presque toutes les entrées portaient le
+  // même mot. Ce qui départage deux éditions d'un même titre reste dit — le traducteur,
+  // puis l'adresse —, et une œuvre en langue originale se reconnaît à ce qu'elle n'a
+  // justement pas de traducteur.
   const libelleDistinction = (o: OeuvreResumee): string => {
-    // Un SEUL séparateur entre les trois rangs, et il est nommé. La première écriture en
-    // avait deux : un tiret après la langue d'une édition originale, une virgule après
-    // celle d'une traduction, parce que les deux branches composaient leur chaîne chacune
-    // de son côté. Rien n'imposait qu'elles s'accordent, et elles ne s'accordaient pas.
-    // Les trois rangs sont maintenant assemblés au même endroit, par la même constante.
+    // Un SEUL séparateur entre les rangs, et il est nommé. La première écriture en avait
+    // deux : un tiret après la langue d'une édition originale, une virgule après celle
+    // d'une traduction, parce que les deux branches composaient leur chaîne chacune de
+    // son côté. Rien n'imposait qu'elles s'accordent, et elles ne s'accordaient pas.
+    // Les rangs sont maintenant assemblés au même endroit, par la même constante.
     //
     // La virgule reste À L'INTÉRIEUR du rang « édition », où elle sépare la ville,
     // l'éditeur et la date : ce sont les parties d'une même adresse, non trois rangs.
@@ -2175,15 +2181,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       editeur: formaterEditeur(o.editeur ?? null),
       annee: o.date_publication ? formaterDateHistorique(o.date_publication) : null,
     })
-    const majuscule = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
     const originale = estEditionOriginale({ langue_trad: o.langue_trad ?? null, langue_originale: o.langue_originale ?? null })
-    const langue = originale
-      ? (/grec/i.test(o.langue_originale || '') ? 'Grec' : 'Latin')
-      : majuscule((o.langue_trad || '').trim() || 'Français')
     // Une édition en langue originale n'a pas de traducteur : si la donnée en porte un,
     // c'est une scorie, et l'afficher ferait passer un texte original pour une traduction.
     const trad = !originale && o.trad_auteur ? libelleTrad(o.trad_auteur) : null
-    return [langue, trad, edition].filter(Boolean).join(SEP)
+    return [trad, edition].filter(Boolean).join(SEP)
   }
 
   const chargerSauvegardesSegs = async (uid: string, oeuvreId: string, texteId: string) => {
@@ -2811,47 +2813,99 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               </button>
               {auteurOuvert && (
                 <div style={{ padding: '0 16px 12px' }}>
-                  {oeuvresAuteur.map(o => {
-                    const distinction = libelleDistinction(o)
-                    const courante = o.id_oeuvre === idOeuvre
-                    // ⚠️ CELLE QU'ON LIT N'EST PAS UN LIEN, et c'est ce qui la dit
-                    //    retenue : un lien qui mène où l'on est déjà est une promesse
-                    //    vide. Elle prend la marque que le site emploie partout pour
-                    //    l'option en cours — le vert, la graisse —, comme un niveau actif
-                    //    du sommaire deux rubriques plus bas ; `aria-current` la dit à qui
-                    //    ne voit pas la couleur.
-                    const contenu = (
-                      <>
-                        {o.titre}
-                        {/* La ligne de distinction ne prend PAS la couleur de survol : le lien
-                            est le titre, et cette ligne le renseigne. Elle garde donc sa teinte
-                            faible, ce qui la tient au second rang même sous le curseur. */}
-                        {distinction && (
-                          <span style={{ display: 'block', fontSize: '0.625rem', fontStyle: 'italic', color: courante ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', lineHeight: 1.3, marginTop: '1px' }}>{distinction}</span>
-                        )}
-                      </>
-                    )
-                    const commun: React.CSSProperties = {
-                      display: 'block', fontSize: '0.6875rem', textDecoration: 'none',
-                      padding: '4px 0', lineHeight: 1.35, borderBottom: '1px solid var(--cs-fond-doux)',
-                    }
-                    if (courante) {
+                  {(() => {
+                    const rendreEntree = (o: OeuvreResumee) => {
+                      const distinction = libelleDistinction(o)
+                      const courante = o.id_oeuvre === idOeuvre
+                      // ⚠️ CELLE QU'ON LIT N'EST PAS UN LIEN, et c'est ce qui la dit
+                      //    retenue : un lien qui mène où l'on est déjà est une promesse
+                      //    vide. Elle prend la marque que le site emploie partout pour
+                      //    l'option en cours — le vert, la graisse —, comme un niveau actif
+                      //    du sommaire deux rubriques plus bas ; `aria-current` la dit à qui
+                      //    ne voit pas la couleur.
+                      const contenu = (
+                        <>
+                          {o.titre}
+                          {/* La ligne de distinction ne prend PAS la couleur de survol : le lien
+                              est le titre, et cette ligne le renseigne. Elle garde donc sa teinte
+                              faible, ce qui la tient au second rang même sous le curseur.
+                              ⚠️ Et elle TOUCHE son titre — plus de marge, même interligne serré
+                              (demande de l'auteur, 2026-09-09) : le titre et son adresse font UNE
+                              entrée, et le blanc qui doit se voir est celui qui sépare deux
+                              œuvres, non celui qui sépare les deux lignes d'une seule. */}
+                          {distinction && (
+                            <span style={{ display: 'block', fontSize: '0.625rem', fontStyle: 'italic', color: courante ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', lineHeight: 1.25 }}>{distinction}</span>
+                          )}
+                        </>
+                      )
+                      const commun: React.CSSProperties = {
+                        display: 'block', fontSize: '0.6875rem', textDecoration: 'none',
+                        padding: '3px 0', lineHeight: 1.25, borderBottom: '1px solid var(--cs-fond-doux)',
+                      }
+                      if (courante) {
+                        return (
+                          <span key={o.id_oeuvre} aria-current="page"
+                            style={{ ...commun, color: 'var(--cs-vert)', fontWeight: 600 }}>
+                            {contenu}
+                          </span>
+                        )
+                      }
                       return (
-                        <span key={o.id_oeuvre} aria-current="page"
-                          style={{ ...commun, color: 'var(--cs-vert)', fontWeight: 600 }}>
+                        <a key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
+                          style={{ ...commun, color: 'var(--cs-texte)' }}
+                          onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-vert)')}
+                          onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-texte)')}>
                           {contenu}
-                        </span>
+                        </a>
                       )
                     }
+
+                    // ── ŒUVRES ET OPUSCULES ────────────────────────────────────────
+                    // La MÊME règle qu'à la bibliothèque, et le même module : seuil,
+                    // mesure et conditions de repli vivent dans `app/lib/opuscules.ts`.
+                    // Une étagère d'auteur prolifique noie ici ses œuvres de fond sous
+                    // ses textes brefs exactement comme là-bas ; elle se partage donc de
+                    // la même façon, sous peine d'offrir au lecteur deux classements du
+                    // même corpus selon la page où il se tient.
+                    //
+                    // ⛔ Le classement porte sur le GROUPE DE TITRE, jamais sur l'entrée
+                    // isolée : deux éditions d'un même texte ne se séparent pas parce que
+                    // l'une n'a qu'une préface intégrée. Les entrées, elles, restent à
+                    // plat — chacune porte son adresse d'édition, qui la départage.
+                    //
+                    // ⚠️ Le groupement se fait sur `cleTriTitre`, LA CLÉ DU TRI de cette
+                    // liste : grouper sur une autre clé que celle qui ordonne couperait un
+                    // groupe en deux dès que les deux divergeraient.
+                    type GroupeTitre = { titre: string; versions: OeuvreResumee[] }
+                    const groupes: GroupeTitre[] = []
+                    for (const o of oeuvresAuteur) {
+                      const dernier = groupes[groupes.length - 1]
+                      if (dernier && cleTriTitre(dernier.titre) === cleTriTitre(o.titre)) dernier.versions.push(o)
+                      else groupes.push({ titre: o.titre, versions: [o] })
+                    }
+                    const { grandes, opuscules, sectionne } = partagerOpuscules<OeuvreResumee, GroupeTitre>(groupes)
+                    const lignes = (gs: GroupeTitre[]) => gs.flatMap(g => g.versions).map(rendreEntree)
+                    if (!sectionne) return lignes(groupes)
+                    // ⛔ L'ŒUVRE QU'ON LIT NE SE REPLIE PAS : si elle est un opuscule, la
+                    // section s'ouvre d'office. Sans quoi la liste où le lecteur doit se
+                    // voir se refermerait précisément sur lui.
+                    const deployee = opusculesOuverts || opuscules.some(g => g.versions.some(v => v.id_oeuvre === idOeuvre))
                     return (
-                      <a key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
-                        style={{ ...commun, color: 'var(--cs-texte)' }}
-                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-vert)')}
-                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-texte)')}>
-                        {contenu}
-                      </a>
+                      <>
+                        {lignes(grandes)}
+                        <div style={{ marginTop: '5px' }}>
+                          <button type="button" onClick={() => setOpusculesOuverts(o => !o)} aria-expanded={deployee}
+                            title={deployee ? 'Replier les opuscules' : 'Les textes brefs de cet auteur'}
+                            style={{ display: 'flex', alignItems: 'center', gap: '5px', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', textAlign: 'left' }}>
+                            <span style={{ fontSize: '0.6875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)' }}>Opuscules</span>
+                            <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)' }}>{opuscules.length}</span>
+                            <span aria-hidden="true" style={{ marginLeft: 'auto', fontSize: '0.4375rem', color: 'var(--cs-texte-faible)' }}>{deployee ? '▲' : '▼'}</span>
+                          </button>
+                          {deployee && lignes(opuscules)}
+                        </div>
+                      </>
                     )
-                  })}
+                  })()}
                 </div>
               )}
             </div>
