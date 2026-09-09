@@ -782,11 +782,47 @@ plus que le titre qu'il précède. Jugé sur planche, à la taille RÉELLE, agra
 proche voisin — un ornement au trait ne se juge pas dans l'éditeur. Servie en 78 × 86 pour
 40 × 44 affichés, rapport 1,95.
 
-⚠️ **Elle est SYMÉTRIQUE sur ses deux axes**, ce qu'un ornement de séparation doit être :
-c'est la leçon du filet directionnel refusé le 2026-08-31, « un ornement qui ferme un titre
-ne va nulle part ». ⛔ Trois des sept planches du même lot entrées en réserve ce jour-là ne
-peuvent donc PAS la remplacer — la croix gothique et les deux fleurons verticaux n'ont
-qu'un axe, le poisson est figuratif et regarde à droite.
+⚠️ **Elle est SYMÉTRIQUE sur ses deux axes**, et c'est ce qui en fait le fleuron DU SITE.
+⛔ **Mais un seul axe suffit à séparer, et cette page a dit le contraire le 2026-09-09 au
+matin** : « la croix gothique et les deux fleurons verticaux n'ont qu'un axe, ils ne
+peuvent donc pas la remplacer ». La leçon du filet refusé le 2026-08-31 porte sur ce qui
+pointe LATÉRALEMENT, dans l'axe de la lecture — une flèche vers la droite —, non sur un
+fleuron vertical, qui est la forme la plus ordinaire du répertoire typographique. La
+formulation était trop large ; le critère juste est : **un ornement de séparation ne
+regarde nulle part**. Le poisson, lui, reste figuratif et tourné vers la droite : il est
+offert, avec sa réserve écrite au recensement.
+
+## ⛔ QUINZE FLEURONS AU REGISTRE, ET LA POSE EST PROPRE À CHACUN (2026-09-09)
+
+⛔ **Le registre est `app/lib/fleurons.ts`, clos et sous garde** (40 tests). `oeuvres.fleuron`
+porte une CLÉ ; une clé inconnue, vide ou absente retombe sur le fleuron du site. Colonne
+NULLABLE et SANS CONTRAINTE en base : la liste est éditoriale, elle bougera, et un ornement
+retiré ne doit ni bloquer une écriture ni vider un frontispice. C'est le parti
+d'`essais.couverture` et de `profils.theme_lecture` — la validation vit dans le code.
+
+⚠️ **`null` est le cas ORDINAIRE, et il ne veut pas dire « aucun fleuron » : il veut dire
+« celui du site ».** Régler une œuvre la distingue ; changer toutes les autres est UNE ligne
+dans le registre. C'est la mécanique de `titre_affichage`, et c'est ce qui évite d'avoir à
+trancher entre un réglage par œuvre et un réglage global : on a les deux.
+
+⛔ **LA HAUTEUR DE POSE EST PROPRE À CHAQUE ORNEMENT, ET ELLE SE MESURE.** Un dessin dense
+pèse plus qu'un dessin ajouré à taille égale ; un fleuron deux fois et demie plus haut que
+large disparaît si on lui donne la hauteur d'un fleuron carré. Mesuré à la taille RÉELLE,
+sur planche agrandie au plus proche voisin : **2,5 rem** pour la couronne d'épines, qui est
+le seul ornement rond du jeu, **4 rem** pour le pendentif, dont le trait est le plus fin.
+
+⛔ **UNE POSE CHANGÉE OBLIGE À REJOUER LA PLANCHE.** Une planche se sert au double de sa
+taille d'affichage, jamais plus : les sept réserves du matin, taillées pour 56 px de LARGE
+faute de pose connue, se servaient jusqu'à **3,5 fois** leur affichage une fois posées à
+leur hauteur. Toutes entre 1,75 et 2,05 désormais, et un test tient la borne. ⚠️ Le rognage
+sur l'alpha retire du vide APRÈS la réduction : la largeur qu'on demande à la chaîne n'est
+donc pas celle qu'on obtient, et la correction se fait dans les DEUX sens — ne savoir que
+majorer fait dépasser (mesuré : le serpent au croissant servi à 2,79 fois sa pose).
+
+⚠️ **Le test confronte aussi les DIMENSIONS écrites aux fichiers réels** : c'est par elles
+que la page calcule la largeur (`calc(hauteur * largeur / hauteur)`), et une valeur recopiée
+de travers rendrait un ornement étiré sans que rien ne le dise. Même parti que le
+recensement des illustrations, qui compare sa liste au contenu de `public/`.
 ## Le monogramme « CS » — deux planches, deux emplois (2026-08-19)
 
 Le site a une marque : un `C` gothique enlaçant un `S`, la haste du `S` portant une croix. Elle existe en deux planches, rangées dans `work/logo/`, et **`scripts/logo-fabriquer.mjs` fabrique tout le reste** — le relancer plutôt que retoucher un fichier produit.
