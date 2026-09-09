@@ -3740,7 +3740,11 @@ La mesure est recalculée sur demande, après un import ou une correction de cor
 
 ### 33.2 Opuscules
 
-Une œuvre dont la longueur est inférieure au seuil d’opuscule est un texte bref. La bibliothèque replie les textes brefs d’un auteur dans une section rétractée, sous ses œuvres longues.
+Une œuvre dont la longueur est inférieure au seuil d’opuscule est un texte bref. Toute liste qui présente l’ŒUVRE D’UN AUTEUR replie ses textes brefs dans une section rétractée, sous ses œuvres longues.
+
+⛔ **La règle n’appartient pas à la bibliothèque**, où elle est née : elle vaut partout où une étagère d’auteur se déploie — l’étagère de la bibliothèque, et la rubrique « Du même auteur » du volet de la page Œuvre (9 septembre 2026). Le mal y est le même, onze opuscules pour huit œuvres chez Jean Chrysostome, et deux classements du même corpus selon la page où le lecteur se tient n’auraient rien classé. ⚠️ Elles passent donc par le MÊME module : un seuil, une mesure, un partage.
+
+⛔ **Sans la mesure, la règle ne se déclenche jamais — en silence.** La surface qui replie doit lire `nb_signes` : la bibliothèque l’a lu six semaines au rechargement client et pas au rendu serveur, si bien qu’aucune section n’a paru en ligne pendant que ses tests passaient. Une surface qui oublie la colonne n’affiche pas une erreur, elle affiche une liste entière.
 
 Le seuil se justifie par le corpus et non par une idée de la longueur : il se place dans un intervalle vide du classement des œuvres publiées. Il ne se place jamais sur la médiane, qui rangerait une œuvre sur deux parmi les opuscules et couperait des séries éditoriales cohérentes.
 
@@ -5405,6 +5409,8 @@ Cette obligation vaut aussi pour les œuvres antiques, médiévales ou anciennes
 ⛔ **Elle était écrite à SEPT endroits, et cinq la disaient à l’envers.** La ligne d’une édition dans le sélecteur d’une œuvre, la mention d’une œuvre sœur, la ligne qui départage deux entrées de « Du même auteur », la carte de la bibliothèque, le menu des œuvres récentes de la barre : toutes composaient « éditeur, ville, année », quand la fiche d’une version et la carte d’une bible composaient « ville, éditeur, année ». Le lecteur changeait donc d’ordre d’une page à l’autre, pour la même édition. Une seule écriture désormais, et une règle qui change là change partout.
 
 ⛔ **Ce n’est PAS une notice bibliographique.** Pas de titre, pas d’auteur, pas d’italique, pas de point final : une notice se compose par le MOTEUR (§ 47.5). L’adresse en est la seule partie qu’un libellé de navigation reprend, et c’est pour cela qu’elle a son écriture à elle.
+
+⛔ **Et la ligne qui départage deux entrées de « Du même auteur » ne dit pas la LANGUE** (demande de l’auteur du 9 septembre 2026 : « ne pas indiquer la langue du texte »). Elle ouvrait la ligne, et c’était le rang le plus long pour le moins de renseignement : sur une étagère d’auteur, presque toutes les entrées portaient le même mot. Le traducteur puis l’adresse suffisent à départager, et une œuvre en langue originale se reconnaît à ce qu’elle n’a justement pas de traducteur. ⚠️ La rubrique se resserre pour la même raison qu’elle se tait : le titre touche son adresse d’édition, et le blanc qui doit se voir est celui qui sépare deux œuvres, non celui qui sépare les deux lignes d’une seule.
 
 ⚠️ **L’adresse ne RÉSOUT rien.** L’éditeur lui arrive sous son nom d’autorité, coéditeurs déjà joints par la barre à fines (§ 47.4), et la date déjà mise en forme. Elle décide de l’ordre et du séparateur, et s’arrête là.
 
