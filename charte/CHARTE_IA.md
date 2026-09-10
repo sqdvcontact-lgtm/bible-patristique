@@ -7111,17 +7111,48 @@ que dans un `title`, c’est-à-dire nulle part au doigt — l’audit du 2026-0
 informations parmi celles « portées par le seul title ». Un menu les écrit en toutes
 lettres : replier n’est pas seulement gagner de la place, c’est nommer.
 
-⚠️ **CE QUI RESTE DEHORS SE JUSTIFIE, ET DEUX RAISONS SEULEMENT VALENT.** Un contrôle qui
-dit un ÉTAT autant qu’une action — l’étoile pleine dit que l’œuvre est rangée dans les
-favoris — ne s’enferme pas : un état qu’il faut ouvrir un menu pour lire n’est plus un
-état. Et le contrôle du CONTENANT lui-même — le chevron qui replie le volet — ne
-s’enferme pas dans ce qu’il replie.
+⚠️ **CE QUI RESTE DEHORS SE JUSTIFIE, ET UNE SEULE RAISON VAUT SANS CONDITION** : le
+contrôle du CONTENANT lui-même — le chevron qui replie le volet — ne s’enferme pas dans
+ce qu’il replie, et c’est en outre le plus employé de la rangée.
 
-⛔ **ET LA COMPOSITION NE CHANGE PAS AVEC LA LARGEUR.** On peut être tenté de ne condenser
-que dans un conteneur étroit, par une requête de conteneur ; c’est ce que la charte
-proscrit depuis la barre de navigation — une entrée qui change de place selon la largeur
-ne s’apprend jamais. La rangée porte les mêmes cibles partout, et c’est leur MESURE qui
-suit l’écran.
+⛔ **RIEN NE PASSE AVANT LE NOM DE CE QU’ON LIT.** Rectification de l’auteur le 2026-09-10,
+contre la règle écrite le matin même : « je préférais qu’on ne coupe pas le nom de
+l’auteur, mais qu’on propose un symbole ⋮ pour regrouper les options favori, etc., quand
+l’écran est trop petit pour afficher les symboles. » Un contrôle qui dit un ÉTAT — l’étoile
+pleine dit que l’œuvre est rangée dans les favoris — a de bonnes raisons de rester dehors,
+et elles ne valent pas contre le nom : celui qui écrit est ce que le volet nomme, une
+étoile n’est qu’un rangement. ⚠️ **Elle y garde donc son état** : glyphe plein, encre d’or,
+libellé qui dit le geste inverse. Un état nommé et peint reste lisible.
+
+⛔ **LA COMPOSITION SUIT DONC LA LARGEUR, ET LA CHARTE DISAIT LE CONTRAIRE PENDANT UNE
+MATINÉE.** L’argument était « une entrée qui change de place selon la largeur ne s’apprend
+jamais », emprunté à la barre de navigation. ⚠️ **Il était mal cité.** Ce que la barre
+proscrit, c’est de DÉPLACER une rubrique là où personne ne la cherchera — « Aller plus
+loin » rangé sous un nom d’utilisateur. Elle-même se replie en quatre crans selon la
+largeur : la recherche y devient une loupe, le pseudonyme s’efface, le nom du site cède au
+seul chiffre. Une rangée qui range une cible sous le ⋮ posé à côté d’elle ne déplace rien :
+elle CONDENSE, et c’est ce que la barre fait déjà.
+
+⛔ **MAIS LA CONDITION SE MESURE, ELLE NE SE POSE PAS.** Ni requête de conteneur, ni seuil
+en rem : ce qui décide n’est pas la largeur du conteneur mais le rapport entre la place
+OFFERTE et celle que le nom DEMANDE, et cette dernière change d’un objet à l’autre. Mesuré
+sur les quinze auteurs publiés et sept écrans — 105 cas — un seuil posé aurait condensé
+« Boèce » à 1280 px sans nécessité et laissé « Pseudo-Jean Chrysostome » coupé à 1920. À
+1600 px, « Grégoire de Nazianze » demande la condensation quand « Cyrille de Jérusalem »,
+plus court de cinq pixels, garde son étoile.
+
+⛔ **ET LE PRÉDICAT NE DÉPEND JAMAIS DE L’ÉTAT QU’IL COMMANDE, sans quoi il oscille.** On
+ne demande pas « le nom est-il coupé ? » — ce qui serait vrai condensé et faux déplié, à
+l’infini — mais « le nom ENTIER tiendrait-il À CÔTÉ DE LA RANGÉE DÉPLIÉE ? ». Le besoin se
+lit sur la chasse RÉELLE du nom (`scrollWidth`, qui la rend qu’il soit écrêté ou non) et la
+largeur des actions se ramène à celle de la forme dépliée en leur rendant la place de ce
+qui n’y est pas. Les deux états rendent alors la même réponse, ce qu’une garde éprouve.
+
+⚠️ **RÉSULTAT MESURÉ : vingt noms coupés sur 105 avant, cinq après**, tous « Pseudo-Jean
+Chrysostome » entre 1280 et 1600 px — il demande 164 px quand la rangée condensée en rend
+155, et il n’y a rien de plus à lui donner. ⛔ Et la mesure a démenti un chiffre que le
+matin avait posé : « Augustin d’Hippone » tenait DÉJÀ à côté de trois cibles à 1280 px,
+d’un seul pixel. Un calcul de tête n’est pas un relevé.
 
 ⚠️ **La mesure se prend en IFRAMES, une par écran.** Forcer `html { width }` ne suffit
 pas : les `vw` continuent de se résoudre sur l’écran réel, si bien que ni la police racine

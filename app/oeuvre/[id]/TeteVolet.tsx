@@ -19,17 +19,46 @@
 // la rangée tombe à 80 px (39 %), le nom retrouve 114 px, et la plus petite cible
 // passe de 17 à 24.
 //
-// ⛔ ET LA COMPOSITION NE CHANGE PAS AVEC LA LARGEUR. On aurait pu ne condenser que
-// dans un volet étroit, par une requête de conteneur ; c'est ce que la charte proscrit
-// depuis la barre de navigation — « une entrée qui change de place selon la largeur de
-// la fenêtre ne s'apprend jamais ». La rangée porte les mêmes trois cibles partout, et
-// c'est leur MESURE qui suit l'écran (globals.css, « LA RANGÉE D'ACTIONS »).
+// ⛔ ET LE NOM DE L'AUTEUR NE SE COUPE PAS : C'EST LA RANGÉE QUI CÈDE. Rectification de
+// l'auteur le jour même, contre la première écriture de cette page : « je préférais
+// qu'on ne coupe pas le nom de l'auteur, mais qu'on propose un symbole ⋮ pour regrouper
+// les options favori, etc., quand l'écran est trop petit pour afficher les symboles ».
+// Trois cibles ne suffisaient pas partout : mesuré sur les quinze auteurs publiés et
+// sept écrans — 105 cas, `tmp/mesure-tete-condensee.mjs` —, VINGT noms se coupaient par
+// la fin, dont quatre dès 1280 px (Grégoire de Nazianze, Cyrille de Jérusalem, Cyprien
+// de Carthage, Pseudo-Jean Chrysostome). L'étoile rejoint donc le ⋮ quand la place
+// manque, et en ressort dès qu'elle revient : il en reste CINQ.
 //
-// ⚠️ CE QUI RESTE DEHORS, ET POURQUOI. L'étoile, parce qu'elle n'est pas seulement une
-// action mais un ÉTAT — pleine, elle dit que l'œuvre est rangée dans les favoris, et un
-// état qu'il faut ouvrir un menu pour lire n'est plus un état. Le chevron, parce qu'il
-// est le contrôle du volet lui-même et le plus employé des cinq : on ne referme pas un
-// panneau en ouvrant d'abord un menu qui vit dedans.
+// ⛔ LA CONDITION SE MESURE, ELLE NE SE POSE PAS. Ni requête de conteneur, ni seuil en
+// rem : ce qui décide n'est pas la largeur du volet mais le rapport entre la place
+// OFFERTE et celle que le nom DEMANDE, et cette dernière change d'une œuvre à l'autre
+// — « Boèce » tient partout, « Pseudo-Jean Chrysostome » ne tient nulle part. Un seuil
+// posé condenserait donc sur Boèce à 1280 sans nécessité, et laisserait Chrysostome
+// coupé à 1920. C'est `useRangeeCondensee` qui juge, sur la mesure du document.
+//
+// ⛔ ET LE PRÉDICAT NE DÉPEND PAS DE L'ÉTAT QU'IL COMMANDE, sans quoi il oscillerait :
+// on ne demande jamais « le nom est-il coupé ? » — ce qui serait vrai condensé et faux
+// déplié, à l'infini — mais « le nom ENTIER tiendrait-il À CÔTÉ DE TROIS CIBLES ? ». Le
+// besoin se lit sur le `scrollWidth` du nom, qui vaut sa chasse réelle qu'il soit
+// écrêté ou non, et la largeur des actions est ramenée à celle de la forme dépliée.
+//
+// ⚠️ CE QUI NE BOUGE JAMAIS, ET POURQUOI. Le chevron : il est le contrôle du volet
+// lui-même et le plus employé des cinq — on ne referme pas un panneau en ouvrant
+// d'abord un menu qui vit dedans. Et l'étoile, quand elle entre, y garde son ÉTAT :
+// glyphe plein, encre d'or, libellé qui dit le geste inverse (« Retirer des favoris »).
+// Un état qu'on ne peut plus lire sans ouvrir un menu ne serait plus un état ; nommé et
+// peint, il l'est encore.
+//
+// ⚠️ ET UN NOM RESTE ÉCRÊTÉ, faute de mieux : « Pseudo-Jean Chrysostome », de 1280 à
+// 1600 px. Il demande 164 px quand la rangée condensée en rend 155 sur un portable, et
+// il n'y a rien de plus à reprendre — la cible est au plancher de WCAG et le chevron ne
+// descend pas dans le menu. Les cinq derniers cas sur 105 sont tous celui-là ; il tient
+// dès 1920 px.
+//
+// ⚠️ CE QUE LA MESURE A DÉMENTI, et qu'il ne faut pas re-supposer : à 1280 px,
+// « Augustin d'Hippone » tenait DÉJÀ à côté de trois cibles, d'un seul pixel (126 pour
+// 127 offerts). La note du matin lui prêtait 114 px et le disait coupé ; c'était un
+// calcul, non un relevé. Les noms qui se coupaient là sont les quatre plus longs.
 //
 // ⚠️ ET CE QUI ENTRE Y GAGNE : sous le ⋮, les trois actions sont NOMMÉES EN TOUS
 // LETTRES. Elles n'étaient que des glyphes de treize pixels dont le sens ne se lisait
@@ -82,12 +111,135 @@ export function BoutonVolet({ titre, onClick, children, refBouton, ...aria }: {
 }
 
 /** Une entrée du menu ⋮. `icone` est le MÊME glyphe que la rangée portait : le menu
- *  ne change pas les dessins, il leur ajoute leur nom. */
+ *  ne change pas les dessins, il leur ajoute leur nom.
+ *  ⚠️ `teinte` ne sert qu'à ce qui dit un ÉTAT — l'étoile pleine y garde son or, sans
+ *  quoi une action rangée sous le ⋮ perdrait ce que sa couleur disait dehors. */
 export type ActionVolet = {
   cle: string
   libelle: string
   icone: React.ReactNode
   onChoisir: () => void
+  teinte?: string
+}
+
+/**
+ * LA PLACE QU'UNE CIBLE PREND DANS LA RANGÉE, ÉCART COMPRIS, en pixels.
+ *
+ * ⛔ Les deux mesures sont celles de `globals.css` (« LA RANGÉE D'ACTIONS ») — cible
+ * `max(24px, 1.5rem)`, écart `max(4px, 0.25rem)` — et elles sont RECOPIÉES ici parce
+ * qu'un calcul de place se fait AVANT le rendu, quand la feuille n'a encore rien posé
+ * de la forme qu'on est en train de choisir. `teteVolet.test.ts` confronte les deux
+ * écritures : deux copies d'une même mesure divergent au premier réglage, et la rangée
+ * composerait alors sur une largeur que la feuille ne lui donne pas.
+ */
+export function pasDUneCible(racine: number): number {
+  return Math.max(24, 1.5 * racine) + Math.max(4, 0.25 * racine)
+}
+
+/**
+ * LA RÈGLE, à part du document : le nom ENTIER tiendrait-il À CÔTÉ DE TROIS CIBLES ?
+ *
+ * ⛔ Elle ne demande jamais « le nom est-il coupé ? », qui serait vrai condensé et faux
+ * déplié, à l'infini. `largeurActions` est donc ramenée à la forme DÉPLIÉE : quand
+ * l'étoile n'est pas dans la rangée, on lui rend sa place avant de juger. Le prédicat
+ * est ainsi indépendant de l'état qu'il commande, et `teteVolet.test.ts` l'éprouve
+ * dans les deux sens sur les mêmes mesures.
+ *
+ * ⚠️ Il ne connaît pas le cas « on ne sait pas encore » : une largeur nulle se refuse
+ * chez l'appelant, où l'on garde alors l'état d'avant.
+ */
+export function condenserLaRangee({ dispo, besoin, largeurActions, etoileDehors, racine }: {
+  /** Ce que la tête du volet OFFRE. */
+  dispo: number
+  /** Ce que le nom le plus long DEMANDE, sa flèche de fiche comprise. */
+  besoin: number
+  /** Ce que la rangée d'actions prend AUJOURD'HUI. */
+  largeurActions: number
+  /** L'étoile est-elle dans la rangée à cet instant ? */
+  etoileDehors: boolean
+  /** La police racine en pixels : les cibles sont en rem, sous un plancher absolu. */
+  racine: number
+}): boolean {
+  const deplie = largeurActions + (etoileDehors ? 0 : pasDUneCible(racine))
+  return besoin + deplie > dispo
+}
+
+// `useLayoutEffect` mesure et corrige AVANT peinture : la rangée ne doit pas se voir
+// perdre puis reprendre son étoile. Il n'existe pas au rendu serveur, d'où le repli.
+const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
+
+/**
+ * LA RANGÉE SE CONDENSE QUAND LE NOM N'A PLUS LA PLACE — et pas avant.
+ *
+ * Trois repères à poser : la RANGÉE (ce qui offre la place), les NOMS (ce qui la
+ * demande), les ACTIONS (ce qui la dispute). Le prédicat compare la chasse réelle du
+ * nom le plus long à ce qui resterait si l'étoile était dehors.
+ *
+ * ⛔ `condense` part à VRAI, et c'est le sens sûr : sur un portable, qui est le cas
+ * ordinaire, c'est la réponse juste, et le rendu du serveur n'y montre donc pas une
+ * étoile que la première mesure retirerait. L'inverse la ferait paraître puis
+ * disparaître sur la plupart des écrans.
+ *
+ * ⚠️ On n'observe pas que la rangée : les noms changent de largeur quand la police
+ * finit d'arriver, et les actions quand l'état bascule. Reposer la même valeur ne
+ * redéclenche aucun rendu, la boucle se referme donc d'elle-même.
+ *
+ * ⚠️ Une largeur NULLE ne se juge pas : le volet replié, le tiroir fermé et le premier
+ * rendu rendent tous zéro, et conclure là-dessus condenserait une rangée qu'on ne voit
+ * même pas.
+ *
+ * ⛔ ET LE CROCHET NE PREND AUCUN ARGUMENT : il lit l'état de la rangée DANS LE
+ * DOCUMENT (`.etoile-favori` y est-elle ?) plutôt que dans l'état React. Le lui passer
+ * aurait noué le prédicat à ce qu'il décide — l'appelant calcule `!condense` pour le
+ * rendu, et le crochet aurait reçu sa propre sortie. Une mesure se prend sur ce qui est
+ * peint, non sur ce qu'on a demandé de peindre.
+ */
+export function useRangeeCondensee() {
+  const refRangee = useRef<HTMLDivElement>(null)
+  const refNoms = useRef<HTMLDivElement>(null)
+  const refActions = useRef<HTMLDivElement>(null)
+  const [condense, setCondense] = useState(true)
+
+  useMesureAvantPeinture(() => {
+    const rangee = refRangee.current
+    const noms = refNoms.current
+    const actions = refActions.current
+    if (!rangee || !noms || !actions) return
+    let vivant = true
+    const mesurer = () => {
+      if (!vivant) return
+      const dispo = rangee.clientWidth
+      if (dispo <= 0) return
+      // La chasse RÉELLE du nom : `scrollWidth` la rend qu'il soit écrêté ou non, si
+      // bien qu'elle ne dépend pas de l'état qu'on est en train de décider. L'écart au
+      // bouton porte la flèche de la fiche et son blanc, que le nom ne cède jamais.
+      let besoin = 0
+      for (const bouton of Array.from(noms.querySelectorAll('button'))) {
+        const texte = bouton.firstElementChild as HTMLElement | null
+        if (!texte) continue
+        besoin = Math.max(besoin, texte.scrollWidth + (bouton.clientWidth - texte.clientWidth))
+      }
+      setCondense(condenserLaRangee({
+        dispo,
+        besoin,
+        largeurActions: actions.clientWidth,
+        etoileDehors: !!actions.querySelector('.etoile-favori'),
+        racine: tailleRacinePx(),
+      }))
+    }
+    mesurer()
+    const ro = new ResizeObserver(mesurer)
+    ro.observe(rangee)
+    ro.observe(noms)
+    ro.observe(actions)
+    // La chasse d'un nom change quand la police du site arrive : mesurée avant, elle
+    // est celle d'une police de secours, et la rangée se réglerait sur un nom qui n'est
+    // pas celui qu'on lira.
+    document.fonts?.ready.then(mesurer).catch(() => {})
+    return () => { vivant = false; ro.disconnect() }
+  }, [])
+
+  return { condense, refRangee, refNoms, refActions }
 }
 
 /** Largeur de la boîte, en rem. Elle est POSÉE et non ajustée au contenu : le
@@ -211,7 +363,7 @@ export function MenuVolet({ titre, actions }: { titre: string; actions: ActionVo
             <button key={a.cle} type="button" role="menuitem" className="cs-entree-menu-volet"
               style={STYLE_ENTREE}
               onClick={() => { setOuvert(false); a.onChoisir() }}>
-              <span aria-hidden="true" style={{ display: 'flex', flexShrink: 0, color: 'var(--cs-texte-faible)' }}>{a.icone}</span>
+              <span aria-hidden="true" style={{ display: 'flex', flexShrink: 0, color: a.teinte ?? 'var(--cs-texte-faible)' }}>{a.icone}</span>
               {a.libelle}
             </button>
           ))}

@@ -9249,10 +9249,64 @@ tabulation — au bout du document, là où le portail l'a posé — n'est pas a
 `ICONE_LIEN_COPIE`, `ICONE_EXTRACTION`, dans `OeuvreClient`) : la rangée et le menu
 montrent le même dessin, et deux copies divergeraient au premier réglage.
 
-⚠️ **Ce qui reste ouvert** : sur un portable, le nom d'auteur reste coupé de douze pixels
-(114 offerts pour 126 demandés par « Augustin d'Hippone », 161 par le plus long nom du
-corpus). Mettre l'étoile sous le ⋮ le ferait tenir exactement — mesuré — au prix de son
-état, qui ne se lirait plus sans ouvrir le menu. Arbitrage d'auteur, non tranché.
+## ⛔ ET LA RANGÉE CÈDE AVANT LE NOM — la condensation se MESURE (2026-09-10, le soir)
+
+Rectification de l'auteur, contre la section ci-dessus écrite le matin même : « je
+préférais qu'on ne coupe pas le nom de l'auteur, mais qu'on propose un symbole ⋮ pour
+regrouper les options favori, etc., quand l'écran est trop petit pour afficher les
+symboles ». Doctrine : charte § 38.26, renversée le même jour. Règles de code :
+
+⛔ **LA CONDITION SE MESURE, ELLE NE SE POSE PAS.** Ni requête de conteneur, ni seuil en
+rem : ce qui décide n'est pas la largeur du volet mais le rapport entre la place OFFERTE
+et celle que le nom DEMANDE, et cette dernière change d'une œuvre à l'autre. Mesuré sur
+les quinze auteurs publiés et sept écrans — 105 cas, `tmp/mesure-tete-condensee.mjs` — un
+seuil aurait condensé « Boèce » à 1280 px sans nécessité et laissé « Pseudo-Jean
+Chrysostome » coupé à 1920. À 1600 px, « Grégoire de Nazianze » condense quand « Cyrille
+de Jérusalem », plus court de cinq pixels, garde son étoile.
+
+⛔ **ET LE PRÉDICAT NE DÉPEND PAS DE L'ÉTAT QU'IL COMMANDE, sans quoi il oscille.**
+`condenserLaRangee` (`TeteVolet.tsx`, pur, sous garde) ne demande jamais « le nom est-il
+coupé ? » — vrai condensé, faux déplié, à l'infini — mais « le nom ENTIER tiendrait-il à
+côté de la rangée DÉPLIÉE ? ». Le besoin se lit sur le `scrollWidth` du nom, qui rend sa
+chasse réelle qu'il soit écrêté ou non ; la largeur des actions se ramène à la forme
+dépliée en rendant sa place à l'étoile quand elle n'y est pas. ⚠️ Les deux états rendent
+alors la même réponse, et `teteVolet.test.ts` l'éprouve sur les trois racines.
+
+⛔ **LE CROCHET NE PREND AUCUN ARGUMENT : il lit l'état dans le DOCUMENT**
+(`.etoile-favori` est-elle dans la rangée ?), non dans l'état React. Le lui passer aurait
+noué le prédicat à sa propre sortie, l'appelant calculant `!condense` pour le rendu.
+⚠️ Une mesure se prend sur ce qui est PEINT, jamais sur ce qu'on a demandé de peindre.
+
+⚠️ **Trois repères à poser, et il les faut tous les trois** : la RANGÉE (ce qui offre la
+place), les NOMS (ce qui la demande), les ACTIONS (ce qui la dispute). Les trois sont
+observés — les noms changent de chasse quand la police arrive, les actions quand l'état
+bascule — et `document.fonts.ready` déclenche une passe de plus : mesurée avant, la chasse
+est celle d'une police de secours.
+
+⛔ **`pasDUneCible` RECOPIE la mesure de la feuille** (cible `max(24px, 1.5rem)`, écart
+`max(4px, 0.25rem)`), parce qu'un calcul de place se fait avant que la feuille ait rien
+posé. `teteVolet.test.ts` confronte les deux écritures ET les relevés du navigateur (80−52,
+95−62, 110−72 aux racines 16, 19 et 22). ⚠️ À un pixel près : `clientWidth` est un entier
+quand la mesure ne l'est pas.
+
+⚠️ **L'ÉTOILE GARDE SON ÉTAT SOUS LE ⋮** : glyphe plein, encre d'or, libellé qui dit le
+geste inverse, et elle ouvre la liste. ⛔ La teinte est `var(--cs-or)`, non le `#c8933a`
+d'`EtoileFavori` : celui-là est une dette inscrite au registre des couleurs en dur, et le
+registre ne peut que décroître — c'est la garde chromatique qui l'a refusé.
+
+⚠️ **RÉSULTAT MESURÉ : vingt noms coupés sur 105 avant, cinq après**, tous « Pseudo-Jean
+Chrysostome » entre 1280 et 1600 px (164 px demandés, 155 rendus). ⛔ Et la mesure a
+DÉMENTI le paragraphe qui précède : « Augustin d'Hippone » tenait déjà à côté de trois
+cibles à 1280 px, d'un seul pixel — les noms qui s'y coupaient sont les quatre plus longs
+(Grégoire de Nazianze, Cyrille de Jérusalem, Cyprien de Carthage, Pseudo-Jean
+Chrysostome). Le « 114 offerts pour 126 demandés » était un calcul, non un relevé.
+
+⚠️ **Planches** (non versionnées) : `tmp/mesure-tete-condensee.mjs` rejoue le prédicat réel
+sur les 105 cas et rend le tableau ; `tmp/planche-tete-avant-apres.mjs` met les deux
+formes en regard. ⛔ Elles se servent en HTTP (`tmp/serveur-planches.mjs`, port 4173) : le
+panneau navigateur refuse `file://`. ⚠️ Et `preview_start` par NOM lance la première entrée
+de `.claude/launch.json`, non celle qu'on nomme — il a démarré le serveur de dev, qu'on a
+coupé aussitôt.
 
 ⚠️ **Planche de mesure** : `tmp/planche-tete-volet.mjs` (non versionnée), une iframe par
 écran — 1280 à 2560 — pour que les `vw` et la police racine se résolvent comme sur la

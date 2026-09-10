@@ -128,6 +128,8 @@
 - ⚠️ À distinguer d’`apparat_editeur`, qui porte le paratexte rédigé quand `signature` n’en porte que les noms et les qualités |
 - ⛔ Elles sont QUATORZE, et `vers` n’en est pas.
 - ⚠️ Un segment en vers porte donc la nature de ses FRÈRES
+- ⚠️ Le compte se refait à CHAQUE affichage : une
+- ⚠️ L’en-tête de section ne se compose que si la vue porte les deux mains : un en-tête
 - ⛔ L’espace `apparat_critique` n’est jamais un fourre-tout pour le hors-corps.
 
 **§ 7.0 ter — Audit obligatoire des natures de segment**
@@ -196,6 +198,7 @@
 
 **§ 7.5 — Le CATALOGUE des styles — ce que chacun sert**
 
+- ⚠️ Deux autres l’ont été le 9 septembre 2026, `apparat_auteur` et `apparat_editeur` :
 - ⚠️ Deux lignes ont été remesurées le 8 septembre 2026, `lemme` et `exergue` : les
 
 **§ 7.5.1 — Les natures d'un segment patristique — `segments.nature`**
@@ -203,11 +206,13 @@
 - ⛔ HÉRITÉE (§ 7) : un fourre-tout de paratexte — dédicaces, privilèges, gloses de vocabulaire, arguments analytiques —, rendu dans la vue d'apparat.
 - ⛔ pas une citation en ligne : celle-là reste dans `texte` et se détache d'elle-même au delà de 400 signes | 1 221 |
 - ⛔ ne se sort jamais du fil : une réplique est entre guillemets sans être une citation d'auteur | 1 038 |
-- ⛔ pas `apparat_editeur`, qui porte le paratexte de l'ÉDITION : celui-ci appartient au CORPS et se lit à sa place | 96 |
+- ⛔ pas `apparat_editeur`, qui porte le paratexte de l'ÉDITION.
+- ⛔ Et sa seconde surface ne lui retire pas la première : l'ôter du corps avait fait disparaître le Prologue de Rufin, le 18 août 2026 | 190 |
 - ⛔ ne se détache pas : un lemme se lit au fil du texte (décision du 20 août 2026).
 - ⛔ Et ce n'est PAS un `exergue` : le lemme s'explique, l'exergue annonce | 220 |
 - ⛔ pas un `lemme` : un exergue ne se commente pas ligne à ligne, et il quitte le fil | 19 |
 - ⛔ pas toute citation biblique : c'est la coupure IMPRIMÉE qui le fonde | 12 |
+- ⛔ pas un apparat : une mention de traducteur ferme le TEXTE et se lit avec lui, à la place que l'imprimé lui donne | 18 |
 - ⛔ Le VERS n'est PAS dans cette table, et c'est le point à retenir
 
 **§ 7.5.2 — Les styles du paratexte biblique — `metadata.semantic_style`**
@@ -229,6 +234,9 @@
 **§ 7.7 — Un style ne vit que sur la SURFACE où sa donnée vit**
 
 - ⛔ Une forme rendue là où sa donnée ne va jamais est une forme MORTE
+- ⚠️ Le 9 septembre 2026, cette page a été prise à son propre piège.
+- ⛔ Écrire « toutes » sans avoir pris le compte est
+- ⛔ Une mention de traducteur n'est pas un apparat.
 - ⛔ Un style se vérifie donc sur DEUX axes, jamais sur le premier seul.
 - ⚠️ **La question se pose en un compte, et il faut le prendre avant de croire une fiche
 - ⛔ Et une planche de styles qui montre une forme sur la mauvaise
@@ -403,6 +411,7 @@
 - ⛔ L'ANCRAGE EN TÊTE NE FAIT PAS PARAGRAPHE.
 - ⚠️ En tête seulement — un lemme qui reparaît au milieu d'une note y joue un autre rôle, et une note faite du seul ancrage se rend seule plutôt que de disparaître.
 - ⛔ DANS LA FAMILLE DU RENVOI, C'EST LA DESTINATION QUI COMMANDE.
+- ⛔ LE NOM DE L’AUTEUR EST TOUJOURS L’AUTORITÉ NORMALISÉE.
 - ⛔ UNE NATURE INCONNUE NE FAIT PAS DISPARAÎTRE SON BLOC.
 - ⚠️ C'est le contraire du défaut payé quatre fois avec `NATURES_CORPS`, où le bloc s'évanouissait en silence.
 
@@ -414,6 +423,12 @@
 - ⛔ Le TYPE s'annonce dans l'en-tête de la fenêtre de note, et nulle part ailleurs (`app/lib/typeNote.ts`) : « Note du traducteur 12 », « Apparat critique 7 ».
 - ⚠️ Il exige l'unanimité des blocs — une note mixte — le commentaire de l'édition, puis le renvoi que NOUS ajoutons — n'annonce rien, car *mieux vaut « Note » qu'une attribution à demi fausse*.
 - ⛔ L'ITALIQUE DE LA LANGUE ne porte que sur le bloc ENTIER — celui dont `language` déclare la langue.
+
+**§ 13.11.2 — Ce que la composition SÉPARE dans une même famille (9 septembre 2026)**
+
+- ⚠️ Où qu'elle paraisse — en tête sur la ligne du propos, au milieu d'une note, ou seule.
+- ⚠️ Rien ne se cumule — un lemme latin est déjà italique par sa langue (§ 13.8), et les deux règles disent alors la même chose.
+- ⛔ TOUTE LA FAMILLE DU RENVOI SUIT SA CIBLE EN LIGNE — et non le seul `reference`.
 
 **§ 13.12 — Ce que l’auteur a TRANCHÉ le 5 septembre 2026**
 
@@ -467,6 +482,19 @@
 - ⛔ Le mécanisme se pose AVANT la passe, non pendant, et il vaudra pour tout bloc qu’on voudra retenir — non pour les seuls treize « ibid. » orphelins.
 - ⚠️ Le RENVOI INTERNE reste un texte, non un lien.
 
+**§ 13.12.4 — Les rôles HORS VOCABULAIRE, et l'axe `rendering` qui n'en a pas (9 septembre 2026)**
+
+- ⛔ UN RÔLE QUE LE SITE NE LIT PAS NE SE VOIT PAS.
+- ⛔ Sans cette règle il absorberait tout ce que le corpus produit, et l'axe cesserait de distinguer.
+- ⚠️ C'est la décision 10 (§ 13.12) portée aux rôles : des deux noms d'une même chose, le survivant est celui que le code lit.
+- ⛔ ON NE CRÉE PAS UN TYPE POUR REDIRE CE QUE LE RENDU CALCULE.
+- ⚠️ Les 71 notes que la manchette ne prend pas relèvent ensuite de la lecture, non du vocabulaire.
+- ⛔ ET UN RÔLE NE DIT JAMAIS UNE DISPOSITION.
+- ⚠️ CHANTIER OUVERT — `rendering` EST UN AXE SANS VOCABULAIRE.
+- ⛔ Rien ne se ferme tant qu'elles ne sont pas démêlées : une contrainte posée trop tôt ferait échouer les imports au lieu de les corriger.
+- ⛔ LE CONTRÔLE EXISTE, ET IL LIT LE VOCABULAIRE DANS LE CODE
+- ⚠️ Il ne recopie aucune liste : il lit `app/lib/typeNote.ts` et `app/lib/apparatCritique.ts`, et refuse de deviner s'il ne les comprend pas.
+
 **§ 13.13 — L’ENCART d’une note — un seul, pour toutes les surfaces**
 
 - ⛔ Une note s’ouvre partout dans le MÊME encart.
@@ -516,6 +544,46 @@
 - ⛔ LE NUMÉRO FLOTTE, il n’occupe pas une colonne.
 - ⛔ UN RENVOI EN MARGE SE POSE SUR LA LIGNE DE BASE DE SA LIGNE — et cet accord se MESURE.
 - ⚠️ La correction ne s’écrit pas en pixels : les deux corps sont en rem, la police racine du site est fluide, et un nombre ne serait juste qu’à une seule taille d’écran.
+
+**§ 13.16 — Politique générale de reprise des notes — norme du 9 septembre 2026**
+
+- ⛔ FIDÉLITÉ AVANT TOUT, MAIS LA NOTE N’EST PAS LE CORPS DU TEXTE.
+
+**§ 13.16.1 — Autorité, provenance et type**
+
+- ⛔ TYPE, PROVENANCE ET RENDU SONT TROIS AXES DISTINCTS.
+- ⚠️ UN TYPE FAUX EST PIRE QU’UN TYPE ABSENT.
+
+**§ 13.16.2 — Appels, ancres et ponctuation**
+
+- ⛔ L’APPEL DE NOTE SE PLACE TOUJOURS AVANT LA PONCTUATION. IL N’Y A PAS D’EXCEPTION.
+
+**§ 13.16.3 — Orthographe et typographie de chaque note**
+
+- ⛔ CHAQUE NOTE SUBIT UN CONTRÔLE ORTHOGRAPHIQUE ET TYPOGRAPHIQUE INTÉGRAL.
+- ⛔ tout mot, syntagme ou courte expression en latin enchâssé dans une phrase française **doit** être en italiques ; les caractères grecs en alphabet grec restent en romain ; les translittérations du grec en alphabet latin sont en italiques ;
+
+**§ 13.16.4 — Abréviations : développer par défaut**
+
+- ⛔ LES ABRÉVIATIONS SAVANTES HÉRITÉES DE L’ÉDITION SE DÉPLOIENT.
+
+**§ 13.16.5 — Références bibliques, patristiques et bibliographiques**
+
+- ⛔ Toute œuvre patristique ou non rencontrée dans une note est recherchée dans la bibliographie globale.
+
+**§ 13.16.6 — Fidélité au témoin, corrections, réserves et `[sic]`**
+
+- ⛔ TOUT CE QUI PEUT CHANGER L’INFORMATION SE CONTRÔLE SUR LA SOURCE.
+
+**§ 13.16.8 — Transformation des notes trop techniques**
+
+- ⚠️ UNE NOTE PEUT ÊTRE RADICALEMENT RECOMPOSÉE POUR ÊTRE LISIBLE.
+
+**§ 13.16.10 — Procédure obligatoire — neuf passes, œuvre par œuvre**
+
+- ⛔ LA REPRISE GÉNÉRALE DES NOTES SE FAIT DANS CET ORDRE.
+- ⛔ COMPTE RENDU OBLIGATOIRE APRÈS CHAQUE PASSE.
+- ⛔ LA PRUDENCE FINALE EST ASYMÉTRIQUE  — typographie, déploiement et référencement peuvent être fortement normalisés ; contenu, autorité, attribution et information philologique ne se modifient qu’avec preuve.
 
 ## § 14. OCR, HTR et transcription patrimoniale
 
@@ -720,6 +788,8 @@
 
 **§ 16.11 — Une œuvre à plusieurs auteurs**
 
+- ⛔ Les noms EMPILÉS ne prennent pas de conjonction (décision de l’auteur, 9 septembre 2026 : « le “et” entre les deux noms d’auteur est immonde ; s’en passer »).
+- ⚠️ `separateurAuteurs` ne sert que le premier régime : l’appeler dans une colonne de blocs, c’est y remettre le « et ».
 - ⛔ Le rang ne règle QUE l'ordre d'affichage, il n'ordonne pas les responsabilités.
 - ⛔ c'est elle, et elle seule, qu'on interroge pour « les auteurs d'une œuvre » comme pour « les œuvres d'un auteur ».
 - ⛔ Un même auteur ne peut pas figurer deux fois sur une œuvre.
@@ -1216,6 +1286,16 @@
 - ⚠️ L’objectif n’est pas de minimiser artificiellement le nombre de propositions, mais de concentrer la vérification humaine sans augmenter les erreurs résiduelles.
 - ⚠️ Une baisse du nombre de propositions n’est un progrès que si les sondages ne montrent pas une hausse des erreurs manquées.
 
+## § 33. Longueur d’une œuvre et opuscules
+
+**§ 33.2 — Opuscules**
+
+- ⛔ La règle n’appartient pas à la bibliothèque — où elle est née : elle vaut partout où une étagère d’auteur se déploie — l’étagère de la bibliothèque, et la rubrique « Du même auteur » du volet de la page Œuvre (9 septembre 2026).
+- ⚠️ Elles passent donc par le MÊME module : un seuil, une mesure, un partage.
+- ⛔ Sans la mesure, la règle ne se déclenche jamais — en silence.
+- ⚠️ « Opuscules » a d’abord paru dans le volet avec le triangle des rubriques (relevé de l’auteur, 9 septembre 2026 : « la même flèche pour déployer que les autres niveaux de titre me paraît bizarre ») : le signe lui donnait le RANG de ce qui la contient, et le lecteur ne voyait plus quel repli emporte quoi.
+- ⚠️ La section garde la même forme sur toutes ses surfaces — comme elle y garde le même seuil et le même partage : celle qu’elle porte à la bibliothèque, où elle est née.
+
 ## § 34. La marque du site
 
 **§ 34 — La marque du site**
@@ -1519,6 +1599,10 @@
 - ⚠️ Et elle se pose EN TÊTE, sous les onglets : rendue après une liste qui prend toute la hauteur restante, elle tombait à deux mille pixels de l’endroit où elle se trouve sous l’autre onglet, et un contrôle qui change de bout d’écran ne s’apprend jamais.
 - ⛔ UN CONTRÔLE NE SE RANGE PAS DANS UN OBJET QUI EN PORTE DÉJÀ.
 - ⚠️ Il ne se confond pas avec la flèche qui annonce une fiche : celle-là suit le TEXTE, à l'intérieur du lien ; celui-ci se tient au BORD de la carte.
+- ⛔ UNE FENÊTRE QUI NE SE FERME QU'À LA SOURIS N'EST PAS FERMABLE.
+- ⚠️ La touche est CONSOMMÉE, et une seule fenêtre répond.
+- ⚠️ Une seule écriture, `app/lib/useFermerAEchap.ts` — le site en portait trois, qui ne se ressemblaient pas.
+- ⛔ Le mot « Escape » ne figurait dans AUCUNE des 4 400 lignes de la page d'une œuvre au 9 septembre 2026 — un défaut qui ne se voit ni au type, ni au test, ni en relisant le composant, puisqu'il n'est pas ce que le code FAIT mais ce qu'il ne fait pas.
 - ⚠️ ET UN CONTRÔLE DE QUATORZE PIXELS NE PREND PAS L'ENCRE LA PLUS TÉNUE DE L'ÉCHELLE.
 - ⛔ La couleur se déclare dans la FEUILLE : posée en style en ligne, elle battrait la règle de survol — le piège est payé quatre fois dans ce dépôt.
 - ⛔ UNE RUBRIQUE NE REDIT PAS CE QUE LA FICHE PORTE EN TÊTE.
@@ -2121,6 +2205,8 @@
 
 - ⛔ Elle était écrite à SEPT endroits, et cinq la disaient à l’envers.
 - ⛔ Ce n’est PAS une notice bibliographique.
+- ⛔ Et la ligne qui départage deux entrées de « Du même auteur » ne dit pas la LANGUE (demande de l’auteur du 9 septembre 2026 : « ne pas indiquer la langue du texte »).
+- ⚠️ La rubrique se resserre pour la même raison qu’elle se tait : le titre touche son adresse d’édition, et le blanc qui doit se voir est celui qui sépare deux œuvres, non celui qui sépare les deux lignes d’une seule.
 - ⚠️ Une surface dont une mention est un NŒUD prend la LISTE ordonnée — plutôt que la chaîne, et pose sa mention avec le même séparateur.
 - ⚠️ La phrase de provenance suit, et sa grammaire tient.
 - ⛔ Sans ville, « de » gouverne l’ÉDITEUR, et l’article contracté redevient nécessaire — « D’après l’édition du Cerf, 1984 », « D’après la publication des Presses universitaires… », « D’après la publication de l’Imprimerie nationale ».
@@ -2539,6 +2625,42 @@
 - ⚠️ **Une rangée d’index est plus grosse que les cases de filtre qui la suivent, et c’est le
 - ⛔ Ne pas la rabattre sur les filtres sans décision : ce serait quitter
 
+## § 38. Les surfaces de lecture — volets, fiches et listes
+
+**§ 38.25 — La fiche d’une ÉDITION — ce qui change est la LARGEUR d’une colonne, non le CÔTÉ de la frise**
+
+- ⛔ DEUX DÉCISIONS INDÉPENDANTES, ET ON LES A D’ABORD CONFONDUES.
+- ⛔ LA FICHE D’UNE ÉDITION GARDE DONC LA GÉOMÉTRIE DES DEUX AUTRES
+- ⚠️ Le défaut d’origine est corrigé pareil, et il valait la moitié de la fenêtre.
+- ⚠️ **Une composition ne se recopie pas d’une fiche à l’autre parce que les objets sont
+- ⚠️ Mais elle ne vaut que pour ce que la donnée commande : une
+- ⚠️ L’ORDRE DU DOCUMENT est celui de l’écran ET celui du téléphone : les notices d’abord.
+- ⚠️ Seul l’alignement transversal doit revenir à « stretch » quand
+- ⛔ IL N’Y A PAS DE PORTRAIT DANS LA FICHE D’UN LIVRE.
+- ⛔ TOUTES LES NOTICES SE COMPOSENT DE LA MÊME FAÇON.
+
+**§ 38.25.1 — Deux éditions à l’écran se DISTINGUENT, et la fiche doit le dire**
+
+- ⛔ **LE RESPONSABLE SCIENTIFIQUE N’EST NI UNE VILLE NI UNE MAISON, et le prendre pour l’une
+- ⛔ UNE NOTICE SAVANTE SE LIT PAR LA FIN : la maison, puis le lieu, la collection devant.
+- ⚠️ **Mais cette lecture ne vaut QUE si la notice a nommé son
+- ⛔ LA COLLECTION DE L’ŒUVRE NE DÉCRIT QUE SON TEXTE PAR DÉFAUT.
+- ⚠️ La mesure est le seul juge, et elle se fait sur le CORPUS.
+
+**§ 38.26 — Une rangée de contrôles se mesure en REM, et ce qui coûte la largeur est leur NOMBRE**
+
+- ⛔ UNE RANGÉE DE CONTRÔLES ÉCRITE EN PIXELS N’EST PAS « TROP GROSSE » : ELLE EST FIXE.
+- ⛔ MAIS LE PLANCHER DE 24 px EST ABSOLU, ET IL BORNE LE REMÈDE.
+- ⚠️ **Corollaire, et c’est lui qui décide de la
+- ⚠️ CE QUI RESTE DEHORS SE JUSTIFIE, ET UNE SEULE RAISON VAUT SANS CONDITION
+- ⛔ RIEN NE PASSE AVANT LE NOM DE CE QU’ON LIT.
+- ⛔ **LA COMPOSITION SUIT DONC LA LARGEUR, ET LA CHARTE DISAIT LE CONTRAIRE PENDANT UNE
+- ⛔ MAIS LA CONDITION SE MESURE, ELLE NE SE POSE PAS.
+- ⛔ ET LE PRÉDICAT NE DÉPEND JAMAIS DE L’ÉTAT QU’IL COMMANDE, sans quoi il oscille.
+- ⚠️ RÉSULTAT MESURÉ : vingt noms coupés sur 105 avant, cinq après
+- ⛔ Et la mesure a démenti un chiffre que le
+- ⚠️ La mesure se prend en IFRAMES, une par écran.
+
 ---
 
 ## Couverture — les chapitres que le noyau représente le moins
@@ -2548,7 +2670,7 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | § | chapitre | signes | énoncés | pour mille signes |
 |---|---|---:|---:|---:|
 | 3 | Typographie — les signes, les espaces, l’enric | 64 407 | 46 | **0.7** |
-| 15 | Corpus biblique et traductions | 15 369 | 11 | **0.7** |
+| 15 | Corpus biblique et traductions | 15 280 | 11 | **0.7** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
 | 35 | Chantier Fillion — la composition du paratexte | 79 344 | 79 | **1.0** |
 | 48 | Le protocole d’océrisation d’une bible | 46 262 | 51 | **1.1** |

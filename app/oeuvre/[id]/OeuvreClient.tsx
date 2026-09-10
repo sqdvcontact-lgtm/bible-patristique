@@ -25,7 +25,7 @@ import type { ChampTitre, SegData, GroupeData, Props, EditionCible, OeuvreResume
 import type { BlocOriginal } from './bilingueAlignement'
 import { repartirGroupes, chargerProjectionBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, type BlocEnRegard } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
-import { BoutonVolet, MenuVolet, type ActionVolet } from './TeteVolet'
+import { BoutonVolet, MenuVolet, useRangeeCondensee, type ActionVolet } from './TeteVolet'
 import { construireNavigationApparat } from './apparatNavigation'
 import { chargerProfondeurPresente } from './niveauxPresents'
 // ⛔ LE PIPELINE DES SEGMENTS, celui-là même que le rendu serveur emploie. Cinq de ses
@@ -327,6 +327,15 @@ const ICONE_PARTAGE = (
 )
 const ICONE_LIEN_COPIE = (
   <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.2 8.4l3.1 3.1 6.5-6.9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+)
+/* ⚠️ LE MÊME TRACÉ QUE `EtoileFavori`, à la lettre : sous le ⋮, l'étoile doit se
+   reconnaître pour celle qui vient de quitter la rangée. Deux états, parce que c'est
+   un ÉTAT qu'elle dit et non une action — pleine, l'œuvre est rangée dans les favoris. */
+const ICONE_ETOILE = (
+  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1.5l1.854 3.756 4.146.603-3 2.924.708 4.131L8 10.765l-3.708 1.949.708-4.131-3-2.924 4.146-.603z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg>
+)
+const ICONE_ETOILE_PLEINE = (
+  <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1.5l1.854 3.756 4.146.603-3 2.924.708 4.131L8 10.765l-3.708 1.949.708-4.131-3-2.924 4.146-.603z"/></svg>
 )
 const ICONE_EXTRACTION = (
   <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -979,6 +988,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     liste.push({ cle: 'extraction', libelle: 'Extraire en document Word', icone: ICONE_EXTRACTION, onChoisir: () => setExtractionOuverte(true) })
     return liste
   }, [estAdmin, lienCopie, partagerLOeuvre])
+  // ── LA RANGÉE SE CONDENSE QUAND LE NOM N'A PLUS LA PLACE ──────────────────
+  // Rectification de l'auteur, 2026-09-10 : « je préférais qu'on ne coupe pas le nom
+  // de l'auteur, mais qu'on propose un symbole ⋮ pour regrouper les options favori,
+  // etc., quand l'écran est trop petit pour afficher les symboles ».
+  // ⛔ La condition se MESURE (voir `useRangeeCondensee`) : elle dépend du nom qu'on
+  // lit autant que de la largeur du volet, et un seuil posé se tromperait sur les deux
+  // bouts — à 1600 px, « Grégoire de Nazianze » demande la condensation quand « Cyrille
+  // de Jérusalem », plus court de cinq pixels, garde son étoile. Relevé sur les quinze
+  // auteurs publiés et sept écrans (`tmp/mesure-tete-condensee.mjs`) : vingt noms coupés
+  // sur 105 avant, cinq après, et le prédicat s'accorde vu des DEUX états sur les 105.
+  const { condense: teteCondensee, refRangee, refNoms, refActions } = useRangeeCondensee()
   const [configEnvoi, setConfigEnvoi] = useState(false)
   // ⛔ L'enregistrement échouait SANS UN MOT : `if (reponses.some(r => !r.ok)) return`
   // remettait simplement le bouton en place. Six appels partent en parallèle ; si un
@@ -2195,8 +2215,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // ⛔ AUCUNE CONJONCTION ENTRE LES NOMS (demande de l'auteur, 2026-09-09).
   // `NomVolet` se compose en bloc : chaque nom tient sa ligne, et le « et » tombait
   // donc seul au milieu de la colonne. Les noms se suivent, cela suffit à les lier.
+  // ⚠️ `refNoms` : c'est ce bloc qui DEMANDE la place, et sa chasse se mesure sur le
+  // nom le plus long qu'il porte — une œuvre peut en avoir deux.
   const nomsAuteurs = (
-    <span style={{ minWidth: 0 }}>
+    <span ref={refNoms} style={{ minWidth: 0 }}>
       {auteursCliquables.map(a => (
         <NomVolet key={a.id_auteur} onOuvrir={() => setAuteurModalId(a.id_auteur)} inactif={!a.id_auteur}
           titre="Voir la fiche de l’auteur">{a.nom}</NomVolet>
@@ -2384,6 +2406,26 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const favoriEstOriginal = surTexteOriginal || (!couranteEstOriginale && modeTexteEffectif === 'la')
   const refFavori = favoriEstOriginal ? refFavoriOriginal(idOeuvre) : idOeuvre
   const nomFavori = favoriEstOriginal ? `le texte ${estGrec ? 'grec' : 'latin'}` : null
+  // ⛔ L'ÉTOILE ENTRE DANS LE MENU EN TÊTE, et elle y garde son ÉTAT : glyphe plein,
+  // encre d'or, et un libellé qui dit le geste inverse. Un état qu'on ne pourrait plus
+  // lire sans ouvrir un menu ne serait plus un état ; nommé et peint, il l'est encore.
+  // ⚠️ Elle ouvre la liste parce qu'elle est, des quatre, celle qu'on emploie le plus.
+  const favoriPose = favorisOeuvres.has(refFavori)
+  const actionsTeteVolet = useMemo<ActionVolet[]>(() => {
+    if (!teteCondensee || !favorisPret) return actionsDuVolet
+    return [{
+      cle: 'favori',
+      libelle: favoriPose
+        ? (nomFavori ? `Retirer ${nomFavori} des favoris` : 'Retirer des favoris')
+        : (nomFavori ? `Ajouter ${nomFavori} aux favoris` : 'Ajouter aux favoris'),
+      icone: favoriPose ? ICONE_ETOILE_PLEINE : ICONE_ETOILE,
+      // ⛔ LE JETON, non le littéral de `EtoileFavori` : celui-là est une dette
+      // inscrite au registre des couleurs en dur, et le registre ne peut que décroître.
+      // `--cs-or` est l'encre de l'apparat du site, et elle suit les deux thèmes.
+      teinte: favoriPose ? 'var(--cs-or)' : undefined,
+      onChoisir: () => toggleFavoriOeuvre(refFavori),
+    }, ...actionsDuVolet]
+  }, [teteCondensee, favorisPret, favoriPose, nomFavori, refFavori, toggleFavoriOeuvre, actionsDuVolet])
   const libelleEdition = (v: VersionTrad): string => {
     // L'ADRESSE de l'édition, dans l'ordre de la charte (§ 5) : ville, éditeur, année.
     const edit = adresseEdition({
@@ -2973,26 +3015,28 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               soit le huitième de la hauteur offerte, avant même la première rubrique.
               ⛔ Rien n’en est retranché : ce sont les blancs qui se referment. */}
           <div data-visite="oeuvre-tete" style={{ padding: mobile ? '9px 14px 8px' : '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <div ref={refRangee} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               {nomsAuteurs}
               {/* ⛔ TROIS CIBLES, ET NON CINQ (relevé de l'auteur, 2026-09-10 : « sur
                   écran moyen, c'est trop gros, trop espacé »). Ce qui coûte la largeur
                   est leur NOMBRE : le plancher de 24 px est celui de WCAG et la rangée y
                   était déjà, si bien qu'on ne peut rien reprendre sur la taille. Les
                   trois actions RARES passent sous un ⋮, où elles gagnent leur nom en
-                  toutes lettres ; l'étoile reste dehors, parce qu'elle dit un ÉTAT, et le
-                  chevron aussi, parce qu'il est le contrôle du volet lui-même.
+                  toutes lettres ; le chevron reste dehors, parce qu'il est le contrôle
+                  du volet lui-même.
+                  ⛔ ET L'ÉTOILE LES REJOINT QUAND LE NOM N'A PLUS LA PLACE, pour qu'il ne
+                  se coupe pas : c'est la rangée qui cède, jamais le nom de l'auteur.
                   ⚠️ La MESURE, elle, suit la police racine (globals.css, « LA RANGÉE
                   D'ACTIONS ») : elle était en pixels quand tout autour d'elle est en rem,
                   et gardait donc ses 129 px de 1280 à 2560. */}
-              <div className="cs-tete-volet-actions">
-                {favorisPret && (
+              <div className="cs-tete-volet-actions" ref={refActions}>
+                {favorisPret && !teteCondensee && (
                   <EtoileFavori actif={favorisOeuvres.has(refFavori)} onToggle={() => toggleFavoriOeuvre(refFavori)} size={13}
                     title={favorisOeuvres.has(refFavori)
                       ? (nomFavori ? `Retirer ${nomFavori} des favoris` : 'Retirer des favoris')
                       : (nomFavori ? `Ajouter ${nomFavori} aux favoris` : 'Ajouter aux favoris')} />
                 )}
-                <MenuVolet titre="Autres actions" actions={actionsDuVolet} />
+                <MenuVolet titre="Autres actions" actions={actionsTeteVolet} />
                 {/* ⛔ ELLE NE PARAÎT PLUS SUR TÉLÉPHONE : elle y regardait à GAUCHE,
                     c’est-à-dire vers le rail du BUREAU, qui n’existe pas là. C’est la
                     barre « Sommaire » qui ferme, et elle reste posée pour cela. */}
