@@ -501,16 +501,31 @@
 - ⛔ Et cette hauteur se compte en REM, jamais en pixels.
 - ⛔ L’INTITULÉ nomme le TYPE de la note, et il SE TAIT quand elle n’en déclare aucun.
 - ⛔ Et jamais « Note » écrit en dur, qui n’est pas un type mais l’aveu qu’on n’en connaît aucun.
-- ⚠️ Ce qui identifie la note ne disparaît pas pour autant : le NUMÉRO passe dans une gouttière — dans la face du numéro de verset de la page Bible.
+- ⚠️ Ce qui identifie la note ne disparaît pas pour autant : le NUMÉRO reste — dans la face du numéro de verset de la page Bible.
 - ⛔ Le numéro affiché est celui du LECTEUR, jamais le numéro interne : celui-ci porte l’identité et l’ordre, non l’adresse que le lecteur vient de cliquer.
 - ⛔ MAIS IL SE FERRE À GAUCHE, et le fer à droite est ici une règle mal transposée (décision de l’auteur, 2026-09-08 : « supprime l’alinéa avant le numéro de note »).
 - ⚠️ Règle générale : **un fer à droite ne se justifie que par une COLONNE de repères ; seul, il fait un alinéa.**
-- ⛔ UNE NOTE SE JUSTIFIE ET SE CÉSURE, et cela se pose sur le CORPS de l’encart, jamais sur ses paragraphes (même décision : « j’aimerais qu’elles soient justifiées »).
-- ⚠️ La césure n’est pas une option qui accompagne la justification, c’est sa condition : la piste fait une soixantaine de signes, et une justification sans coupure y creuse des lézardes.
-- ⚠️ Et la DERNIÈRE ligne revient au fer à gauche, faute de quoi trois mots s’étirent d’un bord à l’autre — les déclarations redites sur le paragraphe écrasaient précisément cette règle-là.
+- ⛔ UNE NOTE SE JUSTIFIE AU-DESSUS DU SEUIL DU GRIS, ET SE FERRE SOUS LUI (décision du 8 septembre 2026, « j’aimerais qu’elles soient justifiées » ; resserrée le 10, capture à l’appui).
+- ⚠️ Le seuil est celui de la charte (§ 3.11), deux cent cinquante signes servis, et il vaut ici comme ailleurs — une note de quarante signes n’a pas de gris à tenir, et la justifier étirait sa première ligne d’un bord à l’autre pour laisser un mot seul sur la seconde.
+- ⛔ Ce n’est pas un cas d’exception mais le cas ORDINAIRE : la médiane du corpus fait dix-sept signes, et 92,6 % des notes tiennent sous cent vingt.
+- ⚠️ La CÉSURE, elle, reste dans les DEUX cas — elle n’est pas une option qui accompagne la justification, c’est la condition de toute mesure étroite, et au fer une piste de trente signes coupe aussi bien les mots longs.
+- ⚠️ Et la DERNIÈRE ligne d’un texte justifié revient au fer à gauche, faute de quoi trois mots s’étirent d’un bord à l’autre — les déclarations redites sur le paragraphe écrasaient précisément cette règle-là.
+- ⚠️ Ce que la justification ne peut pas rattraper est une langue que le navigateur ne sait pas couper
 - ⚠️ L’APPARAT CRITIQUE SUIT LE MÊME MODÈLE, UN CRAN SOUS LA NOTE (même décision).
 - ⛔ Sa seule dissidence est la CÉSURE, qu’il refuse — couper un sigle ou une leçon donnerait à lire ce que l’éditeur n’a pas écrit.
 - ⚠️ Corollaire, appris le même jour : une garde qui RECOPIE le corps et l’interligne au lieu de les lire au module échoue au premier changement, et c’est le défaut même que le module réunit pour empêcher.
+- ⛔ LA TÊTE : le numéro rejoint le type, et ils n’ont qu’un seul fer (relevé de l’auteur, 10 septembre 2026, capture à l’appui : « revois les alignements, notamment du numéro de note et du type de note »).
+- ⛔ Un flottant n’a rien à habiller quand une ligne entière lui est prise — dès que la note déclare un type, le numéro cesse de flotter et entre dans la tête.
+- ⚠️ Celle-ci tient sur UNE ligne : un type plus long que la piste s’écrête plutôt que d’ouvrir un second rang au-dessus du propos.
+- ⛔ ET LE NUMÉRO SEUL EMPRUNTE LE STRUT DU PROPOS, il ne se contente pas d’en prendre la HAUTEUR.
+- ⚠️ C’est la leçon de la marge de référence de la Polyglotte (§ 38.14), prise par l’autre bout ; et la correction ne s’écrit pas plus en pixels ici que là-bas.
+- ⛔ LA PLACE DE LA CROIX NE SE PAIE PAS SUR TOUTE LA HAUTEUR.
+- ⚠️ Elle reste réservée TOUJOURS, croix montrée ou non : la géométrie ne bouge pas entre le survol et le clic, et cette règle-là ne cède pas.
+- ⛔ LA CONDENSATION SE MESURE, ET SUR LA BOÎTE ENTIÈRE (« condense le texte selon mes recommandations »).
+- ⚠️ Ce n’est pas le corps du texte qui a maigri — il ne bouge plus depuis le 8 septembre — c’est le BLANC qui rendait la boîte lourde.
+- ⛔ LA HAUTEUR SE DEMANDE UNE FOIS LA LARGEUR CONNUE.
+- ⚠️ On ne peut pas passer au placeur une hauteur toute faite : c’est LUI qui décide de la largeur, et il reçoit donc une fonction.
+- ⚠️ Sans largeur, la mesure pleine — c’est le cas de l’encart posé sous son appel, où rien ne le resserre.
 - ⛔ La croix ne paraît que sur un encart PERSISTANT.
 - ⛔ Un encart de survol ne se fige pas non plus tout seul au bout d’un délai : il se ferme quand la main s’en va, et un encart persistant se demande d’un clic.
 - ⚠️ L’appel se MARQUE tant que sa note est ouverte — de la surbrillance du segment actif de la lecture : c’est le second lien entre l’appel et sa note, celui qu’on suit des yeux en revenant au texte.
@@ -547,7 +562,8 @@
 - ⚠️ À seize rem de plancher, la marge sert donc à l’œuvre dès 2200, à la page Bible dès 2400 et à la lecture en regard dès 2560 ; à vingt, il fallait 2560, 2880 et 2880.
 - ⛔ Ce n’est pas la largeur qui suit le CONTENU, que le § 13.13 proscrit : elle suit la PLACE, elle est la même pour toutes les notes d’une même page, et elle ne change que si le lecteur touche à un volet lui-même.
 - ⛔ Sous une largeur plancher, l’encart repasse SOUS son appel — comme avant : une note ne se lit plus dans une colonne trop étroite, et mieux vaut couvrir le texte que sortir de l’écran.
-- ⛔ LE NUMÉRO FLOTTE, il n’occupe pas une colonne.
+- ⛔ LE NUMÉRO FLOTTE QUAND IL EST SEUL, il n’occupe pas une colonne.
+- ⚠️ Il ne flotte QUE seul — ce qui est le cas de trois notes sur cinq : dès que la note déclare un type, il entre dans la tête à côté de lui (§ 13.13), un flottant n’ayant rien à habiller quand une ligne entière lui est prise.
 - ⛔ UN RENVOI EN MARGE SE POSE SUR LA LIGNE DE BASE DE SA LIGNE — et cet accord se MESURE.
 - ⚠️ La correction ne s’écrit pas en pixels : les deux corps sont en rem, la police racine du site est fluide, et un nombre ne serait juste qu’à une seule taille d’écran.
 

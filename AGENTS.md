@@ -3111,16 +3111,38 @@ code :
   gagne à 1920, et que la piste reste au-dessus de trente signes. Rouge à 14 comme à 18 et
   à 20, verte à 16 — éprouvé dans les deux sens.
 
-# ⛔ LE NUMÉRO DE L'ENCART FLOTTE (2026-09-08)
+# ⛔ LE NUMÉRO DE L'ENCART FLOTTE QUAND IL EST SEUL (2026-09-08, nuancé le 2026-09-10)
 
-- ⛔ `STYLE_NUMERO_ENCART` porte `float: left`, et `STYLE_GRILLE_ENCART` n'existe plus.
+- ⛔ `STYLE_NUMERO_SEUL` porte `float: left`, et `STYLE_GRILLE_ENCART` n'existe plus.
   Rangé dans une colonne de grille, le numéro réservait ses 2,25 rem sur TOUTE la hauteur
   de la note — dix-neuf lignes de blanc à gauche d'un développement de vingt.
+- ⛔ **MAIS IL NE FLOTTE QUE SEUL** (relevé de l'auteur, 2026-09-10 : « revois les
+  alignements, notamment du numéro de note et du type de note »). Dès que la note déclare
+  un type, il entre dans la TÊTE (`STYLE_NUMERO_TETE`, `STYLE_TETE_ENCART`) et cesse de
+  flotter : un flottant n'a rien à habiller quand une ligne entière lui est prise, et il
+  laissait alors TROIS fers à gauche — mesuré à la racine 22 dans une marge de 357 px, le
+  numéro à 39, le type à 78, le propos à 39. Après : un seul fer à 35.
+- ⛔ **La tête aligne les deux sur leur LIGNE DE BASE** (`alignItems: 'baseline'`), et c'est
+  tout son objet : ils ne portent pas le même corps (0,625 et 0,5625 rem), et posés dans
+  deux blocs voisins d'un flottant ils tenaient chacun la sienne — quatre pixels d'écart
+  mesurés, zéro après. ⚠️ La tête tient sur UNE ligne : `whiteSpace: nowrap` et
+  `textOverflow: ellipsis` sur le type, sans quoi un intitulé long ouvrirait un second
+  rang au-dessus du propos.
 - ⚠️ **Le flottant est CONTENU par le corps de l'encart**, qui défile : un bloc qui défile
   forme un contexte de formatage et enferme ses flottants sans qu'on le lui demande.
-- ⚠️ **Sa `line-height` est celle du TEXTE, non la sienne** : un chiffre de 0,625 rem posé
-  sur son propre interligne flotterait au-dessus de la première ligne du propos. Elle se
-  CALCULE depuis `CORPS_ENCART` et `INTERLIGNE_ENCART`, jamais écrite à part.
+- ⛔ **SEUL, IL EMPRUNTE LE STRUT DU PROPOS — police comprise — et le chiffre s'y pose EN
+  LIGNE** (`STYLE_FACE_NUMERO`). Lui donner la seule HAUTEUR d'une ligne de texte ne
+  suffit pas, et cette page a dit le contraire du 8 au 10 septembre 2026 (« sa
+  `line-height` est celle du TEXTE ») : deux boîtes de même hauteur ne posent pas leur
+  ligne de base au même endroit quand les polices diffèrent, l'ascendante d'une sans
+  n'étant pas celle d'une sérif. Mesuré à la racine 22, le chiffre pendait UN pixel
+  au-dessus de la première ligne du propos ; sur le strut, zéro. ⚠️ C'est la leçon de la
+  marge de référence de la Polyglotte, prise par l'autre bout, et la correction ne
+  s'écrit pas plus en pixels ici que là-bas.
+- ⚠️ **La MESURE se prend par une sonde de hauteur nulle en `vertical-align: baseline`**,
+  jamais sur le rectangle d'un `Range` : celui-ci cerne les glyphes et son bord bas
+  descend sous la ligne de base d'une descendante — proportionnelle au corps. Il donnait
+  1 px d'écart là où il n'y en a aucun, et l'on aurait « corrigé » un défaut inexistant.
 
 # ⛔ UN RENVOI EN MARGE SE POSE SUR LA LIGNE DE BASE, ET CELA SE MESURE (2026-09-08)
 
@@ -3361,8 +3383,34 @@ vu. Une insertion se borne à une ancre de FIN explicite, jamais à un motif de 
 # ⛔ UN SEUL ENCART DE NOTE — `EncartNote` + `compositionNote.ts` (2026-09-08)
 
 Doctrine : charte `parametres.charte_ia`, **§ 13.13** (ce qu'est l'encart, l'intitulé qui
-se tait, le numéro dans sa gouttière) ; les neuf divergences et les mesures sont au
-carnet. Ici, ce qu'il faut savoir pour y toucher.
+se tait, le numéro dans sa gouttière, la tête, la condensation) ; les neuf divergences et
+les mesures sont au carnet. Ici, ce qu'il faut savoir pour y toucher.
+
+- ⛔ **LA HAUTEUR SE DEMANDE UNE FOIS LA LARGEUR CONNUE** (2026-09-10). `placerEnMarge`
+  accepte désormais `hauteurSouhaitee: number | ((largeur: number) => number)` et résout
+  la fonction APRÈS avoir retenu sa largeur : c'est LUI qui décide de la largeur, on ne
+  peut donc pas lui passer la hauteur toute faite. ⚠️ `signesParLigne` était une
+  CONSTANTE (65), calibrée sur la mesure pleine de 29 rem ; mesuré à 16 rem, il en tient
+  32 — la boîte était bornée aux deux tiers de ce qu'il fallait, et la note défilait pour
+  rien. La chasse moyenne d'un signe (`CHASSE_MOYENNE_EM` = 0,525 em) est MESURÉE, elle
+  ne se devine pas : un « demi-cadratin » posé au juger donne 5 % d'erreur par ligne, et
+  l'erreur s'accumule sur une note de vingt.
+- ⛔ **LE CORPS PREND `signes`, ET C'EST OBLIGATOIRE.** `styleCorpsEncart(signes)` décide de
+  la JUSTIFICATION sur le seuil du gris (`SEUIL_GRIS_SIGNES` = 250, charte § 3.11) : sous
+  lui, la note se ferre. Le paramètre n'a pas de défaut, et c'est voulu — le compilateur
+  oblige chaque surface à dire la longueur de la note qu'elle compose, au lieu de laisser
+  un défaut décider. ⚠️ La CÉSURE reste dans les deux cas.
+- ⛔ **LA PLACE DE LA CROIX SE RÉSERVE PAR UN FLOTTANT** (`STYLE_RESERVE_CROIX`), sur la
+  seule ligne où la croix se tient, jamais par un `paddingRight` du corps, qui la
+  retenait sur toute la hauteur d'une note de vingt lignes. ⚠️ Sa hauteur est INFÉRIEURE
+  à une ligne, sans quoi elle en mordrait une seconde. ⚠️ Elle reste réservée TOUJOURS,
+  croix montrée ou non : la règle du 9 septembre — rien ne bouge entre le survol et le
+  clic — ne cède pas, elle se paie autrement.
+- ⚠️ **Ce que la condensation a rendu, mesuré sur les quatre notes témoins** (racine 22,
+  marge de 357 px) : la piste de texte passe de 284 à 319 px, les encarts de
+  72 · 121 · 119 · 332 à 63 · 111 · 109 · 293. Planche : `tmp/planche-encart-tete.tsx`,
+  qui prend un état en argument et rend le VRAI composant ; `tmp/encart-avant-apres.html`
+  met les deux en regard.
 
 - ⛔ **DEUX modules, et ils ne font pas la même chose.** `app/lib/compositionNote.ts`
   porte la COMPOSITION — pure, testée, sans une ligne de React : largeur, rembourrage,
