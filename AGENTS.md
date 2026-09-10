@@ -10263,3 +10263,39 @@ Règles de code :
   s'y exécute jamais, et le script expire. On lit `getBoundingClientRect` après avoir posé
   le style, ce qui force la mise en page synchrone — c'est le piège déjà consigné pour la
   barre de navigation, payé une fois de plus.
+
+## ⛔ LE CHAPEAU DU VOLET D'UNE ŒUVRE — l'œuvre en tête, et le titre porte la fiche
+
+Choix de l'auteur sur planche, le 10 septembre 2026 (cinq présentations en regard) : « Le D.
+Mais sans la flèche à côté du nom de l'auteur ; et le titre de l'œuvre doit être cliquable. »
+Doctrine : charte `parametres.charte_ia`, **§ 38.26.2**. Ici, ce qu'il faut savoir pour y
+toucher.
+
+- ⛔ **TROIS LIGNES SONT DEVENUES DEUX**, et rien n'a été retranché : le titre monte en tête
+  (`TitreVolet`, app/oeuvre/[id]/TeteVolet.tsx), l'auteur descend sous lui en ligne de crédit
+  (`NomVolet`, variante `credit`), et le lien « À propos de cette édition » disparaît parce
+  que le TITRE l'ouvre.
+- ⚠️ **`refNoms` CERNE CE QUI DEMANDE LA PLACE**, et ce n'est plus le nom de l'auteur mais le
+  titre. `useRangeeCondensee` n'a pas changé d'un caractère : elle lit les `button` du bloc et
+  la chasse de leur `firstElementChild`. ⛔ Le texte du titre doit donc rester enveloppé dans
+  UN span, ce que `rendreTexteEnrichi` ne garantit pas seul — il rend plusieurs nœuds.
+- ⛔ **UN TITRE SANS FICHE RESTE UN `button`**, désactivé. Rendre un `<p>` à sa place ferait
+  tomber la mesure à zéro, et la rangée montrerait ses icônes là où la place manque.
+- ⚠️ **La cible du crédit est celle du DOIGT** : dix pixels de haut ne font pas 24, et
+  `.cs-cible-fine` (globals.css, sous `@media (hover: none)`) agrandit la zone sans rien
+  déplacer. La forme `tete` s'en passe, elle porte treize pixels et sa flèche.
+- ⚠️ **La flèche reste sur la page Bible.** `NomVolet` sert les deux pages : en `tete` la
+  traduction est bien ce que le volet nomme d'abord, en `credit` l'auteur ne l'est plus.
+- ⚠️ **La visite a été relue** (app/lib/visiteOeuvre.ts) : elle nommait « un lien, sous le
+  titre » qui n'existe plus. Une refonte de surface se paie d'une relecture du scénario.
+
+### ⛔ Et le mode de lecture par défaut est le FRANÇAIS SEUL
+
+Demande du même jour, doctrine charte **§ 38.27**.
+
+- ⛔ **LE MODE VIT DANS `sessionStorage`, PLUS DANS `localStorage`** (`cs_modetexte_<œuvre>`,
+  app/oeuvre/[id]/OeuvreClient.tsx). Il tient le temps qu'on lit, il tombe avec le navigateur.
+- ⛔ **`cs_bilingue_<œuvre>` N'EST PLUS RELUE.** Plus rien ne l'écrivait, mais elle dormait
+  dans les navigateurs qui l'avaient reçue et y rouvrait le bilingue à elle seule.
+- ⚠️ **`?mt=` l'emporte toujours** : un favori posé sur le texte original ne se retrouve pas
+  autrement.

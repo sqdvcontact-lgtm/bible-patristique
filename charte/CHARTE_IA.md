@@ -7407,3 +7407,61 @@ fautifs — les seuls du site —, verte une fois la propriété rendue à la fe
 ⚠️ **Et le défaut ne se lisait NI dans le composant, NI dans la feuille**, chacun étant
 juste de son côté : il naît de leur rencontre, et il ne se voit qu'à la mesure ou à
 l'écran. C'est pourquoi une capture de l'auteur vaut ici toutes les relectures.
+
+#### 38.26.2 L'ŒUVRE est en TÊTE du volet, et son TITRE ouvre la fiche
+
+Choix de l'auteur, le 10 septembre 2026, cinq présentations du chapeau mises en regard sur
+planche : « Le D. Mais sans la flèche à côté du nom de l'auteur ; et le titre de l'œuvre doit
+être cliquable. »
+
+⛔ **CE QU'ON LIT PASSE AVANT QUI L'A ÉCRIT.** Le chapeau empilait trois lignes — le nom de
+l'auteur, le titre de l'œuvre, un lien « À propos de cette édition » — et la première était le
+seul mot coloré de l'écran : l'œil tombait sur « Augustin d'Hippone » quand on venait lire *La
+Cité de Dieu*. Il en reste DEUX : le titre, puis l'auteur en ligne de crédit, en petit corps.
+
+⛔ **LE TITRE PORTE LA FICHE, ET LE LIEN S'EFFACE.** Une ligne entière de phrase soulignée
+n'a plus à dire ce que le titre dit déjà : c'est lui qu'on clique. ⚠️ La règle du 3 septembre
+— « un lien nomme sa destination » — n'est pas défaite pour autant, elle passe dans
+l'infobulle, le libellé du lien étant devenu le titre même de l'œuvre. ⛔ Une édition dont il
+n'y a rien à dire n'ouvre aucune fiche : le titre se compose alors à l'identique, sans clic ni
+soulignement.
+
+⚠️ **Le titre se compose comme un TITRE, jamais comme un lien** : la serif du site, l'encre du
+texte, rien de vert. Ce qui annonce le clic est le SURVOL, qui souligne — la même annonce, et
+la seule, que porte le nom d'auteur depuis le 31 août.
+
+⛔ **PLUS DE FLÈCHE SOUS LE TITRE.** Elle avait été demandée le 4 septembre pour dire qu'une
+fiche se tenait derrière un nom, et elle demeure là où elle a été posée : en TÊTE, sur la page
+Bible, où la traduction est bien ce que le volet nomme d'abord. Elle quitte le crédit d'auteur,
+qui n'est plus en tête : une flèche annonce au premier regard, elle n'annonce plus rien sous
+une ligne de crédit.
+
+⚠️ **La mesure de la rangée d'actions ne bouge pas** (§ 38.26 et § 38.26.1) : ce qui dispute la
+place au chapeau est désormais le TITRE, et la règle vaut pour lui comme elle valait pour le nom
+de l'auteur — le texte ne se coupe pas, c'est la rangée qui cède tout entière sous le ⋮ quand la
+place manque. L'écrêtage par la fin ne sert que le cas extrême, où même la rangée condensée ne
+laisse pas de quoi lire.
+
+⚠️ **Et la VISITE se relit avec l'écran** : elle nommait « un lien, sous le titre », qui
+n'existe plus. Une refonte de surface se paie d'une relecture du scénario qui la montre.
+
+### 38.27 Le mode de lecture par DÉFAUT est le FRANÇAIS SEUL, et un choix ne survit pas à la visite
+
+Demande de l'auteur, le 10 septembre 2026 : « j'aimerais que le texte par défaut soit français
+seul ».
+
+⛔ **UNE PRÉFÉRENCE SANS FIN N'EST PLUS UNE PRÉFÉRENCE.** Le mode de lecture d'une œuvre se
+gardait dans `localStorage`, c'est-à-dire sans terme : une œuvre ouverte une fois en « Français
+& Latin » se rouvrait en deux colonnes des semaines plus tard, et rien à l'écran ne disait d'où
+venait ce choix — le volet montrait un mode que le lecteur n'avait pas demandé ce jour-là. Le
+choix vit désormais dans `sessionStorage` : il tient le temps qu'on lit, d'un chapitre à l'autre
+et d'une page du site à l'autre, il tombe quand le navigateur se referme.
+
+⚠️ **Un lien qui NOMME le mode l'emporte toujours.** `?mt=bilingue` et `?mt=la` ouvrent l'œuvre
+exactement dans le mode demandé : un favori posé sur le texte original ne se retrouve pas
+autrement.
+
+⛔ **ET UNE CLÉ QUE PLUS RIEN N'ÉCRIT NE SE LIT PLUS.** `cs_bilingue_<œuvre>`, vestige d'une
+écriture antérieure, dormait encore dans les navigateurs qui l'avaient reçue et y rouvrait le
+bilingue à elle seule, sans que le lecteur pût la défaire autrement qu'en choisissant
+« Français » une fois de plus.
