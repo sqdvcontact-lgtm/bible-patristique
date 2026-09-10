@@ -112,11 +112,23 @@ export function largeurEncartMinPx(racine: number): number {
  *  un alinéa que rien ne justifiait. La gouttière se resserre du même coup. */
 export const GOUTTIERE_NUMERO = '1.75rem'
 
-/** Le blanc intérieur. ⚠️ Resserré d'un quart (demande de l'auteur, 2026-09-08 :
- *  « réduis légèrement les marges ») : il valait 1,125/1,25 rem, soit trois fois celui
- *  des anciens encarts, ce qui donnait à une note de deux lignes un cadre de six. Une
- *  note reste un objet posé — elle garde un blanc franc, elle ne l'étale plus. */
-export const REMBOURRAGE_ENCART = '0.875rem 1rem'
+/** Le blanc intérieur. ⚠️ Resserré une seconde fois le 2026-09-10 (« condense le texte
+ *  selon mes recommandations ») : 0,875/1 rem → 0,6875/0,8125.
+ *
+ *  ⛔ ET IL EST SYMÉTRIQUE, ce qu'il n'était plus : le corps portait en outre un
+ *  `paddingRight` de 2,25 rem pour réserver la place de la croix, sur TOUTE la hauteur
+ *  de la note. Une note de dix lignes payait donc onze pixels de piste à droite pour un
+ *  bouton qui n'occupe que la première — et son texte, décalé, ne paraissait pas centré
+ *  dans sa boîte. La réserve est devenue un FLOTTANT (`STYLE_RESERVE_CROIX`), qui ne
+ *  raccourcit que la ligne où la croix se tient : c'est le procédé du numéro. */
+export const REMBOURRAGE_LATERAL_REM = 0.8125
+export const REMBOURRAGE_ENCART = `0.6875rem ${REMBOURRAGE_LATERAL_REM}rem`
+
+/** La place que la croix prend sur la PREMIÈRE ligne, et sur elle seule.
+ *  ⚠️ Elle est POSÉE toujours, croix montrée ou non : la géométrie d'un encart ne
+ *  change pas entre le survol et le clic, c'est la règle du 9 septembre 2026. Seule sa
+ *  PORTÉE change — une ligne au lieu de toutes. */
+export const RESERVE_CROIX = '1rem'
 
 /** Le corps du texte d'une note. ⚠️ Il descend de 0,8125 à 0,75 rem (demande de
  *  l'auteur, 2026-09-08 : « plus condensées, avec un corps de texte plus petit »). Une
@@ -124,11 +136,28 @@ export const REMBOURRAGE_ENCART = '0.875rem 1rem'
  *  son corps se distingue mieux de celui de la page quand il s'en écarte franchement. */
 export const CORPS_ENCART = '0.75rem'
 
-/** L'interligne, resserré avec le corps : 1,42, celui du verset de la page Bible.
+/** L'interligne. ⚠️ 1,38 depuis le 2026-09-10 : c'est le BARÈME DE L'APPAREIL de la
+ *  charte (§ 3.11 — 1,38 à 1,40 pour l'appareil, 1,50 à 1,52 pour une notice), et une
+ *  note est de l'appareil. Il valait 1,42, emprunté au verset de la page Bible, qui est
+ *  du texte suivi.
  *  ⚠️ Il commande AUSSI la ligne du numéro en manchette et l'estimation de hauteur
  *  ci-dessous — les trois se tiennent par cette constante, jamais par des valeurs
  *  recopiées. */
-export const INTERLIGNE_ENCART = 1.42
+export const INTERLIGNE_ENCART = 1.38
+
+/**
+ * LE SEUIL DU GRIS TYPOGRAPHIQUE, en signes servis (charte § 3.11).
+ *
+ * ⛔ Au-dessous, on ne justifie pas : « un libellé, une étiquette, une légende, un
+ * message d'état n'ont pas de gris et ne relèvent pas de la règle ». Une note de
+ * quarante signes justifiée sur deux lignes étire la première d'un bord à l'autre pour
+ * laisser un mot seul sur la seconde — ce que l'auteur a relevé le 2026-09-10.
+ *
+ * ⚠️ Et la portée est mesurée : sur les 24 302 notes du corpus, la médiane fait dix-sept
+ * signes et 92,6 % tiennent sous cent vingt. La justification ne concerne donc qu'une
+ * note sur trente — celles qui portent vraiment un paragraphe.
+ */
+export const SEUIL_GRIS_SIGNES = 250
 
 /**
  * La hauteur que l'encart PRENDRAIT si rien ne le bornait, estimée sur la longueur
@@ -190,8 +219,10 @@ export const INTERLIGNE_APPARAT = 1.34
  *  qui ne suivait pas la police racine, et qui se resserrait donc toute seule sur un
  *  grand écran, là précisément où la place ne manque pas. */
 export const MARGE_ENTREE_APPARAT = '0.25rem'
-/** L'intitulé et son blanc, quand il y en a un. */
-const INTITULE_ENCART_REM = 1.125
+/** La tête et son blanc, quand la note déclare un type. ⚠️ DÉRIVÉE, non recopiée :
+ *  la ligne du numéro (0,625 rem sur l'interligne du corps) plus le blanc de
+ *  `STYLE_TETE_ENCART`. Un nombre écrit à part se désaccorderait au premier réglage. */
+const INTITULE_ENCART_REM = 0.625 * INTERLIGNE_ENCART + 0.25
 /** Les deux filets. ⚠️ En PIXELS, comme tout filet du site : un rem les rendrait flous. */
 const FILETS_ENCART_PX = 2
 
@@ -204,13 +235,47 @@ const FILETS_ENCART_PX = 2
  *  cas le plus étroit du cadre — et 66,4 signes par ligne sur un échantillon de 332.
  *  On en retient 65 : la barre de défilement rend six pixels de moins quand elle
  *  paraît, et sous-estimer la ligne fait une boîte trop haute, jamais trop courte. */
-const SIGNES_PAR_LIGNE = 65
+/**
+ * La chasse moyenne d'un signe, en em du corps de la note.
+ *
+ * ⚠️ MESURÉE sur des notes réelles rendues dans la police du site : 0,525 em, soit
+ * 6,3 px à la racine 16. ⛔ Elle ne se devine pas — un « demi-cadratin » posé au juger
+ * donnerait 5 %  d'erreur par ligne, et l'erreur s'accumule sur une note de vingt.
+ */
+const CHASSE_MOYENNE_EM = 0.525
+
+/**
+ * COMBIEN DE SIGNES TIENNENT SUR UNE LIGNE, à la largeur où l'encart se compose.
+ *
+ * ⛔ C'ÉTAIT UNE CONSTANTE, ET ELLE MENTAIT DÈS QUE L'ENCART SE RESSERRAIT. Elle valait
+ * 65, calibré sur la mesure PLEINE de 29 rem ; or l'encart se resserre à la marge qu'on
+ * lui laisse, et le plancher est descendu à 16 rem le 2026-09-10. Mesuré à cette
+ * largeur : 32 signes par ligne, la moitié. La hauteur estimée valait donc 215 px pour
+ * une note qui en prend 332, et le placeur bornait la boîte à deux tiers de ce qu'il
+ * fallait — la note défilait sans raison.
+ *
+ * ⚠️ Le plancher de douze signes borne l'absurde : une largeur nulle rendrait une
+ * hauteur infinie.
+ */
+function signesParLigne(largeurPx: number, racine: number): number {
+  const piste = largeurPx - FILETS_ENCART_PX - 2 * REMBOURRAGE_LATERAL_REM * racine
+  const chasse = CHASSE_MOYENNE_EM * Number.parseFloat(CORPS_ENCART) * racine
+  return Math.max(12, piste / chasse)
+}
 
 export function hauteurSouhaiteeNote(
-  { signes, racine, avecIntitule = false }:
-  { signes: number; racine: number; avecIntitule?: boolean },
+  { signes, racine, avecIntitule = false, largeur }:
+  {
+    signes: number
+    racine: number
+    avecIntitule?: boolean
+    /** La largeur à laquelle l'encart se composera, en pixels. ⚠️ Sa mesure pleine à
+     *  défaut : c'est le cas quand il se pose sous son appel, où rien ne le resserre. */
+    largeur?: number
+  },
 ): number {
-  const lignes = Math.max(1, Math.ceil(Math.max(0, signes) / SIGNES_PAR_LIGNE))
+  const parLigne = signesParLigne(largeur ?? LARGEUR_ENCART_REM * racine, racine)
+  const lignes = Math.max(1, Math.ceil(Math.max(0, signes) / parLigne))
   const enRem = lignes * LIGNE_ENCART_REM
     + MARGE_QUEUE_REM
     + REMBOURRAGE_VERTICAL_REM
@@ -287,7 +352,11 @@ export function styleCadreEncart(
  * ⚠️ Les deux autres surfaces ne bougent pas d’un pixel : la page Bible et les
  * traductions parallèles passent toujours `onFermer`, donc portaient déjà ce blanc.
  */
-export function styleCorpsEncart(): CSSProperties {
+export function styleCorpsEncart(signes: number): CSSProperties {
+  // ⛔ LE SEUIL DU GRIS décide de la justification, et il est de la charte (§ 3.11).
+  // ⚠️ `signes` est OBLIGATOIRE, et c'est voulu : le compilateur oblige chaque surface
+  // à dire la longueur de la note qu'elle compose, au lieu de laisser un défaut décider.
+  const gris = signes >= SEUIL_GRIS_SIGNES
   return {
     flex: '1 1 auto',
     minHeight: 0,
@@ -296,25 +365,27 @@ export function styleCorpsEncart(): CSSProperties {
     // de la barre de navigation, où la molette poursuivie au bas d'une liste
     // emportait la page et refermait le menu sous le curseur.
     overscrollBehavior: 'contain',
+    // ⚠️ SYMÉTRIQUE : la place de la croix se réserve par un flottant, sur la seule
+    // ligne qu'elle occupe (`STYLE_RESERVE_CROIX`), et non plus par un rembourrage qui
+    // la retenait sur toute la hauteur.
     padding: REMBOURRAGE_ENCART,
-    // ⚠️ La croix flotte au coin : on lui réserve sa place, sinon la première ligne
-    // du propos lui passe dessous. ⛔ TOUJOURS, croix montrée ou non : voir ci-dessus.
-    paddingRight: '2.25rem',
     fontFamily: 'var(--font-source-serif), Georgia, serif',
     fontSize: CORPS_ENCART,
     lineHeight: INTERLIGNE_ENCART,
     color: 'var(--cs-texte-fort)',
-    // ⛔ JUSTIFIÉ, et sur le CORPS plutôt que sur chaque paragraphe (demande de
-    // l'auteur, 2026-09-08). La page Bible justifiait déjà les siens, la lecture d'une
-    // œuvre non : le même encart rendait donc deux compositions selon la surface qui
-    // l'ouvrait, ce que ce module existe précisément pour empêcher. Posé ici, il vaut
-    // pour les trois, et une règle de paragraphe n'a plus à le redire.
-    // ⚠️ La CÉSURE va avec, elle n'est pas une option : la piste fait une soixantaine
-    // de signes, et une justification sans coupure y creuse des lézardes. La langue
-    // vient du document ou du bloc, qui porte son `lang` quand il n'est pas français.
+    // ⛔ JUSTIFIÉ AU-DESSUS DU SEUIL DU GRIS, ET AU FER SOUS LUI. Il l'était toujours
+    // (demande de l'auteur, 2026-09-08), et sur le CORPS plutôt que sur chaque
+    // paragraphe, pour que les trois surfaces composent pareil — cela ne change pas.
+    // ⚠️ Ce qui change est la CONDITION : une note de quarante signes n'a pas de gris,
+    // et la justifier étirait sa première ligne d'un bord à l'autre pour laisser un mot
+    // seul sur la seconde. C'est ce que l'auteur a relevé le 2026-09-10, et c'est ce que
+    // la charte dit depuis toujours de ce qui se lit d'un coup d'œil.
+    // ⚠️ La CÉSURE reste dans les DEUX cas : au fer, une piste de trente signes coupe
+    // aussi bien les mots longs. La langue vient du document ou du bloc, qui porte son
+    // `lang` quand il n'est pas français.
     // ⚠️ `textAlignLast` rend la DERNIÈRE ligne au fer à gauche : justifiée, une ligne
     // de trois mots s'étirerait d'un bord à l'autre.
-    textAlign: 'justify',
+    textAlign: gris ? 'justify' : 'left',
     textAlignLast: 'left',
     hyphens: 'auto',
     WebkitHyphens: 'auto',
@@ -342,31 +413,92 @@ export function styleCorpsEncart(): CSSProperties {
  * verset s'aligne à droite parce qu'il en a cinquante sous lui ; celui-ci est seul, en
  * tête d'un objet, et le fer à droite n'y produisait qu'un alinéa.
  */
-export const STYLE_NUMERO_ENCART: CSSProperties = {
-  float: 'left',
-  width: GOUTTIERE_NUMERO,
+/** La face du numéro, commune à ses deux poses. */
+const FACE_NUMERO: CSSProperties = {
   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
   fontSize: '0.625rem',
   fontWeight: 600,
   color: 'var(--cs-texte-faible)',
-  textAlign: 'left',
-  paddingRight: '0.5rem',
-  // ⚠️ Sa ligne est celle du TEXTE, non la sienne : un chiffre de 0,625 rem posé sur
-  // son propre interligne flotterait au-dessus de la première ligne du propos.
-  lineHeight: INTERLIGNE_ENCART * Number.parseFloat(CORPS_ENCART) / 0.625,
   userSelect: 'none',
 }
 
-/** L'intitulé, quand la note a un type à déclarer. La rubrique du site. */
+/**
+ * LE NUMÉRO QUAND IL EST SEUL — il PEND, et le propos l'habille.
+ *
+ * ⛔ Il flotte, il n'occupe pas une colonne : rangé dans une gouttière, il réservait sa
+ * mesure sur toute la hauteur de la note. La mesure entière revient au texte dès la
+ * deuxième ligne. C'est le cas de 58 % des notes, qui ne déclarent aucun type.
+ *
+ * ⚠️ Sa ligne est celle du TEXTE, non la sienne : un chiffre de 0,625 rem posé sur son
+ * propre interligne flotterait au-dessus de la première ligne du propos.
+ */
+export const STYLE_NUMERO_SEUL: CSSProperties = {
+  float: 'left',
+  width: GOUTTIERE_NUMERO,
+  textAlign: 'left',
+  paddingRight: '0.5rem',
+  userSelect: 'none',
+  // ⛔ IL EMPRUNTE LE STRUT DU PROPOS — sa police, son corps, son interligne — et le
+  // chiffre s'y pose EN LIGNE (`STYLE_FACE_NUMERO`). Lui donner la seule HAUTEUR d'une
+  // ligne du texte ne suffit pas : la ligne de base ne se tient pas au même endroit dans
+  // deux boîtes de même hauteur quand les polices diffèrent, l'ascendante d'une sans
+  // n'étant pas celle d'une sérif. Mesuré à la racine 22, le chiffre pendait UN pixel
+  // au-dessus de la première ligne du propos ; sur le strut, zéro.
+  fontFamily: 'var(--font-source-serif), Georgia, serif',
+  fontSize: CORPS_ENCART,
+  lineHeight: INTERLIGNE_ENCART,
+}
+
+/** La FACE du numéro seul : le chiffre lui-même, en ligne dans le strut ci-dessus. */
+export const STYLE_FACE_NUMERO: CSSProperties = { ...FACE_NUMERO }
+
+/**
+ * LE NUMÉRO QUAND LA NOTE DÉCLARE UN TYPE — il rejoint la TÊTE, et ne flotte plus.
+ *
+ * ⛔ Relevé de l'auteur, 2026-09-10 : « revois les alignements, notamment du numéro de
+ * note et du type de note ». Le numéro flottait, le type était un BLOC posé à côté de
+ * lui, et le propos venait dessous : trois fers à gauche pour trois lignes qui se
+ * suivent — mesuré sur la planche, le numéro à 39 px, le type à 78, le texte à 39. Un
+ * flottant n'a rien à habiller quand une tête occupe sa ligne : il y entre.
+ */
+export const STYLE_NUMERO_TETE: CSSProperties = { ...FACE_NUMERO, flexShrink: 0 }
+
+/**
+ * LA TÊTE : le numéro et le type, sur une seule ligne, au fer du propos.
+ *
+ * ⛔ `alignItems: 'baseline'`, et c'est tout l'objet : les deux ne portent pas le même
+ * corps (0,625 et 0,5625 rem), et posés dans deux blocs voisins d'un flottant ils
+ * tenaient chacun sa propre ligne de base — quatre pixels d'écart, mesurés.
+ */
+export const STYLE_TETE_ENCART: CSSProperties = {
+  display: 'flex',
+  alignItems: 'baseline',
+  gap: '0.4375rem',
+  marginBottom: '0.25rem',
+}
+
 export const STYLE_INTITULE_ENCART: CSSProperties = {
-  display: 'block',
   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
   fontSize: '0.5625rem',
   fontWeight: 700,
   letterSpacing: '0.09em',
   textTransform: 'uppercase',
   color: 'var(--cs-texte-faible)',
-  marginBottom: '0.375rem',
+  // ⚠️ Une tête tient sur UNE ligne : un type plus long que la piste s'écrête plutôt
+  // que d'ouvrir un second rang au-dessus du propos.
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+}
+
+/** La réserve de la croix : un flottant sans hauteur de ligne, qui ne raccourcit que
+ *  la première. ⚠️ Sa hauteur est INFÉRIEURE à une ligne, sans quoi elle en mordrait
+ *  une seconde. */
+export const STYLE_RESERVE_CROIX: CSSProperties = {
+  float: 'right',
+  width: RESERVE_CROIX,
+  height: CORPS_ENCART,
 }
 
 /** La croix. ⚠️ Elle ne paraît QUE si l'encart ne se ferme pas de lui-même : sur un

@@ -129,11 +129,17 @@ function AppelNote({ note }: { note: NoteStructuree }) {
     : { largeur: window.innerWidth, hauteur: window.innerHeight }
   const boite = rect ?? { top: 300, bottom: 316, left: 0 }
   const largeur = largeurEncartPx(racine)
-  const hauteurSouhaitee = hauteurSouhaiteeNote({ signes: signesDeLaNote(note), racine, avecIntitule: Boolean(intitule) })
+  const signes = signesDeLaNote(note)
+  // ⛔ LA HAUTEUR SE DEMANDE UNE FOIS LA LARGEUR CONNUE. L'encart se resserre à la marge
+  // qu'on lui laisse ; estimée sur sa mesure pleine, sa hauteur valait deux fois moins
+  // que la vraie dès qu'il se resserrait, et la boîte défilait pour rien. Sous l'appel,
+  // rien ne le resserre : la mesure pleine y est la bonne.
+  const hauteurVoulue = (largeurRetenue?: number) =>
+    hauteurSouhaiteeNote({ signes, racine, avecIntitule: Boolean(intitule), largeur: largeurRetenue })
   const hautNavbar = hauteurNavbarPx()
   // ⛔ D'ABORD LA MARGE, comme partout : l'encart ne couvre pas le texte qu'il commente.
-  const placement = (colonne && placerEnMarge({ ancre: boite, largeur, largeurMin: largeurEncartMinPx(racine), hauteurSouhaitee, vue, hautNavbar, colonne }))
-    ?? placerFenetre({ ancre: boite, largeur, hauteurSouhaitee, vue, hautNavbar, ecart: 8, prefereDessus: sansSurvol })
+  const placement = (colonne && placerEnMarge({ ancre: boite, largeur, largeurMin: largeurEncartMinPx(racine), hauteurSouhaitee: hauteurVoulue, vue, hautNavbar, colonne }))
+    ?? placerFenetre({ ancre: boite, largeur, hauteurSouhaitee: hauteurVoulue(), vue, hautNavbar, ecart: 8, prefereDessus: sansSurvol })
   return (
     <>
       <sup ref={ancre as React.RefObject<HTMLElement>} data-appel-note="" role="button" tabIndex={0}
@@ -148,6 +154,7 @@ function AppelNote({ note }: { note: NoteStructuree }) {
           numero={numero}
           intitule={intitule}
           placement={placement}
+          signes={signes}
           onFermer={() => setOuvert(false)}
           marque="data-appel-note"
         >

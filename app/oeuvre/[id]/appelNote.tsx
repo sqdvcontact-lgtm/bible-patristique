@@ -277,20 +277,27 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
   // La hauteur SUIT la note, au lieu des 340 px que le placeur recevait pour toutes :
   // un renvoi de treize signes n'a pas à réserver la place d'un développement, et un
   // développement n'a pas à se croire court.
-  const hauteurSouhaitee = hauteurSouhaiteeNote({ signes: signesDeLaNote(contenu), racine, avecIntitule: Boolean(intitule) })
+  const signes = signesDeLaNote(contenu)
+  // ⛔ LA HAUTEUR SE DEMANDE UNE FOIS LA LARGEUR CONNUE. L'encart se resserre à la marge
+  // qu'on lui laisse ; estimée sur sa mesure pleine, sa hauteur valait deux fois moins
+  // que la vraie dès qu'il se resserrait, et la boîte défilait pour rien. Sous l'appel,
+  // rien ne le resserre : la mesure pleine y est la bonne.
+  const hauteurVoulue = (largeurRetenue?: number) =>
+    hauteurSouhaiteeNote({ signes, racine, avecIntitule: Boolean(intitule), largeur: largeurRetenue })
   const hautNavbar = hauteurNavbarPx()
   // ⛔ D'ABORD LA MARGE : une note ouverte par-dessus la colonne cache le passage
   // qu'elle commente. ⚠️ Faute de place — un téléphone, deux volets ouverts —, on
   // retombe sur la fenêtre posée sous l'appel : mieux vaut couvrir le texte que
   // sortir de l'écran.
-  const placement = (colonne && placerEnMarge({ ancre, largeur, largeurMin: largeurEncartMinPx(racine), hauteurSouhaitee, vue, hautNavbar, colonne }))
-    ?? placerFenetre({ ancre, largeur, hauteurSouhaitee, vue, hautNavbar, ecart: 8, prefereDessus: sansSurvol })
+  const placement = (colonne && placerEnMarge({ ancre, largeur, largeurMin: largeurEncartMinPx(racine), hauteurSouhaitee: hauteurVoulue, vue, hautNavbar, colonne }))
+    ?? placerFenetre({ ancre, largeur, hauteurSouhaitee: hauteurVoulue(), vue, hautNavbar, ecart: 8, prefereDessus: sansSurvol })
 
   const encart = visible ? (
     <EncartNote
       numero={numeroVisible}
       intitule={intitule}
       placement={placement}
+      signes={signes}
       onFermer={figee ? fermer : null}
       epinglee={figee}
       marque="data-note-tooltip"

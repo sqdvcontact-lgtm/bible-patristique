@@ -143,12 +143,18 @@ export default function AppelNoteBiblique({
   const largeur = largeurEncartPx(racine)
   // La hauteur SUIT la note. Elle valait 420 px pour toutes, ce qui promettait une
   // page à un renvoi de deux mots et n'en promettait pas assez à un développement.
-  const hauteurSouhaitee = hauteurSouhaiteeNote({ signes: signesDeLaNote(note), racine, avecIntitule: Boolean(intitule) })
+  const signes = signesDeLaNote(note)
+  // ⛔ LA HAUTEUR SE DEMANDE UNE FOIS LA LARGEUR CONNUE. L'encart se resserre à la marge
+  // qu'on lui laisse ; estimée sur sa mesure pleine, sa hauteur valait deux fois moins
+  // que la vraie dès qu'il se resserrait, et la boîte défilait pour rien. Sous l'appel,
+  // rien ne le resserre : la mesure pleine y est la bonne.
+  const hauteurVoulue = (largeurRetenue?: number) =>
+    hauteurSouhaiteeNote({ signes, racine, avecIntitule: Boolean(intitule), largeur: largeurRetenue })
   const hautNavbar = hauteurNavbarPx()
   // ⛔ D'ABORD LA MARGE : une note ouverte par-dessus la colonne cache le verset
   // qu'elle commente. ⚠️ Faute de place, on retombe sous l'appel.
-  const placement = (colonne && placerEnMarge({ ancre: boite, largeur, largeurMin: largeurEncartMinPx(racine), hauteurSouhaitee, vue, hautNavbar, colonne }))
-    ?? placerFenetre({ ancre: boite, largeur, hauteurSouhaitee, vue, hautNavbar, ecart: 8, prefereDessus: sansSurvol })
+  const placement = (colonne && placerEnMarge({ ancre: boite, largeur, largeurMin: largeurEncartMinPx(racine), hauteurSouhaitee: hauteurVoulue, vue, hautNavbar, colonne }))
+    ?? placerFenetre({ ancre: boite, largeur, hauteurSouhaitee: hauteurVoulue(), vue, hautNavbar, ecart: 8, prefereDessus: sansSurvol })
 
   return (
     <>
@@ -177,6 +183,7 @@ export default function AppelNoteBiblique({
           // dit à quelle note l'encart répond.
           intitule={intitule}
           placement={placement}
+          signes={signes}
           onFermer={() => setOuvert(false)}
           marque="data-note-biblique"
         >

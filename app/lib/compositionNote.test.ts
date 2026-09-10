@@ -12,9 +12,21 @@ import {
   styleCadreEncart,
   styleCorpsEncart,
   LARGEUR_ENCART_MIN_REM,
-  STYLE_NUMERO_ENCART,
+  REMBOURRAGE_ENCART,
+  RESERVE_CROIX,
+  SEUIL_GRIS_SIGNES,
+  STYLE_FACE_NUMERO,
+  STYLE_INTITULE_ENCART,
+  STYLE_NUMERO_SEUL,
+  STYLE_NUMERO_TETE,
+  STYLE_RESERVE_CROIX,
+  STYLE_TETE_ENCART,
   largeurEncartMinPx,
 } from './compositionNote'
+
+/** Une note assez longue pour porter un gris, et une qui n'en a pas. */
+const LONGUE = SEUIL_GRIS_SIGNES + 10
+const COURTE = 42
 
 const note = (...textes: string[]) => ({ blocks: textes.map(text => ({ text })) })
 
@@ -48,7 +60,7 @@ describe('la hauteur que l’encart demanderait', () => {
   })
 
   it('garde un plancher : un renvoi de treize signes reste une boîte, pas un filet', () => {
-    expect(haut(0)).toBeGreaterThanOrEqual(53)
+    expect(haut(0)).toBeGreaterThanOrEqual(47)
     expect(haut(13)).toBe(haut(0))
   })
 
@@ -81,15 +93,20 @@ describe('la hauteur que l’encart demanderait', () => {
   // ⚠️ Le compte de contrôle : ces trois-là sont MESURÉS dans un navigateur, sur la
   // composition SERVIE, encart de 29 rem à la racine 16, réserve de la croix comprise.
   // La boîte doit porter au moins ce que le propos demande.
-  // ⛔ ILS SE REMESURENT DÈS QUE LE CORPS OU LE BLANC BOUGENT, et c'est arrivé le
-  // 8 septembre 2026 au soir — note passée à 0,75 rem, interligne à 1,42, rembourrage à
+  // ⛔ ILS SE REMESURENT DÈS QUE LE CORPS OU LE BLANC BOUGENT, et c'est arrivé DEUX fois.
+  // Le 8 septembre 2026 au soir — note passée à 0,75 rem, interligne à 1,42, rembourrage à
   // 0,875/1 rem, blanc de paragraphe à 0,375 : 65 · 162 · 91 sont devenus 53 · 139 · 89.
+  // Le 10 septembre, la note s'étant condensée — interligne 1,38, rembourrage 0,6875 sur
+  // 0,8125 rem, blanc SYMÉTRIQUE (la croix se réserve par un flottant), numéro et type
+  // réunis dans une tête : 53 · 139 · 89 sont devenus 47 · 113 · 81.
   // Une demande périmée ne rendrait pas le test faux, elle le rendrait MOU — il passerait
   // sur une boîte deux fois trop haute sans rien dire.
+  // ⚠️ Les trois demandes sont la hauteur RÉELLE de la boîte, et l'estimation les rend au
+  // pixel près : mesuré sur une piste de 436 px, 1 · 5 · 2 lignes de part et d'autre.
   it.each([
-    ['la médiane du corpus, 29 signes', 29, false, 53],
-    ['une note moyenne, 340 signes', 340, false, 139],
-    ['un apparat critique de 90 signes, avec intitulé', 90, true, 89],
+    ['la médiane du corpus, 29 signes', 29, false, 47],
+    ['une note moyenne, 340 signes', 340, false, 113],
+    ['un apparat critique de 90 signes, avec intitulé', 90, true, 81],
   ])('couvre %s', (_nom, signes, avecIntitule, demande) => {
     expect(haut(signes as number, 16, avecIntitule as boolean)).toBeGreaterThanOrEqual(demande as number)
   })
@@ -123,46 +140,76 @@ describe('le cadre et le corps sont deux éléments', () => {
   it('le cadre ne défile pas, le corps défile', () => {
     const cadre = styleCadreEncart({ left: 0, top: 0, hauteurMax: 300 })
     expect(cadre.overflow).toBe('hidden')
-    expect(styleCorpsEncart().overflowY).toBe('auto')
+    expect(styleCorpsEncart(LONGUE).overflowY).toBe('auto')
   })
 
   it('le corps prend la hauteur qui reste, il ne se borne pas lui-même', () => {
-    const corps = styleCorpsEncart()
+    const corps = styleCorpsEncart(LONGUE)
     expect(corps.flex).toBe('1 1 auto')
     expect(corps.minHeight).toBe(0)
     expect(corps.maxHeight).toBeUndefined()
   })
 
   it('le défilement ne se propage jamais à la page', () => {
-    expect(styleCorpsEncart().overscrollBehavior).toBe('contain')
+    expect(styleCorpsEncart(LONGUE).overscrollBehavior).toBe('contain')
   })
 
-  // ⛔ LA GÉOMÉTRIE NE BOUGE PAS ENTRE LE SURVOL ET LE CLIC. Le rembourrage de
-  // droite valait 1 rem sans la croix et 2,25 rem avec : la note se recomposait à
-  // l’instant où on l’épinglait. C’est la place de la croix qui est désormais
-  // réservée toujours, montrée ou non.
-  it('la place de la croix est réservée, croix montrée ou non', () => {
-    expect(styleCorpsEncart().paddingRight).toBe('2.25rem')
+  // ⛔ LA GÉOMÉTRIE NE BOUGE PAS ENTRE LE SURVOL ET LE CLIC — la règle du 9 septembre
+  // 2026 tient, mais elle se paie autrement : la place de la croix est un FLOTTANT, donc
+  // réservée toujours ET sur la seule ligne où la croix se tient. Le rembourrage de
+  // droite la retenait sur toute la hauteur, et la boîte était dissymétrique.
+  it('la place de la croix se réserve par un flottant, non par un rembourrage', () => {
+    expect(STYLE_RESERVE_CROIX.float).toBe('right')
+    expect(STYLE_RESERVE_CROIX.width).toBe(RESERVE_CROIX)
+    // ⛔ Moins d'une ligne, sans quoi le flottant en mordrait une seconde.
+    expect(Number.parseFloat(String(STYLE_RESERVE_CROIX.height)))
+      .toBeLessThan(Number.parseFloat(CORPS_ENCART) * INTERLIGNE_ENCART)
   })
 
-  it('le corps ne prend aucun argument : sa forme ne dépend de rien', () => {
-    expect(styleCorpsEncart.length).toBe(0)
+  it('le blanc intérieur est SYMÉTRIQUE', () => {
+    expect(styleCorpsEncart(LONGUE).padding).toBe(REMBOURRAGE_ENCART)
+    expect(styleCorpsEncart(LONGUE).paddingRight).toBeUndefined()
   })
 
   it('le propos se compose en sérif, au corps de l’encart', () => {
-    const corps = styleCorpsEncart()
+    const corps = styleCorpsEncart(LONGUE)
     expect(String(corps.fontFamily)).toContain('source-serif')
     expect(corps.fontSize).toBe(CORPS_ENCART)
   })
 })
 
 describe('le numéro de la note', () => {
-  // ⛔ Il FLOTTE : rangé dans une colonne de grille, il réservait sa gouttière sur
-  // toute la hauteur de la note — dix-neuf lignes de blanc à gauche d'un
+  // ⛔ Il FLOTTE QUAND IL EST SEUL : rangé dans une colonne de grille, il réservait sa
+  // gouttière sur toute la hauteur de la note — dix-neuf lignes de blanc à gauche d'un
   // développement de vingt.
-  it('flotte, et le propos l’habille', () => {
-    expect(STYLE_NUMERO_ENCART.float).toBe('left')
-    expect(STYLE_NUMERO_ENCART.width).toBeTruthy()
+  it('flotte quand il est seul, et le propos l’habille', () => {
+    expect(STYLE_NUMERO_SEUL.float).toBe('left')
+    expect(STYLE_NUMERO_SEUL.width).toBeTruthy()
+  })
+
+  // ⛔ ET IL NE FLOTTE PLUS QUAND LA NOTE DÉCLARE UN TYPE (relevé de l'auteur,
+  // 2026-09-10 : « revois les alignements, notamment du numéro de note et du type de
+  // note »). Un flottant n'a rien à habiller quand une tête lui prend sa ligne, et il
+  // laissait alors trois fers à gauche : le numéro, le type deux rem plus loin, le
+  // propos au fer. Dans la tête, les trois n'en font qu'un.
+  it('rejoint la tête quand la note déclare un type', () => {
+    expect(STYLE_NUMERO_TETE.float).toBeUndefined()
+    expect(STYLE_NUMERO_TETE.width).toBeUndefined()
+    expect(STYLE_TETE_ENCART.display).toBe('flex')
+  })
+
+  // ⛔ SUR LA MÊME LIGNE DE BASE. Les deux ne portent pas le même corps, et posés dans
+  // deux blocs voisins d'un flottant ils tenaient chacun la leur — quatre pixels
+  // d'écart, mesurés sur la planche.
+  it('partage la ligne de base du type', () => {
+    expect(STYLE_TETE_ENCART.alignItems).toBe('baseline')
+  })
+
+  // ⚠️ Une tête tient sur UNE ligne : un type plus long que la piste s'écrête.
+  it('n’ouvre jamais un second rang au-dessus du propos', () => {
+    expect(STYLE_INTITULE_ENCART.whiteSpace).toBe('nowrap')
+    expect(STYLE_INTITULE_ENCART.textOverflow).toBe('ellipsis')
+    expect(STYLE_INTITULE_ENCART.display).toBeUndefined()
   })
 
   // ⛔ AU FER À GAUCHE, et c'est une décision (2026-09-08) : « supprime l'alinéa avant
@@ -171,7 +218,7 @@ describe('le numéro de la note', () => {
   // la règle d'un chiffre qui accompagne un TEXTE SUIVI, où cinquante repères s'alignent
   // les uns sous les autres ; il n'y en a qu'un ici, en tête d'un objet.
   it('se ferre à GAUCHE : pas d’alinéa avant le numéro', () => {
-    expect(STYLE_NUMERO_ENCART.textAlign).toBe('left')
+    expect(STYLE_NUMERO_SEUL.textAlign).toBe('left')
   })
 
   // ⚠️ Sa ligne est celle du TEXTE : un chiffre de 0,625 rem posé sur son propre
@@ -179,9 +226,24 @@ describe('le numéro de la note', () => {
   // ⛔ Elle se DÉRIVE des deux constantes, elle ne les recopie pas : écrites à la main,
   // elles ont fait échouer ce test le jour où le corps de la note a changé, ce qui est
   // exactement le défaut que ce module existe pour empêcher.
-  it('prend l’interligne du texte, non le sien', () => {
-    const ligneTexte = Number.parseFloat(CORPS_ENCART) * INTERLIGNE_ENCART
-    expect(Number(STYLE_NUMERO_ENCART.lineHeight) * 0.625).toBeCloseTo(ligneTexte, 5)
+  // ⛔ IL EMPRUNTE LE STRUT DU PROPOS, il ne se contente pas d'en prendre la HAUTEUR.
+  // Deux boîtes de même hauteur ne posent pas leur ligne de base au même endroit quand
+  // les polices diffèrent : l'ascendante d'une sans n'est pas celle d'une sérif, et le
+  // chiffre pendait un pixel au-dessus de la première ligne (mesuré à la racine 22).
+  // C'est la leçon de la marge de référence de la Polyglotte, prise par l'autre bout.
+  it('prend le STRUT du texte — police, corps et interligne', () => {
+    expect(STYLE_NUMERO_SEUL.fontSize).toBe(CORPS_ENCART)
+    expect(STYLE_NUMERO_SEUL.lineHeight).toBe(INTERLIGNE_ENCART)
+    expect(String(STYLE_NUMERO_SEUL.fontFamily)).toContain('font-source-serif')
+  })
+
+  // ⚠️ La FACE du chiffre est à part, et elle se pose EN LIGNE dans ce strut : c'est ce
+  // qui lui laisse son propre corps sans déplacer la ligne de base.
+  it('laisse sa face au chiffre, en ligne', () => {
+    expect(STYLE_FACE_NUMERO.fontSize).toBe('0.625rem')
+    expect(String(STYLE_FACE_NUMERO.fontFamily)).toContain('font-source-sans')
+    expect(STYLE_FACE_NUMERO.float).toBeUndefined()
+    expect(STYLE_FACE_NUMERO.width).toBeUndefined()
   })
 })
 
@@ -190,10 +252,51 @@ describe('la composition du propos', () => {
   // page Bible justifiait les siens, la lecture d'une œuvre non, et le même encart
   // rendait deux compositions selon la surface qui l'ouvrait.
   it('justifie, coupe les mots, et rend la dernière ligne au fer à gauche', () => {
-    const style = styleCorpsEncart()
+    const style = styleCorpsEncart(LONGUE)
     expect(style.textAlign).toBe('justify')
     expect(style.textAlignLast).toBe('left')
     expect(style.hyphens).toBe('auto')
+  })
+
+  // ⛔ MAIS SOUS LE SEUIL DU GRIS, ON NE JUSTIFIE PAS (charte § 3.11 ; relevé de
+  // l'auteur, 2026-09-10). Une note de quarante signes étirait sa première ligne d'un
+  // bord à l'autre pour laisser un mot seul sur la seconde. ⚠️ C'est le cas de 92,6 %
+  // des notes du corpus : la médiane fait dix-sept signes.
+  it('ne justifie PAS ce qui se lit d’un coup d’œil', () => {
+    const style = styleCorpsEncart(COURTE)
+    expect(style.textAlign).toBe('left')
+    // ⚠️ La césure RESTE : au fer, une piste de trente signes coupe aussi bien.
+    expect(style.hyphens).toBe('auto')
+  })
+
+  it('le seuil est celui de la charte', () => {
+    expect(SEUIL_GRIS_SIGNES).toBe(250)
+    expect(styleCorpsEncart(SEUIL_GRIS_SIGNES).textAlign).toBe('justify')
+    expect(styleCorpsEncart(SEUIL_GRIS_SIGNES - 1).textAlign).toBe('left')
+  })
+})
+
+describe('la hauteur estimée suit la LARGEUR', () => {
+  // ⛔ Elle ne la suivait pas : les signes par ligne étaient une constante calibrée sur
+  // la mesure pleine (65 à 29 rem), et l'encart se resserre à la marge qu'on lui laisse.
+  // Mesuré à 16 rem : 32 signes par ligne, la moitié — la boîte était bornée aux deux
+  // tiers de ce qu'il fallait, et la note défilait pour rien.
+  it('rend une note plus HAUTE quand l’encart est plus étroit', () => {
+    const pleine = hauteurSouhaiteeNote({ signes: 352, racine: 16, largeur: LARGEUR_ENCART_REM * 16 })
+    const etroite = hauteurSouhaiteeNote({ signes: 352, racine: 16, largeur: LARGEUR_ENCART_MIN_REM * 16 })
+    expect(etroite).toBeGreaterThan(pleine)
+  })
+
+  // ⚠️ Sans largeur, la mesure PLEINE : c'est le cas de l'encart posé sous son appel,
+  // où rien ne le resserre.
+  it('prend la mesure pleine à défaut', () => {
+    expect(hauteurSouhaiteeNote({ signes: 352, racine: 16 }))
+      .toBe(hauteurSouhaiteeNote({ signes: 352, racine: 16, largeur: LARGEUR_ENCART_REM * 16 }))
+  })
+
+  // ⛔ Une largeur absurde ne rend pas une hauteur infinie.
+  it('borne l’absurde', () => {
+    expect(Number.isFinite(hauteurSouhaiteeNote({ signes: 352, racine: 16, largeur: 0 }))).toBe(true)
   })
 })
 

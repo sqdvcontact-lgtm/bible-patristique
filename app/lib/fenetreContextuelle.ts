@@ -194,7 +194,16 @@ export function placerEnMarge({
   /** La largeur voulue ; l'encart se resserre jusqu'à `largeurMin` s'il le faut. */
   largeur: number
   largeurMin: number
-  hauteurSouhaitee: number
+  /**
+   * La hauteur voulue — ou une FONCTION qui la rend une fois la largeur connue.
+   *
+   * ⛔ Une boîte de texte n'a pas de hauteur avant d'avoir une largeur : l'encart se
+   * resserrant à la marge qu'on lui laisse, une hauteur estimée sur sa mesure pleine
+   * vaut deux fois moins que la vraie dès qu'il se resserre — et le placeur borne alors
+   * la boîte à ce qu'elle n'a pas besoin de faire, si bien qu'elle défile pour rien.
+   * ⚠️ On ne peut pas la lui passer toute faite : c'est LUI qui décide de la largeur.
+   */
+  hauteurSouhaitee: number | ((largeur: number) => number)
   vue: Vue
   hautNavbar: number
   colonne: ColonneLecture
@@ -221,7 +230,8 @@ export function placerEnMarge({
 
   const hautUtile = hautNavbar + marge
   const basUtile = vue.hauteur - marge
-  const hauteurMax = Math.max(0, Math.min(hauteurSouhaitee, basUtile - hautUtile))
+  const voulue = typeof hauteurSouhaitee === 'function' ? hauteurSouhaitee(largeurRetenue) : hauteurSouhaitee
+  const hauteurMax = Math.max(0, Math.min(voulue, basUtile - hautUtile))
   const top = Math.max(hautUtile, Math.min(ancre.top, basUtile - hauteurMax))
   const left = cote === 'gauche' ? colonne.gauche - ecart - largeurRetenue : colonne.droite + ecart
 

@@ -19,8 +19,9 @@
  */
 import type { CSSProperties, ReactNode } from 'react'
 import {
-  STYLE_FERMER_ENCART, STYLE_INTITULE_ENCART,
-  STYLE_NUMERO_ENCART, styleCadreEncart, styleCorpsEncart,
+  STYLE_FACE_NUMERO, STYLE_FERMER_ENCART, STYLE_INTITULE_ENCART, STYLE_NUMERO_SEUL,
+  STYLE_NUMERO_TETE, STYLE_RESERVE_CROIX, STYLE_TETE_ENCART,
+  styleCadreEncart, styleCorpsEncart,
 } from '@/app/lib/compositionNote'
 
 export type PlacementEncart = {
@@ -33,7 +34,7 @@ export type PlacementEncart = {
 }
 
 export function EncartNote({
-  numero, intitule, placement, onFermer, epinglee = false, marque, style,
+  numero, intitule, placement, signes, onFermer, epinglee = false, marque, style,
   onMouseEnter, onMouseLeave, children,
 }: {
   /** Le numéro que le LECTEUR voit, celui qu'il vient de cliquer. ⛔ Jamais le
@@ -44,6 +45,9 @@ export function EncartNote({
    *  du corpus. ⛔ On n'écrit pas « Note 277 » à qui vient de cliquer le 277. */
   intitule?: string | null
   placement: PlacementEncart
+  /** La longueur de la note, en signes. ⛔ Elle décide de la JUSTIFICATION : sous le
+   *  seuil du gris (charte § 3.11), un propos de deux lignes ne se justifie pas. */
+  signes: number
   /** Donné quand l'encart ne se ferme pas de lui-même. ⚠️ Sur un survol, la croix
    *  promettrait un geste inutile et changerait la forme de l'objet sous le
    *  curseur : on ne la passe pas. */
@@ -95,12 +99,31 @@ export function EncartNote({
           exactement dessous — mesuré sur la planche du 8 septembre 2026, la croix
           d'une note longue était posée sur elle. Elle rend en outre six pixels de
           piste au texte. */}
-      <div className="cs-defilement-discret" style={styleCorpsEncart()}>
-        {/* ⛔ Le numéro FLOTTE : le propos l'habille, et la mesure entière lui revient
-            dès la deuxième ligne. En colonne de grille, il réservait sa gouttière sur
-            toute la hauteur de la note. */}
-        <span style={STYLE_NUMERO_ENCART} aria-hidden="true">{numero}</span>
-        {intitule ? <span style={STYLE_INTITULE_ENCART}>{intitule}</span> : null}
+      <div className="cs-defilement-discret" style={styleCorpsEncart(signes)}>
+        {/* ⛔ LA PLACE DE LA CROIX SE RÉSERVE SUR SA SEULE LIGNE. C'était un rembourrage
+            à droite du corps, donc payé par toutes les lignes d'une note de vingt ; et
+            la boîte, dissymétrique, ne paraissait pas centrée sur son texte. */}
+        <span style={STYLE_RESERVE_CROIX} aria-hidden="true" />
+        {intitule ? (
+          // ⛔ LE NUMÉRO REJOINT LA TÊTE quand il y a une tête, et il ne flotte plus :
+          // un flottant n'a rien à habiller quand une ligne entière lui est prise. Les
+          // trois — numéro, type, propos — partagent alors UN SEUL fer à gauche, et les
+          // deux premiers une ligne de base (relevé de l'auteur, 2026-09-10).
+          <div style={STYLE_TETE_ENCART}>
+            <span style={STYLE_NUMERO_TETE} aria-hidden="true">{numero}</span>
+            <span style={STYLE_INTITULE_ENCART}>{intitule}</span>
+          </div>
+        ) : (
+          // ⛔ SEUL, il PEND : le propos l'habille, et la mesure entière lui revient dès
+          // la deuxième ligne. C'est le cas de 58 % des notes, et la médiane du corpus
+          // fait dix-sept signes — une ligne, à côté de son numéro.
+          // ⚠️ DEUX boîtes, et il en faut deux : le flottant porte le STRUT du propos —
+          // c'est ce qui pose le chiffre sur la ligne de base du texte — et le chiffre y
+          // vient en ligne, avec sa propre face.
+          <span style={STYLE_NUMERO_SEUL} aria-hidden="true">
+            <span style={STYLE_FACE_NUMERO}>{numero}</span>
+          </span>
+        )}
         <div style={{ whiteSpace: 'pre-line' }}>{children}</div>
       </div>
     </div>
