@@ -1124,6 +1124,118 @@ Le bureau la garde. ⛔ Et la règle de la charte a été resserrée une TROISI�
 doit se retrouver sur les deux écrans est le NOM d'une rubrique — ce par quoi on la DÉSIGNE
 — non ce par quoi on l'EXPLIQUE. Voir la section suivante.
 
+## ⛔ LA RANGÉE D'OUTILS DE LA BARRE NE CONNAÎT QU'UNE FORME (2026-09-10)
+
+Demande de l'auteur : « uniformiser cette partie de la barre de nav principale ; y'a
+trop de types de boutons différents, des menus, etc. » Quatre partis lui ont été rendus
+sur planche, à la taille réelle et sur le vert de la barre ; il a retenu le plus court.
+
+⛔ **CE QUI FAIT LE DÉSORDRE SE COMPTE, et c'est la seule façon d'en sortir.** Tout y
+était en style EN LIGNE, donc les valeurs faisaient foi : **six formes pour huit objets**.
+
+| | hauteur | fond | contour | corps | encre |
+|---|---:|---|---|---:|---:|
+| interrupteur **Admin** | 28 px | — | — | 12,5 px | 74 % |
+| **Visite** | 28 px | blanc 10 % | blanc 22 % | 12,5 px | 82 % |
+| **Soutenir le projet** | ~23 px | — | — | **15 px** | 88 % |
+| **messagerie** | 30 px | transp. → 14 % | — | icône | **58 %** |
+| **notifications** | 30 px | idem | — | icône | 58 % |
+| **compte** | 30 px | blanc 11 % | blanc 17 % | **13,5 px** | 92 % |
+
+Soit **trois hauteurs, quatre corps, quatre encres, trois régimes de fond, trois de
+contour**, et deux filets aux marges différentes (4 px et 2 px). ⚠️ « Soutenir le projet »
+s'y composait à **15 px, le plus gros texte du bloc**, contre 12,5 pour « Visite » qui le
+touche — un cinquième d'écart entre deux voisins.
+
+⛔ **QUATRE PICTOGRAMMES DE MÊME BOÎTE, PUIS LE COMPTE.** Mesuré sur la composition
+servie : la rangée passe de **457 à 235 px** et de **cinq boîtes différentes à une** —
+64×28, 138×29, 30×30, 30×30, 86×30 deviennent quatre 30×30 et le compte. **222 pixels
+rendus à la barre la plus disputée du site.**
+
+⛔ **LE CONTOUR NE DIT PLUS QU'UNE CHOSE.** Il était sur « Visite » et sur le compte, pas
+sur « Soutenir » ni sur la messagerie, sans qu'aucune règle départage : c'était un
+ornement. Il ne reste que sur le compte, seule porte de l'espace du lecteur, et c'est ce
+qui en fait une information.
+
+⛔ **DES BOÎTES IDENTIQUES OBLIGENT LES DESSINS À PESER PAREIL**, et le site le dit déjà :
+« deux boutons voisins dont le dessin ne pèse pas pareil se lisent comme deux rangs ». La
+boussole et le cœur venaient d'une boîte de 12 et se rendaient à 12 et 11 px, l'enveloppe
+et la cloche d'une boîte de 16 rendue à 15. ⚠️ **La graisse qui compte est la RENDUE :
+strokeWidth × taille / viewBox** — 1,1 × 12/12 = 1,10 contre 1,3 × 15/16 = 1,22. Les deux
+premiers passent à **13 px, graisse écrite 1,13**, soit 1,22 rendu comme leurs voisins.
+
+⛔ **ET LA TAILLE NE SE DÉDUIT PAS DE LA GRAISSE.** Rendus à 15 px comme les deux autres,
+le cercle de la boussole et le cœur remplissaient presque leur bouton : ils occupent plus
+leur boîte que la cloche n'occupe la sienne. C'est l'ÉTENDUE D'ENCRE qu'on accorde, non
+la boîte — jugé rastérisé à la taille réelle, agrandi au plus proche voisin, dans le
+bouton et sur le vert de la barre. Trois jeux ont été mis en regard avant de trancher.
+
+⛔ **LA FORME VIT DANS LA FEUILLE, ET CE N'EST PAS UN RANGEMENT.** Le survol des deux
+boutons d'icône était écrit en **deux gestionnaires JavaScript qui réécrivaient le style
+de chaque bouton** — parce qu'une règle de feuille perd contre un fond posé en ligne. La
+forme entière étant dans le bloc `<style>` de la barre (`.cs-outil`, `.cs-outil--actif`,
+`.cs-outil-compte`), il n'y a plus rien à réécrire et le survol redevient du CSS.
+
+⚠️ **L'encre monte de 58 à 82 %**, et c'est un gain qui se mesure : blanc à 58 % sur le
+vert de la barre rend **3,24**, à 82 % **4,76**, quand un indicateur non textuel en demande
+3. Les deux boutons d'icône étaient le plus pâle de la rangée.
+
+⛔ **LES OUTILS NE CÈDENT PLUS AU REPLI, ET C'EST PARCE QU'ILS ONT CÉDÉ UNE FOIS POUR
+TOUTES.** Le cran 1 leur retirait leurs mots, si bien que la rangée n'avait pas la même
+forme selon la largeur de la fenêtre. `soutenirCompact` n'existe plus ; le cran 1 garde
+ses deux autres effets. ⚠️ La barre y gagne 222 px, elle se replie donc bien plus tard.
+
+### ⛔ Un réglage d'AFFICHAGE vit dans le menu de compte, non dans la barre
+
+L'interrupteur « Admin » était le seul CONTRÔLE d'une rangée de boutons. Or le site avait
+déjà tranché ce cas pour « Mode sombre » : « rangé avec le compte parce que c'est là que
+le lecteur vient chercher ce qui le concerne lui », et « ne pas remettre le réglage dans
+la barre : elle est déjà la plus disputée du site ». Il descend, avec son filet.
+
+⛔ **ET IL PREND LA POLARITÉ DE SON VOISIN.** Dans la barre, le mot « Admin » nommait
+l'OBJET du contrôle, non son état, et la bascule était donc à l'envers de son libellé :
+éteinte quand l'affichage administrateur est actif. Rangée sous « Mode sombre », où
+l'allumé veut dire allumé, l'inversion se serait lue comme un défaut. ⚠️ L'état
+sous-jacent ne change pas (`modeUtilisateurStandard`) ; c'est ce qu'on en MONTRE qui se
+retourne, et le libellé devient « Affichage administrateur ».
+
+⚠️ **Une seule écriture d'interrupteur** (`rangeeInterrupteur`) : les deux rangées la
+partagent, mobile et bureau. ⚠️ Le menu s'élargit de lui-même pour le libellé long —
+mesuré, il tient sur une ligne, et l'élargissement ne concerne que l'administrateur,
+seul à voir la rangée.
+
+⚠️ **Sur téléphone, l'interrupteur rejoint « Mon espace »** au lieu de flotter entre
+« Soutenir le projet » et ce groupe : c'est le même déplacement, et il n'y a plus qu'une
+place pour cet objet.
+
+### ⛔ Trois pièges d'atelier payés dans cette passe, et le premier était écrit
+
+⛔ **`git stash` EST INTERDIT DANS CE DÉPÔT, et il a coûté le travail.** L'arbre porte
+les chantiers d'autrui ; un `git stash --keep-index` les a tous emportés, mon fichier
+avec. Pire, la comparaison de lint qu'il servait était **fausse sans le dire** : après le
+stash, les deux côtés lisaient le même fichier, et « avant » comme « après » rendaient
+six remarques parce que c'était deux fois HEAD. ⚠️ La bonne façon de lire l'état commité
+d'un fichier tient en une ligne et ne touche que lui : `git show HEAD:<fichier> >
+<fichier>`, on mesure, on rend la copie mise de côté.
+
+⛔ **UN `node -e` À ÉCHAPPEMENTS IMBRIQUÉS ÉCRIT DES RETOURS À LA LIGNE RÉELS.** Une passe
+destinée à poser `s.includes('\r\n')` dans trois scripts y a posé de vrais CR et LF : les
+fichiers ne parsaient plus, et le premier message d'erreur parlait d'une ancre introuvable,
+non d'une syntaxe. ⚠️ Un script de correction s'écrit dans un FICHIER, jamais dans un
+`node -e`, et il se fait ÉPROUVER par `node --check` avant d'être cru.
+
+⛔ **`core.autocrlf` VAUT `true` ICI : un `git checkout --` RÉÉCRIT LE FICHIER EN CRLF.**
+Le dépôt garde du LF, les copies de travail écrites par un outil sont en LF, mais celle
+que git recrée est en CRLF — et une ancre écrite en `\n` ne s'y apparie plus. Rien ne le
+dit : le script rend « ancre introuvable » sur une ancre qui est pourtant là, au caractère
+près. Un correctif normalise donc en mémoire et rend la fin de ligne d'origine.
+
+⚠️ **La planche tire ses règles et ses dessins du FICHIER** (`tmp/planche-barre-servie.mjs`) :
+les quatre SVG sont lus dans leurs fonctions, les règles `.cs-outil` dans le bloc `<style>`,
+et l'« avant » vient de `git show HEAD:…` lu de la même façon. Rien n'y est rejoué de
+mémoire. ⚠️ Pour le banc au plus proche voisin, sérialiser le SVG dans un **Blob** et non
+dans une data-URI : celle-ci est refusée sans message utile.
+
 ## ⛔ Une RUBRIQUE se présente de la même façon sur les deux écrans (2026-09-06)
 
 ⚠️ **RESSERRÉE DEUX FOIS LE 2026-09-10, et la seconde annule la première.** Au matin : « pas

@@ -601,6 +601,23 @@ function surlignerMatch(texte: string, query: string): React.ReactNode {
 // INTERRUPTEURS, qui sont des contrôles. Le CHEVRON d'« Administration », qui dit
 // un état de dépli. Et le marqueur de LIEN SORTANT de « Ma page publique », sans
 // lequel un onglet qui surgit passe pour une bizarrerie.
+/** Le filet qui sépare les OUTILS de l'espace du lecteur. ⚠️ Il n'y en a plus qu'UN :
+ *  le second, qui isolait l'interrupteur d'administration, est parti avec lui — et les
+ *  deux ne portaient pas la même marge (4 px contre 2). */
+/** Le compteur d'un bouton d'outil. ⚠️ Il était écrit DEUX fois, à l'octet près, sur la
+ *  messagerie et sur la cloche. */
+const STYLE_BADGE: React.CSSProperties = {
+  position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px',
+  background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px',
+  fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center',
+  padding: '0 3px', boxSizing: 'border-box',
+};
+
+const FILET_OUTILS: React.CSSProperties = {
+  width: "1px", height: "20px", margin: "0 6px",
+  background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)",
+};
+
 const RANGEE_MOBILE: React.CSSProperties = {
   display: "flex", alignItems: "center", gap: "10px",
   padding: "10px 12px", borderRadius: "8px",
@@ -619,8 +636,14 @@ const INTERTITRE_MOBILE: React.CSSProperties = {
 };
 function IconCoeur() {
   return (
-    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-      <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z" stroke="currentColor" strokeWidth="1.1" fill="none" strokeLinejoin="round"/>
+    // ⚠️ 13 px et non 11, graisse 1,13 et non 1,1 : depuis que les quatre outils de la
+    // barre vivent dans des boîtes IDENTIQUES, leurs dessins doivent peser pareil. La
+    // graisse RENDUE vaut strokeWidth × taille / viewBox — 1,13 × 13 / 12 = 1,22, celle
+    // de l'enveloppe et de la cloche (1,3 × 15 / 16). ⛔ Et la TAILLE ne se déduit pas de
+    // la graisse : le cœur remplit plus sa boîte que la cloche ne remplit la sienne, d'où
+    // 13 contre 15. Jugé rastérisé au plus proche voisin, dans le bouton, sur le vert.
+    <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ display: 'block' }}>
+      <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z" stroke="currentColor" strokeWidth="1.13" fill="none" strokeLinejoin="round"/>
     </svg>
   );
 }
@@ -631,8 +654,9 @@ function IconCoeur() {
 // jugent qu'à leur taille réelle.
 function IconBoussole() {
   return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-      <circle cx="6" cy="6" r="4.6" stroke="currentColor" strokeWidth="1.1" />
+    // ⚠️ Même règle que le cœur : 13 px, graisse rendue 1,22, la boîte des quatre.
+    <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ display: 'block' }}>
+      <circle cx="6" cy="6" r="4.6" stroke="currentColor" strokeWidth="1.13" />
       <path d="M8.4 3.6 6.9 6.9 3.6 8.4 5.1 5.1Z" fill="currentColor" />
     </svg>
   );
@@ -713,18 +737,26 @@ const MARGE_BASCULE_PX = 32;
 //
 //   0 — « Bible classique » et « Bible polyglotte », chacune son onglet ; champ large
 //   1 — les deux bibles se rangent sous « Les Saintes Écritures », qui se fend au
-//       survol ; le champ se resserre ; « Soutenir le projet » se réduit à son cœur et
-//       le mot « Admin » s'efface
+//       survol ; le champ se resserre
 //   2 — « La Bible », le choix passant dans un menu déroulant ; le champ se resserre
 //       encore ; le pseudonyme s'efface
 //   3 — « Bible » ; la recherche se replie en loupe et se déploie sous la barre
 //   4 — le nom du site se réduit à son monogramme
 //
+// ⛔ LES OUTILS NE CÈDENT PLUS, ET C'EST PARCE QU'ILS ONT CÉDÉ UNE FOIS POUR TOUTES
+// (2026-09-10). Le cran 1 leur retirait leurs mots — « Soutenir le projet » se réduisait
+// à son cœur, « Admin » s'effaçait — si bien que la rangée n'avait pas la même forme
+// selon la largeur de la fenêtre. Elle est désormais faite de pictogrammes à toute
+// largeur, et l'interrupteur d'administration est descendu dans le menu de compte : il
+// n'y a plus rien à y reprendre, et « soutenirCompact » n'existe plus. Le cran 1 garde
+// ses deux autres effets, qui suffisent.
+//
 // ⛔ « Aller plus loin » ne quitte JAMAIS la barre. Il descendait autrefois dans le
 // menu de compte, où une rubrique de lecture n'a rien à faire : personne ne va chercher
 // les traductions ou l'histoire de l'Église sous son propre nom d'utilisateur, et une
 // entrée qui change de place selon la largeur de la fenêtre ne s'apprend jamais. La
-// place qu'il fallait se prend désormais sur les outils, qui sont faits pour céder.
+// place qu'il fallait se prend sur les onglets et le champ de recherche, qui se
+// resserrent par paliers.
 const CRAN_MAX = 4;
 
 export default function Navbar() {
@@ -772,7 +804,6 @@ export default function Navbar() {
   const [rechercheDeployee, setRechercheDeployee] = useState(false);
   // Ce que chaque cran retire. On nomme les conséquences plutôt que de comparer des
   // nombres au fil du rendu : on lit ce que la barre perd, non à quel palier elle est.
-  const soutenirCompact = cran >= 1;
   const pseudoMasque = cran >= 2;
   // L'onglet des bibles a son état propre à chaque palier, du plus disert au plus court.
   const etatBible: EtatBible = cran === 0 ? 'deux' : cran === 1 ? 'fendu' : cran === 2 ? 'long' : 'court';
@@ -1181,15 +1212,6 @@ export default function Navbar() {
     } as React.CSSProperties;
   };
 
-  const styleLienDiscret = (href: string) => ({
-    ...styleLien(href, undefined, false),
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "4px",
-    padding: "4px 7px",
-    fontSize: "0.9375rem",
-  } as const);
-
   // ── Bloc recherche rapide, réutilisé en version desktop et mobile ────────────
   const nbLocalStatique = livresTrouves.length + traductionsTrouvees.length;
   // Le total AFFICHÉ est le compte réel des sources en base (non plafonné) + les
@@ -1501,34 +1523,51 @@ export default function Navbar() {
   );
 
   // ── Interrupteur admin / utilisateur standard — visible directement dans la barre ─
-  const toggleAdmin = (mobile: boolean) => (estAdmin || estAdminEmail) && (
-    <div style={mobile
-      // ⚠️ La rangée d'un interrupteur prend la forme commune : elle portait son
-      // propre corps (0,9375rem) et son propre écart (8 px), pour un contrôle qui se
-      // lit dans la même colonne que tout le reste.
-      ? { ...RANGEE_MOBILE, cursor: "default" }
-      : { display: "inline-flex", alignItems: "center", gap: "0.3125rem", height: "1.75rem", padding: "0 0.375rem 0 0.125rem", fontSize: "0.78125rem", color: "rgba(255,255,255,0.74)", letterSpacing: "0.01em" }}>
-      {/* ⛔ SUR TÉLÉPHONE LE MOT VIENT EN PREMIER, la bascule au fer à droite : c'est
-          la forme de « Mode sombre », et c'est ce qui donne au panneau son UNIQUE bord
-          gauche — la bascule posée devant repoussait son libellé à 68 px quand toutes
-          les autres rangées commencent à 28. ⚠️ On réordonne le JSX, jamais par `order` :
-          l'ordre du document est celui que lisent le clavier et la synthèse vocale. */}
-      {mobile && <span style={{ flex: 1 }}>Admin</span>}
-      <button type="button" role="switch" aria-checked={modeUtilisateurStandard}
-        onClick={() => setModeUtilisateurStandard(!modeUtilisateurStandard)}
-        aria-label="Affichage administrateur"
-        title="Affichage seulement — vos droits réels ne changent pas"
+  /**
+   * UNE SEULE FORME D'INTERRUPTEUR dans le menu de compte.
+   *
+   * ⛔ L'affichage administrateur vivait DANS LA BARRE, seul contrôle d'une rangée de
+   * boutons, avec son propre corps, sa propre encre et son propre filet. Or c'est un
+   * réglage d'AFFICHAGE, et le site a déjà tranché ce cas pour « Mode sombre » : un
+   * réglage de ce genre vit avec le compte, « celle-ci est déjà la plus disputée du
+   * site, et un cran de repli de plus la rendrait incalculable ». Descendu le
+   * 2026-09-10, à la demande de l'auteur.
+   *
+   * ⛔ ET IL PREND LA POLARITÉ DE SON VOISIN. Dans la barre, le mot « Admin » nommait
+   * l'objet du contrôle, non son état, et la bascule était donc à l'ENVERS de son
+   * libellé : éteinte quand l'affichage administrateur est actif. Rangée sous
+   * « Mode sombre », où l'allumé veut dire allumé, l'inversion se serait lue comme un
+   * défaut. L'état sous-jacent ne change pas (`modeUtilisateurStandard`) ; c'est ce
+   * qu'on en MONTRE qui se retourne.
+   *
+   * ⚠️ La rangée est un `div` et non un `label`. Un `<button>` n'est PAS un élément
+   * étiquetable : enveloppé dans un `<label>`, il en recevait le curseur de pointeur
+   * sans en recevoir le clic, si bien que le mot avait l'air cliquable et ne l'était
+   * pas. On porte donc le clic sur la rangée, et le bouton arrête sa propagation pour
+   * ne pas basculer deux fois.
+   */
+  const rangeeInterrupteur = (
+    { mobile, label, actif, basculer, titre }:
+    { mobile: boolean; label: string; actif: boolean; basculer: () => void; titre?: string },
+  ) => (
+    <div onClick={basculer} title={titre}
+      style={mobile
+        ? { ...RANGEE_MOBILE, cursor: "pointer", userSelect: "none" }
+        : { display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", fontSize: "0.875rem", color: "var(--cs-encre)", cursor: "pointer", userSelect: "none", borderBottom: "1px solid var(--cs-fond-doux)" }}>
+      <span style={{ flex: 1 }}>{label}</span>
+      <button type="button" role="switch" aria-checked={actif}
+        onClick={e => { e.stopPropagation(); basculer() }}
+        aria-label={label}
         style={{
-          width: "30px", height: "17px", borderRadius: "999px", border: modeUtilisateurStandard ? "1px solid var(--cs-vert-clair)" : "1px solid rgba(255,255,255,0.72)", cursor: "pointer", padding: 0, flexShrink: 0,
-          background: modeUtilisateurStandard ? "var(--cs-vert-aplat)" : "var(--cs-fond)",
-          boxShadow: modeUtilisateurStandard ? "0 0 0 1px rgba(var(--cs-vert-rgb),0.35)" : "0 0 0 1px rgba(0,0,0,0.18)",
-          position: "relative", transition: "background 0.15s, border-color 0.15s",
+          width: "32px", height: "18px", borderRadius: "999px", cursor: "pointer", padding: 0, flexShrink: 0, position: "relative",
+          border: mobile ? "1px solid rgba(255,255,255,0.35)" : "none",
+          background: actif ? "var(--cs-vert-aplat)" : (mobile ? "rgba(255,255,255,0.22)" : "var(--cs-bord)"),
+          transition: "background 0.15s",
         }}>
-        <span style={{ position: "absolute", top: "2px", left: modeUtilisateurStandard ? "14px" : "2px", width: "11px", height: "11px", borderRadius: "50%", background: modeUtilisateurStandard ? "var(--cs-surface)" : "var(--cs-vert-aplat)", transition: "left 0.15s, background 0.15s" }} />
+        {/* Le panneau mobile est vert sombre EN TOUTES CIRCONSTANCES : son pion ne peut
+            pas prendre --cs-surface, qui virerait au brun en Cuir et disparaîtrait. */}
+        <span style={{ position: "absolute", top: "3px", left: actif ? "15px" : "3px", width: "12px", height: "12px", borderRadius: "50%", background: mobile ? "#fff" : "var(--cs-surface)", transition: "left 0.15s" }} />
       </button>
-      {/* À l'étroit, l'interrupteur parle seul : son infobulle et son `aria-label`
-          portent le sens, le mot cède la place. */}
-      {!mobile && !soutenirCompact && <span>Admin</span>}
     </div>
   );
 
@@ -1545,7 +1584,7 @@ export default function Navbar() {
     <div style={{ display: "flex", flexDirection: mobile ? "column" : "row", alignItems: mobile ? "stretch" : "center", gap: mobile ? "2px" : "6px", width: mobile ? "100%" : undefined }}>
       {!mobile && (
         <button onClick={() => setMenuOuvert(!menuOuvert)} aria-label={`Compte de ${pseudo ?? user.email.split("@")[0]}`} aria-expanded={menuOuvert}
-          style={{ display: "flex", alignItems: "center", gap: "0.3125rem", height: "1.875rem", background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.17)", borderRadius: "8px", padding: "0 0.5rem 0 0.25rem", cursor: "pointer", color: "rgba(255,255,255,0.92)", fontSize: "0.84375rem", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)" }}>
+          className="cs-outil-compte">
           {/* Le visage choisi tient lieu de silhouette dès qu'il y en a un. Il ne coûte
               aucune requête de plus : le contexte rapporte la référence avec le
               pseudonyme, d'une seule lecture (voir contexteCompte). */}
@@ -1620,38 +1659,19 @@ export default function Navbar() {
             )}
           </Link>
         ))}
-        {/* Mode sombre — un réglage de LECTURE, rangé avec le compte parce que c'est
-            là que le lecteur vient chercher ce qui le concerne lui, et non le corpus.
-            Il n'a donc pas d'entrée dans la barre : celle-ci est déjà la plus disputée
-            du site, et un cran de repli de plus la rendrait incalculable.
-
-            ⚠️ La rangée est un `div` et non un `label`. Un `<button>` n'est PAS un
-            élément étiquetable : enveloppé dans un `<label>`, il en recevait le
-            curseur de pointeur sans en recevoir le clic, si bien que le mot « Mode
-            sombre » avait l'air cliquable et ne l'était pas. On porte donc le clic
-            sur la rangée elle-même, et le bouton arrête sa propagation pour ne pas
-            basculer deux fois. */}
-        <div
-          onClick={basculerThemeSombre}
-          style={mobile
-            ? { ...RANGEE_MOBILE, cursor: "pointer", userSelect: "none" }
-            : { display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", fontSize: "0.875rem", color: "var(--cs-encre)", cursor: "pointer", userSelect: "none", borderBottom: "1px solid var(--cs-fond-doux)" }}>
-          <span style={{ flex: 1 }}>Mode sombre</span>
-          <button type="button" role="switch" aria-checked={themeSombre}
-            onClick={e => { e.stopPropagation(); basculerThemeSombre() }}
-            aria-label="Mode sombre"
-            style={{
-              width: "32px", height: "18px", borderRadius: "999px", cursor: "pointer", padding: 0, flexShrink: 0, position: "relative",
-              border: mobile ? "1px solid rgba(255,255,255,0.35)" : "none",
-              background: themeSombre ? "var(--cs-vert-aplat)" : (mobile ? "rgba(255,255,255,0.22)" : "var(--cs-bord)"),
-              transition: "background 0.15s",
-            }}>
-            {/* Le panneau mobile est vert sombre EN TOUTES CIRCONSTANCES : son pion ne
-                peut pas prendre --cs-surface, qui virerait au brun en Cuir et
-                disparaîtrait sur le vert. */}
-            <span style={{ position: "absolute", top: "3px", left: themeSombre ? "15px" : "3px", width: "12px", height: "12px", borderRadius: "50%", background: mobile ? "#fff" : "var(--cs-surface)", transition: "left 0.15s" }} />
-          </button>
-        </div>
+        {/* ⚠️ L'AFFICHAGE ADMINISTRATEUR EN PREMIER : c'est le réglage le plus rare des
+            deux, et le plus lourd de conséquences — il change ce que la page MONTRE. Il
+            ne paraît qu'à qui en dispose vraiment. */}
+        {(estAdmin || estAdminEmail) && rangeeInterrupteur({
+          mobile,
+          label: "Affichage administrateur",
+          actif: !modeUtilisateurStandard,
+          basculer: () => setModeUtilisateurStandard(!modeUtilisateurStandard),
+          titre: "Affichage seulement — vos droits réels ne changent pas",
+        })}
+        {/* Mode sombre — un réglage de LECTURE, rangé avec le compte parce que c'est là
+            que le lecteur vient chercher ce qui le concerne lui, et non le corpus. */}
+        {rangeeInterrupteur({ mobile, label: "Mode sombre", actif: themeSombre, basculer: basculerThemeSombre })}
         <button onClick={seDeconnecter}
           style={mobile
             // ⚠️ L'encre du danger reste : c'est un signal, non un ornement. Seule la
@@ -1746,12 +1766,10 @@ export default function Navbar() {
     mobile
       ? actionMobile("Revoir la visite", 0, lancerLaVisite)
       : (
-        <button type="button" onClick={lancerLaVisite}
+        <button type="button" onClick={lancerLaVisite} className="cs-outil"
           title="Revoir la visite de cette page"
-          aria-label="Revoir la visite de cette page"
-          style={{ display: "inline-flex", alignItems: "center", gap: "0.3125rem", height: "1.75rem", padding: soutenirCompact ? "0 0.375rem" : "0 0.5rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", fontFamily: "inherit", fontSize: "0.78125rem", letterSpacing: "0.01em", cursor: "pointer", flexShrink: 0 }}>
+          aria-label="Revoir la visite de cette page">
           <IconBoussole />
-          {!soutenirCompact && "Visite"}
         </button>
       )
   );
@@ -1772,6 +1790,43 @@ export default function Navbar() {
              débordement au lieu de le montrer — et rendait la mesure aveugle. Le trop-plein
              doit se voir pour être mesuré, puis résorbé en repliant les outils. */
           .cs-nav-principale > * { flex-shrink: 0; }
+
+          /* LA RANGÉE D'OUTILS NE CONNAÎT QU'UNE FORME, et l'ÉTAT seul la distingue.
+             Elle en portait SIX pour huit objets (relevé du 2026-09-10) : trois hauteurs
+             (28 · 30 · 30 px), quatre corps de texte (12,5 · 15 · 13,5 · 10), quatre
+             encres (74 · 82 · 88 · 58 %), trois régimes de fond, trois de contour, et
+             deux filets aux marges différentes. « Soutenir le projet » s'y composait à
+             15 px, le plus gros texte du bloc, contre 12,5 pour « Visite » qui le touche.
+             ⛔ ELLE VIT DANS LA FEUILLE, ET NON EN STYLE EN LIGNE, et ce n'est pas un
+             rangement : le SURVOL était écrit en deux gestionnaires JavaScript qui
+             réécrivaient le style de chaque bouton, parce qu'une règle de feuille perd
+             contre un fond posé en ligne. La forme entière étant ici, il n'y a plus rien
+             à réécrire et le survol redevient du CSS.
+             ⚠️ L'encre monte de 58 à 82 % : mesurée sur le vert de la barre, elle passe
+             de 3,24 à 4,76, quand un indicateur non textuel en demande 3. Les deux
+             boutons d'icône étaient le plus pâle de la rangée. */
+          .cs-outil {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 1.875rem; height: 1.875rem; border-radius: 8px; border: none; padding: 0;
+            position: relative; flex-shrink: 0; cursor: pointer;
+            background: transparent; color: rgba(255,255,255,0.82);
+            transition: background 0.13s, color 0.13s;
+          }
+          .cs-outil:hover, .cs-outil--actif {
+            background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.95);
+          }
+
+          /* LE COMPTE est le SEUL à porter un fond et un contour, et c'est ce qui en
+             fait la porte principale : le contour cesse d'être un ornement, il ne dit
+             plus qu'une chose. */
+          .cs-outil-compte {
+            display: inline-flex; align-items: center; gap: 0.375rem;
+            height: 1.875rem; padding: 0 0.5rem 0 0.25rem; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.95); font-family: inherit; font-size: 0.78125rem;
+            cursor: pointer; flex-shrink: 0; transition: background 0.13s;
+          }
+          .cs-outil-compte:hover { background: rgba(255,255,255,0.18); }
 
           /* LA MARQUE — le chiffre CS, en masque, peint par l'encre du nom.
              ⚠️ 1,625 rem et non les 1,875 du monogramme d'avant : le chiffre est LARGE
@@ -2088,50 +2143,42 @@ export default function Navbar() {
 
           {/* ── Compte desktop ──────────────────────────────────────────────── */}
           <div data-visite="nav-compte" className="hidden lg:flex items-center" style={{ marginLeft: "auto", flexShrink: 0, gap: "0.125rem", paddingLeft: "0.25rem" }}>
-            {toggleAdmin(false)}
-            {(estAdmin || estAdminEmail) && (
-              <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 4px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
-            )}
-            {/* ⚠️ APRÈS le filet, avec les outils du lecteur : le bouton de la visite
-                n'appartient plus au bloc d'administration, où il est né. */}
+            {/* ⛔ QUATRE PICTOGRAMMES DE MÊME BOÎTE, PUIS LE COMPTE (2026-09-10, parti
+                retenu par l'auteur sur planche). La rangée portait SIX formes pour huit
+                objets ; elle n'en connaît plus que deux, et la seconde ne sert qu'au
+                compte — c'est ce qui fait du contour une INFORMATION et non un ornement.
+                ⚠️ Les mots « Visite » et « Soutenir le projet » s'en vont : l'infobulle et
+                le nom accessible les portent, et la barre y gagne la place qu'elle
+                reprenait au cran 1. C'est le seul endroit du site où un intitulé cède —
+                les sections de lecture gardent les leurs à toute largeur. */}
             {boutonVisite(false)}
-            {/* À l'étroit, le cœur seul : l'intitulé revient en infobulle. */}
-            <Link href="/soutenir" style={soutenirCompact
-              ? { ...styleLienDiscret("/soutenir"), padding: "0.25rem 0.4375rem" }
-              : styleLienDiscret("/soutenir")}
-              title={soutenirCompact ? "Soutenir le projet" : undefined}
-              aria-label={soutenirCompact ? "Soutenir le projet" : undefined}>
-              <IconCoeur />{!soutenirCompact && " Soutenir le projet"}
+            <Link href="/soutenir" className="cs-outil"
+              title="Soutenir le projet" aria-label="Soutenir le projet">
+              <IconCoeur />
             </Link>
+            {/* Le filet ne sépare plus qu'une chose : les OUTILS de l'espace du lecteur. */}
+            {user && <span aria-hidden="true" style={FILET_OUTILS} />}
             {user && (
-              <span aria-hidden="true" style={{ width: "1px", height: "20px", margin: "0 2px", background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.24), transparent)" }} />
-            )}
-            {user && (
-              <button onClick={() => setMessagerieOuverte(v => !v)} aria-label="Messages" aria-expanded={messagerieOuverte} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', border: 'none', cursor: 'pointer', padding: 0, color: nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', background: nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.95)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
+              <button onClick={() => setMessagerieOuverte(v => !v)} aria-label="Messages" aria-expanded={messagerieOuverte}
+                title="Messages"
+                className={"cs-outil" + (nbMessages > 0 || messagerieOuverte ? " cs-outil--actif" : "")}>
                 <IconEnveloppe />
                 {nbMessages > 0 && (
-                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
-                    {nbMessages > 99 ? '99+' : nbMessages}
-                  </span>
+                  <span style={STYLE_BADGE}>{nbMessages > 99 ? '99+' : nbMessages}</span>
                 )}
               </button>
             )}
             {user && (
               <button type="button" onClick={() => setNotifsOuvertes(o => !o)} aria-label="Notifications" aria-expanded={notifsOuvertes}
-                style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', border: 'none', cursor: 'pointer', color: (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', background: (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.95)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
+                title="Notifications"
+                className={"cs-outil" + (nbNotifications > 0 || notifsOuvertes ? " cs-outil--actif" : "")}>
                 <IconCloche />
                 {nbNotifications > 0 && (
-                  <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
-                    {nbNotifications > 99 ? '99+' : nbNotifications}
-                  </span>
+                  <span style={STYLE_BADGE}>{nbNotifications > 99 ? '99+' : nbNotifications}</span>
                 )}
               </button>
             )}
-            <div style={{ position: "relative", marginLeft: "4px" }}>
+            <div style={{ position: "relative", marginLeft: "6px" }}>
               {blocCompte(false)}
             </div>
           </div>
@@ -2221,7 +2268,6 @@ export default function Navbar() {
             <Link href="/soutenir" onClick={() => setMobileOuvert(false)} style={RANGEE_MOBILE}>
               Soutenir le projet
             </Link>
-            {toggleAdmin(true)}
             {/* ⛔ Messagerie et notifications ne vivaient QUE dans le bloc `hidden lg:flex` :
                 sous 1024px, deux fonctions entières de l'espace du lecteur n'avaient aucun
                 accès, la route /notifications renvoyant à l'accueil. Elles se prennent ici,
