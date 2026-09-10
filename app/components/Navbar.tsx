@@ -607,10 +607,14 @@ function surlignerMatch(texte: string, query: string): React.ReactNode {
 /** Le compteur d'un bouton d'outil. ⚠️ Il était écrit DEUX fois, à l'octet près, sur la
  *  messagerie et sur la cloche. */
 const STYLE_BADGE: React.CSSProperties = {
-  position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px',
+  // ⛔ SA BOÎTE SUIT SON TEXTE, donc la racine. Elle était en pixels (14) autour d'un
+  // corps en rem (0,625) : à la racine 22 le chiffre mesure 13,75 px dans une boîte de 14,
+  // et un compte à deux chiffres en débordait.
+  position: 'absolute', top: '-0.0625rem', right: '-0.125rem',
+  minWidth: '0.875rem', height: '0.875rem', lineHeight: '0.875rem',
   background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px',
-  fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center',
-  padding: '0 3px', boxSizing: 'border-box',
+  fontSize: '0.625rem', fontWeight: 700, textAlign: 'center',
+  padding: '0 0.1875rem', boxSizing: 'border-box',
 };
 
 const FILET_OUTILS: React.CSSProperties = {
@@ -634,6 +638,29 @@ const INTERTITRE_MOBILE: React.CSSProperties = {
   textTransform: "uppercase", color: "rgba(255,255,255,0.5)",
   margin: "10px 0 2px", padding: "0 12px",
 };
+/**
+ * LA TAILLE DES DESSINS DE LA RANGÉE D'OUTILS, EN REM.
+ *
+ * ⛔ Elle était en PIXELS (13 et 15) dans des boutons en rem (1,875), et c'est le défaut
+ * que l'auteur a relevé le 2026-09-10 : « augmente un peu la taille des symboles, ils sont
+ * trop petits sur mon grand écran ». La police racine du site est FLUIDE : à la racine 22
+ * le bouton mesure 41 px et le dessin restait à 15, soit **36 % de sa boîte au lieu de
+ * 50 %**. C'est le piège déjà consigné pour l'emblème du menu — « un dessin posé en pixels
+ * rapetissait à mesure que le nom grandissait ».
+ *
+ * ⚠️ DEUX MESURES ET NON UNE, et ce n'est pas un oubli : la boussole et le cœur remplissent
+ * plus leur boîte que l'enveloppe et la cloche ne remplissent la leur. C'est l'ÉTENDUE
+ * D'ENCRE qu'on accorde, non la boîte — jugé rastérisé au plus proche voisin, dans le
+ * bouton et sur le vert de la barre.
+ *
+ * ⚠️ La graisse RENDUE reste accordée, et elle se recompte quand ces deux nombres bougent :
+ * strokeWidth × taille / viewBox — 1,3 × 16/16 = 1,30 pour l'enveloppe, 1,13 × 14/12 = 1,32
+ * pour la boussole. Elle grandit avec le dessin, ce qui est juste : un trait de la même
+ * épaisseur sur un dessin plus grand le rendrait maigre.
+ */
+const TAILLE_OUTIL = '1rem';
+const TAILLE_OUTIL_DENSE = '0.875rem';
+
 function IconCoeur() {
   return (
     // ⚠️ 13 px et non 11, graisse 1,13 et non 1,1 : depuis que les quatre outils de la
@@ -642,7 +669,7 @@ function IconCoeur() {
     // de l'enveloppe et de la cloche (1,3 × 15 / 16). ⛔ Et la TAILLE ne se déduit pas de
     // la graisse : le cœur remplit plus sa boîte que la cloche ne remplit la sienne, d'où
     // 13 contre 15. Jugé rastérisé au plus proche voisin, dans le bouton, sur le vert.
-    <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ display: 'block' }}>
+    <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ display: 'block', width: TAILLE_OUTIL_DENSE, height: TAILLE_OUTIL_DENSE }}>
       <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z" stroke="currentColor" strokeWidth="1.13" fill="none" strokeLinejoin="round"/>
     </svg>
   );
@@ -655,7 +682,7 @@ function IconCoeur() {
 function IconBoussole() {
   return (
     // ⚠️ Même règle que le cœur : 13 px, graisse rendue 1,22, la boîte des quatre.
-    <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ display: 'block' }}>
+    <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true" style={{ display: 'block', width: TAILLE_OUTIL_DENSE, height: TAILLE_OUTIL_DENSE }}>
       <circle cx="6" cy="6" r="4.6" stroke="currentColor" strokeWidth="1.13" />
       <path d="M8.4 3.6 6.9 6.9 3.6 8.4 5.1 5.1Z" fill="currentColor" />
     </svg>
@@ -681,7 +708,7 @@ function IconBoussole() {
 
 function IconEnveloppe() {
   return (
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ display: 'block' }}>
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ display: 'block', width: TAILLE_OUTIL, height: TAILLE_OUTIL }}>
       <rect x="1.75" y="3.85" width="12.5" height="8.3" rx="1.3" stroke="currentColor" strokeWidth="1.3" />
       {/* Le rabat part des deux angles hauts et descend un peu SOUS le milieu : c'est
           ce dépassement qui fait lire une enveloppe plutôt qu'un cadre barré. */}
@@ -692,7 +719,7 @@ function IconEnveloppe() {
 
 function IconCloche() {
   return (
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ display: 'block' }}>
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ display: 'block', width: TAILLE_OUTIL, height: TAILLE_OUTIL }}>
       {/* Une demi-circonférence posée sur deux montants droits, et non une panse
           galbée : à quinze pixels, un galbe se referme en tache quand cette
           silhouette-là garde son dessin. */}
@@ -1553,20 +1580,22 @@ export default function Navbar() {
     <div onClick={basculer} title={titre}
       style={mobile
         ? { ...RANGEE_MOBILE, cursor: "pointer", userSelect: "none" }
-        : { display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", fontSize: "0.875rem", color: "var(--cs-encre)", cursor: "pointer", userSelect: "none", borderBottom: "1px solid var(--cs-fond-doux)" }}>
+        : { display: "flex", alignItems: "center", gap: "0.625rem", padding: "0.625rem 0.875rem", fontSize: "0.875rem", color: "var(--cs-encre)", cursor: "pointer", userSelect: "none", borderBottom: "1px solid var(--cs-fond-doux)" }}>
       <span style={{ flex: 1 }}>{label}</span>
       <button type="button" role="switch" aria-checked={actif}
         onClick={e => { e.stopPropagation(); basculer() }}
         aria-label={label}
         style={{
-          width: "32px", height: "18px", borderRadius: "999px", cursor: "pointer", padding: 0, flexShrink: 0, position: "relative",
+          // ⚠️ En rem : une bascule est un DESSIN, et elle vit dans une rangée dont le
+          // texte suit la racine.
+          width: "2rem", height: "1.125rem", borderRadius: "999px", cursor: "pointer", padding: 0, flexShrink: 0, position: "relative",
           border: mobile ? "1px solid rgba(255,255,255,0.35)" : "none",
           background: actif ? "var(--cs-vert-aplat)" : (mobile ? "rgba(255,255,255,0.22)" : "var(--cs-bord)"),
           transition: "background 0.15s",
         }}>
         {/* Le panneau mobile est vert sombre EN TOUTES CIRCONSTANCES : son pion ne peut
             pas prendre --cs-surface, qui virerait au brun en Cuir et disparaîtrait. */}
-        <span style={{ position: "absolute", top: "3px", left: actif ? "15px" : "3px", width: "12px", height: "12px", borderRadius: "50%", background: mobile ? "#fff" : "var(--cs-surface)", transition: "left 0.15s" }} />
+        <span style={{ position: "absolute", top: "0.1875rem", left: actif ? "0.9375rem" : "0.1875rem", width: "0.75rem", height: "0.75rem", borderRadius: "50%", background: mobile ? "#fff" : "var(--cs-surface)", transition: "left 0.15s" }} />
       </button>
     </div>
   );
@@ -1589,11 +1618,15 @@ export default function Navbar() {
               aucune requête de plus : le contexte rapporte la référence avec le
               pseudonyme, d'une seule lecture (voir contexteCompte). */}
           {portrait ? (
-            <span style={{ display: "inline-flex", width: "1.375rem", height: "1.375rem" }}>
-              <PortraitLecteur refPortrait={portrait} cadrage={cadragePortrait} initiale={pseudo ?? user.email} taille={22} />
-            </span>
+            /* ⛔ PLUS D'ENVELOPPE : elle mesurait 1,375 rem quand le rond qu'elle portait
+               en mesurait 22 EN PIXELS. À la racine 22, le rond de 22 px flottait donc en
+               haut à gauche d'une boîte de 30,3 — huit pixels de vide à droite et dessous,
+               mesurés. Le rond suivant désormais la racine, les deux mesures seraient
+               égales partout : l'enveloppe ne fait plus rien, et deux mesures qui doivent
+               rester égales finissent toujours par diverger. */
+            <PortraitLecteur refPortrait={portrait} cadrage={cadragePortrait} initiale={pseudo ?? user.email} taille={22} />
           ) : (
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ marginLeft: "0.1875rem" }}><circle cx="7" cy="5" r="2.8" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M1.5 13c0-3 2.5-4.5 5.5-4.5S12.5 10 12.5 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ marginLeft: "0.1875rem", width: "0.875rem", height: "0.875rem" }}><circle cx="7" cy="5" r="2.8" stroke="currentColor" strokeWidth="1.2" fill="none"/><path d="M1.5 13c0-3 2.5-4.5 5.5-4.5S12.5 10 12.5 13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>
           )}
           {/* Le pseudonyme est le SEUL élément de la barre dont la largeur ne se connaît
               pas d'avance (jusqu'à 6rem). À l'étroit il s'efface : c'est ce qui rend la
@@ -1605,7 +1638,9 @@ export default function Navbar() {
               prédit pas — c'est écrit deux lignes plus haut. Le dessin du site a une
               largeur, lui. */}
           <span style={{ display: "inline-flex", opacity: 0.6, flexShrink: 0 }}>
-            <IconeChevron dir="down" size={9} strokeWidth={1.5} />
+            {/* ⚠️ En REM : `size` compte en pixels, et le chevron serait resté à 9 px à
+                côté d'un pseudonyme qui monte à 17 sur un grand écran. */}
+            <IconeChevron dir="down" size={9} strokeWidth={1.5} taille="0.5625rem" />
           </span>
         </button>
       )}
@@ -1616,10 +1651,18 @@ export default function Navbar() {
           font déjà « Aller plus loin » et « Administration ». L'intertitre est posé
           par le panneau, juste au-dessus de la messagerie, pour que les rangées de
           l'espace du lecteur se suivent d'un seul tenant. */}
-      <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px" } : { position: "absolute", top: `calc(100% + ${SOUS_LA_BARRE})`, right: 0, background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: "var(--cs-ombre-flottante)", minWidth: "190px", zIndex: 3100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
+      <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px" } : { position: "absolute", top: `calc(100% + ${SOUS_LA_BARRE})`, right: 0, background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: "var(--cs-ombre-flottante)", minWidth: "11.875rem", zIndex: 3100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
         {!mobile && (
-          <div style={{ display: "flex", alignItems: "center", gap: "9px", padding: "10px 14px 9px", borderBottom: "1px solid var(--cs-fond-doux)" }}>
-            <PortraitLecteur refPortrait={portrait} cadrage={cadragePortrait} initiale={pseudo ?? user.email} taille={30} />
+          /* ⚠️ Les blancs de la tête suivent la racine, comme le rond et les deux textes.
+             En pixels, la tête se serrait autour d'un portrait qui grandit. */
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5625rem", padding: "0.625rem 0.875rem 0.5625rem", borderBottom: "1px solid var(--cs-fond-doux)" }}>
+            {/* ⚠️ 34 ET NON 30, ET LE NOMBRE SE MESURE : le rond doit couvrir le BLOC
+                qu'il accompagne, deux lignes de texte en rem. Mesuré une iframe par
+                racine — 30 en couvrait 88 % à la racine 16 et 64 % à 22 (il était en
+                pixels) ; en rem il en couvre 88 % partout, et à 34 il en couvre 99 %.
+                C'est cette part-là que l'auteur lisait comme « trop petit et pas
+                centré » : un rond plus court que son bloc ne se pose sur rien. */}
+            <PortraitLecteur refPortrait={portrait} cadrage={cadragePortrait} initiale={pseudo ?? user.email} taille={34} />
             <div style={{ minWidth: 0 }}>
               <p style={{ fontSize: "0.6875rem", color: "var(--cs-texte-doux)", margin: 0 }}>Connecté en tant que</p>
               <p style={{ fontSize: "0.8125rem", color: "var(--cs-encre)", fontWeight: 500, margin: "1px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email}</p>
@@ -1643,7 +1686,7 @@ export default function Navbar() {
             {...(item.icone === "sortant" ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             style={mobile
               ? RANGEE_MOBILE
-              : { display: "flex", alignItems: "center", gap: "7px", padding: "10px 14px", fontSize: "0.875rem", color: "var(--cs-encre)", textDecoration: "none", borderBottom: "1px solid var(--cs-fond-doux)" }}>
+              : { display: "flex", alignItems: "center", gap: "0.4375rem", padding: "0.625rem 0.875rem", fontSize: "0.875rem", color: "var(--cs-encre)", textDecoration: "none", borderBottom: "1px solid var(--cs-fond-doux)" }}>
             {/* Administration : plus d'icône ; libellé simplement mis en vert (menu desktop). */}
             <span style={item.icone === "epee" && !mobile ? { color: "var(--cs-vert)", fontWeight: 600 } : undefined}>{item.label}</span>
             {/* ⚠️ La page publique s'ouvre à part, et l'icône le DIT : sans elle, un
@@ -1677,7 +1720,7 @@ export default function Navbar() {
             // ⚠️ L'encre du danger reste : c'est un signal, non un ornement. Seule la
             // géométrie rejoint celle des autres rangées.
             ? { ...RANGEE_MOBILE, color: "var(--cs-danger-bord)", cursor: "pointer" }
-            : { width: "100%", textAlign: "left", padding: "10px 14px", fontSize: "0.875rem", color: "var(--cs-danger-fonce)", background: "none", border: "none", cursor: "pointer" }}>
+            : { width: "100%", textAlign: "left", padding: "0.625rem 0.875rem", fontSize: "0.875rem", color: "var(--cs-danger-fonce)", background: "none", border: "none", cursor: "pointer" }}>
           Se déconnecter
         </button>
       </div>

@@ -1236,6 +1236,55 @@ et l'« avant » vient de `git show HEAD:…` lu de la même façon. Rien n'y es
 mémoire. ⚠️ Pour le banc au plus proche voisin, sérialiser le SVG dans un **Blob** et non
 dans une data-URI : celle-ci est refusée sans message utile.
 
+### ⛔ UN DESSIN POSÉ EN PIXELS DANS UNE BOÎTE EN REM RAPETISSE AVEC L'ÉCRAN
+
+Relevé de l'auteur le soir même : « augmente un peu la taille des symboles, ils sont trop
+petits sur mon grand écran ; par ailleurs le rond du menu déroulant de compte est trop
+petit et pas centré ». **Les deux ont la même cause**, et c'est le piège que ce fichier
+consigne déjà pour l'emblème du menu — « un dessin posé en pixels rapetissait à mesure que
+le nom grandissait ». La police racine du site est FLUIDE : 16 px jusqu'à 1 440, jusqu'à
+22 au-delà.
+
+⛔ **CE QUI SE MESURE N'EST PAS LA TAILLE, C'EST LA PART.** Les boutons de la rangée sont
+en rem (1,875), les dessins étaient en pixels (13 et 15). Mesuré, une iframe par racine :
+
+| racine | bouton | part des quatre dessins |
+|---:|---:|---|
+| 16 | 30 px | 43 % · 43 % · 50 % · 50 % |
+| 19 | 35,6 px | 36 % · 36 % · 42 % · 42 % |
+| **22** | **41,3 px** | **32 % · 32 % · 36 % · 36 %** |
+
+En rem, la part est **constante à 47 % et 53 %** aux trois racines, et le dessin passe de
+15 à **22 px** sur un grand écran — la moitié de plus. ⚠️ Les deux mesures sont nommées
+(`TAILLE_OUTIL`, `TAILLE_OUTIL_DENSE`) et restent DEUX : la boussole et le cœur remplissent
+plus leur boîte que l'enveloppe et la cloche. ⚠️ La graisse rendue se recompte quand ces
+deux nombres bougent — 1,30 contre 1,32, toujours accordées.
+
+⛔ **LE ROND D'UN LECTEUR SUIT DÉSORMAIS LA RACINE, ET SES TROIS POSES AVEC LUI.**
+`PortraitLecteur` prenait sa `taille` en pixels ; elle vaut maintenant « pixels À LA
+RACINE 16 » et se pose en rem. Mesuré dans la tête du menu de compte, part de la hauteur du
+bloc de texte qu'il accompagne : **88 % à la racine 16, 73 % à 19, 64 % à 22**. C'est cette
+part-là qui se lit comme « trop petit et pas centré » — un rond plus court que son bloc ne
+se pose sur rien. En rem il en couvre 88 % partout ; porté de 30 à **34 (2,125 rem)**, il
+en couvre **99 %** et retrouve son bloc.
+
+⛔ **ET L'ENVELOPPE DU PORTRAIT DE LA BARRE MESURAIT 1,375 REM AUTOUR D'UN ROND DE 22 PX.**
+À la racine 22, un rond de 22 flottait donc **en haut à gauche d'une boîte de 30,3** — huit
+pixels de vide à droite et dessous, mesurés. Elle est retirée : le rond suivant la racine,
+les deux mesures seraient égales partout, et **deux mesures qui doivent rester égales
+finissent toujours par diverger**.
+
+⚠️ **Tout ce qui restait en pixels dans la rangée y passe** : la pastille des compteurs
+(une boîte de 14 px autour d'un corps en rem — à la racine 22 le chiffre mesurait 13,75 px
+dans 14, et deux chiffres en débordaient), le chevron du compte (`IconeChevron` prend un
+`taille` en longueur CSS, à côté de son `size` en pixels), la silhouette de repli, les
+blancs et le plancher de largeur du menu déroulant, et les deux bascules.
+
+⚠️ **UNE PLANCHE QUI POSE LA RACINE SUR UN `div` NE MESURE QU'UNE SEULE RACINE**, et le
+piège a été repayé ici : les trois colonnes rendaient le même chiffre à la décimale près,
+ce qui est le seul signe. Un `rem` se résout toujours sur `html` — une iframe par racine,
+et la racine posée sur `document.documentElement`.
+
 ## ⛔ Une RUBRIQUE se présente de la même façon sur les deux écrans (2026-09-06)
 
 ⚠️ **RESSERRÉE DEUX FOIS LE 2026-09-10, et la seconde annule la première.** Au matin : « pas
