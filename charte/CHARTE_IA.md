@@ -6994,34 +6994,46 @@ modèle qui le veut** : dans un volet de lecture, la liste des livres est l’ob
 elle l’est ici aussi. ⛔ Ne pas la rabattre sur les filtres sans décision : ce serait quitter
 le modèle qu’on vient de reprendre.
 
-### 38.25 La fiche d’une ÉDITION — la chronologie à gauche, TOUTES les notices à sa droite
+### 38.25 La fiche d’une ÉDITION — ce qui change est la LARGEUR d’une colonne, non le CÔTÉ de la frise
 
 Décision de l’auteur, 2026-09-10 : « toutes les notices devraient être à droite de la
 chronologie (sauf sur mobile, évidemment) ; il faut supprimer l’illustration représentant
 l’auteur ; dans le cas du Français-Latin, on différencie les deux éditions, et on donne
 toutes les informations nécessaires ».
 
-⛔ **LES DEUX COLONNES DE CETTE FICHE SONT À L’ENVERS DE CELLES DE LA FICHE D’AUTEUR, et
-c’est la DONNÉE qui le commande.** La fiche d’un auteur donne la colonne large à la vie et
-l’étroite à la frise : sa prose y tient. La fiche d’une édition n’a pas de prose de cette
-mesure — cinq à dix rangées d’étiquettes, un commentaire d’une phrase — et la frise, elle,
-fait sept cents pixels quel que soit le livre. Le partage recopié de sa sœur fermait donc la
-colonne de gauche après trois lignes, empilait la frise et tout le reste dans la colonne la
-plus étroite, et faisait tomber ce qu’on vient chercher — la notice de l’édition — sous sept
-cents pixels de frise. Mesuré avant reprise : **1 466 px de fenêtre pour un contenu qui en
-demande 808**, et un vide de six cents pixels à gauche.
+⛔ **DEUX DÉCISIONS INDÉPENDANTES, ET ON LES A D’ABORD CONFONDUES.** *Quelle colonne est
+LARGE* est commandé par la DONNÉE : la fiche d’un auteur remplit 1,35fr d’une biographie,
+celle d’une édition n’a que cinq à dix rangées d’étiquettes et un commentaire d’une phrase
+à y mettre, quand la frise fait sept cents pixels quel que soit le livre. *De quel CÔTÉ se
+tient la frise* n’est commandé par rien dans la donnée, et c’est la CONVENTION des trois
+fiches qui le fixe. Le premier jet a renversé les deux ensemble, en prêtant à la seconde la
+justification de la première ; l’auteur l’a relevé le jour même — « pourquoi la chronologie
+est à gauche alors que, partout ailleurs, elle est à droite ? ».
+
+⛔ **LA FICHE D’UNE ÉDITION GARDE DONC LA GÉOMÉTRIE DES DEUX AUTRES** : 1,35fr à gauche,
+1fr à droite, filet au flanc de la colonne large, et la CHRONOLOGIE dans l’étroite, à
+DROITE. Ce qui change est ce que chaque colonne PORTE : toutes les notices tiennent la
+large, la frise est seule dans l’étroite.
+
+⚠️ **Le défaut d’origine est corrigé pareil, et il valait la moitié de la fenêtre.** Le
+partage d’avant laissait la seule notice de l’édition à gauche et empilait la frise PUIS
+« L’œuvre », les notes et « Sur ce site » à droite : cinq rangées d’étiquettes en face de
+sept cents pixels de frise, la colonne de gauche fermée après trois lignes, et ce qu’on
+vient chercher dans une fiche nommée « À propos de cette édition » relégué sous la frise,
+dans la colonne la plus étroite. Mesuré avant reprise : **1 466 px de fenêtre pour un
+contenu qui en demande 771**, et un vide de six cents pixels à gauche.
 
 ⚠️ **Une composition ne se recopie pas d’une fiche à l’autre parce que les objets sont
 voisins : elle se recopie quand la DONNÉE a la même forme.** C’est la même leçon que la
 carte du volet de lecture, qui prend la police de ce qu’elle SURMONTE et non celle du volet
-dont on l’a copiée.
+dont on l’a copiée. ⚠️ Mais elle ne vaut que pour ce que la donnée commande : une
+convention de PLACE ne se défait pas sous ce prétexte.
 
-⛔ **L’ORDRE DU DOCUMENT EST CELUI DU TÉLÉPHONE : les notices d’abord, la frise ensuite.**
-C’est la grille qui les renverse sur un grand écran, par un placement explicite. Écrit dans
-l’autre sens, l’empilement mobile aurait fait descendre sept cents pixels de frise avant la
-première rangée d’une fiche qu’on ouvre pour lire une notice. ⚠️ Et l’alignement transversal
-revient à « stretch » quand la grille se défait : le « start » de la grille n’est remplacé
-par aucune des déclarations de l’empilement, et la frise s’y réduisait à son contenu.
+⚠️ **L’ORDRE DU DOCUMENT est celui de l’écran ET celui du téléphone : les notices d’abord.**
+Aucun placement explicite n’est donc nécessaire, et l’empilement mobile est le bon sans
+qu’on ait rien à défaire. ⚠️ Seul l’alignement transversal doit revenir à « stretch » quand
+la grille se défait : le « start » de la grille n’est remplacé par aucune des déclarations
+de l’empilement, et la frise s’y réduisait à son contenu.
 
 ⛔ **IL N’Y A PAS DE PORTRAIT DANS LA FICHE D’UN LIVRE.** Il ouvrait la fenêtre sur un
 visage quand le sujet est une édition, et il coûtait une lecture de plus — le cadrage

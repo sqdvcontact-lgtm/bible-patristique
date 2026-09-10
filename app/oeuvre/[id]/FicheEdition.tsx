@@ -9,14 +9,20 @@
 // collante, défilement du CONTENU et non du calque), les titres de section et la rangée
 // « étiquette · valeur ».
 //
-// ⛔ MAIS LES DEUX COLONNES SONT À L'ENVERS DES SIENNES, et c'est délibéré (relevé de
-// l'auteur, 2026-09-10) : ici la CHRONOLOGIE tient la colonne étroite, à GAUCHE, et
-// TOUTES les notices se lisent à sa droite. Le partage d'avant — l'édition à gauche, la
-// frise et le reste à droite — mettait cinq rangées d'étiquettes en face d'une frise de
-// sept cents pixels : la colonne de gauche se fermait après trois lignes, et ce qu'on
-// vient chercher dans une fiche nommée « À propos de cette édition » tombait sous la
-// frise, dans la colonne la plus étroite. La fiche faisait 1 466 px de haut pour un
-// contenu qui en demande la moitié.
+// ⛔ ELLE EN REPREND AUSSI LA GÉOMÉTRIE — 1,35fr à gauche, 1fr à droite, la CHRONOLOGIE
+// dans la colonne étroite —, et ce qui a changé le 2026-09-10 est ce que chaque colonne
+// PORTE, non le côté de la frise. Le partage d'avant laissait la seule notice de
+// l'édition à gauche et empilait la frise PUIS « L'œuvre », les notes et « Sur ce site »
+// à droite : cinq rangées d'étiquettes en face de sept cents pixels de frise, la colonne
+// de gauche fermée après trois lignes, et ce qu'on vient chercher dans une fiche nommée
+// « À propos de cette édition » relégué sous la frise, dans la colonne la plus étroite.
+// La fenêtre faisait 1 466 px de haut pour un contenu qui en demande la moitié. TOUTES
+// les notices tiennent donc la colonne large, et la frise est seule dans l'étroite.
+//
+// ⚠️ Deux décisions INDÉPENDANTES, qu'on a d'abord confondues : quelle colonne est LARGE
+// (la donnée le commande — une biographie remplit 1,35fr, dix rangées d'étiquettes non)
+// et de quel CÔTÉ se tient la frise (rien dans la donnée ne le dit, la convention des
+// trois fiches le fixe).
 //
 // ⛔ ET IL N'Y A PLUS DE PORTRAIT D'AUTEUR (même relevé). Il ouvrait la fiche d'un
 // visage, quand le sujet est un LIVRE ; l'auteur se nomme sous le titre, et son nom
@@ -91,13 +97,18 @@ const STYLES_FICHE = `
   .fiche-edition-prose { font-family: ${SANS}; font-size: 0.75rem; line-height: 1.5; color: var(--cs-texte); text-align: justify; hyphens: auto; margin: 0; white-space: pre-line; }
   .fiche-edition-notices { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
   .fiche-edition-grille { display: flex; flex-direction: column; gap: 18px; }
-  /* ⛔ La CHRONOLOGIE à gauche, les NOTICES à droite. L'ordre du DOCUMENT reste
-     l'inverse — les notices d'abord — parce que c'est l'ordre du TÉLÉPHONE, où la
-     grille se défait : on n'y fait pas descendre sept cents pixels de frise avant ce
-     qu'on est venu lire. La grille remet chacune à sa place par un placement explicite. */
-  .fiche-edition-grille--deux { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 26px; align-items: start; }
-  .fiche-edition-grille--deux > .fiche-edition-chrono { grid-column: 1; grid-row: 1; min-width: 0; border-right: 1px solid var(--cs-fond-doux); padding-right: 24px; }
-  .fiche-edition-grille--deux > .fiche-edition-notices { grid-column: 2; grid-row: 1; }
+  .fiche-edition-chrono { min-width: 0; }
+  /* ⛔ EXACTEMENT LA GÉOMÉTRIE DES DEUX AUTRES FICHES : 1,35fr à gauche, 1fr à droite,
+     filet au flanc de la colonne large, et la CHRONOLOGIE dans l'étroite, à DROITE. Ce
+     qui devait changer était la LARGEUR — les notices ne tiennent pas dans trois cents
+     pixels —, non le CÔTÉ de la frise, que rien dans la donnée ne commande et que la
+     convention du site fixe (relevé de l'auteur, 2026-09-10 : « pourquoi la chronologie
+     est à gauche alors que, partout ailleurs, elle est à droite ? »).
+     ⚠️ L'ordre du DOCUMENT est celui de l'écran ET celui du téléphone : les notices
+     d'abord. Aucun placement explicite, donc, et l'empilement mobile est le bon sans
+     qu'on ait rien à défaire. */
+  .fiche-edition-grille--deux { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 26px; align-items: start; }
+  .fiche-edition-grille--deux > .fiche-edition-notices { border-right: 1px solid var(--cs-fond-doux); padding-right: 24px; }
   @media (max-width: 640px) {
     .fiche-edition-calque { padding: 14px 8px !important; }
     .fiche-edition-cadre { padding: 22px 15px 20px !important; border-radius: 8px !important; }
@@ -106,7 +117,8 @@ const STYLES_FICHE = `
        TRANSVERSAL — la frise s'y réduisait à son contenu (485 px pour 830 offerts), et son
        fer cessait de répondre à celui des notices. */
     .fiche-edition-grille--deux { display: flex !important; flex-direction: column; gap: 18px; align-items: stretch; }
-    .fiche-edition-grille--deux > .fiche-edition-chrono { border-right: none; padding-right: 0; padding-top: 16px; border-top: 1px solid var(--cs-fond-doux); }
+    .fiche-edition-grille--deux > .fiche-edition-notices { border-right: none; padding-right: 0; }
+    .fiche-edition-grille--deux > .fiche-edition-chrono { padding-top: 16px; border-top: 1px solid var(--cs-fond-doux); }
     /* Sur téléphone, 8,5 rem d'étiquette ne laissent plus rien à la valeur. */
     .fiche-edition-cadre .cs-fiche-cle { width: 6rem !important; }
   }
@@ -122,8 +134,8 @@ function anneeEnLigne(valeur: string | null | undefined): string | null {
 }
 
 /**
- * Le contenu de la fiche : un en-tête pleine mesure, puis la chronologie à gauche et
- * toutes les notices à sa droite.
+ * Le contenu de la fiche : un en-tête pleine mesure, puis toutes les notices dans la
+ * colonne large et la chronologie dans l'étroite, à droite.
  */
 export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur }: {
   donnees: DonneesEdition
@@ -291,7 +303,7 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur }: {
         )}
       </header>
 
-      {/* ── LA CHRONOLOGIE, puis TOUTES LES NOTICES À SA DROITE ────────────────────
+      {/* ── LES NOTICES, puis LA CHRONOLOGIE dans la colonne étroite ───────────────
           La frise est celle de l'AUTEUR, et il n'y en a pas d'autre : douze événements
           sur 1 346 nomment une œuvre, un par œuvre, et une frise d'un point n'est pas
           une frise. Mais la question qu'on pose à cette fenêtre — « où ce livre

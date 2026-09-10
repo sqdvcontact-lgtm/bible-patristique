@@ -9110,32 +9110,42 @@ fetch('https://api.vercel.com/v6/deployments?limit=100', {headers:{Authorization
 protègent (`bible-patristique-git-<branche>-…`). C'est voulu — le chantier Bible 899 ne
 se touche pas —, mais cela pose un plancher d'environ 9 Go qu'aucune purge ne descendra.
 
-# ⛔ LA FICHE D'UNE ÉDITION — chronologie à gauche, notices à droite (2026-09-10)
+# ⛔ LA FICHE D'UNE ÉDITION — la LARGEUR change, pas le CÔTÉ de la frise (2026-09-10)
 
 Doctrine : charte `parametres.charte_ia`, **§ 38.25** et **§ 38.25.1**. Ici, ce qu'il faut
 savoir pour y toucher.
 
-⛔ **LES DEUX COLONNES SONT À L'ENVERS DE CELLES DE LA FICHE D'AUTEUR, et c'est la DONNÉE
-qui le commande.** Le modèle a été copié de `ModaleAuteur` le 2026-08-28 — colonne large à
-gauche, frise à droite — alors que les deux fiches ne portent pas la même matière : une
-biographie remplit la colonne large, dix rangées d'étiquettes ne la remplissent pas.
-Mesuré avant reprise sur les Confessions : **1 466 px de fenêtre** pour un contenu qui en
-demande 808, six cents pixels de vide à gauche, et la notice de l'édition — ce qu'on vient
-chercher — reléguée sous sept cents pixels de frise, dans la colonne la plus étroite.
-⚠️ La règle générale : **une composition ne se recopie pas parce que les objets sont
-voisins, mais quand la donnée a la même forme.** C'est déjà la leçon de la carte du volet
-de lecture, qui prend la police de ce qu'elle SURMONTE et non celle du volet dont elle est
-copiée.
+⛔ **DEUX DÉCISIONS INDÉPENDANTES, ET LE PREMIER JET LES A CONFONDUES.** *Quelle colonne
+est LARGE* se juge sur la DONNÉE : le modèle vient de `ModaleAuteur`, où une biographie
+remplit 1,35fr, et la fiche d'une édition n'a que dix rangées d'étiquettes à y mettre.
+*De quel CÔTÉ se tient la frise* ne se juge sur rien de tel : c'est la convention des
+trois fiches, et elle la met à DROITE, dans la colonne étroite. Renverser les deux
+ensemble, en prêtant à la seconde la justification de la première, a valu ce relevé de
+l'auteur le jour même : « pourquoi la chronologie est à gauche alors que, partout
+ailleurs, elle est à droite ? ». ⚠️ **Avant de justifier un renversement par la donnée,
+demander lequel de ses deux axes la donnée commande vraiment.**
 
-⛔ **L'ORDRE DU DOCUMENT EST CELUI DU TÉLÉPHONE : `.fiche-edition-notices`, puis
-`.fiche-edition-chrono`.** La grille les renverse par un placement explicite
-(`grid-column` / `grid-row` sur `.fiche-edition-grille--deux`). Écrit dans l'autre sens,
-l'empilement mobile aurait fait descendre la frise avant la première rangée.
-⚠️ **Et l'alignement transversal REVIENT À `stretch` dans la requête de média** : le
-`align-items: start` de la règle de grille n'est remplacé par aucune des déclarations de
-l'empilement et, en colonne de flex, aligne sur l'axe TRANSVERSAL — la frise s'y réduisait
-à son contenu (485 px pour 830 offerts). ⛔ Ne pas croire qu'une règle de média « remplace »
-la règle de grille : elle n'en remplace que les propriétés qu'elle nomme.
+⛔ **LA GÉOMÉTRIE EST DONC CELLE DES DEUX AUTRES FICHES** : `minmax(0, 1.35fr)
+minmax(0, 1fr)`, filet au flanc de la colonne large, frise dans l'étroite. Seul change ce
+que chaque colonne porte. Mesuré avant reprise sur les Confessions : **1 466 px de
+fenêtre** pour un contenu qui en demande 771, six cents pixels de vide à gauche, et la
+notice de l'édition — ce qu'on vient chercher — reléguée sous sept cents pixels de frise,
+dans la colonne la plus étroite.
+⚠️ La règle générale que le chantier laisse quand même : **une composition ne se recopie
+pas parce que les objets sont voisins, mais quand la donnée a la même forme.** C'est déjà
+la leçon de la carte du volet de lecture, qui prend la police de ce qu'elle SURMONTE et
+non celle du volet dont elle est copiée.
+
+⚠️ **AUCUN PLACEMENT EXPLICITE : l'ordre du document est celui de l'écran ET du téléphone**
+— `.fiche-edition-notices`, puis `.fiche-edition-chrono`. Les `grid-column` / `grid-row`
+du premier jet servaient à renverser la grille contre le DOM ; ils sont partis avec le
+renversement, et l'empilement mobile est le bon sans qu'on ait rien à défaire.
+⛔ **Il reste UNE chose à défaire, et elle n'est pas facultative : l'alignement transversal
+REVIENT À `stretch` dans la requête de média.** Le `align-items: start` de la règle de
+grille n'est remplacé par aucune des déclarations de l'empilement et, en colonne de flex,
+aligne sur l'axe TRANSVERSAL — la frise s'y réduisait à son contenu (485 px pour 830
+offerts). ⛔ Ne pas croire qu'une règle de média « remplace » la règle de grille : elle
+n'en remplace que les propriétés qu'elle NOMME.
 
 ⛔ **PLUS DE PORTRAIT, ET LA LECTURE QUI L'ALIMENTAIT PART AVEC LUI.** `photo_position`
 était la seule chose que la page de lecture n'avait pas ; plus rien ne la demande, et
