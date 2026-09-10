@@ -372,7 +372,7 @@ export async function chargerVersetsCanoniquesV2(
   // masque ce nombre et affiche « Glose ». Le véritable identifiant reste l'UUID de
   // `versets_v2`, et `ref` conserve le créneau canonique hôte.
   return canoniques.flatMap((canon) => {
-    const gloses = (glosesParCanon.get(canon.id) ?? []).map((ligne): VersetEditorialAdapte => {
+    const gloses = (glosesParCanon.get(canon.id_verset) ?? []).map((ligne): VersetEditorialAdapte => {
       const ordreSlot = ligne.ordre_slot as number
       const texte = ligne.texte?.trim() ?? ''
       return {
