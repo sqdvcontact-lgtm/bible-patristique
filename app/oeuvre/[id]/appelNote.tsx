@@ -15,7 +15,7 @@ import {
 } from '@/app/lib/fenetreContextuelle'
 // Le CADRE de l'encart, un seul pour les trois surfaces, et sa composition.
 import { EncartNote } from '@/app/components/EncartNote'
-import { hauteurSouhaiteeNote, largeurEncartMinPx, largeurEncartPx, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
+import { hauteurSouhaiteeNote, largeurEncartMinPx, largeurEncartPx, reliefDeLaNote, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
 // La manchette : un renvoi qui s'y compose n'a plus d'appel, seulement un repère
 // sans chasse à l'endroit où l'exposant se tenait.
 import { STYLE_ANCRE_MANCHETTE } from '@/app/lib/manchetteRenvois'
@@ -283,12 +283,15 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
   // un renvoi de treize signes n'a pas à réserver la place d'un développement, et un
   // développement n'a pas à se croire court.
   const signes = signesDeLaNote(contenu)
+  // ⚠️ Et ce que la note ajoute à sa longueur : le blanc de chaque bloc, et les lignes
+  // qu'un bloc de vers force. Sans eux, la boîte s'ouvrait trop courte et défilait.
+  const relief = reliefDeLaNote(contenu)
   // ⛔ LA HAUTEUR SE DEMANDE UNE FOIS LA LARGEUR CONNUE. L'encart se resserre à la marge
   // qu'on lui laisse ; estimée sur sa mesure pleine, sa hauteur valait deux fois moins
   // que la vraie dès qu'il se resserrait, et la boîte défilait pour rien. Sous l'appel,
   // rien ne le resserre : la mesure pleine y est la bonne.
   const hauteurVoulue = (largeurRetenue?: number) =>
-    hauteurSouhaiteeNote({ signes, racine, avecIntitule: Boolean(intitule), largeur: largeurRetenue })
+    hauteurSouhaiteeNote({ signes, racine, avecIntitule: Boolean(intitule), largeur: largeurRetenue, ...relief })
   const hautNavbar = hauteurNavbarPx()
   // ⛔ D'ABORD LA MARGE : une note ouverte par-dessus la colonne cache le passage
   // qu'elle commente. ⚠️ Faute de place — un téléphone, deux volets ouverts —, on

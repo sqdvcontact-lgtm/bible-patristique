@@ -227,7 +227,103 @@ const MARGE_QUEUE_REM = 0
  * corps se dit donc en `em` DE LA NOTE, jamais en rem : il en descend, il ne s'en
  * détache pas, et il suivra tout resserrement futur sans qu'on y pense.
  */
-export const CORPS_APPARAT = '0.94em'
+/**
+ * LE RANG DISCRET DE L'ENCART — celui de ce qu'on TRAVERSE pour atteindre le propos.
+ *
+ * ⛔ IL Y EN AVAIT DEUX, à un quart de pixel l'un de l'autre : 0,92 em pour la
+ * coordonnée et le renvoi en ligne (`STYLE_DISCRET`, écrit dans le composant),
+ * 0,94 em pour l'apparat critique. Soit 10,58 px contre 10,81 à la racine 16 —
+ * exactement la dérive que l'échelle typographique du site a défaite ailleurs, où
+ * trente valeurs se pressaient entre 10 et 14 px, séparées par des centièmes de
+ * pixel. Un seul rang désormais, et les deux s'y rapportent.
+ *
+ * ⚠️ Il se dit en `em` DE LA NOTE, jamais en rem : il en DESCEND, et il suivra tout
+ * resserrement futur du corps sans qu'on y pense.
+ */
+export const CORPS_DISCRET_ENCART = '0.94em'
+
+/** La face de ce qui accompagne le propos sans en être : la coordonnée d'où vient la
+ *  note, le renvoi qui suit sa cible en ligne. ⚠️ Elle vit ICI, avec le reste de la
+ *  composition de l'encart : elle était écrite dans le composant, et c'est ainsi
+ *  qu'elle avait pris un rang à elle. */
+export const STYLE_DISCRET_ENCART: CSSProperties = {
+  fontSize: CORPS_DISCRET_ENCART,
+  color: 'var(--cs-texte-second)',
+}
+
+/**
+ * LE RETRAIT D'UN BLOC DÉTACHÉ — un seul fer pour tout ce que la note CITE.
+ *
+ * ⛔ IL Y EN AVAIT DEUX, ET ILS N'ÉTAIENT MÊME PAS DE LA MÊME UNITÉ : 0,9 em pour un
+ * bloc de vers — donc 0,81 em de la note, le bloc étant lui-même réduit — et
+ * **10 px** pour une traduction. Le second ne suivait pas la police racine, qui est
+ * fluide : sur un grand écran il se resserrait tout seul, et la source cessait de
+ * partir du même fer que sa traduction. C'est le défaut que ce module a déjà corrigé
+ * sur le blanc de paragraphe, qui valait 7 px.
+ *
+ * ⚠️ LA VALEUR EST CELLE DU VERS, PARTOUT AILLEURS SUR LE SITE (`RETRAIT_BASE`,
+ * `compositionVers.ts`) : une source en vers et sa traduction en prose partent alors
+ * du même fer, et c'est ce fer qui les tient ensemble. ⛔ On ne l'importe pas pour
+ * autant : une traduction n'est pas un vers, et deux modules qui se nouent pour une
+ * valeur commune se contraignent l'un l'autre au premier réglage.
+ */
+export const RETRAIT_BLOC_ENCART = '1.5em'
+
+/**
+ * LE STYLE D'UN BLOC DE NOTE.
+ *
+ * ⛔ IL VIT ICI, avec le reste de la composition de l'encart — il était écrit dans
+ * `ContenuNoteStructuree`, en styles en ligne, et il y avait dérivé sur trois axes :
+ * un corps propre au vers (0,9 em), deux retraits de deux unités, et un filet doré
+ * sur la seule traduction.
+ *
+ * ⛔ UN SEUL CORPS POUR TOUT CE QUE LA NOTE CITE. Le vers se composait UN CRAN SOUS la
+ * prose qui l'entoure : la source latine paraissait plus petite que sa propre
+ * traduction, dans une boîte qui porte déjà le rang discret de l'appareil. Aucune des
+ * quatre autres surfaces où le site compose des vers ne le fait — le corps d'une
+ * œuvre, son apparat, son introduction et l'apparat d'une bible donnent tous au vers
+ * le corps de la prose voisine. Ce qui dit qu'un vers est un vers est le RETOUR À LA
+ * LIGNE, non la taille.
+ *
+ * ⛔ ET PAS DE FILET. Le site l'a déjà tranché pour la citation sortie d'une œuvre :
+ * « ni guillemets ni filet », le retrait dit tout. Deux blocs d'un même passage — la
+ * source et sa traduction — portaient deux marques différentes, l'une un filet doré,
+ * l'autre rien.
+ */
+export function styleBlocNote(options: {
+  /** Le bloc se DÉTACHE du fil : un vers, une traduction en regard de sa source. */
+  detache?: boolean
+  /** Le bloc porte des VERS. ⚠️ Ni césure ni justification, où qu'il soit rendu. */
+  vers?: boolean
+  /** Les lignes sont rendues une à une, chacune portant son propre retrait de suite :
+   *  le retrait appartient alors à la LIGNE, et le bloc n'en pose aucun. */
+  versEnLignes?: boolean
+  /** L'italique de la langue, ou celui d'une reprise du texte. */
+  italique?: boolean
+  /** Des sauts de ligne matériels à rendre tels quels. */
+  sautsMateriels?: boolean
+} = {}): CSSProperties {
+  const { detache = false, vers = false, versEnLignes = false, italique = false, sautsMateriels = false } = options
+  return {
+    margin: `0 0 ${MARGE_PARAGRAPHE_ENCART}`,
+    whiteSpace: sautsMateriels ? 'pre-line' : 'normal',
+    fontStyle: italique ? 'italic' : 'normal',
+    // ⚠️ Le retrait appartient au BLOC quand il coule, à la LIGNE quand elle est une
+    // boîte : `styleLigneDeVers` porte alors sa propre marge, et les cumuler doublerait
+    // le fer. Les deux voies rendent le même, 1,5 em.
+    paddingLeft: detache && !versEnLignes ? RETRAIT_BLOC_ENCART : 0,
+    // ⛔ ON NE CÉSURE NI NE JUSTIFIE UN VERS — la règle est celle des cinq surfaces où
+    // le site en compose (charte § 7.4), et l'encart est la sixième. Elle doit s'écrire
+    // ICI : la justification et la césure sont posées sur le CORPS de l'encart, d'où
+    // elles cascadent dans chaque bloc — c'est ainsi qu'un héxamètre latin se coupait
+    // en « ca-/nis » au bout d'une piste étroite.
+    ...(vers
+      ? { textAlign: 'left' as const, textAlignLast: 'left' as const, hyphens: 'none' as const, WebkitHyphens: 'none' as const }
+      : null),
+  }
+}
+
+export const CORPS_APPARAT = CORPS_DISCRET_ENCART
 export const INTERLIGNE_APPARAT = 1.34
 /** Le blanc entre deux entrées d'apparat : deux tiers de celui d'une note, et en rem
  *  comme tout le reste de l'encart. ⚠️ Il valait 4 px — la seule mesure de l'encart
@@ -296,8 +392,33 @@ function signesParLigne(largeurPx: number, racine: number): number {
   return Math.max(12, piste / chasse)
 }
 
+/**
+ * LE RELIEF D'UNE NOTE — ce qu'elle demande à la boîte AU DELÀ de sa longueur.
+ *
+ * ⛔ L'estimation ne comptait que des SIGNES, et une note n'est pas une coulée : ses
+ * blocs sont séparés d'un blanc (`MARGE_PARAGRAPHE_ENCART`), et un bloc de vers occupe
+ * autant de lignes qu'il porte de vers, si courts soient-ils. Mesuré sur la note
+ * d'Ovide de la Consolation — quatre blocs, quatre vers, 465 signes : la boîte estimée
+ * valait 120 px pour une note qui en prend 180, et elle défilait pour rien.
+ *
+ * ⚠️ On SURESTIME plutôt qu'on ne sous-estime, et c'est le même parti que la chasse
+ * moyenne : une boîte un peu trop haute ne se voit pas, une boîte trop courte fait
+ * défiler. Un renvoi rendu EN LIGNE après sa cible compte donc pour un bloc de plus —
+ * un blanc de 6 px de trop, contre une note tronquée.
+ */
+export function reliefDeLaNote(
+  note: { blocks: readonly { text: string }[] } | string,
+): { blocs: number; lignesForcees: number } {
+  if (typeof note === 'string') return { blocs: 1, lignesForcees: 0 }
+  const lignesForcees = note.blocks.reduce(
+    (total, bloc) => total + Math.max(0, bloc.text.split('\n').filter(ligne => ligne.trim() !== '').length - 1),
+    0,
+  )
+  return { blocs: Math.max(1, note.blocks.length), lignesForcees }
+}
+
 export function hauteurSouhaiteeNote(
-  { signes, racine, avecIntitule = false, largeur }:
+  { signes, racine, avecIntitule = false, largeur, blocs = 1, lignesForcees = 0 }:
   {
     signes: number
     racine: number
@@ -305,11 +426,18 @@ export function hauteurSouhaiteeNote(
     /** La largeur à laquelle l'encart se composera, en pixels. ⚠️ Sa mesure pleine à
      *  défaut : c'est le cas quand il se pose sous son appel, où rien ne le resserre. */
     largeur?: number
+    /** Le nombre de BLOCS : chacun ferme sur un blanc, et l'estimation les ignorait. */
+    blocs?: number
+    /** Les lignes FORCÉES par un saut matériel — un bloc de vers en porte autant que
+     *  de vers, quelle que soit leur longueur. */
+    lignesForcees?: number
   },
 ): number {
   const parLigne = signesParLigne(largeur ?? LARGEUR_ENCART_REM * racine, racine)
-  const lignes = Math.max(1, Math.ceil(Math.max(0, signes) / parLigne))
+  const lignes = Math.max(1, Math.ceil(Math.max(0, signes) / parLigne)) + Math.max(0, lignesForcees)
   const enRem = lignes * LIGNE_ENCART_REM
+    // ⚠️ Les blancs qui SÉPARENT les blocs : n blocs en portent n − 1.
+    + Math.max(0, blocs - 1) * MARGE_PARAGRAPHE_ENCART_REM
     + MARGE_QUEUE_REM
     + REMBOURRAGE_VERTICAL_REM
     + (avecIntitule ? INTITULE_ENCART_REM : 0)

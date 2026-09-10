@@ -9,6 +9,7 @@ import {
   LARGEUR_ENCART_REM,
   hauteurSouhaiteeNote,
   largeurEncartPx,
+  reliefDeLaNote,
   signesDeLaNote,
   styleCadreEncart,
   styleCorpsEncart,
@@ -346,6 +347,48 @@ describe('la hauteur estimée suit la LARGEUR', () => {
   // ⛔ Une largeur absurde ne rend pas une hauteur infinie.
   it('borne l’absurde', () => {
     expect(Number.isFinite(hauteurSouhaiteeNote({ signes: 352, racine: 16, largeur: 0 }))).toBe(true)
+  })
+})
+
+describe('la hauteur estimée compte le RELIEF de la note', () => {
+  // La note d'Ovide de la Consolation (Mirandol, I-02), ses quatre blocs réels : un
+  // lemme, quatre vers latins, la traduction, le renvoi. ⛔ Le texte est celui de la
+  // base, non un témoin inventé : c'est lui qui a fait paraître le défaut.
+  const ovide = {
+    blocks: [
+      { text: '« Hélas ! avant le temps, le malheur m’a fait vieux. »' },
+      { text: 'Jam mihi deterior canis aspergitur ætas,\nJamque meos vultus ruga senilis arat…\nMe quoque debilitat series immensa laborum\nAnte meum tempus cogor et esse senex.' },
+      { text: '« Déjà le temps impitoyable a blanchi mes cheveux ; déjà les rides de la vieillesse sillonnent mon visage… je succombe à cette longue succession de malheurs, et sans le vouloir j’ai vieilli avant l’âge. »' },
+      { text: '++Ovide++, *Pontiques*, I, 4, vers 1-2 et 19-20.' },
+    ],
+  }
+
+  it('compte les BLOCS et les lignes FORCÉES', () => {
+    expect(reliefDeLaNote(ovide)).toEqual({ blocs: 4, lignesForcees: 3 })
+    // ⚠️ Un texte nu n'a ni bloc à séparer ni saut à rendre.
+    expect(reliefDeLaNote('(Is 1, 16).')).toEqual({ blocs: 1, lignesForcees: 0 })
+  })
+
+  // ⛔ LA BOÎTE DOIT PORTER LA NOTE, ou elle défile. Les deux hauteurs RÉELLES ont été
+  // relevées au navigateur sur la composition servie (planche du 2026-09-10) : 179,67 px
+  // sur la mesure pleine, 259,2 px sur la mesure étroite, à la racine 16.
+  // ⚠️ On SURESTIME plutôt qu'on ne sous-estime — une boîte un peu trop haute ne se voit
+  // pas, une boîte trop courte fait défiler — mais pas de plus d'un huitième.
+  it('porte la note d’Ovide, sur les deux mesures', () => {
+    const signes = signesDeLaNote(ovide)
+    const relief = reliefDeLaNote(ovide)
+    for (const [rem, reelle] of [[LARGEUR_ENCART_REM, 179.67], [LARGEUR_ENCART_MIN_REM, 259.2]] as const) {
+      const estimee = hauteurSouhaiteeNote({ signes, racine: 16, largeur: rem * 16, ...relief })
+      expect(estimee).toBeGreaterThanOrEqual(reelle)
+      expect(estimee).toBeLessThan(reelle * 1.125)
+    }
+  })
+
+  // ⛔ Et sans le relief, elle ne la portait PAS : c'est la mesure qui a imposé la
+  // reprise, non un raisonnement. Le retirer doit faire rougir cette garde.
+  it('ne la portait pas sans lui', () => {
+    const signes = signesDeLaNote(ovide)
+    expect(hauteurSouhaiteeNote({ signes, racine: 16, largeur: LARGEUR_ENCART_REM * 16 })).toBeLessThan(179.67)
   })
 })
 

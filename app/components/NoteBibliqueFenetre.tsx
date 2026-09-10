@@ -23,7 +23,7 @@ import {
 } from '@/app/lib/fenetreContextuelle'
 import { styleAppelNote, type VarianteAppelNote } from '@/app/lib/appelsDeNote'
 import { EncartNote } from './EncartNote'
-import { hauteurSouhaiteeNote, largeurEncartMinPx, largeurEncartPx, MARGE_PARAGRAPHE_ENCART, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
+import { hauteurSouhaiteeNote, largeurEncartMinPx, largeurEncartPx, MARGE_PARAGRAPHE_ENCART, reliefDeLaNote, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
 // L'axe est la CAPACITÉ DU POINTEUR, jamais la largeur (charte, « LE DOIGT »).
 import { useSansSurvol } from '@/app/lib/useEstMobile'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -144,12 +144,15 @@ export default function AppelNoteBiblique({
   // La hauteur SUIT la note. Elle valait 420 px pour toutes, ce qui promettait une
   // page à un renvoi de deux mots et n'en promettait pas assez à un développement.
   const signes = signesDeLaNote(note)
+  // ⚠️ Et ce que la note ajoute à sa longueur : le blanc de chaque bloc, et les lignes
+  // qu'un bloc de vers force. Sans eux, la boîte s'ouvrait trop courte et défilait.
+  const relief = reliefDeLaNote(note)
   // ⛔ LA HAUTEUR SE DEMANDE UNE FOIS LA LARGEUR CONNUE. L'encart se resserre à la marge
   // qu'on lui laisse ; estimée sur sa mesure pleine, sa hauteur valait deux fois moins
   // que la vraie dès qu'il se resserrait, et la boîte défilait pour rien. Sous l'appel,
   // rien ne le resserre : la mesure pleine y est la bonne.
   const hauteurVoulue = (largeurRetenue?: number) =>
-    hauteurSouhaiteeNote({ signes, racine, avecIntitule: Boolean(intitule), largeur: largeurRetenue })
+    hauteurSouhaiteeNote({ signes, racine, avecIntitule: Boolean(intitule), largeur: largeurRetenue, ...relief })
   const hautNavbar = hauteurNavbarPx()
   // ⛔ D'ABORD LA MARGE : une note ouverte par-dessus la colonne cache le verset
   // qu'elle commente. ⚠️ Faute de place, on retombe sous l'appel.

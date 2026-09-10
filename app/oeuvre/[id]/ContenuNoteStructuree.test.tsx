@@ -40,9 +40,35 @@ describe('ContenuNoteStructuree', () => {
       }),
     )} />)
 
-    expect(html).toContain('Premier vers\nSecond vers\n<span')
+    // ⛔ UN VERS EST UNE BOÎTE PAR LIGNE, non un texte à `pre-line` : c'est la boîte
+    // qui porte le retrait de suite, et c'est elle qui interdit la césure. Le renvoi
+    // qui suit descend d'une ligne en devenant une boîte lui aussi — le saut matériel
+    // n'a plus de `pre-line` pour le rendre, et deux façons de descendre d'une ligne
+    // dans le même bloc se contrediraient.
+    expect(html).toContain('>Premier vers</span>')
+    expect(html).toContain('>Second vers</span>')
+    expect(html).not.toContain('Premier vers\nSecond vers')
+    expect(html).toContain('hyphens:none')
     expect(html).toContain('(Contra Symmach.)</span>')
     expect((html.match(/data-block-id="poeme"/g) ?? [])).toHaveLength(1)
+  })
+
+  it('compose au MÊME corps ce que la note CITE, et sur un seul fer', () => {
+    const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
+      block({ blockId: 'poeme', kind: 'quotation', form: 'verse', language: 'la', text: 'Jam mihi deterior canis\nJamque meos vultus' }),
+      block({ blockId: 'trad', rank: 200, kind: 'translation', text: 'La traduction.' }),
+    )} />)
+
+    // ⛔ AUCUN CORPS PROPRE AU VERS : la source ne se compose pas plus petit que sa
+    // propre traduction, dans une boîte qui porte déjà le rang discret de l'appareil.
+    // Aucune des cinq autres surfaces où le site compose des vers ne le fait.
+    expect(html).not.toContain('font-size:0.9em')
+    // ⛔ UN SEUL FER POUR LES DEUX : la ligne de vers le porte en marge, le bloc de
+    // traduction en rembourrage, et les deux rendent 1,5 em.
+    expect(html).toContain('margin-left:1.5em')
+    expect(html).toContain('padding-left:1.5em')
+    // ⛔ ET PAS DE FILET : le retrait dit tout, comme pour une citation sortie.
+    expect(html).not.toContain('border-left')
   })
 
   it('conserve word_paragraph comme paragraphe distinct, au rang prévu et sans italique par défaut', () => {

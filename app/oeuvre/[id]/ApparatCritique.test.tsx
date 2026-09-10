@@ -197,9 +197,15 @@ describe('l’apparat ne déborde pas sur les autres notes', () => {
       ],
     }} />)
     expect(html).not.toContain('data-apparat-critique')
+    // ⚠️ Ce bloc de vers porte un renvoi EN LIGNE : il ne se découpe donc pas en
+    // boîtes — un renvoi s'attache à la fin du texte — et garde le `pre-line` qui rend
+    // ses sauts. C'est la même garde que sur l'apparat biblique.
     expect(html).toContain('Premier vers\nSecond vers')
     expect(html).toContain('1 Co 2, 16')
-    expect(html).toContain('border-left')
+    // ⛔ La traduction se DÉTACHE par son retrait, non par un filet doré : deux blocs
+    // d'un même passage portaient deux marques différentes.
+    expect(html).toContain('padding-left:1.5em')
+    expect(html).not.toContain('border-left')
   })
 })
 

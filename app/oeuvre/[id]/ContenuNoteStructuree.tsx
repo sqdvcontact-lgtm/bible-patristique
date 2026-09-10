@@ -14,7 +14,8 @@ import {
 import { ContenuApparatCritique } from './ApparatCritique'
 import { rendreTexteEnrichi } from './texteEnrichi'
 import * as BibliographieNote from './noteBibliographie'
-import { MARGE_PARAGRAPHE_ENCART } from '@/app/lib/compositionNote'
+import { STYLE_DISCRET_ENCART, styleBlocNote } from '@/app/lib/compositionNote'
+import { lignesDeVers, styleLigneDeVers } from '@/app/lib/compositionVers'
 
 // Le texte d'un bloc de RENVOI EXTÉRIEUR (kind='reference') est normalisé au rendu :
 // « 1Co. 2, 16 » → « 1 Co 2, 16 », chapitre romain → arabe, virgule avant le verset.
@@ -132,10 +133,14 @@ export function estBlocEnLatin(bloc: Pick<NoteBlocData, 'language'>): boolean {
 const RENDU_INLINE = 'inline_after_target'
 const RENDU_RETOUR_VERSE = 'manual_line_break_in_verse'
 
-// La composition DISCRÈTE : un peu plus petite, en teinte seconde. Elle sert ce que
-// le lecteur traverse pour atteindre le propos — la coordonnée d'où vient la note,
-// et les renvois qui suivent leur cible en ligne.
-const STYLE_DISCRET = { fontSize: '0.92em', color: 'var(--cs-texte-second)' } as const
+// La composition DISCRÈTE — un peu plus petite, en teinte seconde — sert ce que le
+// lecteur traverse pour atteindre le propos : la coordonnée d'où vient la note, et les
+// renvois qui suivent leur cible en ligne.
+// ⚠️ Elle vit désormais dans `compositionNote.ts`, avec le reste de la composition de
+// l'encart : écrite ici, elle avait pris un rang à elle (0,92 em contre les 0,94 de
+// l'apparat critique), et deux rangs à un quart de pixel l'un de l'autre ne se
+// distinguent pas — ils se contredisent.
+const STYLE_DISCRET = STYLE_DISCRET_ENCART
 
 function estReferenceRattachee(block: NoteBlocData) {
   return Boolean(
@@ -258,6 +263,32 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
         // L'en-tête d'ancrage ouvre le PREMIER bloc rendu, et lui seul.
         const ouverture = rang === 0 ? entete : []
 
+        // ── UN VERS SE REND LIGNE À LIGNE, EN BOÎTES ──────────────────────────
+        //
+        // ⛔ Une ligne de vers est une BOÎTE, jamais un fragment en ligne : `text-indent`
+        // ne s'applique qu'à la PREMIÈRE ligne d'un bloc, et jamais après un saut forcé.
+        // Sans boîte, le retrait de suite ne se poserait que sur le premier vers, et une
+        // ligne trop longue pour la piste de l'encart ne se distinguerait plus du vers
+        // d'après. C'est la règle de `compositionVers.ts`, que la lecture d'une œuvre,
+        // son apparat, son introduction et l'apparat d'une bible partagent déjà :
+        // l'encart de note en était la sixième surface, et la seule à l'ignorer.
+        //
+        // ⚠️ ELLE RÈGLE AUSSI L'ANCRAGE EN TÊTE, sans qu'on ait à le nommer : le lemme
+        // reste un fragment EN LIGNE, et l'inline qui précède un enfant de bloc forme sa
+        // propre ligne. Il cesse donc de se coller au premier vers — ce qui, sur la note
+        // d'Ovide de la Consolation, poussait « Jam mihi deterior canis » au delà de la
+        // piste et le coupait en « ca-/nis ».
+        //
+        // ⛔ ON NE DÉCOUPE PAS un bloc dont le texte est tranché par ailleurs : une
+        // notice bibliographique se pose par OFFSETS dans le texte entier
+        // (`rendreBlocAvecBibliographie`), et un renvoi en ligne s'attache à sa fin. Un
+        // tel bloc garde le `pre-line` d'avant, qui rend les sauts sans les indenter —
+        // même garde que sur l'apparat biblique.
+        const lignesVers = verse ? lignesDeVers(block.text) : []
+        const versEnLignes = lignesVers.length > 1
+          && (bibliographieParBloc[block.blockId] ?? []).length === 0
+          && referencesInline.length === 0
+
         return (
           <div
             key={block.blockId}
@@ -268,19 +299,19 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
             data-form={block.form}
             data-rendering={block.rendering ?? undefined}
             data-needs-review={String(block.needsReview)}
-            style={{
-              margin: `0 0 ${MARGE_PARAGRAPHE_ENCART}`,
-              whiteSpace: verse || referencesApresVers.length > 0 ? 'pre-line' : 'normal',
-              // La reprise s'italise où qu'elle paraisse : en tête sur la ligne du
-              // propos, au milieu d'une note, ou seule. La règle se dit alors d'un
-              // trait — « le lemme est en italique » — et ne dépend pas d'un rang.
-              fontStyle: estBlocEnLatin(block) || natureReprendLeTexte(block.kind) ? 'italic' : 'normal',
-              // Les vers cités dans une note ne portent plus d'étiquette « Vers » : ils se
-              // signalent par une police un peu plus petite et un léger retrait à gauche.
-              fontSize: verse ? '0.9em' : undefined,
-              paddingLeft: traduction ? '10px' : verse ? '0.9em' : 0,
-              borderLeft: traduction ? '2px solid var(--cs-or-doux)' : undefined,
-            }}
+            // ⛔ LA COMPOSITION VIT DANS `compositionNote.ts`, avec le reste de celle de
+            // l'encart. Ce qui reste ici est ce que le BLOC dit de lui-même : se
+            // détache-t-il, porte-t-il des vers, une reprise du texte, des sauts
+            // matériels. La reprise s'italise où qu'elle paraisse — en tête sur la ligne
+            // du propos, au milieu d'une note, ou seule —, et la règle se dit alors d'un
+            // trait sans dépendre d'un rang.
+            style={styleBlocNote({
+              detache: verse || traduction,
+              vers: verse,
+              versEnLignes,
+              italique: estBlocEnLatin(block) || natureReprendLeTexte(block.kind),
+              sautsMateriels: (verse && !versEnLignes) || (!versEnLignes && referencesApresVers.length > 0),
+            })}
           >
             {ouverture.map(ancrage => {
               // La REPRISE d'un mot de l'œuvre se compose en italique, à la mesure du
@@ -304,7 +335,13 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
                 </span>
               )
             })}
-            {rendreBlocAvecBibliographie(block, bibliographieParBloc[block.blockId] ?? [], finSurTexte)}
+            {versEnLignes
+              ? lignesVers.map((ligne, i) => (
+                <span key={`${block.blockId}:vers:${i}`} style={styleLigneDeVers({ rang: 0 })}>
+                  {rendreTexteEnrichi(texteFinal(textePartielBloc(block, ligne), finSurTexte && i === lignesVers.length - 1))}
+                </span>
+              ))
+              : rendreBlocAvecBibliographie(block, bibliographieParBloc[block.blockId] ?? [], finSurTexte)}
             {referencesInline.map((reference, i) => (
               <span
                 key={reference.blockId}
@@ -318,16 +355,20 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
                 {'\u00A0'}{rendreTexteEnrichi(texteFinal(texteBloc(reference), finSurInline && i === referencesInline.length - 1))}
               </span>
             ))}
+            {/* ⚠️ Le renvoi qui suit des vers descend d'une ligne. Quand les vers sont
+                des BOÎTES, il en devient une lui aussi : le saut matériel n'a plus de
+                `pre-line` pour le rendre, et deux façons de descendre d'une ligne dans
+                le même bloc se contrediraient. */}
             {referencesApresVers.map((reference, i) => (
               <Fragment key={reference.blockId}>
-                {'\n'}
+                {versEnLignes ? null : '\n'}
                 <span
                   lang={reference.language ?? undefined}
                   data-block-id={reference.blockId}
                   data-kind={reference.kind}
                   data-rendering={reference.rendering ?? undefined}
                   data-needs-review={String(reference.needsReview)}
-                  style={STYLE_DISCRET}
+                  style={versEnLignes ? { ...STYLE_DISCRET, display: 'block' } : STYLE_DISCRET}
                 >
                   {rendreTexteEnrichi(texteFinal(texteBloc(reference), finSurApresVers && i === referencesApresVers.length - 1))}
                 </span>

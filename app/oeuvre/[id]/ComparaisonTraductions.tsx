@@ -24,7 +24,7 @@ import {
 } from '@/app/lib/fenetreContextuelle'
 // Le CADRE de l'encart, un seul pour les trois surfaces, et sa composition.
 import { EncartNote } from '@/app/components/EncartNote'
-import { hauteurSouhaiteeNote, largeurEncartMinPx, largeurEncartPx, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
+import { hauteurSouhaiteeNote, largeurEncartMinPx, largeurEncartPx, reliefDeLaNote, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
 import { intituleDeLaNote, libelleDeLaNote } from '@/app/lib/typeNote'
 import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, estEnVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
 import { CLE_NUMERO_VERSET, NATURE_VERSET, estBlocVersets, numeroVersetLisible } from '@/app/lib/compositionVersets'
@@ -130,12 +130,15 @@ function AppelNote({ note }: { note: NoteStructuree }) {
   const boite = rect ?? { top: 300, bottom: 316, left: 0 }
   const largeur = largeurEncartPx(racine)
   const signes = signesDeLaNote(note)
+  // ⚠️ Et ce que la note ajoute à sa longueur : le blanc de chaque bloc, et les lignes
+  // qu'un bloc de vers force. Sans eux, la boîte s'ouvrait trop courte et défilait.
+  const relief = reliefDeLaNote(note)
   // ⛔ LA HAUTEUR SE DEMANDE UNE FOIS LA LARGEUR CONNUE. L'encart se resserre à la marge
   // qu'on lui laisse ; estimée sur sa mesure pleine, sa hauteur valait deux fois moins
   // que la vraie dès qu'il se resserrait, et la boîte défilait pour rien. Sous l'appel,
   // rien ne le resserre : la mesure pleine y est la bonne.
   const hauteurVoulue = (largeurRetenue?: number) =>
-    hauteurSouhaiteeNote({ signes, racine, avecIntitule: Boolean(intitule), largeur: largeurRetenue })
+    hauteurSouhaiteeNote({ signes, racine, avecIntitule: Boolean(intitule), largeur: largeurRetenue, ...relief })
   const hautNavbar = hauteurNavbarPx()
   // ⛔ D'ABORD LA MARGE, comme partout : l'encart ne couvre pas le texte qu'il commente.
   const placement = (colonne && placerEnMarge({ ancre: boite, largeur, largeurMin: largeurEncartMinPx(racine), hauteurSouhaitee: hauteurVoulue, vue, hautNavbar, colonne }))
