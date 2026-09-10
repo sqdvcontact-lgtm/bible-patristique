@@ -1421,7 +1421,17 @@ export default function PanneauPatristique({
               ⚠️ Elle se centre dans la HAUTEUR par le flex de la barre : la rangée grandit
               avec son compteur, et un décalage écrit en pixels s'en déferait au premier
               onglet sans chiffre. */}
-          <div style={{ display:'flex', alignItems:'stretch', borderBottom:'1px solid var(--cs-bord)' }}>
+          {/* ⛔ LA BARRE PORTE SON FOND, PAS L'ONGLET RETENU (demande de l'auteur,
+              2026-09-10 : « il faut que la ligne soit de couleur uniforme, légèrement
+              verte »). L'aplat vivait sur le seul bouton actif : la flèche de repli et la
+              cale restaient au sol du volet, et la ligne se lisait verte au milieu et neutre
+              aux deux bouts. La teinte est la MÊME — c'est celle que l'auteur a vue et
+              nommée — elle a seulement changé de porteur : rien de ce qui était déjà
+              teinté ne fonce, les deux bouts neutres se remplissent.
+              ⚠️ L'ONGLET RETENU SE DISTINGUE ALORS COMME DANS LE MODÈLE PARTAGÉ du site
+              (`.cs-onglet`, globals.css), qui ne pose AUCUN fond : par son trait vert, sa
+              graisse 600 et son encre. Trois axes, là où la charte en demande deux. */}
+          <div style={{ display:'flex', alignItems:'stretch', borderBottom:'1px solid var(--cs-bord)', background:'rgba(var(--cs-vert-rgb),0.04)' }}>
             {/* ⛔ ELLE NE DÉPEND PAS DE LA PRÉSENTATION MOBILE, et c'est ce qui l'avait fait
                 disparaître du bureau (demande de l'auteur, 2026-09-04). `presentation` dit
                 comment le volet s'empile sur un TÉLÉPHONE, où les onglets du haut font
@@ -1442,10 +1452,10 @@ export default function PanneauPatristique({
                   flex:1, padding:'8px 6px 7px', border:'none',
                   borderBottom: onglet === t.code ? '2px solid var(--cs-vert)' : '2px solid transparent',
                   cursor:'pointer',
-                  background: onglet === t.code ? 'rgba(var(--cs-vert-rgb),0.04)' : 'transparent',
+                  background:'none',
                   color: onglet === t.code ? 'var(--cs-encre)' : 'var(--cs-texte-gris)',
                   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
-                  transition:'color 0.12s, background 0.12s',
+                  transition:'color 0.12s, border-color 0.12s',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
                 }}>
                 {/* Libellé + compteur forment un groupe centré verticalement dans la hauteur
