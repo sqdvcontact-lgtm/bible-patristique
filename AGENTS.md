@@ -2121,6 +2121,38 @@ le compte se DÉDUIT : il est retenu AVEC le segment auquel il appartient et n�
 s’il répond au segment courant, si bien qu’une réponse tardive ne s’affiche pas sous le
 passage suivant, et que rien ne se remet à zéro dans un corps d’effet.
 
+# ⛔ LE HAUT DU TEXTE A UN REPÈRE, ET ON NE RESTE PAS ENFERMÉ DANS L'APPARAT (2026-09-10)
+
+Deux relevés de l'auteur sur la page de lecture d'une œuvre, et une seule cause : ce qui
+ramène au texte s'appuyait sur un élément qui n'existe pas dans tous les modes.
+
+⛔ **`barre-nav-niv1` N'EST PAS LE HAUT DU TEXTE, et il en tenait lieu.** Les deux
+remontées de la page — tourner une page de pagination, changer de division — visaient
+cet identifiant. Or la barre « ‹ › » n'est rendue qu'en lecture ORDINAIRE : ni en TEXTE
+ENTIER, ni sur un texte SANS NIVEAUX, ni en comparaison. Tourner une page y laissait donc
+le lecteur exactement où il était, la page neuve commençant au-dessus de lui.
+`ANCRE_DEBUT_LECTURE` (`debut-lecture`) est un repère de hauteur nulle rendu dans TOUS les
+modes de lecture, à la place que la barre occupe quand elle existe, et c'est lui que
+visent désormais les remontées.
+
+⛔ **Le haut du texte n'est PAS le haut de `<main>`** : le frontispice s'y rend à CHAQUE
+page de pagination et à chaque division — `PageTitre` n'est gardé par aucune condition —,
+et viser `<main>` rouvrirait l'œuvre à sa page de titre chaque fois qu'on tourne une page.
+
+⛔ **ET L'ON REVIENT AU TEXTE PAR LE VOLET.** Ouvrir l'apparat critique change de VUE : le
+texte suivi cesse d'être rendu, et la barre du niveau 1 avec lui. Le SOMMAIRE y ramenait —
+mais il ne paraît pas sur un texte sans niveaux ni sur une lecture qui n'a rien à sommer
+(voir « Un sommaire qui n'a rien à SOMMER ne paraît pas »), et le lecteur restait alors
+enfermé dans l'apparat, sans aucun chemin de retour. Une rubrique « Revenir au texte » se
+pose donc SOUS « Apparat critique », à la forme des autres rubriques du volet, et
+seulement dans la vue de l'apparat — une rubrique inerte se lit comme un contrôle en
+panne. ⚠️ Son chevron regarde à GAUCHE et précède le mot : il dit un RETOUR, non un dépli,
+et un chevron de dépli posé au fer à droite dirait le contraire de ce que le bouton fait.
+
+⚠️ **Corollaire de méthode, et c'est le troisième du même ordre dans ce fichier** : un
+chemin de retour qui s'appuie sur un élément CONDITIONNEL n'existe que dans la condition
+qui le rend. Avant de viser un identifiant, on demande dans quels modes il est rendu.
+
 # Page Œuvre — largeur de lecture et axe de centrage
 
 La colonne de lecture est un conteneur centré dont la largeur est nommée : `largeurLecture` dans `OeuvreClient.tsx` — **31,25rem** en lecture, **35rem** en mobile, **52rem** en traductions parallèles. **Tout ce qui se centre se centre sur l'axe de ce bloc**, et rien ne porte de compensation latérale : page de titre, fleuron, barre de circulation, titres de rang 1 et 2 (texte suivi ET apparat), blocs de paragraphes, pagination.

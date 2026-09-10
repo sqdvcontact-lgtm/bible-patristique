@@ -168,6 +168,22 @@ import {
 
 const CHARS_PAR_PAGE = 15000
 
+/**
+ * LE REPÈRE DU HAUT DU TEXTE, sous le frontispice.
+ *
+ * ⛔ Il ne peut pas être le haut de `<main>` : la page de titre s'y rend à CHAQUE
+ * page de pagination, et l'on rouvrirait l'œuvre à son frontispice chaque fois qu'on
+ * tourne une page.
+ *
+ * ⛔ Et il ne peut plus être `barre-nav-niv1`, qui portait ce rôle : cette barre n'est
+ * rendue qu'en lecture ORDINAIRE — ni en texte entier, ni sur un texte sans niveaux, ni
+ * en comparaison. Tourner une page y laissait donc le lecteur exactement où il était,
+ * la page neuve commençant au-dessus de lui (relevé de l'auteur, 2026-09-10 : « revoir
+ * le changement de page »). Le repère est désormais rendu dans TOUS les modes de
+ * lecture, à la place que la barre occupe quand elle existe.
+ */
+const ANCRE_DEBUT_LECTURE = 'debut-lecture'
+
 // ⛔ `detailsRefBiblique`, `NATURE_LIEN`, `extraireVersetsAvecNature` et `segmentAffichable`
 // vivaient ICI, en copie de `page.tsx`. Elles sont dans `./pipelineSegments`, avec leurs
 // tests : c'est là qu'elles avaient divergé, et une forme recopiée à deux endroits ne reste
@@ -1154,7 +1170,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // le faisait après la peinture trouve alors le témoin déjà rembobiné.
     if (pendingScrollTopRef.current && vue === 'texte') {
       pendingScrollTopRef.current = false
-      document.getElementById('barre-nav-niv1')?.scrollIntoView({ block: 'start' })
+      document.getElementById(ANCRE_DEBUT_LECTURE)?.scrollIntoView({ block: 'start' })
     }
     const main = mainRef.current
     if (main) ordonnerBlocsVisibles(main, hauteurNavbarPx())
@@ -1278,7 +1294,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   useEffect(() => {
     if (!pendingScrollTopRef.current || vue !== 'texte') return
     pendingScrollTopRef.current = false
-    document.getElementById('barre-nav-niv1')?.scrollIntoView({ block: 'start' })
+    document.getElementById(ANCRE_DEBUT_LECTURE)?.scrollIntoView({ block: 'start' })
   }, [vue, groupes])
   // Liste des niv2 du niv1 actif (sert au sommaire)
   const groupesNiv1Actif = lectureTexteEntier ? groupes.filter(g => g.niv1 === niv1Actif) : groupes
@@ -1541,6 +1557,20 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // Une seule fois, au montage : l'arrivée ne se rejoue pas.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+
+  /** Rend la lecture au TEXTE SUIVI depuis la vue de l'apparat critique.
+   *
+   *  ⚠️ Il remonte au haut du texte (`ANCRE_DEBUT_LECTURE`) et non à l'endroit qu'on
+   *  lisait avant d'ouvrir l'apparat : la page ne retient pas cette place, et une
+   *  remontée franche vaut mieux qu'une place devinée. */
+  const revenirAuTexte = () => {
+    setVue('texte')
+    setSegActif(null)
+    setAncreEnAttente(null)
+    if (mobile) setNavOuverte(false)
+    pendingScrollTopRef.current = true
+  }
 
   const allerAuNiv2 = (n2: string | null) => {
     setNiv2Actif(n2)
@@ -3266,6 +3296,28 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               </div>
             )}
 
+            {/* ⛔ ON REVIENT AU TEXTE PAR LE VOLET, ET IL Y FAUT UN BOUTON.
+                Ouvrir l'apparat critique change de VUE : le texte suivi cesse d'être
+                rendu, et la barre « ‹ › » du niveau 1 avec lui. Le SOMMAIRE y ramène —
+                mais il ne paraît pas sur un texte sans niveaux, ni sur une lecture qui
+                n'a rien à sommer, et le lecteur restait alors enfermé dans l'apparat
+                (relevé de l'auteur, 2026-09-10). Le retour se donne donc à la rubrique
+                même, sous « Apparat critique », et à la forme des autres rubriques du
+                volet.
+                ⚠️ Il ne paraît QUE dans la vue de l'apparat : en lecture, il ne ferait
+                rien, et une rubrique inerte se lit comme un contrôle en panne.
+                ⚠️ Le chevron regarde à GAUCHE et précède le mot : il dit un RETOUR, non
+                un dépli, et un chevron de dépli posé au fer à droite dirait le contraire
+                de ce que le bouton fait. */}
+            {!modeComparaisonActif && vue === 'apparat' && (
+              <button onClick={revenirAuTexte} style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '8px', width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--cs-bord)', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
+                <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)', flexShrink: 0 }}>
+                  <IconeChevron dir="left" size={11} strokeWidth={1.5} />
+                </span>
+                <span style={RUBRIQUE_AXE}>Revenir au texte</span>
+              </button>
+            )}
+
             {sommaireAQuoiSommer && (
             <div data-visite="oeuvre-sommaire" style={{ ...(!mobile && sommaireOuvert ? { flex: 1, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
               <button onClick={() => setSommaireOuvert(!sommaireOuvert)} aria-expanded={sommaireOuvert}
@@ -3458,6 +3510,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               </div>
             )
           })()}
+
+          {/* Le repère du HAUT DU TEXTE — voir `ANCRE_DEBUT_LECTURE`. Il se pose à la
+              place qu'occupe la barre « ‹ › » quand elle existe, et il est rendu dans
+              TOUS les modes de lecture : c'est lui que vise le retour en haut, qu'on
+              tourne une page, qu'on change de division ou qu'on quitte l'apparat. */}
+          {vue === 'texte' && !modeComparaisonActif && (
+            <div id={ANCRE_DEBUT_LECTURE} aria-hidden="true" style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }} />
+          )}
 
           {/* Navigation précédent/suivant — toujours au niveau 1 */}
           {vue === 'texte' && !modeComparaisonActif && !texteSansNiveaux && !lectureTexteEntier && (
