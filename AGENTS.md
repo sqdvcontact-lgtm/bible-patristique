@@ -2255,8 +2255,37 @@ crayons à quatre abscisses différentes, qui bougent avec la longueur du champ 
 l'auteur : « le crayon est un peu trop mal placé, généralement »). ⚠️ **Un crayon n'est
 donc pas dans la gouttière parce qu'on lui a écrit `-52px` : il y est si son bloc
 conteneur porte toute la mesure.** Les enveloppes du frontispice prennent
-`alignSelf: 'stretch'` (le texte reste centré par le `text-align` de la racine), et c'est
-la BARRE, non le titre, qui porte désormais `position: relative`.
+`alignSelf: 'stretch'`, et c'est la BARRE, non le titre, qui porte désormais
+`position: relative`.
+
+⛔ **ET UNE ENVELOPPE QUI POSITIONNE NE PORTE PAS LA MESURE DE LECTURE — le premier jet
+a décalé le frontispice, POUR TOUT LE MONDE** (relevé de l'auteur, 2026-09-10 : « ta mise
+à jour du positionnement des crayons a décalé le centrage de la page de titre ; y compris
+hors mode admin »). Les trois enveloppes du groupe des titres portaient les DEUX —
+`alignSelf: 'stretch'` ET `maxWidth: '35rem'` — et **un article de flex étiré PUIS écrêté
+par un maximum n'est plus centré : il se range au bord de départ**, c'est-à-dire à gauche
+(flexbox § 8.3, l'étirement écrêté se comporte comme `flex-start`). ⚠️ Cette page a écrit
+« le texte reste centré par le `text-align` de la racine » : ce n'est vrai que tant que
+l'écrêtage ne mord pas.
+- ⚠️ **Il mord dès que la colonne dépasse 35 rem, donc en LECTURE EN REGARD**, dont la
+  mesure est de 42 rem. Mesuré sur le VRAI composant, écart du texte à l'axe du bloc :
+  **0** en lecture ordinaire (31,25 rem) et sur téléphone, **−8 px à 1280, −18,5 à 1920,
+  −29 à 2560** en « Français & latin ». Il GRANDIT avec l'écran, la mesure étant en rem
+  et le rembourrage du frontispice en pixels.
+- ⚠️ **Et le crayon n'y tombait pas juste non plus** : l'enveloppe écrêtée n'atteignant
+  pas le bord du bloc, il se posait **84, 63 puis 42 px** en dedans au lieu de 100. Ce que
+  la passe voulait corriger ne l'était pas dans ce mode — un correctif qui ne se mesure
+  que sur UNE mesure de colonne n'est corrigé que là.
+- ⛔ **L'ENVELOPPE ne garde que la POSITION ; le TEXTE porte la mesure** (`MESURE_TITRE`,
+  plus des marges automatiques, qui le recentrent quand elle mord). Après : zéro écart
+  dans les six cas, et le crayon à 100 px du bord partout.
+- ⚠️ **Une planche qui pose la racine sur un `div` ne rend qu'une seule racine** : les
+  `rem` se résolvent toujours sur `html`. La première écriture de
+  `tmp/planche-frontispice.tsx` annonçait le même écart aux trois tailles d'écran. Un
+  fichier par cas, la racine sur `html`, une iframe par cas — comme partout ailleurs.
+- ⚠️ **Le composant se rend hors navigateur en interceptant `require`** pour le seul
+  `@/app/lib/supabase`, qu'`editeurs.ts` tire à l'import. C'est le seul stub, et rien
+  d'autre n'est remplacé : styles, structure et mesures sont ceux de la page.
 
 ⚠️ **Le retrait du frontispice vaut 100 px et non 52** : ses 48 px de rembourrage, plus
 les 52 de la gouttière. Les deux familles de crayons tombent alors sur le MÊME fer, et
