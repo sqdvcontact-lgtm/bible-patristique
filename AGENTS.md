@@ -367,6 +367,44 @@ Solution en place : le serveur (`app/oeuvre/[id]/page.tsx`, `chargerTrancheTexte
 
 `oeuvres.date_mise_en_ligne` (timestamptz) = millésime de l'**édition en ligne**, affiché au colophon de la page de titre (`PageTitre.tsx`, « Édition en ligne, AAAA »). **Estampillée automatiquement à la PREMIÈRE publication** (dans `api/admin/update-oeuvre`, quand `champ='note'` passe à null/vide) et **jamais réécrite ensuite** (`.is('date_mise_en_ligne', null)`) : dépublier puis republier ne change pas la date. Absente → la ligne est masquée.
 
+# ⚠️ « LA PAGE S'EST RECHARGÉE TOUTE SEULE » — CHERCHER LE DÉPLOIEMENT AVANT LE CODE (2026-09-10)
+
+Relevé de l'auteur : sur la page de lecture d'une œuvre, un clic sur un segment rechargeait
+la page ENTIÈRE et la ramenait en haut. Apparu le jour même, disparu après un rechargement,
+revenu une fois, reparti de même.
+
+⛔ **LE CLIC SUR UN SEGMENT NE NAVIGUE PAS, et c'est vérifiable en une minute** : il est un
+`<span>` avec un `onClick` qui ne fait que deux choses — retenir le segment, poser la cellule
+d'actions (`tapSegmentParagraphe`). Ni lien, ni bouton, ni `router.push`, ni défilement. Un
+rechargement à cet endroit ne peut donc PAS venir du gestionnaire.
+
+⚠️ **CE QUI RESTE EST LE DÉCALAGE DE VERSION.** Next fait une navigation DURE — donc un retour
+en haut, `scroll: false` n'ayant plus de prise — dès que le build servi ne correspond plus à
+celui que l'onglet porte. Il suffit qu'une ressource du build soit demandée : un préchargement
+au survol (`precharger`, `router.prefetch`), une correction d'adresse (les `router.replace` de
+la page, dont celui du mode bilingue), un chunk chargé à la demande (cinq `next/dynamic` dans
+`OeuvreClient`). ⛔ Les fichiers d'un déploiement précédent ne sont plus servis sur le domaine
+de production : un onglet resté ouvert pendant un déploiement est condamné à recharger une
+fois. **Quatre déploiements en une heure ce matin-là.**
+
+⚠️ **La preuve se prend DANS L'ONGLET, et il faut la prendre AVANT le rechargement** — après,
+il n'y a plus rien à voir, et c'est ce qui rend ce défaut si trompeur :
+
+```js
+// 404 sur l'un d'eux = l'onglet porte un build que le serveur ne sert plus.
+[...document.querySelectorAll('script[src]')].map(s => s.src).filter(s => s.includes('/_next/'))
+```
+
+⛔ **Le remède n'est pas dans le code : c'est la PROTECTION CONTRE LE DÉCALAGE** (Skew
+Protection de Vercel, `deploymentId` dans `next.config.ts` plus l'option au tableau de bord).
+Elle épingle chaque onglet à SON déploiement par un cookie, si bien qu'un onglet ouvert
+continue d'être servi par le build qu'il connaît. **Non activée** : c'est un réglage
+d'hébergement, donc une décision de l'auteur. ⚠️ Et le vrai remède, tant que le site est fermé,
+est de ne pas déployer en rafale pendant qu'on regarde une page.
+
+⚠️ **Ce qui a coûté le plus de temps est d'avoir cherché dans le code.** Devant un rechargement
+inexpliqué, on demande d'ABORD : ai-je déployé dans l'heure ? Et l'on ne conclut à un défaut
+de code qu'après avoir vu le symptôme SANS déploiement en cours.
 # Piège technique — migration / copie du projet
 
 Après un déplacement ou une copie du dépôt (nouveau PC, changement de disque), **purger `node_modules` ET `.next`**, puis `npm install`. Un `.next` hérité de l'ancien emplacement (chemins absolus périmés) fait planter Turbopack en boucle à l'écriture : « **Failed to write app endpoint … Next.js package not found** », version `0.0.0`. Réinstaller `node_modules` seul **ne suffit pas** — c'est le cache `.next` (ignoré par git) qu'il faut supprimer.
