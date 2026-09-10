@@ -875,9 +875,9 @@ formulation était trop large ; le critère juste est : **un ornement de sépara
 regarde nulle part**. Le poisson, lui, reste figuratif et tourné vers la droite : il est
 offert, avec sa réserve écrite au recensement.
 
-## ⛔ QUINZE FLEURONS AU REGISTRE, ET LA POSE EST PROPRE À CHACUN (2026-09-09)
+## ⛔ DIX-NEUF FLEURONS AU REGISTRE, ET LA POSE EST PROPRE À CHACUN (2026-09-09)
 
-⛔ **Le registre est `app/lib/fleurons.ts`, clos et sous garde** (40 tests). `oeuvres.fleuron`
+⛔ **Le registre est `app/lib/fleurons.ts`, clos et sous garde** (48 tests). `oeuvres.fleuron`
 porte une CLÉ ; une clé inconnue, vide ou absente retombe sur le fleuron du site. Colonne
 NULLABLE et SANS CONTRAINTE en base : la liste est éditoriale, elle bougera, et un ornement
 retiré ne doit ni bloquer une écriture ni vider un frontispice. C'est le parti
@@ -902,6 +902,35 @@ sur l'alpha retire du vide APRÈS la réduction : la largeur qu'on demande à la
 donc pas celle qu'on obtient, et la correction se fait dans les DEUX sens — ne savoir que
 majorer fait dépasser (mesuré : le serpent au croissant servi à 2,79 fois sa pose).
 
+### ⛔ QUATRE FIGURES DE PLUS, ET LE RAPPORT NE SE LIT QU'APRÈS LA RÉDUCTION (2026-09-10)
+
+Quatre planches apportées par l'auteur — grappe de raisin, épis de blé croisés, épi de blé,
+rameau — passées par la chaîne commune. Le registre monte de quinze à **dix-neuf**.
+
+⛔ **LE RAPPORT D'UNE PLANCHE NE SE MESURE PAS SUR LA SOURCE, MAIS SUR LE FICHIER RÉDUIT.**
+Le rognage sur l'alpha ne compte un rang que s'il porte au moins trois pixels visibles :
+à la résolution NATIVE, la moindre moucheture de papier passe ce seuil et la boîte englobe
+presque toute la planche. Mesuré sur l'épi de blé, dont la source porte quelques poussières
+aux angles : **1 772 × 2 352 au natif — un rapport de 1,33 — pour 40 × 111 une fois réduit,
+soit 2,74**. Calculer `--affichage` sur le natif donnait une pose deux fois trop courte.
+⚠️ On sonde donc à la taille voulue, on lit `servi`, et l'on corrige : deux passes suffisent.
+
+⚠️ **Ce que les quatre poses illustrent, et qui n'est que la règle ci-dessus prise sur pièces** :
+le raisin est le plus DENSE (27 % d'encre pleine) et prend la pose la plus courte du groupe,
+**2,5 rem** ; le rameau est une silhouette PLEINE, qui se lit petite, **2,75 rem** ; les épis
+croisés sont les plus AJOURÉS (7 % de plein, tout le reste en barbes d'un pixel) et se
+dissolvent en une tache grise sous 3 rem, d'où **3,25 rem** ; l'épi seul est le plus ÉLANCÉ
+du jeu, deux fois et trois quarts plus haut que large, d'où **3,5 rem**. Rapports servis :
+1,98 · 1,98 · 1,96 · 1,98.
+
+⚠️ **UNE CAPTURE RÉDUITE PAR LE PANNEAU NE JUGE PAS UNE TAILLE RÉELLE.** Le panneau
+navigateur rend l'image à la taille de sa PANE : une fenêtre de 1 180 px y sort en 800, soit
+un ornement jugé aux deux tiers de sa pose. On borne donc la fenêtre à la largeur de la pane
+avant de juger, et l'on garde le banc au plus proche voisin pour le dessin.
+
+⚠️ **Et un `url(...)` en style EN LIGNE se cite en guillemets SIMPLES** : les doubles ferment
+l'attribut `style`, le masque ne se pose pas, et la planche rend des cases vides sans une
+erreur — on croit le composant en panne quand c'est la planche qui l'est.
 ⚠️ **Le test confronte aussi les DIMENSIONS écrites aux fichiers réels** : c'est par elles
 que la page calcule la largeur (`calc(hauteur * largeur / hauteur)`), et une valeur recopiée
 de travers rendrait un ornement étiré sans que rien ne le dise. Même parti que le

@@ -54,6 +54,10 @@ export const FLEURONS: readonly Fleuron[] = [
   { cle: "poisson", nom: "Poisson", fichier: "poisson-ichthys", planche: { largeur: 68, hauteur: 86 }, hauteur: "2.75rem" },
   { cle: "serpent", nom: "Serpent", fichier: "serpent-love", planche: { largeur: 76, hauteur: 91 }, hauteur: "2.875rem" },
   { cle: "serpent-croissant", nom: "Serpent au croissant", fichier: "serpent-croissant", planche: { largeur: 60, hauteur: 116 }, hauteur: "3.625rem" },
+  { cle: "raisin", nom: "Grappe de raisin", fichier: "fleuron-raisin", planche: { largeur: 56, hauteur: 79 }, hauteur: "2.5rem" },
+  { cle: "epis-croises", nom: "Épis de blé croisés", fichier: "fleuron-epis-croises", planche: { largeur: 73, hauteur: 102 }, hauteur: "3.25rem" },
+  { cle: "epi", nom: "Épi de blé", fichier: "fleuron-epi", planche: { largeur: 40, hauteur: 111 }, hauteur: "3.5rem" },
+  { cle: "rameau", nom: "Rameau", fichier: "fleuron-rameau", planche: { largeur: 57, hauteur: 87 }, hauteur: "2.75rem" },
 ]
 
 /** Le fleuron du SITE — celui que porte toute œuvre qui n'en demande pas d'autre.
