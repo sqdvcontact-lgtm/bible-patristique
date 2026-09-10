@@ -1970,6 +1970,8 @@ Les huit natures du § 13.10 ne forment pas une liste plate. Chacune appartient 
 | **témoignage** | ce qu'elle RAPPORTE d'un tiers | `quotation`, `translation`, `attribution` | les marques de la citation : langue, retrait, filet |
 | **renvoi** | ce vers quoi elle ENVOIE | `reference`, `internal_cross_reference` | la destination décide de la normalisation |
 
+⛔ **LA FORME `verse` PRIME SUR LA COMPOSITION PAR DÉFAUT DE LA FAMILLE.** Un `lemma` reste un `lemma` lorsqu’il reprend le texte commenté : on ne le transforme jamais en `quotation` pour obtenir un style. Mais si `form = verse`, il se compose comme des vers : retours de ligne conservés, romain, sans guillemets ajoutés autour du bloc. Le caractère d’ancrage du lemme ne justifie jamais l’italique. Pour un `lemma` bref en prose (`form = prose`), la reprise du texte français commenté se compose en romain entre guillemets français `« … »` ; lorsqu’elle ouvre la note, elle reste sur la ligne du propos.
+
 ⛔ **L'ANCRAGE EN TÊTE NE FAIT PAS PARAGRAPHE.** Chez Faivre, « (V) pag. 178. — *Avec les démons les plus féroces* — On peut consulter… » tient sur **un seul paragraphe imprimé**. La passe 3 du protocole le fend en trois blocs, parce que ce sont trois fonctions ; mais fendre est une opération de STRUCTURE, et *une opération de structure ne doit pas se voir en lecture*. Les blocs d'ancrage qui OUVRENT une note se composent donc sur la ligne du propos, en repère discret, et non empilés au-dessus de lui. ⚠️ **En tête seulement** : un lemme qui reparaît au milieu d'une note y joue un autre rôle, et une note faite du seul ancrage se rend seule plutôt que de disparaître.
 
 ⛔ **DANS LA FAMILLE DU RENVOI, C'EST LA DESTINATION QUI COMMANDE.** Un renvoi vers le DEHORS (`reference`) se normalise : il a un auteur, un titre, un locus, et le site sait les composer. Un renvoi vers le DEDANS (`internal_cross_reference`) ne le peut pas — il n'a ni auteur ni titre — et le lui appliquer serait une CORRUPTION, non une maladresse : dans « Voyez la note I, p. 150 », le « I » est un numéro de note, que `normaliserReferencesDansTexte` convertirait en chapitre arabe. *Deux blocs de même apparence, deux traitements opposés : c'est la nature qui les départage, et rien d'autre ne le pouvait.*
@@ -2229,6 +2231,9 @@ Décisions de l’auteur, 9 septembre 2026. Ce paragraphe complète les §§ 13.
 - apostrophe typographique `’`, jamais l’apostrophe droite dans le français normalisé ;
 - points de suspension `…`, jamais trois points séparés ;
 - guillemets français `« … »`, puis guillemets anglais `“…”` au second niveau ;
+- ⛔ une reprise brève du texte français commenté, lorsqu’elle reste en prose, se compose en romain entre guillemets français `« … »` ; l’italique ne signale jamais à lui seul la citation ;
+- ⛔ une citation ou un lemme constitué d’un ou plusieurs vers porte `form = verse`, conserve ses retours de vers et se compose toujours en romain, sans guillemets ajoutés autour du bloc ; `kind` continue de dire la fonction (`lemma` ou `quotation`) et ne doit jamais être falsifié pour obtenir le rendu ;
+- la règle d’italique du latin enchâssé dans une phrase française ne s’applique pas à un bloc versifié : un bloc `form = verse` reste en romain, quelle que soit sa langue ;
 - tiret demi-cadratin `–` pour toute incise ;
 - point final cohérent pour toute note constituant une phrase ou une référence autonome ;
 - titres d’œuvres en italiques ;
@@ -7192,3 +7197,57 @@ d’un seul pixel. Un calcul de tête n’est pas un relevé.
 pas : les `vw` continuent de se résoudre sur l’écran réel, si bien que ni la police racine
 ni la largeur du volet ne sont celles qu’on croit mesurer. C’est la règle déjà écrite pour
 la porte de l’accueil, et elle vaut pour toute mesure de mise en page de ce site.
+
+### 51.8 L'OUTIL DE PARTAGE — une ligne, et des canaux NOMMÉS
+
+Demande de l'auteur du 10 septembre 2026 : « il faut que ce soit simple, peu de texte ;
+simplement, par exemple “CS – Augustin d'Hippone, Les Confessions” ; doit être prévu pour
+mail, whatsapp, twitter, facebook ».
+
+⛔ **UNE SEULE LIGNE, LA MÊME PARTOUT, ET COURTE : « CS — QUI, QUOI ».** L'auteur puis son
+œuvre, le livre puis son chapitre, la péricope puis sa référence. Elle ne dit que deux
+choses — d'où cela vient, et ce que c'est — parce que tout le reste est porté par l'APERÇU
+DU LIEN, que chaque messagerie compose elle-même depuis les balises Open Graph de la page.
+Le redire dans le message serait l'écrire deux fois. ⛔ Et une formule par genre de page
+ferait autant de messages différents pour un seul geste : on ne reconnaîtrait plus la
+maison au premier coup d'œil.
+
+⚠️ **Aucun guillemet dans la ligne, pas même autour d'un titre de publication** : la
+virgule sépare déjà le qui du quoi, et les guillemets français demandent des fines
+insécables qu'aucune messagerie ne garantit de rendre.
+
+⛔ **LES CANAUX SONT NOMMÉS, ET LE LIEN NU GARDE LA PREMIÈRE PLACE.** La page d'une œuvre
+s'interdisait jusqu'ici de nommer un réseau — « un site qui envoie chez l'un d'eux choisit
+à la place du lecteur » — et se contentait du partage natif du système, ou de la copie du
+lien. La règle tombe par décision de l'auteur : le site ne choisit pas à la place du
+lecteur, il OUVRE une fenêtre où celui-ci choisit, et le lien nu, qui n'envoie nulle part,
+y vient en tête. Six canaux nommés — copier le lien, courriel, WhatsApp, Facebook, X,
+Telegram — et, sur un appareil qui en a une, la feuille de partage du système, qui porte
+tout ce que cette liste ne nomme pas.
+
+⛔ **LES MARQUES SE DESSINENT AU TRAIT, DANS L'IDIOME DU SITE**, jamais six logos pleins
+sur un fond crème : chaque tuile étant NOMMÉE EN TOUTES LETTRES, la reconnaissance est
+portée par le mot, et le glyphe n'a plus qu'à seconder. ⛔ Et elles se jugent RASTÉRISÉES
+à leur taille servie, agrandies au plus proche voisin : c'est là, et là seulement, qu'on a
+vu la croix de X, posée dans un carré arrondi, se lire « fermer » — le contraire de ce que
+la tuile propose. Elle est devenue le glyphe nu, épais, d'angle à angle, à bouts francs ;
+Facebook garde son carré, un « f » nu ne disant rien.
+
+⚠️ **La fenêtre montre CE QU'ELLE VA ENVOYER** — la ligne, puis l'adresse — et rien
+d'autre : ni phrase d'invitation, ni mode d'emploi. Un partage dont on ne voit pas le
+message se donne à l'aveugle.
+
+⚠️ **L'adresse partagée est celle qu'on LIT, habits de lecture compris.** On partage la
+page telle qu'on l'a sous les yeux ; c'est la canonique, non le partage, qui dit laquelle
+fait foi.
+
+⚠️ **FACEBOOK NE PREND QUE L'ADRESSE**, son partageur ayant cessé d'accepter un texte
+prérempli en 2017 : la ligne y est perdue, et c'est l'aperçu qui parle seul. Rien à
+corriger — c'est à savoir avant de croire à un défaut.
+
+⛔ **ET L'ADRESSE MONTRÉE PORTE SEULE SON INFORMATION : le seuil de 4,5 s'y applique.**
+Elle a d'abord été composée dans le gris de l'appareil, qui rend 3,79 sur la surface
+blanche de la fenêtre, à onze pixels. Elle prend l'encre du rang au-dessus (5,74 au Clair,
+9,27 en Cuir) et se distingue de la ligne par sa taille, sa police et son rang, non par sa
+faiblesse. C'est la règle de la mention d'absence de la Polyglotte, prise sur un autre
+objet.

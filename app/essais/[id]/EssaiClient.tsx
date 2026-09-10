@@ -11,6 +11,7 @@ import EssaiCommentaires from './EssaiCommentaires'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import ModalSignalement from '@/app/components/ModalSignalement'
+import ModalePartage from '@/app/components/ModalePartage'
 import { useCompte } from '@/app/lib/contexteCompte'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
@@ -147,22 +148,11 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
     if (!res.ok) throw new Error('échec du signalement')
   }
 
-  // Un message clair accompagne le lien partagé (le lien redirige vers la lecture).
-  const texteInvitation = () =>
-    `« ${essai.titre} »${essai.auteur_pseudo && !essai.anonyme ? `, par ${essai.auteur_pseudo}` : ''} — à lire sur Corpus Scriptura`
-
-  const copierLien = () => {
-    navigator.clipboard.writeText(`${texteInvitation()} :\n${window.location.href}`).catch(() => {})
-  }
-
-  const partager = async () => {
-    const url = window.location.href
-    if (navigator.share) {
-      await navigator.share({ title: essai.titre, text: texteInvitation(), url }).catch(() => {})
-    } else {
-      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(texteInvitation())}`, '_blank', 'noopener')
-    }
-  }
+  // ⛔ Le partage passe par la fenêtre partagée du site : elle compose la ligne
+  // (`app/lib/partage.ts`) et offre les canaux, la copie du lien comprise — d'où le
+  // retrait du bouton « Copier le lien », qui faisait le même geste à côté d'elle.
+  // ⚠️ Une publication anonyme ne nomme personne : son pseudonyme ne sort pas d'ici.
+  const [partageOuvert, setPartageOuvert] = useState(false)
 
   const telechargerPDF = async () => {
     if (pdfEnCours) return
@@ -191,12 +181,6 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   // (desktop) et, en mobile, dans l'en-tête du volet des commentaires.
   const boutonsPartage = (
     <>
-      <BoutonPartage label="Copier le lien" onClick={copierLien}>
-        <svg width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
-          <path d="M5 7.5a2.5 2.5 0 0 0 3.5.5l2-2A2.5 2.5 0 0 0 7 2.5L5.8 3.8"/>
-          <path d="M8 5.5a2.5 2.5 0 0 0-3.5-.5l-2 2A2.5 2.5 0 0 0 6 10.5l1.2-1.2"/>
-        </svg>
-      </BoutonPartage>
       <BoutonPartage label={pdfEnCours ? 'Génération…' : 'Télécharger en PDF'} onClick={telechargerPDF} loading={pdfEnCours}>
         {pdfEnCours ? (
           <svg width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round">
@@ -211,7 +195,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           </svg>
         )}
       </BoutonPartage>
-      <BoutonPartage label="Partager" onClick={partager}>
+      <BoutonPartage label="Partager" onClick={() => setPartageOuvert(true)}>
         <svg width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="10" cy="2.5" r="1.3"/>
           <circle cx="10" cy="10.5" r="1.3"/>
@@ -438,6 +422,12 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
       {signalerOuvert && (
         <ModalSignalement titre={`Publication : ${essai.titre}`} avecNiveauImportance
           onClose={() => setSignalerOuvert(false)} onEnvoyer={envoyerSignalement} />
+      )}
+
+      {partageOuvert && (
+        <ModalePartage
+          sujet={{ genre: 'essai', titre: essai.titre, auteur: essai.anonyme ? null : essai.auteur_pseudo }}
+          onFermer={() => setPartageOuvert(false)} />
       )}
     </div>
   )

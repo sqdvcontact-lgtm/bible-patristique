@@ -9038,8 +9038,9 @@ du même style : le blanc de strophe ne s'applique qu'accompagné de `contextual
   cents pages qu'on n'a pas voulue se paie en attente, puis en fichier inutile.
 - **Les axes se composent comme ceux d'un volet** (`OPTION_VOLET`, `RUBRIQUE_AXE`) : une
   option par ligne, toutes montrées, la retenue sur pastille verte.
-- **Le partage** prend `navigator.share` quand il existe, la copie du lien sinon. ⛔ Aucun
-  réseau nommé : un site qui envoie chez l'un d'eux choisit à la place du lecteur.
+- **Le partage** ouvre la fenêtre partagée du site (voir « L'OUTIL DE PARTAGE », plus bas).
+  ⚠️ Il ne prenait que `navigator.share`, ou la copie du lien à défaut, et s'interdisait de
+  nommer un réseau : la règle est levée le 2026-09-10, charte § 51.8.
 - ⚠️ **DETTE TACTILE, et elle est celle de la RANGÉE entière.** Les cinq boutons de la tête
   du volet — roue crantée, étoile, partage, extraction, chevron — font 19 px de cible pour
   24 exigés. `.cs-cible-fine` (débord de 12 px) les ferait s'avaler l'un l'autre à 4 px
@@ -10021,3 +10022,85 @@ coupé aussitôt.
 écran — 1280 à 2560 — pour que les `vw` et la police racine se résolvent comme sur la
 page. Elle rend l'AVANT et l'APRÈS côte à côte et relève part, cible la plus petite et
 coupure du nom.
+
+# ⛔ L'OUTIL DE PARTAGE — `app/lib/partage.ts` et `ModalePartage` (2026-09-10)
+
+Doctrine : charte `parametres.charte_ia`, **§ 51.8** (ce que la ligne dit, pourquoi les
+canaux sont nommés, pourquoi les marques se dessinent au trait). Ici, ce qu'il faut savoir
+pour y toucher.
+
+- ⛔ **DEUX MODULES, ET ILS NE FONT PAS LA MÊME CHOSE.** `app/lib/partage.ts` porte la
+  RÈGLE — pur, testé, sans une ligne de React : `ligneDePartage`, `sujetEnClair`,
+  `messagePartage`, `adressePartage` et la liste `CANAUX`. `app/components/ModalePartage.tsx`
+  porte la FENÊTRE. ⛔ Ne recomposer une ligne de partage nulle part ailleurs : elle l'était
+  déjà à DEUX endroits (la page d'œuvre, la page d'une publication), et les deux ne disaient
+  pas la même chose.
+- ⚠️ **`ProposPartage` est exporté À PART, et il ne porte AUCUN crochet** : `createPortal`
+  n'existe pas au rendu serveur, et sans cette coupure aucune planche ne pourrait rendre la
+  fenêtre hors session. C'est le parti de `ContenuFicheTraduction` et de `ProposVisite`.
+- ⛔ **`adressePartage` rend `null` pour `lien` et `natif`**, qui sont des GESTES et non des
+  destinations. C'est ce `null` qui décide de la balise : un geste est un `<button>`, une
+  destination un `<a>`, qu'on doit pouvoir ouvrir dans un autre onglet. ⛔ Et `mailto:` ne
+  prend PAS de nouvel onglet : le client de courrier s'ouvre par-dessus, et l'onglet vide
+  resterait ouvert derrière lui.
+- ⚠️ **Facebook ne reçoit QUE l'adresse** (son partageur refuse tout texte prérempli depuis
+  2017) ; **X et Telegram veulent leur texte et leur adresse SÉPARÉS**, sans quoi ils
+  comptent l'adresse deux fois. Un test le tient sur chacun.
+- ⚠️ **X passe par `x.com/intent/post`**, l'adresse documentée aujourd'hui ;
+  `twitter.com/intent/tweet` y redirige encore et reste le repli si elle venait à tomber.
+- ⚠️ **La feuille système ne paraît que là où elle existe** : `natif` est retiré de la liste
+  quand `navigator.share` manque. ⛔ La question se pose dans un initialiseur PARESSEUX, pas
+  dans un effet — la fenêtre ne se monte qu'après un clic, donc jamais au rendu serveur, et
+  le linter refuse un `setState` en corps d'effet.
+- **Deux surfaces branchées** : le ⋮ de la tête du volet d'une œuvre (`OeuvreClient`) et la
+  rangée de boutons d'une publication (`EssaiClient`), qui perd son bouton « Copier le lien »
+  — la fenêtre fait le même geste, et un second endroit pour un même geste ferait deux
+  vérités.
+- ⚠️ **CE QUI RESTE, et ce n'est pas un oubli** : la page Bible, la péricope et la fiche
+  d'auteur n'ont pas de bouton de partage. Le genre est prêt dans `SujetPartage`
+  (`chapitre`, `verset`, `pericope`, `auteur`) ; c'est la PLACE qui demande un arbitrage —
+  l'en-tête « Genèse ❧ Chapitre 1 » est centré sur l'axe du bloc de texte, et la charte
+  interdit d'y glisser une marque sans doubler d'avance sa largeur (§ chevron doublé).
+
+## ⚠️ Ce que la mesure a trouvé, et qui ne se voyait pas au code
+
+- ⛔ **L'ADRESSE MONTRÉE PORTE SEULE SON INFORMATION.** Composée dans le gris de l'appareil
+  (`--cs-texte-gris`), elle rend **3,79** sur la surface blanche de la fenêtre, à onze
+  pixels, pour 4,5 exigés. Passée à `--cs-texte-second` : **5,74 au Clair, 9,27 en Cuir**.
+- ⛔ **LA CROIX DE X SE LISAIT « FERMER ».** Le premier tracé la posait, fine et à bouts
+  ronds, dans un carré arrondi — c'est-à-dire le dessin exact d'un bouton de fermeture.
+  Jugée rastérisée à 21 px (`tmp/banc-x-partage.mjs`, trois partis en regard), elle devient
+  le glyphe NU, épais, d'angle à angle, à bouts francs.
+- ⚠️ **Cible d'une tuile : 68 × 106 px**, très au-dessus du plancher de 24 de WCAG 2.2.
+
+## ⚠️ La planche, et le piège d'outillage du jour
+
+- **`tmp/planche-partage.mts`** rend le VRAI `ProposPartage` avec la VRAIE `globals.css`,
+  les deux sols côte à côte — le Cuir posé sur une CLASSE par substitution dans la copie de
+  la feuille, un document ne pouvant pas porter deux thèmes. ⚠️ Elle pose à la main les deux
+  variables de police de `next/font` : sans elles, `var(--font-source-serif)` est une
+  propriété non définie, la déclaration entière est invalide, et la planche mesure une autre
+  composition que la page.
+- **`tmp/banc-marques-partage.mjs`** tire ses tracés de la planche DÉJÀ RENDUE et les
+  rastérise par `sharp` à 21 px, puis les agrandit au plus proche voisin. ⛔ Il ne redessine
+  rien de mémoire : un banc qui rejouerait les tracés ferait autorité contre la fenêtre qu'il
+  décrit.
+- ⛔ **LES CAPTURES DU PANNEAU NAVIGATEUR SONT GELÉES QUAND LE PANNEAU EST MASQUÉ**, et elles
+  ne le disent qu'à moitié : `computer{screenshot}` rend une image PÉRIMÉE — ici le fond du
+  document, alors que `getBoundingClientRect` et `getComputedStyle` répondaient juste. On
+  croit la planche cassée quand c'est la capture qui l'est. ⚠️ `tabs_context` le dit en une
+  ligne (« The Browser pane is currently hidden »), et c'est la première chose à demander
+  devant une capture qui ne ressemble pas à ce que le DOM annonce.
+- **Le remède, quand la planche est du HTML STATIQUE** : Chrome sans tête sur le serveur de
+  planches, qui rend une image juste sans dépendre du panneau.
+
+```
+node tmp/serveur-planches.mjs &
+"/c/Program Files/Google/Chrome/Application/chrome.exe" --headless --disable-gpu \
+  --hide-scrollbars --window-size=1300,900 --virtual-time-budget=4000 \
+  --screenshot="…/tmp/vue-partage.png" "http://localhost:4173/planche-partage.html"
+```
+
+⚠️ Le piège consigné pour les captures sans tête — « Chrome CDP contre `next dev` n'hydrate
+jamais » — ne vaut PAS ici : une planche est du HTML servi tel quel, sans hydratation à
+attendre.

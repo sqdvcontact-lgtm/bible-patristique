@@ -292,6 +292,7 @@ function chargerCodesTraductions(): PromiseLike<string[]> {
 // « ?compare= » ouvrirait sur du vide.
 const ModaleEditionAdmin = dynamic(() => import('./ModaleEditionAdmin'))
 const MenuExtraction = dynamic(() => import('./MenuExtraction'))
+const ModalePartage = dynamic(() => import('@/app/components/ModalePartage'))
 const ComparaisonTraductions = dynamic(() => import('./ComparaisonTraductions'))
 
 // ── Proposition de lien biblique (non-admin) ──────────────────────────────────
@@ -325,9 +326,6 @@ const ICONE_PARTAGE = (
     <circle cx="3.7" cy="8" r="1.9" stroke="currentColor" strokeWidth="1.35"/>
     <path d="M5.4 7.1l4.9-2.7M5.4 8.9l4.9 2.7" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round"/>
   </svg>
-)
-const ICONE_LIEN_COPIE = (
-  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.2 8.4l3.1 3.1 6.5-6.9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
 )
 /* ⚠️ LE MÊME TRACÉ QUE `EtoileFavori`, à la lettre : sous le ⋮, l'étoile doit se
    reconnaître pour celle qui vient de quitter la rangée. Deux états, parce que c'est
@@ -619,31 +617,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Mobile : actions de segment masquées, révélées à l'appui long (comme les
   // versets de la page Bible).
   const [infoEditionOuverte, setInfoEditionOuverte] = useState(false)
-  // Le menu d'extraction, et le témoin du lien copié quand le partage natif manque.
+  // Le menu d'extraction, et la fenêtre de partage.
   const [extractionOuverte, setExtractionOuverte] = useState(false)
-  const [lienCopie, setLienCopie] = useState(false)
   /**
-   * PARTAGER LA PAGE. ⚠️ Le partage natif du système quand il existe (un téléphone), la
-   * copie du lien sinon : c'est le geste qui compte, non l'outil. ⛔ Aucun réseau nommé
-   * ici — un site qui envoie chez l'un d'eux choisit à la place du lecteur.
+   * PARTAGER LA PAGE. ⚠️ Le geste ouvre la fenêtre partagée du site
+   * (`app/components/ModalePartage.tsx`), qui compose la ligne et offre les canaux ;
+   * cette page ne connaît que le SUJET — un auteur, un titre.
+   * ⛔ Elle ne copiait le lien qu'à défaut de partage natif, et ne nommait aucun canal :
+   * la règle est levée par décision de l'auteur, 2026-09-10.
    */
-  const partagerLOeuvre = useCallback(async () => {
-    if (typeof window === 'undefined') return
-    const url = window.location.href
-    const titre = `${oeuvre.titre}${auteur ? ` — ${auteur}` : ''}`
-    if (navigator.share) {
-      // Un partage abandonné n'est pas une erreur : on ne dit rien.
-      await navigator.share({ title: titre, text: `${titre}, à lire sur Corpus Scriptura`, url }).catch(() => {})
-      return
-    }
-    try {
-      await navigator.clipboard.writeText(url)
-      setLienCopie(true)
-      setTimeout(() => setLienCopie(false), 1800)
-    } catch {
-      console.error('[partage] le presse-papiers est refusé')
-    }
-  }, [auteur, oeuvre.titre])
+  const [partageOuvert, setPartageOuvert] = useState(false)
   // Identifiant de l'auteur dont la fiche est ouverte (null = aucune). Une œuvre
   // pouvant être signée à deux, il ne suffit plus de savoir QU'une fiche est
   // ouverte : il faut savoir LAQUELLE.
@@ -982,15 +965,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (estAdmin) {
       liste.push({ cle: 'niveaux', libelle: 'Niveaux d’affichage', icone: ICONE_NIVEAUX, onChoisir: () => setConfigOuverte(true) })
     }
-    liste.push({
-      cle: 'partage',
-      libelle: lienCopie ? 'Lien copié' : 'Partager la page',
-      icone: lienCopie ? ICONE_LIEN_COPIE : ICONE_PARTAGE,
-      onChoisir: partagerLOeuvre,
-    })
+    liste.push({ cle: 'partage', libelle: 'Partager la page', icone: ICONE_PARTAGE, onChoisir: () => setPartageOuvert(true) })
     liste.push({ cle: 'extraction', libelle: 'Extraire en document Word', icone: ICONE_EXTRACTION, onChoisir: () => setExtractionOuverte(true) })
     return liste
-  }, [estAdmin, lienCopie, partagerLOeuvre])
+  }, [estAdmin])
   // ── LA RANGÉE SE CONDENSE QUAND LE NOM N'A PLUS LA PLACE ──────────────────
   // Rectification de l'auteur, 2026-09-10 : « je préférais qu'on ne coupe pas le nom
   // de l'auteur, mais qu'on propose un symbole ⋮ pour regrouper les options favori,
@@ -4599,6 +4577,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             nbSignes: oeuvre.nb_signes ?? null,
           }}
           onFermer={() => setExtractionOuverte(false)} />
+      )}
+
+      {/* ⚠️ Le sujet, et rien de plus : la ligne se compose dans `app/lib/partage.ts`,
+          et l'adresse partagée est celle qu'on lit, habits de lecture compris. */}
+      {partageOuvert && (
+        <ModalePartage
+          sujet={{ genre: 'oeuvre', titre: oeuvre.titre, auteur }}
+          onFermer={() => setPartageOuvert(false)} />
       )}
 
       {/* Fiche auteur en fenêtre, ouverte depuis « À propos de cette édition ». */}
