@@ -114,6 +114,7 @@ import { FLEURONS, fleuronDe, FLEURON_DU_SITE } from '@/app/lib/fleurons'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import VisiteGuidee from '@/app/components/VisiteGuidee'
 import { CLE_VISITE_OEUVRE, VISITE_OEUVRE } from '@/app/lib/visiteOeuvre'
+import BoutonProportions from '@/app/components/BoutonProportions'
 import { type SceneVisite } from '@/app/lib/visiteGuidee'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { useFavoris } from '@/app/lib/useFavoris'
@@ -4818,29 +4819,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           onEnregistre={() => vue === 'apparat' ? chargerApparatData() : changerNiv1(niv1Actif, { forceRefresh: true, conserverPosition: true })}
         />
       )}
-      {voletsDirty && (
-        <button
-          onClick={resetVolets}
-          style={{
-            position: 'fixed',
-            left: '18px',
-            bottom: '18px',
-            zIndex: 2500,
-            padding: '7px 12px',
-            borderRadius: '999px',
-            border: '1px solid rgba(198,184,158,0.62)',
-            background: 'rgba(250,246,237,0.86)',
-            color: 'var(--cs-texte-second)',
-            boxShadow: 'var(--cs-ombre-flottante)',
-            backdropFilter: 'blur(6px)',
-            fontSize: '0.71875rem',
-            fontFamily: 'var(--font-source-serif), Georgia, serif',
-            fontStyle: 'italic',
-            cursor: 'pointer',
-          }}>
-          Rétablir les proportions
-        </button>
-      )}
+      {!mobile && voletsDirty && <BoutonProportions onRetablir={resetVolets} />}
     </div>
   )
 }

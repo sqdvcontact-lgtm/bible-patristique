@@ -62,7 +62,7 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // avec la carte « Communauté », et quatre autres ont été remplacées quand le bronze
   // décoloré de la Patristique a cédé la place au maroquin rouge.
   'components/AccueilCards.tsx': ['#1e2e24', '#2a3d30', '#3a3125', '#3e1a17', '#4a3d2d', '#4e2823', '#5a2a26', '#6a3a31', 'rgba(10,18,8,0.30)', 'rgba(20,30,16,0.34)'],
-  'components/BibleLayout.tsx': ['#b0a088', 'rgba(198,184,158,0.62)', 'rgba(250,246,237,0.86)'],
+  'components/BibleLayout.tsx': ['#b0a088'],
   'components/Bulle.tsx': ['#6a9a7a', 'rgba(242,237,230,0.55)'],
   'components/EtoileFavori.tsx': ['#8a7a5e', '#a07028', '#c8933a'],
   'components/LectureBilingueBible.tsx': ['#b0a088'],
@@ -115,7 +115,7 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // Le CALQUE d'une modale : une forme que la charte prescrit, et qui ne se
   // transpose pas. ⚠️ Le brun très sombre plutôt qu'un noir neutre, qui refroidirait
   // la page qu'il assombrit — le site est chaud jusque dans son ombre.
-  'oeuvre/[id]/OeuvreClient.tsx': ['rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)', 'rgba(198,184,158,0.62)', 'rgba(250,246,237,0.86)'],
+  'oeuvre/[id]/OeuvreClient.tsx': ['rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)'],
   // ⚠️ 'rgba(30,25,20,0.4)' n'est PAS une teinte neuve : elle est dans ce fichier depuis
   // l'origine, et la garde ne la voyait pas. Un « /* » écrit dans un commentaire de LIGNE
   // — « italique <i>/* » — ouvrait pour le motif une région de bloc qui courait sur

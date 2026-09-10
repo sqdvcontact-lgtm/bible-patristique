@@ -27,6 +27,7 @@ import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigat
 import { memoriserTraductionBible } from '@/app/lib/preferenceBible'
 import VisiteGuidee from './VisiteGuidee'
 import { CLE_VISITE_BIBLE, VISITE_BIBLE_CLASSIQUE } from '@/app/lib/visiteBibleClassique'
+import BoutonProportions from '@/app/components/BoutonProportions'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { type EtapeVisite, type SceneVisite } from '@/app/lib/visiteGuidee'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
@@ -769,29 +770,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
             onAller={(n) => naviguer(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: n, trad: traduction }))} />
         </div>
       )}
-      {!mobile && isDirty && (
-        <button
-          onClick={reset}
-          style={{
-            position: 'fixed',
-            left: '18px',
-            bottom: '18px',
-            zIndex: 2500,
-            padding: '7px 12px',
-            borderRadius: '999px',
-            border: '1px solid rgba(198,184,158,0.62)',
-            background: 'rgba(250,246,237,0.86)',
-            color: 'var(--cs-texte-second)',
-            boxShadow: 'var(--cs-ombre-flottante)',
-            backdropFilter: 'blur(6px)',
-            fontSize: '0.71875rem',
-            fontFamily: 'var(--font-source-serif), Georgia, serif',
-            fontStyle: 'italic',
-            cursor: 'pointer',
-          }}>
-          Rétablir les proportions
-        </button>
-      )}
+      {!mobile && isDirty && <BoutonProportions onRetablir={reset} />}
 
       {/* La visite, en dernier : elle se rend dans un portail vers <body> et son
           rang d'empilement passe au-dessus de tout ce que la page peut ouvrir. */}

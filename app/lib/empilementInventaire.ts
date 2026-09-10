@@ -16,19 +16,25 @@
  * ⚠️ CE QUI RESTE N'EST PLUS DE LA MÊME FAMILLE que ce qui en est sorti, et c'est
  * pourquoi il n'a pas suivi. Deux groupes, et deux arbitrages distincts :
  *
- *  — le CHROME DE PAGE (1250, 1300, 2500) : les deux barres fixes de la lecture
- *    biblique sur téléphone, et la pastille qui rend au lecteur la largeur de ses
- *    volets. Ce ne sont ni des fenêtres ni des tiroirs ; ils accompagnent la page et
+ *  — le CHROME DE PAGE (1250, 1300) : les deux barres fixes de la lecture biblique sur
+ *    téléphone. Ce ne sont ni des fenêtres ni des tiroirs ; ils accompagnent la page et
  *    se comparent d'abord entre eux.
+ *    ✅ La PASTILLE DES VOLETS en est sortie le 2026-09-10, et elle y était pour une
+ *    mauvaise raison : on l'avait rangée avec les barres fixes parce qu'elle est fixe
+ *    elle aussi. Or elle n'accompagne pas la page, elle FLOTTE au-dessus de la colonne
+ *    de lecture — c'est-à-dire qu'elle est de la famille de la cellule d'actions, dont
+ *    elle prend désormais le sol, l'ombre et le rang (`Z_FLOTTANT`). Elle descend donc
+ *    de 2 500 à 1 100, et c'est un progrès : à 2 500 elle passait par-dessus les
+ *    fenêtres et les tiroirs, qu'un contrôle de confort n'a aucune raison de couvrir.
+ *    ⚠️ Le 2 500 de `VoletNotifications.tsx` n'a rien à voir et n'a pas bougé.
  *  — les rangs INTERNES DE LA BARRE (3001, 3090, 3100) : ils ne se comparent qu'à
  *    `Z_BARRE`, qu'ils doivent dépasser d'un cran pour se poser dessus. Les faire
  *    entrer dans l'échelle demanderait de nommer « au-dessus de la barre » trois fois.
  */
 export const RANGS_HORS_ECHELLE: Record<string, readonly number[]> = {
-  'components/BibleLayout.tsx': [1250, 1300, 2500],
+  'components/BibleLayout.tsx': [1250, 1300],
   'components/Navbar.tsx': [3090, 3100],
   'components/VoletNotifications.tsx': [2500],
   'globals.css': [3100],
-  'oeuvre/[id]/OeuvreClient.tsx': [2500],
   'polyglotte/page.tsx': [3001],
 }

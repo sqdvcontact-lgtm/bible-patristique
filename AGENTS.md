@@ -6497,6 +6497,72 @@ Doctrine : charte `parametres.charte_ia`, § 38.5. Règles de code :
   horizontale, pleine largeur, sous la navbar, et garde son corps de `0.8125rem`. Ce qui
   vaut pour une bande de trente pixels ne vaut pas pour une bande de mille.
 
+## ⛔ « RÉTABLIR LES PROPORTIONS » — la pastille des volets (2026-09-10)
+
+Demande de l'auteur : « remettre au goût du jour le bouton qui s'affiche après qu'on a
+élargi ou raccourci un volet ». Elle datait d'avant le Cuir, d'avant les jetons, d'avant
+les composants partagés, et elle en portait toutes les marques.
+
+⛔ **ELLE ÉTAIT ILLISIBLE EN CUIR, et ce n'était pas un défaut de goût.** Mesuré sur
+planche : son fond, un crème écrit en dur à 0,86 d'opacité, se composait en
+`rgb(219,215,206)` — **12,29 de contraste contre le maroquin**, un galet de papier posé
+sur le cuir — et son libellé y rendait **1,23**. On voyait la pastille, on ne pouvait pas
+la lire. C'est exactement le piège que la charte nomme (« un voile blanc à forte opacité
+ne dit pas blanc, il dit PAPIER »), et la borne de 0,5 y était franchie de loin. Après :
+fond `rgb(36,31,24)`, libellé à **9,27**.
+
+⛔ **ELLE PREND LA RECETTE DE LA CELLULE D'ACTIONS** (`STYLE_CELLULE`), et c'est le MÊME
+objet : un petit contrôle qui flotte au-dessus de la colonne de lecture. `--cs-surface`,
+`--cs-ombre-nette` — celle que la charte réserve au petit objet flottant, « flou court
+mais ombre franche, sinon l'objet retombe sur la page » — et `Z_FLOTTANT`.
+
+⚠️ **UN SEUL ÉCART AVEC ELLE, ET IL EST MESURÉ : le filet.** La cellule prend
+`--cs-bord-clair` ; la pastille prend `--cs-bord`. La cellule est une grappe de boutons
+dont le CONTENU donne la forme, quand la pastille n'est qu'une ligne de petit texte dont
+le contour est le seul dessin. Sur le sol de la lecture : le clair rend **1,21**,
+l'ordinaire **1,40**, et ce qu'elle portait **1,41**. ⛔ On ne rend pas un objet plus pâle
+qu'on ne l'a trouvé.
+
+⛔ **LE SANS SE NOMME, IL NE S'HÉRITE PAS.** `font-family: inherit` — ce que fait
+`.cs-bouton-lien`, qui vit INLINE dans un bloc dont il doit prendre la voix — donne à un
+objet FLOTTANT la police de son parent, et le parent n'est pas le même sur les deux pages :
+la pastille sortait en Source Serif sur l'une et en sans sur l'autre. ⚠️ Trouvé par la
+planche, invisible à la lecture de la règle. Et la VOIX change au passage : le sans en
+ROMAIN, l'italique sérif étant la voix de l'ÉDITEUR — une mention, une glose — qui faisait
+lire ce bouton comme une note plutôt que comme un contrôle.
+
+⛔ **ELLE VIVAIT EN DEUX EXEMPLAIRES, à l'octet près**, dans `BibleLayout` et dans
+`OeuvreClient` — quatorze déclarations recopiées de part et d'autre. Un seul composant
+désormais, `app/components/BoutonProportions.tsx`, et sa forme dans `globals.css` :
+⛔ l'état de SURVOL ne peut pas vivre en style en ligne, qui bat toute règle de feuille
+sans `!important` — la pastille n'en avait d'ailleurs aucun, elle ne réagissait pas.
+
+⛔ **LA PAGE D'ŒUVRE N'AVAIT AUCUNE GARDE DE MOBILE**, quand la page Bible en avait une.
+Ce n'est pas théorique : les largeurs sont retenues dans le stockage local, si bien qu'il
+suffit de rétrécir la fenêtre sous 900 px après avoir traîné une poignée pour voir la
+pastille se poser, à 2 500, PAR-DESSUS la barre fixe du volet biblique. Elle est
+maintenant gardée des deux côtés.
+
+✅ **DEUX DETTES GELÉES EN MOINS.** Quatre teintes quittent
+`couleursEnDurInventaire.ts` et le rang 2 500 quitte `empilementInventaire.ts` pour les
+deux fichiers — les deux registres ne peuvent que décroître. ⚠️ La pastille y était
+rangée avec le CHROME DE PAGE, et c'était une mauvaise raison : on l'avait mise avec les
+barres fixes parce qu'elle est fixe elle aussi, alors qu'elle n'accompagne pas la page,
+elle FLOTTE au-dessus de la colonne. À 2 500 elle passait par-dessus les fenêtres et les
+tiroirs, qu'un contrôle de confort n'a aucune raison de couvrir.
+
+⚠️ **La cible tactile suit l'axe du POINTEUR, jamais la largeur** : 24 px de plancher
+(WCAG 2.2 § 2.5.8 — ce contrôle est rare et ne se vise pas en lisant, les 44 du chemin de
+lecture ne s'appliquent pas), 2,25 rem sous `@media (hover: none)`. Une tablette en
+paysage passe le seuil du bureau, garde ses poignées de volet, et n'a pas de souris.
+
+⚠️ **La planche est `tmp/planche-bouton-proportions.mjs`** : elle inline la VRAIE
+`globals.css`, le peu de la préflight de Tailwind qui touche un bouton, et **pose les deux
+variables de police de `next/font`** — sans elles, `var(--font-source-sans)` est une
+propriété non définie, la déclaration entière est invalide, la police est HÉRITÉE, et la
+planche mesure autre chose que la page. Elle tire deux fichiers, le Cuir ne se posant que
+sur la racine.
+
 ## ⛔ Un réglage de disposition MOBILE ne décide jamais d'un contrôle de BUREAU
 
 C'est la vraie leçon de cette reprise, et elle vaut au delà des volets. Le système de
