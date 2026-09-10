@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decomposerEdition, identiteEdition, labelCourtVersion, libelleTraducteurVersion } from './versionTextuelle'
+import { decomposerEdition, identiteEdition, intituleEdition, labelCourtVersion, libelleTraducteurVersion } from './versionTextuelle'
 
 describe('métadonnées du texte actif', () => {
   it('sépare une mention d’édition de la publication sans identifiant spécifique', () => {
@@ -12,7 +12,44 @@ describe('métadonnées du texte actif', () => {
       ville: 'Rouen',
       editeur: 'Jean Viret, Jacques Besongne et Clément Malassis',
       annee: '1646',
+      responsable: null,
+      collection: null,
     })
+  })
+
+  // ── L'ÉDITION SAVANTE ────────────────────────────────────────────────────────
+  // Le nom du savant ouvre la notice et n'est ni une ville ni une maison. Sans cette
+  // règle, le latin des Confessions annonçait « Lieu : Pius Knöll (éd.) ».
+  it('⛔ ne prend pas le responsable scientifique pour une ville', () => {
+    const knoll = decomposerEdition(
+      'Pius Knöll (éd.), CSEL 33, Pragae–Vindobonae–Lipsiae, F. Tempsky–G. Freytag, 1896',
+      1896,
+    )
+    expect(knoll.responsable).toBe('Pius Knöll')
+    expect(knoll.collection).toBe('CSEL 33')
+    expect(knoll.ville).toBe('Pragae–Vindobonae–Lipsiae')
+    expect(knoll.editeur).toBe('F. Tempsky–G. Freytag')
+    expect(knoll.annee).toBe('1896')
+  })
+
+  it('lit l’adresse d’une notice savante par la FIN : maison, puis lieu, la collection devant', () => {
+    const hartel = decomposerEdition(
+      'Wilhelm von Hartel (éd.), Corpus Scriptorum Ecclesiasticorum Latinorum 3/1, Vienne, Gerold, 1868',
+      1868,
+    )
+    expect(hartel.responsable).toBe('Wilhelm von Hartel')
+    expect(hartel.collection).toBe('Corpus Scriptorum Ecclesiasticorum Latinorum 3/1')
+    expect(hartel.ville).toBe('Vienne')
+    expect(hartel.editeur).toBe('Gerold')
+  })
+
+  it('⛔ une adresse ordinaire à deux morceaux ne se lit pas par la fin', () => {
+    // Deux segments : la ville ouvre, la maison suit. Rien à ranger en collection.
+    const vives = decomposerEdition('Paris, Louis Vivès, 1873', 1873)
+    expect(vives.ville).toBe('Paris')
+    expect(vives.editeur).toBe('Louis Vivès')
+    expect(vives.collection).toBeNull()
+    expect(vives.responsable).toBeNull()
   })
 
   it('préserve une publication simple', () => {
@@ -51,6 +88,7 @@ describe('identiteEdition', () => {
     editeur: 'Alphonse Picard',
     ville: 'Paris',
     date_publication: '1887',
+    collection: 'Œuvres complètes',
   }
   const version = {
     traducteur: null as string | null,
@@ -58,6 +96,8 @@ describe('identiteEdition', () => {
     villeEdition: null as string | null,
     editeurEdition: null as string | null,
     dateEdition: null as string | null,
+    collectionEdition: null as string | null,
+    responsableEdition: null as string | null,
     isDefault: false,
   }
 
@@ -68,7 +108,23 @@ describe('identiteEdition', () => {
       editeur: 'Alphonse Picard',
       ville: 'Paris',
       datePublication: '1887',
+      collection: 'Œuvres complètes',
+      responsable: null,
     })
+  })
+
+  // ── LA COLLECTION ────────────────────────────────────────────────────────────
+  // ⛔ Celle de l'ŒUVRE ne décrit que son texte PAR DÉFAUT : servie telle quelle, elle
+  // rangeait le latin de Knöll dans les « Œuvres complètes de saint Augustin » de Vivès.
+  it('⛔ ne prête pas la collection de l’œuvre à une autre version', () => {
+    expect(identiteEdition(oeuvre, version).collection).toBeNull()
+    expect(identiteEdition(oeuvre, { ...version, isDefault: true }).collection).toBe('Œuvres complètes')
+  })
+
+  it('la collection de la version l’emporte, par défaut ou non', () => {
+    const knoll = { ...version, collectionEdition: 'CSEL 33', responsableEdition: 'Pius Knöll' }
+    expect(identiteEdition(oeuvre, knoll).collection).toBe('CSEL 33')
+    expect(identiteEdition(oeuvre, knoll).responsable).toBe('Pius Knöll')
   })
 
   it('⛔ n’emprunte pas un traducteur à l’œuvre : le silence d’une version est un fait', () => {
@@ -86,6 +142,8 @@ describe('identiteEdition', () => {
       editeur: 'Corpus Scriptura',
       ville: null,
       datePublication: '2026',
+      collection: 'Œuvres complètes',
+      responsable: null,
     })
   })
 
@@ -93,5 +151,36 @@ describe('identiteEdition', () => {
     expect(identiteEdition(oeuvre, { ...version, isDefault: true }).ville).toBe('Paris')
     // Une version qui n’est pas celle que l’œuvre décrit ne lui emprunte rien.
     expect(identiteEdition(oeuvre, version).ville).toBeNull()
+  })
+})
+
+// ── L'intitulé propre d'une édition ──────────────────────────────────────────
+// C'est lui qui distingue à l'œil les deux volets d'une lecture bilingue, dont
+// l'en-tête porte le même titre d'œuvre des deux côtés.
+describe('intituleEdition', () => {
+  it('rend le titre de la version quand il en dit plus que celui de l’œuvre', () => {
+    expect(intituleEdition(
+      { titre: 'Sancti Aureli Augustini Confessionum libri XIII' },
+      'Les Confessions',
+    )).toBe('Sancti Aureli Augustini Confessionum libri XIII')
+  })
+
+  it('⛔ se tait sur une étiquette de colonne : « Texte latin » n’est pas un intitulé', () => {
+    expect(intituleEdition({ titre: 'Texte latin' }, 'La Cité de Dieu')).toBeNull()
+    expect(intituleEdition({ titre: 'Texte français' }, 'La Cité de Dieu')).toBeNull()
+    // Une désignation qui NOMME l'édition, elle, reste : elle dit qui l'a établie.
+    expect(intituleEdition({ titre: 'Texte latin — édition de Joseph Zycha' }, 'Annotations'))
+      .toBe('Texte latin — édition de Joseph Zycha')
+  })
+
+  it('⛔ ne redit pas le titre de l’œuvre', () => {
+    expect(intituleEdition({ titre: 'Les Confessions' }, 'Les Confessions')).toBeNull()
+    // `memeIntitule` ignore la casse, l’apostrophe et le point final.
+    expect(intituleEdition({ titre: 'les confessions.' }, 'Les Confessions')).toBeNull()
+  })
+
+  it('se tait sans version et sans titre', () => {
+    expect(intituleEdition(null, 'Les Confessions')).toBeNull()
+    expect(intituleEdition({ titre: '   ' }, 'Les Confessions')).toBeNull()
   })
 })

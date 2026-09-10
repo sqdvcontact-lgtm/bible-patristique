@@ -3,15 +3,24 @@
 // ── Fiche « À propos de cette édition » ────────────────────────────────────────
 //
 // La fenêtre s'ouvre depuis le volet de lecture d'une œuvre patristique (« En savoir
-// plus sur cette édition »). Elle est composée sur le modèle de la FICHE D'AUTEUR
+// plus sur cette édition »). Elle reprend de la FICHE D'AUTEUR
 // (`app/components/ModaleAuteur`) et de la FICHE DE TRADUCTION
-// (`app/components/ModaleTraduction`), dont elle reprend le cadre (52 rem, `--cs-fond`,
-// rayon 12 px, croix collante, défilement du CONTENU et non du calque), l'en-tête
-// (portrait à gauche, nom et repères à droite), les titres de section et les deux
-// colonnes : à gauche l'édition qu'on lit, à droite ce qui la documente.
+// (`app/components/ModaleTraduction`) le cadre (52 rem, `--cs-fond`, rayon 12 px, croix
+// collante, défilement du CONTENU et non du calque), les titres de section et la rangée
+// « étiquette · valeur ».
 //
-// Elle était restée une paire de petites cartes à étiquettes, quand les deux autres
-// fiches disent la même chose d'objets voisins. Les trois se lisent désormais pareil.
+// ⛔ MAIS LES DEUX COLONNES SONT À L'ENVERS DES SIENNES, et c'est délibéré (relevé de
+// l'auteur, 2026-09-10) : ici la CHRONOLOGIE tient la colonne étroite, à GAUCHE, et
+// TOUTES les notices se lisent à sa droite. Le partage d'avant — l'édition à gauche, la
+// frise et le reste à droite — mettait cinq rangées d'étiquettes en face d'une frise de
+// sept cents pixels : la colonne de gauche se fermait après trois lignes, et ce qu'on
+// vient chercher dans une fiche nommée « À propos de cette édition » tombait sous la
+// frise, dans la colonne la plus étroite. La fiche faisait 1 466 px de haut pour un
+// contenu qui en demande la moitié.
+//
+// ⛔ ET IL N'Y A PLUS DE PORTRAIT D'AUTEUR (même relevé). Il ouvrait la fiche d'un
+// visage, quand le sujet est un LIVRE ; l'auteur se nomme sous le titre, et son nom
+// ouvre sa propre fiche, où le portrait est chez lui.
 //
 // ⚠️ Le CONTENU est séparé de la fenêtre (`ContenuFicheEdition`), comme dans les deux
 // autres : `createPortal` n'existe pas au rendu serveur, et une planche de contrôle
@@ -29,12 +38,12 @@ import { sansPointFinal } from '@/app/lib/titres'
 import OngletsPage from '@/app/components/OngletsPage'
 import { separateurAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import {
-  Consulter, FriseAuteur, LigneTech, PortraitAuteur, RangeeEmpilee, TitreSection,
+  Consulter, FriseAuteur, LigneTech, TitreSection,
 } from '@/app/components/ModaleAuteur'
 import type { RangChrono } from '@/app/lib/frise'
 import { libelleTrad, formaterEditeur } from './PageTitre'
 import { rendreTexteEnrichi } from './texteEnrichi'
-import { libelleVersionComplet } from './versionTextuelle'
+import { intituleEdition, libelleVersionComplet } from './versionTextuelle'
 import type { Props, VersionTextuelle } from './oeuvreTypes'
 import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
 
@@ -53,8 +62,8 @@ const SANS = 'var(--font-source-sans), Arial, sans-serif'
 const Z_FICHE = Z_MODALE
 
 /** Tout ce que la fiche a besoin de savoir. Les données lui arrivent chargées : la
- *  page de lecture les a déjà, et la fiche n'en redemande aucune au serveur, sauf le
- *  cadrage du portrait, qui n'appartient à la page à aucun autre titre. */
+ *  page de lecture les a déjà, et la fiche n'en redemande aucune au serveur, sauf la
+ *  chronologie de l'auteur, qui n'appartient à la page à aucun autre titre. */
 export type DonneesEdition = {
   oeuvre: Props['oeuvre']
   /** Titre de CATALOGUE. La composition du frontispice (`titre_affichage`) ne vaut
@@ -69,17 +78,35 @@ export type DonneesEdition = {
   aTexteOriginal: boolean
 }
 
-// ⚠️ La rangée des colonnes ÉTROITES (`RangeeEmpilee`) a rejoint `ModaleAuteur` le
-// 2026-09-04 : la fiche de traduction en a eu besoin à son tour, et une forme recopiée
-// à deux endroits ne reste identique que par accident.
+// ⛔ TOUTES LES NOTICES SE COMPOSENT DE LA MÊME FAÇON, en rangées « étiquette · valeur »
+// (`LigneTech`). Elles employaient DEUX formes — la rangée côte à côte dans la colonne
+// large, la rangée empilée (`RangeeEmpilee`) dans l'étroite — parce que 8,5 rem
+// d'étiquette ne tiennent pas dans une colonne de trois cents pixels. Les notices
+// occupant désormais la colonne LARGE, la seconde forme n'a plus d'objet ici, et la
+// fiche cesse de se lire comme deux documents cousus.
+//
+// ⚠️ `RangeeEmpilee` demeure dans `ModaleAuteur` : la fiche de traduction s'en sert.
 
 const STYLES_FICHE = `
   .fiche-edition-prose { font-family: ${SANS}; font-size: 0.75rem; line-height: 1.5; color: var(--cs-texte); text-align: justify; hyphens: auto; margin: 0; white-space: pre-line; }
+  .fiche-edition-notices { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+  .fiche-edition-grille { display: flex; flex-direction: column; gap: 18px; }
+  /* ⛔ La CHRONOLOGIE à gauche, les NOTICES à droite. L'ordre du DOCUMENT reste
+     l'inverse — les notices d'abord — parce que c'est l'ordre du TÉLÉPHONE, où la
+     grille se défait : on n'y fait pas descendre sept cents pixels de frise avant ce
+     qu'on est venu lire. La grille remet chacune à sa place par un placement explicite. */
+  .fiche-edition-grille--deux { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 26px; align-items: start; }
+  .fiche-edition-grille--deux > .fiche-edition-chrono { grid-column: 1; grid-row: 1; min-width: 0; border-right: 1px solid var(--cs-fond-doux); padding-right: 24px; }
+  .fiche-edition-grille--deux > .fiche-edition-notices { grid-column: 2; grid-row: 1; }
   @media (max-width: 640px) {
     .fiche-edition-calque { padding: 14px 8px !important; }
     .fiche-edition-cadre { padding: 22px 15px 20px !important; border-radius: 8px !important; }
-    .fiche-edition-grille { grid-template-columns: 1fr !important; gap: 16px !important; }
-    .fiche-edition-colonne { border-right: none !important; padding-right: 0 !important; }
+    /* ⚠️ L'alignement REVIENT À « stretch » : la règle de grille pose « start », qu'aucune
+       des déclarations ci-dessous ne remplace et qui, en colonne de flex, aligne sur l'axe
+       TRANSVERSAL — la frise s'y réduisait à son contenu (485 px pour 830 offerts), et son
+       fer cessait de répondre à celui des notices. */
+    .fiche-edition-grille--deux { display: flex !important; flex-direction: column; gap: 18px; align-items: stretch; }
+    .fiche-edition-grille--deux > .fiche-edition-chrono { border-right: none; padding-right: 0; padding-top: 16px; border-top: 1px solid var(--cs-fond-doux); }
     /* Sur téléphone, 8,5 rem d'étiquette ne laissent plus rien à la valeur. */
     .fiche-edition-cadre .cs-fiche-cle { width: 6rem !important; }
   }
@@ -95,13 +122,11 @@ function anneeEnLigne(valeur: string | null | undefined): string | null {
 }
 
 /**
- * Le contenu de la fiche : en-tête, deux colonnes.
- * `photoPosition` arrive après coup (le cadrage du portrait se charge à l'ouverture) ;
- * le portrait, lui, paraît tout de suite, son adresse se déduisant de l'identifiant.
+ * Le contenu de la fiche : un en-tête pleine mesure, puis la chronologie à gauche et
+ * toutes les notices à sa droite.
  */
-export function ContenuFicheEdition({ donnees, photoPosition, chrono = [], onOuvrirAuteur }: {
+export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur }: {
   donnees: DonneesEdition
-  photoPosition?: unknown
   /** La chronologie de l'AUTEUR, où l'œuvre lue se reconnaît (voir plus bas). */
   chrono?: RangChrono[]
   onOuvrirAuteur: (idAuteur: string) => void
@@ -117,6 +142,17 @@ export function ContenuFicheEdition({ donnees, photoPosition, chrono = [], onOuv
 
   const traducteur = versionActive?.traducteurLabel ?? libelleTrad(oeuvre.trad_auteur)
   const sourceUrl = versionActive?.sourceUrl ?? oeuvre.url_source ?? null
+  // ── CE QUI DISTINGUE DEUX ÉDITIONS D'UNE MÊME ŒUVRE ───────────────────────────
+  // En lecture bilingue, les deux volets portent le même titre d'œuvre et la même ligne
+  // de repères : sans ces trois rangées, le lecteur passait de l'un à l'autre sans voir
+  // ce qui change. L'INTITULÉ propre de l'édition, sa LANGUE, et le savant qui a ÉTABLI
+  // le texte quand il n'est pas traduit.
+  const intitule = intituleEdition(versionActive, titre)
+  // ⚠️ La langue ne se dit que si les éditions n'ont PAS toutes la même : sur deux
+  // traductions françaises (Boèce), la rangée répéterait « Français » de part et d'autre.
+  const languesDistinctes = new Set(versions.map(v => (v.langue ?? '').trim()).filter(Boolean))
+  const langue = languesDistinctes.size > 1 ? libelleLangue(versionActive?.langue) : ''
+  const responsable = versionActive?.responsableEdition ?? null
   // ⚠️ `nb_signes` mesure le texte PAR DÉFAUT de l'œuvre. Sur une autre édition du
   // même texte, il dirait la longueur d'un texte qu'on ne lit pas : on se tait alors.
   const etendue = (!versionActive || versionActive.isDefault) && oeuvre.nb_signes
@@ -124,49 +160,76 @@ export function ContenuFicheEdition({ donnees, photoPosition, chrono = [], onOuv
   const autresVersions = versions.filter(v => v.idTexte !== versionActive?.idTexte)
   const enLigne = anneeEnLigne(oeuvre.date_mise_en_ligne)
 
-  const aEdition = !!(traducteur || versionActive?.editionDescription || oeuvre.editeur || oeuvre.ville
-    || oeuvre.date_publication || oeuvre.collection || sourceUrl
-    || oeuvre.commentaire_traduction?.trim())
-  // Les deux notes éditoriales parlent de l'ŒUVRE, non de l'édition : elles vivent
-  // dans la colonne de droite, sous « L'œuvre ». La substance d'abord, les points de
-  // détail ensuite, sous leur propre titre.
+  const aEdition = !!(intitule || langue || traducteur || responsable || versionActive?.editionDescription
+    || oeuvre.editeur || oeuvre.ville || oeuvre.date_publication || oeuvre.collection || sourceUrl)
+  // Les deux notes éditoriales parlent de l'ŒUVRE, non de l'édition : elles suivent
+  // donc la notice de l'édition, sous leur propre titre. La substance d'abord, les
+  // points de détail ensuite.
   const noteComplete = oeuvre.note_editoriale_complete?.trim() || null
   const noteComplement = oeuvre.note_editoriale_complement?.trim() || null
-  const aOeuvre = !!(oeuvre.titre_original || (oeuvre.genres && oeuvre.genres.length) || noteComplete || noteComplement)
+  const commentaire = oeuvre.commentaire_traduction?.trim() || null
+  const aOeuvre = !!(oeuvre.titre_original || (oeuvre.genres && oeuvre.genres.length) || noteComplete)
   const aSite = !!(enLigne || etendue || autresVersions.length || aTexteOriginal)
+  const aNotices = aEdition || commentaire || aOeuvre || noteComplement || aSite
   const aChrono = chrono.length > 0
-  const aColonnes = aEdition && (aChrono || aOeuvre || aSite)
+  const aColonnes = aChrono && aNotices
 
-  const colonneDroite = (
-    <>
-      {/* ── LA CHRONOLOGIE ─────────────────────────────────────────────────────────
-          Demande de l'auteur, 2026-09-05. C'est celle de l'AUTEUR, et il n'y en a pas
-          d'autre : douze événements sur 1 346 nomment une œuvre, un par œuvre, et une
-          frise d'un point n'est pas une frise. Mais la question qu'on pose à cette
-          fenêtre — « où ce livre tombe-t-il ? » — se répond précisément là : la ligne
-          qui nomme l'œuvre lue s'y détache, entre la naissance et la mort de celui qui
-          l'a écrite.
-          ⚠️ Elle ouvre la colonne, comme dans la fiche d'une traduction : on situe
-          avant de documenter. Et elle ne paraît pas quand l'auteur n'en a pas. */}
-      {aChrono && (
+  const notices = (
+    <div className="fiche-edition-notices">
+      {aEdition && (
         <section>
-          <TitreSection>Chronologie</TitreSection>
-          <FriseAuteur evenements={chrono} oeuvreEnRelief={oeuvre.id_oeuvre} />
+          <TitreSection>Édition de référence</TitreSection>
+          {/* ⛔ Pas de dépli ici, à la différence de la fiche de traduction : ces
+              rangées SONT le sujet d'une fiche qui s'appelle « À propos de cette
+              édition », et l'on ne range pas derrière une flèche ce qu'on est venu
+              chercher. */}
+          <LigneTech c="Intitulé">
+            {intitule ? <span style={{ fontStyle: 'italic' }}>{intitule}</span> : null}
+          </LigneTech>
+          <LigneTech c="Langue">{langue || null}</LigneTech>
+          <LigneTech c="Traducteur">
+            {traducteur ? `${traducteur}${oeuvre.trad_date ? ` (${formaterDateHistorique(oeuvre.trad_date)})` : ''}` : null}
+          </LigneTech>
+          {/* Le savant qui a établi le texte d'une édition critique : « Pius Knöll (éd.) ».
+              Ce n'est pas un traducteur, et c'est ce que le volet latin ne disait pas. */}
+          <LigneTech c="Texte établi par">{responsable}</LigneTech>
+          <LigneTech c="Édition">{versionActive?.editionDescription}</LigneTech>
+          {/* Éditeur, lieu et année sur trois lignes distinctes, comme dans la fiche
+              de traduction : une ligne « Publication » les recollait en une chaîne
+              où l'on ne savait plus lequel des trois manquait. */}
+          <LigneTech c="Éditeur">{formaterEditeur(oeuvre.editeur) || null}</LigneTech>
+          <LigneTech c="Lieu">{oeuvre.ville}</LigneTech>
+          <LigneTech c="Année">{formaterDateHistorique(oeuvre.date_publication) || null}</LigneTech>
+          <LigneTech c="Collection">{oeuvre.collection}</LigneTech>
+          <LigneTech c="Source"><Consulter url={sourceUrl} libelle="Consulter la source" /></LigneTech>
         </section>
       )}
+
+      {/* Commentaire public de l'édition : la même prose qu'au frontispice, à sa
+          place ici, sous les rangées qu'elle explique. */}
+      {commentaire && (
+        <section>
+          <TitreSection>Cette édition</TitreSection>
+          <p className="fiche-edition-prose">{sansPointFinal(commentaire)}</p>
+        </section>
+      )}
+
       {aOeuvre && (
         <section>
           <TitreSection>L’œuvre</TitreSection>
-          <RangeeEmpilee c="Titre original" italique>{oeuvre.titre_original}</RangeeEmpilee>
-          <RangeeEmpilee c={`Genre${(oeuvre.genres?.length ?? 0) > 1 ? 's' : ''}`}>
+          <LigneTech c="Titre original">
+            {oeuvre.titre_original ? <span style={{ fontStyle: 'italic' }}>{oeuvre.titre_original}</span> : null}
+          </LigneTech>
+          <LigneTech c={`Genre${(oeuvre.genres?.length ?? 0) > 1 ? 's' : ''}`}>
             {oeuvre.genres?.length ? oeuvre.genres.join(', ') : null}
-          </RangeeEmpilee>
+          </LigneTech>
           {/* Ce que l'œuvre EST : son intérêt, sa substance (note_editoriale_complete). */}
           {noteComplete && (
             <div className="fiche-edition-prose" style={{ marginTop: '8px' }}>{rendreTexteEnrichi(noteComplete)}</div>
           )}
         </section>
       )}
+
       {/* Les points de détail de l'œuvre parcourue (note_editoriale_complement) : un
           chapitre déplacé ou refondu, une attribution discutée, une transmission
           lacunaire. Rubrique à part : on la cherche quand quelque chose étonne. */}
@@ -176,102 +239,74 @@ export function ContenuFicheEdition({ donnees, photoPosition, chrono = [], onOuv
           <div className="fiche-edition-prose">{rendreTexteEnrichi(noteComplement)}</div>
         </section>
       )}
+
       {aSite && (
         <section>
           <TitreSection>Sur ce site</TitreSection>
-          <RangeeEmpilee c="Édition en ligne">{enLigne}</RangeeEmpilee>
-          <RangeeEmpilee c="Étendue">{etendue}</RangeeEmpilee>
-          <RangeeEmpilee c="Lecture">{aTexteOriginal ? 'Texte original en regard' : null}</RangeeEmpilee>
+          <LigneTech c="Édition en ligne">{enLigne}</LigneTech>
+          <LigneTech c="Étendue">{etendue}</LigneTech>
+          <LigneTech c="Lecture">{aTexteOriginal ? 'Texte original en regard' : null}</LigneTech>
           {/* Les autres éditions du même texte se choisissent dans le volet de lecture ;
               la fiche dit seulement qu'elles existent, et lesquelles. */}
-          <RangeeEmpilee c={`Autre${autresVersions.length > 1 ? 's' : ''} édition${autresVersions.length > 1 ? 's' : ''}`}>
+          <LigneTech c={`Autre${autresVersions.length > 1 ? 's' : ''} édition${autresVersions.length > 1 ? 's' : ''}`}>
             {autresVersions.length ? autresVersions.map(v => (
               <span key={v.idTexte} style={{ display: 'block' }}>{libelleVersionComplet(v)}</span>
             )) : null}
-          </RangeeEmpilee>
+          </LigneTech>
         </section>
       )}
-    </>
+    </div>
   )
 
   return (
     <>
-      {/* En-tête : le portrait de l'auteur dans le cadre de la fiche d'auteur, puis le
-          titre de l'œuvre, son sous-titre, ses auteurs et la ligne de repères. */}
-      <header style={{ display: 'flex', gap: '18px', alignItems: 'center', marginBottom: '16px' }}>
-        {auteurs.length > 0 && (
-          <PortraitAuteur idAuteur={auteurs[0].id_auteur} nom={auteurs[0].nom} photoPosition={photoPosition} />
-        )}
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: 'var(--cs-vert)', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette édition</p>
-          <h2 id="fiche-edition-titre" style={{ fontFamily: SERIF, fontSize: '1.4375rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.12 }}>
-            {rendreTexteEnrichi(titre)}
-          </h2>
-          {oeuvre.sous_titre && (
-            <p style={{ fontFamily: SERIF, fontSize: '0.78125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', margin: '2px 0 0', lineHeight: 1.3 }}>
-              {rendreTexteEnrichi(oeuvre.sous_titre)}
-            </p>
-          )}
-          {/* Chaque auteur ouvre sa fiche ; une œuvre signée à deux les donne tous. */}
-          <p style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', margin: '4px 0 0', lineHeight: 1.3 }}>
-            {auteurs.length > 0 ? auteurs.map((a, i) => (
-              <Fragment key={a.id_auteur}>
-                {i > 0 && <span>{separateurAuteurs(i, auteurs.length)}</span>}
-                <button onClick={() => onOuvrirAuteur(a.id_auteur)} title="Voir la fiche de l’auteur"
-                  style={{ font: 'inherit', color: 'var(--cs-vert)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'transparent', textUnderlineOffset: '2px' }}
-                  onMouseEnter={e => (e.currentTarget.style.textDecorationColor = 'currentcolor')}
-                  onMouseLeave={e => (e.currentTarget.style.textDecorationColor = 'transparent')}>{a.nom}</button>
-              </Fragment>
-            )) : auteurNom}
+      {/* En-tête pleine mesure : le titre de l'œuvre, son sous-titre, ses auteurs et la
+          ligne de repères. ⛔ Aucun portrait : le sujet de cette fiche est un LIVRE. */}
+      <header style={{ minWidth: 0, marginBottom: '16px' }}>
+        <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: 'var(--cs-vert)', margin: '0 0 5px', textTransform: 'uppercase' }}>À propos de cette édition</p>
+        <h2 id="fiche-edition-titre" style={{ fontFamily: SERIF, fontSize: '1.4375rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.12 }}>
+          {rendreTexteEnrichi(titre)}
+        </h2>
+        {oeuvre.sous_titre && (
+          <p style={{ fontFamily: SERIF, fontSize: '0.78125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', margin: '2px 0 0', lineHeight: 1.3 }}>
+            {rendreTexteEnrichi(oeuvre.sous_titre)}
           </p>
-          {reperes && (
-            <p style={{ fontFamily: SANS, fontSize: '0.59375rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '8px 0 0', lineHeight: 1.4 }}>
-              {rendreSiecles(reperes)}
-            </p>
-          )}
-        </div>
+        )}
+        {/* Chaque auteur ouvre sa fiche ; une œuvre signée à deux les donne tous. */}
+        <p style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', margin: '4px 0 0', lineHeight: 1.3 }}>
+          {auteurs.length > 0 ? auteurs.map((a, i) => (
+            <Fragment key={a.id_auteur}>
+              {i > 0 && <span>{separateurAuteurs(i, auteurs.length)}</span>}
+              <button onClick={() => onOuvrirAuteur(a.id_auteur)} title="Voir la fiche de l’auteur"
+                style={{ font: 'inherit', color: 'var(--cs-vert)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'transparent', textUnderlineOffset: '2px' }}
+                onMouseEnter={e => (e.currentTarget.style.textDecorationColor = 'currentcolor')}
+                onMouseLeave={e => (e.currentTarget.style.textDecorationColor = 'transparent')}>{a.nom}</button>
+            </Fragment>
+          )) : auteurNom}
+        </p>
+        {reperes && (
+          <p style={{ fontFamily: SANS, fontSize: '0.59375rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '8px 0 0', lineHeight: 1.4 }}>
+            {rendreSiecles(reperes)}
+          </p>
+        )}
       </header>
 
-      {/* Deux colonnes : à gauche l'édition qu'on lit, à droite ce qui la documente.
-          Elles ne paraissent que s'il y a de quoi remplir les deux ; sinon ce qui reste
-          prend toute la mesure plutôt que de laisser une colonne vide à côté de lui. */}
-      <div className="fiche-edition-grille" style={{ display: 'grid', gridTemplateColumns: aColonnes ? 'minmax(0, 1.35fr) minmax(0, 1fr)' : '1fr', gap: '26px', alignItems: 'start' }}>
-        {aEdition && (
-          <div className="fiche-edition-colonne" style={{ display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0, borderRight: aColonnes ? '1px solid var(--cs-fond-doux)' : 'none', paddingRight: aColonnes ? '24px' : 0 }}>
-            <section>
-              <TitreSection>Édition de référence</TitreSection>
-              {/* ⛔ Pas de dépli ici, à la différence de la fiche de traduction : ces
-                  rangées SONT le sujet d'une fiche qui s'appelle « À propos de cette
-                  édition », et l'on ne range pas derrière une flèche ce qu'on est venu
-                  chercher. */}
-              <LigneTech c="Traducteur">
-                {traducteur ? `${traducteur}${oeuvre.trad_date ? ` (${formaterDateHistorique(oeuvre.trad_date)})` : ''}` : null}
-              </LigneTech>
-              <LigneTech c="Édition">{versionActive?.editionDescription}</LigneTech>
-              {/* Éditeur, lieu et année sur trois lignes distinctes, comme dans la fiche
-                  de traduction : une ligne « Publication » les recollait en une chaîne
-                  où l'on ne savait plus lequel des trois manquait. */}
-              <LigneTech c="Éditeur">{formaterEditeur(oeuvre.editeur) || null}</LigneTech>
-              <LigneTech c="Lieu">{oeuvre.ville}</LigneTech>
-              <LigneTech c="Année">{formaterDateHistorique(oeuvre.date_publication) || null}</LigneTech>
-              <LigneTech c="Collection">{oeuvre.collection}</LigneTech>
-              <LigneTech c="Source"><Consulter url={sourceUrl} libelle="Consulter la source" /></LigneTech>
-            </section>
-
-            {/* Commentaire public de l'édition : la même prose qu'au frontispice, à sa
-                place ici, sous les rangées qu'elle explique. */}
-            {oeuvre.commentaire_traduction?.trim() && (
-              <section>
-                <TitreSection>Cette édition</TitreSection>
-                <p className="fiche-edition-prose">{sansPointFinal(oeuvre.commentaire_traduction)}</p>
-              </section>
-            )}
-
+      {/* ── LA CHRONOLOGIE, puis TOUTES LES NOTICES À SA DROITE ────────────────────
+          La frise est celle de l'AUTEUR, et il n'y en a pas d'autre : douze événements
+          sur 1 346 nomment une œuvre, un par œuvre, et une frise d'un point n'est pas
+          une frise. Mais la question qu'on pose à cette fenêtre — « où ce livre
+          tombe-t-il ? » — se répond précisément là : la ligne qui nomme l'œuvre lue s'y
+          détache, entre la naissance et la mort de celui qui l'a écrite.
+          ⚠️ Elle ne paraît pas quand l'auteur n'en a pas ; les notices prennent alors
+          toute la mesure plutôt que de laisser une colonne vide à côté d'elles. */}
+      <div className={`fiche-edition-grille${aColonnes ? ' fiche-edition-grille--deux' : ''}`}>
+        {notices}
+        {aChrono && (
+          <div className="fiche-edition-chrono">
+            <TitreSection>Chronologie</TitreSection>
+            <FriseAuteur evenements={chrono} oeuvreEnRelief={oeuvre.id_oeuvre} />
           </div>
         )}
-        {aColonnes
-          ? <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', minWidth: 0 }}>{colonneDroite}</div>
-          : colonneDroite}
       </div>
 
       <style>{STYLES_FICHE}</style>
@@ -301,24 +336,15 @@ export default function FicheEdition({ volets, onOuvrirAuteur, onFermer }: {
   onOuvrirAuteur: (idAuteur: string) => void
   onFermer: () => void
 }) {
-  const [photoPosition, setPhotoPosition] = useState<unknown>(null)
   const [chrono, setChrono] = useState<RangChrono[]>([])
   const [voletActif, setVoletActif] = useState(volets[0]?.cle ?? '')
   const volet = volets.find(v => v.cle === voletActif) ?? volets[0]
   const donnees = volet?.donnees
-  // ⚠️ Le PORTRAIT et la FRISE sont ceux de l'AUTEUR, non de l'édition : ils ne
-  // changent pas d'un onglet à l'autre, et se chargent donc une fois pour la fiche.
-  const idPortrait = volets[0]?.donnees.auteurs[0]?.id_auteur ?? null
-
-  // Le CADRAGE du portrait est la seule chose que la page de lecture n'a pas : elle
-  // connaît le nom et l'identifiant de ses auteurs, jamais leur `photo_position`.
-  useEffect(() => {
-    if (!idPortrait) return
-    let annule = false
-    supabase.from('auteurs').select('photo_position').eq('id_auteur', idPortrait).maybeSingle()
-      .then(({ data }) => { if (!annule) setPhotoPosition((data as { photo_position?: unknown } | null)?.photo_position ?? null) })
-    return () => { annule = true }
-  }, [idPortrait])
+  // ⚠️ La FRISE est celle de l'AUTEUR, non de l'édition : elle ne change pas d'un
+  // onglet à l'autre, et se charge donc une fois pour la fiche.
+  // ⛔ La lecture de `photo_position` est partie avec le portrait : c'était le seul
+  // renseignement que la page de lecture n'avait pas, et plus rien ne le demande.
+  const idAuteurChrono = volets[0]?.donnees.auteurs[0]?.id_auteur ?? null
 
   // La chronologie de l'auteur, dans laquelle l'œuvre lue se reconnaît.
   // ⛔ La VUE, jamais `evenements` ni `auteurs_evenements` : elle porte déjà l'ordre
@@ -326,10 +352,10 @@ export default function FicheEdition({ volets, onOuvrirAuteur, onFermer }: {
   // ⚠️ `v_chronologie_auteurs_DATES`, comme la fiche d'auteur : c'est elle qui porte
   //    la date courte, dont la colonne des dates de la frise dépend.
   useEffect(() => {
-    if (!idPortrait) return
+    if (!idAuteurChrono) return
     let annule = false
     supabase.from('v_chronologie_auteurs_dates').select('*')
-      .eq('auteur_id', idPortrait).order('ordre_affichage')
+      .eq('auteur_id', idAuteurChrono).order('ordre_affichage')
       .then(({ data, error }) => {
         // Une frise absente n'empêche pas de lire la fiche : on la journalise et l'on
         // se tait, plutôt que de fermer une fenêtre pour un ornement.
@@ -337,7 +363,7 @@ export default function FicheEdition({ volets, onOuvrirAuteur, onFermer }: {
         if (!annule) setChrono((data ?? []) as RangChrono[])
       })
     return () => { annule = true }
-  }, [idPortrait])
+  }, [idAuteurChrono])
 
   // Échap ferme ; le défilement de fond est gelé tant que la fenêtre est ouverte.
   // ⚠️ C'est le CONTENU de la boîte qui défile, jamais le calque : sur un écran court,
@@ -374,7 +400,7 @@ export default function FicheEdition({ volets, onOuvrirAuteur, onFermer }: {
             style={{ maxWidth: '22rem', marginBottom: '20px' }}
           />
         )}
-        <ContenuFicheEdition donnees={donnees} photoPosition={photoPosition} chrono={chrono} onOuvrirAuteur={onOuvrirAuteur} />
+        <ContenuFicheEdition donnees={donnees} chrono={chrono} onOuvrirAuteur={onOuvrirAuteur} />
       </div>
     </div>,
     document.body,

@@ -166,6 +166,12 @@ export type VersionTextuelle = {
   villeEdition: string | null
   editeurEdition: string | null
   dateEdition: string | null
+  /** Le responsable SCIENTIFIQUE d'une édition critique — « Pius Knöll (éd.) » — tiré
+   *  de `edition_label`. Ce n'est ni un traducteur, ni une ville, ni une maison. */
+  responsableEdition: string | null
+  /** La collection de CETTE édition (« CSEL 33 »). ⛔ Distincte de `oeuvres.collection`,
+   *  qui ne décrit que le texte par défaut : voir `identiteEdition`. */
+  collectionEdition: string | null
 }
 
 export type AlignementDisponible = {

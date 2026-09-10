@@ -25,6 +25,8 @@ const ceriziers: VersionTextuelle = {
   villeEdition: 'Rouen',
   editeurEdition: 'Jean Viret, Jacques Besongne et Clément Malassis',
   dateEdition: '1646',
+  responsableEdition: null,
+  collectionEdition: null,
 }
 
 describe('page de titre du texte actif', () => {
@@ -109,6 +111,8 @@ const latinBondurand: VersionTextuelle = {
   villeEdition: 'Paris',
   editeurEdition: 'Alphonse Picard',
   dateEdition: '1887',
+  responsableEdition: null,
+  collectionEdition: null,
 }
 
 const oeuvreDhuoda = {

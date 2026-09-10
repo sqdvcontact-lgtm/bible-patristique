@@ -242,6 +242,8 @@ function construireVersionTextuelle(t: TexteVersionRow, indexEditeurs: IndexEdit
     villeEdition: edition.ville,
     editeurEdition: edition.editeur,
     dateEdition: edition.annee,
+    responsableEdition: edition.responsable,
+    collectionEdition: edition.collection,
   }
 }
 

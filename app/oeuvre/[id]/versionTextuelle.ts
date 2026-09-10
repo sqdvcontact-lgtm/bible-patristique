@@ -1,5 +1,6 @@
 import type { VersionTextuelle } from './oeuvreTypes'
 import { adresseEdition } from '@/app/lib/adresseEdition'
+import { memeIntitule } from '@/app/lib/titres'
 import { estTraductionMachine, libelleTrad } from '@/app/lib/traducteurs'
 import {
   editeursDuSegment,
@@ -9,6 +10,26 @@ import {
 } from '@/app/lib/editeursNormalisation'
 
 const EDITION_RE = /\b((?:premi(?:è|e)re|deuxi(?:è|e)me|troisi(?:è|e)me|quatri(?:è|e)me|cinqui(?:è|e)me|sixi(?:è|e)me|septi(?:è|e)me|huiti(?:è|e)me|neuvi(?:è|e)me|dixi(?:è|e)me)\s+édition[^,]*)/iu
+
+/** Le RESPONSABLE SCIENTIFIQUE d'une édition savante : « Pius Knöll (éd.) ». Il ouvre
+ *  la notice d'une édition critique et n'est NI une ville NI une maison — pris pour
+ *  l'une des deux, il donnait « Lieu : Pius Knöll (éd.) » sur le latin des Confessions. */
+const RESPONSABLE_RE = /^(.+?)\s*\(\s*(?:éd|ed|dir|hrsg)\.?\s*\)$/iu
+
+/** Les villes d'un segment, quand il en porte plusieurs : « Prague ; Vienne ; Leipzig ».
+ *  ⚠️ La forme ENTIÈRE d'abord, comme dans `normaliserNomEditeur` : une graphie
+ *  répertoriée telle quelle (« Prague–Vienne–Leipzig ») ne doit pas se faire découper. */
+function villesDuSegment(segment: string, index: IndexEditeurs | null): string | null {
+  const t = segment.trim()
+  if (!t) return null
+  if (estVilleConnue(t, index)) return t
+  const parts = t.split(/\s*[;–—]\s*/u).map((p) => p.trim()).filter(Boolean)
+  if (parts.length < 2) return null
+  if (!parts.every((p) => estVilleConnue(p, index))) return null
+  // Le tiret demi-cadratin est la graphie que le corpus emploie déjà pour une
+  // adresse à plusieurs villes ; le point-virgule du catalogue ne s'affiche jamais.
+  return parts.join('–')
+}
 
 function capitaleInitiale(texte: string) {
   return texte ? `${texte.charAt(0).toLocaleUpperCase('fr-FR')}${texte.slice(1)}` : texte
@@ -59,6 +80,32 @@ export function libelleVersionComplet(
   return [tete, annee].filter(Boolean).join(', ')
 }
 
+/** Une version dont le `titre_version` n'est qu'une ÉTIQUETTE DE COLONNE : « Texte
+ *  latin », « Texte français ». Elle nomme la langue, non l'édition. */
+const TITRE_ETIQUETTE_RE = /^texte\s+\S+$/iu
+
+/**
+ * L'INTITULÉ PROPRE de l'édition qu'on lit, quand il en dit plus que le titre de
+ * catalogue : « Sancti Aureli Augustini Confessionum libri XIII » en face des
+ * « Confessions ». C'est ce qui distingue à l'œil les deux volets d'une lecture
+ * bilingue, dont l'en-tête porte le même titre d'œuvre des deux côtés.
+ *
+ * ⛔ Rien quand la version se nomme « Texte latin » : ce n'est pas un intitulé, c'est
+ * l'étiquette de sa colonne, et la barre d'onglets la dit déjà. Rien non plus quand
+ * elle redit le titre de l'œuvre (`memeIntitule`, qui ignore blancs, casse, apostrophe
+ * et point final) : un frontispice ne bégaie pas, une fiche non plus.
+ */
+export function intituleEdition(
+  version: Pick<VersionTextuelle, 'titre'> | null | undefined,
+  titreOeuvre: string | null | undefined,
+): string | null {
+  const titre = version?.titre?.trim()
+  if (!titre) return null
+  if (TITRE_ETIQUETTE_RE.test(titre)) return null
+  if (memeIntitule(titre, titreOeuvre)) return null
+  return titre
+}
+
 export function libelleTraducteurVersion(
   version: Pick<VersionTextuelle, 'titre' | 'traducteur'>,
 ) {
@@ -89,6 +136,8 @@ export function decomposerEdition(
     ville: null,
     editeur: null,
     annee: anneeEdition ? String(anneeEdition) : null,
+    responsable: null,
+    collection: null,
   }
 
   const edition = brut.match(EDITION_RE)?.[1]?.trim() ?? null
@@ -109,18 +158,38 @@ export function decomposerEdition(
   const annee = anneeTrouvee ?? (anneeEdition ? String(anneeEdition) : null)
   if (rangAnnee >= 0) morceaux.splice(rangAnnee, 1)
 
+  // Le responsable scientifique sort du jeu AVANT tout découpage d'adresse : il ouvre
+  // la notice d'une édition critique, et le laisser passer le faisait prendre pour la
+  // ville par le repli positionnel.
+  const rangResponsable = morceaux.findIndex((m) => RESPONSABLE_RE.test(m))
+  const responsable = rangResponsable >= 0
+    ? (morceaux[rangResponsable].match(RESPONSABLE_RE)?.[1]?.trim() || null)
+    : null
+  if (rangResponsable >= 0) morceaux.splice(rangResponsable, 1)
+
   // Reconnaissance plutôt que comptage : l'éditeur est le segment répertorié dans
   // `editeurs`, la ville celle qu'on connaît, et l'éditeur paraît sous son nom
-  // complet. Sans index, ou faute d'éditeur reconnu, on retombe sur l'ancien
-  // découpage par position : une notice approximative vaut mieux qu'une notice vide.
+  // complet. Sans index, ou faute d'éditeur reconnu, on retombe sur un découpage
+  // par position : une notice approximative vaut mieux qu'une notice vide.
   const rangEditeur = morceaux.findIndex((m) => editeursDuSegment(m, index) !== null)
   let ville: string | null
   let editeur: string | null
+  let collection: string | null = null
   if (rangEditeur >= 0) {
     editeur = editeursDuSegment(morceaux[rangEditeur], index)
     morceaux.splice(rangEditeur, 1)
-    const rangVille = morceaux.findIndex((m) => estVilleConnue(m, index))
-    ville = rangVille >= 0 ? morceaux[rangVille] : null
+    const rangVille = morceaux.findIndex((m) => villesDuSegment(m, index) !== null)
+    ville = rangVille >= 0 ? villesDuSegment(morceaux[rangVille], index) : null
+  } else if (responsable && morceaux.length >= 3) {
+    // Une notice SAVANTE dont aucune maison n'est répertoriée : « CSEL 33,
+    // Pragae–Vindobonae–Lipsiae, F. Tempsky–G. Freytag ». L'adresse s'y lit par la FIN
+    // — la maison, puis le lieu —, et ce qui la précède est la collection.
+    // ⛔ Elle ne vaut QUE si la notice a nommé son responsable : « Rouen, Jean Viret,
+    // Jacques Besongne et Clément Malassis » compte trois morceaux lui aussi, et se lit
+    // dans l'autre sens. C'est le test de cette adresse-là qui a rattrapé la règle.
+    editeur = normaliserNomEditeur(morceaux.pop() as string, index) || null
+    ville = morceaux.pop() ?? null
+    collection = morceaux.length ? morceaux.join(', ') : null
   } else {
     ville = morceaux.shift() ?? null
     editeur = morceaux.length ? (normaliserNomEditeur(morceaux.join(', '), index) || null) : null
@@ -133,6 +202,8 @@ export function decomposerEdition(
     ville,
     editeur,
     annee,
+    responsable,
+    collection,
   }
 }
 
@@ -159,12 +230,13 @@ export type OeuvreIdentifiable = {
   editeur?: string | null
   ville?: string | null
   date_publication?: string | null
+  collection?: string | null
 }
 
 export type VersionIdentifiable = Pick<
   VersionTextuelle,
   'traducteur' | 'traducteurLabel' | 'villeEdition' | 'editeurEdition' | 'dateEdition' | 'isDefault'
->
+> & Partial<Pick<VersionTextuelle, 'collectionEdition' | 'responsableEdition'>>
 
 export type IdentiteEdition = {
   traducteur: string | null
@@ -172,6 +244,13 @@ export type IdentiteEdition = {
   editeur: string | null
   ville: string | null
   datePublication: string | null
+  /** La collection de l'édition qu'on lit. ⚠️ Celle de l'ŒUVRE ne décrit que le texte
+   *  PAR DÉFAUT : servie sur une autre version, elle range le latin de Knöll dans les
+   *  « Œuvres complètes de saint Augustin » de Vivès, qui ne l'ont jamais porté. */
+  collection: string | null
+  /** Le responsable scientifique d'une édition critique (« Pius Knöll »). Propre à la
+   *  version : l'œuvre n'en connaît aucun. */
+  responsable: string | null
 }
 
 export function identiteEdition(
@@ -185,6 +264,8 @@ export function identiteEdition(
       editeur: oeuvre.editeur ?? null,
       ville: oeuvre.ville ?? null,
       datePublication: oeuvre.date_publication ?? null,
+      collection: oeuvre.collection ?? null,
+      responsable: null,
     }
   }
   // L'adresse se prend ENTIÈRE, ou pas du tout : une ville d'une édition et un éditeur
@@ -199,5 +280,10 @@ export function identiteEdition(
     editeur: adresseDeLOeuvre ? oeuvre.editeur ?? null : versionActive.editeurEdition,
     ville: adresseDeLOeuvre ? oeuvre.ville ?? null : versionActive.villeEdition,
     datePublication: adresseDeLOeuvre ? oeuvre.date_publication ?? null : versionActive.dateEdition,
+    // ⚠️ La collection ne suit PAS la règle de l'adresse : elle se prend à la version
+    // dès qu'elle en porte une, et l'œuvre ne répond que pour son texte par défaut.
+    collection: versionActive.collectionEdition
+      ?? (versionActive.isDefault ? oeuvre.collection ?? null : null),
+    responsable: versionActive.responsableEdition ?? null,
   }
 }

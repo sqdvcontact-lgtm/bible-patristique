@@ -578,6 +578,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       editeur: identite.editeur ?? undefined,
       ville: identite.ville ?? undefined,
       date_publication: identite.datePublication ?? undefined,
+      // ⚠️ La collection de l'ŒUVRE ne décrit que son texte par défaut : servie telle
+      //    quelle sur le latin de Knöll, elle le rangeait dans les « Œuvres complètes
+      //    de saint Augustin » de Vivès.
+      collection: identite.collection ?? undefined,
       url_source: v?.sourceUrl ?? oeuvreLocale.url_source,
       commentaire_traduction: v && !v.isDefault
         ? null
