@@ -638,35 +638,44 @@ function IconBoussole() {
   );
 }
 
-function IconParchemin() {
+// Les deux boutons de l'espace du lecteur, dans la barre. Ils portaient jusqu'au
+// 2026-09-10 deux SILHOUETTES en PNG posées en masque — un parchemin roulé pour la
+// messagerie, un ange à la trompette pour les notifications — et l'auteur les a
+// refusées : « remplacer par des choses plus simples ». C'étaient deux dessins
+// figuratifs de dix-neuf et vingt-huit pixels, l'un debout et l'autre couché, dans
+// une rangée où tout le reste est un trait de douze.
+//
+// ⛔ Ce sont désormais des SVG en `currentColor`, comme tout pictogramme
+// d'interface du site (charte, § Palette) : plus de fichier à aller chercher, plus
+// de masque, et l'encre suit l'état du bouton comme celle de ses voisins. Les deux
+// planches restent au dépôt, déclassées en RÉSERVE dans le recensement des
+// illustrations — une image qu'on cesse de poser ne s'y oublie pas.
+//
+// ⚠️ Même boîte pour les deux — 15 px dans un cadre de 16, trait de 1,3, soit 1,22 px
+// rendu, la graisse des autres icônes du site. Deux boutons voisins dont le dessin ne
+// pèse pas pareil se lisent comme deux rangs.
+
+function IconEnveloppe() {
   return (
-    <span
-      aria-hidden="true"
-      style={{
-        display: 'inline-block',
-        width: '19px',
-        height: '25px',
-        background: 'currentColor',
-        WebkitMask: 'url("/icons/parchemin-message-silhouette.png") center / contain no-repeat',
-        mask: 'url("/icons/parchemin-message-silhouette.png") center / contain no-repeat',
-      }}
-    />
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ display: 'block' }}>
+      <rect x="1.75" y="3.85" width="12.5" height="8.3" rx="1.3" stroke="currentColor" strokeWidth="1.3" />
+      {/* Le rabat part des deux angles hauts et descend un peu SOUS le milieu : c'est
+          ce dépassement qui fait lire une enveloppe plutôt qu'un cadre barré. */}
+      <path d="M2.2 4.3 8 8.6l5.8-4.3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   )
 }
 
-function IconAngeTrompette() {
+function IconCloche() {
   return (
-    <span
-      aria-hidden="true"
-      style={{
-        display: 'inline-block',
-        width: '28px',
-        height: '27px',
-        background: 'currentColor',
-        WebkitMask: 'url("/icons/ange-trompette-silhouette.png") center / contain no-repeat',
-        mask: 'url("/icons/ange-trompette-silhouette.png") center / contain no-repeat',
-      }}
-    />
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ display: 'block' }}>
+      {/* Une demi-circonférence posée sur deux montants droits, et non une panse
+          galbée : à quinze pixels, un galbe se referme en tache quand cette
+          silhouette-là garde son dessin. */}
+      <path d="M4.4 10.5V6.6a3.6 3.6 0 0 1 7.2 0v3.9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M2.9 10.5h10.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M6.6 12.4a1.6 1.6 0 0 0 2.8 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
   )
 }
 
@@ -2101,7 +2110,7 @@ export default function Navbar() {
               <button onClick={() => setMessagerieOuverte(v => !v)} aria-label="Messages" aria-expanded={messagerieOuverte} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', border: 'none', cursor: 'pointer', padding: 0, color: nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', background: nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.95)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = nbMessages > 0 ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = nbMessages > 0 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
-                <IconParchemin />
+                <IconEnveloppe />
                 {nbMessages > 0 && (
                   <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
                     {nbMessages > 99 ? '99+' : nbMessages}
@@ -2114,7 +2123,7 @@ export default function Navbar() {
                 style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', borderRadius: '8px', border: 'none', cursor: 'pointer', color: (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)', background: (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.14)' : 'transparent', transition: 'background 0.13s, color 0.13s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.14)'; e.currentTarget.style.color = 'rgba(255,255,255,0.95)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.14)' : 'transparent'; e.currentTarget.style.color = (nbNotifications > 0 || notifsOuvertes) ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.58)' }}>
-                <IconAngeTrompette />
+                <IconCloche />
                 {nbNotifications > 0 && (
                   <span style={{ position: 'absolute', top: '-1px', right: '-2px', minWidth: '14px', height: '14px', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', fontSize: '0.625rem', fontWeight: 700, lineHeight: '14px', textAlign: 'center', padding: '0 3px', boxSizing: 'border-box' }}>
                     {nbNotifications > 99 ? '99+' : nbNotifications}

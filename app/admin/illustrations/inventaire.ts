@@ -36,10 +36,12 @@ export const FONCTIONS = {
     titre: 'Illustrer une carte',
     propos: 'Les deux portes de l’accueil. Elles se lisent ensemble, à taille égale, dans la même rangée : leur désaccord se verrait immédiatement. Elles étaient trois jusqu’au 31 août 2026, la Communauté ayant été retirée de la page.',
   },
-  'bouton': {
-    titre: 'Marquer un bouton',
-    propos: 'Silhouettes de la barre de navigation. Le fichier n’est pas affiché : il sert de MASQUE, et la couleur vient du texte alentour. Seule la découpe compte, jamais la teinte du PNG.',
-  },
+  // ⛔ « Marquer un bouton » a été RETIRÉ le 2026-09-10, avec les deux silhouettes
+  // qu'il coiffait : la messagerie et les notifications de la barre portent depuis
+  // lors des SVG en `currentColor`, et plus aucune image du dépôt ne sert de masque
+  // de bouton. Un intitulé sans image serait un groupe vide sur la planche, donc une
+  // rubrique qui promet ce qu'elle n'a pas — et `inventaire.test.ts` le refuse.
+  // Le rouvrir demande une image qui l'emploie, non l'inverse.
   'identite': {
     titre: 'Porter l’identité',
     propos: 'Le chiffre CS, la vignette de partage, les icônes d’onglet. Le chiffre est la marque du site depuis le 6 septembre 2026, et il est la SEULE : la barre de navigation portait jusque-là un monogramme gothique quand le bas de l’accueil portait ce chiffre-ci, deux dessins pour une seule maison. Les autres sont les seules images que l’on voit HORS du site, dans un onglet ou dans un message.',
@@ -437,24 +439,22 @@ export const ILLUSTRATIONS: Illustration[] = [
     traitement: { opacite: 0.86, fusion: 'screen', pose: { largeur: '4.75rem', sol: 'carte' } },
   },
 
-  // ── Marquer un bouton ──────────────────────────────────────────────────────
+  // ── Les deux silhouettes de la barre, en réserve depuis le 2026-09-10 ────────
   {
     chemin: '/icons/ange-trompette-silhouette.png',
     nom: 'Ange à la trompette',
-    fonction: 'bouton',
-    emploi: 'Bouton des notifications, dans la barre de navigation.',
-    lieu: { href: '/accueil', label: 'Barre du haut', repere: 'Dans la barre de navigation, à droite : le bouton des notifications. Elle est sur toutes les pages.' },
-    source: 'app/components/Navbar.tsx',
-    traitement: { masque: true, pose: { largeur: '28px', hauteur: '27px', sol: 'vert' } },
+    fonction: 'reserve',
+    emploi: 'A marqué le bouton des notifications, dans la barre de navigation, jusqu’au 2026-09-10. Retirée sur décision de l’auteur (« remplacer les icônes pour la messagerie et pour les notifications par des choses plus simples ») : une cloche au trait a pris sa place, dessinée en SVG dans la barre. La planche reste au dépôt, sans emploi.',
+    traitement: { masque: true },
+    note: 'Elle était posée en 28 × 27 dans un bouton de 30, donc presque à ras bord, et son dessin comptait une figure entière — tête, aile, robe, trompette — là où les autres marques de la barre sont un trait de douze pixels. ⚠️ Le défaut ne tenait pas au fichier, qui est net : il tenait à la DENSITÉ demandée à cette taille, et aucun détourage ne l’aurait corrigé. Servie en masque, l’encre venant du texte alentour : la teinte du PNG n’a jamais compté.',
   },
   {
     chemin: '/icons/parchemin-message-silhouette.png',
     nom: 'Parchemin',
-    fonction: 'bouton',
-    emploi: 'Bouton de la messagerie, dans la barre de navigation.',
-    lieu: { href: '/accueil', label: 'Barre du haut', repere: 'Dans la barre de navigation, à droite : le bouton de la messagerie. Elle est sur toutes les pages.' },
-    source: 'app/components/Navbar.tsx',
-    traitement: { masque: true, pose: { largeur: '19px', hauteur: '25px', sol: 'vert' } },
+    fonction: 'reserve',
+    emploi: 'A marqué le bouton de la messagerie, dans la barre de navigation, jusqu’au 2026-09-10. Retirée en même temps que l’ange à la trompette, et pour la même raison : une enveloppe au trait a pris sa place, dessinée en SVG dans la barre. La planche reste au dépôt, sans emploi.',
+    traitement: { masque: true },
+    note: 'Posée en 19 × 25 dans un bouton de 30 : DEBOUT, quand sa voisine était couchée, si bien que les deux boutons de la rangée ne pesaient pas le même poids. Servie en masque, l’encre venant du texte alentour.',
   },
 
   // ── Porter l'identité ──────────────────────────────────────────────────────

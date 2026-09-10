@@ -931,6 +931,40 @@ Demande de l'auteur : « remplace le logo de la navbar par le logo qu'on trouve 
 - ⚠️ **Le masque écarte le piège de `<Image>`** que la marque portait depuis l'origine : il n'y a plus d'image du tout, donc plus de couche alpha à aplatir sur du blanc.
 - ⛔ **L'ICÔNE D'ONGLET n'est PAS touchée, et c'est une décision qui reste à prendre.** `app/icon.png`, `app/apple-icon.png` et `app/favicon.ico` viennent toujours de `monogramme-vert.png`. Un onglet qui montre la lettrine sous un site qui porte le chiffre est une divergence ; mais refabriquer l'icône est un geste d'auteur, et l'aplat vert tient à 16 px un dessin que le chiffre, tout en déliés, n'a pas.
 
+## ⛔ UN PICTOGRAMME DE BOUTON EST UN TRAIT, LA MARQUE SEULE EST UNE PLANCHE (2026-09-10)
+
+Demande de l'auteur : « remplacer les icônes pour la messagerie et pour les notifications
+par des choses plus simples ». Un parchemin roulé et un ange à la trompette, deux
+silhouettes en PNG posées en MASQUE dans les deux boutons de l'espace du lecteur.
+
+- ⛔ **UNE MARQUE se figure, un PICTOGRAMME se trace.** Le chiffre CS est une planche parce
+  qu'il EST le dessin du site ; un bouton de barre ne dit qu'un geste — écrire, être
+  averti — et se lit d'un trait. Les deux silhouettes portaient une figure entière (tête,
+  aile, robe, trompette ; un rouleau à volutes) dans trente pixels, là où tout le reste de
+  la rangée est un trait de douze. Ce sont maintenant deux SVG, `IconEnveloppe` et
+  `IconCloche`, en **`currentColor`** comme tout pictogramme d'interface du site.
+- ⚠️ **LEUR BOÎTE EST LA MÊME, et c'est ce qui compte le plus** : 15 px dans un `viewBox`
+  de 16, trait de 1,3 (soit 1,22 px rendu, la graisse de `IconeSignet`, `IconeSignalement`
+  et `IconCoeur`). Les deux d'avant faisaient **19 × 25 debout et 28 × 27 couchée** : deux
+  boutons voisins dont le dessin ne pèse pas pareil se lisent comme deux rangs, et la
+  seconde touchait presque le bord de son bouton de 30.
+- ⛔ **Le tracé se juge RASTÉRISÉ à sa taille réelle, agrandi au plus proche voisin**, dans
+  le bouton et sur le sol de la barre — jamais un SVG mis à l'échelle, qui est re-tracé et
+  ne montre pas sa rasterisation. Planche : `tmp/planche-icones-barre.html`, servie par
+  `tmp/serveur-planches.mjs` ; le banc ×8 se pose par script, la sérialisation du SVG
+  passant par un `canvas` en `imageSmoothingEnabled = false`.
+- ⚠️ **Les encres ne changent pas** — elles appartiennent au bouton, non à l'icône — et
+  elles tiennent le seuil de 3:1 d'un indicateur non textuel, le fond COMPOSÉ : **3,25** au
+  repos et 4,22 à l'état actif sur la barre verte, 5,37 et 7,69 sur le maroquin du Cuir.
+- ⛔ **LA FONCTION « Marquer un bouton » A DISPARU DU RECENSEMENT AVEC SES DEUX IMAGES.**
+  C'étaient les deux seules, et `inventaire.test.ts` exige que chaque fonction déclarée
+  SERVE : un intitulé sans image est un groupe vide sur la planche, donc une rubrique qui
+  promet ce qu'elle n'a pas. La rouvrir demande une image qui l'emploie, non l'inverse.
+- ⚠️ **Les deux planches sont DÉCLASSÉES, non oubliées** : `fonction: 'reserve'`, emploi au
+  passé, `lieu` et `pose` retirés — la garde refuse un `lieu` sur une image en réserve, une
+  image en réserve ne renvoyant nulle part. C'est le parti de la cité ruinée et de la tour
+  de Babel.
+
 ## Le frontispice de l'accueil — trois temps (2026-08-27)
 
 `app/accueil/page.tsx`. Le nom, un filet gravé, la devise. Il en comptait sept jusqu'au 2026-08-19, et **trois ornements se disputaient le même office** : un bandeau gravé en tête, un `❧ · ❧` que le CSS masquait précisément quand le bandeau était là (`.hero-title-ornament + div { display: none }`, une règle qui ne servait qu'à cacher son voisin), et un filet à fleuron sous le titre. Ils sont tombés à quatre ce jour-là, à trois le 2026-08-27 avec le retrait de la marque (voir « Le monogramme CS » ci-dessus).
