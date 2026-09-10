@@ -25,6 +25,7 @@ import type { ChampTitre, SegData, GroupeData, Props, EditionCible, OeuvreResume
 import type { BlocOriginal } from './bilingueAlignement'
 import { repartirGroupes, chargerProjectionBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, type BlocEnRegard } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
+import { BoutonVolet, MenuVolet, type ActionVolet } from './TeteVolet'
 import { construireNavigationApparat } from './apparatNavigation'
 import { chargerProfondeurPresente } from './niveauxPresents'
 // ⛔ LE PIPELINE DES SEGMENTS, celui-là même que le rendu serveur emploie. Cinq de ses
@@ -307,38 +308,32 @@ const ComparaisonTraductions = dynamic(() => import('./ComparaisonTraductions'))
  * dessine autrement cesse d'être une rangée. La forme vit ici et non en style recopié,
  * pour que les deux gestes de sortie (partager, extraire) ne divergent jamais.
  */
-/**
- * UN BOUTON DE LA TÊTE DU VOLET — et la SEULE forme qu'ils prennent tous.
- *
- * ⛔ Sa cible fait 24 px, le plancher de WCAG 2.2 § 2.5.8, et il a fallu la lui donner
- * ICI : la rangée en portait cinq, dont quatre à 19 ou 20 px, et l'étoile seule passait —
- * parce qu'elle vient d'un composant partagé qui a reçu la passe du DOIGT, quand ce qui
- * est écrit sur place ne l'a jamais reçue. C'est la mesure du défaut, et c'est pourquoi
- * les cinq passent par une forme unique au lieu d'un cinquième traitement inventé sur
- * place.
- *
- * ⛔ Ni `.cs-cible-fine` ni `.cs-bouton-fin` ne conviennent : les boutons sont à quatre
- * pixels l'un de l'autre, et le débord de douze pixels de la première les ferait s'avaler.
- * On grandit donc la BOÎTE, ce que la charte prescrit pour un contrôle EN GRAPPE.
- *
- * ⚠️ Le DESSIN ne bouge pas : l'icône garde ses treize pixels, et c'est la cible seule qui
- * grandit. La place est comptée — cinq boutons et leurs écarts font 136 px, le volet en
- * offre 208 au minimum, et il reste 72 px au nom de l'auteur, qui s'enroule déjà.
- */
-function BoutonVolet({ titre, onClick, children }: {
-  titre: string
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button type="button" onClick={onClick} title={titre} aria-label={titre}
-      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', minWidth: '24px', minHeight: '24px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, transition: 'color 0.15s' }}
-      onMouseEnter={e => { e.currentTarget.style.color = 'var(--cs-vert)' }}
-      onMouseLeave={e => { e.currentTarget.style.color = 'var(--cs-texte-faible)' }}>
-      {children}
-    </button>
-  )
-}
+// ⚠️ `BoutonVolet` et le menu ⋮ vivent dans `./TeteVolet` : le menu demande un portail
+// et un placement — le volet est en `overflow: auto`, une boîte posée dedans s'y ferait
+// couper —, et ce n'est pas dans un composant de 4 400 lignes qu'on ajoute cela.
+
+/** Les trois glyphes que le menu ⋮ reprend, écrits UNE fois : la rangée et le menu
+ *  montrent le même dessin, et deux copies divergeraient au premier réglage. */
+const ICONE_NIVEAUX = (
+  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6"/></svg>
+)
+const ICONE_PARTAGE = (
+  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <circle cx="12" cy="3.4" r="1.9" stroke="currentColor" strokeWidth="1.35"/>
+    <circle cx="12" cy="12.6" r="1.9" stroke="currentColor" strokeWidth="1.35"/>
+    <circle cx="3.7" cy="8" r="1.9" stroke="currentColor" strokeWidth="1.35"/>
+    <path d="M5.4 7.1l4.9-2.7M5.4 8.9l4.9 2.7" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round"/>
+  </svg>
+)
+const ICONE_LIEN_COPIE = (
+  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.2 8.4l3.1 3.1 6.5-6.9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+)
+const ICONE_EXTRACTION = (
+  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M8 1.8v8.2M4.8 6.9L8 10.1l3.2-3.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M2.6 12.1v1.1a1 1 0 0 0 1 1h8.8a1 1 0 0 0 1-1v-1.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+)
 
 function ProposerLienBiblique({ segId }: { segId: number }) {
   const [ouvert, setOuvert] = useState(false)
@@ -964,6 +959,26 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Échap referme la fenêtre des niveaux, comme le voile et la croix le font à la souris.
   const fermerConfig = useCallback(() => setConfigOuverte(false), [])
   useFermerAEchap(configOuverte, fermerConfig)
+
+  // ── LES ACTIONS RANGÉES SOUS LE ⋮ DE LA TÊTE DU VOLET ─────────────────────
+  // ⚠️ Elles sont NOMMÉES : la rangée ne les portait qu'en glyphes de treize pixels,
+  // dont le sens ne se lisait que dans un `title` — c'est-à-dire nulle part au doigt.
+  // ⛔ Le libellé du partage suit son ÉTAT : « Lien copié » est ce que le bouton disait
+  // déjà par sa coche, et le taire dans un menu qui parle serait un recul.
+  const actionsDuVolet = useMemo<ActionVolet[]>(() => {
+    const liste: ActionVolet[] = []
+    if (estAdmin) {
+      liste.push({ cle: 'niveaux', libelle: 'Niveaux d’affichage', icone: ICONE_NIVEAUX, onChoisir: () => setConfigOuverte(true) })
+    }
+    liste.push({
+      cle: 'partage',
+      libelle: lienCopie ? 'Lien copié' : 'Partager la page',
+      icone: lienCopie ? ICONE_LIEN_COPIE : ICONE_PARTAGE,
+      onChoisir: partagerLOeuvre,
+    })
+    liste.push({ cle: 'extraction', libelle: 'Extraire en document Word', icone: ICONE_EXTRACTION, onChoisir: () => setExtractionOuverte(true) })
+    return liste
+  }, [estAdmin, lienCopie, partagerLOeuvre])
   const [configEnvoi, setConfigEnvoi] = useState(false)
   // ⛔ L'enregistrement échouait SANS UN MOT : `if (reponses.some(r => !r.ok)) return`
   // remettait simplement le bouton en place. Six appels partent en parallèle ; si un
@@ -2960,43 +2975,24 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           <div data-visite="oeuvre-tete" style={{ padding: mobile ? '9px 14px 8px' : '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               {nomsAuteurs}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                {estAdmin && (
-                  <BoutonVolet titre="Configurer les niveaux d'affichage" onClick={() => setConfigOuverte(true)}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6"/></svg>
-                  </BoutonVolet>
-                )}
+              {/* ⛔ TROIS CIBLES, ET NON CINQ (relevé de l'auteur, 2026-09-10 : « sur
+                  écran moyen, c'est trop gros, trop espacé »). Ce qui coûte la largeur
+                  est leur NOMBRE : le plancher de 24 px est celui de WCAG et la rangée y
+                  était déjà, si bien qu'on ne peut rien reprendre sur la taille. Les
+                  trois actions RARES passent sous un ⋮, où elles gagnent leur nom en
+                  toutes lettres ; l'étoile reste dehors, parce qu'elle dit un ÉTAT, et le
+                  chevron aussi, parce qu'il est le contrôle du volet lui-même.
+                  ⚠️ La MESURE, elle, suit la police racine (globals.css, « LA RANGÉE
+                  D'ACTIONS ») : elle était en pixels quand tout autour d'elle est en rem,
+                  et gardait donc ses 129 px de 1280 à 2560. */}
+              <div className="cs-tete-volet-actions">
                 {favorisPret && (
                   <EtoileFavori actif={favorisOeuvres.has(refFavori)} onToggle={() => toggleFavoriOeuvre(refFavori)} size={13}
                     title={favorisOeuvres.has(refFavori)
                       ? (nomFavori ? `Retirer ${nomFavori} des favoris` : 'Retirer des favoris')
                       : (nomFavori ? `Ajouter ${nomFavori} aux favoris` : 'Ajouter aux favoris')} />
                 )}
-                {/* ⚠️ Les deux gestes qui font SORTIR l'œuvre de la page se posent à côté de
-                    l'étoile, qui est l'autre marque du lecteur : partager le lien, extraire
-                    le texte. Ils prennent la géométrie de leurs voisins — une icône de
-                    treize pixels dans trois de rembourrage — pour que la rangée reste une
-                    rangée. ✅ Leur cible fait 24 px depuis le 9 septembre 2026, comme
-                    celle des quatre autres : la dette de la rangée est payée, et elle
-                    l'a été d'un coup, par la forme commune. */}
-                <BoutonVolet titre="Partager cette page" onClick={partagerLOeuvre}>
-                  {lienCopie ? (
-                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3.2 8.4l3.1 3.1 6.5-6.9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  ) : (
-                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                      <circle cx="12" cy="3.4" r="1.9" stroke="currentColor" strokeWidth="1.35"/>
-                      <circle cx="12" cy="12.6" r="1.9" stroke="currentColor" strokeWidth="1.35"/>
-                      <circle cx="3.7" cy="8" r="1.9" stroke="currentColor" strokeWidth="1.35"/>
-                      <path d="M5.4 7.1l4.9-2.7M5.4 8.9l4.9 2.7" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round"/>
-                    </svg>
-                  )}
-                </BoutonVolet>
-                <BoutonVolet titre="Extraire cette œuvre en document Word" onClick={() => setExtractionOuverte(true)}>
-                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M8 1.8v8.2M4.8 6.9L8 10.1l3.2-3.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M2.6 12.1v1.1a1 1 0 0 0 1 1h8.8a1 1 0 0 0 1-1v-1.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                </BoutonVolet>
+                <MenuVolet titre="Autres actions" actions={actionsDuVolet} />
                 {/* ⛔ ELLE NE PARAÎT PLUS SUR TÉLÉPHONE : elle y regardait à GAUCHE,
                     c’est-à-dire vers le rail du BUREAU, qui n’existe pas là. C’est la
                     barre « Sommaire » qui ferme, et elle reste posée pour cela. */}

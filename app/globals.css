@@ -2608,6 +2608,50 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 .cs-option-volet[aria-pressed='true']:hover,
 .cs-option-volet[aria-pressed='true']:focus-visible { background: rgba(var(--cs-vert-rgb), 0.10); color: var(--cs-encre); }
 
+/* ── LA RANGÉE D'ACTIONS EN TÊTE D'UN VOLET (2026-09-10) ──────────────────────
+   Relevé de l'auteur : « proportionner la taille et l'espacement des logos à la
+   taille de l'écran ; sur écran moyen, c'est trop gros, trop espacé ».
+
+   ⛔ LA RANGÉE ÉTAIT EN PIXELS QUAND TOUT AUTOUR D'ELLE EST EN REM. La police
+   racine du site est fluide (16 → 22px) : la rangée gardait donc ses 129 px sur
+   tous les écrans pendant que le volet passait de 240 à 380 px et le nom d'auteur
+   de 13 à 17,9 px. Mesuré (`tmp/planche-tete-volet.mjs`, une iframe par écran,
+   pour que les `vw` et la racine se résolvent comme sur la page) : elle prenait
+   cinq boutons y prenaient 62 % de la tête à 1280 px et 37 % à 2560. Elle n'était
+   pas « trop grosse » dans l'absolu, elle était FIXE — donc trop grosse en bas
+   d'échelle et trop maigre en haut. En rem, et à trois cibles, sa part se tient
+   entre 39 et 32 %.
+
+   ⛔ MAIS LE PLANCHER DE 24 px RESTE, ET IL EST ABSOLU. WCAG 2.2 § 2.5.8 le fixe
+   en pixels CSS, non en cadratins : `max(24px, 1.5rem)` garde donc la mesure
+   d'aujourd'hui à la racine 16 et ne grandit qu'au-dessus. ⚠️ Corollaire, et c'est
+   ce qui a décidé la forme : sur un écran moyen on ne peut RIEN reprendre sur la
+   taille des cibles. Ce qui coûte la largeur est leur NOMBRE, et c'est là qu'on la
+   reprend — voir `MenuVolet` (app/oeuvre/[id]/TeteVolet.tsx).
+
+   ⚠️ L'ÉTOILE prend la même boîte que ses voisines. Elle en portait une de 17 px,
+   sous le plancher, et ne devait sa cible qu'au débord de `.etoile-favori`. Or ce
+   débord vaut 6 px de chaque côté pour un écart de 4 : il mordait de deux pixels
+   dans la boîte de ses voisines, ce que la charte proscrit pour un contrôle EN
+   GRAPPE. La boîte atteignant seule le plancher, le débord est retiré ICI. */
+.cs-tete-volet-actions { display: flex; align-items: center; gap: max(4px, 0.25rem); flex-shrink: 0; }
+.cs-bouton-volet,
+.cs-tete-volet-actions .etoile-favori { min-width: max(24px, 1.5rem); min-height: max(24px, 1.5rem); }
+/* ⚠️ Le dessin suit la cible : l'icône est en rem, elle aussi. Elle vaut 13 px à la
+   racine 16 — la mesure d'hier —, et l'attribut `width` d'un SVG est une valeur de
+   PRÉSENTATION, que cette règle bat sans avoir besoin de le toucher en JSX. */
+.cs-tete-volet-actions svg { width: 0.8125rem; height: 0.8125rem; }
+@media (hover: none) {
+  .cs-tete-volet-actions .etoile-favori::after { content: none; }
+}
+
+/* Les entrées du menu ⋮ : la forme d'une option de volet, en plus resserré — c'est
+   une liste d'actions, non un axe où l'on retient un état. */
+.cs-entree-menu-volet:hover,
+.cs-entree-menu-volet:focus-visible { background: rgba(var(--cs-vert-rgb), 0.07); color: var(--cs-encre); }
+.cs-entree-menu-volet:hover span,
+.cs-entree-menu-volet:focus-visible span { color: var(--cs-vert); }
+
 /* ── LE BOUTON-LIEN — une action secondaire posée sous son bloc ────────────────
    Demande de l'auteur, 2026-09-07 : « Sources et détail », « En savoir plus… », etc.,
    « il faut uniformiser, partout, ce type de boutons-liens. Je propose : souligné ;
