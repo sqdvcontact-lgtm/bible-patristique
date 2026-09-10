@@ -113,6 +113,16 @@ export function mentionEditionEnRegard(
   return `${tete} ${minusculeInitiale(provenance)}`
 }
 
+/**
+ * LA MESURE DU GROUPE DES TITRES — titre, sous-titre, titre original.
+ *
+ * ⛔ Elle se pose sur le TEXTE, jamais sur l'enveloppe qui porte le crayon : celle-ci
+ * prend toute la mesure du bloc, faute de quoi le crayon ne tombe pas dans la gouttière
+ * de la page ; et une enveloppe qui porterait les deux ne serait plus centrée dès que
+ * l'écrêtage mord (voir la note du composant).
+ */
+const MESURE_TITRE = '35rem'
+
 const BTN: React.CSSProperties = {
   position: 'absolute', fontSize: '0.6875rem', color: 'var(--cs-bord)',
   background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1,
@@ -173,9 +183,20 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
   // PROPRE LIGNE — mesuré le 2026-09-10, quatre crayons à quatre abscisses
   // différentes, qui bougent avec la longueur du champ (relevé de l'auteur : « le
   // crayon est un peu trop mal placé, généralement »). Les enveloppes prennent
-  // désormais toute la mesure du bloc (`alignSelf: 'stretch'`), le texte restant
-  // centré par le `text-align` de la racine, et les quatre crayons tombent sur un seul
-  // fer.
+  // désormais toute la mesure du bloc (`alignSelf: 'stretch'`), et les quatre crayons
+  // tombent sur un seul fer.
+  // ⛔ ET UNE ENVELOPPE QUI POSITIONNE NE PORTE PAS LA MESURE DE LECTURE. Elles
+  // portaient les deux — `alignSelf: 'stretch'` ET `maxWidth: '35rem'` — et un article de
+  // flex étiré PUIS écrêté par un maximum n'est plus centré : il se range au bord de
+  // départ, c'est-à-dire à GAUCHE (flexbox § 8.3, l'étirement écrêté se comporte comme
+  // `flex-start`). Le titre s'en trouvait décalé dès que la colonne dépassait 35 rem,
+  // donc en LECTURE EN REGARD, pour tout le monde et non pour le seul administrateur.
+  // Mesuré le 2026-09-10, écart du texte à l'axe du bloc : 8 px à 1280, 18,5 à 1920,
+  // 29 à 2560 — et il grandit avec l'écran, la mesure étant en rem et le rembourrage en
+  // pixels. ⚠️ Le crayon n'y tombait pas juste non plus, l'enveloppe écrêtée n'atteignant
+  // pas le bord du bloc : il se posait 116, 137 puis 158 px en dedans au lieu de 100.
+  // ⛔ L'ENVELOPPE prend donc la mesure de la PAGE, et le TEXTE porte la sienne
+  // (`MESURE_TITRE` et des marges automatiques, qui le recentrent quand elle mord).
   // ⚠️ 100 px = les 48 du rembourrage du frontispice, plus les 52 de la gouttière : le
   // crayon d'un titre du corps et celui du titre de l'œuvre se posent alors au MÊME
   // endroit, et l'on n'a la place à trouver qu'une fois. ⚠️ Sur téléphone, le
@@ -214,8 +235,8 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
           s'y coupait en deux, et les informations éditoriales paraissaient
           appartenir à autre chose. En em, chaque blanc suit le corps qu'il
           accompagne et la composition garde ses proportions à toute taille. */}
-      <div style={{ position: 'relative', alignSelf: 'stretch', maxWidth: '35rem' }}>
-        <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(2.0625rem, 4.7vw, 3.125rem)', fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.18, marginBottom: oeuvre.sous_titre ? '0.2em' : titreOriginalVisible ? '0.26em' : '0.42em', whiteSpace: 'pre-line' }}>
+      <div style={{ position: 'relative', alignSelf: 'stretch' }}>
+        <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(2.0625rem, 4.7vw, 3.125rem)', fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.18, maxWidth: MESURE_TITRE, marginLeft: 'auto', marginRight: 'auto', marginBottom: oeuvre.sous_titre ? '0.2em' : titreOriginalVisible ? '0.26em' : '0.42em', whiteSpace: 'pre-line' }}>
           {/* Affichage = titre_affichage (avec sauts de ligne éditoriaux) si présent,
               sinon le titre canonique. L'édition admin ci-dessous vise le titre canonique. */}
           {rendreIntitule(sansPointFinal(titreAffiche))}
@@ -228,8 +249,8 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
 
       {/* Sous-titre — agrandi, foncé, un peu plus détaché du titre */}
       {(oeuvre.sous_titre || estAdmin) && (
-        <div style={{ position: 'relative', alignSelf: 'stretch', maxWidth: '35rem' }}>
-          <p style={{ fontFamily: SERIF, fontSize: 'clamp(1.125rem, 2.4vw, 1.5rem)', fontStyle: 'normal', color: 'var(--cs-texte)', margin: titreOriginalVisible ? '0 0 0.5em' : '0 0 1em', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
+        <div style={{ position: 'relative', alignSelf: 'stretch' }}>
+          <p style={{ fontFamily: SERIF, fontSize: 'clamp(1.125rem, 2.4vw, 1.5rem)', fontStyle: 'normal', color: 'var(--cs-texte)', maxWidth: MESURE_TITRE, margin: titreOriginalVisible ? '0 auto 0.5em' : '0 auto 1em', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
             {oeuvre.sous_titre ? rendreIntitule(sansPointFinal(oeuvre.sous_titre)) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.8125rem' }}>Sous-titre…</span> : null}
           </p>
           {estAdmin && (
@@ -241,8 +262,8 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
 
       {/* Titre original */}
       {(titreOriginalVisible || estAdmin) && (
-        <div style={{ position: 'relative', alignSelf: 'stretch', maxWidth: '35rem' }}>
-          <p style={{ fontFamily: SERIF, fontSize: 'clamp(1rem, 2.1vw, 1.3125rem)', fontStyle: 'italic', color: 'var(--cs-texte-second)', marginBottom: '1em', letterSpacing: 0, whiteSpace: 'pre-line' }}>
+        <div style={{ position: 'relative', alignSelf: 'stretch' }}>
+          <p style={{ fontFamily: SERIF, fontSize: 'clamp(1rem, 2.1vw, 1.3125rem)', fontStyle: 'italic', color: 'var(--cs-texte-second)', maxWidth: MESURE_TITRE, margin: '0 auto 1em', letterSpacing: 0, whiteSpace: 'pre-line' }}>
             {titreOriginalVisible ? rendreIntitule(titreOriginal) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontSize: '0.8125rem' }}>Titre original…</span> : null}
           </p>
           {estAdmin && (
