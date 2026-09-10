@@ -100,6 +100,11 @@ with source_gloss as (
     ca.alignment_order as anchor_alignment_order,
     ca.alignment_status as anchor_alignment_status
   from public.bible_verse_note_anchors a
+  join public.bible_verse_notes n
+    on n.id = a.note_id
+  join public.bible_text_sources ns
+    on ns.id = n.source_id
+   and ns.trad_id = 'TR0013'
   left join lateral (
     select ca.alignment_order, ca.alignment_status
     from public.bible_canonical_alignments ca
