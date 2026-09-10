@@ -32,7 +32,7 @@ import {
 import { RUBRIQUE_AXE, OPTION_VOLET } from '@/app/lib/stylesVoletLecture'
 import VisiteGuidee from '@/app/components/VisiteGuidee'
 import { CLE_VISITE_RECHERCHE, VISITE_RECHERCHE } from '@/app/lib/visiteRecherche'
-import { oublierVisite, visiteFaite } from '@/app/lib/visiteGuidee'
+import { useCompte } from '@/app/lib/contexteCompte'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 import { siglesTraductions } from '@/app/lib/sigleTraduction'
@@ -263,6 +263,8 @@ export default function RechercheClient() {
   // ≤ 900px : le formulaire et les résultats s'empilent (le côte-à-côte
   // écraserait les deux). Voir AGENTS § Responsive mobile.
   const mobile = useEstMobile(900)
+  // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
+  const { visiteFaite, oublierVisite, profilPret } = useCompte()
   const searchParams = useSearchParams()
   const [query, setQuery] = useState(searchParams.get('q') ?? '')
   const [mode, setMode] = useState<Mode>(modeDepuisParametre(searchParams.get('mode')))
@@ -802,15 +804,21 @@ export default function RechercheClient() {
   const [visite, setVisite] = useState(0)
   const resultatsPrets = done && (versetsTotal + segmentsTotal + essaisRes.length) > 0
   const visiteProposee = useRef(false)
+  // ⛔ ON ATTEND `profilPret` : la décision de passer une visite vit sur le COMPTE,
+  // et tant que le profil n'est pas arrivé on ne sait pas ce qu'il en dit. Sans cette
+  // garde, un lecteur qui a passé la visite ailleurs la reverrait sur ce poste — le
+  // défaut même que la colonne `visites_faites` corrige. ⚠️ Ce n'est PAS un délai pour
+  // le visiteur sans compte : `profilPret` ne vaut alors que « la session est connue »,
+  // ce que `getSession` rend depuis le stockage local, sans réseau.
   useEffect(() => {
-    if (!resultatsPrets || visiteProposee.current) return
+    if (!resultatsPrets || !profilPret || visiteProposee.current) return
     visiteProposee.current = true
     const params = new URLSearchParams(window.location.search)
     if (params.has('visite')) oublierVisite(CLE_VISITE_RECHERCHE)
     else if (visiteFaite(CLE_VISITE_RECHERCHE)) return
     const depart = window.setTimeout(() => setVisite(1), 260)
     return () => window.clearTimeout(depart)
-  }, [resultatsPrets])
+  }, [resultatsPrets, profilPret, visiteFaite, oublierVisite])
 
   // La page OFFRE sa visite à la barre de navigation, qui porte le bouton qui la
   // rappelle (voir app/lib/demandeDeVisite.ts). ⚠️ Elle ne l'offre que TANT QU'IL Y A

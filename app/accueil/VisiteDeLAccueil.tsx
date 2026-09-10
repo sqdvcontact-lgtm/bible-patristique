@@ -18,7 +18,7 @@
 import { useEffect, useRef, useState } from 'react'
 import VisiteGuidee from '@/app/components/VisiteGuidee'
 import { CLE_VISITE_ACCUEIL, VISITE_ACCUEIL } from '@/app/lib/visiteAccueil'
-import { oublierVisite, visiteFaite } from '@/app/lib/visiteGuidee'
+import { useCompte } from '@/app/lib/contexteCompte'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 
@@ -29,6 +29,8 @@ const SEUIL_BARRE_DEPLOYEE = 1024
 
 export default function VisiteDeLAccueil() {
   const barrePliee = useEstMobile(SEUIL_BARRE_DEPLOYEE)
+  // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
+  const { visiteFaite, oublierVisite, profilPret } = useCompte()
 
   // ⚠️ L'état est un COMPTEUR, non un drapeau : rappelée par la barre alors qu'elle
   // est déjà ouverte, la visite repart de son grand message, et le composant ne s'y
@@ -36,8 +38,14 @@ export default function VisiteDeLAccueil() {
   const [visite, setVisite] = useState(0)
   const proposee = useRef(false)
 
+  // ⛔ ON ATTEND `profilPret` : la décision de passer une visite vit sur le COMPTE,
+  // et tant que le profil n'est pas arrivé on ne sait pas ce qu'il en dit. Sans cette
+  // garde, un lecteur qui a passé la visite ailleurs la reverrait sur ce poste — le
+  // défaut même que la colonne `visites_faites` corrige. ⚠️ Ce n'est PAS un délai pour
+  // le visiteur sans compte : `profilPret` ne vaut alors que « la session est connue »,
+  // ce que `getSession` rend depuis le stockage local, sans réseau.
   useEffect(() => {
-    if (barrePliee || proposee.current) return
+    if (barrePliee || !profilPret || proposee.current) return
     proposee.current = true
     const params = new URLSearchParams(window.location.search)
     if (params.has('visite')) oublierVisite(CLE_VISITE_ACCUEIL)
@@ -46,7 +54,7 @@ export default function VisiteDeLAccueil() {
     // laisser la barre finir de se mesurer, elle qui se replie par crans.
     const depart = window.setTimeout(() => setVisite(1), 320)
     return () => window.clearTimeout(depart)
-  }, [barrePliee])
+  }, [barrePliee, profilPret, visiteFaite, oublierVisite])
 
   // La page OFFRE sa visite à la barre, qui porte un bouton d'administration pour la
   // rappeler (voir app/lib/demandeDeVisite.ts). ⛔ Rien à offrir tant que la barre

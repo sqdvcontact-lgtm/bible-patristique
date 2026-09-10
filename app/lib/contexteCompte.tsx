@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react'
 import { supabase } from './supabase'
 import { appliquerTheme, lireTheme, themeValide, type Theme } from './theme'
+import { accorderVisites, poserVisitesDuPoste, visitesDuPoste } from './visiteGuidee'
 import { CADRAGE_PAR_DEFAUT, type Cadrage } from './portraits'
 import ModaleCompteRequis from '@/app/components/ModaleCompteRequis'
 
@@ -42,6 +43,23 @@ type ContexteCompte = {
   theme: Theme
   /** Rend l'écriture en base, pour qui veut en signaler l'échec (page du compte). */
   changerTheme: (theme: Theme) => Promise<void>
+  // ── LA MÉMOIRE DES VISITES ────────────────────────────────────────────────────
+  // Le passage d'un tutoriel est une PRÉFÉRENCE DE COMPTE, retenue dans
+  // `profils.visites_faites` et miroitée dans le stockage local. UNE DÉCISION PAR
+  // VISITE : les six sont indépendantes.
+  //
+  // ⛔ Les trois fonctions écrivent ENSEMBLE ce qu'on retient pour cette session, le
+  // miroir de ce poste et le compte. Ne pas rouvrir une seconde voie : c'est ainsi que
+  // deux mémoires d'une même chose finissent par se contredire.
+  //
+  // ⛔ ON NE LES INTERROGE PAS AVANT `profilPret`. Tant qu'il est faux, on ne sait pas
+  // encore ce que le compte porte, et `visiteFaite` rendrait `false` sur une visite
+  // que le lecteur a passée ailleurs — c'est-à-dire le défaut même qu'on corrige.
+  visiteFaite: (cle: string) => boolean
+  marquerVisiteFaite: (cle: string) => void
+  /** Rejouer une visite (`?visite=1`) : on oublie des trois côtés, sinon le compte la
+   *  rendrait « faite » au prochain rapprochement. */
+  oublierVisite: (cle: string) => void
   // Vrai seulement pour un compte PERSONNEL (ni anonyme, ni compte de démo partagé).
   aUnCompte: boolean
   // Garde à poser en tête de toute action d'écriture : renvoie true si le visiteur
@@ -55,6 +73,7 @@ const Contexte = createContext<ContexteCompte>({
   pseudo: null, estAdmin: false, portrait: null, cadragePortrait: null, estMecene: false,
   profilPret: false, rafraichirProfil: () => {},
   theme: 'clair', changerTheme: async () => {},
+  visiteFaite: () => false, marquerVisiteFaite: () => {}, oublierVisite: () => {},
   aUnCompte: false, exigerCompte: () => false,
 })
 
@@ -136,6 +155,63 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // ── La mémoire des visites ──────────────────────────────────────────────────
+  // Ce qu'on retient POUR CETTE SESSION : le miroir de ce poste, complété par le
+  // compte à l'arrivée du profil.
+  //
+  // ⚠️ EN MÉMOIRE, et non relu du stockage à chaque question. Deux raisons, et la
+  // seconde est la vraie : le miroir peut être REFUSÉ (navigation privée, réglage du
+  // navigateur), et le compte porterait alors une décision que ce poste ne saurait
+  // jamais relire — la visite reviendrait à chaque page. En mémoire, elle tient au
+  // moins la session.
+  // ⚠️ Amorcé PARESSEUSEMENT, à la première question, et jamais pendant un rendu :
+  // `visiteFaite` n'est appelée que depuis un effet ou un geste. Un effet de montage
+  // ne suffirait pas — React joue les effets des ENFANTS avant ceux du parent.
+  const visitesRef = useRef<Set<string> | null>(null)
+  const visitesRetenues = useCallback(() => (visitesRef.current ??= visitesDuPoste()), [])
+
+  // ⚠️ L'échec se JOURNALISE. Une visite non retenue n'est pas une panne — elle
+  // reviendra une fois — mais un silence complet ne distinguerait pas « rien à
+  // écrire » de « le compte refuse ».
+  const confierVisitesAuCompte = useCallback((pour: string, liste: string[]) => {
+    supabase.from('profils').update({ visites_faites: liste }).eq('id', pour).then(({ error }) => {
+      if (error) console.warn('[visite] passage non retenu au compte :', error.message)
+    })
+  }, [])
+
+  const noterVisites = useCallback((retenues: Set<string>) => {
+    visitesRef.current = retenues
+    poserVisitesDuPoste(retenues)
+    if (userId) confierVisitesAuCompte(userId, [...retenues].sort())
+  }, [userId, confierVisitesAuCompte])
+
+  const visiteFaite = useCallback((cle: string) => visitesRetenues().has(cle), [visitesRetenues])
+
+  const marquerVisiteFaite = useCallback((cle: string) => {
+    const retenues = visitesRetenues()
+    if (retenues.has(cle)) return
+    noterVisites(new Set(retenues).add(cle))
+  }, [visitesRetenues, noterVisites])
+
+  const oublierVisite = useCallback((cle: string) => {
+    const retenues = visitesRetenues()
+    if (!retenues.has(cle)) return
+    const reste = new Set(retenues)
+    reste.delete(cle)
+    noterVisites(reste)
+  }, [visitesRetenues, noterVisites])
+
+  // Le rapprochement, à l'arrivée du profil, une seule fois par session. ⛔ C'est
+  // l'UNION et non « le compte l'emporte » : une visite passée est un FAIT, et deux
+  // postes qui en retiennent chacun un ne se contredisent pas. La règle est pure et
+  // testée dans `accorderVisites` ; ici il ne reste qu'à poser le résultat.
+  const accorderLesVisites = useCallback((pour: string, duCompte: string[] | null) => {
+    const { retenues, aEcrireAuCompte } = accorderVisites(visitesRetenues(), duCompte)
+    visitesRef.current = retenues
+    poserVisitesDuPoste(retenues)
+    if (aEcrireAuCompte) confierVisitesAuCompte(pour, aEcrireAuCompte)
+  }, [visitesRetenues, confierVisitesAuCompte])
+
   // Le profil, une fois par session. `onAuthStateChange` émettant un événement de
   // session initiale juste après `getSession`, `userId` prend sa valeur une seule
   // fois : la requête ne part donc pas deux fois, comme elle le faisait quand chaque
@@ -147,10 +223,15 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
     // montre sur toutes les pages : demandé à part, il aurait ajouté une requête par
     // chargement pour quatre colonnes que celle-ci rapporte sans rien coûter de plus.
     supabase.from('profils')
-      .select('pseudo, est_admin, theme_lecture, avatar_ref, avatar_pos_x, avatar_pos_y, avatar_zoom, mecene_depuis, pub_mecene')
+      .select('pseudo, est_admin, theme_lecture, avatar_ref, avatar_pos_x, avatar_pos_y, avatar_zoom, mecene_depuis, pub_mecene, visites_faites')
       .eq('id', userId).maybeSingle()
       .then(({ data }) => {
         if (!vivant) return
+        // ⛔ LES VISITES D'ABORD, et avant `setProfil` : c'est lui qui fait passer
+        // `profilPret` à vrai, et les pages n'attendent que cela pour demander si
+        // leur visite est faite. Le miroir doit donc être à jour avant le rendu qui
+        // suit — l'écriture est synchrone, React groupe le reste.
+        accorderLesVisites(userId, Array.isArray(data?.visites_faites) ? data.visites_faites : null)
         setProfil({
           pour: userId,
           pseudo: data?.pseudo ?? null,
@@ -170,7 +251,7 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
         accorderTheme(userId, themeValide(data?.theme_lecture))
       })
     return () => { vivant = false }
-  }, [userId, relecture, accorderTheme])
+  }, [userId, relecture, accorderTheme, accorderLesVisites])
 
   const rafraichirProfil = useCallback(() => setRelecture(n => n + 1), [])
 
@@ -198,7 +279,7 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
   }, [aUnCompte])
 
   return (
-    <Contexte.Provider value={{ userId, email, pret, pseudo, estAdmin, portrait, cadragePortrait, estMecene, profilPret, rafraichirProfil, theme, changerTheme, aUnCompte, exigerCompte }}>
+    <Contexte.Provider value={{ userId, email, pret, pseudo, estAdmin, portrait, cadragePortrait, estMecene, profilPret, rafraichirProfil, theme, changerTheme, visiteFaite, marquerVisiteFaite, oublierVisite, aUnCompte, exigerCompte }}>
       {children}
       {invitation !== null && (
         <ModaleCompteRequis contexte={invitation} onClose={() => setInvitation(null)} />

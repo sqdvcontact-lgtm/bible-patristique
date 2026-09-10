@@ -114,7 +114,7 @@ import { FLEURONS, fleuronDe, FLEURON_DU_SITE } from '@/app/lib/fleurons'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import VisiteGuidee from '@/app/components/VisiteGuidee'
 import { CLE_VISITE_OEUVRE, VISITE_OEUVRE } from '@/app/lib/visiteOeuvre'
-import { oublierVisite, visiteFaite, type SceneVisite } from '@/app/lib/visiteGuidee'
+import { type SceneVisite } from '@/app/lib/visiteGuidee'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { useFavoris } from '@/app/lib/useFavoris'
 import { refFavoriOriginal } from '@/app/lib/refsFavoris'
@@ -541,6 +541,8 @@ const LIBELLE_ONGLET_VOLET: Record<OngletDroit, string> = {
 type OngletDroit = 'refs' | 'commentaires' | 'notes'
 
 export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, fleuron = null, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
+  // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
+  const { visiteFaite, oublierVisite, profilPret } = useCompte()
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -2829,14 +2831,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // sont des TIROIRS, fermés à l'ouverture de la page. Quatre arrêts sur sept
     // cerneraient donc des sujets absents, et la visite ne serait plus qu'une
     // attente entre deux cases. La page qu'elle décrit n'est pas celle qu'on voit.
-    if (mobile || !textePret || visiteProposee.current) return
+    if (mobile || !textePret || !profilPret || visiteProposee.current) return
     visiteProposee.current = true
     const params = new URLSearchParams(window.location.search)
     if (params.has('visite')) oublierVisite(CLE_VISITE_OEUVRE)
     else if (visiteFaite(CLE_VISITE_OEUVRE)) return
     const depart = window.setTimeout(() => setVisite(1), 260)
     return () => window.clearTimeout(depart)
-  }, [mobile, textePret])
+  }, [mobile, textePret, profilPret, visiteFaite, oublierVisite])
 
   // La page OFFRE sa visite à la barre de navigation, qui porte le bouton qui la
   // rappelle (voir app/lib/demandeDeVisite.ts). Sur téléphone elle n'en offre pas :

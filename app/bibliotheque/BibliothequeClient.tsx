@@ -25,7 +25,7 @@ import { rendreEnrichi } from '@/app/lib/enrichissements'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
 import VisiteGuidee from '@/app/components/VisiteGuidee'
 import { CLE_VISITE_BIBLIOTHEQUE, VISITE_BIBLIOTHEQUE } from '@/app/lib/visiteBibliotheque'
-import { oublierVisite, visiteFaite, type SceneVisite } from '@/app/lib/visiteGuidee'
+import { type SceneVisite } from '@/app/lib/visiteGuidee'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
@@ -1831,6 +1831,8 @@ function normaliserAuteurs(data: any[], oeuvres: Oeuvre[], auteursParOeuvre: Rec
 }
 
 export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurChargement = false }: { auteurs: Auteur[]; erreurChargement?: boolean }) {
+  // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
+  const { visiteFaite, oublierVisite, profilPret } = useCompte()
   useEditeursCharges()
   // Le panneau de filtres est piloté par des styles INLINE : une média-query ne peut pas
   // les surcharger, la mesure passe donc par le JS (patron de la charte, § Responsive).
@@ -2014,15 +2016,21 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   const [visite, setVisite] = useState(0)
   const listePrete = onglet === 'bibliotheque' && auteursPage.length > 0
   const visiteProposee = useRef(false)
+  // ⛔ ON ATTEND `profilPret` : la décision de passer une visite vit sur le COMPTE,
+  // et tant que le profil n'est pas arrivé on ne sait pas ce qu'il en dit. Sans cette
+  // garde, un lecteur qui a passé la visite ailleurs la reverrait sur ce poste — le
+  // défaut même que la colonne `visites_faites` corrige. ⚠️ Ce n'est PAS un délai pour
+  // le visiteur sans compte : `profilPret` ne vaut alors que « la session est connue »,
+  // ce que `getSession` rend depuis le stockage local, sans réseau.
   useEffect(() => {
-    if (!listePrete || visiteProposee.current) return
+    if (!listePrete || !profilPret || visiteProposee.current) return
     visiteProposee.current = true
     const params = new URLSearchParams(window.location.search)
     if (params.has('visite')) oublierVisite(CLE_VISITE_BIBLIOTHEQUE)
     else if (visiteFaite(CLE_VISITE_BIBLIOTHEQUE)) return
     const depart = window.setTimeout(() => setVisite(1), 260)
     return () => window.clearTimeout(depart)
-  }, [listePrete])
+  }, [listePrete, profilPret, visiteFaite, oublierVisite])
 
   // La page OFFRE sa visite à la barre de navigation, qui porte un bouton
   // d'administration pour la rappeler (voir app/lib/demandeDeVisite.ts).

@@ -37,7 +37,7 @@ import { hauteurNavbarPx } from "@/app/lib/fenetreContextuelle";
 import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile";
 import VisiteGuidee from "@/app/components/VisiteGuidee";
 import { CLE_VISITE_POLYGLOTTE, VISITE_POLYGLOTTE } from "@/app/lib/visitePolyglotte";
-import { oublierVisite, visiteFaite, type SceneVisite } from "@/app/lib/visiteGuidee";
+import { type SceneVisite } from "@/app/lib/visiteGuidee";
 import { offrirLaVisite } from "@/app/lib/demandeDeVisite";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { ABREV_FR } from "@/app/lib/bible";
@@ -1143,6 +1143,8 @@ function ensembleDeLivre(livres: Livre[], code: string): Onglet {
 }
 
 export default function PolyglottePage() {
+  // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
+  const { visiteFaite, oublierVisite, profilPret } = useCompte();
   const [livres, setLivres] = useState<Livre[]>([]);
   // trad_id → code du livre → nom qu'il porte dans cette édition. Seuls les écarts au canon.
   const [livresEd, setLivresEd] = useState<Record<string, Record<string, { nom: string; abrege: string }>>>({});
@@ -1816,14 +1818,20 @@ export default function PolyglottePage() {
   // ouverte, la visite doit repartir de son grand message, et le composant ne s'y
   // remet qu'en se remontant. Le compteur lui sert de clé (même patron que la Bible).
   const [visite, setVisite] = useState(0);
+  // ⛔ ON ATTEND `profilPret` : la décision de passer une visite vit sur le COMPTE,
+  // et tant que le profil n'est pas arrivé on ne sait pas ce qu'il en dit. Sans cette
+  // garde, un lecteur qui a passé la visite ailleurs la reverrait sur ce poste — le
+  // défaut même que la colonne `visites_faites` corrige. ⚠️ Ce n'est PAS un délai pour
+  // le visiteur sans compte : `profilPret` ne vaut alors que « la session est connue »,
+  // ce que `getSession` rend depuis le stockage local, sans réseau.
   useEffect(() => {
-    if (!visitePrete) return;
+    if (!visitePrete || !profilPret) return;
     const params = new URLSearchParams(window.location.search);
     if (params.has("visite")) oublierVisite(CLE_VISITE_POLYGLOTTE);
     else if (visiteFaite(CLE_VISITE_POLYGLOTTE)) return;
     const depart = window.setTimeout(() => setVisite(1), DUREE_ENTREE_MS / 2);
     return () => window.clearTimeout(depart);
-  }, [visitePrete]);
+  }, [visitePrete, profilPret, visiteFaite, oublierVisite]);
 
   // L'offre au bouton d'administration de la barre. ⚠️ Elle se retire quand la page
   // cesse d'être en état d'en montrer une : le bouton disparaît alors de lui-même.

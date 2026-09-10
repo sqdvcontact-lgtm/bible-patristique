@@ -7935,15 +7935,98 @@ d'autre objet que d'être une PORTE, et la barre est la porte. Sa visite le DÉC
 (`Visite.couvreLaBarre`), et c'est ce drapeau — non une constante du composant — qui
 fait passer le voile par-dessus la barre, pour elle seule.
 
+## ⛔ LE PASSAGE D'UNE VISITE EST UNE PRÉFÉRENCE DE COMPTE (2026-09-10)
+
+Demande de l'auteur : « une fois que l'utilisateur a passé un tutoriel, s'en souvenir,
+et associer cette décision à sa session (une décision par tutoriel) ». Le passage ne
+vivait que dans `localStorage` : un lecteur qui ouvrait le site sur un second poste
+revoyait ses six visites, et vider les données du site les rendait toutes.
+
+⛔ **C'est le parti du THÈME DE LECTURE, repris tel quel** (§ « Le thème est une
+PRÉFÉRENCE DE COMPTE ») : la décision vit dans **`profils.visites_faites`** (`text[]`,
+nullable, SANS `CHECK` — la liste des visites est éditoriale), et le stockage local n'en
+est que le MIROIR de ce poste. Migration `20260910115210_profils_visites_faites`,
+contrôles dans `supabase/controles/`.
+
+⛔ **UNE DÉCISION PAR VISITE, donc un TABLEAU et non un drapeau.** Les six sont
+indépendantes : avoir passé celle de l'accueil ne dit rien de celle de la Bible. C'est
+aussi ce qui distingue la colonne d'`onboarding_vu`, restée d'un ancien accueil.
+
+⛔ **UNE SEULE PORTE : `useCompte()`.** `visiteFaite`, `marquerVisiteFaite` et
+`oublierVisite` vivent dans `ProvisionCompte` et écrivent ENSEMBLE les trois
+exemplaires — ce qu'on retient pour cette session, le miroir, le compte. ⚠️
+`visiteGuidee.ts` a perdu ces trois fonctions et ne garde que le MIROIR
+(`visitesDuPoste`, `poserVisitesDuPoste`) et la règle pure `accorderVisites`. Trois
+écritures séparées d'une même mémoire finissent toujours par se contredire.
+
+⛔ **LE RAPPROCHEMENT EST L'UNION, et non « le compte l'emporte » comme pour le thème.**
+La différence tient à la nature de la donnée : un thème est UNE valeur, dont deux postes
+peuvent dire deux choses contradictoires, et il faut trancher. Une visite passée est un
+FAIT, et il y en a un par visite : l'avoir vue ici et une autre là ne se contredit pas.
+⛔ Et l'on ne JETTE PAS une clé qu'on ne reconnaît pas — c'est le plus souvent une visite
+qu'un déploiement plus récent a posée, et le lecteur peut avoir un onglet resté ouvert
+sur l'ancien build : filtrer sur la liste connue effacerait en silence la décision prise
+dans l'autre onglet.
+
+⛔ **LES SIX PAGES ATTENDENT `profilPret` AVANT DE PROPOSER LEUR VISITE.** Tant qu'il est
+faux, on ne sait pas ce que le compte porte, et l'on rendrait une visite déjà passée
+ailleurs — le défaut même qu'on corrige. ⚠️ Ce n'est PAS un délai pour le visiteur sans
+compte : `profilPret` ne vaut alors que « la session est connue », ce que `getSession`
+rend depuis le stockage local, sans réseau. C'est la garde que `MesureAudience` porte
+déjà pour la même raison.
+
+⚠️ **CE QU'ON RETIENT EST EN MÉMOIRE, non relu du stockage à chaque question**, et la
+raison n'est pas la vitesse : le miroir peut être REFUSÉ (navigation privée, réglage du
+navigateur), et le compte porterait alors une décision que ce poste ne saurait jamais
+relire — la visite reviendrait à chaque page. En mémoire, elle tient au moins la session.
+⚠️ Il s'amorce PARESSEUSEMENT, à la première question, jamais dans un effet de montage :
+React joue les effets des ENFANTS avant ceux du parent, et la provision est le parent.
+
+⚠️ **BÉNÉFICE DE BORD, et il est réel** : une visite vue AVANT de se connecter est
+remontée au compte au premier rapprochement. Le lecteur ne la revoit donc pas après
+s'être inscrit.
+
+⛔ **LA GARDE EN BASE RANGE, ELLE NE REFUSE PAS.** `visites_faites` est la seule colonne
+NON BORNÉE qu'un compte puisse écrire sur sa propre ligne, et un profil n'est pas un
+dépôt de données : `profils_garde_colonnes` ôte les blancs, fond les doublons, écarte
+les vides, borne les clés à quarante signes et le tableau à quarante clés. ⚠️ Lever
+plutôt que ranger empêcherait le lecteur d'enregistrer son PSEUDONYME, pour un stockage
+local corrompu qui n'est pas de son fait.
+
+⚠️ **La fonction a été patchée À LA MAIN, et la preuve a été prise** : en transaction
+annulée, la définition d'après PRIVÉE du seul bloc ajouté rend celle d'avant au
+caractère près (1 388 signes contre 1 741). La définition d'origine est sauvegardée dans
+`internal.backup_profils_garde_colonnes_20260910`. ⛔ Un « ça a l'air pareil » ne prouve
+rien sur une fonction de mille quatre cents signes.
+
+⛔ **ET LE TÉMOIN D'UN CONTRÔLE DE GARDE N'EST PAS LE PREMIER COMPTE VENU.** La première
+épreuve avait pris la plus ancienne ligne — celle de l'auteur, qui EST administrateur —
+et concluait que la garde ne gelait plus `est_admin`, alors qu'elle rendait fidèlement
+`old.est_admin`, c'est-à-dire `true`. Le contrôle vise désormais un compte ni
+administrateur ni bêta. *Un contrôle dont le témoin est mal choisi ne prouve rien, et il
+fait peur pour rien.*
+
+⚠️ **Piège d'outillage payé de nouveau** : `BibleLayout.tsx` et `BibliothequeClient.tsx`
+sont en **CRLF** quand les sept autres fichiers touchés sont en LF. Une ancre de
+remplacement écrite en LF ne s'y apparie pas, et rien ne le montre à la lecture. Une
+passe qui touche plusieurs fichiers détecte la fin de ligne de CHACUN.
+
+⚠️ **Et un `useCompte()` posé dans le mauvais composant compile presque** : trois de ces
+fichiers portent un `const { exigerCompte } = useCompte()` dans un composant AUXILIAIRE
+(un bouton de signalement), à des centaines de lignes du composant principal. C'est
+`tsc` qui l'a rattrapé, pas la relecture.
+
 **Sept fichiers, et un seul porte du DOM.**
 - `app/lib/visiteGuidee.ts` — pur : le placement de la case explicative, le tracé du
-  trait, la case du sujet, le filtre des étapes montrables, la mémoire des passages
-  (`localStorage`, clé `cs_visites`). Testé par `visiteGuidee.test.ts`.
+  trait, la case du sujet, le filtre des étapes montrables, le miroir des passages
+  (`localStorage`, clé `cs_visites`) et le rapprochement `accorderVisites`. Testé par
+  `visiteGuidee.test.ts`. ⛔ La mémoire elle-même n'est plus ici : voir ci-dessus.
 - `app/lib/visiteBibleClassique.ts`, `app/lib/visitePolyglotte.ts`,
   `app/lib/visiteBibliotheque.ts`, `app/lib/visiteAccueil.ts`, `app/lib/visiteOeuvre.ts` et
   `app/lib/visiteRecherche.ts` — les scénarios, en données. Ajouter une visite ne demande rien d’autre : un fichier de scénario, des
   repères `data-visite` dans les composants qui dessinent les sujets, et le branchement
-  de la page (un état COMPTEUR, une ouverture différée, `offrirLaVisite`).
+  de la page (un état COMPTEUR, une ouverture différée gardée par `profilPret`,
+  `offrirLaVisite`).
 - `app/components/VisiteGuidee.tsx` — le dessin, en portail vers `<body>`, rang **2800**
   (au-dessus des modales du site, qui montent à 2700), et **sous la barre de
   navigation**, qui monte à 3000 et garde donc sa lumière. ⚠️ **3200** quand le scénario
@@ -8078,7 +8161,7 @@ en `!important`, l'opacité de ces boutons et l'affichage du pavé tactile étan
 style en ligne.
 
 **Pour la revoir** : le bouton « Visite » de la barre de navigation — visible de tous,
-sur les seules pages qui en offrent une — ou `?visite=1` sur l'adresse de la page. Le passage est retenu dès l'OUVERTURE de la visite, non à sa
+sur les seules pages qui en offrent une — ou `?visite=1` sur l'adresse de la page. ⛔ `?visite=1` oublie des TROIS côtés (session, miroir, compte), sinon le compte rendrait la visite « faite » au prochain rapprochement. Le passage est retenu dès l'OUVERTURE de la visite, non à sa
 dernière étape.
 
 **Le bouton passe par `app/lib/demandeDeVisite.ts`**, et la barre n'apprend rien du

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  cadreDuSujet, decoupeDuVoile, ecrireVisites, etapesPresentes, lireVisites,
+  accorderVisites, cadreDuSujet, decoupeDuVoile, ecrireVisites, etapesPresentes, lireVisites,
   defilementDuSujet, placerCarteVisite, traitVersSujet,
   type Cadre, type EtapeVisite,
 } from './visiteGuidee'
@@ -255,5 +255,52 @@ describe('la mémoire des visites', () => {
 
   it('ne retient d’une liste que les clés qui sont des chaînes', () => {
     expect([...lireVisites('["bible-classique", 3, null]')]).toEqual(['bible-classique'])
+  })
+})
+
+// Le rapprochement du POSTE et du COMPTE, à l'arrivée du profil. C'est ici qu'est la
+// règle, et elle décide de ce qu'un lecteur revoit ou non : elle s'éprouve dans les
+// deux sens, jamais par « ça a l'air juste ».
+describe('accorderVisites — le poste et le compte', () => {
+  it('rend l’UNION, et non le compte seul : deux postes ne se contredisent pas', () => {
+    const { retenues } = accorderVisites(['accueil'], ['bible-classique'])
+    expect([...retenues].sort()).toEqual(['accueil', 'bible-classique'])
+  })
+
+  it('confie au compte ce que le poste lui apprend', () => {
+    const { aEcrireAuCompte } = accorderVisites(['accueil'], ['bible-classique'])
+    expect(aEcrireAuCompte).toEqual(['accueil', 'bible-classique'])
+  })
+
+  it('n’écrit RIEN quand le compte sait déjà tout : un rapprochement muet ne coûte pas une requête', () => {
+    expect(accorderVisites(['accueil'], ['accueil', 'oeuvre']).aEcrireAuCompte).toBeNull()
+    expect(accorderVisites([], ['accueil']).aEcrireAuCompte).toBeNull()
+  })
+
+  it('remonte au compte les décisions d’un poste que la colonne n’a jamais portées', () => {
+    expect(accorderVisites(['accueil', 'oeuvre'], null).aEcrireAuCompte).toEqual(['accueil', 'oeuvre'])
+  })
+
+  it('n’écrit pas un compte vierge quand le poste n’a rien à lui dire', () => {
+    expect(accorderVisites([], null).aEcrireAuCompte).toBeNull()
+    expect(accorderVisites([], null).retenues.size).toBe(0)
+  })
+
+  // ⛔ Une clé que CE build ne connaît pas est le plus souvent une visite qu'un
+  // déploiement plus récent a posée. La jeter effacerait, en silence, la décision
+  // prise dans un autre onglet.
+  it('garde une clé qu’elle ne reconnaît pas', () => {
+    const { retenues, aEcrireAuCompte } = accorderVisites([], ['visite-de-demain'])
+    expect(retenues.has('visite-de-demain')).toBe(true)
+    expect(aEcrireAuCompte).toBeNull()
+  })
+
+  it('écarte ce qui n’est pas une clé, des deux côtés', () => {
+    const { retenues } = accorderVisites(['', 'accueil'], ['', 'oeuvre', null as unknown as string])
+    expect([...retenues].sort()).toEqual(['accueil', 'oeuvre'])
+  })
+
+  it('ne redit pas au compte ce qu’il porte déjà, l’ordre fût-il autre', () => {
+    expect(accorderVisites(['oeuvre', 'accueil'], ['accueil', 'oeuvre']).aEcrireAuCompte).toBeNull()
   })
 })

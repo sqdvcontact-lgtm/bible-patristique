@@ -498,6 +498,18 @@ export function etapesPresentes(etapes: EtapeVisite[], trouver: (selecteur: stri
 }
 
 // ── La mémoire des visites ───────────────────────────────────────────────────
+//
+// ⛔ LA DÉCISION DE PASSER UNE VISITE EST UNE PRÉFÉRENCE DE COMPTE, et le stockage
+// local n'en est que le MIROIR (demande de l'auteur, 2026-09-10 : « une fois que
+// l'utilisateur a passé un tutoriel, s'en souvenir, et associer cette décision à sa
+// session »). Elle vit dans `profils.visites_faites` ; ce module ne tient que le
+// miroir de CE poste, et l'écriture au compte vit dans `ProvisionCompte`, qui seul
+// connaît la session. C'est le parti déjà pris pour le thème de lecture.
+//
+// ⚠️ Le miroir reste NÉCESSAIRE, et pas seulement par commodité : il répond
+// SYNCHRONEMENT, il sert le visiteur sans compte — qui n'a que lui — et il porte la
+// décision d'une page à l'autre sans redemander la ligne. Le compte, lui, la porte
+// d'un poste à l'autre.
 
 /** Les pages déjà visitées, par clé de visite. */
 export const CLE_VISITES = 'cs_visites'
@@ -518,6 +530,46 @@ export function ecrireVisites(faites: Set<string>): string {
   return JSON.stringify([...faites])
 }
 
+/**
+ * LE RAPPROCHEMENT du poste et du compte, à l'arrivée du profil. Fonction PURE :
+ * c'est ici qu'est la règle, et elle s'éprouve sans navigateur ni base.
+ *
+ * ⛔ C'est l'UNION, et non « le compte l'emporte » comme pour le thème. La
+ * différence tient à la nature de la donnée : un thème est UNE valeur, dont deux
+ * postes peuvent dire deux choses contradictoires, et il faut alors trancher. Une
+ * visite passée est un FAIT, et il y en a un par visite : l'avoir vue sur un poste
+ * et l'autre sur un second ne se contredit pas — les deux sont vraies, et les deux
+ * se gardent.
+ *
+ * ⛔ ON NE JETTE PAS UNE CLÉ QU'ON NE RECONNAÎT PAS. Une clé inconnue de CE build
+ * est le plus souvent une visite qu'un déploiement plus récent a posée, et le
+ * lecteur peut avoir un onglet resté ouvert sur l'ancien : filtrer sur la liste
+ * connue effacerait, en silence, la décision prise dans l'autre onglet. La liste
+ * des visites est éditoriale, et c'est pourquoi la colonne n'a pas de `CHECK`.
+ *
+ * @param duPoste   ce que le stockage local de ce poste porte
+ * @param duCompte  ce que `profils.visites_faites` porte (null : jamais écrit)
+ * @returns `retenues`, l'union à poser au poste ; `aEcrireAuCompte`, la liste à
+ *          renvoyer en base, ou `null` quand le compte est déjà d'accord — un
+ *          rapprochement qui n'apprend rien au compte ne l'écrit pas.
+ */
+export function accorderVisites(
+  duPoste: Iterable<string>,
+  duCompte: readonly string[] | null | undefined,
+): { retenues: Set<string>; aEcrireAuCompte: string[] | null } {
+  const compte = new Set((duCompte ?? []).filter((c): c is string => typeof c === 'string' && c !== ''))
+  const retenues = new Set(compte)
+  let apporteesParLePoste = false
+  for (const cle of duPoste) {
+    if (typeof cle !== 'string' || cle === '') continue
+    if (!retenues.has(cle)) { retenues.add(cle); apporteesParLePoste = true }
+  }
+  // Le compte n'est réécrit que si le poste lui apprend quelque chose, ou s'il n'a
+  // jamais rien porté alors que le poste, lui, a une décision à lui confier.
+  const aEcrire = apporteesParLePoste || (duCompte == null && retenues.size > 0)
+  return { retenues, aEcrireAuCompte: aEcrire ? [...retenues].sort() : null }
+}
+
 function visitesDuNavigateur(): Set<string> {
   if (typeof window === 'undefined') return new Set()
   try {
@@ -527,35 +579,32 @@ function visitesDuNavigateur(): Set<string> {
   }
 }
 
-/** Vrai quand cette page s'est déjà présentée à ce lecteur. */
-export function visiteFaite(cle: string): boolean {
-  return visitesDuNavigateur().has(cle)
+/** Le miroir de ce poste, tel quel. Sert le rapprochement, qui a besoin de le LIRE
+ *  avant de le reposer. */
+export function visitesDuPoste(): Set<string> {
+  return visitesDuNavigateur()
 }
 
-/** ⚠️ On marque la visite FAITE dès qu'elle s'ouvre, et non à sa dernière étape :
- *  passer la visite et l'abandonner en chemin sont le même geste — celui de
- *  quelqu'un qui veut lire. Une visite qui reviendrait parce qu'on ne l'a pas
- *  menée à son terme serait exactement l'objet qu'on cherche à ne pas faire. */
-export function marquerVisiteFaite(cle: string): void {
+/** Repose le miroir en entier : c'est ce que fait le rapprochement, une fois par
+ *  session, quand le compte a des décisions que ce poste ignorait. */
+export function poserVisitesDuPoste(faites: Set<string>): void {
   if (typeof window === 'undefined') return
-  const faites = visitesDuNavigateur()
-  if (faites.has(cle)) return
-  faites.add(cle)
   try {
     window.localStorage.setItem(CLE_VISITES, ecrireVisites(faites))
   } catch {
-    // Stockage refusé (navigation privée, réglage du navigateur) : la visite
-    // reviendra au prochain passage. C'est le moindre mal.
+    // Stockage refusé (navigation privée, réglage du navigateur) : le compte garde
+    // la décision, ce poste la redemandera au prochain chargement. C'est le moindre mal.
   }
 }
 
-/** Rejouer la visite d'une page : la seule voie ouverte est l'adresse
- *  (`?visite=1`), que la page lit au montage. */
-export function oublierVisite(cle: string): void {
-  if (typeof window === 'undefined') return
-  const faites = visitesDuNavigateur()
-  if (!faites.delete(cle)) return
-  try {
-    window.localStorage.setItem(CLE_VISITES, ecrireVisites(faites))
-  } catch {}
-}
+// ⛔ ET C'EST TOUT CE QUE CE MODULE SAIT FAIRE : lire le miroir, le reposer, et
+// accorder deux mémoires. Il n'y a PLUS ici de `visiteFaite`, de `marquerVisiteFaite`
+// ni d'`oublierVisite` — la mémoire n'a plus qu'une porte, `useCompte()`, qui tient
+// ensemble les trois exemplaires : ce qu'on a retenu POUR CETTE SESSION, le miroir de
+// ce poste, et le compte. Trois écritures séparées finiraient par se contredire, et
+// c'est la règle que la charte pose déjà pour le thème de lecture.
+//
+// ⚠️ On marque la visite FAITE dès qu'elle S'OUVRE, et non à sa dernière étape :
+// passer la visite et l'abandonner en chemin sont le même geste — celui de quelqu'un
+// qui veut lire. Une visite qui reviendrait parce qu'on ne l'a pas menée à son terme
+// serait exactement l'objet qu'on cherche à ne pas faire. Voir `VisiteGuidee`.

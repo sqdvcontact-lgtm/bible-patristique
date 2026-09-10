@@ -27,7 +27,8 @@ import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigat
 import { memoriserTraductionBible } from '@/app/lib/preferenceBible'
 import VisiteGuidee from './VisiteGuidee'
 import { CLE_VISITE_BIBLE, VISITE_BIBLE_CLASSIQUE } from '@/app/lib/visiteBibleClassique'
-import { oublierVisite, visiteFaite, type EtapeVisite, type SceneVisite } from '@/app/lib/visiteGuidee'
+import { useCompte } from '@/app/lib/contexteCompte'
+import { type EtapeVisite, type SceneVisite } from '@/app/lib/visiteGuidee'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { modesLectureAlternatifs, type CibleLectureAlternative, type MembreFamilleLecture } from '@/app/lib/bibleModesAlternatifs'
 
@@ -114,6 +115,8 @@ export default function BibleLayout(props: Props) {
 }
 
 function PageBible({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, editionChapter, lectureBilingue, membresFamille, paratexteDisponible = false, texteSeul = false, sommaireEdition = [], pieceAffichee = null }: Props) {
+  // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
+  const { visiteFaite, oublierVisite, profilPret } = useCompte()
   const listeTraductions = traductions
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
@@ -568,13 +571,20 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // ⛔ Pas de fermeture suivie d'une réouverture à l'image suivante : une image ne se
   // joue pas dans un onglet caché, et le rappel resterait alors sans effet.
   const [visite, setVisite] = useState(0)
+  // ⛔ ON ATTEND `profilPret` : la décision de passer une visite vit sur le COMPTE,
+  // et tant que le profil n'est pas arrivé on ne sait pas ce qu'il en dit. Sans cette
+  // garde, un lecteur qui a passé la visite ailleurs la reverrait sur ce poste — le
+  // défaut même que la colonne `visites_faites` corrige. ⚠️ Ce n'est PAS un délai pour
+  // le visiteur sans compte : `profilPret` ne vaut alors que « la session est connue »,
+  // ce que `getSession` rend depuis le stockage local, sans réseau.
   useEffect(() => {
+    if (!profilPret) return
     const params = new URLSearchParams(window.location.search)
     if (params.has('visite')) oublierVisite(CLE_VISITE_BIBLE)
     else if (visiteFaite(CLE_VISITE_BIBLE)) return
     const depart = window.setTimeout(() => setVisite(1), DUREE_OUVERTURE_MS + 180)
     return () => window.clearTimeout(depart)
-  }, [])
+  }, [profilPret, visiteFaite, oublierVisite])
 
   // La page OFFRE sa visite à la barre de navigation, qui porte un bouton
   // d'administration pour la rappeler (voir app/lib/demandeDeVisite.ts). ⛔ La barre

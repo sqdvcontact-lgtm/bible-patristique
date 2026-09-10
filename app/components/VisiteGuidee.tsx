@@ -60,8 +60,9 @@ import IconeCopier from '@/app/components/IconeCopier'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
 import { normaliserEspaces } from '@/app/lib/typographie'
+import { useCompte } from '@/app/lib/contexteCompte'
 import {
-  cadreDuSujet, decoupeDuVoile, defilementDuSujet, marquerVisiteFaite, placerCarteVisite,
+  cadreDuSujet, decoupeDuVoile, defilementDuSujet, placerCarteVisite,
   traitVersSujet,
   type Cadre, type EtapeVisite, type IllustrationVisite, type SceneVisite, type Trait, type Visite, type Vue,
 } from '@/app/lib/visiteGuidee'
@@ -209,6 +210,9 @@ function trouverSujet(selecteurs: string[]): HTMLElement | null {
 }
 
 export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: VisiteProps) {
+  // La décision de passer cette visite est une préférence de COMPTE : c'est le
+  // contexte qui la retient, dans le miroir de ce poste et en base à la fois.
+  const { marquerVisiteFaite } = useCompte()
   // -1 : le grand message d'ouverture. Ensuite, le rang dans le scénario ENTIER —
   // jamais dans la liste réduite, qui change en cours de route.
   const [rang, setRang] = useState(-1)
@@ -265,8 +269,11 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
   }, [rang, rangSuivant, terminer, visite.etapes.length])
 
   // ⚠️ On marque la visite FAITE à l'ouverture, non à la fin : abandonner en chemin
-  // et passer sont le même geste (voir `marquerVisiteFaite`).
-  useEffect(() => { marquerVisiteFaite(visite.cle) }, [visite.cle])
+  // et passer sont le même geste (voir `visiteGuidee.ts`).
+  // ⛔ Par le CONTEXTE, non par le module : la décision se retient sur le COMPTE en
+  // même temps que dans le miroir de ce poste, sans quoi elle ne suivrait pas le
+  // lecteur d'un poste à l'autre.
+  useEffect(() => { marquerVisiteFaite(visite.cle) }, [visite.cle, marquerVisiteFaite])
 
   // La page prépare la scène dès l'entrée dans l'étape, avant même que le sujet
   // soit cherché : sur un téléphone, il n'existe pas tant que l'onglet est fermé.
