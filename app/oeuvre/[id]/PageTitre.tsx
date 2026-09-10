@@ -166,6 +166,22 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
   const anneeEnLigne = oeuvre.date_mise_en_ligne
     ? new Date(oeuvre.date_mise_en_ligne).getFullYear()
     : null
+  // ⛔ LES CRAYONS DU FRONTISPICE VONT DANS LA GOUTTIÈRE DE LA PAGE, comme ceux des
+  // titres du corps (`right: -52px` du bloc de lecture). Ils n'y allaient pas : le
+  // frontispice est une COLONNE FLEX centrée, chacune de ses enveloppes s'y réduisait
+  // à son contenu, et un crayon posé à `right: -20px` se collait donc à la FIN DE SA
+  // PROPRE LIGNE — mesuré le 2026-09-10, quatre crayons à quatre abscisses
+  // différentes, qui bougent avec la longueur du champ (relevé de l'auteur : « le
+  // crayon est un peu trop mal placé, généralement »). Les enveloppes prennent
+  // désormais toute la mesure du bloc (`alignSelf: 'stretch'`), le texte restant
+  // centré par le `text-align` de la racine, et les quatre crayons tombent sur un seul
+  // fer.
+  // ⚠️ 100 px = les 48 du rembourrage du frontispice, plus les 52 de la gouttière : le
+  // crayon d'un titre du corps et celui du titre de l'œuvre se posent alors au MÊME
+  // endroit, et l'on n'a la place à trouver qu'une fois. ⚠️ Sur téléphone, le
+  // rembourrage tombe à 22 px et la marge n'existe plus : le crayon reste DANS le
+  // rembourrage, faute de quoi il sortirait de l'écran.
+  const crayonDroite = mobile ? '-18px' : '-100px'
   return (
     // ⚠️ Le repère de la visite se pose ICI, sur la racine du frontispice, et non sur
     // une enveloppe posée autour dans la page : une enveloppe de plus romprait la
@@ -198,7 +214,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
           s'y coupait en deux, et les informations éditoriales paraissaient
           appartenir à autre chose. En em, chaque blanc suit le corps qu'il
           accompagne et la composition garde ses proportions à toute taille. */}
-      <div style={{ position: 'relative', maxWidth: '35rem' }}>
+      <div style={{ position: 'relative', alignSelf: 'stretch', maxWidth: '35rem' }}>
         <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(2.0625rem, 4.7vw, 3.125rem)', fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.18, marginBottom: oeuvre.sous_titre ? '0.2em' : titreOriginalVisible ? '0.26em' : '0.42em', whiteSpace: 'pre-line' }}>
           {/* Affichage = titre_affichage (avec sauts de ligne éditoriaux) si présent,
               sinon le titre canonique. L'édition admin ci-dessous vise le titre canonique. */}
@@ -206,32 +222,32 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
         </h1>
         {estAdmin && (
           <button onClick={() => onModifier('titre', titre)} title="Modifier le titre de l'œuvre"
-            style={{ ...BTN, right: '-24px', top: 0 }}><IconeCrayon size={12} /></button>
+            style={{ ...BTN, right: crayonDroite, top: 0 }}><IconeCrayon size={12} /></button>
         )}
       </div>
 
       {/* Sous-titre — agrandi, foncé, un peu plus détaché du titre */}
       {(oeuvre.sous_titre || estAdmin) && (
-        <div style={{ position: 'relative', maxWidth: '35rem' }}>
+        <div style={{ position: 'relative', alignSelf: 'stretch', maxWidth: '35rem' }}>
           <p style={{ fontFamily: SERIF, fontSize: 'clamp(1.125rem, 2.4vw, 1.5rem)', fontStyle: 'normal', color: 'var(--cs-texte)', margin: titreOriginalVisible ? '0 0 0.5em' : '0 0 1em', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
             {oeuvre.sous_titre ? rendreIntitule(sansPointFinal(oeuvre.sous_titre)) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.8125rem' }}>Sous-titre…</span> : null}
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('sous_titre', oeuvre.sous_titre ?? '')} title="Modifier le sous-titre"
-              style={{ ...BTN, right: '-20px', top: 0 }}><IconeCrayon size={12} /></button>
+              style={{ ...BTN, right: crayonDroite, top: 0 }}><IconeCrayon size={12} /></button>
           )}
         </div>
       )}
 
       {/* Titre original */}
       {(titreOriginalVisible || estAdmin) && (
-        <div style={{ position: 'relative', maxWidth: '35rem' }}>
+        <div style={{ position: 'relative', alignSelf: 'stretch', maxWidth: '35rem' }}>
           <p style={{ fontFamily: SERIF, fontSize: 'clamp(1rem, 2.1vw, 1.3125rem)', fontStyle: 'italic', color: 'var(--cs-texte-second)', marginBottom: '1em', letterSpacing: 0, whiteSpace: 'pre-line' }}>
             {titreOriginalVisible ? rendreIntitule(titreOriginal) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontSize: '0.8125rem' }}>Titre original…</span> : null}
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('titre_original', titreOriginal)} title="Modifier le titre original"
-              style={{ ...BTN, right: '-20px', top: 0 }}><IconeCrayon size={12} /></button>
+              style={{ ...BTN, right: crayonDroite, top: 0 }}><IconeCrayon size={12} /></button>
           )}
         </div>
       )}
@@ -262,13 +278,13 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
           qu'on ne peut pas corriger là — et sur un texte latin, à lui donner un
           traducteur qu'il n'a pas. */}
       {(traducteur || (estAdmin && !versionActive)) && (
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', alignSelf: 'stretch' }}>
           <p style={{ fontFamily: SERIF, fontSize: '0.875rem', color: 'var(--cs-texte-second)', marginBottom: '6px' }}>
             {traducteur ? <>{traducteurLabel}</> : <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.75rem' }}>Traduction de…</span>}
           </p>
           {estAdmin && !versionActive && (
             <button onClick={() => onModifier('trad_auteur', oeuvre.trad_auteur ?? '')} title="Modifier le traducteur"
-              style={{ ...BTN, right: '-18px', top: 0 }}><IconeCrayon size={12} /></button>
+              style={{ ...BTN, right: crayonDroite, top: 0 }}><IconeCrayon size={12} /></button>
           )}
         </div>
       )}

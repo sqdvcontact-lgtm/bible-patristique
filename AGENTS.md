@@ -2163,6 +2163,25 @@ La colonne de lecture est un conteneur centré dont la largeur est nommée : `la
 
 ⚠️ **Les crayons d'administration ne se paient plus sur le texte.** Aux rangs 2, 3 et 4 ils s'ancraient dans la gouttière (`right: '52px'`) ou imposaient à leur bloc un `paddingRight: estAdmin ? '44px' : 0` — un rembourrage qui décentrait un titre centré, et pour l'administrateur seulement, si bien que le défaut ne se voyait que de l'intérieur. Ils sont désormais tous posés à `right: '-52px'`, dans la marge libérée, hors du texte.
 
+⛔ **« TOUS POSÉS À `right: -52px` » ÉTAIT FAUX, et cette ligne l'a écrit pendant deux
+semaines.** Cinq crayons y échappaient — les quatre du FRONTISPICE et celui du titre de
+la barre de division —, non par oubli d'écriture mais parce qu'un `right` négatif ne se
+mesure que sur le bloc CONTENEUR. Le frontispice est une colonne flex centrée
+(`alignItems: 'center'`) : chacune de ses enveloppes s'y réduit à son contenu, et le
+crayon se collait donc à la fin de SA PROPRE LIGNE ; celui de la division était ancré au
+`<h2>`, qui est un enfant de flex et se réduit de même. Mesuré le 2026-09-10 : quatre
+crayons à quatre abscisses différentes, qui bougent avec la longueur du champ (relevé de
+l'auteur : « le crayon est un peu trop mal placé, généralement »). ⚠️ **Un crayon n'est
+donc pas dans la gouttière parce qu'on lui a écrit `-52px` : il y est si son bloc
+conteneur porte toute la mesure.** Les enveloppes du frontispice prennent
+`alignSelf: 'stretch'` (le texte reste centré par le `text-align` de la racine), et c'est
+la BARRE, non le titre, qui porte désormais `position: relative`.
+
+⚠️ **Le retrait du frontispice vaut 100 px et non 52** : ses 48 px de rembourrage, plus
+les 52 de la gouttière. Les deux familles de crayons tombent alors sur le MÊME fer, et
+l'on n'a la place à trouver qu'une fois. ⚠️ Sur téléphone, le rembourrage tombe à 22 px
+et il n'y a plus de marge : le crayon reste DEDANS, faute de quoi il sortirait de l'écran.
+
 ⚠️ Antériorité, à ne pas rejouer : le 2026-08-06, le correctif inverse avait été appliqué — les blocs de paragraphes (vue texte ET vue apparat) avaient reçu `paddingRight: gouttiereTitre` pour s'aligner sur des titres eux-mêmes compensés. C'était juste tant que la gouttière existait. Ne pas remettre de `paddingRight` sur ces blocs : la largeur se règle sur la colonne, en un seul endroit.
 
 # Page Œuvre — changer de TEXTE, c'est changer de PAGE (2026-08-25)

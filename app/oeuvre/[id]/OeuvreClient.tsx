@@ -3521,7 +3521,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
           {/* Navigation précédent/suivant — toujours au niveau 1 */}
           {vue === 'texte' && !modeComparaisonActif && !texteSansNiveaux && !lectureTexteEntier && (
-            <div id="barre-nav-niv1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
+            <div id="barre-nav-niv1" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
               {/* ⛔ ELLES SE NOMMENT. Leur nom accessible était le GLYPHE : un lecteur
                   d’écran annonçait « guillemet simple gauche », ou rien. Ce sont les
                   contrôles les plus employés de la page après le texte lui-même, et le
@@ -3536,7 +3536,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   niveau 1 en lecture ordinaire — le corps ne le rend qu'en texte entier —,
                   et elle le composait en SPAN : le plan de la page sautait du titre de
                   l'œuvre au niveau 2, et la division qu'on lit n'y figurait pas du tout. */}
-              <h2 style={{ fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'pre-line', overflowWrap: 'break-word', position: 'relative' }}>
+              <h2 style={{ fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'pre-line', overflowWrap: 'break-word' }}>
                 {niv1Erreur ? (
                   <span style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     Erreur de chargement.{' '}
