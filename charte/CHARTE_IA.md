@@ -2232,6 +2232,7 @@ Décisions de l’auteur, 9 septembre 2026. Ce paragraphe complète les §§ 13.
 - points de suspension `…`, jamais trois points séparés ;
 - guillemets français `« … »`, puis guillemets anglais `“…”` au second niveau ;
 - ⛔ une reprise brève du texte français commenté, lorsqu’elle reste en prose, se compose en romain entre guillemets français `« … »` ; l’italique ne signale jamais à lui seul la citation ;
+- ⛔ lorsqu’une note courte associe une reprise en prose à la référence qui l’identifie comme source ou parallèle précis, la référence précède la citation dans un seul bloc de référence : `++Cicéron++, *De re publica*, livre VI (*Somnium Scipionis*) : « … »`. La citation demeure en romain. Ne pas appliquer ce modèle à un simple renvoi de consultation ni à une référence qui n’attribue pas ou n’identifie pas réellement la reprise ;
 - ⛔ une citation ou un lemme constitué d’un ou plusieurs vers porte `form = verse`, conserve ses retours de vers et se compose toujours en romain, sans guillemets ajoutés autour du bloc ; `kind` continue de dire la fonction (`lemma` ou `quotation`) et ne doit jamais être falsifié pour obtenir le rendu ;
 - la règle d’italique du latin enchâssé dans une phrase française ne s’applique pas à un bloc versifié : un bloc `form = verse` reste en romain, quelle que soit sa langue ;
 - tiret demi-cadratin `–` pour toute incise ;
@@ -2255,7 +2256,7 @@ Pour « numéro », employer la forme typographiquement correcte avec le `o` sup
 
 **Bible.** Employer partout la forme normalisée de Corpus Scriptura : `Mt 5, 3`, `1 Co 2, 9`, `Rm 8, 28`, avec le système normalisé pour les intervalles et les versets discontinus. Les anciennes formes matérielles peuvent être conservées en provenance, non dans la référence normalisée. Pour les Psaumes, ne jamais convertir silencieusement une numérotation Septante/Vulgate en numérotation hébraïque ; donner les deux numérotations lorsqu’elles sont nécessaires, par exemple `Ps 50 (51), 3`.
 
-**Œuvres patristiques et autres.** Employer exactement la forme d’autorité et de référence normalisée en vigueur dans le reste de Corpus Scriptura. On donne les éléments réellement établis ; lorsqu’un éditeur, une édition ou une autre donnée manque, on s’en passe au lieu de l’inventer.
+**Œuvres patristiques et autres.** Employer exactement la forme d’autorité et de référence normalisée en vigueur dans le reste de Corpus Scriptura. On donne les éléments réellement établis ; lorsqu’un éditeur, une édition ou une autre donnée manque, on s’en passe au lieu de l’inventer.\n\n**Auteurs.** Dans toute référence de note, un nom d’auteur ne se compose jamais en capitales pleines tapées. Il suit la convention bibliographique du § 47 : une autorité antique ou médiévale se compose entièrement en petites capitales sémantiques ; pour une personne moderne, le prénom reste en romain et le nom de famille seul se compose en petites capitales. Dans un bloc textuel déjà matérialisé, le balisage reconnu est `++…++` ; la casse ne doit jamais servir à simuler les petites capitales.
 
 **Collections.** Développer les sigles de collection dans les références destinées au lecteur : par exemple `Patrologie grecque, nᵒ 54`, et non `PG 54`. La même règle vaut pour les autres collections.
 
@@ -7465,3 +7466,51 @@ autrement.
 écriture antérieure, dormait encore dans les navigateurs qui l'avaient reçue et y rouvrait le
 bilingue à elle seule, sans que le lecteur pût la défaire autrement qu'en choisissant
 « Français » une fois de plus.
+
+### 38.28 La PREMIÈRE LIGNE du volet patristique porte la flèche, et son fond est UNIFORME
+
+Deux demandes de l'auteur du 10 septembre 2026, dans la soirée, la seconde rectifiant ce que
+la première venait de servir : « la ligne tout en haut, avec la flèche pour rabattre le volet,
+n'est pas nécessaire ; on peut très bien placer cette flèche dans la ligne d'au-dessous », puis
+« ah non, il faut que la ligne soit de couleur uniforme (légèrement verte) ! »
+
+⛔ **UNE BANDE QUI NE PORTE PLUS QU'UN CONTRÔLE N'EST PLUS UNE LIGNE, C'EST UNE MARGE.**
+L'en-tête du volet avait été dessiné pour nommer le passage lu ; depuis que plus aucun appelant
+ne lui passe cette référence, il ne portait QUE la flèche de repli — trente-huit pixels et son
+filet pour un chevron de quatorze. La flèche descend donc dans la barre d'onglets, qui est la
+première ligne que le volet porte vraiment, et le bloc reste, prêt à reprendre la référence le
+jour où le volet se lirait ailleurs qu'à côté du texte.
+
+⛔ **UN FOND APPARTIENT À LA BARRE, JAMAIS À L'ONGLET RETENU.** L'aplat vert vivait sur le seul
+bouton actif : la flèche et la cale restaient au sol du volet, et la ligne se lisait verte au
+milieu et neutre aux deux bouts. Tant que la barre n'était faite que d'onglets à parts égales,
+personne ne le voyait ; il a suffi d'y poser un objet d'une autre nature pour que la couture
+paraisse. **Un aplat posé sur une PARTIE d'une rangée n'est un fond que par accident : il le
+devient pour de bon le jour où la rangée cesse d'être homogène.**
+
+⚠️ **La teinte NE CHANGE PAS, elle change de porteur.** C'est celle que l'auteur a vue et
+nommée « légèrement verte » ; rien de ce qui était déjà teinté ne fonce, ce sont les deux bouts
+neutres qui se remplissent. ⛔ On ne PROFITE pas d'un déplacement pour hausser une dose : le
+geste demandé serait alors mêlé à un geste qu'on ne demandait pas, et l'on ne saurait plus
+lequel des deux l'auteur juge.
+
+⛔ **L'ONGLET RETENU SE DISTINGUE ALORS COMME DANS LE MODÈLE PARTAGÉ**, qui ne pose aucun
+fond : par son trait, sa graisse et son encre. Trois axes, là où la règle des rangs voisins en
+demande deux. La barre uniforme n'a donc rien coûté à la lisibilité de l'onglet actif — mesuré,
+son libellé rend 10,98 au Clair et 8,06 en Cuir.
+
+⚠️ **Une teinte translucide se relit sur son NOUVEAU sol.** Passée du bouton à la barre, elle
+ne compose plus contre la même chose : ce qui se mesure est l'écart de la barre au sol du volet
+(1,057 au Clair, 1,079 en Cuir) et ce qu'elle prend aux encres qu'elle porte. Ici elle prend
+cinq et demi pour cent au libellé de l'onglet INACTIF, qui tombe de 3,79 à 3,58.
+
+⚠️ **ET CE LIBELLÉ ÉTAIT DÉJÀ SOUS LE SEUIL, sur tout le site.** Le rang que le modèle partagé
+donne à un onglet inactif ne rend pas les 4,5 qu'un texte de dix pixels et demi réclame, et
+cela ne tient pas à cette barre-ci : c'est une dette du modèle, à reprendre sur le modèle. ⛔ On
+ne la corrige pas dans un coin, sous peine de faire diverger une barre de ses cinq sœurs — et
+l'on ne la tait pas non plus.
+
+⚠️ **La flèche du repli reste sous son seuil elle aussi** : quatorze pixels dans l'encre la plus
+ténue de l'échelle, 2,66 sur la barre teintée quand un indicateur non textuel en demande 3.
+Elle est partagée avec le volet de la Bible, où elle vaut 2,98 : la corriger est une passe sur
+la flèche, non un effet de bord d'une passe sur le fond.

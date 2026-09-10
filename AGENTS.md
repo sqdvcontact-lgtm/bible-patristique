@@ -10299,3 +10299,71 @@ Demande du même jour, doctrine charte **§ 38.27**.
   dans les navigateurs qui l'avaient reçue et y rouvrait le bilingue à elle seule.
 - ⚠️ **`?mt=` l'emporte toujours** : un favori posé sur le texte original ne se retrouve pas
   autrement.
+
+# ⛔ LA PREMIÈRE LIGNE DU VOLET PATRISTIQUE (2026-09-10)
+
+Deux demandes de l'auteur dans la même soirée, la seconde rectifiant ce que la première
+venait de servir. Doctrine : charte `parametres.charte_ia`, **§ 38.28**. Ici, ce qu'il faut
+savoir pour y toucher — tout vit dans `app/components/PanneauPatristique.tsx`.
+
+⛔ **L'EN-TÊTE NE PORTE PLUS LA FLÈCHE, ET IL NE PARAÎT DONC PLUS DU TOUT.** « La ligne tout
+en haut, avec la flèche pour rabattre le volet, n'est pas nécessaire ; on peut très bien
+placer cette flèche dans la ligne d'au-dessous. » Le bloc était dessiné pour nommer le
+passage lu (`refAffichee`) ; ⚠️ **aucun appelant ne le passe plus depuis le 2026-09-08**, si
+bien qu'il ne portait QUE la flèche — trente-huit pixels et son filet pour un chevron de
+quatorze. Il est désormais gardé par `refFr`. ⛔ Le bloc RESTE, prêt à reprendre la référence
+le jour où le volet se lirait ailleurs qu'à côté du texte ; la flèche, elle, ne reviendra pas
+ici.
+
+⛔ **UN CHEVRON N'ENTRE PAS DANS LE CENTRAGE DES LIBELLÉS QU'IL ACCOMPAGNE.** Posé seul à
+gauche de la barre d'onglets, il pousse les onglets de sa largeur et « Pères de l'Église »
+cesse de tomber sur l'axe du volet. Une cale de même mesure lui répond à droite — le procédé
+du menu des bibles, où le chevron est doublé, son double invisible.
+
+⛔ **MAIS LA CALE NE PARAÎT QUE SOUS UN SEUL ONGLET, et ce n'est pas une économie** : elle
+existe pour rendre l'axe du volet à un libellé qui doit y tomber, et un libellé unique est le
+seul dans ce cas. Deux onglets ne sont centrés sur rien — ce qui compte alors est qu'ils
+soient ÉGAUX, ce que la flèche seule leur laisse. ⚠️ **Et elle coûte** : mesuré sur la
+composition réelle, deux onglets dans un volet de 260 px — sa largeur par défaut sur un
+portable — enroulent « Pères de l'Église » sur deux lignes AVEC la cale, sur une seule sans
+elle.
+
+## ⛔ Le FOND appartient à la BARRE, jamais à l'onglet retenu
+
+« Ah non, il faut que la ligne soit de couleur uniforme (légèrement verte) ! »
+
+⛔ **L'aplat vivait sur le seul bouton actif** (`background: onglet === t.code ? rgba(…,0.04)
+: 'transparent'`) : la flèche et la cale restaient au sol du volet, et la ligne se lisait
+verte au milieu et neutre aux deux bouts. Tant que la barre n'était faite que d'onglets à
+parts égales, personne ne le voyait ; il a suffi d'y poser un objet d'une autre nature pour
+que la couture paraisse. **Un aplat posé sur une PARTIE d'une rangée n'est un fond que par
+accident : il le devient pour de bon le jour où la rangée cesse d'être homogène.**
+
+⚠️ **LA TEINTE NE CHANGE PAS, ELLE CHANGE DE PORTEUR** : `rgba(var(--cs-vert-rgb),0.04)`
+monte sur le `<div>` de la barre, et les boutons passent à `background:'none'`. Rien de ce qui
+était déjà teinté ne fonce ; ce sont les deux bouts neutres qui se remplissent. ⛔ On ne
+PROFITE pas d'un déplacement pour hausser une dose : le geste demandé serait alors mêlé à un
+geste qu'on ne demandait pas, et l'on ne saurait plus lequel des deux l'auteur juge.
+
+⛔ **L'onglet retenu se distingue alors comme dans le modèle partagé** (`.cs-onglet`,
+globals.css), qui ne pose AUCUN fond : par son trait vert, sa graisse 600 et son encre. Trois
+axes, là où la règle des rangs voisins en demande deux. ⚠️ La transition suit désormais
+`border-color` et non plus `background`, qui n'a plus rien à animer.
+
+⚠️ **Mesuré sur planche** (`tmp/planche-barre-onglets.mjs`, non versionnée : elle inline la
+VRAIE `globals.css`, relit les deux fonds dans le fichier et dans `git show HEAD:…`, et pose à
+la main les deux variables de police de `next/font` — sans elles la déclaration est invalide
+et la planche mesure une autre composition que la page). Barre uniforme dans les quatre cas
+(un onglet, deux onglets × deux thèmes), écart au sol du volet **1,057 au Clair et 1,079 en
+Cuir**, encre de l'onglet actif **10,98 et 8,06**. ⚠️ Le Cuir ne se pose que sur la RACINE :
+la planche rend DEUX documents.
+
+⛔ **CE QUE LA TEINTE PREND AUX ENCRES SE MESURE, ET DEUX DETTES RESTENT OUVERTES.** Le
+libellé de l'onglet INACTIF tombe de 3,79 à **3,58** au Clair, et il était **déjà sous les 4,5**
+qu'un texte de 10,5 px réclame — c'est le rang que le MODÈLE PARTAGÉ donne à tout onglet
+inactif du site (`--cs-texte-gris`), donc une dette du modèle, à reprendre sur le modèle. ⛔ On
+ne la corrige pas dans un coin, sous peine de faire diverger cette barre de ses cinq sœurs.
+⚠️ De même la flèche de repli, `--cs-texte-doux` à quatorze pixels : **2,66** sur la barre
+teintée pour les 3 qu'un indicateur non textuel demande, et 2,98 sur le volet de la Bible, qui
+partage la classe `.cs-volet-reduire`. Deux surfaces, une seule classe : c'est une passe sur la
+flèche, non un effet de bord d'une passe sur le fond.
