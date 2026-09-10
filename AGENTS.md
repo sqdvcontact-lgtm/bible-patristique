@@ -999,9 +999,15 @@ le panneau d'un administrateur en session (`tmp/planche-panneau-mobile.mjs`, une
 375 px, avant et après côte à côte) : **quatre corps** (1rem pour la navigation, 0,9375
 pour le compte et les interrupteurs, 0,65625 pour les intertitres, 0,5 pour les familles
 d'admin), **trois rembourrages** (9 × 10, 9 × 12, 10 × 12), **cinq écarts** (11, 10, 8, 7,
-6), **sept bords gauches** (26, 28, 36, 47, 51, 55, 66 px) et **sept pictogrammes** sur une
+6), **sept bords gauches** (26, 28, 36, 47, 51, 55, 66 px) et **dix pictogrammes** sur une
 vingtaine de rangées. Après : **deux corps, deux rembourrages, UN bord gauche (28 px), zéro
-pictogramme**, pour 1 279 px de hauteur contre 1 258 — vingt-et-un pixels, 1,7 %.
+pictogramme**, et **1 320 px de hauteur contre 1 520** — deux cents pixels, 13 %.
+
+⚠️ **UNE PLANCHE QUI N'ÉCHANTILLONNE PAS MENT SUR CE QU'ELLE MESURE.** Elle ne portait que
+TROIS des six rubriques d'« Aller plus loin », et donnait donc le panneau pour 1 258 px
+quand il en fait 1 520 : la section la plus coûteuse y comptait pour moitié. ⛔ Une planche
+recopie la liste RÉELLE, ou elle ne mesure rien — c'est la même règle que « un outil qui
+nomme son périmètre dans une constante cesse de voir le corpus dès qu'il grandit ».
 
 ⛔ **TROIS CONSTANTES DE MODULE, ET RIEN D'AUTRE** : `RANGEE_MOBILE`, `INTERTITRE_MOBILE`,
 `GLOSE_MOBILE`. Toute rangée du panneau les prend — lien, action, interrupteur,
@@ -1041,17 +1047,28 @@ CHEVRON d'« Administration », et le marqueur de LIEN SORTANT de « Ma page pub
 champ de recherche garde sa forme de CHAMP : il EST son bloc, comme dans les volets de
 lecture, et son texte ne s'aligne donc pas sur les rangées.
 
-⚠️ **Ce que la reprise ne fait PAS, et qui reste ouvert** : les six rangées glosées font
-deux lignes quand les autres en font une. C'est une irrégularité de CONTENU, non de forme,
-et retirer une glose que l'auteur a demandée douze jours plus tôt serait outrepasser. À
-trancher s'il la trouve encore trop bavarde.
+⛔ **ET LES GLOSES SONT PARTIES LE SOIR MÊME** (décision de l'auteur : « aller plus loin
+prend trop de place ; se passer des explications »). Les six rubriques d'« Aller plus loin »
+portaient chacune la phrase du menu de bureau : elles faisaient donc deux lignes quand les
+quinze autres rangées en font une. Mesuré rangée par rangée sur la planche : **77 px contre
+41**, soit **463 px pour la seule section**, le tiers d'un panneau où l'on vient chercher un
+nom. Sans elles : **245 px**. ⚠️ `lienMobile` n'a plus de paramètre `dit` et `GLOSE_MOBILE`
+est supprimée — une forme gardée « au cas où » est une divergence qui attend.
+
+⚠️ **CE QUI SE PERD EST RÉEL, et l'arbitrage est assumé** : sur un téléphone il n'y a ni
+survol ni place pour tâtonner, et la glose était le seul indice de ce qu'une rubrique ouvre.
+Le bureau la garde. ⛔ Et la règle de la charte a été resserrée une TROISIÈME fois : ce qui
+doit se retrouver sur les deux écrans est le NOM d'une rubrique — ce par quoi on la DÉSIGNE
+— non ce par quoi on l'EXPLIQUE. Voir la section suivante.
 
 ## ⛔ Une RUBRIQUE se présente de la même façon sur les deux écrans (2026-09-06)
 
-⚠️ **RESSERRÉE LE 2026-09-10 : c'est l'INFORMATION d'une rubrique qui doit se retrouver sur
-les deux écrans — son nom et sa glose —, non son ORNEMENT.** La formule d'origine, « de la
-même façon », était trop large : elle a servi à garder sur un téléphone un pictogramme que
-le bureau seul peut porter. Voir la section précédente.
+⚠️ **RESSERRÉE DEUX FOIS LE 2026-09-10, et la seconde annule la première.** Au matin : « pas
+la façon, mais l'INFORMATION — le nom ET la glose ». Au soir : **le NOM seul**. Le
+pictogramme et la glose sont des façons de présenter un nom, et une façon se règle sur la
+place. ⛔ Ce qui doit se retrouver partout est ce par quoi on DÉSIGNE la chose, non ce par
+quoi on l'EXPLIQUE : une explication est une commodité, et une commodité qui coûte le tiers
+d'un panneau n'en est plus une. Voir la section précédente et la charte § 18.
 
 
 Demande de l'auteur : « pour Aller plus loin, présenter chaque rubrique un peu mieux, avec un petit pictogramme, un petit texte ». Le menu de BUREAU portait les deux depuis le 2026-08-30 ; le panneau MOBILE portait l'emblème sans la glose, c'est-à-dire six mots alignés sans un indice de ce qu'ils ouvrent. `lienMobile` prend donc un paramètre `dit`, et c'est la MÊME phrase des deux côtés : une rubrique ne se présente pas de deux façons selon l'écran.

@@ -857,9 +857,11 @@
 - ⚠️ Le seuil sépare des GESTES et non des conforts, et c’est ainsi qu’il se règle : un balayage de barre court entre huit cents et trois mille pixels par seconde, quand une main qui vise un onglet passe sous trois cent cinquante quelques centièmes de seconde avant de s’arrêter.
 - ⛔ Au clavier, le menu s’ouvre sur `:focus-visible` et non sur `:focus-within`, qui le gardait ouvert après un simple clic de souris sur l’onglet, lequel laisse le lien focalisé, le curseur parti depuis longtemps.
 - ⛔ Et une seule mécanique : deux menus voisins gouvernés l’un par une règle `:hover` de la feuille de styles, l’autre par un état de composant, finissent toujours par diverger.
-- ⛔ UNE RUBRIQUE DIT LA MÊME CHOSE SUR LES DEUX ÉCRANS — c’est son INFORMATION qui doit s’y retrouver, non son ornement (demande de l’auteur, 6 septembre 2026 : « présenter chaque rubrique un peu mieux, avec un petit pictogramme, un petit texte » ; règle resserrée le 10 septembre).
-- ⚠️ Et c’est la MÊME phrase des deux côtés : deux formulations d’une même rubrique divergeraient au premier ajustement.
-- ⚠️ La règle a d’abord été écrite « de la même FAÇON », et c’était trop large — elle a servi à garder sur un téléphone un pictogramme que le bureau seul peut porter.
+- ⛔ UNE RUBRIQUE PORTE LE MÊME NOM SUR LES DEUX ÉCRANS ; TOUT LE RESTE APPARTIENT À LA SURFACE QUI A LA PLACE DE LE LOGER (décision de l’auteur, 10 septembre 2026 : « aller plus loin prend trop de place ; se passer des explications »).
+- ⚠️ CETTE RÈGLE A ÉTÉ ÉCRITE TROIS FOIS EN UN JOUR, et il faut savoir pourquoi.
+- ⛔ Ce qui doit se retrouver partout est ce par quoi on DÉSIGNE la chose — son nom — non ce par quoi on l’EXPLIQUE.
+- ⚠️ CE QUI SE PERD EST RÉEL, et l’arbitrage est assumé.
+- ⛔ Une liste dont un quart des rangées est deux fois plus haute que les autres cesse d’être une liste.
 - ⛔ UN PANNEAU DE NAVIGATION AU DOIGT EST UNE SEULE LISTE, ET IL N’A DONC QU’UNE FORME DE RANGÉE (relevé de l’auteur, 10 septembre 2026 : « sous sa forme réduite, la navbar principale est immonde ; il faut tout uniformiser ; retirer les logos ; unifier les polices, les formes »).
 - ⚠️ Le corps retenu est le DOMINANT, jamais une moyenne — celui de la navigation, qui porte la plus grande part des rangées.
 - ⛔ ET LES PICTOGRAMMES PARTENT TOUS, OU AUCUN.

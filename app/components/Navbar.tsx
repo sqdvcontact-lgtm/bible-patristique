@@ -617,13 +617,6 @@ const INTERTITRE_MOBILE: React.CSSProperties = {
   textTransform: "uppercase", color: "rgba(255,255,255,0.5)",
   margin: "10px 0 2px", padding: "0 12px",
 };
-// ⚠️ 68 % de blanc, et c'est mesuré : sur le fond profond du panneau la glose rend
-// 4,8 de contraste, au-dessus des 4,5 qu'un texte de 13 px réclame. Plus effacée,
-// elle passerait sous le seuil.
-const GLOSE_MOBILE: React.CSSProperties = {
-  fontSize: "0.8125rem", lineHeight: 1.35, color: "rgba(255,255,255,0.68)",
-};
-
 function IconCoeur() {
   return (
     <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
@@ -1671,33 +1664,34 @@ export default function Navbar() {
     </Link>
   );
 
-  // Lien du menu mobile (liste verticale dépliée sous la barre).
-  // ⚠️ `embleme` n'est pas un ornement de plus : sur un téléphone il n'y a pas de
-  // survol, donc pas de glose, et le dessin est alors le seul indice de ce que la
-  // page contient. Le panneau garde une ligne par entrée — quinze entrées à deux
-  // lignes en feraient un rouleau.
-  // ⚠️ `dit` : la glose du menu de bureau, et la MÊME phrase — l'INFORMATION d'une
-  // rubrique ne se présente pas de deux façons selon l'écran. C'est l'ornement qui
-  // reste au bureau : l'emblème a quitté cette rangée le 2026-09-10.
+  // Lien du panneau mobile — UN NOM, RIEN D'AUTRE.
+  //
+  // ⛔ PAS DE GLOSE (décision de l'auteur, 2026-09-10 : « aller plus loin prend trop
+  // de place ; se passer des explications »). Les six rubriques d'« Aller plus loin »
+  // portaient chacune la phrase du menu de bureau : elles faisaient donc deux lignes
+  // quand les quinze autres rangées en font une, et pesaient à elles seules le tiers
+  // d'un panneau où l'on vient chercher un nom. Une liste dont un quart des rangées
+  // est deux fois plus haute que les autres cesse d'être une liste.
+  //
+  // ⚠️ CE QUI SE PERD EST RÉEL, et c'est un arbitrage assumé : sur un téléphone il n'y
+  // a ni survol ni place pour tâtonner, et la glose était le seul indice de ce qu'une
+  // rubrique ouvre. Le bureau la garde ; le panneau ne montre plus que les noms, comme
+  // il le fait déjà pour les quatre bibles et les dix-sept sections d'administration,
+  // dont aucune n'a jamais été glosée.
   //
   // ⚠️ Une rangée est un FLEX, ce qui règle au passage un vieux piège : elle était
   // en `display: block` hors emblème parce que, dans les groupes d'« Administration »,
   // les liens sont enfants d'un <div> bloc et non du flex-colonne du panneau — restés
   // inline, ils se chevauchaient. Un flex est de niveau bloc : le cas ne peut plus
   // se produire, et il n'y a plus qu'une écriture.
-  const lienMobile = (href: string, label: string, dit?: string) => {
+  const lienMobile = (href: string, label: string) => {
     const chemin = href.split("?")[0] || "/";
     const actif = pathname === chemin || (chemin !== "/" && pathname.startsWith(chemin));
     return (
       <Link key={href} href={href} onClick={() => setMobileOuvert(false)}
         aria-current={actif ? "page" : undefined}
-        style={{ ...RANGEE_MOBILE, alignItems: dit ? "flex-start" : "center", background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
-        {dit ? (
-          <span style={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 }}>
-            <span>{label}</span>
-            <span style={GLOSE_MOBILE}>{dit}</span>
-          </span>
-        ) : label}
+        style={{ ...RANGEE_MOBILE, background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
+        {label}
       </Link>
     );
   };
@@ -2175,7 +2169,9 @@ export default function Navbar() {
               {[...LIENS_LECTURE.map(l => (l.href === HREF_BIBLE_CLASSIQUE ? { ...l, href: hrefBibleMobile } : l)), ...LIENS_PRIMAIRES.filter(l => l.href !== "/librairies")].map(({ href, label }) => lienMobile(href, label))}
 
               <p style={INTERTITRE_MOBILE}>Aller plus loin</p>
-              {LIENS_ALLER_PLUS_LOIN.map(({ href, label, dit }) => lienMobile(href, label, dit))}
+              {/* ⚠️ `dit` n'est PAS passé : la glose reste au menu de bureau, qui a la
+                  place de la porter. Voir `lienMobile`. */}
+              {LIENS_ALLER_PLUS_LOIN.map(({ href, label }) => lienMobile(href, label))}
 
               {(estAdmin || estAdminEmail) && (
                 <>
