@@ -1,9 +1,28 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { supabase } from '@/app/lib/supabase'
-import ModalLienBiblique, { type ChampLienBiblique, type VersetLienBiblique } from '@/app/components/ModalLienBiblique'
+import type { ChampLienBiblique, VersetLienBiblique } from '@/app/components/ModalLienBiblique'
 import type { VRef } from './oeuvreTypes'
+
+/**
+ * ⛔ C'EST LA FENÊTRE QUI SE CHARGE À LA DEMANDE, PLUS LE BOUTON (2026-09-10).
+ *
+ * Ce composant était lui-même chargé à la demande depuis `OeuvreClient`, et il l'était
+ * au PREMIER CLIC SUR UN SEGMENT — le geste le plus courant de la lecture. Or un morceau
+ * de code d'un déploiement précédent rend **404** sur le domaine (mesuré le 10 septembre
+ * 2026) : un onglet ouvert avant un déploiement recevait donc un échec de chargement à ce
+ * clic-là, Next rechargeait la page en dur, et le lecteur se retrouvait en haut. Il ne le
+ * voyait qu'une fois par page, et jamais deux fois de suite — de quoi chercher longtemps
+ * du côté du gestionnaire de clic, qui n'y est pour rien.
+ *
+ * Le bouton pèse quatre-vingts lignes : il entre dans le bundle de la page, et plus aucun
+ * morceau ne part au premier clic. ⚠️ La FENÊTRE, elle, en fait trois cent quarante et
+ * n'est utile qu'à l'administrateur : elle reste chargée à la demande, mais derrière un
+ * geste EXPLICITE et rare, où un rechargement se comprend au lieu de surprendre.
+ */
+const ModalLienBiblique = dynamic(() => import('@/app/components/ModalLienBiblique'))
 
 export default function AssocierVerset({ segId, onAssocie }: {
   segId: number

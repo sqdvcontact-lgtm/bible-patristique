@@ -102,6 +102,12 @@ import { useEditeursCharges } from '@/app/lib/editeurs'
 import { adresseEdition } from '@/app/lib/adresseEdition'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
 import NomVolet from '@/app/components/NomVolet'
+// ⛔ STATIQUE, ET C'EST UNE CORRECTION (2026-09-10). Chargé à la demande, ce composant
+// partait au PREMIER CLIC SUR UN SEGMENT : sur un onglet ouvert avant un déploiement, son
+// morceau de code rendait 404 et Next rechargeait la page en dur, ramenant le lecteur en
+// haut. Le geste le plus courant de la lecture ne doit demander AUCUN morceau de code. La
+// fenêtre qu'il ouvre, elle, reste à la demande, dans le fichier même.
+import AssocierVerset from './AssocierVerset'
 import { Fleuron } from './Ornements'
 import { FLEURONS, fleuronDe, FLEURON_DU_SITE } from '@/app/lib/fleurons'
 import EtoileFavori from '@/app/components/EtoileFavori'
@@ -263,7 +269,6 @@ function chargerCodesTraductions(): PromiseLike<string[]> {
 // « ?compare= » ouvrirait sur du vide.
 const ModaleEditionAdmin = dynamic(() => import('./ModaleEditionAdmin'))
 const MenuExtraction = dynamic(() => import('./MenuExtraction'))
-const AssocierVerset = dynamic(() => import('./AssocierVerset'))
 const ComparaisonTraductions = dynamic(() => import('./ComparaisonTraductions'))
 
 // ── Proposition de lien biblique (non-admin) ──────────────────────────────────
