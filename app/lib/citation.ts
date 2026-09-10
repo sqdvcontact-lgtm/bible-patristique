@@ -6,6 +6,7 @@ import {
   htmlFragments,
   texteFragments,
 } from './referenceBibliographiqueSorties'
+import { sansAppelsDeNote } from './appelsDeNote'
 import { normaliserEspaces } from './typographie'
 import { sansCesures } from './cesuresLatines'
 
@@ -68,15 +69,25 @@ export function capitaliserInitiale(texte: string): string {
   )
 }
 
-// Texte cité prêt à être encadré : guillemets internes convertis, ponctuation finale
-// normalisée, initiale capitalisée si elle manque.
+// Texte cité prêt à être encadré : appels de note retirés, guillemets internes
+// convertis, ponctuation finale normalisée, initiale capitalisée si elle manque.
 export function preparerTexteCitation(texte: string): string {
   // Même espacement qu'à la lecture : le presse-papiers emporte le texte BRUT,
   // pas le rendu. Sans cela, une citation collée dans un traitement de texte
   // ramenait l'espace pleine chasse du corpus là où l'écran montrait une fine.
   // Une césure conditionnelle est une affaire de mise en page : elle n'a rien à
   // faire dans un presse-papiers, où elle voyagerait en caractère invisible.
-  return sansCesures(normaliserEspaces(capitaliserInitiale(normaliserPonctuationFinale(convertirGuillemetsInternes(texte.trim())))))
+  //
+  // ⛔ LES APPELS DE NOTE PARTENT EN PREMIER, et l'ordre n'est pas indifférent.
+  // Ils tombent, par la règle du site, JUSTE AVANT la ponctuation finale
+  // (« mot[[12]]. ») et parfois en tête de passage : les laisser fausserait les
+  // deux règles qui suivent. `normaliserPonctuationFinale` lirait « ] » comme
+  // dernier signe et ajouterait un point après le marqueur ; et
+  // `capitaliserInitiale`, dont les marques de tête admettent le crochet,
+  // buterait sur le chiffre et laisserait la minuscule. Voir `sansAppelsDeNote`.
+  return sansCesures(normaliserEspaces(capitaliserInitiale(normaliserPonctuationFinale(
+    convertirGuillemetsInternes(sansAppelsDeNote(texte).trim()),
+  ))))
 }
 
 /** Ce que la page tient d'une œuvre pour la citer : les champs du catalogue, sous les

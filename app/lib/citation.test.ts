@@ -153,3 +153,43 @@ describe('citationBiblique', () => {
       .toBe('« Au commencement Dieu créa. » (Gn 1, 1)')
   })
 })
+
+// ── Une citation ne porte pas d'appel de note (2026-09-10) ────────────────────
+// ⛔ Demande de l'auteur : « sur les copier/coller, exclure les numéros d'appels de
+// note de la citation ». Un appel est un RENVOI vers un apparat que le presse-papiers
+// n'emporte pas : collé ailleurs, il devient un nombre qui ne mène nulle part.
+//
+// ⚠️ Ces gardes portent sur la PORTE, `preparerTexteCitation`, par où passent les six
+// boutons de copie du site et l'affichage d'un prélèvement. Le retrait lui-même est
+// éprouvé dans `appelNote.test.ts`.
+describe('les appels de note ne partent pas dans le presse-papiers', () => {
+  const info = { auteur: 'Augustin', titre: 'Confessions' }
+
+  it('retire l’appel du texte préparé', () => {
+    expect(preparerTexteCitation('il le dit[[12]].')).toBe('Il le dit.')
+  })
+
+  it('n’en laisse aucun dans une citation patristique, plein-texte comme HTML', () => {
+    const { texte, html } = citationPatristique('au commencement[[3]], Dieu créa[[4]].', info)
+    expect(texte).not.toMatch(/\[\[/)
+    expect(html).not.toMatch(/\[\[/)
+    expect(texte).toContain('Au commencement, Dieu créa.')
+  })
+
+  it('n’en laisse aucun dans une citation biblique', () => {
+    expect(citationBiblique('au commencement[[1]]', 'Gn 1, 1'))
+      .toBe('« Au commencement. » (Gn 1, 1)')
+  })
+
+  // ⛔ L'ORDRE compte, et ces deux gardes le tiennent : l'appel tombe JUSTE AVANT la
+  // ponctuation finale et parfois en tête. Laissé en place, il ferait lire « ] » comme
+  // dernier signe (un point s'ajouterait APRÈS le marqueur), et le crochet de tête
+  // ferait manquer l'initiale à capitaliser.
+  it('capitalise l’initiale même quand un appel ouvre le passage', () => {
+    expect(preparerTexteCitation('[[7]]au commencement')).toBe('Au commencement.')
+  })
+
+  it('pose le point à la place de l’appel, non après lui', () => {
+    expect(preparerTexteCitation('il le dit[[12]]')).toBe('Il le dit.')
+  })
+})

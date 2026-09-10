@@ -31,8 +31,12 @@ import { replier } from "@/app/lib/bibleBibliographieOuvrages";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import OngletsPage from "@/app/components/OngletsPage";
 
-// Les appels de note ([[A]], [[B1]]…) ne doivent pas paraître dans les citations.
-const sansAppelsNote = (t: string) => t.replace(/\[\[[A-Z0-9]+\]\]/g, "");
+// ⛔ « Les appels de note ne doivent pas paraître dans les citations » : la règle
+// était ÉCRITE ICI, et elle ne valait que pour l'affichage — les deux boutons de
+// copie, à trois lignes de là, emportaient les marqueurs dans le presse-papiers.
+// Elle vit désormais dans `sansAppelsDeNote` (appelsDeNote.ts), que
+// `preparerTexteCitation` applique : l'affichage et la copie disent enfin la même
+// chose. ⚠️ Celle d'ici ne retirait que le marqueur, laissant 485 espaces doubles.
 
 type TypePrelevement = "biblique" | "patristique";
 
@@ -700,7 +704,7 @@ export default function PagePrelevements() {
                           <span className="prel-ref" style={estPref ? { color: "var(--cs-or)" } : undefined}>{ref}</span>
                           <div>
                             <p className="prel-texte">
-                              «&#8201;{rendreTexteEnrichi(preparerTexteCitation(sansAppelsNote(texte)))}&#8201;»
+                              «&#8201;{rendreTexteEnrichi(preparerTexteCitation(texte))}&#8201;»
                             </p>
                             {nomTrad && <p className="prel-provenance">Prélevé dans la {nomTrad}</p>}
                           </div>
@@ -766,7 +770,7 @@ export default function PagePrelevements() {
                           </span>
                           <div>
                             <p className="prel-texte">
-                              «&#8201;{rendreTexteEnrichi(preparerTexteCitation(sansAppelsNote(texteReuni)))}&#8201;»
+                              «&#8201;{rendreTexteEnrichi(preparerTexteCitation(texteReuni))}&#8201;»
                             </p>
                           </div>
                           <div className="prel-actions">

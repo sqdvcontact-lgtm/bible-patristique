@@ -25,6 +25,7 @@ import { useSansSurvol } from '@/app/lib/useEstMobile'
 import {
   PONCTUATION_ATTACHEE,
   detacherDernierMot,
+  sansAppelsDeNote,
   separateurAppels,
   styleAppelNote,
   styleSeparateurAppels,
@@ -100,8 +101,12 @@ function collerMotsCourts(texte: string) {
 // l'intitulé. Elle est donc masquée là, et là seulement — l'appel reste actif
 // dans le titre développé du corps. L'espace qui précède part avec le marqueur,
 // sans quoi l'intitulé garderait un blanc double.
+// ⚠️ Le retrait lui-même vit dans `appelsDeNote.ts`, avec la forme de l'appel : le
+// presse-papiers et l'affichage d'un prélèvement le demandent aussi, et il y avait
+// trois écritures pour une seule règle. Celle-ci ne prenait que `[ \t]`, donc ni
+// l'insécable ni la fine, que le corpus emploie devant un appel.
 export function titreSansAppelsDeNote(texte: string) {
-  return normaliserTitreTechnique(texte.replace(/[ \t]*\[\[[A-Z0-9]+\]\]/g, ''))
+  return normaliserTitreTechnique(sansAppelsDeNote(texte))
 }
 
 // ── Forme de l'appel selon l'endroit où il se trouve ──────────────────────────

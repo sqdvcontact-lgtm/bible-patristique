@@ -1702,7 +1702,65 @@ Règles de mise en forme arrêtées par l'auteur, centralisées dans `app/lib/ci
 - **Majuscule initiale** : `capitaliserInitiale` met une capitale au premier mot si l'initiale est minuscule (citation extraite en cours de phrase). Saute les marques de tête (guillemets, parenthèses, balises `<i>`…) ; ne touche ni une initiale déjà capitale ni un début non alphabétique. Intégré à `preparerTexteCitation`, donc appliqué au copier/coller ET à l'affichage des prélèvements.
 - **API** : `citationPatristique(texte, info)` → `{ texte, html }` (auteur, *titre*, trad., éditeur, collection, ville, année, « disponible sur le site Corpus Scriptura » : « … ») ; `citationBiblique(texte, ref)` → `« … » (ref)` ; `preparerTexteCitation(texte)` pour l'affichage seul (guillemets + ponctuation finale) ; `copierCitation(res)` pour le presse-papiers riche.
 - **Unifications faites** : l'ordre est désormais **trad. avant éditeur**, la mention finale est « disponible sur le site Corpus Scriptura » partout, et les copies de `BoutonsSegment`, `BoutonsVerset`, `TexteBible`, `PanneauPatristique` et `app/prelevements/page.tsx` passent toutes par le module (5 copies de `convertirGuillemetsInternes` et 3 de `construireCitationPatristique` supprimées). L'affichage de `prelevements` applique `preparerTexteCitation` au passage montré (le titre y était déjà en italique).
-- **Non touchés (volontaire)** : `ActionsVerset` (copie du texte brut d'un verset, sans encadrement) et `SelecteurCitation` (insertion d'une citation DANS un commentaire, autre flux).
+- **Non touché (volontaire)** : `ActionsVerset` (copie du texte brut d'un verset, sans encadrement). ⚠️ `SelecteurCitation` l'était aussi jusqu'au 2026-09-10 ; voir ci-dessous.
+
+## ⛔ UNE CITATION NE PORTE PAS D'APPEL DE NOTE (2026-09-10)
+
+Demande de l'auteur : « sur les copier/coller, exclure les numéros d'appels de note de la
+citation ». Un appel est un RENVOI vers un apparat que le presse-papiers n'emporte pas :
+collé dans un traitement de texte, il devient un nombre qui ne mène nulle part et que le
+lecteur prend pour un mot du texte.
+
+⛔ **LE RETRAIT VIT DANS `sansAppelsDeNote` (`app/lib/appelsDeNote.ts`), et nulle part
+ailleurs.** Il y avait TROIS écritures pour une seule règle, et aucune ne servait la
+copie : `titreSansAppelsDeNote` pour le sommaire, une aide locale sur la page des
+prélèvements, et rien pour le presse-papiers. `preparerTexteCitation` l'applique
+désormais, donc les six boutons de copie du site d'un coup.
+
+⚠️ **MESURÉ SUR LE CORPUS avant d'écrire une ligne** : 14 059 appels dans 10 590 segments
+sur 110 405, répartis sur 47 textes — **près d'un passage copié sur dix**. Tous sont des
+CHIFFRES de un à quatre signes, aucun hors de la forme `[[A-Z0-9]+]]`, et **aucun verset
+biblique n'en porte** : le chemin biblique était donc déjà sain, et il n'y avait rien à y
+faire.
+
+⛔ **LE BLANC QUI PRÉCÈDE PART AVEC LE MARQUEUR**, et ce n'est pas un raffinement :
+mesuré, **721 appels sont précédés d'une espace et 485 vivent ENTRE DEUX espaces**. Un
+retrait qui ne prendrait que le marqueur laisserait 485 espaces doubles et 236 espaces
+orphelines devant une ponctuation — « il le dit . » —, c'est-à-dire le défaut qu'on croit
+corriger. ⚠️ C'est ce que faisait l'aide locale des prélèvements, à l'AFFICHAGE, depuis
+toujours.
+
+⚠️ **Le blanc absorbé est HORIZONTAL seulement** (`[^\S\r\n]`) : la classe couvre
+l'insécable et la fine, que le corpus emploie, mais épargne le saut de ligne — un appel en
+tête de ligne emporterait sinon la coupure qui le précède, et deux paragraphes se
+colleraient. Une garde existante de `titreSansAppelsDeNote` le tenait déjà ; elle passe
+inchangée, ce qui prouve que la réunion n'a rien déplacé.
+
+⛔ **LES APPELS PARTENT EN PREMIER, avant les autres règles de la citation.** Ils tombent,
+par la règle du site, JUSTE AVANT la ponctuation finale (« mot[[12]]. ») et parfois en
+tête de passage. Laissés en place : `normaliserPonctuationFinale` lit « ] » comme dernier
+signe et ajoute un point APRÈS le marqueur ; et `capitaliserInitiale`, dont les marques de
+tête admettent le crochet, bute sur le chiffre et laisse la minuscule.
+
+⛔ **LE VOLET PATRISTIQUE N'EST PAS SUR CE CHEMIN, et il ne faut pas l'y mettre.** Son
+RENDU pose les appels par OFFSET, et il appelle `capitaliserInitiale` DIRECTEMENT — d'où
+la règle, déjà écrite, que cette fonction ne change jamais la longueur du texte.
+`sansAppelsDeNote`, lui, la change : le passer sur ce chemin décalerait tous les appels.
+Rendu AVEC ses appels, copié SANS : les deux gestes ne demandent pas la même chose.
+
+⚠️ **`SelecteurCitation` a rejoint la règle, et c'était le cas le plus coûteux des six** :
+son corps cité ne va pas dans un presse-papiers mais dans une PUBLICATION, où le marqueur
+resterait écrit. ⛔ Il garde en revanche sa propre `convertirGuillemetsInternes`, qui est
+une quatrième écriture de cette règle-là : à réunir un autre jour, ce n'était pas la
+question posée.
+
+⚠️ **Piège d'atelier payé DEUX fois ce jour-là.** Un accent grave dans un `node -e` en
+guillemets doubles est exécuté par le shell : mon assertion s'est retrouvée écrite
+`sansAppelsDeNote()`, sans argument. Et l'outil d'édition a écrit mon commentaire de
+`SelecteurCitation.tsx` avec des `\uXXXX` LITTÉRAUX, illisibles dans la source, alors
+qu'il a préservé les caractères réels dans les deux autres fichiers de la même passe.
+**On contrôle les OCTETS après une écriture, jamais le rendu d'un outil de lecture**
+(`tmp/controle-echappements.mjs`).
 
 ## La citation favorite — une marque unique, le QUADRILOBE (2026-08-22)
 

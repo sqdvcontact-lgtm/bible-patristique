@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { sansAppelsDeNote } from '@/app/lib/appelsDeNote'
 import { titreSansAppelsDeNote, notesPourTexte, preparerTitreColophon, lireSuiteAppels, detacherDernierMot, separateurAppels, rendreTexteAvecNotes, styleAppelNote, styleSeparateurAppels } from './appelNote'
 import { styleLigneDeVers } from '@/app/lib/compositionVers'
 
@@ -205,5 +206,57 @@ describe('l’appel ne prend pas l’alinéa du bloc', () => {
   it('⛔ parce que l’appel est une BOÎTE, et que le vers pend son retrait', () => {
     expect(styleAppelNote().display).toBe('inline-block')
     expect(String(styleLigneDeVers({ rang: 0 }).textIndent)).toMatch(/^-/)
+  })
+})
+
+// ── Retirer les appels d'un texte qu'on emporte ───────────────────────────────
+// ⛔ Les cas viennent des MESURES du corpus (2026-09-10), non de l'imagination :
+// 14 059 appels dans 10 590 segments, dont 8 743 suivis d'une ponctuation, 721
+// précédés d'un blanc, 485 ENTRE DEUX blancs, 60 en tête de segment, 119 en fin.
+describe('sansAppelsDeNote', () => {
+  it('retire l’appel collé au mot, sans toucher à la ponctuation qui suit', () => {
+    expect(sansAppelsDeNote('il le dit[[12]].')).toBe('il le dit.')
+  })
+
+  // ⛔ Le cas des 485 : sans absorber le blanc de gauche, il resterait DEUX espaces.
+  it('absorbe le blanc qui précède, sinon l’espace se double', () => {
+    expect(sansAppelsDeNote('il le dit [[12]] et se tut')).toBe('il le dit et se tut')
+  })
+
+  // ⛔ Le cas des 721 : sans cela, une espace orpheline reste devant le point.
+  it('ne laisse pas d’espace orpheline devant une ponctuation', () => {
+    expect(sansAppelsDeNote('il le dit [[12]].')).toBe('il le dit.')
+  })
+
+  it('prend l’insécable et la fine, que le corpus emploie devant un appel', () => {
+    expect(sansAppelsDeNote(`il le dit${INSECABLE}[[12]].`)).toBe('il le dit.')
+    expect(sansAppelsDeNote('il le dit' + FINE + '[[12]].')).toBe('il le dit.')
+  })
+
+  // ⛔ Le blanc absorbé est HORIZONTAL : un appel en tête de ligne emporterait sinon
+  // la coupure qui le précède, et deux paragraphes se colleraient.
+  it('épargne le saut de ligne', () => {
+    expect(sansAppelsDeNote('premier\n[[12]]second')).toBe('premier\nsecond')
+  })
+
+  it('tient l’appel en tête et en fin de passage', () => {
+    expect(sansAppelsDeNote('[[3]]Au commencement').trim()).toBe('Au commencement')
+    expect(sansAppelsDeNote('au commencement[[3]]')).toBe('au commencement')
+  })
+
+  it('tient deux appels qui se suivent, et un numéro à quatre chiffres', () => {
+    expect(sansAppelsDeNote('il le dit[[2]][[3]].')).toBe('il le dit.')
+    expect(sansAppelsDeNote('il le dit[[1468]].')).toBe('il le dit.')
+  })
+
+  it('ne touche pas à un texte qui n’en porte aucun', () => {
+    expect(sansAppelsDeNote('il le dit, et se tut.')).toBe('il le dit, et se tut.')
+  })
+
+  // ⚠️ Un crochet qui n'est pas un appel appartient au texte : la restitution
+  // éditoriale « [il] » est un usage philologique du corpus.
+  it('laisse les crochets qui ne sont pas des appels', () => {
+    expect(sansAppelsDeNote('il [m’]exauça')).toBe('il [m’]exauça')
+    expect(sansAppelsDeNote('[lecture incertaine : abc]')).toBe('[lecture incertaine : abc]')
   })
 })

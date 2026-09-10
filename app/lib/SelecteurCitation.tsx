@@ -5,6 +5,7 @@ import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { useState, useEffect, type CSSProperties, type ReactNode } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import { sansAppelsDeNote } from '@/app/lib/appelsDeNote'
 import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { cleTriTitre } from '@/app/lib/titres'
@@ -119,10 +120,19 @@ function terminaison(texte: string): { corps: string; fin: string } {
   return { corps: t.replace(/[.\u2026,;:\u00b7]+$/u, '').trim(), fin: '.' }
 }
 
-// Corps cit\u00e9 : enrichissement retir\u00e9, guillemets internes convertis en guillemets courbes,
-// JAMAIS de guillemets fran\u00e7ais autour, ponctuation finale isol\u00e9e dans `fin`.
+// Corps cité : appels de note retirés, enrichissement retiré, guillemets internes
+// convertis en guillemets courbes, JAMAIS de guillemets français autour, ponctuation
+// finale isolée dans `fin`.
+//
+// ⛔ LES APPELS PARTENT ICI AUSSI, et c'est le cas le plus coûteux des six : ce corps
+// ne va pas dans un presse-papiers mais dans une PUBLICATION, où un « [[12]] »
+// resterait écrit. Un appel est un renvoi vers un apparat que l'essai ne porte pas.
+// ⚠️ Ils partent AVANT `terminaison`, pour la même raison qu'ailleurs : l'appel tombe
+// juste avant la ponctuation finale, et le crochet serait pris pour le dernier signe.
 function corpsCitation(texte: string): { corps: string; fin: string } {
-  return terminaison(convertirGuillemetsInternes(texteSansEnrichissement(String(texte ?? '')).trim()))
+  return terminaison(convertirGuillemetsInternes(
+    sansAppelsDeNote(texteSansEnrichissement(String(texte ?? ''))).trim(),
+  ))
 }
 
 type OeuvreMeta = {

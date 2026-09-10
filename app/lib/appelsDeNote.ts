@@ -163,3 +163,38 @@ export function detacherDernierMot(texte: string): [string, string] {
 export function separateurAppels(rang: number, total: number) {
   return rang === total - 1 ? `${NBSP_APPELS}&${NBSP_APPELS}` : `,${NBSP_APPELS}`
 }
+
+// ── Retirer les appels d’un texte qu’on emporte ───────────────────────────────
+//
+// ⛔ UNE CITATION NE PORTE PAS D’APPEL DE NOTE (demande de l’auteur, 2026-09-10 :
+// « sur les copier/coller, exclure les numéros d’appels de note de la citation »).
+// Un appel est un RENVOI vers un apparat que le presse-papiers n’emporte pas : collé
+// dans un traitement de texte, il devient un nombre qui ne mène nulle part et que le
+// lecteur prend pour un mot du texte. C’est le même raisonnement qui l’écarte déjà du
+// sommaire — « un appel qu’on ne peut pas lire ».
+//
+// ⚠️ MESURÉ SUR LE CORPUS le 2026-09-10 : 14 059 appels dans 10 590 segments sur
+// 110 405, répartis sur 47 textes — près d’un passage copié sur dix. Tous sont des
+// CHIFFRES, de un à quatre signes ; aucun n’est hors de la forme retenue ici, et aucun
+// verset biblique n’en porte.
+const RE_APPEL_DE_NOTE = /[^\S\r\n]*\[\[[A-Z0-9]+\]\]/g
+
+/**
+ * Le texte sans ses appels de note. C’est la SEULE écriture de ce retrait sur le
+ * site : elle sert le presse-papiers, l’affichage d’un prélèvement et le sommaire
+ * d’une œuvre, qui en tenaient chacun la leur.
+ *
+ * ⛔ LE BLANC QUI PRÉCÈDE PART AVEC LE MARQUEUR, et ce n’est pas un détail de
+ * confort : mesuré, 721 appels sont précédés d’une espace et 485 vivent ENTRE DEUX
+ * espaces. Un retrait qui ne prendrait que le marqueur laisserait donc 485 espaces
+ * doubles et 236 espaces orphelines devant une ponctuation — « il le dit . » —,
+ * c’est-à-dire le défaut qu’on croyait corriger.
+ *
+ * ⚠️ Le blanc absorbé est HORIZONTAL seulement (`[^\S\r\n]`) : la classe couvre
+ * l’insécable et la fine, que le corpus emploie, mais épargne le saut de ligne — un
+ * appel en tête de ligne emporterait sinon la coupure qui le précède, et deux
+ * paragraphes se colleraient.
+ */
+export function sansAppelsDeNote(texte: string): string {
+  return texte.replace(RE_APPEL_DE_NOTE, '')
+}
