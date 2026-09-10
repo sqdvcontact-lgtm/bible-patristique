@@ -90,7 +90,18 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
     numeros.set(marqueur, n)
     return n
   }
-  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]+)\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)/g
+  // ⛔ LA MÊME LISTE DE CONVENTIONS QUE LE MOTEUR DE LA PAGE DE LECTURE, à la lettre
+  // près : `app/oeuvre/[id]/appelNote.tsx`, `rendreTexteAvecNotes`. Elle en était une
+  // COPIE, et une copie diverge — celle-ci ignorait `<i>…</i>` et `++petites
+  // capitales++`, si bien qu'un lecteur voyait « <i>avec l'argent</i> » en toutes
+  // lettres dans une citation d'Augustin (relevé de l'auteur, 2026-09-10), quand la
+  // page de l'œuvre rendait la même phrase en italique. Le corpus porte ce balisage par
+  // dizaines de milliers : 1 383 dans les Questions sur l'Heptateuque, 6 876 versets de
+  // la Sacy. `PanneauPatristique.balisage.test.ts` confronte désormais les deux
+  // écritures et refuse qu'elles s'écartent.
+  // ⚠️ Les deux alternatives ajoutées le sont EN FIN, pour ne pas renuméroter les
+  // groupes de celles qui précèdent.
+  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]+)\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>|\+\+(.+?)\+\+/g
   let dernierIndex = 0, k = 0, m: RegExpExecArray | null
   while ((m = regex.exec(texte))) {
     if (m.index > dernierIndex) noeuds.push(texte.slice(dernierIndex, m.index))
@@ -127,6 +138,12 @@ function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): Rea
       noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)
       noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[8]}</sup>)
       noeuds.push(m[9])
+    }
+    // ⚠️ `<i></i>` vide ne rend rien : une balise refermée aussitôt est une scorie
+    // d'import, et un `<em>` vide laisserait un nœud sans texte dans la citation.
+    else if (m[10] !== undefined) { if (m[10]) noeuds.push(<em key={k++}>{m[10]}</em>) }
+    else if (m[11] !== undefined) {
+      noeuds.push(<span key={k++} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{m[11]}</span>)
     }
     dernierIndex = regex.lastIndex
   }
