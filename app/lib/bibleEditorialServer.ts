@@ -3,7 +3,13 @@ import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { recomposerFragmentsMateriels, type BibleSourceFragment } from './bibleEdition'
+import {
+  selectionnerGlosesCanoniquesV2,
+  type LigneExtraCanoniqueV2,
+  type SourceGloseCanoniqueV2,
+} from './bibleCanoniqueV2'
 import { numerotationAlternative, referenceNativeDuSegment } from './bibleReferenceNative'
+import { TRAD_ID_BIBLE899, TRAD_ID_BIBLE899_MODERNE } from './bible899'
 import { lotsPourClauseIn } from './paginationSupabase'
 
 export type CanonRow = {
@@ -57,6 +63,7 @@ export type VersetEditorialAdapte = {
   verset: number
   ordre: number
   _estEditorial: true
+  _estGloseV2?: true
   [key: string]: string | number | boolean | null | undefined
 }
 
@@ -239,21 +246,17 @@ function adapterCanonSansTexte(canon: CanonRow, translationId: string): VersetEd
 //
 // La traduction moderne de la Bible du XIIIe siècle (TR0013, 2026-09-03) n'a ni
 // colonne dans `versets_lecture` ni segmentation éditoriale : son texte est dans
-// `versets_v2`, un verset par ligne, chaque ligne portant son `canon_id`. Elle se
-// lit donc par le canon, comme une édition éditoriale, mais sans rien recomposer.
-// La forme rendue est celle de `chargerVersetsEditoriaux`, si bien que la page,
-// la lecture en regard et le volet des livres n'ont rien à apprendre de plus.
+// `versets_v2`. Les versets portent leur `canon_id`; les gloses manuscrites
+// autonomes, par construction, n'en portent aucun. Elles restent pourtant dans la
+// lecture, immédiatement après leur créneau hôte et sans faux identifiant canonique,
+// exactement comme les gloses de TR0009. Rubriques, dittographies, colophons et
+// autres MANUSCRIPT_EXTRA demeurent exclus de la lecture biblique ordinaire.
 //
 // ⚠️ La RLS de `versets_v2` décide qui lit (une traduction `est_privee` n'existe que
 // pour l'administrateur) : une lecture vide ici n'est pas une erreur.
 
-type VersetV2Row = {
+type VersetV2Row = LigneExtraCanoniqueV2 & {
   canon_id: string | null
-  ch_orig: number | null
-  v_orig: number | null
-  v_orig_suffixe: string | null
-  texte: string | null
-  ordre_slot: number | null
 }
 
 export async function chargerVersetsCanoniquesV2(
@@ -280,17 +283,43 @@ export async function chargerVersetsCanoniquesV2(
 
   // Un chapitre tient sous le plafond de lignes, mais pas toujours sous celui de
   // l'ADRESSE : les Psaumes 119 comptent 176 créneaux. Lots par octets, jamais par
-  // nombre (voir `lotsPourClauseIn`).
+  // nombre (voir `lotsPourClauseIn`). Les gloses de TR0013 partent dans la même
+  // vague : les rendre visibles n'ajoute donc pas un aller-retour au chemin critique.
   const lignes: VersetV2Row[] = []
-  await Promise.all(lotsPourClauseIn(canonRows.map((row) => row.id)).map(async (lot) => {
+  const chargementCanonique = Promise.all(lotsPourClauseIn(canonRows.map((row) => row.id)).map(async (lot) => {
     const { data, error } = await client
       .from('versets_v2')
-      .select('canon_id,ch_orig,v_orig,v_orig_suffixe,texte,ordre_slot')
+      .select('id,canon_id,livre,ch_orig,v_orig,v_orig_suffixe,texte,ordre_slot,note_structure')
       .eq('trad_id', options.translationId)
       .in('canon_id', lot)
     if (error) throw new Error(`Versets de ${options.translationId} illisibles : ${error.message}`)
     lignes.push(...((data ?? []) as VersetV2Row[]))
   }))
+
+  const chargementGloses = options.translationId === TRAD_ID_BIBLE899_MODERNE
+    ? Promise.all([
+        client
+          .from('v_bible899_verse_recomposed')
+          .select('canonical_context')
+          .eq('trad_id', TRAD_ID_BIBLE899)
+          .eq('livre', options.livre)
+          .eq('chapitre', options.chapitre)
+          .is('canon_id', null)
+          .eq('alignment_status', 'MANUSCRIPT_EXTRA')
+          .eq('manuscript_extra', true)
+          .eq('phenomenon', 'gloss'),
+        client
+          .from('versets_v2')
+          .select('id,livre,ch_orig,v_orig,v_orig_suffixe,texte,ordre_slot,note_structure')
+          .eq('trad_id', options.translationId)
+          .eq('livre', options.livre)
+          .eq('ch_orig', options.chapitre)
+          .is('canon_id', null)
+          .order('ordre_slot'),
+      ])
+    : Promise.resolve(null)
+
+  const [, glosesChargees] = await Promise.all([chargementCanonique, chargementGloses])
 
   // Plusieurs lignes peuvent viser le même créneau (un verset scindé) : elles se
   // suivent par `ordre_slot`, puis par numérotation native.
@@ -304,7 +333,7 @@ export async function chargerVersetsCanoniquesV2(
   const nativeDe = (ligne: VersetV2Row): string | null =>
     ligne.ch_orig != null && ligne.v_orig != null ? `${ligne.ch_orig}, ${ligne.v_orig}${ligne.v_orig_suffixe ?? ''}` : null
 
-  return canonRows.map((canon) => {
+  const canoniques = canonRows.map((canon) => {
     const groupe = (parCanon.get(canon.id) ?? []).sort((a, b) =>
       (a.ordre_slot ?? 0) - (b.ordre_slot ?? 0) || (a.v_orig ?? 0) - (b.v_orig ?? 0))
     const texte = groupe.map((ligne) => ligne.texte?.trim() ?? '').filter(Boolean).join(' ')
@@ -318,5 +347,47 @@ export async function chargerVersetsCanoniquesV2(
       [options.translationId]: texte.length > 0 ? texte : null,
       [`num_${options.translationId}`]: differentes.length > 0 ? differentes.join(' · ') : null,
     }
+  })
+
+  if (glosesChargees === null) return canoniques
+  const [sourcesResult, extrasResult] = glosesChargees
+  if (sourcesResult.error) throw new Error(`Gloses du témoin 899 illisibles : ${sourcesResult.error.message}`)
+  if (extrasResult.error) throw new Error(`Extras de ${options.translationId} illisibles : ${extrasResult.error.message}`)
+
+  const glosesParCanon = selectionnerGlosesCanoniquesV2(
+    (sourcesResult.data ?? []) as SourceGloseCanoniqueV2[],
+    (extrasResult.data ?? []) as LigneExtraCanoniqueV2[],
+  )
+  if (glosesParCanon.size === 0) return canoniques
+
+  const canonIds = new Set(canonRows.map((canon) => canon.id))
+  for (const canonId of glosesParCanon.keys()) {
+    if (!canonIds.has(canonId)) {
+      throw new Error(`Glose V2 rattachée hors du chapitre demandé : ${canonId}`)
+    }
+  }
+
+  // Une glose reçoit, comme dans `adapterVersets899`, un numéro technique négatif
+  // uniquement pour fabriquer un identifiant DOM sans collision. `glosses899.css`
+  // masque ce nombre et affiche « Glose ». Le véritable identifiant reste l'UUID de
+  // `versets_v2`, et `ref` conserve le créneau canonique hôte.
+  return canoniques.flatMap((canon) => {
+    const gloses = (glosesParCanon.get(canon.id) ?? []).map((ligne): VersetEditorialAdapte => {
+      const ordreSlot = ligne.ordre_slot as number
+      const texte = ligne.texte?.trim() ?? ''
+      return {
+        id_verset: ligne.id,
+        ref: canon.ref,
+        livre: canon.livre,
+        chapitre: canon.chapitre,
+        verset: -ordreSlot,
+        ordre: canon.ordre,
+        _estEditorial: true,
+        _estGloseV2: true,
+        [options.translationId]: texte.length > 0 ? texte : null,
+        [`num_${options.translationId}`]: 'Glose',
+      }
+    })
+    return [canon, ...gloses]
   })
 }
