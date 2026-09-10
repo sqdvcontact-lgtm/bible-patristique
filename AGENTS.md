@@ -10367,3 +10367,96 @@ ne la corrige pas dans un coin, sous peine de faire diverger cette barre de ses 
 teintée pour les 3 qu'un indicateur non textuel demande, et 2,98 sur le volet de la Bible, qui
 partage la classe `.cs-volet-reduire`. Deux surfaces, une seule classe : c'est une passe sur la
 flèche, non un effet de bord d'une passe sur le fond.
+
+# ⛔ LES BLOCS D'UNE NOTE SE COMPOSENT D'UNE SEULE MAIN (2026-09-10)
+
+Relevé de l'auteur sur la note d'Ovide de la *Consolation* : « harmoniser un peu mieux les
+polices, tailles, espacements ». Doctrine : charte `parametres.charte_ia`, **§ 13.17**.
+Ici, ce qu'il faut savoir pour y toucher.
+
+⛔ **LA COMPOSITION D'UN BLOC VIT DANS `compositionNote.ts`, plus dans le composant.**
+`styleBlocNote({ detache, vers, versEnLignes, italique, sautsMateriels })` la porte, avec
+`RETRAIT_BLOC_ENCART`, `CORPS_DISCRET_ENCART` et `STYLE_DISCRET_ENCART`. Elle était écrite
+en styles en ligne dans `ContenuNoteStructuree`, et c'est là qu'elle avait dérivé — trois
+corps, deux retraits de deux unités, deux marques dans une boîte de 436 px. C'est la
+divergence que ce module a réunie en septembre, et elle repoussait par un autre bout.
+
+⛔ **UN SEUL CORPS POUR CE QUE LA NOTE CITE** : le vers valait `0.9em` — 10,35 px contre
+11,5 pour sa propre traduction. Aucune des cinq autres surfaces où le site compose des vers
+ne réduit le corps (`styleBlocDeVers` prend `CORPS_LECTURE`, l'apparat biblique
+`STYLE_CORPS`). Ce qui dit qu'un vers est un vers est le RETOUR À LA LIGNE.
+
+⛔ **UN SEUL FER, EN `em`** : 9,32 px pour le vers, **10 px** pour la traduction — des
+pixels, qui ne suivent pas la police racine fluide. `RETRAIT_BLOC_ENCART` vaut **1,5 em**,
+la valeur du vers partout ailleurs (`RETRAIT_BASE`), et les deux blocs partent du même fer.
+⚠️ **Le retrait appartient au BLOC quand il coule, à la LIGNE quand elle est une boîte** :
+`styleLigneDeVers` porte alors sa propre marge, et les cumuler doublerait le fer. D'où le
+drapeau `versEnLignes`.
+⛔ On n'IMPORTE pas `RETRAIT_BASE` pour autant : une traduction n'est pas un vers, et deux
+modules qui se nouent pour une valeur commune se contraignent l'un l'autre au premier
+réglage.
+
+⛔ **PAS DE FILET.** Le filet doré ne portait que la traduction ; le vers n'avait rien. Le
+site l'a déjà tranché pour la citation sortie d'une œuvre — « ni guillemets ni filet ».
+
+## ⛔ Un VERS se rend LIGNE À LIGNE, et l'encart en était la SIXIÈME surface
+
+⛔ **La justification et la césure sont posées sur le CORPS de l'encart** (`styleCorpsEncart`),
+d'où elles cascadent dans chaque bloc : un bloc de vers rendu par un simple `pre-line` en
+héritait, et « Jam mihi deterior canis » se coupait en « ca-/nis » au bout de la piste.
+`styleBlocNote({ vers: true })` pose donc `textAlign: left`, `textAlignLast: left` et
+`hyphens: none` — la règle de la charte § 7.4, que la lecture d'une œuvre, son apparat, son
+introduction et l'apparat d'une bible partagent déjà.
+
+⛔ **ET LES LIGNES SONT DES BOÎTES** (`lignesDeVers` + `styleLigneDeVers({ rang: 0 })`, le
+patron de `BibleEditionParatext`) : `text-indent` ne s'applique qu'à la PREMIÈRE ligne d'un
+bloc, et jamais après un saut forcé — sans boîte, le retrait de suite ne se poserait que
+sur le premier vers.
+
+⚠️ **ELLE RÈGLE AUSSI L'ANCRAGE EN TÊTE, sans qu'on ait à le nommer.** Le lemme reste un
+fragment EN LIGNE, et l'inline qui précède un enfant de bloc forme sa propre ligne : il
+cesse de se coller au premier vers. ⛔ La règle du § 13.10 n'est pas défaite — un ancrage ne
+fait toujours pas paragraphe.
+
+⛔ **ON NE DÉCOUPE PAS un bloc dont le texte est tranché par ailleurs** : une notice
+bibliographique se pose par OFFSETS dans le texte entier, un renvoi en ligne s'attache à sa
+fin. Un tel bloc garde le `pre-line` d'avant. Même garde que sur l'apparat biblique.
+⚠️ Un renvoi `manual_line_break_in_verse` devient alors une BOÎTE lui aussi : le saut
+matériel n'a plus de `pre-line` pour le rendre.
+
+## ⛔ Un seul RANG DISCRET, et la boîte qui porte enfin la note
+
+⛔ **`CORPS_DISCRET_ENCART` (0,94 em) est le seul rang de ce qu'on TRAVERSE.** Il y en avait
+DEUX : 0,92 em pour la coordonnée et le renvoi (`STYLE_DISCRET`, écrit dans le composant),
+0,94 pour l'apparat critique — 10,58 px contre 10,81, un quart de pixel.
+
+⛔ **L'ESTIMATION DE HAUTEUR NE COMPTAIT QUE DES SIGNES**, ni les blancs entre blocs ni les
+lignes forcées d'un vers. `reliefDeLaNote(note)` rend `{ blocs, lignesForcees }`, et les
+trois appelants (`appelNote`, `ComparaisonTraductions`, `NoteBibliqueFenetre`) le passent.
+⚠️ **Mesuré au navigateur sur la composition SERVIE** : la note d'Ovide prend 179,67 px sur
+la mesure pleine et 259,2 sur la mesure étroite, quand la boîte lui en promettait 120 et
+199 — **elle défilait déjà avant cette passe**. Avec le relief : 185 et 265.
+⚠️ **On SURESTIME plutôt qu'on ne sous-estime** — même parti que `CHASSE_MOYENNE_EM` : une
+boîte un peu trop haute ne se voit pas, une boîte trop courte fait défiler. Un renvoi rendu
+en ligne compte donc pour un bloc de plus, six pixels de blanc contre une note tronquée.
+
+⚠️ **LA PORTÉE EST ÉTROITE, ET ELLE EST MESURÉE** : sur les 24 864 blocs de note du corpus,
+**69 portent des vers, 77 sont des traductions, et 36 notes portent les deux**. C'est une
+raison de ne PAS étendre le retrait aux citations en prose (69 blocs), qui se lisent au fil
+de la note ; ce n'en est pas une de laisser trois corps dans la même boîte.
+
+## ⚠️ Deux pièges d'atelier payés dans cette passe
+
+⛔ **UNE ANCRE MULTI-LIGNE ÉCRITE EN LF NE S'APPARIE PAS DANS UN FICHIER EN CRLF.**
+`ContenuNoteStructuree.test.tsx` est en CRLF quand ses voisins sont en LF : un script de
+reprise normalise en mémoire et rend la fin de ligne d'origine.
+⚠️ Et les suites « antislash + n » se composent par `String.fromCharCode(92)` : tapées dans
+un `node -e`, elles arrivent dans le fichier comme de vrais retours à la ligne — piège déjà
+consigné, payé deux fois de plus ici.
+
+⚠️ **UNE PLANCHE PEUT RENDRE LE VRAI COMPOSANT HORS NAVIGATEUR** : `esbuild` empaquette
+`ContenuNoteStructuree` et `compositionNote`, `renderToStaticMarkup` rend le fragment, et
+l'« avant » se prend en restaurant les deux fichiers depuis `git show HEAD:…` le temps d'un
+rendu. ⛔ Rien n'y est rejoué de mémoire. ⚠️ Le sérialiseur de styles doit connaître les
+propriétés SANS unité (`lineHeight`, `fontWeight`…) : un « line-height: 1.38px » ferait
+annoncer un défaut qui n'existe que dans la planche.

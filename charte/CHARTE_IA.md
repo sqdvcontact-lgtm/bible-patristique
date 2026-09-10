@@ -2231,8 +2231,8 @@ Décisions de l’auteur, 9 septembre 2026. Ce paragraphe complète les §§ 13.
 - apostrophe typographique `’`, jamais l’apostrophe droite dans le français normalisé ;
 - points de suspension `…`, jamais trois points séparés ;
 - guillemets français `« … »`, puis guillemets anglais `“…”` au second niveau ;
-- ⛔ une reprise brève du texte français commenté, lorsqu’elle reste en prose, se compose en romain entre guillemets français `« … »` ; l’italique ne signale jamais à lui seul la citation ;
-- ⛔ lorsqu’une note courte associe une reprise en prose à la référence qui l’identifie comme source ou parallèle précis, la référence précède la citation dans un seul bloc de référence : `++Cicéron++, *De re publica*, livre VI (*Somnium Scipionis*) : « … »`. La citation demeure en romain. Ne pas appliquer ce modèle à un simple renvoi de consultation ni à une référence qui n’attribue pas ou n’identifie pas réellement la reprise ;
+- ⛔ une reprise brève du texte français commenté, lorsqu’elle reste en prose, se compose en romain entre guillemets français `« … »` ; l’italique ne signale jamais à lui seul la citation ;\n- ⛔ **RÈGLE ABSOLUE DE POSITION DE LA RÉFÉRENCE PAR RAPPORT À UNE CITATION.** Si la citation est **incrustée dans une phrase ou un développement**, la référence vient **après la citation, entre parenthèses**. Si la citation est **isolée comme bloc autonome**, la référence vient **avant la citation** et se termine par **deux-points**. On n’emploie jamais, pour une citation isolée, le modèle inverse « citation puis référence ». Cette règle vaut également lorsqu’une traduction suit immédiatement la citation isolée : la référence précède le bloc cité, puis viennent la citation et sa traduction.
+- ⛔ **POSITION DE LA RÉFÉRENCE — RÈGLE ABSOLUE, DEUX CAS ET DEUX SEULEMENT.** Lorsqu’une citation identifiée est **incrustée dans une phrase ou un paragraphe de prose**, elle reste à sa place dans le texte et sa référence vient **immédiatement après la citation, entre parenthèses** : `… « texte cité » (++Cicéron++, *De re publica*, livre VI).` Lorsqu’une citation est **isolée comme unité autonome de la note**, la référence vient **avant**, sans parenthèses, et se termine par un deux-points avant la citation : `++Cicéron++, *De re publica*, livre VI (*Somnium Scipionis*) : « texte cité. »` La citation française se compose en romain. ⛔ Il n’existe aucun troisième ordre admis : jamais une référence nue après une citation isolée, jamais une référence avant une citation incrustée. Les simples renvois de consultation sans citation (`Voir…`) ne relèvent pas de cette opposition ;
 - ⛔ une citation ou un lemme constitué d’un ou plusieurs vers porte `form = verse`, conserve ses retours de vers et se compose toujours en romain, sans guillemets ajoutés autour du bloc ; `kind` continue de dire la fonction (`lemma` ou `quotation`) et ne doit jamais être falsifié pour obtenir le rendu ;
 - la règle d’italique du latin enchâssé dans une phrase française ne s’applique pas à un bloc versifié : un bloc `form = verse` reste en romain, quelle que soit sa langue ;
 - tiret demi-cadratin `–` pour toute incise ;
@@ -7514,3 +7514,67 @@ l'on ne la tait pas non plus.
 ténue de l'échelle, 2,66 sur la barre teintée quand un indicateur non textuel en demande 3.
 Elle est partagée avec le volet de la Bible, où elle vaut 2,98 : la corriger est une passe sur
 la flèche, non un effet de bord d'une passe sur le fond.
+
+### 13.17 Les BLOCS d'une note se composent d'une seule main
+
+Relevé de l'auteur du 10 septembre 2026, sur la note d'Ovide de la *Consolation de la
+philosophie* : « harmoniser un peu mieux les polices, tailles, espacements ». Quatre blocs
+dans une boîte de 436 pixels — un lemme français, quatre vers latins, leur traduction, le
+renvoi — et trois corps, deux retraits de deux unités différentes, deux marques.
+
+⛔ **UN SEUL CORPS POUR CE QUE LA NOTE CITE.** Le vers se composait un cran sous la prose
+qui l'entoure : 10,35 px contre 11,5, si bien que la source latine paraissait plus petite
+que sa propre traduction, dans une boîte qui porte déjà le rang discret de l'appareil.
+Aucune des cinq autres surfaces où le site compose des vers ne le fait — le corps d'une
+œuvre, son apparat, son introduction et l'apparat d'une bible donnent tous au vers le corps
+de la prose voisine. **Ce qui dit qu'un vers est un vers est le RETOUR À LA LIGNE, non la
+taille.**
+
+⛔ **UN SEUL FER POUR TOUT CE QUI SE DÉTACHE, ET IL SE COMPTE EN `em`.** Le vers rentrait
+de 9,32 px — 0,9 em d'un bloc lui-même réduit — et la traduction de **10 px**, des pixels,
+qui ne suivent pas la police racine : sur un grand écran, la traduction se resserrait toute
+seule et la source cessait de partir du même fer qu'elle. Les deux valent désormais
+**1,5 em**, la valeur du vers partout ailleurs sur le site, et c'est ce fer commun qui tient
+la source et sa traduction ensemble.
+
+⛔ **ET PAS DE FILET.** Deux blocs d'un même passage portaient deux marques différentes :
+un filet doré sur la traduction, rien sur le vers. Le site a déjà tranché ce cas pour la
+citation sortie d'une œuvre — « ni guillemets ni filet » — et la raison vaut ici : le
+retrait dit tout, et une barre de deux pixels dans une piste de deux cent vingt en dit
+trop.
+
+⛔ **UN VERS NE SE CÉSURE NI NE SE JUSTIFIE, ET L'ENCART EST SA SIXIÈME SURFACE.** Il s'y
+rendait par un simple `pre-line`, si bien qu'il héritait de la justification et de la
+césure posées sur le CORPS de l'encart : sur la capture, « Jam mihi deterior canis » se
+coupait en « ca-/nis ». Il se rend désormais LIGNE À LIGNE, en boîtes, avec le style que
+les cinq autres surfaces partagent (§ 7.4) — pas de césure, retrait de suite, alinéa.
+
+⚠️ **Et la boîte règle le lemme sans qu'on ait à le nommer.** Un ancrage en tête reste un
+fragment EN LIGNE ; l'inline qui précède un enfant de bloc forme sa propre ligne. Le lemme
+cesse donc de se coller au premier vers, ce qui le poussait au delà de la piste. La règle
+du § 13.10 n'est pas défaite : elle dit qu'un ancrage ne fait pas paragraphe, et il n'en
+fait toujours pas.
+
+⛔ **UN SEUL RANG DISCRET.** Ce qu'on TRAVERSE pour atteindre le propos — la coordonnée
+d'où vient la note, le renvoi qui suit sa cible — se composait à 0,92 em, l'apparat
+critique à 0,94 : **un quart de pixel d'écart**, c'est-à-dire la dérive même que l'échelle
+typographique du site a défaite ailleurs, où trente valeurs se pressaient entre 10 et 14 px.
+
+⛔ **LA BOÎTE DOIT PORTER LA NOTE, ET L'ESTIMATION NE COMPTAIT QUE DES SIGNES.** Une note
+n'est pas une coulée : ses blocs sont séparés d'un blanc, et un bloc de vers occupe autant
+de lignes qu'il porte de vers, si courts soient-ils. Mesurée au navigateur sur la
+composition servie, la note d'Ovide prend **179,67 px sur la mesure pleine et 259,2 sur la
+mesure étroite**, quand la boîte lui en promettait 120 et 199 : **elle défilait déjà avant
+cette passe**. L'estimation compte donc le RELIEF de la note — ses blocs, ses lignes
+forcées — et rend 185 et 265.
+
+⚠️ **On SURESTIME plutôt qu'on ne sous-estime**, et c'est le parti déjà pris pour la chasse
+moyenne : une boîte un peu trop haute ne se voit pas, une boîte trop courte fait défiler.
+Un renvoi rendu en ligne après sa cible compte donc pour un bloc de plus — six pixels de
+blanc en trop, contre une note tronquée.
+
+⚠️ **La portée est étroite, et elle est mesurée** : sur les 24 864 blocs de note du corpus,
+**69 portent des vers et 77 sont des traductions**, et **36 notes portent les deux**. Ce
+n'est pas une raison de laisser trois corps dans la même boîte — c'en est une de ne pas
+étendre le retrait aux citations en prose, qui se lisent au fil de la note et n'ont rien à
+détacher.
