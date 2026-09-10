@@ -9007,3 +9007,54 @@ défaut se serait lu comme une donnée fautive plutôt que comme un rendu qui l'
 famille accueille la nature suivante sans qu'on y pense, une énumération jamais. ⚠️ Le
 vocabulaire a une source unique, mais rien n'oblige les fonctions qui le CONSOMMENT à passer
 par elle : c'est là que la prochaine nature se perdra.
+
+# ⛔ 78 Go DE DÉPLOIEMENTS, ET C'EST LA CADENCE QUI LES A FAITS (2026-09-10)
+
+Quatre jours après la purge du 2026-09-06, le compteur Vercel affichait de nouveau
+**77,73 Go sur 10 Go** de « Deployment Storage » — 777 % —, et 12,86 Go sur 10 de
+« Functions Storage ». Purge refaite, **198 déploiements effacés sur 224**, le site
+n'a pas bronché.
+
+```
+npx vercel remove bible-patristique --safe --yes
+```
+
+⛔ **Ce n'est pas le POIDS qui a changé, c'est le NOMBRE.** 224 déploiements en trente
+jours, dont **209 pour les dix premiers jours de septembre** : une vingtaine par jour.
+77,73 Go ÷ 224 = **347 Mo pièce**, alors que le dépôt suivi ne pèse que quelques dizaines
+de mégaoctets — le gros est la sortie de build et les fonctions, déjà mesurées à ~240 Mo
+(« L'EXTRACTION D'UNE ŒUVRE », plus haut). **Le plafond ne se tient donc pas en allégeant
+le dépôt : il se tient en déployant moins.** Alléger reste utile pour le temps de build,
+pas pour ce quota-là.
+
+⚠️ **Et la cadence coûte bien plus cher que du stockage : elle brûle le CPU inclus.**
+Relevé le même jour : Active CPU **3 h 02 sur 4 h**, écritures ISR **92 K** pour
+**110 K lectures**. Un rapport de un pour un est aberrant — un cache sain lit cent fois
+pour une écriture. **Chaque déploiement invalide le cache ISR** : toutes les pages sont
+à régénérer, vingt fois par jour. Les 78 Go n'étaient que le symptôme VISIBLE.
+
+⛔ **Le danger n'est pas le voyant rouge, c'est l'orange.** Le stockage est un STOCK : il
+déborde sans couper le site, et une commande le vide. Le CPU est un DÉBIT, et la doc
+Vercel est nette — dépasser une limite Hobby, c'est « attendre que trente jours soient
+passés avant de pouvoir réutiliser la fonctionnalité ». À 4 h, les fonctions se
+suspendent et **le site tombe** jusqu'à la fin de la fenêtre.
+
+⚠️ **Le verrou de session fait tourner le middleware sur CHAQUE requête** : 229 K
+invocations de fonction pour 225 K requêtes edge, à un pour un. Presque rien n'est servi
+par le CDN sans réveiller une fonction. C'est le levier de fond du CPU, et il n'a pas
+encore été touché.
+
+**Compter les déploiements sans dérouler le CLI** — l'API v6 accepte le jeton OAuth du
+poste (`%APPDATA%/com.vercel.cli/Data/auth.json`), mais ⚠️ **elle REFUSE un paramètre
+`teamId` explicite** (« Not authorized ») : le jeton porte déjà son équipe.
+
+```js
+const a = JSON.parse(fs.readFileSync(process.env.APPDATA+'/com.vercel.cli/Data/auth.json','utf8'));
+fetch('https://api.vercel.com/v6/deployments?limit=100', {headers:{Authorization:'Bearer '+a.token}})
+// puis paginer sur ?until=<pagination.next>
+```
+
+⚠️ **`--safe` épargne les Preview des branches de travail.** Après la purge il restait
+26 déploiements, dont 24 Preview d'août et de septembre que leurs alias de branche
+protègent (`bible-patristique-git-<branche>-…`). C'est voulu — le chantier Bible 899 ne
+se touche pas —, mais cela pose un plancher d'environ 9 Go qu'aucune purge ne descendra.
