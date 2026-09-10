@@ -11,7 +11,7 @@ import EssaiCommentaires from './EssaiCommentaires'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import ModalSignalement from '@/app/components/ModalSignalement'
-import ModalePartage from '@/app/components/ModalePartage'
+import BullePartage from '@/app/components/BullePartage'
 import { useCompte } from '@/app/lib/contexteCompte'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
@@ -50,10 +50,12 @@ function chiffreEnLettres(n: number): string {
   return String(n)
 }
 
-function BoutonPartage({ label, onClick, children, loading }: { label: string; onClick: () => void; children: React.ReactNode; loading?: boolean }) {
+// ⚠️ `onClick` reçoit l'ÉVÉNEMENT : le partage ouvre une bulle ANCRÉE, qui a besoin du
+// rectangle du bouton qui l'a demandée, et ce rectangle ne se retrouve pas après coup.
+function BoutonPartage({ label, onClick, children, loading }: { label: string; onClick: (e: React.MouseEvent<HTMLButtonElement>) => void; children: React.ReactNode; loading?: boolean }) {
   const [flash, setFlash] = useState(false)
-  const handleClick = () => {
-    onClick()
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    onClick(e)
     if (label === 'Copier le lien') { setFlash(true); setTimeout(() => setFlash(false), 1600) }
   }
   return (
@@ -148,11 +150,12 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
     if (!res.ok) throw new Error('échec du signalement')
   }
 
-  // ⛔ Le partage passe par la fenêtre partagée du site : elle compose la ligne
+  // ⛔ Le partage passe par la bulle partagée du site : elle compose la ligne
   // (`app/lib/partage.ts`) et offre les canaux, la copie du lien comprise — d'où le
   // retrait du bouton « Copier le lien », qui faisait le même geste à côté d'elle.
   // ⚠️ Une publication anonyme ne nomme personne : son pseudonyme ne sort pas d'ici.
-  const [partageOuvert, setPartageOuvert] = useState(false)
+  // ⚠️ L'état EST l'ancre : `null` ferme, le rectangle du bouton ouvre à côté de lui.
+  const [ancrePartage, setAncrePartage] = useState<DOMRect | null>(null)
 
   const telechargerPDF = async () => {
     if (pdfEnCours) return
@@ -195,7 +198,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           </svg>
         )}
       </BoutonPartage>
-      <BoutonPartage label="Partager" onClick={() => setPartageOuvert(true)}>
+      <BoutonPartage label="Partager" onClick={e => setAncrePartage(e.currentTarget.getBoundingClientRect())}>
         <svg width="14" height="14" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="10" cy="2.5" r="1.3"/>
           <circle cx="10" cy="10.5" r="1.3"/>
@@ -424,10 +427,11 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           onClose={() => setSignalerOuvert(false)} onEnvoyer={envoyerSignalement} />
       )}
 
-      {partageOuvert && (
-        <ModalePartage
+      {ancrePartage && (
+        <BullePartage
           sujet={{ genre: 'essai', titre: essai.titre, auteur: essai.anonyme ? null : essai.auteur_pseudo }}
-          onFermer={() => setPartageOuvert(false)} />
+          ancre={ancrePartage}
+          onFermer={() => setAncrePartage(null)} />
       )}
     </div>
   )

@@ -110,7 +110,9 @@ import {
  */
 export function BoutonVolet({ titre, onClick, children, refBouton, ...aria }: {
   titre: string
-  onClick: () => void
+  /** ⚠️ L'événement est passé : une action qui ouvre une fenêtre ANCRÉE a besoin du
+   *  rectangle du bouton qui l'a demandée, et il ne se retrouve pas après coup. */
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void
   children: React.ReactNode
   refBouton?: React.Ref<HTMLButtonElement>
   'aria-haspopup'?: 'menu'
@@ -136,7 +138,10 @@ export type ActionVolet = {
   cle: string
   libelle: string
   icone: React.ReactNode
-  onChoisir: () => void
+  /** ⚠️ Le rectangle du bouton qui a servi — celui de la rangée, ou le ⋮ quand elle est
+   *  condensée. Une action qui ouvre une fenêtre ANCRÉE en a besoin, et l'ancre n'est pas
+   *  la même selon la forme que la tête a prise. */
+  onChoisir: (ancre?: DOMRect) => void
   teinte?: string
 }
 
@@ -379,7 +384,13 @@ export function MenuVolet({ titre, actions }: { titre: string; actions: ActionVo
           {actions.map(a => (
             <button key={a.cle} type="button" role="menuitem" className="cs-entree-menu-volet"
               style={STYLE_ENTREE}
-              onClick={() => { setOuvert(false); a.onChoisir() }}>
+              onClick={() => {
+                // ⚠️ Le rectangle du ⋮ est PRIS AVANT la fermeture : le bouton reste en
+                // place, mais l'action qui ouvre une fenêtre ancrée doit savoir d'où.
+                const ancre = refBouton.current?.getBoundingClientRect()
+                setOuvert(false)
+                a.onChoisir(ancre)
+              }}>
               <span aria-hidden="true" style={{ display: 'flex', flexShrink: 0, color: a.teinte ?? 'var(--cs-texte-faible)' }}>{a.icone}</span>
               {a.libelle}
             </button>

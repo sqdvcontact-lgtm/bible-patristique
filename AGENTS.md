@@ -9038,9 +9038,10 @@ du même style : le blanc de strophe ne s'applique qu'accompagné de `contextual
   cents pages qu'on n'a pas voulue se paie en attente, puis en fichier inutile.
 - **Les axes se composent comme ceux d'un volet** (`OPTION_VOLET`, `RUBRIQUE_AXE`) : une
   option par ligne, toutes montrées, la retenue sur pastille verte.
-- **Le partage** ouvre la fenêtre partagée du site (voir « L'OUTIL DE PARTAGE », plus bas).
+- **Le partage** ouvre la bulle partagée du site (voir « L'OUTIL DE PARTAGE », plus bas).
   ⚠️ Il ne prenait que `navigator.share`, ou la copie du lien à défaut, et s'interdisait de
-  nommer un réseau : la règle est levée le 2026-09-10, charte § 51.8.
+  nommer un réseau : la règle est levée le 2026-09-10, charte § 51.8. ⚠️ Il passe donc
+  l'ANCRE, comme les autres actions de la rangée.
 - ⚠️ **DETTE TACTILE, et elle est celle de la RANGÉE entière.** Les cinq boutons de la tête
   du volet — roue crantée, étoile, partage, extraction, chevron — font 19 px de cible pour
   24 exigés. `.cs-cible-fine` (débord de 12 px) les ferait s'avaler l'un l'autre à 4 px
@@ -10073,21 +10074,24 @@ la mise en rem du matin.
 ⚠️ **« Eusèbe de Césarée » porte la rangée de l'admin d'UN SEUL PIXEL** (159 + 187 = 346 pour
 347). C'est ce genre de cas qui interdit de poser un seuil : il se mesure, il ne se devine pas.
 
-# ⛔ L'OUTIL DE PARTAGE — `app/lib/partage.ts` et `ModalePartage` (2026-09-10)
+# ⛔ L'OUTIL DE PARTAGE — `app/lib/partage.ts` et `BullePartage` (2026-09-10)
 
-Doctrine : charte `parametres.charte_ia`, **§ 51.8** (ce que la ligne dit, pourquoi les
-canaux sont nommés, pourquoi les marques se dessinent au trait). Ici, ce qu'il faut savoir
-pour y toucher.
+Doctrine : charte `parametres.charte_ia`, **§ 51.8** (ce que la ligne dit, pourquoi le lien
+nu vient en tête, pourquoi les marques se dessinent au trait) et **§ 51.8.1** (la bulle, et
+ce que le retrait des libellés commande au dessin). Ici, ce qu'il faut savoir pour y
+toucher. ⚠️ Deux énoncés du § 51.8 sont DÉFAITS par le § 51.8.1 — les canaux ne sont plus
+nommés en toutes lettres, et la bulle ne montre plus ce qu'elle va envoyer : lire les deux
+ensemble.
 
 - ⛔ **DEUX MODULES, ET ILS NE FONT PAS LA MÊME CHOSE.** `app/lib/partage.ts` porte la
   RÈGLE — pur, testé, sans une ligne de React : `ligneDePartage`, `sujetEnClair`,
-  `messagePartage`, `adressePartage` et la liste `CANAUX`. `app/components/ModalePartage.tsx`
-  porte la FENÊTRE. ⛔ Ne recomposer une ligne de partage nulle part ailleurs : elle l'était
+  `messagePartage`, `adressePartage` et la liste `CANAUX`. `app/components/BullePartage.tsx`
+  porte la BULLE. ⛔ Ne recomposer une ligne de partage nulle part ailleurs : elle l'était
   déjà à DEUX endroits (la page d'œuvre, la page d'une publication), et les deux ne disaient
   pas la même chose.
-- ⚠️ **`ProposPartage` est exporté À PART, et il ne porte AUCUN crochet** : `createPortal`
+- ⚠️ **`RangeeCanaux` est exportée À PART, et elle ne porte AUCUN crochet** : `createPortal`
   n'existe pas au rendu serveur, et sans cette coupure aucune planche ne pourrait rendre la
-  fenêtre hors session. C'est le parti de `ContenuFicheTraduction` et de `ProposVisite`.
+  bulle hors session. C'est le parti de `ContenuFicheTraduction` et de `ProposVisite`.
 - ⛔ **`adressePartage` rend `null` pour `lien` et `natif`**, qui sont des GESTES et non des
   destinations. C'est ce `null` qui décide de la balise : un geste est un `<button>`, une
   destination un `<a>`, qu'on doit pouvoir ouvrir dans un autre onglet. ⛔ Et `mailto:` ne
@@ -10100,11 +10104,11 @@ pour y toucher.
   `twitter.com/intent/tweet` y redirige encore et reste le repli si elle venait à tomber.
 - ⚠️ **La feuille système ne paraît que là où elle existe** : `natif` est retiré de la liste
   quand `navigator.share` manque. ⛔ La question se pose dans un initialiseur PARESSEUX, pas
-  dans un effet — la fenêtre ne se monte qu'après un clic, donc jamais au rendu serveur, et
+  dans un effet — la bulle ne se monte qu'après un clic, donc jamais au rendu serveur, et
   le linter refuse un `setState` en corps d'effet.
 - **Deux surfaces branchées** : le ⋮ de la tête du volet d'une œuvre (`OeuvreClient`) et la
   rangée de boutons d'une publication (`EssaiClient`), qui perd son bouton « Copier le lien »
-  — la fenêtre fait le même geste, et un second endroit pour un même geste ferait deux
+  — la bulle fait le même geste, et un second endroit pour un même geste ferait deux
   vérités.
 - ⚠️ **CE QUI RESTE, et ce n'est pas un oubli** : la page Bible, la péricope et la fiche
   d'auteur n'ont pas de bouton de partage. Le genre est prêt dans `SujetPartage`
@@ -10114,27 +10118,34 @@ pour y toucher.
 
 ## ⚠️ Ce que la mesure a trouvé, et qui ne se voyait pas au code
 
-- ⛔ **L'ADRESSE MONTRÉE PORTE SEULE SON INFORMATION.** Composée dans le gris de l'appareil
-  (`--cs-texte-gris`), elle rend **3,79** sur la surface blanche de la fenêtre, à onze
-  pixels, pour 4,5 exigés. Passée à `--cs-texte-second` : **5,74 au Clair, 9,27 en Cuir**.
+- ⛔ **L'ADRESSE MONTRÉE PORTAIT SEULE SON INFORMATION.** Composée dans le gris de l'appareil
+  (`--cs-texte-gris`), elle rendait **3,79** sur la surface blanche de la fenêtre, à onze
+  pixels, pour 4,5 exigés ; passée à `--cs-texte-second`, **5,74 au Clair et 9,27 en Cuir**.
+  ⚠️ La bulle ne la montre plus du tout : le cas n'a plus d'objet ICI, la règle vaut partout
+  ailleurs où une mention porte seule ce qu'elle dit.
 - ⛔ **LA CROIX DE X SE LISAIT « FERMER ».** Le premier tracé la posait, fine et à bouts
   ronds, dans un carré arrondi — c'est-à-dire le dessin exact d'un bouton de fermeture.
   Jugée rastérisée à 21 px (`tmp/banc-x-partage.mjs`, trois partis en regard), elle devient
   le glyphe NU, épais, d'angle à angle, à bouts francs.
-- ⚠️ **Cible d'une tuile : 68 × 106 px**, très au-dessus du plancher de 24 de WCAG 2.2.
+- ⚠️ **Cible d'un logo : 30 px à la racine 16, 41 à la racine 22** — au-dessus du plancher
+  de 24 de WCAG 2.2, qu'un logo SANS libellé a besoin de dépasser pour se lire. (Les tuiles
+  nommées de la fenêtre d'avant en faisaient 68 × 106.)
 
 ## ⚠️ La planche, et le piège d'outillage du jour
 
-- **`tmp/planche-partage.mts`** rend le VRAI `ProposPartage` avec la VRAIE `globals.css`,
+- **`tmp/planche-partage.mts`** rend la VRAIE `RangeeCanaux` avec la VRAIE `globals.css`,
   les deux sols côte à côte — le Cuir posé sur une CLASSE par substitution dans la copie de
   la feuille, un document ne pouvant pas porter deux thèmes. ⚠️ Elle pose à la main les deux
   variables de police de `next/font` : sans elles, `var(--font-source-serif)` est une
   propriété non définie, la déclaration entière est invalide, et la planche mesure une autre
   composition que la page.
 - **`tmp/banc-marques-partage.mjs`** tire ses tracés de la planche DÉJÀ RENDUE et les
-  rastérise par `sharp` à 21 px, puis les agrandit au plus proche voisin. ⛔ Il ne redessine
-  rien de mémoire : un banc qui rejouerait les tracés ferait autorité contre la fenêtre qu'il
-  décrit.
+  rastérise par `sharp` à 21 px, puis les agrandit au plus proche voisin, SUR LES DEUX SOLS
+  (un fichier par sol : le Cuir ne se pose que sur la racine). ⛔ Il ne redessine rien de
+  mémoire : un banc qui rejouerait les tracés ferait autorité contre la bulle qu'il décrit.
+  ⚠️ Ses deux compagnons mesurent au lieu de montrer — `tmp/mesure-encre-marques.mjs` rend
+  la part d'encre de chaque marque à sa taille servie, `tmp/mesure-boites-marques.mjs` sa
+  boîte d'encre sur un tracé rendu en grand.
 - ⛔ **LES CAPTURES DU PANNEAU NAVIGATEUR SONT GELÉES QUAND LE PANNEAU EST MASQUÉ**, et elles
   ne le disent qu'à moitié : `computer{screenshot}` rend une image PÉRIMÉE — ici le fond du
   document, alors que `getBoundingClientRect` et `getComputedStyle` répondaient juste. On
@@ -10154,3 +10165,61 @@ node tmp/serveur-planches.mjs &
 ⚠️ Le piège consigné pour les captures sans tête — « Chrome CDP contre `next dev` n'hydrate
 jamais » — ne vaut PAS ici : une planche est du HTML servi tel quel, sans hydratation à
 attendre.
+## ⛔ RECTIFICATION DU MÊME SOIR — LA BULLE, ET RIEN QUE LES LOGOS
+
+Troisième rectification de l'auteur du 10 septembre 2026 : « pour l'onglet de partage,
+revoir un peu la mise en forme : faire plutôt une petite bulle qui s'ouvre proprement sur
+le côté ; ne pas faire des blocs ; se contenter des logos. » Doctrine : charte § 51.8.1.
+Règles de code :
+
+- ⛔ **L'ÉTAT EST L'ANCRE, il n'y a pas de booléen à côté.** `null` ferme, un `DOMRect`
+  ouvre à côté du bouton qui l'a demandé. Deux états pour un seul fait se désaccorderaient
+  au premier réglage. ⚠️ Conséquence sur les deux surfaces : `ActionVolet.onChoisir` prend
+  `(ancre?: DOMRect)` et `BoutonVolet.onClick` reçoit l'ÉVÉNEMENT — le rectangle d'un
+  bouton ne se retrouve pas après coup.
+- ⛔ **`MenuVolet` prend le rectangle du ⋮ AVANT de se fermer.** L'ancre n'est pas la même
+  selon la forme que la tête a prise (§ 38.26.1) : rangée dépliée, c'est le logo de partage ;
+  condensée, c'est le ⋮. Le bouton reste en place, mais l'action doit savoir d'où.
+- ⛔ **LA GÉOMÉTRIE S'ÉCRIT DEUX FOIS, ET `bullePartage.test.ts` LES CONFRONTE.** La feuille
+  POSE la cible, l'écart et le rembourrage (`.cs-bulle-partage`, `.cs-canal-bulle`) ; le
+  code les CALCULE — `largeurDeLaBulle`, `hauteurDeLaBulle` — parce que `placerFenetre`
+  a besoin de la largeur AVANT que la feuille ait rien posé. La garde relit les chaînes de
+  `globals.css` : si l'une bouge, ce sont `CIBLE_REM`, `ECART_REM` et `AIR_REM` qu'il faut
+  suivre, jamais le test qu'il faut accorder.
+- ⚠️ **Mesuré sur la composition servie** : 248 × 44 pour sept logos à la racine 16,
+  340,25 × 59,75 à la racine 22, un seul rang dans les deux cas, cible de 30 puis 41,25 px,
+  icône de 21 puis 28,88. La formule tombe juste au centième aux deux bouts de la police
+  fluide.
+- ⛔ **TOUT POINTEUR HORS DE LA BULLE FERME, LE DÉCLENCHEUR COMPRIS** : le ⋮ l'ouvre sur son
+  propre rectangle, et s'il ne fermait pas, le cliquer une seconde fois déplierait son menu
+  PAR-DESSUS elle. Le prix — un second clic sur le logo de partage la referme puis la rouvre
+  dans le même souffle — ne se voit pas. Le défilement et le redimensionnement ferment
+  aussi : une bulle ancrée ne poursuit pas son ancre. ⚠️ L'écoute du défilement est en
+  CAPTURE, seul moyen d'entendre le défileur interne d'un volet.
+- ⚠️ **Le nom d'un canal vit dans `title` ET `aria-label`**, et nulle part à l'écran.
+  L'accusé de copie se dit dans une région vivante `.cs-hors-ecran` — la coche verte ne se
+  voit pas d'une synthèse vocale ; une ERREUR de presse-papiers, elle, prend un rang à elle
+  sous la rangée. ⚠️ `.cs-hors-ecran` est neuve : le dépôt n'avait pas de `sr-only`,
+  `.cs-lien-evitement` mêlant la recette à un état de FOYER qui le fait reparaître.
+- ⚠️ **Le foyer entre dans la bulle à l'ouverture** : une bulle ouverte au clavier qu'il
+  faudrait ensuite aller chercher par la tabulation — au bout du document, là où le portail
+  l'a posée — ne serait pas atteignable.
+
+### ⛔ Ce que le retrait des libellés a coûté au DESSIN, et qui s'est mesuré
+
+- ⛔ **CE QUI S'ACCORDE ENTRE VOISINES EST L'ÉTENDUE D'ENCRE, NON LA BOÎTE DÉCLARÉE**, et
+  l'œil s'y est trompé deux fois. Relevé à 21 px : le maillon du lien n'occupait que **15,6**
+  de sa boîte de 24 quand ses voisines en occupent 18,4 à 19,7, et il posait **11,9 %**
+  d'encre contre 17 à 21,5 — le plus petit et le plus pâle du rang, sur le geste qu'on fait
+  le plus souvent ; les trois nœuds du partage natif montaient à **21** de haut. Le premier
+  est étendu d'un cinquième, le second resserré du huitième, et le TRAIT ne bouge sur ni
+  l'un ni l'autre. Après : boîtes de 16,6 à 19,7, encre de 14,4 à 21,5 (rapport 1,50 contre
+  1,81).
+- ⚠️ **La croix de X est l'exception qui confirme la mesure** : la plus LÉGÈRE en boîte
+  (16,6) et la plus PLEINE en encre franche (15,6 % contre 3,9 à 9,5), ses bouts coupés et
+  sa graisse la distinguant d'une croix de fermeture. Son encre TOTALE, elle, tombe au
+  milieu du rang (17,6 %) — c'est celle-là que l'œil pèse.
+- ⚠️ **Une mesure prise dans un panneau CACHÉ n'attend pas `requestAnimationFrame`** : il ne
+  s'y exécute jamais, et le script expire. On lit `getBoundingClientRect` après avoir posé
+  le style, ce qui force la mise en page synchrone — c'est le piège déjà consigné pour la
+  barre de navigation, payé une fois de plus.

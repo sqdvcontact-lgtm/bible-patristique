@@ -292,7 +292,7 @@ function chargerCodesTraductions(): PromiseLike<string[]> {
 // « ?compare= » ouvrirait sur du vide.
 const ModaleEditionAdmin = dynamic(() => import('./ModaleEditionAdmin'))
 const MenuExtraction = dynamic(() => import('./MenuExtraction'))
-const ModalePartage = dynamic(() => import('@/app/components/ModalePartage'))
+const BullePartage = dynamic(() => import('@/app/components/BullePartage'))
 const ComparaisonTraductions = dynamic(() => import('./ComparaisonTraductions'))
 
 // ── Proposition de lien biblique (non-admin) ──────────────────────────────────
@@ -620,13 +620,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Le menu d'extraction, et la fenêtre de partage.
   const [extractionOuverte, setExtractionOuverte] = useState(false)
   /**
-   * PARTAGER LA PAGE. ⚠️ Le geste ouvre la fenêtre partagée du site
-   * (`app/components/ModalePartage.tsx`), qui compose la ligne et offre les canaux ;
-   * cette page ne connaît que le SUJET — un auteur, un titre.
+   * PARTAGER LA PAGE. ⚠️ Le geste ouvre la bulle partagée du site
+   * (`app/components/BullePartage.tsx`), qui compose la ligne et offre les canaux ;
+   * cette page ne connaît que le SUJET — un auteur, un titre — et l'ANCRE, c'est-à-dire
+   * le rectangle du bouton qui a servi : la bulle s'ouvre à côté de lui.
    * ⛔ Elle ne copiait le lien qu'à défaut de partage natif, et ne nommait aucun canal :
    * la règle est levée par décision de l'auteur, 2026-09-10.
+   * ⚠️ L'état EST l'ancre : `null` ferme, un rectangle ouvre. Deux états pour un seul
+   * fait se désaccorderaient au premier réglage.
    */
-  const [partageOuvert, setPartageOuvert] = useState(false)
+  const [ancrePartage, setAncrePartage] = useState<DOMRect | null>(null)
   // Identifiant de l'auteur dont la fiche est ouverte (null = aucune). Une œuvre
   // pouvant être signée à deux, il ne suffit plus de savoir QU'une fiche est
   // ouverte : il faut savoir LAQUELLE.
@@ -965,7 +968,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (estAdmin) {
       liste.push({ cle: 'niveaux', libelle: 'Niveaux d’affichage', icone: ICONE_NIVEAUX, onChoisir: () => setConfigOuverte(true) })
     }
-    liste.push({ cle: 'partage', libelle: 'Partager la page', icone: ICONE_PARTAGE, onChoisir: () => setPartageOuvert(true) })
+    liste.push({ cle: 'partage', libelle: 'Partager la page', icone: ICONE_PARTAGE, onChoisir: ancre => setAncrePartage(ancre ?? null) })
     liste.push({ cle: 'extraction', libelle: 'Extraire en document Word', icone: ICONE_EXTRACTION, onChoisir: () => setExtractionOuverte(true) })
     return liste
   }, [estAdmin])
@@ -3033,7 +3036,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     <EtoileFavori key={action.cle} actif={favoriPose} onToggle={action.onChoisir} size={13}
                       title={action.libelle} />
                   ) : (
-                    <BoutonVolet key={action.cle} titre={action.libelle} onClick={action.onChoisir}>
+                    <BoutonVolet key={action.cle} titre={action.libelle}
+                      onClick={e => action.onChoisir(e.currentTarget.getBoundingClientRect())}>
                       {action.icone}
                     </BoutonVolet>
                   ))}
@@ -4600,10 +4604,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
       {/* ⚠️ Le sujet, et rien de plus : la ligne se compose dans `app/lib/partage.ts`,
           et l'adresse partagée est celle qu'on lit, habits de lecture compris. */}
-      {partageOuvert && (
-        <ModalePartage
+      {ancrePartage && (
+        <BullePartage
           sujet={{ genre: 'oeuvre', titre: oeuvre.titre, auteur }}
-          onFermer={() => setPartageOuvert(false)} />
+          ancre={ancrePartage}
+          onFermer={() => setAncrePartage(null)} />
       )}
 
       {/* Fiche auteur en fenêtre, ouverte depuis « À propos de cette édition ». */}
