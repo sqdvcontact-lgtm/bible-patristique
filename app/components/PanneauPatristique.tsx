@@ -1390,37 +1390,52 @@ export default function PanneauPatristique({
         />
       )}
 
-      {/* En-tête. ⚠️ Il ne paraît QUE s'il a quelque chose à porter — une référence
-          reçue, ou la flèche de repli : vidé de la référence déduite, il ne laissait
-          qu'une bande de 38 px et son filet en haut du volet. */}
-      {(refFr || peutSeReduire) && (
+      {/* ⛔ L'EN-TÊTE NE PORTE PLUS LA FLÈCHE, et il ne paraît donc plus du tout
+          aujourd'hui (demande de l'auteur, 2026-09-10 : « la ligne tout en haut, avec la
+          flèche pour rabattre le volet, n'est pas nécessaire ; on peut très bien placer
+          cette flèche dans la ligne d'au-dessous »).
+          ⚠️ Aucun appelant ne passe plus `refAffichee` depuis le 2026-09-08 : cette ligne
+          ne pouvait donc porter QUE la flèche, c'est-à-dire une bande de 38 px et son
+          filet pour un chevron de quatorze pixels. La flèche descend dans la barre
+          d'onglets, qui est la première ligne que le volet porte vraiment.
+          ⚠️ Le bloc RESTE, prêt à reprendre la référence le jour où le volet se lirait
+          ailleurs qu'à côté du texte — c'est la raison pour laquelle la propriété a été
+          gardée. La flèche, elle, ne reviendra pas ici : elle a désormais sa place. */}
+      {refFr && (
       <div style={{ position:'relative', borderBottom:'1px solid var(--cs-bord)', minHeight:'38px', display:'flex', alignItems:'center', justifyContent:'center', padding:'6px 36px' }}>
-        {/* ⛔ ELLE NE DÉPEND PAS DE LA PRÉSENTATION MOBILE, et c'est ce qui l'avait fait
-            disparaître du bureau (demande de l'auteur, 2026-09-04). `presentation` dit
-            comment le volet s'empile sur un TÉLÉPHONE, où les onglets font office de
-            navigation ; mais la page Bible passe « inline » en toutes circonstances, si
-            bien que le bureau perdait un contrôle pour une raison qui ne le regarde pas.
-            ⚠️ Un réglage de disposition MOBILE ne décide jamais d'un contrôle de BUREAU. */}
-        {peutSeReduire && (
-          <button onClick={() => setOuvert(false)} title="Réduire le volet" aria-label="Réduire le volet"
-            className="cs-volet-reduire"
-            style={{ position:'absolute', left:'8px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', padding:'3px', display:'flex', alignItems:'center' }}>
-            <IconeChevron dir="right" size={14} strokeWidth={1.5} />
-          </button>
-        )}
-        {refFr && (
-          <h2 style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.9375rem', fontWeight:500, color:'var(--cs-encre)', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', textAlign:'center' }}>
-            {refFr}
-          </h2>
-        )}
+        <h2 style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.9375rem', fontWeight:500, color:'var(--cs-encre)', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', textAlign:'center' }}>
+          {refFr}
+        </h2>
       </div>
       )}
 
       {verset || modeChapitre ? (
         <div style={{ display:'flex', flexDirection:'column', flex:1, minHeight:0 }}>
 
-          {/* Onglets pleine largeur */}
-          <div style={{ display:'flex', borderBottom:'1px solid var(--cs-bord)' }}>
+          {/* Onglets pleine largeur, la flèche de repli au bord gauche.
+              ⛔ UN CHEVRON N'ENTRE PAS DANS LE CENTRAGE DES LIBELLÉS QU'IL ACCOMPAGNE :
+              posé seul à gauche, il pousse les onglets de sa largeur et « Pères de
+              l'Église » cesse de tomber sur l'axe du volet. Une cale de même mesure lui
+              répond à droite — le procédé du menu des bibles, où le chevron est doublé,
+              son double invisible.
+              ⚠️ Elle se centre dans la HAUTEUR par le flex de la barre : la rangée grandit
+              avec son compteur, et un décalage écrit en pixels s'en déferait au premier
+              onglet sans chiffre. */}
+          <div style={{ display:'flex', alignItems:'stretch', borderBottom:'1px solid var(--cs-bord)' }}>
+            {/* ⛔ ELLE NE DÉPEND PAS DE LA PRÉSENTATION MOBILE, et c'est ce qui l'avait fait
+                disparaître du bureau (demande de l'auteur, 2026-09-04). `presentation` dit
+                comment le volet s'empile sur un TÉLÉPHONE, où les onglets du haut font
+                office de navigation ; mais la page Bible passe « inline » en toutes
+                circonstances, si bien que le bureau perdait un contrôle pour une raison qui
+                ne le regarde pas.
+                ⚠️ Un réglage de disposition MOBILE ne décide jamais d'un contrôle de BUREAU. */}
+            {peutSeReduire && (
+              <button onClick={() => setOuvert(false)} title="Réduire le volet" aria-label="Réduire le volet"
+                className="cs-volet-reduire"
+                style={{ flexShrink:0, width:'1.75rem', background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <IconeChevron dir="right" size={14} strokeWidth={1.5} />
+              </button>
+            )}
             {ONGLETS.map(t => (
               <button key={t.code} onClick={() => setOnglet(t.code)}
                 style={{
@@ -1446,6 +1461,22 @@ export default function PanneauPatristique({
                 )}
               </button>
             ))}
+            {/* ⛔ LA CALE NE PARAÎT QUE SOUS UN SEUL ONGLET, et ce n'est pas une économie :
+                elle existe pour rendre l'axe du volet à un libellé qui doit y tomber, et
+                un libellé unique est le seul dans ce cas. Deux onglets ne sont centrés sur
+                rien — ce qui compte alors est qu'ils soient ÉGAUX, ce que la flèche seule
+                leur laisse.
+                ⚠️ Et elle coûte : mesuré sur la composition réelle, deux onglets dans un
+                volet de 260 px — sa largeur par défaut sur un portable — enroulent « Pères
+                de l'Église » sur deux lignes avec la cale, sur une seule sans elle. Le prix
+                est une frontière posée 14 px à droite de l'axe, que l'œil ne compare à
+                aucun repère.
+                ⚠️ Reste une bande étroite, autour de 240 px, où le libellé s'enroule alors
+                qu'il tenait avant : il y faut un volet resserré SOUS son défaut, et deux
+                onglets, donc un verset désigné. */}
+            {peutSeReduire && ONGLETS.length === 1 && (
+              <span aria-hidden="true" style={{ flexShrink:0, width:'1.75rem' }} />
+            )}
           </div>
 
           {/* Contenu scrollable (sauf onglet commentaires : la liste défile en interne
@@ -1734,6 +1765,15 @@ export default function PanneauPatristique({
           )}
         </div>
       ) : (
+        /* ⚠️ CETTE BRANCHE N'EST ATTEINTE PAR AUCUN APPELANT, et c'est la seule raison
+           pour laquelle elle ne porte pas la flèche de repli : `modeChapitre` exige
+           `livreActif` ou `plage`, et les deux surfaces qui emploient ce volet — la page
+           Bible et la page d'une péricope — passent toutes deux `livreActif`, qui est
+           requis et toujours renseigné.
+           ⛔ Un appelant qui ne le passerait pas laisserait le lecteur sans aucun moyen de
+           replier le volet : il faudrait alors lui donner la flèche AU MÊME ENDROIT, en
+           haut à gauche, et non ailleurs — un contrôle qui change de place selon ce que le
+           volet montre ne s'apprend jamais (défaut déjà payé sur `NavLivres`). */
         <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-start', padding:'48px 24px 0' }}>
           <div style={{ display:'flex', alignItems:'center', gap:'8px', width:'100%', marginBottom:'22px' }}>
             <div style={{ flex:1, height:'1px', background:'linear-gradient(to right, transparent, var(--cs-bord))' }} />
