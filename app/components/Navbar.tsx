@@ -2227,11 +2227,18 @@ export default function Navbar() {
           </div>
 
           {/* ── Bouton hamburger mobile ─────────────────────────────────────── */}
-          <button onClick={() => setMobileOuvert(!mobileOuvert)} className="lg:hidden"
+          {/* ⛔ LE `display` VIT DANS LA CLASSE, JAMAIS EN LIGNE, et c'est ce qui rend
+              `lg:hidden` vivante : un style en ligne bat toute règle de feuille sans
+              `!important`, si bien que ce bouton s'offrait à TOUTE largeur — le panneau
+              de téléphone se donnait donc sur un ordinateur (relevé de l'auteur,
+              2026-09-10). ⚠️ `inline-flex` et `lg:hidden` sont deux utilitaires de même
+              force : c'est l'ORDRE du fichier qui tranche, et Tailwind pose ses variantes
+              de seuil après les utilitaires nus. */}
+          <button onClick={() => setMobileOuvert(!mobileOuvert)} className="inline-flex lg:hidden"
             // La commande la plus employée du téléphone : 44px de zone de frappe pour un
             // glyphe de 20 (WCAG 2.2, § 2.5.8 ; Apple et Google visent 44). Le rembourrage
             // agrandit la CIBLE, il ne change pas le dessin.
-            style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", justifyContent: "center", width: "2.75rem", height: "2.75rem", background: "none", border: "none", color: "var(--cs-sur-aplat)", padding: 0, cursor: "pointer" }}
+            style={{ marginLeft: "auto", alignItems: "center", justifyContent: "center", width: "2.75rem", height: "2.75rem", background: "none", border: "none", color: "var(--cs-sur-aplat)", padding: 0, cursor: "pointer" }}
             aria-label="Menu">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               {mobileOuvert ? (
@@ -2260,7 +2267,10 @@ export default function Navbar() {
           //    d'atteinte, et cent pixels de plus perdus sur un iPhone SE. La hauteur se
           //    compose sur HAUTEUR_NAVBAR, jamais sur un nombre recopié, et en `dvh` :
           //    la barre d'adresse d'iOS mange le `vh`.
-          <div className="lg:hidden cs-defilement-discret" style={{ background: "var(--cs-barre-fond-profond)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", display: "flex", flexDirection: "column", gap: "10px", maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR})`, overflowY: "auto", overscrollBehavior: "contain" }}>
+          // ⛔ `flex` EST DANS LA CLASSE, et le `display` a quitté le style en ligne :
+          //    posé là, il battait `lg:hidden` et le panneau se dépliait sur un
+          //    ordinateur, sous une barre qui portait déjà ses menus déroulants.
+          <div className="flex lg:hidden cs-defilement-discret" style={{ background: "var(--cs-barre-fond-profond)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", flexDirection: "column", gap: "10px", maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR})`, overflowY: "auto", overscrollBehavior: "contain" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
               {/* Liste verticale : lecture, puis Patristique/Publications, puis les pages
                   d'« Aller plus loin » dépliées, et enfin les sections d'admin. */}

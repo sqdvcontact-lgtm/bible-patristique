@@ -1124,6 +1124,46 @@ Le bureau la garde. ⛔ Et la règle de la charte a été resserrée une TROISI�
 doit se retrouver sur les deux écrans est le NOM d'une rubrique — ce par quoi on la DÉSIGNE
 — non ce par quoi on l'EXPLIQUE. Voir la section suivante.
 
+## ⛔ LE PANNEAU DU TÉLÉPHONE S'OFFRAIT SUR UN ORDINATEUR (2026-09-10)
+
+Relevé de l'auteur, capture à l'appui : « le menu, sur mon petit ordinateur, ne convient
+pas ; ce qu'on voit là, ça devrait être sur téléphone seulement ! il faudrait un menu
+déroulant comme sur grand écran. » Doctrine : charte § 18.2. Règles de code :
+
+- ⛔ **LE HAMBURGER ET SON PANNEAU PORTAIENT `lg:hidden` DEPUIS L'ORIGINE, ET LA CLASSE
+  ÉTAIT MORTE.** Tous deux posaient leur `display` en STYLE EN LIGNE — `inline-flex`
+  pour le bouton, `flex` pour le panneau — et un style en ligne bat toute règle de feuille
+  sans `!important`. Le bouton s'offrait donc à TOUTE largeur, sous une barre qui portait
+  déjà ses cinq onglets et leurs menus déroulants ; le panneau s'ouvrait avec lui.
+  ⚠️ **Sixième fois que ce piège se paie dans ce dépôt**, et le premier à coûter une
+  NAVIGATION entière plutôt qu'un état de survol.
+- ⛔ **LE `display` REVIENT À LA FEUILLE, PAR UNE CLASSE UTILITAIRE** — `inline-flex` sur
+  le bouton, `flex` sur le panneau — et la variante de seuil la bat ensuite. ⛔ Jamais un
+  `!important` : il ferait taire le symptôme en laissant deux autorités se disputer une
+  propriété. ⚠️ Les deux utilitaires ont la MÊME force : c'est l'ORDRE du fichier construit
+  qui tranche, et Tailwind pose ses variantes de seuil après les utilitaires nus — vérifié
+  sur la feuille SERVIE (`.flex` à 13 546, `.inline-flex` à 13 692, le bloc
+  `@media (min-width:64rem)` à 17 711).
+- ⚠️ **La mesure se prend sur la feuille EN LIGNE, non sur celle du dépôt** : une classe
+  utilitaire n'existe que si la chaîne l'a produite. On la tire du site
+  (`/_next/static/…/…css`, servie sans session) et l'on rend les deux états dans des
+  CADRES à deux largeurs — une requête de média se résout sur le cadre. Relevé à 1280 px :
+  bouton et panneau rendaient `inline-flex` et `flex` avant, `none` après ; à 900 px, rien
+  ne bouge (`tmp/planche-masquage.html`, `tmp/planche-masquage-cadres.html`).
+- ⛔ **LA GARDE EST `app/lib/masquageResponsive.test.ts`**, et elle lit des BALISES, non des
+  lignes : elle parcourt les balises ouvrantes de `app/` en suivant accolades et chaînes —
+  un `>` de titre ou une flèche `=>` ne ferme pas une balise — et refuse qu'une même
+  balise porte un jeton de masquage (`hidden`, `lg:hidden`, `max-md:hidden`…) et un
+  `display` en ligne. ⚠️ Éprouvée dans les DEUX sens : rouge sur les deux éléments fautifs,
+  qui étaient les SEULS du site, verte une fois la propriété rendue à la feuille.
+- ⚠️ **La barre y gagne 44 px** : le hamburger occupait 2,75 rem au bout de la rangée à
+  toutes les largeurs. Elle se replie donc un cran plus tard qu'avant, sans qu'on ait
+  touché aux crans.
+- ⚠️ **Le défaut ne se lisait NI dans le composant NI dans la feuille**, chacun étant juste
+  de son côté : il naît de leur rencontre. C'est pourquoi la capture de l'auteur a valu
+  toutes les relectures — et pourquoi la garde, qui confronte les deux, était la seule
+  réponse durable.
+
 ## ⛔ LA RANGÉE D'OUTILS DE LA BARRE NE CONNAÎT QU'UNE FORME (2026-09-10)
 
 Demande de l'auteur : « uniformiser cette partie de la barre de nav principale ; y'a
