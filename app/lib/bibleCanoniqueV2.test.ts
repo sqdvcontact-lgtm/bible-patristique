@@ -47,10 +47,16 @@ describe('une traduction lue dans versets_v2 par le canon', () => {
 })
 
 describe('les gloses surnuméraires de versets_v2', () => {
-  it('reconnaît les preuves explicites sans assimiler tout extra à une glose', () => {
+  it('reconnaît les preuves explicites sans assimiler tout emploi du mot glose', () => {
     expect(estExtraExplicitementGlose(extra('a', 10, 'extra-in-13-heart-gloss'))).toBe(true)
     expect(estExtraExplicitementGlose(extra('b', 11, 'extra-1', 'MANUSCRIPT_EXTRA – glose'))).toBe(true)
     expect(estExtraExplicitementGlose(extra('c', 12, 'extra-1', 'MANUSCRIPT_EXTRA – dittographie'))).toBe(false)
+    expect(estExtraExplicitementGlose(extra(
+      'd',
+      13,
+      'extra-in-13-anticipation',
+      'MANUSCRIPT_EXTRA – ajout textuel ; nature précise non surqualifiée comme glose.',
+    ))).toBe(false)
   })
 
   it('retient les seules gloses explicites quand le verset hôte porte aussi une autre nature', () => {
