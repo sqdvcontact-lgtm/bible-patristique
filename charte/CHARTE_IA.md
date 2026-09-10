@@ -7085,3 +7085,45 @@ silence compris.
 rejouée sur les 51 éditions publiques, avant et après : **deux changent, et ce sont les deux
 qui étaient fausses** — Knöll et Hartel, les deux seules notices du corpus qui nomment leur
 responsable entre parenthèses. Les quarante-neuf autres rendent le même octet.
+
+### 38.26 Une rangée de contrôles se mesure en REM, et ce qui coûte la largeur est leur NOMBRE
+
+Relevé de l’auteur, 2026-09-10, sur la tête du volet d’une œuvre : « proportionner la
+taille et l’espacement des logos à la taille de l’écran ; sur écran moyen, c’est trop
+gros, trop espacé ; à la limite on pourrait réduire l’ensemble sous la forme ⋮ ».
+
+⛔ **UNE RANGÉE DE CONTRÔLES ÉCRITE EN PIXELS N’EST PAS « TROP GROSSE » : ELLE EST FIXE.**
+La police racine du site est fluide (16 à 22 px) et tout ce qui l’entoure grandit avec
+elle. Une rangée en pixels garde donc la même mesure d’un portable à un grand écran, et
+sa PART de la place, elle, varie du simple au double. Mesuré sur la tête du volet : cinq
+boutons y prenaient **62 % de la largeur à 1280 px et 37 % à 2560**. Ce qu’on lit comme
+« trop gros ici » est presque toujours « fixe », et le remède n’est pas de rapetisser :
+c’est de mettre la rangée sur la même échelle que ce qui l’entoure.
+
+⛔ **MAIS LE PLANCHER DE 24 px EST ABSOLU, ET IL BORNE LE REMÈDE.** WCAG 2.2 § 2.5.8 le
+fixe en pixels CSS, non en cadratins : `max(24px, 1.5rem)` garde donc la mesure du bas de
+l’échelle et ne grandit qu’au-dessus. ⚠️ **Corollaire, et c’est lui qui décide de la
+forme : sur un écran moyen, on ne peut RIEN reprendre sur la taille des cibles.** Ce qui
+coûte la largeur est leur NOMBRE, et c’est là qu’on la reprend.
+
+⛔ **CE QUI PASSE SOUS UN ⋮ Y GAGNE SON NOM.** Une rangée d’icônes ne dit ce qu’elle fait
+que dans un `title`, c’est-à-dire nulle part au doigt — l’audit du 2026-09-06 range ces
+informations parmi celles « portées par le seul title ». Un menu les écrit en toutes
+lettres : replier n’est pas seulement gagner de la place, c’est nommer.
+
+⚠️ **CE QUI RESTE DEHORS SE JUSTIFIE, ET DEUX RAISONS SEULEMENT VALENT.** Un contrôle qui
+dit un ÉTAT autant qu’une action — l’étoile pleine dit que l’œuvre est rangée dans les
+favoris — ne s’enferme pas : un état qu’il faut ouvrir un menu pour lire n’est plus un
+état. Et le contrôle du CONTENANT lui-même — le chevron qui replie le volet — ne
+s’enferme pas dans ce qu’il replie.
+
+⛔ **ET LA COMPOSITION NE CHANGE PAS AVEC LA LARGEUR.** On peut être tenté de ne condenser
+que dans un conteneur étroit, par une requête de conteneur ; c’est ce que la charte
+proscrit depuis la barre de navigation — une entrée qui change de place selon la largeur
+ne s’apprend jamais. La rangée porte les mêmes cibles partout, et c’est leur MESURE qui
+suit l’écran.
+
+⚠️ **La mesure se prend en IFRAMES, une par écran.** Forcer `html { width }` ne suffit
+pas : les `vw` continuent de se résoudre sur l’écran réel, si bien que ni la police racine
+ni la largeur du volet ne sont celles qu’on croit mesurer. C’est la règle déjà écrite pour
+la porte de l’accueil, et elle vaut pour toute mesure de mise en page de ce site.

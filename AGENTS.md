@@ -9187,3 +9187,74 @@ les 51 éditions publiques avec l'index réel des éditeurs, la version d'avant 
 `git show HEAD:…` : **deux décompositions changent, et ce sont les deux qui étaient
 fausses** (Knöll, Hartel — les seules notices du corpus qui nomment leur responsable entre
 parenthèses). ⛔ Ne pas juger une règle de découpage sur deux exemples : elle se rejoue.
+
+# ⛔ LA RANGÉE D'ACTIONS D'UN VOLET — en rem, et TROIS cibles (2026-09-10)
+
+Doctrine : charte `parametres.charte_ia`, **§ 38.26**. Ici, ce qu'il faut savoir pour y
+toucher. Le code vit dans **`app/oeuvre/[id]/TeteVolet.tsx`** (`BoutonVolet`, `MenuVolet`)
+et dans `globals.css`, § « LA RANGÉE D'ACTIONS EN TÊTE D'UN VOLET ».
+
+⛔ **ELLE ÉTAIT EN PIXELS QUAND TOUT AUTOUR D'ELLE EST EN REM**, et c'est ce que l'auteur
+a lu comme « trop gros, trop espacé sur écran moyen ». Mesuré : 129 px de 1280 à 2560,
+soit **62 % de la tête sur un portable et 37 % sur un grand écran**, pendant que le volet
+passait de 240 à 380 px et le nom d'auteur de 13 à 17,9. ⚠️ **Devant un contrôle qu'on
+trouve trop gros à une taille d'écran, demander d'abord s'il n'est pas simplement FIXE.**
+
+⛔ **LE PLANCHER DE 24 px BORNE LE REMÈDE, ET C'EST LUI QUI A DÉCIDÉ DE LA FORME.**
+`max(24px, 1.5rem)` : la mesure d'hier en bas d'échelle, et elle grandit ensuite. Sur un
+écran moyen on ne peut donc RIEN reprendre sur la taille — la rangée était même SOUS le
+plancher, l'étoile faisant 17 px. Ce qui coûte la largeur est le NOMBRE de cibles.
+
+⚠️ **L'ÉTOILE prend la boîte de ses voisines, et son débord tombe ICI.**
+`.etoile-favori::after` vaut 6 px de chaque côté pour un écart de 4 : il mordait de deux
+pixels dans la boîte de ses voisines, ce que la charte proscrit pour un contrôle EN
+GRAPPE. La boîte atteignant seule le plancher, `content: none` le retire dans cette
+rangée. ⛔ Ne pas le retirer ailleurs : c'est lui qui donne sa cible à l'étoile partout
+où elle vit seule.
+
+⚠️ **L'ICÔNE suit la cible, et sans toucher au JSX** : `.cs-tete-volet-actions svg { width:
+0.8125rem }`. L'attribut `width` d'un SVG est une valeur de PRÉSENTATION, la plus faible
+de la cascade — `EtoileFavori` garde donc son `size={13}` et se laisse régler par la
+feuille.
+
+## Le menu ⋮
+
+⛔ **IL VIT DANS UN PORTAIL**, et ce n'est pas un rangement : le volet est en
+`overflow-y: auto` / `overflow-x: hidden`, une boîte posée dedans s'y ferait couper des
+deux côtés et défilerait avec la liste des divisions.
+
+⛔ **IL SE PLACE PAR `placerFenetre`** (`app/lib/fenetreContextuelle.ts`), comme toute
+fenêtre ancrée du site, et **son rang est `Z_MODALE`** : sur un téléphone la tête du volet
+vit DANS le tiroir (`Z_TIROIR`), et un rang de fenêtre de page l'ouvrirait derrière lui.
+C'est le défaut relevé le 2026-09-09 sur cinq fenêtres de cette page.
+
+⛔ **SA LARGEUR EST POSÉE (14 rem), non ajustée au contenu** : le placement en a besoin
+AVANT le rendu, pour borner l'abscisse. Mesuré, la plus longue entrée (« Extraire en
+document Word ») demande 146 px pour 182 offerts, à toutes les tailles de racine.
+
+⛔ **ON NE REMET PAS LE PLACEMENT À `null` EN FERMANT.** Ce serait un état reposé dans le
+corps d'un effet, ce que `react-hooks/set-state-in-effect` refuse à bon droit — seule la
+MESURE du document y est légitime. Le rendu est gardé par `ouvert`, et un
+`useLayoutEffect` corrige la mesure périmée avant la peinture suivante.
+
+⛔ **UN MENU ANCRÉ NE SUIT PAS SON ANCRE : il FERME** au défilement et au
+redimensionnement. ⚠️ L'écoute du défilement est en CAPTURE : un `scroll` ne remonte pas,
+mais il descend, et c'est le seul moyen d'entendre le défileur interne du volet.
+
+⚠️ **Le foyer entre dans la boîte à l'ouverture et revient au déclencheur à la
+fermeture** : un menu ouvert au clavier qu'il faut ensuite aller chercher par la
+tabulation — au bout du document, là où le portail l'a posé — n'est pas atteignable.
+
+⚠️ **Les glyphes sont écrits UNE fois** (`ICONE_NIVEAUX`, `ICONE_PARTAGE`,
+`ICONE_LIEN_COPIE`, `ICONE_EXTRACTION`, dans `OeuvreClient`) : la rangée et le menu
+montrent le même dessin, et deux copies divergeraient au premier réglage.
+
+⚠️ **Ce qui reste ouvert** : sur un portable, le nom d'auteur reste coupé de douze pixels
+(114 offerts pour 126 demandés par « Augustin d'Hippone », 161 par le plus long nom du
+corpus). Mettre l'étoile sous le ⋮ le ferait tenir exactement — mesuré — au prix de son
+état, qui ne se lirait plus sans ouvrir le menu. Arbitrage d'auteur, non tranché.
+
+⚠️ **Planche de mesure** : `tmp/planche-tete-volet.mjs` (non versionnée), une iframe par
+écran — 1280 à 2560 — pour que les `vw` et la police racine se résolvent comme sur la
+page. Elle rend l'AVANT et l'APRÈS côte à côte et relève part, cible la plus petite et
+coupure du nom.
