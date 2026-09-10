@@ -10,6 +10,11 @@ import {
   type BibleEditionBodyBlockRow,
   type BibleEditionChapterPayload,
 } from './bibleEditionServerCore'
+import {
+  retargeterNotesVersGloses,
+  type BibleGlossNoteTargetRow,
+} from './bibleNoteGlossTargets'
+import { lotsPourClauseIn } from './paginationSupabase'
 
 export * from './bibleEditionServerCore'
 
@@ -26,6 +31,32 @@ function fusionnerParId<T extends { id: string }>(a: readonly T[], b: readonly T
   return [...new Map([...a, ...b].map((item) => [item.id, item])).values()]
 }
 
+async function chargerCiblesDeGloses(
+  client: SupabaseClient,
+  familyId: string,
+  canonIds: string[] | Promise<string[]>,
+): Promise<BibleGlossNoteTargetRow[]> {
+  const ids = await Promise.resolve(canonIds)
+  if (ids.length === 0) return []
+
+  const lots = lotsPourClauseIn(ids)
+  const resultats = await Promise.all(lots.map(async (lot) => {
+    const { data, error } = await client
+      .from('v_bible_tr0013_gloss_note_targets')
+      .select('note_id,host_canon_id,target_verse_id')
+      .eq('family_id', familyId)
+      .in('host_canon_id', lot)
+
+    // Déploiement tolérant : si la vue n'est pas encore visible dans le cache
+    // PostgREST, les notes restent sur leur ancre canonique au lieu de faire
+    // tomber tout le chapitre. Aucun autre échec n'est masqué.
+    if (isMissingBibleEditionRelation(error)) return []
+    if (error) throw new Error(`Cibles de gloses TR0013 illisibles : ${error.message}`)
+    return (data ?? []) as BibleGlossNoteTargetRow[]
+  }))
+  return resultats.flat()
+}
+
 /**
  * Façade du chargeur d'édition.
  *
@@ -39,12 +70,28 @@ function fusionnerParId<T extends { id: string }>(a: readonly T[], b: readonly T
  * ancres restent celles de l'édition. Cette façade complète seulement la charge
  * par fermeture transitive de `semantic_parent_key`, puis réemploie le chargeur
  * de pièce existant pour les textes, notes et illustrations des descendants.
+ *
+ * Elle résout aussi les notes TR0013 dont les ancres validées visent uniquement
+ * des gloses du témoin 899. Le `canon_id` n'est jamais modifié en base : seul le
+ * payload de rendu reçoit l'UUID de la ligne surnuméraire cible. Une note mixte,
+ * ambiguë ou sans correspondance sûre reste donc attachée au verset canonique.
  */
 export async function loadBibleEditionChapter(
   client: SupabaseClient,
   options: OptionsChapitreEdition,
 ): Promise<BibleEditionChapterPayload> {
-  const base = await loadBibleEditionChapterBase(client, options)
+  const ciblesPromise = chargerCiblesDeGloses(client, options.familyId, options.canonIds)
+  const [baseBrute, cibles] = await Promise.all([
+    loadBibleEditionChapterBase(client, options),
+    ciblesPromise,
+  ])
+  const base: BibleEditionChapterPayload = cibles.length === 0
+    ? baseBrute
+    : {
+        ...baseBrute,
+        notes: retargeterNotesVersGloses(baseBrute.notes, cibles),
+      }
+
   const includeBookFrontMatter = options.includeBookFrontMatter === true
   const includeBookBackMatter = options.includeBookBackMatter === true
   if (!includeBookFrontMatter && !includeBookBackMatter) return base
