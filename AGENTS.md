@@ -9109,3 +9109,71 @@ fetch('https://api.vercel.com/v6/deployments?limit=100', {headers:{Authorization
 26 déploiements, dont 24 Preview d'août et de septembre que leurs alias de branche
 protègent (`bible-patristique-git-<branche>-…`). C'est voulu — le chantier Bible 899 ne
 se touche pas —, mais cela pose un plancher d'environ 9 Go qu'aucune purge ne descendra.
+
+# ⛔ LA FICHE D'UNE ÉDITION — chronologie à gauche, notices à droite (2026-09-10)
+
+Doctrine : charte `parametres.charte_ia`, **§ 38.25** et **§ 38.25.1**. Ici, ce qu'il faut
+savoir pour y toucher.
+
+⛔ **LES DEUX COLONNES SONT À L'ENVERS DE CELLES DE LA FICHE D'AUTEUR, et c'est la DONNÉE
+qui le commande.** Le modèle a été copié de `ModaleAuteur` le 2026-08-28 — colonne large à
+gauche, frise à droite — alors que les deux fiches ne portent pas la même matière : une
+biographie remplit la colonne large, dix rangées d'étiquettes ne la remplissent pas.
+Mesuré avant reprise sur les Confessions : **1 466 px de fenêtre** pour un contenu qui en
+demande 808, six cents pixels de vide à gauche, et la notice de l'édition — ce qu'on vient
+chercher — reléguée sous sept cents pixels de frise, dans la colonne la plus étroite.
+⚠️ La règle générale : **une composition ne se recopie pas parce que les objets sont
+voisins, mais quand la donnée a la même forme.** C'est déjà la leçon de la carte du volet
+de lecture, qui prend la police de ce qu'elle SURMONTE et non celle du volet dont elle est
+copiée.
+
+⛔ **L'ORDRE DU DOCUMENT EST CELUI DU TÉLÉPHONE : `.fiche-edition-notices`, puis
+`.fiche-edition-chrono`.** La grille les renverse par un placement explicite
+(`grid-column` / `grid-row` sur `.fiche-edition-grille--deux`). Écrit dans l'autre sens,
+l'empilement mobile aurait fait descendre la frise avant la première rangée.
+⚠️ **Et l'alignement transversal REVIENT À `stretch` dans la requête de média** : le
+`align-items: start` de la règle de grille n'est remplacé par aucune des déclarations de
+l'empilement et, en colonne de flex, aligne sur l'axe TRANSVERSAL — la frise s'y réduisait
+à son contenu (485 px pour 830 offerts). ⛔ Ne pas croire qu'une règle de média « remplace »
+la règle de grille : elle n'en remplace que les propriétés qu'elle nomme.
+
+⛔ **PLUS DE PORTRAIT, ET LA LECTURE QUI L'ALIMENTAIT PART AVEC LUI.** `photo_position`
+était la seule chose que la page de lecture n'avait pas ; plus rien ne la demande, et
+`ContenuFicheEdition` n'a plus de prop `photoPosition`. ⚠️ Mettre la planche
+`tmp/planche-fiche-edition.tsx` d'accord au même passage : elle rend le composant RÉEL.
+
+⛔ **UNE SEULE FORME DE RANGÉE.** `RangeeEmpilee` existait pour la colonne étroite, que les
+notices ont quittée : tout passe à `LigneTech`. ⚠️ Elle demeure dans `ModaleAuteur`, dont
+la fiche de traduction se sert.
+
+## ⛔ Ce qui DISTINGUE deux éditions à l'écran
+
+`intituleEdition` (`versionTextuelle.ts`, pur, 4 tests) rend le titre PROPRE d'une version
+quand il en dit plus que le titre de catalogue. ⛔ Rien sur une étiquette de colonne
+(`/^texte\s+\S+$/i` : « Texte latin »), rien quand `memeIntitule` le déclare égal au titre
+de l'œuvre. La LANGUE ne se dit que si les versions n'ont pas toutes la même — sur deux
+traductions françaises, la rangée répéterait « Français » de part et d'autre.
+
+⛔ **`decomposerEdition` sort le RESPONSABLE SCIENTIFIQUE avant tout découpage d'adresse.**
+`X (éd.)` ouvre une notice savante et n'est ni une ville ni une maison : pris pour l'une des
+deux par le repli positionnel, il donnait « Lieu : Pius Knöll (éd.) » sur le latin des
+Confessions.
+
+⛔ **UNE NOTICE SAVANTE SE LIT PAR LA FIN — maison, puis lieu, collection devant — ET
+SEULEMENT SI ELLE A NOMMÉ SON RESPONSABLE.** « Rouen, Jean Viret, Jacques Besongne et
+Clément Malassis » compte trois morceaux lui aussi, et se lit dans l'autre sens : c'est le
+test de cette adresse-là qui a rattrapé la règle avant qu'elle ne soit servie. ⚠️ Corollaire
+de méthode : **un comptage de morceaux n'est pas un critère ; ce qui décide est un fait
+reconnu dans la notice.**
+
+⛔ **`identiteEdition` répond aussi de la COLLECTION, et l'œuvre ne parle que pour son texte
+PAR DÉFAUT.** C'est la règle du § 5.5 étendue d'un champ : `oeuvres.collection` servie telle
+quelle rangeait le latin de Knöll dans les « Œuvres complètes de saint Augustin » de Vivès.
+⚠️ Elle ne suit PAS la règle de l'adresse (« entière ou pas du tout ») : la version qui porte
+une collection l'emporte, qu'elle soit par défaut ou non.
+
+⚠️ **La mesure se fait sur le CORPUS, avant et après.** `decomposerEdition` a été rejouée sur
+les 51 éditions publiques avec l'index réel des éditeurs, la version d'avant tirée par
+`git show HEAD:…` : **deux décompositions changent, et ce sont les deux qui étaient
+fausses** (Knöll, Hartel — les seules notices du corpus qui nomment leur responsable entre
+parenthèses). ⛔ Ne pas juger une règle de découpage sur deux exemples : elle se rejoue.

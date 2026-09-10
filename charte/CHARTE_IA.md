@@ -6993,3 +6993,83 @@ volet de lecture, dont le défileur retire d’avance ces pixels à sa gouttièr
 modèle qui le veut** : dans un volet de lecture, la liste des livres est l’objet principal, et
 elle l’est ici aussi. ⛔ Ne pas la rabattre sur les filtres sans décision : ce serait quitter
 le modèle qu’on vient de reprendre.
+
+### 38.25 La fiche d’une ÉDITION — la chronologie à gauche, TOUTES les notices à sa droite
+
+Décision de l’auteur, 2026-09-10 : « toutes les notices devraient être à droite de la
+chronologie (sauf sur mobile, évidemment) ; il faut supprimer l’illustration représentant
+l’auteur ; dans le cas du Français-Latin, on différencie les deux éditions, et on donne
+toutes les informations nécessaires ».
+
+⛔ **LES DEUX COLONNES DE CETTE FICHE SONT À L’ENVERS DE CELLES DE LA FICHE D’AUTEUR, et
+c’est la DONNÉE qui le commande.** La fiche d’un auteur donne la colonne large à la vie et
+l’étroite à la frise : sa prose y tient. La fiche d’une édition n’a pas de prose de cette
+mesure — cinq à dix rangées d’étiquettes, un commentaire d’une phrase — et la frise, elle,
+fait sept cents pixels quel que soit le livre. Le partage recopié de sa sœur fermait donc la
+colonne de gauche après trois lignes, empilait la frise et tout le reste dans la colonne la
+plus étroite, et faisait tomber ce qu’on vient chercher — la notice de l’édition — sous sept
+cents pixels de frise. Mesuré avant reprise : **1 466 px de fenêtre pour un contenu qui en
+demande 808**, et un vide de six cents pixels à gauche.
+
+⚠️ **Une composition ne se recopie pas d’une fiche à l’autre parce que les objets sont
+voisins : elle se recopie quand la DONNÉE a la même forme.** C’est la même leçon que la
+carte du volet de lecture, qui prend la police de ce qu’elle SURMONTE et non celle du volet
+dont on l’a copiée.
+
+⛔ **L’ORDRE DU DOCUMENT EST CELUI DU TÉLÉPHONE : les notices d’abord, la frise ensuite.**
+C’est la grille qui les renverse sur un grand écran, par un placement explicite. Écrit dans
+l’autre sens, l’empilement mobile aurait fait descendre sept cents pixels de frise avant la
+première rangée d’une fiche qu’on ouvre pour lire une notice. ⚠️ Et l’alignement transversal
+revient à « stretch » quand la grille se défait : le « start » de la grille n’est remplacé
+par aucune des déclarations de l’empilement, et la frise s’y réduisait à son contenu.
+
+⛔ **IL N’Y A PAS DE PORTRAIT DANS LA FICHE D’UN LIVRE.** Il ouvrait la fenêtre sur un
+visage quand le sujet est une édition, et il coûtait une lecture de plus — le cadrage
+(`photo_position`) était la seule chose que la page de lecture n’avait pas. L’auteur se
+nomme sous le titre, et son nom ouvre sa propre fiche, où le portrait est chez lui.
+
+⛔ **TOUTES LES NOTICES SE COMPOSENT DE LA MÊME FAÇON.** La fiche employait deux formes de
+rangée — l’une côte à côte, l’autre empilée — parce que l’étiquette de 8,5 rem ne tient pas
+dans une colonne de trois cents pixels. Les notices occupant désormais la colonne LARGE, la
+seconde n’a plus d’objet : une fiche qui compose deux fois le même objet se lit comme deux
+documents cousus.
+
+### 38.25.1 Deux éditions à l’écran se DISTINGUENT, et la fiche doit le dire
+
+En lecture bilingue, les deux volets portent le même titre d’œuvre, le même sous-titre, le
+même auteur et la même ligne de repères : l’en-tête ne dit rien de ce qui change. Six
+rangées les séparent désormais, et chacune répond à un fait de l’édition.
+
+- **L’INTITULÉ PROPRE de l’édition**, quand il en dit plus que le titre de catalogue :
+  « Sancti Aureli Augustini Confessionum libri XIII » en face des « Confessions ». ⛔ Rien
+  quand la version se nomme « Texte latin » : ce n’est pas un intitulé, c’est l’étiquette de
+  sa colonne, et la barre d’onglets la dit déjà. Rien non plus quand il redit le titre de
+  l’œuvre — un frontispice ne bégaie pas, une fiche non plus.
+- **LA LANGUE**, et seulement si les éditions n’ont pas toutes la même : sur deux traductions
+  françaises, la rangée répéterait « Français » de part et d’autre.
+- **LE SAVANT QUI A ÉTABLI LE TEXTE.** Une édition critique n’a pas de traducteur : elle a un
+  responsable scientifique, et le taire laissait le volet latin sans personne.
+- **L’ADRESSE et la COLLECTION**, propres à chacune.
+
+⛔ **LE RESPONSABLE SCIENTIFIQUE N’EST NI UNE VILLE NI UNE MAISON, et le prendre pour l’une
+des deux se voyait à l’écran.** « Pius Knöll (éd.) » ouvre la mention d’édition ; le
+découpage par position en faisait la ville, et la fiche du latin des Confessions annonçait
+« Lieu : Pius Knöll (éd.) ». Il sort donc du jeu AVANT tout découpage d’adresse.
+
+⛔ **UNE NOTICE SAVANTE SE LIT PAR LA FIN : la maison, puis le lieu, la collection devant.**
+« CSEL 33, Pragae–Vindobonae–Lipsiae, F. Tempsky–G. Freytag » ne se lit pas dans l’ordre
+d’une adresse ordinaire. ⚠️ **Mais cette lecture ne vaut QUE si la notice a nommé son
+responsable** : « Rouen, Jean Viret, Jacques Besongne et Clément Malassis » compte trois
+morceaux lui aussi, et se lit dans l’autre sens. C’est le test de cette adresse-là qui a
+rattrapé la règle avant qu’elle ne soit servie.
+
+⛔ **LA COLLECTION DE L’ŒUVRE NE DÉCRIT QUE SON TEXTE PAR DÉFAUT.** C’est la règle de
+l’identité d’une édition (§ 5.5) prise par un champ de plus : servie telle quelle sur une
+autre version, elle rangeait le latin de Knöll dans les « Œuvres complètes de saint
+Augustin » de Vivès, qui ne l’ont jamais porté. Une version dit tout de son édition, son
+silence compris.
+
+⚠️ **La mesure est le seul juge, et elle se fait sur le CORPUS.** La décomposition a été
+rejouée sur les 51 éditions publiques, avant et après : **deux changent, et ce sont les deux
+qui étaient fausses** — Knöll et Hartel, les deux seules notices du corpus qui nomment leur
+responsable entre parenthèses. Les quarante-neuf autres rendent le même octet.
