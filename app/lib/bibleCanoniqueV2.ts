@@ -48,12 +48,16 @@ function pointCanonique(contexte: string | null): PointCanonique {
 
 /**
  * Une partie des anciennes lignes TR0013 nomme déjà explicitement la glose dans
- * son suffixe ou sa note de structure. Ces marqueurs sont des preuves positives,
- * jamais un critère d'exclusion : des lignes plus anciennes portent encore des
- * suffixes génériques comme `extra-1`.
+ * son suffixe ou au début de sa note de structure. Le mot « glose » rencontré
+ * ailleurs ne suffit pas : deux notices disent précisément « non surqualifiée
+ * comme glose ». Ces marqueurs sont donc des preuves positives, jamais un critère
+ * d'exclusion : des lignes plus anciennes portent encore des suffixes génériques
+ * comme `extra-1`.
  */
 export function estExtraExplicitementGlose(ligne: LigneExtraCanoniqueV2): boolean {
-  return /gloss/i.test(ligne.v_orig_suffixe ?? '') || /glose/i.test(ligne.note_structure ?? '')
+  const suffixe = ligne.v_orig_suffixe ?? ''
+  const note = ligne.note_structure ?? ''
+  return /gloss/i.test(suffixe) || /MANUSCRIPT_EXTRA\s*[–—-]\s*glose\b/i.test(note)
 }
 
 /**
