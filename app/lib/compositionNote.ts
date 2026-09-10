@@ -58,13 +58,43 @@ export function largeurEncartPx(racine: number): number {
  * La largeur SOUS LAQUELLE l'encart ne se range plus dans une marge : en deçà, une
  * note ne se lit plus, et mieux vaut la poser sous son appel comme avant.
  *
- * ⚠️ 20 rem, soit 320 px à la racine 16 — vingt pixels de moins que le plus étroit
- * des trois encarts d'hier, et c'est un choix : c'est ce qui permet à la marge de
- * servir dès 1280 px de fenêtre, où elle n'en offre que 366. Sa piste de texte y
- * vaut encore quarante-quatre signes par ligne. ⛔ La relever d'un rem renverrait
- * l'encart par-dessus le texte sur tous les portables.
+ * ⛔ 16 REM, ET NON PLUS 20 (décision de l'auteur, 2026-09-10 : « le minimum de marge
+ * pour l'affichage des notes dans les marges d'une œuvre doit être plus souple ;
+ * j'aimerais qu'on puisse avoir des notes en marge, sur grand écran, même en mode
+ * latin-français »). À 20 rem, les deux volets ouverts, la lecture en regard n'y
+ * arrivait qu'à partir de 2880 px de fenêtre.
+ *
+ * ⛔ ET LE CHIFFRE EST LE PLUS PETIT QUI RÉPONDE À LA DEMANDE, non le plus généreux :
+ * mesuré (`tmp/mesure-marge-encart.mjs`, une iframe par écran, l'arithmétique réelle de
+ * `placerEnMarge` sur les structures réelles des deux pages), la marge de la lecture en
+ * regard vaut 357 px à 2560 — 16 rem y font 352, 18 rem 396. Descendre plus bas
+ * n'achèterait rien : 14 rem ne gagnent aucun écran de plus en latin-français, et
+ * coûteraient sept signes par ligne.
+ *
+ *     écran   racine   œuvre   regard   bible      (place à droite, volets ouverts)
+ *      1280       16      99       13      69
+ *      1920       19     279      177     237
+ *      2400       22     395      277     352
+ *      2560       22     475      357     432
+ *      2880       22     635      517     592
+ *
+ *   La marge sert, à 20 rem : œuvre dès 2560, regard dès 2880, Bible dès 2880.
+ *   À 16 rem : œuvre dès 2200, regard dès 2560, Bible dès 2400.
+ *
+ * ⚠️ CE QUE 16 REM COÛTE, ET POURQUOI C'EST TENABLE. Sur la note la plus longue du
+ * corpus qu'on ait éprouvée (352 signes), la piste passe de 266 à 202 px et de 39 à
+ * 32 signes par ligne. La charte tient une colonne de prose à « une trentaine de
+ * signes » pour trop étroite — mais c'est de la lecture SUIVIE qu'elle parle, et une
+ * note n'en est pas. ⛔ Surtout, la longueur d'une note est mesurée : sur les 24 302
+ * notes du corpus, la médiane fait 17 signes, le troisième quartile 40, et 92,6 %
+ * tiennent sous 120. Le plancher de 20 rem était donc taillé pour les 3 % qui passent
+ * 300 signes, et il coûtait la marge aux 97 % qui tiennent en une à trois lignes —
+ * lesquelles rendent le même nombre de lignes à 16 rem comme à 20.
+ *
+ * ⚠️ 14 rem a été éprouvé et REFUSÉ, à l'œil comme à la mesure : 25 signes par ligne,
+ * et la justification s'y creuse de lézardes visibles sur la planche.
  */
-export const LARGEUR_ENCART_MIN_REM = 20
+export const LARGEUR_ENCART_MIN_REM = 16
 
 export function largeurEncartMinPx(racine: number): number {
   return LARGEUR_ENCART_MIN_REM * racine

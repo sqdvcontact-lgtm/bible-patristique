@@ -3068,14 +3068,15 @@ code :
   qui est le bloc entre les deux volets. C'est la lecture que `useManchetteRenvois` fait
   déjà, et c'est pourquoi elle n'a rien coûté.
 - ⚠️ **Le prix est lourd, et il se mesure.** Relevé au navigateur en répliquant la
-  structure des deux pages (`tmp/mesure-borne-volet.mjs`, iframes aux largeurs voulues :
-  un `vw` s'y résout sur la largeur de l'iframe, police racine fluide comprise), les deux
-  volets OUVERTS — œuvre 98 · 169 · 281 · 475 px à 1280, 1440, 1920 et 2560 ; page Bible
-  68 · 136 · 238 · 432 ; lecture en regard 12 · 83 · 179 · 356. Les deux volets REPLIÉS à
-  leur rail, l'œuvre en laisse 329 dès 1280 et 603 à 1920. ⛔ À 20 rem de plancher,
-  l'encart ne gagne donc la marge qu'à 2560 sur une œuvre, jamais sur la page Bible, et
-  toujours dès qu'un volet se replie. ⛔ Ce n'est PAS une raison de baisser le plancher :
-  un encart de dix rem porterait douze signes par ligne.
+  structure des deux pages (`tmp/mesure-marge-encart.mjs`, une iframe par écran : un `vw`
+  s'y résout sur la largeur de l'iframe, police racine fluide comprise), les deux volets
+  OUVERTS, place à droite — écran · racine · œuvre · regard · Bible :
+  1280 · 16 · 99 · 13 · 69 ; 1920 · 19 · 279 · 177 · 237 ; 2400 · 22 · 395 · 277 · 352 ;
+  2560 · 22 · 475 · 357 · 432 ; 2880 · 22 · 635 · 517 · 592. Les deux volets REPLIÉS à
+  leur rail, l'œuvre en laisse 329 dès 1280 et 603 à 1920. ⚠️ À 16 rem de plancher, la
+  marge sert à l'œuvre dès 2200, à la page Bible dès 2400 et à la lecture en regard dès
+  2560 ; à 20 rem il fallait 2560, 2880 et 2880. ⛔ Et le VOLET reste le premier levier,
+  de loin : aucun plancher ne rend ce que deux volets prennent.
 - ⛔ **LA DROITE L'EMPORTE DÈS QU'ELLE PORTE `largeurMin`**, et non plus à la seule
   égalité : la marge de gauche porte la manchette des renvois. ⚠️ Bornée au volet, la
   marge est EXACTEMENT symétrique tant que les deux volets sont ouverts ; un seul volet
@@ -3085,10 +3086,30 @@ code :
   `styleCadreEncart({ largeur })`). Ce n'est pas la largeur qui suit le CONTENU, que le
   § 13.13 proscrit : elle suit la PLACE, elle est la même pour toutes les notes d'une
   page, et elle ne change que si le lecteur ouvre un volet lui-même.
-- ⚠️ **`LARGEUR_ENCART_MIN_REM` vaut 20**, vingt pixels de moins que le plus étroit des
-  trois encarts d'hier. ⛔ Ni le relever, ni le baisser : sous ce plancher une note ne se
-  lit plus, et `placerEnMarge` rend alors `null` — l'encart repasse sous son appel, comme
-  avant le 8 septembre 2026.
+- ⛔ **`LARGEUR_ENCART_MIN_REM` VAUT 16, ET NON PLUS 20** (décision de l'auteur,
+  2026-09-10 : « le minimum de marge doit être plus souple ; j'aimerais qu'on puisse avoir
+  des notes en marge, sur grand écran, même en mode latin-français »). Sous ce plancher
+  `placerEnMarge` rend `null` et l'encart repasse sous son appel, comme avant le
+  8 septembre 2026.
+- ⛔ **ET LE CHIFFRE EST LE PLUS PETIT QUI RÉPONDE À LA DEMANDE, non le plus généreux.** La
+  marge de la lecture en regard vaut 357 px à 2560, et 16 rem y font 352. ⚠️ Descendre à
+  14 n'achèterait AUCUN écran de plus en latin-français — 2400 en offre 277, et 14 rem en
+  demandent 308 — et coûterait sept signes par ligne.
+- ⛔ **CE QUI MANQUAIT AU RAISONNEMENT D'HIER EST UNE MESURE DU CORPUS.** Cette page disait
+  « ce n'est PAS une raison de baisser le plancher : un encart de dix rem porterait douze
+  signes par ligne » — vrai, et hors sujet, parce que personne n'avait compté la longueur
+  des notes. Relevé en base : **24 302 notes, médiane 17 signes, p75 40, p90 87, et 92,6 %
+  sous 120**. Le plancher était taillé pour les 3 % qui passent 300 signes, et il coûtait
+  la marge aux 97 % qui tiennent en une à trois lignes — lesquelles rendent le MÊME nombre
+  de lignes à 16 rem qu'à 20. ⚠️ Une largeur plancher se juge sur DEUX mesures : ce que la
+  place offre, et ce que le contenu réel demande.
+- ⚠️ **Le prix de 16 rem se chiffre, et il a été jugé à l'œil.** Sur la note la plus longue
+  éprouvée (352 signes), la piste passe de 266 à 202 px et de 39 à 32 signes par ligne ;
+  à 14 rem, 25 signes, et la justification s'y creuse de lézardes visibles sur la planche.
+- ⚠️ **La garde est `compositionNote.test.ts`**, et elle PINCE la valeur : elle relit les
+  marges mesurées, exige que la lecture en regard gagne la marge à 2560 et que rien ne la
+  gagne à 1920, et que la piste reste au-dessus de trente signes. Rouge à 14 comme à 18 et
+  à 20, verte à 16 — éprouvé dans les deux sens.
 
 # ⛔ LE NUMÉRO DE L'ENCART FLOTTE (2026-09-08)
 

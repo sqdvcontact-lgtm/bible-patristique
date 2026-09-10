@@ -206,17 +206,64 @@ describe('l’encart qui se range dans une marge', () => {
     expect(styleCadreEncart({ left: 0, top: 0, hauteurMax: 300 }).width).toBe(LARGEUR_ENCART)
   })
 
-  // ⛔ Sous cette borne, une note ne se lit plus : elle repasse sous son appel.
-  // ⚠️ 320 px à la racine 16 : vingt de moins que le plus étroit des trois encarts
-  // d'hier, et c'est ce qui permet à la marge de servir dès 1280 px de fenêtre, où
-  // elle n'en offre que 366.
-  it('a une largeur plancher, qui tient dans la marge d’un écran de 1280', () => {
+  // ── LE PLANCHER, ET CE QU'IL OUVRE ────────────────────────────────────────
+  //
+  // Places RELEVÉES à droite de la colonne, les deux volets ouverts, par
+  // l'arithmétique réelle de `placerEnMarge` sur les structures réelles des deux
+  // pages (`tmp/mesure-marge-encart.mjs`, une iframe par écran).
+  // ⛔ Ces nombres sont MESURÉS, jamais calculés de tête : le commentaire d'hier
+  // donnait la marge d'un écran de 1280 pour 366 px, ce qui est la place dans la
+  // FENÊTRE — la page d'une œuvre n'en offre que 99 une fois les volets déduits.
+  const MARGES = [
+    { ecran: 1280, racine: 16, oeuvre: 99, regard: 13, bible: 69 },
+    { ecran: 1920, racine: 19, oeuvre: 279, regard: 177, bible: 237 },
+    { ecran: 2400, racine: 22, oeuvre: 395, regard: 277, bible: 352 },
+    { ecran: 2560, racine: 22, oeuvre: 475, regard: 357, bible: 432 },
+    { ecran: 2880, racine: 22, oeuvre: 635, regard: 517, bible: 592 },
+  ]
+  const sert = (m: typeof MARGES[number], surface: 'oeuvre' | 'regard' | 'bible') =>
+    m[surface] >= largeurEncartMinPx(m.racine)
+
+  it('la borne SUIT la police racine — une note y garde le même nombre de signes', () => {
     expect(largeurEncartMinPx(16)).toBe(LARGEUR_ENCART_MIN_REM * 16)
-    expect(largeurEncartMinPx(16)).toBeLessThanOrEqual(366)
-    expect(largeurEncartMinPx(16)).toBeGreaterThanOrEqual(300)
+    expect(largeurEncartMinPx(22)).toBe(LARGEUR_ENCART_MIN_REM * 22)
   })
 
-  it('la borne SUIT la police racine', () => {
-    expect(largeurEncartMinPx(22)).toBe(LARGEUR_ENCART_MIN_REM * 22)
+  // ⛔ CE QUE L'AUTEUR A DEMANDÉ LE 2026-09-10 : des notes en marge sur grand écran,
+  // même en latin-français. À 20 rem la lecture en regard n'y arrivait qu'à 2880.
+  it('rend la marge à la lecture EN REGARD dès 2560', () => {
+    expect(sert(MARGES.find(m => m.ecran === 2560)!, 'regard')).toBe(true)
+    expect(sert(MARGES.find(m => m.ecran === 2880)!, 'regard')).toBe(true)
+  })
+
+  it('rend la marge à l’œuvre lue seule et à la page Bible dès 2400', () => {
+    const m = MARGES.find(m => m.ecran === 2400)!
+    expect(sert(m, 'oeuvre')).toBe(true)
+    expect(sert(m, 'bible')).toBe(true)
+  })
+
+  // ⚠️ Le plancher ne PROMET pas la marge partout : sur un portable, deux volets
+  // ouverts n'en laissent pas de quoi lire, et l'encart repasse sous son appel.
+  // Aucun plancher n'y peut rien — c'est le repli d'un volet qui rend la place.
+  it('ne promet rien là où la place n’existe pas', () => {
+    for (const surface of ['oeuvre', 'regard', 'bible'] as const) {
+      expect(sert(MARGES.find(m => m.ecran === 1280)!, surface)).toBe(false)
+      expect(sert(MARGES.find(m => m.ecran === 1920)!, surface)).toBe(false)
+    }
+  })
+
+  // ⛔ LE PLANCHER EST UN PLANCHER DE LISIBILITÉ, et il se tient par les deux bouts.
+  // Piste de texte = largeur − 1 rem de blanc à gauche − 2,25 rem réservés à la croix
+  // − les deux filets. Mesuré sur la note la plus longue qu'on ait éprouvée (352
+  // signes) : 32 signes par ligne à 16 rem, 25 à 14 — et la justification s'y creuse
+  // de lézardes visibles. ⚠️ Descendre plus bas ne gagnerait AUCUN écran de plus en
+  // latin-français : 14 rem laisse 2400 hors d'atteinte comme 16.
+  it('reste au-dessus de la mesure où la justification se creuse', () => {
+    const piste = (racine: number) => largeurEncartMinPx(racine) - 3.25 * racine - 2
+    // 202 px à la racine 16, soit 32 signes à 6,3 px de chasse moyenne.
+    expect(Math.round(piste(16))).toBe(202)
+    expect(piste(16) / 6.3).toBeGreaterThan(30)
+    // ⛔ Et 14 rem n'achèterait rien : la marge de 2400 en regard vaut 277 px.
+    expect(14 * 22).toBeGreaterThan(MARGES.find(m => m.ecran === 2400)!.regard)
   })
 })

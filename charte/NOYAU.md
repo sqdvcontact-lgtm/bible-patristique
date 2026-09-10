@@ -536,9 +536,15 @@
 - ⚠️ La règle d’avant prenait le côté le plus large, ce qui suffisait tant que la marge se comptait jusqu’au bord de la fenêtre et restait presque symétrique.
 - ⛔ L’ENCART S’ARRÊTE AU VOLET : la marge se compte jusqu’au bord du BLOC DE LECTURE, non jusqu’au bord de la fenêtre.
 - ⚠️ La règle inverse a valu quelques heures le 8 septembre 2026, et l’auteur l’a renversée le soir même.
-- ⛔ Le prix en est lourd, et il faut le connaître : les deux volets OUVERTS, la lecture d’une œuvre ne laisse plus que six rem de marge sur un portable, dix sur un écran ordinaire et quinze sur un grand écran, quand le plancher en demande vingt.
-- ⛔ Ce n’est pas une raison de baisser le plancher : un encart de dix rem porterait douze signes par ligne, et ce ne serait plus une note.
+- ⛔ Le prix en est lourd, et il faut le connaître : les deux volets OUVERTS, la lecture d’une œuvre ne laisse plus que six rem de marge sur un portable et quinze sur un écran de 1920, quand une note en demande seize.
+- ⛔ LE PLANCHER EST UN PLANCHER DE LISIBILITÉ, ET IL SE MESURE SUR LA LONGUEUR RÉELLE DES NOTES (décision de l’auteur, 10 septembre 2026 : « le minimum de marge doit être plus souple ; j’aimerais qu’on puisse avoir des notes en marge, sur grand écran, même en mode latin-français »).
+- ⚠️ Ce qui manquait à ce raisonnement est une mesure du CORPUS — sur les 24 302 notes du site, la médiane fait dix-sept signes, le troisième quartile quarante, et 92,6 % tiennent sous cent vingt.
+- ⛔ ET LE CHIFFRE RETENU EST LE PLUS PETIT QUI RÉPONDE À LA DEMANDE, non le plus généreux.
+- ⚠️ Le prix de seize rem se chiffre : sur la note la plus longue qu’on ait éprouvée, la piste de texte passe de trente-neuf à trente-deux signes par ligne.
+- ⚠️ Quatorze rem a été éprouvé et refusé, à l’œil comme à la mesure : la justification s’y creuse de lézardes visibles.
+- ⚠️ Une largeur plancher se juge donc sur DEUX mesures, jamais sur une intuition — ce que la place offre, écran par écran, et ce que le contenu réel demande.
 - ⛔ Elle SE RESSERRE plutôt que de renoncer — et la place qui lui reste se MESURE, elle ne se suppose pas.
+- ⚠️ À seize rem de plancher, la marge sert donc à l’œuvre dès 2200, à la page Bible dès 2400 et à la lecture en regard dès 2560 ; à vingt, il fallait 2560, 2880 et 2880.
 - ⛔ Ce n’est pas la largeur qui suit le CONTENU, que le § 13.13 proscrit : elle suit la PLACE, elle est la même pour toutes les notes d’une même page, et elle ne change que si le lecteur touche à un volet lui-même.
 - ⛔ Sous une largeur plancher, l’encart repasse SOUS son appel — comme avant : une note ne se lit plus dans une colonne trop étroite, et mieux vaut couvrir le texte que sortir de l’écran.
 - ⛔ LE NUMÉRO FLOTTE, il n’occupe pas une colonne.

@@ -172,11 +172,19 @@ export type PlacementEnMarge = PlacementFenetre & {
  *
  * ⛔ On ne rend RIEN sous `largeurMin` : une note ne se lit plus dans une colonne trop
  * étroite, et mieux vaut alors la poser sous son appel, comme avant. ⚠️ Le PRIX de la borne
- * est donc là, et il est lourd : à 20 rem de plancher, les deux volets ouverts, l'encart ne
- * gagne la marge qu'à partir de 2560 sur une œuvre et jamais sur la page Bible. ⛔ Ce n'est
- * pas une raison de baisser le plancher : un encart de dix rem porterait douze signes par
- * ligne. C'est le VOLET qui rend la place — replié à son rail, il laisse 328 px dès 1280 et
- * 603 à 1920 — et le repli est un geste que le lecteur a déjà sous la main.
+ * est là, et il est lourd — c'est le volet, non la fenêtre, qui décide de la place.
+ *
+ * ⛔ LE PLANCHER A ÉTÉ BAISSÉ DE 20 À 16 REM le 2026-09-10, et cette page disait le
+ * contraire le matin même : « ce n'est pas une raison de baisser le plancher ». La demande
+ * de l'auteur l'a renversé — « j'aimerais qu'on puisse avoir des notes en marge, sur grand
+ * écran, même en mode latin-français » —, et la mesure lui donne raison : la longueur d'une
+ * note se compte, et la médiane du corpus fait dix-sept signes. Le plancher était taillé
+ * pour les 3 % de notes qui passent trois cents signes. Voir `LARGEUR_ENCART_MIN_REM`
+ * (compositionNote.ts), qui porte la table mesurée et le prix.
+ *
+ * ⚠️ Le VOLET reste le premier levier, et de loin : replié à son rail, il laisse 328 px dès
+ * 1280 et 603 à 1920, là où ouvert il n'en laisse que 99 et 279. Le repli est un geste que
+ * le lecteur a déjà sous la main, et aucun plancher ne rend ce que deux volets prennent.
  */
 export function placerEnMarge({
   ancre, largeur, largeurMin, hauteurSouhaitee, vue, hautNavbar, colonne,
