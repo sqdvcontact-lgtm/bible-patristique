@@ -333,7 +333,7 @@ export async function chargerVersetsCanoniquesV2(
   const nativeDe = (ligne: VersetV2Row): string | null =>
     ligne.ch_orig != null && ligne.v_orig != null ? `${ligne.ch_orig}, ${ligne.v_orig}${ligne.v_orig_suffixe ?? ''}` : null
 
-  const canoniques = canonRows.map((canon) => {
+  const canoniques = canonRows.map((canon): VersetEditorialAdapte => {
     const groupe = (parCanon.get(canon.id) ?? []).sort((a, b) =>
       (a.ordre_slot ?? 0) - (b.ordre_slot ?? 0) || (a.v_orig ?? 0) - (b.v_orig ?? 0))
     const texte = groupe.map((ligne) => ligne.texte?.trim() ?? '').filter(Boolean).join(' ')
