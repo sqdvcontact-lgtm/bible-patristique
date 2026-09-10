@@ -7251,3 +7251,43 @@ blanche de la fenêtre, à onze pixels. Elle prend l'encre du rang au-dessus (5,
 9,27 en Cuir) et se distingue de la ligne par sa taille, sa police et son rang, non par sa
 faiblesse. C'est la règle de la mention d'absence de la Polyglotte, prise sur un autre
 objet.
+
+#### 38.26.1 La rangée MONTRE TOUT, et ne cède que TOUT ENTIÈRE
+
+Seconde rectification de l'auteur, le soir du 10 septembre 2026 : « je t'ai demandé de
+regrouper partager, extraire, etc., sous un bouton ⋮ ; cela ne doit être le cas que quand
+on manque de place à l'écran ; sur grand écran, pas la peine de cacher les icônes. »
+
+⛔ **UN REPLI QUI JOUE EN TOUTES CIRCONSTANCES N'EST PLUS UN REPLI.** La forme du matin
+rangeait les trois actions sous le ⋮ quelle que fût la place, et n'en sortait que l'étoile
+quand le nom la permettait : elle cachait donc des icônes là où rien ne l'exigeait, c'est-à-
+dire l'exact contraire de ce qu'une condensation existe pour faire. Une rangée montre TOUT
+tant que la tête le porte, et ne cède que quand elle ne le porte plus.
+
+⛔ **ET ELLE CÈDE D'UN COUP, JAMAIS PAR DEGRÉS.** Deux formes, et deux seulement : la rangée
+entière en icônes, ou le ⋮ et le contrôle du contenant. Un repli par crans — une icône qui
+cède après l'autre — a été écarté : c'est le parti que la barre de navigation avait défait
+le matin même, « la rangée n'avait pas la même forme selon la largeur de la fenêtre », et
+une rangée qui change de forme par degrés ne s'apprend jamais.
+
+⛔ **CE QUI DISPUTE LA PLACE SE COMPTE, IL NE SE MESURE PAS.** Le prédicat ne reçoit plus la
+largeur de la rangée telle qu'elle est peinte — il lisait alors dans le document une valeur
+qu'il venait lui-même de décider, et il fallait la ramener à la forme dépliée pour qu'il
+n'oscille pas — mais le NOMBRE de cibles de la forme dépliée, dont la place se calcule : n
+côtés et n−1 écarts. Les trois termes de la règle sont ainsi connus AVANT le rendu.
+
+⚠️ **Une rangée n'a pas le même nombre de cibles pour tout le monde**, et cela se compte
+aussi : l'administrateur en a une de plus, un téléphone n'a pas le chevron du volet — c'est
+la barre qui y ferme.
+
+⚠️ **LE PRIX DE LA CIBLE DE L'ADMINISTRATEUR SE CHIFFRE, et il reste à trancher.** Mesuré
+sur les quinze auteurs publiés et neuf écrans : à 2400 px et au-delà, quatorze noms sur
+quinze portent la rangée du lecteur, dix seulement celle de l'administrateur. « Augustin
+d'Hippone » demande 168 px quand la tête en offre 347 : 168 et la rangée du lecteur tiennent,
+168 et celle de l'administrateur non — huit pixels. Trois leviers, tous trois des décisions
+et non des correctifs : sortir de la tête le réglage réservé à l'administration, hausser le
+plafond de largeur du volet, ou rendre aux cibles leur plancher absolu de 24 px sur les
+grands écrans, ce dernier défaisant la mise en rem du matin.
+
+⚠️ **Et « Eusèbe de Césarée » porte la rangée de l'administrateur d'UN SEUL PIXEL** — 346
+pour 347 offerts. C'est ce genre de cas qui interdit de poser un seuil : il se mesure.

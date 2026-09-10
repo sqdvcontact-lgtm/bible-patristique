@@ -10023,6 +10023,56 @@ coupé aussitôt.
 page. Elle rend l'AVANT et l'APRÈS côte à côte et relève part, cible la plus petite et
 coupure du nom.
 
+## ⛔ RECTIFICATION DU MÊME SOIR — LA RANGÉE MONTRE TOUT, ET NE CÈDE QUE TOUT ENTIÈRE
+
+Seconde rectification de l'auteur, quelques heures après la première : « je t'ai demandé de
+regrouper partager, extraire, etc., sous un bouton ⋮ ; cela ne doit être le cas que quand on
+manque de place à l'écran ; sur grand écran, pas la peine de cacher les icônes ».
+
+⛔ **LA FORME DU MATIN RANGEAIT LES TROIS ACTIONS SOUS LE ⋮ EN TOUTES CIRCONSTANCES**, et
+n'en sortait que l'étoile quand la place le permettait. Elle cachait donc des icônes là où
+rien ne l'exigeait — l'exact contraire de ce que la condensation existe pour faire. Deux
+formes désormais, et deux seulement : la rangée **entière** en icônes, ou le **⋮ et le
+chevron**. ⚠️ Ce que le ⋮ porte ne change pas ; c'est le moment où il paraît qui change.
+
+⛔ **PAS DE REPLI PAR CRANS**, une icône cédant après l'autre. C'est le parti que la barre de
+navigation a défait le matin même — « la rangée n'avait pas la même forme selon la largeur de
+la fenêtre » —, et il vaut ici pour la même raison : une rangée qui change de forme par degrés
+ne s'apprend jamais.
+
+⛔ **LE PRÉDICAT COMPTE LES CIBLES AU LIEU DE LES MESURER.** `condenserLaRangee` ne reçoit plus
+la largeur des actions ni l'état de l'étoile, mais le NOMBRE de cibles que la forme dépliée
+porterait, dont `largeurDeLaRangee` donne la place (n côtés, n−1 écarts). ⚠️ C'est plus sûr que
+la mesure : l'ancienne écriture lisait dans le document la largeur d'une rangée que le prédicat
+venait lui-même de décider, et il fallait la ramener à la forme dépliée pour qu'elle n'oscille
+pas. Le crochet n'observe donc plus les ACTIONS, et `refActions` a disparu.
+
+⚠️ **Le seul argument du crochet est ce nombre, et il ne noue rien** : c'est une donnée de la
+PAGE — l'administrateur a une action de plus, un téléphone n'a pas de chevron —, jamais la
+sortie du prédicat.
+
+⚠️ **CE QUE LA MESURE DONNE** (`tmp/mesure-tete-rangee-entiere.mjs`, neuf écrans de 1280 à
+2844, les quinze auteurs publiés ; volet `clamp(240px, 16vw, 380px)`, tête à 32 px de moins) :
+
+| écran | racine | tête | rangée du lecteur (4) | de l'admin (5) | noms entiers, lecteur / admin |
+|---|---:|---:|---:|---:|---|
+| 1280–1440 | 16 | 207 | 108,0 | 136,0 | 4/15 · 3/15 |
+| 1600 | 17 | 223 | 114,8 | 144,5 | 5/15 · 3/15 |
+| 1920 | 19 | 274 | 128,3 | 161,5 | 10/15 · 4/15 |
+| 2400 et au-delà | 22 | 347 | 148,5 | 187,0 | 14/15 · 10/15 |
+
+⛔ **LA ROUE CRANTÉE DE L'ADMINISTRATEUR COÛTE CINQ NOMS SUR SON PROPRE ÉCRAN**, et c'est le
+seul point qui reste ouvert. À 2844 px, « Augustin d'Hippone » demande 168 px : 168 + 148,5
+tient dans les 347 offerts, 168 + 187 non. Cinq auteurs sont dans ce cas (Augustin, Grégoire
+de Nazianze, Cyrille de Jérusalem, Cyprien de Carthage, Pseudo-Jean Chrysostome), et l'auteur
+du site les lit en administrateur. ⚠️ Trois leviers, tous trois des DÉCISIONS et non des
+correctifs : sortir la roue de la tête, hausser le plafond du volet au-delà de 380 px, ou
+rendre aux cibles leur plancher absolu de 24 px sur les grands écrans — ce dernier défaisant
+la mise en rem du matin.
+
+⚠️ **« Eusèbe de Césarée » porte la rangée de l'admin d'UN SEUL PIXEL** (159 + 187 = 346 pour
+347). C'est ce genre de cas qui interdit de poser un seuil : il se mesure, il ne se devine pas.
+
 # ⛔ L'OUTIL DE PARTAGE — `app/lib/partage.ts` et `ModalePartage` (2026-09-10)
 
 Doctrine : charte `parametres.charte_ia`, **§ 51.8** (ce que la ligne dit, pourquoi les

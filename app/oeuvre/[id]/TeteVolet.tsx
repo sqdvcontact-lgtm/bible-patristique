@@ -15,19 +15,37 @@
 // dans une tête qui en offre 208 sur un portable, soit 62 % — et le nom de l'auteur,
 // qui se coupe par la fin, n'en gardait que 65 pour les 126 qu'il demande. On ne peut
 // rien reprendre sur la taille : WCAG 2.2 § 2.5.8 fixe le plancher à 24 px CSS, et la
-// rangée était SOUS lui (l'étoile faisait 17). Trois actions passent donc sous un ⋮ :
-// la rangée tombe à 80 px (39 %), le nom retrouve 114 px, et la plus petite cible
-// passe de 17 à 24.
+// rangée était SOUS lui (l'étoile faisait 17).
 //
 // ⛔ ET LE NOM DE L'AUTEUR NE SE COUPE PAS : C'EST LA RANGÉE QUI CÈDE. Rectification de
 // l'auteur le jour même, contre la première écriture de cette page : « je préférais
 // qu'on ne coupe pas le nom de l'auteur, mais qu'on propose un symbole ⋮ pour regrouper
 // les options favori, etc., quand l'écran est trop petit pour afficher les symboles ».
-// Trois cibles ne suffisaient pas partout : mesuré sur les quinze auteurs publiés et
-// sept écrans — 105 cas, `tmp/mesure-tete-condensee.mjs` —, VINGT noms se coupaient par
-// la fin, dont quatre dès 1280 px (Grégoire de Nazianze, Cyrille de Jérusalem, Cyprien
-// de Carthage, Pseudo-Jean Chrysostome). L'étoile rejoint donc le ⋮ quand la place
-// manque, et en ressort dès qu'elle revient : il en reste CINQ.
+// Mesuré sur les quinze auteurs publiés et sept écrans (`tmp/mesure-tete-condensee.mjs`),
+// VINGT noms se coupaient par la fin, dont quatre dès 1280 px (Grégoire de Nazianze,
+// Cyrille de Jérusalem, Cyprien de Carthage, Pseudo-Jean Chrysostome).
+//
+// ⛔ MAIS ELLE NE CÈDE QUE QUAND LA PLACE MANQUE, ET ALORS TOUT ENTIÈRE. Seconde
+// rectification, le même soir : « je t'ai demandé de regrouper partager, extraire, etc.,
+// sous un bouton ⋮ ; cela ne doit être le cas que quand on manque de place à l'écran ;
+// sur grand écran, pas la peine de cacher les icônes ». La forme du matin rangeait les
+// trois actions sous le ⋮ EN TOUTES CIRCONSTANCES et n'en sortait que l'étoile : elle
+// cachait donc des icônes là où rien ne l'exigeait. Deux formes désormais, et deux
+// seulement — la rangée ENTIÈRE en icônes, ou le ⋮ et le chevron.
+//
+// ⛔ PAS DE REPLI PAR CRANS, une icône cédant après l'autre : c'est le parti que la
+// barre de navigation a défait le matin même, « la rangée n'avait pas la même forme
+// selon la largeur de la fenêtre », et une rangée qui change de forme par degrés ne
+// s'apprend jamais.
+//
+// ⚠️ CE QUE LA MESURE DIT DE LA FORME DÉPLIÉE (`tmp/mesure-tete-rangee-entiere.mjs`,
+// neuf écrans, quinze auteurs) : quatre cibles pour un LECTEUR — étoile, partage,
+// extraction, chevron — et cinq pour l'ADMINISTRATEUR, dont la roue crantée. Le volet
+// vaut clamp(240px, 16vw, 380px), la tête en offre 32 de moins. À 2400 px et au-delà,
+// quatorze noms sur quinze portent la rangée du lecteur, dix celle de l'administrateur ;
+// à 1920, dix et quatre ; sur un portable, quatre et trois. ⚠️ La roue de l'admin coûte
+// donc cinq noms sur son propre écran : c'est le prix d'une cible de plus dans une tête
+// de 347 px, non un défaut du prédicat.
 //
 // ⛔ LA CONDITION SE MESURE, ELLE NE SE POSE PAS. Ni requête de conteneur, ni seuil en
 // rem : ce qui décide n'est pas la largeur du volet mais le rapport entre la place
@@ -38,22 +56,22 @@
 //
 // ⛔ ET LE PRÉDICAT NE DÉPEND PAS DE L'ÉTAT QU'IL COMMANDE, sans quoi il oscillerait :
 // on ne demande jamais « le nom est-il coupé ? » — ce qui serait vrai condensé et faux
-// déplié, à l'infini — mais « le nom ENTIER tiendrait-il À CÔTÉ DE TROIS CIBLES ? ». Le
-// besoin se lit sur le `scrollWidth` du nom, qui vaut sa chasse réelle qu'il soit
-// écrêté ou non, et la largeur des actions est ramenée à celle de la forme dépliée.
+// déplié, à l'infini — ni « la rangée déborde-t-elle ? », qui est la même question par
+// l'autre bout. Le besoin se lit sur le `scrollWidth` du nom, qui vaut sa chasse réelle
+// qu'il soit écrêté ou non ; et la place des actions se COMPTE (`largeurDeLaRangee`) au
+// lieu de se mesurer, sur le nombre de cibles que la page sait d'avance.
 //
 // ⚠️ CE QUI NE BOUGE JAMAIS, ET POURQUOI. Le chevron : il est le contrôle du volet
 // lui-même et le plus employé des cinq — on ne referme pas un panneau en ouvrant
-// d'abord un menu qui vit dedans. Et l'étoile, quand elle entre, y garde son ÉTAT :
-// glyphe plein, encre d'or, libellé qui dit le geste inverse (« Retirer des favoris »).
-// Un état qu'on ne peut plus lire sans ouvrir un menu ne serait plus un état ; nommé et
-// peint, il l'est encore.
+// d'abord un menu qui vit dedans. Et l'étoile, sous le ⋮, y garde son ÉTAT : glyphe
+// plein, encre d'or, libellé qui dit le geste inverse (« Retirer des favoris »). Un état
+// qu'on ne peut plus lire sans ouvrir un menu ne serait plus un état ; nommé et peint,
+// il l'est encore.
 //
-// ⚠️ ET UN NOM RESTE ÉCRÊTÉ, faute de mieux : « Pseudo-Jean Chrysostome », de 1280 à
-// 1600 px. Il demande 164 px quand la rangée condensée en rend 155 sur un portable, et
-// il n'y a rien de plus à reprendre — la cible est au plancher de WCAG et le chevron ne
-// descend pas dans le menu. Les cinq derniers cas sur 105 sont tous celui-là ; il tient
-// dès 1920 px.
+// ⚠️ ET UN NOM RESTE ÉCRÊTÉ, faute de mieux : « Pseudo-Jean Chrysostome » demande 221 px
+// à la racine 22 quand la tête n'en offre que 347, rangée déduite. Il n'y a rien de plus
+// à lui rendre — la cible est au plancher de WCAG et le chevron ne descend pas dans le
+// menu.
 //
 // ⚠️ CE QUE LA MESURE A DÉMENTI, et qu'il ne faut pas re-supposer : à 1280 px,
 // « Augustin d'Hippone » tenait DÉJÀ à côté de trois cibles, d'un seul pixel (126 pour
@@ -132,36 +150,42 @@ export type ActionVolet = {
  * écritures : deux copies d'une même mesure divergent au premier réglage, et la rangée
  * composerait alors sur une largeur que la feuille ne lui donne pas.
  */
-export function pasDUneCible(racine: number): number {
-  return Math.max(24, 1.5 * racine) + Math.max(4, 0.25 * racine)
+export function coteDUneCible(racine: number): number { return Math.max(24, 1.5 * racine) }
+export function ecartDeCible(racine: number): number { return Math.max(4, 0.25 * racine) }
+export function pasDUneCible(racine: number): number { return coteDUneCible(racine) + ecartDeCible(racine) }
+
+/** La place que prend une rangée de `cibles` boutons, ses écarts compris — n côtés et
+ *  n−1 écarts. ⚠️ Elle se CALCULE, elle ne se mesure pas : on juge d'une forme AVANT de
+ *  la rendre, et la mesurer reviendrait à demander au prédicat ce qu'il vient de décider. */
+export function largeurDeLaRangee(cibles: number, racine: number): number {
+  if (cibles <= 0) return 0
+  return cibles * coteDUneCible(racine) + (cibles - 1) * ecartDeCible(racine)
 }
 
 /**
- * LA RÈGLE, à part du document : le nom ENTIER tiendrait-il À CÔTÉ DE TROIS CIBLES ?
+ * LA RÈGLE, à part du document : le nom ENTIER tiendrait-il À CÔTÉ DE LA RANGÉE ENTIÈRE ?
  *
- * ⛔ Elle ne demande jamais « le nom est-il coupé ? », qui serait vrai condensé et faux
- * déplié, à l'infini. `largeurActions` est donc ramenée à la forme DÉPLIÉE : quand
- * l'étoile n'est pas dans la rangée, on lui rend sa place avant de juger. Le prédicat
- * est ainsi indépendant de l'état qu'il commande, et `teteVolet.test.ts` l'éprouve
- * dans les deux sens sur les mêmes mesures.
+ * ⛔ ELLE NE DEMANDE JAMAIS « le nom est-il coupé ? », qui serait vrai condensé et faux
+ * déplié, à l'infini — ni « la rangée déborde-t-elle ? », qui est la même question par
+ * l'autre bout. Les DEUX termes se calculent hors du document : ce que le nom demande
+ * (sa chasse réelle, écrêté ou non) et ce que la rangée DÉPLIÉE prendrait (le nombre de
+ * ses cibles). Le prédicat est ainsi indépendant de l'état qu'il commande, et
+ * `teteVolet.test.ts` l'éprouve dans les deux sens sur les mêmes mesures.
  *
  * ⚠️ Il ne connaît pas le cas « on ne sait pas encore » : une largeur nulle se refuse
  * chez l'appelant, où l'on garde alors l'état d'avant.
  */
-export function condenserLaRangee({ dispo, besoin, largeurActions, etoileDehors, racine }: {
+export function condenserLaRangee({ dispo, besoin, ciblesDepliees, racine }: {
   /** Ce que la tête du volet OFFRE. */
   dispo: number
   /** Ce que le nom le plus long DEMANDE, sa flèche de fiche comprise. */
   besoin: number
-  /** Ce que la rangée d'actions prend AUJOURD'HUI. */
-  largeurActions: number
-  /** L'étoile est-elle dans la rangée à cet instant ? */
-  etoileDehors: boolean
+  /** Combien de boutons la rangée porterait si elle montrait TOUT — chevron compris. */
+  ciblesDepliees: number
   /** La police racine en pixels : les cibles sont en rem, sous un plancher absolu. */
   racine: number
 }): boolean {
-  const deplie = largeurActions + (etoileDehors ? 0 : pasDUneCible(racine))
-  return besoin + deplie > dispo
+  return besoin + largeurDeLaRangee(ciblesDepliees, racine) > dispo
 }
 
 // `useLayoutEffect` mesure et corrige AVANT peinture : la rangée ne doit pas se voir
@@ -171,9 +195,11 @@ const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLa
 /**
  * LA RANGÉE SE CONDENSE QUAND LE NOM N'A PLUS LA PLACE — et pas avant.
  *
- * Trois repères à poser : la RANGÉE (ce qui offre la place), les NOMS (ce qui la
- * demande), les ACTIONS (ce qui la dispute). Le prédicat compare la chasse réelle du
- * nom le plus long à ce qui resterait si l'étoile était dehors.
+ * Deux repères à poser : la RANGÉE (ce qui offre la place) et les NOMS (ce qui la
+ * demande). Ce que la rangée d'actions DISPUTE ne se mesure pas, il se compte :
+ * l'appelant dit combien de cibles la forme dépliée porterait, et `largeurDeLaRangee`
+ * en donne la place. ⚠️ On n'observe donc plus les ACTIONS — les observer reviendrait à
+ * mesurer ce que le prédicat vient de décider.
  *
  * ⛔ `condense` part à VRAI, et c'est le sens sûr : sur un portable, qui est le cas
  * ordinaire, c'est la réponse juste, et le rendu du serveur n'y montre donc pas une
@@ -181,30 +207,28 @@ const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLa
  * disparaître sur la plupart des écrans.
  *
  * ⚠️ On n'observe pas que la rangée : les noms changent de largeur quand la police
- * finit d'arriver, et les actions quand l'état bascule. Reposer la même valeur ne
- * redéclenche aucun rendu, la boucle se referme donc d'elle-même.
+ * finit d'arriver. Reposer la même valeur ne redéclenche aucun rendu, la boucle se
+ * referme donc d'elle-même.
  *
  * ⚠️ Une largeur NULLE ne se juge pas : le volet replié, le tiroir fermé et le premier
  * rendu rendent tous zéro, et conclure là-dessus condenserait une rangée qu'on ne voit
  * même pas.
  *
- * ⛔ ET LE CROCHET NE PREND AUCUN ARGUMENT : il lit l'état de la rangée DANS LE
- * DOCUMENT (`.etoile-favori` y est-elle ?) plutôt que dans l'état React. Le lui passer
- * aurait noué le prédicat à ce qu'il décide — l'appelant calcule `!condense` pour le
- * rendu, et le crochet aurait reçu sa propre sortie. Une mesure se prend sur ce qui est
- * peint, non sur ce qu'on a demandé de peindre.
+ * ⛔ LE SEUL ARGUMENT EST LE NOMBRE DE CIBLES DE LA FORME DÉPLIÉE, et il ne noue rien :
+ * c'est une donnée de la PAGE — l'administrateur a une action de plus, un téléphone n'a
+ * pas de chevron —, jamais la sortie du prédicat. Lui passer l'état qu'il décide, en
+ * revanche, le ferait osciller : l'appelant calcule `!condense` pour le rendu, et le
+ * crochet recevrait sa propre réponse.
  */
-export function useRangeeCondensee() {
+export function useRangeeCondensee(ciblesDepliees: number) {
   const refRangee = useRef<HTMLDivElement>(null)
   const refNoms = useRef<HTMLDivElement>(null)
-  const refActions = useRef<HTMLDivElement>(null)
   const [condense, setCondense] = useState(true)
 
   useMesureAvantPeinture(() => {
     const rangee = refRangee.current
     const noms = refNoms.current
-    const actions = refActions.current
-    if (!rangee || !noms || !actions) return
+    if (!rangee || !noms) return
     let vivant = true
     const mesurer = () => {
       if (!vivant) return
@@ -219,27 +243,20 @@ export function useRangeeCondensee() {
         if (!texte) continue
         besoin = Math.max(besoin, texte.scrollWidth + (bouton.clientWidth - texte.clientWidth))
       }
-      setCondense(condenserLaRangee({
-        dispo,
-        besoin,
-        largeurActions: actions.clientWidth,
-        etoileDehors: !!actions.querySelector('.etoile-favori'),
-        racine: tailleRacinePx(),
-      }))
+      setCondense(condenserLaRangee({ dispo, besoin, ciblesDepliees, racine: tailleRacinePx() }))
     }
     mesurer()
     const ro = new ResizeObserver(mesurer)
     ro.observe(rangee)
     ro.observe(noms)
-    ro.observe(actions)
     // La chasse d'un nom change quand la police du site arrive : mesurée avant, elle
     // est celle d'une police de secours, et la rangée se réglerait sur un nom qui n'est
     // pas celui qu'on lira.
     document.fonts?.ready.then(mesurer).catch(() => {})
     return () => { vivant = false; ro.disconnect() }
-  }, [])
+  }, [ciblesDepliees])
 
-  return { condense, refRangee, refNoms, refActions }
+  return { condense, refRangee, refNoms }
 }
 
 /** Largeur de la boîte, en rem. Elle est POSÉE et non ajustée au contenu : le

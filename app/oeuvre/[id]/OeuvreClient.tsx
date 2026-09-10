@@ -969,17 +969,25 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     liste.push({ cle: 'extraction', libelle: 'Extraire en document Word', icone: ICONE_EXTRACTION, onChoisir: () => setExtractionOuverte(true) })
     return liste
   }, [estAdmin])
-  // ── LA RANGÉE SE CONDENSE QUAND LE NOM N'A PLUS LA PLACE ──────────────────
-  // Rectification de l'auteur, 2026-09-10 : « je préférais qu'on ne coupe pas le nom
-  // de l'auteur, mais qu'on propose un symbole ⋮ pour regrouper les options favori,
-  // etc., quand l'écran est trop petit pour afficher les symboles ».
+  // ── LA RANGÉE MONTRE TOUT, ET NE CÈDE QUE QUAND LA PLACE MANQUE ───────────
+  // Rectification de l'auteur, 2026-09-10 au soir, contre la forme posée le matin :
+  // « je t'ai demandé de regrouper partager, extraire, etc., sous un bouton ⋮ ; cela ne
+  // doit être le cas que quand on manque de place à l'écran ; sur grand écran, pas la
+  // peine de cacher les icônes ». Les trois actions étaient rangées sous le ⋮ EN TOUTES
+  // CIRCONSTANCES, et seule l'étoile en sortait à l'aise : c'était l'inverse du besoin.
+  // ⛔ Deux formes, et deux seulement : la rangée ENTIÈRE en icônes, ou le ⋮ et rien
+  // d'autre. Un repli par crans — une icône qui cède après l'autre — a été écarté :
+  // c'est le parti que la barre de navigation a défait le 2026-09-10 au matin, parce
+  // qu'une rangée qui n'a pas la même forme selon la largeur ne s'apprend jamais.
   // ⛔ La condition se MESURE (voir `useRangeeCondensee`) : elle dépend du nom qu'on
   // lit autant que de la largeur du volet, et un seuil posé se tromperait sur les deux
-  // bouts — à 1600 px, « Grégoire de Nazianze » demande la condensation quand « Cyrille
-  // de Jérusalem », plus court de cinq pixels, garde son étoile. Relevé sur les quinze
-  // auteurs publiés et sept écrans (`tmp/mesure-tete-condensee.mjs`) : vingt noms coupés
-  // sur 105 avant, cinq après, et le prédicat s'accorde vu des DEUX états sur les 105.
-  const { condense: teteCondensee, refRangee, refNoms, refActions } = useRangeeCondensee()
+  // bouts — à 1920 px, « Eusèbe de Césarée » porte la rangée entière quand « Grégoire
+  // de Nazianze », plus long de dix-neuf pixels, la condense. Relevé sur les quinze
+  // auteurs publiés et neuf écrans (`tmp/mesure-tete-rangee-entiere.mjs`).
+  // ⚠️ CE QUI COMPTE EST LE NOMBRE DE CIBLES, chevron compris : l'administrateur en a
+  // une de plus, et un téléphone n'a pas de chevron — c'est la barre qui y ferme.
+  const ciblesDepliees = actionsDuVolet.length + (favorisPret ? 1 : 0) + (mobile ? 0 : 1)
+  const { condense: teteCondensee, refRangee, refNoms } = useRangeeCondensee(ciblesDepliees)
   const [configEnvoi, setConfigEnvoi] = useState(false)
   // ⛔ L'enregistrement échouait SANS UN MOT : `if (reponses.some(r => !r.ok)) return`
   // remettait simplement le bouton en place. Six appels partent en parallèle ; si un
@@ -2387,13 +2395,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const favoriEstOriginal = surTexteOriginal || (!couranteEstOriginale && modeTexteEffectif === 'la')
   const refFavori = favoriEstOriginal ? refFavoriOriginal(idOeuvre) : idOeuvre
   const nomFavori = favoriEstOriginal ? `le texte ${estGrec ? 'grec' : 'latin'}` : null
-  // ⛔ L'ÉTOILE ENTRE DANS LE MENU EN TÊTE, et elle y garde son ÉTAT : glyphe plein,
-  // encre d'or, et un libellé qui dit le geste inverse. Un état qu'on ne pourrait plus
-  // lire sans ouvrir un menu ne serait plus un état ; nommé et peint, il l'est encore.
-  // ⚠️ Elle ouvre la liste parce qu'elle est, des quatre, celle qu'on emploie le plus.
+  // ⛔ UNE SEULE LISTE ORDONNÉE, et les DEUX formes en dérivent : la rangée d'icônes
+  // quand la place y est, le menu ⋮ quand elle manque. Écrire les boutons à part
+  // dupliquerait libellés, glyphes et gestes — c'est ce que la charte refuse au menu,
+  // « il ne change pas les dessins, il leur ajoute leur nom ».
+  // ⛔ L'ÉTOILE Y GARDE SON ÉTAT dans les deux formes : glyphe plein, encre d'or, et un
+  // libellé qui dit le geste inverse. Un état qu'on ne pourrait plus lire sans ouvrir un
+  // menu ne serait plus un état ; nommé et peint, il l'est encore.
+  // ⚠️ Elle ouvre la liste parce qu'elle est, des quatre, celle qu'on emploie le plus —
+  // la roue de l'administrateur la suit, et non l'inverse : elle n'est à personne d'autre.
   const favoriPose = favorisOeuvres.has(refFavori)
   const actionsTeteVolet = useMemo<ActionVolet[]>(() => {
-    if (!teteCondensee || !favorisPret) return actionsDuVolet
+    if (!favorisPret) return actionsDuVolet
     return [{
       cle: 'favori',
       libelle: favoriPose
@@ -2406,7 +2419,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       teinte: favoriPose ? 'var(--cs-or)' : undefined,
       onChoisir: () => toggleFavoriOeuvre(refFavori),
     }, ...actionsDuVolet]
-  }, [teteCondensee, favorisPret, favoriPose, nomFavori, refFavori, toggleFavoriOeuvre, actionsDuVolet])
+  }, [favorisPret, favoriPose, nomFavori, refFavori, toggleFavoriOeuvre, actionsDuVolet])
   const libelleEdition = (v: VersionTrad): string => {
     // L'ADRESSE de l'édition, dans l'ordre de la charte (§ 5) : ville, éditeur, année.
     const edit = adresseEdition({
@@ -2998,26 +3011,32 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           <div data-visite="oeuvre-tete" style={{ padding: mobile ? '9px 14px 8px' : '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
             <div ref={refRangee} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               {nomsAuteurs}
-              {/* ⛔ TROIS CIBLES, ET NON CINQ (relevé de l'auteur, 2026-09-10 : « sur
-                  écran moyen, c'est trop gros, trop espacé »). Ce qui coûte la largeur
-                  est leur NOMBRE : le plancher de 24 px est celui de WCAG et la rangée y
-                  était déjà, si bien qu'on ne peut rien reprendre sur la taille. Les
-                  trois actions RARES passent sous un ⋮, où elles gagnent leur nom en
-                  toutes lettres ; le chevron reste dehors, parce qu'il est le contrôle
-                  du volet lui-même.
-                  ⛔ ET L'ÉTOILE LES REJOINT QUAND LE NOM N'A PLUS LA PLACE, pour qu'il ne
-                  se coupe pas : c'est la rangée qui cède, jamais le nom de l'auteur.
-                  ⚠️ La MESURE, elle, suit la police racine (globals.css, « LA RANGÉE
-                  D'ACTIONS ») : elle était en pixels quand tout autour d'elle est en rem,
-                  et gardait donc ses 129 px de 1280 à 2560. */}
-              <div className="cs-tete-volet-actions" ref={refActions}>
-                {favorisPret && !teteCondensee && (
-                  <EtoileFavori actif={favorisOeuvres.has(refFavori)} onToggle={() => toggleFavoriOeuvre(refFavori)} size={13}
-                    title={favorisOeuvres.has(refFavori)
-                      ? (nomFavori ? `Retirer ${nomFavori} des favoris` : 'Retirer des favoris')
-                      : (nomFavori ? `Ajouter ${nomFavori} aux favoris` : 'Ajouter aux favoris')} />
-                )}
-                <MenuVolet titre="Autres actions" actions={actionsTeteVolet} />
+              {/* ⛔ LES ICÔNES TANT QU'IL Y A LA PLACE, LE ⋮ QUAND IL N'Y EN A PLUS
+                  (rectification de l'auteur, 2026-09-10 au soir : « sur grand écran, pas
+                  la peine de cacher les icônes »). Ce qui coûte la largeur est le NOMBRE
+                  de cibles — le plancher de 24 px est celui de WCAG et la rangée y était
+                  déjà, si bien qu'on ne peut rien reprendre sur la taille — et c'est donc
+                  la rangée ENTIÈRE qui cède, d'un coup, quand le nom de l'auteur n'a plus
+                  sa place. ⛔ Le chevron ne descend jamais sous le ⋮ : il est le contrôle
+                  du volet lui-même, et l'on ne referme pas un panneau en ouvrant d'abord
+                  un menu qui vit dedans.
+                  ⚠️ L'ÉTOILE reste `EtoileFavori`, le composant partagé, et non un bouton
+                  refait ici : elle porte son état, son libellé inverse et la passe du
+                  DOIGT. Les autres se dérivent de la MÊME liste que le menu.
+                  ⚠️ La MESURE suit la police racine (globals.css, « LA RANGÉE D'ACTIONS ») :
+                  elle était en pixels quand tout autour d'elle est en rem, et gardait donc
+                  ses 129 px de 1280 à 2560. */}
+              <div className="cs-tete-volet-actions">
+                {teteCondensee
+                  ? <MenuVolet titre="Autres actions" actions={actionsTeteVolet} />
+                  : actionsTeteVolet.map(action => action.cle === 'favori' ? (
+                    <EtoileFavori key={action.cle} actif={favoriPose} onToggle={action.onChoisir} size={13}
+                      title={action.libelle} />
+                  ) : (
+                    <BoutonVolet key={action.cle} titre={action.libelle} onClick={action.onChoisir}>
+                      {action.icone}
+                    </BoutonVolet>
+                  ))}
                 {/* ⛔ ELLE NE PARAÎT PLUS SUR TÉLÉPHONE : elle y regardait à GAUCHE,
                     c’est-à-dire vers le rail du BUREAU, qui n’existe pas là. C’est la
                     barre « Sommaire » qui ferme, et elle reste posée pour cela. */}
