@@ -25,7 +25,7 @@ import type { ChampTitre, SegData, GroupeData, Props, EditionCible, OeuvreResume
 import type { BlocOriginal } from './bilingueAlignement'
 import { repartirGroupes, chargerProjectionBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, type BlocEnRegard } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
-import { BoutonVolet, MenuVolet, useRangeeCondensee, type ActionVolet } from './TeteVolet'
+import { BoutonVolet, MenuVolet, TitreVolet, useRangeeCondensee, type ActionVolet } from './TeteVolet'
 import { construireNavigationApparat } from './apparatNavigation'
 import { chargerProfondeurPresente } from './niveauxPresents'
 // ⛔ LE PIPELINE DES SEGMENTS, celui-là même que le rendu serveur emploie. Cinq de ses
@@ -2220,13 +2220,24 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // ⛔ AUCUNE CONJONCTION ENTRE LES NOMS (demande de l'auteur, 2026-09-09).
   // `NomVolet` se compose en bloc : chaque nom tient sa ligne, et le « et » tombait
   // donc seul au milieu de la colonne. Les noms se suivent, cela suffit à les lier.
-  // ⚠️ `refNoms` : c'est ce bloc qui DEMANDE la place, et sa chasse se mesure sur le
-  // nom le plus long qu'il porte — une œuvre peut en avoir deux.
+  // La fiche dit l'œuvre (genres, composition) et son édition en ligne (millésime,
+  // étendue, autres éditions) : la garde compte donc CE QU'ELLE SAIT DIRE, et non les
+  // seuls champs de l'édition imprimée. ⚠️ C'est elle qui décide si le TITRE s'ouvre.
+  const ficheEditionDisponible = Boolean(
+    oeuvreAffichee.sous_titre || oeuvreAffichee.titre_original || oeuvreAffichee.trad_auteur
+    || oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication
+    || oeuvreAffichee.collection || oeuvreAffichee.date_composition || oeuvreAffichee.genres?.length
+    || oeuvreAffichee.date_mise_en_ligne || oeuvreAffichee.url_source || versionsTextuelles.length > 1,
+  )
+  // ⚠️ LES NOMS SONT PASSÉS SOUS LE TITRE (2026-09-10) : ils ne sont plus dans la
+  // rangée d'actions, et ne portent donc plus `refNoms` — c'est le titre qui demande
+  // désormais la place, et c'est lui qu'on mesure. Ils s'y composent en variante
+  // `credit`, en petit corps et sans flèche, l'auteur ayant demandé qu'elle parte.
   const nomsAuteurs = (
-    <span ref={refNoms} style={{ minWidth: 0 }}>
+    <span style={{ minWidth: 0, display: 'block' }}>
       {auteursCliquables.map(a => (
         <NomVolet key={a.id_auteur} onOuvrir={() => setAuteurModalId(a.id_auteur)} inactif={!a.id_auteur}
-          titre="Voir la fiche de l’auteur">{a.nom}</NomVolet>
+          variante="credit" titre="Voir la fiche de l’auteur">{a.nom}</NomVolet>
       ))}
     </span>
   )
@@ -3025,8 +3036,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               soit le huitième de la hauteur offerte, avant même la première rubrique.
               ⛔ Rien n’en est retranché : ce sont les blancs qui se referment. */}
           <div data-visite="oeuvre-tete" style={{ padding: mobile ? '9px 14px 8px' : '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
-            <div ref={refRangee} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-              {nomsAuteurs}
+            <div ref={refRangee} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '1px' }}>
+              {/* ⚠️ `refNoms` cerne CE QUI DEMANDE LA PLACE dans la rangée : le TITRE
+                  depuis le 2026-09-10, le nom de l'auteur avant lui. La mesure de
+                  `useRangeeCondensee` n'a pas bougé — elle lit les boutons qu'il porte —
+                  et la règle non plus : le texte ne se coupe pas, c'est la rangée qui
+                  cède sous le ⋮ quand la place manque.
+                  ⚠️ Le titre COMPOSÉ (`titre_affichage`) ne vaut que pour la page de
+                  titre. Ici comme dans la bibliothèque ou le fil d'Ariane, c'est le titre
+                  de catalogue qui nomme l'œuvre. */}
+              <span ref={refNoms} style={{ minWidth: 0, flex: '1 1 auto' }}>
+                <TitreVolet onOuvrir={() => setInfoEditionOuverte(true)} inactif={!ficheEditionDisponible}
+                  titre="À propos de cette édition">{rendreTexteEnrichi(titreAffiche)}</TitreVolet>
+              </span>
               {/* ⛔ LES ICÔNES TANT QU'IL Y A LA PLACE, LE ⋮ QUAND IL N'Y EN A PLUS
                   (rectification de l'auteur, 2026-09-10 au soir : « sur grand écran, pas
                   la peine de cacher les icônes »). Ce qui coûte la largeur est le NOMBRE
@@ -3064,43 +3086,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 )}
               </div>
             </div>
-            {/* Le sommaire respecte la composition manuelle du titre de catalogue. */}
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', color: 'var(--cs-encre)', lineHeight: 1.35, margin: 0, whiteSpace: 'pre-line' }}>
-              {/* Le titre COMPOSÉ (`titre_affichage`) ne vaut que pour la page de titre.
-                  Partout ailleurs, ici comme dans la bibliothèque ou le fil d'Ariane,
-                  c'est le titre de catalogue qui nomme l'œuvre. */}
-              {rendreTexteEnrichi(titreAffiche)}
-            </p>
-            {/* La fiche dit désormais aussi l'œuvre (genres, composition) et son édition
-                en ligne (millésime, étendue, autres éditions) : la garde compte donc
-                CE QU'ELLE SAIT DIRE, et non les seuls champs de l'édition imprimée.
-
-                ⚠️ LE LIEN PORTE LE NOM DE CE QU'IL OUVRE (2026-09-03, demande de
-                l'auteur). Il disait « En savoir plus sur cette édition » quand la fiche
-                s'intitule « À propos de cette édition » : un lien nomme sa destination,
-                il n'annonce pas le geste qui y mène. C'est la règle déjà appliquée au
-                volet de la Bible, où le libellé « en savoir plus » a cédé la place au
-                nom de la bible.
-
-                ⚠️ IL SE SERRE CONTRE LE TITRE, parce qu'il en dépend : il ouvre la fiche
-                de CETTE œuvre-là, et six pixels le faisaient flotter entre le titre et le
-                menu « Lecture », à mi-chemin de deux blocs sans appartenir à aucun. Deux
-                pixels, et il se lit comme la suite du titre.
-
-                ⛔ RECTIFICATION DU 2026-09-07 : IL PREND LA FORME COMMUNE DES
-                BOUTONS-LIENS (`.cs-bouton-lien`, globals.css). Il portait jusque-là un
-                dessin à lui — serif italique, pas de soulignement au repos —, décidé le
-                2026-09-03 au motif que « dans un volet où rien d'autre n'en porte, il
-                tirait l'œil plus que le titre au-dessus de lui ». Le motif était juste
-                DANS CE VOLET, et c'est précisément ce que la règle générale refuse : un
-                bouton-lien qui se dessine selon son voisinage ne s'apprend nulle part.
-                L'auteur a tranché en le nommant parmi les exemples du désordre. */}
-            {(oeuvreAffichee.sous_titre || oeuvreAffichee.titre_original || oeuvreAffichee.trad_auteur || oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication || oeuvreAffichee.collection || oeuvreAffichee.date_composition || oeuvreAffichee.genres?.length || oeuvreAffichee.date_mise_en_ligne || oeuvreAffichee.url_source || versionsTextuelles.length > 1) && (
-              <button onClick={() => setInfoEditionOuverte(true)} className="cs-bouton-lien"
-                style={{ display: 'block', marginTop: '2px', textAlign: 'left' }}>
-                À propos de cette édition
-              </button>
-            )}
+            {/* ⛔ LE LIEN « À PROPOS DE CETTE ÉDITION » A DISPARU DU CHAPEAU (2026-09-10,
+                demande de l'auteur). Il vivait ici depuis le 2026-09-03, sous le titre,
+                pour dire la fiche ; c'est le TITRE lui-même qui l'ouvre désormais, et une
+                ligne entière de phrase soulignée n'a plus à porter ce que le titre porte.
+                ⚠️ La règle qui l'avait nommé — « un lien nomme sa destination » — n'est pas
+                défaite : elle passe dans l'infobulle de `TitreVolet`, le libellé du lien
+                étant devenu le titre même de l'œuvre.
+                ⚠️ Restent donc DEUX lignes là où il y en avait trois : le titre, puis
+                l'auteur en crédit. */}
+            {nomsAuteurs}
             {/* ── Menu 1 : mode de lecture (LANGUE) ──────────────────────────
                 Français / Français & [orig] / [orig]. Le mode dont la cible EST l'œuvre
                 courante bascule sur place ; les autres NAVIGUENT vers l'édition voulue

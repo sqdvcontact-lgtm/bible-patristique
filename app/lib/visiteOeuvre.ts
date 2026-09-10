@@ -56,10 +56,13 @@ export const VISITE_OEUVRE: Visite = {
       cle: 'oeuvre',
       sujet: ['[data-visite="oeuvre-tete"]'],
       titre: 'Œuvre et auteur',
+      // ⚠️ RELU LE 2026-09-10, APRÈS LA REFONTE DU CHAPEAU : le lien « À propos de cette
+      // édition » n'existe plus, c'est le titre qui ouvre la fiche, et l'auteur est passé
+      // sous lui. La visite suit l'ordre de ce qu'on voit.
       texte: [
-        'Le nom de l’auteur ouvre sa fiche, avec sa notice, sa chronologie et ses œuvres.',
+        'Le titre ouvre la fiche de l’édition suivie : ce qu’est l’œuvre, et sur quel texte elle est établie.',
+        'Sous lui, le nom de l’auteur ouvre sa fiche, avec sa notice, sa chronologie et ses œuvres.',
         'L’étoile ajoute l’œuvre à vos favoris.',
-        'Sous le titre, un lien ouvre la fiche de l’édition suivie.',
       ],
       cote: 'droite',
     },

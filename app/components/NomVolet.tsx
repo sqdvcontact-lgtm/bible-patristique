@@ -37,24 +37,41 @@
 import { useState } from 'react'
 
 export default function NomVolet({
-  children, onOuvrir, titre, inactif = false,
+  children, onOuvrir, titre, inactif = false, variante = 'tete',
 }: {
   children: React.ReactNode
   onOuvrir: () => void
   titre: string
   inactif?: boolean
+  /**
+   * ⚠️ DEUX RÉGIMES, ET LE SECOND N'EST PAS EN TÊTE. `tete` est la forme d'origine :
+   * le nom que le volet met au-dessus de tout, avec sa flèche. `credit` est le nom qui
+   * SUIT ce qui est en tête — l'auteur posé sous le titre de l'œuvre depuis le
+   * 2026-09-10, où l'auteur a demandé que l'œuvre passe la première. Il s'y compose en
+   * petit corps et SANS flèche : la flèche annonce une fiche à qui ouvre la page, et
+   * elle n'a de sens qu'au premier regard, pas sous une ligne de crédit.
+   * ⛔ Ce n'est pas un dessin de plus : c'est le MÊME bouton, le même survol, la même
+   * fiche au bout. La page Bible garde `tete`, où la traduction est bien en tête.
+   */
+  variante?: 'tete' | 'credit'
 }) {
   const [survol, setSurvol] = useState(false)
   const allume = survol && !inactif
+  const credit = variante === 'credit'
   return (
     <button onClick={onOuvrir} disabled={inactif} title={inactif ? undefined : titre}
       onMouseEnter={() => setSurvol(true)} onMouseLeave={() => setSurvol(false)}
       onFocus={() => setSurvol(true)} onBlur={() => setSurvol(false)}
+      // ⚠️ Dix pixels de haut ne font pas une cible au DOIGT : `.cs-cible-fine`
+      // (globals.css, sous `@media (hover: none)`) agrandit la zone de frappe sans
+      // rien déplacer. La forme `tete` s'en passe : elle porte déjà treize pixels et
+      // sa flèche.
+      className={credit ? 'cs-cible-fine' : undefined}
       style={{
-        fontSize: '0.8125rem', fontWeight: 600, color: 'var(--cs-vert)',
+        fontSize: credit ? '0.625rem' : '0.8125rem', fontWeight: 600, color: 'var(--cs-vert)',
         fontFamily: 'inherit', margin: 0, padding: 0, background: 'none', border: 'none',
         textAlign: 'left', cursor: inactif ? 'default' : 'pointer',
-        letterSpacing: '0.01em',
+        letterSpacing: credit ? '0.04em' : '0.01em',
         minWidth: 0, maxWidth: '100%',
         display: 'flex', alignItems: 'center', gap: '4px',
       }}>
@@ -64,7 +81,7 @@ export default function NomVolet({
       }}>
         {children}
       </span>
-      {!inactif && (
+      {!inactif && !credit && (
         // Une hampe et deux barbes, rien d'autre : la flèche du site, en petit.
         // ⚠️ Elle est plus PÂLE que le nom et ne prend pas sa graisse — elle
         // annonce le geste, elle ne le crie pas.

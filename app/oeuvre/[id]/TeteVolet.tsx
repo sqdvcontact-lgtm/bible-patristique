@@ -130,6 +130,62 @@ export function BoutonVolet({ titre, onClick, children, refBouton, ...aria }: {
   )
 }
 
+/**
+ * LE TITRE DE L'ŒUVRE, EN TÊTE DU VOLET, ET IL OUVRE LA FICHE DE L'ÉDITION.
+ *
+ * ⛔ C'EST L'ŒUVRE QUI EST EN TÊTE, NON SON AUTEUR (demande de l'auteur, 2026-09-10).
+ * Le chapeau empilait le nom de l'auteur, le titre, puis un lien « À propos de cette
+ * édition » : trois lignes, dont la première était le seul mot coloré de l'écran, si
+ * bien que l'œil tombait sur « Augustin d'Hippone » quand on venait lire *La Cité de
+ * Dieu*. L'ordre est renversé et le lien a disparu : c'est le TITRE qui ouvre la fiche,
+ * et l'auteur le suit en ligne de crédit (`NomVolet`, variante `credit`).
+ *
+ * ⚠️ IL SE COMPOSE COMME LE TITRE, non comme un lien : la serif du site, l'encre du
+ * texte. Rien ne le teinte en vert. Ce qui annonce le clic est le survol, qui le
+ * souligne, et l'infobulle qui nomme la destination — la règle du 2026-09-03, « un lien
+ * nomme sa destination », vaut ici par le `title` puisque le libellé est le titre même.
+ *
+ * ⛔ ET IL NE SE COUPE PAS PLUS QUE NE SE COUPAIT LE NOM DE L'AUTEUR : c'est la RANGÉE
+ * qui cède (voir la doctrine en tête de ce fichier et `useRangeeCondensee`, qui mesure
+ * désormais ce titre-là). L'écrêtage par la fin ne sert que le cas extrême, où même la
+ * rangée condensée ne laisse pas la place.
+ *
+ * ⚠️ LE TEXTE VIT DANS UN SEUL ENFANT. `useRangeeCondensee` lit `firstElementChild`
+ * pour connaître la chasse réelle : un titre composé (`rendreTexteEnrichi` rend
+ * plusieurs nœuds) doit donc rester enveloppé dans ce span-là.
+ */
+export function TitreVolet({ children, onOuvrir, titre, inactif = false }: {
+  children: React.ReactNode
+  onOuvrir: () => void
+  titre: string
+  /** Une édition dont il n'y a rien à dire n'ouvre aucune fiche : le titre se compose
+   *  alors à l'identique, sans clic ni soulignement. ⛔ Il reste un `button`, car c'est
+   *  sur les boutons de la rangée que la mesure de condensation compte. */
+  inactif?: boolean
+}) {
+  const [survol, setSurvol] = useState(false)
+  const allume = survol && !inactif
+  return (
+    <button type="button" onClick={onOuvrir} disabled={inactif} title={inactif ? undefined : titre}
+      onMouseEnter={() => setSurvol(true)} onMouseLeave={() => setSurvol(false)}
+      onFocus={() => setSurvol(true)} onBlur={() => setSurvol(false)}
+      style={{
+        fontFamily: 'var(--font-source-serif), Georgia, serif',
+        fontSize: '0.875rem', fontWeight: 400, color: 'var(--cs-encre)',
+        lineHeight: 1.3, margin: 0, padding: 0, background: 'none', border: 'none',
+        textAlign: 'left', cursor: inactif ? 'default' : 'pointer',
+        display: 'block', width: '100%', minWidth: 0,
+      }}>
+      <span style={{
+        display: 'block', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        textDecoration: allume ? 'underline' : 'none', textUnderlineOffset: '3px',
+      }}>
+        {children}
+      </span>
+    </button>
+  )
+}
+
 /** Une entrée du menu ⋮. `icone` est le MÊME glyphe que la rangée portait : le menu
  *  ne change pas les dessins, il leur ajoute leur nom.
  *  ⚠️ `teinte` ne sert qu'à ce qui dit un ÉTAT — l'étoile pleine y garde son or, sans
