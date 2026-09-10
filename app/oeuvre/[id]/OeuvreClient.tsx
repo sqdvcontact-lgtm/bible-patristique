@@ -824,9 +824,20 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         setModeTexte(urlMt)
         return
       }
-      const mt = localStorage.getItem(`cs_modetexte_${idOeuvre}`)
+      // ⛔ LE FRANÇAIS SEUL EST LE DÉFAUT, ET IL LE REDEVIENT À CHAQUE VISITE
+      // (demande de l'auteur, 2026-09-10). Le mode se gardait dans `localStorage`,
+      // c'est-à-dire SANS FIN : une œuvre ouverte une fois en « Français & Latin »
+      // se rouvrait en deux colonnes des semaines plus tard, sans que rien à l'écran
+      // dise d'où venait ce choix — le volet montrait un mode que le lecteur n'avait
+      // pas demandé ce jour-là. Le choix suit désormais la SESSION : il tient le temps
+      // qu'on lit, d'un chapitre à l'autre et d'une page du site à l'autre, et il
+      // tombe quand le navigateur se referme.
+      // ⚠️ L'ANCIENNE CLÉ `cs_bilingue_<œuvre>` N'EST PLUS RELUE. Plus rien ne l'écrit,
+      // mais elle dort encore dans les navigateurs qui l'ont reçue, et elle y rouvrait
+      // le bilingue à elle seule, sans que le lecteur puisse la défaire autrement qu'en
+      // choisissant « Français » une fois de plus.
+      const mt = sessionStorage.getItem(`cs_modetexte_${idOeuvre}`)
       if (mt === 'fr' || mt === 'bilingue' || mt === 'la') setModeTexte(mt)
-      else if (localStorage.getItem(`cs_bilingue_${idOeuvre}`) === '1') setModeTexte('bilingue')
     } catch {}
   }, [idOeuvre])
 
@@ -863,7 +874,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (modeComparaisonActif) fermerComparaison()
     setModeTexte(mode)
     try {
-      localStorage.setItem(`cs_modetexte_${idOeuvre}`, mode)
+      // Le mode retenu vaut pour la SESSION (voir « LE FRANÇAIS SEUL EST LE DÉFAUT ») :
+      // il suit le lecteur d'une page à l'autre, il ne le suit pas d'un jour à l'autre.
+      sessionStorage.setItem(`cs_modetexte_${idOeuvre}`, mode)
     } catch {}
   }
   // ⛔ LA GOUTTIÈRE D'ACTIONS EST RETIRÉE (2026-08-25). Les boutons signaler, prélever et
