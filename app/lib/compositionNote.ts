@@ -130,11 +130,20 @@ export const REMBOURRAGE_ENCART = `0.6875rem ${REMBOURRAGE_LATERAL_REM}rem`
  *  PORTÉE change — une ligne au lieu de toutes. */
 export const RESERVE_CROIX = '1rem'
 
-/** Le corps du texte d'une note. ⚠️ Il descend de 0,8125 à 0,75 rem (demande de
- *  l'auteur, 2026-09-08 : « plus condensées, avec un corps de texte plus petit »). Une
- *  note n'est pas de la lecture suivie : on y va, on la lit, on revient au texte — et
- *  son corps se distingue mieux de celui de la page quand il s'en écarte franchement. */
-export const CORPS_ENCART = '0.75rem'
+/** Le corps du texte d'une note. Il est descendu de 0,8125 à 0,75 rem le 2026-09-08
+ *  (« plus condensées, avec un corps de texte plus petit »), puis à **0,71875 rem** le
+ *  2026-09-10, quand la note est passée au SANS (« resserrer encore le texte dans les
+ *  notes ; le passer sans sérif »). Une note n'est pas de la lecture suivie : on y va,
+ *  on la lit, on revient au texte — et son corps se distingue mieux de celui de la page
+ *  quand il s'en écarte franchement.
+ *
+ *  ⛔ LE RANG DE MOINS N'EST PAS UN RÉGLAGE DE PLUS, IL VIENT AVEC LA POLICE. C'est la
+ *  règle que le site suit déjà partout où un même rôle change de caractère : la colonne
+ *  en langue originale d'une œuvre se compose « sans empattements, un cran plus petit,
+ *  0,8125 rem contre 0,875 ». Un sans porte une hauteur d'x plus haute qu'un sérif au
+ *  même corps : gardé à 0,75 rem, il aurait PARU plus gros, c'est-à-dire l'inverse de ce
+ *  qu'on demandait. */
+export const CORPS_ENCART = '0.71875rem'
 
 /** L'interligne. ⚠️ 1,38 depuis le 2026-09-10 : c'est le BARÈME DE L'APPAREIL de la
  *  charte (§ 3.11 — 1,38 à 1,40 pour l'appareil, 1,50 à 1,52 pour une notice), et une
@@ -196,7 +205,13 @@ const REMBOURRAGE_VERTICAL_REM = Number.parseFloat(REMBOURRAGE_ENCART) * 2
  *  ⚠️ Resserré de 0,5 à 0,375 rem avec le corps de la note (2026-09-08). */
 export const MARGE_PARAGRAPHE_ENCART_REM = 0.375
 export const MARGE_PARAGRAPHE_ENCART = `${MARGE_PARAGRAPHE_ENCART_REM}rem`
-const MARGE_QUEUE_REM = MARGE_PARAGRAPHE_ENCART_REM
+/** ⛔ ET LE DERNIER BLOC N'EN GARDE PLUS EN QUEUE, depuis le 2026-09-10 : ce blanc
+ *  n'a plus rien à séparer, et il s'ajoutait au rembourrage du corps — douze pixels
+ *  de blanc au-dessus du texte, dix-huit au-dessous, mesurés sur la composition
+ *  servie. La feuille le retire (`.cs-encart-propos > :last-child`), et l'estimation
+ *  cesse donc de le compter : les deux se tiennent, ou la boîte s'ouvre six pixels
+ *  trop haute sur chaque note du site. */
+const MARGE_QUEUE_REM = 0
 
 /* ── L'APPARAT CRITIQUE, DANS LE MÊME ENCART ───────────────────────────────────
  *
@@ -238,11 +253,29 @@ const FILETS_ENCART_PX = 2
 /**
  * La chasse moyenne d'un signe, en em du corps de la note.
  *
- * ⚠️ MESURÉE sur des notes réelles rendues dans la police du site : 0,525 em, soit
- * 6,3 px à la racine 16. ⛔ Elle ne se devine pas — un « demi-cadratin » posé au juger
- * donnerait 5 %  d'erreur par ligne, et l'erreur s'accumule sur une note de vingt.
+ * ⛔ ELLE APPARTIENT À LA POLICE, ET ELLE SE REMESURE QUAND LA POLICE CHANGE. Elle
+ * valait 0,525 em tant que la note se composait en sérif ; le 2026-09-10 la note est
+ * passée au SANS, qui est plus étroit d'un septième, et la garder aurait fait estimer
+ * chaque note un septième trop haute — un ascenseur sous une note de deux lignes.
+ *
+ * ⚠️ Et c'est la chasse EFFECTIVE qu'on mesure, non la largeur brute du texte : ce
+ * qu'une ligne porte VRAIMENT une fois enroulée, bord déchiqueté et césures compris.
+ * Relevé sur les 84 blocs de note du corpus qui passent 250 signes — les seuls qui
+ * enroulent —, rendus dans la police du site aux DEUX pistes que l'encart connaît :
+ *
+ *     police            corps   piste pleine (436 px)   piste étroite (228 px)
+ *     Source Serif 4     12 px           0,501 em                0,516 em
+ *     Source Sans 3    11,5 px           0,428 em                0,435 em
+ *
+ * On retient **0,44**, un cheveu au-dessus du pire des deux : sous-estimer la ligne
+ * fait une boîte trop haute, jamais trop courte.
+ *
+ * ⚠️ UNE SONDE QUI N'ENROULE PAS NE MESURE RIEN. La première écriture de la planche
+ * héritait « white-space: pre » du corps de la page : chaque note rendait UNE ligne, et
+ * les seize cas mesurés rendaient tous le même chiffre à la décimale près. C'est ce
+ * chiffre identique partout — non une valeur invraisemblable — qui a trahi le défaut.
  */
-const CHASSE_MOYENNE_EM = 0.525
+const CHASSE_MOYENNE_EM = 0.44
 
 /**
  * COMBIEN DE SIGNES TIENNENT SUR UNE LIGNE, à la largeur où l'encart se compose.
@@ -369,7 +402,14 @@ export function styleCorpsEncart(signes: number): CSSProperties {
     // ligne qu'elle occupe (`STYLE_RESERVE_CROIX`), et non plus par un rembourrage qui
     // la retenait sur toute la hauteur.
     padding: REMBOURRAGE_ENCART,
-    fontFamily: 'var(--font-source-serif), Georgia, serif',
+    // ⛔ SANS EMPATTEMENTS depuis le 2026-09-10 (« le passer sans sérif »). Une note
+    // n'est pas du corpus : c'est de l'appareil, et le site compose déjà en sans tout
+    // ce qui accompagne un texte sans en être — la colonne originale mise en regard, le
+    // numéro d'un verset, la manchette d'un renvoi. Le change de caractère fait ici ce
+    // qu'un filet ferait ailleurs : il dit qu'on a quitté la page pour l'appareil.
+    // ⚠️ Il emporte l'apparat critique et tout ce que l'encart contient, qui héritent —
+    // aucun d'eux ne déclare sa propre police, et c'est ce qui les tient d'accord.
+    fontFamily: 'var(--font-source-sans), Arial, sans-serif',
     fontSize: CORPS_ENCART,
     lineHeight: INTERLIGNE_ENCART,
     color: 'var(--cs-texte-fort)',
@@ -387,6 +427,12 @@ export function styleCorpsEncart(signes: number): CSSProperties {
     // de trois mots s'étirerait d'un bord à l'autre.
     textAlign: gris ? 'justify' : 'left',
     textAlignLast: 'left',
+    // ⚠️ LA CHASSE DU SANS, prise au barème de la charte (§ 3.11 : -0,03 em en sans,
+    // -0,025 em en sérif). ⛔ Elle va avec le GRIS, comme la justification : sous le
+    // seuil, « on ne touche à rien » — un renvoi de dix-sept signes n'a pas de gris à
+    // resserrer, et la chasse propre du sans y suffit. Au-dessus, elle referme les
+    // blancs que la justification ouvre.
+    wordSpacing: gris ? '-0.03em' : undefined,
     hyphens: 'auto',
     WebkitHyphens: 'auto',
     overflowWrap: 'break-word',
@@ -444,7 +490,10 @@ export const STYLE_NUMERO_SEUL: CSSProperties = {
   // deux boîtes de même hauteur quand les polices diffèrent, l'ascendante d'une sans
   // n'étant pas celle d'une sérif. Mesuré à la racine 22, le chiffre pendait UN pixel
   // au-dessus de la première ligne du propos ; sur le strut, zéro.
-  fontFamily: 'var(--font-source-serif), Georgia, serif',
+  // ⛔ IL SUIT DONC LE PROPOS QUAND LE PROPOS CHANGE DE POLICE, et la garde tient les
+  // deux d'accord plutôt que la valeur : c'est la RELATION qui compte, non le nom de la
+  // famille — écrite en dur des deux côtés, elle se serait redéfaite au premier réglage.
+  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
   fontSize: CORPS_ENCART,
   lineHeight: INTERLIGNE_ENCART,
 }

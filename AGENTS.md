@@ -3630,6 +3630,105 @@ les mesures sont au carnet. Ici, ce qu'il faut savoir pour y toucher.
   d'interrogation promet une explication qui viendrait d'elle-même, quand l'appel OUVRE
   une note d'un clic.
 
+## ⛔ LA NOTE PASSE AU SANS, ET LA CHASSE SE REMESURE AVEC (2026-09-10)
+
+Demande de l'auteur : « resserrer encore le texte dans les notes ; le passer sans
+sérif ». Trois choses ont bougé ensemble, et elles ne pouvaient pas bouger seules.
+
+⛔ **UN CHANGE DE CARACTÈRE EMPORTE UN RANG DE CORPS.** C'est la règle que le site suit
+déjà partout où un même rôle change de police : la colonne en langue originale d'une
+œuvre se compose « sans empattements, un cran plus petit, 0,8125 rem contre 0,875 ». Un
+sans porte une hauteur d'x plus haute qu'un sérif au même corps — gardé à 0,75 rem, il
+aurait PARU plus gros, c'est-à-dire l'inverse de ce qu'on demandait. `CORPS_ENCART`
+descend donc à **0,71875 rem**, et l'apparat critique suit sans qu'on y touche, son
+corps se disant en `em` de la note.
+
+⛔ **ET IL EMPORTE LA CHASSE, QUI EST UNE MESURE ET NON UNE CONSTANTE.**
+`CHASSE_MOYENNE_EM` sert à estimer la hauteur d'une note AVANT de la poser ; elle valait
+0,525 em, mesuré sur le sérif. Le sans est plus étroit d'un septième : gardée, elle
+aurait ouvert chaque encart un septième trop haut, avec un ascenseur sous une note de
+deux lignes. Remesurée sur les **84 blocs du corpus qui passent 250 signes** — les seuls
+qui enroulent —, aux DEUX pistes que l'encart connaît :
+
+| police | corps | piste pleine (436 px) | piste étroite (228 px) |
+|---|---|---:|---:|
+| Source Serif 4 | 12 px | 0,501 em | 0,516 em |
+| Source Sans 3 | 11,5 px | 0,428 em | 0,435 em |
+
+On retient **0,44** : un cheveu au-dessus du pire des deux, car sous-estimer la ligne
+fait une boîte trop haute, jamais trop courte. ⚠️ Éprouvé par balayage — 171 comptes de
+signes × deux racines × deux pistes, **684 cas, écart le plus défavorable ZÉRO**.
+
+⛔ **ET C'EST LA CHASSE EFFECTIVE QU'ON MESURE, non la largeur brute du texte** : ce
+qu'une ligne porte VRAIMENT une fois enroulée, bord déchiqueté et césures compris. ⚠️ La
+première planche héritait « white-space: pre » du corps de la page : chaque note y
+rendait UNE ligne, et les seize cas mesurés rendaient tous le même chiffre à la décimale
+près. **C'est ce chiffre identique partout — non une valeur invraisemblable — qui a
+trahi le défaut** : une sonde qui n'enroule pas ne mesure rien, et elle le dit en ne
+variant plus.
+
+⚠️ **LA CHASSE DU SANS VA AVEC LE GRIS**, comme la justification : `-0,03 em` au-dessus
+des 250 signes, rien en dessous — la charte § 3.11 donne les deux valeurs et dit que
+sous le seuil « on ne touche à rien ». La chasse propre du sans y suffit.
+
+### ⛔ ET SIX PIXELS MORTS SOUS CHAQUE NOTE DU SITE
+
+Chaque bloc d'une note porte le blanc qui le SÉPARE du suivant ; sur le DERNIER, ce
+blanc n'a plus rien à séparer et s'ajoutait au rembourrage du corps. Mesuré sur la
+composition servie : **douze pixels de blanc au-dessus du texte, dix-huit au-dessous**.
+La note ne se tenait pas au milieu de sa propre boîte, et tout encart du site payait six
+pixels sous sa dernière ligne — un huitième d'un renvoi d'une ligne.
+
+⚠️ **L'apparat critique le corrigeait DÉJÀ, pour son seul compte** (`margin: dernier ? 0`) :
+deux rythmes verticaux pour un même encart selon ce qu'il portait. C'est la divergence
+que ce module existe pour fermer, et elle avait repoussé.
+
+⛔ **LA RÈGLE VIT DANS LA FEUILLE, ET ELLE CRIE** — `.cs-encart-propos > :last-child
+{ margin-bottom: 0 !important }`. « Le dernier » ne s'écrit pas en style en ligne, et
+les blocs sont rendus par trois composants qui ne se connaissent pas. ⚠️ Le point
+d'exclamation n'est pas un ornement : les trois posent ce blanc EN LIGNE, qui bat toute
+règle de feuille. Écrite sans lui, elle ne retirait rien **pendant que l'estimation, elle,
+avait cessé de compter la queue** : six pixels de texte passaient sous le filet. C'est le
+même point d'exclamation que la garde iOS du § LE DOIGT, et pour la même raison.
+
+⛔ **LES DEUX SONT SOUS GARDE ENSEMBLE** (`compositionNote.test.ts`) : la feuille doit
+porter la règle ET son point d'exclamation, l'encart doit porter la marque. Défaire l'une
+sans l'autre rend la boîte six pixels trop courte, et rien ne le dirait.
+
+### ⚠️ Ce que la passe rend, mesuré sur des notes RÉELLES du corpus
+
+| | avant | après |
+|---|---:|---:|
+| un renvoi (« Matth. XI, 28. », 14 signes) | 47 px | **40 px** |
+| une note moyenne (96 signes) | 64 px | **56 px** |
+| un développement (375 signes) | 130 px, 6 lignes | **104 px, 5 lignes** |
+| le même, avec son type | 131 px | **122 px** |
+
+⛔ **L'INTERLIGNE NE BOUGE PAS, et c'est délibéré** : 1,38 est le PLANCHER du barème de
+l'appareil (charte § 3.11 — 1,38 à 1,40), et une note est de l'appareil. Le resserrement
+se prend sur le corps, sur la chasse et sur le blanc mort, non sur la ligne.
+
+### ⛔ Une garde qui borne d'UNE LIGNE ne borne rien
+
+Le contrôle de hauteur n'assurait qu'un plancher — « la boîte porte au moins ce que le
+propos demande » —, et son propre commentaire prévenait qu'une demande périmée « le
+rendrait MOU ». Un plafond d'une ligne ne l'a pas sauvé : **la chasse du sérif laissée
+sur un texte en sans passait le plancher ET le plafond**, une dérive de 19 % ne déplaçant
+le calcul que d'une ligne exactement.
+
+⛔ **Chaque cas porte donc DEUX nombres** : la boîte RÉELLE, mesurée au navigateur, et
+l'estimation ATTENDUE, épinglée au pixel. Épinglée seule, elle serait tautologique ;
+bornée seule, elle ne tient rien. Ensemble, elles pincent la valeur : éprouvée rouge sur
+0,525, sur 0,36, sur 0,46 — **une dérive d'un vingtième suffit** — et sur un interligne
+relâché. ⚠️ **Une garde à sens unique n'est pas une demi-garde : c'est une garde dont le
+nom promet ce qu'elle ne fait pas.**
+
+⚠️ **La planche empaquette le module RÉEL** (`tmp/mesure-encart-note.html`,
+`tmp/planche-note-avant-apres.html`) : esbuild bundle `compositionNote.ts`, l'« avant »
+venant de `git show HEAD:…` empaqueté de même. ⛔ Elle sérialise des `CSSProperties`, et
+doit donc connaître les propriétés SANS unité — un « line-height: 1.38px » ferait annoncer
+un défaut qui n'existe que dans la planche.
+
 # ⛔ LE BOUTON-LIEN — `.cs-bouton-lien` / `.cs-lien-phrase` (2026-09-07)
 
 Doctrine : charte `parametres.charte_ia`, **§ 51.3**. Ici, ce qu'il faut savoir pour y toucher.

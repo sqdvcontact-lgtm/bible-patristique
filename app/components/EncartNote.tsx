@@ -124,7 +124,13 @@ export function EncartNote({
             <span style={STYLE_FACE_NUMERO}>{numero}</span>
           </span>
         )}
-        <div style={{ whiteSpace: 'pre-line' }}>{children}</div>
+        {/* ⛔ `cs-encart-propos` n'est pas un habillage : c'est la marque par laquelle
+            la feuille retire au DERNIER bloc le blanc qui le séparait du suivant. Sans
+            elle, ce blanc s'ajoute au rembourrage et la note se tient six pixels trop
+            haut dans sa boîte — mesuré le 2026-09-10, douze au-dessus contre dix-huit
+            au-dessous. ⚠️ Elle entre AUSSI dans l'estimation de hauteur : voir
+            `hauteurSouhaiteeNote`, qui ne compte plus de queue. */}
+        <div className="cs-encart-propos" style={{ whiteSpace: 'pre-line' }}>{children}</div>
       </div>
     </div>
   )

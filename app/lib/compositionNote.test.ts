@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
 import { MARGE_FENETRE } from './fenetreContextuelle'
 import {
   CORPS_ENCART,
@@ -60,7 +61,9 @@ describe('la hauteur que l’encart demanderait', () => {
   })
 
   it('garde un plancher : un renvoi de treize signes reste une boîte, pas un filet', () => {
-    expect(haut(0)).toBeGreaterThanOrEqual(47)
+    // ⚠️ 40 px : la boîte d'UNE ligne, remesurée le 2026-09-10 — passage au sans, un rang
+    // de moins, et le blanc mort retiré sous la dernière ligne.
+    expect(haut(0)).toBeGreaterThanOrEqual(40)
     expect(haut(13)).toBe(haut(0))
   })
 
@@ -96,19 +99,45 @@ describe('la hauteur que l’encart demanderait', () => {
   // ⛔ ILS SE REMESURENT DÈS QUE LE CORPS OU LE BLANC BOUGENT, et c'est arrivé DEUX fois.
   // Le 8 septembre 2026 au soir — note passée à 0,75 rem, interligne à 1,42, rembourrage à
   // 0,875/1 rem, blanc de paragraphe à 0,375 : 65 · 162 · 91 sont devenus 53 · 139 · 89.
-  // Le 10 septembre, la note s'étant condensée — interligne 1,38, rembourrage 0,6875 sur
-  // 0,8125 rem, blanc SYMÉTRIQUE (la croix se réserve par un flottant), numéro et type
-  // réunis dans une tête : 53 · 139 · 89 sont devenus 47 · 113 · 81.
+  // Le 10 septembre au matin, la note s'étant condensée — interligne 1,38, rembourrage
+  // 0,6875 sur 0,8125 rem, blanc SYMÉTRIQUE (la croix se réserve par un flottant), numéro
+  // et type réunis dans une tête : 53 · 139 · 89 sont devenus 47 · 113 · 81.
+  // Le 10 au soir, la note passée au SANS et descendue d'un rang (0,71875 rem), sa chasse
+  // remesurée à 0,44 em, et le blanc mort retiré sous sa dernière ligne : 47 · 113 · 81
+  // sont devenus **40 · 88 · 58**, soit de quinze à vingt-huit pour cent de moins.
   // Une demande périmée ne rendrait pas le test faux, elle le rendrait MOU — il passerait
   // sur une boîte deux fois trop haute sans rien dire.
-  // ⚠️ Les trois demandes sont la hauteur RÉELLE de la boîte, et l'estimation les rend au
-  // pixel près : mesuré sur une piste de 436 px, 1 · 5 · 2 lignes de part et d'autre.
+  // ⚠️ Les trois demandes sont la hauteur RÉELLE de la boîte, mesurée sur le module même
+  // (planche `tmp/mesure-encart-note.html`, qui empaquette ce fichier plutôt que de le
+  // rejouer). L'estimation rend les deux premières au PIXEL près ; la troisième la
+  // dépasse de seize, ses 90 signes tombant juste à la frontière de l'enroulement —
+  // l'estimation compte des LIGNES ENTIÈRES, et elle arrondit toujours vers le haut.
+  // ⛔ Un balayage l'a vérifié dans le sens qui compte : 171 comptes de signes × deux
+  // racines × deux pistes, 684 cas, et l'estimation ne rend JAMAIS moins que la boîte.
+  // ⛔ CHAQUE CAS PORTE DEUX NOMBRES, ET IL EN FAUT DEUX. La boîte RÉELLE dit ce que le
+  // propos demande ; l'estimation ATTENDUE épingle ce que le module en calcule. Épinglée
+  // seule, elle serait tautologique ; bornée seule, elle laissait passer n'importe quelle
+  // dérive d'une ligne — éprouvé le 2026-09-10, la chasse du sérif laissée sur un texte
+  // en sans passait un plancher ET un plafond d'une ligne les yeux fermés.
   it.each([
-    ['la médiane du corpus, 29 signes', 29, false, 47],
-    ['une note moyenne, 340 signes', 340, false, 113],
-    ['un apparat critique de 90 signes, avec intitulé', 90, true, 81],
-  ])('couvre %s', (_nom, signes, avecIntitule, demande) => {
-    expect(haut(signes as number, 16, avecIntitule as boolean)).toBeGreaterThanOrEqual(demande as number)
+    //                                                signes  intitulé  réelle  estimée
+    ['la médiane du corpus, 29 signes',                   29,   false,     40,     40],
+    ['une note moyenne, 340 signes',                     340,   false,     88,     88],
+    ['un apparat critique de 90 signes, avec intitulé',    90,    true,     58,     74],
+  ])('couvre %s', (_nom, signes, avecIntitule, reelle, attendue) => {
+    const estimee = haut(signes as number, 16, avecIntitule as boolean)
+    // ⛔ Ce que le module CALCULE, au pixel : toute dérive du corps, de l'interligne, du
+    // blanc ou de la CHASSE déplace ce nombre, et c'est le seul moyen d'épingler la
+    // chasse par un test — elle appartient à la police, et aucun test ne sait la mesurer.
+    expect(estimee).toBe(attendue as number)
+    // ⛔ Et ce que le calcul PROMET : jamais moins que la boîte réelle, jamais plus d'une
+    // ligne au-dessus. L'estimation compte des lignes ENTIÈRES et arrondit toujours vers
+    // le haut ; c'est ce qui coûte une ligne au troisième cas, dont les 90 signes tombent
+    // juste à la frontière de l'enroulement. Au-delà d'une ligne, c'est la mesure qui a
+    // menti. ⛔ La borne se DÉRIVE des constantes, elle ne se recopie pas.
+    const uneLigne = Number.parseFloat(CORPS_ENCART) * INTERLIGNE_ENCART * 16 + 2
+    expect(attendue as number).toBeGreaterThanOrEqual(reelle as number)
+    expect(attendue as number).toBeLessThanOrEqual((reelle as number) + uneLigne)
   })
 })
 
@@ -171,9 +200,13 @@ describe('le cadre et le corps sont deux éléments', () => {
     expect(styleCorpsEncart(LONGUE).paddingRight).toBeUndefined()
   })
 
-  it('le propos se compose en sérif, au corps de l’encart', () => {
+  // ⛔ SANS EMPATTEMENTS depuis le 2026-09-10 : une note est de l'appareil, non du
+  // corpus, et le change de caractère est ce qui le dit. Elle emporte l'apparat
+  // critique et tout ce que l'encart contient, qui héritent.
+  it('le propos se compose en sans, au corps de l’encart', () => {
     const corps = styleCorpsEncart(LONGUE)
-    expect(String(corps.fontFamily)).toContain('source-serif')
+    expect(String(corps.fontFamily)).toContain('font-source-sans')
+    expect(String(corps.fontFamily)).not.toContain('serif,')
     expect(corps.fontSize).toBe(CORPS_ENCART)
   })
 })
@@ -231,10 +264,15 @@ describe('le numéro de la note', () => {
   // les polices diffèrent : l'ascendante d'une sans n'est pas celle d'une sérif, et le
   // chiffre pendait un pixel au-dessus de la première ligne (mesuré à la racine 22).
   // C'est la leçon de la marge de référence de la Polyglotte, prise par l'autre bout.
+  // ⛔ ET LA GARDE TIENT LA RELATION, NON LE NOM DE LA FAMILLE. Elle nommait le sérif
+  // en dur ; le jour où le propos est passé au sans, elle a rougi sur la bonne ligne
+  // pour la mauvaise raison — elle disait « ce n'est plus du sérif » quand la règle est
+  // « ce n'est plus la police du propos ». Comparée au propos, elle ne peut plus se
+  // redéfaire au prochain change de caractère.
   it('prend le STRUT du texte — police, corps et interligne', () => {
     expect(STYLE_NUMERO_SEUL.fontSize).toBe(CORPS_ENCART)
     expect(STYLE_NUMERO_SEUL.lineHeight).toBe(INTERLIGNE_ENCART)
-    expect(String(STYLE_NUMERO_SEUL.fontFamily)).toContain('font-source-serif')
+    expect(STYLE_NUMERO_SEUL.fontFamily).toBe(styleCorpsEncart(LONGUE).fontFamily)
   })
 
   // ⚠️ La FACE du chiffre est à part, et elle se pose EN LIGNE dans ce strut : c'est ce
@@ -267,6 +305,17 @@ describe('la composition du propos', () => {
     expect(style.textAlign).toBe('left')
     // ⚠️ La césure RESTE : au fer, une piste de trente signes coupe aussi bien.
     expect(style.hyphens).toBe('auto')
+  })
+
+  // ⛔ LA CHASSE DU SANS VA AVEC LE GRIS, comme la justification. Le barème de la
+  // charte (§ 3.11) donne -0,03 em en sans et -0,025 em en sérif ; sous le seuil,
+  // « on ne touche à rien ». ⚠️ Elle se relit le jour où la note changerait de police :
+  // les deux valeurs ne sont pas interchangeables, et une chasse de sérif posée sur un
+  // sans resserre un demi-millième de trop par mot — invisible sur un renvoi, une ligne
+  // de moins sur un développement de vingt.
+  it('referme les blancs de la justification, et rien sous le seuil', () => {
+    expect(styleCorpsEncart(LONGUE).wordSpacing).toBe('-0.03em')
+    expect(styleCorpsEncart(COURTE).wordSpacing).toBeUndefined()
   })
 
   it('le seuil est celui de la charte', () => {
@@ -368,5 +417,38 @@ describe('l’encart qui se range dans une marge', () => {
     expect(piste(16) / 6.3).toBeGreaterThan(30)
     // ⛔ Et 14 rem n'achèterait rien : la marge de 2400 en regard vaut 277 px.
     expect(14 * 22).toBeGreaterThan(MARGES.find(m => m.ecran === 2400)!.regard)
+  })
+})
+
+/**
+ * ⛔ LA QUEUE DU DERNIER BLOC : LA FEUILLE ET L'ESTIMATION SE TIENNENT, OU LE TEXTE
+ * PASSE SOUS LE FILET.
+ *
+ * Chaque bloc d'une note porte le blanc qui le SÉPARE du suivant, en style EN LIGNE ;
+ * sur le dernier, ce blanc n'a plus rien à séparer et s'ajoutait au rembourrage — douze
+ * pixels de blanc au-dessus du texte, dix-huit au-dessous, mesurés le 2026-09-10 sur la
+ * composition servie. La feuille le retire ; `hauteurSouhaiteeNote` a donc cessé de le
+ * compter.
+ *
+ * ⚠️ LES DEUX NE PEUVENT PLUS ÊTRE DÉFAITS L'UN SANS L'AUTRE. La feuille retirée, la
+ * boîte garde son blanc et l'estimation la rend six pixels trop courte : la dernière
+ * ligne passe sous le filet. C'est arrivé pendant la passe même, parce que la règle
+ * avait d'abord été écrite SANS point d'exclamation et perdait contre le style en ligne.
+ */
+describe('le blanc mort sous la dernière ligne', () => {
+  const feuille = readFileSync('app/globals.css', 'utf8')
+  const encart = readFileSync('app/components/EncartNote.tsx', 'utf8')
+
+  it('la feuille le retire, et elle CRIE pour battre le style en ligne', () => {
+    const regle = feuille.match(/.cs-encart-propos > :last-child {[^}]*}/)?.[0]
+    expect(regle).toBeDefined()
+    expect(regle).toContain('margin-bottom: 0')
+    // ⛔ Sans le point d'exclamation, elle ne retire RIEN : les trois composants posent
+    // ce blanc en style en ligne, qui bat toute règle de feuille.
+    expect(regle).toContain('!important')
+  })
+
+  it('et l’encart porte la marque que la règle vise', () => {
+    expect(encart).toContain('className="cs-encart-propos"')
   })
 })

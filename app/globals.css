@@ -3339,6 +3339,33 @@ main.lecture-entree [data-cs-bloc],
 [data-visite-cible="actions"] .poly-act { opacity: .9 !important; }
 [data-visite-cible="actions"] .poly-cellact { background: var(--cs-surface); box-shadow: var(--cs-ombre-nette); }
 
+/* ── LA QUEUE DU DERNIER BLOC D'UNE NOTE NE DOUBLE PAS LE REMBOURRAGE ────────
+   ⛔ Chaque bloc d'une note porte le blanc qui le SÉPARE du suivant
+   (`MARGE_PARAGRAPHE_ENCART`) ; sur le dernier, ce blanc n'a plus rien à séparer et
+   s'ajoutait au rembourrage du corps. Mesuré le 2026-09-10 sur la composition servie :
+   douze pixels de blanc au-dessus du texte, DIX-HUIT au-dessous — la note ne se tenait
+   pas au milieu de sa propre boîte, et tout encart du site portait six pixels morts
+   sous sa dernière ligne, soit un huitième d'un renvoi d'une ligne.
+
+   ⚠️ L'apparat critique le corrigeait DÉJÀ, pour son compte (`margin: dernier ? 0`) :
+   deux rythmes verticaux pour un même encart selon ce qu'il portait. La règle vaut
+   désormais pour les trois surfaces à la fois, et l'apparat peut garder la sienne sans
+   qu'elles se contredisent.
+
+   ⛔ ELLE VIT DANS LA FEUILLE, et elle ne peut pas vivre ailleurs : « le dernier »
+   ne s'écrit pas en style en ligne, et les blocs sont rendus par trois composants qui
+   ne se connaissent pas. ⚠️ Un seul niveau (`>`), jamais un descendant : une liste
+   bibliographique ou une citation sortie porte ses propres derniers-nés, et ils
+   gardent leur blanc.
+
+   ⛔ ET LE POINT D'EXCLAMATION Y EST NÉCESSAIRE : les trois composants posent ce blanc
+   en STYLE EN LIGNE, qui bat toute règle de feuille. Sans lui, la règle ne retire rien
+   et rien ne le dit — éprouvé le 2026-09-10, la boîte gardait ses dix-huit pixels au
+   pied pendant que l'estimation, elle, avait cessé de les compter : six pixels de
+   texte passaient alors sous le filet. C'est le même point d'exclamation que la garde
+   iOS du § LE DOIGT, et pour la même raison. */
+.cs-encart-propos > :last-child { margin-bottom: 0 !important; }
+
 /* ── UNE NOTE ÉPINGLÉE LE DIT ────────────────────────────────────────────────
    Un encart s'ouvre au survol et se FIXE au clic, et rien ne distinguait les deux
    états que l'apparition de la croix. Ce qui les distinguait vraiment était un
