@@ -988,7 +988,71 @@ Réorganisation de `app/components/Navbar.tsx` et éclatement de l'ancienne page
 - **Bible 899 ne vit plus que sous Administration** (retiré d'« Aller plus loin »).
 - **Mobile** : le panneau déplié reconstruit ces groupes (helper `lienMobile`, intertitres `styleSectionMobile`) : lecture + Patristique/Publications, puis « Aller plus loin » déplié, puis, pour un admin, « Administration » (sections + Bible 899).
 
+## ⛔ LE PANNEAU MOBILE DE LA BARRE — une seule forme de rangée (2026-09-10)
+
+Relevé de l'auteur : « sous sa forme réduite (mobile, par ex.), la navbar principale est
+immonde ; il faut tout uniformiser ; retirer les logos ; unifier les polices, les formes ».
+Doctrine : charte § 18. Règles de code, toutes dans `app/components/Navbar.tsx` :
+
+⛔ **CE QUI FAIT L'IMMONDICE SE COMPTE, et c'est la seule façon d'en sortir.** Relevé sur
+le panneau d'un administrateur en session (`tmp/planche-panneau-mobile.mjs`, une iframe de
+375 px, avant et après côte à côte) : **quatre corps** (1rem pour la navigation, 0,9375
+pour le compte et les interrupteurs, 0,65625 pour les intertitres, 0,5 pour les familles
+d'admin), **trois rembourrages** (9 × 10, 9 × 12, 10 × 12), **cinq écarts** (11, 10, 8, 7,
+6), **sept bords gauches** (26, 28, 36, 47, 51, 55, 66 px) et **sept pictogrammes** sur une
+vingtaine de rangées. Après : **deux corps, deux rembourrages, UN bord gauche (28 px), zéro
+pictogramme**, pour 1 279 px de hauteur contre 1 258 — vingt-et-un pixels, 1,7 %.
+
+⛔ **TROIS CONSTANTES DE MODULE, ET RIEN D'AUTRE** : `RANGEE_MOBILE`, `INTERTITRE_MOBILE`,
+`GLOSE_MOBILE`. Toute rangée du panneau les prend — lien, action, interrupteur,
+déconnexion, appel à la connexion — et n'ajoute que ce qui la distingue vraiment (l'encre
+du danger, un cadre pour le seul appel à l'action). ⛔ Ne plus écrire un style de rangée en
+ligne dans le panneau : c'est ainsi que les quatre corps sont nés.
+
+⛔ **LE CORPS RETENU EST LE DOMINANT** (1rem, celui de la navigation), non une moyenne.
+C'est la méthode de l'échelle typographique, et c'est le bon sens : un panneau qu'on vise
+au doigt n'a aucune raison de rapetisser pour s'aligner sur son menu de compte.
+
+⛔ **L'INTERTITRE PORTE LE MÊME REMBOURRAGE LATÉRAL QU'UNE RANGÉE**, non une marge : c'est
+ce qui donne au panneau son unique bord gauche. Il était à 10 px quand les rangées du
+compte étaient à 12. ⚠️ Et les familles d'administration prennent le corps commun : le leur
+valait 0,5rem, huit pixels, deux rangs sous le plus petit texte du site. Ce qui les range
+sous « Administration » est leur COULEUR et leur place.
+
+⛔ **PLUS D'APLAT AUTOUR DU MENU DE COMPTE : un intertitre « Mon espace ».** C'était le seul
+objet du panneau à porter un fond propre et des coins arrondis. La messagerie, les
+notifications et les rangées du compte se suivent désormais à 2 px sous ce seul titre.
+
+⚠️ **UN INTERRUPTEUR POSE SON MOT D'ABORD, sa bascule au fer à droite** — la forme de
+« Mode sombre ». « Admin » faisait l'inverse, et sa bascule repoussait son libellé à 68 px
+quand tout le reste commence à 28 : c'était le dernier bord gauche en trop. ⛔ On réordonne
+le JSX, jamais par `order` : l'ordre du document est celui que lisent le clavier et la
+synthèse vocale.
+
+⚠️ **UN PIÈGE TOMBE AVEC LA PASSE, et il faut savoir pourquoi il existait.** `lienMobile`
+était en `display: block` hors emblème, avec un commentaire disant que c'était
+OBLIGATOIRE : dans les groupes d'« Administration », les liens sont enfants d'un `<div>`
+bloc et non du flex-colonne du panneau, si bien qu'inline ils se chevauchaient. Un flex est
+de niveau bloc : la rangée unique règle le cas, et il n'y a plus qu'une écriture.
+
+⚠️ **CE QUI RESTE, ET POURQUOI.** Les GLOSES d'« Aller plus loin » (des mots, non des logos,
+et l'auteur les a demandées le 2026-09-06), les COMPTEURS, les deux INTERRUPTEURS, le
+CHEVRON d'« Administration », et le marqueur de LIEN SORTANT de « Ma page publique ». ⚠️ Le
+champ de recherche garde sa forme de CHAMP : il EST son bloc, comme dans les volets de
+lecture, et son texte ne s'aligne donc pas sur les rangées.
+
+⚠️ **Ce que la reprise ne fait PAS, et qui reste ouvert** : les six rangées glosées font
+deux lignes quand les autres en font une. C'est une irrégularité de CONTENU, non de forme,
+et retirer une glose que l'auteur a demandée douze jours plus tôt serait outrepasser. À
+trancher s'il la trouve encore trop bavarde.
+
 ## ⛔ Une RUBRIQUE se présente de la même façon sur les deux écrans (2026-09-06)
+
+⚠️ **RESSERRÉE LE 2026-09-10 : c'est l'INFORMATION d'une rubrique qui doit se retrouver sur
+les deux écrans — son nom et sa glose —, non son ORNEMENT.** La formule d'origine, « de la
+même façon », était trop large : elle a servi à garder sur un téléphone un pictogramme que
+le bureau seul peut porter. Voir la section précédente.
+
 
 Demande de l'auteur : « pour Aller plus loin, présenter chaque rubrique un peu mieux, avec un petit pictogramme, un petit texte ». Le menu de BUREAU portait les deux depuis le 2026-08-30 ; le panneau MOBILE portait l'emblème sans la glose, c'est-à-dire six mots alignés sans un indice de ce qu'ils ouvrent. `lienMobile` prend donc un paramètre `dit`, et c'est la MÊME phrase des deux côtés : une rubrique ne se présente pas de deux façons selon l'écran.
 

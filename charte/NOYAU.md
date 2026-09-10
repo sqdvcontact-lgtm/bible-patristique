@@ -857,8 +857,16 @@
 - ⚠️ Le seuil sépare des GESTES et non des conforts, et c’est ainsi qu’il se règle : un balayage de barre court entre huit cents et trois mille pixels par seconde, quand une main qui vise un onglet passe sous trois cent cinquante quelques centièmes de seconde avant de s’arrêter.
 - ⛔ Au clavier, le menu s’ouvre sur `:focus-visible` et non sur `:focus-within`, qui le gardait ouvert après un simple clic de souris sur l’onglet, lequel laisse le lien focalisé, le curseur parti depuis longtemps.
 - ⛔ Et une seule mécanique : deux menus voisins gouvernés l’un par une règle `:hover` de la feuille de styles, l’autre par un état de composant, finissent toujours par diverger.
-- ⛔ UNE RUBRIQUE SE PRÉSENTE DE LA MÊME FAÇON SUR LES DEUX ÉCRANS (demande de l’auteur, 6 septembre 2026 : « présenter chaque rubrique un peu mieux, avec un petit pictogramme, un petit texte »).
+- ⛔ UNE RUBRIQUE DIT LA MÊME CHOSE SUR LES DEUX ÉCRANS — c’est son INFORMATION qui doit s’y retrouver, non son ornement (demande de l’auteur, 6 septembre 2026 : « présenter chaque rubrique un peu mieux, avec un petit pictogramme, un petit texte » ; règle resserrée le 10 septembre).
 - ⚠️ Et c’est la MÊME phrase des deux côtés : deux formulations d’une même rubrique divergeraient au premier ajustement.
+- ⚠️ La règle a d’abord été écrite « de la même FAÇON », et c’était trop large — elle a servi à garder sur un téléphone un pictogramme que le bureau seul peut porter.
+- ⛔ UN PANNEAU DE NAVIGATION AU DOIGT EST UNE SEULE LISTE, ET IL N’A DONC QU’UNE FORME DE RANGÉE (relevé de l’auteur, 10 septembre 2026 : « sous sa forme réduite, la navbar principale est immonde ; il faut tout uniformiser ; retirer les logos ; unifier les polices, les formes »).
+- ⚠️ Le corps retenu est le DOMINANT, jamais une moyenne — celui de la navigation, qui porte la plus grande part des rangées.
+- ⛔ ET LES PICTOGRAMMES PARTENT TOUS, OU AUCUN.
+- ⚠️ Ils restent sur le bureau, où le menu large leur donne la place et où l’auteur les a demandés.
+- ⛔ UNE SECTION SE NOMME, ELLE NE S’ENCADRE PAS.
+- ⚠️ Un interrupteur pose son MOT d’abord et sa bascule au fer à droite.
+- ⛔ On réordonne le balisage, jamais par `order` : l’ordre du document est celui que lisent le clavier et la synthèse vocale.
 - ⚠️ Une liste dont rien ne s’aligne se lit mal, et c’est la GLOSE qu’on reprend, non la boîte qu’on élargit.
 - ⛔ Une phrase trop longue est une phrase à reprendre : la reprendre vaut mieux qu’un menu qui s’étire pour elle, et l’une des six passait de moitié la mesure de ses sœurs.
 - ⛔ La borne BASSE d’un menu gouverne sa largeur, jamais la haute.
