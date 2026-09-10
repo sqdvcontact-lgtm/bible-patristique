@@ -382,7 +382,7 @@ rechargement à cet endroit ne peut donc PAS venir du gestionnaire.
 en haut, `scroll: false` n'ayant plus de prise — dès que le build servi ne correspond plus à
 celui que l'onglet porte. Il suffit qu'une ressource du build soit demandée : un préchargement
 au survol (`precharger`, `router.prefetch`), une correction d'adresse (les `router.replace` de
-la page, dont celui du mode bilingue), un chunk chargé à la demande (cinq `next/dynamic` dans
+la page, dont celui du mode bilingue), un chunk chargé à la demande (quatre `next/dynamic` dans
 `OeuvreClient`). ⛔ Les fichiers d'un déploiement précédent ne sont plus servis sur le domaine
 de production : un onglet resté ouvert pendant un déploiement est condamné à recharger une
 fois. **Quatre déploiements en une heure ce matin-là.**
@@ -395,12 +395,57 @@ il n'y a plus rien à voir, et c'est ce qui rend ce défaut si trompeur :
 [...document.querySelectorAll('script[src]')].map(s => s.src).filter(s => s.includes('/_next/'))
 ```
 
-⛔ **Le remède n'est pas dans le code : c'est la PROTECTION CONTRE LE DÉCALAGE** (Skew
-Protection de Vercel, `deploymentId` dans `next.config.ts` plus l'option au tableau de bord).
-Elle épingle chaque onglet à SON déploiement par un cookie, si bien qu'un onglet ouvert
-continue d'être servi par le build qu'il connaît. **Non activée** : c'est un réglage
-d'hébergement, donc une décision de l'auteur. ⚠️ Et le vrai remède, tant que le site est fermé,
-est de ne pas déployer en rafale pendant qu'on regarde une page.
+⛔ **LA PROTECTION CONTRE LE DÉCALAGE N'EST PAS DISPONIBLE ICI, et ce fichier a dit le
+contraire le 2026-09-10 au matin.** La Skew Protection de Vercel épinglerait chaque onglet
+à SON déploiement par un cookie, et c'est bien le remède ; elle est **réservée au plan
+Pro**. Le compte est sur **Hobby** : lu au tableau de bord le jour même, « Skew Protection ·
+Pro · Disabled », avec un bouton **« Upgrade »** — non un interrupteur. L'affirmation
+« incluse dans votre plan » venait d'une confusion avec le plan Pro de SUPABASE, que la
+charte mentionne pour ses 100 Go de stockage. ⛔ Et la règle du dépôt est « gratuit et
+sobre, aucun abonnement, même modeste » : on ne l'achète pas.
+
+⛔ **ET L'ON NE POSE PAS `deploymentId` DANS `next.config.ts` POUR AUTANT.** Sans la
+protection qui va avec, il ne fait qu'ajouter `?dpl=…` à l'adresse de CHAQUE ressource :
+le cache du navigateur et celui de l'arête sont invalidés à chaque déploiement, et rien
+n'est épinglé. C'est le coût sans le bénéfice.
+
+⛔ **LA PARADE EST DONC DE RENDRE LE RECHARGEMENT INDOLORE, et elle est gratuite.** Trois
+gestes, dans l'ordre où ils paient (`app/lib/passageTexte.ts`, `OeuvreClient`) :
+
+1. **AUCUN MORCEAU DE CODE AU PREMIER GESTE DE LECTURE.** `AssocierVerset` était
+   `dynamic()` et son chunk partait au PREMIER clic sur un segment : le geste le plus
+   ordinaire de la page demandait un fichier au serveur. Il est statique, et
+   `ModalLienBiblique` reste à la demande DEDANS. ⚠️ Les quatre `next/dynamic` qui restent
+   sur cette page — l'inventaire des notes, la modale d'édition, le menu d'extraction, les
+   traductions parallèles (en sommeil) — sont derrière un geste EXPLICITE et rare, et l'on
+   ne les rend pas statiques : les deux premiers sont réservés à l'administrateur, et les
+   servir à chaque lecteur pour un décalage qui ne mord qu'en fenêtre de déploiement serait
+   un mauvais marché.
+2. **LA DIVISION LUE VOYAGE DANS LA BARRE D'ADRESSE** (`inscrireNiv1DansLAdresse`, posé par
+   `changerNiv1`). Elle n'y était pas : `changerNiv1` ne touche qu'à l'état du composant, si
+   bien qu'un rechargement rouvrait l'œuvre à sa PREMIÈRE division, où qu'on en fût — et
+   c'est le gros de ce qu'on perdait. `?niv1=` est ce que `page.tsx` sait déjà relire.
+   ⛔ `window.history.replaceState` et non `router.replace` : c'est la voie que Next
+   documente (« Native History API »), le serveur n'est pas rejoué, et rien ne coûte une
+   requête. ⛔ Le passage VISÉ (`groupe`, `cle`, `segment`) part avec : le serveur le
+   préfère à la division, et le garder ferait retomber un rechargement là d'où l'on vient.
+3. **LE DÉFILEMENT ET LA PAGE DE PAGINATION SE RETIENNENT DANS `sessionStorage`**, qui
+   survit à une navigation dure DANS LE MÊME ONGLET. ⛔ Ce n'est PAS une reprise de lecture
+   d'une séance à l'autre, et cela ne doit pas le devenir : la position PÉRIME en **trente
+   secondes**, et l'adresse doit correspondre au caractère près. Un rechargement subi arrive
+   à l'instant même ; rouvrir une page une minute plus tard est un geste du lecteur, et il
+   attend le haut de la page. ⚠️ La décision vit dans `positionAppliquable`, PURE et sous
+   garde ; la reprise est un `useLayoutEffect`, qui passe donc avant l'écoute du défilement
+   et lit la position avant qu'elle ne soit réécrite. ⚠️ Une page de pagination hors liste
+   — division encore en cours de chargement — ne se reprend pas, et son défilement ne veut
+   alors plus rien dire.
+
+⚠️ **Portée : la page d'ŒUVRE, et elle seule.** La page Bible défile dans un défileur
+INTERNE (`.overflow-y-auto.flex-1`), non dans la fenêtre : lui rendre sa place demanderait
+de viser ce défileur, et cela n'a pas été fait.
+
+⚠️ **Et le vrai remède, tant que le site est fermé, reste de ne pas déployer en rafale
+pendant qu'on regarde une page.**
 
 ⚠️ **Ce qui a coûté le plus de temps est d'avoir cherché dans le code.** Devant un rechargement
 inexpliqué, on demande d'ABORD : ai-je déployé dans l'heure ? Et l'on ne conclut à un défaut

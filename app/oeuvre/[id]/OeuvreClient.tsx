@@ -145,10 +145,15 @@ import {
   DUREE_ENTREE_MS,
   DUREE_SORTIE_MS,
   adresseAvecPosition,
+  adresseCourante,
   annoncerBascule,
   basculeEnAttente,
+  inscrireNiv1DansLAdresse,
+  lirePositionRetenue,
   ordonnerBlocsVisibles,
+  positionAppliquable,
   reprendreBascule,
+  retenirLaPosition,
   segmentEnTeteDeFenetre,
 } from '@/app/lib/passageTexte'
 import {
@@ -1443,6 +1448,53 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     return () => { stopped = true; window.clearTimeout(timer) }
   }, [segmentCibleId, pageActuelle])
 
+  // ── LE RECHARGEMENT QUE PERSONNE N'A DEMANDÉ ───────────────────────────────
+  // Un onglet ouvert pendant un déploiement porte un build que le serveur ne sert
+  // plus : au premier morceau de code demandé, Next fait une navigation DURE. On ne
+  // peut pas l'empêcher sans payer (voir `passageTexte.ts`) ; on le rend indolore.
+  // La DIVISION voyage désormais dans l'adresse (`inscrireNiv1DansLAdresse`, posé par
+  // `changerNiv1`) ; le défilement et la page de pagination se retiennent ici.
+  //
+  // ⛔ La reprise est un `useLayoutEffect` : les effets de mise en page passent tous
+  // AVANT les effets ordinaires, si bien qu'elle lit la position retenue avant que
+  // l'écoute du défilement, ci-dessous, n'ait pu la réécrire.
+  useLayoutEffect(() => {
+    // Une bascule en attente veut dire qu'on ARRIVE d'un autre texte : l'effet qui
+    // suit s'en charge, et il sait poser le paragraphe à sa hauteur exacte. Un lien
+    // profond (`?segment=`) vise, lui aussi, et deux mécanismes ne se disputent pas
+    // le même défilement.
+    if (basculeEnAttente() || segmentCibleId) return
+    const reprise = positionAppliquable(lirePositionRetenue(), adresseCourante(), pages.length, Date.now())
+    if (!reprise) return
+    if (reprise.page > 0) setPageActuelle(reprise.page)
+    let pose = -1
+    const lecteurABouge = () => pose >= 0 && Math.abs(window.scrollY - pose) > 1
+    const poser = () => { window.scrollTo(0, reprise.defilement); pose = window.scrollY }
+    poser()
+    // La page de pagination reprise ne se rend qu'au rendu suivant, et le frontispice
+    // change encore de hauteur pendant la première seconde : on repose, et l'on
+    // s'abstient dès que le lecteur a bougé — c'est lui qui commande.
+    let arret = false
+    const minuteries = [120, 350, 700, 1200].map(delai =>
+      window.setTimeout(() => { if (!arret && !lecteurABouge()) poser() }, delai))
+    return () => { arret = true; minuteries.forEach(m => window.clearTimeout(m)) }
+    // Une seule fois, au montage : une reprise ne se rejoue pas.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // ⚠️ Une écriture par IMAGE au plus : le défilement émet des dizaines d'événements
+  // par seconde, et `sessionStorage` écrit sur le disque.
+  useEffect(() => {
+    let image = 0
+    const retenir = () => { image = 0; retenirLaPosition(pageActuelle, window.scrollY) }
+    const auDefilement = () => { if (!image) image = window.requestAnimationFrame(retenir) }
+    window.addEventListener('scroll', auDefilement, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', auDefilement)
+      if (image) window.cancelAnimationFrame(image)
+    }
+  }, [pageActuelle])
+
   // Arrivée depuis un autre texte. On rend d'abord au lecteur son défilement (une
   // œuvre sœur est passée par l'écran d'attente, qui l'a ramené en haut), puis on pose
   // le paragraphe repris à la hauteur exacte où était celui qu'il lisait, et l'on
@@ -1719,6 +1771,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   const changerNiv1 = async (n1: string, opts?: { forceRefresh?: boolean; conserverPosition?: boolean }) => {
     setNiv1Actif(n1)
+    // La division lue s’inscrit dans la barre d’adresse, SANS navigation ni requête :
+    // un rechargement subi rouvre alors l’œuvre ICI, et non à sa première division.
+    inscrireNiv1DansLAdresse(n1)
     if (lectureTexteEntier) {
       // ⛔ En texte entier, il n'y a PAS de niveau 1 à recharger : le serveur a envoyé
       // l'œuvre d'un seul tenant. `chargerNiv1Data` ne sait rapporter qu'UNE section, et
