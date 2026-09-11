@@ -44,6 +44,7 @@ import {
   appelsDuVerset,
   apparierRangees,
   colonnesBilingues,
+  gloseSansVisAVis,
   rangeesNonVides,
   referenceCanoniqueLisible,
   referenceNativeLisible,
@@ -54,6 +55,7 @@ import {
   type MembreBilingue,
   type NoteBilingue,
 } from '@/app/lib/bibleEditionBilingue'
+import { CORPS_GLOSE, LIBELLE_GLOSE } from '@/app/lib/compositionBible'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
 import { ancreAppelNoteBible } from '@/app/lib/bibleEdition'
 import { estSuiteDuBloc } from '@/app/lib/bibleHierarchieSemantique'
@@ -94,6 +96,16 @@ const STYLE_VERSET_ORIGINAL = {
   fontSize: '0.8125rem',
   color: 'var(--cs-original)',
   wordSpacing: '-0.025em',
+}
+
+// ⛔ UNE GLOSE — italique, un point sous le texte de SA colonne (décision de l'auteur,
+// 2026-09-11). Les corps viennent de `compositionBible.ts`, que la lecture simple lit
+// aussi : un corps recopié divergerait au premier réglage.
+const STYLE_GLOSE = { ...STYLE_VERSET, fontSize: CORPS_GLOSE.sousVerset, fontStyle: 'italic' as const }
+const STYLE_GLOSE_ORIGINAL = {
+  ...STYLE_VERSET_ORIGINAL,
+  fontSize: CORPS_GLOSE.sousOriginal,
+  fontStyle: 'italic' as const,
 }
 
 // La référence occupe sa propre colonne, étroite et alignée à droite, comme le
@@ -288,55 +300,78 @@ export default function BibleBilingue({
       {rendreBlocs(commun.blocs.opening)}
       {rendreImages(commun.images.opening)}
 
-      {rangees.map((rangee) => (
-        <div key={rangee.canonId}>
-          {rendreBlocs(commun.blocs.beforeByCanon.get(rangee.canonId) ?? [])}
-          {rendreImages(commun.images.beforeByCanon.get(rangee.canonId) ?? [])}
-          <div style={styleGrille} data-canon-id={rangee.canonId} {...marquesDeRangee(rangee.canonId)}>
-            {rangee.cellules.map((cellule, index) => {
-              const membre = colonnesOrdonnees[index].membre
-              return (
-                <div
-                  key={membre.id}
-                  lang={membre.languageCode}
-                  data-membre={membre.id}
-                  style={{ minWidth: 0 }}
-                >
-                  {cellule === null ? (
-                    // Un créneau que cette édition ne porte pas reste vide :
-                    // on n'y met jamais le texte de l'autre colonne.
-                    <p aria-hidden style={STYLE_VERSET}>
-                      &nbsp;
-                    </p>
-                  ) : (
-                    <div style={STYLE_LIGNE_VERSET}>
-                      {/* ⚠️ LA RÉFÉRENCE PARAÎT DES DEUX CÔTÉS (demande de l'auteur,
-                          2026-09-04). Une édition ne dit sa numérotation propre que
-                          lorsqu'elle DIFFÈRE du canon ; à défaut la colonne portait une
-                          gouttière vide, et le lecteur n'avait de numéro que d'un bord. */}
-                      <span style={STYLE_REFERENCE}>
-                        {referenceNativeLisible(cellule.referenceNative) ?? referenceCanoniqueLisible(rangee.canonId)}
-                      </span>
-                      <p style={membre.memberRole === 'source_text' ? STYLE_VERSET_ORIGINAL : STYLE_VERSET}>
-                        {cellule.texte}
-                        {appelsDuVerset(notesRetenues, rangee.canonId, membre.id).map((note) => (
-                          <AppelNoteBiblique
-                            key={`${membre.id}:${note.id}`}
-                            note={note}
-                            memberId={membre.id}
-                          />
-                        ))}
+      {rangees.map((rangee) => {
+        // ⛔ UNE RANGÉE DE GLOSE N'EST PAS UN VERSET (charte § 15.4). Elle ne porte donc
+        // pas `data-canon-id`, où la reprise de lecture chercherait un numéro, ni la marque
+        // d'une rangée cliquable : l'apparat patristique se charge sur un créneau, et une
+        // glose n'en a pas. Et une colonne vide n'y garde pas sa place : une glose sans
+        // vis-à-vis prend la largeur des deux (`gloseSansVisAVis`).
+        const glose = rangee.glose
+        const seule = gloseSansVisAVis(rangee)
+        return (
+          <div key={rangee.canonId}>
+            {rendreBlocs(commun.blocs.beforeByCanon.get(rangee.canonId) ?? [])}
+            {rendreImages(commun.images.beforeByCanon.get(rangee.canonId) ?? [])}
+            <div
+              style={styleGrille}
+              data-canon-id={glose ? undefined : rangee.canonId}
+              data-glose={glose ? (glose.canonHote ?? '') : undefined}
+              {...(glose ? {} : marquesDeRangee(rangee.canonId))}
+            >
+              {rangee.cellules.map((cellule, index) => {
+                const membre = colonnesOrdonnees[index].membre
+                if (glose && cellule === null) return null
+                const original = membre.memberRole === 'source_text'
+                return (
+                  <div
+                    key={membre.id}
+                    lang={membre.languageCode}
+                    data-membre={membre.id}
+                    style={seule ? { minWidth: 0, gridColumn: '1 / -1' } : { minWidth: 0 }}
+                  >
+                    {cellule === null ? (
+                      // Un créneau que cette édition ne porte pas reste vide :
+                      // on n'y met jamais le texte de l'autre colonne.
+                      <p aria-hidden style={STYLE_VERSET}>
+                        &nbsp;
                       </p>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+                    ) : (
+                      <div style={STYLE_LIGNE_VERSET}>
+                        {/* ⚠️ LA RÉFÉRENCE PARAÎT DES DEUX CÔTÉS (demande de l'auteur,
+                            2026-09-04). Une édition ne dit sa numérotation propre que
+                            lorsqu'elle DIFFÈRE du canon ; à défaut la colonne portait une
+                            gouttière vide, et le lecteur n'avait de numéro que d'un bord.
+                            Une glose y porte son libellé, sans numéro (charte § 15.4). */}
+                        <span style={STYLE_REFERENCE}>
+                          {cellule.glose
+                            ? LIBELLE_GLOSE
+                            : referenceNativeLisible(cellule.referenceNative) ?? referenceCanoniqueLisible(rangee.canonId)}
+                        </span>
+                        <p
+                          style={cellule.glose
+                            ? (original ? STYLE_GLOSE_ORIGINAL : STYLE_GLOSE)
+                            : (original ? STYLE_VERSET_ORIGINAL : STYLE_VERSET)}
+                        >
+                          {cellule.texte}
+                          {appelsDuVerset(notesRetenues, rangee.canonId, membre.id).map((note) => (
+                            <AppelNoteBiblique
+                              key={`${membre.id}:${note.id}`}
+                              note={note}
+                              memberId={membre.id}
+                            />
+                          ))}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            {rendreImages(commun.images.afterByCanon.get(rangee.canonId) ?? [])}
+            {rendreBlocs(commun.blocs.afterByCanon.get(rangee.canonId) ?? [])}
           </div>
-          {rendreImages(commun.images.afterByCanon.get(rangee.canonId) ?? [])}
-          {rendreBlocs(commun.blocs.afterByCanon.get(rangee.canonId) ?? [])}
-        </div>
-      ))}
+        )
+      })}
 
       {rendreImages(commun.images.closing)}
       {rendreBlocs(commun.blocs.closing)}

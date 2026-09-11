@@ -2,7 +2,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
 import BibleBilingue from './BibleBilingue'
-import type { MembreBilingue } from '@/app/lib/bibleEditionBilingue'
+import { cleDeGlose, type MembreBilingue } from '../lib/bibleEditionBilingue'
+import { CORPS_GLOSE } from '../lib/compositionBible'
 
 const LATIN: MembreBilingue = {
   id: 'la', translationId: 'TR0011', languageCode: 'la', label: 'Vulgate Fillion',
@@ -354,5 +355,92 @@ describe('lecture bilingue de la page Bible', () => {
 
   it('⛔ ne rend RIEN de cliquable quand la lecture ne sait pas sélectionner', () => {
     expect(renderToStaticMarkup(<BibleBilingue {...COMMUN} />)).not.toContain('cs-regard-rangee')
+  })
+})
+
+/**
+ * ⛔ LES GLOSES EN REGARD (relevé de l'auteur, 2026-09-11, sur Luc 13, 1).
+ *
+ * La traduction moderne de la Bible du XIIIe siècle montrait sa glose en face d'une
+ * colonne vide : le témoin la porte pourtant, et son chemin de lecture ne la chargeait
+ * pas. Les deux gloses se font face ; une glose qui n'a pas de vis-à-vis prend la largeur
+ * des deux colonnes ; et une glose se compose en italique, un point sous son texte.
+ */
+describe('les GLOSES en regard', () => {
+  const TEMOIN: MembreBilingue = {
+    id: 'af', translationId: 'TR0009', languageCode: 'fro', label: 'Bible française du XIIIe siècle',
+    memberRole: 'source_text', displayOrder: 2, desktopPosition: 'right', mobileOrder: 2,
+  }
+  const MODERNE: MembreBilingue = {
+    id: 'fm', translationId: 'TR0013', languageCode: 'fr', label: 'Traduction moderne',
+    memberRole: 'translation', displayOrder: 1, desktopPosition: 'left', mobileOrder: 1,
+  }
+  const GLOSE = cleDeGlose('LUK.13.1', 1)
+  const PLACE = { canonHote: 'LUK.13.1', rang: 1 }
+
+  const lecture = (avecGloseDuTemoin: boolean) => ({
+    membres: [MODERNE, TEMOIN],
+    axeCanonique: ['LUK.13.1', GLOSE, 'LUK.13.2'],
+    colonnes: [
+      {
+        membre: MODERNE,
+        cellules: [
+          { canonId: 'LUK.13.1', texte: 'Il y avait alors des gens qui annoncèrent à Jésus…', referenceNative: null },
+          { canonId: GLOSE, texte: 'Pilate faisait installer un conduit de plomb…', referenceNative: null, glose: PLACE },
+          { canonId: 'LUK.13.2', texte: 'Jésus répondit à ceux qui le lui annonçaient…', referenceNative: null },
+        ],
+      },
+      {
+        membre: TEMOIN,
+        cellules: [
+          { canonId: 'LUK.13.1', texte: 'Aucuns estoient lors en cel tens…', referenceNative: null },
+          ...(avecGloseDuTemoin
+            ? [{ canonId: GLOSE, texte: 'Pylates fesoit .i. conduit de plom…', referenceNative: null, glose: PLACE }]
+            : []),
+          { canonId: 'LUK.13.2', texte: 'Et ihesus responanz dist…', referenceNative: null },
+        ],
+      },
+    ],
+  })
+  const rangeeDeGlose = (html: string) => html.slice(
+    html.indexOf('data-glose="LUK.13.1"'),
+    html.indexOf('data-canon-id="LUK.13.2"'),
+  )
+
+  it('met la glose du témoin EN FACE de sa traduction, dans la même rangée', () => {
+    const rangee = rangeeDeGlose(renderToStaticMarkup(<BibleBilingue {...lecture(true)} />))
+    expect(rangee).toContain('Pilate faisait installer')
+    expect(rangee).toContain('Pylates fesoit')
+    // Le libellé tient la place du numéro, dans les deux gouttières (charte § 15.4).
+    expect(rangee.split('>Glose<')).toHaveLength(3)
+    expect(rangee).not.toContain('grid-column')
+  })
+
+  it('compose une glose en italique, un point sous le texte de SA colonne', () => {
+    const html = renderToStaticMarkup(<BibleBilingue {...lecture(true)} />)
+    const rangee = rangeeDeGlose(html)
+    const moderne = rangee.slice(rangee.indexOf('lang="fr"'), rangee.indexOf('lang="fro"'))
+    expect(moderne).toContain(`font-size:${CORPS_GLOSE.sousVerset}`)
+    expect(moderne).toContain('font-style:italic')
+    const temoin = rangee.slice(rangee.indexOf('lang="fro"'))
+    expect(temoin).toContain(`font-size:${CORPS_GLOSE.sousOriginal}`)
+    expect(temoin).toContain('font-style:italic')
+    // Le verset voisin garde son corps et son romain.
+    expect(html.slice(html.indexOf('data-canon-id="LUK.13.2"'))).not.toContain('font-style:italic')
+  })
+
+  it('une glose sans vis-à-vis prend la largeur des deux colonnes, sans cellule vide', () => {
+    const rangee = rangeeDeGlose(renderToStaticMarkup(<BibleBilingue {...lecture(false)} />))
+    expect(rangee).toContain('grid-column:1 / -1')
+    expect(rangee).not.toContain('aria-hidden')
+    expect(rangee).not.toContain('lang="fro"')
+  })
+
+  it('⛔ une rangée de glose ne se sélectionne pas : elle n’a pas de créneau', () => {
+    const html = renderToStaticMarkup(<BibleBilingue {...lecture(true)} onSelectionnerVerset={() => {}} />)
+    // Les deux versets se cliquent, la glose non.
+    expect(html.match(/class="cs-regard-rangee[^"]*"/g)).toHaveLength(2)
+    expect(rangeeDeGlose(html)).not.toContain('cs-regard-rangee')
+    expect(html).not.toContain(`data-canon-id="${GLOSE}"`)
   })
 })

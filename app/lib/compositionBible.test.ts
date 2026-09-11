@@ -1,5 +1,9 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 import { describe, expect, it } from 'vitest'
-import { compositionSousTitre } from './compositionBible'
+import { CORPS_GLOSE, LIBELLE_GLOSE, compositionSousTitre, styleTexteVerset } from './compositionBible'
+import { rangLePlusProche } from './echelleTypographique'
 
 /**
  * ⛔ Un SOUS-TITRE se compose comme SON titre.
@@ -64,5 +68,40 @@ describe('la composition d’un sous-titre suit le rang de SON titre', () => {
     for (const rang of ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', null]) {
       expect(compositionSousTitre(rang).fontStyle).toBe('italic')
     }
+  })
+})
+
+/**
+ * ⛔ Une GLOSE se compose en italique, un point sous le texte qu'elle accompagne
+ * (décision de l'auteur, 2026-09-11).
+ *
+ * Le point est une mesure absolue, l'échelle du site une grille : la glose prend le rang
+ * le plus proche de « un point de moins ». ⚠️ La lecture simple l'écrit dans une feuille,
+ * la lecture en regard en ligne : c'est ici que les deux écritures se confrontent.
+ */
+describe('le corps d’une glose : un point sous son texte', () => {
+  const UN_POINT = 4 / 3
+  const enPixels = (rem: string) => Number.parseFloat(rem) * 16
+
+  it('sous un verset, le rang le plus proche d’un point de moins', () => {
+    const verset = enPixels(String(styleTexteVerset().fontSize))
+    expect(verset).toBe(14)
+    expect(enPixels(CORPS_GLOSE.sousVerset)).toBe(rangLePlusProche(verset - UN_POINT))
+  })
+
+  it('sous la colonne originale de la lecture en regard (0,8125 rem), de même', () => {
+    expect(enPixels(CORPS_GLOSE.sousOriginal)).toBe(rangLePlusProche(13 - UN_POINT))
+  })
+
+  it('la lecture simple lit le même corps, et l’italique, dans sa feuille', () => {
+    const feuille = readFileSync(join(process.cwd(), 'app', 'glosses899.css'), 'utf8')
+    const regle = feuille.slice(feuille.indexOf('[data-verse-text] {'))
+    expect(regle).toContain(`font-size: ${CORPS_GLOSE.sousVerset} !important`)
+    expect(regle).toContain('font-style: italic')
+  })
+
+  it('la lecture simple écrit le même libellé que la lecture en regard et la Polyglotte', () => {
+    const feuille = readFileSync(join(process.cwd(), 'app', 'glosses899.css'), 'utf8')
+    expect(feuille).toContain(`content: "${LIBELLE_GLOSE}";`)
   })
 })

@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
   appelsDuVerset,
   apparierRangees,
+  axeAvecGloses,
+  cellulesDeGloses,
+  cleDeGlose,
   colonnesBilingues,
+  gloseSansVisAVis,
   lectureBilinguePossible,
   notesDuChapitreBilingue,
   rangeesNonVides,
@@ -198,5 +202,74 @@ describe('référence native LISIBLE — la gouttière d’un verset', () => {
       const une = referenceNativeLisible(brut)
       expect(referenceNativeLisible(une)).toBe(une)
     }
+  })
+})
+
+describe('les GLOSES en regard — l’appariement', () => {
+  it('numérote les gloses d’une colonne par créneau hôte, dans l’ordre de l’édition', () => {
+    const cellules = cellulesDeGloses([
+      { canonHote: 'LUK.13.1', texte: 'a' },
+      { canonHote: 'LUK.13.27', texte: 'b' },
+      { canonHote: 'LUK.13.1', texte: 'c' },
+    ])
+    expect(cellules.map((c) => c.canonId)).toEqual([
+      cleDeGlose('LUK.13.1', 1), cleDeGlose('LUK.13.27', 1), cleDeGlose('LUK.13.1', 2),
+    ])
+    // Une glose n'a pas de numéro natif : la gouttière porte son libellé.
+    expect(cellules.every((c) => c.referenceNative === null)).toBe(true)
+  })
+
+  it('⛔ insère chaque glose après son créneau hôte, QUEL QUE SOIT l’ordre des colonnes', () => {
+    // L'axe se composait des lignes des colonnes prises l'une après l'autre : la glose ne
+    // tombait après son verset que parce que la traduction venait en premier.
+    const temoin = { cellules: cellulesDeGloses([{ canonHote: 'LUK.13.1', texte: 'Pylates fesoit' }]) }
+    const moderne = { cellules: cellulesDeGloses([{ canonHote: 'LUK.13.1', texte: 'Pilate faisait' }]) }
+    const canons = ['LUK.13.1', 'LUK.13.2']
+    const attendu = ['LUK.13.1', cleDeGlose('LUK.13.1', 1), 'LUK.13.2']
+    expect(axeAvecGloses([canons, canons], [temoin, moderne])).toEqual(attendu)
+    expect(axeAvecGloses([canons, canons], [moderne, temoin])).toEqual(attendu)
+  })
+
+  it('apparie les deux gloses d’un même hôte et d’un même rang dans UNE rangée', () => {
+    const colonnes: ColonneBilingue[] = [
+      {
+        membre: LATIN,
+        cellules: [
+          { canonId: 'MRK.1.1', texte: 'Initium', referenceNative: 'I, 1' },
+          ...cellulesDeGloses([{ canonHote: 'MRK.1.1', texte: 'glossa' }]),
+          { canonId: 'MRK.1.2', texte: 'Sicut', referenceNative: 'I, 2' },
+        ],
+      },
+      {
+        membre: FRANCAIS,
+        cellules: [
+          { canonId: 'MRK.1.1', texte: 'Commencement', referenceNative: '1' },
+          ...cellulesDeGloses([{ canonHote: 'MRK.1.1', texte: 'glose' }]),
+        ],
+      },
+    ]
+    const axe = axeAvecGloses([['MRK.1.1', 'MRK.1.2'], ['MRK.1.1', 'MRK.1.2']], colonnes)
+    const rangees = apparierRangees(axe, colonnes)
+    expect(rangees.map((r) => r.canonId)).toEqual(['MRK.1.1', cleDeGlose('MRK.1.1', 1), 'MRK.1.2'])
+    expect(rangees[1].glose).toEqual({ canonHote: 'MRK.1.1', rang: 1 })
+    expect(rangees[1].cellules.map((c) => c?.texte)).toEqual(['glossa', 'glose'])
+    expect(rangees[0].glose).toBeUndefined()
+    expect(gloseSansVisAVis(rangees[1])).toBe(false)
+  })
+
+  it('reconnaît une glose sans vis-à-vis, jamais un verset qu’une édition ne porte pas', () => {
+    const colonnes: ColonneBilingue[] = [
+      { membre: LATIN, cellules: [{ canonId: 'MRK.1.2', texte: 'Sicut', referenceNative: 'I, 2' }] },
+      { membre: FRANCAIS, cellules: cellulesDeGloses([{ canonHote: 'MRK.1.1', texte: 'glose seule' }]) },
+    ]
+    const [verset, glose] = apparierRangees(['MRK.1.2', cleDeGlose('MRK.1.1', 1)], colonnes)
+    expect(gloseSansVisAVis(glose)).toBe(true)
+    // Le verset que le français ne porte pas garde sa cellule vide : il ne s'étend pas.
+    expect(gloseSansVisAVis(verset)).toBe(false)
+  })
+
+  it('⚠️ une glose dont l’hôte manque à l’axe ferme la lecture plutôt que de disparaître', () => {
+    const colonne = { cellules: cellulesDeGloses([{ canonHote: 'MRK.2.1', texte: 'égarée' }]) }
+    expect(axeAvecGloses([['MRK.1.1']], [colonne])).toEqual(['MRK.1.1', cleDeGlose('MRK.2.1', 1)])
   })
 })

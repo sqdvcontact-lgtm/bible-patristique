@@ -20,12 +20,26 @@ export type MembreBilingue = BibleEditionMember & {
   memberRole: string
 }
 
+/**
+ * La place d'une GLOSE : elle n'a pas de créneau canonique (charte § 15.4), elle suit
+ * celui qu'elle commente et prend son rang parmi les gloses qu'il porte.
+ */
+export type GloseEnRegard = {
+  /** Le créneau qu'elle suit ; `null` si la donnée ne le dit pas. */
+  canonHote: string | null
+  /** Son rang parmi les gloses de ce créneau, à partir de 1. */
+  rang: number
+}
+
 /** Un verset tel qu'une colonne le porte, avec la référence de SON édition. */
 export type CelluleBilingue = {
+  /** Le créneau canonique ; pour une glose, `cleDeGlose(…)`, qui ne désigne aucun verset. */
   canonId: string
   texte: string
   /** Référence imprimée par cette édition, jamais recomposée depuis le canon. */
   referenceNative: string | null
+  /** Posé sur une glose, et sur elle seule. */
+  glose?: GloseEnRegard
 }
 
 export type ColonneBilingue = {
@@ -37,6 +51,8 @@ export type RangeeBilingue = {
   canonId: string
   /** Une entrée par colonne, dans l'ordre des colonnes. `null` = créneau absent. */
   cellules: (CelluleBilingue | null)[]
+  /** Posé sur une rangée de glose, et sur elle seule. */
+  glose?: GloseEnRegard
 }
 
 export type ApparatBilingue<T> = {
@@ -65,6 +81,9 @@ export function colonnesBilingues(
  * Apparie les colonnes sur l'axe canonique fourni. Un créneau qu'une édition ne
  * porte pas laisse une cellule vide : on ne comble jamais un manque avec le
  * texte de l'autre colonne, ni avec une traduction de fortune.
+ *
+ * Les gloses s'y apparient comme les versets, par leur clé (`cleDeGlose`) : la
+ * rangée qui les réunit porte alors leur place, `glose`.
  */
 export function apparierRangees(
   axeCanonique: readonly string[],
@@ -77,10 +96,11 @@ export function apparierRangees(
     }
     return parCanon
   })
-  return axeCanonique.map((canonId) => ({
-    canonId,
-    cellules: index.map((parCanon) => parCanon.get(canonId) ?? null),
-  }))
+  return axeCanonique.map((canonId) => {
+    const cellules = index.map((parCanon) => parCanon.get(canonId) ?? null)
+    const glose = cellules.find((cellule) => cellule?.glose)?.glose
+    return glose ? { canonId, cellules, glose } : { canonId, cellules }
+  })
 }
 
 /**
@@ -90,6 +110,103 @@ export function apparierRangees(
  */
 export function rangeesNonVides(rangees: readonly RangeeBilingue[]): RangeeBilingue[] {
   return rangees.filter((rangee) => rangee.cellules.some((cellule) => cellule !== null))
+}
+
+// ── Les GLOSES en regard ────────────────────────────────────────────────────
+//
+// Une glose manuscrite n'a pas de créneau canonique (charte § 15.4) : elle suit celui
+// qu'elle commente. Le témoin et sa traduction portent chacun la leur, et elles se font
+// face dans une même rangée.
+//
+// ⛔ ELLES S'APPARIENT PAR LEUR CRÉNEAU HÔTE ET LEUR RANG SOUS LUI, jamais par un
+// identifiant : celui de la traduction est un UUID de `versets_v2`, celui du témoin une clé
+// de segment, et leurs ordres matériels ne coïncident pas (`ordre_slot` 670 contre
+// `alignment_order` 669 pour Lc 13, 1). Le rang, lui, tient : la traduction ne retient que
+// les gloses que le témoin atteste, autant qu'il en compte sous chaque hôte
+// (`selectionnerGlosesCanoniquesV2`), et le témoin les charge par les mêmes filtres
+// (`chargerGloses899`).
+
+/** La place d'une glose sur l'axe de la lecture en regard. Elle ne désigne aucun verset. */
+export function cleDeGlose(canonHote: string | null, rang: number): string {
+  return `glose:${canonHote ?? '?'}:${rang}`
+}
+
+/**
+ * Les cellules des gloses d'une colonne, données dans l'ordre de son édition : chacune
+ * prend son rang parmi celles de son hôte. Une glose n'a pas de numéro natif.
+ */
+export function cellulesDeGloses(
+  gloses: readonly { canonHote: string | null; texte: string }[],
+): CelluleBilingue[] {
+  const rangs = new Map<string | null, number>()
+  return gloses.map((glose) => {
+    const rang = (rangs.get(glose.canonHote) ?? 0) + 1
+    rangs.set(glose.canonHote, rang)
+    return {
+      canonId: cleDeGlose(glose.canonHote, rang),
+      texte: glose.texte,
+      referenceNative: null,
+      glose: { canonHote: glose.canonHote, rang },
+    }
+  })
+}
+
+/**
+ * L'AXE de la lecture en regard : les créneaux du chapitre dans l'ordre du canon, chacun
+ * suivi des gloses qu'il porte, rang par rang.
+ *
+ * ⛔ Il ne dépend pas de l'ordre des colonnes. Il se composait en réunissant leurs lignes
+ * l'une après l'autre : la glose de la traduction ne tombait après son verset que parce
+ * que la traduction venait EN PREMIER, et l'ordre inverse l'aurait rejetée à la fin du
+ * chapitre.
+ *
+ * ⚠️ Une glose dont l'hôte n'est pas sur l'axe ferme la lecture plutôt que de disparaître.
+ */
+export function axeAvecGloses(
+  canonsParColonne: readonly (readonly string[])[],
+  colonnes: readonly { cellules: readonly CelluleBilingue[] }[],
+): string[] {
+  const canons: string[] = []
+  const vus = new Set<string>()
+  for (const liste of canonsParColonne) {
+    for (const canonId of liste) {
+      if (vus.has(canonId)) continue
+      vus.add(canonId)
+      canons.push(canonId)
+    }
+  }
+  const rangs = new Map<string | null, number>()
+  for (const colonne of colonnes) {
+    for (const cellule of colonne.cellules) {
+      if (!cellule.glose) continue
+      const { canonHote, rang } = cellule.glose
+      rangs.set(canonHote, Math.max(rangs.get(canonHote) ?? 0, rang))
+    }
+  }
+  const glosesDe = (canonHote: string | null) => Array.from(
+    { length: rangs.get(canonHote) ?? 0 },
+    (_, i) => cleDeGlose(canonHote, i + 1),
+  )
+  const axe: string[] = []
+  for (const canonId of canons) {
+    axe.push(canonId, ...glosesDe(canonId))
+    rangs.delete(canonId)
+  }
+  for (const canonHote of rangs.keys()) axe.push(...glosesDe(canonHote))
+  return axe
+}
+
+/**
+ * Une glose SANS VIS-À-VIS : une seule colonne la porte. Elle prend alors la largeur des
+ * deux (demande de l'auteur, 2026-09-11 : « la glose peut occuper tout l'espace central
+ * puisqu'aucun texte d'origine n'est proposé »).
+ *
+ * ⛔ Un VERSET qu'une édition ne porte pas, lui, garde sa cellule vide : on n'y met jamais
+ * le texte de l'autre colonne, et il ne s'étend pas.
+ */
+export function gloseSansVisAVis(rangee: RangeeBilingue): boolean {
+  return rangee.glose !== undefined
+    && rangee.cellules.filter((cellule) => cellule !== null).length === 1
 }
 
 function repartir<T extends Appartenance>(

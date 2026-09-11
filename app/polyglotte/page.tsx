@@ -46,11 +46,12 @@ import ModalSignalement from "@/app/components/ModalSignalement";
 import BoutonCopierTexte from "@/app/components/BoutonCopierTexte";
 import { citationBiblique } from "@/app/lib/citation";
 import { useCompte } from "@/app/lib/contexteCompte";
-import { aRevoir899, chargerVersets899, estTraductionModerne899, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
+import { aRevoir899, chargerVersets899, estGlose899, estTraductionModerne899, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
 import { marquerLacunesDuTemoin, rendreMarqueurs899 } from "@/app/lib/marqueurs899";
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import {
+  CORPS_GLOSE, LIBELLE_GLOSE,
   MENTION_ABSENT, MENTION_ATTENTE, MENTION_DEUTERO, MENTION_EMPAN_TITRE, MENTION_LACUNE, MENTION_LACUNE_TITRE, mentionEmpan,
   STYLE_INVITE, STYLE_MENTION, STYLE_MENTION_LACUNE,
 } from '@/app/lib/compositionBible'
@@ -90,7 +91,9 @@ const couche899De = (id: string): Couche899 => (id === TRAD_ID_899_DIPLO ? "dipl
 const editionTrad = millesimeEdition;
 type Point = { livre: string | null; reference: string | null; type: string | null; description: string | null; statut: string | null; notes: string | null };
 type CanonRow = { id: string; livre: string; ch_canon: number; v_canon: number; est_suscription: boolean };
-type V2Row = { id: string; canon_id: string | null; canon_id_fin: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null; estLacune899?: boolean };
+// ⚠️ `estGlose899` et `cleGlose899` ne se posent que sur une glose du témoin 899 : la seconde
+// est sa clé de segment, qui lui donne SA ligne parmi les surnuméraires.
+type V2Row = { id: string; canon_id: string | null; canon_id_fin: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null; estLacune899?: boolean; estGlose899?: boolean; cleGlose899?: string };
 
 // ── Passages que toutes les traditions ne reçoivent pas ────────────────────────────────
 // Une case vide n'a pas toujours le même sens. Le plus souvent elle signale un travail en
@@ -361,16 +364,23 @@ function lire899(livre: string, scope: Scope): Brutes899 | undefined {
 
 // Colonne synthétique TR0009 (Bible 899) : texte recomposé en direct des tables
 // éditoriales, aligné sur canon_id, sans copie vers versets_v2. Les lacunes du
-// manuscrit (CANONICAL_GAP) sont conservées ; les matières hors canon
-// (MANUSCRIPT_EXTRA) n'ont pas de canon_id et sont écartées par `chargerVersets899`.
+// manuscrit (CANONICAL_GAP) sont conservées. Des matières hors canon (MANUSCRIPT_EXTRA),
+// `chargerVersets899` ne garde que les GLOSES : sans canon_id, elles deviennent des lignes
+// surnuméraires, chacune la sienne (charte § 15.4 ; voir `cleGlose899`).
 function lignes899(brutes: Brutes899, tradId: string): V2Row[] {
   const couche = couche899De(tradId);
   return brutes.map(l => {
     const lacune = rendu899(l) === "lacune";
+    const glose = estGlose899(l);
+    // ⛔ La clé d'une glose est sa clé de segment : les gloses d'un même verset portent toutes
+    // le numéro de leur hôte, et sous cette clé commune la dernière écrasait les autres.
+    const cleGlose = glose ? (l.segment_key ?? `ordre-${l.alignment_order}`) : undefined;
     return {
       // L'identifiant porte la colonne : le manuscrit développé et sa transcription
       // diplomatique se lisent côte à côte, et leurs lignes ne se confondent pas.
-      id: `899:${tradId}:${l.canon_id}`,
+      // ⚠️ Une glose n'a pas de canon_id : sans sa clé, toutes celles d'un chapitre
+      // portaient le même identifiant, « 899:TR0009:null ».
+      id: `899:${tradId}:${l.canon_id ?? `glose:${cleGlose ?? l.alignment_order}`}`,
       canon_id: l.canon_id,
       // ⚠️ La couche 899 porte SA propre borne de fin (`bible_canonical_alignments`), que
       // la recomposition par créneau a déjà résolue : une ligne y vaut un créneau, et il
@@ -384,6 +394,7 @@ function lignes899(brutes: Brutes899, tradId: string): V2Row[] {
       texte: lacune ? null : texteCouche899(l, couche),
       notes: aRevoir899(l) ? "Alignement à revoir" : null,
       estLacune899: lacune,
+      ...(glose ? { estGlose899: true, cleGlose899: cleGlose } : {}),
     };
   });
 }
@@ -1774,7 +1785,12 @@ export default function PolyglottePage() {
       for (const r of rows) {
         if (r.livre !== curLivre) { curLivre = r.livre; last = null; }
         if (r.canon_id) { last = r.canon_id; continue; }
-        const cle = `${r.livre}|${r.ch_orig}|${r.v_orig}`;
+        // ⛔ UNE GLOSE A SA PROPRE LIGNE, désignée par sa clé de segment : les gloses d'un même
+        // verset portent toutes le numéro de leur hôte, et sous la clé commune la dernière
+        // écrasait les autres. 48 versets du témoin en portent plusieurs, et 56 gloses ne
+        // paraissaient pas (relevé du 2026-09-11). La clé ne porte pas la colonne : le texte
+        // développé et la transcription diplomatique d'une même glose partagent sa ligne.
+        const cle = r.cleGlose899 ? `glose|${r.livre}|${r.cleGlose899}` : `${r.livre}|${r.ch_orig}|${r.v_orig}`;
         let g = groupes.get(cle);
         if (!g) {
           g = { cle, livre: r.livre, ch: r.ch_orig, v: r.v_orig, ancre: last, par: new Map() };
@@ -2288,9 +2304,16 @@ export default function PolyglottePage() {
           // affiche un tiret, comme pour un verset du canon qui lui manquerait.
           const ligneSurnum = (g: Surnum, cle: string) => {
             const editions = [...g.par.keys()].length;
-            const titre = editions > 1
-              ? `Verset hors ossature canonique, porté par ${editions} éditions au même numéro (${g.ch}, ${g.v})`
-              : `Verset propre à cette édition — hors ossature canonique (${g.ch}, ${g.v})`;
+            // ⛔ UNE GLOSE DU TÉMOIN se compose en italique, un point sous le texte (charte
+            // § 15.4), et porte son libellé à la place d'un numéro : celui de son hôte la ferait
+            // lire comme ce verset. Le corps se pose sur la cellule ET sur la marge, qui
+            // partagent un strut ; la lettrine, sans corps propre, suit sa cellule.
+            const glose = [...g.par.values()].some(r => r.estGlose899);
+            const titre = glose
+              ? `Glose du témoin, après le verset ${g.ch}, ${g.v}`
+              : editions > 1
+                ? `Verset hors ossature canonique, porté par ${editions} éditions au même numéro (${g.ch}, ${g.v})`
+                : `Verset propre à cette édition — hors ossature canonique (${g.ch}, ${g.v})`;
             return (
               <div key={cle} className="poly-surnum-row" style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid var(--cs-surnum-bord)", fontSize: '0.875rem' }}>
                 {/* « ✦ » plutôt que « ＋ » : le plus disait « on a ajouté quelque chose », ce qui
@@ -2299,7 +2322,7 @@ export default function PolyglottePage() {
                     ⚠️ C'est la SEULE ligne du corps à porter encore des filets, en haut et
                     dans sa marge, et c'est délibéré : la page n'a plus d'horizontale, si bien
                     qu'un filet y devient un signal fort au lieu d'être une trame. */}
-                <div title={titre} className="poly-marge-ref" style={{ paddingRight: '6px', color: SURNUM, borderRight: `2px solid ${SURNUM}` }}>
+                <div title={titre} className="poly-marge-ref" style={{ paddingRight: '6px', color: SURNUM, borderRight: `2px solid ${SURNUM}`, ...(glose ? { fontSize: CORPS_GLOSE.sousVerset } : {}) }}>
                   <span style={{ fontWeight: 700, fontSize: '0.71875rem' }}>✦</span>
                 </div>
                 {slotCols.map((sc, i) => {
@@ -2308,7 +2331,7 @@ export default function PolyglottePage() {
                   // numérotation d'origine, et l'on n'y prélève pas.
                   const actionsSurnum: ActionsDeCellule | null = r && sc.trad ? {
                     cle: `surnum|${cle}|${sc.trad.trad_id}`,
-                    refLisible: `${ABREV_FR[g.livre] ?? g.livre} ${g.ch}, ${g.v}`,
+                    refLisible: `${ABREV_FR[g.livre] ?? g.livre} ${g.ch}, ${g.v}${r.estGlose899 ? ', glose' : ''}`,
                     texte: r.texte ?? "",
                     citer: null,
                   } : null;
@@ -2317,14 +2340,17 @@ export default function PolyglottePage() {
                       onMouseEnter={actionsSurnum ? e => ancrerActions(e.currentTarget, actionsSurnum) : undefined}
                       onMouseLeave={actionsSurnum ? () => celluleActions.relacher(actionsSurnum.cle) : undefined}
                       onClick={actionsSurnum ? e => celluleActions.basculer(e.currentTarget, actionsSurnum.cle, celluleActions.ancre?.cle === actionsSurnum.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsSurnum }) : undefined}
-                      style={{ borderLeft: "1px solid var(--cs-surnum-bord)", color: r ? 'var(--cs-surnum-fort)' : 'var(--cs-surnum-bord)' }}>
+                      style={{ borderLeft: "1px solid var(--cs-surnum-bord)", color: r ? 'var(--cs-surnum-fort)' : 'var(--cs-surnum-bord)', ...(r?.estGlose899 ? { fontStyle: 'italic', fontSize: CORPS_GLOSE.sousVerset } : {}) }}>
                       {/* Même lettrine que les versets canoniques, au violet des surnuméraires :
-                          la référence d'origine est ici la seule qui existe. */}
+                          la référence d'origine est ici la seule qui existe. Une glose y porte
+                          son libellé, non le numéro de son hôte. */}
                       {r && (
                         <span className="poly-lettrine" style={{ color: SURNUM, borderRightColor: "rgba(90,75,156,0.22)" }}>
                           <span className="poly-lettrine-item">
                             <span className="poly-lettrine-ref">
-                              <span className="poly-lettrine-ch" style={{ color: 'var(--cs-surnum-doux)' }}>{r.ch_orig},</span> {r.v_orig}
+                              {r.estGlose899 ? LIBELLE_GLOSE : (
+                                <><span className="poly-lettrine-ch" style={{ color: 'var(--cs-surnum-doux)' }}>{r.ch_orig},</span> {r.v_orig}</>
+                              )}
                             </span>
                           </span>
                         </span>

@@ -10,6 +10,8 @@ import {
   type BibleSourceFragment,
 } from './bibleEdition'
 import { chargerVersetsCanoniquesV2, chargerVersetsEditoriaux, type CanonRow } from './bibleEditorialServer'
+import { chargerGloses899, TRAD_ID_BIBLE899 } from './bible899'
+import { axeAvecGloses, cellulesDeGloses, type CelluleBilingue } from './bibleEditionBilingue'
 
 export type BibleEditionCatalogRow = {
   family_id: string
@@ -579,12 +581,17 @@ export type ColonneBilingueChargee = {
     desktopPosition: 'left' | 'right' | 'auto'
     mobileOrder: number
   }
-  cellules: { canonId: string; texte: string; referenceNative: string | null }[]
+  cellules: CelluleBilingue[]
 }
 
 export type LectureBilingueChargee = {
   familyId: string
   colonnes: ColonneBilingueChargee[]
+  /**
+   * Les créneaux du chapitre dans l'ordre du canon, chacun suivi des clés des gloses qu'il
+   * porte (`axeAvecGloses`). ⚠️ `loadBibleEditionChapter` le reçoit tel quel : une clé de
+   * glose n'y désigne aucun créneau, et n'y apparie donc rien.
+   */
   axeCanonique: string[]
 }
 
@@ -634,39 +641,53 @@ export async function chargerLectureBilingue(
   if (membres.size < 2) return null
 
   const colonnes = await Promise.all([...membres.values()].map(async (membre) => {
-    const lignes = canoniquesV2.has(membre.translationId)
-      ? await chargerVersetsCanoniquesV2(client, { translationId: membre.translationId, livre, chapitre })
-      : await chargerVersetsEditoriaux(client, {
-        sourceIds: [...(sourcesParMembre.get(membre.id) ?? [])],
-        translationId: membre.translationId,
-        livre,
-        chapitre,
-      })
-    const cellules = lignes.flatMap((ligne) => {
+    const lueParLeCanon = canoniquesV2.has(membre.translationId)
+    const [lignes, glosesDuTemoin] = await Promise.all([
+      lueParLeCanon
+        ? chargerVersetsCanoniquesV2(client, { translationId: membre.translationId, livre, chapitre })
+        : chargerVersetsEditoriaux(client, {
+          sourceIds: [...(sourcesParMembre.get(membre.id) ?? [])],
+          translationId: membre.translationId,
+          livre,
+          chapitre,
+        }),
+      // ⛔ LE TÉMOIN PORTE DES GLOSES QUE SON CHEMIN ÉDITORIAL NE LIT PAS : elles n'ont pas
+      // de créneau, et `chargerVersetsEditoriaux` ne lit que des créneaux. Sa traduction
+      // moderne, lue par le canon, charge les siennes : sans celles-ci en face, elle les
+      // montrait devant une colonne vide (Lc 13, 1 ; relevé de l'auteur, 2026-09-11).
+      !lueParLeCanon && membre.translationId === TRAD_ID_BIBLE899
+        ? chargerGloses899(client, { livre, chapitre })
+        : Promise.resolve([]),
+    ])
+    const canons: string[] = []
+    const cellules: CelluleBilingue[] = []
+    const gloses: { canonHote: string | null; texte: string }[] = []
+    for (const ligne of lignes) {
       const texte = ligne[membre.translationId]
-      if (typeof texte !== 'string' || texte.length === 0) return []
+      if (ligne._estGloseV2) {
+        if (typeof texte === 'string' && texte.length > 0) gloses.push({ canonHote: ligne._canonHote ?? null, texte })
+        continue
+      }
+      canons.push(ligne.id_verset)
+      if (typeof texte !== 'string' || texte.length === 0) continue
       const reference = ligne[`num_${membre.translationId}`]
-      return [{
+      cellules.push({
         canonId: ligne.id_verset,
         texte,
         referenceNative: typeof reference === 'string' && reference.length > 0 ? reference : null,
-      }]
-    })
-    return { membre, cellules, ordre: lignes }
+      })
+    }
+    for (const glose of glosesDuTemoin) {
+      if (glose.texte) gloses.push({ canonHote: glose.canonHote, texte: glose.texte })
+    }
+    return { membre, cellules: [...cellules, ...cellulesDeGloses(gloses)], canons }
   }))
 
-  // L'axe canonique est celui du chapitre entier, dans l'ordre de `versets_canon` :
-  // il est commun aux deux colonnes par construction, chacune ayant été chargée
-  // sur les mêmes créneaux.
-  const axeCanonique: string[] = []
-  const vus = new Set<string>()
-  for (const colonne of colonnes) {
-    for (const ligne of colonne.ordre) {
-      if (vus.has(ligne.id_verset)) continue
-      vus.add(ligne.id_verset)
-      axeCanonique.push(ligne.id_verset)
-    }
-  }
+  // L'axe est celui du chapitre entier, dans l'ordre de `versets_canon` : il est commun
+  // aux deux colonnes par construction, chacune ayant été chargée sur les mêmes créneaux.
+  // Les gloses s'y insèrent après le créneau qu'elles suivent (`axeAvecGloses`), quel que
+  // soit l'ordre des colonnes.
+  const axeCanonique = axeAvecGloses(colonnes.map((colonne) => colonne.canons), colonnes)
 
   return {
     familyId: familyRows[0].family_id,

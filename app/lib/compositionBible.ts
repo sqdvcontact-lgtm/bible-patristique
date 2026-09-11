@@ -272,6 +272,36 @@ export const CORPS_MENTION = '0.6875rem'
 /** L'invite est d'un rang encore plus fin : elle propose, elle ne constate pas. */
 export const CORPS_INVITE = '0.625rem'
 
+/**
+ * ⛔ UNE GLOSE DU TÉMOIN SE COMPOSE EN ITALIQUE, UN POINT SOUS LE TEXTE QU'ELLE
+ * ACCOMPAGNE (décision de l'auteur, 2026-09-11 : « pour les gloses, en règle générale,
+ * il faudra adopter l'ital et réduire de 1 point le corps du texte »).
+ *
+ * Un point vaut 4/3 de pixel. Le verset se compose à 14 px à la racine 16 : un point de
+ * moins donne 12,67 px, et le rang le plus proche de l'échelle est 12,5. La colonne
+ * ORIGINALE de la lecture en regard se compose à 13 px : 11,67, et le rang le plus proche
+ * est 11,5. ⚠️ Deux corps, parce que la glose suit la colonne où elle tombe : une glose en
+ * ancien français se compose comme l'ancien français, un point plus petit.
+ *
+ * ⛔ La lecture simple pose le premier dans une feuille (`app/glosses899.css`), la lecture
+ * en regard les deux en ligne (`BibleBilingue`) : deux écritures d'un même nombre, que
+ * `compositionBible.test.ts` confronte.
+ */
+export const CORPS_GLOSE = {
+  /** Sous un verset composé à 0,875 rem : la lecture simple, la colonne traduite en regard. */
+  sousVerset: '0.78125rem',
+  /** Sous la colonne originale de la lecture en regard, composée à 0,8125 rem. */
+  sousOriginal: '0.71875rem',
+} as const
+
+/**
+ * Le libellé qui tient la place du numéro de verset d'une glose (charte § 15.4) : dans la
+ * gouttière de la lecture en regard, dans la lettrine de la Polyglotte. ⚠️ La lecture simple
+ * l'écrit dans le `content` de `app/glosses899.css`, une feuille ne sachant pas importer une
+ * constante : `compositionBible.test.ts` confronte les deux écritures.
+ */
+export const LIBELLE_GLOSE = 'Glose'
+
 /** La voix commune : sérif italique, très légèrement espacée. Une mention n'est jamais
  *  du texte de corpus, et l'italique le dit avant qu'on ait lu. */
 const VOIX_MENTION: CSSProperties = {

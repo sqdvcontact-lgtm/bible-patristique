@@ -191,6 +191,57 @@ export async function chargerVersets899(
   return lignes
 }
 
+/** Une glose du témoin, telle que la lecture EN REGARD la place : après son créneau hôte. */
+export type Glose899 = {
+  /** Le créneau canonique qu'elle suit (`canonical_context`) ; `null` s'il n'est pas dit. */
+  canonHote: string | null
+  /** L'ordre matériel du témoin, qui départage deux gloses d'un même hôte. */
+  ordre: number
+  texte: string | null
+}
+
+/**
+ * Les GLOSES manuscrites d'un chapitre, dans l'ordre du témoin.
+ *
+ * ⛔ La lecture EN REGARD charge le témoin par ses segments éditoriaux, créneau par
+ * créneau (`chargerVersetsEditoriaux`) : une glose n'a pas de créneau, et elle n'y
+ * paraissait pas. La traduction moderne montrait donc la sienne en face d'une colonne
+ * vide, alors que le témoin la porte (Lc 13, 1, `LUK.13.EXTRA.1A` ; relevé de l'auteur,
+ * 2026-09-11).
+ *
+ * ⛔ LES FILTRES SONT CEUX DE LA TRADUCTION MODERNE, au mot près
+ * (`chargerVersetsCanoniquesV2`) : elle ne retient que les gloses que cette même liste
+ * atteste, autant qu'elle en compte sous chaque hôte, et c'est par leur RANG sous un même
+ * hôte que les deux colonnes s'apparient. Une liste filtrée autrement décalerait
+ * l'appariement.
+ *
+ * ⚠️ La couche par défaut est celle que la lecture en regard sert au témoin : les
+ * abréviations développées, que `chargerVersetsEditoriaux` préfère à toute autre.
+ */
+export async function chargerGloses899(
+  client: SupabaseClient,
+  params: { livre: string; chapitre: number },
+  couche: Couche899 = COUCHE_DEFAUT_899,
+): Promise<Glose899[]> {
+  const { data, error } = await client
+    .from('v_bible899_verse_recomposed')
+    .select(`canonical_context, alignment_order, ${COLONNE_TEXTE_899[couche]}`)
+    .eq('trad_id', TRAD_ID_BIBLE899)
+    .eq('livre', params.livre)
+    .eq('chapitre', params.chapitre)
+    .is('canon_id', null)
+    .eq('alignment_status', 'MANUSCRIPT_EXTRA')
+    .eq('manuscript_extra', true)
+    .eq('phenomenon', 'gloss')
+    .order('alignment_order', { ascending: true })
+  if (error) throw new Error(`Gloses du témoin 899 illisibles : ${error.message}`)
+  return ((data ?? []) as unknown as Ligne899[]).map((ligne) => ({
+    canonHote: ligne.canonical_context?.trim() || null,
+    ordre: ligne.alignment_order,
+    texte: texteCouche899(ligne, couche),
+  }))
+}
+
 /** Ensemble des livres canoniques réellement portés par TR0009 (pour la navigation). */
 export async function livresDisponibles899(client: SupabaseClient): Promise<Set<string>> {
   // ⛔ On demande la LISTE DES LIVRES, jamais tous les versets pour en déduire la liste.

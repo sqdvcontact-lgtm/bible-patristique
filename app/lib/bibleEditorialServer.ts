@@ -64,6 +64,9 @@ export type VersetEditorialAdapte = {
   ordre: number
   _estEditorial: true
   _estGloseV2?: true
+  /** Le créneau canonique qu'une glose suit : c'est par lui que la lecture en regard
+   *  l'apparie à la glose du témoin (`axeAvecGloses`). */
+  _canonHote?: string
   [key: string]: string | number | boolean | null | undefined
 }
 
@@ -384,6 +387,7 @@ export async function chargerVersetsCanoniquesV2(
         ordre: canon.ordre,
         _estEditorial: true,
         _estGloseV2: true,
+        _canonHote: canon.id_verset,
         [options.translationId]: texte.length > 0 ? texte : null,
         [`num_${options.translationId}`]: 'Glose',
       }
