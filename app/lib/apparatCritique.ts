@@ -10,32 +10,47 @@
 /** Valeur de `metadata.editorial_role` qui désigne un apparat critique. */
 export const ROLE_APPARAT_CRITIQUE = 'critical_apparatus'
 
-/** Ce que le rendu retient de `texte_note_blocs.metadata` — trois scalaires, et
+/** La DISPOSITION qu'un bloc déclare pour lui-même (`metadata.citation_layout`) :
+ *  `block`, une citation SORTIE du fil de la note ; `inline`, une citation qui y reste.
+ *  ⛔ Vocabulaire clos : toute autre valeur vaut « rien de déclaré », et le bloc retombe
+ *  sur la règle de sa forme (`dispositionCitation`, compositionNote.ts). */
+export type DispositionDeclaree = 'block' | 'inline'
+
+/** Ce que le rendu retient de `texte_note_blocs.metadata` — cinq scalaires, et
  *  non le jsonb entier : il traverse le réseau une fois par bloc de note. */
 export type MetadonneesBlocNote = {
   editorialRole: string | null
   printedLine: number | null
   visualReviewReason: string | null
   humanValidated: boolean | null
+  citationLayout: DispositionDeclaree | null
 }
 
 export const METADONNEES_BLOC_VIDES: MetadonneesBlocNote = {
-  editorialRole: null, printedLine: null, visualReviewReason: null, humanValidated: null,
+  editorialRole: null, printedLine: null, visualReviewReason: null, humanValidated: null, citationLayout: null,
 }
 
 /** Projette `metadata` sur les seuls champs que l'affichage lit. Tolérante :
  *  une métadonnée absente ou d'un autre type vaut `null`, et le bloc retombe
- *  alors sur le rendu ordinaire. */
+ *  alors sur le rendu ordinaire.
+ *
+ *  ⛔ AUCUNE TRACE DOCUMENTAIRE N'EN SORT, et c'est la garde qui tient la règle :
+ *  `metadata.text`, `source_text_preserved`, `pass10_previous_text`,
+ *  `citation_reference_previous_fused_text`, `source_reference_original` gardent ce que
+ *  le bloc disait AVANT une correction éditoriale. Le texte qu'on lit est la colonne
+ *  `text`, et elle seule ; une trace projetée ici finirait un jour à l'écran. */
 export function lireMetadonneesBlocNote(metadata: unknown): MetadonneesBlocNote {
   if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return METADONNEES_BLOC_VIDES
   const m = metadata as Record<string, unknown>
   const ligne = m.printed_line
   const valide = m.human_validated
+  const disposition = m.citation_layout
   return {
     editorialRole: typeof m.editorial_role === 'string' ? m.editorial_role : null,
     printedLine: typeof ligne === 'number' && Number.isInteger(ligne) && ligne > 0 ? ligne : null,
     visualReviewReason: typeof m.visual_review_reason === 'string' ? m.visual_review_reason : null,
     humanValidated: typeof valide === 'boolean' ? valide : null,
+    citationLayout: disposition === 'block' || disposition === 'inline' ? disposition : null,
   }
 }
 

@@ -37,6 +37,12 @@ export type NoteBlocData = {
   visualReviewReason?: string | null
   /** `metadata.human_validated`. Lu, jamais écrit. */
   humanValidated?: boolean | null
+  /** `metadata.citation_layout` — la disposition que la DONNÉE déclare : `block`, une
+   *  citation SORTIE du fil de la note ; `inline`, une citation qui y reste. C'est la
+   *  seule métadonnée de DISPOSITION que le rendu lit (voir `dispositionCitation`,
+   *  `compositionNote.ts`). ⛔ La nature et la disposition sont deux axes : on ne change
+   *  pas un `kind` pour obtenir un retrait. */
+  citationLayout?: 'block' | 'inline' | null
 }
 export type NoteStructuree = {
   noteKey: string

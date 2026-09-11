@@ -68,7 +68,7 @@ export async function chargerNotesStructurees(
     rendering: string | null
     needs_review: boolean
     // Le jsonb entier est lu ici, mais N'EST PAS transmis au client : seuls les
-    // quatre scalaires de `lireMetadonneesBlocNote` passent dans les props, et le
+    // cinq scalaires de `lireMetadonneesBlocNote` passent dans les props, et le
     // reste (pdf_page, apparatus_editor…) reste au serveur. Sur les 7 266 blocs de
     // l'apparat de Knöll, la différence de charge n'est pas théorique.
     metadata: Record<string, unknown> | null
@@ -143,6 +143,9 @@ export async function chargerNotesStructurees(
     if (meta.printedLine != null) bloc.printedLine = meta.printedLine
     if (meta.visualReviewReason != null) bloc.visualReviewReason = meta.visualReviewReason
     if (meta.humanValidated != null) bloc.humanValidated = meta.humanValidated
+    // ⛔ La DISPOSITION déclarée voyage ; les TRACES documentaires, jamais (voir
+    // `lireMetadonneesBlocNote`) : le texte lu est `block.text`, et lui seul.
+    if (meta.citationLayout != null) bloc.citationLayout = meta.citationLayout
     parNote.get(block.note_key)!.blocks.push(bloc)
   }
   const notesParSegment: Record<string, Record<string, NoteStructuree>> = {}

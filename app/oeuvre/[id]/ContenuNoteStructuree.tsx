@@ -14,8 +14,12 @@ import {
 import { ContenuApparatCritique } from './ApparatCritique'
 import { rendreTexteEnrichi } from './texteEnrichi'
 import * as BibliographieNote from './noteBibliographie'
-import { STYLE_DISCRET_ENCART, styleBlocNote } from '@/app/lib/compositionNote'
+import { STYLE_DISCRET_ENCART, dispositionCitation, styleBlocNote } from '@/app/lib/compositionNote'
 import { lignesDeVers, styleLigneDeVers } from '@/app/lib/compositionVers'
+
+/** L'espace insécable qui colle un renvoi à sa cible. ⚠️ Écrite par son code : un
+ *  caractère invisible ne se relit pas dans la source. */
+const ESPACE_INSECABLE = String.fromCharCode(0xa0)
 
 // Le texte d'un bloc de RENVOI EXTÉRIEUR (kind='reference') est normalisé au rendu :
 // « 1Co. 2, 16 » → « 1 Co 2, 16 », chapitre romain → arabe, virgule avant le verset.
@@ -32,6 +36,12 @@ import { lignesDeVers, styleLigneDeVers } from '@/app/lib/compositionVers'
 // normalisation se fait DANS LA DONNÉE, et le rendu n'est plus qu'un FILET — il ne
 // change rien à une note déjà normalisée, et rattrape un import qui aurait manqué la
 // passe. ⛔ Les retirer ferait dépendre l'affichage de la qualité d'une campagne.
+//
+// ⛔ LE TEXTE LU EST LA COLONNE `text`, ET ELLE SEULE. `metadata.text`,
+// `source_text_preserved`, `pass10_previous_text`, `citation_reference_previous_fused_text`
+// et `source_reference_original` sont des TRACES DOCUMENTAIRES — ce que le bloc disait
+// avant une correction —, et elles n'atteignent même pas ce composant : le chargeur ne
+// projette de `metadata` que ce que l'affichage lit (`lireMetadonneesBlocNote`).
 function textePartielBloc(bloc: NoteBlocData, texte: string): string {
   const normalise = natureSeNormaliseCommeReference(bloc.kind)
     ? normaliserReferencesDansTexte(texte)
@@ -117,6 +127,12 @@ function rendreBlocAvecBibliographie(
  * corpus qui dépassent 900 signes ne font pas exception, l'italique disant ici la
  * LANGUE et non l'emphase.
  *
+ * ⛔ C'EST LA SEULE RÈGLE D'ITALIQUE D'UN BLOC (charte § 13.18) : latin → italique,
+ * toute autre langue → romain. Ni la NATURE — un lemme, une citation, une traduction —
+ * ni la DISPOSITION n'en décident. Une citation française ne s'italise pas parce
+ * qu'elle est un lemme : jusqu'au 11 septembre 2026, les 126 lemmes français de la
+ * Consolation l'étaient pour cette seule raison.
+ *
  * ⛔ LE GREC NE SUIT PAS : son alphabet le distingue déjà, et l'italique y déforme la
  * lettre. ⛔ L'apparat critique non plus, mais il ne passe pas par ici : latin de bout
  * en bout, l'italiser ne distinguerait rien.
@@ -142,12 +158,36 @@ const RENDU_RETOUR_VERSE = 'manual_line_break_in_verse'
 // distinguent pas — ils se contredisent.
 const STYLE_DISCRET = STYLE_DISCRET_ENCART
 
+/** Le rang discret, et l'italique de SA langue — jamais celle du bloc qui le porte.
+ *  ⚠️ Posé DANS un bloc latin, un renvoi français héritait sinon de son italique : un
+ *  nom d'auteur ou une coordonnée ne sont pas du latin. */
+function styleDiscret(bloc: NoteBlocData) {
+  return { ...STYLE_DISCRET, fontStyle: estBlocEnLatin(bloc) ? 'italic' as const : 'normal' as const }
+}
+
 function estReferenceRattachee(block: NoteBlocData) {
   return Boolean(
     block.targetBlockId
     && natureSuitSaCibleEnLigne(block.kind)
     && (block.rendering === RENDU_INLINE || block.rendering === RENDU_RETOUR_VERSE),
   )
+}
+
+/**
+ * L'ANCRAGE QUI S'OUVRE SUR LA LIGNE DE CE QUI LE SUIT.
+ *
+ * La COORDONNÉE de l'appareil, toujours (charte § 13.11). La CITATION VISÉE, seulement
+ * en PROSE et devant un PROPOS : « « Mais quoi ! celui-ci ? » C'est-à-dire un disciple
+ * de Zénon » se lit d'un trait. Devant tout le reste — une référence, une attribution,
+ * une citation —, elle fait unité à elle seule et ce qui la suit descend d'une ligne
+ * (charte § 13.16.3, § 13.18) : posée contre une référence, elle se lisait comme une
+ * phrase de l'auteur que la référence nomme. ⚠️ En VERS, elle fait toujours unité : ses
+ * retours à la ligne ne tiennent pas dans la ligne d'un propos.
+ */
+function ouvreLaLigneDuSuivant(bloc: NoteBlocData, suivant: NoteBlocData | undefined): boolean {
+  if (familleDeNature(bloc.kind) !== 'ancrage') return false
+  if (!natureReprendLeTexte(bloc.kind)) return true
+  return bloc.form !== 'verse' && suivant !== undefined && familleDeNature(suivant.kind) === 'propos'
 }
 
 /**
@@ -226,19 +266,28 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
   }
 
   const rendus = blocks.filter(block => !estReferenceRattachee(block))
+  // Les blocs par identifiant : une traduction prend la disposition de son original.
+  const parId = new Map(blocks.map(block => [block.blockId, block] as const))
 
-  // ── L'ANCRAGE EN TÊTE NE FAIT PAS PARAGRAPHE ────────────────────────────────
-  // Les blocs de la famille `ancrage` qui OUVRENT la note — la coordonnée imprimée,
-  // le lemme repris — se composent sur la ligne du propos, et non au-dessus de lui.
-  // Sur la page de Faivre, « (V) pag. 178. — Avec les démons… On peut consulter… »
-  // tient sur un seul paragraphe : le fendre en trois natures est une opération de
-  // STRUCTURE (charte § 13.10), elle ne doit pas se voir en lecture.
+  // ── L'ANCRAGE EN TÊTE NE FAIT PAS PARAGRAPHE — DEVANT UN PROPOS ────────────────
+  // La coordonnée imprimée d'où vient la note (`source_locator`) se compose sur la
+  // ligne de ce qui la suit, et non au-dessus : sur la page de Faivre, « (V) pag. 178. »
+  // ouvre la ligne. La fendre est une opération de STRUCTURE (charte § 13.11), elle ne
+  // doit pas se voir en lecture.
   //
-  // ⚠️ En TÊTE seulement, et seulement s'il reste quelque chose après : un lemme qui
-  // reparaît au milieu d'une note y joue un autre rôle, et une note faite du seul
-  // ancrage n'a pas de propos à qui s'attacher — elle se rend alors seule.
+  // ⛔ LA CITATION VISÉE — le lemme, la phrase de l'œuvre que la note commente — n'ouvre
+  // que la ligne d'un PROPOS, et en prose (`ouvreLaLigneDuSuivant`). Devant une
+  // référence, une attribution ou une citation, elle fait unité à elle seule (charte
+  // § 13.16.3, § 13.18) : « « Hélas ! avant le temps, le malheur m'a fait vieux. » Ovide,
+  // Pontiques, I, 4, vers 1-2 et 19-20 : » se lisait comme si Ovide avait écrit la phrase
+  // de Boèce. Relevé sur la Consolation, le 11 septembre 2026 : 29 citations visées
+  // étaient fondues dans une référence ou une attribution ; et celles en vers (22 devant
+  // un propos, 7 devant une référence) perdaient toutes leurs retours à la ligne.
+  //
+  // ⚠️ En TÊTE seulement, et seulement s'il reste quelque chose après : une note faite
+  // de la seule coordonnée n'a pas de propos à qui s'attacher — elle se rend alors seule.
   let coupe = 0
-  while (coupe < rendus.length && familleDeNature(rendus[coupe].kind) === 'ancrage') coupe++
+  while (coupe < rendus.length && ouvreLaLigneDuSuivant(rendus[coupe], rendus[coupe + 1])) coupe++
   const entete = coupe < rendus.length ? rendus.slice(0, coupe) : []
   const affiches = coupe < rendus.length ? rendus.slice(coupe) : rendus
   const dernierBlocId = affiches.at(-1)?.blockId
@@ -251,7 +300,11 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
     >
       {affiches.map((block, rang) => {
         const verse = block.form === 'verse'
-        const traduction = block.kind === 'translation'
+        // ⛔ LA DISPOSITION SE LIT DANS LA DONNÉE (`metadata.citation_layout`), et une
+        // traduction prend celle de son original : l'original et sa traduction forment
+        // un seul groupe citationnel, et ils ont la même disposition. La citation visée
+        // n'est jamais sortie. Voir `dispositionCitation`.
+        const sortie = dispositionCitation(block, block.translationOf ? parId.get(block.translationOf) : null) === 'sortie'
         const references = rattaches.get(block.blockId) ?? []
         const referencesInline = references.filter(reference => reference.rendering === RENDU_INLINE)
         const referencesApresVers = references.filter(reference => reference.rendering === RENDU_RETOUR_VERSE)
@@ -273,11 +326,9 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
         // son apparat, son introduction et l'apparat d'une bible partagent déjà :
         // l'encart de note en était la sixième surface, et la seule à l'ignorer.
         //
-        // ⚠️ ELLE RÈGLE AUSSI L'ANCRAGE EN TÊTE, sans qu'on ait à le nommer : le lemme
-        // reste un fragment EN LIGNE, et l'inline qui précède un enfant de bloc forme sa
-        // propre ligne. Il cesse donc de se coller au premier vers — ce qui, sur la note
-        // d'Ovide de la Consolation, poussait « Jam mihi deterior canis » au delà de la
-        // piste et le coupait en « ca-/nis ».
+        // ⚠️ UN VERS AU FIL — la citation visée, quand elle est un vers — garde ses
+        // boîtes et son retrait de suite, mais part du FER de la note : son alinéa de
+        // base est celui d'une citation SORTIE, et elle ne l'est pas.
         //
         // ⛔ ON NE DÉCOUPE PAS un bloc dont le texte est tranché par ailleurs : une
         // notice bibliographique se pose par OFFSETS dans le texte entier
@@ -288,6 +339,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
         const versEnLignes = lignesVers.length > 1
           && (bibliographieParBloc[block.blockId] ?? []).length === 0
           && referencesInline.length === 0
+        const styleLigne = sortie ? styleLigneDeVers({ rang: 0 }) : { ...styleLigneDeVers({ rang: 0 }), marginLeft: 0 }
 
         return (
           <div
@@ -297,47 +349,44 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
             data-kind={block.kind}
             data-famille={familleDeNature(block.kind)}
             data-form={block.form}
+            data-disposition={sortie ? 'sortie' : 'fil'}
             data-rendering={block.rendering ?? undefined}
             data-needs-review={String(block.needsReview)}
             // ⛔ LA COMPOSITION VIT DANS `compositionNote.ts`, avec le reste de celle de
-            // l'encart. Ce qui reste ici est ce que le BLOC dit de lui-même : se
-            // détache-t-il, porte-t-il des vers, une reprise du texte, des sauts
-            // matériels. La reprise s'italise où qu'elle paraisse — en tête sur la ligne
-            // du propos, au milieu d'une note, ou seule —, et la règle se dit alors d'un
-            // trait sans dépendre d'un rang.
+            // l'encart. Ce qui reste ici est ce que le BLOC dit de lui-même : sa
+            // disposition, ses vers, sa langue, ses sauts matériels. ⛔ L'italique ne
+            // dit que la LANGUE (charte § 13.18) : la nature d'un bloc et sa disposition
+            // n'en décident jamais.
             style={styleBlocNote({
-              detache: verse || traduction,
+              detache: sortie,
               vers: verse,
               versEnLignes,
-              italique: estBlocEnLatin(block) || natureReprendLeTexte(block.kind),
+              italique: estBlocEnLatin(block),
               sautsMateriels: (verse && !versEnLignes) || (!versEnLignes && referencesApresVers.length > 0),
             })}
           >
-            {ouverture.map(ancrage => {
-              // La REPRISE d'un mot de l'œuvre se compose en italique, à la mesure du
-              // texte ; la COORDONNÉE de l'appareil garde le repère discret. Charte
-              // § 13.11, la raison nommée qui sépare deux natures d'une même famille.
-              const reprise = natureReprendLeTexte(ancrage.kind)
-              return (
-                <span
-                  key={ancrage.blockId}
-                  lang={ancrage.language ?? undefined}
-                  data-block-id={ancrage.blockId}
-                  data-kind={ancrage.kind}
-                  data-famille="ancrage"
-                  data-needs-review={String(ancrage.needsReview)}
-                  style={{
-                    ...(reprise ? null : STYLE_DISCRET),
-                    fontStyle: reprise || estBlocEnLatin(ancrage) ? 'italic' : undefined,
-                  }}
-                >
-                  {rendreTexteEnrichi(texteBloc(ancrage))}{' '}
-                </span>
-              )
-            })}
+            {ouverture.map(ancrage => (
+              // La COORDONNÉE de l'appareil garde le repère discret ; la CITATION VISÉE,
+              // qui n'ouvre que la ligne d'un propos, prend la teinte et la mesure du
+              // texte, et l'italique de SA langue seulement. Charte § 13.11, la raison
+              // nommée qui sépare deux natures d'une même famille ; § 13.18 pour l'italique.
+              <span
+                key={ancrage.blockId}
+                lang={ancrage.language ?? undefined}
+                data-block-id={ancrage.blockId}
+                data-kind={ancrage.kind}
+                data-famille="ancrage"
+                data-needs-review={String(ancrage.needsReview)}
+                style={natureReprendLeTexte(ancrage.kind)
+                  ? { fontStyle: estBlocEnLatin(ancrage) ? 'italic' : 'normal' }
+                  : styleDiscret(ancrage)}
+              >
+                {rendreTexteEnrichi(texteBloc(ancrage))}{' '}
+              </span>
+            ))}
             {versEnLignes
               ? lignesVers.map((ligne, i) => (
-                <span key={`${block.blockId}:vers:${i}`} style={styleLigneDeVers({ rang: 0 })}>
+                <span key={`${block.blockId}:vers:${i}`} style={styleLigne}>
                   {rendreTexteEnrichi(texteFinal(textePartielBloc(block, ligne), finSurTexte && i === lignesVers.length - 1))}
                 </span>
               ))
@@ -350,9 +399,9 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
                 data-kind={reference.kind}
                 data-rendering={reference.rendering ?? undefined}
                 data-needs-review={String(reference.needsReview)}
-                style={STYLE_DISCRET}
+                style={styleDiscret(reference)}
               >
-                {'\u00A0'}{rendreTexteEnrichi(texteFinal(texteBloc(reference), finSurInline && i === referencesInline.length - 1))}
+                {ESPACE_INSECABLE}{rendreTexteEnrichi(texteFinal(texteBloc(reference), finSurInline && i === referencesInline.length - 1))}
               </span>
             ))}
             {/* ⚠️ Le renvoi qui suit des vers descend d'une ligne. Quand les vers sont
@@ -368,7 +417,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
                   data-kind={reference.kind}
                   data-rendering={reference.rendering ?? undefined}
                   data-needs-review={String(reference.needsReview)}
-                  style={versEnLignes ? { ...STYLE_DISCRET, display: 'block' } : STYLE_DISCRET}
+                  style={versEnLignes ? { ...styleDiscret(reference), display: 'block' } : styleDiscret(reference)}
                 >
                   {rendreTexteEnrichi(texteFinal(texteBloc(reference), finSurApresVers && i === referencesApresVers.length - 1))}
                 </span>

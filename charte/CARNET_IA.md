@@ -319,3 +319,43 @@ L’auteur renverse le soir la règle du matin : « il faut que l’encart de la
 ⚠️ **Le panneau navigateur refuse `file://` dans cette session** : la planche a été servie par un serveur statique de quinze lignes sur un port dédié, coupé aussitôt. Ce n’est pas le serveur de développement.
 
 ✅ **Contrôle** : la planche `tmp/planche-encart-note.tsx`, qui recalcule les mêmes cas depuis le modèle de mise en page, rend 475 · 278 · 167 · 99 · 603 · 329 px — le navigateur avait mesuré 474,8 · 280,7 · 168,9 · 98,5 · 603,1 · 328,5. Deux chemins indépendants, le même résultat au pixel près.
+
+### 2026-09-11 — Boèce, note I-02 : la citation visée que le rendu fusionnait, et ce que la mesure a compté
+
+La base portait déjà la bonne structure de la note I-02 : la citation visée, la référence
+d'Ovide, le latin d'Ovide, sa traduction. La page montrait pourtant « « Hélas ! avant le
+temps, le malheur m'a fait vieux. » Ovide, *Pontiques*, I, 4, vers 1-2 et 19-20 : » sur une
+seule ligne, et la phrase de Boèce en italique. La donnée était juste : c'est le composant
+de rendu des notes (`ContenuNoteStructuree`) qui posait toute citation visée en tête du
+bloc suivant, l'italisait pour sa nature, et ignorait `citation_layout`.
+
+**Le chemin de lecture, tracé.** `texte_note_blocs` est lu par `chargerNotesStructurees`,
+trié par `note_key` puis `rank`, paginé ; `metadata` n'en sort que projetée sur des
+scalaires (`lireMetadonneesBlocNote`), et aucune trace documentaire n'atteint le
+composant. La page d'une œuvre n'a ni cache ni rendu statique. La fusion était dans le
+composant, et nulle part ailleurs.
+
+**Ce que suivent les 126 citations visées de la Consolation** : un commentaire 97 fois
+(75 en prose, 22 en vers), une référence 28 fois (21 en prose, 7 en vers), une attribution
+une fois (III-05).
+
+**Relevé du rendu avant correction**, par le vrai chargeur et le vrai composant
+(`tmp/controle-rendu-notes-boece.mts`) : 29 citations visées fondues dans une référence ou
+une attribution, dont les sept notes que la mission nommait (I-02, I-15, II-15, III-08,
+IV-22, V-02, V-17) ; les 29 citations visées en vers privées de leurs retours à la ligne ;
+les 126 en italique alors qu'elles sont françaises ; 51 citations en prose déclarées
+sorties (35 grecques, 16 latines) laissées au fil quand leur traduction sortait.
+
+**Après correction** : 235 notes, 693 blocs, 609 unités rendues, 75 groupes original et
+traduction, aucune anomalie. Ordre de `rank` partout, aucune trace documentaire à l'écran,
+aucun guillemet extérieur autour d'une citation sortie, aucune capitale pleine. Les
+citations documentaires de l'Introduction (Cassiodore, Virgile, Raynouard) gardent leur
+référence en tête, terminée par deux-points.
+
+⚠️ **Un premier jet avait séparé les 126 citations visées**, et c'était aller au-delà de la
+mission et contre le § 13.11 : devant un commentaire, la charte garde la citation visée sur
+la ligne du propos. Seules faisaient défaut les 29 qui précèdent une référence ou une
+attribution, et les 29 en vers.
+
+⚠️ **Ce qui reste, et c'est de la donnée** : III-16 range ses deux originaux grecs avant
+leurs deux traductions ; le rendu suit `rank` et ne réordonne pas.

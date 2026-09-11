@@ -119,18 +119,38 @@ describe('estBlocApparatCritique / estNoteApparatCritique', () => {
 })
 
 describe('lireMetadonneesBlocNote', () => {
-  it('projette les quatre champs lus par l’affichage', () => {
+  it('projette les champs lus par l’affichage', () => {
     expect(lireMetadonneesBlocNote({
       pdf_page: 41, printed_line: 3, printed_page: 1,
       editorial_role: 'critical_apparatus', human_validated: false, apparatus_editor: 'Pius Knöll',
     })).toEqual({
       editorialRole: 'critical_apparatus', printedLine: 3,
-      visualReviewReason: null, humanValidated: false,
+      visualReviewReason: null, humanValidated: false, citationLayout: null,
     })
   })
 
+  it('relève la disposition déclarée, dans son vocabulaire clos', () => {
+    expect(lireMetadonneesBlocNote({ citation_layout: 'block' }).citationLayout).toBe('block')
+    expect(lireMetadonneesBlocNote({ citation_layout: 'inline' }).citationLayout).toBe('inline')
+    expect(lireMetadonneesBlocNote({ citation_layout: 'centre' }).citationLayout).toBeNull()
+    expect(lireMetadonneesBlocNote({ citation_layout: true }).citationLayout).toBeNull()
+  })
+
+  it('ne projette AUCUNE trace documentaire', () => {
+    // Le texte lu est la colonne `text` : ce qu'un bloc disait avant une correction ne
+    // doit jamais pouvoir revenir à l'écran par la métadonnée (charte § 13.18).
+    const lu = lireMetadonneesBlocNote({
+      text: '(Ovide, Pontiques, Él. v.)',
+      source_text_preserved: 'Ovide, *Pontiques*, I, 4, v. 1-2 et 19-20.',
+      pass10_previous_text: '« Déjà le temps impitoyable… »',
+      citation_reference_previous_fused_text: '++Ovide++, *Pontiques*, I, 4 : « Hélas ! »',
+      source_reference_original: '(Ovide, Pontiques, Él. v.)',
+    })
+    expect(Object.values(lu).filter(v => typeof v === 'string')).toEqual([])
+  })
+
   it('retombe sur des nulls devant une métadonnée absente, vide ou mal typée', () => {
-    const vide = { editorialRole: null, printedLine: null, visualReviewReason: null, humanValidated: null }
+    const vide = { editorialRole: null, printedLine: null, visualReviewReason: null, humanValidated: null, citationLayout: null }
     expect(lireMetadonneesBlocNote({})).toEqual(vide)
     expect(lireMetadonneesBlocNote(null)).toEqual(vide)
     expect(lireMetadonneesBlocNote(undefined)).toEqual(vide)

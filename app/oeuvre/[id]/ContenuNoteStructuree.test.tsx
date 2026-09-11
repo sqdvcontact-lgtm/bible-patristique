@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
 import type { NoteBlocData, NoteStructuree } from './oeuvreTypes'
 
+/** L'espace insécable, écrite par son code : un caractère invisible ne se relit pas. */
+const INSECABLE = String.fromCharCode(0xa0)
+
 function note(...blocks: NoteBlocData[]): NoteStructuree {
   return { noteKey: 'I-TEST', noteNumber: 1, blocks }
 }
@@ -27,7 +30,7 @@ describe('ContenuNoteStructuree', () => {
     )} />)
 
     expect(html).toContain('Traduction.<span')
-    expect(html).toContain('> (Platon, Timée.)</span>')
+    expect(html).toContain(`>${INSECABLE}(Platon, Timée.)</span>`)
     expect(html).not.toContain('((Platon')
   })
 
@@ -93,5 +96,117 @@ describe('ContenuNoteStructuree', () => {
 
     expect(html).toContain('Voir <em>De anima</em>, 58.')
     expect(html).not.toContain('*De anima*')
+  })
+
+  it('ne prête pas l’italique d’un bloc latin au renvoi français qui le suit en ligne', () => {
+    // L'italique dit la langue du texte qu'il couvre : un nom d'auteur n'est pas du latin.
+    const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
+      block({ blockId: 'q', kind: 'quotation', language: 'la', text: 'Tolle, lege.' }),
+      block({
+        blockId: 'r', rank: 200, kind: 'reference', text: '(Augustin, Confessions.)',
+        rendering: 'inline_after_target', targetBlockId: 'q',
+      }),
+    )} />)
+
+    expect(html).toMatch(/<span[^>]*data-kind="reference"[^>]*font-style:normal/u)
+  })
+})
+
+// ── LA NOTE I-02 DE LA CONSOLATION, telle que la base la porte depuis le 11 septembre
+// 2026 : la citation visée, la référence d'Ovide, le latin d'Ovide, sa traduction.
+// C'est le cas témoin de la charte § 13.18.
+describe('la citation visée, puis la référence, puis le groupe citationnel — I-02', () => {
+  const i02 = note(
+    block({ blockId: 'I-02:cs-lemma-target', rank: 1, kind: 'lemma', text: '« Hélas ! avant le temps, le malheur m’a fait vieux. »' }),
+    block({
+      blockId: 'I-02:b0400', rank: 2, kind: 'reference',
+      text: '++Ovide++, *Pontiques*, I, 4, vers 1-2 et 19-20 :', targetBlockId: 'I-02:b0200',
+    }),
+    block({
+      blockId: 'I-02:b0200', rank: 3, kind: 'quotation', form: 'verse', language: 'la',
+      rendering: 'Footnote Verse', citationLayout: 'block',
+      text: 'Jam mihi deterior canis aspergitur ætas,\nJamque meos vultus ruga senilis arat…\nMe quoque debilitat series immensa laborum\nAnte meum tempus cogor et esse senex.',
+    }),
+    block({
+      blockId: 'I-02:b0300', rank: 4, kind: 'translation', citationLayout: 'block', translationOf: 'I-02:b0200',
+      text: 'Déjà le temps impitoyable a blanchi mes cheveux ; déjà les rides de la vieillesse sillonnent mon visage… je succombe à cette longue succession de malheurs, et sans le vouloir j’ai vieilli avant l’âge.',
+    }),
+  )
+  const html = renderToStaticMarkup(<ContenuNoteStructuree note={i02} />)
+  const unite = (id: string) => html.match(new RegExp(`<div[^>]*data-block-id="${id}"[^>]*>`, 'u'))?.[0] ?? ''
+
+  it('rend QUATRE unités distinctes, dans l’ordre des rangs', () => {
+    const ordre = [...html.matchAll(/<div[^>]*data-block-id="([^"]+)"/gu)].map(m => m[1])
+    expect(ordre).toEqual(['I-02:cs-lemma-target', 'I-02:b0400', 'I-02:b0200', 'I-02:b0300'])
+    // ⛔ La citation visée n'est plus un fragment posé au début de la référence : collée
+    // à « Ovide », elle se lisait comme une phrase d'Ovide.
+    expect(html).not.toMatch(/<span[^>]*data-kind="lemma"/u)
+  })
+
+  it('compose la citation visée en ROMAIN, au fil : elle est française', () => {
+    expect(unite('I-02:cs-lemma-target')).toContain('font-style:normal')
+    expect(unite('I-02:cs-lemma-target')).toContain('data-disposition="fil"')
+  })
+
+  it('termine la référence sur son deux-points, Ovide en petites capitales', () => {
+    expect(unite('I-02:b0400')).toContain('font-style:normal')
+    expect(html).toMatch(/font-variant:small-caps[^>]*>Ovide</u)
+    expect(html).not.toContain('uppercase')
+    expect(html).toContain(`19-20${INSECABLE}:`)
+  })
+
+  it('sort le latin en italique et sa traduction en romain, au même fer, sans guillemets', () => {
+    expect(unite('I-02:b0200')).toContain('font-style:italic')
+    expect(unite('I-02:b0200')).toContain('data-disposition="sortie"')
+    expect(unite('I-02:b0300')).toContain('font-style:normal')
+    expect(unite('I-02:b0300')).toContain('data-disposition="sortie"')
+    expect(unite('I-02:b0300')).toContain('padding-left:1.5em')
+    // Les vers latins portent le retrait sur chaque ligne.
+    expect(html).toContain('margin-left:1.5em')
+    // ⛔ Aucun guillemet extérieur autour d'une citation sortie.
+    expect(html).not.toMatch(/«[^<]*Déjà le temps/u)
+  })
+})
+
+describe('la citation visée fait unité devant ce qui n’est pas un propos, et en vers', () => {
+  it('ne se colle jamais à l’auteur qui la suit — attribution comprise', () => {
+    // III-05 de la Consolation : « Le crois-tu puissant… ? » puis « Decimus Laberius : ».
+    const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
+      block({ blockId: 'lem', rank: 1, kind: 'lemma', text: '« Le crois-tu puissant l’homme… qui craint plus encore qu’il n’effraye ? »' }),
+      block({ blockId: 'att', rank: 2, kind: 'attribution', text: '++Decimus Laberius++ :', targetBlockId: 'q' }),
+      block({ blockId: 'q', rank: 3, kind: 'quotation', language: 'la', citationLayout: 'block', text: 'Necesse est multos timeat quem multi timent.' }),
+      block({
+        blockId: 't', rank: 4, kind: 'translation', citationLayout: 'block', translationOf: 'q',
+        text: 'C’est une nécessité qu’il craigne beaucoup de gens celui que beaucoup de gens craignent.',
+      }),
+    )} />)
+    const ordre = [...html.matchAll(/<div[^>]*data-block-id="([^"]+)"/gu)].map(m => m[1])
+
+    expect(ordre).toEqual(['lem', 'att', 'q', 't'])
+    // ⛔ Une citation en PROSE que la donnée déclare sortie se sort, et sa traduction avec.
+    expect(html).toMatch(/<div[^>]*data-block-id="q"[^>]*data-disposition="sortie"[^>]*padding-left:1.5em/u)
+    expect(html).toMatch(/<div[^>]*data-block-id="t"[^>]*data-disposition="sortie"[^>]*padding-left:1.5em/u)
+    expect(html).toMatch(/<div[^>]*data-block-id="q"[^>]*font-style:italic/u)
+    expect(html).toMatch(/<div[^>]*data-block-id="t"[^>]*font-style:normal/u)
+  })
+
+  it('garde ses vers ligne à ligne, au FER de la note, en romain', () => {
+    // I-01 : le lemme est un distique français, suivi d'un commentaire.
+    const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
+      block({
+        blockId: 'lem', rank: 1, kind: 'lemma', form: 'verse', rendering: 'Footnote Verse',
+        text: 'Le bonheur qui jadis inspirait mes accents,\nA fait place aux sombres alarmes…',
+      }),
+      block({ blockId: 'com', rank: 2, text: 'Ce début semble indiquer que Boèce avait cultivé la poésie.' }),
+    )} />)
+
+    expect(html).toMatch(/<div[^>]*data-block-id="lem"[^>]*data-disposition="fil"[^>]*font-style:normal/u)
+    expect(html).toContain('>Le bonheur qui jadis inspirait mes accents,</span>')
+    expect(html).toContain('>A fait place aux sombres alarmes…</span>')
+    // ⚠️ Des boîtes, avec leur retrait de suite, mais parties du fer : un vers AU FIL
+    // n'a pas l'alinéa d'une citation sortie.
+    expect(html).toContain('margin-left:0')
+    expect(html).not.toContain('margin-left:1.5em')
+    expect(html).toMatch(/<div[^>]*data-block-id="com"/u)
   })
 })

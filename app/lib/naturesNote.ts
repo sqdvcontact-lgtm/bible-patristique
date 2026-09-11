@@ -89,20 +89,24 @@ export function natureSeNormaliseCommeReference(nature: NatureBlocNote | null): 
 }
 
 /**
- * L'ANCRAGE QUI REPREND UN MOT DU TEXTE — la raison nommée que la charte § 13.11
- * réclame pour séparer deux natures d'une même famille.
+ * L'ANCRAGE QUI REPREND LE TEXTE — la CITATION VISÉE par la note, et la raison nommée
+ * que la charte § 13.11 réclame pour séparer deux natures d'une même famille.
  *
- * ⛔ `lemma` et `source_locator` sont tous deux de la famille `ancrage`, et tous deux
- * s'ouvrent sur la ligne du propos ; mais l'un est un mot de l'ŒUVRE, que la note
- * cite avant de le commenter, et l'autre une coordonnée de l'APPAREIL. Les composer
- * pareillement les confondrait précisément là où ils se touchent : chez Faivre,
- * « (V) pag. 178. — *Avec les démons les plus féroces* — On peut consulter… » les
- * range côte à côte sur la même ligne, et la passe 3 va en poser 396 de cette forme.
+ * ⛔ `lemma` et `source_locator` sont tous deux de la famille `ancrage`, mais l'un est
+ * une phrase de l'ŒUVRE, que la note cite avant de la commenter, et l'autre une
+ * coordonnée de l'APPAREIL. Ils ne se composent pas pareil (charte § 13.18) :
  *
- * La reprise se compose donc en ITALIQUE, à la teinte et à la mesure du texte, comme
- * toute édition savante compose son lemme ; la coordonnée garde le repère discret.
- * ⚠️ Un lemme latin serait déjà italique par sa langue (§ 13.8) : les deux règles
- * disent alors la même chose, et rien ne se cumule.
+ *  - la coordonnée s'ouvre sur la ligne de ce qui la suit, dans le repère discret ;
+ *  - la citation visée n'ouvre que la ligne d'un PROPOS, en prose, à la teinte et à la
+ *    mesure du texte (§ 13.11). Devant une référence, une attribution ou une citation,
+ *    elle fait UNITÉ À ELLE SEULE (§ 13.16.3) : collée au bloc qui la suit, elle donnait
+ *    « « Hélas ! avant le temps… » Ovide, Pontiques… : », et un nom d'auteur posé contre
+ *    la phrase de Boèce se lit comme son attribution. En vers, elle fait toujours unité.
+ *
+ * ⛔ ET ELLE NE S'ITALISE PAS PARCE QU'ELLE EST UN LEMME. L'italique dit la LANGUE
+ * (latin → italique, tout le reste en romain), jamais la nature : le relevé du 11
+ * septembre 2026 comptait 126 lemmes français de la Consolation composés en italique
+ * pour cette seule raison.
  */
 export function natureReprendLeTexte(nature: NatureBlocNote | null): boolean {
   return nature === 'lemma'

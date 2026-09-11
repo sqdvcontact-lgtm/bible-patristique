@@ -232,6 +232,20 @@ describe('les notes', () => {
     const marques = corps.morceaux.map(m => ('note' in m ? 'APPEL' : 'texte' in m && m.italique === true))
     expect(marques).toEqual([true, 'APPEL', true])
   })
+
+  it('n’italise que le LATIN d’une note, quelle que soit sa forme', () => {
+    // ⛔ Charte § 13.18 : l'italique d'un bloc dit la LANGUE, jamais la forme ni la
+    // nature. Un vers français reste en romain ; une citation latine en prose s'italise.
+    const corps = paragraphes(composer([segment({
+      texte: 'un passage[[1]].',
+      notes: { 1: { blocs: [
+        { texte: 'Le bonheur qui jadis inspirait mes accents,\nA fait place aux sombres alarmes…', vers: true },
+        { texte: 'Necesse est multos timeat quem multi timent.', latin: true },
+      ] } },
+    })])).find(p => p.style.startsWith('Corpsdetexte'))!
+    const note = corps.morceaux.find((m): m is { note: ParagrapheDocx[] } => 'note' in m)!.note
+    expect(note.map(p => p.morceaux.some(m => 'texte' in m && m.italique === true))).toEqual([false, false, true])
+  })
 })
 
 describe('le texte original', () => {

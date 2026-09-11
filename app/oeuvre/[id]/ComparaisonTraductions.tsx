@@ -406,7 +406,8 @@ async function chargerNotes(segmentKeys: string[]): Promise<{
     text: string
     rendering: string | null
     needs_review: boolean
-    // Lu au serveur, projeté sur quatre scalaires avant d'entrer dans les blocs.
+    // Lu au serveur, projeté sur cinq scalaires avant d'entrer dans les blocs (jamais
+    // les traces documentaires : voir `lireMetadonneesBlocNote`).
     metadata: Record<string, unknown> | null
   }
   type RelationRow = {
@@ -467,6 +468,7 @@ async function chargerNotes(segmentKeys: string[]): Promise<{
       printedLine: meta.printedLine,
       visualReviewReason: meta.visualReviewReason,
       humanValidated: meta.humanValidated,
+      citationLayout: meta.citationLayout,
     })
   }
   const resultat: NotesParSegment = {}

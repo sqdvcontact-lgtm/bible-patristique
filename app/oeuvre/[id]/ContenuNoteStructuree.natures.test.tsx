@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
 import type { NoteBlocData, NoteStructuree } from './oeuvreTypes'
 
-// Les DEUX NATURES NEUVES de la charte § 13.10, et l'italique de la langue arbitrée
-// au § 13.8. Le reste du rendu est éprouvé dans `ContenuNoteStructuree.test.tsx`.
+// Les DEUX NATURES NEUVES de la charte § 13.10, l'italique de la langue arbitrée au
+// § 13.8, et la citation visée du § 13.18. Le reste du rendu est éprouvé dans
+// `ContenuNoteStructuree.test.tsx`.
 
 function note(...blocks: NoteBlocData[]): NoteStructuree {
   return { noteKey: 'I-TEST', noteNumber: 1, blocks }
@@ -20,42 +21,85 @@ function block(overrides: Partial<NoteBlocData>): NoteBlocData {
 }
 
 describe('ContenuNoteStructuree — les natures neuves', () => {
-  it('ouvre la note avec sa coordonnée imprimée, SANS en faire un paragraphe', () => {
+  it('ouvre la note avec sa coordonnée et sa citation visée, SANS en faire des paragraphes', () => {
     // Le bloc à trois têtes de Faivre, fendu par la passe 3 : « (V) pag. 178. — Avec
-    // les démons… On peut consulter… ». Le fendre est une opération de STRUCTURE ;
-    // elle ne doit pas se voir en lecture, où la note tient sur un paragraphe.
+    // les démons… On peut consulter… ». Le fendre est une opération de STRUCTURE : devant
+    // un PROPOS, la coordonnée et la citation visée ouvrent sa ligne (charte § 13.11).
     const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
       block({ blockId: 'loc', rank: 100, kind: 'source_locator', text: '(V) pag. 178.' }),
       block({ blockId: 'lem', rank: 200, kind: 'lemma', text: 'Avec les démons les plus féroces.' }),
       block({ blockId: 'com', rank: 300, kind: 'commentary', text: 'On peut consulter Tertullien.' }),
     )} />)
 
-    // Un seul paragraphe rendu : l'ancrage entre dedans, en span.
-    expect(html.match(/data-kind="source_locator"/g)).toHaveLength(1)
-    expect(html).toContain('<span')
-    expect(html).not.toMatch(/<div[^>]*data-kind="source_locator"/)
-    expect(html).toMatch(/<div[^>]*data-kind="commentary"/)
+    // Une seule unité, le propos ; la coordonnée et la citation visée y sont en span.
+    expect(html.match(/<div[^>]*data-block-id=/g)).toHaveLength(1)
+    expect(html).not.toMatch(/<div[^>]*data-kind="(source_locator|lemma)"/)
+    expect(html).toMatch(/<span[^>]*data-kind="source_locator"/)
+    expect(html).toMatch(/<span[^>]*data-kind="lemma"/)
+    expect(html.indexOf('data-kind="commentary"')).toBeLessThan(html.indexOf('data-kind="source_locator"'))
     // Et dans l'ordre de la page imprimée.
     expect(html.indexOf('(V) pag. 178.')).toBeLessThan(html.indexOf('Avec les démons'))
     expect(html.indexOf('Avec les démons')).toBeLessThan(html.indexOf('On peut consulter'))
   })
 
-  it('sépare la REPRISE du texte de la COORDONNÉE de l’appareil', () => {
-    // Les deux sont de la famille `ancrage` et s'ouvrent sur la ligne du propos ; mais
-    // le lemme est un mot de l'œuvre, et la coordonnée un repère de l'imprimé. Chez
-    // Faivre ils se touchent, et 396 notes vont les porter ensemble : les composer
-    // pareillement les confondrait. Charte § 13.11, la raison nommée.
+  it('sépare la CITATION VISÉE de la COORDONNÉE de l’appareil', () => {
+    // Les deux sont de la famille `ancrage` ; mais la citation visée est une phrase de
+    // l'œuvre, et la coordonnée un repère de l'imprimé. Les composer pareillement les
+    // confondrait. Charte § 13.11, la raison nommée : la coordonnée garde le repère
+    // discret, la citation visée prend la teinte et la mesure du texte.
     const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
       block({ blockId: 'loc', rank: 100, kind: 'source_locator', text: '(V) pag. 178.' }),
       block({ blockId: 'lem', rank: 200, kind: 'lemma', text: 'Avec les démons les plus féroces.' }),
       block({ blockId: 'com', rank: 300, kind: 'commentary', text: 'On peut consulter Tertullien.' }),
     )} />)
-    const balise = (kind: string) => html.match(new RegExp(`<span[^>]*data-kind="${kind}"[^>]*>`, 'u'))?.[0] ?? ''
+    const balise = (tag: string, kind: string) => html.match(new RegExp(`<${tag}[^>]*data-kind="${kind}"[^>]*>`, 'u'))?.[0] ?? ''
 
-    expect(balise('lemma')).toContain('font-style:italic')
-    expect(balise('lemma')).not.toContain('cs-texte-second')
-    expect(balise('source_locator')).toContain('cs-texte-second')
-    expect(balise('source_locator')).not.toContain('font-style:italic')
+    expect(balise('span', 'lemma')).toContain('font-style:normal')
+    expect(balise('span', 'lemma')).not.toContain('cs-texte-second')
+    expect(balise('span', 'source_locator')).toContain('cs-texte-second')
+    expect(balise('span', 'source_locator')).toContain('font-style:normal')
+  })
+
+  it('n’italise la citation visée que si elle est LATINE', () => {
+    // ⛔ L'italique dit la LANGUE, jamais la nature (charte § 13.18).
+    const francaise = renderToStaticMarkup(<ContenuNoteStructuree note={note(
+      block({ blockId: 'lem', rank: 1, kind: 'lemma', text: '« Hélas ! avant le temps, le malheur m’a fait vieux. »' }),
+      block({ blockId: 'com', rank: 2, text: 'Le propos.' }),
+    )} />)
+    const latine = renderToStaticMarkup(<ContenuNoteStructuree note={note(
+      block({ blockId: 'lem', rank: 1, kind: 'lemma', language: 'la', text: 'Tolle, lege.' }),
+      block({ blockId: 'com', rank: 2, text: 'Le propos.' }),
+    )} />)
+
+    expect(francaise).toMatch(/<span[^>]*data-kind="lemma"[^>]*font-style:normal/u)
+    expect(latine).toMatch(/<span[^>]*data-kind="lemma"[^>]*font-style:italic/u)
+  })
+
+  it('fait de la citation visée une UNITÉ devant tout ce qui n’est pas un propos', () => {
+    // Charte § 13.16.3 : devant une référence, une attribution ou une citation, la
+    // citation visée se tient seule, et ce qui la suit descend d'une ligne. Collée à une
+    // référence, elle se lisait comme une phrase de l'auteur que la référence nomme.
+    for (const kind of ['reference', 'attribution', 'quotation', 'internal_cross_reference'] as const) {
+      const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
+        block({ blockId: 'lem', rank: 1, kind: 'lemma', text: '« La phrase de l’œuvre. »' }),
+        block({ blockId: 'sui', rank: 2, kind, text: 'Ce qui suit.' }),
+      )} />)
+
+      expect(html, kind).toMatch(/<div[^>]*data-kind="lemma"/)
+      expect(html, kind).toMatch(new RegExp(`<div[^>]*data-kind="${kind}"`))
+      expect(html.match(/<div[^>]*data-block-id=/g), kind).toHaveLength(2)
+    }
+  })
+
+  it('fait de la citation visée EN VERS une unité, même devant un propos', () => {
+    // Ses retours à la ligne ne tiennent pas dans la ligne d'un propos.
+    const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
+      block({ blockId: 'lem', rank: 1, kind: 'lemma', form: 'verse', text: 'Le bonheur qui jadis inspirait mes accents,\nA fait place aux sanglots.' }),
+      block({ blockId: 'com', rank: 2, text: 'Le propos.' }),
+    )} />)
+
+    expect(html).toMatch(/<div[^>]*data-kind="lemma"/)
+    expect(html).toMatch(/<div[^>]*data-kind="commentary"/)
   })
 
   it('laisse un RENVOI INTERNE suivre sa cible en ligne, comme l’autre renvoi', () => {

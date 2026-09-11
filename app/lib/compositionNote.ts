@@ -290,8 +290,50 @@ export const RETRAIT_BLOC_ENCART = '1.5em'
  * source et sa traduction — portaient deux marques différentes, l'une un filet doré,
  * l'autre rien.
  */
+/**
+ * LA DISPOSITION D'UN BLOC DE NOTE — sorti du fil, ou au fil de la note (charte § 13.18).
+ *
+ * ⛔ ELLE SE LIT DANS LA DONNÉE QUAND LA DONNÉE LA DIT (`metadata.citation_layout`). Le
+ * contrôle du 11 septembre 2026 l'a trouvée ignorée sur la Consolation : cinquante et une
+ * citations en PROSE — 35 grecques, 16 latines — y sont déclarées sorties, et le rendu
+ * les laissait au fil, parce qu'il ne regardait que la FORME (un vers se détache) et la
+ * NATURE (une traduction se détache). Leur traduction, elle, sortait : l'original au fil,
+ * sa traduction en retrait, deux dispositions pour un seul groupe citationnel.
+ *
+ * ⛔ UNE TRADUCTION PREND LA DISPOSITION DE SON ORIGINAL quand elle n'en déclare pas :
+ * les deux forment un même groupe, et ils ont la même disposition.
+ *
+ * ⛔ LA CITATION VISÉE — le lemme — N'EST JAMAIS SORTIE : elle ouvre la note, à son fer,
+ * sur sa propre ligne. C'est la phrase du TEXTE que la note commente, non un extrait
+ * qu'elle rapporte.
+ *
+ * ⚠️ Sans déclaration, la règle d'avant demeure, et elle vaut pour tout le corpus qui n'a
+ * pas reçu la passe : un vers se détache, une traduction aussi.
+ *
+ * ⛔ LA NATURE ET LA DISPOSITION SONT DEUX AXES : on ne fait pas d'un lemme ni d'une
+ * traduction une `quotation` pour obtenir un retrait. Et l'ITALIQUE n'est ni l'une ni
+ * l'autre : il dit la langue, et rien d'autre.
+ */
+export type DispositionCitation = 'sortie' | 'fil'
+
+type BlocDispose = {
+  kind: string
+  form?: string | null
+  citationLayout?: 'block' | 'inline' | null
+}
+
+export function dispositionCitation(bloc: BlocDispose, original?: BlocDispose | null): DispositionCitation {
+  if (bloc.kind === 'lemma') return 'fil'
+  const declaree = bloc.citationLayout
+    ?? (bloc.kind === 'translation' ? original?.citationLayout ?? null : null)
+  if (declaree === 'block') return 'sortie'
+  if (declaree === 'inline') return 'fil'
+  return bloc.form === 'verse' || bloc.kind === 'translation' ? 'sortie' : 'fil'
+}
+
 export function styleBlocNote(options: {
-  /** Le bloc se DÉTACHE du fil : un vers, une traduction en regard de sa source. */
+  /** Le bloc est une citation SORTIE du fil — voir `dispositionCitation`, qui lit la
+   *  disposition déclarée par la donnée avant la forme et la nature. */
   detache?: boolean
   /** Le bloc porte des VERS. ⚠️ Ni césure ni justification, où qu'il soit rendu. */
   vers?: boolean

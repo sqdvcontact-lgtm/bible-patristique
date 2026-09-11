@@ -7654,3 +7654,51 @@ c'est encore l'écart des deux rembourrages qui centre le libellé sur l'onglet 
 ⚠️ **Ce qui reste ouvert** : le MODÈLE des barres de page porte le même écart, 8 px dessus et
 8 dessous pour le même trait et la même police. Il n'a pas été relevé, et le corriger toucherait
 toutes les barres d'onglets de page du site : c'est une décision de l'auteur.
+
+### 13.18 Ce que le RENDU d'une note lit, et la ligne de la citation visée
+
+Mission de l'auteur du 11 septembre 2026, sur la note I-02 de la *Consolation de la
+philosophie* : la base portait déjà la bonne structure, et le rendu fusionnait encore la
+citation visée avec la référence d'Ovide. Le relevé est au carnet.
+
+⛔ **LE TEXTE LU EST LA COLONNE `text`, ET ELLE SEULE.** `metadata.text`,
+`source_text_preserved`, `pass10_previous_text`, `citation_reference_previous_fused_text`
+et `source_reference_original` sont des traces documentaires : ils gardent ce que le bloc
+disait avant une correction. Le chargeur ne les projette pas vers l'affichage, et aucun ne
+sert jamais de texte à l'écran. Le rendu lit `text`, `kind`, `form`, `language`,
+`rendering` et la disposition déclarée (`metadata.citation_layout`), dans l'ordre de
+`rank`.
+
+⛔ **LA CITATION VISÉE N'OUVRE QUE LA LIGNE D'UN PROPOS.** C'est la lecture que le rendu fait
+des §§ 13.11 et 13.16.3, et elle ne laisse aucun cas au hasard :
+
+- en prose, devant un commentaire, elle ouvre sa ligne, à la teinte et à la mesure du
+  texte : « « Mais quoi ! celui-ci ? » C'est-à-dire un disciple de Zénon et de Platon. » se
+  lit d'un trait ;
+- devant une référence, une attribution ou une citation, elle fait unité à elle seule, et
+  ce qui la suit descend d'une ligne. Collée à « ++Ovide++, *Pontiques*, I, 4 : », la phrase
+  de Boèce se lisait comme une phrase d'Ovide ;
+- en vers, elle fait toujours unité : ses retours à la ligne ne tiennent pas dans la ligne
+  d'un propos. Elle garde ses lignes, en boîtes, avec leur retrait de suite, mais part du
+  FER de la note : elle n'est pas une citation sortie.
+
+⛔ **L'ITALIQUE D'UN BLOC DIT LA LANGUE, ET RIEN D'AUTRE**, comme le § 13.16.3 le prescrit :
+latin en italique, toute autre langue en romain, quelles que soient la nature et la
+disposition. **Ce paragraphe remplace ce que le § 13.11.2 disait encore de l'italique de
+la reprise.** ⚠️ Un renvoi posé en ligne dans un bloc latin ne prend pas son italique : un
+nom d'auteur n'est pas du latin. La même règle vaut pour l'extraction en document Word.
+
+⛔ **LA DISPOSITION SE LIT DANS LA DONNÉE, AVANT LA FORME ET LA NATURE.**
+`citation_layout = block` sort la citation du fil, `inline` l'y garde. Une traduction qui
+ne déclare rien prend la disposition de son original : les deux forment un même groupe
+citationnel. Sans déclaration, un vers se détache, une traduction aussi. Une citation
+visée n'est jamais sortie.
+
+⛔ **LA NATURE ET LA DISPOSITION SONT DEUX AXES.** On ne change pas un `lemma`, une
+`translation` ou une `reference` d'une autre nature pour obtenir un style : on déclare la
+disposition.
+
+⛔ **UN CONTRÔLE DE NOTE SE FAIT SUR LE RENDU, JAMAIS SUR LA SEULE BASE.** La donnée juste
+ne prouve rien de ce qu'on lit : le contrôle charge chaque note par le chargeur de la page,
+la rend par le composant de la page, relit ce qui en sort, et se termine dans l'interface
+réellement servie.

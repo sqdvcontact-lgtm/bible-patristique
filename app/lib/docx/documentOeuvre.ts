@@ -45,6 +45,10 @@ export type BlocNoteExtraite = {
   texte: string
   /** Le bloc est en VERS : ses lignes se composent une par une, comme dans la fenêtre. */
   vers?: boolean
+  /** Le bloc est entièrement LATIN : il se compose en italique, comme dans la fenêtre.
+   *  ⛔ C'est la seule règle d'italique d'un bloc (charte § 13.18) : ni la forme — un vers
+   *  français reste en romain — ni la nature n'en décident. */
+  latin?: boolean
   /**
    * ⛔ Le texte est déjà composé et NE SE RETOUCHE PLUS. C'est le cas de l'apparat
    * critique, dont la charte interdit qu'on le normalise : une fine insécable glissée
@@ -148,8 +152,10 @@ function paragraphesDeNote(note: NoteExtraite): ParagrapheDocx[] {
     // ⚠️ Un bloc en VERS garde ses lignes : c'est ce que fait la fenêtre de lecture, et
     // recoller un distique en prose lui retirerait ce qui en fait un vers.
     const lignes = bloc.vers ? lignesDeVers(texte) : [texte]
+    // ⛔ L'italique suit la LANGUE, non la forme (charte § 13.18) : un vers français reste
+    // en romain, une citation latine en prose s'italise, comme dans la fenêtre de lecture.
     for (const ligne of lignes) {
-      paragraphes.push({ style: 'Notedebasdepage', morceaux: fragmentsEnDocx(ligne, bloc.vers ? { italique: true } : {}) })
+      paragraphes.push({ style: 'Notedebasdepage', morceaux: fragmentsEnDocx(ligne, bloc.latin ? { italique: true } : {}) })
     }
   }
   // Une note vide n'existe pas : Word refuse un appel sans contenu.

@@ -112,6 +112,8 @@ function noteExtraite(note: NoteStructuree | string): NoteExtraite {
       return {
         texte: index === blocs.length - 1 ? terminerNote(compose) : compose,
         vers: bloc.form === 'verse',
+        // ⛔ L'italique dit la LANGUE (charte § 13.18), comme dans la fenêtre de lecture.
+        latin: bloc.language === 'la',
         brut: true,
       }
     }),
