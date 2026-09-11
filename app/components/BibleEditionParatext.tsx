@@ -45,6 +45,7 @@ import { intituleDansPiece } from '@/app/lib/bibleSommaireEdition'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
 import BibliographieBible from './BibleBibliographie'
 import BibliographieOuvrages from './BibliographieOuvrages'
+import DefilementVersAncre from './DefilementVersAncre'
 
 export type BlocTexteBiblique = BibleEditionDisplayTextBlock
 
@@ -610,13 +611,15 @@ export function IllustrationBible({ illustration, habillage }: {
 
   return (
     <figure
+      id={`illustration-${illustration.assetKey}`}
       data-asset-key={illustration.assetKey}
       data-asset-kind={illustration.assetKind}
       data-placement={illustration.placement}
       data-regime={regime}
       className={`cs-bible-gravure cs-bible-gravure--${regime}${flotte ? ' cs-bible-gravure--flottante' : ''}`}
-      style={cadre}
+      style={{ ...cadre, scrollMarginTop: '5rem' }}
     >
+      <DefilementVersAncre id={`illustration-${illustration.assetKey}`} />
       {detouree ? (
         // ⚠️ Le masque se charge d'emblée : une image de masque CSS ne connaît pas
         //    le chargement différé, et un différé par script laisserait la vignette

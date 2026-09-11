@@ -13,8 +13,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { FAMILLES, type Famille } from './inventaire'
 import type { EchantillonFamille } from './PlancheIllustrations'
-import type { GravureFillion } from './regimesFillion'
-import { regimeEtPartDeLActif } from '@/app/lib/bibleEdition'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -88,53 +86,4 @@ async function releverFamille(famille: Famille): Promise<EchantillonFamille> {
 /** Le relevé des familles trop nombreuses pour figurer sur la planche. */
 export async function releverFamilles(): Promise<EchantillonFamille[]> {
   return Promise.all(FAMILLES.map(releverFamille))
-}
-
-// ── Les gravures de Fillion, rangées par régime de composition ───────────────
-
-/** ⛔ Le régime et la part se LISENT dans la base, où la chaîne d'image les a
- *  écrits, par la fonction même que la page de lecture emploie : la planche
- *  doit montrer ce que la page FAIT. Un relevé recopié dérive au premier
- *  réglage et fait ensuite autorité contre la page qu'il décrit. */
-export async function releverGravuresFillion(): Promise<{
-  gravures: GravureFillion[]
-  planches: number
-  planche: { url: string; legende: string; part: number } | null
-}> {
-  const { data, error } = await supabaseAdmin
-    .from('v_bible_edition_assets')
-    .select('asset_key,asset_kind,public_uri,width_px,height_px,canon_id_start,printed_caption,editorial_caption,regime,part_colonne')
-  if (error) throw new Error(`Gravures de Fillion illisibles : ${error.message}`)
-  const toutes = data ?? []
-
-  const gravures: GravureFillion[] = toutes
-    .filter(a => a.asset_kind !== 'plate')
-    .map(a => ({
-      cle: a.asset_key as string,
-      legende: (a.editorial_caption ?? a.printed_caption ?? '') as string,
-      verset: (a.canon_id_start ?? '') as string,
-      url: a.public_uri as string,
-      largeur: a.width_px as number,
-      hauteur: a.height_px as number,
-      ...regimeEtPartDeLActif({ asset_key: a.asset_key as string, regime: a.regime, part_colonne: a.part_colonne }),
-    }))
-    .sort((a, b) => b.part - a.part)
-
-  // Une planche TÉMOIN pour le régime hors-texte. Prise par son rang dans l'ordre
-  // des clés, non au hasard : la planche montrée doit être la même d'une visite
-  // à l'autre.
-  const lesPlanches = toutes.filter(a => a.asset_kind === 'plate')
-    .sort((a, b) => String(a.asset_key).localeCompare(String(b.asset_key)))
-  const temoin = lesPlanches[Math.floor(lesPlanches.length / 2)] ?? null
-  return {
-    gravures,
-    planches: lesPlanches.length,
-    planche: temoin
-      ? {
-        url: temoin.public_uri as string,
-        legende: (temoin.editorial_caption ?? temoin.printed_caption ?? 'Planche hors-texte') as string,
-        part: regimeEtPartDeLActif({ asset_key: temoin.asset_key as string, regime: temoin.regime, part_colonne: temoin.part_colonne }).part,
-      }
-      : null,
-  }
 }

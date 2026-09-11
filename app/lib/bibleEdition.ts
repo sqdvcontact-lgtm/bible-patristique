@@ -1,4 +1,5 @@
 import { liantSymbolique, type JonctionSymbolique } from './jonctionSegments'
+import { resoudreStyleSemantique } from './bibleHierarchieSemantique'
 
 export const BIBLE_EDITORIAL_BLOCK_KINDS = [
   'title',
@@ -555,6 +556,26 @@ export function styleSemantiqueBloc(
   scopeKind: BibleEditorialScopeKind,
 ): string {
   return `${BLOCK_KIND_STYLE[blockKind]}_${SCOPE_KIND_STYLE[scopeKind]}`
+}
+
+/**
+ * Dit si le registre de composition peut réellement rendre un bloc éditorial.
+ *
+ * Une illustration peut conserver en base le lien matériel exact vers un ancien
+ * bloc qui n'a pas encore de niveau sémantique exploitable. Ce lien de
+ * provenance ne doit toutefois jamais faire disparaître l'image : quand le bloc
+ * est non composable, la page ignore seulement ce lien POUR LE RENDU et reprend
+ * l'ancre canonique de l'illustration.
+ */
+export function blocEditorialAffichable(
+  semanticStyleCode: string,
+  semanticLevel?: string | null,
+  embeddedTitleLevel?: string | null,
+): boolean {
+  return resoudreStyleSemantique(semanticStyleCode, {
+    niveau: semanticLevel,
+    titre: embeddedTitleLevel,
+  })?.bodyBlock === true
 }
 
 /**

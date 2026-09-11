@@ -10,8 +10,10 @@ const ENTETES_SECURITE = [
   // Empêche le navigateur de « deviner » un type MIME : un fichier téléversé
   // ne peut plus être servi comme du script.
   { key: "X-Content-Type-Options", value: "nosniff" },
-  // Interdit l'inclusion du site dans une iframe tierce (détournement de clic).
-  { key: "X-Frame-Options", value: "DENY" },
+  // Interdit l'inclusion du site dans une iframe TIERCE (détournement de clic),
+  // tout en permettant au pupitre administratif Fillion de montrer la page de
+  // lecture réelle dans un cadre de même origine.
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
   // Ne divulgue l'URL complète qu'au sein du site ; vers l'extérieur, seul le
   // domaine part. Sans cela, un lien sortant révèle le passage qu'on lisait.
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

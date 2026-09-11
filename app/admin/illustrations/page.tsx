@@ -1,6 +1,6 @@
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
-import { releverFamilles, releverGravuresFillion } from './mesures'
+import { releverFamilles } from './mesures'
 import PlancheIllustrations from './PlancheIllustrations'
 
 export const metadata = { title: 'Illustrations' }
@@ -24,15 +24,7 @@ export default async function PageIllustrations() {
     )
   }
 
-  // Les deux relevés partent ENSEMBLE : ils ne dépendent pas l'un de l'autre, et
-  // les enchaîner ajouterait un aller-retour à une page qui en fait déjà plusieurs.
-  const [familles, fillion] = await Promise.all([releverFamilles(), releverGravuresFillion()])
-  return (
-    <PlancheIllustrations
-      familles={familles}
-      gravures={fillion.gravures}
-      planches={fillion.planches}
-      planche={fillion.planche}
-    />
-  )
+  // Les gravures de Fillion ne se relèvent plus ici : elles ont leur revue,
+  // `/admin/illustrations/fillion`, et l'en-tête de la planche y renvoie.
+  return <PlancheIllustrations familles={await releverFamilles()} />
 }
