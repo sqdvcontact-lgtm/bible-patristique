@@ -2233,8 +2233,8 @@ Décisions de l’auteur, 9 septembre 2026. Ce paragraphe complète les §§ 13.
 - guillemets français `« … »`, puis guillemets anglais `“…”` au second niveau ;
 - ⛔ une reprise brève du texte français commenté, lorsqu’elle reste en prose, se compose en romain entre guillemets français `« … »` ; l’italique ne signale jamais à lui seul la citation ;\n- ⛔ **RÈGLE ABSOLUE DE POSITION DE LA RÉFÉRENCE PAR RAPPORT À UNE CITATION.** Si la citation est **incrustée dans une phrase ou un développement**, la référence vient **après la citation, entre parenthèses**. Si la citation est **isolée comme bloc autonome**, la référence vient **avant la citation** et se termine par **deux-points**. On n’emploie jamais, pour une citation isolée, le modèle inverse « citation puis référence ». Cette règle vaut également lorsqu’une traduction suit immédiatement la citation isolée : la référence précède le bloc cité, puis viennent la citation et sa traduction.
 - ⛔ **POSITION DE LA RÉFÉRENCE — RÈGLE ABSOLUE, DEUX CAS ET DEUX SEULEMENT.** Lorsqu’une citation identifiée est **incrustée dans une phrase ou un paragraphe de prose**, elle reste à sa place dans le texte et sa référence vient **immédiatement après la citation, entre parenthèses** : `… « texte cité » (++Cicéron++, *De re publica*, livre VI).` Lorsqu’une citation est **isolée comme unité autonome de la note**, la référence vient **avant**, sans parenthèses, et se termine par un deux-points avant la citation : `++Cicéron++, *De re publica*, livre VI (*Somnium Scipionis*) : « texte cité. »` La citation française se compose en romain. ⛔ Il n’existe aucun troisième ordre admis : jamais une référence nue après une citation isolée, jamais une référence avant une citation incrustée. Les simples renvois de consultation sans citation (`Voir…`) ne relèvent pas de cette opposition ;
-- ⛔ une citation ou un lemme constitué d’un ou plusieurs vers porte `form = verse`, conserve ses retours de vers et se compose toujours en romain, sans guillemets ajoutés autour du bloc ; `kind` continue de dire la fonction (`lemma` ou `quotation`) et ne doit jamais être falsifié pour obtenir le rendu ;
-- la règle d’italique du latin enchâssé dans une phrase française ne s’applique pas à un bloc versifié : un bloc `form = verse` reste en romain, quelle que soit sa langue ;
+- ⛔ **RÈGLE ABSOLUE DE STYLE DES CITATIONS.** Une citation se compose selon sa langue, jamais selon son seul `kind` : toute citation **non latine** (français, grec, italien, allemand, etc.) est en **romain** ; toute citation **latine** est en **italique**. Cette règle vaut en prose comme en vers. Un bloc `form = verse` conserve ses retours de vers et ne reçoit pas de guillemets uniquement parce qu’il est versifié. `kind` continue de décrire la fonction sémantique et ne doit pas, à lui seul, imposer l’italique ;
+- le latin cité reste en italique même lorsque `form = verse` ; inversement, aucun autre langage n’est mis en italique du seul fait qu’il est cité ;\n- ⛔ **GROUPE CITATIONNEL ORIGINAL + TRADUCTION.** Lorsqu’un passage original et sa traduction constituent une citation isolée, ils forment une seule unité de composition : **les deux blocs ont la même disposition de citation sortie** (`metadata.citation_layout = block`). La traduction ne revient jamais dans le corps courant sous prétexte qu’elle porte `kind = translation`. Une citation sortie ne porte pas de guillemets extérieurs ajoutés ; on conserve seulement les guillemets qui appartiennent réellement au contenu cité. La référence gouvernante précède l’ensemble et se termine par deux-points. La nature sémantique reste distincte de la disposition : l’original demeure `quotation`, la traduction demeure `translation`, et la relation `translation_of` est conservée.
 - tiret demi-cadratin `–` pour toute incise ;
 - point final cohérent pour toute note constituant une phrase ou une référence autonome ;
 - titres d’œuvres en italiques ;
@@ -2290,7 +2290,7 @@ Deux occurrences ne deviennent une seule note que si elles sont réellement une 
 
 Une note doit autant que possible rester intelligible lorsqu’elle est consultée isolément. C’est pourquoi les renvois du type `ibid.`, `op. cit.`, « même ouvrage » ou « même auteur » sont résolus quand leur antécédent est sûr.
 
-#### 13.16.10 Procédure obligatoire — neuf passes, œuvre par œuvre
+#### 13.16.10 Procédure obligatoire — dix passes, œuvre par œuvre
 
 ⛔ **LA REPRISE GÉNÉRALE DES NOTES SE FAIT DANS CET ORDRE.** On ne polit pas une note avant d’avoir établi qui parle et ce qu’elle dit. Une note dont un point ne peut pas être établi avec certitude est marquée pour le contrôle final au fac-similé ; cette réserve n’empêche pas les passes suivantes.
 
@@ -2310,7 +2310,7 @@ Une note doit autant que possible rester intelligible lorsqu’elle est consult�
 
 **Passe 8 — Structure et contre-audit.** Contrôler ancres, appels, offsets, notes à ancres multiples, dédoublonnage, numéros incorporés, résidus OCR, rôles, `rendering`, autorité affichée et rendu public. Le contrôle des rôles doit finir sur `✅ Aucun rôle hors vocabulaire`. Aucune contrainte SQL générale n’est posée sur `rendering` tant que ses valeurs d’import, de provenance et de disposition n’ont pas été démêlées.
 
-**Passe 9 — Fac-similé et levée des réserves.** Reprendre exclusivement les notes marquées pendant les passes 1–8 comme nécessitant le témoin matériel. Les confronter directement au fac-similé ; corriger seulement ce que le témoin permet d’établir ; conserver et documenter toute lecture qui demeure matériellement incertaine. Après ces corrections éventuelles, rejouer les contrôles déterministes des passes concernées et effectuer le contre-audit final de l’appareil.
+**Passe 9 — Fac-similé et levée des réserves.** Reprendre exclusivement les notes marquées pendant les passes 1–8 comme nécessitant le témoin matériel. Les confronter directement au fac-similé ; corriger seulement ce que le témoin permet d’établir ; conserver et documenter toute lecture qui demeure matériellement incertaine. Après ces corrections éventuelles, rejouer les contrôles déterministes des passes concernées et effectuer le contre-audit final de l’appareil.\n\n**Passe 10 — Groupes citationnels et citations sorties.** Reprendre tous les groupes `original → traduction`. Lorsqu’ils constituent une citation isolée, l’original et la traduction doivent être composés au même niveau comme **citations sorties** (`metadata.citation_layout = block`) ; aucun des deux ne porte de guillemets extérieurs, mais les guillemets internes appartenant au passage sont conservés. La référence bibliographique, si elle est identifiée, précède l’ensemble et se termine par deux-points ; aucune référence ne s’intercale entre l’original et sa traduction. Les natures sémantiques (`quotation`, `translation`) et la relation `translation_of` sont conservées. La typographie reste gouvernée par la langue : latin en italique ; toute citation non latine en romain. Les retours de vers sont conservés. Le contre-audit doit finir sur 0 groupe à disposition mixte, 0 guillemet extérieur résiduel dans une citation sortie, 0 référence insérée entre original et traduction et 0 relation `translation_of` rompue.
 
 ⛔ **COMPTE RENDU OBLIGATOIRE APRÈS CHAQUE PASSE.** Avant d’ouvrir la suivante, donner à l’éditeur l’état chiffré et vérifiable de la passe achevée : périmètre traité, corrections appliquées, réserves ouvertes et anomalies restantes. Aucun passage silencieux d’une passe à l’autre.
 
@@ -7578,3 +7578,36 @@ blanc en trop, contre une note tronquée.
 n'est pas une raison de laisser trois corps dans la même boîte — c'en est une de ne pas
 étendre le retrait aux citations en prose, qui se lisent au fil de la note et n'ont rien à
 détacher.
+
+### 38.29 La barre d'onglets d'un VOLET : le modèle commun, resserré, et 31 px de haut
+
+Relevé de l'auteur du 11 septembre 2026, sur la barre « Bible | Commentaires | Notes » du
+volet de droite d'une œuvre : « ça me paraît un peu trop petit ; tu peux augmenter un peu la
+hauteur de cette ligne ? »
+
+⛔ **UNE BARRE D'ONGLETS DE VOLET N'EST PAS UNE BARRE DE PLUS : C'EST LE MODÈLE COMMUN À LA
+MESURE D'UNE COLONNE ÉTROITE** (`OngletsPage`, § 36 ; variante `cs-onglets--volet`, depuis le
+30 août 2026). Mêmes libellés centrés à parts égales, même trait vert sous l'onglet retenu,
+même largeur réservée d'avance en graisse 600. Seuls changent le séparateur, qui s'en va, les
+marges automatiques, qui s'annulent pour que la barre reprenne la largeur de la colonne, et le
+rembourrage. ⛔ On ne la recompose jamais en styles en ligne.
+
+⛔ **SON REMBOURRAGE VAUT 6 PX, ET ELLE MESURE 31 PX.** Le resserrement du 30 août l'avait
+descendue à 4 px et 27 px, depuis les 8 px et 35 px du modèle de page. Le principe était
+juste, un modèle dessiné pour 46 à 52 rem ne se posant pas tel quel dans deux cents pixels ;
+la mesure était trop forte. Six pixels la portent à mi-chemin, le trait vert descend de six à
+huit pixels sous le mot, et le corps du libellé ne bouge pas.
+
+⛔ **LA HAUTEUR APPARTIENT À LA VARIANTE, DONC À TOUTES LES BARRES QUI LA PORTENT** : « Bible |
+Commentaires | Notes », « Livres | Sommaire » dans le volet de la page Bible, « Niveaux |
+Fleuron ». C'est un seul objet, et un objet n'a qu'une hauteur. Hausser une barre seule ferait
+reparaître la divergence que le modèle commun a fermée.
+
+⚠️ **Le rembourrage reste SYMÉTRIQUE** : la flèche de repli du volet d'une œuvre est posée sur
+toute la hauteur de la barre et s'y centre, et un rembourrage inégal écarterait le mot de sa
+flèche. ⚠️ Au doigt rien ne change : le plancher tactile de l'onglet (2,75 rem) l'emportait
+déjà.
+
+⚠️ **Ce qui reste ouvert** : les deux volets de la page Bible n'ont pas la même première ligne,
+31 px à gauche et 42 à droite, où la barre des Pères porte un compte sous son libellé. Question
+posée, non tranchée.
