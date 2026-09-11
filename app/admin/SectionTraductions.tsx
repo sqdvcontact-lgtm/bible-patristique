@@ -12,6 +12,10 @@ import DOMPurify from 'dompurify'
 import { supabase, headersAdmin } from './adminShared'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import type { Traduction } from './adminTypes'
+import {
+  DEFINITIONS_VALIDATION, ETATS_VALIDATION, LIBELLES_VALIDATION, etatValidation,
+  libellePublication, libelleValidation,
+} from '@/app/lib/etatsPublication'
 import { revaliderTraductions } from '@/app/actions/revalider'
 import { colonnesPeriodeHistorique, formaterDateHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
 import { mentionEdition } from '@/app/lib/mentionEdition'
@@ -755,6 +759,8 @@ export default function SectionTraductions({ traductions: init }: { traductions:
   const [lignes, setLignes] = useState<Traduction[]>(init)
   const [edition, setEdition] = useState<string | null>(null)
   const [form, setForm] = useState<Partial<Traduction>>({})
+  // La ligne telle qu'on l'a ouverte : on n'enregistre que ce qui a changé depuis.
+  const formInitial = useRef<Partial<Traduction>>({})
   const [statut, setStatut] = useState<{ id: string; ok: boolean; msg: string } | null>(null)
   const [ajout, setAjout] = useState(false)
   const [nouveau, setNouveau] = useState<Partial<Traduction>>({})
@@ -946,21 +952,36 @@ export default function SectionTraductions({ traductions: init }: { traductions:
     await revaliderTraductions()
   }
 
-  const ouvrir = (t: Traduction) => { setEdition(t.trad_id); setForm({ ...t }); setStatut(null) }
-  const fermer = () => { setEdition(null); setForm({}) }
+  // ⛔ On n'enregistre que ce qui a CHANGÉ depuis l'ouverture. La fiche réécrivait la
+  // ligne entière, si bien qu'un état ou un motif posé entre-temps par GPT repartait avec
+  // la valeur chargée à l'ouverture (audit du 2026-09-11). Et est_privee ne s'envoie
+  // jamais : la base le dérive de l'état et du motif (charte § 52).
+  const ouvrir = (t: Traduction) => { setEdition(t.trad_id); setForm({ ...t }); formInitial.current = { ...t }; setStatut(null) }
+  const fermer = () => { setEdition(null); setForm({}); formInitial.current = {} }
 
   const sauvegarder = async () => {
     if (!edition) return
-    const datesNormalisees = Object.prototype.hasOwnProperty.call(form, 'dates') ? normaliserDateHistoriqueTexte(form.dates) : undefined
-    const datePublicationNormalisee = Object.prototype.hasOwnProperty.call(form, 'date_publication') ? normaliserDateHistoriqueTexte(form.date_publication) : undefined
+    const initial = formInitial.current as Record<string, unknown>
+    const modifie: Record<string, unknown> = {}
+    for (const [cle, valeur] of Object.entries(form)) {
+      if (cle === 'est_privee' || cle === 'trad_id') continue
+      if (JSON.stringify(valeur ?? null) !== JSON.stringify(initial[cle] ?? null)) modifie[cle] = valeur
+    }
+    if (etatValidation(form.statut) === 'invalide' && !String(form.motif_non_publication ?? '').trim()) {
+      setStatut({ id: edition, ok: false, msg: 'Une traduction invalide porte son motif.' }); return
+    }
+    const datesNormalisees = Object.prototype.hasOwnProperty.call(modifie, 'dates') ? normaliserDateHistoriqueTexte(form.dates) : undefined
+    const datePublicationNormalisee = Object.prototype.hasOwnProperty.call(modifie, 'date_publication') ? normaliserDateHistoriqueTexte(form.date_publication) : undefined
     const payload = {
-      ...form,
+      ...modifie,
       ...(datesNormalisees !== undefined ? { dates: datesNormalisees, ...colonnesPeriodeHistorique('traducteur', datesNormalisees) } : {}),
       ...(datePublicationNormalisee !== undefined ? { date_publication: datePublicationNormalisee, ...colonnesPeriodeHistorique('publication', datePublicationNormalisee) } : {}),
     }
-    const { error } = await supabase.from('traductions').update(payload).eq('trad_id', edition)
+    if (Object.keys(payload).length === 0) { setStatut({ id: edition, ok: true, msg: 'Rien à enregistrer.' }); return }
+    const { data: ligne, error } = await supabase.from('traductions').update(payload).eq('trad_id', edition).select('*').single()
     if (error) { setStatut({ id: edition, ok: false, msg: error.message }); return }
-    setLignes(prev => prev.map(t => t.trad_id === edition ?{ ...t, ...payload } as Traduction : t))
+    // La ligne relue porte ce que la base a décidé, est_privee compris.
+    setLignes(prev => prev.map(t => t.trad_id === edition ? { ...t, ...(ligne as Traduction) } : t))
     setStatut({ id: edition, ok: true, msg: 'Enregistré.' })
     await revaliderTraductions()
     setTimeout(() => { setStatut(null); fermer() }, 1200)
@@ -1223,6 +1244,13 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 </button>
               </>)}
 
+              {/* Charte § 52 : l'état de validation, et la publication que la base en dérive. */}
+              <span title={t.est_privee
+                  ? 'Non publiée' + (t.motif_non_publication ? ' : ' + t.motif_non_publication : '')
+                  : DEFINITIONS_VALIDATION[etatValidation(t.statut) ?? 'en_cours']}
+                style={{ ...BOUTON, width: 'auto', minWidth: '6.5rem', cursor: 'default', color: t.est_privee ? 'var(--cs-attente)' : 'var(--cs-texte-second)' }}>
+                {libelleValidation(t.statut)}{t.est_privee ? ' · ' + libellePublication(false, 'feminin') : ''}
+              </span>
               <button onClick={() => setPanneauInfos(panneauInfos === t.trad_id ? null : t.trad_id)}
                 title="Voir l'édition source précise et les apparats critiques"
                 style={{ ...BOUTON, width: '8.2rem',
@@ -1269,6 +1297,25 @@ export default function SectionTraductions({ traductions: init }: { traductions:
               <div style={{ marginBottom: '14px' }}>
                 <label style={labelStyle}>COMMENTAIRE ÉDITORIAL</label>
                 <EditeurRichText valeur={(form.commentaire_editorial as string) ?? ''} onChange={v => setForm(p => ({ ...p, commentaire_editorial: v }))} />
+              </div>
+              {/* Charte § 52 : l'état de validation et le motif. La publication se dérive
+                  (invalide ou motif : non publiée) ; elle ne se règle pas ici. */}
+              <div style={{ display: 'grid', gridTemplateColumns: '12rem 1fr', gap: '10px', marginBottom: '14px' }}>
+                <div>
+                  <label style={labelStyle}>ÉTAT</label>
+                  <select value={etatValidation(form.statut) ?? 'en_cours'}
+                    onChange={e => setForm(p => ({ ...p, statut: e.target.value }))}
+                    title={DEFINITIONS_VALIDATION[etatValidation(form.statut) ?? 'en_cours']} style={inputStyle}>
+                    {ETATS_VALIDATION.map(e => <option key={e} value={e}>{LIBELLES_VALIDATION[e]}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>MOTIF DE NON-PUBLICATION</label>
+                  <input value={form.motif_non_publication ?? ''}
+                    onChange={e => setForm(p => ({ ...p, motif_non_publication: e.target.value || null }))}
+                    placeholder="Requis si invalide : droits, doublon… Facultatif sinon, pour retenir."
+                    style={inputStyle} />
+                </div>
               </div>
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
                 {statut?.id === t.trad_id && (

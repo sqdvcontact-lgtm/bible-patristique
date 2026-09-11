@@ -1179,10 +1179,12 @@ export default function Navbar() {
     if (!user?.id || !estAdminAffiche) { setNbActionsAdmin(0); setNbVerifAdmin(0); return }
     const charger = async () => {
       const [r0, r1, r2, r3, r4] = await Promise.all([
-        supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false'),
+        // ⛔ Un commentaire que son auteur a supprimé ne se modère plus, et un essai
+        // « à revoir » attend son auteur, non la modération (charte § 52).
+        supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).eq('supprime', false).or('demande_validation.is.null,demande_validation.eq.false'),
         supabase.from('signalements').select('id', { count: 'exact', head: true }).eq('traite', false),
-        supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('demande_validation', true),
-        supabase.from('essais').select('id', { count: 'exact', head: true }).in('statut', ['en_attente', 'a_reviser']),
+        supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('demande_validation', true).eq('supprime', false),
+        supabase.from('essais').select('id', { count: 'exact', head: true }).eq('statut', 'en_attente'),
         supabase.rpc('count_verifications_pending'),
       ])
       const moderation = (r0.count ?? 0) + (r1.count ?? 0) + (r2.count ?? 0) + (r3.count ?? 0)

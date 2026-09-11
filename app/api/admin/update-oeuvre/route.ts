@@ -54,30 +54,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  // PUBLICATION. ⛔ Elle ne passe pas par la RPC : celle-ci coupe les triggers
-  // (session_replication_role = replica), et `acces_public` est gardé par
-  // `oeuvres_depublication_textes`, qui refuse de retirer une œuvre dont un texte est
-  // encore public. On écrit donc la colonne DIRECTEMENT, sous la clé de service (qui
-  // passe la RLS mais pas les triggers), et le refus de la base remonte tel quel — son
-  // message dit ce qu'il reste à faire.
-  // ⚠️ La date de mise en ligne s'estampille à la PREMIÈRE publication seulement,
-  // comme avant, quand elle suivait l'effacement du marqueur dans `note`.
-  if (champ === 'acces_public') {
-    const ouvrir = valeur === true
-    const { error: erreurAcces } = await supabaseAdmin
+  // PUBLICATION (charte § 52). ⛔ `acces_public` ne s'écrit plus : la base le DÉRIVE,
+  // vrai quand l'œuvre porte au moins un texte publié et aucun motif (déclencheur
+  // `oeuvres_publication_derivee`, qui estampille aussi la date de mise en ligne à la
+  // première publication). Retenir une œuvre, c'est lui donner un motif ; la rendre à la
+  // lecture, c'est l'effacer. L'écriture passe hors RPC, sous la clé de service : la RPC
+  // coupe les déclencheurs (session_replication_role = replica), et ce sont eux qui
+  // décident. La réponse rend ce que la base a décidé, car une œuvre sans texte
+  // publiable reste non publiée même sans motif.
+  if (champ === 'motif_non_publication') {
+    const motif = typeof valeur === 'string' && valeur.trim() ? valeur.trim() : null
+    const { error: erreurMotif } = await supabaseAdmin
       .from('oeuvres')
-      .update({ acces_public: ouvrir, acces_public_modifie_le: new Date().toISOString() })
+      .update({ motif_non_publication: motif })
       .eq('id_oeuvre', id_oeuvre)
-    if (erreurAcces) return NextResponse.json({ error: erreurAcces.message }, { status: 409 })
-    if (ouvrir) {
-      const { error: dateError } = await supabaseAdmin
-        .from('oeuvres')
-        .update({ date_mise_en_ligne: new Date().toISOString() })
-        .eq('id_oeuvre', id_oeuvre)
-        .is('date_mise_en_ligne', null)
-      if (dateError) return NextResponse.json({ error: dateError.message }, { status: 500 })
-    }
-    return NextResponse.json({ ok: true })
+    if (erreurMotif) return NextResponse.json({ error: erreurMotif.message }, { status: 500 })
+    const { data: etat, error: erreurEtat } = await supabaseAdmin
+      .from('oeuvres')
+      .select('acces_public, motif_non_publication, date_mise_en_ligne')
+      .eq('id_oeuvre', id_oeuvre)
+      .single()
+    if (erreurEtat) return NextResponse.json({ error: erreurEtat.message }, { status: 500 })
+    return NextResponse.json({ ok: true, ...etat })
   }
 
   const CHAMPS_AUTORISES = new Set([

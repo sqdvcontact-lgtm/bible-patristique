@@ -530,6 +530,9 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
     .filter(commentaireVisible)
     .sort((a, b) => {
       if (a.valide !== b.valide) return a.valide ? -1 : 1
+      // Un commentaire certifié passe en tête des validés : c'est ce que la case
+      // « Demander la certification » promet.
+      if (a.valide && b.valide && !!a.certifie !== !!b.certifie) return a.certifie ? -1 : 1
       if (a.valide && b.valide) {
         const scoreA = a.nbLikes - a.nbDislikes
         const scoreB = b.nbLikes - b.nbDislikes
@@ -593,9 +596,10 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
       if (!nom.trim())   { setErreur('Le nom est requis.'); return }
       if (!mailValide(mail)) { setErreur('Adresse e-mail invalide.'); return }
     }
-    // Alerte UNIQUEMENT lorsque l'auteur demande à paraître sous son vrai nom (certification) :
-    // on l'avertit au moment d'envoyer, et non par un bandeau permanent.
-    if (userId && demandeValidation && !window.confirm('Ce commentaire sera soumis pour être publié sous votre vrai nom (commentaire certifié). Continuer ?')) {
+    // Alerte UNIQUEMENT lorsque l'auteur demande la certification : on l'avertit au moment
+    // d'envoyer, et non par un bandeau permanent. ⛔ Elle promettait une publication « sous
+    // votre vrai nom » que rien ne tenait : le pseudonyme s'affiche (audit du 2026-09-11).
+    if (userId && demandeValidation && !window.confirm('Ce commentaire sera soumis à la modération pour certification : s’il est retenu, il sera marqué « certifié » et placé en tête des commentaires validés. Continuer ?')) {
       return
     }
     setEnvoi(true)

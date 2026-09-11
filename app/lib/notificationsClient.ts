@@ -2,6 +2,7 @@
 
 import { supabase } from '@/app/lib/supabase'
 import { parsePointCanonique } from '@/app/lib/referencesBibliques'
+import { MESSAGE_CERTIFICATION_NON_RETENUE } from '@/app/lib/messagesModeration'
 
 /**
  * ⛔ UNE NOTIFICATION PORTE QUATRE CHOSES, ET QUATRE SEULEMENT (décision de l'auteur,
@@ -163,7 +164,10 @@ const VOIR_LA_PUBLICATION = 'Voir la publication'
 
 function notificationModerationCommentaire(c: LigneCommentaire): NotificationItem {
   const certifie = c.certifie === true
-  const certificationRefusee = c.certifie === false && c.valide === true && c.demande_validation === false
+  // ⛔ Une certification non retenue se reconnaît à la phrase même que la modération écrit
+  // (app/lib/messagesModeration.ts). Trois booléens ne suffisaient pas : toute validation
+  // ordinaire laisse certifie à faux, et s'annonçait « Certification refusée ».
+  const certificationRefusee = c.valide === true && c.certifie === false && c.message_admin === MESSAGE_CERTIFICATION_NON_RETENUE
   const accepte = c.valide === true
   const refuse = c.valide === false
   // ⚠️ Les quatre libellés sont ceux d'avant, au mot près : ils entrent dans la CLÉ

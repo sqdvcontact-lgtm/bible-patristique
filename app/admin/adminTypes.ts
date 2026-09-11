@@ -26,9 +26,12 @@ export type Oeuvre = {
   texte_sommaire?: string | null
   texte_corps?: string | null
   afficher_numeros?: boolean | null
-  // Le seul drapeau de publication (app/lib/oeuvresPublication.ts). ⛔ Son MOTIF n'est
-  // plus une colonne d'`oeuvres` : voir `note_acces_public`, plus bas.
+  // Publiée ou non (charte § 52). ⛔ DÉRIVÉ par la base : on ne l'écrit jamais. Pour
+  // retenir une œuvre, on lui donne un `motif_non_publication` ; l'effacer la rend à la
+  // lecture, pourvu qu'un de ses textes soit publiable. ⚠️ Ce motif-là décide ;
+  // `note_acces_public`, plus bas, n'est que le carnet qui en garde l'histoire.
   acces_public?: boolean | null
+  motif_non_publication?: string | null
   commentaire_traduction?: string | null
   // Les trois notes éditoriales publiques : l'œuvre (sa substance), ses points de
   // détail, et le résumé de la page de titre. Voir la migration du 3 septembre 2026.
@@ -47,6 +50,20 @@ export type Oeuvre = {
   // `note_acces_public`. ⚠️ Les DEUX restent distinctes : l'une dit pourquoi l'œuvre est
   // offerte ou retenue, l'autre où en est le travail.
   note_acces_public?: string | null
+}
+/** Un texte d'œuvre tel que la Bibliothèque de l'administration en règle l'état (charte § 52).
+ *  is_public est DÉRIVÉ par la base : on le lit, on ne l'écrit pas. */
+export type TexteEtatAdmin = {
+  id_texte: string
+  id_oeuvre: string
+  titre_version: string | null
+  langue: string | null
+  edition_label: string | null
+  statut: string
+  is_public: boolean
+  is_default: boolean
+  nb_signes: number | null
+  motif_non_publication: string | null
 }
 export type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 export type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }
@@ -72,6 +89,12 @@ export type Traduction = {
    *  masquée reste offerte dans les sélecteurs de lecture. Ce n'est pas `est_privee`,
    *  qui commande la RLS. */
   visible_public: boolean
+  /** État de validation (charte § 52) : valide, termine, en_cours, invalide. */
+  statut?: string
+  /** Motif qui retient une traduction publiable, ou qui fait une invalide. */
+  motif_non_publication?: string | null
+  /** Non publiée : DÉRIVÉ par la base (invalide ou motif). On le lit, on ne l'écrit pas. */
+  est_privee?: boolean
   photo: string | null
   photo_encart: string | null
   import_maj_le: string | null
@@ -125,6 +148,7 @@ export type AdminProps = {
   signalementAuteurMap: Record<string, string>
   commentaireParentMap: Record<number, CommentaireParent>
   auteurs: Auteur[]
+  textes: TexteEtatAdmin[]
   traductions: Traduction[]
   nbVerifications: number
   // Lettres du formulaire de contact non encore relevées (voir SectionCourrier).

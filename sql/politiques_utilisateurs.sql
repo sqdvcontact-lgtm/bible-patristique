@@ -1,7 +1,7 @@
 -- Politiques RLS et droits des tables d’utilisateurs, TELS QUE LA BASE LES APPLIQUE.
 -- Relevé par `node --env-file=.env.local scripts/audit-droits-lecteur.mjs --politiques`.
 -- Ce fichier est un MIROIR : on ne l’édite pas, on change la base par migration puis on le relève.
--- Relevé du 2026-09-02.
+-- Relevé du 2026-09-11.
 
 -- profils : RLS activée
 --   authenticated : DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE
@@ -40,10 +40,12 @@ create policy "Lecture publique des likes" on public.commentaires_likes as permi
 
 -- essais : RLS activée
 --   authenticated : DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE
+create policy "essais_suppression_auteur" on public.essais as permissive for delete to authenticated
+  using ((( SELECT auth.uid() AS uid) = user_id));
 create policy "essais_ecriture_auteur" on public.essais as permissive for insert to public
   with check ((( SELECT auth.uid() AS uid) = user_id));
-create policy "essais_lecture_publique" on public.essais as permissive for select to public
-  using (((statut = 'publie'::text) OR (( SELECT auth.uid() AS uid) = user_id)));
+create policy "essais_lecture_auteur" on public.essais as permissive for select to authenticated
+  using (((( SELECT auth.uid() AS uid) = user_id) OR ( SELECT is_admin() AS is_admin)));
 create policy "essais_modification_auteur" on public.essais as permissive for update to public
   using ((( SELECT auth.uid() AS uid) = user_id));
 
@@ -118,9 +120,11 @@ create policy "messages_update" on public.messages as permissive for update to a
 create policy "signalements_admin_suppr" on public.signalements as permissive for delete to authenticated
   using (is_admin());
 create policy "signalements_insertion" on public.signalements as permissive for insert to authenticated
-  with check (((user_id IS NULL) OR (user_id = ( SELECT auth.uid() AS uid))));
+  with check ((user_id = ( SELECT auth.uid() AS uid)));
 create policy "signalements_admin_lecture" on public.signalements as permissive for select to authenticated
   using (is_admin());
+create policy "signalements_lecture_propre" on public.signalements as permissive for select to authenticated
+  using ((user_id = ( SELECT auth.uid() AS uid)));
 create policy "signalements_admin_maj" on public.signalements as permissive for update to authenticated
   using (is_admin())
   with check (is_admin());
@@ -139,14 +143,14 @@ create policy "Lecture publique des compteurs" on public.lectures_versets as per
 -- polyglotte_notes : RLS activée
 --   authenticated : DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE
 create policy "notes_delete_own" on public.polyglotte_notes as permissive for delete to public
-  using ((auth.uid() = user_id));
+  using ((( SELECT auth.uid() AS uid) = user_id));
 create policy "notes_insert_own" on public.polyglotte_notes as permissive for insert to public
-  with check ((auth.uid() = user_id));
+  with check ((( SELECT auth.uid() AS uid) = user_id));
 create policy "notes_select_own" on public.polyglotte_notes as permissive for select to public
-  using ((auth.uid() = user_id));
+  using ((( SELECT auth.uid() AS uid) = user_id));
 create policy "notes_update_own" on public.polyglotte_notes as permissive for update to public
-  using ((auth.uid() = user_id))
-  with check ((auth.uid() = user_id));
+  using ((( SELECT auth.uid() AS uid) = user_id))
+  with check ((( SELECT auth.uid() AS uid) = user_id));
 
 -- propositions_oeuvres : RLS activée
 --   authenticated : DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE
@@ -155,7 +159,8 @@ create policy "propositions_insertion_propre" on public.propositions_oeuvres as 
 create policy "propositions_lecture_propre" on public.propositions_oeuvres as permissive for select to public
   using ((( SELECT auth.uid() AS uid) = user_id));
 create policy "propositions_modif_en_attente" on public.propositions_oeuvres as permissive for update to public
-  using (((( SELECT auth.uid() AS uid) = user_id) AND (statut = 'en_attente'::text)));
+  using (((( SELECT auth.uid() AS uid) = user_id) AND (statut = 'en_attente'::text)))
+  with check (((( SELECT auth.uid() AS uid) = user_id) AND (statut = 'en_attente'::text)));
 
 -- monetisation_votes : RLS activée
 --   authenticated : DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE

@@ -183,6 +183,9 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     .filter(commentaireVisible)
     .sort((a, b) => {
       if (a.valide !== b.valide) return a.valide ? -1 : 1
+      // Un commentaire certifié passe en tête des validés : c'est ce que la case
+      // « Demander la certification » promet.
+      if (a.valide && b.valide && !!a.certifie !== !!b.certifie) return a.certifie ? -1 : 1
       if (a.valide && b.valide) {
         const scoreA = a.nbLikes - a.nbDislikes
         const scoreB = b.nbLikes - b.nbDislikes

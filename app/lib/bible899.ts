@@ -152,6 +152,10 @@ export function aRevoir899(
   return ligne.verification_status === 'review' || ligne.alignment_status === 'UNCERTAIN'
 }
 
+/** Le mot que la Polyglotte pose sur un alignement à revoir. Un doute d'atelier : il ne
+ *  se montre qu'à l'administration (charte § 52.3). */
+export const NOTE_ALIGNEMENT_A_REVOIR = 'Alignement à revoir'
+
 /**
  * Charge le flux publiable de TR0009 pour un livre (et, facultativement, un chapitre).
  * La vue sait replacer les MANUSCRIPT_EXTRA par leurs métadonnées ; ici on ne conserve

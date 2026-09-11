@@ -150,6 +150,9 @@ export async function POST(request: Request) {
     return erreur500(errOeuvre, "Erreur création œuvre : ")
   }
 
+  // Charte § 52 : un texte importé par l'administration est « terminé ». ⛔ `is_public`
+  // ne s'écrit pas : la base le dérive, et le texte comme l'œuvre paraissent d'eux-mêmes
+  // dès que les segments arrivent, un texte sans signes n'ayant rien à montrer.
   const { error: errTexte } = await supabaseAdmin.from('oeuvre_textes').insert({
     id_texte: idTexte,
     id_oeuvre: idOeuvre,
@@ -157,9 +160,8 @@ export async function POST(request: Request) {
     langue: nulSiVide(meta.langue),
     traducteur: nulSiVide(meta.trad_auteur),
     edition_label: [nulSiVide(meta.editeur), datePublication].filter(Boolean).join(', ') || null,
-    statut: 'published',
+    statut: 'termine',
     is_default: true,
-    is_public: true,
     metadata: { legacy: true, origin: 'admin_import_after_multiversion_migration' },
   })
   if (errTexte) {

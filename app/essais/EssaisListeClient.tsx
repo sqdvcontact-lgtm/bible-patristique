@@ -37,13 +37,14 @@ type EssaiPerso = {
   id: number; titre: string; sous_titre: string | null; statut: string
   updated_at: string | null; publie_at: string | null; nb_vues: number | null; nb_likes: number
   anonyme?: boolean
+  note_admin?: string | null
 }
 
 const STATUTS: Record<string, { label: string; couleur: string }> = {
   brouillon: { label: 'Brouillon', couleur: 'var(--cs-texte-doux)' },
   en_attente: { label: 'En attente', couleur: 'var(--cs-attente)' },
   publie: { label: 'Publié', couleur: 'var(--cs-vert)' },
-  a_reviser: { label: 'À réviser', couleur: 'var(--cs-danger)' },
+  a_reviser: { label: 'À revoir', couleur: 'var(--cs-danger)' },
   refuse: { label: 'Refusé', couleur: 'var(--cs-danger)' },
 }
 
@@ -72,7 +73,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
     if (!id) return
     const { data } = await supabase
       .from('essais')
-      .select('id, titre, sous_titre, statut, updated_at, publie_at, nb_vues, anonyme')
+      .select('id, titre, sous_titre, statut, updated_at, publie_at, nb_vues, anonyme, note_admin')
       .eq('user_id', id)
       .order('updated_at', { ascending: false })
     const lignes = data ?? []
@@ -85,11 +86,11 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
     setMesEcrits(lignes.map(e => ({ ...e, nb_likes: likesParEssai.get(e.id) ?? 0 })))
   }
 
+  // ⛔ La date de publication n'est pas à l'auteur : la base la fige (charte § 52). Elle
+  // partait à chaque republication, et la notification « Publication acceptée », dont
+  // la clé porte cette date, renaissait sous la signature de l'administration.
   const changerStatut = async (id: number, statut: string) => {
-    const payload = statut === 'publie'
-      ? { statut, publie_at: new Date().toISOString() }
-      : { statut }
-    await supabase.from('essais').update(payload).eq('id', id)
+    await supabase.from('essais').update({ statut }).eq('id', id)
     await chargerMesEcrits()
   }
 
@@ -803,6 +804,11 @@ function OngletMesEcrits({
                   {e.anonyme && <span style={{ fontStyle: 'italic' }}>anonyme</span>}
                   {e.statut === 'en_attente' && <span style={{ color: 'var(--cs-attente)', fontWeight: 600 }}>révision en cours</span>}
                 </div>
+                {(e.statut === 'a_reviser' || e.statut === 'refuse') && e.note_admin && (
+                  <p style={{ margin: '4px 0 0', fontSize: '0.6875rem', color: 'var(--cs-texte-second)' }}>
+                    Motif de la modération : {e.note_admin}
+                  </p>
+                )}
               </div>
               <div className="ecrit-actions">
                 <button onClick={() => basculerPublication(e)} disabled={!peutBasculer || verrouille}

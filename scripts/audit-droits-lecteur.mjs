@@ -137,6 +137,26 @@ begin
   ${compte('essais_commentaires : en attente d’autrui', 0, 'select 1 from essais_commentaires where valide is not true and user_id is distinct from moi')}
   ${compte('essais : brouillons d’autrui', 0, `select 1 from essais where statut <> 'publie' and user_id is distinct from moi`)}
   ${zeroLigne('essais : modifier celui d’un autre', `update essais set titre = 'pirate' where user_id is distinct from moi;`)}
+  ${ep('essais : se publier sans validation (date posée, puis publie)', 'refusé', `
+    insert into essais (id, user_id, titre, contenu, statut) overriding system value
+      values (-424242, moi, 'audit', 'audit', 'brouillon');
+    update essais set publie_at = now() where id = -424242;
+    update essais set statut = 'publie' where id = -424242;
+    select statut into t from essais where id = -424242;
+    ${ligne('essais : se publier sans validation (date posée, puis publie)', 'refusé', `case when t = 'publie' then 'PUBLIÉ' else 'refusé' end`, `t is distinct from 'publie'`)}`)}
+  ${ep('essais : écrire la note de la modération', 'figé', `
+    update essais set note_admin = 'pirate' where id = -424242;
+    select note_admin into t from essais where id = -424242;
+    ${ligne('essais : écrire la note de la modération', 'figé', `case when t = 'pirate' then 'ÉCRIT' else 'figé' end`, `t is distinct from 'pirate'`)}`)}
+  ${ep('essais_commentaires : s’insérer déjà validé', 'forcé à faux', `
+    insert into essais_commentaires (id, id_essai, texte, user_id, valide) overriding system value
+      select -424242, id, 'audit', moi, true from essais_publies limit 1;
+    select coalesce(valide, false) into b from essais_commentaires where id = -424242;
+    ${ligne('essais_commentaires : s’insérer déjà validé', 'forcé à faux', `case when b then 'VALIDÉ' else 'forcé à faux' end`, 'not coalesce(b, false)')}`)}
+  ${ep('commentaires : écrire le message de la modération', 'figé', `
+    update commentaires set message_admin = 'pirate' where id = cid;
+    select message_admin into t from commentaires where id = cid;
+    ${ligne('commentaires : écrire le message de la modération', 'figé', `case when t = 'pirate' then 'ÉCRIT' else 'figé' end`, `t is distinct from 'pirate'`)}`)}
   ${compte('prelevements d’autrui', 0, 'select 1 from prelevements where user_id is distinct from moi')}
   ${compte('favoris d’autrui', 0, 'select 1 from favoris where user_id is distinct from moi')}
   ${compte('progression_lecture d’autrui', 0, 'select 1 from progression_lecture where user_id is distinct from moi')}

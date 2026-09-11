@@ -21,9 +21,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Note administrateur requise.' }, { status: 400 })
   }
 
+  // « À revoir » (charte § 52) : l'essai quitte la lecture et revient à son auteur, qui
+  // ne le rendra public qu'en le soumettant de nouveau. ⛔ Il repassait en brouillon en
+  // gardant sa date de publication, et « Mes écrits » le republiait d'un clic : le renvoi
+  // ne tenait pas (audit du 2026-09-11).
   const { error } = await supabaseAdmin
     .from('essais')
-    .update({ statut: 'brouillon', note_admin: String(note).trim(), updated_at: new Date().toISOString() })
+    .update({ statut: 'a_reviser', note_admin: String(note).trim(), updated_at: new Date().toISOString() })
     .eq('id', id)
 
   if (error) {

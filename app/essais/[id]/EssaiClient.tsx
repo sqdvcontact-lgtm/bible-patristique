@@ -307,6 +307,15 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
               Cet essai est en attente de validation par l’administration — seul vous pouvez le voir ainsi.
             </p>
           )}
+          {/* Charte § 52 : « à revoir » et « refusé » viennent de la modération, et son
+              motif se lit dans « Mes écrits ». */}
+          {(essai.statut === 'a_reviser' || essai.statut === 'refuse') && (
+            <p style={{ fontSize: '0.71875rem', color: 'var(--cs-danger-fonce)', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', padding: '8px 12px', margin: '24px 0 0' }}>
+              {essai.statut === 'a_reviser'
+                ? 'La modération vous a renvoyé cet essai pour qu’il soit revu. Son motif figure dans « Mes écrits » ; soumettez-le de nouveau une fois repris.'
+                : 'La modération n’a pas retenu cet essai. Son motif figure dans « Mes écrits ».'}
+            </p>
+          )}
 
           {/* Page de titre — rapprochée du texte (moins de hauteur et de marge basse). */}
           <div style={{

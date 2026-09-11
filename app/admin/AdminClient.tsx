@@ -28,7 +28,7 @@ import { colorMix } from '@/app/lib/couleurs'
 import { FAMILLES_ADMIN, ENTREES_ADMIN, ONGLETS_VALIDES, type FamilleAdmin } from '@/app/lib/adminNavigation'
 
 export default function AdminClient({
-  commentaires, commentairesPublications, signalements, demandesCertification, essaisEnAttente, essaisModification, essaisPublies, essaisBrouillons, segMap, versetMap, versetTexteMap, oeuvreTitreMap, signalementAuteurMap, commentaireParentMap, auteurs, traductions,
+  commentaires, commentairesPublications, signalements, demandesCertification, essaisEnAttente, essaisModification, essaisPublies, essaisBrouillons, segMap, versetMap, versetTexteMap, oeuvreTitreMap, signalementAuteurMap, commentaireParentMap, auteurs, textes, traductions,
   nbVerifications,
   nbCourrier,
   erreurChargement,
@@ -56,11 +56,13 @@ export default function AdminClient({
   useEffect(() => {
     const charger = async () => {
       const [mod1, mod2, mod3, mod4, ess] = await Promise.all([
-        supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false'),
+        // ⛔ Un commentaire que son auteur a supprimé ne se modère plus, et un essai
+        // « à revoir » attend son auteur, non la modération (charte § 52).
+        supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).eq('supprime', false).or('demande_validation.is.null,demande_validation.eq.false'),
         supabase.from('signalements').select('id', { count: 'exact', head: true }).eq('traite', false),
-        supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('demande_validation', true),
+        supabase.from('commentaires').select('id', { count: 'exact', head: true }).eq('demande_validation', true).eq('supprime', false),
         supabase.from('essais_commentaires').select('id', { count: 'exact', head: true }).eq('valide', false).eq('supprime', false),
-        supabase.from('essais').select('id', { count: 'exact', head: true }).in('statut', ['en_attente', 'a_reviser']),
+        supabase.from('essais').select('id', { count: 'exact', head: true }).eq('statut', 'en_attente'),
       ])
       setNbMod((mod1.count ?? 0) + (mod2.count ?? 0) + (mod3.count ?? 0) + (mod4.count ?? 0))
       setNbEssais(ess.count ?? 0)
@@ -262,7 +264,7 @@ export default function AdminClient({
         {onglet === 'lexique'        && <SectionLexique />}
         {onglet === 'styles'         && <SectionStyles />}
         {onglet === 'mecenes'        && <SectionMecenes />}
-        {onglet === 'bibliotheque'   && <SectionBibliotheque auteurs={auteurs} />}
+        {onglet === 'bibliotheque'   && <SectionBibliotheque auteurs={auteurs} textes={textes} />}
         {onglet === 'controle-oeuvres' && <SectionControleOeuvres auteurs={auteurs} />}
         {onglet === 'evenements'     && <SectionEvenements auteurs={auteurs} />}
         {onglet === 'verifications'  && <SectionVerifications onCountChange={setNbVerif} />}

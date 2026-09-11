@@ -46,7 +46,7 @@ import ModalSignalement from "@/app/components/ModalSignalement";
 import BoutonCopierTexte from "@/app/components/BoutonCopierTexte";
 import { citationBiblique } from "@/app/lib/citation";
 import { useCompte } from "@/app/lib/contexteCompte";
-import { aRevoir899, chargerVersets899, estGlose899, estTraductionModerne899, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
+import { aRevoir899, chargerVersets899, estGlose899, estTraductionModerne899, NOTE_ALIGNEMENT_A_REVOIR, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
 import { marquerLacunesDuTemoin, rendreMarqueurs899 } from "@/app/lib/marqueurs899";
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
@@ -392,7 +392,7 @@ function lignes899(brutes: Brutes899, tradId: string): V2Row[] {
       v_orig: l.verset ?? 0,
       v_orig_suffixe: null,
       texte: lacune ? null : texteCouche899(l, couche),
-      notes: aRevoir899(l) ? "Alignement à revoir" : null,
+      notes: aRevoir899(l) ? NOTE_ALIGNEMENT_A_REVOIR : null,
       estLacune899: lacune,
       ...(glose ? { estGlose899: true, cleGlose899: cleGlose } : {}),
     };
@@ -2500,7 +2500,8 @@ export default function PolyglottePage() {
                                       {/* Une intervention d'alignement laisse toujours sa trace dans
                                           `notes` : le lecteur voit QU'il y a eu intervention, et le
                                           survol lui dit LAQUELLE. Rien n'est corrigé en silence. */}
-                                      {c.notes ? <span title={c.notes} style={{ marginLeft: 3, color: 'var(--cs-surnum)', cursor: "help", display: "inline-flex", verticalAlign: "middle" }}><IconeCrayon size={9} /></span> : null}
+                                      {/* Charte § 52.3 : un alignement « à revoir » est un doute d'atelier, montré à l'administration seule. */}
+                                      {c.notes && (estAdmin || c.notes !== NOTE_ALIGNEMENT_A_REVOIR) ? <span title={c.notes} style={{ marginLeft: 3, color: 'var(--cs-surnum)', cursor: "help", display: "inline-flex", verticalAlign: "middle" }}><IconeCrayon size={9} /></span> : null}
                                     </span>
                                     {estAdmin && !est899(t.trad_id) && (
                                       <button title="Modifier ce verset" aria-label="Modifier ce verset" className="poly-edit"

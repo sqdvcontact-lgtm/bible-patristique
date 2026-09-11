@@ -6,7 +6,8 @@ import React, { useState, useRef } from 'react'
 import { supabase, parseCSV, headersAdmin } from './adminShared'
 import SectionRemplacerSegments from './SectionRemplacerSegments'
 import SectionAjouterOeuvre from './SectionAjouterOeuvre'
-import type { Auteur, Oeuvre, LignePreview } from './adminTypes'
+import EtatTexteAdmin, { type ReponseEtatTexte } from './EtatTexteAdmin'
+import type { Auteur, Oeuvre, LignePreview, TexteEtatAdmin } from './adminTypes'
 import {
   CADRES_PORTRAIT, POS_CARTE_DEFAUT, POS_FICHE_DEFAUT,
   bornerPos, deplacerPos, parseAuteurPhotoPositions,
@@ -943,8 +944,10 @@ function filtrerNoticesSelonVue(notices: NoticeCatalogueAdmin[], filtre: FiltreA
 }
 
 // ── Section Bibliothèque (fusionnée avec la gestion des auteurs) ─────────────
-export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs: Auteur[] }) {
+export default function SectionBibliotheque({ auteurs: auteursInit, textes: textesInit = [] }: { auteurs: Auteur[]; textes?: TexteEtatAdmin[] }) {
   const [auteurs, setAuteurs] = useState<Auteur[]>(auteursInit)
+  // Les textes de chaque œuvre, avec leur état de validation (charte § 52).
+  const [textes, setTextes] = useState<TexteEtatAdmin[]>(textesInit)
   const [vueBibliotheque, setVueBibliotheque] = useState<'oeuvres' | 'segments'>('oeuvres')
   // Filtre d'affichage des auteurs, en menu déroulant. « publiees » (défaut) n'a besoin
   // que des œuvres du site ; les autres modes exigent le catalogue complet (chargé à la
@@ -1329,39 +1332,74 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
     return null
   }
 
-  // Publier / dépublier une œuvre : le drapeau est `acces_public`, celui de la RLS
-  // (cf. oeuvresPublication.ts). ⛔ Il n'écrit plus dans `note` : le marqueur qu'on y
-  // posait écrasait la note éditoriale, et l'effacer à la republication la perdait.
-  // ⚠️ La base peut REFUSER de dépublier : le trigger `oeuvres_depublication_textes`
-  // exige qu'aucun texte de l'œuvre ne soit encore public. Son message dit quoi faire ;
-  // on le montre tel quel plutôt qu'un « échec » qui ne dit rien.
+  // Publier / retenir une œuvre (charte § 52). ⛔ `acces_public` ne s'écrit plus : la base
+  // le dérive, vrai quand l'œuvre porte au moins un texte publié et aucun motif. RETENIR,
+  // c'est donner un motif ; RENDRE, c'est l'effacer. Une œuvre sans texte publiable reste
+  // non publiée même sans motif : on la rend en réglant l'état de ses textes (fiche de
+  // l'œuvre, « Textes et états »). La route rend l'état décidé, et l'écran l'affiche.
   const [bascule, setBascule] = useState<string | null>(null)
   const basculerPublication = async (o: Oeuvre) => {
     const publiee = estOeuvrePubliee(o)
-    if (publiee && !confirm(`Dépublier « ${o.titre} » ?\n\nElle restera au catalogue mais disparaîtra de la lecture (bibliothèque, recherche, navigation).`)) return
-    const nouvelAcces = !publiee
+    let motif: string | null = null
+    if (publiee) {
+      const saisi = prompt(`Dépublier « ${o.titre} » ?\n\nElle restera au catalogue de l’administration mais disparaîtra de la lecture. Motif (obligatoire) :`)
+      if (saisi === null) return
+      if (!saisi.trim()) { alert('Un motif est requis pour retenir une œuvre.'); return }
+      motif = saisi.trim()
+    } else if (!o.motif_non_publication) {
+      alert('Cette œuvre n’a aucun texte publiable : un texte vide, invalide ou retenu ne se lit pas. Réglez l’état de ses textes dans sa fiche (« Modifier », puis « Textes et états »).')
+      return
+    }
     setBascule(o.id_oeuvre)
     try {
       const res = await fetch('/api/admin/update-oeuvre', {
         method: 'POST',
         headers: await headersAdmin({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ id_oeuvre: o.id_oeuvre, champ: 'acces_public', valeur: nouvelAcces }),
+        body: JSON.stringify({ id_oeuvre: o.id_oeuvre, champ: 'motif_non_publication', valeur: motif }),
       })
-      if (!res.ok) {
-        const corps = await res.json().catch(() => null) as { error?: string } | null
+      const corps = await res.json().catch(() => null) as { error?: string; acces_public?: boolean; motif_non_publication?: string | null } | null
+      if (!res.ok || !corps) {
         alert(corps?.error || 'Échec de la mise à jour.')
         return
       }
       setAuteurs(prev => prev.map(a => ({
         ...a,
-        oeuvres: a.oeuvres.map(x => x.id_oeuvre === o.id_oeuvre ? { ...x, acces_public: nouvelAcces } : x),
+        oeuvres: a.oeuvres.map(x => x.id_oeuvre === o.id_oeuvre
+          ? { ...x, acces_public: corps.acces_public === true, motif_non_publication: corps.motif_non_publication ?? null }
+          : x),
       })))
+      // Le motif de l'œuvre retient ou rend tous ses textes : la base les a recalculés.
+      await rechargerTextes(o.id_oeuvre)
       await revaliderBibliotheque()
+      if (!publiee && corps.acces_public !== true) {
+        alert('Le motif est effacé, mais l’œuvre reste non publiée : aucun de ses textes n’est publiable.')
+      }
     } catch {
       alert('Erreur réseau.')
     } finally {
       setBascule(null)
     }
+  }
+
+  /** Relit les textes d'une œuvre, dont la base a pu changer la publication. */
+  const rechargerTextes = async (idOeuvre: string) => {
+    const { data } = await supabase.from('oeuvre_textes')
+      .select('id_texte, id_oeuvre, titre_version, langue, edition_label, statut, is_public, is_default, nb_signes, motif_non_publication')
+      .eq('id_oeuvre', idOeuvre)
+    if (!data) return
+    setTextes(prev => [...prev.filter(t => t.id_oeuvre !== idOeuvre), ...(data as TexteEtatAdmin[])])
+  }
+
+  /** L'état d'un texte a changé : la réponse porte le texte ET l'œuvre recalculée. */
+  const majEtatTexte = async (reponse: ReponseEtatTexte) => {
+    setTextes(prev => prev.map(t => t.id_texte === reponse.texte.id_texte ? reponse.texte : t))
+    setAuteurs(prev => prev.map(a => ({
+      ...a,
+      oeuvres: a.oeuvres.map(x => x.id_oeuvre === reponse.oeuvre.id_oeuvre
+        ? { ...x, acces_public: reponse.oeuvre.acces_public, motif_non_publication: reponse.oeuvre.motif_non_publication }
+        : x),
+    })))
+    await revaliderBibliotheque()
   }
 
   const supprimerOeuvre = async (idOeuvre: string, titre: string) => {
@@ -1902,9 +1940,11 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                           formulaire de modification, sous le nom « Commentaires », où il
                           se corrige au lieu de se lire seulement. */}
                       {!publiee && (
-                        <span title="Œuvre conservée au catalogue mais retirée de la lecture"
+                        <span title={oeuvre.motif_non_publication
+                            ? 'Retenue : ' + oeuvre.motif_non_publication
+                            : 'Aucun texte publiable : réglez l’état de ses textes dans sa fiche.'}
                           style={{ fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9a6a3e', background: 'var(--cs-fond-doux)', border: '1px solid var(--cs-bord)', borderRadius: '4px', padding: '1px 6px', flexShrink: 0 }}>
-                          Dépubliée
+                          Non publiée
                         </span>
                       )}
                       {resultat?.idOeuvre === oeuvre.id_oeuvre && <span style={{ fontSize: '0.75rem', color: resultat.ok ? 'var(--cs-vert)' : 'var(--cs-danger)', flexShrink: 0 }}>{resultat.ok ? '✓' : '✗'} {resultat.msg}</span>}
@@ -1961,7 +2001,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                       </a>
                       <span style={{ width: '1px', height: '16px', background: 'var(--cs-bord-clair)', display: 'inline-block', marginLeft: '4px' }} />
                       <button onClick={() => basculerPublication(oeuvre)} disabled={bascule === oeuvre.id_oeuvre}
-                        title={publiee ? 'Retirer de la lecture (reste au catalogue)' : 'Remettre en lecture'}
+                        title={publiee ? 'Retirer de la lecture, avec un motif' : (oeuvre.motif_non_publication ? 'Rendre à la lecture en effaçant le motif' : 'Aucun texte publiable : réglez l’état de ses textes dans sa fiche')}
                         style={{ ...(publiee ? btnSobre : { ...btnSobre, border: '1px solid #d8b48f', background: 'var(--cs-danger-fond)', color: '#9a6a3e' }), minWidth: '72px', textAlign: 'center', opacity: bascule === oeuvre.id_oeuvre ? 0.6 : 1 }}>
                         {bascule === oeuvre.id_oeuvre ? '…' : (publiee ? 'Dépublier' : 'Publier')}
                       </button>
@@ -2141,6 +2181,26 @@ export default function SectionBibliotheque({ auteurs: auteursInit }: { auteurs:
                             onChange={e => setFormOeuvre(p => ({ ...p, note_acces_public: e.target.value }))}
                             rows={2} placeholder="Pourquoi cette œuvre est offerte, ou pourquoi elle est retenue."
                             style={{ ...inputStyleAuteur, resize: 'vertical', background: 'var(--cs-fond-clair)' }} />
+                        </div>
+
+                        {/* ⛔ LES ÉTATS DES TEXTES (charte § 52). On règle l'état de validation et,
+                            pour retenir un texte publiable, un motif ; la base en dérive la
+                            publication du texte et celle de l'œuvre. */}
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <label style={lbl}>Textes et états</label>
+                          {oeuvre.motif_non_publication && (
+                            <p style={{ margin: '0 0 6px', fontSize: '0.75rem', color: 'var(--cs-attente)' }}>
+                              Œuvre retenue : {oeuvre.motif_non_publication}
+                            </p>
+                          )}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {textes.filter(t => t.id_oeuvre === oeuvre.id_oeuvre).length === 0 && (
+                              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun texte.</p>
+                            )}
+                            {textes.filter(t => t.id_oeuvre === oeuvre.id_oeuvre).map(t => (
+                              <EtatTexteAdmin key={t.id_texte} texte={t} motifOeuvre={oeuvre.motif_non_publication ?? null} onMaj={majEtatTexte} />
+                            ))}
+                          </div>
                         </div>
 
                         {/* Genre */}

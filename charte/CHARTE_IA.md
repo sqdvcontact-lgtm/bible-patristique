@@ -2336,7 +2336,7 @@ Toujours distinguer :
 - le texte validé et importé ;
 - les éventuelles couches développée ou modernisée.
 
-⛔ **Les mots `transcrit`, `relu`, `validé` et `importé` ne sont pas synonymes. Le statut public indique le niveau réellement atteint.** ⛔ **Un lot non relu reste explicitement provisoire, même si son XML est valide et si les tests techniques réussissent.**
+⛔ **Les mots `transcrit`, `relu`, `validé` et `importé` ne sont pas synonymes. L’état de validation consigne le niveau réellement atteint (§ 52) ; le lecteur, lui, ne voit que ce qui est publié.** ⛔ **Un lot non relu reste « terminé » ou « en cours », jamais « validé », même si son XML est valide et si les tests techniques réussissent.**
 
 ### 14.2 Autorité de la source et traçabilité
 
@@ -7718,3 +7718,93 @@ Décision de l'auteur, 11 septembre 2026 : « revoir les notes quant à leur aff
 ⛔ **UN EMPAN SE LIT MORCEAU PAR MORCEAU.** Quand la contrepartie française d'un latin réunit plusieurs paragraphes (§ 38.8), chacun garde ses notes et ses appels : le texte réuni ne porte que l'identité du premier, et les appels des suivants s'ouvraient sur « Note indisponible ».
 
 ⚠️ **LIMITE CONNUE.** Le numéro de l'appel est, dans le volet, le numéro interne, celui du marqueur, et non celui qui repart à 1 par division (§ 13.8) : l'établir demanderait toutes les notes d'un texte pour en montrer quelques-unes.
+
+## 52. Les états de publication et de validation
+
+Règle posée par l’éditeur le 11 septembre 2026, après l’audit des états d’affichage du même jour. Elle remplace les vocabulaires qui coexistaient (`draft`, `review`, `published`, `retired`, `acces_public`, `est_privee`, `brouillon`…) par une seule grammaire pour tout ce que le site édite : œuvres, textes, bibles et leurs éditions.
+
+### 52.1 Deux questions, deux axes
+
+Un contenu édité répond à deux questions, et à deux seulement.
+
+- **Est-il publié ?** Deux états : **publié** et **non publié**. Le lecteur voit ce qui est publié ; l’administration voit tout.
+- **Où en est-il ?** Quatre états de validation :
+  - **validé** (`valide`) : relu et validé par l’éditeur ;
+  - **terminé** (`termine`) : l’IA a terminé son travail, la validation de l’éditeur reste à venir ;
+  - **travail en cours** (`en_cours`) : le travail se poursuit ;
+  - **invalide** (`invalide`) : un problème réel interdit la publication, par exemple des droits d’auteur, un doublon ou une version remplacée.
+
+### 52.2 La règle
+
+⛔ **Validé, terminé et travail en cours sont publiés. L’invalide ne l’est jamais.** Un travail en cours paraît tel qu’il est : on ne retient pas un texte parce qu’il n’est pas fini.
+
+⛔ **Invalide veut dire un problème réel, jamais « pas fini ».** Un texte inachevé est en cours ; un texte invalide ne doit pas paraître, quel que soit son avancement. Un invalide porte toujours son motif (contraintes `*_invalide_motive_ck`).
+
+Deux exceptions seulement retiennent ce qui serait publiable :
+
+- **un motif de non-publication** (`motif_non_publication`), posé par l’éditeur sur une œuvre, un texte ou une traduction. Le motif d’une œuvre retient tous ses textes. Au 11 septembre 2026, un seul : la *Synopse de la Sainte Écriture* du pseudo-Chrysostome (`A0566O0001`), retirée à la demande de l’éditeur ;
+- **un apparat critique retenu**, par `oeuvre_textes.metadata.publication.apparat_critique = false`, que la politique des segments applique : le texte paraît, son apparat non. Au 11 septembre 2026, un seul : les *Catéchèses baptismales* de Cyrille de Jérusalem (`A0044O0003TFR-V11`).
+
+⚠️ **Un texte sans aucun segment n’est pas publié**, faute de rien à montrer ; il paraît de lui-même au premier segment importé. C’est le cas du *Commentaire sur Amos*, dont les deux versions sont encore vides. ⚠️ **Une œuvre n’est publiée que si l’un de ses textes l’est** : une œuvre ne s’annonce plus sans rien à lire, alors que six l’étaient encore le matin de la règle.
+
+### 52.3 Ce que voit le lecteur
+
+⛔ **Le lecteur doit penser que tout ce qui paraît est validé et terminé** (décision de l’éditeur, 11 septembre 2026). Aucun des quatre mots ne lui est montré, et aucune marque ne distingue le terminé du validé ni le travail en cours du reste. Un état intermédiaire ne se dit au lecteur que dans une note éditoriale, et seulement si l’éditeur la demande ; c’est le cas de la traduction par IA du *Manuel pour mon fils*.
+
+Trois règles d’écran en découlent :
+
+- aucune mention « à revoir », « en relecture », « bientôt disponible » ou « test » du côté du lecteur. Le crayon « Alignement à revoir » de la Polyglotte ne paraît qu’en mode administrateur ;
+- `statut_corpus_public`, `lacunes_publiques` et les notes de l’administration ne se montrent pas au lecteur ;
+- le grisé « Bientôt disponible » d’une édition (`metadata.indisponible`) contredit la règle : il reste dormant et ne se pose plus.
+
+Cette section précise le § 14.1 : l’état de validation consigne le niveau réellement atteint, et c’est l’administration qui le lit.
+
+### 52.4 Où vivent ces états
+
+⛔ **La publication se DÉRIVE en base, elle ne s’écrit jamais**, ni par le site, ni par un script, ni par une chaîne d’import. Les colonnes de publication gardent leur nom historique, que lisent les politiques RLS, mais une écriture directe y est effacée par le déclencheur.
+
+| Objet | Validation | Publication, dérivée | Exception |
+|---|---|---|---|
+| Texte d’une œuvre (`oeuvre_textes`) | `statut` | `is_public` : non invalide, sans motif, avec des signes, sous une œuvre sans motif | `motif_non_publication` |
+| Œuvre (`oeuvres`) | celle de ses textes | `acces_public` : au moins un texte publié, sans motif | `motif_non_publication` |
+| Traduction, bibles comprises (`traductions`) | `statut` | `est_privee`, inverse de publié : invalide ou motif | `motif_non_publication` |
+
+Les déclencheurs sont `oeuvre_textes_publication_derivee`, `oeuvre_textes_publication_oeuvre`, `oeuvre_textes_publication_oeuvre_maj`, `oeuvres_publication_derivee`, `oeuvres_motif_propage` et `traductions_publication_derivee`. La règle elle-même vit dans `public.texte_publiable` et `public.oeuvre_publiable`, écrites une seule fois. La date de mise en ligne d’une œuvre s’estampille à sa première publication et ne se réécrit plus.
+
+⚠️ **Une chaîne d’import qui écrit encore l’ancien vocabulaire est traduite, jamais refusée** : `published` et `review` deviennent `termine`, `draft` devient `en_cours`, `retired` devient `invalide` avec un motif générique. Une chaîne qui veut retenir un texte écrit un motif ; écrire `is_public`, `acces_public` ou `est_privee` n’a plus aucun effet.
+
+**Couche éditoriale de la Bible.** Ses tables gardent les codes que la chaîne de GPT écrit : `validated` et `verified` valent validé, `review` vaut terminé, `draft` vaut travail en cours, `rejected` et `retired` valent invalide. La fonction `bible_technical_publication_allowed` dit désormais la règle, tout est publiable sauf `rejected` et `retired`, et la dérogation `technical_publication_override` n’a plus rien à ouvrir. La publication reste le drapeau `is_public` que la chaîne pose, en cascade sous une famille, un membre et une source publiés. ⚠️ Au 11 septembre 2026, 117 blocs de Fillion en relecture restent non publics, dont trois fusionnés (`merged_into`), ainsi qu’une gravure validée : la chaîne publie ce qui est prêt et déclare invalides les doublons.
+
+**Frise, péricopes, bibliographie.** Même grammaire, codes propres : `est_publie` (événement) et `est_affiche` (association) disent publié ; `statut_editorial` des péricopes, des noms et des ouvrages dit la validation (`valide` validé, `a_revoir` terminé, `en_cours` travail en cours, `rejete` et `exclu` invalide). ⛔ Un rejeté ou un exclu ne paraît jamais ; le reste paraît. ⚠️ Au 11 septembre 2026, deux lectures ne l’appliquent pas encore : l’apparat d’une œuvre et « Du même auteur » de Fillion citent un ouvrage exclu s’il y est rattaché, et une péricope rejetée resterait servie (aucune ne l’est).
+
+**Contenus des lecteurs.** Ils n’ont pas d’état de validation mais une modération (§ 52.7).
+
+### 52.5 Qui écrit quoi
+
+- L’**éditeur** règle l’état de validation et, rarement, un motif : dans la Bibliothèque de l’administration (fiche d’une œuvre, « Textes et états ») et dans la fiche d’une traduction. Pour retirer une œuvre, « Dépublier » demande un motif ; « Publier » l’efface.
+- **GPT** écrit les états de ses chaînes dans ce vocabulaire. Une traduction qui ne doit pas paraître prend un motif ou devient invalide ; elle ne se « lève » plus par `est_privee`.
+- **Personne** n’écrit une colonne de publication.
+
+⛔ **La traduction liturgique de l’AELF (TR0012) est invalide pour raison de droits.** Elle sert d’ossature interne à l’alignement et ne se montre qu’au compte administrateur. Ne jamais la publier sans autorisation écrite de l’AELF.
+
+### 52.6 Chiffres, pages et vues
+
+⛔ **Un chiffre public se compte sur ce que le lecteur peut ouvrir** : le bandeau, le rang des lecteurs et « les versets les plus cités » lisent la publication dérivée. ⛔ **Une page lue avec la clé de service ne voit aucune politique** : elle filtre la publication elle-même. Les données structurées de /traductions exigent ainsi `est_biblique`, `visible_public` et `est_privee = false`.
+
+⚠️ **`create or replace view` remplace aussi les options de la vue.** Recréer une vue sans répéter `with (security_invoker = true)` la fait tourner avec les droits de son propriétaire, hors RLS, sans un mot : `v_traductions_page` l’a perdue le 4 septembre 2026 et ne l’a retrouvée que le 11. Toute migration qui recrée une vue répète l’option.
+
+### 52.7 La modération des contenus des lecteurs
+
+Un essai, un commentaire, une proposition ne sont pas validés au sens du § 52.1 : la modération les **accepte**. Leurs états :
+
+- **essais** : `brouillon`, `en_attente` (soumis), `publie`, `a_reviser` (« À revoir » : renvoyé à l’auteur avec un motif), `refuse` (« Refusé », avec un motif). Seul `publie` se lit, par la vue `essais_publies`. « Renvoyer » écrit `a_reviser`, « Refus » écrit `refuse` ; l’auteur reprend l’essai et le soumet de nouveau ;
+- **commentaires et commentaires d’essai** : `valide` (accepté) ou non ; `certifie` place un commentaire en tête des validés ; `supprime` le retire, et la base vide son texte ;
+- **propositions d’œuvre** : `en_attente`, `en_cours`, `acceptee`, `refusee`.
+
+⛔ **Seule la modération écrit une colonne de modération, et la base le garantit**, pas l’écran : `publie_at` et `note_admin` d’un essai, `valide` d’un commentaire d’essai, `valide`, `certifie` et `message_admin` d’un commentaire, le statut d’une proposition. Un auteur republie de lui-même un essai validé qu’il avait retiré, à contenu inchangé ; tout le reste repasse par la modération. ⚠️ La date de validation d’un essai servait de preuve alors que l’auteur pouvait l’écrire : un lecteur se publiait sans modération. Relevé par l’audit du 11 septembre 2026 et corrigé le jour même.
+
+### 52.8 Contrôles
+
+- Les épreuves du lecteur : `node --env-file=.env.local scripts/audit-droits-lecteur.mjs`. Elles tentent, entre autres, l’auto-publication d’un essai, un commentaire d’essai inséré validé et un message de la modération écrit par l’auteur.
+- Ce qui n’est pas publié, et pourquoi : `select id_texte, statut, is_public, motif_non_publication, nb_signes from oeuvre_textes where not is_public;` puis `select id_oeuvre, titre, motif_non_publication from oeuvres where not acces_public;`
+- Les vues hors RLS : `select relname, reloptions from pg_class where relnamespace = 'public'::regnamespace and relkind = 'v' and not coalesce('security_invoker=true' = any(reloptions), false);` Quatre exceptions sont déclarées : `essais_publies`, `classement_utilisateurs`, `lecture_utilisateurs` et `mecenes_publics`.

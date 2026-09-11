@@ -44,6 +44,7 @@
  */
 
 import { choisirEnsembleBilingue, type EnsembleAlignement } from './bilingueAlignement'
+import { etatValidation, rangValidation } from '@/app/lib/etatsPublication'
 
 /** Ce qu'il faut savoir d'une version pour la choisir — et rien de plus. Le libellé,
  *  la mention d'édition et la notice ne servent qu'à l'afficher. */
@@ -61,13 +62,13 @@ export type VersionLisible = {
  *  celui qui fait foi, de 302). */
 export type EnsembleLisible = EnsembleAlignement & { status?: string | null }
 
-/** Le statut d'une version ou d'un ensemble qu'on ne retient plus. */
+/** Le statut d'un ENSEMBLE d'alignement qu'on ne retient plus. Une VERSION, elle, se dit
+ *  invalide (charte § 52) : `estVersionRetiree` lit les deux vocabulaires. */
 const STATUT_RETIRE = 'retired'
 
-/** L'avancement éditorial, du plus sûr au moins sûr. Il ne tranche qu'APRÈS le texte
- *  par défaut : `oeuvre_textes` porte douze lignes `draft`/`review` marquées
- *  `is_default`, et c'est bien celles-là que la page ouvre. */
-const RANG_STATUT: Record<string, number> = { published: 3, review: 2, draft: 1 }
+// L'avancement éditorial d'une version, du plus sûr au moins sûr (validé, terminé, en
+// cours) : `rangValidation`, charte § 52. Il ne tranche qu'APRÈS le texte par défaut,
+// que la page ouvre en premier quel que soit son état.
 
 function replier(valeur: string | null | undefined): string {
   return (valeur ?? '')
@@ -99,9 +100,9 @@ export function estVersionEnLangueOriginale(
   return !version.traducteur?.trim() && memeLangue(version.langue, langueOriginale)
 }
 
-/** Une version retirée du service. */
+/** Une version retirée du service : invalide (charte § 52), ou « retired » d'une chaîne héritée. */
 export function estVersionRetiree(version: Pick<VersionLisible, 'statut'>): boolean {
-  return replier(version.statut) === STATUT_RETIRE
+  return etatValidation(version.statut) === 'invalide'
 }
 
 /**
@@ -124,7 +125,7 @@ export function ensemblesUtilisables<T extends { status?: string | null }>(
  * traductions de 1866, un tri serveur sur le seul millésime, et l'archive devant.
  */
 function comparerVersions(idTexteActif: string | null) {
-  const rangStatut = (v: VersionLisible) => RANG_STATUT[replier(v.statut)] ?? 0
+  const rangStatut = (v: VersionLisible) => rangValidation(v.statut)
   const drapeau = (valeur: boolean) => (valeur ? 1 : 0)
   return (a: VersionLisible, b: VersionLisible): number =>
     drapeau(b.idTexte === idTexteActif) - drapeau(a.idTexte === idTexteActif)

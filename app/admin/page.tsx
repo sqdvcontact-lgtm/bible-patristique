@@ -4,6 +4,10 @@ import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import { estAdmin } from '@/app/lib/verifAdmin'
 import { nomSigne } from '@/app/lib/signatureEssai'
 import AdminClient from './AdminClient'
+import {
+  MESSAGE_CERTIFICATION_NON_RETENUE, MESSAGE_COMMENTAIRE_CERTIFIE, MESSAGE_COMMENTAIRE_VALIDE,
+  MESSAGE_SIGNALEMENT_TRAITE,
+} from '@/app/lib/messagesModeration'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
 const supabaseAdmin = createClient(
@@ -22,7 +26,7 @@ async function actionValiderCommentaire(id: number) {
   if (!(await estAdmin())) return
   await supabaseAdmin.from('commentaires').update({
     valide: true,
-    message_admin: 'Votre commentaire a été validé par la modération.',
+    message_admin: MESSAGE_COMMENTAIRE_VALIDE,
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
 }
@@ -56,7 +60,7 @@ async function actionMarquerTraite(id: number | string) {
   await supabaseAdmin.from('signalements').update({
     traite: true,
     decision: 'accepté',
-    message_admin: 'Merci pour votre signalement. Il a été transmis à la modération et marqué comme traité.',
+    message_admin: MESSAGE_SIGNALEMENT_TRAITE,
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
 }
@@ -86,7 +90,7 @@ async function actionCertifierCommentaire(id: number) {
     certifie: true,
     valide: true,
     demande_validation: false,
-    message_admin: 'Votre commentaire a été validé et certifié par la modération.',
+    message_admin: MESSAGE_COMMENTAIRE_CERTIFIE,
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
 }
@@ -97,7 +101,7 @@ async function actionRetirerDemandeCertification(id: number) {
     certifie: false,
     valide: true,
     demande_validation: false,
-    message_admin: 'Votre commentaire a été validé par la modération, mais la demande de certification n’a pas été retenue.',
+    message_admin: MESSAGE_CERTIFICATION_NON_RETENUE,
     message_admin_at: new Date().toISOString(),
   }).eq('id', id)
 }
@@ -131,14 +135,17 @@ async function actionPublierEssai(id: number) {
   if (!actuel?.publie_at) payload.publie_at = new Date().toISOString()
   await supabaseAdmin.from('essais').update(payload).eq('id', id)
 }
+// « Renvoyer » et « Refus » (charte § 52) : l'essai quitte la lecture et passe « à revoir »
+// ou « refusé ». ⛔ Il repassait en brouillon en gardant sa date de publication, et « Mes
+// écrits » le republiait d'un clic : un refus ne tenait pas (audit du 2026-09-11).
 async function actionRenvoyerBrouillonEssai(id: number, note: string, refus = false) {
   'use server'
   if (!(await estAdmin())) return
   await supabaseAdmin.from('essais').update({
-    statut: 'brouillon',
+    statut: refus ? 'refuse' : 'a_reviser',
     note_admin: note || (refus
       ? 'Votre publication a été refusée par la modération.'
-      : 'Votre publication a été renvoyée en brouillon par la modération.'),
+      : 'Votre publication vous a été renvoyée par la modération pour être revue.'),
     updated_at: new Date().toISOString(),
   }).eq('id', id)
 }
@@ -185,16 +192,16 @@ export default async function AdminPage() {
 
   // ── Vague 1 : 12 requêtes indépendantes en parallèle ─────────────────────
   const vague1 = await Promise.all([
-    supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, reponse_a').eq('valide', false).or('demande_validation.is.null,demande_validation.eq.false').order('created_at', { ascending: false }),
+    // ⛔ Un commentaire que son auteur a supprimé (texte vidé par la base) ne se modère plus.
+    supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, reponse_a').eq('valide', false).eq('supprime', false).or('demande_validation.is.null,demande_validation.eq.false').order('created_at', { ascending: false }),
     supabaseAdmin.from('signalements').select('id, message, traite, created_at, id_segment, id_verset, user_id, importance, url_source').eq('traite', false).order('created_at', { ascending: false }),
     supabaseAdmin.from('quiz_signalements').select('id, raison, commentaire, created_at, id_verset, user_id').eq('traite', false).order('created_at', { ascending: false }).limit(200),
-    supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, demande_validation, certifie, reponse_a').eq('demande_validation', true).order('created_at', { ascending: false }),
+    supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, demande_validation, certifie, reponse_a').eq('demande_validation', true).eq('supprime', false).order('created_at', { ascending: false }),
     supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, updated_at, publie_at, user_id, anonyme').eq('statut', 'en_attente').order('created_at', { ascending: false }),
-    supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, statut, created_at, updated_at, publie_at, user_id, anonyme').eq('statut', 'a_reviser').order('created_at', { ascending: false }),
     supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, anonyme, statut, nb_vues').eq('statut', 'publie').order('publie_at', { ascending: false, nullsFirst: false }),
-    supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, anonyme, statut, nb_vues').eq('statut', 'brouillon').order('updated_at', { ascending: false, nullsFirst: false }),
+    supabaseAdmin.from('essais').select('id, titre, sous_titre, contenu, created_at, updated_at, publie_at, user_id, afficher_nom_reel, anonyme, statut, nb_vues').in('statut', ['brouillon', 'a_reviser', 'refuse']).order('updated_at', { ascending: false, nullsFirst: false }),
     supabaseAdmin.from('signalements').select('message'),
-    supabaseAdmin.from('auteurs').select('id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, traditions, note_biographique, note_theologique, langue_principale, chronologie, anecdotes, influence, photo_position, oeuvres!oeuvres_id_auteur_fkey(id_oeuvre, titre, titre_affichage, sous_titre, titre_original, trad_auteur, editeur, collection, ville, date_publication, date_composition, url_source, genre, genres, profondeur_sommaire, nb_signes, niveaux_sommaire, niveaux_corps, texte_sommaire, texte_corps, afficher_numeros, acces_public, commentaire_traduction, note_editoriale_complete, note_editoriale_complement, note_editoriale_titre)').order('siecle', { ascending: true, nullsFirst: false }),
+    supabaseAdmin.from('auteurs').select('id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, traditions, note_biographique, note_theologique, langue_principale, chronologie, anecdotes, influence, photo_position, oeuvres!oeuvres_id_auteur_fkey(id_oeuvre, titre, titre_affichage, sous_titre, titre_original, trad_auteur, editeur, collection, ville, date_publication, date_composition, url_source, genre, genres, profondeur_sommaire, nb_signes, niveaux_sommaire, niveaux_corps, texte_sommaire, texte_corps, afficher_numeros, acces_public, motif_non_publication, commentaire_traduction, note_editoriale_complete, note_editoriale_complement, note_editoriale_titre)').order('siecle', { ascending: true, nullsFirst: false }),
     supabaseAdmin.from('traductions').select('*').order('ordre', { ascending: true }),
     supabaseAdmin.rpc('count_verifications_pending'),
     supabaseAdmin.from('essais_commentaires').select('id, id_essai, texte, auteur_nom, created_at, user_id').eq('valide', false).eq('supprime', false).order('created_at', { ascending: false }),
@@ -204,6 +211,8 @@ export default async function AdminPage() {
     // Le courrier non relevé, pour la pastille de l'onglet. La table est fermée par
     // RLS : seule la clé de service la voit (voir app/admin/SectionCourrier.tsx).
     supabaseAdmin.from('messages_contact').select('id', { count: 'exact', head: true }).is('traite_le', null),
+    // Les textes de chaque œuvre et leur état de validation (charte § 52), pour la Bibliothèque.
+    supabaseAdmin.from('oeuvre_textes').select('id_texte, id_oeuvre, titre_version, langue, edition_label, statut, is_public, is_default, nb_signes, motif_non_publication').order('id_texte'),
   ])
   const [
     { data: commentaires },
@@ -211,7 +220,6 @@ export default async function AdminPage() {
     quizResult,
     { data: demandesCertification },
     { data: essaisEnAttenteRaw },
-    { data: essaisAReviserRaw },
     { data: essaisPubliesRaw },
     { data: essaisBrouillonsRaw },
     { data: signalementsEssais },
@@ -221,6 +229,7 @@ export default async function AdminPage() {
     { data: commentairesPublicationsRaw },
     { data: commentairesPrivesOeuvres },
     courrierResult,
+    { data: textesOeuvres },
   ] = vague1
   const nbVerifications = (nbVerifRaw as number | null) ?? 0
   const nbCourrier = courrierResult.count ?? 0
@@ -247,7 +256,9 @@ export default async function AdminPage() {
   // Calcul des IDs dépendants
   const essaisValidationRaw = (essaisEnAttenteRaw ?? []).filter(e => !e.publie_at)
   const essaisModificationDepuisPublieRaw = (essaisEnAttenteRaw ?? []).filter(e => !!e.publie_at)
-  const essaisModificationRaw = [...essaisModificationDepuisPublieRaw, ...(essaisAReviserRaw ?? [])]
+  // ⛔ Un essai « à revoir » attend son auteur, non la modération : il vit dans l'archive,
+  // avec les brouillons et les refusés (charte § 52).
+  const essaisModificationRaw = [...essaisModificationDepuisPublieRaw]
   const essaisListesRaw = [...(essaisPubliesRaw ?? []), ...(essaisBrouillonsRaw ?? [])]
 
   const segIds = [
@@ -407,6 +418,7 @@ export default async function AdminPage() {
       signalementAuteurMap={signalementAuteurMap}
       commentaireParentMap={commentaireParentMap}
       auteurs={auteurs}
+      textes={textesOeuvres ?? []}
       traductions={traductions ?? []}
       nbVerifications={nbVerifications ?? 0}
       nbCourrier={nbCourrier}

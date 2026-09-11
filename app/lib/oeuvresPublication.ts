@@ -1,12 +1,12 @@
 // ── Une œuvre est-elle offerte à la lecture ? ────────────────────────────────
 //
-// ⛔ UN SEUL DRAPEAU, `oeuvres.acces_public`, et c'est celui de la base (2026-09-03).
-// Toutes les politiques RLS le lisent — œuvres, textes, segments, notes, alignements —
-// et le trigger `oeuvres_depublication_textes` le garde : on ne retire pas une œuvre
-// dont un texte est encore public. Le site lit donc ce que la base applique, et il
-// n'y a plus deux avis à départager.
+// ⛔ UN SEUL DRAPEAU, `oeuvres.acces_public`, et c'est la BASE qui le pose (charte § 52,
+// 11 septembre 2026) : vrai quand l'œuvre porte au moins un texte publié et aucun motif
+// de non-publication. Le site ne l'écrit jamais ; il le lit, comme toutes les politiques
+// RLS (œuvres, textes, segments, notes, alignements). Une œuvre annoncée sans rien à
+// lire ne peut donc plus exister, alors que six l'étaient encore le matin de la règle.
 //
-// Il y en avait deux. Le site jugeait sur un MARQUEUR, la chaîne
+// Il y avait eu deux avis. Le site jugeait sur un MARQUEUR, la chaîne
 // `[Corpus Scriptura:depublie]` écrite dans `oeuvres.note`, quand la base jugeait sur
 // `acces_public` : « juger de la publication sur un seul, c'est se tromper une fois
 // sur deux », disait AGENTS.md, et c'était l'aveu du problème plutôt que sa règle.

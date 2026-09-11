@@ -26,13 +26,17 @@ export default async function AllerPlusLoinPage() {
   const { data } = await supabaseAdmin
     .from('traductions')
     .select('trad_id, nom, langue, publication_fin_annee')
-    // ⛔ Deux conditions, et deux seulement. `est_biblique` écarte les notices des
-    // traductions patristiques, qui vivent dans la même table. `visible_public` porte
-    // la décision éditoriale, prise ligne à ligne depuis l'administration.
+    // ⛔ Trois conditions. `est_biblique` écarte les notices des traductions
+    // patristiques, qui vivent dans la même table. `visible_public` porte la décision de
+    // présenter la notice, prise ligne à ligne depuis l'administration. `est_privee` (non
+    // publiée, charte § 52) manquait : la lecture se fait sous la clé de service, qui ne
+    // voit aucune politique, et une traduction privée laissée visible paraissait ici
+    // (audit du 2026-09-11).
     // Le filtre portait auparavant sur `schema_numerotation` : un PROXY, qui disait
     // que le texte est versifié, non qu'on souhaitait en publier la notice.
     .eq('est_biblique', true)
     .eq('visible_public', true)
+    .eq('est_privee', false)
     .order('ordre')
   const bibles = ((data ?? []) as { trad_id: string; nom: string; langue: string | null; publication_fin_annee: number | null }[])
     .map(t => ({ trad_id: t.trad_id, nom: t.nom, langue: t.langue, annee: t.publication_fin_annee }))

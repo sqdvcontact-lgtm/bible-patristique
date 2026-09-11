@@ -265,7 +265,7 @@ function TableArchive({ essais: init }: { essais: EssaiArchive[] }) {
                 <Td>{e.auteur}</Td>
                 <Td>
                   <span style={{ fontSize: '0.71875rem', fontWeight: 700, color: estBrouillon ? 'var(--cs-attente)' : 'var(--cs-vert)' }}>
-                    {estBrouillon ? 'Brouillon' : 'Publié'}
+                    {estBrouillon ? (e.statut === 'a_reviser' ? 'À revoir' : e.statut === 'refuse' ? 'Refusé' : 'Brouillon') : 'Publié'}
                   </span>
                 </Td>
                 <Td>

@@ -365,7 +365,7 @@ Solution en place : le serveur (`app/oeuvre/[id]/page.tsx`, `chargerTrancheTexte
 
 # Date de mise en ligne d'une œuvre
 
-`oeuvres.date_mise_en_ligne` (timestamptz) = millésime de l'**édition en ligne**, affiché au colophon de la page de titre (`PageTitre.tsx`, « Édition en ligne, AAAA »). **Estampillée automatiquement à la PREMIÈRE publication** (dans `api/admin/update-oeuvre`, quand `champ='note'` passe à null/vide) et **jamais réécrite ensuite** (`.is('date_mise_en_ligne', null)`) : dépublier puis republier ne change pas la date. Absente → la ligne est masquée.
+`oeuvres.date_mise_en_ligne` (timestamptz) = millésime de l'**édition en ligne**, affiché au colophon de la page de titre (`PageTitre.tsx`, « Édition en ligne, AAAA »). **Estampillée par la base à la PREMIÈRE publication** (déclencheur `oeuvres_publication_derivee`, charte § 52, depuis le 11 septembre 2026 ; c'était auparavant la route `update-oeuvre`) et **jamais réécrite ensuite** : retenir puis rendre une œuvre ne change pas la date. Absente → la ligne est masquée.
 
 # ⚠️ « LA PAGE S'EST RECHARGÉE TOUTE SEULE » — CHERCHER LE DÉPLOIEMENT AVANT LE CODE (2026-09-10)
 
@@ -5938,7 +5938,20 @@ Tous les chiffres du bandeau viennent désormais de **`statistiques_accueil()`**
 - **« Contributeurs »** réunit les administrateurs et les auteurs d'un essai publié. ⚠️ `profils` ne se lit que « soi-même » : compter les administrateurs depuis une page est impossible sans passer par la fonction.
 - **Une tuile dont le chiffre n'a pas de sens se retire** au lieu d'annoncer « 0 % ». Les filets venant de `.accueil-stat + .accueil-stat`, la barre se recompose d'elle-même.
 
-## Un seul verrou pour retenir une œuvre — et un SECOND sur le texte
+## ⛔ La publication se DÉRIVE : un motif pour retenir, jamais un drapeau (2026-09-11)
+
+Doctrine : charte § 52. Depuis le 11 septembre 2026, **`oeuvres.acces_public`, `oeuvre_textes.is_public` et `traductions.est_privee` ne s'écrivent plus** : des déclencheurs les dérivent de l'état de validation (`statut` : `valide`, `termine`, `en_cours`, `invalide`), du `motif_non_publication` et, pour un texte, de son nombre de signes. Une écriture directe y est effacée sans erreur. Validé, terminé et travail en cours sont publiés ; l'invalide ne l'est jamais ; une œuvre n'est publiée que si l'un de ses textes l'est. Règles de code :
+
+- ⛔ **Retenir une œuvre, c'est lui donner un motif** (`POST /api/admin/update-oeuvre`, `champ: 'motif_non_publication'`) ; la rendre, c'est l'effacer. La route rend l'état que la base a décidé : l'écran l'affiche, il ne le devine pas.
+- ⛔ **L'état d'un texte se règle par `POST /api/admin/texte-etat`** (`app/admin/EtatTexteAdmin.tsx`, dans la fiche d'une œuvre de la Bibliothèque). Aucune route n'écrit `is_public`.
+- ⛔ **Un seul vocabulaire à l'écran : `app/lib/etatsPublication.ts`.** Il lit aussi les codes hérités (`published`, `review`, `draft`, `retired`) et ceux de la couche Bible, comme le fait le déclencheur. Aucun libellé d'état ne se recopie ailleurs.
+- ⚠️ **La RPC `admin_update_oeuvre_champ` coupe les déclencheurs** (`session_replication_role = replica`) : une colonne qui décide de la publication ne passe jamais par elle.
+- ⛔ **Le lecteur ne voit aucun état** (charte § 52.3) : ni « à revoir », ni « en cours », ni « bientôt disponible ». Ce sont des mots d'administration.
+- ⚠️ **`create or replace view` remplace aussi les options** : une vue recréée sans `with (security_invoker = true)` repasse hors RLS sans un mot. C'est arrivé à `v_traductions_page` le 4 septembre 2026.
+
+La suite décrit l'état d'avant, gardé pour l'histoire : deux drapeaux posés à la main, et des œuvres annoncées sans rien à lire.
+
+## Un seul verrou pour retenir une œuvre — et un SECOND sur le texte (état d'avant le 11 septembre 2026)
 
 Une œuvre retenue porte **`acces_public = false`**, et rien d'autre. C'est le drapeau que lisent les politiques RLS, le trigger `oeuvres_depublication_textes` et, depuis le 3 septembre 2026, toutes les listes du site (`app/lib/oeuvresPublication.ts`).
 
