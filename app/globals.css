@@ -2593,17 +2593,29 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
    les neutralise, et `flex: 1` rend alors aux deux onglets leurs parts égales.
    ───────────────────────────────────────────────────────────────────────────── */
 .cs-onglets--volet { margin-left: 0; margin-right: 0; }
-/* ⚠️ RECTIFIÉ LE 2026-09-11 : 6 px, non plus 4, et la barre mesure 31 px au
-   lieu des 27 écrits plus haut. Relevé de l'auteur sur le volet de droite d'une
-   œuvre, « Bible | Commentaires | Notes » : « un peu trop petit ». Six pixels la
-   portent à mi-chemin des 35 du modèle ; le trait descend de six à huit pixels
-   sous le mot, et le corps du libellé ne bouge pas. « Livres | Sommaire » et
+/* ⚠️ RECTIFIÉ LE 2026-09-11 : douze pixels de rembourrage vertical, non plus
+   huit, et la barre mesure 31 px au lieu des 27 écrits plus haut. Relevé de
+   l'auteur sur le volet de droite d'une œuvre, « Bible | Commentaires | Notes » :
+   « un peu trop petit ». La barre regagne ainsi la moitié de ce qui la séparait
+   des 35 du modèle, et le corps du libellé ne bouge pas. « Livres | Sommaire » et
    « Niveaux | Fleuron » suivent, et c'est voulu : même variante, donc même
    objet, et un objet n'a qu'une hauteur.
-   ⛔ Le rembourrage reste SYMÉTRIQUE : la flèche du volet d'une œuvre est posée
-   en absolu sur toute la hauteur de la barre et s'y centre ; un rembourrage
-   inégal écarterait le mot de sa flèche. */
-.cs-onglets--volet .cs-onglet { padding: 6px; }
+   ⛔ ET LE REMBOURRAGE N'EST PAS SYMÉTRIQUE : six pixels plus un dixième de
+   cadratin dessus, six moins un dixième dessous. Deux choses tirent le libellé
+   vers le haut : le trait de deux pixels, pris DANS la hauteur de l'onglet (sa
+   bordure basse), et la descente de la police, qui reste vide sous des mots
+   sans jambages et grandit avec le corps. À 6 et 6, le libellé se centrait sur
+   l'onglet MOINS son trait, et au-dessus de la flèche, qui se centre sur toute
+   la hauteur. Relevé de l'auteur le soir même : « le texte paraît pas centré
+   verticalement ».
+   ⚠️ Un rembourrage FIXE ne convient pas partout, et c'est la mesure qui l'a
+   dit, sur les pixels d'une capture, de l'encre des capitales au filet : à 6 et
+   6, un pixel de trop en haut à la racine 16, deux à la racine 22. 7 et 5
+   laissaient un pixel à la racine 22, 7,5 et 4,5 mettaient le texte un pixel
+   trop bas à la racine 16. Le dixième de cadratin suit le corps : écart nul
+   aux racines 16 et 22, d'un demi-pixel à 18 et 20, où un pixel impair ne se
+   partage pas. La barre garde ses 31 px. */
+.cs-onglets--volet .cs-onglet { padding: calc(6px + 0.1em) 6px calc(6px - 0.1em); }
 .cs-onglets--volet .cs-onglets-sep { display: none; }
 
 /* ── Les OPTIONS d'un axe, dans le volet de lecture ───────────────────────────
