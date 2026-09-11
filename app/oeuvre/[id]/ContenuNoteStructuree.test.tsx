@@ -117,7 +117,10 @@ describe('ContenuNoteStructuree', () => {
 // C'est le cas témoin de la charte § 13.18.
 describe('la citation visée, puis la référence, puis le groupe citationnel — I-02', () => {
   const i02 = note(
-    block({ blockId: 'I-02:cs-lemma-target', rank: 1, kind: 'lemma', text: '« Hélas ! avant le temps, le malheur m’a fait vieux. »' }),
+    block({
+      blockId: 'I-02:cs-lemma-target', rank: 1, kind: 'lemma', form: 'verse', rendering: 'Footnote Verse',
+      citationLayout: 'block', text: 'Hélas ! avant le temps, le malheur m’a fait vieux.',
+    }),
     block({
       blockId: 'I-02:b0400', rank: 2, kind: 'reference',
       text: '++Ovide++, *Pontiques*, I, 4, vers 1-2 et 19-20 :', targetBlockId: 'I-02:b0200',
@@ -143,9 +146,10 @@ describe('la citation visée, puis la référence, puis le groupe citationnel �
     expect(html).not.toMatch(/<span[^>]*data-kind="lemma"/u)
   })
 
-  it('compose la citation visée en ROMAIN, au fil : elle est française', () => {
+  it('compose la citation visée en ROMAIN, sortie comme tout vers cité : elle est française', () => {
     expect(unite('I-02:cs-lemma-target')).toContain('font-style:normal')
-    expect(unite('I-02:cs-lemma-target')).toContain('data-disposition="fil"')
+    expect(unite('I-02:cs-lemma-target')).toContain('data-disposition="sortie"')
+    expect(unite('I-02:cs-lemma-target')).toContain('padding-left:1.5em')
   })
 
   it('termine la référence sur son deux-points, Ovide en petites capitales', () => {
@@ -190,23 +194,50 @@ describe('la citation visée fait unité devant ce qui n’est pas un propos, et
     expect(html).toMatch(/<div[^>]*data-block-id="t"[^>]*font-style:normal/u)
   })
 
-  it('garde ses vers ligne à ligne, au FER de la note, en romain', () => {
-    // I-01 : le lemme est un distique français, suivi d'un commentaire.
+  it('sort le distique de la citation visée, ligne à ligne, en romain — I-01', () => {
+    // I-01 de la Consolation : le lemme est un distique français, que la donnée déclare
+    // sorti comme les 37 autres citations visées en vers, suivi d'un commentaire (charte
+    // § 13.18, rectifiée le soir du 11 septembre 2026).
     const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
       block({
-        blockId: 'lem', rank: 1, kind: 'lemma', form: 'verse', rendering: 'Footnote Verse',
+        blockId: 'lem', rank: 1, kind: 'lemma', form: 'verse', rendering: 'Footnote Verse', citationLayout: 'block',
         text: 'Le bonheur qui jadis inspirait mes accents,\nA fait place aux sombres alarmes…',
       }),
       block({ blockId: 'com', rank: 2, text: 'Ce début semble indiquer que Boèce avait cultivé la poésie.' }),
     )} />)
 
-    expect(html).toMatch(/<div[^>]*data-block-id="lem"[^>]*data-disposition="fil"[^>]*font-style:normal/u)
+    expect(html).toMatch(/<div[^>]*data-block-id="lem"[^>]*data-disposition="sortie"[^>]*font-style:normal/u)
     expect(html).toContain('>Le bonheur qui jadis inspirait mes accents,</span>')
     expect(html).toContain('>A fait place aux sombres alarmes…</span>')
+    // ⛔ Chaque ligne porte le retrait d'une citation sortie ; le commentaire reste au fer.
+    expect(html.match(/margin-left:1\.5em/gu) ?? []).toHaveLength(2)
+    expect(html).not.toContain('margin-left:0')
+    expect(html).toMatch(/<div[^>]*data-block-id="com"[^>]*data-disposition="fil"/u)
+  })
+
+  it('garde au FER de la note un vers que la donnée déclare au fil', () => {
+    const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
+      block({
+        blockId: 'lem', rank: 1, kind: 'lemma', form: 'verse', rendering: 'Footnote Verse', citationLayout: 'inline',
+        text: 'Premier vers,\nSecond vers.',
+      }),
+      block({ blockId: 'com', rank: 2, text: 'Le propos.' }),
+    )} />)
+
+    expect(html).toMatch(/<div[^>]*data-block-id="lem"[^>]*data-disposition="fil"/u)
     // ⚠️ Des boîtes, avec leur retrait de suite, mais parties du fer : un vers AU FIL
     // n'a pas l'alinéa d'une citation sortie.
     expect(html).toContain('margin-left:0')
     expect(html).not.toContain('margin-left:1.5em')
-    expect(html).toMatch(/<div[^>]*data-block-id="com"/u)
+  })
+
+  it('ne pose pas sur la ligne du propos une citation visée que la donnée déclare sortie', () => {
+    const html = renderToStaticMarkup(<ContenuNoteStructuree note={note(
+      block({ blockId: 'lem', rank: 1, kind: 'lemma', citationLayout: 'block', text: 'La phrase de l’œuvre.' }),
+      block({ blockId: 'com', rank: 2, text: 'Le propos.' }),
+    )} />)
+
+    expect(html).toMatch(/<div[^>]*data-block-id="lem"[^>]*data-disposition="sortie"[^>]*padding-left:1.5em/u)
+    expect(html).not.toMatch(/<span[^>]*data-kind="lemma"/u)
   })
 })

@@ -303,9 +303,13 @@ export const RETRAIT_BLOC_ENCART = '1.5em'
  * ⛔ UNE TRADUCTION PREND LA DISPOSITION DE SON ORIGINAL quand elle n'en déclare pas :
  * les deux forment un même groupe, et ils ont la même disposition.
  *
- * ⛔ LA CITATION VISÉE — le lemme — N'EST JAMAIS SORTIE : elle ouvre la note, à son fer,
- * sur sa propre ligne. C'est la phrase du TEXTE que la note commente, non un extrait
- * qu'elle rapporte.
+ * ⛔ LA CITATION VISÉE — le lemme — SUIT LA MÊME RÈGLE, SANS EXCEPTION (rectification de
+ * l'auteur, le soir du 11 septembre 2026). Une règle du matin la gardait toujours au fil,
+ * et elle passait outre la donnée : les 38 citations visées en vers de la Consolation
+ * sont déclarées sorties, et le distique « Le bonheur qui jadis inspirait mes accents »
+ * se composait au fer de la note, sans son retrait. Un vers cité se détache, qu'il soit
+ * la phrase de l'œuvre ou celle d'un autre. ⚠️ En prose et sans déclaration, elle reste
+ * au fil : elle ouvre alors la ligne du propos (`ouvreLaLigneDuSuivant`).
  *
  * ⚠️ Sans déclaration, la règle d'avant demeure, et elle vaut pour tout le corpus qui n'a
  * pas reçu la passe : un vers se détache, une traduction aussi.
@@ -323,7 +327,6 @@ type BlocDispose = {
 }
 
 export function dispositionCitation(bloc: BlocDispose, original?: BlocDispose | null): DispositionCitation {
-  if (bloc.kind === 'lemma') return 'fil'
   const declaree = bloc.citationLayout
     ?? (bloc.kind === 'translation' ? original?.citationLayout ?? null : null)
   if (declaree === 'block') return 'sortie'

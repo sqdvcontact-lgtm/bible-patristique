@@ -20,9 +20,16 @@ describe('la disposition d’un bloc de note', () => {
     expect(dispositionCitation({ kind: 'translation', form: 'prose', citationLayout: 'block' }, auFil)).toBe('sortie')
   })
 
-  it('ne sort JAMAIS la citation visée, fût-elle en vers', () => {
-    expect(dispositionCitation({ kind: 'lemma', form: 'verse' })).toBe('fil')
-    expect(dispositionCitation({ kind: 'lemma', form: 'prose', citationLayout: 'block' })).toBe('fil')
+  it('sort la citation visée comme toute citation : la donnée d’abord, puis la forme', () => {
+    // I-01 de la Consolation : le distique « Le bonheur qui jadis inspirait mes accents »,
+    // déclaré sorti comme les 37 autres citations visées en vers. Une règle du 11 septembre
+    // 2026 au matin le gardait au fil malgré la donnée (charte § 13.18, rectifiée le soir).
+    expect(dispositionCitation({ kind: 'lemma', form: 'verse', citationLayout: 'block' })).toBe('sortie')
+    expect(dispositionCitation({ kind: 'lemma', form: 'prose', citationLayout: 'block' })).toBe('sortie')
+    expect(dispositionCitation({ kind: 'lemma', form: 'verse', citationLayout: 'inline' })).toBe('fil')
+    // Sans déclaration : un vers se détache ; la prose reste au fil, où elle ouvre la ligne du propos.
+    expect(dispositionCitation({ kind: 'lemma', form: 'verse' })).toBe('sortie')
+    expect(dispositionCitation({ kind: 'lemma', form: 'prose' })).toBe('fil')
   })
 
   it('garde la règle de la forme là où rien n’est déclaré', () => {

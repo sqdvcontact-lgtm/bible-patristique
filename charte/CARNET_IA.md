@@ -359,3 +359,29 @@ attribution, et les 29 en vers.
 
 ⚠️ **Ce qui reste, et c'est de la donnée** : III-16 range ses deux originaux grecs avant
 leurs deux traductions ; le rendu suit `rank` et ne réordonne pas.
+
+### 2026-09-11 (soir) — Boèce, note I-01 : le distique visé que le rendu laissait au fer
+
+Relevé de l'auteur, sur la note I-01 de la *Consolation* (Mirandol) : « Le bonheur qui
+jadis inspirait mes accents, / A fait place aux sombres alarmes… » devrait être une
+citation sortie.
+
+**La donnée le disait déjà.** Les 38 citations visées en vers du texte portent
+`citation_layout = block`, posé par la passe de données du jour (métadonnée
+`notes_deep_audit_verse_layout_20260911` : « all verse lemmata and quotations are explicit
+detached blocks »). Le rendu passait outre : `dispositionCitation` gardait au fil toute
+citation visée, selon la règle écrite le matin même au § 13.18, avant que la passe ne
+déclare ces vers sortis. Les deux décisions se sont croisées dans la journée, et la
+première l'emportait à l'écran : le distique partait du fer de la note, sans le retrait
+de 1,5 em que prend tout vers cité.
+
+**Les 38** : 30 précèdent un commentaire (21 sur plusieurs lignes, 9 sur une seule), 8
+une référence (7 et 1). Les 88 citations visées en prose ne déclarent rien ; elles
+restent au fil et ouvrent la ligne du propos (§ 13.11).
+
+**Correction** : la citation visée suit la règle commune, la donnée d'abord, puis la
+forme ; une citation visée en prose déclarée sortie ne se pose plus sur la ligne du
+propos (aucun cas au 11 septembre 2026). Contrôle par le vrai chargeur et le vrai
+composant (`tmp/controle-rendu-notes-boece.mts`) : 235 notes, 728 blocs, 651 unités
+rendues, 77 groupes original et traduction, aucune anomalie ; I-01, I-02 et II-18
+rendent leur citation visée sortie.

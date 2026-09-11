@@ -182,12 +182,17 @@ function estReferenceRattachee(block: NoteBlocData) {
  * une citation —, elle fait unité à elle seule et ce qui la suit descend d'une ligne
  * (charte § 13.16.3, § 13.18) : posée contre une référence, elle se lisait comme une
  * phrase de l'auteur que la référence nomme. ⚠️ En VERS, elle fait toujours unité : ses
- * retours à la ligne ne tiennent pas dans la ligne d'un propos.
+ * retours à la ligne ne tiennent pas dans la ligne d'un propos. ⚠️ Et une citation visée
+ * que la donnée déclare SORTIE fait unité elle aussi (charte § 13.18) : un bloc détaché
+ * ne se pose pas sur la ligne d'un autre.
  */
 function ouvreLaLigneDuSuivant(bloc: NoteBlocData, suivant: NoteBlocData | undefined): boolean {
   if (familleDeNature(bloc.kind) !== 'ancrage') return false
   if (!natureReprendLeTexte(bloc.kind)) return true
-  return bloc.form !== 'verse' && suivant !== undefined && familleDeNature(suivant.kind) === 'propos'
+  return bloc.form !== 'verse'
+    && dispositionCitation(bloc) === 'fil'
+    && suivant !== undefined
+    && familleDeNature(suivant.kind) === 'propos'
 }
 
 /**
@@ -303,7 +308,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
         // ⛔ LA DISPOSITION SE LIT DANS LA DONNÉE (`metadata.citation_layout`), et une
         // traduction prend celle de son original : l'original et sa traduction forment
         // un seul groupe citationnel, et ils ont la même disposition. La citation visée
-        // n'est jamais sortie. Voir `dispositionCitation`.
+        // n'y fait pas exception : en vers, elle se détache. Voir `dispositionCitation`.
         const sortie = dispositionCitation(block, block.translationOf ? parId.get(block.translationOf) : null) === 'sortie'
         const references = rattaches.get(block.blockId) ?? []
         const referencesInline = references.filter(reference => reference.rendering === RENDU_INLINE)
@@ -326,9 +331,10 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
         // son apparat, son introduction et l'apparat d'une bible partagent déjà :
         // l'encart de note en était la sixième surface, et la seule à l'ignorer.
         //
-        // ⚠️ UN VERS AU FIL — la citation visée, quand elle est un vers — garde ses
-        // boîtes et son retrait de suite, mais part du FER de la note : son alinéa de
-        // base est celui d'une citation SORTIE, et elle ne l'est pas.
+        // ⚠️ UN VERS AU FIL — ce que la donnée déclare `inline` — garde ses boîtes et son
+        // retrait de suite, mais part du FER de la note : son alinéa de base est celui
+        // d'une citation SORTIE, et il ne l'est pas. La citation visée en vers, elle, est
+        // sortie comme tout vers cité (charte § 13.18).
         //
         // ⛔ ON NE DÉCOUPE PAS un bloc dont le texte est tranché par ailleurs : une
         // notice bibliographique se pose par OFFSETS dans le texte entier

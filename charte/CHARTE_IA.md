@@ -7679,8 +7679,10 @@ des §§ 13.11 et 13.16.3, et elle ne laisse aucun cas au hasard :
   ce qui la suit descend d'une ligne. Collée à « ++Ovide++, *Pontiques*, I, 4 : », la phrase
   de Boèce se lisait comme une phrase d'Ovide ;
 - en vers, elle fait toujours unité : ses retours à la ligne ne tiennent pas dans la ligne
-  d'un propos. Elle garde ses lignes, en boîtes, avec leur retrait de suite, mais part du
-  FER de la note : elle n'est pas une citation sortie.
+  d'un propos. Elle garde ses lignes, en boîtes, avec leur retrait de suite, et elle se
+  DÉTACHE comme tout vers cité : c'est une citation sortie ;
+- en prose, quand la donnée la déclare sortie (`citation_layout = block`), elle fait unité
+  elle aussi et se détache : un bloc sorti ne se pose pas sur la ligne d'un autre.
 
 ⛔ **L'ITALIQUE D'UN BLOC DIT LA LANGUE, ET RIEN D'AUTRE**, comme le § 13.16.3 le prescrit :
 latin en italique, toute autre langue en romain, quelles que soient la nature et la
@@ -7691,8 +7693,11 @@ nom d'auteur n'est pas du latin. La même règle vaut pour l'extraction en docum
 ⛔ **LA DISPOSITION SE LIT DANS LA DONNÉE, AVANT LA FORME ET LA NATURE.**
 `citation_layout = block` sort la citation du fil, `inline` l'y garde. Une traduction qui
 ne déclare rien prend la disposition de son original : les deux forment un même groupe
-citationnel. Sans déclaration, un vers se détache, une traduction aussi. Une citation
-visée n'est jamais sortie.
+citationnel. Sans déclaration, un vers se détache, une traduction aussi, et la prose reste
+au fil. ⛔ **La citation visée n'y fait pas exception** (rectification de l'auteur, le soir
+du 11 septembre 2026) : une règle du matin la gardait toujours au fil, et elle passait outre
+la donnée, qui déclare sorties les citations visées en vers. Un vers cité se détache, qu'il
+soit la phrase de l'œuvre ou celle d'un autre.
 
 ⛔ **LA NATURE ET LA DISPOSITION SONT DEUX AXES.** On ne change pas un `lemma`, une
 `translation` ou une `reference` d'une autre nature pour obtenir un style : on déclare la
