@@ -7620,3 +7620,37 @@ déjà.
 ⚠️ **Ce qui reste ouvert** : les deux volets de la page Bible n'ont pas la même première ligne,
 31 px à gauche et 42 à droite, où la barre des Pères porte un compte sous son libellé. Question
 posée, non tranchée.
+
+### 38.29.1 Le libellé se centre sur l'onglet ENTIER, et le rembourrage suit le corps
+
+Relevé de l'auteur le soir même du § 38.29 : « c'est un peu mieux, mais le texte paraît pas
+centré verticalement ».
+
+⛔ **LE § 38.29 SE TROMPAIT EN VOULANT LE REMBOURRAGE SYMÉTRIQUE.** Deux choses tirent le
+libellé vers le haut. Le trait vert de l'onglet retenu est pris DANS la hauteur de l'onglet,
+comme la bordure transparente des autres onglets ; et la descente de la police reste vide sous
+des mots qui n'ont pas de jambages, et grandit avec eux. À six pixels dessus et six dessous, le
+libellé se centrait donc sur l'onglet moins son trait, et au-dessus de la flèche de repli, qui
+se centre sur toute la hauteur de la barre. C'est le rembourrage égal, et non l'inégal, qui
+écartait le mot de sa flèche.
+
+⛔ **LE REMBOURRAGE VAUT SIX PIXELS PLUS UN DIXIÈME DE CADRATIN DESSUS, ET SIX MOINS UN DIXIÈME
+DESSOUS**, et la barre garde ses 31 px. Un rembourrage fixe ne pouvait pas convenir partout : le
+décalage croît avec le corps, d'un pixel à la racine 16 à deux pixels à la racine 22. Sept et
+cinq laissaient un pixel de trop en haut sur un grand écran ; sept et demi et quatre et demi
+mettaient le texte un pixel trop bas sur un portable. Le dixième de cadratin suit le corps :
+l'écart est nul aux racines 16 et 22, d'un demi-pixel aux racines 18 et 20, où un pixel impair
+ne se partage pas, et d'au plus un pixel d'écran sous une échelle de 1,25.
+
+⚠️ **Le centrage se mesure sur l'ENCRE, et sur les PIXELS d'une capture**, des capitales au
+filet. Les métriques que rend le canevas sont arrondies au pixel entier, et ne suffisent pas à
+trancher un écart de cet ordre. Et la barre mesurée doit tomber sur la même fraction de pixel
+qu'en ligne : le moteur cale la ligne de base sur un pixel entier, et une fraction différente
+déplace le texte d'un pixel sans que le rembourrage y soit pour rien.
+
+⚠️ **Au doigt, la même règle vaut** : sous `hover: none`, l'onglet prend 2,75 rem de haut, et
+c'est encore l'écart des deux rembourrages qui centre le libellé sur l'onglet entier.
+
+⚠️ **Ce qui reste ouvert** : le MODÈLE des barres de page porte le même écart, 8 px dessus et
+8 dessous pour le même trait et la même police. Il n'a pas été relevé, et le corriger toucherait
+toutes les barres d'onglets de page du site : c'est une décision de l'auteur.

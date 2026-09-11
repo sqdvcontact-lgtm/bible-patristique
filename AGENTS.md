@@ -2114,9 +2114,11 @@ Trois traits, et trois seulement :
 
 **Barre : 35 → 27 px ; tête : 243 → 235 px.** Quatre partis ont été rendus à la largeur réelle et dans les deux thèmes avant de trancher (`tmp/planche-onglets-volet.tsx`) : le modèle tel quel, le modèle resserré, le couple sur la pastille du volet, et deux mots au fer sans barre. Le resserrement l'emporte, étant à la fois **le plus léger des quatre** (27 px contre 33 et 31) et le seul qui garde le modèle. ⛔ La pastille a été écartée bien qu'élégante : elle recréait un contrôle propre au volet, c'est-à-dire la divergence même que le modèle commun a fermée.
 
-⚠️ **RECTIFIÉ LE 2026-09-11 : 6 px, et la barre mesure 31.** Relevé de l'auteur sur le volet de droite d'une œuvre, « Bible | Commentaires | Notes » : « un peu trop petit ; tu peux augmenter un peu la hauteur de cette ligne ? ». Le resserrement était juste dans son principe et trop fort dans sa mesure : six pixels portent la barre à mi-chemin des 35 du modèle, le trait descend de six à huit pixels sous le mot, et le corps du libellé ne bouge pas (11,5 px). Mesuré sur planche avec la feuille réelle, à la racine 16 : **27,25 → 31,25 px**, pour les trois barres de la variante. Doctrine : charte § 38.29.
+⚠️ **RECTIFIÉ LE 2026-09-11 : 12 px de rembourrage vertical au lieu de 8, et la barre mesure 31.** Relevé de l'auteur sur le volet de droite d'une œuvre, « Bible | Commentaires | Notes » : « un peu trop petit ; tu peux augmenter un peu la hauteur de cette ligne ? ». Le resserrement était juste dans son principe et trop fort dans sa mesure : la barre regagne la moitié de ce qui la séparait des 35 du modèle, et le corps du libellé ne bouge pas (11,5 px). Mesuré sur planche avec la feuille réelle, à la racine 16 : **27,25 → 31,25 px**, pour les trois barres de la variante. Doctrine : charte § 38.29 et § 38.29.1.
 - ⛔ **La hausse porte sur la VARIANTE, donc sur ses trois barres**, « Livres | Sommaire » et « Niveaux | Fleuron » comprises : c'est le même objet, et il n'a qu'une hauteur. Hausser une barre seule par un style en ligne, ce serait recomposer le modèle, ce que `OngletsPage` proscrit.
-- ⚠️ **Le rembourrage reste SYMÉTRIQUE** : la flèche de repli du volet d'une œuvre est posée en absolu sur toute la hauteur de la barre (`top: 0; bottom: 0`) et s'y centre ; un rembourrage inégal écarterait le mot de sa flèche.
+- ⛔ **ET LE REMBOURRAGE N'EST PAS SYMÉTRIQUE : `calc(6px + 0.1em)` dessus, `calc(6px - 0.1em)` dessous** (rectifié le soir même ; relevé de l'auteur : « le texte paraît pas centré verticalement »). Deux choses tirent le libellé vers le haut : le trait de deux pixels, pris DANS la hauteur de l'onglet (`border-bottom`, transparent sur les onglets non retenus), et la descente de la police, qui reste vide sous des mots sans jambages et grandit avec le corps. À 6 et 6, le libellé se centrait sur l'onglet moins son trait, et au-dessus de la flèche, qui se centre sur toute la hauteur (`top: 0; bottom: 0`). ⚠️ Cette section a d'abord écrit l'inverse, « un rembourrage inégal écarterait le mot de sa flèche » : c'est le rembourrage ÉGAL qui l'en écartait.
+- ⛔ **UN REMBOURRAGE FIXE NE PEUT PAS CONVENIR PARTOUT, et c'est la mesure qui l'a dit.** L'encre se mesure sur les PIXELS d'une capture, des capitales au filet, non sur les métriques de la police, que le canevas arrondit au pixel entier. À 6 et 6 : 1 px de trop en haut à la racine 16, 1,5 aux racines 18 et 20, 2 à la racine 22. 7 et 5 laissent 1 px à la racine 22 ; 7,5 et 4,5 mettent le texte 1 px trop bas à la racine 16. Le dixième de cadratin suit le corps : écart nul aux racines 16 et 22, un demi-pixel à 18 et 20 (un pixel impair ne se partage pas), au plus un pixel d'écran sous l'échelle 1,25. Planche `tmp/planche-onglets-centrage.mjs`, analyse `tmp/analyse-onglets-centrage.mjs`.
+- ⚠️ **La planche doit poser la barre sur la MÊME fraction de pixel qu'en ligne** : chaque rang y a une hauteur entière, et la barre du site y fait 3,5 rem. Le moteur cale la ligne de base sur un pixel entier, et une fraction différente déplace le texte d'un pixel sans que le rembourrage y soit pour rien — la première série de mesures, aux rangs de hauteur libre, l'avait faussée. ⚠️ Et un demi-pixel fixe ne sert à rien à l'échelle 1 : 6,5 et 5,5 y rendaient exactement 6 et 6.
 - ⚠️ Au doigt rien ne change : le plancher de 2,75 rem de `.cs-onglet` sous `@media (hover: none)` l'emportait déjà.
 - ⚠️ **Ce qui reste ouvert** : les deux volets de la page Bible n'ont toujours pas la même première ligne, 31 px à gauche et 42 à droite, où la barre des Pères porte un compte sous son libellé. Question posée, non tranchée.
 
@@ -10466,3 +10468,59 @@ l'« avant » se prend en restaurant les deux fichiers depuis `git show HEAD:…
 rendu. ⛔ Rien n'y est rejoué de mémoire. ⚠️ Le sérialiseur de styles doit connaître les
 propriétés SANS unité (`lineHeight`, `fontWeight`…) : un « line-height: 1.38px » ferait
 annoncer un défaut qui n'existe que dans la planche.
+
+# ⛔ LES GLOSES — en regard, dans la Polyglotte, et leur composition (2026-09-11)
+
+Relevé de l'auteur sur Luc 13, 1, en « Ancien français-français » : la glose de la
+traduction moderne (TR0013) faisait face à une colonne vide, alors que le témoin la porte
+(`LUK.13.EXTRA.1A`, `phenomenon = gloss`, vérifiée). Doctrine : charte § 15.4. Règles de
+code :
+
+- ⛔ **EN REGARD, LE TÉMOIN SE LIT PAR SES SEGMENTS ÉDITORIAUX, CRÉNEAU PAR CRÉNEAU**
+  (`chargerVersetsEditoriaux`), et une glose n'a pas de créneau : ce chemin ne pouvait pas
+  la voir. `chargerLectureBilingue` charge donc à part les gloses de TR0009
+  (`chargerGloses899`, `app/lib/bible899.ts`), dans la vue où la traduction moderne va
+  chercher les siennes.
+- ⛔ **LES FILTRES DE `chargerGloses899` SONT CEUX DE `chargerVersetsCanoniquesV2`, au mot
+  près.** La traduction ne retient que les gloses que cette liste atteste, autant qu'elle en
+  compte sous chaque hôte, et c'est ce RANG qui apparie. Filtrer l'une sans l'autre (sur
+  `verification_status`, par exemple) décalerait les rangées en silence.
+- **L'appariement vit dans `app/lib/bibleEditionBilingue.ts`** (pur, testé) :
+  `cleDeGlose(hôte, rang)` est la place d'une glose sur l'axe, `cellulesDeGloses` numérote
+  les gloses d'une colonne par hôte, `axeAvecGloses` insère chaque glose après son créneau,
+  `gloseSansVisAVis` reconnaît une rangée qu'une seule colonne porte. ⛔ Jamais par
+  identifiant : UUID de `versets_v2` d'un côté, clé de segment de l'autre, et `ordre_slot`
+  670 contre `alignment_order` 669 pour la même glose.
+- ⛔ **L'AXE NE DÉPEND PLUS DE L'ORDRE DES COLONNES.** Il se composait en réunissant leurs
+  lignes l'une après l'autre : la glose moderne ne tombait après son verset que parce que la
+  traduction venait en premier dans les lignes de la famille. L'ordre inverse l'aurait
+  rejetée en fin de chapitre, sans que rien ne le dise.
+- ⚠️ **`chargerVersetsCanoniquesV2` pose `_canonHote`** sur chaque glose : c'est par lui
+  qu'elle s'apparie. Elle suivait bien son hôte dans la liste, mais une position n'est pas
+  une donnée.
+- ⚠️ **Une rangée de glose ne porte ni `data-canon-id` ni la marque d'une rangée
+  cliquable.** La reprise de lecture (`versetEnTete`, BibleLayout) lit un numéro dans
+  `data-canon-id`, et l'UUID qu'y portait la glose moderne lui en donnait un faux :
+  `parseInt` rendait 9. Elle porte `data-glose`, son créneau hôte.
+- ⚠️ **`axeCanonique` porte désormais les clés des gloses**, et `page.tsx` le passe tel quel
+  à `loadBibleEditionChapter`, qui n'en fait que des `.in(…)` : une clé de glose n'y apparie
+  rien. Il y recevait déjà l'UUID de la glose moderne.
+- ⛔ **DANS LA POLYGLOTTE, UNE GLOSE A SA PROPRE LIGNE.** Les lignes hors canon s'y
+  regroupent par numérotation d'origine, et les gloses d'un même verset portent toutes le
+  numéro de leur hôte : sous la clé commune, la dernière écrasait les autres. 48 versets du
+  témoin portent plusieurs gloses (104 en tout), et 56 ne paraissaient pas. La clé d'une
+  glose est sa clé de segment (`cleGlose899`), sans la colonne, pour que le développé et le
+  diplomatique d'une même glose partagent sa ligne. ⚠️ Toutes les gloses d'un chapitre
+  portaient en outre le même identifiant, `899:TR0009:null`.
+- **Le corps d'une glose est `CORPS_GLOSE`, son libellé `LIBELLE_GLOSE`**
+  (`app/lib/compositionBible.ts`). La lecture simple les écrit dans `app/glosses899.css`,
+  faute de pouvoir importer une constante ; `compositionBible.test.ts` confronte les deux
+  écritures et exige le rang le plus proche d'un point de moins. ⚠️ Dans la Polyglotte, le
+  corps se pose sur la CELLULE et sur la marge : la lettrine n'a pas de corps propre (son
+  étui est en `em` de la cellule), elle reste donc sur la ligne de base du texte.
+- ⚠️ **Contrôle sur la donnée réelle** : `tmp/controle-glose-en-regard.mts` rejoue
+  `chargerLectureBilingue` sur les 88 chapitres du témoin qui portent une glose. Le
+  2026-09-11 : 284 rangées de glose, 284 appariées, aucune seule, aucune mal placée.
+  ⚠️ Hors de Next, `server-only` n'est pas installé : le script le remplace par un module
+  vide (`NODE_PATH=tmp/shims`). Et un `.tsx` importé depuis un `.mts` arrive enveloppé, son
+  export par défaut valant `{ default: … }`.
