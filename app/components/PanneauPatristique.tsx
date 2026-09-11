@@ -1,15 +1,23 @@
 'use client'
 
 import { Z_FENETRE, Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useId, useMemo, useRef, useCallback } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { supabase } from "@/app/lib/supabase"
 import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
-import { parseNotes } from '@/app/lib/notes'
-import { lireSuiteAppels, detacherDernierMot, separateurAppels } from '@/app/oeuvre/[id]/appelNote'
-import NoteTooltip from '@/app/lib/NoteTooltip'
+// ⛔ Le texte d'un extrait se rend par le MOTEUR de la page de lecture, et nulle part
+// ailleurs : le volet en portait une copie, qui avait pris du retard sur les conventions
+// du corpus et ne savait ni projeter une ancre positionnelle, ni lire une note
+// structurée. Seul l'APPEL change ici — il déplie la note au-dessus de l'extrait au
+// lieu d'ouvrir un encart flottant (`NoteDuVolet`).
+import { ContenuDeLaNote, rendreTexteAvecNotes } from '@/app/oeuvre/[id]/appelNote'
+import type { NoteAffichee } from '@/app/oeuvre/[id]/oeuvreTypes'
+import { chargerNotesDesSegments, type NotesDuSegment } from '@/app/lib/notesStructureesChargement'
+import { clesDesExtraits, composerExtrait, segmentDeLaCle } from '@/app/lib/extraitVolet'
+import { AppelDuVolet, NoteDuVolet } from '@/app/components/NoteDuVolet'
+import { intituleDeLaNote, libelleDeLaNote, LIBELLE_NOTE_SANS_TYPE } from '@/app/lib/typeNote'
+import { signesDeLaNote } from '@/app/lib/compositionNote'
 import IconeSignalement from '@/app/components/IconeSignalement'
-import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { anneeChronologique, comparerChronologie } from '@/app/lib/chronologiePatristique'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
@@ -27,7 +35,6 @@ import MarqueMecene from '@/app/components/MarqueMecene'
 import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, RETRAIT_REPONSE } from '@/app/lib/styleCommentaire'
 import RailVolet from '@/app/components/RailVolet'
 import IconeChevron from '@/app/components/IconeChevron'
-import { capitaliserInitiale } from '@/app/lib/citation'
 import { ecartsAMesurer, numerosDeLEcart, regrouperCitations, texteDuGroupe, type Ecart } from '@/app/lib/regrouperCitations'
 import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { chargerContrepartiesFrancaises } from '@/app/lib/contrepartieFrancaise'
@@ -52,6 +59,10 @@ type Segment = {
   // `contrepartieFrancaise`). Ce qu'on lit, ouvre et prélève est le français ; le
   // retrait d'un lien, lui, vise toujours le segment d'origine.
   idLien: number
+  /** Les segments français d'un EMPAN, quand la contrepartie d'un latin en réunit
+   *  plusieurs (`chargerContrepartiesFrancaises`) : le volet pose les appels et lit les
+   *  notes de chacun (`composerExtrait`). */
+  parties?: { id_texte: string; segment_key: string | null; segment_texte: string; notes?: string | null }[]
 }
 type OeuvreInfo = {
   titre: string; sous_titre?: string; auteur_nom: string; id_auteur?: string
@@ -64,93 +75,6 @@ type OeuvreInfo = {
   genre?: string | null
 }
 type Commentaire = { id: number; texte: string; auteur_nom: string; created_at: string }
-
-// Rendu du texte d'un segment avec ses appels de note [[N]] : l'appel devient un
-// exposant vert discret ; la note s'ouvre en info-bulle élégante (NoteTooltip) —
-// même infrastructure que la page Œuvre. Les autres balises (**gras**, *ital*,
-// ^^exp^^, liens, siècles) sont rendues comme dans rendreTexteEnrichi.
-// Séparateur d’une suite d’appels : la forme de l’exposant de NoteTooltip, sans
-// son bouton — il n’ouvre aucune note.
-const STYLE_SEPARATEUR_APPELS: React.CSSProperties = {
-  display: 'inline-block', position: 'relative', top: '-0.3em', verticalAlign: 'baseline',
-  // ⛔ `normal` : un appel de note est toujours en romain, et son séparateur avec
-  // lui (voir `app/lib/appelsDeNote.ts`). Sans cela il s'inclinait dans un texte
-  // en italique pendant que les deux appels qu'il sépare restaient droits.
-  lineHeight: 0, fontSize: '0.68em', color: 'var(--cs-vert)', fontStyle: 'normal',
-}
-
-function rendreTexteAvecNotes(texte: string, notes: Record<string, string>): React.ReactNode {
-  const noeuds: React.ReactNode[] = []
-  const numeros = new Map<string, number>()
-  const numeroDe = (marqueur: string) => {
-    if (/^\d+$/.test(marqueur)) return Number(marqueur)
-    const connu = numeros.get(marqueur)
-    if (connu) return connu
-    const n = numeros.size + 1
-    numeros.set(marqueur, n)
-    return n
-  }
-  // ⛔ LA MÊME LISTE DE CONVENTIONS QUE LE MOTEUR DE LA PAGE DE LECTURE, à la lettre
-  // près : `app/oeuvre/[id]/appelNote.tsx`, `rendreTexteAvecNotes`. Elle en était une
-  // COPIE, et une copie diverge — celle-ci ignorait `<i>…</i>` et `++petites
-  // capitales++`, si bien qu'un lecteur voyait « <i>avec l'argent</i> » en toutes
-  // lettres dans une citation d'Augustin (relevé de l'auteur, 2026-09-10), quand la
-  // page de l'œuvre rendait la même phrase en italique. Le corpus porte ce balisage par
-  // dizaines de milliers : 1 383 dans les Questions sur l'Heptateuque, 6 876 versets de
-  // la Sacy. `PanneauPatristique.balisage.test.ts` confronte désormais les deux
-  // écritures et refuse qu'elles s'écartent.
-  // ⚠️ Les deux alternatives ajoutées le sont EN FIN, pour ne pas renuméroter les
-  // groupes de celles qui précèdent.
-  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]+)\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>|\+\+(.+?)\+\+/g
-  let dernierIndex = 0, k = 0, m: RegExpExecArray | null
-  while ((m = regex.exec(texte))) {
-    if (m.index > dernierIndex) noeuds.push(texte.slice(dernierIndex, m.index))
-    if (m[1] !== undefined) noeuds.push(<strong key={k++}>{m[1]}</strong>)
-    else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{m[2]}</sup>)
-    else if (m[3] !== undefined) noeuds.push(<em key={k++}>{m[3]}</em>)
-    else if (m[4] !== undefined) noeuds.push(
-      <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{m[4]}</a>
-    )
-    else if (m[6] !== undefined) {
-      // Mêmes règles que la page de lecture (voir appelNote.tsx) : l’appel ne se
-      // sépare jamais du mot ni de la ponctuation qui l’entourent, et deux notes
-      // qui se suivent s’écrivent « 2 & 3 ».
-      const { marqueurs, ponctuation, fin } = lireSuiteAppels(texte, m.index)
-      regex.lastIndex = fin
-      let attache = ''
-      const precedent = noeuds[noeuds.length - 1]
-      if (typeof precedent === 'string') {
-        const [avant, mot] = detacherDernierMot(precedent)
-        if (mot) { noeuds[noeuds.length - 1] = avant; attache = mot }
-      }
-      const appels: React.ReactNode[] = []
-      marqueurs.forEach((marqueur, rang) => {
-        if (rang > 0) appels.push(
-          <span key={k++} style={STYLE_SEPARATEUR_APPELS}>{separateurAppels(rang, marqueurs.length)}</span>
-        )
-        appels.push(<NoteTooltip key={k++} lettre={String(numeroDe(marqueur))} el={{ type: 'note', texte: notes[marqueur] ?? '' }} />)
-      })
-      noeuds.push(
-        <span key={k++} style={{ whiteSpace: 'nowrap' }}>{attache}{appels}{ponctuation}</span>
-      )
-    }
-    else if (m[7] !== undefined) {
-      noeuds.push(<span key={k++} style={STYLE_ROMAIN}>{m[7]}</span>)
-      noeuds.push(<sup key={k++} style={STYLE_ORDINAL}>{m[8]}</sup>)
-      noeuds.push(m[9])
-    }
-    // ⚠️ `<i></i>` vide ne rend rien : une balise refermée aussitôt est une scorie
-    // d'import, et un `<em>` vide laisserait un nœud sans texte dans la citation.
-    else if (m[10] !== undefined) { if (m[10]) noeuds.push(<em key={k++}>{m[10]}</em>) }
-    else if (m[11] !== undefined) {
-      noeuds.push(<span key={k++} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{m[11]}</span>)
-    }
-    dernierIndex = regex.lastIndex
-  }
-  if (dernierIndex < texte.length) noeuds.push(texte.slice(dernierIndex))
-  return noeuds
-}
-
 
 const ACTION_BTN: React.CSSProperties = {
   background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
@@ -342,13 +266,38 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
 // Composant partagé unique (voir app/components/ModalSignalement), importé en tête.
 
 // ── Carte segment ─────────────────────────────────────────────────────────────
-function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignaler, onSupprimeLien }: {
+/** Le type d'une note pour le lecteur d'écran, ou « Note » quand elle n'en déclare aucun. */
+const libelleNoteVolet = (contenu: NoteAffichee | undefined) =>
+  !contenu || typeof contenu === 'string' ? LIBELLE_NOTE_SANS_TYPE : libelleDeLaNote(contenu)
+
+function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, userId, isAdmin, colonneLien, natures, onSignaler, onSupprimeLien }: {
   s: Segment; info?: OeuvreInfo; userId: string | null; isAdmin: boolean
+  /** Ce qu'on LIT : l'initiale capitalisée et les appels structurés projetés (voir
+   *  `composerExtrait`). `s.segment_texte` reste le texte canonique, celui qu'on copie. */
+  texteAffichage: string
+  /** Les notes que ses appels ouvrent, par marqueur. */
+  notes: Record<string, NoteAffichee>
+  /** Ses notes structurées ne sont pas encore arrivées. */
+  notesEnAttente: boolean
   colonneLien: string
   natures?: string[]
   onSignaler: (s: Segment, titreOeuvre?: string) => void
   onSupprimeLien: (id: number) => void
 }) {
+  // ── LA NOTE DÉPLIÉE ─────────────────────────────────────────────────────────
+  // Une seule à la fois par extrait : ouvrir une autre la remplace, recliquer son appel
+  // la referme. Elle s'ouvre AU-DESSUS du texte, sur toute la largeur du volet
+  // (`NoteDuVolet`), et non plus dans une infobulle que le défileur coupait.
+  const idNote = useId()
+  const [ouverte, setOuverte] = useState<{ marqueur: string; numero: number; auClavier: boolean } | null>(null)
+  const appelOuvrant = useRef<HTMLElement | null>(null)
+  const fermerNote = () => {
+    setOuverte(null)
+    // Le foyer revient à l'appel qui l'avait ouverte ; sans lui, il retomberait au haut
+    // du document.
+    appelOuvrant.current?.focus({ preventScroll: true })
+  }
+  const contenuOuvert = ouverte ? notes[ouverte.marqueur] : undefined
   const niveaux = [s.ref_niv1, s.ref_niv2, s.ref_niv3].filter(Boolean).join(', ')
   const LIBELLE_NATURE: Record<string, string> = {
     citation_directe: 'Citation directe', paraphrase: 'Paraphrase',
@@ -415,6 +364,24 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
         </div>
       </div>
 
+      {/* ⛔ LA NOTE S'OUVRE AU-DESSUS DU TEXTE QU'ELLE ANNOTE, sur toute la largeur du
+          volet (demande de l'auteur, 2026-09-11). L'appel reste dans le texte, marqué tant
+          qu'elle est ouverte ; c'est lui qui la referme, avec la croix et Échap. */}
+      {ouverte && (
+        <NoteDuVolet
+          id={idNote}
+          numero={ouverte.numero}
+          intitule={contenuOuvert && typeof contenuOuvert !== 'string' ? intituleDeLaNote(contenuOuvert) : null}
+          etiquette={`${libelleNoteVolet(contenuOuvert)} ${ouverte.numero}`}
+          signes={contenuOuvert ? signesDeLaNote(contenuOuvert) : 0}
+          enAttente={contenuOuvert === undefined && notesEnAttente}
+          auClavier={ouverte.auClavier}
+          onFermer={fermerNote}
+        >
+          <ContenuDeLaNote contenu={contenuOuvert ?? ''} />
+        </NoteDuVolet>
+      )}
+
       {/* Texte du segment.
           ⚠️ L'INITIALE SE CAPITALISE, À L'AFFICHAGE SEUL (demande de l'auteur, 2026-09-04 :
           « toute référence patristique citée dans le volet de droite doit comporter une
@@ -427,7 +394,22 @@ function SegmentCard({ s, info, userId, isAdmin, colonneLien, natures, onSignale
           ⚠️ Elle passe AVANT `rendreTexteAvecNotes` : la capitale appartient au texte, non
           au balisage, et l'appliquer après aurait demandé de descendre dans le rendu. */}
       <p lang="fr" style={{ fontSize:'0.78125rem', lineHeight:'1.38', color:'var(--cs-texte-fort)', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
-        {rendreTexteAvecNotes(capitaliserInitiale(s.segment_texte), parseNotes(s.notes))}
+        {/* ⚠️ La capitale et les appels projetés arrivent POSÉS (`composerExtrait`) : la
+            capitale passe avant la projection, qui compte ses offsets dans le texte. */}
+        {rendreTexteAvecNotes(texteAffichage, notes, 'corps', {
+          appel: ({ marqueur, contenu, numeroVisible }) => (
+            <AppelDuVolet
+              numero={numeroVisible}
+              libelle={libelleNoteVolet(contenu)}
+              ouverte={ouverte?.marqueur === marqueur}
+              controle={idNote}
+              onBasculer={(auClavier, appel) => {
+                appelOuvrant.current = appel
+                setOuverte(avant => (avant?.marqueur === marqueur ? null : { marqueur, numero: numeroVisible, auClavier }))
+              }}
+            />
+          ),
+        })}
       </p>
     </div>
   )
@@ -1304,6 +1286,39 @@ export default function PanneauPatristique({
   const debutItems = pageCouranteItems * ITEMS_PAR_PAGE
   const finItems = Math.min(debutItems + ITEMS_PAR_PAGE, itemsGroupes.length)
   const itemsPage = itemsGroupes.slice(debutItems, finItems)
+
+  // ── LES NOTES STRUCTURÉES DES EXTRAITS DE LA PAGE ──────────────────────────
+  // ⛔ Le volet ne lisait que `segments.notes`, le champ hérité : les extraits dont les
+  // notes ne vivent que dans les tables structurées s'y montraient sans un appel. Il
+  // charge désormais celles de la PAGE montrée — une vingtaine d'extraits, pris dans des
+  // œuvres différentes — et les garde : revenir à une page déjà vue ne coûte rien.
+  // ⚠️ `undefined` : pas encore demandé ; `null` : la lecture a échoué, et l'extrait
+  // retombe sur ses notes héritées (`composerExtrait`). Une page ne se retient pas pour
+  // autant : le texte paraît tout de suite, ses appels le rejoignent.
+  const [notesVolet, setNotesVolet] = useState<Map<string, NotesDuSegment | null>>(() => new Map())
+  const notesDemandees = useRef<Set<string>>(new Set())
+  // ⚠️ Une CHAÎNE, et non la liste : l'effet ne se rejoue que si la page change
+  // d'extraits, non à chaque rendu, où `itemsPage` est un tableau neuf.
+  const clesPage = clesDesExtraits(itemsPage).join('\n')
+  useEffect(() => {
+    const manquantes = clesPage ? clesPage.split('\n').filter(cle => !notesDemandees.current.has(cle)) : []
+    if (manquantes.length === 0) return
+    for (const cle of manquantes) notesDemandees.current.add(cle)
+    chargerNotesDesSegments(supabase, manquantes.map(segmentDeLaCle))
+      .then(charges => setNotesVolet(avant => {
+        const apres = new Map(avant)
+        for (const cle of manquantes) apres.set(cle, charges.get(cle) ?? { notes: {}, ancres: [] })
+        return apres
+      }))
+      .catch(erreur => {
+        console.error('[volet] notes structurées indisponibles, repli sur les notes héritées :', erreur)
+        setNotesVolet(avant => {
+          const apres = new Map(avant)
+          for (const cle of manquantes) apres.set(cle, null)
+          return apres
+        })
+      })
+  }, [clesPage])
   // ── L'EN-TÊTE NE REDIT PLUS LA RÉFÉRENCE QU'ON LIT ──────────────────────────
   //
   // ⛔ « Genèse 13, 5 » en tête du volet de droite est parti (2026-09-04, demande de
@@ -1720,9 +1735,13 @@ export default function PanneauPatristique({
                     ? premier.seg
                     : { ...premier.seg, segment_texte: texteDuGroupe(groupe, cleCitation), notes: groupe.map(g => g.seg.notes).filter(Boolean).join('\n') || null }
                   const naturesUnion = Array.from(new Set(groupe.flatMap(g => g.categories)))
+                  // Ce qu'on LIT : la capitale, les appels structurés projetés, et les notes
+                  // que ces appels ouvrent (voir `composerExtrait`).
+                  const extrait = composerExtrait(groupe, notesVolet)
                   return (
                     <SegmentCard
                       key={groupe.map(g => g.seg.id).join('_')} s={segFusionne} info={oeuvres[premier.seg.id_oeuvre]}
+                      texteAffichage={extrait.texte} notes={extrait.notes} notesEnAttente={extrait.enAttente}
                       userId={userId} isAdmin={isAdmin}
                       colonneLien={premier.col} natures={naturesUnion}
                       onSignaler={(s, titreOeuvre) => { if (exigerCompte('signaler une erreur')) setSegSignale({ seg: s, titreOeuvre }) }} onSupprimeLien={premier.onSupprime}

@@ -17,8 +17,9 @@
  * ⚠️ Il ne porte AUCUN crochet : c'est un composant pur, que `renderToStaticMarkup`
  * rend hors du navigateur. C'est ce qui permet à une planche de le juger.
  */
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, KeyboardEventHandler, ReactNode, Ref } from 'react'
 import {
+  STYLE_CADRE_ENCART_DANS_LE_FLUX,
   STYLE_FACE_NUMERO, STYLE_FERMER_ENCART, STYLE_INTITULE_ENCART, STYLE_NUMERO_SEUL,
   STYLE_NUMERO_TETE, STYLE_RESERVE_CROIX, STYLE_TETE_ENCART,
   styleCadreEncart, styleCorpsEncart,
@@ -33,9 +34,14 @@ export type PlacementEncart = {
   largeur?: number
 }
 
+/** L'encart posé DANS LE FLUX de la page, au lieu de flotter au-dessus d'elle : le
+ *  volet patristique l'ouvre au-dessus de l'extrait qu'il annote, sur toute sa largeur,
+ *  et le lit en entier (voir `STYLE_CADRE_ENCART_DANS_LE_FLUX`). */
+export const DANS_LE_FLUX = 'dans-le-flux' as const
+
 export function EncartNote({
   numero, intitule, placement, signes, onFermer, epinglee = false, marque, style,
-  onMouseEnter, onMouseLeave, children,
+  onMouseEnter, onMouseLeave, id, etiquette, cadreRef, onKeyDown, children,
 }: {
   /** Le numéro que le LECTEUR voit, celui qu'il vient de cliquer. ⛔ Jamais le
    *  numéro interne : les traductions parallèles affichaient celui-là, si bien que
@@ -44,7 +50,9 @@ export function EncartNote({
   /** Le TYPE de la note, ou `null` quand elle n'en déclare aucun — le cas de 58 %
    *  du corpus. ⛔ On n'écrit pas « Note 277 » à qui vient de cliquer le 277. */
   intitule?: string | null
-  placement: PlacementEncart
+  /** La place d'un encart qui flotte, ou `DANS_LE_FLUX` pour une note qui s'ouvre dans
+   *  la page même, à la largeur de son bloc. */
+  placement: PlacementEncart | typeof DANS_LE_FLUX
   /** La longueur de la note, en signes. ⛔ Elle décide de la JUSTIFICATION : sous le
    *  seuil du gris (charte § 3.11), un propos de deux lignes ne se justifie pas. */
   signes: number
@@ -68,17 +76,36 @@ export function EncartNote({
    *  geste, l'encart ne fait que le recevoir. */
   onMouseEnter?: () => void
   onMouseLeave?: () => void
+  /** L'identifiant du cadre, quand un appel le désigne (`aria-controls`). */
+  id?: string
+  /** Le nom accessible du cadre, quand il est une RÉGION de la page et non une bulle
+   *  qu'on survole : la note dépliée dans le volet patristique. */
+  etiquette?: string
+  /** Le cadre lui-même, pour la surface qui doit le ramener dans la vue ou lui donner le
+   *  foyer. ⚠️ Une référence REÇUE : le composant, lui, ne porte toujours aucun crochet. */
+  cadreRef?: Ref<HTMLDivElement>
+  /** Échap, pour la surface qui ferme au clavier depuis l'intérieur du cadre. */
+  onKeyDown?: KeyboardEventHandler<HTMLDivElement>
   children: ReactNode
 }) {
   const attribut = marque ? { [marque]: '' } : {}
+  const dansLeFlux = placement === DANS_LE_FLUX
   return (
     <div
+      ref={cadreRef}
+      id={id}
+      // ⚠️ Une note posée dans la page est une RÉGION qu'on nomme, et que la surface peut
+      // atteindre pour lui donner le foyer ; une bulle de survol n'est ni l'une ni l'autre.
+      role={dansLeFlux ? 'region' : undefined}
+      aria-label={etiquette}
+      tabIndex={dansLeFlux ? -1 : undefined}
+      onKeyDown={onKeyDown}
       data-encart-note="" data-epingle={epinglee ? '' : undefined} {...attribut}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onMouseDown={e => e.stopPropagation()}
       style={{
-        ...styleCadreEncart(placement),
+        ...(dansLeFlux ? STYLE_CADRE_ENCART_DANS_LE_FLUX : styleCadreEncart(placement)),
         // ⛔ EN LIGNE, et il le faut : le cadre pose son filet en style en ligne, et
         // une règle de feuille perdrait contre lui sans `!important`. La PULSATION,
         // elle, vit dans la feuille : une animation bat le style en ligne par l’ordre

@@ -537,6 +537,32 @@ export function styleCadreEncart(
 }
 
 /**
+ * LE CADRE POSÉ DANS LE FLUX : la note qui s'ouvre AU-DESSUS de l'extrait qu'elle
+ * annote, dans le volet patristique (2026-09-11).
+ *
+ * ⛔ Le même objet que l'encart flottant — fond, filet d'or, rayon —, et deux choses de
+ * moins. Ni position fixe ni rang d'empilement : il vit dans la page, et le volet le fait
+ * défiler avec le reste. Ni hauteur plafonnée : dans un volet de 260 px, l'encart flottant
+ * de 220 px coupait les notes longues au bord du défileur (relevé de l'auteur : « une
+ * occurrence de note qui ne s'affichait pas en entier »), et la note se lit désormais
+ * ENTIÈRE. ⚠️ Ni ombre : une ombre dit qu'un objet flotte au-dessus de la page, et
+ * celui-ci n'y flotte pas.
+ *
+ * ⚠️ `position: relative` n'est pas un ornement : la croix se pose en absolu dans le
+ * coin du cadre, et sans hôte positionné elle irait se ranger dans celui du volet.
+ */
+export const STYLE_CADRE_ENCART_DANS_LE_FLUX: CSSProperties = {
+  position: 'relative',
+  width: '100%',
+  boxSizing: 'border-box',
+  display: 'flex',
+  flexDirection: 'column',
+  background: 'var(--cs-fond)',
+  border: '1px solid var(--cs-or-doux)',
+  borderRadius: '8px',
+}
+
+/**
  * LE CORPS : ce qui défile, et le seul endroit où le blanc intérieur se pose.
  *
  * ⛔ SA GÉOMÉTRIE NE DÉPEND DE RIEN, et surtout pas de la présence de la croix.

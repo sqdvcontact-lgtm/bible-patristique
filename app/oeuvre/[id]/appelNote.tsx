@@ -1,12 +1,13 @@
 'use client'
 
-import { Children, cloneElement, isValidElement, useCallback, useEffect, useRef, useState } from 'react'
+import { Children, Fragment, cloneElement, isValidElement, useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { STYLE_ROMAIN, STYLE_ORDINAL } from '@/app/lib/siecles'
 import { normaliserTitreTechnique } from '@/app/lib/titres'
 import { terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
+import { rendreTexteEnrichi } from './texteEnrichi'
 import { intituleDeLaNote, libelleDeLaNote, LIBELLE_NOTE_SANS_TYPE } from '@/app/lib/typeNote'
 import type { NoteAffichee } from './oeuvreTypes'
 import {
@@ -166,6 +167,23 @@ export function lireSuiteAppels(texte: string, debut: number) {
   return { marqueurs, ponctuation, fin: fin + ponctuation.length }
 }
 
+/**
+ * LE PROPOS D'UNE NOTE, tel que l'encart et le volet patristique le composent.
+ *
+ * ⛔ Une seule écriture pour les deux : une note structurée passe par
+ * `ContenuNoteStructuree` ; une note héritée (une simple chaîne) se termine par
+ * `terminerNote` et se rend ENRICHIE. ⚠️ L'encart la rendait brute, si bien qu'un
+ * `*titre*` s'y lisait avec ses astérisques, quand l'infobulle du volet l'enrichissait
+ * déjà : les deux surfaces se sont accordées sur la meilleure des deux.
+ */
+export function ContenuDeLaNote({ contenu }: { contenu: NoteAffichee }) {
+  if (typeof contenu !== 'string') return <ContenuNoteStructuree note={contenu} />
+  const texte = terminerNote(contenu)
+  return texte
+    ? <>{rendreTexteEnrichi(texte)}</>
+    : <em style={{ color: 'var(--cs-texte-faible)' }}>Note indisponible</em>
+}
+
 // ── L'ENCART D'UNE NOTE ───────────────────────────────────────────────────────
 // Le CADRE vient de `EncartNote`, un seul pour les trois surfaces du site ; ce qui
 // vit ici est le GESTE — survoler, cliquer, fermer — et lui seul.
@@ -317,9 +335,7 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
       onMouseEnter={entrerEncart}
       onMouseLeave={quitterEncart}
     >
-      {typeof contenu === 'string'
-        ? (terminerNote(contenu) || <em style={{ color: 'var(--cs-texte-faible)' }}>Note indisponible</em>)
-        : <ContenuNoteStructuree note={contenu} />}
+      <ContenuDeLaNote contenu={contenu} />
     </EncartNote>
   ) : null
 
@@ -359,6 +375,16 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
  */
 export type OptionsRenduNotes = {
   enManchette?: (contenu: NoteAffichee) => React.ReactNode | null
+  /**
+   * L'APPEL LUI-MÊME, pour une surface qui ouvre ses notes autrement que par l'encart
+   * flottant : le volet patristique les déplie au-dessus de l'extrait (`NoteDuVolet`).
+   *
+   * ⛔ Seul le GESTE change. La lecture du texte, le numéro, la suite « 2 & 3 », le mot et
+   * la ponctuation qui voyagent avec l'appel restent ceux du moteur, et c'est tout
+   * l'intérêt de n'en avoir qu'un : le volet en portait une copie, qui avait pris du
+   * retard sur les conventions du corpus.
+   */
+  appel?: (appel: { marqueur: string; contenu: NoteAffichee; numeroVisible: number }) => React.ReactNode
 }
 
 export function rendreTexteAvecNotes(
@@ -460,7 +486,11 @@ export function rendreTexteAvecNotes(
         const numeroVisible = typeof contenu === 'string'
           ? numeroDe(marqueur)
           : (contenu.displayNumber ?? contenu.noteNumber)
-        appels.push(<AppelNote key={k++} numeroVisible={numeroVisible} contenu={contenu} variante={variante} />)
+        // ⚠️ Une surface peut porter son propre appel (`options.appel`) : le volet
+        // patristique déplie la note dans la page au lieu d'ouvrir un encart.
+        appels.push(options.appel
+          ? <Fragment key={k++}>{options.appel({ marqueur, contenu, numeroVisible })}</Fragment>
+          : <AppelNote key={k++} numeroVisible={numeroVisible} contenu={contenu} variante={variante} />)
       })
       noeuds.push(
         <span key={k++} style={{ whiteSpace: 'nowrap' }}>{attache}{appels}{ponctuation}</span>

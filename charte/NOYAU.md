@@ -408,6 +408,7 @@
 **§ 13.11 — Les QUATRE FAMILLES de natures, et ce qu'elles commandent**
 
 - ⚠️ Pourquoi une famille plutôt que huit règles.
+- ⛔ LA FORME `verse` PRIME SUR LA COMPOSITION PAR DÉFAUT DE LA FAMILLE.
 - ⛔ L'ANCRAGE EN TÊTE NE FAIT PAS PARAGRAPHE.
 - ⚠️ En tête seulement — un lemme qui reparaît au milieu d'une note y joue un autre rôle, et une note faite du seul ancrage se rend seule plutôt que de disparaître.
 - ⛔ DANS LA FAMILLE DU RENVOI, C'EST LA DESTINATION QUI COMMANDE.
@@ -583,6 +584,11 @@
 **§ 13.16.3 — Orthographe et typographie de chaque note**
 
 - ⛔ CHAQUE NOTE SUBIT UN CONTRÔLE ORTHOGRAPHIQUE ET TYPOGRAPHIQUE INTÉGRAL.
+- ⛔ une reprise brève du texte français commenté, lorsqu’elle reste en prose, se compose en romain entre guillemets français `« … »` ; l’italique ne signale jamais à lui seul la citation ;\n-
+- ⛔ POSITION DE LA RÉFÉRENCE ET DISTINCTION ENTRE LEMME ET CITATION DOCUMENTAIRE.
+- ⛔ On ne fusionne jamais une référence externe et le lemme sous la forme `Référence : « lemme »`, qui ferait croire que l’auteur référencé prononce le texte commenté.
+- ⛔ RÈGLE ABSOLUE DE STYLE DES CITATIONS.
+- ⛔ GROUPE CITATIONNEL ORIGINAL + TRADUCTION.
 - ⛔ tout mot, syntagme ou courte expression en latin enchâssé dans une phrase française **doit** être en italiques ; les caractères grecs en alphabet grec restent en romain ; les translittérations du grec en alphabet latin sont en italiques ;
 
 **§ 13.16.4 — Abréviations : développer par défaut**
@@ -601,9 +607,10 @@
 
 - ⚠️ UNE NOTE PEUT ÊTRE RADICALEMENT RECOMPOSÉE POUR ÊTRE LISIBLE.
 
-**§ 13.16.10 — Procédure obligatoire — neuf passes, œuvre par œuvre**
+**§ 13.16.10 — Procédure obligatoire — dix passes, œuvre par œuvre**
 
 - ⛔ LA REPRISE GÉNÉRALE DES NOTES SE FAIT DANS CET ORDRE.
+- ⛔ Le modèle fusionné `Référence : « lemme »` est interdit.
 - ⛔ COMPTE RENDU OBLIGATOIRE APRÈS CHAQUE PASSE.
 - ⛔ LA PRUDENCE FINALE EST ASYMÉTRIQUE  — typographie, déploiement et référencement peuvent être fortement normalisés ; contenu, autorité, attribution et information philologique ne se modifient qu’avec preuve.
 
@@ -704,6 +711,11 @@
 
 **§ 15.4 — Matière surnuméraire, gloses et autres additions propres à un témoin**
 
+- ⛔ UNE GLOSE SE COMPOSE EN ITALIQUE, UN POINT SOUS LE TEXTE QU’ELLE ACCOMPAGNE (décision de l’auteur, 11 septembre 2026 : « pour les gloses, en règle générale, il faudra adopter l’ital et réduire de 1 point le corps du texte »).
+- ⚠️ Deux corps, parce qu’une glose suit la colonne où elle tombe : en ancien français, elle se compose comme l’ancien français.
+- ⛔ EN REGARD, LA GLOSE DU TÉMOIN FAIT FACE À SA TRADUCTION.
+- ⚠️ Une rangée de glose n’est pas un verset : elle ne se sélectionne pas pour ouvrir l’apparat patristique, qui se charge sur un créneau canonique.
+- ⛔ UNE GLOSE SANS VIS-À-VIS PREND LA LARGEUR DES DEUX COLONNES (décision de l’auteur, même jour : « la glose peut occuper tout l’espace central puisqu’aucun texte d’origine n’est proposé »).
 - ⚠️ La vue est dans `internal` : `anon` et `authenticated` n’ont pas `USAGE` sur ce schéma.
 - ⛔ ne jamais ouvrir globalement `internal` au public pour permettre le rendu.
 - ⛔ Ne jamais copier le texte du fragment dans cette table et ne jamais utiliser les mappings AELF pour représenter cet ordre matériel : ce sont deux axes différents.
@@ -2693,6 +2705,129 @@
 - ⛔ Et la mesure a démenti un chiffre que le
 - ⚠️ La mesure se prend en IFRAMES, une par écran.
 
+## § 51. Les objets d’interface partagés
+
+**§ 51.8 — L'OUTIL DE PARTAGE — une ligne, et des canaux NOMMÉS**
+
+- ⛔ UNE SEULE LIGNE, LA MÊME PARTOUT, ET COURTE : « CS — QUI, QUOI ».
+- ⚠️ Aucun guillemet dans la ligne, pas même autour d'un titre de publication
+- ⛔ LES CANAUX SONT NOMMÉS, ET LE LIEN NU GARDE LA PREMIÈRE PLACE.
+- ⛔ LES MARQUES SE DESSINENT AU TRAIT, DANS L'IDIOME DU SITE
+- ⚠️ La fenêtre montre CE QU'ELLE VA ENVOYER
+- ⚠️ L'adresse partagée est celle qu'on LIT, habits de lecture compris.
+- ⛔ ET L'ADRESSE MONTRÉE PORTE SEULE SON INFORMATION : le seuil de 4,5 s'y applique.
+
+## § 38. Les surfaces de lecture — volets, fiches et listes
+
+**§ 38.26.1 — La rangée MONTRE TOUT, et ne cède que TOUT ENTIÈRE**
+
+- ⛔ UN REPLI QUI JOUE EN TOUTES CIRCONSTANCES N'EST PLUS UN REPLI.
+- ⛔ ET ELLE CÈDE D'UN COUP, JAMAIS PAR DEGRÉS.
+- ⛔ CE QUI DISPUTE LA PLACE SE COMPTE, IL NE SE MESURE PAS.
+- ⚠️ Une rangée n'a pas le même nombre de cibles pour tout le monde
+- ⚠️ LE PRIX DE LA CIBLE DE L'ADMINISTRATEUR SE CHIFFRE, et il reste à trancher.
+- ⚠️ Et « Eusèbe de Césarée » porte la rangée de l'administrateur d'UN SEUL PIXEL
+
+## § 51. Les objets d’interface partagés
+
+**§ 51.8.1 — La BULLE — rien que les logos, et le glyphe porte seul**
+
+- ⛔ UN GESTE D'UNE SECONDE NE PREND PAS LE MILIEU DE L'ÉCRAN.
+- ⛔ **DEUX ÉNONCÉS DU § 51.8 TOMBENT AVEC ELLE, ET IL FAUT LE DIRE PLUTÔT QUE DE LES LAISSER
+- ⚠️ Ce qui reste entier du § 51.8 : la LIGNE elle-même, les canaux offerts, le
+- ⚠️ CE QUE LE RETRAIT COÛTE EST RÉEL, et l'arbitrage est assumé
+- ⛔ **CONSÉQUENCE, ET ELLE COMMANDE LE DESSIN : LA RECONNAISSANCE NE REPOSE PLUS QUE SUR LE
+- ⛔ ET CE QUI S'ACCORDE ENTRE VOISINES EST L'ÉTENDUE D'ENCRE, NON LA BOÎTE DÉCLARÉE.
+- ⚠️ La croix de X reste l'exception qui confirme la mesure
+- ⛔ LA GÉOMÉTRIE DE LA BULLE S'ÉCRIT DEUX FOIS, ET UNE GARDE LES CONFRONTE.
+- ⚠️ La mesure tient aux deux bouts de la police fluide
+- ⛔ TOUT CE QUI EST HORS DE LA BULLE LA FERME, LE DÉCLENCHEUR COMPRIS
+- ⚠️ L'ACCUSÉ DE COPIE SE DIT, ET NE S'ÉCRIT QUE SUR UN ÉCHEC.
+- ⚠️ Et le seuil de 4,5 du § 51.8 n'a plus d'objet sur cette surface
+
+## § 18. Interface de lecture
+
+**§ 18.2 — Ce qui est fait pour le TÉLÉPHONE ne se donne pas sur un ORDINATEUR**
+
+- ⛔ DEUX NAVIGATIONS À LA FOIS NE SONT PAS UN CHOIX, C'EST UN DÉFAUT.
+- ⛔ LA CAUSE EST LE PIÈGE DU STYLE EN LIGNE, PAYÉ UNE SIXIÈME FOIS.
+- ⛔ LE REMÈDE N'EST PAS DE CRIER, C'EST DE RENDRE LA PROPRIÉTÉ À LA FEUILLE.
+- ⚠️ C'est la même règle que pour un état de SURVOL, qu'un fond posé en ligne rend
+- ⛔ ET LA MESURE SE PREND SUR LA FEUILLE SERVIE, non sur celle du dépôt.
+- ⚠️ UN AXE SANS GARDE DÉRIVE, et celui-ci n'en avait pas.
+- ⚠️ Et le défaut ne se lisait NI dans le composant, NI dans la feuille
+
+## § 38. Les surfaces de lecture — volets, fiches et listes
+
+**§ 38.26.2 — L'ŒUVRE est en TÊTE du volet, et son TITRE ouvre la fiche**
+
+- ⛔ CE QU'ON LIT PASSE AVANT QUI L'A ÉCRIT.
+- ⛔ LE TITRE PORTE LA FICHE, ET LE LIEN S'EFFACE.
+- ⚠️ Le titre se compose comme un TITRE, jamais comme un lien
+- ⚠️ La mesure de la rangée d'actions ne bouge pas
+
+**§ 38.27 — Le mode de lecture par DÉFAUT est le FRANÇAIS SEUL, et un choix ne survit pas à la visite**
+
+- ⛔ UNE PRÉFÉRENCE SANS FIN N'EST PLUS UNE PRÉFÉRENCE.
+- ⚠️ Un lien qui NOMME le mode l'emporte toujours.
+- ⛔ ET UNE CLÉ QUE PLUS RIEN N'ÉCRIT NE SE LIT PLUS.
+
+**§ 38.28 — La PREMIÈRE LIGNE du volet patristique porte la flèche, et son fond est UNIFORME**
+
+- ⛔ UNE BANDE QUI NE PORTE PLUS QU'UN CONTRÔLE N'EST PLUS UNE LIGNE, C'EST UNE MARGE.
+- ⛔ UN FOND APPARTIENT À LA BARRE, JAMAIS À L'ONGLET RETENU.
+- ⚠️ La teinte NE CHANGE PAS, elle change de porteur.
+- ⛔ On ne PROFITE pas d'un déplacement pour hausser une dose : le
+- ⛔ L'ONGLET RETENU SE DISTINGUE ALORS COMME DANS LE MODÈLE PARTAGÉ
+- ⚠️ Une teinte translucide se relit sur son NOUVEAU sol.
+- ⚠️ ET CE LIBELLÉ ÉTAIT DÉJÀ SOUS LE SEUIL, sur tout le site.
+- ⚠️ La flèche du repli reste sous son seuil elle aussi
+
+## § 13. Notes et apparats
+
+**§ 13.17 — Les BLOCS d'une note se composent d'une seule main**
+
+- ⛔ UN SEUL FER POUR TOUT CE QUI SE DÉTACHE, ET IL SE COMPTE EN `em`.
+- ⛔ UN VERS NE SE CÉSURE NI NE SE JUSTIFIE, ET L'ENCART EST SA SIXIÈME SURFACE.
+- ⚠️ Et la boîte règle le lemme sans qu'on ait à le nommer.
+- ⛔ LA BOÎTE DOIT PORTER LA NOTE, ET L'ESTIMATION NE COMPTAIT QUE DES SIGNES.
+- ⚠️ On SURESTIME plutôt qu'on ne sous-estime
+- ⚠️ La portée est étroite, et elle est mesurée
+
+## § 38. Les surfaces de lecture — volets, fiches et listes
+
+**§ 38.29 — La barre d'onglets d'un VOLET : le modèle commun, resserré, et 31 px de haut**
+
+- ⛔ **UNE BARRE D'ONGLETS DE VOLET N'EST PAS UNE BARRE DE PLUS : C'EST LE MODÈLE COMMUN À LA
+- ⛔ On ne la recompose jamais en styles en ligne.
+- ⛔ SON REMBOURRAGE VAUT 6 PX, ET ELLE MESURE 31 PX.
+- ⛔ LA HAUTEUR APPARTIENT À LA VARIANTE, DONC À TOUTES LES BARRES QUI LA PORTENT
+- ⚠️ Au doigt rien ne change : le plancher tactile de l'onglet (2,75 rem) l'emportait
+
+**§ 38.29.1 — Le libellé se centre sur l'onglet ENTIER, et le rembourrage suit le corps**
+
+- ⛔ LE § 38.29 SE TROMPAIT EN VOULANT LE REMBOURRAGE SYMÉTRIQUE.
+- ⛔ **LE REMBOURRAGE VAUT SIX PIXELS PLUS UN DIXIÈME DE CADRATIN DESSUS, ET SIX MOINS UN DIXIÈME
+- ⚠️ Le centrage se mesure sur l'ENCRE, et sur les PIXELS d'une capture
+
+## § 13. Notes et apparats
+
+**§ 13.18 — Ce que le RENDU d'une note lit, et la ligne de la citation visée**
+
+- ⛔ LE TEXTE LU EST LA COLONNE `text`, ET ELLE SEULE.
+- ⛔ LA CITATION VISÉE N'OUVRE QUE LA LIGNE D'UN PROPOS.
+- ⛔ L'ITALIQUE D'UN BLOC DIT LA LANGUE, ET RIEN D'AUTRE
+- ⚠️ Un renvoi posé en ligne dans un bloc latin ne prend pas son italique : un
+- ⛔ LA DISPOSITION SE LIT DANS LA DONNÉE, AVANT LA FORME ET LA NATURE.
+- ⛔ LA NATURE ET LA DISPOSITION SONT DEUX AXES.
+- ⛔ UN CONTRÔLE DE NOTE SE FAIT SUR LE RENDU, JAMAIS SUR LA SEULE BASE.
+
+**§ 13.19 — La note dans le VOLET PATRISTIQUE — dépliée au-dessus de l'extrait**
+
+- ⛔ UN VOLET LIT LES MÊMES NOTES QUE LA PAGE DE L'ŒUVRE.
+- ⛔ DANS UN VOLET, LA NOTE NE FLOTTE PAS : ELLE SE DÉPLIE.
+- ⛔ ELLE S'OUVRE AU CLIC, JAMAIS AU SURVOL.
+
 ---
 
 ## Couverture — les chapitres que le noyau représente le moins
@@ -2702,8 +2837,8 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | § | chapitre | signes | énoncés | pour mille signes |
 |---|---|---:|---:|---:|
 | 3 | Typographie — les signes, les espaces, l’enric | 64 407 | 46 | **0.7** |
-| 15 | Corpus biblique et traductions | 15 280 | 11 | **0.7** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
+| 15 | Corpus biblique et traductions | 17 044 | 16 | **0.9** |
 | 35 | Chantier Fillion — la composition du paratexte | 79 344 | 79 | **1.0** |
 | 48 | Le protocole d’océrisation d’une bible | 46 262 | 51 | **1.1** |
 | 37 | La notice d’une traduction — le bandeau et l’e | 8 621 | 10 | **1.2** |

@@ -65,6 +65,11 @@ export type SegmentFrancais = {
   ref_niv2: string
   ref_niv3: string
   notes?: string | null
+  /** Les segments d'un EMPAN, quand la contrepartie en réunit plusieurs (groupe aux
+   *  effectifs inégaux, plus bas). ⚠️ Le texte réuni ne dit plus où finit chacun, et le
+   *  volet en a besoin : les notes d'un segment sont rangées sous SA clé, et ses ancres
+   *  positionnelles comptent leurs offsets dans SON texte (`composerExtrait`). */
+  parties?: SegmentFrancais[]
 }
 
 /**
@@ -242,6 +247,9 @@ export async function chargerContrepartiesFrancaises(
       ...segs[0],
       segment_texte: segs.map((x) => x.segment_texte).join(' '),
       notes: segs.map((x) => x.notes).filter(Boolean).join('\n') || null,
+      // ⚠️ Et chacun des paragraphes réunis, que le volet relit pour poser les appels et
+      // lire les notes de chacun : le texte réuni ne porte plus que la clé du premier.
+      parties: segs,
     })
   }
   return contreparties

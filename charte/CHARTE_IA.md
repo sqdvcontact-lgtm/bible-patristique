@@ -7702,3 +7702,19 @@ disposition.
 ne prouve rien de ce qu'on lit : le contrôle charge chaque note par le chargeur de la page,
 la rend par le composant de la page, relit ce qui en sort, et se termine dans l'interface
 réellement servie.
+
+### 13.19 La note dans le VOLET PATRISTIQUE — dépliée au-dessus de l'extrait
+
+Décision de l'auteur, 11 septembre 2026 : « revoir les notes quant à leur affichage dans le volet de droite, par exemple de la page Bible (une occurrence de note qui ne s'affichait pas en entier) ; si possible, qu'elles s'affichent au-dessus du segment auxquelles elles sont associées, dans toute la largeur du volet ».
+
+⛔ **UN VOLET LIT LES MÊMES NOTES QUE LA PAGE DE L'ŒUVRE.** Structurées si le segment en porte, héritées sinon ; les appels positionnels se projettent dans le texte de LEUR segment, avant qu'aucun groupe d'extraits ne se joigne. Une surface qui montre un extrait ne réécrit ni le chargement des notes ni leur rendu : elle emploie ceux de la page de lecture, et n'y change que le geste qui ouvre la note. Le volet portait une copie du moteur de rendu, et elle ne savait lire ni une note structurée ni une ancre positionnelle.
+
+⛔ **DANS UN VOLET, LA NOTE NE FLOTTE PAS : ELLE SE DÉPLIE.** Au-dessus de l'extrait qu'elle annote, dans le flux, sur toute la largeur du volet, et ENTIÈRE : un encart flottant s'ouvre dans le défileur du volet, qui le coupe. Le cadre est celui de toutes les notes du site (§ 13.13), sans ce qu'un objet posé dans la page n'a pas : position fixe, ombre, hauteur plafonnée.
+
+⛔ **ELLE S'OUVRE AU CLIC, JAMAIS AU SURVOL.** Posée dans le flux, elle pousse le texte vers le bas ; ouverte au passage de la souris, elle le ferait sauter sous le curseur, et le lecteur perdrait l'appel qu'il visait.
+
+⚠️ **UNE NOTE À LA FOIS PAR EXTRAIT.** L'appel reste marqué tant qu'elle est ouverte ; un second clic sur lui, la croix ou Échap la referment, et le foyer revient à l'appel. Ouverte au clavier, elle prend le foyer. Si son haut sort de la vue, on le ramène sous le bord du volet, et rien d'autre ne bouge.
+
+⛔ **UN EMPAN SE LIT MORCEAU PAR MORCEAU.** Quand la contrepartie française d'un latin réunit plusieurs paragraphes (§ 38.8), chacun garde ses notes et ses appels : le texte réuni ne porte que l'identité du premier, et les appels des suivants s'ouvraient sur « Note indisponible ».
+
+⚠️ **LIMITE CONNUE.** Le numéro de l'appel est, dans le volet, le numéro interne, celui du marqueur, et non celui qui repart à 1 par division (§ 13.8) : l'établir demanderait toutes les notes d'un texte pour en montrer quelques-unes.
