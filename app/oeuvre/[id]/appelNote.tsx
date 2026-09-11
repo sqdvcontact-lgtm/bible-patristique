@@ -22,6 +22,7 @@ import { STYLE_ANCRE_MANCHETTE } from '@/app/lib/manchetteRenvois'
 // L'axe est la CAPACITÉ DU POINTEUR, jamais la largeur : une tablette de 1024 px
 // en paysage n'a pas de souris (charte, « LE DOIGT »).
 import { useSansSurvol } from '@/app/lib/useEstMobile'
+import { ATTRIBUT_CLE_NOTE } from './ouvrirNoteDansLeTexte'
 import {
   PONCTUATION_ATTACHEE,
   detacherDernierMot,
@@ -189,6 +190,10 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
   // ⚠️ Le nom accessible, lui, NOMME toujours : « Note 277 » est exactement ce
   // qu'il faut dire à qui ne voit pas l'exposant.
   const libelle = typeof contenu === 'string' ? LIBELLE_NOTE_SANS_TYPE : libelleDeLaNote(contenu)
+  // L'appel dit QUELLE note il ouvre : c'est par là que l'inventaire des notes la
+  // retrouve dans la page pour l'ouvrir (`ouvrirNoteDansLeTexte.ts`). Une note héritée,
+  // simple chaîne, n'a pas de clé.
+  const attributCle = typeof contenu === 'string' ? {} : { [ATTRIBUT_CLE_NOTE]: contenu.noteKey }
 
   const [visible, setVisible] = useState(false)
   const [figee, setFigee] = useState(false)
@@ -322,6 +327,7 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
     <>
       <sup
         ref={marceurRef as React.RefObject<HTMLElement>}
+        {...attributCle}
         onMouseEnter={survolMarceur}
         onMouseLeave={quitterMarceur}
         onClick={basculerEncart}

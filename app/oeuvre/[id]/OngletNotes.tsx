@@ -257,7 +257,7 @@ function LigneNote({ note, courante, onAller }: {
       type="button"
       disabled={!atteignable}
       onClick={() => onAller(note)}
-      aria-label={atteignable ? `Aller à la note ${note.numero} dans le texte` : `Note ${note.numero}, sans place dans le texte`}
+      aria-label={atteignable ? `Ouvrir la note ${note.numero} dans le texte` : `Note ${note.numero}, sans place dans le texte`}
       title={atteignable ? undefined : 'Cette note n’est ancrée sur aucun segment retrouvé'}
       style={{
         display: 'grid', gridTemplateColumns: '2.25rem minmax(0, 1fr)', gap: '8px',

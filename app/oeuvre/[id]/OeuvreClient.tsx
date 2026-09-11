@@ -87,6 +87,7 @@ import {
   textesCitationStructurelleSansEncadrement,
 } from '@/app/lib/citationSortie'
 import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, rendreTitreColophonAvecNotes, notesPourTexte, type OptionsRenduNotes } from './appelNote'
+import { ouvrirLaNoteDansLeTexte } from './ouvrirNoteDansLeTexte'
 // LA MANCHETTE — un renvoi biblique se lit dans la marge, il ne s'ouvre pas.
 import { ContenuRenvoiEnLigne } from './ContenuNoteStructuree'
 import { estRenvoiSeul, STYLE_RENVOI_MANCHETTE } from '@/app/lib/manchetteRenvois'
@@ -1335,6 +1336,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   const pendingScrollTopRef = useRef(false)
   const pendingScrollSegRef = useRef<number | null>(null)
+  // La note que l'inventaire a demandé d'OUVRIR, avec le segment qui la porte : le saut
+  // qui vise ce segment la consomme (`viserLeSegment`), et lui seul.
+  const noteAOuvrirRef = useRef<{ cle: string; segId: number } | null>(null)
   useEffect(() => {
     if (!pendingScrollTopRef.current || vue !== 'texte') return
     pendingScrollTopRef.current = false
@@ -1400,6 +1404,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     return true
   }, [])
 
+  // Le saut vers un segment de l'inventaire des notes. S'il porte la note qu'on a demandé
+  // d'ouvrir, c'est l'APPEL qu'on pose au niveau des yeux, et la note s'ouvre (demande de
+  // l'auteur, 2026-09-11) ; sinon le segment, comme avant. ⚠️ La demande se consomme ICI,
+  // au moment même où l'on vise : un saut qui n'est pas le sien ne l'ouvre jamais.
+  const viserLeSegment = useCallback((segId: number, ancre: string) => {
+    const viserLeSegmentSeul = () => { if (!scrollNiveauDesYeux(`segment-${segId}`)) allerAAncre(ancre) }
+    const note = noteAOuvrirRef.current
+    if (!note || note.segId !== segId) { viserLeSegmentSeul(); return }
+    noteAOuvrirRef.current = null
+    ouvrirLaNoteDansLeTexte({ cle: note.cle, idSegment: `segment-${segId}`, repli: viserLeSegmentSeul })
+  }, [scrollNiveauDesYeux])
+
   useEffect(() => {
     const segId = pendingScrollSegRef.current
     if (!segId) return
@@ -1411,10 +1427,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     setSegActif(segId)
     // « Aller au passage » : on pose le passage au niveau des yeux (tiers supérieur) ;
     // à défaut du segment précis, on se rabat sur le paragraphe qui le contient.
-    setTimeout(() => {
-      if (!scrollNiveauDesYeux(`segment-${segId}`)) allerAAncre(g.anchor)
-    }, 80)
-  }, [groupes, pages, pageActuelle, scrollNiveauDesYeux])
+    setTimeout(() => viserLeSegment(segId, g.anchor), 80)
+  }, [groupes, pages, pageActuelle, viserLeSegment])
 
   const segmentsFiltres = useMemo(() => {
     const ids = new Set(groupesFiltres.flatMap(g => g.itemIds))
@@ -1961,32 +1975,41 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     }
     setSegActif(segId)
     // Le rendu de la page demandée doit avoir eu lieu avant qu'on vise.
-    setTimeout(() => {
-      if (!scrollNiveauDesYeux(`segment-${segId}`)) allerAAncre(g.anchor)
-    }, 80)
+    setTimeout(() => viserLeSegment(segId, g.anchor), 80)
     return true
-  }, [groupes, groupesApparat, pages, pageActuelle, scrollNiveauDesYeux])
+  }, [groupes, groupesApparat, pages, pageActuelle, viserLeSegment])
 
   /**
-   * Le renvoi de l'inventaire des notes vers la note DANS LE CORPS DU TEXTE.
+   * Le renvoi de l'inventaire des notes vers la note DANS LE CORPS DU TEXTE, et la note
+   * s'OUVRE (demande de l'auteur, 2026-09-11 : « quand je clique sur une note dans
+   * “Notes”, j'aimerais qu'elle s'ouvre »). Le clic menait au passage et s'arrêtait là.
    *
    * ⛔ La division visée n'est pas toujours celle qu'on lit : c'est tout l'objet de
    * l'inventaire, qui est exhaustif sur le texte entier. Quand le segment n'est pas
    * chargé, on retient la cible et l'on change de division — l'effet du saut la reprend
    * dès que les groupes arrivent.
+   *
+   * ⚠️ La demande d'ouverture n'est posée que si un saut l'est aussi : restée en attente,
+   * elle ouvrirait la note au premier saut venu.
    */
   // ⚠️ Fonction ordinaire, non mémorisée : `changerNiv1` ne l'est pas, et un
   // `useCallback` dont une dépendance change à chaque rendu ne mémorise rien.
   const allerALaNote = (note: NoteRecensee) => {
     if (!note.place) return
     setNoteCourante(note.cle)
+    // Sur un téléphone, l'inventaire vit dans le tiroir, qui couvre le texte : on le
+    // referme, sans quoi l'on ouvrirait la note d'un passage qu'on ne voit pas.
+    if (mobile) setPanneauOuvert(false)
     const surface = note.place.surface
     setVue(surface === 'apparat' ? 'apparat' : 'texte')
+    noteAOuvrirRef.current = { cle: note.cle, segId: note.place.id }
     if (allerAuSegment(note.place.id, surface)) return
     if (surface === 'corps' && note.place.division) {
       pendingScrollSegRef.current = note.place.id
       changerNiv1(note.place.division)
+      return
     }
+    noteAOuvrirRef.current = null
   }
 
   const trad = traductionsBible[tradIndex]?.code ?? 'TR0001'
