@@ -622,8 +622,8 @@
 
 **§ 14.1 — Niveaux de texte et statuts**
 
-- ⛔ Les mots `transcrit`, `relu`, `validé` et `importé` ne sont pas synonymes. Le statut public indique le niveau réellement atteint.
-- ⛔ Un lot non relu reste explicitement provisoire, même si son XML est valide et si les tests techniques réussissent.
+- ⛔ Les mots `transcrit`, `relu`, `validé` et `importé` ne sont pas synonymes. L’état de validation consigne le niveau réellement atteint (§ 52) ; le lecteur, lui, ne voit que ce qui est publié.
+- ⛔ Un lot non relu reste « terminé » ou « en cours », jamais « validé », même si son XML est valide et si les tests techniques réussissent.
 
 **§ 14.2 — Autorité de la source et traçabilité**
 
@@ -921,6 +921,10 @@
 - ⚠️ Le journal de la base ne montrait rien : la panne n’était pas une requête en échec mais une donnée en transition, et seul le journal de l’hébergeur portait le repère de la panne avec sa cause.
 - ⛔ Une ancre incomplète est donc laissée de côté et COMPTÉE, jamais levée (§ 13.6 : l’erreur est remontée, pas tue) ; et la projection des appels qui LÈVE reste la projection de contrôle des scripts et des tests, une page emploie celle qui ne faillit pas.
 - ⚠️ Le second cas est de la même famille, et il a sa mesure.
+- ⛔ Le troisième cas : une fonction appelée ligne à ligne ne porte pas de clause SET (11 septembre 2026).
+- ⚠️ Le durcissement du `search_path` ne vaut que pour une fonction SECURITY DEFINER : une fonction ordinaire qui ne lit aucune table n’y gagne rien et y perd l’inlining.
+- ⛔ Et une couche secondaire ne s’interroge que là où elle peut rendre quelque chose : la vue des gloses de TR0013 ne se lit plus pour une famille qui ne porte pas TR0013, et son échec ne ferme plus la page.
+- ⚠️ Un correctif de performance se mesure sous le rôle du lecteur, jamais sous `postgres`, qui contourne la politique de lecture.
 
 **§ 18.1 — Onglet Claude — Boèce (`A0064O0001`)**
 
@@ -2819,6 +2823,7 @@
 - ⛔ L'ITALIQUE D'UN BLOC DIT LA LANGUE, ET RIEN D'AUTRE
 - ⚠️ Un renvoi posé en ligne dans un bloc latin ne prend pas son italique : un
 - ⛔ LA DISPOSITION SE LIT DANS LA DONNÉE, AVANT LA FORME ET LA NATURE.
+- ⛔ La citation visée n'y fait pas exception
 - ⛔ LA NATURE ET LA DISPOSITION SONT DEUX AXES.
 - ⛔ UN CONTRÔLE DE NOTE SE FAIT SUR LE RENDU, JAMAIS SUR LA SEULE BASE.
 
@@ -2827,6 +2832,42 @@
 - ⛔ UN VOLET LIT LES MÊMES NOTES QUE LA PAGE DE L'ŒUVRE.
 - ⛔ DANS UN VOLET, LA NOTE NE FLOTTE PAS : ELLE SE DÉPLIE.
 - ⛔ ELLE S'OUVRE AU CLIC, JAMAIS AU SURVOL.
+
+## § 52. Les états de publication et de validation
+
+**§ 52.2 — La règle**
+
+- ⛔ Validé, terminé et travail en cours sont publiés. L’invalide ne l’est jamais.
+- ⛔ Invalide veut dire un problème réel, jamais « pas fini ».
+- ⚠️ Un texte sans aucun segment n’est pas publié — faute de rien à montrer ; il paraît de lui-même au premier segment importé.
+- ⚠️ Une œuvre n’est publiée que si l’un de ses textes l’est — une œuvre ne s’annonce plus sans rien à lire, alors que six l’étaient encore le matin de la règle.
+
+**§ 52.3 — Ce que voit le lecteur**
+
+- ⛔ Le lecteur doit penser que tout ce qui paraît est validé et terminé (décision de l’éditeur, 11 septembre 2026).
+
+**§ 52.4 — Où vivent ces états**
+
+- ⛔ La publication se DÉRIVE en base, elle ne s’écrit jamais — ni par le site, ni par un script, ni par une chaîne d’import.
+- ⚠️ Une chaîne d’import qui écrit encore l’ancien vocabulaire est traduite, jamais refusée — `published` et `review` deviennent `termine`, `draft` devient `en_cours`, `retired` devient `invalide` avec un motif générique.
+- ⚠️ Au 11 septembre 2026, 117 blocs de Fillion en relecture restent non publics, dont trois fusionnés (`merged_into`), ainsi qu’une gravure validée : la chaîne publie ce qui est prêt et déclare invalides les doublons.
+- ⛔ Un rejeté ou un exclu ne paraît jamais ; le reste paraît.
+- ⚠️ Au 11 septembre 2026, deux lectures ne l’appliquent pas encore : l’apparat d’une œuvre et « Du même auteur » de Fillion citent un ouvrage exclu s’il y est rattaché, et une péricope rejetée resterait servie (aucune ne l’est).
+
+**§ 52.5 — Qui écrit quoi**
+
+- ⛔ La traduction liturgique de l’AELF (TR0012) est invalide pour raison de droits.
+
+**§ 52.6 — Chiffres, pages et vues**
+
+- ⛔ Un chiffre public se compte sur ce que le lecteur peut ouvrir — le bandeau, le rang des lecteurs et « les versets les plus cités » lisent la publication dérivée.
+- ⛔ Une page lue avec la clé de service ne voit aucune politique — elle filtre la publication elle-même.
+- ⚠️ `create or replace view` remplace aussi les options de la vue.
+
+**§ 52.7 — La modération des contenus des lecteurs**
+
+- ⛔ Seule la modération écrit une colonne de modération, et la base le garantit — pas l’écran : `publie_at` et `note_admin` d’un essai, `valide` d’un commentaire d’essai, `valide`, `certifie` et `message_admin` d’un commentaire, le statut d’une proposition.
+- ⚠️ La date de validation d’un essai servait de preuve alors que l’auteur pouvait l’écrire : un lecteur se publiait sans modération.
 
 ---
 

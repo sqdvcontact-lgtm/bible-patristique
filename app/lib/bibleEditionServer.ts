@@ -10,11 +10,9 @@ import {
   type BibleEditionBodyBlockRow,
   type BibleEditionChapterPayload,
 } from './bibleEditionServerCore'
-import {
-  retargeterNotesVersGloses,
-  type BibleGlossNoteTargetRow,
-} from './bibleNoteGlossTargets'
-import { lotsPourClauseIn } from './paginationSupabase'
+import { retargeterNotesVersGloses } from './bibleNoteGlossTargets'
+// Couche SECONDAIRE, gardée par la famille : elle ne ferme jamais la page.
+import { chargerCiblesDeGloses } from './ciblesDeGlosesChargement'
 
 export * from './bibleEditionServerCore'
 
@@ -29,32 +27,6 @@ type OptionsChapitreEdition = {
 
 function fusionnerParId<T extends { id: string }>(a: readonly T[], b: readonly T[]): T[] {
   return [...new Map([...a, ...b].map((item) => [item.id, item])).values()]
-}
-
-async function chargerCiblesDeGloses(
-  client: SupabaseClient,
-  familyId: string,
-  canonIds: string[] | Promise<string[]>,
-): Promise<BibleGlossNoteTargetRow[]> {
-  const ids = await Promise.resolve(canonIds)
-  if (ids.length === 0) return []
-
-  const lots = lotsPourClauseIn(ids)
-  const resultats = await Promise.all(lots.map(async (lot) => {
-    const { data, error } = await client
-      .from('v_bible_tr0013_gloss_note_targets')
-      .select('note_id,host_canon_id,target_verse_id')
-      .eq('family_id', familyId)
-      .in('host_canon_id', lot)
-
-    // Déploiement tolérant : si la vue n'est pas encore visible dans le cache
-    // PostgREST, les notes restent sur leur ancre canonique au lieu de faire
-    // tomber tout le chapitre. Aucun autre échec n'est masqué.
-    if (isMissingBibleEditionRelation(error)) return []
-    if (error) throw new Error(`Cibles de gloses TR0013 illisibles : ${error.message}`)
-    return (data ?? []) as BibleGlossNoteTargetRow[]
-  }))
-  return resultats.flat()
 }
 
 /**

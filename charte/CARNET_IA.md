@@ -385,3 +385,36 @@ propos (aucun cas au 11 septembre 2026). Contrôle par le vrai chargeur et le vr
 composant (`tmp/controle-rendu-notes-boece.mts`) : 235 notes, 728 blocs, 651 unités
 rendues, 77 groupes original et traduction, aucune anomalie ; I-01, I-02 et II-18
 rendent leur citation visée sortie.
+
+### 2026-09-11 (soir) — La Bible de Fillion tombée deux heures : une clause SET sur la règle de publication
+
+Relevé de l'auteur : « Cette page n'a pas pu s'afficher », repère 1858746567, sur une page
+de la Bible de Fillion (Sagesse 1).
+
+**Le journal Supabase l'a nommée en deux requêtes.** `edge_logs` :
+`v_bible_tr0013_gloss_note_targets` en `500` depuis `createServerClient` (famille de
+Fillion, WIS.1.1 à 16), la dernière à 17:33:42 UTC ; `postgres_logs` : « canceling statement
+due to statement timeout » à 17:33:50, huit secondes après. Compte horaire de la vue : des
+200 côté site jusqu'à 14 h, uniquement des 500 depuis 15 h 50 ; les requêtes d'un script
+(clé de service, donc sans RLS) passaient toujours. Le CLI Vercel (59.16) n'a rendu que
+trois lignes du proxy, sans la pile ni le repère.
+
+**La cause.** La migration `20260911151842_charte_52_bible_textual_publication_states`
+(15 h 18 UTC, hors dépôt) a reposé `set search_path = pg_catalog` sur
+`bible_technical_publication_allowed`, qui n'en portait plus depuis la migration de 13 h 54,
+et l'a substituée aux comparaisons directes de quatorze politiques et de huit vues. La vue
+des cibles de gloses, interrogée à chaque chapitre de TOUTE famille éditoriale (elle ne rend
+pourtant rien pour Fillion), dépassait alors le délai de 8 s accordé à `authenticated`.
+
+**Mesures**, sous la session d'un administrateur, dans un bloc `do` annulé :
+
+| | avec la clause SET | sans (essai annulé) | après la migration 20260911174534 |
+|---|---:|---:|---:|
+| `postgres` (sans RLS), Fillion WIS 1 | 2 342 ms | 987 ms | — |
+| `authenticated`, Fillion WIS 1 | 12 298 ms | 1 101 ms | 1 499 ms |
+| `authenticated`, 899 LUK 13 | — | — | 1 108 ms |
+
+**Correction.** `alter function … reset search_path` (migration `20260911174534`, 17 h 45
+UTC), puis le chargeur `app/lib/ciblesDeGlosesChargement.ts` : la vue n'est plus interrogée
+que pour une famille qui porte TR0013, et son échec ne ferme plus la page. Panne : de
+15 h 18 à 17 h 45 UTC environ.

@@ -103,9 +103,35 @@ if (mode === 'pull') {
     throw new Error(`La charte locale est invalide : ${JSON.stringify(controles)}`)
   }
 
+  // ⛔ Une poussée ne RETIRE rien que Supabase porte sans qu'on le lui dise (2026-09-11).
+  // Le verrou `mis_a_jour` ne couvre que l'intervalle entre la lecture et l'écriture du
+  // script : une session qui a poussé ENTRE votre tirage et votre envoi voyait sa
+  // modification écrasée sans un mot (deux secondes d'écart ce jour-là, une règle
+  // normative ramenée à son état d'une heure plus tôt). On compte donc les lignes non
+  // vides que Supabase porte et que le miroir n'a pas : une poussée concurrente, ou une
+  // ligne qu'on a réécrite soi-même. `--retirer` passe outre en connaissance de cause ;
+  // sinon, tirer de nouveau (--pull) et reporter ses changements.
+  const lignesAbsentes = (de, dans) => {
+    const reste = new Map()
+    for (const ligne of dans.split('\n')) reste.set(ligne, (reste.get(ligne) ?? 0) + 1)
+    const absentes = []
+    for (const ligne of de.split('\n')) {
+      const n = reste.get(ligne) ?? 0
+      if (n > 0) reste.set(ligne, n - 1)
+      else if (ligne.trim()) absentes.push(ligne)
+    }
+    return absentes
+  }
+  const lignesRetirees = lignesAbsentes(distant, local)
+  if (!dryRun && lignesRetirees.length && !process.argv.includes('--retirer')) {
+    throw new Error(`La poussée retirerait ${lignesRetirees.length} ligne(s) que Supabase porte et que le miroir n’a pas :\n`
+      + lignesRetirees.slice(0, 5).map(ligne => `  - ${ligne.slice(0, 160)}`).join('\n')
+      + '\nPoussée d’une autre session depuis votre tirage, ou ligne réécrite ? Tirer de nouveau (--pull) et reporter ses changements, ou ajouter --retirer en connaissance de cause.')
+  }
+
   const reportPath = resolve(auditRoot, `${CIBLE.prefixe}${dryRun ? 'push-dry' : 'push'}.json`)
   if (dryRun || local === distant) {
-    const report = { ...avant, proposed: resume(local), controles, write_required: local !== distant }
+    const report = { ...avant, proposed: resume(local), controles, lignes_retirees: lignesRetirees.length, write_required: local !== distant }
     writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8')
     console.log(JSON.stringify(report, null, 2))
   } else {
