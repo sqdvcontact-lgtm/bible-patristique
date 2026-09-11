@@ -2593,7 +2593,17 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
    les neutralise, et `flex: 1` rend alors aux deux onglets leurs parts égales.
    ───────────────────────────────────────────────────────────────────────────── */
 .cs-onglets--volet { margin-left: 0; margin-right: 0; }
-.cs-onglets--volet .cs-onglet { padding: 4px 6px; }
+/* ⚠️ RECTIFIÉ LE 2026-09-11 : 6 px, non plus 4, et la barre mesure 31 px au
+   lieu des 27 écrits plus haut. Relevé de l'auteur sur le volet de droite d'une
+   œuvre, « Bible | Commentaires | Notes » : « un peu trop petit ». Six pixels la
+   portent à mi-chemin des 35 du modèle ; le trait descend de six à huit pixels
+   sous le mot, et le corps du libellé ne bouge pas. « Livres | Sommaire » et
+   « Niveaux | Fleuron » suivent, et c'est voulu : même variante, donc même
+   objet, et un objet n'a qu'une hauteur.
+   ⛔ Le rembourrage reste SYMÉTRIQUE : la flèche du volet d'une œuvre est posée
+   en absolu sur toute la hauteur de la barre et s'y centre ; un rembourrage
+   inégal écarterait le mot de sa flèche. */
+.cs-onglets--volet .cs-onglet { padding: 6px; }
 .cs-onglets--volet .cs-onglets-sep { display: none; }
 
 /* ── Les OPTIONS d'un axe, dans le volet de lecture ───────────────────────────
