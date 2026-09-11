@@ -111,6 +111,11 @@ export type SegData = {
    *  Quand la notice est chargée, c'est elle qui se compose, non `texte`, qui n'est
    *  plus qu'une projection de secours. `null` pour tout segment ordinaire. */
   ouvrageId?: number | null
+  /** Le style de composition que la DONNÉE déclare (`segment_metadata.presentation.style`).
+   *  `bibliographie` fait composer le bloc dans la famille bibliographique commune de
+   *  l'apparat (charte § 47.2), non en paragraphe de lecture. Absent quand la donnée ne
+   *  déclare rien, c'est-à-dire presque toujours : la clé ne voyage alors pas. */
+  presentationStyle?: string | null
 }
 /** Les huit champs de titre d'un groupe — ceux qu'une note peut viser. */
 export type ChampTitre = 'niv1' | 'niv1_texte' | 'niv2' | 'niv2_texte' | 'niv3' | 'niv3_texte' | 'niv4' | 'niv4_texte'

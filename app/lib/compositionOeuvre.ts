@@ -265,6 +265,25 @@ export function styleParagrapheApparat(forme: FormeParagraphe = {}): CSSProperti
   return styleParagrapheLecture(forme)
 }
 
+/**
+ * L'HÔTE d'une bibliographie de l'apparat (charte § 47.2) : le corps, la police et
+ * l'encre du paragraphe d'apparat, et rien d'autre.
+ *
+ * ⚠️ La famille commune descend d'UN cran sous le corps qui l'accueille (`0.96em`,
+ * `globals.css`) : il lui faut un ancêtre qui POSE ce corps. Le paragraphe d'apparat
+ * pose le sien en ligne, et la liste n'est pas son enfant ; sans hôte, son `em` se
+ * calculerait sur la page. ⛔ Pas le modificateur `--sans-hote` : ses 0,75 rem sont le
+ * cran sous l'apparat BIBLIQUE (12,5 px), et feraient tomber une liste d'œuvre de 13 px
+ * à 12 au lieu de 12,5.
+ * ⛔ Ni alignement, ni interligne, ni alinéa ici : la famille compose au fer, resserre
+ * l'interligne et pose le retrait suspendu. ⛔ Et jamais ce corps sur l'élément de la
+ * famille lui-même : posé en ligne, il y écraserait le cran.
+ */
+export function styleHoteBibliographieApparat(): CSSProperties {
+  const { fontFamily, fontSize, color } = styleParagrapheApparat()
+  return { fontFamily, fontSize, color }
+}
+
 
 /** L'enveloppe d'un bloc de VERS. ⛔ Elle ne porte ni interligne ni alignement :
  *  ceux-là appartiennent à la LIGNE, qui est une boîte et non un fragment. */

@@ -71,6 +71,8 @@ export type SegmentBrut = {
   forme: string | null
   cle_original: string | null
   ouvrage_id: string | null
+  /** `segment_metadata.presentation.style` : le style de composition que la donnée déclare. */
+  style_presentation: string | null
   /**
    * L'ancienne colonne de notes libres, encore lue en REPLI des notes structurées.
    * ⚠️ Du TEXTE, non du JSON : `parseNotes` en tire les appels par expression régulière.
@@ -341,6 +343,10 @@ export function projeterSegment(s: SegmentBrut, ctx: ContexteProjection): SegDat
   // ⛔ La notice bibliographique n'appartient qu'à l'apparat : la poser sur un segment de
   // corps ferait chercher un ouvrage à des milliers de lignes qui n'en citent aucun.
   if (ctx.avecOuvrage) projete.ouvrageId = identifiantOuvrage(s.ouvrage_id)
+  // Le style DÉCLARÉ ne voyage que s'il existe : 141 segments du corpus en portent un
+  // au 11 septembre 2026, et une clé nulle sur tous les autres pèserait sur chaque page.
+  const style = s.style_presentation?.trim()
+  if (style) projete.presentationStyle = style
   return projete
 }
 

@@ -94,3 +94,26 @@ export const CLASSE_CARACTERE_BIBLIOGRAPHIE: Record<StyleCaractereBibliographie,
   'bibliographie-titre-hote': 'cs-apparat-bibliographie__titre-hote',
   'bibliographie-donnees': 'cs-apparat-bibliographie__donnees',
 }
+
+/**
+ * Le style de composition qui fait d'un bloc une NOTICE de bibliographie, tel que la
+ * donnée le déclare (`segment_metadata.presentation.style`, ou `presentationStyle`
+ * d'un bloc de Bible). ⛔ C'est le seul signal : ni l'intitulé de la pièce, ni la
+ * forme du texte n'en décident.
+ */
+export const STYLE_PRESENTATION_BIBLIOGRAPHIE = 'bibliographie'
+
+/**
+ * Un bloc de l'apparat se compose-t-il en ENTRÉE de bibliographie ?
+ *
+ * Oui quand TOUS ses segments le déclarent : un bloc ne se compose pas à moitié en
+ * liste, pas plus qu'à moitié en vers ou en signatures. ⚠️ Cela ne dit rien de la
+ * conformité de la notice (charte § 47.2) : un renvoi sans `ouvrage_id` prend le
+ * cadre de la liste et garde son texte, en romain.
+ */
+export function estBlocBibliographique(
+  segments: readonly ({ presentationStyle?: string | null } | null | undefined)[],
+): boolean {
+  return segments.length > 0
+    && segments.every(segment => segment?.presentationStyle === STYLE_PRESENTATION_BIBLIOGRAPHIE)
+}

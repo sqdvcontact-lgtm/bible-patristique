@@ -22,7 +22,7 @@ const seg = (p: Partial<SegmentBrut> & { id: number }): SegmentBrut => ({
   nature: 'texte', paragraphe: null, rang: null, texte_original: null,
   espace_textuel: null, join_before: null,
   alinea: null, strophe_avant: null, numero_verset: null, forme: null,
-  cle_original: null, ouvrage_id: null,
+  cle_original: null, ouvrage_id: null, style_presentation: null,
   ...p,
 })
 
@@ -196,6 +196,16 @@ describe('composerSegments', () => {
     const brut = [seg({ id: 1, ouvrage_id: '42' })]
     expect(composerSegments(brut, contexte).segments[0].ouvrageId).toBeUndefined()
     expect(composerSegments(brut, { ...contexte, avecOuvrage: true }).segments[0].ouvrageId).toBe(42)
+  })
+
+  it('porte le style que la donnée DÉCLARE, et ne fait voyager aucune clé sinon', () => {
+    const { segments } = composerSegments([
+      seg({ id: 1, style_presentation: 'bibliographie' }),
+      seg({ id: 2 }),
+    ], contexte)
+    expect(segments[0].presentationStyle).toBe('bibliographie')
+    // ⚠️ Absente, et non nulle : les mille segments d'une page ne portent pas une clé vide.
+    expect('presentationStyle' in segments[1]).toBe(false)
   })
 
   it('lit les notes structurées par clé de segment, et retombe sur la colonne libre', () => {

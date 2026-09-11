@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest'
 import {
   CLASSE_CARACTERE_BIBLIOGRAPHIE,
   CLASSES_BIBLIOGRAPHIE,
+  STYLE_PRESENTATION_BIBLIOGRAPHIE,
+  estBlocBibliographique,
 } from '@/app/lib/apparatBibliographie'
 import { bibliographieDesBlocs } from '@/app/lib/bibleBibliographieOuvrages'
 import {
@@ -344,5 +346,18 @@ describe('le style bibliographique commun de l’apparat', () => {
     expect(requete).not.toContain('font-size')
     expect(requete).not.toContain('list-style')
     expect(requete).not.toContain('display')
+  })
+
+  it('reconnaît une entrée à ce que la DONNÉE déclare, et à cela seul', () => {
+    const declare = { presentationStyle: STYLE_PRESENTATION_BIBLIOGRAPHIE }
+    // La liste de Mirandol chez Boèce : un segment par notice, chacun déclaré.
+    expect(estBlocBibliographique([declare])).toBe(true)
+    expect(estBlocBibliographique([declare, declare])).toBe(true)
+    // ⛔ Un bloc ne se compose pas à moitié en liste : un seul segment qui ne déclare
+    // rien, et le bloc reste un paragraphe.
+    expect(estBlocBibliographique([declare, { presentationStyle: null }])).toBe(false)
+    expect(estBlocBibliographique([declare, undefined])).toBe(false)
+    expect(estBlocBibliographique([{}])).toBe(false)
+    expect(estBlocBibliographique([])).toBe(false)
   })
 })

@@ -31,6 +31,7 @@ export const COLONNES_SEGMENT = [
   'forme:segment_metadata->>forme',
   'cle_original:segment_metadata->>original_segment_key',
   'ouvrage_id:segment_metadata->>ouvrage_id',
+  'style_presentation:segment_metadata->presentation->>style',
 ] as const
 
 /** La liste telle que PostgREST l'attend. */

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   CORPS_LECTURE, NATURE_SIGNATURE, accepteLaLettrine, estBlocDeSignatures,
   paragraphesDeSegments, placeDeLExergue, placeDeLaSignature,
-  styleParagrapheApparat, styleParagrapheLecture,
+  styleHoteBibliographieApparat, styleParagrapheApparat, styleParagrapheLecture,
 } from './compositionOeuvre'
 import { RAPPORT_CORPS_EXERGUE, RETRAIT_EXERGUE } from './compositionExergue'
 
@@ -226,5 +226,32 @@ describe('l’exergue', () => {
 
   it('⛔ il ne porte pas la LETTRINE : ce n’est pas la parole de l’auteur', () => {
     expect(accepteLaLettrine({ nature: 'exergue' })).toBe(false)
+  })
+})
+
+/**
+ * L'HÔTE d'une bibliographie de l'apparat d'une œuvre (charte § 47.2).
+ *
+ * La famille commune descend d'un cran sous le corps qui l'accueille : la liste de
+ * Mirandol chez Boèce sortait au corps du texte, justifiée, sans retrait suspendu,
+ * faute d'être composée dans la famille et sous un hôte qui pose ce corps.
+ */
+describe('l’hôte d’une bibliographie de l’apparat', () => {
+  it('pose le corps, la police et l’encre du paragraphe d’apparat, et rien d’autre', () => {
+    const paragraphe = styleParagrapheApparat()
+    expect(styleHoteBibliographieApparat()).toEqual({
+      fontFamily: paragraphe.fontFamily,
+      fontSize: CORPS_LECTURE,
+      color: paragraphe.color,
+    })
+  })
+
+  it('⛔ laisse à la famille l’alignement, l’interligne et le retrait', () => {
+    // Un hôte qui justifierait ou poserait un alinéa les disputerait à la feuille,
+    // qui compose la liste au fer, l'interligne resserré et le retrait suspendu.
+    const hote = styleHoteBibliographieApparat()
+    for (const propriete of ['textAlign', 'lineHeight', 'textIndent', 'margin', 'whiteSpace', 'hyphens'] as const) {
+      expect(hote[propriete], propriete).toBeUndefined()
+    }
   })
 })

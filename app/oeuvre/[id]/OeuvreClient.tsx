@@ -12,6 +12,7 @@ import { codesTraductionsLecture } from '@/app/lib/traductions'
 import { champDuTitre, projeterAppelsNotesStructureesEnSignalant as projeterAppels } from '@/app/lib/appelsNotesStructurees'
 import type { DegradationChargement } from '@/app/lib/chargementTolerant'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
+import { CLASSES_BIBLIOGRAPHIE, estBlocBibliographique } from '@/app/lib/apparatBibliographie'
 import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import { chargerNoticesBibliographiques, identifiantsOuvrages, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
 
@@ -74,7 +75,7 @@ import {
   placeDeLExergue, placeDeLaSignature,
   styleArgument, styleBlocArgumentEnVers, styleBlocDeVers, styleEnteteSectionApparat,
   styleLigneArgumentEnVers,
-  styleColonneOriginale, styleParagrapheApparat, styleParagrapheLecture,
+  styleColonneOriginale, styleHoteBibliographieApparat, styleParagrapheApparat, styleParagrapheLecture,
   styleSousTitreNiveau, styleTitreNiveau,
 } from '@/app/lib/compositionOeuvre'
 import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
@@ -4163,6 +4164,33 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             // n'ont aucune pièce de l'auteur, et un titre seul y nommerait une opposition
             // que le lecteur ne peut pas voir.
             const deuxMains = new Set(groupesApparat.map(g => g.section ?? 'editeur')).size > 1
+            // Un segment d'apparat EN LIGNE, le même dans un paragraphe et dans une entrée de
+            // bibliographie : même repère, mêmes gestes, même notice.
+            const segmentDApparat = (sid: number, i: number) => {
+              const s = segMapApparat.get(sid)
+              if (!s) return null
+              const actif = segActif === sid
+              // Un segment qui cite un OUVRAGE se compose depuis la base, par le
+              // moteur bibliographique ; son texte n'est plus que la projection de
+              // secours, servie si la notice n'a pu être lue (charte § 47.1).
+              const notice = s.ouvrageId != null ? noticesBibliographiques[s.ouvrageId] : undefined
+              return (
+                <Fragment key={sid}>
+                  {i > 0 ? liantAvantSegment(s.joinBefore) : null}
+                  <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
+                    onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
+                    onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
+                    onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
+                    {configNiveaux.afficherNumeros && <sup style={STYLE_NUMERO_SEGMENT}>{s.numero}</sup>}
+                    {notice
+                      ? <ReferenceBibliographique notice={notice} />
+                      : rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})}
+                  </span>
+                </Fragment>
+              )
+            }
+            const estBibliographique = (bloc: { ids: number[] } | undefined) =>
+              bloc !== undefined && estBlocBibliographique(bloc.ids.map(sid => segMapApparat.get(sid)))
             return (
               <>
                 {groupesApparat.map((groupe) => {
@@ -4223,6 +4251,29 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         </div>
                       )}
                       {paragraphesDe(groupe.itemIds, segMapApparat).map((chunk, iChunk, chunks) => {
+                        // ⛔ Une BIBLIOGRAPHIE que la donnée déclare (charte § 47.2) se compose
+                        // dans la famille commune : une liste, le retrait suspendu, un cran sous
+                        // le corps, au fer. Elle sortait en paragraphes de lecture justifiés
+                        // jusqu'au 11 septembre 2026. La liste se pose d'un tenant au rang de sa
+                        // PREMIÈRE entrée ; les suivantes y sont déjà.
+                        if (estBibliographique(chunk)) {
+                          if (estBibliographique(chunks[iChunk - 1])) return null
+                          const fin = chunks.findIndex((bloc, j) => j > iChunk && !estBibliographique(bloc))
+                          const entrees = chunks.slice(iChunk, fin === -1 ? chunks.length : fin)
+                          return (
+                            <div key={`apparat-biblio-${chunk.ids[0]}`} lang={langueCorps} style={styleHoteBibliographieApparat()}>
+                              <div className={CLASSES_BIBLIOGRAPHIE.bloc}>
+                                <ul className={CLASSES_BIBLIOGRAPHIE.liste}>
+                                  {entrees.map(entree => (
+                                    <li key={entree.ids[0]} className={CLASSES_BIBLIOGRAPHIE.entree}>
+                                      {entree.ids.map(segmentDApparat)}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          )
+                        }
                         // ⛔ L'APPARAT compose ses vers comme la lecture les siens.
                         // La nature y vaut `apparat_critique` — c'est par là que le
                         // segment est SÉLECTIONNÉ — et elle ne peut pas dire en plus
@@ -4279,29 +4330,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         return (
                         <div key={`apparat-para-${chunk.ids[0]}`}>
                           <p lang={langueCorps} style={styleParagrapheApparat({ signature: placeDeLaSignature(toutSignature, signatureSuit), exergue: placeDeLExergue(toutExergue, exergueSuit) })}>
-                            {chunk.ids.map((sid, i) => {
-                              const s = segMapApparat.get(sid)
-                              if (!s) return null
-                              const actif = segActif === sid
-                              // Un segment qui cite un OUVRAGE se compose depuis la base, par le
-                              // moteur bibliographique ; son texte n'est plus que la projection de
-                              // secours, servie si la notice n'a pu être lue (charte § 47.1).
-                              const notice = s.ouvrageId != null ? noticesBibliographiques[s.ouvrageId] : undefined
-                              return (
-                                <Fragment key={sid}>
-                                  {i > 0 ? liantAvantSegment(s.joinBefore) : null}
-                                  <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
-                                    onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
-                                    onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
-                                    onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
-                                    {configNiveaux.afficherNumeros && <sup style={STYLE_NUMERO_SEGMENT}>{s.numero}</sup>}
-                                    {notice
-                                      ? <ReferenceBibliographique notice={notice} />
-                                      : rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})}
-                                  </span>
-                                </Fragment>
-                              )
-                            })}
+                            {chunk.ids.map(segmentDApparat)}
                           </p>
                         </div>
                         )
