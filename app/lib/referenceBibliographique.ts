@@ -54,6 +54,8 @@ export type ContributeurNotice = {
   /** Les rubriques de l'autorité (`auteurs_valeur`), quand la personne en a une. */
   prenom?: string | null
   nomFamille?: string | null
+  /** Titre, dignité ou qualité accolée au nom : hors petites capitales. */
+  titre?: string | null
   pseudonyme?: string | null
   /** La forme d'autorité entière (`auteurs_valeur.nom`, ou `auteurs.nom` pour un ancien). */
   nomAutorite?: string | null
@@ -98,7 +100,7 @@ export type NoticeBibliographique = {
  * qui prend les petites capitales, qu'elle se distingue d'un prénom ou non.
  */
 export type ChampReference =
-  | 'prenom' | 'nom_famille' | 'auteurs'
+  | 'prenom' | 'nom_famille' | 'titre_personne' | 'auteurs'
   | 'titre' | 'sous_titre' | 'titre_hote' | 'tomaison' | 'pages'
   | 'editeur_scientifique' | 'traducteur' | 'directeur'
   | 'collection' | 'numero_collection'
@@ -176,40 +178,61 @@ function enumerer(personnes: FragmentNotice[][]): FragmentNotice[] {
   return fragments
 }
 
+/** Ajoute le titre ou la qualité APRÈS le nom, entre parenthèses et en romain. */
+function avecTitrePersonnel(fragments: FragmentNotice[], c: ContributeurNotice): FragmentNotice[] {
+  const titre = propre(c.titre)
+  if (!titre) return fragments
+  return [
+    ...fragments,
+    ponctuation(' ('),
+    { champ: 'titre_personne', style: 'bibliographie-auteur', composition: 'romain', texte: titre },
+    ponctuation(')'),
+  ]
+}
+
 /**
  * Un AUTEUR, en tête de notice (charte § 47.1).
  *
  * Un chercheur dont l'autorité porte prénom et nom de famille : le prénom en romain,
- * le nom en PETITES CAPITALES. Une autorité que ce couple ne décrit pas — un ancien,
- * un médiéval, une fiche sans rubriques — se compose ENTIÈRE en petites capitales,
- * ⛔ jamais coupée à la première espace. Un collectif n'est pas une personne : romain.
- * ⛔ Un nom en TEXTE LIBRE, sans fiche, reste en romain : les petites capitales viennent
- * de la donnée structurée, jamais d'une heuristique sur la chaîne.
+ * le nom en PETITES CAPITALES. Un titre, une dignité ou une qualité ne fait pas partie
+ * du nom : il suit celui-ci entre parenthèses, en romain. Une autorité que le couple
+ * prénom/nom ne décrit pas — un ancien, un médiéval, une fiche sans rubriques — se
+ * compose ENTIÈRE en petites capitales, ⛔ jamais coupée à la première espace. Un
+ * collectif n'est pas une personne : romain. ⛔ Un nom en TEXTE LIBRE, sans fiche,
+ * reste en romain : les petites capitales viennent de la donnée structurée, jamais
+ * d'une heuristique sur la chaîne.
  */
 function composerAuteur(c: ContributeurNotice): FragmentNotice[] {
   const prenom = propre(c.prenom)
   const nomFamille = propre(c.nomFamille)
   if (c.nature === 'chercheur' && prenom && nomFamille) {
-    return [
+    return avecTitrePersonnel([
       { champ: 'prenom', style: 'bibliographie-auteur', composition: 'romain', texte: prenom },
       ponctuation(' '),
       { champ: 'nom_famille', style: 'bibliographie-nom-auteur', composition: 'petites-capitales', texte: nomFamille },
-    ]
+    ], c)
   }
   const entier = propre(c.nomAutorite) ?? propre(c.nomAffiche) ?? ''
   if (!entier) return []
   if (c.nature === 'chercheur' || c.nature === 'auteur_ancien') {
-    return [{ champ: 'nom_famille', style: 'bibliographie-nom-auteur', composition: 'petites-capitales', texte: entier }]
+    return avecTitrePersonnel([
+      { champ: 'nom_famille', style: 'bibliographie-nom-auteur', composition: 'petites-capitales', texte: entier },
+    ], c)
   }
-  return [{ champ: 'auteurs', style: 'bibliographie-auteur', composition: 'romain', texte: entier }]
+  return avecTitrePersonnel([
+    { champ: 'auteurs', style: 'bibliographie-auteur', composition: 'romain', texte: entier },
+  ], c)
 }
 
 /** Une personne citée APRÈS le titre (éd., trad., dir.) : « Prénom Nom » en romain. */
 function nomDePersonne(c: ContributeurNotice): string {
   const prenom = propre(c.prenom)
   const nomFamille = propre(c.nomFamille)
-  if (prenom && nomFamille) return `${prenom} ${nomFamille}`
-  return propre(c.nomAutorite) ?? propre(c.nomAffiche) ?? ''
+  const titre = propre(c.titre)
+  const nom = prenom && nomFamille
+    ? `${prenom} ${nomFamille}`
+    : propre(c.nomAutorite) ?? propre(c.nomAffiche) ?? ''
+  return titre && nom ? `${nom} (${titre})` : nom
 }
 
 /** Les noms d'un champ libre du catalogue, séparés par « ; » (charte § 5). */
@@ -443,7 +466,7 @@ export function noticeDepuisVue(ligne: LigneVueReference): NoticeBibliographique
     const ordre = typeof c.ordre === 'number' ? c.ordre : rang + 1
     return [{
       role, nature, ordre, nomAffiche,
-      prenom: chaine(c.prenom), nomFamille: chaine(c.nom_famille), pseudonyme: chaine(c.pseudonyme),
+      prenom: chaine(c.prenom), nomFamille: chaine(c.nom_famille), titre: chaine(c.titre), pseudonyme: chaine(c.pseudonyme),
       nomAutorite: chaine(c.nom_autorite),
     }]
   })
