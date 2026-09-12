@@ -35,6 +35,7 @@ import { chargerProfondeurPresente } from './niveauxPresents'
 import {
   NATURE_LIEN,
   composerSegments,
+  estIntroduction,
   indexerVersetsCites,
   segmentAffichable,
   type LigneVersetCite,
@@ -1418,11 +1419,40 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     ouvrirLaNoteDansLeTexte({ cle: note.cle, idSegment: `segment-${segId}`, repli: viserLeSegmentSeul })
   }, [scrollNiveauDesYeux])
 
+  /**
+   * LE SAUT VERS UNE INTRODUCTION, qui n'est dans aucun groupe.
+   *
+   * ⛔ Une introduction est HISSÉE en tête de la première page, hors des groupes
+   * structurels et hors de la pagination (`estIntroduction`, `introsEnTete`) : aucun
+   * `itemIds` ne la porte. Le saut, qui ne cherchait que dans les groupes, la manquait
+   * donc toujours — et la note qu'elle ancre ne s'ouvrait jamais. Relevé de l'auteur le
+   * 12 septembre 2026 sur le *Manuel pour mon fils* de Dhuoda, dont les Prolégomènes
+   * sont tout entiers faits d'introductions : leurs trente-neuf notes ouvrent
+   * l'inventaire, et pas une ne s'ouvrait.
+   *
+   * ⚠️ Elle ne paraît que sur la PREMIÈRE page de sa division : on y revient avant de
+   * viser. L'ancre de repli est le haut du texte, faute de groupe où se rabattre.
+   */
+  const viserIntroduction = useCallback((segId: number) => {
+    // ⚠️ `nature` est facultative sur un segment chargé, obligatoire dans le pipeline :
+    // le vide se dit `null` des deux côtés, et c'est la seule chose à accorder.
+    if (!segments.some(s => s.id === segId && estIntroduction({ nature: s.nature ?? null }))) return false
+    if (pageActuelle !== 0) setPageActuelle(0)
+    setSegActif(segId)
+    setTimeout(() => viserLeSegment(segId, ANCRE_DEBUT_LECTURE), 80)
+    return true
+  }, [segments, pageActuelle, viserLeSegment])
+
   useEffect(() => {
     const segId = pendingScrollSegRef.current
     if (!segId) return
     const g = groupes.find(gr => gr.itemIds.includes(segId))
-    if (!g) return
+    if (!g) {
+      // La division vient d'arriver, mais la cible est une introduction : elle n'est dans
+      // aucun groupe, et la demande resterait en attente pour toujours.
+      if (viserIntroduction(segId)) pendingScrollSegRef.current = null
+      return
+    }
     pendingScrollSegRef.current = null
     const pageIdx = pages.findIndex(p => p.some(gr => gr.anchor === g.anchor))
     if (pageIdx >= 0 && pageIdx !== pageActuelle) setPageActuelle(pageIdx)
@@ -1430,7 +1460,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // « Aller au passage » : on pose le passage au niveau des yeux (tiers supérieur) ;
     // à défaut du segment précis, on se rabat sur le paragraphe qui le contient.
     setTimeout(() => viserLeSegment(segId, g.anchor), 80)
-  }, [groupes, pages, pageActuelle, viserLeSegment])
+  }, [groupes, pages, pageActuelle, viserLeSegment, viserIntroduction])
 
   const segmentsFiltres = useMemo(() => {
     const ids = new Set(groupesFiltres.flatMap(g => g.itemIds))
@@ -1970,7 +2000,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const allerAuSegment = useCallback((segId: number, surface: 'corps' | 'apparat') => {
     const source = surface === 'apparat' ? groupesApparat : groupes
     const g = source.find(gr => gr.itemIds.includes(segId))
-    if (!g) return false
+    // Aucun groupe ne porte une introduction : elle a son propre chemin (cf.
+    // `viserIntroduction`). L'apparat n'en a pas.
+    if (!g) return surface === 'corps' && viserIntroduction(segId)
     if (surface === 'corps') {
       const pageIdx = pages.findIndex(p => p.some(gr => gr.anchor === g.anchor))
       if (pageIdx >= 0 && pageIdx !== pageActuelle) setPageActuelle(pageIdx)
@@ -1979,7 +2011,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // Le rendu de la page demandée doit avoir eu lieu avant qu'on vise.
     setTimeout(() => viserLeSegment(segId, g.anchor), 80)
     return true
-  }, [groupes, groupesApparat, pages, pageActuelle, viserLeSegment])
+  }, [groupes, groupesApparat, pages, pageActuelle, viserLeSegment, viserIntroduction])
 
   /**
    * Le renvoi de l'inventaire des notes vers la note DANS LE CORPS DU TEXTE, et la note
@@ -3798,10 +3830,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     // ⚠️ En « Latin seul », c'est l'ENVELOPPE qui s'efface, non le texte
                     // qu'elle porte : masquer le seul contenu laisserait une boîte vide
                     // qui garde sa marge, donc un blanc fantôme entre deux arguments.
-                    <div className="seg-wrapper" style={{
+                    // ⚠️ L'introduction porte la MÊME poignée que tout autre segment,
+                    // `segment-<id>` : c'est par elle qu'on la vise, qu'on l'amène au
+                    // niveau des yeux, et qu'on départage deux appels d'une même note.
+                    // Elle ne l'avait pas, et ce chemin de rendu restait donc muet pour
+                    // la navigation.
+                    <div id={`segment-${s.id}`} className="seg-wrapper" style={{
                       position: 'relative',
                       display: afficherOriginalSeul ? 'none' : undefined,
                       margin: margeArgument({ memeParagraphe, enRegard: grille }),
+                      scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)`,
                     }}>
                       <div lang={langueCorps} className="seg-p" {...gestesArgument(s)}
                         style={styleArgument({ actif: segActif === s.id })}>
@@ -3817,7 +3855,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 return enveloppe(`intro-poeme-${segs[0].id}`, (
                   <div lang={langueCorps} style={styleBlocArgumentEnVers({ enRegard: grille, masque: afficherOriginalSeul })}>
                     {segs.map((s, i) => (
-                      <div key={`intro-${s.id}`} className="seg-wrapper" style={{ position: 'relative', margin: 0 }}>
+                      <div key={`intro-${s.id}`} id={`segment-${s.id}`} className="seg-wrapper"
+                        style={{ position: 'relative', margin: 0, scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
                         <div className="seg-p" {...gestesArgument(s)}
                           style={styleLigneArgumentEnVers({
                             rang: rangs[i],
