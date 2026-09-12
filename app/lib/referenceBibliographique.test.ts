@@ -20,7 +20,7 @@ import {
 const OUV = GUILLEMET_OUVRANT
 const FER = GUILLEMET_FERMANT
 const NBSP = String.fromCharCode(0x00a0)
-const TIRET = String.fromCharCode(0x2013)
+const TIRET = '-'
 
 function vide(id: number, titre: string): NoticeBibliographique {
   return {
@@ -99,7 +99,6 @@ describe('les six notices de Boèce', () => {
     expect(texteReference(TRITHEME)).toBe(
       'Johannes Trithemius, De scriptoribus ecclesiasticis, éd. Johannes Heynlin, Bâle, Johannes Amerbach, 1494.',
     )
-    // L'éditeur scientifique n'est PAS un auteur : il ne prend pas les petites capitales.
     const heynlin = fragmentsReference(TRITHEME).find(f => f.champ === 'editeur_scientifique')
     expect(heynlin).toEqual({ champ: 'editeur_scientifique', style: 'bibliographie-donnees', composition: 'romain', texte: 'Johannes Heynlin' })
   })
@@ -200,7 +199,6 @@ describe('les règles générales', () => {
   it('joint les coéditeurs par la barre à fines de la charte, jamais par un point-virgule', () => {
     const notice = { ...vide(1, 'Titre'), lieu: 'Paris', editeurs: [maison('Peeters', 2, 'coediteur'), maison('Cerf', 1)], annee: 1990 }
     expect(texteReference(notice)).toBe(`Titre, Paris, Cerf${SEPARATEUR_COEDITEURS}Peeters, 1990.`)
-    // Un diffuseur n'édite pas.
     expect(texteReference({ ...notice, editeurs: [maison('Cerf'), maison('Diffusion X', 2, 'diffuseur')] }))
       .toBe('Titre, Paris, Cerf, 1990.')
   })
@@ -218,7 +216,7 @@ describe('les règles générales', () => {
     expect(fragmentsReference(vide(1, '   '))).toEqual([])
   })
 
-  it('écrit les pages avec un tiret demi-cadratin, et « p. » suivi d’une insécable', () => {
+  it('écrit les pages avec un trait d’union, et « p. » suivi d’une insécable', () => {
     expect(pagesLisibles('330-360')).toBe(`330${TIRET}360`)
     expect(pagesLisibles('330 – 360')).toBe(`330${TIRET}360`)
     expect(pagesLisibles('12')).toBe('12')
@@ -269,7 +267,6 @@ describe('depuis la vue', () => {
   it('retombe sur l’éditeur de la notice quand aucune maison n’est liée, et lit un JSON encore en chaîne', () => {
     const notice = noticeDepuisVue({ ...LIGNE, editeurs_lies: '[]', contributeurs: '[]' })
     expect(notice.editeurs).toEqual([{ rang: 1, role: 'editeur', nom: 'E. Bekker' }])
-    // Sans contributeur, le texte libre sert de tête, en romain.
     expect(texteReference(notice)).toBe('Gustav Adolf Ludwig Baur, De Anicio Manlio, Darmstadt, E. Bekker, 1841.')
   })
 
@@ -311,14 +308,8 @@ describe('une collection qui redit l’hôte ne se compose pas', () => {
   })
 })
 
-// ── La CLÉ DE CLASSEMENT ───────────────────────────────────────────────────────
-//
-// ⛔ Elle vit dans le moteur et non au point de tri : une bibliographie se classe de
-// la même façon partout, et une règle écrite dans la page qui trie se serait dédoublée
-// à la deuxième liste.
 describe('la clé de classement d’une notice', () => {
   it('range sous le NOM DE FAMILLE de l’autorité, jamais sous le nom affiché', () => {
-    // ⚠️ « Henri-Irénée Marrou » rangerait sous « H » si l'on lisait `nomAffiche`.
     const notice = { ...vide(1, 'Titre'), contributeurs: [chercheur('auteur_scientifique', 1, 'Henri-Irénée', 'Marrou')] }
     expect(cleAuteurNotice(notice)).toBe('marrou')
   })
@@ -336,8 +327,6 @@ describe('la clé de classement d’une notice', () => {
     expect(cleAuteurNotice(notice)).toBe('evrard')
   })
 
-  // ⚠️ Le texte libre écrit « Marrou, Henri-Irénée » aussi bien que « H.-I. Marrou » :
-  // on ne garde que ce qui précède la première virgule.
   it('à défaut d’autorité, lit le texte libre jusqu’à la première virgule', () => {
     expect(cleAuteurNotice({ ...vide(1, 'Titre'), auteursTexte: 'Marrou, Henri-Irénée' })).toBe('marrou')
     expect(cleAuteurNotice({ ...vide(1, 'Titre'), auteursTexte: 'Bardy ; Doignon' })).toBe('bardy')
@@ -347,8 +336,6 @@ describe('la clé de classement d’une notice', () => {
     expect(cleAuteurNotice({ ...vide(1, 'Dictionnaire'), directeursTexte: 'Dupont, Jean' })).toBe('dupont')
   })
 
-  // ⛔ Une œuvre anonyme se classe à son TITRE, article de tête écarté : c'est la règle
-  // des catalogues, et `cleTriTitre` la porte déjà.
   it('range une notice sans nom sous son titre, article écarté', () => {
     expect(cleAuteurNotice(vide(1, 'La Cité de Dieu'))).toBe('cite de dieu')
   })
