@@ -130,7 +130,7 @@ const FINE = String.fromCharCode(0x202f)
 const INSECABLE = String.fromCharCode(0x00a0)
 export const GUILLEMET_OUVRANT = '«' + FINE
 export const GUILLEMET_FERMANT = FINE + '»'
-const TIRET_DE_PLAGE = String.fromCharCode(0x2013)
+const TIRET_DE_PLAGE = '-'
 
 /** Un champ propre : blancs de bord ôtés, blancs répétés réduits ; `null` s'il ne reste rien. */
 export function propre(valeur: string | null | undefined): string | null {
@@ -138,7 +138,7 @@ export function propre(valeur: string | null | undefined): string | null {
   return texte ? texte : null
 }
 
-/** Une plage de pages s'écrit avec le tiret demi-cadratin : « 330–360 ». Une page seule
+/** Une plage de pages s'écrit avec le trait d'union : « 330-360 ». Une page seule
  *  reste telle quelle. ⚠️ On ne touche qu'au tiret ENTRE deux nombres. */
 export function pagesLisibles(pages: string | null | undefined): string | null {
   const texte = propre(pages)
