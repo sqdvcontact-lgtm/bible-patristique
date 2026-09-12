@@ -204,6 +204,7 @@
 **§ 7.5.1 — Les natures d'un segment patristique — `segments.nature`**
 
 - ⛔ HÉRITÉE (§ 7) : un fourre-tout de paratexte — dédicaces, privilèges, gloses de vocabulaire, arguments analytiques —, rendu dans la vue d'apparat.
+- ⛔ PAS — le type fonctionnel `apparat_critique` d'une note.
 - ⛔ pas une citation en ligne : celle-là reste dans `texte` et se détache d'elle-même au delà de 400 signes | 1 221 |
 - ⛔ ne se sort jamais du fil : une réplique est entre guillemets sans être une citation d'auteur | 1 038 |
 - ⛔ pas `apparat_editeur`, qui porte le paratexte de l'ÉDITION.
@@ -278,6 +279,14 @@
 - ⛔ Les mots ajoutés pour la seule intelligibilité restent minimaux.
 - ⛔ Le contexte de l’auteur et du passage prévaut toujours sur une équivalence de dictionnaire isolée.
 - ⚠️ Les choix évidents ne sont pas surannotés.
+- ⛔ La modernisation ne doit jamais devenir une traduction.
+- ⛔ ils ne complètent, ne corrigent ni ne réécrivent silencieusement Français 899.
+- ⛔ Tout ce qui n’est pas dans cette table blanche est conservé.
+- ⛔ Un mot parfaitement lisible mais incompris ou douteux de sens reste en clair dans le texte ; il ne reçoit pas la balise `[lecture incertaine : …]`.
+- ⛔ On ne crée pas `[lacune]` par inférence sémantique, grammaticale ou par comparaison avec une autre Bible.
+- ⛔ On ne « répare » jamais séparément deux fragments qui forment une même séquence matérielle.
+- ⛔ Ne jamais partir du français moderne existant pour « revenir » approximativement au témoin.
+- ⛔ Les formules génériques du type « portion indécidable » ne suffisent pas lorsqu’une explication plus précise est disponible.
 - ⛔ sauf consigne contraire, on n’imite ni le mètre, ni la rime, ni une compensation métrique.
 - ⛔ Si la mission demande une traduction en prose, la ligne de vers n’est pas recréée.
 - ⛔ ces essais restent expérimentaux, privés et non validés humainement.
@@ -360,20 +369,16 @@
 **§ 13.8 — La NORMALISATION des notes — ce que le site compose, ce que la base porte**
 
 - ⚠️ Mesuré avant d’écrire une seule ligne : une bonne moitié de ce qu’on croit à corriger l’est déjà.
-- ⛔ L’APPARAT CRITIQUE reste hors de toute passe de normalisation — 7 379 blocs, 30 % de l’appareil.
+- ⛔ SEULE LA TRANSCRIPTION DIPLOMATIQUE D’UNE NOTATION D’APPARAT CRITIQUE échappe à la normalisation de lecture lorsque sa forme fait preuve.
 - ⛔ 1. Le numéro AFFICHÉ recommence à chaque début de NIVEAU 1 — et le numéro INTERNE ne bouge pas.
 - ⚠️ Cette décision RECTIFIE le § 13.3 — qui dit encore que « la numérotation ne recommence ni à une partie, ni à un livre, ni à un espace textuel » : la règle valait pour un numéro unique, et il y en a désormais deux.
-- ⛔ L’apparat critique forme sa propre série de numéros.
-- ⚠️ Treize textes sur quarante-sept garderont malgré tout trois chiffres, la Cité de Dieu latine en tête avec **731** dans un seul livre ; c’est une conséquence connue de l’arbitrage, non un défaut.
+- ⛔ Lorsqu’un témoin imprime un appareil critique autonome et numéroté, cette série peut conserver sa propre numérotation de lecture.
 - ⛔ 2. Les œuvres CITÉES en note entrent dans `ouvrages_bibliographiques` — le catalogue des ouvrages, et la référence se COMPOSE depuis ses champs — jamais rédigée à la main dans un bloc.
 - ⛔ 3. Un bloc de note entièrement LATIN se compose en italique, quelle que soit sa longueur — y compris les 27 blocs qui dépassent 900 signes.
 - ⚠️ Le grec ne suit pas : son alphabet le distingue déjà, et l’italique y déforme la lettre au lieu de changer la graisse.
 - ⚠️ Le latin ENCHÂSSÉ dans une note française est un cas distinct : aucune donnée ne dit où il commence, et il demande une écriture.
-- ⛔ 4. Le type de note paraît sur TOUTES les notes, sans exception — auteur, traducteur, éditeur de la source, Corpus Scriptura.
-- ⚠️ Il se répète donc des milliers de fois, et **c’est la forme qui doit en tenir compte** : la mention est la chose la plus discrète de la note, jamais une étiquette encadrée ni une ligne à elle.
-- ⛔ Elle vit dans `metadata.editorial_role`, jamais dans le texte du bloc : les 136 « (Note du Traducteur.) » écrits en clair dans le corpus se retirent à mesure que le type se pose.
-- ⚠️ 69 % des blocs (16 873 sur 24 264) ne déclarent aucun type — c’est le plus gros manque de l’appareil, et rien ne peut s’afficher tant qu’il n’est pas posé.
-- ⛔ Un type faux est pire qu’un type absent — il attribue à un Père une remarque de son traducteur du XIXe siècle.
+- ⛔ 4. LA RESPONSABILITÉ ÉDITORIALE paraît dans l’intitulé lorsqu’elle est établie — auteur, traducteur, édition source, Corpus Scriptura.
+- ⛔ UNE RESPONSABILITÉ FAUSSE EST PIRE QU’UNE RESPONSABILITÉ ABSENTE.
 
 **§ 13.8.1 — Deux corruptions du normaliseur, trouvées en le mesurant**
 
@@ -398,7 +403,7 @@
 
 **§ 13.10 — Les NATURES d’un bloc de note**
 
-- ⛔ Les trois axes du § 7.1 valent ici — et il ne faut pas les confondre : la **NATURE** dit ce que le bloc EST (`kind`) ; la **FORME** dit s’il est prose ou vers (`form`) ; le **TYPE** dit qui parle (`metadata.editorial_role`, § 13.8).
+- ⛔ Les trois axes du § 7.1 valent ici — et il ne faut pas les confondre : la **NATURE** dit ce que le bloc EST (`kind`) ; la **FORME** dit s’il est prose ou vers (`form`) ; le **TYPE DE RESPONSABILITÉ** dit qui parle (`metadata.editorial_role`, § 13.8).
 - ⛔ Une nature ne se préfixe pas par sa surface : `texte_note_blocs` EST la table des notes, et le redire dans la valeur serait la dérive que le § 7.1 ferme.
 - ⛔ DEUX NATURES SEULEMENT SONT CRÉÉES, et chacune répond aux trois questions du § 7.6.
 - ⚠️ `lemma` existe et ne sert qu’à UNE œuvre (126 blocs, un seul texte).
@@ -421,8 +426,8 @@
 - ⛔ Le vocabulaire a une SOURCE UNIQUE, et elle est double par nécessité — `app/lib/naturesNote.ts` et la contrainte `texte_note_blocs_kind_check`.
 - ⛔ Le NUMÉRO AFFICHÉ se calcule à la lecture, jamais en base
 - ⚠️ La division d'une note ne se lit PAS dans `texte_notes.book`, qui la porte pourtant.
-- ⛔ Le TYPE s'annonce dans l'en-tête de la fenêtre de note, et nulle part ailleurs (`app/lib/typeNote.ts`) : « Note du traducteur 12 », « Apparat critique 7 ».
-- ⚠️ Il exige l'unanimité des blocs — une note mixte — le commentaire de l'édition, puis le renvoi que NOUS ajoutons — n'annonce rien, car *mieux vaut « Note » qu'une attribution à demi fausse*.
+- ⛔ LA RESPONSABILITÉ s’annonce dans l’en-tête de la fenêtre de note, et nulle part ailleurs (`app/lib/typeNote.ts`) : « Note du traducteur 12 », « Note de l’édition 7 », « Note de Corpus Scriptura 3 ».
+- ⛔ Jamais « Apparat critique » comme intitulé public.
 - ⛔ L'ITALIQUE DE LA LANGUE ne porte que sur le bloc ENTIER — celui dont `language` déclare la langue.
 
 **§ 13.11.2 — Ce que la composition SÉPARE dans une même famille (9 septembre 2026)**
@@ -439,8 +444,6 @@
 - ⛔ La provenance dit d’OÙ vient un renvoi, jamais qu’il doive garder sa graphie — sans quoi le site écrirait « Ps. 5, 8. » ici et « Ps 5, 8 » partout ailleurs, pour la même référence.
 - ⚠️ Repères mesurés : 6 431 notes sur 16 408 (39 %) reçoivent une ponctuation finale, 3 392 renvois sur 11 916 sont recomposés — ce sont ces blocs-là qui gardent leur leçon.
 - ⛔ « Il faut systématiquement faire un contrôle logique.
-- ⚠️ 16 873 blocs sur 24 264 (69 %) n’en portent aucun : c’est le plus gros manque de l’appareil.
-- ⛔ Sans quoi le lecteur la lit deux fois, l’en-tête de la fenêtre l’annonçant déjà.
 - ⚠️ « Dépublier » n’existe pas encore pour une note : voir § 13.12.3.
 - ⚠️ L’unification est sans risque, et c’est mesuré : les **901 blocs qui portent les deux premiers s’accordent tous**, sans une seule contradiction, et les deux seconds ne se rencontrent jamais sur un même bloc.
 - ⛔ Et le nom retenu est déjà celui que le code lit (`lireMetadonneesBlocNote`) : le plus répandu n’est pas le plus régulier, mais il est le seul qui ne demande pas de toucher au rendu.
@@ -457,12 +460,11 @@
 - ⚠️ Le journal lui-même appartient à GPT, et l’auteur ajoute qu’**il faut le supprimer s’il ne sert à rien** : la décision lui revient.
 - ⛔ Les 554 copies de bloc, elles, sont une seconde vérité au sens de la charte et se regardent à part.
 
-**§ 13.12.1 — Les CINQ TYPES de note, et comment les reconnaître**
+**§ 13.12.1 — Les RESPONSABILITÉS éditoriales des notes**
 
-- ⛔ Ne pas la confondre avec le fait que l’auteur parle dans le TEXTE : ce qui est en cause est qui a écrit la NOTE.
-- ⛔ Jamais attribuée à une note importée, si utile soit-elle.
-- ⛔ UN TYPE FAUX EST PIRE QU’UN TYPE ABSENT — il attribue à un Père une remarque de son traducteur du XIXe siècle.
-- ⚠️ Le type se pose sur le BLOC ; la note ne l’ANNONCE que si tous ses blocs s’accordent.
+- ⛔ `critical_apparatus` N’EST PLUS UNE RESPONSABILITÉ CANONIQUE.
+- ⛔ UNE RESPONSABILITÉ FAUSSE EST PIRE QU’UNE RESPONSABILITÉ ABSENTE.
+- ⚠️ L’INTITULÉ SE DÉTERMINE AU NIVEAU DE LA NOTE LOGIQUE.
 - ⚠️ « Note de l’édition », et non « note de l’éditeur » — le libellé nomme une RESPONSABILITÉ, et « éditeur » se dispute en français entre la maison qui publie et le savant qui établit.
 
 **§ 13.12.2 — L’ITALIQUE du latin enchâssé**
@@ -500,8 +502,7 @@
 
 - ⛔ Une note s’ouvre partout dans le MÊME encart.
 - ⛔ Et cette hauteur se compte en REM, jamais en pixels.
-- ⛔ L’INTITULÉ nomme le TYPE de la note, et il SE TAIT quand elle n’en déclare aucun.
-- ⛔ Et jamais « Note » écrit en dur, qui n’est pas un type mais l’aveu qu’on n’en connaît aucun.
+- ⛔ L’INTITULÉ PUBLIC NOMME LA RESPONSABILITÉ ÉDITORIALE, JAMAIS LA FONCTION INTELLECTUELLE.
 - ⚠️ Ce qui identifie la note ne disparaît pas pour autant : le NUMÉRO reste — dans la face du numéro de verset de la page Bible.
 - ⛔ Le numéro affiché est celui du LECTEUR, jamais le numéro interne : celui-ci porte l’identité et l’ordre, non l’adresse que le lecteur vient de cliquer.
 - ⛔ MAIS IL SE FERRE À GAUCHE, et le fer à droite est ici une règle mal transposée (décision de l’auteur, 2026-09-08 : « supprime l’alinéa avant le numéro de note »).
@@ -572,10 +573,11 @@
 
 - ⛔ FIDÉLITÉ AVANT TOUT, MAIS LA NOTE N’EST PAS LE CORPS DU TEXTE.
 
-**§ 13.16.1 — Autorité, provenance et type**
+**§ 13.16.1 — Autorité, provenance, responsabilité et fonction**
 
-- ⛔ TYPE, PROVENANCE ET RENDU SONT TROIS AXES DISTINCTS.
-- ⚠️ UN TYPE FAUX EST PIRE QU’UN TYPE ABSENT.
+- ⛔ RESPONSABILITÉ, FONCTION, PROVENANCE, NATURE DE BLOC ET RENDU SONT DES AXES DISTINCTS.
+- ⚠️ UN TYPE FAUX EST PIRE QU’UN TYPE ABSENT, MAIS UNE RÉVISION NE SE FERME PAS SUR DES NOTES NON TYPÉES.
+- ⛔ LE TYPE FONCTIONNEL APPARTIENT À LA NOTE LOGIQUE.
 
 **§ 13.16.2 — Appels, ancres et ponctuation**
 
@@ -584,6 +586,7 @@
 **§ 13.16.3 — Orthographe et typographie de chaque note**
 
 - ⛔ CHAQUE NOTE SUBIT UN CONTRÔLE ORTHOGRAPHIQUE ET TYPOGRAPHIQUE INTÉGRAL.
+- ⛔ UNE COUPURE ÉDITORIALE DANS UNE CITATION SE MARQUE `[…]`.
 - ⛔ une reprise brève du texte français commenté, lorsqu’elle reste en prose, se compose en romain entre guillemets français `« … »` ; l’italique ne signale jamais à lui seul la citation ;\n-
 - ⛔ POSITION DE LA RÉFÉRENCE ET DISTINCTION ENTRE LEMME ET CITATION DOCUMENTAIRE.
 - ⛔ On ne fusionne jamais une référence externe et le lemme sous la forme `Référence : « lemme »`, qui ferait croire que l’auteur référencé prononce le texte commenté.
@@ -607,11 +610,20 @@
 
 - ⚠️ UNE NOTE PEUT ÊTRE RADICALEMENT RECOMPOSÉE POUR ÊTRE LISIBLE.
 
-**§ 13.16.10 — Procédure obligatoire — dix passes, œuvre par œuvre**
+**§ 13.16.10 — Procédure obligatoire — onze passes globales sur l’œuvre entière**
 
 - ⛔ LA REPRISE GÉNÉRALE DES NOTES SE FAIT DANS CET ORDRE.
+- ⛔ UNE PASSE PORTE TOUJOURS SUR L’ŒUVRE ENTIÈRE.
+- ⛔ Aucune passe `P(X+1)` ne s’ouvre tant que toutes les sous-passes `PX-n` nécessaires n’ont pas été achevées et que `PX` n’a pas été close globalement.
+- ⛔ Dès que `metadata.editorial_role` est établi, toute mention textuelle qui redouble ou contredit ce rôle est retirée du corps de la note.
+- ⛔ La passe se ferme seulement avec 100 % des notes couvertes et 0 type principal hors vocabulaire ; toute réserve résiduelle est explicitement comptée et nommée.
+- ⛔ Les artifices matériels de l’imprimé ne restent pas mêlés à la prose : lettre d’appel, pagination de la note et coordonnée source du type « (A) p. 2. — » sont conservées dans `source_label`, `printed_page`, l’ancre ou les métadonnées de provenance.
+- ⛔ Une parenthèse intégrée à la phrase n’ouvre pas une seconde phrase artificielle : écrire `usage (voir …).`, non `usage. (Voir ….)`.
+- ⛔ Une référence nue n’est jamais une citation : `(Rm 8, 28)` ou tout autre bloc qui ne contient qu’une coordonnée scripturaire ne reçoit aucun guillemet ajouté, ni dans la donnée ni au rendu.
+- ⛔ il n’est jamais saisi à la main dans le texte.
+- ⛔ Le contre-audit de clôture vérifie en outre : zéro libellé de type encore écrit dans le corps lorsqu’un `editorial_role` le porte ; zéro coordonnée matérielle source laissée en prose lorsqu’elle est déjà conservée dans les champs structurés et n’a pas d’utilité publique ; zéro œuvre nommée sans relation `texte_note_bloc_ouvrages` lorsqu’elle est identifiable ; zéro jeton manuel `[Éditions]` ; zéro bloc de référence…
 - ⛔ Le modèle fusionné `Référence : « lemme »` est interdit.
-- ⛔ COMPTE RENDU OBLIGATOIRE APRÈS CHAQUE PASSE.
+- ⛔ COMPTE RENDU OBLIGATOIRE APRÈS CHAQUE PASSE GLOBALE.
 - ⛔ LA PRUDENCE FINALE EST ASYMÉTRIQUE  — typographie, déploiement et référencement peuvent être fortement normalisés ; contenu, autorité, attribution et information philologique ne se modifient qu’avec preuve.
 
 ## § 14. OCR, HTR et transcription patrimoniale
@@ -1246,6 +1258,10 @@
 
 - ⛔ Le code applicatif ne recalcule jamais cette valeur à partir des scores.
 - ⛔ Une exclusion manuelle exige un motif, et la base refuse l'écriture sans lui.
+- ⛔ L’ÉTAT ÉDITORIAL D’UN OUVRAGE EST DÉRIVÉ DE SA VALEUR SCIENTIFIQUE ; il ne se saisit pas.
+- ⛔ Le code n'écrit jamais `ouvrages_bibliographiques.statut_editorial`, et le déclencheur récrit toute écriture directe.
+- ⚠️ Pourquoi cette dérivation, et ce qu'elle a débloqué.
+- ⛔ Ce reliquat est une dette de normalisation des autorités, non une file d'attente de validation : il se règle dans la donnée, jamais en cliquant.
 - ⛔ Le code écrit toujours le statut d'usage accordé au score, faute de quoi la base rejette l'écriture.
 - ⛔ le code choisit la bonne plutôt que d'approcher le filtrage en TypeScript.
 - ⛔ L'affichage public ne montre jamais le score interne, la réserve, les motifs sensibles, les notes d'administration ni les sources d'évaluation.
@@ -2209,9 +2225,13 @@
 
 - ⛔ Une œuvre anonyme ne fait pas un bloc à part, ni en tête ni en queue : elle se range à son titre, dans la même suite alphabétique, comme un catalogue le fait.
 - ⛔ L’article ne se retire jamais d’un nom d’autorité : « La Taille » est un nom, non un titre précédé d’un article.
+- ⚠️ La particule « de » ne classe pas (décision de l’auteur, 12 septembre 2026) : c’est l’usage des catalogues français, et « Alfred de Musset » se range à Musset, « Joseph Pitton de Tournefort » à Tournefort, « Albert de Broglie » à Broglie.
+- ⛔ Elle seule est rejetée, et seulement en tête : « La », « Le », « Du », « Des », « Van », « Von », « Della » restent avec le nom, et « de La Tour » se range à « La Tour », non à « Tour ».
+- ⛔ Le nom AFFICHÉ, lui, garde sa particule, qui prend les petites capitales avec le nom (§ 29).
 - ⛔ Le retrait ne vaut QUE pour le classement : le titre affiché garde son article, toujours.
 - ⛔ Un titre qui n’est QUE son article se range sous lui, faute de quoi sa clé serait vide.
 - ⛔ Le latin n’a pas d’article, et il est ici partout.
+- ⛔ Le catalogue, qui ne vient d’aucun volume, garde le départage par le titre, puis le sous-titre, puis l’année : sans lui, les œuvres d’un même auteur s’y rangeraient dans l’ordre où la base les a créées.
 - ⚠️ `display_order` demeure dans la donnée comme témoin du volume ;
 
 **§ 47.4 — Catalogue bibliographique obligatoire et autorités d’éditeurs**
