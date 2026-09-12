@@ -1,6 +1,8 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
-  ETATS_VALIDATION, estPubliable, etatValidation, libellePublication, libelleValidation,
+  ETATS_BIBLE_INVALIDES, ETATS_VALIDATION, FILTRE_BIBLE_PUBLIABLE, bibleEtatPubliable,
+  estPubliable, etatValidation, libellePublication, libelleValidation,
   raisonNonPublication, rangValidation,
 } from './etatsPublication'
 
@@ -97,5 +99,38 @@ describe('raisonNonPublication', () => {
 
   it('dit qu’un texte vide paraîtra de lui-même', () => {
     expect(raisonNonPublication({ ...texte, statut: 'en_cours', nb_signes: 0 })).toMatch(/Aucun segment/)
+  })
+})
+
+/**
+ * LA CHAÎNE TEXTUELLE DE LA BIBLE (charte § 52).
+ *
+ * Le 12 septembre 2026, vingt-huit livres de la Fillion — les Psaumes, Job, Isaïe, les
+ * Proverbes… — étaient donnés au lecteur pour « absents de cette traduction » : la liste
+ * des livres exigeait `validated` sur la division du livre, quand la charte ne ferme que
+ * sur `rejected` et `retired`. Ces épreuves tiennent la règle des deux côtés, le
+ * vocabulaire et les deux surfaces qui interrogent la base.
+ */
+describe('la chaîne Bible : ce qui interdit de paraître', () => {
+  it('ne ferme que sur rejected et retired', () => {
+    for (const etat of ['draft', 'review', 'validated', 'verified', 'candidate', '', null, undefined]) {
+      expect(bibleEtatPubliable(etat), String(etat)).toBe(true)
+    }
+    for (const etat of ETATS_BIBLE_INVALIDES) expect(bibleEtatPubliable(etat), etat).toBe(false)
+  })
+
+  it('rattrape les valeurs nulles dans le filtre PostgREST', () => {
+    // ⚠️ `not.in` écarte les lignes NULLES : sans le `is.null`, une division sans état
+    // disparaîtrait, alors que la fonction SQL la laisse paraître.
+    expect(FILTRE_BIBLE_PUBLIABLE)
+      .toBe('validation_status.is.null,validation_status.not.in.(rejected,retired)')
+  })
+
+  it('⛔ aucune surface de lecture n’exige « validated »', () => {
+    for (const chemin of ['app/lib/bibleEditorial.ts', 'app/lib/bibleMultimodeServer.ts']) {
+      const code = readFileSync(chemin, 'utf8')
+      expect(code, chemin).toContain('FILTRE_BIBLE_PUBLIABLE')
+      expect(code, chemin).not.toMatch(/validation_status['"],\s*['"]validated/u)
+    }
   })
 })

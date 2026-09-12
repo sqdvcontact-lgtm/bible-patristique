@@ -1,5 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+import { FILTRE_BIBLE_PUBLIABLE } from './etatsPublication'
+
 type BibleSourceRow = { id: string }
 type BibleBookDivisionRow = { proposed_book_code: string | null }
 
@@ -28,7 +30,12 @@ export async function livresDisponiblesEditoriaux(
     .in('source_id', sourceIds)
     .eq('division_kind', 'book')
     .eq('is_public', true)
-    .eq('validation_status', 'validated')
+    // ⛔ AUCUN état d'avancement ici (charte § 52) : `review` n'est pas un refus de
+    // publier. L'exiger `validated` a tenu vingt-huit livres de la Fillion — les Psaumes,
+    // Job, Isaïe, les Proverbes… — pour « absents de cette traduction », alors que leur
+    // texte et leurs commentaires étaient en ligne et se lisaient par leur adresse. Ce
+    // sont `is_public` et le statut `published` de la source qui font foi.
+    .or(FILTRE_BIBLE_PUBLIABLE)
   if (error) throw new Error(`Livres éditoriaux illisibles : ${error.message}`)
   return new Set(
     ((data ?? []) as BibleBookDivisionRow[])

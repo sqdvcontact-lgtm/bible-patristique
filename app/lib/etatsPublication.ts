@@ -124,3 +124,33 @@ export function raisonNonPublication(texte: TexteEtat, motifOeuvre?: string | nu
   if (!texte.nb_signes) return 'Aucun segment : rien à lire pour l’instant. Le texte paraîtra de lui-même au premier segment.'
   return null
 }
+
+// ── LA CHAÎNE TEXTUELLE DE LA BIBLE (charte § 52, 11 septembre 2026) ──────────
+//
+// ⛔ `draft`, `review`, `validated`, `verified` disent l'AVANCEMENT d'un travail, jamais
+// une autorisation de paraître : seuls `rejected` et `retired` ferment un objet de la
+// chaîne Bible, et ce sont `is_public` et le statut `published` du parent qui font foi.
+// La base dit exactement la même chose dans `public.bible_technical_publication_allowed`.
+//
+// ⚠️ Une seule exception, écrite : les illustrations de Fillion, qui doivent être
+// `validated` pour paraître (déclencheur `enforce_bible_edition_asset_publication`).
+//
+// ⚠️ Ce que l'oubli a coûté : jusqu'au 12 septembre 2026, la liste des livres d'une
+// édition à segmentation éditoriale exigeait `validated` sur la division du livre. Les
+// vingt-huit livres de la Fillion importés depuis — les Psaumes, Job, Isaïe, les
+// Proverbes… — étaient donnés au lecteur pour « absents de cette traduction », alors que
+// leur source était publiée, leur division publique et leurs commentaires en ligne.
+export const ETATS_BIBLE_INVALIDES = ['rejected', 'retired'] as const
+
+/** Un état de la chaîne Bible laisse-t-il paraître ? Miroir de la fonction SQL. */
+export function bibleEtatPubliable(valeur: string | null | undefined): boolean {
+  return !(ETATS_BIBLE_INVALIDES as readonly string[]).includes((valeur ?? '').trim())
+}
+
+/**
+ * Le même filtre, tel que PostgREST l'attend : il se passe à `.or(...)`.
+ * ⛔ Jamais un `.eq('validation_status', …)` sur un état d'avancement.
+ * ⚠️ `not.in` écarte les valeurs NULLES, que la règle admet : le `is.null` les rattrape.
+ */
+export const FILTRE_BIBLE_PUBLIABLE =
+  `validation_status.is.null,validation_status.not.in.(${ETATS_BIBLE_INVALIDES.join(',')})`

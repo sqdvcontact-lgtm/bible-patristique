@@ -13,6 +13,7 @@ import {
   type SourceUnitTextRow,
 } from './bibleMultimode'
 import type { BibleReadingMode, TranslationReadingCapabilities } from './bibleReadingModes'
+import { FILTRE_BIBLE_PUBLIABLE } from './etatsPublication'
 
 export type BibleReadingCatalog = {
   capabilities: Record<string, TranslationReadingCapabilities>
@@ -140,7 +141,9 @@ export async function loadSourceReading(
     .select('id,source_id,parent_id,division_kind,sequence_no,sequence_in_parent,stable_key,label_diplomatic,proposed_book_code,manuscript_number_raw,manuscript_number,expected_sequence,marker_type,marker_status,number_status,confidence,requires_review,start_unit_id,end_unit_id')
     .eq('source_id', sourceId)
     .eq('is_public', true)
-    .eq('validation_status', 'validated')
+    // Même règle que la liste des livres (charte § 52) : seuls `rejected` et `retired`
+    // ferment une division ; `review` dit un travail en cours, qui paraît.
+    .or(FILTRE_BIBLE_PUBLIABLE)
     .order('sequence_no')
   if (error) throw new Error(`Divisions natives illisibles: ${error.message}`)
   const divisions = sortDivisions((data ?? []) as NativeDivisionRow[])
