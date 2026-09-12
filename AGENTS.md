@@ -4252,10 +4252,10 @@ le module levait à l'import, et toute la suite de tests des notes tombait avec 
 renderer de note ne prend pas de dépendance sur la session ; l'administration lit les
 attributs `data-`.
 
-**Ce que le lecteur voit qu'il n'a pas vu avant** : l'en-tête de l'infobulle dit « Apparat
-critique N » au lieu de « Note N » (`appelNote.tsx` et `ComparaisonTraductions.tsx`, la
-même règle des deux côtés). C'est le seul ajout, et il vit dans le CHROME de la bulle,
-jamais dans le texte de la note.
+⛔ **CET EN-TÊTE NE DIT PLUS « APPARAT CRITIQUE » (12 septembre 2026).** Il l'a dit du
+25 août au 12 septembre 2026 ; la charte § 13.12.1 l'a aboli. L'intitulé public d'une
+note vient de sa RESPONSABILITÉ seule, et l'apparat d'une édition source s'annonce
+« Note de l'édition ». Voir « L'INTITULÉ D'UNE NOTE NE DIT QUE QUI PARLE », plus bas.
 
 **Chargement** : les deux chargeurs de notes prennent `metadata` dans leur `select` et le
 projettent aussitôt par `lireMetadonneesBlocNote` sur quatre scalaires. ⛔ Ne jamais
@@ -10683,3 +10683,59 @@ Doctrine : charte `parametres.charte_ia`, § 18. Le 11 septembre 2026 à 15 h 18
 - ⛔ **Son échec ne ferme plus la page** : les notes restent sur leur ancre canonique, l'échec part au journal (`[lecture] chapitre servi sans les cibles de gloses TR0013 : …`). ⚠️ L'échec des CRÉNEAUX, lui, remonte : il vient du texte.
 - ⚠️ Le module ne porte pas `server-only`, que vitest ne sait pas charger : il reçoit le client, il n'en crée aucun. `isMissingBibleEditionRelation` n'y est plus lu : une relation absente est une erreur comme une autre, consignée.
 - ⚠️ **Ce qui reste OUVERT** : pour la famille du témoin 899, la vue coûte encore 1,1 à 1,5 s par chapitre, parce qu'elle apparie tout le corpus avant de filtrer. Le remède est une fonction paramétrée par le chapitre, dont la sortie devra être éprouvée égale à celle de la vue sur tous les chapitres.
+
+# ⛔ L'INTITULÉ D'UNE NOTE NE DIT QUE QUI PARLE (2026-09-12)
+
+Doctrine : charte `parametres.charte_ia`, **§ 7.5.1**, **§ 13.11**, **§ 13.12.1**, réconciliées
+le 12 septembre 2026. Trois règles de code en sortent, et la troisième est un piège qui
+attend.
+
+⛔ **DEUX AXES, ET ILS NE SE DÉDUISENT PAS L'UN DE L'AUTRE.** La RESPONSABILITÉ — « qui
+parle » — vit dans `texte_note_blocs.metadata.editorial_role` et commande SEULE l'intitulé
+public ; la FONCTION — « ce que la note fait » — vit dans `texte_notes.metadata.functional_type`
+et n'en commande aucun. Une note de l'édition reste « Note de l'édition » quand sa fonction
+est `apparat_critique`. ⛔ Et l'inverse est interdit : une note `apparat_critique` n'est pas
+pour autant de Corpus Scriptura, une note `reference_biblique` pas pour autant de l'édition.
+
+⛔ **`critical_apparatus` N'EST PLUS UNE RESPONSABILITÉ**, et « Apparat critique » n'est plus
+un intitulé. `TYPES_NOTE` (`app/lib/typeNote.ts`) tombe à QUATRE valeurs ; la valeur héritée
+se résout vers `source_editorial_note` par `ROLES_HERITES`, et s'annonce donc « Note de
+l'édition ». ⚠️ **Abolir une opposition, c'est fondre ses deux termes en un, non retirer
+l'un des deux** : rendre `null` aurait retiré son intitulé à 7 445 blocs au lieu de le
+corriger. ⚠️ Ce n'est pas déduire une autorité d'une fonction : la valeur vit dans le champ
+de la RESPONSABILITÉ, elle y a été posée comme telle, et l'on ne fait que la dire dans le
+vocabulaire d'aujourd'hui. ⚠️ L'unanimité de `typeDeLaNote` se juge APRÈS la résolution :
+une note à moitié migrée dit la même chose deux fois et ne se tait pas.
+
+## ⛔ CE QUI INTERDIT DE RECOMPOSER UN APPARAT N'EST NI LA RESPONSABILITÉ NI LA FONCTION
+
+C'est une CONVENTION DE TRANSCRIPTION, et elle n'est nommée nulle part dans la donnée.
+
+⚠️ **La preuve tient en deux apparats.** Knöll écrit « B; est] est et BPQ » : sigles, haute
+ponctuation, aucune ponctuation finale — 3 596 entrées que `normaliserTypographieLecture`
+abîmerait, 6 604 auxquelles `terminerNote` ajouterait un point. Bondurand écrit de la PROSE
+FRANÇAISE avec ses italiques en marqueurs `*…*` — composée comme celle de Knöll, elle imprime
+ses astérisques, et c'est le défaut que l'auteur a relevé le 12 septembre 2026 sur « *Oris* ».
+⛔ Les deux sont `functional_type = apparat_critique` : **keyer le rendu sur la FONCTION
+rouvrirait le défaut que la reclassification de Dhuoda vient de fermer.**
+
+⚠️ **`estNoteApparatCritique` garde donc son handle hérité** — `editorial_role =
+'critical_apparatus'' —, qui désigne aujourd'hui EXACTEMENT les 7 445 blocs écrits à la
+manière de Knöll, sur 7 textes (7 335 pour le seul latin des Confessions). Il ne nomme plus
+rien au lecteur ; il ne dit plus que « ce texte-là ne se recompose pas ».
+
+⛔ **ET C'EST UNE PANNE QUI ATTEND.** Le jour où la donnée portera ces blocs à
+`source_editorial_note`, ce module perdra sa prise, et les 6 604 entrées sans point final en
+recevront un. Il faudra alors DÉCLARER la convention dans la donnée — ⛔ jamais retomber sur
+`functional_type`, qui emporterait Dhuoda avec.
+
+⚠️ **Le contrôle le dit** : `node scripts/controle-roles-notes.mjs` compte désormais à part
+les blocs au rôle DÉPRÉCIÉ (une dette de donnée, qui ne fait pas échouer) et ceux au rôle
+HORS VOCABULAIRE (que le site ne sait pas lire, et qui font échouer). Relevé du 12 septembre
+2026 : **7 445 dépréciés**, et **779 hors vocabulaire** — `source_marginalia` (659, cinq
+textes) et `reference_biblique_detachee` (120, un texte), qui s'annoncent « Note ».
+
+⚠️ **Ce que la reclassification de Dhuoda a changé à l'écran, le jour même** : ses 1 535 notes
+latines passaient de « Apparat critique » à « Note de l'édition », et leurs italiques `*…*`
+se composent enfin. Le volet des notes le montre : la facette « Apparat critique 1040 » a
+cédé la place à « Note de l'édition ».

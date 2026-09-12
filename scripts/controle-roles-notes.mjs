@@ -17,12 +17,16 @@ import { resolve } from 'node:path'
 import { createClient } from '@supabase/supabase-js'
 
 const racine = resolve(import.meta.dirname, '..')
+const NL = String.fromCharCode(10)
 
 const source = readFileSync(resolve(racine, 'app/lib/typeNote.ts'), 'utf8')
 const bloc = source.match(/export const TYPES_NOTE = \[([\s\S]*?)\] as const/u)
 if (!bloc) throw new Error('TYPES_NOTE introuvable dans app/lib/typeNote.ts : le contrôle ne peut pas deviner le vocabulaire.')
 const nommes = [...bloc[1].matchAll(/'([a-z_]+)'/gu)].map(m => m[1])
 // `critical_apparatus` entre par la constante d'`apparatCritique.ts`, non par un littéral.
+// ⛔ Il n'est PLUS une responsabilité (charte § 13.12.1) : `typeNoteSur` le résout vers
+// `source_editorial_note`, si bien que le site le lit encore. Il se compte donc à part,
+// comme une dette de DONNÉE — ce qui reste à porter au vocabulaire d'aujourd'hui.
 const roleApparat = readFileSync(resolve(racine, 'app/lib/apparatCritique.ts'), 'utf8')
   .match(/ROLE_APPARAT_CRITIQUE = '([a-z_]+)'/u)?.[1]
 if (!roleApparat) throw new Error('ROLE_APPARAT_CRITIQUE introuvable dans app/lib/apparatCritique.ts.')
@@ -55,13 +59,24 @@ for (let de = 0; ; de += 1000) {
   if (data.length < 1000) break
 }
 
-const lignes = [...compte.values()]
-  .filter(l => !VOCABULAIRE.has(l.role))
-  .sort((a, b) => b.blocs - a.blocs)
+const toutes = [...compte.values()].sort((a, b) => b.blocs - a.blocs)
+const lignes = toutes.filter(l => !VOCABULAIRE.has(l.role))
+const heritees = toutes.filter(l => l.role === roleApparat)
 
 console.log(`Vocabulaire lu dans le code : ${[...VOCABULAIRE].sort().join(', ')}`)
+
+// ⚠️ Une dette, non un défaut : ces blocs SE LISENT (« Note de l’édition »), mais ils
+// portent encore une valeur que la charte a dépréciée. Le contrôle les nomme et ne
+// tombe pas — la migration appartient à la donnée.
+if (heritees.length > 0) {
+  const restant = heritees.reduce((n, l) => n + l.blocs, 0)
+  console.log(`${NL}⚠️  ${restant} bloc(s) portent encore le rôle déprécié « ${roleApparat} » :`)
+  for (const l of heritees) console.log(`  ${String(l.blocs).padStart(5)}  ${l.texte}`)
+  console.log(`  → à porter à « source_editorial_note » (charte § 13.12.1).`)
+}
+
 if (lignes.length === 0) {
-  console.log('✅ Aucun rôle hors vocabulaire.')
+  console.log(`${NL}✅ Aucun rôle hors vocabulaire.`)
   process.exit(0)
 }
 const total = lignes.reduce((n, l) => n + l.blocs, 0)

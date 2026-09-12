@@ -6,8 +6,31 @@
 //
 // Fonctions PURES, testées dans `apparatCritique.test.ts`. Elles ne touchent
 // jamais la donnée : tout ce qui suit appartient au rendu.
+//
+// ⛔ CE MODULE NE NOMME PLUS RIEN AU LECTEUR (charte § 13.12.1, 12 septembre 2026).
+// L'intitulé d'une note vient de sa RESPONSABILITÉ seule (`typeNote.ts`), et
+// « Apparat critique » n'en est plus un. Ce qui reste ici est une question de
+// CONVENTION DE TRANSCRIPTION : ce texte-là ne se recompose pas.
+//
+// ⛔ ET CE N'EST PAS LA FONCTION DE LA NOTE NON PLUS. `texte_notes.metadata.functional_type`
+// vaut `apparat_critique` sur 1 045 notes de Dhuoda, dont l'apparat de Bondurand est de
+// la PROSE FRANÇAISE avec ses italiques en marqueurs `*…*` : composé comme celui de
+// Knöll, il imprimerait ses astérisques — c'est le défaut que l'auteur a relevé le
+// 12 septembre 2026 sur « *Oris* », et que la reclassification vient de fermer. Les deux
+// axes sont donc INDÉPENDANTS, et ce troisième — la convention d'écriture — n'est nommé
+// nulle part dans la donnée.
+//
+// ⚠️ D'où le handle qui reste : la valeur héritée `editorial_role = 'critical_apparatus'`,
+// qui désigne aujourd'hui EXACTEMENT les 7 445 blocs écrits à la manière de Knöll (sigles,
+// haute ponctuation, aucune ponctuation finale), sur 7 textes. ⛔ Le jour où la donnée les
+// portera à `source_editorial_note`, ce module n'aura plus de prise et les 6 604 entrées
+// sans point final en recevront un : il faudra alors déclarer la convention, et non
+// retomber sur `functional_type`, qui emporterait Dhuoda avec.
 
-/** Valeur de `metadata.editorial_role` qui désigne un apparat critique. */
+/** La valeur HÉRITÉE de `metadata.editorial_role` par laquelle se reconnaît, aujourd'hui
+ *  encore, un apparat composé à la manière d'une édition critique.
+ *  ⛔ Ce n'est plus une responsabilité : `typeNote.ts` la résout vers
+ *  `source_editorial_note`, et elle ne produit plus l'intitulé « Apparat critique ». */
 export const ROLE_APPARAT_CRITIQUE = 'critical_apparatus'
 
 /** La DISPOSITION qu'un bloc déclare pour lui-même (`metadata.citation_layout`) :
