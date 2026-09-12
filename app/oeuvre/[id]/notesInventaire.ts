@@ -34,9 +34,35 @@ export type PlaceSegment = {
   surface: 'corps' | 'apparat'
 }
 
+/**
+ * LE TEXTE D'OÙ VIENT UNE NOTE.
+ *
+ * ⛔ En lecture ordinaire il n'y en a qu'un, et la question ne se pose pas. EN REGARD,
+ * le lecteur a DEUX textes sous les yeux, chacun avec son appareil — le *Manuel pour mon
+ * fils* de Dhuoda met 258 notes de la traduction en face des 1 535 de Bondurand —, et
+ * l'inventaire doit dire lequel parle. Sans cela il n'en montrait qu'un, sans le dire.
+ */
+export type SourceNote = {
+  idTexte: string
+  /** Le mot qui désigne ce texte au lecteur — sa langue, le plus souvent. */
+  libelle: string
+}
+
+/** Une source du recensement : son identité, ses notes, et de quoi les situer. */
+export type SourceDeNotes = SourceNote & {
+  notesParSegment: Readonly<Record<string, Readonly<Record<string, NoteStructuree>>>>
+  places: ReadonlyMap<string, PlaceSegment>
+  /** L'ordre des divisions DE CE TEXTE : le latin dit « Liber III » où le français dit
+   *  « Livre III », et chacun range ses notes dans son propre sommaire. */
+  ordreDivisions: readonly string[]
+}
+
 /** Une note recensée : ce qu'elle est, où elle est, et ce qui lui manque. */
 export type NoteRecensee = {
   cle: string
+  /** Le texte qui la porte. ⛔ Deux textes peuvent numéroter leurs notes de la même
+   *  façon : c'est le couple (source, clé) qui fait l'identité, jamais la clé seule. */
+  source: SourceNote
   /** Le numéro que le lecteur voit (`displayNumber`), à défaut l'interne. */
   numero: number
   /** ⚠️ L'interne est gardé À PART : c'est lui qui porte l'identité et l'ordre, et
@@ -177,6 +203,26 @@ export function clesDesNotes(
 }
 
 /**
+ * L'ORDRE DES DIVISIONS TIRÉ DES PLACES, pour un texte qui ne le déclare pas.
+ *
+ * ⚠️ Le texte LU connaît le sien — c'est `niv1List`, que le sommaire emploie. Le texte
+ * EN REGARD ne l'a jamais chargé, et le demander coûterait un aller-retour pour ranger
+ * une liste. Or `segment_numero` court d'un bout à l'autre d'un texte : l'ordre des
+ * divisions se lit donc dans les segments déjà situés, chacune au rang de son premier.
+ *
+ * ⛔ Il ne nomme que les divisions QUI PORTENT UNE NOTE, et c'est assez : une division
+ * sans note n'a rien à ranger.
+ */
+export function ordreDivisionsDesPlaces(places: ReadonlyMap<string, PlaceSegment>): string[] {
+  const premier = new Map<string, number>()
+  for (const place of places.values()) {
+    const vu = premier.get(place.division)
+    if (vu === undefined || place.segmentNumero < vu) premier.set(place.division, place.segmentNumero)
+  }
+  return [...premier.entries()].sort((a, b) => a[1] - b[1]).map(([division]) => division)
+}
+
+/**
  * Le recensement, rangé dans l'ORDRE DE LECTURE.
  *
  * ⚠️ L'ordre est celui du texte — division, puis `segment_numero` —, non celui des
@@ -184,12 +230,12 @@ export function clesDesNotes(
  * mêlerait les divisions. Une note sans ancre ferme la marche, rangée par son numéro
  * interne : elle n'a pas de place dans le texte, c'est tout ce qu'on peut en dire.
  */
-export function recenserNotes(
-  notesParSegment: Readonly<Record<string, Readonly<Record<string, NoteStructuree>>>>,
-  places: ReadonlyMap<string, PlaceSegment>,
-  ordreDivisions: readonly string[] = [],
-): NoteRecensee[] {
+export function recenserNotes(source: SourceDeNotes): NoteRecensee[] {
+  const { notesParSegment, places, ordreDivisions } = source
+  const identite: SourceNote = { idTexte: source.idTexte, libelle: source.libelle }
   const rangDivision = new Map(ordreDivisions.map((d, i) => [d, i]))
+  // ⚠️ Le dédoublonnage est PROPRE À LA SOURCE : deux textes peuvent porter la même
+  // clé de note, et les fondre en ferait disparaître une sans un mot.
   const vues = new Set<string>()
   const recensees: NoteRecensee[] = []
 
@@ -202,6 +248,7 @@ export function recenserNotes(
       vues.add(note.noteKey)
       recensees.push({
         cle: note.noteKey,
+        source: identite,
         numero: note.displayNumber ?? note.noteNumber,
         numeroInterne: note.noteNumber,
         intitule: intituleDeLaNote(note),
@@ -224,6 +271,19 @@ export function recenserNotes(
     || a.numeroInterne - b.numeroInterne)
 }
 
+/**
+ * Le recensement de PLUSIEURS textes — la lecture en regard.
+ *
+ * ⛔ ON NE MÊLE PAS LES DEUX SUITES, et on ne les retrie pas ensemble : leurs divisions
+ * ne portent pas les mêmes noms (« Livre III » contre « Liber III »), leurs numéros de
+ * note repartent à 1 chacun de leur côté, et rien ne dit qu'une note du latin tombe
+ * entre deux notes du français. Chaque texte garde donc son ordre de lecture, et les
+ * sources se suivent dans l'ordre où le lecteur voit ses colonnes.
+ */
+export function recenserSources(sources: readonly SourceDeNotes[]): NoteRecensee[] {
+  return sources.flatMap(recenserNotes)
+}
+
 /** Ce que les filtres du panneau retiennent. */
 export type FiltreNotes = {
   texte?: string
@@ -232,6 +292,8 @@ export type FiltreNotes = {
   aRevoir?: boolean
   sansPlace?: boolean
   surface?: 'corps' | 'apparat' | null
+  /** `null` = les deux textes ; sinon l'`id_texte` de celui qu'on veut seul. */
+  source?: string | null
 }
 
 /** L'intitulé sous lequel se rangent les notes qui n'en déclarent aucun. */
@@ -250,6 +312,7 @@ export function intituleDuFiltre(note: NoteRecensee): string {
 export function filtrerNotes(notes: readonly NoteRecensee[], filtre: FiltreNotes): NoteRecensee[] {
   const q = replier(filtre.texte ?? '')
   return notes.filter(note => {
+    if (filtre.source != null && note.source.idTexte !== filtre.source) return false
     if (filtre.aRevoir && !note.aRevoir) return false
     if (filtre.sansPlace && note.place) return false
     if (filtre.surface && note.place?.surface !== filtre.surface) return false
@@ -277,16 +340,43 @@ export function comptesParIntitule(notes: readonly NoteRecensee[]): { intitule: 
     .sort((a, b) => b.n - a.n || a.intitule.localeCompare(b.intitule, 'fr'))
 }
 
-/** Les notes rangées par division, dans l'ordre de lecture, les orphelines en queue. */
-export function grouperParDivision(
-  notes: readonly NoteRecensee[],
-): { division: string; divisionTexte: string | null; notes: NoteRecensee[] }[] {
-  const groupes: { division: string; divisionTexte: string | null; notes: NoteRecensee[] }[] = []
+/** Les textes présents, avec leur compte — la facette de la lecture en regard.
+ *  ⚠️ Comptés sur le corpus ENTIER, comme les intitulés, et dans l'ordre des sources. */
+export function comptesParSource(notes: readonly NoteRecensee[]): { source: SourceNote; n: number }[] {
+  const comptes = new Map<string, { source: SourceNote; n: number }>()
+  for (const note of notes) {
+    const vu = comptes.get(note.source.idTexte)
+    if (vu) vu.n += 1
+    else comptes.set(note.source.idTexte, { source: note.source, n: 1 })
+  }
+  return [...comptes.values()]
+}
+
+export type GroupeNotes = {
+  /** Le texte et la division réunis : c'est la clé du groupe, non la division seule. */
+  cle: string
+  source: SourceNote
+  division: string
+  divisionTexte: string | null
+  notes: NoteRecensee[]
+}
+
+/**
+ * Les notes rangées par division, dans l'ordre de lecture, les orphelines en queue.
+ *
+ * ⛔ Le groupe est le couple (TEXTE, division), jamais la division seule : deux textes
+ * peuvent nommer une division de la même façon — c'est le cas des « Prolégomènes » de
+ * Dhuoda, que le latin et le français écrivent pareil —, et grouper sur le nom seul
+ * fondrait deux appareils en une liste où plus rien ne dirait qui parle.
+ */
+export function grouperParDivision(notes: readonly NoteRecensee[]): GroupeNotes[] {
+  const groupes: GroupeNotes[] = []
   for (const note of notes) {
     const division = note.place?.division ?? ''
+    const cle = `${note.source.idTexte}|${division}`
     const dernier = groupes[groupes.length - 1]
-    if (dernier && dernier.division === division) dernier.notes.push(note)
-    else groupes.push({ division, divisionTexte: note.place?.divisionTexte ?? null, notes: [note] })
+    if (dernier && dernier.cle === cle) dernier.notes.push(note)
+    else groupes.push({ cle, source: note.source, division, divisionTexte: note.place?.divisionTexte ?? null, notes: [note] })
   }
   return groupes
 }

@@ -5,11 +5,15 @@ import {
   clesDesNotes,
   comptesParIntitule,
   filtrerNotes,
+  comptesParSource,
   grouperParDivision,
   recenserNotes,
+  recenserSources,
   SANS_INTITULE,
   type NoteRecensee,
   type PlaceSegment,
+  type SourceDeNotes,
+  type SourceNote,
 } from './notesInventaire'
 import type { NoteBlocData, NoteStructuree } from './oeuvreTypes'
 
@@ -35,6 +39,17 @@ const INSEC = String.fromCharCode(0x00A0)
 const place = (p: Partial<PlaceSegment> & { id: number; segmentKey: string }): PlaceSegment => ({
   division: 'Livre I', segmentNumero: p.id, surface: 'corps', ...p,
 })
+
+/** Le TEXTE d'où vient une note : en lecture ordinaire il n'y en a qu'un. */
+const SOURCE: SourceNote = { idTexte: 'T1', libelle: 'Français' }
+const SOURCE_LA: SourceNote = { idTexte: 'T2', libelle: 'Latin' }
+
+const source = (
+  notesParSegment: SourceDeNotes['notesParSegment'],
+  places: SourceDeNotes['places'],
+  ordreDivisions: readonly string[],
+  identite: SourceNote = SOURCE,
+): SourceDeNotes => ({ ...identite, notesParSegment, places, ordreDivisions })
 
 describe('apercuDeLaNote', () => {
   it('joint les blocs dans l’ordre de leur rang, blancs resserrés', () => {
@@ -137,50 +152,50 @@ describe('recenserNotes', () => {
   it('range dans l’ORDRE DE LECTURE, non par numéro de note', () => {
     // ⛔ Le numéro affiché repart à 1 à chaque division : trier dessus mêlerait les
     // divisions, et « 1 » du livre II passerait devant « 12 » du livre I.
-    const recensees = recenserNotes(
+    const recensees = recenserNotes(source(
       {
         s2: { '[[1]]': note({ noteKey: 'B', noteNumber: 40, displayNumber: 1 }) },
         s1: { '[[12]]': note({ noteKey: 'A', noteNumber: 12, displayNumber: 12 }) },
       },
       places,
       ['Livre I', 'Livre II'],
-    )
+    ))
     expect(recensees.map(n => n.cle)).toEqual(['A', 'B'])
     expect(recensees.map(n => n.numero)).toEqual([12, 1])
   })
 
   it('garde le numéro INTERNE à part du numéro affiché', () => {
-    const [r] = recenserNotes({ s1: { m: note({ noteKey: 'A', noteNumber: 40, displayNumber: 3 }) } }, places, ['Livre I'])
+    const [r] = recenserNotes(source({ s1: { m: note({ noteKey: 'A', noteNumber: 40, displayNumber: 3 }) } }, places, ['Livre I']))
     expect([r.numero, r.numeroInterne]).toEqual([3, 40])
   })
 
   it('retombe sur le numéro interne quand la division n’a pas pu être établie', () => {
-    const [r] = recenserNotes({ s1: { m: note({ noteKey: 'A', noteNumber: 7 }) } }, places, ['Livre I'])
+    const [r] = recenserNotes(source({ s1: { m: note({ noteKey: 'A', noteNumber: 7 }) } }, places, ['Livre I']))
     expect(r.numero).toBe(7)
   })
 
   it('⛔ ne recense une note QU’UNE FOIS, fût-elle ancrée deux fois', () => {
     const n = note({ noteKey: 'A', noteNumber: 1 })
-    const recensees = recenserNotes({ s1: { m: n }, s2: { m: n } }, places, ['Livre I', 'Livre II'])
+    const recensees = recenserNotes(source({ s1: { m: n }, s2: { m: n } }, places, ['Livre I', 'Livre II']))
     expect(recensees).toHaveLength(1)
     expect(recensees[0].place?.division).toBe('Livre I')
   })
 
   it('⛔ SIGNALE une ancre dont le segment est introuvable, au lieu de la taire', () => {
-    const [r] = recenserNotes({ inconnu: { m: note({ noteKey: 'A', noteNumber: 1 }) } }, places, ['Livre I'])
+    const [r] = recenserNotes(source({ inconnu: { m: note({ noteKey: 'A', noteNumber: 1 }) } }, places, ['Livre I']))
     expect(r.ancreOrpheline).toBe(true)
     expect(r.place).toBeNull()
   })
 
   it('range les orphelines EN QUEUE, quel que soit leur numéro', () => {
-    const recensees = recenserNotes(
+    const recensees = recenserNotes(source(
       {
         inconnu: { m: note({ noteKey: 'ORPH', noteNumber: 1 }) },
         s2: { m: note({ noteKey: 'B', noteNumber: 99 }) },
       },
       places,
       ['Livre I', 'Livre II'],
-    )
+    ))
     expect(recensees.map(n => n.cle)).toEqual(['B', 'ORPH'])
   })
 
@@ -189,7 +204,7 @@ describe('recenserNotes', () => {
       noteKey: 'A', noteNumber: 1,
       blocks: [bloc({ blockId: 'b1' }), bloc({ blockId: 'b2', rank: 2, needsReview: true })],
     })
-    expect(recenserNotes({ s1: { m: n } }, places, ['Livre I'])[0].aRevoir).toBe(true)
+    expect(recenserNotes(source({ s1: { m: n } }, places, ['Livre I']))[0].aRevoir).toBe(true)
   })
 
   it('nomme l’intitulé quand la note déclare un type, et se tait sinon', () => {
@@ -197,25 +212,30 @@ describe('recenserNotes', () => {
       noteKey: 'A', noteNumber: 1,
       blocks: [bloc({ blockId: 'b', editorialRole: 'translator_note' })],
     })
-    expect(recenserNotes({ s1: { m: typee } }, places, ['Livre I'])[0].intitule).toBe('Note du traducteur')
-    expect(recenserNotes({ s1: { m: note({ noteKey: 'B', noteNumber: 2 }) } }, places, ['Livre I'])[0].intitule).toBeNull()
+    expect(recenserNotes(source({ s1: { m: typee } }, places, ['Livre I']))[0].intitule).toBe('Note du traducteur')
+    expect(recenserNotes(source({ s1: { m: note({ noteKey: 'B', noteNumber: 2 }) } }, places, ['Livre I']))[0].intitule).toBeNull()
+  })
+
+  it('porte le TEXTE d’où la note vient', () => {
+    const [r] = recenserNotes(source({ s1: { m: note({ noteKey: 'A', noteNumber: 1 }) } }, places, ['Livre I'], SOURCE_LA))
+    expect(r.source).toEqual(SOURCE_LA)
   })
 
   it('range une division inconnue de l’ordre APRÈS celles qu’il nomme', () => {
     const places2 = new Map(places)
     places2.set('s3', place({ id: 3, segmentKey: 's3', division: 'Appendice', segmentNumero: 1 }))
-    const recensees = recenserNotes(
+    const recensees = recenserNotes(source(
       { s3: { m: note({ noteKey: 'C', noteNumber: 1 }) }, s1: { m: note({ noteKey: 'A', noteNumber: 1 }) } },
       places2,
       ['Livre I'],
-    )
+    ))
     expect(recensees.map(n => n.cle)).toEqual(['A', 'C'])
   })
 })
 
 describe('filtrerNotes', () => {
   const base: NoteRecensee = {
-    cle: 'A', numero: 1, numeroInterne: 1, intitule: null, apercu: 'Voyez Isaïe 6, 3.',
+    cle: 'A', source: SOURCE, numero: 1, numeroInterne: 1, intitule: null, apercu: 'Voyez Isaïe 6, 3.',
     place: place({ id: 1, segmentKey: 's1' }), ancreOrpheline: false, aRevoir: false, apparatCritique: false,
   }
   const notes: NoteRecensee[] = [
@@ -250,6 +270,12 @@ describe('filtrerNotes', () => {
     expect(filtrerNotes(notes, { surface: 'apparat' }).map(n => n.cle)).toEqual(['D'])
   })
 
+  it('retient un seul TEXTE', () => {
+    const latine: NoteRecensee = { ...base, cle: 'L', source: SOURCE_LA }
+    expect(filtrerNotes([...notes, latine], { source: 'T2' }).map(n => n.cle)).toEqual(['L'])
+    expect(filtrerNotes([...notes, latine], { source: null })).toHaveLength(5)
+  })
+
   it('rend tout quand rien n’est demandé', () => {
     expect(filtrerNotes(notes, {})).toHaveLength(4)
   })
@@ -258,7 +284,7 @@ describe('filtrerNotes', () => {
 describe('comptesParIntitule', () => {
   it('compte par intitulé, le plus nombreux devant', () => {
     const n = (cle: string, intitule: string | null): NoteRecensee => ({
-      cle, numero: 1, numeroInterne: 1, intitule, apercu: '', place: null,
+      cle, source: SOURCE, numero: 1, numeroInterne: 1, intitule, apercu: '', place: null,
       ancreOrpheline: true, aRevoir: false, apparatCritique: false,
     })
     expect(comptesParIntitule([n('a', null), n('b', 'Apparat critique'), n('c', null)])).toEqual([
@@ -274,11 +300,65 @@ describe('grouperParDivision', () => {
     // l'a déjà posé. Un groupement par table de hachage ramènerait ensemble des
     // divisions éloignées.
     const n = (cle: string, division: string | null): NoteRecensee => ({
-      cle, numero: 1, numeroInterne: 1, intitule: null, apercu: '',
+      cle, source: SOURCE, numero: 1, numeroInterne: 1, intitule: null, apercu: '',
       place: division === null ? null : place({ id: 1, segmentKey: cle, division }),
       ancreOrpheline: division === null, aRevoir: false, apparatCritique: false,
     })
     const groupes = grouperParDivision([n('a', 'I'), n('b', 'I'), n('c', 'II'), n('d', null)])
     expect(groupes.map(g => [g.division, g.notes.length])).toEqual([['I', 2], ['II', 1], ['', 1]])
+  })
+
+  it('⛔ NE FOND PAS deux textes qui nomment leur division pareil', () => {
+    // Les « Prolégomènes » de Dhuoda s’écrivent ainsi dans le latin comme dans le
+    // français : grouper sur le nom seul mêlerait deux appareils en une seule liste.
+    const n = (cle: string, src: SourceNote): NoteRecensee => ({
+      cle, source: src, numero: 1, numeroInterne: 1, intitule: null, apercu: '',
+      place: place({ id: 1, segmentKey: cle, division: 'Prolégomènes' }),
+      ancreOrpheline: false, aRevoir: false, apparatCritique: false,
+    })
+    const groupes = grouperParDivision([n('a', SOURCE), n('b', SOURCE_LA)])
+    expect(groupes.map(g => g.cle)).toEqual(['T1|Prolégomènes', 'T2|Prolégomènes'])
+  })
+})
+
+describe('recenserSources', () => {
+  const places = new Map<string, PlaceSegment>([
+    ['s1', place({ id: 1, segmentKey: 's1', division: 'Livre I', segmentNumero: 10 })],
+  ])
+  const placesLa = new Map<string, PlaceSegment>([
+    ['l1', place({ id: 9, segmentKey: 'l1', division: 'Liber I', segmentNumero: 10 })],
+  ])
+
+  it('⛔ NE MÊLE PAS les deux suites : chaque texte garde son ordre de lecture', () => {
+    // Le latin numérote ses notes de son côté et nomme ses divisions autrement :
+    // un tri commun ferait passer « Liber I, 1 » devant « Livre I, 12 » sans raison.
+    const recensees = recenserSources([
+      source({ s1: { m: note({ noteKey: 'A', noteNumber: 12, displayNumber: 12 }) } }, places, ['Livre I']),
+      source({ l1: { m: note({ noteKey: 'A', noteNumber: 1, displayNumber: 1 }) } }, placesLa, ['Liber I'], SOURCE_LA),
+    ])
+    expect(recensees.map(n => [n.source.idTexte, n.numero])).toEqual([['T1', 12], ['T2', 1]])
+  })
+
+  it('⛔ garde DEUX notes que les deux textes numérotent pareil', () => {
+    // Le dédoublonnage est propre à la source : c’est le couple (texte, clé) qui fait
+    // l’identité, et fondre sur la clé seule ferait disparaître une note sans un mot.
+    const recensees = recenserSources([
+      source({ s1: { m: note({ noteKey: 'n1', noteNumber: 1 }) } }, places, ['Livre I']),
+      source({ l1: { m: note({ noteKey: 'n1', noteNumber: 1 }) } }, placesLa, ['Liber I'], SOURCE_LA),
+    ])
+    expect(recensees).toHaveLength(2)
+  })
+})
+
+describe('comptesParSource', () => {
+  it('compte par texte, DANS L’ORDRE des colonnes', () => {
+    const n = (cle: string, src: SourceNote): NoteRecensee => ({
+      cle, source: src, numero: 1, numeroInterne: 1, intitule: null, apercu: '',
+      place: null, ancreOrpheline: true, aRevoir: false, apparatCritique: false,
+    })
+    expect(comptesParSource([n('a', SOURCE), n('b', SOURCE_LA), n('c', SOURCE)])).toEqual([
+      { source: SOURCE, n: 2 },
+      { source: SOURCE_LA, n: 1 },
+    ])
   })
 })

@@ -25,7 +25,7 @@ import { createPortal } from 'react-dom'
 import { supabase } from "@/app/lib/supabase"
 import type { ChampTitre, SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, NoteStructuree, VersionTextuelle } from './oeuvreTypes'
 import type { BlocOriginal } from './bilingueAlignement'
-import { repartirGroupes, chargerProjectionBilingue, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, type BlocEnRegard } from './bilingueAlignement'
+import { repartirGroupes, chargerProjectionBilingue, chargerPlaceEnRegard, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, type BlocEnRegard } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
 import { BoutonVolet, MenuVolet, TitreVolet, useRangeeCondensee, type ActionVolet } from './TeteVolet'
 import { construireNavigationApparat } from './apparatNavigation'
@@ -96,7 +96,7 @@ import { ContenuRenvoiEnLigne } from './ContenuNoteStructuree'
 import { estRenvoiSeul, STYLE_RENVOI_MANCHETTE } from '@/app/lib/manchetteRenvois'
 import { CLASSE_RENVOI_MANCHETTE, useManchetteRenvois } from './useManchetteRenvois'
 import { chargerOeuvresDAuteurs } from '@/app/lib/auteursOeuvre'
-import { identiteEdition, libelleVersionComplet } from './versionTextuelle'
+import { identiteEdition, labelCourtVersion, libelleVersionComplet } from './versionTextuelle'
 import { editionsOffertes } from './editionsDuTexte'
 import { nettoyerFin } from '@/app/lib/ponctuation'
 import FicheEdition, { type VoletFiche } from './FicheEdition'
@@ -123,11 +123,14 @@ import { type SceneVisite } from '@/app/lib/visiteGuidee'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { useFavoris } from '@/app/lib/useFavoris'
 import { refFavoriOriginal } from '@/app/lib/refsFavoris'
-import type { NoteRecensee } from './notesInventaire'
+import type { NoteRecensee, PlaceSegment } from './notesInventaire'
 import OngletCommentaires from './OngletCommentaires'
 // ⛔ L'inventaire des notes est chargé à la DEMANDE : il n'entre dans le paquet que
 // lorsqu'un administrateur ouvre son onglet, et jamais dans celui d'un lecteur.
 const OngletNotes = dynamic(() => import('./OngletNotes'))
+// ⚠️ Le type seul : il s'efface à la compilation et ne ramène donc pas le composant
+// dans le paquet que le chargement à la demande vient d'en sortir.
+import type { SourceInventaire } from './OngletNotes'
 import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import { useEstMobile, useSansSurvol } from '@/app/lib/useEstMobile'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
@@ -1510,13 +1513,52 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Navigue vers une ancre en changeant de page si nécessaire
   // ── L'INVENTAIRE DES NOTES (administration) ────────────────────────────────
   // La note qu'on vient d'ouvrir depuis l'inventaire, pour la marquer dans la liste.
-  const [noteCourante, setNoteCourante] = useState<string | null>(null)
+  // ⛔ Le COUPLE (texte, clé) : en lecture en regard l'inventaire porte deux appareils,
+  // et deux textes peuvent numéroter leurs notes de la même façon.
+  const [noteCourante, setNoteCourante] = useState<{ idTexte: string; cle: string } | null>(null)
   // ⛔ L'onglet « Notes » ne se PROPOSE pas hors administration : un onglet qu'un
   // lecteur ne doit pas voir ne se garde pas au seul rendu de son contenu.
   const ongletsDuVolet = useMemo<OngletDroit[]>(
     () => (estAdmin ? ['refs', 'commentaires', 'notes'] : ['refs', 'commentaires']),
     [estAdmin],
   )
+
+  /**
+   * LES TEXTES DONT L'INVENTAIRE RELÈVE LES NOTES.
+   *
+   * ⛔ EN LECTURE EN REGARD, ILS SONT DEUX (demande de l'auteur, 2026-09-12 : « en mode
+   * latin-français, il faut afficher toutes les notes, des deux textes »). Le lecteur a
+   * deux appareils sous les yeux, et l'inventaire n'en montrait qu'un — sur le *Manuel
+   * pour mon fils* de Dhuoda, il annonçait « 258 notes dans ce texte » en taisant les
+   * 1 535 de Bondurand, qui sont pourtant appelées dans la colonne d'en face.
+   *
+   * ⛔ ET SEULEMENT EN LECTURE EN REGARD : hors du bilingue, les appels du texte
+   * original ne sont pas rendus, et une note qu'on listerait ne pourrait pas s'ouvrir.
+   * ⚠️ `ensembleBilingue` est la garde qui compte : une colonne tirée du repli
+   * `segments.texte_original` n'est pas un texte, elle n'a ni notes ni segments à soi.
+   *
+   * ⚠️ Le libellé est la LANGUE, celle que la donnée déclare (« Latin », « Français ») :
+   * c'est ce qui distingue les deux colonnes à l'œil. Le nom court de l'édition ne sert
+   * qu'à défaut, pour un texte dont la langue n'est pas renseignée.
+   */
+  const sourcesNotes = useMemo<SourceInventaire[]>(() => {
+    const nommer = (version: VersionTextuelle | null, defaut: string) =>
+      version?.langue?.trim() || (version ? labelCourtVersion(version) : defaut)
+    const lu: SourceInventaire = {
+      idTexte,
+      libelle: nommer(versionActive, 'Texte lu'),
+      notesStructurees,
+      ordreDivisions: niv1List,
+    }
+    if (!affichageBilingue || !ensembleBilingue || !idTexteEnRegard) return [lu]
+    if (Object.keys(notesOriginales).length === 0) return [lu]
+    return [lu, {
+      idTexte: idTexteEnRegard,
+      libelle: nommer(versionEnRegard, 'Texte en regard'),
+      notesStructurees: notesOriginales,
+      sansApparat: true,
+    }]
+  }, [idTexte, versionActive, notesStructurees, niv1List, affichageBilingue, ensembleBilingue, idTexteEnRegard, notesOriginales, versionEnRegard])
 
   const naviguerVersAncre = useCallback((ancre: string) => {
     const pageIdx = pages.findIndex(p => p.some(g => g.anchor === ancre))
@@ -2028,22 +2070,61 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
    */
   // ⚠️ Fonction ordinaire, non mémorisée : `changerNiv1` ne l'est pas, et un
   // `useCallback` dont une dépendance change à chaque rendu ne mémorise rien.
-  const allerALaNote = (note: NoteRecensee) => {
-    if (!note.place) return
-    setNoteCourante(note.cle)
-    // Sur un téléphone, l'inventaire vit dans le tiroir, qui couvre le texte : on le
-    // referme, sans quoi l'on ouvrirait la note d'un passage qu'on ne voit pas.
-    if (mobile) setPanneauOuvert(false)
-    const surface = note.place.surface
-    setVue(surface === 'apparat' ? 'apparat' : 'texte')
-    noteAOuvrirRef.current = { cle: note.cle, segId: note.place.id }
-    if (allerAuSegment(note.place.id, surface)) return
-    if (surface === 'corps' && note.place.division) {
-      pendingScrollSegRef.current = note.place.id
-      changerNiv1(note.place.division)
+  // Le saut proprement dit, une fois la place connue DANS LE TEXTE LU.
+  const sauterVersLaNote = (cle: string, place: { id: number; division: string }, surface: 'corps' | 'apparat') => {
+    noteAOuvrirRef.current = { cle, segId: place.id }
+    if (allerAuSegment(place.id, surface)) return
+    if (surface === 'corps' && place.division) {
+      pendingScrollSegRef.current = place.id
+      changerNiv1(place.division)
       return
     }
     noteAOuvrirRef.current = null
+  }
+
+  /**
+   * LE RENVOI VERS UNE NOTE DU TEXTE EN REGARD.
+   *
+   * ⛔ LA PAGE NE NAVIGUE QUE PAR LES DIVISIONS DU TEXTE LU. Le latin ne les nomme pas
+   * de la même façon — « Liber I » contre « Livre premier » —, et la place d'une note du
+   * latin ne dit donc rien à `changerNiv1`. On demande à l'ALIGNEMENT ce qui, dans le
+   * texte lu, fait face au segment qui la porte, et l'on saute là : l'appel latin y est
+   * rendu dans la colonne d'en face, et `ouvrirLaNoteDansLeTexte` le retrouve par sa clé.
+   *
+   * ⛔ AUCUN REPLI PAR RANG : faute d'alignement, on ne bouge pas. Envoyer le lecteur au
+   * mauvais endroit est pire qu'un bouton qui ne fait rien.
+   *
+   * ⚠️ Une erreur de la base se DIT au journal ; une absence d'alignement est un fait de
+   * donnée, et elle n'a rien à y faire.
+   */
+  const ouvrirNoteEnRegard = (note: NoteRecensee, place: PlaceSegment) => {
+    if (!ensembleBilingue || !idTexteEnRegard) return
+    setVue('texte')
+    void chargerPlaceEnRegard(supabase, {
+      alignmentSetId: ensembleBilingue.alignmentSetId,
+      idTexteTraduit: idTexte,
+      idTexteOriginal: idTexteEnRegard,
+      cleOriginale: place.segmentKey,
+    })
+      .then(enFace => { if (enFace) sauterVersLaNote(note.cle, enFace, 'corps') })
+      .catch((erreur: unknown) => {
+        console.error(`Place en regard illisible (${note.source.idTexte} · ${place.segmentKey}) :`, erreur)
+      })
+  }
+
+  const allerALaNote = (note: NoteRecensee) => {
+    const place = note.place
+    if (!place) return
+    setNoteCourante({ idTexte: note.source.idTexte, cle: note.cle })
+    // Sur un téléphone, l'inventaire vit dans le tiroir, qui couvre le texte : on le
+    // referme, sans quoi l'on ouvrirait la note d'un passage qu'on ne voit pas.
+    if (mobile) setPanneauOuvert(false)
+    // ⛔ Une note du texte EN REGARD n'a pas de place dans la navigation du texte lu :
+    // elle passe par l'alignement, qui seul sait où elle tombe.
+    if (note.source.idTexte !== idTexte) { ouvrirNoteEnRegard(note, place); return }
+    const surface = place.surface
+    setVue(surface === 'apparat' ? 'apparat' : 'texte')
+    sauterVersLaNote(note.cle, place, surface)
   }
 
   const trad = traductionsBible[tradIndex]?.code ?? 'TR0001'
@@ -4638,9 +4719,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               </>
             ) : (ongletDroit === 'notes' && estAdmin) ? (
               <OngletNotes
-                idTexte={idTexte}
-                notesStructurees={notesStructurees}
-                ordreDivisions={niv1List}
+                sources={sourcesNotes}
                 noteCourante={noteCourante}
                 onAller={allerALaNote}
               />

@@ -421,7 +421,10 @@ export type ClientLecture = { from: (table: string) => unknown }
 type RequeteLecture = {
   select: (colonnes: string) => RequeteLecture
   eq: (colonne: string, valeur: string) => RequeteLecture
-  in: (colonne: string, valeurs: readonly string[]) => PromiseLike<{ data: unknown[] | null }>
+  // ⚠️ `error` est FACULTATIF : les appelants historiques ne le lisent pas, et le
+  // déclarer ne les oblige à rien. Il est là pour que ce qui le lit puisse distinguer
+  // « l'alignement ne dit rien » d'« la base a refusé », qui ne se répondent pas pareil.
+  in: (colonne: string, valeurs: readonly string[]) => PromiseLike<{ data: unknown[] | null; error?: { message: string } | null }>
 }
 
 /**
@@ -478,6 +481,88 @@ export async function chargerProjectionBilingue(
     notesOriginales: params.notesOriginales,
     ancresOriginales: params.ancresOriginales,
   })
+}
+
+/** Ce qu'on sait, dans le texte LU, de l'endroit qui fait face à un segment original. */
+export type PlaceEnRegard = {
+  id: number
+  segmentKey: string
+  division: string
+  segmentNumero: number
+}
+
+type LigneSegmentEnRegard = { id: number; segment_key: string; ref_niv1: string | null; segment_numero: number }
+
+/**
+ * LA PLACE, DANS LE TEXTE LU, DE CE QUI FAIT FACE À UN SEGMENT DE L'ORIGINAL.
+ *
+ * C'est `chargerProjectionBilingue` pris par l'autre bout : on part d'une clé de
+ * l'original, on remonte à son groupe d'alignement, on redescend sur la traduction.
+ * L'inventaire des notes en a besoin pour qu'une note du latin s'ouvre comme une note
+ * du français — la navigation de la page se fait par les divisions du texte LU, et le
+ * latin ne les nomme pas de la même façon.
+ *
+ * ⛔ AUCUN REPLI PAR RANG. Faute d'alignement, on rend `null` : deviner que la
+ * quatrième division du latin répond à la quatrième du français tomberait à côté sans
+ * le dire, et un lecteur qu'on envoie au mauvais endroit est pire qu'un bouton qui ne
+ * fait rien.
+ *
+ * ⚠️ On ne charge RIEN d'avance : trois requêtes minuscules, au clic, pour une seule
+ * clé. Le pont de tout un texte coûterait, sur les Confessions, onze mille membres à
+ * l'ouverture d'un volet qu'on n'ouvre parfois que pour chercher un mot.
+ *
+ * ⚠️ Une erreur de la base LÈVE, quand une absence d'alignement rend `null` : les deux
+ * ne se répondent pas de la même façon, et les confondre ferait passer une panne pour
+ * un silence de la donnée.
+ */
+export async function chargerPlaceEnRegard(
+  client: ClientLecture,
+  params: {
+    alignmentSetId: string
+    idTexteTraduit: string
+    idTexteOriginal: string
+    cleOriginale: string
+  },
+): Promise<PlaceEnRegard | null> {
+  const table = (nom: string) => client.from(nom) as RequeteLecture
+  const lire = async (requete: PromiseLike<{ data: unknown[] | null; error?: { message: string } | null }>, quoi: string) => {
+    const { data, error } = await requete
+    if (error) throw new Error(`${quoi} : ${error.message}`)
+    return data ?? []
+  }
+  const membres = (idTexte: string, colonne: 'segment_key' | 'alignment_id', valeurs: readonly string[]) =>
+    lire(
+      table('texte_alignement_membres').select('alignment_id,member_order,segment_key')
+        .eq('alignment_set_id', params.alignmentSetId)
+        .eq('id_texte', idTexte)
+        .in(colonne, valeurs),
+      `membres d’alignement de ${idTexte}`,
+    ) as Promise<MembreAlignement[]>
+
+  const cotesOriginaux = await membres(params.idTexteOriginal, 'segment_key', [params.cleOriginale])
+  const groupes = [...new Set(cotesOriginaux.map(m => m.alignment_id))]
+  if (groupes.length === 0) return null
+
+  const cotesTraduits = await membres(params.idTexteTraduit, 'alignment_id', groupes)
+  const cles = [...new Set([...cotesTraduits].sort((a, b) => a.member_order - b.member_order).map(m => m.segment_key))]
+  if (cles.length === 0) return null
+
+  const lignes = await lire(
+    table('segments').select('id,segment_key,ref_niv1,segment_numero')
+      .eq('id_texte', params.idTexteTraduit)
+      .in('segment_key', cles),
+    `segments de ${params.idTexteTraduit}`,
+  ) as LigneSegmentEnRegard[]
+  // ⚠️ Le PREMIER de l'empan dans l'ordre de lecture : c'est là que le regard se pose,
+  // et c'est le seul rang que `segment_numero` garantisse d'un bout à l'autre du texte.
+  const premier = [...lignes].sort((a, b) => a.segment_numero - b.segment_numero)[0]
+  if (!premier) return null
+  return {
+    id: premier.id,
+    segmentKey: premier.segment_key,
+    division: (premier.ref_niv1 ?? '').trim(),
+    segmentNumero: premier.segment_numero,
+  }
 }
 
 /** Un bloc de lecture — un PARAGRAPHE — et ce que l'alignement lui met en regard. */
