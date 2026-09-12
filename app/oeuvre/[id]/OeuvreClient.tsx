@@ -13,6 +13,7 @@ import { champDuTitre, projeterAppelsNotesStructureesEnSignalant as projeterAppe
 import type { DegradationChargement } from '@/app/lib/chargementTolerant'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
 import { CLASSES_BIBLIOGRAPHIE, estBlocBibliographique } from '@/app/lib/apparatBibliographie'
+import { comparerOuvragesDUnVolume, ouvrageDeLaNotice, type OuvrageBibliographique } from '@/app/lib/bibleBibliographieOuvrages'
 import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import { chargerNoticesBibliographiques, identifiantsOuvrages, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
 
@@ -4191,6 +4192,20 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             }
             const estBibliographique = (bloc: { ids: number[] } | undefined) =>
               bloc !== undefined && estBlocBibliographique(bloc.ids.map(sid => segMapApparat.get(sid)))
+            // L'ouvrage que le TRI lit dans un bloc d'entrée : sa notice quand un segment
+            // porte un `ouvrage_id`, sinon la LIGNE elle-même — un renvoi (« Xénophane, voir
+            // Ammien Marcellin ») se classe à sa propre vedette, comme dans un index.
+            // ⚠️ `rang` est le rang MATÉRIEL du bloc, dernier recours du tri : c'est lui qui
+            // garde aux douze traductions de Boèce l'ordre des siècles.
+            const ouvrageDuBloc = (bloc: { ids: number[] }, rang: number): OuvrageBibliographique => {
+              const notice = bloc.ids
+                .map(sid => segMapApparat.get(sid)?.ouvrageId)
+                .map(id => (id != null ? noticesBibliographiques[id] : undefined))
+                .find(Boolean)
+              if (notice) return ouvrageDeLaNotice(notice, rang)
+              const ligne = bloc.ids.map(sid => segMapApparat.get(sid)?.texte ?? '').join(' ')
+              return { id: -rang - 1, ordre: rang, titre: ligne, sousTitre: null, lieu: null, editeur: null, annee: null, auteur: null }
+            }
             return (
               <>
                 {groupesApparat.map((groupe) => {
@@ -4259,7 +4274,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         if (estBibliographique(chunk)) {
                           if (estBibliographique(chunks[iChunk - 1])) return null
                           const fin = chunks.findIndex((bloc, j) => j > iChunk && !estBibliographique(bloc))
+                          // ⛔ L'ORDRE D'UNE BIBLIOGRAPHIE SE CALCULE (charte § 47.3) : la vedette,
+                          // puis, à vedette égale, l'ordre du volume. La liste de Mirandol gardait
+                          // ici son ordre matériel jusqu'au 12 septembre 2026. ⛔ Les rangs
+                          // documentaires ne bougent pas : c'est l'AFFICHAGE qui range.
                           const entrees = chunks.slice(iChunk, fin === -1 ? chunks.length : fin)
+                            .map((bloc, rang) => ({ bloc, ouvrage: ouvrageDuBloc(bloc, rang) }))
+                            .sort((a, b) => comparerOuvragesDUnVolume(a.ouvrage, b.ouvrage))
+                            .map(({ bloc }) => bloc)
                           return (
                             <div key={`apparat-biblio-${chunk.ids[0]}`} lang={langueCorps} style={styleHoteBibliographieApparat()}>
                               <div className={CLASSES_BIBLIOGRAPHIE.bloc}>

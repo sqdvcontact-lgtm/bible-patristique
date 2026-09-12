@@ -21,6 +21,7 @@
  * Module PUR : il ne connaît ni Supabase, ni React.
  */
 
+import { vedetteDuNom } from './nomsPersonnes'
 import {
   fragmentsReference,
   LIAISON_SOUS_TITRE,
@@ -184,10 +185,14 @@ export function clefDeTitre(texte: string): string {
  */
 /** ⚠️ EXPORTÉE depuis le 2026-09-06, pour la même raison que `clefDeTitre` : c'est
  *  aussi par elle que l'outil bibliographique range ses entrées sous une LETTRE. */
+/** ⚠️ LA PARTICULE « de » NE CLASSE PAS (décision de l'auteur, 12 septembre 2026) :
+ *  « Alfred de Musset » se range à Musset, « Joseph Pitton de Tournefort » à Tournefort.
+ *  La règle, avec ce qu'elle épargne — « La Taille », « Du Bellay », « Van Dyck » —, vit
+ *  dans `vedetteDuNom` (`nomsPersonnes.ts`) ; ⛔ le nom AFFICHÉ garde sa particule. */
 export function clefDeVedette(ouvrage: OuvrageBibliographique): string {
   const auteur = ouvrage.auteur
   if (!auteur) return clefDeTitre(ouvrage.titre)
-  return replier(auteur.nomFamille ?? auteur.nom)
+  return replier(vedetteDuNom(auteur.nomFamille ?? auteur.nom))
 }
 
 // Les clés sont déjà repliées : `localeCompare` ne range plus que des lettres
@@ -208,6 +213,57 @@ export function comparerOuvrages(a: OuvrageBibliographique, b: OuvrageBibliograp
     || comparerClefs(clefDeTitre(a.sousTitre ?? ''), clefDeTitre(b.sousTitre ?? ''))
     || (a.annee ?? 0) - (b.annee ?? 0)
     || a.ordre - b.ordre
+}
+
+/**
+ * L'ordre d'affichage d'une liste QUI VIENT D'UN VOLUME (charte § 47.3, amendée le
+ * 12 septembre 2026) : la vedette, puis, à vedette égale, l'ORDRE DU VOLUME.
+ *
+ * ⚠️ Ce n'est pas une facilité. La « Liste des traductions françaises » de Mirandol range
+ * douze traductions du même Boèce dans l'ordre des siècles, de Jean de Meung à Colesse :
+ * douze fois la même vedette, et une chronologie qu'aucune colonne ne porte — le rang
+ * imprimé la tient seul. Les départager par le titre mêlerait le XVe siècle au XIXe.
+ * ⛔ Le catalogue, lui, ne vient d'aucun volume : il garde `comparerOuvrages` et son
+ * départage par le titre, faute de quoi les œuvres d'un même auteur s'y rangeraient
+ * dans l'ordre où la base les a créées.
+ */
+export function comparerOuvragesDUnVolume(a: OuvrageBibliographique, b: OuvrageBibliographique): number {
+  return comparerClefs(clefDeVedette(a), clefDeVedette(b))
+    || comparerClefs(replier(a.auteur?.prenom ?? ''), replier(b.auteur?.prenom ?? ''))
+    || a.ordre - b.ordre
+}
+
+/**
+ * L'ouvrage tel que le TRI le lit, depuis une notice du moteur : sa vedette est le premier
+ * auteur structuré — scientifique ou source, par ordre —, dont l'autorité dit si elle se
+ * coupe en prénom et nom de famille ; à défaut le texte libre des auteurs ; à défaut rien,
+ * et l'entrée se range à son titre.
+ *
+ * ⚠️ `ordre` est le DERNIER RECOURS du tri, et il doit être stable d'une visite à l'autre :
+ * le rang de la page imprimée quand la liste vient d'un volume, l'identifiant de la notice
+ * quand elle n'en vient pas.
+ * ⚠️ Vit ICI, avec le comparateur : elle servait l'outil `/bibliographie` seul, et l'apparat
+ * d'une œuvre en aurait écrit une seconde.
+ */
+export function ouvrageDeLaNotice(notice: NoticeBibliographique, ordre = notice.id): OuvrageBibliographique {
+  const premier = notice.contributeurs
+    .filter(c => c.role === 'auteur_scientifique' || c.role === 'auteur_source')
+    .sort((a, b) => a.ordre - b.ordre)[0]
+  const auteur = premier
+    ? { nom: premier.nomAutorite ?? premier.nomAffiche, prenom: premier.prenom ?? null, nomFamille: premier.nomFamille ?? null }
+    : notice.auteursTexte
+      ? { nom: notice.auteursTexte, prenom: null, nomFamille: null }
+      : null
+  return {
+    id: notice.id,
+    ordre,
+    titre: notice.titre,
+    sousTitre: notice.sousTitre,
+    lieu: notice.lieu,
+    editeur: notice.editeurs[0]?.nom ?? null,
+    annee: notice.annee,
+    auteur,
+  }
 }
 
 /**

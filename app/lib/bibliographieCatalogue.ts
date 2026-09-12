@@ -34,7 +34,7 @@
  */
 
 import { fragmentsReference, type NoticeBibliographique } from './referenceBibliographique'
-import { clefDeVedette, comparerOuvrages, replier, type OuvrageBibliographique } from './bibleBibliographieOuvrages'
+import { clefDeVedette, comparerOuvrages, ouvrageDeLaNotice, replier } from './bibleBibliographieOuvrages'
 
 // ── Ce que la page montre ────────────────────────────────────────────────────
 
@@ -105,39 +105,16 @@ export function siecleDeParution(annee: number | null | undefined): number | nul
   return Math.ceil(annee / 100)
 }
 
-/**
- * L'ouvrage tel que le TRI le lit (`comparerOuvrages`, charte § 47.3) : sa vedette
- * est le premier auteur structuré — scientifique ou source, par ordre —, dont
- * l'autorité dit si elle se coupe en prénom et nom de famille ; à défaut, le texte
- * libre des auteurs ; à défaut, rien, et l'entrée se range à son titre.
- * ⚠️ `ordre` est l'identifiant : le dernier recours du tri doit être STABLE d'une
- * visite à l'autre, et il n'y a pas ici de page imprimée qui en tienne lieu.
- */
-export function ouvragePourLeTri(notice: NoticeBibliographique): OuvrageBibliographique {
-  const premier = notice.contributeurs
-    .filter(c => c.role === 'auteur_scientifique' || c.role === 'auteur_source')
-    .sort((a, b) => a.ordre - b.ordre)[0]
-  const auteur = premier
-    ? { nom: premier.nomAutorite ?? premier.nomAffiche, prenom: premier.prenom ?? null, nomFamille: premier.nomFamille ?? null }
-    : notice.auteursTexte
-      ? { nom: notice.auteursTexte, prenom: null, nomFamille: null }
-      : null
-  return {
-    id: notice.id,
-    ordre: notice.id,
-    titre: notice.titre,
-    sousTitre: notice.sousTitre,
-    lieu: notice.lieu,
-    editeur: notice.editeurs[0]?.nom ?? null,
-    annee: notice.annee,
-    auteur,
-  }
-}
+// ⚠️ `ouvrageDeLaNotice` a QUITTÉ ce module le 12 septembre 2026 : elle vit désormais avec
+// le comparateur (`bibleBibliographieOuvrages.ts`), que l'apparat d'une œuvre emploie
+// aussi pour ranger sa liste. Une seconde copie s'en serait détachée au premier ajout.
+// ⚠️ Ici, le dernier recours du tri reste l'identifiant de la notice : aucune page
+// imprimée n'en tient lieu dans un catalogue.
 
 /** La lettre sous laquelle une entrée se range : l'initiale de sa clé de vedette, en
  *  capitale ; « # » si la clé ne commence pas par une lettre (un chiffre, ou rien). */
 export function lettreDeVedette(notice: NoticeBibliographique): string {
-  const initiale = clefDeVedette(ouvragePourLeTri(notice)).charAt(0)
+  const initiale = clefDeVedette(ouvrageDeLaNotice(notice)).charAt(0)
   return /\p{Letter}/u.test(initiale) ? initiale.toLocaleUpperCase('fr-FR') : '#'
 }
 
@@ -213,7 +190,7 @@ export function assemblerBibliographie(
       lettre: lettreDeVedette(notice),
     })
   }
-  return entrees.sort((a, b) => comparerOuvrages(ouvragePourLeTri(a.notice), ouvragePourLeTri(b.notice)))
+  return entrees.sort((a, b) => comparerOuvrages(ouvrageDeLaNotice(a.notice), ouvrageDeLaNotice(b.notice)))
 }
 
 /** Les noms des seules péricopes que les entrées citent : la table qui voyage avec elles. */

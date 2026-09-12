@@ -14,13 +14,13 @@ import {
   libelleCompte,
   libelleGenre,
   libelleLangueCode,
-  ouvragePourLeTri,
   siecleDeParution,
   tableDesNoms,
   texteDeRecherche,
   type EntreeIndexee,
   type LigneOuvrage,
 } from './bibliographieCatalogue'
+import { ouvrageDeLaNotice } from './bibleBibliographieOuvrages'
 import type { NoticeBibliographique } from './referenceBibliographique'
 
 // L'outil bibliographique range, filtre et cherche dans les ouvrages que la charte
@@ -143,7 +143,7 @@ describe('l’ordre et la lettre', () => {
 
   it('prend pour vedette le PREMIER auteur, par ordre', () => {
     const deux = notice({ id: 5, titre: 'Daniel', contributeurs: [chercheur('Adela Yarbro Collins', 'Adela', 'Yarbro Collins', 2), chercheur('John J. Collins', 'John J.', 'Collins', 1)] })
-    expect(ouvragePourLeTri(deux).auteur?.nomFamille).toBe('Collins')
+    expect(ouvrageDeLaNotice(deux).auteur?.nomFamille).toBe('Collins')
   })
 
   it('groupe les entrées par lettre dans l’ordre du tri', () => {

@@ -3,13 +3,18 @@ import { describe, expect, it } from 'vitest'
 import {
   auteurPorteParLeTitreDeLaPiece,
   bibliographieDesBlocs,
+  clefDeVedette,
+  comparerOuvrages,
+  comparerOuvragesDUnVolume,
   grouperBibliographiesParPiece,
+  ouvrageDeLaNotice,
   ouvragesDeLaFamille,
   segmentsReference,
   texteReference,
   type LigneBibliographieOuvrage,
   type OuvrageBibliographique,
 } from './bibleBibliographieOuvrages'
+import type { NoticeBibliographique } from './referenceBibliographique'
 import {
   BLOCS_DU_MEME_AUTEUR,
   ENTREES_DU_MEME_AUTEUR,
@@ -407,5 +412,64 @@ describe('ouvragesDeLaFamille — tous les ouvrages cités dans une édition', (
 
   it('lit les quinze ouvrages du témoin Fillion', () => {
     expect(ouvragesDeLaFamille(ENTREES_DU_MEME_AUTEUR)).toHaveLength(15)
+  })
+})
+
+/**
+ * L'ORDRE D'UNE LISTE (charte § 47.3, amendée le 12 septembre 2026).
+ *
+ * Deux règles s'y sont ajoutées ce jour-là, et chacune a son témoin dans Boèce : la
+ * particule « de » ne classe pas, et une liste qui vient d'un VOLUME garde, à vedette
+ * égale, l'ordre du volume — les douze traductions françaises y sont rangées par siècle.
+ */
+const BOECE = { nom: 'Boèce', prenom: null, nomFamille: null }
+const ouvrageDeTri = (o: Partial<OuvrageBibliographique> & { ordre: number; titre: string }): OuvrageBibliographique =>
+  ({ id: o.ordre, sousTitre: null, lieu: null, editeur: null, annee: null, auteur: null, ...o })
+const noticeDeTri = (o: Partial<NoticeBibliographique> & { id: number; titre: string }): NoticeBibliographique => ({
+  forme: null, sousTitre: null, titreHote: null, tomaison: null, pages: null, dateAffichee: null,
+  annee: null, lieu: null, editeurs: [], collection: null, numeroCollection: null, contributeurs: [],
+  auteursTexte: null, directeursTexte: null, traducteursTexte: null, ...o,
+})
+
+describe('la vedette et l’ordre d’une liste', () => {
+  it('⛔ la particule « de » ne classe pas, « La » et « Du » si', () => {
+    const musset = ouvrageDeTri({ ordre: 1, titre: 'Poésies nouvelles', auteur: { nom: 'Alfred de Musset', prenom: 'Alfred', nomFamille: 'de Musset' } })
+    expect(clefDeVedette(musset)).toBe('musset')
+    const taille = ouvrageDeTri({ ordre: 2, titre: 'Saül le furieux', auteur: { nom: 'Jean de La Taille', prenom: 'Jean', nomFamille: 'de La Taille' } })
+    expect(clefDeVedette(taille)).toBe('la taille')
+    // ⛔ Une œuvre anonyme se range toujours à son titre, article ôté.
+    expect(clefDeVedette(ouvrageDeTri({ ordre: 3, titre: 'Les Saints Évangiles' }))).toBe('saints evangiles')
+  })
+
+  it('garde à une liste de VOLUME l’ordre du volume, à vedette égale', () => {
+    const chronologie = [
+      ouvrageDeTri({ ordre: 0, titre: 'Sévérin Boèce, de la Consolation philosophique', auteur: BOECE }),
+      ouvrageDeTri({ ordre: 1, titre: 'Boèce consolé par la philosophie', auteur: BOECE }),
+    ]
+    expect([...chronologie].reverse().sort(comparerOuvragesDUnVolume).map(o => o.ordre)).toEqual([0, 1])
+    // ⚠️ Le comparateur du CATALOGUE, lui, départage par le titre : l'ordre s'inverse.
+    expect([...chronologie].sort(comparerOuvrages).map(o => o.ordre)).toEqual([1, 0])
+  })
+
+  it('range deux vedettes différentes par la vedette, quel que soit le rang', () => {
+    const liste = [
+      ouvrageDeTri({ ordre: 0, titre: 'Relation d’un voyage au Levant', auteur: { nom: 'Joseph Pitton de Tournefort', prenom: 'Joseph Pitton', nomFamille: 'de Tournefort' } }),
+      ouvrageDeTri({ ordre: 1, titre: 'De consolatione philosophiae', auteur: BOECE }),
+    ]
+    expect([...liste].sort(comparerOuvragesDUnVolume).map(o => o.ordre)).toEqual([1, 0])
+  })
+
+  it('tire d’une notice la vedette que la charte veut', () => {
+    const ancien = noticeDeTri({ id: 7, titre: 'De consolatione', contributeurs: [
+      { role: 'auteur_source', nature: 'auteur_ancien', ordre: 1, nomAffiche: 'Boèce', nomAutorite: 'Boèce' },
+    ] })
+    expect(clefDeVedette(ouvrageDeLaNotice(ancien))).toBe('boece')
+    const moderne = noticeDeTri({ id: 8, titre: 'Poésies', contributeurs: [
+      { role: 'auteur_scientifique', nature: 'chercheur', ordre: 1, nomAffiche: 'Alfred de Musset', prenom: 'Alfred', nomFamille: 'de Musset', nomAutorite: 'Alfred de Musset' },
+    ] })
+    expect(clefDeVedette(ouvrageDeLaNotice(moderne))).toBe('musset')
+    // ⚠️ Le dernier recours du tri : le rang du volume quand on le donne, l'identifiant sinon.
+    expect(ouvrageDeLaNotice(moderne, 3).ordre).toBe(3)
+    expect(ouvrageDeLaNotice(moderne).ordre).toBe(8)
   })
 })

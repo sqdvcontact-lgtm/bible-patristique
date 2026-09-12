@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   decouperNom, nomAncien, nomCollectif, composerNom, composerNomIndex, cleTriNom,
-  nomStructure, separerNoms, nettoyerNom, listeDepuisVirgules,
+  nomStructure, separerNoms, nettoyerNom, listeDepuisVirgules, vedetteDuNom,
 } from './nomsPersonnes'
 
 describe('decouperNom — personnes modernes', () => {
@@ -163,5 +163,38 @@ describe('listeDepuisVirgules — les noms alternatifs', () => {
 describe('nettoyerNom', () => {
   it('normalise l’apostrophe et les blancs', () => {
     expect(nettoyerNom("  Augustin  d'Hippone ")).toBe('Augustin d’Hippone')
+  })
+})
+
+/**
+ * ⛔ LA VEDETTE N'EST PAS LE NOM AFFICHÉ (décision de l'auteur, 12 septembre 2026).
+ * La liste de Mirandol rangeait « Alfred de Musset », « Albert de Broglie » et « Joseph
+ * Pitton de Tournefort » sous D, la particule faisant partie du `nom_famille`.
+ */
+describe('vedetteDuNom — sous quel mot un nom se classe', () => {
+  it('rejette la particule « de », et elle seule', () => {
+    expect(vedetteDuNom('de Musset')).toBe('Musset')
+    expect(vedetteDuNom('de Tournefort')).toBe('Tournefort')
+    expect(vedetteDuNom('d’Alembert')).toBe('Alembert')
+    expect(vedetteDuNom("d'Hippone")).toBe('Hippone')
+  })
+
+  it('garde les particules qui FONT la vedette', () => {
+    for (const nom of ['La Taille', 'Le Nôtre', 'Du Bellay', 'Des Périers', 'Van Dyck', 'Von Balthasar', 'Della Casa']) {
+      expect(vedetteDuNom(nom), nom).toBe(nom)
+    }
+  })
+
+  it('ne rejette que la particule de TÊTE', () => {
+    // « de La Tour » se range à « La Tour », jamais à « Tour ».
+    expect(vedetteDuNom('de La Tour')).toBe('La Tour')
+    expect(vedetteDuNom('de Martin de Viviés')).toBe('Martin de Viviés')
+  })
+
+  it('laisse intact un nom sans particule, et rend le vide pour rien', () => {
+    expect(vedetteDuNom('Grosdidier de Matons')).toBe('Grosdidier de Matons')
+    expect(vedetteDuNom('Boèce')).toBe('Boèce')
+    expect(vedetteDuNom(null)).toBe('')
+    expect(vedetteDuNom('   ')).toBe('')
   })
 })

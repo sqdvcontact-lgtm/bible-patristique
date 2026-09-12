@@ -177,3 +177,37 @@ export function separerNoms(brut: string): string[] {
     .map(s => nettoyerNom(s).replace(/\s*\((?:dir|éd|ed|trad|collab)\.?\)\s*$/i, '').trim())
     .filter(Boolean)
 }
+
+// ── LA VEDETTE : sous quel mot un nom se CLASSE (décision de l'auteur, 12 septembre 2026)
+//
+// L'usage des catalogues français rejette la seule particule « de », et son élision
+// « d’ » : Alfred de Musset se range à MUSSET, Joseph Pitton de Tournefort à TOURNEFORT,
+// Albert de Broglie à BROGLIE. ⛔ Tout le reste RESTE avec le nom — « La Taille » à L,
+// « Du Bellay » à D, « Des Périers » à D, « Van Dyck » à V, « Della Casa » à D — et l'on
+// ne rejette que la particule de TÊTE : « de La Tour » se range à « La Tour », non à
+// « Tour ».
+//
+// ⛔ Le nom AFFICHÉ ne bouge pas : la particule y demeure, et elle y prend les petites
+// capitales avec le nom (charte § 29). Ceci ne décide que du CLASSEMENT.
+// ⚠️ Un nom étranger dont « De » est le premier mot inséparable — « De Sanctis »,
+// « D’Angelo » — se rangera donc à son second mot. C'est le prix d'une règle close ; une
+// fiche d'autorité qui veut le tenir sous D écrit son nom sans particule détachée.
+const PARTICULES_REJETEES = new Set(['de'])
+const ELISION_REJETEE = /^d[’'](?=\p{Letter})/u
+
+/**
+ * La forme sous laquelle un NOM DE FAMILLE se classe.
+ *
+ * ⛔ Elle ne sert qu'au tri et à la lettre de vedette : ⛔ jamais à l'affichage, où le nom
+ * garde sa particule. Une seule écriture pour tout le site — la bibliographie d'un
+ * apparat, l'outil `/bibliographie`, la liste d'une péricope —, faute de quoi le même
+ * auteur se rangerait à deux lettres selon la page.
+ */
+export function vedetteDuNom(nom: string | null | undefined): string {
+  const propre = nettoyerNom(nom ?? '')
+  if (!propre) return ''
+  if (ELISION_REJETEE.test(propre)) return propre.replace(ELISION_REJETEE, '')
+  const mots = propre.split(' ')
+  if (mots.length > 1 && PARTICULES_REJETEES.has(mots[0].toLowerCase())) return mots.slice(1).join(' ')
+  return propre
+}
