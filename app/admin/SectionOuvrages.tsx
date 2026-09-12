@@ -74,7 +74,12 @@ const L_TYPE: Record<string, string> = {
 const TYPES_OUVRAGE = ['commentaire_critique', 'monographie', 'introduction', 'edition_critique', 'histoire_reception', 'theologie_biblique', 'outil_philologique', 'autre_scientifique'] as const
 const OVERRIDES = ['retenu', 'secondaire', 'a_verifier', 'exclu'] as const
 const CONFIANCES = ['forte', 'moyenne', 'faible'] as const
-const ETATS_EDITO = ['a_revoir', 'en_cours', 'valide', 'rejete'] as const
+// L'état éditorial est DÉRIVÉ de la valeur scientifique par la base
+// (`internal.etat_editorial_ouvrage`) : exclu → rejeté, retenu ou secondaire →
+// validé, à vérifier → à revoir. Il se lit et se filtre ici, il ne s'y saisit
+// pas. « En cours » n'a plus de sens dans une liste qui ne se tient plus à la
+// main : on ne le propose donc pas au filtre.
+const ETATS_EDITO = ['a_revoir', 'valide', 'rejete'] as const
 
 // ── Types ───────────────────────────────────────────────────────────────────
 type Contributeur = { nom: string; role: string; score: number | null; nature: string; statut: string | null; reserve: boolean }
@@ -122,6 +127,26 @@ type Drapeau = '' | 'override' | 'reserve' | 'sans_editeur' | 'sans_contrib'
 const CHAMPS_VUE = 'id, auteurs, titre, collection, editeur, annee, statut_scientifique, statut_scientifique_override, motif_statut_scientifique, statut_editorial, statut_editeur, statut_collection, editeur_canonique, collection_canonique, contributeurs, admissible, a_controler, a_ecarter'
 
 const messageErreur = messageErreurQualification
+
+// PostgREST ne sert jamais plus de mille lignes d'un coup. Le catalogue en
+// compte davantage : sans pagination, la file s'arrêtait au millième titre et le
+// compte porté en tête — « tant de validés sur mille » — annonçait un corpus
+// plus petit que le vrai. On lit donc par pages, et l'on trie sur `id` en
+// second afin que deux titres identiques ne se marchent pas dessus d'une page
+// à l'autre.
+const PAR_PAGE = 1000
+async function chargerCatalogue(): Promise<{ lignes: LigneQualite[]; erreur: string | null }> {
+  const tout: LigneQualite[] = []
+  for (let de = 0; ; de += PAR_PAGE) {
+    const { data, error } = await supabase
+      .from('v_ouvrages_bibliographiques_qualite').select(CHAMPS_VUE)
+      .order('titre').order('id').range(de, de + PAR_PAGE - 1)
+    if (error) return { lignes: tout, erreur: error.message }
+    const lot = (data ?? []) as LigneQualite[]
+    tout.push(...lot)
+    if (lot.length < PAR_PAGE) return { lignes: tout, erreur: null }
+  }
+}
 
 const sansAccents = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 // Même normalisation typographique que la page publique : apostrophe courbe et fines
@@ -179,15 +204,15 @@ export default function SectionOuvrages() {
     let annule = false
     ;(async () => {
       const [vue, ed, co, au, reg] = await Promise.all([
-        supabase.from('v_ouvrages_bibliographiques_qualite').select(CHAMPS_VUE).order('titre'),
+        chargerCatalogue(),
         supabase.from('editeurs_valeur').select('id, nom, score').order('nom'),
         supabase.from('collections_valeur').select('id, nom, score').order('nom'),
         supabase.from('auteurs_valeur').select('id, nom, score, reserve, prenom, nom_famille, pseudonyme, aliases').order('nom'),
         supabase.from('auteurs').select('id_auteur, nom, variantes').order('nom'),
       ])
       if (annule) return
-      if (vue.error) setErreur(messageErreur(vue.error.message))
-      setLignes((vue.data ?? []) as LigneQualite[])
+      if (vue.erreur) setErreur(messageErreur(vue.erreur))
+      setLignes(vue.lignes)
       setEditeursV((ed.data ?? []) as Autorite[])
       setCollectionsV((co.data ?? []) as Autorite[])
       setAuteursV((au.data ?? []) as FicheAuteur[])
@@ -301,7 +326,7 @@ export default function SectionOuvrages() {
         <span style={{ fontFamily: SANS, fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cs-vert-fonce)' }}>{nbValides} validé{nbValides > 1 ? 's' : ''} / {lignes.length}</span>
       </div>
       <p style={{ fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 18px', maxWidth: '52rem' }}>
-        La valeur scientifique d’un ouvrage est calculée par la base à partir de son éditeur, de sa collection et de ses contributeurs. On consulte ici ce calcul, on saisit une décision manuelle lorsqu’elle s’impose, et l’on rattache l’ouvrage à ses autorités normalisées. Les Pères et les autres auteurs anciens sont des sources : ils n’ont jamais de fiche notée.
+        La valeur scientifique d’un ouvrage est calculée par la base à partir de son éditeur, de sa collection et de ses contributeurs, et son état éditorial en découle : un ouvrage retenu ou tenu pour source secondaire est validé du même coup, un ouvrage exclu est rejeté, un ouvrage que la base ne sait pas juger reste à revoir. Il n’y a donc rien à valider titre par titre. On consulte ici ce calcul, on saisit une décision manuelle lorsqu’elle s’impose, et l’on rattache l’ouvrage à ses autorités normalisées. Les Pères et les autres auteurs anciens sont des sources : ils n’ont jamais de fiche notée.
       </p>
 
       <div className="ouv-grid">
@@ -612,17 +637,9 @@ function Fiche({ ligne, rang, total, editeursV, collectionsV, auteursV, registre
     await ecrire({ statut_scientifique_override: null }, 'Retour au calcul automatique.')
   }
 
-  // Statut éditorial : la base refuse « validé » si la valeur scientifique n'est pas
-  // admise (retenu / secondaire) ; on l'annonce avant l'écriture (§10).
-  const majEditorial = async (v: string) => {
-    if (v === 'valide' && !['retenu', 'secondaire'].includes(sciCalc)) {
-      onErreur('Cet ouvrage ne peut pas être validé tant que sa valeur scientifique n’est pas admise (retenu ou source secondaire).')
-      return
-    }
-    const champs: Record<string, unknown> = { statut_editorial: v }
-    if (v === 'valide') { champs.valide_at = new Date().toISOString(); champs.valide_par = 'admin' }
-    await ecrire(champs, 'Statut éditorial mis à jour.')
-  }
+  // ⛔ Pas de mise à jour du statut éditorial : il est DÉRIVÉ en base et toute
+  // écriture serait récrite par le déclencheur. La seule décision qui le déplace
+  // est celle du volet « Valeur scientifique ».
 
   const majRattachement = async (champ: 'editeur_valeur_id' | 'collection_valeur_id', v: number | null) => {
     set(champ, v)
@@ -651,15 +668,15 @@ function Fiche({ ligne, rang, total, editeursV, collectionsV, auteursV, registre
           {f.langue && <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)' }}>· {f.langue}</span>}
         </div>
 
+        {/* L'état éditorial se LIT : il suit la valeur scientifique, dont il n'est que
+            la traduction. Pour le faire changer, on change la valeur — au besoin par la
+            décision manuelle du volet « Valeur scientifique ». */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', alignItems: 'center', marginTop: '12px', paddingTop: '11px', borderTop: '1px solid var(--cs-bord-clair)' }}>
           <span style={{ ...labelStyle, marginBottom: 0, marginRight: '3px' }}>Statut éditorial</span>
-          {ETATS_EDITO.map(s => {
-            const actif = editorialActuel === s
-            return (
-              <button key={s} onClick={() => majEditorial(s)}
-                style={{ fontFamily: SANS, fontSize: '0.75rem', fontWeight: actif ? 700 : 500, cursor: 'pointer', padding: '4px 12px', borderRadius: '8px', border: `1px solid ${actif ? C_EDITO[s] : 'var(--cs-bord)'}`, background: actif ? colorMix(C_EDITO[s], 10) : 'var(--cs-surface)', color: actif ? C_EDITO[s] : 'var(--cs-texte-second)' }}>{L_EDITO[s]}</button>
-            )
-          })}
+          <Puce txt={L_EDITO[editorialActuel] ?? editorialActuel} coul={C_EDITO[editorialActuel] ?? 'var(--cs-systeme)'} gros />
+          <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>
+            déduit de la valeur scientifique ; il suit la décision, on ne le saisit pas
+          </span>
         </div>
       </div>
 
