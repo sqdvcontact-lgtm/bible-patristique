@@ -565,9 +565,41 @@ La rubrique s’appelle **« Informations complémentaires »**, elle vit dans `
 
 ⚠️ **Ce qu’elle n’est pas.** Ce n’est pas le *commentaire public* de l’édition (`oeuvres.commentaire_traduction`), qui dit ce qu’on a voulu en faire ; ce n’est pas la *note éditoriale* de l’œuvre (`oeuvres.note_editoriale_complement`), qui relève d’un chapitre déplacé ou d’une attribution discutée ; et ce n’est pas l’apparat lui-même, qui vit dans les notes. C’est la CLÉ de l’apparat, non l’apparat.
 
-⚠️ **Elle se compose comme la prose du site** : enrichissements reconnus (`*italique*`, `**gras**`, `++petites capitales++`), sauts de ligne conservés, aucune ponctuation ajoutée. Une liste de sigles s’écrit donc telle qu’on la lit.
+⚠️ **Elle se compose comme la prose du site** : enrichissements reconnus (`*italique*`, `**gras**`, `++petites capitales++`), sauts de ligne conservés, aucune ponctuation ajoutée. ⚠️ Et elle peut porter une NOTATION, qui distingue ses niveaux d’information sans rien retrancher à cette prose : voir le § 5.6.1.
 
 ⚠️ **Colonne nullable et SANS contrainte**, comme `essais.couverture` et `profils.theme_lecture` : ce qu’une édition déclare est une matière éditoriale, elle bougera, et une valeur mal formée ne doit ni bloquer une écriture ni vider une fiche. Elle se règle édition par édition, dans la fiche de l’œuvre du centre d’administration.
+
+### 5.6.1 La NOTATION d’une notice — trois niveaux, deux marques
+
+⛔ **CE QU’UNE NOTICE DE TRANSMISSION PORTE N’EST PAS DE LA PROSE SUIVIE.** C’est un chapeau, une liste de témoins, une liste d’abréviations, des remarques de l’éditeur. Rendue d’un seul tenant, elle se lit comme un paragraphe, et celui qui cherche ce que « P » désigne doit le trouver au milieu d’une phrase. La notation le dit sans rien dessiner de neuf.
+
+| Ce qu’on écrit | Ce que c’est |
+|---|---|
+| une ligne ordinaire | la **prose** — le cas ordinaire |
+| `## Témoins` | une **rubrique** |
+| `- P — Paris, BnF, latin 12293 : …` | une **entrée**, coupée en tête et corps |
+
+⛔ **TROIS NIVEAUX, ET PAS UN DE PLUS** (§ 7.6). Un vocabulaire de mise en forme ne s’étend pas parce qu’un cas paraît nouveau : en nécessité extrême, ou quand l’auteur le demande.
+
+⛔ **UNE SEULE ENTRÉE POUR TROIS CHOSES.** Un témoin, une abréviation et une remarque sont le même objet — une tête, un tiret, un corps — et se composent donc de même (§ 13.11 : deux natures d’une même famille se composent de même, sauf raison NOMMÉE). C’est la RUBRIQUE qui dit le niveau, jamais un troisième style : trois styles pour une seule forme rouvriraient la dérive que le § 7.6 ferme.
+
+⛔ **LA RUBRIQUE SE NOMME LIBREMENT.** « Témoins », « Abréviations », « Remarques », « Conventions de transcription » : c’est un TITRE que l’éditeur écrit, non un style, et il ne commande aucun comportement. Clore la liste interdirait une rubrique légitime qu’on n’a pas prévue, pour ne rien garantir.
+
+⛔ **LE TIRET EST OBLIGATOIRE, ET IL A DEUX GRAPHIES.** Sans lui, il faudrait deviner où finit le sigle, et un comptage de signes n’est pas un critère. On accepte le cadratin comme le demi-cadratin — les notices attestées emploient l’un ou l’autre, et les accepter tous deux ne fait rien deviner : c’est la même marque écrite de deux façons. ⚠️ C’est le PREMIER qui coupe, quelle qu’en soit la graphie : un corps qui porte un second tiret garde le sien. ⛔ Jamais le trait d’union, qui ouvre déjà la ligne.
+
+⛔ **ET RIEN NE SE DEVINE.** Une ligne sans marque est de la PROSE — c’est ce qui rend la notation rétro-compatible, et ce qui permet de la poser sans aucune migration : ce qui est déjà écrit continue de se rendre comme avant. Une entrée dont le tiret manque reste une entrée, sans tête en relief : on ne coupe pas au jugé une ligne qui n’a pas déclaré où elle se coupe. Une marque posée sans son texte — « ## » sans titre — ne s’imprime pas davantage.
+
+⛔ **AUCUN DESSIN NEUF.** Les trois niveaux réemploient trois formes que le lecteur connaît déjà : la prose est celle de la fiche, la rubrique prend le rang des rubriques d’un volet de lecture, l’entrée le RETRAIT SUSPENDU des bibliographies imprimées — la première ligne part du bord, les suivantes rentrent d’une largeur, ce qui fait qu’on descend la colonne des sigles du regard. Un style qui inventerait sa forme se distinguerait de tout le site pour ne rien dire de plus.
+
+⛔ **UNE RUBRIQUE EST COUSUE À CE QU’ELLE NOMME.** Elle nomme ce qui la SUIT, et prend donc son air AU-DESSUS : quinze pixels avant, quatre après. Un écart unique entre tous les blocs la laisse FLOTTER entre les deux groupes qu’elle sépare — mesuré sur la composition servie, douze pixels au-dessus et onze en dessous —, si bien qu’elle n’appartient à aucun des deux. ⚠️ Quinze n’est pas le blanc qui sépare deux SECTIONS de la fiche, qui vaut dix-huit : une rubrique est un rang au-dessous, et lui donner le même air aplatirait la hiérarchie qu’on vient de poser.
+
+⛔ **ET LA PROSE GARDE SES LIGNES VIDES.** Une ligne vide ferme une LISTE — sans quoi deux groupes que rien ne sépare n’en feraient qu’un — mais jamais la prose, qui la garde comme tous ses autres sauts. C’est ce qui rend la rétro-compatibilité EXACTE plutôt qu’approchée : mesuré sur la notice de Bondurand, trois cent dix-huit pixels avant la notation comme après.
+
+⚠️ **L’ENCRE DE LA RUBRIQUE MONTE D’UN RANG** par rapport à celle d’un volet. Dans un volet, la rubrique accompagne une liste qui la redit ; ici, elle est la SEULE à nommer son groupe, et un texte qui porte seul son information tient le seuil de 4,5 — 5,24 sur le papier de la fiche, contre 2,14 pour le rang qu’emploie un volet.
+
+⛔ **NI JUSTIFICATION NI CÉSURE SUR UNE ENTRÉE.** Elle est brève, et couper « Sessorianus » ou étirer trois mots sur la mesure se verrait. La PROSE, elle, garde la justification et la césure de la fiche.
+
+⚠️ **LA NOTATION SE DIT LÀ OÙ L’ON SAISIT.** Celui qui écrit une notice ne relit pas la charte en l’écrivant, et une marque qu’on ignore ne sert à personne : l’écran d’administration la rappelle sous le champ, et dit qu’une notice sans marque se rendra d’un seul tenant — plutôt que de laisser prendre pour un défaut ce qui est le cas ordinaire.
 
 ## 6. Structure, niveaux, paragraphes et rangs
 
@@ -2345,7 +2377,7 @@ Une note doit autant que possible rester intelligible lorsqu’elle est consult�
 
 **Passe 4 — Refonte intellectuelle, déploiement et clarification.** Développer les raccourcis, reformuler le télégraphique, résoudre les références implicites, réorganiser les notes trop techniques et distinguer `Cf.` de `Voir`. La forme peut changer fortement ; l’information, l’autorité et la réserve philologique ne changent pas. ⛔ Les artifices matériels de l’imprimé ne restent pas mêlés à la prose : lettre d’appel, pagination de la note et coordonnée source du type « (A) p. 2. — » sont conservées dans `source_label`, `printed_page`, l’ancre ou les métadonnées de provenance. Elles sont retirées du texte public lorsqu’elles n’apportent aucune information éditoriale propre. Le lemme visé par la note est identifié séparément et ne se confond jamais avec cette coordonnée.
 
-⛔ **LES SIGLES DE TÉMOINS NE RESTENT PAS OPAQUES DANS LA PROSE DE LECTURE.** Un sigle de manuscrit ou de copie qui n’est pas immédiatement intelligible est développé dans chaque note autonome destinée au lecteur ; sa forme diplomatique demeure conservée dans la provenance ou les métadonnées. L’identification développée doit être certaine et suffisamment précise pour distinguer les témoins entre eux. Exemple : dans l’édition Bondurand du *Manuel* de Dhuoda, `P` désigne la **copie de Paris (BnF, latin 12293)**, copie du XVIIe siècle dérivée du manuscrit perdu de Pierre de Marca ; on écrit `La copie de Paris (BnF, latin 12293) porte *molestia*`, non `P, *molestia*`, et `La copie de Paris (BnF, latin 12293) porte *illicita*`, non `Pour *illicita* (P)`. ⛔ Un sigle homographe relevant d’une autre convention n’est jamais développé mécaniquement : par exemple `1 P 2, 13` est une référence à la Première épître de Pierre et non au témoin parisien. Le contre-audit de l’œuvre doit finir sur zéro sigle de témoin opaque dans les notes de lecture.
+⛔ **UN SIGLE DE TÉMOIN DÉFINI DANS « INFORMATIONS COMPLÉMENTAIRES » RESTE UN SIGLE DANS LES NOTES DE L’ÉDITION.** La rubrique publique de l’édition donne une fois l’identification complète du témoin ; l’apparat emploie ensuite `P`, `N`, `B`, etc., sans répéter dans chaque note le nom de la bibliothèque, la cote ou la description du manuscrit. Exemple : dans l’édition Bondurand du *Manuel* de Dhuoda, on écrit `P, *molestia*`, `P porte *illicita*` ou `Pour *illicita* (P)`, non `La copie de Paris (BnF, latin 12293) porte *illicita*`. ⚠️ Cette concision suppose une clé publique, non ambiguë et propre à la version active : un sigle non défini est explicité ou la rubrique est complétée avant publication, et la convention d’une autre édition n’est jamais importée par repli. ⛔ Un homographe n’est jamais traité mécaniquement : `1 P 2, 13` est une référence à la Première épître de Pierre, non au témoin parisien. Le contre-audit finit sur zéro développement redondant d’un témoin dont le sigle est déjà défini dans les informations complémentaires de l’édition.
 
 **Passe 5 — Orthographe et typographie.** Contrôle intégral de chaque note : langue, ponctuation, espaces, apostrophes, guillemets, points de suspension, point final, tirets, italiques, capitales et résidus techniques. Contrôle obligatoire des langues et des écritures : tout passage en alphabet grec reste en romain ; le latin et les translittérations en alphabet latin sont en italiques lorsqu’ils sont intégrés à une phrase française. Vérifier explicitement qu’aucun passage grec n’est inclus dans un empan italique. ⛔ Une parenthèse intégrée à la phrase n’ouvre pas une seconde phrase artificielle : écrire `usage (voir …).`, non `usage. (Voir ….)`. ⛔ Une référence nue n’est jamais une citation : `(Rm 8, 28)` ou tout autre bloc qui ne contient qu’une coordonnée scripturaire ne reçoit aucun guillemet ajouté, ni dans la donnée ni au rendu. Les guillemets sont réservés à un texte effectivement cité.
 

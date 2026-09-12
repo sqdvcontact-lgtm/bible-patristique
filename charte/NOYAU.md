@@ -113,7 +113,19 @@
 - ⛔ ELLE APPARTIENT AU TEXTE, JAMAIS À L’ŒUVRE.
 - ⛔ ELLE EST PUBLIQUE, et c’est ce qui la sépare d’une note d’atelier.
 - ⚠️ Elle se compose comme la prose du site — enrichissements reconnus (`*italique*`, `**gras**`, `++petites capitales++`), sauts de ligne conservés, aucune ponctuation ajoutée.
+- ⚠️ Et elle peut porter une NOTATION, qui distingue ses niveaux d’information sans rien retrancher à cette prose : voir le § 5.6.1.
 - ⚠️ Colonne nullable et SANS contrainte — comme `essais.couverture` et `profils.theme_lecture` : ce qu’une édition déclare est une matière éditoriale, elle bougera, et une valeur mal formée ne doit ni bloquer une écriture ni vider une fiche.
+
+**§ 5.6.1 — La NOTATION d’une notice — trois niveaux, deux marques**
+
+- ⛔ CE QU’UNE NOTICE DE TRANSMISSION PORTE N’EST PAS DE LA PROSE SUIVIE.
+- ⛔ LE TIRET EST OBLIGATOIRE, ET IL A DEUX GRAPHIES.
+- ⚠️ C’est le PREMIER qui coupe, quelle qu’en soit la graphie : un corps qui porte un second tiret garde le sien.
+- ⛔ Jamais le trait d’union, qui ouvre déjà la ligne.
+- ⛔ UNE RUBRIQUE EST COUSUE À CE QU’ELLE NOMME.
+- ⚠️ Quinze n’est pas le blanc qui sépare deux SECTIONS de la fiche, qui vaut dix-huit : une rubrique est un rang au-dessous, et lui donner le même air aplatirait la hiérarchie qu’on vient de poser.
+- ⚠️ L’ENCRE DE LA RUBRIQUE MONTE D’UN RANG — par rapport à celle d’un volet.
+- ⛔ NI JUSTIFICATION NI CÉSURE SUR UNE ENTRÉE.
 
 ## § 6. Structure, niveaux, paragraphes et rangs
 
@@ -627,8 +639,9 @@
 - ⛔ Dès que `metadata.editorial_role` est établi, toute mention textuelle qui redouble ou contredit ce rôle est retirée du corps de la note.
 - ⛔ La passe se ferme seulement avec 100 % des notes couvertes et 0 type principal hors vocabulaire ; toute réserve résiduelle est explicitement comptée et nommée.
 - ⛔ Les artifices matériels de l’imprimé ne restent pas mêlés à la prose : lettre d’appel, pagination de la note et coordonnée source du type « (A) p. 2. — » sont conservées dans `source_label`, `printed_page`, l’ancre ou les métadonnées de provenance.
-- ⛔ LES SIGLES DE TÉMOINS NE RESTENT PAS OPAQUES DANS LA PROSE DE LECTURE.
-- ⛔ Un sigle homographe relevant d’une autre convention n’est jamais développé mécaniquement : par exemple `1 P 2, 13` est une référence à la Première épître de Pierre et non au témoin parisien.
+- ⛔ UN SIGLE DE TÉMOIN DÉFINI DANS « INFORMATIONS COMPLÉMENTAIRES » RESTE UN SIGLE DANS LES NOTES DE L’ÉDITION.
+- ⚠️ Cette concision suppose une clé publique, non ambiguë et propre à la version active : un sigle non défini est explicité ou la rubrique est complétée avant publication, et la convention d’une autre édition n’est jamais importée par repli.
+- ⛔ Un homographe n’est jamais traité mécaniquement : `1 P 2, 13` est une référence à la Première épître de Pierre, non au témoin parisien.
 - ⛔ Une parenthèse intégrée à la phrase n’ouvre pas une seconde phrase artificielle : écrire `usage (voir …).`, non `usage. (Voir ….)`.
 - ⛔ Une référence nue n’est jamais une citation : `(Rm 8, 28)` ou tout autre bloc qui ne contient qu’une coordonnée scripturaire ne reçoit aucun guillemet ajouté, ni dans la donnée ni au rendu.
 - ⛔ Lorsqu’une note cite une édition identifiable et que sa notice structurée fournit les données éditoriales, la référence visible est complète : auteur, titre exact, responsabilité éditoriale ou traduction pertinente, lieu, éditeur, collection et numéro lorsqu’ils sont connus, date, puis locator.
