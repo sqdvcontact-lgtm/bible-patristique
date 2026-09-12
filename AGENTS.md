@@ -10579,6 +10579,66 @@ Relevé de l'auteur sur le *Manuel pour mon fils* de Dhuoda : « quand j'ouvre u
 - ⚠️ **Le défaut ne se lisait NI dans la donnée, NI dans un test, NI dans le module.** Les 258 notes, leurs ancres et leurs blocs sont complets ; `notesInventaire.ts` les recense juste ; `ouvrirNoteDansLeTexte` trouve l'appel. Il naît de la rencontre entre le saut et une nature que la page rend par un chemin à elle. **Il a fallu ouvrir la page et cliquer.**
 - ⚠️ **Corollaire de méthode, et c'est le troisième du même ordre dans ce fichier** : devant une action qui « ne fait rien », on demande d'abord par quel CHEMIN DE RENDU passe sa cible — l'apparat, l'introduction et le corps n'en partagent aucun.
 
+## ⛔ EN LECTURE EN REGARD, L'INVENTAIRE PORTE LES DEUX APPAREILS (2026-09-12)
+
+Demande de l'auteur : « en mode latin-français, il faut afficher toutes les notes, des
+deux textes ». Le volet n'en montrait qu'un, sans le dire : sur le *Manuel pour mon
+fils* de Dhuoda il annonçait « 258 notes dans ce texte » en taisant les **1 535** de
+Bondurand, qui sont pourtant appelées dans la colonne d'en face.
+
+⛔ **UN INVENTAIRE D'ATELIER SUIT LES COLONNES DU LECTEUR.** `recenserNotes` prend
+désormais une SOURCE — identité, notes, places, ordre des divisions — et
+`recenserSources` en relève plusieurs. ⛔ **ON NE MÊLE PAS LES DEUX SUITES, et on ne
+les retrie pas ensemble** : leurs divisions ne portent pas les mêmes noms, leurs
+numéros de note repartent à 1 chacun de leur côté, et rien ne dit qu'une note du latin
+tombe entre deux notes du français. Chaque texte garde son ordre de lecture, et les
+sources se suivent dans l'ordre où le lecteur voit ses colonnes.
+
+⛔ **LE GROUPE EST LE COUPLE (TEXTE, DIVISION), JAMAIS LA DIVISION SEULE**, et le
+dédoublonnage est PROPRE À LA SOURCE. Les « Prolégomènes » de Dhuoda s'écrivent ainsi
+des deux côtés : grouper sur le nom seul fondrait deux appareils en une liste où plus
+rien ne dirait qui parle. Et c'est le couple (texte, clé) qui fait l'identité d'une
+note — fondre sur la clé seule en ferait disparaître une sans un mot. ⚠️ Le libellé du
+texte ne paraît que s'il DISTINGUE : en lecture ordinaire il n'y a qu'un appareil.
+
+⚠️ **L'ORDRE DES DIVISIONS D'UN TEXTE QU'ON N'A PAS CHARGÉ SE TIRE DE SES PLACES**
+(`ordreDivisionsDesPlaces`). Le texte lu connaît le sien — c'est `niv1List`, celui du
+sommaire ; le texte en regard ne l'a jamais chargé, et `segment_numero` court d'un bout
+à l'autre d'un texte : chaque division se range au rang de son premier segment. Une
+requête de moins pour ranger une liste.
+
+⛔ **ET SEULEMENT EN LECTURE EN REGARD.** Hors du bilingue, les appels du texte original
+ne sont pas rendus : une note qu'on listerait ne pourrait pas s'ouvrir. ⚠️ `ensembleBilingue`
+est la garde qui compte — une colonne tirée du repli `segments.texte_original` n'est pas
+un texte, elle n'a ni notes ni segments à soi.
+
+### ⛔ La page ne navigue que par les divisions du texte LU
+
+⛔ **`chargerPlaceEnRegard` (`bilingueAlignement.ts`) est `chargerProjectionBilingue`
+PRIS PAR L'AUTRE BOUT** : d'une clé de l'original on remonte au groupe d'alignement, on
+redescend sur la traduction, et l'on saute sur le segment français qui lui fait face. La
+place d'une note du latin ne dit rien à `changerNiv1`, qui ne connaît que « Livre
+premier » là où le latin écrit « Liber I ». ⚠️ L'appel latin est rendu dans la colonne
+d'en face, et `ouvrirLaNoteDansLeTexte` le retrouve par sa clé — `choisirAppel` retombe
+sur le premier candidat de la page quand aucun n'est DANS le segment visé, ce qui est
+précisément le cas d'une colonne voisine.
+
+⛔ **AUCUN REPLI PAR RANG.** Deviner que la quatrième division du latin répond à la
+quatrième du français tomberait à côté sans le dire, et un lecteur qu'on envoie au
+mauvais endroit est pire qu'un bouton qui ne fait rien. ⚠️ Une erreur de la base LÈVE
+quand une absence d'alignement rend `null` : les deux ne se répondent pas de la même
+façon, et les confondre ferait passer une panne pour un silence de la donnée.
+
+⚠️ **ON NE CHARGE RIEN D'AVANCE** : trois requêtes minuscules, au clic, pour une seule
+clé. Le pont de tout un texte coûterait, sur les Confessions, onze mille membres à
+l'ouverture d'un volet qu'on n'ouvre parfois que pour chercher un mot.
+
+⚠️ **Mesuré avant d'écrire** : les 572 segments latins de Dhuoda qui portent une ancre
+sont TOUS couverts par l'alignement, et les 929 du latin des Confessions aussi. ⛔ Une
+note du texte en regard ancrée dans son APPARAT, elle, ne s'ouvre pas — la vue de
+l'apparat est celle du texte lu —, et la ligne le DIT au lieu de ne rien faire
+(`SourceInventaire.sansApparat`). Aucune note du corpus n'est dans ce cas ce jour-là.
+
 # ⛔ LES GRAVURES DE FILLION SE REVOIENT DANS LA REVUE DE GPT (2026-09-11)
 
 Décision de l'auteur : « cohabitent deux lecteurs pour les illustrations de la Fillion ; celui de GPT me plaît mieux ». Le panneau « Gravures de Fillion » de la planche `/admin/illustrations` (les trois régimes, le spécimen d'habillage, les onze gravures de Marc) est RETIRÉ, avec `regimesFillion.ts` et `releverGravuresFillion`. Les sections plus haut qui décrivent ce panneau sont donc caduques. Les gravures se revoient dans **`/admin/illustrations/fillion`**, la revue écrite par GPT : liste filtrable, fiche de l'image, file des livres encore à illustrer, et la page de lecture réelle en regard, dans un cadre. L'en-tête de la planche y renvoie.
