@@ -3484,3 +3484,20 @@ main.lecture-entree [data-cs-bloc],
 @media (prefers-reduced-motion: reduce) {
   [data-encart-note][data-epingle] { animation: none; }
 }
+
+/* ── LA PROSE D'UNE NOTICE ────────────────────────────────────────────────────
+   Elle vivait dans le bloc <style> de la fiche d'édition, sous un nom qui la disait
+   propre à cet écran. ⛔ Une seule déclaration, et dans la feuille : la NOTATION d'une
+   notice (`app/components/NotationEdition.tsx`) la compose elle aussi, et la planche des
+   styles doit pouvoir la juger sans monter la fiche entière.
+   ⚠️ `white-space: pre-line` : une notice garde les sauts que l'éditeur a posés. */
+.cs-notice-prose {
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--cs-texte);
+  text-align: justify;
+  hyphens: auto;
+  margin: 0;
+  white-space: pre-line;
+}

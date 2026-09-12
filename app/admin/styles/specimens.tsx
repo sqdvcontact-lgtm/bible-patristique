@@ -58,6 +58,7 @@ import {
 import type { RangTitreOeuvre } from '@/app/lib/compositionOeuvre'
 import { styleLigneDeVers } from '@/app/lib/compositionVers'
 import { marquerLacunesDuTemoin, rendreMarqueurs899 } from '@/app/lib/marqueurs899'
+import NotationEdition from '@/app/components/NotationEdition'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 export type CleOnglet = 'bible' | 'oeuvres' | 'apparat-oeuvres' | 'apparat-bibles'
@@ -662,6 +663,27 @@ const OEUVRES: Unite[] = [
 
 // ══ ÉPREUVE 3 — L'APPARAT D'UNE ŒUVRE ════════════════════════════════════════
 
+/**
+ * La notice RÉELLE de l'édition Bondurand 1887 du « Manuel pour mon fils », écrite
+ * dans la notation du § 5.6.1. ⛔ Elle porte les trois niveaux à la fois — c'est leur
+ * VOISINAGE qu'on vient juger, non chacun d'eux isolé.
+ */
+const NOTICE_BONDURAND = [
+  'Transmission et sigles de l’édition Bondurand (1887).',
+  '',
+  '## Témoins',
+  '- P — Paris, Bibliothèque nationale de France, latin 12293 : copie du XVIIe siècle dérivée du manuscrit aujourd’hui perdu qui avait appartenu à Pierre de Marca.',
+  '- N — Nîmes, Bibliothèque Carré d’Art, ms. 393 : fragments anciens du *Manuel*.',
+  '- B — Barcelona, Biblioteca de Catalunya, ms. 569 (XIVe siècle), inconnu de Bondurand.',
+  '',
+  '## Abréviations',
+  '- b. l. — bonne leçon.',
+  '- m. l. — mauvaise leçon.',
+  '',
+  '## Remarques',
+  '- Chapitre XLII — Bondurand indique que ce chapitre n’est conservé ni par P ni par N, bien que son titre soit transmis par les tables des chapitres. Dans l’édition de 1887, son corps est signalé par « Manque. ».',
+].join('\n')
+
 const APPARAT_OEUVRES: Unite[] = [
   {
     style: 'patristique_apparat/titre — rangs 1 et 2',
@@ -786,7 +808,14 @@ const APPARAT_OEUVRES: Unite[] = [
       </div>
     ),
   },
+  {
+    style: 'notice_edition/notation — § 5.6.1',
+    note: 'Ce qu’une édition déclare pour qu’on la lise : ses manuscrits, ses sigles, ses abréviations. Rendu par `NotationEdition`, le composant de la fiche elle-même.',
+    alerte: 'Trois niveaux, deux marques : une ligne ordinaire est de la PROSE, « ## » ouvre une RUBRIQUE, « - » une ENTRÉE, que le tiret coupe en tête et corps. Aucun dessin neuf — la rubrique prend le rang d’un volet, l’entrée le retrait suspendu d’une bibliographie. ⛔ Une notice sans marque reste de la prose, et se rend comme avant.',
+    contenu: <NotationEdition texte={NOTICE_BONDURAND} />,
+  },
 ]
+
 
 // ══ ÉPREUVE 4 — L'APPARAT D'UNE BIBLE ════════════════════════════════════════
 
@@ -1069,7 +1098,7 @@ export const EPREUVES: Epreuve[] = [
   {
     cle: 'apparat-oeuvres',
     libelle: 'Apparat des œuvres',
-    chapeau: 'Ce qui entoure le texte d’une œuvre : les paratextes de l’auteur et de l’éditeur, l’apparat critique, la langue originale en regard, et les titres que l’apparat partage avec la lecture.',
+    chapeau: 'Ce qui entoure le texte d’une œuvre : les paratextes de l’auteur et de l’éditeur, l’apparat critique, la langue originale en regard, les titres que l’apparat partage avec la lecture, et la notice que l’édition déclare d’elle-même.',
     unites: APPARAT_OEUVRES,
   },
   {

@@ -10,6 +10,7 @@
 // décidé. L'écran l'affiche tel quel, sans le deviner.
 import { useState } from 'react'
 import { headersAdmin } from './adminShared'
+import { porteUneNotation } from '@/app/lib/notationEdition'
 import type { TexteEtatAdmin } from './adminTypes'
 import {
   DEFINITIONS_VALIDATION, ETATS_VALIDATION, LIBELLES_VALIDATION, etatValidation,
@@ -96,6 +97,18 @@ export default function EtatTexteAdmin({ texte, motifOeuvre, onMaj }: {
           placeholder="Manuscrits employés, sigles, abréviations, conventions de transcription…"
           style={{ ...champ, width: '100%', boxSizing: 'border-box', marginTop: '3px', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.45 }} />
       </label>
+      {/* ⚠️ LA NOTATION SE DIT LÀ OÙ L'ON SAISIT (charte § 5.6.1) : celui qui écrit une
+          notice ne relit pas la charte en l'écrivant, et une marque qu'on ignore ne sert
+          à personne. ⛔ Et l'écran DIT qu'une notice sans marque se rendra d'un seul tenant,
+          plutôt que de laisser prendre pour un défaut ce qui est le cas ordinaire. */}
+      <div style={{ gridColumn: '1 / -1', fontSize: '0.625rem', color: 'var(--cs-texte-second)', marginTop: '-6px', lineHeight: 1.5 }}>
+        Mise en forme : une ligne « ## Témoins » ouvre une rubrique, une ligne
+        « - P — Paris, BnF, latin 12293 : … » une entrée, dont le tiret sépare le sigle de sa
+        désignation. Une ligne sans marque reste de la prose.
+        {informations.trim() && !porteUneNotation(informations) && (
+          <span style={{ color: 'var(--cs-attente)' }}>{' Cette notice ne porte aucune marque : elle se rendra d’un seul tenant.'}</span>
+        )}
+      </div>
       {raison && <div style={{ gridColumn: '1 / -1', fontSize: '0.6875rem', color: 'var(--cs-texte-second)' }}>{raison}</div>}
       {erreur && <div style={{ gridColumn: '1 / -1', fontSize: '0.6875rem', color: 'var(--cs-danger)' }}>{erreur}</div>}
     </div>

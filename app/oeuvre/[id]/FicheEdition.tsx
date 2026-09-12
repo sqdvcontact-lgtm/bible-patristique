@@ -48,6 +48,7 @@ import {
 } from '@/app/components/ModaleAuteur'
 import type { RangChrono } from '@/app/lib/frise'
 import { libelleTrad, formaterEditeur } from './PageTitre'
+import NotationEdition from '@/app/components/NotationEdition'
 import { rendreTexteEnrichi } from './texteEnrichi'
 import { intituleEdition, libelleVersionComplet } from './versionTextuelle'
 import type { Props, VersionTextuelle } from './oeuvreTypes'
@@ -94,7 +95,6 @@ export type DonneesEdition = {
 // ⚠️ `RangeeEmpilee` demeure dans `ModaleAuteur` : la fiche de traduction s'en sert.
 
 const STYLES_FICHE = `
-  .fiche-edition-prose { font-family: ${SANS}; font-size: 0.75rem; line-height: 1.5; color: var(--cs-texte); text-align: justify; hyphens: auto; margin: 0; white-space: pre-line; }
   .fiche-edition-notices { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
   .fiche-edition-grille { display: flex; flex-direction: column; gap: 18px; }
   .fiche-edition-chrono { min-width: 0; }
@@ -225,7 +225,7 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur }: {
       {commentaire && (
         <section>
           <TitreSection>Cette édition</TitreSection>
-          <p className="fiche-edition-prose">{sansPointFinal(commentaire)}</p>
+          <p className="cs-notice-prose">{sansPointFinal(commentaire)}</p>
         </section>
       )}
 
@@ -233,11 +233,15 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur }: {
           ses abréviations, ses conventions de transcription. Elle suit « Cette édition »,
           dont elle est le détail, et précède « L’œuvre », qui change de sujet.
           ⚠️ Elle ne paraît QUE remplie : une rubrique vide promettrait un appareil que
-          l’édition n’a pas déclaré. */}
+          l’édition n’a pas déclaré.
+          ⚠️ Elle est le SEUL champ de la fiche qui porte une NOTATION (charte § 5.6.1) :
+          une notice de transmission n’est pas de la prose suivie, et `NotationEdition`
+          y lit les rubriques et les entrées. Une notice sans marque reste de la prose,
+          et se rend donc exactement comme les trois autres. */}
       {informations && (
         <section>
           <TitreSection>Informations complémentaires</TitreSection>
-          <div className="fiche-edition-prose">{rendreTexteEnrichi(informations)}</div>
+          <NotationEdition texte={informations} />
         </section>
       )}
 
@@ -252,7 +256,7 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur }: {
           </LigneTech>
           {/* Ce que l'œuvre EST : son intérêt, sa substance (note_editoriale_complete). */}
           {noteComplete && (
-            <div className="fiche-edition-prose" style={{ marginTop: '8px' }}>{rendreTexteEnrichi(noteComplete)}</div>
+            <div className="cs-notice-prose" style={{ marginTop: '8px' }}>{rendreTexteEnrichi(noteComplete)}</div>
           )}
         </section>
       )}
@@ -263,7 +267,7 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur }: {
       {noteComplement && (
         <section>
           <TitreSection>Notes éditoriales</TitreSection>
-          <div className="fiche-edition-prose">{rendreTexteEnrichi(noteComplement)}</div>
+          <div className="cs-notice-prose">{rendreTexteEnrichi(noteComplement)}</div>
         </section>
       )}
 

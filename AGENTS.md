@@ -10788,3 +10788,75 @@ les notes elles-mêmes. Et ce qui ne regarde que l'éditeur vit dans
 `app/admin/EtatTexteAdmin.tsx` écrivent leurs commentaires à l'apostrophe DROITE quand la
 page d'œuvre les écrit courbes. Une ancre de remplacement recopiée d'un fichier à l'autre ne
 s'y apparie pas, et rien ne le montre à la lecture.
+
+# ⛔ LA NOTATION D’UNE NOTICE D’ÉDITION — trois niveaux, deux marques (2026-09-12)
+
+Doctrine : charte `parametres.charte_ia`, **§ 5.6.1**. Demande de l’auteur, devant la notice
+de transmission de Bondurand : « pour ce texte, et pour les autres textes du style,
+j’aimerais qu’on mette à disposition de GPT des styles, pour mettre en forme clairement les
+informations, distinguer les niveaux d’informations. » Règles de code :
+
+⛔ **LA RÈGLE VIT DANS `app/lib/notationEdition.ts`**, pure et testée (24 tests sur la notice
+RÉELLE de Bondurand 1887) : les deux marques, les deux graphies du tiret, la lecture en blocs,
+et la COMPOSITION, qui y vit aussi comme dans `compositionNote.ts` — deux écritures d’une même
+forme divergent au premier réglage. `app/components/NotationEdition.tsx` n’est que le RENDU et
+ne décide de rien. ⛔ Ne recomposer une notice nulle part ailleurs.
+
+⛔ **AUCUN CROCHET DANS LE COMPOSANT**, et ce n’est pas un rangement : la planche
+`/admin/styles` le rend par `renderToStaticMarkup`, hors du navigateur. C’est la coupure de
+`ContenuFicheTraduction` et de `ProposVisite`.
+
+⛔ **AUCUN DESSIN NEUF, ET AUCUNE MIGRATION.** La rubrique prend `RUBRIQUE_AXE`, le rang des
+rubriques d’un volet ; l’entrée le retrait suspendu des bibliographies ; la prose celle de la
+fiche. La colonne `oeuvre_textes.informations_complementaires` est déjà du texte, et une notice
+sans marque reste de la prose : ce qui est écrit se rend comme avant.
+
+⚠️ **`.fiche-edition-prose` DEVIENT `.cs-notice-prose` ET QUITTE LE BLOC `<style>` DE LA FICHE
+POUR `globals.css`.** Une seule déclaration, et dans la feuille : la notation la compose elle
+aussi, et la planche des styles doit pouvoir la juger sans monter la fiche entière. Quatre
+appels dans `FicheEdition.tsx`, aucun ailleurs.
+
+⛔ **DEUX GARDES QUI N’ÉTAIENT PAS LIVES, ET IL A FALLU LES RENDRE TELLES.** `MARQUE_RUBRIQUE`
+vaut `## ` et `MARQUE_ENTREE` `- `, espace comprise ; or la ligne est TRIMÉE avant d’être lue,
+si bien qu’une marque posée seule (« ## », « - ») ne s’apparie jamais au préfixe et que les
+gardes « pas de titre vide » / « pas d’entrée vide » ne pouvaient pas s’exercer. `apresLaMarque`
+reconnaît donc AUSSI la marque nue et rend la chaîne vide. ⚠️ Une garde qui ne peut pas se
+déclencher est pire qu’une garde absente : elle occupe la place.
+
+⛔ **UNE LIGNE VIDE FERME UNE LISTE, JAMAIS LA PROSE, et les deux moitiés se sont payées.** Le
+premier jet cherchait la liste en cours dans `blocs[blocs.length - 1]` : deux listes séparées
+par une ligne vide n’en faisaient qu’une, et la ligne vide ne faisait rien — la liste en cours
+est donc un ÉTAT (`liste`), et un seul bloc est ouvert à la fois. Le second jet fermait tout sur
+une ligne vide, PROSE COMPRISE : la notice sans marque se resserrait alors de 18 px à 9 par
+paragraphe (mesuré : 1 326 px avant, 1 299 après), c’est-à-dire que la rétro-compatibilité
+n’était plus « comme avant » mais « à peu près ». La prose garde donc ses lignes vides, comme
+tous ses autres sauts, et la mesure le dit : **318 px des deux côtés**.
+
+⛔ **ET LE BLANC SE CALCULE SUR LE VOISINAGE (`blancAuDessus`), non par un `gap` de conteneur.**
+Un écart unique laissait la rubrique FLOTTER entre les deux listes qu’elle sépare — mesuré sur
+la composition servie, **12 px au-dessus et 11 en dessous** —, si bien qu’elle n’appartenait à
+aucune des deux. ⚠️ Une rubrique nomme ce qui la SUIT : elle en est cousue (**15 px au-dessus,
+4 en dessous**), et 15 n’est pas le blanc des SECTIONS de la fiche, qui vaut 18 — une rubrique
+est un rang au-dessous, et lui donner le même air aplatirait la hiérarchie qu’on vient de poser.
+⛔ `STYLE_NOTATION` ne porte donc AUCUN `gap`, et les styles de bloc posent leurs marges à zéro :
+deux écritures d’un même blanc s’ajouteraient sans qu’aucune des deux ne le sache.
+
+⚠️ **Contrastes mesurés sur la composition servie**, encre sur le papier de la fiche : rubrique
+**5,24** au Clair (le seuil de 4,5 s’applique — elle est composée à 9,5 px et porte seule le nom
+de son groupe) et 10,01 en Cuir ; tête d’entrée 13,83 et 14,86 ; corps 11,05 et 13,22.
+
+⚠️ **LE SPÉCIMEN NE REJOUE RIEN** : l’unité `notice_edition/notation — § 5.6.1` de l’épreuve
+« Apparat des œuvres » rend le VRAI composant sur la notice RÉELLE de Bondurand. ⛔ Son nom
+évite les quatorze natures de segment : la garde de couverture cherche le nom EXACT non suivi
+d’une lettre, et une unité nommée « notation/rubrique » masquerait l’absence de la NATURE
+`rubrique` dans les épreuves patristiques.
+
+⚠️ **LA NOTATION SE DIT LÀ OÙ L’ON SAISIT** : `EtatTexteAdmin` la rappelle sous le champ et
+emploie `porteUneNotation` pour dire qu’une notice sans marque se rendra d’un seul tenant —
+plutôt que de laisser prendre pour un défaut ce qui est le cas ordinaire.
+
+⚠️ **Pièges d’atelier payés dans cette passe, tous déjà consignés** : un heredoc Bash MANGE les
+antislashs (`\\n` y devient `\n`, que JS transforme ensuite en vrai saut de ligne — une ancre
+de remplacement ne s’apparie alors plus) ; une INSÉCABLE tapée dans un test ne se distingue pas
+d’une espace ordinaire et s’écrit en point de code ; et une constante posée APRÈS son emploi
+dans un module compile en apparence mais lève à l’exécution (`used before its declaration`).
