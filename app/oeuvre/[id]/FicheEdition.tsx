@@ -179,10 +179,13 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur }: {
   // points de détail ensuite.
   const noteComplete = oeuvre.note_editoriale_complete?.trim() || null
   const noteComplement = oeuvre.note_editoriale_complement?.trim() || null
+  // ⛔ Ce que CETTE édition déclare : ses manuscrits, ses sigles, ses abréviations.
+  //    Elle vit sur le TEXTE, non sur l’œuvre — voir `informationsComplementaires`.
+  const informations = versionActive?.informationsComplementaires?.trim() || null
   const commentaire = oeuvre.commentaire_traduction?.trim() || null
   const aOeuvre = !!(oeuvre.titre_original || (oeuvre.genres && oeuvre.genres.length) || noteComplete)
   const aSite = !!(enLigne || etendue || autresVersions.length || aTexteOriginal)
-  const aNotices = aEdition || commentaire || aOeuvre || noteComplement || aSite
+  const aNotices = aEdition || commentaire || informations || aOeuvre || noteComplement || aSite
   const aChrono = chrono.length > 0
   const aColonnes = aChrono && aNotices
 
@@ -223,6 +226,18 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur }: {
         <section>
           <TitreSection>Cette édition</TitreSection>
           <p className="fiche-edition-prose">{sansPointFinal(commentaire)}</p>
+        </section>
+      )}
+
+      {/* ⛔ CE QUE L’ÉDITION DÉCLARE POUR QU’ON LA LISE — ses manuscrits et leurs sigles,
+          ses abréviations, ses conventions de transcription. Elle suit « Cette édition »,
+          dont elle est le détail, et précède « L’œuvre », qui change de sujet.
+          ⚠️ Elle ne paraît QUE remplie : une rubrique vide promettrait un appareil que
+          l’édition n’a pas déclaré. */}
+      {informations && (
+        <section>
+          <TitreSection>Informations complémentaires</TitreSection>
+          <div className="fiche-edition-prose">{rendreTexteEnrichi(informations)}</div>
         </section>
       )}
 

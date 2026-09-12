@@ -27,6 +27,7 @@ const ceriziers: VersionTextuelle = {
   dateEdition: '1646',
   responsableEdition: null,
   collectionEdition: null,
+  informationsComplementaires: null,
 }
 
 describe('page de titre du texte actif', () => {
@@ -113,6 +114,7 @@ const latinBondurand: VersionTextuelle = {
   dateEdition: '1887',
   responsableEdition: null,
   collectionEdition: null,
+  informationsComplementaires: null,
 }
 
 const oeuvreDhuoda = {

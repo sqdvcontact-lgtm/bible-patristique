@@ -79,7 +79,7 @@ const chargerOeuvreEtTextes = cache(async (id: string) => {
       // textes, soit 139 Ko servis à tout lecteur connecté, pour la lecture d'UN booléen
       // (`indisponible`, la seule clé que le site consulte). C'est la règle que la charte
       // pose déjà pour les blocs de note de la Bible, appliquée ici.
-      .select('id_texte,titre_version,langue,traducteur,edition_label,annee_edition,source_url,catalogue_notice_id_ligne,indisponible:metadata->>indisponible,is_default,is_public,statut')
+      .select('id_texte,titre_version,langue,traducteur,edition_label,annee_edition,source_url,catalogue_notice_id_ligne,indisponible:metadata->>indisponible,is_default,is_public,statut,informations_complementaires')
       .eq('id_oeuvre', id)
       .order('annee_edition', { ascending: true, nullsFirst: true }),
     chargerAuteursDOeuvre(supabase, id),
@@ -184,6 +184,7 @@ type TexteVersionRow = {
   is_default: boolean | null
   is_public: boolean | null
   statut: string | null
+  informations_complementaires: string | null
 }
 
 type AlignementRow = {
@@ -244,6 +245,7 @@ function construireVersionTextuelle(t: TexteVersionRow, indexEditeurs: IndexEdit
     dateEdition: edition.annee,
     responsableEdition: edition.responsable,
     collectionEdition: edition.collection,
+    informationsComplementaires: t.informations_complementaires,
   }
 }
 

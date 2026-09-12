@@ -212,7 +212,7 @@ export default async function AdminPage() {
     // RLS : seule la clé de service la voit (voir app/admin/SectionCourrier.tsx).
     supabaseAdmin.from('messages_contact').select('id', { count: 'exact', head: true }).is('traite_le', null),
     // Les textes de chaque œuvre et leur état de validation (charte § 52), pour la Bibliothèque.
-    supabaseAdmin.from('oeuvre_textes').select('id_texte, id_oeuvre, titre_version, langue, edition_label, statut, is_public, is_default, nb_signes, motif_non_publication').order('id_texte'),
+    supabaseAdmin.from('oeuvre_textes').select('id_texte, id_oeuvre, titre_version, langue, edition_label, statut, is_public, is_default, nb_signes, motif_non_publication, informations_complementaires').order('id_texte'),
   ])
   const [
     { data: commentaires },

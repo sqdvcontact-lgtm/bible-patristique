@@ -183,6 +183,12 @@ export type VersionTextuelle = {
   /** La collection de CETTE édition (« CSEL 33 »). ⛔ Distincte de `oeuvres.collection`,
    *  qui ne décrit que le texte par défaut : voir `identiteEdition`. */
   collectionEdition: string | null
+  /** Ce que CETTE édition déclare pour qu’on la lise : ses manuscrits et leurs sigles,
+   *  ses abréviations, ses conventions de transcription (charte § 5.6).
+   *  ⛔ Propre au TEXTE, jamais à l’œuvre : les manuscrits de Knöll sont ceux de son
+   *  latin, et la traduction d’Arnauld d’Andilly, sous la même œuvre, n’en a aucun.
+   *  ⚠️ `null` ou vide veut dire « rien à déclarer », et la rubrique ne paraît pas. */
+  informationsComplementaires: string | null
 }
 
 export type AlignementDisponible = {

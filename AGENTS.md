@@ -10739,3 +10739,52 @@ textes) et `reference_biblique_detachee` (120, un texte), qui s'annoncent « Not
 latines passaient de « Apparat critique » à « Note de l'édition », et leurs italiques `*…*`
 se composent enfin. Le volet des notes le montre : la facette « Apparat critique 1040 » a
 cédé la place à « Note de l'édition ».
+
+# ⛔ « INFORMATIONS COMPLÉMENTAIRES » — ce qu'une ÉDITION déclare (2026-09-12)
+
+Doctrine : charte `parametres.charte_ia`, **§ 5.6**. Demande de l'auteur : « une rubrique
+“Informations complémentaires” qui s'affichera quand elle est remplie ; ça aura par exemple
+fonction pour nommer les manuscrits, les abréviations, etc., d'une édition. » Règles de code :
+
+⛔ **ELLE VIT SUR LE TEXTE, NON SUR L'ŒUVRE** : `oeuvre_textes.informations_complementaires`
+(migration `20260912154332`, contrôles dans `supabase/controles/`). Les manuscrits de Knöll —
+B, P, Q, S — sont ceux de SON édition du latin ; la traduction d'Arnauld d'Andilly, qui vit
+sous les mêmes *Confessions*, n'en a aucun, et la Consolation de Boèce porte deux éditions
+françaises et un latin qui ne déclarent pas les mêmes choses. Une colonne d'œuvre forcerait à
+n'en garder qu'une pour toutes. ⚠️ C'est le § 5.5 pris par un autre bout — une version dit tout
+de son édition, son silence compris.
+
+⛔ **ELLE NE PARAÎT QUE REMPLIE.** `FicheEdition.tsx` la rend entre « Cette édition », dont
+elle est le détail, et « L'œuvre », qui change de sujet. Une rubrique vide promettrait un
+appareil que l'édition n'a pas déclaré — c'est la règle que le site tient déjà partout
+ailleurs : on n'annonce jamais rien qu'on ne puisse montrer. ⚠️ Elle entre aussi dans
+`aNotices` : sans cela, une édition qui ne porterait QU'elle ouvrirait une colonne vide.
+
+⚠️ **CINQ ÉTAGES À TENIR D'ACCORD, et l'un d'eux EFFACE en silence s'il manque** — c'est le
+piège déjà consigné pour `titre_affichage` : la colonne, le `select` de
+`app/oeuvre/[id]/page.tsx` (plus `TexteVersionRow` et `construireVersionTextuelle`), le type
+`VersionTextuelle`, le `select` de `app/admin/page.tsx` (plus `TexteEtatAdmin`), et la route
+`POST /api/admin/texte-etat`. **Un champ présent dans le formulaire et absent du `select` est
+enregistré à vide, donc EFFACE la colonne.**
+
+⛔ **UN CHAMP ABSENT DU CORPS DE LA REQUÊTE N'EFFACE RIEN.** La route ne réécrit
+`informations_complementaires` que si la clé est ENVOYÉE (`informations === undefined` →
+on ne touche pas) : elle règle aussi l'état de validation, et un appelant qui ne connaîtrait
+pas la rubrique la viderait en publiant un texte. ⚠️ Une prose vidée à dessein arrive en
+chaîne vide et vaut alors `null` : le vide se dit `null`, jamais `''`.
+
+⚠️ **Elle se règle édition par édition**, dans `EtatTexteAdmin` — la carte que la fiche d'une
+œuvre pose déjà par texte, avec sa langue et sa mention d'édition. C'est le seul écran du site
+où l'on voit laquelle des deux colonnes on renseigne. ⛔ Une zone de TEXTE, non un champ d'une
+ligne : on y nomme des manuscrits et des sigles, et cela s'écrit en plusieurs lignes.
+
+⚠️ **Elle n'est pas l'apparat, elle en est la CLÉ.** Ne pas la confondre avec le commentaire
+public de l'édition (`oeuvres.commentaire_traduction`, « Cette édition »), avec la note
+éditoriale de l'œuvre (`oeuvres.note_editoriale_complement`, « Notes éditoriales »), ni avec
+les notes elles-mêmes. Et ce qui ne regarde que l'éditeur vit dans
+`oeuvres_commentaires_prives`, que PostgREST ne sert à personne.
+
+⚠️ **Piège d'atelier payé deux fois ce jour-là** : `app/api/admin/texte-etat/route.ts` et
+`app/admin/EtatTexteAdmin.tsx` écrivent leurs commentaires à l'apostrophe DROITE quand la
+page d'œuvre les écrit courbes. Une ancre de remplacement recopiée d'un fichier à l'autre ne
+s'y apparie pas, et rien ne le montre à la lecture.

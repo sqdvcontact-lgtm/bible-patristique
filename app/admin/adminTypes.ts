@@ -64,6 +64,9 @@ export type TexteEtatAdmin = {
   is_default: boolean
   nb_signes: number | null
   motif_non_publication: string | null
+  /** La prose publique propre à cette édition : manuscrits, sigles, abréviations
+   *  (charte § 5.6). ⚠️ Absente du `select`, elle s’enregistrerait à VIDE. */
+  informations_complementaires: string | null
 }
 export type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 export type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }

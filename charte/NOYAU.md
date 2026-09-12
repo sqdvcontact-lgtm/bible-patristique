@@ -106,6 +106,15 @@
 - ⚠️ Il ne se nomme que s’il existe vraiment : une colonne en regard tirée du repli `segments.texte_original` n’est pas une autre édition, c’est la même qui porte son original avec elle, et il n’y a rien de plus à nommer.
 - ⚠️ L’invite de l’administrateur suit le crayon.
 
+**§ 5.6 — Informations complémentaires d’une édition**
+
+- ⛔ UNE ÉDITION SAVANTE DÉCLARE CE QU’IL FAUT SAVOIR POUR LA LIRE — et ce n’est ni son adresse ni sa notice : les manuscrits qu’elle a collationnés et les sigles qui les désignent, les abréviations de son apparat, les conventions de transcription qu’elle s’est données.
+- ⛔ ELLE NE PARAÎT QUE REMPLIE (demande de l’auteur, 12 septembre 2026).
+- ⛔ ELLE APPARTIENT AU TEXTE, JAMAIS À L’ŒUVRE.
+- ⛔ ELLE EST PUBLIQUE, et c’est ce qui la sépare d’une note d’atelier.
+- ⚠️ Elle se compose comme la prose du site — enrichissements reconnus (`*italique*`, `**gras**`, `++petites capitales++`), sauts de ligne conservés, aucune ponctuation ajoutée.
+- ⚠️ Colonne nullable et SANS contrainte — comme `essais.couverture` et `profils.theme_lecture` : ce qu’une édition déclare est une matière éditoriale, elle bougera, et une valeur mal formée ne doit ni bloquer une écriture ni vider une fiche.
+
 ## § 6. Structure, niveaux, paragraphes et rangs
 
 **§ 6.1.1 — La jonction entre deux segments**
@@ -618,8 +627,11 @@
 - ⛔ Dès que `metadata.editorial_role` est établi, toute mention textuelle qui redouble ou contredit ce rôle est retirée du corps de la note.
 - ⛔ La passe se ferme seulement avec 100 % des notes couvertes et 0 type principal hors vocabulaire ; toute réserve résiduelle est explicitement comptée et nommée.
 - ⛔ Les artifices matériels de l’imprimé ne restent pas mêlés à la prose : lettre d’appel, pagination de la note et coordonnée source du type « (A) p. 2. — » sont conservées dans `source_label`, `printed_page`, l’ancre ou les métadonnées de provenance.
+- ⛔ LES SIGLES DE TÉMOINS NE RESTENT PAS OPAQUES DANS LA PROSE DE LECTURE.
+- ⛔ Un sigle homographe relevant d’une autre convention n’est jamais développé mécaniquement : par exemple `1 P 2, 13` est une référence à la Première épître de Pierre et non au témoin parisien.
 - ⛔ Une parenthèse intégrée à la phrase n’ouvre pas une seconde phrase artificielle : écrire `usage (voir …).`, non `usage. (Voir ….)`.
 - ⛔ Une référence nue n’est jamais une citation : `(Rm 8, 28)` ou tout autre bloc qui ne contient qu’une coordonnée scripturaire ne reçoit aucun guillemet ajouté, ni dans la donnée ni au rendu.
+- ⛔ Lorsqu’une note cite une édition identifiable et que sa notice structurée fournit les données éditoriales, la référence visible est complète : auteur, titre exact, responsabilité éditoriale ou traduction pertinente, lieu, éditeur, collection et numéro lorsqu’ils sont connus, date, puis locator.
 - ⛔ il n’est jamais saisi à la main dans le texte.
 - ⛔ Le contre-audit de clôture vérifie en outre : zéro libellé de type encore écrit dans le corps lorsqu’un `editorial_role` le porte ; zéro coordonnée matérielle source laissée en prose lorsqu’elle est déjà conservée dans les champs structurés et n’a pas d’utilité publique ; zéro œuvre nommée sans relation `texte_note_bloc_ouvrages` lorsqu’elle est identifiable ; zéro jeton manuel `[Éditions]` ; zéro bloc de référence…
 - ⛔ Le modèle fusionné `Référence : « lemme »` est interdit.

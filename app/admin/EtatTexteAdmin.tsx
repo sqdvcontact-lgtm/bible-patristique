@@ -1,8 +1,11 @@
 'use client'
 // ── L'état d'un texte, réglé depuis la fiche d'une œuvre (charte § 52) ───────
 //
-// On règle ce que l'éditeur décide : l'état de validation et, s'il le faut, le motif qui
-// retient un texte publiable. ⛔ La PUBLICATION ne se règle pas : la base la dérive de ces
+// On règle ce que l'éditeur décide : l'état de validation, le motif qui retient un texte
+// publiable, et les INFORMATIONS COMPLÉMENTAIRES que cette édition déclare — ses manuscrits
+// et leurs sigles, ses abréviations (charte § 5.6). ⛔ Celles-ci vivent sur le TEXTE et se
+// règlent donc ICI, édition par édition : celles de Knöll ne sont pas celles d'Arnauld
+// d'Andilly, qui vit sous la même œuvre. ⛔ La PUBLICATION ne se règle pas : la base la dérive de ces
 // deux colonnes, du nombre de signes et du motif de l'œuvre, et la route rend ce qu'elle a
 // décidé. L'écran l'affiche tel quel, sans le deviner.
 import { useState } from 'react'
@@ -25,11 +28,13 @@ export default function EtatTexteAdmin({ texte, motifOeuvre, onMaj }: {
 }) {
   const [statut, setStatut] = useState<EtatValidation>(etatValidation(texte.statut) ?? 'en_cours')
   const [motif, setMotif] = useState(texte.motif_non_publication ?? '')
+  const [informations, setInformations] = useState(texte.informations_complementaires ?? '')
   const [envoi, setEnvoi] = useState(false)
   const [erreur, setErreur] = useState<string | null>(null)
 
   const modifie = statut !== etatValidation(texte.statut)
     || (motif.trim() || null) !== (texte.motif_non_publication?.trim() || null)
+    || (informations.trim() || null) !== (texte.informations_complementaires?.trim() || null)
   const raison = texte.is_public ? null : raisonNonPublication(texte, motifOeuvre)
 
   const enregistrer = async () => {
@@ -39,7 +44,7 @@ export default function EtatTexteAdmin({ texte, motifOeuvre, onMaj }: {
       const res = await fetch('/api/admin/texte-etat', {
         method: 'POST',
         headers: await headersAdmin({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ id_texte: texte.id_texte, statut, motif }),
+        body: JSON.stringify({ id_texte: texte.id_texte, statut, motif, informations }),
       })
       const corps = await res.json().catch(() => null) as (ReponseEtatTexte & { error?: string }) | null
       if (!res.ok || !corps) { setErreur(corps?.error || 'Échec de l’enregistrement.'); return }
@@ -81,6 +86,16 @@ export default function EtatTexteAdmin({ texte, motifOeuvre, onMaj }: {
           {envoi ? '…' : 'Enregistrer'}
         </button>
       </div>
+      {/* ⚠️ Une zone de TEXTE, non un champ d'une ligne : on y nomme des manuscrits et
+          des sigles, et cela s'écrit en plusieurs lignes. Elle paraît toujours — c'est
+          l'écran qui la remplit —, quand la RUBRIQUE du lecteur, elle, ne paraît que
+          remplie. */}
+      <label style={{ gridColumn: '1 / -1', display: 'block', fontSize: '0.6875rem', color: 'var(--cs-texte-second)' }}>
+        Informations complémentaires (manuscrits, sigles, abréviations)
+        <textarea value={informations} onChange={e => setInformations(e.target.value)} rows={3}
+          placeholder="Manuscrits employés, sigles, abréviations, conventions de transcription…"
+          style={{ ...champ, width: '100%', boxSizing: 'border-box', marginTop: '3px', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.45 }} />
+      </label>
       {raison && <div style={{ gridColumn: '1 / -1', fontSize: '0.6875rem', color: 'var(--cs-texte-second)' }}>{raison}</div>}
       {erreur && <div style={{ gridColumn: '1 / -1', fontSize: '0.6875rem', color: 'var(--cs-danger)' }}>{erreur}</div>}
     </div>
