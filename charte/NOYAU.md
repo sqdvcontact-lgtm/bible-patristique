@@ -300,21 +300,10 @@
 - ⛔ Les mots ajoutés pour la seule intelligibilité restent minimaux.
 - ⛔ Le contexte de l’auteur et du passage prévaut toujours sur une équivalence de dictionnaire isolée.
 - ⚠️ Les choix évidents ne sont pas surannotés.
-- ⛔ La modernisation ne doit jamais devenir une traduction.
-- ⛔ ils ne complètent, ne corrigent ni ne réécrivent silencieusement Français 899.
-- ⛔ Tout ce qui n’est pas dans cette table blanche est conservé.
-- ⛔ Un mot parfaitement lisible mais incompris ou douteux de sens reste en clair dans le texte ; il ne reçoit pas la balise `[lecture incertaine : …]`.
-- ⛔ On ne crée pas `[lacune]` par inférence sémantique, grammaticale ou par comparaison avec une autre Bible.
-- ⛔ On ne « répare » jamais séparément deux fragments qui forment une même séquence matérielle.
-- ⛔ La progression se mesure sur les éléments matériels source distincts effectivement couverts, non sur le nombre de lignes du registre de révision, qui peut différer pour des raisons historiques ou techniques.
-- ⛔ Ne jamais partir du français modernisé existant pour reconstruire approximativement le témoin.
-- ⛔ La révision TR0013 ne corrige jamais TR0009 pour faciliter sa propre clôture.
-- ⛔ On ne répare pas indépendamment deux fragments qui forment une seule séquence matérielle.
-- ⛔ Une difficulté de sens ne reçoit jamais `[lecture incertaine : …]`.
-- ⛔ `OK` est interdit dès que le texte live diffère de l’état initial du registre.
-- ⛔ On ne remplace pas la difficulté par une paraphrase moderne pour obtenir artificiellement zéro réserve.
-- ⛔ Il ne doit jamais être absorbé dans une cible canonique pour simplifier le comptage ou l’affichage.
-- ⛔ Ne jamais présenter le nombre de lignes du registre comme un avancement matériel.
+- ⛔ La fidélité porte sur le contenu et la physionomie sémantique de la phrase, non sur la conservation mécanique de formes grammaticales médiévales.
+- ⛔ On ne conserve jamais une forme archaïque seulement pour donner une couleur médiévale au texte.
+- ⛔ Une difficulté de sens ne devient jamais une `[lecture incertaine]`.
+- ⛔ On ne crée pas `[lacune]` par inférence grammaticale, sémantique ou par comparaison avec une autre Bible.
 - ⛔ sauf consigne contraire, on n’imite ni le mètre, ni la rime, ni une compensation métrique.
 - ⛔ Si la mission demande une traduction en prose, la ligne de vers n’est pas recréée.
 - ⛔ ces essais restent expérimentaux, privés et non validés humainement.
@@ -571,10 +560,14 @@
 - ⚠️ Le corpus se partage en deux presque exactement
 - ⛔ L’unanimité décide, comme pour le type d’une note.
 - ⛔ La manchette ne dit jamais MOINS que la note.
-- ⚠️ Le renvoi se pose à hauteur de sa ligne, et rien ne le calcule — sa position est celle du texte où l’appel se tenait.
-- ⛔ Ce qui se calcule est le seul cas où deux renvois se heurtent, et c’est alors CELUI DU DESSOUS qui cède : un renvoi remonté au-dessus de son appel annoncerait un passage qu’on n’a pas encore lu. Mesuré : 1 618 couples de renvois voisins dans un même segment, écart médian 1,46 ligne, 366 couples qui se heurtent — environ 3 % des renvois.
+- ⛔ Un renvoi en marge ne quitte JAMAIS sa ligne (décision de l’auteur, 13 septembre 2026 : « forcer l’alignement »).
+- ⛔ Il tient sur UNE ligne de manchette, jamais plus.
+- ⛔ Deux renvois d’une même ligne se rangent côte à côte — dans l’ordre de lecture, le dernier contre le texte.
+- ⚠️ La règle d’avant faisait céder le renvoi du dessous, qui descendait sous son appel : sur le Commentaire sur Jonas, un renvoi composé sur trois lignes en chassait un autre d’une ligne entière, et la marge ne désignait plus rien.
+- ⛔ On ne remonte pas davantage un renvoi au-dessus de son appel : il annoncerait un passage qu’on n’a pas encore lu.
 - ⛔ Un renvoi en marge n’est pas un ornement — et le seuil de contraste de 4,5 s’applique : il est le SEUL porteur de sa coordonnée, et c’est lui qu’on vient chercher au bord de la ligne.
 - ⚠️ Faute de place, le renvoi reprend son appel et son encart.
+- ⚠️ La place se compte aussi sur la ligne la plus chargée de la page : si sa rangée de renvois ne tient pas dans la marge libre, la manchette se retire de la page entière plutôt que de mordre sur le volet.
 
 **§ 13.15 — L’encart NE COUVRE PAS le texte, et le numéro flotte**
 
@@ -660,7 +653,9 @@
 - ⛔ PROTOCOLE — `Cf.` / `cf.` ET PETITES CAPITALES.
 - ⛔ Lorsqu’une note cite une édition identifiable et que sa notice structurée fournit les données éditoriales, la référence visible est complète : auteur, titre exact, responsabilité éditoriale ou traduction pertinente, lieu, éditeur, collection et numéro lorsqu’ils sont connus, date, puis locator.
 - ⛔ Une référence biblique autonome n’est jamais parenthésée dans une note ; la forme normalisée est `Rm 8, 28.`, non `(Rm 8, 28).`.
+- ⛔ PROTOCOLE — TRAIT D’UNION DES PLAGES.
 - ⛔ PROTOCOLE — AUTEUR, ŒUVRE, ÉDITION ET COÉDITION.
+- ⛔ DIVISION TRADITIONNELLE ≠ ŒUVRE AUTONOME.
 - ⛔ il n’est jamais saisi à la main dans le texte.
 - ⛔ PROTOCOLE — RESPONSABILITÉS BIBLIOGRAPHIQUES ET RÉEMPLOI DES NOTICES.
 - ⛔ Le contre-audit de clôture vérifie en outre : zéro libellé de type encore écrit dans le corps lorsqu’un `editorial_role` le porte ; zéro coordonnée matérielle source laissée en prose lorsqu’elle est déjà conservée dans les champs structurés et n’a pas d’utilité publique ; zéro œuvre nommée sans relation `texte_note_bloc_ouvrages` lorsqu’elle est identifiable ; zéro jeton manuel `[Éditions]` ; zéro bloc de référence…
@@ -2953,7 +2948,7 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 
 | § | chapitre | signes | énoncés | pour mille signes |
 |---|---|---:|---:|---:|
-| 3 | Typographie — les signes, les espaces, l’enric | 64 407 | 46 | **0.7** |
+| 3 | Typographie — les signes, les espaces, l’enric | 64 873 | 46 | **0.7** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
 | 15 | Corpus biblique et traductions | 17 044 | 16 | **0.9** |
 | 35 | Chantier Fillion — la composition du paratexte | 79 344 | 79 | **1.0** |
