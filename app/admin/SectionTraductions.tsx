@@ -1122,17 +1122,23 @@ export default function SectionTraductions({ traductions: init }: { traductions:
           99 pour les trois autres, 100 pour l'AELF). */}
       {affichees.map(t => (
         <div key={t.trad_id} style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
-          {/* En-tête d'une ligne : l'identité à gauche, les actions à droite. */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '18px', padding: '11px 16px' }}>
+          {/* En-tête d'une ligne : l'identité à gauche, les actions à droite.
+              ⛔ La rangée PASSE À LA LIGNE. Les boutons font à eux seuls quelque 56 rem,
+              presque toute la largeur d'un écran de portable : sans retour à la ligne,
+              l'identité était écrasée à la largeur d'un mot, un mot par ligne, et ses dates
+              glissaient sous les boutons (relevé le 2026-09-13). Quand la place manque,
+              l'identité prend toute sa ligne et les actions se rangent à droite sur la
+              suivante ; sur un écran assez large, les deux tiennent sur une seule. */}
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px 18px', padding: '11px 16px' }}>
 
             {/* ⛔ L'IDENTIFIANT et l'étiquette « patristique » ont quitté la rangée des
                 boutons pour venir ici. De largeur variable — trente signes pour
                 TR_FR_1870_1873_BARREAU_… contre six pour TR0001 —, ils décalaient les
                 boutons d'une ligne à l'autre, et rien n'y était plus aligné. Ce qui DIT
                 la ligne se range avec son nom ; ce qui AGIT se range à droite. */}
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap', minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap', flex: '1 1 auto' }}>
               <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: 'var(--cs-encre)' }}>{t.nom}</span>
-              {t.dates && <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)' }}>{formaterDateHistorique(t.dates)}</span>}
+              {t.dates && <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', whiteSpace: 'nowrap' }}>{formaterDateHistorique(t.dates)}</span>}
               {!t.est_biblique && (
                 <span title="Notice d’une traduction patristique : elle ne paraît dans aucun sélecteur de traduction biblique, ni sur la page publique."
                   style={{ fontSize: '0.625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-or)', border: '1px solid var(--cs-or-doux)', borderRadius: '4px', padding: '1px 6px', whiteSpace: 'nowrap' }}>
@@ -1141,7 +1147,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
               )}
               <code style={{ fontSize: '0.6875rem', background: 'var(--cs-fond-doux)', padding: '1px 5px', borderRadius: '4px', color: 'var(--cs-texte-second)' }}>{t.trad_id}</code>
               {t.import_maj_le && (
-                <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>
+                <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
                   import · {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </span>
               )}
@@ -1154,7 +1160,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 déclenché, dont la largeur est réservée d'avance.
                 Trois familles, séparées par un blanc plus large que le pas interne :
                 les IMAGES de la notice, le TEXTE de la traduction, la FICHE elle-même. */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0, marginLeft: 'auto' }}>
 
               {t.est_biblique && (<>
                 {/* Deux images, deux dépôts : le bandeau horizontal qui coiffe la notice,
