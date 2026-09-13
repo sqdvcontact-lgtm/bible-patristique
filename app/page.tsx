@@ -646,6 +646,11 @@ export default async function Home({
   // et le menu avec elles (voir plus haut, « Les traductions lues dans versets_v2 »).
   const capabilitiesLecture = withCanonicalV2Capability(catalog.capabilities, tradsV2)
   const traductionsLecture = toutesTraductions.filter((t) => estLisible(t.code) || tradsV2.includes(t.code) || t.code === trad)
+  // Les bibles d'une même famille d'édition se réunissent dans le menu central, sous leur
+  // nom commun, et s'y déclinent par langue (charte § 15.6) : chaque bible porte ici sa
+  // famille, lue au catalogue des éditions, jamais écrite à la main.
+  const familleDeBible = new Map(editionCatalog.map((row) => [row.trad_id, { cle: row.family_id, role: row.member_role, rang: row.display_order }]))
+  const traductionsMenu = traductionsLecture.map((t) => ({ ...t, famille: familleDeBible.get(t.code) ?? null }))
   const piecesLiminaires = grouperPiecesLiminaires(liminaires.map((bloc) => ({
     id: bloc.id,
     blockKey: bloc.block_key,
@@ -734,7 +739,7 @@ export default async function Home({
       <BibleLayout
         livres={LIVRES}
         versets={versets}
-        traductions={traductionsLecture}
+        traductions={traductionsMenu}
         livreActif={livre}
         chapitreActif={chapitre}
         nomLivre={NOMS_LIVRES[livre] || livre}

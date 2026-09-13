@@ -51,6 +51,8 @@ type Traduction = {
   code: string; label: string; auteur?: string | null; auteurDates?: string | null
   datePublication?: string | null; lieuEdition?: string | null; editeur?: string | null
   anneeEdition?: string | null; depotManuscrit?: string | null; coteManuscrit?: string | null
+  /** La famille d'édition, lue au catalogue : le menu central y réunit ses membres. */
+  famille?: import('@/app/lib/menuTraductionsBible').AppartenanceFamille | null
 }
 
 type Props = {

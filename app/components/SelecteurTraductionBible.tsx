@@ -10,13 +10,18 @@
 // les vues de la page (une colonne comme en regard) : on doit toujours pouvoir
 // changer de bible, quelle que soit la manière dont on lit celle qu'on a sous les
 // yeux.
+//
+// ⛔ LES BIBLES D'UNE MÊME FAMILLE N'Y FONT QU'UNE ENTRÉE (décision de l'auteur,
+// 2026-09-13) : « Bible XIIIe », dont un sous-menu décline les langues, comme dans la
+// Polyglotte. Choisir la famille ouvre le TEXTE D'ORIGINE, que le sous-menu met en tête.
+// La composition est un module pur et testé, `menuTraductionsBible.ts` ; ce composant ne
+// fait que la rendre.
 
 import IconeChevron from '@/app/components/IconeChevron'
 import { useEffect, useId, useRef, useState } from 'react'
 
 import { rendreEnrichi } from '@/app/lib/enrichissements'
-
-type Traduction = { code: string; label: string }
+import { entreesDuMenu, type BibleDuMenu } from '@/app/lib/menuTraductionsBible'
 
 /**
  * Le chevron du menu.
@@ -49,19 +54,68 @@ const STYLE_CHEVRON: React.CSSProperties = {
   lineHeight: 1,
 }
 
+/** Le fond d'une ligne survolée, ou d'une famille dont le sous-menu est ouvert. */
+const FOND_SURVOL = 'rgba(var(--cs-vert-rgb),0.04)'
+
+/** La largeur minimale d'un sous-menu, et le délai avant de replier celui que la main
+ *  quitte : le temps de traverser le jour entre la ligne et lui. La Polyglotte tient le même. */
+const LARGEUR_SOUS_MENU_REM = 11.25
+const DELAI_REPLI_MS = 160
+
 type Props = {
-  traductions: readonly Traduction[]
+  traductions: readonly BibleDuMenu[]
   traductionIndex: number
   setTraductionIndex: (index: number) => void
 }
 
+/** Une ligne de menu. ⚠️ Le rayon des coins suit celui du cadre, filet ôté : le cadre ne
+ *  rogne plus ses lignes, puisqu'un sous-menu doit pouvoir en sortir. */
+function styleLigne(actif: boolean, premiere: boolean, derniere: boolean): React.CSSProperties {
+  return {
+    display: 'flex', alignItems: 'center', gap: '10px',
+    width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '0.8125rem',
+    border: 'none', borderBottom: derniere ? 'none' : '1px solid var(--cs-fond-doux)',
+    borderRadius: `${premiere ? 7 : 0}px ${premiere ? 7 : 0}px ${derniere ? 7 : 0}px ${derniere ? 7 : 0}px`,
+    background: actif ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)',
+    color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-fort)',
+    fontWeight: actif ? 600 : 400, cursor: 'pointer',
+    fontFamily: "var(--font-source-serif), Georgia, serif", letterSpacing: '0.01em',
+    transition: 'background 0.12s',
+  }
+}
+
+const STYLE_CADRE_MENU: React.CSSProperties = {
+  background: 'var(--cs-surface)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)',
+  borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)',
+}
+
 export default function SelecteurTraductionBible({ traductions, traductionIndex, setTraductionIndex }: Props) {
   const [ouvert, setOuvert] = useState(false)
+  const [deploye, setDeploye] = useState<{ cle: string; cote: 'droite' | 'gauche' } | null>(null)
   const label = traductions[traductionIndex]?.label ?? traductions[traductionIndex]?.code ?? 'Bible'
   const cadre = useRef<HTMLDivElement>(null)
   const bouton = useRef<HTMLButtonElement>(null)
-  const options = useRef<(HTMLButtonElement | null)[]>([])
+  const lignes = useRef<(HTMLButtonElement | null)[]>([])
+  const sousLignes = useRef<(HTMLButtonElement | null)[]>([])
+  const repli = useRef<number | null>(null)
   const idListe = useId()
+  const entrees = entreesDuMenu(traductions)
+  const rangActif = Math.max(0, entrees.findIndex(e =>
+    e.sorte === 'bible' ? e.index === traductionIndex : e.membres.some(m => m.index === traductionIndex)))
+
+  const annulerRepli = () => {
+    if (repli.current !== null) { window.clearTimeout(repli.current); repli.current = null }
+  }
+  const replierBientot = () => {
+    annulerRepli()
+    repli.current = window.setTimeout(() => { repli.current = null; setDeploye(null) }, DELAI_REPLI_MS)
+  }
+  const fermer = (rendreLeFoyer: boolean) => {
+    annulerRepli()
+    setDeploye(null)
+    setOuvert(false)
+    if (rendreLeFoyer) bouton.current?.focus()
+  }
 
   // Le menu se referme comme tout menu du site : au clic à côté, et à la touche
   // d'échappement. Il ne se fermait ni par l'un ni par l'autre, et restait donc
@@ -70,12 +124,10 @@ export default function SelecteurTraductionBible({ traductions, traductionIndex,
   useEffect(() => {
     if (!ouvert) return
     const dehors = (e: PointerEvent) => {
-      if (!cadre.current?.contains(e.target as Node)) setOuvert(false)
+      if (!cadre.current?.contains(e.target as Node)) fermer(false)
     }
     const touche = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      setOuvert(false)
-      bouton.current?.focus()
+      if (e.key === 'Escape') fermer(true)
     }
     document.addEventListener('pointerdown', dehors)
     document.addEventListener('keydown', touche)
@@ -85,33 +137,40 @@ export default function SelecteurTraductionBible({ traductions, traductionIndex,
     }
   }, [ouvert])
 
-  // À l'ouverture, le clavier arrive sur la bible qu'on lit : c'est le point de
-  // départ naturel pour en changer, et sans cela la liste n'était atteignable qu'à
-  // la souris. La mise au point se fait après le rendu de la liste.
+  // À l'ouverture, le clavier arrive sur la bible qu'on lit, ou sur sa famille : c'est le
+  // point de départ naturel pour en changer. La mise au point se fait après le rendu.
   useEffect(() => {
     if (!ouvert) return
-    options.current[traductionIndex]?.focus()
-  }, [ouvert, traductionIndex])
+    lignes.current[rangActif]?.focus()
+  }, [ouvert, rangActif])
 
-  // Flèches, début et fin : la circulation attendue d'une liste de choix. On ne
-  // change de bible qu'à la validation, le déplacement ne recharge rien.
-  const circuler = (e: React.KeyboardEvent, rang: number) => {
-    const dernier = traductions.length - 1
+  // Un sous-menu s'ouvre du côté où il tient : à droite de la ligne, à gauche sinon.
+  const deployer = (cle: string, ligne: HTMLElement | null) => {
+    annulerRepli()
+    const racine = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+    const droite = ligne?.getBoundingClientRect().right ?? 0
+    setDeploye({ cle, cote: droite + LARGEUR_SOUS_MENU_REM * racine + 16 > window.innerWidth ? 'gauche' : 'droite' })
+  }
+
+  // Flèches, début et fin : la circulation attendue d'une liste de choix. On ne change
+  // de bible qu'à la validation, le déplacement ne recharge rien.
+  const circuler = (e: React.KeyboardEvent, rang: number, liste: (HTMLButtonElement | null)[], total: number) => {
+    const dernier = total - 1
     const cible =
       e.key === 'ArrowDown' ? Math.min(rang + 1, dernier)
       : e.key === 'ArrowUp' ? Math.max(rang - 1, 0)
       : e.key === 'Home' ? 0
       : e.key === 'End' ? dernier
       : null
-    if (cible === null) return
+    if (cible === null) return false
     e.preventDefault()
-    options.current[cible]?.focus()
+    liste[cible]?.focus()
+    return true
   }
 
-  const choisir = (rang: number) => {
-    setTraductionIndex(rang)
-    setOuvert(false)
-    bouton.current?.focus()
+  const choisir = (index: number) => {
+    setTraductionIndex(index)
+    fermer(true)
   }
 
   return (
@@ -124,8 +183,8 @@ export default function SelecteurTraductionBible({ traductions, traductionIndex,
         <button
           ref={bouton}
           type="button"
-          onClick={() => setOuvert(!ouvert)}
-          aria-haspopup="listbox"
+          onClick={() => (ouvert ? fermer(false) : setOuvert(true))}
+          aria-haspopup="menu"
           aria-expanded={ouvert}
           aria-controls={ouvert ? idListe : undefined}
           title="Choisir la bible"
@@ -145,38 +204,111 @@ export default function SelecteurTraductionBible({ traductions, traductionIndex,
           <span aria-hidden="true" style={{ ...STYLE_CHEVRON, visibility: 'hidden' }}>
             <IconeChevron dir="down" taille={TAILLE_CHEVRON} strokeWidth={1.6} />
           </span>
-          {/* ⚠️ LE NOM SE COMPOSE (demande de l'auteur, 2026-09-04) : « Bible française
-              du XIIIe siècle » y prend ses petites capitales et son exposant, et un titre
-              entre astérisques son italique. C'est le module partagé avec les notices
-              d'auteur et avec le menu de la Polyglotte : un nom de bible ne se compose pas
-              d'une façon là et d'une autre ici. */}
+          {/* ⚠️ LE NOM SE COMPOSE (demande de l'auteur, 2026-09-04) : le siècle y prend ses
+              petites capitales et son exposant, et un titre entre astérisques son italique.
+              C'est le module partagé avec les notices d'auteur et avec le menu de la
+              Polyglotte : un nom de bible ne se compose pas d'une façon là et d'une autre
+              ici. ⚠️ Le bouton nomme la bible qu'on LIT, nom entier : « Bible XIIIe – Ancien
+              français » dit quelle face de la famille est sous les yeux. */}
           <span>{rendreEnrichi(label)}</span>
           <span aria-hidden="true" style={STYLE_CHEVRON}>
             <IconeChevron dir={ouvert ? 'up' : 'down'} taille={TAILLE_CHEVRON} strokeWidth={1.6} />
           </span>
         </button>
         {ouvert && (
-          <div id={idListe} role="listbox" aria-label="Bibles disponibles"
-            style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', background: 'var(--cs-surface)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '8px', zIndex: 50, boxShadow: 'var(--cs-ombre-flottante)', minWidth: '230px', overflow: 'hidden' }}>
-            {traductions.map((t, i) => (
-              <button key={t.code} type="button" role="option" aria-selected={traductionIndex === i}
-                ref={el => { options.current[i] = el }}
-                onClick={() => choisir(i)}
-                onKeyDown={e => circuler(e, i)}
-                style={{
-                width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '0.8125rem',
-                border: 'none', borderBottom: i < traductions.length - 1 ? '1px solid var(--cs-fond-doux)' : 'none',
-                background: traductionIndex === i ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)',
-                color: traductionIndex === i ? 'var(--cs-vert)' : 'var(--cs-texte-fort)',
-                fontWeight: traductionIndex === i ? 600 : 400, cursor: 'pointer',
-                fontFamily: "var(--font-source-serif), Georgia, serif", letterSpacing: '0.01em',
-                transition: 'background 0.12s',
-              }}
-                onMouseEnter={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = 'rgba(var(--cs-vert-rgb),0.04)' }}
-                onMouseLeave={e => { if (traductionIndex !== i) (e.currentTarget as HTMLElement).style.background = 'var(--cs-surface)' }}>
-                {rendreEnrichi(t.label)}
-              </button>
-            ))}
+          <div id={idListe} role="menu" aria-label="Bibles disponibles"
+            style={{ ...STYLE_CADRE_MENU, position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', zIndex: 50, minWidth: '230px' }}>
+            {entrees.map((entree, rang) => {
+              const premiere = rang === 0
+              const derniere = rang === entrees.length - 1
+
+              if (entree.sorte === 'bible') {
+                const actif = entree.index === traductionIndex
+                return (
+                  <button key={traductions[entree.index].code} type="button" role="menuitemradio" aria-checked={actif}
+                    ref={el => { lignes.current[rang] = el }}
+                    onClick={() => choisir(entree.index)}
+                    onKeyDown={e => { circuler(e, rang, lignes.current, entrees.length) }}
+                    onMouseEnter={e => { if (deploye) setDeploye(null); if (!actif) e.currentTarget.style.background = FOND_SURVOL }}
+                    onMouseLeave={e => { if (!actif) e.currentTarget.style.background = 'var(--cs-surface)' }}
+                    style={styleLigne(actif, premiere, derniere)}>
+                    {rendreEnrichi(traductions[entree.index].label)}
+                  </button>
+                )
+              }
+
+              // Une FAMILLE : son nom commun, un chevron, et au survol le sous-menu de ses
+              // langues. ⛔ Le clic ne se perd pas dans le sous-menu : il ouvre le texte
+              // d'origine, que le sous-menu met en tête. Le clavier suit — Entrée choisit,
+              // la flèche droite déploie.
+              const actif = entree.membres.some(m => m.index === traductionIndex)
+              const ouverte = deploye?.cle === entree.cle
+              const defaut = entree.membres[0]
+              return (
+                <div key={entree.cle} role="none" style={{ position: 'relative' }} onMouseLeave={replierBientot}>
+                  <button type="button" role="menuitem" aria-haspopup="menu" aria-expanded={ouverte}
+                    ref={el => { lignes.current[rang] = el }}
+                    title={`${entree.nom} : ${entree.membres.map(m => m.libelle).join(', ')}`}
+                    onClick={() => choisir(defaut.index)}
+                    onMouseEnter={e => deployer(entree.cle, e.currentTarget)}
+                    onKeyDown={e => {
+                      if (circuler(e, rang, lignes.current, entrees.length)) return
+                      if (e.key === 'ArrowRight') {
+                        e.preventDefault()
+                        deployer(entree.cle, e.currentTarget)
+                        window.setTimeout(() => sousLignes.current[0]?.focus(), 0)
+                      } else if (e.key === 'ArrowLeft') {
+                        e.preventDefault()
+                        setDeploye(null)
+                      }
+                    }}
+                    style={{ ...styleLigne(actif, premiere, derniere), ...(ouverte && !actif ? { background: FOND_SURVOL } : null) }}>
+                    <span style={{ flex: 1 }}>{rendreEnrichi(entree.nom)}</span>
+                    {/* ⚠️ Le chevron déploie SANS choisir : sur un écran tactile, la main ne
+                        survole pas, et c'est lui qui donne accès aux autres langues. */}
+                    <span aria-hidden="true" style={STYLE_CHEVRON}
+                      onClick={e => {
+                        e.stopPropagation()
+                        if (ouverte) setDeploye(null)
+                        else deployer(entree.cle, e.currentTarget.parentElement)
+                      }}>
+                      <IconeChevron dir="right" taille={TAILLE_CHEVRON} strokeWidth={1.6} />
+                    </span>
+                  </button>
+                  {ouverte && (
+                    <div role="menu" aria-label={entree.nom} onMouseEnter={annulerRepli}
+                      style={{
+                        ...STYLE_CADRE_MENU, position: 'absolute', top: '-1px', zIndex: 1,
+                        minWidth: `${LARGEUR_SOUS_MENU_REM}rem`,
+                        ...(deploye.cote === 'droite' ? { left: 'calc(100% + 4px)' } : { right: 'calc(100% + 4px)' }),
+                      }}>
+                      {entree.membres.map((membre, sousRang) => {
+                        const courant = membre.index === traductionIndex
+                        return (
+                          <button key={traductions[membre.index].code} type="button" role="menuitemradio" aria-checked={courant}
+                            ref={el => { sousLignes.current[sousRang] = el }}
+                            title={traductions[membre.index].label}
+                            onClick={() => choisir(membre.index)}
+                            onKeyDown={e => {
+                              if (circuler(e, sousRang, sousLignes.current, entree.membres.length)) return
+                              if (e.key === 'ArrowLeft') {
+                                e.preventDefault()
+                                setDeploye(null)
+                                lignes.current[rang]?.focus()
+                              }
+                            }}
+                            onMouseEnter={e => { if (!courant) e.currentTarget.style.background = FOND_SURVOL }}
+                            onMouseLeave={e => { if (!courant) e.currentTarget.style.background = 'var(--cs-surface)' }}
+                            style={styleLigne(courant, sousRang === 0, sousRang === entree.membres.length - 1)}>
+                            {rendreEnrichi(membre.libelle)}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
       </div>

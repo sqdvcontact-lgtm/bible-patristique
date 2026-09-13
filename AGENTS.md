@@ -2072,7 +2072,7 @@ TR0009 est une traduction à **segmentation éditoriale** : son texte n'est PAS 
 
 Deux gestes, deux endroits, et ils ne se mélangent jamais.
 
-- **Le menu déroulant CENTRAL ne liste que des bibles**, et il les liste TOUTES. C'est `SelecteurTraductionBible` (`app/components/SelecteurTraductionBible.tsx`), le même composant dans toutes les vues de la page. ⛔ **Ne jamais y remettre une façon de lire.** « Latin-français » y figurait, détaché par un filet : le lecteur qui le choisissait croyait changer de bible. Et la lecture en regard n'avait PAS de menu du tout, si bien qu'on ne pouvait pas quitter la Fillion sans d'abord quitter les deux colonnes.
+- **Le menu déroulant CENTRAL ne liste que des bibles**, et il les liste TOUTES. C'est `SelecteurTraductionBible` (`app/components/SelecteurTraductionBible.tsx`), le même composant dans toutes les vues de la page. ⛔ **Ne jamais y remettre une façon de lire.** « Latin-français » y figurait, détaché par un filet : le lecteur qui le choisissait croyait changer de bible. Et la lecture en regard n'avait PAS de menu du tout, si bien qu'on ne pouvait pas quitter la Fillion sans d'abord quitter les deux colonnes. ⛔ **Les membres d'une même famille d'édition n'y font qu'UNE entrée** (2026-09-13) : leur nom commun et un sous-menu de langues (`menuTraductionsBible.ts`, testé), la famille ouvrant le texte d'origine (`source_text`) que le sous-menu met en tête. L'appartenance vient du catalogue des éditions (`familleDeBible` dans `app/page.tsx`), jamais d'une table écrite à la main.
 - **Les manières de lire vivent dans le volet de gauche**, entre la fiche de la traduction et la recherche des livres (`NavLivres`, props `modesLecture` / `onChoisirModeLecture`). Menu **occasionnel** : il ne paraît que lorsqu'un choix se pose vraiment, et sa forme est celle des menus de la page Œuvre (`app/lib/stylesVoletLecture.ts`, `LABEL_VOLET` / `BTN_VOLET`).
 
 **La composition du menu est un module PUR** : `app/lib/bibleModesAlternatifs.ts` (`modesLectureAlternatifs`, testé). ⛔ Rien n'y est déduit d'un identifiant de traduction : il ne reçoit que des FAITS lus dans les données.
@@ -2093,7 +2093,7 @@ Deux gestes, deux endroits, et ils ne se mélangent jamais.
 
 ⚠️ **Le menu « Lecture » nomme les LANGUES, pas les traductions**, et il les tire de `v_bible_edition_catalog` (`language_code`, `member_role`). L'entrée en regard s'appelle « Latin-français » parce que la langue d'ORIGINE ouvre et que la traduction suit — l'ordre vient du rôle des membres, non de celui des colonnes (le français est à gauche chez Fillion). Une future édition grecque se nommera « Grec-français » sans qu'on y touche.
 
-⚠️ **Il double en partie le menu central**, et c'est assumé : TR0010 et TR0011 y figurent aussi comme deux bibles. Le menu central les donne comme deux témoins ; le menu de gauche les donne comme les deux faces d'une même édition, et l'y atteindre garde le réglage des commentaires. La différence de comportement est voulue : passer par le menu CENTRAL repart d'une lecture neuve, passer par le volet conserve la manière.
+⚠️ **Il double en partie le menu central**, et c'est assumé : TR0010 et TR0011 y figurent aussi, sous l'entrée « Bible Fillion » et son sous-menu de langues. Le menu central les donne comme deux témoins ; le menu de gauche les donne comme les deux faces d'une même édition, et l'y atteindre garde le réglage des commentaires. La différence de comportement est voulue : passer par le menu CENTRAL repart d'une lecture neuve, passer par le volet conserve la manière.
 
 ⛔ **UNE OPTION PAR LIGNE, et toutes les options montrées** (décision de l'auteur, 2026-08-28 : « je veux qu'on distingue en un coup d'œil toutes les options ; je préfère que chaque option constitue une ligne »). L'axe se rend en liste verticale, l'option retenue sur la PASTILLE verte de la liste des livres (`OPTION_VOLET`, `RUBRIQUE_AXE` dans `stylesVoletLecture.ts`, règles de survol `.cs-option-volet` dans `globals.css`). ⚠️ La pastille déborde son bloc de 7 px de chaque côté, comme une rangée de livre déborde le sien : sans cela elle paraîtrait rentrée par rapport à la liste qui la suit.
 
@@ -2274,7 +2274,7 @@ Doctrine : charte `parametres.charte_ia`, § 50.2. Règles de code :
 - ⛔ **Le domino ne joue QU'À L'OUVERTURE** (`precedente === null`) : la même chute à chaque
   chapitre tourné cesserait d'être un accueil pour devenir une attente.
 - ⛔ **Un clic qui ne fait rien de plus que le survol est un clic perdu** : `optionFamille`
-  choisit désormais le premier membre. ⚠️ Le clavier suit — Entrée et Espace choisissent,
+  choisit désormais le texte d'origine (`source`, 2026-09-13). ⚠️ Le clavier suit — Entrée et Espace choisissent,
   la flèche déploie.
 
 ### ⛔ La cause d'un blanc ignoble est une ligne TROP COURTE, pas une césure manquante

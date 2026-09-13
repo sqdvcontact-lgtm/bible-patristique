@@ -58,6 +58,7 @@ import {
 // ⛔ `colorMix` est parti avec les pilules de « Traductions visibles » : plus aucun
 // réglage du volet ne pose de fond teinté.
 import { rendreEnrichi } from '@/app/lib/enrichissements'
+import { nomCommun } from "@/app/lib/menuTraductionsBible";
 import { comparerParMillesime, millesimeEdition, type RangeableParMillesime } from '@/app/lib/millesimeEdition'
 import RailVolet from "@/app/components/RailVolet";
 
@@ -777,20 +778,20 @@ const GROUPES_LANG: { code: string; label: string }[] = [
 // continue de lire les langues d'un coup d'œil. Une famille dont un seul texte est
 // disponible ne se déploie pas — TR0013 est privée et ne répond qu'à l'administrateur :
 // chez le lecteur, elle redevient une ligne ordinaire.
-type MembreFamille = { id: string; libelle: string; titre?: string };
+type MembreFamille = { id: string; libelle: string; titre?: string; source?: boolean };
 const FAMILLES: MembreFamille[][] = [
   [
     { id: "TR0010", libelle: "Traduction française" },
-    { id: "TR0011", libelle: "Texte latin en regard", titre: "La Vulgate latine, imprimée en regard du français dans l’édition Fillion" },
+    { id: "TR0011", libelle: "Texte latin en regard", titre: "La Vulgate latine, imprimée en regard du français dans l’édition Fillion", source: true },
   ],
   [
-    { id: TRAD_ID_BIBLE899, libelle: "Texte du manuscrit", titre: "Le texte du manuscrit, abréviations développées" },
+    { id: TRAD_ID_BIBLE899, libelle: "Texte du manuscrit", titre: "Le texte du manuscrit, abréviations développées", source: true },
     { id: TRAD_ID_899_DIPLO, libelle: "Transcription diplomatique", titre: "Le manuscrit lettre à lettre, ses abréviations non résolues" },
     { id: "TR0013", libelle: "Traduction en français moderne" },
   ],
 ];
 
-type Membre = { trad: Trad; libelle: string; titre?: string };
+type Membre = { trad: Trad; libelle: string; titre?: string; source?: boolean };
 type Famille = { cle: string; principal: Trad; membres: Membre[] };
 type Entree = { sorte: "trad"; trad: Trad } | { sorte: "famille"; famille: Famille };
 
@@ -813,7 +814,7 @@ function entreesParLangue(trads: Trad[]): Map<string, Entree[]> {
     const membres: Membre[] = [];
     for (const m of def) {
       const trad = parId.get(m.id);
-      if (trad) membres.push({ trad, libelle: m.libelle, titre: m.titre });
+      if (trad) membres.push({ trad, libelle: m.libelle, titre: m.titre, source: m.source });
     }
     if (membres.length < 2) continue;
     const principal = membres[0].trad;
@@ -1035,17 +1036,18 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
     // clique sur le nom d'une traduction qui a un menu déroulant secondaire, ne pas bloquer
     // le clic : afficher la première traduction du menu déroulant »). Il ne faisait que
     // déployer ce que le survol déployait déjà : un clic qui ne fait rien de plus que le
-    // survol est un clic perdu. Il choisit le PREMIER texte de l'édition — celui que le
-    // volet met en tête — et le volet reste ouvert pour en prendre un autre.
-    const choisirLePremier = () => { const t = f.membres[0]?.trad.trad_id; if (t) choisir(t); };
+    // survol est un clic perdu. Il choisit le TEXTE D'ORIGINE de l'édition, que le volet met en
+    // tête (décision de l'auteur, 2026-09-13, la même que sur la page Bible), et le volet reste
+    // ouvert pour en prendre un autre.
+    const choisirLeDefaut = () => { const t = (f.membres.find(m => m.source) ?? f.membres[0])?.trad.trad_id; if (t) choisir(t); };
     return (
       <button key={f.cle} role="menuitem" aria-haspopup="menu" aria-expanded={deploye}
-        onMouseEnter={survol} onFocus={survol} onClick={choisirLePremier} onMouseLeave={fermerVolet}
+        onMouseEnter={survol} onFocus={survol} onClick={choisirLeDefaut} onMouseLeave={fermerVolet}
         // ⚠️ Le CLAVIER suit le clic : Entrée et Espace choisissent, la flèche déploie. Un
-        // clavier qui n'aurait plus que le déploiement n'atteindrait jamais le premier texte.
+        // clavier qui n'aurait plus que le déploiement n'atteindrait jamais le texte d'origine.
         onKeyDown={e => {
           if (e.key === "ArrowRight") { e.preventDefault(); deployer(f.cle, e.currentTarget, f.membres.length); }
-          else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choisirLePremier(); }
+          else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choisirLeDefaut(); }
         }}
         style={{ ...ligne(!!actifMembre), background: deploye && !actifMembre ? "rgba(var(--cs-vert-rgb),0.06)" : ligne(!!actifMembre).background, alignItems: "center" }}>
         {coche(!!actifMembre)}
@@ -1053,7 +1055,7 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
             les autres restent libres, et la griser dirait le contraire. Le gris se pose
             sur les MEMBRES, dans le volet, qui passent par `optionTrad`. */}
         <span style={{ minWidth: 0, flex: 1 }}>
-          <span style={NOM_OPTION}>{rendreEnrichi(f.principal.nom)}</span>
+          <span style={NOM_OPTION}>{rendreEnrichi(nomCommun(f.principal.nom))}</span>
           <span style={SOUS_OPTION}>{sous}</span>
         </span>
         <svg aria-hidden width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: "var(--cs-texte-doux)" }}>
@@ -1130,13 +1132,13 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
       )}
 
       {ouvert && volet && familleDeployee && createPortal(
-        <div ref={voletRef} role="menu" aria-label={familleDeployee.principal.nom}
+        <div ref={voletRef} role="menu" aria-label={nomCommun(familleDeployee.principal.nom)}
           onMouseEnter={retenirVolet} onMouseLeave={fermerVolet}
           style={{ position: "fixed", top: volet.top, left: volet.left, width: LARGEUR_VOLET, zIndex: 3001,
             background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: 8, boxShadow: "var(--cs-ombre-modale)",
             padding: 5, maxHeight: "62vh", overflowY: "auto" }}>
-          <div style={ENTETE_GROUPE}>{familleDeployee.principal.nom}</div>
-          {familleDeployee.membres.map(m => optionTrad(m.trad, m.libelle, m.titre))}
+          <div style={ENTETE_GROUPE}>{rendreEnrichi(nomCommun(familleDeployee.principal.nom))}</div>
+          {[...familleDeployee.membres].sort((a, b) => Number(Boolean(b.source)) - Number(Boolean(a.source))).map(m => optionTrad(m.trad, m.libelle, m.titre))}
         </div>,
         document.body,
       )}
