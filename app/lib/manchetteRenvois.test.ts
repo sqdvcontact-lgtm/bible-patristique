@@ -1,15 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import {
-  ECART_MANCHETTE,
+  SIGNES_MANCHETTE,
   STYLE_ANCRE_MANCHETTE,
   STYLE_RENVOI_MANCHETTE,
   PLACE_MINIMALE_MANCHETTE,
   estRenvoiSeul,
   manchetteTient,
-  placerManchette,
+  rangerSurLaLigne,
+  signesDuRenvoi,
+  vaEnManchette,
 } from './manchetteRenvois'
 
-const bloc = (kind: string) => ({ kind })
+const bloc = (kind: string, text = 'Mt 5, 3.') => ({ kind, text })
 
 describe('ce qui va dans la manchette', () => {
   it('une note qui n’est QUE des références', () => {
@@ -37,61 +39,64 @@ describe('ce qui va dans la manchette', () => {
   })
 })
 
-describe('l’empilement', () => {
-  const renvoi = (cle: string, ancre: number, hauteur = 20) => ({ cle, ancre, hauteur })
-
-  it('ne pousse rien quand rien ne se heurte', () => {
-    const places = placerManchette([renvoi('a', 0), renvoi('b', 100), renvoi('c', 200)])
-    expect(places.map(p => p.top)).toEqual([0, 100, 200])
-    expect(places.every(p => !p.pousse)).toBe(true)
+// ⛔ Forcer l’alignement (décision de l’auteur, 13 septembre 2026) : un renvoi de deux ou
+// trois lignes occupait la hauteur des lignes suivantes, et poussait leurs renvois.
+describe('un renvoi en marge tient sur UNE ligne', () => {
+  it('compte les signes que le lecteur voit, marques ôtées', () => {
+    expect(signesDuRenvoi({ blocks: [{ text: 'Mt 12, 41.' }] })).toBe(10)
+    expect(signesDuRenvoi({ blocks: [{ text: '*Énéide*, VI.' }] })).toBe(11)
+    expect(signesDuRenvoi({ blocks: [{ text: 'Jc 4, 6' }, { text: '1 P 5, 5.' }] })).toBe(17)
+    expect(signesDuRenvoi({ blocks: [{ text: '  Gn  4,   10. ' }] })).toBe(9)
   })
 
-  it('pousse celui du DESSOUS, jamais celui du dessus', () => {
-    const places = placerManchette([renvoi('a', 100), renvoi('b', 105)], 4)
-    expect(places[0]).toEqual({ cle: 'a', top: 100, pousse: false })
-    expect(places[1]).toEqual({ cle: 'b', top: 124, pousse: true })
+  it('un renvoi court va en marge, jusqu’au seuil compris', () => {
+    expect(vaEnManchette({ blocks: [bloc('reference', 'Mt 12, 41.')] })).toBe(true)
+    expect(vaEnManchette({ blocks: [bloc('reference', 'x'.repeat(SIGNES_MANCHETTE))] })).toBe(true)
   })
 
-  it('propage en cascade, et ne pousse que de ce qu’il faut', () => {
-    const places = placerManchette([renvoi('a', 0), renvoi('b', 5), renvoi('c', 10)], 4)
-    expect(places.map(p => p.top)).toEqual([0, 24, 48])
-    const dernier = placerManchette([renvoi('a', 0), renvoi('b', 5), renvoi('c', 400)], 4)
-    expect(dernier[2]).toEqual({ cle: 'c', top: 400, pousse: false })
+  // Relevé en ligne sur le Commentaire sur Jonas : trois lignes de marge, et le renvoi
+  // suivant descendu d’une ligne entière sous la sienne.
+  it('un renvoi trop long garde son appel et son encart', () => {
+    expect(vaEnManchette({ blocks: [bloc('reference', 'Référence imprimée (latin) : Gn 18, 20 Gn 18, 20.')] })).toBe(false)
+    expect(vaEnManchette({ blocks: [bloc('reference', 'x'.repeat(SIGNES_MANCHETTE + 1))] })).toBe(false)
   })
 
-  it('range par hauteur d’ancre, quel que soit l’ordre reçu', () => {
-    const places = placerManchette([renvoi('bas', 300), renvoi('haut', 10)])
-    expect(places.map(p => p.cle)).toEqual(['haut', 'bas'])
+  it('la longueur ne change rien à la nature : une note courte qui n’est pas un renvoi garde son appel', () => {
+    expect(vaEnManchette({ blocks: [bloc('commentary', 'Voyez plus haut.')] })).toBe(false)
+    expect(vaEnManchette('(Is 1, 16).')).toBe(false)
+  })
+})
+
+describe('deux renvois d’une même ligne', () => {
+  const renvoi = (cle: string, ligne: number, largeur = 50) => ({ cle, ligne, largeur })
+
+  it('ne décale rien quand chacun a sa ligne', () => {
+    expect(rangerSurLaLigne([renvoi('a', 0), renvoi('b', 26), renvoi('c', 52)], 8).map(r => r.decalage))
+      .toEqual([0, 0, 0])
   })
 
-  // ⚠️ L’ordre de LECTURE départage deux renvois de même hauteur : c’est le seul
-  // qui ait un sens dans une colonne de texte.
-  it('à hauteur égale, garde l’ordre de lecture', () => {
-    const places = placerManchette([renvoi('premier', 50), renvoi('second', 50)], 4)
-    expect(places.map(p => p.cle)).toEqual(['premier', 'second'])
-    expect(places[1].top).toBe(74)
+  it('se rangent côte à côte, le dernier contre le texte', () => {
+    expect(rangerSurLaLigne([renvoi('a', 100, 40), renvoi('b', 100, 60)], 8))
+      .toEqual([{ cle: 'a', decalage: 68 }, { cle: 'b', decalage: 0 }])
   })
 
-  it('tient compte de la hauteur de chacun', () => {
-    const places = placerManchette([renvoi('grand', 0, 60), renvoi('apres', 30)], 4)
-    expect(places[1].top).toBe(64)
+  it('cumulent sur une ligne qui en porte trois, dans l’ordre de lecture', () => {
+    expect(rangerSurLaLigne([renvoi('a', 0, 30), renvoi('b', 0, 40), renvoi('c', 0, 50)], 10).map(r => r.decalage))
+      .toEqual([110, 60, 0])
   })
 
-  it('ne remonte jamais un renvoi au-dessus de son appel', () => {
-    const places = placerManchette([renvoi('a', 200), renvoi('b', 10)])
-    for (const place of places) {
-      const source = [renvoi('a', 200), renvoi('b', 10)].find(r => r.cle === place.cle)!
-      expect(place.top).toBeGreaterThanOrEqual(source.ancre)
-    }
+  it('ne confondent deux lignes qu’au pixel près', () => {
+    expect(rangerSurLaLigne([renvoi('a', 100), renvoi('b', 101.5)], 8).map(r => r.decalage)).toEqual([58, 0])
+    expect(rangerSurLaLigne([renvoi('a', 100), renvoi('b', 126)], 8).map(r => r.decalage)).toEqual([0, 0])
   })
 
-  it('rend une liste vide sur une entrée vide', () => {
-    expect(placerManchette([])).toEqual([])
+  it('reprennent leur fer contre le texte à la ligne suivante', () => {
+    expect(rangerSurLaLigne([renvoi('a', 0), renvoi('b', 0), renvoi('c', 26)], 8).map(r => r.decalage))
+      .toEqual([58, 0, 0])
   })
 
-  it('emploie l’écart du module par défaut', () => {
-    const places = placerManchette([renvoi('a', 0), renvoi('b', 0)])
-    expect(places[1].top).toBe(20 + ECART_MANCHETTE)
+  it('rendent une liste vide sur une entrée vide', () => {
+    expect(rangerSurLaLigne([], 8)).toEqual([])
   })
 })
 
@@ -126,14 +131,21 @@ describe('la forme d’un renvoi en marge', () => {
   // ⛔ Trois héritages à couper, et chacun a coûté ailleurs.
   it('ne prend ni l’alinéa, ni les sauts, ni l’italique du texte qu’il borde', () => {
     expect(STYLE_RENVOI_MANCHETTE.textIndent).toBe(0)
-    expect(STYLE_RENVOI_MANCHETTE.whiteSpace).toBe('normal')
     expect(STYLE_RENVOI_MANCHETTE.fontStyle).toBe('normal')
+  })
+
+  // ⛔ Une seule ligne, toujours : c’est ce qui l’empêche de déborder sur la suivante.
+  it('ne passe JAMAIS à la ligne, et a la largeur de son texte', () => {
+    expect(STYLE_RENVOI_MANCHETTE.whiteSpace).toBe('nowrap')
+    expect(STYLE_RENVOI_MANCHETTE.width).toBe('max-content')
   })
 
   it('sort de la colonne par la GAUCHE, et se ferre contre le texte', () => {
     expect(String(STYLE_RENVOI_MANCHETTE.right)).toContain('100%')
     expect(STYLE_RENVOI_MANCHETTE.position).toBe('absolute')
     expect(STYLE_RENVOI_MANCHETTE.textAlign).toBe('right')
+    // ⛔ Jamais de `top` : sa position statique EST sa ligne.
+    expect(STYLE_RENVOI_MANCHETTE.top).toBeUndefined()
   })
 
   // ⛔ Le repère laissé dans le texte ne se voit pas : le lecteur ne doit rien

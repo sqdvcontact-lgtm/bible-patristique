@@ -26,6 +26,19 @@
  * l'encart, et à côté une chose qu'on ne clique pas : un renvoi en manchette n'a
  * plus d'appel du tout, comme dans le livre dont il vient.
  *
+ * ⛔ UN RENVOI EN MARGE EST TOUJOURS SUR SA LIGNE (décision de l'auteur, 13 septembre
+ * 2026 : « forcer l'alignement »). L'empilement d'avant faisait céder le renvoi du
+ * dessous, et un renvoi de deux ou trois lignes poussait ses voisins loin de leur appel :
+ * mesuré en ligne sur le Commentaire sur Jonas, un renvoi descendait d'une ligne entière
+ * sous la sienne, derrière « Référence imprimée (latin) : Gn 18, 20 Gn 18, 20. », qui en
+ * prenait trois. Plus rien n'est poussé, et deux règles le garantissent :
+ *
+ *   — un renvoi ne va en marge que s'il tient sur UNE ligne de manchette. C'est le cas
+ *     de 87 % des 11 991 renvois du corpus (63 % font douze signes ou moins, mesuré le
+ *     13 septembre 2026) ; plus long, il garde son appel et son encart. Le critère
+ *     reste la note elle-même — sa nature et sa longueur —, jamais la place ;
+ *   — deux renvois d'une même ligne se rangent CÔTE À CÔTE, dans l'ordre de lecture.
+ *
  * Module PUR, testé dans `manchetteRenvois.test.ts`.
  */
 import type { CSSProperties } from 'react'
@@ -49,8 +62,16 @@ export const PLACE_MINIMALE_MANCHETTE =
 export const CORPS_MANCHETTE = '0.625rem'
 export const INTERLIGNE_MANCHETTE = 1.35
 
-/** Le blanc qui sépare deux renvois que l'empilement a rapprochés. */
-export const ECART_MANCHETTE = 4
+/** Ce qu'un renvoi peut compter de signes pour tenir sur UNE ligne de manchette.
+ *  ⚠️ MESURÉ en ligne le 13 septembre 2026 : au corps de 0,625 rem, la colonne de
+ *  6,5 rem compose « IV Reg. XIV, 23 et seqq. », vingt-quatre signes, sur une seule
+ *  ligne. Vingt laissent la marge des capitales et des chiffres, plus larges que la
+ *  moyenne, et du point final que la note reçoit au rendu. ⛔ Les deux mesures sont
+ *  en rem : le compte ne dépend donc pas de l'écran, et le critère reste la note. */
+export const SIGNES_MANCHETTE = 20
+
+/** Le blanc qui sépare deux renvois rangés sur une même ligne, en rem. */
+export const ECART_MANCHETTE_REM = 0.5
 
 /**
  * Une note qui n'est QU'UN RENVOI, et rien d'autre.
@@ -74,44 +95,72 @@ export function estRenvoiSeul(
   return note.blocks.length > 0 && note.blocks.every(bloc => bloc.kind === 'reference')
 }
 
-/** Un renvoi à placer : sa clé, la hauteur de son appel dans le texte, et la
- *  hauteur que sa propre boîte occupe. Les deux se comptent en pixels, depuis le
- *  haut de la colonne de lecture. */
-export type RenvoiAPlacer = { cle: string; ancre: number; hauteur: number }
-export type RenvoiPlace = { cle: string; top: number; pousse: boolean }
+/** Les signes qu'un renvoi rend à l'écran, marques d'enrichissement ôtées : ce que le
+ *  lecteur voit, non ce que la donnée écrit. Les blocs se joignent par une espace,
+ *  comme `ContenuRenvoiEnLigne` les compose. */
+export function signesDuRenvoi(note: { blocks: readonly { text?: string | null }[] }): number {
+  return note.blocks
+    .map(bloc => (bloc.text ?? '')
+      .replace(/\[([^\]]*)\]\([^)]*\)/gu, '$1')
+      .replace(/<\/?i>|\*\*|\^\^|\+\+|\*/gu, '')
+      .replace(/\s+/gu, ' ')
+      .trim())
+    .filter(Boolean)
+    .join(' ')
+    .length
+}
 
 /**
- * L'EMPILEMENT — deux renvois trop proches ne peuvent pas tenir tous deux à hauteur
- * de leur appel, et c'est celui du DESSOUS qui cède.
+ * CE QUI VA DANS LA MANCHETTE : un renvoi seul, et assez court pour y tenir sur une
+ * seule ligne.
  *
- * ⚠️ Mesuré sur le corpus le 8 septembre 2026 : 1 618 couples de renvois voisins
- * dans un même segment, écart médian 1,46 ligne de lecture, et **366 couples se
- * heurtent** — 22,6 % des couples, environ 3 % des renvois. L'empilement est donc
- * l'exception, non la règle : la promesse « à hauteur de l'appel » tient pour
- * l'immense majorité, et l'on ne pousse que ce qu'il faut.
- *
- * ⛔ On ne pousse JAMAIS vers le haut. Un renvoi remonté au-dessus de son appel
- * annoncerait un passage qu'on n'a pas encore lu, et le lecteur qui redescend le
- * chercherait deux fois.
+ * ⛔ Une ligne, jamais plus : c'est ce qui permet de ne jamais pousser un renvoi hors de
+ * la sienne. Un renvoi de deux lignes occupait la hauteur de la ligne suivante du texte,
+ * et le renvoi de cette ligne-là devait descendre.
  */
-export function placerManchette(
-  renvois: readonly RenvoiAPlacer[],
-  ecart: number = ECART_MANCHETTE,
-): RenvoiPlace[] {
-  // ⚠️ L'ordre d'entrée départage deux renvois de même hauteur : c'est celui de la
-  // lecture, et c'est le seul qui ait un sens dans une colonne de texte.
-  const ranges = renvois
-    .map((renvoi, rang) => ({ renvoi, rang }))
-    .sort((a, b) => a.renvoi.ancre - b.renvoi.ancre || a.rang - b.rang)
+export function vaEnManchette(
+  note: string | { blocks: readonly { kind: string; text?: string | null }[] },
+): boolean {
+  return typeof note !== 'string' && estRenvoiSeul(note) && signesDuRenvoi(note) <= SIGNES_MANCHETTE
+}
 
-  const places: RenvoiPlace[] = []
-  let plancher = Number.NEGATIVE_INFINITY
-  for (const { renvoi } of ranges) {
-    const top = Math.max(renvoi.ancre, plancher)
-    places.push({ cle: renvoi.cle, top, pousse: top > renvoi.ancre })
-    plancher = top + renvoi.hauteur + ecart
+/** Un renvoi mesuré sur la page : le haut de la ligne qui porte son appel et sa propre
+ *  largeur, en pixels. */
+export type RenvoiSurSaLigne = { cle: string; ligne: number; largeur: number }
+/** Ce qui s'ajoute à la gouttière, vers la gauche, pour ranger un renvoi sur sa ligne. */
+export type RenvoiRange = { cle: string; decalage: number }
+
+/**
+ * DEUX RENVOIS D'UNE MÊME LIGNE se rangent côte à côte, et aucun ne quitte sa ligne.
+ *
+ * Le dernier dans l'ordre de lecture se tient contre le texte ; ceux qui le précèdent se
+ * rangent à sa gauche, si bien que la marge se lit dans l'ordre des appels.
+ *
+ * ⚠️ Les renvois arrivent dans l'ordre du document, qui est celui de la lecture : deux
+ * appels d'une même ligne s'y suivent toujours. Deux lignes ne se confondent qu'à
+ * `tolerance` près, et deux appels d'une même ligne ont la même position statique.
+ */
+export function rangerSurLaLigne(
+  renvois: readonly RenvoiSurSaLigne[],
+  ecart: number,
+  tolerance = 2,
+): RenvoiRange[] {
+  const decalages = new Map<string, number>()
+  let groupe: RenvoiSurSaLigne[] = []
+  const clore = () => {
+    let cumul = 0
+    for (let rang = groupe.length - 1; rang >= 0; rang--) {
+      decalages.set(groupe[rang].cle, cumul)
+      cumul += groupe[rang].largeur + ecart
+    }
+    groupe = []
   }
-  return places
+  for (const renvoi of renvois) {
+    if (groupe.length > 0 && Math.abs(renvoi.ligne - groupe[0].ligne) > tolerance) clore()
+    groupe.push(renvoi)
+  }
+  clore()
+  return renvois.map(renvoi => ({ cle: renvoi.cle, decalage: decalages.get(renvoi.cle) ?? 0 }))
 }
 
 /** La manchette tient-elle dans la place libre à gauche de la colonne ?
@@ -126,25 +175,31 @@ export function manchetteTient(placeLibrePx: number, racine: number): boolean {
  *
  * ⛔ Il se pose en `position: absolute` SANS `top` : sa position statique est la
  * ligne du texte où son appel se tenait, et le navigateur la tient à jour tout seul.
- * Rien n'est calculé pour le placer — seul l'empilement des rares heurts l'est.
- * Le bloc conteneur est la COLONNE de lecture, d'où le `right: calc(100% + …)` qui
- * le sort par la gauche.
+ * Rien n'est calculé pour le placer : seuls l'accord de ligne de base et le rang sur une
+ * ligne qui en porte deux le sont. Le bloc conteneur est la COLONNE de lecture, d'où le
+ * `right: calc(100% + …)` qui le sort par la gauche.
  *
  * ⛔ Le fer est à DROITE, contre le texte qu'il accompagne : c'est ainsi que le site
  * pose tout chiffre en marge — le numéro de verset de la page Bible, le numéro d'un
  * encart de note.
  *
+ * ⛔ IL NE PASSE JAMAIS À LA LIGNE, et sa boîte a la largeur de son texte : c'est la
+ * garantie qu'il ne déborde pas sur la ligne suivante. `vaEnManchette` n'y envoie que ce
+ * qui tient ; un renvoi un peu plus large que la moyenne mord sur la marge libre, vers la
+ * gauche, plutôt que de se casser en deux.
+ *
  * ⚠️ Trois remises à zéro, et chacune a sa raison. `text-indent` s'HÉRITE, et
  * l'alinéa d'un paragraphe tirerait le renvoi hors de sa boîte — c'est le défaut payé
  * le 7 septembre 2026 sur les appels de note du `Manuel` de Dhuoda. `white-space`
  * vaut `pre-line` dans un bloc de vers, où les sauts de la source deviendraient des
- * sauts dans la coordonnée. Et l'italique du latin ou d'un exergue n'atteint pas une
- * coordonnée, qui est un renvoi et non un mot de la phrase.
+ * sauts dans la coordonnée ; `nowrap` le coupe et interdit du même coup la ligne de
+ * trop. Et l'italique du latin ou d'un exergue n'atteint pas une coordonnée, qui est un
+ * renvoi et non un mot de la phrase.
  */
 export const STYLE_RENVOI_MANCHETTE: CSSProperties = {
   position: 'absolute',
   right: `calc(100% + ${GOUTTIERE_MANCHETTE})`,
-  width: LARGEUR_MANCHETTE,
+  width: 'max-content',
   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
   fontSize: CORPS_MANCHETTE,
   lineHeight: INTERLIGNE_MANCHETTE,
@@ -157,7 +212,7 @@ export const STYLE_RENVOI_MANCHETTE: CSSProperties = {
   color: 'var(--cs-texte-second)',
   textAlign: 'right',
   textIndent: 0,
-  whiteSpace: 'normal',
+  whiteSpace: 'nowrap',
   fontStyle: 'normal',
   hyphens: 'none',
 }

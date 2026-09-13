@@ -1,17 +1,22 @@
 'use client'
 
 /**
- * LA MANCHETTE, côté document : la place qu'on mesure, et l'empilement.
+ * LA MANCHETTE, côté document : la place qu'on mesure, la ligne de base, et les
+ * renvois d'une même ligne.
  *
  * La RÈGLE vit dans `app/lib/manchetteRenvois.ts`, pure et testée ; ce crochet ne
  * fait que la jouer sur le document.
  *
- * ⛔ Le PLACEMENT ordinaire ne se calcule pas : un renvoi est posé en
- * `position: absolute` SANS `top`, à l'endroit du texte où son appel se tenait. Sa
- * position statique est donc, par construction, la ligne qui le porte — le
- * navigateur la connaît, et il la tient à jour tout seul quand la colonne se
- * recompose. Ce qui se calcule ici est le seul cas où deux renvois se heurtent, et
- * la mesure a dit que c'est un couple sur cinq, soit environ 3 % des renvois.
+ * ⛔ UN RENVOI NE QUITTE JAMAIS SA LIGNE (décision de l'auteur, 13 septembre 2026 :
+ * « forcer l'alignement »). Il est posé en `position: absolute` SANS `top`, à
+ * l'endroit du texte où son appel se tenait : sa position statique est la ligne qui
+ * le porte, et le navigateur la tient à jour tout seul quand la colonne se recompose.
+ *
+ * ⚠️ AUCUN PIXEL NE SE FIGE SUR L'AXE VERTICAL. L'accord de ligne de base se pose en
+ * `em` (`margin-top`), qui suit la police racine fluide sans nouvelle mesure. La passe
+ * d'avant posait un `top` en pixels sur chaque renvoi : une recomposition qui ne
+ * changeait aucune taille le laissait en place, et l'empilement poussait les renvois
+ * voisins loin de leur appel, d'une ligne entière sur le Commentaire sur Jonas.
  *
  * ⚠️ Le bloc conteneur est la COLONNE de lecture, qui porte `position: relative`.
  * Aucun bloc du chemin de rendu n'est positionné entre les deux — vérifié le
@@ -20,8 +25,13 @@
  * manchette dedans, et elle sortirait par la gauche du paragraphe au lieu de la
  * colonne.
  */
-import { useEffect, useLayoutEffect, useState } from 'react'
-import { manchetteTient, placerManchette } from '@/app/lib/manchetteRenvois'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import {
+  ECART_MANCHETTE_REM,
+  GOUTTIERE_MANCHETTE,
+  manchetteTient,
+  rangerSurLaLigne,
+} from '@/app/lib/manchetteRenvois'
 import { tailleRacinePx } from '@/app/lib/fenetreContextuelle'
 
 // ⚠️ L'alias DOIT être une constante de module nommée « use… », sinon la règle des
@@ -97,15 +107,15 @@ function decalagesDeLigne(entrees: readonly HTMLElement[]): number[] {
  * pendant cette translation, se pose six pixels trop bas. ⚠️ Elle y RESTE : la
  * translation ne change aucune taille, le `ResizeObserver` ne dit rien, et la clé de
  * lecture n'a pas rechangé. Mesuré en ligne sur les Annotations sur Job, le 9 septembre
- * 2026 : `top` passe de 1561,01 px à 1567,01, et l'écart des lignes de base vaut
- * −5,99 px une fois le passage joué.
+ * 2026 : la manchette passait de 1561,01 px à 1567,01, et l'écart des lignes de base
+ * valait −5,99 px une fois le passage joué.
  *
  * ⚠️ La charte connaissait déjà ce piège par l'autre bout : l'ouverture d'une page ne
  * porte QUE l'opacité, « une transformation ferait de la colonne le bloc conteneur des
  * cellules d'actions posées en `fixed` ». C'est la même règle, un cran plus bas.
  *
  * ⛔ On ne mesure donc pas : on attend la fin du passage, que l'écoute d'`animationend`
- * rappelle. Le `top` posé par la passe d'avant, lui, est juste et reste en place.
+ * rappelle. L'accord posé par la passe d'avant, lui, est juste et reste en place.
  */
 function sousUneTransformation(entree: HTMLElement, colonne: Element): boolean {
   for (let n = entree.parentElement; n && n !== colonne; n = n.parentElement) {
@@ -120,12 +130,19 @@ function sousUneTransformation(entree: HTMLElement, colonne: Element): boolean {
 export const CLASSE_RENVOI_MANCHETTE = 'cs-manchette-renvoi'
 
 /**
- * Dit si la manchette a la place de paraître, et empile ce qui se heurte.
+ * Dit si la manchette a la place de paraître, et range les renvois d'une même ligne.
  *
  * ⛔ Elle se mesure sur le CONTENEUR, jamais sur la fenêtre : les deux volets de la
  * page d'œuvre s'ouvrent, se ferment et se traînent à la poignée, et la marge libre
  * change sans que la fenêtre bouge. C'est la règle déjà posée pour la carte de
  * traduction du volet de la Bible.
+ *
+ * ⚠️ LA PLACE COMPTE AUSSI LA LIGNE LA PLUS CHARGÉE. Deux renvois d'une même ligne se
+ * rangent côte à côte, et leur rangée peut réclamer plus que la colonne de la manchette.
+ * Si elle ne tient pas dans la marge libre, la manchette se retire de la page, comme
+ * faute de place : un renvoi qui mordrait sur le volet ne se lirait plus. ⛔ La largeur
+ * réclamée est RETENUE pour la lecture en cours, sans quoi la manchette reparaîtrait au
+ * rendu suivant, pour se retirer aussitôt, et ainsi de suite.
  */
 export function useManchetteRenvois(
   colonne: React.RefObject<HTMLElement | null>,
@@ -136,11 +153,9 @@ export function useManchetteRenvois(
    * ⛔ La clé ne portait que la division, la page et le mode. Or une division se charge
    * APRÈS que `niv1Actif` a changé : la passe se rejouait donc sur une colonne encore
    * vide, n'y trouvait aucun renvoi et sortait ; quand les segments arrivaient, la clé
-   * n'avait pas rechangé et rien ne la rappelait. Le placement ne tenait plus qu'au
-   * `ResizeObserver`, c'est-à-dire à un effet de bord — et il ne le tenait qu'après
-   * coup. Mesuré en ligne sur La Cité de Dieu, le 9 septembre 2026 : à l'arrivée
-   * `style.top` est posé et l'écart vaut 0,00 px ; après un changement de division il
-   * est VIDE, et la manchette se tient 7,78 px trop haut.
+   * n'avait pas rechangé et rien ne la rappelait. Mesuré en ligne sur La Cité de Dieu,
+   * le 9 septembre 2026 : après un changement de division, la manchette se tenait
+   * 7,78 px trop haut.
    */
   cleDeLecture: string,
 ): boolean {
@@ -148,44 +163,62 @@ export function useManchetteRenvois(
   // mesure. Partir à vrai la montrerait puis la retirerait là où la place manque, et
   // le texte sauterait — c'est le patron de la référence d'édition du volet de la Bible.
   const [actif, setActif] = useState(false)
+  // La largeur que la ligne la plus chargée a réclamée, pour CETTE lecture.
+  const reclame = useRef({ cle: '', largeur: 0 })
 
   useMesureAvantPeinture(() => {
     const el = colonne.current
     const hote = el?.parentElement
     if (!el || !hote) return
+    if (reclame.current.cle !== cleDeLecture) reclame.current = { cle: cleDeLecture, largeur: 0 }
 
     const jouer = () => {
       // 1. LA PLACE. Ce qui reste à gauche de la colonne, jusqu'au bord du bloc de
       //    lecture — au delà commence le volet du sommaire.
       const libre = el.getBoundingClientRect().left - hote.getBoundingClientRect().left
-      const tient = manchetteTient(libre, tailleRacinePx())
+      const racine = tailleRacinePx()
+      const tient = manchetteTient(libre, racine) && libre >= reclame.current.largeur
       setActif(tient)
       if (!tient) return
 
-      // 2. LA LIGNE, puis l'EMPILEMENT. ⛔ On rend d'abord chaque renvoi à sa position
-      //    STATIQUE : sans cela, la passe suivante mesurerait le décalage que la
-      //    précédente a posé, et la manchette descendrait un peu plus à chaque reflux.
       const entrees = Array.from(el.querySelectorAll<HTMLElement>(`.${CLASSE_RENVOI_MANCHETTE}`))
       if (entrees.length === 0) return
       // ⛔ Pas un pixel tant qu'un passage joue : sous une transformation, la colonne
       //    n'est plus le bloc conteneur, et ce qu'on mesurerait là se figerait faux.
       if (entrees.some(entree => sousUneTransformation(entree, el))) return
-      for (const entree of entrees) entree.style.top = ''
+
+      // 2. LA POSITION STATIQUE. ⛔ Chaque renvoi y revient avant toute mesure : sans
+      //    cela, la passe mesurerait l'accord que la précédente a posé.
+      for (const entree of entrees) {
+        entree.style.marginTop = ''
+        entree.style.right = ''
+      }
       const haut = el.getBoundingClientRect().top
       const boites = entrees.map(entree => entree.getBoundingClientRect())
       const decalages = decalagesDeLigne(entrees)
-      const aPlacer = entrees.map((entree, rang) => ({
-        cle: String(rang),
-        ancre: boites[rang].top - haut + decalages[rang],
-        hauteur: boites[rang].height,
-      }))
-      // ⚠️ On pose `top` sur TOUTES les entrées, non sur les seules poussées : la
-      //    correction de ligne de base vaut pour chacune, et la position statique ne
-      //    la porte pas.
-      for (const place of placerManchette(aPlacer)) {
-        const entree = entrees[Number(place.cle)]
-        entree.style.top = `${place.top}px`
-        entree.toggleAttribute('data-pousse', place.pousse)
+      const corps = Number.parseFloat(getComputedStyle(entrees[0]).fontSize)
+
+      // 3. LES RENVOIS D'UNE MÊME LIGNE, côte à côte, et la place que leur rangée réclame.
+      const ranges = rangerSurLaLigne(
+        entrees.map((_, rang) => ({ cle: String(rang), ligne: boites[rang].top - haut, largeur: boites[rang].width })),
+        ECART_MANCHETTE_REM * racine,
+      )
+      const gouttiere = Number.parseFloat(GOUTTIERE_MANCHETTE) * racine
+      const largeur = Math.max(...ranges.map(({ cle, decalage }) => decalage + boites[Number(cle)].width)) + gouttiere
+      if (largeur > libre) {
+        reclame.current.largeur = largeur
+        setActif(false)
+        return
+      }
+
+      // 4. L'ÉCRITURE. La ligne de base en `em`, qui suit la police racine sans nouvelle
+      //    mesure ; le rang sur la ligne en pixels, que la passe suivante refait si la
+      //    colonne se recompose.
+      for (const { cle, decalage } of ranges) {
+        const rang = Number(cle)
+        const entree = entrees[rang]
+        entree.style.marginTop = decalages[rang] && corps ? `${(decalages[rang] / corps).toFixed(4)}em` : ''
+        entree.style.right = decalage > 0 ? `calc(100% + ${GOUTTIERE_MANCHETTE} + ${decalage.toFixed(2)}px)` : ''
       }
     }
 
@@ -202,6 +235,10 @@ export function useManchetteRenvois(
     observateur.observe(el)
     observateur.observe(hote)
     window.addEventListener('resize', surReflux)
+    // ⛔ UNE POLICE ARRIVÉE TARD recompose les lignes sans toujours changer une taille, et
+    //    le `ResizeObserver` ne dit alors rien. La ligne de base, posée en `em`, n'en
+    //    souffre pas ; le rang sur la ligne, si : deux appels peuvent changer de ligne.
+    document.fonts.addEventListener('loadingdone', surReflux)
     // ⛔ La FIN d'un passage rappelle la passe, et il le faut : c'est le seul moment où
     //    la transformation s'en va, et rien d'autre ne le dit — une translation ne
     //    change aucune taille. Les deux événements sont nécessaires : `animationend`
@@ -213,14 +250,16 @@ export function useManchetteRenvois(
       if (demande) cancelAnimationFrame(demande)
       observateur.disconnect()
       window.removeEventListener('resize', surReflux)
+      document.fonts.removeEventListener('loadingdone', surReflux)
       el.removeEventListener('animationend', surReflux)
       el.removeEventListener('animationcancel', surReflux)
     }
     // ⛔ `actif` est dans les dépendances, et il le faut : au premier rendu la
     // manchette n'existe pas encore — ce sont les appels qui sont dans le texte —,
-    // si bien que la passe d'empilement n'aurait rien à empiler. La mesure repose
-    // l'état, React rend les repères, et l'effet rejoue une fois sur eux. Il ne
-    // boucle pas : reposer la même valeur ne redéclenche aucun rendu.
+    // si bien que la passe n'aurait rien à ranger. La mesure repose l'état, React rend
+    // les repères, et l'effet rejoue une fois sur eux. Il ne boucle pas : reposer la
+    // même valeur ne redéclenche aucun rendu, et la largeur retenue empêche la
+    // manchette de reparaître là où sa rangée la plus chargée ne tient pas.
   }, [colonne, cleDeLecture, actif])
 
   return actif

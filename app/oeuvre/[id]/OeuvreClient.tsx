@@ -93,7 +93,7 @@ import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, ren
 import { ouvrirLaNoteDansLeTexte } from './ouvrirNoteDansLeTexte'
 // LA MANCHETTE — un renvoi biblique se lit dans la marge, il ne s'ouvre pas.
 import { ContenuRenvoiEnLigne } from './ContenuNoteStructuree'
-import { estRenvoiSeul, STYLE_RENVOI_MANCHETTE } from '@/app/lib/manchetteRenvois'
+import { STYLE_RENVOI_MANCHETTE, vaEnManchette } from '@/app/lib/manchetteRenvois'
 import { CLASSE_RENVOI_MANCHETTE, useManchetteRenvois } from './useManchetteRenvois'
 import { chargerOeuvresDAuteurs } from '@/app/lib/auteursOeuvre'
 import { identiteEdition, labelCourtVersion, libelleVersionComplet } from './versionTextuelle'
@@ -2770,7 +2770,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     `${niv1Actif}|${pageActuelle}|${modeTexte}|${vue}|${segments.length}|${segmentsApparat.length}`,
   )
   const optionsNotesCorps = useMemo<OptionsRenduNotes>(() => ({
-    enManchette: contenu => manchetteActive && estRenvoiSeul(contenu)
+    // ⛔ Un renvoi seul, ET qui tient sur une ligne de manchette : plus long, il garde
+    // son appel et son encart, car il pousserait le renvoi de la ligne suivante.
+    enManchette: contenu => manchetteActive && vaEnManchette(contenu)
       ? (
         <span className={CLASSE_RENVOI_MANCHETTE} style={STYLE_RENVOI_MANCHETTE}>
           {/* ⛔ EN LIGNE, et il le faut : un `<div>` dans un `<p>` ferme le

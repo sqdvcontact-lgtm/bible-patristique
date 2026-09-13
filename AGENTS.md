@@ -3641,12 +3641,32 @@ ouvert sont au carnet. Ici, ce qu'il faut savoir pour y toucher.
 
 - ⛔ **DEUX modules, et ils ne font pas la même chose.** `app/lib/manchetteRenvois.ts`
   porte la RÈGLE — pure, testée, sans une ligne de React : `estRenvoiSeul`,
-  `placerManchette`, `manchetteTient` et la forme. `app/oeuvre/[id]/useManchetteRenvois.ts`
-  porte le DOCUMENT : la place mesurée, l'empilement rejoué à chaque reflux.
-- ⛔ **LE PLACEMENT ORDINAIRE NE SE CALCULE PAS.** Le renvoi est posé en
-  `position: absolute` **sans `top`** : sa position statique EST la ligne où son appel
-  se tenait, et le navigateur la tient à jour tout seul quand la colonne se recompose.
-  Seul l'empilement des heurts se calcule — un couple sur cinq, 3 % des renvois.
+  `vaEnManchette`, `rangerSurLaLigne`, `manchetteTient` et la forme.
+  `app/oeuvre/[id]/useManchetteRenvois.ts` porte le DOCUMENT : la place mesurée, la ligne
+  de base, le rang sur une ligne qui porte deux renvois.
+- ⛔ **UN RENVOI NE QUITTE JAMAIS SA LIGNE** (décision de l'auteur, 2026-09-13 : « forcer
+  l'alignement »). L'empilement d'avant faisait céder le renvoi du dessous : sur le
+  Commentaire sur Jonas, derrière « Référence imprimée (latin) : Gn 18, 20 Gn 18, 20. »,
+  composé sur trois lignes, le renvoi suivant descendait d'une ligne entière sous la
+  sienne. `placerManchette` est retiré, et deux règles tiennent l'alignement :
+  - **une ligne de manchette, jamais plus.** `vaEnManchette` n'y envoie qu'un renvoi seul
+    de vingt signes au plus (`SIGNES_MANCHETTE` ; mesuré, la colonne en compose
+    vingt-quatre), soit 87 % des 11 991 renvois ; plus long, il garde son appel et son
+    encart. `STYLE_RENVOI_MANCHETTE` pose `white-space: nowrap` et `width: max-content` :
+    un renvoi ne passe jamais à la ligne ;
+  - **deux renvois d'une même ligne se rangent CÔTE À CÔTE** (`rangerSurLaLigne`), le
+    dernier contre le texte. ⚠️ Si la rangée la plus chargée ne tient pas dans la marge
+    libre, la manchette se retire de la page, comme faute de place, et la largeur réclamée
+    est RETENUE pour la lecture en cours (`reclame`) : sans elle, la manchette
+    reparaîtrait au rendu suivant pour se retirer aussitôt.
+- ⛔ **LE PLACEMENT NE SE CALCULE PAS, ET AUCUN PIXEL NE SE FIGE SUR L'AXE VERTICAL.** Le
+  renvoi est posé en `position: absolute` **sans `top`** : sa position statique EST la
+  ligne où son appel se tenait, et le navigateur la tient à jour tout seul quand la
+  colonne se recompose. L'accord de ligne de base se pose en **`em`** (`margin-top`), qui
+  suit la police racine fluide sans nouvelle mesure. ⚠️ L'ancien `top` en pixels restait
+  faux après toute recomposition qui ne changeait aucune taille. Seul le rang sur une
+  ligne chargée se pose en pixels (`right`), et la passe le refait au reflux, à la fin
+  d'un passage et à l'arrivée d'une police (`document.fonts`, `loadingdone`).
 - ⚠️ **Le bloc conteneur est la COLONNE de lecture**, qui porte `position: relative`.
   Aucun bloc du chemin de rendu n'est positionné entre les deux (vérifié sur
   `styleParagrapheLecture`, `.para-bilingue`, `.seg-inline`). ⛔ Poser un
@@ -3663,8 +3683,9 @@ ouvert sont au carnet. Ici, ce qu'il faut savoir pour y toucher.
 - ⛔ **TROIS HÉRITAGES À COUPER dans `STYLE_RENVOI_MANCHETTE`**, et chacun a coûté
   ailleurs : `text-indent` (l'alinéa d'un paragraphe tirerait le renvoi hors de sa
   boîte — défaut payé le 7 septembre sur les appels de Dhuoda), `white-space` (un bloc
-  de vers vaut `pre-line`), `font-style` (l'italique du latin n'atteint pas une
-  coordonnée). Un test les tient.
+  de vers vaut `pre-line` ; `nowrap` le coupe, et interdit du même coup la ligne de
+  trop), `font-style` (l'italique du latin n'atteint pas une coordonnée). Un test les
+  tient.
 - ⛔ **L'encre est `--cs-texte-second`.** Un renvoi en marge est le SEUL porteur de sa
   coordonnée : le seuil de 4,5 s'applique, comme à la mention d'absence de la
   Polyglotte. Mesuré à 10 px sur le papier du site — `--cs-texte-doux` 2,71,
@@ -3676,16 +3697,18 @@ ouvert sont au carnet. Ici, ce qu'il faut savoir pour y toucher.
   n'a de sens qu'entre deux exposants.
 - ⚠️ **`actif` est dans les dépendances de l'effet, et il le faut** : au premier rendu
   la manchette n'existe pas encore, ce sont les appels qui sont dans le texte, et la
-  passe d'empilement n'aurait rien à empiler. Il ne boucle pas — reposer la même valeur
-  ne redéclenche aucun rendu.
+  passe n'aurait rien à ranger. Il ne boucle pas : reposer la même valeur ne
+  redéclenche aucun rendu, et la largeur retenue empêche la manchette de reparaître là
+  où sa rangée la plus chargée ne tient pas.
 - ⚠️ **La place se mesure sur le CONTENEUR**, jamais sur la fenêtre : les deux volets de
   la page d'œuvre s'ouvrent, se ferment et se traînent à la poignée sans que la fenêtre
   bouge. Même règle que la carte de traduction du volet de la Bible.
 - **La planche est `tmp/planche-manchette.tsx`** : elle CHERCHE la division la plus
-  dense du corpus au lieu de la nommer, charge par les chargeurs du site, et joue
-  l'empilement avec le module RÉEL — `manchetteRenvois.ts` empaqueté par esbuild et
-  inliné. ⚠️ Elle rejoue sur `document.fonts.ready` : mesurée avant les polices, les
-  hauteurs sont celles d'une police de secours et les entrées se recouvrent.
+  dense du corpus au lieu de la nommer, charge par les chargeurs du site, et joue la
+  règle avec le module RÉEL — `manchetteRenvois.ts` empaqueté par esbuild et inliné.
+  ⚠️ Elle jouait l'EMPILEMENT, retiré le 2026-09-13 : à reprendre avant de s'y fier.
+  ⚠️ Elle rejoue sur `document.fonts.ready` : mesurée avant les polices, les hauteurs
+  sont celles d'une police de secours et les entrées se recouvrent.
 - ⚠️ **Portée : la LECTURE d'une œuvre, et elle seule.** L'apparat, les traductions
   parallèles et la page Bible n'ont pas reçu la manchette — chacune a sa géométrie, et
   la page Bible flanque déjà sa colonne du numéro de verset à gauche.
