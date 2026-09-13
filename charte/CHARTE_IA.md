@@ -2715,6 +2715,10 @@ La table `traductions` tient deux choses. Les traductions de la BIBLE, qui porte
 
 ⚠️ **La rangée d’actions d’une ligne s’aligne par LARGEURS RÉSERVÉES, non par le hasard des libellés.** Trois défauts s’y logeaient. Les messages d’état — « Envoi… », « ✓ Image ajoutée », « ✓ Téléchargé » — s’écrivaient ENTRE les boutons et les poussaient de côté dès qu’ils paraissaient : l’état s’écrit désormais DANS le bouton qui l’a déclenché. L’identifiant et l’étiquette de nature, de largeur variable — trente signes contre six —, ouvraient la rangée et la décalaient d’une ligne à l’autre : ce qui DIT la ligne se range avec son nom, ce qui AGIT se range à droite. Et un bouton dont le libellé change — « + Bandeau » puis « ✓ Bandeau », « Modifier » puis « Fermer » — ne doit pas changer de largeur pour autant. Les boutons se lisent enfin par familles, séparées d’un blanc plus large que le pas interne : les IMAGES de la notice, le TEXTE de la traduction, la FICHE elle-même.
 
+### 15.6 Le nom des traductions d’une même famille
+
+Les traductions réunies par une même famille d’édition (`bible_edition_members`) portent un nom commun suivi de leur langue, séparés par un tiret demi-cadratin : « Bible XIIIe – Français moderne » et « Bible XIIIe – Ancien français », « Bible Fillion – Français » et « Bible Fillion – Latin (Vulgate) » (décision de l’auteur, 13 septembre 2026). Deux traductions ne portent jamais le même nom, puisque le menu du lecteur, les notices et la recherche n’affichent que lui. La liste d’administration range les traductions par ordre alphabétique et réunit chaque famille en un bloc, dans l’ordre de la famille, la traduction avant son texte source.
+
 ## 16. Auteurs, œuvres et catalogue
 
 ⛔ **Les identifiants sont stables et ne sont pas recyclés.** ⛔ **Supprimer une coquille vide ou une œuvre explicitement abandonnée exige de vérifier d’abord ses segments, liens, dépendances et statut de publication.**

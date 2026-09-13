@@ -82,6 +82,18 @@ describe('siglesTraductions', () => {
     expect(sigles[1]).toBe('Vulgate clémentine de Rome')
   })
 
+  it('départage les membres d’une famille par le mot qui suit le tiret', () => {
+    // Les noms du 2026-09-13 : un nom commun, un tiret, la langue. Le tiret ne compte pas
+    // pour un mot, sans quoi « XIIIe – » rallongeait les deux sigles à l'identique.
+    expect(siglesTraductions([
+      'Bible XIIIe – Français moderne',
+      'Bible XIIIe – Ancien français',
+      'Bible Fillion – Français',
+      'Bible Fillion – Latin (Vulgate)',
+      'Vulgate clémentine',
+    ])).toEqual(['XIIIe Français', 'XIIIe Ancien', 'Fillion Français', 'Fillion Latin', 'Vulgate'])
+  })
+
   it('tient sur une liste vide ou d’un seul nom', () => {
     expect(siglesTraductions([])).toEqual([])
     expect(siglesTraductions(['Bible de Sacy'])).toEqual(['Sacy'])

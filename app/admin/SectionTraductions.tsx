@@ -19,6 +19,7 @@ import {
 import { revaliderTraductions } from '@/app/actions/revalider'
 import { colonnesPeriodeHistorique, formaterDateHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
 import { mentionEdition } from '@/app/lib/mentionEdition'
+import { rangerEnBlocs, type Appartenance } from '@/app/lib/blocsTraductions'
 
 type PhotoPos = { x: number; y: number; scale: number }
 type PhotoPositions = { bandeau: PhotoPos; encart: PhotoPos }
@@ -785,6 +786,9 @@ export default function SectionTraductions({ traductions: init }: { traductions:
   const [editionsSrc, setEditionsSrc] = useState<Record<string, EditionSource>>({})
   const [apparats, setApparats] = useState<Record<string, ApparatPiece[]>>({})
   const [panneauInfos, setPanneauInfos] = useState<string | null>(null)
+  // La famille d'édition de chaque traduction (`bible_edition_members`) : ses membres
+  // forment un seul bloc dans la liste, dans l'ordre de la famille.
+  const [familles, setFamilles] = useState<Record<string, Appartenance>>({})
 
   React.useEffect(() => {
     supabase.from('editions_sources').select('*').then(({ data }) => {
@@ -796,6 +800,13 @@ export default function SectionTraductions({ traductions: init }: { traductions:
       const map: Record<string, ApparatPiece[]> = {}
       ;(data ?? []).forEach((a: ApparatPiece) => { (map[a.trad_id] ??= []).push(a) })
       setApparats(map)
+    })
+    supabase.from('bible_edition_members').select('trad_id, family_id, display_order').then(({ data }) => {
+      const map: Record<string, Appartenance> = {}
+      ;(data ?? []).forEach((m: { trad_id: string; family_id: string; display_order: number | null }) => {
+        map[m.trad_id] ??= { famille: m.family_id, rang: m.display_order ?? 0 }
+      })
+      setFamilles(map)
     })
   }, [])
 
@@ -936,7 +947,12 @@ export default function SectionTraductions({ traductions: init }: { traductions:
   // une liste entière basculerait dans le pli.
   const patristiques = lignes.filter(t => t.est_biblique === false)
   const bibliques = lignes.filter(t => t.est_biblique !== false)
-  const affichees = montrerPatristiques ? [...bibliques, ...patristiques] : bibliques
+  // Les notices patristiques gardent leur place, en fin de liste ; chaque groupe se range
+  // pour lui-même (voir `rangerEnBlocs`).
+  const blocs = [
+    ...rangerEnBlocs(bibliques, familles),
+    ...(montrerPatristiques ? rangerEnBlocs(patristiques, familles) : []),
+  ]
 
   /** Fait paraître ou retire la NOTICE de la page publique. Écriture optimiste : la
    *  ligne bascule tout de suite, et revient si la base refuse — un aller-retour au
@@ -1119,9 +1135,12 @@ export default function SectionTraductions({ traductions: init }: { traductions:
           paraissent dans aucun sélecteur de lecture n'ont pas à s'y mêler. On les
           garde atteignables, non visibles. Dépliées, elles viennent en FIN de liste,
           après quoi leur `ordre` les aurait dispersées au milieu (20 pour Jeannin,
-          99 pour les trois autres, 100 pour l'AELF). */}
-      {affichees.map(t => (
-        <div key={t.trad_id} style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
+          99 pour les trois autres, 100 pour l'AELF).
+          La liste se range par ORDRE ALPHABÉTIQUE, et les traductions d'une même famille
+          d'édition y forment un seul bloc, dans l'ordre de la famille (2026-09-13). */}
+      {blocs.map(bloc => (
+        <div key={bloc[0].trad_id} style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', overflow: 'hidden' }}>
+          {bloc.map((t, rangDansBloc) => <React.Fragment key={t.trad_id}>
           {/* En-tête d'une ligne : l'identité à gauche, les actions à droite.
               ⛔ La rangée PASSE À LA LIGNE. Les boutons font à eux seuls quelque 56 rem,
               presque toute la largeur d'un écran de portable : sans retour à la ligne,
@@ -1129,7 +1148,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
               glissaient sous les boutons (relevé le 2026-09-13). Quand la place manque,
               l'identité prend toute sa ligne et les actions se rangent à droite sur la
               suivante ; sur un écran assez large, les deux tiennent sur une seule. */}
-          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px 18px', padding: '11px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px 18px', padding: '11px 16px', borderTop: rangDansBloc > 0 ? '1px solid var(--cs-bord-clair)' : undefined }}>
 
             {/* ⛔ L'IDENTIFIANT et l'étiquette « patristique » ont quitté la rangée des
                 boutons pour venir ici. De largeur variable — trente signes pour
@@ -1332,6 +1351,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
               </div>
             </div>
           )}
+          </React.Fragment>)}
         </div>
       ))}
       {patristiques.length > 0 && (

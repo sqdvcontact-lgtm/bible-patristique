@@ -44,8 +44,11 @@ function estDistinctif(mot: string): boolean {
   return /^[A-ZÀ-ÖØ-Þ0-9]/.test(mot)
 }
 
+// Un tiret isolé n'est pas un mot. Les traductions d'une même famille portent un nom commun
+// suivi de leur langue (« Bible XIIIe – Ancien français ») : sans ce filtre, « XIIIe – »
+// servait de rallonge aux deux, et l'homonymie retombait sur les noms entiers (2026-09-13).
 function mots(nom: string): string[] {
-  return nom.replace(/[()]/g, ' ').split(/[\s·]+/).filter(Boolean)
+  return nom.replace(/[()]/g, ' ').split(/[\s·]+/).filter(mot => mot && !/^[-–—]+$/.test(mot))
 }
 
 function estGenerique(mot: string): boolean {
