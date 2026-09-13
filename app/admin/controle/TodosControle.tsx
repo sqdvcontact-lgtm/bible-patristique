@@ -26,15 +26,22 @@ export default function TodosControle({ cle, initial }: { cle: string; initial: 
     setErreur(null)
     setEnvoi(true)
     try {
+      // ⛔ La liste part avec l'état d'où l'on est parti : la route refuse l'écriture si la
+      // base a changé entre-temps. Sans lui, un clic posé sur une page ouverte depuis une
+      // heure écrasait en silence les tâches qu'une autre session venait d'inscrire.
       const r = await fetch('/api/admin/controle-todos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cle, todos: suivant }),
+        body: JSON.stringify({ cle, todos: suivant, avant }),
       })
-      if (!r.ok) {
-        const j = await r.json().catch(() => ({}))
-        throw new Error(j.error || 'Échec de l’enregistrement.')
+      const j: { error?: string; todos?: Todo[] } = await r.json().catch(() => ({}))
+      if (r.status === 409 && Array.isArray(j.todos)) {
+        setTodos(j.todos)
+        setErreur('La liste a changé ailleurs depuis l’ouverture de la page. Elle vient d’être relue, et ce geste n’a pas été enregistré : refaites-le si besoin.')
+        return
       }
+      if (!r.ok) throw new Error(j.error || 'Échec de l’enregistrement.')
+      if (Array.isArray(j.todos)) setTodos(j.todos)
     } catch (e) {
       setTodos(avant)
       setErreur(e instanceof Error ? e.message : 'Erreur d’enregistrement.')

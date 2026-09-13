@@ -4,9 +4,9 @@ import { GRAISSE_TITRE, TITRE_CARTE, ENCRE_TITRE_CARTE } from '@/app/lib/hierarc
 import AudienceClient from './AudienceClient'
 import type { TableauAudience } from './types'
 
-// Statistiques d'AUDIENCE. À ne pas confondre avec /admin/controle/statistiques,
-// qui mesure le CORPUS (œuvres, qualité des segments, péricopes). L'une dit l'état
-// du travail, l'autre dit ce que le site reçoit.
+// Statistiques d'AUDIENCE. À ne pas confondre avec les chiffres du CORPUS (œuvres,
+// qualité des segments, péricopes), rangés mission par mission dans le centre de
+// contrôle. Les uns disent l'état du travail, les autres ce que le site reçoit.
 export const metadata = { title: 'Audience' }
 export const dynamic = 'force-dynamic'
 

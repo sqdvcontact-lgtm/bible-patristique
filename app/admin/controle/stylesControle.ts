@@ -1,6 +1,7 @@
-// Habillage commun du centre de contrôle et de sa page de statistiques.
-// Les deux écrans partagent les mêmes cartes, tuiles et jauges ; seule la
-// matière change. Un seul fichier évite que l'un dérive de l'autre.
+// Habillage commun du centre de contrôle et de la page d'audience.
+// Les deux partagent les mêmes cartes, tuiles et jauges ; seule la matière change.
+// Un seul fichier évite que l'un dérive de l'autre. Le cadre du centre (volet,
+// colonne, pannes) et l'état du contrôle v2 vivent dans `stylesCentre.ts`.
 export const CSS_CONTROLE = `
   .cc-page { min-height: calc(100vh - 3.5rem); background: var(--cs-fond); padding: 1.75rem 1.5rem 3rem; }
   .cc-entete { max-width: 74rem; margin: 0 auto 1.25rem; display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }

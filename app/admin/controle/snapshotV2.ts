@@ -4,7 +4,8 @@
 // La règle est de ne rien recalculer ici : le frontend affiche ce que le backend
 // certifie, et les seuls calculs admis sont de présentation (compléter les
 // sévérités absentes par zéro, traduire un état en couleur, dire un âge en
-// français). Les gros comptages historiques restent sur /admin/controle/statistiques.
+// français). Les chiffres du corpus se lisent mission par mission, dans le reste du
+// centre de contrôle.
 
 export type Severite = 'BLOCKER' | 'ERROR' | 'REVIEW' | 'INFO'
 
