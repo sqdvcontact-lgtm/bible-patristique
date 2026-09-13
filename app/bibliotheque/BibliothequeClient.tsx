@@ -626,6 +626,51 @@ const SUFFIXE_PASTILLE: React.CSSProperties = {
 }
 
 /**
+ * Le COMPTE d'une pastille GARDE LA PLACE DE SON PLAFOND (demande de l'auteur, 2026-09-13 :
+ * « faire en sorte que rien ne bouge quand on clique sur un filtre »).
+ *
+ * ⛔ Un compte qui passait de « 12 » à « 3 » rétrécissait sa pastille d'un chiffre, et tout le
+ * rang refluait sous le curseur, jusqu'à changer de ligne. Le compte se pose donc sur une
+ * RÉSERVE invisible, faite d'autant de zéros que son plafond a de chiffres, et la cellule
+ * prend la largeur de la plus large des deux.
+ *
+ * ⚠️ LE PLAFOND EST LE COMPTE DE LA FACETTE SUR LE FONDS ENTIER, et c'est une borne, non une
+ * estimation : un compte se prend sur les auteurs qui passent la recherche et les AUTRES
+ * filtres, donc sur une partie du fonds, et ne peut jamais le dépasser. Au repos, sans
+ * recherche ni filtre, le compte VAUT son plafond : la pastille ne s'élargit pas d'un pixel,
+ * et le rang des treize siècles, qui tient tout juste sur une ligne, y tient encore.
+ *
+ * ⚠️ Des ZÉROS suffisent parce que les chiffres de Source Serif 4 ont tous la même chasse,
+ * chiffres tabulaires demandés ou non (mesuré le 2026-09-13 : 5,484 px chacun à 10 px).
+ * ⚠️ Le compte se range au fer à DROITE de sa réserve : c'est le chiffre des unités qui reste
+ * en place quand les dizaines tombent.
+ */
+function ComptePastille({ compte, plafond }: { compte: number; plafond: number }) {
+  const reserve = '0'.repeat(String(Math.max(compte, plafond)).length)
+  return (
+    <span style={{ ...SUFFIXE_PASTILLE, display: 'inline-grid', justifyItems: 'end' }}>
+      <span aria-hidden="true" style={{ gridArea: '1 / 1', visibility: 'hidden' }}>{reserve}</span>
+      <span style={{ gridArea: '1 / 1' }}>{compte}</span>
+    </span>
+  )
+}
+
+/**
+ * Ce que la liste PORTE : « Trois auteurs sur quinze ».
+ *
+ * ⚠️ Son encre est celle d'un texte qui porte SEUL son information, et le seuil de 4,5
+ * s'applique : elle était au rang le plus ténu de l'échelle (`--cs-texte-doux`, 2,7 sur le
+ * papier). ⚠️ Son interligne est écrit, parce que le pied du panneau réserve sa ligne.
+ */
+const STYLE_RESUME_LISTE: React.CSSProperties = {
+  fontSize: '0.71875rem', lineHeight: 1.35, color: 'var(--cs-texte-second)', fontStyle: 'italic',
+  fontFamily: 'var(--font-source-serif), Georgia, serif', whiteSpace: 'nowrap',
+}
+
+/** L'insécable qui tient la ligne du compte quand il n'y a rien à dire. */
+const INSECABLE = String.fromCharCode(0xa0)
+
+/**
  * ⚠️ UNE PASTILLE VIDE EST DÉSACTIVÉE, et pas seulement pâlie. Les facettes d'un même
  * rang s'additionnent : en cliquer une qui rend zéro ne peut RIEN faire d'autre que vider
  * la liste — ou rien du tout si une autre du rang agit déjà. Un bouton qui ne peut pas
@@ -633,15 +678,15 @@ const SUFFIXE_PASTILLE: React.CSSProperties = {
  * ⛔ Sauf si elle est ACTIVE : on ne verrouille jamais un filtre qu'on a posé, sans quoi
  * on ne pourrait plus le retirer.
  */
-function Chip({ actif, compte, onClick, titreVide, etroite, children }: {
-  actif: boolean; compte: number; onClick: () => void; titreVide?: string; etroite?: boolean; children: React.ReactNode
+function Chip({ actif, compte, plafond, onClick, titreVide, etroite, children }: {
+  actif: boolean; compte: number; plafond: number; onClick: () => void; titreVide?: string; etroite?: boolean; children: React.ReactNode
 }) {
   const vide = compte === 0 && !actif
   return (
     <button onClick={onClick} aria-pressed={actif} disabled={vide} style={stylePastille(actif, compte === 0, etroite)}
       title={vide ? (titreVide ?? 'Aucun auteur ici') : undefined}>
       {children}
-      <span style={SUFFIXE_PASTILLE}>{compte}</span>
+      <ComptePastille compte={compte} plafond={plafond} />
     </button>
   )
 }
@@ -1947,13 +1992,19 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   const compteSiecle = (n: number) => auteursSauf('siecle').filter(a => dansSiecle(a, n)).length
   const compteLangue = (l: string) => auteursSauf('langue').filter(a => a.langue_principale === l).length
   const compteFamille = (c: string) => auteursSauf('famille').filter(a => famillesDesTraditions(a.traditions).includes(c)).length
+  // ⚠️ LE PLAFOND d'une facette est son compte sur le fonds ENTIER, sans recherche ni filtre.
+  // Aucun compte ne peut le dépasser, et c'est la place que sa pastille garde, pour que rien
+  // ne bouge sous le clic (voir `ComptePastille`).
+  const plafondSiecle = (n: number) => auteurs.filter(a => dansSiecle(a, n)).length
+  const plafondLangue = (l: string) => auteurs.filter(a => a.langue_principale === l).length
+  const plafondFamille = (c: string) => auteurs.filter(a => famillesDesTraditions(a.traditions).includes(c)).length
   // ⛔ PLUS AUCUN FILTRAGE ICI : les trois rangs se rendent ENTIERS, et une facette à zéro
   // se pâlit au lieu de s'effacer (voir `stylePastille`). Le tri qui vivait là — « une
   // facette qui ne rendrait rien ne se montre pas » — faisait danser les rangs à chaque
   // clic et cachait les creux du fonds, qui sont un renseignement comme les pleins.
-  const sieclesVus = siecles.map(n => ({ n, compte: compteSiecle(n) }))
-  const languesVues = languesDispo.map(l => ({ l, compte: compteLangue(l) }))
-  const famillesVues = famillesDispo.map(famille => ({ famille, compte: compteFamille(famille.cle) }))
+  const sieclesVus = siecles.map(n => ({ n, compte: compteSiecle(n), plafond: plafondSiecle(n) }))
+  const languesVues = languesDispo.map(l => ({ l, compte: compteLangue(l), plafond: plafondLangue(l) }))
+  const famillesVues = famillesDispo.map(famille => ({ famille, compte: compteFamille(famille.cle), plafond: plafondFamille(famille.cle) }))
 
   const auteursFiltres = useMemo(() => auteurs
     .filter(a => !qNorm || sansAccents(a.nom).includes(qNorm) || a.oeuvres.some(o => sansAccents(o.titre).includes(qNorm)))
@@ -1971,6 +2022,11 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
 
   // La liste est-elle RESTREINTE ? (une recherche, un filtre, ou les deux)
   const listeRestreinte = auteursFiltres.length !== auteurs.length
+  // Ce que la liste PORTE, en toutes lettres. Rien quand rien ne la restreint (charte
+  // § 38.22), et rien non plus quand elle est vide : le message qui la remplace le dit déjà.
+  const resumeListe = !listeRestreinte || auteursFiltres.length === 0 ? null
+    : auteursFiltres.length === 1 ? `Un auteur sur ${enLettres(auteurs.length)}`
+    : `${capitaliserInitiale(enLettres(auteursFiltres.length))} auteurs sur ${enLettres(auteurs.length)}`
 
   // ── CE QUI AGIT, ET CE QUE LA LISTE PORTE ─────────────────────────────────
   // ⚠️ Deux choses que la page ne disait NULLE PART. Lesquels des filtres agissent,
@@ -2135,40 +2191,52 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
                     porte treize numéros et non cinq empans, et le mot « siècle » n'est
                     donc écrit qu'une fois, en marge, au lieu de treize fois dans le rang. */}
                 <LigneFiltres label="Siècle" mobile={estMobile}>
-                  {sieclesVus.map(({ n, compte }) => (
-                    <Chip key={n} compte={compte} actif={sieclesActifs.has(n)} etroite
+                  {sieclesVus.map(({ n, compte, plafond }) => (
+                    <Chip key={n} compte={compte} plafond={plafond} actif={sieclesActifs.has(n)} etroite
                       titreVide={`Aucun auteur du ${siecleEnTexte(n)}`}
                       onClick={() => basculer(setSieclesActifs, n)}><SiecleNumero n={n} /></Chip>
                   ))}
                 </LigneFiltres>
                 <LigneFiltres label="Langue" mobile={estMobile}>
-                  {languesVues.map(({ l, compte }) => (
+                  {languesVues.map(({ l, compte, plafond }) => (
                     // La valeur reste celle de la base (« latin »), la pastille porte
                     // l'étiquette (« Latin ») : voir app/lib/langues.ts.
-                    <Chip key={l} compte={compte} actif={languesActives.has(l)} onClick={() => basculer(setLanguesActives, l)}>{libelleLangue(l)}</Chip>
+                    <Chip key={l} compte={compte} plafond={plafond} actif={languesActives.has(l)} onClick={() => basculer(setLanguesActives, l)}>{libelleLangue(l)}</Chip>
                   ))}
                 </LigneFiltres>
                 <LigneFiltres label="Tradition" mobile={estMobile}>
-                  {famillesVues.map(({ famille, compte }) => (
-                    <Chip key={famille.cle} compte={compte} actif={famillesActives.has(famille.cle)} onClick={() => basculer(setFamillesActives, famille.cle)}>{famille.libelle}</Chip>
+                  {famillesVues.map(({ famille, compte, plafond }) => (
+                    <Chip key={famille.cle} compte={compte} plafond={plafond} actif={famillesActives.has(famille.cle)} onClick={() => basculer(setFamillesActives, famille.cle)}>{famille.libelle}</Chip>
                   ))}
                 </LigneFiltres>
                 {/* ⚠️ « Tout effacer » se range sous la COLONNE DES PASTILLES, non au bord du
                     panneau : posé au fer à gauche sous trois rangs qui commencent cinq rem plus
                     loin, il ne se rattachait à rien et faisait un objet de plus en bas d'écran. */}
-                {nbFiltres > 0 && (
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: estMobile ? 'minmax(0, 1fr)' : `${COLONNE_RUBRIQUE} minmax(0, 1fr)`,
-                    columnGap: '0.75rem', paddingTop: '1px',
-                  }}>
-                    {!estMobile && <span />}
+                {/* ⛔ ET LE PIED DU PANNEAU EST TOUJOURS LÀ (demande de l'auteur, 2026-09-13 :
+                    « faire en sorte que rien ne bouge quand on clique sur un filtre »). Il
+                    paraissait au premier filtre et s'effaçait au dernier : le panneau grandissait
+                    et rétrécissait sous le clic, et la liste avec lui. « Tout effacer » y garde
+                    sa place, invisible tant qu'il n'y a rien à effacer, et le compte de la liste
+                    s'y lit tant que le panneau est ouvert, au lieu de s'insérer au-dessus d'elle.
+                    ⚠️ Le compte tient TOUJOURS sa ligne, une insécable à défaut de texte : un
+                    paragraphe vide n'a pas de ligne de base, et la rangée changerait de hauteur
+                    à l'instant où il se remplit. */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: estMobile ? 'minmax(0, 1fr)' : `${COLONNE_RUBRIQUE} minmax(0, 1fr)`,
+                  columnGap: '0.75rem', paddingTop: '1px',
+                }}>
+                  {!estMobile && <span />}
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', minWidth: 0 }}>
                     <button onClick={effacerLesFiltres}
-                      className="cs-bouton-lien" style={{ justifySelf: 'start' }}>
+                      className="cs-bouton-lien" style={{ visibility: nbFiltres > 0 ? 'visible' : 'hidden' }}>
                       Tout effacer
                     </button>
+                    <p aria-live="polite" style={{ ...STYLE_RESUME_LISTE, margin: '0 0 0 auto', textAlign: 'right' }}>
+                      {resumeListe ?? INSECABLE}
+                    </p>
                   </div>
-                )}
+                </div>
               </div>
             )}
 
@@ -2189,30 +2257,39 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
             {/* Ce que la liste PORTE. Il ne paraît que lorsqu'une recherche ou un filtre la
                 restreint : c’est là que le compte est une information, et le total qu’il donne
                 au passage ne se lisait autrement qu’en tournant les pages jusqu’au bout. */}
-            {listeRestreinte && auteursFiltres.length > 0 && (
-              <p aria-live="polite" style={{ textAlign: 'center', fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif', margin: '0 0 14px' }}>
-                {auteursFiltres.length === 1
-                  ? `Un auteur sur ${enLettres(auteurs.length)}`
-                  : `${capitaliserInitiale(enLettres(auteursFiltres.length))} auteurs sur ${enLettres(auteurs.length)}`}
+            {/* ⚠️ PANNEAU OUVERT, CE COMPTE SE LIT DANS SON PIED (2026-09-13) : inséré ici au
+                premier filtre, il poussait la liste d'une ligne sous le clic. */}
+            {!filtresOuverts && resumeListe && (
+              <p aria-live="polite" style={{ ...STYLE_RESUME_LISTE, textAlign: 'center', margin: '0 0 14px' }}>
+                {resumeListe}
               </p>
             )}
 
-            {auteursFiltres.length === 0 ? (
-              <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
-                Aucun auteur ne correspond à ces critères.
-              </p>
-            ) : (
-              <>
-                <div ref={listeAuteursRef} style={{ display: 'flex', flexDirection: 'column', gap: '16px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 12px)` }}>
-                  {auteursPage.map((auteur, rang) => (
-                    <PanneauAuteur key={auteur.id_auteur} auteur={auteur} recherche={recherche} favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={setAuteurModal} originaux={originaux}
-                      // ⚠️ La visite ne déplie que la PREMIÈRE carte : c'est la seule qu'elle cerne.
-                      ouvertImpose={rang === 0 ? carteDepliee : undefined} />
-                  ))}
-                </div>
-                <Pagination page={pageAuteursActive} nbPages={nbPagesAuteurs} onChanger={changerPageAuteurs} mobile={estMobile} />
-              </>
-            )}
+            {/* ⛔ LA ZONE DES RÉSULTATS GARDE AU MOINS UN ÉCRAN DE HAUT (2026-09-13). Une liste
+                qui raccourcit sous un filtre raccourcit la page : si l'on avait défilé, le
+                navigateur ramène le défilement au bout de ce qui reste, et le panneau GLISSE sous
+                le curseur. Avec un écran de marge sous tout ce qui se tient au-dessus de la liste,
+                le défilement n'a jamais à reculer. ⚠️ `lvh` et non `dvh` : sur un téléphone, la
+                PLUS GRANDE hauteur de fenêtre, barre d'outils repliée, est la seule qui borne
+                tous les états. */}
+            <div style={{ minHeight: '100lvh' }}>
+              {auteursFiltres.length === 0 ? (
+                <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                  Aucun auteur ne correspond à ces critères.
+                </p>
+              ) : (
+                <>
+                  <div ref={listeAuteursRef} style={{ display: 'flex', flexDirection: 'column', gap: '16px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 12px)` }}>
+                    {auteursPage.map((auteur, rang) => (
+                      <PanneauAuteur key={auteur.id_auteur} auteur={auteur} recherche={recherche} favorisOeuvres={favorisOeuvres} toggleFavoriOeuvre={toggleFavoriOeuvre} onOuvrirAuteur={setAuteurModal} originaux={originaux}
+                        // ⚠️ La visite ne déplie que la PREMIÈRE carte : c'est la seule qu'elle cerne.
+                        ouvertImpose={rang === 0 ? carteDepliee : undefined} />
+                    ))}
+                  </div>
+                  <Pagination page={pageAuteursActive} nbPages={nbPagesAuteurs} onChanger={changerPageAuteurs} mobile={estMobile} />
+                </>
+              )}
+            </div>
           </>
         )}
 
