@@ -47,10 +47,16 @@ export type MetadonneesBlocNote = {
   visualReviewReason: string | null
   humanValidated: boolean | null
   citationLayout: DispositionDeclaree | null
+  /** `metadata.bibliography_list_item` — le bloc est une ENTRÉE d'une série
+   *  bibliographique (charte § 47.2, « SÉRIES BIBLIOGRAPHIQUES DANS LES NOTES »).
+   *  ⛔ Seul le booléen vrai la marque : une chaîne « true » n'est pas une marque, et le
+   *  rendu ne devine jamais une liste. */
+  bibliographyListItem: boolean
 }
 
 export const METADONNEES_BLOC_VIDES: MetadonneesBlocNote = {
   editorialRole: null, printedLine: null, visualReviewReason: null, humanValidated: null, citationLayout: null,
+  bibliographyListItem: false,
 }
 
 /** Projette `metadata` sur les seuls champs que l'affichage lit. Tolérante :
@@ -74,6 +80,7 @@ export function lireMetadonneesBlocNote(metadata: unknown): MetadonneesBlocNote 
     visualReviewReason: typeof m.visual_review_reason === 'string' ? m.visual_review_reason : null,
     humanValidated: typeof valide === 'boolean' ? valide : null,
     citationLayout: disposition === 'block' || disposition === 'inline' ? disposition : null,
+    bibliographyListItem: m.bibliography_list_item === true,
   }
 }
 

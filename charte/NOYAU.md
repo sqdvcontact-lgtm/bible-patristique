@@ -2249,6 +2249,11 @@
 **§ 47.0 — Une note bibliographique se compose en liste**
 
 - ⛔ Ni puce, ni tiret, ni boîte, ni fond, ni bordure, et aucune indentation qui doublerait celle de la liste.
+- ⛔ DANS LE CADRE D’UNE NOTE, LA LISTE SE POSE AU FER DU BLOC DÉTACHÉ, À L’ENCRE SECONDE.
+- ⚠️ Ce retrait est celui du BLOC, et non un second retrait suspendu : l’entrée garde le sien, et rien ne s’y ajoute.
+- ⚠️ La règle vaut pour tout cadre de note du site : la lecture d’une œuvre, le volet patristique, la fenêtre d’une note biblique.
+- ⛔ DANS LA NOTE D’UNE ŒUVRE, SEULE LA MARQUE DE LA DONNÉE FAIT UNE ENTRÉE.
+- ⚠️ La liste n’enveloppe que le rendu des blocs : la ponctuation finale reste celle de la note, posée une seule fois, sur la dernière pièce.
 
 **§ 47.1 — Normalisation bibliographique des notices**
 

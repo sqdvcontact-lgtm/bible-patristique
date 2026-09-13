@@ -347,10 +347,18 @@ export function styleBlocNote(options: {
   italique?: boolean
   /** Des sauts de ligne matériels à rendre tels quels. */
   sautsMateriels?: boolean
+  /** Le bloc est une ENTRÉE de série bibliographique (`sequencesDeLaNote`). ⚠️ Son blanc
+   *  appartient à la LISTE qui l'accueille, et la feuille le pose sous l'encart : écrit
+   *  ici en style en ligne, il battrait la règle, et deux écritures du même blanc
+   *  s'ajouteraient. */
+  entreeBibliographique?: boolean
 } = {}): CSSProperties {
-  const { detache = false, vers = false, versEnLignes = false, italique = false, sautsMateriels = false } = options
+  const {
+    detache = false, vers = false, versEnLignes = false, italique = false, sautsMateriels = false,
+    entreeBibliographique = false,
+  } = options
   return {
-    margin: `0 0 ${MARGE_PARAGRAPHE_ENCART}`,
+    margin: entreeBibliographique ? 0 : `0 0 ${MARGE_PARAGRAPHE_ENCART}`,
     whiteSpace: sautsMateriels ? 'pre-line' : 'normal',
     fontStyle: italique ? 'italic' : 'normal',
     // ⚠️ Le retrait appartient au BLOC quand il coule, à la LIGNE quand elle est une
@@ -375,6 +383,33 @@ export const INTERLIGNE_APPARAT = 1.34
  *  qui ne suivait pas la police racine, et qui se resserrait donc toute seule sur un
  *  grand écran, là précisément où la place ne manque pas. */
 export const MARGE_ENTREE_APPARAT = '0.25rem'
+
+/**
+ * LES SÉQUENCES D'UNE NOTE — ses blocs rendus, pris dans l'ordre, et réunis quand ils
+ * forment une SÉRIE BIBLIOGRAPHIQUE (charte § 47.2, « SÉRIES BIBLIOGRAPHIQUES DANS LES
+ * NOTES »). `debut` et `fin` sont les bornes d'une tranche (`slice`).
+ *
+ * ⛔ SEULE LA MARQUE DE LA DONNÉE FAIT UNE ENTRÉE (`metadata.bibliography_list_item`). Un
+ * bloc `reference` qui ne la porte pas reste un paragraphe : la pluralité d'ouvrages ne
+ * suffit jamais à créer une liste, et c'est la donnée qui a relu la syntaxe de la note,
+ * non le rendu.
+ *
+ * ⚠️ Une série s'arrête au premier bloc qui n'en est pas. Deux séries séparées par une
+ * phrase font deux listes : une liste qui enjamberait la phrase la rangerait parmi les
+ * entrées.
+ */
+export type SequenceNote = { serie: boolean; debut: number; fin: number }
+
+export function sequencesDeLaNote(blocs: readonly { bibliographyListItem?: boolean }[]): SequenceNote[] {
+  const sequences: SequenceNote[] = []
+  blocs.forEach((bloc, rang) => {
+    const serie = bloc.bibliographyListItem === true
+    const derniere = sequences.at(-1)
+    if (derniere && derniere.serie === serie) derniere.fin = rang + 1
+    else sequences.push({ serie, debut: rang, fin: rang + 1 })
+  })
+  return sequences
+}
 /** La tête et son blanc, quand la note déclare un type. ⚠️ DÉRIVÉE, non recopiée :
  *  la ligne du numéro (0,625 rem sur l'interligne du corps) plus le blanc de
  *  `STYLE_TETE_ENCART`. Un nombre écrit à part se désaccorderait au premier réglage. */

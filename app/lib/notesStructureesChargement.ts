@@ -153,6 +153,9 @@ export function assemblerNotesStructurees({ notes, ancres, blocs, relations }: {
     // ⛔ La DISPOSITION déclarée voyage ; les TRACES documentaires, jamais (voir
     // `lireMetadonneesBlocNote`) : le texte lu est `block.text`, et lui seul.
     if (meta.citationLayout != null) bloc.citationLayout = meta.citationLayout
+    // La marque d'une ENTRÉE de série bibliographique voyage, et seulement quand elle vaut
+    // vrai : le rendu en fait une liste (`serieBibliographiqueNote.tsx`).
+    if (meta.bibliographyListItem) bloc.bibliographyListItem = true
     parNote.get(block.note_key)!.blocks.push(bloc)
   }
   const notesParSegment: Record<string, Record<string, NoteStructuree>> = {}

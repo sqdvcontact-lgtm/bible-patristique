@@ -47,6 +47,22 @@ describe('assemblerNotesStructurees', () => {
     expect(francais.translationOf).toBe('la')
   })
 
+  it('fait voyager la marque d’une entrée de série bibliographique, et elle seule', () => {
+    const { notesParSegment } = assemblerNotesStructurees({
+      notes: [note('N2', 2)],
+      ancres: [ancre('N2', 'S1', 0)],
+      blocs: [
+        { ...bloc('N2', 'annonce', 1, '*Cf.* les parallèles suivants :'), metadata: { bibliography_series_role: 'lead_in' } },
+        { ...bloc('N2', 'didache', 2, '*Didachè*, V, 2 ; X, 3.'), kind: 'reference', metadata: { bibliography_list_item: true } },
+      ],
+      relations: [],
+    })
+    const [annonce, didache] = notesParSegment.S1['2'].blocks
+    // ⛔ Un champ faux ne voyage pas : la charge de flux porterait sa clé pour rien.
+    expect('bibliographyListItem' in annonce).toBe(false)
+    expect(didache.bibliographyListItem).toBe(true)
+  })
+
   it('compte une ancre sans note, sans marqueur lisible ou sans segment, et ne lève pas', () => {
     const { notesParSegment, ancresIncompletes } = assemblerNotesStructurees({
       notes: [note('N1', 1)],

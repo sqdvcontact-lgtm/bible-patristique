@@ -43,6 +43,12 @@ export type NoteBlocData = {
    *  `compositionNote.ts`). ⛔ La nature et la disposition sont deux axes : on ne change
    *  pas un `kind` pour obtenir un retrait. */
   citationLayout?: 'block' | 'inline' | null
+  /** `metadata.bibliography_list_item` — le bloc est une ENTRÉE d'une série
+   *  bibliographique (charte § 47.2, « SÉRIES BIBLIOGRAPHIQUES DANS LES NOTES ») : la
+   *  donnée matérialise chaque œuvre d'une énumération dans son propre bloc `reference`,
+   *  et le rendu réunit les entrées qui se suivent en une liste
+   *  (`serieBibliographiqueNote.tsx`). Posé quand il vaut vrai, absent sinon. */
+  bibliographyListItem?: boolean
 }
 export type NoteStructuree = {
   noteKey: string

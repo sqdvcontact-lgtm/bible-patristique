@@ -2229,6 +2229,38 @@ button:focus-visible,
   }
 }
 
+/* ── UNE SÉRIE BIBLIOGRAPHIQUE DANS UNE NOTE ─────────────────────────────────
+   Charte § 47.0 (la composition) et § 47.2 (« SÉRIES BIBLIOGRAPHIQUES DANS LES
+   NOTES », la donnée) : une œuvre par entrée, dans la famille commune. Demande
+   de l'auteur, 2026-09-13 : « un léger retrait, une couleur un peu différente ;
+   mais propre ».
+
+   ⛔ LE CONTEXTE EST L'ENCART (`.cs-encart-propos`), et lui seul : c'est le cadre
+   de toute note du site, qu'on lise une œuvre, le volet patristique ou la
+   fenêtre d'une note biblique. Aucune classe de plus, aucun composant à
+   instruire.
+
+   ⚠️ LE RETRAIT EST LE FER DU BLOC DÉTACHÉ (`RETRAIT_BLOC_ENCART`, 1,5 em de la
+   note). La liste descendant d'un cran (0,96 em), il s'écrit 1,5625 em : un seul
+   fer pour ce que la note cite et pour ce qu'elle énumère. La garde
+   (`compositionNote.serie.test.ts`) recalcule l'un depuis l'autre.
+   ⚠️ L'ENCRE est le rang second de l'appareil, celui du renvoi en ligne. La série
+   se distingue de la phrase qui l'annonce sans pâlir sous le seuil de 4,5 qu'un
+   texte de ce corps réclame.
+   ⚠️ LE BLANC ENTRE DEUX ENTRÉES est celui de l'apparat critique
+   (`MARGE_ENTREE_APPARAT`, 0,25 rem) : plus serré que le blanc de paragraphe de
+   la note (0,375 rem), qui sépare la série de ses phrases, pour que les entrées
+   se lisent ensemble et non comme autant de paragraphes. Le retrait suspendu de
+   la famille dit où commence l'entrée suivante. ⛔ Ni puce, ni tiret, ni filet :
+   la marque de la donnée dit « entrée », elle ne s'imprime pas. */
+.cs-encart-propos .cs-apparat-bibliographie__liste {
+  padding-left: 1.5625em;
+  color: var(--cs-texte-second);
+}
+.cs-encart-propos .cs-apparat-bibliographie__entree:not(:last-child) {
+  margin-bottom: 0.25rem;
+}
+
 /* Un titre PORTÉ par un bloc ne cumule pas sa marge avec celle du bloc.
 
    ⛔ « PORTÉ », et non « contenu » : toute la règle tient dans cette nuance, et le

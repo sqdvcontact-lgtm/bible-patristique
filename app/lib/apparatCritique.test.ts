@@ -126,6 +126,7 @@ describe('lireMetadonneesBlocNote', () => {
     })).toEqual({
       editorialRole: 'critical_apparatus', printedLine: 3,
       visualReviewReason: null, humanValidated: false, citationLayout: null,
+      bibliographyListItem: false,
     })
   })
 
@@ -149,8 +150,19 @@ describe('lireMetadonneesBlocNote', () => {
     expect(Object.values(lu).filter(v => typeof v === 'string')).toEqual([])
   })
 
+  it('relève l’entrée d’une série bibliographique, que le seul booléen vrai marque', () => {
+    expect(lireMetadonneesBlocNote({ bibliography_list_item: true }).bibliographyListItem).toBe(true)
+    // ⛔ Une chaîne n'est pas une marque, et le rôle de la phrase d'annonce non plus.
+    expect(lireMetadonneesBlocNote({ bibliography_list_item: 'true' }).bibliographyListItem).toBe(false)
+    expect(lireMetadonneesBlocNote({ bibliography_series_role: 'lead_in' }).bibliographyListItem).toBe(false)
+    expect(lireMetadonneesBlocNote({ bibliography_list_item: false }).bibliographyListItem).toBe(false)
+  })
+
   it('retombe sur des nulls devant une métadonnée absente, vide ou mal typée', () => {
-    const vide = { editorialRole: null, printedLine: null, visualReviewReason: null, humanValidated: null, citationLayout: null }
+    const vide = {
+      editorialRole: null, printedLine: null, visualReviewReason: null, humanValidated: null, citationLayout: null,
+      bibliographyListItem: false,
+    }
     expect(lireMetadonneesBlocNote({})).toEqual(vide)
     expect(lireMetadonneesBlocNote(null)).toEqual(vide)
     expect(lireMetadonneesBlocNote(undefined)).toEqual(vide)

@@ -2,6 +2,7 @@
 
 import { Fragment } from 'react'
 import type { NoteBlocData, NoteStructuree } from './oeuvreTypes'
+import { composerSeriesBibliographiques } from './serieBibliographiqueNote'
 import { normaliserReferencesDansTexte, terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { estNoteApparatCritique } from '@/app/lib/apparatCritique'
@@ -303,7 +304,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
       data-note-number={note.noteNumber}
       data-note-affiche={typeof note.displayNumber === 'number' ? String(note.displayNumber) : undefined}
     >
-      {affiches.map((block, rang) => {
+      {composerSeriesBibliographiques(affiches, affiches.map((block, rang) => {
         const verse = block.form === 'verse'
         // ⛔ LA DISPOSITION SE LIT DANS LA DONNÉE (`metadata.citation_layout`), et une
         // traduction prend celle de son original : l'original et sa traduction forment
@@ -368,6 +369,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
               vers: verse,
               versEnLignes,
               italique: estBlocEnLatin(block),
+              entreeBibliographique: block.bibliographyListItem === true,
               sautsMateriels: (verse && !versEnLignes) || (!versEnLignes && referencesApresVers.length > 0),
             })}
           >
@@ -431,7 +433,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
             ))}
           </div>
         )
-      })}
+      }))}
     </div>
   )
 }

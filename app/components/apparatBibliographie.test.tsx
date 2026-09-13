@@ -13,6 +13,8 @@ import {
   BLOCS_DU_MEME_AUTEUR,
   ENTREES_DU_MEME_AUTEUR,
 } from '@/app/lib/bibleBibliographieOuvrages.fixture'
+import { ContenuNoteStructuree } from '@/app/oeuvre/[id]/ContenuNoteStructuree'
+import type { NoteBlocData } from '@/app/oeuvre/[id]/oeuvreTypes'
 import { PieceLiminaire } from './BibleEditionParatext'
 import { ContenuNoteBiblique } from './NoteBibliqueFenetre'
 
@@ -173,6 +175,42 @@ function noteEnFenetre() {
     }] }} />,
   )
 }
+
+/** La même famille dans une note d'ŒUVRE : chaque entrée est un bloc que la donnée marque
+ *  (`bibliography_list_item`), et le rendu les réunit (`serieBibliographiqueNote.tsx`). */
+function serieDeNoteStructuree() {
+  const bloc = (blockId: string, rank: number, text: string, entree: boolean): NoteBlocData => ({
+    blockId, rank, kind: entree ? 'reference' : 'commentary', form: 'prose', language: 'fr', text,
+    needsReview: false, ...(entree ? { bibliographyListItem: true } : {}),
+  })
+  return renderToStaticMarkup(
+    <ContenuNoteStructuree note={{ noteKey: 'N0002', noteNumber: 2, blocks: [
+      bloc('annonce', 1, '*Cf.* les parallèles suivants :', false),
+      bloc('didache', 2, '*Didachè*, V, 2 ; X, 3.', true),
+      bloc('barnabe', 3, '*Épître de Barnabé*, XVI, 1 ; XIX, 2.', true),
+    ] }} />,
+  )
+}
+
+describe('la série bibliographique d’une note d’œuvre, dans la famille commune', () => {
+  it('prend le cadre de la famille, et rien hors d’elle', () => {
+    const serie = classesApparat(serieDeNoteStructuree())
+    for (const classe of CADRE) expect(serie).toContain(classe)
+    for (const classe of serie) expect(CADRE).toContain(classe)
+    // ⛔ Pas de `sansHote` : l'encart compose sur son conteneur, comme la fenêtre biblique.
+    expect(serie).not.toContain(CLASSES_BIBLIOGRAPHIE.sansHote)
+  })
+
+  it('se compose SOUS l’encart, et seulement là', () => {
+    // ⛔ Le contexte est le cadre unique de toute note : aucune classe de plus n'entre dans
+    // la famille pour le dire, et aucune règle de note ne la vise hors de l'encart.
+    const regles = reglesDeLaFamille().filter((regle) => regle.selecteur.includes('cs-encart-propos'))
+    expect(regles.map((regle) => regle.selecteur)).toEqual([
+      '.cs-encart-propos .cs-apparat-bibliographie__liste',
+      '.cs-encart-propos .cs-apparat-bibliographie__entree:not(:last-child)',
+    ])
+  })
+})
 
 describe('le style bibliographique commun de l’apparat', () => {
   it('compose « Du même auteur » dans la famille commune', () => {

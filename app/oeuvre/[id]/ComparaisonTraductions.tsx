@@ -473,6 +473,7 @@ async function chargerNotes(segmentKeys: string[]): Promise<{
       visualReviewReason: meta.visualReviewReason,
       humanValidated: meta.humanValidated,
       citationLayout: meta.citationLayout,
+      bibliographyListItem: meta.bibliographyListItem,
     })
   }
   const resultat: NotesParSegment = {}
