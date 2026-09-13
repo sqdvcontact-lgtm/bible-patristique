@@ -7810,6 +7810,8 @@ Décision de l'auteur, 13 septembre 2026 : « N'afficher le nombre d'œuvres com
 
 ⛔ **UNE MARQUE QUI NE TIENT PAS NE SE REND PAS.** La place se juge sur la zone de lecture, que les volets rétrécissent sans que la fenêtre bouge, jamais sur la fenêtre. Une marque rendue invisible occuperait quand même sa place, et ferait défiler la lecture en largeur pour un chiffre qu'on ne voit pas.
 
+⛔ **LE CHIFFRE SE CENTRE SUR LA CAPITALE DE LA PREMIÈRE LIGNE, NON SUR SA LIGNE DE BASE.** Relevé de l'auteur, le soir même : « il est un peu bas ». Une petite marque posée sur la ligne de base d'un texte d'un tiers plus grand paraît basse, parce que son milieu tombe sous celui des lettres qu'elle accompagne. Son milieu se pose donc sur celui des capitales du verset, et la mesure reste proportionnelle à la police racine : elle ne se reprend jamais en pixels.
+
 ⚠️ **La décision vise le nombre posé à droite du verset.** Sur un téléphone, où aucune marge ne peut le porter, la ligne « N œuvres en parlent » reste sous le verset.
 
 ### 13.18 Ce que le RENDU d'une note lit, et la ligne de la citation visée

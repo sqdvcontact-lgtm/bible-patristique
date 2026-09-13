@@ -143,10 +143,11 @@ describe('la marque de densité se rend quand elle tient à droite des actions',
     expect(style.marginLeft).toBe(ECART_MARQUE_DENSITE_REM + 'rem')
   })
 
-  it('⛔ sa marge haute se déduit du rembourrage de la gouttière, pour garder la ligne de base', () => {
-    // 0,4375 rem sous le haut de la gouttière, dont le rembourrage porte 0,28125.
+  it('⛔ sa marge haute se déduit du rembourrage de la gouttière, pour centrer le chiffre sur la capitale', () => {
+    // 0,375 rem sous le haut de la gouttière, dont le rembourrage porte 0,28125. Posé sur la
+    // ligne de base du verset (0,4375), le chiffre paraissait bas (relevé de l'auteur, 2026-09-13).
     const page = readFileSync(join(process.cwd(), 'app', 'components', 'TexteBible.tsx'), 'utf8')
     expect(page).toContain("paddingTop: '0.28125rem'")
-    expect(Number.parseFloat(String(styleDensiteVerset().marginTop)) + 0.28125).toBe(0.4375)
+    expect(Number.parseFloat(String(styleDensiteVerset().marginTop)) + 0.28125).toBe(0.375)
   })
 })

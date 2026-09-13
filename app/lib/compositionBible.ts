@@ -187,17 +187,20 @@ export const AIR_MARQUE_DENSITE_REM = 0.5
  * ⛔ SON OPACITÉ N'EST PAS ICI : la feuille de la page Bible la pose, nulle au repos et
  * pleine au survol de la ligne. Écrite en ligne, elle battrait la règle du survol.
  *
- * ⛔ ELLE SE POSE SUR LA PREMIÈRE LIGNE DE BASE DU VERSET, non en haut de la gouttière.
- * Son haut met sa ligne de base sur celle du verset :
+ * ⛔ LE CHIFFRE SE CENTRE SUR LA CAPITALE DE LA PREMIÈRE LIGNE DU VERSET, non sur sa ligne
+ * de base (relevé de l'auteur, 2026-09-13 : « il est un peu bas »). Posée sur la ligne de
+ * base d'un texte d'un tiers plus grand, une petite marque paraît basse : son milieu tombe
+ * sous celui des lettres qu'elle accompagne. La pose sur la ligne de base la mettait à
+ * 0,4375 rem sous le haut de la gouttière ; elle monte d'un seizième de rem, à 0,375.
  *
- *   verset : rembourrage du bloc 0,0625 + demi-interligne −0,0018 + montante 1,024 × 0,875
- *   marque : demi-interligne −0,063 + montante 1,024 × 0,5625
- *   écart  : 0,9568 − 0,513 = 0,4438 rem, rabattu au cran de la grille (0,4375).
+ *   racine 16 : milieu du chiffre sur le milieu de la capitale, au pixel près ;
+ *   racine 22 : 0,38 px sous lui, et sur l'axe des icônes voisines à 0,19 px près.
  *
  * ⚠️ Elle vit dans le FLUX de la gouttière, après le dernier bouton, et la gouttière porte
- * déjà 0,28125 rem de rembourrage haut : la marge en retranche d'autant (0,15625).
+ * déjà 0,28125 rem de rembourrage haut : la marge en retranche d'autant (0,09375).
  * ⛔ Ne pas la reprendre en pixels : rembourrages, corps et rapports de fonte sont tous
- * proportionnels à la racine, si bien que l'alignement tient de 16 à 22 px (§ 38.14).
+ * proportionnels à la racine (§ 38.14). Il ne reste d'écart que l'arrondi des métriques de
+ * fonte au pixel entier, d'où les 0,38 px de la racine 22.
  *
  * ⚠️ Elle reçoit les pointeurs, et c'est nouveau : posée en absolu dans la gouttière, elle
  * couvrait les boutons invisibles et devait laisser passer le clic. À droite d'eux, elle ne
@@ -206,7 +209,7 @@ export const AIR_MARQUE_DENSITE_REM = 0.5
 export function styleDensiteVerset(): CSSProperties {
   return {
     flexShrink: 0,
-    marginTop: '0.15625rem',
+    marginTop: '0.09375rem',
     marginLeft: `${ECART_MARQUE_DENSITE_REM}rem`,
     fontSize: '0.5625rem',
     lineHeight: 1.2,
