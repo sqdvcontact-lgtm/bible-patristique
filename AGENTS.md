@@ -3667,6 +3667,14 @@ ouvert sont au carnet. Ici, ce qu'il faut savoir pour y toucher.
   faux après toute recomposition qui ne changeait aucune taille. Seul le rang sur une
   ligne chargée se pose en pixels (`right`), et la passe le refait au reflux, à la fin
   d'un passage et à l'arrivée d'une police (`document.fonts`, `loadingdone`).
+- ⛔ **LA DROITE SE REMET À SA VALEUR DE BASE, JAMAIS À RIEN.** `style.right = ''` efface
+  la déclaration EN LIGNE que React a posée depuis `STYLE_RENVOI_MANCHETTE`, et le renvoi
+  retombe dans le texte, par-dessus la fin de sa ligne : c'est ce qui s'est vu en ligne
+  le 2026-09-13, une heure durant, sur tous les renvois sauf celui qu'une ligne partagée
+  avait décalé. React ne la repose pas, son objet de style n'ayant pas changé.
+  `DROITE_DE_BASE` porte la valeur. ⚠️ Et la mesure de la ligne de base n'a rien vu :
+  elle ne regarde que l'axe vertical. Une vérification de la manchette mesure AUSSI le
+  bord droit de chaque renvoi contre le bord gauche de la colonne.
 - ⚠️ **Le bloc conteneur est la COLONNE de lecture**, qui porte `position: relative`.
   Aucun bloc du chemin de rendu n'est positionné entre les deux (vérifié sur
   `styleParagrapheLecture`, `.para-bilingue`, `.seg-inline`). ⛔ Poser un

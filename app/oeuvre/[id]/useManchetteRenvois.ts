@@ -29,6 +29,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import {
   ECART_MANCHETTE_REM,
   GOUTTIERE_MANCHETTE,
+  STYLE_RENVOI_MANCHETTE,
   manchetteTient,
   rangerSurLaLigne,
 } from '@/app/lib/manchetteRenvois'
@@ -37,6 +38,18 @@ import { tailleRacinePx } from '@/app/lib/fenetreContextuelle'
 // ⚠️ L'alias DOIT être une constante de module nommée « use… », sinon la règle des
 // hooks d'ESLint ne le reconnaît pas (piège déjà consigné pour la carte d'auteur).
 const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
+
+/**
+ * LA DROITE DE BASE d'un renvoi, celle que React pose EN LIGNE depuis
+ * `STYLE_RENVOI_MANCHETTE`.
+ *
+ * ⛔ `style.right = ''` EFFACE cette déclaration en ligne, et le renvoi retombe dans le
+ * texte, à la place de son appel : vu en ligne le 13 septembre 2026, les renvois posés
+ * par-dessus la fin de leur ligne, sauf celui qu'une ligne partagée avait décalé. React ne
+ * la repose pas, puisque son objet de style n'a pas changé. On revient donc à CETTE
+ * valeur, jamais à rien.
+ */
+const DROITE_DE_BASE = String(STYLE_RENVOI_MANCHETTE.right)
 
 /**
  * UNE SONDE DE LIGNE DE BASE : une boîte de hauteur nulle alignée sur la ligne de
@@ -188,10 +201,11 @@ export function useManchetteRenvois(
       if (entrees.some(entree => sousUneTransformation(entree, el))) return
 
       // 2. LA POSITION STATIQUE. ⛔ Chaque renvoi y revient avant toute mesure : sans
-      //    cela, la passe mesurerait l'accord que la précédente a posé.
+      //    cela, la passe mesurerait l'accord que la précédente a posé. ⛔ Et sa droite
+      //    revient à la valeur de base, JAMAIS à rien (voir `DROITE_DE_BASE`).
       for (const entree of entrees) {
         entree.style.marginTop = ''
-        entree.style.right = ''
+        entree.style.right = DROITE_DE_BASE
       }
       const haut = el.getBoundingClientRect().top
       const boites = entrees.map(entree => entree.getBoundingClientRect())
@@ -218,7 +232,9 @@ export function useManchetteRenvois(
         const rang = Number(cle)
         const entree = entrees[rang]
         entree.style.marginTop = decalages[rang] && corps ? `${(decalages[rang] / corps).toFixed(4)}em` : ''
-        entree.style.right = decalage > 0 ? `calc(100% + ${GOUTTIERE_MANCHETTE} + ${decalage.toFixed(2)}px)` : ''
+        entree.style.right = decalage > 0
+          ? `calc(100% + ${GOUTTIERE_MANCHETTE} + ${decalage.toFixed(2)}px)`
+          : DROITE_DE_BASE
       }
     }
 
