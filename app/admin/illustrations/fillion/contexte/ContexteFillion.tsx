@@ -25,7 +25,7 @@ import { chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
 import { loadBibleEditionCatalog, loadBibleEditionChapter } from '@/app/lib/bibleEditionServer'
 import type { BibleEditionBodyBlockRow, BibleEditionNoteBlockRow } from '@/app/lib/bibleEditionServer'
 import {
-  blocEditorialAffichable, blocsTexteEditoriaux, presentationDeBloc, regimeEtPartDeLActif,
+  adresseVersionnee, blocEditorialAffichable, blocsTexteEditoriaux, presentationDeBloc, regimeEtPartDeLActif,
   sousTypeNoticeValide, styleCompositionDeNote,
   type BibleEditionChapterDisplay, type BibleEditionDisplayTextBlock,
 } from '@/app/lib/bibleEdition'
@@ -146,7 +146,7 @@ export default async function ContexteFillion({ livre: livreDemande, chapitre: c
       id: asset.id,
       assetKey: asset.asset_key,
       assetKind: asset.asset_kind,
-      url: asset.public_uri,
+      url: adresseVersionnee(asset.public_uri, asset.web_sha256),
       width: asset.width_px,
       height: asset.height_px,
       altText: asset.alt_text,

@@ -580,6 +580,11 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // ce que `getSession` rend depuis le stockage local, sans réseau.
   useEffect(() => {
     if (!profilPret) return
+    // ⛔ UNE VISITE NE S'OUVRE PAS DANS UN CADRE. La revue des illustrations de Fillion
+    //    montre cette page dans une iframe, pour juger une gravure en contexte : la
+    //    visite y couvrirait la page qu'on revoit et, retenue dès l'ouverture, elle se
+    //    marquerait passée sur le compte sans que personne l'ait vue.
+    if (window.self !== window.top) return
     const params = new URLSearchParams(window.location.search)
     if (params.has('visite')) oublierVisite(CLE_VISITE_BIBLE)
     else if (visiteFaite(CLE_VISITE_BIBLE)) return
