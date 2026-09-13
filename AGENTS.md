@@ -2564,15 +2564,25 @@ visent désormais les remontées.
 page de pagination et à chaque division — `PageTitre` n'est gardé par aucune condition —,
 et viser `<main>` rouvrirait l'œuvre à sa page de titre chaque fois qu'on tourne une page.
 
-⛔ **ET L'ON REVIENT AU TEXTE PAR LE VOLET.** Ouvrir l'apparat critique change de VUE : le
-texte suivi cesse d'être rendu, et la barre du niveau 1 avec lui. Le SOMMAIRE y ramenait —
-mais il ne paraît pas sur un texte sans niveaux ni sur une lecture qui n'a rien à sommer
-(voir « Un sommaire qui n'a rien à SOMMER ne paraît pas »), et le lecteur restait alors
-enfermé dans l'apparat, sans aucun chemin de retour. Une rubrique « Revenir au texte » se
-pose donc SOUS « Apparat critique », à la forme des autres rubriques du volet, et
-seulement dans la vue de l'apparat — une rubrique inerte se lit comme un contrôle en
-panne. ⚠️ Son chevron regarde à GAUCHE et précède le mot : il dit un RETOUR, non un dépli,
-et un chevron de dépli posé au fer à droite dirait le contraire de ce que le bouton fait.
+⛔ **ET L'ON REVIENT AU TEXTE PAR LE VOLET, MAIS SEULEMENT LÀ OÙ LE SOMMAIRE MANQUE.**
+Ouvrir l'apparat critique change de VUE : le texte suivi cesse d'être rendu, et la barre
+du niveau 1 avec lui. Le SOMMAIRE y ramène ; mais il ne paraît pas sur un texte sans
+niveaux ni sur une lecture qui n'a rien à sommer (voir « Un sommaire qui n'a rien à
+SOMMER ne paraît pas »), et le lecteur restait alors enfermé dans l'apparat. Une rubrique
+« Revenir au texte » se pose donc sous « Apparat critique », dans la seule vue de
+l'apparat (une rubrique inerte se lit comme un contrôle en panne), et SEULEMENT quand le
+volet n'a pas de sommaire : `revenirAuTexteVisible`, rectifié par l'auteur le
+2026-09-13, le bouton doublant les entrées du sommaire sous leurs yeux.
+⛔ **Il se compose STRICTEMENT comme la tête du sommaire, dont il tient la place** :
+`TETE_RUBRIQUE` est l'unique écriture des trois têtes de rubrique, le mot au fer à
+gauche et le chevron au fer à droite, qui regarde vers le texte. ⚠️ Le chevron posé
+DEVANT le mot, qu'on y avait mis pour dire le retour, décalait le libellé du fer des
+autres rubriques ; ⛔ il ne regarde jamais vers le haut ni le bas, qui diraient un dépli.
+⚠️ La garde porte sur le sommaire AFFICHÉ, non sur le seul mode « texte entier » : un
+texte paginé à une seule division n'a pas de sommaire non plus, et sans le bouton il
+n'aurait aucun chemin de retour (un seul texte public dans ce cas au 2026-09-13,
+A0010O0109). ⚠️ Et le bloc de l'apparat ne s'étire plus quand le bouton le suit : il le
+pousserait au pied du volet, loin de la liste qu'il ferme.
 
 ⚠️ **Corollaire de méthode, et c'est le troisième du même ordre dans ce fichier** : un
 chemin de retour qui s'appuie sur un élément CONDITIONNEL n'existe que dans la condition

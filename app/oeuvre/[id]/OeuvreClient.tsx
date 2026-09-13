@@ -544,6 +544,12 @@ const LIBELLE_ONGLET_VOLET: Record<OngletDroit, string> = {
   notes: 'Notes',
 }
 
+/** La tête d'une rubrique du volet de gauche : « Apparat critique », « Revenir au
+ *  texte », « Sommaire ». ⛔ Une seule écriture pour les trois. Le retour au texte se
+ *  compose STRICTEMENT comme le sommaire, dont il tient la place (demande de l'auteur,
+ *  2026-09-13), et deux copies d'un même style finissent toujours par diverger. */
+const TETE_RUBRIQUE: React.CSSProperties = { flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }
+
 type OngletDroit = 'refs' | 'commentaires' | 'notes'
 
 export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, fleuron = null, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
@@ -1302,6 +1308,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   //    dont l’Apologétique (52 chapitres) et les Homélies sur la Genèse (68), où il est
   //    la seule navigation — la garde de 2026-09-05 tient toujours.
   const sommaireAQuoiSommer = modeComparaisonActif || niv1List.length > 1
+  // ⛔ LE RETOUR AU TEXTE NE PARAÎT QUE LÀ OÙ LE SOMMAIRE MANQUE (demande de l'auteur,
+  //    2026-09-13 : « seulement si le texte est en mode texte entier et ne dispose
+  //    d'aucun niveau 1 dans son sommaire »). Quand le sommaire est là, ses entrées
+  //    ramènent déjà au texte, et le bouton les doublait sous leurs yeux.
+  // ⚠️ La garde porte sur le sommaire AFFICHÉ, non sur le seul mode : un texte paginé à
+  //    une seule division n'a pas de sommaire non plus, et sans ce bouton il n'aurait
+  //    aucun chemin de retour depuis l'apparat. Au 2026-09-13, un seul texte public est
+  //    dans ce cas (A0010O0109) ; tous les autres qui gardent le bouton se lisent en texte
+  //    entier. ⚠️ Et le bloc de l'apparat ne s'étire plus quand le bouton le suit : il le
+  //    pousserait au pied du volet, loin de la liste qu'il ferme.
+  const revenirAuTexteVisible = !modeComparaisonActif && vue === 'apparat' && !sommaireAQuoiSommer
   // Carte niv1 -> titre textuel, complete des le rendu serveur.
   // Elle reste enrichie apres modifications ou chargements forces.
   const [niv1TexteMap, setNiv1TexteMap] = useState<Record<string, string>>(niv1TexteMapProp)
@@ -3457,9 +3474,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             {!modeComparaisonActif && tocApparatLocal.length > 0 && (
               /* ⚠️ Le partage de hauteur à moitié appartient au BUREAU : dans un tiroir,
                   un plafond en pourcentage se résout contre un conteneur sans hauteur. */
-              <div data-visite="oeuvre-apparat" style={{ ...(!mobile && apparatOuvert ? { flex: sommaireAQuoiSommer ? '0 1 auto' : 1, maxHeight: sommaireAQuoiSommer ? '50%' : undefined, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
+              <div data-visite="oeuvre-apparat" style={{ ...(!mobile && apparatOuvert ? { flex: sommaireAQuoiSommer || revenirAuTexteVisible ? '0 1 auto' : 1, maxHeight: sommaireAQuoiSommer ? '50%' : undefined, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
                 <button onClick={() => setApparatOuvert(!apparatOuvert)} aria-expanded={apparatOuvert}
-                  style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
+                  style={TETE_RUBRIQUE}>
                   <span style={RUBRIQUE_AXE}>Apparat critique</span>
                   <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)', flexShrink: 0 }}>
                     <IconeChevron dir={apparatOuvert ? 'up' : 'down'} size={11} strokeWidth={1.5} />
@@ -3503,32 +3520,29 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               </div>
             )}
 
-            {/* ⛔ ON REVIENT AU TEXTE PAR LE VOLET, ET IL Y FAUT UN BOUTON.
+            {/* ⛔ ON REVIENT AU TEXTE PAR LE VOLET, MAIS SEULEMENT LÀ OÙ LE SOMMAIRE MANQUE.
                 Ouvrir l'apparat critique change de VUE : le texte suivi cesse d'être
-                rendu, et la barre « ‹ › » du niveau 1 avec lui. Le SOMMAIRE y ramène —
-                mais il ne paraît pas sur un texte sans niveaux, ni sur une lecture qui
-                n'a rien à sommer, et le lecteur restait alors enfermé dans l'apparat
-                (relevé de l'auteur, 2026-09-10). Le retour se donne donc à la rubrique
-                même, sous « Apparat critique », et à la forme des autres rubriques du
-                volet.
-                ⚠️ Il ne paraît QUE dans la vue de l'apparat : en lecture, il ne ferait
-                rien, et une rubrique inerte se lit comme un contrôle en panne.
-                ⚠️ Le chevron regarde à GAUCHE et précède le mot : il dit un RETOUR, non
-                un dépli, et un chevron de dépli posé au fer à droite dirait le contraire
-                de ce que le bouton fait. */}
-            {!modeComparaisonActif && vue === 'apparat' && (
-              <button onClick={revenirAuTexte} style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '8px', width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--cs-bord)', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
-                <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)', flexShrink: 0 }}>
-                  <IconeChevron dir="left" size={11} strokeWidth={1.5} />
-                </span>
+                rendu, et la barre du niveau 1 avec lui. Le SOMMAIRE y ramène ; ce bouton
+                ne sert donc qu'aux lectures qui n'en ont pas (voir revenirAuTexteVisible).
+                ⛔ Il se compose STRICTEMENT comme la tête du sommaire, dont il tient la
+                place (demande de l'auteur, 2026-09-13) : même rubrique, même rembourrage,
+                le mot au fer à gauche et le chevron au fer à droite. Le chevron posé
+                devant le mot décalait le libellé du fer des autres rubriques. Il regarde
+                vers le texte, à droite du volet ; jamais vers le haut ni le bas, qui
+                diraient un dépli. */}
+            {revenirAuTexteVisible && (
+              <button type="button" onClick={revenirAuTexte} style={TETE_RUBRIQUE}>
                 <span style={RUBRIQUE_AXE}>Revenir au texte</span>
+                <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)', flexShrink: 0 }}>
+                  <IconeChevron dir="right" size={11} strokeWidth={1.5} />
+                </span>
               </button>
             )}
 
             {sommaireAQuoiSommer && (
             <div data-visite="oeuvre-sommaire" style={{ ...(!mobile && sommaireOuvert ? { flex: 1, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
               <button onClick={() => setSommaireOuvert(!sommaireOuvert)} aria-expanded={sommaireOuvert}
-                style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
+                style={TETE_RUBRIQUE}>
                 <span style={RUBRIQUE_AXE}>Sommaire</span>
                 <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)', flexShrink: 0 }}>
                   <IconeChevron dir={sommaireOuvert ? 'up' : 'down'} size={11} strokeWidth={1.5} />
