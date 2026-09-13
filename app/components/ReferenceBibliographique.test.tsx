@@ -57,7 +57,8 @@ describe('ReferenceBibliographique', () => {
     expect(html).toContain('<span class="cs-apparat-bibliographie__titre-article" data-champ="titre">Boethius (Anicius Manlius Torquatus Severinus)</span>')
     expect(html).toContain('<em class="cs-apparat-bibliographie__titre-hote" data-champ="titre_hote">Allgemeine Encyclopädie der Wissenschaften und Künste</em>')
     expect(html).toContain(`, dans <em`)
-    expect(html).toContain(`<span class="cs-apparat-bibliographie__donnees" data-champ="pages">282${String.fromCharCode(0x2013)}292</span>`)
+    // ⚠️ Le trait d'union simple, depuis a3b86c81 (charte, passe 7 : « TRAIT D'UNION DES PLAGES »).
+    expect(html).toContain('<span class="cs-apparat-bibliographie__donnees" data-champ="pages">282-292</span>')
     expect(html).toContain(`p.${NBSP}<span`)
     expect(html).toContain(`«${FINE}<span`)
   })
