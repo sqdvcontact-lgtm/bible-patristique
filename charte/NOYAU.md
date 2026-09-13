@@ -385,6 +385,9 @@
 - ⛔ L’appel ne prend pas l’alinéa du paragraphe qui le porte.
 - ⛔ L’esperluette et les virgules sont elles-mêmes en exposant — à la hauteur des chiffres qu’elles séparent : posées sur la ligne de base, elles font retomber le milieu de la suite.
 - ⛔ La liste ne subsiste que pour les notes dont la transcription n’a relevé aucun point d’appel, faute de quoi elles disparaîtraient du site, et elles la quitteront une à une à mesure de leur ancrage.
+- ⛔ Une note de verset ne se lit QU’À SON APPEL, et nulle part ailleurs sur la page Bible (décision de l’auteur, 13 septembre 2026, sur la Bible du XIIIᵉ siècle : « il ne faut pas que les notes de bas de page existent »).
+- ⛔ Retirer une surface de lecture oblige à donner un chemin à tout ce qu’elle était seule à montrer.
+- ⚠️ La liste des notes d’un développement sans point d’appel, au bas de leur bloc, ne double aucun appel : elle demeure, pour la même raison.
 
 **§ 13.8 — La NORMALISATION des notes — ce que le site compose, ce que la base porte**
 
@@ -627,6 +630,7 @@
 **§ 13.16.5 — Références bibliques, patristiques et bibliographiques**
 
 - ⛔ Dans une note, une référence biblique autonome n’est jamais entourée de parenthèses : écrire `Rm 8, 28.`, non `(Rm 8, 28).`.
+- ⛔ Dans une référence bibliographique normalisée, un éditeur scientifique ou un directeur d’ouvrage collectif se place avant le titre, en romain, suivi immédiatement de son rôle abrégé entre parenthèses : `Prénom Nom (éd.), *Titre*, …` ou `Prénom Nom (dir.), *Titre*, …`.
 - ⛔ Toute œuvre patristique ou non rencontrée dans une note est recherchée dans la bibliographie globale.
 
 **§ 13.16.6 — Fidélité au témoin, corrections, réserves et `[sic]`**
@@ -658,6 +662,7 @@
 - ⛔ DIVISION TRADITIONNELLE ≠ ŒUVRE AUTONOME.
 - ⛔ il n’est jamais saisi à la main dans le texte.
 - ⛔ PROTOCOLE — RESPONSABILITÉS BIBLIOGRAPHIQUES ET RÉEMPLOI DES NOTICES.
+- ⛔ PROTOCOLE — SÉRIES BIBLIOGRAPHIQUES DANS UNE NOTE.
 - ⛔ Le contre-audit de clôture vérifie en outre : zéro libellé de type encore écrit dans le corps lorsqu’un `editorial_role` le porte ; zéro coordonnée matérielle source laissée en prose lorsqu’elle est déjà conservée dans les champs structurés et n’a pas d’utilité publique ; zéro œuvre nommée sans relation `texte_note_bloc_ouvrages` lorsqu’elle est identifiable ; zéro jeton manuel `[Éditions]` ; zéro bloc de référence…
 - ⛔ PROTOCOLE — ZÉRO NOTE INVISIBLE FAUTE D’ANCRE.
 - ⛔ Le modèle fusionné `Référence : « lemme »` est interdit.
@@ -2267,6 +2272,9 @@
 - ⛔ Aucun style ne prend le nom d’une pièce, d’une édition ni d’un auteur — ni `du-meme-auteur`, ni `bibliographie-fillion`, ni `bibliographie-genese`.
 - ⛔ Il ne reçoit pas le style `bibliographie`, réservé aux notices placées dessous.
 - ⛔ La ponctuation n’a aucun style propre — elle appartient à la séquence où elle tombe et en hérite — le point qui joint le titre au sous-titre reste ainsi dans l’italique du titre.
+- ⛔ RESPONSABILITÉS SECONDAIRES DANS LA NOTICE BIBLIOGRAPHIQUE.
+- ⛔ Les tours postposés `édition de X`, `sous la direction de X`, `texte critique, traduction et annotations de X` ne font pas partie de la forme bibliographique normalisée.
+- ⛔ SÉRIES BIBLIOGRAPHIQUES DANS LES NOTES.
 - ⛔ jamais un bloc artificiellement étroit.
 - ⛔ Aucun fond, aucune bordure, aucune puce, aucun tiret ajouté par la feuille : la ponctuation et les séparateurs sont produits à partir des champs structurés, jamais par le style.
 - ⛔ il ne disparaît pas, et le corps ne rapetisse pas davantage : la hiérarchie bibliographique tient à l’un et à l’autre.
@@ -2951,7 +2959,7 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | 3 | Typographie — les signes, les espaces, l’enric | 64 873 | 46 | **0.7** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
 | 15 | Corpus biblique et traductions | 17 044 | 16 | **0.9** |
-| 35 | Chantier Fillion — la composition du paratexte | 79 344 | 79 | **1.0** |
+| 35 | Chantier Fillion — la composition du paratexte | 79 319 | 79 | **1.0** |
 | 48 | Le protocole d’océrisation d’une bible | 46 262 | 51 | **1.1** |
 | 37 | La notice d’une traduction — le bandeau et l’e | 8 621 | 10 | **1.2** |
 | 49 | Les gravures d’une édition biblique | 49 477 | 60 | **1.2** |

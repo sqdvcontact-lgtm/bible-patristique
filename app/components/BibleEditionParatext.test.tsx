@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest'
 import {
   BlocEditorialBible,
   IllustrationBible,
-  NotesBibleChapitre,
 } from './BibleEditionParatext'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
 
@@ -74,7 +73,7 @@ describe('paratexte des éditions bibliques', () => {
     expect(html).not.toContain('Ceci ne doit pas paraître.')
   })
 
-  it('relie la note de fin de chapitre à l’appel qui l’a posée', () => {
+  it('⛔ ne compose une note de verset qu’à son appel, jamais en série sous le texte', () => {
     const note = {
       id: 'note-1',
       displayNumber: 1,
@@ -87,18 +86,12 @@ describe('paratexte des éditions bibliques', () => {
         language: 'fr',
       }],
     }
-    const html = renderToStaticMarkup(
-      <>
-        <p>Initium evangelii<AppelNoteBiblique note={note} /></p>
-        <NotesBibleChapitre notes={[note]} />
-      </>,
-    )
-    // L'appel n'est plus un lien : il ouvre la note au clic. Il garde en
-    // revanche l'ancre vers laquelle la liste du chapitre revient.
+    const html = renderToStaticMarkup(<p>Initium evangelii<AppelNoteBiblique note={note} /></p>)
+    // L'appel ouvre la note au clic ; il n'y a plus de série au bas du chapitre
+    // (décision de l'auteur, 13 septembre 2026), donc rien vers quoi revenir.
     expect(html).toContain('id="appel-note-bible-note-1"')
-    expect(html).toContain('id="note-bible-note-1"')
-    expect(html).toContain('href="#appel-note-bible-note-1"')
-    expect(html).toContain('data-canon-id="MRK.1.1"')
+    expect(html).toContain('aria-label="Consulter la note 1"')
+    expect(html).not.toContain('Commentaire de ce verset.')
   })
 
   it('ouvre au clic la note qu’un appel désigne, au lieu de l’imprimer sous le bloc', () => {
@@ -608,56 +601,9 @@ describe('présentation déclarée par la donnée', () => {
     expect(html).not.toContain('cs-bible-renvois-bible')
   })
 
-  const bibliographie = [
-    'Signalons, comme œuvres spéciales :',
-    '- ++Jean Chrysostome++, *Homélies sur l’Évangile selon Matthieu*.',
-    '- ++Van Steenkiste++ Jean-Aloïs, *Commentarius*, Bruges, 1876.',
-  ].join('\n')
-
-  it('compose en liste la note que la donnée déclare bibliographique', () => {
-    const html = renderToStaticMarkup(<NotesBibleChapitre notes={[{
-      id: 'note-biblio',
-      displayNumber: 1,
-      canonId: 'MAT.1.1',
-      blocks: [{
-        id: 'note-biblio-1',
-        kind: 'commentary' as const,
-        form: 'prose' as const,
-        text: bibliographie,
-        language: 'fr',
-        presentationStyle: 'bibliographie' as const,
-      }],
-    }]} />)
-    // La MÊME famille que les listes structurées : une note bibliographique et
-    // une pièce « Du même auteur » se composent d'une seule manière.
-    // ⚠️ Le modificateur suit : la liste des notes pose le corps de l'apparat
-    // sur ses PARAGRAPHES, jamais sur un ancêtre de la bibliographie.
-    expect(html).toContain(
-      'class="cs-apparat-bibliographie cs-apparat-bibliographie--sans-hote"',
-    )
-    expect(html).toContain('<li class="cs-apparat-bibliographie__entree">')
-    // ⛔ Le marqueur de la donnée ne s'imprime pas.
-    expect(html).not.toContain('- <span')
-    expect(html).not.toContain('>- ')
-    // La forme d'affichage garde sa capitale d'autorité.
-    expect(html).toContain('Van Steenkiste')
-  })
-
-  it('laisse en paragraphe suivi la même note sans sa déclaration', () => {
-    const html = renderToStaticMarkup(<NotesBibleChapitre notes={[{
-      id: 'note-suivie',
-      displayNumber: 1,
-      canonId: 'MAT.1.1',
-      blocks: [{
-        id: 'note-suivie-1',
-        kind: 'commentary' as const,
-        form: 'prose' as const,
-        text: bibliographie,
-        language: 'fr',
-      }],
-    }]} />)
-    expect(html).not.toContain('cs-apparat-bibliographie')
-  })
+  // ⚠️ La note BIBLIOGRAPHIQUE d'un verset s'éprouve désormais dans sa fenêtre
+  // (`NoteBibliqueFenetre.test.tsx`) : la série du bas de chapitre qui la composait ici
+  // n'existe plus (13 septembre 2026).
 })
 
 describe('citation sortie dans une introduction ou un apparat', () => {

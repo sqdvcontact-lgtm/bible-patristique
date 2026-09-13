@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
@@ -101,10 +102,11 @@ describe('lecture bilingue de la page Bible', () => {
     )
     expect(html).toContain('id="appel-note-bible-n1-la"')
     expect(html).toContain('id="appel-note-bible-n1-fr"')
-    // Une seule note au bas du chapitre, et elle revient à la PREMIÈRE colonne,
-    // celle que le lecteur a sous les yeux en tête de rangée — ici le français.
-    expect(html.split('Note commune à l’édition.')).toHaveLength(2)
-    expect(html).toContain('href="#appel-note-bible-n1-fr"')
+    // ⛔ Et nulle part ailleurs (décision de l'auteur, 13 septembre 2026) : plus de série
+    // au bas du chapitre, donc ni le texte de la note dans la page, ni lien qui y revienne.
+    expect(html).not.toContain('Note commune à l’édition.')
+    expect(html).not.toContain('notes-bible-chapitre')
+    expect(html).not.toContain('href="#appel-note-bible')
   })
 
   // Quatre régressions à empêcher : un contenu propre à une langue ne doit
@@ -257,11 +259,32 @@ describe('lecture bilingue de la page Bible', () => {
         }]}
       />,
     )
-    // L'image appartient au latin, mais elle est matériellement dans la note :
-    // elle reste donc dans la note, rendue une seule fois au bas du chapitre.
-    const notes = html.slice(html.indexOf('notes-bible-chapitre'))
-    expect(notes).toContain('data-asset-key="passoire"')
-    expect(html.split('data-asset-key="passoire"')).toHaveLength(2)
+    // L'image appartient au latin, mais elle est matériellement dans la note : elle suit
+    // la note dans sa FENÊTRE (`figuresDeLaNote`), et ne paraît donc pas dans le corps de
+    // la page, où il n'y a plus de série de notes (13 septembre 2026).
+    expect(html).not.toContain('data-asset-key="passoire"')
+    expect(html).toContain('id="appel-note-bible-n5-fr"')
+    expect(html).toContain('id="appel-note-bible-n5-la"')
+  })
+
+  it('⛔ appelle, sur « — », la note d’un verset que sa langue ne porte pas', () => {
+    // Le français ne porte pas MRK.1.2 ; la traduction y a posé une note, qui dit pourquoi.
+    const html = renderToStaticMarkup(
+      <BibleBilingue
+        {...COMMUN}
+        notes={[{
+          id: 'n9', displayNumber: 9, canonId: 'MRK.1.2', materialOrder: 9,
+          appliesTo: 'member', appliesToMemberId: 'fr',
+          blocks: [{ id: 'n9:1', kind: 'commentary', form: 'prose', text: 'Aucun verset cible n’a été fabriqué.' }],
+        }]}
+      />,
+    )
+    expect(html).toContain('id="appel-note-bible-n9-fr"')
+    expect(html).not.toContain('id="appel-note-bible-n9-la"')
+    const rangee = html.slice(html.indexOf('data-canon-id="MRK.1.2"'))
+    expect(rangee.indexOf('—')).toBeGreaterThan(-1)
+    expect(rangee.indexOf('—')).toBeLessThan(rangee.indexOf('appel-note-bible-n9-fr'))
+    expect(html).not.toContain('Aucun verset cible n’a été fabriqué.')
   })
 
   it('n’appelle une note propre au français que dans sa colonne', () => {
@@ -442,5 +465,45 @@ describe('les GLOSES en regard', () => {
     expect(html.match(/class="cs-regard-rangee[^"]*"/g)).toHaveLength(2)
     expect(rangeeDeGlose(html)).not.toContain('cs-regard-rangee')
     expect(html).not.toContain(`data-canon-id="${GLOSE}"`)
+  })
+
+  it('⛔ appelle la note d’une glose sur la ligne qu’elle vise, depuis sa colonne', () => {
+    // `retargeterNotesVersGloses` pose la note sur l'UUID de la ligne de glose ; la cellule
+    // le porte (`cibleDesNotes`). Sans lui, la note n'avait d'autre place que la série du bas.
+    const base = lecture(true)
+    const colonnes = [
+      {
+        ...base.colonnes[0],
+        cellules: base.colonnes[0].cellules.map((cellule) => (
+          cellule.canonId === GLOSE ? { ...cellule, cibleDesNotes: 'uuid-de-la-glose' } : cellule
+        )),
+      },
+      base.colonnes[1],
+    ]
+    const html = renderToStaticMarkup(
+      <BibleBilingue
+        {...base}
+        colonnes={colonnes}
+        notes={[{
+          id: 'g1', displayNumber: 4, canonId: 'uuid-de-la-glose', materialOrder: 4,
+          appliesTo: 'member', appliesToMemberId: 'fm',
+          blocks: [{ id: 'g1:1', kind: 'commentary', form: 'prose', text: 'Glose attestée.' }],
+        }]}
+      />,
+    )
+    expect(rangeeDeGlose(html)).toContain('id="appel-note-bible-g1-fm"')
+    expect(html).not.toContain('id="appel-note-bible-g1-af"')
+    expect(html).not.toContain('Glose attestée.')
+  })
+})
+
+describe('⛔ aucune série de notes au bas du chapitre (décision de l’auteur, 13 septembre 2026)', () => {
+  it('ni la lecture simple, ni la lecture en regard, ni le paratexte ne la composent plus', () => {
+    // Une garde de SOURCE : la série se composait dans le paratexte et se posait dans les deux
+    // lectures. La rétablir, même « en repli », referait lire chaque note deux fois.
+    for (const fichier of ['TexteBible.tsx', 'BibleBilingue.tsx', 'BibleEditionParatext.tsx']) {
+      const source = readFileSync(`app/components/${fichier}`, 'utf8')
+      expect(source, fichier).not.toMatch(/NotesBibleChapitre|notes-bible-chapitre/)
+    }
   })
 })

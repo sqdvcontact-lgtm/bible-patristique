@@ -41,7 +41,7 @@ import {
   type BibleEditionDisplayBodyBlock,
 } from '@/app/lib/bibleEdition'
 import {
-  appelsDuVerset,
+  appelsDeLaCellule,
   apparierRangees,
   colonnesBilingues,
   gloseSansVisAVis,
@@ -55,14 +55,13 @@ import {
   type MembreBilingue,
   type NoteBilingue,
 } from '@/app/lib/bibleEditionBilingue'
-import { CORPS_GLOSE, LIBELLE_GLOSE } from '@/app/lib/compositionBible'
+import { CORPS_GLOSE, LIBELLE_GLOSE, STYLE_VERSET_VIDE } from '@/app/lib/compositionBible'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
-import { ancreAppelNoteBible } from '@/app/lib/bibleEdition'
 import { estSuiteDuBloc } from '@/app/lib/bibleHierarchieSemantique'
 import {
   BlocEditorialBible,
+  figuresDeLaNote,
   IllustrationBible,
-  NotesBibleChapitre,
 } from './BibleEditionParatext'
 
 const SERIF = 'var(--font-source-serif), Georgia, serif'
@@ -199,17 +198,23 @@ export default function BibleBilingue({
   const imagesParBloc = commun.images.byBodyBlock
   const imagesParNote = commun.images.byNote
 
-  const rangees = rangeesNonVides(apparierRangees(axeCanonique, colonnesOrdonnees))
-
-  // Une note commune est appelée depuis chaque colonne : elle revient à la
-  // PREMIÈRE, celle que le lecteur a sous les yeux en tête de rangée.
-  const ancresRetour = new Map<string, string>()
-  for (const note of notesRetenues) {
-    const premier = colonnesOrdonnees.find((colonne) => (
-      note.appliesTo === 'family' || note.appliesToMemberId === colonne.membre.id
-    ))
-    if (premier) ancresRetour.set(note.id, ancreAppelNoteBible(note.id, premier.membre.id))
-  }
+  // ⛔ UNE NOTE DE VERSET NE SE LIT QU'À SON APPEL (décision de l'auteur, 13 septembre
+  // 2026 : « il ne faut pas que les notes de bas de page existent »). La série du bas de
+  // chapitre est retirée, et avec elle le lien qui y revenait : chaque cellule appelle ses
+  // notes par `appelsDeLaCellule`, et une rangée qui porte une note ne se retire pas.
+  const rangees = rangeesNonVides(
+    apparierRangees(axeCanonique, colonnesOrdonnees),
+    new Set(notesRetenues.map((note) => note.canonId)),
+  )
+  // L'image qu'une note porte suit sa fenêtre (`figuresDeLaNote`).
+  const appeler = (appels: readonly NoteBilingue[], memberId: string) => appels.map((note) => (
+    <AppelNoteBiblique
+      key={`${memberId}:${note.id}`}
+      note={note}
+      memberId={memberId}
+      figures={figuresDeLaNote(imagesParNote.get(note.id))}
+    />
+  ))
 
   // ── L'appareil est bordé par le fer des versets ─────────────────────────────
   // ⛔ Hors des colonnes, mais PAS sur toute leur largeur (décisions de l'auteur,
@@ -227,11 +232,11 @@ export default function BibleBilingue({
   // « 1. Le premier jour » le blanc est passé de 0,5 à 1,5 rem, sous « 2. L'œuvre
   // des six jours » de 2,25 à 4 (relevé de l'auteur le soir même). Une enveloppe
   // est une surface de plus, et une règle de blanc ne la connaît pas.
-  // ⚠️ Une GRAVURE et la série des NOTES, elles, prennent l'enveloppe
-  // `.cs-bible-regard` : la part d'une gravure se calcule sur son conteneur, et sur
-  // 52 rem une planche hors-texte dépassait la taille de son fichier ; aucune règle
-  // de voisinage ne les nomme, l'enveloppe n'y coupe rien. ⛔ Pas sur mobile : les
-  // colonnes y sont empilées à la largeur de l'écran, et rien n'y est borné.
+  // ⚠️ Une GRAVURE, elle, prend l'enveloppe `.cs-bible-regard` : sa part se calcule sur
+  // son conteneur, et sur 52 rem une planche hors-texte dépassait la taille de son
+  // fichier ; aucune règle de voisinage ne la nomme, l'enveloppe n'y coupe rien. ⛔ Pas
+  // sur mobile : les colonnes y sont empilées à la largeur de l'écran, et rien n'y est
+  // borné.
   const surMesure = (contenu: ReactNode, cle: string) => mobile ? contenu : (
     <div key={cle} className="cs-bible-regard">{contenu}</div>
   )
@@ -322,6 +327,7 @@ export default function BibleBilingue({
                 const membre = colonnesOrdonnees[index].membre
                 if (glose && cellule === null) return null
                 const original = membre.memberRole === 'source_text'
+                const appels = appelsDeLaCellule(notesRetenues, rangee, index, membre.id)
                 return (
                   <div
                     key={membre.id}
@@ -329,13 +335,24 @@ export default function BibleBilingue({
                     data-membre={membre.id}
                     style={seule ? { minWidth: 0, gridColumn: '1 / -1' } : { minWidth: 0 }}
                   >
-                    {cellule === null ? (
+                    {cellule === null ? (appels.length === 0 ? (
                       // Un créneau que cette édition ne porte pas reste vide :
                       // on n'y met jamais le texte de l'autre colonne.
                       <p aria-hidden style={STYLE_VERSET}>
                         &nbsp;
                       </p>
                     ) : (
+                      // ⛔ Sauf l'appel d'une note que CETTE langue y a posée : l'appel est son
+                      // seul chemin, et la note dit pourquoi le verset manque. La cellule garde
+                      // son vide, rendu « — » comme dans la lecture simple.
+                      <div style={STYLE_LIGNE_VERSET}>
+                        <span style={STYLE_REFERENCE}>{referenceCanoniqueLisible(rangee.canonId)}</span>
+                        <p style={original ? STYLE_VERSET_ORIGINAL : STYLE_VERSET}>
+                          <span style={STYLE_VERSET_VIDE}>—</span>
+                          {appeler(appels, membre.id)}
+                        </p>
+                      </div>
+                    )) : (
                       <div style={STYLE_LIGNE_VERSET}>
                         {/* ⚠️ LA RÉFÉRENCE PARAÎT DES DEUX CÔTÉS (demande de l'auteur,
                             2026-09-04). Une édition ne dit sa numérotation propre que
@@ -353,13 +370,7 @@ export default function BibleBilingue({
                             : (original ? STYLE_VERSET_ORIGINAL : STYLE_VERSET)}
                         >
                           {cellule.texte}
-                          {appelsDuVerset(notesRetenues, rangee.canonId, membre.id).map((note) => (
-                            <AppelNoteBiblique
-                              key={`${membre.id}:${note.id}`}
-                              note={note}
-                              memberId={membre.id}
-                            />
-                          ))}
+                          {appeler(appels, membre.id)}
                         </p>
                       </div>
                     )}
@@ -375,14 +386,6 @@ export default function BibleBilingue({
 
       {rendreImages(commun.images.closing)}
       {rendreBlocs(commun.blocs.closing)}
-      {notesRetenues.length > 0 && surMesure(
-        <NotesBibleChapitre
-          notes={notesRetenues}
-          illustrationsByNote={imagesParNote}
-          ancresRetour={ancresRetour}
-        />,
-        'notes',
-      )}
     </div>
   )
 }

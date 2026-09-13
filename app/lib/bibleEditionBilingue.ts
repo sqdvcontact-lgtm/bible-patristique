@@ -40,6 +40,12 @@ export type CelluleBilingue = {
   referenceNative: string | null
   /** Posé sur une glose, et sur elle seule. */
   glose?: GloseEnRegard
+  /**
+   * Ce que ses notes visent quand ce n'est pas son créneau : la ligne de `versets_v2` d'une
+   * glose que la traduction lit par le canon. C'est sur elle que `retargeterNotesVersGloses`
+   * pose les notes de la glose, et `cleDeGlose` ne désigne aucune ligne.
+   */
+  cibleDesNotes?: string
 }
 
 export type ColonneBilingue = {
@@ -107,9 +113,17 @@ export function apparierRangees(
  * Un créneau que AUCUNE colonne ne porte n'a pas à occuper une rangée vide.
  * Le cas se produit quand l'axe canonique vient du chapitre entier tandis que
  * l'édition s'arrête plus tôt.
+ *
+ * ⛔ SAUF S'IL PORTE UNE NOTE (`annotes`) : l'appel est le seul chemin vers une note de
+ * verset depuis le 13 septembre 2026, et la rangée retirée emporterait sa note avec elle.
  */
-export function rangeesNonVides(rangees: readonly RangeeBilingue[]): RangeeBilingue[] {
-  return rangees.filter((rangee) => rangee.cellules.some((cellule) => cellule !== null))
+export function rangeesNonVides(
+  rangees: readonly RangeeBilingue[],
+  annotes: ReadonlySet<string> = new Set(),
+): RangeeBilingue[] {
+  return rangees.filter((rangee) => (
+    rangee.cellules.some((cellule) => cellule !== null) || annotes.has(rangee.canonId)
+  ))
 }
 
 // ── Les GLOSES en regard ────────────────────────────────────────────────────
@@ -136,7 +150,7 @@ export function cleDeGlose(canonHote: string | null, rang: number): string {
  * prend son rang parmi celles de son hôte. Une glose n'a pas de numéro natif.
  */
 export function cellulesDeGloses(
-  gloses: readonly { canonHote: string | null; texte: string }[],
+  gloses: readonly { canonHote: string | null; texte: string; cibleDesNotes?: string }[],
 ): CelluleBilingue[] {
   const rangs = new Map<string | null, number>()
   return gloses.map((glose) => {
@@ -147,6 +161,8 @@ export function cellulesDeGloses(
       texte: glose.texte,
       referenceNative: null,
       glose: { canonHote: glose.canonHote, rang },
+      // Une glose du témoin n'en porte pas : aucune note ne la vise.
+      ...(glose.cibleDesNotes ? { cibleDesNotes: glose.cibleDesNotes } : {}),
     }
   })
 }
@@ -253,10 +269,13 @@ export function repartirIllustrations(
 export type NoteBilingue = BibleEditionDisplayNote & Appartenance
 
 /**
- * Les notes des deux colonnes vont dans une seule série au bas du chapitre :
- * un lecteur qui suit le latin et le français en regard ne doit pas chercher sa
- * note dans deux listes. Une note commune à l'édition n'y figure qu'une fois,
- * et les deux colonnes appellent le même identifiant.
+ * Les notes que la lecture en regard retient : celles de l'édition et celles des
+ * membres présents. Une note commune à l'édition n'y figure qu'une fois, et les deux
+ * colonnes l'appellent sous le même identifiant.
+ *
+ * ⛔ Elles ne s'impriment en série NULLE PART (décision de l'auteur, 13 septembre 2026 :
+ * « il ne faut pas que les notes de bas de page existent ») : chacune ne se lit qu'à son
+ * appel, et `appelsDeLaCellule` garantit qu'elle en a un.
  */
 export function notesDuChapitreBilingue(
   notes: readonly NoteBilingue[],
@@ -284,6 +303,37 @@ export function appelsDuVerset(
   return notes
     .filter((note) => note.canonId === canonId)
     .filter((note) => note.appliesTo === 'family' || note.appliesToMemberId === memberId)
+    .sort((a, b) => a.displayNumber - b.displayNumber || a.id.localeCompare(b.id))
+}
+
+/**
+ * Les appels d'une CELLULE de la lecture en regard.
+ *
+ * ⛔ L'APPEL EST LE SEUL CHEMIN VERS UNE NOTE DE VERSET depuis le 13 septembre 2026 : la
+ * série du bas de chapitre n'existe plus, et une note qu'aucune cellule n'appelle ne se
+ * lirait nulle part. Trois cas, que la série couvrait sans le dire :
+ *  - une cellule qui porte un texte appelle les notes de SON créneau, ou, pour une glose,
+ *    celles de la ligne que ses notes visent (`cibleDesNotes`) ;
+ *  - une cellule VIDE appelle les notes propres à SA langue sur ce créneau : la traduction
+ *    ne porte pas le verset, et sa note dit pourquoi ;
+ *  - une rangée qu'aucune colonne ne porte appelle les notes communes depuis sa PREMIÈRE
+ *    colonne. Partout ailleurs, une note commune est appelée par les colonnes qui portent
+ *    le texte, et par elles seules.
+ */
+export function appelsDeLaCellule(
+  notes: readonly NoteBilingue[],
+  rangee: RangeeBilingue,
+  index: number,
+  memberId: string,
+): NoteBilingue[] {
+  const cellule = rangee.cellules[index]
+  if (cellule) return appelsDuVerset(notes, cellule.cibleDesNotes ?? cellule.canonId, memberId)
+  const personne = rangee.cellules.every((autre) => autre === null)
+  return notes
+    .filter((note) => note.canonId === rangee.canonId)
+    .filter((note) => (note.appliesTo === 'member'
+      ? note.appliesToMemberId === memberId
+      : personne && index === 0))
     .sort((a, b) => a.displayNumber - b.displayNumber || a.id.localeCompare(b.id))
 }
 

@@ -1026,8 +1026,8 @@ const APPARAT_BIBLES: Unite[] = [
   },
   {
     style: 'bible_apparat/note_verset — footnote_only',
-    note: 'La note de bas de page d’un verset. Elle n’est PAS un bloc de corps : son `placement` vaut `footnote_only`, et l’épreuve ci-contre est donc vide dans le fil. Elle s’ouvre en fenêtre au clic de son appel, et se retrouve en série au bas du chapitre.',
-    alerte: '⚠️ Exception de numérotation qui lui est propre : le numéro VISIBLE recommence à chaque chapitre, pour rester lisible, quand l’identifiant interne demeure global et stable. C’est une dérogation assumée à la règle générale de numérotation continue des notes d’œuvre. ⚠️ La série du bas ne disparaît pas pour autant : elle accueille les notes dont la transcription n’a relevé AUCUN point d’appel — 144 des 207 notes internes au 25 août 2026.',
+    note: 'La note d’un verset. Elle n’est PAS un bloc de corps : son `placement` vaut `footnote_only`, et l’épreuve ci-contre est donc vide dans le fil. Elle ne se lit qu’en fenêtre, au clic de son appel : ⛔ il n’y a plus de série de notes au bas du chapitre (décision de l’auteur, 13 septembre 2026).',
+    alerte: '⚠️ Exception de numérotation qui lui est propre : le numéro VISIBLE recommence à chaque chapitre, pour rester lisible, quand l’identifiant interne demeure global et stable. C’est une dérogation assumée à la règle générale de numérotation continue des notes d’œuvre. ⛔ L’appel étant son seul chemin, toute note en garde un : un verset que la traduction ne porte pas paraît en « — » quand il porte une note, une note de glose s’appelle sur sa glose, en regard comme en lecture simple, et l’image qu’une note porte suit sa fenêtre.',
     // ⛔ Aucun bloc à rendre, et c'est le fait lui-même : le type d'un bloc de CORPS
     // n'admet même pas `footnote_only` dans son `placement`. La note de verset ne
     // traverse jamais ce chemin ; elle a le sien, et l'épreuve est donc VIDE.

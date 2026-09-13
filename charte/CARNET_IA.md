@@ -418,3 +418,22 @@ pourtant rien pour Fillion), dépassait alors le délai de 8 s accordé à `auth
 UTC), puis le chargeur `app/lib/ciblesDeGlosesChargement.ts` : la vue n'est plus interrogée
 que pour une famille qui porte TR0013, et son échec ne ferme plus la page. Panne : de
 15 h 18 à 17 h 45 UTC environ.
+
+### 2026-09-13 — Plus de notes au bas du chapitre : ce que la série était seule à montrer
+
+Relevé de l'auteur sur la Bible du XIIIᵉ siècle : « les notes s'affichent en appel de note et bas de page simultanément ; il ne faut pas que les notes de bas de page existent ». La série de notes au bas du chapitre est retirée des deux lectures de la page Bible (charte § 13.7).
+
+**Ce que la base comptait avant le retrait** (famille `bible899-critical-modern-v1` : 9 186 notes de verset, toutes propres au membre TR0013 ; famille Fillion : 11 notes communes).
+
+| | notes | appel en lecture simple | appel en regard |
+|---|---:|---|---|
+| notes de glose (`v_bible_tr0013_gloss_note_targets`) | 242 | oui, sur la ligne de glose | **non** : la cellule portait `cleDeGlose` |
+| notes sur un créneau que TR0013 ne porte pas | 7 | **non** : ligne sans texte cachée | **non** : cellule vide |
+| notes de Fillion | 11 | oui | oui : les deux membres portent tous leurs créneaux |
+| gravures rattachées à une note | 0 sur 431 actifs | sans objet | sans objet |
+
+Les sept : Ac 3, 9 ; 7, 43 ; 7, 56 ; 8, 29 (« aucun verset cible n'a été fabriqué ») ; Gn 6, 8 (élément surnuméraire du témoin) ; Jos 8, 32 et 21, 26 (lacunes canoniques du témoin). Toutes portées par TR0009, aucune couverte par un empan de TR0013. Ces 249 notes ne se lisaient que dans la série.
+
+**Correction.** La cellule d'une glose lue par le canon garde l'UUID de sa ligne (`cibleDesNotes`) ; un verset sans texte qui porte une note paraît en « — » avec son appel, dans les deux lectures ; `rangeesNonVides` garde une rangée annotée ; l'image d'une note suit sa fenêtre (`figuresDeLaNote`).
+
+**Ce qui reste.** L'aparté « Apparat propre à ce bloc » des développements éditoriaux, qui ne double aucun appel : 231 des 1 056 notes de bloc n'ont ni texte d'ancrage ni offset.

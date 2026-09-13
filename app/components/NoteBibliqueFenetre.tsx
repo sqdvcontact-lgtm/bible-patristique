@@ -14,7 +14,7 @@
 // remplace, et sa hauteur SUIT la note qu'on ouvre. Trois copies d'une même forme
 // ne restent identiques que par accident — elles avaient divergé sur neuf points.
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 import {
@@ -32,9 +32,23 @@ import { ancreAppelNoteBible, type BibleEditionDisplayNote } from '@/app/lib/bib
 import { SEUIL_CITATION_SORTIE } from '@/app/lib/citationSortie'
 import BibliographieBible from './BibleBibliographie'
 
-export function ContenuNoteBiblique({ note }: { note: Pick<BibleEditionDisplayNote, 'blocks'> }) {
+/**
+ * Les gravures qu'une note porte, composées par la surface qui l'appelle
+ * (`figuresDeLaNote`, BibleEditionParatext) : avant son texte ce que la donnée place
+ * avant, après le reste. ⚠️ Des NŒUDS, non des données : ce module ne peut pas importer
+ * `IllustrationBible`, dont le module l'importe déjà.
+ */
+export type FiguresDeNote = { avant?: ReactNode; apres?: ReactNode }
+
+export function ContenuNoteBiblique({ note, figures }: {
+  note: Pick<BibleEditionDisplayNote, 'blocks'>
+  /** ⛔ La fenêtre est le SEUL lieu d'une note de verset depuis le 13 septembre 2026 : l'image
+   *  qu'elle porte l'y suit, faute de quoi elle ne paraîtrait nulle part. */
+  figures?: FiguresDeNote
+}) {
   return (
     <>
+      {figures?.avant}
       {note.blocks.map((bloc) => {
         // Une note que la donnée déclare bibliographique se compose en liste,
         // ici comme dans le paratexte : c'est le même genre de texte, il ne
@@ -82,6 +96,7 @@ export function ContenuNoteBiblique({ note }: { note: Pick<BibleEditionDisplayNo
           </p>
         )
       })}
+      {figures?.apres}
     </>
   )
 }
@@ -90,9 +105,12 @@ export default function AppelNoteBiblique({
   note,
   memberId,
   variante = 'corps',
+  figures,
 }: {
   note: Pick<BibleEditionDisplayNote, 'id' | 'displayNumber' | 'blocks'>
   memberId?: string
+  /** Les gravures que la note porte : elles la suivent dans sa fenêtre (`ContenuNoteBiblique`). */
+  figures?: FiguresDeNote
   /** L'appel prend la forme du texte qui l'accueille : un intitulé de paratexte
    *  ne porte pas la teinte brune du corps, qui y ferait une tache. */
   variante?: VarianteAppelNote
@@ -190,7 +208,7 @@ export default function AppelNoteBiblique({
           onFermer={() => setOuvert(false)}
           marque="data-note-biblique"
         >
-          <ContenuNoteBiblique note={note} />
+          <ContenuNoteBiblique note={note} figures={figures} />
         </EncartNote>,
         document.body,
       )}

@@ -1895,8 +1895,9 @@ button:focus-visible,
    688 → 768 px (34,9 rem), fer du texte français et fer de l'appareil confondus
    au pixel ; le paragraphe d'introduction de la Genèse, qui faisait 124 signes
    par ligne sur 52 rem, en fait 90.
-   ⚠️ Un bloc éditorial, une gravure ou la série des notes restent HORS des
-   colonnes, rendus une seule fois : c'est la place, et elle n'a pas bougé.
+   ⚠️ Un bloc éditorial ou une gravure restent HORS des colonnes, rendus une
+   seule fois : c'est la place, et elle n'a pas bougé. Une note de verset, elle,
+   n'a plus de place dans la page : elle ne se lit qu'à son appel (2026-09-13).
    ⚠️ L'enveloppe n'est pas rendue sur mobile (`BibleBilingue`), où les colonnes
    sont empilées à la largeur de l'écran. ⚠️ Une planche hors-texte y déborde
    jusqu'à la mesure de la page (règle plus haut) : c'est la largeur des versets,

@@ -2,12 +2,10 @@ import { Fragment, type CSSProperties, type ReactNode } from 'react'
 
 import { GravureAgrandissable } from './GravureAgrandissable'
 import {
-  ancreAppelNoteBible,
   type BibleEditionDisplayAsset,
   type BibleEditionDisplayBodyBlock,
   type BibleEditionDisplayInlineSpan,
   type BibleEditionDisplayInternalNote,
-  type BibleEditionDisplayNote,
   type BibleEditionDisplayTextBlock,
   type StyleCompositionBloc,
   estHabillable,
@@ -42,7 +40,7 @@ import {
   type BibliographiePiece,
 } from '@/app/lib/bibleBibliographieOuvrages'
 import { intituleDansPiece } from '@/app/lib/bibleSommaireEdition'
-import AppelNoteBiblique from './NoteBibliqueFenetre'
+import AppelNoteBiblique, { type FiguresDeNote } from './NoteBibliqueFenetre'
 import BibliographieBible from './BibleBibliographie'
 import BibliographieOuvrages from './BibliographieOuvrages'
 import DefilementVersAncre from './DefilementVersAncre'
@@ -65,11 +63,6 @@ export type BlocEditorialBiblique = Pick<
  * métadonnée, le paragraphe se compose comme les autres.
  */
 type CompositionParagraphe = StyleCompositionBloc | 'sous-titre'
-
-export type NoteBibliqueAffichable = Pick<
-  BibleEditionDisplayNote,
-  'id' | 'displayNumber' | 'canonId' | 'blocks'
->
 
 export type IllustrationBibliqueAffichable = BibleEditionDisplayAsset
 
@@ -885,59 +878,28 @@ export function BlocEditorialBible({
   return <section {...props}>{contenu}</section>
 }
 
-export function NotesBibleChapitre({
-  notes,
-  illustrationsByNote,
-  ancresRetour,
-}: {
-  notes: NoteBibliqueAffichable[]
-  illustrationsByNote?: Map<string, IllustrationBibliqueAffichable[]>
-  /** Où revient la note quand son appel porte une ancre distinguée par colonne. */
-  ancresRetour?: Map<string, string>
-}) {
-  if (notes.length === 0) return null
-  const ordonnees = [...notes].sort((a, b) => a.displayNumber - b.displayNumber)
-  return (
-    <section
-      aria-labelledby="notes-bible-chapitre"
-      style={{ marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid var(--cs-bord)' }}
-    >
-      <h2 id="notes-bible-chapitre" className="cs-bible-info-label">
-        Notes
-      </h2>
-      <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-        {ordonnees.map((note) => (
-          <li
-            key={note.id}
-            id={`note-bible-${note.id}`}
-            data-canon-id={note.canonId}
-            style={{ display: 'grid', gridTemplateColumns: '2rem minmax(0, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}
-          >
-            <a
-              href={`#${ancresRetour?.get(note.id) ?? ancreAppelNoteBible(note.id)}`}
-              aria-label={`Retour à l’appel de la note ${note.displayNumber}`}
-              style={{ color: 'var(--cs-texte-faible)', textDecoration: 'none', fontSize: '0.625rem', fontWeight: 600, fontFamily: SERIF, textAlign: 'right', paddingTop: '0.2rem' }}
-            >
-              {note.displayNumber}.
-            </a>
-            <div>
-              {rendreIllustrations(
-                (illustrationsByNote?.get(note.id) ?? [])
-                  .filter((illustration) => illustration.placement === 'before'),
-              )}
-              {note.blocks.map((texte) => rendreBlocTexte(
-                texte, undefined, [], undefined, texte.presentationStyle,
-              ))}
-              {rendreIllustrations(
-                (illustrationsByNote?.get(note.id) ?? [])
-                  .filter((illustration) => illustration.placement !== 'before'),
-              )}
-            </div>
-          </li>
-        ))}
-      </ol>
-    </section>
-  )
+/**
+ * Les gravures qu'une NOTE DE VERSET porte, rangées pour sa fenêtre : avant son texte ce
+ * que la donnée place avant, après le reste.
+ *
+ * ⛔ IL N'Y A PLUS DE SÉRIE DE NOTES AU BAS DU CHAPITRE (décision de l'auteur, 13 septembre
+ * 2026 : « il ne faut pas que les notes de bas de page existent »). Une note de verset ne se
+ * lit qu'à son appel, et l'image qu'elle porte l'y suit : la charte veut que l'image d'une
+ * note reste dans sa note. ⚠️ Aucune n'en porte au 13 septembre 2026 (0 actif sur 431) ; sans
+ * ce chemin, la première qu'un import rattacherait à une note ne paraîtrait nulle part.
+ *
+ * ⚠️ Les nœuds se composent ICI et voyagent jusqu'à la fenêtre : `NoteBibliqueFenetre` ne
+ * peut pas importer `IllustrationBible`, ce module l'important déjà.
+ */
+export function figuresDeLaNote(
+  illustrations: readonly IllustrationBibliqueAffichable[] | undefined,
+): FiguresDeNote | undefined {
+  const liste = illustrations ?? []
+  if (liste.length === 0) return undefined
+  return {
+    avant: rendreIllustrations(liste.filter((illustration) => illustration.placement === 'before')),
+    apres: rendreIllustrations(liste.filter((illustration) => illustration.placement !== 'before')),
+  }
 }
 
 /**

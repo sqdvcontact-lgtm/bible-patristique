@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  appelsDeLaCellule,
   appelsDuVerset,
   apparierRangees,
   axeAvecGloses,
@@ -90,6 +91,9 @@ describe('lecture bilingue d’une édition biblique', () => {
     const rangees = apparierRangees(['MRK.1.1', 'MRK.1.2', 'MRK.1.3'], COLONNES)
     expect(rangees).toHaveLength(3)
     expect(rangeesNonVides(rangees).map((r) => r.canonId)).toEqual(['MRK.1.1', 'MRK.1.2'])
+    // ⛔ Sauf si le créneau porte une note : la rangée est le seul chemin vers son appel.
+    expect(rangeesNonVides(rangees, new Set(['MRK.1.3'])).map((r) => r.canonId))
+      .toEqual(['MRK.1.1', 'MRK.1.2', 'MRK.1.3'])
   })
 
   it('rend un bloc commun une seule fois, hors des colonnes', () => {
@@ -123,6 +127,27 @@ describe('lecture bilingue d’une édition biblique', () => {
     expect(appelsDuVerset(notes, 'MRK.1.1', 'la').map((n) => n.id)).toEqual(['n1'])
     expect(appelsDuVerset(notes, 'MRK.1.1', 'fr').map((n) => n.id)).toEqual(['n1', 'n2'])
     expect(appelsDuVerset(notes, 'MRK.1.2', 'fr')).toEqual([])
+  })
+
+  // ⛔ L'APPEL EST LE SEUL CHEMIN VERS UNE NOTE DE VERSET (décision de l'auteur, 13 septembre
+  // 2026) : la série du bas de chapitre montrait aussi les notes qu'aucune cellule n'appelait.
+  it('⛔ appelle la note d’une langue depuis la cellule VIDE de cette langue, et nulle part ailleurs', () => {
+    const rangees = apparierRangees(['MRK.1.1', 'MRK.1.2'], COLONNES)
+    const notes = [
+      { ...note('n5', 5, 'member', 'fr'), canonId: 'MRK.1.2' },
+      { ...note('n6', 6, 'family', null), canonId: 'MRK.1.2' },
+    ]
+    // Le français (colonne 1) ne porte pas le verset 2 : sa note y garde son appel.
+    expect(appelsDeLaCellule(notes, rangees[1], 1, 'fr').map((n) => n.id)).toEqual(['n5'])
+    // La note commune reste appelée par la colonne qui porte le texte, et par elle seule.
+    expect(appelsDeLaCellule(notes, rangees[1], 0, 'la').map((n) => n.id)).toEqual(['n6'])
+  })
+
+  it('appelle une note commune depuis la PREMIÈRE colonne d’une rangée qu’aucune ne porte', () => {
+    const [vide] = apparierRangees(['MRK.1.3'], COLONNES)
+    const notes = [{ ...note('n7', 7, 'family', null), canonId: 'MRK.1.3' }]
+    expect(appelsDeLaCellule(notes, vide, 0, 'la').map((n) => n.id)).toEqual(['n7'])
+    expect(appelsDeLaCellule(notes, vide, 1, 'fr')).toEqual([])
   })
 
   it('n’ouvre la lecture bilingue qu’à partir de deux membres', () => {
@@ -271,5 +296,18 @@ describe('les GLOSES en regard — l’appariement', () => {
   it('⚠️ une glose dont l’hôte manque à l’axe ferme la lecture plutôt que de disparaître', () => {
     const colonne = { cellules: cellulesDeGloses([{ canonHote: 'MRK.2.1', texte: 'égarée' }]) }
     expect(axeAvecGloses([['MRK.1.1']], [colonne])).toEqual(['MRK.1.1', cleDeGlose('MRK.2.1', 1)])
+  })
+
+  it('⛔ appelle la note d’une glose sur la ligne qu’elle vise, non sur sa place dans l’axe', () => {
+    // `retargeterNotesVersGloses` pose la note sur l'UUID de la ligne de glose, que la
+    // cellule garde (`cibleDesNotes`) ; `cleDeGlose` ne désigne aucune ligne.
+    const [moderne] = cellulesDeGloses([{ canonHote: 'LUK.13.1', texte: 'Pilate faisait', cibleDesNotes: 'uuid-glose' }])
+    expect(moderne.cibleDesNotes).toBe('uuid-glose')
+    const [rangee] = apparierRangees([cleDeGlose('LUK.13.1', 1)], [{ membre: FRANCAIS, cellules: [moderne] }])
+    const notes = [{ ...note('g1', 1, 'member', 'fr'), canonId: 'uuid-glose' }]
+    expect(appelsDeLaCellule(notes, rangee, 0, 'fr').map((n) => n.id)).toEqual(['g1'])
+    // Une glose du témoin n'a pas de cible : aucune note ne la vise.
+    const [temoin] = cellulesDeGloses([{ canonHote: 'LUK.13.1', texte: 'Pylates fesoit' }])
+    expect(temoin).not.toHaveProperty('cibleDesNotes')
   })
 })

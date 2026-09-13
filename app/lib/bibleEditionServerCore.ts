@@ -661,11 +661,16 @@ export async function chargerLectureBilingue(
     ])
     const canons: string[] = []
     const cellules: CelluleBilingue[] = []
-    const gloses: { canonHote: string | null; texte: string }[] = []
+    const gloses: { canonHote: string | null; texte: string; cibleDesNotes?: string }[] = []
     for (const ligne of lignes) {
       const texte = ligne[membre.translationId]
       if (ligne._estGloseV2) {
-        if (typeof texte === 'string' && texte.length > 0) gloses.push({ canonHote: ligne._canonHote ?? null, texte })
+        // ⚠️ La glose garde l'UUID de sa ligne : c'est sur lui que `retargeterNotesVersGloses`
+        // pose ses notes, et la cellule ne les appellerait pas sans lui (`appelsDeLaCellule`).
+        // Depuis que la série du bas de chapitre n'existe plus, l'appel est leur seul chemin.
+        if (typeof texte === 'string' && texte.length > 0) {
+          gloses.push({ canonHote: ligne._canonHote ?? null, texte, cibleDesNotes: ligne.id_verset })
+        }
         continue
       }
       canons.push(ligne.id_verset)

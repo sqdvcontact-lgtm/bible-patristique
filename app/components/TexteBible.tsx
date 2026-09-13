@@ -31,7 +31,7 @@ import {
 } from '@/app/lib/densitePatristique'
 import SelecteurTraductionBible from '@/app/components/SelecteurTraductionBible'
 import FlecheChapitre from '@/app/components/FlecheChapitre'
-import { BlocEditorialBible, IllustrationBible, NotesBibleChapitre, PieceLiminaire } from '@/app/components/BibleEditionParatext'
+import { BlocEditorialBible, figuresDeLaNote, IllustrationBible, PieceLiminaire } from '@/app/components/BibleEditionParatext'
 import { estSuiteDuBloc } from '@/app/lib/bibleHierarchieSemantique'
 import AppelNoteBiblique from '@/app/components/NoteBibliqueFenetre'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
@@ -735,7 +735,11 @@ export default function TexteBible({
           {/* On n'affiche QUE les versets réellement portés par cette traduction : une
               édition qui compte moins de versets qu'une autre (Job 25 s'arrête au v. 6
               chez Sacy) ne doit pas laisser des lignes vides à numéro. */}
-          {!chapitreToutLacune && versets.filter(v => estLigne899(v) || v[traduction]).map(v => {
+          {/* ⛔ Un verset que la traduction ne porte pas reste caché, SAUF s'il porte une
+              note : l'appel est le seul chemin vers une note de verset depuis le
+              13 septembre 2026, et la note dit justement pourquoi le verset manque. Il
+              paraît alors en « — », avec son appel. */}
+          {!chapitreToutLacune && versets.filter(v => estLigne899(v) || v[traduction] || notesParCanon.has(v.id_verset)).map(v => {
             const actif = versetSelectionne?.id_verset === v.id_verset
             const ligne899 = estLigne899(v)
             const ligneEditoriale = estLigneEditoriale(v)
@@ -806,7 +810,7 @@ export default function TexteBible({
                       <span style={STYLE_VERSET_VIDE}>—</span>
                     )}
                     {notesDuVerset.map((note) => (
-                      <AppelNoteBiblique key={note.id} note={note} />
+                      <AppelNoteBiblique key={note.id} note={note} figures={figuresDeLaNote(indexIllustrations.byNote.get(note.id))} />
                     ))}
                   </p>
                   {/* ⚠️ SOUS le verset au doigt : la marge droite n'existe pas là, les
@@ -881,12 +885,6 @@ export default function TexteBible({
             )
           })}
           {rendreFluxEditorial(indexBlocs.closing, indexIllustrations.closing)}
-          {surAxeTexte(
-            <NotesBibleChapitre
-              notes={editionChapter?.notes ?? []}
-              illustrationsByNote={indexIllustrations.byNote}
-            />,
-          )}
           </>)}
         </div>
       </div>
