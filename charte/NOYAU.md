@@ -337,6 +337,9 @@
 
 - ⛔ Cette copie ne sert plus la lecture bilingue, qui se compose depuis l’alignement (§ 12.2) : elle n’est plus lue qu’en repli, pour les œuvres dont l’original n’a pas encore de texte propre, et elle s’éteindra avec elles.
 - ⛔ Aucune importation nouvelle ne l’alimente : un texte en langue originale entre comme **texte de l’œuvre**, avec son propre `id_texte`, et c’est l’alignement qui dit la correspondance.
+- ⛔ Le libellé d’un texte se déduit des mêmes langues, et d’elles seules.
+- ⛔ Aucun libellé ne suppose une langue : le latin ne tient jamais lieu de langue inconnue.
+- ⛔ Une version ancienne est une traduction.
 
 **§ 12.2 — Alignement éditorial**
 
@@ -612,6 +615,7 @@
 - ⛔ une reprise brève du texte français commenté, lorsqu’elle reste en prose, se compose en romain entre guillemets français `« … »` ; l’italique ne signale jamais à lui seul la citation ;\n-
 - ⛔ POSITION DE LA RÉFÉRENCE ET DISTINCTION ENTRE LEMME ET CITATION DOCUMENTAIRE.
 - ⛔ On ne fusionne jamais une référence externe et le lemme sous la forme `Référence : « lemme »`, qui ferait croire que l’auteur référencé prononce le texte commenté.
+- ⛔ PETITES CAPITALES DANS LES RÉFÉRENCES.
 - ⛔ RÈGLE ABSOLUE DE STYLE DES CITATIONS.
 - ⛔ GROUPE CITATIONNEL ORIGINAL + TRADUCTION.
 - ⛔ tout mot, syntagme ou courte expression en latin enchâssé dans une phrase française **doit** être en italiques ; les caractères grecs en alphabet grec restent en romain ; les translittérations du grec en alphabet latin sont en italiques ;
@@ -2944,5 +2948,5 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | 35 | Chantier Fillion — la composition du paratexte | 79 344 | 79 | **1.0** |
 | 48 | Le protocole d’océrisation d’une bible | 46 262 | 51 | **1.1** |
 | 37 | La notice d’une traduction — le bandeau et l’e | 8 621 | 10 | **1.2** |
-| 12 | Textes parallèles et alignements sémantiques | 26 706 | 32 | **1.2** |
 | 49 | Les gravures d’une édition biblique | 49 477 | 60 | **1.2** |
+| 12 | Textes parallèles et alignements sémantiques | 28 213 | 35 | **1.2** |
