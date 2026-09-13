@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { AGENTS_IA_REFUSES } from '@/app/lib/robotsIa'
 
 // ── Domaine canonique ────────────────────────────────────────────────────────
 // Le site a deux noms : corpus-scriptura.fr (canonique) et .com (qui y renvoie).
@@ -10,22 +11,12 @@ import { NextResponse, type NextRequest } from 'next/server'
 // Laisser la variable vide désactive la redirection — utile en préproduction.
 const CANONIQUE = process.env.SITE_CANONIQUE?.trim()
 
-// ── Robots d'aspiration / d'entraînement d'IA ────────────────────────────────
-// ⛔ Ceux qui CITENT EN RÉPONDANT n'y sont PAS, et ne doivent pas y revenir :
-// OAI-SearchBot, ChatGPT-User, ClaudeBot, Claude-User, Claude-SearchBot,
-// PerplexityBot et Perplexity-User vont chercher une page pour la donner en
-// source à un lecteur qui pose une question. Les refuser ne protège rien : cela
-// rend seulement le site introuvable depuis les assistants (décision de
-// l'auteur, 2026-09-09). ⚠️ app/robots.ts doit dire EXACTEMENT la même chose —
-// un robots.txt accueillant devant un proxy qui rend 403 est pire que les deux
-// verrous fermés, car rien ne le signale.
-// Ceux qui S'ANNONCENT par leur User-Agent (GPTBot, CCBot…) sont
-// refusés en 403 : première couche, dont l'intérêt majeur est de MATÉRIALISER la
-// réservation « fouille de textes et de données » (opt-out TDM, art. L122-5-3 CPI).
-// N.B. un navigateur ordinaire (y compris un assistant pilotant le navigateur d'un
-// utilisateur connecté) a un UA de navigateur : il n'est jamais concerné. La
-// protection de fond reste le verrou d'authentification ci-dessous.
-const ROBOTS_IA = /(GPTBot|anthropic-ai|Claude-Web|CCBot|Bytespider|Amazonbot|Meta-ExternalAgent|meta-externalfetcher|FacebookBot|Diffbot|Omgilibot|omgili|ImagesiftBot|YouBot|cohere-ai|Timpibot|DataForSeoBot|magpie-crawler|Scrapy)/i
+// ── Robots d'IA ──────────────────────────────────────────────────────────────
+// Ceux qui ENTRAÎNENT et s'annoncent par leur agent sont refusés en 403 : première
+// couche, dont l'intérêt majeur est de MATÉRIALISER la réservation « fouille de
+// textes et de données » (opt-out TDM, art. L122-5-3 CPI). Le motif et sa doctrine
+// vivent dans app/lib/robotsIa.ts, que son test confronte à app/robots.txt.
+// La protection de fond reste le verrou d'authentification ci-dessous.
 
 // ── Verrou de connexion ──────────────────────────────────────────────────────
 // Le site est en test : il n'est ouvert qu'à une seule adresse, et l'inscription
@@ -92,9 +83,9 @@ export async function proxy(request: NextRequest) {
   // 0. Robots d'IA déclarés → 403. On laisse toutefois lire la réservation
   //    elle-même (/.well-known/tdmrep.json), qui n'a de sens que si un robot peut la voir.
   const ua = request.headers.get('user-agent') ?? ''
-  if (ROBOTS_IA.test(ua) && !pathname.startsWith('/.well-known')) {
+  if (AGENTS_IA_REFUSES.test(ua) && !pathname.startsWith('/.well-known')) {
     return new NextResponse(
-      'Extraction automatisée non autorisée. Les droits de fouille de textes et de données (TDM) sont réservés (art. L122-5-3 CPI). Voir /conditions-utilisation.',
+      'Extraction automatisée non autorisée. Les droits de fouille de textes et de données (TDM) sont réservés (art. L122-5-3 CPI). Voir https://corpus-scriptura.fr/conditions-utilisation#robots-ia.',
       { status: 403, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Robots-Tag': 'noai, noindex' } },
     )
   }

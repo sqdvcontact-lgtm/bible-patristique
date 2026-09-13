@@ -24,7 +24,7 @@ export default function ConditionsUtilisationPage() {
         </h1>
 
         <p style={{ fontSize: "0.75rem", color: "var(--cs-texte-doux)", marginBottom: "40px", fontStyle: "italic" }}>
-          Dernière mise à jour : juillet 2026
+          Dernière mise à jour : septembre 2026
         </p>
 
         {/* ⛔ LA PROSE LA PLUS LONGUE DU SITE APRÈS LES ESSAIS, et elle portait
@@ -135,7 +135,23 @@ export default function ConditionsUtilisationPage() {
             </p>
           </Section>
 
-          <Section titre="7. Don et soutien au projet">
+          <Section id="robots-ia" titre="7. Robots et intelligences artificielles">
+            <p>
+              Les moteurs de recherche et les assistants qui consultent une page pour répondre à la
+              question d&rsquo;un utilisateur peuvent lire le site et le citer. L&rsquo;éditeur leur demande
+              de nommer la source, Corpus Scriptura, de donner l&rsquo;adresse de la page consultée et
+              d&rsquo;indiquer le traducteur et l&rsquo;édition qu&rsquo;elle mentionne.
+            </p>
+            <p>
+              La fouille de textes et de données à des fins d&rsquo;entraînement de modèles est
+              expressément réservée, au sens de l&rsquo;article L122-5-3 du Code de la propriété
+              intellectuelle. Cette réserve s&rsquo;exprime aussi par des moyens lisibles par machine :
+              le fichier robots.txt, la déclaration /.well-known/tdmrep.json et une licence au format
+              RSL publiée à l&rsquo;adresse /license.xml.
+            </p>
+          </Section>
+
+          <Section titre="8. Don et soutien au projet">
             <p>
               Le site propose, ou proposera, une fonctionnalité de don ponctuel destinée à couvrir les frais
               d&rsquo;hébergement et de développement du projet. Ces dons sont volontaires, ne constituent la
@@ -144,7 +160,7 @@ export default function ConditionsUtilisationPage() {
             </p>
           </Section>
 
-          <Section titre="8. Données personnelles">
+          <Section titre="9. Données personnelles">
             <p>
               Le traitement des données personnelles des utilisateurs (adresse e-mail, contenus déposés)
               est décrit dans la{' '}
@@ -162,7 +178,7 @@ export default function ConditionsUtilisationPage() {
             </p>
           </Section>
 
-          <Section titre="9. Limitation de responsabilité">
+          <Section titre="10. Limitation de responsabilité">
             <p>
               Corpus Scriptura est le fruit d&rsquo;un travail éditorial collaboratif et bénévole. Si le plus
               grand soin est apporté à l&rsquo;exactitude des textes, des traductions et des liens établis,
@@ -177,7 +193,7 @@ export default function ConditionsUtilisationPage() {
             </p>
           </Section>
 
-          <Section titre="10. Liens vers des sites tiers">
+          <Section titre="11. Liens vers des sites tiers">
             <p>
               Le site peut contenir des liens vers des sites tiers. L&rsquo;éditeur n&rsquo;exerce aucun contrôle sur
               ces sites et décline toute responsabilité quant à leur contenu ou à leurs pratiques en matière
@@ -185,7 +201,7 @@ export default function ConditionsUtilisationPage() {
             </p>
           </Section>
 
-          <Section titre="11. Modification des conditions">
+          <Section titre="12. Modification des conditions">
             <p>
               Les présentes conditions peuvent être modifiées à tout moment, notamment pour se conformer à
               une évolution législative, réglementaire ou pour refléter une nouvelle fonctionnalité du site.
@@ -194,7 +210,7 @@ export default function ConditionsUtilisationPage() {
             </p>
           </Section>
 
-          <Section titre="12. Droit applicable et litiges">
+          <Section titre="13. Droit applicable et litiges">
             <p>
               Les présentes conditions d&rsquo;utilisation sont soumises au droit français. En cas de litige et à
               défaut de résolution amiable, les tribunaux français compétents seront seuls saisis, dans le
@@ -209,9 +225,9 @@ export default function ConditionsUtilisationPage() {
   );
 }
 
-function Section({ titre, children }: { titre: string; children: React.ReactNode }) {
+function Section({ id, titre, children }: { id?: string; titre: string; children: React.ReactNode }) {
   return (
-    <section style={{ marginBottom: "32px" }}>
+    <section id={id} style={{ marginBottom: "32px", scrollMarginTop: "72px" }}>
       <h2 style={{
         fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem",
         fontWeight: "normal", color: "var(--cs-encre)", marginBottom: "10px",

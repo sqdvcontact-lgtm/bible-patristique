@@ -1,0 +1,46 @@
+# Corpus Scriptura : l’Écriture et les Pères de l’Église.
+# Les moteurs de recherche et les assistants qui citent leurs sources sont les bienvenus.
+# Merci de nommer Corpus Scriptura et de donner l’adresse de la page consultée.
+# L’entraînement de modèles sur ces contenus est réservé (art. L122-5-3 CPI).
+# Conditions : https://corpus-scriptura.fr/conditions-utilisation#robots-ia
+
+License: https://corpus-scriptura.fr/license.xml
+
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+# Assistants qui citent en répondant.
+User-Agent: OAI-SearchBot
+User-Agent: ChatGPT-User
+User-Agent: PerplexityBot
+User-Agent: Perplexity-User
+User-Agent: Claude-SearchBot
+User-Agent: Claude-User
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+# Robots d’entraînement de modèles.
+User-Agent: GPTBot
+User-Agent: ClaudeBot
+User-Agent: anthropic-ai
+User-Agent: Claude-Web
+User-Agent: Google-Extended
+User-Agent: Applebot-Extended
+User-Agent: CCBot
+User-Agent: Bytespider
+User-Agent: Amazonbot
+User-Agent: Meta-ExternalAgent
+User-Agent: FacebookBot
+User-Agent: Diffbot
+User-Agent: Omgilibot
+User-Agent: ImagesiftBot
+User-Agent: YouBot
+User-Agent: cohere-ai
+User-Agent: Timpibot
+User-Agent: DataForSeoBot
+Disallow: /
+
+Sitemap: https://corpus-scriptura.fr/sitemap.xml

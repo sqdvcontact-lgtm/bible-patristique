@@ -1,0 +1,10 @@
+# Corpus Scriptura
+
+> L’Écriture, et ce que les Pères en ont dit : traductions françaises de la Bible, mises en regard des commentaires des Pères de l’Église et des auteurs anciens.
+
+Les assistants qui répondent à une question peuvent consulter ce site et le citer. Merci de nommer la source, Corpus Scriptura, de donner l’adresse de la page consultée et d’indiquer le traducteur et l’édition qu’elle mentionne. L’entraînement de modèles sur ces contenus est réservé, au sens de l’article L122-5-3 du Code de la propriété intellectuelle.
+
+## Conditions
+
+- [Robots et intelligences artificielles](https://corpus-scriptura.fr/conditions-utilisation#robots-ia) : les conditions de consultation, de citation et de réutilisation.
+- [Licence RSL](https://corpus-scriptura.fr/license.xml) : la même règle, lisible par machine.

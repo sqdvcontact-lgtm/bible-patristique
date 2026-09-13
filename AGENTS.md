@@ -188,7 +188,9 @@ Ce qui suit a été **audité, chiffré, puis délibérément remis à l'ouvertu
 
 **9. À mesurer après ouverture** : les Core Web Vitals. `PanneauPatristique` fait 1 583 lignes, `BibliothequeClient` 1 845, `Navbar` 1 537 ; le poids du JavaScript n'a jamais été mesuré.
 
-**10. La liste des robots d'IA ne distingue pas deux choses différentes.** Ceux qui **entraînent** (GPTBot, Google-Extended, Applebot-Extended) et ceux qui **citent en répondant** (OAI-SearchBot, PerplexityBot, ClaudeBot). Refuser les seconds rend le site invisible dans ChatGPT, Perplexity et Claude, c'est-à-dire auprès du lecteur qui cherche précisément un verset commenté par Augustin. ✅ Google Search n'est pas touché : bloquer `Google-Extended` n'affecte que l'entraînement, jamais le classement — c'est bien vu, et la même distinction pourrait valoir pour les autres. **Décision éditoriale, non technique** : elle touche à la réservation TDM (charte), donc elle revient à l'auteur.
+**10. La liste des robots d'IA ne distingue pas deux choses différentes.** Ceux qui **entraînent** (GPTBot, ClaudeBot, Google-Extended, Applebot-Extended) et ceux qui **citent en répondant** (OAI-SearchBot, PerplexityBot, Claude-SearchBot). Refuser les seconds rend le site invisible dans ChatGPT, Perplexity et Claude, c'est-à-dire auprès du lecteur qui cherche précisément un verset commenté par Augustin. ✅ Google Search n'est pas touché : bloquer `Google-Extended` n'affecte que Gemini (son entraînement ET l'ancrage de ses réponses), jamais le classement — c'est bien vu, et la même distinction pourrait valoir pour les autres. **Décision éditoriale, non technique** : elle touche à la réservation TDM (charte), donc elle revient à l'auteur. ✅ **Tranchée le 2026-09-09**, et `ClaudeBot` rangé le 2026-09-13 parmi ceux qui entraînent : voir « Un refus de robot a DEUX verrous ».
+
+**11. Une ligne de citation au pied des pages de lecture** (relevé du 2026-09-13) : auteur, œuvre, traducteur et édition, Corpus Scriptura, et un lien vers la page. C'est ce qu'un assistant emporte à coup sûr quand il convertit une page en texte ; les balises et le JSON-LD, eux, disparaissent à la conversion. Inutile avant l'ouverture, puisqu'aucun robot ne franchit le verrou. Places : `TexteBible.tsx`, à la fin de `.cs-lecture-colonne` (le type de ses traductions est à élargir, et `libelleEditionTraduction` fait déjà le libellé d'édition) ; `OeuvreClient.tsx`, avant la fermeture de `<main>` (`noticeDUneOeuvre` puis `fragmentsReference` font la notice) ; `EssaiClient.tsx`, après le corps. Péricope et auteur sont rendues par le navigateur (point 4). ⚠️ Deux règles à accorder d'abord : « jamais d'adresse brute » (le lien porte l'adresse, le texte porte le nom), et les deux formules de mention en présence, « disponible sur le site Corpus Scriptura » (`citation.ts`) contre « disponible sur Corpus Scriptura – corpus-scriptura.fr » (conditions d'utilisation, § 6). Encre `--cs-texte-second` au moins : les petits textes discrets existants sont sous le contraste de 4,5:1.
 
 # Responsive / mise à l'échelle (écrans desktop)
 
@@ -9726,32 +9728,47 @@ justifie rien à lui seul.
 Décision de l'auteur : ouvrir le site aux assistants. Le défaut trouvé en le faisant vaut
 plus que la décision elle-même.
 
-⛔ **`app/robots.ts` n'était que la MOITIÉ du refus.** `proxy.ts` refuse les mêmes robots
-en **403**, sur leur seul nom d'agent, avant toute autre chose. Ouvrir l'un sans l'autre
-donne le pire des deux états : un `robots.txt` qui dit « entrez » devant une porte qui
-rend 403, et **rien ne le signale** — ni type, ni test, ni journal. Un robot poli s'en va
-sans se plaindre. ⚠️ Les deux listes sont désormais tenues d'accord, et chacune renvoie à
-l'autre en commentaire.
+⛔ **`robots.txt` n'est que la MOITIÉ du refus.** `proxy.ts` refuse les mêmes robots en
+**403**, sur leur seul nom d'agent, avant toute autre chose. Ouvrir l'un sans l'autre donne
+le pire des deux états : un `robots.txt` qui dit « entrez » devant une porte qui rend 403, et
+**rien ne le signale**. Depuis le 2026-09-13, le fichier est STATIQUE (`app/robots.txt`, qui
+remplace `app/robots.ts`), le motif du proxy vit dans `app/lib/robotsIa.ts`, et
+`robotsIa.test.ts` confronte les deux : un robot refusé d'un côté et accueilli de l'autre
+fait échouer la suite.
 
 ⛔ **DEUX FAMILLES, ET ON NE LES REFOND PAS EN UNE.** Ceux qui **entraînent** aspirent le
 corpus pour nourrir un modèle : refusés, ce qui vaut réservation TDM (art. L122-5-3 CPI),
-en écho à `/.well-known/tdmrep.json`, que la décision ne touche pas. Ceux qui **citent en
-répondant** vont chercher une page pour la donner en source à un lecteur : ouverts —
-OAI-SearchBot, ChatGPT-User, ClaudeBot, Claude-User, Claude-SearchBot, PerplexityBot,
-Perplexity-User. Les refuser ne protégeait rien : cela rendait seulement le site
-introuvable de qui cherche un verset commenté par Augustin.
+en écho à `/.well-known/tdmrep.json`. Ceux qui **citent en répondant** vont chercher une
+page pour la donner en source à un lecteur : ouverts, soit OAI-SearchBot, ChatGPT-User,
+PerplexityBot, Perplexity-User, Claude-SearchBot et Claude-User. Les refuser ne protégeait
+rien : cela rendait seulement le site introuvable de qui cherche un verset commenté par
+Augustin.
 
-⚠️ **Un groupe nommé REMPLACE entièrement celui de `*`** dans un `robots.txt` : un robot
-de réponse doit donc redire `/api/` et `/admin`, sans quoi il y entrerait quand tout le
-monde s'en abstient. D'où la constante `INTERDITS`, partagée.
+⛔ **`ClaudeBot` ENTRAÎNE (corrigé le 2026-09-13).** Il était ouvert depuis le 2026-09-09 sur
+une description dépassée. La documentation d'Anthropic le dit en toutes lettres : il collecte
+pour l'entraînement, et ceux qui citent sont `Claude-User` et `Claude-SearchBot`. Il est
+refusé dans les deux verrous. Le motif du proxy porte la barre (`ClaudeBot/`) pour ne viser
+que le nom du produit, jamais l'adresse de contact que son agent affiche. ⚠️ Même nœud chez
+Google : `Google-Extended` règle l'entraînement de Gemini ET l'ancrage de ses réponses. Le
+refuser retire le site des sources que cite Gemini, aucun jeton ne sépare les deux usages,
+et le choix revient à l'auteur.
 
-⚠️ **`ClaudeBot` sert chez Anthropic l'exploration ET la recherche** ; il est ouvert avec
-les autres, et se referme d'une ligne si l'on veut s'en tenir aux seuls `Claude-User` et
-`Claude-SearchBot`. ⚠️ Ces deux-là n'étaient déjà bloqués par aucun des deux verrous.
+⚠️ **Un groupe nommé REMPLACE entièrement celui de `*`** dans un `robots.txt` : les robots de
+réponse redisent donc `/api/` et `/admin`, sans quoi ils y entreraient quand tout le monde
+s'en abstient. Plusieurs lignes `User-Agent` partagent un même groupe (RFC 9309).
 
-⚠️ **Contrôle** : éprouver les DEUX sens (les sept passent, les dix-huit restent refusés),
-et qu'un navigateur ordinaire n'est jamais pris pour un robot — la regex du proxy n'est
-pas ancrée.
+**Être cité.** `robots.txt` annonce en tête une licence RSL 1.0 (`public/license.xml` :
+`search ai-index ai-input` permis, `ai-train` interdit, attribution exigée, c'est-à-dire un
+crédit visible et un lien). La section `#robots-ia` des conditions d'utilisation en est la
+version lisible, et `public/llms.txt` la résume pour les agents. ⛔ **Jamais de texte caché
+aux humains ni de contenu servi selon l'agent** : un assistant sérieux le traite en injection
+et le signale à son utilisateur, Google le sanctionne comme texte caché, un lecteur d'écran le
+lit à voix haute, et servir selon l'agent ferait tourner le proxy sur chaque requête.
+
+⚠️ **Contrôle** : `robotsIa.test.ts` éprouve les DEUX sens (les six assistants passent, les
+robots d'entraînement qui s'annoncent sont refusés) et qu'un navigateur ordinaire n'est
+jamais pris pour un robot. En ligne : `curl -A "<agent>"` sur `/contact`, 403 attendu pour
+`ClaudeBot/1.0`, 200 pour `Claude-User/1.0`.
 
 # ⛔ Un déplacement DÉFINITIF se sert en 308 (2026-09-09)
 
