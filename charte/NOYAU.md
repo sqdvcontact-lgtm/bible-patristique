@@ -306,8 +306,15 @@
 - ⛔ Un mot parfaitement lisible mais incompris ou douteux de sens reste en clair dans le texte ; il ne reçoit pas la balise `[lecture incertaine : …]`.
 - ⛔ On ne crée pas `[lacune]` par inférence sémantique, grammaticale ou par comparaison avec une autre Bible.
 - ⛔ On ne « répare » jamais séparément deux fragments qui forment une même séquence matérielle.
-- ⛔ Ne jamais partir du français moderne existant pour « revenir » approximativement au témoin.
-- ⛔ Les formules génériques du type « portion indécidable » ne suffisent pas lorsqu’une explication plus précise est disponible.
+- ⛔ La progression se mesure sur les éléments matériels source distincts effectivement couverts, non sur le nombre de lignes du registre de révision, qui peut différer pour des raisons historiques ou techniques.
+- ⛔ Ne jamais partir du français modernisé existant pour reconstruire approximativement le témoin.
+- ⛔ La révision TR0013 ne corrige jamais TR0009 pour faciliter sa propre clôture.
+- ⛔ On ne répare pas indépendamment deux fragments qui forment une seule séquence matérielle.
+- ⛔ Une difficulté de sens ne reçoit jamais `[lecture incertaine : …]`.
+- ⛔ `OK` est interdit dès que le texte live diffère de l’état initial du registre.
+- ⛔ On ne remplace pas la difficulté par une paraphrase moderne pour obtenir artificiellement zéro réserve.
+- ⛔ Il ne doit jamais être absorbé dans une cible canonique pour simplifier le comptage ou l’affichage.
+- ⛔ Ne jamais présenter le nombre de lignes du registre comme un avancement matériel.
 - ⛔ sauf consigne contraire, on n’imite ni le mètre, ni la rime, ni une compensation métrique.
 - ⛔ Si la mission demande une traduction en prose, la ligne de vers n’est pas recréée.
 - ⛔ ces essais restent expérimentaux, privés et non validés humainement.
@@ -650,10 +657,14 @@
 - ⛔ Un homographe n’est jamais traité mécaniquement : `1 P 2, 13` est une référence à la Première épître de Pierre, non au témoin parisien.
 - ⛔ Dans la couche normalisée d’une note, aucun texte éditorial n’est conservé entre parenthèses.
 - ⛔ Une référence nue n’est jamais une citation : `Rm 8, 28.` ou tout autre bloc qui ne contient qu’une coordonnée scripturaire ne reçoit aucun guillemet ajouté, ni dans la donnée ni au rendu.
+- ⛔ PROTOCOLE — `Cf.` / `cf.` ET PETITES CAPITALES.
 - ⛔ Lorsqu’une note cite une édition identifiable et que sa notice structurée fournit les données éditoriales, la référence visible est complète : auteur, titre exact, responsabilité éditoriale ou traduction pertinente, lieu, éditeur, collection et numéro lorsqu’ils sont connus, date, puis locator.
 - ⛔ Une référence biblique autonome n’est jamais parenthésée dans une note ; la forme normalisée est `Rm 8, 28.`, non `(Rm 8, 28).`.
+- ⛔ PROTOCOLE — AUTEUR, ŒUVRE, ÉDITION ET COÉDITION.
 - ⛔ il n’est jamais saisi à la main dans le texte.
+- ⛔ PROTOCOLE — RESPONSABILITÉS BIBLIOGRAPHIQUES ET RÉEMPLOI DES NOTICES.
 - ⛔ Le contre-audit de clôture vérifie en outre : zéro libellé de type encore écrit dans le corps lorsqu’un `editorial_role` le porte ; zéro coordonnée matérielle source laissée en prose lorsqu’elle est déjà conservée dans les champs structurés et n’a pas d’utilité publique ; zéro œuvre nommée sans relation `texte_note_bloc_ouvrages` lorsqu’elle est identifiable ; zéro jeton manuel `[Éditions]` ; zéro bloc de référence…
+- ⛔ PROTOCOLE — ZÉRO NOTE INVISIBLE FAUTE D’ANCRE.
 - ⛔ Le modèle fusionné `Référence : « lemme »` est interdit.
 - ⛔ COMPTE RENDU OBLIGATOIRE APRÈS CHAQUE PASSE GLOBALE.
 - ⛔ LA PRUDENCE FINALE EST ASYMÉTRIQUE  — typographie, déploiement et référencement peuvent être fortement normalisés ; contenu, autorité, attribution et information philologique ne se modifient qu’avec preuve.
@@ -2949,4 +2960,4 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | 48 | Le protocole d’océrisation d’une bible | 46 262 | 51 | **1.1** |
 | 37 | La notice d’une traduction — le bandeau et l’e | 8 621 | 10 | **1.2** |
 | 49 | Les gravures d’une édition biblique | 49 477 | 60 | **1.2** |
-| 12 | Textes parallèles et alignements sémantiques | 28 213 | 35 | **1.2** |
+| 12 | Textes parallèles et alignements sémantiques | 28 416 | 35 | **1.2** |
