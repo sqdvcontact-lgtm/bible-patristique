@@ -3494,6 +3494,15 @@ main.lecture-entree [data-cs-bloc],
    iOS du § LE DOIGT, et pour la même raison. */
 .cs-encart-propos > :last-child { margin-bottom: 0 !important; }
 
+/* ⛔ ET LE PROPOS D'UNE ŒUVRE EST ENVELOPPÉ (relevé du 2026-09-13). `ContenuNoteStructuree`
+   rend ses blocs dans UNE boîte : la règle ci-dessus atteignait l'enveloppe, qui ne porte
+   aucun blanc, et laissait au dernier bloc ses 0,375 rem. Mesuré sur la planche des notes,
+   six pixels à la racine 16 et huit à 22 sous la dernière ligne de chaque note d'une œuvre,
+   que l'estimation ne comptait plus : la boîte défilait d'autant, et la dernière ligne se
+   posait sur le filet. ⚠️ Ce second niveau ne vise que l'enveloppe UNIQUE (`:only-child`) :
+   une liste bibliographique ou une citation sortie gardent leurs derniers-nés. */
+.cs-encart-propos > :only-child > :last-child { margin-bottom: 0 !important; }
+
 /* ── UNE NOTE ÉPINGLÉE LE DIT ────────────────────────────────────────────────
    Un encart s'ouvre au survol et se FIXE au clic, et rien ne distinguait les deux
    états que l'apparition de la croix. Ce qui les distinguait vraiment était un

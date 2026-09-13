@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { MARGE_FENETRE } from './fenetreContextuelle'
 import {
   CORPS_ENCART,
+  BLANC_APRES_NUMERO,
   INTERLIGNE_ENCART,
   HAUTEUR_ENCART_MAX_REM,
   LARGEUR_ENCART,
@@ -106,6 +107,9 @@ describe('la hauteur que l’encart demanderait', () => {
   // Le 10 au soir, la note passée au SANS et descendue d'un rang (0,71875 rem), sa chasse
   // remesurée à 0,44 em, et le blanc mort retiré sous sa dernière ligne : 47 · 113 · 81
   // sont devenus **40 · 88 · 58**, soit de quinze à vingt-huit pour cent de moins.
+  // Le 13 septembre, le blanc intérieur porté à 0,875/1 rem et la première ligne comptée
+  // avec ce que le numéro et la croix lui prennent : 40 · 88 · 58 sont devenus **46 · 93 ·
+  // 64**, estimés 46 · 110 · 80, mesurés sur `tmp/planche-notes-2026-09-13.tsx`.
   // Une demande périmée ne rendrait pas le test faux, elle le rendrait MOU — il passerait
   // sur une boîte deux fois trop haute sans rien dire.
   // ⚠️ Les trois demandes sont la hauteur RÉELLE de la boîte, mesurée sur le module même
@@ -122,9 +126,9 @@ describe('la hauteur que l’encart demanderait', () => {
   // en sans passait un plancher ET un plafond d'une ligne les yeux fermés.
   it.each([
     //                                                signes  intitulé  réelle  estimée
-    ['la médiane du corpus, 29 signes',                   29,   false,     40,     40],
-    ['une note moyenne, 340 signes',                     340,   false,     88,     88],
-    ['un apparat critique de 90 signes, avec intitulé',    90,    true,     58,     74],
+    ['la médiane du corpus, 29 signes',                   29,   false,     46,     46],
+    ['une note moyenne, 340 signes',                     340,   false,     93,    110],
+    ['un apparat critique de 90 signes, avec intitulé',    90,    true,     64,     80],
   ])('couvre %s', (_nom, signes, avecIntitule, reelle, attendue) => {
     const estimee = haut(signes as number, 16, avecIntitule as boolean)
     // ⛔ Ce que le module CALCULE, au pixel : toute dérive du corps, de l'interligne, du
@@ -218,7 +222,11 @@ describe('le numéro de la note', () => {
   // développement de vingt.
   it('flotte quand il est seul, et le propos l’habille', () => {
     expect(STYLE_NUMERO_SEUL.float).toBe('left')
-    expect(STYLE_NUMERO_SEUL.width).toBeTruthy()
+    // ⛔ Sans gouttière (2026-09-13) : il épouse ses chiffres, suivi d'un blanc de mot dit
+    // en em du propos, dont il porte le strut.
+    expect(STYLE_NUMERO_SEUL.width).toBeUndefined()
+    expect(STYLE_NUMERO_SEUL.paddingRight).toBe(BLANC_APRES_NUMERO)
+    expect(BLANC_APRES_NUMERO).toMatch(/em$/)
   })
 
   // ⛔ ET IL NE FLOTTE PLUS QUAND LA NOTE DÉCLARE UN TYPE (relevé de l'auteur,
@@ -488,6 +496,16 @@ describe('le blanc mort sous la dernière ligne', () => {
     expect(regle).toContain('margin-bottom: 0')
     // ⛔ Sans le point d'exclamation, elle ne retire RIEN : les trois composants posent
     // ce blanc en style en ligne, qui bat toute règle de feuille.
+    expect(regle).toContain('!important')
+  })
+
+  // ⛔ ET LE SECOND NIVEAU, pour le propos d'une œuvre, que `ContenuNoteStructuree` enveloppe
+  // dans une seule boîte : sans lui, le dernier bloc garde ses 0,375 rem (mesuré le
+  // 2026-09-13, six pixels à la racine 16, que l'estimation ne comptait plus).
+  it('retire aussi le blanc du dernier bloc sous l’enveloppe unique d’une œuvre', () => {
+    const regle = feuille.match(/.cs-encart-propos > :only-child > :last-child {[^}]*}/)?.[0]
+    expect(regle).toBeDefined()
+    expect(regle).toContain('margin-bottom: 0')
     expect(regle).toContain('!important')
   })
 

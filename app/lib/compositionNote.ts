@@ -23,10 +23,9 @@
  * de l'édition. C'est la règle déjà posée ailleurs — on n'explique pas ce qui
  * s'écrit déjà.
  *
- * ⚠️ Ce qui identifie la note ne disparaît pas pour autant : le NUMÉRO passe dans
- * une gouttière, au fer à droite contre le texte, comme le numéro d'un verset sur
- * la page Bible et comme le chiffre d'une note au bas d'une page imprimée. Il est
- * là quand l'intitulé n'y est pas, et il coûte une gouttière au lieu d'une ligne.
+ * ⚠️ Ce qui identifie la note ne disparaît pas pour autant : le NUMÉRO reste, en tête
+ * du propos, comme le chiffre d'une note au bas d'une page imprimée. Il est là quand
+ * l'intitulé n'y est pas, et il ne coûte qu'un blanc de mot (`BLANC_APRES_NUMERO`).
  *
  * ⛔ LA LARGEUR NE SUIT PAS LE CONTENU, et c'est délibéré. Une boîte qui épouserait
  * ses 13 signes changerait de taille à chaque appel survolé, et la lecture d'une
@@ -100,29 +99,31 @@ export function largeurEncartMinPx(racine: number): number {
   return LARGEUR_ENCART_MIN_REM * racine
 }
 
-/** La gouttière du numéro.
+/** Le blanc qui SUIT le numéro quand il pend.
  *
- *  ⛔ LE CHIFFRE S'Y RANGE AU FER À GAUCHE, contre le bord du blanc intérieur, et non
- *  plus au fer à droite contre le texte (demande de l'auteur, 2026-09-08 : « supprime
- *  l'alinéa avant le numéro de note »). Le fer à droite est la règle du site pour un
- *  chiffre qui accompagne un TEXTE SUIVI — un numéro de verset dans une colonne de
- *  lecture —, où il aligne cinquante repères les uns sous les autres. Ici il n'y en a
- *  qu'un, en tête d'un objet : à droite d'une gouttière fixe, un numéro à un ou deux
- *  signes s'écartait du bord de deux à sept dixièmes de rem, et l'encart s'ouvrait sur
- *  un alinéa que rien ne justifiait. La gouttière se resserre du même coup. */
-export const GOUTTIERE_NUMERO = '1.75rem'
+ *  ⛔ LE NUMÉRO N'A PLUS DE GOUTTIÈRE, il épouse ses chiffres (demande de l'auteur,
+ *  2026-09-13 : « alinéa après le numéro de note trop important »). Rangé dans 1,75 rem
+ *  suivi d'un demi-rem de blanc, un « 1 » ouvrait la note sur deux rem et quart de vide,
+ *  et la seconde ligne, qui reprend la mesure entière, repartait au bord : la note
+ *  paraissait commencer deux fois. Le chiffre est désormais suivi d'un blanc de mot un
+ *  peu appuyé, comme le chiffre d'une note au bas d'une page imprimée.
+ *  ⚠️ En `em` DU PROPOS, dont le flottant porte le strut : le blanc suit le corps de la
+ *  note, non la police racine.
+ *  ⛔ Le fer à GAUCHE demeure (2026-09-08, « supprime l'alinéa avant le numéro de note »). */
+export const BLANC_APRES_NUMERO = '0.5em'
 
-/** Le blanc intérieur. ⚠️ Resserré une seconde fois le 2026-09-10 (« condense le texte
- *  selon mes recommandations ») : 0,875/1 rem → 0,6875/0,8125.
+/** Le blanc intérieur.
  *
- *  ⛔ ET IL EST SYMÉTRIQUE, ce qu'il n'était plus : le corps portait en outre un
- *  `paddingRight` de 2,25 rem pour réserver la place de la croix, sur TOUTE la hauteur
- *  de la note. Une note de dix lignes payait donc onze pixels de piste à droite pour un
- *  bouton qui n'occupe que la première — et son texte, décalé, ne paraissait pas centré
- *  dans sa boîte. La réserve est devenue un FLOTTANT (`STYLE_RESERVE_CROIX`), qui ne
- *  raccourcit que la ligne où la croix se tient : c'est le procédé du numéro. */
-export const REMBOURRAGE_LATERAL_REM = 0.8125
-export const REMBOURRAGE_ENCART = `0.6875rem ${REMBOURRAGE_LATERAL_REM}rem`
+ *  ⛔ RENDU PLUS AMPLE LE 2026-09-13 (« donner des marges plus propres et nobles à
+ *  l'ouverture de la note ») : 0,6875/0,8125 rem → 0,875/1 rem. La condensation du
+ *  2026-09-10 avait retiré deux blancs MORTS, la queue du dernier bloc et la réserve de la
+ *  croix sur toute la hauteur, et ceux-là restent retirés ; mais elle avait aussi resserré
+ *  la MARGE, et c'est elle qui faisait paraître la note à l'étroit dans sa boîte.
+ *
+ *  ⛔ IL RESTE SYMÉTRIQUE : la place de la croix se réserve par un FLOTTANT
+ *  (`STYLE_RESERVE_CROIX`), qui ne raccourcit que la ligne où la croix se tient. */
+export const REMBOURRAGE_LATERAL_REM = 1
+export const REMBOURRAGE_ENCART = `0.875rem ${REMBOURRAGE_LATERAL_REM}rem`
 
 /** La place que la croix prend sur la PREMIÈRE ligne, et sur elle seule.
  *  ⚠️ Elle est POSÉE toujours, croix montrée ou non : la géométrie d'un encart ne
@@ -454,6 +455,19 @@ const FILETS_ENCART_PX = 2
 const CHASSE_MOYENNE_EM = 0.44
 
 /**
+ * CE QUE LA PREMIÈRE LIGNE CÈDE à ce qui l'habille, en signes : la réserve de la croix, le
+ * numéro qui pend, trois chiffres au plus dans leur face de 0,625 rem et comptés pour un
+ * rem, et le blanc qui le suit.
+ *
+ * ⛔ L'estimation comptait la première ligne aussi longue que les autres. ⚠️ Seule la
+ * note SANS intitulé paie le numéro sur sa première ligne : avec une tête, la croix se
+ * tient sur la tête et le propos commence à la mesure entière.
+ */
+const SIGNES_PREMIERE_LIGNE =
+  (Number.parseFloat(RESERVE_CROIX) + 1 + Number.parseFloat(BLANC_APRES_NUMERO) * Number.parseFloat(CORPS_ENCART))
+  / (CHASSE_MOYENNE_EM * Number.parseFloat(CORPS_ENCART))
+
+/**
  * COMBIEN DE SIGNES TIENNENT SUR UNE LIGNE, à la largeur où l'encart se compose.
  *
  * ⛔ C'ÉTAIT UNE CONSTANTE, ET ELLE MENTAIT DÈS QUE L'ENCART SE RESSERRAIT. Elle valait
@@ -514,7 +528,9 @@ export function hauteurSouhaiteeNote(
   },
 ): number {
   const parLigne = signesParLigne(largeur ?? LARGEUR_ENCART_REM * racine, racine)
-  const lignes = Math.max(1, Math.ceil(Math.max(0, signes) / parLigne)) + Math.max(0, lignesForcees)
+  // ⚠️ Sans intitulé, le propos partage sa première ligne avec le numéro et la croix.
+  const cedes = avecIntitule ? 0 : SIGNES_PREMIERE_LIGNE
+  const lignes = Math.max(1, Math.ceil((Math.max(0, signes) + cedes) / parLigne)) + Math.max(0, lignesForcees)
   const enRem = lignes * LIGNE_ENCART_REM
     // ⚠️ Les blancs qui SÉPARENT les blocs : n blocs en portent n − 1.
     + Math.max(0, blocs - 1) * MARGE_PARAGRAPHE_ENCART_REM
@@ -689,7 +705,7 @@ export function styleCorpsEncart(signes: number): CSSProperties {
  * à le lui demander.
  *
  * ⚠️ Il prend la face du numéro de verset de la page Bible — sans, graisse 600,
- * encre faible. ⛔ MAIS PAS SON FER À DROITE : voir `GOUTTIERE_NUMERO`. Un numéro de
+ * encre faible. ⛔ MAIS PAS SON FER À DROITE : voir `BLANC_APRES_NUMERO`. Un numéro de
  * verset s'aligne à droite parce qu'il en a cinquante sous lui ; celui-ci est seul, en
  * tête d'un objet, et le fer à droite n'y produisait qu'un alinéa.
  */
@@ -714,9 +730,8 @@ const FACE_NUMERO: CSSProperties = {
  */
 export const STYLE_NUMERO_SEUL: CSSProperties = {
   float: 'left',
-  width: GOUTTIERE_NUMERO,
   textAlign: 'left',
-  paddingRight: '0.5rem',
+  paddingRight: BLANC_APRES_NUMERO,
   userSelect: 'none',
   // ⛔ IL EMPRUNTE LE STRUT DU PROPOS — sa police, son corps, son interligne — et le
   // chiffre s'y pose EN LIGNE (`STYLE_FACE_NUMERO`). Lui donner la seule HAUTEUR d'une

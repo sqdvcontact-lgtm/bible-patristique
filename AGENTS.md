@@ -3523,6 +3523,16 @@ code :
 - ⛔ `STYLE_NUMERO_SEUL` porte `float: left`, et `STYLE_GRILLE_ENCART` n'existe plus.
   Rangé dans une colonne de grille, le numéro réservait ses 2,25 rem sur TOUTE la hauteur
   de la note — dix-neuf lignes de blanc à gauche d'un développement de vingt.
+- ⛔ **Et il n'a plus de GOUTTIÈRE** (2026-09-13, « alinéa après le numéro de note trop
+  important ») : `GOUTTIERE_NUMERO` a disparu, le flottant épouse ses chiffres et
+  `BLANC_APRES_NUMERO` (0,5 em du propos) le sépare du texte. Le même jour, la planche
+  `tmp/planche-notes-2026-09-13.tsx` a montré deux défauts que la condensation cachait :
+  l'estimation ignorait ce que la première ligne cède au numéro et à la croix (désormais
+  `SIGNES_PREMIERE_LIGNE`), et le dernier bloc d'une note d'œuvre, enveloppé par
+  `ContenuNoteStructuree`, gardait son blanc de queue (désormais
+  `.cs-encart-propos > :only-child > :last-child`). La note 1 de la préface de *La Cité de
+  Dieu* recevait 55 px pour en demander 84 à la racine 22 : sa seconde ligne se posait sur
+  le filet.
 - ⛔ **MAIS IL NE FLOTTE QUE SEUL** (relevé de l'auteur, 2026-09-10 : « revois les
   alignements, notamment du numéro de note et du type de note »). Dès que la note déclare
   un type, il entre dans la TÊTE (`STYLE_NUMERO_TETE`, `STYLE_TETE_ENCART`) et cesse de
