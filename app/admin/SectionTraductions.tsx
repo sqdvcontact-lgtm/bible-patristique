@@ -303,6 +303,11 @@ const BOUTON: React.CSSProperties = {
  *  fait lire trois groupes au lieu de neuf boutons en file. */
 const ECART_FAMILLE: React.CSSProperties = { width: '9px', flexShrink: 0 }
 
+// Les colonnes de l'identité d'une fiche : nom, dates, identifiant, import. Leurs largeurs
+// sont FIXES, pour que les fiches s'alignent comme les lignes d'un tableau ; seul le nom
+// cède quand la fenêtre se resserre.
+const COLONNES_IDENTITE = 'minmax(0, 18rem) 6.5rem 5rem 7.5rem'
+
 const labelStyle: React.CSSProperties = { fontSize: '0.71875rem', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', display: 'block', marginBottom: '4px' }
 
 // Editeur rich-text
@@ -1155,21 +1160,26 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 TR_FR_1870_1873_BARREAU_… contre six pour TR0001 —, ils décalaient les
                 boutons d'une ligne à l'autre, et rien n'y était plus aligné. Ce qui DIT
                 la ligne se range avec son nom ; ce qui AGIT se range à droite. */}
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap', flex: '1 1 auto' }}>
-              <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: 'var(--cs-encre)' }}>{t.nom}</span>
-              {t.dates && <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', whiteSpace: 'nowrap' }}>{formaterDateHistorique(t.dates)}</span>}
-              {!t.est_biblique && (
-                <span title="Notice d’une traduction patristique : elle ne paraît dans aucun sélecteur de traduction biblique, ni sur la page publique."
-                  style={{ fontSize: '0.625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-or)', border: '1px solid var(--cs-or-doux)', borderRadius: '4px', padding: '1px 6px', whiteSpace: 'nowrap' }}>
-                  patristique
-                </span>
-              )}
-              <code style={{ fontSize: '0.6875rem', background: 'var(--cs-fond-doux)', padding: '1px 5px', borderRadius: '4px', color: 'var(--cs-texte-second)' }}>{t.trad_id}</code>
-              {t.import_maj_le && (
-                <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
-                  import · {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                </span>
-              )}
+            {/* Les colonnes de l'identité ont une largeur FIXE (`COLONNES_IDENTITE`) : d'une fiche
+                à l'autre, dates, identifiant et import tombent l'un sous l'autre, et la rangée
+                d'actions commence au même endroit (2026-09-13). */}
+            <div style={{ display: 'grid', gridTemplateColumns: COLONNES_IDENTITE, columnGap: '12px', alignItems: 'baseline', flex: '0 1 auto', minWidth: 0 }}>
+              <span style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px 8px', minWidth: 0 }}>
+                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: 'var(--cs-encre)' }}>{t.nom}</span>
+                {!t.est_biblique && (
+                  <span title="Notice d’une traduction patristique : elle ne paraît dans aucun sélecteur de traduction biblique, ni sur la page publique."
+                    style={{ fontSize: '0.625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-or)', border: '1px solid var(--cs-or-doux)', borderRadius: '4px', padding: '1px 6px', whiteSpace: 'nowrap' }}>
+                    patristique
+                  </span>
+                )}
+              </span>
+              <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', whiteSpace: 'nowrap' }}>{t.dates ? formaterDateHistorique(t.dates) : ''}</span>
+              <code style={{ justifySelf: 'start', fontSize: '0.6875rem', background: 'var(--cs-fond-doux)', padding: '1px 5px', borderRadius: '4px', color: 'var(--cs-texte-second)', overflowWrap: 'anywhere' }}>{t.trad_id}</code>
+              {/* L'import se dit au jour près ; l'heure reste dans la bulle. */}
+              <span title={t.import_maj_le ? `Dernier import des versets : ${new Date(t.import_maj_le).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' })}` : undefined}
+                style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+                {t.import_maj_le ? `import · ${new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}
+              </span>
             </div>
 
             {/* ⛔ AUCUN message d'état ne s'intercale entre les boutons. « Envoi… »,
