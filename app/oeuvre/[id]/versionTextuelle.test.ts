@@ -1,5 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { decomposerEdition, identiteEdition, intituleEdition, labelCourtVersion, libelleTraducteurVersion } from './versionTextuelle'
+import { decomposerEdition, identiteEdition, intituleEdition, labelCourtVersion, libelleTraducteurVersion, libelleVersionComplet } from './versionTextuelle'
+
+// La Doctrine des Apôtres porte trois textes : le grec, le français de Laurent et le latin
+// de Funk. Une traduction qui n'est pas française se nomme par sa langue (2026-09-13).
+describe('libellé d’une version dans le choix d’édition', () => {
+  it('dit la langue d’une traduction qui n’est pas française', () => {
+    expect(libelleVersionComplet({ traducteur: 'Franz Xaver Funk', titre: 'Doctrina duodecim apostolorum', anneeEdition: 1887, langue: 'Latin' }))
+      .toBe('Traduction latine par Franz Xaver Funk, 1887')
+    expect(libelleVersionComplet({ traducteur: 'Auguste Laurent', titre: 'Doctrine des Apôtres', anneeEdition: 1907, langue: 'Français' }))
+      .toBe('Traduction par Auguste Laurent, 1907')
+    // Sans langue connue, rien n'est supposé.
+    expect(libelleVersionComplet({ traducteur: 'Auguste Laurent', titre: 'Doctrine des Apôtres', anneeEdition: 1907 }))
+      .toBe('Traduction par Auguste Laurent, 1907')
+    // Un texte original n'a pas de traducteur : son titre de version le désigne.
+    expect(libelleVersionComplet({ traducteur: null, titre: 'Texte grec', anneeEdition: 1887, langue: 'Grec' }))
+      .toBe('Texte grec, 1887')
+  })
+})
 
 describe('métadonnées du texte actif', () => {
   it('sépare une mention d’édition de la publication sans identifiant spécifique', () => {

@@ -45,6 +45,7 @@
 
 import { choisirEnsembleBilingue, type EnsembleAlignement } from './bilingueAlignement'
 import { etatValidation, rangValidation } from '@/app/lib/etatsPublication'
+import { memeLangue } from '@/app/lib/langues'
 
 /** Ce qu'il faut savoir d'une version pour la choisir — et rien de plus. Le libellé,
  *  la mention d'édition et la notice ne servent qu'à l'afficher. */
@@ -78,13 +79,10 @@ function replier(valeur: string | null | undefined): string {
     .trim()
 }
 
-/** Deux langues sont la même, accents et casse ignorés : les fiches écrivent « Grec »
- *  ici et « grec » là. Une langue absente ne s'accorde avec rien. */
-export function memeLangue(a: string | null | undefined, b: string | null | undefined): boolean {
-  const gauche = replier(a)
-  const droite = replier(b)
-  return gauche.length > 0 && gauche === droite
-}
+/** Deux langues sont la même, accents et casse ignorés. ⚠️ La règle vit désormais dans
+ *  `app/lib/langues.ts`, avec les libellés qui en dépendent : la bibliothèque et la
+ *  recherche rapide reconnaissent l'original comme la page le reconnaît. */
+export { memeLangue }
 
 /**
  * Un texte EN LANGUE ORIGINALE : pas de traducteur, et la langue de l'œuvre.

@@ -13,7 +13,7 @@
 // jamais une suite d'abréviations.
 
 import { libelleTrad } from './traducteurs'
-import { libelleTexteOriginal } from './langues'
+import { estFrancais, libelleTexteOriginal, libelleTraductionEnLangue, preciserLangueTraduction } from './langues'
 import { normaliserNomEditeur, type IndexEditeurs } from './editeursNormalisation'
 import { adresseEdition } from './adresseEdition'
 
@@ -30,14 +30,25 @@ export type EditionOeuvre = {
 
 const vide = (s: string | null | undefined) => !(s ?? '').trim()
 
-/** Qui répond du texte qu'on va lire : son traducteur, ou — pour une édition en langue
- *  originale, qui n'en a pas — la langue elle-même. Le libellé de langue est celui de
- *  l'étagère (`libelleTexteOriginal`) : les deux se lisent dans la même liste. */
+/** Ce qui désigne une édition SANS traducteur nommé : sa langue, et rien d'autre.
+ *  L'original se dit « Texte original grec » (`langue_trad` vide, l'édition originale se
+ *  reconnaissant aux langues) ; une traduction dans une autre langue que le français,
+ *  « Traduction latine ». Une traduction française anonyme n'a rien à dire de sa langue :
+ *  son adresse la désigne.
+ *
+ *  ⛔ La bibliothèque et la recherche rapide lisent CE libellé. La Doctrina apostolorum,
+ *  traduction latine d'un original grec, s'y donnait pour un « Texte original latin »
+ *  (relevé de l'auteur, 2026-09-13) : c'est la fiche qui dit les langues, et le libellé
+ *  les suit sans en supposer aucune. */
+export function libelleLangueEdition(o: Pick<EditionOeuvre, 'langue_trad' | 'langue_originale'>): string {
+  if (vide(o.langue_trad)) return vide(o.langue_originale) ? '' : libelleTexteOriginal(o.langue_originale)
+  return estFrancais(o.langue_trad) ? '' : libelleTraductionEnLangue(o.langue_trad)
+}
+
+/** Qui répond du texte qu'on va lire : son traducteur, dont la langue se précise quand ce
+ *  n'est pas le français, ou à défaut la langue elle-même (`libelleLangueEdition`). */
 function responsabilite(o: EditionOeuvre): string {
-  const trad = libelleTrad(o.trad_auteur)
-  if (trad) return trad
-  // Pas de traducteur ET pas de langue de traduction : c'est le texte original.
-  return vide(o.langue_trad) && !vide(o.langue_originale) ? libelleTexteOriginal(o.langue_originale) : ''
+  return preciserLangueTraduction(libelleTrad(o.trad_auteur), o.langue_trad) || libelleLangueEdition(o)
 }
 
 /** Où, chez qui, quand — l'ADRESSE de l'édition, dans l'ordre de la charte (§ 5) et

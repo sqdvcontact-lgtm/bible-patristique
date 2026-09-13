@@ -37,7 +37,9 @@ import HistoricalDate from '@/app/components/HistoricalDate'
 import { chargerAuteursParOeuvre, grouperOeuvresParAuteur, libelleAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
-import { libelleLangue, libelleTexteOriginal } from '@/app/lib/langues'
+import { libelleLangue, libelleTexteOriginal, preciserLangueTraduction } from '@/app/lib/langues'
+import { libelleLangueEdition } from '@/app/lib/editionOeuvre'
+import { ORIGINAUX_VIDES, composerOriginauxDisponibles, traductionAvecOriginal, type OriginauxDisponibles } from '@/app/lib/originauxDisponibles'
 import { FAMILLES_TRADITION, famillesDesTraditions } from '@/app/lib/traditions'
 
 type Oeuvre = {
@@ -443,18 +445,20 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                     const datePublication = o.date_publication_affichage_courte
                     const aEdition = !!(editionTexte || datePublication)
                     const edition = <>{editionTexte}{editionTexte && datePublication ? SEPARATEUR_ADRESSE : null}{datePublication && <span title={o.date_publication_precision_affichage ?? undefined}><HistoricalDate value={datePublication} variant="short" /></span>}</>
-                    const trad = o.trad_auteur ? libelleTrad(o.trad_auteur) : ''
-                    // Une édition en LANGUE ORIGINALE (langue_trad vide, langue_originale
-                    // renseignée) n'a pas de traducteur à nommer : c'est sa langue qui la
-                    // désigne, comme dans les menus de lecture de la page d'œuvre. Sans
-                    // cela, l'œuvre latine autonome ne se donnait que par son éditeur, et
-                    // rien ne disait qu'on allait lire du latin. Le libellé est CELUI de la
-                    // sous-ligne de texte original ci-dessous : les deux se suivent dans la
-                    // même liste et mènent à la même sorte de lecture ; ils s'appelaient
-                    // « Texte latin » d'un côté, « Texte original latin » de l'autre.
-                    const langueSeule = !(o.langue_trad && o.langue_trad.trim()) && !!(o.langue_originale && o.langue_originale.trim())
-                      ? libelleTexteOriginal(o.langue_originale)
-                      : ''
+                    // Le traducteur, et la langue de sa traduction quand ce n'est pas le
+                    // français : « Traduction latine par Franz Xaver Funk ».
+                    const trad = o.trad_auteur ? preciserLangueTraduction(libelleTrad(o.trad_auteur), o.langue_trad) : ''
+                    // Sans traducteur nommé, c'est la LANGUE qui désigne l'édition, comme dans
+                    // les menus de lecture de la page d'œuvre : « Texte original latin » pour
+                    // une édition en langue originale (langue_trad vide), « Traduction latine »
+                    // pour une traduction dans une autre langue que le français. Sans cela,
+                    // l'œuvre latine autonome ne se donnait que par son éditeur. Le libellé de
+                    // l'original est CELUI de la sous-ligne ci-dessous : les deux se suivent
+                    // dans la même liste et mènent à la même sorte de lecture.
+                    // ⛔ La Doctrina apostolorum, traduction latine d'un original grec, se
+                    // donnait ici pour le « Texte original latin » des Douze Apôtres (relevé
+                    // de l'auteur, 2026-09-13) : le libellé suit la fiche, sans défaut.
+                    const langueSeule = libelleLangueEdition(o)
                     const libelle = trad || langueSeule || (aEdition ? edition : 'Édition')
                     // Texte original parallèle (latin/grec) disponible pour cette édition :
                     // on propose une sous-ligne menant à l'œuvre en mode « texte original ».
@@ -1842,14 +1846,25 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   const [onglet, setOnglet] = useState<Onglet>('bibliotheque')
   const { favoris: favorisOeuvres, pret: favorisPret, toggle: toggleFavoriOeuvre } = useFavoris('oeuvre')
 
-  // Œuvres qui disposent d'un texte original parallèle (latin/grec), lisible dans la
-  // page de l'œuvre. Sert à proposer le texte original dans la liste des œuvres.
-  const [originaux, setOriginaux] = useState<Set<string>>(new Set())
+  // Œuvres qui offrent aussi leur texte original, lisible dans la page de l'œuvre. Sert à
+  // proposer le texte original sous la traduction, dans la liste des œuvres.
+  // ⛔ L'ORIGINAL SE RECONNAÎT À SES TEXTES, pas à la seule colonne héritée : la vue
+  // `v_oeuvres_texte_original` ne voit que `segments.texte_original`, et le grec de la
+  // Doctrine des Apôtres, texte à part entière, n'était proposé nulle part (relevé du
+  // 2026-09-13). La règle est celle de la page d'œuvre (`originauxDisponibles`).
+  const [sourcesOriginaux, setSourcesOriginaux] = useState<OriginauxDisponibles>(ORIGINAUX_VIDES)
   useEffect(() => {
-    supabase.from('v_oeuvres_texte_original').select('id_oeuvre').then(({ data }) => {
-      if (data) setOriginaux(new Set((data as { id_oeuvre: string }[]).map(r => r.id_oeuvre)))
+    Promise.all([
+      supabase.from('v_oeuvres_texte_original').select('id_oeuvre'),
+      supabase.from('oeuvre_textes').select('id_oeuvre, langue, traducteur, statut'),
+    ]).then(([repli, textes]) => {
+      if (repli.error || textes.error) console.warn('[bibliotheque] textes originaux incomplets', repli.error ?? textes.error)
+      setSourcesOriginaux(composerOriginauxDisponibles(repli.data ?? [], textes.data ?? []))
     })
   }, [])
+  const originaux = useMemo(() => new Set(auteurs.flatMap(auteur => auteur.oeuvres
+    .filter(oeuvre => traductionAvecOriginal(oeuvre, sourcesOriginaux))
+    .map(oeuvre => oeuvre.id_oeuvre))), [auteurs, sourcesOriginaux])
 
   useEffect(() => {
     const version = imageVersionAuteur()

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ligneEdition } from './editionOeuvre'
+import { libelleLangueEdition, ligneEdition } from './editionOeuvre'
 import { construireIndexEditeurs } from './editeursNormalisation'
 
 // Les deux éditions de « La Cité de Dieu » servies par le site : c'est le cas qui a
@@ -38,6 +38,22 @@ describe('ligne d’édition d’une œuvre', () => {
     expect(ligneEdition({ langue_originale: 'Grec' })).toBe('Texte original grec')
     // Une traduction dont le traducteur n'est pas connu ne devient pas « texte original ».
     expect(ligneEdition({ langue_trad: 'Français', langue_originale: 'Latin', date: '1649' })).toBe('1649')
+  })
+
+  // La Doctrina apostolorum se donnait pour le « Texte original latin » des Douze Apôtres,
+  // quand elle est la traduction latine d'un original grec (relevé de l'auteur, 2026-09-13).
+  it('nomme par sa langue une traduction qui n’est pas française', () => {
+    const doctrina = { langue_trad: 'Latin', langue_originale: 'Grec', date: '1900' }
+    expect(ligneEdition(doctrina)).toBe('Traduction latine, 1900')
+    expect(libelleLangueEdition(doctrina)).toBe('Traduction latine')
+    // Un traducteur nommé garde son nom, et la langue de sa traduction s'y ajoute.
+    expect(ligneEdition({ trad_auteur: 'Franz Xaver Funk', langue_trad: 'Latin', langue_originale: 'Grec' }))
+      .toBe('Traduction latine par Franz Xaver Funk')
+    // Le français, langue du site, ne se dit pas.
+    expect(libelleLangueEdition({ langue_trad: 'Français', langue_originale: 'Grec' })).toBe('')
+    // L'original se dit original, dans SA langue ; sans langue, rien.
+    expect(libelleLangueEdition({ langue_trad: null, langue_originale: 'Grec' })).toBe('Texte original grec')
+    expect(libelleLangueEdition({ langue_trad: null, langue_originale: null })).toBe('')
   })
 
   it('rend l’éditeur sous son nom répertorié quand il l’est', () => {

@@ -36,3 +36,72 @@ export function libelleTexteOriginal(langue: string | null | undefined): string 
   const nom = (langue ?? '').trim().toLocaleLowerCase('fr-FR')
   return nom ? `Texte original ${nom}` : 'Texte original'
 }
+
+// ── Le rôle d'un texte se lit sur ses LANGUES ─────────────────────────────────
+//
+// ⛔ AUCUNE LANGUE PAR DÉFAUT. Un texte est l'ORIGINAL quand sa langue est celle de
+// l'œuvre et qu'il n'a pas de traducteur ; tout autre texte est une TRADUCTION, et sa
+// langue la nomme dès qu'elle n'est pas le français : « Traduction latine ». Relevé
+// par l'auteur le 13 septembre 2026 : la Doctrina apostolorum, traduction latine d'un
+// original grec, se donnait dans la bibliothèque pour le « Texte original latin » des
+// Douze Apôtres, et plusieurs libellés du site tenaient le latin pour la langue de tout
+// original qu'ils ne savaient pas nommer.
+
+function replierLangue(valeur: string | null | undefined): string {
+  return (valeur ?? '')
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim()
+}
+
+/** Deux langues sont la même, accents et casse ignorés : les fiches écrivent « Grec »
+ *  ici et « grec » là. Une langue absente ne s'accorde avec rien. */
+export function memeLangue(a: string | null | undefined, b: string | null | undefined): boolean {
+  const gauche = replierLangue(a)
+  return gauche.length > 0 && gauche === replierLangue(b)
+}
+
+/** Le français est la langue du site : une traduction française ne se désigne pas par
+ *  sa langue, que presque toutes les lignes porteraient. */
+export function estFrancais(langue: string | null | undefined): boolean {
+  return replierLangue(langue) === 'francais'
+}
+
+/** L'adjectif qui qualifie une TRADUCTION, au féminin. La table tient les langues du
+ *  corpus et de ses voisines ; une langue qu'elle ignore se dit par son nom. */
+const TRADUCTION_EN: Record<string, string> = {
+  latin: 'latine',
+  grec: 'grecque',
+  francais: 'française',
+  syriaque: 'syriaque',
+  copte: 'copte',
+  armenien: 'arménienne',
+  georgien: 'géorgienne',
+  ethiopien: 'éthiopienne',
+  arabe: 'arabe',
+  hebreu: 'hébraïque',
+  slavon: 'slavonne',
+  allemand: 'allemande',
+  anglais: 'anglaise',
+  italien: 'italienne',
+  espagnol: 'espagnole',
+}
+
+/** « Traduction latine », « Traduction grecque » ; « Traduction en tokharien » pour une
+ *  langue que la table ne connaît pas ; rien sans langue. Seul le premier mot décide de
+ *  l'adjectif : « grec ancien » fait une traduction grecque. */
+export function libelleTraductionEnLangue(langue: string | null | undefined): string {
+  const nom = (langue ?? '').trim()
+  if (!nom) return ''
+  const adjectif = TRADUCTION_EN[replierLangue(nom).split(/[\s(;,]+/u)[0]]
+  return adjectif ? `Traduction ${adjectif}` : `Traduction en ${nom.toLocaleLowerCase('fr-FR')}`
+}
+
+/** La langue d'une traduction entre dans son libellé quand ce n'est pas le français :
+ *  « Traduction par Franz Xaver Funk » devient « Traduction latine par Franz Xaver
+ *  Funk ». Un libellé qui ne s'ouvre pas sur « Traduction » reste tel quel. */
+export function preciserLangueTraduction(libelle: string, langue: string | null | undefined): string {
+  if (!libelle || !(langue ?? '').trim() || estFrancais(langue)) return libelle
+  return libelle.replace(/^Traduction(?=[\s:])/u, libelleTraductionEnLangue(langue))
+}

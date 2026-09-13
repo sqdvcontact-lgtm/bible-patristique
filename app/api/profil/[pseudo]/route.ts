@@ -166,9 +166,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
           const oeuvre = oeuvreMap[id]
           if (!oeuvre) return null
           // Le texte original se nomme par sa langue : deux favoris d’une même œuvre,
-          // la traduction et son latin, doivent se distinguer dans la liste.
+          // la traduction et son original, doivent se distinguer dans la liste.
+          // ⛔ La langue est celle de la fiche, sans défaut : tout ce qui n’était pas grec
+          // s’y annonçait « latin » (relevé du 13 septembre 2026).
           const original = estRefOriginal(f.ref_id)
-          const langue = /grec/i.test(oeuvre.langueOriginale ?? '') ? 'grec' : 'latin'
+          const langue = (oeuvre.langueOriginale ?? '').trim().toLocaleLowerCase('fr-FR') || 'original'
           return {
             id,
             mt: original ? ('la' as const) : undefined,

@@ -30,6 +30,7 @@ import { niveauxAlinea, retraitVers, ouvreStrophe, mesureAlinea, marqueStrophe, 
 import { CLE_NUMERO_VERSET, NATURE_VERSET, estBlocVersets, numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { NATURE_EXERGUE, RAPPORT_CORPS_EXERGUE, RETRAIT_EXERGUE, estBlocExergue } from '@/app/lib/compositionExergue'
 import { cesurerLatin } from '@/app/lib/cesuresLatines'
+import { cesurerGrec, codeLangue as codeDeLangue } from '@/app/lib/grec'
 import {
   // La projection qui ne faillit pas : une ancre hors du texte est laissée de côté
   // et dite à la console, le segment se lit (2026-09-05).
@@ -235,14 +236,17 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
   mobile: boolean
   langue: string | null
 }) {
-  // Le latin en regard du français se distingue par la police, comme en lecture
+  // Une colonne qui n'est pas française se distingue par la police, comme en lecture
   // bilingue ; deux traductions françaises restent l'une et l'autre en sérif.
   const originale = estColonneOriginale(langue)
   const police = originale ? POLICE_ORIGINALE : STYLE_TEXTE_PARALLELE.fontFamily
-  const codeLangue = originale ? 'la' : 'fr'
-  // Aucun navigateur ne sait couper le latin : sans césures posées, une colonne
+  // ⛔ Sa langue et ses césures se lisent sur la DONNÉE (relevé du 2026-09-13) : toute
+  // colonne non française se déclarait « la » et se coupait en syllabes latines, le grec
+  // de la Doctrine des Apôtres compris.
+  const codeLangue = originale ? codeDeLangue(langue) : 'fr'
+  // Aucun navigateur ne sait couper le latin ni le grec : sans césures posées, une colonne
   // aussi étroite se creuse de blancs à chaque ligne justifiée.
-  const composer = originale ? cesurerLatin : (t: string) => t
+  const composer = codeLangue === 'grc' ? cesurerGrec : codeLangue === 'la' ? cesurerLatin : (t: string) => t
   const ordonnes = membres.map(membre => segments.get(membre.segment_key)).filter(Boolean) as SegmentComparaison[]
   if (ordonnes.length === 0) {
     return <p style={{ margin: 0, fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>{vide}</p>

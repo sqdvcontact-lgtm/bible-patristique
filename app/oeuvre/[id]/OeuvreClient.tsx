@@ -2474,16 +2474,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // originale du bilingue. Sans quoi le corps se déclarait « fr » et « hyphens: auto »
   // coupait le latin avec le dictionnaire français, faute que le navigateur en ait un
   // pour ces langues — c'est justement pourquoi nous posons les césures nous-mêmes.
-  const langueCorps = couranteEstOriginale ? codeLangue(oeuvre.langue_originale) : 'fr'
-  const composerCorps = (texte: string) => !couranteEstOriginale ? texte
-    : estGrec ? cesurerGrec(texte) : cesurerLatin(normaliserEspacesOriginal(texte))
+  // ⛔ LA LANGUE DU CORPS EST CELLE DU TEXTE LU, et non « l'original, sinon le français ».
+  // Une traduction latine lue pour elle-même (Funk, sous la Doctrine des Apôtres) se
+  // déclarait « fr », et « hyphens: auto » la coupait au dictionnaire français.
+  const langueCorps = codeLangue(versionActive?.langue ?? (couranteEstOriginale ? oeuvre.langue_originale : null))
+  const composerCorps = (texte: string) => langueCorps === 'grc' ? cesurerGrec(texte)
+    : langueCorps === 'la' ? cesurerLatin(normaliserEspacesOriginal(texte)) : texte
   const editionsTraduction = versions.filter(v => !estEditionOriginale(v))
   const editionsOriginal = versions.filter(estEditionOriginale)
-  const langueOrigLabel = editionsOriginal[0]?.langue_originale || oeuvre.langue_originale || 'Latin'
-  const origEstGrec = /grec/i.test(langueOrigLabel)
-  const labelOrigMenu = origEstGrec ? 'Grec' : 'Latin'
-  const labelBilingueMenu = origEstGrec ? 'Français & Grec' : 'Français & Latin'
+  // ⛔ AUCUNE LANGUE PAR DÉFAUT DANS LE CHOIX DE LECTURE (relevé de l'auteur, 2026-09-13).
+  // Les libellés se lisent sur les TEXTES : la langue de l'original retenu, celle de la
+  // traduction que vise le premier mode. Le latin tenait lieu de langue inconnue, et le
+  // premier mode se disait « Français » même quand il menait au latin de Funk.
+  const langueOriginaleLue = versionOriginale?.langue || editionsOriginal[0]?.langue_originale || oeuvre.langue_originale || null
+  const labelOrigMenu = libelleLangue(langueOriginaleLue) || 'Texte original'
   const editionFrRef = (!couranteEstOriginale && editionCourante) ? editionCourante : (editionsTraduction[0] ?? null)
+  const labelTraductionMenu = libelleLangue(versionTraduite?.langue || editionFrRef?.langue_trad) || 'Français'
+  const labelBilingueMenu = `${labelTraductionMenu} & ${libelleLangue(langueOriginaleLue) || 'original'}`
   const editionOrigRef = (couranteEstOriginale && editionCourante) ? editionCourante : (editionsOriginal[0] ?? null)
   const aOriginalQuelconque = aTexteOriginal || editionsOriginal.length > 0 || couranteEstOriginale || !!versionOriginale
   // Deux textes d'une même œuvre se rejoignent par `?texte=`, deux œuvres sœurs par
@@ -2531,7 +2538,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const cibleBilingueTexte = versionOriginale ? (paireDeLecture.traductionBilingue?.idTexte ?? null) : null
   if (aOriginalQuelconque && cibleFrOeuvre) {
     const surFr = !couranteEstOriginale && (versionOriginale ? true : idOeuvre === editionFrRef?.id_oeuvre)
-    modesLecture.push({ cle: 'fr', label: 'Français', cibleOeuvre: cibleFrOeuvre, cibleTexte: cibleFrTexte, cibleMt: 'fr',
+    modesLecture.push({ cle: 'fr', label: labelTraductionMenu, cibleOeuvre: cibleFrOeuvre, cibleTexte: cibleFrTexte, cibleMt: 'fr',
       actif: surFr && modeTexteEffectif === 'fr' })
     // ⛔ Le mode ne s'offre que si quelque chose peut réellement paraître en regard :
     // un ensemble d'alignement, ou le repli `segments.texte_original`. « Un original
@@ -2559,7 +2566,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // sans lui l’étoile posée sur le latin rangeait de nouveau la traduction.
   const favoriEstOriginal = surTexteOriginal || (!couranteEstOriginale && modeTexteEffectif === 'la')
   const refFavori = favoriEstOriginal ? refFavoriOriginal(idOeuvre) : idOeuvre
-  const nomFavori = favoriEstOriginal ? `le texte ${estGrec ? 'grec' : 'latin'}` : null
+  // La langue du texte qu'on range, telle que sa fiche la porte. Sans défaut : tout ce
+  // qui n'était pas grec se rangeait sous « le texte latin ».
+  const nomFavori = favoriEstOriginal ? `le texte ${(langueOriginaleLue ?? '').trim().toLocaleLowerCase('fr-FR') || 'original'}` : null
   // ⛔ UNE SEULE LISTE ORDONNÉE, et les DEUX formes en dérivent : la rangée d'icônes
   // quand la place y est, le menu ⋮ quand elle manque. Écrire les boutons à part
   // dupliquerait libellés, glyphes et gestes — c'est ce que la charte refuse au menu,
@@ -2593,7 +2602,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       annee: v.date_publication ? formaterDateHistorique(v.date_publication) : null,
     })
     if (estEditionOriginale(v)) {
-      const lang = /grec/i.test(v.langue_originale || '') ? 'Grec' : 'Latin'
+      // La langue telle que la fiche la porte, sans défaut : tout ce qui n'était pas grec
+      // s'y disait « Latin ».
+      const lang = libelleLangue(v.langue_originale) || 'Texte original'
       return [lang, edit && `édition ${edit}`].filter(Boolean).join(' — ')
     }
     const trad = v.trad_auteur ? libelleTrad(v.trad_auteur) : (v.langue_trad || 'Français')

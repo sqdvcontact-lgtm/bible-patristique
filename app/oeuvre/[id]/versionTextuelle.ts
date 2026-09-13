@@ -2,6 +2,7 @@ import type { VersionTextuelle } from './oeuvreTypes'
 import { adresseEdition } from '@/app/lib/adresseEdition'
 import { memeIntitule } from '@/app/lib/titres'
 import { estTraductionMachine, libelleTrad } from '@/app/lib/traducteurs'
+import { preciserLangueTraduction } from '@/app/lib/langues'
 import {
   editeursDuSegment,
   estVilleConnue,
@@ -71,9 +72,11 @@ export function labelCourtVersion(version: Pick<VersionTextuelle, 'traducteur' |
  *  Une version en langue originale n'a pas de traducteur à nommer : c'est son titre
  *  de version qui la désigne, « Texte latin ». */
 export function libelleVersionComplet(
-  version: Pick<VersionTextuelle, 'traducteur' | 'titre' | 'anneeEdition'>,
+  version: Pick<VersionTextuelle, 'traducteur' | 'titre' | 'anneeEdition'> & { langue?: string | null },
 ): string {
-  const tete = libelleTrad(version.traducteur) || version.titre?.trim() || 'Édition'
+  // La langue d'une traduction se dit quand ce n'est pas le français : « Traduction
+  // latine par Franz Xaver Funk », à côté du grec et du français de la même œuvre.
+  const tete = preciserLangueTraduction(libelleTrad(version.traducteur), version.langue) || version.titre?.trim() || 'Édition'
   // Le millésime seul : la rubrique du menu annonce déjà des éditions, et « édition
   // de 1646 » sous « Éditions de ce texte » redisait le mot pour rien.
   const annee = version.anneeEdition ? String(version.anneeEdition) : null

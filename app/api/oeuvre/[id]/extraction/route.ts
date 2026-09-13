@@ -312,6 +312,7 @@ export async function GET(requete: NextRequest, contexte: { params: Promise<{ id
           titre: texteActif.titre_version || texteActif.id_texte,
           traducteur: texteActif.traducteur,
           anneeEdition: texteActif.annee_edition,
+          langue: texteActif.langue,
         })
         : null,
       division: options.division,
