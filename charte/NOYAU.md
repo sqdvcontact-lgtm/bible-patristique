@@ -608,6 +608,7 @@
 
 - ⛔ CHAQUE NOTE SUBIT UN CONTRÔLE ORTHOGRAPHIQUE ET TYPOGRAPHIQUE INTÉGRAL.
 - ⛔ UNE COUPURE ÉDITORIALE DANS UNE CITATION SE MARQUE `[…]`.
+- ⛔ AUCUN TEXTE ÉDITORIAL D’UNE NOTE NE SE COMPOSE ENTRE PARENTHÈSES.
 - ⛔ une reprise brève du texte français commenté, lorsqu’elle reste en prose, se compose en romain entre guillemets français `« … »` ; l’italique ne signale jamais à lui seul la citation ;\n-
 - ⛔ POSITION DE LA RÉFÉRENCE ET DISTINCTION ENTRE LEMME ET CITATION DOCUMENTAIRE.
 - ⛔ On ne fusionne jamais une référence externe et le lemme sous la forme `Référence : « lemme »`, qui ferait croire que l’auteur référencé prononce le texte commenté.
@@ -621,6 +622,7 @@
 
 **§ 13.16.5 — Références bibliques, patristiques et bibliographiques**
 
+- ⛔ Dans une note, une référence biblique autonome n’est jamais entourée de parenthèses : écrire `Rm 8, 28.`, non `(Rm 8, 28).`.
 - ⛔ Toute œuvre patristique ou non rencontrée dans une note est recherchée dans la bibliographie globale.
 
 **§ 13.16.6 — Fidélité au témoin, corrections, réserves et `[sic]`**
@@ -642,9 +644,10 @@
 - ⛔ UN SIGLE DE TÉMOIN DÉFINI DANS « INFORMATIONS COMPLÉMENTAIRES » RESTE UN SIGLE DANS LES NOTES DE L’ÉDITION.
 - ⚠️ Cette concision suppose une clé publique, non ambiguë et propre à la version active : un sigle non défini est explicité ou la rubrique est complétée avant publication, et la convention d’une autre édition n’est jamais importée par repli.
 - ⛔ Un homographe n’est jamais traité mécaniquement : `1 P 2, 13` est une référence à la Première épître de Pierre, non au témoin parisien.
-- ⛔ Une parenthèse intégrée à la phrase n’ouvre pas une seconde phrase artificielle : écrire `usage (voir …).`, non `usage. (Voir ….)`.
-- ⛔ Une référence nue n’est jamais une citation : `(Rm 8, 28)` ou tout autre bloc qui ne contient qu’une coordonnée scripturaire ne reçoit aucun guillemet ajouté, ni dans la donnée ni au rendu.
+- ⛔ Dans la couche normalisée d’une note, aucun texte éditorial n’est conservé entre parenthèses.
+- ⛔ Une référence nue n’est jamais une citation : `Rm 8, 28.` ou tout autre bloc qui ne contient qu’une coordonnée scripturaire ne reçoit aucun guillemet ajouté, ni dans la donnée ni au rendu.
 - ⛔ Lorsqu’une note cite une édition identifiable et que sa notice structurée fournit les données éditoriales, la référence visible est complète : auteur, titre exact, responsabilité éditoriale ou traduction pertinente, lieu, éditeur, collection et numéro lorsqu’ils sont connus, date, puis locator.
+- ⛔ Une référence biblique autonome n’est jamais parenthésée dans une note ; la forme normalisée est `Rm 8, 28.`, non `(Rm 8, 28).`.
 - ⛔ il n’est jamais saisi à la main dans le texte.
 - ⛔ Le contre-audit de clôture vérifie en outre : zéro libellé de type encore écrit dans le corps lorsqu’un `editorial_role` le porte ; zéro coordonnée matérielle source laissée en prose lorsqu’elle est déjà conservée dans les champs structurés et n’a pas d’utilité publique ; zéro œuvre nommée sans relation `texte_note_bloc_ouvrages` lorsqu’elle est identifiable ; zéro jeton manuel `[Éditions]` ; zéro bloc de référence…
 - ⛔ Le modèle fusionné `Référence : « lemme »` est interdit.
@@ -1311,6 +1314,19 @@
 - ⛔ Un nom qui ne paraît que dans le texte libre d’une notice, sans fiche ni ligne de contributeur, est SIGNALÉ et non créé.
 - ⚠️ Un renvoi vers `auteurs` NOMME, il n’évalue pas : il n’entre pas dans le calcul de la valeur scientifique, et rattacher une ligne ne change donc aucun statut.
 - ⚠️ Rattacher une ligne dont le nom diffère de celui du registre inscrit ce nom parmi les variantes de la fiche : c’est exactement ce qu’est une variante, la forme sous laquelle on rencontre la personne.
+
+## § 30. Suivi de l'avancement — le centre de contrôle
+
+**§ 30.1 — Journal des missions**
+
+- ⛔ Une liste de tâches ne se réécrit jamais à l'aveugle.
+- ⛔ Une liste ne se tronque jamais non plus : au-delà d'une borne, l'écriture est refusée, et rien ne s'écrit.
+
+**§ 30.2 — Une mission à la fois, et l'état du contrôle à part**
+
+- ⛔ Le centre de contrôle se lit mission par mission.
+- ⛔ La liste des missions vient de la base, jamais d'une énumération écrite dans une page.
+- ⚠️ Le centre ne s'ouvre pas sur l'état du contrôle v2 — qui est une vue à part du même volet : son contrat recalcule à chaque appel toute la file des postcontrôles de liens, et une panne de ce calcul ne doit pas fermer les missions.
 
 ## § 31. Atelier La Gueule — contrôle, correction et validation ciblée
 

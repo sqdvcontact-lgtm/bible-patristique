@@ -3155,11 +3155,30 @@ Règle (charte §3.1-3.2, étendue au 2026-08-06) : on harmonise la langue origi
 
 # Centre de contrôle admin — toujours regarder où l'on en est
 
-⛔ **Avant toute séance de travail sur le corpus, consulter le centre de contrôle** (charte `parametres.charte_ia` **§30**). Page admin dédiée **`/admin/controle`** (`app/admin/controle/page.tsx`, Server Component gardé par `estAdmin()`, client service_role), liée depuis le menu « Administration » de la navbar (première entrée « Centre de contrôle », famille corpus). Six sections : Corpus, Qualité du texte, Catalogue, Péricopes, Bibliographie, Chronologie. Chacune : chiffres réels + barre d'avancement + note de synthèse + liste de tâches (à faire / fait).
+⛔ **Avant toute séance de travail sur le corpus, consulter le centre de contrôle** (charte `parametres.charte_ia` **§30**). Page admin dédiée **`/admin/controle`** (`app/admin/controle/`, Server Components gardés par `estAdmin()`, client service_role), liée depuis le menu « Administration » de la navbar (première entrée « Centre de contrôle », famille corpus). Une mission par ligne de `controle_sections`, plus le fac-similé Bible 899 (quatorze au 2026-09-13), et une vue à part pour l'état du contrôle v2. Chaque mission : note de synthèse + liste de tâches (à faire / fait) + ses chiffres réels et sa barre d'avancement quand elle en porte. Elles se lisent une à une : voir « Le centre de contrôle se lit MISSION PAR MISSION », juste en dessous.
 
 - **Chiffres** : une seule RPC **`controle_tableau_bord()`** (SECURITY DEFINER, `search_path=public`, EXECUTE réservé au `service_role`) renvoie un `jsonb` de tous les compteurs, en direct. **Exception qualité** : `seg_bon/moyen/critique/total` sont lus sur la vue matérialisée `oeuvres_controle_stats_mat` (la vue en direct coûte ~10,5 s) ; recalcul à la demande via `rafraichir_controle_stats()`, date affichée (`controle_stats_meta.calcule_le`). Le total qualité doit coïncider avec `seg_controle_total` (segments `nature='texte'`) : si un écart apparaît, la matérialisée est périmée → la rafraîchir.
 - **Notes et tâches** : table **`controle_sections`** (`cle` PK, `titre`, `ordre`, `commentaire_ia`, `todos` jsonb `[{texte, fait}]`, `maj_le`). RLS : lecture `authenticated` + `is_admin()` ; écriture par l'assistant (service_role). **Après une avancée notable, mettre à jour la note et cocher les tâches** de la section concernée, pour que la page reste fidèle à l'état réel.
 - **Nombre de traductions bibliques lisibles** : via `codesTraductionsLecture()` (mêmes règles que l'accueil), jamais le simple `count(*)` de `traductions` (qui compte aussi les non matérialisées comme TR0009).
+
+## ⛔ Le centre de contrôle se lit MISSION PAR MISSION (2026-09-13)
+
+L'écran unique chargeait tout d'un coup : le contrat `controle_v2_admin_snapshot()`, le tableau `controle_tableau_bord()`, puis la note et les tâches de toutes les sections, dont « Qualité du texte » porte à elle seule 865 tâches et une note de 113 000 signes. Le 2026-09-13, le contrat a mis **23,7 s pour un délai de 8** (voir « LE CONTRAT DU CONTRÔLE V2 NE RÉPOND PLUS », plus bas), et la page entière n'affichait plus que « Le contrôle v2 n'a pas répondu », missions comprises. Demande de l'utilisateur : une mission à la fois, et un volet-sommaire à gauche qui porte l'intitulé de chacune.
+
+| Adresse | Ce qu'elle charge |
+|---|---|
+| `/admin/controle` | rien : redirige vers la première mission (vers `systeme` s'il n'y en a aucune) |
+| `/admin/controle/[mission]` | la ligne de `controle_sections` de cette clé, et ses chiffres si elle en porte |
+| `/admin/controle/systeme` | l'état du contrôle v2, seul |
+| `/admin/controle/statistiques` | rien : 308 vers le centre, ses anciennes cartes vivant désormais mission par mission |
+
+- **Le layout** (`layout.tsx`) garde l'accès et ne lit que `cle, titre, ordre` pour le volet (`VoletControle.tsx`, client : `useSelectedLayoutSegment` désigne la mission ouverte, `prefetch={false}` pour qu'aucune mission ne se calcule avant qu'on l'ouvre). ⛔ Un layout ne se re-rend pas à la navigation, et les pages se rendent en parallèle de lui : **chaque page refait la garde** (`estAdminDeLaRequete`, dédoublée par `cache()` dans la requête).
+- ⛔ **La liste des missions vient de `controle_sections`, jamais d'une énumération en dur.** `composerMissions` (`missions.ts`, pur, testé) trie par `ordre` puis par titre. Seul ce que la base ne porte pas se déclare dans le code, dans `OUTILS_DU_CONTROLE` : le fac-similé Bible 899, sans note ni tâches, rangé à l'ordre 6,5. Tant que les cartes étaient écrites à la main, `eusebe` et `espace_lecteur` ne paraissaient nulle part. ⚠️ `systeme` et `statistiques` sont des clés RÉSERVÉES (`CLES_RESERVEES`) : une section qui les prendrait serait masquée par la route statique du même nom, on l'écarte donc du volet.
+- **Les chiffres d'une mission** (`MatiereMission.tsx`) attendent dans un `Suspense` : la note et les tâches paraissent sans eux, et une mission qui n'en porte pas ne lance pas le calcul. `chargerTableauBord()` (`chargementsControle.ts`) garde le tableau **cinq minutes** en mémoire du serveur, pour qu'on passe d'une mission à l'autre sans recompter le corpus, et oublie aussitôt un échec ; la vue dit l'heure du calcul.
+- **L'état du contrôle v2** (`systeme/`) garde sa panne pour lui (`PanneChargement`, avec « Réessayer »). ⛔ Ne pas le remettre sur l'écran d'ouverture tant que son contrat dépasse le délai.
+- ⚠️ **La redirection passe dans le flux, pas en 307.** `app/loading.tsx` enveloppe tout le site dans un `Suspense` : la réponse est partie quand la page appelle `redirect()`. `/admin/controle` répond donc 200, et la redirection voyage dans le HTML (`NEXT_REDIRECT`, plus une balise `refresh` de secours). Un `fetch` ne la suit pas : on ne conclut pas d'un 200 que la redirection manque. Même chose pour le 308 de `statistiques`.
+- ⛔ **La route des tâches ne tronque plus, et refuse une liste périmée** (`/api/admin/controle-todos`). Elle gardait les 200 premières tâches et jetait toute tâche de plus de 600 signes, quand « Qualité du texte » en compte 865, dont 282 plus longues : un seul clic sur une case effaçait tout ce qui dépassait. Au-delà de 5 000 tâches, ou de 50 000 signes pour une tâche, elle refuse (400) et n'écrit rien. L'écran envoie `avant`, la liste d'où il est parti : si la base a changé entre-temps, refus 409 avec la liste réelle, que l'écran recharge. Sans `avant`, refus 400.
+- ⚠️ **La garde `blocsStyleSansAccentGrave` ne reconnaît qu'un NOM seul** entre `<style>{…}</style>` : une somme `{CSS_A + CSS_B}` lui échappe. Le layout pose donc deux balises `<style>` à la suite.
 
 ## ⚠️ Une note de section se RÉDIGE en paragraphes (2026-08-24)
 
@@ -3167,9 +3186,9 @@ Règle (charte §3.1-3.2, étendue au 2026-08-06) : on harmonise la langue origi
 
 ⛔ Et le commentaire de code qui accompagne une règle CSS vit DANS un gabarit de chaîne (`CSS_CONTROLE`) : y écrire un accent grave ferme la chaîne. Nommer les propriétés entre guillemets français, jamais entre accents graves.
 
-## ⚠️ Une section nouvelle ne s'affiche pas toute seule (2026-08-20)
+## Une section nouvelle paraît d'elle-même, sa matière non (2026-09-13, remplace la règle du 2026-08-20)
 
-Les cartes du centre sont **codées en dur** dans `app/admin/controle/page.tsx` (`<Carte titre="…" cle="…">`), et `sec(cle)` va chercher la ligne correspondante. Ajouter une ligne à `controle_sections` ne fait donc **rien paraître** : il faut la carte avec. Neuf cartes au 2026-08-20, la dernière étant « Bible Fillion ».
+Jusqu'au 2026-09-13, les cartes du centre étaient **codées en dur** (`<Carte titre="…" cle="…">`), et une ligne ajoutée à `controle_sections` ne faisait rien paraître : `eusebe` et `espace_lecteur` sont restées invisibles ainsi. Le volet lit désormais la table, et une mission nouvelle y paraît avec sa note et ses tâches. ⚠️ Ce qu'elle montre EN PLUS se déclare encore à la main, par sa clé, dans `MatiereMission.tsx` : les chiffres du tableau (`corpus`, `qualite`, `catalogue`, `pericopes`, `bibliographie`, `chronologie`), ceux de `chantier_fillion`, une présentation (`PRESENTATIONS`), un outil (`facsimile_bible899`).
 
 ## ⛔ Le service_role CONTOURNE la RLS : n'y comptez jamais ce qui est « public »
 
@@ -3189,11 +3208,11 @@ La page lit tout en `supabaseAdmin`. Interroger une vue publique depuis l'admin 
 
 **Faux départs écartés lors du diagnostic** : la fonction existe bien et `EXECUTE` est accordé à `authenticated` et `service_role` ; le filtre `where controle='…'` sur `internal.v_dates_qualite_resume` **élague** correctement les branches de l'`UNION ALL` (38 / 33 / 757 ms au lieu des 3 s de la vue entière), donc les trois appels ne sont pas le goulot ; `qualite_overrides`, `couverture_patristique` et les comptes de `segments` sont tous sous 300 ms.
 
-## La vue principale dit le CONTRÔLE, les statistiques ont leur page (2026-08-24)
+## L'état du contrôle v2 dit le CONTRÔLE, et lui seul (2026-08-24 ; vue à part depuis le 2026-09-13)
 
-`/admin/controle` lit **`public.controle_v2_admin_snapshot()`**, le contrat compact du backend v2. C'est un seul appel, et il porte tout ce qu'il faut pour savoir si l'on peut travailler : état général, sévérités du dernier run global, certifications d'invariants, file des postcontrôles de liens avec sa répartition par mission propriétaire, objets à propriétaire ambigu, spine AELF, liens bibliques, diagnostics d'alignement et leur fraîcheur, mémoire des revues humaines. ⛔ Ne pas reconstruire ces calculs côté frontend : le contrôle certifie, l'écran affiche.
+`/admin/controle/systeme` lit **`public.controle_v2_admin_snapshot()`**, le contrat compact du backend v2. C'est un seul appel, et il porte tout ce qu'il faut pour savoir si l'on peut travailler : état général, sévérités du dernier run global, certifications d'invariants, file des postcontrôles de liens avec sa répartition par mission propriétaire, objets à propriétaire ambigu, spine AELF, liens bibliques, diagnostics d'alignement et leur fraîcheur, mémoire des revues humaines. ⛔ Ne pas reconstruire ces calculs côté frontend : le contrôle certifie, l'écran affiche.
 
-L'ancien tableau de bord, `controle_tableau_bord()`, vit désormais sur **`/admin/controle/statistiques`**, avec ses cartes, ses notes et ses listes de tâches. Il agrège tout le corpus en direct et coûte deux à six secondes : il n'a pas sa place sur l'écran qu'on ouvre pour savoir si une écriture est permise.
+L'ancien tableau de bord, `controle_tableau_bord()`, a vécu sur `/admin/controle/statistiques` du 2026-08-24 au 2026-09-13 ; ses chiffres se lisent désormais dans la mission qu'ils concernent, et la vue du contrôle ne l'appelle jamais. Il agrège tout le corpus en direct et coûte deux à sept secondes (6,9 s mesurées le 2026-09-13, pour un délai de 8) : il n'a pas sa place sur la vue qu'on ouvre pour savoir si une écriture est permise.
 
 ⛔ **Dans le snapshot, `metrics` vient d'un CACHE, le reste est calculé en direct.** `live_guard`, `certifications`, `link_review_queue`, `postcheck_owners`, `routing_ambiguities` et `alignment_diagnostics` sont recalculés à l'appel ; `metrics.*` est servi par `internal.controle_v2_metrics_cache`, dont `cache_age_seconds` donne l'âge. Mesuré le 2026-08-24, une heure après le rerun des quatre livres : `alignment_diagnostics` disait quatre runs frais et 179 dossiers pendant que `metrics.alignment_tools` annonçait encore quatre runs périmés et 180 dossiers. Les deux venaient du même appel. **Les totaux d'« Outils alignements » se refont donc depuis `alignment_diagnostics`** (`totauxAlignements`), et ce qui reste tiré du cache porte la mention de son âge.
 
@@ -3204,6 +3223,8 @@ L'ancien tableau de bord, `controle_tableau_bord()`, vit désormais sur **`/admi
 ⚠️ **Le backend n'écrit que les sévérités rencontrées** : `findings_by_severity` valait `{REVIEW: 3}`, sans les trois autres. Une sévérité absente vaut zéro constat et doit se lire comme telle, sinon la ligne BLOCKER disparaît le jour où elle vaut zéro et l'on ne sait plus si elle a été vérifiée.
 
 ## Le centre de contrôle se lit dans un VOLET, pas dans une grille (2026-08-24)
+
+⚠️ **Depuis le 2026-09-13, le volet collant est celui des MISSIONS** (voir « Le centre de contrôle se lit MISSION PAR MISSION », plus haut). Ce qui suit vaut pour la vue `systeme` et date de l'écran unique : le verdict, les quatre sévérités et la liste des sections vivent maintenant en tête de cette vue (`TeteSysteme`), sans être collants ; les liens y restent des ancres natives, et `sectionsControle` reste la source unique de cette liste et de la colonne.
 
 Mesures prises sur la page servie en 1920, avant refonte : une valeur de tuile faisait **26,1 px**, un titre de carte **22,6**, et le mot qui porte le verdict **21,4**. Les trente-quatre chiffres formaient donc le deuxième rang de la page, au-dessus des huit titres qui les organisent, et le verdict était le plus petit des trois. ⛔ **Un chiffre ne passe jamais devant le titre qui l'organise** : les tuiles prennent trois rangs, `action`, `normal` et `contexte`, séparés par la taille ET par l'encre, sous un titre de section monté à 1,375 rem. Une seule différence de corps ne se voit pas dans une grille de trente tuiles.
 
@@ -9701,7 +9722,35 @@ fait évaluer la fonction UNE FOIS par requête, `is_admin()` nu une fois PAR LI
 having count(*) > 1` — et lire chaque couple, la plupart sont légitimes (une politique
 d'administrateur à côté d'une politique publique n'est pas un doublon).
 
-# ⛔ LE CENTRE DE CONTRÔLE NE S'OUVRE PLUS — 13,2 s pour 8 (2026-09-09, OUVERT)
+# ⛔ LE CONTRAT DU CONTRÔLE V2 NE RÉPOND PLUS — 23,7 s pour 8 (2026-09-13, OUVERT côté base)
+
+⚠️ **Mis à jour le 13 septembre 2026.** Le contrat met désormais **23 719 ms**, mesuré sous
+`postgres` par un bloc `do` chronométré qui rend son rapport dans une exception. La file des
+postcontrôles compte **23 599 objets**, et la vue qui la résume en coûte à elle seule
+7 876 ms, cache chaud. La page tentait trois fois : le journal Supabase montre les trois
+dépassements à dix secondes d'écart, le matin même à 07 h 13.
+
+| morceau (13 septembre 2026) | ms |
+|---|---:|
+| contrat complet, `controle_v2_admin_snapshot()` | **23 719** |
+| `v_controle_v2_postchecks_resume` (23 599 objets) | **7 876** |
+| segments non suivis portant un lien | 2 036 |
+| `controle_v2_alignment_rerun_manifest()` | 1 057 |
+| compte des contrôles au statut `preflight` | 652 |
+| mémoire des revues · sécurité RPC · état des alignements · constats courants | < 40 chacun |
+| `controle_tableau_bord()`, les chiffres du corpus | **6 853** |
+
+⛔ **LE CENTRE DE CONTRÔLE SE LIT DÉSORMAIS MISSION PAR MISSION** (demande de l'auteur,
+même jour ; voir « Le centre de contrôle se lit MISSION PAR MISSION », plus haut). Le
+rangement ne répare pas le contrat, et le paragraphe du 9 septembre ci-dessous le disait
+déjà ; il CONFINE la panne à la seule vue « État du contrôle v2 », et tout le reste s'ouvre
+sans elle.
+
+⚠️ **Le remède reste côté base, et il revient à GPT** (partage des rôles) : figer le résumé
+des postcontrôles et le recalculer sur demande. ⚠️ `controle_tableau_bord()` frôle lui aussi
+son délai, à 6,9 s pour 8.
+
+## Le relevé du 9 septembre 2026
 
 `controle_v2_admin_snapshot()` met **13 236 ms** quand `authenticated` en accorde 8 000 :
 la page rend 500. Trois échecs consécutifs au journal le 2026-09-08 à 19h22. Mesuré, la
