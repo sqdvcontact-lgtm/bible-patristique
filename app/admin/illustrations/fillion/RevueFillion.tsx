@@ -460,7 +460,7 @@ function FicheIllustration({
           ))}
         </div>
 
-        <div className={modeActif === 'cote-a-cote' ? 'revue-scene revue-scene--jumelle' : 'revue-scene'}>
+        <div className={modeActif !== 'cote-a-cote' ? 'revue-scene' : illustration.largeur > illustration.hauteur ? 'revue-scene revue-scene--jumelle revue-scene--paysage' : 'revue-scene revue-scene--jumelle'}>
           {modeActif === 'cote-a-cote' && temoin ? (
             <>
               <figure>
@@ -727,6 +727,12 @@ const FEUILLE_REVUE = `
   .revue-modes button:disabled { opacity: 0.4; cursor: not-allowed; }
   .revue-scene { display: grid; grid-template-rows: minmax(0, 1fr); gap: 0.5rem; height: clamp(15rem, 46dvh, 38rem); }
   .revue-scene--jumelle { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  /* Deux planches couchées côte à côte ne gardaient qu’un tiers de leur place dans la colonne
+     étroite de la fiche : elles s’y superposent. Sous 1200 px la fiche s’élargit, et le côte à
+     côte redevient le plus grand des deux partis. */
+  @media (min-width: 1201px) {
+    .revue-scene--jumelle.revue-scene--paysage { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
+  }
   .revue-scene figure { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 0.25rem; min-width: 0; min-height: 0; margin: 0; }
   .revue-scene figcaption { font-size: 0.625rem; font-weight: 600; letter-spacing: 0.06em; text-align: center; text-transform: uppercase; color: var(--cs-texte-second); }
   .revue-cadre-image { display: flex; align-items: center; justify-content: center; min-width: 0; min-height: 0; padding: 0.5rem; border: 1px solid var(--cs-bord); border-radius: 8px; background: var(--cs-fond); overflow: hidden; }
