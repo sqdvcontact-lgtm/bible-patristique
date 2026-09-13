@@ -12,6 +12,7 @@
 import { Suspense, type ReactNode } from 'react'
 import { styleSemantiqueBloc } from '@/app/lib/bibleEdition'
 import { stylesInconnus } from '@/app/lib/bibleHierarchieSemantique'
+import { FILTRE_BIBLE_PUBLIABLE } from '@/app/lib/etatsPublication'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import ScellesBible899 from './ScellesBible899'
 import { CODE_DELAI_DEPASSE, chargerTableauBord, supabaseAdmin, type TableauBord } from './chargementsControle'
@@ -191,23 +192,48 @@ type EtatFillion = {
 async function chargerEtatFillion(): Promise<EtatFillion | null> {
   // ⚠️ Ces comptages passent par le service_role, qui CONTOURNE la RLS : lire une vue
   // publique ici ne dit donc rien de ce que le lecteur voit. Ce que voit le lecteur se
-  // recalcule à la main, avec les mêmes conditions que les politiques : contenu public et
-  // validé, ET famille publiée.
-  const compter = async (table: string, publicSeulement = false) => {
-    const requete = supabaseAdmin.from(table).select('*', { count: 'exact', head: true })
-    const { count, error } = await (publicSeulement
-      ? requete.eq('is_public', true).eq('validation_status', 'validated')
-      : requete)
-    if (error) throw error
-    return count ?? 0
-  }
+  // recalcule avec les mêmes conditions que les politiques. ⛔ Pour la chaîne textuelle,
+  // `draft`, `review`, `validated` et `verified` sont des états d'avancement : seuls
+  // `rejected` et `retired` ferment. Les illustrations gardent leur exception explicite :
+  // elles ne paraissent qu'une fois validées.
   try {
     const { data: famille, error } = await supabaseAdmin
       .from('bible_edition_families')
-      .select('status')
+      .select('id,status')
       .eq('family_code', 'fillion-bible')
       .maybeSingle()
     if (error) throw error
+    if (!famille) {
+      return {
+        famille: null,
+        membres: 0,
+        composants: 0,
+        blocs: 0,
+        notes: 0,
+        illustrations: 0,
+        visibles: 0,
+        stylesRefuses: [],
+      }
+    }
+
+    type PublicationComptee = 'aucune' | 'bible' | 'illustration'
+    const compter = async (table: string, publication: PublicationComptee = 'aucune') => {
+      const requete = supabaseAdmin
+        .from(table)
+        .select('*', { count: 'exact', head: true })
+        .eq('family_id', famille.id)
+      const requetePublique = publication === 'aucune'
+        ? requete
+        : requete.eq('is_public', true)
+      const requeteFinale = publication === 'bible'
+        ? requetePublique.or(FILTRE_BIBLE_PUBLIABLE)
+        : publication === 'illustration'
+          ? requetePublique.eq('validation_status', 'validated')
+          : requetePublique
+      const { count, error: erreurCompte } = await requeteFinale
+      if (erreurCompte) throw erreurCompte
+      return count ?? 0
+    }
     const [membres, composants, blocs, notes, illustrations, blocsPublics, notesPubliques, imagesPubliques] =
       await Promise.all([
         compter('bible_edition_members'),
@@ -215,15 +241,16 @@ async function chargerEtatFillion(): Promise<EtatFillion | null> {
         compter('bible_editorial_body_blocks'),
         compter('bible_verse_notes'),
         compter('bible_edition_assets'),
-        compter('bible_editorial_body_blocks', true),
-        compter('bible_verse_notes', true),
-        compter('bible_edition_assets', true),
+        compter('bible_editorial_body_blocks', 'bible'),
+        compter('bible_verse_notes', 'bible'),
+        compter('bible_edition_assets', 'illustration'),
       ])
     // Un style que le registre ignore n'est pas rendu : il doit donc se voir ici, sinon un
     // bloc disparaîtrait de la page sans que personne le sache.
     const { data: styles } = await supabaseAdmin
       .from('bible_editorial_body_blocks')
       .select('block_kind, scope_kind')
+      .eq('family_id', famille.id)
     const stylesRefuses = stylesInconnus(
       ((styles ?? []) as { block_kind: string; scope_kind: string }[])
         .map((row) => styleSemantiqueBloc(

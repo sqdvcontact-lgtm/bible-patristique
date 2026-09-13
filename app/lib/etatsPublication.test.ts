@@ -133,4 +133,19 @@ describe('la chaîne Bible : ce qui interdit de paraître', () => {
       expect(code, chemin).not.toMatch(/validation_status['"],\s*['"]validated/u)
     }
   })
+
+  it('le compteur administratif applique la même règle aux textes, mais garde l’exception des illustrations', () => {
+    const code = readFileSync('app/admin/controle/MatiereMission.tsx', 'utf8')
+    expect(code).toContain("compter('bible_editorial_body_blocks', 'bible')")
+    expect(code).toContain("compter('bible_verse_notes', 'bible')")
+    expect(code).toContain("compter('bible_edition_assets', 'illustration')")
+    expect(code).toContain('requetePublique.or(FILTRE_BIBLE_PUBLIABLE)')
+    expect(code).toContain("requetePublique.eq('validation_status', 'validated')")
+  })
+
+  it('borne tous les compteurs et le contrôle des styles à la famille Fillion', () => {
+    const code = readFileSync('app/admin/controle/MatiereMission.tsx', 'utf8')
+    expect(code.match(/\.eq\('family_id', famille\.id\)/gu)).toHaveLength(2)
+    expect(code).not.toContain('publicSeulement')
+  })
 })
