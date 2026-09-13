@@ -113,7 +113,9 @@ export default function AdminClient({
     // Bibliothèque : les lignes-œuvres publiées portent une longue rangée de
     // boutons (⚙, Modifier, Import/Export, Score, statut, URL/Notice/Fichier,
     // Détails, Contrôle, Dépublier, Supprimer) qui étouffaient à 60 rem.
-    : onglet === 'bibliotheque' || onglet === 'ouvrages' || onglet === 'validation-notices' || onglet === 'styles'
+    // Traductions de même : sa rangée d'actions fait quelque 56 rem, et à 60 rem la
+    // fiche de chaque traduction se réduisait à la largeur d'un mot (2026-09-13).
+    : onglet === 'bibliotheque' || onglet === 'ouvrages' || onglet === 'validation-notices' || onglet === 'styles' || onglet === 'traductions'
     ? { maxWidth: '90rem', margin: '0 auto', padding: '28px 24px 64px' }
     // Éditeurs : mise en page à deux colonnes (formulaire + liste), plus large.
     : onglet === 'editeurs'
