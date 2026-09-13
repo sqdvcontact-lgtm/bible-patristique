@@ -4,19 +4,25 @@
 // la vue qui l'a subie, jamais à la place du centre entier.
 import type { ReactNode } from 'react'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import { FUSEAU } from '@/app/lib/mesuresLecteur'
 import type { ErreurPostgrest } from './chargementsControle'
 
 export const nb = (n: number | null | undefined) => (n ?? 0).toLocaleString('fr-FR')
 
+// ⛔ Toujours à l'heure de PARIS. Ces pièces se rendent sur le serveur, et celui de Vercel
+// compte en temps universel : sans fuseau, « chiffres calculés à 08:59 » se lisait à 10:59,
+// comme un calcul vieux de deux heures (2026-09-13). Un poste local à Paris ne le montre pas.
+const JOUR = { day: 'numeric', month: 'long', year: 'numeric', timeZone: FUSEAU } as const
+
 export function dateFr(iso: string | null | undefined): string {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  return new Date(iso).toLocaleDateString('fr-FR', JOUR)
 }
 
 export function dateHeureFr(iso: string | null | undefined): string {
   if (!iso) return '—'
   const d = new Date(iso)
-  return `${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
+  return `${d.toLocaleDateString('fr-FR', JOUR)} à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: FUSEAU })}`
 }
 
 export function EcranReserve() {
