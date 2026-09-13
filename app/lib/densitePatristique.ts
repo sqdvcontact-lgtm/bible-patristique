@@ -6,8 +6,8 @@
  * navigation en teinte ses cases.
  *
  * Le verset : `versets_plus_cites_mat` porte déjà, pour chaque verset lié, le nombre
- * d'ŒUVRES qui en parlent et le détail par nature. La page de lecture en pose une marque
- * discrète dans la marge.
+ * d'ŒUVRES qui en parlent et le détail par nature. La page de lecture le montre au survol
+ * d'un verset, à droite de ses actions, quand il y tient (voir `marqueDensiteTient`).
  *
  * ⛔ AUCUNE MESURE NEUVE ICI. Les deux viennent du même cache, celui que le centre de
  * contrôle rafraîchit ; une seconde façon de compter ferait dire deux choses au même

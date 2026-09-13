@@ -234,7 +234,7 @@ describe('les étapes réellement montrables', () => {
 
   it('garde une étape qui retombe sur son sujet de repli', () => {
     const gardees = etapesPresentes(
-      [etape('verset', ['.verset-row:has(.marque-densite)', '.verset-row'])],
+      [etape('verset', ['.verset-row[data-oeuvres]', '.verset-row'])],
       trouver,
     )
     expect(gardees.map(e => e.cle)).toEqual(['verset'])

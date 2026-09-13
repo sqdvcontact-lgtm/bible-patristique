@@ -56,14 +56,21 @@ describe('densité patristique', () => {
     expect(feuille.split('--cs-densite-encre:').length - 1).toBe(2)
   })
 
-  it('⛔ la teinte ne se pose qu’AU REPOS, et la marque cède la gouttière aux actions', () => {
+  it('⛔ la teinte ne se pose qu’AU REPOS, et la marque du verset ne paraît qu’AU SURVOL', () => {
     const nav = lire('../components/NavLivres.tsx')
     const texte = lire('../components/TexteBible.tsx')
     // Le chapitre courant et la suggestion de recherche gardent leurs accents : ils
     // répondent à une autre question que la densité.
     expect(nav).toContain("estChapSuggere ? 'rgba(var(--cs-vert-rgb),0.15)'")
     expect(nav).toContain('fondDuCran(densites.get(ch)?.cran)')
-    expect(texte).toContain('.verset-row--actif .marque-densite { opacity: 0; }')
+    // Décision de l’auteur, 13 septembre 2026 : ni au repos, ni sur le verset retenu. La
+    // marque vient avec les actions qu’on vise, et ferme leur rangée.
+    expect(texte).toContain('.marque-densite { opacity: 0;')
+    expect(texte).toContain('.verset-row:hover .marque-densite { opacity: 1; }')
+    expect(texte).not.toContain('.verset-row--actif .marque-densite')
+    expect(texte.indexOf('className="marque-densite"')).toBeGreaterThan(texte.indexOf('<BoutonSignaler versetId'))
+    // ⛔ Et elle ne se rend que si elle TIENT : une opacité nulle déborderait quand même.
+    expect(texte).toContain('densiteTient && densites.get(v.id_verset)')
   })
 
   it('⛔ ne recalcule RIEN : les deux échelles viennent du même cache', () => {

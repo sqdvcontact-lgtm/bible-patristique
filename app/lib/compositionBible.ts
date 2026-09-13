@@ -167,48 +167,87 @@ export const STYLE_VERSET_VIDE: CSSProperties = {
   fontStyle: 'italic',
 }
 
+/** Ce que la marque de densité demande à droite du dernier bouton, en rem. L'ÉCART la
+ *  détache de lui ; la LARGEUR porte deux chiffres tabulaires à 0,5625 rem, chasse
+ *  comprise (17 œuvres au plus dans le corpus, mesuré le 2026-09-06) ; l'AIR la tient
+ *  loin du bord de la zone de lecture, c'est-à-dire du volet de droite. */
+export const ECART_MARQUE_DENSITE_REM = 0.25
+export const LARGEUR_MARQUE_DENSITE_REM = 0.75
+export const AIR_MARQUE_DENSITE_REM = 0.5
+
 /**
- * LA MARQUE DE DENSITÉ, dans la gouttière d'actions : le nombre d'œuvres qui parlent
- * du verset. ⚠️ Elle est la plus ténue de la page, et il le faut : elle accompagne
- * chaque verset commenté, soit un sur trois, et un repère qui se répète autant ne peut
- * pas peser. ⛔ Chiffres tabulaires : deux marques voisines doivent s'aligner.
+ * LA MARQUE DE DENSITÉ : le nombre d'œuvres qui parlent du verset. ⚠️ Elle reste la plus
+ * ténue de la page. ⛔ Chiffres tabulaires : deux marques voisines doivent s'aligner.
+ *
+ * ⛔ ELLE NE PARAÎT QU'AU SURVOL, À DROITE DES ACTIONS, ET SEULEMENT SI ELLE Y TIENT
+ * (décision de l'auteur, 2026-09-13). Posée au repos dans la gouttière, elle accompagnait
+ * un verset sur trois ; elle vient désormais avec les boutons qu'on vise, et ferme leur
+ * rangée. La place se juge par `marqueDensiteTient`, ci-dessous.
+ *
+ * ⛔ SON OPACITÉ N'EST PAS ICI : la feuille de la page Bible la pose, nulle au repos et
+ * pleine au survol de la ligne. Écrite en ligne, elle battrait la règle du survol.
  *
  * ⛔ ELLE SE POSE SUR LA PREMIÈRE LIGNE DE BASE DU VERSET, non en haut de la gouttière.
- * Elle valait « top: 0.28125rem », c'est-à-dire le rembourrage de la colonne d'actions —
- * la hauteur des BOUTONS, qui ne veut rien dire pour un chiffre. La marque flottait donc
- * au-dessus du premier mot, comme posée sur rien. La valeur ci-dessous met sa ligne de
- * base sur celle du verset :
+ * Son haut met sa ligne de base sur celle du verset :
  *
  *   verset : rembourrage du bloc 0,0625 + demi-interligne −0,0018 + montante 1,024 × 0,875
  *   marque : demi-interligne −0,063 + montante 1,024 × 0,5625
- *   écart  : 0,9568 − 0,513 = 0,4438 rem, rabattu au cran de la grille.
+ *   écart  : 0,9568 − 0,513 = 0,4438 rem, rabattu au cran de la grille (0,4375).
  *
- * ⚠️ Elle s'écrit en REM, et elle le peut : rembourrages, corps et rapports de fonte sont
- * tous proportionnels à la racine, si bien que l'alignement tient de 16 à 22 px de police
- * racine. ⛔ Ne pas la reprendre en pixels — c'est le piège payé sur la Polyglotte (§ 38.14).
+ * ⚠️ Elle vit dans le FLUX de la gouttière, après le dernier bouton, et la gouttière porte
+ * déjà 0,28125 rem de rembourrage haut : la marge en retranche d'autant (0,15625).
+ * ⛔ Ne pas la reprendre en pixels : rembourrages, corps et rapports de fonte sont tous
+ * proportionnels à la racine, si bien que l'alignement tient de 16 à 22 px (§ 38.14).
  *
- * ⛔ ET ELLE CÈDE LA PLACE AU SIGNET DE PRÉLÈVEMENT (relevé de l'auteur, 2026-09-06).
- * Un verset prélevé garde son signet visible sans survol, à gauche de la gouttière,
- * exactement là où la marque se pose : les deux se chevauchaient. La marque passe alors
- * À DROITE du signet — 0,5 rem de rembourrage plus 1,125 rem de bouton, plus un cheveu.
- * ⚠️ Deux chiffres au plus (17 œuvres au maximum du corpus, mesuré le 2026-09-06) : la
- * marque déborde de cinq pixels sur le rembourrage du conteneur de lecture, jamais sur
- * l'écran, et n'ouvre donc aucun défilement horizontal.
+ * ⚠️ Elle reçoit les pointeurs, et c'est nouveau : posée en absolu dans la gouttière, elle
+ * couvrait les boutons invisibles et devait laisser passer le clic. À droite d'eux, elle ne
+ * couvre plus rien, et son infobulle se lit.
  */
-export function styleDensiteVerset({ decale }: { decale?: boolean } = {}): CSSProperties {
+export function styleDensiteVerset(): CSSProperties {
   return {
-    position: 'absolute',
-    top: '0.4375rem',
-    left: decale ? '1.8125rem' : '0.5rem',
+    flexShrink: 0,
+    marginTop: '0.15625rem',
+    marginLeft: `${ECART_MARQUE_DENSITE_REM}rem`,
     fontSize: '0.5625rem',
     lineHeight: 1.2,
     color: 'var(--cs-texte-faible)',
     fontVariantNumeric: 'tabular-nums',
     // ⚠️ À neuf pixels, deux chiffres collés se lisent comme un seul nombre plus grand.
     letterSpacing: '0.02em',
-    pointerEvents: 'none',
-    transition: 'opacity 0.12s, left 0.12s',
+    whiteSpace: 'nowrap',
   }
+}
+
+/**
+ * La marque de densité TIENT-ELLE à droite des actions ? « Quand la largeur de l'écran
+ * le permet » (décision de l'auteur, 2026-09-13).
+ *
+ * ⛔ LA PLACE SE MESURE SUR LA ZONE DE LECTURE, JAMAIS SUR LA FENÊTRE : les deux volets
+ * s'ouvrent, se ferment et se traînent à la poignée sans que la fenêtre bouge.
+ *
+ * ⛔ UNE MARQUE QUI NE TIENT PAS NE SE REND PAS DU TOUT. Une opacité nulle ne la retirerait
+ * pas de la mise en page : elle déborderait du défileur et ouvrirait un défilement
+ * horizontal pour un chiffre qu'on ne voit pas.
+ *
+ * ⛔ LE PRÉDICAT NE DÉPEND PAS DE L'ÉTAT QU'IL COMMANDE : la fin des boutons et le bord de
+ * la zone ne bougent pas quand la marque paraît, puisqu'elle vient APRÈS le dernier bouton
+ * et déborde de la gouttière sans en changer la largeur. Sans quoi il oscillerait
+ * (§ 38.26.1).
+ *
+ * ⚠️ Une mesure absente ne fait jamais paraître la marque.
+ */
+export function marqueDensiteTient({ finDesActions, bordDeLaZone, racine }: {
+  /** Bord droit du dernier bouton, en pixels d'écran. */
+  finDesActions: number
+  /** Bord droit de la zone de lecture, en pixels d'écran. */
+  bordDeLaZone: number
+  /** Taille de la police racine, en pixels. */
+  racine: number
+}): boolean {
+  if (!Number.isFinite(finDesActions) || !Number.isFinite(bordDeLaZone)) return false
+  if (!Number.isFinite(racine) || racine <= 0) return false
+  const demande = (ECART_MARQUE_DENSITE_REM + LARGEUR_MARQUE_DENSITE_REM + AIR_MARQUE_DENSITE_REM) * racine
+  return finDesActions + demande <= bordDeLaZone
 }
 
 /** La même, au doigt : sous le verset et en toutes lettres, la marge droite n'existant

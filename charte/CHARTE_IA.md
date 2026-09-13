@@ -7800,6 +7800,18 @@ c'est encore l'écart des deux rembourrages qui centre le libellé sur l'onglet 
 8 dessous pour le même trait et la même police. Il n'a pas été relevé, et le corriger toucherait
 toutes les barres d'onglets de page du site : c'est une décision de l'auteur.
 
+### 38.30 Le nombre d'œuvres d'un verset ne paraît qu'au SURVOL, à droite des actions, et seulement s'il y tient
+
+Décision de l'auteur, 13 septembre 2026 : « N'afficher le nombre d'œuvres commentées à droite du verset qu'au survol, quand la largeur de l'écran le permet, à droite des symboles copier, signaler, etc. »
+
+⛔ **LA MARQUE NE SE MONTRE PAS AU REPOS.** Posée dans la marge de chaque verset commenté, elle accompagnait un verset sur trois. Elle vient désormais avec les actions qu'on vise, au survol de la ligne, et ne paraît ni au repos ni sur le verset retenu.
+
+⛔ **ELLE FERME LA RANGÉE D'ACTIONS.** Prélever, copier, signaler, puis le nombre : elle ne partage plus la gouttière avec les boutons, et n'a donc plus à céder la place au signet d'un verset prélevé.
+
+⛔ **UNE MARQUE QUI NE TIENT PAS NE SE REND PAS.** La place se juge sur la zone de lecture, que les volets rétrécissent sans que la fenêtre bouge, jamais sur la fenêtre. Une marque rendue invisible occuperait quand même sa place, et ferait défiler la lecture en largeur pour un chiffre qu'on ne voit pas.
+
+⚠️ **La décision vise le nombre posé à droite du verset.** Sur un téléphone, où aucune marge ne peut le porter, la ligne « N œuvres en parlent » reste sous le verset.
+
 ### 13.18 Ce que le RENDU d'une note lit, et la ligne de la citation visée
 
 Mission de l'auteur du 11 septembre 2026, sur la note I-02 de la *Consolation de la

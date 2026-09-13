@@ -119,9 +119,9 @@ export type EtapeVisite = {
    *
    * ⛔ C'est l'ÉTAPE qui le déclare, non le sélecteur : deux étapes peuvent
    * cerner la même boîte et n'en montrer pas la même chose. Sur la page Bible,
-   * la rangée d'un verset est le sujet de deux étapes de suite — la première dit
-   * le nombre inscrit dans la marge, la seconde y allume la colonne d'actions,
-   * qui prend la place de ce nombre.
+   * la rangée d'un verset est le sujet de deux étapes de suite — la première y
+   * retient le verset, la seconde y allume la colonne d'actions et le nombre
+   * d'œuvres qui la ferme.
    */
   revele?: string
 }

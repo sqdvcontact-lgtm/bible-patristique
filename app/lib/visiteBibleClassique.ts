@@ -120,12 +120,14 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
     },
     {
       cle: 'verset',
-      // ⚠️ Un verset COMMENTÉ d'abord : lui seul porte le nombre dont l'étape parle.
-      sujet: ['.verset-row:has(.marque-densite)', '.verset-row'],
+      // ⚠️ Un verset COMMENTÉ d'abord : le volet de droite s'y remplit. La rangée le dit
+      // par `data-oeuvres`, qu'elle porte même quand la marque ne tient pas à l'écran :
+      // chercher la marque elle-même retombait sur le premier verset venu dès que la
+      // place manquait (2026-09-13).
+      sujet: ['.verset-row[data-oeuvres]', '.verset-row'],
       titre: 'Verset',
       texte: [
         'Cliquez sur un verset pour afficher à droite ce que les Pères en ont dit.',
-        'Le nombre placé dans la marge indique combien d’œuvres en ligne le commentent.',
       ],
       // ⚠️ La carte se pose à GAUCHE, sur le volet des livres : à droite elle
       // couvrirait le volet qui se remplit à l'instant même, c'est-à-dire la
@@ -142,15 +144,18 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       // va se poser au milieu des versets pour la rejoindre. La case ne bouge donc
       // pas d'une étape à l'autre ; ce qui change, c'est que la colonne s'allume
       // dedans — et c'est précisément ce dont l'étape parle.
-      sujet: ['.verset-row:has(.marque-densite)', '.verset-row'],
+      sujet: ['.verset-row[data-oeuvres]', '.verset-row'],
       revele: 'actions',
       titre: 'Actions',
       // ⚠️ Les trois boutons sont NOMMÉS un par un dans l'illustration, avec leur
       // dessin réel : à onze pixels dans la marge, on ne les reconnaît pas de la
       // seule prose (demande de l'auteur, 2026-09-06).
+      // ⚠️ Le nombre d'œuvres se présente ICI depuis le 13 septembre 2026 : il ferme la
+      // rangée d'actions et ne paraît qu'avec elle, au survol, quand il y tient.
       texte: [
         'Au survol d’un passage, les actions apparaissent dans la marge.',
         'Elles permettent de le conserver, de le copier ou de le signaler. Vous les retrouverez partout où le site donne à lire un texte.',
+        'Quand la place le permet, un nombre les suit : celui des œuvres en ligne qui commentent le passage.',
       ],
       illustration: 'actions-verset',
       cote: 'gauche',

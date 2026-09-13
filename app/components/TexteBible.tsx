@@ -22,13 +22,14 @@ import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { marquerLacunesDuTemoin, rendreMarqueurs899 } from '@/app/lib/marqueurs899'
 import { estTraductionModerne899 } from '@/app/lib/bible899'
 import {
-  styleDensiteVerset, STYLE_DENSITE_MOBILE,
+  marqueDensiteTient, styleDensiteVerset, STYLE_DENSITE_MOBILE,
   STYLE_LACUNE, STYLE_NUMERO_ALTERNATIF, STYLE_NUMERO_VERSET, STYLE_VERSET_VIDE,
   styleAxeTexte, styleBlocVerset, styleGrilleRangee, styleRangeeVerset, styleTexteVerset,
 } from '@/app/lib/compositionBible'
 import {
   chargerDensiteChapitre, libelleDensiteVerset, type DensiteVerset,
 } from '@/app/lib/densitePatristique'
+import { tailleRacinePx } from '@/app/lib/fenetreContextuelle'
 import SelecteurTraductionBible from '@/app/components/SelecteurTraductionBible'
 import FlecheChapitre from '@/app/components/FlecheChapitre'
 import { BlocEditorialBible, figuresDeLaNote, IllustrationBible, PieceLiminaire } from '@/app/components/BibleEditionParatext'
@@ -448,6 +449,47 @@ export default function TexteBible({
     return () => { vivant = false }
   }, [livreActif, chapitreActif])
 
+  // ⛔ LA MARQUE NE SE REND QUE SI ELLE TIENT À DROITE DES ACTIONS (décision de l'auteur,
+  // 2026-09-13 : « quand la largeur de l'écran le permet »). La place se mesure sur la
+  // ZONE de lecture, que les volets rétrécissent sans que la fenêtre bouge : voir
+  // marqueDensiteTient (compositionBible). Une seule rangée suffit, toutes portant les
+  // mêmes boutons ; ce qui en change le nombre (session, administration) relance la mesure.
+  const refDefileur = useRef<HTMLDivElement>(null)
+  const [densiteTient, setDensiteTient] = useState(false)
+  const nbVersets = versets.length
+  const piecePosee = !!pieceAffichee
+  useEffect(() => {
+    if (mobile) return
+    const defileur = refDefileur.current
+    if (!defileur) return
+    const mesurer = () => {
+      const colonne = defileur.querySelector<HTMLElement>('.cs-lecture-colonne')
+      const actions = defileur.querySelector<HTMLElement>('.verset-actions')
+      if (!colonne || !actions) return
+      const zone = colonne.getBoundingClientRect()
+      // ⚠️ Une largeur NULLE ne se juge pas : un onglet caché rend zéro partout.
+      if (zone.width <= 0) return
+      // Le bord de la zone : la colonne est centrée par ses marges automatiques, que le
+      // navigateur rend en pixels. ⛔ Ni la largeur cliente ni le bord client du défileur :
+      // la gouttière de sa barre de défilement est réservée des deux côtés.
+      const bordDeLaZone = zone.right + (Number.parseFloat(getComputedStyle(colonne).marginRight) || 0)
+      // La fin des actions : le dernier bouton, ou le rembourrage de la gouttière quand la
+      // ligne n'en porte aucun (lignes recomposées d'une édition). ⛔ Jamais la marque
+      // elle-même, dont le prédicat décide.
+      let finDesActions = actions.getBoundingClientRect().left
+        + (Number.parseFloat(getComputedStyle(actions).paddingLeft) || 0)
+      for (const bouton of Array.from(actions.querySelectorAll<HTMLElement>('.bouton-action-verset'))) {
+        finDesActions = Math.max(finDesActions, bouton.getBoundingClientRect().right)
+      }
+      setDensiteTient(marqueDensiteTient({ finDesActions, bordDeLaZone, racine: tailleRacinePx() }))
+    }
+    // ⚠️ Le premier rappel de l'observateur fait la première mesure, après la mise en
+    // page : aucun état ne se pose dans le corps de l'effet.
+    const ro = new ResizeObserver(mesurer)
+    ro.observe(defileur)
+    return () => ro.disconnect()
+  }, [mobile, nbVersets, traduction, livreActif, chapitreActif, userId, estAdmin, modeUtilisateurStandard, piecePosee])
+
   useEffect(() => {
     const versetCible = searchParams.get('verset')
     if (!versetCible) return
@@ -656,7 +698,7 @@ export default function TexteBible({
           rétrécissait le défileur d'autant, et tout ce qui s'y centre glissait de
           7,5 px à gauche du titre. Réservée des DEUX côtés, la gouttière laisse le
           contenu centré sur le même axe que l'en-tête, barre visible ou non. */}
-      <div className={mobile ? '' : 'overflow-y-auto flex-1'} style={{ paddingTop: '20px', paddingBottom: '20px', ...(mobile ? {} : { scrollbarGutter: 'stable both-edges' }) }}>
+      <div ref={refDefileur} className={mobile ? '' : 'overflow-y-auto flex-1'} style={{ paddingTop: '20px', paddingBottom: '20px', ...(mobile ? {} : { scrollbarGutter: 'stable both-edges' }) }}>
         {/* `cs-lecture-colonne` : ce qui s'efface et paraît quand on passe d'un texte à
             l'autre (voir `BibleLayout`, « passage »). L'en-tête, lui, ne bouge pas. */}
         <div className="cs-lecture-colonne" data-colonne-lecture="" style={{ maxWidth: 'var(--mesure-page)', margin: '0 auto', paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
@@ -664,10 +706,11 @@ export default function TexteBible({
             .verset-row:hover { background: rgba(var(--cs-vert-rgb),0.05); }
             .verset-row:hover .bouton-action-verset { opacity: 1 !important; }
             .verset-row--actif .bouton-action-verset { opacity: 0.5; }
-            /* La gouttière sert deux choses, jamais en même temps : la densité au repos,
-               les actions dès qu'on vise la ligne. */
-            .verset-row:hover .marque-densite,
-            .verset-row--actif .marque-densite { opacity: 0; }
+            /* ⛔ La densité ne paraît qu'au SURVOL, avec les actions dont elle ferme la
+               rangée (décision de l'auteur, 2026-09-13). Ni au repos, ni sur le verset
+               retenu : c'est la ligne qu'on vise qui la demande. */
+            .marque-densite { opacity: 0; transition: opacity 0.12s; }
+            .verset-row:hover .marque-densite { opacity: 1; }
             /* Les flèches encadrent le titre : elles prennent sa teinte, non le vert. */
             .nav-chap-arrow:hover { color: var(--cs-mention) !important; }
             /* Mobile : dans le pavé flottant (appui long), les boutons sont pleins. */
@@ -773,6 +816,7 @@ export default function TexteBible({
                 setVersetSelectionne(actif ? null : v)
               }}
               className={`verset-row${actif ? ' verset-row--actif' : ''}`}
+              data-oeuvres={densites.get(v.id_verset)?.oeuvres}
               style={styleRangeeVerset({ mobile })}>
 
               <div style={styleGrilleRangee({ mobile })}>
@@ -834,20 +878,6 @@ export default function TexteBible({
                   display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
                   background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '0.25rem 0.375rem',
                 } : { width: '2.375rem', paddingLeft: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible', position: 'relative' }}>
-                  {/* La marque de densité occupe la gouttière AU REPOS, et s'efface dès
-                      que les actions y paraissent : les deux ne s'y rencontrent jamais.
-                      ⛔ En absolu, pour ne pas pousser les boutons, qui gardent leur
-                      place même invisibles. */}
-                  {!mobile && densites.get(v.id_verset) && (
-                    <span className="marque-densite" title={libelleDensiteVerset(densites.get(v.id_verset)!)}
-                      /* ⛔ Un verset PRÉLEVÉ garde son signet visible sans survol, au fer
-                         de la gouttière : la marque s'y posait par-dessus. Elle passe à
-                         droite du signet — et à cette seule condition, le signet n'étant
-                         rendu que sous une session et hors ligne éditoriale. */
-                      style={styleDensiteVerset({ decale: !!userId && !ligneSource && sauvegardes.has(v.verset) })}>
-                      {densites.get(v.id_verset)!.oeuvres}
-                    </span>
-                  )}
                   {/* Les actions écrivent encore dans le modèle `versets_v2`. On les masque
                       pour toutes les lignes éditoriales recomposées ; la colonne reste
                       réservée pour préserver l'alignement de la mise en page. */}
@@ -876,6 +906,16 @@ export default function TexteBible({
                         </button>
                       )}
                     </>
+                  )}
+                  {/* ⛔ La marque de densité FERME la rangée d'actions, et ne paraît qu'au
+                      survol (feuille ci-dessus). Elle ne se rend pas du tout quand elle ne
+                      tient pas dans la zone de lecture : une opacité nulle déborderait
+                      quand même du défileur. Voir marqueDensiteTient (compositionBible). */}
+                  {!mobile && densiteTient && densites.get(v.id_verset) && (
+                    <span className="marque-densite" title={libelleDensiteVerset(densites.get(v.id_verset)!)}
+                      style={styleDensiteVerset()}>
+                      {densites.get(v.id_verset)!.oeuvres}
+                    </span>
                   )}
                 </div>
               </div>

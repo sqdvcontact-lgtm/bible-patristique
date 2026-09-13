@@ -2,7 +2,10 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
-import { CORPS_GLOSE, LIBELLE_GLOSE, compositionSousTitre, styleTexteVerset } from './compositionBible'
+import {
+  AIR_MARQUE_DENSITE_REM, CORPS_GLOSE, ECART_MARQUE_DENSITE_REM, LARGEUR_MARQUE_DENSITE_REM, LIBELLE_GLOSE,
+  compositionSousTitre, marqueDensiteTient, styleDensiteVerset, styleTexteVerset,
+} from './compositionBible'
 import { rangLePlusProche } from './echelleTypographique'
 
 /**
@@ -103,5 +106,47 @@ describe('le corps d’une glose : un point sous son texte', () => {
   it('la lecture simple écrit le même libellé que la lecture en regard et la Polyglotte', () => {
     const feuille = readFileSync(join(process.cwd(), 'app', 'glosses899.css'), 'utf8')
     expect(feuille).toContain(`content: "${LIBELLE_GLOSE}";`)
+  })
+})
+
+/**
+ * ⛔ La marque de densité ne paraît qu'au SURVOL, à droite des actions, et seulement si
+ * elle y TIENT (décision de l'auteur, 2026-09-13).
+ */
+describe('la marque de densité se rend quand elle tient à droite des actions', () => {
+  const demandeA = (racine: number) =>
+    (ECART_MARQUE_DENSITE_REM + LARGEUR_MARQUE_DENSITE_REM + AIR_MARQUE_DENSITE_REM) * racine
+
+  it('tient quand la zone lui laisse sa place, et pas un pixel de moins', () => {
+    const finDesActions = 800
+    expect(marqueDensiteTient({ finDesActions, bordDeLaZone: finDesActions + demandeA(16), racine: 16 })).toBe(true)
+    expect(marqueDensiteTient({ finDesActions, bordDeLaZone: finDesActions + demandeA(16) - 1, racine: 16 })).toBe(false)
+  })
+
+  it('la demande suit la police racine : ce qui tient à 16 px ne tient plus forcément à 22', () => {
+    const bordDeLaZone = 800 + demandeA(16)
+    expect(marqueDensiteTient({ finDesActions: 800, bordDeLaZone, racine: 16 })).toBe(true)
+    expect(marqueDensiteTient({ finDesActions: 800, bordDeLaZone, racine: 22 })).toBe(false)
+  })
+
+  it('⛔ une mesure absente ne fait jamais paraître la marque', () => {
+    expect(marqueDensiteTient({ finDesActions: Number.NaN, bordDeLaZone: 1000, racine: 16 })).toBe(false)
+    expect(marqueDensiteTient({ finDesActions: 100, bordDeLaZone: Number.POSITIVE_INFINITY, racine: 16 })).toBe(false)
+    expect(marqueDensiteTient({ finDesActions: 100, bordDeLaZone: 1000, racine: 0 })).toBe(false)
+  })
+
+  it('elle vit dans le flux de la gouttière, sans opacité écrite en ligne', () => {
+    const style = styleDensiteVerset()
+    // ⛔ En absolu, elle couvrait les boutons ; en ligne, l'opacité battrait la règle du survol.
+    expect(style.position).toBeUndefined()
+    expect(style.opacity).toBeUndefined()
+    expect(style.marginLeft).toBe(ECART_MARQUE_DENSITE_REM + 'rem')
+  })
+
+  it('⛔ sa marge haute se déduit du rembourrage de la gouttière, pour garder la ligne de base', () => {
+    // 0,4375 rem sous le haut de la gouttière, dont le rembourrage porte 0,28125.
+    const page = readFileSync(join(process.cwd(), 'app', 'components', 'TexteBible.tsx'), 'utf8')
+    expect(page).toContain("paddingTop: '0.28125rem'")
+    expect(Number.parseFloat(String(styleDensiteVerset().marginTop)) + 0.28125).toBe(0.4375)
   })
 })
