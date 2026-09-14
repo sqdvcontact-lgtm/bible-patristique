@@ -31,6 +31,7 @@ import {
   type OptionsExtraction, type RegardExtraction,
 } from '@/app/lib/extractionOeuvre'
 import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
+import { rendreIntituleDeSommaire } from './appelNote'
 
 // ⛔ `Z_MODALE`, ET NON LE RANG DES FENÊTRES DE PAGE. L'échelle le dit déjà en toutes
 // lettres : une modale « couvre le tiroir d'où elle s'ouvre, et à Z_FENETRE elle s'y
@@ -66,7 +67,7 @@ export type DonneesExtraction = {
 type Axe<T> = {
   rubrique: string
   valeur: T
-  choix: { valeur: T; libelle: string }[]
+  choix: { valeur: T; libelle: React.ReactNode }[]
   poser: (valeur: T) => void
 }
 
@@ -180,7 +181,7 @@ export default function MenuExtraction({ donnees, onFermer }: {
             valeur={options.division}
             choix={[
               { valeur: null, libelle: 'L’œuvre entière' },
-              { valeur: donnees.division, libelle: donnees.divisionLibelle },
+              { valeur: donnees.division, libelle: rendreIntituleDeSommaire(donnees.divisionLibelle) },
             ]}
             poser={division => setOptions(o => ({ ...o, division }))}
           />

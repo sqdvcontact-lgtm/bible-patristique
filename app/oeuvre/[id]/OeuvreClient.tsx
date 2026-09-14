@@ -89,7 +89,7 @@ import {
   regrouperCitationsStructurelles,
   textesCitationStructurelleSansEncadrement,
 } from '@/app/lib/citationSortie'
-import { preparerTitreColophon, titreSansAppelsDeNote, rendreTexteAvecNotes, rendreTitreColophonAvecNotes, notesPourTexte, type OptionsRenduNotes } from './appelNote'
+import { preparerTitreColophon, rendreIntituleDeSommaire, intituleEnTexteNu, rendreTexteAvecNotes, rendreTitreColophonAvecNotes, notesPourTexte, type OptionsRenduNotes } from './appelNote'
 import { ouvrirLaNoteDansLeTexte } from './ouvrirNoteDansLeTexte'
 // LA MANCHETTE — un renvoi biblique se lit dans la marge, il ne s'ouvre pas.
 import { ContenuRenvoiEnLigne } from './ContenuNoteStructuree'
@@ -3503,12 +3503,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         )}
                         <a href={`#${entry.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(entry.niv1); setAncreEnAttente(entry.anchor) }} className="toc-lien-n1"
                           style={{ display: 'block', fontSize: '0.71875rem', fontWeight: apparatNiv1Actif === entry.niv1 ? 600 : 400, color: apparatNiv1Actif === entry.niv1 ? 'var(--cs-vert)' : 'var(--cs-texte)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
-                          {rendreTexteEnrichi(titreSansAppelsDeNote(entry.niv1))}
+                          {rendreIntituleDeSommaire(entry.niv1)}
                         </a>
                         {entry.niveaux2.map((niveau2) => (
                           <a key={niveau2.niv2} href={`#${niveau2.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(entry.niv1); setAncreEnAttente(niveau2.anchor) }} className="toc-lien-n2"
                             style={{ display: 'block', paddingLeft: '10px', fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
-                            {rendreTexteEnrichi(titreSansAppelsDeNote(niveau2.niv2))}
+                            {rendreIntituleDeSommaire(niveau2.niv2)}
                           </a>
                         ))}
                       </div>
@@ -3568,7 +3568,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     <div key={bk} style={{ marginBottom: '6px' }}>
                       <button onClick={() => divisionsDuLivre[0] && naviguerComparaison(bk, divisionsDuLivre[0].division)}
                         style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35 }}>
-                        {titreSansAppelsDeNote(titreLivre)}
+                        {rendreIntituleDeSommaire(titreLivre)}
                       </button>
                       {estActif && divisionsDuLivre.map(d => {
                         const actif2 = comparaisonDivision === d.division
@@ -3576,7 +3576,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           <div key={d.division} style={{ borderLeft: actif2 ? '2px solid var(--cs-vert)' : '2px solid transparent', marginBottom: '2px' }}>
                             <button onClick={() => naviguerComparaison(bk, d.division)}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0 3px 8px' }}>
-                              <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{titreSansAppelsDeNote(d.niv2 || libelleDivisionComparaison(d.division))}</span>
+                              <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{rendreIntituleDeSommaire(d.niv2 || libelleDivisionComparaison(d.division))}</span>
                             </button>
                           </div>
                         )
@@ -3597,9 +3597,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   {/* Niv1 */}
                   <button onClick={() => changerNiv1(n1)}
                     style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35, ...COMPOSITION_INTITULE }}>
-                    {titreSansAppelsDeNote(n1 === NIV1_LIMINAIRES ? (niv1TexteMap[n1] || 'Liminaires') : n1)}
+                    {rendreIntituleDeSommaire(n1 === NIV1_LIMINAIRES ? (niv1TexteMap[n1] || 'Liminaires') : n1)}
                     {n1 !== NIV1_LIMINAIRES && n1txt && configNiveaux.txtSommaire[0] && (
-                      <span style={{ fontSize: '0.59375rem', color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px', ...COMPOSITION_INTITULE }}>{titreSansAppelsDeNote(n1txt)}</span>
+                      <span style={{ fontSize: '0.59375rem', color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px', ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n1txt)}</span>
                     )}
                   </button>
 
@@ -3618,8 +3618,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         <button
                           onClick={() => allerAuNiv2(actif2 ? null : n2)}
                           style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0 3px 8px' }}>
-                          <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3, ...COMPOSITION_INTITULE }}>{titreSansAppelsDeNote(n2)}</span>
-                          {n2txt && configNiveaux.txtSommaire[1] && <span style={{ fontSize: '0.59375rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px', ...COMPOSITION_INTITULE }}>{titreSansAppelsDeNote(n2txt)}</span>}
+                          <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3, ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n2)}</span>
+                          {n2txt && configNiveaux.txtSommaire[1] && <span style={{ fontSize: '0.59375rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px', ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n2txt)}</span>}
                         </button>
                         {/* Niv3 — toujours visible, sans accordéon */}
                         {niv3DeN2.map(n3 => {
@@ -3633,8 +3633,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                 if (ancre) naviguerVersAncre(ancre)
                               }}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0 2px 16px' }}>
-                              <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-doux)', display: 'block', lineHeight: 1.3, ...COMPOSITION_INTITULE }}>{titreSansAppelsDeNote(n3)}</span>
-                              {n3txt && configNiveaux.txtSommaire[2] && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', display: 'block', lineHeight: 1.2, ...COMPOSITION_INTITULE }}>{titreSansAppelsDeNote(n3txt)}</span>}
+                              <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-doux)', display: 'block', lineHeight: 1.3, ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n3)}</span>
+                              {n3txt && configNiveaux.txtSommaire[2] && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', display: 'block', lineHeight: 1.2, ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n3txt)}</span>}
                             </button>
                           )
                         })}
@@ -3712,8 +3712,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             // Les intitulés alignés viennent des segments de la traduction de
             // référence, sans la banque de notes qui les accompagne en lecture :
             // l'appel y serait muet, on le masque comme au sommaire.
-            const titreLivre = titreSansAppelsDeNote(courante?.niv1 || `LIVRE ${libelleLivreComparaison(comparaisonBook)}`)
-            const titreDivision = titreSansAppelsDeNote(courante?.niv2 || libelleDivisionComparaison(comparaisonDivision))
+            const titreLivre = rendreIntituleDeSommaire(courante?.niv1 || `LIVRE ${libelleLivreComparaison(comparaisonBook)}`)
+            const titreDivision = rendreIntituleDeSommaire(courante?.niv2 || libelleDivisionComparaison(comparaisonDivision))
             return (
               <div id="barre-nav-division" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
                 <button onClick={() => prev && naviguerComparaison(prev.book, prev.division)} disabled={!prev} aria-label="Division précédente"
@@ -3748,8 +3748,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   contrôles les plus employés de la page après le texte lui-même, et le
                   nom dit la DESTINATION, non le geste. */}
               <button onClick={() => niv1Prev && changerNiv1(niv1Prev)} disabled={!niv1Prev}
-                aria-label={niv1Prev ? `Aller à ${niv1Prev}` : undefined}
-                title={niv1Prev ?? undefined}
+                aria-label={niv1Prev ? `Aller à ${intituleEnTexteNu(niv1Prev)}` : undefined}
+                title={intituleEnTexteNu(niv1Prev ?? '') || undefined}
                 style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Prev ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Prev ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Prev ? 'auto' : 'none' }}>
                 {niv1Prev ? '‹' : ''}
               </button>
@@ -3800,8 +3800,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 )}
               </h2>
               <button onClick={() => niv1Next && changerNiv1(niv1Next)} disabled={!niv1Next}
-                aria-label={niv1Next ? `Aller à ${niv1Next}` : undefined}
-                title={niv1Next ?? undefined}
+                aria-label={niv1Next ? `Aller à ${intituleEnTexteNu(niv1Next)}` : undefined}
+                title={intituleEnTexteNu(niv1Next ?? '') || undefined}
                 style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: niv1Next ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: niv1Next ? 'pointer' : 'default', padding: 0, pointerEvents: niv1Next ? 'auto' : 'none' }}>
                 {niv1Next ? '›' : ''}
               </button>

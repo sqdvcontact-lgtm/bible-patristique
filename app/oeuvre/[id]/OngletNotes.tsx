@@ -27,6 +27,7 @@ import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import { surfaceDuSegment } from '@/app/lib/oeuvreSelects'
 import { rendreTexteEnrichi } from './texteEnrichi'
+import { rendreIntituleDeSommaire } from './appelNote'
 import {
   clesDesNotes,
   comptesParIntitule,
@@ -282,7 +283,7 @@ export default function OngletNotes({
               {plusieursTextes && (
                 <span style={{ color: 'var(--cs-texte-faible)' }}>{groupe.source.libelle} · </span>
               )}
-              {groupe.division || 'Sans division'}
+              {(groupe.division && rendreIntituleDeSommaire(groupe.division)) || 'Sans division'}
             </p>
             {groupe.notes.map(note => (
               <LigneNote
