@@ -29,7 +29,7 @@
  * se transpose.
  */
 export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
-  'admin/AdminClient.tsx': ['#6a8074', '#a2564a'],
+  'admin/AdminClient.tsx': ['#a2564a'],
   'admin/controleQualite.ts': ['#8a541d', '#c7832f'],
   // ⛔ Ces cinq valeurs NE PEUVENT PAS être des jetons, et c'est le principe même de
   // la page : la planche des illustrations montre chaque gravure sur les fonds du site

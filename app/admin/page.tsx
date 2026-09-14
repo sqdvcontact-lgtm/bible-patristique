@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import { estAdmin } from '@/app/lib/verifAdmin'
+import { estAdminDeLaRequete } from './gardeAdmin'
 import { nomSigne } from '@/app/lib/signatureEssai'
 import AdminClient from './AdminClient'
 import {
@@ -171,7 +172,7 @@ function compteSignalementsEssai(id: number, signalementsEssais: { message: stri
 export const metadata = { title: 'Administration' }
 
 export default async function AdminPage() {
-  const autorise = await estAdmin()
+  const autorise = await estAdminDeLaRequete()
 
   if (!autorise) {
     return (
@@ -190,7 +191,7 @@ export default async function AdminPage() {
     )
   }
 
-  // ── Vague 1 : 12 requêtes indépendantes en parallèle ─────────────────────
+  // ── Vague 1 : 13 requêtes indépendantes en parallèle ─────────────────────
   const vague1 = await Promise.all([
     // ⛔ Un commentaire que son auteur a supprimé (texte vidé par la base) ne se modère plus.
     supabaseAdmin.from('commentaires').select('id, texte, auteur_nom, auteur_mail, valide, created_at, id_segment, id_verset, user_id, reponse_a').eq('valide', false).eq('supprime', false).or('demande_validation.is.null,demande_validation.eq.false').order('created_at', { ascending: false }),
@@ -203,14 +204,10 @@ export default async function AdminPage() {
     supabaseAdmin.from('signalements').select('message'),
     supabaseAdmin.from('auteurs').select('id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, traditions, note_biographique, note_theologique, langue_principale, chronologie, anecdotes, influence, photo_position, oeuvres!oeuvres_id_auteur_fkey(id_oeuvre, titre, titre_affichage, sous_titre, titre_original, trad_auteur, editeur, collection, ville, date_publication, date_composition, url_source, genre, genres, profondeur_sommaire, nb_signes, niveaux_sommaire, niveaux_corps, texte_sommaire, texte_corps, afficher_numeros, acces_public, motif_non_publication, commentaire_traduction, note_editoriale_complete, note_editoriale_complement, note_editoriale_titre)').order('siecle', { ascending: true, nullsFirst: false }),
     supabaseAdmin.from('traductions').select('*').order('ordre', { ascending: true }),
-    supabaseAdmin.rpc('count_verifications_pending'),
     supabaseAdmin.from('essais_commentaires').select('id, id_essai, texte, auteur_nom, created_at, user_id').eq('valide', false).eq('supprime', false).order('created_at', { ascending: false }),
     // Commentaires privés des œuvres : table à part, sans droit de lecture pour
     // anon ni authenticated — elle ne s'atteint donc que par la clé de service.
     supabaseAdmin.from('oeuvres_commentaires_prives').select('id_oeuvre, commentaire, note_acces_public'),
-    // Le courrier non relevé, pour la pastille de l'onglet. La table est fermée par
-    // RLS : seule la clé de service la voit (voir app/admin/SectionCourrier.tsx).
-    supabaseAdmin.from('messages_contact').select('id', { count: 'exact', head: true }).is('traite_le', null),
     // Les textes de chaque œuvre et leur état de validation (charte § 52), pour la Bibliothèque.
     supabaseAdmin.from('oeuvre_textes').select('id_texte, id_oeuvre, titre_version, langue, edition_label, statut, is_public, is_default, nb_signes, motif_non_publication, informations_complementaires').order('id_texte'),
   ])
@@ -225,14 +222,10 @@ export default async function AdminPage() {
     { data: signalementsEssais },
     { data: auteursData },
     { data: traductions },
-    { data: nbVerifRaw },
     { data: commentairesPublicationsRaw },
     { data: commentairesPrivesOeuvres },
-    courrierResult,
     { data: textesOeuvres },
   ] = vague1
-  const nbVerifications = (nbVerifRaw as number | null) ?? 0
-  const nbCourrier = courrierResult.count ?? 0
 
   // Signalements : fallback si la colonne id_verset manque
   let signalements = signResult.data
@@ -420,8 +413,6 @@ export default async function AdminPage() {
       auteurs={auteurs}
       textes={textesOeuvres ?? []}
       traductions={traductions ?? []}
-      nbVerifications={nbVerifications ?? 0}
-      nbCourrier={nbCourrier}
       erreurChargement={erreurChargement}
       actionDeconnexion={actionDeconnexion}
       actionValider={actionValiderCommentaire}

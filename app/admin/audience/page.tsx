@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { estAdmin } from '@/app/lib/verifAdmin'
+import { estAdminDeLaRequete } from '@/app/admin/gardeAdmin'
 import { GRAISSE_TITRE, TITRE_CARTE, ENCRE_TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import AudienceClient from './AudienceClient'
 import type { TableauAudience } from './types'
@@ -67,7 +67,7 @@ export default async function AudiencePage({
 }: {
   searchParams?: Promise<{ jours?: string; onglet?: string }>
 }) {
-  if (!(await estAdmin())) return <EcranReserve />
+  if (!(await estAdminDeLaRequete())) return <EcranReserve />
 
   const params = searchParams ? await searchParams : {}
   // Une période hors barème retombe sur trente jours : l'adresse est modifiable à

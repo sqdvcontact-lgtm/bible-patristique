@@ -1,4 +1,4 @@
-import { estAdmin } from '@/app/lib/verifAdmin'
+import { estAdminDeLaRequete } from '@/app/admin/gardeAdmin'
 import { chargerIllustrationsFillionEnRevue } from './donnees'
 import RevueFillion from './RevueFillion'
 
@@ -6,7 +6,7 @@ export const metadata = { title: 'Revue des illustrations Fillion' }
 export const dynamic = 'force-dynamic'
 
 export default async function PageRevueFillion() {
-  if (!(await estAdmin())) {
+  if (!(await estAdminDeLaRequete())) {
     return (
       <main style={{ minHeight: 'calc(100vh - 3.5rem)', display: 'grid', placeItems: 'center', background: 'var(--cs-fond)', padding: '1rem' }}>
         <section style={{ width: 'min(100%, 24rem)', padding: '2rem', border: '1px solid var(--cs-bord)', borderRadius: '12px', background: 'var(--cs-surface)', textAlign: 'center' }}>

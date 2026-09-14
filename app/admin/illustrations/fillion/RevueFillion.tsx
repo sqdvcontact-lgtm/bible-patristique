@@ -635,8 +635,14 @@ function viserDansLeCadre(cadre: HTMLIFrameElement | null, adresse: string) {
  * le repli des navigateurs qui ignorent « clip ».
  */
 const FEUILLE_REVUE = `
+  /* La revue se règle sur SA COLONNE, non sur la fenêtre : le sommaire de l’administration
+     en prend la gauche, et un seuil pris sur la largeur de l’écran lui donnerait trois
+     colonnes là où elle n’a la place que de deux. D’où « container-type » et des requêtes de
+     conteneur. Sous 900 px, le sommaire devient un bandeau posé au-dessus de la page : la
+     hauteur le retranche (« --adm-bandeau »), et la page reste fixe. */
   .revue-fillion {
-    height: ${HAUTEUR_SOUS_NAVBAR};
+    height: calc(${HAUTEUR_SOUS_NAVBAR} - var(--adm-bandeau, 0px));
+    container-type: inline-size;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
     gap: 0.625rem;
@@ -659,7 +665,7 @@ const FEUILLE_REVUE = `
 
   .revue-espace {
     display: grid;
-    grid-template-columns: clamp(15rem, 17vw, 19rem) clamp(24rem, 30vw, 34rem) minmax(0, 1fr);
+    grid-template-columns: clamp(15rem, 17cqw, 19rem) clamp(24rem, 30cqw, 34rem) minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
     gap: 0.625rem;
     min-height: 0;
@@ -730,7 +736,7 @@ const FEUILLE_REVUE = `
   /* Deux planches couchées côte à côte ne gardaient qu’un tiers de leur place dans la colonne
      étroite de la fiche : elles s’y superposent. Sous 1200 px la fiche s’élargit, et le côte à
      côte redevient le plus grand des deux partis. */
-  @media (min-width: 1201px) {
+  @container (min-width: 1201px) {
     .revue-scene--jumelle.revue-scene--paysage { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
   }
   .revue-scene figure { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 0.25rem; min-width: 0; min-height: 0; margin: 0; }
@@ -776,11 +782,11 @@ const FEUILLE_REVUE = `
   .revue-contexte iframe { flex: 1 1 auto; display: block; width: 100%; min-height: 0; border: 0; background: var(--cs-fond); }
   .revue-vide { margin: auto; padding: 1.5rem; font-size: 0.8125rem; font-style: italic; text-align: center; color: var(--cs-texte-second); }
 
-  /* Seuil propre à cette page, hors du tableau des seuils du site : trois colonnes
+  /* Seuil propre à cette page, pris sur sa colonne et hors du tableau des seuils du site : trois colonnes
      demandent la liste, une fiche lisible et une page de lecture qui garde sa colonne
      de texte. En deçà, la fiche et le contexte se partagent la seconde colonne. */
-  @media (max-width: 1200px) {
-    .revue-espace { grid-template-columns: clamp(14rem, 30vw, 18rem) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  @container (max-width: 1200px) {
+    .revue-espace { grid-template-columns: clamp(14rem, 30cqw, 18rem) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
     .revue-volet { grid-column: 1; grid-row: 1 / span 2; }
     .revue-panneaux--moyen { display: flex; grid-column: 2; grid-row: 1; width: 100%; margin: 0; }
     .revue-fiche, .revue-contexte { grid-column: 2; grid-row: 2; }
@@ -788,8 +794,8 @@ const FEUILLE_REVUE = `
     .revue-espace:not([data-panneau="contexte"]) .revue-contexte { display: none; }
   }
 
-  /* Le seuil du site pour un écran étroit : une seule partie à la fois. */
-  @media (max-width: 900px) {
+  /* Le seuil du site, pris sur la colonne : une seule partie à la fois. */
+  @container (max-width: 900px) {
     .revue-bilan { margin-left: 0; }
     .revue-espace { grid-template-columns: minmax(0, 1fr); }
     .revue-panneaux--moyen { display: none; }

@@ -2,17 +2,18 @@ import type { Onglet } from '@/app/admin/adminTypes'
 
 // ── LA TABLE UNIQUE DES ENTRÉES D'ADMINISTRATION ─────────────────────────────
 //
-// Elle sert LES DEUX listes : la barre d'onglets de la page /admin et le menu
-// déroulant « Administration » de la barre du haut (celui-ci en trois exemplaires :
-// desktop, panneau mobile, et le <select> mobile de la page).
+// Elle sert LES DEUX listes : le sommaire de l'administration, en volet à gauche de
+// toutes ses pages (`app/admin/CadreAdministration.tsx`, avec son choix déroulant
+// sur un écran étroit), et le menu déroulant « Administration » de la barre du haut
+// (desktop et panneau mobile).
 //
 // ⛔ Les deux listes étaient écrites SÉPARÉMENT, l'une dans `AdminClient`, l'autre
 // dans `Navbar`, et elles avaient divergé : le menu comptait cinq entrées que la
-// barre ignorait — Centre de contrôle, Audience, Planche des styles, Propositions
+// page ignorait — Centre de contrôle, Audience, Planche des styles, Propositions
 // de GPT et Bible 899. Une page d'administration qui n'est nommée que par la barre
 // du haut est une page qu'on ne trouve pas quand on est DÉJÀ dans l'administration,
-// où l'on cherche dans la barre d'onglets. Deux tables ne peuvent pas rester
-// d'accord ; il n'y en a donc plus qu'une, et l'ordre y fait foi pour les deux.
+// où l'on cherche dans le sommaire. Deux tables ne peuvent pas rester d'accord ; il
+// n'y en a donc plus qu'une, et l'ordre y fait foi pour les deux.
 //
 // ⚠️ Ajouter une entrée ici la fait paraître PARTOUT. C'est voulu : c'est le prix
 // pour que les deux listes ne redivergent jamais.
@@ -20,7 +21,7 @@ import type { Onglet } from '@/app/admin/adminTypes'
 /** Les trois familles, dans leur ordre de lecture. */
 export type FamilleAdmin = 'corpus' | 'communaute' | 'systeme'
 
-// `couleur` : sur fond clair (menu déroulant, barre d'onglets).
+// `couleur` : sur fond clair (menu déroulant, sommaire).
 // `couleurMobile` : variante claire, lisible sur le fond vert foncé du panneau mobile.
 export const FAMILLES_ADMIN: { cle: FamilleAdmin; label: string; couleur: string; couleurMobile: string }[] = [
   { cle: 'corpus',     label: 'Corpus & catalogue', couleur: 'var(--cs-vert)',    couleurMobile: 'var(--cs-vert-clair)' },

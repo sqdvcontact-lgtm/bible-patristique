@@ -5,7 +5,7 @@ import { EcranReserve } from './piecesControle'
 
 export const dynamic = 'force-dynamic'
 
-// L'entrée du centre de contrôle ouvre la PREMIÈRE mission du volet.
+// L'entrée du centre de contrôle ouvre la PREMIÈRE mission du sommaire.
 //
 // ⛔ Elle n'ouvre pas l'état du contrôle v2. Son contrat recalcule à chaque appel toute la
 // file des postcontrôles de liens, et il dépasse son délai : ouvrir le centre sur lui,

@@ -1,10 +1,12 @@
 // Le cadre du centre de contrôle, et la composition de l'état du contrôle v2.
 //
-// `CSS_CADRE` sert toutes les vues : le volet qui nomme les missions, la colonne qui porte
-// celle qu'on a ouverte, et les écrans de panne. `CSS_SYSTEME` ne sert que l'état du
-// contrôle v2, dont les tableaux et les listes n'existent nulle part ailleurs. Les cartes,
-// les tuiles, les jauges, la note et les tâches restent dans `stylesControle.ts`, que la
-// page d'audience emprunte aussi.
+// `CSS_CADRE` sert toutes les vues : la colonne qui porte la vue ouverte, et les écrans de
+// panne. Les vues se nomment dans le sommaire de l'administration, sous l'entrée « Centre de
+// contrôle » (14 septembre 2026) : le centre avait son propre volet, qui se serait posé à côté
+// du sommaire dès que celui-ci a gagné toutes les pages. `CSS_SYSTEME` ne sert que l'état du
+// contrôle v2, dont les tableaux et les listes n'existent nulle part ailleurs. Les cartes, les
+// tuiles, les jauges, la note et les tâches restent dans `stylesControle.ts`, que la page
+// d'audience emprunte aussi.
 //
 // ⚠️ Chaque feuille se pose dans son PROPRE bloc `<style>`, jamais en somme de constantes :
 // la garde des accents graves ne reconnaît que le nom seul, et la feuille du contrôle v2 a
@@ -12,20 +14,13 @@
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 export const CSS_CADRE = `
-  /* Le volet nomme les missions, la colonne porte celle qu'on a ouverte. Une seule se
-     charge à la fois : un calcul qui dépasse son délai ne ferme plus que sa propre vue. */
+  /* La colonne porte la vue ouverte, et elle seule se charge : un calcul qui dépasse son
+     délai ne ferme que sa propre vue. Sa mesure est celle qu'elle avait à côté de l'ancien
+     volet des missions. */
   .cv-page { min-height: calc(100vh - ${HAUTEUR_NAVBAR}); background: var(--cs-fond); padding: 1.5rem 1.5rem 3rem;
-             display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 2rem;
-             max-width: 76rem; margin: 0 auto; align-items: start; }
+             max-width: 59rem; margin: 0 auto; }
 
-  .cv-volet { position: sticky; top: calc(${HAUTEUR_NAVBAR} + 1.5rem); }
-  .cv-volet-dedans { max-height: calc(100dvh - ${HAUTEUR_NAVBAR} - 3rem); overflow-y: auto; overscroll-behavior: contain;
-                     display: flex; flex-direction: column; gap: 0.875rem; padding-right: 0.25rem; }
-  .cv-volet-titre { font-family: var(--font-source-serif), Georgia, serif; font-size: 1.0625rem; color: var(--cs-encre-fonce); margin: 0; }
-  .cv-volet-erreur { font-size: 0.75rem; color: var(--cs-danger); line-height: 1.4; margin: 0 0 0.375rem;
-                     font-family: var(--font-source-sans), Arial, sans-serif; }
-
-  .cv-nav { display: flex; flex-direction: column; gap: 0.75rem; }
+  /* Le sommaire de l'état du contrôle v2, en tête de sa vue. */
   .cv-nav-groupe ul { list-style: none; margin: 0; padding: 0; }
   .cv-nav-tete { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cs-texte-doux);
                  font-weight: 700; font-family: var(--font-source-sans), Arial, sans-serif; margin: 0 0 0.25rem; }
@@ -35,13 +30,7 @@ export const CSS_CADRE = `
   .cv-nav-titre { flex: 1; font-size: 0.8125rem; color: var(--cs-texte); line-height: 1.35; }
   .cv-nav-chiffre { font-size: 0.8125rem; color: var(--cs-texte-second); font-variant-numeric: tabular-nums; }
   .cv-nav-lien:hover .cv-nav-titre { color: var(--cs-vert); }
-  /* L'entrée ouverte se dit par le fond ET par l'encre : un fond seul se confond avec le
-     survol, qui pose le même. */
-  .cv-nav-lien[aria-current='page'] { background: var(--cs-fond-doux); }
-  .cv-nav-lien[aria-current='page'] .cv-nav-titre { color: var(--cs-vert); font-weight: 600; }
 
-  .cv-volet-pied { border-top: 1px solid var(--cs-bord-clair); padding-top: 0.625rem; font-size: 0.6875rem;
-                   color: var(--cs-texte-doux); font-family: var(--font-source-sans), Arial, sans-serif; line-height: 1.6; }
   .cv-lien { color: var(--cs-vert); text-decoration: none; }
   .cv-lien:hover { text-decoration: underline; }
 
@@ -74,14 +63,9 @@ export const CSS_CADRE = `
                      white-space: pre-wrap; overflow-wrap: anywhere; }
   .cv-panne .cv-lien { align-self: flex-start; font-size: 0.875rem; font-family: var(--font-source-sans), Arial, sans-serif; }
 
-  /* Sous le seuil de la charte, le volet repasse en flux au-dessus de la matière : un volet
-     collant de quinze rem n'a pas de place sur un téléphone. */
+  /* Sous le seuil de la charte, la colonne resserre ses marges. */
   @media (max-width: 900px) {
-    .cv-page { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; padding: 1rem 0.75rem 2.5rem; }
-    .cv-volet { position: static; }
-    .cv-volet-dedans { max-height: none; overflow: visible; }
-    .cv-nav { flex-direction: row; flex-wrap: wrap; gap: 0.75rem 1.5rem; }
-    .cv-nav-groupe { flex: 1 1 12rem; }
+    .cv-page { padding: 1rem 0.75rem 2.5rem; }
   }
 `
 

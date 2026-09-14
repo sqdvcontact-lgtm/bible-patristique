@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { estAdmin } from '@/app/lib/verifAdmin'
+import { estAdminDeLaRequete } from '@/app/admin/gardeAdmin'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import RegistreNotes from './RegistreNotes'
 import { CLE_DIRECTIVES, DIRECTIVES_VIDES, lireDirectives } from './registre'
@@ -13,7 +13,7 @@ const supabaseAdmin = createClient(
 )
 
 export default async function PagePropositionsGpt() {
-  if (!(await estAdmin())) {
+  if (!(await estAdminDeLaRequete())) {
     return (
       <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '36px 40px', width: '21.25rem', textAlign: 'center' }}>

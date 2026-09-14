@@ -9,8 +9,8 @@ export const dynamic = 'force-dynamic'
 
 // L'état du système de contrôle v2, dans sa propre vue du centre de contrôle.
 //
-// Son contrat se fait attendre dans une frontière de flux : l'en-tête et le volet paraissent
-// tout de suite, et une panne du contrat ne ferme plus que cette vue.
+// Son contrat se fait attendre dans une frontière de flux : l'en-tête et le sommaire de
+// l'administration paraissent tout de suite, et une panne du contrat ne ferme plus que cette vue.
 export default async function PageSysteme() {
   if (!(await estAdminDeLaRequete())) return <EcranReserve />
 

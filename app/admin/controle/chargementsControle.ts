@@ -4,12 +4,11 @@
 // seul tenant : l'une attendait le contrat du contrôle v2, l'autre le tableau de bord du
 // corpus entier. La première s'est fermée le jour où son contrat a dépassé son délai
 // (23,7 s mesurées le 13 septembre 2026, pour huit secondes accordées à la clé de service),
-// et elle emportait avec elle tout ce qui ne dépendait pas de lui. Le volet ne lit plus que
-// les intitulés, une mission sa note et ses tâches, et chaque calcul lourd se fait attendre
-// dans la seule vue qui le demande.
+// et elle emportait avec elle tout ce qui ne dépendait pas de lui. Le sommaire de
+// l'administration ne lit que les intitulés, une mission sa note et ses tâches, et chaque
+// calcul lourd se fait attendre dans la seule vue qui le demande.
 import { cache } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { estAdmin } from '@/app/lib/verifAdmin'
 import { composerMissions, type LigneMission, type Mission, type Todo } from './missions'
 
 export const supabaseAdmin = createClient(
@@ -22,11 +21,13 @@ export type ErreurPostgrest = { message?: string; code?: string; details?: strin
 /** Le code d'un dépassement du `statement_timeout`, seul cas où une reprise a un sens. */
 export const CODE_DELAI_DEPASSE = '57014'
 
-/** Le layout et la page vérifient tous deux : React ne pose la question qu'une fois par requête. */
-export const estAdminDeLaRequete = cache(estAdmin)
+/** La garde partagée avec le layout de l'administration : React ne pose la question qu'une fois par requête. */
+export { estAdminDeLaRequete } from '../gardeAdmin'
 
-/** Les intitulés du volet, et rien d'autre : la note de « Qualité du texte » pèse à elle seule
- *  117 Ko et ses tâches 250 Ko, qu'aucune entrée du volet n'a besoin de lire. */
+/** Les intitulés du sommaire, et rien d'autre : la note de « Qualité du texte » pèse à elle
+ *  seule 117 Ko et ses tâches 250 Ko, qu'aucune entrée du sommaire n'a besoin de lire. Le
+ *  layout de l'administration l'appelle sur toutes ses pages ; `cache()` fait que la page
+ *  d'une mission, qui en a besoin aussi, ne relit pas la table dans la même requête. */
 export const chargerMissions = cache(async (): Promise<{ missions: Mission[]; erreur: ErreurPostgrest | null }> => {
   const { data, error } = await supabaseAdmin
     .from('controle_sections')

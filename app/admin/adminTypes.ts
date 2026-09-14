@@ -153,9 +153,6 @@ export type AdminProps = {
   auteurs: Auteur[]
   textes: TexteEtatAdmin[]
   traductions: Traduction[]
-  nbVerifications: number
-  // Lettres du formulaire de contact non encore relevées (voir SectionCourrier).
-  nbCourrier: number
   // Vrai si au moins une des requêtes de chargement serveur a échoué : la page
   // affiche alors un bandeau plutôt que de présenter des sections vides en silence.
   erreurChargement?: boolean

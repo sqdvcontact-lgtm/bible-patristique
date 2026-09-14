@@ -1,4 +1,4 @@
-import { estAdmin } from '@/app/lib/verifAdmin'
+import { estAdminDeLaRequete } from '@/app/admin/gardeAdmin'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import { releverFamilles } from './mesures'
 import PlancheIllustrations from './PlancheIllustrations'
@@ -7,7 +7,7 @@ export const metadata = { title: 'Illustrations' }
 export const dynamic = 'force-dynamic'
 
 export default async function PageIllustrations() {
-  if (!(await estAdmin())) {
+  if (!(await estAdminDeLaRequete())) {
     return (
       <main style={{ minHeight: 'calc(100vh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '36px 40px', width: '21.25rem', textAlign: 'center' }}>

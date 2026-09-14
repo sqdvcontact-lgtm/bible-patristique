@@ -1,4 +1,4 @@
-import { estAdmin } from '@/app/lib/verifAdmin'
+import { estAdminDeLaRequete } from '@/app/admin/gardeAdmin'
 import ContexteFillion from './ContexteFillion'
 
 export const metadata = { title: 'Contexte d’une illustration Fillion' }
@@ -15,7 +15,7 @@ export default async function PageContexteIllustrationFillion({
 }: {
   searchParams: Promise<{ livre?: string; chapitre?: string }>
 }) {
-  if (!(await estAdmin())) {
+  if (!(await estAdminDeLaRequete())) {
     return <p style={{ padding: '2rem', textAlign: 'center' }}>Cette page de travail est réservée au compte administrateur.</p>
   }
   const { livre, chapitre } = await searchParams

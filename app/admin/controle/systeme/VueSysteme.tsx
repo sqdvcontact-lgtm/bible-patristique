@@ -429,7 +429,7 @@ export default async function VueSysteme() {
       <PanneChargement
         titre="Le contrôle v2 n’a pas répondu"
         explication={error?.code === CODE_DELAI_DEPASSE
-          ? 'Le contrat recalcule à chaque appel toute la file des postcontrôles de liens, et ce calcul dépasse désormais à lui seul le délai de huit secondes accordé à la page. Tant qu’il n’est pas figé côté base, cette vue ne peut pas s’ouvrir. Les missions du volet, elles, se lisent sans lui.'
+          ? 'Le contrat recalcule à chaque appel toute la file des postcontrôles de liens, et ce calcul dépasse désormais à lui seul le délai de huit secondes accordé à la page. Tant qu’il n’est pas figé côté base, cette vue ne peut pas s’ouvrir. Les missions du sommaire, elles, se lisent sans lui.'
           : 'La RPC controle_v2_admin_snapshot n’a rien renvoyé d’exploitable. Le détail technique est ci-dessous.'}
         erreur={error}
         reessayer={ADRESSE_SYSTEME}
