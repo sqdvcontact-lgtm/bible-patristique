@@ -26,6 +26,10 @@
 
 - ⛔ La casse ne sert jamais à justifier ou à inventer la ponctuation : avant de capitaliser, établir que le signe fort appartient réellement au texte éditorial retenu.
 
+**§ 3.4 — Tirets et traits d’union**
+
+- ⛔ LE TIRET DEMI-CADRATIN `–` EST RÉSERVÉ EXCLUSIVEMENT AUX INCISES.
+
 **§ 3.5 — Titres**
 
 - ⛔ Il est interdit de perdre ou d’écraser la forme source pour améliorer le rendu.
@@ -119,9 +123,9 @@
 **§ 5.6.1 — La NOTATION d’une notice — trois niveaux, deux marques**
 
 - ⛔ CE QU’UNE NOTICE DE TRANSMISSION PORTE N’EST PAS DE LA PROSE SUIVIE.
-- ⛔ LE TIRET EST OBLIGATOIRE, ET IL A DEUX GRAPHIES.
-- ⚠️ C’est le PREMIER qui coupe, quelle qu’en soit la graphie : un corps qui porte un second tiret garde le sien.
-- ⛔ Jamais le trait d’union, qui ouvre déjà la ligne.
+- ⛔ LE SÉPARATEUR EST UN TRAIT D’UNION SIMPLE `-`.
+- ⛔ Le demi-cadratin `–` est interdit ici : conformément au § 3.4, il est réservé exclusivement aux incises.
+- ⚠️ C’est le premier trait d’union séparateur qui coupe ; un corps qui contient ensuite un trait d’union lexical ou conventionnel garde le sien.
 - ⛔ UNE RUBRIQUE EST COUSUE À CE QU’ELLE NOMME.
 - ⚠️ Quinze n’est pas le blanc qui sépare deux SECTIONS de la fiche, qui vaut dix-huit : une rubrique est un rang au-dessous, et lui donner le même air aplatirait la hiérarchie qu’on vient de poser.
 - ⚠️ L’ENCRE DE LA RUBRIQUE MONTE D’UN RANG — par rapport à celle d’un volet.
@@ -389,12 +393,12 @@
 - ⛔ Retirer une surface de lecture oblige à donner un chemin à tout ce qu’elle était seule à montrer.
 - ⚠️ La liste des notes d’un développement sans point d’appel, au bas de leur bloc, ne double aucun appel : elle demeure, pour la même raison.
 
-**§ 13.8 — La NORMALISATION des notes — ce que le site compose, ce que la base porte**
+**§ 13.8 — La NORMALISATION des notes — ce que la donnée porte, ce que le rendu compose**
 
-- ⚠️ Mesuré avant d’écrire une seule ligne : une bonne moitié de ce qu’on croit à corriger l’est déjà.
+- ⛔ LA DONNÉE NORMALISÉE PORTE LE TEXTE ÉDITORIAL ; LE RENDU COMPOSE CE QUI N’APPARTIENT PAS AU TEXTE.
+- ⚠️ Les mesures historiques du rendu restent utiles comme garde, non comme norme de stockage.
 - ⛔ SEULE LA TRANSCRIPTION DIPLOMATIQUE D’UNE NOTATION D’APPARAT CRITIQUE échappe à la normalisation de lecture lorsque sa forme fait preuve.
 - ⛔ 1. Le numéro AFFICHÉ recommence à chaque début de NIVEAU 1 — et le numéro INTERNE ne bouge pas.
-- ⚠️ Cette décision RECTIFIE le § 13.3 — qui dit encore que « la numérotation ne recommence ni à une partie, ni à un livre, ni à un espace textuel » : la règle valait pour un numéro unique, et il y en a désormais deux.
 - ⛔ Lorsqu’un témoin imprime un appareil critique autonome et numéroté, cette série peut conserver sa propre numérotation de lecture.
 - ⛔ 2. Les œuvres CITÉES en note entrent dans `ouvrages_bibliographiques` — le catalogue des ouvrages, et la référence se COMPOSE depuis ses champs — jamais rédigée à la main dans un bloc.
 - ⛔ 3. Un bloc de note entièrement LATIN se compose en italique, quelle que soit sa longueur — y compris les 27 blocs qui dépassent 900 signes.
@@ -455,8 +459,9 @@
 
 **§ 13.11.2 — Ce que la composition SÉPARE dans une même famille (9 septembre 2026)**
 
-- ⚠️ Où qu'elle paraisse — en tête sur la ligne du propos, au milieu d'une note, ou seule.
-- ⚠️ Rien ne se cumule — un lemme latin est déjà italique par sa langue (§ 13.8), et les deux règles disent alors la même chose.
+- ⛔ Un lemme n’est jamais mis en italique du seul fait qu’il est un `lemma`.
+- ⚠️ La composition du lemme dépend de sa langue et de sa fonction, non de son rang — un lemme latin ou translittéré suit la règle de l’italique ; le grec en alphabet grec reste en romain.
+- ⚠️ L’italique imprimé du lemme n’est pas normatif par inertie.
 - ⛔ TOUTE LA FAMILLE DU RENVOI SUIT SA CIBLE EN LIGNE — et non le seul `reference`.
 
 **§ 13.12 — Ce que l’auteur a TRANCHÉ le 5 septembre 2026**
@@ -495,15 +500,14 @@
 - ⛔ Le latin cité DANS une note française se compose en italique.
 - ⛔ Il s’écrit par MARQUEUR, dans le texte (`*…*`), jamais par un offset ni par une devinette au rendu.
 - ⛔ C’est une LECTURE, non une passe mécanique.
-- ⚠️ Une abréviation de renvoi n’est pas du latin CITÉ « ibid. », « id. », « op. cit. », « cf. », « passim » sont des conventions bibliographiques et ne s’italisent pas.
+- ⚠️ Une abréviation de renvoi n’est pas du latin cité, mais elle suit néanmoins la convention typographique générale du § 3.6.
 - ⛔ Ne pas cumuler avec l’italique de la langue.
 - ⚠️ Le grec ne suit pas — son alphabet le distingue déjà, et l’italique y déforme la lettre au lieu de changer la graisse (§ 13.8).
 - ⚠️ Sur les cinq textes enrichis, l’imprimeur a déjà fait le travail — la règle 1 rend l’italique de Faivre, dont une part est du latin — 2 341 empans dans le seul `A0044O0003TFR-V11`.
 
-**§ 13.12.3 — Ce qui reste OUVERT**
+**§ 13.12.3 — Arbitrage acquis et points techniques encore ouverts**
 
-- ⚠️ LA FENTE DU BLOC À TROIS TÊTES ATTEND UNE SÉANCE À PART.
-- ⛔ Rien ne s’écrit tant que l’auteur n’a pas tranché : « C’est un cas particulier.
+- ⛔ LE BLOC À TROIS TÊTES EST DÉSORMAIS ARBITRÉ.
 - ⚠️ « DÉPUBLIER » N’EXISTE PAS ENCORE POUR UNE NOTE — et la décision 8 le demande.
 - ⛔ Le mécanisme se pose AVANT la passe, non pendant, et il vaudra pour tout bloc qu’on voudra retenir — non pour les seuls treize « ibid. » orphelins.
 - ⚠️ Le RENVOI INTERNE reste un texte, non un lien.
@@ -511,10 +515,9 @@
 **§ 13.12.4 — Les rôles HORS VOCABULAIRE, et l'axe `rendering` qui n'en a pas (9 septembre 2026)**
 
 - ⛔ UN RÔLE QUE LE SITE NE LIT PAS NE SE VOIT PAS.
-- ⛔ Sans cette règle il absorberait tout ce que le corpus produit, et l'axe cesserait de distinguer.
-- ⚠️ C'est la décision 10 (§ 13.12) portée aux rôles : des deux noms d'une même chose, le survivant est celui que le code lit.
-- ⛔ ON NE CRÉE PAS UN TYPE POUR REDIRE CE QUE LE RENDU CALCULE.
-- ⚠️ Les 71 notes que la manchette ne prend pas relèvent ensuite de la lecture, non du vocabulaire.
+- ⛔ QUI TRADUIT PORTE LA RESPONSABILITÉ DE TRADUCTION.
+- ⛔ Un rôle ne remplace jamais un type fonctionnel, et un type fonctionnel ne remplace jamais un rôle.
+- ⛔ UNE PROVENANCE N’EST NI UN RÔLE NI UN TYPE.
 - ⛔ ET UN RÔLE NE DIT JAMAIS UNE DISPOSITION.
 - ⚠️ CHANTIER OUVERT — `rendering` EST UN AXE SANS VOCABULAIRE.
 - ⛔ Rien ne se ferme tant qu'elles ne sont pas démêlées : une contrainte posée trop tôt ferait échouer les imports au lieu de les corriger.
@@ -625,6 +628,7 @@
 - ⛔ PETITES CAPITALES DANS LES RÉFÉRENCES.
 - ⛔ RÈGLE ABSOLUE DE STYLE DES CITATIONS.
 - ⛔ GROUPE CITATIONNEL ORIGINAL + TRADUCTION.
+- ⛔ tiret demi-cadratin `–` exclusivement pour toute incise ; hors incise, employer toujours le trait d’union simple `-` ;
 - ⛔ TOUTE NOTE SE TERMINE PAR UN POINT FINAL.
 - ⛔ tout mot, syntagme ou courte expression en latin enchâssé dans une phrase française **doit** être en italiques ; les caractères grecs en alphabet grec restent en romain ; les translittérations du grec en alphabet latin sont en italiques ;
 
@@ -651,6 +655,7 @@
 - ⛔ Aucune note logique n’est admise sans responsabilité éditoriale structurée.
 - ⛔ Aucune note n’est admise sans type fonctionnel — une ambiguïté porte un type principal provisoire documenté, jamais `NULL`.
 - ⛔ L’italique hérité de l’imprimé n’est jamais conservé par inertie.
+- ⛔ Dans les notes comme partout ailleurs, le demi-cadratin `–` est exclusivement un tiret d’incise. Tout autre emploi exige le trait d’union simple `-` : plages de chapitres, versets, paragraphes, pages, lignes, vers, dates, renvois, dialogues, attributions ou séparateurs bibliographiques, titres et toute autre liaison non incidente. Chaque occurrence de `–` doit être qualifiée sémantiquement comme incise ; sa seule position entre espaces, après un guillemet ou près d’une référence ne suffit jamais. Une incise peut contenir une référence ou une attribution, mais c’est sa fonction incidente dans la syntaxe porteuse — et non sa nature bibliographique — qui autorise `–`.
 - ⛔ RÉOUVERTURE PAR DÉPENDANCE, PAS PAR RÉPÉTITION GLOBALE.
 
 ## § 14. OCR, HTR et transcription patrimoniale
@@ -1439,6 +1444,10 @@
 - ⛔ La forme d’étiquette ne commande pas le jeton d’étiquette.
 - ⚠️ Le pas se prend en MÊLANT l’accent au papier, jamais en écrivant une valeur.
 
+**§ 34.2 — La marque de la citation favorite (22 août 2026)**
+
+- ⛔ On en porte UNE PAR CORPUS depuis le 14 septembre 2026 — une de l’Écriture et une des Pères, chacune à sa place : désigner un verset ne touche jamais la place des Pères, ni l’inverse.
+
 ## § 35. Chantier Fillion — la composition du paratexte biblique
 
 **§ 35.4 — La présentation vient de la donnée, jamais d’une forme reconnue au passage**
@@ -2084,17 +2093,19 @@
 
 **§ 40.12 — MA PAGE — ce que le lecteur donne à voir de lui**
 
-- ⛔ ELLE MONTRE LES DEUX CORPUS, ou elle ment sur ce qu’est ce site.
-- ⛔ Ni deux sections, ni deux couleurs de manchette : la nature d’un passage se lit dans sa référence, elle n’a pas à être annoncée deux fois.
+- ⛔ ELLE NE MONTRE PLUS, DE CE QUE LE LECTEUR A RETENU, QUE SES DEUX CITATIONS FAVORITES (décision de l’auteur, 2026-09-14 : « Sur “Ma page” n’afficher que les citations favorites (une bible, une pères).
+- ⚠️ Le diptyque est un livre ouvert — deux colonnes séparées d’un filet doré, l’attribution au PIED de chacune, si bien que les deux tombent sur la même ligne quelle que soit la longueur des passages (mesuré sur la composition servie : au pixel près).
+- ⛔ Une colonne étroite ne se justifie pas — et c’est une dérogation mesurée au § 3.11 : à une quarantaine de signes par ligne, la justification s’y creuse de lézardes, et elle voisine une colonne en drapeau dès que l’autre passage est court.
+- ⚠️ Un passage se montre entier jusqu’à 320 signes dans le diptyque et 480 seul ; au-delà, il se coupe au dernier mot entier, perd son enrichissement (une coupe peut tomber entre deux marques) et finit sur des points de suspension, sans point final.
 - ⚠️ Chaque passage RAMÈNE à sa source, quand elle est ouverte au visiteur — le chapitre pour un verset, l’œuvre au bon segment pour un Père.
-- ⛔ LA CITATION D’HONNEUR NE SE RÉPÈTE PAS dans la liste.
-- ⛔ ET LE TITRE D’UNE ŒUVRE RETIRÉE DE LA LECTURE N’Y PARAÎT PAS.
-- ⚠️ L’interrupteur du compte nomme ce qu’il GOUVERNE — non ce qu’il gouvernait : « Citations retenues », et non plus « Versets enregistrés ».
-- ⛔ La COLONNE, elle, garde son nom (`pub_favoris_versets`) : le déclencheur `profils_garde_colonnes` la nomme aussi, et un renommage se paierait des deux côtés pour un mot d’écran.
+- ⛔ UNE FAVORITE SE RECOMPOSE DEPUIS LES PRÉLÈVEMENTS DU LECTEUR, JAMAIS DEPUIS SA SEULE COPIE.
+- ⛔ ET UNE FAVORITE TIRÉE D’UNE ŒUVRE RETIRÉE DE LA LECTURE NE PARAÎT PAS — ni son titre ni son texte.
+- ⛔ L’interrupteur « Citations retenues » est RETIRÉ du compte — il gouvernait la liste, et un réglage qui ne gouverne plus rien mentirait.
+- ⚠️ La COLONNE `pub_favoris_versets` reste en base, et plus aucun écran ne s’en sert.
 - ⛔ L’EN-TÊTE EST UN APLAT, ET IL SE RETOURNAIT EN CUIR — cinquième fois.
 - ⚠️ Et son revers, qu’on ne voit qu’une fois le sol rétabli — sur un fond redevenu sombre, les encres de la carte s’inversent à leur tour — le pseudonyme en `--cs-fond-doux` rendait **1,16**.
 - ⚠️ La charte réservait cette famille au panneau mobile ; elle vaut pour tout aplat qui ne suit pas le sol de la page.
-- ⚠️ La RÉFÉRENCE d’une citation porte SEULE l’identité du passage — donc le seuil de 4,5 s’applique — la même règle qu’au § 40.11, sur une autre page et un autre gris : elle rendait 3,57 à 13 px en `--cs-texte-gris`, elle en rend 5,9 en `--cs-texte-second`.
+- ⚠️ La RÉFÉRENCE d’une citation porte SEULE l’identité du passage — donc le seuil de 4,5 s’applique : c’est la règle du § 40.11, sur une autre page et un autre gris.
 - ⛔ L’ÉTIQUETTE de section, elle, garde `--cs-etiquette` : une rubrique EST faite pour s’effacer, et confondre les deux cas ferait remonter tout ce que le site a calibré pour se taire.
 
 ## § 42. L’outil bibliographique — la page « Bibliographie »
@@ -2972,9 +2983,9 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 
 | § | chapitre | signes | énoncés | pour mille signes |
 |---|---|---:|---:|---:|
-| 3 | Typographie — les signes, les espaces, l’enric | 64 873 | 46 | **0.7** |
+| 3 | Typographie — les signes, les espaces, l’enric | 65 430 | 47 | **0.7** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
-| 15 | Corpus biblique et traductions | 18 187 | 17 | **0.9** |
+| 15 | Corpus biblique et traductions | 18 188 | 17 | **0.9** |
 | 35 | Chantier Fillion — la composition du paratexte | 79 319 | 79 | **1.0** |
 | 48 | Le protocole d’océrisation d’une bible | 46 262 | 51 | **1.1** |
 | 37 | La notice d’une traduction — le bandeau et l’e | 8 621 | 10 | **1.2** |
