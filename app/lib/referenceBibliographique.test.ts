@@ -203,6 +203,15 @@ describe('les règles générales', () => {
       .toBe('Titre, Paris, Cerf, 1990.')
   })
 
+  it('joint plusieurs lieux par la même barre, quelle que soit la graphie de la base', () => {
+    for (const lieu of ['Berlin; New York', 'Berlin / New York', 'Berlin ; New York']) {
+      expect(texteReference({ ...vide(1, 'Titre'), lieu, annee: 1990 }))
+        .toBe(`Titre, Berlin${SEPARATEUR_COEDITEURS}New York, 1990.`)
+    }
+    // ⛔ Un nom composé n'est pas deux lieux.
+    expect(texteReference({ ...vide(1, 'Titre'), lieu: 'Bar-le-Duc', annee: 1866 })).toBe('Titre, Bar-le-Duc, 1866.')
+  })
+
   it('compose la collection à la manière du site, avant l’adresse', () => {
     const notice = { ...vide(1, 'Titre'), collection: 'Sources chrétiennes', numeroCollection: '123', lieu: 'Paris', editeurs: [maison('Cerf')], annee: 1990 }
     expect(texteReference(notice)).toBe(`Titre, coll. ${OUV}Sources chrétiennes${FER}, 123, Paris, Cerf, 1990.`)

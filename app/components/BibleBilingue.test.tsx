@@ -368,9 +368,11 @@ describe('lecture bilingue de la page Bible', () => {
     // Une seule cible par créneau : ce qui se clique est la rangée, non la cellule,
     // puisque le volet de droite se charge sur `canon_id`. ⚠️ MRK.1.2 n'a pas de
     // français et se clique tout de même : l'apparat tient au créneau.
+    // ⚠️ Colonnes côte à côte, la rangée porte aussi `--symetrique` : la marque déborde le
+    // texte autant à droite qu'à gauche (charte § 38.31).
     expect(html.match(/class="cs-regard-rangee[^"]*"/g)).toEqual([
-      'class="cs-regard-rangee"',
-      'class="cs-regard-rangee cs-regard-rangee--retenue"',
+      'class="cs-regard-rangee cs-regard-rangee--symetrique"',
+      'class="cs-regard-rangee cs-regard-rangee--symetrique cs-regard-rangee--retenue"',
     ])
     // La marque du verset retenu se pose sur la rangée qu'on a désignée, et sur elle seule.
     expect(html.indexOf('data-canon-id="MRK.1.2"')).toBeLessThan(html.indexOf('--retenue'))

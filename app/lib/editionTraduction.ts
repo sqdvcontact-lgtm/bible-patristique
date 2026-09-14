@@ -48,8 +48,15 @@
 // où la fiche ne porte qu'un lieu de copie. La garde était juste et la conclusion
 // trop courte : ce n'est pas la phrase qu'il fallait taire, c'est l'autre phrase
 // qu'il fallait écrire. C'est la COTE qui décide — pas un type à interpréter, pas
-// une mention à reconnaître —, et l'adresse suit la forme savante, « le manuscrit
-// Paris, Bibliothèque nationale de France, Français 899 ».
+// une mention à reconnaître —, et l'adresse suit la forme savante : « le manuscrit
+// de Paris, Bibliothèque nationale de France, Français 899 ».
+//
+// ⛔ « LE MANUSCRIT DE PARIS », et non « le manuscrit Paris » (décision de l'auteur,
+// 14 septembre 2026). La cote savante — « Paris, BnF, fr. 899 » — se lit dans une
+// notice ; dans une PHRASE, la ville se gouverne par « de ». ⚠️ Sans ville, c'est le
+// dépôt qui ouvrirait l'adresse, et « de » demanderait l'article qu'il porte (« de la
+// Bibliothèque… ») : aucune fiche n'est dans ce cas, et un article ne se devine pas. La
+// phrase garde alors sa forme d'avant.
 //
 // ⛔ Rien n'est affiché quand une édition ne donne aucune année, ET MÊME SI LE
 // LIEU ET L'ÉDITEUR SONT CONNUS : c'est la DATE qui décide qu'il y a une édition
@@ -57,9 +64,8 @@
 //
 // Module pur, testé par editionTraduction.test.ts.
 
-import { adresseEdition } from './adresseEdition'
+import { adresseEdition, joindreLieux } from './adresseEdition'
 import { parserDateHistorique, type BorneDateHistorique } from './datesHistoriques'
-import { joindreLieux } from './referenceEditionServie'
 
 /** Ce que la carte sait de la provenance du texte : la fiche d'édition
  *  (`editions_sources`) d'abord, la date rédigée de la traduction à défaut. */
@@ -139,14 +145,15 @@ function propre(valeur: string | null | undefined): string | null {
 /** La phrase de provenance, ou `null` s'il n'y a rien à nommer. */
 export function libelleEditionTraduction(source: SourceEditionTraduction): string | null {
   const dates = datesEdition(source)
-  // ⚠️ Les LIEUX d'une co-édition se joignent par un trait d'union : voir
+  // ⚠️ Plusieurs LIEUX se joignent par la barre à fines des coéditeurs : voir
   // `joindreLieux`, qui en donne la raison.
-  const lieu = joindreLieux(propre(source.lieuEdition))
+  const lieu = joindreLieux(source.lieuEdition)
   const cote = propre(source.coteManuscrit)
   if (cote) {
     // ⛔ Un manuscrit se nomme même sans date : sa cote l'identifie à elle seule.
     const adresse = [lieu, propre(source.depotManuscrit), cote, dates].filter(Boolean).join(', ')
-    return `D’après le manuscrit ${adresse}`
+    // ⛔ « de » gouverne la VILLE, et seulement elle : voir l'en-tête.
+    return lieu ? `D’après le manuscrit de ${adresse}` : `D’après le manuscrit ${adresse}`
   }
   // ⛔ Pas de date, pas d'édition : voir l'en-tête.
   if (!dates) return null

@@ -152,8 +152,8 @@ export default function EncartTraduction({ trad, onReduire }: {
           traduction », mesuré le 30 août à 218 pixels de volet, qui appelait ce
           dispositif ; il est parti avec lui, et le seuil de 230 dans globals.css
           avec les deux. */}
-      {/* ⚠️ Une FLÈCHE COURTE suit le nom, et c'est elle qui annonce la fiche
-          (2026-09-04) : elle vit dans `NomVolet`, avec sa raison.
+      {/* ⛔ PLUS DE FLÈCHE APRÈS LE NOM (décision de l'auteur, 14 septembre 2026) : le nom
+          ouvre la fiche sans rien qui l'annonce, voir `NomVolet`.
           ⚠️ LE CHEVRON DE REPLI SE POSE AU BOUT DE CETTE LIGNE, dans le coin
           intérieur du volet (demande de l'auteur, 2026-09-04 : « pas de flèche de
           fermeture du volet de gauche sur la page Bible classique »). Il y en avait
@@ -163,9 +163,8 @@ export default function EncartTraduction({ trad, onReduire }: {
           contrôle du volet. Le volet de droite, lui, porte le sien seul dans son
           en-tête, et on le voit. C'est ce que fait aussi le volet de la Polyglotte,
           qui est le modèle : le nom à gauche, le repli à sa droite.
-          ⛔ Il ne se confond pas avec la flèche du nom : celle-ci suit le texte, à
-          l'intérieur du lien ; celui-là se tient au bord de la carte, et il pointe
-          vers le bord où le volet va se ranger. */}
+          ⚠️ Il se tient au bord de la carte et pointe vers le bord où le volet va se
+          ranger : c'est désormais la seule marque de cette ligne. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         <div style={{ minWidth: 0, flex: 1 }}>
           <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{rendreEnrichi(trad.label)}</NomVolet>

@@ -73,7 +73,7 @@ type Props = {
   /** Lecture « Latin & Français » : deux membres d’une même famille en regard. */
   lectureBilingue?: LectureBilingueProps | null
   /** Membres de la famille éditoriale (langue et rôle), dans l'ordre du catalogue.
-   *  Deux membres ou plus ouvrent le menu « Lecture » du volet de gauche. */
+   *  Deux membres ou plus ouvrent le menu « Mode de lecture » du volet de gauche. */
   membresFamille?: MembreFamilleLecture[]
   /** L’édition lue porte un appareil éditorial : on peut demander le texte nu. */
   paratexteDisponible?: boolean

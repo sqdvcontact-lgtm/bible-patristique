@@ -4,7 +4,7 @@
 // deux filets, et la liste de TOUTES les bibles lisibles.
 //
 // ⛔ Il ne liste QUE des bibles. Les façons de lire — lecture en regard, texte nu,
-// graphie — vivent dans le menu « Lecture » du volet de gauche : mêlées ici, elles
+// graphie — vivent dans le menu « Mode de lecture » du volet de gauche : mêlées ici, elles
 // se donnaient pour des traductions de plus, et le lecteur qui les choisissait
 // croyait changer de bible. C'est aussi pourquoi ce menu est le MÊME dans toutes
 // les vues de la page (une colonne comme en regard) : on doit toujours pouvoir

@@ -41,6 +41,7 @@ import { espacerIntervallesHistoriques, formaterDateHistorique } from '@/app/lib
 import { libelleLangue } from '@/app/lib/langues'
 import { rendreSiecles } from '@/app/lib/siecles'
 import { sansPointFinal } from '@/app/lib/titres'
+import { joindreLieux } from '@/app/lib/adresseEdition'
 import OngletsPage from '@/app/components/OngletsPage'
 import { separateurAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import {
@@ -213,7 +214,8 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur }: {
               de traduction : une ligne « Publication » les recollait en une chaîne
               où l'on ne savait plus lequel des trois manquait. */}
           <LigneTech c="Éditeur">{formaterEditeur(oeuvre.editeur) || null}</LigneTech>
-          <LigneTech c="Lieu">{oeuvre.ville}</LigneTech>
+          {/* Plusieurs lieux se joignent comme dans toute adresse du site (`joindreLieux`). */}
+          <LigneTech c="Lieu">{joindreLieux(oeuvre.ville)}</LigneTech>
           <LigneTech c="Année">{formaterDateHistorique(oeuvre.date_publication) || null}</LigneTech>
           <LigneTech c="Collection">{oeuvre.collection}</LigneTech>
           <LigneTech c="Source"><Consulter url={sourceUrl} libelle="Consulter la source" /></LigneTech>

@@ -39,6 +39,7 @@ import { ecartsAMesurer, numerosDeLEcart, regrouperCitations, texteDuGroupe, typ
 import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { chargerContrepartiesFrancaises } from '@/app/lib/contrepartieFrancaise'
 import { MarqueAttenteVolet } from '@/app/lib/attenteNavigation'
+import CompteEnAttente from '@/app/components/CompteEnAttente'
 
 /** Ce que le rail et la barre mobile écrivent quand le volet est fermé : l'ACTION,
  *  jamais le contenu. « Commentaires » sur une bande fermée décrit ce qu'on ne voit
@@ -419,6 +420,72 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, userId, i
 // Pas plus de 5 majuscules consécutives (accentuées comprises).
 const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
 
+// ── LA LIGNE DU COMPTE SOUS UN ONGLET DU VOLET ──────────────────────────────
+//
+// Demande de l'auteur (14 septembre 2026) : pendant que le volet se recharge, « le nombre
+// d'occurrences associé à chacun des cinq onglets change aussi ; serait-il possible de faire
+// défiler aléatoirement des caractères grecs, même police, pour que la hauteur des barres
+// d'onglets ne varie pas ? ». Le compte disparaissait le temps du chargement, ou restait sur
+// celui du passage qu'on quittait, et la barre perdait sa ligne.
+//
+// ⛔ LA LIGNE EST TOUJOURS RENDUE, et sa HAUTEUR est écrite, en `em` de son propre corps : ce
+// qu'elle porte ne décide plus de la hauteur de la barre.
+// ⚠️ Trois contenus : des lettres grecques tant qu'on attend (`CompteEnAttente`, dans le corps
+// et l'encre du compte), le nombre, ou « Aucune occurrence » sous un onglet du haut. Un
+// sous-onglet se tait sur un compte nul : trop étroit pour la mention, il ne l'a jamais portée.
+const STYLE_COMPTE_NUL: React.CSSProperties = { fontSize: '0.59375rem', fontStyle: 'italic', fontWeight: 400, color: 'var(--cs-texte-faible)' }
+
+function LigneCompte({ enAttente, compte, style, videDit }: {
+  enAttente: boolean
+  compte: number | null | undefined
+  /** Corps, interligne, HAUTEUR et encre de la ligne. */
+  style: React.CSSProperties
+  /** Ce qui s'écrit quand le compte est nul ; rien, s'il n'est pas donné. */
+  videDit?: string
+}) {
+  return (
+    <span style={{ display: 'block', whiteSpace: 'nowrap', ...style }}>
+      {enAttente ? <CompteEnAttente />
+        : compte != null && compte > 0 ? compte
+        : compte === 0 && videDit ? <span style={STYLE_COMPTE_NUL}>{videDit}</span>
+        : null}
+    </span>
+  )
+}
+
+// ── LE FILTRE ET SON VOLET PARLENT L'OR ─────────────────────────────────────
+//
+// Demande de l'auteur (14 septembre 2026) : « uniformiser “Filtre” et la petite fenêtre qui
+// s'ouvre quand on clique dessus ; utiliser la couleur dorée/mordorée, y compris sur le bouton
+// “filtre” ». Le bouton était gris au repos et vert une fois ouvert, le volet gris, ses
+// pastilles vertes pour deux facettes et dorées pour la troisième, « Tout effacer » vert :
+// quatre voix pour un seul outil. Une seule désormais, l'or, en quatre valeurs.
+//
+// ⛔ L'ENCRE est `--cs-or-lisible`, jamais `--cs-or`, qui ne rend que 3,67 sur le papier quand
+// ces libellés font dix pixels. Les contrastes mesurés sont écrits dans AGENTS.md.
+// ⚠️ Le VERT des sous-onglets ne bouge pas : ce sont des onglets, et le modèle des onglets du
+// site est vert. Le filtre n'est pas un onglet, c'est un outil posé dessous.
+const OR_ENCRE = 'var(--cs-or-lisible)'
+const OR_FILET = 'rgba(var(--cs-or-rgb), 0.45)'
+const OR_LAVIS = 'rgba(var(--cs-or-rgb), 0.07)'
+const OR_SELECTION = 'rgba(var(--cs-or-rgb), 0.16)'
+const OR_SURVOL = 'rgba(var(--cs-or-rgb), 0.10)'
+
+/** La rubrique d'une facette du volet de filtres : « Auteurs », « Tradition »… */
+const STYLE_RUBRIQUE_FILTRE: React.CSSProperties = {
+  fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: OR_ENCRE,
+}
+
+/** Une pastille de facette : retenue, offerte, ou indisponible sous le tri en cours. */
+function stylePastilleFiltre(sel: boolean, dispo: boolean): React.CSSProperties {
+  return {
+    fontSize: '0.625rem', padding: '2px 7px', borderRadius: '8px', cursor: dispo ? 'pointer' : 'default',
+    border: `1px solid ${sel ? 'var(--cs-or)' : dispo ? 'var(--cs-or-doux)' : 'var(--cs-bord-clair)'}`,
+    background: sel ? OR_SELECTION : dispo ? 'var(--cs-surface)' : 'transparent',
+    color: sel ? OR_ENCRE : dispo ? 'var(--cs-texte-second)' : 'var(--cs-or-doux)',
+  }
+}
+
 // Groupe de tags de filtre : n'affiche que ~2 lignes ; « Afficher plus » déplie le reste.
 // La hauteur de deux lignes est mesurée (position du 1er tag de la 3e ligne) pour un
 // repli net, sans demi-ligne.
@@ -444,13 +511,13 @@ function GroupeTags({ titre, children }: { titre: string; children: React.ReactN
   const replie = hauteur2 != null && !ouvert
   return (
     <div style={{ marginTop: '8px' }}>
-      <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', margin: '0 0 4px' }}>{titre}</p>
+      <p style={{ ...STYLE_RUBRIQUE_FILTRE, margin: '0 0 4px' }}>{titre}</p>
       <div ref={ref} style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', overflow: 'hidden', maxHeight: replie ? `${hauteur2}px` : undefined }}>
         {children}
       </div>
       {hauteur2 != null && (
         // Collé aux tags, mais distinct : c'est un bouton-lien, pas une pastille.
-        <button onClick={() => setOuvert(o => !o)} className="cs-bouton-lien" style={{ marginTop: '1px' }}>
+        <button onClick={() => setOuvert(o => !o)} className="cs-bouton-lien cs-bouton-lien--or" style={{ marginTop: '1px' }}>
           {ouvert ? 'Afficher moins' : 'Afficher plus'}
         </button>
       )}
@@ -462,6 +529,10 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
   type Commentaire2 = Commentaire & { user_id: string | null; valide: boolean; reponse_a: number | null; pseudo: string | null; lecture: { nb_auteurs: number; total_auteurs: number } | null; mecene: boolean; nbLikes: number; nbDislikes: number; monVote: 1 | -1 | null; demande_validation: boolean; certifie?: boolean | null; supprime: boolean }
   const [commentaires, setCommentaires] = useState<Commentaire2[]>([])
   const [loading, setLoading] = useState(true)
+  // Le verset dont `commentaires` porte les lignes. ⚠️ Au rendu qui suit un changement de
+  // verset, `loading` vaut encore faux et `commentaires` est encore celui du verset quitté :
+  // sans ce témoin, l'onglet recevait l'ancien compte sous le nouveau verset.
+  const [chargePour, setChargePour] = useState<Verset['id_verset'] | null>(null)
   const [texte, setTexte] = useState('')
   const [nom, setNom] = useState('')
   const [mail, setMail] = useState('')
@@ -476,9 +547,10 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
   const { aUnCompte, exigerCompte, pseudo: pseudoMoi, estMecene } = useCompte()
 
   const charger = () => {
+    const pour = verset.id_verset
     setLoading(true)
     supabase.from('commentaires').select('id, texte, auteur_nom, created_at, user_id, valide, reponse_a, demande_validation, certifie, supprime')
-      .eq('id_verset', verset.id_verset)
+      .eq('id_verset', pour)
       .order('created_at', { ascending: true })
       .then(async ({ data }) => {
         const base = data || []
@@ -510,6 +582,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
           nbDislikes: parCommentaire.get(c.id)?.dislikes ?? 0,
           monVote: parCommentaire.get(c.id)?.mon ?? null,
         })))
+        setChargePour(pour)
         setLoading(false)
       })
   }
@@ -520,7 +593,9 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
   // ce report, un ajout ou une suppression ne s'y refléterait pas. On remonte le
   // nombre de lignes chargées — même périmètre que le comptage parent (par id_verset).
   // Uniquement une fois le chargement terminé, pour éviter un « 0 » transitoire.
-  useEffect(() => { if (!loading) onCount?.(commentaires.length) }, [commentaires, loading, onCount])
+  useEffect(() => {
+    if (!loading && chargePour === verset.id_verset) onCount?.(commentaires.length)
+  }, [commentaires, loading, onCount, chargePour, verset.id_verset])
 
   // Fil structuré : commentaires principaux (chronologique), chacun suivi de
   // ses réponses directes (chronologique aussi) — un seul niveau, pas d'arborescence.
@@ -900,6 +975,8 @@ export default function PanneauPatristique({
   const [segmentsEcho, setSegmentsEcho] = useState<Segment[]>([])
   const [oeuvres, setOeuvres] = useState<Record<string, OeuvreInfo>>({})
   const [loading, setLoading] = useState(false)
+  // La demande dont les trois listes de segments portent la réponse (voir `cleDemande`).
+  const [segmentsPour, setSegmentsPour] = useState<string | null>(null)
   const isAdminReel = useIsAdmin()
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const isAdmin = isAdminReel && !modeUtilisateurStandard
@@ -907,13 +984,26 @@ export default function PanneauPatristique({
   const [segSignale, setSegSignale] = useState<{ seg: Segment; titreOeuvre?: string } | null>(null)
 
   // ── Compteurs onglets ────────────────────────────────────────────────────────
-  const [nbCommentairesBible, setNbCommentairesBible] = useState<number | null>(null)
+  // ⛔ LE COMPTE EST RETENU AVEC LE VERSET AUQUEL IL APPARTIENT (14 septembre 2026) : il
+  // restait sur le verset quitté le temps de la requête, puis sautait. L'attente se DÉDUIT
+  // de ce témoin, et l'onglet la dit par ses lettres grecques (`LigneCompte`).
+  // ⚠️ Une requête en échec rend `n: null` : la ligne se tait au lieu d'attendre toujours.
+  const [compteCommentaires, setCompteCommentaires] = useState<{ pour: Verset['id_verset']; n: number | null } | null>(null)
+  const idVersetCourant = verset?.id_verset ?? null
   useEffect(() => {
-    if (!verset) { setNbCommentairesBible(null); return }
+    if (idVersetCourant === null) return
+    const pour = idVersetCourant
+    let annule = false
     supabase.from('commentaires').select('id', { count: 'exact', head: true })
-      .eq('id_verset', verset.id_verset)
-      .then(({ count }) => setNbCommentairesBible(count ?? 0))
-  }, [verset?.id_verset])
+      .eq('id_verset', pour)
+      .then(({ count, error }) => { if (!annule) setCompteCommentaires({ pour, n: error ? null : count ?? 0 }) })
+    return () => { annule = true }
+  }, [idVersetCourant])
+  const nbCommentairesBible = idVersetCourant !== null && compteCommentaires?.pour === idVersetCourant ? compteCommentaires.n : null
+  const attenteCommentaires = idVersetCourant !== null && compteCommentaires?.pour !== idVersetCourant
+  const reporterCompteCommentaires = useCallback((n: number) => {
+    if (idVersetCourant !== null) setCompteCommentaires({ pour: idVersetCourant, n })
+  }, [idVersetCourant])
 
   // ── Filtres avancés ──────────────────────────────────────────────────────────
   const [filtreVoletOuvert, setFiltreVoletOuvert] = useState(false)
@@ -962,9 +1052,20 @@ export default function PanneauPatristique({
 
   // Charger les segments : ceux du verset sélectionné, ou — à défaut de sélection —
   // TOUS ceux du chapitre ouvert (le lecteur voit alors d'emblée l'apparat du chapitre).
+  // ⛔ L'ATTENTE SE DÉDUIT DE LA DEMANDE, ELLE NE S'ALLUME PAS SEULE (14 septembre 2026).
+  // `loading` ne passe à vrai que dans l'effet, donc APRÈS la peinture : au premier rendu
+  // d'un verset neuf, les onglets montraient encore les comptes du verset quitté. La clé dit
+  // ce qu'on demande, `segmentsPour` ce que les segments portent, et tant qu'elles diffèrent
+  // le volet attend.
+  const cleDemande = plage ? `plage|${plage.livre}|${plage.canonDebut}|${plage.canonFin}`
+    : verset ? `verset|${verset.id_verset}`
+    : livreActif ? `chapitre|${livreActif}|${chapitreActif}`
+    : null
+  const enAttente = loading || (cleDemande !== null && segmentsPour !== cleDemande)
   useEffect(() => {
     setPageItems(0)
     if (!verset && !livreActif && !plage) { setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); return }
+    const cle = cleDemande
     setLoading(true)
     let annule = false
 
@@ -991,7 +1092,7 @@ export default function PanneauPatristique({
       }
       const ids = [...typesParSegment.keys()]
       if (!ids.length) {
-        setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); setLoading(false); return
+        setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); setSegmentsPour(cle); setLoading(false); return
       }
       const bruts: Segment[] = []
       for (let i = 0; i < ids.length; i += 500) {
@@ -1028,10 +1129,11 @@ export default function PanneauPatristique({
       setSegmentsCitations(citations)
       setSegmentsDoctrine(doctrine)
       setSegmentsEcho(echo)
+      setSegmentsPour(cle)
       setLoading(false)
     })()
     return () => { annule = true }
-  }, [verset, livreActif, chapitreActif, plage?.livre, plage?.canonDebut, plage?.canonFin])
+  }, [cleDemande, verset, livreActif, chapitreActif, plage?.livre, plage?.canonDebut, plage?.canonFin])
 
   // ── MESURER LES ÉLISIONS ────────────────────────────────────────────────────
   // Deux citations d'un même texte séparées par un ou deux paragraphes se lisent
@@ -1163,9 +1265,9 @@ export default function PanneauPatristique({
   // patristique de tout le chapitre). Les commentaires, eux, sont attachés à un
   // verset : leur onglet ne paraît donc qu'avec une sélection.
   const modeChapitre = !verset && (!!livreActif || !!plage)
-  const ONGLETS: { code: Onglet; label: string; count?: number | null }[] = [
-    { code: 'patristique',  label: 'Pères de l\'Église', count: nbPatristique },
-    ...(verset ? [{ code: 'commentaires' as Onglet, label: 'Commentaires', count: nbCommentairesBible }] : []),
+  const ONGLETS: { code: Onglet; label: string; count?: number | null; enAttente: boolean }[] = [
+    { code: 'patristique',  label: 'Pères de l\'Église', count: nbPatristique, enAttente },
+    ...(verset ? [{ code: 'commentaires' as Onglet, label: 'Commentaires', count: nbCommentairesBible, enAttente: attenteCommentaires }] : []),
   ]
 
   // Reset page when sous-onglet changes
@@ -1482,12 +1584,9 @@ export default function PanneauPatristique({
                     l'Église » + compteur, « Commentaires » + compteur) est ainsi centré, sans
                     réservation basse qui le ferait descendre. */}
                 <span style={{ fontSize:'0.65625rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: onglet === t.code ? 600 : 400, textAlign: 'center', lineHeight: 1.15 }}>{t.label}</span>
-                {t.count != null && t.count > 0 && (
-                  <span style={{ fontSize: '0.625rem', color: onglet === t.code ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', fontWeight: 500, lineHeight: 1 }}>{t.count}</span>
-                )}
-                {t.count != null && t.count === 0 && !loading && (
-                  <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', lineHeight: 1 }}>Aucune occurrence</span>
-                )}
+                {/* ⛔ Une ligne de compte, toujours, et d'une hauteur écrite : voir `LigneCompte`. */}
+                <LigneCompte enAttente={t.enAttente} compte={t.count} videDit="Aucune occurrence"
+                  style={{ fontSize: '0.625rem', lineHeight: 1, height: '1em', fontWeight: 500, color: onglet === t.code ? 'var(--cs-vert)' : 'var(--cs-texte-faible)' }} />
               </button>
             ))}
             {/* ⛔ LA CALE NE PARAÎT QUE SOUS UN SEUL ONGLET, et ce n'est pas une économie :
@@ -1512,9 +1611,9 @@ export default function PanneauPatristique({
               pour épingler la saisie au bas du volet). */}
           <div style={onglet === 'commentaires' && verset
             ? { flex:1, minHeight:0, overflow:'hidden', padding:'0 12px', display:'flex', flexDirection:'column' }
-            : { overflowY:'auto', flex:1, padding:'0 12px' }}>
+            : { overflowY:'auto', flex:1, padding:'0 12px', display:'flex', flexDirection:'column' }}>
             {onglet === 'commentaires' && verset ? (
-              <OngletCommentaires verset={verset} userId={userId} isAdmin={isAdmin} onCount={setNbCommentairesBible} />
+              <OngletCommentaires verset={verset} userId={userId} isAdmin={isAdmin} onCount={reporterCompteCommentaires} />
             ) : (
               <>
                 {/* Sous-onglets Citations / Doctrine / Échos */}
@@ -1541,7 +1640,8 @@ export default function PanneauPatristique({
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px',
                           }}>
                           <span>{label}</span>
-                          {nb > 0 && <span style={{ fontSize: '0.5625rem', color: sousOnglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-faible)' }}>{nb}</span>}
+                          <LigneCompte enAttente={enAttente} compte={nb}
+                            style={{ fontSize: '0.5625rem', lineHeight: 1.2, height: '1.2em', color: sousOnglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-faible)' }} />
                         </button>
                       ))}
                     </div>
@@ -1550,13 +1650,14 @@ export default function PanneauPatristique({
 
                 {/* Bouton filtres */}
                 <div style={{ display: 'flex', alignItems: 'center', padding: '8px 0 0' }}>
-                  <button onClick={() => setFiltreVoletOuvert(o => !o)} style={{
+                  <button onClick={() => setFiltreVoletOuvert(o => !o)} aria-expanded={filtreVoletOuvert} style={{
                     position: 'relative',
                     display: 'flex', width: '100%', justifyContent: 'center', alignItems: 'center', gap: '4px',
                     fontSize: '0.65625rem', padding: '5px 9px', borderRadius: '8px', cursor: 'pointer',
-                    border: `1px solid ${filtreVoletOuvert || nombreFiltresActifs > 0 ? 'var(--cs-vert)' : 'var(--cs-bord)'}`,
-                    background: filtreVoletOuvert || nombreFiltresActifs > 0 ? 'rgba(var(--cs-vert-rgb),0.10)' : 'var(--cs-surface)',
-                    color: filtreVoletOuvert || nombreFiltresActifs > 0 ? 'var(--cs-vert)' : 'var(--cs-texte-gris)',
+                    // L'or dit l'outil, ouvert ou non ; le filet franc et le lavis disent qu'il agit.
+                    border: `1px solid ${filtreVoletOuvert || nombreFiltresActifs > 0 ? 'var(--cs-or)' : OR_FILET}`,
+                    background: filtreVoletOuvert || nombreFiltresActifs > 0 ? OR_LAVIS : 'var(--cs-surface)',
+                    color: OR_ENCRE,
                     fontWeight: 500,
                   }}>
                     <svg width="10" height="10" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -1565,7 +1666,7 @@ export default function PanneauPatristique({
                     Filtres
                     {/* Badge en ABSOLU : « Filtres » reste centré, la barre ne s'élargit pas. */}
                     {nombreFiltresActifs > 0 && (
-                      <span style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', fontSize: '0.5625rem', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
+                      <span style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: OR_ENCRE, color: 'var(--cs-surface)', borderRadius: '8px', fontSize: '0.5625rem', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
                         {nombreFiltresActifs}
                       </span>
                     )}
@@ -1574,20 +1675,20 @@ export default function PanneauPatristique({
 
                 {/* Volet filtres dépliant */}
                 {filtreVoletOuvert && (
-                  <div style={{ margin: '6px 0 2px', padding: '8px 10px', background: 'var(--cs-fond-doux)', border: '1px solid var(--cs-bord)', borderRadius: '8px' }}>
+                  <div style={{ margin: '6px 0 2px', padding: '8px 10px', background: OR_LAVIS, border: `1px solid ${OR_FILET}`, borderRadius: '8px' }}>
 
                     {/* Recherche auteur */}
-                    <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', margin: '0 0 5px' }}>Auteurs</p>
+                    <p style={{ ...STYLE_RUBRIQUE_FILTRE, margin: '0 0 5px' }}>Auteurs</p>
                     <div style={{ position: 'relative', marginBottom: resultatsAuteur.length ? '0' : '4px' }}>
                       <input
                         type="text"
                         value={rechercheAuteur}
                         onChange={e => setRechercheAuteur(e.target.value)}
                         placeholder="Chercher un auteur…"
-                        style={{ width: '100%', fontSize: '0.75rem', padding: '4px 7px', borderRadius: '4px', border: '1px solid var(--cs-or-doux)', background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)', boxSizing: 'border-box', outline: 'none' }}
+                        style={{ width: '100%', fontSize: '0.75rem', padding: '4px 7px', borderRadius: '4px', border: '1px solid var(--cs-or-doux)', background: 'var(--cs-surface)', color: 'var(--cs-encre)', boxSizing: 'border-box', outline: 'none' }}
                       />
                       {resultatsAuteur.length > 0 && (
-                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-or-doux)', borderTop: 'none', borderRadius: '0 0 4px 4px', zIndex: 20, boxShadow: 'var(--cs-ombre-nette)' }}>
+                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--cs-surface)', border: '1px solid var(--cs-or-doux)', borderTop: 'none', borderRadius: '0 0 4px 4px', zIndex: 20, boxShadow: 'var(--cs-ombre-nette)' }}>
                           {resultatsAuteur.map(a => (
                             <button key={a.id_auteur} onClick={() => {
                               setFiltreAuteursIds(prev => new Set([...prev, a.id_auteur]))
@@ -1596,10 +1697,10 @@ export default function PanneauPatristique({
                               setResultatsAuteur([])
                               setPageItems(0)
                             }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '5px 8px', fontSize: '0.75rem', color: 'var(--cs-encre)', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
-                              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(var(--cs-vert-rgb),0.07)')}
+                              onMouseEnter={e => (e.currentTarget.style.background = OR_SURVOL)}
                               onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
                               {a.nom}
-                              <span style={{ fontSize: '0.84375rem', color: 'var(--cs-vert)', lineHeight: 1 }}>+</span>
+                              <span style={{ fontSize: '0.84375rem', color: OR_ENCRE, lineHeight: 1 }}>+</span>
                             </button>
                           ))}
                         </div>
@@ -1608,13 +1709,13 @@ export default function PanneauPatristique({
                     {filtreAuteursBlancs.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '5px' }}>
                         {filtreAuteursBlancs.map(a => (
-                          <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '0.625rem', padding: '1px 5px 1px 7px', background: 'rgba(var(--cs-vert-rgb),0.12)', color: 'var(--cs-vert-fonce)', borderRadius: '8px', fontWeight: 500 }}>
+                          <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '0.625rem', padding: '1px 5px 1px 7px', background: OR_SELECTION, color: OR_ENCRE, border: '1px solid var(--cs-or)', borderRadius: '8px', fontWeight: 500 }}>
                             {a.nom}
                             <button onClick={() => {
                               setFiltreAuteursIds(prev => { const n = new Set(prev); n.delete(a.id_auteur); return n })
                               setFiltreAuteursBlancs(prev => prev.filter(x => x.id_auteur !== a.id_auteur))
                               setPageItems(0)
-                            }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--cs-vert)', fontSize: '0.78125rem', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
+                            }} aria-label={`Retirer ${a.nom} des filtres`} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: OR_ENCRE, fontSize: '0.78125rem', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
                           </span>
                         ))}
                       </div>
@@ -1632,12 +1733,7 @@ export default function PanneauPatristique({
                           return (
                             <button key={t} className="pp-tag" data-label={t} disabled={!dispo}
                               onClick={() => { setFiltreTraditions(prev => { const n = new Set(prev); if (n.has(t)) n.delete(t); else n.add(t); return n }); setPageItems(0) }}
-                              style={{
-                                fontSize: '0.625rem', padding: '2px 7px', borderRadius: '8px', cursor: dispo ? 'pointer' : 'default',
-                                border: `1px solid ${sel ? 'var(--cs-vert)' : dispo ? 'var(--cs-or-doux)' : 'var(--cs-bord-clair)'}`,
-                                background: sel ? 'rgba(var(--cs-vert-rgb),0.14)' : dispo ? 'var(--cs-surface)' : 'transparent',
-                                color: sel ? 'var(--cs-vert-fonce)' : dispo ? 'var(--cs-texte-second)' : 'var(--cs-or-doux)',
-                              }}>
+                              style={stylePastilleFiltre(sel, dispo)}>
                               <span style={{ fontWeight: sel ? 600 : 400 }}>{t}</span>
                             </button>
                           )
@@ -1654,12 +1750,7 @@ export default function PanneauPatristique({
                           return (
                             <button key={g} className="pp-tag" data-label={g} disabled={!dispo}
                               onClick={() => { setFiltreGenres(prev => { const n = new Set(prev); if (n.has(g)) n.delete(g); else n.add(g); return n }); setPageItems(0) }}
-                              style={{
-                                fontSize: '0.625rem', padding: '2px 7px', borderRadius: '8px', cursor: dispo ? 'pointer' : 'default',
-                                border: `1px solid ${sel ? 'var(--cs-vert)' : dispo ? 'var(--cs-or-doux)' : 'var(--cs-bord-clair)'}`,
-                                background: sel ? 'rgba(var(--cs-vert-rgb),0.14)' : dispo ? 'var(--cs-surface)' : 'transparent',
-                                color: sel ? 'var(--cs-vert-fonce)' : dispo ? 'var(--cs-texte-second)' : 'var(--cs-or-doux)',
-                              }}>
+                              style={stylePastilleFiltre(sel, dispo)}>
                               <span style={{ fontWeight: sel ? 600 : 400 }}>{g}</span>
                             </button>
                           )
@@ -1677,12 +1768,7 @@ export default function PanneauPatristique({
                           return (
                             <button key={s} className="pp-tag" data-label={lbl} disabled={!dispo}
                               onClick={() => { setFiltreSiecles(prev => { const n = new Set(prev); if (n.has(s)) n.delete(s); else n.add(s); return n }); setPageItems(0) }}
-                              style={{
-                                fontSize: '0.625rem', padding: '2px 7px', borderRadius: '8px', cursor: dispo ? 'pointer' : 'default',
-                                border: `1px solid ${sel ? 'var(--cs-or)' : dispo ? 'var(--cs-or-doux)' : 'var(--cs-bord-clair)'}`,
-                                background: sel ? 'rgba(154,126,61,0.16)' : dispo ? 'var(--cs-surface)' : 'transparent',
-                                color: sel ? 'var(--cs-or)' : dispo ? 'var(--cs-texte-second)' : 'var(--cs-or-doux)',
-                              }}>
+                              style={stylePastilleFiltre(sel, dispo)}>
                               <span style={{ fontWeight: sel ? 600 : 400 }}>{rendreSiecle(lbl)}</span>
                             </button>
                           )
@@ -1696,7 +1782,7 @@ export default function PanneauPatristique({
                         setFiltreAuteursIds(new Set()); setFiltreAuteursBlancs([])
                         setFiltreTraditions(new Set()); setFiltreSiecles(new Set()); setFiltreGenres(new Set())
                         setPageItems(0)
-                      }} className="cs-bouton-lien" style={{ marginTop: '8px' }}>
+                      }} className="cs-bouton-lien cs-bouton-lien--or" style={{ marginTop: '8px' }}>
                         Tout effacer
                       </button>
                     )}
@@ -1709,27 +1795,30 @@ export default function PanneauPatristique({
                     qu'on venait de quitter, et rien ne disait que ce n'était plus le bon.
                     ⚠️ Elle s'efface en fondu, et sa PLACE reste : la retirer du flux ferait
                     sauter le volet à chaque clic, puis sauter de nouveau à l'arrivée. */}
-                <MarqueAttenteVolet enAttente={loading} />
-                <div style={{ opacity: loading ? 0 : 1, transition: 'opacity .16s ease' }}>
-                {!loading && itemsFiltres.length === 0 && itemsAffiches.length === 0 && (
-                  <div style={{ display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', gap:'12px', marginTop:'26px', marginBottom:'14px' }}>
-                    {/* Même carapace et même traitement que l'onglet Commentaires : planche
-                        détourée, donc pas de `mix-blend-mode`, et deux maxima au lieu d'une
-                        largeur posée en pixels (charte).
-
-                        ⚠️ Elle n'est PAS centrée en hauteur, à la différence des deux volets de
-                        commentaires. Ce bloc suit les sous-onglets dans le flux : lui donner la
-                        hauteur restante demanderait de passer la zone défilante en colonne
-                        flexible, ce qui toucherait au placement de la liste d'extraits, laquelle
-                        est l'ordinaire de ce volet. */}
-                    <img className="cs-ornement" src="/ornements/carapace-posee.png" alt="" aria-hidden="true"
-                      style={{ maxWidth:'min(20rem, 82%)', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 15rem)`, opacity:0.42 }} />
-                    <p style={{ fontSize:'0.78125rem', color:'var(--cs-texte-doux)', fontStyle:'italic', margin:0 }}>Aucune occurrence.</p>
+                <MarqueAttenteVolet enAttente={enAttente} />
+                {/* ⛔ PLUS DE CARAPACE SOUS « AUCUNE OCCURRENCE », ET LA MENTION SE TIENT AU
+                    CENTRE (décision de l'auteur, 14 septembre 2026 : « supprimer le dessin de
+                    tortue ; conserver “Aucune occurrence” au centre »). La planche prenait la
+                    colonne pour dire ce qu'une ligne dit, et elle ne se posait qu'à moitié : elle
+                    suivait les sous-onglets dans le flux, faute d'une hauteur où se centrer.
+                    ⚠️ La zone défilante est donc passée en COLONNE FLEXIBLE, et ce bloc y prend la
+                    hauteur qui reste (`flex: 1 0 auto`) : il grandit sans jamais rétrécir, si bien
+                    qu'une longue liste d'extraits défile comme avant. La mention d'un filtre qui
+                    vide la liste prend la même place.
+                    ⚠️ Son encre monte à `--cs-texte-second` : seule dans la colonne, elle porte son
+                    information seule : 5,74 au Clair et 9,27 en Cuir, quand `--cs-texte-doux` ne
+                    rendait que 2,98 sur la surface du volet.
+                    ⚠️ La carapace reste aux deux volets de COMMENTAIRES, où elle dit une autre
+                    absence. */}
+                <div style={{ opacity: enAttente ? 0 : 1, transition: 'opacity .16s ease', flex: '1 0 auto', display: 'flex', flexDirection: 'column' }}>
+                {!enAttente && itemsFiltres.length === 0 && (
+                  <div style={{ flex: '1 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '24px 0' }}>
+                    <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', margin: 0 }}>
+                      {itemsAffiches.length === 0 ? 'Aucune occurrence.' : 'Aucun résultat pour ces filtres.'}
+                    </p>
                   </div>
                 )}
-                {!loading && itemsFiltres.length === 0 && itemsAffiches.length > 0 && (
-                  <p style={{ fontSize:'0.78125rem', color:'var(--cs-texte-doux)', textAlign:'center', padding:'12px 0', fontStyle:'italic' }}>Aucun résultat pour ces filtres.</p>
-                )}
+                {itemsPage.length > 0 && (
                 <div style={{ marginTop: '6px' }}>
                 {itemsPage.map(groupe => {
                   const premier = groupe[0]
@@ -1753,13 +1842,14 @@ export default function PanneauPatristique({
                   )
                 })}
                 </div>
+                )}
                 </div>
               </>
             )}
           </div>
 
           {/* Pagination — fixée en pied de panneau, hors zone scrollable */}
-          {onglet !== 'commentaires' && !loading && nbPagesItems > 1 && (
+          {onglet !== 'commentaires' && !enAttente && nbPagesItems > 1 && (
             <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', padding:'8px 0 10px', borderTop:'1px solid var(--cs-bord-clair)', background:'var(--cs-surface)', flexShrink:0 }}>
               <button onClick={() => setPageItems(Math.max(pageCouranteItems - 1, 0))} disabled={pageCouranteItems === 0}
                 title="Page précédente"

@@ -16,7 +16,10 @@ import type { CSSProperties } from 'react'
  */
 
 /**
- * La RUBRIQUE d'un axe : « Lecture », « Commentaires », « Éditions de ce texte ».
+ * La RUBRIQUE d'un axe : « Mode de lecture », « Commentaires », « Éditions de ce texte ».
+ *
+ * ⚠️ « Mode de lecture », et non plus « Lecture » (décision de l'auteur, 14 septembre 2026),
+ * sur les deux pages : c'est la même rubrique.
  *
  * ⛔ En casse ORDINAIRE. L'auteur a refusé les capitales du volet le 28 août 2026,
  * d'abord sur la barre d'onglets, puis ici : un volet de lecture n'a rien à crier,
@@ -91,3 +94,30 @@ export const OPTION_VOLET = (actif: boolean): CSSProperties => ({
   cursor: actif ? 'default' : 'pointer',
   transition: 'background 0.12s, color 0.12s',
 })
+
+/**
+ * L'ENTRÉE D'UNE LISTE DU VOLET DE LA BIBLE : un livre (« Genèse », « Matthieu ») ou une
+ * pièce du sommaire de l'édition (« Avant-propos », « Introduction générale »).
+ *
+ * ⛔ UNE SEULE ÉCRITURE POUR LES DEUX LISTES (décision de l'auteur, 14 septembre 2026 :
+ * « pour le sommaire de l'apparat critique, utilise exactement la même police que le
+ * sommaire utilisé pour Genèse, Matthieu »). Les onglets « Livres » et « Sommaire » se
+ * partagent un volet, et leurs entrées ne composaient pas au même corps : treize pixels et
+ * demi d'un côté, onze et demi de l'autre.
+ *
+ * ⚠️ Elle ne dit que la TYPOGRAPHIE et l'état retenu, pastille, encre et graisse. La mise en
+ * page de la rangée, sa largeur, son débord et ce qu'elle porte au bout, appartient à la
+ * liste. Le repli `2px` sert une planche rendue hors du volet, où `--volet-air-fin`
+ * n'existe pas.
+ */
+export function styleEntreeListeVolet({ actif }: { actif: boolean }): CSSProperties {
+  return {
+    padding: 'var(--volet-air-fin, 2px) 6px',
+    borderRadius: '4px',
+    fontSize: '0.84375rem',
+    lineHeight: 1.4,
+    fontWeight: actif ? 600 : 400,
+    color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)',
+    background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'transparent',
+  }
+}

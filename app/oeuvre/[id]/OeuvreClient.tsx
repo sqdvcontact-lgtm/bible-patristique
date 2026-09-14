@@ -2342,7 +2342,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // s'ouvrant sur ce que le lecteur vient de cliquer ; le second est celui d'en regard.
   //
   // ⚠️ L'onglet prend la LANGUE pour nom : c'est ce qui sépare les deux colonnes, et le
-  // mot que le menu « Lecture » emploie déjà trois rubriques plus haut. À défaut — une
+  // mot que le menu « Mode de lecture » emploie déjà trois rubriques plus haut. À défaut — une
   // version sans langue déclarée —, le libellé court de l'édition, qui la nomme toujours.
   //
   // ⛔ Un seul volet ne pose pas de barre : `FicheEdition` s'en charge, et la règle est
@@ -3276,7 +3276,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 que de LANGUE. */}
             {modesLecture.length > 0 && (
               <div data-visite="oeuvre-lecture" style={{ marginTop: 'var(--volet-air, 10px)' }}>
-                <span style={RUBRIQUE_AXE}>Lecture</span>
+                <span style={RUBRIQUE_AXE}>Mode de lecture</span>
                 {modesLecture.map(m => {
                   const url = urlDuModeOuNull(m.cibleOeuvre, m.cibleMt, m.cibleTexte)
                   const attend = attendCette(url)
@@ -4800,7 +4800,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           ⚠️ Le premier volet est TOUJOURS celui qu'on lit — `versionActive` —, l'autre
           celui d'en regard : la fiche s'ouvre sur ce que le lecteur vient de cliquer.
           ⚠️ L'onglet prend la LANGUE pour nom, qui est ce qui sépare les deux colonnes et
-          le mot que le menu « Lecture » emploie déjà ; à défaut, le libellé court de
+          le mot que le menu « Mode de lecture » emploie déjà ; à défaut, le libellé court de
           l'édition. */}
       {infoEditionOuverte && (
         <FicheEdition

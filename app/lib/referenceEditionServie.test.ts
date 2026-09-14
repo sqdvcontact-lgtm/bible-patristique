@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { joindreLieux, segmentsReferenceEdition, texteReferenceEdition } from './referenceEditionServie'
+import { SEPARATEUR_COEDITEURS } from './editeursNormalisation'
 
 const FILLION = {
   titreEdition: 'La Sainte Bible (texte latin et traduction française), commentée d’après la Vulgate et les textes originaux, à l’usage des séminaires et du clergé',
@@ -62,19 +63,22 @@ describe('referenceEditionServie — la référence des volumes utilisés', () =
   })
 })
 
+// Écrite par sa constante : tapée, la fine qui l'encadre ne se distingue pas d'une espace.
+const BARRE = SEPARATEUR_COEDITEURS
+
 describe('joindreLieux', () => {
-  it('joint plusieurs lieux par un trait d’union', () => {
-    expect(joindreLieux('Paris ; Tournai ; Rome')).toBe('Paris-Tournai-Rome')
+  it('⛔ joint plusieurs lieux par la barre à fines, jamais par un trait d’union', () => {
+    expect(joindreLieux('Paris ; Tournai ; Rome')).toBe(`Paris${BARRE}Tournai${BARRE}Rome`)
   })
 
-  it('laisse un lieu unique tel quel, espaces compris', () => {
+  it('laisse un lieu unique tel quel, nom composé compris', () => {
     expect(joindreLieux('Bar-le-Duc')).toBe('Bar-le-Duc')
     expect(joindreLieux(null)).toBeNull()
   })
 
   it('la référence des volumes suit la même règle', () => {
     expect(texteReferenceEdition({ titreEdition: 'La Sainte Bible', lieuEdition: 'Paris ; Tournai ; Rome', editeur: 'Desclée et Cie ; Société de S. Jean l’Évangéliste', anneeEdition: '1923' }))
-      .toBe('La Sainte Bible, Paris-Tournai-Rome, Desclée et Cie ; Société de S. Jean l’Évangéliste, 1923.')
+      .toBe(`La Sainte Bible, Paris${BARRE}Tournai${BARRE}Rome, Desclée et Cie ; Société de S. Jean l’Évangéliste, 1923.`)
   })
 })
 
@@ -87,7 +91,7 @@ describe('la mention d’édition et le témoin manuscrit', () => {
       lieuEdition: 'Paris ; Tournai ; Rome',
       editeur: 'Desclée et Société de Saint-Jean-l’Évangéliste',
       anneeEdition: '1923',
-    })).toBe('La Sainte Bible, Édition révisée, Paris-Tournai-Rome, Desclée et Société de Saint-Jean-l’Évangéliste, 1923.')
+    })).toBe(`La Sainte Bible, Édition révisée, Paris${BARRE}Tournai${BARRE}Rome, Desclée et Société de Saint-Jean-l’Évangéliste, 1923.`)
   })
 
   it('⛔ ne répète pas une mention que le titre porte déjà', () => {

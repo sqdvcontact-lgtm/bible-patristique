@@ -24,6 +24,7 @@
  * Module PUR : ni React, ni Supabase. Testé dans `referenceBibliographique.test.ts`.
  */
 
+import { joindreLieux } from './adresseEdition'
 import type { StyleCaractereBibliographie } from './apparatBibliographie'
 import { SEPARATEUR_COEDITEURS } from './editeursNormalisation'
 import { cleTriTitre } from './titres'
@@ -392,7 +393,10 @@ export function fragmentsReference(
   }
 
   // ── L'adresse : lieu, éditeur(s), date ───────────────────────────────────────
-  const lieu = propre(notice.lieu)
+  // ⚠️ Plusieurs lieux se joignent par la barre à fines, comme les coéditeurs : la base
+  // les écrit de trois façons (« Berlin; New York », « Lyon / Paris », « Paris ; Rome »),
+  // et la notice les montrait telles quelles (voir `joindreLieux`).
+  const lieu = joindreLieux(notice.lieu)
   if (lieu) fragments.push(ponctuation(SEPARATEUR), donnee('lieu', lieu))
   const editeurs = fragmentsEditeurs(notice)
   if (editeurs.length > 0) fragments.push(ponctuation(SEPARATEUR), ...editeurs)

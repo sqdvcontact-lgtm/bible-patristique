@@ -73,7 +73,7 @@ describe('lecteur comparé multiversion', () => {
   it('place les traductions parallèles parmi les modes de lecture', () => {
     // ⚠️ Le volet de la page Œuvre prend la forme de celui de la Bible depuis le
     // 2026-09-04 : rubrique en casse ordinaire, option sur pastille verte.
-    expect(sourceLecteur).toContain('<span style={RUBRIQUE_AXE}>Lecture</span>')
+    expect(sourceLecteur).toContain('<span style={RUBRIQUE_AXE}>Mode de lecture</span>')
     expect(sourceLecteur).toContain('Traductions parallèles')
     expect(sourceLecteur).not.toContain('>Comparaison</span>')
   })

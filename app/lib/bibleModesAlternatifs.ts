@@ -204,7 +204,8 @@ function groupeTexte(faits: FaitsLectureBible): GroupeLectureBible | null {
     actif: bilingueActif,
     cible: { bilingue: true },
   })
-  return { cle: 'texte', titre: 'Lecture', choix }
+  // « Mode de lecture », et non plus « Lecture » (décision de l'auteur, 14 septembre 2026).
+  return { cle: 'texte', titre: 'Mode de lecture', choix }
 }
 
 /**

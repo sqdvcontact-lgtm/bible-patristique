@@ -25,6 +25,7 @@ import {
   marqueDensiteTient, styleDensiteVerset, STYLE_DENSITE_MOBILE,
   STYLE_LACUNE, STYLE_NUMERO_ALTERNATIF, STYLE_NUMERO_VERSET, STYLE_VERSET_VIDE,
   styleAxeTexte, styleBlocVerset, styleGrilleRangee, styleRangeeVerset, styleTexteVerset,
+  BLANC_TITRE_MENU, INTERLIGNE_TITRE_CHAPITRE, RETRAIT_ACTIONS_VERSET,
 } from '@/app/lib/compositionBible'
 import {
   chargerDensiteChapitre, libelleDensiteVerset, type DensiteVerset,
@@ -546,7 +547,7 @@ export default function TexteBible({
 
   // TR0009 (Bible 899) et éditions à segmentation éditoriale : l'adaptateur marque ses
   // lignes (`_est899`, `_estEditorial`). La GRAPHIE, la lecture en regard et le texte nu
-  // se choisissent dans le menu « Lecture » du volet de gauche, jamais dans le corps du
+  // se choisissent dans le menu « Mode de lecture » du volet de gauche, jamais dans le corps du
   // texte : ce sont des manières de lire, non des propriétés du chapitre affiché.
   const estLigne899 = (v: Verset) => v._est899 === true
   const estLigneEditoriale = (v: Verset) => v._estEditorial === true
@@ -653,7 +654,7 @@ export default function TexteBible({
               le chevron reste en place, grisé et inerte, sans navigation ni attente. */}
           <FlecheChapitre livre={livreActif} chapitre={chapitreActif} sens="precedent" variante="entete" onAller={allerAuChapitre} />
 
-          <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+          <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px', lineHeight: INTERLIGNE_TITRE_CHAPITRE }}>
             {/* La marque suit le titre du chapitre comme elle suit le nom au volet : un
                 lecteur qui arrive par un lien direct n'a jamais vu le volet. */}
             <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>
@@ -682,7 +683,7 @@ export default function TexteBible({
             Calé sur LE MÊME gabarit que le titre « Genèse ❧ Chapitre 1 » (bloc texte
             de 500 px + colonne d'actions de 38 px exclue du centrage), pour que le menu
             se centre sur le même axe que le titre, et non sur la pleine largeur. */}
-        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0.5rem auto 0', display: mobile ? 'block' : 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
+        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: `${BLANC_TITRE_MENU} auto 0`, display: mobile ? 'block' : 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
           <SelecteurTraductionBible
             traductions={traductions}
             traductionIndex={traductionIndex}
@@ -820,7 +821,7 @@ export default function TexteBible({
               style={styleRangeeVerset({ mobile })}>
 
               <div style={styleGrilleRangee({ mobile })}>
-                <div style={styleBlocVerset({ actif })}>
+                <div style={styleBlocVerset({ actif, mobile })}>
                   {/* Numéro — inclus dans le bloc sélectionné, aligné sur la 1re ligne du texte (ligne de base) */}
                   <span style={STYLE_NUMERO_VERSET}>
                     {v.verset}
@@ -877,7 +878,7 @@ export default function TexteBible({
                   position: 'absolute', bottom: '100%', right: '0.25rem', marginBottom: '3px', zIndex: 6,
                   display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
                   background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '0.25rem 0.375rem',
-                } : { width: '2.375rem', paddingLeft: '0.5rem', display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible', position: 'relative' }}>
+                } : { width: '2.375rem', paddingLeft: RETRAIT_ACTIONS_VERSET, display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible', position: 'relative' }}>
                   {/* Les actions écrivent encore dans le modèle `versets_v2`. On les masque
                       pour toutes les lignes éditoriales recomposées ; la colonne reste
                       réservée pour préserver l'alignement de la mise en page. */}

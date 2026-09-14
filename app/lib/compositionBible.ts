@@ -35,6 +35,21 @@ export function styleAxeTexte(): CSSProperties {
   }
 }
 
+/**
+ * LE TITRE DU CHAPITRE ET LE MENU DES BIBLES SE TIENNENT (décision de l'auteur,
+ * 14 septembre 2026 : « Matthieu❧Chapitre 1 et le menu de sélection de la traduction
+ * biblique doivent être plus proches l'un de l'autre ; réduire le blanc qui les sépare »).
+ *
+ * ⚠️ Le blanc ne tenait pas qu'à la marge : le titre héritait de l'interligne du corps,
+ * 1,5, soit cinq pixels de vide sous ses lettres à la racine 16, et la marge en posait huit
+ * de plus. L'interligne se resserre à 1,15 et la marge tombe à un huitième de rem : il
+ * reste six pixels et demi de boîte à boîte, contre seize.
+ * ⛔ Les deux lectures, une colonne et en regard, les emploient : passer de l'une à l'autre
+ * ne doit déplacer ni le titre ni le menu.
+ */
+export const INTERLIGNE_TITRE_CHAPITRE = 1.15
+export const BLANC_TITRE_MENU = '0.125rem'
+
 /** La rangée entière : ce qui prend le survol, la sélection et le clic. */
 export function styleRangeeVerset({ mobile }: { mobile?: boolean } = {}): CSSProperties {
   return {
@@ -65,18 +80,54 @@ export function styleGrilleRangee({ mobile }: { mobile?: boolean } = {}): CSSPro
   }
 }
 
-/** Le bloc numéro + texte, celui que la sélection teinte d'un seul tenant. */
-export function styleBlocVerset({ actif }: { actif?: boolean } = {}): CSSProperties {
+/** La colonne du NUMÉRO de verset et la gouttière qui le sépare de son texte, en rem.
+ *  ⚠️ Ensemble, elles font ce que le bloc sélectionné déborde du texte À GAUCHE. */
+export const NUMERO_VERSET_REM = 1.4375
+export const GOUTTIERE_NUMERO_VERSET_REM = 0.1875
+
+/** Ce que le bloc sélectionné déborde du texte, à gauche comme à droite : 1,625 rem. */
+export const DEBORD_BLOC_VERSET_REM = NUMERO_VERSET_REM + GOUTTIERE_NUMERO_VERSET_REM
+
+/** Le débord droit d'avant, que garde la lecture au doigt, où rien ne le borde. */
+const DEBORD_DROIT_ETROIT_REM = 0.25
+
+/** Ce que le débord droit prend sur la gouttière d'actions, de plus qu'avant : 1,375 rem. */
+export const EMPIETEMENT_BLOC_VERSET_REM = DEBORD_BLOC_VERSET_REM - DEBORD_DROIT_ETROIT_REM
+
+/**
+ * Le retrait des ACTIONS dans leur gouttière : leur demi-rem d'air d'avant, plus ce que le
+ * bloc sélectionné y prend désormais. ⛔ Sans lui, le vert passerait sous le premier bouton.
+ */
+export const RETRAIT_ACTIONS_VERSET = `${0.5 + EMPIETEMENT_BLOC_VERSET_REM}rem`
+
+/**
+ * Le bloc numéro + texte, celui que la sélection teinte d'un seul tenant.
+ *
+ * ⛔ IL DÉBORDE LE TEXTE AUTANT À DROITE QU'À GAUCHE (décision de l'auteur, 14 septembre
+ * 2026 : « le bloc de sélection du verset doit être aussi long à droite qu'à gauche ;
+ * actuellement, ça colle trop “Booz” »). À gauche, le vert commence au bord de la colonne
+ * du numéro, 1,625 rem avant le texte ; à droite il s'arrêtait à 0,25 rem, et le dernier mot
+ * d'une ligne justifiée touchait son bord.
+ * ⚠️ LA PISTE DE TEXTE NE BOUGE PAS D'UN PIXEL : le rembourrage droit gagne 1,375 rem et la
+ * marge droite en rend autant, en NÉGATIF. Les lignes se coupent donc aux mêmes mots, et le
+ * vert s'étend dans la gouttière d'actions, dont les boutons reculent d'autant
+ * (`RETRAIT_ACTIONS_VERSET`).
+ * ⚠️ AU DOIGT, rien ne change : les actions y sortent de la grille et la rangée occupe
+ * toute la largeur, si bien qu'une marge négative déborderait de l'écran.
+ */
+export function styleBlocVerset({ actif, mobile }: { actif?: boolean; mobile?: boolean } = {}): CSSProperties {
+  const symetrique = !mobile
   return {
     display: 'grid',
     // ⚠️ La gouttière du numéro s'élargit de 8 px et la piste de texte se resserre
     // d'autant : le bloc garde EXACTEMENT sa largeur, mais le verset rentre davantage
     // et sa ligne porte moins de mots. C'est le retrait, non le blanc, qui le désigne.
     gridTemplateColumns: 'auto minmax(0, calc(var(--mesure-texte) - 0.5rem))',
-    columnGap: '0.1875rem',
+    columnGap: `${GOUTTIERE_NUMERO_VERSET_REM}rem`,
     alignItems: 'baseline',
     borderRadius: '4px',
-    padding: '0.0625rem 0.25rem 0.0625rem 0',
+    padding: `0.0625rem ${symetrique ? DEBORD_BLOC_VERSET_REM : DEBORD_DROIT_ETROIT_REM}rem 0.0625rem 0`,
+    ...(symetrique ? { marginRight: `-${EMPIETEMENT_BLOC_VERSET_REM}rem` } : null),
     background: actif ? 'rgba(var(--cs-vert-rgb),0.11)' : 'transparent',
   }
 }
@@ -90,7 +141,7 @@ export function styleBlocVerset({ actif }: { actif?: boolean } = {}): CSSPropert
  * citation patristique, en exposant faute de gouttière (voir `compositionVersets.ts`).
  */
 export const STYLE_NUMERO_VERSET: CSSProperties = {
-  minWidth: '1.4375rem',
+  minWidth: `${NUMERO_VERSET_REM}rem`,
   textAlign: 'right',
   paddingRight: '0.4375rem',
   fontSize: '0.625rem',

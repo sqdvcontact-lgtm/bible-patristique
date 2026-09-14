@@ -1248,7 +1248,7 @@ button:focus-visible,
      « sur le chemin de LECTURE » — le pavé d’actions d’un verset, la flèche de
      chapitre — et 24 px comme plancher AA partout ailleurs. Une option de volet
      n’est pas le chemin de lecture. ⚠️ 36 px ont d’abord été posés, et l’auteur les a
-     trouvés « encore un peu trop hauts » : 28 px, où l’axe « Lecture » tombe de 168 à
+     trouvés « encore un peu trop hauts » : 28 px, où l’axe « Mode de lecture » tombe de 168 à
      120 px. La rangée fait toute la largeur du volet — c’est sa HAUTEUR seule que
      WCAG 2.2 § 2.5.8 mesure ici — et elle garde quatre pixels de marge sur le
      plancher de 24. ⛔ Ne pas descendre plus bas : on toucherait le plancher même. */
@@ -1963,6 +1963,18 @@ button:focus-visible,
 }
 .cs-regard-rangee:hover { background: rgba(var(--cs-vert-rgb), 0.05); }
 .cs-regard-rangee.cs-regard-rangee--retenue { background: rgba(var(--cs-vert-rgb), 0.11); }
+/* ⛔ LA MARQUE DÉBORDE LE TEXTE AUTANT À DROITE QU'À GAUCHE (décision de l'auteur,
+   14 septembre 2026 : « le bloc de sélection du verset doit être aussi long à droite qu'à
+   gauche »). À gauche, le vert commence 0,25 rem avant la colonne du numéro, donc
+   0,25 rem + la colonne + sa gouttière avant le texte ; à droite, il s'arrêtait à 0,25 rem
+   du dernier mot. Le rembourrage droit prend donc les trois mesures, et la marge droite les
+   rend en NÉGATIF : les colonnes ne perdent pas un pixel, et le débord se loge dans la
+   gouttière de 2,375 rem que la lecture en regard réserve à droite de son corps.
+   ⚠️ Posée par `BibleBilingue` quand les colonnes sont côte à côte, et seulement alors. */
+.cs-regard-rangee.cs-regard-rangee--symetrique {
+  margin-right: calc(-1 * (0.25rem + var(--regard-numero) + var(--regard-numero-gouttiere)));
+  padding-right: calc(0.25rem + var(--regard-numero) + var(--regard-numero-gouttiere));
+}
 
 /* ── UN BLOC DE SUITE NE ROUVRE PAS LE BLANC DE SON RANG (2026-09-03) ────────────
    Fillion range une introduction ou un commentaire en autant de blocs que de
@@ -2837,6 +2849,13 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 }
 .cs-bouton-lien::after { content: ''; position: absolute; inset: -7px 0; }
 .cs-bouton-lien:hover { color: var(--cs-vert-fonce); }
+/* L'OR D'UN OUTIL QUI PARLE L'OR : le volet de filtres des Pères (PanneauPatristique,
+   14 septembre 2026). La famille garde son corps, sa zone de frappe et son trait ; seule
+   l'encre change, et elle prend l'or LISIBLE : « --cs-or » ne rend que 3,67 sur le papier.
+   ⚠️ Deux classes, pour l'emporter sur la base comme sur son survol sans compter sur
+   l'ordre du fichier. */
+.cs-bouton-lien.cs-bouton-lien--or { color: var(--cs-or-lisible); }
+.cs-bouton-lien.cs-bouton-lien--or:hover { color: color-mix(in oklab, var(--cs-or) 45%, var(--cs-texte-fort)); }
 
 /* Le lien pris DANS UNE PHRASE : il garde le corps de son hôte, et ne prend d'ici que
    le trait PLEIN — jamais le pointillé, qui promettait une infobulle qui n'existe pas —

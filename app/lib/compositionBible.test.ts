@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest'
 import {
   AIR_MARQUE_DENSITE_REM, CORPS_GLOSE, ECART_MARQUE_DENSITE_REM, LARGEUR_MARQUE_DENSITE_REM, LIBELLE_GLOSE,
   compositionSousTitre, marqueDensiteTient, styleDensiteVerset, styleTexteVerset,
+  DEBORD_BLOC_VERSET_REM, EMPIETEMENT_BLOC_VERSET_REM, GOUTTIERE_NUMERO_VERSET_REM, NUMERO_VERSET_REM,
+  RETRAIT_ACTIONS_VERSET, STYLE_NUMERO_VERSET, styleBlocVerset,
 } from './compositionBible'
 import { rangLePlusProche } from './echelleTypographique'
 
@@ -19,6 +21,56 @@ import { rangLePlusProche } from './echelleTypographique'
  * d'apparat pose déjà son corps et son encre en ligne, si bien qu'une règle de
  * feuille serait morte. Essayé le 29 août 2026, et repris aussitôt.
  */
+/**
+ * ⛔ Le bloc sélectionné déborde le texte autant à droite qu'à gauche (décision de l'auteur,
+ * 14 septembre 2026 : « ça colle trop “Booz” »), et la piste de texte n'en bouge pas.
+ */
+describe('le bloc sélectionné d’un verset déborde le texte des deux côtés', () => {
+  it('le débord droit vaut la colonne du numéro et sa gouttière, qui font le débord gauche', () => {
+    expect(DEBORD_BLOC_VERSET_REM).toBe(NUMERO_VERSET_REM + GOUTTIERE_NUMERO_VERSET_REM)
+    expect(STYLE_NUMERO_VERSET.minWidth).toBe(`${NUMERO_VERSET_REM}rem`)
+    const bloc = styleBlocVerset()
+    expect(bloc.columnGap).toBe(`${GOUTTIERE_NUMERO_VERSET_REM}rem`)
+    expect(bloc.padding).toBe(`0.0625rem ${DEBORD_BLOC_VERSET_REM}rem 0.0625rem 0`)
+  })
+
+  it('⛔ la piste de texte ne bouge pas : la marge négative rend ce que le rembourrage prend', () => {
+    const debordDAvant = 0.25
+    expect(EMPIETEMENT_BLOC_VERSET_REM).toBe(DEBORD_BLOC_VERSET_REM - debordDAvant)
+    expect(Number.parseFloat(String(styleBlocVerset().marginRight))).toBe(-EMPIETEMENT_BLOC_VERSET_REM)
+  })
+
+  it('les actions reculent de ce que le vert prend sur leur gouttière', () => {
+    expect(RETRAIT_ACTIONS_VERSET).toBe(`${0.5 + EMPIETEMENT_BLOC_VERSET_REM}rem`)
+    expect(RETRAIT_ACTIONS_VERSET).toBe('1.875rem')
+    const page = readFileSync(join(process.cwd(), 'app/components/TexteBible.tsx'), 'utf8')
+    expect(page).toContain('paddingLeft: RETRAIT_ACTIONS_VERSET')
+    expect(page).toContain('styleBlocVerset({ actif, mobile })')
+  })
+
+  it('au doigt, rien ne change : les actions sortent de la grille', () => {
+    const bloc = styleBlocVerset({ mobile: true })
+    expect(bloc.padding).toBe('0.0625rem 0.25rem 0.0625rem 0')
+    expect(bloc.marginRight).toBeUndefined()
+  })
+
+  it('la lecture en regard suit, colonnes côte à côte seulement', () => {
+    const feuille = readFileSync(join(process.cwd(), 'app/globals.css'), 'utf8')
+    expect(feuille).toMatch(/\.cs-regard-rangee\.cs-regard-rangee--symetrique \{\s*margin-right: calc\(-1 \* \(0\.25rem \+ var\(--regard-numero\) \+ var\(--regard-numero-gouttiere\)\)\);\s*padding-right: calc\(0\.25rem \+ var\(--regard-numero\) \+ var\(--regard-numero-gouttiere\)\);/)
+    const bilingue = readFileSync(join(process.cwd(), 'app/components/BibleBilingue.tsx'), 'utf8')
+    expect(bilingue).toContain("${mobile ? '' : ' cs-regard-rangee--symetrique'}")
+  })
+
+  it('le titre du chapitre et le menu des bibles se tiennent, dans les deux lectures', () => {
+    for (const fichier of ['app/components/TexteBible.tsx', 'app/components/LectureBilingueBible.tsx']) {
+      const source = readFileSync(join(process.cwd(), fichier), 'utf8')
+      expect(source).toContain('lineHeight: INTERLIGNE_TITRE_CHAPITRE')
+      expect(source).toContain('${BLANC_TITRE_MENU} auto 0')
+      expect(source).not.toContain("margin: '0.5rem auto 0'")
+    }
+  })
+})
+
 describe('la composition d’un sous-titre suit le rang de SON titre', () => {
   it('les rangs hauts se centrent, dans l’encre foncée de leur titre', () => {
     for (const rang of ['T1', 'T2']) {

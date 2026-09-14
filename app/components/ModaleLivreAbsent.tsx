@@ -44,7 +44,10 @@ export type TraductionProposee = { code: string; label: string }
 /** Une bible proposée : un nom, une flèche, et rien autour.
  *  ⚠️ Le survol se tient dans un état plutôt que dans une règle de feuille : la
  *  fenêtre n'a pas de bloc `<style>`, et une classe pour deux lignes en appellerait
- *  un. Même parti que `NomVolet`, à qui la flèche est empruntée. */
+ *  un. Même parti que `NomVolet`.
+ *  ⚠️ La flèche reste ICI, quand le nom du volet de la page Bible a perdu la sienne
+ *  (14 septembre 2026) : une rangée de cette fenêtre ouvre une AUTRE bible, et sa flèche
+ *  dit ce déplacement. */
 function RangeeBible({ label, premiere, onChoisir }: {
   label: string; premiere: boolean; onChoisir: () => void
 }) {

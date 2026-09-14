@@ -8,19 +8,23 @@
 // portée qu'elles coiffent. Il vit dans le volet de lecture de la Bible, sous
 // l'onglet « Sommaire » (`NavLivres`).
 //
-// ⛔ Sa mise en forme est celle du SOMMAIRE D'UNE ŒUVRE (`OeuvreClient`),
-// décision de l'auteur : c'est le même objet, la table des matières d'un livre,
-// et il n'avait pas à se présenter de deux façons. Le sérif sur pastille verte
-// qu'il portait était emprunté à la liste des LIVRES, laquelle n'est pas une
-// table des matières mais un index.
+// ⛔ SES ENTRÉES SE COMPOSENT COMME LES LIVRES DE L'ONGLET VOISIN (décision de
+// l'auteur, 14 septembre 2026 : « pour le sommaire de l'apparat critique, utilise
+// exactement la même police que le sommaire utilisé pour “Genèse”, “Matthieu”, etc. »).
+// Le 28 août, elles avaient pris la composition du sommaire d'une ŒUVRE, à onze pixels
+// et demi, quand les livres de l'onglet « Livres » en font treize et demi : deux listes
+// d'un même volet, à un clic l'une de l'autre, ne se ressemblaient pas. La typographie
+// de l'entrée vit dans `styleEntreeListeVolet` (`stylesVoletLecture.ts`), et les deux
+// listes la lisent : elle ne peut plus diverger.
+// ⚠️ L'entrée ouverte prend la pastille du livre qu'on lit, et l'entrée déborde son bloc
+// de six pixels de chaque côté, comme une rangée de livre : sans cela son texte
+// paraîtrait rentré par rapport à la portée qui la coiffe.
 //
 // ⚠️ Les rangs s'apparient par la FONCTION, non par la profondeur : la pièce est
-// ce qu'on ouvre, elle prend donc le rang du NIVEAU 1 du sommaire d'une œuvre
-// (le corps ordinaire, vert et demi-gras quand il est ouvert) ; la portée ne
-// s'ouvre pas, elle coiffe, et prend le rang des rubriques du volet (« Apparat
-// critique », « Sommaire »), en petit, espacé et pâle. Le premier essai les
-// avait pris pour un niveau 1 et un niveau 2 : les pièces, seul contenu de
-// l'onglet, s'y lisaient comme des sous-entrées.
+// ce qu'on ouvre ; la portée ne s'ouvre pas, elle coiffe, et prend le rang des
+// rubriques du volet (« Apparat critique », « Sommaire »), en petit, espacé et pâle.
+// Le premier essai les avait pris pour un niveau 1 et un niveau 2 : les pièces,
+// seul contenu de l'onglet, s'y lisaient comme des sous-entrées.
 //
 // ⛔ Pas de capitales sur la portée : la barre d'onglets qui la surmonte a
 // perdu les siennes le même jour, et un volet de lecture n'a rien à crier.
@@ -30,6 +34,7 @@
 // le rendre hors session.
 
 import { Fragment } from 'react'
+import { styleEntreeListeVolet } from '@/app/lib/stylesVoletLecture'
 import { COMPOSITION_INTITULE } from '@/app/lib/titres'
 
 /** Une entrée du sommaire, telle que le volet la montre. */
@@ -66,10 +71,9 @@ export default function SommaireEdition({ pieces, pieceActive, onOuvrir }: {
             <button type="button" aria-current={actif ? 'page' : undefined}
               onClick={() => onOuvrir(piece.cle)}
               style={{
-                display: 'block', width: '100%', textAlign: 'left', background: 'none',
-                border: 'none', cursor: actif ? 'default' : 'pointer', padding: '3px 0',
-                fontSize: '0.71875rem', lineHeight: 1.35, fontWeight: actif ? 600 : 400,
-                color: actif ? 'var(--cs-vert)' : 'var(--cs-texte)',
+                ...styleEntreeListeVolet({ actif }),
+                display: 'block', width: 'calc(100% + 12px)', margin: '0 -6px', boxSizing: 'border-box',
+                textAlign: 'left', border: 'none', cursor: actif ? 'default' : 'pointer',
                 ...COMPOSITION_INTITULE,
               }}>
               {piece.titre}

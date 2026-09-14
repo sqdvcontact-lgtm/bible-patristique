@@ -16,7 +16,7 @@ import {
   type DensiteChapitre,
 } from '@/app/lib/densitePatristique'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
-import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
+import { OPTION_VOLET, RUBRIQUE_AXE, styleEntreeListeVolet } from '@/app/lib/stylesVoletLecture'
 import { chargerChapitresParLivre, estLivreOuvrable, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
 import { supabase } from '@/app/lib/supabase'
 import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
@@ -402,14 +402,16 @@ export default function NavLivres({
         <button onClick={() => handleLivre(livre.code)}
           title={vide ? 'Absent de cette traduction — voir où le lire' : undefined}
           style={{
+          // ⛔ La typographie de l'entrée vient de `styleEntreeListeVolet`, que le sommaire de
+          // l'édition lit aussi : « Genèse » et « Avant-propos » ne se composent plus de deux
+          // façons (décision de l'auteur, 14 septembre 2026).
+          ...styleEntreeListeVolet({ actif: actif || suggere }),
           width: '100%', textAlign: 'left',
-          padding: 'var(--volet-air-fin) 6px', borderRadius: '4px', fontSize: '0.84375rem',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          background: suggere ? 'rgba(var(--cs-vert-rgb),0.12)' : actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'transparent',
-          color: vide ? 'var(--cs-texte-faible)' : actif || suggere ? 'var(--cs-encre)' : 'var(--cs-texte-second)',
-          fontWeight: actif || suggere ? 600 : 400,
+          ...(suggere ? { background: 'rgba(var(--cs-vert-rgb),0.12)' } : null),
+          ...(vide ? { color: 'var(--cs-texte-faible)' } : null),
           border: suggere ? '1px solid rgba(var(--cs-vert-rgb),0.30)' : '1px solid transparent',
-          cursor: 'pointer', lineHeight: 1.4, boxSizing: 'border-box',
+          cursor: 'pointer', boxSizing: 'border-box',
           opacity: vide ? 0.55 : 1,
         }}>
           {/* ⛔ La marque se juge sur le STATUT, jamais sur le testament : ces livres se

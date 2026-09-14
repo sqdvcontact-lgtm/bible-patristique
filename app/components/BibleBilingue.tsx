@@ -275,7 +275,11 @@ export default function BibleBilingue({
     if (!choisir) return {}
     const retenue = canonId === canonSelectionne
     return {
-      className: `cs-regard-rangee${retenue ? ' cs-regard-rangee--retenue' : ''}`,
+      // ⛔ La marque déborde le texte autant à droite qu'à gauche, comme en lecture simple
+      // (décision de l'auteur, 14 septembre 2026) : voir `.cs-regard-rangee--symetrique`.
+      // ⚠️ Colonnes côte à côte seulement : empilées, elles n'ont plus à droite la gouttière
+      // où le débord se loge.
+      className: `cs-regard-rangee${mobile ? '' : ' cs-regard-rangee--symetrique'}${retenue ? ' cs-regard-rangee--retenue' : ''}`,
       onClick: () => choisir(canonId),
     }
   }

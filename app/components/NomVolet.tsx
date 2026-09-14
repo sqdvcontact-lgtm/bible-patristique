@@ -9,23 +9,21 @@
 // demande de l'auteur (« dans le même style que le nom de l'auteur dans le volet
 // de gauche des pages patristiques »).
 //
-// ⚠️ UNE FLÈCHE COURTE SUIT LE NOM, et elle DIT qu'il y a une fiche derrière
-// (demande de l'auteur, 2026-09-04 : « ajouter un petit symbole à côté du titre
-// pour suggérer l'existence de “À propos de cette traduction” ; une flèche
-// propre, épurée, courte »). Rien ne disait qu'on pouvait cliquer : le nom se
-// composait comme un titre vert, et le survol ne le soulignait qu'une fois la
-// souris dessus. ⛔ Elle ne paraît pas quand le bouton est INACTIF : une œuvre
-// sans auteur identifié n'ouvre aucune fiche, et la flèche promettrait alors une
-// page qui n'existe pas. ⚠️ Elle est hors de l'écrêtage du nom : c'est le NOM qui
-// se coupe par la fin, jamais la flèche, sans quoi l'annonce disparaîtrait sur
-// les noms longs — les seuls où l'on hésite.
+// ⛔ AUCUNE FLÈCHE NE SUIT LE NOM (décision de l'auteur, 14 septembre 2026, devant
+// « Bible de Sacy » : « ne pas afficher de flèche à côté pour indiquer que c'est
+// cliquable »). Une flèche courte l'a suivi du 4 au 14 septembre 2026, pour suggérer
+// la fiche « À propos de cette traduction ». Le nom se compose en vert, le survol le
+// souligne et l'infobulle nomme la fiche : c'est assez, et la carte de la page Bible
+// porte déjà une marque au bout de cette ligne, le chevron qui replie le volet.
+// ⚠️ La flèche de `ModaleLivreAbsent` n'est pas celle-ci : une rangée de cette
+// fenêtre ouvre une AUTRE bible, et sa flèche dit ce déplacement.
 //
 // ⛔ RIEN NE PARAÎT AU SURVOL. Le nom d'auteur ouvrait jusqu'ici une carte
 // flottante — portrait, dates, extrait de la notice — au bout de 220 ms de survol
 // (`ApercuAuteur`, retiré le 2026-08-31 à la demande de l'auteur). Le survol
 // souligne, et c'est tout : il annonce le lien, il ne le remplace pas.
-// ⚠️ Le soulignement se pose sur le NOM et non sur le bouton : porté par le
-// bouton, il courait aussi sous la flèche, qu'il barrait par le milieu.
+// ⚠️ Le soulignement se pose sur le NOM et non sur le bouton : c'est le nom qui
+// s'écrête, et le trait doit s'arrêter avec lui.
 //
 // ⚠️ Le nom se COUPE PAR LA FIN (`text-overflow: ellipsis`) plutôt que de
 // déborder : « Traduction officielle liturgique (AELF) » demande 245 pixels quand
@@ -45,11 +43,9 @@ export default function NomVolet({
   inactif?: boolean
   /**
    * ⚠️ DEUX RÉGIMES, ET LE SECOND N'EST PAS EN TÊTE. `tete` est la forme d'origine :
-   * le nom que le volet met au-dessus de tout, avec sa flèche. `credit` est le nom qui
-   * SUIT ce qui est en tête — l'auteur posé sous le titre de l'œuvre depuis le
-   * 2026-09-10, où l'auteur a demandé que l'œuvre passe la première. Il s'y compose en
-   * petit corps et SANS flèche : la flèche annonce une fiche à qui ouvre la page, et
-   * elle n'a de sens qu'au premier regard, pas sous une ligne de crédit.
+   * le nom que le volet met au-dessus de tout. `credit` est le nom qui SUIT ce qui est
+   * en tête — l'auteur posé sous le titre de l'œuvre depuis le 2026-09-10, où l'auteur
+   * a demandé que l'œuvre passe la première. Il s'y compose en petit corps.
    * ⛔ Ce n'est pas un dessin de plus : c'est le MÊME bouton, le même survol, la même
    * fiche au bout. La page Bible garde `tete`, où la traduction est bien en tête.
    */
@@ -64,8 +60,7 @@ export default function NomVolet({
       onFocus={() => setSurvol(true)} onBlur={() => setSurvol(false)}
       // ⚠️ Dix pixels de haut ne font pas une cible au DOIGT : `.cs-cible-fine`
       // (globals.css, sous `@media (hover: none)`) agrandit la zone de frappe sans
-      // rien déplacer. La forme `tete` s'en passe : elle porte déjà treize pixels et
-      // sa flèche.
+      // rien déplacer. La forme `tete` s'en passe : elle porte un corps de treize pixels.
       className={credit ? 'cs-cible-fine' : undefined}
       style={{
         fontSize: credit ? '0.625rem' : '0.8125rem', fontWeight: 600, color: 'var(--cs-vert)',
@@ -73,7 +68,7 @@ export default function NomVolet({
         textAlign: 'left', cursor: inactif ? 'default' : 'pointer',
         letterSpacing: credit ? '0.04em' : '0.01em',
         minWidth: 0, maxWidth: '100%',
-        display: 'flex', alignItems: 'center', gap: '4px',
+        display: 'flex', alignItems: 'center',
       }}>
       <span style={{
         minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -81,16 +76,6 @@ export default function NomVolet({
       }}>
         {children}
       </span>
-      {!inactif && !credit && (
-        // Une hampe et deux barbes, rien d'autre : la flèche du site, en petit.
-        // ⚠️ Elle est plus PÂLE que le nom et ne prend pas sa graisse — elle
-        // annonce le geste, elle ne le crie pas.
-        <svg width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden="true"
-          style={{ flexShrink: 0, opacity: allume ? 1 : 0.5, transform: allume ? 'translateX(1px)' : 'none', transition: 'opacity 0.14s, transform 0.14s' }}>
-          <path d="M1.6 5h6.8M5.6 2.2 8.4 5 5.6 7.8" stroke="currentColor" strokeWidth="1.3"
-            strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
     </button>
   )
 }

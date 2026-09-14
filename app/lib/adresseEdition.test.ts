@@ -1,11 +1,17 @@
 import { describe, it, expect } from 'vitest'
 
-import { adresseEdition, mentionsAdresseEdition, SEPARATEUR_ADRESSE } from './adresseEdition'
+import { adresseEdition, joindreLieux, mentionsAdresseEdition, SEPARATEUR_ADRESSE, SEPARATEUR_LIEUX } from './adresseEdition'
+import { SEPARATEUR_COEDITEURS } from './editeursNormalisation'
 
 describe('adresseEdition', () => {
   it('range les trois mentions dans l’ordre de la charte : ville, éditeur, année', () => {
     expect(adresseEdition({ ville: 'Bar-le-Duc', editeur: 'Louis Guérin', annee: '1866' }))
       .toBe('Bar-le-Duc, Louis Guérin, 1866')
+  })
+
+  it('joint plusieurs lieux par la barre des coéditeurs', () => {
+    expect(adresseEdition({ ville: 'Paris ; Tournai ; Rome', editeur: 'Desclée', annee: '1923' }))
+      .toBe(`${['Paris', 'Tournai', 'Rome'].join(SEPARATEUR_LIEUX)}, Desclée, 1923`)
   })
 
   it('emporte le séparateur d’une mention absente', () => {
@@ -29,6 +35,36 @@ describe('adresseEdition', () => {
     expect(adresseEdition({ ville: 'Paris', editeur: 'Letouzey et Ané', annee: '1888-1904' }))
       .toBe('Paris, Letouzey et Ané, 1888-1904')
     expect(adresseEdition({ ville: 'Paris', annee: 'vers 1260' })).toBe('Paris, vers 1260')
+  })
+})
+
+describe('joindreLieux', () => {
+  it('⛔ la barre des lieux EST celle des coéditeurs', () => {
+    expect(SEPARATEUR_LIEUX).toBe(SEPARATEUR_COEDITEURS)
+  })
+
+  it('reconnaît le point-virgule et la barre de la base, avec ou sans blancs', () => {
+    expect(joindreLieux('Paris ; Tournai ; Rome')).toBe(['Paris', 'Tournai', 'Rome'].join(SEPARATEUR_LIEUX))
+    expect(joindreLieux('Berlin; New York')).toBe(['Berlin', 'New York'].join(SEPARATEUR_LIEUX))
+    expect(joindreLieux('Lyon / Paris')).toBe(['Lyon', 'Paris'].join(SEPARATEUR_LIEUX))
+  })
+
+  it('est idempotente : des lieux déjà joints se rendent tels quels', () => {
+    const joints = joindreLieux('Leuven ; Paris ; Dudley')
+    expect(joindreLieux(joints)).toBe(joints)
+  })
+
+  it('⛔ ne coupe ni un nom composé, ni une glose au tiret', () => {
+    expect(joindreLieux('Bar-le-Duc')).toBe('Bar-le-Duc')
+    expect(joindreLieux('Francfort-sur-le-Main')).toBe('Francfort-sur-le-Main')
+    expect(joindreLieux('La Rochelle — attribution bibliographique')).toBe('La Rochelle — attribution bibliographique')
+  })
+
+  it('rend null sur un lieu absent ou blanc, et ôte les blancs de bord', () => {
+    expect(joindreLieux(null)).toBeNull()
+    expect(joindreLieux(undefined)).toBeNull()
+    expect(joindreLieux('  ')).toBeNull()
+    expect(joindreLieux(' Paris ')).toBe('Paris')
   })
 })
 

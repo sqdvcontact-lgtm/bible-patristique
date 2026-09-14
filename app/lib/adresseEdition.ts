@@ -25,11 +25,41 @@
  * Module PUR : ni React, ni Supabase. Testé dans `adresseEdition.test.ts`.
  */
 
+import { SEPARATEUR_COEDITEURS } from './editeursNormalisation'
+
 /** La virgule qui sépare deux mentions d'une même adresse (charte § 47.1). */
 export const SEPARATEUR_ADRESSE = ', '
 
+/**
+ * LES LIEUX D'UNE CO-ÉDITION SE JOIGNENT PAR LA BARRE À FINES, celle des coéditeurs.
+ *
+ * ⛔ Plus de TRAIT D'UNION (décision de l'auteur, 14 septembre 2026, devant la carte de
+ * la Bible Crampon : « on devrait avoir “Paris / Tournai / Rome” »). « Paris-Tournai-Rome »
+ * reprenait la forme de la page de titre, et elle se lisait comme UN nom : le trait
+ * d'union appartient aux noms de lieu eux-mêmes — Bar-le-Duc, Villiers-le-Bel,
+ * Francfort-sur-le-Main —, si bien que rien ne distinguait trois villes d'une seule.
+ *
+ * ⚠️ LA BASE ÉCRIT PLUSIEURS LIEUX DE TROIS FAÇONS : « Paris ; Tournai ; Rome »
+ * (`editions_sources`, `catalogue_notices`, `editeurs`), « Lyon / Paris » et « Berlin;
+ * New York » (`ouvrages_bibliographiques`). Les deux signes se reconnaissent ici, et un
+ * lieu déjà joint se rend tel quel : la fonction est IDEMPOTENTE, l'espace fine étant un
+ * blanc comme un autre pour le découpage.
+ * ⛔ PAS LE TIRET, même espacé : « La Rochelle — attribution bibliographique » est une
+ * glose écrite dans le champ, non deux lieux, et la couper en ferait une ville.
+ *
+ * ⚠️ Toute adresse passe par ici (`mentionsAdresseEdition`), et le moteur bibliographique
+ * aussi : la carte d'une bible, sa fiche, la notice d'un ouvrage et la ligne d'une édition
+ * disent donc plusieurs lieux de la même façon.
+ */
+export const SEPARATEUR_LIEUX = SEPARATEUR_COEDITEURS
+
+export function joindreLieux(lieu: string | null | undefined): string | null {
+  const lieux = (lieu ?? '').split(/\s*[;/]\s*/u).map((part) => part.trim()).filter(Boolean)
+  return lieux.length > 0 ? lieux.join(SEPARATEUR_LIEUX) : null
+}
+
 export type AdresseEdition = {
-  /** Le lieu d'édition, une ou plusieurs villes déjà jointes (`joindreLieux`). */
+  /** Le lieu d'édition : une ou plusieurs villes, que ce module joint (`joindreLieux`). */
   ville?: string | null
   /** La maison, sous son nom d'autorité, coéditeurs déjà joints. */
   editeur?: string | null
@@ -51,7 +81,7 @@ function propre(valeur: string | null | undefined): string | null {
  * le réécrire.
  */
 export function mentionsAdresseEdition(adresse: AdresseEdition): string[] {
-  return [propre(adresse.ville), propre(adresse.editeur), propre(adresse.annee)]
+  return [joindreLieux(adresse.ville), propre(adresse.editeur), propre(adresse.annee)]
     .filter((mention): mention is string => mention !== null)
 }
 

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { libelleEditionTraduction } from './editionTraduction'
+import { SEPARATEUR_LIEUX } from './adresseEdition'
 
 describe('libelleEditionTraduction — la phrase de la page de titre', () => {
   it('nomme une année seule et une fourchette resserrée', () => {
@@ -87,9 +88,9 @@ describe('un TÉMOIN MANUSCRIT n’a pas d’édition', () => {
     coteManuscrit: 'Français 899',
   }
 
-  it('nomme le manuscrit, son dépôt et sa cote', () => {
+  it('nomme le manuscrit DE sa ville, son dépôt et sa cote', () => {
     expect(libelleEditionTraduction(BIBLE_899))
-      .toBe('D’après le manuscrit Paris, Bibliothèque nationale de France, Français 899, vers 1260')
+      .toBe('D’après le manuscrit de Paris, Bibliothèque nationale de France, Français 899, vers 1260')
   })
 
   it('⛔ c’est la COTE qui décide, non un type ni une mention', () => {
@@ -105,13 +106,14 @@ describe('un TÉMOIN MANUSCRIT n’a pas d’édition', () => {
 })
 
 describe('les lieux d’une co-édition', () => {
-  it('joint les lieux par un TRAIT D’UNION', () => {
+  it('⛔ joint les lieux par la BARRE À FINES, jamais par un trait d’union', () => {
     // Bible Crampon : trois villes, deux maisons déjà résolues et jointes par « et ».
+    // « Paris-Tournai-Rome » se lisait comme un seul nom, à la façon de Bar-le-Duc.
     expect(libelleEditionTraduction({
       anneeEdition: '1923',
       lieuEdition: 'Paris ; Tournai ; Rome',
       editeur: 'Desclée et Société de Saint-Jean-l’Évangéliste',
-    })).toBe('D’après l’édition de Paris-Tournai-Rome, Desclée et Société de Saint-Jean-l’Évangéliste, 1923')
+    })).toBe(`D’après l’édition de ${['Paris', 'Tournai', 'Rome'].join(SEPARATEUR_LIEUX)}, Desclée et Société de Saint-Jean-l’Évangéliste, 1923`)
   })
 
   it('laisse un lieu unique intact', () => {

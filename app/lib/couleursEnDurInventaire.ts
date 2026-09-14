@@ -85,7 +85,9 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // --cs-danger-fond, --cs-danger-bord et --cs-danger-fonce, qui se retournent en Cuir.
   // Le dessin vit désormais dans app/lib/styleCommentaire.ts, qui n'écrit que des jetons,
   // et deux entrées disparaissent entièrement du registre.
-  'components/PanneauPatristique.tsx': ['rgba(122,96,64,0.08)', 'rgba(154,126,61,0.16)', 'rgba(198,184,158,0.08)'],
+  // L'or écrit en composantes de la pastille de période est parti le 2026-09-14 : le volet
+  // de filtres des Pères parle l'or par jetons (`stylePastilleFiltre`).
+  'components/PanneauPatristique.tsx': ['rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)'],
   'components/TexteBible.tsx': ['#b0a088'],
   // 'compte/page.tsx' : retiré le 2026-09-01. La page unique de 978 lignes a été
   // découpée en rubriques, et ses trois teintes ont été transposées au passage :
