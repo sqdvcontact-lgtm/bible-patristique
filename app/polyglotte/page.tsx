@@ -744,6 +744,10 @@ const referenceOrigine = (ligne: V2Row) => `${ligne.ch_orig}, ${ligne.v_orig}${s
 // l'administration seule.
 const noteMontree = (ligne: V2Row, estAdmin: boolean): string | null =>
   ligne.notes && (estAdmin || ligne.notes !== NOTE_ALIGNEMENT_A_REVOIR) ? ligne.notes : null;
+// ⚠️ L'infobulle et le nom accessible sont du TEXTE BRUT : les balises d'italique qu'une note
+// d'édition porte (argument d'un psaume chez Sacy, note de saint Jérôme) s'y liraient telles
+// quelles, et l'entité « &amp; » avec elles.
+const noteEnTexteBrut = (note: string) => note.replace(/<\/?i>/g, "").replace(/&amp;/g, "&");
 
 function RefOrigine({ ligne, note }: { ligne: V2Row; note: string | null }) {
   return (
@@ -753,7 +757,7 @@ function RefOrigine({ ligne, note }: { ligne: V2Row; note: string | null }) {
           14 septembre 2026) : le crayon disait « modifier », qui est le geste de
           l'administrateur, posé juste à côté. Sa mesure vit dans la feuille. */}
       {note ? (
-        <span className="poly-note-marque" role="img" aria-label={`Note éditoriale : ${note}`} title={note}>
+        <span className="poly-note-marque" role="img" aria-label={`Note éditoriale : ${noteEnTexteBrut(note)}`} title={noteEnTexteBrut(note)}>
           <IconeSignalement />
         </span>
       ) : null}
