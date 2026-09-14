@@ -28,7 +28,8 @@
 
 **§ 3.4 — Tirets et traits d’union**
 
-- ⛔ LE TIRET DEMI-CADRATIN `–` EST RÉSERVÉ EXCLUSIVEMENT AUX INCISES.
+- ⛔ LE TIRET DEMI-CADRATIN `–` EST RÉSERVÉ EXCLUSIVEMENT AUX INCISES VERBALES.
+- ⛔ UNE RÉFÉRENCE QUI CONSTITUE À ELLE SEULE UNE INCIDENCE N’EST PAS UNE INCISE AU TIRET.
 
 **§ 3.5 — Titres**
 
@@ -621,7 +622,8 @@
 
 - ⛔ CHAQUE NOTE SUBIT UN CONTRÔLE ORTHOGRAPHIQUE ET TYPOGRAPHIQUE INTÉGRAL.
 - ⛔ UNE COUPURE ÉDITORIALE DANS UNE CITATION SE MARQUE `[…]`.
-- ⛔ AUCUN TEXTE ÉDITORIAL D’UNE NOTE NE SE COMPOSE ENTRE PARENTHÈSES.
+- ⛔ LES PARENTHÈSES SONT FONCTIONNELLES, NON HÉRITÉES PAR INERTIE.
+- ⛔ Une telle référence incidente ne se compose jamais entre tirets.
 - ⛔ une reprise brève du texte français commenté, lorsqu’elle reste en prose, se compose en romain entre guillemets français `« … »` ; l’italique ne signale jamais à lui seul la citation ;\n-
 - ⛔ POSITION DE LA RÉFÉRENCE ET DISTINCTION ENTRE LEMME ET CITATION DOCUMENTAIRE.
 - ⛔ On ne fusionne jamais une référence externe et le lemme sous la forme `Référence : « lemme »`, qui ferait croire que l’auteur référencé prononce le texte commenté.
@@ -655,7 +657,7 @@
 - ⛔ Aucune note logique n’est admise sans responsabilité éditoriale structurée.
 - ⛔ Aucune note n’est admise sans type fonctionnel — une ambiguïté porte un type principal provisoire documenté, jamais `NULL`.
 - ⛔ L’italique hérité de l’imprimé n’est jamais conservé par inertie.
-- ⛔ Dans les notes comme partout ailleurs, le demi-cadratin `–` est exclusivement un tiret d’incise. Tout autre emploi exige le trait d’union simple `-` : plages de chapitres, versets, paragraphes, pages, lignes, vers, dates, renvois, dialogues, attributions ou séparateurs bibliographiques, titres et toute autre liaison non incidente. Chaque occurrence de `–` doit être qualifiée sémantiquement comme incise ; sa seule position entre espaces, après un guillemet ou près d’une référence ne suffit jamais. Une incise peut contenir une référence ou une attribution, mais c’est sa fonction incidente dans la syntaxe porteuse — et non sa nature bibliographique — qui autorise `–`.
+- ⛔ Dans les notes comme partout ailleurs, le demi-cadratin `–` est exclusivement un tiret d’incise verbale. Tout autre emploi exige le trait d’union simple `-` : plages de chapitres, versets, paragraphes, pages, lignes, vers, dates, renvois, dialogues, attributions ou séparateurs bibliographiques, titres et toute autre liaison non incidente. Une référence qui constitue à elle seule l’incidence se compose entre parenthèses, jamais entre tirets : `… son sceau (Catéchèse I, 3).` — Une véritable incise verbale peut contenir une référence, mais sa fonction incidente doit être portée par une proposition ou un syntagme plus large ; la seule présence d’une référence n’autorise jamais `–`.
 - ⛔ RÉOUVERTURE PAR DÉPENDANCE, PAS PAR RÉPÉTITION GLOBALE.
 
 ## § 14. OCR, HTR et transcription patrimoniale
@@ -2095,8 +2097,11 @@
 
 - ⛔ ELLE NE MONTRE PLUS, DE CE QUE LE LECTEUR A RETENU, QUE SES DEUX CITATIONS FAVORITES (décision de l’auteur, 2026-09-14 : « Sur “Ma page” n’afficher que les citations favorites (une bible, une pères).
 - ⚠️ Le diptyque est un livre ouvert — deux colonnes séparées d’un filet doré, l’attribution au PIED de chacune, si bien que les deux tombent sur la même ligne quelle que soit la longueur des passages (mesuré sur la composition servie : au pixel près).
-- ⛔ Une colonne étroite ne se justifie pas — et c’est une dérogation mesurée au § 3.11 : à une quarantaine de signes par ligne, la justification s’y creuse de lézardes, et elle voisine une colonne en drapeau dès que l’autre passage est court.
 - ⚠️ Un passage se montre entier jusqu’à 320 signes dans le diptyque et 480 seul ; au-delà, il se coupe au dernier mot entier, perd son enrichissement (une coupe peut tomber entre deux marques) et finit sur des points de suspension, sans point final.
+- ⛔ LE PASSAGE SE CENTRE COMME UNE ÉPIGRAPHE (décision de l’auteur, 2026-09-14 : « centre la citation préférée, élégamment »).
+- ⛔ Les colonnes du diptyque ne se composent donc plus en drapeau, et la favorite seule ne se justifie plus.
+- ⛔ UN MOT COMPOSÉ NE SE FEND PAS À SON TRAIT D’UNION — dans une épigraphe de trois lignes, « qui sont au- » puis « dessous du ciel » se voit plus qu’ailleurs.
+- ⚠️ La contrainte déplace l’équilibrage, et cela se mesure : sur la favorite réelle de Genèse 1, 9, les trois lignes passent de 272, 325 et 291 px à 244, 313 et 327 px, une pyramide douce au lieu d’un bloc égal.
 - ⚠️ Chaque passage RAMÈNE à sa source, quand elle est ouverte au visiteur — le chapitre pour un verset, l’œuvre au bon segment pour un Père.
 - ⛔ UNE FAVORITE SE RECOMPOSE DEPUIS LES PRÉLÈVEMENTS DU LECTEUR, JAMAIS DEPUIS SA SEULE COPIE.
 - ⛔ ET UNE FAVORITE TIRÉE D’UNE ŒUVRE RETIRÉE DE LA LECTURE NE PARAÎT PAS — ni son titre ni son texte.
@@ -2983,7 +2988,7 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 
 | § | chapitre | signes | énoncés | pour mille signes |
 |---|---|---:|---:|---:|
-| 3 | Typographie — les signes, les espaces, l’enric | 65 430 | 47 | **0.7** |
+| 3 | Typographie — les signes, les espaces, l’enric | 65 793 | 48 | **0.7** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
 | 15 | Corpus biblique et traductions | 18 188 | 17 | **0.9** |
 | 35 | Chantier Fillion — la composition du paratexte | 79 319 | 79 | **1.0** |
