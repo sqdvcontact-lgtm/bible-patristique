@@ -32,15 +32,12 @@ import { createPortal } from 'react-dom'
 import { colorMix } from '@/app/lib/couleurs'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
+import type { CitationPreferee } from '@/app/lib/citationsFavorites'
 
-export type CitationPreferee = {
-  id: string
-  texte: string
-  type: 'biblique' | 'patristique'
-  ref?: string
-  auteur?: string
-  titre_oeuvre?: string
-}
+// ⚠️ Le TYPE vit dans app/lib/citationsFavorites.ts depuis le 2026-09-14, avec ce qu'on
+// écrit d'une favorite : l'API du profil public le lit aussi, et un module serveur n'a
+// pas à importer une fenêtre. Réexporté ici pour les appelants.
+export type { CitationPreferee }
 
 /** Le tracé du quadrilobe, dans une boîte de 16. */
 const QUADRILOBE =
@@ -116,10 +113,11 @@ function CitationEnRegard({ c, etat, vive }: { c: CitationPreferee; etat: string
 }
 
 /**
- * La demande de remplacement. On ne porte qu'une citation favorite à la fois, et
- * elle paraît sur le profil public : la remplacer d'un clic, sans rien dire,
- * faisait disparaître un choix que personne n'avait demandé de défaire. La fenêtre
- * montre donc les DEUX citations, l'ancienne et la nouvelle, avant de trancher.
+ * La demande de remplacement. On porte une citation favorite par corpus, une de
+ * l'Écriture et une des Pères (2026-09-14), et elles paraissent sur la page publique :
+ * en remplacer une d'un clic, sans rien dire, faisait disparaître un choix que
+ * personne n'avait demandé de défaire. La fenêtre montre donc les DEUX citations du
+ * même corpus, l'ancienne et la nouvelle, avant de trancher.
  *
  * ⚠️ Gabarit imposé par la charte (§ Fenêtres contextuelles) : le calque part de
  * `HAUTEUR_NAVBAR` et ne défile pas, c'est la boîte qui défile en dedans.
@@ -182,7 +180,7 @@ export function ModaleRemplacerCitation({ actuelle, nouvelle, onConfirmer, onAnn
           </div>
           <h2 id="cs-remplacer-titre"
             style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-encre)', margin: 0, lineHeight: 1.3 }}>
-            Voulez-vous remplacer votre citation favorite ?
+            Voulez-vous remplacer votre citation favorite {nouvelle.type === 'biblique' ? 'de l’Écriture' : 'des Pères'}&#8239;?
           </h2>
           <button onClick={onAnnuler} aria-label="Fermer" className="cs-cible-fine"
             style={{ position: 'absolute', top: '11px', right: '13px', fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
@@ -190,7 +188,7 @@ export function ModaleRemplacerCitation({ actuelle, nouvelle, onConfirmer, onAnn
 
         <div style={{ padding: '14px 22px 18px' }}>
           <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: '0 0 13px' }}>
-            Vous n’en portez qu’une à la fois, et c’est elle qui paraît sur votre profil public.
+            Vous en portez une pour l’Écriture et une pour les Pères. Ce sont elles qui paraissent sur votre page publique.
           </p>
 
           <div className="cs-remplacer-regard">

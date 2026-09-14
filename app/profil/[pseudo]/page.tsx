@@ -6,10 +6,10 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
-import { MarqueCitation, type CitationPreferee } from '@/app/components/CitationPreferee'
+import type { CitationFavoritePublique } from '@/app/lib/citationsFavorites'
 import MarqueMecene from '@/app/components/MarqueMecene'
-import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import ModalSignalement from '@/app/components/ModalSignalement'
+import CitationsFavorites from './CitationsFavorites'
 
 type ProfilPublic = {
   pseudo: string
@@ -20,40 +20,14 @@ type ProfilPublic = {
   lecture?: { nb_auteurs: number; total_auteurs: number }
   bibliotheque?: { id: string; mt?: 'la'; titre: string; auteur: string }[]
   essais?: { id: number; titre: string; sous_titre: string | null; categories: string[]; publie_at: string | null; nb_vues: number }[]
-  citations?: CitationPubliee[]
   avatar?: { imageUrl: string; nom: string; posX: number | null; posY: number | null; zoom: number | null } | null
-  citation_preferee?: CitationPreferee | null
+  /** Les deux citations favorites, l'Écriture d'abord : composées par l'API, jamais ici. */
+  citations_favorites?: CitationFavoritePublique[]
   /** L'année du premier don, ou nul. Voir app/components/MarqueMecene.tsx. */
   mecene_depuis?: number | null
 }
 
-/**
- * Un passage retenu par le lecteur, biblique ou patristique.
- *
- * ⚠️ La page ne compose RIEN : l'API a déjà fabriqué la référence et le lien, parce
- * qu'elle seule sait quelles œuvres sont publiées et quel code de livre mène à la
- * Bible. Ici on ne fait que poser ce qu'elle envoie.
- */
-type CitationPubliee = {
-  type: 'biblique' | 'patristique'
-  texte: string
-  /** « Gn 25,1 », ou « Augustin d’Hippone, Les Confessions ». */
-  ref: string
-  /** La traduction, pour un verset. Rien pour un passage patristique. */
-  precision: string | null
-  lien: string | null
-}
-
 type PhotoProfil = { id_auteur: string; nom: string; imageUrl: string; posX?: number; posY?: number; zoom?: number }
-
-/** Les appels de note ([[A]], [[B1]]…) n’ont rien à faire dans une citation. */
-const sansAppelsNote = (t: string) => t.replace(/\[\[[A-Z0-9]+\]\]/g, '')
-
-/** Un extrait composable : sans balisage, sans appels de note, et borné. */
-function extrait(texte: string, max: number): string {
-  const t = texteSansEnrichissement(sansAppelsNote(texte)).replace(/\s+/g, ' ').trim()
-  return t.length > max ? `${t.slice(0, max).trimEnd()}…` : t
-}
 
 // ── Filet ornemental ─────────────────────────────────────────────────────────
 function Filet({ couleur = 'var(--cs-or-doux)', symbole = '✦', maxWidth = '200px' }: { couleur?: string; symbole?: React.ReactNode; maxWidth?: string }) {
@@ -69,9 +43,9 @@ function Filet({ couleur = 'var(--cs-or-doux)', symbole = '✦', maxWidth = '200
 // ── Étiquette de section ──────────────────────────────────────────────────────
 function Etiquette({ children }: { children: React.ReactNode }) {
   return (
-    <p style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', margin: '0 0 16px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+    <h2 style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', margin: '0 0 16px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
       {children}
-    </p>
+    </h2>
   )
 }
 
@@ -81,7 +55,6 @@ export default function ProfilPublicPage() {
   const [profil, setProfil] = useState<ProfilPublic | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
   const [monPseudo, setMonPseudo] = useState<string | null>(null)
-  const [citationPreferee, setCitationPreferee] = useState<CitationPreferee | null>(null)
   const [photoProfil, setPhotoProfil] = useState<PhotoProfil | null>(null)
   const [emailVisible, setEmailVisible] = useState(false)
   const [signalementOuvert, setSignalementOuvert] = useState(false)
@@ -95,13 +68,12 @@ export default function ProfilPublicPage() {
       })
       .then((p: ProfilPublic) => {
         setProfil(p); document.title = `${p.pseudo} · Corpus Scriptura`
-        // Avatar (recadrage compris) et citation préférée sont désormais servis par
-        // l'API pour TOUS les visiteurs, plus seulement lus du localStorage du propriétaire.
+        // Le portrait (recadrage compris) est servi par l'API pour TOUS les visiteurs,
+        // plus seulement lu du localStorage du propriétaire.
         if (p.avatar?.imageUrl) setPhotoProfil({
           id_auteur: '', nom: p.avatar.nom ?? '', imageUrl: p.avatar.imageUrl,
           posX: p.avatar.posX ?? undefined, posY: p.avatar.posY ?? undefined, zoom: p.avatar.zoom ?? undefined,
         })
-        if (p.citation_preferee) setCitationPreferee(p.citation_preferee)
       })
       .catch(e => setErreur(e.message))
 
@@ -116,11 +88,10 @@ export default function ProfilPublicPage() {
             // Injecter le contact_email dans le profil affiché (champ privé, visible par le propriétaire uniquement)
             if (p.contact_email) setProfil(prev => prev ? { ...prev, contact_email: p.contact_email } : prev)
             try {
-              // Repli sur son propre profil tant que la donnée n'a pas encore été
-              // re-persistée en base : l'API prime (functional update = ne remplace
-              // que si l'API n'a rien renvoyé).
-              const savedCitation = localStorage.getItem('cs_citation_preferee')
-              if (savedCitation) setCitationPreferee(prev => prev ?? JSON.parse(savedCitation))
+              // ⛔ PLUS DE REPLI SUR `cs_citation_preferee` (2026-09-14) : la citation
+              // favorite est devenue deux colonnes du profil, une par corpus, que l'API
+              // sert à tous les visiteurs. L'ancienne clé ne décrirait plus rien.
+              localStorage.removeItem('cs_citation_preferee')
               // ⛔ PLUS DE REPLI SUR `cs_photo_profil`. Le stockage local portait une
               // URL complète, écrite par le navigateur : c'est précisément ce que le
               // passage aux références a supprimé (app/lib/portraits.ts). Le lire
@@ -149,10 +120,10 @@ export default function ProfilPublicPage() {
   const rang = profil.lecture ? calculerRang(profil.lecture.nb_auteurs, profil.lecture.total_auteurs) : null
   const couleurs = rang ? couleurRang(rang.rang) : null
   const annee = new Date(profil.membre_depuis).getFullYear()
-  const aCitations = profil.citations && profil.citations.length > 0
+  const favorites = profil.citations_favorites ?? []
   const aBibliotheque = profil.bibliotheque && profil.bibliotheque.length > 0
   const aEssais = profil.essais && profil.essais.length > 0
-  const rienDePublic = !profil.lecture && !aEssais && !aCitations && !profil.bio && !profil.contact_email && !aBibliotheque
+  const rienDePublic = !profil.lecture && !aEssais && !favorites.length && !profil.bio && !profil.contact_email && !aBibliotheque
 
   const envoyerSignalementProfil = async (message: string) => {
     const { supabase } = await import('@/app/lib/supabase')
@@ -203,31 +174,6 @@ export default function ProfilPublicPage() {
         }
         .profil-essai-link:last-child { border-bottom: none; }
         .profil-essai-link:hover { opacity: 0.75; }
-        /* Un passage retenu. La manchette verte est la même que portaient les versets ;
-           elle vaut maintenant pour les deux natures de citation, l'Écriture et les
-           Pères, que seule la ligne de référence distingue. ⚠️ Elle SUIT le thème
-           (--cs-vert-clair passe au sable en Cuir), contrairement à un vert écrit. */
-        .profil-citation {
-          display: block; padding-left: 12px; text-decoration: none;
-          border-left: 2px solid var(--cs-vert-clair);
-          transition: border-color 0.12s;
-        }
-        a.profil-citation:hover { border-left-color: var(--cs-or); }
-        .profil-citation-texte {
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 0.8125rem; font-style: italic; line-height: 1.6;
-          color: var(--cs-texte-fort); margin: 0 0 4px;
-        }
-        /* ⚠️ La référence est le SEUL porteur de l'identité du passage : le seuil de
-           4,5 s'applique, comme à la manchette des renvois et à la mention d'absence
-           de la Polyglotte. Mesurée sur la page servie, --cs-texte-gris rendait 3,57
-           à 13 px ; --cs-texte-second en rend 5,9. ⛔ L'étiquette de section, elle,
-           garde --cs-etiquette : une rubrique EST faite pour s'effacer. */
-        .profil-citation-ref {
-          font-family: var(--font-source-serif), Georgia, serif;
-          font-size: 0.59375rem; letter-spacing: 0.04em;
-          color: var(--cs-texte-second); margin: 0;
-        }
         .profil-action {
           display: inline-flex; align-items: center; justify-content: center; gap: 7px;
           min-height: 34px; border-radius: 999px; padding: 7px 16px;
@@ -395,25 +341,12 @@ export default function ProfilPublicPage() {
           )}
         </div>
 
-        {/* ── CITATION PRÉFÉRÉE ─────────────────────────────────────────────── */}
-        {citationPreferee && (
-          <div style={{ textAlign: 'center', margin: '0 0 10px', background: 'rgba(var(--cs-or-rgb),0.06)', border: '1px solid rgba(var(--cs-or-rgb),0.28)', borderRadius: '8px', padding: '16px 28px 14px', position: 'relative' }}>
-            {/* La marque de la citation favorite, la même qu'à « Mes citations ».
-                L'étoile qui tenait cette place dit « favori » partout ailleurs sur
-                le site (œuvres, versets) : elle promettait ici une autre action. */}
-            <Filet couleur='#c8a858' symbole={<MarqueCitation taille={15} />} maxWidth='80px' />
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontStyle: 'italic', color: 'var(--cs-texte-fort)', lineHeight: 1.45, margin: '10px 0 8px' }}>
-              «&#8201;{extrait(citationPreferee.texte, 220)}&#8201;»
-            </p>
-            {(citationPreferee.ref || citationPreferee.auteur) && (
-              <p style={{ fontSize: '0.625rem', color: 'var(--cs-or)', margin: 0, letterSpacing: '0.10em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
-                {citationPreferee.type === 'biblique'
-                  ? citationPreferee.ref
-                  : [citationPreferee.auteur, citationPreferee.titre_oeuvre].filter(Boolean).join(', ')}
-              </p>
-            )}
-          </div>
-        )}
+        {/* ── CITATIONS FAVORITES ─────────────────────────────────────────────── */}
+        {/* ⛔ De ce que le lecteur a retenu, la page ne montre plus que ses deux citations
+            favorites : une de l'Écriture, une des Pères (décision de l'auteur,
+            2026-09-14). Elles se posent en diptyque, sous le quadrilobe qui les désigne
+            dans « Mes citations ». Voir ./CitationsFavorites.tsx. */}
+        <CitationsFavorites citations={favorites} />
 
         {/* ── BIBLIOTHÈQUE ──────────────────────────────────────────────────── */}
         {aBibliotheque && (
@@ -435,36 +368,9 @@ export default function ProfilPublicPage() {
         )}
 
         {/* ── CITATIONS ─────────────────────────────────────────────────────────
-            Ce que le lecteur a retenu, et qui ne paraissait nulle part : la section
-            ne montrait que les VERSETS, quand « Mes citations » en garde deux corpus.
-            Un site qui s'annonce « l'Écriture, et ce que les Pères en ont dit » ne
-            pouvait pas donner à voir la moitié d'un florilège. Les deux natures se
-            suivent donc dans une seule liste, du plus récent au plus ancien, et c'est
-            la ligne de référence qui dit laquelle on lit.
-            ⚠️ La citation d'honneur, elle, ne se répète pas ici : l'API la retire. */}
-        {aCitations && (
-          <div className="profil-section">
-            <Etiquette>Citations</Etiquette>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {profil.citations!.map((c, i) => {
-                const corps = (
-                  <>
-                    <p className="profil-citation-texte">«&#8201;{extrait(c.texte, 200)}&#8201;»</p>
-                    <p className="profil-citation-ref">
-                      {c.ref}
-                      {c.precision && <span style={{ opacity: 0.65 }}> · {c.precision}</span>}
-                    </p>
-                  </>
-                )
-                // Le passage ramène à sa source quand elle est ouverte au visiteur —
-                // le chapitre pour un verset, l'œuvre au bon segment pour un Père.
-                return c.lien
-                  ? <Link key={i} href={c.lien} className="profil-citation">{corps}</Link>
-                  : <div key={i} className="profil-citation">{corps}</div>
-              })}
-            </div>
-          </div>
-        )}
+            ⛔ La liste des passages retenus est RETIRÉE le 2026-09-14 : « Ma page » ne
+            montre plus, de ce que le lecteur a retenu, que ses deux citations favorites,
+            posées en tête. Voir ./CitationsFavorites.tsx. */}
 
         {/* ── PUBLICATIONS ──────────────────────────────────────────────────── */}
         {aEssais && (

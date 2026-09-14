@@ -23,8 +23,11 @@ import { codesTraductionsLecture } from "@/app/lib/traductions";
 import { useSansSurvol } from "@/app/lib/useEstMobile";
 import {
   BoutonCitationPreferee, MarqueCitation, ModaleRemplacerCitation,
-  type CitationPreferee,
 } from "@/app/components/CitationPreferee";
+import {
+  COLONNE_FAVORITE, favoritePourEcriture, lireFavorite,
+  type CitationPreferee, type TypeCitation,
+} from "@/app/lib/citationsFavorites";
 import { PLAFOND_SEGMENTS_ELIDES, numerosDeLEcart, regrouperCitations, texteDuGroupe, type Ecart } from "@/app/lib/regrouperCitations";
 import { lotsPourClauseIn } from "@/app/lib/paginationSupabase";
 import { replier } from "@/app/lib/bibleBibliographieOuvrages";
@@ -49,6 +52,8 @@ type Prelevement = {
   ref_niv1?: string; ref_niv2?: string;
   id_oeuvre?: string; segment_numero?: number;
   created_at: string;
+  /** Le texte vient de la traduction choisie dans le menu, non de celle du prélèvement. */
+  texteTraduit?: boolean;
 };
 
 type Traduction = { code: string; label: string };
@@ -63,11 +68,14 @@ type GroupeBiblique = {
   ids: string[]; ref_livre: string; ref_livre_abr: string;
   ref_chapitre: number; verset_debut: number; verset_fin: number;
   textes: string[]; traduction?: string;
+  /** Tous ses versets se lisent dans la traduction du menu. */
+  traduit: boolean;
 };
 
-// ⚠️ Le type vit dans `app/components/CitationPreferee.tsx`, avec la marque et la fenêtre
-// de remplacement. ⛔ Le réexport que cette page en faisait est retiré le 7 septembre 2026 :
-// il datait du temps où le profil public l'importait d'ici, et plus rien ne l'appelait.
+// ⚠️ Le type d'une citation favorite vit dans `app/lib/citationsFavorites.ts`, avec ce
+// qu'on en écrit ; la marque et la fenêtre de remplacement, dans
+// `app/components/CitationPreferee.tsx`. On en porte UNE PAR CORPUS depuis le
+// 14 septembre 2026 : choisir un verset ne touche plus au passage des Pères.
 
 const ABREV_ORDRE: Record<string, number> = {
   Gn:1,Ex:2,Lv:3,Nb:4,Dt:5,Jos:6,Jg:7,Rt:8,"1S":9,"2S":10,"1R":11,"2R":12,
@@ -136,9 +144,9 @@ function agglomererBibliques(sorted: Prelevement[]): GroupeBiblique[] {
     const v = p.ref_verset ?? 0;
     const last = groupes[groupes.length - 1];
     if (last && last.ref_livre_abr === abr && last.ref_chapitre === ch && last.verset_fin + 1 === v) {
-      last.ids.push(p.id); last.verset_fin = v; last.textes.push(p.texte);
+      last.ids.push(p.id); last.verset_fin = v; last.textes.push(p.texte); last.traduit = last.traduit && !!p.texteTraduit;
     } else {
-      groupes.push({ ids: [p.id], ref_livre: p.ref_livre ?? "", ref_livre_abr: abr, ref_chapitre: ch, verset_debut: v, verset_fin: v, textes: [p.texte], traduction: p.traduction });
+      groupes.push({ ids: [p.id], ref_livre: p.ref_livre ?? "", ref_livre_abr: abr, ref_chapitre: ch, verset_debut: v, verset_fin: v, textes: [p.texte], traduction: p.traduction, traduit: !!p.texteTraduit });
     }
   }
   return groupes;
@@ -252,9 +260,11 @@ export default function PagePrelevements() {
   const [traductions, setTraductions] = useState<Traduction[]>([]);
   const [traductionActive, setTraductionActive] = useState("TR0001");
   const [textesTraduits, setTextesTraduits] = useState<Record<string, string>>({});
-  const [citationPreferee, setCitationPreferee] = useState<CitationPreferee | null>(null);
-  // Citation qu'on vient de désigner alors qu'une autre était déjà portée : elle
-  // attend la réponse à « Voulez-vous remplacer votre citation favorite ? ».
+  // ⛔ UNE FAVORITE PAR CORPUS : l'Écriture et les Pères ont chacun leur place, et en
+  // choisir une ne touche jamais à l'autre (charte § 34.2).
+  const [favorites, setFavorites] = useState<Record<TypeCitation, CitationPreferee | null>>({ biblique: null, patristique: null });
+  // Citation qu'on vient de désigner alors qu'une autre du même corpus était déjà portée :
+  // elle attend la réponse à « Voulez-vous remplacer votre citation favorite ? ».
   const [remplacementPropose, setRemplacementPropose] = useState<CitationPreferee | null>(null);
   // ⚠️ Le critère est la capacité du pointeur, pas la largeur de l'écran : la
   // gouttière d'actions ne paraissait qu'au survol, donc jamais au doigt.
@@ -277,34 +287,39 @@ export default function PagePrelevements() {
   // Le titre d'onglet vient du layout (« Mes citations ») ; on ne le réécrit plus
   // ici en « Mes prélèvements » (contradiction avec la métadonnée et le titre de page).
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("cs_citation_preferee");
-      if (saved) setCitationPreferee(JSON.parse(saved));
-    } catch {}
-  }, []);
-
-  // L'écriture, sans question : localStorage (repli hors ligne) + base (profil public).
-  const inscrirePreferee = (pref: CitationPreferee | null) => {
-    if (pref) localStorage.setItem("cs_citation_preferee", JSON.stringify(pref));
-    else localStorage.removeItem("cs_citation_preferee");
-    setCitationPreferee(pref);
-    supabase.from("profils").update({ citation_preferee: pref }).eq("id", user.id);
+  // L'écriture, sans question : la colonne du corpus, et elle seule. La page change
+  // aussitôt, et reprend l'état d'avant si la base refuse.
+  // ⛔ Plus de miroir dans le stockage local : il décrivait UNE favorite, et une copie
+  // qui peut diverger de la base ne ferait que la contredire. L'ancienne clé s'efface.
+  const inscrireFavorite = async (type: TypeCitation, pref: CitationPreferee | null) => {
+    const avant = favorites[type];
+    setFavorites(f => ({ ...f, [type]: pref }));
+    const { error } = await supabase.from("profils")
+      .update({ [COLONNE_FAVORITE[type]]: pref ? favoritePourEcriture(pref) : null })
+      .eq("id", user.id);
+    if (error) {
+      console.error("Mes citations : la citation favorite n’a pas été enregistrée.", error);
+      setFavorites(f => ({ ...f, [type]: avant }));
+    }
   };
 
-  // Le geste, avec ses trois cas. Reprendre la citation déjà portée la retire ;
-  // en désigner une autre quand une place est occupée demande d'abord confirmation,
-  // parce que le remplacement défait un choix qui paraît sur le profil public.
+  // Le geste, avec ses trois cas, dans le corpus du passage. Reprendre la citation déjà
+  // portée la retire ; en désigner une autre quand la place est occupée demande d'abord
+  // confirmation, parce que le remplacement défait un choix qui paraît sur la page
+  // publique. ⚠️ Une favorite dont le prélèvement a disparu n'occupe plus la place :
+  // cette page ne la montre nulle part, et la page publique non plus.
   const choisirPreferee = (pref: CitationPreferee) => {
-    if (citationPreferee?.id === pref.id) { inscrirePreferee(null); return; }
-    if (citationPreferee) { setRemplacementPropose(pref); return; }
-    inscrirePreferee(pref);
+    const actuelle = favorites[pref.type];
+    const presente = actuelle && prelevements.some(p => p.id === actuelle.id) ? actuelle : null;
+    if (presente?.id === pref.id) { inscrireFavorite(pref.type, null); return; }
+    if (presente) { setRemplacementPropose(pref); return; }
+    inscrireFavorite(pref.type, pref);
   };
 
   useEffect(() => {
     (async () => {
       const uid = user.id;
-      // ⚠️ `profils` n'est plus interrogé QUE pour la citation favorite : la traduction
+      // ⚠️ `profils` n'est plus interrogé QUE pour les citations favorites : la traduction
       // par défaut vient du cadre, qui a déjà lu le profil une fois pour toutes.
       const [{ data: rows }, { data: trads }, { data: pref }, lisibles] = await Promise.all([
         supabase
@@ -313,11 +328,15 @@ export default function PagePrelevements() {
           .order("created_at", { ascending: false }),
         // ⛔ `est_biblique` : voir le commentaire dans app/page.tsx.
         supabase.from("traductions").select("trad_id, nom").eq("est_biblique", true).order("ordre", { ascending: true }),
-        supabase.from("profils").select("citation_preferee").eq("id", uid).maybeSingle(),
+        supabase.from("profils").select("citation_favorite_biblique, citation_favorite_patristique").eq("id", uid).maybeSingle(),
         codesTraductionsLecture(supabase),
       ]);
-      // La base fait foi (visible sur le profil public) ; le localStorage n'est qu'un repli.
-      if (pref?.citation_preferee) setCitationPreferee(pref.citation_preferee as CitationPreferee);
+      // La base fait foi : c'est elle que la page publique lit.
+      setFavorites({
+        biblique: lireFavorite(pref?.citation_favorite_biblique, "biblique"),
+        patristique: lireFavorite(pref?.citation_favorite_patristique, "patristique"),
+      });
+      try { localStorage.removeItem("cs_citation_preferee"); } catch {}
       const prelevsData = rows ?? [];
       setPrelevements(prelevsData);
       // ⚠️ Le menu ne peut proposer que des traductions RÉELLEMENT présentes comme
@@ -380,7 +399,10 @@ export default function PagePrelevements() {
   const supprimerIds = async (ids: string[]) => {
     await supabase.from("prelevements").delete().in("id", ids);
     setPrelevements(prev => prev.filter(p => !ids.includes(p.id)));
-    if (citationPreferee && ids.includes(citationPreferee.id)) inscrirePreferee(null);
+    for (const type of ["biblique", "patristique"] as const) {
+      const actuelle = favorites[type];
+      if (actuelle && ids.includes(actuelle.id)) inscrireFavorite(type, null);
+    }
     if (remplacementPropose && ids.includes(remplacementPropose.id)) setRemplacementPropose(null);
   };
 
@@ -464,7 +486,7 @@ export default function PagePrelevements() {
   const bibliques = trierBibliques(prelevements.filter(p => p.type === "biblique").map(p => {
     const livre = CODE_PAR_ABREV[p.ref_livre_abr ?? ""];
     const texteTraduit = livre ? textesTraduits[`${livre}:${p.ref_chapitre}:${p.ref_verset}`] : null;
-    return texteTraduit ? { ...p, texte: texteTraduit } : p;
+    return texteTraduit ? { ...p, texte: texteTraduit, texteTraduit: true } : p;
   }));
   const patristiques = trierPatristiques(prelevements.filter(p => p.type === "patristique"));
   const groupesBibliquesBruts = grouper(bibliques, p => p.ref_livre_abr ?? p.ref_livre ?? "");
@@ -697,8 +719,11 @@ export default function PagePrelevements() {
                     {agglomeres.map((g, i) => {
                       const texte = texteGroupe(g);
                       const ref = refBiblique(g);
-                      const estPref = citationPreferee?.id === g.ids[0];
+                      const estPref = favorites.biblique?.id === g.ids[0];
                       const nomTrad = nomTraduction(g.traduction);
+                      // La favorite garde la traduction où on la LIT : celle du menu quand
+                      // tous ses versets s'y trouvent, celle du prélèvement sinon.
+                      const tradLue = g.traduit ? nomTraduction(traductionActive) : nomTrad;
                       return (
                         <div key={i} className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
                           <span className="prel-ref" style={estPref ? { color: "var(--cs-or)" } : undefined}>{ref}</span>
@@ -709,7 +734,7 @@ export default function PagePrelevements() {
                             {nomTrad && <p className="prel-provenance">Prélevé dans la {nomTrad}</p>}
                           </div>
                           <div className="prel-actions">
-                            <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: g.ids[0], texte, type: "biblique", ref }); }} />
+                            <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: g.ids[0], ids: g.ids, texte, type: "biblique", ref, traduction: tradLue ?? undefined }); }} />
                             <BoutonCopie citation={citationBiblique(texteSansEnrichissement(texte), ref)} />
                             <BoutonLien href={`/?livre=${CODE_PAR_ABREV[g.ref_livre_abr] ?? g.ref_livre_abr}&chapitre=${g.ref_chapitre}&verset=${g.verset_debut}&trad=${traductionActive}`} />
                             <BoutonSuppr onSuppr={() => supprimerIds(g.ids)} />
@@ -760,7 +785,7 @@ export default function PagePrelevements() {
                       const p = groupe[0];
                       const ids = groupe.map(x => x.id);
                       const texteReuni = texteDuGroupe(groupe, cleCitation);
-                      const estPref = citationPreferee != null && ids.includes(citationPreferee.id);
+                      const estPref = favorites.patristique != null && ids.includes(favorites.patristique.id);
                       return (
                         <div key={ids.join("_")} className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
                           {/* ⚠️ La manchette tient sa colonne même vide : un passage sans
@@ -774,7 +799,7 @@ export default function PagePrelevements() {
                             </p>
                           </div>
                           <div className="prel-actions">
-                            <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: p.id, texte: texteReuni, type: "patristique", auteur: p.auteur, titre_oeuvre: p.titre_oeuvre }); }} />
+                            <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: p.id, ids, texte: texteReuni, type: "patristique", auteur: p.auteur, titre_oeuvre: p.titre_oeuvre }); }} />
                             <BoutonCopie citation={citationPatristiqueDepuisInfo(texteSansEnrichissement(texteReuni), auteur, titre, p.id_oeuvre ? oeuvresInfo[p.id_oeuvre] : undefined)} />
                             {p.id_oeuvre && (
                               <BoutonLien href={`/oeuvre/${p.id_oeuvre}${p.segment_numero ? `#s${p.segment_numero}` : ''}`} />
@@ -794,13 +819,13 @@ export default function PagePrelevements() {
         </>)}
       </div>
 
-      {/* « Voulez-vous remplacer votre citation favorite ? » — seulement quand une
-          place est déjà occupée : désigner la première ne demande rien. */}
-      {remplacementPropose && citationPreferee && (
+      {/* « Voulez-vous remplacer votre citation favorite ? » — seulement quand la place
+          du même corpus est déjà occupée : désigner la première ne demande rien. */}
+      {remplacementPropose && favorites[remplacementPropose.type] && (
         <ModaleRemplacerCitation
-          actuelle={citationPreferee}
+          actuelle={favorites[remplacementPropose.type]!}
           nouvelle={remplacementPropose}
-          onConfirmer={() => { inscrirePreferee(remplacementPropose); setRemplacementPropose(null); }}
+          onConfirmer={() => { inscrireFavorite(remplacementPropose.type, remplacementPropose); setRemplacementPropose(null); }}
           onAnnuler={() => setRemplacementPropose(null)}
         />
       )}

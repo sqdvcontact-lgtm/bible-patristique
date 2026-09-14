@@ -2,34 +2,45 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { estRefOriginal, idOeuvreDeRef } from '@/app/lib/refsFavoris'
-import { ABREV_FR } from '@/app/lib/bible'
 import { familleDeRef, identifiantDeRef, refPortraitValide, urlPortrait } from '@/app/lib/portraits'
+import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
+import {
+  COLONNES_PRELEVEMENT_FAVORITE,
+  composerFavorites,
+  lireFavorite,
+  oeuvresDesFavorites,
+  prelevementsDesFavorites,
+  type PrelevementDeFavorite,
+} from '@/app/lib/citationsFavorites'
 
 const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-/** L'inverse d'ABREV_FR : « Gn » → « GEN ». Un prélèvement biblique ne garde que
- *  l'abréviation française, quand la page Bible ne connaît que le code : sans cette
- *  table, une citation ne saurait pas ramener à son chapitre. */
-const CODE_PAR_ABREV: Record<string, string> = Object.fromEntries(
-  Object.entries(ABREV_FR).map(([code, abrev]) => [abrev, code])
-)
-
-/** Une ligne de `prelevements`, telle qu'on la lit pour la page publique. */
-type PrelevementLu = {
-  id: string
-  type: 'biblique' | 'patristique'
-  texte: string
-  ref_livre_abr: string | null
-  ref_chapitre: number | null
-  ref_verset: number | null
-  traduction: string | null
-  auteur: string | null
-  titre_oeuvre: string | null
-  id_oeuvre: string | null
-  segment_numero: number | null
+/**
+ * Les prélèvements qui portent les citations favorites, et eux seuls.
+ *
+ * ⛔ Toujours bornés au LECTEUR (`user_id`) : un identifiant écrit dans une colonne de
+ * favorite ne doit pas faire paraître le prélèvement d'un autre. Et les clauses `in` se
+ * découpent en octets d'adresse, jamais en nombre de valeurs.
+ * ⚠️ Couche SECONDAIRE : un échec se journalise, et la page paraît sans ses favorites
+ * plutôt que de tomber.
+ */
+async function chargerPrelevementsFavoris(idLecteur: string, ids: string[]): Promise<PrelevementDeFavorite[]> {
+  if (!ids.length) return []
+  const reponses = await Promise.all(lotsPourClauseIn(ids).map(lot =>
+    sb.from('prelevements').select(COLONNES_PRELEVEMENT_FAVORITE).eq('user_id', idLecteur).in('id', lot),
+  ))
+  const lignes: PrelevementDeFavorite[] = []
+  for (const { data, error } of reponses) {
+    if (error) {
+      console.error('[profil] citations favorites non relues :', error.message)
+      return []
+    }
+    lignes.push(...((data ?? []) as unknown as PrelevementDeFavorite[]))
+  }
+  return lignes
 }
 
 /** Le nom du visage choisi, lu de la table qui fait autorité.
@@ -53,11 +64,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
   if (!pseudo) return NextResponse.json({ error: 'Pseudo manquant.' }, { status: 400 })
 
   // contact_email exclu intentionnellement — champ privé non consenti pour exposition publique.
-  // avatar_* et citation_preferee sont publics (portrait choisi + verset préféré, faible
-  // sensibilité) : le profil public a toujours été censé les afficher.
+  // avatar_* et les deux citations favorites sont publics (portrait choisi, passages choisis
+  // pour cette page, faible sensibilité) : c'est pour les montrer qu'on les choisit.
   const { data: profil, error } = await sb
     .from('profils')
-    .select('id, pseudo, bio, created_at, pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, avatar_ref, avatar_pos_x, avatar_pos_y, avatar_zoom, citation_preferee, mecene_depuis, pub_mecene')
+    .select('id, pseudo, bio, created_at, pub_rang, pub_essais, pub_favoris_oeuvre, avatar_ref, avatar_pos_x, avatar_pos_y, avatar_zoom, citation_favorite_biblique, citation_favorite_patristique, mecene_depuis, pub_mecene')
     .eq('pseudo', pseudo)
     .maybeSingle()
 
@@ -76,12 +87,21 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
       }
     : null
 
+  // ── Les citations favorites ──
+  // ⛔ « Ma page » ne montre plus, de ce que le lecteur a retenu, que ses deux favorites :
+  // une de l'Écriture, une des Pères (décision de l'auteur, 2026-09-14). Les colonnes sont
+  // écrites par le navigateur du lecteur : on les LIT, et tout ce qui n'a pas la forme
+  // attendue vaut « aucune favorite ».
+  const favorites = [
+    lireFavorite(profil.citation_favorite_biblique, 'biblique'),
+    lireFavorite(profil.citation_favorite_patristique, 'patristique'),
+  ]
+
   const rep: Record<string, unknown> = {
     pseudo: profil.pseudo,
     bio: profil.bio ?? null,
     membre_depuis: profil.created_at,
     avatar,
-    citation_preferee: profil.citation_preferee ?? null,
     // ⛔ On ne rend que l'ANNÉE, et seulement si le lecteur laisse paraître sa marque.
     // La date pleine dirait le jour du don, ce qui, croisé avec un relevé, le nomme ;
     // et le montant, lui, n'existe nulle part en base.
@@ -91,7 +111,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
   }
 
   // Toutes les sections conditionnelles exécutées en parallèle (réduction de N requêtes séquentielles → 1 batch)
-  const [classementRes, essaisRes, favsRes, prelevementsRes, nomReelRes] = await Promise.all([
+  const [classementRes, essaisRes, favsRes, lignesFavorites, nomReelRes] = await Promise.all([
     // ⛔ Le rang se lit dans `lecture_utilisateurs`, et non plus dans le classement :
     // il mesure la LECTURE et non la conversation depuis le 1er septembre 2026.
     // Voir app/lib/classement.ts.
@@ -112,17 +132,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
           .eq('user_id', profil.id).eq('type', 'oeuvre')
           .order('created_at', { ascending: false })
       : null,
-    // ⚠️ Les DEUX corpus, et non plus les seuls versets : ce que le lecteur retient
-    // des Pères est de même nature que ce qu'il retient de l'Écriture, et « Mes
-    // citations » les garde côte à côte. On en lit large (30) pour n'en montrer que
-    // six : les passages d'une œuvre dépubliée se retirent ensuite, et une liste
-    // arrêtée à six d'avance aurait pu se vider entièrement.
-    profil.pub_favoris_versets
-      ? sb.from('prelevements')
-          .select('id, type, ref_livre_abr, ref_chapitre, ref_verset, texte, traduction, auteur, titre_oeuvre, id_oeuvre, segment_numero, created_at')
-          .eq('user_id', profil.id)
-          .order('created_at', { ascending: false }).limit(30)
-      : null,
+    // Les prélèvements des deux favorites, et eux seuls : la liste des passages retenus
+    // n'est plus servie.
+    chargerPrelevementsFavoris(profil.id, prelevementsDesFavorites(favorites)),
     sb.from('essais').select('id')
       .eq('user_id', profil.id).eq('statut', 'publie')
       .eq('afficher_nom_reel', true).limit(1),
@@ -184,54 +196,22 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
     }
   }
 
-  // ── Les passages retenus ────────────────────────────────────────────────────
-  if (profil.pub_favoris_versets) {
-    const lues = (prelevementsRes?.data ?? []) as unknown as PrelevementLu[]
-
-    // La citation d'honneur paraît déjà en tête de la page : l'y voir deux fois
-    // ferait croire à un doublon plutôt qu'à un choix.
-    const idHonneur = (profil.citation_preferee as { id?: string } | null)?.id ?? null
-
-    // ⛔ Le TITRE d'une œuvre retirée de la lecture ne doit pas paraître. La ligne de
-    // prélèvement en garde une copie, écrite au jour du prélèvement, que dépublier
-    // l'œuvre ne rattrape pas : c'est la même garde que la bibliothèque, plus haut.
-    const idsOeuvres = [...new Set(lues.filter(p => p.type === 'patristique' && p.id_oeuvre).map(p => p.id_oeuvre!))]
-    const publiees = new Set<string>()
-    if (idsOeuvres.length) {
-      const { data: oeuvresCitees } = await sb
-        .from('oeuvres').select('id_oeuvre, acces_public').in('id_oeuvre', idsOeuvres)
-      for (const o of (oeuvresCitees ?? []) as { id_oeuvre: string; acces_public: boolean | null }[]) {
-        if (estOeuvrePubliee(o)) publiees.add(o.id_oeuvre)
-      }
+  // ── Les citations favorites, composées ──
+  // ⛔ Le TITRE d'une œuvre retirée de la lecture ne doit pas paraître, ni son texte. La
+  // ligne de prélèvement en garde une copie, écrite au jour du prélèvement, que dépublier
+  // l'œuvre ne rattrape pas : c'est la même garde que la bibliothèque, plus haut. Une
+  // lecture en échec ferme la porte plutôt que de l'ouvrir.
+  const oeuvresCitees = oeuvresDesFavorites(lignesFavorites)
+  const publiees = new Set<string>()
+  if (oeuvresCitees.length) {
+    const { data: oeuvresRows, error: erreurOeuvres } = await sb
+      .from('oeuvres').select('id_oeuvre, acces_public').in('id_oeuvre', oeuvresCitees)
+    if (erreurOeuvres) console.error('[profil] ouverture des œuvres citées non lue :', erreurOeuvres.message)
+    for (const o of (oeuvresRows ?? []) as { id_oeuvre: string; acces_public: boolean | null }[]) {
+      if (estOeuvrePubliee(o)) publiees.add(o.id_oeuvre)
     }
-
-    rep.citations = lues
-      .filter(p => p.id !== idHonneur)
-      .filter(p => p.type === 'biblique' || (p.id_oeuvre != null && publiees.has(p.id_oeuvre)))
-      .slice(0, 6)
-      .map(p => {
-        if (p.type === 'biblique') {
-          const code = CODE_PAR_ABREV[p.ref_livre_abr ?? '']
-          return {
-            type: 'biblique' as const,
-            texte: p.texte,
-            ref: [p.ref_livre_abr, [p.ref_chapitre, p.ref_verset].filter(v => v != null).join(',')]
-              .filter(Boolean).join(' '),
-            precision: p.traduction ?? null,
-            lien: code && p.ref_chapitre
-              ? `/?livre=${code}&chapitre=${p.ref_chapitre}${p.ref_verset ? `&verset=${p.ref_verset}` : ''}`
-              : null,
-          }
-        }
-        return {
-          type: 'patristique' as const,
-          texte: p.texte,
-          ref: [p.auteur, p.titre_oeuvre].filter(Boolean).join(', '),
-          precision: null,
-          lien: `/oeuvre/${p.id_oeuvre}${p.segment_numero ? `#s${p.segment_numero}` : ''}`,
-        }
-      })
   }
+  rep.citations_favorites = composerFavorites(favorites, lignesFavorites, publiees)
 
   // Nom réel — exposé uniquement si l'utilisateur a publié au moins un essai sous son vrai nom
   if (nomReelRes?.data?.length) {

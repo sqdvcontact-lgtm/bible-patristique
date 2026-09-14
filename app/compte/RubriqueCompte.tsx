@@ -47,7 +47,6 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
     pub_rang: profil.pub_rang ?? true,
     pub_essais: profil.pub_essais ?? true,
     pub_favoris_oeuvre: profil.pub_favoris_oeuvre ?? false,
-    pub_favoris_versets: profil.pub_favoris_versets ?? false,
     pub_mecene: profil.pub_mecene ?? true,
   })
   // ⛔ L'interrupteur de la marque ne paraît QU'AUX MÉCÈNES. Montré à tous, il
@@ -189,11 +188,10 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
                 ['pub_rang', 'Rang'],
                 ['pub_essais', 'Publications'],
                 ['pub_favoris_oeuvre', 'Œuvres favorites'],
-                // ⚠️ La COLONNE s'appelle encore `pub_favoris_versets` : elle ne gardait
-                // que les versets jusqu'au 8 septembre 2026, et elle gouverne désormais
-                // tout ce que « Mes citations » retient, les Pères compris. On ne la
-                // renomme pas — le trigger `profils_garde_colonnes` la nomme aussi.
-                ['pub_favoris_versets', 'Citations retenues'],
+                // ⛔ « Citations retenues » est RETIRÉ le 2026-09-14 : la page publique ne
+                // montre plus la liste des passages retenus, seulement les deux citations
+                // favorites, qui paraissent parce qu'on les choisit. Un interrupteur qui ne
+                // gouverne plus rien mentirait. La colonne `pub_favoris_versets` reste.
                 ['pub_mecene', 'Marque de mécène'],
               ] as const).filter(([cle]) => cle !== 'pub_mecene' || estMecene).map(([cle, libelle]) => (
                 <Interrupteur key={cle} libelle={libelle} actif={vis[cle]}
