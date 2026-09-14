@@ -151,7 +151,7 @@ export function MarqueAttenteVolet({ enAttente }: { enAttente: boolean }) {
   )
 }
 
-export function MarqueAttente({ enAttente, sommet = HAUTEUR_NAVBAR }: {
+export function MarqueAttente({ enAttente, sommet = HAUTEUR_NAVBAR, gouttiere }: {
   enAttente: boolean
   /**
    * Le HAUT du bloc qu'on couvre, quand ce n'est pas le bas de la barre de navigation.
@@ -166,6 +166,21 @@ export function MarqueAttente({ enAttente, sommet = HAUTEUR_NAVBAR }: {
    * positionné, donc exactement le bloc, et l'anneau s'y centre.
    */
   sommet?: string
+  /**
+   * La GOUTTIÈRE que le bloc réserve à DROITE de son axe de texte, quand il en a une.
+   *
+   * ⛔ L'ANNEAU SE CENTRE SUR L'AXE DU TEXTE, NON SUR TOUT LE BLOC (relevé de l'auteur,
+   * 14 septembre 2026, devant « Genèse ❧ Chapitre 40 » : l'anneau ou le titre, l'un des deux
+   * n'était pas centré). La page Bible compose son titre et ses versets dans une grille dont la
+   * seconde colonne est la gouttière des boutons de verset, et elle centre sur la PREMIÈRE
+   * (`GOUTTIERE_ACTIONS_VERSET`, `compositionBible.ts`) ; l'anneau, centré sur le bloc entier,
+   * tombait une demi-gouttière à droite du titre : dix-neuf pixels à la racine 16, vingt-six à
+   * la racine 22.
+   * ⚠️ Elle se rend en rembourrage DROIT de l'enfant collant, dont le centre recule alors d'une
+   * demi-gouttière, c'est-à-dire exactement le décalage de l'axe. Le voile, lui, couvre toujours
+   * le bloc entier. Rien sur téléphone, où la gouttière sort de la grille.
+   */
+  gouttiere?: string
 }) {
   const [allume, setAllume] = useState(false)
   // ⚠️ Un EFFET ici, et non le recalage pendant le rendu employé ailleurs dans le
@@ -208,6 +223,7 @@ export function MarqueAttente({ enAttente, sommet = HAUTEUR_NAVBAR }: {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          paddingRight: gouttiere,
         }}
       >
         <Anneau enRelief />

@@ -95,6 +95,10 @@ export const OPTION_VOLET = (actif: boolean): CSSProperties => ({
   transition: 'background 0.12s, color 0.12s',
 })
 
+/** L'interligne d'une entrée qui peut s'enrouler sur plusieurs lignes : voir
+ *  `styleEntreeListeVolet`, option `enroulable`. */
+export const INTERLIGNE_ENTREE_ENROULABLE = 1.2
+
 /**
  * L'ENTRÉE D'UNE LISTE DU VOLET DE LA BIBLE : un livre (« Genèse », « Matthieu ») ou une
  * pièce du sommaire de l'édition (« Avant-propos », « Introduction générale »).
@@ -109,13 +113,22 @@ export const OPTION_VOLET = (actif: boolean): CSSProperties => ({
  * page de la rangée, sa largeur, son débord et ce qu'elle porte au bout, appartient à la
  * liste. Le repli `2px` sert une planche rendue hors du volet, où `--volet-air-fin`
  * n'existe pas.
+ *
+ * ⚠️ UNE ENTRÉE QUI S'ENROULE SE SERRE (`enroulable`), et c'est le seul écart entre les deux
+ * listes (demande de l'auteur, 14 septembre 2026, le soir : « pour le sommaire de l'apparat
+ * critique, plus d'espaces entre les différents titres ; réduire l'interligne d'un même titre
+ * sur plusieurs lignes »). Un livre tient sur une ligne, et son interligne ne fait que la
+ * hauteur de sa rangée. Une pièce du sommaire en prend deux ou trois, et à 1,4 ses lignes
+ * s'écartaient presque autant que deux pièces voisines : on ne voyait plus où un titre finit.
+ * ⛔ Le corps, la graisse et l'encre ne bougent pas. Le blanc ENTRE deux pièces appartient à
+ * la liste (`SommaireEdition`).
  */
-export function styleEntreeListeVolet({ actif }: { actif: boolean }): CSSProperties {
+export function styleEntreeListeVolet({ actif, enroulable = false }: { actif: boolean; enroulable?: boolean }): CSSProperties {
   return {
     padding: 'var(--volet-air-fin, 2px) 6px',
     borderRadius: '4px',
     fontSize: '0.84375rem',
-    lineHeight: 1.4,
+    lineHeight: enroulable ? INTERLIGNE_ENTREE_ENROULABLE : 1.4,
     fontWeight: actif ? 600 : 400,
     color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-second)',
     background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'transparent',

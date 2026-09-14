@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { LETTRES_GRECQUES, lettresDeDepart, tirerLettresGrecques } from './lettresGrecques'
+import { LETTRES_GRECQUES, LETTRE_DE_DEPART, tirerAutreLettre } from './lettresGrecques'
 
 describe('lettresGrecques', () => {
   it('porte les vingt-quatre minuscules, sans le sigma final', () => {
@@ -12,36 +12,34 @@ describe('lettresGrecques', () => {
     }
   })
 
-  it('tire autant de lettres qu’on en demande, toutes grecques', () => {
-    const lettres = tirerLettresGrecques(5)
-    expect([...lettres]).toHaveLength(5)
-    for (const lettre of lettres) expect(LETTRES_GRECQUES).toContain(lettre)
+  it('part d’une lettre fixe, la même au serveur et au navigateur', () => {
+    expect(LETTRE_DE_DEPART).toBe(LETTRES_GRECQUES[0])
+    expect([...LETTRE_DE_DEPART]).toHaveLength(1)
+  })
+
+  it('tire UNE lettre grecque, jamais celle qu’on vient d’écrire', () => {
+    for (const precedente of LETTRES_GRECQUES) {
+      for (let tirage = 0; tirage < 40; tirage++) {
+        const lettre = tirerAutreLettre(precedente)
+        expect([...lettre]).toHaveLength(1)
+        expect(LETTRES_GRECQUES).toContain(lettre)
+        expect(lettre).not.toBe(precedente)
+      }
+    }
   })
 
   it('rejoue le même tirage avec le même hasard', () => {
-    const suite = [0.1, 0.5, 0.9]
-    const hasard = () => suite.shift() ?? 0
-    expect(tirerLettresGrecques(3, hasard)).toBe(
-      [LETTRES_GRECQUES[2], LETTRES_GRECQUES[12], LETTRES_GRECQUES[21]].join(''),
-    )
+    // Sans alpha, la liste s’ouvre sur bêta : 0,5 × 23 donne le rang 11, c’est-à-dire nu.
+    expect(tirerAutreLettre(LETTRES_GRECQUES[0], () => 0.5)).toBe(LETTRES_GRECQUES[12])
+    // Sans oméga, la liste s’arrête à psi.
+    expect(tirerAutreLettre(LETTRES_GRECQUES[23], () => 0.9999999)).toBe(LETTRES_GRECQUES[22])
   })
 
   it('ne sort jamais de l’alphabet, même aux bornes du hasard', () => {
-    expect(tirerLettresGrecques(2, () => 0)).toBe(LETTRES_GRECQUES[0].repeat(2))
-    expect(tirerLettresGrecques(2, () => 0.9999999)).toBe(LETTRES_GRECQUES[23].repeat(2))
-    expect(tirerLettresGrecques(1, () => 1)).toBe(LETTRES_GRECQUES[23])
-    expect(tirerLettresGrecques(1, () => -1)).toBe(LETTRES_GRECQUES[0])
-  })
-
-  it('part d’une forme fixe, la même au serveur et au navigateur', () => {
-    expect(lettresDeDepart(3)).toBe(LETTRES_GRECQUES.slice(0, 3))
-    expect(lettresDeDepart(3)).toBe(lettresDeDepart(3))
-  })
-
-  it('borne une longueur absurde', () => {
-    expect(tirerLettresGrecques(-2)).toBe('')
-    expect(tirerLettresGrecques(Number.NaN)).toBe('')
-    expect([...tirerLettresGrecques(40)]).toHaveLength(12)
-    expect([...lettresDeDepart(40)]).toHaveLength(12)
+    const alpha = LETTRES_GRECQUES[0]
+    expect(tirerAutreLettre(alpha, () => 0)).toBe(LETTRES_GRECQUES[1])
+    expect(tirerAutreLettre(alpha, () => 1)).toBe(LETTRES_GRECQUES[23])
+    expect(tirerAutreLettre(alpha, () => -1)).toBe(LETTRES_GRECQUES[1])
+    expect(tirerAutreLettre(alpha, () => Number.NaN)).toBe(LETTRES_GRECQUES[1])
   })
 })

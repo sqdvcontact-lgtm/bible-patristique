@@ -12,6 +12,7 @@ import { supabase } from '@/app/lib/supabase'
 import { ABREV_FR } from '@/app/lib/bible'
 import { formaterPlageCanonique, parsePointCanonique } from '@/app/lib/referencesBibliques'
 import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE, HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { GOUTTIERE_ACTIONS_VERSET } from '@/app/lib/compositionBible'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { selectableReadingModes, type TranslationReadingCapabilities } from '@/app/lib/bibleReadingModes'
 import { estVerseEditorial, estVerseSurColonnes } from '@/app/lib/bibleMultimode'
@@ -743,7 +744,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         {/* La réponse au clic : un anneau qui tourne au centre du bloc de texte, sur
             la lecture qui reste lisible dessous. Il ne paraît qu'au bout de 160 ms,
             une navigation préchargée revenant plus vite qu'on ne le verrait. */}
-        <MarqueAttente enAttente={enAttente} />
+        <MarqueAttente enAttente={enAttente} gouttiere={mobile ? undefined : GOUTTIERE_ACTIONS_VERSET} />
       </div>
       <PanneauPatristique
         verset={versetSelectionneCourant}

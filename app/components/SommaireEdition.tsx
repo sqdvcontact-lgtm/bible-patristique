@@ -20,6 +20,15 @@
 // de six pixels de chaque côté, comme une rangée de livre : sans cela son texte
 // paraîtrait rentré par rapport à la portée qui la coiffe.
 //
+// ⚠️ UN TITRE SE SERRE, DEUX TITRES S'ÉCARTENT (demande de l'auteur, le soir du même jour :
+// « plus d'espaces entre les différents titres ; réduire l'interligne d'un même titre sur
+// plusieurs lignes »). Deux pièces se touchaient, et seuls leurs rembourrages les
+// séparaient, à peine plus que l'interligne d'un titre enroulé : on ne voyait plus où un
+// titre finissait. L'interligne d'une pièce se serre (`enroulable`), et le blanc qui sépare
+// deux pièces devient celui qui sépare deux blocs du volet (`--volet-air`).
+// ⛔ La portée s'écarte d'autant plus : un blanc de pièce aussi grand que le blanc qui ouvre
+// une portée ferait lire la première pièce d'un Testament comme la dernière du précédent.
+//
 // ⚠️ Les rangs s'apparient par la FONCTION, non par la profondeur : la pièce est
 // ce qu'on ouvre ; la portée ne s'ouvre pas, elle coiffe, et prend le rang des
 // rubriques du volet (« Apparat critique », « Sommaire »), en petit, espacé et pâle.
@@ -36,6 +45,11 @@
 import { Fragment } from 'react'
 import { styleEntreeListeVolet } from '@/app/lib/stylesVoletLecture'
 import { COMPOSITION_INTITULE } from '@/app/lib/titres'
+
+/** Le blanc entre deux pièces d'une même portée, et celui qui ouvre une portée.
+ *  ⚠️ Les replis servent une planche rendue hors du volet, où l'échelle n'existe pas. */
+const BLANC_ENTRE_PIECES = 'var(--volet-air, 6px)'
+const BLANC_AVANT_PORTEE = 'calc(3 * var(--volet-air, 6px))'
 
 /** Une entrée du sommaire, telle que le volet la montre. */
 export type PieceSommaireBible = {
@@ -62,7 +76,7 @@ export default function SommaireEdition({ pieces, pieceActive, onOuvrir }: {
                 ligne : « Bible », puis « Ancien Testament », puis « Pentateuque ». */}
             {nouvellePortee && (
               <div style={{
-                padding: rang === 0 ? '2px 0 4px' : '13px 0 4px', fontSize: '0.5625rem',
+                padding: rang === 0 ? '2px 0 4px' : `${BLANC_AVANT_PORTEE} 0 4px`, fontSize: '0.5625rem',
                 fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)',
               }}>
                 {piece.portee}
@@ -71,8 +85,10 @@ export default function SommaireEdition({ pieces, pieceActive, onOuvrir }: {
             <button type="button" aria-current={actif ? 'page' : undefined}
               onClick={() => onOuvrir(piece.cle)}
               style={{
-                ...styleEntreeListeVolet({ actif }),
-                display: 'block', width: 'calc(100% + 12px)', margin: '0 -6px', boxSizing: 'border-box',
+                ...styleEntreeListeVolet({ actif, enroulable: true }),
+                display: 'block', width: 'calc(100% + 12px)', boxSizing: 'border-box',
+                // Une pièce qui suit une pièce s'en écarte ; celle qu'une portée coiffe la touche.
+                margin: `${rang > 0 && !nouvellePortee ? BLANC_ENTRE_PIECES : '0'} -6px 0`,
                 textAlign: 'left', border: 'none', cursor: actif ? 'default' : 'pointer',
                 ...COMPOSITION_INTITULE,
               }}>

@@ -39,6 +39,7 @@ import { ecartsAMesurer, numerosDeLEcart, regrouperCitations, texteDuGroupe, typ
 import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { chargerContrepartiesFrancaises } from '@/app/lib/contrepartieFrancaise'
 import { MarqueAttenteVolet } from '@/app/lib/attenteNavigation'
+import FleuronDiscret from '@/app/components/FleuronDiscret'
 import CompteEnAttente from '@/app/components/CompteEnAttente'
 
 /** Ce que le rail et la barre mobile écrivent quand le volet est fermé : l'ACTION,
@@ -1809,13 +1810,19 @@ export default function PanneauPatristique({
                     information seule : 5,74 au Clair et 9,27 en Cuir, quand `--cs-texte-doux` ne
                     rendait que 2,98 sur la surface du volet.
                     ⚠️ La carapace reste aux deux volets de COMMENTAIRES, où elle dit une autre
-                    absence. */}
+                    absence.
+                    ⚠️ UN PETIT FLEURON SUIT LA MENTION depuis le soir même (demande de l'auteur :
+                    « ajoute un petit fleuron parmi la liste des fleurons ; le plus élégant,
+                    discret »). Ce n'est pas la carapace qui revient : elle illustrait l'absence,
+                    le fleuron ne fait que fermer la ligne. ⛔ Il ne suit pas « Aucun résultat
+                    pour ces filtres », qui appelle un geste plutôt qu'un repos. */}
                 <div style={{ opacity: enAttente ? 0 : 1, transition: 'opacity .16s ease', flex: '1 0 auto', display: 'flex', flexDirection: 'column' }}>
                 {!enAttente && itemsFiltres.length === 0 && (
-                  <div style={{ flex: '1 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '24px 0' }}>
+                  <div style={{ flex: '1 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', textAlign: 'center', padding: '24px 0' }}>
                     <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', margin: 0 }}>
                       {itemsAffiches.length === 0 ? 'Aucune occurrence.' : 'Aucun résultat pour ces filtres.'}
                     </p>
+                    {itemsAffiches.length === 0 && <FleuronDiscret />}
                   </div>
                 )}
                 {itemsPage.length > 0 && (

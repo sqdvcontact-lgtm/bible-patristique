@@ -19,6 +19,16 @@ import type { CSSProperties } from 'react'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 
 /**
+ * La GOUTTIÈRE D'ACTIONS : la seconde colonne de la grille, où se tiennent les boutons d'un verset.
+ *
+ * ⛔ ELLE NE S'ÉCRIT QU'ICI. Le titre, les versets et l'appareil se centrent sur la PREMIÈRE
+ * colonne, gouttière exclue, et tout ce qui veut tomber sur leur axe doit la retrancher : la
+ * marque d'attente la reçoit (`MarqueAttente`, propriété `gouttiere`), sans quoi l'anneau tombait
+ * une demi-gouttière à droite du titre du chapitre (relevé de l'auteur, 14 septembre 2026).
+ */
+export const GOUTTIERE_ACTIONS_VERSET = '2.375rem'
+
+/**
  * L'AXE DE TEXTE — l'enveloppe que prend tout ce qui se centre sur la page Bible.
  *
  * ⛔ La page en portait TROIS avant le 2026-08-28 : le titre du chapitre à 503 px,
@@ -31,7 +41,7 @@ export function styleAxeTexte(): CSSProperties {
     width: 'min(var(--mesure-ligne), 100%)',
     margin: '0 auto',
     display: 'grid',
-    gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem',
+    gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`,
   }
 }
 
@@ -48,7 +58,11 @@ export function styleAxeTexte(): CSSProperties {
  * ne doit déplacer ni le titre ni le menu.
  */
 export const INTERLIGNE_TITRE_CHAPITRE = 1.15
-export const BLANC_TITRE_MENU = '0.125rem'
+// ⚠️ RECTIFIÉ LE SOIR MÊME (« Matthieu❧Chapitre 1 et le menu de sélection de la traduction
+// biblique doivent être très légèrement plus éloignés l'un de l'autre »). L'interligne du titre
+// reste serré, et la marge remonte d'un huitième à cinq seizièmes de rem : trois pixels de plus
+// à la racine 16, un peu plus de quatre à la racine 22.
+export const BLANC_TITRE_MENU = '0.3125rem'
 
 /** La rangée entière : ce qui prend le survol, la sélection et le clic. */
 export function styleRangeeVerset({ mobile }: { mobile?: boolean } = {}): CSSProperties {
@@ -74,7 +88,7 @@ export function styleRangeeVerset({ mobile }: { mobile?: boolean } = {}): CSSPro
 export function styleGrilleRangee({ mobile }: { mobile?: boolean } = {}): CSSProperties {
   return {
     display: 'grid',
-    gridTemplateColumns: mobile ? 'minmax(0, 1fr)' : 'minmax(0, var(--mesure-bloc)) 2.375rem',
+    gridTemplateColumns: mobile ? 'minmax(0, 1fr)' : `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`,
     width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)',
     alignItems: 'flex-start',
   }

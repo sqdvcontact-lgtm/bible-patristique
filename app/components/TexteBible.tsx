@@ -25,7 +25,7 @@ import {
   marqueDensiteTient, styleDensiteVerset, STYLE_DENSITE_MOBILE,
   STYLE_LACUNE, STYLE_NUMERO_ALTERNATIF, STYLE_NUMERO_VERSET, STYLE_VERSET_VIDE,
   styleAxeTexte, styleBlocVerset, styleGrilleRangee, styleRangeeVerset, styleTexteVerset,
-  BLANC_TITRE_MENU, INTERLIGNE_TITRE_CHAPITRE, RETRAIT_ACTIONS_VERSET,
+  BLANC_TITRE_MENU, GOUTTIERE_ACTIONS_VERSET, INTERLIGNE_TITRE_CHAPITRE, RETRAIT_ACTIONS_VERSET,
 } from '@/app/lib/compositionBible'
 import {
   chargerDensiteChapitre, libelleDensiteVerset, type DensiteVerset,
@@ -648,7 +648,7 @@ export default function TexteBible({
             (bloc de texte de 500 px + colonne d'actions de 38 px) : le titre est centré
             sur la seule première colonne — donc sur le bloc vert de sélection —, la colonne
             des boutons (signaler, prélever…) étant exclue du centrage. */}
-        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
+        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`, alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
           {/* Les deux flèches viennent de `FlecheChapitre` : à une borne (Gn 1, Gn 50)
               le chevron reste en place, grisé et inerte, sans navigation ni attente. */}
@@ -683,7 +683,7 @@ export default function TexteBible({
             Calé sur LE MÊME gabarit que le titre « Genèse ❧ Chapitre 1 » (bloc texte
             de 500 px + colonne d'actions de 38 px exclue du centrage), pour que le menu
             se centre sur le même axe que le titre, et non sur la pleine largeur. */}
-        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: `${BLANC_TITRE_MENU} auto 0`, display: mobile ? 'block' : 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
+        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: `${BLANC_TITRE_MENU} auto 0`, display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`, alignItems: 'center' }}>
           <SelecteurTraductionBible
             traductions={traductions}
             traductionIndex={traductionIndex}
@@ -766,7 +766,7 @@ export default function TexteBible({
               texte + colonne d'actions exclue du centrage) : sans cela, la mention se
               centrerait sur la pleine largeur et pendrait à droite de l'axe du titre. */}
           {chapitreToutLacune && (
-            <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem' }}>
+            <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}` }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '50vh', padding: '11vh 16px 0', textAlign: 'center' }}>
                 {/* La voix des mentions, encre comprise (décision du 14 septembre 2026) : le
                     chapitre perdu se dit comme la case « Absent de cette traduction », à la
@@ -881,7 +881,7 @@ export default function TexteBible({
                   position: 'absolute', bottom: '100%', right: '0.25rem', marginBottom: '3px', zIndex: 6,
                   display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
                   background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '0.25rem 0.375rem',
-                } : { width: '2.375rem', paddingLeft: RETRAIT_ACTIONS_VERSET, display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible', position: 'relative' }}>
+                } : { width: GOUTTIERE_ACTIONS_VERSET, paddingLeft: RETRAIT_ACTIONS_VERSET, display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible', position: 'relative' }}>
                   {/* Les actions écrivent encore dans le modèle `versets_v2`. On les masque
                       pour toutes les lignes éditoriales recomposées ; la colonne reste
                       réservée pour préserver l'alignement de la mise en page. */}

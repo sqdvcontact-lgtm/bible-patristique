@@ -11,7 +11,7 @@ import { useNaviguer } from '@/app/lib/attenteNavigation'
 
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { urlLectureBible } from '@/app/lib/bibleNavigation'
-import { BLANC_TITRE_MENU, INTERLIGNE_TITRE_CHAPITRE } from '@/app/lib/compositionBible'
+import { BLANC_TITRE_MENU, GOUTTIERE_ACTIONS_VERSET, INTERLIGNE_TITRE_CHAPITRE } from '@/app/lib/compositionBible'
 import FlecheChapitre from './FlecheChapitre'
 import BibleBilingue, { type LectureBilingueProps } from './BibleBilingue'
 import SelecteurTraductionBible from './SelecteurTraductionBible'
@@ -71,7 +71,7 @@ export default function LectureBilingueBible({
           .nav-chap-arrow:hover { color: var(--cs-mention) !important; }
         `}</style>
 
-        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
+        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`, alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
             {/* Mêmes flèches qu'en lecture simple : à une borne, chevron en place, grisé, inerte. */}
             <FlecheChapitre livre={livreActif} chapitre={chapitreActif} sens="precedent" variante="entete" onAller={allerAuChapitre} />
@@ -91,7 +91,7 @@ export default function LectureBilingueBible({
             gouttière d'actions exclue. On doit pouvoir changer de bible sans
             quitter d'abord la lecture en regard. Choisir une autre bible en sort
             d'elle-même, la famille éditoriale n'étant pas la même. */}
-        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: `${BLANC_TITRE_MENU} auto 0`, display: mobile ? 'block' : 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem', alignItems: 'center' }}>
+        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: `${BLANC_TITRE_MENU} auto 0`, display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`, alignItems: 'center' }}>
           <SelecteurTraductionBible
             traductions={traductions}
             traductionIndex={traductionIndex}
@@ -128,7 +128,7 @@ export default function LectureBilingueBible({
           className="cs-lecture-colonne"
           style={mobile
             ? { maxWidth: '100%', margin: '0 auto' }
-            : { width: 'min(calc(var(--mesure-page) + 2.375rem), 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-page)) 2.375rem' }}
+            : { width: `min(calc(var(--mesure-page) + ${GOUTTIERE_ACTIONS_VERSET}), 100%)`, margin: '0 auto', display: 'grid', gridTemplateColumns: `minmax(0, var(--mesure-page)) ${GOUTTIERE_ACTIONS_VERSET}` }}
         >
           <BibleBilingue {...contenu} mobile={mobile || colonnesEtroites} />
         </div>

@@ -7,6 +7,7 @@ import {
   compositionSousTitre, marqueDensiteTient, styleDensiteVerset, styleTexteVerset,
   DEBORD_BLOC_VERSET_REM, EMPIETEMENT_BLOC_VERSET_REM, GOUTTIERE_NUMERO_VERSET_REM, NUMERO_VERSET_REM,
   RETRAIT_ACTIONS_VERSET, STYLE_NUMERO_VERSET, styleBlocVerset,
+  BLANC_TITRE_MENU, GOUTTIERE_ACTIONS_VERSET, INTERLIGNE_TITRE_CHAPITRE, styleAxeTexte, styleGrilleRangee,
 } from './compositionBible'
 import { rangLePlusProche } from './echelleTypographique'
 
@@ -62,12 +63,34 @@ describe('le bloc sélectionné d’un verset déborde le texte des deux côtés
   })
 
   it('le titre du chapitre et le menu des bibles se tiennent, dans les deux lectures', () => {
+    // ⚠️ Rectifié le soir même (« très légèrement plus éloignés ») : l'interligne du titre reste
+    // serré, et la marge remonte d'un huitième à cinq seizièmes de rem.
+    expect(INTERLIGNE_TITRE_CHAPITRE).toBe(1.15)
+    expect(BLANC_TITRE_MENU).toBe('0.3125rem')
     for (const fichier of ['app/components/TexteBible.tsx', 'app/components/LectureBilingueBible.tsx']) {
       const source = readFileSync(join(process.cwd(), fichier), 'utf8')
       expect(source).toContain('lineHeight: INTERLIGNE_TITRE_CHAPITRE')
       expect(source).toContain('${BLANC_TITRE_MENU} auto 0')
       expect(source).not.toContain("margin: '0.5rem auto 0'")
     }
+  })
+
+  it('⛔ la gouttière d’actions ne s’écrit qu’une fois, et l’anneau d’attente la retranche', () => {
+    // Relevé de l'auteur (14 septembre 2026) : l'anneau, centré sur le bloc entier, tombait une
+    // demi-gouttière à droite du titre du chapitre, qui se centre sur la première colonne.
+    expect(GOUTTIERE_ACTIONS_VERSET).toBe('2.375rem')
+    const grille = `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`
+    expect(styleAxeTexte().gridTemplateColumns).toBe(grille)
+    expect(styleGrilleRangee().gridTemplateColumns).toBe(grille)
+    for (const fichier of ['app/components/TexteBible.tsx', 'app/components/LectureBilingueBible.tsx']) {
+      const source = readFileSync(join(process.cwd(), fichier), 'utf8')
+      expect(source).not.toContain('2.375rem')
+      expect(source).toContain('${GOUTTIERE_ACTIONS_VERSET}')
+    }
+    const page = readFileSync(join(process.cwd(), 'app/components/BibleLayout.tsx'), 'utf8')
+    expect(page).toContain('gouttiere={mobile ? undefined : GOUTTIERE_ACTIONS_VERSET}')
+    const marque = readFileSync(join(process.cwd(), 'app/lib/attenteNavigation.tsx'), 'utf8')
+    expect(marque).toContain('paddingRight: gouttiere')
   })
 })
 
