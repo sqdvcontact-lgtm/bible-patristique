@@ -16,7 +16,7 @@
  */
 import { estNoteApparatCritique } from '@/app/lib/apparatCritique'
 import { natureSeNormaliseCommeReference } from '@/app/lib/naturesNote'
-import { normaliserReferencesDansTexte } from '@/app/lib/referenceNote'
+import { normaliserReferencesDansTexte, terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { replier } from '@/app/lib/bibleBibliographieOuvrages'
 import { intituleDeLaNote } from '@/app/lib/typeNote'
@@ -171,7 +171,14 @@ export function apercuDeLaNote(note: NoteStructuree, longueur = LONGUEUR_APERCU)
     .replace(/\s+/g, ' ')
     .trim()
   const texte = apparat ? joint : normaliserTypographieLecture(joint)
-  if (texte.length <= longueur) return texte
+  // ⛔ ET ELLE SE TERMINE COMME ELLE : `terminerNote` repose le point final, en fin de note
+  // seulement. `normaliserReferencesDansTexte` absorbe le point qui suit un verset
+  // (« Matth. x, 22. » devient « Mt 10, 22 ») et l'encart le repose ; l'aperçu ne le
+  // reposait pas, si bien que l'inventaire montrait « Mt 10, 22 » en face d'un encart qui
+  // dit « Mt 10, 22. ». Relevé de l'auteur, 2026-09-14.
+  // ⚠️ La longueur se juge AVANT le point, qui ne doit pas faire couper une note qui
+  // tenait. Un aperçu coupé finit par ses points de suspension et n'en prend pas.
+  if (texte.length <= longueur) return apparat ? texte : terminerNote(texte)
   // On coupe au dernier mot entier : un aperçu tranché au milieu d'un mot se lit moins
   // bien qu'un aperçu plus court (règle de `couperDescription`).
   const coupe = texte.slice(0, longueur)

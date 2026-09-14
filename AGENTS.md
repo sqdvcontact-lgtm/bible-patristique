@@ -3776,6 +3776,13 @@ nature), les blocs se joignent et les blancs se resserrent ENSUITE, la typograph
 EN DERNIER. Posée avant, le resserrement mangerait les fines qu’elle vient d’écrire.
 ⚠️ L’apparat critique n’y passe pas, comme il n’y passe pas au rendu.
 
+⛔ **ET IL SE TERMINE COMME ELLE** (2026-09-14) : `terminerNote` y repose le point final,
+que `normaliserReferencesDansTexte` absorbe après un verset (« Matth. x, 22. » devient
+« Mt 10, 22 ») et que l’encart comme la manchette reposent. L’inventaire montrait sinon
+« Mt 10, 22 » en face d’un encart qui dit « Mt 10, 22. ». ⚠️ La longueur se juge AVANT le
+point, qui ne fait jamais couper une note qui tenait, et un aperçu coupé garde ses points
+de suspension sans en prendre. L’apparat critique n’en reçoit pas.
+
 ⛔ **ET UNE COUPE NE CASSE JAMAIS UN ENRICHISSEMENT.** Cent quarante signes tombent un jour
 au milieu d’un `*italique*`, et l’astérisque restée seule se rend TELLE QUELLE : le renderer
 n’apparie que des paires, et ce qu’il n’apparie pas, il l’imprime. `sansMarqueOuverte` recoupe

@@ -106,6 +106,34 @@ describe('apercuDeLaNote', () => {
     expect(apercuDeLaNote(n)).toBe('plana M; faciunt] fecerunt Q')
   })
 
+  // ── LE POINT FINAL, comme au rendu ─────────────────────────────────────────
+  // `normaliserReferencesDansTexte` absorbe le point qui suit un verset, et l'encart le
+  // repose par `terminerNote`, en fin de note. L'aperçu ne le reposait pas : l'inventaire
+  // montrait « Mt 10, 22 » en face d'un encart qui dit « Mt 10, 22. ». Relevé de
+  // l'auteur, 2026-09-14.
+  it('repose le point final qu’un renvoi normalisé a absorbé', () => {
+    const n = note({ noteKey: 'n1', noteNumber: 1, blocks: [bloc({ blockId: 'b', kind: 'reference', text: 'Matth. x, 22.' })] })
+    const vu = apercuDeLaNote(n)
+    expect(vu.startsWith('Mt')).toBe(true)
+    expect(vu.endsWith('22.')).toBe(true)
+  })
+
+  it('termine une note par un point, une seule fois, et garde une ponctuation forte', () => {
+    const sansPoint = note({ noteKey: 'n1', noteNumber: 1, blocks: [bloc({ blockId: 'b', text: 'Voyez plus haut' })] })
+    expect(apercuDeLaNote(sansPoint)).toBe('Voyez plus haut.')
+    const avecPoint = note({ noteKey: 'n2', noteNumber: 2, blocks: [bloc({ blockId: 'b', text: 'Voyez plus haut.' })] })
+    expect(apercuDeLaNote(avecPoint)).toBe('Voyez plus haut.')
+    const question = note({ noteKey: 'n3', noteNumber: 3, blocks: [bloc({ blockId: 'b', text: 'Est-ce exact ?' })] })
+    expect(apercuDeLaNote(question).endsWith('?')).toBe(true)
+  })
+
+  it('ne pose pas de point sur un aperçu coupé, et ne fait pas couper une note qui tenait', () => {
+    const longue = note({ noteKey: 'n1', noteNumber: 1, blocks: [bloc({ blockId: 'b', text: 'alpha beta gamma delta' })] })
+    expect(apercuDeLaNote(longue, 14)).toBe('alpha beta…')
+    // Vingt-deux signes pour vingt-deux permis : le point s'ajoute, la note n'est pas coupée.
+    expect(apercuDeLaNote(longue, 22)).toBe('alpha beta gamma delta.')
+  })
+
   // ── LA COUPE NE CASSE JAMAIS UN ENRICHISSEMENT ─────────────────────────────
   // Une astérisque restée seule se rend TELLE QUELLE : le renderer n'apparie que des
   // paires, et ce qu'il n'apparie pas, il l'imprime.
