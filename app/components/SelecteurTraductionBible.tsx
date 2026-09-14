@@ -18,6 +18,7 @@
 // fait que la rendre.
 
 import IconeChevron from '@/app/components/IconeChevron'
+import { FOND_SURVOL_MENU, rangDeCirculation, STYLE_CADRE_MENU, STYLE_CHEVRON_MENU, styleLigneMenu, TAILLE_CHEVRON_MENU, DELAI_REPLI_MS, LARGEUR_SOUS_MENU_REM } from '@/app/lib/stylesMenuBibles'
 import { useEffect, useId, useRef, useState } from 'react'
 
 import { rendreEnrichi } from '@/app/lib/enrichissements'
@@ -46,47 +47,18 @@ import { entreesDuMenu, type BibleDuMenu } from '@/app/lib/menuTraductionsBible'
  * ⚠️ `lineHeight: 1` et aucun décalage : le bouton aligne ses enfants sur leur
  * milieu. Le `top: 1.5px` d'avant faisait descendre le chevron sous la ligne du nom.
  */
-const TAILLE_CHEVRON = '0.85em'
-const STYLE_CHEVRON: React.CSSProperties = {
-  color: 'var(--cs-texte-doux)',
-  display: 'inline-flex',
-  fontStyle: 'normal',
-  lineHeight: 1,
-}
-
-/** Le fond d'une ligne survolée, ou d'une famille dont le sous-menu est ouvert. */
-const FOND_SURVOL = 'rgba(var(--cs-vert-rgb),0.04)'
-
-/** La largeur minimale d'un sous-menu, et le délai avant de replier celui que la main
- *  quitte : le temps de traverser le jour entre la ligne et lui. La Polyglotte tient le même. */
-const LARGEUR_SOUS_MENU_REM = 11.25
-const DELAI_REPLI_MS = 160
+// ⛔ LES FORMES DU MENU VIVENT DANS `app/lib/stylesMenuBibles.ts` (14 septembre 2026) : la
+// Polyglotte y a pris le même modèle, et deux copies d'une forme divergent au premier
+// réglage. Les noms locaux restent, pour ne pas réécrire le rendu.
+const TAILLE_CHEVRON = TAILLE_CHEVRON_MENU
+const STYLE_CHEVRON = STYLE_CHEVRON_MENU
+const FOND_SURVOL = FOND_SURVOL_MENU
+const styleLigne = styleLigneMenu
 
 type Props = {
   traductions: readonly BibleDuMenu[]
   traductionIndex: number
   setTraductionIndex: (index: number) => void
-}
-
-/** Une ligne de menu. ⚠️ Le rayon des coins suit celui du cadre, filet ôté : le cadre ne
- *  rogne plus ses lignes, puisqu'un sous-menu doit pouvoir en sortir. */
-function styleLigne(actif: boolean, premiere: boolean, derniere: boolean): React.CSSProperties {
-  return {
-    display: 'flex', alignItems: 'center', gap: '10px',
-    width: '100%', textAlign: 'left', padding: '11px 16px', fontSize: '0.8125rem',
-    border: 'none', borderBottom: derniere ? 'none' : '1px solid var(--cs-fond-doux)',
-    borderRadius: `${premiere ? 7 : 0}px ${premiere ? 7 : 0}px ${derniere ? 7 : 0}px ${derniere ? 7 : 0}px`,
-    background: actif ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)',
-    color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-fort)',
-    fontWeight: actif ? 600 : 400, cursor: 'pointer',
-    fontFamily: "var(--font-source-serif), Georgia, serif", letterSpacing: '0.01em',
-    transition: 'background 0.12s',
-  }
-}
-
-const STYLE_CADRE_MENU: React.CSSProperties = {
-  background: 'var(--cs-surface)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)',
-  borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)',
 }
 
 export default function SelecteurTraductionBible({ traductions, traductionIndex, setTraductionIndex }: Props) {
@@ -155,13 +127,7 @@ export default function SelecteurTraductionBible({ traductions, traductionIndex,
   // Flèches, début et fin : la circulation attendue d'une liste de choix. On ne change
   // de bible qu'à la validation, le déplacement ne recharge rien.
   const circuler = (e: React.KeyboardEvent, rang: number, liste: (HTMLButtonElement | null)[], total: number) => {
-    const dernier = total - 1
-    const cible =
-      e.key === 'ArrowDown' ? Math.min(rang + 1, dernier)
-      : e.key === 'ArrowUp' ? Math.max(rang - 1, 0)
-      : e.key === 'Home' ? 0
-      : e.key === 'End' ? dernier
-      : null
+    const cible = rangDeCirculation(e.key, rang, total)
     if (cible === null) return false
     e.preventDefault()
     liste[cible]?.focus()

@@ -1597,18 +1597,25 @@ export default function RechercheClient() {
                                     <div key={i} lang={lang} onCopy={copierSansCesures} className={`poly-texte-cell${absent ? ' poly-texte-cell--absent' : ''}`}>
                                       {/* Lettrine : référence(s) d'origine de l'édition (num_TRxxxx),
                                           « ch, v » séparées par « · » si plusieurs versets réunis. */}
+                                      {/* ⛔ UNE SEULE LIGNE DE LETTRINE, les numéros réunis joints par
+                                          « · » (14 septembre 2026) : empilés, ils laissaient un numéro
+                                          seul sur sa ligne en face d'un texte court, qui se lisait comme
+                                          un verset vide. */}
                                       {brut && numOrig && (
                                         <span className="poly-lettrine">
-                                          {numOrig.split('·').map(s => s.trim()).filter(Boolean).map((nn, k) => {
-                                            const m = nn.match(/^(\d+)\s*,\s*(.+)$/)
-                                            return (
-                                              <span key={k} className="poly-lettrine-item">
-                                                <span className="poly-lettrine-ref">
-                                                  {m ? <><span className="poly-lettrine-ch">{m[1]},</span> {m[2]}</> : nn}
-                                                </span>
-                                              </span>
-                                            )
-                                          })}
+                                          <span className="poly-lettrine-item">
+                                            <span className="poly-lettrine-ref">
+                                              {numOrig.split('·').map(s => s.trim()).filter(Boolean).map((nn, k) => {
+                                                const m = nn.match(/^(\d+)\s*,\s*(.+)$/)
+                                                return (
+                                                  <span key={k}>
+                                                    {k > 0 ? ' · ' : ''}
+                                                    {m ? <><span className="poly-lettrine-ch">{m[1]},</span> {m[2]}</> : nn}
+                                                  </span>
+                                                )
+                                              })}
+                                            </span>
+                                          </span>
                                         </span>
                                       )}
                                       {!brut ? <span title={MENTION_ABSENT_TITRE} style={STYLE_MENTION}>{MENTION_ABSENT}</span>

@@ -1581,7 +1581,7 @@ Une maquette a composé chaque surface du site avec les jetons réels. Trois ens
 - **La teinte est prise sur l'axe chaud du site** : `#736247`, h **82°** — la teinte EXACTE de `--cs-lacune` — à moins de la moitié de sa chroma (18,1 contre 39,1) et un cran plus sombre. C'est la même encre, diluée : elle ne peut donc pas jurer, et ne peut pas non plus se confondre avec l'ocre du témoin, qui garde sa saturation parce qu'il énonce un FAIT et non un défaut de traduction. Cuir : `#a8906d`, même rang, minimum 4,85.
 - **Ce n'est pas un doublon** : le jeton le plus proche est `--cs-texte-second` à ΔE 14,3, puis `--cs-original` 14,6, `--cs-texte-gris` 16,8, `--cs-lacune` 21,6.
 - ⛔ **Les formes vivent dans `compositionBible.ts`, PAS dans les pages.** `STYLE_MENTION`, `STYLE_MENTION_LACUNE` et `STYLE_INVITE` rejoignent `STYLE_LACUNE` et `STYLE_VERSET_VIDE`, pour la raison que la charte donne déjà : « un spécimen qui rejoue une composition de mémoire dérive au premier réglage, et fait ensuite autorité contre la page qu'il décrit ». La planche publiait `bible/verset vide` — un tiret cadratin — pendant que la Polyglotte rendait une phrase, et ne connaissait pas la Polyglotte. Elle en porte maintenant les trois formes, sous `polyglotte/…`, et `specimens.test.tsx` les garde.
-- ⚠️ **Ne pas confondre `STYLE_LACUNE` et `STYLE_MENTION_LACUNE`** : le premier se pose DANS LE FIL d'un texte suivi et hérite du corps du verset ; le second REMPLIT une cellule de tableau et porte donc son propre corps.
+- ⚠️ **Ne pas confondre `STYLE_LACUNE` et `STYLE_MENTION_LACUNE`** : le premier se pose DANS LE FIL d'un texte suivi, son corps en `em` du verset ; le second REMPLIT une cellule de tableau et porte donc son propre corps en `rem`. ⛔ Depuis le 14 septembre 2026, les deux ont la voix ET l'encre de `STYLE_MENTION` : l'ocre de `--cs-lacune` ne sert plus aucune lacune.
 - ⚠️ **`textAlignLast: 'center'` est indispensable** dans `STYLE_MENTION` : la cellule de comparaison est en `text-align: justify`, et sans lui la dernière ligne d'une mention qui se replie reste au fer à gauche.
 - **Un seul mot pour un seul fait** : « Cette traduction ne contient pas ce verset » et « Absent dans cette traduction » deviennent **« Absent de cette traduction »**. La phrase longue tenait sur trois lignes dans une colonne de comparaison ; le sujet, lui, est donné par la grille — la ligne EST un verset, la colonne EST une traduction. La phrase entière passe à l'infobulle. Libellés centralisés (`MENTION_ABSENT`, `MENTION_DEUTERO`, `MENTION_LACUNE`…).
 - ⚠️ **Reste sous le seuil, non touché** : `--cs-lacune` rend 4,15 sur la ligne vide et 4,01 sur une suscription. C'est une teinte de la charte, employée aussi par la page Bible — la corriger est une décision de l'auteur, pas un nettoyage.
@@ -6759,15 +6759,14 @@ Doctrine : charte `parametres.charte_ia`, § 50.1. Règles de code, toutes dans
   tableau sans date, parce qu'elle est la seule à porter deux états de son texte.
 - **Les noms de traduction passent par `rendreEnrichi`** (`app/lib/enrichissements.tsx`),
   dans le menu comme en tête de colonne : petites capitales et exposant des siècles,
-  italique d'un titre entre astérisques. ⚠️ Pas dans la rubrique d'un volet de famille,
-  composée en capitales espacées, où des petites capitales seraient plus petites que ce
-  qui les entoure.
-- **Une traduction déjà affichée ailleurs se GRISE** : fond `--cs-fond-doux`, nom en
-  `--cs-texte-gris`, mention d'échange en `--cs-texte-faible`. ⛔ Jamais `--cs-attente`,
-  qui est l'ocre d'un travail en cours. ⚠️ Le fond de repos se calcule en UN point
-  (`fondRepos`) : les gestionnaires de survol le REPOSENT au départ du curseur, et poser
-  `transparent` effaçait le gris. ⛔ Une FAMILLE ne se grise pas : ses autres textes
-  restent libres.
+  italique d'un titre entre astérisques. ⛔ Le sous-menu d'une famille n'a plus
+  de rubrique depuis le 14 septembre 2026 : la ligne qui l'ouvre le nomme déjà.
+- **Une traduction déjà affichée ailleurs se GRISE par son ENCRE seule** (14 septembre
+  2026) : le nom en `--cs-texte-doux`, puis la flèche `IconeEchange` et le nom de la
+  colonne courante. ⛔ Jamais `--cs-attente`, qui est l'ocre d'un travail en cours, et
+  jamais un fond : la ligne garde celui de `styleLigneMenu`, que le survol repose à
+  `--cs-surface` au départ du curseur. `fondRepos` n'existe plus. ⛔ Une FAMILLE ne se
+  grise pas : ses autres textes restent libres.
 - **Un réglage de volet se compose en clair** (`CHOIX_DISCRET`, `POINT_DISCRET`) : ni
   cadre, ni fond, ni rayon ; l'accent et la demi-graisse pour la valeur retenue.
   ⚠️ Une ÉCHELLE se lit en rang, des interrupteurs INDÉPENDANTS en colonne.
@@ -6893,6 +6892,11 @@ retiré, on regarde ce qui reste.
   de l'échelle, la date y est déjà, et la ligne reste CLIQUABLE — la choisir échange les deux
   colonnes. ⚠️ Sa hiérarchie interne tient alors par le corps et la police, sérif de 13 px
   contre sans de 10, non par l'encre.
+- ⛔ **Les trois points qui précèdent sont CADUCS depuis le 14 septembre 2026** : le menu a
+  pris le modèle de la page Bible (`app/lib/stylesMenuBibles.ts`). `fondRepos` et `ligne()`
+  n'existent plus, la ligne ne porte plus de date, et une colonne déjà prise se dit par la
+  flèche `IconeEchange` entre les deux noms. Voir « LA POLYGLOTTE — le menu des bibles », en
+  fin de fichier.
 - ⚠️ **Règle générale : retirer un ornement DÉCHARGE ce qui reste.** C'est la rectification
   du même jour prise par l'autre bout — on avait mesuré ce qu'on enlevait, on n'avait pas
   remesuré ce qui restait seul.
@@ -8208,11 +8212,12 @@ et après les crochets, ocre ou maroquin ». Règles de code, toutes dans
 - ⚠️ **L'air est une MARGE (`0 0.15em`), non une espace du texte** : une espace serait une
   occasion de couper la ligne entre le crochet et le mot qui le précède, et elle
   s'emporterait en copiant le verset. `whiteSpace: 'nowrap'` garde la marque d'un seul
-  tenant. Le corps est `0.85em`, donc RELATIF, donc exempt de la garde typographique ;
-  l'encre est `--cs-lacune`.
+  tenant. Le corps est `0.786em`, donc RELATIF, donc exempt de la garde typographique ;
+  la voix et l'encre sont celles des mentions (`STYLE_MENTION_DANS_LE_FIL`, 2026-09-14).
 - ⚠️ **La FINE insécable demeure, et pour son seul office** : quand la lacune coupe un MOT
   (« por[…]er »), elle sépare la marque du fragment resté collé. `fineSiColle` la pose des
-  deux côtés, pour la lacune nue comme pour la lacune motivée.
+  deux côtés, pour la lacune nue comme pour la lacune motivée, et contre une lettre ou un
+  chiffre seulement (2026-09-14) : devant une ponctuation, elle ouvrirait un blanc.
 - ⛔ **UNE TRADUCTION NON RECOMPOSÉE NE PASSE PAS PAR `rendreMarqueurs899`.** Ce tokeniseur
   tolère un « ] » orphelin parce que la recomposition par créneau canonique coupe un
   marqueur en deux ; la traduction moderne du témoin (TR0013) porte **85 RESTITUTIONS**
@@ -11183,3 +11188,18 @@ Demande de l'auteur, en dix points, sur la page « Bible classique ». Doctrine 
 ## Tests posés
 
 `CompteEnAttente.test.tsx`, `lettresGrecques.test.ts`, `PanneauPatristique.compte.test.ts`, `stylesVoletLecture.test.ts`, les ajouts de `compositionBible.test.ts` (débord, piste inchangée, retrait des actions, mobile, regard, titre et menu), et les tests d'`adresseEdition`, `referenceBibliographique`, `referenceEditionServie` et `editionTraduction`.
+
+# ⛔ LA POLYGLOTTE — le menu des bibles, la voix de la lacune, les versets réunis (2026-09-14)
+
+Doctrine : charte `parametres.charte_ia`, fin du § 50.1, fin du § 50.3, et § 50.7. Règles de code :
+
+- ⛔ **Les formes d'un menu de bibles vivent dans `app/lib/stylesMenuBibles.ts`** (testé) : `styleLigneMenu`, `STYLE_CADRE_MENU`, `STYLE_CHEVRON_MENU`, `TAILLE_CHEVRON_MENU`, `FOND_SURVOL_MENU`, `LARGEUR_SOUS_MENU_REM`, `DELAI_REPLI_MS`, et la circulation au clavier `rangDeCirculation`. `SelecteurTraductionBible` (page Bible) et `ChoixTraduction` (Polyglotte) les importent ; ⛔ ne recomposer une ligne de menu de bibles nulle part ailleurs.
+- **`ChoixTraduction` garde ce que la grille impose** : deux PORTAILS (`zIndex` 3000 et 3001, inchangés, sous la garde d'empilement), un menu mesuré au clic et borné par `LARGEUR_MAX_MENU_REM` (24), et un sous-menu posé par son bord DROIT quand il s'ouvre à gauche de sa ligne, pour grandir vers la gauche sans la recouvrir. ⚠️ Les langues suivent `GROUPES_LANG` sans rubrique, et le sous-menu n'a plus de titre.
+- ⛔ **Une colonne déjà prise : les deux noms et `IconeEchange`** (flèche à double sens en `currentColor`, taille en `em`), dans un `span role="img" aria-label="échange avec"`. ⚠️ Pas de texte hors écran en enfant de la ligne : la ligne est un flex à `gap`, et un enfant de plus y ouvrirait deux écarts.
+- ⛔ **La voix de la lacune est `STYLE_MENTION_DANS_LE_FIL`** (`compositionBible.ts`) : sérif italique, `letterSpacing` `0.02em`, `0.786em` (0,6875 rem sur les 0,875 rem d'un verset), `--cs-mention`. `STYLE_LACUNE` de `compositionBible.ts` en est la copie ; celui de `marqueurs899.tsx` y ajoute la marge et le `nowrap` ; `STYLE_MENTION_LACUNE` vaut `STYLE_MENTION`. ⚠️ `STYLE_LACUNE` est désormais défini APRÈS `VOIX_MENTION` et `CORPS_MENTION` : une constante de module qui en étale une autre doit la suivre, sans quoi elle lève à l'import.
+- ⛔ **« [lacune] » est reconnue** par `RE_TOKEN` et par `RE_MARQUEUR_TEMOIN` (première alternative `\[\s*(?:…|\.\.\.|[Ll]acune)\s*\]`), et la fine de `fineSiColle` ne se pose que contre une lettre ou un chiffre (`[\p{L}\p{N}]`).
+- ⛔ **`porteDuTexte` (`app/polyglotte/page.tsx`) décide qu'une ligne de `versets_v2` se montre** : un texte non vide, ou une lacune du témoin. L'index des cellules ET celui des empans la lisent ; une ligne vide ne couvre rien.
+- ⛔ **Un seul numéro d'origine en lettrine** (`RefOrigine` sur la première ligne de la cellule), les suivants en `.poly-ref-en-ligne`, devant leur texte. ⚠️ `.poly-ref-en-ligne` est un `inline-block` positionné : `BoutonEditionVerset` s'y pose en absolu, comme sur la lettrine. ⚠️ `RechercheClient` rend ses numéros réunis sur UNE ligne de lettrine, joints par « · » : sa colonne reçoit un texte déjà réuni et ne sait pas où commence chaque verset.
+- ⛔ **La note d'un verset est `.poly-note-marque`** : `IconeSignalement`, mesurée en `rem` dans la feuille (0,6875 sur 0,75), `role="img"` et un `aria-label` qui porte la note. `noteMontree` garde la règle du § 52.3 : un alignement « à revoir » ne se montre qu'à l'administrateur.
+- ⛔ **Un filtre de relecture se DIT** (mention `role="status"` en tête du corps, bouton « Tout afficher ») **et s'éteint pendant le rendu** dès que `estAdmin` tombe : ses interrupteurs ne paraissent qu'à l'administrateur, et la page restait réduite sans eux.
+- ⚠️ **Donnée** : suffixes inventés de la Vulgate retirés sur Ne 7, 44 et 7, 48 (quatre lignes), sauvegarde `internal.backup_versets_v2_suffixes_neh7_20260914`, retour arrière `sql/rollback_suffixes_vulgate_neh7_20260914.sql`, postcontrôle sans écart sur texte, créneau, coordonnées et notes. ⚠️ `versets_v2` n'a AUCUN index unique sur les coordonnées natives : deux fragments d'un même verset peuvent donc les partager, comme la charte l'exige.

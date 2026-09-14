@@ -263,7 +263,7 @@ const BIBLE: Unite[] = [
   },
   {
     style: 'bible/lacune',
-    note: 'Un verset absent du témoin, quand le chapitre est par ailleurs porté. Italique de labeur, teinte effacée : le fait est signalé sans peser sur la lecture, et sans qu’on puisse le confondre avec du texte.',
+    note: 'Un verset absent du témoin, quand le chapitre est par ailleurs porté. La voix des mentions, dans le fil : sérif italique légèrement espacée, au corps et dans l’encre de « Absent de cette traduction ». Le fait est signalé sans peser sur la lecture, et sans qu’on puisse le confondre avec du texte.',
     alerte: '⛔ Une seule mention, à sa place — et non autant de mentions qu’il manque de versets. Quand le chapitre ENTIER est lacunaire, la page ne les aligne pas non plus : elle en pose UNE, centrée, avec la précision du livre et du chapitre.',
     contenu: (
       <Rangee n="9">
@@ -291,7 +291,7 @@ const BIBLE: Unite[] = [
   },
   {
     style: 'polyglotte/mention — lacune du témoin',
-    note: 'Même forme, même corps, même italique : seule la teinte change, et elle porte tout le sens. L’ocre dit que le manuscrit a perdu le passage ; le sépia disait qu’une traduction ne le porte pas. C’est la règle des marqueurs du témoin, étendue à la grille : la teinte signale, l’infobulle explique.',
+    note: 'Même forme, même corps, même italique et même encre que « Absent de cette traduction » (décision de l’auteur, 14 septembre 2026) : c’est encore l’éditeur qui parle à la place d’un texte que la case ne porte pas, et c’est le MOT qui dit lequel des deux faits il constate. L’infobulle explique.',
     alerte: '⚠️ Ne pas confondre avec `bible/lacune`, plus haut : celle-là se pose DANS LE FIL d’un texte suivi et hérite du corps du verset ; celle-ci REMPLIT une cellule de tableau et porte donc son propre corps.',
     contenu: <CellulePolyglotte><span title={MENTION_LACUNE_TITRE} style={STYLE_MENTION_LACUNE}>{MENTION_LACUNE}</span></CellulePolyglotte>,
   },
@@ -303,7 +303,7 @@ const BIBLE: Unite[] = [
   },
   {
     style: 'bible/marqueurs éditoriaux — Bible 899',
-    note: 'Les marques de la transcription diplomatique, rendues discrètement dans le fil : lecture incertaine, ajout marginal, lacune matérielle. La teinte seule signale une lecture incertaine, et l’infobulle porte le sens savant. La LACUNE, elle, garde ses crochets — le signe que la philologie donne à ce qu’un témoin a perdu — d’un cran sous le texte, dans l’ocre des absences, et avec un léger espace de part et d’autre pour qu’elle ne se soude pas aux mots. Ce qui s’imprime entre ces crochets est la CAUSE du manque, « déchirure », « fin du manuscrit » : le marqueur la porte, `tei.ts` l’exige de tout `gap`, et des points de suspension n’en auraient rien dit.',
+    note: 'Les marques de la transcription diplomatique, rendues discrètement dans le fil : lecture incertaine, ajout marginal, lacune matérielle. La teinte seule signale une lecture incertaine, et l’infobulle porte le sens savant. La LACUNE, elle, garde ses crochets — le signe que la philologie donne à ce qu’un témoin a perdu — au corps, en italique et dans l’encre de « Absent de cette traduction », et avec un léger espace de part et d’autre pour qu’elle ne se soude pas aux mots. Ce qui s’imprime entre ces crochets est la CAUSE du manque, « déchirure », « fin du manuscrit » : le marqueur la porte, `tei.ts` l’exige de tout `gap`, et des points de suspension n’en auraient rien dit.',
     alerte: '⛔ Ces marqueurs peuvent être À CHEVAL sur deux versets : la recomposition par créneau canonique en ouvre un dans l’un et le ferme dans l’autre. `rendreMarqueurs899` est donc un TOKENISEUR tolérant, qui accepte un marqueur non ouvert comme un marqueur non fermé — sans quoi un crochet brut s’imprimerait. ⚠️ Le crochet fermant d’une lacune COMPLÈTE — nue « […] » ou motivée « [lacune : déchirure] » — n’est pas une fermeture orpheline : un verset qui s’ouvre sur elle basculerait tout entier en lecture incertaine. ⚠️ Et une lacune coupée entre deux versets retombe sur le mot nu « [lacune] » : sa cause tombe dans le verset suivant, et l’on n’invente pas ce qu’on ne peut pas lire.',
     contenu: (
       <>
@@ -327,8 +327,8 @@ const BIBLE: Unite[] = [
   },
   {
     style: 'bible/marqueurs en clair — traduction moderne du témoin',
-    note: 'La traduction moderne de la Bible du XIIIᵉ siècle porte les mêmes faits que le manuscrit, mais écrits en clair dans son texte : quarante-six lacunes nues, neuf avec leur cause, et cinq cent quatre-vingt-huit lectures incertaines. Elle n’est pas recomposée — elle passe par l’enrichissement ordinaire —, et ces marqueurs y reçoivent la MÊME forme que dans la colonne du témoin : même ocre pour la lacune, même teinte effacée pour le doute, mêmes infobulles. C’est le même fait dans les deux membres d’une seule édition, et il ne se dit pas de deux façons selon la colonne où on le lit.',
-    alerte: '⛔ On ne lui passe PAS le tokeniseur du témoin : elle porte quatre-vingt-cinq RESTITUTIONS entre crochets (« il [m’exauça] »), qui sont l’usage philologique et doivent s’imprimer telles quelles. Le tokeniseur y mangerait leur crochet fermant. D’où la règle de `marquerLacunesDuTemoin`, et elle se démontre : ON NE CONSOMME JAMAIS UN « ] » QUI SUIT UN « [ » DANS LA MÊME PORTION — seules des formes nommées (« [lecture incertaine : … ») et une fermeture qui précède TOUT crochet ouvrant sont reconnues, place qu’aucune restitution ne peut occuper. ⚠️ C’est encore la restitution qui commande l’ITALIQUE de la lacune : depuis qu’elle porte un mot et non trois points, « [déchirure] » et « [m’exauça] » ont la même forme, et seule la voix éditoriale — sérif italique, ocre — dit lequel parle DU manuscrit et lequel parle POUR lui.',
+    note: 'La traduction moderne de la Bible du XIIIᵉ siècle porte les mêmes faits que le manuscrit, mais écrits en clair dans son texte : quarante-six lacunes nues, neuf avec leur cause, et cinq cent quatre-vingt-huit lectures incertaines. Elle n’est pas recomposée — elle passe par l’enrichissement ordinaire —, et ces marqueurs y reçoivent la MÊME forme que dans la colonne du témoin : même voix de mention pour la lacune, même teinte effacée pour le doute, mêmes infobulles. C’est le même fait dans les deux membres d’une seule édition, et il ne se dit pas de deux façons selon la colonne où on le lit.',
+    alerte: '⛔ On ne lui passe PAS le tokeniseur du témoin : elle porte quatre-vingt-cinq RESTITUTIONS entre crochets (« il [m’exauça] »), qui sont l’usage philologique et doivent s’imprimer telles quelles. Le tokeniseur y mangerait leur crochet fermant. D’où la règle de `marquerLacunesDuTemoin`, et elle se démontre : ON NE CONSOMME JAMAIS UN « ] » QUI SUIT UN « [ » DANS LA MÊME PORTION — seules des formes nommées (« [lecture incertaine : … ») et une fermeture qui précède TOUT crochet ouvrant sont reconnues, place qu’aucune restitution ne peut occuper. ⚠️ C’est encore la restitution qui commande l’ITALIQUE de la lacune : depuis qu’elle porte un mot et non trois points, « [déchirure] » et « [m’exauça] » ont la même forme, et seule la voix éditoriale — sérif italique, encre des mentions — dit lequel parle DU manuscrit et lequel parle POUR lui.',
     contenu: (
       <>
         <Rangee n="16">

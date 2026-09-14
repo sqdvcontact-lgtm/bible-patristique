@@ -216,6 +216,28 @@ describe('rendreMarqueurs899', () => {
         { t: 'texte', v: 'er' },
       ])
     })
+    // ⛔ LA LACUNE ÉCRITE EN TOUTES LETTRES « [lacune] » est une lacune nue : la traduction
+    // moderne la porte sous cette forme (Gn 38, 9 ; Gn 50, 26), et elle s’imprimait brute.
+    it('reconnaît la lacune écrite « [lacune] », sans fine devant la ponctuation', () => {
+      const out = reduireTout(marquerLacunesDuTemoin('ne l’avait pas [Lacune].', 't1')) as ReturnType<typeof reduire>[]
+      expect(out).toEqual([
+        { t: 'texte', v: 'ne l’avait pas ' },
+        { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: '[lacune]' },
+        { t: 'texte', v: '.' },
+      ])
+    })
+  })
+  // ⛔ Même forme dans la colonne du manuscrit, et la fine ne se pose que contre une LETTRE
+  // ou un CHIFFRE : devant un point, elle ouvrait un blanc que la typographie ne connaît pas.
+  it('reconnaît « [lacune] » dans le texte recomposé, sans fine devant un point', () => {
+    const out = reduireTout(rendreMarqueurs899('Et Juda [lacune] sa bru […].')) as ReturnType<typeof reduire>[]
+    expect(out).toEqual([
+      { t: 'texte', v: 'Et Juda ' },
+      { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: '[lacune]' },
+      { t: 'texte', v: ' sa bru ' },
+      { t: 'marque', titre: 'Lacune matérielle du manuscrit', texte: '[lacune]' },
+      { t: 'texte', v: '.' },
+    ])
   })
   // Le tokeniseur se lit par INDICES : une normalisation qui changerait la longueur
   // décalerait tout ce qui suit. Celle-ci est caractère pour caractère.

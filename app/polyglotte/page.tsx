@@ -29,6 +29,8 @@ import IconeSignet from "@/app/components/IconeSignet";
 import { CelluleActions, useCelluleActions } from "@/app/components/CelluleActions";
 import { STYLE_BOUTON_ACTION } from "@/app/lib/celluleActions";
 import IconeChevron from "@/app/components/IconeChevron";
+import IconeEchange from "@/app/components/IconeEchange";
+import { DELAI_REPLI_MS, FOND_SURVOL_MENU, LARGEUR_SOUS_MENU_REM, rangDeCirculation, STYLE_CADRE_MENU, STYLE_CHEVRON_MENU, styleLigneMenu, TAILLE_CHEVRON_MENU } from "@/app/lib/stylesMenuBibles";
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
 import { MarqueAttente } from "@/app/lib/attenteNavigation";
 import { DUREE_ENTREE_MS, ordonnerBlocsVisibles, ordonnerColonnesVisibles } from "@/app/lib/passageTexte";
@@ -95,6 +97,13 @@ type CanonRow = { id: string; livre: string; ch_canon: number; v_canon: number; 
 // ⚠️ `estGlose899` et `cleGlose899` ne se posent que sur une glose du témoin 899 : la seconde
 // est sa clé de segment, qui lui donne SA ligne parmi les surnuméraires.
 type V2Row = { id: string; canon_id: string | null; canon_id_fin: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null; estLacune899?: boolean; estGlose899?: boolean; cleGlose899?: string };
+
+// ⛔ UNE LIGNE SANS TEXTE N'EST PAS UN VERSET À MONTRER (décision de l'auteur, 14 septembre
+// 2026 : « à l'affichage, il ne faut pas afficher une ligne vide »). Une ligne vide posait son
+// numéro en lettrine sans rien en face, et se lisait comme un verset que l'édition aurait laissé
+// en blanc. La case retombe alors sur ce que dit la grille : absente, couverte, ou en attente.
+// ⚠️ La lacune du témoin fait exception : elle n'a pas de texte, et c'est ce qu'elle dit.
+const porteDuTexte = (r: V2Row) => r.estLacune899 === true || Boolean(r.texte?.trim());
 
 // ── Passages que toutes les traditions ne reçoivent pas ────────────────────────────────
 // Une case vide n'a pas toujours le même sens. Le plus souvent elle signale un travail en
@@ -723,6 +732,49 @@ function CelluleEnAttente() {
   return <span style={STYLE_MENTION}>{MENTION_ATTENTE}</span>;
 }
 
+// ── La référence d'origine d'un verset, et sa note ─────────────────────────────────
+// Chapitre ET verset, toujours : la référence d'origine ne se lit qu'entière. Le chapitre est
+// composé plus clair, pour que le verset se détache. ⚠️ Le suffixe se tait pour la Vulgate.
+const suffixeOrigine = (ligne: V2Row) => (ligne.trad_id === "TR0004" ? "" : (ligne.v_orig_suffixe ?? ""));
+const referenceOrigine = (ligne: V2Row) => `${ligne.ch_orig}, ${ligne.v_orig}${suffixeOrigine(ligne)}`;
+
+// Une intervention d'alignement laisse sa trace dans `notes` : le lecteur voit QU'il y a eu
+// intervention, et le survol lui dit LAQUELLE. Rien n'est corrigé en silence.
+// ⚠️ Charte § 52.3 : un alignement « à revoir » est un doute d'atelier, montré à
+// l'administration seule.
+const noteMontree = (ligne: V2Row, estAdmin: boolean): string | null =>
+  ligne.notes && (estAdmin || ligne.notes !== NOTE_ALIGNEMENT_A_REVOIR) ? ligne.notes : null;
+
+function RefOrigine({ ligne, note }: { ligne: V2Row; note: string | null }) {
+  return (
+    <>
+      <span className="poly-lettrine-ch">{ligne.ch_orig},</span> {ligne.v_orig}{suffixeOrigine(ligne)}
+      {/* ⛔ Un cercle à point d'exclamation, et non plus un crayon (décision de l'auteur,
+          14 septembre 2026) : le crayon disait « modifier », qui est le geste de
+          l'administrateur, posé juste à côté. Sa mesure vit dans la feuille. */}
+      {note ? (
+        <span className="poly-note-marque" role="img" aria-label={`Note éditoriale : ${note}`} title={note}>
+          <IconeSignalement />
+        </span>
+      ) : null}
+    </>
+  );
+}
+
+// Le crayon de l'administrateur : il se pose SUR la référence et la recouvre au survol de la
+// cellule (voir « .poly-edit »). Son fond est celui de la ligne, qu'on lui passe.
+function BoutonEditionVerset({ ligne, fond, onEditer }: { ligne: V2Row; fond: string; onEditer: (ligne: V2Row) => void }) {
+  return (
+    <button title="Modifier ce verset" aria-label="Modifier ce verset" className="poly-edit"
+      onClick={() => onEditer(ligne)}
+      style={{ border: "none", cursor: "pointer", color: 'var(--cs-texte-second)', fontSize: '0.65625rem', lineHeight: 1, background: fond, transition: "color .15s" }}
+      onMouseEnter={e => { e.currentTarget.style.color = VERT; }}
+      onMouseLeave={e => { e.currentTarget.style.color = 'var(--cs-texte-second)'; }}>
+      <IconeCrayon size={11} />
+    </button>
+  );
+}
+
 // Cellule de la colonne « Notes » : vide, elle montre une invite centrée et discrète
 // (« Note sur Gn 1, 6 ») ; au clic, elle devient une vraie zone de saisie (sans poignée
 // d'étirement). L'enregistrement se fait via `onChange` (débouncé côté parent).
@@ -751,12 +803,8 @@ function CelluleNote({ valeur, refLisible, onChange }: {
   );
 }
 
-// Choix d'une traduction : un menu déroulant SOIGNÉ (popover) à la place du select
-// natif. Un clic sur le nom ouvre une liste claire — nom + millésime, coche sur la
-// traduction active, et mention d'échange quand la traduction est déjà affichée
-// ailleurs. Le panneau est rendu en portail (fixed) pour échapper à l'`overflow`
-// de l'en-tête collant.
-// Groupes du menu de traductions, par langue.
+// Groupes du menu de traductions, par langue. Leur ORDRE seul survit dans le menu : les
+// rubriques sont parties avec le modèle de la page Bible (voir `ChoixTraduction`).
 const GROUPES_LANG: { code: string; label: string }[] = [
   { code: "fr", label: "Français" },
   { code: "la", label: "Latin" },
@@ -887,180 +935,210 @@ const CASE_ECHELLE = (premiere: boolean): React.CSSProperties => ({
   fontSize: "0.6875rem", lineHeight: 1.4,
 });
 
-const LARGEUR_VOLET = 238;   // le volet d'une famille, posé au côté du menu
+// Le menu ne dépasse jamais cette largeur : deux noms de bible et leur flèche y tiennent
+// d'ordinaire sur une ligne, et une ligne plus longue se replie plutôt que de sortir de la
+// fenêtre.
+const LARGEUR_MAX_MENU_REM = 24;
 
+// ⛔ LE MENU DES TRADUCTIONS PREND LE MODÈLE DE LA PAGE BIBLE (décision de l'auteur,
+// 14 septembre 2026 : « dans le menu déroulant des bibles, reprendre le modèle de la page
+// Bible classique »). Il portait seul une coche, un millésime, des rubriques de langue et un
+// sous-menu coiffé du nom de sa famille. Ses lignes, son cadre, son chevron et sa circulation
+// au clavier viennent désormais de `app/lib/stylesMenuBibles.ts`, que la page Bible emploie
+// aussi. Les langues gardent leur ORDRE (français, latin, grec, chacune rangée par date) et
+// perdent leur rubrique : le nom dit la bible, et la page Bible n'en dit pas davantage.
+//
+// ⚠️ Deux choses restent propres à cette page, et elles tiennent à la grille. Le menu vit
+// dans un PORTAIL : l'en-tête collant rognerait sinon sa boîte. Et une traduction déjà
+// affichée dans une autre colonne se choisit quand même, les deux colonnes s'échangeant ; la
+// ligne le dit par une flèche à double sens entre les deux noms, non plus par une phrase
+// (voir `IconeEchange`).
 function ChoixTraduction({ trads, slots, index, onChoisir }: {
   trads: Trad[]; slots: string[]; index: number; onChoisir: (index: number, val: string) => void;
 }) {
   const [ouvert, setOuvert] = useState(false);
-  const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
-  // La famille déployée, et l'endroit où poser son volet — mesuré sur la ligne survolée
-  // au moment où on la survole, jamais déduit du panneau : le panneau défile.
-  const [volet, setVolet] = useState<{ cle: string; top: number; left: number } | null>(null);
+  const [rect, setRect] = useState<{ top: number; left: number; minWidth: number } | null>(null);
+  // La famille déployée, et l'endroit où poser son sous-menu : mesuré sur la ligne au moment
+  // où on la survole, jamais déduit du menu, qui défile. À gauche de la ligne, le sous-menu
+  // se pose par son bord DROIT, pour grandir vers la gauche sans recouvrir la ligne.
+  const [volet, setVolet] = useState<{ cle: string; top: number; left?: number; right?: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const panRef = useRef<HTMLDivElement>(null);
   const voletRef = useRef<HTMLDivElement>(null);
-  // Fermeture DIFFÉRÉE : entre la ligne et son volet, le curseur traverse quelques pixels
-  // qui n'appartiennent ni à l'une ni à l'autre. Sans ce délai, le volet se referme au
+  const lignes = useRef<(HTMLButtonElement | null)[]>([]);
+  const sousLignes = useRef<(HTMLButtonElement | null)[]>([]);
+  // Repli DIFFÉRÉ : entre la ligne et son sous-menu, le curseur traverse quelques pixels qui
+  // n'appartiennent ni à l'une ni à l'autre. Sans ce délai, le sous-menu se replierait au
   // moment même où l'on tend la main pour le prendre.
   const fermeture = useRef<number | null>(null);
   const courante = trads.find(t => t.trad_id === slots[index]) ?? null;
-  const groupes = useMemo(() => entreesParLangue(trads), [trads]);
-  const familleDeployee = useMemo(() => {
-    if (!volet) return null;
-    for (const entrees of groupes.values()) {
-      for (const e of entrees) if (e.sorte === "famille" && e.famille.cle === volet.cle) return e.famille;
-    }
-    return null;
-  }, [groupes, volet]);
+  const entrees = useMemo(() => {
+    const parLangue = entreesParLangue(trads);
+    return GROUPES_LANG.flatMap(g => parLangue.get(g.code) ?? []);
+  }, [trads]);
+  const rangActif = Math.max(0, entrees.findIndex(e => e.sorte === "trad"
+    ? e.trad.trad_id === slots[index]
+    : e.famille.membres.some(m => m.trad.trad_id === slots[index])));
+  const rangDeploye = volet ? entrees.findIndex(e => e.sorte === "famille" && e.famille.cle === volet.cle) : -1;
+  const entreeDeployee = rangDeploye >= 0 ? entrees[rangDeploye] : null;
+  const familleDeployee = entreeDeployee?.sorte === "famille" ? entreeDeployee.famille : null;
+  // Le texte d'origine de l'édition ouvre son sous-menu (décision de l'auteur, 2026-09-13,
+  // la même que sur la page Bible).
+  const membresDeployes = familleDeployee
+    ? [...familleDeployee.membres].sort((a, b) => Number(Boolean(b.source)) - Number(Boolean(a.source)))
+    : [];
 
+  const retenirVolet = useCallback(() => {
+    if (fermeture.current) { window.clearTimeout(fermeture.current); fermeture.current = null; }
+  }, []);
+  const replierBientot = () => {
+    retenirVolet();
+    fermeture.current = window.setTimeout(() => { fermeture.current = null; setVolet(null); }, DELAI_REPLI_MS);
+  };
+  // Fermer le menu emporte le sous-menu : sans quoi il reparaîtrait tel quel à la prochaine
+  // ouverture, déployé sur une famille qu'on ne survole plus.
+  const fermer = useCallback((rendreLeFoyer: boolean) => {
+    retenirVolet();
+    setVolet(null);
+    setOuvert(false);
+    if (rendreLeFoyer) btnRef.current?.focus();
+  }, [retenirVolet]);
+
+  // Le menu se referme comme tout menu du site : au pointeur posé à côté, et à la touche
+  // d'échappement. Les deux écouteurs ne vivent que tant qu'il est ouvert.
   useEffect(() => {
     if (!ouvert) return;
-    const onDoc = (e: MouseEvent) => {
+    const dehors = (e: PointerEvent) => {
       const cible = e.target as Node;
       if (btnRef.current?.contains(cible) || panRef.current?.contains(cible) || voletRef.current?.contains(cible)) return;
-      setVolet(null); setOuvert(false);
+      fermer(false);
     };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setVolet(null); setOuvert(false); } };
-    document.addEventListener("mousedown", onDoc);
-    document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("mousedown", onDoc); document.removeEventListener("keydown", onKey); };
-  }, [ouvert]);
-  // Le compte à rebours du volet ne survit pas au démontage.
+    const touche = (e: KeyboardEvent) => { if (e.key === "Escape") fermer(true); };
+    document.addEventListener("pointerdown", dehors);
+    document.addEventListener("keydown", touche);
+    return () => { document.removeEventListener("pointerdown", dehors); document.removeEventListener("keydown", touche); };
+  }, [ouvert, fermer]);
+  // Le compte à rebours du sous-menu ne survit pas au démontage.
   useEffect(() => () => { if (fermeture.current) window.clearTimeout(fermeture.current); }, []);
+  // À l'ouverture, le clavier arrive sur la bible de la colonne, ou sur sa famille : c'est le
+  // point de départ naturel pour en changer.
+  useEffect(() => {
+    if (ouvert) lignes.current[rangActif]?.focus({ preventScroll: true });
+  }, [ouvert, rangActif]);
 
-  // Fermer le menu emporte le volet : sans quoi il reparaîtrait tel quel à la prochaine
-  // ouverture, déployé sur une famille que l'on ne survole plus.
   const basculer = () => {
-    if (ouvert) { retenirVolet(); setVolet(null); setOuvert(false); return; }
+    if (ouvert) { fermer(false); return; }
     const r = btnRef.current?.getBoundingClientRect();
-    if (r) setRect({ top: r.bottom + 4, left: r.left, width: Math.max(r.width, 236) });
+    if (r) {
+      const racine = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      const largeurMax = LARGEUR_MAX_MENU_REM * racine;
+      setRect({ top: r.bottom + 6, left: Math.max(8, Math.min(r.left, window.innerWidth - largeurMax - 8)), minWidth: Math.max(r.width, 230) });
+    }
     setOuvert(true);
   };
-  const choisir = (val: string) => { onChoisir(index, val); setVolet(null); setOuvert(false); };
-  const retenirVolet = () => { if (fermeture.current) { window.clearTimeout(fermeture.current); fermeture.current = null; } };
-  const fermerVolet = () => {
-    retenirVolet();
-    fermeture.current = window.setTimeout(() => { fermeture.current = null; setVolet(null); }, 160);
-  };
+  const choisir = (val: string) => { onChoisir(index, val); fermer(true); };
+  // Un sous-menu s'ouvre du côté où il tient : à droite de la ligne, à gauche sinon.
   const deployer = (cle: string, el: HTMLElement, nb: number) => {
     retenirVolet();
     const r = el.getBoundingClientRect();
-    // À droite de la ligne ; à gauche quand il n'y tient pas. Le volet chevauche la ligne
-    // de deux pixels : aucun interstice ne sépare alors l'une de l'autre.
-    const aDroite = r.right + LARGEUR_VOLET + 8 <= window.innerWidth;
-    const haut = 30 + nb * 46;
-    setVolet({
-      cle,
-      left: aDroite ? r.right - 2 : Math.max(8, r.left - LARGEUR_VOLET + 2),
-      top: Math.max(8, Math.min(r.top - 6, window.innerHeight - 8 - haut)),
-    });
+    const racine = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const largeur = LARGEUR_SOUS_MENU_REM * racine;
+    // La hauteur d'une ligne : son rembourrage, son filet et une ligne de texte.
+    const haut = nb * (23 + 0.8125 * racine * 1.3) + 2;
+    const top = Math.max(8, Math.min(r.top - 1, window.innerHeight - 8 - haut));
+    setVolet(r.right + 4 + largeur + 8 <= window.innerWidth
+      ? { cle, top, left: r.right + 4 }
+      : { cle, top, right: Math.max(8, window.innerWidth - r.left + 4) });
+  };
+  // Flèches, début et fin : on ne change de bible qu'à la validation, se déplacer ne recharge rien.
+  const circuler = (e: React.KeyboardEvent, rang: number, liste: (HTMLButtonElement | null)[], total: number) => {
+    const cible = rangDeCirculation(e.key, rang, total);
+    if (cible === null) return false;
+    e.preventDefault();
+    liste[cible]?.focus();
+    return true;
   };
 
-  // ⛔ UNE TRADUCTION DÉJÀ AFFICHÉE AILLEURS SE GRISE PAR SON TEXTE, ET PAR RIEN
-  // D'AUTRE (rectification de l'auteur, 2026-09-04 au soir : « ne griser que le texte ;
-  // pas de fond gris »). Elle s'annonçait la veille en ocre, ce qui était faux — l'ocre
-  // est la teinte de l'ATTENTE, et une colonne déjà prise est un fait, non un défaut ;
-  // le remède avait posé un aplat gris sous la ligne entière, ce qui est un second
-  // objet là où il n'en faut aucun. Le fait se dit dans l'ENCRE du nom, et le sol du
-  // menu reste d'une seule teinte : une liste ne se lit plus quand un rang sur deux y
-  // porte son propre fond.
-  // ⚠️ ET LE GRIS DESCEND D'UN RANG (demande de l'auteur, 2026-09-04 : « griser un peu
-  // plus le texte des non disponibles »). Le fond parti, l'encre reste SEULE à dire le
-  // fait, et le rang qui suffisait quand un aplat l'accompagnait ne suffit plus : le nom
-  // passe de `--cs-texte-gris` à `--cs-texte-doux`, c'est-à-dire à l'encre du sous-titre
-  // d'une ligne ordinaire. La ligne entière recule d'un cran, et sa hiérarchie interne
-  // tient alors par le CORPS et la POLICE — sérif de 13 px contre sans de 10 —, non par
-  // l'encre, le rang faible étant le plancher de l'échelle.
-  // ⛔ Pas deux rangs : la ligne reste CLIQUABLE, la choisir échange les deux colonnes,
-  // et une ligne qu'on ne lit plus n'est plus une option.
-  // ⚠️ Le fond de repos reste calculé ICI : le survol le remplace, et le quitter doit
-  // le RENDRE. Il ne connaît plus que deux valeurs, l'accent de la ligne retenue et
-  // rien.
-  const fondRepos = (actif: boolean) =>
-    actif ? "rgba(var(--cs-vert-rgb),0.10)" : "transparent";
-  const ligne = (actif: boolean): React.CSSProperties => ({
-    display: "flex", alignItems: "flex-start", gap: 8, width: "100%", textAlign: "left",
-    padding: "7px 10px", borderRadius: 4, border: "none", cursor: "pointer",
-    background: fondRepos(actif),
-    fontFamily: "var(--font-source-sans), Arial, sans-serif",
-  });
-  const coche = (actif: boolean) => (
-    <span aria-hidden style={{ width: 12, flexShrink: 0, color: VERT, paddingTop: 2, fontSize: "0.75rem" }}>{actif ? "✓" : ""}</span>
-  );
-  const NOM_OPTION: React.CSSProperties = { display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-encre-fonce)", lineHeight: 1.25 };
-  const SOUS_OPTION: React.CSSProperties = { display: "block", fontSize: "0.625rem", color: "var(--cs-texte-doux)", marginTop: 1 };
-  const ENTETE_GROUPE: React.CSSProperties = { padding: "6px 10px 3px", fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--cs-texte-doux)" };
-
-  // Une traduction, dans la liste ou dans un volet de famille. Dans un volet, `libelle`
-  // dit ce que ce texte est DANS son édition (« Texte latin en regard ») : le nom de la
-  // traduction est déjà porté par la famille, au-dessus.
-  const optionTrad = (t: Trad, libelle?: string, titre?: string) => {
+  // Une traduction, dans le menu ou dans le sous-menu d'une famille. Dans un sous-menu,
+  // `libelle` dit ce que ce texte est DANS son édition (« Texte latin en regard ») : le nom de
+  // l'édition est porté par la ligne de la famille.
+  // ⛔ Une traduction déjà affichée dans une autre colonne se grise par son ENCRE seule, et se
+  // choisit quand même. La ligne porte alors les deux noms, séparés par une flèche à double
+  // sens : on lit d'un coup d'œil ce qui va s'échanger.
+  const optionTrad = (t: Trad, rang: number, total: number, dansVolet: boolean, libelle?: string, titre?: string) => {
     const actif = slots[index] === t.trad_id;
-    const ailleurs = slots.some((x, idx) => idx !== index && x === t.trad_id);
+    const ailleurs = !actif && slots.some((x, idx) => idx !== index && x === t.trad_id);
+    const liste = dansVolet ? sousLignes : lignes;
     return (
-      <button key={t.trad_id} role="menuitemradio" aria-checked={actif} title={titre} onClick={() => choisir(t.trad_id)}
-        style={ligne(actif)}
-        onMouseEnter={e => { if (!actif) e.currentTarget.style.background = "rgba(var(--cs-vert-rgb),0.06)"; }}
-        onMouseLeave={e => { if (!actif) e.currentTarget.style.background = fondRepos(actif); }}>
-        {coche(actif)}
-        <span style={{ minWidth: 0 }}>
-          {/* ⚠️ Le nom se COMPOSE : « Bible française du XIIIe siècle » y prend ses petites
-              capitales et son exposant, et un titre entre astérisques son italique. C'est
-              `rendreEnrichi`, le module partagé avec les notices d'auteur — ⛔ jamais un
-              rendu HTML sur une colonne rédigée hors du dépôt. */}
-          <span style={{ ...NOM_OPTION, ...(ailleurs && !actif ? { color: "var(--cs-texte-doux)" } : null) }}>
-            {rendreEnrichi(libelle ?? t.nom)}
-          </span>
-          <span style={{ ...SOUS_OPTION, ...(ailleurs && !actif ? { color: "var(--cs-texte-faible)" } : null) }}>
-            {t.edition ?? ""}
-            {ailleurs && courante && <span style={{ color: "var(--cs-texte-faible)" }}>{t.edition ? " · " : ""}Échange avec la position de {rendreEnrichi(courante.nom)}</span>}
-          </span>
-        </span>
+      <button key={t.trad_id} type="button" role="menuitemradio" aria-checked={actif} title={titre}
+        ref={el => { liste.current[rang] = el; }}
+        onClick={() => choisir(t.trad_id)}
+        onKeyDown={e => {
+          if (circuler(e, rang, liste.current, total)) return;
+          if (dansVolet && e.key === "ArrowLeft") {
+            e.preventDefault();
+            retenirVolet();
+            setVolet(null);
+            lignes.current[rangDeploye]?.focus();
+          }
+        }}
+        onMouseEnter={e => {
+          if (!dansVolet && volet) { retenirVolet(); setVolet(null); }
+          if (!actif) e.currentTarget.style.background = FOND_SURVOL_MENU;
+        }}
+        onMouseLeave={e => { if (!actif) e.currentTarget.style.background = "var(--cs-surface)"; }}
+        style={{ ...styleLigneMenu(actif, rang === 0, rang === total - 1), ...(ailleurs ? { color: "var(--cs-texte-doux)" } : null) }}>
+        <span style={{ minWidth: 0 }}>{rendreEnrichi(libelle ?? t.nom)}</span>
+        {ailleurs && courante && (
+          <>
+            <span role="img" aria-label="échange avec" style={{ display: "inline-flex", flexShrink: 0 }}><IconeEchange /></span>
+            <span style={{ minWidth: 0 }}>{rendreEnrichi(courante.nom)}</span>
+          </>
+        )}
       </button>
     );
   };
 
-  // Une édition à plusieurs textes : une seule ligne, un chevron, et le volet au survol.
-  // La coche vaut pour la famille entière, et la seconde ligne nomme alors le texte
-  // affiché dans cette colonne — sans quoi deux colonnes de la même édition porteraient
-  // le même intitulé sans qu'on sache laquelle donne quoi.
-  const optionFamille = (f: Famille) => {
-    const actifMembre = f.membres.find(m => m.trad.trad_id === slots[index]) ?? null;
+  // Une FAMILLE : son nom commun, un chevron, et au survol le sous-menu de ses textes.
+  // ⛔ Le clic ne se perd pas dans le sous-menu : il ouvre le texte d'origine, que le
+  // sous-menu met en tête (décision de l'auteur, 2026-09-13). Le clavier suit : Entrée
+  // choisit, la flèche droite déploie.
+  const optionFamille = (f: Famille, rang: number, total: number) => {
+    const actif = f.membres.some(m => m.trad.trad_id === slots[index]);
     const deploye = volet?.cle === f.cle;
-    const sous = actifMembre
-      ? actifMembre.libelle
-      : `${f.principal.edition ?? ""}${f.principal.edition ? " · " : ""}${f.membres.length} textes`;
-    const survol = (e: React.MouseEvent<HTMLButtonElement> | React.FocusEvent<HTMLButtonElement>) => deployer(f.cle, e.currentTarget, f.membres.length);
-    // ⛔ LE CLIC NE SE PERD PAS DANS LE VOLET (demande de l'auteur, 2026-09-04 : « quand je
-    // clique sur le nom d'une traduction qui a un menu déroulant secondaire, ne pas bloquer
-    // le clic : afficher la première traduction du menu déroulant »). Il ne faisait que
-    // déployer ce que le survol déployait déjà : un clic qui ne fait rien de plus que le
-    // survol est un clic perdu. Il choisit le TEXTE D'ORIGINE de l'édition, que le volet met en
-    // tête (décision de l'auteur, 2026-09-13, la même que sur la page Bible), et le volet reste
-    // ouvert pour en prendre un autre.
-    const choisirLeDefaut = () => { const t = (f.membres.find(m => m.source) ?? f.membres[0])?.trad.trad_id; if (t) choisir(t); };
+    const defaut = (f.membres.find(m => m.source) ?? f.membres[0])?.trad.trad_id;
+    const nom = nomCommun(f.principal.nom);
     return (
-      <button key={f.cle} role="menuitem" aria-haspopup="menu" aria-expanded={deploye}
-        onMouseEnter={survol} onFocus={survol} onClick={choisirLeDefaut} onMouseLeave={fermerVolet}
-        // ⚠️ Le CLAVIER suit le clic : Entrée et Espace choisissent, la flèche déploie. Un
-        // clavier qui n'aurait plus que le déploiement n'atteindrait jamais le texte d'origine.
+      <button key={f.cle} type="button" role="menuitem" aria-haspopup="menu" aria-expanded={deploye}
+        ref={el => { lignes.current[rang] = el; }}
+        title={`${nom} : ${f.membres.map(m => m.libelle).join(", ")}`}
+        onClick={() => { if (defaut) choisir(defaut); }}
+        onMouseEnter={e => deployer(f.cle, e.currentTarget, f.membres.length)}
+        onMouseLeave={replierBientot}
         onKeyDown={e => {
-          if (e.key === "ArrowRight") { e.preventDefault(); deployer(f.cle, e.currentTarget, f.membres.length); }
-          else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choisirLeDefaut(); }
+          if (circuler(e, rang, lignes.current, total)) return;
+          if (e.key === "ArrowRight") {
+            e.preventDefault();
+            deployer(f.cle, e.currentTarget, f.membres.length);
+            window.setTimeout(() => sousLignes.current[0]?.focus(), 0);
+          } else if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            retenirVolet();
+            setVolet(null);
+          }
         }}
-        style={{ ...ligne(!!actifMembre), background: deploye && !actifMembre ? "rgba(var(--cs-vert-rgb),0.06)" : ligne(!!actifMembre).background, alignItems: "center" }}>
-        {coche(!!actifMembre)}
-        {/* ⛔ Une FAMILLE ne se grise pas quand un de ses textes est affiché ailleurs :
-            les autres restent libres, et la griser dirait le contraire. Le gris se pose
-            sur les MEMBRES, dans le volet, qui passent par `optionTrad`. */}
-        <span style={{ minWidth: 0, flex: 1 }}>
-          <span style={NOM_OPTION}>{rendreEnrichi(nomCommun(f.principal.nom))}</span>
-          <span style={SOUS_OPTION}>{sous}</span>
+        style={{ ...styleLigneMenu(actif, rang === 0, rang === total - 1), ...(deploye && !actif ? { background: FOND_SURVOL_MENU } : null) }}>
+        <span style={{ flex: 1, minWidth: 0 }}>{rendreEnrichi(nom)}</span>
+        {/* ⚠️ Le chevron déploie SANS choisir : au doigt, la main ne survole pas, et c'est lui
+            qui donne accès aux autres textes. */}
+        <span aria-hidden="true" style={STYLE_CHEVRON_MENU}
+          onClick={e => {
+            e.stopPropagation();
+            if (deploye) { retenirVolet(); setVolet(null); }
+            else deployer(f.cle, e.currentTarget.parentElement ?? e.currentTarget, f.membres.length);
+          }}>
+          <IconeChevron dir="right" taille={TAILLE_CHEVRON_MENU} strokeWidth={1.6} />
         </span>
-        <svg aria-hidden width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: "var(--cs-texte-doux)" }}>
-          <path d="M3.5 2L6.5 5L3.5 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
       </button>
     );
   };
@@ -1109,36 +1187,28 @@ function ChoixTraduction({ trads, slots, index, onChoisir }: {
       </button>
 
       {ouvert && rect && createPortal(
-        <div ref={panRef} role="menu"
-          // Le volet est posé d'après la position de la ligne : si le panneau défile
-          // sous la souris, cette position n'a plus cours et le volet se retire.
+        <div ref={panRef} role="menu" aria-label="Traductions disponibles"
+          // Le sous-menu est posé d'après la position de sa ligne : si le menu défile sous la
+          // main, cette position n'a plus cours et il se replie.
           onScroll={() => { retenirVolet(); setVolet(null); }}
-          style={{ position: "fixed", top: rect.top, left: rect.left, width: rect.width, zIndex: 3000,
-            background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: 8, boxShadow: "var(--cs-ombre-modale)",
-            padding: 5, maxHeight: "62vh", overflowY: "auto" }}>
-          {GROUPES_LANG.map(g => {
-            const membres = groupes.get(g.code) ?? [];
-            if (!membres.length) return null;
-            return (
-              <div key={g.code} role="group" aria-label={g.label}>
-                {/* En-tête de groupe de langue : Français / Latin / Grec. */}
-                <div style={ENTETE_GROUPE}>{g.label}</div>
-                {membres.map(e => (e.sorte === "famille" ? optionFamille(e.famille) : optionTrad(e.trad)))}
-              </div>
-            );
-          })}
+          style={{ ...STYLE_CADRE_MENU, position: "fixed", top: rect.top, left: rect.left, minWidth: rect.minWidth,
+            maxWidth: `${LARGEUR_MAX_MENU_REM}rem`, zIndex: 3000, maxHeight: "62vh", overflowY: "auto" }}>
+          {entrees.map((e, rang) => e.sorte === "famille"
+            ? optionFamille(e.famille, rang, entrees.length)
+            : optionTrad(e.trad, rang, entrees.length, false))}
         </div>,
         document.body,
       )}
 
+      {/* ⛔ PLUS DE NOM EN TÊTE DU SOUS-MENU (décision de l'auteur, 14 septembre 2026 : « ne pas
+          réafficher le nom de la bible dans le sous-menu »). La ligne qui l'ouvre le porte déjà,
+          à quelques pixels de là, et c'était le seul menu du site à coiffer ses choix d'un titre. */}
       {ouvert && volet && familleDeployee && createPortal(
         <div ref={voletRef} role="menu" aria-label={nomCommun(familleDeployee.principal.nom)}
-          onMouseEnter={retenirVolet} onMouseLeave={fermerVolet}
-          style={{ position: "fixed", top: volet.top, left: volet.left, width: LARGEUR_VOLET, zIndex: 3001,
-            background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: 8, boxShadow: "var(--cs-ombre-modale)",
-            padding: 5, maxHeight: "62vh", overflowY: "auto" }}>
-          <div style={ENTETE_GROUPE}>{rendreEnrichi(nomCommun(familleDeployee.principal.nom))}</div>
-          {[...familleDeployee.membres].sort((a, b) => Number(Boolean(b.source)) - Number(Boolean(a.source))).map(m => optionTrad(m.trad, m.libelle, m.titre))}
+          onMouseEnter={retenirVolet} onMouseLeave={replierBientot}
+          style={{ ...STYLE_CADRE_MENU, position: "fixed", top: volet.top, left: volet.left, right: volet.right,
+            minWidth: `${LARGEUR_SOUS_MENU_REM}rem`, maxWidth: `${LARGEUR_MAX_MENU_REM}rem`, zIndex: 3001, maxHeight: "62vh", overflowY: "auto" }}>
+          {membresDeployes.map((m, k) => optionTrad(m.trad, k, membresDeployes.length, true, m.libelle, m.titre))}
         </div>,
         document.body,
       )}
@@ -1280,6 +1350,11 @@ export default function PolyglottePage() {
   const [estAdminReel, setEstAdmin] = useState(false);
   const { modeUtilisateurStandard } = useAffichageAdmin();
   const estAdmin = estAdminReel && !modeUtilisateurStandard;
+  // ⛔ UN FILTRE DE RELECTURE NE SURVIT PAS À L'AFFICHAGE STANDARD. Ses interrupteurs ne
+  // paraissent qu'à l'administrateur ; restés allumés quand l'affichage redevient celui d'un
+  // lecteur, ils gardaient la page réduite aux lignes filtrées, sans plus rien pour les éteindre.
+  // On les éteint pendant le rendu, dès qu'ils n'ont plus de maître.
+  if (!estAdmin && (sensiblesOnly || surnumOnly)) { setSensiblesOnly(false); setSurnumOnly(false); }
   const [userId, setUserId] = useState<string | null>(null);   // pour « mes citations »
   // Versets déjà dans « mes citations » : clé « ABR|ch|v » → id du prélèvement (pour retirer).
   const [prelevs, setPrelevs] = useState<Map<string, string>>(new Map());
@@ -1727,7 +1802,7 @@ export default function PolyglottePage() {
   // Index (canon_id, trad_id) → cellule ; canon groupé par livre
   const cellule = useMemo(() => {
     const m = new Map<string, V2Row[]>();
-    for (const r of v2) { const k = `${r.canon_id}|${r.trad_id}`; m.set(k, [...(m.get(k) ?? []), r]); }
+    for (const r of v2) { if (!porteDuTexte(r)) continue; const k = `${r.canon_id}|${r.trad_id}`; m.set(k, [...(m.get(k) ?? []), r]); }
     // versets fusionnés (many→1) : afficher dans l'ordre d'origine (ch_orig, v_orig)
     for (const arr of m.values()) if (arr.length > 1) arr.sort((a, b) => a.ch_orig - b.ch_orig || a.v_orig - b.v_orig);
     return m;
@@ -1748,7 +1823,7 @@ export default function PolyglottePage() {
   const empans = useMemo(() => {
     const m = new Map<string, V2Row>();
     for (const r of v2) {
-      if (!r.canon_id || !r.canon_id_fin || r.canon_id_fin === r.canon_id) continue;
+      if (!porteDuTexte(r) || !r.canon_id || !r.canon_id_fin || r.canon_id_fin === r.canon_id) continue;
       const liste = parLivre.get(r.livre);
       if (!liste) continue;
       const debut = liste.findIndex(c => c.id === r.canon_id);
@@ -2294,6 +2369,17 @@ export default function PolyglottePage() {
                   </button>
                 </div>
               )}
+              {/* ⛔ UN FILTRE QUI RETIRE DES LIGNES LE DIT (14 septembre 2026). « Lignes
+                  problématiques » et « Surnuméraires » réduisent le livre aux seules lignes qu'ils
+                  retiennent, et rien, dans le tableau, ne le disait : un livre dont un seul verset
+                  est signalé paraissait tronqué. La mention nomme le filtre et rend le livre entier
+                  d'un clic. */}
+              {(sensiblesOnly || surnumOnly) && (
+                <div role="status" style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", justifyContent: "center", gap: "4px 14px", padding: "10px 12px", fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: "italic", fontSize: "0.8125rem", letterSpacing: "0.02em", color: "var(--cs-mention)" }}>
+                  <span>{sensiblesOnly ? "Filtre de relecture : seules les lignes problématiques sont affichées." : "Filtre de relecture : seuls les versets surnuméraires sont affichés."}</span>
+                  <button type="button" className="cs-bouton-lien" onClick={() => { setSensiblesOnly(false); setSurnumOnly(false); }}>Tout afficher</button>
+                </div>
+              )}
         {/* On NE démonte PAS le corps pendant un rechargement : changer de traduction ne
             fait que remplacer le texte des cellules, la structure (lignes du canon) reste
             en place — la position de lecture ne bouge donc pas et la transition est fluide.
@@ -2441,6 +2527,11 @@ export default function PolyglottePage() {
                 // (chaque cellule cite et signale SA propre traduction).
                 const abr = ABREV_FR[l.code] ?? l.code;
                 const refLisible = `${abr} ${r.ch_canon}, ${r.v_canon}`;
+                // Le crayon de l'administrateur ouvre la fenêtre de correction d'un verset d'origine.
+                const editerVerset = (ligne: V2Row) => {
+                  setCibleEdition({ id: ligne.id, texte: ligne.texte ?? "", reference: `${l.nom_fr} ${ligne.ch_orig}, ${ligne.v_orig}` });
+                  setEnregistre("idle");
+                };
                 return (
                   <Fragment key={r.id}>
                     <div className="poly-row" id={`poly-${l.code}-${r.ch_canon}-${r.v_canon}`}
@@ -2486,36 +2577,20 @@ export default function PolyglottePage() {
                             onMouseLeave={actionsCell ? () => celluleActions.relacher(actionsCell.cle) : undefined}
                             onClick={actionsCell ? e => celluleActions.basculer(e.currentTarget, actionsCell.cle, celluleActions.ancre?.cle === actionsCell.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsCell }) : undefined}
                             style={{ borderLeft: `1px solid ${FILET_COL}`, color: signaler ? 'var(--cs-danger-fonce)' : "var(--cs-encre-fonce)" }}>
-                            {/* La lettrine : référence(s) d'origine et crayon, en bloc flottant que
-                                le texte habille. Plusieurs versets de l'édition peuvent partager un
-                                créneau du canon — leurs numéros s'écrivent alors l'un sous l'autre,
-                                en tête du texte réuni. */}
+                            {/* La lettrine : la PREMIÈRE référence d'origine et son crayon, en bloc
+                                flottant que le texte habille. ⛔ Les suivantes ne s'y empilent plus
+                                (décision du 14 septembre 2026) : quand plusieurs versets de l'édition
+                                partagent un créneau du canon, chacun pose sa référence EN LIGNE,
+                                devant son propre texte (voir « .poly-ref-en-ligne »). Empilées, elles
+                                laissaient un numéro seul sur sa ligne en face d'un texte court. */}
                             {cs.length > 0 && !lacuneCell && (
                               <span className="poly-lettrine">
-                                {cs.map((c, k) => (
-                                  <span key={k} className="poly-lettrine-item">
-                                    <span className="poly-lettrine-ref" title={`${c.ch_orig}, ${c.v_orig}${t.trad_id === "TR0004" ? "" : (c.v_orig_suffixe ?? "")}`}>
-                                      {/* Chapitre ET verset, toujours : la référence d'origine ne se
-                                          lit qu'entière. Le chapitre est simplement composé plus clair
-                                          pour que le verset, lui, se détache. */}
-                                      <span className="poly-lettrine-ch">{c.ch_orig},</span> {c.v_orig}{t.trad_id === "TR0004" ? "" : (c.v_orig_suffixe ?? "")}
-                                      {/* Une intervention d'alignement laisse toujours sa trace dans
-                                          `notes` : le lecteur voit QU'il y a eu intervention, et le
-                                          survol lui dit LAQUELLE. Rien n'est corrigé en silence. */}
-                                      {/* Charte § 52.3 : un alignement « à revoir » est un doute d'atelier, montré à l'administration seule. */}
-                                      {c.notes && (estAdmin || c.notes !== NOTE_ALIGNEMENT_A_REVOIR) ? <span title={c.notes} style={{ marginLeft: 3, color: 'var(--cs-surnum)', cursor: "help", display: "inline-flex", verticalAlign: "middle" }}><IconeCrayon size={9} /></span> : null}
-                                    </span>
-                                    {estAdmin && !est899(t.trad_id) && (
-                                      <button title="Modifier ce verset" aria-label="Modifier ce verset" className="poly-edit"
-                                        onClick={() => { setCibleEdition({ id: c.id, texte: c.texte ?? "", reference: `${l.nom_fr} ${c.ch_orig}, ${c.v_orig}` }); setEnregistre("idle"); }}
-                                        style={{ border: "none", cursor: "pointer", color: 'var(--cs-texte-second)', fontSize: '0.65625rem', lineHeight: 1, background: fond, transition: "color .15s" }}
-                                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = VERT; }}
-                                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--cs-texte-second)'; }}>
-                                        <IconeCrayon size={11} />
-                                      </button>
-                                    )}
+                                <span className="poly-lettrine-item">
+                                  <span className="poly-lettrine-ref" title={referenceOrigine(cs[0])}>
+                                    <RefOrigine ligne={cs[0]} note={noteMontree(cs[0], estAdmin)} />
                                   </span>
-                                ))}
+                                  {estAdmin && !est899(t.trad_id) && <BoutonEditionVerset ligne={cs[0]} fond={fond} onEditer={editerVerset} />}
+                                </span>
                               </span>
                             )}
                             {cs.length === 0 ? (
@@ -2527,9 +2602,9 @@ export default function PolyglottePage() {
                                 : couvrant ? <CelluleEmpan ligne={couvrant} chapitreDuCreneau={r.ch_canon} sansSuffixe={t.trad_id === "TR0004"} />
                                 : <CelluleAbsente deutero={deuterocanonique(r.id)} />
                             ) : lacuneCell ? (
-                              // Fait du témoin, et non défaut de traduction : la mention garde la
-                              // forme commune (STYLE_MENTION) et n'en change que la teinte, l'ocre des
-                              // lacunes. Même mot que la page Bible, sans crochets.
+                              // Fait du témoin, et non défaut de traduction. ⛔ La mention prend la
+                              // voix de « Absent de cette traduction », ENCRE COMPRISE (décision du
+                              // 14 septembre 2026) : c'est le mot qui distingue les deux faits.
                               <span title={MENTION_LACUNE_TITRE} style={STYLE_MENTION_LACUNE}>{MENTION_LACUNE}</span>
                             ) : cs.map((c, k) => (
                               // Colonne du TÉMOIN (TR0009) : le texte porte des marqueurs éditoriaux
@@ -2541,9 +2616,20 @@ export default function PolyglottePage() {
                               // Colonne de la TRADUCTION MODERNE du même témoin (TR0013) : elle n’est pas
                               // recomposée, mais elle porte les mêmes lacunes en clair. Elle passe donc par
                               // l’enrichissement ordinaire, la lacune seule recevant sa mise en forme.
-                              <span key={k}>{k > 0 ? " " : ""}{est899(t.trad_id)
-                                ? rendreMarqueurs899(c.texte ?? "")
-                                : texteCesure(c.texte, t.lang, estTraductionModerne899(t.trad_id) ? marquerLacunesDuTemoin : undefined)}</span>
+                              <span key={k}>
+                                {k > 0 ? " " : ""}
+                                {/* ⛔ Le numéro d'un verset réuni se pose EN LIGNE, devant son texte :
+                                    le premier seul tient la lettrine (voir plus haut). */}
+                                {k > 0 && (
+                                  <span className="poly-ref-en-ligne" title={referenceOrigine(c)}>
+                                    <RefOrigine ligne={c} note={noteMontree(c, estAdmin)} />
+                                    {estAdmin && !est899(t.trad_id) && <BoutonEditionVerset ligne={c} fond={fond} onEditer={editerVerset} />}
+                                  </span>
+                                )}
+                                {est899(t.trad_id)
+                                  ? rendreMarqueurs899(c.texte ?? "")
+                                  : texteCesure(c.texte, t.lang, estTraductionModerne899(t.trad_id) ? marquerLacunesDuTemoin : undefined)}
+                              </span>
                             ))}
                           </div>
                         );

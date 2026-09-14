@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { STYLE_MENTION_DANS_LE_FIL } from './compositionBible'
 import { normaliserEspaces } from './typographie'
 
 // Rendu des marqueurs éditoriaux INLINE portés par le texte recomposé de TR0009
@@ -43,11 +44,14 @@ const STYLE_INCERTAINE: React.CSSProperties = {
 // ⚠️ L’air est une MARGE, non une espace du texte : une espace serait une occasion de
 // couper la ligne entre le crochet et le mot qui le précède, et elle s’emporterait en
 // copiant le verset. `whiteSpace` garde la marque d’un seul tenant.
+//
+// ⛔ ET ELLE PARLE DE LA VOIX DES MENTIONS, TEINTE COMPRISE (décision de l’auteur,
+// 14 septembre 2026 : « il faut reprendre le style de “Absent de cette traduction” »).
+// L’ocre des absences est parti avec elle : le corps, l’italique, l’espacement et l’encre
+// viennent de `STYLE_MENTION_DANS_LE_FIL`, et il ne reste ici que ce qui tient la marque
+// dans sa ligne.
 export const STYLE_LACUNE: React.CSSProperties = {
-  color: 'var(--cs-lacune)',
-  fontFamily: 'var(--font-source-serif), Georgia, serif',
-  fontStyle: 'italic',
-  fontSize: '0.85em',
+  ...STYLE_MENTION_DANS_LE_FIL,
   margin: '0 0.15em',
   whiteSpace: 'nowrap',
 }
@@ -76,7 +80,9 @@ export function libelleLacune(cause?: string | null): string {
 // « [<type> : » restée sans sa fermeture ; une fermeture « ] ». Les deux formes COMPLÈTES
 // passent en TÊTE pour que leur crochet fermant ne soit jamais pris pour la fin d’une
 // portée ouverte au verset d’avant.
-const RE_TOKEN = /\[\s*(?:…|\.\.\.)\s*\]|\[\s*lacune\s*:\s*(?<cause>[^\]]*)\]|\[(?<type>lecture incertaine|lacune|ajout marginal)\s*:\s*|\]/gu
+// ⚠️ La lacune nue s’écrit AUSSI en toutes lettres, « [lacune] » : c’est la forme que porte la
+// traduction moderne (Gn 38, 9 ; Gn 50, 26), qui s’imprimait brute faute d’être reconnue.
+const RE_TOKEN = /\[\s*(?:…|\.\.\.|[Ll]acune)\s*\]|\[\s*lacune\s*:\s*(?<cause>[^\]]*)\]|\[(?<type>lecture incertaine|lacune|ajout marginal)\s*:\s*|\]/gu
 
 type Mode = 'normal' | 'incertaine' | 'ajout' | 'lacune'
 
@@ -136,7 +142,9 @@ export function rendreMarqueurs899(texteBrut: string): ReactNode {
   /** Une fine quand la marque se colle au caractère qui la borde (lacune au milieu d'un mot). */
   const fineSiColle = (index: number) => {
     const c = texte[index]
-    if (c && !/\s/.test(c)) noeuds.push(FINE)
+    // ⚠️ Contre une LETTRE ou un CHIFFRE seulement : devant un point ou une virgule, la fine
+    // ouvrirait un blanc que la typographie française ne connaît pas.
+    if (c && /[\p{L}\p{N}]/u.test(c)) noeuds.push(FINE)
   }
 
   RE_TOKEN.lastIndex = 0
@@ -209,7 +217,7 @@ export function rendreMarqueurs899(texteBrut: string): ReactNode {
 //
 // La forme rendue est alors la même des deux côtés — même marque, même style, même
 // infobulle : c'est le même fait dans les deux membres d'une même édition.
-const RE_MARQUEUR_TEMOIN = /\[\s*(?:…|\.\.\.)\s*\]|\[\s*lacune\s*:\s*(?<cause>[^\]]*)\]|\[\s*(?<type>lecture incertaine|ajout marginal)\s*:\s*(?<contenu>[^\]]*)\]|\[\s*(?<ouvert>lecture incertaine|ajout marginal|lacune)\s*:\s*(?<reste>[^\]]*)$/gu
+const RE_MARQUEUR_TEMOIN = /\[\s*(?:…|\.\.\.|[Ll]acune)\s*\]|\[\s*lacune\s*:\s*(?<cause>[^\]]*)\]|\[\s*(?<type>lecture incertaine|ajout marginal)\s*:\s*(?<contenu>[^\]]*)\]|\[\s*(?<ouvert>lecture incertaine|ajout marginal|lacune)\s*:\s*(?<reste>[^\]]*)$/gu
 
 /**
  * Transformation à passer à `rendreTexteEnrichi` : elle met en forme les marqueurs du
@@ -229,7 +237,9 @@ export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
   let dernier = 0
   const fineSiColle = (index: number) => {
     const c = texte[index]
-    if (c && !/\s/.test(c)) noeuds.push(FINE)
+    // ⚠️ Contre une LETTRE ou un CHIFFRE seulement : devant un point ou une virgule, la fine
+    // ouvrirait un blanc que la typographie française ne connaît pas.
+    if (c && /[\p{L}\p{N}]/u.test(c)) noeuds.push(FINE)
   }
   const marqueTexte = (contenu: string, nom?: string) => (
     <span key={`${cle}-i${n++}`} title={infobulle(nom === 'ajout marginal' ? 'ajout' : 'incertaine')} style={STYLE_INCERTAINE}>{contenu}</span>

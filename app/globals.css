@@ -3350,6 +3350,42 @@ main.lecture-entree [data-cs-bloc],
   font-family: var(--font-source-serif), Georgia, serif;
   text-align: right;
 }
+/* ⛔ UN SEUL NUMÉRO EN LETTRINE ; LES SUIVANTS SE POSENT DEVANT LEUR TEXTE (décision du
+   14 septembre 2026). Quand plusieurs versets de l'édition partagent un créneau du canon,
+   leurs numéros s'empilaient dans la lettrine, une ligne chacun, pendant que le texte
+   réuni coulait à côté. Un texte court laissait alors le second numéro seul sur sa ligne,
+   sans rien en face : « 7, 45 » de la Vulgate, en Néhémie, se lisait comme un verset vide
+   alors que son texte était juste au-dessus. Le premier numéro garde la lettrine ; chaque
+   suivant se pose EN LIGNE, devant le texte qu'il numérote.
+   ⚠️ En bloc en ligne, et positionné : le crayon de l'administrateur s'y pose en absolu,
+   comme sur un numéro de lettrine. Il reprend la voix de « .poly-lettrine » et de
+   « .poly-lettrine-ref », que la cellule ne lui transmet pas. */
+.poly-ref-en-ligne {
+  position: relative;
+  display: inline-block;
+  margin-right: 0.35em;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-texte-doux);
+  white-space: nowrap;
+  text-indent: 0;
+}
+/* ⛔ LA NOTE ÉDITORIALE D'UN VERSET SE MARQUE D'UN CERCLE À POINT D'EXCLAMATION, et non
+   plus d'un crayon (décision de l'auteur, 14 septembre 2026). Et elle grandit : neuf pixels
+   fixes se perdaient contre le numéro sur un grand écran. En rem, elle suit la police racine.
+   ⚠️ Le dessin est celui du signalement (IconeSignalement) ; sa taille vient d'ici, l'attribut
+   d'un SVG étant la valeur la plus faible de la cascade. */
+.poly-note-marque {
+  display: inline-flex;
+  vertical-align: -0.2em;
+  margin-left: 0.3em;
+  color: var(--cs-surnum);
+  cursor: help;
+}
+.poly-note-marque svg { width: 0.6875rem; height: 0.75rem; }
 
 /* ── LA VISITE ────────────────────────────────────────────────────────────────
    Ce qu'une page montre d'elle-même la première fois qu'on l'ouvre : une case qui

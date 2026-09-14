@@ -204,14 +204,6 @@ export function styleTexteVerset({ mobile, enVers }: { mobile?: boolean; enVers?
   } as CSSProperties
 }
 
-/** Un verset absent du témoin : italique de labeur, teinte effacée.
- *  ⛔ Signalé sans peser, et UNE fois — non autant de fois qu'il manque de versets. */
-export const STYLE_LACUNE: CSSProperties = {
-  fontFamily: SERIF,
-  color: 'var(--cs-lacune)',
-  fontStyle: 'italic',
-}
-
 /** La traduction ne porte rien pour ce créneau canonique. */
 export const STYLE_VERSET_VIDE: CSSProperties = {
   color: 'var(--cs-bord)',
@@ -328,7 +320,7 @@ export const STYLE_DENSITE_MOBILE: CSSProperties = {
  * et fait ensuite autorité contre la page qu'il décrit ». La planche des styles publiait
  * `bible/verset vide` — un tiret cadratin — pendant que la Polyglotte rendait une phrase.
  *
- * ⚠️ Ne pas confondre avec STYLE_LACUNE et STYLE_VERSET_VIDE, juste au-dessus : ceux-là
+ * ⚠️ Ne pas confondre avec STYLE_LACUNE (plus bas) et STYLE_VERSET_VIDE (plus haut) : ceux-là
  * se posent DANS LE FIL d'un texte suivi et héritent du corps du verset. Ceux-ci
  * REMPLISSENT une cellule de tableau et portent donc leur propre corps.
  */
@@ -422,10 +414,37 @@ export const STYLE_MENTION: CSSProperties = {
   color: 'var(--cs-mention)',
 }
 
-/** La lacune garde SON ocre, et elle seule : la mention ordinaire dit qu'une traduction
- *  ne porte pas le passage, la lacune dit qu'un manuscrit l'a perdu. Même forme, deux
- *  teintes — la teinte seule fait la différence, comme pour les marqueurs du témoin. */
-export const STYLE_MENTION_LACUNE: CSSProperties = { ...STYLE_MENTION, color: 'var(--cs-lacune)' }
+/**
+ * ⛔ LA LACUNE PREND LA VOIX DE « ABSENT DE CETTE TRADUCTION », ENCRE COMPRISE (décision
+ * de l'auteur, 14 septembre 2026 : « [lacune] n'est pas correctement mis en forme ; il faut
+ * reprendre le style de “Absent de cette traduction” ; appliquer ça aussi pour la Bible
+ * classique »). Elle gardait l'ocre des lacunes quand la mention d'absence prenait le
+ * sépia des mentions : deux voix pour un seul geste, l'éditeur qui dit ce que la case ne
+ * porte pas. C'est désormais le MOT qui distingue les deux cas, non la teinte.
+ * ⚠️ `--cs-lacune` reste le jeton des appels de note : il ne change pas, seule la lacune
+ * cesse de l'employer.
+ */
+export const STYLE_MENTION_LACUNE: CSSProperties = { ...STYLE_MENTION }
+
+/**
+ * La même voix quand elle tombe DANS LE FIL d'un texte : une lacune au milieu d'un verset
+ * (« [déchirure] »), ou la mention qui tient la place d'un verset sur la page Bible. Ni
+ * boîte ni centrage : la voix seule, et le corps d'une mention de case.
+ * ⚠️ En `em`, et ce n'est pas une approximation : 0,6875 rem sur les 0,875 rem d'un verset
+ * font 0,786 em. La mention suit ainsi le corps du texte où elle tombe, et une glose, plus
+ * petite, l'emporte avec elle.
+ */
+export const STYLE_MENTION_DANS_LE_FIL: CSSProperties = {
+  fontFamily: SERIF,
+  fontStyle: 'italic',
+  letterSpacing: '0.02em',
+  fontSize: '0.786em',
+  color: 'var(--cs-mention)',
+}
+
+/** Un verset absent du témoin, sur la page Bible : la mention, dans le fil.
+ *  ⛔ Signalé sans peser, et UNE fois — non autant de fois qu'il manque de versets. */
+export const STYLE_LACUNE: CSSProperties = { ...STYLE_MENTION_DANS_LE_FIL }
 
 /** Une INVITE : ce qu'on peut faire ici, non ce qui manque. Typographie seule — la boîte
  *  appartient à l'appelant, qui est tantôt un bouton, tantôt une case de tableau. */

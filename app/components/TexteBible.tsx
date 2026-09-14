@@ -768,7 +768,10 @@ export default function TexteBible({
           {chapitreToutLacune && (
             <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: 'minmax(0, var(--mesure-bloc)) 2.375rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', minHeight: '50vh', padding: '11vh 16px 0', textAlign: 'center' }}>
-                <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontStyle: 'italic', color: 'var(--cs-lacune)', margin: 0 }}>
+                {/* La voix des mentions, encre comprise (décision du 14 septembre 2026) : le
+                    chapitre perdu se dit comme la case « Absent de cette traduction », à la
+                    taille près, qui reste celle d'une mention de page. */}
+                <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontStyle: 'italic', letterSpacing: '0.02em', color: 'var(--cs-mention)', margin: 0 }}>
                   Lacune du manuscrit
                 </p>
               </div>
