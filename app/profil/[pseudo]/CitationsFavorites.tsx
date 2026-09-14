@@ -56,7 +56,33 @@ export function extraitFavorite(texte: string, max: number): ExtraitFavorite {
   }
 }
 
+/** Un mot composé : des lettres, apostrophe comprise, liées par des traits d'union. */
+const MOT_COMPOSE = /[\p{L}\p{M}’']+(?:-[\p{L}\p{M}’']+)+/gu
+
+/**
+ * Un mot composé ne se fend pas à son trait d'union. Dans une épigraphe centrée de trois
+ * lignes, « qui sont au- » puis « dessous du ciel » se voit : le mot passe entier dans une
+ * boîte insécable. ⚠️ Le TEXTE ne change pas d'un caractère (le trait d'union reste le
+ * signe ordinaire, que la copie emporte tel quel) : seule la coupure de ligne est retirée.
+ * Se passe en `transform` à `rendreTexteEnrichi`, qui l'applique à chaque portion de texte.
+ */
+export function motsComposesInsecables(texte: string, cle: string): React.ReactNode {
+  const noeuds: React.ReactNode[] = []
+  let dernier = 0
+  let n = 0
+  for (const m of texte.matchAll(MOT_COMPOSE)) {
+    const debut = m.index ?? 0
+    if (debut > dernier) noeuds.push(texte.slice(dernier, debut))
+    noeuds.push(<span key={`${cle}-${n++}`} className="profil-favorite-mot">{m[0]}</span>)
+    dernier = debut + m[0].length
+  }
+  if (!noeuds.length) return texte
+  if (dernier < texte.length) noeuds.push(texte.slice(dernier))
+  return noeuds
+}
+
 const FEUILLE_FAVORITES = `
+.profil-favorite-mot { white-space: nowrap; }
 .profil-favorites {
   margin: 0 0 10px;
   padding: 20px 32px 24px;
@@ -78,41 +104,41 @@ const FEUILLE_FAVORITES = `
 .profil-favorite {
   display: flex; flex-direction: column; min-width: 0;
   padding: 0 26px; color: inherit; text-decoration: none;
+  text-align: center;
 }
 .profil-favorite:first-child { padding-left: 0; }
 .profil-favorite:last-child { padding-right: 0; }
 .profil-favorite + .profil-favorite {
   border-left: 1px solid color-mix(in srgb, var(--cs-or) 26%, transparent);
 }
-/* Le passage est du corpus : sérif, en italique comme une épigraphe. Un mot que
-   l'édition met en italique se rend donc en romain.
-   Justifier demande une MESURE. Une colonne du diptyque porte une quarantaine de signes
-   par ligne : justifiée, elle se creuse de lézardes, et elle voisine une colonne en
-   drapeau dès que l'autre passage est court. Elle se compose donc en drapeau, et
-   text-wrap: pretty lui évite un mot seul en dernière ligne. Seule la favorite unique
-   (30 rem, soixante-dix signes) se justifie au-delà du seuil du gris. */
+/* Le passage est du corpus : sérif, en italique, et CENTRÉ comme une épigraphe (décision
+   de l'auteur, 2026-09-14). Un mot que l'édition met en italique se rend donc en romain.
+   Un bloc centré ne se justifie ni ne se césure (charte § 3.11) : une coupure au milieu
+   d'un centrage se voit. Ses lignes s'équilibrent (text-wrap: balance), pour qu'aucune
+   ne pende, courte, sous les autres. Au-delà du seuil du gris, un passage dépasse les
+   six lignes que Chromium sait équilibrer : text-wrap: pretty lui évite au moins un mot
+   seul en dernière ligne. */
 .profil-favorite-texte {
   margin: 0;
   font-family: var(--font-source-serif), Georgia, serif;
   font-size: 0.9375rem; font-style: italic; line-height: 1.5;
   color: var(--cs-texte-fort);
   overflow-wrap: break-word;
-  text-wrap: pretty;
+  hyphens: manual; -webkit-hyphens: manual;
+  text-wrap: balance;
 }
+.profil-favorite-texte[data-dense] { text-wrap: pretty; }
 .profil-favorite-texte em { font-style: normal; }
-.profil-favorites[data-nombre="1"] .profil-favorite-texte[data-dense] {
-  text-align: justify; text-justify: inter-word;
-  hyphens: auto; -webkit-hyphens: auto;
-  word-spacing: -0.025em;
-  text-wrap: wrap;
-}
-/* L'attribution se pose au PIED de sa colonne : les deux tombent sur la même ligne. */
+/* Seule, la favorite prend un cran de plus : elle est l'enseigne de la page. */
+.profil-favorites[data-nombre="1"] .profil-favorite-texte { font-size: 1.0625rem; line-height: 1.55; }
+/* L'attribution se pose au PIED de sa colonne : les deux tombent sur la même ligne. Son
+   filet se centre avec elle, et grandit des deux côtés au survol. */
 .profil-favorite-attribution {
-  margin: auto 0 0; padding-top: 14px;
+  margin: auto 0 0; padding-top: 16px;
   font-family: var(--font-source-serif), Georgia, serif; line-height: 1.4;
 }
 .profil-favorite-attribution::before {
-  content: ""; display: block; width: 1.5rem; height: 1px; margin-bottom: 9px;
+  content: ""; display: block; width: 1.5rem; height: 1px; margin: 0 auto 10px;
   background: var(--cs-or-doux);
   transition: width 0.18s ease, background-color 0.18s ease;
 }
@@ -145,15 +171,14 @@ a.profil-favorite:focus-visible .profil-favorite-attribution::before {
   .profil-favorite,
   .profil-favorite:first-child,
   .profil-favorite:last-child { padding: 0; }
-  .profil-favorite + .profil-favorite {
-    border-left: none; margin-top: 20px; padding-top: 20px;
-    border-top: 1px solid color-mix(in srgb, var(--cs-or) 26%, transparent);
+  /* Empilées, deux épigraphes centrées se séparent d'un filet COURT et centré : un trait
+     de bord à bord couperait l'encadrement en deux au lieu de ponctuer. */
+  .profil-favorite + .profil-favorite { border-left: none; margin-top: 22px; }
+  .profil-favorite + .profil-favorite::before {
+    content: ""; align-self: center; width: 3rem; height: 1px; margin-bottom: 22px;
+    background: color-mix(in srgb, var(--cs-or) 45%, transparent);
   }
-  /* Sur un téléphone, la favorite seule n'a plus sa mesure : elle rejoint le drapeau. */
-  .profil-favorites[data-nombre="1"] .profil-favorite-texte[data-dense] {
-    text-align: start; hyphens: manual; -webkit-hyphens: manual;
-    word-spacing: normal; text-wrap: pretty;
-  }
+  .profil-favorites[data-nombre="1"] .profil-favorite-texte { font-size: 1rem; }
 }
 `
 
@@ -162,7 +187,7 @@ function Favorite({ citation, max }: { citation: CitationFavoritePublique; max: 
   const corps = (
     <>
       <p className="profil-favorite-texte" data-dense={extrait.dense ? '' : undefined}>
-        «&#8239;{rendreTexteEnrichi(extrait.texte)}&#8239;»
+        «&#8239;{rendreTexteEnrichi(extrait.texte, motsComposesInsecables)}&#8239;»
       </p>
       <p className="profil-favorite-attribution">
         {citation.reference && <span className="profil-favorite-reference">{citation.reference}</span>}

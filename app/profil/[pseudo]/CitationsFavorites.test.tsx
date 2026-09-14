@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import CitationsFavorites, { EXTRAIT_A_DEUX, SEUIL_GRIS, extraitFavorite } from './CitationsFavorites'
+import CitationsFavorites, { EXTRAIT_A_DEUX, SEUIL_GRIS, extraitFavorite, motsComposesInsecables } from './CitationsFavorites'
 import type { CitationFavoritePublique } from '../../lib/citationsFavorites'
 
 const FINE = String.fromCharCode(0x202f)
@@ -58,6 +58,34 @@ describe('CitationsFavorites', () => {
     const html = rendre([{ ...VERSET, lien: null }])
     expect(html).not.toContain('<a ')
     expect(html).toContain('data-nombre="1"')
+  })
+
+  it('ne fend pas un mot composé à son trait d’union', () => {
+    const html = rendre([{ ...VERSET, texte: 'Que les eaux qui sont au-dessous du ciel se rassemblent' }])
+    expect(html).toContain('<span class="profil-favorite-mot">au-dessous</span>')
+    expect(html).not.toContain('<span class="profil-favorite-mot">Que')
+  })
+})
+
+describe('motsComposesInsecables', () => {
+  const rendreMots = (texte: string) =>
+    renderToStaticMarkup(React.createElement(React.Fragment, null, motsComposesInsecables(texte, 't')))
+
+  it('enferme chaque mot composé, apostrophe comprise, et rien d’autre', () => {
+    const html = rendreMots('Il dit, c’est-à-dire vous-mesme, ô Jésus-Christ.')
+    expect(html.match(/class="profil-favorite-mot"/g)).toHaveLength(3)
+    expect(html).toContain('<span class="profil-favorite-mot">c’est-à-dire</span>')
+    expect(html).toContain('<span class="profil-favorite-mot">vous-mesme</span>')
+    expect(html).toContain('<span class="profil-favorite-mot">Jésus-Christ</span>')
+  })
+
+  it('ne change pas un caractère du texte', () => {
+    const texte = 'Au-dessous du ciel, dis-je, et le sec paraisse.'
+    expect(rendreMots(texte).replace(/<[^>]+>/g, '')).toBe(texte)
+  })
+
+  it('rend le texte tel quel quand aucun mot n’est composé', () => {
+    expect(motsComposesInsecables('Au commencement était le Verbe.', 't')).toBe('Au commencement était le Verbe.')
   })
 })
 
