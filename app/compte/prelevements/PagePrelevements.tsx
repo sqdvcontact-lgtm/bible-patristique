@@ -9,6 +9,7 @@
 // pose plus de <main> ni de fond, que le cadre porte déjà.
 
 import IconeChevron from '@/app/components/IconeChevron'
+import IconeCopier from '@/app/components/IconeCopier'
 import { useEffect, useState } from "react";
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Link from "next/link";
@@ -29,6 +30,7 @@ import {
   type CitationPreferee, type TypeCitation,
 } from "@/app/lib/citationsFavorites";
 import { PLAFOND_SEGMENTS_ELIDES, numerosDeLEcart, regrouperCitations, texteDuGroupe, type Ecart } from "@/app/lib/regrouperCitations";
+import { lieuDuPrelevement, type NiveauxDuLieu } from "@/app/lib/lieuPrelevement";
 import { lotsPourClauseIn } from "@/app/lib/paginationSupabase";
 import { replier } from "@/app/lib/bibleBibliographieOuvrages";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
@@ -51,6 +53,9 @@ type Prelevement = {
   auteur?: string; titre_oeuvre?: string;
   ref_niv1?: string; ref_niv2?: string;
   id_oeuvre?: string; segment_numero?: number;
+  /** Le texte du segment prélevé, retenu à l'écriture depuis août 2026. Une ligne plus
+   *  ancienne ne le porte pas. */
+  id_texte?: string | null;
   created_at: string;
   /** Le texte vient de la traduction choisie dans le menu, non de celle du prélèvement. */
   texteTraduit?: boolean;
@@ -169,6 +174,13 @@ function grouper<T>(list: T[], key: (item: T) => string): { label: string; items
   return Array.from(map.entries()).map(([label, items]) => ({ label, items }));
 }
 
+/** La colonne de `versets_lecture` qu'on lit : celle du menu quand la vue la porte, la
+ *  Bible de Sacy sinon. ⚠️ Une seule écriture : le chargement et l'affichage doivent
+ *  parler de la même colonne, sans quoi la provenance se dirait d'une autre bible. */
+function colonneDeLecture(traductions: Traduction[], active: string): string {
+  return traductions.some(t => t.code === active) ? active : "TR0001";
+}
+
 // Citation patristique complète (titre en italique pour le collage riche), construite
 // exactement comme sur la page de lecture (règles centralisées dans app/lib/citation.ts).
 function citationPatristiqueDepuisInfo(texte: string, auteur: string, titre: string, info?: OeuvreInfo): CitationRendue {
@@ -185,14 +197,9 @@ function BoutonCopie({ citation }: { citation: CitationRendue | string }) {
   const [ok, setOk] = useState(false);
   return (
     <button onClick={e => { e.stopPropagation(); copierCitation(citation).then(() => { setOk(true); setTimeout(() => setOk(false), 1400); }); }}
-      className="prel-action" title="Copier"
+      className="prel-action" title="Copier" aria-label="Copier la citation"
       style={{ color: ok ? "var(--cs-vert)" : undefined }}>
-      {ok ? "✓" : (
-        <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
-          <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-          <rect x="3" y="3" width="7" height="8.5" rx=".8" stroke="currentColor" strokeWidth="1.2"/>
-        </svg>
-      )}
+      {ok ? "✓" : <IconeCopier size={12} />}
     </button>
   );
 }
@@ -201,20 +208,26 @@ function BoutonSuppr({ onSuppr }: { onSuppr: () => void }) {
   const [conf, setConf] = useState(false);
   if (conf) return (
     <span className="prel-confirm" onClick={e => e.stopPropagation()}>
-      Supprimer ?&ensp;
+      Supprimer&#8239;?&ensp;
       <button onClick={onSuppr} style={{ fontWeight: 600, color: "var(--cs-danger-fonce)", background: "none", border: "none", cursor: "pointer", fontSize: "inherit", padding: 0 }}>Oui</button>
       &ensp;
       <button onClick={() => setConf(false)} style={{ color: "var(--cs-texte-doux)", background: "none", border: "none", cursor: "pointer", fontSize: "inherit", padding: 0 }}>Non</button>
     </span>
   );
+  // ⚠️ La croix est un TRAIT, comme ses trois voisines : le glyphe « ✕ » dépendait de la
+  // police et pesait plus lourd que les icônes qu'il côtoie.
   return (
-    <button onClick={e => { e.stopPropagation(); setConf(true); }} className="prel-action" title="Supprimer">✕</button>
+    <button onClick={e => { e.stopPropagation(); setConf(true); }} className="prel-action" title="Supprimer" aria-label="Supprimer la citation">
+      <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true" style={{ display: 'block' }}>
+        <path d="M2.5 2.5l6 6M8.5 2.5l-6 6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+      </svg>
+    </button>
   );
 }
 
 function BoutonLien({ href }: { href: string }) {
   return (
-    <Link href={href} className="prel-action" title="Accéder au passage" style={{ textDecoration: "none" }}>
+    <Link href={href} className="prel-action" title="Accéder au passage" aria-label="Accéder au passage" style={{ textDecoration: "none" }}>
       <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
         <path d="M2 9L9 2" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round"/>
         <path d="M4.5 2H9V6.5" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round"/>
@@ -259,7 +272,9 @@ export default function PagePrelevements() {
   const [oeuvresInfo, setOeuvresInfo] = useState<Record<string, OeuvreInfo>>({});
   const [traductions, setTraductions] = useState<Traduction[]>([]);
   const [traductionActive, setTraductionActive] = useState("TR0001");
-  const [textesTraduits, setTextesTraduits] = useState<Record<string, string>>({});
+  // ⚠️ La carte des textes traduits porte la COLONNE dont elle vient : tant qu'elle ne
+  // répond pas au menu, on ne sait pas encore quel verset la traduction choisie porte.
+  const [textesTraduits, setTextesTraduits] = useState<{ colonne: string | null; carte: Record<string, string> }>({ colonne: null, carte: {} });
   // ⛔ UNE FAVORITE PAR CORPUS : l'Écriture et les Pères ont chacun leur place, et en
   // choisir une ne touche jamais à l'autre (charte § 34.2).
   const [favorites, setFavorites] = useState<Record<TypeCitation, CitationPreferee | null>>({ biblique: null, patristique: null });
@@ -308,10 +323,13 @@ export default function PagePrelevements() {
   // confirmation, parce que le remplacement défait un choix qui paraît sur la page
   // publique. ⚠️ Une favorite dont le prélèvement a disparu n'occupe plus la place :
   // cette page ne la montre nulle part, et la page publique non plus.
+  // ⚠️ Un passage montré peut RÉUNIR la favorite à ses voisins (versets qui se suivent,
+  // passages d'une même œuvre) : c'est l'appartenance qui dit qu'on reprend la même, non
+  // l'égalité du premier prélèvement, qui change dès qu'un voisin s'ajoute devant.
   const choisirPreferee = (pref: CitationPreferee) => {
     const actuelle = favorites[pref.type];
     const presente = actuelle && prelevements.some(p => p.id === actuelle.id) ? actuelle : null;
-    if (presente?.id === pref.id) { inscrireFavorite(pref.type, null); return; }
+    if (presente && (presente.id === pref.id || (pref.ids ?? []).includes(presente.id))) { inscrireFavorite(pref.type, null); return; }
     if (presente) { setRemplacementPropose(pref); return; }
     inscrireFavorite(pref.type, pref);
   };
@@ -323,7 +341,7 @@ export default function PagePrelevements() {
       // par défaut vient du cadre, qui a déjà lu le profil une fois pour toutes.
       const [{ data: rows }, { data: trads }, { data: pref }, lisibles] = await Promise.all([
         supabase
-          .from("prelevements").select("id, type, ref_livre, ref_livre_abr, ref_chapitre, ref_verset, texte, traduction, auteur, titre_oeuvre, ref_niv1, ref_niv2, id_oeuvre, segment_numero, created_at")
+          .from("prelevements").select("id, type, ref_livre, ref_livre_abr, ref_chapitre, ref_verset, texte, traduction, auteur, titre_oeuvre, ref_niv1, ref_niv2, id_oeuvre, segment_numero, id_texte, created_at")
           .eq("user_id", uid)
           .order("created_at", { ascending: false }),
         // ⛔ `est_biblique` : voir le commentaire dans app/page.tsx.
@@ -368,9 +386,11 @@ export default function PagePrelevements() {
   }, [user.id, profil.traduction_defaut]);
 
   useEffect(() => {
+    let annule = false;
     const chargerTextes = async () => {
+      const colonne = colonneDeLecture(traductions, traductionActive);
       const bibliquesActuels = prelevements.filter(p => p.type === "biblique");
-      if (bibliquesActuels.length === 0) { setTextesTraduits({}); return; }
+      if (bibliquesActuels.length === 0) { setTextesTraduits({ colonne, carte: {} }); return; }
       const clauses = bibliquesActuels
         .map(p => {
           const livre = CODE_PAR_ABREV[p.ref_livre_abr ?? ""] ?? "";
@@ -378,8 +398,7 @@ export default function PagePrelevements() {
           return `and(livre.eq.${livre},chapitre.eq.${p.ref_chapitre},verset.eq.${p.ref_verset})`;
         })
         .filter(Boolean);
-      if (clauses.length === 0) { setTextesTraduits({}); return; }
-      const colonne = traductions.some(t => t.code === traductionActive) ? traductionActive : "TR0001";
+      if (clauses.length === 0) { setTextesTraduits({ colonne, carte: {} }); return; }
       const batches: string[][] = [];
       for (let i = 0; i < clauses.length; i += 80) batches.push(clauses.slice(i, i + 80));
       const results = await Promise.all(
@@ -391,9 +410,11 @@ export default function PagePrelevements() {
           map[`${v.livre}:${v.chapitre}:${v.verset}`] = String(v[colonne] ?? "");
         });
       });
-      setTextesTraduits(map);
+      // ⚠️ Une réponse qui arrive après un changement de menu ne remplace pas la suivante.
+      if (!annule) setTextesTraduits({ colonne, carte: map });
     };
     chargerTextes();
+    return () => { annule = true; };
   }, [prelevements, traductionActive, traductions]);
 
   const supprimerIds = async (ids: string[]) => {
@@ -410,18 +431,27 @@ export default function PagePrelevements() {
   // Même règle que le volet patristique de la page Bible (voir `regrouperCitations`) :
   // les passages qui se suivent se lisent d'un trait, et ceux que sépare une courte
   // élision aussi, l'écart marqué d'un « […] ».
-  // ⛔ Un prélèvement ne retient PAS son `id_texte` : il garde un texte, une œuvre et un
-  // numéro de segment. Or c'est le TEXTE qui décide d'un regroupement, une œuvre pouvant
-  // en porter plusieurs aux numéros qui se recouvrent. On le retrouve donc en base — et
-  // quand une œuvre en a plusieurs parmi les segments visés, on ne réunit rien : mieux
-  // vaut deux passages séparés qu'un latin collé à un français.
-  const [texteDeLOeuvre, setTexteDeLOeuvre] = useState<Map<string, string>>(new Map());
-  const [longueurs, setLongueurs] = useState<Map<string, number>>(new Map());
+  // ⛔ C'est le TEXTE qui décide d'un regroupement, une œuvre pouvant en porter plusieurs
+  // aux numéros qui se recouvrent. Un prélèvement le RETIENT à l'écriture depuis août
+  // 2026 (`prelevements.id_texte`), et c'est lui qui parle. Jusqu'au 14 septembre 2026
+  // la page l'ignorait et le cherchait en base, où une œuvre à deux textes ne rendait
+  // rien : « Du symbole » (un français et un latin) montrait en trois passages ce que
+  // la règle réunit en un. ⚠️ Une ligne plus ancienne ne le porte pas : on le retrouve
+  // alors en base, et quand l'œuvre en a plusieurs parmi les segments visés, on ne réunit
+  // rien pour elle. Mieux vaut deux passages séparés qu'un latin collé à un français.
+  // ⚠️ La même lecture rend le LIEU de chaque segment, que la manchette montre
+  // (`lieuDuPrelevement`) : le segment fait foi, la copie du prélèvement sert à défaut.
+  const [mesuresPatristiques, setMesuresPatristiques] = useState<{
+    pret: boolean; textes: Map<string, string>; longueurs: Map<string, number>; lieux: Map<string, NiveauxDuLieu>;
+  }>({ pret: false, textes: new Map(), longueurs: new Map(), lieux: new Map() });
   useEffect(() => {
     const patr = prelevements.filter(x => x.type === "patristique" && x.id_oeuvre && x.segment_numero);
     let annule = false;
     (async () => {
-      if (!patr.length) { if (!annule) { setTexteDeLOeuvre(new Map()); setLongueurs(new Map()); } return; }
+      if (!patr.length) {
+        if (!annule) setMesuresPatristiques({ pret: true, textes: new Map(), longueurs: new Map(), lieux: new Map() });
+        return;
+      }
       // Les numéros à lire : ceux des passages enregistrés, et ceux des écarts courts
       // qu'ils laissent entre eux, œuvre par œuvre.
       const numeros = new Set<number>();
@@ -442,10 +472,10 @@ export default function PagePrelevements() {
         }
       }
       const oeuvresVisees = [...parOeuvre.keys()];
-      const lignes: { id_oeuvre: string; id_texte: string; segment_numero: number; segment_texte: string | null }[] = [];
+      const lignes: { id_oeuvre: string; id_texte: string; segment_numero: number; segment_texte: string | null; ref_niv1: string | null; ref_niv2: string | null }[] = [];
       for (const lot of lotsPourClauseIn([...numeros].map(String))) {
         const { data, error } = await supabase.from("segments")
-          .select("id_oeuvre, id_texte, segment_numero, segment_texte")
+          .select("id_oeuvre, id_texte, segment_numero, segment_texte, ref_niv1, ref_niv2")
           .in("id_oeuvre", oeuvresVisees).in("segment_numero", lot.map(Number));
         // ⚠️ Une erreur se LIT : sans elle, l'absence de regroupement passerait pour un
         // parti pris.
@@ -454,43 +484,57 @@ export default function PagePrelevements() {
       }
       const textesParOeuvre = new Map<string, Set<string>>();
       const mesures = new Map<string, number>();
+      const lieux = new Map<string, NiveauxDuLieu>();
       for (const r of lignes) {
         const vus = textesParOeuvre.get(r.id_oeuvre) ?? new Set<string>();
         vus.add(r.id_texte);
         textesParOeuvre.set(r.id_oeuvre, vus);
         mesures.set(`${r.id_texte}|${r.segment_numero}`, (r.segment_texte ?? "").length);
+        lieux.set(`${r.id_texte}|${r.segment_numero}`, { n1: r.ref_niv1, n2: r.ref_niv2 });
       }
       const uniques = new Map<string, string>();
       for (const [oeuvre, vus] of textesParOeuvre) if (vus.size === 1) uniques.set(oeuvre, [...vus][0]);
-      if (!annule) { setTexteDeLOeuvre(uniques); setLongueurs(mesures); }
+      if (!annule) setMesuresPatristiques({ pret: true, textes: uniques, longueurs: mesures, lieux });
     })();
     return () => { annule = true; };
   }, [prelevements]);
 
+  const texteDuPrelevement = (x: Prelevement): string | null =>
+    x.id_texte || (x.id_oeuvre ? mesuresPatristiques.textes.get(x.id_oeuvre) ?? null : null);
   const cleCitation = (x: Prelevement) => ({
     idOeuvre: x.id_oeuvre ?? "",
-    idTexte: x.id_oeuvre ? texteDeLOeuvre.get(x.id_oeuvre) ?? null : null,
+    idTexte: texteDuPrelevement(x),
     numero: x.segment_numero ?? 0,
     texte: x.texte,
   });
   const signesElides = (ecart: Ecart) => {
     let total = 0;
     for (const n of numerosDeLEcart(ecart)) {
-      const l = longueurs.get(`${ecart.idTexte}|${n}`);
+      const l = mesuresPatristiques.longueurs.get(`${ecart.idTexte}|${n}`);
       if (l === undefined) return null;
       total += l;
     }
     return total;
   };
+  const lieuPatristique = (x: Prelevement): string => {
+    const idTexte = texteDuPrelevement(x);
+    const duSegment = idTexte && x.segment_numero ? mesuresPatristiques.lieux.get(`${idTexte}|${x.segment_numero}`) : undefined;
+    return lieuDuPrelevement(duSegment, { n1: x.ref_niv1, n2: x.ref_niv2 });
+  };
 
   const bibliques = trierBibliques(prelevements.filter(p => p.type === "biblique").map(p => {
     const livre = CODE_PAR_ABREV[p.ref_livre_abr ?? ""];
-    const texteTraduit = livre ? textesTraduits[`${livre}:${p.ref_chapitre}:${p.ref_verset}`] : null;
+    const texteTraduit = livre ? textesTraduits.carte[`${livre}:${p.ref_chapitre}:${p.ref_verset}`] : null;
     return texteTraduit ? { ...p, texte: texteTraduit, texteTraduit: true } : p;
   }));
   const patristiques = trierPatristiques(prelevements.filter(p => p.type === "patristique"));
   const groupesBibliquesBruts = grouper(bibliques, p => p.ref_livre_abr ?? p.ref_livre ?? "");
   const groupesPatristiques = grouper(patristiques, p => `${p.auteur ?? ""}||${p.titre_oeuvre ?? ""}`);
+
+  // La colonne que le menu fait lire, et si la carte des textes lui répond déjà.
+  const colonneLue = colonneDeLecture(traductions, traductionActive);
+  const textesPrets = textesTraduits.colonne === colonneLue;
+  const nomColonneLue = nomTraduction(colonneLue);
 
   const tousLesGroupes = onglet === "biblique"
     ? groupesBibliquesBruts.map(g => g.label)
@@ -579,18 +623,33 @@ export default function PagePrelevements() {
            Elle était en trois lignes empilées — texte, puis référence et provenance en
            9 px gris, sous le seuil de contraste — si bien que ce qui identifie le passage
            était ce qu'on lisait le moins. C'est la composition de « Ma chaîne », et les
-           deux pages de l'espace montrent le même corpus. */
+           deux pages de l'espace montrent le même corpus.
+
+           ⛔ LA RANGÉE DÉBORDE DE SA COLONNE, ET LE TEXTE NE BOUGE PAS (2026-09-14). Le
+           cadre de la favorite et le lavis du survol se posaient au ras de la référence :
+           la rangée avait 10 px de rembourrage en haut et à droite, et aucun à gauche, si
+           bien que le filet doré touchait la première lettre. Elle sort donc de
+           la colonne de --prel-debord de chaque côté et rend ce débord en rembourrage :
+           le texte garde son fer, le cadre prend l'air. C'est le parti des rangées du
+           sommaire de l'espace, qui débordent de sept pixels.
+           ⚠️ Le FILET qui sépare deux citations ne suit pas ce débord : il vit dans un
+           pseudo-élément ramené à la mesure, sans quoi il dépasserait le titre du groupe. */
         .prel-item {
+          --prel-debord: 14px;
           display: grid;
           grid-template-columns: 7rem minmax(0, 1fr) auto;
           gap: 0 16px;
           align-items: start;
-          padding: 10px 10px 11px 0;
-          border-bottom: 1px solid var(--cs-bord-clair);
+          margin: 0 calc(-1 * var(--prel-debord));
+          padding: 10px calc(10px + var(--prel-debord)) 11px var(--prel-debord);
+          border-radius: 8px;
           position: relative;
           transition: background 0.12s;
         }
-        .prel-item:last-child { border-bottom: none; }
+        .prel-item::after { content: ""; position: absolute; left: var(--prel-debord);
+          right: var(--prel-debord); bottom: 0; border-bottom: 1px solid var(--cs-bord-clair);
+          pointer-events: none; }
+        .prel-item:last-child::after { display: none; }
         .prel-item:hover { background: rgba(var(--cs-vert-rgb),0.03); }
 
         /* La manchette NOMME, elle ne mène nulle part : la gouttière d'actions porte déjà
@@ -599,35 +658,28 @@ export default function PagePrelevements() {
         .prel-ref { font-family: var(--font-source-serif), Georgia, serif;
           font-size: 0.8125rem; font-weight: 600; line-height: 1.35;
           color: var(--cs-texte-fort); padding-top: 1px; }
+        /* ⛔ UNE MANCHETTE VIDE NE GARDE SA COLONNE QUE SI UN VOISIN LA REMPLIT. Elle la
+           tient quand un passage du groupe n'a pas de lieu et que ses voisins en ont un :
+           le fer du texte ne saute pas d'une ligne à l'autre. Quand AUCUN n'en a, la
+           colonne n'aligne rien, et elle retirait sept rem à chaque passage. */
+        .prel-item--sans-ref { grid-template-columns: minmax(0, 1fr) auto; }
+        .prel-item--sans-ref .prel-ref { display: none; }
         /* ⛔ Le texte cité est du CORPUS : il se compose en sérif, comme le verset de la
            page Bible et comme le lemme de la chaîne. Il était en sans, si bien que deux
            pages voisines rendaient le même texte dans deux polices. */
         .prel-texte { font-family: var(--font-source-serif), Georgia, serif;
           font-size: 0.875rem; line-height: 1.42; color: var(--cs-texte-fort); margin: 0;
           text-align: left; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; }
-        /* ⚠️ La provenance est une GLOSE, non une rubrique : elle se répète à chaque
-           ligne, presque toujours la même, et en petites capitales espacées elle appelait
-           l'œil autant que la référence. L'italique dit qu'elle n'est pas du texte, le gris
-           qu'elle vient en second. */
+        /* ⚠️ La provenance est une GLOSE, non une rubrique : en petites capitales espacées
+           elle appelait l'œil autant que la référence. L'italique dit qu'elle n'est pas du
+           texte, le gris qu'elle vient en second.
+           ⛔ ET ELLE NE PARAÎT QUE SI ELLE NOMME LE TEXTE MONTRÉ (2026-09-14). « Prélevé
+           dans la Bible de Sacy » se posait sous chaque verset, y compris quand le menu le
+           faisait lire dans une autre traduction : la glose nommait alors un texte que la
+           page ne montrait pas. Elle ne dit plus que l'exception, le verset que la
+           traduction du menu ne porte pas et dont on montre alors le texte prélevé. */
         .prel-provenance { font-size: 0.625rem; font-style: italic;
           color: var(--cs-texte-second); margin: 4px 0 0; }
-
-        @media (max-width: 640px) {
-          .prel-item { grid-template-columns: minmax(0, 1fr) auto; gap: 3px 10px; }
-          .prel-ref { grid-column: 1 / -1; padding-top: 0; }
-        }
-
-        /* Citation favorite — encadrement doré complet.
-           ⚠️ L'or passe par le TOKEN, plus par ses composantes en dur : la teinte
-           suit désormais le thème (le Cuir) comme le reste de la page. */
-        .prel-pref {
-          background: ${colorMix('var(--cs-or)', 8)} !important;
-          border-left: none !important;
-          box-shadow: inset 0 0 0 1.5px ${colorMix('var(--cs-or)', 50)} !important;
-          border-radius: 4px;
-          margin: 2px 0;
-        }
-        .prel-pref .prel-actions { opacity: 1 !important; }
 
         /* La gouttière d'actions ne paraissait qu'au survol : hors d'atteinte au
            doigt, et invisible au clavier. Elle vient donc aussi au focus, et
@@ -636,25 +688,74 @@ export default function PagePrelevements() {
         .prel-item:hover .prel-actions,
         .prel-item:focus-within .prel-actions { opacity: 1; }
         .prel-tactile .prel-actions { opacity: 1; }
-        .prel-action { background: none; border: none; cursor: pointer; color: var(--cs-texte-faible); padding: 0; line-height: 1; transition: color 0.12s; font-family: inherit; font-size:0.8125rem; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 22px; box-sizing: border-box; text-decoration: none; }
+        /* ⛔ 24 PIXELS AU MOINS, ET UNE ENCRE QUI SE VOIT (2026-09-14). Les boutons
+           faisaient 24 sur 22, sous le plancher de WCAG 2.2, et leur encre
+           (--cs-texte-faible) ne rendait que 2,14 sur le papier, pour les 3 qu'une icône
+           demande. --cs-texte-gris rend 3,45 sur le papier et 3,20 sur le lavis de la
+           favorite. Au doigt, la cible prend la mesure d'une grappe (charte, « LE DOIGT »). */
+        .prel-action { background: none; border: none; cursor: pointer; color: var(--cs-texte-gris); padding: 0; line-height: 1; transition: color 0.12s; font-family: inherit; font-size:0.8125rem; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; box-sizing: border-box; text-decoration: none; border-radius: 4px; }
+        .prel-tactile .prel-action { width: 2.25rem; height: 2.25rem; }
         .prel-action:hover { color: var(--cs-vert); }
         /* La marque de la citation favorite est d'or, jamais du vert des actions :
-           elle ne fait pas la même chose qu'elles. */
-        .prel-marque { color: var(--cs-or-doux); }
-        .prel-marque:hover { color: var(--cs-or); }
+           elle ne fait pas la même chose qu'elles. ⚠️ L'or doux ne rendait que 1,77 au
+           repos : l'or de la charte en rend 3,67, l'or lisible répond au survol. */
+        .prel-marque { color: var(--cs-or); }
+        .prel-marque:hover { color: var(--cs-or-lisible); }
         .prel-marque-active { color: var(--cs-or) !important; opacity: 1 !important; }
         .prel-confirm { font-size:0.65625rem; color: var(--cs-texte-doux); display: flex; align-items: center; white-space: nowrap; }
+
+        /* ⛔ LA FAVORITE PREND L'AIR QUE SON CADRE DEMANDE (2026-09-14). Le cadre est un
+           filet d'or d'un pixel, posé en ombre intérieure pour ne rien déplacer, et le
+           lavis le double. La rangée s'ouvre de quelques pixels en haut et en bas, et se
+           détache de ses voisines d'autant : un encadrement collé au texte qu'il désigne
+           se lit comme une case, non comme un choix.
+           ⚠️ Deux classes au sélecteur : le survol en porte deux lui aussi, et c'est
+           l'ordre qui tranche. Plus aucun « !important ».
+           ⛔ Sa référence prend l'or LISIBLE : l'or de la charte n'y rendait que 3,37 sur
+           le lavis, quand la référence porte seule l'identité du passage (§ 40.11). */
+        .prel-item.prel-pref {
+          background: ${colorMix('var(--cs-or)', 7)};
+          box-shadow: inset 0 0 0 1px ${colorMix('var(--cs-or)', 48)};
+          margin-top: 6px; margin-bottom: 6px;
+          padding-top: 12px; padding-bottom: 13px;
+        }
+        .prel-item.prel-pref::after { display: none; }
+        .prel-item.prel-pref .prel-ref { color: var(--cs-or-lisible); }
+        .prel-item.prel-pref .prel-actions { opacity: 1; }
+        /* ⚠️ À part, et non dans une liste de sélecteurs : un navigateur qui ignore
+           « :has() » jetterait la règle entière, et le cadre garderait le filet de la
+           citation qui le précède. */
+        .prel-item:has(+ .prel-pref)::after { display: none; }
+
+        /* Le menu de traduction. ⛔ Son chevron est celui du site, et il prend l'encre du
+           thème : la flèche était une image en data-URI, d'une teinte écrite en dur que le
+           Cuir ne pouvait pas retourner. Il se ferre, comme toute la page (§ 40.11). */
+        .prel-trad { position: relative; display: flex; align-items: center; width: fit-content; margin-bottom: 18px; }
         .prel-trad-sel {
           appearance: none; -webkit-appearance: none;
           font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; font-style: normal;
           color: var(--cs-texte-second); background: transparent; border: none;
           border-bottom: 1px solid var(--cs-or-doux); padding: 3px 20px 3px 0;
-          cursor: pointer; outline: none; text-align: center;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%239a8a72'/%3E%3C/svg%3E");
-          background-repeat: no-repeat; background-position: right 2px center; background-size: 7px;
+          cursor: pointer; outline: none; text-align: left;
           letter-spacing: 0.01em;
         }
         .prel-trad-sel:focus { border-bottom-color: var(--cs-or); }
+        .prel-trad-chevron { position: absolute; right: 3px; top: 50%; transform: translateY(-50%);
+          display: inline-flex; color: var(--cs-texte-gris); pointer-events: none; }
+
+        /* ⛔ SUR UN TÉLÉPHONE, LE TEXTE PREND TOUTE LA MESURE (2026-09-14). La référence
+           montait au-dessus du texte, mais la gouttière d'actions restait à côté de lui :
+           à 375 px de large, ses quatre boutons, sa marge et l'écart de la grille prenaient
+           116 px sur 317, plus d'un tiers de la mesure. Les actions montent sur la ligne de
+           la référence, et le texte descend sous les deux. Le débord se resserre : la page
+           n'a que 24 px de marge. */
+        @media (max-width: 640px) {
+          .prel-item { --prel-debord: 10px; grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas: "ref actions" "corps corps"; gap: 2px 10px; }
+          .prel-ref { grid-area: ref; padding-top: 0; align-self: center; }
+          .prel-corps { grid-area: corps; }
+          .prel-actions { grid-area: actions; margin-left: 0; }
+        }
       `}</style>
 
         <BandeauLecteur lecteur={profil} reperes={reperes} />
@@ -690,11 +791,12 @@ export default function PagePrelevements() {
 
         {/* ── Sélecteur de traduction ── */}
         {onglet === "biblique" && traductions.length > 0 && listeActive.length > 0 && (
-          <div style={{ marginBottom: "18px" }}>
+          <div className="prel-trad">
             <select value={traductionActive} onChange={e => setTraductionActive(e.target.value)}
-              className="prel-trad-sel">
+              className="prel-trad-sel" aria-label="Traduction des versets">
               {traductions.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
             </select>
+            <span className="prel-trad-chevron" aria-hidden="true"><IconeChevron dir="down" size={10} strokeWidth={1.6} /></span>
           </div>
         )}
 
@@ -719,19 +821,23 @@ export default function PagePrelevements() {
                     {agglomeres.map((g, i) => {
                       const texte = texteGroupe(g);
                       const ref = refBiblique(g);
-                      const estPref = favorites.biblique?.id === g.ids[0];
+                      const estPref = favorites.biblique != null && g.ids.includes(favorites.biblique.id);
                       const nomTrad = nomTraduction(g.traduction);
-                      // La favorite garde la traduction où on la LIT : celle du menu quand
-                      // tous ses versets s'y trouvent, celle du prélèvement sinon.
-                      const tradLue = g.traduit ? nomTraduction(traductionActive) : nomTrad;
+                      // La favorite garde la traduction où on la LIT : celle dont vient le
+                      // texte montré, quand tous ses versets s'y trouvent, celle du prélèvement
+                      // sinon.
+                      const tradLue = g.traduit ? nomTraduction(textesTraduits.colonne ?? traductionActive) : nomTrad;
+                      // ⛔ La provenance ne se dit que si elle nomme le texte MONTRÉ : un verset
+                      // que la traduction du menu ne porte pas, lu dans celle du prélèvement.
+                      const provenance = nomTrad && textesPrets && !g.traduit && nomTrad !== nomColonneLue ? nomTrad : null;
                       return (
                         <div key={i} className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
-                          <span className="prel-ref" style={estPref ? { color: "var(--cs-or)" } : undefined}>{ref}</span>
-                          <div>
+                          <span className="prel-ref">{ref}</span>
+                          <div className="prel-corps">
                             <p className="prel-texte">
                               «&#8201;{rendreTexteEnrichi(preparerTexteCitation(texte))}&#8201;»
                             </p>
-                            {nomTrad && <p className="prel-provenance">Prélevé dans la {nomTrad}</p>}
+                            {provenance && <p className="prel-provenance">Texte de la {provenance}</p>}
                           </div>
                           <div className="prel-actions">
                             <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: g.ids[0], ids: g.ids, texte, type: "biblique", ref, traduction: tradLue ?? undefined }); }} />
@@ -764,6 +870,15 @@ export default function PagePrelevements() {
                 const [auteur, titre] = label.split("||");
                 const ouvert = groupesOuverts.has(label);
                 const idAuteur = items[0]?.id_oeuvre ? oeuvresInfo[items[0].id_oeuvre]?.id_auteur : undefined;
+                // ⚠️ Les passages d’une même œuvre qui se suivent, ou que sépare une courte
+                // élision, se lisent d’un trait, comme dans le volet de la page Bible
+                // (demande de l’auteur, 2026-09-04). Les actions portent alors sur TOUT le
+                // groupe, comme elles le font depuis toujours pour une suite de versets.
+                const regroupes = regrouperCitations(items, cleCitation, signesElides);
+                const lieux = regroupes.map(groupe => lieuPatristique(groupe[0]));
+                // ⛔ La colonne de la manchette ne tombe que lorsque la mesure est faite :
+                // tant que les segments ne sont pas relus, un lieu peut encore venir.
+                const sansManchette = mesuresPatristiques.pret && lieux.every(l => !l);
                 return (
                   <GroupeRepliable key={label} ancre={ancreDuGroupe(label)} label={
                     <>
@@ -773,27 +888,20 @@ export default function PagePrelevements() {
                           {auteur}
                         </Link>
                       ) : auteur}
-                      {titre && <span style={{ textTransform: "none", fontStyle: "italic", fontWeight: 400, color: "var(--cs-texte-second)" }}>,&ensp;{titre}</span>}
+                      {titre && <span style={{ textTransform: "none", fontStyle: "italic", fontWeight: 400, color: "var(--cs-texte-second)" }}>, {titre}</span>}
                     </>
-                  } count={items.length} ouvert={ouvert} onToggle={() => toggleGroupe(label)}>
-                    {/* ⚠️ Les passages d’une même œuvre qui se suivent — ou que sépare une
-                        courte élision — se lisent d’un trait, comme dans le volet de la page
-                        Bible (demande de l’auteur, 2026-09-04). Les actions portent alors sur
-                        TOUT le groupe, comme elles le font depuis toujours pour une suite de
-                        versets bibliques. */}
-                    {regrouperCitations(items, cleCitation, signesElides).map(groupe => {
+                  } count={regroupes.length} ouvert={ouvert} onToggle={() => toggleGroupe(label)}>
+                    {regroupes.map((groupe, rang) => {
                       const p = groupe[0];
                       const ids = groupe.map(x => x.id);
                       const texteReuni = texteDuGroupe(groupe, cleCitation);
                       const estPref = favorites.patristique != null && ids.includes(favorites.patristique.id);
                       return (
-                        <div key={ids.join("_")} className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
+                        <div key={ids.join("_")} className={`prel-item${sansManchette ? " prel-item--sans-ref" : ""}${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
                           {/* ⚠️ La manchette tient sa colonne même vide : un passage sans
-                              référence de niveau ne doit pas décaler le fer de ses voisins. */}
-                          <span className="prel-ref" style={estPref ? { color: "var(--cs-or)" } : undefined}>
-                            {[p.ref_niv1, p.ref_niv2].filter(Boolean).join(", ")}
-                          </span>
-                          <div>
+                              lieu ne doit pas décaler le fer de ses voisins. */}
+                          <span className="prel-ref">{lieux[rang]}</span>
+                          <div className="prel-corps">
                             <p className="prel-texte">
                               «&#8201;{rendreTexteEnrichi(preparerTexteCitation(texteReuni))}&#8201;»
                             </p>

@@ -16,6 +16,7 @@
 import { ABREV_FR } from './bible'
 import { formaterPlageCanonique } from './referencesBibliques'
 import { sansAppelsDeNote } from './appelsDeNote'
+import { lieuDuPrelevement } from './lieuPrelevement'
 
 export type TypeCitation = 'biblique' | 'patristique'
 
@@ -236,7 +237,9 @@ function composerPatristique(
   const premier = lignes
     .filter(l => l.type === 'patristique' && ids.has(l.id) && l.id_oeuvre === tete.id_oeuvre)
     .sort((a, b) => (a.segment_numero ?? 0) - (b.segment_numero ?? 0))[0] ?? tete
-  const lieu = [nette(premier.ref_niv1), nette(premier.ref_niv2)].filter(Boolean).join(', ')
+  // ⚠️ Un lieu localise, il ne résume pas : la règle est celle de « Mes citations »
+  // (`lieuPrelevement.ts`), qui tait un intitulé de niveau devenu sommaire.
+  const lieu = lieuDuPrelevement(undefined, { n1: premier.ref_niv1, n2: premier.ref_niv2 })
   return {
     type: 'patristique',
     texte: fav.texte,

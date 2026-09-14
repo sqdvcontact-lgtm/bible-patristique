@@ -167,8 +167,10 @@ export default async function AccueilPage() {
            du dernier aplat posé sous lui — le sien compris.
            Mesuré à 68 %, au Clair : 4,73 dans la pastille, 5,17 sur le papier doux
            (la signature), 5,71 sur le papier du seuil (les dates). Au Cuir : 6,76,
-           7,88 et 9,17. Les trois usages du jeton montent ensemble. */
-        .accueil { --cs-or-lisible: color-mix(in oklab, var(--cs-or) 68%, var(--cs-texte-fort)); }
+           7,88 et 9,17. Les trois usages du jeton montent ensemble.
+           ⚠️ Le jeton vit dans globals.css depuis le 2026-09-14 : la référence d'une
+           citation favorite, dans « Mes citations », en avait besoin aussi, et un jeton de
+           rôle ne se définit pas sur une page. */
 
         .colophon-ornement { font-size: 1.125rem; color: var(--cs-texte-second); letter-spacing: 0.25em; }
         /* La marque qui ferme la page. C'était le fleuron ❧, un CARACTÈRE : son dessin

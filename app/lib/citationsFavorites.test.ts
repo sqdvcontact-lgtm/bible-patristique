@@ -177,6 +177,16 @@ describe('composerFavorites — les Pères', () => {
     expect(composerFavorites([fav], passages, new Set())).toEqual([])
   })
 
+  it('tait un intitulé de niveau devenu sommaire', () => {
+    const passage = ligne({
+      id: U(13), type: 'patristique', auteur: 'Jean Chrysostome', titre_oeuvre: 'Homélies sur la Genèse',
+      id_oeuvre: 'A0014O0004', segment_numero: 913, ref_niv1: 'Dixième homélie',
+      ref_niv2: 'Quant à ce que dit l’écrivain sacré que « Dieu se reposa le septième jour », cela n’implique aucune contradiction avec cette parole de Jésus-Christ.',
+    })
+    const [composee] = composerFavorites([{ id: U(13), type: 'patristique', texte: 'x' }], [passage], new Set(['A0014O0004']))
+    expect(composee.lieu).toBe('Dixième homélie')
+  })
+
   it('pose l’Écriture avant les Pères, dans quelque ordre qu’on les donne', () => {
     const verset = ligne({ id: U(1), type: 'biblique', ref_livre_abr: 'Gn', ref_chapitre: 1, ref_verset: 1 })
     const composees = composerFavorites(

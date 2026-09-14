@@ -193,6 +193,15 @@
      déjà corrigé de son côté, faute d'un nom où se ranger. */
   --cs-or-rgb: 154, 122, 56;
   --cs-or-doux: #c8b89e;
+  /* L'or LISIBLE : l'or quand il porte un TEXTE. --cs-or ne rend que 3,67 sur le papier
+     (3,80 sur le papier clair, 3,37 sous un lavis d'or), sous les 4,5 d'un texte courant ;
+     mêlé à l'encre forte, il garde sa teinte et passe le seuil (mesuré sur l'accueil : 4,73
+     à 5,71 au Clair, 6,76 à 9,17 au Cuir ; 5,29 sous le lavis d'une citation favorite). Le
+     pas se prend sur --cs-texte-fort, si bien qu'il fonce l'or au Clair et l'éclaircit au
+     Cuir sans seconde définition. Il vivait sur la seule page d'accueil ; la référence de
+     la citation favorite, dans « Mes citations », en a eu besoin le 2026-09-14, et un jeton
+     de rôle ne se définit pas sur une page. */
+  --cs-or-lisible: color-mix(in oklab, var(--cs-or) 68%, var(--cs-texte-fort));
   /* Familles de la navbar. « Corpus » prend le vert, « Communauté » l'or ; « Système &
      doctrine » n'avait pas de teinte à lui et portait le seul bleu du site, écrit en dur,
      donc intransposable en Cuir. Il l'est maintenant. */
