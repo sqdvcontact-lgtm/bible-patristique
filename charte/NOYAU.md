@@ -530,6 +530,7 @@
 - ⛔ Le numéro affiché est celui du LECTEUR, jamais le numéro interne : celui-ci porte l’identité et l’ordre, non l’adresse que le lecteur vient de cliquer.
 - ⛔ MAIS IL SE FERRE À GAUCHE, et le fer à droite est ici une règle mal transposée (décision de l’auteur, 2026-09-08 : « supprime l’alinéa avant le numéro de note »).
 - ⚠️ Règle générale : **un fer à droite ne se justifie que par une COLONNE de repères ; seul, il fait un alinéa.**
+- ⛔ Et il n’a plus de gouttière (décision de l’auteur, 13 septembre 2026 : « alinéa après le numéro de note trop important ») : il épouse ses chiffres, suivi d’un blanc d’un demi-em du propos.
 - ⛔ UNE NOTE SE JUSTIFIE AU-DESSUS DU SEUIL DU GRIS, ET SE FERRE SOUS LUI (décision du 8 septembre 2026, « j’aimerais qu’elles soient justifiées » ; resserrée le 10, capture à l’appui).
 - ⚠️ Le seuil est celui de la charte (§ 3.11), deux cent cinquante signes servis, et il vaut ici comme ailleurs — une note de quarante signes n’a pas de gris à tenir, et la justifier étirait sa première ligne d’un bord à l’autre pour laisser un mot seul sur la seconde.
 - ⛔ Ce n’est pas un cas d’exception mais le cas ORDINAIRE : la médiane du corpus fait dix-sept signes, et 92,6 % des notes tiennent sous cent vingt.
@@ -548,6 +549,8 @@
 - ⚠️ Elle reste réservée TOUJOURS, croix montrée ou non : la géométrie ne bouge pas entre le survol et le clic, et cette règle-là ne cède pas.
 - ⛔ LA CONDENSATION SE MESURE, ET SUR LA BOÎTE ENTIÈRE (« condense le texte selon mes recommandations »).
 - ⚠️ Ce n’est pas le corps du texte qui a maigri — il ne bouge plus depuis le 8 septembre — c’est le BLANC qui rendait la boîte lourde.
+- ⛔ Mais la marge a été rendue (décision de l’auteur, 13 septembre 2026 : « donner des marges plus propres et nobles à l’ouverture de la note ») : 0,875 sur 1 rem.
+- ⚠️ Le même jour, la planche a montré deux défauts que la condensation cachait : l’estimation ignorait ce que le numéro et la croix prennent à la première ligne, et le dernier bloc d’une note d’œuvre, enveloppé, gardait son blanc de queue.
 - ⛔ LA HAUTEUR SE DEMANDE UNE FOIS LA LARGEUR CONNUE.
 - ⚠️ On ne peut pas passer au placeur une hauteur toute faite : c’est LUI qui décide de la largeur, et il reçoit donc une fonction.
 - ⚠️ Sans largeur, la mesure pleine — c’est le cas de l’encart posé sous son appel, où rien ne le resserre.
@@ -603,11 +606,12 @@
 **§ 13.16.1 — Autorité, provenance, responsabilité et fonction**
 
 - ⛔ RESPONSABILITÉ, FONCTION, PROVENANCE, NATURE DE BLOC ET RENDU SONT DES AXES DISTINCTS.
-- ⚠️ UN TYPE FAUX EST PIRE QU’UN TYPE ABSENT, MAIS UNE RÉVISION NE SE FERME PAS SUR DES NOTES NON TYPÉES.
+- ⛔ TOUTES LES NOTES ONT UN TYPE, SANS EXCEPTION.
 - ⛔ LE TYPE FONCTIONNEL APPARTIENT À LA NOTE LOGIQUE.
 
 **§ 13.16.2 — Appels, ancres et ponctuation**
 
+- ⛔ L’APPEL SE PLACE À LA FIN DE L’ÉLÉMENT PRÉCIS ANNOTÉ, JAMAIS À SON DÉBUT PAR DÉFAUT.
 - ⛔ L’APPEL DE NOTE SE PLACE TOUJOURS AVANT LA PONCTUATION. IL N’Y A PAS D’EXCEPTION.
 
 **§ 13.16.3 — Orthographe et typographie de chaque note**
@@ -621,6 +625,7 @@
 - ⛔ PETITES CAPITALES DANS LES RÉFÉRENCES.
 - ⛔ RÈGLE ABSOLUE DE STYLE DES CITATIONS.
 - ⛔ GROUPE CITATIONNEL ORIGINAL + TRADUCTION.
+- ⛔ TOUTE NOTE SE TERMINE PAR UN POINT FINAL.
 - ⛔ tout mot, syntagme ou courte expression en latin enchâssé dans une phrase française **doit** être en italiques ; les caractères grecs en alphabet grec restent en romain ; les translittérations du grec en alphabet latin sont en italiques ;
 
 **§ 13.16.4 — Abréviations : développer par défaut**
@@ -641,33 +646,12 @@
 
 - ⚠️ UNE NOTE PEUT ÊTRE RADICALEMENT RECOMPOSÉE POUR ÊTRE LISIBLE.
 
-**§ 13.16.10 — Procédure obligatoire — onze passes globales sur l’œuvre entière**
+**§ 13.16.10 — Procédure obligatoire — v3.1, treize passes ordonnées par dépendance (14 septembre 2026)**
 
-- ⛔ LA REPRISE GÉNÉRALE DES NOTES SE FAIT DANS CET ORDRE.
-- ⛔ UNE PASSE PORTE TOUJOURS SUR L’ŒUVRE ENTIÈRE.
-- ⛔ Aucune passe `P(X+1)` ne s’ouvre tant que toutes les sous-passes `PX-n` nécessaires n’ont pas été achevées et que `PX` n’a pas été close globalement.
-- ⛔ Dès que `metadata.editorial_role` est établi, toute mention textuelle qui redouble ou contredit ce rôle est retirée du corps de la note.
-- ⛔ La passe se ferme seulement avec 100 % des notes couvertes et 0 type principal hors vocabulaire ; toute réserve résiduelle est explicitement comptée et nommée.
-- ⛔ Les artifices matériels de l’imprimé ne restent pas mêlés à la prose : lettre d’appel, pagination de la note et coordonnée source du type « (A) p. 2. — » sont conservées dans `source_label`, `printed_page`, l’ancre ou les métadonnées de provenance.
-- ⛔ UN SIGLE DE TÉMOIN DÉFINI DANS « INFORMATIONS COMPLÉMENTAIRES » RESTE UN SIGLE DANS LES NOTES DE L’ÉDITION.
-- ⚠️ Cette concision suppose une clé publique, non ambiguë et propre à la version active : un sigle non défini est explicité ou la rubrique est complétée avant publication, et la convention d’une autre édition n’est jamais importée par repli.
-- ⛔ Un homographe n’est jamais traité mécaniquement : `1 P 2, 13` est une référence à la Première épître de Pierre, non au témoin parisien.
-- ⛔ Dans la couche normalisée d’une note, aucun texte éditorial n’est conservé entre parenthèses.
-- ⛔ Une référence nue n’est jamais une citation : `Rm 8, 28.` ou tout autre bloc qui ne contient qu’une coordonnée scripturaire ne reçoit aucun guillemet ajouté, ni dans la donnée ni au rendu.
-- ⛔ PROTOCOLE — `Cf.` / `cf.` ET PETITES CAPITALES.
-- ⛔ Lorsqu’une note cite une édition identifiable et que sa notice structurée fournit les données éditoriales, la référence visible est complète : auteur, titre exact, responsabilité éditoriale ou traduction pertinente, lieu, éditeur, collection et numéro lorsqu’ils sont connus, date, puis locator.
-- ⛔ Une référence biblique autonome n’est jamais parenthésée dans une note ; la forme normalisée est `Rm 8, 28.`, non `(Rm 8, 28).`.
-- ⛔ PROTOCOLE — TRAIT D’UNION DES PLAGES.
-- ⛔ PROTOCOLE — AUTEUR, ŒUVRE, ÉDITION ET COÉDITION.
-- ⛔ DIVISION TRADITIONNELLE ≠ ŒUVRE AUTONOME.
-- ⛔ il n’est jamais saisi à la main dans le texte.
-- ⛔ PROTOCOLE — RESPONSABILITÉS BIBLIOGRAPHIQUES ET RÉEMPLOI DES NOTICES.
-- ⛔ PROTOCOLE — SÉRIES BIBLIOGRAPHIQUES DANS UNE NOTE.
-- ⛔ Le contre-audit de clôture vérifie en outre : zéro libellé de type encore écrit dans le corps lorsqu’un `editorial_role` le porte ; zéro coordonnée matérielle source laissée en prose lorsqu’elle est déjà conservée dans les champs structurés et n’a pas d’utilité publique ; zéro œuvre nommée sans relation `texte_note_bloc_ouvrages` lorsqu’elle est identifiable ; zéro jeton manuel `[Éditions]` ; zéro bloc de référence…
-- ⛔ PROTOCOLE — ZÉRO NOTE INVISIBLE FAUTE D’ANCRE.
-- ⛔ Le modèle fusionné `Référence : « lemme »` est interdit.
-- ⛔ COMPTE RENDU OBLIGATOIRE APRÈS CHAQUE PASSE GLOBALE.
-- ⛔ LA PRUDENCE FINALE EST ASYMÉTRIQUE  — typographie, déploiement et référencement peuvent être fortement normalisés ; contenu, autorité, attribution et information philologique ne se modifient qu’avec preuve.
+- ⛔ Aucune note logique n’est admise sans responsabilité éditoriale structurée.
+- ⛔ Aucune note n’est admise sans type fonctionnel — une ambiguïté porte un type principal provisoire documenté, jamais `NULL`.
+- ⛔ L’italique hérité de l’imprimé n’est jamais conservé par inertie.
+- ⛔ RÉOUVERTURE PAR DÉPENDANCE, PAS PAR RÉPÉTITION GLOBALE.
 
 ## § 14. OCR, HTR et transcription patrimoniale
 
@@ -785,6 +769,10 @@
 - ⛔ Et elles ne reçoivent que les boutons qui les concernent : l’édition et l’apparat, la modification, la suppression.
 - ⛔ Cette colonne ne commande QUE la notice : une traduction éteinte reste offerte dans tous les sélecteurs de lecture, et son texte se lit comme avant.
 - ⚠️ La rangée d’actions d’une ligne s’aligne par LARGEURS RÉSERVÉES, non par le hasard des libellés.
+
+**§ 15.6 — Le nom des traductions d’une même famille**
+
+- ⛔ Le menu central de la page Bible et celui de la Polyglotte réunissent une famille en UNE entrée
 
 ## § 16. Auteurs, œuvres et catalogue
 
@@ -1341,7 +1329,16 @@
 
 - ⛔ Le centre de contrôle se lit mission par mission.
 - ⛔ La liste des missions vient de la base, jamais d'une énumération écrite dans une page.
-- ⚠️ Le centre ne s'ouvre pas sur l'état du contrôle v2 — qui est une vue à part du même volet : son contrat recalcule à chaque appel toute la file des postcontrôles de liens, et une panne de ce calcul ne doit pas fermer les missions.
+- ⚠️ Le centre ne s'ouvre pas sur l'état du contrôle v2 — qui est une vue à part, nommée sous les missions : son contrat recalcule à chaque appel toute la file des postcontrôles de liens, et une panne de ce calcul ne doit pas fermer les missions.
+
+**§ 30.4 — Toutes les pages de l'administration portent le même sommaire**
+
+- ⛔ Le sommaire de l'administration se tient en volet à gauche de TOUTES ses pages — et non plus de la seule page d'accueil de l'administration (décision de l'auteur, 14 septembre 2026).
+- ⛔ Il n'y a qu'une table des entrées — et elle sert à la fois ce sommaire et le menu « Administration » de la barre.
+- ⚠️ Le centre de contrôle n'a plus de volet à lui — ses missions se nomment sous son entrée, et seulement quand on y est.
+- ⛔ Le sommaire est une couche secondaire.
+- ⚠️ Une vue posée dans un cadre ne porte pas le sommaire — c'est l'aperçu d'un outil, non une page qu'on lit pour elle-même.
+- ⚠️ Une page qui dispose ses colonnes selon la place les règle sur la place que le sommaire lui laisse — non sur la largeur de l'écran : réglée sur l'écran, elle ouvrirait trois colonnes là où il n'y a de place que pour deux.
 
 ## § 31. Atelier La Gueule — contrôle, correction et validation ciblée
 
@@ -1435,6 +1432,7 @@
 - ⚠️ Une marque LARGE ne se pose pas à la hauteur d’une marque HAUTE.
 - ⛔ Cela se juge à l’ŒIL et à la taille RÉELLE, sur une planche qui rejoue la vraie cascade et les deux sols, jamais sur un rapport de dimensions.
 - ⚠️ L’ICÔNE D’ONGLET n’a PAS suivi, et c’est une décision qui reste à prendre.
+- ⛔ LES DEUX MONOGRAMMES DÉTOURÉS SONT SUPPRIMÉS (décision de l’auteur, 14 septembre 2026).
 - ⚠️ Une planche livrée sur papier photographié se DÉTOURE en alpha avant d’entrer.
 - ⚠️ Un ornement gardé EN RÉSERVE se recense comme les autres.
 - ⚠️ Les deux lignes qui suivent le titre du frontispice tiennent le MÊME TON, à un pas d’écart.
@@ -1913,6 +1911,11 @@
 - ⛔ ET LE BOUTON CESSE DE COMPTER CE QUE LES JETONS NOMMENT « ❷ » se lisait à quarante pixels des deux jetons, soit deux comptes de la même chose sur une seule ligne, dont l’un ne dit pas lesquels.
 - ⛔ Elle ne paraît PAS quand rien ne restreint : un compte qui ne bouge jamais n’est pas une information (§ 51.5).
 - ⚠️ « Tout effacer » se range sous la COLONNE DES PASTILLES — non au bord du panneau : posé au fer à gauche sous trois rangs qui commencent cinq rem plus loin, il ne se rattachait à rien et faisait un objet de plus en bas d’écran.
+- ⛔ RIEN NE BOUGE QUAND ON CLIQUE UN FILTRE (demande de l’auteur, 13 septembre 2026).
+- ⛔ Le COMPTE garde la place de son PLAFOND — un compte qui perdait un chiffre rétrécissait sa pastille, et tout le rang refluait.
+- ⛔ Le PIED du panneau est toujours là — il paraissait au premier filtre et s’effaçait au dernier.
+- ⛔ La zone des résultats garde au moins un écran de haut — une liste qui raccourcit raccourcissait la page, et le navigateur, ramenant le défilement au bout de ce qui restait, emportait le panneau.
+- ⚠️ C’est la règle de la facette à zéro prise par un autre bout : elle ne s’efface pas, elle se grise et se verrouille (8 septembre 2026), pour que le rang reste en place.
 - ⚠️ La forme de la pastille s’écrit UNE fois — et sert les deux surfaces, celle où l’on choisit et celle où l’on retire : deux définitions d’un même objet divergent au premier réglage.
 
 **§ 38.23 — Des requêtes qui ne s’ATTENDENT pas partent ENSEMBLE**
@@ -2300,6 +2303,7 @@
 
 **§ 47.4 — Catalogue bibliographique obligatoire et autorités d’éditeurs**
 
+- ⛔ UNE RÉFÉRENCE ENFOUIE DANS LA PROSE SUIT LE MÊME CONTRAT QU’UNE RÉFÉRENCE ISOLÉE.
 - ⛔ Une forme source ne peut rester invisible au seul motif qu’elle n’a pas encore été normalisée : elle doit apparaître dans la rubrique d’administration afin de pouvoir être contrôlée, fusionnée, conservée comme variante ou exclue.
 - ⛔ elle ne peut pas figurer en même temps dans la liste des éditeurs normalisés.
 - ⛔ On ne se contente jamais de FILTRER l’affichage, les références resteraient accrochées à une entrée devenue fantôme.
@@ -2577,7 +2581,7 @@
 - ⚠️ Le pas DOUBLE : cinq colonnes au pas ordinaire se joueraient en cent vingt millisecondes, et la chute ne se verrait pas.
 - ⛔ Et cela À L’OUVERTURE SEULEMENT : la même chute jouée à chaque chapitre tourné cesserait d’être un accueil pour devenir une attente ; les arrivées suivantes gardent la chute ligne par ligne, qui suit la lecture.
 - ⛔ UN CLIC QUI NE FAIT RIEN DE PLUS QUE LE SURVOL EST UN CLIC PERDU (« quand je clique sur le nom d’une traduction qui a un menu déroulant secondaire, ne pas bloquer le clic : afficher la première traduction du menu déroulant »).
-- ⚠️ Le clavier suit le clic : Entrée et Espace choisissent, la flèche déploie — un clavier qui n’aurait plus que le déploiement n’atteindrait jamais le premier texte.
+- ⚠️ Le clavier suit le clic : Entrée et Espace choisissent, la flèche déploie — un clavier qui n’aurait plus que le déploiement n’atteindrait jamais le texte d’origine.
 - ⛔ LE FLOTTANT QUI OUVRE UN VERSET NE PREND PAS SUR LE TEXTE (« affiner encore la densité du texte, les césures, renvois, pour éviter les blancs ignobles et contre-natures entre mots »).
 - ⚠️ La cause d’un blanc ignoble n’est presque jamais la césure : c’est une ligne trop courte.
 - ⛔ RECTIFICATION DU MÊME JOUR, ET ELLE PORTE SUR LES DEUX MOITIÉS DE CETTE RÈGLE (relevé de l’auteur le soir même : « la référence canonique dans la cellule de chaque verset, celle qui est grise, doit être alignée en marge gauche avec le texte contenu dans la même cellule »).
@@ -2798,6 +2802,7 @@
 **§ 51.8 — L'OUTIL DE PARTAGE — une ligne, et des canaux NOMMÉS**
 
 - ⛔ UNE SEULE LIGNE, LA MÊME PARTOUT, ET COURTE : « CS — QUI, QUOI ».
+- ⚠️ L'APERÇU D'UN LIEN NE PORTE PLUS D'IMAGE (14 septembre 2026).
 - ⚠️ Aucun guillemet dans la ligne, pas même autour d'un titre de publication
 - ⛔ LES CANAUX SONT NOMMÉS, ET LE LIEN NU GARDE LA PREMIÈRE PLACE.
 - ⛔ LES MARQUES SE DESSINENT AU TRAIT, DANS L'IDIOME DU SITE
@@ -2898,6 +2903,12 @@
 - ⛔ **LE REMBOURRAGE VAUT SIX PIXELS PLUS UN DIXIÈME DE CADRATIN DESSUS, ET SIX MOINS UN DIXIÈME
 - ⚠️ Le centrage se mesure sur l'ENCRE, et sur les PIXELS d'une capture
 
+**§ 38.30 — Le nombre d'œuvres d'un verset ne paraît qu'au SURVOL, à droite des actions, et seulement s'il y tient**
+
+- ⛔ UNE MARQUE QUI NE TIENT PAS NE SE REND PAS.
+- ⛔ LE CHIFFRE SE CENTRE SUR LA CAPITALE DE LA PREMIÈRE LIGNE, NON SUR SA LIGNE DE BASE.
+- ⚠️ La décision vise le nombre posé à droite du verset.
+
 ## § 13. Notes et apparats
 
 **§ 13.18 — Ce que le RENDU d'une note lit, et la ligne de la citation visée**
@@ -2963,9 +2974,9 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 |---|---|---:|---:|---:|
 | 3 | Typographie — les signes, les espaces, l’enric | 64 873 | 46 | **0.7** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
-| 15 | Corpus biblique et traductions | 17 044 | 16 | **0.9** |
+| 15 | Corpus biblique et traductions | 18 187 | 17 | **0.9** |
 | 35 | Chantier Fillion — la composition du paratexte | 79 319 | 79 | **1.0** |
 | 48 | Le protocole d’océrisation d’une bible | 46 262 | 51 | **1.1** |
 | 37 | La notice d’une traduction — le bandeau et l’e | 8 621 | 10 | **1.2** |
+| 30 | Suivi de l'avancement — le centre de contrôle | 9 381 | 11 | **1.2** |
 | 49 | Les gravures d’une édition biblique | 49 477 | 60 | **1.2** |
-| 12 | Textes parallèles et alignements sémantiques | 28 416 | 35 | **1.2** |

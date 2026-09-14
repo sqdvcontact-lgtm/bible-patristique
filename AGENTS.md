@@ -146,7 +146,7 @@ Les modèles vivent dans **`app/lib/metadonneesSeo.ts`** (pur, 38 tests) et les 
 
 ⚠️ **`order('id')` sur les deux requêtes de liens n'est pas un ornement** : PostgREST plafonne les lignes rendues, le chapitre le plus lié en compte 1 286, et sans ordre imposé une troncature laisserait Postgres choisir QUELS auteurs nommer.
 
-⛔ **`openGraph` et `twitter` ne se fusionnent PAS avec ceux du layout racine** : une page qui en déclare un le remplace ENTIÈREMENT (doc Next, « Merging »). D'où `enTetesPartage`, qui repose l'image, le type et le nom du site avec le titre. Une page qui n'en déclare aucun hérite du générique, ce qui est le cas de toutes les autres.
+⛔ **`openGraph` et `twitter` ne se fusionnent PAS avec ceux du layout racine** : une page qui en déclare un le remplace ENTIÈREMENT (doc Next, « Merging »). D'où `enTetesPartage`, qui repose le type et le nom du site avec le titre. ⛔ Plus aucune image depuis le 2026-09-14 : la vignette commune `/og-image.png` a été supprimée sur décision de l'auteur, et la carte Twitter est passée à `summary`. Une page qui n'en déclare aucun hérite du générique, ce qui est le cas de toutes les autres.
 
 ⛔ **Un espace PERSONNEL et une page de RÉSULTATS ne s'indexent pas** : `robots: HORS_INDEX` sur `/recherche`, `/compte`, `/prelevements`, `/messagerie` et `/bienvenue`. Le premier ne regarde que son titulaire, la seconde n'est pas un document mais une vue sur d'autres documents, et une infinité de requêtes ferait une infinité d'adresses aux contenus qui se recouvrent. La liste est **tenue par la garde** : un espace personnel neuf sans consigne fait échouer les tests, ce qui est le seul moment où l'on peut encore y penser. ⚠️ `follow` reste implicite : on refuse l'indexation de la page, non le suivi des liens qu'elle porte. ⛔ Ne PAS l'ajouter à `/admin` : `robots.txt` en interdit déjà l'exploration, et une consigne qu'un robot ne peut pas lire ne sert à rien. ⚠️ `/profil/[pseudo]` est laissé indexable, faute d'une décision : c'est une page publique, mais elle porte le pseudonyme et la citation favorite d'une personne réelle.
 
@@ -184,7 +184,7 @@ Ce qui suit a été **audité, chiffré, puis délibérément remis à l'ouvertu
 
 **7. Deux trous de métadonnées** : `/bibliotheque` n'a pas de description alors que c'est une page d'entrée ; une quinzaine de pages stables n'ont pas de canonique.
 
-**8. Une image de partage par page** (`opengraph-image`), au lieu du `/og-image.png` commun.
+**8. Une image de partage par page** (`opengraph-image`). ⚠️ La vignette commune `/og-image.png` a été SUPPRIMÉE le 2026-09-14 (décision de l'auteur) : d'ici là, un lien partagé ne porte aucune image.
 
 **9. À mesurer après ouverture** : les Core Web Vitals. `PanneauPatristique` fait 1 583 lignes, `BibliothequeClient` 1 845, `Navbar` 1 537 ; le poids du JavaScript n'a jamais été mesuré.
 
@@ -792,7 +792,7 @@ Les gravures de `public/ornements/` arrivent sur un fond crème. Pour qu'elles s
 
 ⛔ **`mix-blend-mode: multiply` ne peut pas marcher ici, et l'erreur se répète.** L'opacité posée sur la même image crée un contexte d'empilement, lequel isole l'élément et annule le mélange : le fond réapparaît partout où l'ornement est atténué, c'est-à-dire précisément là où on l'atténue. La note de `app/chantier/page.tsx` le raconte pour la première fois ; le refus s'applique à toute gravure.
 
-⚠️ **Rectification du 2026-08-19 : `sharp` EST disponible.** Il arrive comme dépendance de Next, et `require('sharp')` répond (libvips 8.17.3). ImageMagick, lui, reste absent (`convert` dans `system32` est le convertisseur de partitions de Windows). Écrire donc les nouveaux traitements en **Node**, où l'on dispose des entrées-sorties, du rééchantillonnage et du RGBA brut — `scripts/logo-fabriquer.mjs` en donne le patron. Le script PowerShell `scripts/detourer-ornement.ps1` reste comme repli, l'algorithme y étant le même.
+⚠️ **Rectification du 2026-08-19 : `sharp` EST disponible.** Il arrive comme dépendance de Next, et `require('sharp')` répond (libvips 8.17.3). ImageMagick, lui, reste absent (`convert` dans `system32` est le convertisseur de partitions de Windows). Écrire donc les nouveaux traitements en **Node**, où l'on dispose des entrées-sorties, du rééchantillonnage et du RGBA brut — `scripts/ornements-detourer.mjs` en donne le patron (`scripts/logo-fabriquer.mjs` le donnait jusqu'au 2026-09-14, où il a perdu son détourage avec les monogrammes). Le script PowerShell `scripts/detourer-ornement.ps1` reste comme repli, l'algorithme y étant le même.
 
 **La recette.** Deux étapes, dans cet ordre :
 
@@ -801,7 +801,7 @@ Les gravures de `public/ornements/` arrivent sur un fond crème. Pour qu'elles s
 
 ⚠️ **L'ENCRE aussi se mesure, et par sa MÉDIANE.** Prendre `amplitude = lumFond` revient à supposer l'encre noire. Celle du monogramme est un gris à 45 de luminance : tout le plein du trait ressortait à alpha 226, et l'histogramme le disait — **0,3 % d'encre pleine pour 24 % de partiels**, alors qu'un plein n'a aucune raison d'être partiel. Se caler sur le pixel le plus sombre ne suffit pas non plus, l'encre étant légèrement marbrée : c'est la **médiane du nuage sombre** qui vaut 255, puisque l'intérieur d'un plein EST de l'encre pleine. Après correction : 18,6 % de plein, 6,6 % de partiels — les bords, et eux seuls.
 
-**Contrôle**, avant de committer : l'histogramme du canal alpha. Sur `ordinateur-pentecote.png`, 81 % du plan est réellement transparent, 3 % est de l'encre pleine et 15,7 % des partiels — les hachures. Un fond mal mesuré se voit tout de suite : le taux de transparents s'effondre.
+**Contrôle**, avant de committer : l'histogramme du canal alpha. Sur `ordinateur-pentecote.png` (planche supprimée le 2026-09-14), 81 % du plan est réellement transparent, 3 % est de l'encre pleine et 15,7 % des partiels — les hachures. Un fond mal mesuré se voit tout de suite : le taux de transparents s'effondre.
 
 ### La recette RÉVISÉE (2026-08-26) — quatre défauts trouvés à l'usage, aucun visible au code
 
@@ -953,15 +953,15 @@ de travers rendrait un ornement étiré sans que rien ne le dise. Même parti qu
 recensement des illustrations, qui compare sa liste au contenu de `public/`.
 ## Le monogramme « CS » — deux planches, deux emplois (2026-08-19)
 
-Le site a une marque : un `C` gothique enlaçant un `S`, la haste du `S` portant une croix. Elle existe en deux planches, rangées dans `work/logo/`, et **`scripts/logo-fabriquer.mjs` fabrique tout le reste** — le relancer plutôt que retoucher un fichier produit.
+Le site a une marque : un `C` gothique enlaçant un `S`, la haste du `S` portant une croix. Elle existe en deux planches, rangées dans `work/logo/`, et **`scripts/logo-fabriquer.mjs` fabrique les icônes** — le relancer plutôt que retoucher un fichier produit. ⛔ La seconde planche ne produit plus rien depuis le 2026-09-14 : les deux monogrammes détourés de `public/logo/` ont été supprimés, et le script ne les fabrique plus.
 
 - **`monogramme-vert.png`** (carré, crème sur aplat vert) est l'**icône** : onglet, favori, écran d'accueil. Elle n'est pas détourée, et c'est délibéré : à 16 px, c'est l'aplat qui donne la silhouette, un monogramme transparent s'y perdrait sur le fond du navigateur. Elle produit `app/icon.png` (512), `app/apple-icon.png` (180) et `app/favicon.ico` (16, 32, 48, chaque taille en PNG embarqué).
   - ⚠️ **`app/favicon.ico` doit être remplacé lui aussi**, pas seulement `app/icon.png`. Next sert la route `/favicon.ico` à partir du fichier, et c'est elle que réclament les vieux clients et les agrégateurs : un `icon.png` neuf sur un `.ico` périmé laisse l'ancienne marque en circulation.
   - Elle produit aussi **`outils/icone-serveur.ico`** (16 à 256 px), l'icône du raccourci « Serveur Bible-Patristique » épinglé à la barre des tâches. ⚠️ Ce raccourci pointait sur `app/favicon.ico` : le fichier appartenant au dépôt, l'icône **changeait avec la branche cochée**, et restait l'ancienne tant que le poste travaillait ailleurs que sur `master`. Il pointe désormais sur une copie hors dépôt, `C:\Corpus Scriptura\icone-corpus-scriptura.ico`. Après refabrication, recopier le fichier là-bas.
-- **`monogramme-creme.png`** (le monogramme seul sur crème) est le **logo du site**. Le détourage ne sert que l'**alpha** : la couleur, on la repose. D'où deux fichiers dans `public/logo/`, même tracé à la teinte près — `monogramme-encre.png` en `--cs-encre-fonce` `rgb(30, 46, 36)` et `monogramme-creme.png` en `rgb(244, 231, 200)`.
+- **`monogramme-creme.png`** (le monogramme seul sur crème) est le **logo du site**. Le détourage ne sert que l'**alpha** : la couleur, on la repose. D'où deux fichiers dans `public/logo/`, même tracé à la teinte près — `monogramme-encre.png` en `--cs-encre-fonce` `rgb(30, 46, 36)` et `monogramme-creme.png` en `rgb(244, 231, 200)`. ⛔ **Ces deux fichiers ont été SUPPRIMÉS le 2026-09-14** (décision de l'auteur). Les recréer ferait reparaître deux images que l'inventaire des illustrations ne connaît plus, et `inventaire.test.ts` le refuserait.
   - ⚠️ **L'encre de la planche (#232323) ne sert PAS telle quelle.** Posé dans le titre, entre « Corpus » et « Scriptura », ce noir franc jurait avec le vert d'encre des lettres qui l'entourent. Le monogramme prend donc la teinte du titre lui-même : le noir s'en trouve adouci, et la marque appartient à la ligne au lieu d'y trancher.
-- ⛔ **Pose : AUCUNE, depuis le 2026-09-06.** La barre de navigation l'a porté du 2026-08-19 au 2026-09-06, à `1.875rem` contre le nom du site, à la place du fleuron `✦` ; **c'est le CHIFFRE qui l'y remplace** (section suivante). Les deux planches de `public/logo/` sont donc en réserve, et `scripts/logo-fabriquer.mjs` continue de les produire. ⚠️ `monogramme-vert.png`, elle, n'est pas touchée : c'est encore elle qui donne l'icône d'onglet.
-  - ⛔ **Plus en tête de l'accueil** (décision de l'auteur, 2026-08-27). `.hero-monogramme` est supprimée : la marque est déjà dans la barre de navigation, donc sur toutes les pages, et répétée quarante pixels plus bas elle ne disait rien de plus. Sa masse poussait au second rang le titre, qui est l'enseigne véritable. La planche `/logo/monogramme-encre.png` n'est donc plus appelée par aucune page ; elle reste au dépôt, en réserve, et `scripts/logo-fabriquer.mjs` continue de la fabriquer.
+- ⛔ **Pose : AUCUNE, depuis le 2026-09-06.** La barre de navigation l'a porté du 2026-08-19 au 2026-09-06, à `1.875rem` contre le nom du site, à la place du fleuron `✦` ; **c'est le CHIFFRE qui l'y remplace** (section suivante). Les deux planches de `public/logo/` sont restées en réserve jusqu'au 2026-09-14, où elles ont été supprimées. ⚠️ `monogramme-vert.png`, elle, n'est pas touchée : c'est encore elle qui donne l'icône d'onglet.
+  - ⛔ **Plus en tête de l'accueil** (décision de l'auteur, 2026-08-27). `.hero-monogramme` est supprimée : la marque est déjà dans la barre de navigation, donc sur toutes les pages, et répétée quarante pixels plus bas elle ne disait rien de plus. Sa masse poussait au second rang le titre, qui est l'enseigne véritable. La planche `/logo/monogramme-encre.png` n'est donc plus appelée par aucune page ; elle est restée au dépôt, en réserve, jusqu'à sa suppression le 2026-09-14.
   - ⛔ **Pas DANS le titre**, essayé et écarté le 2026-08-19. Lacé entre « Corpus » et « Scriptura », il oblige à le centrer sur la bande des capitales (`vertical-align`, faute de quoi il surplombe le mot), et surtout il coupe le nom en deux là où on le lit.
 - ⚠️ **Il était rendu en `<img>`, jamais en `<Image>`** — même raison que les ornements ci-dessus, et le rectangle crème est bien plus visible sur une barre verte que sur du papier. ⛔ Le chiffre qui l'a remplacé n'a plus ce risque du tout : posé en masque, il n'est pas une image.
 
@@ -1005,7 +1005,7 @@ silhouettes en PNG posées en MASQUE dans les deux boutons de l'espace du lecteu
   C'étaient les deux seules, et `inventaire.test.ts` exige que chaque fonction déclarée
   SERVE : un intitulé sans image est un groupe vide sur la planche, donc une rubrique qui
   promet ce qu'elle n'a pas. La rouvrir demande une image qui l'emploie, non l'inverse.
-- ⚠️ **Les deux planches sont DÉCLASSÉES, non oubliées** : `fonction: 'reserve'`, emploi au
+- ⚠️ **Les deux planches ont été DÉCLASSÉES, puis SUPPRIMÉES le 2026-09-14** (décision de l'auteur). Avant leur suppression : `fonction: 'reserve'`, emploi au
   passé, `lieu` et `pose` retirés — la garde refuse un `lieu` sur une image en réserve, une
   image en réserve ne renvoyant nulle part. C'est le parti de la cité ruinée et de la tour
   de Babel.
@@ -1628,7 +1628,7 @@ La charte disait déjà comment faire, à propos du monogramme : « le détourag
 
 ⚠️ **Le script est versionné : `scripts/ornements-detourer.mjs`.** Sans `--ecrire` il MESURE et ne touche à rien — c'est ainsi qu'on relève une planche avant de la reprendre. Il suit la recette de la charte : le fond se mesure aux quatre coins, l'encre par sa MÉDIANE, puis on la décompose du fond. Les originaux sont copiés hors du dépôt avant toute écriture (`C:\Corpus Scriptura\ornements-originaux-20260823`).
 
-⚠️ **Deux profils, et il faut savoir les distinguer.** Une gravure au TRAIT rend ~85-94 % de transparents pour 3-13 % de partiels : les bords, et eux seuls. Un dessin en DEMI-TEINTES rend 60 % et plus de partiels, ce que la charte signale déjà comme suspect (« un plein n'a aucune raison d'être partiel »). Détourer le second par la luminance aplatit son modelé : `carapace-vide` et `cul-de-lampe-cristaux` sont dans ce cas, et l'ont été tout de même, un rectangle sur la page valant moins qu'un aplatissement.
+⚠️ **Deux profils, et il faut savoir les distinguer.** Une gravure au TRAIT rend ~85-94 % de transparents pour 3-13 % de partiels : les bords, et eux seuls. Un dessin en DEMI-TEINTES rend 60 % et plus de partiels, ce que la charte signale déjà comme suspect (« un plein n'a aucune raison d'être partiel »). Détourer le second par la luminance aplatit son modelé : `carapace-vide` et `cul-de-lampe-cristaux` (supprimé le 2026-09-14) sont dans ce cas, et l'ont été tout de même, un rectangle sur la page valant moins qu'un aplatissement.
 
 ⚠️ **Un trait CLAIR sur fond sombre a moins de présence qu'un trait sombre sur crème, à intensité égale.** Mesuré sur le cul-de-lampe du buisson ardent : l'écart moyen au sol vaut 4,00 au Clair et 3,65 en Cuir, à la même opacité de 0,42 — donc l'ornement est bien à son intensité voulue, et c'est l'œil qui le trouve plus ténu. ⛔ Ne pas compenser par `brightness` : l'encre est déjà quasi blanche après l'inversion et le filtre sature aussitôt. La seule prise est l'opacité, qui est la valeur calibrée par l'auteur — la changer est sa décision, pas une correction.
 
@@ -1662,11 +1662,11 @@ Le site étant fermé, il a fallu le parcourir SOUS SESSION dans le navigateur d
 
 ⚠️ **Trente-sept knockouts se cachaient dans des ternaires**, invisibles au premier balayage, dont la pastille du chapitre actif de la page Bible.
 
-⚠️ **Une MARQUE en image ne se transpose pas : elle se double.** Le monogramme de l'accueil est le vert d'encre, invisible sur le brun. Les deux planches existaient déjà (`monogramme-encre.png`, `monogramme-creme.png`) : on les superpose et le thème n'en montre qu'une, en CSS. ⛔ Ne pas choisir la planche en JavaScript : elle paraîtrait après la peinture.
+⚠️ **Une MARQUE en image ne se transpose pas : elle se double.** Le monogramme de l'accueil est le vert d'encre, invisible sur le brun. Les deux planches existaient déjà (`monogramme-encre.png`, `monogramme-creme.png`) : on les superpose et le thème n'en montre qu'une, en CSS. (Toutes deux supprimées le 2026-09-14 : la marque du site est désormais le chiffre, posé en masque.) ⛔ Ne pas choisir la planche en JavaScript : elle paraîtrait après la peinture.
 
 ⚠️ **Toutes les faiblesses de contraste ne sont pas des régressions.** La flèche de chapitre désactivée rend **1,40 au Clair comme au Cuir** : c'est un état désactivé, et la transposition est fidèle. Comparer les deux thèmes avant de corriger.
 
-⛔ **Les GRAVURES restent à traiter, et c'est une décision d'auteur.** Mesurée au navigateur, l'encre de la tour de Babel vaut **52 de luminance sur un sol à 24**, soit un contraste de 1,5 : ce ne sont pas des négatifs, ce sont des encres devenues plus claires que leur papier. Le remède est celui du monogramme, que la charte énonce déjà (« le détourage ne sert que l'ALPHA : la couleur, on la repose »), mais il demande **une planche crème par ornement**, fabriquée depuis le même alpha par le patron de `scripts/logo-fabriquer.mjs`. Une autre voie serait de poser le PNG en `mask-image` et de peindre la forme au jeton, ce qui rendrait tout ornement thématique d'un coup ; elle n'a pas été retenue sans décision.
+⛔ **Les GRAVURES restent à traiter, et c'est une décision d'auteur.** Mesurée au navigateur, l'encre de la tour de Babel vaut **52 de luminance sur un sol à 24**, soit un contraste de 1,5 : ce ne sont pas des négatifs, ce sont des encres devenues plus claires que leur papier. Le remède est celui du monogramme, que la charte énonce déjà (« le détourage ne sert que l'ALPHA : la couleur, on la repose »), mais il demande **une planche crème par ornement**, fabriquée depuis le même alpha en reposant la couleur, comme `scripts/logo-fabriquer.mjs` le faisait pour les deux monogrammes (cette partie du script a été retirée avec eux le 2026-09-14 ; elle reste dans l'historique du dépôt). Une autre voie serait de poser le PNG en `mask-image` et de peindre la forme au jeton, ce qui rendrait tout ornement thématique d'un coup ; elle n'a pas été retenue sans décision.
 
 ## Ce qui reste, et pourquoi on ne l'a pas fait
 
@@ -6338,7 +6338,7 @@ Chiffres du 2026-08-24, tous lus sur le disque par la planche elle-même :
 - **Deux portraits d'auteurs traînent dans `public/auteurs/`**, reste du temps où ils étaient servis depuis le dépôt. Le seau Supabase les porte déjà.
 - `livre_pol.png` est le seul fichier du dépôt nommé avec un souligné au lieu d'un trait.
 
-⛔ Rien de tout cela n'a été supprimé : ce sont des dessins de l'auteur, et la planche existe pour qu'il décide.
+⛔ Rien de tout cela n'a été supprimé d'office : ce sont des dessins de l'auteur, et la planche existe pour qu'il décide. ✅ **Il a décidé le 2026-09-14**, et vingt images sont supprimées. Dix-neuf étaient en réserve et rien ne les appelait : les deux copies locales de portraits (A0006, A0010), quatre variantes de logos de librairie, trois livres (`livre-miroir`, sa version détourée, `livre_pol`), la marque aux deux anges (`corpus-scriptura-mark.png`), cinq gravures (cristaux, ruines fumantes carrées, ordinateur de Pentecôte, colonnades en ruine, tour de Babel détourée), les deux monogrammes détourés, l'ange à la trompette et le parchemin. ⚠️ La vingtième, la vignette de partage `/og-image.png`, était EMPLOYÉE : les métadonnées du site ne déclarent plus d'image de partage. Les fichiers restent dans l'historique du dépôt.
 
 # Fiche « À propos de cette édition » — refonte du 2026-08-28
 

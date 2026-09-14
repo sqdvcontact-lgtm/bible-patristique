@@ -15,7 +15,6 @@ export const metadata: Metadata = {
     title: "Corpus Scriptura — l’Écriture et les Pères de l’Église",
     description:
       "Un site d’étude consacré aux liens entre la Bible et les textes des Pères de l’Église. Le site ouvre prochainement.",
-    images: ["/og-image.png"],
   },
 };
 

@@ -316,14 +316,6 @@ export function descriptionOeuvre(titre: string, etat: EtatOeuvre): string {
   return couperDescription(`${sujet} : ${tete}.`)
 }
 
-// ═══ En-têtes de partage ═════════════════════════════════════════════════════
-//
-// ⚠️ `openGraph` et `twitter` ne se FUSIONNENT PAS avec ceux du layout racine :
-// une page qui en déclare un le remplace ENTIÈREMENT (doc Next, « Merging »).
-// Une page qui ne veut que changer le titre doit donc reposer l'image, le type
-// et le nom du site — c'est le rôle de cette fonction.
-const IMAGE_PARTAGE = { url: '/og-image.png', width: 1200, height: 630, alt: NOM_SITE }
-
 // ═══ Pages qui ne s'indexent pas ═════════════════════════════════════════════
 //
 // Un espace PERSONNEL et une page de RÉSULTATS n'ont rien à faire dans un index.
@@ -339,6 +331,16 @@ const IMAGE_PARTAGE = { url: '/og-image.png', width: 1200, height: 630, alt: NOM
 // deux ensemble se contrarient plutôt qu'ils ne s'ajoutent.
 export const HORS_INDEX = { index: false } as const
 
+// ═══ En-têtes de partage ═════════════════════════════════════════════════════
+//
+// ⚠️ `openGraph` et `twitter` ne se FUSIONNENT PAS avec ceux du layout racine :
+// une page qui en déclare un le remplace ENTIÈREMENT (doc Next, « Merging »).
+// Une page qui ne veut que changer le titre doit donc reposer le type et le nom
+// du site, et c'est le rôle de cette fonction.
+//
+// ⛔ Aucune image de partage. La vignette commune `/og-image.png` a été
+// supprimée le 2026-09-14, sur décision de l'auteur. Un lien partagé ne porte
+// donc pas d'image, et la carte Twitter se réduit au titre et à la description.
 export function enTetesPartage(titre: string, description: string) {
   return {
     openGraph: {
@@ -347,13 +349,11 @@ export function enTetesPartage(titre: string, description: string) {
       siteName: NOM_SITE,
       title: titre,
       description,
-      images: [IMAGE_PARTAGE],
     },
     twitter: {
-      card: 'summary_large_image' as const,
+      card: 'summary' as const,
       title: titre,
       description,
-      images: [IMAGE_PARTAGE.url],
     },
   }
 }

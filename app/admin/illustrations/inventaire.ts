@@ -44,7 +44,7 @@ export const FONCTIONS = {
   // Le rouvrir demande une image qui l'emploie, non l'inverse.
   'identite': {
     titre: 'Porter l’identité',
-    propos: 'Le chiffre CS, la vignette de partage, les icônes d’onglet. Le chiffre est la marque du site depuis le 6 septembre 2026, et il est la SEULE : la barre de navigation portait jusque-là un monogramme gothique quand le bas de l’accueil portait ce chiffre-ci, deux dessins pour une seule maison. Les autres sont les seules images que l’on voit HORS du site, dans un onglet ou dans un message.',
+    propos: 'Le chiffre CS et les icônes d’onglet. Le chiffre est la marque du site depuis le 6 septembre 2026, et il est la SEULE : la barre de navigation portait jusque-là un monogramme gothique quand le bas de l’accueil portait ce chiffre-ci, deux dessins pour une seule maison. Les icônes sont les seules images que l’on voit HORS du site, dans un onglet. La vignette de partage, qui paraissait dans les messages, a été supprimée le 14 septembre 2026.',
   },
   'marque': {
     titre: 'Signer une édition',
@@ -187,7 +187,6 @@ export const ILLUSTRATIONS: Illustration[] = [
     note: 'Une cité basse sur un horizon vide, sa fumée seule montant dans le blanc : l’encre franche n’occupe que 1 510 sur 397 d’un cadre de 1 600 sur 1 194, et ce vide EST le propos. La marge négative sous la gravure revient pour cette raison, le quart inférieur du cadre étant un sol presque vide : le texte se pose à la lisière du sol plutôt que loin sous la planche. ⚠️ Une marge négative se règle sur la COMPOSITION et ne se reconduit pas d’un dessin à l’autre — la planche intermédiaire de colonnades descendait au ras des pierres et l’avait fait ôter. ⛔ Trois reprises que la charte réclamait sur cette pose : elle passait par Image de Next, dont l’optimiseur aplatit parfois l’alpha sur du blanc et fait reparaître le fond ; le mix-blend-mode était mort, la planche étant détourée ; et la largeur de 190 px, absolue, ne suivait pas la police racine. Fabriquée par la chaîne commune aux gravures du 2026-08-26 : pourtour de la source rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage, puis encre reposée en une teinte unique à la luminance 33, l’ALPHA étant calculé sur cette encre et non sur la médiane de la planche. Profil de gravure au trait : 87,1 % de transparents pour 11,1 % de partiels. ⛔ Le FICHIER est servi à deux fois sa taille d’affichage, jamais plus : au delà, le navigateur réduit une seconde fois derrière la nôtre, et deux réductions successives moyennent les hachures fines en un gris mou. La cité s’affichait à 549 px dans une colonne de 620 pour un fichier de 1 600, soit 2,9 fois trop — c’est ce qui la rendait baveuse quand la tour, servie au double exact, restait nette. La taille d’affichage se calcule à la racine 22, la plus grande que la police fluide atteigne, et un léger rattrapage de netteté compense la seule réduction qui reste. ⚠️ Son bloc SORT de la mesure de lecture, et il le faut : les trois grandes gravures du site — Babel sur le Polyglotte, le désert sur la recherche, la cité ici — partagent la même pose, mais celle-ci vivait dans une colonne de 620 px quand les deux autres ont toute la largeur. Elle s’affichait à 549 contre 816. La largeur du bloc est celle qui rend exactement 51rem une fois les 96 % du maximum appliqués, soit 53,125rem, et le débordement se centre sur l’axe du parent.',
   },
 
-
   {
     chemin: '/ornements/ordinateur-ardent.png',
     nom: 'Ordinateur ardent',
@@ -198,7 +197,6 @@ export const ILLUSTRATIONS: Illustration[] = [
     traitement: { opacite: 0.92, ornement: true, pose: { largeurMax: 'min(16rem, 76%)', hauteurMax: '46dvh', sol: 'papier' } },
     note: 'A remplacé l’ordinateur de Pentecôte. Même propos : l’ordinateur sous les langues de feu, l’alpha et l’oméga sur le moniteur, la Polyglotte dite en une image. Intensité et encre sont celles de la tour de Babel ruinée, qui occupait l’autre bout de la même page jusqu’au 4 septembre 2026 : c’est désormais le seul écran de la Polyglotte qui n’ait qu’une gravure pour tout contenu. ⚠️ La planche est en HAUTEUR là où la précédente était en largeur, d’où un plafond de hauteur qui n’est pas décoratif : sur un téléphone bas, elle chasserait le texte hors de l’écran. Fabriquée par la chaîne commune aux gravures du 2026-08-26 : pourtour de la source rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage, puis encre reposée en une teinte unique à la luminance 33, celle de la tour de Babel ruinée. ⚠️ L’ALPHA se calcule sur l’encre REPOSÉE, non sur la médiane de la planche : les deux ne s’accordent plus dès qu’on repose une encre plus sombre, et tout le dégradé qui borde un trait s’assombrit alors — un gris à 180 rendait 136. Écart moyen au dessin d’origine ramené à 1 niveau. ⛔ Le FICHIER est servi à deux fois sa taille d’affichage, jamais plus : au delà, le navigateur réduit une seconde fois derrière la nôtre, et deux réductions successives moyennent les hachures fines en un gris mou. La cité s’affichait à 549 px dans une colonne de 620 pour un fichier de 1 600, soit 2,9 fois trop — c’est ce qui la rendait baveuse quand la tour, servie au double exact, restait nette. La taille d’affichage se calcule à la racine 22, la plus grande que la police fluide atteigne, et un léger rattrapage de netteté compense la seule réduction qui reste.',
   },
-
 
   // ── Ouvrir une page ────────────────────────────────────────────────────────
   {
@@ -266,7 +264,6 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'A coiffé le titre « Un mot » de l’accueil le 31 août 2026, une soirée. Le fleuron à filets a repris sa place le soir même, sur décision de l’auteur.',
     note: 'Planche fournie par l’auteur, fabriquée par la chaîne commune (scripts/ornements-detourer.mjs) : pourtour rogné, papier ramené au blanc d’après son niveau DOMINANT, détourage par la luminance, encre reposée à 33, celle de la famille. Profil de gravure au TRAIT, 83 % de transparents. Servie en 214 × 40 pour 112 px d’affichage, rapport 1,91. ⚠️ Elle avait d’abord été posée à 14 rem, deux fois trop grosse : elle écrasait le titre qu’elle ferme. ⚠️ Et le défaut de fond était ailleurs : la gravure est DIRECTIONNELLE, elle pointe vers la droite, quand toute la grammaire ornementale du site est symétrique — le filet du frontispice, le fleuron, le quadrilobe. Un ornement qui ferme un titre ne va nulle part. Deux symétrisations ont été essayées, deux pointes et deux fleurons, avant que l’auteur ne revienne au fleuron. La planche brute est conservée dans tmp/ornements-source/, hors dépôt.',
   },
-
 
   {
     chemin: '/ornements/fleuron-croix.png',
@@ -479,49 +476,12 @@ export const ILLUSTRATIONS: Illustration[] = [
     traitement: { opacite: 0.86, fusion: 'screen', pose: { largeur: '4.75rem', sol: 'carte' } },
   },
 
-  // ── Les deux silhouettes de la barre, en réserve depuis le 2026-09-10 ────────
-  {
-    chemin: '/icons/ange-trompette-silhouette.png',
-    nom: 'Ange à la trompette',
-    fonction: 'reserve',
-    emploi: 'A marqué le bouton des notifications, dans la barre de navigation, jusqu’au 2026-09-10. Retirée sur décision de l’auteur (« remplacer les icônes pour la messagerie et pour les notifications par des choses plus simples ») : une cloche au trait a pris sa place, dessinée en SVG dans la barre. La planche reste au dépôt, sans emploi.',
-    traitement: { masque: true },
-    note: 'Elle était posée en 28 × 27 dans un bouton de 30, donc presque à ras bord, et son dessin comptait une figure entière — tête, aile, robe, trompette — là où les autres marques de la barre sont un trait de douze pixels. ⚠️ Le défaut ne tenait pas au fichier, qui est net : il tenait à la DENSITÉ demandée à cette taille, et aucun détourage ne l’aurait corrigé. Servie en masque, l’encre venant du texte alentour : la teinte du PNG n’a jamais compté.',
-  },
-  {
-    chemin: '/icons/parchemin-message-silhouette.png',
-    nom: 'Parchemin',
-    fonction: 'reserve',
-    emploi: 'A marqué le bouton de la messagerie, dans la barre de navigation, jusqu’au 2026-09-10. Retirée en même temps que l’ange à la trompette, et pour la même raison : une enveloppe au trait a pris sa place, dessinée en SVG dans la barre. La planche reste au dépôt, sans emploi.',
-    traitement: { masque: true },
-    note: 'Posée en 19 × 25 dans un bouton de 30 : DEBOUT, quand sa voisine était couchée, si bien que les deux boutons de la rangée ne pesaient pas le même poids. Servie en masque, l’encre venant du texte alentour.',
-  },
-
   // ── Porter l'identité ──────────────────────────────────────────────────────
-  {
-    chemin: '/logo/monogramme-encre.png',
-    nom: 'Monogramme, encre',
-    fonction: 'reserve',
-    emploi: 'Le tracé du monogramme CS en vert d’encre. Il coiffait le frontispice de l’accueil, posé en masque, jusqu’au 27 août 2026 : la marque y était retirée, la barre de navigation la portant déjà sur toutes les pages. Aucune page ne l’appelle plus. La planche reste au dépôt, et le patron de fabrication continue de la produire.',
-  },
-  {
-    chemin: '/logo/monogramme-creme.png',
-    nom: 'Monogramme, crème',
-    fonction: 'reserve',
-    emploi: 'Le même tracé en crème. Il a porté le retour à l’accueil dans la barre de navigation jusqu’au 6 septembre 2026, où le CHIFFRE l’a remplacé : le site avait deux marques, et n’en imposait donc aucune. Aucune page ne l’appelle plus. La planche reste au dépôt, et le patron de fabrication continue de la produire — c’est elle, en vert, qui donne l’icône d’onglet.',
-  },
-  {
-    chemin: '/og-image.png',
-    nom: 'Vignette de partage',
-    fonction: 'identite',
-    emploi: 'L’image qui accompagne un lien du site collé dans un message ou sur un réseau. Jamais visible sur le site lui-même.',
-    source: 'app/layout.tsx',
-  },
   {
     chemin: '/logo-corpus-scriptura.svg',
     nom: 'Logotype (vectoriel)',
     fonction: 'identite',
-    emploi: 'Logotype vectoriel présent dans le dépôt. Aucune page ne l’appelle : le site emploie partout les monogrammes en PNG.',
+    emploi: 'Logotype vectoriel présent dans le dépôt. Aucune page ne l’appelle : le site porte partout le chiffre CS, posé en masque.',
   },
   {
     chemin: '/logo-corpus-scriptura-mono.svg',
@@ -617,36 +577,6 @@ export const ILLUSTRATIONS: Illustration[] = [
     emploi: 'Tenait les états vides du volet biblique jusqu’au 2026-08-26, où la carapace posée a pris sa place sur les deux volets.',
   },
   {
-    chemin: '/ornements/tour-babel-detoure.png',
-    nom: 'Tour de Babel intacte',
-    fonction: 'reserve',
-    emploi: 'Tenait l’écran d’accueil du Polyglotte jusqu’au 2026-08-26, où la tour ruinée a pris sa place. Pesait 2,1 Mo, la plus lourde image servie du site.',
-  },
-  {
-    chemin: '/ornements/cul-de-lampe-cristaux.png',
-    nom: 'Cristaux',
-    fonction: 'reserve',
-    emploi: 'Tenait la page de recherche jusqu’au 2026-08-26, où le désert et la fosse ont pris sa place.',
-  },
-  {
-    chemin: '/ornements/ruines-fumantes.png',
-    nom: 'Ruines fumantes carrées',
-    fonction: 'reserve',
-    emploi: 'Disait le livre absent d’une traduction jusqu’au 2026-08-26, où le panorama de colonnades a pris sa place.',
-  },
-  {
-    chemin: '/ornements/ordinateur-pentecote.png',
-    nom: 'Ordinateur de Pentecôte',
-    fonction: 'reserve',
-    emploi: 'Fermait le message d’écran large de la Polyglotte jusqu’au 2026-08-26, où l’ordinateur ardent a pris sa place.',
-  },
-  {
-    chemin: '/ornements/ruines-colonnades.png',
-    nom: 'Colonnades en ruine',
-    fonction: 'reserve',
-    emploi: 'Disait le livre absent d’une traduction le 2026-08-26, entre la planche carrée et la cité ruinée qui a pris sa place le même jour.',
-  },
-  {
     chemin: '/ornements/cul-de-lampe-buisson-ardent.png',
     nom: 'Buisson ardent',
     fonction: 'reserve',
@@ -681,69 +611,6 @@ export const ILLUSTRATIONS: Illustration[] = [
     nom: 'Palmes en couronne',
     fonction: 'reserve',
     emploi: 'Fleuron de palme, jamais employé.',
-  },
-  {
-    chemin: '/ornements/livre-miroir.png',
-    nom: 'Livre en miroir',
-    fonction: 'reserve',
-    emploi: 'Sans doute dessinée pour le Polyglotte, où la tour de Babel a été retenue à sa place.',
-    note: '2,4 Mo, avec son fond.',
-  },
-  {
-    chemin: '/ornements/livre-miroir-detoure.png',
-    nom: 'Livre en miroir, détouré',
-    fonction: 'reserve',
-    emploi: 'Version détourée de la précédente. Aucune des deux ne paraît.',
-    note: '2,6 Mo : le détourage a alourdi le fichier au lieu de l’alléger.',
-  },
-  {
-    chemin: '/ornements/livre_pol.png',
-    nom: 'Livre (polyglotte)',
-    fonction: 'reserve',
-    emploi: 'Troisième livre en réserve, resté au nom de travail.',
-    note: 'Seul fichier du dépôt nommé avec un souligné au lieu d’un trait.',
-  },
-  {
-    chemin: '/icons/corpus-scriptura-mark.png',
-    nom: 'Marque Corpus Scriptura',
-    fonction: 'reserve',
-    emploi: 'Marque en PNG, supplantée par les deux monogrammes.',
-  },
-  {
-    chemin: '/icons/librairies/procure-livre.png',
-    nom: 'La Procure, livre',
-    fonction: 'reserve',
-    emploi: 'Variante écartée pour La Procure : l’éventail a été retenu.',
-  },
-  {
-    chemin: '/icons/librairies/procure-rayonnage.png',
-    nom: 'La Procure, rayonnage',
-    fonction: 'reserve',
-    emploi: 'Deuxième variante écartée pour La Procure.',
-  },
-  {
-    chemin: '/icons/librairies/pierre-brunet-portrait.png',
-    nom: 'Pierre Brunet, portrait',
-    fonction: 'reserve',
-    emploi: 'Variante écartée pour Pierre Brunet : le livre a été retenu.',
-  },
-  {
-    chemin: '/icons/librairies/sources-chretiennes-pere.png',
-    nom: 'Sources Chrétiennes, Père',
-    fonction: 'reserve',
-    emploi: 'Variante écartée pour Sources Chrétiennes : le chrisme a été retenu.',
-  },
-  {
-    chemin: '/auteurs/A0006.jpg',
-    nom: 'Portrait A0006, copie locale',
-    fonction: 'reserve',
-    emploi: 'Reste du temps où les portraits d’auteurs étaient servis depuis le dépôt. Le site les charge désormais tous depuis le seau Supabase, et ce fichier n’est plus lu.',
-  },
-  {
-    chemin: '/auteurs/A0010.jpg',
-    nom: 'Portrait A0010, copie locale',
-    fonction: 'reserve',
-    emploi: 'Second reste du même temps. Le seau Supabase porte déjà ce portrait.',
   },
 
 ]

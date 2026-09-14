@@ -270,11 +270,14 @@ describe('menus détails de composition', () => {
 })
 
 describe('en-têtes de partage', () => {
-  it('repose l’image et le nom du site, que la page remplace en entier', () => {
+  it('repose le type et le nom du site, que la page remplace en entier, sans image', () => {
     const { openGraph, twitter } = enTetesPartage('Jean 1', 'Une description.')
     expect(openGraph.title).toBe('Jean 1')
     expect(openGraph.siteName).toBe('Corpus Scriptura')
-    expect(openGraph.images[0].url).toBe('/og-image.png')
     expect(twitter.description).toBe('Une description.')
+    // La vignette commune a été supprimée le 2026-09-14 : aucune image n'est déclarée.
+    expect(openGraph).not.toHaveProperty('images')
+    expect(twitter).not.toHaveProperty('images')
+    expect(twitter.card).toBe('summary')
   })
 })

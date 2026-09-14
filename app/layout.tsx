@@ -30,8 +30,8 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  // Sans base, les URL relatives des images Open Graph ne se résolvent pas :
-  // un lien partagé n'afficherait aucune vignette.
+  // Sans base, les URL relatives des métadonnées (canonique, Open Graph) ne se
+  // résolvent pas.
   metadataBase: new URL("https://corpus-scriptura.fr"),
   title: {
     default: "Corpus Scriptura — bibliothèque biblique et patristique",
@@ -50,13 +50,13 @@ export const metadata: Metadata = {
     title: "Corpus Scriptura — bibliothèque biblique et patristique",
     description:
       "Corpus Scriptura est un site d’étude consacré aux liens entre la Bible et les textes des Pères de l’Église.",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Corpus Scriptura" }],
+    // ⚠️ Aucune image de partage : la vignette commune a été supprimée le
+    // 14 septembre 2026, sur décision de l'auteur.
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Corpus Scriptura",
     description: "Un site d’étude consacré aux liens entre la Bible et les textes des Pères de l’Église.",
-    images: ["/og-image.png"],
   },
 };
 
