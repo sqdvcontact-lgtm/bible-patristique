@@ -156,6 +156,11 @@ export function assemblerNotesStructurees({ notes, ancres, blocs, relations }: {
     // La marque d'une ENTRÉE de série bibliographique voyage, et seulement quand elle vaut
     // vrai : le rendu en fait une liste (`serieBibliographiqueNote.tsx`).
     if (meta.bibliographyListItem) bloc.bibliographyListItem = true
+    // ⛔ Le STYLE DE LECTURE voyage quand la donnée le déclare, et son libellé avec lui
+    // (`explicationCorpus.ts`) : c'est sur lui, et jamais sur le rôle éditorial, que se
+    // déclenche le rendu d'une explication de Corpus Scriptura.
+    if (meta.readerStyle != null) bloc.readerStyle = meta.readerStyle
+    if (meta.readerLabel != null) bloc.readerLabel = meta.readerLabel
     parNote.get(block.note_key)!.blocks.push(bloc)
   }
   const notesParSegment: Record<string, Record<string, NoteStructuree>> = {}

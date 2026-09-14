@@ -27,6 +27,8 @@
 // sans point final en recevront un : il faudra alors déclarer la convention, et non
 // retomber sur `functional_type`, qui emporterait Dhuoda avec.
 
+import { libelleLectureSur, styleLectureSur, type StyleLectureBloc } from './explicationCorpus'
+
 /** La valeur HÉRITÉE de `metadata.editorial_role` par laquelle se reconnaît, aujourd'hui
  *  encore, un apparat composé à la manière d'une édition critique.
  *  ⛔ Ce n'est plus une responsabilité : `typeNote.ts` la résout vers
@@ -39,7 +41,7 @@ export const ROLE_APPARAT_CRITIQUE = 'critical_apparatus'
  *  sur la règle de sa forme (`dispositionCitation`, compositionNote.ts). */
 export type DispositionDeclaree = 'block' | 'inline'
 
-/** Ce que le rendu retient de `texte_note_blocs.metadata` — cinq scalaires, et
+/** Ce que le rendu retient de `texte_note_blocs.metadata` — quelques scalaires, et
  *  non le jsonb entier : il traverse le réseau une fois par bloc de note. */
 export type MetadonneesBlocNote = {
   editorialRole: string | null
@@ -52,11 +54,39 @@ export type MetadonneesBlocNote = {
    *  ⛔ Seul le booléen vrai la marque : une chaîne « true » n'est pas une marque, et le
    *  rendu ne devine jamais une liste. */
   bibliographyListItem: boolean
+  /** `metadata.reader_style` — la façon dont la DONNÉE demande au lecteur de voir le bloc,
+   *  dans son vocabulaire clos (`explicationCorpus.ts`). ⛔ C'est lui, et jamais
+   *  `editorialRole`, qui déclenche le rendu d'une explication de Corpus Scriptura. */
+  readerStyle: StyleLectureBloc | null
+  /** `metadata.reader_label` — le libellé de présentation qui accompagne ce style.
+   *  ⚠️ Projeté avec son style seulement : seul, il n'est lu par rien. ⛔ Jamais concaténé
+   *  au texte du bloc. */
+  readerLabel: string | null
+}
+
+/** Les clés de `texte_note_blocs.metadata` que le site CONNAÎT, avec le type que la donnée
+ *  leur donne. ⚠️ Connaître une clé n'est pas la projeter : `editorial_origin`,
+ *  `editorial_addition` et `clarity_summary` appartiennent au contrat de la passe P10
+ *  (`explicationCorpus.ts`), et le rendu ne les lit pas. Le type sert la lecture ci-dessous,
+ *  où une clé mal orthographiée casse à la compilation ; il ne promet rien de plus, la
+ *  donnée restant un `jsonb` dont chaque valeur se vérifie. */
+export type MetadonneesBlocNoteBrutes = {
+  editorial_role?: string
+  printed_line?: number
+  visual_review_reason?: string
+  human_validated?: boolean
+  citation_layout?: DispositionDeclaree
+  bibliography_list_item?: boolean
+  reader_style?: StyleLectureBloc
+  reader_label?: string
+  editorial_origin?: string
+  editorial_addition?: boolean
+  clarity_summary?: boolean
 }
 
 export const METADONNEES_BLOC_VIDES: MetadonneesBlocNote = {
   editorialRole: null, printedLine: null, visualReviewReason: null, humanValidated: null, citationLayout: null,
-  bibliographyListItem: false,
+  bibliographyListItem: false, readerStyle: null, readerLabel: null,
 }
 
 /** Projette `metadata` sur les seuls champs que l'affichage lit. Tolérante :
@@ -70,7 +100,8 @@ export const METADONNEES_BLOC_VIDES: MetadonneesBlocNote = {
  *  `text`, et elle seule ; une trace projetée ici finirait un jour à l'écran. */
 export function lireMetadonneesBlocNote(metadata: unknown): MetadonneesBlocNote {
   if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return METADONNEES_BLOC_VIDES
-  const m = metadata as Record<string, unknown>
+  const m = metadata as { [Cle in keyof MetadonneesBlocNoteBrutes]?: unknown }
+  const readerStyle = styleLectureSur(m.reader_style)
   const ligne = m.printed_line
   const valide = m.human_validated
   const disposition = m.citation_layout
@@ -81,6 +112,9 @@ export function lireMetadonneesBlocNote(metadata: unknown): MetadonneesBlocNote 
     humanValidated: typeof valide === 'boolean' ? valide : null,
     citationLayout: disposition === 'block' || disposition === 'inline' ? disposition : null,
     bibliographyListItem: m.bibliography_list_item === true,
+    readerStyle,
+    // ⚠️ Le libellé ne voyage qu'avec le style qu'il sert : seul, il n'est lu par rien.
+    readerLabel: readerStyle ? libelleLectureSur(m.reader_label) : null,
   }
 }
 

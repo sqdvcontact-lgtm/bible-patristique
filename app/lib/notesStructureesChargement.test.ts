@@ -63,6 +63,36 @@ describe('assemblerNotesStructurees', () => {
     expect(didache.bibliographyListItem).toBe(true)
   })
 
+  it('fait voyager le style de lecture et son libellé, et jamais le reste du contrat P10', () => {
+    // Le contrat d'une explication réelle (JER-JOEL-N006, Commentaire sur Joël), sa première phrase.
+    const contrat = {
+      editorial_role: 'corpus_editorial_note', reader_style: 'corpus_explanation', reader_label: 'Corpus Scriptura',
+      editorial_origin: 'Corpus Scriptura', editorial_addition: true, clarity_summary: true,
+    }
+    const texte = 'La note corrige la forme imprimée *Hippathehh* en *Eppethahh* ou *Ephphetha* et la rapproche de Mc 7, 34 : Ἐφφαθά, « ouvre-toi ».'
+    const { notesParSegment } = assemblerNotesStructurees({
+      notes: [note('N6', 6)],
+      ancres: [ancre('N6', 'S1', 0)],
+      blocs: [
+        { ...bloc('N6', 'clarte', 1, texte), metadata: contrat },
+        { ...bloc('N6', 'source', 2, 'Editi legunt Hebraice Hippathehh, cum legendum sit per Aleph ab initio Eppethahh.'), metadata: { editorial_role: 'source_editorial_note' } },
+        { ...bloc('N6', 'corpus', 3, 'Une traduction du site.'), kind: 'translation', metadata: { editorial_role: 'corpus_editorial_note', reader_label: 'Corpus Scriptura' } },
+      ],
+      relations: [],
+    })
+    const [clarte, source, corpus] = notesParSegment.S1['6'].blocks
+    expect(clarte.readerStyle).toBe('corpus_explanation')
+    expect(clarte.readerLabel).toBe('Corpus Scriptura')
+    // ⛔ Le texte voyage tel qu'il est en base : aucun libellé ne s'y ajoute.
+    expect(clarte.text).toBe(texte)
+    // ⚠️ Connus, non projetés : le rendu ne les lit pas.
+    for (const cle of ['editorialOrigin', 'editorialAddition', 'claritySummary', 'editorial_origin']) expect(cle in clarte).toBe(false)
+    // ⛔ Le rôle ne suffit pas, et un libellé sans style ne voyage pas.
+    expect('readerStyle' in source).toBe(false)
+    expect('readerStyle' in corpus).toBe(false)
+    expect('readerLabel' in corpus).toBe(false)
+  })
+
   it('compte une ancre sans note, sans marqueur lisible ou sans segment, et ne lève pas', () => {
     const { notesParSegment, ancresIncompletes } = assemblerNotesStructurees({
       notes: [note('N1', 1)],

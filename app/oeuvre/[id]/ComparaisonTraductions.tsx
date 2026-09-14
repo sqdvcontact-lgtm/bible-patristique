@@ -474,6 +474,10 @@ async function chargerNotes(segmentKeys: string[]): Promise<{
       humanValidated: meta.humanValidated,
       citationLayout: meta.citationLayout,
       bibliographyListItem: meta.bibliographyListItem,
+      // Le style de lecture et son libellé : ils décident seuls du rendu d'une explication
+      // de Corpus Scriptura (`explicationCorpus.ts`), comme dans le chargeur de la page.
+      readerStyle: meta.readerStyle,
+      readerLabel: meta.readerLabel,
     })
   }
   const resultat: NotesParSegment = {}

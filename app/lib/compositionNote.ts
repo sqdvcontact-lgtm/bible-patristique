@@ -36,6 +36,7 @@
 import { Z_INFOBULLE } from '@/app/lib/empilement'
 import type { CSSProperties } from 'react'
 import { MARGE_FENETRE } from './fenetreContextuelle'
+import { estExplicationCorpus } from './explicationCorpus'
 
 /** La largeur de l'encart. Un peu moins que la colonne de lecture (31,25 rem) : il
  *  se pose PAR-DESSUS elle, et doit se lire comme un objet, non comme une colonne.
@@ -250,6 +251,44 @@ export const CORPS_DISCRET_ENCART = '0.94em'
 export const STYLE_DISCRET_ENCART: CSSProperties = {
   fontSize: CORPS_DISCRET_ENCART,
   color: 'var(--cs-texte-second)',
+}
+
+/**
+ * LE LIBELLÉ D'UNE EXPLICATION DE CORPUS SCRIPTURA — « qui parle », posé sur le bloc même
+ * quand la donnée le demande (`metadata.reader_style`, voir `explicationCorpus.ts`).
+ *
+ * ⛔ SA COULEUR N'EST PAS ICI : elle vient du jeton `--cs-explication-corpus`, par la classe
+ * que le bloc porte, et le libellé en hérite. Écrite en style en ligne, elle serait figée
+ * dans un seul thème.
+ *
+ * ⛔ SA LIGNE EST CELLE DU PROPOS, et c'est ce qui la tient d'accord avec le numéro : la
+ * boîte emprunte le strut du texte — sa police, son corps, son interligne — et la face du
+ * libellé s'y pose EN LIGNE, sur la ligne de base du chiffre. C'est le procédé de
+ * `STYLE_NUMERO_SEUL`. Quand l'explication ouvre la note, le numéro flotte à côté du
+ * libellé, et le texte commence à la ligne suivante, à pleine mesure.
+ *
+ * ⚠️ La FACE est celle de l'intitulé de l'encart (`STYLE_INTITULE_ENCART`) : sans, capitales
+ * espacées, graisse 700. C'est déjà la forme par laquelle l'encart dit qui parle, et elle
+ * ne se lit pas comme la première phrase du propos.
+ *
+ * ⚠️ `user-select: none` : c'est une donnée de présentation, et la sélection d'un passage
+ * n'a pas à l'emporter dans le presse-papiers.
+ */
+export const MARGE_LIBELLE_EXPLICATION_REM = 0.1875
+export const STYLE_LIBELLE_EXPLICATION: CSSProperties = {
+  display: 'block',
+  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+  fontSize: CORPS_ENCART,
+  lineHeight: INTERLIGNE_ENCART,
+  fontStyle: 'normal',
+  marginBottom: `${MARGE_LIBELLE_EXPLICATION_REM}rem`,
+  userSelect: 'none',
+}
+export const STYLE_FACE_LIBELLE_EXPLICATION: CSSProperties = {
+  fontSize: '0.5625rem',
+  fontWeight: 700,
+  letterSpacing: '0.09em',
+  textTransform: 'uppercase',
 }
 
 /**
@@ -501,18 +540,21 @@ function signesParLigne(largeurPx: number, racine: number): number {
  * un blanc de 6 px de trop, contre une note tronquée.
  */
 export function reliefDeLaNote(
-  note: { blocks: readonly { text: string }[] } | string,
-): { blocs: number; lignesForcees: number } {
-  if (typeof note === 'string') return { blocs: 1, lignesForcees: 0 }
+  note: { blocks: readonly { text: string; readerStyle?: string | null }[] } | string,
+): { blocs: number; lignesForcees: number; libelles: number } {
+  if (typeof note === 'string') return { blocs: 1, lignesForcees: 0, libelles: 0 }
   const lignesForcees = note.blocks.reduce(
     (total, bloc) => total + Math.max(0, bloc.text.split('\n').filter(ligne => ligne.trim() !== '').length - 1),
     0,
   )
-  return { blocs: Math.max(1, note.blocks.length), lignesForcees }
+  // ⚠️ Et le LIBELLÉ d'une explication de Corpus Scriptura : une ligne de plus, que la
+  // longueur du texte ne dit pas (`STYLE_LIBELLE_EXPLICATION`).
+  const libelles = note.blocks.filter(estExplicationCorpus).length
+  return { blocs: Math.max(1, note.blocks.length), lignesForcees, libelles }
 }
 
 export function hauteurSouhaiteeNote(
-  { signes, racine, avecIntitule = false, largeur, blocs = 1, lignesForcees = 0 }:
+  { signes, racine, avecIntitule = false, largeur, blocs = 1, lignesForcees = 0, libelles = 0 }:
   {
     signes: number
     racine: number
@@ -525,6 +567,9 @@ export function hauteurSouhaiteeNote(
     /** Les lignes FORCÉES par un saut matériel — un bloc de vers en porte autant que
      *  de vers, quelle que soit leur longueur. */
     lignesForcees?: number
+    /** Les LIBELLÉS d'explication de Corpus Scriptura : chacun prend une ligne du propos
+     *  et son blanc (`STYLE_LIBELLE_EXPLICATION`). */
+    libelles?: number
   },
 ): number {
   const parLigne = signesParLigne(largeur ?? LARGEUR_ENCART_REM * racine, racine)
@@ -534,6 +579,8 @@ export function hauteurSouhaiteeNote(
   const enRem = lignes * LIGNE_ENCART_REM
     // ⚠️ Les blancs qui SÉPARENT les blocs : n blocs en portent n − 1.
     + Math.max(0, blocs - 1) * MARGE_PARAGRAPHE_ENCART_REM
+    // ⚠️ Et la ligne de chaque LIBELLÉ d'explication, avec son blanc.
+    + Math.max(0, libelles) * (LIGNE_ENCART_REM + MARGE_LIBELLE_EXPLICATION_REM)
     + MARGE_QUEUE_REM
     + REMBOURRAGE_VERTICAL_REM
     + (avecIntitule ? INTITULE_ENCART_REM : 0)

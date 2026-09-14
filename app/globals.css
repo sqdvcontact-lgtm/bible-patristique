@@ -360,6 +360,20 @@
      --cs-texte-second à ΔE 14,3, puis --cs-original à 14,6 et --cs-texte-gris à 16,8. */
   --cs-mention: #736247;
 
+  /* ── L'EXPLICATION DE CORPUS SCRIPTURA : la voix du site, quand elle éclaire une note ──
+     La passe P10 « Clarté et compréhensibilité » (14 septembre 2026) ajoute à des notes un
+     bloc rédigé par Corpus Scriptura. La donnée le déclare (metadata.reader_style =
+     corpus_explanation), et le lecteur doit le reconnaître avant de le lire : il se compose
+     en vert, sous un petit libellé, avec un filet discret en marge. Contrat et règle :
+     app/lib/explicationCorpus.ts ; feuille : § « L'EXPLICATION DE CORPUS SCRIPTURA SE LIT
+     EN VERT ».
+
+     ⚠️ La valeur du Clair est celle de --cs-vert, et ce n'est PAS un alias : le vert
+     d'accent change de rôle au Cuir, où il devient un or ; celui-ci doit rester un vert.
+     Mesuré sur les fonds de l'encart : 5,61 sur --cs-fond, 6,15 sur --cs-surface. Le seuil
+     de 4,5 s'applique, la note se composant à 11,5 px. */
+  --cs-explication-corpus: #3d6b4f;
+
   /* ── Surnuméraire : les versets propres à la Septante, hors de l'ossature canonique
      (Polyglotte). Seule famille FROIDE du corpus après --cs-systeme, et la seule qui
      ne se rabatte sur rien : mesuré, le violet est à ΔE 36,7 de --cs-systeme, le jeton
@@ -597,6 +611,11 @@
      même bande de teinte — mais le RANG, lui, est le même qu'au Clair. Mesuré : 5,78 sur
      --cs-fond, 4,97 sur --cs-fond-doux, 4,85 sur --cs-vert-pale ; minimum 4,85. */
   --cs-mention: #a8906d;
+  /* L'explication de Corpus Scriptura GARDE son vert au Cuir : c'est une voix encodée par
+     la couleur, au même titre que les familles de corpus et les séries du Budé, et la
+     rabattre au monochrome effacerait ce qu'elle dit. Une sauge claire, relue sur le sol
+     brun plutôt que recopiée : 9,24 sur --cs-fond, 8,56 sur --cs-surface. */
+  --cs-explication-corpus: #9ec5a6;
   --cs-attente:#d29a63;
   --cs-etiquette:#b8a179;
   /* « Système & doctrine » perd son bleu, seule teinte froide du site : un beige
@@ -3566,6 +3585,40 @@ main.lecture-entree [data-cs-bloc],
    posait sur le filet. ⚠️ Ce second niveau ne vise que l'enveloppe UNIQUE (`:only-child`) :
    une liste bibliographique ou une citation sortie gardent leurs derniers-nés. */
 .cs-encart-propos > :only-child > :last-child { margin-bottom: 0 !important; }
+
+/* ── L'EXPLICATION DE CORPUS SCRIPTURA SE LIT EN VERT ─────────────────────────
+   Les deux classes sont posées par ContenuNoteStructuree sur le bloc dont la donnée
+   déclare metadata.reader_style = corpus_explanation, et sur son libellé
+   (app/lib/explicationCorpus.ts). La fenêtre d'une note, la note dépliée du volet
+   patristique et les traductions parallèles passent toutes par ce composant : elles
+   reçoivent ce rendu sans le recopier.
+
+   ⛔ LE BLOC NE CHANGE QUE D'ENCRE. Corps, interligne, italique de la langue, césure et
+   justification restent ceux de la note ; italiques, petites capitales et références
+   HÉRITENT le vert sans qu'on les nomme.
+
+   ⛔ LE LIEN PORTE SA COULEUR EN STYLE EN LIGNE (rendreTexteEnrichi : var(--cs-vert)), qui
+   bat toute règle de feuille : d'où le point d'exclamation, le même que celui de la queue
+   d'un bloc de note, plus haut. Il garde son soulignement, qui suffit à le désigner ; sans
+   cette règle, il serait or au milieu d'un vert au Cuir.
+
+   ⚠️ LE FILET PEND DANS LA MARGE, il ne rentre pas le texte : un pseudo-élément posé à
+   gauche du bloc, dans le rembourrage de l'encart. Un filet de bordure aurait demandé un
+   rembourrage, qui décollait ce bloc du fer commun de la note ; et le rembourrage d'un
+   bloc est posé EN LIGNE par styleBlocNote, qu'une règle de feuille ne complète pas. Il
+   est décoratif, le libellé portant l'information : d'où sa discrétion. */
+.cs-note-explication-corpus { position: relative; color: var(--cs-explication-corpus); }
+.cs-note-explication-corpus::before {
+  content: '';
+  position: absolute;
+  top: 0.125em;
+  bottom: 0.125em;
+  left: -0.625em;
+  width: 2px;
+  background: color-mix(in srgb, var(--cs-explication-corpus) 40%, transparent);
+  pointer-events: none;
+}
+.cs-note-explication-corpus a { color: inherit !important; }
 
 /* ── UNE NOTE ÉPINGLÉE LE DIT ────────────────────────────────────────────────
    Un encart s'ouvre au survol et se FIXE au clic, et rien ne distinguait les deux

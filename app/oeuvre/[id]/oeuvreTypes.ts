@@ -5,6 +5,7 @@ import type { NatureBlocNote } from '@/app/lib/naturesNote'
 import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import type { DegradationChargement } from '@/app/lib/chargementTolerant'
 import type { SectionApparat } from '@/app/lib/oeuvreSelects'
+import type { StyleLectureBloc } from '@/app/lib/explicationCorpus'
 
 export type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
 export type NoteBlocData = {
@@ -49,6 +50,14 @@ export type NoteBlocData = {
    *  et le rendu réunit les entrées qui se suivent en une liste
    *  (`serieBibliographiqueNote.tsx`). Posé quand il vaut vrai, absent sinon. */
   bibliographyListItem?: boolean
+  /** `metadata.reader_style` — la présentation que la DONNÉE demande au lecteur
+   *  (`app/lib/explicationCorpus.ts`). ⛔ C'est lui, et jamais `editorialRole`, qui
+   *  déclenche le rendu d'une explication de Corpus Scriptura. Posé quand il est reconnu,
+   *  absent sinon. */
+  readerStyle?: StyleLectureBloc | null
+  /** `metadata.reader_label` — le libellé de présentation qui accompagne ce style.
+   *  ⛔ Il se compose dans sa propre boîte, jamais au début du texte. */
+  readerLabel?: string | null
 }
 export type NoteStructuree = {
   noteKey: string

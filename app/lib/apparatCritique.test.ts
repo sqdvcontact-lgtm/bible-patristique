@@ -126,7 +126,7 @@ describe('lireMetadonneesBlocNote', () => {
     })).toEqual({
       editorialRole: 'critical_apparatus', printedLine: 3,
       visualReviewReason: null, humanValidated: false, citationLayout: null,
-      bibliographyListItem: false,
+      bibliographyListItem: false, readerStyle: null, readerLabel: null,
     })
   })
 
@@ -161,7 +161,7 @@ describe('lireMetadonneesBlocNote', () => {
   it('retombe sur des nulls devant une métadonnée absente, vide ou mal typée', () => {
     const vide = {
       editorialRole: null, printedLine: null, visualReviewReason: null, humanValidated: null, citationLayout: null,
-      bibliographyListItem: false,
+      bibliographyListItem: false, readerStyle: null, readerLabel: null,
     }
     expect(lireMetadonneesBlocNote({})).toEqual(vide)
     expect(lireMetadonneesBlocNote(null)).toEqual(vide)

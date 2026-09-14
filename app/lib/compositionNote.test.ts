@@ -372,9 +372,9 @@ describe('la hauteur estimée compte le RELIEF de la note', () => {
   }
 
   it('compte les BLOCS et les lignes FORCÉES', () => {
-    expect(reliefDeLaNote(ovide)).toEqual({ blocs: 4, lignesForcees: 3 })
+    expect(reliefDeLaNote(ovide)).toEqual({ blocs: 4, lignesForcees: 3, libelles: 0 })
     // ⚠️ Un texte nu n'a ni bloc à séparer ni saut à rendre.
-    expect(reliefDeLaNote('(Is 1, 16).')).toEqual({ blocs: 1, lignesForcees: 0 })
+    expect(reliefDeLaNote('(Is 1, 16).')).toEqual({ blocs: 1, lignesForcees: 0, libelles: 0 })
   })
 
   // ⛔ LA BOÎTE DOIT PORTER LA NOTE, ou elle défile. Les deux hauteurs RÉELLES ont été

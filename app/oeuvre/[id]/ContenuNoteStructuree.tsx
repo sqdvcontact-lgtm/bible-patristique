@@ -7,6 +7,12 @@ import { normaliserReferencesDansTexte, terminerNote } from '@/app/lib/reference
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { estNoteApparatCritique } from '@/app/lib/apparatCritique'
 import {
+  CLASSE_EXPLICATION_CORPUS,
+  CLASSE_LIBELLE_EXPLICATION_CORPUS,
+  estExplicationCorpus,
+  libelleExplicationCorpus,
+} from '@/app/lib/explicationCorpus'
+import {
   familleDeNature,
   natureReprendLeTexte,
   natureSeNormaliseCommeReference,
@@ -15,7 +21,7 @@ import {
 import { ContenuApparatCritique } from './ApparatCritique'
 import { rendreTexteEnrichi } from './texteEnrichi'
 import * as BibliographieNote from './noteBibliographie'
-import { STYLE_DISCRET_ENCART, dispositionCitation, styleBlocNote } from '@/app/lib/compositionNote'
+import { STYLE_DISCRET_ENCART, STYLE_FACE_LIBELLE_EXPLICATION, STYLE_LIBELLE_EXPLICATION, dispositionCitation, styleBlocNote } from '@/app/lib/compositionNote'
 import { lignesDeVers, styleLigneDeVers } from '@/app/lib/compositionVers'
 
 /** L'espace insécable qui colle un renvoi à sa cible. ⚠️ Écrite par son code : un
@@ -189,6 +195,10 @@ function estReferenceRattachee(block: NoteBlocData) {
  */
 function ouvreLaLigneDuSuivant(bloc: NoteBlocData, suivant: NoteBlocData | undefined): boolean {
   if (familleDeNature(bloc.kind) !== 'ancrage') return false
+  // ⛔ UN ANCRAGE N'OUVRE PAS LA LIGNE D'UNE EXPLICATION DE CORPUS SCRIPTURA : posé sur sa
+  // ligne, il entrerait dans son bloc, sous son libellé et dans son vert, et la coordonnée
+  // de l'édition ou la phrase de l'œuvre se liraient comme un ajout du site.
+  if (suivant && estExplicationCorpus(suivant)) return false
   if (!natureReprendLeTexte(bloc.kind)) return true
   return bloc.form !== 'verse'
     && dispositionCitation(bloc) === 'fil'
@@ -321,6 +331,11 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
         const finSurTexte = estDernierBloc && referencesApresVers.length === 0 && referencesInline.length === 0
         // L'en-tête d'ancrage ouvre le PREMIER bloc rendu, et lui seul.
         const ouverture = rang === 0 ? entete : []
+        // ⛔ L'EXPLICATION DE CORPUS SCRIPTURA se reconnaît à `metadata.reader_style`, et à lui
+        // seul (`explicationCorpus.ts`) : jamais au rôle éditorial, que Corpus Scriptura porte
+        // aussi sur ses citations, ses traductions et ses attributions. Le bloc garde toute
+        // sa composition ; il ne gagne qu'une classe, qui lui donne son encre, et un libellé.
+        const explication = estExplicationCorpus(block)
 
         // ── UN VERS SE REND LIGNE À LIGNE, EN BOÎTES ──────────────────────────
         //
@@ -351,6 +366,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
         return (
           <div
             key={block.blockId}
+            className={explication ? CLASSE_EXPLICATION_CORPUS : undefined}
             lang={block.language ?? undefined}
             data-block-id={block.blockId}
             data-kind={block.kind}
@@ -359,6 +375,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
             data-disposition={sortie ? 'sortie' : 'fil'}
             data-rendering={block.rendering ?? undefined}
             data-needs-review={String(block.needsReview)}
+            data-reader-style={block.readerStyle ?? undefined}
             // ⛔ LA COMPOSITION VIT DANS `compositionNote.ts`, avec le reste de celle de
             // l'encart. Ce qui reste ici est ce que le BLOC dit de lui-même : sa
             // disposition, ses vers, sa langue, ses sauts matériels. ⛔ L'italique ne
@@ -373,6 +390,14 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
               sautsMateriels: (verse && !versEnLignes) || (!versEnLignes && referencesApresVers.length > 0),
             })}
           >
+            {explication ? (
+              // ⛔ LE LIBELLÉ EST UNE DONNÉE DE PRÉSENTATION, jamais un préfixe du texte : il vit
+              // dans sa propre boîte, au-dessus d'un texte qui ne change pas d'un caractère. Son
+              // encre vient de la classe du bloc, sa ligne de celle du propos.
+              <span className={CLASSE_LIBELLE_EXPLICATION_CORPUS} style={STYLE_LIBELLE_EXPLICATION}>
+                <span style={STYLE_FACE_LIBELLE_EXPLICATION}>{libelleExplicationCorpus(block)}</span>
+              </span>
+            ) : null}
             {ouverture.map(ancrage => (
               // La COORDONNÉE de l'appareil garde le repère discret ; la CITATION VISÉE,
               // qui n'ouvre que la ligne d'un propos, prend la teinte et la mesure du
