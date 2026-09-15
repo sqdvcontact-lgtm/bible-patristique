@@ -46,7 +46,10 @@ describe('intégration des dates historiques', () => {
     expect(client).toContain("from('v_catalogue_notices_dates')")
     expect(client).toContain('n.date_edition_affichage_courte ?? n.siecle_edition_affichage')
     expect(modale).toContain("from('v_oeuvres_dates')")
-    expect(modale).toContain('o.date_composition_affichage_courte')
+    // La date courte de la vue se lit dans le module de la liste (charte § 38.33.1), qui la
+    // range sans la recomposer ; la fiche compose sa colonne par lui.
+    expect(lire('./listeOeuvresAuteur.ts')).toContain('oeuvre.date_composition_affichage_courte')
+    expect(modale).toContain('colonneDesDates(')
     expect(modale).not.toContain('simplifierDateFrise')
   })
 

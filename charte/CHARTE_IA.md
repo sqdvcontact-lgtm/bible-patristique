@@ -8008,6 +8008,18 @@ Demande de l’auteur du 15 septembre 2026 : « Fenêtres “Auteur”, “En sa
 
 ⚠️ **CE QUE CE PARAGRAPHE NE DÉFAIT PAS.** Pas de portrait dans la fiche d’un livre, la frise de l’auteur à droite, la ligne qui nomme l’œuvre lue détachée dans la frise, les informations complémentaires rendues seulement remplies (§§ 38.24, 38.25, 5.6) ; « Édition et état du texte » sous la chronologie, sa référence en tête, et rien de l’atelier (§§ 38.4, 38.15). ⛔ Ce qu’il remplace : les grilles à deux colonnes des trois fiches, la forme empilée des rangées de la fiche d’une édition, et les titres du pied de la fiche d’auteur, qui prennent le titre de section commun aux trois fiches.
 
+### 38.33.1 La liste des œuvres d’un auteur : une date par groupe, et une colonne réglée sur les dates courtes
+
+Demande de l’auteur du 15 septembre 2026, sur la fiche de Jean Chrysostome : « Revoir la mise en forme pour être propre. » La liste alignait quinze « IVe siècle » à la suite, une mention en prose (« Vendredi saint, année non établie ») tombait au milieu de ce groupe, et cette mention portait la colonne des dates à 230 px : les dates numériques flottaient loin de leur titre.
+
+⛔ **UNE DATE QUI REDIT CELLE DE LA RANGÉE PRÉCÉDENTE SE TAIT.** Le libellé paraît sur la première œuvre de son groupe, et les suivantes se lisent sous lui, comme dans une table chronologique. Il reste dit à la synthèse vocale, qui lit chaque rangée pour elle-même.
+
+⛔ **L’ORDRE REND LES GROUPES CONTIGUS.** Les œuvres datées d’une année viennent d’abord, dans l’ordre des années. Suivent les périodes (« Première moitié du IIIe siècle », « IVe siècle », « Fin du IVe siècle »), à leur place chronologique, puis les mentions qui ne nomment aucune date (« Antiquité tardive », « Vendredi saint, année non établie ») ; les œuvres sans date ferment la liste. À repère égal, le libellé départage avant le titre : rangées par le seul titre, les œuvres d’une même période s’entrelaçaient avec leurs voisines.
+
+⛔ **UNE MENTION EN PROSE NE FAIT PAS LA LARGEUR DE LA COLONNE.** La colonne prend la largeur de la plus longue date sans dépasser 8,75 em ; au-delà, la mention passe sur deux lignes équilibrées, au fer à droite. Mesuré dans la police servie : les dates courtes du corpus tiennent en 6,42 em au plus, et la plus longue mention demande 8,7 em pour tenir sur deux lignes.
+
+⚠️ **CE QUI NE CHANGE PAS.** Le libellé reste celui que la vue `v_oeuvres_dates` établit, sans recomposition ; « c. » et « Vers » gardent leur sens distinct, et l’intervalle son trait d’union entre deux espaces (§ 3.4). ⚠️ « Vendredi saint, année non établie » occupe la date COURTE de son œuvre, faute d’une forme courte : lui donner « Date non établie » pour libellé court, et la garder en précision, relève de la donnée.
+
 ### 13.18 Ce que le RENDU d'une note lit, et la ligne de la citation visée
 
 Mission de l'auteur du 11 septembre 2026, sur la note I-02 de la *Consolation de la

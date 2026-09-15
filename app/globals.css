@@ -3881,8 +3881,15 @@ main.lecture-entree [data-cs-bloc],
 .cs-fiche-rangee-colonne + .cs-fiche-rangee-colonne { margin-top: 4px; }
 .cs-fiche-rangee-colonne > [data-fiche-colonne] {
   flex: 0 0 var(--fiche-colonne, auto);
+  /* ⛔ Une mention en PROSE ne fait pas la largeur de la colonne. « Vendredi saint,
+     année non établie » (16,3 em) la portait à 230 px, et les dates numériques
+     flottaient loin de leur titre. Au-delà de 8,75 em, la mention passe sur deux lignes
+     équilibrées : la plus longue du corpus en demande 8,7, et les dates courtes en
+     prennent au plus 6,42 (mesuré dans la police servie, 2026-09-15). */
+  max-width: 8.75em;
+  line-height: 1.3;
   text-align: right;
-  white-space: nowrap;
+  text-wrap: balance;
 }
 .cs-fiche-rangee-colonne > :last-child {
   flex: 1 1 auto;

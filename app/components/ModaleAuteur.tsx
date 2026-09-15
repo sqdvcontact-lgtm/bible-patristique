@@ -26,6 +26,7 @@ import { espacerIntervallesHistoriques, formaterDateHistorique } from '@/app/lib
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { type RangChrono, cleTypeAffichage, coulType, LIB_TYPE } from '@/app/lib/frise'
 import { libelleLangue } from '@/app/lib/langues'
+import { colonneDesDates, ordonnerOeuvresAuteur, type CelluleDeDate } from '@/app/lib/listeOeuvresAuteur'
 import { noticeDuCatalogue } from '@/app/lib/noticeOeuvre'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
@@ -323,6 +324,23 @@ function PiedDeFiche({ pied }: { pied: PiedFiche }) {
   )
 }
 
+/** La cellule de date d'une œuvre, dans la liste de la fiche. Une date qui redit celle de
+ *  la rangée précédente ne s'écrit pas (`colonneDesDates`) ; elle reste dite à la synthèse
+ *  vocale, qui lit chaque rangée pour elle-même. La précision, quand la vue en porte une,
+ *  va au libellé qu'on voit. */
+function CelluleDate({ cellule, precision, encre, encreVide }: {
+  cellule: CelluleDeDate; precision: string | null; encre: string; encreVide: string
+}) {
+  const { libelle, repete } = cellule
+  return (
+    <span data-fiche-colonne="" title={!repete && precision ? precision : undefined}
+      style={{ fontFamily: SERIF, fontSize: '0.71875rem', color: libelle ? encre : encreVide, fontStyle: libelle ? 'normal' : 'italic' }}>
+      {repete ? <span className="cs-hors-ecran">{libelle || 'Date inconnue'}</span>
+        : libelle ? <HistoricalDate value={libelle} variant="short" /> : 'Date inconnue'}
+    </span>
+  )
+}
+
 function Contenu({ auteur, onClose, evenements, pied, titreId }: {
   auteur: Auteur; onClose: () => void; evenements: RangChrono[]; pied: PiedFiche; titreId: string
 }) {
@@ -332,18 +350,13 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
   // la capitale, comme le siècle et la tradition qui l'encadrent.
   const reperes = [datesAuteur, libelleLangue(auteur.langue_principale), ...(auteur.traditions ?? [])].filter(Boolean).join(' · ')
 
-  // Affichage : la date courte de composition établie par la vue canonique.
-  const dateCompo = (o: OeuvreResumee) => o.date_composition_affichage_courte || ''
-  // Tri par année de composition (croissante). Les œuvres sans date closent la
-  // liste, départagées par le titre.
-  const anneeTri = (o: OeuvreResumee) => {
-    if (o.composition_debut_annee != null) return o.composition_debut_annee
-    return Infinity
-  }
-  const parDate = (a: OeuvreResumee, b: OeuvreResumee) =>
-    anneeTri(a) - anneeTri(b) || a.titre.localeCompare(b.titre, 'fr')
-  const oeuvresPresentes = auteur.oeuvres.filter(estOeuvrePubliee).sort(parDate)
-  const oeuvresAbsentes = auteur.oeuvres.filter(o => !estOeuvrePubliee(o)).sort(parDate)
+  // L'ordre et la colonne des dates viennent de `listeOeuvresAuteur` (charte § 38.33.1) :
+  // les œuvres datées d'abord, puis les périodes, puis les mentions qu'on ne sait pas
+  // dater, et une date qui redit celle de la rangée précédente se tait.
+  const oeuvresPresentes = ordonnerOeuvresAuteur(auteur.oeuvres.filter(estOeuvrePubliee))
+  const oeuvresAbsentes = ordonnerOeuvresAuteur(auteur.oeuvres.filter(o => !estOeuvrePubliee(o)))
+  const datesPresentes = colonneDesDates(oeuvresPresentes)
+  const datesAbsentes = colonneDesDates(oeuvresAbsentes)
   const aOeuvres = oeuvresPresentes.length > 0 || oeuvresAbsentes.length > 0
   const anecdotes = auteur.anecdotes?.trim() || null
   const influence = auteur.influence?.trim() || null
@@ -393,9 +406,9 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
       {aOeuvres && (
         <SectionFiche titre="Œuvres" className="cs-fiche-section--degagee">
           <ul ref={listeOeuvresRef} className="cs-fiche-liste-colonne">
-            {oeuvresPresentes.map(o => (
+            {oeuvresPresentes.map((o, rang) => (
               <li key={o.id_oeuvre} className="cs-fiche-rangee-colonne">
-                <span data-fiche-colonne="" title={o.date_composition_precision_affichage ?? undefined} style={{ fontFamily: SERIF, fontSize: '0.71875rem', color: dateCompo(o) ? '#b7a06a' : '#c9c1b4', fontStyle: dateCompo(o) ? 'normal' : 'italic' }}>{dateCompo(o) ? <HistoricalDate value={dateCompo(o)} variant="short" /> : 'Date inconnue'}</span>
+                <CelluleDate cellule={datesPresentes[rang]} precision={o.date_composition_precision_affichage} encre="#b7a06a" encreVide="#c9c1b4" />
                 {/* Œuvre disponible : titre en teinte sobre (pas vert), cliquable vers l'œuvre. */}
                 <span style={{ lineHeight: 1.38 }}>
                   <Link href={`/oeuvre/${o.id_oeuvre}`} onClick={onClose} className="cs-fiche-oeuvre"
@@ -406,9 +419,9 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
                 </span>
               </li>
             ))}
-            {oeuvresAbsentes.map(o => (
+            {oeuvresAbsentes.map((o, rang) => (
               <li key={o.id_oeuvre} className="cs-fiche-rangee-colonne">
-                <span data-fiche-colonne="" title={o.date_composition_precision_affichage ?? undefined} style={{ fontFamily: SERIF, fontSize: '0.71875rem', color: dateCompo(o) ? 'var(--cs-or-doux)' : 'var(--cs-bord)', fontStyle: dateCompo(o) ? 'normal' : 'italic' }}>{dateCompo(o) ? <HistoricalDate value={dateCompo(o)} variant="short" /> : 'Date inconnue'}</span>
+                <CelluleDate cellule={datesAbsentes[rang]} precision={o.date_composition_precision_affichage} encre="var(--cs-or-doux)" encreVide="var(--cs-bord)" />
                 {/* Œuvre répertoriée mais pas encore disponible : estompée, non cliquable. */}
                 <span className="cs-fiche-oeuvre--absente" title="Œuvre répertoriée, pas encore disponible" style={{ lineHeight: 1.38 }}>
                   <span style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-texte-faible)' }}>{o.titre}</span>
