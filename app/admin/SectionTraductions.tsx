@@ -8,7 +8,8 @@ import {
   VOILE_BANDEAU, ENCRE_SUR_PHOTO, META_SUR_PHOTO, CHEVRON_SUR_PHOTO,
   OMBRE_SUR_PHOTO, BRILLANCE_BANDEAU, MESURE_TEXTE_BANDEAU,
 } from '@/app/lib/bandeauTraduction'
-import DOMPurify from 'dompurify'
+import { useBordSurDerniereLigne } from '@/app/components/FicheModele'
+import { enProse, noticeEditorialeEnHtml } from '@/app/components/ModaleTraduction'
 import { supabase, headersAdmin } from './adminShared'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import type { Traduction } from './adminTypes'
@@ -64,6 +65,10 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
   const [saving, setSaving] = useState(false)
   const bandeauRef = useRef<HTMLDivElement>(null)
   const encartRef = useRef<HTMLDivElement>(null)
+  // Le portrait se compose comme sur la page publique : son cadre s'allonge jusqu'à la
+  // dernière ligne qui l'habille (`useBordSurDerniereLigne`), et l'image le remplit.
+  const cadreEncartRef = useRef<HTMLDivElement>(null)
+  useBordSurDerniereLigne(cadreEncartRef, Boolean(imageEncart), t.trad_id)
   const dragRef = useRef<{
     zone: 'bandeau' | 'encart'
     startX: number; startY: number; baseX: number; baseY: number
@@ -136,22 +141,14 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
     letterSpacing: '0.07em', textTransform: 'uppercase', pointerEvents: 'none',
   }
 
-  // Simplification du commentaire editorial pour l'affichage dans la modale.
-  // ⛔ Sans style en clair, comme du côté public : ces paragraphes tombent dans
-  // `.trad-article`, dont les déclarations sont `!important` et gagnent contre tout
-  // attribut `style`. L'interligne de 1,78 qui figurait ici n'a jamais été servi
-  // (audit de densité, 2026-09-05).
-  const htmlEditorial = t.commentaire_editorial
-    ? DOMPurify.sanitize(t.commentaire_editorial.startsWith('<')
-        ? t.commentaire_editorial
-        : t.commentaire_editorial.split(/\n+/).filter(Boolean)
-            .map(l => `<p>${l}</p>`)
-            .join(''))
-    : ''
+  // ⛔ La notice éditoriale se compose par la fonction de la fiche publique
+  // (`noticeEditorialeEnHtml`) : un aperçu qui recompose de son côté finit toujours par
+  // ne plus montrer ce que le lecteur lit (charte § 3.11).
+  const htmlEditorial = t.commentaire_editorial ? noticeEditorialeEnHtml(t.commentaire_editorial) : ''
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: Z_MODALE, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-fond)', borderRadius: '8px', padding: '18px 18px 16px', maxWidth: '42.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-fond)', borderRadius: '8px', padding: '18px 18px 16px', maxWidth: '52rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
 
         {/* En-tête */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -218,45 +215,35 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
             {active === 'bandeau' && <div style={{ ...badgeStyle, top: 6, right: 6 }}>bandeau</div>}
           </div>
 
-          {/* ── Volet déplié (copie exacte de AllerPlusLoinClient) ── */}
-          <div style={{ borderTop: '1px solid var(--cs-fond-doux)', display: 'flex', alignItems: 'flex-start' }}>
-
-            {/* Encart portrait, détaché des bords */}
-            {imageEncart && (
-              <div
-                ref={encartRef}
-                style={{
-                  position: 'relative', width: '8.75rem', flexShrink: 0,
-                  aspectRatio: '2 / 3',
-                  margin: '18px 0 18px 18px',
-                  borderRadius: '4px', overflow: 'hidden',
-                  boxShadow: '0 0 0 1px var(--cs-bord), 0 1px 5px rgba(0,0,0,0.14)',
-                  outline: active === 'encart' ? '3px solid var(--cs-vert)' : '3px solid transparent',
-                  outlineOffset: '-3px', transition: 'outline-color 0.12s',
-                }}>
-                <img src={imageEncart} alt="" draggable={false}
-                  style={{ width: '100%', height: '100%', display: 'block', ...posStyle('encart') }} />
-                <div onMouseDown={startDrag('encart')} style={{ position: 'absolute', inset: 0, zIndex: 1, cursor: isDragging ? 'grabbing' : 'grab' }} />
-                {active === 'encart' && <div style={{ ...badgeStyle, bottom: 6, left: '50%', transform: 'translateX(-50%)' }}>encart</div>}
+          {/* ── Volet déplié : la colonne de la fiche publique, telle que la page la rend ──
+              ⛔ Mêmes classes que `ContenuFicheTraduction` (globals.css, § « LA FICHE ») :
+              le portrait flottant sous son passe-partout, la biographie, puis la notice.
+              L'aperçu ne porte ni la chronologie ni l'édition, qu'on ne cadre pas. */}
+          <div style={{ borderTop: '1px solid var(--cs-fond-doux)', padding: '18px 20px 22px' }}>
+            <div className="cs-fiche-corps" data-fiche-corps="">
+              <div className="cs-fiche-principal">
+                {imageEncart && (
+                  <div ref={cadreEncartRef} className="cs-fiche-portrait">
+                    <div
+                      ref={encartRef}
+                      className="cs-fiche-portrait-fenetre"
+                      style={{
+                        position: 'relative',
+                        outline: active === 'encart' ? '3px solid var(--cs-vert)' : '3px solid transparent',
+                        outlineOffset: '-3px', transition: 'outline-color 0.12s',
+                      }}>
+                      <img src={imageEncart} alt="" draggable={false}
+                        style={{ width: '100%', height: '100%', display: 'block', ...posStyle('encart') }} />
+                      <div onMouseDown={startDrag('encart')} style={{ position: 'absolute', inset: 0, zIndex: 1, cursor: isDragging ? 'grabbing' : 'grab' }} />
+                      {active === 'encart' && <div style={{ ...badgeStyle, bottom: 6, left: '50%', transform: 'translateX(-50%)' }}>encart</div>}
+                    </div>
+                  </div>
+                )}
+                {t.bio_courte && <p className="cs-fiche-bio">{enProse(t.bio_courte)}</p>}
+                {htmlEditorial && (
+                  <div className="cs-fiche-notice" dangerouslySetInnerHTML={{ __html: htmlEditorial }} />
+                )}
               </div>
-            )}
-
-            {/* Texte réel
-                ⛔ Les valeurs sont celles d'`AllerPlusLoinClient`, au signe près : cet
-                aperçu se dit « copie exacte », et il ne l'était pas. La bio y paraissait
-                en corps 14 sur un interligne de 1,65 quand le lecteur la reçoit en corps
-                12,5 sur 1,50 ; l'auteur jugeait donc ses notices dans une forme que le
-                site ne sert pas (audit de densité, 2026-09-05). */}
-            <div style={{ flex: 1, minWidth: 0, padding: '18px 20px 22px' }}>
-              {t.bio_courte && (
-                <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: '0 0 10px', fontStyle: 'italic', textAlign: 'justify', hyphens: 'auto' }}>
-                  {t.bio_courte}
-                </p>
-              )}
-              {htmlEditorial && (
-                <div className="trad-article" style={{ color: 'var(--cs-texte-fort)', fontSize: '0.84375rem', lineHeight: 1.52, textAlign: 'justify', hyphens: 'auto' }}
-                  dangerouslySetInnerHTML={{ __html: htmlEditorial }} />
-              )}
             </div>
           </div>
         </div>

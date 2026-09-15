@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import {
+  BLANC_ENTREE,
   SEPARATEUR_RENDU,
   STYLE_ENTREE_NOTATION,
   STYLE_LISTE_NOTATION,
@@ -47,7 +48,7 @@ export default function NotationEdition({ texte }: { texte: string | null | unde
         return (
           <ul key={`l${i}`} style={{ ...STYLE_LISTE_NOTATION, marginTop }}>
             {bloc.entrees.map((entree, j) => (
-              <li key={j} className="cs-notice-prose" style={STYLE_ENTREE_NOTATION}>
+              <li key={j} className="cs-notice-prose" style={{ ...STYLE_ENTREE_NOTATION, marginTop: j > 0 ? BLANC_ENTREE : 0 }}>
                 {entree.tete === null ? rendreTexteEnrichi(entree.corps) : (
                   <Fragment>
                     <span style={STYLE_TETE_NOTATION}>{rendreTexteEnrichi(entree.tete)}</span>

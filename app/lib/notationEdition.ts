@@ -206,8 +206,13 @@ export function blancAuDessus(precedent: BlocNotation | null, courant: BlocNotat
 }
 
 /** ⛔ Aucun `gap` : c'est `blancAuDessus` qui sépare, et un écart de conteneur s'y
- *  ajouterait sans qu'aucune des deux écritures ne le sache. */
-export const STYLE_NOTATION: CSSProperties = { display: 'flex', flexDirection: 'column' }
+ *  ajouterait sans qu'aucune des deux écritures ne le sache.
+ *  ⚠️ En BLOC, et non plus en colonne de flex (2026-09-15) : une colonne de flex fait
+ *  contexte, et se range tout entière à côté d'un flottant — dans la fiche d'une édition,
+ *  la chronologie —, sans jamais reprendre la pleine mesure sous lui. En bloc, ses
+ *  paragraphes habillent la colonne de droite puis s'élargissent. Les marges n'y
+ *  changent rien : chaque bloc ne pose que son blanc du dessus, et le dessous est à zéro. */
+export const STYLE_NOTATION: CSSProperties = { display: 'block' }
 
 /**
  * La RUBRIQUE prend le rang des rubriques d'un volet (`RUBRIQUE_AXE`), un cran sous le
@@ -229,16 +234,19 @@ export const STYLE_RUBRIQUE_NOTATION: CSSProperties = {
   marginBottom: '0',
 }
 
-/** La LISTE : ni puce ni retrait de liste — le retrait suspendu de l'entrée fait tout. */
+/** La LISTE : ni puce ni retrait de liste — le retrait suspendu de l'entrée fait tout.
+ *  ⚠️ En BLOC, pour la raison de `STYLE_NOTATION` : une colonne de flex se rangerait
+ *  tout entière à côté de la chronologie. Le blanc entre deux entrées passe donc de
+ *  l'écart du conteneur à la marge de l'entrée (`BLANC_ENTREE`), posée par le rendu. */
 export const STYLE_LISTE_NOTATION: CSSProperties = {
   listStyle: 'none',
   marginTop: 0,
   marginBottom: 0,
   padding: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
 }
+
+/** Le blanc entre deux entrées d'une même liste, au-dessus de la seconde. */
+export const BLANC_ENTREE = '4px'
 
 /**
  * L'ENTRÉE, au RETRAIT SUSPENDU des bibliographies imprimées : la première ligne part du
@@ -250,7 +258,12 @@ export const STYLE_LISTE_NOTATION: CSSProperties = {
  */
 export const RETRAIT_ENTREE = '1.1em'
 export const STYLE_ENTREE_NOTATION: CSSProperties = {
-  margin: 0,
+  // ⚠️ En LONGHANDS : le rendu y ajoute `marginTop`, et un raccourci posé à côté ne
+  // tiendrait que par l'ordre des clés.
+  marginTop: 0,
+  marginRight: 0,
+  marginBottom: 0,
+  marginLeft: 0,
   paddingLeft: RETRAIT_ENTREE,
   textIndent: `-${RETRAIT_ENTREE}`,
   textAlign: 'left',

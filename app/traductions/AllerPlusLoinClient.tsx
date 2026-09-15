@@ -1,29 +1,28 @@
 'use client'
 
 import IconeChevron from '@/app/components/IconeChevron'
+import { ContenuFicheTraduction, useDonneesFicheTraduction } from '@/app/components/ModaleTraduction'
 import { useEffect, useState, type CSSProperties } from 'react'
-import DOMPurify from 'dompurify'
 import { supabase } from '@/app/lib/supabase'
-import { formaterSieclesHTML } from '@/app/oeuvre/[id]/texteEnrichi'
+import { allerAElement } from '@/app/lib/defilement'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
-import {
-  portraitTraduction, styleImagePortrait, type PositionsPhotoTraduction,
-} from '@/app/lib/portraitTraduction'
+import { portraitTraduction, type PositionsPhotoTraduction } from '@/app/lib/portraitTraduction'
 import {
   VOILE_BANDEAU, ENCRE_SUR_PHOTO, META_SUR_PHOTO,
   CHEVRON_SUR_PHOTO, OMBRE_SUR_PHOTO, BRILLANCE_BANDEAU, MESURE_TEXTE_BANDEAU,
 } from '@/app/lib/bandeauTraduction'
 
+/** Ce que la LISTE lit : le bandeau et le ton de l'image. ⚠️ La notice dépliée, elle, se
+ *  charge par la fiche (`useDonneesFicheTraduction`) : la page ne compose plus rien de
+ *  son côté. */
 type Traduction = {
-  trad_id: string; nom: string; auteur: string | null; dates: string | null;
-  bio_courte: string | null; date_publication: string | null;
-  confession: string | null; langue: string | null;
-  commentaire_editorial: string | null; ordre: number;
-  photo: string | null;
-  photo_encart: string | null;
-  import_maj_le: string | null;
-  photo_position: PositionsPhotoTraduction;
+  trad_id: string; nom: string
+  date_publication: string | null; langue: string | null
+  ordre: number
+  photo: string | null
+  photo_encart: string | null
+  photo_position: PositionsPhotoTraduction
 }
 
 /** La TEINTE dominante d'une image et sa saturation — jamais sa clarté. Rend `null`
@@ -210,10 +209,8 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
           </span>
         )}
         {/* ⛔ LA DATE DE MISE À JOUR N'EST PLUS ICI (demande de l'auteur, 2026-09-04 :
-            « n'afficher la date de mise à jour que dans le texte développé »). Une carte
-            fermée nomme la traduction et dit d'où elle vient ; la date à laquelle NOUS
-            avons repris son corpus est un fait d'atelier, qui n'aide pas à choisir. Elle
-            se lit dans le dépli, sous la notice. */}
+            « n'afficher la date de mise à jour que dans le texte développé »). Elle se
+            lit dans la notice dépliée, parmi l'état du texte. */}
       </div>
 
       {/* Sur une PHOTO, l'ombre du texte devient une ombre PORTÉE : `drop-shadow` prend
@@ -229,52 +226,29 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
   )
 }
 
-function normaliserContenu(texte: string): string {
-  if (!texte) return ''
-  let html: string
-  if (/^\s*<(p|h[1-6]|div|ul|ol|blockquote)[\s>]/i.test(texte)) {
-    html = texte
-  } else {
-    // ⛔ AUCUN STYLE EN CLAIR ICI. Ces paragraphes tombent dans `.trad-article`, dont
-    // toutes les déclarations sont `!important` : couleur, corps, interligne, marge,
-    // alignement et césure. Un attribut `style` d'auteur perd contre un `!important`
-    // d'auteur, si bien que l'interligne de 1,78 qui figurait ici n'a JAMAIS été servi —
-    // le lecteur recevait 1,52 (audit de densité, 2026-09-05). Une valeur morte est pire
-    // qu'une valeur absente : on la corrige et rien ne bouge.
-    html = texte
-      .split(/\n+/)
-      .map(l => l.trim())
-      .filter(Boolean)
-      .map(l => `<p>${l}</p>`)
-      .join('')
-  }
-  // Assaini avant injection : `commentaire_editorial` est du HTML éditorial, mais on
-  // le passe par DOMPurify (comme NavLivres) pour ne jamais rendre de script/handler.
-  return DOMPurify.sanitize(formaterSieclesHTML(html))
-}
-
-/** Le volet déplié d'une notice.
+/** Le volet déplié d'une notice : le CONTENU DE LA FENÊTRE « À propos de cette
+ *  traduction », tel quel.
  *
- *  ⛔ Il n'est PLUS deux colonnes. L'image y tenait une colonne entière, et le texte
- *  l'autre : dès que la notice dépassait une quinzaine de lignes, il restait sous
- *  l'image une bande blanche de cent soixante pixels de large et de cinq cents de
- *  haut, que rien ne venait remplir. L'encart FLOTTE donc dans le texte, qui
- *  l'entoure puis reprend toute la mesure sous lui. `flow-root` fait du bloc de
- *  texte un contexte de formatage : sans lui, une notice plus courte que l'encart
- *  laisserait celui-ci dépasser hors de la carte.
+ *  ⛔ Demande de l'auteur, 2026-09-15 : « Les données de la page “traduction” et les
+ *  données de la fenêtre “traduction” doivent être les mêmes. » La page composait sa
+ *  propre notice — encart, biographie, commentaire, date de mise à jour —, et la
+ *  fenêtre la sienne, avec la chronologie, l'édition, les ouvrages cités et les
+ *  conditions d'usage en plus. Elles partagent désormais le chargement
+ *  (`useDonneesFicheTraduction`) et la composition (`ContenuFicheTraduction`) ; seul
+ *  l'en-tête change, le bandeau nommant déjà la traduction.
+ *
+ *  ⚠️ Le fond garde la TEINTE de l'image, et la clarté du thème (`.trad-fiche-fond`,
+ *  globals.css) : c'est ce que la page a de propre, et la fiche se pose dessus.
  *
  *  C'est un COMPOSANT, et non un fragment de la liste, parce qu'il lit le ton de son
- *  image : un crochet ne se pose pas dans une boucle. */
+ *  image et charge ses données : un crochet ne se pose pas dans une boucle. */
 function FicheTraduction({ t }: { t: Traduction }) {
   const e = portraitTraduction(t)
   const ton = useTonImage(e?.url ?? null)
+  const { info, chrono, ouvragesCites } = useDonneesFicheTraduction(t.trad_id)
 
   // ⛔ L'image donne la TEINTE, le thème donne la CLARTÉ, et les deux ne se mêlent
-  // jamais. La clarté est posée par `.trad-fiche-fond`, dans globals.css : très
-  // haute au Clair, très basse au Cuir. Écrite ici, elle aurait allumé une fiche
-  // pâle au milieu du Cuir ; tirée de l'image, elle salissait le blanc de la fiche
-  // d'un beige sourd dès que la peinture était sombre — ce qu'elle est presque
-  // toujours.
+  // jamais (voir `tonDominant`).
   const teinte = ton
     ? ({ '--trad-ton-h': String(ton.h), '--trad-ton-s': `${ton.s}%` } as CSSProperties)
     : undefined
@@ -285,60 +259,8 @@ function FicheTraduction({ t }: { t: Traduction }) {
       transition: 'background 0.35s ease',
       ...teinte,
     }}>
-      {/* Les marges internes suivent aussi : 40 px de blanc pris sur une colonne
-          de 184 px, c'était près du quart de la place restante. */}
-      <div className="trad-fiche-texte" style={{ display: 'flow-root', padding: '18px clamp(12px, 4vw, 20px) 22px' }}>
-        {e && (
-          <div className="trad-fiche-encart" style={{
-            // ⚠️ La largeur était figée à 8.75rem (140 px), donc insensible à
-            // l'écran. Sur un téléphone de 375 px, la carte dispose de 327 px :
-            // l'image en prenait 141, et il restait 144 px de texte JUSTIFIÉ,
-            // soit dix-sept signes par ligne.
-            // ⛔ Sous 700 px, cet encart DISPARAÎT (règle `.trad-fiche-encart`
-            // dans globals.css, à côté de celle de la carte d'auteur, qui répond
-            // au même défaut) : il perturbait la lecture.
-            float: 'left',
-            width: 'clamp(4rem, 20vw, 8.75rem)',
-            // ⛔ L'encart NE TOUCHE AUCUN BORD : le fond du bloc l'entoure de trois
-            // côtés, le texte du quatrième. Sa forme ne dépend plus de la longueur
-            // de la notice — c'était une bande de 140 sur 600 quand le commentaire
-            // était long.
-            aspectRatio: '2 / 3',
-            margin: '3px 18px 12px 0',
-            borderRadius: '4px', overflow: 'hidden',
-            boxShadow: '0 0 0 1px var(--cs-bord), 0 1px 5px rgba(0,0,0,0.14)',
-          }}>
-            <img src={e.url} alt="" aria-hidden="true"
-              style={styleImagePortrait(e)} />
-          </div>
-        )}
-        {/* ⚠️ LE TEXTE SE RESSERRE (demande de l'auteur, 2026-09-04). L'interligne
-            passe de 1,65 à 1,52 et le blanc entre paragraphes de 10 à 7 px : à 13,5 px de
-            corps, 1,65 ouvre les lignes d'une notice de plusieurs écrans jusqu'à la faire
-            flotter. C'est le pas déjà retenu pour la Bible commentée (1,5 → 1,42) et pour
-            le volet condensé. Les valeurs vivent dans `globals.css`, avec les autres
-            règles de `.trad-article`. */}
-        {t.bio_courte && (
-          <p style={{
-            fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.5,
-            margin: '0 0 10px', fontStyle: 'italic',
-            textAlign: 'justify', hyphens: 'auto',
-          }}>
-            {t.bio_courte}
-          </p>
-        )}
-        {t.commentaire_editorial && (
-          <div
-            className="trad-article"
-            style={{ color: 'var(--cs-texte-fort)', fontSize: '0.84375rem', lineHeight: 1.52, textAlign: 'justify', hyphens: 'auto' }}
-            dangerouslySetInnerHTML={{ __html: normaliserContenu(t.commentaire_editorial) }}
-          />
-        )}
-        {t.import_maj_le && (
-          <p style={{ fontSize: '0.625rem', fontStyle: 'italic', color: 'var(--cs-texte-faible)', margin: '14px 0 0' }}>
-            Corpus mis à jour le {new Date(t.import_maj_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}.
-          </p>
-        )}
+      <div style={{ padding: '18px clamp(12px, 4vw, 20px) 22px' }}>
+        <ContenuFicheTraduction surPage info={info} chrono={chrono} ouvragesCites={ouvragesCites} nomFallback={t.nom} />
       </div>
     </div>
   )
@@ -353,8 +275,6 @@ export default function AllerPlusLoinClient() {
       // ⛔ Deux conditions, et deux seulement. `est_biblique` écarte les notices des
       // traductions patristiques, qui vivent dans la même table. `visible_public` porte
       // la décision éditoriale, prise ligne à ligne depuis l'administration.
-      // Le filtre portait auparavant sur `schema_numerotation` : un PROXY, qui disait
-      // que le texte est versifié, non qu'on souhaitait en publier la notice.
       .eq('est_biblique', true)
       .eq('visible_public', true)
       .order('ordre', { ascending: true })
@@ -362,24 +282,23 @@ export default function AllerPlusLoinClient() {
   }, [])
 
   // Lien profond vers une traduction précise (#TR0002), notamment depuis la recherche rapide.
+  // ⛔ `allerAElement`, jamais un défilement doux nu : il peut ne rien faire du tout.
   useEffect(() => {
     if (traductions.length === 0) return
     const hash = window.location.hash.replace('#', '')
     if (!hash) return
     setOuvert(hash)
-    const el = document.getElementById(hash)
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    allerAElement(document.getElementById(hash))
   }, [traductions])
 
   return (
     <main style={{
       background: 'var(--cs-fond)',
       // AUCUN paddingTop ici. Le décalage sous la navbar fixe est posé UNE SEULE fois
-      // pour tout le site, par #cs-corps dans app/layout.tsx. Le répéter le comptait
-      // deux fois : 107px entre la barre et le titre au lieu de 38.
+      // pour tout le site, par #cs-corps dans app/layout.tsx.
       minHeight: 'calc(100dvh - 3.5rem)',
     }}>
-      <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
+      <div style={{ maxWidth: '52rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '4px' }}>
           <h1 style={{
             fontFamily: "var(--font-source-serif), Georgia, serif",
@@ -392,7 +311,9 @@ export default function AllerPlusLoinClient() {
         </div>
       </div>
 
-      <div style={{ maxWidth: '42.5rem', margin: '0 auto', padding: '10px 24px 80px' }}>
+      {/* ⚠️ 52 rem, la mesure de la fenêtre : la notice dépliée y est la même fiche, et
+          ses deux colonnes demandent la même place. */}
+      <div style={{ maxWidth: '52rem', margin: '0 auto', padding: '10px 24px 80px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {traductions.map((t) => {
             const estOuvert = ouvert === t.trad_id

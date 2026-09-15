@@ -43,7 +43,8 @@ export type SurfacePortrait = 'carte' | 'fiche'
 
 export type CadrePortrait = {
   libelle: string
-  /** Mesures EXACTES du composant réel, à l'unité près. */
+  /** Mesures EXACTES de la ZONE D'IMAGE du composant réel, à l'unité près :
+   *  passe-partout NON compris, c'est la zone que le cadrage vise. */
   largeur: string
   hauteur: string
   /** Marge blanche autour de l'image, s'il y en a une (la fiche en porte une). */
@@ -62,11 +63,15 @@ export const CADRES_PORTRAIT: Record<SurfacePortrait, CadrePortrait> = {
   // photo `width: 7.5rem`. La photo est étirée par la rangée, elle fait donc
   // toute la hauteur du bandeau.
   carte: { libelle: 'Carte de la bibliothèque', largeur: '7.5rem', hauteur: '200px', passePartout: '0', reglage: 'carte' },
-  // app/components/ModaleAuteur.tsx : cadre 128 × 200 px, `padding: 5px`. Le portrait
-  // y FLOTTE depuis le 1er septembre 2026 et la prose de « Vie » l'habille ; il est
-  // passé du timbre (104 × 130) au vrai format portrait, rapport 0,64.
-  // ⚠️ Ces deux mesures ne sont plus recopiées dans le composant : il les LIT ici.
-  fiche: { libelle: 'Fiche de l’auteur', largeur: '128px', hauteur: '200px', passePartout: '5px', reglage: 'fiche' },
+  // app/components/FicheModele.tsx (`PortraitFiche`) : zone d'image de 8,75 rem au
+  // rapport 2/3, sous un passe-partout de 5 px. C'est le cadre des fiches d'auteur et de
+  // traduction depuis le 15 septembre 2026 (« uniformiser toutes ces fenêtres ») : la
+  // fiche d'auteur prenait 128 × 200 px posés, celle d'une traduction 8,75 rem, et sur un
+  // grand écran la seconde était moitié plus grande que la première.
+  // ⚠️ En rem, et non plus en pixels : la prose qu'il accompagne suit la police racine.
+  // ⛔ `globals.css` (`.cs-fiche-portrait-fenetre`) écrit la même mesure, et
+  // `ficheModele.test.ts` confronte les deux écritures.
+  fiche: { libelle: 'Fiche de l’auteur', largeur: '8.75rem', hauteur: '13.125rem', passePartout: '5px', reglage: 'fiche' },
 }
 
 function normaliser(pos: Partial<AuteurPhotoPos> | null | undefined, defaut: AuteurPhotoPos): AuteurPhotoPos {

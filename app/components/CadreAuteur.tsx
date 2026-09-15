@@ -22,12 +22,16 @@ export default function CadreAuteur({ surface, url, pos, alt = '', onPointerDown
   const cadre = CADRES_PORTRAIT[surface]
   const avecPassePartout = cadre.passePartout !== '0'
   return (
+    // ⚠️ `content-box` : les mesures du registre sont celles de la ZONE D'IMAGE, et le
+    // passe-partout s'ajoute AUTOUR d'elle, comme dans la fiche (`PortraitFiche`). En
+    // `border-box`, l'aperçu rognait la zone de douze pixels et ne cadrait plus comme
+    // la page.
     <div style={{
       width: cadre.largeur, height: cadre.hauteur, flexShrink: 0, position: 'relative', overflow: 'hidden',
       padding: cadre.passePartout,
       background: avecPassePartout ? 'var(--cs-surface)' : 'var(--cs-fond-doux)',
       border: avecPassePartout ? '1px solid var(--cs-bord)' : undefined,
-      boxSizing: 'border-box',
+      boxSizing: 'content-box',
     }}>
       <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', background: 'var(--cs-fond-doux)' }}>
         {children}

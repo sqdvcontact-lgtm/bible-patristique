@@ -758,88 +758,6 @@ h6 {
   font-family: var(--font-source-serif), Georgia, serif;
 }
 
-/* ── Page Traductions ── */
-.trad-article p,
-.trad-article p :not(sup) {
-  font-size: 0.84375rem !important;
-  color: var(--cs-texte-fort) !important;
-  /* ⚠️ Resserré le 2026-09-04, à la demande de l'auteur : 1,65 ouvrait les lignes d'une
-     notice de plusieurs écrans jusqu'à la faire flotter. Même pas que la Bible commentée
-     (1,5 → 1,42) et que le volet condensé. */
-  line-height: 1.52 !important;
-  margin: 0 0 7px !important;
-  text-decoration: none !important;
-  text-align: justify !important;
-  hyphens: auto !important;
-}
-.trad-article sup {
-  font-size: 0.6em !important;
-}
-.trad-article h1 {
-  font-family: var(--font-source-serif), Georgia, serif !important;
-  font-size: 1.0625rem !important;
-  font-weight: normal !important;
-  color: var(--cs-encre-fonce) !important;
-  margin: 16px 0 6px !important;
-  text-decoration: none !important;
-}
-.trad-article h2 {
-  font-family: var(--font-source-serif), Georgia, serif !important;
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  color: var(--cs-encre) !important;
-  margin: 14px 0 5px !important;
-  text-decoration: none !important;
-}
-
-/* ── UNE BIBLIOGRAPHIE DE NOTICE PREND LA FORME OFFICIELLE ────────────────────
-   ⛔ « Études sur cette traduction » retombait sur la liste par DÉFAUT du navigateur :
-   puces rondes, corps du navigateur — donc plus gros que la prose qu'elle accompagne —
-   et pas de retrait suspendu (relevé de l'auteur, 2026-09-04 : « utilise le système
-   officiel de bibliographie, et la mise en forme officielle »). La classe « trad-article »
-   réglait ses paragraphes, ses titres, son gras et son italique, et n'avait jamais rien
-   dit de ses listes.
-   ⚠️ LES MESURES SONT CELLES DE TOUTE BIBLIOGRAPHIE DU SITE (charte § 47.2) :
-   interligne SERRÉ, blanc LARGE entre deux références, retrait suspendu, aucune puce.
-   Une référence de deux lignes ne se lit que si la seconde rentre — c'est ce qui sépare
-   deux notices à l'œil.
-   ⛔ Une SEULE déclaration pour les deux surfaces qui rendent ces notices : la page
-   « Les traductions » et la fiche « À propos de cette traduction » (« trad-notice »), qui
-   la portait dans son propre bloc de style. Deux copies d'une même forme ne restent
-   identiques que par accident. */
-.trad-article ul,
-.trad-notice ul {
-  margin: 0 0 8px !important;
-  padding-left: 0 !important;
-  list-style: none !important;
-}
-.trad-article li,
-.trad-notice li {
-  font-family: var(--font-source-sans), Arial, sans-serif !important;
-  font-size: 0.75rem !important;
-  line-height: 1.32 !important;
-  color: var(--cs-texte) !important;
-  margin: 0 0 9px !important;
-  padding-left: 1.1em !important;
-  text-indent: -1.1em !important;
-  text-align: left !important;
-}
-.trad-article li:last-child,
-.trad-notice li:last-child { margin-bottom: 0 !important; }
-.trad-article strong {
-  font-weight: 600 !important;
-  color: var(--cs-texte-fort) !important;
-  text-decoration: none !important;
-}
-.trad-article em {
-  font-style: italic !important;
-  color: var(--cs-texte) !important;
-  text-decoration: none !important;
-}
-.trad-article .sc {
-  font-variant: small-caps !important;
-}
-
 /* ── Accessibilité : focus clavier toujours visible ──
    Beaucoup de champs neutralisent l'outline par défaut (`outline: none` en style
    inline) sans le remplacer : la navigation au clavier devenait invisible. On
@@ -1109,19 +1027,6 @@ button:focus-visible,
    carte. Sur mobile/petit écran, on s'en passe entièrement : le texte gagne toute
    la place. `!important` car la taille est posée en style inline. */
 @media (max-width: 700px) {
-  /* ── Fiche d’une traduction (/traductions) : ne pas justifier un ruban ──
-     Sous 700px, la colonne de texte de la fiche dépliée tombe autour de 220px. La
-     justification y creuse des rivières et multiplie les césures : sur une colonne
-     aussi étroite, le fer à gauche se lit mieux. Le !important répond à celui de la
-     règle .trad-article p plus haut, qui impose la justification sur grand écran. */
-  .trad-fiche-texte p,
-  .trad-article p { text-align: left !important; }
-  /* Et l'encart s'efface : il perturbait la lecture. Le texte prend toute la place,
-     comme sur la carte d'auteur, et la notice garde son bandeau, qui la surmonte.
-     ⚠️ Il ne fait plus double emploi avec lui depuis qu'il porte sa PROPRE image :
-     c'est donc la seule des deux images qu'un téléphone ne montre pas. */
-  .trad-fiche-encart { display: none !important; }
-
   /* ── Progression : la jauge passe AU-DESSUS du texte ──
      La colonne de gauche est un disque de 132 px, plantée dans une grille 150px 1fr.
      Sur un téléphone de 375 px, la carte dispose de 283 px : la jauge et sa gouttière
@@ -3661,4 +3566,371 @@ main.lecture-entree [data-cs-bloc],
   hyphens: auto;
   margin: 0;
   white-space: pre-line;
+}
+
+/* ── LA FICHE — un seul modèle pour les fenêtres « À propos » ─────────────────
+   Demande de l'auteur, 2026-09-15 : « Fenêtres “Auteur”, “En savoir plus”…
+   Uniformiser toutes ces fenêtres : styles, largeurs, hauteurs, etc. Toutes doivent
+   être sur le même modèle. » Trois fiches le prennent : l'auteur (ModaleAuteur), la
+   traduction (ModaleTraduction, que la page « Les traductions » rend telle quelle) et
+   l'édition (FicheEdition). Les composants vivent dans app/components/FicheModele.tsx
+   et ne posent que des classes : toute la forme est ici. Doctrine : charte § 38.33.
+   ⛔ Ces règles remplacent quatre écritures : les blocs <style> des trois fiches et la
+   composition propre à la page « Les traductions », retirée avec eux. */
+
+/* Le calque part de la barre (HAUTEUR_NAVBAR) et prend son rang (Z_MODALE) en ligne :
+   ce sont des constantes du code, et un nombre recopié ici se désaccorderait. */
+.cs-fiche-calque {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: var(--cs-calque-modale);
+  overflow: hidden;
+}
+
+/* ⛔ UNE BOÎTE, UNE MESURE : 52 rem de large, 48 rem de haut au plus, et la MÊME
+   hauteur quel que soit le contenu — on passe d'une fiche à l'autre sans que le cadre
+   bouge. La boîte ne défile pas : son DÉFILEUR défile, et la croix reste à son coin
+   sans dépendre d'un positionnement collant. */
+.cs-fiche-boite {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 52rem;
+  height: min(100%, 48rem);
+  background: var(--cs-fond);
+  border: 1px solid var(--cs-bord-clair);
+  border-radius: 12px;
+  box-shadow: var(--cs-ombre-modale);
+  overflow: hidden;
+}
+.cs-fiche-defileur {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 30px 34px 28px;
+}
+/* Le foyer y entre à l'ouverture, pour que les flèches du clavier fassent défiler la
+   fiche : ce n'est pas un contrôle, il ne porte pas d'anneau. */
+.cs-fiche-defileur:focus { outline: none; }
+
+/* ⚠️ Écrite APRÈS `.cs-cible-fine`, qui pose `position: relative` au doigt : à
+   spécificité égale, c'est l'ordre qui garde la croix à son coin. Elle se tient dans le
+   rembourrage du défileur, hors du texte. */
+.cs-fiche-fermer {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--cs-bord-clair);
+  border-radius: 50%;
+  background: var(--cs-surface);
+  color: var(--cs-texte-second);
+  font-size: 0.875rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.cs-fiche-fermer:hover { border-color: var(--cs-bord); color: var(--cs-texte-fort); }
+
+/* ── Le corps ──────────────────────────────────────────────────────────────────
+   Le texte à gauche, le complément à droite, et le texte qui REPREND LA PLEINE MESURE
+   sous le complément quand celui-ci s'arrête — ce qu'une grille ne peut pas faire.
+   ⛔ Le complément vit APRÈS le texte dans le document (ordre de lecture, clavier,
+   téléphone). Une RÉSERVE vide flotte donc en tête, à la hauteur du complément, que
+   CorpsFiche mesure et reporte avant la peinture ; le complément se pose par-dessus.
+   ⚠️ Les largeurs sont celles de l'ancienne grille — 1,35fr et 1fr, gouttière de 26 px,
+   filet et rembourrage de 24 px — : le texte garde sa mesure au pixel près.
+   ⛔ Tout ce qui fait CONTEXTE (flex, grille, flow-root) se range entier à côté d'un
+   flottant : une liste s'écrit en rangées de flex, jamais en une grille. */
+.cs-fiche-corps {
+  position: relative;
+  display: flow-root;
+}
+.cs-fiche-reserve {
+  float: right;
+  width: calc((100% - 26px) / 2.35 + 27px);
+  margin: 0 0 12px 24px;
+}
+.cs-fiche-complement {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: calc((100% - 26px) / 2.35 + 27px);
+  padding-left: 26px;
+  border-left: 1px solid var(--cs-fond-doux);
+}
+.cs-fiche-complement > * + * { margin-top: 22px; }
+
+.cs-fiche-principal > * + * { margin-top: 14px; }
+.cs-fiche-principal > .cs-fiche-portrait + * { margin-top: 0; }
+/* Une section qui ferme la colonne reprend la mesure sous le portrait, jamais à côté. */
+.cs-fiche-section--degagee { clear: left; }
+
+/* ⚠️ Le filet d'une rubrique est porté par un bloc qui fait contexte : à côté de la
+   colonne de droite, il s'arrête où s'arrête le texte au lieu de la traverser. */
+.cs-fiche-rubrique { margin-top: 20px; }
+.cs-fiche-rubrique-tete {
+  display: flow-root;
+  padding-top: 13px;
+  border-top: 1px solid var(--cs-fond-doux);
+}
+.cs-fiche-rubrique > .cs-notice-prose + .cs-notice-prose { margin-top: 7px; }
+
+/* Le pied court sous les deux colonnes, dégagé de tout flottant. ⚠️ `flow-root` garde
+   la marge de son contenu, que le dégagement avalerait sinon. */
+.cs-fiche-pied {
+  clear: both;
+  display: flow-root;
+}
+
+/* ── Le portrait ── Zone d'image de 8,75 rem au rapport 2/3, sous un passe-partout de
+   5 px. ⛔ `CADRES_PORTRAIT.fiche` (app/lib/photoAuteur.ts) écrit les mêmes mesures
+   pour l'écran de cadrage, et `ficheModele.test.ts` confronte les deux écritures.
+   ⛔ La marge basse du flottant reste à ZÉRO : son bord se pose sur la dernière ligne
+   qui l'habille (`useBordSurDerniereLigne`). ⚠️ Le cadre est un flex : la zone d'image
+   s'étire quand la mesure l'allonge, et l'image en « cover » remplit la rallonge. */
+.cs-fiche-portrait {
+  float: left;
+  display: flex;
+  margin: 2px 18px 0 0;
+  padding: 5px;
+  background: var(--cs-surface);
+  border: 1px solid var(--cs-bord);
+  box-shadow: var(--cs-ombre-posee);
+}
+.cs-fiche-portrait-fenetre {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 8.75rem;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background: var(--cs-fond-doux);
+}
+.cs-fiche-initiales {
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 2.125rem;
+  font-style: italic;
+  color: var(--cs-or-doux);
+}
+
+/* ── L'en-tête ── Le surtitre, le nom, une ligne en italique, une ligne de crédit, les
+   repères. ⚠️ Les lignes de second rang prennent `--cs-texte-second` : elles portent
+   seules ce qu'elles disent, et le seuil de 4,5 s'applique. */
+.cs-fiche-entete > :first-child { margin-top: 0; }
+.cs-fiche-surtitre {
+  margin: 0 0 5px;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.53125rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cs-vert);
+}
+.cs-fiche-titre {
+  margin: 0;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 1.4375rem;
+  font-weight: normal;
+  line-height: 1.12;
+  color: var(--cs-encre-fonce);
+}
+.cs-fiche-soustitre {
+  margin: 2px 0 0;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 0.78125rem;
+  font-style: italic;
+  line-height: 1.3;
+  color: var(--cs-texte-second);
+}
+.cs-fiche-ligne {
+  margin: 4px 0 0;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 0.78125rem;
+  line-height: 1.3;
+  color: var(--cs-texte-second);
+}
+.cs-fiche-reperes {
+  margin: 8px 0 0;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.59375rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  color: var(--cs-texte-second);
+}
+
+/* Un nom qui ouvre une autre fiche : l'encre des liens, le soulignement au survol. */
+.cs-fiche-lien {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--cs-vert);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: text-decoration-color 0.12s;
+}
+.cs-fiche-lien:hover,
+.cs-fiche-lien:focus-visible { text-decoration-color: currentcolor; }
+
+/* ── La prose propre à une fiche ── Le corps courant est `.cs-notice-prose`, le même
+   pour les trois fiches ; voici ce qui s'en écarte. */
+.cs-fiche-bio {
+  margin: 0;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 0.71875rem;
+  font-style: italic;
+  line-height: 1.55;
+  color: var(--cs-texte-second);
+}
+/* ⚠️ Un bloc qui fait contexte : à côté du portrait, son filet se poserait sinon sous
+   lui, et ne paraîtrait qu'en dessous. */
+.cs-fiche-anecdote {
+  display: flow-root;
+  margin: 0;
+  padding-left: 11px;
+  border-left: 1px solid var(--cs-danger-bord);
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 0.71875rem;
+  font-style: italic;
+  line-height: 1.5;
+  letter-spacing: 0;
+  word-spacing: -0.025em;
+  color: var(--cs-texte-second);
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+/* La NOTICE ÉDITORIALE d'une traduction, en HTML : cinq balises (h2, p, em, ul, li),
+   plus ce que les notices anciennes portent encore. ⚠️ Les listes sont des
+   bibliographies : interligne serré, blanc large entre deux références, retrait
+   suspendu, aucune puce (charte § 47.2). */
+.cs-fiche-notice h1,
+.cs-fiche-notice h2,
+.cs-fiche-notice h3 {
+  margin: 15px 0 5px;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 0.84375rem;
+  font-style: italic;
+  font-weight: normal;
+  color: var(--cs-vert);
+}
+.cs-fiche-notice > :first-child { margin-top: 0; }
+.cs-fiche-notice > :last-child { margin-bottom: 0; }
+.cs-fiche-notice p {
+  margin: 0 0 8px;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--cs-texte);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.cs-fiche-notice ul {
+  margin: 0 0 8px;
+  padding-left: 0;
+  list-style: none;
+}
+.cs-fiche-notice li {
+  margin: 0 0 9px;
+  padding-left: 1.1em;
+  text-indent: -1.1em;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.32;
+  color: var(--cs-texte);
+  text-align: left;
+}
+.cs-fiche-notice li:last-child { margin-bottom: 0; }
+.cs-fiche-notice strong { font-weight: 600; color: var(--cs-texte-fort); }
+.cs-fiche-notice sup { font-size: 0.6em; }
+.cs-fiche-notice .sc { font-variant-caps: small-caps; }
+
+/* ── Une liste à colonne commune : les œuvres d'un auteur, « année · titre ». ── Des
+   rangées de flex, dont la première cellule prend la largeur mesurée de la plus large
+   (`useColonneCommune`) : chaque rangée se resserre seule à côté de la chronologie, et
+   reprend la pleine mesure sous elle. */
+.cs-fiche-liste-colonne {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cs-fiche-rangee-colonne {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+.cs-fiche-rangee-colonne + .cs-fiche-rangee-colonne { margin-top: 4px; }
+.cs-fiche-rangee-colonne > [data-fiche-colonne] {
+  flex: 0 0 var(--fiche-colonne, auto);
+  text-align: right;
+  white-space: nowrap;
+}
+.cs-fiche-rangee-colonne > :last-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.cs-fiche-oeuvre {
+  display: block;
+  margin: 0 -8px;
+  padding: 1px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background 0.12s;
+}
+a.cs-fiche-oeuvre:hover { background: rgba(var(--cs-vert-rgb), 0.06); }
+.cs-fiche-oeuvre--absente { cursor: default; }
+
+/* Le bouton qui déplie une liste d'ouvrages cités, sous elle. */
+.cs-fiche-voir-plus { margin-top: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-fiche-lien,
+  .cs-fiche-oeuvre { transition: none; }
+}
+
+/* ⚠️ Sous 900 px, les deux colonnes ne tiennent plus avec un portrait de 8,75 rem : le
+   texte n'aurait plus deux cents pixels à côté de lui. La réserve disparaît, et le
+   complément reprend sa place dans le flux, après le texte. */
+@media (max-width: 900px) {
+  .cs-fiche-reserve { display: none; }
+  .cs-fiche-complement {
+    position: static;
+    clear: both;
+    width: auto;
+    margin-top: 22px;
+    padding: 16px 0 0;
+    border-left: none;
+    border-top: 1px solid var(--cs-fond-doux);
+  }
+}
+
+@media (max-width: 640px) {
+  .cs-fiche-calque { padding: 14px 8px; }
+  .cs-fiche-boite { height: 100%; border-radius: 8px; }
+  /* La croix garde sa place au-dessus du texte : le rembourrage latéral n'en a plus. */
+  .cs-fiche-defileur { padding: 38px 15px 20px; }
+  .cs-fiche-fermer { top: 6px; right: 6px; }
+  .cs-fiche-portrait { margin-right: 14px; }
+  .cs-fiche-portrait-fenetre { width: 6.5rem; }
+  /* Sur téléphone, 8,5 rem d'étiquette ne laissent plus rien à la valeur. */
+  .cs-fiche-corps .cs-fiche-cle { width: 6rem !important; }
 }

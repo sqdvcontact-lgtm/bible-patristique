@@ -66,7 +66,7 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'components/Bulle.tsx': ['#6a9a7a', 'rgba(242,237,230,0.55)'],
   'components/EtoileFavori.tsx': ['#8a7a5e', '#a07028', '#c8933a'],
   'components/LectureBilingueBible.tsx': ['#b0a088'],
-  'components/ModaleAuteur.tsx': ['#b7a06a', '#c9c1b4', '#d2c69f', 'rgba(30,26,20,0.42)'],
+  'components/ModaleAuteur.tsx': ['#b7a06a', '#c9c1b4', '#d2c69f'],
   'components/ModaleCompteRequis.tsx': ['rgba(30,26,20,0.5)'],
   'components/ModaleMessagerie.tsx': ['rgba(30,26,20,0.42)', 'rgba(40,30,15,0.26)'],
   'components/ModalLienBiblique.tsx': ['#5f574d', '#8b7a5c', '#b05638', '#b07b65', 'rgba(20,25,20,0.32)'],

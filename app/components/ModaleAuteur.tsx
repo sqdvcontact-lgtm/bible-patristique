@@ -2,37 +2,40 @@
 
 // ── Fiche auteur EN FENÊTRE ────────────────────────────────────────────────────
 // Ce n'est plus une page mais une fenêtre modale, ouvrable depuis plusieurs endroits
-// (Bibliothèque, résultats de recherche…). Elle se ferme d'un clic sur la croix ou hors
-// du cadre (ou par Échap). Le contenu est condensé : interlignes serrés, deux colonnes
-// (à gauche la vie, à droite la chronologie), liste d'œuvres compacte incluant les œuvres
-// répertoriées mais non encore présentes.
+// (Bibliothèque, résultats de recherche, fiche d'une édition…). Elle se ferme d'un clic
+// sur la croix ou hors du cadre, ou par Échap.
+//
+// ⛔ Elle prend le MODÈLE COMMUN des fiches (`app/components/FicheModele`, charte
+// § 38.33) : le cadre, l'en-tête, le portrait, le corps à deux colonnes et les titres de
+// section ne s'écrivent plus ici. Ce fichier ne porte que ce qui appartient à un
+// auteur : ses données, sa frise, la liste de ses œuvres et le pied de sa fiche.
 
-import { Z_MODALE } from '@/app/lib/empilement'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { MotAttente } from '@/app/lib/attenteEnCreux'
-import type { CSSProperties, ReactNode, RefObject } from 'react'
-import { createPortal } from 'react-dom'
 import Link from 'next/link'
-import { supabase } from '@/app/lib/supabase'
-import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
-import { LIVRES } from '@/app/lib/bible'
-import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
-import { noticeDuCatalogue } from '@/app/lib/noticeOeuvre'
-import { chargerNoticesBibliographiques } from '@/app/lib/referencesBibliographiquesChargement'
-import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
-import { espacerIntervallesHistoriques, formaterDateHistorique } from '@/app/lib/datesHistoriques'
-import { libelleLangue } from '@/app/lib/langues'
-import { rendreEnrichi } from '@/app/lib/enrichissements'
-import { rendreSiecles } from '@/app/lib/siecles'
-import { CADRES_PORTRAIT } from '@/app/lib/photoAuteur'
-import { type RangChrono, cleTypeAffichage, coulType, LIB_TYPE, estUrl } from '@/app/lib/frise'
-import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
-import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { useEffect, useId, useRef, useState } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+
+import {
+  CorpsFiche, EnTeteFiche, ModaleFiche, PortraitFiche, SectionFiche, TitreSection, useColonneCommune,
+} from '@/app/components/FicheModele'
 import HistoricalDate from '@/app/components/HistoricalDate'
+import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { chargerAuteursParOeuvre, libelleAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
-import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
+import { LIVRES } from '@/app/lib/bible'
+import { espacerIntervallesHistoriques, formaterDateHistorique } from '@/app/lib/datesHistoriques'
+import { rendreEnrichi } from '@/app/lib/enrichissements'
+import { type RangChrono, cleTypeAffichage, coulType, LIB_TYPE } from '@/app/lib/frise'
+import { libelleLangue } from '@/app/lib/langues'
+import { noticeDuCatalogue } from '@/app/lib/noticeOeuvre'
+import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
+import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
+import { chargerNoticesBibliographiques } from '@/app/lib/referencesBibliographiquesChargement'
+import { rendreSiecles } from '@/app/lib/siecles'
+import { supabase } from '@/app/lib/supabase'
+import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const SERIF = 'var(--font-source-serif), Georgia, serif'
 
 type OeuvreResumee = {
   id_oeuvre: string; titre: string; sous_titre: string | null
@@ -95,8 +98,8 @@ function MentionCoAuteurs({ auteurs }: { auteurs?: AuteurOeuvre[] }) {
   )
 }
 function parsePhotoPos(raw: unknown): AuteurPhotoPos {
-  const r = raw as any
-  const src = r && typeof r.x === 'number' ? r : r?.fiche
+  const r = raw as { x?: unknown; fiche?: Partial<AuteurPhotoPos> } | null | undefined
+  const src = (r && typeof r.x === 'number' ? r : r?.fiche) as Partial<AuteurPhotoPos> | undefined
   return {
     x: typeof src?.x === 'number' ? src.x : POS_DEFAUT.x,
     y: typeof src?.y === 'number' ? src.y : POS_DEFAUT.y,
@@ -113,249 +116,12 @@ function stylePhoto(pos: AuteurPhotoPos): CSSProperties {
   }
 }
 
-export function TitreSection({ children, centre }: { children: ReactNode; centre?: boolean }) {
-  return <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontWeight: 'normal', fontSize: '0.84375rem', color: 'var(--cs-vert)', margin: '0 0 5px', textAlign: centre ? 'center' : 'left' }}>{children}</h3>
-}
-
-// ── Les pièces communes aux TROIS fiches ───────────────────────────────────────
-// La fiche d'auteur est le modèle : la fiche de traduction (`ModaleTraduction`) et
-// la fiche d'édition (`app/oeuvre/[id]/FicheEdition`) sont composées sur elle. Les
-// pièces qu'elles partagent vivent donc ICI, et non recopiées dans chacune : le
-// portrait sous passe-partout, le titre de section, la rangée « étiquette · valeur »
-// et le lien de consultation. Trois copies d'un même cadre finissent toujours par
-// diverger, et c'est exactement ce qu'on venait de défaire.
-
-// Une mesure qui doit précéder la PEINTURE : le portrait s'allonge d'après les lignes
-// qu'il habille, et l'on ne doit jamais voir le premier état, celui d'avant la rallonge.
-const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
-
-/**
- * Pose le bord bas d'un portrait FLOTTANT sur la dernière ligne qui l'habille.
- *
- * `cadreRef` va sur le CADRE lui-même — le flottant —, dont le PARENT doit être le
- * bloc qui porte la prose : c'est lui qu'on parcourt. `cle` change quand le contenu
- * change (un autre auteur, une autre traduction), pour que la mesure se rejoue.
- *
- * Les deux fiches s'en servent : celle de l'auteur et celle de la traduction. Une
- * mesure de cette finesse ne se recopie pas — la première version, écrite pour la
- * seule fiche d'auteur, a demandé deux corrections avant de tomber juste.
- */
-export function useBordSurDerniereLigne(cadreRef: RefObject<HTMLDivElement | null>, actif: boolean, cle?: string) {
-  // La pose se range dans une référence pour que le FILET, plus bas, puisse la
-  // rejouer sans reconstruire l'observateur.
-  const poseRef = useRef<() => void>(() => {})
-  // ── LE BORD BAS DU PORTRAIT SE POSE SUR LA DERNIÈRE LIGNE QU'IL HABILLE ──────
-  //
-  // Un flottant ne connaît pas la grille du texte : ses 200 px tombaient où ils
-  // tombaient, c'est-à-dire au milieu d'une ligne, et le cadre se fermait à mi-hauteur
-  // de la dernière ligne qui le longeait. Quelques pixels, mais que l'œil relève
-  // aussitôt : le bord est droit, la ligne aussi, et rien ne rachète deux droites
-  // presque alignées. Le cadre s'allonge donc jusqu'au bas de cette ligne.
-  //
-  // ⛔ LA RALLONGE NE PEUT PAS ÊTRE UN NOMBRE ÉCRIT UNE FOIS POUR TOUTES. Le cadre est
-  // en pixels POSÉS (128 × 200, cf. le registre) quand la prose suit la police racine,
-  // qui va de 16 à 22 px : l'interligne passe de 18 à 24,75 px et l'écart à combler
-  // change avec la largeur de l'écran. Il change aussi d'un auteur à l'autre, puisque
-  // c'est l'en-tête qui décale la grille — un nom sur deux lignes, un nom original
-  // absent, et tout se déplace. On mesure donc, à chaque disposition.
-  //
-  // LA MESURE : `getClientRects` sur une PLAGE rend un rectangle PAR LIGNE, ce qu'aucune
-  // mesure d'élément ne donne. On retient les lignes qui habillent le portrait — celles
-  // qui commencent à sa droite et qui n'ont pas dépassé son bord bas — et l'on allonge
-  // le cadre jusqu'au bas de la dernière.
-  //
-  // ⛔ CE RECTANGLE CERNE LES GLYPHES, NON LA LIGNE. Il est plus court que la boîte de
-  // ligne d'un DEMI-INTERLIGNE en haut et autant en bas — mesuré 20,8 px pour un
-  // interligne de 22,17. Or c'est la boîte de ligne, elle, que le navigateur consulte
-  // pour décider si une ligne longe le flottant. Comparer les glyphes au bord du cadre
-  // faisait donc manquer la dernière ligne, d'un demi-interligne, et le portrait
-  // s'arrêtait une ligne trop haut — le défaut même qu'on voulait corriger. On rend
-  // donc au rectangle ses deux demi-interlignes avant toute comparaison, et l'on vise
-  // le bas de la BOÎTE : la ligne suivante commence exactement là, elle ne peut donc
-  // pas venir s'ajouter à l'habillage. C'est ce qui donne au calcul son point fixe.
-  //
-  // ⛔ LA MARGE BASSE DU FLOTTANT RESTE À ZÉRO, toujours, y compris quand on n'allonge
-  // pas. Elle avait d'abord été rendue dans ce cas, pour l'air : dix pixels de marge
-  // font entrer dans l'habillage une ligne de plus — celle que la mesure venait
-  // d'écarter — et cette ligne pend alors sous le cadre, une pleine ligne plus bas.
-  // Le cas « rien à rallonger » fabriquait le défaut.
-  //
-  // ⚠️ On ALLONGE seulement, jamais on ne raccourcit, et jamais de plus d'une ligne :
-  // sur une biographie plus courte que le portrait, il n'y a aucune ligne à rejoindre
-  // et le cadre garde la mesure du registre.
-  //
-  // Éprouvé dans le navigateur sur la fiche de Cyprien, de 760 à 1 180 px de fenêtre :
-  // deux passes donnent le même nombre (point fixe) et l'écart qui reste entre le bord
-  // du cadre et le bas de la dernière ligne tient dans ±0,4 px.
-  useMesureAvantPeinture(() => {
-    if (!actif) return
-    const cadre = cadreRef.current
-    const colonne = cadre?.parentElement
-    if (!cadre || !colonne) { poseRef.current = () => {}; return }
-    let vivant = true
-
-    const poser = () => {
-      if (!vivant) return
-      // On repart TOUJOURS de la mesure de la feuille : sans cette remise à zéro,
-      // chaque passe s'ajouterait à la précédente. C'est elle aussi qui rend au
-      // portrait ses 160 px du téléphone quand l'écran se resserre. La marge basse
-      // tombe AVANT la mesure : c'est le bord du cadre, et non la marge, qui doit
-      // borner l'habillage pour que le calcul ait un point fixe.
-      cadre.style.height = ''
-      cadre.style.marginBottom = '0px'
-      const cadreRect = cadre.getBoundingClientRect()
-      const hauteurPosee = cadreRect.height
-      const bordNu = cadreRect.bottom
-
-      let basDerniereLigne = 0
-      // L'interligne se lit sur l'ÉLÉMENT, une fois par élément : c'est lui qui donne
-      // les demi-interlignes à rendre au rectangle des glyphes. « normal » ne se laisse
-      // pas lire en pixels ; on s'en tient alors au rectangle, ce qui suffit pour
-      // l'en-tête, dont les lignes sont loin du bord bas.
-      const interlignes = new Map<Element, number>()
-      const marcheur = document.createTreeWalker(colonne, NodeFilter.SHOW_TEXT)
-      const plage = document.createRange()
-      for (let n = marcheur.nextNode(); n; n = marcheur.nextNode()) {
-        if (cadre.contains(n)) continue          // les initiales du repli
-        if (!n.nodeValue || !n.nodeValue.trim()) continue
-        const parent = n.parentElement
-        if (!parent) continue
-        if (!interlignes.has(parent)) interlignes.set(parent, parseFloat(getComputedStyle(parent).lineHeight))
-        const interligne = interlignes.get(parent) as number
-        plage.selectNodeContents(n)
-        for (const r of Array.from(plage.getClientRects())) {
-          if (r.width < 1) continue
-          if (r.left < cadreRect.right - 0.5) continue   // ligne pleine largeur : passée sous le cadre
-          const demi = interligne > 0 && interligne > r.height ? (interligne - r.height) / 2 : 0
-          if (r.top - demi >= bordNu - 0.5) continue     // boîte de ligne postérieure au cadre
-          const basBoite = r.bottom + demi
-          if (basBoite > basDerniereLigne) basDerniereLigne = basBoite
-        }
-      }
-
-      const rallonge = basDerniereLigne > 0 ? Math.max(0, Math.round(basDerniereLigne - bordNu)) : 0
-      // Rien à rejoindre : le cadre garde la mesure du registre. La marge basse, elle,
-      // reste à zéro dans tous les cas (voir le préambule).
-      const voulue = rallonge > 0 ? `${Math.round(hauteurPosee) + rallonge}px` : ''
-      if (cadre.style.height !== voulue) cadre.style.height = voulue
-    }
-
-    poseRef.current = poser
-    poser()
-    // La colonne change de largeur (fenêtre redimensionnée) sans que rien ne soit
-    // re-rendu : c'est le seul cas que le FILET ci-dessous ne couvre pas, et c'est
-    // celui-là que l'observateur garde. La remise à zéro puis la repose se font dans
-    // le MÊME appel, si bien qu'il ne se rappelle pas lui-même.
-    const ro = new ResizeObserver(poser)
-    ro.observe(colonne)
-    // Les polices arrivent après le premier calcul : elles ne changent pas
-    // l'interligne, fixé par la feuille, mais bien les COUPURES de ligne.
-    if (typeof document !== 'undefined' && document.fonts) document.fonts.ready.then(poser).catch(() => {})
-    return () => { vivant = false; poseRef.current = () => {}; ro.disconnect() }
-  }, [actif, cle])
-
-  // ── LE FILET : toute peinture nouvelle repose la mesure ──────────────────────
-  //
-  // ⛔ UN OBSERVATEUR DE TAILLE NE SE DÉLIVRE QU'AVEC UNE IMAGE, et un onglet qui
-  // n'est pas à l'écran n'en produit aucune : ses notifications attendent alors le
-  // retour du lecteur. Or la disposition d'une fiche change APRÈS le premier calcul
-  // — les gravures et la chronologie arrivent par leurs propres requêtes, la grille
-  // passe d'une colonne à deux, et la colonne de la notice perd la moitié de sa
-  // largeur. Mesuré sur la fiche de la Bible Fillion : la rallonge est posée à
-  // 208 ms sur une colonne de 1 054 px, et la colonne en fait 582 une seconde plus
-  // tard. Le cadre gardait une rallonge calculée sur une mise en page qui n'existe
-  // plus, et rien ne le disait.
-  //
-  // Chacun de ces changements passe par un RENDU. Un effet sans dépendances se
-  // rejoue à chaque peinture : la mesure suit donc la disposition sans rien devoir
-  // au navigateur. L'observateur garde le seul cas qui n'entraîne aucun rendu, le
-  // redimensionnement de la fenêtre.
-  //
-  // ⚠️ La repose est IDEMPOTENTE — elle repart toujours de la mesure de la feuille —
-  // et ne pose la hauteur que si elle change. Elle ne peut donc pas boucler.
-  useMesureAvantPeinture(() => { poseRef.current() })
-}
-
-/** Le portrait d'un auteur dans le cadre de la fiche : 6,5 rem × 130 px, passe-partout
- *  de 5 px, ombre posée. Repli sur les initiales quand l'image manque.
- *
- *  ⚠️ On retient l'ADRESSE qui a manqué, et non un booléen : la même fiche peut
- *  changer d'auteur sans être remontée, et un booléen resterait alors à « cassé ». */
-export function PortraitAuteur({ idAuteur, nom, photoPosition, flottant }: {
-  idAuteur: string; nom: string; photoPosition?: unknown
-  /** Le portrait quitte l'en-tête, passe au format portrait, et la prose l'habille.
-   *  ⚠️ Sans ce drapeau, la pose ne change PAS : la fiche d'édition emploie le même
-   *  composant et n'a aucune prose à faire couler autour. */
-  flottant?: boolean
-}) {
-  const [casse, setCasse] = useState<string | null>(null)
-  const url = `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg`
-  const initiales = nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('')
-  const cadreRef = useRef<HTMLDivElement>(null)
-  useBordSurDerniereLigne(cadreRef, !!flottant, `${idAuteur}·${nom}`)
-
-  // ⚠️ Les mesures du portrait FLOTTANT vivent dans la FEUILLE, non ici : une
-  // media-query ne bat pas un style en ligne sans « !important », et le portrait doit
-  // se resserrer sur un téléphone, où 128 px ne laisseraient que 183 px à la prose.
-  return (
-    <div ref={cadreRef} className={flottant ? 'auteur-portrait-flottant' : undefined}
-      style={flottant
-        ? { padding: '5px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }
-        : { width: '6.5rem', height: '130px', flexShrink: 0, padding: '5px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }}>
-      <div style={{ width: '100%', height: '100%', overflow: 'hidden', background: 'var(--cs-fond-doux)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {casse !== url ? (
-          <img src={url} alt={nom} onError={() => setCasse(url)}
-            style={{ width: '100%', height: '100%', display: 'block', ...stylePhoto(parsePhotoPos(photoPosition)) }} />
-        ) : (
-          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '2.125rem', color: 'var(--cs-or-doux)', fontStyle: 'italic' }}>{initiales}</span>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/** Rangée « étiquette · valeur » des sections documentaires. La colonne d'étiquettes
- *  mesure 8,5 rem : elle porte des intitulés entiers (« Responsable de l'édition »),
- *  et c'est cette mesure qui commande la pleine largeur de ces sections. La classe
- *  `cs-fiche-cle` existe pour que chaque fiche puisse la resserrer sur téléphone. */
-const cleTech: CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', lineHeight: 1.5, paddingTop: '1px' }
-export const LigneTech = ({ c, children }: { c: string; children: ReactNode }) => children ? (
-  <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid var(--cs-fond)', alignItems: 'baseline' }}>
-    <span className="cs-fiche-cle" style={cleTech}>{c}</span><span style={{ flex: 1, fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{children}</span>
-  </div>
-) : null
-
-// ── La rangée des colonnes ÉTROITES ───────────────────────────────────────────
-// `LigneTech` porte une colonne d'étiquettes de 8,5 rem : elle tient dans une colonne
-// large, pas dans une étroite, où il ne resterait pas 170 px pour la valeur. La rangée
-// EMPILE donc l'étiquette et sa valeur. Deux formes, chacune pour la mesure qu'elle
-// sert — c'est déjà ce que font les deux colonnes de cette fiche-ci.
-// ⚠️ Elle vivait dans `FicheEdition` ; la fiche de traduction en a eu besoin le
-// 2026-09-04, quand « Édition et état du texte » est passée sous la chronologie. Elle
-// rejoint donc les pièces communes aux trois fiches, plutôt que d'être recopiée.
-const CLE_EMPILEE: CSSProperties = { fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', lineHeight: 1.4 }
-const VAL_EMPILEE: CSSProperties = { fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.35, display: 'block' }
-
-export function RangeeEmpilee({ c, italique, children }: { c: string; italique?: boolean; children: ReactNode }) {
-  if (!children) return null
-  return (
-    <div style={{ padding: '4px 0', borderTop: '1px solid var(--cs-fond)' }}>
-      <span style={CLE_EMPILEE}>{c}</span>
-      <span style={{ ...VAL_EMPILEE, fontStyle: italique ? 'italic' : 'normal' }}>{children}</span>
-    </div>
-  )
-}
-
-/** Lien vers une source extérieure. Rien du tout si l'adresse n'en est pas une.
- *  ⚠️ C'est un bouton-lien AUTONOME — il se tient seul au bout d'une rangée —, il prend
- *  donc la forme commune et son corps à lui (globals.css, « LE BOUTON-LIEN »). */
-export const Consulter = ({ url, libelle }: { url: string | null | undefined; libelle: string }) => (url && estUrl(url))
-  ? <a href={url} target="_blank" rel="noopener noreferrer" className="cs-bouton-lien">{libelle}</a> : null
-
 // ── Frise agrégée de l'auteur ──────────────────────────────────────────────────
 // Trois brins, distingués par la couleur du point : Vie (le parcours de l'auteur),
 // Œuvre (compositions), Contexte (arrière-plan ecclésial et politique). Le type
 // vient de `type_affichage` dans la vue ; il n'est plus déduit ici.
+// ⚠️ Elle sert aussi la fiche d'une TRADUCTION et celle d'une ÉDITION : le composant
+// reste ici, avec la frise dont il est né, et les deux autres fiches l'importent.
 
 // Puce pleine, à la couleur du type d'événement (Vie, Œuvre, Contexte).
 function stylePuce(type: string | null) {
@@ -379,16 +145,13 @@ export function FriseAuteur({ evenements, oeuvreEnRelief = null }: { evenements:
   // « réception » avec leurs accents, et les brins sont nommés sans.
   const presents = new Set(evenements.map(a => cleTypeAffichage(a.type_affichage)))
   const brins = ['formation', 'edition', 'reception', 'vie', 'œuvre', 'contexte'].filter(t => presents.has(t))
-  const basculer = (k: number) => setOuverts(prev => { const s = new Set(prev); s.has(k) ? s.delete(k) : s.add(k); return s })
+  const basculer = (k: number) => setOuverts(prev => { const s = new Set(prev); if (s.has(k)) s.delete(k); else s.add(k); return s })
   return (
     <div>
       {/* Légende : seulement les brins effectivement présents (auteur OU traduction), et
           jamais quand un seul brin est présent (une légende à une entrée n'apprend rien).
           ⚠️ Elle sert aussi les TRADUCTIONS depuis le 2026-09-04 : leurs trois brins —
-          formation, édition, réception — ne se devinent pas plus que ceux d'un auteur,
-          et la fiche de traduction est composée sur le modèle de la fiche d'auteur. Elle
-          en était privée tant que les puces tombaient toutes sur le gris de repli, faute
-          d'accorder les clés. */}
+          formation, édition, réception — ne se devinent pas plus que ceux d'un auteur. */}
       {brins.length > 1 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', marginBottom: '13px', justifyContent: 'flex-start' }}>
           {brins.map(t => (
@@ -421,7 +184,7 @@ export function FriseAuteur({ evenements, oeuvreEnRelief = null }: { evenements:
           const pb = dernier && !ouvert ? '0' : '10px'
           return (
             <li key={cle} style={{ display: 'contents' }}>
-              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: contexte ? '#d2c69f' : '#b7a06a', textAlign: 'right', whiteSpace: 'nowrap', lineHeight: 1.18, paddingBottom: pb }}><HistoricalDate value={a.date_affichage_courte} variant="short" /></span>
+              <span style={{ fontFamily: SERIF, fontSize: '0.71875rem', color: contexte ? '#d2c69f' : '#b7a06a', textAlign: 'right', whiteSpace: 'nowrap', lineHeight: 1.18, paddingBottom: pb }}><HistoricalDate value={a.date_affichage_courte} variant="short" /></span>
               {/* Rail + puce. La puce est dimensionnée et positionnée en `em` (relatifs à
                   la taille du titre) : elle suit la police fluide et reste alignée sur la
                   première ligne, quelle que soit l'échelle de l'écran. */}
@@ -459,23 +222,19 @@ export function FriseAuteur({ evenements, oeuvreEnRelief = null }: { evenements:
 // deux lignes suffisent à le voir (audit de densité, 2026-09-05).
 function DetailChrono({ label, children }: { label?: string; children: ReactNode }) {
   return (
-    <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.59375rem', lineHeight: 1.3, letterSpacing: '-0.005em', color: 'var(--cs-texte-gris)', margin: '0 0 2px', textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto' } as React.CSSProperties}>
+    <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.59375rem', lineHeight: 1.3, letterSpacing: '-0.005em', color: 'var(--cs-texte-gris)', margin: '0 0 2px', textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto' } as CSSProperties}>
       {label && <span style={{ color: 'var(--cs-texte-faible)' }}>{label} : </span>}{children}
     </p>
   )
 }
 
 // ── Pied de fiche ──────────────────────────────────────────────────────────────
-// ⚠️ TOUT y est plus petit et plus pâle que la fiche : c'est un pied de page, non une
-// quatrième section. Les titres reprennent la clé technique des colonnes étroites
-// (0,5 rem, capitales, `--cs-texte-faible`), les valeurs descendent d'un cran sous la
-// prose. Rien n'y est cliquable : ce sont des renseignements, pas une navigation.
+// ⚠️ Ses valeurs sont plus petites et plus pâles que la fiche : c'est un pied, non une
+// quatrième section. Ses TITRES, eux, prennent le titre de section commun aux trois
+// fiches (2026-09-15, « toutes doivent être sur le même modèle »). Rien n'y est
+// cliquable : ce sont des renseignements, pas une navigation.
 const NOM_LIVRE: Record<string, string> = Object.fromEntries(LIVRES.map(l => [l.code, l.nom]))
 const nombreFr = (n: number) => n.toLocaleString('fr-FR')
-
-function TitrePied({ children }: { children: ReactNode }) {
-  return <p style={{ ...CLE_EMPILEE, margin: '0 0 5px' }}>{children}</p>
-}
 
 function PiedDeFiche({ pied }: { pied: PiedFiche }) {
   const empreinte = pied.empreinte && pied.empreinte.liens > 0 ? pied.empreinte : null
@@ -485,12 +244,12 @@ function PiedDeFiche({ pied }: { pied: PiedFiche }) {
 
   return (
     <section aria-label="Renseignements complémentaires"
-      style={{ marginTop: '26px', paddingTop: '15px', borderTop: '1px solid var(--cs-fond-doux)', clear: 'left' }}>
+      style={{ marginTop: '26px', paddingTop: '15px', borderTop: '1px solid var(--cs-fond-doux)' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11.5rem, 1fr))', gap: '18px 26px', alignItems: 'start' }}>
 
         {empreinte && (
           <div style={{ minWidth: 0 }}>
-            <TitrePied>Livres les plus commentés</TitrePied>
+            <TitreSection>Livres les plus commentés</TitreSection>
             {/* ⛔ AUCUN NOMBRE. Un compte nu (« Genèse 3 106 ») ne dit pas ce qu'il
                 compte, et le mot juste — renvoi, passage, citation — demanderait une
                 phrase que ce pied ne peut pas porter (relevé de l'auteur, 2026-09-06 :
@@ -500,7 +259,7 @@ function PiedDeFiche({ pied }: { pied: PiedFiche }) {
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '5px' }}>
               {empreinte.tete.map(l => (
                 <li key={l.livre} title={`${nombreFr(l.liens)} renvois, sur ${nombreFr(l.versets)} versets`} style={{ minWidth: 0 }}>
-                  <span style={{ display: 'block', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ display: 'block', fontFamily: SERIF, fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {NOM_LIVRE[l.livre] ?? l.livre}
                   </span>
                   {/* ⚠️ La part se mesure sur le PREMIER livre, non sur le total : les
@@ -519,7 +278,7 @@ function PiedDeFiche({ pied }: { pied: PiedFiche }) {
 
         {aEditions && (
           <div style={{ minWidth: 0 }}>
-            <TitrePied>Éditions répertoriées</TitrePied>
+            <TitreSection>Éditions répertoriées</TitreSection>
             {/* ⛔ La notice se compose par le MOTEUR bibliographique, comme partout
                 ailleurs sur le site (charte § 47.5) : ordre, liants et ponctuation
                 viennent de lui, et `noticeDuCatalogue` ne fait que nommer les champs.
@@ -544,7 +303,7 @@ function PiedDeFiche({ pied }: { pied: PiedFiche }) {
 
         {aOuvrages && (
           <div style={{ minWidth: 0 }}>
-            <TitrePied>Éditions savantes</TitrePied>
+            <TitreSection>Éditions savantes</TitreSection>
             {/* ⛔ Ce sont de vraies notices d'`ouvrages_bibliographiques` : elles se
                 composent par le moteur depuis leurs AUTORITÉS, jamais par un titre et
                 une année recollés. */}
@@ -564,11 +323,14 @@ function PiedDeFiche({ pied }: { pied: PiedFiche }) {
   )
 }
 
-function Contenu({ auteur, onClose, evenements, pied }: { auteur: Auteur; onClose: () => void; evenements: RangChrono[]; pied: PiedFiche }) {
+function Contenu({ auteur, onClose, evenements, pied, titreId }: {
+  auteur: Auteur; onClose: () => void; evenements: RangChrono[]; pied: PiedFiche; titreId: string
+}) {
+  const listeOeuvresRef = useRef<HTMLUListElement>(null)
   const datesAuteur = espacerIntervallesHistoriques(formaterDateHistorique(auteur.dates))
-  // Dates, langue et traditions sur une même ligne d'étiquettes : la langue y prend
-  // donc la capitale, comme le siècle et la tradition qui l'encadrent.
-  const meta = rendreSiecles([datesAuteur, libelleLangue(auteur.langue_principale), ...(auteur.traditions ?? [])].filter(Boolean).join(' · '))
+  // Dates, langue et traditions sur une même ligne de repères : la langue y prend donc
+  // la capitale, comme le siècle et la tradition qui l'encadrent.
+  const reperes = [datesAuteur, libelleLangue(auteur.langue_principale), ...(auteur.traditions ?? [])].filter(Boolean).join(' · ')
 
   // Affichage : la date courte de composition établie par la vue canonique.
   const dateCompo = (o: OeuvreResumee) => o.date_composition_affichage_courte || ''
@@ -582,109 +344,88 @@ function Contenu({ auteur, onClose, evenements, pied }: { auteur: Auteur; onClos
     anneeTri(a) - anneeTri(b) || a.titre.localeCompare(b.titre, 'fr')
   const oeuvresPresentes = auteur.oeuvres.filter(estOeuvrePubliee).sort(parDate)
   const oeuvresAbsentes = auteur.oeuvres.filter(o => !estOeuvrePubliee(o)).sort(parDate)
-  // La chronologie publique est exclusivement alimentée par la vue normalisée.
-  const aChrono = evenements.length > 0
-  const aColonnes = !!(auteur.note_biographique || auteur.note_theologique || auteur.influence || auteur.anecdotes) && aChrono
   const aOeuvres = oeuvresPresentes.length > 0 || oeuvresAbsentes.length > 0
+  const anecdotes = auteur.anecdotes?.trim() || null
+  const influence = auteur.influence?.trim() || null
+  const initiales = auteur.nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('')
 
-  const blocChrono = aChrono ? (
-    <section>
-      <TitreSection>Chronologie</TitreSection>
-      <FriseAuteur evenements={evenements} />
-    </section>
-  ) : null
-
-  // Contenu « Œuvres », harmonisé avec la Chronologie (colonne de date à droite, même
-  // gouttière, même rythme vertical) : « année · titre » comme « année · événement ».
-  const contenuOeuvres = aOeuvres ? (
-    <>
-      {/* Titre aligné à gauche, comme « Vie », « Pensée », « Postérité ». */}
-      <TitreSection>Œuvres</TitreSection>
-      {/* Grille PARTAGÉE (comme la chronologie) : la colonne des dates prend `max-content`
-          — donc la largeur de la date la plus longue, jamais plus — si bien que le bloc se
-          cale au maximum à gauche, les titres restent alignés, et une date longue
-          (« 1888-1889 ») ne revient jamais à la ligne (`nowrap`). */}
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: 'max-content 1fr', columnGap: '9px', rowGap: '4px', alignItems: 'baseline' }}>
-        {oeuvresPresentes.map(o => (
-          <li key={o.id_oeuvre} style={{ display: 'contents' }}>
-            <span title={o.date_composition_precision_affichage ?? undefined} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: dateCompo(o) ? '#b7a06a' : '#c9c1b4', fontStyle: dateCompo(o) ? 'normal' : 'italic', textAlign: 'right', whiteSpace: 'nowrap' }}>{dateCompo(o) ? <HistoricalDate value={dateCompo(o)} variant="short" /> : 'Date inconnue'}</span>
-            {/* Œuvre disponible : titre en teinte sobre (pas vert), cliquable vers l'œuvre. */}
-            <span style={{ minWidth: 0, lineHeight: 1.38 }}>
-              <Link href={`/oeuvre/${o.id_oeuvre}`} onClick={onClose} className="auteur-oeuvre"
-                style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.38 }}>{o.titre}</Link>
-              {/* Œuvre écrite à plusieurs : la fiche dit avec qui, sinon l'auteur
-                  paraîtrait la signer seul. */}
-              <MentionCoAuteurs auteurs={o.auteurs} />
-            </span>
-          </li>
-        ))}
-        {oeuvresAbsentes.map(o => (
-          <li key={o.id_oeuvre} style={{ display: 'contents' }}>
-            <span title={o.date_composition_precision_affichage ?? undefined} style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.71875rem', color: dateCompo(o) ? 'var(--cs-or-doux)' : 'var(--cs-bord)', fontStyle: dateCompo(o) ? 'normal' : 'italic', textAlign: 'right', whiteSpace: 'nowrap' }}>{dateCompo(o) ? <HistoricalDate value={dateCompo(o)} variant="short" /> : 'Date inconnue'}</span>
-            {/* Œuvre répertoriée mais pas encore disponible : estompée, non cliquable. */}
-            <span className="auteur-oeuvre--absente" title="Œuvre répertoriée, pas encore disponible" style={{ minWidth: 0, lineHeight: 1.38 }}>
-              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte-faible)' }}>{o.titre}</span>
-              <MentionCoAuteurs auteurs={o.auteurs} />
-              <span style={{ marginLeft: '7px', fontSize: '0.53125rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>répertoriée</span>
-            </span>
-          </li>
-        ))}
-      </ul>
-    </>
-  ) : null
+  // La colonne des dates est COMMUNE à toutes les rangées, et mesurée : voir
+  // `useColonneCommune` — une grille alignait les titres, mais se rangeait tout entière
+  // à côté de la chronologie.
+  useColonneCommune(listeOeuvresRef, `${auteur.id_auteur}·${oeuvresPresentes.length}·${oeuvresAbsentes.length}`)
 
   return (
-    <>
-
-      {/* Deux colonnes : à gauche la vie, à droite la chronologie. Repliées en une
-          seule colonne sur mobile (voir media-query .auteur-grid). */}
-      <div className="auteur-grid" style={{ display: 'grid', gridTemplateColumns: aColonnes ? 'minmax(0, 1.35fr) minmax(0, 1fr)' : '1fr', gap: '26px', alignItems: 'start' }}>
-        {/* EN BLOC, non plus en colonne de flex : un flottant n'existe pas dans un
-            conteneur flex, ses enfants devenant des elements de flex. C'est la
-            condition pour que la prose habille le portrait ; l'ecart entre sections se
-            reprend en marge (voir « .auteur-grid-vie > section » plus bas). */}
-        <div className="auteur-grid-vie" style={{ borderRight: aColonnes ? '1px solid var(--cs-fond-doux)' : 'none', paddingRight: aColonnes ? '24px' : 0 }}>
-          {/* Le portrait ouvre la colonne et FLOTTE : le nom se pose a sa droite, la
-              prose de « Vie » vient ensuite et le contourne. Il devait entrer dans le
-              MEME flux que le nom — les biographies font quelque six cents signes, et
-              laisse dans la seule section « Vie » le texte n'aurait pas eu le temps de
-              le contourner avant de finir. */}
-          <PortraitAuteur idAuteur={auteur.id_auteur} nom={auteur.nom} photoPosition={auteur.photo_position} flottant />
-          <header>
-            <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.4375rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.12 }}>{auteur.nom}</h2>
-            {auteur.nom_original && <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '2px 0 0' }}>{auteur.nom_original}</p>}
-            {meta && <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.59375rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '8px 0 0' }}>{meta}</p>}
-          </header>
-          {auteur.note_biographique && <section><TitreSection>Vie</TitreSection><p className="auteur-prose">{rendreEnrichi(auteur.note_biographique)}</p></section>}
-          {/* ⚠️ Les anecdotes font 373 signes en médiane, soit cinq à six lignes : de la
-              prose, et la seule de cette fenêtre qui ne fût ni justifiée ni césurée,
-              quand sa voisine « auteur-prose » l'est depuis toujours (audit de densité,
-              2026-09-05). L'interligne, lui, était déjà au rang des notices. */}
-          {auteur.anecdotes?.trim() && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.5, margin: 0, paddingLeft: '11px', borderLeft: '1px solid var(--cs-danger-bord)', textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto', wordSpacing: '-0.025em', letterSpacing: 0 } as React.CSSProperties} className="cs-notice-italique auteur-bloc">{rendreEnrichi(auteur.anecdotes)}</p>
-          )}
-          {auteur.note_theologique && <section><TitreSection>Pensée</TitreSection><p className="auteur-prose">{rendreEnrichi(auteur.note_theologique)}</p></section>}
-          {auteur.influence?.trim() && <section><TitreSection>Postérité</TitreSection><p className="auteur-prose">{rendreEnrichi(auteur.influence)}</p></section>}
-          {/* Les œuvres closent la colonne de gauche, sous « Postérité ». */}
-          {contenuOeuvres && <section>{contenuOeuvres}</section>}
-        </div>
-        {/* Colonne de droite : la chronologie (frise). N'existe qu'en présentation deux colonnes. */}
-        {aColonnes ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', minWidth: 0 }}>
-            {blocChrono}
-          </div>
-        ) : (
-          blocChrono
-        )}
-      </div>
-      {/* Le pied court sous les DEUX colonnes : il ne relève ni de la vie ni de la
-          chronologie, et il se tait tant qu'il n'a rien à dire. */}
-      <PiedDeFiche pied={pied} />
-    </>
+    <CorpsFiche
+      portrait={
+        <PortraitFiche
+          src={`${SUPABASE_URL}/storage/v1/object/public/auteurs/${auteur.id_auteur}.jpg`}
+          styleImage={stylePhoto(parsePhotoPos(auteur.photo_position))}
+          initiales={initiales}
+          cle={`${auteur.id_auteur}·${auteur.nom}`} />
+      }
+      entete={
+        <EnTeteFiche surtitre="À propos de cet auteur" titre={auteur.nom} titreId={titreId}
+          sousTitre={auteur.nom_original} reperes={reperes ? rendreSiecles(reperes) : null} />
+      }
+      complement={evenements.length > 0 ? (
+        <SectionFiche titre="Chronologie"><FriseAuteur evenements={evenements} /></SectionFiche>
+      ) : null}
+      /* Le pied court sous les DEUX colonnes : il ne relève ni de la vie ni de la
+         chronologie, et il se tait tant qu'il n'a rien à dire. */
+      pied={<PiedDeFiche pied={pied} />}
+    >
+      {auteur.note_biographique && (
+        <SectionFiche titre="Vie"><p className="cs-notice-prose">{rendreEnrichi(auteur.note_biographique)}</p></SectionFiche>
+      )}
+      {/* ⚠️ Les anecdotes font 373 signes en médiane, soit cinq à six lignes : de la
+          prose, justifiée et césurée comme sa voisine. ⚠️ En BLOC QUI FAIT CONTEXTE
+          (globals.css) : à côté du portrait, son filet se poserait sous lui. */}
+      {anecdotes && <p className="cs-fiche-anecdote cs-notice-italique">{rendreEnrichi(anecdotes)}</p>}
+      {auteur.note_theologique && (
+        <SectionFiche titre="Pensée"><p className="cs-notice-prose">{rendreEnrichi(auteur.note_theologique)}</p></SectionFiche>
+      )}
+      {influence && (
+        <SectionFiche titre="Postérité"><p className="cs-notice-prose">{rendreEnrichi(influence)}</p></SectionFiche>
+      )}
+      {/* Les œuvres closent la colonne, dégagées du portrait : une fiche à courte
+          biographie ne les rentre pas de cent quarante pixels. Contenu harmonisé avec la
+          Chronologie : « année · titre » comme « année · événement ». */}
+      {aOeuvres && (
+        <SectionFiche titre="Œuvres" className="cs-fiche-section--degagee">
+          <ul ref={listeOeuvresRef} className="cs-fiche-liste-colonne">
+            {oeuvresPresentes.map(o => (
+              <li key={o.id_oeuvre} className="cs-fiche-rangee-colonne">
+                <span data-fiche-colonne="" title={o.date_composition_precision_affichage ?? undefined} style={{ fontFamily: SERIF, fontSize: '0.71875rem', color: dateCompo(o) ? '#b7a06a' : '#c9c1b4', fontStyle: dateCompo(o) ? 'normal' : 'italic' }}>{dateCompo(o) ? <HistoricalDate value={dateCompo(o)} variant="short" /> : 'Date inconnue'}</span>
+                {/* Œuvre disponible : titre en teinte sobre (pas vert), cliquable vers l'œuvre. */}
+                <span style={{ lineHeight: 1.38 }}>
+                  <Link href={`/oeuvre/${o.id_oeuvre}`} onClick={onClose} className="cs-fiche-oeuvre"
+                    style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.38 }}>{o.titre}</Link>
+                  {/* Œuvre écrite à plusieurs : la fiche dit avec qui, sinon l'auteur
+                      paraîtrait la signer seul. */}
+                  <MentionCoAuteurs auteurs={o.auteurs} />
+                </span>
+              </li>
+            ))}
+            {oeuvresAbsentes.map(o => (
+              <li key={o.id_oeuvre} className="cs-fiche-rangee-colonne">
+                <span data-fiche-colonne="" title={o.date_composition_precision_affichage ?? undefined} style={{ fontFamily: SERIF, fontSize: '0.71875rem', color: dateCompo(o) ? 'var(--cs-or-doux)' : 'var(--cs-bord)', fontStyle: dateCompo(o) ? 'normal' : 'italic' }}>{dateCompo(o) ? <HistoricalDate value={dateCompo(o)} variant="short" /> : 'Date inconnue'}</span>
+                {/* Œuvre répertoriée mais pas encore disponible : estompée, non cliquable. */}
+                <span className="cs-fiche-oeuvre--absente" title="Œuvre répertoriée, pas encore disponible" style={{ lineHeight: 1.38 }}>
+                  <span style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-texte-faible)' }}>{o.titre}</span>
+                  <MentionCoAuteurs auteurs={o.auteurs} />
+                  <span style={{ marginLeft: '7px', fontSize: '0.53125rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>répertoriée</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </SectionFiche>
+      )}
+    </CorpsFiche>
   )
 }
 
 export default function ModaleAuteur({ id, onClose }: { id: string | null; onClose: () => void }) {
+  const titreId = useId()
   const [auteur, setAuteur] = useState<Auteur | null>(null)
   const [evenements, setEvenements] = useState<RangChrono[]>([])
   const [pied, setPied] = useState<PiedFiche>(PIED_VIDE)
@@ -788,86 +529,17 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
     return () => { annule = true }
   }, [id])
 
-  // Échap ferme ; le défilement de fond est gelé tant que la fenêtre est ouverte.
-  useEffect(() => {
-    if (!id) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', onKey)
-    const relacher = verrouillerLeDefilement()
-    return () => { document.removeEventListener('keydown', onKey); relacher() }
-  }, [id, onClose])
+  if (!id) return null
 
-  if (!id || typeof document === 'undefined') return null
-
-  return createPortal(
-    <div onClick={onClose} className="auteur-modale-overlay"
-      /* La fenêtre commence SOUS la navbar (fixe), et le calque NE DÉFILE PAS.
-         ⚠️ Il défilait auparavant : sur un écran court, la boîte remontait et se
-         faisait couper net au ras de la barre, sans marge, ce qui donnait
-         l'impression qu'elle passait dessous. C'est le CONTENU de la boîte qui
-         défile désormais ; la boîte, elle, garde toujours sa marge en haut comme
-         en bas, quelle que soit la hauteur de l'écran. */
-      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(30,26,20,0.42)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', overflow: 'hidden' }}>
-      <div onClick={e => e.stopPropagation()} className="auteur-modale-inner"
-        style={{ position: 'relative', width: '100%', maxWidth: '52rem', maxHeight: '100%', overflowY: 'auto', overscrollBehavior: 'contain', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', boxShadow: 'var(--cs-ombre-modale)', padding: '30px 34px 28px' }}>
-        <button onClick={onClose} aria-label="Fermer" className="cs-cible-fine" title="Fermer"
-          style={{ position: 'sticky', float: 'right', top: '0', marginRight: '-6px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-
-        {erreur ? (
-          <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-texte-faible)', textAlign: 'center', margin: '30px 0' }}>Auteur introuvable</p>
-        ) : !auteur ? (
-          <MotAttente centre marge="30px 0" />
-        ) : (
-          <Contenu auteur={auteur} onClose={onClose} evenements={evenements} pied={pied} />
-        )}
-
-        <style>{`
-          .auteur-prose { font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; line-height: 1.5; color: var(--cs-texte); text-align: justify; hyphens: auto; margin: 0; }
-          /* L'ecart entre sections, que la colonne portait en « gap » du temps ou elle
-             etait un flex. Pas sur l'en-tete, qui suit le portrait flottant : il doit
-             ouvrir la colonne a sa hauteur. */
-          .auteur-grid-vie > section, .auteur-grid-vie > .auteur-bloc { margin-top: 14px; }
-          /* Les oeuvres ferment la colonne et reprennent la PLEINE mesure, quoi qu'il
-             reste du portrait au-dessus : sans cela, une fiche a courte biographie les
-             rentrerait de cent trente pixels. */
-          .auteur-grid-vie > section:last-child { clear: left; }
-          /* ⛔ LES MESURES VIENNENT DU REGISTRE, elles ne sont pas écrites ici. C'est
-             « CADRES_PORTRAIT » (app/lib/photoAuteur.ts) qui les porte, et l'écran de
-             cadrage de l'administration compose ses aperçus avec les mêmes : recopier
-             le nombre ici, c'est faire mentir l'aperçu au premier réglage.
-             128 × 200, soit un rapport de 0,64 : un vrai format portrait, là où les
-             104 × 130 d'avant tenaient du timbre. Mesures POSÉES et non calculées :
-             c'est un cadre de chrome, non une mesure de lecture (charte, § Responsive).
-             ⚠️ La HAUTEUR d'ici est un PLANCHER : « PortraitAuteur » l'allonge, de moins
-             d'une ligne, pour que le bord bas se pose sur la dernière ligne qui habille
-             le portrait (voir la mesure, plus haut). Le registre garde donc la mesure de
-             RÉFÉRENCE, celle sur laquelle l'administration règle les cadrages.
-             ⛔ La marge BASSE est à ZÉRO, et il ne faut pas la rétablir « pour l'air » :
-             elle repousse la limite d'habillage SOUS le bord du cadre, une ligne de plus
-             vient alors s'y ranger, et cette ligne pend sous le portrait. L'air ne manque
-             pas pour autant : le bord du cadre se pose sur le bas d'une boîte de ligne,
-             et la ligne suivante commence exactement là — c'est l'habillage classique. */
-          .auteur-portrait-flottant { width: ${CADRES_PORTRAIT.fiche.largeur}; height: ${CADRES_PORTRAIT.fiche.hauteur}; float: left; margin: 2px 18px 0 0; }
-          .auteur-oeuvre { display: block; padding: 1px 8px; margin: 0 -8px; border-radius: 4px; text-decoration: none; transition: background 0.12s; }
-          a.auteur-oeuvre:hover { background: rgba(var(--cs-vert-rgb),0.06); }
-          .auteur-oeuvre--absente { cursor: default; }
-          /* Mobile : tout sur une seule colonne, cadre resserré. */
-          @media (max-width: 640px) {
-            .auteur-modale-overlay { padding: 14px 8px !important; }
-            .auteur-modale-inner { padding: 22px 15px 20px !important; border-radius: 8px !important; }
-            .auteur-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
-            .auteur-grid-vie { border-right: none !important; padding-right: 0 !important; }
-            /* ⚠️ Le portrait se resserre : à 375 px le cadre intérieur fait 329 px, et
-               un flottant de 128 ne laisserait que 183 px à la prose. À 104, elle en
-               garde 211.
-               ⛔ Ces deux mesures-là ne vont PAS au registre, et c'est délibéré : le
-               registre décrit le cadre de RÉFÉRENCE, celui sur lequel on règle un
-               cadrage. On ne cadre pas un portrait sur un téléphone. */
-            .auteur-portrait-flottant { width: 104px; height: 160px; margin-right: 14px; }
-          }
-        `}</style>
-      </div>
-    </div>,
-    document.body
+  return (
+    <ModaleFiche titreId={titreId} libelle="À propos de cet auteur" onFermer={onClose}>
+      {erreur ? (
+        <p style={{ fontFamily: SERIF, fontSize: '1rem', color: 'var(--cs-texte-faible)', textAlign: 'center', margin: '30px 0' }}>Auteur introuvable</p>
+      ) : !auteur || auteur.id_auteur !== id ? (
+        <MotAttente centre marge="30px 0" />
+      ) : (
+        <Contenu auteur={auteur} onClose={onClose} evenements={evenements} pied={pied} titreId={titreId} />
+      )}
+    </ModaleFiche>
   )
 }
