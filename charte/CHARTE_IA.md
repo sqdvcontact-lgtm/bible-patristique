@@ -4167,7 +4167,7 @@ Une œuvre dont la longueur est inférieure au seuil d’opuscule est un texte b
 
 ⛔ **Sans la mesure, la règle ne se déclenche jamais — en silence.** La surface qui replie doit lire `nb_signes` : la bibliothèque l’a lu six semaines au rechargement client et pas au rendu serveur, si bien qu’aucune section n’a paru en ligne pendant que ses tests passaient. Une surface qui oublie la colonne n’affiche pas une erreur, elle affiche une liste entière.
 
-⛔ **DEUX REPLIS, DEUX MARQUES.** Une section DANS une liste et une rubrique DU volet ne portent pas le même signe. La rubrique du volet — « Du même auteur », « Apparat critique », « Sommaire » — se replie par un triangle plein posé À DROITE, au bout d’une ligne en capitales espacées. La section, elle, prend le chevron en trait posé À GAUCHE, devant son nom en italique bas de casse, tourné vers la droite quand elle est close et vers le bas quand elle est ouverte. ⚠️ « Opuscules » a d’abord paru dans le volet avec le triangle des rubriques (relevé de l’auteur, 9 septembre 2026 : « la même flèche pour déployer que les autres niveaux de titre me paraît bizarre ») : le signe lui donnait le RANG de ce qui la contient, et le lecteur ne voyait plus quel repli emporte quoi.
+⛔ **DEUX REPLIS, DEUX MARQUES.** Une section DANS une liste et une rubrique DU volet ne portent pas le même signe. La rubrique du volet — « Du même auteur », « Apparat de l’auteur », « Apparat de l’éditeur », « Sommaire » — se replie par un triangle plein posé À DROITE, au bout d’une ligne en capitales espacées. La section, elle, prend le chevron en trait posé À GAUCHE, devant son nom en italique bas de casse, tourné vers la droite quand elle est close et vers le bas quand elle est ouverte. ⚠️ « Opuscules » a d’abord paru dans le volet avec le triangle des rubriques (relevé de l’auteur, 9 septembre 2026 : « la même flèche pour déployer que les autres niveaux de titre me paraît bizarre ») : le signe lui donnait le RANG de ce qui la contient, et le lecteur ne voyait plus quel repli emporte quoi.
 
 ⚠️ **La section garde la même forme sur toutes ses surfaces**, comme elle y garde le même seuil et le même partage : celle qu’elle porte à la bibliothèque, où elle est née.
 
@@ -7430,6 +7430,8 @@ et elles ne valent pas contre le nom : celui qui écrit est ce que le volet nomm
 étoile n’est qu’un rangement. ⚠️ **Elle y garde donc son état** : glyphe plein, encre d’or,
 libellé qui dit le geste inverse. Un état nommé et peint reste lisible.
 
+⚠️ **Rectifié le 15 septembre 2026 (§ 38.26.3).** Le titre ne se coupe toujours pas, mais les symboles passent désormais AVANT lui : il leur cède sa largeur en s’enroulant, et la rangée ne se replie sous le ⋮ que lorsqu’il n’a plus sa largeur minimale.
+
 ⛔ **LA COMPOSITION SUIT DONC LA LARGEUR, ET LA CHARTE DISAIT LE CONTRAIRE PENDANT UNE
 MATINÉE.** L’argument était « une entrée qui change de place selon la largeur ne s’apprend
 jamais », emprunté à la barre de navigation. ⚠️ **Il était mal cité.** Ce que la barre
@@ -7452,7 +7454,7 @@ ne demande pas « le nom est-il coupé ? » — ce qui serait vrai condensé et 
 l’infini — mais « le nom ENTIER tiendrait-il À CÔTÉ DE LA RANGÉE DÉPLIÉE ? ». Le besoin se
 lit sur la chasse RÉELLE du nom (`scrollWidth`, qui la rend qu’il soit écrêté ou non) et la
 largeur des actions se ramène à celle de la forme dépliée en leur rendant la place de ce
-qui n’y est pas. Les deux états rendent alors la même réponse, ce qu’une garde éprouve.
+qui n’y est pas. Les deux états rendent alors la même réponse, ce qu’une garde éprouve. ⚠️ **Depuis le 15 septembre 2026, ce que le titre demande n’est plus sa chasse sur une ligne, mais sa largeur MINIMALE, mesurée sur une copie** (§ 38.26.3) : la règle d’indépendance tient, et c’est elle qui rend la nouvelle mesure sûre.
 
 ⚠️ **RÉSULTAT MESURÉ : vingt noms coupés sur 105 avant, cinq après**, tous « Pseudo-Jean
 Chrysostome » entre 1280 et 1600 px — il demande 164 px quand la rangée condensée en rend
@@ -7710,12 +7712,29 @@ nulle part.
 
 ⚠️ **La mesure de la rangée d'actions ne bouge pas** (§ 38.26 et § 38.26.1) : ce qui dispute la
 place au chapeau est désormais le TITRE, et la règle vaut pour lui comme elle valait pour le nom
-de l'auteur — le texte ne se coupe pas, c'est la rangée qui cède tout entière sous le ⋮ quand la
-place manque. L'écrêtage par la fin ne sert que le cas extrême, où même la rangée condensée ne
-laisse pas de quoi lire.
+de l'auteur : le texte ne se coupe pas. ⚠️ **Rectifié le 15 septembre 2026 (§ 38.26.3)** : la
+rangée ne cède plus dès que le titre ne tient pas sur une ligne. Le titre s'enroule et cède sa
+largeur aux symboles, la rangée ne se replie sous le ⋮ que lorsqu'il n'a plus sa largeur minimale,
+et plus rien ne s'écrête par la fin.
 
 ⚠️ **Et la VISITE se relit avec l'écran** : elle nommait « un lien, sous le titre », qui
 n'existe plus. Une refonte de surface se paie d'une relecture du scénario qui la montre.
+
+#### 38.26.3 Les SYMBOLES ont la PRIORITÉ sur le TITRE, et la rangée se tient sur sa PREMIÈRE LIGNE
+
+Décision de l'auteur, 15 septembre 2026, sur la tête du volet d'une œuvre : « il faut afficher, plutôt, des logos, symétriques et centrés avec la flèche de fermeture du volet ; ils se réduisent sous la forme des trois points quand la page devient trop petite ; ces symboles ont la priorité sur le titre quand ils s'affichent ».
+
+⛔ **LE TITRE CÈDE SA LARGEUR AUX SYMBOLES, ET IL LA CÈDE EN S'ENROULANT.** La règle du 10 septembre repliait la rangée dès que le titre ENTIER ne tenait plus sur une ligne à côté d'elle : sur un titre de trente signes, c'est-à-dire presque partout, le lecteur ne voyait que le ⋮. Le titre passe désormais à la ligne, en lignes équilibrées, et les symboles restent. ⛔ Il ne se coupe jamais : ni points de suspension, ni césure, et chacun de ses mots reste entier.
+
+⛔ **« LA PAGE DEVENUE TROP PETITE » SE MESURE : C'EST LE TITRE QUI N'A PLUS SA LARGEUR MINIMALE.** Elle vaut son plus long mot, entier, et jamais moins de 5,5 rem, une douzaine de signes par ligne, sous lesquels une colonne de titre ne se lit plus. La rangée ne se replie sous le ⋮ que lorsque ce minimum, l'écart et la rangée entière ne tiennent plus dans la tête du volet, et elle se replie toujours d'un coup (§ 38.26.1).
+
+⛔ **LE PLUS LONG MOT SE MESURE COMME LE NAVIGATEUR COMPOSE**, sur une copie du titre posée hors de la page, à la largeur de son contenu minimal et avec la chasse du titre. ⛔ Jamais sur un canevas, qui ignore l'axe optique de la police et les enrichissements du titre. La règle d'indépendance du § 38.26 tient : ce que le titre demande et ce que la rangée dépliée prendrait se calculent hors de l'état qu'ils commandent, et le prédicat ne peut pas osciller.
+
+⛔ **LES SYMBOLES ET LA FLÈCHE PARTAGENT L'AXE DE LA PREMIÈRE LIGNE DU TITRE.** Centrés sur la hauteur du titre, ils glissaient sur sa deuxième ligne dès qu'il en prenait trois, et la flèche cessait de tenir le coin du volet. La rangée s'aligne sur le haut, et un décalage calculé sur la hauteur de ligne du titre et sur la cible pose le milieu des cibles sur celui de la première ligne. Il s'écrit en rem, jamais en pixels : la police racine est fluide.
+
+⛔ **LES SYMBOLES PÈSENT COMME LA FLÈCHE.** Posés à côté d'elle, ils se lisent avec elle, et un trait plus maigre ferait un rang de plus. Rendue à sa taille, la flèche trace 1,22 px ; la roue de l'administrateur n'en traçait que 0,87 et en trace 1,14 ; le partage, le plus haut des dessins, resserre ses nœuds et épaissit son trait. Le poids se juge au trait RENDU, le trait déclaré rapporté à la taille du dessin, jamais au trait déclaré seul.
+
+⚠️ **Le prix se mesure, et il est assumé.** Sur un portable, un titre de trente signes prend trois lignes à côté de la rangée d'un lecteur, et la rangée d'un administrateur, qui porte une cible de plus, s'y replie encore. À partir de 1920 px, la rangée entière tient à côté de presque tous les titres. Le relevé est au carnet.
 
 ### 38.27 Le mode de lecture par DÉFAUT est le FRANÇAIS SEUL, et un choix ne survit pas à la visite
 
@@ -7956,6 +7975,18 @@ Deux demandes de l'auteur du 14 septembre 2026, sur la page « Bible classique �
 ⚠️ **Les boutons reculant, le nombre d'œuvres qui les suit au survol (§ 38.30) demande un peu plus de place pour paraître.** Sa règle ne change pas : elle se juge toujours sur la place réelle.
 
 ⛔ **LE TITRE DU CHAPITRE SE TIENT CONTRE LE MENU DES BIBLES** (« Matthieu❧Chapitre 1 et le menu de sélection de la traduction biblique doivent être plus proches l'un de l'autre ; réduire le blanc qui les sépare »). Le titre portait un interligne de prose, qui laissait un vide sous ses lettres, et la marge du menu en ajoutait autant. L'interligne du titre se resserre, et la marge tombe à un huitième de rem. ⚠️ **Rectifié le soir même** (« Matthieu❧Chapitre 1 et le menu de sélection de la traduction biblique doivent être très légèrement plus éloignés l'un de l'autre ») : l'interligne reste serré, et la marge remonte à cinq seizièmes de rem. C'est la MARGE qui règle l'écart, jamais l'interligne, qui rouvrirait un vide sous les lettres du titre. ⛔ Les deux lectures, une colonne et en regard, prennent les mêmes mesures : passer de l'une à l'autre ne déplace ni le titre ni le menu.
+
+### 38.32 Le volet d'une ŒUVRE : deux apparats, une invite seule, et le menu des bibles de la page Bible
+
+Quatre demandes de l'auteur du 15 septembre 2026 sur les volets de la page d'une œuvre. La tête du volet de gauche relève du § 38.26.3.
+
+⛔ **L'APPARAT DE L'AUTEUR ET CELUI DE L'ÉDITEUR SONT DEUX RUBRIQUES** (« Apparat critique et apparat de l'auteur se ressemblent trop ; autant différencier directement et faire deux sections différentes, sans passer par apparat critique »). La rubrique « Apparat critique » coiffait deux mentions composées comme elle, même corps, même encre, même casse, si bien que « Apparat de l'auteur » se lisait comme une seconde rubrique glissée dans la première. Chaque main a désormais la sienne, « Apparat de l'auteur » puis « Apparat de l'éditeur », dans l'ordre de la vue ; chacune se déplie pour son compte, et une œuvre qui n'en porte qu'une n'en montre qu'une. ⚠️ Deux pièces de même intitulé, une de chaque main, sont deux entrées distinctes. ⛔ « Apparat critique » ne nomme plus aucune rubrique du volet, comme il ne nomme plus aucune note (§ 13.12.1). ⚠️ La visite de la page a été relue : son arrêt « Apparats » présente les deux rubriques.
+
+⛔ **« DU MÊME AUTEUR » SE SÉPARE PAR LE BLANC, JAMAIS PAR UN FILET.** Un filet entre chaque œuvre faisait de la liste une grille : il est retiré, et le blanc qui sépare deux œuvres grandit. ⚠️ Ce blanc est pris dans l'entrée et non entre les entrées : la cible reste continue sous le curseur. ⛔ Le titre et sa ligne d'édition font UNE entrée : la ligne d'édition se serre contre son titre, et c'est le blanc entre deux œuvres qui doit se voir. ⛔ **Au survol, toute l'entrée prend le vert**, titre et ligne d'édition ensemble : la ligne d'édition gardait sa teinte faible sous le curseur, et l'entrée ne se désignait qu'à moitié. Son second rang tient par le corps et l'italique, non par une encre qui refuse le survol.
+
+⛔ **LE VOLET DE DROITE RESTÉ VIDE NE PORTE QUE SON INVITE, CENTRÉE** (« supprimer l'arbre, garder centré »). « Cliquez sur un paragraphe. » se tient seule au milieu de la hauteur que le volet laisse sous le menu des traductions, comme « Aucune occurrence » dans le volet de la page Bible. Elle porte seule ce qu'elle dit : son encre prend le rang du texte second, celui d'avant restant sous le seuil de 4,5. La planche de l'arbre ardent passe en réserve ; celle du corbeau, qui dit qu'un passage n'a pas de lien biblique, reste.
+
+⛔ **LE MENU DES TRADUCTIONS BIBLIQUES DU VOLET S'OUVRE SUR LA LISTE DE LA PAGE BIBLE CLASSIQUE** (« reprendre le menu de la page Bible classique, mise en forme intérieure, quand on a cliqué ; pas le bouton lui-même »). Lignes, familles et sous-menus de langues, circulation au clavier, fermeture au clic à côté ou à Échap : c'est la même liste, sous deux boutons. ⛔ **Plus d'étiquette « Traduction » au-dessus du bouton** : il nomme la bible qu'on lit, et c'est la règle déjà posée pour la carte du volet de gauche le 31 août 2026. ⛔ **Le menu ne propose que les bibles que le volet sait lire.** Il listait toutes les bibles du site quand le volet n'en lit que cinq : choisir la Bible du XIIIe siècle affichait son nom au-dessus du texte de Sacy, pris en repli sans un mot.
 
 ### 13.18 Ce que le RENDU d'une note lit, et la ligne de la citation visée
 

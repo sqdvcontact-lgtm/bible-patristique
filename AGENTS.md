@@ -2571,7 +2571,7 @@ Ouvrir l'apparat critique change de VUE : le texte suivi cesse d'être rendu, et
 du niveau 1 avec lui. Le SOMMAIRE y ramène ; mais il ne paraît pas sur un texte sans
 niveaux ni sur une lecture qui n'a rien à sommer (voir « Un sommaire qui n'a rien à
 SOMMER ne paraît pas »), et le lecteur restait alors enfermé dans l'apparat. Une rubrique
-« Revenir au texte » se pose donc sous « Apparat critique », dans la seule vue de
+« Revenir au texte » se pose donc sous les apparats (« Apparat de l'auteur » et « Apparat de l'éditeur », deux rubriques depuis le 2026-09-15), dans la seule vue de
 l'apparat (une rubrique inerte se lit comme un contrôle en panne), et SEULEMENT quand le
 volet n'a pas de sommaire : `revenirAuTexteVisible`, rectifié par l'auteur le
 2026-09-13, le bouton doublant les entrées du sommaire sous leurs yeux.
@@ -11208,7 +11208,7 @@ Demande de l'auteur, en dix points, sur la page « Bible classique ». Doctrine 
 
 Doctrine : charte `parametres.charte_ia`, fin du § 50.1, fin du § 50.3, et § 50.7. Règles de code :
 
-- ⛔ **Les formes d'un menu de bibles vivent dans `app/lib/stylesMenuBibles.ts`** (testé) : `styleLigneMenu`, `STYLE_CADRE_MENU`, `STYLE_CHEVRON_MENU`, `TAILLE_CHEVRON_MENU`, `FOND_SURVOL_MENU`, `LARGEUR_SOUS_MENU_REM`, `DELAI_REPLI_MS`, et la circulation au clavier `rangDeCirculation`. `SelecteurTraductionBible` (page Bible) et `ChoixTraduction` (Polyglotte) les importent ; ⛔ ne recomposer une ligne de menu de bibles nulle part ailleurs.
+- ⛔ **Les formes d'un menu de bibles vivent dans `app/lib/stylesMenuBibles.ts`** (testé) : `styleLigneMenu`, `STYLE_CADRE_MENU`, `STYLE_CHEVRON_MENU`, `TAILLE_CHEVRON_MENU`, `FOND_SURVOL_MENU`, `LARGEUR_SOUS_MENU_REM`, `DELAI_REPLI_MS`, et la circulation au clavier `rangDeCirculation`. `SelecteurTraductionBible` (page Bible), `ListeMenuBibles` (la liste qu'ouvrent le bouton de la page Bible et celui du volet d'une œuvre, depuis le 2026-09-15) et `ChoixTraduction` (Polyglotte) les importent ; ⛔ ne recomposer une ligne de menu de bibles nulle part ailleurs.
 - **`ChoixTraduction` garde ce que la grille impose** : deux PORTAILS (`zIndex` 3000 et 3001, inchangés, sous la garde d'empilement), un menu mesuré au clic et borné par `LARGEUR_MAX_MENU_REM` (24), et un sous-menu posé par son bord DROIT quand il s'ouvre à gauche de sa ligne, pour grandir vers la gauche sans la recouvrir. ⚠️ Les langues suivent `GROUPES_LANG` sans rubrique, et le sous-menu n'a plus de titre.
 - ⛔ **Une colonne déjà prise : les deux noms et `IconeEchange`** (flèche à double sens en `currentColor`, taille en `em`), dans un `span role="img" aria-label="échange avec"`. ⚠️ Pas de texte hors écran en enfant de la ligne : la ligne est un flex à `gap`, et un enfant de plus y ouvrirait deux écarts.
 - ⛔ **La voix de la lacune est `STYLE_MENTION_DANS_LE_FIL`** (`compositionBible.ts`) : sérif italique, `letterSpacing` `0.02em`, `0.786em` (0,6875 rem sur les 0,875 rem d'un verset), `--cs-mention`. `STYLE_LACUNE` de `compositionBible.ts` en est la copie ; celui de `marqueurs899.tsx` y ajoute la marge et le `nowrap` ; `STYLE_MENTION_LACUNE` vaut `STYLE_MENTION`. ⚠️ `STYLE_LACUNE` est désormais défini APRÈS `VOIX_MENTION` et `CORPS_MENTION` : une constante de module qui en étale une autre doit la suivre, sans quoi elle lève à l'import.
@@ -11254,3 +11254,39 @@ Relevé de l’auteur sur l’inventaire des notes de *Du corps et du sang du Se
 - ⛔ **LES QUATRE MESURES DE LA TÊTE S’ÉCRIVENT UNE FOIS** : `CORPS_NUMERO_TETE`, `CORPS_INTITULE`, `ECART_TETE` et `MARGE_TETE`, que la tête pose et que l’estimation relit. ⚠️ Elles sont déclarées AVANT `INTITULE_ENCART_REM`, qui les lit à l’initialisation du module.
 - ⚠️ **Éprouvé sur le site servi le 15 septembre 2026** : l’encart réel injecté dans `/contact`, dans sa police, cinq intitulés, sept largeurs de 16 à 29 rem, racines de 16, 19 et 22 px, soit 105 cas. L’estimation ne compte JAMAIS une ligne de moins que la tête n’en prend ; elle en compte une de trop sept fois, pour les deux intitulés les plus longs entre 18 et 22 rem. À la racine 16, la tête mesure 13,8 px sur une ligne et 25,8 sur deux, quand l’estimation ajoute 13,8 par ligne.
 - ⚠️ **Tests** : `typeNote.test.ts` (ordre, doute, intitulés composés, nom accessible, tête sans l’explication, `seSigneLuiMeme`), `notesInventaire.test.ts` (recensement, filtre et comptes d’une note à deux voix), `compositionNote.test.ts` (lignes de l’intitulé à 16 et 29 rem, aux racines 16 et 22 ; hauteur qui grandit d’une ligne ; intitulé sans écrêtage).
+
+# ⛔ PAGE D'UNE ŒUVRE — les symboles priment le titre, deux apparats, le menu des bibles partagé (2026-09-15)
+
+Six demandes de l'auteur sur la page de lecture d'une œuvre, cinq servies le 15 septembre 2026 (commit `008f5aa5`). Doctrine : charte `parametres.charte_ia`, **§ 38.26.3** (la tête du volet) et **§ 38.32** (le reste). Règles de code :
+
+## La tête du volet — `app/oeuvre/[id]/TeteVolet.tsx`
+
+- ⛔ **LE PRÉDICAT A CHANGÉ DE TERME, PAS DE FORME.** `condenserLaRangee({ dispo, titreMin, ciblesDepliees, racine })` compare `titreMin + ECART_TITRE_ACTIONS_PX + largeurDeLaRangee(ciblesDepliees, racine)` à la place offerte. `titreMin = titreMinimal({ motLePlusLong, racine })` vaut le plus long mot du titre, arrondi au pixel supérieur, et jamais moins de `TITRE_MIN_REM` (5,5 rem). Il comparait la chasse ENTIÈRE du titre sur une ligne. ⚠️ Les sections ci-dessus qui parlent de `scrollWidth` et de « la chasse de leur `firstElementChild` » décrivent l'état d'avant.
+- ⛔ **LE PLUS LONG MOT SE MESURE SUR UNE COPIE** (`largeurMinimale`) : le `firstElementChild` de chaque bouton de `refNoms` est cloné dans une SONDE hors de la page (`position: fixed`, `left: -10000px`, `visibility: hidden`), en `display: inline-block; width: min-content`, avec les propriétés de chasse recopiées de `getComputedStyle` (`PROPRIETES_DE_CHASSE`, axe optique compris). ⛔ Jamais `measureText` sur un canevas, qui ignore l'axe optique et les enrichissements. ⚠️ L'effet de `useRangeeCondensee` crée la sonde et la retire ; hors de la rangée, elle ne réveille pas l'observateur.
+- ⛔ **`TitreVolet` S'ENROULE** : `whiteSpace: normal`, `hyphens: manual`, `overflowWrap: break-word`, `textWrap: balance`, et plus aucun écrêtage. ⚠️ Son texte reste dans UN seul span : c'est lui que la mesure clone.
+- ⛔ **LA RANGÉE S'ALIGNE SUR LE HAUT** (`STYLE_RANGEE_TETE_VOLET`, `alignItems: flex-start`), et les actions prennent `marginTop: ALIGNEMENT_ACTIONS`, soit `calc((1.1375rem - max(24px, 1.5rem)) / 2)` : le milieu des cibles tombe sur celui de la première ligne du titre. `CORPS_TITRE_VOLET_REM` (0,875), `INTERLIGNE_TITRE_VOLET` (1,3) et `LIGNE_TITRE_VOLET_REM` (1,1375, écrit en toutes lettres pour ne pas sérialiser un produit de flottants) vivent à côté, et `TitreVolet` les lit. ⚠️ `COTE_CIBLE_CSS` doit rester l'écriture exacte de la feuille : `teteVolet.test.ts` y cherche `min-height: max(24px, 1.5rem);`.
+- ⚠️ **`teteVolet.test.ts` rejoue le prédicat sur des largeurs MESURÉES** dans la police servie : têtes de 207, 274 et 347 px aux racines 16, 19 et 22, et cinq mots témoins (« mystagogiques » 99,13 · 113,98 · 127,84 px ; « ecclésiastique », « commentaire », « confessions », « seigneur »). Une police changée se remesure : on n'ajuste pas les attentes.
+- ⚠️ **Les glyphes** (`ICONE_NIVEAUX`, `ICONE_PARTAGE`, dans `OeuvreClient`) : roue à `strokeWidth` 2,1 dans une boîte de 24, partage à nœuds de rayon 1,8 et trait 1,45 dans une boîte de 16. Un trait se juge RENDU (trait déclaré × taille / viewBox) contre celui du chevron, 1,22 px.
+
+## Les deux apparats — `OeuvreClient`
+
+- ⛔ **`apparatOuvert` est un `Record<SectionApparat, boolean>`**, une rubrique par main. `sectionsApparat` (mémoïsé sur `tocApparatLocal`) dit les mains présentes dans l'ordre de la vue, et `LIBELLE_SECTION_APPARAT` (`compositionOeuvre.ts`) les nomme. ⚠️ L'enveloppe garde `data-visite="oeuvre-apparat"` et le partage de hauteur (`apparatsOuverts`, `apparatSEtire` quand ni sommaire ni retour au texte ne suivent) ; chaque rubrique ouverte prend sa part en dedans.
+- ⛔ **`apparatNiv1Actif` porte la MAIN** : `${section}|${niv1}`. Deux « Préface », une de chaque main, ne partagent ni clé React ni état actif. ⚠️ Seuls les deux liens du sommaire de l'apparat posent cet état.
+
+## « Du même auteur », et le volet de droite vide
+
+- ⛔ **Le survol vit dans la feuille** : `.lien-meme-auteur` (encre `--cs-texte`) et `.lien-meme-auteur-edition` (encre `--cs-texte-faible`) passent au vert ensemble sous `:hover` et `:focus-visible`. Les deux gestionnaires JavaScript qui réécrivaient la couleur sont partis, et ⛔ **aucune couleur ne se pose en ligne sur le lien**, qui battrait la règle. ⚠️ L'œuvre qu'on lit n'est pas un lien, et sa ligne d'édition garde le vert posé en ligne.
+- **Mesures** : entrée à `padding: 0.3125rem 0`, sans `borderBottom` ; ligne d'édition à `lineHeight: 1.1` et `marginTop: -0.0625rem` ; bouton « Opuscules » accordé (`0.3125rem 0`, marge haute `0.125rem`).
+- ⛔ **L'invite centrée demande une CHAÎNE DE COLONNES FLEXIBLES** : le défileur de l'onglet `refs` passe en colonne flexible, l'enveloppe du fondu (`cs-volet-echange`) prend `flex: 1 0 auto` en colonne quand aucun segment n'est retenu, et l'état vide prend `flex: 1 0 auto`, centré. Un maillon retiré remonte l'invite en haut. ⚠️ `arbre-ardent.png` est `fonction: 'reserve'` dans `app/admin/illustrations/inventaire.ts`, sans `lieu` ni `source` : la garde refuse un `lieu` sur une réserve.
+
+## Le menu des traductions bibliques — `app/components/ListeMenuBibles.tsx`
+
+- ⛔ **LA LISTE EST UN COMPOSANT, LE BOUTON RESTE À CHAQUE PAGE.** `ListeMenuBibles({ id, libelle, traductions, traductionIndex, choisir, fermer, cadre, style })` rend le `role="menu"`, les familles et leurs sous-menus (`entreesDuMenu`), la circulation au clavier (`rangDeCirculation`) et le repli différé, et se ferme au `pointerdown` hors du `cadre` et à Échap. `SelecteurTraductionBible` (page Bible) et le volet de droite d'une œuvre l'ouvrent sous leur propre bouton ; `ChoixTraduction` (Polyglotte) garde la sienne, en portail.
+- ⛔ **`fermer` et `choisir` sont STABLES chez l'appelant** (`useCallback`) : ils sont dans les dépendances de l'écoute du clic à côté, et une fonction neuve à chaque rendu la réabonnerait à chaque rendu. `fermer(rendreLeFoyer)` ne rend le foyer au bouton qu'au clavier.
+- ⚠️ **Le foyer va à la ligne de la bible lue au MONTAGE** : la liste n'est rendue qu'ouverte.
+- ⛔ **LE VOLET NE LISTE QUE LES BIBLES LISIBLES** : `traductions` (`est_biblique`) filtrée sur `chargerCodesTraductions()`, qui sonde les colonnes de `versets_lecture`. C'est la règle de `codesTraductionsLecture`, appliquée au MENU et non plus seulement au `select`.
+- ⚠️ **Le bouton du volet n'a plus d'étiquette visible** : son `aria-label` reprend le nom de la bible en tête, puis dit le geste (WCAG 2.5.3) ; `aria-haspopup`, `aria-expanded`, et `aria-controls` tant que la liste est ouverte (`useId`).
+
+## Ce qui reste
+
+- ⚠️ **« Commentaires » (quatrième demande)** : le composeur existe dès qu'un paragraphe est retenu (`OngletCommentaires`, qui reçoit `segActif`). Commenter l'ŒUVRE entière, sans paragraphe, demanderait une cible nouvelle en base : `commentaires.id_segment` ne vise qu'un segment, et reste un `integer` quand `segments.id` est un `bigint`. Question posée à l'auteur le 15 septembre 2026.

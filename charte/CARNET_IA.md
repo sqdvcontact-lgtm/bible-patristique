@@ -439,3 +439,24 @@ Les sept : Ac 3, 9 ; 7, 43 ; 7, 56 ; 8, 29 (« aucun verset cible n'a été fabr
 **Ce qui reste.** L'aparté « Apparat propre à ce bloc » des développements éditoriaux, qui ne double aucun appel : 231 des 1 056 notes de bloc n'ont ni texte d'ancrage ni offset.
 
 **Rectification, mesurée en ligne le même jour.** Le tableau décrit le chemin quand la vue des cibles répond ; elle ne répond pas. Filtrée sur Jean 8, `v_bible_tr0013_gloss_note_targets` met 34,7 s sous `postgres`, quand `authenticated` en accorde 8 : le journal Supabase montre un 500 à chaque chapitre ouvert (cinq sur cinq entre 13 h 32 et 13 h 38 UTC), et `chargerCiblesDeGloses` rend une liste vide. Les 242 notes de glose restent donc sur leur verset hôte, où elles ont leur appel dans les deux lectures : elles ne se lisaient pas seulement dans la série, et le retrait n'en perd aucune. Seules les 7 notes de créneau n'avaient que la série. Vérifié après déploiement : sur Jean 8, trois notes de glose appelées depuis les versets 6, 9 et 26 ; sur Actes 3, le verset 9 en « — » avec son appel. Le 11 septembre, la même vue coûtait 1,1 à 1,5 s par chapitre.
+
+### 2026-09-15 — Page d'une œuvre : la tête du volet, ses icônes, le menu du volet de droite
+
+**La tête du volet** (charte § 38.26.3). Relevé sur planche, une iframe par écran, le prédicat de `TeteVolet.tsx` rejoué tel quel ; mesures en pixels. Place offerte par la tête : 207 à 1280 et 1440 px (racine 16), 223 à 1600 (racine 17), 274 à 1920 (racine 19), 347 à 2560 (racine 22). Rangée entière, lecteur / administrateur : 108 / 136 à la racine 16, 114,8 / 144,5 à 17, 128,3 / 161,5 à 19, 148,5 / 187 à 22. Largeur minimale du titre (plus long mot, plancher de 5,5 rem) : *Du corps et du sang du Seigneur* et *Les Confessions* 88, 93,5, 104,5 et 121 ; *Catéchèses mystagogiques* (« mystagogiques ») 100, 105, 114 et 128.
+
+| écran | lecteur | administrateur |
+|---|---|---|
+| 1280 et 1440 | déplié, sauf *Catéchèses mystagogiques* (100 + 8 + 108 = 216 pour 207) | replié |
+| 1600 | déplié, sauf *Catéchèses mystagogiques* (105 + 8 + 114,8 = 227,8 pour 223) | replié |
+| 1920 | déplié | déplié, sauf *Catéchèses mystagogiques* (114 + 8 + 161,5 = 283,5 pour 274) ; *Du corps et du sang du Seigneur* tient au pixel (274 pour 274) |
+| 2560 | déplié | déplié |
+
+Avant la règle, la rangée se repliait dès que le titre entier ne tenait pas sur une ligne : sur ces trois titres, le lecteur ne voyait le plus souvent que le ⋮.
+
+**Les icônes.** Trait rendu à 0,8125 rem : chevron 1,22 px ; roue 0,87 px avant (trait 1,6 dans une boîte de 24), 1,14 après (trait 2,1) ; partage : encre de 11,7 px de haut ramenée à 10,8, nœuds de rayon 1,9 ramenés à 1,8, trait 1,35 porté à 1,45 dans une boîte de 16.
+
+**Le menu des traductions du volet de droite.** `versets_lecture` ne porte que les colonnes TR0001 à TR0005, quand le menu listait toutes les bibles de `traductions` (`est_biblique`). Choisir une bible sans colonne affichait son nom au-dessus du texte de Sacy, pris en repli sans un mot. Le menu est désormais filtré sur la sonde des colonnes.
+
+**« Du même auteur ».** Filet retiré ; rembourrage d'entrée porté de 3 px à 0,3125 rem ; ligne d'édition à l'interligne 1,1 (1,25 avant) et remontée d'un seizième de rem.
+
+**Contrôles.** `tsc` sans erreur ; 3 005 tests dans l'arbre, 2 980 dans le miroir de l'index ; aucune remarque nouvelle du linter sur les fichiers touchés (deux de moins dans `OeuvreClient.tsx`, une de moins dans `SelecteurTraductionBible.tsx`).
