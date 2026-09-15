@@ -11257,7 +11257,7 @@ Relevé de l’auteur sur l’inventaire des notes de *Du corps et du sang du Se
 
 # ⛔ PAGE D'UNE ŒUVRE — les symboles priment le titre, deux apparats, le menu des bibles partagé (2026-09-15)
 
-Six demandes de l'auteur sur la page de lecture d'une œuvre, cinq servies le 15 septembre 2026 (commit `008f5aa5`). Doctrine : charte `parametres.charte_ia`, **§ 38.26.3** (la tête du volet) et **§ 38.32** (le reste). Règles de code :
+Six demandes de l'auteur sur la page de lecture d'une œuvre, servies le 15 septembre 2026 (commit `008f5aa5`, puis l'onglet « Commentaires »). Doctrine : charte `parametres.charte_ia`, **§ 38.26.3** (la tête du volet) et **§ 38.32** (le reste). Règles de code :
 
 ## La tête du volet — `app/oeuvre/[id]/TeteVolet.tsx`
 
@@ -11287,6 +11287,10 @@ Six demandes de l'auteur sur la page de lecture d'une œuvre, cinq servies le 15
 - ⛔ **LE VOLET NE LISTE QUE LES BIBLES LISIBLES** : `traductions` (`est_biblique`) filtrée sur `chargerCodesTraductions()`, qui sonde les colonnes de `versets_lecture`. C'est la règle de `codesTraductionsLecture`, appliquée au MENU et non plus seulement au `select`.
 - ⚠️ **Le bouton du volet n'a plus d'étiquette visible** : son `aria-label` reprend le nom de la bible en tête, puis dit le geste (WCAG 2.5.3) ; `aria-haspopup`, `aria-expanded`, et `aria-controls` tant que la liste est ouverte (`useId`).
 
-## Ce qui reste
+## L'onglet « Commentaires » — `app/oeuvre/[id]/OngletCommentaires.tsx`
 
-- ⚠️ **« Commentaires » (quatrième demande)** : le composeur existe dès qu'un paragraphe est retenu (`OngletCommentaires`, qui reçoit `segActif`). Commenter l'ŒUVRE entière, sans paragraphe, demanderait une cible nouvelle en base : `commentaires.id_segment` ne vise qu'un segment, et reste un `integer` quand `segments.id` est un `bigint`. Question posée à l'auteur le 15 septembre 2026.
+- ⛔ **UN COMMENTAIRE SE POSE SUR UN PARAGRAPHE** (réponse de l'auteur à la quatrième demande : « On met un commentaire sur un segment »). Le chemin existait et fonctionnait : on clique un paragraphe, on ouvre l'onglet, et le formulaire paraît à son pied ; la base accepte l'insertion. Éprouvé le 15 septembre 2026 dans un bloc annulé (`eprouver_sql`), depuis la place d'un lecteur puis d'un administrateur, sur un segment de *Du corps et du sang du Seigneur*. Ce jour-là, les douze commentaires de la base portaient tous sur un verset.
+- ⛔ **L'INVITE SANS PARAGRAPHE SE CENTRE** (`InviteCentree`), comme « Cliquez sur un paragraphe. » dans l'onglet « Bible », à l'encre `--cs-texte-second` : elle tenait une ligne grise en haut du volet. ⚠️ Elle prend `flex: 1` dans l'enveloppe que `OeuvreClient` pose en colonne flexible autour de l'onglet : un maillon retiré la remonte en haut.
+- ⛔ **UN ÉCHEC DIT SA CAUSE** : `motifErreur` porte le message du lexique (ZL001), celui des capitales, ou « Le commentaire n’a pas pu être enregistré. Réessayez. », et l'erreur part au journal. Tout refus s'affichait « vérifiez qu'il n'y a pas plus de 5 capitales à la suite ».
+- ⛔ **AU-DELÀ DE `ID_SEGMENT_MAX` (2^31 − 1), L'ONGLET NE PROMET RIEN** : il dit « Les commentaires ne sont pas encore ouverts sur ce texte. » au lieu d'offrir un formulaire voué à l'échec. La borne est exportée par `OngletCommentaires`, et le compte des commentaires de `OeuvreClient` la lit aussi (il se taisait déjà au-delà : « LE VOLET D’UNE ŒUVRE SUR TÉLÉPHONE », 2026-09-09). Le 15 septembre 2026, 2 573 segments la dépassent, dont 2 569 au-delà de 2^53 : 2 236 dans les *Catéchèses baptismales*, 170 dans les *Catéchèses mystagogiques*, 86 dans l'*Homélie sur le paralytique*, 53 dans l'*Homélie sur la Présentation au Temple*, 28 dans la *Lettre à l’empereur Constance*. ⚠️ Le remède est dans la donnée, côté GPT : `commentaires.id_segment` est un `integer` quand `segments.id` est un `bigint`, et un identifiant au-delà de 2^53 s'arrondit dans le navigateur (« Une page de lecture ne tombe pas sur une couche SECONDAIRE », 2026-09-05). Une cible par `(id_texte, segment_key)` n'aurait aucun des deux défauts.
+- ⚠️ Le formulaire prend un blanc de 12 px sous le bouton « Soumettre », qui touchait le bord bas de la fenêtre.

@@ -460,3 +460,17 @@ Avant la règle, la rangée se repliait dès que le titre entier ne tenait pas s
 **« Du même auteur ».** Filet retiré ; rembourrage d'entrée porté de 3 px à 0,3125 rem ; ligne d'édition à l'interligne 1,1 (1,25 avant) et remontée d'un seizième de rem.
 
 **Contrôles.** `tsc` sans erreur ; 3 005 tests dans l'arbre, 2 980 dans le miroir de l'index ; aucune remarque nouvelle du linter sur les fichiers touchés (deux de moins dans `OeuvreClient.tsx`, une de moins dans `SelecteurTraductionBible.tsx`).
+
+### 2026-09-15 — Commenter un paragraphe : ce qui marchait, ce qui trompait
+
+Précision de l'auteur sur la quatrième demande : « On met un commentaire sur un segment ».
+
+**Base.** Douze commentaires, tous sur un verset, aucun sur un segment. La contrainte `commentaire_cible` exige l'un ou l'autre, jamais les deux ; `commentaires.id_segment` est un `integer`. L'insertion sur un segment, éprouvée dans un bloc `do` annulé (`eprouver_sql`) sur le segment 533490 de *Du corps et du sang du Seigneur*, est acceptée et relue depuis la place d'un lecteur comme d'un administrateur, déclencheurs de modération et de lexique compris.
+
+**Page servie, avant.** Paragraphe cliqué, onglet « Commentaires » : formulaire présent, « Aucun commentaire pour ce passage. » ; le bouton « Soumettre » occupait les 32 derniers pixels de la fenêtre (de 985 à 1 017 pour une fenêtre de 1 017). Sans paragraphe, l'invite tenait une ligne grise en haut du volet. Tout refus d'envoi s'affichait comme une affaire de capitales.
+
+**Borne.** Le 15 septembre 2026, 2 573 segments ont un identifiant au-delà de 2^31, dont 2 569 au-delà de 2^53 : *Catéchèses baptismales* 2 236, *Catéchèses mystagogiques* 170, *Homélie sur le paralytique* 86, *Homélie sur la Présentation au Temple* 53, *Lettre à l’empereur Constance* 28. Sur ces textes, la base refuse la lecture comme l'écriture d'un commentaire.
+
+**Corrections** (commit `b75251a7`). Invite centrée (`InviteCentree`) ; message d'échec exact ; « Les commentaires ne sont pas encore ouverts sur ce texte. » au-delà de la borne, `ID_SEGMENT_MAX` étant partagée avec le compte d'`OeuvreClient` ; blanc de 12 px sous le formulaire.
+
+**Page servie, après** (fenêtre de 2 844 × 1 412). *Catéchèses baptismales* : l'invite se tient au milieu de sa boîte (centre à 770 px pour une boîte de 128 à 1 412), à 15 px de chaque bord ; un paragraphe au-delà de la borne porte « Les commentaires ne sont pas encore ouverts sur ce texte. », sans formulaire, et l'onglet reste ouvert. *Du corps et du sang du Seigneur*, segment 533490 : « Soumettre » de 1 366 à 1 400, pied du formulaire jusqu'à 1 412, soit 12 px de blanc sous le bouton. Rien n'a été envoyé : le bouton n'a pas été cliqué.
