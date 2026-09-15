@@ -125,7 +125,7 @@ import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { useFavoris } from '@/app/lib/useFavoris'
 import { refFavoriOriginal } from '@/app/lib/refsFavoris'
 import type { NoteRecensee, PlaceSegment } from './notesInventaire'
-import OngletCommentaires from './OngletCommentaires'
+import OngletCommentaires, { ID_SEGMENT_MAX } from './OngletCommentaires'
 import ListeMenuBibles from '@/app/components/ListeMenuBibles'
 // ⛔ L'inventaire des notes est chargé à la DEMANDE : il n'entre dans le paquet que
 // lorsqu'un administrateur ouvre son onglet, et jamais dans celui d'un lecteur.
@@ -2236,7 +2236,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   //    linter refuse à bon droit. C’est le patron de la Polyglotte (charte, § 50.1).
   const [compteCommentaires, setCompteCommentaires] = useState<{ seg: number; n: number } | null>(null)
   useEffect(() => {
-    if (segActif === null || segActif > 2147483647) return
+    if (segActif === null || segActif > ID_SEGMENT_MAX) return
     let vivant = true
     void supabase
       .from('commentaires')

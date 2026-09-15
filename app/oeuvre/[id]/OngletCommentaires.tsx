@@ -95,6 +95,21 @@ function ModalSignalerCommentaire({ titre, onClose, onEnvoyer }: {
 }
 
 // ── Onglet commentaires ───────────────────────────────────────────────────────
+/** Le plus grand identifiant que `commentaires.id_segment`, un `integer`, sait porter. */
+export const ID_SEGMENT_MAX = 2147483647
+
+/** L'invite de l'onglet quand il n'y a rien à montrer : centrée dans la hauteur du volet,
+ *  comme « Cliquez sur un paragraphe. » dans l'onglet « Bible ». ⚠️ Son encre est
+ *  `--cs-texte-second` : elle porte seule ce qu'elle dit, et `--cs-texte-doux` reste sous le
+ *  seuil de 4,5. */
+function InviteCentree({ children }: { children: string }) {
+  return (
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 0' }}>
+      <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', textAlign: 'center', margin: 0 }}>{children}</p>
+    </div>
+  )
+}
+
 export default function OngletCommentaires({ segActif, estAdmin }: { segActif: number | null; estAdmin: boolean }) {
   const [commentaires, setCommentaires] = useState<CommentaireAvecAuteur[]>([])
   const [texte, setTexte] = useState('')
@@ -124,7 +139,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
   }, [segActif, userId])
 
   const chargerCommentaires = async () => {
-    if (segActif === null) return
+    if (segActif === null || segActif > ID_SEGMENT_MAX) return
     setLoading(true)
     setErreurChargement(false)
     const { data: base, error: erreurBase } = await supabase.from('commentaires')
@@ -242,14 +257,23 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     if (!exigerCompte('commenter ce passage')) return
     if (!texte.trim() || segActif === null || !userId) return
     setMotifErreur('')
-    if (REGEX_CAPS_ABUSIVES.test(texte)) { setStatut('err'); return }
+    if (REGEX_CAPS_ABUSIVES.test(texte)) { setMotifErreur('Pas plus de cinq capitales à la suite.'); setStatut('err'); return }
     setStatut('sending')
     const { data, error } = await supabase.from('commentaires').insert({
       id_segment: segActif, texte: texte.trim(), valide: false, user_id: userId,
       reponse_a: cibleReponse?.id ?? null, demande_validation: demandeValidation,
     }).select().single()
     setStatut('idle')
-    if (error || !data) { if (error?.code === 'ZL001') setMotifErreur(error.message); setStatut('err'); return }
+    // ⛔ UN ÉCHEC DIT SA CAUSE (2026-09-15). Tout refus s'affichait « vérifiez qu'il n'y a pas
+    // plus de 5 capitales à la suite », une panne de réseau comme un refus de la base : le
+    // lecteur cherchait des capitales qui n'y étaient pas. Le lexique (ZL001) garde son
+    // message, écrit pour être lu ; le reste dit que l'envoi a échoué, et part au journal.
+    if (error || !data) {
+      if (error) console.warn('[oeuvre] commentaire non enregistré', error)
+      setMotifErreur(error?.code === 'ZL001' ? error.message : 'Le commentaire n’a pas pu être enregistré. Réessayez.')
+      setStatut('err')
+      return
+    }
     // Affichage immédiat, sans recharger.
     setCommentaires(prev => [...prev, { ...data, pseudo: null, lecture: null, mecene: false, nbLikes: 0, nbDislikes: 0, monVote: null }])
     setTexte(''); setCibleReponse(null); setDemandeValidation(false)
@@ -258,7 +282,16 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     chargerCommentaires()
   }
 
-  if (segActif === null) return <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', padding: '8px 0' }}>Cliquez sur un paragraphe pour voir ou ajouter des commentaires.</p>
+  // ⛔ L'INVITE SE CENTRE ET SE LIT, COMME CELLE DE L'ONGLET « BIBLE » (2026-09-15). Elle
+  // tenait une ligne grise en haut du volet, où l'on ne voyait pas qu'un commentaire se pose
+  // sur un paragraphe qu'on a cliqué.
+  if (segActif === null) return <InviteCentree>Cliquez sur un paragraphe pour voir ou ajouter des commentaires.</InviteCentree>
+  // ⛔ UN PARAGRAPHE QU'ON NE PEUT PAS COMMENTER LE DIT, AU LIEU D'OFFRIR UN FORMULAIRE QUI
+  // ÉCHOUE. `commentaires.id_segment` est un entier de 32 bits quand `segments.id` est un
+  // `bigint` : au-delà, la base refuse la lecture comme l'écriture (2 573 segments le
+  // 2026-09-15, les Catéchèses de Cyrille de Jérusalem surtout). Le remède est dans la
+  // donnée ; d'ici là, on ne promet rien.
+  if (segActif > ID_SEGMENT_MAX) return <InviteCentree>Les commentaires ne sont pas encore ouverts sur ce texte.</InviteCentree>
 
   const VoteBoutons = ({ c }: { c: CommentaireAvecAuteur }) => (
     // ⚠️ Un compteur À ZÉRO ne s'écrit pas : c'est l'état de presque tous les
@@ -433,7 +466,9 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           </div>
         ))}
       </div>
-      <div style={{ flexShrink: 0, marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--cs-bord)' }}>
+      {/* ⚠️ Un blanc sous le formulaire : le bouton « Soumettre » touchait le bord bas de la
+          fenêtre (mesuré le 2026-09-15, 0 px entre les deux). */}
+      <div style={{ flexShrink: 0, marginTop: '14px', padding: '14px 0 12px', borderTop: '1px solid var(--cs-bord)' }}>
         {!aUnCompte ? (
           <InvitationCompteInline action="commenter ce passage" />
         ) : (
@@ -456,7 +491,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
               <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demander la certification</span>
             </label>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px', gap: '8px', alignItems: 'center' }}>
-              {statut === 'err' && <span style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)' }}>{motifErreur || 'Erreur — vérifiez qu’il n’y a pas plus de 5 capitales à la suite.'}</span>}
+              {statut === 'err' && motifErreur && <span role="alert" style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)' }}>{motifErreur}</span>}
               <button onClick={soumettre} disabled={statut === 'sending' || !texte.trim()}
                 style={{ fontSize: '0.71875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: texte.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
                 {statut === 'sending' ? 'Envoi…' : 'Soumettre'}
