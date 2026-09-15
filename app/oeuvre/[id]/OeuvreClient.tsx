@@ -17,7 +17,7 @@ import { comparerOuvragesDUnVolume, ouvrageDeLaNotice, type OuvrageBibliographiq
 import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import { chargerNoticesBibliographiques, identifiantsOuvrages, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
 
-import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, useTransition, Fragment } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, useTransition, useId, Fragment } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import IconeCrayon from '@/app/components/IconeCrayon'
@@ -27,7 +27,7 @@ import type { ChampTitre, SegData, GroupeData, Props, EditionCible, OeuvreResume
 import type { BlocOriginal } from './bilingueAlignement'
 import { repartirGroupes, chargerProjectionBilingue, chargerPlaceEnRegard, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, type BlocEnRegard } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
-import { BoutonVolet, MenuVolet, TitreVolet, useRangeeCondensee, type ActionVolet } from './TeteVolet'
+import { ALIGNEMENT_ACTIONS, BoutonVolet, MenuVolet, STYLE_RANGEE_TETE_VOLET, TitreVolet, useRangeeCondensee, type ActionVolet } from './TeteVolet'
 import { construireNavigationApparat } from './apparatNavigation'
 import { chargerProfondeurPresente } from './niveauxPresents'
 // ⛔ LE PIPELINE DES SEGMENTS, celui-là même que le rendu serveur emploie. Cinq de ses
@@ -64,6 +64,7 @@ import {
   partagerLApparat,
   segmentsDeLaSurface,
   SELECT_SEGMENT,
+  type SectionApparat,
 } from '@/app/lib/oeuvreSelects'
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import { niveauxAlinea, retraitVers, ouvreStrophe, fusionnerBlocs, ombreDeLettrine, lignesDeVers, styleLigneDeVers, estBlocDeVers, RETRAIT_SUITE } from '@/app/lib/compositionVers'
@@ -125,6 +126,7 @@ import { useFavoris } from '@/app/lib/useFavoris'
 import { refFavoriOriginal } from '@/app/lib/refsFavoris'
 import type { NoteRecensee, PlaceSegment } from './notesInventaire'
 import OngletCommentaires from './OngletCommentaires'
+import ListeMenuBibles from '@/app/components/ListeMenuBibles'
 // ⛔ L'inventaire des notes est chargé à la DEMANDE : il n'entre dans le paquet que
 // lorsqu'un administrateur ouvre son onglet, et jamais dans celui d'un lecteur.
 const OngletNotes = dynamic(() => import('./OngletNotes'))
@@ -322,16 +324,21 @@ const ComparaisonTraductions = dynamic(() => import('./ComparaisonTraductions'))
 // couper —, et ce n'est pas dans un composant de 4 400 lignes qu'on ajoute cela.
 
 /** Les trois glyphes que le menu ⋮ reprend, écrits UNE fois : la rangée et le menu
- *  montrent le même dessin, et deux copies divergeraient au premier réglage. */
+ *  montrent le même dessin, et deux copies divergeraient au premier réglage.
+ *  ⚠️ LEUR TRAIT S'ACCORDE AU CHEVRON (2026-09-15) : les symboles se montrent désormais à
+ *  côté de la flèche qui ferme le volet, et ils doivent peser comme elle. Rendu à
+ *  0,8125 rem, le chevron trace 1,22 px ; la roue n'en traçait que 0,87 (un trait de 1,6
+ *  dans une boîte de 24) et passe à 2,1, soit 1,14 ; le partage, le plus haut des dessins
+ *  (11,7 px d'encre), resserre ses nœuds à 10,8 px et porte son trait à 1,45. */
 const ICONE_NIVEAUX = (
-  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6"/></svg>
+  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2.1"/></svg>
 )
 const ICONE_PARTAGE = (
   <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <circle cx="12" cy="3.4" r="1.9" stroke="currentColor" strokeWidth="1.35"/>
-    <circle cx="12" cy="12.6" r="1.9" stroke="currentColor" strokeWidth="1.35"/>
-    <circle cx="3.7" cy="8" r="1.9" stroke="currentColor" strokeWidth="1.35"/>
-    <path d="M5.4 7.1l4.9-2.7M5.4 8.9l4.9 2.7" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round"/>
+    <circle cx="11.8" cy="3.9" r="1.8" stroke="currentColor" strokeWidth="1.45"/>
+    <circle cx="11.8" cy="12.1" r="1.8" stroke="currentColor" strokeWidth="1.45"/>
+    <circle cx="4.2" cy="8" r="1.8" stroke="currentColor" strokeWidth="1.45"/>
+    <path d="M5.8 7.15l4.4-2.4M5.8 8.85l4.4 2.4" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round"/>
   </svg>
 )
 /* ⚠️ LE MÊME TRACÉ QUE `EtoileFavori`, à la lettre : sous le ⋮, l'étoile doit se
@@ -544,8 +551,9 @@ const LIBELLE_ONGLET_VOLET: Record<OngletDroit, string> = {
   notes: 'Notes',
 }
 
-/** La tête d'une rubrique du volet de gauche : « Apparat critique », « Revenir au
- *  texte », « Sommaire ». ⛔ Une seule écriture pour les trois. Le retour au texte se
+/** La tête d'une rubrique du volet de gauche : « Apparat de l'auteur », « Apparat de
+ *  l'éditeur » (deux rubriques depuis le 2026-09-15, là où il y avait « Apparat
+ *  critique »), « Revenir au texte », « Sommaire ». ⛔ Une seule écriture pour toutes. Le retour au texte se
  *  compose STRICTEMENT comme le sommaire, dont il tient la place (demande de l'auteur,
  *  2026-09-13), et deux copies d'un même style finissent toujours par diverger. */
 const TETE_RUBRIQUE: React.CSSProperties = { flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }
@@ -1059,6 +1067,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // ranger le nombre dans un état dont plus aucune vue ne se servait : un aller-retour
   // à la base par clic de lecteur, pour rien. (Audit du 8 septembre 2026.)
   const tradSelectRef = useRef<HTMLDivElement>(null)
+  const tradBoutonRef = useRef<HTMLButtonElement>(null)
+  const idMenuTraductions = useId()
+  // La liste se ferme au clic à côté et à Échap (`ListeMenuBibles`) ; au clavier, le foyer
+  // revient au bouton qui l'a ouverte.
+  const fermerMenuTraductions = useCallback((rendreLeFoyer: boolean) => {
+    setTradOuverte(false)
+    if (rendreLeFoyer) tradBoutonRef.current?.focus()
+  }, [])
+  const choisirTraduction = useCallback((index: number) => {
+    setTradIndex(index)
+    fermerMenuTraductions(true)
+  }, [fermerMenuTraductions])
   useEffect(() => {
     try {
       const s = JSON.parse(localStorage.getItem('cs_volets_oeuvre2') ?? 'null')
@@ -1079,16 +1099,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   useEffect(() => {
     localStorage.setItem('cs_volets_oeuvre2', JSON.stringify({ nav: navWidth, pann: pannWidth }))
   }, [navWidth, pannWidth])
-  useEffect(() => {
-    if (!tradOuverte) return
-    const fermerAuClicExterieur = (event: MouseEvent) => {
-      if (tradSelectRef.current && !tradSelectRef.current.contains(event.target as Node)) {
-        setTradOuverte(false)
-      }
-    }
-    document.addEventListener('mousedown', fermerAuClicExterieur)
-    return () => document.removeEventListener('mousedown', fermerAuClicExterieur)
-  }, [tradOuverte])
+  // ⛔ L'écoute du clic à côté du menu des traductions vit dans `ListeMenuBibles` (2026-09-15).
 
     const [oeuvresAuteur, setOeuvresAuteur] = useState<OeuvreResumee[]>([])
   const router = useRouter()
@@ -1273,7 +1284,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // La sous-section « Opuscules » de la rubrique ci-dessus. Repliée par défaut, comme
   // à la bibliothèque : c'est tout son objet.
   const [opusculesOuverts, setOpusculesOuverts] = useState(false)
-  const [apparatOuvert, setApparatOuvert] = useState(false)
+  // ⚠️ UN ÉTAT PAR MAIN : l'apparat de l'auteur et celui de l'éditeur sont deux rubriques
+  // depuis le 2026-09-15, et chacune s'ouvre pour son compte.
+  const [apparatOuvert, setApparatOuvert] = useState<Record<SectionApparat, boolean>>({ auteur: false, editeur: false })
   const [sommaireOuvert, setSommaireOuvert] = useState(true)
   const [apparatNiv1Actif, setApparatNiv1Actif] = useState<string | null>(null)
   const [ancreEnAttente, setAncreEnAttente] = useState<string | null>(null)
@@ -2258,6 +2271,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     () => construireNavigationApparat(groupesApparat),
     [groupesApparat],
   )
+  // Les mains que l'apparat porte, dans l'ordre de la vue : l'auteur, puis l'éditeur. Une
+  // rubrique par main dans le volet (2026-09-15).
+  const sectionsApparat = useMemo(
+    () => (['auteur', 'editeur'] as const).filter(section => tocApparatLocal.some(entry => entry.section === section)),
+    [tocApparatLocal],
+  )
+  const apparatsOuverts = sectionsApparat.filter(section => apparatOuvert[section]).length
+  // Les apparats prennent toute la hauteur qui reste quand rien ne les suit dans le volet,
+  // ni sommaire ni retour au texte, comme la rubrique unique le faisait.
+  const apparatSEtire = !sommaireAQuoiSommer && !revenirAuTexteVisible
 
   // Détection session + chargement des segments déjà sauvegardés
   // + traduction biblique par défaut choisie dans Mon compte
@@ -2275,8 +2298,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // ⛔ `est_biblique` : c'est ICI que le défaut se voyait le mieux — la page d'une œuvre
     // patristique offrait, dans son menu de traductions BIBLIQUES, les quatre notices des
     // traductions patristiques elles-mêmes, dont celle qui sert la page. Voir app/page.tsx.
-    supabase.from('traductions').select('trad_id, nom').eq('est_biblique', true).order('ordre', { ascending: true }).then(({ data }) => {
-      if (data?.length) setTraductionsBible(data.map((t: any) => ({ code: t.trad_id, label: t.nom })))
+    // ⛔ ET LE MENU NE PROPOSE QUE CE QUE LE VOLET SAIT LIRE (2026-09-15). Il listait toutes
+    // les bibles de `traductions`, quand `versets_lecture` n'en porte que cinq : choisir la
+    // Bible du XIIIe siècle affichait son nom au-dessus du texte de Sacy, pris en repli sans
+    // un mot. Les codes lisibles viennent de la sonde des versets (`chargerCodesTraductions`).
+    Promise.all([
+      supabase.from('traductions').select('trad_id, nom').eq('est_biblique', true).order('ordre', { ascending: true }),
+      chargerCodesTraductions(),
+    ]).then(([{ data }, codes]) => {
+      const lisibles = new Set(codes)
+      const liste = ((data ?? []) as { trad_id: string; nom: string }[])
+        .filter(t => lisibles.has(t.trad_id))
+        .map(t => ({ code: t.trad_id, label: t.nom }))
+      if (liste.length) setTraductionsBible(liste)
     })
   }, [])
 
@@ -3162,7 +3196,15 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         .toc-lien-n1:hover, .toc-lien-n2:hover { color: var(--cs-vert) !important; }
         .ref-lien:hover { color: var(--cs-vert) !important; }
         .signal-btn:hover { color: var(--cs-danger) !important; }
-        .trad-option:hover { background: rgba(var(--cs-vert-rgb),0.06) !important; }
+        /* « Du même auteur » : au survol, TOUTE l'entrée prend le vert, le titre et sa
+           ligne d'édition ensemble (demande de l'auteur, 2026-09-15). La ligne d'édition
+           garde son second rang par le corps et l'italique. ⚠️ Aucune couleur en ligne sur
+           le lien : elle battrait ces règles. */
+        .lien-meme-auteur { color: var(--cs-texte); transition: color 0.12s; }
+        .lien-meme-auteur .lien-meme-auteur-edition { color: var(--cs-texte-faible); transition: color 0.12s; }
+        .lien-meme-auteur:hover, .lien-meme-auteur:focus-visible,
+        .lien-meme-auteur:hover .lien-meme-auteur-edition,
+        .lien-meme-auteur:focus-visible .lien-meme-auteur-edition { color: var(--cs-vert); }
       `}</style>
 
       <div style={{ display: 'flex', minHeight: HAUTEUR_SOUS_NAVBAR }}>
@@ -3204,7 +3246,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               soit le huitième de la hauteur offerte, avant même la première rubrique.
               ⛔ Rien n’en est retranché : ce sont les blancs qui se referment. */}
           <div data-visite="oeuvre-tete" style={{ padding: mobile ? '9px 14px 8px' : '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
-            <div ref={refRangee} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '1px' }}>
+            <div ref={refRangee} style={STYLE_RANGEE_TETE_VOLET}>
               {/* ⚠️ `refNoms` cerne CE QUI DEMANDE LA PLACE dans la rangée : le TITRE
                   depuis le 2026-09-10, le nom de l'auteur avant lui. La mesure de
                   `useRangeeCondensee` n'a pas bougé — elle lit les boutons qu'il porte —
@@ -3222,17 +3264,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   la peine de cacher les icônes »). Ce qui coûte la largeur est le NOMBRE
                   de cibles — le plancher de 24 px est celui de WCAG et la rangée y était
                   déjà, si bien qu'on ne peut rien reprendre sur la taille — et c'est donc
-                  la rangée ENTIÈRE qui cède, d'un coup, quand le nom de l'auteur n'a plus
-                  sa place. ⛔ Le chevron ne descend jamais sous le ⋮ : il est le contrôle
-                  du volet lui-même, et l'on ne referme pas un panneau en ouvrant d'abord
-                  un menu qui vit dedans.
+                  la rangée ENTIÈRE qui cède, d'un coup, quand la place manque.
+                  ⛔ ET LES SYMBOLES ONT LA PRIORITÉ SUR LE TITRE (décision de l'auteur,
+                  2026-09-15) : le titre leur cède la largeur en s'enroulant, et la rangée
+                  ne se condense que lorsqu'il n'a plus sa largeur minimale — son plus long
+                  mot, et jamais moins de 5,5 rem (`useRangeeCondensee`).
+                  ⛔ Le chevron ne descend jamais sous le ⋮ : il est le contrôle du volet
+                  lui-même, et l'on ne referme pas un panneau en ouvrant d'abord un menu qui
+                  vit dedans.
+                  ⚠️ LA RANGÉE ACCOMPAGNE LA PREMIÈRE LIGNE DU TITRE (`ALIGNEMENT_ACTIONS`) :
+                  icônes et chevron partagent le même axe, celui de cette ligne.
                   ⚠️ L'ÉTOILE reste `EtoileFavori`, le composant partagé, et non un bouton
                   refait ici : elle porte son état, son libellé inverse et la passe du
                   DOIGT. Les autres se dérivent de la MÊME liste que le menu.
                   ⚠️ La MESURE suit la police racine (globals.css, « LA RANGÉE D'ACTIONS ») :
                   elle était en pixels quand tout autour d'elle est en rem, et gardait donc
                   ses 129 px de 1280 à 2560. */}
-              <div className="cs-tete-volet-actions">
+              <div className="cs-tete-volet-actions" style={{ marginTop: ALIGNEMENT_ACTIONS }}>
                 {teteCondensee
                   ? <MenuVolet titre="Autres actions" actions={actionsTeteVolet} />
                   : actionsTeteVolet.map(action => action.cle === 'favori' ? (
@@ -3355,21 +3403,35 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       const contenu = (
                         <>
                           {o.titre}
-                          {/* La ligne de distinction ne prend PAS la couleur de survol : le lien
-                              est le titre, et cette ligne le renseigne. Elle garde donc sa teinte
-                              faible, ce qui la tient au second rang même sous le curseur.
-                              ⚠️ Et elle TOUCHE son titre — plus de marge, même interligne serré
-                              (demande de l'auteur, 2026-09-09) : le titre et son adresse font UNE
-                              entrée, et le blanc qui doit se voir est celui qui sépare deux
-                              œuvres, non celui qui sépare les deux lignes d'une seule. */}
+                          {/* ⛔ AU SURVOL, TOUTE L'ENTRÉE PREND LE VERT (demande de l'auteur,
+                              2026-09-15 : « au survol du titre, changer la couleur […], mais
+                              aussi celui du sous-titre et des données éditoriales »). La ligne
+                              d'édition gardait sa teinte faible sous le curseur, et l'entrée ne
+                              se désignait qu'à moitié. Elle garde son second rang par le corps
+                              et l'italique, non plus par une encre qui refuse le survol.
+                              ⚠️ Le survol vit dans la FEUILLE (`.lien-meme-auteur`) : une couleur
+                              posée en ligne battrait la règle, et deux gestionnaires JavaScript
+                              la réécrivaient à chaque passage du curseur.
+                              ⚠️ Et elle se SERRE contre son titre (2026-09-15, après le 2026-09-09
+                              qui l'y avait déjà collée) : interligne 1,1 et un seizième de rem
+                              repris, pendant que deux œuvres s'écartent de 0,625 rem. Le titre et
+                              son adresse font UNE entrée ; le blanc qui doit se voir est celui qui
+                              sépare deux œuvres. */}
                           {distinction && (
-                            <span style={{ display: 'block', fontSize: '0.625rem', fontStyle: 'italic', color: courante ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', lineHeight: 1.25 }}>{distinction}</span>
+                            <span className="lien-meme-auteur-edition"
+                              style={{ display: 'block', fontSize: '0.625rem', fontStyle: 'italic', lineHeight: 1.1, marginTop: '-0.0625rem', ...(courante ? { color: 'var(--cs-vert)' } : null) }}>
+                              {distinction}
+                            </span>
                           )}
                         </>
                       )
+                      // ⛔ PLUS DE FILET ENTRE DEUX ŒUVRES (2026-09-15) : c'est le BLANC qui les
+                      // sépare. ⚠️ Il est un REMBOURRAGE de l'entrée, non une marge entre
+                      // entrées : la cible reste continue sous le curseur, sans interstice mort
+                      // où un clic ne mènerait nulle part.
                       const commun: React.CSSProperties = {
                         display: 'block', fontSize: '0.6875rem', textDecoration: 'none',
-                        padding: '3px 0', lineHeight: 1.25, borderBottom: '1px solid var(--cs-fond-doux)',
+                        padding: '0.3125rem 0', lineHeight: 1.25,
                       }
                       if (courante) {
                         return (
@@ -3380,10 +3442,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         )
                       }
                       return (
-                        <a key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`}
-                          style={{ ...commun, color: 'var(--cs-texte)' }}
-                          onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-vert)')}
-                          onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-texte)')}>
+                        <a key={o.id_oeuvre} href={`/oeuvre/${o.id_oeuvre}`} className="lien-meme-auteur" style={commun}>
                           {contenu}
                         </a>
                       )
@@ -3425,7 +3484,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         {/* ⛔ LA MARQUE D'UNE SECTION N'EST PAS CELLE D'UNE RUBRIQUE (relevé de
                             l'auteur, 2026-09-09 : « le fait qu'Opuscules ait la même flèche pour
                             déployer que les autres niveaux de titre me paraît bizarre »). Le volet
-                            replie ses RUBRIQUES — « Du même auteur », « Apparat critique »,
+                            replie ses RUBRIQUES — « Du même auteur », les apparats,
                             « Sommaire » — par un triangle plein posé À DROITE, au bout d'une ligne
                             en capitales. « Opuscules » n'est pas une rubrique du volet : c'est une
                             section DANS une liste, et le même signe lui donnait le rang de ce qui
@@ -3435,10 +3494,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                             la section est ouverte et vers la droite quand elle est close. Deux
                             replis, deux marques — et la même section a la même forme des deux côtés
                             du site, comme elle a déjà le même seuil et le même partage. */}
-                        <div style={{ marginTop: '5px' }}>
+                        <div style={{ marginTop: '0.125rem' }}>
                           <button type="button" onClick={() => setOpusculesOuverts(o => !o)} aria-expanded={deployee}
                             title={deployee ? 'Replier les opuscules' : 'Les textes brefs de cet auteur'}
-                            style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', textAlign: 'left' }}>
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '0.3125rem 0', textAlign: 'left' }}>
                             <span style={{ display: 'inline-flex', color: 'var(--cs-texte-faible)' }}>
                               <IconeChevron dir={deployee ? 'down' : 'right'} size={11} strokeWidth={1.4} />
                             </span>
@@ -3471,52 +3530,59 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               rubriques rentrent dans le défilement du tiroir. */}
           <div style={{ ...(mobile ? { flex: 'none' } : { flex: 1, minHeight: 0 }), display: 'flex', flexDirection: 'column' }}>
 
-            {!modeComparaisonActif && tocApparatLocal.length > 0 && (
-              /* ⚠️ Le partage de hauteur à moitié appartient au BUREAU : dans un tiroir,
-                  un plafond en pourcentage se résout contre un conteneur sans hauteur. */
-              <div data-visite="oeuvre-apparat" style={{ ...(!mobile && apparatOuvert ? { flex: sommaireAQuoiSommer || revenirAuTexteVisible ? '0 1 auto' : 1, maxHeight: sommaireAQuoiSommer ? '50%' : undefined, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
-                <button onClick={() => setApparatOuvert(!apparatOuvert)} aria-expanded={apparatOuvert}
-                  style={TETE_RUBRIQUE}>
-                  <span style={RUBRIQUE_AXE}>Apparat critique</span>
-                  <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)', flexShrink: 0 }}>
-                    <IconeChevron dir={apparatOuvert ? 'up' : 'down'} size={11} strokeWidth={1.5} />
-                  </span>
-                </button>
-                {apparatOuvert && (
-                  <div style={mobile ? { padding: '0 16px 14px' } : { flex: '0 1 auto', overflowY: 'auto', padding: '0 16px 14px' }}>
-                    {(() => {
-                    // Le sommaire de l'apparat coupe LÀ OÙ LA VUE COUPE : les pièces de
-                    // l'auteur, puis celles de l'éditeur, chacune sous sa mention. ⚠️ La
-                    // clé porte la section : deux « Préface », une de chaque main, ne
-                    // sont pas la même entrée et ne peuvent pas partager une clé React.
-                    const deuxMains = new Set(tocApparatLocal.map(e => e.section)).size > 1
-                    let derniereMain: string | null = null
-                    return tocApparatLocal.map((entry, rang) => {
-                    const ouvreLaSection = deuxMains && entry.section !== derniereMain
-                    if (ouvreLaSection) derniereMain = entry.section
-                    return (
-                      <div key={`${entry.section}-${entry.niv1}`} style={{ marginBottom: entry.niveaux2.length > 0 ? '5px' : undefined }}>
-                        {ouvreLaSection && (
-                          <div style={{ ...RUBRIQUE_AXE, margin: rang === 0 ? '0 0 6px' : '12px 0 6px' }}>
-                            {LIBELLE_SECTION_APPARAT[entry.section]}
-                          </div>
-                        )}
-                        <a href={`#${entry.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(entry.niv1); setAncreEnAttente(entry.anchor) }} className="toc-lien-n1"
-                          style={{ display: 'block', fontSize: '0.71875rem', fontWeight: apparatNiv1Actif === entry.niv1 ? 600 : 400, color: apparatNiv1Actif === entry.niv1 ? 'var(--cs-vert)' : 'var(--cs-texte)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
-                          {rendreIntituleDeSommaire(entry.niv1)}
-                        </a>
-                        {entry.niveaux2.map((niveau2) => (
-                          <a key={niveau2.niv2} href={`#${niveau2.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(entry.niv1); setAncreEnAttente(niveau2.anchor) }} className="toc-lien-n2"
-                            style={{ display: 'block', paddingLeft: '10px', fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
-                            {rendreIntituleDeSommaire(niveau2.niv2)}
-                          </a>
-                        ))}
-                      </div>
-                    )
-                    })
-                    })()}
-                  </div>
-                )}
+            {/* ⛔ DEUX RUBRIQUES, ET PLUS D'« APPARAT CRITIQUE » (décision de l'auteur,
+                2026-09-15 : « Apparat critique et apparat de l'auteur se ressemblent trop ;
+                autant différencier directement et faire deux sections différentes, sans
+                passer par apparat critique »). La rubrique commune coiffait deux mentions
+                composées comme elle, même corps, même encre, même casse, si bien que
+                « Apparat de l'auteur » se lisait comme une seconde rubrique glissée dans la
+                première. Chaque main a désormais la sienne, dans l'ordre de la vue : l'auteur,
+                puis l'éditeur. Une œuvre qui n'en porte qu'une n'en montre qu'une.
+                ⚠️ L'ENVELOPPE porte le repère de la visite et le partage de hauteur que la
+                rubrique unique portait : le sommaire qui suit n'a pas à savoir combien de
+                mains la précèdent. Chaque rubrique ouverte prend ensuite sa part en dedans.
+                ⚠️ Le partage de hauteur appartient au BUREAU : dans un tiroir, un plafond en
+                pourcentage se résout contre un conteneur sans hauteur. */}
+            {!modeComparaisonActif && sectionsApparat.length > 0 && (
+              <div data-visite="oeuvre-apparat" style={{ ...(!mobile && apparatsOuverts > 0 ? { flex: apparatSEtire ? 1 : '0 1 auto', maxHeight: sommaireAQuoiSommer ? '50%' : undefined, minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column' }}>
+                {sectionsApparat.map(section => {
+                  const ouvert = apparatOuvert[section]
+                  return (
+                    <div key={section} style={{ ...(!mobile && ouvert ? { flex: apparatSEtire ? '1 1 auto' : '0 1 auto', minHeight: 0 } : { flexShrink: 0 }), display: 'flex', flexDirection: 'column', borderBottom: '1px solid var(--cs-bord)' }}>
+                      <button onClick={() => setApparatOuvert(o => ({ ...o, [section]: !o[section] }))} aria-expanded={ouvert}
+                        style={TETE_RUBRIQUE}>
+                        <span style={RUBRIQUE_AXE}>{LIBELLE_SECTION_APPARAT[section]}</span>
+                        <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)', flexShrink: 0 }}>
+                          <IconeChevron dir={ouvert ? 'up' : 'down'} size={11} strokeWidth={1.5} />
+                        </span>
+                      </button>
+                      {ouvert && (
+                        <div style={mobile ? { padding: '0 16px 14px' } : { flex: '0 1 auto', overflowY: 'auto', padding: '0 16px 14px' }}>
+                          {tocApparatLocal.filter(entry => entry.section === section).map(entry => {
+                            // ⚠️ La clé et l'état actif portent la MAIN : deux « Préface », une de
+                            // chaque main, ne sont pas la même entrée.
+                            const cle = `${entry.section}|${entry.niv1}`
+                            const active = apparatNiv1Actif === cle
+                            return (
+                              <div key={cle} style={{ marginBottom: entry.niveaux2.length > 0 ? '5px' : undefined }}>
+                                <a href={`#${entry.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(cle); setAncreEnAttente(entry.anchor) }} className="toc-lien-n1"
+                                  style={{ display: 'block', fontSize: '0.71875rem', fontWeight: active ? 600 : 400, color: active ? 'var(--cs-vert)' : 'var(--cs-texte)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
+                                  {rendreIntituleDeSommaire(entry.niv1)}
+                                </a>
+                                {entry.niveaux2.map((niveau2) => (
+                                  <a key={niveau2.niv2} href={`#${niveau2.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(cle); setAncreEnAttente(niveau2.anchor) }} className="toc-lien-n2"
+                                    style={{ display: 'block', paddingLeft: '10px', fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
+                                    {rendreIntituleDeSommaire(niveau2.niv2)}
+                                  </a>
+                                ))}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
 
@@ -4576,30 +4642,32 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           </div>
 
           <div style={ongletDroit === 'refs'
-            ? { flex: 1, overflowY: 'auto', padding: '0 12px 16px' }
+            ? { flex: 1, overflowY: 'auto', padding: '0 12px 16px', display: 'flex', flexDirection: 'column' }
             : { flex: 1, minHeight: 0, overflow: 'hidden', padding: '0 12px', display: 'flex', flexDirection: 'column' }}>
             {ongletDroit === 'refs' ? (
               <>
                 {/* Sélecteur traduction */}
                 <div ref={tradSelectRef} style={{ padding: '10px 0 8px', borderBottom: '1px solid var(--cs-fond-doux)', marginBottom: '10px', position: 'relative' }}>
-                  {/* Sélecteur de traduction remis dans le style général du site : libellé en
-                      capitales espacées grises + contrôle sobre à bord neutre (au lieu de la
-                      pilule verte). Le vert ne sert plus qu'à l'option active et au focus. */}
-                  <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 4px' }}>Traduction</p>
-                  <button onClick={() => setTradOuverte(!tradOuverte)}
+                  {/* ⛔ PLUS D'ÉTIQUETTE « TRADUCTION » AU-DESSUS DU MENU (décision de l'auteur,
+                      2026-09-15) : le bouton nomme la bible qu'on lit. Son nom accessible
+                      reprend ce libellé visible en tête, puis dit le geste (WCAG 2.5.3).
+                      ⛔ LE BOUTON RESTE CELUI DU VOLET, LA LISTE EST CELLE DE LA PAGE BIBLE
+                      (même décision : « reprendre le menu de la page Bible classique, mise en
+                      forme intérieure, quand on a cliqué ; pas le bouton lui-même ») :
+                      `ListeMenuBibles`, que `SelecteurTraductionBible` ouvre aussi. */}
+                  <button ref={tradBoutonRef} type="button" onClick={() => setTradOuverte(o => !o)}
+                    aria-haspopup="menu" aria-expanded={tradOuverte} aria-controls={tradOuverte ? idMenuTraductions : undefined}
+                    aria-label={`${traductionsBible[tradIndex]?.label ?? trad}, choisir la traduction biblique`}
+                    title="Choisir la traduction biblique"
                     style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '4px', border: `1px solid ${tradOuverte ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: 'var(--cs-surface)', fontSize: '0.65625rem', color: 'var(--cs-encre)', cursor: 'pointer', transition: 'border-color 0.12s' }}>
                     <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{traductionsBible[tradIndex]?.label ?? trad}</span>
                     <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: 'var(--cs-texte-doux)', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </button>
                   {tradOuverte && (
-                    <div style={{ position: 'absolute', top: 'calc(100% - 2px)', left: 0, right: 0, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', zIndex: 50, boxShadow: 'var(--cs-ombre-flottante)', overflow: 'hidden' }}>
-                      {traductionsBible.map((t, i) => (
-                        <button key={t.code} onClick={() => { setTradIndex(i); setTradOuverte(false) }} className="trad-option"
-                          style={{ width: '100%', textAlign: 'left', padding: '6px 10px', fontSize: '0.65625rem', borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderBottom: i < traductionsBible.length - 1 ? '1px solid var(--cs-fond-doux)' : 'none', background: tradIndex === i ? 'var(--cs-fond)' : 'var(--cs-surface)', color: tradIndex === i ? 'var(--cs-vert)' : 'var(--cs-texte)', fontWeight: tradIndex === i ? 600 : 400, cursor: 'pointer' }}>
-                          {t.label}
-                        </button>
-                      ))}
-                    </div>
+                    <ListeMenuBibles id={idMenuTraductions} libelle="Traductions bibliques"
+                      traductions={traductionsBible} traductionIndex={tradIndex}
+                      choisir={choisirTraduction} fermer={fermerMenuTraductions} cadre={tradSelectRef}
+                      style={{ position: 'absolute', top: 'calc(100% - 4px)', left: 0, right: 0, zIndex: 50 }} />
                   )}
                 </div>
 
@@ -4609,20 +4677,21 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     ⛔ Aucune marque d'attente ici, et il n'en faut pas : les liens bibliques
                     d'un segment sont chargés avec sa tranche de texte, donc déjà en mémoire
                     quand on clique. Le volet de la page Bible, lui, va les chercher. */}
-                <div key={segActif ?? 'aucun'} className="cs-volet-echange">
+                <div key={segActif ?? 'aucun'} className="cs-volet-echange"
+                  style={segActifData ? undefined : { flex: '1 0 auto', display: 'flex', flexDirection: 'column' }}>
                 {segActifData ? (
                   <>
                     {segActifData.versets.length === 0 ? (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '18px' }}>
-                        {/* Même planche, même mesure et même opacité que l'arbre ardent du volet
-                            resté vide : les deux états du volet se répondent. L'arbre est ici mort
-                            et le corbeau seul — le passage n'a pas de lien biblique, et l'image le
-                            dit avant la phrase.
+                        {/* La mesure et l'opacité de l'arbre ardent, qui tenait le volet resté
+                            vide jusqu'au 15 septembre 2026 : il en est parti, l'invite y demeure
+                            seule. L'arbre est ici mort et le corbeau seul — le passage n'a pas de
+                            lien biblique, et l'image le dit avant la phrase.
 
                             ⛔ Aucune LARGEUR posée, deux MAXIMA seulement (charte, « Une illustration
                             se borne par deux maxima, jamais par une largeur posée »).
 
-                            Le plafond de hauteur réserve 13,5 rem là où l'arbre ardent en réserve
+                            Le plafond de hauteur réserve 13,5 rem là où l'arbre ardent en réservait
                             11,5 : outre la barre, les onglets et le sélecteur de traduction, il faut
                             ici la place de l'invite ET du bouton de proposition, qui se pose dessous
                             et sortirait de l'écran sur une fenêtre basse. */}
@@ -4718,28 +4787,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     }
                   </>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '18px' }}>
-                    {/* L'arbre ardent tient le volet resté vide : il en prend la mesure, et
-                        l'invite se pose dessous. Il a remplacé un cul-de-lampe posé à 190 px
-                        de large, qui ornait un coin de la colonne au lieu de l'habiter.
-
-                        ⛔ Aucune LARGEUR posée, deux MAXIMA seulement (charte, « Une illustration
-                        se borne par deux maxima, jamais par une largeur posée »). La planche est
-                        haute — 768 × 1232 —, et le volet se redimensionne à la main de 200 à
-                        560 px : une largeur définitive ne laisserait au navigateur aucun degré
-                        de liberté pour tenir les proportions sous une fenêtre basse, et la
-                        gravure s'écraserait. Le plafond de hauteur réserve la barre, les onglets,
-                        le sélecteur de traduction et l'invite. Le maximum de largeur est en rem,
-                        donc accordé à la police racine, qui grandit avec l'écran au-delà de
-                        1 440 px — en pixels, la gravure rapetisserait à mesure de l'agrandissement.
-
-                        ⛔ Plus de `mix-blend-mode` : la planche est DÉTOURÉE (le blanc du dessin
-                        est devenu une vraie couche alpha), et l'opacité posée sur la même image
-                        créait de toute façon un contexte d'empilement qui annulait le mélange.
-                        L'opacité reste celle du cul-de-lampe qu'il remplace. */}
-                    <img className="cs-ornement" src="/ornements/arbre-ardent.png" alt="" aria-hidden="true"
-                      style={{ maxWidth: 'min(24rem, 88%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 11.5rem)`, opacity: 0.42 }} />
-                    <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', margin: '10px 0 0' }}>Cliquez sur un paragraphe.</p>
+                  <div style={{ flex: '1 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 0' }}>
+                    {/* ⛔ PLUS D'ARBRE ARDENT (décision de l'auteur, 2026-09-15 : « supprimer
+                        l'arbre, garder centré »). L'invite reste seule, CENTRÉE dans la hauteur
+                        que le volet laisse sous le sélecteur de traduction, comme « Aucune
+                        occurrence » l'est dans le volet de la page Bible. La planche est rangée
+                        au dépôt, en réserve (inventaire des illustrations).
+                        ⚠️ Le centrage vertical demande une chaîne de colonnes flexibles : le
+                        défileur de l'onglet et l'enveloppe du fondu en sont, et c'est la seule
+                        raison pour laquelle ils le sont.
+                        ⚠️ Son encre passe à `--cs-texte-second` : l'invite porte seule ce qu'elle
+                        dit, et `--cs-texte-doux` restait sous le seuil de 4,5 sur le volet. */}
+                    <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', textAlign: 'center', margin: 0 }}>Cliquez sur un paragraphe.</p>
                   </div>
                 )}
                 </div>

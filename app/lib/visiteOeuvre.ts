@@ -12,7 +12,8 @@
  *  · que le nom de l'auteur, dans le volet, OUVRE sa fiche ;
  *  · qu'une œuvre se lit dans plusieurs langues quand l'édition les porte, et qu'on
  *    ne perd pas sa place en changeant ;
- *  · que l'apparat critique est une seconde lecture, à part du texte ;
+ *  · que les apparats, celui de l'auteur et celui de l'éditeur, sont une seconde
+ *    lecture, à part du texte ;
  *  · qu'un passage se CLIQUE, et que le volet de droite répond ;
  *  · que ce volet porte les versets visés et les commentaires des lecteurs.
  * Le reste se voit.
@@ -29,7 +30,7 @@
  *
  * ⚠️ DEUX ARRÊTS SUR SEPT DISPARAISSENT D'EUX-MÊMES quand l'œuvre ne les porte pas,
  * et c'est voulu : « Comment lire » n'existe que si l'édition offre plus d'une langue,
- * et « L'apparat critique » que si l'éditeur en a laissé un. La boucle du composant
+ * et « Apparats » que si l'œuvre en porte un, de l'auteur ou de l'éditeur. La boucle du composant
  * renonce au bout d'un délai et passe à la suivante, sans qu'on ait rien à déclarer.
  *
  * ⚠️ L'ARRÊT DU VOLET DE DROITE RETIENT UN PASSAGE pour de bon (« choisirSegment ») :
@@ -78,11 +79,16 @@ export const VISITE_OEUVRE: Visite = {
     },
     {
       cle: 'apparat',
+      // ⚠️ RELU LE 2026-09-15 : la rubrique « Apparat critique » a cédé la place à DEUX
+      // rubriques, « Apparat de l’auteur » et « Apparat de l’éditeur » (décision de
+      // l’auteur : « autant différencier directement et faire deux sections différentes »).
+      // Le repère cerne les deux ensemble, et l’étape les nomme l’une après l’autre.
       sujet: ['[data-visite="oeuvre-apparat"]'],
-      titre: 'Apparat critique',
+      titre: 'Apparats',
       texte: [
-        'L’apparat critique rassemble les indications données par l’éditeur : leçons des manuscrits, sources et remarques.',
-        'Il s’ouvre séparément, division par division, sans alourdir la lecture du texte.',
+        'L’apparat de l’auteur réunit les pièces qu’il a placées autour de son œuvre, comme une préface ou un prologue.',
+        'L’apparat de l’éditeur rassemble ce que l’édition ajoute au texte : avertissements, tables et autres pièces.',
+        'Chacun s’ouvre séparément, sans alourdir la lecture du texte.',
       ],
       cote: 'droite',
     },

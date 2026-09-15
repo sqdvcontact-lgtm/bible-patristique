@@ -8,6 +8,31 @@
 // a besoin d'un portail et d'un placement, et qu'un composant de 4 400 lignes n'est
 // pas l'endroit où l'on ajoute cela.
 //
+// ⛔ LES SYMBOLES ONT LA PRIORITÉ SUR LE TITRE (décision de l'auteur, 2026-09-15), et
+// cela RENVERSE la règle du 2026-09-10 décrite plus bas : « il faut afficher, plutôt,
+// des logos, symétriques et centrés avec la flèche de fermeture du volet ; ils se
+// réduisent sous la forme des trois points quand la page devient trop petite ; ces
+// symboles ont la priorité sur le titre quand ils s'affichent ». La règle d'hier
+// condensait dès que le titre ENTIER ne tenait plus sur UNE ligne à côté de la rangée :
+// sur un titre de trente signes, c'est-à-dire presque partout, le lecteur ne voyait
+// jamais que le ⋮.
+//
+// ⛔ LE TITRE CÈDE DONC LA LARGEUR, ET IL LA CÈDE EN S'ENROULANT, JAMAIS EN SE COUPANT :
+// ni points de suspension, ni césure. Il garde ce qu'il faut pour que son plus long mot
+// tienne entier, et une largeur plancher sous laquelle une colonne de titre ne se lit
+// plus (`TITRE_MIN_REM`). La rangée ne se condense que si ces deux-là ne tiennent plus à
+// côté d'elle : c'est « la page devenue trop petite ».
+//
+// ⛔ LA RANGÉE S'ALIGNE SUR LA PREMIÈRE LIGNE DU TITRE, non sur son milieu : un titre de
+// trois lignes centrait sinon les icônes sur la deuxième, et le chevron cessait d'être le
+// coin du volet. Le décalage se calcule sur la ligne du titre et sur la cible
+// (`ALIGNEMENT_ACTIONS`) ; il ne s'écrit pas en pixels, la police racine étant fluide.
+//
+// ⚠️ Ce qui suit, jusqu'au bouton, décrit la règle du 2026-09-10. Deux de ses piliers
+// tiennent toujours : le texte ne se coupe pas, et le prédicat ne dépend pas de l'état
+// qu'il commande. Ce qui change est ce que le titre DEMANDE : le plus long de ses mots et
+// un plancher, et non plus sa chasse entière sur une seule ligne.
+//
 // ⛔ CE QUI COÛTE LA LARGEUR EST LE NOMBRE DE CIBLES, NON LEUR TAILLE. Relevé de
 // l'auteur, 2026-09-10 : « sur écran moyen, c'est trop gros, trop espacé ; à la
 // limite on pourrait réduire l'ensemble sous la forme ⋮ ». Mesuré sur la planche
@@ -38,28 +63,17 @@
 // selon la largeur de la fenêtre », et une rangée qui change de forme par degrés ne
 // s'apprend jamais.
 //
-// ⚠️ CE QUE LA MESURE DIT DE LA FORME DÉPLIÉE (`tmp/mesure-tete-rangee-entiere.mjs`,
-// neuf écrans, quinze auteurs) : quatre cibles pour un LECTEUR — étoile, partage,
-// extraction, chevron — et cinq pour l'ADMINISTRATEUR, dont la roue crantée. Le volet
-// vaut clamp(240px, 16vw, 380px), la tête en offre 32 de moins. À 2400 px et au-delà,
-// quatorze noms sur quinze portent la rangée du lecteur, dix celle de l'administrateur ;
-// à 1920, dix et quatre ; sur un portable, quatre et trois. ⚠️ La roue de l'admin coûte
-// donc cinq noms sur son propre écran : c'est le prix d'une cible de plus dans une tête
-// de 347 px, non un défaut du prédicat.
-//
 // ⛔ LA CONDITION SE MESURE, ELLE NE SE POSE PAS. Ni requête de conteneur, ni seuil en
 // rem : ce qui décide n'est pas la largeur du volet mais le rapport entre la place
-// OFFERTE et celle que le nom DEMANDE, et cette dernière change d'une œuvre à l'autre
-// — « Boèce » tient partout, « Pseudo-Jean Chrysostome » ne tient nulle part. Un seuil
-// posé condenserait donc sur Boèce à 1280 sans nécessité, et laisserait Chrysostome
-// coupé à 1920. C'est `useRangeeCondensee` qui juge, sur la mesure du document.
+// OFFERTE et celle que le titre DEMANDE, et cette dernière change d'une œuvre à l'autre.
+// C'est `useRangeeCondensee` qui juge, sur la mesure du document.
 //
 // ⛔ ET LE PRÉDICAT NE DÉPEND PAS DE L'ÉTAT QU'IL COMMANDE, sans quoi il oscillerait :
-// on ne demande jamais « le nom est-il coupé ? » — ce qui serait vrai condensé et faux
-// déplié, à l'infini — ni « la rangée déborde-t-elle ? », qui est la même question par
-// l'autre bout. Le besoin se lit sur le `scrollWidth` du nom, qui vaut sa chasse réelle
-// qu'il soit écrêté ou non ; et la place des actions se COMPTE (`largeurDeLaRangee`) au
-// lieu de se mesurer, sur le nombre de cibles que la page sait d'avance.
+// on ne demande jamais « le titre est-il à l'étroit ? », ce qui serait vrai déplié et
+// faux condensé, à l'infini. Ce que le titre demande se mesure sur une COPIE posée hors
+// de la page, à la largeur de son contenu minimal ; et la place des actions se COMPTE
+// (`largeurDeLaRangee`) au lieu de se mesurer, sur le nombre de cibles que la page sait
+// d'avance.
 //
 // ⚠️ CE QUI NE BOUGE JAMAIS, ET POURQUOI. Le chevron : il est le contrôle du volet
 // lui-même et le plus employé des cinq — on ne referme pas un panneau en ouvrant
@@ -68,22 +82,12 @@
 // qu'on ne peut plus lire sans ouvrir un menu ne serait plus un état ; nommé et peint,
 // il l'est encore.
 //
-// ⚠️ ET UN NOM RESTE ÉCRÊTÉ, faute de mieux : « Pseudo-Jean Chrysostome » demande 221 px
-// à la racine 22 quand la tête n'en offre que 347, rangée déduite. Il n'y a rien de plus
-// à lui rendre — la cible est au plancher de WCAG et le chevron ne descend pas dans le
-// menu.
-//
-// ⚠️ CE QUE LA MESURE A DÉMENTI, et qu'il ne faut pas re-supposer : à 1280 px,
-// « Augustin d'Hippone » tenait DÉJÀ à côté de trois cibles, d'un seul pixel (126 pour
-// 127 offerts). La note du matin lui prêtait 114 px et le disait coupé ; c'était un
-// calcul, non un relevé. Les noms qui se coupaient là sont les quatre plus longs.
-//
 // ⚠️ ET CE QUI ENTRE Y GAGNE : sous le ⋮, les trois actions sont NOMMÉES EN TOUS
 // LETTRES. Elles n'étaient que des glyphes de treize pixels dont le sens ne se lisait
 // que dans un `title` — l'audit du 2026-09-06 compte ces informations-là parmi les
 // « sept informations portées par le seul title, invisibles au doigt ».
 
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { Z_MODALE } from '@/app/lib/empilement'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
@@ -130,6 +134,15 @@ export function BoutonVolet({ titre, onClick, children, refBouton, ...aria }: {
   )
 }
 
+/** Le corps et l'interligne du titre du volet. ⚠️ Écrits ICI parce que l'alignement de la
+ *  rangée se calcule sur eux : un titre qui changerait de corps sans eux décalerait les
+ *  icônes de sa première ligne. */
+export const CORPS_TITRE_VOLET_REM = 0.875
+export const INTERLIGNE_TITRE_VOLET = 1.3
+/** La hauteur d'une ligne du titre, en rem : 0,875 × 1,3. Écrite en toutes lettres, parce
+ *  qu'un produit de flottants se sérialiserait « 1.1375000000000002 » dans le calcul. */
+export const LIGNE_TITRE_VOLET_REM = 1.1375
+
 /**
  * LE TITRE DE L'ŒUVRE, EN TÊTE DU VOLET, ET IL OUVRE LA FICHE DE L'ÉDITION.
  *
@@ -145,13 +158,14 @@ export function BoutonVolet({ titre, onClick, children, refBouton, ...aria }: {
  * souligne, et l'infobulle qui nomme la destination — la règle du 2026-09-03, « un lien
  * nomme sa destination », vaut ici par le `title` puisque le libellé est le titre même.
  *
- * ⛔ ET IL NE SE COUPE PAS PLUS QUE NE SE COUPAIT LE NOM DE L'AUTEUR : c'est la RANGÉE
- * qui cède (voir la doctrine en tête de ce fichier et `useRangeeCondensee`, qui mesure
- * désormais ce titre-là). L'écrêtage par la fin ne sert que le cas extrême, où même la
- * rangée condensée ne laisse pas la place.
+ * ⛔ IL S'ENROULE, IL NE SE COUPE PAS (2026-09-15) : les symboles de la rangée ont la
+ * priorité sur lui, et il leur cède la largeur en passant à la ligne. Ni points de
+ * suspension, ni césure (`hyphens: manual`) : un mot du titre reste entier, et c'est ce
+ * que la mesure de condensation garantit. `overflow-wrap` n'est qu'un dernier recours,
+ * pour un volet qu'on aurait traîné plus étroit que le plus long mot.
  *
  * ⚠️ LE TEXTE VIT DANS UN SEUL ENFANT. `useRangeeCondensee` lit `firstElementChild`
- * pour connaître la chasse réelle : un titre composé (`rendreTexteEnrichi` rend
+ * pour en mesurer le contenu minimal : un titre composé (`rendreTexteEnrichi` rend
  * plusieurs nœuds) doit donc rester enveloppé dans ce span-là.
  */
 export function TitreVolet({ children, onOuvrir, titre, inactif = false }: {
@@ -171,13 +185,14 @@ export function TitreVolet({ children, onOuvrir, titre, inactif = false }: {
       onFocus={() => setSurvol(true)} onBlur={() => setSurvol(false)}
       style={{
         fontFamily: 'var(--font-source-serif), Georgia, serif',
-        fontSize: '0.875rem', fontWeight: 400, color: 'var(--cs-encre)',
-        lineHeight: 1.3, margin: 0, padding: 0, background: 'none', border: 'none',
+        fontSize: `${CORPS_TITRE_VOLET_REM}rem`, fontWeight: 400, color: 'var(--cs-encre)',
+        lineHeight: INTERLIGNE_TITRE_VOLET, margin: 0, padding: 0, background: 'none', border: 'none',
         textAlign: 'left', cursor: inactif ? 'default' : 'pointer',
         display: 'block', width: '100%', minWidth: 0,
       }}>
       <span style={{
-        display: 'block', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        display: 'block', minWidth: 0,
+        whiteSpace: 'normal', hyphens: 'manual', overflowWrap: 'break-word', textWrap: 'balance',
         textDecoration: allume ? 'underline' : 'none', textUnderlineOffset: '3px',
       }}>
         {children}
@@ -214,6 +229,9 @@ export type ActionVolet = {
 export function coteDUneCible(racine: number): number { return Math.max(24, 1.5 * racine) }
 export function ecartDeCible(racine: number): number { return Math.max(4, 0.25 * racine) }
 export function pasDUneCible(racine: number): number { return coteDUneCible(racine) + ecartDeCible(racine) }
+/** La cible, dans l'écriture de la feuille. ⚠️ `teteVolet.test.ts` exige que la feuille
+ *  la porte telle quelle : c'est elle que l'alignement de la rangée reprend. */
+export const COTE_CIBLE_CSS = 'max(24px, 1.5rem)'
 
 /** La place que prend une rangée de `cibles` boutons, ses écarts compris — n côtés et
  *  n−1 écarts. ⚠️ Elle se CALCULE, elle ne se mesure pas : on juge d'une forme AVANT de
@@ -224,52 +242,111 @@ export function largeurDeLaRangee(cibles: number, racine: number): number {
 }
 
 /**
- * LA RÈGLE, à part du document : le nom ENTIER tiendrait-il À CÔTÉ DE LA RANGÉE ENTIÈRE ?
+ * LA LARGEUR SOUS LAQUELLE UNE COLONNE DE TITRE NE SE LIT PLUS, en rem : 5,5 rem, une
+ * douzaine de signes du titre par ligne. ⚠️ C'est le plancher qui fait « la page devenue
+ * trop petite » : sur un portable, la rangée d'un lecteur y tient à côté (108 px de cibles,
+ * 88 de titre, pour 207 offerts), celle d'un administrateur non (136 px), et elle se
+ * condense.
+ */
+export const TITRE_MIN_REM = 5.5
+/** L'écart entre le titre et la rangée, en pixels : c'est le `gap` de la rangée
+ *  (`STYLE_RANGEE_TETE_VOLET`), et le prédicat le compte avec la même valeur. */
+export const ECART_TITRE_ACTIONS_PX = 8
+
+/** La rangée de la tête : le titre à gauche, les actions au fer à droite, ALIGNÉES SUR LE
+ *  HAUT. ⚠️ `flex-start` et non `center` : le titre s'enroule, et c'est sa PREMIÈRE ligne
+ *  que les icônes accompagnent (voir `ALIGNEMENT_ACTIONS`). */
+export const STYLE_RANGEE_TETE_VOLET: CSSProperties = {
+  display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+  gap: `${ECART_TITRE_ACTIONS_PX}px`, marginBottom: '1px',
+}
+
+/** Le décalage vertical de la rangée d'actions, pour que le milieu de ses cibles tombe sur
+ *  le milieu de la PREMIÈRE ligne du titre. Négatif — la cible est plus haute qu'une ligne
+ *  — et en rem, parce que les deux grandissent avec la police racine : −2,9 px à la racine
+ *  16, −4 px à la racine 22. */
+export const ALIGNEMENT_ACTIONS = `calc((${LIGNE_TITRE_VOLET_REM}rem - ${COTE_CIBLE_CSS}) / 2)`
+
+/** Ce que le titre DEMANDE au moins : son plus long mot entier, et jamais moins que le
+ *  plancher. ⚠️ La mesure du mot est arrondie au pixel supérieur : un contenu minimal est
+ *  fractionnaire, et une colonne d'un demi-pixel trop étroite enroulerait le mot. */
+export function titreMinimal({ motLePlusLong, racine }: { motLePlusLong: number; racine: number }): number {
+  return Math.max(TITRE_MIN_REM * racine, Math.ceil(motLePlusLong))
+}
+
+/**
+ * LA RÈGLE, à part du document : le titre, ENROULÉ SUR SA LARGEUR MINIMALE, tiendrait-il À
+ * CÔTÉ DE LA RANGÉE ENTIÈRE ?
  *
- * ⛔ ELLE NE DEMANDE JAMAIS « le nom est-il coupé ? », qui serait vrai condensé et faux
- * déplié, à l'infini — ni « la rangée déborde-t-elle ? », qui est la même question par
- * l'autre bout. Les DEUX termes se calculent hors du document : ce que le nom demande
- * (sa chasse réelle, écrêté ou non) et ce que la rangée DÉPLIÉE prendrait (le nombre de
- * ses cibles). Le prédicat est ainsi indépendant de l'état qu'il commande, et
- * `teteVolet.test.ts` l'éprouve dans les deux sens sur les mêmes mesures.
+ * ⛔ ELLE NE DEMANDE JAMAIS « le titre est-il à l'étroit ? », qui serait vrai déplié et faux
+ * condensé, à l'infini. Les DEUX termes se calculent hors du document : ce que le titre
+ * demande au moins (`titreMinimal`) et ce que la rangée DÉPLIÉE prendrait (le nombre de ses
+ * cibles). Le prédicat est ainsi indépendant de l'état qu'il commande, et
+ * `teteVolet.test.ts` l'éprouve sur les mesures relevées.
  *
  * ⚠️ Il ne connaît pas le cas « on ne sait pas encore » : une largeur nulle se refuse
  * chez l'appelant, où l'on garde alors l'état d'avant.
  */
-export function condenserLaRangee({ dispo, besoin, ciblesDepliees, racine }: {
+export function condenserLaRangee({ dispo, titreMin, ciblesDepliees, racine }: {
   /** Ce que la tête du volet OFFRE. */
   dispo: number
-  /** Ce que le nom le plus long DEMANDE, sa flèche de fiche comprise. */
-  besoin: number
+  /** Ce que le titre DEMANDE au moins : voir `titreMinimal`. */
+  titreMin: number
   /** Combien de boutons la rangée porterait si elle montrait TOUT — chevron compris. */
   ciblesDepliees: number
   /** La police racine en pixels : les cibles sont en rem, sous un plancher absolu. */
   racine: number
 }): boolean {
-  return besoin + largeurDeLaRangee(ciblesDepliees, racine) > dispo
+  return titreMin + ECART_TITRE_ACTIONS_PX + largeurDeLaRangee(ciblesDepliees, racine) > dispo
+}
+
+/** Ce qui fait la CHASSE d'un texte, et que la copie doit reprendre pour mesurer comme la
+ *  page compose. ⚠️ L'axe optique compte : Source Serif règle sa coupe sur le corps. */
+const PROPRIETES_DE_CHASSE = [
+  'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'fontStretch', 'fontVariant',
+  'fontFeatureSettings', 'fontVariationSettings', 'fontOpticalSizing', 'fontKerning',
+  'letterSpacing', 'wordSpacing', 'textTransform',
+] as const
+
+/**
+ * LA LARGEUR MINIMALE D'UN TEXTE, TELLE QUE LE NAVIGATEUR LA COMPOSE : la chasse de son
+ * plus long mot, italiques et appels compris. Une COPIE se pose dans une sonde hors de la
+ * page, à `width: min-content`, avec la chasse du texte d'origine.
+ *
+ * ⛔ Pas de `measureText` sur un canevas : il ignore l'axe optique de la police et les
+ * enrichissements du titre, et il faudrait redécouper les mots comme le navigateur les
+ * découpe. La copie en hérite tels quels.
+ */
+function largeurMinimale(texte: HTMLElement, sonde: HTMLElement): number {
+  const calcule = getComputedStyle(texte)
+  for (const propriete of PROPRIETES_DE_CHASSE) sonde.style[propriete] = calcule[propriete]
+  const copie = texte.cloneNode(true) as HTMLElement
+  copie.style.display = 'inline-block'
+  copie.style.width = 'min-content'
+  sonde.replaceChildren(copie)
+  return copie.getBoundingClientRect().width
 }
 
 // `useLayoutEffect` mesure et corrige AVANT peinture : la rangée ne doit pas se voir
-// perdre puis reprendre son étoile. Il n'existe pas au rendu serveur, d'où le repli.
+// perdre puis reprendre ses icônes. Il n'existe pas au rendu serveur, d'où le repli.
 const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 /**
- * LA RANGÉE SE CONDENSE QUAND LE NOM N'A PLUS LA PLACE — et pas avant.
+ * LA RANGÉE SE CONDENSE QUAND LE TITRE N'A PLUS SA LARGEUR MINIMALE — et pas avant.
  *
  * Deux repères à poser : la RANGÉE (ce qui offre la place) et les NOMS (ce qui la
- * demande). Ce que la rangée d'actions DISPUTE ne se mesure pas, il se compte :
- * l'appelant dit combien de cibles la forme dépliée porterait, et `largeurDeLaRangee`
- * en donne la place. ⚠️ On n'observe donc plus les ACTIONS — les observer reviendrait à
- * mesurer ce que le prédicat vient de décider.
+ * demande — le titre, depuis le 2026-09-10). Ce que la rangée d'actions DISPUTE ne se
+ * mesure pas, il se compte : l'appelant dit combien de cibles la forme dépliée porterait,
+ * et `largeurDeLaRangee` en donne la place. ⚠️ On n'observe donc pas les ACTIONS — les
+ * observer reviendrait à mesurer ce que le prédicat vient de décider.
  *
- * ⛔ `condense` part à VRAI, et c'est le sens sûr : sur un portable, qui est le cas
- * ordinaire, c'est la réponse juste, et le rendu du serveur n'y montre donc pas une
- * étoile que la première mesure retirerait. L'inverse la ferait paraître puis
- * disparaître sur la plupart des écrans.
+ * ⛔ `condense` part à VRAI, et c'est le sens sûr : le rendu du serveur ne montre pas une
+ * rangée que la première mesure retirerait. L'inverse la ferait paraître puis disparaître
+ * sur les écrans étroits.
  *
- * ⚠️ On n'observe pas que la rangée : les noms changent de largeur quand la police
- * finit d'arriver. Reposer la même valeur ne redéclenche aucun rendu, la boucle se
- * referme donc d'elle-même.
+ * ⚠️ On n'observe pas que la rangée : le titre change de chasse quand la police finit
+ * d'arriver, et de texte quand on passe d'une œuvre à l'autre sans quitter la page.
+ * Reposer la même valeur ne redéclenche aucun rendu, la boucle se referme donc d'elle-même.
  *
  * ⚠️ Une largeur NULLE ne se juge pas : le volet replié, le tiroir fermé et le premier
  * rendu rendent tous zéro, et conclure là-dessus condenserait une rangée qu'on ne voit
@@ -291,30 +368,34 @@ export function useRangeeCondensee(ciblesDepliees: number) {
     const noms = refNoms.current
     if (!rangee || !noms) return
     let vivant = true
+    // La sonde vit hors de la page, invisible et sans cible : on n'y pose que la copie du
+    // titre le temps d'une mesure. ⚠️ Hors de la rangée, elle ne réveille pas l'observateur.
+    const sonde = document.createElement('div')
+    sonde.setAttribute('aria-hidden', 'true')
+    Object.assign(sonde.style, { position: 'fixed', left: '-10000px', top: '0', visibility: 'hidden', pointerEvents: 'none', whiteSpace: 'normal' })
+    document.body.appendChild(sonde)
     const mesurer = () => {
       if (!vivant) return
       const dispo = rangee.clientWidth
       if (dispo <= 0) return
-      // La chasse RÉELLE du nom : `scrollWidth` la rend qu'il soit écrêté ou non, si
-      // bien qu'elle ne dépend pas de l'état qu'on est en train de décider. L'écart au
-      // bouton porte la flèche de la fiche et son blanc, que le nom ne cède jamais.
-      let besoin = 0
+      let motLePlusLong = 0
       for (const bouton of Array.from(noms.querySelectorAll('button'))) {
         const texte = bouton.firstElementChild as HTMLElement | null
         if (!texte) continue
-        besoin = Math.max(besoin, texte.scrollWidth + (bouton.clientWidth - texte.clientWidth))
+        motLePlusLong = Math.max(motLePlusLong, largeurMinimale(texte, sonde))
       }
-      setCondense(condenserLaRangee({ dispo, besoin, ciblesDepliees, racine: tailleRacinePx() }))
+      const racine = tailleRacinePx()
+      setCondense(condenserLaRangee({ dispo, titreMin: titreMinimal({ motLePlusLong, racine }), ciblesDepliees, racine }))
     }
     mesurer()
     const ro = new ResizeObserver(mesurer)
     ro.observe(rangee)
     ro.observe(noms)
-    // La chasse d'un nom change quand la police du site arrive : mesurée avant, elle
-    // est celle d'une police de secours, et la rangée se réglerait sur un nom qui n'est
+    // La chasse d'un titre change quand la police du site arrive : mesurée avant, elle
+    // est celle d'une police de secours, et la rangée se réglerait sur un titre qui n'est
     // pas celui qu'on lira.
     document.fonts?.ready.then(mesurer).catch(() => {})
-    return () => { vivant = false; ro.disconnect() }
+    return () => { vivant = false; ro.disconnect(); sonde.remove() }
   }, [ciblesDepliees])
 
   return { condense, refRangee, refNoms }
