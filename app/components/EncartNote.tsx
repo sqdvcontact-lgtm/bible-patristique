@@ -48,7 +48,9 @@ export function EncartNote({
    *  le même appel ne portait pas le même chiffre d'une surface à l'autre. */
   numero: ReactNode
   /** Le TYPE de la note, ou `null` quand elle n'en déclare aucun — le cas de 58 %
-   *  du corpus. ⛔ On n'écrit pas « Note 277 » à qui vient de cliquer le 277. */
+   *  du corpus. ⛔ On n'écrit pas « Note 277 » à qui vient de cliquer le 277.
+   *  ⚠️ Il peut nommer PLUSIEURS responsabilités (« Note de l'édition et de Corpus
+   *  Scriptura ») et passer alors à la ligne : `lignesDeLIntitule` le compte. */
   intitule?: string | null
   /** La place d'un encart qui flotte, ou `DANS_LE_FLUX` pour une note qui s'ouvre dans
    *  la page même, à la largeur de son bloc. */

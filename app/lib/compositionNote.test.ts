@@ -25,6 +25,7 @@ import {
   STYLE_RESERVE_CROIX,
   STYLE_TETE_ENCART,
   largeurEncartMinPx,
+  lignesDeLIntitule,
 } from './compositionNote'
 
 /** Une note assez longue pour porter un gris, et une qui n'en a pas. */
@@ -146,6 +147,43 @@ describe('la hauteur que l’encart demanderait', () => {
   })
 })
 
+describe('l’intitulé de la tête', () => {
+  const COMPOSE = "Note de l'édition et de Corpus Scriptura"
+  const ETROIT = LARGEUR_ENCART_MIN_REM * 16
+  const PLEIN = LARGEUR_ENCART_REM * 16
+
+  it('tient sur une ligne quand il ne nomme qu’une responsabilité', () => {
+    expect(lignesDeLIntitule('Note du traducteur', ETROIT, 16)).toBe(1)
+    expect(lignesDeLIntitule('Note de Corpus Scriptura', ETROIT, 16)).toBe(1)
+  })
+
+  // ⛔ Mesuré sur le site le 14 septembre 2026 : 213,7 px en capitales de 9 px, pour 183 px
+  // de tête dans l'encart le plus étroit et 391 dans l'encart plein. Le rapport tient à
+  // toutes les racines, la tête étant toute en rem.
+  it('prend deux lignes dans l’encart étroit, une dans l’encart plein', () => {
+    expect(lignesDeLIntitule(COMPOSE, ETROIT, 16)).toBe(2)
+    expect(lignesDeLIntitule(COMPOSE, PLEIN, 16)).toBe(1)
+    expect(lignesDeLIntitule(COMPOSE, LARGEUR_ENCART_MIN_REM * 22, 22)).toBe(2)
+    expect(lignesDeLIntitule('Note du traducteur et de Corpus Scriptura', PLEIN, 16)).toBe(1)
+  })
+
+  it('ne compte rien sans intitulé', () => {
+    expect(lignesDeLIntitule(null, PLEIN, 16)).toBe(0)
+    expect(lignesDeLIntitule('', PLEIN, 16)).toBe(0)
+  })
+
+  it('donne à la boîte la ligne qu’il prend de plus', () => {
+    const une = hauteurSouhaiteeNote({ signes: 90, racine: 16, largeur: ETROIT, intitule: 'Note du traducteur' })
+    const deux = hauteurSouhaiteeNote({ signes: 90, racine: 16, largeur: ETROIT, intitule: COMPOSE })
+    // Au moins une ligne de l'intitulé (0,5625 rem sur l'interligne de l'encart).
+    expect(deux - une).toBeGreaterThanOrEqual(Math.floor(0.5625 * INTERLIGNE_ENCART * 16))
+    // ⚠️ L'ancienne écriture compte toujours une ligne, et l'intitulé nul n'en compte aucune.
+    expect(hauteurSouhaiteeNote({ signes: 90, racine: 16, largeur: ETROIT, avecIntitule: true })).toBe(une)
+    expect(hauteurSouhaiteeNote({ signes: 90, racine: 16, largeur: ETROIT, intitule: null }))
+      .toBe(hauteurSouhaiteeNote({ signes: 90, racine: 16, largeur: ETROIT }))
+  })
+})
+
 describe('la largeur de l’encart', () => {
   // ⛔ Elle s’écrit deux fois — en rem pour la feuille, en nombre pour le placeur —
   // et les deux DOIVENT venir de la même constante : la police racine est fluide.
@@ -247,10 +285,15 @@ describe('le numéro de la note', () => {
     expect(STYLE_TETE_ENCART.alignItems).toBe('baseline')
   })
 
-  // ⚠️ Une tête tient sur UNE ligne : un type plus long que la piste s'écrête.
-  it('n’ouvre jamais un second rang au-dessus du propos', () => {
-    expect(STYLE_INTITULE_ENCART.whiteSpace).toBe('nowrap')
-    expect(STYLE_INTITULE_ENCART.textOverflow).toBe('ellipsis')
+  // ⛔ UNE TÊTE PEUT PRENDRE DEUX LIGNES depuis le 14 septembre 2026 : une note peut porter
+  // plusieurs responsabilités (charte § 13.12.1), et l'intitulé écrêté taisait précisément
+  // la voix ajoutée. Il s'équilibre, et l'estimation compte la ligne de plus.
+  it('passe à la ligne plutôt que de s’écrêter, en équilibrant ses lignes', () => {
+    expect(STYLE_INTITULE_ENCART.whiteSpace).toBeUndefined()
+    expect(STYLE_INTITULE_ENCART.textOverflow).toBeUndefined()
+    expect(STYLE_INTITULE_ENCART.textWrap).toBe('balance')
+    // ⚠️ Sans lui, un élément flexible refuse de rétrécir sous la largeur de son texte.
+    expect(STYLE_INTITULE_ENCART.minWidth).toBe(0)
     expect(STYLE_INTITULE_ENCART.display).toBeUndefined()
   })
 

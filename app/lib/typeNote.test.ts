@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { LIBELLE_NOTE_SANS_TYPE, TYPES_NOTE, libelleDeLaNote, libelleTypeNote, typeDeLaNote, typeNoteSur } from './typeNote'
+import {
+  LIBELLE_NOTE_SANS_TYPE, TYPES_NOTE, intituleDeLaNote, intituleDesTypes, libelleDeLaNote,
+  libelleTypeNote, seSigneLuiMeme, typeDeLaNote, typeNoteSur, typesDeLaNote,
+} from './typeNote'
 
-const bloc = (editorialRole: string | null) => ({ editorialRole })
+const bloc = (editorialRole: string | null, readerStyle: string | null = null) => ({ editorialRole, readerStyle })
+/** L'explication de Corpus Scriptura, qui se signe elle-même dans la note. */
+const explication = () => bloc('corpus_editorial_note', 'corpus_explanation')
 
 describe('typeNote', () => {
   it('porte les quatre RESPONSABILITÉS de la charte § 13.12.1', () => {
@@ -41,20 +46,22 @@ describe('typeNote', () => {
     expect(typeNoteSur('reference_biblique')).toBeNull()
   })
 
-  it('exige l’unanimité des blocs pour annoncer un type', () => {
+  it('`typeDeLaNote` ne rend qu’un type UNIQUE', () => {
     expect(typeDeLaNote({ blocks: [bloc('translator_note'), bloc('translator_note')] })).toBe('translator_note')
-    // Une note mixte — le commentaire de l'édition, puis le renvoi que NOUS ajoutons —
-    // n'annonce rien : mieux vaut « Note » qu'une attribution à demi fausse.
+    // Une note à deux voix en porte deux : `typesDeLaNote` les rend, et c'est lui que
+    // lisent l'intitulé et l'inventaire.
     expect(typeDeLaNote({ blocks: [bloc('source_editorial_note'), bloc('corpus_editorial_note')] })).toBeNull()
     expect(typeDeLaNote({ blocks: [bloc('author_note'), bloc(null)] })).toBeNull()
     expect(typeDeLaNote({ blocks: [] })).toBeNull()
   })
 
-  it('⚠️ l’unanimité se juge APRÈS la résolution des rôles hérités', () => {
+  it('⚠️ les rôles hérités se résolvent AVANT d’être réunis', () => {
     // Une donnée à moitié migrée dit la même chose deux fois : elle s'annonce, au lieu
     // de se taire sur une divergence qui n'en est pas une.
     expect(typeDeLaNote({ blocks: [bloc('critical_apparatus'), bloc('source_editorial_note')] }))
       .toBe('source_editorial_note')
+    expect(typesDeLaNote({ blocks: [bloc('critical_apparatus'), bloc('source_editorial_note')] }))
+      .toEqual(['source_editorial_note'])
   })
 
   it('rend « Note » sur les blocs qui ne portent encore aucun type', () => {
@@ -63,5 +70,62 @@ describe('typeNote', () => {
 
   it('annonce l’apparat hérité sous la responsabilité qui est la sienne', () => {
     expect(libelleDeLaNote({ blocks: [bloc('critical_apparatus')] })).toBe("Note de l'édition")
+  })
+})
+
+describe('une note à plusieurs responsabilités', () => {
+  it('⛔ les porte TOUTES, dans l’ordre du vocabulaire', () => {
+    // Relevé de l'auteur sur Jean Lucas, 14 septembre 2026 : « elles peuvent avoir deux
+    // types, puisque j'ai ajouté du texte dedans ». La voix de Corpus Scriptura vient en
+    // dernier, où qu'elle tombe dans la note.
+    expect(typesDeLaNote({ blocks: [bloc('corpus_editorial_note'), bloc('source_editorial_note')] }))
+      .toEqual(['source_editorial_note', 'corpus_editorial_note'])
+    expect(typesDeLaNote({ blocks: [bloc('translator_note'), bloc('translator_note'), explication()] }))
+      .toEqual(['translator_note', 'corpus_editorial_note'])
+  })
+
+  it('⛔ le doute se tait : un bloc sans responsabilité, et la note n’en annonce aucune', () => {
+    expect(typesDeLaNote({ blocks: [bloc('source_editorial_note'), bloc(null)] })).toEqual([])
+    expect(typesDeLaNote({ blocks: [bloc('source_editorial_note'), bloc('footnote')] })).toEqual([])
+    expect(typesDeLaNote({ blocks: [] })).toEqual([])
+  })
+
+  it('les nomme d’un seul intitulé', () => {
+    expect(intituleDesTypes(['source_editorial_note', 'corpus_editorial_note'])).toBe("Note de l'édition et de Corpus Scriptura")
+    expect(intituleDesTypes(['corpus_editorial_note', 'translator_note'])).toBe('Note du traducteur et de Corpus Scriptura')
+    expect(intituleDesTypes(['author_note', 'translator_note', 'source_editorial_note']))
+      .toBe("Note de l'auteur, du traducteur et de l'édition")
+    expect(intituleDesTypes(['translator_note'])).toBe(libelleTypeNote('translator_note'))
+    expect(intituleDesTypes([])).toBeNull()
+  })
+
+  it('le nom accessible de l’appel nomme toutes les voix', () => {
+    expect(libelleDeLaNote({ blocks: [bloc('source_editorial_note'), explication()] }))
+      .toBe("Note de l'édition et de Corpus Scriptura")
+  })
+
+  it('⛔ la tête ne redit pas ce qu’une explication signe déjà', () => {
+    // Note 52 de Jean Lucas : la référence de l'édition, puis l'explication de Corpus
+    // Scriptura sous son propre libellé. On n'explique pas ce qui s'écrit déjà.
+    expect(intituleDeLaNote({ blocks: [bloc('source_editorial_note'), explication()] })).toBe("Note de l'édition")
+    expect(intituleDeLaNote({ blocks: [bloc('translator_note'), bloc('translator_note'), explication()] }))
+      .toBe('Note du traducteur')
+  })
+
+  it('⛔ elle nomme la voix que la note ne signe pas', () => {
+    // Une traduction de Corpus Scriptura ne porte aucun libellé : la tête seule dit qui parle.
+    expect(intituleDeLaNote({ blocks: [bloc('source_editorial_note'), bloc('corpus_editorial_note')] }))
+      .toBe("Note de l'édition et de Corpus Scriptura")
+  })
+
+  it('se tait sur une note faite des seules explications, et sur le doute', () => {
+    expect(intituleDeLaNote({ blocks: [explication()] })).toBeNull()
+    expect(intituleDeLaNote({ blocks: [bloc(null), explication()] })).toBeNull()
+  })
+
+  it('⚠️ un libellé « Corpus Scriptura » ne signe qu’un bloc de Corpus Scriptura', () => {
+    expect(seSigneLuiMeme(explication())).toBe(true)
+    expect(seSigneLuiMeme(bloc('source_editorial_note', 'corpus_explanation'))).toBe(false)
+    expect(seSigneLuiMeme(bloc('corpus_editorial_note'))).toBe(false)
   })
 })

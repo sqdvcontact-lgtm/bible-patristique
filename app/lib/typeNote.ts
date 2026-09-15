@@ -21,13 +21,24 @@
 //
 // ⛔ Un type FAUX est pire qu'un type absent : il attribue à un Père une remarque
 // de son traducteur. Le doute laisse la note sans type, et se signale.
+//
+// ⛔ MAIS UNE NOTE PEUT EN PORTER PLUSIEURS (décision de l'auteur, 14 septembre 2026 :
+// « elles peuvent avoir deux types, puisque j'ai ajouté du texte dedans »). Corpus
+// Scriptura ajoute des blocs aux notes de l'édition et du traducteur : chaque bloc garde
+// sa voix, et la note les porte toutes. On exigeait l'unanimité des blocs, si bien que
+// ces notes se taisaient et que l'inventaire les rangeait sous « Sans type » — 116 au
+// 14 septembre 2026. Nommer les deux voix n'attribue rien à demi ; en taire une le faisait.
 
 import { ROLE_APPARAT_CRITIQUE } from './apparatCritique'
+import { estExplicationCorpus } from './explicationCorpus'
+import { enumererNoms } from './traducteurs'
 
 /** Le vocabulaire, CLOS. Il reflète `metadata.editorial_role`, dont la charte
  *  § 13.12.1 fixe les valeurs. ⛔ Il ne répond QUE de « qui parle » : la fonction
  *  intellectuelle d'une note vit à part, dans `texte_notes.metadata.functional_type`,
- *  et ne commande jamais l'intitulé. */
+ *  et ne commande jamais l'intitulé.
+ *  ⚠️ Son ORDRE est celui où une note à plusieurs voix les nomme : la plus ancienne
+ *  d'abord, Corpus Scriptura en dernier. */
 export const TYPES_NOTE = [
   'author_note',
   'translator_note',
@@ -65,20 +76,27 @@ const ROLES_HERITES: Record<string, TypeNote> = {
 }
 
 /**
- * Le libellé que le lecteur voit. Il nomme une RESPONSABILITÉ, jamais une
- * position dans la page : « note de l'édition » dit qui l'a écrite, « note de bas
+ * La responsabilité dite en COMPLÉMENT de « Note » : c'est la forme qui s'énumère,
+ * « Note de l'édition et de Corpus Scriptura ». Elle nomme une RESPONSABILITÉ, jamais
+ * une position dans la page : « note de l'édition » dit qui l'a écrite, « note de bas
  * de page » ne dirait que l'endroit où elle est tombée.
  *
  * ⚠️ « Note de l'édition » et non « note de l'éditeur » : l'éditeur scientifique
  * (Knöll, Faivre) et la maison d'édition (Vivès, Migne) portent le même nom en
  * français, et c'est l'édition, comme travail, qui répond du propos.
  */
-const LIBELLES: Record<TypeNote, string> = {
-  author_note: "Note de l'auteur",
-  translator_note: 'Note du traducteur',
-  source_editorial_note: "Note de l'édition",
-  corpus_editorial_note: 'Note de Corpus Scriptura',
+const COMPLEMENTS: Record<TypeNote, string> = {
+  author_note: "de l'auteur",
+  translator_note: 'du traducteur',
+  source_editorial_note: "de l'édition",
+  corpus_editorial_note: 'de Corpus Scriptura',
 }
+
+/** Le libellé d'une responsabilité seule. ⛔ DÉRIVÉ des compléments : deux écritures
+ *  d'un même nom finiraient par ne plus s'accorder. */
+const LIBELLES = Object.fromEntries(
+  TYPES_NOTE.map(type => [type, `Note ${COMPLEMENTS[type]}`]),
+) as Record<TypeNote, string>
 
 /** Ce qu'on affiche quand aucun type n'est posé. ⚠️ 16 873 blocs sur 24 264 (69 %)
  *  sont dans ce cas au 5 septembre 2026 : le repli n'est pas un cas limite, c'est
@@ -98,33 +116,73 @@ export function libelleTypeNote(role: string | null | undefined): string {
   return type ? LIBELLES[type] : LIBELLE_NOTE_SANS_TYPE
 }
 
+/** Ce qu'un bloc dit de sa voix : son rôle, et le style qui le signe dans la note. */
+type BlocTypable = { editorialRole?: string | null; readerStyle?: string | null }
+type NoteTypable = { blocks: readonly BlocTypable[] }
+
 /**
- * Le type d'une NOTE ENTIÈRE, à partir de ses blocs.
+ * LES RESPONSABILITÉS D'UNE NOTE ENTIÈRE, dans l'ordre du vocabulaire.
  *
- * ⚠️ Le type est porté par le BLOC, mais il se lit sur la note : c'est la note
- * qu'on ouvre, et son en-tête ne peut pas en annoncer deux. La règle est donc
- * celle de `estNoteApparatCritique` — l'unanimité. Une note dont les blocs
- * divergent (un commentaire de l'édition suivi d'un renvoi que nous ajoutons)
- * n'annonce rien : mieux vaut « Note » qu'une attribution à demi fausse.
+ * ⚠️ Le type est porté par le BLOC, et la note les réunit. Ils se rendent dans l'ordre
+ * de `TYPES_NOTE`, non dans celui des blocs : la voix de Corpus Scriptura vient en
+ * dernier, où qu'elle tombe dans la note.
  *
- * ⚠️ L'unanimité se juge APRÈS la résolution des rôles hérités : une note dont un bloc
- * porte encore `critical_apparatus` et le suivant `source_editorial_note` dit bien la
- * même chose deux fois, et elle s'annonce « Note de l'édition » au lieu de se taire.
+ * ⛔ LE DOUTE SE TAIT : un seul bloc sans responsabilité établie, et la note n'en annonce
+ * aucune. Nommer les autres lui prêterait la leur.
+ *
+ * ⚠️ Les rôles hérités se résolvent AVANT d'être réunis : une note dont un bloc porte
+ * encore `critical_apparatus` et le suivant `source_editorial_note` dit la même chose
+ * deux fois, et n'a qu'une responsabilité.
  */
-export function typeDeLaNote(
-  note: { blocks: readonly { editorialRole?: string | null }[] },
-): TypeNote | null {
-  if (note.blocks.length === 0) return null
-  const premier = typeNoteSur(note.blocks[0].editorialRole)
-  if (!premier) return null
-  return note.blocks.every(bloc => typeNoteSur(bloc.editorialRole) === premier) ? premier : null
+export function typesDeLaNote(note: NoteTypable): TypeNote[] {
+  if (note.blocks.length === 0) return []
+  const presents = new Set<TypeNote>()
+  for (const bloc of note.blocks) {
+    const type = typeNoteSur(bloc.editorialRole)
+    if (!type) return []
+    presents.add(type)
+  }
+  return TYPES_NOTE.filter(type => presents.has(type))
 }
 
-/** L'en-tête de la fenêtre de note : « Note du traducteur 12 ». */
-export function libelleDeLaNote(
-  note: { blocks: readonly { editorialRole?: string | null }[] },
-): string {
-  return libelleTypeNote(typeDeLaNote(note))
+/** Le type UNIQUE d'une note, ou `null` quand elle n'en porte aucun, ou plusieurs. */
+export function typeDeLaNote(note: NoteTypable): TypeNote | null {
+  const types = typesDeLaNote(note)
+  return types.length === 1 ? types[0] : null
+}
+
+/**
+ * L'INTITULÉ QUI NOMME DES RESPONSABILITÉS : « Note du traducteur », « Note de l'édition
+ * et de Corpus Scriptura ». ⛔ `null` sur une liste vide : on ne montre jamais « Note »
+ * là où rien n'est établi.
+ */
+export function intituleDesTypes(types: readonly TypeNote[]): string | null {
+  const ordonnes = TYPES_NOTE.filter(type => types.includes(type))
+  if (ordonnes.length === 0) return null
+  return `Note ${enumererNoms(ordonnes.map(type => COMPLEMENTS[type]))}`
+}
+
+/**
+ * CE BLOC SE SIGNE-T-IL LUI-MÊME ? L'explication de Corpus Scriptura porte son propre
+ * libellé dans la note (`reader_style = corpus_explanation`, `ContenuNoteStructuree`) :
+ * la tête n'a pas à le redire.
+ *
+ * ⚠️ Le style ET le rôle : un libellé qui dit « Corpus Scriptura » ne signe qu'un bloc
+ * de Corpus Scriptura.
+ */
+export function seSigneLuiMeme(bloc: BlocTypable): boolean {
+  return estExplicationCorpus(bloc) && typeNoteSur(bloc.editorialRole) === 'corpus_editorial_note'
+}
+
+/**
+ * Le NOM ACCESSIBLE de l'appel : « Note du traducteur 12 ». Il rend TOUJOURS un libellé,
+ * « Note » à défaut.
+ *
+ * ⚠️ Il nomme TOUTES les voix de la note, celles qui se signent comprises : on le dit à
+ * qui ne l'a pas encore ouverte.
+ */
+export function libelleDeLaNote(note: NoteTypable): string {
+  return intituleDesTypes(typesDeLaNote(note)) ?? LIBELLE_NOTE_SANS_TYPE
 }
 
 /**
@@ -141,13 +199,18 @@ export function libelleDeLaNote(
  * où il apprend quelque chose : la note du traducteur, celle de l'édition, celle de
  * l'auteur, celle de Corpus Scriptura.
  *
+ * ⛔ IL NOMME LES VOIX QUE LA NOTE NE SIGNE PAS DÉJÀ (charte § 13.12.1, 14 septembre
+ * 2026). Une note de l'édition éclairée par une explication de Corpus Scriptura
+ * s'annonce « Note de l'édition » : l'explication porte son propre libellé, et c'est la
+ * même règle — on n'explique pas ce qui s'écrit déjà. Une traduction ou une citation que
+ * Corpus Scriptura y ajoute ne se signe pas : la tête dit alors « Note de l'édition et de
+ * Corpus Scriptura ». ⚠️ Une note faite des seules explications a une tête MUETTE.
+ *
  * ⛔ Ne pas confondre avec `libelleDeLaNote`, qui rend TOUJOURS un libellé : il
  * sert encore le nom accessible de l'appel, où « Note 277 » est exactement ce
  * qu'il faut dire à qui ne voit pas l'exposant.
  */
-export function intituleDeLaNote(
-  note: { blocks: readonly { editorialRole?: string | null }[] },
-): string | null {
-  const type = typeDeLaNote(note)
-  return type ? LIBELLES[type] : null
+export function intituleDeLaNote(note: NoteTypable): string | null {
+  if (typesDeLaNote(note).length === 0) return null
+  return intituleDesTypes(typesDeLaNote({ blocks: note.blocks.filter(bloc => !seSigneLuiMeme(bloc)) }))
 }

@@ -19,7 +19,7 @@ import { natureSeNormaliseCommeReference } from '@/app/lib/naturesNote'
 import { normaliserReferencesDansTexte, terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { replier } from '@/app/lib/bibleBibliographieOuvrages'
-import { intituleDeLaNote } from '@/app/lib/typeNote'
+import { intituleDesTypes, libelleTypeNote, typesDeLaNote } from '@/app/lib/typeNote'
 import type { NoteStructuree } from './oeuvreTypes'
 
 /** La place d'un segment dans le texte, telle que le recensement en a besoin. */
@@ -68,6 +68,13 @@ export type NoteRecensee = {
   /** ⚠️ L'interne est gardé À PART : c'est lui qui porte l'identité et l'ordre, et
    *  `texte_note_ancres.marker` vaut exactement `[[note_number]]`. */
   numeroInterne: number
+  /** Les RESPONSABILITÉS de la note, chacune par son libellé (« Note de l'édition »).
+   *  ⛔ Une note peut en porter PLUSIEURS : Corpus Scriptura ajoute des blocs aux notes de
+   *  l'édition et du traducteur, et la note se range sous chacune (charte § 13.12.1). Vide
+   *  quand l'un de ses blocs n'en déclare aucune : le doute se tait. */
+  intitules: readonly string[]
+  /** Toutes réunies, pour la ligne de l'inventaire : « Note de l'édition et de Corpus
+   *  Scriptura ». `null` quand la note n'en déclare aucune. */
   intitule: string | null
   apercu: string
   /** Le rang de lecture, `null` quand la note n'est ancrée nulle part. */
@@ -253,12 +260,14 @@ export function recenserNotes(source: SourceDeNotes): NoteRecensee[] {
       // non l'appel. Sa première place, dans l'ordre de lecture, fait foi.
       if (vues.has(note.noteKey)) continue
       vues.add(note.noteKey)
+      const types = typesDeLaNote(note)
       recensees.push({
         cle: note.noteKey,
         source: identite,
         numero: note.displayNumber ?? note.noteNumber,
         numeroInterne: note.noteNumber,
-        intitule: intituleDeLaNote(note),
+        intitules: types.map(type => libelleTypeNote(type)),
+        intitule: intituleDesTypes(types),
         apercu: apercuDeLaNote(note),
         place,
         ancreOrpheline: place === null,
@@ -294,7 +303,8 @@ export function recenserSources(sources: readonly SourceDeNotes[]): NoteRecensee
 /** Ce que les filtres du panneau retiennent. */
 export type FiltreNotes = {
   texte?: string
-  /** `null` = toutes ; sinon l'intitulé exact, ou `LIBELLE_SANS_TYPE` pour les sans-type. */
+  /** `null` = toutes ; sinon le libellé d'UNE responsabilité, ou `SANS_INTITULE` pour les
+   *  sans-type. ⚠️ Une note à plusieurs responsabilités répond à chacune. */
   intitule?: string | null
   aRevoir?: boolean
   sansPlace?: boolean
@@ -306,8 +316,13 @@ export type FiltreNotes = {
 /** L'intitulé sous lequel se rangent les notes qui n'en déclarent aucun. */
 export const SANS_INTITULE = 'Sans type déclaré'
 
-export function intituleDuFiltre(note: NoteRecensee): string {
-  return note.intitule ?? SANS_INTITULE
+/** Les intitulés sous lesquels une note se range : CHACUNE de ses responsabilités, ou
+ *  `SANS_INTITULE` quand elle n'en déclare aucune.
+ *  ⛔ Une note de l'édition où Corpus Scriptura a ajouté un bloc se range sous les deux.
+ *  Elle se rangeait sous « Sans type », qui disait l'inverse de ce qu'elle porte (relevé de
+ *  l'auteur, 14 septembre 2026). */
+export function intitulesDuFiltre(note: NoteRecensee): readonly string[] {
+  return note.intitules.length > 0 ? note.intitules : [SANS_INTITULE]
 }
 
 /*
@@ -323,7 +338,7 @@ export function filtrerNotes(notes: readonly NoteRecensee[], filtre: FiltreNotes
     if (filtre.aRevoir && !note.aRevoir) return false
     if (filtre.sansPlace && note.place) return false
     if (filtre.surface && note.place?.surface !== filtre.surface) return false
-    if (filtre.intitule != null && intituleDuFiltre(note) !== filtre.intitule) return false
+    if (filtre.intitule != null && !intitulesDuFiltre(note).includes(filtre.intitule)) return false
     if (!q) return true
     // La recherche porte sur le TEXTE et sur le NUMÉRO : on cherche une note soit par
     // ce qu'elle dit, soit par le chiffre qu'on a sous les yeux dans la page.
@@ -335,12 +350,13 @@ export function filtrerNotes(notes: readonly NoteRecensee[], filtre: FiltreNotes
 
 /** Les intitulés présents, avec leur compte — les facettes du panneau.
  *  ⚠️ Comptées sur le corpus ENTIER, jamais sur la liste déjà filtrée : une facette
- *  dit ce qu'elle ajouterait, non ce qui reste. */
+ *  dit ce qu'elle ajouterait, non ce qui reste.
+ *  ⚠️ Une note à plusieurs responsabilités compte sous CHACUNE : la somme des facettes
+ *  peut donc dépasser le total. */
 export function comptesParIntitule(notes: readonly NoteRecensee[]): { intitule: string; n: number }[] {
   const comptes = new Map<string, number>()
   for (const note of notes) {
-    const cle = intituleDuFiltre(note)
-    comptes.set(cle, (comptes.get(cle) ?? 0) + 1)
+    for (const cle of intitulesDuFiltre(note)) comptes.set(cle, (comptes.get(cle) ?? 0) + 1)
   }
   return [...comptes.entries()]
     .map(([intitule, n]) => ({ intitule, n }))

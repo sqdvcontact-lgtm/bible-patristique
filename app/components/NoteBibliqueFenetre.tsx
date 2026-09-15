@@ -170,7 +170,7 @@ export default function AppelNoteBiblique({
   // que la vraie dès qu'il se resserrait, et la boîte défilait pour rien. Sous l'appel,
   // rien ne le resserre : la mesure pleine y est la bonne.
   const hauteurVoulue = (largeurRetenue?: number) =>
-    hauteurSouhaiteeNote({ signes, racine, avecIntitule: Boolean(intitule), largeur: largeurRetenue, ...relief })
+    hauteurSouhaiteeNote({ signes, racine, intitule, largeur: largeurRetenue, ...relief })
   const hautNavbar = hauteurNavbarPx()
   // ⛔ D'ABORD LA MARGE : une note ouverte par-dessus la colonne cache le verset
   // qu'elle commente. ⚠️ Faute de place, on retombe sous l'appel.

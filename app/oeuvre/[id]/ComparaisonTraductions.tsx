@@ -139,7 +139,7 @@ function AppelNote({ note }: { note: NoteStructuree }) {
   // que la vraie dès qu'il se resserrait, et la boîte défilait pour rien. Sous l'appel,
   // rien ne le resserre : la mesure pleine y est la bonne.
   const hauteurVoulue = (largeurRetenue?: number) =>
-    hauteurSouhaiteeNote({ signes, racine, avecIntitule: Boolean(intitule), largeur: largeurRetenue, ...relief })
+    hauteurSouhaiteeNote({ signes, racine, intitule, largeur: largeurRetenue, ...relief })
   const hautNavbar = hauteurNavbarPx()
   // ⛔ D'ABORD LA MARGE, comme partout : l'encart ne couvre pas le texte qu'il commente.
   const placement = (colonne && placerEnMarge({ ancre: boite, largeur, largeurMin: largeurEncartMinPx(racine), hauteurSouhaitee: hauteurVoulue, vue, hautNavbar, colonne }))

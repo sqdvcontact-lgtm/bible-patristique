@@ -450,10 +450,17 @@ export function sequencesDeLaNote(blocs: readonly { bibliographyListItem?: boole
   })
   return sequences
 }
+/** Le corps du NUMÉRO de la tête, celui de son INTITULÉ, l'écart qui les sépare et le
+ *  blanc qui les suit. ⛔ Écrits UNE fois : la tête les pose (`FACE_NUMERO`,
+ *  `STYLE_INTITULE_ENCART`, `STYLE_TETE_ENCART`) et l'estimation de hauteur les relit. */
+const CORPS_NUMERO_TETE = '0.625rem'
+const CORPS_INTITULE = '0.5625rem'
+const ECART_TETE = '0.4375rem'
+const MARGE_TETE = '0.25rem'
 /** La tête et son blanc, quand la note déclare un type. ⚠️ DÉRIVÉE, non recopiée :
- *  la ligne du numéro (0,625 rem sur l'interligne du corps) plus le blanc de
- *  `STYLE_TETE_ENCART`. Un nombre écrit à part se désaccorderait au premier réglage. */
-const INTITULE_ENCART_REM = 0.625 * INTERLIGNE_ENCART + 0.25
+ *  la ligne du numéro sur l'interligne du corps, plus le blanc de `STYLE_TETE_ENCART`.
+ *  Un nombre écrit à part se désaccorderait au premier réglage. */
+const INTITULE_ENCART_REM = Number.parseFloat(CORPS_NUMERO_TETE) * INTERLIGNE_ENCART + Number.parseFloat(MARGE_TETE)
 /** Les deux filets. ⚠️ En PIXELS, comme tout filet du site : un rem les rendrait flous. */
 const FILETS_ENCART_PX = 2
 
@@ -526,6 +533,42 @@ function signesParLigne(largeurPx: number, racine: number): number {
 }
 
 /**
+ * La chasse d'un signe de l'INTITULÉ, en em de son corps : des capitales grasses,
+ * espacées de 0,09 em. Mesurée le 14 septembre 2026 sur le site, dans la police servie,
+ * à 9 px :
+ *
+ *     « Note de l'édition »                             0,583 em    89,2 px
+ *     « Note du traducteur »                            0,652 em   105,6 px
+ *     « Note de Corpus Scriptura »                      0,627 em   135,5 px
+ *     « Note de l'édition et de Corpus Scriptura »      0,594 em   213,7 px
+ *     « Note du traducteur et de Corpus Scriptura »     0,624 em   230,1 px
+ *
+ * On retient 0,66, un cheveu au-dessus du pire : sous-estimer la ligne fait une boîte
+ * trop haute, jamais trop courte.
+ */
+const CHASSE_INTITULE_EM = 0.66
+
+/**
+ * COMBIEN DE LIGNES PREND L'INTITULÉ, à la largeur où l'encart se compose.
+ *
+ * ⛔ UNE NOTE PEUT PORTER PLUSIEURS RESPONSABILITÉS, et la tête nomme celles que la note
+ * ne signe pas elle-même (charte § 13.12.1, 14 septembre 2026). « Note de l'édition et de
+ * Corpus Scriptura » demande 214 px, quand l'encart le plus étroit (16 rem) n'en laisse
+ * que 183 à côté du numéro et de la croix : l'intitulé passe à la ligne. Écrêté, il taisait
+ * précisément la voix ajoutée.
+ *
+ * ⚠️ La tête perd, sur la largeur de l'encart, les deux rembourrages, la réserve de la
+ * croix, l'écart, et le numéro, compté pour un rem comme dans `SIGNES_PREMIERE_LIGNE`.
+ */
+export function lignesDeLIntitule(intitule: string | null | undefined, largeurPx: number, racine: number): number {
+  if (!intitule) return 0
+  const piste = largeurPx - FILETS_ENCART_PX
+    - (2 * REMBOURRAGE_LATERAL_REM + Number.parseFloat(RESERVE_CROIX) + 1 + Number.parseFloat(ECART_TETE)) * racine
+  const parLigne = Math.max(8, piste / (CHASSE_INTITULE_EM * Number.parseFloat(CORPS_INTITULE) * racine))
+  return Math.max(1, Math.ceil(intitule.length / parLigne))
+}
+
+/**
  * LE RELIEF D'UNE NOTE — ce qu'elle demande à la boîte AU DELÀ de sa longueur.
  *
  * ⛔ L'estimation ne comptait que des SIGNES, et une note n'est pas une coulée : ses
@@ -554,11 +597,15 @@ export function reliefDeLaNote(
 }
 
 export function hauteurSouhaiteeNote(
-  { signes, racine, avecIntitule = false, largeur, blocs = 1, lignesForcees = 0, libelles = 0 }:
+  { signes, racine, avecIntitule = false, intitule, largeur, blocs = 1, lignesForcees = 0, libelles = 0 }:
   {
     signes: number
     racine: number
     avecIntitule?: boolean
+    /** L'INTITULÉ lui-même, quand on le connaît : il prend deux lignes quand il nomme
+     *  plusieurs responsabilités dans un encart étroit (`lignesDeLIntitule`). Donné, il
+     *  l'emporte sur `avecIntitule`, qui n'en compte qu'une. */
+    intitule?: string | null
     /** La largeur à laquelle l'encart se composera, en pixels. ⚠️ Sa mesure pleine à
      *  défaut : c'est le cas quand il se pose sous son appel, où rien ne le resserre. */
     largeur?: number
@@ -572,9 +619,13 @@ export function hauteurSouhaiteeNote(
     libelles?: number
   },
 ): number {
-  const parLigne = signesParLigne(largeur ?? LARGEUR_ENCART_REM * racine, racine)
+  const largeurRetenue = largeur ?? LARGEUR_ENCART_REM * racine
+  const parLigne = signesParLigne(largeurRetenue, racine)
+  const lignesIntitule = intitule === undefined
+    ? (avecIntitule ? 1 : 0)
+    : lignesDeLIntitule(intitule, largeurRetenue, racine)
   // ⚠️ Sans intitulé, le propos partage sa première ligne avec le numéro et la croix.
-  const cedes = avecIntitule ? 0 : SIGNES_PREMIERE_LIGNE
+  const cedes = lignesIntitule > 0 ? 0 : SIGNES_PREMIERE_LIGNE
   const lignes = Math.max(1, Math.ceil((Math.max(0, signes) + cedes) / parLigne)) + Math.max(0, lignesForcees)
   const enRem = lignes * LIGNE_ENCART_REM
     // ⚠️ Les blancs qui SÉPARENT les blocs : n blocs en portent n − 1.
@@ -583,7 +634,10 @@ export function hauteurSouhaiteeNote(
     + Math.max(0, libelles) * (LIGNE_ENCART_REM + MARGE_LIBELLE_EXPLICATION_REM)
     + MARGE_QUEUE_REM
     + REMBOURRAGE_VERTICAL_REM
-    + (avecIntitule ? INTITULE_ENCART_REM : 0)
+    + (lignesIntitule > 0 ? INTITULE_ENCART_REM : 0)
+    // ⚠️ Et chaque ligne de plus d'un intitulé qui passe à la ligne, comptée à la hauteur de
+    // la ligne du numéro : un cheveu au-dessus de la sienne.
+    + Math.max(0, lignesIntitule - 1) * Number.parseFloat(CORPS_NUMERO_TETE) * INTERLIGNE_ENCART
   return Math.min(
     HAUTEUR_ENCART_MAX_REM * racine,
     Math.ceil(enRem * racine) + FILETS_ENCART_PX,
@@ -759,7 +813,7 @@ export function styleCorpsEncart(signes: number): CSSProperties {
 /** La face du numéro, commune à ses deux poses. */
 const FACE_NUMERO: CSSProperties = {
   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
-  fontSize: '0.625rem',
+  fontSize: CORPS_NUMERO_TETE,
   fontWeight: 600,
   color: 'var(--cs-texte-faible)',
   userSelect: 'none',
@@ -818,23 +872,27 @@ export const STYLE_NUMERO_TETE: CSSProperties = { ...FACE_NUMERO, flexShrink: 0 
 export const STYLE_TETE_ENCART: CSSProperties = {
   display: 'flex',
   alignItems: 'baseline',
-  gap: '0.4375rem',
-  marginBottom: '0.25rem',
+  gap: ECART_TETE,
+  marginBottom: MARGE_TETE,
 }
 
 export const STYLE_INTITULE_ENCART: CSSProperties = {
   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
-  fontSize: '0.5625rem',
+  fontSize: CORPS_INTITULE,
   fontWeight: 700,
   letterSpacing: '0.09em',
   textTransform: 'uppercase',
   color: 'var(--cs-texte-faible)',
-  // ⚠️ Une tête tient sur UNE ligne : un type plus long que la piste s'écrête plutôt
-  // que d'ouvrir un second rang au-dessus du propos.
+  // ⛔ UNE TÊTE PEUT PRENDRE DEUX LIGNES (14 septembre 2026). Une note peut porter
+  // plusieurs responsabilités, et la tête nomme celles que la note ne signe pas elle-même
+  // (charte § 13.12.1) : écrêtée, « Note de l'édition et de Corpus Scriptura » taisait
+  // précisément la voix ajoutée. Elle s'écrêtait pour ne pas ouvrir un second rang
+  // au-dessus du propos ; ce rang dit désormais quelque chose, et `lignesDeLIntitule` le
+  // compte dans la hauteur.
+  // ⚠️ Les lignes s'équilibrent, et `minWidth: 0` reste : sans lui, un élément flexible
+  // refuse de rétrécir sous la largeur de son texte, et l'intitulé déborderait de la tête.
   minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  textWrap: 'balance',
 }
 
 /** La réserve de la croix : un flottant sans hauteur de ligne, qui ne raccourcit que

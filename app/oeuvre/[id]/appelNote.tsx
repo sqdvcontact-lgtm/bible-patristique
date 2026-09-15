@@ -215,10 +215,11 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
   contenu: NoteAffichee
   variante?: VarianteAppelNote
 }) {
-  // LE TYPE DE LA NOTE S'ANNONCE DANS L'ENCART, et nulle part ailleurs : « Note du
-  // traducteur », « Apparat critique ». Le lecteur doit voir du premier coup d'œil
+  // LE TYPE DE LA NOTE S'ANNONCE DANS L'ENCART : « Note du traducteur », « Note de
+  // l'édition et de Corpus Scriptura ». Le lecteur doit voir du premier coup d'œil
   // qui parle — une variante de manuscrits n'est pas une remarque de commentaire,
-  // et une note du traducteur n'engage pas le Père qu'on lit.
+  // et une note du traducteur n'engage pas le Père qu'on lit. ⚠️ Une explication de
+  // Corpus Scriptura se signe elle-même dans la note : la tête ne la redit pas.
   //
   // ⛔ Jamais dans le TEXTE de la note, où l'on n'ajoute rien : la mention se
   // répète des milliers de fois, et c'est ce qui commande sa forme — la plus
@@ -337,7 +338,7 @@ export function AppelNote({ numeroVisible, contenu, variante = 'corps' }: {
   // que la vraie dès qu'il se resserrait, et la boîte défilait pour rien. Sous l'appel,
   // rien ne le resserre : la mesure pleine y est la bonne.
   const hauteurVoulue = (largeurRetenue?: number) =>
-    hauteurSouhaiteeNote({ signes, racine, avecIntitule: Boolean(intitule), largeur: largeurRetenue, ...relief })
+    hauteurSouhaiteeNote({ signes, racine, intitule, largeur: largeurRetenue, ...relief })
   const hautNavbar = hauteurNavbarPx()
   // ⛔ D'ABORD LA MARGE : une note ouverte par-dessus la colonne cache le passage
   // qu'elle commente. ⚠️ Faute de place — un téléphone, deux volets ouverts —, on

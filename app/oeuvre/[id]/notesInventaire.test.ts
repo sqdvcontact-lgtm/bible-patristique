@@ -244,6 +244,31 @@ describe('recenserNotes', () => {
     expect(recenserNotes(source({ s1: { m: note({ noteKey: 'B', noteNumber: 2 }) } }, places, ['Livre I']))[0].intitule).toBeNull()
   })
 
+  it('⛔ nomme TOUTES les responsabilités d’une note où Corpus Scriptura a ajouté un bloc', () => {
+    // Relevé de l'auteur sur Jean Lucas, 14 septembre 2026 : cinq notes « Sans type », qui
+    // en portaient deux. La note 52 : la référence de l'édition, puis l'explication du site.
+    const melee = note({
+      noteKey: 'N52', noteNumber: 52,
+      blocks: [
+        bloc({ blockId: 'b1', kind: 'reference', editorialRole: 'source_editorial_note' }),
+        bloc({ blockId: 'b2', rank: 2, editorialRole: 'corpus_editorial_note', readerStyle: 'corpus_explanation' }),
+      ],
+    })
+    const [r] = recenserNotes(source({ s1: { m: melee } }, places, ['Livre I']))
+    expect(r.intitules).toEqual(["Note de l'édition", 'Note de Corpus Scriptura'])
+    expect(r.intitule).toBe("Note de l'édition et de Corpus Scriptura")
+  })
+
+  it('⛔ ne range sous aucune responsabilité une note dont un bloc n’en déclare pas', () => {
+    const douteuse = note({
+      noteKey: 'D', noteNumber: 3,
+      blocks: [bloc({ blockId: 'b1', editorialRole: 'source_editorial_note' }), bloc({ blockId: 'b2', rank: 2 })],
+    })
+    const [r] = recenserNotes(source({ s1: { m: douteuse } }, places, ['Livre I']))
+    expect(r.intitules).toEqual([])
+    expect(r.intitule).toBeNull()
+  })
+
   it('porte le TEXTE d’où la note vient', () => {
     const [r] = recenserNotes(source({ s1: { m: note({ noteKey: 'A', noteNumber: 1 }) } }, places, ['Livre I'], SOURCE_LA))
     expect(r.source).toEqual(SOURCE_LA)
@@ -263,14 +288,14 @@ describe('recenserNotes', () => {
 
 describe('filtrerNotes', () => {
   const base: NoteRecensee = {
-    cle: 'A', source: SOURCE, numero: 1, numeroInterne: 1, intitule: null, apercu: 'Voyez Isaïe 6, 3.',
+    cle: 'A', source: SOURCE, numero: 1, numeroInterne: 1, intitules: [], intitule: null, apercu: 'Voyez Isaïe 6, 3.',
     place: place({ id: 1, segmentKey: 's1' }), ancreOrpheline: false, aRevoir: false, apparatCritique: false,
   }
   const notes: NoteRecensee[] = [
     base,
     { ...base, cle: 'B', numero: 2, numeroInterne: 2, apercu: 'Étude sur l’Évangile', aRevoir: true },
     { ...base, cle: 'C', numero: 42, numeroInterne: 42, apercu: 'Sans place', place: null, ancreOrpheline: true },
-    { ...base, cle: 'D', numero: 4, numeroInterne: 4, apercu: 'plana M; faciunt] fecerunt Q', intitule: 'Apparat critique', place: place({ id: 4, segmentKey: 's4', surface: 'apparat' }) },
+    { ...base, cle: 'D', numero: 4, numeroInterne: 4, apercu: 'plana M; faciunt] fecerunt Q', intitules: ["Note de l'édition"], intitule: "Note de l'édition", place: place({ id: 4, segmentKey: 's4', surface: 'apparat' }) },
   ]
 
   it('cherche SANS ACCENT et sans casse', () => {
@@ -290,8 +315,20 @@ describe('filtrerNotes', () => {
   })
 
   it('retient un intitulé, celui des sans-type compris', () => {
-    expect(filtrerNotes(notes, { intitule: 'Apparat critique' }).map(n => n.cle)).toEqual(['D'])
+    expect(filtrerNotes(notes, { intitule: "Note de l'édition" }).map(n => n.cle)).toEqual(['D'])
     expect(filtrerNotes(notes, { intitule: SANS_INTITULE }).map(n => n.cle)).toEqual(['A', 'B', 'C'])
+  })
+
+  it('⛔ retient une note à plusieurs responsabilités sous CHACUNE, et jamais sous « Sans type »', () => {
+    const melee: NoteRecensee = {
+      ...base, cle: 'M',
+      intitules: ["Note de l'édition", 'Note de Corpus Scriptura'],
+      intitule: "Note de l'édition et de Corpus Scriptura",
+    }
+    const liste = [...notes, melee]
+    expect(filtrerNotes(liste, { intitule: 'Note de Corpus Scriptura' }).map(n => n.cle)).toEqual(['M'])
+    expect(filtrerNotes(liste, { intitule: "Note de l'édition" }).map(n => n.cle)).toEqual(['D', 'M'])
+    expect(filtrerNotes(liste, { intitule: SANS_INTITULE }).map(n => n.cle)).toEqual(['A', 'B', 'C'])
   })
 
   it('retient une surface', () => {
@@ -310,14 +347,26 @@ describe('filtrerNotes', () => {
 })
 
 describe('comptesParIntitule', () => {
+  const n = (cle: string, intitules: string[]): NoteRecensee => ({
+    cle, source: SOURCE, numero: 1, numeroInterne: 1, intitules, intitule: null, apercu: '', place: null,
+    ancreOrpheline: true, aRevoir: false, apparatCritique: false,
+  })
+
   it('compte par intitulé, le plus nombreux devant', () => {
-    const n = (cle: string, intitule: string | null): NoteRecensee => ({
-      cle, source: SOURCE, numero: 1, numeroInterne: 1, intitule, apercu: '', place: null,
-      ancreOrpheline: true, aRevoir: false, apparatCritique: false,
-    })
-    expect(comptesParIntitule([n('a', null), n('b', 'Apparat critique'), n('c', null)])).toEqual([
+    expect(comptesParIntitule([n('a', []), n('b', ["Note de l'édition"]), n('c', [])])).toEqual([
       { intitule: SANS_INTITULE, n: 2 },
-      { intitule: 'Apparat critique', n: 1 },
+      { intitule: "Note de l'édition", n: 1 },
+    ])
+  })
+
+  it('⛔ compte une note à plusieurs responsabilités sous CHACUNE', () => {
+    // La somme des facettes peut dépasser le total : une facette dit ce qu'elle ajouterait.
+    expect(comptesParIntitule([
+      n('a', ["Note de l'édition", 'Note de Corpus Scriptura']),
+      n('b', ["Note de l'édition"]),
+    ])).toEqual([
+      { intitule: "Note de l'édition", n: 2 },
+      { intitule: 'Note de Corpus Scriptura', n: 1 },
     ])
   })
 })
@@ -328,7 +377,7 @@ describe('grouperParDivision', () => {
     // l'a déjà posé. Un groupement par table de hachage ramènerait ensemble des
     // divisions éloignées.
     const n = (cle: string, division: string | null): NoteRecensee => ({
-      cle, source: SOURCE, numero: 1, numeroInterne: 1, intitule: null, apercu: '',
+      cle, source: SOURCE, numero: 1, numeroInterne: 1, intitules: [], intitule: null, apercu: '',
       place: division === null ? null : place({ id: 1, segmentKey: cle, division }),
       ancreOrpheline: division === null, aRevoir: false, apparatCritique: false,
     })
@@ -340,7 +389,7 @@ describe('grouperParDivision', () => {
     // Les « Prolégomènes » de Dhuoda s’écrivent ainsi dans le latin comme dans le
     // français : grouper sur le nom seul mêlerait deux appareils en une seule liste.
     const n = (cle: string, src: SourceNote): NoteRecensee => ({
-      cle, source: src, numero: 1, numeroInterne: 1, intitule: null, apercu: '',
+      cle, source: src, numero: 1, numeroInterne: 1, intitules: [], intitule: null, apercu: '',
       place: place({ id: 1, segmentKey: cle, division: 'Prolégomènes' }),
       ancreOrpheline: false, aRevoir: false, apparatCritique: false,
     })
@@ -381,7 +430,7 @@ describe('recenserSources', () => {
 describe('comptesParSource', () => {
   it('compte par texte, DANS L’ORDRE des colonnes', () => {
     const n = (cle: string, src: SourceNote): NoteRecensee => ({
-      cle, source: src, numero: 1, numeroInterne: 1, intitule: null, apercu: '',
+      cle, source: src, numero: 1, numeroInterne: 1, intitules: [], intitule: null, apercu: '',
       place: null, ancreOrpheline: true, aRevoir: false, apparatCritique: false,
     })
     expect(comptesParSource([n('a', SOURCE), n('b', SOURCE_LA), n('c', SOURCE)])).toEqual([
