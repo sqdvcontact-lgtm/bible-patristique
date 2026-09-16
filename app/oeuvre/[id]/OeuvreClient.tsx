@@ -127,6 +127,14 @@ import { refFavoriOriginal } from '@/app/lib/refsFavoris'
 import type { NoteRecensee, PlaceSegment } from './notesInventaire'
 import OngletCommentaires, { ID_SEGMENT_MAX } from './OngletCommentaires'
 import ListeMenuBibles from '@/app/components/ListeMenuBibles'
+// ⛔ LE VOLET LIT AUTANT DE BIBLES QUE LA PAGE BIBLE CLASSIQUE (décision de l'auteur,
+// 2026-09-16). Ce que le menu offre et par quel chemin chaque texte se lit vivent dans
+// `bibleLecturesDisponibles` (module pur, testé) et `bibleVersetsParCanon` (les lectures
+// en base) : rien n'en est recopié ici.
+import {
+  LECTURE_DE_REPLI, lecturesDisponibles, rangDeLaLecture, type LectureBiblique,
+} from '@/app/lib/bibleLecturesDisponibles'
+import { chargerFaitsDesBibles, chargerTextesParCanon } from '@/app/lib/bibleVersetsParCanon'
 // ⛔ L'inventaire des notes est chargé à la DEMANDE : il n'entre dans le paquet que
 // lorsqu'un administrateur ouvre son onglet, et jamais dans celui d'un lecteur.
 const OngletNotes = dynamic(() => import('./OngletNotes'))
@@ -265,6 +273,16 @@ const TRADUCTIONS_FALLBACK = [
   { code: 'TR0003', label: 'Bible Crampon' },
   { code: 'TR0004', label: 'Vulgate' },
 ]
+
+/**
+ * Ce que le menu montre avant que la base ait répondu : les quatre bibles de la vue
+ * large, dont le texte voyage DÉJÀ avec la page. Aucune n'a de famille ni de graphie —
+ * c'est un repli, non un catalogue, et il ne promet donc rien qu'il ne tienne.
+ */
+const LECTURES_FALLBACK: LectureBiblique[] = TRADUCTIONS_FALLBACK.map(t => ({
+  code: t.code, label: t.label, famille: null,
+  tradId: t.code, couche: null, chemin: 'canonique', sourceIds: [],
+}))
 
 // Extrait le préfixe de numérotation divergente du texte d'un verset.
 // Format stocké en DB : "(Psaumes 9, 22 dans la Vulgate) ut quid Domine…"
@@ -570,8 +588,25 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const { favoris: favorisOeuvres, pret: favorisPret, toggle: toggleFavoriOeuvre } = useFavoris('oeuvre')
   const [segActif, setSegActif] = useState<number | null>(cibleReprise ? null : segmentCibleId)
   const [tradIndex, setTradIndex] = useState(0)
-  const [traductionsBible, setTraductionsBible] = useState(TRADUCTIONS_FALLBACK)
+  const [lecturesBible, setLecturesBible] = useState<LectureBiblique[]>(LECTURES_FALLBACK)
   const [tradOuverte, setTradOuverte] = useState(false)
+  /**
+   * Le texte des bibles qui ne vivent PAS dans la vue large, par lecture puis par
+   * créneau canonique. Il s'accumule au fil des paragraphes ouverts : revenir sur un
+   * passage déjà lu ne redemande rien.
+   */
+  const [textesHorsVueLarge, setTextesHorsVueLarge] = useState<Record<string, Record<string, string>>>({})
+  /**
+   * Les créneaux DÉJÀ DEMANDÉS, lecture par lecture.
+   *
+   * ⛔ Une mémoire à part, et il en faut une : un verset que l'édition ne porte pas ne
+   * laisse aucune trace dans les textes reçus, et sans ce registre on le redemanderait à
+   * chaque rendu. ⚠️ Il ne se lit que dans l'effet, jamais au rendu — une référence n'est
+   * pas une valeur dont l'affichage dépend.
+   */
+  const versetsDemandes = useRef<Set<string>>(new Set())
+  /** La bible par défaut lue au compte du lecteur, appliquée quand la liste est connue. */
+  const [defautProfil, setDefautProfil] = useState<string | null>(null)
   // ⛔ Plus d'onglet « Problèmes ». Il listait les passages dont le lien biblique restait
   // à constituer, et vivait de colonnes abolies : la fiabilité est portée AU LIEN depuis
   // le 20 juillet 2026 (charte §24.3), `segments.fiabilite` est vidée et `lien_1` à
@@ -2157,7 +2192,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     sauterVersLaNote(note.cle, place, surface)
   }
 
-  const trad = traductionsBible[tradIndex]?.code ?? 'TR0001'
+  // La LECTURE choisie : une bible, et la graphie dans laquelle on la lit. ⚠️ `trad` reste
+  // l'identifiant de la TRADUCTION, et lui seul part dans une adresse, dans un signet ou
+  // dans la préférence du lecteur : une graphie ne se retient pas d'un passage à l'autre.
+  const lecture = lecturesBible[tradIndex] ?? LECTURE_DE_REPLI
+  const trad = lecture.tradId
   const segMap = new Map(segmentsFiltres.map(s => [s.id, s]))
   // La LETTRINE ne se pose pas sur le premier segment venu : elle se pose sur le
   // premier que sa nature autorise à la porter (`accepteLaLettrine`). Une division
@@ -2217,6 +2256,55 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     [notesSection],
   )
   const segActifData = segActif !== null ? segMapActive.get(segActif) : null
+
+  // ── LE TEXTE DE LA BIBLE CHOISIE, QUAND ELLE N'EST PAS DANS LA VUE LARGE ──────
+  //
+  // ⛔ ON NE CHARGE QUE CE QU'ON REGARDE. Une division de la Somme cite plus de deux
+  // mille versets, et le volet n'en montre jamais que ceux d'un paragraphe : le texte
+  // de Fillion ou du témoin 899 se demande donc au paragraphe ouvert, jamais à la
+  // division. Il reste ensuite en mémoire, si bien que revenir sur un passage ne
+  // recharge rien, et que changer de bible ne recharge que la poignée sous les yeux.
+  //
+  // ⚠️ Les cinq bibles de la vue large n'entrent jamais ici : leur texte est arrivé
+  // avec celui de la page, et le redemander doublerait la lecture la plus courante.
+  const canonsDuSegment = (segActifData?.versets ?? []).map(v => v.id).join(' ')
+  useEffect(() => {
+    if (lecture.chemin === 'canonique') return
+    const ids = canonsDuSegment ? canonsDuSegment.split(' ') : []
+    if (ids.length === 0) return
+    // Le créneau est inscrit au registre AVANT la réponse : sans cela, un rendu de plus
+    // pendant le vol relancerait la même lecture.
+    const marque = (id: string) => `${lecture.code}|${id}`
+    const manquants = ids.filter(id => !versetsDemandes.current.has(marque(id)))
+    if (manquants.length === 0) return
+    manquants.forEach(id => versetsDemandes.current.add(marque(id)))
+    // ⚠️ Les textes reçus se rangent DANS TOUS LES CAS, même si le lecteur a changé de
+    // bible entre-temps : ils sont justes, ils sont rangés sous leur propre lecture, et
+    // ils resserviront tels quels s'il y revient.
+    chargerTextesParCanon(supabase, lecture, manquants).then(textes => {
+      setTextesHorsVueLarge(avant => ({
+        ...avant,
+        [lecture.code]: { ...(avant[lecture.code] ?? {}), ...textes },
+      }))
+    }, erreur => {
+      console.warn('[oeuvre] texte biblique non chargé', erreur)
+      // Une lecture qui a échoué se REDEMANDE : on retire les marques posées.
+      manquants.forEach(id => versetsDemandes.current.delete(marque(id)))
+    })
+  }, [lecture, canonsDuSegment])
+
+  /**
+   * Le texte d'un verset dans la lecture choisie.
+   *
+   * ⛔ AUCUN REPLI D'UNE BIBLE SUR UNE AUTRE hors de la vue large : un verset que
+   * Fillion ne porte pas se dit absent, il ne se remplace pas en silence par celui de
+   * Sacy sous le nom de Fillion. C'est la faute même que le filtrage du menu avait
+   * corrigée le 15 septembre.
+   */
+  const texteDeLaLecture = (verset: { id: string; textes: Record<string, string> }): string => {
+    if (lecture.chemin === 'canonique') return verset.textes[trad] || verset.textes['TR0001'] || ''
+    return textesHorsVueLarge[lecture.code]?.[verset.id] ?? ''
+  }
 
   // ⛔ LE COMPTE DES COMMENTAIRES SE PREND ICI, NON DANS L’ONGLET (demande de
   //    l’auteur, 2026-09-09 : « afficher le nombre de résultats, références et
@@ -2288,8 +2376,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     supabase.from('profils').select('traduction_defaut').eq('id', uid).maybeSingle().then(({ data }) => {
       if (data?.traduction_defaut) {
         localStorage.setItem('traduction_defaut', data.traduction_defaut)
-        const idx = traductionsBible.findIndex(t => t.code === data.traduction_defaut)
-        if (idx >= 0) setTradIndex(idx)
+        // ⛔ LA PRÉFÉRENCE EST RETENUE, ELLE N'EST PAS APPLIQUÉE ICI. Cette fonction est
+        // appelée depuis l'effet de session, dont les dépendances ne comptent pas la
+        // liste des bibles : elle n'en voyait donc que l'état où elle se trouvait à sa
+        // création — le repli, le plus souvent, qui ne porte ni Fillion ni le témoin.
+        // Une préférence pour l'une d'elles ne prenait effet qu'à la visite suivante,
+        // quand le navigateur la relisait dans son magasin. C'est l'effet ci-dessous,
+        // qui connaît la liste, qui tranche.
+        setDefautProfil(data.traduction_defaut)
       }
     })
   }
@@ -2301,25 +2395,27 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // ⛔ ET LE MENU NE PROPOSE QUE CE QUE LE VOLET SAIT LIRE (2026-09-15). Il listait toutes
     // les bibles de `traductions`, quand `versets_lecture` n'en porte que cinq : choisir la
     // Bible du XIIIe siècle affichait son nom au-dessus du texte de Sacy, pris en repli sans
-    // un mot. Les codes lisibles viennent de la sonde des versets (`chargerCodesTraductions`).
-    Promise.all([
-      supabase.from('traductions').select('trad_id, nom').eq('est_biblique', true).order('ordre', { ascending: true }),
-      chargerCodesTraductions(),
-    ]).then(([{ data }, codes]) => {
-      const lisibles = new Set(codes)
-      const liste = ((data ?? []) as { trad_id: string; nom: string }[])
-        .filter(t => lisibles.has(t.trad_id))
-        .map(t => ({ code: t.trad_id, label: t.nom }))
-      if (liste.length) setTraductionsBible(liste)
-    })
+    // un mot.
+    // ⛔ MAIS « CE QUE LE VOLET SAIT LIRE » A CHANGÉ (2026-09-16) : la vue large n'est plus
+    // la seule source. Fillion et la Bible du XIIIe siècle se lisent par leurs propres
+    // chemins, et le menu les offre donc, familles et graphies comprises. L'inventaire des
+    // chemins est un fait observé en base, jamais une liste écrite ici.
+    chargerFaitsDesBibles(supabase).then(faits => {
+      const liste = lecturesDisponibles(faits)
+      if (liste.length) setLecturesBible(liste)
+    }, erreur => { console.warn('[oeuvre] bibles du volet non chargées', erreur) })
   }, [])
 
+  // La bible que le lecteur a choisie pour de bon : celle de son compte, à défaut celle
+  // que son navigateur a retenue. ⚠️ Elle se résout DÈS QUE LA LISTE CHANGE, et la liste
+  // change une fois — du repli aux bibles réelles. Une préférence que le repli ne porte
+  // pas trouve donc sa place à cet instant-là, et non à la visite suivante.
   useEffect(() => {
-    const code = localStorage.getItem('traduction_defaut')
+    const code = defautProfil ?? localStorage.getItem('traduction_defaut')
     if (!code) return
-    const idx = traductionsBible.findIndex(t => t.code === code)
+    const idx = rangDeLaLecture(lecturesBible, code)
     if (idx >= 0) setTradIndex(idx)
-  }, [traductionsBible])
+  }, [lecturesBible, defautProfil])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -4660,18 +4756,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       ⛔ LE BOUTON RESTE CELUI DU VOLET, LA LISTE EST CELLE DE LA PAGE BIBLE
                       (même décision : « reprendre le menu de la page Bible classique, mise en
                       forme intérieure, quand on a cliqué ; pas le bouton lui-même ») :
-                      `ListeMenuBibles`, que `SelecteurTraductionBible` ouvre aussi. */}
+                      `ListeMenuBibles`, que `SelecteurTraductionBible` ouvre aussi.
+                      ⛔ ET LA LISTE PORTE MAINTENANT LES MÊMES BIBLES QUE CETTE PAGE-LÀ
+                      (2026-09-16) : les familles s'y replient sous leur nom commun, et leur
+                      sous-menu décline les langues et les graphies d'un même témoin. Ce sont
+                      les entrées qui ont changé, non le composant : il regroupait déjà, mais
+                      le volet ne lui donnait que des bibles sans famille. */}
                   <button ref={tradBoutonRef} type="button" onClick={() => setTradOuverte(o => !o)}
                     aria-haspopup="menu" aria-expanded={tradOuverte} aria-controls={tradOuverte ? idMenuTraductions : undefined}
-                    aria-label={`${traductionsBible[tradIndex]?.label ?? trad}, choisir la traduction biblique`}
+                    aria-label={`${lecture.label}, choisir la traduction biblique`}
                     title="Choisir la traduction biblique"
                     style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '4px', border: `1px solid ${tradOuverte ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: 'var(--cs-surface)', fontSize: '0.65625rem', color: 'var(--cs-encre)', cursor: 'pointer', transition: 'border-color 0.12s' }}>
-                    <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{traductionsBible[tradIndex]?.label ?? trad}</span>
+                    <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{lecture.label}</span>
                     <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: 'var(--cs-texte-doux)', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </button>
                   {tradOuverte && (
                     <ListeMenuBibles id={idMenuTraductions} libelle="Traductions bibliques"
-                      traductions={traductionsBible} traductionIndex={tradIndex}
+                      traductions={lecturesBible} traductionIndex={tradIndex}
                       choisir={choisirTraduction} fermer={fermerMenuTraductions} cadre={tradSelectRef}
                       style={{ position: 'absolute', top: 'calc(100% - 4px)', left: 0, right: 0, zIndex: 50 }} />
                   )}
@@ -4727,13 +4828,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           // Les deux se font APRÈS la fusion du groupe, qui peut s'équilibrer de
                           // lui-même ; et les tirets d'abord, sans quoi le bornage viendrait poser
                           // son guillemet derrière un tiret qui doit partir.
-                          const corps = bornerGuillemets(effacerTiretsDeBordure(groupe
-                            .map(v => extraireNoteVerset(v.textes[trad] || v.textes['TR0001'] || '').corps)
+                          //
+                          // ⚠️ Le texte vient de `texteDeLaLecture`, non de la seule table des
+                          // versets cités : la bible choisie peut vivre ailleurs que dans la vue
+                          // large, et c'est là qu'on va la chercher.
+                          const textesDuGroupe = groupe.map(v => texteDeLaLecture(v))
+                          const corps = bornerGuillemets(effacerTiretsDeBordure(textesDuGroupe
+                            .map(t => extraireNoteVerset(t).corps)
                             .filter(Boolean)
                             .join(' ')))
                           // La note éditoriale n'est portée que par un verset seul (sinon on fond
                           // simplement les corps).
-                          const note = multiple ? null : extraireNoteVerset(premier.textes[trad] || premier.textes['TR0001'] || '').note
+                          const note = multiple ? null : extraireNoteVerset(textesDuGroupe[0] ?? '').note
                           // Les natures se cumulent sur le groupe, et se disent dans l'ordre de la
                           // charte (§9.1 à §9.4) : « citation · reprise », et non dans l'ordre du
                           // verset qui ouvre le groupe.
@@ -4741,15 +4847,24 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           const natures: string[] = NATURE_LIEN.filter(n => portees.has(n))
                           // Objet synthétique pour les actions (copie/enregistrement) sur le groupe :
                           // textes fondus par traduction, label en fourchette.
+                          // ⚠️ La traduction LUE y est réécrite avec ce qui est à l'écran : un
+                          // verset prélevé dans Fillion doit se retrouver en Fillion dans les
+                          // prélèvements, et non dans la bible que la vue large portait sous le
+                          // même code (`BoutonEnregistrerVerset` lit `textes[trad]`).
                           const versetAction: any = multiple
-                            ? { ...premier, label: labelGroupe, textes: Object.fromEntries(Object.keys(premier.textes).map(code => [code, groupe.map(v => (v.textes as any)[code] || '').filter(Boolean).join(' ')])) }
-                            : premier
+                            ? { ...premier, label: labelGroupe, textes: { ...Object.fromEntries(Object.keys(premier.textes).map(code => [code, groupe.map(v => (v.textes as any)[code] || '').filter(Boolean).join(' ')])), [trad]: textesDuGroupe.filter(Boolean).join(' ') } }
+                            : { ...premier, textes: { ...premier.textes, [trad]: textesDuGroupe[0] ?? '' } }
                           const key = groupe.map(v => v.id).join('_')
                           return (
                             <div key={key}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: note ? '2px' : '4px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
-                                  <a href={`/?livre=${encodeURIComponent(premier.livre)}&chapitre=${encodeURIComponent(premier.chapitre)}&verset=${encodeURIComponent(premier.verset)}&trad=${encodeURIComponent(trad)}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0, textDecoration: 'none' }}>{labelGroupe}</a>
+                                  {/* ⚠️ La graphie part AVEC l'adresse : on ouvre la page Bible sur
+                                      le texte qu'on avait sous les yeux, et non sur un autre état du
+                                      même témoin. La page Bible la normalise contre les graphies
+                                      qu'elle expose vraiment, et ne s'en trouble pas si elle ne la
+                                      connaît pas (`normaliserCouche899`). */}
+                                  <a href={`/?livre=${encodeURIComponent(premier.livre)}&chapitre=${encodeURIComponent(premier.chapitre)}&verset=${encodeURIComponent(premier.verset)}&trad=${encodeURIComponent(trad)}${lecture.couche ? `&couche=${encodeURIComponent(lecture.couche)}` : ''}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0, textDecoration: 'none' }}>{labelGroupe}</a>
                                   {/* La nature du rapport, dite sans peser : le lecteur
                                       voit la référence d'abord, et peut savoir à quel
                                       titre elle est là s'il y prend garde. */}

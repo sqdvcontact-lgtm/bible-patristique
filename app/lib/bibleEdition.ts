@@ -1,4 +1,3 @@
-import { liantSymbolique, type JonctionSymbolique } from './jonctionSegments'
 import { resoudreStyleSemantique } from './bibleHierarchieSemantique'
 
 export const BIBLE_EDITORIAL_BLOCK_KINDS = [
@@ -81,14 +80,9 @@ export type BibleVerseNote = {
   appliesToMemberId: string | null
 }
 
-export type BibleSourceFragment = {
-  text: string
-  startOffset: number | null
-  endOffset: number | null
-  /** Le vocabulaire vit dans `jonctionSegments.ts`, avec sa matérialisation et la
-   *  contrainte SQL `bible_editorial_segment_sources_join_before_check` qu'il reflète. */
-  joinBefore: JonctionSymbolique
-}
+// ⛔ Le type du fragment matériel suit sa recomposition (voir plus bas, et
+// `bibleFragmentsMateriels.ts`) : il est réexporté ici, où tout le reste le lit.
+export type { BibleSourceFragment } from './bibleFragmentsMateriels'
 
 export type BibleEditionDisplayTextBlock = {
   id: string
@@ -941,24 +935,12 @@ export function sousTypeNoticeValide(
   return noticeSubtype as BibleEditorialNoticeSubtype
 }
 
-export function couperPointsDeCode(
-  text: string,
-  startOffset: number | null,
-  endOffset: number | null,
-): string {
-  if (startOffset === null) return text
-  return Array.from(text).slice(startOffset, endOffset ?? undefined).join('')
-}
-
-/** ⛔ La table des jetons n'est PAS recopiée ici : elle vit dans `liantSymbolique`,
- *  partagée avec la recomposition des œuvres, pour qu'un jeton ne puisse jamais être
- *  rendu tel quel d'un côté et matérialisé de l'autre. */
-export function recomposerFragmentsMateriels(fragments: readonly BibleSourceFragment[]): string {
-  return fragments.map((fragment, index) => {
-    const texte = couperPointsDeCode(fragment.text, fragment.startOffset, fragment.endOffset)
-    return index === 0 ? texte : liantSymbolique(fragment.joinBefore) + texte
-  }).join('')
-}
+// ⛔ LA RECOMPOSITION MATÉRIELLE VIT DANS SON PROPRE MODULE (2026-09-16) : vingt lignes
+// qui n'ont besoin de rien d'autre que du liant, et que le volet d'une page Œuvre lit
+// depuis le NAVIGATEUR. Les garder ici faisait entrer dans son paquet ce fichier entier
+// et, derrière lui, le registre des styles sémantiques de Fillion. La réexportation
+// garde intactes toutes les places qui les lisaient.
+export { couperPointsDeCode, recomposerFragmentsMateriels } from './bibleFragmentsMateriels'
 
 /**
  * L'adresse d'un fichier servi, VERSIONNÉE par son empreinte.
