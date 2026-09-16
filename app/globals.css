@@ -2853,6 +2853,113 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   .cs-bouton-proportions { transition: none; }
 }
 
+/* ── LE LASSO — plusieurs versets ou passages d'un seul geste ────────────────────
+   Le geste vit dans app/components/LassoLecture.tsx, la règle dans app/lib/lasso.ts.
+   ⛔ La SURBRILLANCE est une ombre inset, non un fond : le verset retenu porte son fond
+   EN LIGNE, qu'une règle de feuille ne battrait pas, et l'ombre se peint par-dessus sans
+   le remplacer. Elle s'écrit une fois, ici, et la feuille du composant ne fait que la
+   poser sur les cibles. */
+:root {
+  --cs-lasso-surbrillance: inset 0 0 0 100vmax rgba(var(--cs-vert-rgb), 0.14);
+}
+/* Pendant le geste, rien ne se sélectionne : le lasso passe sur le texte sans le prendre. */
+html[data-lasso-geste],
+html[data-lasso-geste] * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+/* ⚠️ Posée par son style à chaque image : la feuille ne dit que sa forme. */
+.cs-lasso-trace {
+  display: none;
+  position: fixed;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  border: 1px solid rgba(var(--cs-vert-rgb), 0.55);
+  border-radius: 0;
+  background: rgba(var(--cs-vert-rgb), 0.07);
+  will-change: transform, width, height;
+}
+/* La barre : la recette de la pastille des volets et de la cellule d'actions — le petit
+   objet qui flotte au-dessus de la colonne de lecture —, posée sur l'axe du texte.
+   ⛔ Le sans se NOMME, il ne s'hérite pas : portée dans <body>, elle prendrait la police
+   de ce qui l'entoure. */
+.cs-lasso-barre {
+  position: fixed;
+  bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.25rem 0.25rem 0.25rem 1rem;
+  border: 1px solid var(--cs-bord);
+  border-radius: 999px;
+  background: var(--cs-surface);
+  box-shadow: var(--cs-ombre-nette);
+  color: var(--cs-texte-second);
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.75rem;
+  font-style: normal;
+  line-height: 1.3;
+  transform: translateX(-50%);
+  animation: cs-lasso-barre-paraitre 0.16s ease-out;
+}
+@keyframes cs-lasso-barre-paraitre {
+  from { opacity: 0; transform: translate(-50%, 6px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.cs-lasso-compte {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.cs-lasso-compte--erreur { color: var(--cs-danger-fonce); }
+.cs-lasso-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+.cs-lasso-action {
+  min-height: 24px;
+  padding: 0.3125rem 0.75rem;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--cs-vert);
+  font: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.12s, color 0.12s;
+}
+.cs-lasso-action:hover { background: rgba(var(--cs-vert-rgb), 0.09); }
+.cs-lasso-action--principale {
+  background: var(--cs-vert-aplat);
+  color: var(--cs-sur-aplat);
+}
+.cs-lasso-action--principale:hover { background: var(--cs-vert-aplat-fonce); }
+.cs-lasso-action:disabled { opacity: 0.6; cursor: default; }
+.cs-lasso-fermer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 0.125rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--cs-texte-second);
+  cursor: pointer;
+  transition: background-color 0.12s, color 0.12s;
+}
+.cs-lasso-fermer:hover { background: var(--cs-fond-doux); color: var(--cs-texte-fort); }
+@media (prefers-reduced-motion: reduce) {
+  .cs-lasso-barre { animation: none; }
+  .cs-lasso-action,
+  .cs-lasso-fermer { transition: none; }
+}
+
 /* ── UNE NOTIFICATION EST UNE RANGÉE, non une carte ───────────────────────────
    ⛔ Elle était une CARTE — fond propre, filet, coins arrondis, rembourrage — posée
    dans un volet qui a déjà tout cela, avec un bandeau vert au flanc gauche : deux

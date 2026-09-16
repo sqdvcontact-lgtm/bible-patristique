@@ -8,7 +8,10 @@ import { useNaviguer } from '@/app/lib/attenteNavigation'
 import { supabase } from "@/app/lib/supabase"
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin"
 import { useCompte } from "@/app/lib/contexteCompte"
-import { citationBiblique } from "@/app/lib/citation"
+import { useSansSurvol } from "@/app/lib/useEstMobile"
+import { citationBiblique, copierCitation } from "@/app/lib/citation"
+import { referenceDesVersets, texteDesVersets } from "@/app/lib/selectionPassages"
+import LassoLecture from '@/app/components/LassoLecture'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 
@@ -52,6 +55,9 @@ import {
 // cinq surfaces, qu'il vive dans la gouttière d'un verset, dans le pavé flottant du
 // doigt ou dans la cellule d'actions d'un segment.
 const VERSET_ACTION_BTN = STYLE_BOUTON_ACTION
+
+/** Ce que le lasso compte sur cette page. */
+const UNITE_VERSETS = ['verset', 'versets'] as const
 
 
 type Verset = {
@@ -419,7 +425,9 @@ export default function TexteBible({
   // composant tenait son propre abonnement d'authentification et sa propre lecture
   // de `profils.est_admin`, l'une et l'autre en double, et les réinstallait à chaque
   // changement de chapitre.
-  const { userId, estAdmin } = useCompte()
+  const { userId, estAdmin, exigerCompte } = useCompte()
+  // ⛔ L'axe du lasso est la CAPACITÉ du pointeur : au doigt, glisser fait défiler.
+  const sansSurvol = useSansSurvol()
   const [editionCible, setEditionCible] = useState<Verset | null>(null)
   const [overrides, setOverrides] = useState<Record<string, Partial<Record<string, string>>>>({})
   const [sauvegardes, setSauvegardes] = useState<Map<number, string>>(new Map())
@@ -635,6 +643,77 @@ export default function TexteBible({
   // seulement si au moins une ligne existe.
   const chapitreToutLacune = versets.length > 0 && versets.every(v => estLigne899(v) && estLacune899(v))
 
+  // ── LE LASSO ───────────────────────────────────────────────────────────────
+  // Tirer un cadre depuis le blanc de la page sélectionne plusieurs versets, qu'on
+  // enregistre ou qu'on copie d'un coup (app/components/LassoLecture.tsx).
+  // ⛔ Ne se sélectionne que ce qui s'enregistre un par un : un verset qui porte son texte
+  // dans une traduction du canon. Les lignes recomposées d'une édition n'ont pas d'actions,
+  // et le lasso ne leur en prête pas.
+  // ⚠️ La clé est l'identifiant du verset, non son numéro : une glose partage le numéro
+  // de son hôte.
+  const lassoActif = !mobile && !sansSurvol && !pieceAffichee && !chapitreToutLacune
+  const texteDuVerset = (v: Verset) => String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')
+  const versetsParId = new Map(versets.map(v => [v.id_verset, v]))
+  const versetsDuLasso = (cles: readonly string[]) =>
+    cles.map(cle => versetsParId.get(cle)).filter((v): v is Verset => v !== undefined)
+  const abreviationLivre = ABREV_FR[livreActif] || livreActif
+  const numerosEnregistres = (cles: readonly string[]) =>
+    [...new Set(versetsDuLasso(cles).map(v => v.verset).filter(n => sauvegardes.has(n)))]
+
+  const enregistrerLasso = async (cles: readonly string[]): Promise<number | null> => {
+    if (!exigerCompte('enregistrer ces versets') || !userId) return null
+    const vus = new Set<number>()
+    const aEcrire = versetsDuLasso(cles).filter(v => {
+      if (sauvegardes.has(v.verset) || vus.has(v.verset)) return false
+      vus.add(v.verset)
+      return true
+    })
+    if (aEcrire.length === 0) return 0
+    const { data, error } = await supabase.from('prelevements').insert(aEcrire.map(v => ({
+      user_id: userId, type: 'biblique',
+      ref_livre: nomLivre, ref_livre_abr: abreviationLivre,
+      ref_chapitre: chapitreActif, ref_verset: v.verset,
+      texte: texteDuVerset(v), traduction: traductionLabel,
+    }))).select('id, ref_verset')
+    if (error) throw error
+    setSauvegardes(prev => {
+      const suite = new Map(prev)
+      for (const ligne of (data ?? []) as { id: string; ref_verset: number }[]) suite.set(ligne.ref_verset, ligne.id)
+      return suite
+    })
+    signalerProgression()
+    return aEcrire.length
+  }
+
+  // ⚠️ Le retrait vise la clé NATURELLE — ce lecteur, ce chapitre, ces versets —, comme le
+  // signet le montre : un verset se montre prélevé quelle que soit la traduction retenue.
+  const retirerLasso = async (cles: readonly string[]): Promise<number | null> => {
+    if (!userId) return null
+    const numeros = numerosEnregistres(cles)
+    if (numeros.length === 0) return 0
+    const { error } = await supabase.from('prelevements').delete()
+      .eq('user_id', userId).eq('type', 'biblique')
+      .eq('ref_livre_abr', abreviationLivre).eq('ref_chapitre', chapitreActif)
+      .in('ref_verset', numeros)
+    if (error) throw error
+    setSauvegardes(prev => {
+      const suite = new Map(prev)
+      for (const n of numeros) suite.delete(n)
+      return suite
+    })
+    return numeros.length
+  }
+
+  // La citation d'une sélection : « … » (Gn 1, 3-5.7), une élision là où un verset manque.
+  const copierLasso = async (cles: readonly string[]) => {
+    const choisis = versetsDuLasso(cles)
+    if (choisis.length === 0) return
+    await copierCitation(citationBiblique(
+      texteDesVersets(choisis.map(v => ({ numero: v.verset, texte: texteDuVerset(v) }))),
+      `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${referenceDesVersets(choisis.map(v => v.verset))}`,
+    ))
+  }
+
   return (
     <div className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'} style={{ background: 'var(--cs-fond)', ...(mobile ? { width: '100%', paddingTop: '2.875rem', paddingBottom: `calc(0.75rem + ${BANDEAU_NAV_MOBILE})` } : {}) }}>
 
@@ -797,6 +876,7 @@ export default function TexteBible({
             const illustrationsAvant = indexIllustrations.beforeByCanon.get(v.id_verset) ?? []
             const illustrationsApres = indexIllustrations.afterByCanon.get(v.id_verset) ?? []
             const notesDuVerset = notesParCanon.get(v.id_verset) ?? []
+            const dansLeLasso = lassoActif && !ligneSource && !lacune && Boolean(overrides[v.id_verset]?.[traduction] ?? v[traduction])
             return (
             <Fragment key={v.id_verset}>
             {rendreFluxEditorial(blocsAvant, illustrationsAvant)}
@@ -824,7 +904,7 @@ export default function TexteBible({
               style={styleRangeeVerset({ mobile })}>
 
               <div style={styleGrilleRangee({ mobile })}>
-                <div style={styleBlocVerset({ actif, mobile })}>
+                <div className="verset-bloc" data-lasso-verset={dansLeLasso ? v.id_verset : undefined} style={styleBlocVerset({ actif, mobile })}>
                   {/* Numéro — inclus dans le bloc sélectionné, aligné sur la 1re ligne du texte (ligne de base) */}
                   <span style={STYLE_NUMERO_VERSET}>
                     {v.verset}
@@ -932,6 +1012,22 @@ export default function TexteBible({
           </>)}
         </div>
       </div>
+      <LassoLecture
+        zone={refDefileur}
+        defileur={refDefileur}
+        actif={lassoActif}
+        contexte={`${livreActif}|${chapitreActif}|${traduction}`}
+        selecteurCibles="[data-lasso-verset]"
+        cleDe={element => element.getAttribute('data-lasso-verset')}
+        surbrillance={cle => `[data-lasso-verset="${cle}"]`}
+        horsLasso=".verset-row, .cs-bible-bloc"
+        unite={UNITE_VERSETS}
+        gouttiere={GOUTTIERE_ACTIONS_VERSET}
+        dejaEnregistres={cles => numerosEnregistres(cles).length}
+        onEnregistrer={enregistrerLasso}
+        onRetirer={retirerLasso}
+        onCopier={copierLasso}
+      />
       {editionCible && (
         <ModaleEditionVerset
           verset={editionCible}

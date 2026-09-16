@@ -3,7 +3,7 @@ import { Z_MODALE, Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
 import { LIVRES } from '@/app/lib/bible'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { hydraterLiensHerites } from '@/app/lib/liens'
-import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
+import { lancerEnParallele, lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { MarqueAttente } from '@/app/lib/attenteNavigation'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 // ⛔ La projection qui ne faillit pas : une ancre hors du texte est laissée de côté
@@ -57,6 +57,11 @@ import { rendreTexteEnrichi, texteSansEnrichissement, normaliserEspaces, normali
 import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { CelluleActions, useCelluleActions } from '@/app/components/CelluleActions'
+import LassoLecture from '@/app/components/LassoLecture'
+import { suitesContigues } from '@/app/lib/lasso'
+import { texteDesSuites } from '@/app/lib/selectionPassages'
+import { citationPatristique, copierCitation } from '@/app/lib/citation'
+import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import {
   AUCUN_ECHO,
   limiterRequeteAuxLiminairesSansNiveau,
@@ -578,9 +583,12 @@ const TETE_RUBRIQUE: React.CSSProperties = { flexShrink: 0, display: 'flex', ali
 
 type OngletDroit = 'refs' | 'commentaires' | 'notes'
 
+/** Ce que le lasso compte sur cette page. */
+const UNITE_PASSAGES = ['passage', 'passages'] as const
+
 export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, fleuron = null, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
-  const { visiteFaite, oublierVisite, profilPret } = useCompte()
+  const { visiteFaite, oublierVisite, profilPret, exigerCompte } = useCompte()
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const estAdmin = estAdminReel && !modeUtilisateurStandard
   // Charge la table des éditeurs (une fois) pour afficher les noms complets répertoriés.
@@ -3137,6 +3145,75 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     else { setSegActif(sid); cellule.ancrer(el, sid, { borne: colonneDuSegment(el), ...bandeDeLecture() }) }
   }
 
+  // ── LE LASSO ───────────────────────────────────────────────────────────────
+  // Tirer un cadre depuis le blanc de la page sélectionne plusieurs passages, qu'on
+  // enregistre ou qu'on copie d'un coup (app/components/LassoLecture.tsx).
+  // ⛔ Seulement là où un passage s'enregistre un par un : la lecture du texte, en
+  // français seul ou en regard. Ni l'apparat, ni la comparaison, ni le latin seul, où la
+  // colonne française est masquée.
+  // ⚠️ La clé est l'identifiant du segment, lu dans la poignée « segment-<id> » que la
+  // page pose déjà pour viser un passage.
+  const lassoActif = !mobile && !sansSurvol && vue === 'texte' && !modeComparaisonActif && !afficherOriginalSeul
+  const segmentsDuLasso = (cles: readonly string[]) => {
+    const parCle = new Map(segments.map(s => [String(s.id), s]))
+    return cles.map(cle => parCle.get(cle)).filter((s): s is SegData => s !== undefined)
+  }
+
+  const enregistrerLasso = async (cles: readonly string[]): Promise<number | null> => {
+    if (!exigerCompte('enregistrer ces passages') || !userId) return null
+    const aEcrire = segmentsDuLasso(cles).filter(s => !sauvegardesSegs.has(s.id))
+    if (aEcrire.length === 0) return 0
+    const { error } = await supabase.from('prelevements').insert(aEcrire.map(seg => ({
+      user_id: userId, type: 'patristique',
+      auteur, titre_oeuvre: oeuvre.titre, id_oeuvre: idOeuvre,
+      segment_id: seg.id, id_texte: seg.idTexte,
+      segment_numero: seg.numeroSource, texte: texteSansEnrichissement(seg.texte),
+    })))
+    if (error) throw error
+    setSauvegardesSegs(prev => {
+      const suite = new Set(prev)
+      for (const s of aEcrire) suite.add(s.id)
+      return suite
+    })
+    signalerProgression()
+    return aEcrire.length
+  }
+
+  // ⚠️ Par la clé naturelle — ce lecteur, ces segments —, comme le signet d'un passage.
+  const retirerLasso = async (cles: readonly string[]): Promise<number | null> => {
+    if (!userId) return null
+    const ids = segmentsDuLasso(cles).map(s => s.id).filter(id => sauvegardesSegs.has(id))
+    if (ids.length === 0) return 0
+    await lancerEnParallele(lotsPourClauseIn(ids.map(String)).map(lot => async () => {
+      const { error } = await supabase.from('prelevements').delete().eq('user_id', userId).in('segment_id', lot)
+      if (error) throw error
+    }))
+    setSauvegardesSegs(prev => {
+      const suite = new Set(prev)
+      for (const id of ids) suite.delete(id)
+      return suite
+    })
+    return ids.length
+  }
+
+  // ⛔ La citation d'une sélection se recompose par ses liants, et deux passages qui ne se
+  // suivent pas se séparent d'une élision : copier le premier et le quatrième sans la dire
+  // ferait lire un texte que l'auteur n'a pas écrit. L'ordre est celui où la page les rend,
+  // les arguments hissés en tête d'abord.
+  const copierLasso = async (cles: readonly string[]) => {
+    const parCle = new Map(segments.map(s => [String(s.id), s]))
+    const ordre = [...new Set([...introsEnTete, ...segmentsFiltres].map(s => String(s.id)))]
+    const suites = suitesContigues(cles.filter(cle => parCle.has(cle)), ordre)
+      .map(suite => suite.map(cle => parCle.get(cle)!).map(s => ({ texte: texteSansEnrichissement(s.texte), joinBefore: s.joinBefore })))
+    if (suites.length === 0) return
+    await copierCitation(citationPatristique(texteDesSuites(suites), {
+      auteur, titre: oeuvreAffichee.titre, sousTitre: oeuvreAffichee.sous_titre,
+      tradAuteur: oeuvreAffichee.trad_auteur, editeur: oeuvreAffichee.editeur,
+      collection: oeuvreAffichee.collection, ville: oeuvreAffichee.ville,
+      datePublication: oeuvreAffichee.date_publication,
+    }))
+  }
+
   // ── LA VISITE ──────────────────────────────────────────────────────────────
   // Ce que la page montre d'elle-même la première fois qu'on l'ouvre (charte § 46).
   //
@@ -4961,6 +5038,21 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           </div>
         )}
       </div>
+
+      <LassoLecture
+        zone={mainRef}
+        actif={lassoActif}
+        contexte={`${idTexte}|${niv1Actif}|${pageActuelle}|${vue}|${modeTexteEffectif}`}
+        selecteurCibles='.seg-inline[id^="segment-"], .seg-wrapper[id^="segment-"]'
+        cleDe={element => element.id.startsWith('segment-') ? element.id.slice('segment-'.length) : null}
+        surbrillance={cle => `#segment-${cle}.seg-inline, #segment-${cle} > .seg-p, #segment-${cle} .citation-sortie`}
+        horsLasso=".seg-p, .texte-original"
+        unite={UNITE_PASSAGES}
+        dejaEnregistres={cles => segmentsDuLasso(cles).filter(s => sauvegardesSegs.has(s.id)).length}
+        onEnregistrer={enregistrerLasso}
+        onRetirer={retirerLasso}
+        onCopier={copierLasso}
+      />
 
       {/* La cellule d'actions du segment survolé ou retenu : lecture en paragraphes et
           arguments de tête. La position, le suivi au défilement et la fermeture au tap
