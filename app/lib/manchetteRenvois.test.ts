@@ -30,6 +30,15 @@ describe('ce qui va dans la manchette', () => {
     expect(estRenvoiSeul({ blocks: [bloc('internal_cross_reference')] })).toBe(false)
   })
 
+  // ⛔ Charte § 13.20 : sa tête, son contrôle et la note qu’il déplie ne tiennent pas au bord
+  // d’une ligne, et la manchette rendrait la citation imprimée que le renvoi remplace.
+  it('un bloc qui porte un renvoi de note à note garde son appel', () => {
+    const renvoi = { rang: 1 }
+    expect(estRenvoiSeul({ blocks: [{ ...bloc('reference', 'Voir la note B.'), renvois: [renvoi] }] })).toBe(false)
+    expect(vaEnManchette({ blocks: [{ ...bloc('reference', 'Voir la note B.'), renvois: [renvoi] }] })).toBe(false)
+    expect(estRenvoiSeul({ blocks: [{ ...bloc('reference'), renvois: [] }] })).toBe(true)
+  })
+
   it('une note héritée, qui est une chaîne, ne dit pas ce qu’elle est', () => {
     expect(estRenvoiSeul('(Is 1, 16).')).toBe(false)
   })

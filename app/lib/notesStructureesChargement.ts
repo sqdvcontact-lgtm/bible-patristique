@@ -28,8 +28,19 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { chargerToutesPagesSupabase, lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { estNoteApparatCritique, lireMetadonneesBlocNote } from '@/app/lib/apparatCritique'
 import { natureBlocNoteSur } from '@/app/lib/naturesNote'
-import { numerosAffiches } from '@/app/lib/numerotationNotes'
-import { noterDegradation, tolerer, type DegradationChargement } from '@/app/lib/chargementTolerant'
+import { messageDErreur, noterDegradation, tolerer, type DegradationChargement } from '@/app/lib/chargementTolerant'
+import {
+  attacherRenvois,
+  chargerContexteNumerotation,
+  chargerRenvoisDesNotes,
+  chargerRenvoisDuTexte,
+  construireContexteNumerotation,
+  resoudreTete,
+  resoudreTetesDesRenvois,
+  type ContextesDeNumerotation,
+  type LigneRenvoi,
+} from '@/app/lib/renvoisNotesChargement'
+import type { IdentiteNote, TeteRenvoi } from '@/app/lib/renvoisNotes'
 import type { AncreNoteStructureeProjection } from '@/app/lib/appelsNotesStructurees'
 import type { NoteBlocData, NoteStructuree } from '@/app/oeuvre/[id]/oeuvreTypes'
 
@@ -269,38 +280,52 @@ export async function chargerNotesStructurees(
   // allers-retours pour rien. Les quarante-sept textes qui portent des notes
   // vont de un à huit lots.
   if (notesRows.length > 0) {
-    type DivisionRow = { segment_key: string | null; ref_niv1: string | null }
+    type DivisionRow = { segment_key: string | null; ref_niv1: string | null; espace_textuel: string | null }
     // Sans division, les notes se numérotent en une seule série : une dégradation
     // que seul l'administrateur a besoin de voir.
     const divisionsRows = await tolerer(
       degradations,
       { quoi: 'la numérotation des notes par division', publique: false },
       () => chargerToutesPagesSupabase<DivisionRow>((debut, fin) =>
-        supabase.from('segments').select('segment_key,ref_niv1')
+        supabase.from('segments').select('segment_key,ref_niv1,espace_textuel')
           .eq('id_texte', idTexte).order('segment_numero').range(debut, fin)),
       () => [] as DivisionRow[],
     )
-    const divisionParSegment = new Map<string, string>()
-    for (const ligne of divisionsRows) {
-      // Une division absente vaut la chaîne vide, exactement comme dans
-      // `numerotationLocale` : les liminaires forment une série, ils n'en sont
-      // pas privés.
-      if (ligne.segment_key) divisionParSegment.set(ligne.segment_key, ligne.ref_niv1 ?? '')
+    // ⛔ UNE SEULE RÈGLE DE NUMÉROTATION. Le contexte que construisent aussi les renvois de
+    // note à note (`renvoisNotesChargement.ts`) numérote ici la page : la division d'une
+    // note est celle de sa PREMIÈRE ancre (`divisionsDesNotes`), et un renvoi qui dit
+    // « Voir note 12 » ne peut pas nommer un autre numéro que l'appel du texte.
+    const contexte = construireContexteNumerotation(idTexte, {
+      notes: notesRows,
+      ancres: anchorsRows,
+      segments: divisionsRows,
+      apparat: cle => estNoteApparatCritique(parNote.get(cle) ?? { blocks: [] }),
+    })
+    for (const [cle, note] of parNote) note.displayNumber = contexte.notes.get(cle)?.numeroAffiche ?? null
+
+    // ── LES RENVOIS DE NOTE À NOTE ─────────────────────────────────────────────
+    // ⛔ La relation ne porte que l'identité de la note visée ; sa tête — numéro affiché,
+    // titre de niveau 1 — se résout ici, sur le texte tel qu'il est servi. Le contexte du
+    // texte lu est déjà construit ; celui d'un autre texte visé se lit une fois.
+    // ⚠️ Couche secondaire : sans elle, la note se lit avec sa forme imprimée.
+    const lignesRenvois = await tolerer(
+      degradations,
+      { quoi: 'les renvois entre notes', publique: false },
+      () => chargerRenvoisDuTexte(supabase, idTexte),
+      () => [] as LigneRenvoi[],
+    )
+    if (lignesRenvois.length > 0) {
+      const { renvois, orphelins } = attacherRenvois(parNote, lignesRenvois)
+      if (orphelins.length > 0) {
+        noterDegradation(degradations, {
+          quoi: 'quelques renvois entre notes',
+          detail: `${idTexte} : ${orphelins.length} renvoi(s) sans bloc source chargé : ${apercu(orphelins)}`,
+          publique: false,
+        })
+      }
+      const contextes: ContextesDeNumerotation = new Map([[idTexte, Promise.resolve(contexte)]])
+      await resoudreTetesDesRenvois(supabase, renvois, contextes, degradations)
     }
-    // La division d'une note est celle de sa PREMIÈRE ancre : une note rappelée
-    // d'une division à l'autre appartient à celle où le lecteur la rencontre
-    // d'abord, et garde ce numéro à ses deux appels.
-    const divisionParNote = new Map<string, string>()
-    for (const anchor of anchorsRows) {
-      if (divisionParNote.has(anchor.note_key) || !anchor.segment_key) continue
-      divisionParNote.set(anchor.note_key, divisionParSegment.get(anchor.segment_key) ?? '')
-    }
-    const affiches = numerosAffiches(notesRows.map(ligne => ({
-      noteKey: ligne.note_key,
-      division: divisionParNote.get(ligne.note_key) ?? '',
-      apparat: estNoteApparatCritique(parNote.get(ligne.note_key) ?? { blocks: [] }),
-    })))
-    for (const [cle, note] of parNote) note.displayNumber = affiches.get(cle) ?? null
   }
 
   return { notesParSegment, ancresParSegment }
@@ -383,7 +408,18 @@ export async function chargerNotesDesSegments(
           .order('note_key').order('source_block_id').order('relation_kind').range(debut, fin)))).then(l => l.flat()),
       ])
     }
-    const { notesParSegment, ancresParSegment, ancresIncompletes } = assemblerNotesStructurees({ notes, ancres, blocs, relations })
+    const { parNote, notesParSegment, ancresParSegment, ancresIncompletes } = assemblerNotesStructurees({ notes, ancres, blocs, relations })
+    // Les renvois de note à note se posent sur leurs blocs, SANS tête : le volet ne porte ni
+    // le contexte de numérotation d'un texte ni celui des textes visés, et la tête se
+    // demande à la route au rendu. ⚠️ Un échec ne ferme pas le volet : la note garde sa
+    // forme imprimée.
+    if (noteKeys.length > 0) {
+      try {
+        attacherRenvois(parNote, await chargerRenvoisDesNotes(supabase, idTexte, noteKeys))
+      } catch (erreur) {
+        console.error(`[volet] ${idTexte} : renvois entre notes illisibles : ${messageDErreur(erreur)}`)
+      }
+    }
     // Le volet n'a pas de bandeau de dégradation : l'ancre laissée de côté part au journal.
     if (ancresIncompletes.length > 0) {
       console.error(`[volet] ${idTexte} : ${ancresIncompletes.length} ancre(s) incomplète(s), laissée(s) de côté : ${apercu(ancresIncompletes)}`)
@@ -396,4 +432,47 @@ export async function chargerNotesDesSegments(
     }
   }))
   return resultat
+}
+
+// ── UNE NOTE PAR SON IDENTITÉ : la note visée par un renvoi ────────────────────
+//
+// ⛔ Chargée par `(id_texte, note_key)`, et par rien d'autre : ni numéro, ni lettre, ni
+// page. Ses blocs viennent dans leur ordre ACTUEL, ses propres renvois avec leur tête, si
+// bien qu'une note visée qui renvoie à son tour se déplie comme la première.
+
+/** La tête de la note visée et son contenu. `note` vaut `null` quand elle n'existe pas,
+ *  ou quand ce lecteur ne peut pas la lire. ⛔ Il LÈVE sur une requête en échec. */
+export async function chargerNotePourRenvoi(
+  supabase: ClientLecture,
+  cible: IdentiteNote,
+  contextes: ContextesDeNumerotation,
+): Promise<{ tete: TeteRenvoi; note: NoteStructuree | null }> {
+  if (!contextes.has(cible.idTexte)) {
+    contextes.set(cible.idTexte, chargerContexteNumerotation(supabase, cible.idTexte).catch(erreur => {
+      console.error(`[renvois] contexte de numérotation illisible (${cible.idTexte}) : ${messageDErreur(erreur)}`)
+      return null
+    }))
+  }
+  const [notesLues, blocs, relations, lignesRenvois, contexte] = await Promise.all([
+    chargerToutesPagesSupabase<NoteRow>((debut, fin) => supabase.from('texte_notes')
+      .select(COLONNES_NOTES).eq('id_texte', cible.idTexte).eq('note_key', cible.noteKey)
+      .order('note_key').range(debut, fin)),
+    chargerToutesPagesSupabase<BlockRow>((debut, fin) => supabase.from('texte_note_blocs')
+      .select(COLONNES_BLOCS).eq('id_texte', cible.idTexte).eq('note_key', cible.noteKey)
+      .order('rank').range(debut, fin)),
+    chargerToutesPagesSupabase<RelationRow>((debut, fin) => supabase.from('texte_note_relations')
+      .select(COLONNES_RELATIONS).eq('id_texte', cible.idTexte).eq('note_key', cible.noteKey)
+      .order('source_block_id').order('relation_kind').range(debut, fin)),
+    chargerRenvoisDesNotes(supabase, cible.idTexte, [cible.noteKey]),
+    contextes.get(cible.idTexte)!,
+  ])
+  const tete = resoudreTete(contexte, cible.noteKey)
+  const { parNote } = assemblerNotesStructurees({ notes: notesLues, ancres: [], blocs, relations })
+  const note = parNote.get(cible.noteKey) ?? null
+  if (note) {
+    note.displayNumber = contexte?.notes.get(cible.noteKey)?.numeroAffiche ?? null
+    const { renvois } = attacherRenvois(parNote, lignesRenvois)
+    if (renvois.length > 0) await resoudreTetesDesRenvois(supabase, renvois, contextes)
+  }
+  return { tete, note }
 }

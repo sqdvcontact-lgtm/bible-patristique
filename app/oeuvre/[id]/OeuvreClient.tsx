@@ -94,6 +94,8 @@ import { preparerTitreColophon, rendreIntituleDeSommaire, intituleEnTexteNu, ren
 import { ouvrirLaNoteDansLeTexte } from './ouvrirNoteDansLeTexte'
 // LA MANCHETTE — un renvoi biblique se lit dans la marge, il ne s'ouvre pas.
 import { ContenuRenvoiEnLigne } from './ContenuNoteStructuree'
+import { ProvisionNotesConnues, registreDesNotes } from './RenvoiNote'
+import { NIV1_LIMINAIRES, intituleDeNiveau1 } from '@/app/lib/intituleNiveau1'
 import { STYLE_RENVOI_MANCHETTE, vaEnManchette } from '@/app/lib/manchetteRenvois'
 import { CLASSE_RENVOI_MANCHETTE, useManchetteRenvois } from './useManchetteRenvois'
 import { chargerOeuvresDAuteurs } from '@/app/lib/auteursOeuvre'
@@ -557,8 +559,6 @@ function BarreVoletMobile({ cote, ouvert, libelle, titre, onBasculer, refBouton 
     </button>
   )
 }
-
-const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
 /** Les trois onglets du volet de droite. ⛔ « notes » est réservé à l'administration. */
 /** Ce que chaque onglet du volet de droite annonce. ⚠️ « Notes » n'est offert qu'à
@@ -1624,6 +1624,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       sansApparat: true,
     }]
   }, [idTexte, versionActive, notesStructurees, niv1List, affichageBilingue, ensembleBilingue, idTexteEnRegard, notesOriginales, versionEnRegard])
+
+  // ⛔ LES NOTES QUE LA PAGE PORTE, PAR IDENTITÉ : un renvoi de note à note qui vise l'une
+  // d'elles la déplie sans aller la redemander au serveur (`RenvoiNote.tsx`). Une note
+  // absente — un autre texte, une note sans ancre — se demande à la route.
+  const registreNotes = useMemo(() => registreDesNotes([
+    { idTexte, notes: notesStructurees },
+    { idTexte: idTexteEnRegard, notes: notesOriginales },
+  ]), [idTexte, notesStructurees, idTexteEnRegard, notesOriginales])
 
   const naviguerVersAncre = useCallback((ancre: string) => {
     const pageIdx = pages.findIndex(p => p.some(g => g.anchor === ancre))
@@ -3178,6 +3186,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }
 
   return (
+    <ProvisionNotesConnues registre={registreNotes}>
     <div style={{ background: 'var(--cs-fond)', minHeight: HAUTEUR_SOUS_NAVBAR }}>
       <style>{`
         .seg-wrapper { position: relative; }
@@ -3765,7 +3774,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   {/* Niv1 */}
                   <button onClick={() => changerNiv1(n1)}
                     style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35, ...COMPOSITION_INTITULE }}>
-                    {rendreIntituleDeSommaire(n1 === NIV1_LIMINAIRES ? (niv1TexteMap[n1] || 'Liminaires') : n1)}
+                    {rendreIntituleDeSommaire(intituleDeNiveau1(n1, niv1TexteMap))}
                     {n1 !== NIV1_LIMINAIRES && n1txt && configNiveaux.txtSommaire[0] && (
                       <span style={{ fontSize: '0.59375rem', color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px', ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n1txt)}</span>
                     )}
@@ -3937,7 +3946,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 ) : niv1Loading ? <MotAttente enLigne /> : (
                   <>
                     {(() => {
-                      const intitule = niv1Actif === NIV1_LIMINAIRES ? (niv1TexteMap[niv1Actif] || 'Liminaires') : niv1Actif
+                      const intitule = intituleDeNiveau1(niv1Actif, niv1TexteMap)
                       // ⛔ Le titre RENDU porte ses appels ; `niv1Actif` reste l'identité.
                       const pose = niv1Actif === NIV1_LIMINAIRES ? intitule : (groupes[0]?.titresAffichage?.niv1 ?? intitule)
                       return rendreTitreColophonAvecNotes(
@@ -3949,7 +3958,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     {(() => {
                       // Le titre réellement composé au-dessus : sous « Liminaires », c'est le
                       // libellé de la carte, et il n'a pas à se redire en sous-titre.
-                      const titreAffiche = niv1Actif === NIV1_LIMINAIRES ? (niv1TexteMap[niv1Actif] || 'Liminaires') : niv1Actif
+                      const titreAffiche = intituleDeNiveau1(niv1Actif, niv1TexteMap)
                       const txt = complementDeTitre(titreAffiche, groupes[0]?.niv1_texte || niv1TexteMap[niv1Actif])
                       const notesTitre = notesDuTitre([txt], segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes)
                       return txt && configNiveaux.txtCorps[0]
@@ -5000,7 +5009,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             edition: versionsTextuelles.length > 1 && versionActive ? libelleVersionComplet(versionActive) : null,
             division: niv1Actif && niv1Actif !== NIV1_LIMINAIRES ? niv1Actif : null,
             divisionLibelle: niv1Actif
-              ? (niv1Actif === NIV1_LIMINAIRES ? (niv1TexteMap[niv1Actif] || 'Liminaires') : niv1Actif)
+              ? intituleDeNiveau1(niv1Actif, niv1TexteMap)
               : null,
             original: aTexteOriginal,
             apparat: tocApparat.length > 0 || segmentsApparat.length > 0,
@@ -5238,6 +5247,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       )}
       {!mobile && voletsDirty && <BoutonProportions onRetablir={resetVolets} />}
     </div>
+    </ProvisionNotesConnues>
   )
 }
 

@@ -38,6 +38,30 @@ export type NoteANumeroter = {
 }
 
 /**
+ * La division de chaque note : celle de sa PREMIÈRE ancre, dans l'ordre où la requête
+ * les rend (`note_key`, `segment_key`, `segment_offset_unicode`). Une note rappelée d'une
+ * division à l'autre appartient à celle où le lecteur la rencontre d'abord, et garde ce
+ * numéro à ses deux appels.
+ *
+ * ⛔ Une seule écriture : la page d'une œuvre (`chargerNotesStructurees`) et le
+ * résolveur des renvois (`renvoisNotesChargement.ts`) numérotent par elle. Deux
+ * écritures d'une même règle montreraient un jour deux numéros pour une même note.
+ * ⚠️ Une division absente vaut la chaîne vide, comme dans `numerotationLocale` : les
+ * notes qu'aucune division ne couvre forment une série, elles n'en sont pas privées.
+ */
+export function divisionsDesNotes(
+  ancres: readonly { note_key: string; segment_key: string | null }[],
+  divisionParSegment: ReadonlyMap<string, string>,
+): Map<string, string> {
+  const divisions = new Map<string, string>()
+  for (const ancre of ancres) {
+    if (divisions.has(ancre.note_key) || !ancre.segment_key) continue
+    divisions.set(ancre.note_key, divisionParSegment.get(ancre.segment_key) ?? '')
+  }
+  return divisions
+}
+
+/**
  * Rend, pour chaque `noteKey`, le numéro à AFFICHER.
  *
  * ⛔ L'ordre du tableau reçu EST l'ordre de lecture, et cette fonction ne le

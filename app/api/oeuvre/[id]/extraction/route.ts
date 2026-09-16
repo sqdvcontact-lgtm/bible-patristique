@@ -24,6 +24,8 @@ import { estNoteApparatCritique, texteApparatAffiche } from '@/app/lib/apparatCr
 import { natureSeNormaliseCommeReference } from '@/app/lib/naturesNote'
 import { normaliserReferencesDansTexte, terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
+import { texteAvecRenvoisEnClair } from '@/app/lib/renvoisNotes'
+import { intituleEnTexteNu } from '@/app/oeuvre/[id]/intituleSommaire'
 import { chargerIndexEditeurs } from '@/app/lib/editeursServeur'
 import { normaliserNomEditeur } from '@/app/lib/editeursNormalisation'
 import { projeterAppelsNotesStructureesSansFaillir } from '@/app/lib/appelsNotesStructurees'
@@ -105,9 +107,13 @@ function noteExtraite(note: NoteStructuree | string): NoteExtraite {
   return {
     blocs: blocs.map((bloc, index) => {
       if (apparat) return { texte: texteApparatAffiche(bloc), vers: bloc.form === 'verse', brut: true }
+      // ⛔ Un renvoi de note à note se dit en clair, avec sa tête ACTUELLE (« voir note 10
+      // de Seconde catéchèse ») : un document n'a pas de contrôle à offrir, et la citation
+      // imprimée qu'il remplace n'y paraît pas plus qu'à l'écran (charte § 13.20).
+      const texte = texteAvecRenvoisEnClair(bloc.text, bloc.renvois, intituleEnTexteNu)
       const source = natureSeNormaliseCommeReference(bloc.kind)
-        ? normaliserReferencesDansTexte(bloc.text)
-        : bloc.text
+        ? normaliserReferencesDansTexte(texte)
+        : texte
       const compose = normaliserTypographieLecture(source)
       return {
         texte: index === blocs.length - 1 ? terminerNote(compose) : compose,

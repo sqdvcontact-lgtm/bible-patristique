@@ -1,6 +1,5 @@
 import {
   AUCUN_ECHO,
-  estLiminaireSansNiveau,
   estSegmentDeLApparat,
   limiterRequeteAuxLiminairesSansNiveau,
   limiterRequeteSegmentsALaSurface,
@@ -9,6 +8,7 @@ import {
   SELECT_SEGMENT,
 } from '@/app/lib/oeuvreSelects'
 import { hydraterLiensHerites } from '@/app/lib/liens'
+import { INTITULE_CARTE_LIMINAIRES, NIV1_LIMINAIRES, niveau1DuSegment } from '@/app/lib/intituleNiveau1'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import type { Metadata } from 'next'
 import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
@@ -194,8 +194,6 @@ type AlignementRow = {
   alignment_level: string | null
   status: string | null
 }
-
-const NIV1_LIMINAIRES = '__LIMINAIRES__'
 
 
 // ⚠️ Ce que ces requetes DEMANDENT, non ce que les tables contiennent.
@@ -597,8 +595,7 @@ export default async function OeuvrePage({
   const promesseTranche: Promise<{ niv1: string; tranche: { segments: Segment[]; partiel: boolean } } | null> =
     lectureTexteEntier ? Promise.resolve(null) : (async () => {
       const passage = await promessePassage
-      const niv1 = passage?.ref_niv1
-        ?? (passage && estLiminaireSansNiveau(passage) ? NIV1_LIMINAIRES : null)
+      const niv1 = (passage ? niveau1DuSegment(passage) : null)
         ?? sp.niv1?.trim()
         ?? ''
       if (!niv1) return null
@@ -664,7 +661,7 @@ export default async function OeuvrePage({
     ...((nbSegmentsLiminaires ?? 0) > 0 ? [NIV1_LIMINAIRES] : []),
     ...niv1Complet.filter(n1 => niv1AvecTexte.has(n1)),
   ]
-  if ((nbSegmentsLiminaires ?? 0) > 0) niv1TexteMap[NIV1_LIMINAIRES] = 'LIMINAIRES'
+  if ((nbSegmentsLiminaires ?? 0) > 0) niv1TexteMap[NIV1_LIMINAIRES] = INTITULE_CARTE_LIMINAIRES
 
   const segmentCible = passage
   // Un lien vers un segment ouvre la surface que déclare son espace textuel ; les
@@ -676,8 +673,7 @@ export default async function OeuvrePage({
   // d'un côté, « Livre premier » de l'autre). Sinon, le premier, comme avant.
   const niv1Nomme = sp.niv1?.trim() ?? ''
   const niv1Demande = niv1Nomme && niv1List.includes(niv1Nomme) ? niv1Nomme : null
-  const niv1DuPassage = segmentCible?.ref_niv1
-    ?? (segmentCible && estLiminaireSansNiveau(segmentCible) ? NIV1_LIMINAIRES : null)
+  const niv1DuPassage = segmentCible ? niveau1DuSegment(segmentCible) : null
   const premierNiv1 = vueInitiale === 'texte' && niv1DuPassage
     ? niv1DuPassage
     : niv1Demande ?? niv1List[0] ?? null

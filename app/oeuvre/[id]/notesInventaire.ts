@@ -21,6 +21,8 @@ import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { replier } from '@/app/lib/bibleBibliographieOuvrages'
 import { intituleDesTypes, libelleTypeNote, typesDeLaNote } from '@/app/lib/typeNote'
 import type { NoteStructuree } from './oeuvreTypes'
+import { texteAvecRenvoisEnClair } from '@/app/lib/renvoisNotes'
+import { intituleEnTexteNu } from './intituleSommaire'
 
 /** La place d'un segment dans le texte, telle que le recensement en a besoin. */
 export type PlaceSegment = {
@@ -168,7 +170,8 @@ export function apercuDeLaNote(note: NoteStructuree, longueur = LONGUEUR_APERCU)
   const joint = [...note.blocks]
     .sort((a, b) => a.rank - b.rank)
     .map(bloc => {
-      const texte = (bloc.text ?? '').trim()
+      // ⚠️ Un renvoi de note à note s'y lit comme à l'écran, tête actuelle comprise.
+      const texte = texteAvecRenvoisEnClair(bloc.text ?? '', bloc.renvois, intituleEnTexteNu).trim()
       return !apparat && natureSeNormaliseCommeReference(bloc.kind)
         ? normaliserReferencesDansTexte(texte)
         : texte

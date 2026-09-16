@@ -68,11 +68,12 @@ describe('intituleEnTexteNu', () => {
 describe('aucune surface de la page ne compose un intitulé nu', () => {
   // `titreSansAppelsDeNote` rend une CHAÎNE qui porte encore ses marques : un composant
   // qui l'affiche tel quel remet les astérisques à l'écran. Il ne sert donc plus qu'à
-  // l'intérieur d'appelNote, où les deux aides le composent.
-  it('seul appelNote emploie encore titreSansAppelsDeNote', () => {
+  // l'intérieur du module qui le définit (`intituleSommaire.tsx`), où les deux aides le
+  // composent, et de sa réexportation dans appelNote.
+  it('seuls intituleSommaire et appelNote emploient encore titreSansAppelsDeNote', () => {
     const dossier = new URL('./', import.meta.url)
     const fautifs = readdirSync(dossier)
-      .filter(nom => /\.tsx?$/.test(nom) && !nom.includes('.test.') && nom !== 'appelNote.tsx')
+      .filter(nom => /\.tsx?$/.test(nom) && !nom.includes('.test.') && nom !== 'appelNote.tsx' && nom !== 'intituleSommaire.tsx')
       .filter(nom => readFileSync(new URL(nom, dossier), 'utf8').includes('titreSansAppelsDeNote'))
     expect(fautifs).toEqual([])
   })

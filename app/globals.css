@@ -3491,6 +3491,33 @@ main.lecture-entree [data-cs-bloc],
    une liste bibliographique ou une citation sortie gardent leurs derniers-nés. */
 .cs-encart-propos > :only-child > :last-child { margin-bottom: 0 !important; }
 
+/* ── LE RENVOI DE NOTE À NOTE ─────────────────────────────────────────────────
+   Charte § 13.20. RenvoiNote.tsx pose ces classes : la tête d'un renvoi et son
+   contrôle, la tête d'une mention sous son bloc, et la note visée dépliée.
+
+   ⛔ LA TÊTE N'A PAS DE DESSIN À ELLE : « voir note 10 de Seconde catéchèse : » est une
+   phrase de la note, et prend la voix du bloc qui la porte. Seul le CONTRÔLE se
+   distingue, par le trait et la teinte d'un lien pris dans une phrase (.cs-lien-phrase),
+   et il ne se coupe jamais.
+
+   ⛔ LA NOTE VISÉE SE DÉPLIE EN RETRAIT, UN FILET À SA GAUCHE : c'est une note DANS une
+   note, et le filet dit où elle commence et où elle finit. Ni fond ni cadre, l'encart en
+   porte déjà un. ⚠️ Son dernier bloc rend son blanc, comme le dernier bloc de l'encart, et
+   pour la même raison : le style en ligne de styleBlocNote bat toute règle sans point
+   d'exclamation. ⚠️ Le blanc d'une ligne et d'un dépliage vaut celui d'un bloc de note
+   (MARGE_PARAGRAPHE_ENCART_REM, 0,375 rem) ; une garde les confronte. */
+.cs-renvoi-controle { white-space: nowrap; }
+.cs-renvoi-ligne { margin: 0 0 0.375rem; }
+.cs-renvoi-depliage {
+  margin: 0 0 0.375rem;
+  padding-left: 0.75em;
+  border-left: 2px solid var(--cs-bord);
+}
+.cs-renvoi-depliage > :last-child,
+.cs-renvoi-depliage > :only-child > :last-child { margin-bottom: 0 !important; }
+.cs-renvoi-etat { margin: 0; }
+.cs-renvoi-arret { font-style: italic; color: var(--cs-texte-second); }
+
 /* ── L'EXPLICATION DE CORPUS SCRIPTURA SE LIT EN VERT ─────────────────────────
    Les deux classes sont posées par ContenuNoteStructuree sur le bloc dont la donnée
    déclare metadata.reader_style = corpus_explanation, et sur son libellé

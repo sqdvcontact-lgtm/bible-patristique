@@ -87,12 +87,17 @@ export const ECART_MANCHETTE_REM = 0.5
  *
  * ⚠️ Une note HÉRITÉE (une chaîne, non un objet) ne dit pas ce qu'elle est : elle
  * garde son appel.
+ *
+ * ⛔ UN BLOC QUI PORTE UN RENVOI DE NOTE À NOTE N'Y VA JAMAIS (charte § 13.20) : sa tête,
+ * son contrôle et la note qu'il déplie ne tiennent pas au bord d'une ligne, et la manchette
+ * rendrait sa citation imprimée, que le renvoi remplace.
  */
 export function estRenvoiSeul(
-  note: string | { blocks: readonly { kind: string }[] },
+  note: string | { blocks: readonly { kind: string; renvois?: readonly unknown[] }[] },
 ): boolean {
   if (typeof note === 'string') return false
-  return note.blocks.length > 0 && note.blocks.every(bloc => bloc.kind === 'reference')
+  return note.blocks.length > 0
+    && note.blocks.every(bloc => bloc.kind === 'reference' && (bloc.renvois?.length ?? 0) === 0)
 }
 
 /** Les signes qu'un renvoi rend à l'écran, marques d'enrichissement ôtées : ce que le
@@ -119,7 +124,7 @@ export function signesDuRenvoi(note: { blocks: readonly { text?: string | null }
  * et le renvoi de cette ligne-là devait descendre.
  */
 export function vaEnManchette(
-  note: string | { blocks: readonly { kind: string; text?: string | null }[] },
+  note: string | { blocks: readonly { kind: string; text?: string | null; renvois?: readonly unknown[] }[] },
 ): boolean {
   return typeof note !== 'string' && estRenvoiSeul(note) && signesDuRenvoi(note) <= SIGNES_MANCHETTE
 }

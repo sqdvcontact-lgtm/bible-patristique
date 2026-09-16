@@ -3,6 +3,8 @@
 import { Fragment } from 'react'
 import type { NoteBlocData, NoteStructuree } from './oeuvreTypes'
 import { composerSeriesBibliographiques } from './serieBibliographiqueNote'
+import { ProvisionRenvois, RenvoisDansLeTexte, RenvoisSousLeBloc } from './RenvoiNote'
+import { positionsDesRenvois, verbeDuRenvoi, type GroupeDeRenvois } from '@/app/lib/renvoisNotes'
 import { normaliserReferencesDansTexte, terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { estNoteApparatCritique } from '@/app/lib/apparatCritique'
@@ -76,15 +78,16 @@ function texteFinal(texte: string, estDernier: boolean): string {
  * bloc entier retombe sur son texte source. La bibliographie ne peut donc jamais
  * manger une phrase qu'elle n'a pas explicitement reçue en charge.
  */
-function rendreBlocAvecBibliographie(
+type PositionBibliographique = {
+  reference: BibliographieNote.ReferenceBibliographiqueNote
+  debut: number
+  second: number
+}
+
+function positionsBibliographiques(
   bloc: NoteBlocData,
   references: readonly BibliographieNote.ReferenceBibliographiqueNote[],
-  estDernier: boolean,
-) {
-  if (references.length === 0) {
-    return rendreTexteEnrichi(texteFinal(texteBloc(bloc), estDernier))
-  }
-
+): PositionBibliographique[] | null {
   const positions = references.map(reference => {
     const debut = bloc.text.indexOf(reference.sourceCitation)
     const second = debut < 0 ? -1 : bloc.text.indexOf(reference.sourceCitation, debut + reference.sourceCitation.length)
@@ -92,30 +95,100 @@ function rendreBlocAvecBibliographie(
   })
   if (positions.some(item => item.debut < 0 || item.second >= 0)) {
     console.error(`[notes] ancre bibliographique non unique dans ${bloc.blockId}`)
+    return null
+  }
+  return positions
+}
+
+/** Ce qui tranche le texte d'un bloc : une notice bibliographique, ou une citation
+ *  imprimée qu'un renvoi de note à note remplace. */
+type Intervention =
+  | { sorte: 'ouvrage'; debut: number; fin: number; reference: BibliographieNote.ReferenceBibliographiqueNote }
+  | { sorte: 'renvoi'; debut: number; fin: number; groupe: GroupeDeRenvois }
+
+/** Les interventions d'un bloc, dans l'ordre du texte, ou `null` si deux se chevauchent. */
+function interventionsDuBloc(
+  positions: readonly PositionBibliographique[],
+  groupes: readonly GroupeDeRenvois[],
+): Intervention[] | null {
+  const interventions: Intervention[] = [
+    ...positions.map(item => ({
+      sorte: 'ouvrage' as const,
+      debut: item.debut,
+      fin: item.debut + item.reference.sourceCitation.length,
+      reference: item.reference,
+    })),
+    ...groupes.map(groupe => ({ sorte: 'renvoi' as const, debut: groupe.debut, fin: groupe.fin, groupe })),
+  ].sort((a, b) => a.debut - b.debut)
+  let curseur = 0
+  for (const item of interventions) {
+    if (item.debut < curseur) return null
+    curseur = item.fin
+  }
+  return interventions
+}
+
+/**
+ * LES RENVOIS DE NOTE À NOTE QU'UN BLOC PEUT RENDRE (charte § 13.20).
+ *
+ * ⛔ Chaque citation imprimée est cherchée TELLE QUELLE (`positionsDesRenvois`). Si l'une
+ * manque — le texte du bloc a changé depuis la relation — ou chevauche une notice
+ * bibliographique, le bloc garde sa FORME IMPRIMÉE et aucun renvoi n'est rendu : une
+ * tête dynamique posée à côté de la citation qu'elle remplace dirait deux fois la même
+ * chose. C'est la couche secondaire qui cède, jamais la lecture.
+ */
+const RENVOIS_DEJA_SIGNALES = new Set<string>()
+
+function renvoisRendables(
+  bloc: NoteBlocData,
+  references: readonly BibliographieNote.ReferenceBibliographiqueNote[],
+): GroupeDeRenvois[] {
+  const renvois = bloc.renvois ?? []
+  if (renvois.length === 0) return []
+  const groupes = positionsDesRenvois(bloc.text, renvois)
+  const positions = references.length > 0 ? positionsBibliographiques(bloc, references) : []
+  const compatibles = groupes !== null && positions !== null && interventionsDuBloc(positions, groupes) !== null
+  if (!compatibles) {
+    if (!RENVOIS_DEJA_SIGNALES.has(bloc.blockId)) {
+      RENVOIS_DEJA_SIGNALES.add(bloc.blockId)
+      console.error(`[notes] renvoi de note à note laissé à sa forme imprimée dans ${bloc.blockId} : citation introuvable ou chevauchante`)
+    }
+    return []
+  }
+  return groupes
+}
+
+function rendreBlocAvecBibliographie(
+  bloc: NoteBlocData,
+  references: readonly BibliographieNote.ReferenceBibliographiqueNote[],
+  estDernier: boolean,
+  groupes: readonly GroupeDeRenvois[] = [],
+) {
+  if (references.length === 0 && groupes.length === 0) {
     return rendreTexteEnrichi(texteFinal(texteBloc(bloc), estDernier))
   }
-  positions.sort((a, b) => a.debut - b.debut)
 
-  let curseur = 0
-  for (const item of positions) {
-    if (item.debut < curseur) {
-      console.error(`[notes] ancres bibliographiques chevauchantes dans ${bloc.blockId}`)
-      return rendreTexteEnrichi(texteFinal(texteBloc(bloc), estDernier))
-    }
-    curseur = item.debut + item.reference.sourceCitation.length
+  const positions = positionsBibliographiques(bloc, references)
+  if (!positions) return rendreTexteEnrichi(texteFinal(texteBloc(bloc), estDernier))
+  const interventions = interventionsDuBloc(positions, groupes)
+  if (!interventions) {
+    console.error(`[notes] ancres bibliographiques chevauchantes dans ${bloc.blockId}`)
+    return rendreTexteEnrichi(texteFinal(texteBloc(bloc), estDernier))
   }
 
-  curseur = 0
+  let curseur = 0
   return (
     <>
-      {positions.map((item, rang) => {
+      {interventions.map((item, rang) => {
         const avant = bloc.text.slice(curseur, item.debut)
-        curseur = item.debut + item.reference.sourceCitation.length
+        curseur = item.fin
         return (
-          <Fragment key={`${item.reference.ouvrageId}:${item.reference.citationRank}`}>
+          <Fragment key={item.sorte === 'ouvrage' ? `${item.reference.ouvrageId}:${item.reference.citationRank}` : `renvoi:${item.debut}`}>
             {avant ? rendreTexteEnrichi(textePartielBloc(bloc, avant)) : null}
-            <BibliographieNote.ReferenceBibliographiqueNote reference={item.reference} />
-            {rang === positions.length - 1 ? (() => {
+            {item.sorte === 'ouvrage'
+              ? <BibliographieNote.ReferenceBibliographiqueNote reference={item.reference} />
+              : <RenvoisDansLeTexte groupe={item.groupe} verbe={verbeDuRenvoi(bloc.text, item.debut, item.groupe.citation)} />}
+            {rang === interventions.length - 1 ? (() => {
               const apres = bloc.text.slice(curseur)
               return apres
                 ? rendreTexteEnrichi(texteFinal(textePartielBloc(bloc, apres), estDernier))
@@ -255,6 +328,12 @@ export function ContenuRenvoiEnLigne({ note }: { note: NoteStructuree }) {
   )
 }
 
+/** La note visée par un renvoi se rend par le composant ordinaire des notes : le renvoi le
+ *  reçoit ainsi, sans l'importer (`RenvoiNote.tsx`). */
+function rendreNoteVisee(note: NoteStructuree) {
+  return <ContenuNoteStructuree note={note} />
+}
+
 export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
   const blocks = [...note.blocks].sort((a, b) => a.rank - b.rank)
   const apparatCritique = estNoteApparatCritique(note)
@@ -308,8 +387,11 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
   const entete = coupe < rendus.length ? rendus.slice(0, coupe) : []
   const affiches = coupe < rendus.length ? rendus.slice(coupe) : rendus
   const dernierBlocId = affiches.at(-1)?.blockId
+  // ⛔ Ce qui est déplié dans une note n'appartient qu'à elle : une note ouverte dans une
+  // autre porte sa propre provision (charte § 13.20).
+  const porteDesRenvois = blocks.some(block => (block.renvois?.length ?? 0) > 0)
 
-  return (
+  const racine = (
     <div
       data-note-key={note.noteKey}
       data-note-number={note.noteNumber}
@@ -364,16 +446,20 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
         // convergent ici : la fonction ne retire rien à un texte qui n'en porte plus.
         // ⛔ ON NE TOUCHE PAS un bloc dont le texte est tranché ailleurs : une notice
         // bibliographique s'y pose par SOUS-CHAÎNE, et la raccourcir la ferait manquer.
-        const blocRendu = sortie && (bibliographieParBloc[block.blockId] ?? []).length === 0
+        // ⚠️ Et un bloc qui porte un RENVOI de note à note : sa citation s'y cherche aussi
+        // par sous-chaîne (charte § 13.20).
+        const groupesRenvois = renvoisRendables(block, bibliographieParBloc[block.blockId] ?? [])
+        const blocRendu = sortie && (bibliographieParBloc[block.blockId] ?? []).length === 0 && groupesRenvois.length === 0
           ? { ...block, text: sansGuillemetsEncadrants(block.text) }
           : block
         const lignesVers = verse ? lignesDeVers(blocRendu.text) : []
         const versEnLignes = lignesVers.length > 1
           && (bibliographieParBloc[block.blockId] ?? []).length === 0
           && referencesInline.length === 0
+          && groupesRenvois.length === 0
         const styleLigne = sortie ? styleLigneDeVers({ rang: 0 }) : { ...styleLigneDeVers({ rang: 0 }), marginLeft: 0 }
 
-        return (
+        const rendu = (
           <div
             key={block.blockId}
             className={explication ? CLASSE_EXPLICATION_CORPUS : undefined}
@@ -433,7 +519,7 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
                   {rendreTexteEnrichi(texteFinal(textePartielBloc(blocRendu, ligne), finSurTexte && i === lignesVers.length - 1))}
                 </span>
               ))
-              : rendreBlocAvecBibliographie(blocRendu, bibliographieParBloc[block.blockId] ?? [], finSurTexte)}
+              : rendreBlocAvecBibliographie(blocRendu, bibliographieParBloc[block.blockId] ?? [], finSurTexte, groupesRenvois)}
             {referencesInline.map((reference, i) => (
               <span
                 key={reference.blockId}
@@ -468,7 +554,17 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
             ))}
           </div>
         )
+        // ⛔ LA NOTE VISÉE SE DÉPLIE SOUS LE BLOC, EN SŒUR, jamais dedans : elle hériterait
+        // sinon de l'italique d'un bloc latin, du vert d'une explication, du retrait d'une
+        // citation sortie.
+        return groupesRenvois.length > 0 ? (
+          <Fragment key={block.blockId}>
+            {rendu}
+            <RenvoisSousLeBloc renvois={block.renvois ?? []} rendreNote={rendreNoteVisee} />
+          </Fragment>
+        ) : rendu
       }))}
     </div>
   )
+  return porteDesRenvois ? <ProvisionRenvois>{racine}</ProvisionRenvois> : racine
 }

@@ -6,6 +6,7 @@ import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import type { DegradationChargement } from '@/app/lib/chargementTolerant'
 import type { SectionApparat } from '@/app/lib/oeuvreSelects'
 import type { StyleLectureBloc } from '@/app/lib/explicationCorpus'
+import type { RenvoiNoteData } from '@/app/lib/renvoisNotes'
 
 export type VRef = { id: string; label: string; textes: Record<string, string>; livre: string; chapitre: string; verset: string }
 export type NoteBlocData = {
@@ -58,6 +59,11 @@ export type NoteBlocData = {
   /** `metadata.reader_label` — le libellé de présentation qui accompagne ce style.
    *  ⛔ Il se compose dans sa propre boîte, jamais au début du texte. */
   readerLabel?: string | null
+  /** Les RENVOIS vers d'autres notes que porte ce bloc (`texte_note_renvois`), dans
+   *  l'ordre de lecture. ⛔ Chacun vise une note par son identité stable ; sa tête —
+   *  numéro affiché, titre de niveau 1 — se résout au chargement, jamais dans la donnée
+   *  (`app/lib/renvoisNotes.ts`). Absent quand le bloc n'en porte aucun. */
+  renvois?: RenvoiNoteData[]
 }
 export type NoteStructuree = {
   noteKey: string
