@@ -681,6 +681,7 @@
 - ⛔ L’italique hérité de l’imprimé n’est jamais conservé par inertie.
 - ⛔ Dans une citation, distinguer impérativement suspension textuelle et intervention éditoriale : `…` ne vaut que pour une suspension appartenant au texte cité ; toute omission ou coupe éditoriale se note `[…]`. Toute restitution, équivalence, glose ou autre ajout de l’éditeur inséré à l’intérieur d’une citation se place entre crochets droits `[ ]`, jamais entre parenthèses ; l’italique éventuel reste à l’intérieur des crochets (`[*terme latin*]`).
 - ⛔ Dans les notes comme partout ailleurs, le demi-cadratin `–` est exclusivement un tiret d’incise verbale. Tout autre emploi exige le trait d’union simple `-` : plages de chapitres, versets, paragraphes, pages, lignes, vers, dates, renvois, dialogues, attributions ou séparateurs bibliographiques, titres et toute autre liaison non incidente. Une référence qui constitue à elle seule l’incidence se compose entre parenthèses, jamais entre tirets : `… son sceau (Catéchèse I, 3).` — Une véritable incise verbale peut contenir une référence, mais sa fonction incidente doit être portée par une proposition ou un syntagme plus large ; la seule présence d’une référence n’autorise jamais `–`.
+- ⛔ PONCTUATION TERMINALE APRÈS UN EMPAN ITALIQUE.
 - ⛔ Citations latines directes — détection et correction obligatoires.
 - ⛔ Ne jamais introduire une longueur minimale à l’intérieur de cette regex, par exemple `\\*([^*]{20,})\\*` : l’astérisque fermant d’un petit empan peut alors être pris pour un ouvrant et fabriquer un faux empan qui englobe la prose jusqu’au prochain italique.
 - ⛔ RÉOUVERTURE PAR DÉPENDANCE, PAS PAR RÉPÉTITION GLOBALE.
@@ -3139,6 +3140,22 @@
 - ⛔ ET UN MODULE LOURD NE SE TIRE PAS DANS LE PAQUET DU NAVIGATEUR POUR VINGT LIGNES.
 - ⚠️ La question se pose à chaque fois qu’un composant CLIENT importe d’un module SERVEUR : ce n’est pas la fonction qu’on emporte, c’est tout ce que son fichier tire derrière elle.
 
+## § 13. Notes et apparats
+
+**§ 13.18.1 — Une citation LONGUE se détache, et un texte SORTI perd ses guillemets**
+
+- ⛔ UNE CITATION LONGUE SE DÉTACHE, MÊME QUAND LA DONNÉE NE LE DIT PAS — et le seuil est celui des œuvres (§ 3.8) : une seule mesure pour tout le site.
+- ⚠️ Il ne contredit AUCUNE déclaration du corpus — les 36 citations déclarées au fil au 16 septembre 2026 comptent au plus 391 signes, et aucune ne l’atteint.
+- ⛔ Et la DÉCLARATION l’emporte toujours — une citation que l’éditeur veut au fil y reste, si longue soit-elle, et le seuil ne se retourne jamais contre lui.
+- ⛔ LE SEUIL NE VAUT QUE POUR UNE CITATION.
+- ⛔ UN TEXTE SORTI PERD SES GUILLEMETS ENCADRANTS, ET C’EST AU RENDU.
+- ⚠️ Le corpus porte les DEUX formes — l’éditeur les retire quand il déclare la sortie, 149 blocs sur 151 —, et c’est précisément pourquoi la règle vit au rendu : les deux convergent, et rien n’est retiré à un texte qui n’en porte plus.
+- ⚠️ LA PAIRE ENCADRANTE EST LE PREMIER « ET LE DERNIER », non le dernier signe du texte.
+- ⛔ Rien n’est retiré à un texte qui n’ouvre pas sur un guillemet, ou qui n’en porte aucun qui ferme : un guillemet isolé appartient au texte cité, et on ne l’ampute pas.
+- ⛔ ET L’ON NE TOUCHE PAS UN BLOC DONT LE TEXTE EST TRANCHÉ AILLEURS — une notice bibliographique s’y pose par SOUS-CHAÎNE, et raccourcir le texte la ferait manquer.
+- ⛔ LE TEXTE QUI ANNONCE LA CITATION NE BOUGE PAS.
+- ⚠️ Mesuré sur le corpus, avec les fonctions de la page
+
 ---
 
 ## Couverture — les chapitres que le noyau représente le moins
@@ -3149,9 +3166,9 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 |---|---|---:|---:|---:|
 | 3 | Typographie — les signes, les espaces, l’enric | 65 793 | 48 | **0.7** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
+| 52 | Les états de publication et de validation | 18 251 | 16 | **0.9** |
 | 15 | Corpus biblique et traductions | 18 188 | 17 | **0.9** |
 | 51 | Les objets d’interface partagés | 99 710 | 99 | **1.0** |
 | 35 | Chantier Fillion — la composition du paratexte | 79 915 | 81 | **1.0** |
-| 52 | Les états de publication et de validation | 15 200 | 16 | **1.1** |
 | 48 | Le protocole d’océrisation d’une bible | 46 262 | 51 | **1.1** |
 | 37 | La notice d’une traduction — le bandeau et l’e | 8 621 | 10 | **1.2** |

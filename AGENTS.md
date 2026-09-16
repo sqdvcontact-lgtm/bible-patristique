@@ -11496,3 +11496,69 @@ toucher.
 - ⚠️ **Le menu se contrôle SANS SERVEUR** : un script d'atelier qui appelle
   `lecturesDisponibles` puis `entreesDuMenu` sur les faits RÉELS et imprime la liste. ⛔ Rien
   n'y est rejoué de mémoire : les deux fonctions sont celles de la page.
+
+# ⛔ UNE CITATION LONGUE SORT DE LA NOTE, ET PERD SES GUILLEMETS (2026-09-16)
+
+Doctrine : charte `parametres.charte_ia`, **§ 13.18.1**. Ici, ce qu'il faut savoir pour y
+toucher.
+
+- **`sansGuillemetsEncadrants` vit dans `app/lib/citationSortie.ts`**, à côté de sa sœur
+  `textesCitationStructurelleSansEncadrement`, qui sert les SEGMENTS d'une œuvre : là, la
+  citation se recompose de plusieurs lignes et le guillemet fermant TERMINE le dernier
+  segment, appel de note compris. ⛔ Les deux règles ne se confondent pas, et l'on ne fait
+  pas appeler l'une par l'autre.
+- ⛔ **LA FRANCISATION VIENT APRÈS LE RETRAIT, JAMAIS AVANT.**
+  `guillemetsInternesEnFrancais` fait d'un guillemet anglais fermant un guillemet français
+  fermant, et la recherche du DERNIER prendrait alors un guillemet INTERNE pour
+  l'encadrant. ⚠️ Sa sœur francise d'abord, et elle le peut parce qu'elle s'ancre sur la
+  fin de la chaîne ; ici la paire se cherche au premier et au dernier signe, non à la fin.
+- **Le seuil vit dans `dispositionCitation`** (`compositionNote.ts`) et il est IMPORTÉ de
+  `citationSortie.ts` : `SEUIL_CITATION_SORTIE` est la mesure du site, œuvres comprises.
+  ⛔ `BlocDispose` gagne `text` pour cela, et ce champ n'est lu QUE par le seuil, donc
+  seulement à défaut de déclaration.
+- ⛔ **LE RENDU DÉRIVE UN BLOC, IL NE RÉÉCRIT PAS LE SIEN.** `blocRendu`
+  (`ContenuNoteStructuree`) porte le texte dépouillé et sert les trois sites qui lisent le
+  texte : les lignes de vers, leur découpe, la bibliographie. ⚠️ Le bloc d'origine garde
+  son identité — `blockId`, `kind`, `editorialRole` — et rien d'autre ne change.
+- ⛔ **LA GARDE DE LA BIBLIOGRAPHIE N'EST PAS UN ORNEMENT** :
+  `rendreBlocAvecBibliographie` localise sa notice par `indexOf` d'une SOUS-CHAÎNE, et un
+  texte raccourci la ferait manquer — le bloc retomberait sur son texte source, avec une
+  erreur au journal. Un bloc qui porte une notice n'est donc pas dépouillé.
+- ⚠️ **Le commentaire qui ANNONCE la citation n'est jamais touché** : le seuil ne vise que
+  les `quotation`, et une prose de note reste au fil quelle que soit sa longueur.
+- **Trois gardes** : `citationSortie.test.ts` (la fonction pure, l'idempotence, la paire
+  extérieure, le texte déjà dépouillé, la francisation),
+  `compositionNote.disposition.test.ts` (le seuil, la déclaration qui l'emporte, les
+  natures qu'il ne touche pas) et `ContenuNoteStructuree.sortie.test.tsx` (le rendu, sur
+  le texte RÉEL de la note 146 de La Cité de Dieu).
+- ⚠️ **Le contrôle se fait sur le CORPUS, avec les fonctions de la page** :
+  `tmp/controle-citation-sortie.mts` (non versionné) relit les 25 373 blocs, compare
+  l'ancienne règle à la nouvelle et nomme ce qui change. ⛔ Rien n'y est rejoué de
+  mémoire, sinon la règle d'AVANT, et seulement pour mesurer l'écart.
+
+## ⛔ LES OUTILS POSIX DE GIT BASH MENTENT SUR LES FINS DE LIGNE (2026-09-16)
+
+`awk`, `sed` et `grep` avalent le CR en lecture. `app/lib/citationSortie.ts` est en CRLF
+d'un bout à l'autre, et pourtant `grep -c` sur un retour chariot y rend **zéro**, quand
+`awk … | xxd` n'y montre que des `0a`. Une ancre multi-ligne écrite en sauts simples ne
+s'y apparie donc pas, et **rien ne le dit** : le script rapporte « ancre introuvable » sur
+une ancre qui est là, au caractère près.
+
+⛔ **LE JUGE EST NODE** : `(s.match(/\r\n/g) || []).length`. ⚠️ Le dépôt est mixte et se
+mesure FICHIER PAR FICHIER — au 16 septembre 2026, `citationSortie.ts` est en CRLF pur,
+`compositionNote.ts` et `ContenuNoteStructuree.tsx` en LF, et `citationSortie.test.ts`
+porte les DEUX (182 CRLF, 25 LF, la fin du fichier en LF). ⛔ On ne normalise donc pas le
+fichier, ce qui ferait tout un diff de churn : on essaie l'ancre dans les deux fins de
+ligne et l'on rend celle qui a répondu.
+
+⛔ **ET UN HEREDOC INTERPRÈTE `\uXXXX`, comme `Write` et `Edit`.** Un
+`[ \u00A0\u202F\t]` écrit dans un `cat <<'FIN'` arrive dans le fichier comme une classe de
+caractères INVISIBLES : la regex fonctionne toujours, et la source ne se relit plus.
+⚠️ Le remède est d'écrire un marqueur et de le remplacer par `String.fromCharCode`, puis
+de CONTRÔLER les points de code après écriture — jamais de se fier au rendu d'un outil de
+lecture.
+
+⚠️ **Une ancre ASCII vaut mieux qu'une ancre accentuée.** Celle de cette passe portait une
+espace fine insécable dans une expression du fichier (`'«\u202F'`), invisible à la
+relecture : on a cru à un défaut d'apostrophe. Ancrer sur une signature de fonction, puis
+couper sur la fin de son corps, ne dépend d'aucun caractère qu'on ne voit pas.
