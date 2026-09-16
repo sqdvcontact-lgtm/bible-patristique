@@ -8377,3 +8377,27 @@ Mission de l’auteur du 16 septembre 2026, qui applique aux cinq œuvres A0044 
 ⛔ **UNE CIBLE SE RÉSOUT AVEC CERTITUDE, OU LE RENVOI RESTE IMPRIMÉ.** La division et la lettre lues dans la citation désignent une note et une seule ; le locus imprimé concorde quand il existe ; le contenu de la note visée ne contredit pas ce que la source en annonce. Faute de quoi le renvoi reste en réserve, sous sa forme imprimée. Jamais par ressemblance, par proximité ni par numéro.
 
 ⚠️ **Toutes les surfaces qui lisent une note suivent la tête actuelle** : l’encart et le volet des notes d’une œuvre, l’inventaire des notes et l’extraction Word, ces deux derniers en clair et sans contrôle. ⛔ Un bloc qui porte un renvoi ne va pas en manchette (§ 13.14) : la tête, le contrôle et la note dépliée ne tiennent pas au bord d’une ligne.
+
+### 51.9 Le LASSO — plusieurs versets ou passages d'un seul geste, depuis le blanc
+
+Décision de l'auteur, 16 septembre 2026 : « un outil de lasso permettant de sélectionner plusieurs versets ou segments pour les enregistrer ; comme sur le bureau Windows, quand on clique sur le blanc de la page Bible ou œuvre ».
+
+⛔ **LE LASSO NE NAÎT QUE DANS LE BLANC.** Un glissé qui part d'un texte reste une sélection de texte, un clic sur un verset ou un passage garde sa fonction. Le blanc, c'est la marge de la colonne, l'intervalle entre deux paragraphes, la gouttière : jamais un texte, une rangée de verset, un bloc éditorial, un titre, un contrôle, ni une barre de défilement ou la gouttière qu'elle réserve.
+
+⛔ **IL NE PREND QUE CE QUI S'ENREGISTRE UN PAR UN.** Sur la page Bible, un verset qui porte son texte dans la traduction lue ; sur une œuvre, un passage de la lecture du texte, en français seul ou en regard. Ni les lignes recomposées d'une édition, ni une lacune, ni l'apparat, ni la comparaison, ni le texte original lu seul : le lasso ne prête pas d'actions à ce qui n'en a pas.
+
+⛔ **AU BUREAU ET À LA SOURIS SEULEMENT.** L'axe est la capacité du pointeur, jamais la largeur de l'écran : au doigt, glisser fait défiler la page.
+
+⚠️ **LA SÉLECTION SUIT LA PAGE, NON LE GESTE.** Tout ce que le cadre touche est retenu, dans l'ordre de lecture. Près du bord, la page défile d'elle-même et le cadre s'étend avec elle. Maj, Ctrl ou Cmd ajoute à la sélection au lieu de la remplacer. Échap pendant le geste rend la sélection d'avant ; après le geste, Échap la défait, et un clic dans le blanc aussi, comme sur le bureau. Changer de chapitre, de traduction, de division ou de page la défait : elle désignerait ce qu'on ne voit plus.
+
+⛔ **PENDANT LE GESTE, RIEN NE SE SÉLECTIONNE ET RIEN NE SE CLIQUE.** Aucun texte ne se surligne sous le cadre, et le clic qui termine le geste ne fait rien : lâché sur un verset, il le retiendrait.
+
+**La barre.** Un petit objet flottant, posé sur l'axe du texte au pied de l'écran, de la famille de la cellule d'actions (§ 51.1) : le compte (« 4 versets sélectionnés »), puis « Enregistrer », « Retirer », « Copier » et une croix. Après une action, elle dit ce qui a été fait (« 4 versets enregistrés »), puis revient au compte.
+
+⛔ **ENREGISTRER N'ÉCRIT QUE CE QUI MANQUE, RETIRER VISE LA CLÉ NATURELLE.** « Enregistrer » ne paraît que s'il reste un passage à enregistrer, et n'écrit que ceux-là ; « Retirer » ne paraît que si l'un d'eux l'est déjà. Le retrait vise ce lecteur et ces versets, ou ce lecteur et ces passages, comme le signet : sur la Bible, un verset prélevé l'est quelle que soit la traduction lue, et le retrait l'enlève de même.
+
+⛔ **LA COPIE DIT CE QUI MANQUE.** Deux passages qui ne se suivent pas se séparent d'une élision « […] », et la référence d'une sélection de versets se compacte (« Gn 1, 2-5.8 ») : copier le premier et le quatrième sans le dire ferait lire un texte que l'auteur n'a pas écrit. Ctrl+C copie la sélection, sauf si un texte est surligné ou qu'un champ a le foyer : ce qu'on a surligné l'emporte.
+
+⚠️ **LA SURBRILLANCE NE REMPLACE PAS LE FOND D'UN VERSET RETENU** : elle se peint par-dessus, en voile vert léger, et la trace du cadre prend la même teinte, dans les deux thèmes.
+
+⚠️ **PAS ENCORE COUVERT** : la lecture en regard de la page Bible, la Polyglotte, l'apparat et la comparaison d'une œuvre, le téléphone.
