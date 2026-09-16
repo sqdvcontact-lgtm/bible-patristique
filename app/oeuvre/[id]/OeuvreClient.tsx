@@ -4770,7 +4770,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       (2026-09-16) : les familles s'y replient sous leur nom commun, et leur
                       sous-menu décline les langues et les graphies d'un même témoin. Ce sont
                       les entrées qui ont changé, non le composant : il regroupait déjà, mais
-                      le volet ne lui donnait que des bibles sans famille. */}
+                      le volet ne lui donnait que des bibles sans famille.
+                      ⛔ ET LE SOUS-MENU S'OUVRE À GAUCHE, VERS LE TEXTE, son chevron en tête de
+                      ligne (décision de l'auteur, 2026-09-16) : le volet borde l'écran à droite.
+                      Il vit dans un portail, parce que ce défileur rognait tout ce qui sortait du
+                      volet, et le sous-menu paraissait passer SOUS le bloc central. */}
                   <button ref={tradBoutonRef} type="button" onClick={() => setTradOuverte(o => !o)}
                     aria-haspopup="menu" aria-expanded={tradOuverte} aria-controls={tradOuverte ? idMenuTraductions : undefined}
                     aria-label={`${lecture.label}, choisir la traduction biblique`}
@@ -4782,7 +4786,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   {tradOuverte && (
                     <ListeMenuBibles id={idMenuTraductions} libelle="Traductions bibliques"
                       traductions={lecturesBible} traductionIndex={tradIndex}
-                      choisir={choisirTraduction} fermer={fermerMenuTraductions} cadre={tradSelectRef}
+                      choisir={choisirTraduction} fermer={fermerMenuTraductions} cadre={tradSelectRef} cote="gauche"
                       style={{ position: 'absolute', top: 'calc(100% - 4px)', left: 0, right: 0, zIndex: 50 }} />
                   )}
                 </div>

@@ -18,14 +18,30 @@
 //
 // ⚠️ La Polyglotte garde sa propre liste (`ChoixTraduction`) : elle vit dans un portail,
 // grise les colonnes déjà prises et dit l'échange. Elle prend les mêmes formes.
+//
+// ⛔ LE SOUS-MENU D'UNE FAMILLE VIT DANS UN PORTAIL (16 septembre 2026). Posé en absolu
+// contre sa ligne, il restait prisonnier de ce qui contient la liste : le volet de droite
+// d'une œuvre défile (`overflow-y: auto`), et un défileur rogne tout ce dont le bloc
+// conteneur vit en lui. Le sous-menu, ouvert vers le texte, s'arrêtait donc au bord du volet
+// comme s'il passait SOUS le bloc central (relevé de l'auteur : « actuellement, il passe
+// au-dessous »). Hors du volet, rien ne le rogne, et son rang le pose au-dessus du texte.
+//
+// ⛔ LE CÔTÉ SE DÉCLARE, ET LE CHEVRON LE SUIT (`cote`, même décision : « le sous-menu
+// déroulant, et la flèche qui signale son existence, doivent être du côté gauche »). La page
+// Bible ouvre à droite, le volet de droite d'une œuvre à gauche, vers le texte : le chevron
+// passe en tête de la ligne et regarde à gauche, et les flèches du clavier s'inversent avec
+// lui. Le côté déclaré cède à l'autre quand la place manque (`placerSousMenu`).
 
 import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react'
+import { createPortal } from 'react-dom'
 import IconeChevron from '@/app/components/IconeChevron'
+import { Z_MODALE } from '@/app/lib/empilement'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { entreesDuMenu, type BibleDuMenu } from '@/app/lib/menuTraductionsBible'
 import {
   DELAI_REPLI_MS, FOND_SURVOL_MENU, LARGEUR_SOUS_MENU_REM, STYLE_CADRE_MENU, STYLE_CHEVRON_MENU,
-  TAILLE_CHEVRON_MENU, rangDeCirculation, styleLigneMenu,
+  TAILLE_CHEVRON_MENU, placerSousMenu, rangDeCirculation, styleLigneMenu,
+  type CoteSousMenu, type PlacementSousMenu,
 } from '@/app/lib/stylesMenuBibles'
 
 type Props = {
@@ -44,13 +60,20 @@ type Props = {
   cadre: RefObject<HTMLElement | null>
   /** La place de la liste, propre à chaque page. */
   style: CSSProperties
+  /** Le côté où les familles déploient leur sous-menu, et où leur chevron se pose. */
+  cote?: CoteSousMenu
 }
 
-export default function ListeMenuBibles({ id, libelle, traductions, traductionIndex, choisir, fermer, cadre, style }: Props) {
-  const [deploye, setDeploye] = useState<{ cle: string; cote: 'droite' | 'gauche' } | null>(null)
+export default function ListeMenuBibles({ id, libelle, traductions, traductionIndex, choisir, fermer, cadre, style, cote = 'droite' }: Props) {
+  const [deploye, setDeploye] = useState<{ cle: string; place: PlacementSousMenu } | null>(null)
   const lignes = useRef<(HTMLButtonElement | null)[]>([])
   const sousLignes = useRef<(HTMLButtonElement | null)[]>([])
+  const boiteSousMenu = useRef<HTMLDivElement>(null)
   const repli = useRef<number | null>(null)
+  // Les flèches du clavier suivent le côté : on entre dans le sous-menu par la flèche qui
+  // regarde vers lui, et l'on en sort par l'autre.
+  const toucheOuvrir = cote === 'gauche' ? 'ArrowLeft' : 'ArrowRight'
+  const toucheFermer = cote === 'gauche' ? 'ArrowRight' : 'ArrowLeft'
   const entrees = entreesDuMenu(traductions)
   const rangActif = Math.max(0, entrees.findIndex(e =>
     e.sorte === 'bible' ? e.index === traductionIndex : e.membres.some(m => m.index === traductionIndex)))
@@ -73,7 +96,11 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
   // d'échappement. Les deux écouteurs ne vivent que tant qu'elle est montée.
   useEffect(() => {
     const dehors = (e: PointerEvent) => {
-      if (!cadre.current?.contains(e.target as Node)) fermer(false)
+      const cible = e.target as Node
+      // ⚠️ Le sous-menu vit dans un portail, HORS du cadre : sans ce second regard, le
+      // pointeur posé sur l'une de ses lignes fermait la liste avant qu'elle soit choisie.
+      if (cadre.current?.contains(cible) || boiteSousMenu.current?.contains(cible)) return
+      fermer(false)
     }
     const touche = (e: KeyboardEvent) => {
       if (e.key === 'Escape') fermer(true)
@@ -92,12 +119,37 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
     lignes.current[rangActif]?.focus()
   }, [rangActif])
 
-  // Un sous-menu s'ouvre du côté où il tient : à droite de la ligne, à gauche sinon.
-  const deployer = (cle: string, ligne: HTMLElement | null) => {
+  // ⛔ UN SOUS-MENU ANCRÉ NE SUIT PAS SA LIGNE : il est posé en coordonnées de fenêtre, et la
+  // liste défile avec le volet ou avec la page. On le replie au premier défilement, et au
+  // redimensionnement, comme tout menu ancré du site (`MenuVolet`). ⚠️ En CAPTURE : un
+  // défilement ne remonte pas, et c'est le seul moyen d'entendre le défileur du volet.
+  const sousMenuOuvert = deploye !== null
+  useEffect(() => {
+    if (!sousMenuOuvert) return
+    const replier = () => setDeploye(null)
+    window.addEventListener('scroll', replier, true)
+    window.addEventListener('resize', replier)
+    return () => {
+      window.removeEventListener('scroll', replier, true)
+      window.removeEventListener('resize', replier)
+    }
+  }, [sousMenuOuvert])
+
+  // Un sous-menu s'ouvre du côté déclaré s'il y tient, de l'autre sinon, et se pose à hauteur
+  // de sa ligne. ⚠️ Sa hauteur s'estime sur celle de la ligne : ses propres lignes ont la
+  // même forme. ⚠️ La vue se prend SANS sa barre de défilement (`placerSousMenu`).
+  const deployer = (cle: string, ligne: HTMLElement | null, membres: number) => {
     annulerRepli()
+    if (!ligne) return
     const racine = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
-    const droite = ligne?.getBoundingClientRect().right ?? 0
-    setDeploye({ cle, cote: droite + LARGEUR_SOUS_MENU_REM * racine + 16 > window.innerWidth ? 'gauche' : 'droite' })
+    const rect = ligne.getBoundingClientRect()
+    const page = document.documentElement
+    setDeploye({ cle, place: placerSousMenu({
+      ligne: rect, cote,
+      largeur: LARGEUR_SOUS_MENU_REM * racine,
+      hauteur: membres * rect.height + 2,
+      vue: { largeur: page.clientWidth, hauteur: page.clientHeight },
+    }) })
   }
 
   // Flèches, début et fin : la circulation attendue d'une liste de choix. On ne change
@@ -134,47 +186,56 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
         // Une FAMILLE : son nom commun, un chevron, et au survol le sous-menu de ses
         // langues. ⛔ Le clic ne se perd pas dans le sous-menu : il ouvre le texte
         // d'origine, que le sous-menu met en tête. Le clavier suit — Entrée choisit,
-        // la flèche droite déploie.
+        // la flèche qui regarde vers le sous-menu le déploie.
         const actif = entree.membres.some(m => m.index === traductionIndex)
         const ouverte = deploye?.cle === entree.cle
         const defaut = entree.membres[0]
+        // ⚠️ Le chevron déploie SANS choisir : sur un écran tactile, la main ne survole pas,
+        // et c'est lui qui donne accès aux autres langues. Il se pose au bord du côté où le
+        // sous-menu s'ouvre, et regarde vers lui.
+        const chevron = (
+          <span aria-hidden="true" style={STYLE_CHEVRON_MENU}
+            onClick={e => {
+              e.stopPropagation()
+              if (ouverte) setDeploye(null)
+              else deployer(entree.cle, e.currentTarget.parentElement, entree.membres.length)
+            }}>
+            <IconeChevron dir={cote === 'gauche' ? 'left' : 'right'} taille={TAILLE_CHEVRON_MENU} strokeWidth={1.6} />
+          </span>
+        )
         return (
-          <div key={entree.cle} role="none" style={{ position: 'relative' }} onMouseLeave={replierBientot}>
+          <div key={entree.cle} role="none" onMouseLeave={replierBientot}>
             <button type="button" role="menuitem" aria-haspopup="menu" aria-expanded={ouverte}
               ref={el => { lignes.current[rang] = el }}
               title={`${entree.nom} : ${entree.membres.map(m => m.libelle).join(', ')}`}
               onClick={() => choisir(defaut.index)}
-              onMouseEnter={e => deployer(entree.cle, e.currentTarget)}
+              onMouseEnter={e => deployer(entree.cle, e.currentTarget, entree.membres.length)}
               onKeyDown={e => {
                 if (circuler(e, rang, lignes.current, entrees.length)) return
-                if (e.key === 'ArrowRight') {
+                if (e.key === toucheOuvrir) {
                   e.preventDefault()
-                  deployer(entree.cle, e.currentTarget)
-                  window.setTimeout(() => sousLignes.current[0]?.focus(), 0)
-                } else if (e.key === 'ArrowLeft') {
+                  deployer(entree.cle, e.currentTarget, entree.membres.length)
+                  window.setTimeout(() => sousLignes.current[0]?.focus({ preventScroll: true }), 0)
+                } else if (e.key === toucheFermer) {
                   e.preventDefault()
                   setDeploye(null)
                 }
               }}
               style={{ ...styleLigneMenu(actif, premiere, derniere), ...(ouverte && !actif ? { background: FOND_SURVOL_MENU } : null) }}>
+              {cote === 'gauche' && chevron}
               <span style={{ flex: 1 }}>{rendreEnrichi(entree.nom)}</span>
-              {/* ⚠️ Le chevron déploie SANS choisir : sur un écran tactile, la main ne
-                  survole pas, et c'est lui qui donne accès aux autres langues. */}
-              <span aria-hidden="true" style={STYLE_CHEVRON_MENU}
-                onClick={e => {
-                  e.stopPropagation()
-                  if (ouverte) setDeploye(null)
-                  else deployer(entree.cle, e.currentTarget.parentElement)
-                }}>
-                <IconeChevron dir="right" taille={TAILLE_CHEVRON_MENU} strokeWidth={1.6} />
-              </span>
+              {cote === 'droite' && chevron}
             </button>
-            {ouverte && (
-              <div role="menu" aria-label={entree.nom} onMouseEnter={annulerRepli}
+            {ouverte && typeof document !== 'undefined' && createPortal(
+              // ⛔ Le rang est celui d'une MODALE, non d'une fenêtre de page : sur un
+              // téléphone, le volet d'une œuvre est un tiroir (`Z_TIROIR`), et le sous-menu
+              // s'ouvrirait derrière le tiroir qui le demande (règle de `MenuVolet`).
+              <div ref={boiteSousMenu} role="menu" aria-label={entree.nom}
+                onMouseEnter={annulerRepli} onMouseLeave={replierBientot}
                 style={{
-                  ...STYLE_CADRE_MENU, position: 'absolute', top: '-1px', zIndex: 1,
+                  ...STYLE_CADRE_MENU, position: 'fixed', zIndex: Z_MODALE,
+                  top: deploye.place.top, left: deploye.place.left, right: deploye.place.right,
                   minWidth: `${LARGEUR_SOUS_MENU_REM}rem`,
-                  ...(deploye.cote === 'droite' ? { left: 'calc(100% + 4px)' } : { right: 'calc(100% + 4px)' }),
                 }}>
                 {entree.membres.map((membre, sousRang) => {
                   const courant = membre.index === traductionIndex
@@ -185,8 +246,14 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
                       onClick={() => choisir(membre.index)}
                       onKeyDown={e => {
                         if (circuler(e, sousRang, sousLignes.current, entree.membres.length)) return
-                        if (e.key === 'ArrowLeft') {
+                        if (e.key === toucheFermer) {
                           e.preventDefault()
+                          setDeploye(null)
+                          lignes.current[rang]?.focus()
+                        } else if (e.key === 'Tab') {
+                          // ⚠️ Le portail a sorti le sous-menu de l'ordre du document : sans ce
+                          // retour à sa ligne, la tabulation filait au bout de la page au lieu
+                          // de passer à la ligne suivante de la liste.
                           setDeploye(null)
                           lignes.current[rang]?.focus()
                         }
@@ -198,7 +265,8 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
                     </button>
                   )
                 })}
-              </div>
+              </div>,
+              document.body,
             )}
           </div>
         )
