@@ -615,3 +615,15 @@ La relation ne change dans aucun des quatre cas.
 **Tests.** 23 sur la règle pure, 21 sur le chargement, 22 sur le composant, 7 sur le titre de niveau 1, 1 sur la manchette. L’arbre exact du commit a été éprouvé dans un miroir : compilation sans erreur, 47 fichiers et 640 tests des surfaces touchées.
 
 Aucun segment modifié.
+
+### 2026-09-16 — Protocole des notes v3.3 : la passe P15 des renvois de note à note
+
+Demande de l’auteur, après la mission A0044 des renvois : inscrire la méthode comme passe du protocole de contrôle des notes. Doctrine : charte § 13.16.10 (v3.3) et § 13.20.
+
+**Charte.** Le § 13.16.10 passe de quatorze à quinze passes. La passe 15, « Renvois de note à note : relation stable et rendu dynamique », vient après P14 : elle dépend de la forme autonome du renvoi (P7), du texte final des blocs (P8 à P12), de l’identité certifiée des notes et des blocs (P13) et des ancres définitives de la note visée (P14), et elle ne réécrit rien. Six étapes : inventaire, résolution certaine, relation, texte intouché, réserves, écriture. Autres retouches du même paragraphe : le principe d’ordre nomme les renvois ; P0 porte l’axe « renvois de note à note » ; le point 2 de la doctrine des renvois internes dit le numéro affiché, et non plus `note_number` ; P14 devient « clôture de l’appareil » ; la réouverture gagne deux règles ; la transition fait suivre v3.3 aux missions nouvelles et donne la correspondance v3.2 → v3.3. La poussée a retiré huit lignes, toutes réécrites à dessein, par `--retirer`.
+
+**Contrôles.** `supabase/controles/20260916123226_texte_note_renvois_a0044_donnees_controles.sql` devient le contrôle exécutable de la clôture P15. Trois gardes s’ajoutent : citation qui chevauche une citation bibliographique du même bloc, note visée sans ancre, note visée dont les ancres mènent à deux divisions de niveau 1. Relevé après passe : 60 relations, dont 5 mentions dans la phrase ; 51 blocs sources, 50 notes sources, 47 notes visées ; aucune faute. Garde éprouvée dans les deux sens : l’ancre de la note `A0044O0003TFR-V11:note:00070` retirée dans une transaction annulée, le contrôle lève « 1 note(s) visée(s) sans ancre ».
+
+**Centre de contrôle, section qualité.** La tâche `[A0044|renvois-notes-stables-20260916]` est close avec son bilan. Une tâche faite `[PROTOCOLE-NOTES|renvois-p15-v33-20260916]` s’ajoute, avec deux notes : `[PROTOCOLE-NOTES|etat-v33-20260916]`, qui remplace l’état v3.2, et la clôture de la mission A0044.
+
+**Les deux réserves de la tâche de validation A0044.** La note 526 des Catéchèses baptismales (Basile, Homélie IX) n’est pas un renvoi de note à note et n’a pas été touchée. Le renvoi « note A, p. 47 » de la note 75 des Catéchèses mystagogiques figure parmi les dix réserves de la mission.

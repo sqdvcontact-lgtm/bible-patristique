@@ -680,7 +680,7 @@
 
 - ⚠️ UNE NOTE PEUT ÊTRE RADICALEMENT RECOMPOSÉE POUR ÊTRE LISIBLE.
 
-**§ 13.16.10 — Procédure obligatoire — v3.2, quatorze passes ordonnées par dépendance (14 septembre 2026)**
+**§ 13.16.10 — Procédure obligatoire — v3.3, quinze passes ordonnées par dépendance (16 septembre 2026)**
 
 - ⛔ Aucune note logique n’est admise sans responsabilité éditoriale structurée.
 - ⛔ Aucune note n’est admise sans type fonctionnel — une ambiguïté porte un type principal provisoire documenté, jamais `NULL`.
@@ -708,6 +708,11 @@
 - ⛔ PONCTUATION TERMINALE APRÈS UN EMPAN ITALIQUE.
 - ⛔ Citations latines directes — détection et correction obligatoires.
 - ⛔ Ne jamais introduire une longueur minimale à l’intérieur de cette regex, par exemple `\\*([^*]{20,})\\*` : l’astérisque fermant d’un petit empan peut alors être pris pour un ouvrant et fabriquer un faux empan qui englobe la prose jusqu’au prochain italique.
+- ⛔ Jamais par ressemblance, par proximité, ni sur le seul numéro, la seule page ou le seul tome.
+- ⛔ Une mention qui vise plusieurs notes se pose entière ou se réserve entière : si l’une de ses cibles est incertaine, aucune n’est posée.
+- ⛔ Ni numéro affiché, ni titre de niveau 1, ni contenu de note, à quelque profondeur que ce soit.
+- ⛔ La passe n’écrit dans `texte_note_blocs.text` aucune chaîne générée : ni numéro courant, ni titre, ni libellé du contrôle.
+- ⛔ UNE RÉÉCRITURE ULTÉRIEURE D’UN BLOC QUI PORTE UN RENVOI MET SA CITATION À JOUR DANS LA MÊME TRANSACTION.
 - ⛔ RÉOUVERTURE PAR DÉPENDANCE, PAS PAR RÉPÉTITION GLOBALE.
 
 ## § 14. OCR, HTR et transcription patrimoniale

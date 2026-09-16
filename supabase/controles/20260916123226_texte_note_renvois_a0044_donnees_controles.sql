@@ -6,9 +6,11 @@
 --   node scripts/fillion/dry-run-migration.mjs <n'importe quelle migration vide> <ce fichier>
 -- ou tel quel dans l'éditeur SQL.
 --
--- ⛔ Ce qu'il tient est le CONTRAT de la relation (charte § 13.20) : la cible par son
--- identité, la citation imprimée présente dans son bloc, et AUCUN numéro, titre de niveau 1
--- ni contenu recopié dans la relation.
+-- ⛔ Ce qu'il tient est la CLÔTURE de la passe P15 du protocole des notes (charte § 13.16.10,
+-- v3.3) et le CONTRAT de la relation (§ 13.20) : la cible par son identité, la citation
+-- imprimée présente dans son bloc, et AUCUN numéro, titre de niveau 1 ni contenu recopié
+-- dans la relation. Seul le compte de la mission lui est propre ; le reste vaut pour toute
+-- relation de la table.
 
 do $controle$
 declare
@@ -42,6 +44,37 @@ begin
     from public.texte_note_renvois
    where source_id_texte = target_id_texte and source_note_key = target_note_key;
   if n <> 0 then fautes := fautes || format(E'\n  - %s renvoi(s) d''une note vers elle-même', n); end if;
+
+  -- Une citation qui chevauche une citation bibliographique du même bloc n'est pas rendue :
+  -- le bloc garde sa forme imprimée (`renvoisRendables`).
+  select count(*) into n
+    from public.texte_note_renvois r
+    join public.texte_note_blocs b
+      on b.id_texte = r.source_id_texte and b.note_key = r.source_note_key and b.block_id = r.source_block_id
+    join public.texte_note_bloc_ouvrages o
+      on o.id_texte = r.source_id_texte and o.note_key = r.source_note_key and o.block_id = r.source_block_id
+   where o.source_citation is not null
+     and strpos(b.text, o.source_citation) > 0
+     and strpos(b.text, r.source_citation) > 0
+     and strpos(b.text, o.source_citation) < strpos(b.text, r.source_citation) + length(r.source_citation)
+     and strpos(b.text, o.source_citation) + length(o.source_citation) > strpos(b.text, r.source_citation);
+  if n <> 0 then fautes := fautes || format(E'\n  - %s citation(s) chevauchant une citation bibliographique', n); end if;
+
+  -- La tête dit la division de la PREMIÈRE ancre : une note visée sans ancre n'en a pas,
+  -- et une note dont les ancres mènent à deux divisions est ambiguë (charte § 13.20).
+  select count(*) into n
+    from (select distinct target_id_texte, target_note_key from public.texte_note_renvois) c
+   where not exists (select 1 from public.texte_note_ancres a
+                      where a.id_texte = c.target_id_texte and a.note_key = c.target_note_key);
+  if n <> 0 then fautes := fautes || format(E'\n  - %s note(s) visée(s) sans ancre', n); end if;
+
+  select count(*) into n
+    from (select distinct target_id_texte, target_note_key from public.texte_note_renvois) c
+   where (select count(distinct coalesce(s.ref_niv1, ''))
+            from public.texte_note_ancres a
+            join public.segments s on s.id_texte = a.id_texte and s.segment_key = a.segment_key
+           where a.id_texte = c.target_id_texte and a.note_key = c.target_note_key) > 1;
+  if n <> 0 then fautes := fautes || format(E'\n  - %s note(s) visée(s) à divisions concurrentes, à consigner en réserve', n); end if;
 
   -- ⛔ Ni numéro, ni titre, ni contenu dans les métadonnées, à quelque profondeur que ce soit.
   select count(*) into n
