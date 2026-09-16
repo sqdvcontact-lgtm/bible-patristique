@@ -299,20 +299,25 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
 
         <div style={{ flex: 1, padding: compact ? '6px 12px' : '16px 18px 14px', display: 'flex', flexDirection: 'column', gap: compact ? '2px' : '6px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px' }}>
-              <h2 onClick={() => onOuvrirAuteur(auteur.id_auteur)} title="Voir la fiche de l’auteur"
-                style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-vert)', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0, cursor: 'pointer' }}
+            {/* LE NOM OUVRE LA FICHE, ET RIEN NE L'ACCOMPAGNE (décision de l'auteur,
+                2026-09-16 : « ne pas afficher de petite flèche à côté du nom de l'auteur
+                pour indiquer qu'on peut cliquer dessus »). Un bouton rond à flèche
+                oblique le suivait. Le survol souligne le nom, l'infobulle nomme la fiche
+                (charte § 38.1).
+                ⚠️ Ce bouton était aussi le seul chemin du CLAVIER vers la fiche, le titre
+                ne prenant pas le foyer : c'est donc le nom qui devient le bouton.
+                ⚠️ La zone de frappe élargie au doigt (`cs-cible-fine`) ne vaut pas pour la
+                carte compacte des favoris, où elle couvrirait le bouton des œuvres posé
+                juste dessous. */}
+            <h2 style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-vert)', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0 }}>
+              <button onClick={() => onOuvrirAuteur(auteur.id_auteur)} title="Voir la fiche de l’auteur"
+                className={compact ? undefined : 'cs-cible-fine'}
+                style={{ font: 'inherit', color: 'inherit', letterSpacing: 'inherit', textTransform: 'inherit', textAlign: 'left', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer' }}
                 onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; e.currentTarget.style.textUnderlineOffset = '2px' }}
                 onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none' }}>
                 {auteur.nom}
-              </h2>
-              <button onClick={() => onOuvrirAuteur(auteur.id_auteur)} title="Voir la fiche de l’auteur"
-                style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '17px', height: '17px', borderRadius: '50%', border: '1px solid #cfe0d5', background: 'transparent', color: 'var(--cs-vert)', cursor: 'pointer', padding: 0, transition: 'all 0.12s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--cs-vert)'; e.currentTarget.style.color = 'var(--cs-surface)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--cs-vert)' }}>
-                <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M3.5 3h5.5v5.5M9 3L3 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </button>
-            </div>
+            </h2>
             {!compact && datesAuteur && (
               <p style={{ fontSize: '0.71875rem', color: 'var(--cs-etiquette)', margin: '1px 0 0', fontFamily: 'var(--font-source-serif), Georgia, serif', letterSpacing: '0.01em' }}>
                 <HistoricalDate value={datesAuteur} variant="long" />
@@ -344,9 +349,9 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
           )}
 
           {/* Pied de carte : le décompte des œuvres, seul. Le renvoi « Ouvrir la page
-              auteur » a été retiré : le nom de l'auteur et la flèche qui le suit y
-              mènent déjà, et la notice tronquée s'achève sur des points de suspension
-              qui disent assez qu'elle se poursuit ailleurs. */}
+              auteur » a été retiré : le nom de l'auteur y mène déjà, et la notice
+              tronquée s'achève sur des points de suspension qui disent assez qu'elle se
+              poursuit ailleurs. */}
           <div style={{ marginTop: 'auto', paddingTop: compact ? '2px' : '6px', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
             <button onClick={() => setOuvert(!ouvert)}
               style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'baseline', gap: '4px', lineHeight: 1 }}>
