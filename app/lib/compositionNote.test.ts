@@ -414,10 +414,112 @@ describe('la hauteur estimée compte le RELIEF de la note', () => {
     ],
   }
 
-  it('compte les BLOCS et les lignes FORCÉES', () => {
-    expect(reliefDeLaNote(ovide)).toEqual({ blocs: 4, lignesForcees: 3, libelles: 0 })
+  it('compte les BLOCS, les lignes FORCÉES et la longueur de chaque ligne', () => {
+    expect(reliefDeLaNote(ovide)).toEqual({
+      blocs: 4, lignesForcees: 3, libelles: 0,
+      // ⛔ Une longueur par LIGNE MATÉRIELLE, non par bloc : le distique d'Ovide en
+      // porte quatre, chacune s'enroulant pour son compte, et un bloc bref occupe une
+      // ligne entière quoi qu'il en soit.
+      lignes: [54, 40, 37, 42, 37, 204, 48],
+    })
     // ⚠️ Un texte nu n'a ni bloc à séparer ni saut à rendre.
-    expect(reliefDeLaNote('(Is 1, 16).')).toEqual({ blocs: 1, lignesForcees: 0, libelles: 0 })
+    expect(reliefDeLaNote('(Is 1, 16).')).toEqual({
+      blocs: 1, lignesForcees: 0, libelles: 0, lignes: [11],
+    })
+  })
+
+  // ⛔ Le 2026-09-16, l'auteur a relevé « un mini bout caché » au pied de la note 21 de
+  // Jean Lucas : trois blocs brefs — un nom, une référence, un vers latin — puis un
+  // développement. Leurs signes réunis ne remplissent pas deux lignes ; ils en prennent
+  // trois. La note est celle de la base (A0091O0001-LUCAS1673-FR-N0021).
+  it('donne à une note de blocs BREFS les lignes entières qu’ils prennent', () => {
+    const flodoard = {
+      blocks: [
+        { text: '++Flodoard de Reims++.' },
+        { text: 'Denis ++Pétau++, *Rationarium temporum* :' },
+        { text: 'Magnus spiritu &c. Græcanico more Dalmaticatus incessit.' },
+        { text: 'x'.repeat(579) },
+      ],
+    }
+    const signes = signesDeLaNote(flodoard)
+    const relief = reliefDeLaNote(flodoard)
+    for (const racine of [16, 19, 22]) {
+      for (const largeur of [320, 400, 475, 560]) {
+        const retenue = hauteurSouhaiteeNote({ signes, racine, largeur, ...relief })
+        const enCoulee = hauteurSouhaiteeNote({
+          signes, racine, largeur,
+          blocs: relief.blocs, lignesForcees: relief.lignesForcees, libelles: relief.libelles,
+        })
+        expect(retenue, `racine ${racine}, largeur ${largeur}`).toBeGreaterThan(enCoulee)
+      }
+    }
+  })
+
+  // ⛔ LES HAUTEURS RÉELLES, relevées au navigateur sur la composition SERVIE (Chrome
+  // sans tête, une page par racine — un `rem` se résout sur `html`, et poser la racine
+  // sur un `div` ne mesure qu'une seule taille). La note 21 de Jean Lucas, rendue par
+  // le vrai `EncartNote` et le vrai `ContenuNoteStructuree`.
+  //
+  // ⚠️ L'ANCIEN calcul — les signes en un seul tas — était COURT dans les douze cas,
+  // de 15 à 51 px : c'est le « mini bout caché » que l'auteur a relevé. Le nouveau
+  // tombe au pixel près dans onze, et ne manque qu'une ligne dans le douzième, où
+  // l'enroulement perd un mot qu'une chasse moyenne ne sait pas voir. ⛔ Ce
+  // douzième-là ne coupe plus rien pour autant : la boîte se borne désormais à la
+  // PLACE, non à l'estimation (voir `placerEnMarge`).
+  it('porte la note 21 de Jean Lucas, mesurée au navigateur', () => {
+    const flodoard = {
+      blocks: [
+        { text: '++Flodoard de Reims++.' },
+        { text: 'Denis ++Pétau++, *Rationarium temporum* :' },
+        { text: 'Magnus spiritu &c. Græcanico more Dalmaticatus incessit.' },
+        { text: 'Jean Lucas invoque ici Flodoard de Reims et Denis Pétau comme deux autorités distinctes pour montrer que Charles le Chauve fut lui-même empereur. Le renvoi à Flodoard est trop abrégé pour identifier l’œuvre citée. La citation latine qui précède renvoie à un passage de Pétau : il rapporte qu’après le couronnement impérial de Charles le Chauve en 875, celui-ci adopta les marques de la dignité impériale, notamment la dalmatique à la manière grecque. Lucas s’en sert pour montrer que *Carolum Magnum Imperatorem* peut désigner Charles le Chauve et non nécessairement Charlemagne.' },
+      ],
+    }
+    const relevees: [number, number, number][] = [
+      // racine, largeur, hauteur RÉELLE
+      [16, 320, 270], [16, 400, 238], [16, 475, 207], [16, 560, 191],
+      [19, 320, 377], [19, 400, 302], [19, 475, 283], [19, 560, 245],
+      [22, 320, 502], [22, 400, 414], [22, 475, 349], [22, 560, 305],
+    ]
+    const signes = signesDeLaNote(flodoard)
+    const relief = reliefDeLaNote(flodoard)
+    const uneLigne = 0.71875 * 1.38 * 22 // la plus haute des trois racines
+    let exactes = 0
+    for (const [racine, largeur, reelle] of relevees) {
+      const retenue = hauteurSouhaiteeNote({ signes, racine, largeur, ...relief })
+      const enCoulee = hauteurSouhaiteeNote({
+        signes, racine, largeur,
+        blocs: relief.blocs, lignesForcees: relief.lignesForcees, libelles: relief.libelles,
+      })
+      // ⛔ L'ancien calcul manquait la note DANS TOUS LES CAS : c'est la mesure qui a
+      // imposé la reprise, non un raisonnement. Le retirer doit faire rougir la garde.
+      expect(enCoulee, `coulée, racine ${racine}, largeur ${largeur}`).toBeLessThan(reelle)
+      // ⚠️ Et le nouveau ne manque jamais plus d'une ligne.
+      expect(retenue, `racine ${racine}, largeur ${largeur}`).toBeGreaterThan(reelle - uneLigne)
+      if (Math.abs(retenue - reelle) <= 2) exactes += 1
+    }
+    expect(exactes).toBeGreaterThanOrEqual(11)
+  })
+
+  // ⛔ ON RETIENT LA PLUS GRANDE DES DEUX, et la note d'Ovide dit pourquoi : comptée
+  // ligne par ligne, elle tombait SOUS sa hauteur réelle sur la mesure étroite (0,984),
+  // la chasse moyenne ne sachant pas voir le mot qui ne tient pas. La coulée l'y
+  // rattrape. Retirer ce maximum doit faire rougir la garde qui suit.
+  it('ne rend jamais moins que la coulée', () => {
+    for (const note of [ovide, { blocks: [{ text: 'x'.repeat(40) }, { text: 'y'.repeat(40) }] }]) {
+      const signes = signesDeLaNote(note)
+      const relief = reliefDeLaNote(note)
+      for (const racine of [16, 22]) {
+        for (const largeur of [256, 400, 560]) {
+          const retenue = hauteurSouhaiteeNote({ signes, racine, largeur, ...relief })
+          const enCoulee = hauteurSouhaiteeNote({
+            signes, racine, largeur,
+            blocs: relief.blocs, lignesForcees: relief.lignesForcees, libelles: relief.libelles,
+          })
+          expect(retenue).toBeGreaterThanOrEqual(enCoulee)
+        }
+      }
+    }
   })
 
   // ⛔ LA BOÎTE DOIT PORTER LA NOTE, ou elle défile. Les deux hauteurs RÉELLES ont été

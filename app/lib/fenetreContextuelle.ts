@@ -39,7 +39,14 @@ export type PlacementFenetre = {
   /** Coordonnées `fixed`, déjà bornées. */
   top: number
   left: number
-  /** Hauteur maximale disponible : la fenêtre défile en dedans au-delà. */
+  /**
+   * La hauteur que la fenêtre a le droit de prendre : elle défile en dedans au-delà.
+   *
+   * ⛔ C'est la PLACE, non la hauteur souhaitée. Le cadre est un flex en colonne sous
+   * `max-height` : il prend donc la hauteur de son CONTENU tant qu'elle tient. Une
+   * fenêtre dont le contenu est plus court qu'annoncé ne s'étire pas pour autant ; une
+   * fenêtre dont le contenu dépasse l'estimation n'est plus coupée pour rien.
+   */
   hauteurMax: number
   /** Vrai si la fenêtre a dû se retourner au-dessus de son ancre. */
   auDessus: boolean
@@ -84,13 +91,21 @@ export function placerFenetre({
     ? hauteurSouhaitee <= placeDessus || placeDessus >= placeDessous
     : hauteurSouhaitee > placeDessous && placeDessus > placeDessous
 
-  const hauteurMax = Math.max(0, Math.min(hauteurSouhaitee, bandeUtile, auDessus ? placeDessus : placeDessous))
+  const hauteurPlacement = Math.max(0, Math.min(hauteurSouhaitee, bandeUtile, auDessus ? placeDessus : placeDessous))
 
-  let top = auDessus ? ancre.top - ecart - hauteurMax : ancre.bottom + ecart
+  let top = auDessus ? ancre.top - ecart - hauteurPlacement : ancre.bottom + ecart
   // Filet de sécurité : quelle que soit la branche, on reste dans la bande.
-  top = Math.max(hautUtile, Math.min(top, basUtile - hauteurMax))
+  top = Math.max(hautUtile, Math.min(top, basUtile - hauteurPlacement))
 
   const left = Math.max(marge, Math.min(ancre.left, vue.largeur - largeur - marge))
+
+  // ⛔ DESSOUS, LA BOÎTE PEUT PRENDRE TOUTE LA PLACE QUI RESTE SOUS ELLE : la hauteur
+  // souhaitée n'est qu'une estimation, et l'en faire le plafond coupait la note de ce
+  // qu'elle avait manqué (voir `placerEnMarge`).
+  // ⚠️ AU-DESSUS, non : la boîte est posée à `top` et grandit vers le BAS, donc elle
+  // couvrirait l'ancre même dont elle vient. L'agrandir demanderait de la poser par son
+  // pied (`bottom`), ce qui est une autre géométrie. Elle garde donc sa borne.
+  const hauteurMax = auDessus ? hauteurPlacement : Math.max(0, basUtile - top)
 
   return { top, left, hauteurMax, auDessus }
 }
@@ -231,8 +246,20 @@ export function placerEnMarge({
   const hautUtile = hautNavbar + marge
   const basUtile = vue.hauteur - marge
   const voulue = typeof hauteurSouhaitee === 'function' ? hauteurSouhaitee(largeurRetenue) : hauteurSouhaitee
-  const hauteurMax = Math.max(0, Math.min(voulue, basUtile - hautUtile))
-  const top = Math.max(hautUtile, Math.min(ancre.top, basUtile - hauteurMax))
+  // ⛔ LA HAUTEUR VOULUE POSE LE `top`, ELLE NE BORNE PLUS LA BOÎTE. C'est une
+  // ESTIMATION — une chasse moyenne, un enroulement supposé —, et elle sert à savoir
+  // de combien remonter l'encart quand l'appel est bas. L'en faire aussi le plafond,
+  // c'était couper la note de ce que l'estimation avait manqué : le 2026-09-16,
+  // l'auteur a relevé « un mini bout caché » au pied d'une note qui tenait
+  // largement dans l'écran.
+  const hauteurPlacement = Math.max(0, Math.min(voulue, basUtile - hautUtile))
+  const top = Math.max(hautUtile, Math.min(ancre.top, basUtile - hauteurPlacement))
+  // ⛔ CE QUI BORNE EST LA PLACE, et elle se compte sous le `top` retenu. Le cadre
+  // est un flex en colonne sous `max-height` : il prend donc la hauteur de son
+  // CONTENU tant qu'elle tient, et défile au-delà. ⚠️ `basUtile - top` vaut toujours
+  // au moins `hauteurPlacement`, par construction du `top` : la boîte ne peut que
+  // gagner de la place, jamais en perdre.
+  const hauteurMax = Math.max(0, basUtile - top)
   const left = cote === 'gauche' ? colonne.gauche - ecart - largeurRetenue : colonne.droite + ecart
 
   return { top, left, hauteurMax, auDessus: false, cote, largeur: largeurRetenue }

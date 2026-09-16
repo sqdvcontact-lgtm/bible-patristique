@@ -584,8 +584,8 @@ export function lignesDeLIntitule(intitule: string | null | undefined, largeurPx
  */
 export function reliefDeLaNote(
   note: { blocks: readonly { text: string; readerStyle?: string | null }[] } | string,
-): { blocs: number; lignesForcees: number; libelles: number } {
-  if (typeof note === 'string') return { blocs: 1, lignesForcees: 0, libelles: 0 }
+): { blocs: number; lignesForcees: number; libelles: number; lignes: number[] } {
+  if (typeof note === 'string') return { blocs: 1, lignesForcees: 0, libelles: 0, lignes: [note.length] }
   const lignesForcees = note.blocks.reduce(
     (total, bloc) => total + Math.max(0, bloc.text.split('\n').filter(ligne => ligne.trim() !== '').length - 1),
     0,
@@ -593,11 +593,27 @@ export function reliefDeLaNote(
   // ⚠️ Et le LIBELLÉ d'une explication de Corpus Scriptura : une ligne de plus, que la
   // longueur du texte ne dit pas (`STYLE_LIBELLE_EXPLICATION`).
   const libelles = note.blocks.filter(estExplicationCorpus).length
-  return { blocs: Math.max(1, note.blocks.length), lignesForcees, libelles }
+  // ⛔ LA LONGUEUR DE CHAQUE LIGNE MATÉRIELLE, et non la somme des signes : chaque
+  // ligne s'enroule pour SON propre compte et occupe des lignes ENTIÈRES, si courte
+  // soit-elle. C'est ce qui manquait le 2026-09-16, sur une note de la Cité de Dieu
+  // qui ouvre par trois blocs brefs — un nom, une référence, un vers latin — et ferme
+  // sur un développement : les trois premiers prennent trois lignes quand leurs
+  // signes réunis n'en remplissent pas deux.
+  // ⚠️ Un bloc de vers y entre par ses lignes, non par `lignesForcees` : les deux
+  // ensemble compteraient deux fois le même vers.
+  const lignes = note.blocks.flatMap(bloc =>
+    bloc.text.split('\n').filter(ligne => ligne.trim() !== '').map(ligne => ligne.length),
+  )
+  return {
+    blocs: Math.max(1, note.blocks.length),
+    lignesForcees,
+    libelles,
+    lignes: lignes.length > 0 ? lignes : [0],
+  }
 }
 
 export function hauteurSouhaiteeNote(
-  { signes, racine, avecIntitule = false, intitule, largeur, blocs = 1, lignesForcees = 0, libelles = 0 }:
+  { signes, racine, avecIntitule = false, intitule, largeur, blocs = 1, lignesForcees = 0, libelles = 0, lignes }:
   {
     signes: number
     racine: number
@@ -617,6 +633,12 @@ export function hauteurSouhaiteeNote(
     /** Les LIBELLÉS d'explication de Corpus Scriptura : chacun prend une ligne du propos
      *  et son blanc (`STYLE_LIBELLE_EXPLICATION`). */
     libelles?: number
+    /** La longueur de chaque LIGNE MATÉRIELLE, quand on la connaît
+     *  (`reliefDeLaNote`). ⛔ Elle l'emporte sur `signes` ET sur `lignesForcees`,
+     *  qu'elle porte déjà : chaque ligne s'enroule pour son compte et occupe des
+     *  lignes entières, et compter les signes en un seul tas en perdait une par bloc
+     *  bref. À défaut, la note se compte comme une coulée. */
+    lignes?: readonly number[]
   },
 ): number {
   const largeurRetenue = largeur ?? LARGEUR_ENCART_REM * racine
@@ -626,8 +648,29 @@ export function hauteurSouhaiteeNote(
     : lignesDeLIntitule(intitule, largeurRetenue, racine)
   // ⚠️ Sans intitulé, le propos partage sa première ligne avec le numéro et la croix.
   const cedes = lignesIntitule > 0 ? 0 : SIGNES_PREMIERE_LIGNE
-  const lignes = Math.max(1, Math.ceil((Math.max(0, signes) + cedes) / parLigne)) + Math.max(0, lignesForcees)
-  const enRem = lignes * LIGNE_ENCART_REM
+  // ⛔ CHAQUE LIGNE MATÉRIELLE S'ARRONDIT POUR SON PROPRE COMPTE. La note n'est pas une
+  // coulée : un nom, une référence et un vers latin prennent trois lignes entières,
+  // quand leurs signes réunis n'en remplissent pas deux. C'est ce qui laissait « un mini
+  // bout caché » au pied d'une note qui tenait dans l'écran (relevé de l'auteur,
+  // 2026-09-16).
+  // ⚠️ Seule la PREMIÈRE cède sa place au numéro et à la croix.
+  const parLignes = lignes && lignes.length > 0 ? lignes : null
+  // ⛔ ON RETIENT LA PLUS GRANDE DES DEUX ESTIMATIONS, et chacune rattrape ce que
+  // l'autre manque. La COULÉE — tous les signes en un tas, plus les lignes forcées —
+  // absorbe la perte d'ENROULEMENT, ce mot qui ne tient pas et qu'une chasse moyenne
+  // ne sait pas voir ; elle perd en revanche une ligne par bloc bref. Le compte LIGNE
+  // PAR LIGNE fait l'inverse. Mesuré sur la note d'Ovide, à la racine 16 : la coulée
+  // rend 1,063 et 1,046 fois la hauteur réelle, les lignes 1,063 et 0,984 — et c'est
+  // cette dernière, seule sous la barre, qui ferait défiler la note.
+  const enCoulee = Math.max(1, Math.ceil((Math.max(0, signes) + cedes) / parLigne))
+    + Math.max(0, lignesForcees)
+  const parBlocs = parLignes === null ? 0 : parLignes.reduce(
+    (total, longueur, rang) =>
+      total + Math.max(1, Math.ceil((Math.max(0, longueur) + (rang === 0 ? cedes : 0)) / parLigne)),
+    0,
+  )
+  const lignesTotales = Math.max(1, enCoulee, parBlocs)
+  const enRem = lignesTotales * LIGNE_ENCART_REM
     // ⚠️ Les blancs qui SÉPARENT les blocs : n blocs en portent n − 1.
     + Math.max(0, blocs - 1) * MARGE_PARAGRAPHE_ENCART_REM
     // ⚠️ Et la ligne de chaque LIBELLÉ d'explication, avec son blanc.

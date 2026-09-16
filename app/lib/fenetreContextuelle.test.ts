@@ -18,7 +18,20 @@ describe('placement sous l’ancre', () => {
     const p = placer(ancre(200))
     expect(p.auDessus).toBe(false)
     expect(p.top).toBe(226) // 200 + 20 + 6
-    expect(p.hauteurMax).toBe(300)
+    // ⛔ La hauteur souhaitée POSE le `top`, elle ne borne plus la boîte : ce qui
+    // borne est la place qui reste sous elle. Le cadre prend la hauteur de son
+    // contenu tant qu'elle tient, et ne perd plus le bout qu'une estimation
+    // moyenne avait manqué.
+    expect(p.hauteurMax).toBe(BAS_UTILE - 226)
+    expect(p.hauteurMax).toBeGreaterThan(300)
+  })
+
+  it('n’étire pas une fenêtre dont le contenu est plus court que la place', () => {
+    // La boîte est un flex en colonne sous `max-height` : `hauteurMax` est un
+    // PLAFOND, jamais une hauteur imposée. Le style du cadre le dit (`maxHeight`),
+    // et c'est ce qui permet de l'élargir sans étirer une note de deux lignes.
+    const p = placer(ancre(200))
+    expect(p.top + p.hauteurMax).toBe(BAS_UTILE)
   })
 
   it('aligne sur le bord gauche de l’ancre', () => {
@@ -227,6 +240,30 @@ describe('l’encart se range dans une marge', () => {
   it('borne sa hauteur à la bande utile, et défile en dedans au-delà', () => {
     const p = enMarge(ancre(300), 100, 5000)!
     expect(p.hauteurMax).toBe(BAS_UTILE - HAUT_UTILE)
+  })
+
+  // ⛔ Le 2026-09-16, l'auteur a relevé « un mini bout caché » au pied d'une note qui
+  // tenait largement dans l'écran : la hauteur ESTIMÉE — une chasse moyenne, un
+  // enroulement supposé — bornait la boîte, et lui reprenait ce qu'elle avait manqué.
+  it('laisse la boîte prendre toute la place qui reste sous elle', () => {
+    const p = enMarge(ancre(200), 100, 300)!
+    expect(p.top).toBe(200)
+    expect(p.hauteurMax).toBe(BAS_UTILE - 200)
+    expect(p.hauteurMax).toBeGreaterThan(300)
+  })
+
+  it('ne rend jamais moins de place que la hauteur souhaitée', () => {
+    // C'est ce qui rend l'élargissement sûr : le `top` est posé pour loger la hauteur
+    // estimée, donc ce qui reste sous lui vaut toujours au moins cela. La boîte ne
+    // peut que gagner, jamais perdre.
+    for (const t of [0, 100, 300, 500, 700, 760, 900]) {
+      for (const voulue of [80, 300, 700, 5000]) {
+        const p = enMarge(ancre(t), 100, voulue)!
+        const logeable = Math.min(voulue, BAS_UTILE - HAUT_UTILE)
+        expect(p.hauteurMax, `ancre à ${t}, voulue ${voulue}`).toBeGreaterThanOrEqual(logeable)
+        expect(p.top + p.hauteurMax, `ancre à ${t}, voulue ${voulue}`).toBeLessThanOrEqual(BAS_UTILE)
+      }
+    }
   })
 
   it('ne rend jamais une hauteur négative', () => {
