@@ -11312,3 +11312,62 @@ Doctrine : charte `parametres.charte_ia`, **§ 38.33**. Demande de l’auteur : 
 - ⚠️ **Deux gardes** : `app/lib/ficheModele.test.ts` (le repli, le libellé, les identifiants, l’ordre, le portrait contre le registre, et les trois fiches qui passent par `ModaleFiche` et `CorpsFiche` sans `createPortal`, sans verrou et sans `<style>`) et `app/components/FicheModele.test.tsx` (en rendu serveur : la liste, l’ordre réserve, texte, complément, et l’en-tête vide).
 - ⚠️ **Hors du chantier, et c’est de la DONNÉE** : les notices des ouvrages cités sont souvent incomplètes. Au 15 septembre 2026, 693 sur 819 manquent de lieu, d’année ou d’éditeur, dont 40 sur les 64 de Fillion. Les compléter est un travail de base, sur décision.
 - ⛔ **La liste des œuvres d’un auteur : `app/lib/listeOeuvresAuteur.ts`** (charte § 38.33.1, pur et testé). `ordonnerOeuvresAuteur` range les œuvres datées d’une année, puis les périodes par `anneeDeMention` (`chronologiePatristique.ts`, sans nouvelle lecture des siècles), puis les mentions sans repère, puis les œuvres sans date ; le libellé départage avant le titre, ce qui rend contigus les groupes qu’il répète. `colonneDesDates` tait une date qui redit la précédente, et `CelluleDate` (`ModaleAuteur.tsx`) la garde en `.cs-hors-ecran`. La règle `.cs-fiche-rangee-colonne > [data-fiche-colonne]` borne la cellule à `max-width: 8.75em`, avec `text-wrap: balance` et sans `nowrap` : une cellule tue ne compte pas dans la mesure de `useColonneCommune`, et une mention longue s’enroule sur deux lignes au lieu d’élargir la colonne. ⚠️ Mesurer la chasse d’un libellé : `tmp/mesure-libelles-dates.mts` rend les libellés du corpus par le vrai `HistoricalDate` dans une page que Chrome sans tête exécute (`--dump-dom`), sans serveur.
+
+# ⛔ UNE LECTURE DÉCOUPÉE EN LOTS BORNE CE QU'ELLE GARDE EN VOL (2026-09-16)
+
+Relevé de l'auteur sur La Cité de Dieu, en lecture en regard : « Cette page s'est ouverte
+sans les notes du texte original… Impossible de charger les notes structurées de
+TXT_A0010O0002_LA_1870_1873_BENEDICTINS_VIVES. » C'est le bandeau de dégradation, servi
+comme la charte le prescrit (§ 18) : le texte se lisait, seule une couche secondaire
+manquait.
+
+⛔ **LA REQUÊTE FAUTIVE N'ÉTAIT PAS EN CAUSE, ET C'EST TOUT L'INTÉRÊT DU CAS.** Le journal
+`edge_logs` la nomme — la troisième page de `texte_note_blocs`, `offset=2000`, en **500**
+depuis `createServerClient` — et `postgres_logs` sa cause, « canceling statement due to
+statement timeout », huit secondes plus tard. Mesurée seule sous le rôle du lecteur, elle
+coûte **12,7 ms**, et son index `(id_texte, note_key, rank)` couvre exactement son tri.
+Elle a ATTENDU SON TOUR.
+
+⛔ **CE QUI SATURAIT EST UN `Promise.all` NU SUR UNE LISTE DÉCOUPÉE.** Relevé au journal :
+la minute portait **830 requêtes** contre une vingtaine les autres, avec des pointes de
+**124 en une seconde**, toutes distinctes, toutes sur `segments` avec l'embed
+`liens_bibliques!inner(…)` — c'est-à-dire `liensDeSegments`. Son appelant du moment était
+le contrôle des œuvres (`SectionControleOeuvres`), qui charge TOUS les segments d'une œuvre
+puis hydrate leurs liens d'un seul appel : les 6 971 segments du *Commentaire sur les
+Psaumes* font quatre-vingts lots, et ils partaient ensemble. La lecture occupait à elle
+seule toutes les connexions, et les requêtes VOISINES de la page — les notes, les versets,
+le texte — attendaient derrière elle jusqu'au délai de huit secondes d'`authenticated`.
+
+- **`lancerEnParallele` (`app/lib/paginationSupabase.ts`) en garde `REQUETES_EN_VOL` (6).**
+  ⚠️ Six est ce qu'un navigateur accorde par hôte en HTTP/1.1 : la borne est éprouvée par
+  l'usage, et elle ne se paie presque pas — mesuré sous le rôle du lecteur, un lot de liens
+  coûte **41 ms**, si bien que quatre-vingts lots passent en une douzaine de tours, une
+  demi-seconde, au lieu de noyer le pool.
+- ⛔ **LES TÂCHES SONT DES FABRIQUES, ET C'EST CE QUI REND LA BORNE RÉELLE.** Un
+  `PostgrestFilterBuilder` part au premier `then` : un tableau de requêtes DÉJÀ CONSTRUITES
+  passé à `Promise.all` est donc déjà tout entier en vol, et l'y borner ne bornerait que la
+  lecture des réponses. `liensDeSegments` empile désormais des `() => client.from(…)`.
+- ⛔ **L'ORDRE DES RÉSULTATS EST CELUI DES FABRIQUES**, jamais celui des réponses :
+  l'appelant apparie souvent le rang d'un résultat à celui de son lot. Un échec arrête ce
+  qui n'est PAS ENCORE PARTI, jamais ce qui est en vol.
+- ⛔ **LE COMMENTAIRE D'`OCTETS_MAX_CLAUSE_IN` DISAIT LE CONTRAIRE, ET IL EST CORRIGÉ** :
+  « multiplier les lots ne coûte rien, ils partent en parallèle ». C'était vrai de
+  l'ADRESSE — la seule question que cette constante tranche — et faux du POOL. *Une règle
+  juste sur son axe devient fausse dès qu'on la lit sur un autre.*
+- ⚠️ **La borne vaut PAR APPEL** : trois chargements concurrents en gardent dix-huit en vol.
+  C'est assumé, et c'est déjà deux ordres de grandeur sous les 124 mesurées.
+
+⚠️ **CE QUI RESTE, ET QUI N'A PAS ÉTÉ TOUCHÉ** : une dizaine d'autres
+`Promise.all(lotsPourClauseIn(…).map(…))` vivent dans `app/`. Aucun n'a produit de rafale au
+journal, et la plupart portent des listes bornées par construction (une vingtaine
+d'extraits, les versets cités d'une division). ⛔ Les borner tous sans les mesurer serait
+élargir sans raison ; mais **toute liste dont le nombre de lots croît avec la taille d'un
+texte passe par `lancerEnParallele`**, jamais par un `Promise.all` nu.
+
+⚠️ **LA RECETTE DE DIAGNOSTIC, ET ELLE SE REJOUE.** Devant un bandeau de dégradation, on ne
+lit pas le code d'abord : `edge_logs` nomme la requête (`response.status_code` hors des
+succès, `request.path`, `request.search`, `request.headers.x_client_info`), `postgres_logs`
+sa cause. Puis **on compare la minute fautive à ses voisines** — `toStartOfMinute`, puis
+`toStartOfSecond` — avant de conclure quoi que ce soit sur la requête nommée : ici, 830
+contre 20, et le coupable n'était pas la victime. Enfin on MESURE la requête seule, sous le
+rôle du lecteur, dans un bloc annulé.
