@@ -4433,105 +4433,6 @@ Doctrine : charte **§ 35.13**. `introduction_livre` déclare désormais `headin
 
 Doctrine : charte **§ 35.9 (rectifié)** et **§ 35.12**. Dans `globals.css` : `.cs-bible-info-label` d'un commentaire passe en `text-align: left` et en sérif ; `.verset-row + .cs-bible-bloc:not(.cs-bible-block--title)` et son symétrique en `:has(+ .verset-row)` portent le blanc de 2rem qui cerne un bloc de versets. ⚠️ Les marges verticales adjacentes fusionnent : la marge du verset n'est pas à retrancher.
 
-# Propositions de GPT — le registre d’arbitrage (2026-08-25)
-
-`/admin/propositions-gpt`. GPT propose, l’auteur arbitre, et ce que l’auteur écrit là
-commande la mise en œuvre. La page réunit les deux faces : ce que GPT demande, et la
-directive qui y répond.
-
-⛔ **RIEN NE S'ENREGISTRE TOUT SEUL, et le premier jet avait tort.** Il posait une zone
-de texte par proposition, enregistrée à la frappe : sans bouton, on ne sait jamais si
-l'on a écrit ou seulement pensé, et l'auteur l'a relevé le jour même. Une directive se
-pose désormais par un geste : on écrit, on clique « Ajouter l’instruction », et elle
-rejoint la liste. Ctrl + Entrée fait le même office.
-
-⛔ **Le registre porte DEUX VOIX, et elles ne se mêlent jamais** : `Directive.instructions`
-est celle de l’auteur du site, qui commande ; `Directive.reponses` est celle de GPT, qui
-éclaire. Elles paraissent en deux colonnes, nommées, séparées par un filet, et l’ordre ne
-change pas d’un point à l’autre. La voix de GPT ne se distingue jamais par la seule couleur.
-
-⚠️ **GPT n’a pas accès au site**, et sa colonne serait un champ que rien ne remplit sans le
-passage de main : le bouton « Copier pour GPT » met dans le presse-papiers la proposition,
-la mesure, le conflit, l’entrée réelle et les instructions déjà posées. ⛔ `texteAPorterAGpt`
-n’emporte JAMAIS les réponses de GPT, et un test le vérifie : on ne relit pas à quelqu’un ses
-propres mots. Les réponses se collent ensuite dans la colonne, à la main.
-
-⚠️ Le filtre **« Attendent GPT »** isole les points instruits et sans réponse : c’est là que
-le dialogue est en suspens. `avancement` compte `reponses` et `attendGpt` à part.
-
-**Les instructions S'EMPILENT**, elles ne se remplacent pas : `Directive.instructions`
-est un tableau, chaque entrée datée PAR LA ROUTE et supprimable. C'est un journal, et
-l'on doit pouvoir relire comment une décision s'est formée. ⚠️ La date se pose côté
-serveur, jamais côté client : une consigne ne s'antidate pas, et une liste renvoyée
-entière à chaque ajout se redaterait tout entière.
-
-⚠️ **La suppression se fait en DEUX temps**, le bouton s’armant au premier clic. Une
-instruction est du texte que l'auteur a écrit ; et le bouton reste VISIBLE au repos,
-une action qui ne paraît qu'au survol étant hors d'atteinte au doigt.
-
-⛔ **Chaque proposition porte son AVANT-APRÈS, sur une entrée RÉELLE**, en trois états :
-l’entrée telle qu’elle est en base, ce que le site en rend aujourd’hui, ce que la consigne
-produirait. ⚠️ **L’état « aujourd’hui » est CALCULÉ** par `texteApparatAffiche`, le renderer
-que le site emploie vraiment, jamais recopié à la main : une planche de comparaison dont la
-colonne de gauche serait écrite de mémoire ne prouverait rien et se démentirait au premier
-changement du rendu. L’état « avec la consigne » est une application LITTÉRALE, et `reserve`
-nomme là où la consigne bute au lieu de combler le trou. C’est ce qui a fait paraître, sans
-qu’on les cherche, que l’exemple phare de GPT emploie une forme qui ne paraît que trois fois
-sur 7 266, qu’il prettifie un sigle que la base écrit autrement, et qu’il tronque l’entrée
-qu’il cite.
-
-⚠️ **Le rendu proposé se compose de FRAGMENTS typés** (`latin`, `sigle`, `gloss`), pour que
-l’italique demandée se VOIE au lieu d’être décrite. Un exemple dont l’entrée ne vient pas de
-cet apparat déclare `role` et `provenance` ; `roleExemple` rend l’apparat par défaut.
-
-⛔ **Les propositions sont une SOURCE RÉDIGÉE**, dans `app/admin/propositions-gpt/registre.ts`,
-comme l'inventaire des illustrations et pour la même raison : un relevé automatique rendrait
-des phrases, jamais un arbitrage. Chaque entrée porte le texte de GPT dans SES termes, un fait
-MESURÉ sur le corpus, et, s’il y a lieu, la consigne antérieure que la proposition heurte,
-**citée des deux côtés**. `registre.test.ts` refuse un identifiant en double, un conflit
-à un seul côté, un exemple sans après, et tient la liste des conflits sous garde.
-
-⛔ **Le registre ne DÉCIDE rien.** Un drapeau `dejaEnPlace` constate ce que le dépôt sert
-déjà ; ce n'est pas un arbitrage rendu, et la page ne coche aucun état d'elle-même.
-
-⚠️ **`lireDirectives` relit encore la forme du premier jet** (`note` et `noteGenerale`,
-une chaîne unique) et la reprend comme première instruction. Rien n'avait été écrit en
-base au moment du changement, mais une lecture qui perd en silence ce qu'elle ne
-reconnaît pas est une lecture dangereuse.
-
-**Les directives vivent dans `parametres.directives_propositions_gpt`**, en JSON dans la
-colonne `valeur`, qui est du TEXTE. C'est là qu'il faut aller les lire avant de mettre
-une proposition en œuvre. ⚠️ Aucune migration : `parametres` existe déjà, et une clé de
-plus ne coûte rien.
-
-⚠️ **Un identifiant de proposition est une clé de stockage** : le renommer orpheline la
-directive qui y pend. `lireDirectives` conserve l'orpheline sans la faire paraître, de
-sorte qu'un renommage ne détruit rien, mais il fait disparaître la décision de l'écran.
-
-⛔ **Un renommage se fait donc par la table `REPRISES`, à la LECTURE, jamais en base.**
-Le lot est passé de dix-huit points à sept le 2026-08-25, cinq instructions étant déjà
-posées : chaque ancien identifiant y désigne le point qui a absorbé le sien, et
-`lireDirectives` fond les listes dans l'ordre où elles ont été écrites. ⚠️ Une réécriture
-du paramètre aurait été irréversible et aurait fait perdre la trace de ce que l'auteur
-avait répondu, et à quoi. Un test rejoue l'état réel d'avant le regroupement et vérifie
-que les cinq instructions retombent sur le bon point.
-
-⚠️ **Fondre deux points n'efface pas une décision** : un état déjà tranché l'emporte sur
-« à arbitrer ». Et `heurts` est une LISTE : le point qui absorbe trois conflits les porte
-tous les trois, cités des deux côtés, sans qu'aucun se perde.
-
-⚠️ **Le bon grain, c'est la DÉCISION, pas la consigne.** Dix-huit points découpaient la
-même décision en morceaux : refuser le parseur, c'est refuser du même coup le crochet
-masqué, le « Texte : », la ligne par variante et l'italique, qui n'existent pas sans lui.
-Les sept points suivent l'ordre des conséquences — ce qui commande, ce qu'il faut
-trancher, ce qui en découle, ce qui est déjà tenu — et non l'ordre du texte reçu.
-
-⚠️ **La page ne s'ouvre pas si la lecture du paramètre échoue**, et c'est délibéré : un
-registre vierge servi sur une erreur de lecture ferait écrire l’auteur par-dessus ses
-propres décisions. Même famille que « un panneau discret journalise son erreur ».
-
-**Pour ajouter un lot** : une entrée de plus dans `LOTS`. La page, les filtres, les
-compteurs et la garde suivent sans qu'on y touche.
 # Une œuvre à plusieurs auteurs (2026-08-16)
 
 Doctrine : charte `parametres.charte_ia` **§16.11**. Les auteurs sont **à égalité** ; l'œuvre paraît une fois sous le nom de chacun et porte les deux noms là où elle est nommée.
@@ -11076,13 +10977,13 @@ Demande de l'auteur : « Faire en sorte que rien ne bouge quand on clique sur un
 
 Demande de l'auteur : « Uniformiser toutes les pages de l'administration pour qu'elles portent le sommaire en volet gauche. » Doctrine : charte `parametres.charte_ia`, **§ 30.4**. Règles de code :
 
-- ⛔ **Le sommaire vit dans le LAYOUT, jamais dans une page** : `app/admin/layout.tsx` pose `CadreAdministration` (client) autour de toute page sous `/admin`, et une page créée demain le porte sans qu'on y pense. Il vivait dans `AdminClient`, donc sur la seule `/admin` ; le centre de contrôle portait un volet à lui (`VoletControle.tsx`, supprimé) ; Audience, Illustrations et sa revue, la Planche des styles et les Propositions de GPT n'en avaient aucun.
+- ⛔ **Le sommaire vit dans le LAYOUT, jamais dans une page** : `app/admin/layout.tsx` pose `CadreAdministration` (client) autour de toute page sous `/admin`, et une page créée demain le porte sans qu'on y pense. Il vivait dans `AdminClient`, donc sur la seule `/admin` ; le centre de contrôle portait un volet à lui (`VoletControle.tsx`, supprimé) ; Audience, Illustrations et sa revue, et la Planche des styles n'en avaient aucun.
 - **La table reste `app/lib/adminNavigation.ts`**, qui sert aussi le menu « Administration » de la barre. ⛔ Aucune entrée ne s'écrit ailleurs.
 - **La décision vit dans `app/admin/sommaireAdmin.ts`** (pur, testé) : `ongletDemande` (clé inconnue → Bibliothèque), `entreeOuverte` (la section de `?onglet=` sur /admin ; ailleurs la page autonome dont l'adresse préfixe le chemin, la plus longue l'emportant, le préfixe s'arrêtant à une barre), `basculeSurPlace`, `dansLeCentreDeControle`, `vueDuCentre`, et `compterCeQuiAttend`, que le serveur et le navigateur appellent tous deux. ⚠️ Imports relatifs : la suite de tests ne résout pas l'alias.
 - ⛔ **Une section de /admin se BASCULE SUR PLACE** : `window.history.pushState`, que le routeur de Next suit, et `AdminClient` lit sa section par `useSearchParams`. Plus d'état `onglet` : l'adresse n'était lue qu'au montage, si bien qu'un lien du menu du haut vers une autre section, suivi depuis /admin, changeait l'adresse sans changer la section. ⚠️ **Conséquence : tout code qui réécrit l'adresse de /admin GARDE `onglet`** (`SectionControleOeuvres` le repose lui-même). Une réécriture qui l'oublierait renverrait le lecteur à la Bibliothèque.
 - ⛔ **Une page chargée dans un CADRE ne porte pas le sommaire** : le layout lit `Sec-Fetch-Dest: iframe` (le contexte de la revue des gravures de Fillion). Aucune adresse n'est à tenir dans une liste, et rien ne se lit en base pour une vue qui n'en montrera rien.
 - ⛔ **Le layout ne protège pas les pages** : il ne sert le sommaire qu'à l'administrateur, et chaque page garde sa vérification. `estAdminDeLaRequete` vit dans `app/admin/gardeAdmin.ts` et TOUT le monde l'importe de là (le centre de contrôle la réexporte) : deux `cache(estAdmin)` ne partagent rien, et chacune rappellerait le service d'authentification. ⚠️ Les actions serveur de `page.tsx` gardent `estAdmin()` : ce sont d'autres requêtes.
-- **Les compteurs** (essais, vérifications, modération, courrier) : premier relevé par le layout (`compteursAdmin.ts`, clé de service, parce que `messages_contact` est fermée et que les vérifications passent par `count_verifications_pending`), puis recompte toutes les trente secondes dans le navigateur pour la modération et les essais, onglet visible seulement. ⛔ Un compte en échec garde le dernier connu, et un compte jamais obtenu vaut `null` : la pastille se tait plutôt que de dire zéro. Les sections posent le leur par `useCompteursAdmin()` ; ⛔ leurs rappels sont STABLES (`useCallback`), le courrier relisant ses lettres quand le sien change. ⚠️ `page.tsx` ne relève plus ni les vérifications ni le courrier, et `AdminProps` a perdu `nbVerifications` et `nbCourrier`.
+- **Les compteurs** (essais, liens bibliques, modération, courrier) : premier relevé par le layout (`compteursAdmin.ts`, clé de service, parce que `messages_contact` est fermée ; les liens bibliques comptent leurs deux files, les vérifications par `count_verifications_pending` et les liens à constituer, depuis le 2026-09-16), puis recompte toutes les trente secondes dans le navigateur pour la modération et les essais, onglet visible seulement. ⛔ Un compte en échec garde le dernier connu, et un compte jamais obtenu vaut `null` : la pastille se tait plutôt que de dire zéro. Les sections posent le leur par `useCompteursAdmin()` ; ⛔ leurs rappels sont STABLES (`useCallback`), le courrier relisant ses lettres quand le sien change. ⚠️ `page.tsx` ne relève plus ni les vérifications ni le courrier, et `AdminProps` a perdu `nbVerifications` et `nbCourrier`.
 - ⛔ **Le sommaire est une couche SECONDAIRE** (charte § 18) : un compteur ou la liste des missions qui échoue le laisse incomplet, il ne ferme jamais la page qu'il enveloppe.
 - **Le centre de contrôle se range sous son entrée** : ses missions et « État du contrôle v2 » paraissent en sous-liste quand on est dans `/admin/controle`, et seulement là. `chargerMissions` se dédouble par `cache()` avec la page d'une mission.
 - ⛔ **`prefetch={false}` sur chaque lien** : une trentaine d'entrées préchargées à l'ouverture feraient autant de rendus serveur, et le temps de calcul des fonctions est le quota le plus serré du site (3 h 02 sur 4 h le 2026-09-10).
@@ -11562,3 +11463,95 @@ lecture.
 espace fine insécable dans une expression du fichier (`'«\u202F'`), invisible à la
 relecture : on a cru à un défaut d'apostrophe. Ancrer sur une signature de fonction, puis
 couper sur la fin de son corps, ne dépend d'aucun caractère qu'on ne voit pas.
+
+# ⛔ L'ADMINISTRATION REMISE EN ORDRE : accentuation, liens bibliques, GPT retiré (2026-09-16)
+
+Demande de l'auteur, en quatre points : supprimer intégralement « Propositions de GPT » ;
+revoir « Accentuation » en liste alphabétique de mots, avec ajout et suppression ; regrouper
+« Vérifications » et « Constituer liens » en deux onglets sous une même entrée ; remettre en
+ordre le sommaire. Doctrine : charte `parametres.charte_ia`, **§ 3.12** (le lexique) et
+**§ 30.4** (l'ordre du sommaire). Règles de code :
+
+## Le lexique d'accentuation — `accentuation_mots`
+
+- ⛔ **UN MOT PAR LIGNE, ET PLUS UN TEXTE.** La « charte d'accentuation » vivait en un seul
+  texte dans `parametres.charte_accentuation`, qu'on ne pouvait qu'éditer d'un bloc. Ses
+  90 mots sont repris un à un dans la table `accentuation_mots` (60 à accentuer,
+  30 faux positifs) ; ses règles qui n'étaient pas des mots ont rejoint la charte, § 3.12 ;
+  le texte est sauvegardé dans `internal.backup_parametres_20260916`, puis retiré.
+- ⛔ **L'ENTRÉE PORTE LA FORME JUSTE, et la forme fautive se DÉDUIT** (`formeFautive`,
+  `app/admin/accentuation.ts`) en ôtant l'accent de l'initiale, Œ comprise (« Œuvre » donne
+  « Oeuvre »). L'écrire en base serait une seconde vérité. `faux_positif` marque l'inverse :
+  une capitale qu'un contrôle croirait fautive et qu'il faut laisser (« Esther », « Ecce »,
+  « En »).
+- ⛔ **LA TABLE EST FERMÉE À L'API**, comme `moderation_lexique` : RLS sans politique, droits
+  retirés à `anon` et `authenticated`. Elle se lit et s'écrit par `app/api/admin/accentuation`
+  (GET, POST, PATCH, DELETE), sous la clé de service, après `estAdminUtilisateur`. Un doublon
+  rend 409 (23505), une forme que la base refuse rend 400 (23514), un mot disparu entre deux
+  lectures rend 404.
+- ⛔ **LA FORME SE GARDE DEUX FOIS, ET LES DEUX SE CHANGENT ENSEMBLE** : `lireEntree` dans la
+  route, `accentuation_mots_mot_forme` et `accentuation_mots_note_forme` en base (NFC,
+  60 signes, lettres, apostrophe typographique, trait d'union, espace ; note rognée et bornée
+  à 500 signes). ⚠️ Le motif du site n'admet pas `\p{M}`, que `[[:alpha:]]` refuse en base :
+  un accent combinant que NFC ne compose pas est refusé dès la route, non par la base.
+- **L'ordre est alphabétique FRANÇAIS** (`trierMots`, `Intl.Collator('fr')`), et la lettre
+  d'une entrée ignore son accent (`lettreDe` : « Élie » se range sous E, « Œuvre » sous O).
+  L'écran (`SectionAccentuation.tsx`) groupe par lettre avec un index d'ancres, cherche en
+  repliant les accents (`replier`), et filtre en trois états (Tous, À accentuer, Faux
+  positifs) par `OngletsPage` en `nature="filtres"`.
+- ⚠️ **La migration de départ a été ENGENDRÉE, sous garde** : le script de semis refusait un
+  mot hors NFC, hors forme, en double, ou dont l'accent de l'initiale contredit son régime ; la
+  migration recompte à la fin (90 mots, dont 30 faux positifs). Le script n'est pas versionné :
+  la table fait foi, et un mot neuf s'ajoute par l'écran.
+- ⚠️ **Les fusions d'espace relevées dans la Segond** (« Etquiconque », « Etce », « Etsi ») ne
+  sont pas des accents : elles sont restées dans la sauvegarde du texte, non dans le lexique.
+
+## « Liens bibliques » — une entrée, deux onglets
+
+- ⛔ **« Vérifications » et « Constituer liens » ne font plus qu'UNE entrée du sommaire**, rangée
+  dans le Corpus et non plus dans la Communauté : un lien qu'on constitue rejoint la file qu'on
+  vérifie, ce sont les deux temps d'un même travail sur le corpus. `SectionLiensBibliques.tsx`
+  pose un `OngletsPage` et ne monte que l'onglet ouvert ; revenir aux vérifications relit leur
+  file, qui a pu gagner les liens qu'on vient de constituer.
+- **L'onglet ouvert se lit dans l'adresse** : `?onglet=liens&vue=constituer`, la vue par défaut
+  (`verifications`) ne s'écrivant pas. `adresseVueLiens` (`liensBibliques.ts`, pur, testé) garde
+  tous les autres paramètres, et le choix passe par `replaceState`. ⛔ Réécrire l'adresse sans
+  `onglet` renverrait à la Bibliothèque (règle du 2026-09-14).
+- ⛔ **La pastille compte les DEUX files** (`CLES_COMPTEURS` porte `liens`) : premier relevé par
+  `compteursAdmin.ts`, puis par la section. `totalLiens` rend `null` dès qu'un des deux comptes
+  manque, un total d'une seule file disant moins que ce qui attend. ⚠️ Le compte que la liste
+  ouverte a posé l'emporte sur le relevé initial, car il est fait sur ce qu'elle montre ; et une
+  liste encore en chargement ne pose rien, sans quoi l'onglet annoncerait « (0) ».
+- ⚠️ **Les anciennes adresses** `?onglet=verifications`, `?onglet=constituer-liens` et
+  `?onglet=charte-accentuation` **retombent sur la Bibliothèque** (`ongletDemande`, clé inconnue).
+  Aucune redirection : rien d'autre que le sommaire n'y menait.
+- ⚠️ Mesuré sous la session de l'administrateur : le compte des liens à constituer coûte 200 ms
+  (43 liens), celui des vérifications 40 ms (8 liens), et la pastille montre leur somme.
+
+## Propositions de GPT — retirées
+
+- ⛔ **La page, sa route, son registre et ses tests sont supprimés** (`app/admin/propositions-gpt/`,
+  `app/api/admin/propositions-gpt/`), avec la clé `parametres.directives_propositions_gpt`,
+  sauvegardée dans `internal.backup_parametres_20260916`. La section de ce fichier qui décrivait
+  le registre est retirée avec eux.
+- ⚠️ Sont partis dans le même mouvement `SectionCharteAccentuation.tsx`, la route
+  `app/api/admin/charte-accentuation` et `scripts/charte-accentuation-maj.mjs`, qui réécrivait
+  le texte de la charte d'accentuation. ⛔ Un script qui écrirait encore
+  `parametres.charte_accentuation` n'écrirait plus rien que le site lise : un mot s'ajoute par
+  l'écran « Accentuation », ou dans la table.
+
+## ⛔ L'ORDRE DU SOMMAIRE EST UN CLASSEMENT, NON UNE CHRONOLOGIE
+
+- `ENTREES_ADMIN` (`app/lib/adminNavigation.ts`) se lit par groupes, qu'un filet sépare. Corpus :
+  les deux portes principales et ce que le site offre (Centre de contrôle, Bibliothèque,
+  Traductions, Chronologie) ; le travail sur les textes (Contrôle œuvres, Liens bibliques,
+  Styles, Validation notices) ; la bibliographie (Ouvrages, Éditeurs, Valeur académique).
+  Communauté : Essais, Modération et son Lexique, Courrier, Propositions, Mécènes. Système : la
+  doctrine (Charte IA, Accentuation), puis les outils (Audience, Illustrations, Planche des
+  styles, Bible 899).
+- ⛔ **Une entrée nouvelle prend sa place dans son groupe, jamais la dernière par défaut.** C'est
+  en s'ajoutant là où l'on écrivait ce jour-là que les vérifications de liens avaient fini dans
+  la Communauté, et le lexique de modération loin de la modération.
+- **La garde** est `sommaireAdmin.test.ts` : aucune adresse ni section nommée deux fois, chaque
+  famille d'un seul tenant, ses portes principales en tête et sans filet d'ouverture, une seule
+  entrée pour les deux files de liens, et plus aucune adresse des Propositions de GPT.

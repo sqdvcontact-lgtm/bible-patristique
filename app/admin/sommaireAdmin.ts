@@ -81,8 +81,9 @@ export function vueDuCentre(chemin: string): string | null {
 
 // ── Les compteurs ─────────────────────────────────────────────────────────────
 
-/** Les sections qui portent un compteur : ce qui attend une réponse. */
-export const CLES_COMPTEURS = ['essais', 'verifications', 'moderation', 'courrier'] as const satisfies readonly Onglet[]
+/** Les sections qui portent un compteur : ce qui attend une réponse. `liens` compte ses DEUX
+ *  files, les liens à vérifier et les liens à constituer. */
+export const CLES_COMPTEURS = ['essais', 'liens', 'moderation', 'courrier'] as const satisfies readonly Onglet[]
 export type CleCompteur = (typeof CLES_COMPTEURS)[number]
 
 /** `null` : le compte n'a pas pu se faire, et la pastille se tait plutôt que de dire zéro. */

@@ -1,8 +1,9 @@
 'use client'
 
 // File des liens bibliques « à constituer » : des renvois scripturaires repérés à la
-// lecture mais non rattachés à un verset (canon_id vide). Distincts de l'onglet
-// « Vérifications » qui arbitre des liens ayant DÉJÀ un verset candidat. Ici on résout :
+// lecture mais non rattachés à un verset (canon_id vide). Second onglet de « Liens
+// bibliques » (`SectionLiensBibliques`), distinct de l'onglet « Vérifications » qui
+// arbitre des liens ayant DÉJÀ un verset candidat. Ici on résout :
 // soit on rattache le bon verset (le lien passe alors en « douteux » et rejoint le flux
 // de vérification normal), soit on écarte le lien s'il n'est pas biblique (agraphon…).
 
@@ -34,7 +35,7 @@ function parseRef(input: string): { code: string; ch: number; v: number } | null
   return { code, ch: Number(m[2]), v: Number(m[3]) }
 }
 
-export default function SectionConstituerLiens() {
+export default function SectionConstituerLiens({ onCountChange }: { onCountChange?: (n: number) => void }) {
   const [liens, setLiens] = useState<Lien[]>([])
   const [segs, setSegs] = useState<Record<number, Seg>>({})
   const [oeuvres, setOeuvres] = useState<Record<string, { titre: string; auteur: string }>>({})
@@ -78,6 +79,11 @@ export default function SectionConstituerLiens() {
     })()
     return () => { annule = true }
   }, [])
+
+  // Le compte de l'onglet, une fois la file lue. Une lecture refusée ne dit pas zéro.
+  useEffect(() => {
+    if (!chargement && !erreur) onCountChange?.(liens.length)
+  }, [liens.length, chargement, erreur, onCountChange])
 
   const retirer = (id: number) => { setLiens(prev => prev.filter(l => l.id !== id)); setTraites(t => t + 1) }
 

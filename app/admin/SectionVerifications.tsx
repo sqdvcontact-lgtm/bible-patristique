@@ -167,14 +167,14 @@ export default function SectionVerifications({ onCountChange }: { onCountChange?
     })
   })
 
-  // Mettre à jour le badge de l'onglet et notifier la Navbar
+  // Mettre à jour le compte de l'onglet et notifier la Navbar. ⚠️ Seulement une fois la file
+  // lue : pendant le chargement la liste est vide, et l'onglet aurait annoncé « (0) ».
   React.useEffect(() => {
+    if (chargement) return
     onCountChange?.(paires.length)
-    if (!chargement) {
-      localStorage.setItem('admin_verif_count', String(paires.length))
-      window.dispatchEvent(new CustomEvent('admin-verif-count', { detail: paires.length }))
-    }
-  }, [paires.length, chargement])
+    localStorage.setItem('admin_verif_count', String(paires.length))
+    window.dispatchEvent(new CustomEvent('admin-verif-count', { detail: paires.length }))
+  }, [paires.length, chargement, onCountChange])
 
   const nbPages = Math.ceil(paires.length / PAGE_SIZE)
   const pageCourante = paires.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)

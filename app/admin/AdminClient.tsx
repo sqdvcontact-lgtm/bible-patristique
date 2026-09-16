@@ -3,21 +3,20 @@
 import React, { useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import SectionBibliotheque from './SectionBibliotheque'
-import SectionVerifications from './SectionVerifications'
+import SectionLiensBibliques from './SectionLiensBibliques'
 import SectionTraductions from './SectionTraductions'
 import SectionEditeurs from './SectionEditeurs'
 import SectionModeration from './SectionModeration'
 import SectionCourrier from './SectionCourrier'
 import SectionEssaisAdmin from './SectionEssaisAdmin'
 import SectionCharte from './SectionCharte'
-import SectionCharteAccentuation from './SectionCharteAccentuation'
+import SectionAccentuation from './SectionAccentuation'
 import SectionPropositions from './SectionPropositions'
 import SectionControleOeuvres from './SectionControleOeuvres'
 import SectionEvenements from './SectionEvenements'
 import SectionFiabilite from './SectionFiabilite'
 import SectionOuvrages from './SectionOuvrages'
 import SectionValidationNotices from './SectionValidationNotices'
-import SectionConstituerLiens from './SectionConstituerLiens'
 import SectionLexique from './SectionLexique'
 import SectionMecenes from './SectionMecenes'
 import SectionStyles from './SectionStyles'
@@ -47,8 +46,8 @@ export default function AdminClient({
   const { poserCompteur, retirerUn } = useCompteursAdmin()
 
   // ⛔ Des rappels STABLES : le courrier relit ses lettres quand son rappel change, et un rappel
-  // neuf à chaque rendu relancerait la lecture sans fin.
-  const poserVerifications = useCallback((n: number) => poserCompteur('verifications', n), [poserCompteur])
+  // neuf à chaque rendu relancerait la lecture sans fin. Les liens bibliques posent leur compte
+  // eux-mêmes : il réunit leurs deux onglets.
   const poserCourrier = useCallback((n: number) => poserCompteur('courrier', n), [poserCompteur])
 
   const decrMod = async (fn: () => Promise<void>) => { await fn(); retirerUn('moderation') }
@@ -118,7 +117,7 @@ export default function AdminClient({
           (`CadreAdministration`), qui porte toutes les pages de l'administration. */}
       <div className="adm-contenu" style={largeurContenu}>
         {onglet === 'charte'               && <SectionCharte />}
-        {onglet === 'charte-accentuation'  && <SectionCharteAccentuation />}
+        {onglet === 'accentuation'         && <SectionAccentuation />}
         {onglet === 'propositions'   && <SectionPropositions />}
         {onglet === 'courrier'       && <SectionCourrier onCountChange={poserCourrier} />}
         {onglet === 'lexique'        && <SectionLexique />}
@@ -127,8 +126,7 @@ export default function AdminClient({
         {onglet === 'bibliotheque'   && <SectionBibliotheque auteurs={auteurs} textes={textes} />}
         {onglet === 'controle-oeuvres' && <SectionControleOeuvres auteurs={auteurs} />}
         {onglet === 'evenements'     && <SectionEvenements auteurs={auteurs} />}
-        {onglet === 'verifications'  && <SectionVerifications onCountChange={poserVerifications} />}
-        {onglet === 'constituer-liens' && <SectionConstituerLiens />}
+        {onglet === 'liens'          && <SectionLiensBibliques />}
         {onglet === 'traductions'    && <SectionTraductions traductions={traductions} />}
         {onglet === 'editeurs'       && <SectionEditeurs />}
         {onglet === 'fiabilite'      && <SectionFiabilite />}

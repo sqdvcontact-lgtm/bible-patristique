@@ -80,7 +80,38 @@ describe('les compteurs', () => {
   it('ne se posent que sur les sections qui attendent une réponse', () => {
     expect(estCompteur('moderation')).toBe(true)
     expect(estCompteur('courrier')).toBe(true)
+    expect(estCompteur('liens')).toBe(true)
     expect(estCompteur('bibliotheque')).toBe(false)
     expect(estCompteur(undefined)).toBe(false)
+  })
+})
+
+describe('la table des entrées', () => {
+  it('ne nomme deux fois ni une adresse, ni une section', () => {
+    const adresses = ENTREES_ADMIN.map(entree => entree.href)
+    const sections = ENTREES_ADMIN.flatMap(entree => (entree.onglet ? [entree.onglet] : []))
+    expect(new Set(adresses).size).toBe(adresses.length)
+    expect(new Set(sections).size).toBe(sections.length)
+  })
+
+  it('tient chaque famille d’un seul tenant, ses portes principales en tête, sans filet d’ouverture', () => {
+    // Le sommaire et le menu filtrent par famille : une famille coupée en deux par une autre
+    // se lirait quand même d'un bloc, mais l'ordre de la table ne dirait plus celui de l'écran.
+    const familles = ENTREES_ADMIN.map(entree => entree.famille)
+    const vues = familles.filter((famille, i) => familles.indexOf(famille) === i)
+    for (const famille of vues) {
+      const rangs = familles.flatMap((f, i) => (f === famille ? [i] : []))
+      expect(rangs[rangs.length - 1] - rangs[0] + 1).toBe(rangs.length)
+      const entrees = rangs.map(i => ENTREES_ADMIN[i])
+      expect(entrees[0].filet).toBeFalsy()
+      const principales = entrees.filter(entree => entree.principal).length
+      expect(entrees.slice(0, principales).every(entree => entree.principal)).toBe(true)
+    }
+  })
+
+  it('réunit les deux files de liens sous une seule entrée', () => {
+    expect(section('liens').label).toBe('Liens bibliques')
+    expect(ENTREES_ADMIN.some(entree => /v[ée]rifications|constituer/i.test(entree.label))).toBe(false)
+    expect(ENTREES_ADMIN.some(entree => entree.href.includes('propositions-gpt'))).toBe(false)
   })
 })

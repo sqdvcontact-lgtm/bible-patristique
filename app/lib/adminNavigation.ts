@@ -9,14 +9,22 @@ import type { Onglet } from '@/app/admin/adminTypes'
 //
 // ⛔ Les deux listes étaient écrites SÉPARÉMENT, l'une dans `AdminClient`, l'autre
 // dans `Navbar`, et elles avaient divergé : le menu comptait cinq entrées que la
-// page ignorait — Centre de contrôle, Audience, Planche des styles, Propositions
-// de GPT et Bible 899. Une page d'administration qui n'est nommée que par la barre
+// page ignorait, parmi lesquelles le Centre de contrôle, l'Audience, la Planche des
+// styles et Bible 899. Une page d'administration qui n'est nommée que par la barre
 // du haut est une page qu'on ne trouve pas quand on est DÉJÀ dans l'administration,
 // où l'on cherche dans le sommaire. Deux tables ne peuvent pas rester d'accord ; il
 // n'y en a donc plus qu'une, et l'ordre y fait foi pour les deux.
 //
 // ⚠️ Ajouter une entrée ici la fait paraître PARTOUT. C'est voulu : c'est le prix
 // pour que les deux listes ne redivergent jamais.
+//
+// ⛔ L'ORDRE EST UN CLASSEMENT, NON UNE CHRONOLOGIE (remis en ordre le 2026-09-16, à la
+// demande de l'auteur). Les entrées s'étaient ajoutées là où l'on écrivait ce jour-là :
+// les vérifications de liens vivaient dans la Communauté, le lexique de modération loin
+// de la modération. Chaque famille se lit désormais par groupes, qu'un filet sépare :
+// dans le Corpus, ce que le site offre, puis le travail sur les textes, puis la
+// bibliographie ; dans le Système, la doctrine, puis les outils. Une entrée nouvelle
+// prend sa place dans son groupe, jamais la dernière place par défaut.
 
 /** Les trois familles, dans leur ordre de lecture. */
 export type FamilleAdmin = 'corpus' | 'communaute' | 'systeme'
@@ -45,16 +53,23 @@ export type EntreeAdmin = {
 
 export const ENTREES_ADMIN: EntreeAdmin[] = [
   // ── Corpus & catalogue ──────────────────────────────────────────────────────
+  // Les deux portes d'entrée, puis ce que le site offre au lecteur.
   { href: '/admin/controle',                    label: 'Centre de contrôle',  famille: 'corpus', principal: true },
   { href: '/admin?onglet=bibliotheque',         label: 'Bibliothèque',        famille: 'corpus', principal: true, onglet: 'bibliotheque' },
-  { href: '/admin?onglet=controle-oeuvres',     label: 'Contrôle œuvres',     famille: 'corpus', onglet: 'controle-oeuvres' },
+  { href: '/admin?onglet=traductions',          label: 'Traductions',         famille: 'corpus', onglet: 'traductions' },
+  { href: '/admin?onglet=evenements',           label: 'Chronologie',         famille: 'corpus', onglet: 'evenements' },
+  // Le travail sur les textes : les relire, lier leurs renvois à l'Écriture, styler leurs
+  // segments, valider les notices des péricopes.
+  { href: '/admin?onglet=controle-oeuvres',     label: 'Contrôle œuvres',     famille: 'corpus', onglet: 'controle-oeuvres', filet: true },
+  // « Vérifications » et « Constituer liens », deux onglets d'une seule entrée (2026-09-16) :
+  // un lien qu'on constitue rejoint la file qu'on vérifie. Ce sont les deux temps d'un même
+  // travail sur le corpus, et non un geste de la Communauté, où ils vivaient.
+  { href: '/admin?onglet=liens',                label: 'Liens bibliques',     famille: 'corpus', onglet: 'liens' },
   // Les styles sous leur nom propre, et l'attribution d'un style à un segment ou à un
   // bloc biblique (2026-09-03). Il vit dans le corpus, avec ce qu'il modifie ; la
   // « Planche des styles », dans le Système, montre chacun d'eux composé.
   { href: '/admin?onglet=styles',               label: 'Styles',              famille: 'corpus', onglet: 'styles' },
   { href: '/admin?onglet=validation-notices',   label: 'Validation notices',  famille: 'corpus', onglet: 'validation-notices' },
-  { href: '/admin?onglet=traductions',          label: 'Traductions',         famille: 'corpus', onglet: 'traductions' },
-  { href: '/admin?onglet=evenements',           label: 'Chronologie',         famille: 'corpus', onglet: 'evenements' },
   // Bibliographie : trois écrans d'un même travail — les ouvrages cités, les maisons
   // d'édition répertoriées, le rang académique des éditeurs et des chercheurs. Ils se
   // tiennent côte à côte, après un filet, sans se fondre en un seul onglet : on passe
@@ -64,29 +79,30 @@ export const ENTREES_ADMIN: EntreeAdmin[] = [
   { href: '/admin?onglet=fiabilite',            label: 'Valeur académique',   famille: 'corpus', onglet: 'fiabilite' },
   // ── Communauté ──────────────────────────────────────────────────────────────
   { href: '/admin?onglet=essais',               label: 'Essais',              famille: 'communaute', onglet: 'essais' },
-  { href: '/admin?onglet=verifications',        label: 'Vérifications',       famille: 'communaute', onglet: 'verifications' },
-  { href: '/admin?onglet=constituer-liens',     label: 'Constituer liens',    famille: 'communaute', onglet: 'constituer-liens' },
   { href: '/admin?onglet=moderation',           label: 'Modération',          famille: 'communaute', onglet: 'moderation' },
+  // Le lexique de modération se tient sous la modération, qu'il sert : ce qu'on y refuse
+  // est ce qu'on y aurait retiré à la main.
+  { href: '/admin?onglet=lexique',              label: 'Lexique',             famille: 'communaute', onglet: 'lexique' },
   // Le courrier du site : formulaire de contact et propositions d'œuvre du catalogue.
-  // Il se tient à côté de la modération parce que c'est le même geste, relever ce qui
+  // Il se tient près de la modération parce que c'est le même geste, relever ce qui
   // arrive ; mais il ne juge personne, il répond.
   { href: '/admin?onglet=courrier',             label: 'Courrier',            famille: 'communaute', onglet: 'courrier' },
-  { href: '/admin?onglet=lexique',              label: 'Lexique',             famille: 'communaute', onglet: 'lexique' },
   { href: '/admin?onglet=propositions',         label: 'Propositions',        famille: 'communaute', onglet: 'propositions' },
   // Le registre des dons et la marque qui en découle. Il vit dans la Communauté, avec
   // les lecteurs, et non dans le Système : ce qu'on y tient est une gratitude, pas un
   // réglage. ⛔ Ce n'est PAS un haut fait (charte § 40.4).
   { href: '/admin?onglet=mecenes',              label: 'Mécènes',             famille: 'communaute', onglet: 'mecenes' },
   // ── Système & doctrine ──────────────────────────────────────────────────────
-  // « Audience » dit ce que le site REÇOIT (visites, comptes, lectures). À ne pas
-  // confondre avec « Statistiques du corpus », dans le centre de contrôle, qui dit
-  // l'état du TRAVAIL. Les deux écrans sont frères et ne se recouvrent jamais.
-  { href: '/admin/audience',                    label: 'Audience',            famille: 'systeme' },
+  // La doctrine d'abord : la charte, et le lexique d'accentuation, qui en tient les mots
+  // (charte § 3.12).
   { href: '/admin?onglet=charte',               label: 'Charte IA',           famille: 'systeme', onglet: 'charte' },
-  { href: '/admin?onglet=charte-accentuation',  label: 'Accentuation',        famille: 'systeme', onglet: 'charte-accentuation' },
+  { href: '/admin?onglet=accentuation',         label: 'Accentuation',        famille: 'systeme', onglet: 'accentuation' },
+  // Puis les outils. « Audience » dit ce que le site REÇOIT (visites, comptes, lectures).
+  // À ne pas confondre avec « Statistiques du corpus », dans le centre de contrôle, qui
+  // dit l'état du TRAVAIL. Les deux écrans sont frères et ne se recouvrent jamais.
+  { href: '/admin/audience',                    label: 'Audience',            famille: 'systeme', filet: true },
   { href: '/admin/illustrations',               label: 'Illustrations',       famille: 'systeme' },
   { href: '/admin/styles',                      label: 'Planche des styles',  famille: 'systeme' },
-  { href: '/admin/propositions-gpt',            label: 'Propositions de GPT', famille: 'systeme' },
   // Bible 899 : outil d'atelier. Il vit hors de /admin mais se cherche avec les autres.
   { href: '/manuscrits/bible-899',              label: 'Bible 899',           famille: 'systeme' },
 ]

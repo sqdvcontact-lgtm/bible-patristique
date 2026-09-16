@@ -6,9 +6,9 @@
 //
 // Le volet vivait dans la seule page /admin, et le centre de contrôle portait le sien, fait
 // d'autre chose. Les pages autonomes (Audience, Illustrations et sa revue des gravures de
-// Fillion, Planche des styles, Propositions de GPT) n'en avaient aucun : on n'en sortait que
-// par le menu du haut. Il vit désormais dans `app/admin/layout.tsx`, et une page
-// d'administration créée demain le porte sans que personne ait à y penser.
+// Fillion, Planche des styles) n'en avaient aucun : on n'en sortait que par le menu du haut.
+// Il vit désormais dans `app/admin/layout.tsx`, et une page d'administration créée demain le
+// porte sans que personne ait à y penser.
 //
 // ⚠️ Les sections de /admin se BASCULENT SUR PLACE : l'adresse change par l'API d'historique
 // du navigateur, que le routeur de Next suit, et la page lit sa section dans l'adresse. Rien
@@ -46,7 +46,7 @@ type ValeurCadre = {
 const SANS_EFFET = () => {}
 
 const ContexteCadre = createContext<ValeurCadre>({
-  compteurs: { essais: null, verifications: null, moderation: null, courrier: null },
+  compteurs: { essais: null, liens: null, moderation: null, courrier: null },
   poserCompteur: SANS_EFFET,
   retirerUn: SANS_EFFET,
 })
