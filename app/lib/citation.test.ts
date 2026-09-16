@@ -82,6 +82,15 @@ describe('citationPatristique', () => {
     const { texte } = citationPatristique('au commencement,', info)
     expect(texte.endsWith('Au commencement. »')).toBe(true)
   })
+  it('⛔ met les passages qu’un titre sépare sous la même référence, chacun entre ses guillemets', () => {
+    const { texte, html } = citationPatristique(['fin du livre premier,', 'début du second'], info)
+    expect(texte.endsWith('« Fin du livre premier. »\n\n« Début du second. »')).toBe(true)
+    expect(texte.split('Augustin')).toHaveLength(2)
+    expect(html).toContain(' »<br><br>« ')
+  })
+  it('un seul passage en liste rend la forme d’un passage seul', () => {
+    expect(citationPatristique(['au commencement,'], info)).toEqual(citationPatristique('au commencement,', info))
+  })
   it('resserre une fourchette de dates', () => {
     const { texte } = citationPatristique('paix', { ...info, datePublication: '1984-1986' })
     expect(texte).toContain('1984-1986')

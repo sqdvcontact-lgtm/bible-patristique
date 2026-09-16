@@ -31,6 +31,7 @@ import {
 } from "@/app/lib/citationsFavorites";
 import { PLAFOND_SEGMENTS_ELIDES, numerosDeLEcart, regrouperCitations, texteDuGroupe, type Ecart } from "@/app/lib/regrouperCitations";
 import { lieuDuPrelevement, type NiveauxDuLieu } from "@/app/lib/lieuPrelevement";
+import { niveauxDuSegment, titreEntrePassages, type NiveauxDuPassage } from "@/app/lib/titresDeDivision";
 import { lotsPourClauseIn } from "@/app/lib/paginationSupabase";
 import { replier } from "@/app/lib/bibleBibliographieOuvrages";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
@@ -67,6 +68,9 @@ type OeuvreInfo = {
   id_oeuvre: string; id_auteur?: string; sous_titre?: string
   trad_auteur?: string; editeur?: string
   collection?: string; ville?: string; date_publication?: string
+  /** Jusqu’où la lecture de l’œuvre compose ses titres : c’est là qu’une citation se coupe
+   *  (charte § 38.8.1). */
+  niveaux_corps?: number | null
 };
 
 type GroupeBiblique = {
@@ -376,7 +380,7 @@ export default function PagePrelevements() {
       if (ids.length > 0) {
         const { data: od } = await supabase
           .from("oeuvres")
-          .select("id_oeuvre, id_auteur, sous_titre, trad_auteur, editeur, collection, ville, date_publication")
+          .select("id_oeuvre, id_auteur, sous_titre, trad_auteur, editeur, collection, ville, date_publication, niveaux_corps")
           .in("id_oeuvre", ids);
         const map: Record<string, OeuvreInfo> = {};
         (od ?? []).forEach(o => { map[o.id_oeuvre] = o; });
@@ -443,13 +447,14 @@ export default function PagePrelevements() {
   // (`lieuDuPrelevement`) : le segment fait foi, la copie du prélèvement sert à défaut.
   const [mesuresPatristiques, setMesuresPatristiques] = useState<{
     pret: boolean; textes: Map<string, string>; longueurs: Map<string, number>; lieux: Map<string, NiveauxDuLieu>;
-  }>({ pret: false, textes: new Map(), longueurs: new Map(), lieux: new Map() });
+    niveaux: Map<string, NiveauxDuPassage>;
+  }>({ pret: false, textes: new Map(), longueurs: new Map(), lieux: new Map(), niveaux: new Map() });
   useEffect(() => {
     const patr = prelevements.filter(x => x.type === "patristique" && x.id_oeuvre && x.segment_numero);
     let annule = false;
     (async () => {
       if (!patr.length) {
-        if (!annule) setMesuresPatristiques({ pret: true, textes: new Map(), longueurs: new Map(), lieux: new Map() });
+        if (!annule) setMesuresPatristiques({ pret: true, textes: new Map(), longueurs: new Map(), lieux: new Map(), niveaux: new Map() });
         return;
       }
       // Les numéros à lire : ceux des passages enregistrés, et ceux des écarts courts
@@ -472,10 +477,13 @@ export default function PagePrelevements() {
         }
       }
       const oeuvresVisees = [...parOeuvre.keys()];
-      const lignes: { id_oeuvre: string; id_texte: string; segment_numero: number; segment_texte: string | null; ref_niv1: string | null; ref_niv2: string | null }[] = [];
+      const lignes: {
+        id_oeuvre: string; id_texte: string; segment_numero: number; segment_texte: string | null;
+        ref_niv1: string | null; ref_niv2: string | null; ref_niv3: string | null; ref_niv4: string | null;
+      }[] = [];
       for (const lot of lotsPourClauseIn([...numeros].map(String))) {
         const { data, error } = await supabase.from("segments")
-          .select("id_oeuvre, id_texte, segment_numero, segment_texte, ref_niv1, ref_niv2")
+          .select("id_oeuvre, id_texte, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4")
           .in("id_oeuvre", oeuvresVisees).in("segment_numero", lot.map(Number));
         // ⚠️ Une erreur se LIT : sans elle, l'absence de regroupement passerait pour un
         // parti pris.
@@ -485,16 +493,18 @@ export default function PagePrelevements() {
       const textesParOeuvre = new Map<string, Set<string>>();
       const mesures = new Map<string, number>();
       const lieux = new Map<string, NiveauxDuLieu>();
+      const niveaux = new Map<string, NiveauxDuPassage>();
       for (const r of lignes) {
         const vus = textesParOeuvre.get(r.id_oeuvre) ?? new Set<string>();
         vus.add(r.id_texte);
         textesParOeuvre.set(r.id_oeuvre, vus);
         mesures.set(`${r.id_texte}|${r.segment_numero}`, (r.segment_texte ?? "").length);
         lieux.set(`${r.id_texte}|${r.segment_numero}`, { n1: r.ref_niv1, n2: r.ref_niv2 });
+        niveaux.set(`${r.id_texte}|${r.segment_numero}`, niveauxDuSegment(r));
       }
       const uniques = new Map<string, string>();
       for (const [oeuvre, vus] of textesParOeuvre) if (vus.size === 1) uniques.set(oeuvre, [...vus][0]);
-      if (!annule) setMesuresPatristiques({ pret: true, textes: uniques, longueurs: mesures, lieux });
+      if (!annule) setMesuresPatristiques({ pret: true, textes: uniques, longueurs: mesures, lieux, niveaux });
     })();
     return () => { annule = true; };
   }, [prelevements]);
@@ -515,6 +525,14 @@ export default function PagePrelevements() {
       total += l;
     }
     return total;
+  };
+  // ⛔ Ni d’un trait ni par une élision par-dessus un titre que la lecture de l’œuvre montre
+  // (charte § 38.8.1) : on lit les niveaux des deux bouts et de tout l’écart.
+  const titreEntre = (ecart: Ecart, precedent: Prelevement) => {
+    const chaine: (NiveauxDuPassage | undefined)[] = [];
+    for (let n = ecart.de; n <= ecart.a; n++) chaine.push(mesuresPatristiques.niveaux.get(`${ecart.idTexte}|${n}`));
+    const info = precedent.id_oeuvre ? oeuvresInfo[precedent.id_oeuvre] : undefined;
+    return titreEntrePassages(chaine, info ? info.niveaux_corps ?? null : undefined);
   };
   const lieuPatristique = (x: Prelevement): string => {
     const idTexte = texteDuPrelevement(x);
@@ -874,7 +892,7 @@ export default function PagePrelevements() {
                 // élision, se lisent d’un trait, comme dans le volet de la page Bible
                 // (demande de l’auteur, 2026-09-04). Les actions portent alors sur TOUT le
                 // groupe, comme elles le font depuis toujours pour une suite de versets.
-                const regroupes = regrouperCitations(items, cleCitation, signesElides);
+                const regroupes = regrouperCitations(items, cleCitation, signesElides, titreEntre);
                 const lieux = regroupes.map(groupe => lieuPatristique(groupe[0]));
                 // ⛔ La colonne de la manchette ne tombe que lorsque la mesure est faite :
                 // tant que les segments ne sont pas relus, un lieu peut encore venir.

@@ -23,6 +23,13 @@
  * œuvre collait un paragraphe latin à un paragraphe français dès que leurs numéros
  * se suivaient. Le défaut était là depuis l'origine du regroupement.
  *
+ * ⛔ ET L'ON NE RÉUNIT JAMAIS PAR-DESSUS UN TITRE (demande de l'auteur, 16 septembre
+ * 2026 : « forcer la division des citations au niveau des titres »). Ni d'un trait, ni
+ * par une élision : « […] » dit qu'il manque un morceau du même développement, un titre
+ * dit qu'une autre partie commence. Le titre est celui que la lecture MONTRE
+ * (`titresDeDivision.ts`), et un titre qu'on ne sait pas voir empêche la réunion comme
+ * un écart qu'on n'a pas mesuré. Doctrine : charte § 38.8.1.
+ *
  * ⚠️ RIEN ICI NE CONCERNE LES VERSETS BIBLIQUES. Une suite de versets se réunit
  * déjà, et par une tout autre règle : elle garde ses bornes (« 12-15 »), et une
  * élision y ferait disparaître un verset sans le dire.
@@ -97,16 +104,22 @@ export function ecartsAMesurer<T>(liste: readonly T[], cle: (item: T) => Citatio
 /**
  * Les groupes : des tranches CONSÉCUTIVES de la liste, dans un même texte, aux
  * numéros croissants, l'écart admis tant que le texte élidé tient sous le
- * plafond.
+ * plafond et qu'aucun titre ne le traverse.
  *
  * `signesElides` rend le nombre de signes qui manquent entre deux numéros, ou
  * `null` quand on ne le sait pas — ⛔ et l'on ne réunit alors PAS : un « […] »
  * qui cacherait une quantité inconnue ne dit rien au lecteur.
+ *
+ * `titreEntre` dit si un titre se lit entre les deux citations, écart compris :
+ * `false` seul autorise la réunion, `true` et `null` (on ne sait pas) l'empêchent.
+ * ⛔ Il est OBLIGATOIRE : un appelant qui l'oublierait collerait deux parties de
+ * l'œuvre sans rien en dire.
  */
 export function regrouperCitations<T>(
   liste: readonly T[],
   cle: (item: T) => CitationRegroupable,
   signesElides: (ecart: Ecart) => number | null,
+  titreEntre: (ecart: Ecart, precedent: T, suivant: T) => boolean | null,
 ): T[][] {
   const groupes: T[][] = []
   for (const item of liste) {
@@ -114,12 +127,15 @@ export function regrouperCitations<T>(
     const dernier = groupe?.[groupe.length - 1]
     const prec = dernier === undefined ? null : cle(dernier)
     const cet = cle(item)
-    if (prec && prec.idTexte && prec.idTexte === cet.idTexte && cet.numero > prec.numero) {
+    if (dernier !== undefined && prec && prec.idTexte && prec.idTexte === cet.idTexte && cet.numero > prec.numero) {
       const manquants = cet.numero - prec.numero - 1
-      if (manquants === 0) { groupe.push(item); continue }
       if (manquants <= PLAFOND_SEGMENTS_ELIDES) {
-        const signes = signesElides({ idTexte: prec.idTexte, de: prec.numero, a: cet.numero })
-        if (signes !== null && signes <= PLAFOND_ELISION_SIGNES) { groupe.push(item); continue }
+        const ecart: Ecart = { idTexte: prec.idTexte, de: prec.numero, a: cet.numero }
+        if (titreEntre(ecart, dernier, item) === false) {
+          if (manquants === 0) { groupe.push(item); continue }
+          const signes = signesElides(ecart)
+          if (signes !== null && signes <= PLAFOND_ELISION_SIGNES) { groupe.push(item); continue }
+        }
       }
     }
     groupes.push([item])

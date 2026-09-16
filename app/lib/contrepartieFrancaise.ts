@@ -64,6 +64,7 @@ export type SegmentFrancais = {
   ref_niv1: string
   ref_niv2: string
   ref_niv3: string
+  ref_niv4?: string | null
   notes?: string | null
   /** Les segments d'un EMPAN, quand la contrepartie en réunit plusieurs (groupe aux
    *  effectifs inégaux, plus bas). ⚠️ Le texte réuni ne dit plus où finit chacun, et le
@@ -207,7 +208,7 @@ export async function chargerContrepartiesFrancaises(
   for (const lot of lotsPourClauseIn([...new Set(membresFr.map((m) => m.segment_key))])) {
     const { data, error } = await client
       .from('segments')
-      .select('id, id_texte, segment_key, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, notes')
+      .select('id, id_texte, segment_key, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4, notes')
       .in('id_texte', francais).in('segment_key', lot)
     if (error) {
       console.error('Contrepartie française : les segments français n’ont pas pu être lus.', error)

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   BORD_DEFILEMENT_PX, SEUIL_LASSO_PX, VITESSE_DEFILEMENT_MAX_PX,
   cleDeLassoValide, clesTouchees, combinerSelection, depasseLeSeuil, feuilleDeSurbrillance,
-  memesCles, peutOuvrirLeLasso, rectangleEntre, seCroisent, suitesContigues,
+  citationsDeLaSelection, memesCles, peutOuvrirLeLasso, rectangleEntre, seCroisent,
   surUneBarreDeDefilement, traceVisible, vitesseDeDefilement,
   type BoiteDefilante, type NoeudDom,
 } from './lasso'
@@ -130,19 +130,43 @@ describe('memesCles', () => {
   })
 })
 
-describe('suitesContigues', () => {
+describe('citationsDeLaSelection', () => {
   const ordre = ['a', 'b', 'c', 'd', 'e', 'f']
 
   it('réunit les clés qui se suivent', () => {
-    expect(suitesContigues(['a', 'b', 'c'], ordre)).toEqual([['a', 'b', 'c']])
+    expect(citationsDeLaSelection(['a', 'b', 'c'], ordre)).toEqual([[['a', 'b', 'c']]])
   })
 
-  it('ouvre une suite là où une clé manque, quel que soit l’ordre reçu', () => {
-    expect(suitesContigues(['e', 'a', 'b', 'd'], ordre)).toEqual([['a', 'b'], ['d', 'e']])
+  it('ouvre une suite là où une clé manque, quel que soit l’ordre reçu, dans la même citation', () => {
+    expect(citationsDeLaSelection(['e', 'a', 'b', 'd'], ordre)).toEqual([[['a', 'b'], ['d', 'e']]])
   })
 
   it('rend une liste vide pour une sélection vide', () => {
-    expect(suitesContigues([], ordre)).toEqual([])
+    expect(citationsDeLaSelection([], ordre)).toEqual([])
+  })
+
+  describe('⛔ un titre ouvre une autre citation', () => {
+    const titreAvant = (k: string) => k === 'c'
+
+    it('entre deux passages qui se suivent', () => {
+      expect(citationsDeLaSelection(['a', 'b', 'c', 'd'], ordre, titreAvant)).toEqual([[['a', 'b']], [['c', 'd']]])
+    })
+
+    it('dans l’écart qu’une élision aurait marqué', () => {
+      expect(citationsDeLaSelection(['a', 'e'], ordre, titreAvant)).toEqual([[['a']], [['e']]])
+    })
+
+    it('sur le passage d’arrivée d’un écart', () => {
+      expect(citationsDeLaSelection(['a', 'c'], ordre, titreAvant)).toEqual([[['a']], [['c']]])
+    })
+
+    it('ne coupe rien quand la sélection commence au titre', () => {
+      expect(citationsDeLaSelection(['c', 'd', 'f'], ordre, titreAvant)).toEqual([[['c', 'd'], ['f']]])
+    })
+
+    it('une clé inconnue ouvre sa propre citation', () => {
+      expect(citationsDeLaSelection(['a', 'z', 'b'], ordre)).toEqual([[['a', 'b']], [['z']]])
+    })
   })
 })
 

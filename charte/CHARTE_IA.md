@@ -8401,3 +8401,19 @@ Décision de l'auteur, 16 septembre 2026 : « un outil de lasso permettant de s�
 ⚠️ **LA SURBRILLANCE NE REMPLACE PAS LE FOND D'UN VERSET RETENU** : elle se peint par-dessus, en voile vert léger, et la trace du cadre prend la même teinte, dans les deux thèmes.
 
 ⚠️ **PAS ENCORE COUVERT** : la lecture en regard de la page Bible, la Polyglotte, l'apparat et la comparaison d'une œuvre, le téléphone.
+
+### 38.8.1 Une citation ne passe jamais un titre sans le dire
+
+Demande de l'auteur, 16 septembre 2026, devant le lasso de lecture : « exclure les titres, mais forcer la division des citations-prélèvements-copier/coller au niveau des titres ».
+
+⛔ **DEUX PASSAGES QU'UN TITRE SÉPARE FONT DEUX CITATIONS.** Ils ne se joignent ni d'un trait ni par une élision : « […] » dit qu'il manque un morceau du même développement, un titre dit qu'une autre partie commence. La règle vaut partout où des passages se réunissent : le volet des Pères de la page Bible, « Mes citations », la copie d'une sélection faite au lasso. Jusqu'au 16 septembre 2026, les trois collaient ces passages et le titre disparaissait sans marque ; mesuré ce jour-là dans le volet, 408 des 18 248 réunions de passages voisins passaient un titre, sur 324 versets et 25 œuvres.
+
+⛔ **LE TITRE EST CELUI QUE LA LECTURE MONTRE.** Une œuvre compose ses titres jusqu'à la profondeur qu'on lui a réglée : un changement de division plus profond ne s'y voit pas, et il ne coupe rien. Un changement de niveau 1 coupe toujours, puisque c'est une autre division.
+
+⛔ **UN TITRE QU'ON NE SAIT PAS VOIR EMPÊCHE LA RÉUNION**, comme un écart qu'on n'a pas mesuré (§ 38.8) : deux passages séparés valent mieux que deux parties de l'œuvre collées.
+
+**À la copie**, les citations qu'un titre sépare se suivent sous la même référence, chacune entre ses guillemets et sur sa ligne.
+
+⚠️ **LA BIBLE N'EST PAS CONCERNÉE.** Les titres de péricopes et de sections d'une édition commentée appartiennent à l'édition, non au texte biblique : ils ne coupent pas une citation de l'Écriture et n'y sont jamais repris. Le chapitre reste la frontière.
+
+⚠️ **LES TITRES NE SONT PAS ENCORE REPRODUITS.** Voie proposée le 16 septembre 2026, à décider le jour où l'on voudra les reprendre : un titre à l'intérieur d'une sélection continue (le passage juste avant et le passage juste après sont retenus) se reproduit sur sa ligne, et la citation reste d'un seul tenant, sa référence nommant les deux divisions ; un titre au bord d'une sélection ne se reproduit pas, la référence nommant déjà la division. Rien n'est à stocker : un prélèvement reste une ligne par passage, et les titres se retrouvent à partir de la division des passages.

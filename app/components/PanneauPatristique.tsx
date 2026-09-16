@@ -36,6 +36,7 @@ import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE
 import RailVolet from '@/app/components/RailVolet'
 import IconeChevron from '@/app/components/IconeChevron'
 import { ecartsAMesurer, numerosDeLEcart, regrouperCitations, texteDuGroupe, type Ecart } from '@/app/lib/regrouperCitations'
+import { niveauxDuSegment, titreEntrePassages, type NiveauxDuPassage } from '@/app/lib/titresDeDivision'
 import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { chargerContrepartiesFrancaises } from '@/app/lib/contrepartieFrancaise'
 import { MarqueAttenteVolet } from '@/app/lib/attenteNavigation'
@@ -54,7 +55,7 @@ type Segment = {
   // à des versets) et leurs `segment_numero` se recouvrent.
   id: number; id_oeuvre: string; id_texte: string; segment_numero: number
   segment_texte: string; ref_niv1: string; ref_niv2: string
-  ref_niv3: string; notes?: string | null
+  ref_niv3: string; ref_niv4?: string | null; notes?: string | null
   segment_key?: string | null
   // ⚠️ Le segment qui PORTE le lien biblique, quand ce n'est pas celui qu'on montre :
   // un lien posé sur un latin s'affiche dans sa contrepartie française (voir
@@ -75,6 +76,9 @@ type OeuvreInfo = {
   // confondre : les Confessions valent 1649 pour l'une, « Vers 397-401 » pour l'autre.
   date_composition: string | null
   genre?: string | null
+  /** Jusqu'où la lecture de l'œuvre compose ses titres : c'est là qu'une citation se coupe
+   *  (charte § 38.8.1). */
+  niveaux_corps: number | null
 }
 type Commentaire = { id: number; texte: string; auteur_nom: string; created_at: string }
 
@@ -971,6 +975,9 @@ export default function PanneauPatristique({
   // Longueur de chaque segment chargé ou mesuré, par « id_texte|numero ». Elle sert
   // à juger une ÉLISION : voir `regrouperCitations`.
   const [longueurs, setLongueurs] = useState<Map<string, number>>(new Map())
+  // Les niveaux de division des segments lus dans un écart : un titre qui le traverse
+  // empêche la réunion (charte § 38.8.1).
+  const [niveauxEcarts, setNiveauxEcarts] = useState<Map<string, NiveauxDuPassage>>(new Map())
   const [segmentsCitations, setSegmentsCitations] = useState<{ seg: Segment; col: string }[]>([])
   const [segmentsDoctrine, setSegmentsDoctrine] = useState<Segment[]>([])
   const [segmentsEcho, setSegmentsEcho] = useState<Segment[]>([])
@@ -1020,7 +1027,7 @@ export default function PanneauPatristique({
   // Charger les infos des oeuvres une seule fois
   useEffect(() => {
     supabase.from('oeuvres')
-      .select('id_oeuvre, titre, sous_titre, id_auteur, trad_auteur, editeur, collection, ville, date_publication, date_composition, genre, acces_public')
+      .select('id_oeuvre, titre, sous_titre, id_auteur, trad_auteur, editeur, collection, ville, date_publication, date_composition, genre, niveaux_corps, acces_public')
       .then(async ({ data: od }) => {
         if (!od) return
         const { data: ad } = await supabase.from('auteurs').select('id_auteur, nom, traditions, siecle, date_mort')
@@ -1045,6 +1052,7 @@ export default function PanneauPatristique({
             date_publication: o.date_publication || null,
             date_composition: o.date_composition || null,
             genre: o.genre || null,
+            niveaux_corps: o.niveaux_corps ?? null,
           }
         })
         setOeuvres(map)
@@ -1073,7 +1081,7 @@ export default function PanneauPatristique({
     // La recherche inverse passe désormais par `liens_bibliques` : un index sur
     // `canon_id` au lieu de quatre `ilike '%…%'` sur 136 770 lignes — qui, de
     // surcroît, ramenaient GEN.1.10 à GEN.1.19 quand on demandait GEN.1.1.
-    const SEG_COLS = 'id, id_oeuvre, id_texte, segment_key, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, notes'
+    const SEG_COLS = 'id, id_oeuvre, id_texte, segment_key, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4, notes'
     ;(async () => {
       const liens = plage
         ? await segmentsLiesAPlage(plage.livre, plage.canonDebut, plage.canonFin)
@@ -1162,18 +1170,24 @@ export default function PanneauPatristique({
       const textes = [...new Set(ecarts.map(e => e.idTexte))]
       const numeros = [...new Set(ecarts.flatMap(numerosDeLEcart))]
       const trouvees = new Map(connues)
+      const niveaux = new Map<string, NiveauxDuPassage>()
       for (const lot of lotsPourClauseIn(numeros.map(String))) {
         const { data, error } = await supabase.from('segments')
-          .select('id_texte, segment_numero, segment_texte')
+          .select('id_texte, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4')
           .in('id_texte', textes).in('segment_numero', lot.map(Number))
         // ⚠️ Une erreur se LIT : elle ne doit pas se lire « rien à élider », ce qui
         // ferait taire un regroupement sans qu'on sache pourquoi.
         if (error) { console.error('Volet patristique : les élisions n’ont pas pu être mesurées.', error); return }
-        for (const r of (data ?? []) as { id_texte: string; segment_numero: number; segment_texte: string | null }[]) {
+        type Ligne = {
+          id_texte: string; segment_numero: number; segment_texte: string | null
+          ref_niv1: string | null; ref_niv2: string | null; ref_niv3: string | null; ref_niv4: string | null
+        }
+        for (const r of (data ?? []) as Ligne[]) {
           trouvees.set(`${r.id_texte}|${r.segment_numero}`, (r.segment_texte ?? '').length)
+          niveaux.set(`${r.id_texte}|${r.segment_numero}`, niveauxDuSegment(r))
         }
       }
-      if (!annule) setLongueurs(trouvees)
+      if (!annule) { setLongueurs(trouvees); setNiveauxEcarts(niveaux) }
     })()
     return () => { annule = true }
   }, [segmentsCitations, segmentsDoctrine, segmentsEcho])
@@ -1383,9 +1397,17 @@ export default function PanneauPatristique({
     idOeuvre: it.seg.id_oeuvre, idTexte: it.seg.id_texte,
     numero: it.seg.segment_numero, texte: it.seg.segment_texte,
   }), [])
+  // ⛔ Ni d'un trait ni par une élision par-dessus un titre que la lecture de l'œuvre montre
+  // (charte § 38.8.1). Les deux bouts se lisent sur les extraits, l'écart sur ce qu'on a lu.
+  const titreEntre = useCallback((ecart: Ecart, precedent: ItemAffiche, suivant: ItemAffiche) => {
+    const chaine: (NiveauxDuPassage | undefined)[] = [niveauxDuSegment(precedent.seg)]
+    for (const n of numerosDeLEcart(ecart)) chaine.push(niveauxEcarts.get(`${ecart.idTexte}|${n}`))
+    chaine.push(niveauxDuSegment(suivant.seg))
+    return titreEntrePassages(chaine, oeuvres[precedent.seg.id_oeuvre]?.niveaux_corps)
+  }, [niveauxEcarts, oeuvres])
   const itemsGroupes = useMemo(
-    () => regrouperCitations(itemsFiltres, cleCitation, signesElides),
-    [itemsFiltres, cleCitation, signesElides],
+    () => regrouperCitations(itemsFiltres, cleCitation, signesElides, titreEntre),
+    [itemsFiltres, cleCitation, signesElides, titreEntre],
   )
 
   const nbPagesItems = Math.ceil(itemsGroupes.length / ITEMS_PAR_PAGE)

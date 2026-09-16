@@ -58,7 +58,8 @@ import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { CelluleActions, useCelluleActions } from '@/app/components/CelluleActions'
 import LassoLecture from '@/app/components/LassoLecture'
-import { suitesContigues } from '@/app/lib/lasso'
+import { citationsDeLaSelection } from '@/app/lib/lasso'
+import { AUCUN_TITRE_MONTRE, passagesQuiOuvrentUnTitre, titresDuGroupe, type NiveauxDuPassage, type ReglageDesTitres } from '@/app/lib/titresDeDivision'
 import { texteDesSuites } from '@/app/lib/selectionPassages'
 import { citationPatristique, copierCitation } from '@/app/lib/citation'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
@@ -2251,6 +2252,17 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   )
   const bornesGroupes = bornesDesGroupes([...introsEnTete, ...segmentsFiltres])
 
+  // ── LES TITRES QUE LA PAGE MONTRE ───────────────────────────────────────────
+  // Une seule règle pour le rendu des titres et pour la frontière des citations
+  // (`titresDeDivision.ts`, charte § 38.8.1) : la copie du lasso coupe exactement là où
+  // la page compose un titre. Le niveau 1 reprend celui de la page précédente, les
+  // niveaux suivants repartent à vide en tête de page.
+  const titresAuDepart: NiveauxDuPassage = {
+    ...AUCUN_TITRE_MONTRE,
+    niv1: pageActuelle > 0 ? (pages[pageActuelle - 1]?.at(-1)?.niv1 ?? '') : '',
+  }
+  const reglageDesTitres: ReglageDesTitres = { profondeur: profondeurCorps, niveau1DansLeCorps: lectureTexteEntier }
+
   // Une note appelée dans un TITRE n'est pas toujours définie sur le premier
   // segment de son groupe : dans les imports à notes structurées, son ancre tombe
   // quelques segments plus loin (Discours sur la Genèse : l'appel du chapeau du
@@ -3200,13 +3212,20 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // suivent pas se séparent d'une élision : copier le premier et le quatrième sans la dire
   // ferait lire un texte que l'auteur n'a pas écrit. L'ordre est celui où la page les rend,
   // les arguments hissés en tête d'abord.
+  // ⛔ Et une citation ne passe jamais un titre (charte § 38.8.1) : le passage qui ouvre un
+  // titre que la page compose commence une autre citation, sous la même référence.
   const copierLasso = async (cles: readonly string[]) => {
     const parCle = new Map(segments.map(s => [String(s.id), s]))
     const ordre = [...new Set([...introsEnTete, ...segmentsFiltres].map(s => String(s.id)))]
-    const suites = suitesContigues(cles.filter(cle => parCle.has(cle)), ordre)
-      .map(suite => suite.map(cle => parCle.get(cle)!).map(s => ({ texte: texteSansEnrichissement(s.texte), joinBefore: s.joinBefore })))
-    if (suites.length === 0) return
-    await copierCitation(citationPatristique(texteDesSuites(suites), {
+    const ouvrentUnTitre = new Set([...passagesQuiOuvrentUnTitre(groupesFiltres, titresAuDepart, reglageDesTitres,
+      id => segMap.get(id)?.nature !== 'introduction')].map(String))
+    const textes = citationsDeLaSelection(cles.filter(cle => parCle.has(cle)), ordre, cle => ouvrentUnTitre.has(cle))
+      .map(citation => texteDesSuites(citation.map(suite => suite
+        .map(cle => parCle.get(cle)!)
+        .map(s => ({ texte: texteSansEnrichissement(s.texte), joinBefore: s.joinBefore })))))
+      .filter(texte => texte !== '')
+    if (textes.length === 0) return
+    await copierCitation(citationPatristique(textes, {
       auteur, titre: oeuvreAffichee.titre, sousTitre: oeuvreAffichee.sous_titre,
       tradAuteur: oeuvreAffichee.trad_auteur, editeur: oeuvreAffichee.editeur,
       collection: oeuvreAffichee.collection, ville: oeuvreAffichee.ville,
@@ -4066,8 +4085,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           {vue === 'texte' && modeComparaisonActif && alignementActif ? (
             <ComparaisonTraductions key={`${alignementActif.alignmentSetId}:${comparaisonBook}:${comparaisonDivision}`} alignement={alignementActif} estAdmin={estAdmin} book={comparaisonBook} division={comparaisonDivision} userId={userId} auteur={auteur} />
           ) : vue === 'texte' && (() => {
-            let dniv1 = pageActuelle > 0 ? (pages[pageActuelle - 1]?.at(-1)?.niv1 ?? '') : ''
-            let dniv2 = '', dniv3 = '', dniv4 = ''
+            // Les titres que la page a montrés : la règle vit dans `titresDuGroupe`, que la
+            // copie du lasso lit aussi (charte § 38.8.1).
+            let montres = titresAuDepart
             let isFirstGroupe = true
             // Introductions (arguments) hissées en tête de l'homélie, hors des groupes
             // et de la pagination : police plus petite et plus claire, marges latérales.
@@ -4251,19 +4271,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               const sousTitre2 = complementDeTitre(groupe.niv2, groupe.niv2_texte)
               const sousTitre3 = complementDeTitre(groupe.niv3, groupe.niv3_texte)
               const sousTitre4 = complementDeTitre(groupe.niv4, groupe.niv4_texte)
-              const showNiv1 = lectureTexteEntier && profondeurCorps >= 1 && groupe.niv1 && groupe.niv1 !== dniv1
-              const showNiv2 = profondeurCorps >= 2 && groupe.niv2 && groupe.niv2 !== dniv2
-              const showNiv3 = profondeurCorps >= 3 && groupe.niv3 && groupe.niv3 !== dniv3
-              const showNiv4 = profondeurCorps >= 4 && groupe.niv4 && groupe.niv4 !== dniv4
-              if (showNiv1) {
-                dniv1 = groupe.niv1
-                dniv2 = ''
-                dniv3 = ''
-                dniv4 = ''
-              }
-              if (showNiv2) dniv2 = groupe.niv2
-              if (showNiv3) dniv3 = groupe.niv3
-              if (showNiv4) dniv4 = groupe.niv4
+              const titres = titresDuGroupe(groupe, montres, reglageDesTitres)
+              montres = titres.montres
+              const { niv1: showNiv1, niv2: showNiv2, niv3: showNiv3, niv4: showNiv4 } = titres
               const marginTop = isFirstGroupe ? '0' : showNiv1 ? '2.8rem' : showNiv2 ? '2.5rem' : showNiv3 ? '1.5rem' : '0.8rem'
               if (isFirstGroupe) isFirstGroupe = false
               return (

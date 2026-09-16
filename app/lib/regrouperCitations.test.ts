@@ -19,6 +19,8 @@ const soi = (x: Cit) => x
 const inconnu = () => null
 /** Tout écart tient sous le plafond. */
 const court = () => 10
+/** Aucun titre entre deux citations. */
+const sansTitre = () => false
 
 describe('ecartsAMesurer', () => {
   it('ne relève que les écarts d’un MÊME texte', () => {
@@ -51,44 +53,74 @@ describe('ecartsAMesurer', () => {
 
 describe('regrouperCitations', () => {
   it('réunit les segments qui se suivent, comme avant', () => {
-    const g = regrouperCitations([c(10), c(11), c(12)], soi, inconnu)
+    const g = regrouperCitations([c(10), c(11), c(12)], soi, inconnu, sansTitre)
     expect(g).toHaveLength(1)
     expect(g[0].map(x => x.numero)).toEqual([10, 11, 12])
   })
 
   it('⛔ ne réunit JAMAIS deux textes différents, fussent-ils de la même œuvre', () => {
-    const g = regrouperCitations([c(10), c(11, 't11', 'TXT_LA')], soi, court)
+    const g = regrouperCitations([c(10), c(11, 't11', 'TXT_LA')], soi, court, sansTitre)
     expect(g).toHaveLength(2)
   })
 
   it('réunit par-dessus une élision courte', () => {
-    const g = regrouperCitations([c(10), c(12)], soi, () => 120)
+    const g = regrouperCitations([c(10), c(12)], soi, () => 120, sansTitre)
     expect(g).toHaveLength(1)
   })
 
   it('⛔ laisse deux citations séparées quand l’élision est trop longue', () => {
-    expect(regrouperCitations([c(10), c(12)], soi, () => PLAFOND_ELISION_SIGNES)).toHaveLength(1)
-    expect(regrouperCitations([c(10), c(12)], soi, () => PLAFOND_ELISION_SIGNES + 1)).toHaveLength(2)
+    expect(regrouperCitations([c(10), c(12)], soi, () => PLAFOND_ELISION_SIGNES, sansTitre)).toHaveLength(1)
+    expect(regrouperCitations([c(10), c(12)], soi, () => PLAFOND_ELISION_SIGNES + 1, sansTitre)).toHaveLength(2)
   })
 
   it('⛔ ne réunit pas ce qu’on n’a pas mesuré', () => {
-    expect(regrouperCitations([c(10), c(12)], soi, inconnu)).toHaveLength(2)
+    expect(regrouperCitations([c(10), c(12)], soi, inconnu, sansTitre)).toHaveLength(2)
   })
 
   it('⛔ ne réunit pas au delà du plafond de segments, même si l’on prétend que c’est court', () => {
-    expect(regrouperCitations([c(1), c(1 + PLAFOND_SEGMENTS_ELIDES + 1)], soi, court)).toHaveLength(1)
-    expect(regrouperCitations([c(1), c(1 + PLAFOND_SEGMENTS_ELIDES + 2)], soi, court)).toHaveLength(2)
+    expect(regrouperCitations([c(1), c(1 + PLAFOND_SEGMENTS_ELIDES + 1)], soi, court, sansTitre)).toHaveLength(1)
+    expect(regrouperCitations([c(1), c(1 + PLAFOND_SEGMENTS_ELIDES + 2)], soi, court, sansTitre)).toHaveLength(2)
   })
 
   it('ne remonte jamais le fil : un numéro qui recule ouvre un groupe', () => {
-    expect(regrouperCitations([c(10), c(9)], soi, court)).toHaveLength(2)
-    expect(regrouperCitations([c(10), c(10)], soi, court)).toHaveLength(2)
+    expect(regrouperCitations([c(10), c(9)], soi, court, sansTitre)).toHaveLength(2)
+    expect(regrouperCitations([c(10), c(10)], soi, court, sansTitre)).toHaveLength(2)
   })
 
   it('ne perd aucune citation', () => {
     const liste = [c(1), c(2), c(9), c(10, 't10', 'TXT_LA'), c(30)]
-    const g = regrouperCitations(liste, soi, court)
+    const g = regrouperCitations(liste, soi, court, sansTitre)
     expect(g.flat()).toHaveLength(liste.length)
+  })
+})
+
+describe('regrouperCitations — ⛔ jamais par-dessus un titre', () => {
+  it('coupe deux segments qui se suivent quand un titre les sépare', () => {
+    expect(regrouperCitations([c(10), c(11)], soi, court, () => true)).toHaveLength(2)
+  })
+
+  it('coupe une élision courte que traverse un titre', () => {
+    expect(regrouperCitations([c(10), c(12)], soi, court, () => true)).toHaveLength(2)
+  })
+
+  it('⛔ ne réunit pas quand on ne sait pas voir le titre', () => {
+    expect(regrouperCitations([c(10), c(11)], soi, court, () => null)).toHaveLength(2)
+  })
+
+  it('demande le titre sur l’écart exact, avec les deux citations', () => {
+    const vus: unknown[] = []
+    regrouperCitations([c(10), c(13)], soi, court, (ecart, precedent, suivant) => {
+      vus.push([ecart, precedent.numero, suivant.numero])
+      return false
+    })
+    expect(vus).toEqual([[{ idTexte: 'TXT_FR', de: 10, a: 13 }, 10, 13]])
+  })
+
+  it('ne demande rien quand la réunion est de toute façon exclue', () => {
+    let appels = 0
+    const compter = () => { appels++; return false }
+    regrouperCitations([c(10), c(11, 't11', 'TXT_LA'), c(9, 't9', 'TXT_LA'), c(9 + PLAFOND_SEGMENTS_ELIDES + 2, 't', 'TXT_LA')], soi, court, compter)
+    expect(appels).toBe(0)
   })
 })
 

@@ -116,24 +116,41 @@ export function memesCles<K>(a: readonly K[] | null, b: readonly K[] | null): bo
 }
 
 /**
- * Les SUITES d'une sélection : les clés qui se suivent dans l'ordre de lecture, réunies.
- * Trois passages voisins en font une, et un passage laissé de côté en ouvre une seconde.
- * C'est ce qui décide, à la copie, d'une élision marquée.
+ * Les CITATIONS d'une sélection, dans l'ordre de lecture. Chacune est une liste de SUITES :
+ * les clés qui se suivent y sont réunies, et un passage laissé de côté ouvre une seconde
+ * suite, que la copie joint par une élision marquée.
+ *
+ * ⛔ UN TITRE OUVRE UNE AUTRE CITATION (charte § 38.8.1). `ouvreUnTitre(cle)` dit si la page
+ * compose un titre juste avant ce passage ; le titre se cherche sur tout ce qui sépare deux
+ * clés retenues, le passage d'arrivée compris. Deux passages qu'un titre sépare ne se
+ * joignent ni d'un trait ni par une élision.
+ *
+ * ⚠️ Une clé que l'ordre ne connaît pas ouvre sa propre citation : on ne sait pas où elle
+ * tombe.
  */
-export function suitesContigues<K>(cles: readonly K[], ordre: readonly K[]): K[][] {
+export function citationsDeLaSelection<K>(
+  cles: readonly K[],
+  ordre: readonly K[],
+  ouvreUnTitre: (cle: K) => boolean = () => false,
+): K[][][] {
   const rang = new Map<K, number>()
   ordre.forEach((cle, i) => rang.set(cle, i))
-  const triees = [...cles].sort((a, b) => (rang.get(a) ?? Infinity) - (rang.get(b) ?? Infinity))
-  const suites: K[][] = []
+  const triees = [...new Set(cles)].sort((a, b) => (rang.get(a) ?? Infinity) - (rang.get(b) ?? Infinity))
+  const citations: K[][][] = []
   let precedent: number | undefined
   for (const cle of triees) {
     const r = rang.get(cle)
-    const suite = suites[suites.length - 1]
-    if (suite && r !== undefined && precedent !== undefined && r === precedent + 1) suite.push(cle)
-    else suites.push([cle])
+    const citation = citations[citations.length - 1]
+    let titre = false
+    if (r !== undefined && precedent !== undefined) {
+      for (let i = precedent + 1; i <= r && !titre; i += 1) titre = ouvreUnTitre(ordre[i])
+    }
+    if (citation === undefined || r === undefined || precedent === undefined || titre) citations.push([[cle]])
+    else if (r === precedent + 1) citation[citation.length - 1].push(cle)
+    else citation.push([cle])
     precedent = r
   }
-  return suites
+  return citations
 }
 
 /** Ce que le lasso demande d'un nœud du document : assez peu pour qu'un test le fabrique. */

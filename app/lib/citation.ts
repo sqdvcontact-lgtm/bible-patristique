@@ -119,15 +119,21 @@ const MENTION_SITE = 'disponible sur le site Corpus Scriptura'
  * ⚠️ Le POINT FINAL de la notice tombe : la phrase continue par la provenance, puis
  * par le passage cité.
  */
-export function citationPatristique(texte: string, info: InfoCitation): CitationRendue {
+export function citationPatristique(texte: string | readonly string[], info: InfoCitation): CitationRendue {
   const fragments = fragmentsSansPointFinal(fragmentsReference(noticeDUneOeuvre(info)))
-  const cite = preparerTexteCitation(texte)
+  // ⛔ PLUSIEURS PASSAGES QU'UN TITRE SÉPARE FONT PLUSIEURS CITATIONS (charte § 38.8.1) : sous
+  // la même référence, chacun entre ses guillemets et sur sa ligne. Les coller ferait lire
+  // d'un trait deux parties de l'œuvre.
+  const cites = typeof texte === 'string'
+    ? [preparerTexteCitation(texte)]
+    : texte.map(preparerTexteCitation).filter(cite => cite !== '')
   const reference = texteFragments(fragments)
   const referenceHtml = htmlFragments(fragments)
   return {
-    texte: [reference, MENTION_SITE].filter(Boolean).join(SEPARATEUR) + ' : « ' + cite + ' »',
-    html: [referenceHtml, echapperHtml(MENTION_SITE)].filter(Boolean).join(SEPARATEUR)
-      + ' : « ' + echapperHtml(cite) + ' »',
+    texte: [reference, MENTION_SITE].filter(Boolean).join(SEPARATEUR) + ' : '
+      + cites.map(cite => '« ' + cite + ' »').join('\n\n'),
+    html: [referenceHtml, echapperHtml(MENTION_SITE)].filter(Boolean).join(SEPARATEUR) + ' : '
+      + cites.map(cite => '« ' + echapperHtml(cite) + ' »').join('<br><br>'),
   }
 }
 
