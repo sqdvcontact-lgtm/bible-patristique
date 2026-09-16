@@ -3412,14 +3412,20 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               ⚠️ Le survol vit dans la FEUILLE (`.lien-meme-auteur`) : une couleur
                               posée en ligne battrait la règle, et deux gestionnaires JavaScript
                               la réécrivaient à chaque passage du curseur.
-                              ⚠️ Et elle se SERRE contre son titre (2026-09-15, après le 2026-09-09
-                              qui l'y avait déjà collée) : interligne 1,1 et un seizième de rem
-                              repris, pendant que deux œuvres s'écartent de 0,625 rem. Le titre et
-                              son adresse font UNE entrée ; le blanc qui doit se voir est celui qui
-                              sépare deux œuvres. */}
+                              ⚠️ Et elle se TIENT PRÈS de son titre, sans s'y coller : interligne 1,1
+                              et un seizième de rem, pendant que deux œuvres s'écartent de 0,625 rem.
+                              Le titre et son adresse font UNE entrée ; le blanc qui doit se voir est
+                              celui qui sépare deux œuvres.
+                              ⚠️ Ce seizième était NÉGATIF, et il est positif depuis le 2026-09-16
+                              (demande de l'auteur : « augmenter très légèrement l'espace entre le
+                              titre et les données éditoriales »). Deux resserrements successifs —
+                              le 2026-09-09, puis le 2026-09-15 — avaient fini par souder les deux
+                              lignes en un seul pavé, où l'adresse ne se lisait plus comme un second
+                              rang. Un huitième de rem les sépare à nouveau, et pas davantage : le
+                              blanc entre deux œuvres reste cinq fois plus large. */}
                           {distinction && (
                             <span className="lien-meme-auteur-edition"
-                              style={{ display: 'block', fontSize: '0.625rem', fontStyle: 'italic', lineHeight: 1.1, marginTop: '-0.0625rem', ...(courante ? { color: 'var(--cs-vert)' } : null) }}>
+                              style={{ display: 'block', fontSize: '0.625rem', fontStyle: 'italic', lineHeight: 1.1, marginTop: '0.0625rem', ...(courante ? { color: 'var(--cs-vert)' } : null) }}>
                               {distinction}
                             </span>
                           )}
