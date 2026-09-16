@@ -128,6 +128,38 @@ export function guillemetsInternesEnFrancais(texte: string): string {
   return texte.replace(/“/g, '« ').replace(/”/g, ' »')
 }
 
+/**
+ * UN TEXTE SORTI PERD SES GUILLEMETS ENCADRANTS (charte § 3.8, § 13.18.1).
+ *
+ * Détaché et mis en retrait, il n'a plus besoin de les porter : le retrait dit ce que
+ * les guillemets disaient, et les redire enferme la citation deux fois. Ses guillemets
+ * internes remontent alors au premier niveau (§ 3.3).
+ *
+ * ⚠️ LA PAIRE ENCADRANTE EST LE PREMIER « ET LE DERNIER », non le dernier signe du
+ * texte. Une citation tronquée ferme sur « …, etc. », et un appel de note ou un renvoi
+ * suivent parfois le guillemet fermant : exiger qu'il termine la chaîne laisserait
+ * l'encadrement en place précisément là où la citation est la plus longue.
+ *
+ * ⛔ RIEN N'EST RETIRÉ si le texte n'ouvre pas sur un « ou ne porte aucun » : un
+ * guillemet isolé appartient au texte cité, et on ne l'ampute pas.
+ *
+ * ⛔ ET LA FRANCISATION VIENT APRÈS LE RETRAIT, jamais avant : elle fait d'un guillemet
+ * anglais fermant un guillemet français fermant, et la recherche du DERNIER prendrait
+ * alors un guillemet interne pour l'encadrant.
+ *
+ * ⚠️ Sa sœur `textesCitationStructurelleSansEncadrement` sert les SEGMENTS
+ * d'une œuvre, où la citation se recompose de plusieurs lignes et où le guillemet
+ * fermant termine le dernier segment, appel de note compris. Les deux règles ne se
+ * confondent pas.
+ */
+export function sansGuillemetsEncadrants(texte: string): string {
+  const ouvre = /^([ \u00A0\u202F\t]*)«[ \u00A0\u202F\t]*/.exec(texte)
+  const ferme = texte.lastIndexOf('»')
+  if (!ouvre || ferme < ouvre[0].length) return guillemetsInternesEnFrancais(texte)
+  const dedans = texte.slice(ouvre[0].length, ferme).replace(/[ \u00A0\u202F\t]*$/, '')
+  return ouvre[1] + guillemetsInternesEnFrancais(dedans) + texte.slice(ferme + 1)
+}
+
 /** Décrit la citation à sortir, ou `null` si le texte n'en porte pas. */
 /** Le début, dans le texte source, du contenu cité — ou `null` si la francisation
  *  des guillemets a déplacé les signes et rompu la correspondance. */

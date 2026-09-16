@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { dispositionCitation } from './compositionNote'
+import { SEUIL_CITATION_SORTIE } from './citationSortie'
 
 // LA DISPOSITION D'UN BLOC DE NOTE — charte § 13.18. La nature et la disposition sont
 // deux axes : la donnée dit la seconde quand elle la connaît (`metadata.citation_layout`).
@@ -39,5 +40,48 @@ describe('la disposition d’un bloc de note', () => {
     expect(dispositionCitation({ kind: 'quotation', form: 'prose' })).toBe('fil')
     expect(dispositionCitation({ kind: 'commentary', form: 'prose' })).toBe('fil')
     expect(dispositionCitation({ kind: 'reference', form: 'prose' })).toBe('fil')
+  })
+})
+
+// ── ET UNE CITATION LONGUE SE DÉTACHE, MÊME SANS DÉCLARATION (charte § 13.18.1) ──
+//
+// ⚠️ Le seuil est celui des œuvres, et il ne contredit AUCUNE déclaration du corpus :
+// les 36 citations déclarées au fil au 16 septembre 2026 comptent au plus 391 signes.
+// Le cas qui l'a imposé est la note 146 de La Cité de Dieu (Barreau, Vivès), 1 409
+// signes coulés dans le fil d'une note de 198.
+describe('la disposition d’une citation que la donnée ne déclare pas', () => {
+  const long = (n: number) => 'a'.repeat(n)
+
+  it('sort la citation qui atteint le seuil', () => {
+    expect(dispositionCitation({ kind: 'quotation', form: 'prose', text: long(SEUIL_CITATION_SORTIE) }))
+      .toBe('sortie')
+  })
+
+  it('garde au fil celle qui reste en deçà', () => {
+    expect(dispositionCitation({ kind: 'quotation', form: 'prose', text: long(SEUIL_CITATION_SORTIE - 1) }))
+      .toBe('fil')
+    // La plus longue citation déclarée au fil du corpus, au 16 septembre 2026.
+    expect(dispositionCitation({ kind: 'quotation', form: 'prose', text: long(391) })).toBe('fil')
+  })
+
+  // ⛔ La DÉCLARATION l'emporte toujours : une citation qui se dit au fil y reste, si
+  // longue soit-elle, et le seuil ne se retourne jamais contre l'éditeur.
+  it('ne retourne jamais une déclaration', () => {
+    expect(dispositionCitation({
+      kind: 'quotation', form: 'prose', citationLayout: 'inline', text: long(2000),
+    })).toBe('fil')
+  })
+
+  // ⛔ Le seuil ne vaut que pour une CITATION : la prose d'une note, un ancrage, un renvoi
+  // se composent au fil quelle que soit leur longueur.
+  it('ne vaut que pour une citation', () => {
+    expect(dispositionCitation({ kind: 'commentary', form: 'prose', text: long(2000) })).toBe('fil')
+    expect(dispositionCitation({ kind: 'lemma', form: 'prose', text: long(2000) })).toBe('fil')
+    expect(dispositionCitation({ kind: 'reference', form: 'prose', text: long(2000) })).toBe('fil')
+  })
+
+  it('tient sans texte du tout', () => {
+    expect(dispositionCitation({ kind: 'quotation', form: 'prose' })).toBe('fil')
+    expect(dispositionCitation({ kind: 'quotation', form: 'prose', text: null })).toBe('fil')
   })
 })

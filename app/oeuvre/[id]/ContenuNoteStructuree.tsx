@@ -23,6 +23,7 @@ import { rendreTexteEnrichi } from './texteEnrichi'
 import * as BibliographieNote from './noteBibliographie'
 import { STYLE_DISCRET_ENCART, STYLE_FACE_LIBELLE_EXPLICATION, STYLE_LIBELLE_EXPLICATION, dispositionCitation, styleBlocNote } from '@/app/lib/compositionNote'
 import { lignesDeVers, styleLigneDeVers } from '@/app/lib/compositionVers'
+import { sansGuillemetsEncadrants } from '@/app/lib/citationSortie'
 
 /** L'espace insécable qui colle un renvoi à sa cible. ⚠️ Écrite par son code : un
  *  caractère invisible ne se relit pas dans la source. */
@@ -357,7 +358,16 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
         // (`rendreBlocAvecBibliographie`), et un renvoi en ligne s'attache à sa fin. Un
         // tel bloc garde le `pre-line` d'avant, qui rend les sauts sans les indenter —
         // même garde que sur l'apparat biblique.
-        const lignesVers = verse ? lignesDeVers(block.text) : []
+        // ⛔ UNE CITATION SORTIE PERD SES GUILLEMETS ENCADRANTS, ET C'EST AU RENDU
+        // (charte § 13.18.1). Le corpus porte les deux formes — l'éditeur les retire
+        // quand il déclare la sortie, 149 blocs sur 151 au 16 septembre 2026 — et elles
+        // convergent ici : la fonction ne retire rien à un texte qui n'en porte plus.
+        // ⛔ ON NE TOUCHE PAS un bloc dont le texte est tranché ailleurs : une notice
+        // bibliographique s'y pose par SOUS-CHAÎNE, et la raccourcir la ferait manquer.
+        const blocRendu = sortie && (bibliographieParBloc[block.blockId] ?? []).length === 0
+          ? { ...block, text: sansGuillemetsEncadrants(block.text) }
+          : block
+        const lignesVers = verse ? lignesDeVers(blocRendu.text) : []
         const versEnLignes = lignesVers.length > 1
           && (bibliographieParBloc[block.blockId] ?? []).length === 0
           && referencesInline.length === 0
@@ -420,10 +430,10 @@ export function ContenuNoteStructuree({ note }: { note: NoteStructuree }) {
             {versEnLignes
               ? lignesVers.map((ligne, i) => (
                 <span key={`${block.blockId}:vers:${i}`} style={styleLigne}>
-                  {rendreTexteEnrichi(texteFinal(textePartielBloc(block, ligne), finSurTexte && i === lignesVers.length - 1))}
+                  {rendreTexteEnrichi(texteFinal(textePartielBloc(blocRendu, ligne), finSurTexte && i === lignesVers.length - 1))}
                 </span>
               ))
-              : rendreBlocAvecBibliographie(block, bibliographieParBloc[block.blockId] ?? [], finSurTexte)}
+              : rendreBlocAvecBibliographie(blocRendu, bibliographieParBloc[block.blockId] ?? [], finSurTexte)}
             {referencesInline.map((reference, i) => (
               <span
                 key={reference.blockId}

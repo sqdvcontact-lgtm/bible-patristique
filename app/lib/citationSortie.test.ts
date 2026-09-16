@@ -4,6 +4,7 @@ import {
   detecterCitationSortie,
   guillemetsInternesEnFrancais,
   regrouperCitationsStructurelles,
+  sansGuillemetsEncadrants,
   SEUIL_CITATION_SORTIE,
   textesCitationStructurelleSansEncadrement,
 } from './citationSortie'
@@ -203,5 +204,56 @@ describe('le début de la citation dans le texte source', () => {
     // position calculée après lui serait fausse d'un cran par guillemet.
     const texte = `Il écrit : «${FINE}${longue()} “mot” ${longue()}${FINE}»`
     expect(detecterCitationSortie(texte)?.debutCitation).toBeNull()
+  })
+})
+
+// ── UNE CITATION SORTIE PERD SES GUILLEMETS ENCADRANTS (charte § 3.8, § 13.18.1) ──
+//
+// ⚠️ Les textes viennent du corpus : la note 146 de La Cité de Dieu (Barreau, Vivès),
+// dont la citation ferme sur « …, etc. » et non sur son guillemet, et les citations
+// déjà dépouillées que l'éditeur déclare sorties.
+describe('les guillemets encadrants d’un texte sorti', () => {
+  it('tombent, et ce qui suit le guillemet fermant demeure', () => {
+    expect(sansGuillemetsEncadrants('« Car ces prières », *etc*.'))
+      .toBe('Car ces prières, *etc*.')
+  })
+
+  it('tombent aussi quand le guillemet ferme la chaîne', () => {
+    expect(sansGuillemetsEncadrants('« Voici ce passage »')).toBe('Voici ce passage')
+  })
+
+  it('emportent les espaces fines qui les collaient au texte', () => {
+    expect(sansGuillemetsEncadrants(`«${FINE}Voici${FINE}»`)).toBe('Voici')
+  })
+
+  // ⛔ Le corpus porte les deux formes, et elles doivent converger : l'éditeur retire
+  // les guillemets quand il déclare la sortie, la règle ne retire rien de plus.
+  it('ne retirent rien à un texte qui n’en porte plus', () => {
+    expect(sansGuillemetsEncadrants('Voici ce passage')).toBe('Voici ce passage')
+  })
+
+  it('sont IDEMPOTENTS : deux passes valent une', () => {
+    const une = sansGuillemetsEncadrants('« Car ces prières », *etc*.')
+    expect(sansGuillemetsEncadrants(une)).toBe(une)
+  })
+
+  // ⛔ Un guillemet isolé appartient au texte cité : on ne l'ampute pas.
+  it('ne touchent pas un texte qui n’ouvre pas sur un guillemet', () => {
+    expect(sansGuillemetsEncadrants('Il écrit : « oui ».')).toBe('Il écrit : « oui ».')
+  })
+
+  it('ne touchent pas un texte qui ouvre sans jamais fermer', () => {
+    expect(sansGuillemetsEncadrants('« Car ces prières')).toBe('« Car ces prières')
+  })
+
+  // ⚠️ La paire encadrante est le PREMIER « et le DERNIER » : la convention française
+  // emboîte, et le niveau intérieur reste en place.
+  it('ne retirent que la paire EXTÉRIEURE', () => {
+    expect(sansGuillemetsEncadrants('« Il dit « oui » hier »')).toBe('Il dit « oui » hier')
+  })
+
+  it('rendent au français les guillemets internes que l’encadrement libère', () => {
+    expect(sansGuillemetsEncadrants('« Il dit “oui” hier »'))
+      .toBe(`Il dit «${FINE}oui${FINE}» hier`)
   })
 })

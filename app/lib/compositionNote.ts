@@ -37,6 +37,7 @@ import { Z_INFOBULLE } from '@/app/lib/empilement'
 import type { CSSProperties } from 'react'
 import { MARGE_FENETRE } from './fenetreContextuelle'
 import { estExplicationCorpus } from './explicationCorpus'
+import { SEUIL_CITATION_SORTIE } from './citationSortie'
 
 /** La largeur de l'encart. Un peu moins que la colonne de lecture (31,25 rem) : il
  *  se pose PAR-DESSUS elle, et doit se lire comme un objet, non comme une colonne.
@@ -364,6 +365,9 @@ type BlocDispose = {
   kind: string
   form?: string | null
   citationLayout?: 'block' | 'inline' | null
+  /** ⚠️ Lu par le SEUIL seul, et seulement à défaut de déclaration : une citation
+   *  déclarée se compose comme elle le dit, quelle que soit sa longueur. */
+  text?: string | null
 }
 
 export function dispositionCitation(bloc: BlocDispose, original?: BlocDispose | null): DispositionCitation {
@@ -371,7 +375,15 @@ export function dispositionCitation(bloc: BlocDispose, original?: BlocDispose | 
     ?? (bloc.kind === 'translation' ? original?.citationLayout ?? null : null)
   if (declaree === 'block') return 'sortie'
   if (declaree === 'inline') return 'fil'
-  return bloc.form === 'verse' || bloc.kind === 'translation' ? 'sortie' : 'fil'
+  if (bloc.form === 'verse' || bloc.kind === 'translation') return 'sortie'
+  // ⛔ UNE CITATION LONGUE SE DÉTACHE, MÊME SANS DÉCLARATION, et le seuil est celui des
+  // œuvres (`SEUIL_CITATION_SORTIE`, charte § 3.8) : une seule mesure pour tout le site.
+  // ⚠️ Il ne contredit AUCUNE déclaration du corpus : les 36 citations déclarées `inline`
+  // au 16 septembre 2026 comptent au plus 391 signes, et aucune n'atteint le seuil. C'est
+  // ce compte, non un goût, qui fixe la borne ici.
+  return bloc.kind === 'quotation' && (bloc.text?.length ?? 0) >= SEUIL_CITATION_SORTIE
+    ? 'sortie'
+    : 'fil'
 }
 
 export function styleBlocNote(options: {
