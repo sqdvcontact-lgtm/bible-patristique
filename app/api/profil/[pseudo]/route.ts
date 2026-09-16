@@ -9,6 +9,8 @@ import {
   composerFavorites,
   lireFavorite,
   oeuvresDesFavorites,
+  textesDesFavorites,
+  type TexteCite,
   prelevementsDesFavorites,
   type PrelevementDeFavorite,
 } from '@/app/lib/citationsFavorites'
@@ -201,17 +203,29 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
   // ligne de prélèvement en garde une copie, écrite au jour du prélèvement, que dépublier
   // l'œuvre ne rattrape pas : c'est la même garde que la bibliothèque, plus haut. Une
   // lecture en échec ferme la porte plutôt que de l'ouvrir.
+  // ⛔ Et le TEXTE cité est une édition à part entière (charte § 5.5.1) : retiré de la
+  // lecture, il ne paraît pas ; hors du texte par défaut, le lien le rouvre.
   const oeuvresCitees = oeuvresDesFavorites(lignesFavorites)
+  const textesCites = textesDesFavorites(lignesFavorites)
   const publiees = new Set<string>()
-  if (oeuvresCitees.length) {
-    const { data: oeuvresRows, error: erreurOeuvres } = await sb
-      .from('oeuvres').select('id_oeuvre, acces_public').in('id_oeuvre', oeuvresCitees)
-    if (erreurOeuvres) console.error('[profil] ouverture des œuvres citées non lue :', erreurOeuvres.message)
-    for (const o of (oeuvresRows ?? []) as { id_oeuvre: string; acces_public: boolean | null }[]) {
-      if (estOeuvrePubliee(o)) publiees.add(o.id_oeuvre)
-    }
+  const textes = new Map<string, TexteCite>()
+  const [oeuvresLues, textesLus] = await Promise.all([
+    oeuvresCitees.length
+      ? sb.from('oeuvres').select('id_oeuvre, acces_public').in('id_oeuvre', oeuvresCitees)
+      : null,
+    textesCites.length
+      ? sb.from('oeuvre_textes').select('id_texte, is_default, is_public').in('id_texte', textesCites)
+      : null,
+  ])
+  if (oeuvresLues?.error) console.error('[profil] ouverture des œuvres citées non lue :', oeuvresLues.error.message)
+  for (const o of (oeuvresLues?.data ?? []) as { id_oeuvre: string; acces_public: boolean | null }[]) {
+    if (estOeuvrePubliee(o)) publiees.add(o.id_oeuvre)
   }
-  rep.citations_favorites = composerFavorites(favorites, lignesFavorites, publiees)
+  if (textesLus?.error) console.error('[profil] textes cités non lus :', textesLus.error.message)
+  for (const t of (textesLus?.data ?? []) as ({ id_texte: string } & TexteCite)[]) {
+    textes.set(t.id_texte, { is_default: t.is_default, is_public: t.is_public })
+  }
+  rep.citations_favorites = composerFavorites(favorites, lignesFavorites, publiees, textes)
 
   // Nom réel — exposé uniquement si l'utilisateur a publié au moins un essai sous son vrai nom
   if (nomReelRes?.data?.length) {

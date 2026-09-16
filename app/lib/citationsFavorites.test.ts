@@ -9,6 +9,7 @@ import {
   lireFavorite,
   oeuvresDesFavorites,
   prelevementsDesFavorites,
+  textesDesFavorites,
   type CitationPreferee,
   type PrelevementDeFavorite,
 } from './citationsFavorites'
@@ -19,7 +20,7 @@ const INSECABLE = String.fromCharCode(0xa0)
 function ligne(p: Partial<PrelevementDeFavorite> & { id: string; type: string }): PrelevementDeFavorite {
   return {
     ref_livre_abr: null, ref_chapitre: null, ref_verset: null, traduction: null,
-    auteur: null, titre_oeuvre: null, id_oeuvre: null, segment_numero: null,
+    auteur: null, titre_oeuvre: null, id_oeuvre: null, id_texte: null, segment_numero: null,
     ref_niv1: null, ref_niv2: null,
     ...p,
   }
@@ -108,6 +109,15 @@ describe('les prélèvements et les œuvres à relire', () => {
       ligne({ id: U(3), type: 'biblique', id_oeuvre: 'A0000O0000' }),
     ])).toEqual(['A0010O0001'])
   })
+
+  it('ne demande que les textes des passages patristiques qui en retiennent un', () => {
+    expect(textesDesFavorites([
+      ligne({ id: U(1), type: 'patristique', id_texte: 'A0010O0001T0001' }),
+      ligne({ id: U(2), type: 'patristique', id_texte: 'A0010O0001T0001' }),
+      ligne({ id: U(3), type: 'patristique' }),
+      ligne({ id: U(4), type: 'biblique', id_texte: 'X' }),
+    ])).toEqual(['A0010O0001T0001'])
+  })
 })
 
 describe('composerFavorites — l’Écriture', () => {
@@ -175,6 +185,34 @@ describe('composerFavorites — les Pères', () => {
 
   it('ne montre rien d’une œuvre retirée de la lecture', () => {
     expect(composerFavorites([fav], passages, new Set())).toEqual([])
+  })
+
+  describe('le texte du passage, qui est une édition à part entière', () => {
+    const latins = passages.map(p => ({ ...p, id_texte: 'A0010O0001T0001' }))
+    const ouvertes = new Set(['A0010O0001'])
+
+    it('mène à l’édition du passage quand elle n’est pas celle par défaut', () => {
+      const textes = new Map([['A0010O0001T0001', { is_default: false, is_public: true }]])
+      expect(composerFavorites([fav], latins, ouvertes, textes)[0].lien).toBe('/oeuvre/A0010O0001?texte=A0010O0001T0001#s4')
+    })
+
+    it('garde l’adresse de l’œuvre pour son texte par défaut', () => {
+      const textes = new Map([['A0010O0001T0001', { is_default: true, is_public: true }]])
+      expect(composerFavorites([fav], latins, ouvertes, textes)[0].lien).toBe('/oeuvre/A0010O0001#s4')
+    })
+
+    it('ne montre rien d’un texte retiré de la lecture, ni d’un texte qu’on n’a pas pu lire', () => {
+      const retire = new Map([['A0010O0001T0001', { is_default: false, is_public: false }]])
+      expect(composerFavorites([fav], latins, ouvertes, retire)).toEqual([])
+      expect(composerFavorites([fav], latins, ouvertes, new Map())).toEqual([])
+      expect(composerFavorites([fav], latins, ouvertes)).toEqual([])
+    })
+
+    it('ne réunit pas un passage d’un autre texte de la même œuvre', () => {
+      const melanges = [latins[0], { ...latins[1], id_texte: 'A0010O0001T0002', segment_numero: 2 }]
+      const textes = new Map([['A0010O0001T0001', { is_default: false, is_public: true }]])
+      expect(composerFavorites([fav], melanges, ouvertes, textes)[0].lien).toBe('/oeuvre/A0010O0001?texte=A0010O0001T0001#s4')
+    })
   })
 
   it('tait un intitulé de niveau devenu sommaire', () => {

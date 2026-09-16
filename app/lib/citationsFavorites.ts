@@ -134,7 +134,7 @@ export function lireFavorite(valeur: unknown, type: TypeCitation): CitationPrefe
 
 /** Les colonnes de `prelevements` que la composition relit. */
 export const COLONNES_PRELEVEMENT_FAVORITE =
-  'id, type, ref_livre_abr, ref_chapitre, ref_verset, traduction, auteur, titre_oeuvre, id_oeuvre, segment_numero, ref_niv1, ref_niv2'
+  'id, type, ref_livre_abr, ref_chapitre, ref_verset, traduction, auteur, titre_oeuvre, id_oeuvre, id_texte, segment_numero, ref_niv1, ref_niv2'
 
 /** Une ligne de `prelevements`, telle que `COLONNES_PRELEVEMENT_FAVORITE` la demande. */
 export type PrelevementDeFavorite = {
@@ -147,6 +147,9 @@ export type PrelevementDeFavorite = {
   auteur: string | null
   titre_oeuvre: string | null
   id_oeuvre: string | null
+  /** Le TEXTE du passage : une œuvre en porte plusieurs, et leurs numéros de segment se
+   *  recouvrent. Vide sur un prélèvement ancien. */
+  id_texte: string | null
   segment_numero: number | null
   ref_niv1: string | null
   ref_niv2: string | null
@@ -184,6 +187,16 @@ export function oeuvresDesFavorites(lignes: readonly PrelevementDeFavorite[]): s
     lignes.filter(l => l.type === 'patristique' && l.id_oeuvre).map(l => l.id_oeuvre as string),
   )]
 }
+
+/** Les textes dont il faut savoir s'ils sont ouverts, et lequel est celui par défaut. */
+export function textesDesFavorites(lignes: readonly PrelevementDeFavorite[]): string[] {
+  return [...new Set(
+    lignes.filter(l => l.type === 'patristique' && l.id_texte).map(l => l.id_texte as string),
+  )]
+}
+
+/** Ce qu'une favorite des Pères doit savoir du texte qu'elle cite. */
+export type TexteCite = { is_default: boolean | null; is_public: boolean | null }
 
 /** Un intitulé copié d'un segment peut garder ses appels de note : ils ne voyagent pas. */
 function nette(s: string | null | undefined): string {
@@ -227,6 +240,7 @@ function composerPatristique(
   fav: CitationPreferee,
   lignes: readonly PrelevementDeFavorite[],
   publiees: ReadonlySet<string>,
+  textes: ReadonlyMap<string, TexteCite>,
 ): CitationFavoritePublique | null {
   const ids = new Set(fav.ids ?? [fav.id])
   const tete = lignes.find(l => l.id === fav.id && l.type === 'patristique')
@@ -234,8 +248,13 @@ function composerPatristique(
   // ⛔ Le titre d'une œuvre retirée de la lecture ne paraît pas, ni son texte : c'est la
   // garde de la bibliothèque du même profil (charte § 40.12).
   if (!tete.id_oeuvre || !publiees.has(tete.id_oeuvre)) return null
+  // ⛔ UN TEXTE EST UNE ÉDITION À PART ENTIÈRE (charte § 5.5.1) : retiré de la lecture, il
+  // ne paraît pas, et un texte qu'on n'a pas pu lire ferme la porte plutôt que de l'ouvrir.
+  // Un prélèvement ancien, qui ne retient pas son texte, garde l'adresse de l'œuvre.
+  const texte = tete.id_texte ? textes.get(tete.id_texte) : undefined
+  if (tete.id_texte && texte?.is_public !== true) return null
   const premier = lignes
-    .filter(l => l.type === 'patristique' && ids.has(l.id) && l.id_oeuvre === tete.id_oeuvre)
+    .filter(l => l.type === 'patristique' && ids.has(l.id) && l.id_oeuvre === tete.id_oeuvre && l.id_texte === tete.id_texte)
     .sort((a, b) => (a.segment_numero ?? 0) - (b.segment_numero ?? 0))[0] ?? tete
   // ⚠️ Un lieu localise, il ne résume pas : la règle est celle de « Mes citations »
   // (`lieuPrelevement.ts`), qui tait un intitulé de niveau devenu sommaire.
@@ -246,7 +265,9 @@ function composerPatristique(
     reference: nette(tete.auteur) || fav.auteur || '',
     source: nette(tete.titre_oeuvre) || fav.titre_oeuvre || null,
     lieu: lieu || null,
-    lien: `/oeuvre/${encodeURIComponent(tete.id_oeuvre)}${premier.segment_numero ? `#s${premier.segment_numero}` : ''}`,
+    // ⚠️ Hors du texte par défaut, le lien porte `texte=` : la page ouvrirait sinon l'autre
+    // édition, et le même numéro de segment y désigne un autre passage.
+    lien: `/oeuvre/${encodeURIComponent(tete.id_oeuvre)}${tete.id_texte && texte?.is_default !== true ? `?texte=${encodeURIComponent(tete.id_texte)}` : ''}${premier.segment_numero ? `#s${premier.segment_numero}` : ''}`,
   }
 }
 
@@ -258,6 +279,9 @@ export function composerFavorites(
   favorites: readonly (CitationPreferee | null)[],
   lignes: readonly PrelevementDeFavorite[],
   oeuvresPubliees: ReadonlySet<string>,
+  /** L'état des textes cités (`textesDesFavorites`). ⚠️ Sans elle, une favorite qui retient
+   *  son texte ne paraît pas : la porte se ferme d'elle-même. */
+  textes: ReadonlyMap<string, TexteCite> = new Map(),
 ): CitationFavoritePublique[] {
   const ordre: TypeCitation[] = ['biblique', 'patristique']
   return ordre.flatMap(type => {
@@ -265,7 +289,7 @@ export function composerFavorites(
     if (!fav) return []
     const composee = type === 'biblique'
       ? composerBiblique(fav, lignes)
-      : composerPatristique(fav, lignes, oeuvresPubliees)
+      : composerPatristique(fav, lignes, oeuvresPubliees, textes)
     return composee ? [composee] : []
   })
 }
