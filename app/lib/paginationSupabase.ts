@@ -74,6 +74,64 @@ export async function chargerPagesEnParallele<T>(
 }
 
 /**
+ * Le nombre de requêtes qu'une même lecture garde EN VOL.
+ *
+ * ⛔ Six, et c'est une borne de POOL, non de débit. Une lecture qui part d'un
+ * `Promise.all` sans borne n'est pas seulement rapide : elle occupe à elle seule
+ * toutes les connexions que la passerelle accorde, et les requêtes VOISINES de la
+ * même page — les notes, les versets, le texte — attendent derrière elle jusqu'au
+ * `statement_timeout`. C'est ce qui a fermé les notes de la Cité de Dieu le
+ * 2026-09-16 : mesuré au journal, des pointes de 124 requêtes en UNE seconde, et
+ * seize annulations « canceling statement due to statement timeout » sur des
+ * requêtes qui, prises seules, coûtent douze millisecondes.
+ *
+ * ⚠️ Six est aussi ce qu'un navigateur accorde par hôte en HTTP/1.1 : la borne est
+ * éprouvée par l'usage, et elle ne se paie presque pas. Mesuré le 2026-09-16 sous
+ * le rôle du lecteur, un lot de liens bibliques coûte 41 ms : soixante-dix lots
+ * passent en une douzaine de tours, une demi-seconde, au lieu de noyer le pool.
+ */
+export const REQUETES_EN_VOL = 6
+
+/**
+ * Lance des requêtes INDÉPENDANTES en en gardant au plus `enVol` à la fois.
+ *
+ * Les tâches sont des FABRIQUES, et c'est ce qui rend la borne réelle : un
+ * `PostgrestFilterBuilder` déjà construit part au premier `then`, et un tableau de
+ * requêtes passé à `Promise.all` est donc déjà tout entier en vol.
+ *
+ * ⛔ L'ordre des résultats est celui des fabriques, jamais celui des réponses :
+ * l'appelant apparie souvent le rang d'un résultat à celui d'un lot.
+ */
+export async function lancerEnParallele<T>(
+  fabriques: readonly (() => PromiseLike<T>)[],
+  enVol = REQUETES_EN_VOL,
+): Promise<T[]> {
+  if (!Number.isInteger(enVol) || enVol <= 0) throw new Error(`Nombre de requêtes en vol invalide : ${enVol}`)
+  const resultats = new Array<T>(fabriques.length)
+  let prochaine = 0
+  // ⚠️ Un échec arrête ce qui n'est PAS ENCORE PARTI, jamais ce qui est en vol :
+  // continuer à charger la base après une erreur qu'on va lever ne sert personne.
+  let abandon = false
+  const servir = async (): Promise<void> => {
+    while (!abandon) {
+      const rang = prochaine++
+      if (rang >= fabriques.length) return
+      try {
+        resultats[rang] = await fabriques[rang]()
+      } catch (erreur) {
+        abandon = true
+        throw erreur
+      }
+    }
+  }
+  // ⚠️ `Promise.all` attache un gestionnaire à CHAQUE ouvrier : un second rejet,
+  // survenu avant que l'abandon ne soit lu, reste donc géré et ne fait pas tomber
+  // le processus.
+  await Promise.all(Array.from({ length: Math.min(enVol, fabriques.length) }, servir))
+  return resultats
+}
+
+/**
  * Le nombre d'octets qu'une liste `in.(…)` peut occuper dans l'adresse.
  *
  * ⛔ NE JAMAIS découper une clause `in` en un NOMBRE fixe de valeurs. Ce qu'une
@@ -92,7 +150,14 @@ export async function chargerPagesEnParallele<T>(
  *
  * La barre est prise à 6 000 : l'adresse entière reste autour de 7 ko, loin des
  * 25 000 mesurés, et sous les 8 ko qu'un proxy ordinaire accorde à une ligne de
- * requête. Multiplier les lots ne coûte rien — ils partent en parallèle.
+ * requête.
+ *
+ * ⛔ MAIS MULTIPLIER LES LOTS COÛTE, et cette page a dit le contraire jusqu'au
+ * 2026-09-16 — « multiplier les lots ne coûte rien, ils partent en parallèle ».
+ * C'était vrai de l'ADRESSE et faux du POOL : les lots d'une même lecture partaient
+ * tous ensemble et occupaient toutes les connexions, si bien que les requêtes
+ * voisines de la page attendaient jusqu'au délai. Une liste découpée se lance donc
+ * par `lancerEnParallele`, jamais par un `Promise.all` nu.
  */
 export const OCTETS_MAX_CLAUSE_IN = 6000
 

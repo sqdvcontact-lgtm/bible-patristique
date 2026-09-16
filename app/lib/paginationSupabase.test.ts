@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chargerPagesEnParallele, chargerToutesPagesSupabase, lotsPourClauseIn } from './paginationSupabase'
+import { REQUETES_EN_VOL, chargerPagesEnParallele, chargerToutesPagesSupabase, lancerEnParallele, lotsPourClauseIn } from './paginationSupabase'
 
 describe('pagination Supabase', () => {
   it('charge au-delà du plafond et demande la page vide après un multiple exact', async () => {
@@ -72,6 +72,77 @@ describe('pagination Supabase en parallèle', () => {
   it('refuse une vague qui n’en est pas une', async () => {
     await expect(chargerPagesEnParallele(async () => ({ data: [], error: null }), { vague: 0 }))
       .rejects.toThrow('Taille de vague invalide')
+  })
+})
+
+describe('requêtes en vol', () => {
+  /** Une fabrique qui compte ce qui est en vol pendant qu’elle travaille. */
+  const compteur = (n: number, surAppel?: (rang: number) => void) => {
+    let enVol = 0
+    let volMax = 0
+    const partis: number[] = []
+    const fabriques = Array.from({ length: n }, (_, rang) => async () => {
+      partis.push(rang)
+      surAppel?.(rang)
+      enVol += 1
+      volMax = Math.max(volMax, enVol)
+      await Promise.resolve()
+      await Promise.resolve()
+      enVol -= 1
+      return rang
+    })
+    return { fabriques, partis, volMax: () => volMax }
+  }
+
+  it('n’en garde jamais plus que la borne en vol', async () => {
+    const { fabriques, volMax } = compteur(20)
+    const resultat = await lancerEnParallele(fabriques, 6)
+    expect(volMax()).toBe(6)
+    // ⛔ L’ordre est celui des fabriques, non celui des réponses : l’appelant
+    // apparie souvent le rang d’un résultat à celui de son lot.
+    expect(resultat).toEqual(Array.from({ length: 20 }, (_, i) => i))
+  })
+
+  it('emploie la borne du dépôt par défaut', async () => {
+    const { fabriques, volMax } = compteur(20)
+    await lancerEnParallele(fabriques)
+    expect(volMax()).toBe(REQUETES_EN_VOL)
+  })
+
+  // ⛔ Le point qui fait toute la différence avec `Promise.all` : une requête déjà
+  // CONSTRUITE part au premier `then`. Seule une fabrique se laisse retenir.
+  it('n’appelle une fabrique qu’au moment de la lancer', async () => {
+    const { fabriques, partis } = compteur(20)
+    const promesse = lancerEnParallele(fabriques, 6)
+    expect(partis.length).toBe(6)
+    await promesse
+    expect(partis.length).toBe(20)
+  })
+
+  it('remonte l’erreur et ne lance pas ce qui n’est pas encore parti', async () => {
+    const erreur = new Error('canceling statement due to statement timeout')
+    const { fabriques, partis } = compteur(20, (rang) => { if (rang === 2) throw erreur })
+    await expect(lancerEnParallele(fabriques, 3)).rejects.toBe(erreur)
+    expect(partis.length).toBeLessThan(20)
+  })
+
+  // ⚠️ Un second rejet survenu avant que l’abandon ne soit lu reste GÉRÉ par
+  // `Promise.all` : il ne doit pas faire tomber le processus.
+  it('ne laisse aucun rejet sans gestionnaire quand plusieurs échouent', async () => {
+    const premier = new Error('première')
+    const fabriques = Array.from({ length: 4 }, (_, rang) => async () => {
+      throw rang === 0 ? premier : new Error(`autre ${rang}`)
+    })
+    await expect(lancerEnParallele(fabriques, 4)).rejects.toThrow()
+    await new Promise(resoudre => setTimeout(resoudre, 0))
+  })
+
+  it('rend une liste vide sans rien lancer', async () => {
+    await expect(lancerEnParallele([], 6)).resolves.toEqual([])
+  })
+
+  it('refuse une borne qui n’en est pas une', async () => {
+    await expect(lancerEnParallele([async () => 1], 0)).rejects.toThrow('Nombre de requêtes en vol invalide')
   })
 })
 

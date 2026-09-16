@@ -10,7 +10,7 @@
 // Ils vivent maintenant dans `liens_bibliques`, une ligne par lien, avec clés
 // étrangères et index. LES QUATRE TYPES SONT CONSERVÉS À L'IDENTIQUE (charte §9) —
 // c'est leur portage qui change, pas la distinction éditoriale.
-import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
+import { lancerEnParallele, lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { supabase } from '@/app/lib/supabase'
 
 export type TypeLien = 1 | 2 | 3 | 4
@@ -84,7 +84,11 @@ export async function liensDeSegments(
     parTexte.get(segment.id_texte)!.add(segment.segment_key)
   }
 
-  const requetes: PromiseLike<{ data: unknown; error: unknown }>[] = []
+  // ⛔ Des FABRIQUES, non des requêtes déjà construites : un `PostgrestFilterBuilder`
+  // part au premier `then`, et un tableau passé à `Promise.all` est donc déjà tout
+  // entier en vol. C'est ainsi que cette lecture occupait à elle seule toutes les
+  // connexions (voir `REQUETES_EN_VOL`).
+  const requetes: (() => PromiseLike<{ data: unknown; error: unknown }>)[] = []
   for (const [idTexte, ensemble] of parTexte) {
     // ⛔ Les lots se comptent en OCTETS D'ADRESSE, jamais en nombre de clés : voir
     // `lotsPourClauseIn`, et l'« Explication sur le psaume IV » qu'un lot de 500
@@ -99,7 +103,7 @@ export async function liensDeSegments(
     // 65 954 lignes, en sondant `segments` à chaque fois. Mesuré le 2026-09-03
     // sur une division de 300 clés, base au repos : 5 028 ms contre 10.
     for (const lot of lotsPourClauseIn([...ensemble])) {
-      requetes.push(
+      requetes.push(() =>
         client.from('segments')
           .select(`id_texte, segment_key, liens_bibliques!inner(${COLS})`)
           .eq('id_texte', idTexte)
@@ -108,7 +112,7 @@ export async function liensDeSegments(
     }
   }
 
-  const resultats = await Promise.all(requetes)
+  const resultats = await lancerEnParallele(requetes)
   for (const { data, error } of resultats) {
     if (error) throw error
     for (const ligne of (data ?? []) as SegmentAvecLiens[]) {

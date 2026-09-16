@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 vi.mock('@/app/lib/supabase', () => ({ supabase: { from: vi.fn() } }))
 
 import { hydraterLiensHerites, segmentsLiesAuChapitre } from './liens'
+import { REQUETES_EN_VOL } from './paginationSupabase'
 import { supabase } from './supabase'
 
 describe('hydraterLiensHerites', () => {
@@ -71,6 +72,43 @@ describe('hydraterLiensHerites', () => {
       ['seg_b621be50e09c0eab99052435'],
     ])
     expect(appels.in.some(([colonne]) => colonne === 'segment_id')).toBe(false)
+  })
+
+  // ⛔ Le 2026-09-16, les notes de La Cité de Dieu se sont fermées sur un
+  // « statement timeout » alors que leur requête, prise seule, coûte douze
+  // millisecondes : ses voisines occupaient toutes les connexions. Mesuré au
+  // journal, 124 requêtes sur `segments` en UNE seconde, toutes distinctes.
+  it('ne lance pas tous ses lots d’un coup', async () => {
+    let enVol = 0
+    let volMax = 0
+    const chaine = {
+      select: vi.fn(),
+      eq: vi.fn(),
+      in: vi.fn(),
+    }
+    chaine.select.mockReturnValue(chaine)
+    chaine.eq.mockReturnValue(chaine)
+    chaine.in.mockImplementation(async () => {
+      enVol += 1
+      volMax = Math.max(volMax, enVol)
+      await Promise.resolve()
+      await Promise.resolve()
+      enVol -= 1
+      return { data: [], error: null }
+    })
+    const client = { from: vi.fn(() => chaine) }
+    // Une clé qui dépasse à elle seule la barre d’adresse part seule dans son lot :
+    // douze segments font donc douze lots, deux fois la borne.
+    const segments = Array.from({ length: 12 }, (_, i) => ({
+      id: i,
+      id_texte: 'TXT_A0010O0002_LA_1870_1873_BENEDICTINS_VIVES',
+      segment_key: `${'x'.repeat(9000)}${i}`,
+    }))
+
+    await hydraterLiensHerites(segments, client as never)
+
+    expect(chaine.in).toHaveBeenCalledTimes(12)
+    expect(volMax).toBeLessThanOrEqual(REQUETES_EN_VOL)
   })
 })
 
