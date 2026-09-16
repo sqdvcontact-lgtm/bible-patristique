@@ -11435,3 +11435,64 @@ exactement un blanc de paragraphe, et déclarait l'estimation courte quand elle 
 épingle les douze hauteurs relevées et exige que l'ancien calcul les manque TOUTES (le retirer
 doit faire rougir) ; `fenetreContextuelle.test.ts` exige que la place rendue ne soit jamais
 inférieure à la hauteur souhaitée, sur sept positions d'ancre et quatre hauteurs.
+
+# ⛔ LE VOLET D'UNE ŒUVRE LIT LES BIBLES PAR LEURS FAITS (2026-09-16)
+
+Doctrine : charte `parametres.charte_ia`, **§ 38.34**. Ici, ce qu'il faut savoir pour y
+toucher.
+
+- ⛔ **DEUX MODULES, ET ILS NE FONT PAS LA MÊME CHOSE.** `app/lib/bibleLecturesDisponibles.ts`
+  porte la RÈGLE — pure, testée, sans une requête : `cheminDeLecture`, `graphiesDuTemoin`,
+  `lecturesDisponibles`, `rangDeLaLecture`, `LECTURE_DE_REPLI`.
+  `app/lib/bibleVersetsParCanon.ts` porte l'I/O : `chargerFaitsDesBibles` (cinq lectures
+  ensemble, plus une sonde conditionnelle) et `chargerTextesParCanon`, qui aiguille sur le
+  chemin. ⛔ Ne décider d'un chemin de lecture nulle part ailleurs.
+- ⛔ **`FaitsDesBibles` EST CE QU'ON OBSERVE, ET RIEN D'AUTRE** : les traductions bibliques,
+  les colonnes de `versets_lecture` (`codesTraductionsLecture`), le catalogue
+  `v_bible_edition_catalog`, les capacités `v_bible_reading_capabilities` au mode `verse` et
+  disponibles, et les couches du témoin (`couchesDisponibles899`). ⛔ Aucune liste de codes
+  écrite dans le code : elle cesse de voir le corpus le jour où il grandit.
+- **`CheminDeLecture`** : `canonique` | `v2` | `temoin899` | `editoriale`. ⛔ Le témoin passe
+  par SA VUE (`v_bible899_verse_recomposed`), non par la cascade éditoriale dont elle sort :
+  elle seule rend les suppressions du manuscrit comme la page Bible les rend, et elle coûte
+  une requête au lieu de trois.
+- ⚠️ **`v2` ne se retient qu'après une SONDE** : un membre que le catalogue annonce sans
+  segmentation ne se lit par le canon que si `livres_par_traduction` atteste du texte. C'est
+  la règle de la page Bible (« La Bible du XIIIe siècle a sa TRADUCTION MODERNE »), et la
+  sonde passe sous la RLS du lecteur — une traduction privée n'y répond qu'à qui peut la lire.
+- ⛔ **LE RANG D'UNE FAMILLE SE MULTIPLIE AVANT QU'ON Y AJOUTE CELUI DE LA GRAPHIE**
+  (`premiere.rang * 10 + rangGraphie`) : `entreesDuMenu` range les membres d'une famille par
+  `rang`, et sans cette multiplication un autre membre s'intercalerait entre deux graphies
+  d'un même témoin.
+- ⛔ **LA LECTURE ORDINAIRE GARDE LE CODE NU DE SA BIBLE** ; une graphie alternative prend
+  `${code}:${couche}` et un nom qui la nomme. `rangDeLaLecture` cherche le code exact, puis
+  retombe sur la lecture dont `code === tradId`. ⚠️ Un prédicat écrit sur la couche
+  (`couche !== 'diplomatic'`) tomberait faux le jour où la graphie modernisée paraît.
+- ⛔ **LES TEXTES HORS VUE LARGE VIVENT DANS UN ÉTAT, LE REGISTRE DES DEMANDES DANS UNE
+  RÉFÉRENCE.** Le rendu lit les textes ; l'effet seul lit et écrit le registre
+  (`${code}|${canonId}`). Lire une référence pendant le rendu est refusé par
+  `react-hooks/refs`, et à bon droit. ⚠️ Une demande en échec se RETIRE du registre, pour
+  qu'un second passage la retente.
+- ⛔ **LA PRÉFÉRENCE ENREGISTRÉE PASSE PAR UN ÉTAT, JAMAIS PAR UNE FERMETURE.**
+  `chargerTraductionDefaut` vit dans l'effet d'authentification, dont les dépendances sont
+  l'œuvre et le texte : y calculer un rang sur `lecturesBible` capturerait une liste périmée.
+  Il pose `defautProfil`, et UN SEUL effet sur `[lecturesBible, defautProfil]` résout les deux
+  préférences, le profil d'abord, le stockage local ensuite.
+- ⚠️ **L'ancre d'un verset emporte la COUCHE** (`&couche=`) : sans elle, ouvrir la page Bible
+  depuis le volet y rendrait la graphie par défaut, non celle qu'on lisait.
+- ⛔ **`app/lib/bibleFragmentsMateriels.ts` SORT DE `bibleEdition.ts` le type du fragment et sa
+  recomposition**, que `bibleEdition` RÉEXPORTE : rien de ce qui les lisait n'a bougé.
+  ⚠️ `export { X } from './y'` ne met PAS X dans la portée locale : le module d'origine ne peut
+  plus s'en servir, et c'est `tsc` qui le dit. ⛔ Et l'import de `liantSymbolique` y devenait
+  inutile — le retirer demandait de respecter les fins de ligne du fichier, qui est en CRLF
+  quand ses voisins sont en LF.
+- ⛔ **NE PAS IMPORTER `bibleEdition.ts` DEPUIS UN COMPOSANT CLIENT** : 42 Ko, et il tire
+  `bibleHierarchieSemantique`, donc les 9 Ko du registre des styles sémantiques de Fillion.
+  La question se pose à chaque fois qu'un composant client importe d'un module serveur : ce
+  n'est pas la fonction qu'on emporte, c'est tout ce que son fichier tire derrière elle.
+- ⚠️ **Les trois chemins neufs s'éprouvent SOUS LE RÔLE DU LECTEUR**, en transaction annulée
+  (`set local role authenticated` + `request.jwt.claims`) : un script en clé de service
+  contourne la RLS et ne voit jamais qu'une traduction est privée.
+- ⚠️ **Le menu se contrôle SANS SERVEUR** : un script d'atelier qui appelle
+  `lecturesDisponibles` puis `entreesDuMenu` sur les faits RÉELS et imprime la liste. ⛔ Rien
+  n'y est rejoué de mémoire : les deux fonctions sont celles de la page.
