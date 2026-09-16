@@ -559,3 +559,59 @@ La « charte d’accentuation » (`parametres.charte_accentuation`, 6 801 signes
 ### 2026-09-16 — Lemmes initiaux des notes : paragraphe autonome
 
 [NOTES|lemme-cite-paragraphe-20260916] Décision éditoriale appliquée aux cinq œuvres A0044. Lorsqu’une note s’ouvre par la reprise du passage du texte hôte qu’elle commente, ce lemme forme désormais un bloc/paragraphe autonome et le commentaire commence au bloc suivant. Reprise exhaustive : 167 lemmes isolés (122 correspondances littérales avec le locus + 45 cas reconnus sémantiquement), soit 167 blocs de commentaire créés ; appareil final 2 096 notes / 3 047 blocs / 2 096 ancres / 904 relations bibliographiques / 23 relations internes. Les 126 relations bibliographiques portées par les anciens blocs composites sont désormais rattachées au commentaire, 0 au lemme. Contre-audit : 0 rang fautif, 0 structured_block_count périmé, 0 relation orpheline ; 23 débuts entre guillemets restant composés avec une suite ont tous été relus et classés comme 21 citations documentaires non-lemmes + 2 citations grammaticalement intégrées, soit 0 cas non classé. Le cas « Parle au contraire d’un épuratoire en général. » est désormais un bloc 1 autonome, suivi du commentaire « Sur cette difficulté… » au bloc 2. Deux ajustements syntaxiques et une ponctuation de raccord ont été effectués pour éviter des fragments créés par la séparation. Aucun segment n’a été modifié. La charte remplace l’ancienne règle « l’ancrage en tête ne fait pas paragraphe » par la distinction : lemme initial = paragraphe autonome ; source_locator = repère discret ou provenance.
+
+### 2026-09-16 — Renvois de note à note : 60 relations posées, dix renvois laissés imprimés
+
+Doctrine : charte § 13.20. Mission de l’auteur sur les cinq œuvres A0044 (trad. Faivre). Code poussé le jour même (commit 45ef72cb).
+
+**Ce qui a changé depuis les deux entrées précédentes.** La vue `v_texte_note_renvois_affichage` est retirée (migration 20260916115348) : elle recomposait le numéro interne et un titre tiré de `oeuvre_texte_unites.ref_niv1`, c’est-à-dire une seconde écriture du titre et du numéro. Le numéro de la tête est le numéro AFFICHÉ (décision de l’auteur), celui de l’appel dans le texte, et non `note_number` : la note B de la Seconde catéchèse porte `note_number` 73 et s’appelle 10 dans sa division.
+
+**Relevé.** 63 mentions de renvoi interne dans les appareils de notes, pour 66 cibles : 61 certaines, 5 en conflit. Résolution par la division et la lettre lues dans la citation, contrôle du locus imprimé et du contenu de la note visée, corroboration par les résolutions déjà consignées (dont le relevé du 12 septembre). Une seconde extraction de la donnée, faite après les passes du jour, a rendu les mêmes 60 relations.
+
+**Posé** (migration 20260916123226, vérifié par SQL après application) :
+
+| mesure | valeur |
+|---|---|
+| relations | **60** (55 `note_preview`, 5 `inline_mention`) |
+| notes sources / notes visées | 50 / 47 |
+| blocs portant plusieurs renvois | 7 |
+| citations présentes dans leur bloc | 60 sur 60 |
+| cibles sans bloc, autoréférences | 0, 0 |
+| par texte source | Catéchèses baptismales 48, Homélie sur le paralytique 5, Catéchèses mystagogiques 4, Lettre à l’empereur Constance 2, Homélie sur la Présentation au Temple 1 |
+| cycles réels de deux notes | 6 (00232 ↔ 00235, 00452 ↔ 00783, 01097 ↔ 01104, 01339 ↔ 01421, 01495 ↔ 01512, 01521 ↔ 01690) |
+| relations dont la note visée renvoie à son tour | 27 |
+
+La 61e cible certaine, la note Z de la Treizième catéchèse, n’est pas posée : elle vient de « Voir les notes V, Z, Catéchèse XIII. », dont la première cible est en conflit, et la mention se réserve entière.
+
+**Réserves : dix renvois laissés sous leur forme imprimée.**
+
+Conflits de contenu ou de locus (Catéchèses baptismales, `A0044O0003TFR-V11`) :
+1. note 144 (`:00139`), « Catéchèse XVII, note C » : la note C de la Dix-septième catéchèse traite de Siméon le Juste, la source de la nature de l’eau ;
+2. note 622 (`:00604`), « Voir Catéchèse X, note V. » : la note V traite du palmier de Jéricho, la source du Messie assis à la droite du Père ;
+3. note 692 (`:00674`), « voir Catéchèse XIII, note T » : la note T traite du bon larron, la source de l’Itinéraire de Jérusalem ;
+4. note 1207 (`:01184`), « Voir les notes V, Z, Catéchèse XIII. » : la note V traite du paradis, la source du rocher du sépulcre ;
+5. note 1387 (`:01363`), « Catéchèse IV, 35, note CC » : le passage 35 ne concorde pas avec la note CC.
+
+Renvois par numéro ou par page, que la règle interdit de résoudre ainsi :
+6. Catéchèses baptismales `:01339`, « voir la note 1368 » ;
+7. Catéchèses mystagogiques `:00075`, « voir la note A, p. 47 » ;
+8. Catéchèses mystagogiques `:00090`, « Voir la note 91. » ;
+9. Catéchèses mystagogiques `:00091`, « la suite de la note 90 » ;
+10. Lettre à l’empereur Constance `:00002`, « Voir la note 6. ».
+
+**Démonstration sur la donnée réelle** (en mémoire, rien d’écrit), note visée `A0044O0003TFR-V11:note:00070` :
+
+| état | `note_number` | numéro affiché | tête |
+|---|---|---|---|
+| actuel | 73 | 10 | Voir note 10 de Seconde catéchèse : |
+| une note insérée avant, même division | 74 | 11 | Voir note 11 de Seconde catéchèse : |
+| la note `:00069` retirée | 72 | 9 | Voir note 9 de Seconde catéchèse : |
+| titre de la division corrigé | 73 | 10 | Voir note 10 de Deuxième catéchèse : |
+
+La relation ne change dans aucun des quatre cas.
+
+**Rendu contrôlé.** Les 50 notes sources chargées par `chargerNotesStructurees` et rendues par `ContenuNoteStructuree` : 60 têtes résolues, 60 contrôles « Afficher la note visée », 0 citation imprimée restée. Note 481 (`:00466`) : « Sur les Anges, voir note 10 de Seconde catéchèse : Afficher la note visée ».
+
+**Tests.** 23 sur la règle pure, 21 sur le chargement, 22 sur le composant, 7 sur le titre de niveau 1, 1 sur la manchette. L’arbre exact du commit a été éprouvé dans un miroir : compilation sans erreur, 47 fichiers et 640 tests des surfaces touchées.
+
+Aucun segment modifié.

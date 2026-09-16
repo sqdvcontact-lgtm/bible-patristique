@@ -8326,3 +8326,27 @@ Relevé de l’auteur du 16 septembre 2026, sur la note 146 de La Cité de Dieu 
 ⛔ **LE TEXTE QUI ANNONCE LA CITATION NE BOUGE PAS.** Il n’est pas une citation, il la présente, et son deux-points appelle ce qui suit.
 
 ⚠️ **Mesuré sur le corpus, avec les fonctions de la page** (25 373 blocs, 16 septembre 2026) : trois blocs changent de disposition — les trois seules citations non déclarées qui passent le seuil, dans La Cité de Dieu et les Annotations sur le livre de Job —, cinq blocs sortis perdent des guillemets que la donnée portait encore, et les 25 097 blocs au fil ne bougent pas d’un caractère.
+
+### 13.20 Le RENVOI DE NOTE À NOTE — l’identité dans la donnée, la tête au rendu
+
+Mission de l’auteur du 16 septembre 2026, qui applique aux cinq œuvres A0044 des Catéchèses de Cyrille de Jérusalem (trad. Faivre) le protocole des « renvois internes entre notes » (§ 13.16.10). Le relevé, les réserves et la démonstration sur la donnée réelle sont au carnet.
+
+⛔ **LA RELATION NE PORTE QUE L’IDENTITÉ.** `texte_note_renvois` rattache un bloc source `(source_id_texte, source_note_key, source_block_id)` et un rang (`relation_rank`, plusieurs renvois par bloc) à une note visée `(target_id_texte, target_note_key)`. La cible est en `ON DELETE RESTRICT` : une note encore visée ne se supprime pas en silence ; la relation disparaît avec son bloc source. Ni numéro, ni titre de niveau 1, ni contenu n’y entrent, pas même dans les métadonnées. La lettre, la page et le tome de l’édition restent en provenance (`metadata.printed_fragment`), jamais en autorité de navigation.
+
+⛔ **`source_citation` EST LA SOUS-CHAÎNE EXACTE DU BLOC QUE LE RENDU REMPLACE**, et la base le garde : un déclencheur refuse une citation absente de son bloc (code ZR001). C’est le contrat de `texte_note_bloc_ouvrages.source_citation`, pris pour les renvois.
+
+⛔ **LE NUMÉRO QUE DIT LA TÊTE EST LE NUMÉRO AFFICHÉ** (décision de l’auteur, 16 septembre 2026) : celui que porte l’appel dans le texte, calculé au rendu depuis le `note_number` actuel et la division de la première ancre (§ 13.8). « Voir note 73 » quand l’appel dit 10 désignerait une note que le lecteur ne trouve pas. Une seule règle de numérotation : la page et la tête la lisent au même endroit.
+
+⛔ **LE TITRE DE NIVEAU 1 VIENT DU RÉSOLVEUR DE LA PAGE** : le `segments.ref_niv1` du segment ancré, les liminaires sous leur carte. Jamais `texte_notes.book`, jamais une seconde écriture du titre. ⚠️ Une note dont les ancres mènent à deux divisions de niveau 1 différentes est AMBIGUË : la tête le dit, et l’on ne prend pas la première. Aucune note des cinq œuvres n’est dans ce cas au 16 septembre 2026, et la règle ne présume pas qu’il en sera toujours ainsi.
+
+**Deux modes de rendu.** `note_preview` : la citation est une injonction de renvoi, et la tête la remplace sur place, « Voir note 10 de Seconde catéchèse : », suivie du contrôle « Afficher la note visée ». `inline_mention` : la citation est un complément de la phrase, qui garde une mention dynamique (« note 74 de Sixième catéchèse ») ; la tête et son contrôle se posent sous le bloc. Plusieurs renvois d’une même citation (« les notes V et X ») donnent autant de têtes, jointes par un point-virgule.
+
+⛔ **LA NOTE VISÉE SE DÉPLIE SOUS LE BLOC, PAR LE COMPOSANT ORDINAIRE DES NOTES.** Jamais dans le bloc, dont elle hériterait l’italique ou le retrait ; jamais par une version simplifiée ; sans navigation. Le contrôle devient « Masquer la note visée », porte `aria-expanded` et `aria-controls`, et la note dépliée dit son attente et son échec.
+
+⛔ **UNE CITATION IMPRIMÉE NE PARAÎT JAMAIS À CÔTÉ DE LA TÊTE QUI LA REMPLACE.** Si une citation ne se retrouve plus dans son bloc, ou chevauche une notice bibliographique, le bloc garde sa forme imprimée et aucune tête n’est rendue : la couche secondaire cède, jamais la lecture.
+
+⛔ **LES BOUCLES SE GARDENT PAR LE CHEMIN DES NOTES OUVERTES**, non par la profondeur : A → B → A se reconnaît dès le second renvoi, et une note déjà ouverte plus haut ne se rouvre pas. La profondeur (quatre notes l’une dans l’autre) n’est qu’une sécurité de plus.
+
+⛔ **UNE CIBLE SE RÉSOUT AVEC CERTITUDE, OU LE RENVOI RESTE IMPRIMÉ.** La division et la lettre lues dans la citation désignent une note et une seule ; le locus imprimé concorde quand il existe ; le contenu de la note visée ne contredit pas ce que la source en annonce. Faute de quoi le renvoi reste en réserve, sous sa forme imprimée. Jamais par ressemblance, par proximité ni par numéro.
+
+⚠️ **Toutes les surfaces qui lisent une note suivent la tête actuelle** : l’encart et le volet des notes d’une œuvre, l’inventaire des notes et l’extraction Word, ces deux derniers en clair et sans contrôle. ⛔ Un bloc qui porte un renvoi ne va pas en manchette (§ 13.14) : la tête, le contrôle et la note dépliée ne tiennent pas au bord d’une ligne.

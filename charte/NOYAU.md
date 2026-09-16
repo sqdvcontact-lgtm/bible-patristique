@@ -25,6 +25,7 @@
 **§ 3.3 — Guillemets**
 
 - ⛔ La casse ne sert jamais à justifier ou à inventer la ponctuation : avant de capitaliser, établir que le signe fort appartient réellement au texte éditorial retenu.
+- ⛔ Ce sont des ouvrants parasites à retirer, jamais des citations nouvelles (§ 14.13).
 
 **§ 3.4 — Tirets et traits d’union**
 
@@ -99,6 +100,17 @@
 - ⛔ Une même forme ne s’écrit qu’une fois.
 - ⛔ Un aperçu d’administration compose EXACTEMENT comme la surface publique.
 - ⚠️ Une règle CSS que rien ne porte fausse un relevé comme elle fausse une lecture.
+
+**§ 3.12 — Le lexique d’accentuation**
+
+- ⛔ Les mots dont une capitale prend un accent se tiennent dans un LEXIQUE, un mot par ligne — la table `accentuation_mots`, tenue dans l’administration, section « Accentuation » (décision de l’auteur, 16 septembre 2026).
+- ⛔ On n’y inscrit que ce qu’on a RENCONTRÉ — corrigé ou écarté, jamais une liste dressée en théorie.
+- ⛔ Une entrée porte la forme JUSTE (« Élie », « À », « Ô ») ; la forme fautive se déduit en ôtant l’accent de l’initiale.
+- ⚠️ Le lexique DÉSIGNE ce qu’un contrôle doit regarder, il ne corrige rien seul.
+- ⛔ Une capitale latine ne s’accentue pas.
+- ⛔ Le balayage porte sur tout le texte et sur les titres projetés, jamais sur les seuls débuts de segment.
+- ⚠️ La ligature œ se rétablit mot par mot (« cœur », « œuvre », « œcuménique »), jamais par un remplacement de « oe » : « coexister », « moelle » et « coefficient » la refusent (§ 3.1).
+- ⚠️ Ce que l’ancien texte portait et qui n’est pas repris.
 
 ## § 5. Métadonnées et page de titre
 
@@ -284,6 +296,12 @@
 - ⛔ IL SORT DU PARAGRAPHE DE PROSE, que la donnée l’y range ou non.
 - ⚠️ Ne pas le confondre avec l’exergue de l’INTERFACE
 
+## § 8. Notes structurées et références présentes dans le texte
+
+**§ 8.1 — Modèle normatif des notes**
+
+- ⛔ UN RENVOI ENTRE NOTES VISE TOUJOURS UNE IDENTITÉ STABLE, JAMAIS UN NUMÉRO D’AFFICHAGE.
+
 ## § 9. Liens bibliques
 
 **§ 9.4 bis — Coexistence fonctionnelle des types**
@@ -442,8 +460,9 @@
 
 - ⚠️ Pourquoi une famille plutôt que huit règles.
 - ⛔ LA FORME `verse` PRIME SUR LA COMPOSITION PAR DÉFAUT DE LA FAMILLE.
-- ⛔ L'ANCRAGE EN TÊTE NE FAIT PAS PARAGRAPHE.
-- ⚠️ En tête seulement — un lemme qui reparaît au milieu d'une note y joue un autre rôle, et une note faite du seul ancrage se rend seule plutôt que de disparaître.
+- ⛔ Lorsqu’elle ouvre la note comme passage du texte hôte effectivement commenté, elle constitue un paragraphe ou bloc autonome ; le commentaire commence au bloc suivant.
+- ⛔ LE LEMME INITIAL FAIT PARAGRAPHE ; LA COORDONNÉE SOURCE, NON.
+- ⛔ Cette règle ne vaut ni pour une citation documentaire qui ouvre fortuitement un commentaire, ni pour une citation grammaticalement intégrée à la phrase qui suit.
 - ⛔ DANS LA FAMILLE DU RENVOI, C'EST LA DESTINATION QUI COMMANDE.
 - ⛔ LE NOM DE L’AUTEUR EST TOUJOURS L’AUTORITÉ NORMALISÉE.
 - ⛔ TOUTE FORME TITULAIRE RÉSOLUE SE NORMALISE ; L’ABSENCE DU TITRE DU CATALOGUE EST UN SIGNAL DE CONTRÔLE, JAMAIS UN ORDRE DE REMPLACEMENT.
@@ -634,7 +653,7 @@
 - ⛔ une reprise brève du texte français commenté, lorsqu’elle reste en prose, se compose en romain entre guillemets français `« … »` ; l’italique ne signale jamais à lui seul la citation ;\n-
 - ⛔ POSITION DE LA RÉFÉRENCE ET DISTINCTION ENTRE LEMME ET CITATION DOCUMENTAIRE.
 - ⛔ On ne fusionne jamais une référence externe et le lemme sous la forme `Référence : « lemme »`, qui ferait croire que l’auteur référencé prononce le texte commenté.
-- ⛔ PETITES CAPITALES DANS LES RÉFÉRENCES.
+- ⛔ NOMS ET DÉSIGNATIONS D’AUTEURS DANS LES RÉFÉRENCES.
 - ⛔ RÈGLE ABSOLUE DE STYLE DES CITATIONS.
 - ⛔ GROUPE CITATIONNEL ORIGINAL + TRADUCTION.
 - ⛔ tiret demi-cadratin `–` exclusivement pour toute incise ; hors incise, employer toujours le trait d’union simple `-` ;
@@ -648,7 +667,8 @@
 **§ 13.16.5 — Références bibliques, patristiques et bibliographiques**
 
 - ⛔ Dans une note, une référence biblique autonome n’est jamais entourée de parenthèses : écrire `Rm 8, 28.`, non `(Rm 8, 28).`.
-- ⛔ Les petites capitales sont réservées au cadre de la référence bibliographique.
+- ⛔ Pour l’appareil de notes, cette règle prévaut sur les prescriptions bibliographiques générales du § 47 relatives aux petites capitales ; elle ne les abroge pas pour les autres surfaces du site.
+- ⛔ Contre-audit obligatoire  — extraire tous les empans `++…++` du périmètre ; il doit rester **0 autorité d’auteur ou responsable** ainsi balisé.
 - ⛔ Dans une référence bibliographique normalisée, un éditeur scientifique ou un directeur d’ouvrage collectif se place avant le titre, en romain, suivi immédiatement de son rôle abrégé entre parenthèses : `Prénom Nom (éd.), *Titre*, …` ou `Prénom Nom (dir.), *Titre*, …`.
 - ⛔ Toute œuvre patristique ou non rencontrée dans une note est recherchée dans la bibliographie globale.
 
@@ -664,6 +684,8 @@
 
 - ⛔ Aucune note logique n’est admise sans responsabilité éditoriale structurée.
 - ⛔ Aucune note n’est admise sans type fonctionnel — une ambiguïté porte un type principal provisoire documenté, jamais `NULL`.
+- ⛔ Un lemme initial du texte hôte et le commentaire qui le suit ne restent jamais fusionnés dans un même bloc : le lemme occupe le premier paragraphe, le commentaire le suivant.
+- ⛔ RENVOIS INTERNES ENTRE NOTES — IDENTITÉ STABLE, NUMÉROTATION ET TITRE DYNAMIQUES.
 - ⛔ P8 NE PRÉJUGE PAS D’UNE IDENTIFICATION QUE P9 N’A PAS ENCORE ÉTABLIE.
 - ⛔ Une forme source abrégée n’est jamais développée en inventant un titre à partir du seul auteur, du seul numéro ou d’une ressemblance lexicale.
 - ⛔ Aucune mention identifiable ne reste sous forme libre faute d’avoir été repérée par un filtre.
@@ -679,6 +701,8 @@
 - ⛔ LA LONGUEUR N’EST PAS UN CRITÈRE DE DÉFAUT.
 - ⛔ CLARIFIER SANS RÉÉCRIRE L’HISTOIRE.
 - ⛔ L’italique hérité de l’imprimé n’est jamais conservé par inertie.
+- ⛔ APPARAT CRITIQUE — INTERDICTION DE L’ITALIQUE DE BLOC PAR LANGUE.
+- ⛔ Dans les notes, P12 vérifie explicitement qu’aucune autorité d’auteur — personne, collectivité, `Anonyme`, `Auteur incertain` — ni aucun responsable secondaire n’est entouré de `++…++` ou composé en petites capitales dans la couche normalisée ; les petites capitales résiduelles ne sont admises que pour un autre emploi sémantique expressément prévu par la charte.
 - ⛔ Dans une citation, distinguer impérativement suspension textuelle et intervention éditoriale : `…` ne vaut que pour une suspension appartenant au texte cité ; toute omission ou coupe éditoriale se note `[…]`. Toute restitution, équivalence, glose ou autre ajout de l’éditeur inséré à l’intérieur d’une citation se place entre crochets droits `[ ]`, jamais entre parenthèses ; l’italique éventuel reste à l’intérieur des crochets (`[*terme latin*]`).
 - ⛔ Dans les notes comme partout ailleurs, le demi-cadratin `–` est exclusivement un tiret d’incise verbale. Tout autre emploi exige le trait d’union simple `-` : plages de chapitres, versets, paragraphes, pages, lignes, vers, dates, renvois, dialogues, attributions ou séparateurs bibliographiques, titres et toute autre liaison non incidente. Une référence qui constitue à elle seule l’incidence se compose entre parenthèses, jamais entre tirets : `… son sceau (Catéchèse I, 3).` — Une véritable incise verbale peut contenir une référence, mais sa fonction incidente doit être portée par une proposition ou un syntagme plus large ; la seule présence d’une référence n’autorise jamais `–`.
 - ⛔ PONCTUATION TERMINALE APRÈS UN EMPAN ITALIQUE.
@@ -1373,6 +1397,9 @@
 - ⛔ Le sommaire est une couche secondaire.
 - ⚠️ Une vue posée dans un cadre ne porte pas le sommaire — c'est l'aperçu d'un outil, non une page qu'on lit pour elle-même.
 - ⚠️ Une page qui dispose ses colonnes selon la place les règle sur la place que le sommaire lui laisse — non sur la largeur de l'écran : réglée sur l'écran, elle ouvrirait trois colonnes là où il n'y a de place que pour deux.
+- ⛔ L’ordre du sommaire est un CLASSEMENT, non une chronologie (décision de l’auteur, 16 septembre 2026).
+- ⛔ Deux écrans qui traitent la MÊME donnée à deux moments de son travail se réunissent sous une seule entrée, en onglets.
+- ⚠️ Des écrans qui tiennent chacun leur table restent des entrées distinctes, même quand on passe de l’un à l’autre : ouvrages, éditeurs et valeur académique se suivent côte à côte, après un filet.
 
 ## § 31. Atelier La Gueule — contrôle, correction et validation ciblée
 
@@ -1525,7 +1552,7 @@
 
 - ⛔ Décision de l’auteur, 26 août 2026 : « laid et pas lisible ».
 - ⚠️ L’italique fait ici le travail que faisait la capitale : elle distingue sans peser, et un titre de péricope ne doit pas peser plus que ce qu’il annonce.
-- ⚠️ Cela ne touche pas les petites capitales que la SOURCE demande — un nom d’auteur dans une bibliographie, relevé comme tel dans les enrichissements du texte.
+- ⚠️ Les petites capitales que la SOURCE applique à un nom d’auteur restent relevées dans les enrichissements ou la provenance, mais ne sont plus reproduites dans la forme normalisée : le nom d’auteur est servi en romain.
 - ⚠️ Le PARAGRAPHE (T5) se centre, seul des rangs bas (décision de l’auteur, 29 août 2026 : « ce niveau de titre me paraît pas bien placé »).
 - ⛔ Le corps de la tête ne monte pas : il égalerait la sous-section.
 - ⛔ Aucune chasse sur la désignation : une lettre seule ne s’espace pas, et la chasse, tombant APRÈS elle, la décalerait de l’axe.
@@ -2328,7 +2355,6 @@
 - ⛔ on ne crée jamais un doublon parce que la casse, la ponctuation, l’abréviation ou l’ordre des éléments diffèrent dans le témoin.
 - ⛔ on ne complète jamais une notice par conjecture.
 - ⛔ elle ne reste pas en `type_unite = 'paratexte'` générique si ses lignes sont des notices d’éditions ou de traductions.
-- ⛔ Les petites capitales viennent de la donnée structurée — `auteurs_valeur.prenom` et `auteurs_valeur.nom_famille` —, jamais d’une transformation heuristique de la chaîne affichée : une autorité que ce couple ne décrit pas ne se coupe pas à la première espace, elle se compose entière.
 - ⛔ La description MATÉRIELLE ne s’affiche pas dans une liste d’ouvrages — le format (`in-8°`, `in-4°`), le nombre de pages, la pagination romaine ou arabe, le nombre de planches, les figures et les dimensions sont des données de description, conservées dans la notice, et ne paraissent pas au lecteur.
 - ⚠️ Le retrait suspendu remplace le retrait de première ligne prescrit jusque-là (décision de l’auteur du 28 août 2026).
 
@@ -2352,7 +2378,7 @@
 - ⛔ L’article ne se retire jamais d’un nom d’autorité : « La Taille » est un nom, non un titre précédé d’un article.
 - ⚠️ La particule « de » ne classe pas (décision de l’auteur, 12 septembre 2026) : c’est l’usage des catalogues français, et « Alfred de Musset » se range à Musset, « Joseph Pitton de Tournefort » à Tournefort, « Albert de Broglie » à Broglie.
 - ⛔ Elle seule est rejetée, et seulement en tête : « La », « Le », « Du », « Des », « Van », « Von », « Della » restent avec le nom, et « de La Tour » se range à « La Tour », non à « Tour ».
-- ⛔ Le nom AFFICHÉ, lui, garde sa particule, qui prend les petites capitales avec le nom (§ 29).
+- ⛔ Le nom AFFICHÉ, lui, garde sa particule et se compose entièrement en romain (§ 29).
 - ⛔ Le retrait ne vaut QUE pour le classement : le titre affiché garde son article, toujours.
 - ⛔ Un titre qui n’est QUE son article se range sous lui, faute de quoi sa clé serait vide.
 - ⛔ Le latin n’a pas d’article, et il est ici partout.
@@ -2379,7 +2405,6 @@
 - ⛔ Ne pas recopier une référence composée dans un segment.
 - ⛔ Ne pas enregistrer de HTML ni d’astérisques d’italique dans `ouvrages_bibliographiques`.
 - ⛔ Jamais de ville, de date ni d’éditeur inventés pour obtenir une notice « complète » : un champ absent emporte son séparateur, et la notice dit ce que la base sait.
-- ⛔ jamais par découpe de la chaîne affichée, et une autorité sans rubriques, un auteur ancien, se compose ENTIER en petites capitales.
 - ⚠️ La police servie ne dessine pas les petites capitales.
 - ⚠️ Un rendu précomposé en base est au mieux un cache, jamais une source.
 
@@ -3156,6 +3181,19 @@
 - ⛔ LE TEXTE QUI ANNONCE LA CITATION NE BOUGE PAS.
 - ⚠️ Mesuré sur le corpus, avec les fonctions de la page
 
+**§ 13.20 — Le RENVOI DE NOTE À NOTE — l’identité dans la donnée, la tête au rendu**
+
+- ⛔ `source_citation` EST LA SOUS-CHAÎNE EXACTE DU BLOC QUE LE RENDU REMPLACE — et la base le garde : un déclencheur refuse une citation absente de son bloc (code ZR001).
+- ⛔ LE NUMÉRO QUE DIT LA TÊTE EST LE NUMÉRO AFFICHÉ (décision de l’auteur, 16 septembre 2026) : celui que porte l’appel dans le texte, calculé au rendu depuis le `note_number` actuel et la division de la première ancre (§ 13.8).
+- ⛔ LE TITRE DE NIVEAU 1 VIENT DU RÉSOLVEUR DE LA PAGE — le `segments.ref_niv1` du segment ancré, les liminaires sous leur carte.
+- ⚠️ Une note dont les ancres mènent à deux divisions de niveau 1 différentes est AMBIGUË : la tête le dit, et l’on ne prend pas la première.
+- ⛔ LA NOTE VISÉE SE DÉPLIE SOUS LE BLOC, PAR LE COMPOSANT ORDINAIRE DES NOTES.
+- ⛔ UNE CITATION IMPRIMÉE NE PARAÎT JAMAIS À CÔTÉ DE LA TÊTE QUI LA REMPLACE.
+- ⛔ LES BOUCLES SE GARDENT PAR LE CHEMIN DES NOTES OUVERTES — non par la profondeur : A → B → A se reconnaît dès le second renvoi, et une note déjà ouverte plus haut ne se rouvre pas.
+- ⛔ UNE CIBLE SE RÉSOUT AVEC CERTITUDE, OU LE RENVOI RESTE IMPRIMÉ.
+- ⚠️ Toutes les surfaces qui lisent une note suivent la tête actuelle — l’encart et le volet des notes d’une œuvre, l’inventaire des notes et l’extraction Word, ces deux derniers en clair et sans contrôle.
+- ⛔ Un bloc qui porte un renvoi ne va pas en manchette (§ 13.14) : la tête, le contrôle et la note dépliée ne tiennent pas au bord d’une ligne.
+
 ---
 
 ## Couverture — les chapitres que le noyau représente le moins
@@ -3164,11 +3202,11 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 
 | § | chapitre | signes | énoncés | pour mille signes |
 |---|---|---:|---:|---:|
-| 3 | Typographie — les signes, les espaces, l’enric | 65 793 | 48 | **0.7** |
+| 8 | Notes structurées et références présentes dans | 8 003 | 1 | **0.1** |
+| 52 | Les états de publication et de validation | 22 477 | 16 | **0.7** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
-| 52 | Les états de publication et de validation | 18 251 | 16 | **0.9** |
+| 3 | Typographie — les signes, les espaces, l’enric | 69 485 | 57 | **0.8** |
 | 15 | Corpus biblique et traductions | 18 188 | 17 | **0.9** |
-| 51 | Les objets d’interface partagés | 99 710 | 99 | **1.0** |
-| 35 | Chantier Fillion — la composition du paratexte | 79 915 | 81 | **1.0** |
-| 48 | Le protocole d’océrisation d’une bible | 46 262 | 51 | **1.1** |
-| 37 | La notice d’une traduction — le bandeau et l’e | 8 621 | 10 | **1.2** |
+| 51 | Les objets d’interface partagés | 99 706 | 99 | **1.0** |
+| 35 | Chantier Fillion — la composition du paratexte | 80 126 | 81 | **1.0** |
+| 48 | Le protocole d’océrisation d’une bible | 46 229 | 51 | **1.1** |
