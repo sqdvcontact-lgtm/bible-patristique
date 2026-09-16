@@ -123,6 +123,17 @@
 - ⚠️ Il ne se nomme que s’il existe vraiment : une colonne en regard tirée du repli `segments.texte_original` n’est pas une autre édition, c’est la même qui porte son original avec elle, et il n’y a rien de plus à nommer.
 - ⚠️ L’invite de l’administrateur suit le crayon.
 
+**§ 5.5.1 — L’identité d’une édition SORT avec elle**
+
+- ⛔ CE QUE LE § 5.5 EXIGE DE LA PAGE DE TITRE VAUT DE TOUT CE QUI QUITTE LA PAGE (demande de l’auteur, 16 septembre 2026 : « les textes latins doivent contenir toutes les informations éditoriales nécessaires ; ce sont des œuvres à part entière »).
+- ⛔ LE SAVANT QUI A ÉTABLI LE TEXTE SE NOMME PARTOUT OÙ LA FICHE LE NOMME « éd. Pius Knöll » dans une citation, « Texte établi par Pius Knöll » sur la page de titre d’un document extrait.
+- ⛔ UN LIEN VERS UN PASSAGE D’UNE AUTRE ÉDITION QUE CELLE PAR DÉFAUT PORTE `?texte=`.
+- ⛔ UN PRÉLÈVEMENT RETIENT SON SEGMENT ET SON TEXTE, jamais le seul numéro.
+- ⚠️ LE CONTRÔLE SE REJOUE — après l’import ou la correction d’un texte en langue originale : `node --env-file=.env.local node_modules/tsx/dist/cli.mjs scripts/controle-editions-originales.mts`, et `--langue=Grec` pour un autre corpus.
+- ⛔ Il ne corrige rien : un intitulé, un responsable ou une liste de sigles se lisent sur le fac-similé.
+- ⚠️ Deux de ses jugements sont des heuristiques et le disent : l’étiquette de travail dans un intitulé, et l’apparat à sigles.
+- ⚠️ QUESTION OUVERTE, ET ELLE ATTEND L’AUTEUR : le responsable et la collection n’ont pas de champ par texte.
+
 **§ 5.6 — Informations complémentaires d’une édition**
 
 - ⛔ UNE ÉDITION SAVANTE DÉCLARE CE QU’IL FAUT SAVOIR POUR LA LIRE — et ce n’est ni son adresse ni sa notice : les manuscrits qu’elle a collationnés et les sigles qui les désignent, les abréviations de son apparat, les conventions de transcription qu’elle s’est données.
@@ -1087,6 +1098,7 @@
 - ⛔ On ne conserve pas une information dans le libellé au seul motif qu’elle figurait dans une ancienne citation développée.
 - ⚠️ La réduction du libellé n’entraîne aucune perte documentaire — les détails utiles sont déplacés ou maintenus dans leurs champs propres.
 - ⛔ Elle ne concatène à cette phrase ni `collection`, ni `date_publication`, ni `annee_edition`, ni pagination, ni commentaire public.
+- ⚠️ Le responsable scientifique et la collection exclus ici n’ont aujourd’hui aucun champ par texte
 - ⛔ `oeuvres.editeur` reprend exactement `editeurs.nom_complet`, et non une variante d’adresse bibliographique.
 - ⚠️ Une discordance entre une variante reconnue et l’autorité d’`oeuvres.editeur` est une anomalie à corriger.
 - ⛔ Un texte n’existe qu’à un seul endroit.
@@ -1730,6 +1742,9 @@
 - ⛔ LE NOM NE PORTE PLUS DE FLÈCHE (décision de l’auteur, 14 septembre 2026, devant « Bible de Sacy » : « ne pas afficher de flèche à côté pour indiquer que c’est cliquable »).
 - ⚠️ Le soulignement se pose sur le NOM et non sur le bouton : c’est le nom qui se coupe par la fin sur un volet étroit, et le trait doit s’arrêter avec lui.
 - ⛔ Un nom qui n’ouvre aucune fiche ne se souligne pas.
+- ⚠️ ET « IL N’Y EN A PLUS NULLE PART » ÉTAIT FAUX (relevé du 16 septembre 2026).
+- ⛔ Retirer une marque ne retire pas ce qu’elle portait seule : ce bouton était le seul chemin du CLAVIER vers la fiche, le nom ne prenant pas le foyer.
+- ⚠️ Une affirmation « nulle part » se vérifie dans le code, jamais sur le souvenir des surfaces qu’on a touchées.
 - ⛔ ON NE MESURE PAS UN TEXTE AVANT DE S’ÊTRE DEMANDÉ S’IL DOIT PARAÎTRE.
 - ⚠️ La forme se prend au volet des pages patristiques, qui est le modèle : le nom en vert qui ouvre la fiche, puis ce qu’on lit, puis l’adresse de l’édition, à une seule interligne (1,35).
 
@@ -3206,6 +3221,26 @@
 - ⚠️ Toutes les surfaces qui lisent une note suivent la tête actuelle — l’encart et le volet des notes d’une œuvre, l’inventaire des notes et l’extraction Word, ces deux derniers en clair et sans contrôle.
 - ⛔ Un bloc qui porte un renvoi ne va pas en manchette (§ 13.14) : la tête, le contrôle et la note dépliée ne tiennent pas au bord d’une ligne.
 
+## § 51. Les objets d’interface partagés
+
+**§ 51.9 — Le LASSO — plusieurs versets ou passages d'un seul geste, depuis le blanc**
+
+- ⛔ IL NE PREND QUE CE QUI S'ENREGISTRE UN PAR UN.
+- ⚠️ LA SÉLECTION SUIT LA PAGE, NON LE GESTE.
+- ⛔ PENDANT LE GESTE, RIEN NE SE SÉLECTIONNE ET RIEN NE SE CLIQUE.
+- ⛔ ENREGISTRER N'ÉCRIT QUE CE QUI MANQUE, RETIRER VISE LA CLÉ NATURELLE.
+- ⚠️ LA SURBRILLANCE NE REMPLACE PAS LE FOND D'UN VERSET RETENU — elle se peint par-dessus, en voile vert léger, et la trace du cadre prend la même teinte, dans les deux thèmes.
+- ⚠️ PAS ENCORE COUVERT — la lecture en regard de la page Bible, la Polyglotte, l'apparat et la comparaison d'une œuvre, le téléphone.
+
+## § 38. Les surfaces de lecture — volets, fiches et listes
+
+**§ 38.8.1 — Une citation ne passe jamais un titre sans le dire**
+
+- ⛔ DEUX PASSAGES QU'UN TITRE SÉPARE FONT DEUX CITATIONS.
+- ⛔ LE TITRE EST CELUI QUE LA LECTURE MONTRE.
+- ⛔ UN TITRE QU'ON NE SAIT PAS VOIR EMPÊCHE LA RÉUNION — comme un écart qu'on n'a pas mesuré (§ 38.8) : deux passages séparés valent mieux que deux parties de l'œuvre collées.
+- ⚠️ LES TITRES NE SONT PAS ENCORE REPRODUITS.
+
 ---
 
 ## Couverture — les chapitres que le noyau représente le moins
@@ -3215,10 +3250,10 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | § | chapitre | signes | énoncés | pour mille signes |
 |---|---|---:|---:|---:|
 | 8 | Notes structurées et références présentes dans | 8 003 | 1 | **0.1** |
-| 52 | Les états de publication et de validation | 24 209 | 16 | **0.7** |
+| 52 | Les états de publication et de validation | 29 864 | 16 | **0.5** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
 | 3 | Typographie — les signes, les espaces, l’enric | 69 485 | 57 | **0.8** |
 | 15 | Corpus biblique et traductions | 18 188 | 17 | **0.9** |
-| 51 | Les objets d’interface partagés | 99 706 | 99 | **1.0** |
 | 35 | Chantier Fillion — la composition du paratexte | 80 126 | 81 | **1.0** |
+| 51 | Les objets d’interface partagés | 99 706 | 105 | **1.1** |
 | 48 | Le protocole d’océrisation d’une bible | 46 229 | 51 | **1.1** |

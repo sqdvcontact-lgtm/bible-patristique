@@ -572,6 +572,20 @@ Le traitement passe par l'abonnement, sans clé d'interface de programmation, et
 
 La règle vit dans `identiteEdition` (`app/oeuvre/[id]/versionTextuelle.ts`) et sert la page de titre, la fiche « À propos de cette édition », la citation et l’extraction.
 
+### 5.5.1 L’identité d’une édition SORT avec elle
+
+⛔ **CE QUE LE § 5.5 EXIGE DE LA PAGE DE TITRE VAUT DE TOUT CE QUI QUITTE LA PAGE** (demande de l’auteur, 16 septembre 2026 : « les textes latins doivent contenir toutes les informations éditoriales nécessaires ; ce sont des œuvres à part entière »). La citation copiée, la note d’un essai, le volet des Pères, « Mes citations », le document extrait, les métadonnées et les données structurées nomment l’édition DU PASSAGE, silence compris. Le contrôle du 16 septembre 2026 a trouvé l’inverse sur six surfaces : le document extrait du latin de Knöll sortait sous l’adresse de la traduction d’Arnauld d’Andilly, une citation du même latin disait « trad. Robert Arnauld d’Andilly », et le latin d’Eucher, qui ne déclare aucune source, offrait celle du français.
+
+⛔ **LE SAVANT QUI A ÉTABLI LE TEXTE SE NOMME PARTOUT OÙ LA FICHE LE NOMME** : « éd. Pius Knöll » dans une citation, « Texte établi par Pius Knöll » sur la page de titre d’un document extrait. Une édition critique n’a pas de traducteur, et la taire laissait ses citations sans personne.
+
+⛔ **UN LIEN VERS UN PASSAGE D’UNE AUTRE ÉDITION QUE CELLE PAR DÉFAUT PORTE `?texte=`.** La page ne cherche le segment visé que dans le texte qu’elle ouvre : sans le paramètre, un passage latin rouvrait la traduction française, et le colophon d’un document extrait du latin renvoyait au français.
+
+⛔ **UN PRÉLÈVEMENT RETIENT SON SEGMENT ET SON TEXTE, jamais le seul numéro.** Deux textes d’une même œuvre partagent leurs numéros de segment : le latin et le français des Confessions les partagent tous. Retrouvé par l’œuvre et le numéro, un passage de Ceriziers se rangeait sous le segment de Mirandol qui porte le même, et une citation d’essai ne trouvait plus rien.
+
+⚠️ **LE CONTRÔLE SE REJOUE** après l’import ou la correction d’un texte en langue originale : `node --env-file=.env.local node_modules/tsx/dist/cli.mjs scripts/controle-editions-originales.mts`, et `--langue=Grec` pour un autre corpus. Il imprime, texte par texte, ce que le lecteur voit (la page de titre, le menu des éditions, la citation copiée, la page de titre du document extrait) et juge l’intitulé, l’adresse, le responsable, la collection, la source, la clé de l’apparat et la publication. ⛔ Il ne corrige rien : un intitulé, un responsable ou une liste de sigles se lisent sur le fac-similé. ⚠️ Deux de ses jugements sont des heuristiques et le disent : l’étiquette de travail dans un intitulé, et l’apparat à sigles.
+
+⚠️ **QUESTION OUVERTE, ET ELLE ATTEND L’AUTEUR : le responsable et la collection n’ont pas de champ par texte.** Le § 38.25.1 veut que la fiche les nomme pour chaque édition ; le § 19.2 les exclut d’`edition_label`, et c’est pourtant le seul endroit où la page sait les lire. Une édition dont le libellé est conforme perd donc son responsable : les deux textes de Zycha et l’Apologétique de Waltzing ne le montrent pas, alors que les métadonnées d’atelier le connaissent. La voie proposée est une colonne par texte pour chacun des deux, lue avant le libellé. Tant que la décision n’est pas prise, on ne réécrit pas un libellé conforme pour y remettre un responsable, et l’on ne retire pas le responsable d’un libellé qui le porte encore : il disparaîtrait de l’écran.
+
 ### 5.6 Informations complémentaires d’une édition
 
 ⛔ **UNE ÉDITION SAVANTE DÉCLARE CE QU’IL FAUT SAVOIR POUR LA LIRE**, et ce n’est ni son adresse ni sa notice : les manuscrits qu’elle a collationnés et les sigles qui les désignent, les abréviations de son apparat, les conventions de transcription qu’elle s’est données. Sans cette déclaration, « B; est] est et BPQ » est illisible, et le lecteur n’a aucun moyen de savoir ce que B, P et Q nomment.
@@ -3274,6 +3288,8 @@ Une traduction et une **œuvre originale autonome** sont deux lignes distinctes 
 Sont exclus de `edition_label` : titre de l’œuvre ou de l’édition, collection, série, tome, volume, pagination, étendue de livres ou de chapitres, nom du traducteur, éditeur scientifique, réviseur, directeur, numéro ou mention d’édition, texte latin ou grec en regard, notes, appareil critique et toute autre précision déjà portée par un champ structuré ou une métadonnée de provenance. ⛔ **On ne conserve pas une information dans le libellé au seul motif qu’elle figurait dans une ancienne citation développée.** ⚠️ **La réduction du libellé n’entraîne aucune perte documentaire** : les détails utiles sont déplacés ou maintenus dans leurs champs propres.
 
 L’interface compose la seule formule `D’après l’édition de <edition_label>`. ⛔ **Elle ne concatène à cette phrase ni `collection`, ni `date_publication`, ni `annee_edition`, ni pagination, ni commentaire public.** Exemple normatif : `edition_label = Paris, Louis Vivès, 1873` produit « D’après l’édition de Paris, Louis Vivès, 1873 ». Les précisions bibliographiques supplémentaires, lorsqu’elles ont une utilité réelle pour le lecteur, sont affichées séparément et ne rallongent pas ce libellé.
+
+⚠️ **Le responsable scientifique et la collection exclus ici n’ont aujourd’hui aucun champ par texte**, alors que la fiche d’une édition doit les nommer (§ 38.25.1) : voir la question ouverte du § 5.5.1.
 
 **Éditeur d’œuvre.** Lorsqu’une autorité existe dans `editeurs`, ⛔ **`oeuvres.editeur` reprend exactement `editeurs.nom_complet`, et non une variante d’adresse bibliographique**. Les variantes imprimées demeurent dans `editeurs.variantes`, les notices et les métadonnées de source. ⚠️ **Une discordance entre une variante reconnue et l’autorité d’`oeuvres.editeur` est une anomalie à corriger.**
 

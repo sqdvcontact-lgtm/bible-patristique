@@ -627,3 +627,42 @@ Demande de l’auteur, après la mission A0044 des renvois : inscrire la méthod
 **Centre de contrôle, section qualité.** La tâche `[A0044|renvois-notes-stables-20260916]` est close avec son bilan. Une tâche faite `[PROTOCOLE-NOTES|renvois-p15-v33-20260916]` s’ajoute, avec deux notes : `[PROTOCOLE-NOTES|etat-v33-20260916]`, qui remplace l’état v3.2, et la clôture de la mission A0044.
 
 **Les deux réserves de la tâche de validation A0044.** La note 526 des Catéchèses baptismales (Basile, Homélie IX) n’est pas un renvoi de note à note et n’a pas été touchée. Le renvoi « note A, p. 47 » de la note 75 des Catéchèses mystagogiques figure parmi les dix réserves de la mission.
+
+### 2026-09-16 — Éditions latines : contrôle des quinze textes, et ce qui reste à la donnée
+
+Demande de l’auteur : « Les textes latins doivent contenir toutes les informations éditoriales nécessaires ; ce sont des œuvres à part entière. Il faut contrôler ça. » Doctrine : charte § 5.5.1.
+
+**Outil.** `scripts/controle-editions-originales.mts` (commit `4061da3a`) rejoue les fonctions de la page sur chaque texte sans traducteur de la langue demandée et imprime ce que le lecteur voit. Rapport du jour : `audit/controle-editions-latines-2026-09-16.md` (non versionné), quinze textes latins.
+
+**Code corrigé dans le même commit.** Le document extrait prenait l’adresse, la collection et le traducteur à l’œuvre : le latin de Knöll sortait sous l’adresse d’Arnauld d’Andilly, et son colophon rouvrait le français. Les citations (bouton de copie de la lecture, du volet des Pères et de « Mes citations », note d’un essai) citaient l’œuvre et jamais le responsable scientifique. Le signet du volet des Pères n’enregistrait pas son segment. Le sélecteur de citation d’un essai mêlait le latin et le français des Confessions, s’arrêtait à mille lignes et ne retrouvait pas un passage dont le numéro est partagé. La page d’œuvre prêtait la source, le traducteur et l’éditeur du français aux métadonnées d’un latin, et l’entrée « Du même auteur » de l’œuvre lue annonçait la traduction. Le millésime des œuvres sœurs ne se lisait plus (antislash perdu dans `/\d{4}/`). `decomposerEdition` perdait le lieu d’une notice savante dont le lieu n’est pas répertorié.
+
+**Matrice du relevé.**
+
+| Texte | Intitulé | Adresse | Texte établi par | Collection | Source | Informations complémentaires | Publication |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A0010O0001T0001 (Confessions, Knöll) | ok | non conforme | ok | ok | ok | manque | ok |
+| TXT_A0010O0002_LA_1870_1873_BENEDICTINS_VIVES (Cité de Dieu) | manque | ok | à vérifier | manque | à vérifier | — | ok |
+| TXT_A0010O0023_LA_1895_ZYCHA (Heptateuque) | non conforme | ok | manque | manque | ok | — | ok |
+| TXT_A0010O0055_LA_1841_MIGNE_PL40 (Du symbole) | non conforme | non conforme | à vérifier | manque | ok | — | ok |
+| TXT_A0010O0100_LA_1895_ZYCHA (Job) | non conforme | non conforme | manque | manque | ok | — | ok |
+| A0011O2987T0002 (Apologétique, Waltzing) | non conforme | non conforme | manque | manque | ok | — | ok |
+| A0018O0001T0001 (Cyprien, Hartel) | non conforme | non conforme | ok | ok | à vérifier | — | ok |
+| TXT_A0051O0049..52_LA_1879_BAREILLE (Jérôme, quatre textes) | ok | ok | à vérifier | à vérifier | ok | — | ok (Amos : à vérifier) |
+| A0064O0001T0001 (Boèce, Migne) | non conforme | ok | à vérifier | manque | ok | — | ok |
+| A0091O0001T0001 (Ratramne, Lucas) | non conforme | ok | à vérifier | à vérifier | ok | — | ok |
+| TXT_A0176O0001_1887_BONDURAND (Dhuoda) | non conforme | ok | à vérifier | à vérifier | ok | ok | ok |
+| A0418O0003T0001 (Eucher) | ok | ok | à vérifier | à vérifier | manque | — | ok |
+
+**Ce qui reste à la donnée (GPT).**
+
+1. Intitulés d’atelier à remplacer par le titre imprimé de l’édition : Heptateuque (« Quaestiones in Heptateuchum — texte latin (Zycha) »), Du symbole (« … — texte latin (Migne, PL 40) »), Job (« Texte latin — édition de Joseph Zycha »), Apologétique (« Apologeticum — Waltzing, Codex Fuldensis (1914) »), Cyprien (« Quod idola dii non sint — Hartel (CSEL 3/1, 1868) »), Boèce (« … — texte latin (Migne 1847) »), Ratramne (« … — latin imprimé en regard (Jean Lucas, 1673) »), Dhuoda (« Texte latin — Bondurand 1887 »). La Cité de Dieu ne porte que « Texte latin » et n’a donc aucun intitulé à l’écran.
+2. Adresses hors de la forme du § 19.2 : Confessions (responsable, « CSEL 33 », « Pragae–Vindobonae–Lipsiae », « F. Tempsky–G. Freytag ») ; Cyprien (responsable et collection dans le libellé) ; Du symbole (« Patrologia Latina, t. 40 … col. 627-636 », sans l’année en fin) ; Job (« Prague–Vienne–Leipzig, F. Tempsky et G. Freytag », quand l’Heptateuque porte déjà « Prague ; Vienne ; Leipzig, Friedrich Tempsky ; Georg Freytag, 1895 »). ⚠️ Pour les Confessions et Cyprien, attendre la décision du § 5.5.1 : retirer le responsable du libellé le retirerait de l’écran.
+3. Autorités d’éditeurs manquantes : « H. Vaillant-Carmanne » (Apologétique) et « Gerold » (Cyprien).
+4. Sources : Eucher n’a pas de `source_url` ; celle de la Cité de Dieu est une notice du catalogue de la BnF ; celle de Cyprien un fichier XML brut du dépôt GitHub.
+5. Clé de l’apparat : les 6 493 leçons critiques de Knöll n’ont aucune déclaration de sigles. Sigles les plus employés : V, F, W, M, P, Q, B, H, G, C, O, S (relevé heuristique, à établir sur le conspectus siglorum du CSEL 33).
+6. Responsable et collection connus des métadonnées d’atelier mais sans champ à l’écran : Zycha et CSEL 28.2 (Heptateuque, Job), Waltzing et la Bibliothèque de la Faculté de philosophie et lettres de Liège XXII (Apologétique), PL 40 (Du symbole), PL 63 (Boèce), tomes XXIII à XXV de Vivès (Cité de Dieu).
+7. Le Commentaire sur Amos latin (`TXT_A0051O0052_LA_1879_BAREILLE`) est une réservation vide et non publiée.
+
+**Deux faux jugements de l’outil, corrigés avant le relevé.** Les chiffres romains de Bondurand (« Éclaircissements, X », « XXVIIIe année », « (CIII) ») passaient pour des sigles non déclarés. L’italique ne porte jamais un sigle, un chiffre annoncé par un mot de numérotation non plus, et un groupe qui répète une lettre ou porte un ordinal est un nombre. Après correction, la clé de Dhuoda est jugée complète.
+
+**Question ouverte.** Voir la charte, § 5.5.1 : le responsable et la collection n’ont pas de champ par texte.
