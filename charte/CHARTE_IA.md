@@ -8324,6 +8324,16 @@ Demande de l’auteur du 16 septembre 2026 : « dans le menu de sélection des t
 
 ⛔ **ET UN MODULE LOURD NE SE TIRE PAS DANS LE PAQUET DU NAVIGATEUR POUR VINGT LIGNES.** La recomposition matérielle d’un fragment n’a besoin que du liant ; la garder dans le module des éditions bibliques faisait entrer dans le paquet d’une page de lecture ce fichier entier et, derrière lui, le registre des styles sémantiques d’une édition commentée. Elle vit désormais dans son propre module, que l’ancien réexporte : rien de ce qui la lisait n’a bougé. ⚠️ La question se pose à chaque fois qu’un composant CLIENT importe d’un module SERVEUR : ce n’est pas la fonction qu’on emporte, c’est tout ce que son fichier tire derrière elle.
 
+### 38.34.1 Le sous-menu du volet s’ouvre à gauche, par-dessus le texte
+
+Demande de l’auteur du 16 septembre 2026 : « dans le menu de sélection des traductions bibliques du volet de droite, le sous-menu déroulant (et la flèche qui signale son existence) doivent être du côté gauche ; et passer au-dessus du bloc central (actuellement, il passe au-dessous) ».
+
+⛔ **LE CÔTÉ D’UN SOUS-MENU SE DÉCLARE, ET SA FLÈCHE LE SUIT.** La page Bible ouvre les langues d’une famille à droite de sa ligne. Le volet de droite d’une œuvre les ouvre à gauche, vers le texte, puisqu’il borde l’écran à droite. Le chevron passe alors en tête de la ligne et regarde à gauche, et les flèches du clavier s’inversent avec lui : on entre dans le sous-menu par la flèche qui regarde vers lui, on en sort par l’autre. Le côté déclaré cède à l’autre quand la place manque. Quand aucun côté ne suffit, sur un téléphone, le sous-menu se pose contre le bord de l’écran plutôt que d’en sortir.
+
+⛔ **UN SOUS-MENU NE VIT PAS DANS LE DÉFILEUR QUI PORTE SA LIGNE.** Le volet de droite défile, et un défileur rogne tout ce qui déborde de sa boîte : le sous-menu, ouvert vers le texte, s’arrêtait au bord du volet, et le lecteur le voyait passer sous le bloc central. Il est désormais posé hors du volet, au rang d’une fenêtre modale, ce qui le met au-dessus du texte comme du tiroir d’un téléphone. ⚠️ Posé ainsi, il ne suit plus sa ligne : il se replie dès que la page ou le volet défile, comme tout menu ancré du site.
+
+⚠️ **La page Bible ne change pas à l’œil** : même place, même chevron, même jour de quatre pixels entre la ligne et son sous-menu. Seule la tabulation change : depuis le sous-menu, elle repasse par la ligne de la famille avant d’aller plus loin.
+
 ### 13.18.1 Une citation LONGUE se détache, et un texte SORTI perd ses guillemets
 
 Relevé de l’auteur du 16 septembre 2026, sur la note 146 de La Cité de Dieu (Barreau, Vivès) : « puisque la citation est fort longue, il faut un affichage qui supprime les guillemets et sorte effectivement la citation ; le texte qui annonce la citation, lui, doit rester tel qu’il est. » Le passage qu’Érasme intercale — 1 409 signes — coulait dans le fil d’une note de 198, guillemets compris, derrière le commentaire qui l’annonce.

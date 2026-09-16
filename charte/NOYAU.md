@@ -3170,6 +3170,13 @@
 - ⛔ ET UN MODULE LOURD NE SE TIRE PAS DANS LE PAQUET DU NAVIGATEUR POUR VINGT LIGNES.
 - ⚠️ La question se pose à chaque fois qu’un composant CLIENT importe d’un module SERVEUR : ce n’est pas la fonction qu’on emporte, c’est tout ce que son fichier tire derrière elle.
 
+**§ 38.34.1 — Le sous-menu du volet s’ouvre à gauche, par-dessus le texte**
+
+- ⛔ LE CÔTÉ D’UN SOUS-MENU SE DÉCLARE, ET SA FLÈCHE LE SUIT.
+- ⛔ UN SOUS-MENU NE VIT PAS DANS LE DÉFILEUR QUI PORTE SA LIGNE.
+- ⚠️ Posé ainsi, il ne suit plus sa ligne : il se replie dès que la page ou le volet défile, comme tout menu ancré du site.
+- ⚠️ La page Bible ne change pas à l’œil — même place, même chevron, même jour de quatre pixels entre la ligne et son sous-menu.
+
 ## § 13. Notes et apparats
 
 **§ 13.18.1 — Une citation LONGUE se détache, et un texte SORTI perd ses guillemets**
@@ -3208,7 +3215,7 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | § | chapitre | signes | énoncés | pour mille signes |
 |---|---|---:|---:|---:|
 | 8 | Notes structurées et références présentes dans | 8 003 | 1 | **0.1** |
-| 52 | Les états de publication et de validation | 22 477 | 16 | **0.7** |
+| 52 | Les états de publication et de validation | 24 209 | 16 | **0.7** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
 | 3 | Typographie — les signes, les espaces, l’enric | 69 485 | 57 | **0.8** |
 | 15 | Corpus biblique et traductions | 18 188 | 17 | **0.9** |
