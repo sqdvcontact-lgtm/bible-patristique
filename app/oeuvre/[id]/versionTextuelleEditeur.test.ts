@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { construireIndexEditeurs } from '../../lib/editeursNormalisation'
+import { SEPARATEUR_LIEUX } from '../../lib/adresseEdition'
+import { construireIndexEditeurs, SEPARATEUR_COEDITEURS } from '../../lib/editeursNormalisation'
 import { decomposerEdition } from './versionTextuelle'
 
 // Les maisons que les mentions d'édition du corpus nomment réellement, et les villes
@@ -92,5 +93,56 @@ describe('decomposerEdition — reconnaissance de l’éditeur', () => {
     const sans = decomposerEdition('Lyon, Pélagaud, 1844', 1844)
     expect(sans.ville).toBe('Lyon')
     expect(sans.editeur).toBe('Pélagaud')
+  })
+})
+
+// ── LE LIEU D'UNE ÉDITION SAVANTE ────────────────────────────────────────────
+// Contrôle des éditions latines du 16 septembre 2026 : « Prague ; Vienne ; Leipzig,
+// Friedrich Tempsky ; Georg Freytag, 1895 », libellé NORMATIF des Questions sur
+// l'Heptateuque, perdait son lieu faute que Prague soit répertoriée, et la page de titre
+// annonçait « l'édition de Friedrich Tempsky / Georg Freytag ».
+describe('decomposerEdition — le lieu d’une édition savante', () => {
+  const SAVANT = construireIndexEditeurs(
+    [
+      { nom_complet: 'Friedrich Tempsky', variantes: ['F. Tempsky'], ville: null },
+      { nom_complet: 'Georg Freytag', variantes: ['G. Freytag'], ville: null },
+      { nom_complet: 'Gerold', variantes: [], ville: null },
+    ],
+    ['Vienne', 'Leipzig'],
+  )
+  const maisons = ['Friedrich Tempsky', 'Georg Freytag'].join(SEPARATEUR_COEDITEURS)
+
+  it('lit à sa place un lieu que l’index ne connaît pas', () => {
+    const r = decomposerEdition('Prague ; Vienne ; Leipzig, Friedrich Tempsky ; Georg Freytag, 1895', 1895, SAVANT)
+    expect(r.ville).toBe('Prague ; Vienne ; Leipzig')
+    expect(r.editeur).toBe(maisons)
+    expect(r.publicationLabel).toBe(`${['Prague', 'Vienne', 'Leipzig'].join(SEPARATEUR_LIEUX)}, ${maisons}, 1895`)
+  })
+
+  it('⛔ ne prend pas une collection pour un lieu', () => {
+    const r = decomposerEdition('Joseph Zycha (éd.), CSEL 28.2, Friedrich Tempsky, 1895', 1895, SAVANT)
+    expect(r.ville).toBeNull()
+    expect(r.responsable).toBe('Joseph Zycha')
+    expect(r.collection).toBe('CSEL 28.2')
+  })
+
+  it('garde la collection d’une notice savante dont la maison est répertoriée', () => {
+    const r = decomposerEdition(
+      'Wilhelm von Hartel (éd.), Corpus Scriptorum Ecclesiasticorum Latinorum 3/1, Vienne, Gerold, 1868',
+      1868,
+      SAVANT,
+    )
+    expect(r.responsable).toBe('Wilhelm von Hartel')
+    expect(r.ville).toBe('Vienne')
+    expect(r.editeur).toBe('Gerold')
+    expect(r.collection).toBe('Corpus Scriptorum Ecclesiasticorum Latinorum 3/1')
+  })
+
+  // ⛔ Plus de tiret entre deux villes répertoriées : `joindreLieux` ne coupe pas sur un
+  // tiret, et « Vienne–Leipzig » se serait lu comme un seul nom (charte § 47.7).
+  it('joint plusieurs villes répertoriées par le point-virgule, que l’adresse compose en barre', () => {
+    const r = decomposerEdition('Vienne ; Leipzig, Gerold, 1868', 1868, SAVANT)
+    expect(r.ville).toBe('Vienne ; Leipzig')
+    expect(r.publicationLabel).toBe(`${['Vienne', 'Leipzig'].join(SEPARATEUR_LIEUX)}, Gerold, 1868`)
   })
 })

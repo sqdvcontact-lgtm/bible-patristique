@@ -19,6 +19,8 @@ import { BandeauLecteur, SommaireEspace } from "@/app/compte/piecesEspace";
 import { ancresCitations } from "@/app/lib/espaceLecteurNavigation";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 import { citationPatristique, citationBiblique, copierCitation, preparerTexteCitation, type CitationRendue } from "@/app/lib/citation";
+import { COLONNES_IDENTITE_TEXTE, identiteCitee, parametreTexte, type LigneIdentiteTexte } from "@/app/lib/identiteCitee";
+import { indexEditeursNavigateur } from "@/app/lib/editeurs";
 import { colorMix } from "@/app/lib/couleurs";
 import { codesTraductionsLecture } from "@/app/lib/traductions";
 import { useSansSurvol } from "@/app/lib/useEstMobile";
@@ -187,11 +189,12 @@ function colonneDeLecture(traductions: Traduction[], active: string): string {
 
 // Citation patristique complète (titre en italique pour le collage riche), construite
 // exactement comme sur la page de lecture (règles centralisées dans app/lib/citation.ts).
-function citationPatristiqueDepuisInfo(texte: string, auteur: string, titre: string, info?: OeuvreInfo): CitationRendue {
+// ⛔ L'identité est celle de l'ÉDITION du passage, silence compris (`identiteCitee`) : lue à
+// l'œuvre, un passage du latin des Confessions se citait sous Arnauld d'Andilly, 1649.
+function citationPatristiqueDepuisInfo(texte: string, auteur: string, titre: string, info?: OeuvreInfo, edition?: LigneIdentiteTexte): CitationRendue {
   return citationPatristique(texte, {
-    auteur, titre,
-    sousTitre: info?.sous_titre, tradAuteur: info?.trad_auteur, editeur: info?.editeur,
-    collection: info?.collection, ville: info?.ville, datePublication: info?.date_publication,
+    auteur, titre, sousTitre: info?.sous_titre,
+    ...identiteCitee(info ?? {}, edition, indexEditeursNavigateur()),
   });
 }
 
@@ -274,6 +277,8 @@ export default function PagePrelevements() {
   const [onglet, setOnglet] = useState<TypePrelevement>("biblique");
   const [groupesOuverts, setGroupesOuverts] = useState<Set<string>>(new Set());
   const [oeuvresInfo, setOeuvresInfo] = useState<Record<string, OeuvreInfo>>({});
+  // Les éditions des œuvres citées, pour citer un passage sous la sienne.
+  const [editions, setEditions] = useState<Record<string, LigneIdentiteTexte>>({});
   const [traductions, setTraductions] = useState<Traduction[]>([]);
   const [traductionActive, setTraductionActive] = useState("TR0001");
   // ⚠️ La carte des textes traduits porte la COLONNE dont elle vient : tant qu'elle ne
@@ -378,13 +383,19 @@ export default function PagePrelevements() {
 
       const ids = [...new Set(prelevsData.filter(p => p.id_oeuvre).map(p => p.id_oeuvre as string))];
       if (ids.length > 0) {
-        const { data: od } = await supabase
-          .from("oeuvres")
-          .select("id_oeuvre, id_auteur, sous_titre, trad_auteur, editeur, collection, ville, date_publication, niveaux_corps")
-          .in("id_oeuvre", ids);
+        const [{ data: od }, { data: textes, error: erreurTextes }] = await Promise.all([
+          supabase
+            .from("oeuvres")
+            .select("id_oeuvre, id_auteur, sous_titre, trad_auteur, editeur, collection, ville, date_publication, niveaux_corps")
+            .in("id_oeuvre", ids),
+          supabase.from("oeuvre_textes").select(COLONNES_IDENTITE_TEXTE).in("id_oeuvre", ids),
+        ]);
         const map: Record<string, OeuvreInfo> = {};
         (od ?? []).forEach(o => { map[o.id_oeuvre] = o; });
         setOeuvresInfo(map);
+        // ⚠️ Une panne ne ferme rien : la citation retombe sur l'œuvre, comme avant.
+        if (erreurTextes) console.error("[citations] éditions illisibles :", erreurTextes);
+        setEditions(Object.fromEntries(((textes ?? []) as unknown as LigneIdentiteTexte[]).map(ligne => [ligne.id_texte, ligne])));
       }
     })();
   }, [user.id, profil.traduction_defaut]);
@@ -914,6 +925,7 @@ export default function PagePrelevements() {
                       const ids = groupe.map(x => x.id);
                       const texteReuni = texteDuGroupe(groupe, cleCitation);
                       const estPref = favorites.patristique != null && ids.includes(favorites.patristique.id);
+                      const editionDuPassage = editions[texteDuPrelevement(p) ?? ""];
                       return (
                         <div key={ids.join("_")} className={`prel-item${sansManchette ? " prel-item--sans-ref" : ""}${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
                           {/* ⚠️ La manchette tient sa colonne même vide : un passage sans
@@ -926,9 +938,11 @@ export default function PagePrelevements() {
                           </div>
                           <div className="prel-actions">
                             <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: p.id, ids, texte: texteReuni, type: "patristique", auteur: p.auteur, titre_oeuvre: p.titre_oeuvre }); }} />
-                            <BoutonCopie citation={citationPatristiqueDepuisInfo(texteSansEnrichissement(texteReuni), auteur, titre, p.id_oeuvre ? oeuvresInfo[p.id_oeuvre] : undefined)} />
+                            <BoutonCopie citation={citationPatristiqueDepuisInfo(texteSansEnrichissement(texteReuni), auteur, titre, p.id_oeuvre ? oeuvresInfo[p.id_oeuvre] : undefined, editionDuPassage)} />
                             {p.id_oeuvre && (
-                              <BoutonLien href={`/oeuvre/${p.id_oeuvre}${p.segment_numero ? `#s${p.segment_numero}` : ''}`} />
+                              // ⚠️ `?texte=` rouvre l'édition du passage : sans lui, un passage latin
+                              // rouvrait la traduction française, texte par défaut de l'œuvre.
+                              <BoutonLien href={`/oeuvre/${p.id_oeuvre}${parametreTexte(editionDuPassage) ? `?${parametreTexte(editionDuPassage)}` : ''}${p.segment_numero ? `#s${p.segment_numero}` : ''}`} />
                             )}
                             <BoutonSuppr onSuppr={() => supprimerIds(ids)} />
                           </div>

@@ -44,6 +44,11 @@ export type OeuvreCitee = {
   ville?: string | null
   /** Le millésime TEL QUE LA BASE L'ÉCRIT : « 1865 », « 1870 – 1873 », « 21 octobre 1532 ». */
   datePublication?: string | null
+  /** Le savant qui a ÉTABLI le texte d'une édition critique (« Pius Knöll »). ⛔ Ni un
+   *  traducteur ni une maison : le moteur le pose « éd. », avant la traduction. Une
+   *  citation du latin des Confessions ne nommait personne, alors que la fiche de
+   *  l'édition le nomme (charte § 38.25.1). */
+  responsable?: string | null
 }
 
 /** « 1984 – 1986 » / « 1984 — 1986 » / « 1984 - 1986 » → « 1984-1986 ». Une fourchette
@@ -83,6 +88,7 @@ export function noticeDUneOeuvre(
   indexEditeurs: IndexEditeurs | null = null,
 ): NoticeBibliographique {
   const auteur = propre(oeuvre.auteur)
+  const responsable = propre(oeuvre.responsable)
   const editeur = propre(normaliserNomEditeur(oeuvre.editeur, indexEditeurs))
   const date = propre(oeuvre.datePublication)
   return {
@@ -99,9 +105,12 @@ export function noticeDUneOeuvre(
     editeurs: editeur ? [{ rang: 1, role: 'editeur', nom: editeur }] : [],
     collection: propre(oeuvre.collection),
     numeroCollection: null,
-    contributeurs: auteur
-      ? [{ role: 'auteur_source', nature: 'auteur_ancien', ordre: 1, nomAffiche: auteur, nomAutorite: auteur }]
-      : [],
+    contributeurs: [
+      ...(auteur ? [{ role: 'auteur_source' as const, nature: 'auteur_ancien' as const, ordre: 1, nomAffiche: auteur, nomAutorite: auteur }] : []),
+      // ⚠️ Un savant moderne, mais sans rubriques prénom et nom : le moteur le rend en romain,
+      // comme tout responsable secondaire (charte § 47.1).
+      ...(responsable ? [{ role: 'editeur_scientifique' as const, nature: 'chercheur' as const, ordre: 1, nomAffiche: responsable }] : []),
+    ],
     auteursTexte: null,
     directeursTexte: null,
     traducteursTexte: nomsTraducteurs(oeuvre.tradAuteur).join(' ; ') || null,

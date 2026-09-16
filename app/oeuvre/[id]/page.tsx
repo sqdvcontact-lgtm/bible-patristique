@@ -15,12 +15,13 @@ import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import { chargerIndexEditeurs } from '@/app/lib/editeursServeur'
-import type { IndexEditeurs } from '@/app/lib/editeursNormalisation'
+import { normaliserNomEditeur } from '@/app/lib/editeursNormalisation'
+import { codeLangue } from '@/app/lib/grec'
 import { JsonLd, donneesLivre, donneesFilAriane } from '@/app/lib/donneesStructurees'
 import { descriptionOeuvre, enTetesPartage, titreOeuvre } from '@/app/lib/metadonneesSeo'
 import { porteDesLiensBibliques } from '@/app/lib/metadonneesSeoServeur'
 import OeuvreClient from './OeuvreClient'
-import type { AlignementDisponible, ChampTitre, TocEntry, VersionTextuelle } from './oeuvreTypes'
+import type { AlignementDisponible, ChampTitre, TocEntry } from './oeuvreTypes'
 import {
   chargerProjectionBilingue,
   type BlocOriginal,
@@ -34,7 +35,7 @@ import {
   type SegmentBrut,
   type VersetsCites,
 } from './pipelineSegments'
-import { decomposerEdition, labelCourtVersion, libelleTraducteurVersion } from './versionTextuelle'
+import { identiteEdition, versionTextuelleDepuisLigne, type LigneVersionTextuelle } from './versionTextuelle'
 import { chargerAuteursDOeuvre, libelleAuteurs } from '@/app/lib/auteursOeuvre'
 import { enumererTraducteurs } from '@/app/lib/traducteurs'
 import {
@@ -134,7 +135,9 @@ export async function generateMetadata({ params, searchParams }: {
     // Le catalogue sépare les traducteurs par un point-virgule ; une description
     // est une phrase. « H. Barreau ; M. Charpentier » y devient « H. Barreau et
     // M. Charpentier », comme partout ailleurs sur le site.
-    traducteur: enumererTraducteurs(texteActif?.traducteur ?? data.trad_auteur) || null,
+    // ⛔ Le silence d'un texte n'est pas une lacune à combler par l'œuvre (`identiteEdition`) :
+    // le latin des Confessions se décrivait « traduit par Robert Arnauld d'Andilly ».
+    traducteur: enumererTraducteurs(texteActif ? texteActif.traducteur : data.trad_auteur) || null,
     aLiensBibliques,
     // Une œuvre répertoriée dont aucun texte n'est public ne montre qu'un avis :
     // sa description ne promet donc pas « le texte intégral ».
@@ -169,23 +172,8 @@ export async function generateMetadata({ params, searchParams }: {
  */
 type Segment = SegmentBrut
 
-type TexteVersionRow = {
-  id_texte: string
-  titre_version: string | null
-  langue: string | null
-  traducteur: string | null
-  edition_label: string | null
-  annee_edition: number | null
-  source_url: string | null
-  catalogue_notice_id_ligne: string | null
-  /** ⚠️ PROJETÉ : `metadata->>indisponible`, donc du TEXTE. Le jsonb entier ne part
-   *  plus (voir le `select` ci-dessus). */
-  indisponible: string | null
-  is_default: boolean | null
-  is_public: boolean | null
-  statut: string | null
-  informations_complementaires: string | null
-}
+/** La ligne d'`oeuvre_textes` que la page demande : `versionTextuelleDepuisLigne` la lit. */
+type TexteVersionRow = LigneVersionTextuelle
 
 type AlignementRow = {
   alignment_set_id: string
@@ -213,39 +201,9 @@ const LIENS_MANQUANTS: Omit<DegradationChargement, 'detail'> = { quoi: 'les renv
 const apercu = (cles: readonly string[], n = 8) =>
   cles.slice(0, n).join(', ') + (cles.length > n ? `… (${cles.length} en tout)` : '')
 
-function construireVersionTextuelle(t: TexteVersionRow, indexEditeurs: IndexEditeurs | null): VersionTextuelle {
-  const titre = t.titre_version || t.id_texte
-  // L’index des éditeurs passe par ici pour que la mention d’édition nomme sa maison
-  // sous sa forme répertoriée dès le rendu serveur, sans paraître d’abord en brut.
-  const edition = decomposerEdition(t.edition_label, t.annee_edition, indexEditeurs)
-  const base = {
-    idTexte: t.id_texte,
-    titre,
-    langue: t.langue,
-    traducteur: t.traducteur,
-    anneeEdition: t.annee_edition,
-  }
-  return {
-    ...base,
-    editionLabel: t.edition_label,
-    sourceUrl: t.source_url,
-    catalogueNoticeIdLigne: t.catalogue_notice_id_ligne,
-    indisponible: t.indisponible === 'true',
-    isDefault: t.is_default === true,
-    isPublic: t.is_public === true,
-    statut: t.statut,
-    labelCourt: labelCourtVersion(base),
-    traducteurLabel: libelleTraducteurVersion(base),
-    editionDescription: edition.editionDescription,
-    publicationLabel: edition.publicationLabel,
-    villeEdition: edition.ville,
-    editeurEdition: edition.editeur,
-    dateEdition: edition.annee,
-    responsableEdition: edition.responsable,
-    collectionEdition: edition.collection,
-    informationsComplementaires: t.informations_complementaires,
-  }
-}
+// ⛔ `construireVersionTextuelle` vivait ICI : elle est `versionTextuelleDepuisLigne`
+// (`./versionTextuelle`), pour que l'extraction et le contrôle des éditions bâtissent une
+// version de la même main que la page.
 
 // ⛔ `extraireVersetsAvecNature`, `extraireVersets`, `segmentAffichable`, `grouper`,
 // `numerotationLocale` et `detailsRefBiblique` vivaient ICI, et en copie dans
@@ -338,7 +296,7 @@ export default async function OeuvrePage({
   )
   const idTexte = texteActif.id_texte as string
   const lectureTexteEntier = oeuvre.lecture_texte_entier === true
-  const versionsTextuelles = textesAccessibles.map((t) => construireVersionTextuelle(t, indexEditeurs))
+  const versionsTextuelles = textesAccessibles.map((t) => versionTextuelleDepuisLigne(t, indexEditeurs))
   const versionParId = new Map(versionsTextuelles.map(version => [version.idTexte, version]))
   const alignementsDisponibles = ((alignementsResult.data ?? []) as AlignementRow[])
     .flatMap((alignement): AlignementDisponible[] => {
@@ -387,6 +345,7 @@ export default async function OeuvrePage({
     ? alignementsDisponibles.find(alignement => alignement.alignmentSetId === sp.compare)
     : null
   const versionActive = versionParId.get(idTexte)!
+  const identiteActive = identiteEdition(oeuvre, versionActive)
 
   // Admin = connecté avec le compte administrateur (adresse fixe), vérifié
   // côté serveur via la session Supabase Auth — remplace l'ancien cookie
@@ -823,8 +782,11 @@ export default async function OeuvrePage({
             titre: oeuvre.titre,
             titreOriginal: oeuvre.titre_original,
             auteur, auteurId: auteurId || null,
-            traducteur: versionActive.traducteur ?? oeuvre.trad_auteur,
-            editeur: versionActive.editeurEdition ?? oeuvre.editeur,
+            // ⛔ L'identité de l'édition LUE, silence compris (`identiteEdition`) : le latin de
+            // Knöll n'a pas de traducteur, et ne prend pas celui de la traduction française.
+            traducteur: identiteActive.traducteur,
+            editeur: normaliserNomEditeur(identiteActive.editeur, indexEditeurs) || null,
+            langue: codeLangue(versionActive.langue),
           })} />
           <JsonLd donnees={donneesFilAriane([
             { nom: 'Accueil', url: '/accueil' },

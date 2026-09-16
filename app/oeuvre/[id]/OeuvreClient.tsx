@@ -652,7 +652,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       //    quelle sur le latin de Knöll, elle le rangeait dans les « Œuvres complètes
       //    de saint Augustin » de Vivès.
       collection: identite.collection ?? undefined,
-      url_source: v?.sourceUrl ?? oeuvreLocale.url_source,
+      // ⛔ La source de l'ŒUVRE ne décrit que son texte PAR DÉFAUT, comme son adresse : le
+      //    latin d'Eucher, qui n'en déclare aucune, offrait la source Gallica du français.
+      url_source: v ? (v.sourceUrl ?? (v.isDefault ? oeuvreLocale.url_source : undefined)) : oeuvreLocale.url_source,
       commentaire_traduction: v && !v.isDefault
         ? null
         : oeuvreLocale.commentaire_traduction,
@@ -2807,7 +2809,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Le millésime d'une œuvre sœur : `date_publication` est du TEXTE, et porte parfois
   // une fourchette (« 1870-1873 ») — on retient la première année nommée.
   const anneeDeLOeuvre = (v: string | null): number | null => {
-    const trouve = (v ?? '').match(/d{4}/u)
+    // ⚠️ L'antislash s'était perdu (« d{4} » cherchait quatre lettres d) : aucune œuvre
+    // sœur n'avait de millésime, et le menu ne pouvait pas les départager.
+    const trouve = (v ?? '').match(/\d{4}/u)
     return trouve ? Number(trouve[0]) : null
   }
   const editionsDeCeTexte = editionsOffertes([
@@ -3230,6 +3234,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       tradAuteur: oeuvreAffichee.trad_auteur, editeur: oeuvreAffichee.editeur,
       collection: oeuvreAffichee.collection, ville: oeuvreAffichee.ville,
       datePublication: oeuvreAffichee.date_publication,
+      // Le savant qui a établi le texte d'une édition critique : la fiche le nomme, la
+      // citation aussi (contrôle des éditions latines, 16 septembre 2026).
+      responsable: versionActive?.responsableEdition,
     }))
   }
 
@@ -3593,7 +3600,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 <div style={mobile ? { padding: '0 16px 12px', maxHeight: '38dvh', overflowY: 'auto' } : { padding: '0 16px 12px' }}>
                   {(() => {
                     const rendreEntree = (o: OeuvreResumee) => {
-                      const distinction = libelleDistinction(o)
+                      // ⛔ L'ENTRÉE QU'ON LIT DIT L'ÉDITION QU'ON LIT : ses champs venaient de la
+                      //    ligne d'`oeuvres`, et sur le latin des Confessions l'œuvre « en cours »
+                      //    annonçait la traduction d'Arnauld d'Andilly, 1649. Elle prend donc
+                      //    l'identité de la version active (`oeuvreAffichee`), silence compris.
+                      const distinction = libelleDistinction(o.id_oeuvre === idOeuvre
+                        ? { ...o, trad_auteur: oeuvreAffichee.trad_auteur, editeur: oeuvreAffichee.editeur, ville: oeuvreAffichee.ville, date_publication: oeuvreAffichee.date_publication }
+                        : o)
                       const courante = o.id_oeuvre === idOeuvre
                       // ⚠️ CELLE QU'ON LIT N'EST PAS UN LIEN, et c'est ce qui la dit
                       //    retenue : un lien qui mène où l'on est déjà est une promesse
@@ -5076,7 +5089,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             onFermer={cellule.fermer} sansSurvol={sansSurvol}
             boutons={(userId ? 1 : 0) + 2 + (estAdmin ? 1 : 0)}>
             {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onChangement={preleve => marquerSauvegardeSeg(s.id, preleve)} />}
-            <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} />
+            <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} responsable={versionActive?.responsableEdition ?? undefined} />
             <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
             {estAdmin && (
               <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" aria-label="Modifier ce segment"

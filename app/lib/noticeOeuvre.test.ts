@@ -91,6 +91,23 @@ describe('noticeDUneOeuvre', () => {
       .toBe('Histoire ecclésiastique, 21 octobre 1532.')
   })
 
+  // Contrôle des éditions latines du 16 septembre 2026 : la citation du latin de Knöll
+  // ne nommait personne, quand la fiche de l'édition dit « Texte établi par Pius Knöll ».
+  it('nomme le savant qui a établi le texte, « éd. », avant la collection', () => {
+    expect(compose({
+      auteur: 'Augustin d’Hippone',
+      titre: 'Les Confessions',
+      responsable: 'Pius Knöll',
+      collection: 'CSEL 33',
+      ville: 'Prague',
+      editeur: 'Friedrich Tempsky',
+      datePublication: '1896',
+    })).toBe(
+      'Augustin d’Hippone, Les Confessions, éd. Pius Knöll, '
+      + 'coll. ' + GUILLEMET_OUVRANT + 'CSEL 33' + GUILLEMET_FERMANT + ', Prague, Friedrich Tempsky, 1896.',
+    )
+  })
+
   it('⛔ sans titre, il n’y a pas de référence', () => {
     expect(fragmentsReference(noticeDUneOeuvre({ auteur: 'Augustin d’Hippone', ville: 'Paris' }))).toEqual([])
   })

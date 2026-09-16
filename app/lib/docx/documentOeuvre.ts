@@ -102,6 +102,10 @@ export type IdentiteOeuvre = {
   ville?: string | null
   datePublication?: string | null
   collection?: string | null
+  /** Le savant qui a ÉTABLI le texte d'une édition critique (« Pius Knöll »). ⛔ Ni un
+   *  traducteur ni une maison : une édition latine n'a pas de traducteur, et la taire
+   *  laissait sa page de titre sans personne (charte § 38.25.1). */
+  responsable?: string | null
   /** Le libellé de l'édition servie, quand l'œuvre en offre plusieurs. */
   edition?: string | null
   /** La division extraite, quand le lecteur n'a pas demandé l'œuvre entière. */
@@ -484,6 +488,7 @@ function frontispice(identite: IdentiteOeuvre): BlocDocx[] {
   if (identite.division?.trim()) blocs.push(ligne('Soustitre', identite.division))
   const traduction = libelleTrad(identite.traducteur)
   if (traduction) blocs.push(ligne('Frontispicemention', traduction))
+  if (identite.responsable?.trim()) blocs.push(ligne('Frontispicemention', `Texte établi par ${identite.responsable.trim()}`))
   const adresse = adresseEdition({
     ville: identite.ville ?? null,
     editeur: identite.editeur ?? null,

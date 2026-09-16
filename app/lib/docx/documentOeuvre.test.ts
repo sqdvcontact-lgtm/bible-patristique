@@ -293,6 +293,19 @@ describe('l’assemblage', () => {
     expect(nu(paragraphes(blocs).at(-1)!)).toContain('Extrait le 7 septembre 2026')
   })
 
+  // Contrôle des éditions latines du 16 septembre 2026 : le latin de Knöll n'a pas de
+  // traducteur, et sa page de titre ne nommait personne.
+  it('nomme le savant qui a établi le texte, sous la ligne de traduction', () => {
+    const blocs = composerDocumentOeuvre({
+      identite: { ...IDENTITE, responsable: 'Pius Knöll', ville: 'Prague ; Vienne ; Leipzig', collection: 'CSEL 33' },
+      corps: [segment({ texte: 'Magnus es, domine.' })],
+      apparat: [], originaux: new Map(), original: 'aucun', notes: true, sommaire: false,
+    })
+    const rangs = paragraphes(blocs).map(nu)
+    expect(rangs).toContain('Texte établi par Pius Knöll')
+    expect(rangs.indexOf('Texte établi par Pius Knöll')).toBeLessThan(rangs.indexOf('CSEL 33'))
+  })
+
   it('ne pose PAS de sommaire quand rien n’est à sommer', () => {
     const blocs = composer([segment({ texte: 'Un texte sans divisions.' })])
     expect(blocs.some(b => b.type === 'sommaire')).toBe(false)

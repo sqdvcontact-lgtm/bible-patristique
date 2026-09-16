@@ -27,9 +27,20 @@ function villesDuSegment(segment: string, index: IndexEditeurs | null): string |
   const parts = t.split(/\s*[;–—]\s*/u).map((p) => p.trim()).filter(Boolean)
   if (parts.length < 2) return null
   if (!parts.every((p) => estVilleConnue(p, index))) return null
-  // Le tiret demi-cadratin est la graphie que le corpus emploie déjà pour une
-  // adresse à plusieurs villes ; le point-virgule du catalogue ne s'affiche jamais.
-  return parts.join('–')
+  // ⛔ LE POINT-VIRGULE DU CATALOGUE, jamais le tiret : c'est `joindreLieux` qui compose
+  // plusieurs lieux à l'affichage, par la barre à fines (charte § 47.7), et il ne coupe
+  // pas sur un tiret. Joints par « – », trois villes répertoriées se seraient lues comme
+  // un seul nom.
+  return parts.join(' ; ')
+}
+
+/** Le lieu d'une adresse que l'index ne connaît pas, lu à sa PLACE : la forme normative
+ *  est « Ville, éditeur, année » (charte § 19.2), et le segment qui précède immédiatement
+ *  une maison reconnue en est le lieu. ⛔ Rien qui porte un chiffre : une collection
+ *  (« CSEL 28.2 ») ou une tomaison n'est pas une ville. */
+function lieuAvantLaMaison(segment: string | undefined): string | null {
+  const t = segment?.trim()
+  return t && !/\p{N}/u.test(t) ? t : null
 }
 
 function capitaleInitiale(texte: string) {
@@ -180,9 +191,26 @@ export function decomposerEdition(
   let collection: string | null = null
   if (rangEditeur >= 0) {
     editeur = editeursDuSegment(morceaux[rangEditeur], index)
-    morceaux.splice(rangEditeur, 1)
-    const rangVille = morceaux.findIndex((m) => villesDuSegment(m, index) !== null)
-    ville = rangVille >= 0 ? villesDuSegment(morceaux[rangVille], index) : null
+    const reste = morceaux.filter((_, rang) => rang !== rangEditeur)
+    let rangVille = reste.findIndex((m) => villesDuSegment(m, index) !== null)
+    if (rangVille >= 0) {
+      ville = villesDuSegment(reste[rangVille], index)
+    } else {
+      // ⚠️ UN LIEU QUE L'INDEX NE CONNAÎT PAS SE LIT À SA PLACE. « Prague ; Vienne ;
+      // Leipzig, Friedrich Tempsky ; Georg Freytag, 1895 » — le libellé normatif des
+      // Questions sur l'Heptateuque — perdait sa ville faute de connaître Prague, et la
+      // page de titre annonçait « l'édition de Friedrich Tempsky / Georg Freytag ».
+      // Le segment qui précède la maison se trouve au même rang dans `reste`.
+      ville = rangEditeur > 0 ? lieuAvantLaMaison(morceaux[rangEditeur - 1]) : null
+      rangVille = ville ? rangEditeur - 1 : -1
+    }
+    // ⛔ Une notice SAVANTE garde sa collection, que sa maison soit répertoriée ou non :
+    // sans quoi « Wilhelm von Hartel (éd.), CSEL 3/1, Vienne, Gerold » la perdrait le
+    // jour où « Gerold » entrerait dans `editeurs`.
+    if (responsable) {
+      const autres = reste.filter((_, rang) => rang !== rangVille)
+      collection = autres.length ? autres.join(', ') : null
+    }
   } else if (responsable && morceaux.length >= 3) {
     // Une notice SAVANTE dont aucune maison n'est répertoriée : « CSEL 33,
     // Pragae–Vindobonae–Lipsiae, F. Tempsky–G. Freytag ». L'adresse s'y lit par la FIN
@@ -288,5 +316,71 @@ export function identiteEdition(
     collection: versionActive.collectionEdition
       ?? (versionActive.isDefault ? oeuvre.collection ?? null : null),
     responsable: versionActive.responsableEdition ?? null,
+  }
+}
+
+// ── UNE LIGNE D'`oeuvre_textes`, TELLE QUE LA PAGE LA LIT ─────────────────────
+// ⛔ ELLE ÉTAIT ÉCRITE DANS `page.tsx`, et nulle part ailleurs : l'extraction en .docx
+// composait donc son identité à sa manière, en prenant l'adresse et la collection à
+// l'ŒUVRE pour n'importe quel texte. Relevé du 16 septembre 2026, latin des Confessions :
+// la page de titre du document annonçait « Paris, Veuve Jean Camusat et Pierre Le Petit,
+// 1649 », l'édition française d'Arnauld d'Andilly, au-dessus du texte de Knöll. Une
+// version se bâtit ICI, et la page, la route et le contrôle des éditions la reçoivent de
+// la même main.
+
+/** Les colonnes d'`oeuvre_textes` dont une version a besoin. Celles que la page lit en
+ *  plus (source, notice, disponibilité, informations complémentaires) sont facultatives :
+ *  une surface qui ne compose que l'IDENTITÉ n'a pas à les demander. */
+export type LigneVersionTextuelle = {
+  id_texte: string
+  titre_version: string | null
+  langue: string | null
+  traducteur: string | null
+  edition_label: string | null
+  annee_edition: number | null
+  is_default: boolean | null
+  is_public: boolean | null
+  statut: string | null
+  source_url?: string | null
+  catalogue_notice_id_ligne?: string | null
+  /** ⚠️ PROJETÉ : `metadata->>indisponible`, donc du TEXTE. */
+  indisponible?: string | null
+  informations_complementaires?: string | null
+}
+
+export function versionTextuelleDepuisLigne(
+  ligne: LigneVersionTextuelle,
+  index: IndexEditeurs | null,
+): VersionTextuelle {
+  const titre = ligne.titre_version || ligne.id_texte
+  // L'index des éditeurs passe par ici pour que la mention d'édition nomme sa maison
+  // sous sa forme répertoriée dès le rendu serveur, sans paraître d'abord en brut.
+  const edition = decomposerEdition(ligne.edition_label, ligne.annee_edition, index)
+  const base = {
+    idTexte: ligne.id_texte,
+    titre,
+    langue: ligne.langue,
+    traducteur: ligne.traducteur,
+    anneeEdition: ligne.annee_edition,
+  }
+  return {
+    ...base,
+    editionLabel: ligne.edition_label,
+    sourceUrl: ligne.source_url ?? null,
+    catalogueNoticeIdLigne: ligne.catalogue_notice_id_ligne ?? null,
+    indisponible: ligne.indisponible === 'true',
+    isDefault: ligne.is_default === true,
+    isPublic: ligne.is_public === true,
+    statut: ligne.statut,
+    labelCourt: labelCourtVersion(base),
+    traducteurLabel: libelleTraducteurVersion(base),
+    editionDescription: edition.editionDescription,
+    publicationLabel: edition.publicationLabel,
+    villeEdition: edition.ville,
+    editeurEdition: edition.editeur,
+    dateEdition: edition.annee,
+    responsableEdition: edition.responsable,
+    collectionEdition: edition.collection,
+    informationsComplementaires: ligne.informations_complementaires ?? null,
   }
 }

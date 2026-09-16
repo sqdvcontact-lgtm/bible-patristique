@@ -108,17 +108,20 @@ export function BoutonEnregistrerSegment({
 }
 
 
-export function BoutonCopieSegment({ texte, auteur, titre, sousTitre, tradAuteur, editeur, collection, ville, datePublication, className = '' }: {
+export function BoutonCopieSegment({ texte, auteur, titre, sousTitre, tradAuteur, editeur, collection, ville, datePublication, responsable, className = '' }: {
   texte: string; auteur?: string; titre?: string; sousTitre?: string
   tradAuteur?: string; editeur?: string; collection?: string
-  ville?: string; datePublication?: string; className?: string
+  ville?: string; datePublication?: string
+  /** Le savant qui a établi le texte d'une édition critique (« Pius Knöll »). */
+  responsable?: string
+  className?: string
 }) {
   const [copie, setCopie] = useState(false)
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation()
     // Titre en italique (collage riche), dates resserrées, guillemets internes anglais,
     // ponctuation finale normalisée : toutes les règles vivent dans app/lib/citation.ts.
-    const citation = citationPatristique(texte, { auteur, titre, sousTitre, tradAuteur, editeur, collection, ville, datePublication })
+    const citation = citationPatristique(texte, { auteur, titre, sousTitre, tradAuteur, editeur, collection, ville, datePublication, responsable })
     copierCitation(citation).then(() => { setCopie(true); setTimeout(() => setCopie(false), 1400) })
   }
   return (

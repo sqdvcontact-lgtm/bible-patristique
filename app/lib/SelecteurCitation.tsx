@@ -11,6 +11,10 @@ import { formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import { cleTriTitre } from '@/app/lib/titres'
 import { mentionTraducteurs } from '@/app/lib/traducteurs'
 import { noticeDUneOeuvre } from '@/app/lib/noticeOeuvre'
+import { COLONNES_IDENTITE_TEXTE, identiteCitee, parametreTexte, type LigneIdentiteTexte } from '@/app/lib/identiteCitee'
+import { indexEditeursNavigateur } from '@/app/lib/editeurs'
+import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
+import { libelleVersionComplet, versionTextuelleDepuisLigne } from '@/app/oeuvre/[id]/versionTextuelle'
 import { fragmentsReference, SEPARATEUR } from '@/app/lib/referenceBibliographique'
 import { baliseFragments, fragmentsSansPointFinal } from '@/app/lib/referenceBibliographiqueSorties'
 import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
@@ -55,8 +59,10 @@ function hrefVerset(livre: string, chapitre: number | string, verset: number | s
   const code = codeLivre(livre) ?? livre
   return `/?livre=${code}&chapitre=${chapitre}&trad=${trad}&verset=${verset}`
 }
-function hrefSegment(idOeuvre: string, idSegment: string | number): string {
-  return `/oeuvre/${idOeuvre}?segment=${idSegment}`
+// ⚠️ La page ne cherche le segment visé que dans le texte qu'elle ouvre : un passage d'une
+// édition qui n'est pas celle par défaut (le latin des Confessions) porte donc `texte=`.
+function hrefSegment(idOeuvre: string, idSegment: string | number, edition?: LigneIdentiteTexte | null): string {
+  return `/oeuvre/${idOeuvre}?${[parametreTexte(edition), `segment=${idSegment}`].filter(Boolean).join('&')}`
 }
 
 function sansAccents(s: string): string {
@@ -139,6 +145,22 @@ type OeuvreMeta = {
   titre: string; sous_titre?: string | null; trad_auteur?: string | null
   editeur?: string | null; collection?: string | null; ville?: string | null
   date_publication?: string | null
+  /** Le savant qui a établi le texte d'une édition critique. */
+  responsable?: string | null
+}
+
+/**
+ * L'œuvre VUE PAR L'ÉDITION qu'on cite. ⛔ Ses champs d'adresse ne décrivent que son texte
+ * par défaut : lus tels quels, un passage du latin des Confessions se citait « trad. Robert
+ * Arnauld d'Andilly, Paris, 1649 » (voir `identiteCitee`).
+ */
+function metaDeLEdition(o: OeuvreMeta, edition: LigneIdentiteTexte | null | undefined): OeuvreMeta {
+  const identite = identiteCitee(o, edition, indexEditeursNavigateur())
+  return {
+    titre: o.titre, sous_titre: o.sous_titre,
+    trad_auteur: identite.tradAuteur, editeur: identite.editeur, collection: identite.collection,
+    ville: identite.ville, date_publication: identite.datePublication, responsable: identite.responsable,
+  }
 }
 
 /**
@@ -167,6 +189,7 @@ function refNotePatristique(auteur: string, o: OeuvreMeta, segs: SegPatr[]): str
     collection: o.collection,
     ville: o.ville,
     datePublication: o.date_publication,
+    responsable: o.responsable,
   })
   const reference = baliseFragments(fragmentsSansPointFinal(fragmentsReference(notice)))
   return [reference, locus].filter(Boolean).join(SEPARATEUR) + '.'
@@ -401,6 +424,11 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
   type OeuvreItem = { id_oeuvre: string; titre: string; auteurNom: string; id_auteur?: string | null; titre_original?: string | null } & OeuvreMeta
   const [oeuvres, setOeuvres] = useState<OeuvreItem[] | null>(null)
   const [oeuvre, setOeuvre] = useState<OeuvreItem | null>(null)
+  // ⛔ UNE ÉDITION À LA FOIS. Les segments se lisaient par l'œuvre seule : le latin et le
+  //    français des Confessions s'y mêlaient, chaque § en double, et la liste s'arrêtait aux
+  //    mille premières lignes (relevé du 16 septembre 2026).
+  const [editions, setEditions] = useState<LigneIdentiteTexte[]>([])
+  const [edition, setEdition] = useState<LigneIdentiteTexte | null>(null)
   const [segments, setSegments] = useState<SegPatr[]>([])
   const [chargement, setChargement] = useState(false)
   const [rechercheOeuvre, setRechercheOeuvre] = useState('')
@@ -412,15 +440,30 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
   useEffect(() => {
     supabase.from('oeuvres').select('id_oeuvre, titre, sous_titre, titre_original, id_auteur, acces_public, trad_auteur, editeur, collection, ville, date_publication, auteurs!oeuvres_id_auteur_fkey(nom)').order('titre').then(({ data }) => {
       const liste = ((data ?? []) as any[]).filter(estOeuvrePubliee)
-        .map(o => ({ id_oeuvre: o.id_oeuvre, titre: o.titre, titre_original: o.titre_original, id_auteur: o.id_auteur, auteurNom: o.auteurs?.nom ?? '', trad_auteur: o.trad_auteur, editeur: o.editeur, ville: o.ville, date_publication: o.date_publication }))
+        // ⚠️ Le sous-titre et la collection étaient lus, puis perdus ici : la note ne les disait jamais.
+        .map(o => ({ id_oeuvre: o.id_oeuvre, titre: o.titre, sous_titre: o.sous_titre, titre_original: o.titre_original, id_auteur: o.id_auteur, auteurNom: o.auteurs?.nom ?? '', trad_auteur: o.trad_auteur, editeur: o.editeur, collection: o.collection, ville: o.ville, date_publication: o.date_publication }))
       setOeuvres(liste)
     })
   }, [])
 
-  const choisirOeuvre = async (o: OeuvreItem) => {
+  const choisirOeuvre = async (o: OeuvreItem, idTexte?: string) => {
     setOeuvre(o); setRechercheSeg(''); setSelection(new Set()); setChargement(true)
-    const { data } = await supabase.from('segments').select('id, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4, ref_niv5').eq('id_oeuvre', o.id_oeuvre).eq('nature', 'texte').order('segment_numero')
-    setSegments((data ?? []) as SegPatr[])
+    const { data: lignes, error } = await supabase.from('oeuvre_textes').select(COLONNES_IDENTITE_TEXTE)
+      .eq('id_oeuvre', o.id_oeuvre).eq('is_public', true).order('annee_edition', { ascending: true, nullsFirst: true })
+    if (error) console.error('[essai] éditions illisibles :', error)
+    const textes = (lignes ?? []) as unknown as LigneIdentiteTexte[]
+    const choisie = textes.find(t => t.id_texte === idTexte) ?? textes.find(t => t.is_default) ?? textes[0] ?? null
+    setEditions(textes); setEdition(choisie)
+    const segs = await chargerToutesPagesSupabase<SegPatr>((debut, fin) => {
+      let requete = supabase.from('segments').select('id, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4, ref_niv5')
+        .eq('id_oeuvre', o.id_oeuvre).eq('nature', 'texte')
+      if (choisie) requete = requete.eq('id_texte', choisie.id_texte)
+      return requete.order('segment_numero').range(debut, fin)
+    }).catch((erreur: unknown) => {
+      console.error('[essai] passages illisibles :', erreur)
+      return [] as SegPatr[]
+    })
+    setSegments(segs)
     setChargement(false)
   }
 
@@ -474,12 +517,20 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
     .sort((a, b) => (a.trad_auteur ?? '').localeCompare(b.trad_auteur ?? '', 'fr'))
   const libelleTradOeuvre = (o: OeuvreItem) =>
     mentionTraducteurs(o.trad_auteur) || o.editeur || (o.date_publication ? formaterDateHistorique(o.date_publication) : '') || 'édition'
+  const choixEditions = [
+    ...(editions.length > 0
+      ? editions.map(t => ({ valeur: `texte:${t.id_texte}`, libelle: libelleVersionComplet(versionTextuelleDepuisLigne(t, null)) }))
+      : [{ valeur: `oeuvre:${oeuvre.id_oeuvre}`, libelle: libelleTradOeuvre(oeuvre) }]),
+    ...traductionsOeuvre.filter(o => o.id_oeuvre !== oeuvre.id_oeuvre)
+      .map(o => ({ valeur: `oeuvre:${o.id_oeuvre}`, libelle: libelleTradOeuvre(o) })),
+  ]
+  const editionCourante = edition ? `texte:${edition.id_texte}` : `oeuvre:${oeuvre.id_oeuvre}`
 
   const insererSelection = () => {
     if (segsSelectionnes.length === 0) return
-    const ref = refNotePatristique(oeuvre.auteurNom, oeuvre, segsSelectionnes)
+    const ref = refNotePatristique(oeuvre.auteurNom, metaDeLEdition(oeuvre, edition), segsSelectionnes)
     const premier = segsSelectionnes[0]
-    const href = hrefSegment(oeuvre.id_oeuvre, premier.id)
+    const href = hrefSegment(oeuvre.id_oeuvre, premier.id, edition)
     // Segments sautés : on marque la coupure par « […] » dans le corps cité.
     const morceaux: string[] = []
     segsSelectionnes.forEach((s, i) => {
@@ -497,14 +548,19 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
         <span style={{ fontSize: '0.75rem', color: 'var(--cs-encre)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{oeuvre.titre}</span>
         {oeuvre.auteurNom && <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{oeuvre.auteurNom}</span>}
       </div>
-      {/* Choix de la traduction, si ce texte existe en plusieurs traductions établies. */}
-      {traductionsOeuvre.length > 1 && (
+      {/* Choix de l'ÉDITION : les textes de l'œuvre (son latin, sa traduction), puis les
+          œuvres sœurs. Un texte original est une édition à part entière, et il se cite. */}
+      {choixEditions.length > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-          <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', flexShrink: 0 }}>Traduction</span>
-          <select value={oeuvre.id_oeuvre} aria-label="Traduction du texte"
-            onChange={e => { const o = traductionsOeuvre.find(x => x.id_oeuvre === e.target.value); if (o) choisirOeuvre(o) }}
+          <span style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', flexShrink: 0 }}>Édition</span>
+          <select value={editionCourante} aria-label="Édition du texte"
+            onChange={e => {
+              const [genre, cle] = e.target.value.split(/:(.*)/su)
+              if (genre === 'texte') choisirOeuvre(oeuvre, cle)
+              else { const o = traductionsOeuvre.find(x => x.id_oeuvre === cle); if (o) choisirOeuvre(o) }
+            }}
             style={{ fontSize: '0.71875rem', padding: '5px 8px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-encre)', cursor: 'pointer', maxWidth: '16rem' }}>
-            {traductionsOeuvre.map(o => <option key={o.id_oeuvre} value={o.id_oeuvre}>{libelleTradOeuvre(o)}</option>)}
+            {choixEditions.map(c => <option key={c.valeur} value={c.valeur}>{c.libelle}</option>)}
           </select>
         </div>
       )}
@@ -572,20 +628,34 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
       const { corps, fin } = corpsCitation(it.texte ?? '')
       if (data) onChoisir({ label: ref, type: 'verset', id: data.id_verset, href: hrefVerset(livreCode, it.ref_chapitre, it.ref_verset), complet: true, texte: corps, fin, ref: refNoteBiblique(ref) })
     } else {
-      const [{ data: seg }, { data: meta }] = await Promise.all([
-        supabase.from('segments').select('id, segment_numero').eq('id_oeuvre', it.id_oeuvre).eq('segment_numero', it.segment_numero).single(),
+      const [{ data: meta }, { data: lignes }] = await Promise.all([
         supabase.from('oeuvres').select('titre, sous_titre, trad_auteur, editeur, collection, ville, date_publication').eq('id_oeuvre', it.id_oeuvre).maybeSingle(),
+        supabase.from('oeuvre_textes').select(COLONNES_IDENTITE_TEXTE).eq('id_oeuvre', it.id_oeuvre),
       ])
+      const textes = (lignes ?? []) as unknown as LigneIdentiteTexte[]
+      // ⛔ LE PASSAGE SE RETROUVE PAR SON SEGMENT, ou dans SON texte. Cherché par l'œuvre et le
+      //    numéro seuls, il rendait deux lignes dès que deux textes partagent ce numéro — le
+      //    latin et le français des Confessions les partagent tous —, et `.single()` échouait
+      //    sans un mot : les six prélèvements des Confessions ne se citaient pas.
+      const idTexte = it.id_texte ?? textes.find(t => t.is_default)?.id_texte ?? null
+      const requete = supabase.from('segments').select('id, segment_numero, id_texte')
+      const { data: seg } = await (it.segment_id
+        ? requete.eq('id', it.segment_id)
+        : idTexte
+          ? requete.eq('id_texte', idTexte).eq('segment_numero', it.segment_numero)
+          : requete.eq('id_oeuvre', it.id_oeuvre).eq('segment_numero', it.segment_numero)
+      ).limit(1).maybeSingle()
       if (seg) {
         const auteur = it.auteur ?? it.auteur_nom ?? ''
-        const oeuvreMeta: OeuvreMeta = {
+        const edition = textes.find(t => t.id_texte === seg.id_texte) ?? null
+        const oeuvreMeta = metaDeLEdition({
           titre: meta?.titre ?? it.titre_oeuvre ?? '', sous_titre: meta?.sous_titre,
           trad_auteur: meta?.trad_auteur, editeur: meta?.editeur, collection: meta?.collection,
           ville: meta?.ville, date_publication: meta?.date_publication,
-        }
+        }, edition)
         const ref = refNotePatristique(auteur, oeuvreMeta, [seg as unknown as SegPatr])
         const { corps, fin } = corpsCitation(it.texte ?? '')
-        onChoisir({ label: ref, type: 'segment', id: String(seg.id), href: hrefSegment(it.id_oeuvre, seg.id), complet: true, texte: corps, fin, ref })
+        onChoisir({ label: ref, type: 'segment', id: String(seg.id), href: hrefSegment(it.id_oeuvre, seg.id, edition), complet: true, texte: corps, fin, ref })
       }
     }
   }

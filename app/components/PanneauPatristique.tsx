@@ -30,6 +30,8 @@ import ModalSignalement from '@/app/components/ModalSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
 import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import { citationPatristique, copierCitation } from '@/app/lib/citation'
+import { COLONNES_IDENTITE_TEXTE, identiteCitee, parametreTexte, type LigneIdentiteTexte } from '@/app/lib/identiteCitee'
+import { indexEditeursNavigateur } from '@/app/lib/editeurs'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, RETRAIT_REPONSE } from '@/app/lib/styleCommentaire'
@@ -153,14 +155,15 @@ function rendreSiecle(str: string): React.ReactNode {
 
 
 // ── Bouton copie segment ──────────────────────────────────────────────────────
-function BoutonCopieSegment({ texte, auteur, titre, sous_titre, trad_auteur, editeur, collection, ville, date_publication }: {
+function BoutonCopieSegment({ texte, auteur, titre, sous_titre, trad_auteur, editeur, collection, ville, date_publication, responsable }: {
   texte: string; auteur: string; titre: string; sous_titre?: string
   trad_auteur?: string; editeur?: string; collection?: string; ville?: string; date_publication?: string
+  responsable?: string
 }) {
   const [copie, setCopie] = useState(false)
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const citation = citationPatristique(texte, { auteur, titre, sousTitre: sous_titre, tradAuteur: trad_auteur, editeur, collection, ville, datePublication: date_publication })
+    const citation = citationPatristique(texte, { auteur, titre, sousTitre: sous_titre, tradAuteur: trad_auteur, editeur, collection, ville, datePublication: date_publication, responsable })
     copierCitation(citation).then(() => {
       setCopie(true); setTimeout(() => setCopie(false), 1400)
     })
@@ -199,6 +202,11 @@ function BoutonEnregistrerSegment({ segment, info, userId }: {
       ref_niv1: segment.ref_niv1 || null,
       ref_niv2: segment.ref_niv2 || null,
       id_oeuvre: segment.id_oeuvre,
+      // ⛔ LE SEGMENT ET SON TEXTE, et non le seul numéro : sans eux, le déclencheur
+      //    `resoudre_prelevement_segment` cherchait le numéro dans le texte PAR DÉFAUT, et
+      //    un passage de Ceriziers se rangeait sous le segment de Mirandol qui porte le même.
+      segment_id: segment.id,
+      id_texte: segment.id_texte,
       segment_numero: segment.segment_numero,
       texte: segment.segment_texte,
     }).select('id').single()
@@ -276,8 +284,10 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
 const libelleNoteVolet = (contenu: NoteAffichee | undefined) =>
   !contenu || typeof contenu === 'string' ? LIBELLE_NOTE_SANS_TYPE : libelleDeLaNote(contenu)
 
-function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, userId, isAdmin, colonneLien, natures, onSignaler, onSupprimeLien }: {
+function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, userId, isAdmin, colonneLien, natures, onSignaler, onSupprimeLien }: {
   s: Segment; info?: OeuvreInfo; userId: string | null; isAdmin: boolean
+  /** L'ÉDITION du passage (`oeuvre_textes`) : c'est elle que la citation nomme, non l'œuvre. */
+  edition?: LigneIdentiteTexte
   /** Ce qu'on LIT : l'initiale capitalisée et les appels structurés projetés (voir
    *  `composerExtrait`). `s.segment_texte` reste le texte canonique, celui qu'on copie. */
   texteAffichage: string
@@ -304,6 +314,9 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, userId, i
     appelOuvrant.current?.focus({ preventScroll: true })
   }
   const contenuOuvert = ouverte ? notes[ouverte.marqueur] : undefined
+  // ⛔ La citation nomme l'ÉDITION du passage, silence compris (`identiteCitee`) : lue à
+  //    l'œuvre, un extrait de Ceriziers 1646 se citait sous Mirandol, Hachette, 1861.
+  const identite = identiteCitee(info ?? {}, edition, indexEditeursNavigateur())
   const niveaux = [s.ref_niv1, s.ref_niv2, s.ref_niv3].filter(Boolean).join(', ')
   const LIBELLE_NATURE: Record<string, string> = {
     citation_directe: 'Citation directe', paraphrase: 'Paraphrase',
@@ -327,7 +340,9 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, userId, i
                 {info?.auteur_nom || s.id_oeuvre}
               </span>
             )}
-            <a href={`/oeuvre/${s.id_oeuvre}?segment=${s.id}#segment-${s.id}`} target="_blank" rel="noopener noreferrer"
+            {/* ⚠️ La page ne cherche le segment visé que dans le texte qu'elle ouvre : un
+                passage d'une autre édition que celle par défaut porte `texte=`. */}
+            <a href={`/oeuvre/${s.id_oeuvre}?${[parametreTexte(edition), `segment=${s.id}`].filter(Boolean).join('&')}#segment-${s.id}`} target="_blank" rel="noopener noreferrer"
               title="Accéder au passage exact dans l'œuvre"
               style={{ color:'var(--cs-texte-faible)', textDecoration:'none', flexShrink:0, display:'flex', alignItems:'center' }}>
               <svg width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden="true">
@@ -355,8 +370,9 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, userId, i
             <BoutonCopieSegment
               texte={texteSansEnrichissement(s.segment_texte)} auteur={info?.auteur_nom || s.id_oeuvre} titre={info?.titre || ''}
               sous_titre={info?.sous_titre}
-              trad_auteur={info?.trad_auteur ?? undefined} editeur={info?.editeur ?? undefined}
-              collection={info?.collection} ville={info?.ville ?? undefined} date_publication={info?.date_publication ?? undefined}
+              trad_auteur={identite.tradAuteur ?? undefined} editeur={identite.editeur ?? undefined}
+              collection={identite.collection ?? undefined} ville={identite.ville ?? undefined}
+              date_publication={identite.datePublication ?? undefined} responsable={identite.responsable ?? undefined}
             />
             <button onClick={e => { e.stopPropagation(); onSignaler(s, info?.titre) }} title="Signaler une erreur"
               className="cs-bouton-fin" style={{ ...ACTION_BTN, color:'var(--cs-bord)' }}>
@@ -982,6 +998,15 @@ export default function PanneauPatristique({
   const [segmentsDoctrine, setSegmentsDoctrine] = useState<Segment[]>([])
   const [segmentsEcho, setSegmentsEcho] = useState<Segment[]>([])
   const [oeuvres, setOeuvres] = useState<Record<string, OeuvreInfo>>({})
+  // Les éditions, pour citer un passage sous la sienne. ⚠️ Une panne ne ferme rien : la
+  // citation retombe sur l'œuvre, comme avant.
+  const [editions, setEditions] = useState<Record<string, LigneIdentiteTexte>>({})
+  useEffect(() => {
+    supabase.from('oeuvre_textes').select(COLONNES_IDENTITE_TEXTE).then(({ data, error }) => {
+      if (error) { console.error('[volet] éditions illisibles :', error); return }
+      setEditions(Object.fromEntries(((data ?? []) as unknown as LigneIdentiteTexte[]).map(ligne => [ligne.id_texte, ligne])))
+    })
+  }, [])
   const [loading, setLoading] = useState(false)
   // La demande dont les trois listes de segments portent la réponse (voir `cleDemande`).
   const [segmentsPour, setSegmentsPour] = useState<string | null>(null)
@@ -1863,6 +1888,7 @@ export default function PanneauPatristique({
                   return (
                     <SegmentCard
                       key={groupe.map(g => g.seg.id).join('_')} s={segFusionne} info={oeuvres[premier.seg.id_oeuvre]}
+                      edition={editions[premier.seg.id_texte]}
                       texteAffichage={extrait.texte} notes={extrait.notes} notesEnAttente={extrait.enAttente}
                       userId={userId} isAdmin={isAdmin}
                       colonneLien={premier.col} natures={naturesUnion}

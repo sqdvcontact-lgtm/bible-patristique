@@ -32,7 +32,13 @@ import { projeterAppelsNotesStructureesSansFaillir } from '@/app/lib/appelsNotes
 import { tolerer, type DegradationChargement } from '@/app/lib/chargementTolerant'
 import { chargerProjectionBilingue } from '@/app/oeuvre/[id]/bilingueAlignement'
 import { choisirPaireDeLecture, ensemblesUtilisables, type EnsembleLisible, type VersionLisible } from '@/app/oeuvre/[id]/paireDeLecture'
-import { libelleVersionComplet } from '@/app/oeuvre/[id]/versionTextuelle'
+import {
+  identiteEdition,
+  libelleVersionComplet,
+  versionTextuelleDepuisLigne,
+  type LigneVersionTextuelle,
+  type OeuvreIdentifiable,
+} from '@/app/oeuvre/[id]/versionTextuelle'
 import { parseNotes } from '@/app/lib/notes'
 import type { NoteStructuree } from '@/app/oeuvre/[id]/oeuvreTypes'
 import { lireOptionsExtraction, nomDuFichier } from '@/app/lib/extractionOeuvre'
@@ -157,12 +163,7 @@ export async function GET(requete: NextRequest, contexte: { params: Promise<{ id
     return NextResponse.json({ erreur: 'Œuvre introuvable.' }, { status: 404 })
   }
 
-  type LigneTexte = {
-    id_texte: string; titre_version: string | null; langue: string | null; traducteur: string | null
-    edition_label: string | null; annee_edition: number | null
-    is_default: boolean | null; is_public: boolean | null; statut: string | null
-  }
-  const textes = (textesLus.data ?? []) as LigneTexte[]
+  const textes = (textesLus.data ?? []) as LigneVersionTextuelle[]
   const demande = options.idTexte ? textes.find(t => t.id_texte === options.idTexte) : undefined
   const texteActif = demande ?? textes.find(t => t.is_default) ?? textes[0]
   if (!texteActif) {
@@ -295,6 +296,9 @@ export async function GET(requete: NextRequest, contexte: { params: Promise<{ id
     || String((oeuvre.auteurs as { nom?: string } | null)?.nom ?? '')
   const plusieursEditions = textes.filter(t => t.is_public || estAdmin).length > 1
   const dateExtraction = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  const identite = identiteEdition(oeuvre as OeuvreIdentifiable, versionTextuelleDepuisLigne(texteActif, indexEditeurs))
+  // ⚠️ L'adresse du colophon rouvre CE texte : sans `?texte=`, le latin renvoyait au français.
+  const adresseDuTexte = texteActif.is_default ? '' : `?texte=${encodeURIComponent(idTexte)}`
 
   const blocs = composerDocumentOeuvre({
     identite: {
@@ -302,17 +306,20 @@ export async function GET(requete: NextRequest, contexte: { params: Promise<{ id
       sousTitre: oeuvre.sous_titre as string | null,
       titreOriginal: oeuvre.titre_original as string | null,
       auteur,
-      // ⛔ Le SILENCE d'une version n'est pas une lacune à combler par l'œuvre : le
-      //    texte latin de Bondurand, qui n'a pas de traducteur, empruntait celui de
-      //    l'œuvre et son frontispice annonçait « Traduction par intelligence
-      //    artificielle… » (voir `identiteEdition`, dix-neuf textes dans ce cas).
-      traducteur: texteActif.traducteur,
+      // ⛔ L'IDENTITÉ DE L'ÉDITION EXTRAITE, et d'elle seule (`identiteEdition`) : l'adresse
+      //    et la collection se prenaient à l'ŒUVRE pour n'importe quel texte, si bien que
+      //    le latin de Knöll sortait sous « Paris, Veuve Jean Camusat et Pierre Le Petit,
+      //    1649 », l'édition française (contrôle des éditions latines, 16 septembre 2026).
+      //    Le silence d'une version compte aussi : le latin de Bondurand n'a pas de
+      //    traducteur, et ne prend pas celui de l'œuvre.
+      traducteur: identite.traducteur,
       // ⛔ Une COÉDITION ne se rend jamais telle quelle : « A ; B » est le point-virgule
       // du catalogue, non un nom de maison. Chaque maison se résout pour son compte.
-      editeur: normaliserNomEditeur(oeuvre.editeur as string | null, indexEditeurs) || null,
-      ville: oeuvre.ville as string | null,
-      datePublication: oeuvre.date_publication as string | null,
-      collection: oeuvre.collection as string | null,
+      editeur: normaliserNomEditeur(identite.editeur, indexEditeurs) || null,
+      ville: identite.ville,
+      datePublication: identite.datePublication,
+      collection: identite.collection,
+      responsable: identite.responsable,
       edition: plusieursEditions
         ? libelleVersionComplet({
           titre: texteActif.titre_version || texteActif.id_texte,
@@ -322,7 +329,7 @@ export async function GET(requete: NextRequest, contexte: { params: Promise<{ id
         })
         : null,
       division: options.division,
-      adresseEnLigne: `${ADRESSE_SITE}/oeuvre/${encodeURIComponent(id)}`,
+      adresseEnLigne: `${ADRESSE_SITE}/oeuvre/${encodeURIComponent(id)}${adresseDuTexte}`,
       dateExtraction,
     },
     corps,
