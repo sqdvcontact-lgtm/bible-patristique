@@ -11371,3 +11371,67 @@ sa cause. Puis **on compare la minute fautive à ses voisines** — `toStartOfMi
 `toStartOfSecond` — avant de conclure quoi que ce soit sur la requête nommée : ici, 830
 contre 20, et le coupable n'était pas la victime. Enfin on MESURE la requête seule, sous le
 rôle du lecteur, dans un bloc annulé.
+
+# ⛔ UNE NOTE S'OUVRE EN ENTIER QUAND L'ÉCRAN LE PERMET (2026-09-16)
+
+Relevé de l'auteur sur la note 21 de Jean Lucas (`A0091O0001-LUCAS1673-FR-N0021`), ouverte
+dans la marge : « Cette note pourrait être ouverte en entier, mais c'est pas le cas ; y'a un
+mini bout caché. » Deux causes, l'une dans l'estimation, l'autre dans ce qu'on en faisait.
+
+⛔ **L'ESTIMATION COMPTAIT LES SIGNES EN UN SEUL TAS, et une note n'est pas une coulée.**
+Celle-ci ouvre par trois blocs BREFS — un nom (22 signes), une référence (41), un vers latin
+(56) — et ferme sur un développement (579). Les trois premiers prennent trois lignes
+ENTIÈRES quand leurs signes réunis n'en remplissent pas deux. `reliefDeLaNote` rend donc
+`lignes`, la longueur de chaque LIGNE MATÉRIELLE, et `hauteurSouhaiteeNote` les arrondit une
+par une.
+
+- ⛔ **ELLE RETIENT LA PLUS GRANDE DES DEUX ESTIMATIONS, et chacune rattrape ce que l'autre
+  manque.** La COULÉE absorbe la perte d'ENROULEMENT — ce mot qui ne tient pas et qu'une
+  chasse moyenne ne sait pas voir ; elle perd une ligne par bloc bref. Le compte LIGNE PAR
+  LIGNE fait l'inverse. Mesuré sur la note d'Ovide, mesure étroite : les lignes seules
+  rendent 0,984 fois la hauteur réelle, et c'est ce dernier centième qui ferait défiler.
+- ⛔ **UN BLOC DE VERS ENTRE PAR SES LIGNES, jamais par `lignesForcees`** : les cumuler
+  compterait deux fois chaque vers, et l'estimation d'Ovide passait alors de 1,06 à 1,15.
+  `lignesForcees` ne s'ajoute donc QU'À DÉFAUT de `lignes`.
+
+⛔ **ET CETTE ESTIMATION BORNAIT LA BOÎTE : elle ne fait plus que poser le `top`.** Ce qui
+borne est la PLACE qui reste sous l'encart (`basUtile - top`). Le cadre est un flex en
+colonne sous `max-height` : il prend donc la hauteur de son CONTENU tant qu'elle tient, et
+défile au-delà. ⚠️ **Par construction, la boîte ne peut que GAGNER de la place** — le `top`
+est posé pour loger la hauteur estimée, donc ce qui reste sous lui vaut toujours au moins
+cela. Aucune régression n'est possible, et une note courte ne s'étire pas pour autant.
+
+- ⚠️ **AU-DESSUS de son ancre, `placerFenetre` garde sa borne**, et c'est la seule exception :
+  la boîte y est posée par son `top` et grandit vers le BAS, donc elle couvrirait l'ancre même
+  dont elle vient. L'agrandir demanderait de la poser par son pied (`bottom`), ce qui est une
+  autre géométrie.
+- ⚠️ **`HAUTEUR_ENCART_MAX_REM` ne borne donc plus que le PLACEMENT** — le côté que
+  `placerFenetre` choisit —, non la boîte. Une note de dix mille signes prend désormais toute
+  la bande utile au lieu de trente rem au milieu d'un grand écran.
+- ⚠️ **Le cas résiduel, et il est nommé** : un appel dans le DERNIER écran fait remonter le
+  `top` pour loger la hauteur estimée, et la place sous lui vaut alors exactement cette
+  estimation. Une note que l'estimation manque d'une ligne y garde son bout caché. Le fermer
+  demanderait une mesure après peinture, donc un état dans les trois surfaces.
+
+⚠️ **LA MESURE, et c'est elle qui a tranché.** Le vrai `EncartNote` avec le vrai
+`ContenuNoteStructuree`, rendus par `renderToStaticMarkup`, la feuille du site inlinée, dans
+Chrome sans tête — **une page par racine**, un `rem` se résolvant sur `html` (poser la racine
+sur un `div` ne mesure qu'une seule taille, piège déjà consigné). Douze cas de racine et de
+largeur sur la note de la capture :
+
+| | racine 16 | racine 19 | racine 22 |
+|---|---|---|---|
+| l'ancien calcul | court de 15 à 31 px | court de 18 à 37 px | court de 21 à 43 px |
+| le nouveau | juste au pixel | juste, sauf 475 px (−19) | juste au pixel |
+
+⛔ **ET LA PLANCHE DOIT PORTER LA VRAIE RÈGLE DE QUEUE.** Écrite `.cs-encart-propos >
+:last-child` seule, elle laissait au dernier bloc le blanc que le site lui retire par
+`.cs-encart-propos > :only-child > :last-child` — l'enveloppe de `ContenuNoteStructuree`
+faisant un cran de plus. La planche annonçait alors **0,375 rem de trop partout**, soit
+exactement un blanc de paragraphe, et déclarait l'estimation courte quand elle tombait juste.
+*Une planche qui recopie une règle de la feuille la recopie ENTIÈRE, sélecteur compris.*
+
+⚠️ **Les gardes sont dans les deux fichiers, et éprouvées rouges** : `compositionNote.test.ts`
+épingle les douze hauteurs relevées et exige que l'ancien calcul les manque TOUTES (le retirer
+doit faire rougir) ; `fenetreContextuelle.test.ts` exige que la place rendue ne soit jamais
+inférieure à la hauteur souhaitée, sur sept positions d'ancre et quatre hauteurs.
