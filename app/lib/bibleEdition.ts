@@ -373,7 +373,22 @@ export type BibleEditionDisplayNote = {
   /** La DISCIPLINE d'une note de verset (`note_subtype`), brute : la fenêtre la dit en
    *  français après la voix (`intituleNoteBiblique`, charte § 13.21). */
   sousType?: string | null
+  /** L'ANCRE de l'appel dans le texte du verset, quand la donnée la déclare
+   *  (`bible_verse_note_anchors`) : l'appel se pose là, et non à la suite du verset. */
+  ancre?: AncreAppelBible | null
 }
+
+/**
+ * L'endroit précis où l'appel d'une note biblique se pose dans le texte d'un verset, comme
+ * l'ancre d'une note d'œuvre (`texte_note_ancres.segment_offset_unicode`) : le texte de la
+ * ligne que l'ancre vise (`bible_verse_note_anchors.target_verset_v2_id`, donc
+ * `versets_v2.texte`), et l'offset de l'appel dans ce texte, compté en POINTS DE CODE depuis 0.
+ *
+ * ⛔ La page ne réécrit jamais le texte : elle y cherche la ligne et pose l'appel à l'offset
+ * (`app/lib/ancresAppelsBible.tsx`). Une ancre qu'elle ne sait pas situer rend l'appel à la
+ * suite du verset, comme avant.
+ */
+export type AncreAppelBible = { texteCible: string; offsetUnicode: number }
 
 /**
  * L'identifiant que porte l'appel d'une note biblique, et vers lequel revient la

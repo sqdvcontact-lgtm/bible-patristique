@@ -39,6 +39,8 @@ import FlecheChapitre from '@/app/components/FlecheChapitre'
 import { BlocEditorialBible, figuresDeLaNote, IllustrationBible, PieceLiminaire } from '@/app/components/BibleEditionParatext'
 import { estSuiteDuBloc } from '@/app/lib/bibleHierarchieSemantique'
 import AppelNoteBiblique from '@/app/components/NoteBibliqueFenetre'
+import { rendreTexteAvecAppels, repartirAppels } from '@/app/lib/ancresAppelsBible'
+import { separateurAppels, styleSeparateurAppels } from '@/app/lib/appelsDeNote'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
 import type { PieceLiminaireAffichee } from '@/app/components/BibleLayout'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
@@ -643,6 +645,13 @@ export default function TexteBible({
   for (const notes of notesParCanon.values()) {
     notes.sort((a, b) => a.displayNumber - b.displayNumber || a.materialOrder - b.materialOrder)
   }
+  // Les appels posés à une même ancre se lisent « 2 & 3 », comme partout (charte § 13.7).
+  const appelerEnSuite = (notes: readonly BibleEditionDisplayNote[]) => notes.map((note, rang) => (
+    <Fragment key={note.id}>
+      {rang > 0 && <span style={styleSeparateurAppels()}>{separateurAppels(rang, notes.length)}</span>}
+      <AppelNoteBiblique note={note} figures={figuresDeLaNote(indexIllustrations.byNote.get(note.id))} />
+    </Fragment>
+  ))
   // Chapitre entièrement absent du témoin (ex. 1 Samuel 1 dans la Bible 899) : au lieu
   // d'aligner autant de « [Lacune du manuscrit] » que de versets attendus, on donne UNE
   // mention de chapitre. On ne le fait qu'en contexte 899 (toutes les lignes en sont) et
@@ -882,6 +891,8 @@ export default function TexteBible({
             const illustrationsAvant = indexIllustrations.beforeByCanon.get(v.id_verset) ?? []
             const illustrationsApres = indexIllustrations.afterByCanon.get(v.id_verset) ?? []
             const notesDuVerset = notesParCanon.get(v.id_verset) ?? []
+            // ⛔ Un appel se pose à l'ANCRE que la donnée déclare ; sans ancre lisible, il suit le verset.
+            const appelsDuVerset = repartirAppels(!lacune && !ligne899 ? texteDuVerset(v) : '', notesDuVerset)
             const dansLeLasso = lassoActif && !ligneSource && !lacune && Boolean(overrides[v.id_verset]?.[traduction] ?? v[traduction])
             return (
             <Fragment key={v.id_verset}>
@@ -933,17 +944,17 @@ export default function TexteBible({
                     ) : (overrides[v.id_verset]?.[traduction] ?? v[traduction]) ? (
                       ligne899
                         ? rendreMarqueurs899(String(v[traduction] ?? ''))
-                        : rendreTexteEnrichi(
-                            String(overrides[v.id_verset]?.[traduction] ?? v[traduction]),
+                        : rendreTexteAvecAppels(texteDuVerset(v), appelsDuVerset.groupes, (morceau) => rendreTexteEnrichi(
+                            morceau,
                             // La traduction moderne du témoin porte ses lacunes en clair
                             // (« […] ») : elles se mettent en forme comme dans la colonne du
                             // manuscrit, sans que le reste de l'enrichissement soit touché.
                             lacunesEnClair ? marquerLacunesDuTemoin : undefined,
-                          )
+                          ), appelerEnSuite)
                     ) : (
                       <span style={STYLE_VERSET_VIDE}>—</span>
                     )}
-                    {notesDuVerset.map((note) => (
+                    {appelsDuVerset.aLaSuite.map((note) => (
                       <AppelNoteBiblique key={note.id} note={note} figures={figuresDeLaNote(indexIllustrations.byNote.get(note.id))} />
                     ))}
                   </p>

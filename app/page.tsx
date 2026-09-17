@@ -480,6 +480,7 @@ export default async function Home({
         canonId: note.canon_id,
         materialOrder: note.material_order,
         sousType: note.note_subtype,
+        ancre: note.ancre ?? null,
         blocks: note.blocks.map(blocDeNote(note.editorial_role)),
       })),
       assets: payload.assets.filter(appartientAuMembre).map((asset) => ({
@@ -645,6 +646,7 @@ export default async function Home({
           appliesTo: note.applies_to,
           appliesToMemberId: note.applies_to_member_id,
           sousType: note.note_subtype,
+          ancre: note.ancre ?? null,
           blocks: note.blocks.map(blocDeNote(note.editorial_role)),
         })), ...notesEnRegard],
         illustrations: payload.assets.map((asset) => ({

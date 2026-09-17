@@ -28,7 +28,7 @@
 // tête du chapitre, et CITE le fragment avant de l'expliquer. Sans lui, « Répétition
 // matérielle rattachée à Gn 12, 8 » parlerait d'un texte que personne ne voit.
 
-import type { BibleEditionDisplayNote, BibleEditionDisplayTextBlock } from './bibleEdition'
+import type { AncreAppelBible, BibleEditionDisplayNote, BibleEditionDisplayTextBlock } from './bibleEdition'
 import { SEUIL_CITATION_SORTIE } from './citationSortie'
 
 /** Une ligne de `versets_v2` qui porte une note, telle que le chargeur la demande. */
@@ -44,11 +44,16 @@ export type LigneNoteV2 = {
   ordre_slot: number | null
   texte: string | null
   notes: string | null
+  /** Les ancres que la donnée déclare pour l'appel de cette note (`bible_verse_note_anchors`,
+   *  cible `target_verset_v2_id`), embarquées par le `select`. ⚠️ Sous la RLS, un lecteur ne
+   *  reçoit que les ancres des notes publiées : les autres rendent une liste vide. */
+  bible_verse_note_anchors?: readonly { segment_offset_unicode: number | null }[] | null
 }
 
 /** Le `select` du chargeur : exactement les colonnes de `LigneNoteV2`. */
 export const COLONNES_NOTE_V2 =
-  'id,trad_id,livre,canon_id,ch_orig,v_orig,v_orig_suffixe,est_suscription,ordre_slot,texte,notes'
+  'id,trad_id,livre,canon_id,ch_orig,v_orig,v_orig_suffixe,est_suscription,ordre_slot,texte,notes,'
+  + 'bible_verse_note_anchors(segment_offset_unicode)'
 
 /** La façon dont la page lit la bible : la vue large, ou la lecture par le canon. */
 export type ModeLectureV2 = 'vue-large' | 'canon-v2'
@@ -152,6 +157,26 @@ export type NoteV2Placee = {
 
 const noteDeLaLigne = (ligne: LigneNoteV2): string => (ligne.notes ?? '').trim()
 
+/** L'offset de l'appel que la donnée déclare pour cette ligne, en points de code, ou `null`. */
+export function offsetDeLAppelV2(ligne: LigneNoteV2): number | null {
+  const ancre = ligne.bible_verse_note_anchors?.find((a) => Number.isInteger(a.segment_offset_unicode))
+  return ancre?.segment_offset_unicode ?? null
+}
+
+/**
+ * L'ancre de l'appel d'une fenêtre : celle de la DERNIÈRE ligne propre qui en déclare une,
+ * c'est-à-dire la fin du créneau que la fenêtre réunit. ⚠️ Une ligne orpheline n'a pas de
+ * texte sur la page : son ancre ne se pose nulle part.
+ */
+function ancreDuGroupe(groupe: readonly NoteV2Placee[]): AncreAppelBible | null {
+  for (let i = groupe.length - 1; i >= 0; i -= 1) {
+    const { ligne, propre } = groupe[i]
+    const offset = offsetDeLAppelV2(ligne)
+    if (propre && ligne.texte && offset !== null) return { texteCible: ligne.texte, offsetUnicode: offset }
+  }
+  return null
+}
+
 /** Où chaque note du chapitre se pose. Une note qui ne paraît pas sur ce chapitre est écartée. */
 export function placerNotesV2(
   lignes: readonly LigneNoteV2[],
@@ -247,6 +272,7 @@ export function composerNotesV2(
       materialOrder: index,
       blocks: blocs,
       sousType: null,
+      ancre: ancreDuGroupe(groupe),
     }
   })
 }

@@ -6,6 +6,7 @@ import type { LigneBibliographieOuvrage } from './bibleBibliographieOuvrages'
 import {
   blocSansAncreVisibleDansChapitre,
   recomposerFragmentsMateriels,
+  type AncreAppelBible,
   type BibleEditorialScopeKind,
   type BibleSourceFragment,
 } from './bibleEdition'
@@ -150,6 +151,9 @@ export type BibleEditionVerseNoteRow = {
   blocks: BibleEditionNoteBlockRow[]
   /** `metadata.editorial_role` de la NOTE : la voix qu'elle prête à ses blocs muets. */
   editorial_role?: string | null
+  /** L'ancre de l'appel dans le texte du verset, posée par le chargeur depuis les ancres
+   *  de la note (`bible_verse_note_anchors`). */
+  ancre?: AncreAppelBible | null
 }
 
 export type BibleEditionAssetRow = {
@@ -512,7 +516,7 @@ export async function loadBibleEditionChapter(
   // Les bornes exactes se prennent sur les créneaux que l'ÉDITION porte, non sur
   // ceux du chapitre : elles peuvent être plus étroites, et c'est ce filtre-ci
   // qui décide. Les blocs et les illustrations, eux, sont déjà en route.
-  const [canonResult, bodyResult, notesResult, assetsResult] = await Promise.all([
+  const [canonResult, bodyResult, notesResult, assetsResult, ancresResult] = await Promise.all([
     client
       .from('versets_canon')
       .select('id,ordre')
@@ -525,6 +529,18 @@ export async function loadBibleEditionChapter(
       .in('canon_id', canonIds)
       .order('display_number'),
     illustrationsDemandees,
+    // ⛔ L'ANCRE D'UN APPEL EST UNE COUCHE SECONDAIRE (charte § 18) : son échec rend l'appel à
+    // la suite du verset, il ne ferme pas la page. Seules comptent les ancres qui visent une
+    // ligne de `versets_v2` et portent un offset.
+    Promise.resolve(
+      client
+        .from('bible_verse_note_anchors')
+        .select('note_id,segment_offset_unicode,versets_v2(texte)')
+        .eq('family_id', options.familyId)
+        .in('canon_id', canonIds)
+        .not('segment_offset_unicode', 'is', null)
+        .not('target_verset_v2_id', 'is', null),
+    ).catch((error) => ({ data: null, error })),
   ])
 
   if (canonResult.error) throw new Error(`Bornes canoniques illisibles : ${canonResult.error.message}`)
@@ -550,7 +566,7 @@ export async function loadBibleEditionChapter(
     options.includeBookFrontMatter === true,
     options.includeBookBackMatter === true,
   )
-  const notes = (notesResult.data ?? []) as BibleEditionVerseNoteRow[]
+  const notes = poserAncresDesNotes((notesResult.data ?? []) as BibleEditionVerseNoteRow[], ancresResult)
   const blockIds = new Set(bodyRows.map((row) => row.id))
   const noteIds = new Set(notes.map((row) => row.id))
   const assets = ((assetsResult.data ?? []) as BibleEditionAssetRow[]).filter((asset) => (
@@ -571,6 +587,41 @@ export async function loadBibleEditionChapter(
     notes,
     assets,
   }
+}
+
+// --- L'ancre de l'appel d'une note de verset --------------------------------
+//
+// ⛔ Une note de verset peut déclarer où son appel se pose dans le texte
+// (`bible_verse_note_anchors.segment_offset_unicode`, cible `target_verset_v2_id`). Le chargeur
+// rattache à chaque note le texte de la ligne visée et l'offset ; la page les lit
+// (`app/lib/ancresAppelsBible.tsx`). Un échec de lecture ne fait que taire les ancres.
+
+type LigneAncreNote = {
+  note_id: string
+  segment_offset_unicode: number | null
+  versets_v2: { texte: string | null } | null
+}
+
+function poserAncresDesNotes(
+  notes: BibleEditionVerseNoteRow[],
+  ancresResult: { data: unknown; error: unknown },
+): BibleEditionVerseNoteRow[] {
+  if (ancresResult.error) {
+    console.error('[lecture] chapitre servi sans les ancres des appels de note :', ancresResult.error)
+    return notes
+  }
+  const parNote = new Map<string, AncreAppelBible>()
+  for (const ligne of (ancresResult.data ?? []) as LigneAncreNote[]) {
+    const texte = ligne.versets_v2?.texte
+    const offset = ligne.segment_offset_unicode
+    if (!texte || offset === null || !Number.isInteger(offset) || parNote.has(ligne.note_id)) continue
+    parNote.set(ligne.note_id, { texteCible: texte, offsetUnicode: offset })
+  }
+  if (parNote.size === 0) return notes
+  return notes.map((note) => {
+    const ancre = parNote.get(note.id)
+    return ancre ? { ...note, ancre } : note
+  })
 }
 
 // --- Lecture bilingue -------------------------------------------------------

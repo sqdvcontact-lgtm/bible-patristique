@@ -30,7 +30,7 @@
 // Le composant ne décide de rien : la répartition, l'appariement et l'indexation
 // viennent de modules purs et testés.
 
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 
 import {
   indexerBlocsDeCorps,
@@ -57,6 +57,8 @@ import {
 } from '@/app/lib/bibleEditionBilingue'
 import { CORPS_GLOSE, LIBELLE_GLOSE, STYLE_VERSET_VIDE } from '@/app/lib/compositionBible'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
+import { rendreTexteAvecAppels, repartirAppels } from '@/app/lib/ancresAppelsBible'
+import { separateurAppels, styleSeparateurAppels } from '@/app/lib/appelsDeNote'
 import { estSuiteDuBloc } from '@/app/lib/bibleHierarchieSemantique'
 import {
   BlocEditorialBible,
@@ -215,6 +217,13 @@ export default function BibleBilingue({
       figures={figuresDeLaNote(imagesParNote.get(note.id))}
     />
   ))
+  // Les appels posés à une même ancre se lisent « 2 & 3 », comme partout (charte § 13.7).
+  const appelerEnSuite = (appels: readonly NoteBilingue[], memberId: string) => appels.map((note, rang) => (
+    <Fragment key={`${memberId}:${note.id}`}>
+      {rang > 0 && <span style={styleSeparateurAppels()}>{separateurAppels(rang, appels.length)}</span>}
+      <AppelNoteBiblique note={note} memberId={memberId} figures={figuresDeLaNote(imagesParNote.get(note.id))} />
+    </Fragment>
+  ))
 
   // ── L'appareil est bordé par le fer des versets ─────────────────────────────
   // ⛔ Hors des colonnes, mais PAS sur toute leur largeur (décisions de l'auteur,
@@ -332,6 +341,8 @@ export default function BibleBilingue({
                 if (glose && cellule === null) return null
                 const original = membre.memberRole === 'source_text'
                 const appels = appelsDeLaCellule(notesRetenues, rangee, index, membre.id)
+                // ⛔ Un appel se pose à l'ANCRE que la donnée déclare ; sans ancre lisible, il suit le texte.
+                const repartition = repartirAppels(cellule?.texte ?? '', appels, false)
                 return (
                   <div
                     key={membre.id}
@@ -373,8 +384,8 @@ export default function BibleBilingue({
                             ? (original ? STYLE_GLOSE_ORIGINAL : STYLE_GLOSE)
                             : (original ? STYLE_VERSET_ORIGINAL : STYLE_VERSET)}
                         >
-                          {cellule.texte}
-                          {appeler(appels, membre.id)}
+                          {rendreTexteAvecAppels(cellule.texte, repartition.groupes, (morceau) => morceau, (notes) => appelerEnSuite(notes, membre.id), false)}
+                          {appeler(repartition.aLaSuite, membre.id)}
                         </p>
                       </div>
                     )}
