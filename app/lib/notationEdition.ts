@@ -32,16 +32,18 @@
  * ⛔ ET UNE SECONDE NATURE D'ENTRÉE, LA RÉFÉRENCE BIBLIOGRAPHIQUE (demande de l'auteur du
  * 17 septembre 2026 : « un style de bibliographie pour les notices des œuvres ») :
  *
- *   ## Bibliographie                                        ← RUBRIQUE, comme ailleurs
  *   + Pierre ++Cazier++, « Lectures du livre de Job… », *Graphè*, 6, 1997.   ← RÉFÉRENCE
  *
- * Elle reste au rang d'une entrée — un article sous sa rubrique —, et le nombre des
- * niveaux ne bouge pas. Deux raisons NOMMÉES la séparent de l'entrée (§ 13.11) : une
- * référence n'a pas de tête, et ⛔ ne se coupe JAMAIS à un tiret, qu'un titre porte
- * souvent ; et elle se compose dans la famille bibliographique du site (charte § 47.2),
- * celle des ouvrages cités de la même fiche. ⛔ Rien ne s'y devine non plus : l'italique
- * du titre et les petites capitales du nom sont ÉCRITS par l'éditeur (`*…*`, `++…++`),
- * jamais tirés de la chaîne.
+ * Elle reste au rang d'une entrée, et le nombre des niveaux ne bouge pas. Deux raisons
+ * NOMMÉES la séparent de l'entrée (§ 13.11) : une référence n'a pas de tête, et ⛔ ne se
+ * coupe JAMAIS à un tiret, qu'un titre porte souvent ; et elle se compose dans la famille
+ * bibliographique du site (charte § 47.2), au cran du pied d'une fiche d'auteur. ⛔ Rien ne
+ * s'y devine non plus : l'italique du titre et les petites capitales du nom sont ÉCRITS par
+ * l'éditeur (`*…*`, `++…++`), jamais tirés de la chaîne.
+ *
+ * ⛔ UNE BIBLIOGRAPHIE DE NOTICE NE PORTE PAS DE TITRE (décision de l'auteur du 17 septembre
+ * 2026 : « pas besoin de titre “Bibliographie” »). Sa composition la distingue de la prose,
+ * et un blanc d'une ligne de prose l'en sépare (`BLANC_BIBLIOGRAPHIE`).
  *
  * ⛔ LA RUBRIQUE SE NOMME LIBREMENT. « Témoins », « Abréviations », « Remarques »,
  * « Conventions de transcription » : c'est un TITRE que l'éditeur écrit, non un style, et
@@ -238,12 +240,21 @@ export const BLANC_BLOC = '10px'
 export const BLANC_GROUPE = '15px'
 export const BLANC_COUTURE = '4px'
 
+/**
+ * ⛔ Une BIBLIOGRAPHIE sans titre se détache de la prose par une LIGNE VIDE de cette prose
+ * (0,75 rem × 1,5), le blanc qui sépare déjà deux de ses paragraphes. Un blanc de bloc
+ * (10 px) l'aurait collée au dernier paragraphe, dont elle aurait paru la suite.
+ * ⚠️ En rem, parce que la prose suit la police racine et qu'une ligne vide grandit avec elle.
+ */
+export const BLANC_BIBLIOGRAPHIE = '1.125rem'
+
 /** Le blanc au-dessus d'un bloc, d'après celui qui le précède. ⛔ `0` en tête : le
  *  conteneur ne s'ouvre pas sur un blanc que personne n'a demandé. */
 export function blancAuDessus(precedent: BlocNotation | null, courant: BlocNotation): string {
   if (!precedent) return '0'
   if (courant.type === 'rubrique') return BLANC_GROUPE
   if (precedent.type === 'rubrique') return BLANC_COUTURE
+  if (courant.type === 'bibliographie' || precedent.type === 'bibliographie') return BLANC_BIBLIOGRAPHIE
   return BLANC_BLOC
 }
 
@@ -322,16 +333,22 @@ export const STYLE_TETE_NOTATION: CSSProperties = {
 /**
  * La BIBLIOGRAPHIE : la famille commune du site (charte § 47.2), et rien de plus.
  *
- * ⛔ AUCUN DESSIN À ELLE : ses références se composent comme les ouvrages cités de la même
- * fiche (`ListeOuvragesCites`) — sérif, corps d'un cran, interligne serré, retrait
- * suspendu, blanc entre deux références. Deux bibliographies dans une même fenêtre qui ne
- * se ressembleraient pas diraient deux choses différentes.
+ * ⛔ AUCUN DESSIN À ELLE : ses références prennent les classes des ouvrages cités de la même
+ * fiche (`ListeOuvragesCites`), sérif, interligne serré, retrait suspendu, blanc entre deux
+ * références. ⚠️ Seul le CORPS descend d'un cran, au 0,6875 rem du pied d'une fiche
+ * d'auteur (décision de l'auteur, 17 septembre 2026 : « plus petit ») : elle clôt une
+ * prose en sans à 0,75 rem, qu'un sérif de même corps écrasait. La règle vit dans
+ * `globals.css`, sous le conteneur `CLASSE_NOTATION`, avec celle du pied.
  *
  * ⚠️ `sansHote`, parce qu'aucun ancêtre de la notice ne porte la composition : sa prose pose
  * la sienne sur ses PARAGRAPHES (`cs-notice-prose`), et un `em` s'y calculerait sur la
  * fiche entière.
  */
 export const CLASSES_BIBLIOGRAPHIE_NOTATION = `${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.sansHote}`
+
+/** Le conteneur d'une notice composée. ⛔ C'est le CONTEXTE de la règle de corps de sa
+ *  bibliographie (`globals.css`) : sans lui, elle reprendrait le corps des ouvrages cités. */
+export const CLASSE_NOTATION = 'cs-notation'
 
 /** ⛔ La famille pose un blanc SOUS elle (`margin: 0 0 0.5rem`) : dans la notation, c'est
  *  `blancAuDessus` qui sépare, et ce blanc-là s'y ajouterait au pied de la notice. En

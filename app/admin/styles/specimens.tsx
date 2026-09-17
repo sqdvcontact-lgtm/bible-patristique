@@ -691,14 +691,13 @@ const PAGES = (de: number, a: number) => `pp.${String.fromCharCode(0x00a0)}${de}
 
 /**
  * La bibliographie RÉELLE de la note éditoriale des « Annotations sur le livre de Job »
- * (A0010O0100), écrite dans la notation du § 5.6.1 : une rubrique, puis une ligne « + » par
- * référence. ⛔ Elle porte une italique DANS un titre d'article et deux adresses communes :
+ * (A0010O0100), écrite dans la notation du § 5.6.1 : une ligne « + » par référence, sans
+ * titre. ⛔ Elle porte une italique DANS un titre d'article et deux adresses communes :
  * c'est ce voisinage qu'on vient juger.
  */
 const NOTICE_JOB_BIBLIOGRAPHIE = [
   'Enfin, l’histoire du texte reste complexe. La matière exégétique remonte bien à Augustin, mais la mise en recueil n’est pas de lui.',
   '',
-  '## Bibliographie',
   `+ Anne-Marie ++La Bonnardière++, *Biblia Augustiniana. A.T. II. Livres historiques*, Paris, Études augustiniennes, 1960, ${PAGES(109, 172)}.`,
   `+ Pierre ++Cazier++, « Lectures du livre de Job chez Ambroise, Augustin et Grégoire le Grand », *Graphè*, 6, 1997, ${PAGES(81, 111)}.`,
   `+ Georges ++Folliet++, « Les trois sens possibles des mots *confessio* / *confiteri* dans les *Adnotationes in Job* d’Augustin », *Revue d’Études Augustiniennes et Patristiques*, 54/1, 2008, ${PAGES(31, 42)}.`,
@@ -839,7 +838,7 @@ const APPARAT_OEUVRES: Unite[] = [
   {
     style: 'notice_edition/bibliographie — § 5.6.1',
     note: 'La bibliographie d’une notice : la note éditoriale réelle des Annotations sur le livre de Job, une ligne « + » par référence. Rendu par `NotationEdition`, dans la famille bibliographique du site.',
-    alerte: 'Une RÉFÉRENCE n’a pas de tête et ne se coupe jamais à un tiret. Elle se compose comme les ouvrages cités de la même fiche : sérif d’un cran, interligne serré, retrait suspendu, blanc entre deux références. ⛔ L’italique du titre et les petites capitales du nom s’écrivent (« *…* », « ++…++ ») : rien ne se devine.',
+    alerte: 'Une RÉFÉRENCE n’a pas de tête et ne se coupe jamais à un tiret. Elle prend les classes des ouvrages cités de la même fiche, au corps du pied d’une fiche d’auteur (0,6875 rem), et une ligne vide de prose la sépare du texte. ⛔ Pas de titre « Bibliographie » : sa composition suffit. L’italique du titre et les petites capitales du nom s’écrivent (« *…* », « ++…++ ») : rien ne se devine.',
     contenu: <NotationEdition texte={NOTICE_JOB_BIBLIOGRAPHIE} />,
   },
 ]

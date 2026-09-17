@@ -2086,16 +2086,29 @@ button:focus-visible,
    une bibliographie qu'on vient lire, c'est un renseignement secondaire posé sous
    la fiche, et il ne peut pas peser plus que les œuvres qu'elle liste (0,71875 rem).
    ⚠️ Le retrait suspendu se resserre avec le corps ; on ne le retire pas, c'est lui
-   qui fait voir où commence la notice suivante. */
-.pied-biblio.cs-apparat-bibliographie {
+   qui fait voir où commence la notice suivante.
+
+   ⛔ LA BIBLIOGRAPHIE D'UNE NOTICE prend ce même cran (charte § 5.6.1 ; demande de
+   l'auteur, 2026-09-17 : « plus petit »). Elle clôt une notice dont la prose est en
+   sans à 0,75 rem, et à corps égal le sérif pèse davantage : elle disputait le regard
+   à ce qu'elle documente. Le contexte est la NOTATION (`.cs-notation`, le conteneur de
+   NotationEdition), et lui seul : les ouvrages cités de la même fiche gardent le corps
+   de la famille. ⚠️ Même forme, même règle : deux écritures d'un même cran divergent
+   au premier réglage. */
+.pied-biblio.cs-apparat-bibliographie,
+.cs-notation .cs-apparat-bibliographie {
   font-size: 0.6875rem;
   line-height: 1.32;
 }
-.pied-biblio .cs-apparat-bibliographie__entree {
+.pied-biblio .cs-apparat-bibliographie__entree,
+.cs-notation .cs-apparat-bibliographie__entree {
   margin-bottom: 0.55em;
   padding-left: 0.9em;
   text-indent: -0.9em;
 }
+/* ⚠️ La règle ci-dessus (0,2,0) l'emporte sur le `:last-child` de la famille, écrit
+   avant : sans celle-ci, la dernière référence poserait un blanc au pied de la notice. */
+.cs-notation .cs-apparat-bibliographie__entree:last-child { margin-bottom: 0; }
 
 /* Les fragments d'une notice STRUCTURÉE, composés selon leur rôle.
 

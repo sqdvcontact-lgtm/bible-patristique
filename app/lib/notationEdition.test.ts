@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  BLANC_BIBLIOGRAPHIE,
   CLASSES_BIBLIOGRAPHIE_NOTATION,
   MARQUE_ENTREE,
   MARQUE_REFERENCE,
@@ -261,7 +262,6 @@ describe('la composition', () => {
 const JOB = [
   'Enfin, l’histoire du texte reste complexe.',
   '',
-  '## Bibliographie',
   '+ Anne-Marie ++La Bonnardière++, *Biblia Augustiniana. A.T. II. Livres historiques*, Paris, Études augustiniennes, 1960.',
   '+ Pierre ++Cazier++, « Lectures du livre de Job chez Ambroise, Augustin et Grégoire le Grand », *Graphè*, 6, 1997.',
   '+ Georges ++Folliet++, « Les trois sens possibles des mots *confessio* / *confiteri* dans les *Adnotationes in Job* d’Augustin », *Revue d’Études Augustiniennes et Patristiques*, 54/1, 2008.',
@@ -270,10 +270,10 @@ const JOB = [
 ].join('\n')
 
 describe('la référence bibliographique', () => {
-  it('lit la bibliographie de Job en UNE liste, sous sa rubrique, dans l’ordre écrit', () => {
+  it('lit la bibliographie de Job en UNE liste, sans titre, dans l’ordre écrit', () => {
     const blocs = lireNotationEdition(JOB)
-    expect(blocs.map(b => b.type)).toEqual(['prose', 'rubrique', 'bibliographie'])
-    const biblio = blocs[2]
+    expect(blocs.map(b => b.type)).toEqual(['prose', 'bibliographie'])
+    const biblio = blocs[1]
     if (biblio.type !== 'bibliographie') throw new Error('bibliographie attendue')
     expect(biblio.references).toHaveLength(5)
     expect(biblio.references[0].startsWith('Anne-Marie ++La Bonnardière++')).toBe(true)
@@ -310,13 +310,18 @@ describe('la référence bibliographique', () => {
     expect(porteUneNotation('+ Cazier, *Graphè*, 1997.')).toBe(true)
   })
 
-  it('coud la bibliographie à sa rubrique comme toute liste', () => {
-    const rubrique = { type: 'rubrique', texte: 'Bibliographie' } satisfies BlocNotation
+  /** ⛔ Sans titre, elle se détache de la prose par une ligne vide de cette prose : un blanc
+   *  de bloc la collerait au dernier paragraphe. Une rubrique, si l'éditeur en pose une, la
+   *  coud comme toute liste. */
+  it('sépare une bibliographie sans titre de la prose par une ligne vide de prose', () => {
+    const rubrique = { type: 'rubrique', texte: 'Pour aller plus loin' } satisfies BlocNotation
     const biblio = { type: 'bibliographie', references: ['Un.'] } satisfies BlocNotation
     const prose = { type: 'prose', texte: 'Un.' } satisfies BlocNotation
+    expect(blancAuDessus(prose, biblio)).toBe(BLANC_BIBLIOGRAPHIE)
+    expect(blancAuDessus(biblio, prose)).toBe(BLANC_BIBLIOGRAPHIE)
     expect(blancAuDessus(rubrique, biblio)).toBe(BLANC_COUTURE)
-    expect(blancAuDessus(prose, biblio)).toBe(BLANC_BLOC)
     expect(blancAuDessus(biblio, rubrique)).toBe(BLANC_GROUPE)
+    expect(parseFloat(BLANC_BIBLIOGRAPHIE) * 16).toBeGreaterThan(parseFloat(BLANC_BLOC))
   })
 
   /** ⛔ La famille du site, et elle seule : les ouvrages cités de la même fiche portent

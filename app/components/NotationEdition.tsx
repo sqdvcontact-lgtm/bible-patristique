@@ -2,6 +2,7 @@ import { Fragment } from 'react'
 import { CLASSES_BIBLIOGRAPHIE } from '@/app/lib/apparatBibliographie'
 import {
   BLANC_ENTREE,
+  CLASSE_NOTATION,
   CLASSES_BIBLIOGRAPHIE_NOTATION,
   SEPARATEUR_RENDU,
   STYLE_BIBLIOGRAPHIE_NOTATION,
@@ -35,7 +36,7 @@ export default function NotationEdition({ texte }: { texte: string | null | unde
   if (!blocs.length) return null
 
   return (
-    <div style={STYLE_NOTATION}>
+    <div className={CLASSE_NOTATION} style={STYLE_NOTATION}>
       {blocs.map((bloc, i) => {
         // ⛔ Le blanc vient du VOISINAGE, non d'un écart de conteneur : une rubrique est
         // cousue à la liste qu'elle nomme, et prend son air au-dessus.
@@ -48,9 +49,9 @@ export default function NotationEdition({ texte }: { texte: string | null | unde
         if (bloc.type === 'rubrique') {
           return <p key={`r${i}`} style={{ ...STYLE_RUBRIQUE_NOTATION, marginTop }}>{bloc.texte}</p>
         }
-        // ⛔ LA FAMILLE BIBLIOGRAPHIQUE DU SITE, par ses seules classes (charte § 47.2) : la
-        // bibliographie d'une notice se compose comme les ouvrages cités de la même fiche.
-        // Ni puce ni marque : le « + » dit « référence », il ne s'imprime pas.
+        // ⛔ LA FAMILLE BIBLIOGRAPHIQUE DU SITE, par ses seules classes (charte § 47.2), au
+        // corps du pied d'une fiche d'auteur sous le conteneur de la notation. Ni titre, ni
+        // puce, ni marque : le « + » dit « référence », il ne s'imprime pas.
         if (bloc.type === 'bibliographie') {
           return (
             <div key={`b${i}`} className={CLASSES_BIBLIOGRAPHIE_NOTATION} style={{ ...STYLE_BIBLIOGRAPHIE_NOTATION, marginTop }}>
