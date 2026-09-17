@@ -13,7 +13,14 @@
  * Il réunit les DEUX appareils d'une édition :
  *  - les notes de VERSET (`v_bible_verse_notes`), rattachées à un créneau canonique ;
  *  - les notes des BLOCS éditoriaux (`v_bible_editorial_body_block_notes`) — introductions,
- *    commentaires, notices —, qui paraissent là où leur bloc paraît.
+ *    commentaires, notices —, qui paraissent là où leur bloc paraît ;
+ * et, pour toute bible lue au verset, les NOTES ÉDITORIALES de ses lignes
+ * (`versets_v2.notes`, charte § 13.22), que la page pose depuis le 17 septembre 2026.
+ *
+ * ⛔ UNE BIBLE SANS FAMILLE A SON INVENTAIRE : Sacy n'a pas d'appareil d'édition, et ses
+ * notes éditoriales sont les seules qu'elle porte. `familleId` vaut alors `null`, et le
+ * relevé ne lit que ses lignes (demande de l'auteur, 17 septembre 2026 : « tu as bien
+ * affiché les notes dans le volet de droite, hein ? »).
  *
  * ⛔ UN BLOC NE PARAÎT PAS PARTOUT OÙ IL EST RANGÉ, et l'inventaire le DIT au lieu de le
  * taire, comme celui d'une œuvre dit les ancres orphelines. La règle est celle de la page,
@@ -35,11 +42,20 @@ import { resoudreStyleSemantique } from '@/app/lib/bibleHierarchieSemantique'
 import { estPieceGenerale } from '@/app/lib/bibleSommaireEdition'
 import { LONGUEUR_APERCU, sansMarqueOuverte } from '@/app/oeuvre/[id]/notesInventaire'
 import { libelleSousTypeNoteVerset } from '@/app/lib/noteBiblique'
+import type {
+  FenetreNotesEditoriales, LectureNotesEditoriales, NoteEditorialeAbsente,
+} from '@/app/lib/notesVersetsV2Inventaire'
 
 // ── Ce que la page donne au volet ────────────────────────────────────────────
 
 /** Une bible lue : son code, et le mot qui la désigne dans l'inventaire. */
-export type BibleLue = { trad: string; libelle: string }
+export type BibleLue = {
+  trad: string
+  libelle: string
+  /** Comment la page lit les notes de ses lignes (`versets_v2.notes`) ; `null` : elle n'en
+   *  lit pas (une segmentation éditoriale, le témoin de 1260). */
+  notesEditoriales?: LectureNotesEditoriales | null
+}
 
 /**
  * LA LECTURE EN COURS, telle que l'onglet en a besoin. `BibleLayout` la compose.
@@ -48,7 +64,8 @@ export type BibleLue = { trad: string; libelle: string }
  * (graphie, lecture en regard), et une adresse recomposée ici la perdrait.
  */
 export type ContexteNotesBible = {
-  familleId: string
+  /** La famille d'édition dont l'appareil se lit ; `null` pour une bible qui n'en a pas. */
+  familleId: string | null
   livre: string
   nomLivre: string
   /** Les bibles lues, dans l'ordre des colonnes : une, ou deux en regard. */
@@ -62,9 +79,20 @@ export type ContexteNotesBible = {
   adresseDeLaPiece: (cle: string) => string
 }
 
+/** La lecture des notes éditoriales d'une bible, en une clé. */
+function cleDeLecture(lecture: LectureNotesEditoriales): string {
+  return lecture.lecture === 'regard'
+    ? `regard-${lecture.famille}-${lecture.biblesParLeCanon.join(',')}`
+    : lecture.lecture
+}
+
 /** La clé d'un inventaire : ce qui, en changeant, demande un autre relevé. */
 export function cleInventaireNotesBible(contexte: Pick<ContexteNotesBible, 'familleId' | 'livre' | 'bibles'>): string {
-  return [contexte.familleId, contexte.livre, contexte.bibles.map(b => b.trad).join('+')].join('|')
+  return [
+    contexte.familleId ?? '',
+    contexte.livre,
+    contexte.bibles.map(b => (b.notesEditoriales ? `${b.trad}:${cleDeLecture(b.notesEditoriales)}` : b.trad)).join('+'),
+  ].join('|')
 }
 
 // ── Les lignes lues en base ──────────────────────────────────────────────────
@@ -115,8 +143,15 @@ export type LigneNoteDeBloc = {
 /** La pièce liminaire où un bloc se lit, et son rang au sommaire de l'édition. */
 export type PieceDuBloc = { cle: string; titre: string; rang: number }
 
-/** Un membre lu : son identifiant, et le mot qui le désigne. */
-export type MembreLu = { id: string; libelle: string }
+/** Un membre lu : son identifiant, le mot qui le désigne, et sa bible. */
+export type MembreLu = { id: string; libelle: string; trad?: string }
+
+/** Les notes éditoriales d'une bible lue, telles que la route les relève. */
+export type NotesEditorialesDUneBible = {
+  trad: string
+  fenetres: readonly FenetreNotesEditoriales[]
+  absentes: readonly NoteEditorialeAbsente[]
+}
 
 // ── Ce que l'inventaire en fait ──────────────────────────────────────────────
 
@@ -129,9 +164,11 @@ export type LieuNoteBible =
 export type NoteBibleRecensee = {
   /** L'identifiant de la note : c'est lui que porte son appel dans la page. */
   cle: string
-  origine: 'verset' | 'bloc'
-  /** Le numéro que le lecteur voit à l'appel. */
-  numero: number
+  /** `editoriale` : une note de `versets_v2.notes`, que la page compose (charte § 13.22). */
+  origine: 'verset' | 'bloc' | 'editoriale'
+  /** Le numéro que le lecteur voit à l'appel ; `null` pour une note qui ne paraît pas et
+   *  que la page ne numérote donc pas. */
+  numero: number | null
   intitule: string
   /** « 3, 12 » pour une note de verset ; l'intitulé de son bloc pour une note d'apparat. */
   reperes: string | null
@@ -148,6 +185,32 @@ export type NoteBibleRecensee = {
 
 export const INTITULE_NOTE_AUTRE = 'Autre'
 export const INTITULE_APPARAT_EDITORIAL = 'Apparat éditorial'
+/** Le nom que la Polyglotte donne déjà à ces notes, au survol de leur marque. */
+export const INTITULE_NOTE_EDITORIALE = 'Note éditoriale'
+
+/**
+ * LE DERNIER NUMÉRO DE L'APPAREIL, CHAPITRE PAR CHAPITRE, pour une bible lue.
+ *
+ * ⛔ C'est la règle de la page (`app/page.tsx`) : une bible qui porte l'appareil d'une
+ * édition numérote ses notes éditoriales APRÈS celles de l'édition que sa colonne appelle,
+ * la famille ou son membre. L'inventaire la rejoue sur les notes de verset qu'il a déjà
+ * relevées, sans une requête de plus.
+ * ⚠️ La page compte les notes des créneaux du chapitre, dont la clé de chapitre est
+ * toujours celle du créneau (relevé du 16 septembre 2026) : les deux comptes coïncident.
+ */
+export function derniersNumerosDeLEdition(
+  notesVersets: readonly LigneNoteVerset[],
+  membreId: string | null,
+): Map<number, number> {
+  const derniers = new Map<number, number>()
+  for (const note of notesVersets) {
+    if (note.applies_to !== 'family' && (membreId === null || note.applies_to_member_id !== membreId)) continue
+    const point = pointDuCanon(note.canon_id)
+    if (!point) continue
+    derniers.set(point.chapitre, Math.max(derniers.get(point.chapitre) ?? 0, note.display_number))
+  }
+  return derniers
+}
 
 /** La discipline d'une note de verset, en français. ⛔ Le vocabulaire est celui de la fenêtre
  *  des notes (`libelleSousTypeNoteVerset`, `app/lib/noteBiblique.ts`) : deux listes d'un même
@@ -267,12 +330,14 @@ function comparerRangs(a: readonly number[], b: readonly number[]): number {
  * ⛔ Une note propre à une AUTRE bible de la famille n'est pas recensée : la page ne la
  * montre pas à côté de celle qu'on lit. Une note commune à l'édition l'est toujours.
  */
-export function recenserNotesBible({ notesVersets, blocs, notesDeBlocs, pieces, membres }: {
+export function recenserNotesBible({ notesVersets, blocs, notesDeBlocs, pieces, membres, notesEditoriales = [] }: {
   notesVersets: readonly LigneNoteVerset[]
   blocs: readonly LigneBlocEditorial[]
   notesDeBlocs: readonly LigneNoteDeBloc[]
   pieces: ReadonlyMap<string, PieceDuBloc>
   membres: readonly MembreLu[]
+  /** Les notes éditoriales des bibles lues, une entrée par bible. */
+  notesEditoriales?: readonly NotesEditorialesDUneBible[]
 }): NoteBibleRecensee[] {
   const membreParId = new Map(membres.map(m => [m.id, m]))
   const lue = (ligne: Applicabilite) => ligne.applies_to === 'family'
@@ -332,6 +397,44 @@ export function recenserNotesBible({ notesVersets, blocs, notesDeBlocs, pieces, 
     })
   }
 
+  // ⛔ Les notes éditoriales portent l'identifiant et le rang que la page leur donne : la
+  // route rejoue la composition, et le numéro se pousse ici derrière l'appareil.
+  for (const lot of notesEditoriales) {
+    const membre = membres.find(m => m.trad === lot.trad) ?? null
+    const derniers = derniersNumerosDeLEdition(notesVersets, membre?.id ?? null)
+    for (const fenetre of lot.fenetres) {
+      const numero = fenetre.rang + (derniers.get(fenetre.chapitre) ?? 0)
+      recensees.push({
+        cle: fenetre.id,
+        origine: 'editoriale',
+        numero,
+        intitule: INTITULE_NOTE_EDITORIALE,
+        reperes: fenetre.reperes,
+        verset: fenetre.verset,
+        membre,
+        aRelire: false,
+        apercu: apercuNoteBible(fenetre.textes.map((text, rank) => ({ rank, text, needs_review: false }))),
+        lieu: { genre: 'chapitre', chapitre: fenetre.chapitre, canonId: fenetre.canonId },
+        rang: [RANG_LIEU.chapitre, fenetre.chapitre, fenetre.verset, 1, numero, 0],
+      })
+    }
+    for (const absente of lot.absentes) {
+      recensees.push({
+        cle: `v2-absente-${absente.id}`,
+        origine: 'editoriale',
+        numero: null,
+        intitule: INTITULE_NOTE_EDITORIALE,
+        reperes: absente.reperes,
+        verset: absente.verset,
+        membre,
+        aRelire: false,
+        apercu: apercuNoteBible([{ rank: 0, text: absente.texte, needs_review: false }]),
+        lieu: { genre: 'absent', raison: absente.raison },
+        rang: [RANG_LIEU.absent, absente.chapitre ?? 0, absente.verset ?? 0, 1, 0, 0],
+      })
+    }
+  }
+
   return recensees.sort((a, b) => comparerRangs(a.rang, b.rang) || a.cle.localeCompare(b.cle))
 }
 
@@ -365,10 +468,13 @@ export function filtrerNotesBible(notes: readonly NoteBibleRecensee[], filtre: F
       if (note.lieu.genre !== 'chapitre' || note.lieu.chapitre !== Number(reference[1])) return false
       return reference[2] === '' || note.verset === Number(reference[2])
     }
-    // Par ce que la note dit, par son numéro, ou par l'intitulé de son bloc.
+    // Par ce que la note dit, par son numéro, ou par ses repères en mots : l'intitulé d'un
+    // bloc, « titre », « glose », « hors canon ». ⚠️ Les repères d'une note éditoriale
+    // portent aussi ses chiffres, qu'une recherche de numéro ne doit pas attraper.
     return replier(note.apercu).includes(q)
-      || String(note.numero) === q
+      || (note.numero !== null && String(note.numero) === q)
       || (note.origine === 'bloc' && replier(note.reperes ?? '').includes(q))
+      || (note.origine === 'editoriale' && /\p{L}/u.test(q) && replier(note.reperes ?? '').includes(q))
   })
 }
 

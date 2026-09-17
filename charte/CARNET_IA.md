@@ -704,3 +704,15 @@ Charte, § 13.22.
 **Suzanne.** Trois notes, sur Suzanne 1, 64 (deux chez Sacy, une dans la Vulgate), se posent sur une page que le volet ne propose pas.
 
 **Le coût.** La requête d’un chapitre, à chaud et sous la politique de lecture : 29 ms pour le Psaume 9 dans les cinq colonnes de la vue large, 19 ms pour Siracide 51, 6 ms pour Genèse 1, 2 ms pour un chapitre de la traduction moderne.
+
+### 2026-09-17 — Notes des versets dans l’inventaire du volet de droite : le relevé
+
+Charte, § 38.35 et § 13.22.
+
+**La question.** « Tu as bien affiché les notes dans le volet de droite, hein ? » Non : le matin même, les notes de `versets_v2` étaient passées sur la page Bible, et l’onglet « Notes » du volet de droite ne connaissait encore que l’appareil d’une édition. Il ne s’offrait pas du tout sur Sacy, la Vulgate, la Septante ni Segond, qui n’en ont pas.
+
+**Le contrôle.** Un script d’atelier rejoue les deux côtés avec leurs propres fonctions : la route de l’inventaire, un livre d’un coup, et la page, chapitre par chapitre, avec sa requête de notes rejouée en mémoire. 2 487 lignes annotées. Vue large : 102 relevés (livre et bible), 2 810 chapitres comparés, 1 852 fenêtres, 2 455 lignes posées par la page. Par le canon et en regard (la traduction moderne du témoin) : 8 livres, 28 chapitres, 32 fenêtres chacune, tous les chapitres servis en regard. Aucun écart d’identifiant, de rang, de cible ni de paragraphes ; aucune note absente. Le dernier numéro de l’appareil, compté par la page sur les créneaux qu’elle charge et par l’inventaire sur la clé de chapitre, est le même sur les 28 chapitres de la traduction moderne, en une colonne comme en regard.
+
+**Le coût de la route**, mesuré depuis le poste, sans la RLS, sur deux passes : vue large 148 et 190 ms en moyenne, 430 et 1 070 au plus ; par le canon 271 et 360 ms, 586 et 1 255 au plus ; en regard 742 et 680 ms, 2 268 et 1 345 au plus, chaque chapitre chargeant les deux colonnes. La seconde passe a rendu le même résultat, sans écart.
+
+**Les lignes de même numéro.** `versets_lecture` porte 701 paires de lignes qui partagent livre, chapitre et verset (un verset et la ligne propre à une édition, « 8 » et « 8+ »), jamais plus de deux. Dans 48 d’entre elles, une même bible porte un texte sur les deux lignes, soit 88 couples : Sacy 38 et la Vulgate 37 (Matthieu, Marc, Néhémie, Psaumes, Siracide), la Septante 8 (Exode, 1 Rois, Psaumes, Tobie), Crampon 4 (Matthieu, Marc, Néhémie), Segond 1 (Néhémie). La page les demandait triées par le seul numéro de verset : l’ordre rendu variait d’un chapitre à l’autre (Genèse 12 donnait 8 puis 8+, Judith 1 et Exode 38 la ligne propre d’abord). Elles se départagent désormais par l’identifiant, le verset du canon d’abord.

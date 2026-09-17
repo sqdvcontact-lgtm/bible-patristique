@@ -341,6 +341,11 @@ export default async function Home({
       .eq('livre', livre)
       .eq('chapitre', chapitre)
       .order('verset')
+      // ⛔ Le second tri n'est pas un ornement : un verset et la ligne propre à une édition
+      // qui porte le même numéro (« 8 » et « 8+ ») partagent leur `verset`, et leur ordre
+      // n'était garanti par rien (701 paires dans la vue, relevé du 17 septembre 2026). Il
+      // décide du rang des notes des versets, et l'inventaire du volet de droite le rejoue.
+      .order('id_verset')
     return data || []
   }
 

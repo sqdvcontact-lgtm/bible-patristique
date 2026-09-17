@@ -8442,11 +8442,19 @@ Demande de l'auteur, 16 septembre 2026, devant le lasso de lecture : « exclure 
 
 Demande de l’auteur du 16 septembre 2026 : « en mode admin, je veux pouvoir voir les notes associées à une bible dans le volet de droite (comme pour les œuvres) ; ajoute un onglet propre à l’admin avec “Pères de l’Église” ».
 
-⛔ **L’ONGLET « NOTES » EST UN OUTIL D’ADMINISTRATION.** Il paraît à côté de « Pères de l’Église », pour l’administrateur seul et hors de l’affichage standard, et seulement sur une édition qui porte un appareil. Il montre des faits d’atelier : ce qui est à relire, et ce que la page ne compose pas. Il se charge à part, avec son onglet : le lecteur n’en paie pas le poids, et son compte ne paraît qu’une fois l’onglet ouvert.
+⛔ **L’ONGLET « NOTES » EST UN OUTIL D’ADMINISTRATION.** Il paraît à côté de « Pères de l’Église », pour l’administrateur seul et hors de l’affichage standard, sur une édition qui porte un appareil comme sur toute bible lue au verset, dont les lignes portent leurs notes (§ 13.22). Il montre des faits d’atelier : ce qui est à relire, et ce que la page ne compose pas. Il se charge à part, avec son onglet : le lecteur n’en paie pas le poids, et son compte ne paraît qu’une fois l’onglet ouvert.
 
 ⛔ **IL PORTE SUR LE LIVRE QU’ON LIT, NON SUR LA BIBLE ENTIÈRE.** La traduction moderne du témoin de 1260 compte plus de neuf mille notes : les relever d’un coup coûterait dix pages de lecture, quand le livre le plus annoté se relève en un tiers de seconde. Le volet des livres fait le reste.
 
 ⛔ **IL RÉUNIT LES DEUX APPAREILS D’UNE ÉDITION** : les notes de verset, rangées par chapitre et par verset, et les notes des blocs éditoriaux (introductions, commentaires, notices), là où leur bloc paraît, pièces liminaires comprises. En lecture en regard, il porte les notes des deux bibles, et une note commune à l’édition répond aux deux. ⚠️ Une note propre à une bible qu’on ne lit pas n’y est pas : la page ne la montre pas.
+
+⛔ **IL RECENSE AUSSI LES NOTES DES VERSETS, SUR TOUTES LES BIBLES LUES AU VERSET** (§ 13.22). Demande de l’auteur du 17 septembre 2026 : « Tu as bien affiché les notes dans le volet de droite, hein ? » Elles ne l’étaient pas : l’onglet ne connaissait que l’appareil d’une édition, et il ne s’offrait pas à Sacy, qui n’en a pas. Elles s’y nomment « Note éditoriale », le nom que la Polyglotte leur donne au survol de leur marque. Une bible sans appareil a désormais son inventaire, fait de ces seules notes ; en lecture en regard, seule la bible lue par le canon en porte.
+
+⛔ **LEUR PLACE ET LEUR NUMÉRO SONT CEUX DE LA PAGE, REJOUÉS ET JAMAIS RECOMPOSÉS.** L’inventaire relit les lignes que la page lit, par les mêmes chargeurs, compose les fenêtres par les mêmes règles et numérote à la suite de l’appareil que la colonne appelle : une note porte dans le volet l’identifiant, le numéro et le verset de son appel, et un clic l’ouvre comme toute autre. ⚠️ Une note que la page ne pose nulle part reste listée, sans numéro, avec sa raison : sa ligne vise un autre livre, aucune ligne de sa page ne peut la porter, ou le livre se lit hors du canon, dans une vue qui ne porte pas ces notes.
+
+⛔ **UN ORDRE QUE RIEN NE GARANTIT NE SE REJOUE PAS : LA PAGE DÉPARTAGE DEUX LIGNES DE MÊME NUMÉRO PAR LEUR IDENTIFIANT.** La vue large rangeait un verset et la ligne propre à une édition qui porte le même numéro (« 8 » et « 8+ ») sans que rien ne dise laquelle venait d’abord : une même page pouvait les rendre dans un ordre, puis dans l’autre, et le rang de leurs notes avec elles. Le verset du canon vient désormais d’abord, la ligne propre ensuite, sur la page comme dans l’inventaire.
+
+⚠️ **UN RELEVÉ INCOMPLET LE DIT, ET L’APPAREIL DE L’ÉDITION RESTE.** Les notes des versets se relèvent à part de l’appareil : si leur relevé échoue, l’onglet montre ce qu’il a pu lire et nomme la bible dont les notes manquent.
 
 ⛔ **IL DIT CE QUI NE PARAÎT NULLE PART, ET POURQUOI.** La règle est celle de la page, rejouée et jamais réécrite : un bloc que le registre des styles ne compose pas, un bloc sans ancrage canonique qu’aucune page ne charge, la matière qui ferme un livre, une pièce absente du sommaire. Ces notes restent listées, muettes, et leur infobulle dit la raison. ⚠️ Un inventaire d’atelier est exhaustif : ce qui ne paraît pas est précisément ce qu’on y cherche.
 
@@ -8454,7 +8462,7 @@ Demande de l’auteur du 16 septembre 2026 : « en mode admin, je veux pouvoir v
 
 ⚠️ **UNE NOTE NON PUBLIQUE N’Y PARAÎT PAS.** L’inventaire lit sous la session, comme la page : il montre ce que la page peut ouvrir, et ce que la politique de lecture tait, il le tait aussi.
 
-⚠️ **LES NOTES D’UN VERSET DE LA POLYGLOTTE N’Y SONT PAS** : c’est une autre donnée, qui se lit sur une autre page (§ 50.7).
+⚠️ **LA POLYGLOTTE N’A PAS D’INVENTAIRE DES NOTES DES VERSETS.** Elles s’y lisent au survol de leur marque (§ 50.7), et c’est la page Bible qui les recense.
 
 ### 13.21 Les notes d’une BIBLE disent qui parle, puis leur discipline
 
@@ -8492,4 +8500,6 @@ Demande de l’auteur du 17 septembre 2026, après la question « Les notes s’
 
 ⚠️ **LEUR ÉCHEC NE FERME PAS LA PAGE : LE CHAPITRE SE LIT SANS ELLES** (§ 18). La requête part avec les versets, et l’échec part au journal.
 
-⚠️ **CE QUI ATTEND UNE DÉCISION, ET CE QUI ATTEND LA DONNÉE.** Une bible sans famille éditoriale n’offre pas le choix « Sans les commentaires » : ses notes de verset ne se retirent que par l’adresse (`?texte=seul`), et offrir l’axe à ces bibles est une décision. Les notes du découpage de 1730 ont été écrites pour la Polyglotte, où chaque fragment se lit sur sa ligne ; réunies dans une fenêtre, « partie 1 sur 2 » et « partie 2 sur 2 » se lisent l’une sous l’autre, et les reformuler pour les deux pages est une question de donnée. Les remarques de la traduction moderne du témoin, que la révision du § 50.7 n’a pas touchées, parlent encore la langue de l’atelier (« conservée comme extra du témoin », « dans la transcription actuelle »). Les trois notes de Suzanne ne s’atteignent pas, pas plus que son texte (§ 38.11). Et l’inventaire des notes d’une bible (§ 38.35) ne recense pas les notes de verset.
+⛔ **ELLES SE RECENSENT DANS L’ONGLET « NOTES » DU VOLET DE DROITE** (§ 38.35, 17 septembre 2026), sous le nom de « Note éditoriale », avec le numéro et la place de leur appel.
+
+⚠️ **CE QUI ATTEND UNE DÉCISION, ET CE QUI ATTEND LA DONNÉE.** Une bible sans famille éditoriale n’offre pas le choix « Sans les commentaires » : ses notes de verset ne se retirent que par l’adresse (`?texte=seul`), et offrir l’axe à ces bibles est une décision. Les notes du découpage de 1730 ont été écrites pour la Polyglotte, où chaque fragment se lit sur sa ligne ; réunies dans une fenêtre, « partie 1 sur 2 » et « partie 2 sur 2 » se lisent l’une sous l’autre, et les reformuler pour les deux pages est une question de donnée. Les remarques de la traduction moderne du témoin, que la révision du § 50.7 n’a pas touchées, parlent encore la langue de l’atelier (« conservée comme extra du témoin », « dans la transcription actuelle »). Les trois notes de Suzanne ne s’atteignent pas, pas plus que son texte (§ 38.11).

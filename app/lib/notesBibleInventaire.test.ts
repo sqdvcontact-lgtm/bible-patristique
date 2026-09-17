@@ -3,9 +3,11 @@ import {
   apercuNoteBible,
   cleInventaireNotesBible,
   comptesParIntituleBible,
+  derniersNumerosDeLEdition,
   filtrerNotesBible,
   grouperNotesBible,
   INTITULE_APPARAT_EDITORIAL,
+  INTITULE_NOTE_EDITORIALE,
   intituleNoteVerset,
   lieuDuBloc,
   noteSurPlace,
@@ -16,8 +18,10 @@ import {
   type LigneBlocEditorial,
   type LigneNoteDeBloc,
   type LigneNoteVerset,
+  type NotesEditorialesDUneBible,
   type PieceDuBloc,
 } from './notesBibleInventaire'
+import { RAISONS_ABSENCE_EDITORIALE } from './notesVersetsV2Inventaire'
 
 const MEMBRE_FR = { id: 'membre-fr', libelle: 'Français' }
 const MEMBRE_LA = { id: 'membre-la', libelle: 'Latin' }
@@ -218,5 +222,78 @@ describe('sur place, ou ailleurs', () => {
   it('tient la clé d’un relevé à la famille, au livre et aux bibles lues', () => {
     expect(cleInventaireNotesBible({ familleId: 'f', livre: 'GEN', bibles: [{ trad: 'TR0010', libelle: 'Français' }, { trad: 'TR0011', libelle: 'Latin' }] }))
       .toBe('f|GEN|TR0010+TR0011')
+  })
+
+  it('y ajoute la lecture des notes éditoriales, et admet une bible sans famille', () => {
+    expect(cleInventaireNotesBible({ familleId: null, livre: 'PSA', bibles: [{ trad: 'TR0001', libelle: 'Sacy', notesEditoriales: { lecture: 'vue-large' } }] }))
+      .toBe('|PSA|TR0001:vue-large')
+    expect(cleInventaireNotesBible({
+      familleId: 'f', livre: 'GEN',
+      bibles: [
+        { trad: 'TR0009', libelle: 'Ancien français', notesEditoriales: null },
+        { trad: 'TR0013', libelle: 'Français', notesEditoriales: { lecture: 'regard', famille: 'f', biblesParLeCanon: ['TR0013'] } },
+      ],
+    })).toBe('f|GEN|TR0009+TR0013:regard-f-TR0013')
+  })
+})
+
+describe('les notes éditoriales des lignes (charte § 13.22)', () => {
+  const MEMBRE_MODERNE = { id: 'membre-moderne', libelle: 'Français', trad: 'TR0013' }
+  const notesVersets = [
+    noteVerset({ id: 'ed-3-1', canon_id: 'GEN.3.1', display_number: 4 }),
+    noteVerset({ id: 'ed-3-2', canon_id: 'GEN.3.2', display_number: 7, applies_to: 'member', applies_to_member_id: MEMBRE_MODERNE.id }),
+    noteVerset({ id: 'ed-3-3', canon_id: 'GEN.3.3', display_number: 9, applies_to: 'member', applies_to_member_id: 'membre-temoin' }),
+    noteVerset({ id: 'ed-5-1', canon_id: 'GEN.5.1', display_number: 2 }),
+  ]
+  const lot: NotesEditorialesDUneBible = {
+    trad: 'TR0013',
+    fenetres: [
+      { id: 'v2-a', chapitre: 3, cible: 'GEN.3.8', rang: 1, verset: 8, reperes: '3, 8', canonId: 'GEN.3.8', textes: ['Une note.'] },
+      { id: 'v2-b', chapitre: 3, cible: 'GEN.3.9', rang: 2, verset: 9, reperes: '3, 9', canonId: 'GEN.3.9', textes: ['Leçon', 'Sa note.'] },
+      { id: 'v2-c', chapitre: 4, cible: 'GEN.4.1', rang: 1, verset: 1, reperes: '4, 1', canonId: 'GEN.4.1', textes: ['Hors appareil.'] },
+    ],
+    absentes: [
+      { id: 'z', chapitre: 12, verset: 3, reperes: '12, 3', raison: RAISONS_ABSENCE_EDITORIALE.sansPage, texte: 'Sans page.' },
+    ],
+  }
+
+  it('⛔ prend le dernier numéro de l’appareil que la colonne appelle : la famille, ou son membre', () => {
+    expect([...derniersNumerosDeLEdition(notesVersets, MEMBRE_MODERNE.id)]).toEqual([[3, 7], [5, 2]])
+    expect([...derniersNumerosDeLEdition(notesVersets, null)]).toEqual([[3, 4], [5, 2]])
+  })
+
+  it('numérote derrière l’appareil du chapitre, et nomme la bible qui les porte', () => {
+    const notes = recenserNotesBible({
+      notesVersets, blocs: [], notesDeBlocs: [], pieces: SANS_PIECE, membres: [MEMBRE_MODERNE], notesEditoriales: [lot],
+    })
+    const editoriales = notes.filter(n => n.origine === 'editoriale')
+    expect(editoriales.map(n => [n.cle, n.numero, n.reperes])).toEqual([
+      ['v2-a', 8, '3, 8'],
+      ['v2-b', 9, '3, 9'],
+      ['v2-c', 1, '4, 1'],
+      ['v2-absente-z', null, '12, 3'],
+    ])
+    expect(editoriales.every(n => n.intitule === INTITULE_NOTE_EDITORIALE && n.membre === MEMBRE_MODERNE)).toBe(true)
+    expect(notes.find(n => n.cle === 'v2-b')).toMatchObject({ apercu: 'Leçon Sa note.', lieu: { genre: 'chapitre', chapitre: 3, canonId: 'GEN.3.9' } })
+    expect(notes.find(n => n.cle === 'v2-absente-z')!.lieu).toEqual({ genre: 'absent', raison: RAISONS_ABSENCE_EDITORIALE.sansPage })
+  })
+
+  it('une bible sans appareil numérote à partir de 1, sans membre', () => {
+    const notes = recenserNotesBible({ notesVersets: [], blocs: [], notesDeBlocs: [], pieces: SANS_PIECE, membres: [], notesEditoriales: [lot] })
+    expect(notes.filter(n => n.numero !== null).map(n => n.numero)).toEqual([1, 2, 1])
+    expect(notes.every(n => n.membre === null)).toBe(true)
+  })
+
+  it('une note sans numéro ne répond pas à une recherche de numéro, et se trouve par ses repères', () => {
+    const notes = recenserNotesBible({ notesVersets: [], blocs: [], notesDeBlocs: [], pieces: SANS_PIECE, membres: [], notesEditoriales: [lot] })
+    expect(filtrerNotesBible(notes, { texte: 'null' })).toEqual([])
+    expect(filtrerNotesBible(notes, { texte: '2' }).map(n => n.cle)).toEqual(['v2-b'])
+    const avecGlose = recenserNotesBible({
+      notesVersets: [], blocs: [], notesDeBlocs: [], pieces: SANS_PIECE, membres: [],
+      notesEditoriales: [{ trad: 'TR0013', absentes: [], fenetres: [{ id: 'v2-g', chapitre: 13, cible: 'uuid-g', rang: 1, verset: 18, reperes: '13, 18 (glose)', canonId: 'GEN.13.18', textes: ['Glose.'] }] }],
+    })
+    expect(filtrerNotesBible(avecGlose, { texte: 'glose' }).map(n => n.cle)).toEqual(['v2-g'])
+    expect(filtrerNotesBible(notes, { absentes: true }).map(n => n.cle)).toEqual(['v2-absente-z'])
+    expect(comptesParIntituleBible(notes)).toEqual([{ intitule: INTITULE_NOTE_EDITORIALE, n: 4 }])
   })
 })

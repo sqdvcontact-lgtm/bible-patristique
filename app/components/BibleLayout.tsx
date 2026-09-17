@@ -15,7 +15,7 @@ import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE, HAUTEUR_NAVBAR } from '@/app/l
 import { GOUTTIERE_ACTIONS_VERSET } from '@/app/lib/compositionBible'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { selectableReadingModes, type TranslationReadingCapabilities } from '@/app/lib/bibleReadingModes'
-import { estVerseEditorial, estVerseSurColonnes } from '@/app/lib/bibleMultimode'
+import { estVerseCanoniqueV2, estVerseEditorial, estVerseSurColonnes } from '@/app/lib/bibleMultimode'
 import { livresDisponibles899, TRAD_ID_BIBLE899, type Couche899 } from '@/app/lib/bible899'
 import { livresDisponiblesEditoriaux } from '@/app/lib/bibleEditorial'
 import type { BibleEditionChapterDisplay, BibleEditionDisplayNote } from '@/app/lib/bibleEdition'
@@ -34,6 +34,7 @@ import { type EtapeVisite, type SceneVisite } from '@/app/lib/visiteGuidee'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { modesLectureAlternatifs, nomLangue, type CibleLectureAlternative, type MembreFamilleLecture } from '@/app/lib/bibleModesAlternatifs'
 import type { BibleLue, ContexteNotesBible } from '@/app/lib/notesBibleInventaire'
+import type { LectureNotesEditoriales } from '@/app/lib/notesVersetsV2Inventaire'
 
 type Livre = { code: string; nom: string; testament: string }
 type Verset = {
@@ -539,24 +540,47 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // (demande de l'auteur, 2026-09-16). Le volet ne l'offre qu'à l'administrateur.
   // ⛔ ELLE SE COMPOSE ICI, parce que la page seule sait la manière de lire : une adresse
   // recomposée dans le volet perdrait la graphie ou la lecture en regard.
-  // ⚠️ Elle ne s'offre que pour une famille qui porte un appareil (`paratexteDisponible`,
-  // jugé sur la famille) : ailleurs, l'onglet ne dirait jamais qu'« aucune note ».
+  // ⚠️ Elle s'offre pour une famille qui porte un appareil (`paratexteDisponible`, jugé sur
+  // la famille), et pour toute bible dont la page pose les notes éditoriales des lignes
+  // (charte § 13.22) : Sacy n'a pas d'appareil, et ses notes sont les seules qu'elle porte.
   // ⚠️ Mémorisée sur ses FAITS : l'onglet relève le livre quand ils changent, et une
   // identité neuve à chaque rendu le ferait relire pour rien.
-  const familleLue = paratexteDisponible ? listeTraductions[traductionIndex]?.famille?.cle ?? null : null
+  const familleCle = listeTraductions[traductionIndex]?.famille?.cle ?? null
+  const familleLue = paratexteDisponible ? familleCle : null
   const libelleBibleLue = listeTraductions[traductionIndex]?.label ?? traduction
   const membresEnRegard = lectureBilingue?.membres
   const biblesLues = useMemo<BibleLue[]>(() => {
-    if (!membresEnRegard || membresEnRegard.length === 0) return [{ trad: traduction, libelle: libelleBibleLue }]
+    // ⛔ La lecture des notes éditoriales se juge sur les CAPACITÉS, comme la page le fait :
+    // par le canon (`versets-v2`), sur les colonnes de la vue large, et rien pour une
+    // segmentation éditoriale. ⚠️ La vue large se déclare aussi pour un livre hors canon :
+    // la page n'y pose rien, et l'inventaire le dit.
+    if (!membresEnRegard || membresEnRegard.length === 0) {
+      const capacites = readingCapabilities[traduction]
+      const notesEditoriales: LectureNotesEditoriales | null = estVerseCanoniqueV2(capacites)
+        ? { lecture: 'canon-v2' }
+        : estVerseSurColonnes(capacites) ? { lecture: 'vue-large' } : null
+      return [{ trad: traduction, libelle: libelleBibleLue, notesEditoriales }]
+    }
+    // En regard, seul un membre lu par le canon porte des lignes dans `versets_v2`.
+    const parLeCanon = membresEnRegard
+      .map(m => m.translationId)
+      .filter(code => estVerseCanoniqueV2(readingCapabilities[code]))
     // Dans l'ordre des colonnes, que la donnée déclare (charte : le français à gauche chez Fillion).
     const rang = { left: 0, auto: 1, right: 2 } as const
     return [...membresEnRegard]
       .sort((a, b) => rang[a.desktopPosition] - rang[b.desktopPosition] || a.displayOrder - b.displayOrder)
-      .map(m => ({ trad: m.translationId, libelle: nomLangue(m.languageCode) }))
-  }, [membresEnRegard, traduction, libelleBibleLue])
+      .map(m => ({
+        trad: m.translationId,
+        libelle: nomLangue(m.languageCode),
+        notesEditoriales: familleCle && parLeCanon.includes(m.translationId)
+          ? { lecture: 'regard' as const, famille: familleCle, biblesParLeCanon: parLeCanon }
+          : null,
+      }))
+  }, [membresEnRegard, traduction, libelleBibleLue, readingCapabilities, familleCle])
+  const avecNotesEditoriales = biblesLues.some(b => b.notesEditoriales)
   const enRegard = !!lectureBilingue
   const pieceLue = pieceAffichee?.cle ?? null
-  const notesBible = useMemo<ContexteNotesBible | null>(() => familleLue === null ? null : {
+  const notesBible = useMemo<ContexteNotesBible | null>(() => (familleLue === null && !avecNotesEditoriales) ? null : {
     familleId: familleLue,
     livre: livreActif,
     nomLivre,
@@ -572,7 +596,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
     adresseDeLaPiece: (cle: string) => urlLectureBible({
       couche, bilingue: false, texteSeul: false, livre: livreActif, chapitre: chapitreActif, trad: traduction, piece: cle,
     }),
-  }, [familleLue, livreActif, nomLivre, biblesLues, chapitreActif, pieceLue, texteSeul, couche, enRegard, traduction])
+  }, [familleLue, avecNotesEditoriales, livreActif, nomLivre, biblesLues, chapitreActif, pieceLue, texteSeul, couche, enRegard, traduction])
 
   // Le menu « occasionnel » du volet de gauche : composé des seuls FAITS lus dans les
   // données, jamais d'un identifiant de traduction. Il reste vide — donc invisible —

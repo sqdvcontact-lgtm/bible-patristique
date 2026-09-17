@@ -3249,10 +3249,15 @@
 - ⛔ IL PORTE SUR LE LIVRE QU’ON LIT, NON SUR LA BIBLE ENTIÈRE.
 - ⛔ IL RÉUNIT LES DEUX APPAREILS D’UNE ÉDITION — les notes de verset, rangées par chapitre et par verset, et les notes des blocs éditoriaux (introductions, commentaires, notices), là où leur bloc paraît, pièces liminaires comprises.
 - ⚠️ Une note propre à une bible qu’on ne lit pas n’y est pas : la page ne la montre pas.
+- ⛔ IL RECENSE AUSSI LES NOTES DES VERSETS, SUR TOUTES LES BIBLES LUES AU VERSET.
+- ⛔ LEUR PLACE ET LEUR NUMÉRO SONT CEUX DE LA PAGE, REJOUÉS ET JAMAIS RECOMPOSÉS.
+- ⚠️ Une note que la page ne pose nulle part reste listée, sans numéro, avec sa raison : sa ligne vise un autre livre, aucune ligne de sa page ne peut la porter, ou le livre se lit hors du canon, dans une vue qui ne porte pas ces notes.
+- ⛔ UN ORDRE QUE RIEN NE GARANTIT NE SE REJOUE PAS : LA PAGE DÉPARTAGE DEUX LIGNES DE MÊME NUMÉRO PAR LEUR IDENTIFIANT.
+- ⚠️ UN RELEVÉ INCOMPLET LE DIT, ET L’APPAREIL DE L’ÉDITION RESTE.
 - ⛔ IL DIT CE QUI NE PARAÎT NULLE PART, ET POURQUOI.
 - ⚠️ Un inventaire d’atelier est exhaustif : ce qui ne paraît pas est précisément ce qu’on y cherche.
 - ⛔ UN CLIC OUVRE LA NOTE DANS LE TEXTE, ET C’EST LE GESTE DU LECTEUR QU’ON REJOUE.
-- ⚠️ LES NOTES D’UN VERSET DE LA POLYGLOTTE N’Y SONT PAS — c’est une autre donnée, qui se lit sur une autre page (§ 50.7).
+- ⚠️ LA POLYGLOTTE N’A PAS D’INVENTAIRE DES NOTES DES VERSETS.
 
 ## § 13. Notes et apparats
 
@@ -3279,6 +3284,7 @@
 - ⚠️ La vue large les compose pour toutes ses colonnes à la fois : son menu change de bible sans repasser par le serveur, et la bible qu’on y choisit doit trouver les siennes.
 - ⛔ « SANS LES COMMENTAIRES », LE TEXTE EST NU (§ 18) : les notes de verset ne se chargent pas, pas plus que l’appareil de l’édition.
 - ⚠️ LEUR ÉCHEC NE FERME PAS LA PAGE : LE CHAPITRE SE LIT SANS ELLES.
+- ⛔ ELLES SE RECENSENT DANS L’ONGLET « NOTES » DU VOLET DE DROITE (§ 38.35, 17 septembre 2026), sous le nom de « Note éditoriale », avec le numéro et la place de leur appel.
 - ⚠️ CE QUI ATTEND UNE DÉCISION, ET CE QUI ATTEND LA DONNÉE.
 
 ---
@@ -3290,7 +3296,7 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | § | chapitre | signes | énoncés | pour mille signes |
 |---|---|---:|---:|---:|
 | 8 | Notes structurées et références présentes dans | 8 003 | 1 | **0.1** |
-| 52 | Les états de publication et de validation | 40 753 | 16 | **0.4** |
+| 52 | Les états de publication et de validation | 42 854 | 16 | **0.4** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
 | 3 | Typographie — les signes, les espaces, l’enric | 69 485 | 57 | **0.8** |
 | 15 | Corpus biblique et traductions | 18 188 | 17 | **0.9** |

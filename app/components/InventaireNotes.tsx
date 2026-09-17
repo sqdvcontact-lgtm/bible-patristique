@@ -76,7 +76,9 @@ export function MarqueNote({ alerte, children }: { alerte?: boolean; children: R
  * inventaire d'atelier est exhaustif, et ce qui ne paraît nulle part est ce qu'on y cherche.
  */
 export function LigneNoteInventaire({ numero, courante, atteignable, nomAccessible, infobulle, onClick, entete, children }: {
-  numero: number
+  /** Le numéro que l'appel porte ; `null` pour une note que la page ne numérote pas, parce
+   *  qu'elle ne la pose nulle part. */
+  numero: number | null
   courante: boolean
   atteignable: boolean
   nomAccessible: string
@@ -109,7 +111,7 @@ export function LigneNoteInventaire({ numero, courante, atteignable, nomAccessib
         color: courante ? 'var(--cs-vert)' : 'var(--cs-texte-second)',
         fontVariantNumeric: 'tabular-nums',
       }}>
-        {numero}
+        {numero ?? <span aria-hidden="true">—</span>}
       </span>
       <span style={{ display: 'block', minWidth: 0 }}>
         <span style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'baseline', marginBottom: '2px' }}>

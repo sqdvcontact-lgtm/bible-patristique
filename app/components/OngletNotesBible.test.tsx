@@ -69,6 +69,18 @@ describe('une ligne de l’inventaire', () => {
     expect(html).toContain('title="Son bloc n’a pas d’ancrage canonique"')
     expect(html).toContain('aria-label="Note 4 — Son bloc n’a pas d’ancrage canonique"')
   })
+
+  it('une note que la page ne numérote pas garde sa colonne, sans chiffre inventé', () => {
+    const html = renderToStaticMarkup(
+      <LigneNoteInventaire numero={null} courante={false} atteignable={false}
+        nomAccessible="La note, 11, 1. Aucune ligne de sa page ne peut la porter dans cette lecture."
+        onClick={() => {}} entete={null}>
+        Aperçu
+      </LigneNoteInventaire>,
+    )
+    expect(html).toContain('<span aria-hidden="true">—</span>')
+    expect(html).not.toMatch(/>null</)
+  })
 })
 
 describe('le volet de droite', () => {

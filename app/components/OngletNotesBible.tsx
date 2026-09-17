@@ -8,8 +8,9 @@
  * propre à l'admin avec “Pères de l'Église” ».
  *
  * ⛔ IL PORTE SUR LE LIVRE QU'ON LIT, non sur la bible entière : voir `notesBibleInventaire.ts`.
- * Il réunit les notes de verset et celles des blocs éditoriaux, et dit celles qui ne
- * paraissent nulle part, avec la raison.
+ * Il réunit les notes de verset et celles des blocs éditoriaux d'une édition, les notes
+ * éditoriales des lignes de toute bible lue au verset (`versets_v2.notes`, charte § 13.22),
+ * et dit celles qui ne paraissent nulle part, avec la raison.
  *
  * ⛔ Réservé à l'administrateur : il montre `needs_review` et la matière que la page ne
  * compose pas. Ce sont des faits d'atelier, non de lecture.
@@ -58,7 +59,13 @@ const ATTENTE_SUR_PLACE_MS = 400
 type Etat =
   | { statut: 'attente' }
   | { statut: 'erreur'; message: string }
-  | { statut: 'prêt'; notes: NoteBibleRecensee[]; membres: MembreLu[] }
+  | {
+    statut: 'prêt'
+    notes: NoteBibleRecensee[]
+    membres: MembreLu[]
+    /** Les bibles dont les notes éditoriales manquent au relevé. */
+    echecs: { trad: string; libelle: string }[]
+  }
 
 /** ⚠️ La clé de la demande, posée AVEC le résultat : l'attente se DÉDUIT, elle ne s'allume
  *  pas dans un effet (patron de l'inventaire d'une œuvre). */
@@ -90,7 +97,10 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
       .then(releve => {
         if (annule) return
         const notes = recenserNotesBible(releve)
-        setCharge({ pour: cleDemande, etat: { statut: 'prêt', notes, membres: releve.membres } })
+        setCharge({
+          pour: cleDemande,
+          etat: { statut: 'prêt', notes, membres: releve.membres, echecs: releve.echecsEditoriaux },
+        })
         onCompte?.(cleDemande, notes.length)
       })
       .catch((erreur: unknown) => {
@@ -107,6 +117,7 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
   // les filtres à chaque frappe.
   const toutes = useMemo(() => (etat.statut === 'prêt' ? etat.notes : []), [etat])
   const membres = useMemo(() => (etat.statut === 'prêt' ? etat.membres : []), [etat])
+  const echecs = etat.statut === 'prêt' ? etat.echecs : []
   const facettes = useMemo(() => comptesParIntituleBible(toutes), [toutes])
   const retenues = useMemo(
     () => filtrerNotesBible(toutes, { texte: recherche, intitule, membre, aRelire, absentes }),
@@ -204,6 +215,13 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
             </>
           )}
         </p>
+        {/* ⚠️ Un relevé incomplet le DIT : un inventaire qui tait ce qu'il n'a pas pu lire
+            se lit comme un livre sans notes. */}
+        {echecs.map(echec => (
+          <p key={echec.trad} role="alert" style={{ fontSize: '0.5625rem', color: 'var(--cs-danger-fonce)', margin: '4px 0 0', lineHeight: 1.4 }}>
+            Les notes éditoriales de {echec.libelle} n’ont pas pu être relevées.
+          </p>
+        ))}
       </div>
 
       <div className="cs-defilement-discret" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 0 16px' }}>
@@ -241,19 +259,21 @@ function LigneNoteBible({ note, courante, nommerLaBible, onAller }: {
 }) {
   const { lieu } = note
   const atteignable = lieu.genre !== 'absent'
-  const ou = note.origine === 'verset' && note.reperes ? `, ${note.reperes}` : ''
+  // ⚠️ Une note de bloc dit son intitulé sur une ligne à part ; les autres, leur verset.
+  const ou = note.origine !== 'bloc' && note.reperes ? `, ${note.reperes}` : ''
+  const nom = note.numero === null ? 'la note' : `la note ${note.numero}`
   return (
     <LigneNoteInventaire
       numero={note.numero}
       courante={courante}
       atteignable={atteignable}
       nomAccessible={atteignable
-        ? `Ouvrir la note ${note.numero}${ou} dans le texte`
-        : `Note ${note.numero}${ou} — ${lieu.raison}`}
+        ? `Ouvrir ${nom}${ou} dans le texte`
+        : `${nom.charAt(0).toUpperCase()}${nom.slice(1)}${ou}. ${lieu.raison}`}
       infobulle={atteignable ? undefined : lieu.raison}
       onClick={() => onAller(note)}
       entete={<>
-        {note.origine === 'verset' && note.reperes && (
+        {note.origine !== 'bloc' && note.reperes && (
           <span style={{ fontSize: '0.625rem', fontWeight: 600, color: 'var(--cs-texte)', fontVariantNumeric: 'tabular-nums' }}>
             {note.reperes}
           </span>

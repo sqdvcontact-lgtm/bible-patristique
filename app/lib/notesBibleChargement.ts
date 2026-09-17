@@ -13,6 +13,12 @@
  *
  * ⚠️ UN RELEVÉ SE GARDE LE TEMPS DE LA SESSION : revenir à l'onglet, ou changer de
  * chapitre dans le même livre, ne relit rien. Un échec, lui, ne se garde pas.
+ *
+ * ⛔ LES NOTES ÉDITORIALES DES VERSETS (`versets_v2.notes`, charte § 13.22) SE RELÈVENT PAR
+ * LA ROUTE `/api/admin/notes-versets`, jamais ici. Leur place et leur rang dépendent des
+ * lignes que la page lit, et ces lignes ne se lisent que par les chargeurs de la page, qui
+ * vivent côté serveur. ⚠️ Leur échec ne ferme pas l'inventaire : l'appareil de l'édition
+ * reste, et l'onglet dit ce qui manque.
  */
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { grouperPiecesLiminaires } from './bibleSommaireEdition'
@@ -25,8 +31,10 @@ import {
   type LigneNoteDeBloc,
   type LigneNoteVerset,
   type MembreLu,
+  type NotesEditorialesDUneBible,
   type PieceDuBloc,
 } from './notesBibleInventaire'
+import type { LectureNotesEditoriales, NotesEditorialesDuLivre } from './notesVersetsV2Inventaire'
 
 export type ReleveNotesBible = {
   notesVersets: LigneNoteVerset[]
@@ -34,6 +42,9 @@ export type ReleveNotesBible = {
   notesDeBlocs: LigneNoteDeBloc[]
   pieces: Map<string, PieceDuBloc>
   membres: MembreLu[]
+  notesEditoriales: NotesEditorialesDUneBible[]
+  /** Les bibles dont les notes éditoriales n'ont pas pu être relevées. */
+  echecsEditoriaux: { trad: string; libelle: string; message: string }[]
 }
 
 const COLONNES_NOTE_VERSET = 'id,applies_to,applies_to_member_id,note_subtype,canon_id,display_number,material_order,blocks'
@@ -66,8 +77,32 @@ async function membresLus(client: SupabaseClient, familleId: string, bibles: rea
   const parTrad = new Map(((data ?? []) as LigneCatalogue[]).map(l => [l.trad_id, l.member_id]))
   return bibles.flatMap(b => {
     const id = parTrad.get(b.trad)
-    return id ? [{ id, libelle: b.libelle }] : []
+    return id ? [{ id, libelle: b.libelle, trad: b.trad }] : []
   })
+}
+
+/**
+ * Les notes éditoriales d'une bible, relevées par la route. ⚠️ Le verrou de bêta répond à
+ * une session qu'il ne reconnaît pas par une REDIRECTION, que `fetch` suit : la réponse
+ * revient en 200, porteuse de HTML. On le dit au lieu de lire du HTML comme du JSON.
+ */
+async function notesEditorialesDeLaBible(
+  trad: string,
+  livre: string,
+  lecture: LectureNotesEditoriales,
+): Promise<NotesEditorialesDUneBible> {
+  const parametres = new URLSearchParams({ trad, livre, lecture: lecture.lecture })
+  if (lecture.lecture === 'regard') {
+    parametres.set('famille', lecture.famille)
+    parametres.set('parLeCanon', lecture.biblesParLeCanon.join(','))
+  }
+  const reponse = await fetch(`/api/admin/notes-versets?${parametres}`, { credentials: 'same-origin', cache: 'no-store' })
+  if (reponse.redirected || !(reponse.headers.get('content-type') ?? '').includes('application/json')) {
+    throw new Error('La session d’administration n’a pas été reconnue.')
+  }
+  const corps = await reponse.json() as Partial<NotesEditorialesDuLivre> & { erreur?: string }
+  if (!reponse.ok) throw new Error(corps.erreur ?? `Relevé refusé (${reponse.status}).`)
+  return { trad, fenetres: corps.fenetres ?? [], absentes: corps.absentes ?? [] }
 }
 
 async function notesDesVersets(client: SupabaseClient, familleId: string, livre: string): Promise<LigneNoteVerset[]> {
@@ -146,29 +181,56 @@ async function piecesDeLaFamille(client: SupabaseClient, familleId: string): Pro
   return parBloc
 }
 
-async function relever(client: SupabaseClient, familleId: string, livre: string, bibles: readonly BibleLue[]): Promise<ReleveNotesBible> {
-  const [membres, notesVersets, blocs] = await Promise.all([
-    membresLus(client, familleId, bibles),
-    notesDesVersets(client, familleId, livre),
-    blocsDuLivre(client, familleId, livre),
+async function relever(
+  client: SupabaseClient,
+  familleId: string | null,
+  livre: string,
+  bibles: readonly BibleLue[],
+): Promise<ReleveNotesBible> {
+  // ⚠️ Les membres se nomment par la famille de l'appareil, ou, faute d'appareil publié, par
+  // celle que la lecture en regard déclare : c'est elle qui départage les deux colonnes.
+  const familleDesMembres = familleId
+    ?? bibles.flatMap(b => (b.notesEditoriales?.lecture === 'regard' ? [b.notesEditoriales.famille] : []))[0]
+    ?? null
+  const lectures = bibles.flatMap(b => (b.notesEditoriales ? [{ bible: b, lecture: b.notesEditoriales }] : []))
+  const [membres, notesVersets, blocs, relevesEditoriaux] = await Promise.all([
+    familleDesMembres ? membresLus(client, familleDesMembres, bibles) : Promise.resolve<MembreLu[]>([]),
+    familleId ? notesDesVersets(client, familleId, livre) : Promise.resolve<LigneNoteVerset[]>([]),
+    familleId ? blocsDuLivre(client, familleId, livre) : Promise.resolve<LigneBlocEditorial[]>([]),
+    Promise.allSettled(lectures.map(({ bible, lecture }) => notesEditorialesDeLaBible(bible.trad, livre, lecture))),
   ])
   const avecPieces = blocs.some(b => b.scope_kind === 'bible' || b.scope_kind === 'testament' || b.scope_kind === 'book_group')
   const [notesDeBlocs, pieces] = await Promise.all([
     notesDesBlocs(client, blocs),
-    avecPieces ? piecesDeLaFamille(client, familleId) : Promise.resolve(new Map<string, PieceDuBloc>()),
+    familleId && avecPieces ? piecesDeLaFamille(client, familleId) : Promise.resolve(new Map<string, PieceDuBloc>()),
   ])
-  return { notesVersets, blocs, notesDeBlocs, pieces, membres }
+  const notesEditoriales: NotesEditorialesDUneBible[] = []
+  const echecsEditoriaux: ReleveNotesBible['echecsEditoriaux'] = []
+  relevesEditoriaux.forEach((releve, i) => {
+    const { bible } = lectures[i]
+    if (releve.status === 'fulfilled') notesEditoriales.push(releve.value)
+    else {
+      const message = releve.reason instanceof Error ? releve.reason.message : String(releve.reason)
+      console.error(`Notes éditoriales illisibles (${bible.trad} | ${livre}) :`, releve.reason)
+      echecsEditoriaux.push({ trad: bible.trad, libelle: bible.libelle, message })
+    }
+  })
+  return { notesVersets, blocs, notesDeBlocs, pieces, membres, notesEditoriales, echecsEditoriaux }
 }
 
 export function chargerNotesBibleDuLivre(
   client: SupabaseClient,
-  demande: { familleId: string; livre: string; bibles: readonly BibleLue[] },
+  demande: { familleId: string | null; livre: string; bibles: readonly BibleLue[] },
 ): Promise<ReleveNotesBible> {
   const cle = cleInventaireNotesBible(demande)
   const connu = releves.get(cle)
   if (connu) return connu
   const promesse = relever(client, demande.familleId, demande.livre, demande.bibles)
   releves.set(cle, promesse)
-  promesse.catch(() => { releves.delete(cle) })
+  // ⚠️ Un relevé incomplet ne se garde pas non plus : rouvrir l'onglet doit le retenter.
+  promesse.then(
+    releve => { if (releve.echecsEditoriaux.length > 0) releves.delete(cle) },
+    () => { releves.delete(cle) },
+  )
   return promesse
 }
