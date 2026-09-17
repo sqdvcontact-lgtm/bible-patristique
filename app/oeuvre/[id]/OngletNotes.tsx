@@ -29,6 +29,13 @@ import { surfaceDuSegment } from '@/app/lib/oeuvreSelects'
 import { rendreTexteEnrichi } from './texteEnrichi'
 import { rendreIntituleDeSommaire } from './appelNote'
 import {
+  CompteFacette as Compte,
+  LigneNoteInventaire,
+  MarqueNote as Marque,
+  PastilleFacette as Pastille,
+  STYLE_INTITULE_LIGNE_NOTE,
+} from '@/app/components/InventaireNotes'
+import {
   clesDesNotes,
   comptesParIntitule,
   comptesParSource,
@@ -301,37 +308,9 @@ export default function OngletNotes({
   )
 }
 
-function Compte({ n }: { n: number }) {
-  return <span style={{ color: 'var(--cs-texte-doux)', fontVariantNumeric: 'tabular-nums' }}>{n}</span>
-}
-
-function Pastille({ actif, alerte, onClick, children }: {
-  actif: boolean
-  alerte?: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  const teinte = alerte ? 'var(--cs-danger-fonce)' : 'var(--cs-vert)'
-  return (
-    <button type="button" onClick={onClick} aria-pressed={actif}
-      style={{
-        fontSize: '0.625rem', lineHeight: 1.2, padding: '4px 8px', borderRadius: '4px',
-        border: `1px solid ${actif ? teinte : 'var(--cs-bord)'}`,
-        background: actif ? 'var(--cs-vert-pale)' : 'var(--cs-surface)',
-        color: actif ? teinte : 'var(--cs-texte-second)',
-        cursor: 'pointer', display: 'flex', gap: '5px', alignItems: 'baseline',
-      }}>
-      {children}
-    </button>
-  )
-}
-
 /**
- * Une note de l'inventaire.
- *
- * ⛔ C'est un BOUTON, non un bloc cliquable : le clavier l'atteint, et le nom accessible
- * dit où il mène. Le site en compte assez de l'autre sorte (77 relevés à l'audit du
- * 2 septembre 2026) pour ne pas en ajouter un.
+ * Une note de l'inventaire. ⚠️ Le dessin de la ligne vit dans `LigneNoteInventaire`,
+ * partagé avec l'inventaire d'une bible ; on ne dit ici que ce qu'elle montre.
  */
 function LigneNote({ note, courante, horsVue, onAller }: {
   note: NoteRecensee
@@ -345,64 +324,25 @@ function LigneNote({ note, courante, horsVue, onAller }: {
     ? 'Cette note n’est ancrée sur aucun segment retrouvé'
     : 'L’apparat du texte en regard ne se lit pas dans cette vue'
   return (
-    <button
-      type="button"
-      disabled={!atteignable}
+    <LigneNoteInventaire
+      numero={note.numero}
+      courante={courante}
+      atteignable={atteignable}
+      nomAccessible={atteignable ? `Ouvrir la note ${note.numero} dans le texte` : `Note ${note.numero} — ${pourquoiMuet}`}
+      infobulle={atteignable ? undefined : pourquoiMuet}
       onClick={() => onAller(note)}
-      aria-label={atteignable ? `Ouvrir la note ${note.numero} dans le texte` : `Note ${note.numero} — ${pourquoiMuet}`}
-      title={atteignable ? undefined : pourquoiMuet}
-      style={{
-        display: 'grid', gridTemplateColumns: '2.25rem minmax(0, 1fr)', gap: '8px',
-        width: '100%', textAlign: 'left', alignItems: 'baseline',
-        padding: '6px 8px 7px', borderRadius: '4px',
-        border: 'none', background: courante ? 'var(--cs-vert-pale)' : 'none',
-        cursor: atteignable ? 'pointer' : 'default',
-        opacity: atteignable ? 1 : 0.55,
-        borderBottom: '1px solid var(--cs-fond-doux)',
-      }}>
-      <span style={{
-        fontSize: '0.6875rem', fontWeight: 600, textAlign: 'right',
-        color: courante ? 'var(--cs-vert)' : 'var(--cs-texte-second)',
-        fontVariantNumeric: 'tabular-nums',
-      }}>
-        {note.numero}
-      </span>
-      <span style={{ display: 'block', minWidth: 0 }}>
-        <span style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'baseline', marginBottom: '2px' }}>
-          {note.intitule && (
-            <span style={{ fontSize: '0.5625rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>
-              {note.intitule}
-            </span>
-          )}
-          {note.place?.surface === 'apparat' && (
-            <Marque>apparat</Marque>
-          )}
-          {note.aRevoir && <Marque alerte>à relire</Marque>}
-          {!note.place && <Marque alerte>orpheline</Marque>}
-        </span>
-        <span style={{
-          display: 'block', fontFamily: 'var(--font-source-serif), Georgia, serif',
-          fontSize: '0.6875rem', lineHeight: 1.42, color: 'var(--cs-texte)',
-          overflowWrap: 'anywhere',
-        }}>
-          {note.apercu
-            ? rendreTexteEnrichi(note.apercu)
-            : <em style={{ color: 'var(--cs-texte-doux)' }}>note sans texte</em>}
-        </span>
-      </span>
-    </button>
-  )
-}
-
-function Marque({ alerte, children }: { alerte?: boolean; children: React.ReactNode }) {
-  return (
-    <span style={{
-      fontSize: '0.5rem', letterSpacing: '0.05em', textTransform: 'uppercase',
-      padding: '1px 5px', borderRadius: '4px',
-      border: `1px solid ${alerte ? 'var(--cs-danger-bord)' : 'var(--cs-bord)'}`,
-      color: alerte ? 'var(--cs-danger-fonce)' : 'var(--cs-texte-second)',
-    }}>
-      {children}
-    </span>
+      entete={<>
+        {note.intitule && <span style={STYLE_INTITULE_LIGNE_NOTE}>{note.intitule}</span>}
+        {note.place?.surface === 'apparat' && (
+          <Marque>apparat</Marque>
+        )}
+        {note.aRevoir && <Marque alerte>à relire</Marque>}
+        {!note.place && <Marque alerte>orpheline</Marque>}
+      </>}
+    >
+      {note.apercu
+        ? rendreTexteEnrichi(note.apercu)
+        : <em style={{ color: 'var(--cs-texte-doux)' }}>note sans texte</em>}
+    </LigneNoteInventaire>
   )
 }

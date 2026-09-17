@@ -666,3 +666,15 @@ Demande de l’auteur : « Les textes latins doivent contenir toutes les informa
 **Deux faux jugements de l’outil, corrigés avant le relevé.** Les chiffres romains de Bondurand (« Éclaircissements, X », « XXVIIIe année », « (CIII) ») passaient pour des sigles non déclarés. L’italique ne porte jamais un sigle, un chiffre annoncé par un mot de numérotation non plus, et un groupe qui répète une lettre ou porte un ordinal est un nombre. Après correction, la clé de Dhuoda est jugée complète.
 
 **Question ouverte.** Voir la charte, § 5.5.1 : le responsable et la collection n’ont pas de champ par texte.
+
+### 2026-09-16 — Inventaire des notes d’une bible : ce que le relevé a trouvé
+
+Onglet « Notes » du volet de droite de la page Bible, réservé à l’administrateur (charte, § 38.35).
+
+**La clé de chapitre est fiable.** Les notes de verset se cherchent par leur clé de chapitre, à l’égalité : elle vaut le livre et le chapitre du créneau sur les 9 202 notes du corpus. Mesuré sur le Psautier de la traduction moderne, sous la session d’un administrateur : 329 ms à l’égalité, 515 ms par un motif `like`, pour 1 716 notes et 608 ko de blocs.
+
+**Le placement rejoue la page, et le contrôle le dit.** Le lieu de chaque note, recalculé par l’inventaire, a été comparé au chargement réel d’un chapitre et à son filtre de rendu, sur dix livres : aucun écart.
+
+**Des blocs que rien ne charge.** 336 blocs éditoriaux de portée « section » n’ont aucun ancrage canonique : aucune page ne les charge, et leurs 829 notes ne paraissent nulle part. Ce sont surtout des subdivisions d’introduction : 23 blocs pour les Actes, 17 pour le Deutéronome, le corps de l’introduction de Jonas (2 blocs), celles de 1 Samuel. Les notes des blocs n’existent que dans la Bible de Fillion. L’inventaire les liste sous « Ne paraissent pas ». Les ancrer, ou les ranger dans une pièce, est une question de donnée.
+
+**Les notes de bloc sans point d’appel.** Elles se lisent dans l’apparat de leur bloc (231 sur 1 056 au 13 septembre 2026). Leur entrée porte désormais un identifiant, que l’inventaire vise.

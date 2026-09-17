@@ -44,6 +44,12 @@ import { chargerContrepartiesFrancaises } from '@/app/lib/contrepartieFrancaise'
 import { MarqueAttenteVolet } from '@/app/lib/attenteNavigation'
 import FleuronDiscret from '@/app/components/FleuronDiscret'
 import CompteEnAttente from '@/app/components/CompteEnAttente'
+import dynamic from 'next/dynamic'
+import { cleInventaireNotesBible, type ContexteNotesBible } from '@/app/lib/notesBibleInventaire'
+
+// ⛔ L'inventaire des notes d'une bible ne se charge qu'avec son onglet : il ne sert qu'à
+// l'administrateur, et le lecteur n'a pas à en payer le poids.
+const OngletNotesBible = dynamic(() => import('@/app/components/OngletNotesBible'))
 
 /** Ce que le rail et la barre mobile écrivent quand le volet est fermé : l'ACTION,
  *  jamais le contenu. « Commentaires » sur une bande fermée décrit ce qu'on ne voit
@@ -944,7 +950,7 @@ export default function PanneauPatristique({
   verset, livreActif, chapitreActif,
   panelWidth = null, onWidthChange, mobile = false,
   voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer', sousBarres = true,
-  plage, refAffichee,
+  plage, refAffichee, notesBible = null,
 }: {
   verset: Verset | null
   livreActif: string
@@ -971,8 +977,12 @@ export default function PanneauPatristique({
   // verset ou d'un chapitre entier. `refAffichee` remplace alors l'en-tête de référence.
   plage?: { livre: string; canonDebut: string; canonFin: string | null }
   refAffichee?: string
+  /** L'édition qu'on lit, pour l'onglet « Notes » de l'administrateur (demande de l'auteur,
+   *  2026-09-16) ; `null` hors d'une famille éditoriale qui porte un appareil. La page
+   *  la compose, parce qu'elle seule sait la manière de lire. */
+  notesBible?: ContexteNotesBible | null
 }) {
-  type Onglet = 'patristique' | 'commentaires'
+  type Onglet = 'patristique' | 'commentaires' | 'notes'
   type SousOnglet = 'citations' | 'doctrine' | 'echos'
   const ITEMS_PAR_PAGE = 20
   const [onglet, setOnglet] = useState<Onglet>('patristique')
@@ -1037,6 +1047,18 @@ export default function PanneauPatristique({
   const reporterCompteCommentaires = useCallback((n: number) => {
     if (idVersetCourant !== null) setCompteCommentaires({ pour: idVersetCourant, n })
   }, [idVersetCourant])
+
+  // ── L'inventaire des notes (administrateur) ────────────────────────────────────
+  // ⛔ LE COMPTE VIENT DE L'ONGLET, quand il a relevé le livre : l'inventaire ne se charge
+  // qu'à la demande, et son onglet n'a donc pas de chiffre tant qu'on ne l'a pas ouvert.
+  // Relever tous les livres qu'un administrateur traverse coûterait une lecture de plus à
+  // chaque livre ouvert, pour un chiffre qu'il ne demande pas.
+  // ⚠️ Le compte est retenu avec le LIVRE qu'il compte (`cleInventaireNotesBible`) : changer
+  // de livre ne montre pas celui du précédent.
+  const notesOffertes = isAdmin && notesBible !== null
+  const cleNotes = notesBible ? cleInventaireNotesBible(notesBible) : null
+  const [compteNotes, setCompteNotes] = useState<{ pour: string; n: number | null } | null>(null)
+  const reporterCompteNotes = useCallback((pour: string, n: number | null) => { setCompteNotes({ pour, n }) }, [])
 
   // ── Filtres avancés ──────────────────────────────────────────────────────────
   const [filtreVoletOuvert, setFiltreVoletOuvert] = useState(false)
@@ -1305,9 +1327,21 @@ export default function PanneauPatristique({
   // patristique de tout le chapitre). Les commentaires, eux, sont attachés à un
   // verset : leur onglet ne paraît donc qu'avec une sélection.
   const modeChapitre = !verset && (!!livreActif || !!plage)
+  // ⛔ L'ONGLET AFFICHÉ SE DÉDUIT : un onglet qui n'est plus offert — les commentaires sans
+  // verset, les notes hors du mode administrateur — rend la main aux Pères, sans qu'un effet
+  // ait à le reposer.
+  const ongletAffiche: Onglet = (onglet === 'commentaires' && !verset) || (onglet === 'notes' && !notesOffertes)
+    ? 'patristique'
+    : onglet
   const ONGLETS: { code: Onglet; label: string; count?: number | null; enAttente: boolean }[] = [
     { code: 'patristique',  label: 'Pères de l\'Église', count: nbPatristique, enAttente },
     ...(verset ? [{ code: 'commentaires' as Onglet, label: 'Commentaires', count: nbCommentairesBible, enAttente: attenteCommentaires }] : []),
+    // ⛔ Réservé à l'administrateur : il montre ce que la page ne compose pas.
+    ...(notesOffertes ? [{
+      code: 'notes' as Onglet, label: 'Notes',
+      count: compteNotes !== null && compteNotes.pour === cleNotes ? compteNotes.n : null,
+      enAttente: ongletAffiche === 'notes' && compteNotes?.pour !== cleNotes,
+    }] : []),
   ]
 
   // Reset page when sous-onglet changes
@@ -1318,7 +1352,9 @@ export default function PanneauPatristique({
 
   // Sans verset (mode chapitre), l'onglet Commentaires n'existe pas : on revient
   // sur « Pères de l'Église » pour ne pas laisser un onglet actif fantôme.
-  useEffect(() => { if (!verset) setOnglet('patristique') }, [verset])
+  // ⚠️ Les commentaires SEULEMENT : l'inventaire des notes ne dépend pas du verset, et
+  // désigner puis quitter un verset n'a pas à en sortir.
+  useEffect(() => { if (!verset) setOnglet(o => (o === 'commentaires' ? 'patristique' : o)) }, [verset])
 
   const nombreFiltresActifs = filtreAuteursIds.size + filtreTraditions.size + filtreSiecles.size + filtreGenres.size
 
@@ -1619,10 +1655,10 @@ export default function PanneauPatristique({
               <button key={t.code} onClick={() => setOnglet(t.code)}
                 style={{
                   flex:1, padding:'8px 6px 7px', border:'none',
-                  borderBottom: onglet === t.code ? '2px solid var(--cs-vert)' : '2px solid transparent',
+                  borderBottom: ongletAffiche === t.code ? '2px solid var(--cs-vert)' : '2px solid transparent',
                   cursor:'pointer',
                   background:'none',
-                  color: onglet === t.code ? 'var(--cs-encre)' : 'var(--cs-texte-gris)',
+                  color: ongletAffiche === t.code ? 'var(--cs-encre)' : 'var(--cs-texte-gris)',
                   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
                   transition:'color 0.12s, border-color 0.12s',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
@@ -1631,10 +1667,10 @@ export default function PanneauPatristique({
                     du bouton (justifyContent: center ci-dessus) : chaque bloc (« Pères de
                     l'Église » + compteur, « Commentaires » + compteur) est ainsi centré, sans
                     réservation basse qui le ferait descendre. */}
-                <span style={{ fontSize:'0.65625rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: onglet === t.code ? 600 : 400, textAlign: 'center', lineHeight: 1.15 }}>{t.label}</span>
+                <span style={{ fontSize:'0.65625rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: ongletAffiche === t.code ? 600 : 400, textAlign: 'center', lineHeight: 1.15 }}>{t.label}</span>
                 {/* ⛔ Une ligne de compte, toujours, et d'une hauteur écrite : voir `LigneCompte`. */}
                 <LigneCompte enAttente={t.enAttente} compte={t.count} videDit="Aucune occurrence"
-                  style={{ fontSize: '0.625rem', lineHeight: 1, height: '1em', fontWeight: 500, color: onglet === t.code ? 'var(--cs-vert)' : 'var(--cs-texte-faible)' }} />
+                  style={{ fontSize: '0.625rem', lineHeight: 1, height: '1em', fontWeight: 500, color: ongletAffiche === t.code ? 'var(--cs-vert)' : 'var(--cs-texte-faible)' }} />
               </button>
             ))}
             {/* ⛔ LA CALE NE PARAÎT QUE SOUS UN SEUL ONGLET, et ce n'est pas une économie :
@@ -1655,13 +1691,18 @@ export default function PanneauPatristique({
             )}
           </div>
 
-          {/* Contenu scrollable (sauf onglet commentaires : la liste défile en interne
-              pour épingler la saisie au bas du volet). */}
-          <div style={onglet === 'commentaires' && verset
+          {/* Contenu scrollable (sauf onglets commentaires et notes : leur liste défile en
+              interne, pour épingler la saisie ou les filtres en tête du volet). */}
+          <div style={(ongletAffiche === 'commentaires' && verset) || ongletAffiche === 'notes'
             ? { flex:1, minHeight:0, overflow:'hidden', padding:'0 12px', display:'flex', flexDirection:'column' }
             : { overflowY:'auto', flex:1, padding:'0 12px', display:'flex', flexDirection:'column' }}>
-            {onglet === 'commentaires' && verset ? (
+            {ongletAffiche === 'commentaires' && verset ? (
               <OngletCommentaires verset={verset} userId={userId} isAdmin={isAdmin} onCount={reporterCompteCommentaires} />
+            ) : ongletAffiche === 'notes' && notesBible ? (
+              // ⚠️ Sur un téléphone, le volet est un tiroir qui couvre le texte : il se
+              // referme avant qu'on montre la note.
+              <OngletNotesBible contexte={notesBible} onCompte={reporterCompteNotes}
+                onAvantOuvrir={mobile ? () => setOuvert(false) : undefined} />
             ) : (
               <>
                 {/* Sous-onglets Citations / Doctrine / Échos */}
@@ -1904,7 +1945,7 @@ export default function PanneauPatristique({
           </div>
 
           {/* Pagination — fixée en pied de panneau, hors zone scrollable */}
-          {onglet !== 'commentaires' && !enAttente && nbPagesItems > 1 && (
+          {ongletAffiche === 'patristique' && !enAttente && nbPagesItems > 1 && (
             <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', padding:'8px 0 10px', borderTop:'1px solid var(--cs-bord-clair)', background:'var(--cs-surface)', flexShrink:0 }}>
               <button onClick={() => setPageItems(Math.max(pageCouranteItems - 1, 0))} disabled={pageCouranteItems === 0}
                 title="Page précédente"

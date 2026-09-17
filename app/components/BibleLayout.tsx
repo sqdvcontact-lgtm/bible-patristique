@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useState, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef } from 'react'
 import { MarqueAttente, ProvisionAttente, useAvantDeNaviguer, useEnAttente, useNaviguer, usePrecharger } from '@/app/lib/attenteNavigation'
 import { hauteurNavbarPx } from '@/app/lib/fenetreContextuelle'
 import { DUREE_ENTREE_MS, DUREE_OUVERTURE_MS, SELECTEUR_BLOCS_BIBLE, elementEnTete, ordonnerBlocsVisibles } from '@/app/lib/passageTexte'
@@ -32,7 +32,8 @@ import BoutonProportions from '@/app/components/BoutonProportions'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { type EtapeVisite, type SceneVisite } from '@/app/lib/visiteGuidee'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
-import { modesLectureAlternatifs, type CibleLectureAlternative, type MembreFamilleLecture } from '@/app/lib/bibleModesAlternatifs'
+import { modesLectureAlternatifs, nomLangue, type CibleLectureAlternative, type MembreFamilleLecture } from '@/app/lib/bibleModesAlternatifs'
+import type { BibleLue, ContexteNotesBible } from '@/app/lib/notesBibleInventaire'
 
 type Livre = { code: string; nom: string; testament: string }
 type Verset = {
@@ -531,6 +532,46 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // livres et par les flèches de chapitre, plutôt qu'énuméré réglage par réglage.
   const maniereDeLire: ManiereDeLireBible = { couche, bilingue: !!lectureBilingue, texteSeul }
 
+  // ── L'INVENTAIRE DES NOTES (administrateur) ─────────────────────────────────
+  // L'édition qu'on lit, telle que l'onglet « Notes » du volet de droite en a besoin
+  // (demande de l'auteur, 2026-09-16). Le volet ne l'offre qu'à l'administrateur.
+  // ⛔ ELLE SE COMPOSE ICI, parce que la page seule sait la manière de lire : une adresse
+  // recomposée dans le volet perdrait la graphie ou la lecture en regard.
+  // ⚠️ Elle ne s'offre que pour une famille qui porte un appareil (`paratexteDisponible`,
+  // jugé sur la famille) : ailleurs, l'onglet ne dirait jamais qu'« aucune note ».
+  // ⚠️ Mémorisée sur ses FAITS : l'onglet relève le livre quand ils changent, et une
+  // identité neuve à chaque rendu le ferait relire pour rien.
+  const familleLue = paratexteDisponible ? listeTraductions[traductionIndex]?.famille?.cle ?? null : null
+  const libelleBibleLue = listeTraductions[traductionIndex]?.label ?? traduction
+  const membresEnRegard = lectureBilingue?.membres
+  const biblesLues = useMemo<BibleLue[]>(() => {
+    if (!membresEnRegard || membresEnRegard.length === 0) return [{ trad: traduction, libelle: libelleBibleLue }]
+    // Dans l'ordre des colonnes, que la donnée déclare (charte : le français à gauche chez Fillion).
+    const rang = { left: 0, auto: 1, right: 2 } as const
+    return [...membresEnRegard]
+      .sort((a, b) => rang[a.desktopPosition] - rang[b.desktopPosition] || a.displayOrder - b.displayOrder)
+      .map(m => ({ trad: m.translationId, libelle: nomLangue(m.languageCode) }))
+  }, [membresEnRegard, traduction, libelleBibleLue])
+  const enRegard = !!lectureBilingue
+  const pieceLue = pieceAffichee?.cle ?? null
+  const notesBible = useMemo<ContexteNotesBible | null>(() => familleLue === null ? null : {
+    familleId: familleLue,
+    livre: livreActif,
+    nomLivre,
+    bibles: biblesLues,
+    chapitre: chapitreActif,
+    pieceCle: pieceLue,
+    appareilAffiche: !texteSeul,
+    // ⚠️ Une note ne se lit qu'avec l'appareil : l'adresse le rétablit, et garde le reste.
+    adresseDuChapitre: (n: number) => urlLectureBible({
+      couche, bilingue: enRegard, texteSeul: false, livre: livreActif, chapitre: n, trad: traduction,
+    }),
+    // Une pièce est commune aux membres : elle ne se lit pas en regard (voir `NavLivres`).
+    adresseDeLaPiece: (cle: string) => urlLectureBible({
+      couche, bilingue: false, texteSeul: false, livre: livreActif, chapitre: chapitreActif, trad: traduction, piece: cle,
+    }),
+  }, [familleLue, livreActif, nomLivre, biblesLues, chapitreActif, pieceLue, texteSeul, couche, enRegard, traduction])
+
   // Le menu « occasionnel » du volet de gauche : composé des seuls FAITS lus dans les
   // données, jamais d'un identifiant de traduction. Il reste vide — donc invisible —
   // pour une bible ordinaire.
@@ -758,6 +799,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         setVoletMobile={setVoletMobile}
         barreMobile={false}
         presentation="inline"
+        notesBible={notesBible}
       />
 
       {/* Bandeau de navigation mobile — tout en bas, sous la barre « Commentaires ».

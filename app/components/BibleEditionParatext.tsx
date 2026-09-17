@@ -23,6 +23,7 @@ import {
   type NatureBloc,
   type StyleResolu,
 } from '@/app/lib/bibleHierarchieSemantique'
+import { ancreNoteSansAppelBible } from '@/app/lib/ancresNotesBible'
 import { compositionSousTitre } from '@/app/lib/compositionBible'
 import { lignesDeVers, styleLigneDeVers } from '@/app/lib/compositionVers'
 import { detecterCitationSortie } from '@/app/lib/citationSortie'
@@ -837,7 +838,8 @@ export function BlocEditorialBible({
               paratexte, sans quoi une note passerait devant le commentaire. */}
           <ol style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.78125rem' }}>
             {notesSansAppel.map((note) => (
-              <li key={note.id} value={note.displayNumber} style={{ marginBottom: '0.5rem' }}>
+              // L'identifiant est celui que l'inventaire des notes vise (`ancreNoteSansAppelBible`).
+              <li key={note.id} id={ancreNoteSansAppelBible(note.id)} value={note.displayNumber} style={{ marginBottom: '0.5rem' }}>
                 {note.blocks.map((texte) => rendreBlocTexte(
                   texte, undefined, [], undefined, texte.presentationStyle,
                 ))}

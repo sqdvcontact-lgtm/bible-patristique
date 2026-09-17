@@ -8433,3 +8433,21 @@ Demande de l'auteur, 16 septembre 2026, devant le lasso de lecture : « exclure 
 ⚠️ **LA BIBLE N'EST PAS CONCERNÉE.** Les titres de péricopes et de sections d'une édition commentée appartiennent à l'édition, non au texte biblique : ils ne coupent pas une citation de l'Écriture et n'y sont jamais repris. Le chapitre reste la frontière.
 
 ⚠️ **LES TITRES NE SONT PAS ENCORE REPRODUITS.** Voie proposée le 16 septembre 2026, à décider le jour où l'on voudra les reprendre : un titre à l'intérieur d'une sélection continue (le passage juste avant et le passage juste après sont retenus) se reproduit sur sa ligne, et la citation reste d'un seul tenant, sa référence nommant les deux divisions ; un titre au bord d'une sélection ne se reproduit pas, la référence nommant déjà la division. Rien n'est à stocker : un prélèvement reste une ligne par passage, et les titres se retrouvent à partir de la division des passages.
+
+### 38.35 L’inventaire des notes d’une BIBLE — le livre qu’on lit, et ce qui ne paraît pas
+
+Demande de l’auteur du 16 septembre 2026 : « en mode admin, je veux pouvoir voir les notes associées à une bible dans le volet de droite (comme pour les œuvres) ; ajoute un onglet propre à l’admin avec “Pères de l’Église” ».
+
+⛔ **L’ONGLET « NOTES » EST UN OUTIL D’ADMINISTRATION.** Il paraît à côté de « Pères de l’Église », pour l’administrateur seul et hors de l’affichage standard, et seulement sur une édition qui porte un appareil. Il montre des faits d’atelier : ce qui est à relire, et ce que la page ne compose pas. Il se charge à part, avec son onglet : le lecteur n’en paie pas le poids, et son compte ne paraît qu’une fois l’onglet ouvert.
+
+⛔ **IL PORTE SUR LE LIVRE QU’ON LIT, NON SUR LA BIBLE ENTIÈRE.** La traduction moderne du témoin de 1260 compte plus de neuf mille notes : les relever d’un coup coûterait dix pages de lecture, quand le livre le plus annoté se relève en un tiers de seconde. Le volet des livres fait le reste.
+
+⛔ **IL RÉUNIT LES DEUX APPAREILS D’UNE ÉDITION** : les notes de verset, rangées par chapitre et par verset, et les notes des blocs éditoriaux (introductions, commentaires, notices), là où leur bloc paraît, pièces liminaires comprises. En lecture en regard, il porte les notes des deux bibles, et une note commune à l’édition répond aux deux. ⚠️ Une note propre à une bible qu’on ne lit pas n’y est pas : la page ne la montre pas.
+
+⛔ **IL DIT CE QUI NE PARAÎT NULLE PART, ET POURQUOI.** La règle est celle de la page, rejouée et jamais réécrite : un bloc que le registre des styles ne compose pas, un bloc sans ancrage canonique qu’aucune page ne charge, la matière qui ferme un livre, une pièce absente du sommaire. Ces notes restent listées, muettes, et leur infobulle dit la raison. ⚠️ Un inventaire d’atelier est exhaustif : ce qui ne paraît pas est précisément ce qu’on y cherche.
+
+⛔ **UN CLIC OUVRE LA NOTE DANS LE TEXTE, ET C’EST LE GESTE DU LECTEUR QU’ON REJOUE.** Si la note n’est pas sous les yeux, la page va à son chapitre ou à sa pièce en gardant la manière de lire et en rétablissant l’appareil ; elle attend que le texte soit immobile, pose l’appel au niveau des yeux et le clique. La note s’ouvre dans sa fenêtre de toujours. Une note de bloc sans point d’appel n’a rien à cliquer : c’est son entrée, dans l’apparat de son bloc, qu’on pose sous les yeux.
+
+⚠️ **UNE NOTE NON PUBLIQUE N’Y PARAÎT PAS.** L’inventaire lit sous la session, comme la page : il montre ce que la page peut ouvrir, et ce que la politique de lecture tait, il le tait aussi.
+
+⚠️ **LES NOTES D’UN VERSET DE LA POLYGLOTTE N’Y SONT PAS** : c’est une autre donnée, qui se lit sur une autre page (§ 50.7).

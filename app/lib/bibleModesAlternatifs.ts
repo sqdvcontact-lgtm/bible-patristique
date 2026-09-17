@@ -108,7 +108,9 @@ const NOM_LANGUE: Record<string, string> = {
   hbo: 'Hébreu',
 }
 
-function nomLangue(code: string): string {
+/** Le nom d’une langue du catalogue. ⚠️ Exporté pour l’inventaire des notes, qui nomme ainsi
+ *  les deux bibles d’une lecture en regard. */
+export function nomLangue(code: string): string {
   const connu = NOM_LANGUE[code?.toLowerCase()]
   if (connu) return connu
   // Langue non répertoriée : on rend le code tel quel plutôt qu'un nom inventé.
