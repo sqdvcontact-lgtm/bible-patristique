@@ -1,5 +1,5 @@
 /**
- * LA NOTATION D'UNE NOTICE D'ÉDITION — trois niveaux, deux marques.
+ * LA NOTATION D'UNE NOTICE D'ÉDITION — trois niveaux, trois marques.
  *
  * Doctrine : charte `parametres.charte_ia`, **§ 5.6.1**. Demande de l'auteur du
  * 12 septembre 2026 : « mettre à disposition de GPT des styles, pour mettre en forme
@@ -10,6 +10,12 @@
  * d'abréviations, des remarques de l'éditeur. Rendue d'un seul tenant, elle se lisait
  * comme un paragraphe, et le lecteur qui cherche ce que « P » désigne devait le trouver
  * au milieu d'une phrase.
+ *
+ * ⚠️ Elle sert aussi, depuis le 17 septembre 2026, les deux NOTES ÉDITORIALES d'une œuvre
+ * (`oeuvres.note_editoriale_complete` et `note_editoriale_complement`), que la fiche d'une
+ * édition rend sous « L'œuvre » et « Notes éditoriales » : ce sont des notices elles aussi,
+ * et elles portent des bibliographies. Aucune ne portait de marque ce jour-là, si bien que
+ * rien n'a changé à leur rendu.
  *
  * ⛔ TROIS NIVEAUX, ET PAS UN DE PLUS (charte § 7.6) :
  *
@@ -22,6 +28,20 @@
  * deux natures d'une même famille se composent de même, sauf raison NOMMÉE). C'est la
  * RUBRIQUE qui dit le niveau, jamais un troisième style : trois styles pour une seule
  * forme rouvriraient la dérive que le § 7.6 ferme.
+ *
+ * ⛔ ET UNE SECONDE NATURE D'ENTRÉE, LA RÉFÉRENCE BIBLIOGRAPHIQUE (demande de l'auteur du
+ * 17 septembre 2026 : « un style de bibliographie pour les notices des œuvres ») :
+ *
+ *   ## Bibliographie                                        ← RUBRIQUE, comme ailleurs
+ *   + Pierre ++Cazier++, « Lectures du livre de Job… », *Graphè*, 6, 1997.   ← RÉFÉRENCE
+ *
+ * Elle reste au rang d'une entrée — un article sous sa rubrique —, et le nombre des
+ * niveaux ne bouge pas. Deux raisons NOMMÉES la séparent de l'entrée (§ 13.11) : une
+ * référence n'a pas de tête, et ⛔ ne se coupe JAMAIS à un tiret, qu'un titre porte
+ * souvent ; et elle se compose dans la famille bibliographique du site (charte § 47.2),
+ * celle des ouvrages cités de la même fiche. ⛔ Rien ne s'y devine non plus : l'italique
+ * du titre et les petites capitales du nom sont ÉCRITS par l'éditeur (`*…*`, `++…++`),
+ * jamais tirés de la chaîne.
  *
  * ⛔ LA RUBRIQUE SE NOMME LIBREMENT. « Témoins », « Abréviations », « Remarques »,
  * « Conventions de transcription » : c'est un TITRE que l'éditeur écrit, non un style, et
@@ -37,12 +57,16 @@
  * `compositionNote.ts` — deux écritures d'une même forme divergent au premier réglage.
  */
 import type { CSSProperties } from 'react'
+import { CLASSES_BIBLIOGRAPHIE } from './apparatBibliographie'
 import { RUBRIQUE_AXE } from './stylesVoletLecture'
 
 /** La marque d'une RUBRIQUE, en tête de ligne. */
 export const MARQUE_RUBRIQUE = '## '
 /** La marque d'une ENTRÉE, en tête de ligne. */
 export const MARQUE_ENTREE = '- '
+/** La marque d'une RÉFÉRENCE bibliographique, en tête de ligne. ⚠️ Le signe « plus »,
+ *  et non l'astérisque, que la notation lit déjà comme une italique. */
+export const MARQUE_REFERENCE = '+ '
 
 /**
  * Les deux graphies du tiret qui sépare la tête du corps.
@@ -70,6 +94,9 @@ export type BlocNotation =
   | { type: 'prose'; texte: string }
   | { type: 'rubrique'; texte: string }
   | { type: 'liste'; entrees: EntreeNotation[] }
+  /** Une BIBLIOGRAPHIE : des références entières, une par ligne, dans l'ordre écrit.
+   *  ⛔ Le rendu ne les retrie pas : l'éditeur a choisi son ordre. */
+  | { type: 'bibliographie'; references: string[] }
 
 /**
  * Coupe une entrée à son PREMIER tiret, quelle qu'en soit la graphie.
@@ -121,23 +148,28 @@ export function lireNotationEdition(brut: string | null | undefined): BlocNotati
   const blocs: BlocNotation[] = []
   let prose: string[] = []
   let liste: EntreeNotation[] | null = null
+  let references: string[] | null = null
 
   // ⚠️ UN SEUL BLOC EST OUVERT À LA FOIS : une entrée ferme la prose, une ligne de prose
   // ferme la liste, une rubrique ferme les deux. ⛔ Une LIGNE VIDE ne ferme que la LISTE —
   // sans quoi deux listes que rien ne sépare n'en feraient qu'une — et la prose la garde,
-  // pour se rendre exactement comme avant la notation.
+  // pour se rendre exactement comme avant la notation. ⚠️ Une bibliographie est une liste
+  // comme une autre, et une entrée qui la suit la ferme : les deux natures ne se mêlent
+  // jamais dans un même bloc.
   const fermerLeBloc = () => {
     const texte = prose.join('\n').trim()
     if (texte) blocs.push({ type: 'prose', texte })
     prose = []
     if (liste && liste.length) blocs.push({ type: 'liste', entrees: liste })
     liste = null
+    if (references && references.length) blocs.push({ type: 'bibliographie', references })
+    references = null
   }
 
   for (const ligne of lignes) {
     const nette = ligne.trim()
     if (!nette) {
-      if (liste) fermerLeBloc()
+      if (liste || references) fermerLeBloc()
       else prose.push('')
       continue
     }
@@ -153,7 +185,7 @@ export function lireNotationEdition(brut: string | null | undefined): BlocNotati
 
     const ligneDEntree = apresLaMarque(nette, MARQUE_ENTREE)
     if (ligneDEntree !== null) {
-      if (prose.length) fermerLeBloc()
+      if (prose.length || references) fermerLeBloc()
       const entree = decouperEntree(ligneDEntree)
       if (!entree.corps) continue
       if (!liste) liste = []
@@ -161,7 +193,17 @@ export function lireNotationEdition(brut: string | null | undefined): BlocNotati
       continue
     }
 
-    if (liste) fermerLeBloc()
+    // ⛔ Une référence se garde ENTIÈRE : ni tête, ni coupe au tiret.
+    const reference = apresLaMarque(nette, MARQUE_REFERENCE)
+    if (reference !== null) {
+      if (prose.length || liste) fermerLeBloc()
+      if (!reference) continue
+      if (!references) references = []
+      references.push(reference)
+      continue
+    }
+
+    if (liste || references) fermerLeBloc()
     prose.push(ligne.trimEnd())
   }
   fermerLeBloc()
@@ -275,4 +317,26 @@ export const STYLE_ENTREE_NOTATION: CSSProperties = {
 export const STYLE_TETE_NOTATION: CSSProperties = {
   fontWeight: 500,
   color: 'var(--cs-texte-fort)',
+}
+
+/**
+ * La BIBLIOGRAPHIE : la famille commune du site (charte § 47.2), et rien de plus.
+ *
+ * ⛔ AUCUN DESSIN À ELLE : ses références se composent comme les ouvrages cités de la même
+ * fiche (`ListeOuvragesCites`) — sérif, corps d'un cran, interligne serré, retrait
+ * suspendu, blanc entre deux références. Deux bibliographies dans une même fenêtre qui ne
+ * se ressembleraient pas diraient deux choses différentes.
+ *
+ * ⚠️ `sansHote`, parce qu'aucun ancêtre de la notice ne porte la composition : sa prose pose
+ * la sienne sur ses PARAGRAPHES (`cs-notice-prose`), et un `em` s'y calculerait sur la
+ * fiche entière.
+ */
+export const CLASSES_BIBLIOGRAPHIE_NOTATION = `${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.sansHote}`
+
+/** ⛔ La famille pose un blanc SOUS elle (`margin: 0 0 0.5rem`) : dans la notation, c'est
+ *  `blancAuDessus` qui sépare, et ce blanc-là s'y ajouterait au pied de la notice. En
+ *  LONGHANDS, pour la raison de l'entrée : le rendu y ajoute `marginTop`. */
+export const STYLE_BIBLIOGRAPHIE_NOTATION: CSSProperties = {
+  marginTop: 0,
+  marginBottom: 0,
 }

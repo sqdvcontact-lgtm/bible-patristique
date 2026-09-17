@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
+  CLASSES_BIBLIOGRAPHIE_NOTATION,
   MARQUE_ENTREE,
+  MARQUE_REFERENCE,
   MARQUE_RUBRIQUE,
+  STYLE_BIBLIOGRAPHIE_NOTATION,
   RETRAIT_ENTREE,
   SEPARATEURS_TETE,
   SEPARATEUR_RENDU,
@@ -246,5 +249,81 @@ describe('la composition', () => {
     const insecable = String.fromCharCode(0x00a0)
     const cadratin = String.fromCharCode(0x2014)
     expect(SEPARATEUR_RENDU).toBe(insecable + cadratin + ' ')
+  })
+})
+
+/**
+ * Le TÉMOIN de la référence est la bibliographie réelle de la note éditoriale des
+ * *Annotations sur le livre de Job* (A0010O0100), telle qu'elle paraît dans la notation.
+ * ⛔ Ne pas l'abréger : un titre y porte une italique DANS un titre d'article, un autre
+ * une barre oblique, et deux références partagent leur adresse.
+ */
+const JOB = [
+  'Enfin, l’histoire du texte reste complexe.',
+  '',
+  '## Bibliographie',
+  '+ Anne-Marie ++La Bonnardière++, *Biblia Augustiniana. A.T. II. Livres historiques*, Paris, Études augustiniennes, 1960.',
+  '+ Pierre ++Cazier++, « Lectures du livre de Job chez Ambroise, Augustin et Grégoire le Grand », *Graphè*, 6, 1997.',
+  '+ Georges ++Folliet++, « Les trois sens possibles des mots *confessio* / *confiteri* dans les *Adnotationes in Job* d’Augustin », *Revue d’Études Augustiniennes et Patristiques*, 54/1, 2008.',
+  '+ Almut ++Trenkler++, *Die beiden Rezensionen von Augustins Adnotationes in Iob*, Göttingen, Vandenhoeck & Ruprecht, 2017.',
+  '+ Gerd-Dietrich ++Warns++, *Die Textvorlage von Augustins Adnotationes in Iob*, Göttingen, Vandenhoeck & Ruprecht, 2017.',
+].join('\n')
+
+describe('la référence bibliographique', () => {
+  it('lit la bibliographie de Job en UNE liste, sous sa rubrique, dans l’ordre écrit', () => {
+    const blocs = lireNotationEdition(JOB)
+    expect(blocs.map(b => b.type)).toEqual(['prose', 'rubrique', 'bibliographie'])
+    const biblio = blocs[2]
+    if (biblio.type !== 'bibliographie') throw new Error('bibliographie attendue')
+    expect(biblio.references).toHaveLength(5)
+    expect(biblio.references[0].startsWith('Anne-Marie ++La Bonnardière++')).toBe(true)
+    expect(biblio.references[4].startsWith('Gerd-Dietrich ++Warns++')).toBe(true)
+  })
+
+  /** ⛔ Une référence n'a pas de tête : un tiret de titre ne la coupe jamais. */
+  it('garde une référence ENTIÈRE, tiret compris', () => {
+    const ligne = '*Synopse de la Sainte Écriture — fragment*, Paris, 1850.'
+    expect(lireNotationEdition(`${MARQUE_REFERENCE}${ligne}`)).toEqual([
+      { type: 'bibliographie', references: [ligne] },
+    ])
+  })
+
+  it('ne mêle jamais une référence et une entrée dans un même bloc', () => {
+    expect(lireNotationEdition('- P — Paris.\n+ Cazier, *Graphè*, 1997.').map(b => b.type))
+      .toEqual(['liste', 'bibliographie'])
+    expect(lireNotationEdition('+ Cazier, *Graphè*, 1997.\n- P — Paris.').map(b => b.type))
+      .toEqual(['bibliographie', 'liste'])
+  })
+
+  it('ferme la bibliographie sur une ligne vide ou sur une ligne de prose', () => {
+    expect(lireNotationEdition('+ Un.\n\n+ Deux.').map(b => b.type)).toEqual(['bibliographie', 'bibliographie'])
+    expect(lireNotationEdition('+ Un.\nDe la prose.').map(b => b.type)).toEqual(['bibliographie', 'prose'])
+    expect(lireNotationEdition('De la prose.\n+ Un.').map(b => b.type)).toEqual(['prose', 'bibliographie'])
+  })
+
+  it('ne pose ni référence vide ni marque collée', () => {
+    expect(lireNotationEdition(MARQUE_REFERENCE.trim())).toEqual([])
+    expect(lireNotationEdition('+3 degrés.')).toEqual([{ type: 'prose', texte: '+3 degrés.' }])
+  })
+
+  it('dit qu’une notice qui ne porte que des références porte une marque', () => {
+    expect(porteUneNotation('+ Cazier, *Graphè*, 1997.')).toBe(true)
+  })
+
+  it('coud la bibliographie à sa rubrique comme toute liste', () => {
+    const rubrique = { type: 'rubrique', texte: 'Bibliographie' } satisfies BlocNotation
+    const biblio = { type: 'bibliographie', references: ['Un.'] } satisfies BlocNotation
+    const prose = { type: 'prose', texte: 'Un.' } satisfies BlocNotation
+    expect(blancAuDessus(rubrique, biblio)).toBe(BLANC_COUTURE)
+    expect(blancAuDessus(prose, biblio)).toBe(BLANC_BLOC)
+    expect(blancAuDessus(biblio, rubrique)).toBe(BLANC_GROUPE)
+  })
+
+  /** ⛔ La famille du site, et elle seule : les ouvrages cités de la même fiche portent
+   *  exactement ces deux classes (`ListeOuvragesCites`). */
+  it('se compose dans la famille bibliographique, sans hôte, sans blanc de pied', () => {
+    expect(CLASSES_BIBLIOGRAPHIE_NOTATION).toBe('cs-apparat-bibliographie cs-apparat-bibliographie--sans-hote')
+    expect(STYLE_BIBLIOGRAPHIE_NOTATION).toEqual({ marginTop: 0, marginBottom: 0 })
+    expect(STYLE_BIBLIOGRAPHIE_NOTATION).not.toHaveProperty('margin')
   })
 })

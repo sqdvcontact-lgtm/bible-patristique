@@ -104,7 +104,8 @@ export default function EtatTexteAdmin({ texte, motifOeuvre, onMaj }: {
       <div style={{ gridColumn: '1 / -1', fontSize: '0.625rem', color: 'var(--cs-texte-second)', marginTop: '-6px', lineHeight: 1.5 }}>
         Mise en forme : une ligne « ## Témoins » ouvre une rubrique, une ligne
         « - P — Paris, BnF, latin 12293 : … » une entrée, dont le tiret sépare le sigle de sa
-        désignation. Une ligne sans marque reste de la prose.
+        désignation. Une ligne « + Pierre ++Cazier++, *Graphè*, 1997. » est une référence
+        bibliographique, gardée entière. Une ligne sans marque reste de la prose.
         {informations.trim() && !porteUneNotation(informations) && (
           <span style={{ color: 'var(--cs-attente)' }}>{' Cette notice ne porte aucune marque : elle se rendra d’un seul tenant.'}</span>
         )}

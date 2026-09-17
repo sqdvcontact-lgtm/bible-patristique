@@ -1,7 +1,10 @@
 import { Fragment } from 'react'
+import { CLASSES_BIBLIOGRAPHIE } from '@/app/lib/apparatBibliographie'
 import {
   BLANC_ENTREE,
+  CLASSES_BIBLIOGRAPHIE_NOTATION,
   SEPARATEUR_RENDU,
+  STYLE_BIBLIOGRAPHIE_NOTATION,
   STYLE_ENTREE_NOTATION,
   STYLE_LISTE_NOTATION,
   STYLE_NOTATION,
@@ -13,7 +16,7 @@ import {
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 /**
- * LA NOTICE D'UNE ÉDITION, COMPOSÉE — prose, rubriques, entrées.
+ * LA NOTICE D'UNE ÉDITION, COMPOSÉE — prose, rubriques, entrées, références.
  *
  * Doctrine : charte `parametres.charte_ia`, **§ 5.6.1**. La RÈGLE vit dans
  * `app/lib/notationEdition.ts`, pure et testée ; ce fichier n'en est que le rendu, et il
@@ -44,6 +47,20 @@ export default function NotationEdition({ texte }: { texte: string | null | unde
         // et une rubrique qui s'y ajouterait comme heading disputerait leur plan.
         if (bloc.type === 'rubrique') {
           return <p key={`r${i}`} style={{ ...STYLE_RUBRIQUE_NOTATION, marginTop }}>{bloc.texte}</p>
+        }
+        // ⛔ LA FAMILLE BIBLIOGRAPHIQUE DU SITE, par ses seules classes (charte § 47.2) : la
+        // bibliographie d'une notice se compose comme les ouvrages cités de la même fiche.
+        // Ni puce ni marque : le « + » dit « référence », il ne s'imprime pas.
+        if (bloc.type === 'bibliographie') {
+          return (
+            <div key={`b${i}`} className={CLASSES_BIBLIOGRAPHIE_NOTATION} style={{ ...STYLE_BIBLIOGRAPHIE_NOTATION, marginTop }}>
+              <ul className={CLASSES_BIBLIOGRAPHIE.liste}>
+                {bloc.references.map((reference, j) => (
+                  <li key={j} className={CLASSES_BIBLIOGRAPHIE.entree}>{rendreTexteEnrichi(reference)}</li>
+                ))}
+              </ul>
+            </div>
+          )
         }
         return (
           <ul key={`l${i}`} style={{ ...STYLE_LISTE_NOTATION, marginTop }}>

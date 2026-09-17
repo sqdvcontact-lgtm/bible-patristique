@@ -2146,7 +2146,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
                           <label style={lbl}>Note éditoriale : compléments</label>
                           <textarea value={formOeuvre.note_editoriale_complement ?? ''}
                             onChange={e => setFormOeuvre(p => ({ ...p, note_editoriale_complement: e.target.value }))}
-                            rows={3} placeholder="Points de détail de l’œuvre parcourue : chapitre déplacé ou refondu, attribution discutée, transmission lacunaire. Paraît dans « À propos de cette édition »."
+                            rows={3} placeholder="Points de détail de l’œuvre parcourue : chapitre déplacé ou refondu, attribution discutée, transmission lacunaire. Paraît dans « À propos de cette édition ». Bibliographie : une ligne « ## Bibliographie », puis une ligne « + » par référence (titre en *italique*, nom en ++petites capitales++)."
                             style={{ ...inputStyleAuteur, resize: 'vertical' }} />
                         </div>
                         <div style={{ gridColumn: '1 / -1' }}>

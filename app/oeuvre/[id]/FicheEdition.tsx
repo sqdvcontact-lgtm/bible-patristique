@@ -206,7 +206,7 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
           </LigneTech>
           {/* Ce que l'œuvre EST : son intérêt, sa substance (note_editoriale_complete). */}
           {noteComplete && (
-            <div className="cs-notice-prose" style={{ marginTop: '8px' }}>{rendreTexteEnrichi(noteComplete)}</div>
+            <div style={{ marginTop: '8px' }}><NotationEdition texte={noteComplete} /></div>
           )}
         </SectionFiche>
       )}
@@ -214,7 +214,10 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
       {/* Les points de détail de l'œuvre parcourue (note_editoriale_complement). */}
       {noteComplement && (
         <SectionFiche titre="Notes éditoriales">
-          <div className="cs-notice-prose">{rendreTexteEnrichi(noteComplement)}</div>
+          {/* ⚠️ La NOTATION du § 5.6.1, comme les informations complémentaires : une note
+              éditoriale porte souvent sa bibliographie (« + » par référence). Sans marque,
+              elle se rend en prose, exactement comme avant. */}
+          <NotationEdition texte={noteComplement} />
         </SectionFiche>
       )}
 
