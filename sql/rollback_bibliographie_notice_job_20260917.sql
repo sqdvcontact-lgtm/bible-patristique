@@ -1,7 +1,8 @@
 -- Retour arrière : la bibliographie de la note éditoriale des « Annotations sur le livre
 -- de Job » (A0010O0100), marquée le 17 septembre 2026 dans la notation du § 5.6.1
--- (« ## Bibliographie », une ligne « + » par référence, noms en ++petites capitales++,
--- pages « p. » + insécable + tiret demi-cadratin).
+-- (« ## Bibliographie », une ligne « + » par référence, noms en ++petites capitales++).
+-- Le texte des références n'a pas changé : plages de pages comprises, « pp. 109-172 »
+-- (charte § 3.4), rétablies le jour même après un passage au demi-cadratin.
 --
 -- La note d'avant est dans internal.backup_oeuvres_bibliographie_notice_20260917
 -- (colonne `ligne`, la ligne entière en jsonb). Seule la note éditoriale est rendue :

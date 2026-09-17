@@ -10919,6 +10919,17 @@ de remplacement ne s’apparie alors plus) ; une INSÉCABLE tapée dans un test 
 d’une espace ordinaire et s’écrit en point de code ; et une constante posée APRÈS son emploi
 dans un module compile en apparence mais lève à l’exécution (`used before its declaration`).
 
+## ⛔ La RÉFÉRENCE bibliographique d’une notice — `+ ` (2026-09-17)
+
+Doctrine : charte `parametres.charte_ia`, **§ 5.6.1**, étendu le 17 septembre 2026. Demande de l’auteur : « un style de bibliographie pour les notices des œuvres ». Règles de code :
+
+- **`MARQUE_REFERENCE = '+ '`** (`app/lib/notationEdition.ts`), bloc `{ type: 'bibliographie'; references }`. ⛔ Une référence ne passe JAMAIS par `decouperEntree` : ni tête ni coupe. Les références consécutives font un bloc ; une ligne vide, une ligne de prose ou une entrée `- ` le ferment, et une référence ferme une liste d’entrées.
+- ⛔ **AUCUN DESSIN À ELLE** : `CLASSES_BIBLIOGRAPHIE_NOTATION` vaut `bloc` + `sansHote` de `CLASSES_BIBLIOGRAPHIE`, avec la liste et l’entrée de la famille, soit exactement les classes de `ListeOuvragesCites` ; `app/components/NotationEdition.test.tsx` les confronte. `STYLE_BIBLIOGRAPHIE_NOTATION` retire la marge basse de la famille (`0.5rem`) : c’est `blancAuDessus` qui sépare.
+- **La fiche d’une édition rend ses deux notes éditoriales par `NotationEdition`** (« L’œuvre », « Notes éditoriales »), comme les informations complémentaires. ⚠️ Aucune ne portait de marque (vérifié en base avant) : leur rendu est celui d’avant, un seul `p.cs-notice-prose`.
+- ⛔ **Rien ne se devine** : le titre en `*…*` et le nom de famille en `++…++` s’écrivent dans la donnée. Les plages de pages gardent le trait d’union simple (charte § 3.4).
+- **Donnée** : la note éditoriale des *Annotations sur le livre de Job* (A0010O0100) est marquée ; sauvegarde `internal.backup_oeuvres_bibliographie_notice_20260917`, retour `sql/rollback_bibliographie_notice_job_20260917.sql`. Planche : `notice_edition/bibliographie — § 5.6.1`, épreuve « Apparat des œuvres ».
+- ⚠️ **Divergence relevée, non traitée** : la charte § 5.6.1 fait du trait d’union simple (` - `) le séparateur de tête d’une entrée et y interdit le demi-cadratin, quand `SEPARATEURS_TETE` n’accepte que ` — ` et ` – `. Le code est en retard sur la charte.
+
 # ⛔ AUCUNE NOTE AU BAS DU CHAPITRE — l’appel est le seul chemin (2026-09-13)
 
 Doctrine : charte `parametres.charte_ia`, **§ 13.7**, et la ligne `note_verset` du tableau des styles de l’apparat biblique. Relevé de l’auteur sur la Bible du XIIIᵉ siècle : « les notes s’affichent en appel de note et bas de page simultanément ; il ne faut pas que les notes de bas de page existent ». La règle vaut pour TOUTES les éditions de la page Bible, Fillion comprise. Règles de code :

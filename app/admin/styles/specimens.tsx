@@ -684,10 +684,10 @@ const NOTICE_BONDURAND = [
   '- Chapitre XLII — Bondurand indique que ce chapitre n’est conservé ni par P ni par N, bien que son titre soit transmis par les tables des chapitres. Dans l’édition de 1887, son corps est signalé par « Manque. ».',
 ].join('\n')
 
-/** Les pages d'une référence, à la norme du site : « p. », une insécable, un tiret
- *  demi-cadratin entre deux nombres. ⛔ Écrits en points de code : tapés, les deux signes ne
- *  se distinguent pas d'une espace et d'un trait d'union. */
-const PAGES = (de: number, a: number) => `p.${String.fromCharCode(0x00a0)}${de}${String.fromCharCode(0x2013)}${a}`
+/** Les pages d'une référence, telles que la notice les écrit : « pp. », une insécable, et un
+ *  trait d'union simple entre deux nombres (charte § 3.4 : jamais de demi-cadratin dans une
+ *  plage). ⛔ L'insécable en point de code : tapée, elle ne se distingue pas d'une espace. */
+const PAGES = (de: number, a: number) => `pp.${String.fromCharCode(0x00a0)}${de}-${a}`
 
 /**
  * La bibliographie RÉELLE de la note éditoriale des « Annotations sur le livre de Job »
