@@ -49,6 +49,7 @@ import {
   type BibleEditionChapterDisplay,
   type BibleEditionDisplayAsset,
   type BibleEditionDisplayBodyBlock,
+  type BibleEditionDisplayNote,
 } from '@/app/lib/bibleEdition'
 
 // ⛔ Le gabarit vient du module partagé : un bouton d'action a la même boîte sur les
@@ -86,6 +87,9 @@ type Props = {
   /** Appareil de l’édition : introductions, commentaires, notes, illustrations.
    *  Nul en lecture « Texte biblique seul » — la page ne le charge alors pas. */
   editionChapter?: BibleEditionChapterDisplay | null
+  /** Les notes des VERSETS (`versets_v2.notes`), rangées par bible (charte § 13.22). Toutes
+   *  les colonnes de la vue large y sont : l'échange de colonne en mémoire garde les siennes. */
+  notesDesVersets?: Readonly<Record<string, readonly BibleEditionDisplayNote[]>> | null
   /** Pièce liminaire de l'édition, lue SEULE : elle remplace le chapitre. */
   pieceAffichee?: PieceLiminaireAffichee | null
   /** La manière de lire courante, reportée sur les flèches de chapitre. */
@@ -419,7 +423,7 @@ export default function TexteBible({
   versets, traduction, traductionIndex, setTraductionIndex, traductions,
   livreActif, chapitreActif, nomLivre,
   versetSelectionne, setVersetSelectionne, mobile = false,
-  editionChapter, maniereDeLire, pieceAffichee = null,
+  editionChapter, notesDesVersets = null, maniereDeLire, pieceAffichee = null,
 }: Props) {
   // Session et droits : lus dans le contexte partagé, jamais redemandés ici. Ce
   // composant tenait son propre abonnement d'authentification et sa propre lecture
@@ -628,8 +632,10 @@ export default function TexteBible({
           : <IllustrationBible key={`illustration:${item.id}`} illustration={item.value} />, `axe:${item.id}`)
       })
   }
-  const notesParCanon = new Map<string, NonNullable<typeof editionChapter>['notes']>()
-  for (const note of editionChapter?.notes ?? []) {
+  // ⛔ LES NOTES DE L'ÉDITION ET CELLES DES VERSETS S'APPELLENT DE LA MÊME FAÇON (charte
+  // § 13.22) : une note de `versets_v2` arrive avec sa ligne et son numéro, posés par la page.
+  const notesParCanon = new Map<string, BibleEditionDisplayNote[]>()
+  for (const note of [...(editionChapter?.notes ?? []), ...(notesDesVersets?.[traduction] ?? [])]) {
     const notes = notesParCanon.get(note.canonId) ?? []
     notes.push(note)
     notesParCanon.set(note.canonId, notes)

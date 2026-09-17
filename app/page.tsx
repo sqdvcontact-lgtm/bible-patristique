@@ -6,7 +6,7 @@ import BibleLayout from './components/BibleLayout'
 import BibleSourceReader from './components/BibleSourceReader'
 import { LIVRES, estLivreNonCanonique } from '@/app/lib/bible'
 import { loadBibleReadingCatalog, loadSourceReading } from '@/app/lib/bibleMultimodeServer'
-import { estVerseEditorial, withCanonicalV2Capability } from '@/app/lib/bibleMultimode'
+import { estVerseEditorial, estVerseSurColonnes, withCanonicalV2Capability } from '@/app/lib/bibleMultimode'
 import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleReadingModes'
 import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
 import { chargerVersetsCanoniquesV2, chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
@@ -38,6 +38,9 @@ import { JsonLd, donneesChapitreBible, donneesFilAriane } from '@/app/lib/donnee
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import { chargerIndexEditeurs } from '@/app/lib/editeursServeur'
 import { joindreEditeurs } from '@/app/lib/editeursNormalisation'
+import { codeLangue } from '@/app/lib/grec'
+import { composerNotesV2, positionsDesVersets, positionsEnRegard, type LigneNoteV2 } from '@/app/lib/notesVersetsV2'
+import { chargerNotesVersetsV2 } from '@/app/lib/notesVersetsV2Chargement'
 
 // La base est désormais fermée au rôle anonyme : une page serveur doit
 // interroger avec la session du visiteur (client lisant les cookies), sinon elle
@@ -154,7 +157,9 @@ export default async function Home({
     // employée par une œuvre PATRISTIQUE (Jeannin pour Chrysostome, Barreau et Charpentier
     // pour la Cité de Dieu…), à laquelle renvoie `oeuvres.trad_id`. Un sélecteur de
     // traduction BIBLIQUE ne montre que ce qui en est.
-    supabase.from('traductions').select('trad_id, nom, auteur, dates, date_publication').eq('est_biblique', true).order('ordre', { ascending: true }),
+    // ⚠️ `langue` revient, pour une autre raison : une note de verset qui cite un texte que
+    // la page écarte (le prologue grec du Siracide) le cite dans SA langue (charte § 13.22).
+    supabase.from('traductions').select('trad_id, nom, auteur, dates, date_publication, langue').eq('est_biblique', true).order('ordre', { ascending: true }),
     // ⚠️ LE LIEU ET L’ÉDITEUR de l’édition servie, pour la phrase de la carte
     // (« D’après l’édition de Paris, Letouzey et Ané, 1888-1904 » — demande de
     // l’auteur, 2026-09-04). Ils vivent dans `editions_sources`, une table de sept
@@ -219,6 +224,9 @@ export default async function Home({
         coteManuscrit: fiche?.cote_manuscrit ?? null,
       }
     })
+  // La langue de chaque bible, au code du site (`grc`, `la`, `fr`) : celle du texte qu'une
+  // note de verset cite.
+  const languesDesBibles = new Map((rawTranslations ?? []).map((t) => [t.trad_id as string, codeLangue(t.langue)]))
   const estLisible = (code: string) => selectableReadingModes(
     catalog.capabilities[code] ?? { translationId: code, modes: [] },
   ).length > 0
@@ -512,6 +520,21 @@ export default async function Home({
   // Lecture « Latin & Français » : demandée par l'URL, et servie seulement si la
   // famille éditoriale porte réellement deux membres pour ce chapitre. À défaut,
   // la page rend la lecture ordinaire plutôt qu'un écran d'erreur.
+  // ── Les notes des VERSETS (`versets_v2.notes`) ─────────────────────────────
+  // ⛔ TOUTE BIBLE LUE AU VERSET PORTE SES NOTES SUR CETTE PAGE (charte § 13.22, demande de
+  // l'auteur du 17 septembre 2026). Elles ne paraissaient que dans la Polyglotte : l'argument
+  // d'un psaume chez Sacy, le verset propre à la Vulgate, l'écart de numérotation.
+  // ⚠️ La requête part AVEC les versets, et son échec ne ferme pas la page : les notes
+  // manquent, le texte reste, et l'échec part au journal (charte § 18).
+  // ⛔ Pas en lecture « Sans les commentaires » : le texte nu est nu.
+  const lancerNotesVersetsV2 = (codes: readonly string[]): Promise<LigneNoteV2[] | null> => (
+    texteSeul || codes.length === 0
+      ? Promise.resolve([])
+      : chargerNotesVersetsV2(supabase, { codes, livre, chapitre }).catch((erreur: unknown) => {
+        console.error(`[lecture] ${livre} ${chapitre} servi sans les notes des versets :`, erreur)
+        return null
+      })
+  )
   const familyRows = editionMember
     ? editionCatalog.filter((row) => row.family_id === editionMember.family_id)
     : []
@@ -534,8 +557,13 @@ export default async function Home({
     // regard coûtait le double d'une colonne (mesuré en ligne le 2026-09-02 : 3,7 s
     // contre 2,0). Même règle qu'en une colonne : sans les commentaires, l'appareil
     // n'est pas chargé du tout, les trois listes vides suffisent.
-    const chargeePromise = chargerLectureBilingue(supabase, { familyRows, livre, chapitre, membresCanoniquesV2: new Set(await tradsV2Promis) })
-    const [chargee, payload] = await Promise.all([
+    const membresCanoniquesV2 = new Set(await tradsV2Promis)
+    const chargeePromise = chargerLectureBilingue(supabase, { familyRows, livre, chapitre, membresCanoniquesV2 })
+    // Les notes des versets ne vivent que chez un membre lu par le canon : un membre à
+    // segmentation éditoriale n'a pas de ligne dans `versets_v2`.
+    const notesEnRegardPromis = lancerNotesVersetsV2([...new Set(familyRows.map((row) => row.trad_id))]
+      .filter((code) => membresCanoniquesV2.has(code)))
+    const [chargee, payload, lignesNotesEnRegard] = await Promise.all([
       chargeePromise,
       texteSeul
         ? Promise.resolve<BibleEditionChapterPayload>({ bodyBlocks: [], notes: [], assets: [] })
@@ -546,10 +574,28 @@ export default async function Home({
           bornesChapitre: canonChapitre.bornes,
           includeBookFrontMatter: chapitre === 1,
         }),
+      notesEnRegardPromis,
     ])
     if (chargee && chargee.colonnes.some((colonne) => colonne.cellules.length > 0)) {
       const balisesBilingue = baliserPayload(payload.bodyBlocks, canonChapitre.bornes)
       const rangsBilingue = rangerSousTitres(payload.bodyBlocks)
+      // Les notes des versets d'un membre lu par le canon, numérotées APRÈS celles que sa
+      // colonne appelle déjà (les siennes et celles de l'édition) : le numéro d'une note
+      // d'édition est une donnée, et il ne se recompose pas.
+      const notesEnRegard = chargee.colonnes.flatMap((colonne) => {
+        const code = colonne.membre.translationId
+        const lignes = (lignesNotesEnRegard ?? []).filter((ligne) => ligne.trad_id === code)
+        if (lignes.length === 0) return []
+        const numeros = payload.notes
+          .filter((note) => note.applies_to === 'family' || note.applies_to_member_id === colonne.membre.id)
+          .map((note) => note.display_number)
+        return composerNotesV2(lignes, {
+          livre, chapitre, mode: 'canon-v2',
+          positions: positionsEnRegard(chargee.axeCanonique, colonne.cellules),
+          debut: 1 + Math.max(0, ...numeros),
+          langueDuTexte: languesDesBibles.get(code) ?? null,
+        }).map((note) => ({ ...note, appliesTo: 'member' as const, appliesToMemberId: colonne.membre.id }))
+      })
       lectureBilingue = {
         membres: chargee.colonnes.map((colonne) => colonne.membre),
         colonnes: chargee.colonnes,
@@ -586,7 +632,7 @@ export default async function Home({
             blocks: note.blocks.map(blocDeNote(note.editorial_role)),
           })),
         })),
-        notes: payload.notes.map((note) => ({
+        notes: [...payload.notes.map((note) => ({
           id: note.id,
           displayNumber: note.display_number,
           canonId: note.canon_id,
@@ -595,7 +641,7 @@ export default async function Home({
           appliesToMemberId: note.applies_to_member_id,
           sousType: note.note_subtype,
           blocks: note.blocks.map(blocDeNote(note.editorial_role)),
-        })),
+        })), ...notesEnRegard],
         illustrations: payload.assets.map((asset) => ({
           id: asset.id,
           assetKey: asset.asset_key,
@@ -630,6 +676,19 @@ export default async function Home({
   // commentée — Fillion en a soixante-deux pièces, une bible ordinaire aucune —
   // et c'est lui qui décide si l'onglet « Sommaire » paraît au volet de gauche.
   const versetsPromis = lectureBilingue ? Promise.resolve([]) : chargerVersetsDuChapitre()
+  // Les notes des versets partent AVEC eux. ⛔ La vue large les demande pour TOUTES ses
+  // colonnes : le menu échange une colonne en mémoire, sans repasser par le serveur, et la
+  // bible qu'on y choisit doit trouver les siennes. Une segmentation éditoriale (le témoin
+  // de 1260, Fillion) n'a pas de ligne dans `versets_v2`, et une pièce liminaire n'a pas de
+  // versets. ⚠️ Un livre hors du canon se lit dans une autre vue, qui n'en porte pas.
+  const codesNotesVersetsV2 = (lectureBilingue || params.piece || bible899)
+    ? []
+    : canoniqueV2
+      ? [trad]
+      : (editorial || estLivreNonCanonique(livre))
+        ? []
+        : Object.keys(catalog.capabilities).filter((code) => estVerseSurColonnes(catalog.capabilities[code]))
+  const notesVersetsV2Promis = lancerNotesVersetsV2(codesNotesVersetsV2)
   // ⚠️ L'APPAREIL part avec les versets, non derrière eux : ses blocs ne
   // dépendent que des bornes du chapitre, connues d'avance, et seules ses notes
   // de verset attendent les créneaux — d'où la promesse passée telle quelle.
@@ -711,6 +770,22 @@ export default async function Home({
   // aucune pièce, où l'on retombe sur le chapitre.
   const editionChapter: BibleEditionChapterDisplay | null =
     (appareilPromis && !pieceDemandee) ? await appareilPromis : null
+  // Les notes des versets, rangées par bible et numérotées dans l'ordre de lecture. La bible
+  // lue les numérote APRÈS l'appareil de son édition, quand elle en a un.
+  const lignesNotesVersetsV2 = await notesVersetsV2Promis
+  const numerosEdition = (editionChapter?.notes ?? []).map((note) => note.displayNumber)
+  const notesDesVersets = lignesNotesVersetsV2 && lignesNotesVersetsV2.length > 0 && versets.length > 0
+    ? Object.fromEntries(codesNotesVersetsV2.map((code) => [code, composerNotesV2(
+      lignesNotesVersetsV2.filter((ligne) => ligne.trad_id === code),
+      {
+        livre, chapitre,
+        mode: canoniqueV2 ? 'canon-v2' as const : 'vue-large' as const,
+        positions: positionsDesVersets(versets, code),
+        debut: 1 + (code === trad ? Math.max(0, ...numerosEdition) : 0),
+        langueDuTexte: languesDesBibles.get(code) ?? null,
+      },
+    )]))
+    : null
 
   // ⛔ Pas de frontière `Suspense` ici. Il n'y avait rien à y suspendre — tout ce
   // qu'elle enveloppait est attendu ci-dessus — mais elle suffisait à faire diffuser
@@ -755,6 +830,7 @@ export default async function Home({
         couche={bible899 ? couche : undefined}
         couchesDisponibles={couchesBible}
         editionChapter={editionChapter}
+        notesDesVersets={notesDesVersets}
         lectureBilingue={lectureBilingue}
         membresFamille={membresFamille}
         paratexteDisponible={paratexteDisponible}

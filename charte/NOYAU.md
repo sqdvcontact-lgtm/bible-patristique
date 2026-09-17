@@ -2790,6 +2790,7 @@
 - ⚠️ Une note qui ne disait QUE l’atelier est vidée, et le texte d’avant reste gardé en sauvegarde.
 - ⛔ Une explication qui vaut pour tout un chapitre se pose UNE fois, sur la première ligne où l’écart commence, et non sur chacune des lignes qu’il traverse : répétée sur trente lignes, elle cessait d’être lue.
 - ⚠️ L’avis que l’édition imprime (l’argument d’un psaume chez Sacy, une note de saint Jérôme) est un texte de l’édition, et il se garde mot pour mot.
+- ⚠️ CES NOTES PARAISSENT AUSSI SUR LA PAGE BIBLE (§ 13.22, 17 septembre 2026).
 
 ## § 51. Les objets d’interface partagés
 
@@ -3265,6 +3266,21 @@
 - ⚠️ CE QUI PARAÎT AUJOURD’HUI, ET CE QUI ATTEND LA DONNÉE.
 - ⚠️ L’APPARAT PROPRE À UN BLOC N’EST PAS TOUCHÉ.
 
+**§ 13.22 — Les notes des VERSETS paraissent sur la page Bible, dans la fenêtre commune**
+
+- ⛔ TOUTE BIBLE LUE AU VERSET PORTE SES NOTES DE VERSET SUR LA PAGE BIBLE.
+- ⛔ Une note se rédige une fois, pour les deux pages : elle n’a pas de seconde écriture.
+- ⛔ LA NOTE SE POSE SUR LA LIGNE QUE LE LECTEUR VOIT, ET LA LECTURE EN DÉCIDE.
+- ⚠️ Une note ne se pose que sur la page de son chapitre, et jamais sur deux.
+- ⛔ UNE NOTE DONT LA LIGNE NE PARAÎT PAS CITE LE TEXTE DONT ELLE PARLE.
+- ⛔ UNE BIBLE N’APPELLE QU’UNE NOTE PAR LIGNE.
+- ⚠️ Un paragraphe qui redit mot pour mot celui qui le précède ne se répète pas ; tout le reste est gardé.
+- ⛔ LES NOTES DE VERSET SE NUMÉROTENT APRÈS CELLES DE L’ÉDITION — dans l’ordre de lecture.
+- ⚠️ La vue large les compose pour toutes ses colonnes à la fois : son menu change de bible sans repasser par le serveur, et la bible qu’on y choisit doit trouver les siennes.
+- ⛔ « SANS LES COMMENTAIRES », LE TEXTE EST NU (§ 18) : les notes de verset ne se chargent pas, pas plus que l’appareil de l’édition.
+- ⚠️ LEUR ÉCHEC NE FERME PAS LA PAGE : LE CHAPITRE SE LIT SANS ELLES.
+- ⚠️ CE QUI ATTEND UNE DÉCISION, ET CE QUI ATTEND LA DONNÉE.
+
 ---
 
 ## Couverture — les chapitres que le noyau représente le moins
@@ -3274,7 +3290,7 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | § | chapitre | signes | énoncés | pour mille signes |
 |---|---|---:|---:|---:|
 | 8 | Notes structurées et références présentes dans | 8 003 | 1 | **0.1** |
-| 52 | Les états de publication et de validation | 36 400 | 16 | **0.4** |
+| 52 | Les états de publication et de validation | 40 753 | 16 | **0.4** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
 | 3 | Typographie — les signes, les espaces, l’enric | 69 485 | 57 | **0.8** |
 | 15 | Corpus biblique et traductions | 18 188 | 17 | **0.9** |

@@ -690,3 +690,17 @@ Charte, § 13.21.
 **Les disciplines.** Notes de verset par `note_subtype` : critique textuelle 5 589 (5 514 publiques), philologie 2 218 (2 191), traduction 1 384 (1 378), exégèse 11, ces onze chez Fillion. `historical`, `reference` et `other`, que la contrainte admet, ne portent aucune note.
 
 **Le coût des vues.** Ajouter la voix aux deux vues ne change pas le plan : la lecture des notes d’un chapitre telle que la page la fait, par identifiants littéraux, reste à 6,7 ms sur le Psaume 119 de la traduction moderne. ⚠️ Écrite avec une sous-requête sur `versets_canon`, la même lecture agrège toutes les notes de la famille avant de filtrer, en 446 ms : la page ne le fait pas, mais un script d’atelier le ferait.
+
+### 2026-09-17 — Notes des versets sur la page Bible : le relevé
+
+Charte, § 13.22.
+
+**Ce que `versets_v2` porte.** 2 487 notes non vides : Sacy 1 837, la Vulgate 508, la Septante 83, la traduction moderne du témoin 32, Segond 27. Crampon, Fillion et l’AELF n’en portent aucune. Parmi elles, des titres de psaume (Sacy 130, la Vulgate 149, la Septante 31) et des lignes hors canon (Sacy 47, la Vulgate 47, la Septante 11, et les 32 de la traduction moderne, toutes). 1 397 notes de Sacy décrivent le découpage de l’édition de 1730 (« partie 1 sur 2 »), en 1 383 textes distincts.
+
+**Le contrôle.** Un script d’atelier rejoue la règle de la page sur tous les chapitres qui portent une note, en vue large, par le canon et en regard, avec les fonctions de la page. Chaque note se pose une fois et une seule ; aucune ne se pose hors de la requête de son chapitre ; aucun paragraphe ne manque à sa fenêtre. 1 884 fenêtres, dont 556 réunissent plusieurs paragraphes : 578 lignes cumulaient plusieurs notes d’une même bible, et sur 22 d’entre elles ces notes étaient strictement identiques (« Titre du psaume, que la Vulgate compte comme un verset », une fois par ligne du titre).
+
+**Les notes qui citent leur texte.** 31 : le prologue grec du Siracide, posé en tête du chapitre 1 et sorti de la note (plus de 400 signes), et 30 remarques de la traduction moderne sur une matière que la lecture par le canon ne montre pas. Les deux autres remarques de la traduction moderne portent sur une glose et se posent sur sa ligne. En regard (ancien français et français moderne), les 32 notes sont appelées, et aucune fenêtre n’est sans appel.
+
+**Suzanne.** Trois notes, sur Suzanne 1, 64 (deux chez Sacy, une dans la Vulgate), se posent sur une page que le volet ne propose pas.
+
+**Le coût.** La requête d’un chapitre, à chaud et sous la politique de lecture : 29 ms pour le Psaume 9 dans les cinq colonnes de la vue large, 19 ms pour Siracide 51, 6 ms pour Genèse 1, 2 ms pour un chapitre de la traduction moderne.

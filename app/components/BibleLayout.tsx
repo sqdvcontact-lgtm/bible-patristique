@@ -18,7 +18,7 @@ import { selectableReadingModes, type TranslationReadingCapabilities } from '@/a
 import { estVerseEditorial, estVerseSurColonnes } from '@/app/lib/bibleMultimode'
 import { livresDisponibles899, TRAD_ID_BIBLE899, type Couche899 } from '@/app/lib/bible899'
 import { livresDisponiblesEditoriaux } from '@/app/lib/bibleEditorial'
-import type { BibleEditionChapterDisplay } from '@/app/lib/bibleEdition'
+import type { BibleEditionChapterDisplay, BibleEditionDisplayNote } from '@/app/lib/bibleEdition'
 import type { BibliographiePiece } from '@/app/lib/bibleBibliographieOuvrages'
 import LectureBilingueBible from './LectureBilingueBible'
 import ModaleLivreAbsent, { type TraductionProposee } from './ModaleLivreAbsent'
@@ -72,6 +72,8 @@ type Props = {
   couchesDisponibles?: Couche899[]
   /** Introductions, commentaires de plage, notes et illustrations de l’édition. */
   editionChapter?: BibleEditionChapterDisplay | null
+  /** Les notes des VERSETS (`versets_v2.notes`), rangées par bible (charte § 13.22). */
+  notesDesVersets?: Readonly<Record<string, readonly BibleEditionDisplayNote[]>> | null
   /** Lecture « Latin & Français » : deux membres d’une même famille en regard. */
   lectureBilingue?: LectureBilingueProps | null
   /** Membres de la famille éditoriale (langue et rôle), dans l'ordre du catalogue.
@@ -119,7 +121,7 @@ export default function BibleLayout(props: Props) {
   )
 }
 
-function PageBible({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, editionChapter, lectureBilingue, membresFamille, paratexteDisponible = false, texteSeul = false, sommaireEdition = [], pieceAffichee = null }: Props) {
+function PageBible({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, editionChapter, notesDesVersets = null, lectureBilingue, membresFamille, paratexteDisponible = false, texteSeul = false, sommaireEdition = [], pieceAffichee = null }: Props) {
   // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
   const { visiteFaite, oublierVisite, profilPret } = useCompte()
   const listeTraductions = traductions
@@ -778,6 +780,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           setVersetSelectionne={setVersetSelectionne}
           mobile={mobile}
           editionChapter={editionChapter}
+          notesDesVersets={notesDesVersets}
           maniereDeLire={maniereDeLire}
           pieceAffichee={pieceAffichee}
         />
