@@ -29,6 +29,7 @@ import { useSansSurvol } from '@/app/lib/useEstMobile'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { composerBibliographie } from '@/app/lib/bibleBibliographie'
 import { ancreAppelNoteBible, type BibleEditionDisplayNote } from '@/app/lib/bibleEdition'
+import { blocDeNoteBibliqueDiscret, intituleNoteBiblique } from '@/app/lib/noteBiblique'
 import { SEUIL_CITATION_SORTIE } from '@/app/lib/citationSortie'
 import BibliographieBible from './BibleBibliographie'
 
@@ -63,7 +64,11 @@ export function ContenuNoteBiblique({ note, figures }: {
             return <BibliographieBible key={bloc.id} texte={bloc.text} lang={bloc.language ?? undefined} />
           }
         }
-        const discret = bloc.kind === 'reference' || bloc.kind === 'attribution'
+        // ⛔ Ce qu'on TRAVERSE pour atteindre le propos se lit en discret, et la FAMILLE du
+        // bloc en décide, comme sur la page d'une œuvre (charte § 13.21) : le renvoi, le
+        // renvoi interne, l'attribution, la coordonnée. Une liste écrite ici laissait les
+        // renvois internes de Fillion se composer en propos.
+        const discret = blocDeNoteBibliqueDiscret(bloc.kind)
         // `quotation` décrit le GENRE du bloc, pas sa longueur. Une courte citation
         // (par ex. « Ignoratio Scripturarum… ») reste dans le fil de la note ; seule
         // une citation qui atteint le seuil commun de la charte reçoit la composition
@@ -107,7 +112,8 @@ export default function AppelNoteBiblique({
   variante = 'corps',
   figures,
 }: {
-  note: Pick<BibleEditionDisplayNote, 'id' | 'displayNumber' | 'blocks'>
+  /** `sousType` : la discipline d'une note de VERSET ; une note de bloc n'en porte pas. */
+  note: Pick<BibleEditionDisplayNote, 'id' | 'displayNumber' | 'blocks' | 'sousType'>
   memberId?: string
   /** Les gravures que la note porte : elles la suivent dans sa fenêtre (`ContenuNoteBiblique`). */
   figures?: FiguresDeNote
@@ -149,14 +155,13 @@ export default function AppelNoteBiblique({
   const vue = typeof window === 'undefined'
     ? { largeur: 900, hauteur: 800 }
     : { largeur: window.innerWidth, hauteur: window.innerHeight }
-  // ⛔ UNE NOTE BIBLIQUE NE DÉCLARE AUCUN TYPE, et c'est le type qui le dit : les
-  // blocs d'une édition biblique n'ont pas de `editorialRole` — l'axe « qui parle »
-  // de la charte § 13.8 n'existe que du côté patristique. L'encart n'a donc pas
-  // d'intitulé à porter, et il se tait : c'est le NUMÉRO, dans sa gouttière, qui dit
-  // à quelle note il répond. ⚠️ Le jour où la donnée portera ce rôle,
-  // `intituleDeLaNote` (`app/lib/typeNote.ts`) le composera, comme ailleurs.
-  // ⛔ Jamais « Note » écrit en dur, qui n'apprenait rien à qui venait de cliquer.
-  const intitule: string | null = null
+  // ⛔ LA TÊTE DIT QUI PARLE, PUIS LA DISCIPLINE (charte § 13.21, 17 septembre 2026) :
+  // « Note de l'édition · Critique textuelle ». La voix se compose comme sur la page d'une
+  // œuvre (`intituleDeLaNote`), la discipline d'une note de verset la suit sans jamais la
+  // remplacer. ⚠️ Faute de l'une et de l'autre, la tête se TAIT : c'est le NUMÉRO, dans sa
+  // gouttière, qui dit à quelle note l'encart répond. ⛔ Jamais « Note » écrit en dur, qui
+  // n'apprenait rien à qui venait de cliquer.
+  const intitule = intituleNoteBiblique(note)
   const boite = rect ?? { top: 300, bottom: 316, left: 0 }
   const largeur = largeurEncartPx(racine)
   // La hauteur SUIT la note. Elle valait 420 px pour toutes, ce qui promettait une
@@ -198,10 +203,9 @@ export default function AppelNoteBiblique({
       {ouvert && typeof document !== 'undefined' && createPortal(
         <EncartNote
           numero={note.displayNumber}
-          // ⛔ Plus de « Note » écrit en dur : l'intitulé nomme le TYPE de la note,
-          // et se tait quand la donnée n'en déclare aucun — ce qui est le cas de
-          // toutes les notes bibliques aujourd'hui. Le numéro, dans sa gouttière,
-          // dit à quelle note l'encart répond.
+          // ⛔ Plus de « Note » écrit en dur : l'intitulé nomme qui parle et la discipline,
+          // et se tait quand la donnée ne déclare ni l'une ni l'autre. Le numéro, dans sa
+          // gouttière, dit à quelle note l'encart répond.
           intitule={intitule}
           placement={placement}
           signes={signes}

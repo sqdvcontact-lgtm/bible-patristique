@@ -34,6 +34,7 @@ import {
 import { resoudreStyleSemantique } from '@/app/lib/bibleHierarchieSemantique'
 import { estPieceGenerale } from '@/app/lib/bibleSommaireEdition'
 import { LONGUEUR_APERCU, sansMarqueOuverte } from '@/app/oeuvre/[id]/notesInventaire'
+import { libelleSousTypeNoteVerset } from '@/app/lib/noteBiblique'
 
 // ── Ce que la page donne au volet ────────────────────────────────────────────
 
@@ -145,20 +146,15 @@ export type NoteBibleRecensee = {
   rang: readonly number[]
 }
 
-/** Les sous-types d'une note de verset, en français. ⚠️ Vocabulaire relevé en base le
- *  16 septembre 2026 ; une valeur inconnue se dit « Autre », jamais par son code. */
-const INTITULES_NOTE_VERSET: Readonly<Record<string, string>> = {
-  textual: 'Critique textuelle',
-  philological: 'Philologie',
-  translation: 'Traduction',
-  exegetical: 'Exégèse',
-}
-
 export const INTITULE_NOTE_AUTRE = 'Autre'
 export const INTITULE_APPARAT_EDITORIAL = 'Apparat éditorial'
 
+/** La discipline d'une note de verset, en français. ⛔ Le vocabulaire est celui de la fenêtre
+ *  des notes (`libelleSousTypeNoteVerset`, `app/lib/noteBiblique.ts`) : deux listes d'un même
+ *  mot finiraient par ne plus s'accorder. L'inventaire range CHAQUE note, et dit donc « Autre »
+ *  là où la tête d'une note se tait. */
 export function intituleNoteVerset(sousType: string): string {
-  return INTITULES_NOTE_VERSET[sousType] ?? INTITULE_NOTE_AUTRE
+  return libelleSousTypeNoteVerset(sousType) ?? INTITULE_NOTE_AUTRE
 }
 
 /** Pourquoi une note ne paraît nulle part. Des phrases : elles se lisent en infobulle. */

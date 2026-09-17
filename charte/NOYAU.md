@@ -526,6 +526,7 @@
 
 **§ 13.12.1 — Les RESPONSABILITÉS éditoriales des notes**
 
+- ⚠️ SUR LA PAGE BIBLE, LA DISCIPLINE D’UNE NOTE DE VERSET SUIT LA VOIX (§ 13.21, décision de l’auteur du 17 septembre 2026) : « Note de l’édition · Critique textuelle ».
 - ⛔ `critical_apparatus` N’EST PLUS UNE RESPONSABILITÉ CANONIQUE.
 - ⛔ UNE RESPONSABILITÉ FAUSSE EST PIRE QU’UNE RESPONSABILITÉ ABSENTE.
 - ⚠️ L’INTITULÉ SE DÉTERMINE AU NIVEAU DE LA NOTE LOGIQUE.
@@ -3252,6 +3253,18 @@
 - ⛔ UN CLIC OUVRE LA NOTE DANS LE TEXTE, ET C’EST LE GESTE DU LECTEUR QU’ON REJOUE.
 - ⚠️ LES NOTES D’UN VERSET DE LA POLYGLOTTE N’Y SONT PAS — c’est une autre donnée, qui se lit sur une autre page (§ 50.7).
 
+## § 13. Notes et apparats
+
+**§ 13.21 — Les notes d’une BIBLE disent qui parle, puis leur discipline**
+
+- ⛔ LA TÊTE D’UNE NOTE BIBLIQUE DIT QUI PARLE, PUIS SA DISCIPLINE « Note de l’édition · Critique textuelle ».
+- ⛔ LA DISCIPLINE EST CELLE QUE L’ÉDITION DÉCLARE, ET ELLE SEULE.
+- ⛔ Un sous-type ajouté à la contrainte reçoit son libellé dans le même mouvement : sans lui, sa note paraîtrait muette.
+- ⛔ UNE NOTE QUI DÉCLARE SA VOIX LA PRÊTE À SES BLOCS MUETS.
+- ⛔ CE QU’ON TRAVERSE SE LIT EN DISCRET, ET LA FAMILLE DU BLOC EN DÉCIDE (§ 13.11) : le renvoi, le renvoi interne, l’attribution, la coordonnée de l’appareil.
+- ⚠️ CE QUI PARAÎT AUJOURD’HUI, ET CE QUI ATTEND LA DONNÉE.
+- ⚠️ L’APPARAT PROPRE À UN BLOC N’EST PAS TOUCHÉ.
+
 ---
 
 ## Couverture — les chapitres que le noyau représente le moins
@@ -3261,7 +3274,7 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | § | chapitre | signes | énoncés | pour mille signes |
 |---|---|---:|---:|---:|
 | 8 | Notes structurées et références présentes dans | 8 003 | 1 | **0.1** |
-| 52 | Les états de publication et de validation | 32 590 | 16 | **0.5** |
+| 52 | Les états de publication et de validation | 36 400 | 16 | **0.4** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
 | 3 | Typographie — les signes, les espaces, l’enric | 69 485 | 57 | **0.8** |
 | 15 | Corpus biblique et traductions | 18 188 | 17 | **0.9** |

@@ -87,6 +87,7 @@ export type { BibleSourceFragment } from './bibleFragmentsMateriels'
 export type BibleEditionDisplayTextBlock = {
   id: string
   kind: 'heading' | 'lemma' | 'commentary' | 'quotation' | 'translation' | 'reference' | 'attribution'
+    | 'source_locator' | 'internal_cross_reference'
   form: 'prose' | 'verse'
   text: string
   language?: string | null
@@ -103,6 +104,9 @@ export type BibleEditionDisplayTextBlock = {
    *  note bibliographique se compose en liste, non en paragraphe suivi. */
   presentationStyle?: StyleCompositionBloc | null
   inlineSpans?: BibleEditionDisplayInlineSpan[]
+  /** Qui parle, pour un bloc de NOTE : le sien, sinon celui que sa note déclare
+   *  (`roleDuBlocDeNote`, charte § 13.21). Un bloc de corps n'en porte pas. */
+  editorialRole?: string | null
 }
 
 /** Le vocabulaire est CLOS : un style inconnu est ignoré plutôt qu'appliqué. */
@@ -366,6 +370,9 @@ export type BibleEditionDisplayNote = {
   canonId: string
   materialOrder: number
   blocks: BibleEditionDisplayTextBlock[]
+  /** La DISCIPLINE d'une note de verset (`note_subtype`), brute : la fenêtre la dit en
+   *  français après la voix (`intituleNoteBiblique`, charte § 13.21). */
+  sousType?: string | null
 }
 
 /**

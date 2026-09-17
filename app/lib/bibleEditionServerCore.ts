@@ -100,7 +100,10 @@ export type BibleEditionBodyBlockPayload = BibleEditionBodyBlockRow & {
 export type BibleEditionNoteBlockRow = {
   block_id: string
   rank: number
+  /** Le vocabulaire de la base : les deux dernières natures n'existent que pour les notes des
+   *  blocs éditoriaux (`bible_editorial_body_block_note_blocks_kind_check`). */
   kind: 'lemma' | 'commentary' | 'quotation' | 'translation' | 'reference' | 'attribution'
+    | 'source_locator' | 'internal_cross_reference'
   form: 'prose' | 'verse'
   language: string | null
   text: string
@@ -108,6 +111,9 @@ export type BibleEditionNoteBlockRow = {
   needs_review: boolean
   /** `metadata.presentation` du bloc de note : c'est là que vit « bibliographie ». */
   presentation?: unknown
+  /** `metadata.editorial_role` du bloc : qui parle, quand le bloc le déclare lui-même
+   *  (charte § 13.21). Brut : l'héritage de la voix de la note se fait au rendu. */
+  editorial_role?: string | null
 }
 
 export type BibleEditionBodyBlockInternalNoteRow = {
@@ -123,6 +129,8 @@ export type BibleEditionBodyBlockInternalNoteRow = {
   printed_page: string | null
   material_order: number
   blocks: BibleEditionNoteBlockRow[]
+  /** `metadata.editorial_role` de la NOTE : la voix qu'elle prête à ses blocs muets. */
+  editorial_role?: string | null
 }
 
 export type BibleEditionVerseNoteRow = {
@@ -140,6 +148,8 @@ export type BibleEditionVerseNoteRow = {
   printed_page: string | null
   material_order: number
   blocks: BibleEditionNoteBlockRow[]
+  /** `metadata.editorial_role` de la NOTE : la voix qu'elle prête à ses blocs muets. */
+  editorial_role?: string | null
 }
 
 export type BibleEditionAssetRow = {

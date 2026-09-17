@@ -678,3 +678,15 @@ Onglet « Notes » du volet de droite de la page Bible, réservé à l’adminis
 **Des blocs que rien ne charge.** 336 blocs éditoriaux de portée « section » n’ont aucun ancrage canonique : aucune page ne les charge, et leurs 829 notes ne paraissent nulle part. Ce sont surtout des subdivisions d’introduction : 23 blocs pour les Actes, 17 pour le Deutéronome, le corps de l’introduction de Jonas (2 blocs), celles de 1 Samuel. Les notes des blocs n’existent que dans la Bible de Fillion. L’inventaire les liste sous « Ne paraissent pas ». Les ancrer, ou les ranger dans une pièce, est une question de donnée.
 
 **Les notes de bloc sans point d’appel.** Elles se lisent dans l’apparat de leur bloc (231 sur 1 056 au 13 septembre 2026). Leur entrée porte désormais un identifiant, que l’inventaire vise.
+
+### 2026-09-17 — Notes bibliques : qui parle, la discipline, les renvois internes
+
+Charte, § 13.21.
+
+**Où vit la voix.** Aucune des 9 202 notes de verset ne déclare qui parle, ni sur la note ni sur ses blocs. Parmi les 1 056 notes de bloc éditorial, toutes chez Fillion, 153 déclarent `source_editorial_note` sur la note ; 28 le redisent sur chacun de leurs blocs (40 blocs en tout), et aucune ne le dit sur un bloc sans le dire sur la note. Toutes sont publiques.
+
+**Où ces notes vivent.** Les 153 notes tiennent dans 75 blocs d’introduction ou de notice, de portée « section », sans ordre canonique : 1 Chroniques 28, Job 22, 1 Rois 21, 1 Samuel 16, Juges 15, Nombres 14, Deutéronome 13, Josué 7, Genèse 6, Lévitique 6, Ruth 5. Aucune page ne les charge (carnet du 16 septembre 2026). Les 35 renvois internes de l’apparat de Fillion sont tous dans ces mêmes notes. Rien, de la voix ni des renvois internes, ne se voit donc encore sur le site.
+
+**Les disciplines.** Notes de verset par `note_subtype` : critique textuelle 5 589 (5 514 publiques), philologie 2 218 (2 191), traduction 1 384 (1 378), exégèse 11, ces onze chez Fillion. `historical`, `reference` et `other`, que la contrainte admet, ne portent aucune note.
+
+**Le coût des vues.** Ajouter la voix aux deux vues ne change pas le plan : la lecture des notes d’un chapitre telle que la page la fait, par identifiants littéraux, reste à 6,7 ms sur le Psaume 119 de la traduction moderne. ⚠️ Écrite avec une sous-requête sur `versets_canon`, la même lecture agrège toutes les notes de la famille avant de filtrer, en 446 ms : la page ne le fait pas, mais un script d’atelier le ferait.

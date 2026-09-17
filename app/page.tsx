@@ -26,6 +26,7 @@ import type {
 import { baliserBlocsDuChapitre, type BornesOrdreChapitre } from '@/app/lib/bibleAxeChapitre'
 import { rangDesSousTitres } from '@/app/lib/bibleHierarchieSemantique'
 import { grouperPiecesLiminaires, pieceParCle } from '@/app/lib/bibleSommaireEdition'
+import { roleDuBlocDeNote } from '@/app/lib/noteBiblique'
 import { normaliserChapitreBible } from '@/app/lib/bibleNavigation'
 import { codeTraductionValide, COOKIE_TRAD_BIBLE } from '@/app/lib/preferenceBible'
 import { nomLivreReference } from '@/app/lib/referencesBibliques'
@@ -372,14 +373,18 @@ export default async function Home({
   // Un bloc de note se compose partout de la même façon : la couche de RENDU
   // quand elle existe — c'est elle qui porte `*italique*` et `++capitales++` —,
   // la transcription sinon, et le style que la donnée déclare.
-  const blocDeNote = (bloc: BibleEditionNoteBlockRow): BibleEditionDisplayTextBlock => ({
-    id: bloc.block_id,
-    kind: bloc.kind,
-    form: bloc.form,
-    text: bloc.rendering ?? bloc.text,
-    language: bloc.language,
-    presentationStyle: styleCompositionDeNote(bloc.presentation),
-  })
+  // ⛔ Et sa VOIX : la sienne, sinon celle que sa note déclare (charte § 13.21). La
+  // fenêtre la nomme en tête ; une voix perdue ici se tairait sans que rien ne le dise.
+  const blocDeNote = (roleDeLaNote: string | null | undefined) =>
+    (bloc: BibleEditionNoteBlockRow): BibleEditionDisplayTextBlock => ({
+      id: bloc.block_id,
+      kind: bloc.kind,
+      form: bloc.form,
+      text: bloc.rendering ?? bloc.text,
+      language: bloc.language,
+      presentationStyle: styleCompositionDeNote(bloc.presentation),
+      editorialRole: roleDuBlocDeNote(bloc.editorial_role, roleDeLaNote),
+    })
 
   const editionMember = editionCatalog.find((row) => row.trad_id === trad)
   // La promesse lancée en tête n'est cueillie que si une édition commentée la
@@ -453,7 +458,7 @@ export default async function Home({
           anchorTarget: note.anchor_text && note.anchor_start_offset_unicode === null
             ? 'heading' as const
             : 'body' as const,
-          blocks: note.blocks.map(blocDeNote),
+          blocks: note.blocks.map(blocDeNote(note.editorial_role)),
         })),
       })),
       notes: payload.notes.filter(appartientAuMembre).map((note) => ({
@@ -461,7 +466,8 @@ export default async function Home({
         displayNumber: note.display_number,
         canonId: note.canon_id,
         materialOrder: note.material_order,
-        blocks: note.blocks.map(blocDeNote),
+        sousType: note.note_subtype,
+        blocks: note.blocks.map(blocDeNote(note.editorial_role)),
       })),
       assets: payload.assets.filter(appartientAuMembre).map((asset) => ({
         id: asset.id,
@@ -577,7 +583,7 @@ export default async function Home({
             anchorTarget: note.anchor_text && note.anchor_start_offset_unicode === null
               ? 'heading' as const
               : 'body' as const,
-            blocks: note.blocks.map(blocDeNote),
+            blocks: note.blocks.map(blocDeNote(note.editorial_role)),
           })),
         })),
         notes: payload.notes.map((note) => ({
@@ -587,7 +593,8 @@ export default async function Home({
           materialOrder: note.material_order,
           appliesTo: note.applies_to,
           appliesToMemberId: note.applies_to_member_id,
-          blocks: note.blocks.map(blocDeNote),
+          sousType: note.note_subtype,
+          blocks: note.blocks.map(blocDeNote(note.editorial_role)),
         })),
         illustrations: payload.assets.map((asset) => ({
           id: asset.id,

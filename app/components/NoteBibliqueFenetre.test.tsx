@@ -89,3 +89,23 @@ describe('la fenêtre d’une note de verset', () => {
     expect(figuresDeLaNote(undefined)).toBeUndefined()
   })
 })
+
+// ⛔ CE QU'ON TRAVERSE SE LIT EN DISCRET, et la FAMILLE du bloc en décide (charte § 13.21) :
+// les renvois internes de l'apparat de Fillion se composaient en propos.
+describe('les renvois d’une note biblique', () => {
+  const rendre = (kind: string) => renderToStaticMarkup(
+    <ContenuNoteBiblique note={{
+      blocks: [{ id: 'b1', kind, form: 'prose', text: 'Voyez la note précédente.' }],
+    } as never} />,
+  )
+
+  it('le renvoi interne se lit en discret, comme le renvoi et l’attribution', () => {
+    for (const kind of ['internal_cross_reference', 'reference', 'attribution']) {
+      expect(rendre(kind), kind).toContain('color:var(--cs-texte-second)')
+    }
+  })
+
+  it('le propos garde sa teinte', () => {
+    expect(rendre('commentary')).toContain('color:var(--cs-texte-fort)')
+  })
+})

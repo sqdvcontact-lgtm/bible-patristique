@@ -2201,6 +2201,8 @@ Douze questions posées dans `work/notes/QUESTIONS_NOTES_20260905.txt`, toutes M
 
 La responsabilité éditoriale vit dans `metadata.editorial_role`. Elle répond uniquement à la question **« qui parle ? »** et commande l’intitulé public. La fonction intellectuelle de la note vit séparément dans `texte_notes.metadata.functional_type` (§ 13.16.1) et ne commande jamais l’intitulé.
 
+⚠️ **SUR LA PAGE BIBLE, LA DISCIPLINE D’UNE NOTE DE VERSET SUIT LA VOIX** (§ 13.21, décision de l’auteur du 17 septembre 2026) : « Note de l’édition · Critique textuelle ». Elle ne remplace jamais la voix, et ne rouvre donc pas l’opposition abolie ci-dessous. Sur la page d’une œuvre, la règle reste entière.
+
 | `editorial_role` | Ce qu’il dit | Ce que le lecteur voit |
 |---|---|---|
 | `author_note` | la note est de l’AUTEUR ancien lui-même | Note de l’auteur |
@@ -8451,3 +8453,21 @@ Demande de l’auteur du 16 septembre 2026 : « en mode admin, je veux pouvoir v
 ⚠️ **UNE NOTE NON PUBLIQUE N’Y PARAÎT PAS.** L’inventaire lit sous la session, comme la page : il montre ce que la page peut ouvrir, et ce que la politique de lecture tait, il le tait aussi.
 
 ⚠️ **LES NOTES D’UN VERSET DE LA POLYGLOTTE N’Y SONT PAS** : c’est une autre donnée, qui se lit sur une autre page (§ 50.7).
+
+### 13.21 Les notes d’une BIBLE disent qui parle, puis leur discipline
+
+Demande de l’auteur du 17 septembre 2026, sur les notes de la page Bible, après trois propositions : nommer qui parle dans la fenêtre d’une note, comme sur la page d’une œuvre ; composer les renvois internes en discret ; montrer le sous-type d’une note en tête. « Mets ça en place et explique-le dans la charte. »
+
+⛔ **LA TÊTE D’UNE NOTE BIBLIQUE DIT QUI PARLE, PUIS SA DISCIPLINE** : « Note de l’édition · Critique textuelle ». La voix se compose comme sur la page d’une œuvre (§ 13.12.1) : le doute se tait, une note enrichie nomme toutes ses voix, un bloc qui se signe lui-même ne se redit pas. La discipline suit, séparée d’un point médian, et ne remplace jamais la voix : c’est ce qui garde abolie l’opposition « Apparat critique » / « Note de l’édition ». Faute de l’une et de l’autre, la tête se tait, et le numéro dit à quelle note l’encart répond.
+
+⛔ **LA DISCIPLINE EST CELLE QUE L’ÉDITION DÉCLARE, ET ELLE SEULE.** Elle vit dans `bible_verse_notes.note_subtype`, colonne non nulle au vocabulaire clos : `textual` Critique textuelle, `philological` Philologie, `translation` Traduction, `exegetical` Exégèse, `historical` Histoire, `reference` Renvois. `other` ne s’annonce pas : « Autre » en tête d’une note n’apprend rien à qui vient de l’ouvrir. Une note de bloc éditorial n’a pas de discipline. L’inventaire des notes d’une bible (§ 38.35) range chaque note sous le même mot, et sous « Autre » ce que la tête tait. ⛔ Un sous-type ajouté à la contrainte reçoit son libellé dans le même mouvement : sans lui, sa note paraîtrait muette.
+
+⚠️ **POURQUOI LA BIBLE, ET NON L’ŒUVRE.** Sur la page d’une œuvre, la fonction d’une note (`functional_type`) ne commande aucun intitulé (§ 13.12.1). La discipline d’une note de verset n’est pas de même nature : c’est une colonne que l’édition renseigne pour chacune de ses notes, et le seul fait qui distingue, dans un appareil de neuf mille remarques, une critique du témoin d’un choix de traduction. La règle ne s’étend pas aux œuvres sans une décision.
+
+⛔ **UNE NOTE QUI DÉCLARE SA VOIX LA PRÊTE À SES BLOCS MUETS.** Côté œuvre, la voix vit sur le bloc ; côté Bible, la donnée la pose aussi sur la note (`metadata.editorial_role` de `bible_verse_notes` et de `bible_editorial_body_block_notes`). Le bloc qui déclare la sienne l’emporte : c’est la voix que Corpus Scriptura pose sur ce qu’il ajoute, et la retirer au profit de la note attribuerait l’ajout à l’édition. Les deux vues des notes bibliques exposent la voix brute, celle de la note et celle de chaque bloc ; l’héritage se décide au rendu, où il se teste.
+
+⛔ **CE QU’ON TRAVERSE SE LIT EN DISCRET, ET LA FAMILLE DU BLOC EN DÉCIDE** (§ 13.11) : le renvoi, le renvoi interne, l’attribution, la coordonnée de l’appareil. La fenêtre testait `reference` et `attribution` par une liste écrite à la main, et les renvois internes de Fillion s’y seraient composés en propos. La citation visée, qui reprend le texte, n’est pas discrète.
+
+⚠️ **CE QUI PARAÎT AUJOURD’HUI, ET CE QUI ATTEND LA DONNÉE.** La discipline paraît sur toutes les notes de verset publiques : plus de neuf mille dans la traduction moderne du témoin de 1260, onze chez Fillion. La voix et les renvois internes attendent. Aucune note de verset ne déclare encore qui parle ; et les 153 notes de bloc qui le déclarent, comme les 35 renvois internes, vivent tous dans des blocs de portée « section » sans ancrage canonique, qu’aucune page ne charge (§ 38.35). Le rendu est prêt : il paraîtra dès que la donnée posera la voix sur les notes de verset, et qu’elle ancrera ces blocs ou les rangera dans une pièce.
+
+⚠️ **L’APPARAT PROPRE À UN BLOC N’EST PAS TOUCHÉ.** Ses entrées, qui n’ont pas de point d’appel, se composent comme des paragraphes de l’apparat, sans tête.
