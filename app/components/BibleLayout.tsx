@@ -543,7 +543,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // ⚠️ Elle s'offre pour une famille qui porte un appareil (`paratexteDisponible`, jugé sur
   // la famille), et pour toute bible dont la page pose les notes éditoriales des lignes
   // (charte § 13.22) : Sacy n'a pas d'appareil, et ses notes sont les seules qu'elle porte.
-  // ⚠️ Mémorisée sur ses FAITS : l'onglet relève le livre quand ils changent, et une
+  // ⚠️ Mémorisée sur ses FAITS : l'onglet relève la bible quand ils changent, et une
   // identité neuve à chaque rendu le ferait relire pour rien.
   const familleCle = listeTraductions[traductionIndex]?.famille?.cle ?? null
   const familleLue = paratexteDisponible ? familleCle : null
@@ -583,20 +583,20 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   const notesBible = useMemo<ContexteNotesBible | null>(() => (familleLue === null && !avecNotesEditoriales) ? null : {
     familleId: familleLue,
     livre: livreActif,
-    nomLivre,
     bibles: biblesLues,
     chapitre: chapitreActif,
     pieceCle: pieceLue,
     appareilAffiche: !texteSeul,
     // ⚠️ Une note ne se lit qu'avec l'appareil : l'adresse le rétablit, et garde le reste.
-    adresseDuChapitre: (n: number) => urlLectureBible({
-      couche, bilingue: enRegard, texteSeul: false, livre: livreActif, chapitre: n, trad: traduction,
+    // L'inventaire porte sur la bible entière : l'adresse prend le livre de la note.
+    adresseDuChapitre: (livre: string, n: number) => urlLectureBible({
+      couche, bilingue: enRegard, texteSeul: false, livre, chapitre: n, trad: traduction,
     }),
     // Une pièce est commune aux membres : elle ne se lit pas en regard (voir `NavLivres`).
     adresseDeLaPiece: (cle: string) => urlLectureBible({
       couche, bilingue: false, texteSeul: false, livre: livreActif, chapitre: chapitreActif, trad: traduction, piece: cle,
     }),
-  }, [familleLue, avecNotesEditoriales, livreActif, nomLivre, biblesLues, chapitreActif, pieceLue, texteSeul, couche, enRegard, traduction])
+  }, [familleLue, avecNotesEditoriales, livreActif, biblesLues, chapitreActif, pieceLue, texteSeul, couche, enRegard, traduction])
 
   // Le menu « occasionnel » du volet de gauche : composé des seuls FAITS lus dans les
   // données, jamais d'un identifiant de traduction. Il reste vide — donc invisible —

@@ -28,7 +28,7 @@ const MEMBRE_LA = { id: 'membre-la', libelle: 'Latin' }
 
 function bloc(partiel: Partial<LigneBlocEditorial> & { id: string }): LigneBlocEditorial {
   return {
-    block_key: partiel.id, scope_kind: 'section', placement: 'before',
+    block_key: partiel.id, scope_book_code: 'MRK', scope_kind: 'section', placement: 'before',
     applies_to: 'family', applies_to_member_id: null, heading: null,
     canon_id_start: 'MRK.1.1', canon_id_end: 'MRK.1.8', material_order: 10,
     semantic_style_code: 'commentaire', semantic_level: 'I5', embedded_title_level: null,
@@ -65,8 +65,8 @@ describe('les intitulés et les repères', () => {
   })
 
   it('lit le chapitre et le verset d’un créneau', () => {
-    expect(pointDuCanon('GEN.3.12')).toEqual({ chapitre: 3, verset: 12 })
-    expect(pointDuCanon('PSA.119.0')).toEqual({ chapitre: 119, verset: 0 })
+    expect(pointDuCanon('GEN.3.12')).toEqual({ livre: 'GEN', chapitre: 3, verset: 12 })
+    expect(pointDuCanon('PSA.119.0')).toEqual({ livre: 'PSA', chapitre: 119, verset: 0 })
     expect(pointDuCanon(null)).toBeNull()
     expect(pointDuCanon('GEN')).toBeNull()
   })
@@ -85,14 +85,17 @@ describe('les intitulés et les repères', () => {
 describe('le lieu d’un bloc — la règle de la page', () => {
   it('pose un bloc ancré au chapitre de son début, ou de sa fin s’il vient après', () => {
     expect(lieuDuBloc(bloc({ id: 'a', canon_id_start: 'MRK.2.3', canon_id_end: 'MRK.3.1' }), SANS_PIECE))
-      .toEqual({ lieu: { genre: 'chapitre', chapitre: 2, canonId: 'MRK.2.3' }, verset: 3, cote: 0 })
+      .toEqual({ lieu: { genre: 'chapitre', livre: 'MRK', chapitre: 2, canonId: 'MRK.2.3' }, verset: 3, cote: 0 })
     expect(lieuDuBloc(bloc({ id: 'b', placement: 'after', canon_id_start: 'MRK.2.3', canon_id_end: 'MRK.3.1' }), SANS_PIECE))
-      .toEqual({ lieu: { genre: 'chapitre', chapitre: 3, canonId: 'MRK.3.1' }, verset: 1, cote: 2 })
+      .toEqual({ lieu: { genre: 'chapitre', livre: 'MRK', chapitre: 3, canonId: 'MRK.3.1' }, verset: 1, cote: 2 })
   })
 
   it('ouvre le premier chapitre avec l’introduction d’un livre sans ancre', () => {
     expect(lieuDuBloc(bloc({ id: 'c', scope_kind: 'book', canon_id_start: null, canon_id_end: null, semantic_style_code: 'introduction_titree', semantic_level: 'I1' }), SANS_PIECE))
-      .toEqual({ lieu: { genre: 'chapitre', chapitre: 1, canonId: null }, verset: -1, cote: 0 })
+      .toEqual({ lieu: { genre: 'chapitre', livre: 'MRK', chapitre: 1, canonId: null }, verset: -1, cote: 0 })
+    // ⚠️ Sans livre déclaré, une ouverture de livre n'a pas d'adresse.
+    expect(lieuDuBloc(bloc({ id: 'c2', scope_book_code: null, scope_kind: 'book', canon_id_start: null, canon_id_end: null, semantic_style_code: 'introduction_titree', semantic_level: 'I1' }), SANS_PIECE).lieu)
+      .toEqual({ genre: 'absent', raison: RAISONS_ABSENCE.sansAncre })
   })
 
   it('dit pourquoi un bloc ne paraît nulle part', () => {
@@ -197,21 +200,23 @@ describe('le recensement', () => {
     ])
 
     expect(grouperNotesBible(notes).map(g => [g.cle, g.titre, g.notes.length])).toEqual([
-      ['chapitre|1', 'Chapitre 1', 5],
-      ['chapitre|2', 'Chapitre 2', 1],
+      ['chapitre|MRK|1', 'Marc 1', 5],
+      ['chapitre|MRK|2', 'Marc 2', 1],
       ['absent', 'Ne paraissent pas', 1],
     ])
   })
 })
 
 describe('sur place, ou ailleurs', () => {
-  const ici = { chapitre: 3, pieceCle: null, appareilAffiche: true }
+  const ici = { livre: 'GEN', chapitre: 3, pieceCle: null, appareilAffiche: true }
 
   it('ouvre sur place une note du chapitre lu, appareil composé', () => {
-    expect(noteSurPlace({ genre: 'chapitre', chapitre: 3, canonId: 'GEN.3.1' }, ici)).toBe(true)
-    expect(noteSurPlace({ genre: 'chapitre', chapitre: 4, canonId: 'GEN.4.1' }, ici)).toBe(false)
-    expect(noteSurPlace({ genre: 'chapitre', chapitre: 3, canonId: 'GEN.3.1' }, { ...ici, appareilAffiche: false })).toBe(false)
-    expect(noteSurPlace({ genre: 'chapitre', chapitre: 3, canonId: 'GEN.3.1' }, { ...ici, pieceCle: 'piece' })).toBe(false)
+    expect(noteSurPlace({ genre: 'chapitre', livre: 'GEN', chapitre: 3, canonId: 'GEN.3.1' }, ici)).toBe(true)
+    expect(noteSurPlace({ genre: 'chapitre', livre: 'GEN', chapitre: 4, canonId: 'GEN.4.1' }, ici)).toBe(false)
+    // ⛔ Le même chapitre d'un AUTRE livre n'est pas sur place.
+    expect(noteSurPlace({ genre: 'chapitre', livre: 'EXO', chapitre: 3, canonId: 'EXO.3.1' }, ici)).toBe(false)
+    expect(noteSurPlace({ genre: 'chapitre', livre: 'GEN', chapitre: 3, canonId: 'GEN.3.1' }, { ...ici, appareilAffiche: false })).toBe(false)
+    expect(noteSurPlace({ genre: 'chapitre', livre: 'GEN', chapitre: 3, canonId: 'GEN.3.1' }, { ...ici, pieceCle: 'piece' })).toBe(false)
   })
 
   it('ne va nulle part pour une note absente, et reconnaît sa pièce', () => {
@@ -219,21 +224,21 @@ describe('sur place, ou ailleurs', () => {
     expect(noteSurPlace({ genre: 'piece', cle: 'p', titre: 'P', rang: 0 }, { ...ici, pieceCle: 'p' })).toBe(true)
   })
 
-  it('tient la clé d’un relevé à la famille, au livre et aux bibles lues', () => {
-    expect(cleInventaireNotesBible({ familleId: 'f', livre: 'GEN', bibles: [{ trad: 'TR0010', libelle: 'Français' }, { trad: 'TR0011', libelle: 'Latin' }] }))
-      .toBe('f|GEN|TR0010+TR0011')
+  it('tient la clé d’un relevé à la famille et aux bibles lues, jamais au livre', () => {
+    expect(cleInventaireNotesBible({ familleId: 'f', bibles: [{ trad: 'TR0010', libelle: 'Français' }, { trad: 'TR0011', libelle: 'Latin' }] }))
+      .toBe('f|TR0010+TR0011')
   })
 
   it('y ajoute la lecture des notes éditoriales, et admet une bible sans famille', () => {
-    expect(cleInventaireNotesBible({ familleId: null, livre: 'PSA', bibles: [{ trad: 'TR0001', libelle: 'Sacy', notesEditoriales: { lecture: 'vue-large' } }] }))
-      .toBe('|PSA|TR0001:vue-large')
+    expect(cleInventaireNotesBible({ familleId: null, bibles: [{ trad: 'TR0001', libelle: 'Sacy', notesEditoriales: { lecture: 'vue-large' } }] }))
+      .toBe('|TR0001:vue-large')
     expect(cleInventaireNotesBible({
-      familleId: 'f', livre: 'GEN',
+      familleId: 'f',
       bibles: [
         { trad: 'TR0009', libelle: 'Ancien français', notesEditoriales: null },
         { trad: 'TR0013', libelle: 'Français', notesEditoriales: { lecture: 'regard', famille: 'f', biblesParLeCanon: ['TR0013'] } },
       ],
-    })).toBe('f|GEN|TR0009+TR0013:regard-f-TR0013')
+    })).toBe('f|TR0009+TR0013:regard-f-TR0013')
   })
 })
 
@@ -248,18 +253,18 @@ describe('les notes éditoriales des lignes (charte § 13.22)', () => {
   const lot: NotesEditorialesDUneBible = {
     trad: 'TR0013',
     fenetres: [
-      { id: 'v2-a', chapitre: 3, cible: 'GEN.3.8', rang: 1, verset: 8, reperes: '3, 8', canonId: 'GEN.3.8', textes: ['Une note.'] },
-      { id: 'v2-b', chapitre: 3, cible: 'GEN.3.9', rang: 2, verset: 9, reperes: '3, 9', canonId: 'GEN.3.9', textes: ['Leçon', 'Sa note.'] },
-      { id: 'v2-c', chapitre: 4, cible: 'GEN.4.1', rang: 1, verset: 1, reperes: '4, 1', canonId: 'GEN.4.1', textes: ['Hors appareil.'] },
+      { id: 'v2-a', livre: 'GEN', chapitre: 3, cible: 'GEN.3.8', rang: 1, verset: 8, reperes: '3, 8', canonId: 'GEN.3.8', textes: ['Une note.'] },
+      { id: 'v2-b', livre: 'GEN', chapitre: 3, cible: 'GEN.3.9', rang: 2, verset: 9, reperes: '3, 9', canonId: 'GEN.3.9', textes: ['Leçon', 'Sa note.'] },
+      { id: 'v2-c', livre: 'GEN', chapitre: 4, cible: 'GEN.4.1', rang: 1, verset: 1, reperes: '4, 1', canonId: 'GEN.4.1', textes: ['Hors appareil.'] },
     ],
     absentes: [
-      { id: 'z', chapitre: 12, verset: 3, reperes: '12, 3', raison: RAISONS_ABSENCE_EDITORIALE.sansPage, texte: 'Sans page.' },
+      { id: 'z', livre: 'GEN', chapitre: 12, verset: 3, reperes: '12, 3', raison: RAISONS_ABSENCE_EDITORIALE.sansPage, texte: 'Sans page.' },
     ],
   }
 
   it('⛔ prend le dernier numéro de l’appareil que la colonne appelle : la famille, ou son membre', () => {
-    expect([...derniersNumerosDeLEdition(notesVersets, MEMBRE_MODERNE.id)]).toEqual([[3, 7], [5, 2]])
-    expect([...derniersNumerosDeLEdition(notesVersets, null)]).toEqual([[3, 4], [5, 2]])
+    expect([...derniersNumerosDeLEdition(notesVersets, MEMBRE_MODERNE.id)]).toEqual([['GEN.3', 7], ['GEN.5', 2]])
+    expect([...derniersNumerosDeLEdition(notesVersets, null)]).toEqual([['GEN.3', 4], ['GEN.5', 2]])
   })
 
   it('numérote derrière l’appareil du chapitre, et nomme la bible qui les porte', () => {
@@ -274,7 +279,7 @@ describe('les notes éditoriales des lignes (charte § 13.22)', () => {
       ['v2-absente-z', null, '12, 3'],
     ])
     expect(editoriales.every(n => n.intitule === INTITULE_NOTE_EDITORIALE && n.membre === MEMBRE_MODERNE)).toBe(true)
-    expect(notes.find(n => n.cle === 'v2-b')).toMatchObject({ apercu: 'Leçon Sa note.', lieu: { genre: 'chapitre', chapitre: 3, canonId: 'GEN.3.9' } })
+    expect(notes.find(n => n.cle === 'v2-b')).toMatchObject({ apercu: 'Leçon Sa note.', lieu: { genre: 'chapitre', livre: 'GEN', chapitre: 3, canonId: 'GEN.3.9' } })
     expect(notes.find(n => n.cle === 'v2-absente-z')!.lieu).toEqual({ genre: 'absent', raison: RAISONS_ABSENCE_EDITORIALE.sansPage })
   })
 
@@ -290,10 +295,26 @@ describe('les notes éditoriales des lignes (charte § 13.22)', () => {
     expect(filtrerNotesBible(notes, { texte: '2' }).map(n => n.cle)).toEqual(['v2-b'])
     const avecGlose = recenserNotesBible({
       notesVersets: [], blocs: [], notesDeBlocs: [], pieces: SANS_PIECE, membres: [],
-      notesEditoriales: [{ trad: 'TR0013', absentes: [], fenetres: [{ id: 'v2-g', chapitre: 13, cible: 'uuid-g', rang: 1, verset: 18, reperes: '13, 18 (glose)', canonId: 'GEN.13.18', textes: ['Glose.'] }] }],
+      notesEditoriales: [{ trad: 'TR0013', absentes: [], fenetres: [{ id: 'v2-g', livre: 'GEN', chapitre: 13, cible: 'uuid-g', rang: 1, verset: 18, reperes: '13, 18 (glose)', canonId: 'GEN.13.18', textes: ['Glose.'] }] }],
     })
     expect(filtrerNotesBible(avecGlose, { texte: 'glose' }).map(n => n.cle)).toEqual(['v2-g'])
     expect(filtrerNotesBible(notes, { absentes: true }).map(n => n.cle)).toEqual(['v2-absente-z'])
     expect(comptesParIntituleBible(notes)).toEqual([{ intitule: INTITULE_NOTE_EDITORIALE, n: 4 }])
+  })
+
+  it('⛔ porte sur la bible entière : les livres se suivent dans l’ordre du canon, chacun nommé', () => {
+    const notes = recenserNotesBible({
+      notesVersets: [
+        noteVerset({ id: 'mc', canon_id: 'MRK.1.4', display_number: 1 }),
+        noteVerset({ id: 'gn', canon_id: 'GEN.3.1', display_number: 1 }),
+        noteVerset({ id: 'ps', canon_id: 'PSA.23.1', display_number: 3 }),
+      ],
+      blocs: [], notesDeBlocs: [], pieces: SANS_PIECE, membres: [],
+      notesEditoriales: [{ trad: 'TR0001', absentes: [], fenetres: [{ id: 'v2-ps', livre: 'PSA', chapitre: 23, cible: 'PSA.23.2', rang: 1, verset: 2, reperes: '23, 2', canonId: 'PSA.23.2', textes: ['Note.'] }] }],
+    })
+    expect(notes.map(n => n.cle)).toEqual(['gn', 'ps', 'v2-ps', 'mc'])
+    // Le numéro se pousse derrière l'appareil du MÊME livre et du même chapitre.
+    expect(notes.find(n => n.cle === 'v2-ps')!.numero).toBe(4)
+    expect(grouperNotesBible(notes).map(g => g.titre)).toEqual(['Genèse 3', 'Psaume 23', 'Marc 1'])
   })
 })

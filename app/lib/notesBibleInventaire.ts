@@ -5,10 +5,11 @@
  * Demande de l'auteur (2026-09-16) : « en mode admin, je veux pouvoir voir les notes
  * associées à une bible dans le volet de droite, comme pour les œuvres ».
  *
- * ⛔ IL PORTE SUR LE LIVRE QU'ON LIT, non sur la bible entière. La traduction moderne du
- * témoin de 1260 compte plus de neuf mille notes et deux millions de signes : les charger
- * d'un coup coûterait une dizaine de pages de mille lignes, quand le Psautier, le livre le
- * plus annoté, en rend 1 716 en un tiers de seconde. Le volet des livres fait le reste.
+ * ⛔ IL PORTE SUR TOUTE LA BIBLE OUVERTE, tous livres et tous chapitres, et sur elle seule
+ * (demande de l'auteur, 17 septembre 2026 : « toutes les notes, y compris celles des autres
+ * livres et chapitres, mais seulement de la bible ouverte »). Il portait sur le livre lu :
+ * une note d'un autre livre ne se trouvait qu'en changeant de livre. Le relevé se garde le
+ * temps de la session, et un chapitre changé ne relit rien.
  *
  * Il réunit les DEUX appareils d'une édition :
  *  - les notes de VERSET (`v_bible_verse_notes`), rattachées à un créneau canonique ;
@@ -35,6 +36,8 @@
  * Module PUR : ni requête, ni rendu.
  */
 import { replier } from '@/app/lib/bibleBibliographieOuvrages'
+import { LIVRES } from '@/app/lib/bible'
+import { nomLivreReference } from '@/app/lib/referencesBibliques'
 import {
   blocSansAncreVisibleDansChapitre, type BibleEditorialPlacement, type BibleEditorialScopeKind,
 } from '@/app/lib/bibleEdition'
@@ -66,8 +69,8 @@ export type BibleLue = {
 export type ContexteNotesBible = {
   /** La famille d'édition dont l'appareil se lit ; `null` pour une bible qui n'en a pas. */
   familleId: string | null
+  /** Le livre et le chapitre qu'on lit : une note ailleurs demande d'y aller d'abord. */
   livre: string
-  nomLivre: string
   /** Les bibles lues, dans l'ordre des colonnes : une, ou deux en regard. */
   bibles: readonly BibleLue[]
   chapitre: number
@@ -75,7 +78,7 @@ export type ContexteNotesBible = {
   pieceCle: string | null
   /** L'appareil est composé. En « texte seul », une note ne s'ouvre qu'en le rétablissant. */
   appareilAffiche: boolean
-  adresseDuChapitre: (chapitre: number) => string
+  adresseDuChapitre: (livre: string, chapitre: number) => string
   adresseDeLaPiece: (cle: string) => string
 }
 
@@ -86,11 +89,11 @@ function cleDeLecture(lecture: LectureNotesEditoriales): string {
     : lecture.lecture
 }
 
-/** La clé d'un inventaire : ce qui, en changeant, demande un autre relevé. */
-export function cleInventaireNotesBible(contexte: Pick<ContexteNotesBible, 'familleId' | 'livre' | 'bibles'>): string {
+/** La clé d'un inventaire : ce qui, en changeant, demande un autre relevé. ⚠️ Le livre n'y
+ *  entre pas : l'inventaire porte sur la bible entière. */
+export function cleInventaireNotesBible(contexte: Pick<ContexteNotesBible, 'familleId' | 'bibles'>): string {
   return [
     contexte.familleId ?? '',
-    contexte.livre,
     contexte.bibles.map(b => (b.notesEditoriales ? `${b.trad}:${cleDeLecture(b.notesEditoriales)}` : b.trad)).join('+'),
   ].join('|')
 }
@@ -121,6 +124,8 @@ export type LigneNoteVerset = Applicabilite & {
 export type LigneBlocEditorial = Applicabilite & {
   id: string
   block_key: string
+  /** Le livre dont la page charge le bloc ; `null` pour une pièce commune à la bible. */
+  scope_book_code: string | null
   scope_kind: BibleEditorialScopeKind
   placement: BibleEditorialPlacement
   heading: string | null
@@ -158,7 +163,7 @@ export type NotesEditorialesDUneBible = {
 /** Où une note se lit. ⚠️ `absent` : nulle part, et `raison` dit pourquoi. */
 export type LieuNoteBible =
   | { genre: 'piece'; cle: string; titre: string; rang: number }
-  | { genre: 'chapitre'; chapitre: number; canonId: string | null }
+  | { genre: 'chapitre'; livre: string; chapitre: number; canonId: string | null }
   | { genre: 'absent'; raison: string }
 
 export type NoteBibleRecensee = {
@@ -201,15 +206,28 @@ export const INTITULE_NOTE_EDITORIALE = 'Note éditoriale'
 export function derniersNumerosDeLEdition(
   notesVersets: readonly LigneNoteVerset[],
   membreId: string | null,
-): Map<number, number> {
-  const derniers = new Map<number, number>()
+): Map<string, number> {
+  const derniers = new Map<string, number>()
   for (const note of notesVersets) {
     if (note.applies_to !== 'family' && (membreId === null || note.applies_to_member_id !== membreId)) continue
     const point = pointDuCanon(note.canon_id)
     if (!point) continue
-    derniers.set(point.chapitre, Math.max(derniers.get(point.chapitre) ?? 0, note.display_number))
+    const cle = cleDeChapitre(point.livre, point.chapitre)
+    derniers.set(cle, Math.max(derniers.get(cle) ?? 0, note.display_number))
   }
   return derniers
+}
+
+/** La clé d'un chapitre dans la bible entière (`GEN.3`). */
+export function cleDeChapitre(livre: string, chapitre: number): string {
+  return `${livre}.${chapitre}`
+}
+
+const RANG_DU_LIVRE = new Map(LIVRES.map((livre, rang) => [livre.code, rang]))
+
+/** Le rang d'un livre dans l'ordre du canon ; un code inconnu ferme la marche. */
+export function rangDuLivre(livre: string | null): number {
+  return (livre !== null ? RANG_DU_LIVRE.get(livre) : undefined) ?? LIVRES.length
 }
 
 /** La discipline d'une note de verset, en français. ⛔ Le vocabulaire est celui de la fenêtre
@@ -228,14 +246,14 @@ export const RAISONS_ABSENCE = {
   pieceIntrouvable: 'Sa pièce liminaire n’est pas au sommaire de l’édition.',
 } as const
 
-/** Le chapitre et le verset d'un créneau canonique (`GEN.3.12`). */
-export function pointDuCanon(canonId: string | null): { chapitre: number; verset: number } | null {
+/** Le livre, le chapitre et le verset d'un créneau canonique (`GEN.3.12`). */
+export function pointDuCanon(canonId: string | null): { livre: string; chapitre: number; verset: number } | null {
   if (!canonId) return null
-  const [, chapitre, verset] = canonId.split('.')
+  const [livre, chapitre, verset] = canonId.split('.')
   const ch = Number.parseInt(chapitre ?? '', 10)
-  if (!Number.isFinite(ch)) return null
+  if (!livre || !Number.isFinite(ch)) return null
   const v = Number.parseInt(verset ?? '', 10)
-  return { chapitre: ch, verset: Number.isFinite(v) ? v : 0 }
+  return { livre, chapitre: ch, verset: Number.isFinite(v) ? v : 0 }
 }
 
 /**
@@ -268,7 +286,8 @@ export function lieuDuBloc(
     const point = pointDuCanon(ancre)
     if (!point) return absent(RAISONS_ABSENCE.sansAncre)
     return {
-      lieu: { genre: 'chapitre', chapitre: point.chapitre, canonId: ancre },
+      // ⚠️ La page charge un bloc par le livre qu'il déclare : c'est lui qui fait l'adresse.
+      lieu: { genre: 'chapitre', livre: bloc.scope_book_code ?? point.livre, chapitre: point.chapitre, canonId: ancre },
       verset: point.verset,
       cote: bloc.placement === 'after' ? 2 : 0,
     }
@@ -277,7 +296,8 @@ export function lieuDuBloc(
   // ⛔ Sans ancre, la page ne charge que l'ouverture d'un livre, et seulement au premier
   // chapitre ; la fin d'un livre, elle ne la demande jamais.
   if (blocSansAncreVisibleDansChapitre(bloc.scope_kind, bloc.placement, true, false)) {
-    return { lieu: { genre: 'chapitre', chapitre: 1, canonId: null }, verset: -1, cote: 0 }
+    if (!bloc.scope_book_code) return absent(RAISONS_ABSENCE.sansAncre)
+    return { lieu: { genre: 'chapitre', livre: bloc.scope_book_code, chapitre: 1, canonId: null }, verset: -1, cote: 0 }
   }
   if (blocSansAncreVisibleDansChapitre(bloc.scope_kind, bloc.placement, false, true)) {
     return absent(RAISONS_ABSENCE.finDeLivre)
@@ -324,8 +344,8 @@ function comparerRangs(a: readonly number[], b: readonly number[]): number {
 }
 
 /**
- * LE RECENSEMENT, dans l'ordre où le livre se lit : les pièces liminaires, puis les
- * chapitres, puis ce qui ne paraît nulle part.
+ * LE RECENSEMENT, dans l'ordre où la bible se lit : les pièces liminaires, puis les
+ * chapitres, livre après livre dans l'ordre du canon, puis ce qui ne paraît nulle part.
  *
  * ⛔ Une note propre à une AUTRE bible de la famille n'est pas recensée : la page ne la
  * montre pas à côté de celle qu'on lit. Une note commune à l'édition l'est toujours.
@@ -353,7 +373,7 @@ export function recenserNotesBible({ notesVersets, blocs, notesDeBlocs, pieces, 
     if (!lue(note)) continue
     const point = pointDuCanon(note.canon_id)
     const lieu: LieuNoteBible = point
-      ? { genre: 'chapitre', chapitre: point.chapitre, canonId: note.canon_id }
+      ? { genre: 'chapitre', livre: point.livre, chapitre: point.chapitre, canonId: note.canon_id }
       : { genre: 'absent', raison: RAISONS_ABSENCE.sansAncre }
     recensees.push({
       cle: note.id,
@@ -367,8 +387,8 @@ export function recenserNotesBible({ notesVersets, blocs, notesDeBlocs, pieces, 
       apercu: apercuNoteBible(note.blocks),
       lieu,
       rang: point
-        ? [RANG_LIEU.chapitre, point.chapitre, point.verset, 1, note.display_number, note.material_order]
-        : [RANG_LIEU.absent, 0, 0, 1, note.display_number, note.material_order],
+        ? [RANG_LIEU.chapitre, rangDuLivre(point.livre), point.chapitre, point.verset, 1, note.display_number, note.material_order]
+        : [RANG_LIEU.absent, rangDuLivre(null), 0, 0, 1, note.display_number, note.material_order],
     })
   }
 
@@ -378,10 +398,10 @@ export function recenserNotesBible({ notesVersets, blocs, notesDeBlocs, pieces, 
     if (!bloc) continue
     const { lieu, verset, cote } = lieuDuBloc(bloc, pieces)
     const rang = lieu.genre === 'piece'
-      ? [RANG_LIEU.piece, lieu.rang, 0, 0, bloc.material_order, note.display_number]
+      ? [RANG_LIEU.piece, lieu.rang, 0, 0, 0, bloc.material_order, note.display_number]
       : lieu.genre === 'chapitre'
-        ? [RANG_LIEU.chapitre, lieu.chapitre, verset, cote, bloc.material_order, note.display_number]
-        : [RANG_LIEU.absent, 0, 0, 0, bloc.material_order, note.display_number]
+        ? [RANG_LIEU.chapitre, rangDuLivre(lieu.livre), lieu.chapitre, verset, cote, bloc.material_order, note.display_number]
+        : [RANG_LIEU.absent, rangDuLivre(bloc.scope_book_code), 0, 0, 0, bloc.material_order, note.display_number]
     recensees.push({
       cle: note.id,
       origine: 'bloc',
@@ -403,7 +423,7 @@ export function recenserNotesBible({ notesVersets, blocs, notesDeBlocs, pieces, 
     const membre = membres.find(m => m.trad === lot.trad) ?? null
     const derniers = derniersNumerosDeLEdition(notesVersets, membre?.id ?? null)
     for (const fenetre of lot.fenetres) {
-      const numero = fenetre.rang + (derniers.get(fenetre.chapitre) ?? 0)
+      const numero = fenetre.rang + (derniers.get(cleDeChapitre(fenetre.livre, fenetre.chapitre)) ?? 0)
       recensees.push({
         cle: fenetre.id,
         origine: 'editoriale',
@@ -414,8 +434,8 @@ export function recenserNotesBible({ notesVersets, blocs, notesDeBlocs, pieces, 
         membre,
         aRelire: false,
         apercu: apercuNoteBible(fenetre.textes.map((text, rank) => ({ rank, text, needs_review: false }))),
-        lieu: { genre: 'chapitre', chapitre: fenetre.chapitre, canonId: fenetre.canonId },
-        rang: [RANG_LIEU.chapitre, fenetre.chapitre, fenetre.verset, 1, numero, 0],
+        lieu: { genre: 'chapitre', livre: fenetre.livre, chapitre: fenetre.chapitre, canonId: fenetre.canonId },
+        rang: [RANG_LIEU.chapitre, rangDuLivre(fenetre.livre), fenetre.chapitre, fenetre.verset, 1, numero, 0],
       })
     }
     for (const absente of lot.absentes) {
@@ -430,7 +450,7 @@ export function recenserNotesBible({ notesVersets, blocs, notesDeBlocs, pieces, 
         aRelire: false,
         apercu: apercuNoteBible([{ rank: 0, text: absente.texte, needs_review: false }]),
         lieu: { genre: 'absent', raison: absente.raison },
-        rang: [RANG_LIEU.absent, absente.chapitre ?? 0, absente.verset ?? 0, 1, 0, 0],
+        rang: [RANG_LIEU.absent, rangDuLivre(absente.livre), absente.chapitre ?? 0, absente.verset ?? 0, 1, 0, 0],
       })
     }
   }
@@ -501,10 +521,11 @@ export function grouperNotesBible(notes: readonly NoteBibleRecensee[]): GroupeNo
   for (const note of notes) {
     const { lieu } = note
     const cle = lieu.genre === 'piece' ? `piece|${lieu.cle}`
-      : lieu.genre === 'chapitre' ? `chapitre|${lieu.chapitre}`
+      : lieu.genre === 'chapitre' ? `chapitre|${lieu.livre}|${lieu.chapitre}`
       : 'absent'
+    // ⚠️ La bible entière se lit ici : un chapitre se nomme avec son livre (« Psaume 23 »).
     const titre = lieu.genre === 'piece' ? lieu.titre
-      : lieu.genre === 'chapitre' ? `Chapitre ${lieu.chapitre}`
+      : lieu.genre === 'chapitre' ? `${nomLivreReference(lieu.livre)} ${lieu.chapitre}`
       : 'Ne paraissent pas'
     const dernier = groupes[groupes.length - 1]
     if (dernier && dernier.cle === cle) dernier.notes.push(note)
@@ -518,8 +539,9 @@ export function grouperNotesBible(notes: readonly NoteBibleRecensee[]): GroupeNo
  *
  * ⚠️ En « texte seul », l'appareil n'est pas composé : aucune note ne s'y ouvre.
  */
-export function noteSurPlace(lieu: LieuNoteBible, contexte: Pick<ContexteNotesBible, 'chapitre' | 'pieceCle' | 'appareilAffiche'>): boolean {
+export function noteSurPlace(lieu: LieuNoteBible, contexte: Pick<ContexteNotesBible, 'livre' | 'chapitre' | 'pieceCle' | 'appareilAffiche'>): boolean {
   if (lieu.genre === 'absent') return false
   if (lieu.genre === 'piece') return contexte.pieceCle === lieu.cle
-  return contexte.pieceCle === null && contexte.appareilAffiche && contexte.chapitre === lieu.chapitre
+  return contexte.pieceCle === null && contexte.appareilAffiche
+    && contexte.livre === lieu.livre && contexte.chapitre === lieu.chapitre
 }

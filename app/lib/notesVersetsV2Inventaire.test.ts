@@ -73,15 +73,15 @@ describe('inventorierNotesEditoriales', () => {
 
   it('dit pourquoi une note ne paraît pas, et écarte une note vide', () => {
     expect(releve.absentes).toEqual([
-      { id: 'e', chapitre: null, verset: 1, reperes: '3, 1', raison: RAISONS_ABSENCE_EDITORIALE.autreLivre, texte: 'Hors du livre.' },
-      { id: 'f', chapitre: 11, verset: 1, reperes: '11, 1', raison: RAISONS_ABSENCE_EDITORIALE.sansPage, texte: 'Chapitre sans page.' },
+      { id: 'e', livre: 'PSA', chapitre: null, verset: 1, reperes: '3, 1', raison: RAISONS_ABSENCE_EDITORIALE.autreLivre, texte: 'Hors du livre.' },
+      { id: 'f', livre: 'PSA', chapitre: 11, verset: 1, reperes: '11, 1', raison: RAISONS_ABSENCE_EDITORIALE.sansPage, texte: 'Chapitre sans page.' },
     ])
     expect([...releve.fenetres.map(f => f.id), ...releve.absentes.map(a => a.id)]).not.toContain('v2-d')
   })
 
   it('une note absente se dit avec la numérotation de sa ligne, suffixe compris', () => {
     expect(noteAbsente(ligne({ id: 'h', livre: 'EST', ch_orig: 1, v_orig: 1, v_orig_suffixe: 'a', notes: '  Suite grecque.  ' }), 1, RAISONS_ABSENCE_EDITORIALE.horsCanon))
-      .toEqual({ id: 'h', chapitre: 1, verset: 1, reperes: '1, 1a', raison: RAISONS_ABSENCE_EDITORIALE.horsCanon, texte: 'Suite grecque.' })
+      .toEqual({ id: 'h', livre: 'EST', chapitre: 1, verset: 1, reperes: '1, 1a', raison: RAISONS_ABSENCE_EDITORIALE.horsCanon, texte: 'Suite grecque.' })
   })
 
   it('par le canon, une note orpheline cite le fragment qu’elle explique', () => {
@@ -103,21 +103,23 @@ describe('lectureDemandee — les paramètres de la route', () => {
   const FAMILLE = '0f5b3a8e-1234-4abc-9def-0123456789ab'
 
   it('lit la vue large et la lecture par le canon', () => {
-    expect(demande('trad=TR0001&livre=PSA&lecture=vue-large')).toEqual({ trad: 'TR0001', livre: 'PSA', lecture: { lecture: 'vue-large' } })
-    expect(demande('trad=TR0013&livre=1SA&lecture=canon-v2')).toEqual({ trad: 'TR0013', livre: '1SA', lecture: { lecture: 'canon-v2' } })
+    expect(demande('trad=TR0001&lecture=vue-large')).toEqual({ trad: 'TR0001', lecture: { lecture: 'vue-large' } })
+    expect(demande('trad=TR0013&lecture=canon-v2')).toEqual({ trad: 'TR0013', lecture: { lecture: 'canon-v2' } })
+    // ⚠️ Le relevé porte sur la bible entière : un livre passé n'y change rien.
+    expect(demande('trad=TR0013&livre=GEN&lecture=canon-v2')).toEqual({ trad: 'TR0013', lecture: { lecture: 'canon-v2' } })
   })
 
   it('lit la lecture en regard, dont la bible relevée doit être lue par le canon', () => {
-    expect(demande(`trad=TR0013&livre=GEN&lecture=regard&famille=${FAMILLE}&parLeCanon=TR0013`))
-      .toEqual({ trad: 'TR0013', livre: 'GEN', lecture: { lecture: 'regard', famille: FAMILLE, biblesParLeCanon: ['TR0013'] } })
-    expect(demande(`trad=TR0009&livre=GEN&lecture=regard&famille=${FAMILLE}&parLeCanon=TR0013`)).toBeNull()
+    expect(demande(`trad=TR0013&lecture=regard&famille=${FAMILLE}&parLeCanon=TR0013`))
+      .toEqual({ trad: 'TR0013', lecture: { lecture: 'regard', famille: FAMILLE, biblesParLeCanon: ['TR0013'] } })
+    expect(demande(`trad=TR0009&lecture=regard&famille=${FAMILLE}&parLeCanon=TR0013`)).toBeNull()
   })
 
   it('refuse ce qui n’est pas une demande', () => {
-    expect(demande('trad=TR0001&livre=PSA')).toBeNull()
-    expect(demande('trad=TR0001;drop&livre=PSA&lecture=vue-large')).toBeNull()
-    expect(demande('trad=TR0001&livre=psaumes&lecture=vue-large')).toBeNull()
-    expect(demande('trad=TR0013&livre=GEN&lecture=regard&famille=pas-un-uuid&parLeCanon=TR0013')).toBeNull()
+    expect(demande('trad=TR0001')).toBeNull()
+    expect(demande('trad=TR0001;drop&lecture=vue-large')).toBeNull()
+    expect(demande('trad=sacy&lecture=vue-large')).toBeNull()
+    expect(demande('trad=TR0013&lecture=regard&famille=pas-un-uuid&parLeCanon=TR0013')).toBeNull()
   })
 })
 
@@ -141,7 +143,15 @@ describe('le relevé rejoue les chargeurs de la page', () => {
   })
 
   it('⛔ une bible qui n’est pas une colonne réelle de la vue large n’y est pas lue', () => {
-    expect(SERVEUR).toContain('if (!(await codesTraductionsLecture(client)).includes(trad)) return toutesAbsentes(RAISONS_ABSENCE_EDITORIALE.horsVueLarge)')
+    expect(SERVEUR).toContain('const lisible = (await codesTraductionsLecture(client)).includes(trad)')
+    expect(SERVEUR).toContain('if (!lisible) toutesAbsentes(livre, RAISONS_ABSENCE_EDITORIALE.horsVueLarge)')
+  })
+
+  it('⛔ relève la bible entière dans UNE file de travail, jamais des files imbriquées', () => {
+    expect(SERVEUR).toContain('export async function releverNotesEditorialesDeLaBible(')
+    expect(SERVEUR).not.toMatch(/\.eq\('livre', livre\)\s*\.not\('notes'/)
+    expect((SERVEUR.match(/lancerEnParallele\(/g) ?? []).length).toBe(2)
+    expect(ROUTE).toContain('releverNotesEditorialesDeLaBible(supabase, demande)')
   })
 
   it('⛔ la route est réservée à l’administrateur, sous sa session, et sans cache', () => {

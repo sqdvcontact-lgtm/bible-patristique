@@ -3246,7 +3246,8 @@
 **§ 38.35 — L’inventaire des notes d’une BIBLE — le livre qu’on lit, et ce qui ne paraît pas**
 
 - ⛔ L’ONGLET « NOTES » EST UN OUTIL D’ADMINISTRATION.
-- ⛔ IL PORTE SUR LE LIVRE QU’ON LIT, NON SUR LA BIBLE ENTIÈRE.
+- ⛔ IL PORTE SUR TOUTE LA BIBLE OUVERTE, TOUS LIVRES ET TOUS CHAPITRES, ET SUR ELLE SEULE.
+- ⚠️ Le relevé se fait une fois par session : changer de chapitre ou de livre ne relit rien.
 - ⛔ IL RÉUNIT LES DEUX APPAREILS D’UNE ÉDITION — les notes de verset, rangées par chapitre et par verset, et les notes des blocs éditoriaux (introductions, commentaires, notices), là où leur bloc paraît, pièces liminaires comprises.
 - ⚠️ Une note propre à une bible qu’on ne lit pas n’y est pas : la page ne la montre pas.
 - ⛔ IL RECENSE AUSSI LES NOTES DES VERSETS, SUR TOUTES LES BIBLES LUES AU VERSET.
@@ -3296,7 +3297,7 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | § | chapitre | signes | énoncés | pour mille signes |
 |---|---|---:|---:|---:|
 | 8 | Notes structurées et références présentes dans | 8 003 | 1 | **0.1** |
-| 52 | Les états de publication et de validation | 42 854 | 16 | **0.4** |
+| 52 | Les états de publication et de validation | 43 165 | 16 | **0.4** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
 | 3 | Typographie — les signes, les espaces, l’enric | 69 485 | 57 | **0.8** |
 | 15 | Corpus biblique et traductions | 18 188 | 17 | **0.9** |

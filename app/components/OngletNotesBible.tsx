@@ -7,7 +7,8 @@
  * associées à une bible dans le volet de droite (comme pour les œuvres) ; ajoute un onglet
  * propre à l'admin avec “Pères de l'Église” ».
  *
- * ⛔ IL PORTE SUR LE LIVRE QU'ON LIT, non sur la bible entière : voir `notesBibleInventaire.ts`.
+ * ⛔ IL PORTE SUR TOUTE LA BIBLE OUVERTE, tous livres et tous chapitres, et sur elle seule :
+ * voir `notesBibleInventaire.ts`.
  * Il réunit les notes de verset et celles des blocs éditoriaux d'une édition, les notes
  * éditoriales des lignes de toute bible lue au verset (`versets_v2.notes`, charte § 13.22),
  * et dit celles qui ne paraissent nulle part, avec la raison.
@@ -19,13 +20,13 @@
  * pure et testée ; le chargement dans `notesBibleChargement.ts` ; l'ouverture d'une note
  * dans `ouvrirNoteBible.ts`. Ce composant ne fait que montrer et rendre le clic.
  */
-import { useEffect, useMemo, useState } from 'react'
+import { memo, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import { useNaviguer } from '@/app/lib/attenteNavigation'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
-import { chargerNotesBibleDuLivre } from '@/app/lib/notesBibleChargement'
+import { chargerNotesDeLaBible } from '@/app/lib/notesBibleChargement'
 import { ouvrirNoteBible } from '@/app/lib/ouvrirNoteBible'
 import {
   cleInventaireNotesBible,
@@ -73,7 +74,7 @@ type Charge = { pour: string; etat: Etat }
 
 export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: {
   contexte: ContexteNotesBible
-  /** Le nombre de notes du livre, pour la ligne de compte de l'onglet ; `null` sur un échec.
+  /** Le nombre de notes de la bible, pour la ligne de compte de l'onglet ; `null` sur un échec.
    *  ⚠️ Rappel STABLE : il est dans les dépendances du chargement. */
   onCompte?: (pour: string, n: number | null) => void
   /** Ce que la page fait avant de montrer une note : refermer le tiroir d'un téléphone. */
@@ -88,12 +89,15 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
   const [absentes, setAbsentes] = useState(false)
   const [courante, setCourante] = useState<string | null>(null)
 
-  const { familleId, livre, bibles } = contexte
-  const cleDemande = cleInventaireNotesBible({ familleId, livre, bibles })
+  const { familleId, bibles } = contexte
+  const cleDemande = cleInventaireNotesBible({ familleId, bibles })
+  // ⚠️ La bible entière compte des milliers de notes : la recherche se diffère, pour que la
+  // frappe ne attende pas le filtrage et le rendu de la liste.
+  const rechercheDifferee = useDeferredValue(recherche)
 
   useEffect(() => {
     let annule = false
-    chargerNotesBibleDuLivre(supabase, { familleId, livre, bibles })
+    chargerNotesDeLaBible(supabase, { familleId, bibles })
       .then(releve => {
         if (annule) return
         const notes = recenserNotesBible(releve)
@@ -110,7 +114,7 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
         onCompte?.(cleDemande, null)
       })
     return () => { annule = true }
-  }, [cleDemande, familleId, livre, bibles, onCompte])
+  }, [cleDemande, familleId, bibles, onCompte])
 
   const etat = useMemo<Etat>(() => (charge?.pour === cleDemande ? charge.etat : { statut: 'attente' }), [charge, cleDemande])
   // ⚠️ Mémorisée : une liste vide fabriquée à chaque rendu ferait recalculer les facettes et
@@ -120,8 +124,8 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
   const echecs = etat.statut === 'prêt' ? etat.echecs : []
   const facettes = useMemo(() => comptesParIntituleBible(toutes), [toutes])
   const retenues = useMemo(
-    () => filtrerNotesBible(toutes, { texte: recherche, intitule, membre, aRelire, absentes }),
-    [toutes, recherche, intitule, membre, aRelire, absentes],
+    () => filtrerNotesBible(toutes, { texte: rechercheDifferee, intitule, membre, aRelire, absentes }),
+    [toutes, rechercheDifferee, intitule, membre, aRelire, absentes],
   )
   const groupes = useMemo(() => grouperNotesBible(retenues), [retenues])
   const nbARelire = useMemo(() => toutes.filter(n => n.aRelire).length, [toutes])
@@ -131,21 +135,23 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
   // qu'un appareil.
   const plusieursBibles = membres.length > 1
 
-  const aller = (note: NoteBibleRecensee) => {
+  // ⚠️ Stable tant que la page ne change pas : les lignes sont mémorisées, et un rappel neuf
+  // à chaque frappe les ferait toutes redessiner.
+  const aller = useCallback((note: NoteBibleRecensee) => {
     const { lieu } = note
     if (lieu.genre === 'absent') return
     setCourante(note.cle)
     onAvantOuvrir?.()
     const surPlace = noteSurPlace(lieu, contexte)
     if (!surPlace) {
-      naviguer(lieu.genre === 'piece' ? contexte.adresseDeLaPiece(lieu.cle) : contexte.adresseDuChapitre(lieu.chapitre))
+      naviguer(lieu.genre === 'piece' ? contexte.adresseDeLaPiece(lieu.cle) : contexte.adresseDuChapitre(lieu.livre, lieu.chapitre))
     }
     ouvrirNoteBible({
       noteId: note.cle,
       canonId: lieu.genre === 'chapitre' ? lieu.canonId : null,
       attendreMs: surPlace ? ATTENTE_SUR_PLACE_MS : ATTENTE_APRES_NAVIGATION_MS,
     })
-  }
+  }, [contexte, naviguer, onAvantOuvrir])
 
   if (etat.statut === 'attente') return <MotAttente />
   if (etat.statut === 'erreur') {
@@ -163,7 +169,7 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
           placeholder="Chercher une note, un verset (3, 12)…"
-          aria-label="Chercher dans les notes du livre"
+          aria-label="Chercher dans les notes de la bible"
           className="cs-volet-recherche"
           style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.71875rem', color: 'var(--cs-texte)' }}
         />
@@ -205,7 +211,7 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
         <p style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-second)', margin: '8px 0 0', lineHeight: 1.4 }}>
           {filtre
             ? `${retenues.length} note${retenues.length > 1 ? 's' : ''} sur ${toutes.length}`
-            : `${toutes.length} note${toutes.length > 1 ? 's' : ''} dans ${contexte.nomLivre}`}
+            : `${toutes.length} note${toutes.length > 1 ? 's' : ''} dans cette bible`}
           {nbAbsentes > 0 && (
             <>
               {' · '}
@@ -227,11 +233,12 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
       <div className="cs-defilement-discret" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 0 16px' }}>
         {retenues.length === 0 && (
           <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', padding: '14px 0' }}>
-            {toutes.length === 0 ? 'Aucune note dans ce livre.' : 'Aucune note ne correspond aux filtres retenus.'}
+            {toutes.length === 0 ? 'Aucune note dans cette bible.' : 'Aucune note ne correspond aux filtres retenus.'}
           </p>
         )}
         {groupes.map(groupe => (
-          <section key={groupe.cle}>
+          // ⚠️ Des milliers de lignes : un chapitre hors de la vue ne se compose pas.
+          <section key={groupe.cle} style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 320px' }}>
             <p style={{ ...RUBRIQUE_AXE, margin: '12px 0 4px', color: groupe.genre === 'absent' ? 'var(--cs-danger-fonce)' : RUBRIQUE_AXE.color }}>
               {groupe.titre}
             </p>
@@ -251,7 +258,7 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
   )
 }
 
-function LigneNoteBible({ note, courante, nommerLaBible, onAller }: {
+const LigneNoteBible = memo(function LigneNoteBible({ note, courante, nommerLaBible, onAller }: {
   note: NoteBibleRecensee
   courante: boolean
   nommerLaBible: boolean
@@ -297,4 +304,4 @@ function LigneNoteBible({ note, courante, nommerLaBible, onAller }: {
         : <em style={{ color: 'var(--cs-texte-second)' }}>note sans texte</em>}
     </LigneNoteInventaire>
   )
-}
+})

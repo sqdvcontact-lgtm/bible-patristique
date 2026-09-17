@@ -1,18 +1,16 @@
 /**
- * LE RELEVÉ DES NOTES D'UN LIVRE, pour l'inventaire d'administration de la page Bible.
- * La règle — lieux, tri, filtres — vit dans `notesBibleInventaire.ts` ; ce module ne fait
- * que lire, sous la SESSION du lecteur, ce que la page lirait.
+ * LE RELEVÉ DES NOTES D'UNE BIBLE ENTIÈRE, pour l'inventaire d'administration de la page
+ * Bible. La règle — lieux, tri, filtres — vit dans `notesBibleInventaire.ts` ; ce module ne
+ * fait que lire, sous la SESSION du lecteur, ce que la page lirait.
  *
- * ⛔ LES NOTES DE VERSET SE CHERCHENT PAR LEUR CLÉ DE CHAPITRE, À L'ÉGALITÉ, jamais par
- * `canon_id like 'PSA.%'`. Sous la politique de lecture, un `like` n'est pas leakproof :
- * la base évalue la politique sur chaque note de la famille avant le motif. Mesuré sur le
- * Psautier de la traduction moderne, sous la session d'un administrateur : 515 ms par le
- * motif, 329 ms par `display_chapter_key = any(…)`, que l'index unique de la table sert.
- * ⚠️ La clé de chapitre vaut toujours le livre et le chapitre du créneau (relevé sur les
- * 9 202 notes le 16 septembre 2026).
+ * ⛔ TOUT SE LIT PAR LA FAMILLE, À L'ÉGALITÉ (`family_id`), jamais par un motif : sous la
+ * politique de lecture, un `like` n'est pas leakproof. Les notes de verset et les notes de
+ * bloc se lisent d'un tenant, par pages parallèles ; les blocs, eux, ne se lisent que pour
+ * les notes qui les visent — la famille de Fillion en compte dix-sept mille, dont quelques
+ * centaines portent une note (relevé du 17 septembre 2026).
  *
- * ⚠️ UN RELEVÉ SE GARDE LE TEMPS DE LA SESSION : revenir à l'onglet, ou changer de
- * chapitre dans le même livre, ne relit rien. Un échec, lui, ne se garde pas.
+ * ⚠️ UN RELEVÉ SE GARDE LE TEMPS DE LA SESSION : revenir à l'onglet, changer de chapitre ou
+ * de livre ne relit rien. Un échec, lui, ne se garde pas.
  *
  * ⛔ LES NOTES ÉDITORIALES DES VERSETS (`versets_v2.notes`, charte § 13.22) SE RELÈVENT PAR
  * LA ROUTE `/api/admin/notes-versets`, jamais ici. Leur place et leur rang dépendent des
@@ -22,8 +20,7 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { grouperPiecesLiminaires } from './bibleSommaireEdition'
-import { chargerChapitresParLivre, nombreDeChapitres } from './chapitresCanon'
-import { chargerToutesPagesSupabase, lancerEnParallele, lotsPourClauseIn } from './paginationSupabase'
+import { chargerPagesEnParallele, chargerToutesPagesSupabase, lancerEnParallele, lotsPourClauseIn } from './paginationSupabase'
 import {
   cleInventaireNotesBible,
   type BibleLue,
@@ -47,8 +44,10 @@ export type ReleveNotesBible = {
   echecsEditoriaux: { trad: string; libelle: string; message: string }[]
 }
 
+type Page<T> = PromiseLike<{ data: T[] | null; error: unknown }>
+
 const COLONNES_NOTE_VERSET = 'id,applies_to,applies_to_member_id,note_subtype,canon_id,display_number,material_order,blocks'
-const COLONNES_BLOC = 'id,block_key,scope_kind,placement,applies_to,applies_to_member_id,heading,'
+const COLONNES_BLOC = 'id,block_key,scope_book_code,scope_kind,placement,applies_to,applies_to_member_id,heading,'
   + 'canon_id_start,canon_id_end,material_order,semantic_style_code,semantic_level,embedded_title_level'
 const COLONNES_NOTE_DE_BLOC = 'id,body_block_id,display_number,material_order,blocks'
 const COLONNES_LIMINAIRE = 'id,block_key,heading,scope_kind,scope_label,block_kind,printed_page_start,material_order'
@@ -86,12 +85,8 @@ async function membresLus(client: SupabaseClient, familleId: string, bibles: rea
  * une session qu'il ne reconnaît pas par une REDIRECTION, que `fetch` suit : la réponse
  * revient en 200, porteuse de HTML. On le dit au lieu de lire du HTML comme du JSON.
  */
-async function notesEditorialesDeLaBible(
-  trad: string,
-  livre: string,
-  lecture: LectureNotesEditoriales,
-): Promise<NotesEditorialesDUneBible> {
-  const parametres = new URLSearchParams({ trad, livre, lecture: lecture.lecture })
+async function notesEditorialesDeLaBible(trad: string, lecture: LectureNotesEditoriales): Promise<NotesEditorialesDUneBible> {
+  const parametres = new URLSearchParams({ trad, lecture: lecture.lecture })
   if (lecture.lecture === 'regard') {
     parametres.set('famille', lecture.famille)
     parametres.set('parLeCanon', lecture.biblesParLeCanon.join(','))
@@ -105,47 +100,39 @@ async function notesEditorialesDeLaBible(
   return { trad, fenetres: corps.fenetres ?? [], absentes: corps.absentes ?? [] }
 }
 
-async function notesDesVersets(client: SupabaseClient, familleId: string, livre: string): Promise<LigneNoteVerset[]> {
-  const table = await chargerChapitresParLivre(client)
-  const cles = Array.from({ length: nombreDeChapitres(livre, table) }, (_, i) => `${livre}.${i + 1}`)
-  const parLot = await lancerEnParallele(lotsPourClauseIn(cles).map(lot => () => chargerToutesPagesSupabase<LigneNoteVerset>(
-    (debut, fin) => client
-      .from('v_bible_verse_notes')
-      .select(COLONNES_NOTE_VERSET)
-      .eq('family_id', familleId)
-      .in('display_chapter_key', lot)
-      .order('material_order')
-      .order('id')
-      .range(debut, fin) as unknown as PromiseLike<{ data: LigneNoteVerset[] | null; error: unknown }>,
-  )))
-  return parLot.flat()
-}
-
-async function blocsDuLivre(client: SupabaseClient, familleId: string, livre: string): Promise<LigneBlocEditorial[]> {
-  return chargerToutesPagesSupabase<LigneBlocEditorial>((debut, fin) => client
-    .from('v_bible_editorial_body_blocks')
-    .select(COLONNES_BLOC)
+async function notesDesVersets(client: SupabaseClient, familleId: string): Promise<LigneNoteVerset[]> {
+  return chargerPagesEnParallele<LigneNoteVerset>((debut, fin) => client
+    .from('v_bible_verse_notes')
+    .select(COLONNES_NOTE_VERSET)
     .eq('family_id', familleId)
-    .eq('scope_book_code', livre)
     .order('material_order')
     .order('id')
-    .range(debut, fin) as unknown as PromiseLike<{ data: LigneBlocEditorial[] | null; error: unknown }>)
+    .range(debut, fin) as unknown as Page<LigneNoteVerset>)
 }
 
-/**
- * Les notes des blocs du livre. ⚠️ La vue ne porte pas le livre : on les demande par
- * bloc, en lots d'octets d'adresse, et jamais plus de six requêtes en vol.
- */
-async function notesDesBlocs(client: SupabaseClient, blocs: readonly LigneBlocEditorial[]): Promise<LigneNoteDeBloc[]> {
-  if (blocs.length === 0) return []
-  const parLot = await lancerEnParallele(lotsPourClauseIn(blocs.map(b => b.id)).map(lot => () => chargerToutesPagesSupabase<LigneNoteDeBloc>(
+async function notesDesBlocs(client: SupabaseClient, familleId: string): Promise<LigneNoteDeBloc[]> {
+  return chargerPagesEnParallele<LigneNoteDeBloc>((debut, fin) => client
+    .from('v_bible_editorial_body_block_notes')
+    .select(COLONNES_NOTE_DE_BLOC)
+    .eq('family_id', familleId)
+    .order('material_order')
+    .order('id')
+    .range(debut, fin) as unknown as Page<LigneNoteDeBloc>)
+}
+
+/** Les seuls blocs que visent des notes, par lots d'octets d'adresse, six requêtes en vol. */
+async function blocsVises(client: SupabaseClient, familleId: string, notes: readonly LigneNoteDeBloc[]): Promise<LigneBlocEditorial[]> {
+  const ids = [...new Set(notes.map(note => note.body_block_id))]
+  if (ids.length === 0) return []
+  const parLot = await lancerEnParallele(lotsPourClauseIn(ids).map(lot => () => chargerToutesPagesSupabase<LigneBlocEditorial>(
     (debut, fin) => client
-      .from('v_bible_editorial_body_block_notes')
-      .select(COLONNES_NOTE_DE_BLOC)
-      .in('body_block_id', lot)
+      .from('v_bible_editorial_body_blocks')
+      .select(COLONNES_BLOC)
+      .eq('family_id', familleId)
+      .in('id', lot)
       .order('material_order')
       .order('id')
-      .range(debut, fin) as unknown as PromiseLike<{ data: LigneNoteDeBloc[] | null; error: unknown }>,
+      .range(debut, fin) as unknown as Page<LigneBlocEditorial>,
   )))
   return parLot.flat()
 }
@@ -153,7 +140,7 @@ async function notesDesBlocs(client: SupabaseClient, blocs: readonly LigneBlocEd
 /**
  * La pièce où se lit chaque bloc liminaire. ⚠️ Les pièces se composent sur TOUS les
  * liminaires de la famille, comme le sommaire de la page (`grouperPiecesLiminaires`) :
- * une pièce se forme de blocs voisins, et un relevé borné au livre pourrait la couper.
+ * une pièce se forme de blocs voisins, et un relevé borné aux blocs annotés la couperait.
  */
 async function piecesDeLaFamille(client: SupabaseClient, familleId: string): Promise<Map<string, PieceDuBloc>> {
   const liminaires = await chargerToutesPagesSupabase<LigneLiminaire>((debut, fin) => client
@@ -163,7 +150,7 @@ async function piecesDeLaFamille(client: SupabaseClient, familleId: string): Pro
     .in('scope_kind', ['bible', 'testament', 'book_group'])
     .order('material_order')
     .order('id')
-    .range(debut, fin) as unknown as PromiseLike<{ data: LigneLiminaire[] | null; error: unknown }>)
+    .range(debut, fin) as unknown as Page<LigneLiminaire>)
   const pieces = grouperPiecesLiminaires(liminaires.map(bloc => ({
     id: bloc.id,
     blockKey: bloc.block_key,
@@ -184,7 +171,6 @@ async function piecesDeLaFamille(client: SupabaseClient, familleId: string): Pro
 async function relever(
   client: SupabaseClient,
   familleId: string | null,
-  livre: string,
   bibles: readonly BibleLue[],
 ): Promise<ReleveNotesBible> {
   // ⚠️ Les membres se nomment par la famille de l'appareil, ou, faute d'appareil publié, par
@@ -193,17 +179,15 @@ async function relever(
     ?? bibles.flatMap(b => (b.notesEditoriales?.lecture === 'regard' ? [b.notesEditoriales.famille] : []))[0]
     ?? null
   const lectures = bibles.flatMap(b => (b.notesEditoriales ? [{ bible: b, lecture: b.notesEditoriales }] : []))
-  const [membres, notesVersets, blocs, relevesEditoriaux] = await Promise.all([
+  const [membres, notesVersets, notesDeBlocs, relevesEditoriaux] = await Promise.all([
     familleDesMembres ? membresLus(client, familleDesMembres, bibles) : Promise.resolve<MembreLu[]>([]),
-    familleId ? notesDesVersets(client, familleId, livre) : Promise.resolve<LigneNoteVerset[]>([]),
-    familleId ? blocsDuLivre(client, familleId, livre) : Promise.resolve<LigneBlocEditorial[]>([]),
-    Promise.allSettled(lectures.map(({ bible, lecture }) => notesEditorialesDeLaBible(bible.trad, livre, lecture))),
+    familleId ? notesDesVersets(client, familleId) : Promise.resolve<LigneNoteVerset[]>([]),
+    familleId ? notesDesBlocs(client, familleId) : Promise.resolve<LigneNoteDeBloc[]>([]),
+    Promise.allSettled(lectures.map(({ bible, lecture }) => notesEditorialesDeLaBible(bible.trad, lecture))),
   ])
+  const blocs = familleId ? await blocsVises(client, familleId, notesDeBlocs) : []
   const avecPieces = blocs.some(b => b.scope_kind === 'bible' || b.scope_kind === 'testament' || b.scope_kind === 'book_group')
-  const [notesDeBlocs, pieces] = await Promise.all([
-    notesDesBlocs(client, blocs),
-    familleId && avecPieces ? piecesDeLaFamille(client, familleId) : Promise.resolve(new Map<string, PieceDuBloc>()),
-  ])
+  const pieces = familleId && avecPieces ? await piecesDeLaFamille(client, familleId) : new Map<string, PieceDuBloc>()
   const notesEditoriales: NotesEditorialesDUneBible[] = []
   const echecsEditoriaux: ReleveNotesBible['echecsEditoriaux'] = []
   relevesEditoriaux.forEach((releve, i) => {
@@ -211,21 +195,21 @@ async function relever(
     if (releve.status === 'fulfilled') notesEditoriales.push(releve.value)
     else {
       const message = releve.reason instanceof Error ? releve.reason.message : String(releve.reason)
-      console.error(`Notes éditoriales illisibles (${bible.trad} | ${livre}) :`, releve.reason)
+      console.error(`Notes éditoriales illisibles (${bible.trad}) :`, releve.reason)
       echecsEditoriaux.push({ trad: bible.trad, libelle: bible.libelle, message })
     }
   })
   return { notesVersets, blocs, notesDeBlocs, pieces, membres, notesEditoriales, echecsEditoriaux }
 }
 
-export function chargerNotesBibleDuLivre(
+export function chargerNotesDeLaBible(
   client: SupabaseClient,
-  demande: { familleId: string | null; livre: string; bibles: readonly BibleLue[] },
+  demande: { familleId: string | null; bibles: readonly BibleLue[] },
 ): Promise<ReleveNotesBible> {
   const cle = cleInventaireNotesBible(demande)
   const connu = releves.get(cle)
   if (connu) return connu
-  const promesse = relever(client, demande.familleId, demande.livre, demande.bibles)
+  const promesse = relever(client, demande.familleId, demande.bibles)
   releves.set(cle, promesse)
   // ⚠️ Un relevé incomplet ne se garde pas non plus : rouvrir l'onglet doit le retenter.
   promesse.then(

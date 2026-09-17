@@ -31,17 +31,16 @@ export type LectureNotesEditoriales =
 // ── La demande de la route ──────────────────────────────────────────────────
 
 const CODE_BIBLE = /^TR\d{4}$/
-const CODE_LIVRE = /^[0-9A-Z]{3}$/
 const IDENTIFIANT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-/** La lecture demandée, ou `null` si les paramètres ne la décrivent pas. */
-export function lectureDemandee(parametres: URLSearchParams): { trad: string; livre: string; lecture: LectureNotesEditoriales } | null {
+/** La lecture demandée, ou `null` si les paramètres ne la décrivent pas. ⚠️ Pas de livre :
+ *  le relevé porte sur la bible entière. */
+export function lectureDemandee(parametres: URLSearchParams): { trad: string; lecture: LectureNotesEditoriales } | null {
   const trad = parametres.get('trad') ?? ''
-  const livre = parametres.get('livre') ?? ''
-  if (!CODE_BIBLE.test(trad) || !CODE_LIVRE.test(livre)) return null
+  if (!CODE_BIBLE.test(trad)) return null
   switch (parametres.get('lecture')) {
-    case 'vue-large': return { trad, livre, lecture: { lecture: 'vue-large' } }
-    case 'canon-v2': return { trad, livre, lecture: { lecture: 'canon-v2' } }
+    case 'vue-large': return { trad, lecture: { lecture: 'vue-large' } }
+    case 'canon-v2': return { trad, lecture: { lecture: 'canon-v2' } }
     case 'regard': {
       const famille = parametres.get('famille') ?? ''
       const parLeCanon = (parametres.get('parLeCanon') ?? '').split(',').filter(Boolean)
@@ -49,7 +48,7 @@ export function lectureDemandee(parametres: URLSearchParams): { trad: string; li
       if (parLeCanon.length === 0 || parLeCanon.length > 10 || !parLeCanon.every(code => CODE_BIBLE.test(code))) return null
       // ⚠️ La bible relevée doit être lue par le canon : ses notes ne vivent que là.
       if (!parLeCanon.includes(trad)) return null
-      return { trad, livre, lecture: { lecture: 'regard', famille, biblesParLeCanon: parLeCanon } }
+      return { trad, lecture: { lecture: 'regard', famille, biblesParLeCanon: parLeCanon } }
     }
     default: return null
   }
@@ -59,6 +58,7 @@ export function lectureDemandee(parametres: URLSearchParams): { trad: string; li
 export type FenetreNotesEditoriales = {
   /** L'identifiant que porte l'appel dans le texte (`v2-<uuid>`). */
   id: string
+  livre: string
   chapitre: number
   /** La ligne de la page où l'appel se pose. */
   cible: string
@@ -77,6 +77,8 @@ export type FenetreNotesEditoriales = {
 export type NoteEditorialeAbsente = {
   /** L'identifiant de sa ligne dans `versets_v2`. */
   id: string
+  /** Le livre de sa ligne. */
+  livre: string | null
   chapitre: number | null
   verset: number | null
   reperes: string | null
@@ -135,7 +137,7 @@ export function noteAbsente(ligne: LigneNoteV2, chapitre: number | null, raison:
   const reperes = ligne.ch_orig !== null && ligne.v_orig !== null
     ? `${ligne.ch_orig}, ${ligne.v_orig}${ligne.v_orig_suffixe ?? ''}`
     : null
-  return { id: ligne.id, chapitre, verset: ligne.v_orig, reperes, raison, texte: (ligne.notes ?? '').trim() }
+  return { id: ligne.id, livre: ligne.livre, chapitre, verset: ligne.v_orig, reperes, raison, texte: (ligne.notes ?? '').trim() }
 }
 
 /**
@@ -175,6 +177,7 @@ export function inventorierNotesEditoriales(
       const premiere = parId.get(note.id.slice('v2-'.length)) ?? null
       fenetres.push({
         id: note.id,
+        livre,
         chapitre,
         cible: note.canonId,
         rang: note.displayNumber,
