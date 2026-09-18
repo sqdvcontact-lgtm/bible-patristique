@@ -42,7 +42,7 @@ describe('ReferenceBibliographique', () => {
     const html = renderToStaticMarkup(<ReferenceBibliographique notice={BAUR} />)
     expect(html.startsWith(`<span class="${CLASSES_BIBLIOGRAPHIE.reference}">`)).toBe(true)
     expect(html).toContain('<span class="cs-apparat-bibliographie__auteur" data-champ="prenom">Gustav Adolf Ludwig</span>')
-    expect(html).toContain('<span class="cs-apparat-bibliographie__nom-auteur" data-champ="nom_famille">Baur</span>')
+    expect(html).toContain('<span class="cs-apparat-bibliographie__auteur" data-champ="nom_famille">Baur</span>')
     expect(html).toContain('<em class="cs-apparat-bibliographie__titre-ouvrage" data-champ="titre">')
     expect(html).toContain('<span class="cs-apparat-bibliographie__donnees" data-champ="lieu">Darmstadt</span>')
     expect(html).toContain('<span class="cs-apparat-bibliographie__donnees" data-champ="annee">1841</span>')
