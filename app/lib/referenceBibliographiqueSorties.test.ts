@@ -70,9 +70,10 @@ describe('htmlFragments', () => {
     expect(html.match(/<em>/g)).toHaveLength(1)
   })
 
-  it('écrit les petites capitales en style inline, faute de feuille hors du site', () => {
-    expect(htmlFragments(fragments()))
-      .toContain('<span style="font-variant: small-caps">Augustin d’Hippone</span>')
+  it('garde les noms d’auteurs en romain dans le HTML riche', () => {
+    const html = htmlFragments(fragments())
+    expect(html).toContain('Augustin d’Hippone')
+    expect(html).not.toContain('font-variant: small-caps')
   })
 
   it('échappe le texte des fragments', () => {
@@ -87,7 +88,7 @@ describe('baliseFragments', () => {
       .toBe('Augustin d’Hippone, *Du symbole. Discours adressé aux catéchumènes*, Bar-le-Duc, Louis Guérin, 1868')
   })
 
-  it('laisse les petites capitales sans marque : le balisage n’en a pas', () => {
+  it('garde les noms d’auteurs sans marque particulière', () => {
     expect(baliseFragments(fragments())).toContain('Augustin d’Hippone,')
   })
 })
