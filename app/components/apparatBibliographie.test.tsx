@@ -66,7 +66,7 @@ function mesureEm(corps: string, propriete: string): number {
 
 /** La requête média étroite de la famille, entière. */
 function blocMobile(): string {
-  const depuis = CSS.indexOf('.cs-apparat-bibliographie__nom-auteur {')
+  const depuis = CSS.indexOf('.cs-apparat-bibliographie__auteur {')
   expect(depuis).toBeGreaterThan(-1)
   const media = CSS.indexOf('@media (max-width: 700px) {', depuis)
   expect(media, 'aucune requête média pour la famille').toBeGreaterThan(-1)
