@@ -282,7 +282,7 @@ export type Props = {
   fleuron?: string | null
   // `nb_signes` mesure le texte PAR DÉFAUT de l'œuvre, et lui seul : la fiche
   // « À propos de cette édition » ne l'annonce donc que sur cette édition-là.
-  oeuvre: { titre: string; titre_affichage?: string | null; sous_titre?: string; titre_original?: string; trad_auteur?: string; trad_date?: string; commentaire_traduction?: string | null; note_editoriale_complete?: string | null; note_editoriale_complement?: string | null; note_editoriale_titre?: string | null; editeur?: string; collection?: string; ville?: string; date_publication?: string; date_mise_en_ligne?: string | null; id_oeuvre?: string; date_composition?: string | null; langue_originale?: string | null; genres?: string[] | null; url_source?: string | null; nb_signes?: number | null }
+  oeuvre: { titre: string; titre_affichage?: string | null; sous_titre?: string; titre_original?: string; trad_auteur?: string; trad_date?: string; commentaire_traduction?: string | null; note_editoriale_complete?: string | null; note_editoriale_complement?: string | null; bibliographie_selective?: string | null; note_editoriale_titre?: string | null; editeur?: string; collection?: string; ville?: string; date_publication?: string; date_mise_en_ligne?: string | null; id_oeuvre?: string; date_composition?: string | null; langue_originale?: string | null; genres?: string[] | null; url_source?: string | null; nb_signes?: number | null }
   groupes: GroupeData[]
   segments: SegData[]
   tocApparat: TocEntry[]

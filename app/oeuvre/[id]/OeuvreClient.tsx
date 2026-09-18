@@ -2542,7 +2542,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     oeuvreAffichee.sous_titre || oeuvreAffichee.titre_original || oeuvreAffichee.trad_auteur
     || oeuvreAffichee.editeur || oeuvreAffichee.ville || oeuvreAffichee.date_publication
     || oeuvreAffichee.collection || oeuvreAffichee.date_composition || oeuvreAffichee.genres?.length
-    || oeuvreAffichee.date_mise_en_ligne || oeuvreAffichee.url_source || versionsTextuelles.length > 1,
+    || oeuvreAffichee.bibliographie_selective || oeuvreAffichee.date_mise_en_ligne || oeuvreAffichee.url_source || versionsTextuelles.length > 1,
   )
   // ⚠️ LES NOMS SONT PASSÉS SOUS LE TITRE (2026-09-10) : ils ne sont plus dans la
   // rangée d'actions, et ne portent donc plus `refNoms` — c'est le titre qui demande
