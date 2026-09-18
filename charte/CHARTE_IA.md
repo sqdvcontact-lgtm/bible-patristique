@@ -588,6 +588,21 @@ La règle vit dans `identiteEdition` (`app/oeuvre/[id]/versionTextuelle.ts`) et 
 
 ⚠️ **QUESTION OUVERTE, ET ELLE ATTEND L’AUTEUR : le responsable et la collection n’ont pas de champ par texte.** Le § 38.25.1 veut que la fiche les nomme pour chaque édition ; le § 19.2 les exclut d’`edition_label`, et c’est pourtant le seul endroit où la page sait les lire. Une édition dont le libellé est conforme perd donc son responsable : les deux textes de Zycha et l’Apologétique de Waltzing ne le montrent pas, alors que les métadonnées d’atelier le connaissent. La voie proposée est une colonne par texte pour chacun des deux, lue avant le libellé. Tant que la décision n’est pas prise, on ne réécrit pas un libellé conforme pour y remettre un responsable, et l’on ne retire pas le responsable d’un libellé qui le porte encore : il disparaîtrait de l’écran.
 
+### 5.5.2 La fiche sépare l’œuvre, l’édition, la technique et la bibliographie
+
+⛔ **QUATRE FONCTIONS, QUATRE EMPLACEMENTS.** Une fiche savante va du général au technique ; elle ne mêle pas dans une même prose ce qui décrit l’œuvre, ce qui décrit l’édition lue, ce qui sert à exploiter son appareil et les références qui fondent la notice.
+
+1. **Présentation générale de l’œuvre** — `oeuvres.note_editoriale_complete`. Elle dit ce qu’est l’œuvre : nature, datation, composition, intérêt, contenu, contexte, place dans le corpus de l’auteur. Elle ne devient ni une notice d’édition ni une bibliographie.
+2. **Notes éditoriales** — `oeuvres.note_editoriale_complement`. Elles donnent les informations éditoriales nécessaires à la compréhension des versions présentées : traduction, publication, éditeur scientifique, histoire ou particularités de l’édition, rapports entre éditions ou traductions. Quand plusieurs éditions coexistent sous la même œuvre, des rubriques `##` peuvent les distinguer à l’intérieur de cette section.
+3. **Informations complémentaires** — `oeuvre_textes.informations_complementaires`. Elles appartiennent à UNE version précise et portent la couche technique utile surtout au chercheur : manuscrits et témoins, sigles, recensions, abréviations d’apparat, conventions de transcription et autres données nécessaires à l’exploitation savante du texte. Elles ne paraissent que lorsqu’elles sont réellement utiles et renseignées.
+4. **Bibliographie sélective** — `oeuvres.bibliographie_selective`. Elle rassemble, à part, les références retenues pour documenter l’œuvre et ses éditions. ⛔ **ELLE EST UNE SECTION AUTONOME**, jamais une sous-rubrique de « Notes éditoriales » ni un appendice collé à la fin de la présentation générale.
+
+⛔ **UNE RÉFÉRENCE COMPLÈTE NE SE RÉPÈTE PAS DANS LES AUTRES RUBRIQUES.** La prose peut nommer un chercheur, une édition ou un résultat quand le raisonnement l’exige ; la notice bibliographique complète correspondante va dans « Bibliographie sélective ». Cela évite les fins de paragraphes encombrées de références et donne au lecteur un seul lieu où retrouver les sources.
+
+⚠️ **LE CHAMP BIBLIOGRAPHIQUE NE PORTE PAS SON PROPRE TITRE.** `oeuvres.bibliographie_selective` contient seulement les références, une par ligne ouverte par `+ `, selon la notation du § 5.6.1. C’est l’interface qui fournit le titre « Bibliographie sélective ».
+
+⚠️ **ORDRE DOCUMENTAIRE.** La lecture va du général au spécialisé : présentation de l’œuvre → notes éditoriales → informations complémentaires lorsqu’elles existent → bibliographie sélective. Une rubrique absente n’est pas remplacée par un bloc vide.
+
 ### 5.6 Informations complémentaires d’une édition
 
 ⛔ **UNE ÉDITION SAVANTE DÉCLARE CE QU’IL FAUT SAVOIR POUR LA LIRE**, et ce n’est ni son adresse ni sa notice : les manuscrits qu’elle a collationnés et les sigles qui les désignent, les abréviations de son apparat, les conventions de transcription qu’elle s’est données. Sans cette déclaration, « B; est] est et BPQ » est illisible, et le lecteur n’a aucun moyen de savoir ce que B, P et Q nomment.
@@ -628,6 +643,8 @@ La rubrique s’appelle **« Informations complémentaires »**, elle vit dans `
 ⛔ **ET RIEN NE SE DEVINE.** Une ligne sans marque est de la PROSE — c’est ce qui rend la notation rétro-compatible, et ce qui permet de la poser sans aucune migration : ce qui est déjà écrit continue de se rendre comme avant. Une entrée dont le tiret manque reste une entrée, sans tête en relief : on ne coupe pas au jugé une ligne qui n’a pas déclaré où elle se coupe. Une marque posée sans son texte — « ## » sans titre — ne s’imprime pas davantage.
 
 ⛔ **LA RÉFÉRENCE BIBLIOGRAPHIQUE, SECONDE NATURE D’ENTRÉE** (demande de l’auteur, 17 septembre 2026 : « un style de bibliographie pour les notices des œuvres »). Une ligne ouverte par `+ ` est une RÉFÉRENCE. Elle reste au rang d’une entrée, un article sous sa rubrique, et le nombre des niveaux ne bouge pas. Deux raisons NOMMÉES la séparent de l’entrée (§ 13.11) : une référence n’a pas de tête et ne se coupe JAMAIS à un séparateur, qu’un titre ou une plage porte souvent ; et elle se compose dans la famille bibliographique du site (§ 47.2), avec les classes des ouvrages cités de la même fiche mais au corps du pied d’une fiche d’auteur, 0,6875 rem (décision de l’auteur, 17 septembre 2026 : « plus petit ») : elle clôt une prose en sans à 0,75 rem, qu’un sérif de même corps écrasait. Les références consécutives font une seule bibliographie ; une ligne vide, une ligne de prose ou une entrée la ferment. ⛔ Elle ne porte PAS de titre (décision de l’auteur, même jour : « pas besoin de titre “Bibliographie” ») : sa composition la distingue de la prose, dont la sépare une ligne vide de cette prose.
+
+⚠️ **LE « PAS DE TITRE » DES LIGNES `+` CONCERNE UNE BIBLIOGRAPHIE INTÉGRÉE À UNE NOTICE.** Il ne contredit pas la section autonome du § 5.5.2 : `oeuvres.bibliographie_selective` est rendue sous le titre d’interface « Bibliographie sélective », mais ce titre n’est jamais recopié dans la valeur du champ.
 
 ⛔ **RIEN NE S’Y DEVINE NON PLUS.** L’italique du titre (`*…*`) et les petites capitales du nom de famille (`++…++`) sont ÉCRITS par l’éditeur, selon la forme des notices du site (§ 47.1) : le rendu ne tire ni titre, ni auteur, ni éditeur de la chaîne. Les plages de pages suivent le § 3.4 : trait d’union simple, jamais de demi-cadratin. Une référence s’écrit ainsi : `+ Pierre ++Cazier++, « Lectures du livre de Job chez Ambroise, Augustin et Grégoire le Grand », *Graphè*, 6, 1997, pp. 81-111.`
 
@@ -7551,6 +7568,14 @@ silence compris.
 rejouée sur les 51 éditions publiques, avant et après : **deux changent, et ce sont les deux
 qui étaient fausses** — Knöll et Hartel, les deux seules notices du corpus qui nomment leur
 responsable entre parenthèses. Les quarante-neuf autres rendent le même octet.
+
+### 38.25.2 Les sections de la fiche ont un RANG
+
+⛔ **« BIBLIOGRAPHIE SÉLECTIVE » EST UNE SECTION SŒUR, PAS UN SOUS-TITRE.** Elle se rend avec le même composant et au même niveau structurel que « Notes éditoriales » et les autres sections autonomes de la fiche. L’écrire comme un `## Bibliographie sélective` à l’intérieur de `note_editoriale_complement` est une erreur de hiérarchie : le lecteur la perçoit alors comme une subdivision des notes, alors qu’elle documente l’ensemble de la fiche.
+
+⚠️ **LA HIÉRARCHIE VISUELLE SUIT LA HIÉRARCHIE DES DONNÉES.** `note_editoriale_complete` alimente la présentation de l’œuvre ; `note_editoriale_complement`, les notes éditoriales ; `oeuvre_textes.informations_complementaires`, la couche technique propre à l’édition ; `oeuvres.bibliographie_selective`, la bibliographie. Aucun de ces champs ne simule le rang d’un autre par un titre Markdown interne.
+
+⛔ **LA BIBLIOGRAPHIE N’EST PAS MIROITÉE DANS LES NOTES ÉDITORIALES.** Dès que le rendu autonome existe, toute copie transitoire de son contenu dans `note_editoriale_complement` doit disparaître. Une seule donnée, une seule surface.
 
 ### 38.26 Une rangée de contrôles se mesure en REM, et ce qui coûte la largeur est leur NOMBRE
 
