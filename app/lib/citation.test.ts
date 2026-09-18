@@ -115,9 +115,10 @@ describe('citationPatristique', () => {
     expect(texte).toContain('Veuve Jean Camusat' + SEPARATEUR_COEDITEURS + 'Pierre Le Petit')
     expect(texte).not.toContain('Camusat ; Pierre')
   })
-  it('compose l’auteur en petites capitales dans la forme HTML', () => {
+  it('compose l’auteur en romain dans la forme HTML', () => {
     const { html } = citationPatristique('paix', info)
-    expect(html).toContain('<span style="font-variant: small-caps">Augustin</span>')
+    expect(html).toContain('Augustin')
+    expect(html).not.toContain('font-variant: small-caps')
   })
   it('⛔ le point final de la notice tombe : la phrase continue', () => {
     const { texte } = citationPatristique('paix', info)
