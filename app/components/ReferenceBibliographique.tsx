@@ -61,10 +61,9 @@ export { typographieFragment }
  *
  * Le rôle est nommé par la donnée (`segment.style`) et la feuille le compose :
  * l'italique pour l'intitulé de l'ouvrage — titre, sous-titre et le point qui les
- * joint ne font qu'un seul titre typographique —, les petites capitales pour le
- * nom d'autorité de l'auteur, le romain pour tout le reste. ⚠️ Le nom se compose
- * depuis la donnée (`auteurs_valeur.nom_famille`), ⛔ jamais par découpe de la
- * chaîne affichée.
+ * joint ne font qu'un seul titre typographique —, le romain pour les noms d'auteurs
+ * comme pour les autres données. ⚠️ Le nom se compose depuis la donnée structurée,
+ * ⛔ jamais par découpe de la chaîne affichée.
  *
  * ⚠️ EXPORTÉ : la fiche « À propos de cette traduction » compose de la même façon
  * la référence des volumes servis, qui n'est pas une œuvre du catalogue mais suit
