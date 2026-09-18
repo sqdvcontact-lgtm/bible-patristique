@@ -2146,20 +2146,13 @@ button:focus-visible,
   font-variant-caps: normal;
 }
 
-/* Petites capitales SÉMANTIQUES : la donnée dit quel fragment est le nom de
-   famille, la feuille le compose. ⛔ Jamais de `text-transform: uppercase`, qui
-   crierait le nom entier et perdrait la casse d'autorité. Le romain est posé
-   avec elles : un nom d'auteur ne s'italise pas parce que son voisinage le
-   ferait.
-   ⚠️ Source Serif 4, telle que la sert next/font/google (v4.004), ne porte PAS
-   la fonction `smcp` : ce sont des petites capitales SYNTHÉTISÉES par le
-   navigateur, des capitales réduites. L'amont Adobe 4.005 les porte (romain
-   seulement) ; les avoir vraies demande d'auto-héberger la police — décision
-   d'auteur, chiffrée dans work/notes/PROPOSITION_RENDU_BIBLIOGRAPHIQUE_20260905. */
+/* Le nom d'auteur se compose en ROMAIN, sans petites capitales. Le rôle
+   sémantique reste distinct pour l'identité et le tri, jamais pour changer sa
+   casse ou son dessin. */
 .cs-reference-bibliographique .cs-apparat-bibliographie__nom-auteur {
   font-style: normal;
-  font-variant-caps: small-caps;
-  letter-spacing: 0.02em;
+  font-variant-caps: normal;
+  letter-spacing: normal;
 }
 
 /* L'ARTICLE et son HÔTE (charte § 47.2, étendu le 5 septembre 2026). Le titre

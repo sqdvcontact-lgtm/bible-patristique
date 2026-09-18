@@ -70,7 +70,7 @@ export const CLASSES_BIBLIOGRAPHIE = {
 export const STYLES_CARACTERE_BIBLIOGRAPHIE = [
   /** L'auteur affiché, en romain. */
   'bibliographie-auteur',
-  /** Son nom de famille, en petites capitales. */
+  /** Son nom de famille : rôle sémantique conservé, rendu en romain. */
   'bibliographie-nom-auteur',
   'bibliographie-titre-ouvrage',
   'bibliographie-sous-titre',

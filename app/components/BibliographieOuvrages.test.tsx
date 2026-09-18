@@ -124,7 +124,7 @@ describe('la pièce « Du même auteur »', () => {
 })
 
 describe('une autre liste d’ouvrages', () => {
-  it('rend le nom de famille en petites capitales, depuis la donnée', () => {
+  it('rend le nom de famille en romain, depuis la donnée', () => {
     const autre = bibliographieDesBlocs(
       ENTREES_DU_MEME_AUTEUR.map((entree) => ({ ...entree, piece_key: 'bibliographie-generale' })),
       BLOCS_DU_MEME_AUTEUR,
@@ -135,10 +135,9 @@ describe('une autre liste d’ouvrages', () => {
     expect(html).toContain(
       '<span class="cs-apparat-bibliographie__auteur" data-champ="prenom">Louis-Claude</span>',
     )
-    // ⛔ Les petites capitales sont SÉMANTIQUES : une classe que la feuille
-    // compose, jamais une chaîne passée en capitales par le rendu.
+    // ⛔ Le rôle du nom reste sémantique, mais sa composition est désormais romaine.
     expect(html).toContain(
-      '<span class="cs-apparat-bibliographie__nom-auteur" data-champ="nom_famille">Fillion</span>',
+      '<span class="cs-apparat-bibliographie__auteur" data-champ="nom_famille">Fillion</span>',
     )
     expect(html).not.toContain('FILLION')
   })

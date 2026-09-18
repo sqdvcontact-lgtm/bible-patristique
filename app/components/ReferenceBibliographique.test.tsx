@@ -42,11 +42,11 @@ describe('ReferenceBibliographique', () => {
     const html = renderToStaticMarkup(<ReferenceBibliographique notice={BAUR} />)
     expect(html.startsWith(`<span class="${CLASSES_BIBLIOGRAPHIE.reference}">`)).toBe(true)
     expect(html).toContain('<span class="cs-apparat-bibliographie__auteur" data-champ="prenom">Gustav Adolf Ludwig</span>')
-    expect(html).toContain('<span class="cs-apparat-bibliographie__nom-auteur" data-champ="nom_famille">Baur</span>')
+    expect(html).toContain('<span class="cs-apparat-bibliographie__auteur" data-champ="nom_famille">Baur</span>')
     expect(html).toContain('<em class="cs-apparat-bibliographie__titre-ouvrage" data-champ="titre">')
     expect(html).toContain('<span class="cs-apparat-bibliographie__donnees" data-champ="lieu">Darmstadt</span>')
     expect(html).toContain('<span class="cs-apparat-bibliographie__donnees" data-champ="annee">1841</span>')
-    // ⛔ Les petites capitales sont SÉMANTIQUES : la chaîne n'est pas passée en capitales.
+    // ⛔ Le nom d’auteur reste en romain : la chaîne n’est jamais passée en capitales.
     expect(html).not.toContain('BAUR')
     // ⚠️ Aucun identifiant sur l'enveloppe : c'est l'appelant qui sait où il est.
     expect(html).not.toContain('data-ouvrage-id')

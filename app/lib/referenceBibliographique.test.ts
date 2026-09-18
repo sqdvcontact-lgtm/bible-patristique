@@ -84,14 +84,14 @@ const JOURDAIN: NoticeBibliographique = {
 }
 
 describe('les six notices de Boèce', () => {
-  it('Baur — monographie : prénom en romain, nom en petites capitales, titre en italique', () => {
+  it('Baur — monographie : auteur en romain, titre en italique', () => {
     expect(texteReference(BAUR)).toBe(
       'Gustav Adolf Ludwig Baur, De Anicio Manlio Severino Boëthio, christianae doctrinae assertore : '
       + 'disputatio theologica, Darmstadt, E. Bekker, 1841.',
     )
     const fragments = fragmentsReference(BAUR)
     expect(fragments[0]).toEqual({ champ: 'prenom', style: 'bibliographie-auteur', composition: 'romain', texte: 'Gustav Adolf Ludwig' })
-    expect(fragments[2]).toEqual({ champ: 'nom_famille', style: 'bibliographie-nom-auteur', composition: 'petites-capitales', texte: 'Baur' })
+    expect(fragments[2]).toEqual({ champ: 'nom_famille', style: 'bibliographie-auteur', composition: 'romain', texte: 'Baur' })
     expect(fragments.find(f => f.champ === 'titre')?.composition).toBe('italique')
   })
 
@@ -103,12 +103,12 @@ describe('les six notices de Boèce', () => {
     expect(heynlin).toEqual({ champ: 'editeur_scientifique', style: 'bibliographie-donnees', composition: 'romain', texte: 'Johannes Heynlin' })
   })
 
-  it('Eugippe — auteur ancien : la forme canonique ENTIÈRE en petites capitales, sans nom de famille inventé', () => {
+  it('Eugippe — auteur ancien : la forme canonique entière reste en romain, sans nom de famille inventé', () => {
     expect(texteReference(EUGIPPE)).toBe(
       'Eugippe, Historia ab Eugippio ante annos circiter MC. scripta, éd. Marcus Welser, Augsbourg, Ad insigne Pinus, 1595.',
     )
     const fragments = fragmentsReference(EUGIPPE)
-    expect(fragments[0]).toEqual({ champ: 'nom_famille', style: 'bibliographie-nom-auteur', composition: 'petites-capitales', texte: 'Eugippe' })
+    expect(fragments[0]).toEqual({ champ: 'nom_famille', style: 'bibliographie-auteur', composition: 'romain', texte: 'Eugippe' })
     expect(fragments.some(f => f.champ === 'prenom')).toBe(false)
   })
 
@@ -145,7 +145,7 @@ describe('les six notices de Boèce', () => {
 })
 
 describe('les règles générales', () => {
-  it('sans auteur structuré, le texte libre paraît en ROMAIN — jamais de petites capitales heuristiques', () => {
+  it('sans auteur structuré, le texte libre paraît en romain', () => {
     const notice = { ...vide(1, 'Titre'), auteursTexte: 'Gustav Adolf Ludwig Baur', annee: 1841 }
     const [tete] = fragmentsReference(notice)
     expect(tete).toEqual({ champ: 'auteurs', style: 'bibliographie-auteur', composition: 'romain', texte: 'Gustav Adolf Ludwig Baur' })
@@ -155,7 +155,7 @@ describe('les règles générales', () => {
   it('une autorité sans rubriques se compose entière, un collectif en romain', () => {
     const fiche: ContributeurNotice = { role: 'auteur_scientifique', nature: 'chercheur', ordre: 1, nomAffiche: 'Cyrille de Jérusalem', nomAutorite: 'Cyrille de Jérusalem' }
     expect(fragmentsReference({ ...vide(1, 'T'), contributeurs: [fiche] })[0])
-      .toEqual({ champ: 'nom_famille', style: 'bibliographie-nom-auteur', composition: 'petites-capitales', texte: 'Cyrille de Jérusalem' })
+      .toEqual({ champ: 'nom_famille', style: 'bibliographie-auteur', composition: 'romain', texte: 'Cyrille de Jérusalem' })
     const collectif: ContributeurNotice = { role: 'auteur_source', nature: 'collectif', ordre: 1, nomAffiche: 'Académie des inscriptions' }
     expect(fragmentsReference({ ...vide(1, 'T'), contributeurs: [collectif] })[0])
       .toEqual({ champ: 'auteurs', style: 'bibliographie-auteur', composition: 'romain', texte: 'Académie des inscriptions' })

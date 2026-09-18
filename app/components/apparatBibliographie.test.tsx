@@ -66,7 +66,7 @@ function mesureEm(corps: string, propriete: string): number {
 
 /** La requête média étroite de la famille, entière. */
 function blocMobile(): string {
-  const depuis = CSS.indexOf('.cs-apparat-bibliographie__nom-auteur {')
+  const depuis = CSS.indexOf('.cs-reference-bibliographique .cs-apparat-bibliographie__auteur')
   expect(depuis).toBeGreaterThan(-1)
   const media = CSS.indexOf('@media (max-width: 700px) {', depuis)
   expect(media, 'aucune requête média pour la famille').toBeGreaterThan(-1)
@@ -346,11 +346,10 @@ describe('le style bibliographique commun de l’apparat', () => {
       `<span class="${CLASSE_CARACTERE_BIBLIOGRAPHIE['bibliographie-auteur']}" data-champ="prenom">Louis-Claude</span>`,
     )
     expect(html).toContain(
-      `<span class="${CLASSE_CARACTERE_BIBLIOGRAPHIE['bibliographie-nom-auteur']}" data-champ="nom_famille">Fillion</span>`,
+      `<span class="${CLASSE_CARACTERE_BIBLIOGRAPHIE['bibliographie-auteur']}" data-champ="nom_famille">Fillion</span>`,
     )
-    // ⛔ Petites capitales SÉMANTIQUES : la feuille les compose, le rendu ne
-    // passe pas la chaîne en capitales.
-    expect(corpsPour('__nom-auteur')).toContain('font-variant-caps: small-caps')
+    // ⛔ Le rôle historique du nom de famille reste typographiquement neutre.
+    expect(corpsPour('__nom-auteur')).toContain('font-variant-caps: normal')
     expect(corpsPour('__nom-auteur')).not.toContain('text-transform')
     expect(html).not.toContain('FILLION')
   })
