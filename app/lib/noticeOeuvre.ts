@@ -67,10 +67,9 @@ function propre(valeur: string | null | undefined): string | null {
 /**
  * L'œuvre, dans la forme que lit le moteur.
  *
- * ⚠️ L'AUTEUR SE COMPOSE EN PETITES CAPITALES. Ce n'est pas un nom en texte libre :
- * c'est la forme d'autorité d'une fiche d'`auteurs`, et la charte (§ 47.1) veut que
- * les autorités antiques et médiévales, qu'aucun couple prénom/nom moderne ne décrit,
- * se composent ENTIÈRES en petites capitales. Le corpus n'en connaît pas d'autres.
+ * ⚠️ L'AUTEUR SE COMPOSE EN ROMAIN. La forme d'autorité de la fiche d'`auteurs`
+ * reste la source de l'identité ; elle ne déclenche plus aucune petite capitale
+ * dans les notices bibliographiques.
  *
  * ⚠️ LES TRADUCTEURS SONT NETTOYÉS, PAS COMPOSÉS. `nomsTraducteurs` retire de la
  * chaîne du catalogue ce qui n'est pas un nom — « — prénom non établi », un
