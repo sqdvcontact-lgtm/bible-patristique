@@ -548,6 +548,8 @@ La notice doit identifier au minimum l’auteur, le titre, le traducteur ou édi
 
 La notice décrit l’édition réellement transcrite. Elle ne mélange pas les informations de plusieurs témoins sans les distinguer.
 
+⛔ **TOUT CHERCHEUR MODERNE CITÉ POUR ARGUMENTER DOIT ÊTRE RÉFÉRENCÉ.** Dès qu’une notice nomme un chercheur pour fonder une datation, une attribution, une lecture, une reconstruction textuelle, un jugement critique, un état de la recherche ou toute autre proposition savante, au moins une référence bibliographique complète correspondant à ce propos figure dans `oeuvres.bibliographie_selective`. Nommer « Smets et Van Esbroeck », « Dombart », « Knöll » ou tout autre savant sans permettre au lecteur d’identifier l’ouvrage invoqué est une notice incomplète. La règle vaut aussi lorsque plusieurs chercheurs sont opposés ou comparés : chacun des travaux effectivement mobilisés est identifiable dans la bibliographie. Un nom cité uniquement comme responsable de l’édition décrite est couvert par la référence complète de cette édition.
+
 **Aération des notices.** Lorsqu’une notice réunit plusieurs fonctions distinctes — provenance bibliographique, statut critique, histoire de la transmission, avertissement éditorial ou état de contrôle — elles sont séparées en paragraphes par une ligne vide dès que cela clarifie la lecture. Une notice n’est pas comprimée en un seul paragraphe par principe. Les sauts de ligne servent l’articulation intellectuelle, non la décoration.
 
 ### 5.4 Lecture assistée de la page de titre
@@ -597,7 +599,7 @@ La règle vit dans `identiteEdition` (`app/oeuvre/[id]/versionTextuelle.ts`) et 
 3. **Informations complémentaires** — `oeuvre_textes.informations_complementaires`. Elles appartiennent à UNE version précise et portent la couche technique utile surtout au chercheur : manuscrits et témoins, sigles, recensions, abréviations d’apparat, conventions de transcription et autres données nécessaires à l’exploitation savante du texte. Elles ne paraissent que lorsqu’elles sont réellement utiles et renseignées.
 4. **Bibliographie sélective** — `oeuvres.bibliographie_selective`. Elle rassemble, à part, les références retenues pour documenter l’œuvre et ses éditions. ⛔ **ELLE EST UNE SECTION AUTONOME**, jamais une sous-rubrique de « Notes éditoriales » ni un appendice collé à la fin de la présentation générale.
 
-⛔ **UNE RÉFÉRENCE COMPLÈTE NE SE RÉPÈTE PAS DANS LES AUTRES RUBRIQUES.** La prose peut nommer un chercheur, une édition ou un résultat quand le raisonnement l’exige ; la notice bibliographique complète correspondante va dans « Bibliographie sélective ». Cela évite les fins de paragraphes encombrées de références et donne au lecteur un seul lieu où retrouver les sources.
+⛔ **UNE RÉFÉRENCE COMPLÈTE NE SE RÉPÈTE PAS DANS LES AUTRES RUBRIQUES.** La prose peut nommer un chercheur, une édition ou un résultat quand le raisonnement l’exige ; la notice bibliographique complète correspondante va dans « Bibliographie sélective ». ⛔ **Toute personne moderne nommée comme autorité d’un argument doit y avoir sa référence identifiable**, conformément au § 5.3. Cela évite à la fois les fins de paragraphes encombrées de références et les affirmations d’autorité impossibles à vérifier.
 
 ⚠️ **LE CHAMP BIBLIOGRAPHIQUE NE PORTE PAS SON PROPRE TITRE.** `oeuvres.bibliographie_selective` contient seulement les références, une par ligne ouverte par `+ `, selon la notation du § 5.6.1. C’est l’interface qui fournit le titre « Bibliographie sélective ».
 
