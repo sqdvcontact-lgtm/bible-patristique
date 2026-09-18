@@ -49,10 +49,10 @@ describe('noticeDUneOeuvre', () => {
     )
   })
 
-  it('compose l’auteur en PETITES CAPITALES : c’est une forme d’autorité, non un texte libre', () => {
+  it('compose l’auteur en romain : l’autorité ne commande plus de petites capitales', () => {
     const [tete] = fragmentsReference(noticeDUneOeuvre({ auteur: 'Augustin d’Hippone', titre: 'Les Confessions' }))
-    expect(tete.composition).toBe('petites-capitales')
-    expect(tete.style).toBe('bibliographie-nom-auteur')
+    expect(tete.composition).toBe('romain')
+    expect(tete.style).toBe('bibliographie-auteur')
     expect(tete.texte).toBe('Augustin d’Hippone')
   })
 
