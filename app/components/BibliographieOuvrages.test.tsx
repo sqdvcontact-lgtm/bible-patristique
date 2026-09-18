@@ -135,8 +135,7 @@ describe('une autre liste d’ouvrages', () => {
     expect(html).toContain(
       '<span class="cs-apparat-bibliographie__auteur" data-champ="prenom">Louis-Claude</span>',
     )
-    // ⛔ Les petites capitales sont SÉMANTIQUES : une classe que la feuille
-    // compose, jamais une chaîne passée en capitales par le rendu.
+    // ⛔ Le rôle du nom reste sémantique, mais sa composition est désormais romaine.
     expect(html).toContain(
       '<span class="cs-apparat-bibliographie__auteur" data-champ="nom_famille">Fillion</span>',
     )
