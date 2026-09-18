@@ -34,13 +34,13 @@ function notice(): NoticeBibliographique {
 }
 
 describe('titres personnels dans une référence bibliographique', () => {
-  it('place le titre entre parenthèses après le nom, hors petites capitales', () => {
+  it('place le titre entre parenthèses après le nom, tout en romain', () => {
     const fragments = fragmentsReference(notice())
     expect(texteReference(notice())).toContain('Auguste François Louis Scipion de Grimoard-Beauvoir (marquis du Roure),')
 
     const nom = fragments.find(fragment => fragment.champ === 'nom_famille')
     const titre = fragments.find(fragment => fragment.champ === 'titre_personne')
-    expect(nom).toMatchObject({ texte: 'de Grimoard-Beauvoir', composition: 'petites-capitales' })
+    expect(nom).toMatchObject({ texte: 'de Grimoard-Beauvoir', composition: 'romain' })
     expect(titre).toMatchObject({ texte: 'marquis du Roure', composition: 'romain' })
   })
 })
