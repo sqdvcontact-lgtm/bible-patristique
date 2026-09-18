@@ -607,7 +607,7 @@ La règle vit dans `identiteEdition` (`app/oeuvre/[id]/versionTextuelle.ts`) et 
 
 ⛔ **UNE ÉDITION SAVANTE DÉCLARE CE QU’IL FAUT SAVOIR POUR LA LIRE**, et ce n’est ni son adresse ni sa notice : les manuscrits qu’elle a collationnés et les sigles qui les désignent, les abréviations de son apparat, les conventions de transcription qu’elle s’est données. Sans cette déclaration, « B; est] est et BPQ » est illisible, et le lecteur n’a aucun moyen de savoir ce que B, P et Q nomment.
 
-La rubrique s’appelle **« Informations complémentaires »**, elle vit dans `oeuvre_textes.informations_complementaires`, et elle paraît dans la fiche « À propos de cette édition », après le commentaire de l’édition et avant ce qui concerne l’œuvre.
+La rubrique s’appelle **« Informations complémentaires »**, elle vit dans `oeuvre_textes.informations_complementaires`, et elle paraît dans la fiche « À propos de cette édition » à son rang documentaire : après « Notes éditoriales » et avant « Bibliographie sélective ». Elle ne remonte jamais devant la présentation générale de l’œuvre.
 
 ⛔ **ELLE NE PARAÎT QUE REMPLIE** (demande de l’auteur, 12 septembre 2026). Une rubrique vide promettrait un appareil que l’édition n’a pas déclaré, et le site a déjà tranché ce cas ailleurs : on n’annonce jamais rien qu’on ne puisse montrer.
 
@@ -7573,7 +7573,9 @@ responsable entre parenthèses. Les quarante-neuf autres rendent le même octet.
 
 ⛔ **« BIBLIOGRAPHIE SÉLECTIVE » EST UNE SECTION SŒUR, PAS UN SOUS-TITRE.** Elle se rend avec le même composant et au même niveau structurel que « Notes éditoriales » et les autres sections autonomes de la fiche. L’écrire comme un `## Bibliographie sélective` à l’intérieur de `note_editoriale_complement` est une erreur de hiérarchie : le lecteur la perçoit alors comme une subdivision des notes, alors qu’elle documente l’ensemble de la fiche.
 
-⚠️ **LA HIÉRARCHIE VISUELLE SUIT LA HIÉRARCHIE DES DONNÉES.** `note_editoriale_complete` alimente la présentation de l’œuvre ; `note_editoriale_complement`, les notes éditoriales ; `oeuvre_textes.informations_complementaires`, la couche technique propre à l’édition ; `oeuvres.bibliographie_selective`, la bibliographie. Aucun de ces champs ne simule le rang d’un autre par un titre Markdown interne.
+⚠️ **LA HIÉRARCHIE VISUELLE SUIT LA HIÉRARCHIE DES DONNÉES.** Après la section d’identité de l’édition, la fiche suit cet ordre : « L’œuvre » (`note_editoriale_complete`) → « Notes éditoriales » (`note_editoriale_complement`) → « Informations complémentaires » (`oeuvre_textes.informations_complementaires`, si elles existent) → « Bibliographie sélective » (`oeuvres.bibliographie_selective`). Aucun de ces champs ne simule le rang d’un autre par un titre Markdown interne.
+
+⛔ **LE BLOC « SUR CE SITE » N’APPARTIENT PLUS À CETTE FICHE.** Les métadonnées techniques de présence en ligne, d’étendue, de mode de lecture ou d’existence d’une autre édition ne forment pas une notice savante et ne s’intercalent pas après la bibliographie. Elles restent disponibles dans leurs données et dans les surfaces fonctionnelles qui en ont besoin, mais la fiche « À propos de cette édition » ne les rend plus comme section autonome.
 
 ⛔ **LA BIBLIOGRAPHIE N’EST PAS MIROITÉE DANS LES NOTES ÉDITORIALES.** Dès que le rendu autonome existe, toute copie transitoire de son contenu dans `note_editoriale_complement` doit disparaître. Une seule donnée, une seule surface.
 

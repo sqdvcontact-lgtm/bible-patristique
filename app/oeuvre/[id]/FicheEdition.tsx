@@ -11,7 +11,7 @@
 //    seule à droite, dans l'étroite — la convention des trois fiches ;
 // ⛔ aucun portrait : le sujet de cette fiche est un LIVRE, et le nom de l'auteur ouvre
 //    sa propre fiche, où le portrait est chez lui ;
-// ⛔ une seule forme de rangée (`LigneTech`).
+// ⛔ une seule forme de rangée (`LigneTech`) ; aucune rubrique de métadonnées internes « Sur ce site ».
 //
 // ⚠️ Elle porte aussi les OUVRAGES CITÉS dans l'édition (demande de l'auteur, 2026-09-15 :
 // « Fenêtre “En savoir plus sur cette œuvre” : ajouter les ouvrages cités dans
@@ -42,7 +42,7 @@ import { supabase } from '@/app/lib/supabase'
 import { sansPointFinal } from '@/app/lib/titres'
 import { libelleTrad, formaterEditeur } from './PageTitre'
 import { rendreTexteEnrichi } from './texteEnrichi'
-import { intituleEdition, libelleVersionComplet } from './versionTextuelle'
+import { intituleEdition } from './versionTextuelle'
 import type { Props, VersionTextuelle } from './oeuvreTypes'
 
 /** Tout ce que la fiche a besoin de savoir. Les données lui arrivent chargées : la
@@ -62,15 +62,6 @@ export type DonneesEdition = {
   aTexteOriginal: boolean
 }
 
-/** Millésime de l'édition en ligne, comme au colophon de la page de titre. ⛔ Pas la
- *  date au jour : `date_mise_en_ligne` a été estampillée en lot sur une partie du
- *  corpus, et une date précise y donnerait à croire à une précision qu'elle n'a pas. */
-function anneeEnLigne(valeur: string | null | undefined): string | null {
-  if (!valeur) return null
-  const annee = new Date(valeur).getFullYear()
-  return Number.isFinite(annee) ? String(annee) : null
-}
-
 /**
  * Le contenu de la fiche : l'en-tête et toutes les notices dans la colonne large, la
  * chronologie dans l'étroite, les ouvrages cités en rubrique de clôture.
@@ -84,7 +75,7 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
   ouvragesCites?: readonly NoticeBibliographique[] | null
   titreId?: string
 }) {
-  const { oeuvre, titre, auteurs, auteurNom, versionActive, versions, aTexteOriginal } = donnees
+  const { oeuvre, titre, auteurs, auteurNom, versionActive, versions } = donnees
 
   // Repères de l'œuvre, sur une seule ligne d'étiquettes : c'est la place que la fiche
   // d'auteur donne aux dates, à la langue et aux traditions.
@@ -104,12 +95,6 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
   const languesDistinctes = new Set(versions.map(v => (v.langue ?? '').trim()).filter(Boolean))
   const langue = languesDistinctes.size > 1 ? libelleLangue(versionActive?.langue) : ''
   const responsable = versionActive?.responsableEdition ?? null
-  // ⚠️ `nb_signes` mesure le texte PAR DÉFAUT de l'œuvre : sur une autre édition du
-  // même texte, il dirait la longueur d'un texte qu'on ne lit pas.
-  const etendue = (!versionActive || versionActive.isDefault) && oeuvre.nb_signes
-    ? `${oeuvre.nb_signes.toLocaleString('fr-FR')} signes` : null
-  const autresVersions = versions.filter(v => v.idTexte !== versionActive?.idTexte)
-  const enLigne = anneeEnLigne(oeuvre.date_mise_en_ligne)
 
   const aEdition = !!(intitule || langue || traducteur || responsable || versionActive?.editionDescription
     || oeuvre.editeur || oeuvre.ville || oeuvre.date_publication || oeuvre.collection || sourceUrl)
@@ -123,7 +108,6 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
   const informations = versionActive?.informationsComplementaires?.trim() || null
   const commentaire = oeuvre.commentaire_traduction?.trim() || null
   const aOeuvre = !!(oeuvre.titre_original || (oeuvre.genres && oeuvre.genres.length) || noteComplete)
-  const aSite = !!(enLigne || etendue || autresVersions.length || aTexteOriginal)
   const aChrono = chrono.length > 0
 
   // Chaque auteur ouvre sa fiche ; une œuvre signée à deux les donne tous.
@@ -187,16 +171,6 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
         </SectionFiche>
       )}
 
-      {/* ⛔ CE QUE L’ÉDITION DÉCLARE POUR QU’ON LA LISE — manuscrits et sigles,
-          abréviations, conventions de transcription (charte § 5.6.1). Elle ne paraît QUE
-          remplie : une rubrique vide promettrait un appareil que l’édition n’a pas
-          déclaré. */}
-      {informations && (
-        <SectionFiche titre="Informations complémentaires">
-          <NotationEdition texte={informations} />
-        </SectionFiche>
-      )}
-
       {aOeuvre && (
         <SectionFiche titre="L’œuvre">
           <LigneTech c="Titre original">
@@ -219,6 +193,14 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
         </SectionFiche>
       )}
 
+      {/* Couche technique propre à CETTE édition : témoins, sigles, abréviations
+          et conventions nécessaires à l'exploitation de son apparat. */}
+      {informations && (
+        <SectionFiche titre="Informations complémentaires">
+          <NotationEdition texte={informations} />
+        </SectionFiche>
+      )}
+
       {/* Bibliographie propre à l'œuvre : une SECTION SŒUR des notes éditoriales,
           jamais une sous-rubrique de celles-ci. Les lignes « + » gardent la composition
           bibliographique commune de NotationEdition. */}
@@ -228,20 +210,6 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
         </SectionFiche>
       )}
 
-      {aSite && (
-        <SectionFiche titre="Sur ce site">
-          <LigneTech c="Édition en ligne">{enLigne}</LigneTech>
-          <LigneTech c="Étendue">{etendue}</LigneTech>
-          <LigneTech c="Lecture">{aTexteOriginal ? 'Texte original en regard' : null}</LigneTech>
-          {/* Les autres éditions du même texte se choisissent dans le volet de lecture ;
-              la fiche dit seulement qu'elles existent, et lesquelles. */}
-          <LigneTech c={`Autre${autresVersions.length > 1 ? 's' : ''} édition${autresVersions.length > 1 ? 's' : ''}`}>
-            {autresVersions.length ? autresVersions.map(v => (
-              <span key={v.idTexte} style={{ display: 'block' }}>{libelleVersionComplet(v)}</span>
-            )) : null}
-          </LigneTech>
-        </SectionFiche>
-      )}
     </CorpsFiche>
   )
 }
