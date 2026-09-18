@@ -117,6 +117,7 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
   // donc la notice de l'édition, sous leur propre titre.
   const noteComplete = oeuvre.note_editoriale_complete?.trim() || null
   const noteComplement = oeuvre.note_editoriale_complement?.trim() || null
+  const bibliographieSelective = oeuvre.bibliographie_selective?.trim() || null
   // ⛔ Ce que CETTE édition déclare : ses manuscrits, ses sigles, ses abréviations.
   //    Elle vit sur le TEXTE, non sur l’œuvre — voir `informationsComplementaires`.
   const informations = versionActive?.informationsComplementaires?.trim() || null
@@ -214,10 +215,16 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
       {/* Les points de détail de l'œuvre parcourue (note_editoriale_complement). */}
       {noteComplement && (
         <SectionFiche titre="Notes éditoriales">
-          {/* ⚠️ La NOTATION du § 5.6.1, comme les informations complémentaires : une note
-              éditoriale porte souvent sa bibliographie (« + » par référence). Sans marque,
-              elle se rend en prose, exactement comme avant. */}
           <NotationEdition texte={noteComplement} />
+        </SectionFiche>
+      )}
+
+      {/* Bibliographie propre à l'œuvre : une SECTION SŒUR des notes éditoriales,
+          jamais une sous-rubrique de celles-ci. Les lignes « + » gardent la composition
+          bibliographique commune de NotationEdition. */}
+      {bibliographieSelective && (
+        <SectionFiche titre="Bibliographie sélective">
+          <NotationEdition texte={bibliographieSelective} />
         </SectionFiche>
       )}
 
