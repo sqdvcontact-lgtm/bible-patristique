@@ -5,7 +5,7 @@
  * Il reçoit une NOTICE — les champs structurés d'un ouvrage, ses contributeurs et ses
  * éditeurs déjà résolus sur leurs autorités — et rend des FRAGMENTS typés : ce que
  * chacun EST (le champ d'origine, la fonction bibliographique) et comment il se
- * compose (romain, italique, petites capitales). La ponctuation, les liants — « dans »,
+ * compose (romain ou italique). La ponctuation, les liants — « dans »,
  * « éd. », « trad. », « dir. », « coll. », « p. » — et les guillemets sont des
  * fragments SANS champ ni style : ils appartiennent à la séquence où ils tombent et
  * en héritent la composition.
@@ -55,7 +55,7 @@ export type ContributeurNotice = {
   /** Les rubriques de l'autorité (`auteurs_valeur`), quand la personne en a une. */
   prenom?: string | null
   nomFamille?: string | null
-  /** Titre, dignité ou qualité accolée au nom : hors petites capitales. */
+  /** Titre, dignité ou qualité accolée au nom : en romain. */
   titre?: string | null
   pseudonyme?: string | null
   /** La forme d'autorité entière (`auteurs_valeur.nom`, ou `auteurs.nom` pour un ancien). */
@@ -97,8 +97,8 @@ export type NoticeBibliographique = {
  * Le champ d'origine d'un fragment. Il reste dans le document (`data-champ`) : c'est
  * par lui qu'on vérifie qu'un titre et son sous-titre n'ont pas été fondus, et
  * qu'aucune donnée matérielle ne s'est glissée dans la référence.
- * ⚠️ Un nom d'autorité composé ENTIER porte `nom_famille` : c'est la partie du nom
- * qui prend les petites capitales, qu'elle se distingue d'un prénom ou non.
+ * ⚠️ Un nom d'autorité composé ENTIER peut porter `nom_famille` pour le tri et
+ * l'identité, mais cette distinction ne commande plus aucune typographie particulière.
  */
 export type ChampReference =
   | 'prenom' | 'nom_famille' | 'titre_personne' | 'auteurs'
@@ -194,14 +194,11 @@ function avecTitrePersonnel(fragments: FragmentNotice[], c: ContributeurNotice):
 /**
  * Un AUTEUR, en tête de notice (charte § 47.1).
  *
- * Un chercheur dont l'autorité porte prénom et nom de famille : le prénom en romain,
- * le nom en PETITES CAPITALES. Un titre, une dignité ou une qualité ne fait pas partie
- * du nom : il suit celui-ci entre parenthèses, en romain. Une autorité que le couple
- * prénom/nom ne décrit pas — un ancien, un médiéval, une fiche sans rubriques — se
- * compose ENTIÈRE en petites capitales, ⛔ jamais coupée à la première espace. Un
- * collectif n'est pas une personne : romain. ⛔ Un nom en TEXTE LIBRE, sans fiche,
- * reste en romain : les petites capitales viennent de la donnée structurée, jamais
- * d'une heuristique sur la chaîne.
+ * Tous les noms de personnes se composent en ROMAIN, qu'il s'agisse d'un chercheur
+ * moderne, d'un auteur ancien ou médiéval, d'une autorité sans rubriques ou d'un nom
+ * libre. Les rubriques prénom / nom de famille restent utiles à l'identité et au tri,
+ * jamais à la composition typographique. Un titre, une dignité ou une qualité suit
+ * le nom entre parenthèses, en romain.
  */
 function composerAuteur(c: ContributeurNotice): FragmentNotice[] {
   const prenom = propre(c.prenom)
@@ -210,14 +207,14 @@ function composerAuteur(c: ContributeurNotice): FragmentNotice[] {
     return avecTitrePersonnel([
       { champ: 'prenom', style: 'bibliographie-auteur', composition: 'romain', texte: prenom },
       ponctuation(' '),
-      { champ: 'nom_famille', style: 'bibliographie-nom-auteur', composition: 'petites-capitales', texte: nomFamille },
+      { champ: 'nom_famille', style: 'bibliographie-auteur', composition: 'romain', texte: nomFamille },
     ], c)
   }
   const entier = propre(c.nomAutorite) ?? propre(c.nomAffiche) ?? ''
   if (!entier) return []
   if (c.nature === 'chercheur' || c.nature === 'auteur_ancien') {
     return avecTitrePersonnel([
-      { champ: 'nom_famille', style: 'bibliographie-nom-auteur', composition: 'petites-capitales', texte: entier },
+      { champ: 'nom_famille', style: 'bibliographie-auteur', composition: 'romain', texte: entier },
     ], c)
   }
   return avecTitrePersonnel([
