@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  fusionnerCatalogueAelf,
   indexerLivresAelf,
   masquerTraductionsAelfIndisponibles,
   projeterCelluleAelf,
@@ -23,6 +24,16 @@ const celluleScindee: CellulePolyglotteAelf = {
 }
 
 describe('projection AELF de la Polyglotte', () => {
+  it('ajoute une traduction publiée même si l’ancien catalogue ne la rend pas', () => {
+    expect(fusionnerCatalogueAelf(
+      [{ trad_id: 'TR0001', nom: 'Bible de Sacy', ordre: 1, source_edition: 'Sacy 1730', publication_fin_annee: 1730, langue: 'Français' }],
+      [{ trad_id: 'TR0010', nom: 'Bible Fillion – Français', ordre: 7, langue: 'Français' }],
+    )).toEqual([
+      { trad_id: 'TR0001', nom: 'Bible de Sacy', ordre: 1, source_edition: 'Sacy 1730', publication_fin_annee: 1730, langue: 'Français' },
+      { trad_id: 'TR0010', nom: 'Bible Fillion – Français', ordre: 7, source_edition: null, publication_fin_annee: null, langue: 'Français' },
+    ])
+  })
+
   it("place le fragment sur l'axe AELF, pas sur la référence historique", () => {
     expect(projeterCelluleAelf(celluleScindee)).toEqual({
       id: 'aelf:aad285cd-eccf-4cc5-839f-cb06855136d6',

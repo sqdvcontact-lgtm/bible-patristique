@@ -64,6 +64,7 @@ import { nomCommun } from "@/app/lib/menuTraductionsBible";
 import { comparerParMillesime, millesimeEdition, type RangeableParMillesime } from '@/app/lib/millesimeEdition'
 import RailVolet from "@/app/components/RailVolet";
 import {
+  fusionnerCatalogueAelf,
   indexerLivresAelf,
   masquerTraductionsAelfIndisponibles,
   projeterCelluleAelf,
@@ -71,12 +72,12 @@ import {
   type CellulePolyglotteAelf,
   type LivreAelfParTraduction,
   type LivresAelfParTraduction,
+  type TraductionCatalogueAelf,
+  type TraductionPublieeAelf,
 } from '@/app/lib/polyglotteAelf'
 
 type Livre = { code: string; nom_fr: string; ordre: number };
 type Trad = { trad_id: string; nom: string; ordre: number | null; edition: string | null; lang: string; variante?: string; sourceAelf?: boolean };
-type TraductionCatalogue = { trad_id: string; nom: string; ordre: number | null; source_edition: string | null; publication_fin_annee: number | null; langue: string | null };
-type TraductionPublieeAelf = { trad_id: string; nom: string; ordre: number | null; langue: string | null };
 
 // ── La Bible du XIIIe siècle porte DEUX états de son texte ────────────────────
 // TR0009 n'est pas une traduction de plus : c'est un manuscrit, dont on lit soit les
@@ -1526,9 +1527,10 @@ export default function PolyglottePage() {
       if (erreurTr) console.error("Polyglotte : les traductions n’ont pas pu être lues.", erreurTr);
       if (publicationAelf.error) console.error("Polyglotte : les traductions publiées sur l’axe AELF n’ont pas pu être lues.", publicationAelf.error);
       if (livresAelf.error) console.error("Polyglotte : les livres publiés par traduction n’ont pas pu être lus.", livresAelf.error);
-      const liste = (tr ?? []) as TraductionCatalogue[];
+      const catalogueVisible = (tr ?? []) as TraductionCatalogueAelf[];
       const publiees = (publicationAelf.data ?? []) as TraductionPublieeAelf[];
       const publieeParId = new Map(publiees.map(t => [t.trad_id, t]));
+      const liste = fusionnerCatalogueAelf(catalogueVisible, publiees);
       setLivresAelfParTraduction(indexerLivresAelf((livresAelf.data ?? []) as LivreAelfParTraduction[]));
       // Une SONDE par traduction pour savoir laquelle est migrée dans versets_v2, toutes
       // en parallèle. Une ligne suffit : le compte exact d'avant parcourait l'index

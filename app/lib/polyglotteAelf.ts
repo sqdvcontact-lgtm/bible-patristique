@@ -44,6 +44,22 @@ export type LivreAelfParTraduction = {
 
 export type LivresAelfParTraduction = Map<string, Set<string>>
 
+export type TraductionCatalogueAelf = {
+  trad_id: string
+  nom: string
+  ordre: number | null
+  source_edition: string | null
+  publication_fin_annee: number | null
+  langue: string | null
+}
+
+export type TraductionPublieeAelf = {
+  trad_id: string
+  nom: string
+  ordre: number | null
+  langue: string | null
+}
+
 /** Place une cellule sur l'axe lu par la Polyglotte, sans confondre celui-ci avec
  * `historical_canon_id`, qui conserve la numérotation historique de la source. */
 export function projeterCelluleAelf(cellule: CellulePolyglotteAelf): LignePolyglotteAelf {
@@ -74,6 +90,27 @@ export function indexerLivresAelf(lignes: readonly LivreAelfParTraduction[]): Li
     index.set(ligne.trad_id, livres)
   }
   return index
+}
+
+/** La vue de publication peut annoncer une traduction que le catalogue historique ne
+ * rend pas encore au navigateur. Elle complète alors le catalogue au lieu d'être mise en
+ * intersection avec lui ; les métadonnées d'édition absentes restent simplement nulles. */
+export function fusionnerCatalogueAelf(
+  catalogue: readonly TraductionCatalogueAelf[],
+  publiees: readonly TraductionPublieeAelf[],
+): TraductionCatalogueAelf[] {
+  const fusion = [...catalogue]
+  const ids = new Set(catalogue.map(t => t.trad_id))
+  for (const traduction of publiees) {
+    if (ids.has(traduction.trad_id)) continue
+    fusion.push({
+      ...traduction,
+      source_edition: null,
+      publication_fin_annee: null,
+    })
+    ids.add(traduction.trad_id)
+  }
+  return fusion
 }
 
 /**
