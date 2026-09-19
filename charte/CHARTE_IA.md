@@ -568,7 +568,7 @@ La notice décrit l’édition réellement transcrite. Elle ne mélange pas les 
 
 ⛔ **TOUT CHERCHEUR MODERNE CITÉ POUR ARGUMENTER DOIT ÊTRE RÉFÉRENCÉ.** Dès qu’une notice nomme un chercheur pour fonder une datation, une attribution, une lecture, une reconstruction textuelle, un jugement critique, un état de la recherche ou toute autre proposition savante, au moins une référence bibliographique complète correspondant à ce propos figure dans \`oeuvres.bibliographie_selective\`. Nommer « Smets et Van Esbroeck », « Dombart », « Knöll » ou tout autre savant sans permettre au lecteur d’identifier l’ouvrage invoqué est une notice incomplète. La règle vaut aussi lorsque plusieurs chercheurs sont opposés ou comparés : chacun des travaux effectivement mobilisés est identifiable dans la bibliographie. Un nom cité uniquement comme responsable de l’édition décrite est couvert par la référence complète de cette édition.
 
-⛔ **LES SIGLES SAVANTS SONT EXPLICITÉS À LEUR PREMIÈRE OCCURRENCE DANS CHAQUE FICHE.** Un sigle de répertoire, de collection, de corpus ou d’outil critique ne doit jamais être supposé connu du lecteur. À sa première occurrence dans une fiche, donner son nom développé et, lorsque le nom seul ne suffit pas, préciser brièvement sa fonction. On écrit par exemple : *Clavis Patrum Graecorum* (CPG), répertoire de référence des œuvres patristiques grecques ; *Bibliotheca Hagiographica Graeca* (BHG), répertoire des textes hagiographiques grecs. Les occurrences suivantes dans la même fiche peuvent employer le sigle seul. À la première occurrence, le numéro appartient au répertoire qui vient d’être nommé : écrire « sous le numéro 3587 dans la *Clavis Patrum Graecorum* (CPG) », jamais « sous le numéro CPG 3587 dans la *Clavis Patrum Graecorum* (CPG) ». De même, écrire « sous le numéro 413 dans la *Bibliotheca Hagiographica Graeca* (BHG) », et non « sous le numéro BHG 413 dans la *Bibliotheca Hagiographica Graeca* (BHG) ». La règle recommence dans chaque fiche : l’explication donnée ailleurs sur le site ne dispense jamais de l’explication locale.
+⛔ **LES SIGLES SAVANTS SONT EXPLICITÉS À LEUR PREMIÈRE OCCURRENCE DANS CHAQUE FICHE.** Un sigle de répertoire, de collection, de corpus ou d’outil critique ne doit jamais être supposé connu du lecteur. À sa première occurrence dans une fiche, donner son nom développé et, lorsque le nom seul ne suffit pas, préciser brièvement sa fonction. On écrit par exemple : *Clavis Patrum Graecorum* (CPG) ; *Bibliotheca Hagiographica Graeca* (BHG), répertoire des textes hagiographiques grecs. Pour la *Clavis Patrum Graecorum*, le développement du sigle suffit : ne pas ajouter la glose « répertoire de référence des œuvres patristiques grecques ». Les occurrences suivantes dans la même fiche peuvent employer le sigle seul. À la première occurrence, le numéro appartient au répertoire qui vient d’être nommé : écrire « sous le numéro 3587 dans la *Clavis Patrum Graecorum* (CPG) », jamais « sous le numéro CPG 3587 dans la *Clavis Patrum Graecorum* (CPG) ». De même, écrire « sous le numéro 413 dans la *Bibliotheca Hagiographica Graeca* (BHG) », et non « sous le numéro BHG 413 dans la *Bibliotheca Hagiographica Graeca* (BHG) ». La règle recommence dans chaque fiche : l’explication donnée ailleurs sur le site ne dispense jamais de l’explication locale.
 
 ⛔ **ORDRE DES ÉLÉMENTS D’UN ARTICLE DE REVUE.** Dans la bibliographie sélective d’une fiche, un article se compose selon l’ordre : Auteur, « Titre de l’article », *Titre de la revue*, année, t. X, pp. x-y. L’année précède donc toujours le tome ou le volume : *Aethiopica*, 2007, t. 10, pp. 58-69, jamais *Aethiopica*, t. 10, 2007, pp. 58-69. Cette règle vaut pour toutes les revues, y compris lorsque le volume est exprimé par un nombre simple ou une forme composée comme 54/1. Elle ne s’applique pas aux monographies en plusieurs tomes, dont le tome appartient à l’identité matérielle de l’ouvrage.
 
@@ -2795,6 +2795,54 @@ Avant validation d’un lot :
 - consigner les erreurs certaines, les corrections probables et les doutes maintenus.
 
 ⚠️ **Les preuves visuelles sont réservées aux cas difficiles, contestables ou structurants.** Elles ne sont pas exigées pour chaque ligne correcte.
+
+#### 14.8.1 Protocole obligatoire de contrôle des citations d’une œuvre
+
+Ce protocole s’applique à toute œuvre dont on contrôle les citations, qu’elles soient bibliques, patristiques, littéraires ou internes à l’œuvre. Il complète les règles typographiques des § 3.3 et 3.8, les natures du § 7.5.1 et, pour les citations bibliques liées, le protocole du § 9.0. ⛔ **Le contrôle des guillemets, le contrôle de la nature du segment et le contrôle du lien biblique sont trois opérations distinctes** : aucun de ces trois plans ne prouve à lui seul les deux autres.
+
+**Phase 0 — Autorité, périmètre et état initial.** Identifier le ou les textes réellement servis au lecteur, leurs notes et, s’il existe, le texte original ou témoin aligné. Relire les règles applicables avant toute écriture. Relever avant correction : nombre de segments, paires de guillemets, natures `citation`, `lemme`, `verset` et `dialogue`, blocs de notes de nature `quotation` ou `translation`, liens de type 1, citations longues et anomalies déjà signalées. Si une couche n’est pas auditée, le dire explicitement : un audit du corps ne vaut pas audit des notes.
+
+**Phase 1 — Matrice mécanique exhaustive.** Contrôler sur tout le périmètre, et séparément par texte :
+1. équilibre des `«` et `»` globalement ET par segment ou bloc ;
+2. U+202F après `«` et avant `»`, absence de guillemets droits ou d’un niveau de guillemets impropre ;
+3. absence de ponctuation faible juste avant le fermant, conformément au § 3.8 ;
+4. absence de ponctuation forte doublée de part et d’autre du fermant ;
+5. placement des appels de note : dans la citation lorsqu’ils l’annotent, avant le fermant et avant la ponctuation qui clôt le passage ;
+6. fermant suivi d’une nouvelle phrase sans ponctuation intermédiaire ;
+7. citation qui finit un segment sans ponctuation : ce cas est un CANDIDAT, jamais une correction automatique, car la citation peut continuer au segment suivant ;
+8. imbrications de guillemets français, ouvrants de continuation et autres déséquilibres susceptibles de se compenser globalement.
+
+Les compteurs bruts sont conservés dans le bilan. ⛔ **Un total équilibré ne suffit jamais** : deux erreurs peuvent se compenser ; un segment équilibré peut encore porter de mauvaises bornes.
+
+**Phase 2 — Bornes et syntaxe des citations.** Lire chaque candidat produit par la matrice avec au moins le segment précédent et le suivant. Décider si la citation est enchâssée ou isolée, si elle est terminale ou suivie d’une reprise de phrase, et où commence et finit réellement le texte cité. Ne jamais inventer un point parce qu’un guillemet ferme un segment : vérifier d’abord si la proposition continue. Inversement, lorsqu’une citation fermée est suivie d’une nouvelle phrase autonome, la ponctuation nécessaire est rétablie conformément aux § 3.3 et 3.8.
+
+**Phase 3 — Structure et sortie du texte.** Distinguer le balisage typographique de la fonction structurelle. Une citation en ligne reste normalement dans `texte`; `citation` désigne une citation structurelle dont la segmentation technique doit être recollée ; `lemme` et `verset` obéissent à leurs règles propres ; `dialogue` ne devient jamais une citation sortie du seul fait des guillemets. Pour toute citation, mesurer l’empan réellement cité après recomposition des segments qui lui appartiennent. Une citation n’est sortie que selon le § 3.8 : isolement, terminalité et seuil de 400 signes, sauf déclaration éditoriale explicite qui prime. Le même contrôle s’applique aux blocs structurés des notes ; une `quotation` longue et sa `translation` sont contrôlées comme un groupe citationnel.
+
+**Phase 4 — Contre-épreuve par le texte original ou le témoin aligné.** Lorsqu’un original ou un témoin parallèle aligné existe, l’utiliser comme contre-épreuve systématique. Vérifier que chaque lemme ou empan explicitement cité dans le texte de référence possède un correspondant intelligible dans la traduction, et que les différences de nombre de paires s’expliquent par une fusion, une scission, une omission réelle ou un choix éditorial documenté. ⛔ **Le nombre de guillemets n’a pas à être identique entre deux témoins** : deux lemmes sources peuvent être réunis dans une seule citation française. Toute divergence non expliquée reste ouverte.
+
+**Phase 5 — Contrôle bidirectionnel avec les liens bibliques.** Pour une œuvre bibliquement liée, utiliser les liens de type 1 comme DIAGNOSTIC, jamais comme preuve typographique. Contrôler dans les deux sens :
+- tout T1 sans citation reconnaissable ni référence explicite est relu selon le § 9.0 ;
+- toute citation biblique explicite sans T1 est recensée comme candidat de lien.
+Un guillemet lexical (`« pur »`, nom de terme, variante discutée), une citation non biblique ou une simple reprise de mot ne produit pas mécaniquement un T1. Réciproquement, une référence biblique explicite peut justifier un T1 sans guillemets. Si la mission doit modifier les liens, appliquer alors intégralement le § 9.0 et `feedback_liens_protocole`, avec sauvegarde préalable.
+
+**Phase 6 — Notes, apparats et paratextes servis.** Contrôler les citations dans les notes structurées, introductions, apparats et autres couches effectivement rendues. Vérifier la nature des blocs, leur langue, leur disposition, leurs guillemets internes, le traitement des traductions et la perte des guillemets encadrants lorsqu’une citation est sortie. ⛔ Un audit du seul `segment_texte` ne permet jamais de déclarer l’œuvre contrôlée si des notes ou blocs citationnels sont publics.
+
+**Phase 7 — Écriture.** Corriger seulement les cas certains. Les cas ambigus sont laissés inchangés et consignés avec leur raison. Toute écriture est bornée au périmètre, transactionnelle et limitée aux seules colonnes réellement modifiées ; avant une mutation textuelle, vérifier le schéma réel des colonnes dérivées conformément aux règles générales de la charte. Une correction de guillemets ne doit pas servir de prétexte à réécrire la ligne entière ni une couche source qui n’a pas changé.
+
+**Phase 8 — Rejeu et clôture.** Après les corrections, rejouer intégralement les phases 1, 3, 5 et 6. La clôture exige :
+- zéro déséquilibre non justifié ;
+- zéro espace de guillemet non conforme ;
+- zéro ponctuation faible devant un fermant ;
+- zéro double ponctuation ;
+- zéro appel de note déplacé hors de sa citation ;
+- zéro nouvelle phrase certaine laissée sans ponctuation après un fermant ;
+- toutes les citations de 400 signes ou plus expliquées quant à leur disposition ;
+- toutes les divergences original/traduction classées ;
+- tous les T1 sans citation ou référence explicite classés ;
+- tous les guillemets sans T1 classés au moins comme citation biblique candidate, citation non biblique, citation lexicale ou simple mention ;
+- contrôle final relu depuis la base et non depuis le seul résultat d’une mutation.
+
+Le bilan de clôture donne les compteurs AVANT/APRÈS, les corrections effectuées, les exceptions conservées et quelques segments repères. ⛔ **Une anomalie résiduelle expliquée n’est pas un zéro artificiel** : elle est nommée, documentée et laissée ouverte si la règle ne permet pas de trancher.
 
 ### 14.9 Versions, candidats et import
 
@@ -8926,7 +8974,7 @@ Chaque terme littéraire reçoit un identifiant stable, un libellé canonique, u
 * **LIT005 — Livre prophétique** : composition scripturaire issue de la mise en livre de traditions et discours prophétiques.
 * **LIT006 — Instruction sapientielle** : composition ou unité pédagogique orientée vers l’acquisition de sagesse, de discernement ou de conduite.
 * **LIT007 — Composition juridique** : ensemble littéraire organisé autour de prescriptions, cas ou enseignements juridiques ; ce terme évite de présupposer l’existence d’un « code » au sens moderne.
-* **LIT008 — Poésie lyrique ou chant d’amour** : composition lyrique centrée sur l’expression du désir, de l’amour ou de l’expérience affective, notamment dans le Cantique des cantiques.
+* **LIT008 — Poésie d’amour** : composition poétique centrée sur l’expression du désir amoureux, de l’attirance ou de la relation érotique ; « chant d’amour » est un terme alternatif. Le Cantique des cantiques constitue le principal cas canonique de cette qualification.
 * **LIT009 — Hymne ou chant de louange** : composition de louange développée.
 * **LIT010 — Lamentation** : composition de crise articulant plainte, détresse, appel ou requête ; des sous-types individuels ou communautaires pourront être distingués si le corpus le justifie.
 * **LIT011 — Chant d’action de grâce** : composition de reconnaissance et de louange après un bienfait ou une délivrance.
@@ -8940,14 +8988,14 @@ Chaque terme littéraire reçoit un identifiant stable, un libellé canonique, u
 * **LIT019 — Rapport de théophanie** : récit d’une manifestation divine.
 * **LIT020 — Oracle prophétique** : parole présentée comme message prophétique ou parole divine transmise.
 * **LIT021 — Exhortation ou admonition** : composition persuasive visant à faire adopter, maintenir ou abandonner une conduite ou une attitude.
-* **LIT022 — Dialogue ou disputation** : échange structuré d’arguments, objections ou réponses ; toute conversation n’est pas une disputation.
+* **LIT022 — Dialogue argumentatif** : échange structuré où plusieurs voix développent une argumentation par questions, objections, ripostes ou réponses ; « disputation » est un terme alternatif lorsque la confrontation argumentative domine. Toute conversation n’appartient pas à ce genre.
 * **LIT023 — Récit didactique** : récit dont l’organisation littéraire assume une fonction pédagogique identifiable.
 * **LIT024 — Poème didactique** : composition poétique organisée autour d’une instruction ou d’un enseignement.
 * **LIT025 — Récit de la Passion** : ensemble narratif consacré à l’arrestation, au procès, à la mort et aux événements immédiatement associés à la Passion du Christ.
 * **LIT026 — Discours ou testament d’adieu** : composition placée à l’approche de la mort ou du départ d’un personnage, associant rétrospective, exhortation, transmission ou bénédiction.
-* **LIT027 — Satire ou chant de dérision** : composition organisée par la moquerie, la dénonciation ou le renversement ironique d’un adversaire, d’un pouvoir ou d’une nation.
+* **LIT027 — Satire** : composition organisée par ironie, inversion ou ridicule afin de critiquer un comportement, un personnage, une institution ou une convention ; distincte du chant de dérision LIT046.
 
-#### 53.10.2 Les dix-huit formes adoptées
+#### 53.10.2 Les dix-neuf formes adoptées
 
 * **LIT028 — Récit à sentence ou apophtegme** : brève unité narrative dont le point culminant est une parole ou sentence mémorable.
 * **LIT029 — Proverbe ou sentence** : énoncé bref, autonome ou semi-autonome, formulant une observation, une maxime ou une instruction généralisable.
@@ -8967,6 +9015,7 @@ Chaque terme littéraire reçoit un identifiant stable, un libellé canonique, u
 * **LIT043 — Adresse ou salutation épistolaire** : forme d’ouverture épistolaire identifiant ou saluant expéditeur et destinataires.
 * **LIT044 — Action de grâce épistolaire** : unité conventionnelle d’action de grâce associée à l’ouverture d’une lettre.
 * **LIT045 — Question-réponse** : petite forme structurée par une question suivie d’une réponse qui en constitue l’unité.
+* **LIT046 — Chant de dérision** : composition poétique, souvent liée à un contexte de conflit ou de victoire, qui tourne en ridicule un adversaire, célèbre sa défaite ou met en scène son humiliation ; « chant de raillerie » est un terme alternatif. Distinct de la satire LIT027, dont la portée critique est plus large et ne suppose pas une forme chantée.
 
 Les sous-types ne sont créés que lorsqu’ils apportent une valeur de recherche récurrente. Ainsi « oracle de jugement », « oracle de salut », « lamentation individuelle » ou « lamentation communautaire » peuvent devenir ultérieurement des termes plus précis de ce vocabulaire si l’annotation réelle le justifie ; ils ne sont pas imposés avant usage.
 
