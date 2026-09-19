@@ -140,8 +140,8 @@ export default function SectionFiabilite() {
 
   useEffect(() => {
     Promise.all([
-      supabase.from('editeurs_valeur').select('id, nom, score, note').order('score', { nullsFirst: false }).order('nom'),
-      supabase.from('auteurs_valeur').select('id, nom, score, motif, reserve, prenom, nom_famille, pseudonyme, aliases').order('score', { nullsFirst: false }).order('nom'),
+      supabase.from('v_bibliography_admin_editeurs_valeur').select('id, nom, score, note').order('score', { nullsFirst: false }).order('nom'),
+      supabase.from('v_bibliography_admin_auteurs_valeur').select('id, nom, score, motif, reserve, prenom, nom_famille, pseudonyme, aliases').order('score', { nullsFirst: false }).order('nom'),
     ]).then(([e, a]) => {
       setEditeurs((e.data ?? []) as Editeur[])
       setAuteurs((a.data ?? []) as Auteur[])
@@ -154,7 +154,7 @@ export default function SectionFiabilite() {
   const majEditeur = async (id: number, score: number | null) => {
     const avant = editeurs
     setEditeurs(prev => prev.map(x => x.id === id ? { ...x, score } : x))
-    const { error } = await supabase.from('editeurs_valeur').update({ score, statut_usage: statutUsagePourScore(score) }).eq('id', id)
+    const { error } = await supabase.from('v_bibliography_admin_editeurs_valeur').update({ score, statut_usage: statutUsagePourScore(score) }).eq('id', id)
     if (error) { setEditeurs(avant); setErreur(messageErreurQualification(error.message)) } else setErreur('')
   }
 
@@ -163,7 +163,7 @@ export default function SectionFiabilite() {
     setAuteurs(prev => prev.map(x => x.id === id ? { ...x, ...champs } : x))
     const charge: Record<string, unknown> = { ...champs }
     if ('score' in champs) charge.statut_usage = statutUsagePourScore(champs.score ?? null)
-    const { error } = await supabase.from('auteurs_valeur').update(charge).eq('id', id)
+    const { error } = await supabase.from('v_bibliography_admin_auteurs_valeur').update(charge).eq('id', id)
     if (error) { setAuteurs(avant); setErreur(messageErreurQualification(error.message)); return false }
     setErreur('')
     return true
@@ -175,7 +175,7 @@ export default function SectionFiabilite() {
   const majNom = async (id: number, champs: { prenom: string | null; nom_famille: string | null; pseudonyme: string | null; aliases: string[] }) => {
     const avant = auteurs
     setAuteurs(prev => prev.map(x => x.id === id ? { ...x, ...champs } : x))
-    const { error } = await supabase.from('auteurs_valeur').update(champs).eq('id', id)
+    const { error } = await supabase.from('v_bibliography_admin_auteurs_valeur').update(champs).eq('id', id)
     if (error) { setAuteurs(avant); setErreur(messageErreurQualification(error.message)); return false }
     setErreur('')
     return true

@@ -13,6 +13,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { colorMix } from '@/app/lib/couleurs'
+import {
+  fusionnerLiensEtOuvrages,
+  idsOuvragesUniques,
+  type Lien,
+  type LienSansOuvrage,
+  type OuvrageAdminNotice,
+} from './bibliographieNotices'
 
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
@@ -54,13 +61,6 @@ type LigneFile = {
   nb_refs: number; grille: Grille | null
 }
 
-type OuvrageEmbed = { auteurs: string | null; titre: string | null; annee: number | null; type_ouvrage: string | null; statut_scientifique: string | null; statut_usage_notice: string | null; statut_editorial: string | null }
-type Lien = {
-  id: number; ouvrage_id: number; rubrique: string | null; importance: string | null
-  reference_passage: string | null; pages: string | null; note_editoriale: string | null
-  statut_verification: string; retenu_notice: boolean; ordre_notice: number | null; motif_selection: string | null
-  ouvrages_bibliographiques: OuvrageEmbed | null
-}
 type Detail = {
   id: string; nom: string; categorie: string | null
   notice: string | null; notice_contexte: string | null
@@ -161,11 +161,31 @@ export default function SectionValidationNotices() {
     setSelId(id); setDetail(null); setApercu(false); setErreur(''); setInfo('')
     const [rp, rl, rg] = await Promise.all([
       supabase.from('pericopes').select('id, nom, categorie, notice, notice_contexte, notice_exegetique, notice_theologique, notice_tradition').eq('id', id).maybeSingle(),
-      supabase.from('pericope_bibliographie').select('id, ouvrage_id, rubrique, importance, reference_passage, pages, note_editoriale, statut_verification, retenu_notice, ordre_notice, motif_selection, ouvrages_bibliographiques(auteurs, titre, annee, type_ouvrage, statut_scientifique, statut_usage_notice, statut_editorial)').eq('pericope_id', id),
+      supabase.from('pericope_bibliographie').select('id, ouvrage_id, rubrique, importance, reference_passage, pages, note_editoriale, statut_verification, retenu_notice, ordre_notice, motif_selection').eq('pericope_id', id),
       supabase.from('pericope_validation_editoriale').select('*').eq('pericope_id', id).maybeSingle(),
     ])
+    if (rp.error || rl.error || rg.error) {
+      setErreur(messageErreur((rp.error ?? rl.error ?? rg.error)!.message))
+      return
+    }
+
+    const liensSansOuvrage = (rl.data ?? []) as LienSansOuvrage[]
+    const ouvrageIds = idsOuvragesUniques(liensSansOuvrage)
+    let ouvrages: OuvrageAdminNotice[] = []
+    // Aucun appel vide : PostgREST n'est interrogé que si au moins un ouvrage est lié.
+    if (ouvrageIds.length > 0) {
+      const ro = await supabase.from('v_bibliography_admin_ouvrages')
+        .select('id, auteurs, titre, annee, type_ouvrage, statut_scientifique, statut_usage_notice, statut_editorial')
+        .in('id', ouvrageIds)
+      if (ro.error) {
+        setErreur(messageErreur(ro.error.message))
+        return
+      }
+      ouvrages = (ro.data ?? []) as OuvrageAdminNotice[]
+    }
+
     setDetail((rp.data ?? null) as Detail | null)
-    const ls = ((rl.data ?? []) as unknown as Lien[])
+    const ls = fusionnerLiensEtOuvrages(liensSansOuvrage, ouvrages)
     setLiens(ls)
     setGrille((rg.data as Grille | null) ?? GRILLE_VIDE(id))
     setNote(((rg.data as Grille | null)?.note_validation) ?? '')

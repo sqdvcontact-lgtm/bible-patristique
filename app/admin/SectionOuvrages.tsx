@@ -205,9 +205,9 @@ export default function SectionOuvrages() {
     ;(async () => {
       const [vue, ed, co, au, reg] = await Promise.all([
         chargerCatalogue(),
-        supabase.from('editeurs_valeur').select('id, nom, score').order('nom'),
-        supabase.from('collections_valeur').select('id, nom, score').order('nom'),
-        supabase.from('auteurs_valeur').select('id, nom, score, reserve, prenom, nom_famille, pseudonyme, aliases').order('nom'),
+        supabase.from('v_bibliography_admin_editeurs_valeur').select('id, nom, score').order('nom'),
+        supabase.from('v_bibliography_admin_collections_valeur').select('id, nom, score').order('nom'),
+        supabase.from('v_bibliography_admin_auteurs_valeur').select('id, nom, score, reserve, prenom, nom_famille, pseudonyme, aliases').order('nom'),
         supabase.from('auteurs').select('id_auteur, nom, variantes').order('nom'),
       ])
       if (annule) return
@@ -555,10 +555,10 @@ function Fiche({ ligne, rang, total, editeursV, collectionsV, auteursV, registre
     let annule = false
     ;(async () => {
       const [d, c, v] = await Promise.all([
-        supabase.from('ouvrages_bibliographiques')
+        supabase.from('v_bibliography_admin_ouvrages')
           .select('id, auteurs, titre, sous_titre, directeurs, traducteurs, collection, numero_collection, lieu, editeur, annee, isbn, langue, type_ouvrage, garantie_scientifique, note, statut_editorial, editeur_valeur_id, collection_valeur_id, statut_scientifique, statut_scientifique_override, motif_statut_scientifique, source_evaluation_scientifique, confiance_evaluation_scientifique')
           .eq('id', id).maybeSingle(),
-        supabase.from('ouvrage_contributeurs_scientifiques')
+        supabase.from('v_bibliography_admin_contributeurs_scientifiques')
           .select('id, ouvrage_id, auteur_valeur_id, auteur_id, nom_affiche, role_contributeur, nature_personne, ordre')
           .eq('ouvrage_id', id).order('ordre'),
         supabase.from('v_references_bibliographiques')
@@ -582,7 +582,7 @@ function Fiche({ ligne, rang, total, editeursV, collectionsV, auteursV, registre
   // juste après avoir été enregistré, et le bouton resterait allumé pour rien.
   const ecrire = async (champs: Record<string, unknown>, messageOk: string) => {
     onErreur(''); onInfo('')
-    const { error } = await supabase.from('ouvrages_bibliographiques').update(champs).eq('id', id)
+    const { error } = await supabase.from('v_bibliography_admin_ouvrages').update(champs).eq('id', id)
     if (error) { onErreur(messageErreur(error.message)); return false }
     setDetail(prev => (prev ? ({ ...prev, ...champs } as OuvrageDetail) : prev))
     setF(prev => ({ ...prev, ...champs }))
@@ -887,7 +887,7 @@ function PersonnesFiche({ ouvrageId, detail, contribs, setContribs, rangs, auteu
 
   const supprimer = async (cid: number) => {
     onErreur(''); onInfo('')
-    const { error } = await supabase.from('ouvrage_contributeurs_scientifiques').delete().eq('id', cid)
+    const { error } = await supabase.from('v_bibliography_admin_contributeurs_scientifiques').delete().eq('id', cid)
     if (error) { onErreur(messageErreur(error.message)); return }
     setContribs(contribs.filter(c => c.id !== cid)); onChange()
   }
@@ -1008,7 +1008,7 @@ function RubriquesFiche({ fiche, nomNotice, onMajFiche, onErreur, onInfo }: {
       && aliases.join(' ') === (fiche.aliases ?? []).join(' ')
     if (inchange) return
     onErreur(''); onInfo('')
-    const { error } = await supabase.from('auteurs_valeur').update(champs).eq('id', fiche.id)
+    const { error } = await supabase.from('v_bibliography_admin_auteurs_valeur').update(champs).eq('id', fiche.id)
     if (error) { onErreur(messageErreur(error.message)); return }
     onMajFiche(fiche.id, champs)
     setEnregistre(true)
@@ -1058,7 +1058,7 @@ function RenvoiRegistre({ c, registre, auRegistre, onMajContrib, onMajRegistre, 
 
   const rattacher = async (idAuteur: string | null) => {
     onErreur(''); onInfo('')
-    const { error } = await supabase.from('ouvrage_contributeurs_scientifiques')
+    const { error } = await supabase.from('v_bibliography_admin_contributeurs_scientifiques')
       .update({ auteur_id: idAuteur }).eq('id', c.id)
     if (error) { onErreur(messageErreur(error.message)); return }
     onMajContrib({ auteur_id: idAuteur })
@@ -1134,7 +1134,7 @@ function AjoutContributeur({ ouvrageId, contribs, setContribs, auteursV, registr
     const nom = estNote ? (auteursV.find(a => a.id === auteurId)?.nom ?? '') : (source?.nom ?? nomLibre.trim())
     if (!nom) { onErreur('Indiquer le nom affiché, ou choisir une fiche du registre.'); return }
     const ordre = contribs.length ? Math.max(...contribs.map(c => c.ordre)) + 1 : 1
-    const { data, error } = await supabase.from('ouvrage_contributeurs_scientifiques')
+    const { data, error } = await supabase.from('v_bibliography_admin_contributeurs_scientifiques')
       .insert({
         ouvrage_id: ouvrageId, auteur_valeur_id: estNote ? auteurId : null,
         auteur_id: source?.id_auteur ?? null, nom_affiche: nom,
