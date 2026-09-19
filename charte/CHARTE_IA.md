@@ -167,6 +167,8 @@ Plusieurs agents ou applications peuvent travailler dans le dépôt. Préserver 
 
 La typographie éditoriale est harmonisée sans réécrire la langue de l’édition. Les corrections mécaniques sont admises seulement lorsqu’elles sont univoques. Toute règle à faux positifs possibles exige une vérification contextuelle.
 
+**Portée translinguistique — anglais.** Les textes anglais composés, normalisés ou édités par Corpus Scriptura suivent les règles typographiques françaises de la présente charte. Cette règle vaut notamment pour les espaces, la ponctuation, les guillemets, les tirets, les plages, les numéros, les abréviations et la composition des références bibliographiques. Une référence bibliographique portant un titre anglais conserve naturellement les mots de son titre, mais sa composition éditoriale suit les conventions françaises de Corpus Scriptura. Cette règle ne francise ni l’orthographe, ni le lexique, ni la syntaxe du texte anglais et ne modifie jamais une couche source ou diplomatique qui reproduit la typographie du témoin.
+
 
 ### 3.2 Normalisation typographique
 
@@ -241,7 +243,7 @@ Dans les textes éditoriaux de Corpus Scriptura, le terme théologique `consubst
 
 ⛔ **LE TIRET DEMI-CADRATIN `–` EST RÉSERVÉ EXCLUSIVEMENT AUX INCISES VERBALES.** Il ne sert jamais aux répliques, aux plages, aux intervalles, aux liaisons, aux références, aux dates, aux noms composés de versions ni à aucun autre emploi. Une incise verbale normalisée prend une espace insécable `U+00A0` après le tiret ouvrant et avant le tiret fermant : `– incise –`. Lorsqu’une incise verbale est identifiée avec certitude, sa ponctuation peut être normalisée sous cette forme. ⛔ **UNE RÉFÉRENCE QUI CONSTITUE À ELLE SEULE UNE INCIDENCE N’EST PAS UNE INCISE AU TIRET.** Une référence biblique, patristique, bibliographique ou interne, ajoutée seulement pour documenter le membre de phrase qui précède, se compose entre parenthèses : `… qu’il leur imprime son sceau (Catéchèse I, 3).` ; plusieurs renvois homogènes restent dans la même parenthèse : `(Catéchèse III, 13 ; XVII, 26 ; XXI, 4)`. Une référence déjà intégrée grammaticalement à la phrase reste sans parenthèses : `comme il le dit en Catéchèse I, 3`. Cette règle interdit de transformer mécaniquement les parenthèses référentielles en tirets. Partout ailleurs, lorsqu’un signe de liaison est requis, on emploie le trait d’union simple `-`, avec l’espacement prévu par la convention concernée. ⛔ **PLAGES DANS LES RÉFÉRENCES.** Dans une référence biblique, patristique ou bibliographique, toute plage compacte de versets, chapitres, paragraphes ou pages se note avec un trait d’union simple `-`, sans espace : `Jude 17-18`, `Mt 28, 19-20`, `I, 3-II, 1`, `pp. 44-47`. Le tiret demi-cadratin `–` n’est jamais employé comme séparateur de plage. Cette règle ne se confond ni avec le tiret d’incise `– … –`, ni avec l’intervalle de dates, qui suit sa règle propre. Le tiret cadratin `—` n’est conservé que s’il appartient réellement à l’édition ou à une convention spécifique documentée.
 
-**Intervalle de dates.** Un intervalle de dates s’écrit d’un simple trait d’union entre deux espaces : « 354 - 430 », « Vers 480 - 524 », « Ier - IIe siècle ». À l’écran ces deux espaces sont insécables, un trait d’union autorisant le retour à la ligne juste après lui : sans elles on lirait « 354 - » en fin de ligne et « 430 » à la suivante. La forme canonique écrite en base, elle, garde des espaces ordinaires : rien n’y réclame une insécable, et un caractère invisible s’oublie dans une colonne de texte. N’est espacé que le tiret qui sépare DEUX BORNES, reconnu à ce qui le précède — un chiffre, le mot « siècle » ou l’ordinal d’un chiffre romain ; le trait d’union de « av. J.-C. », de « Bar-le-Duc » ou d’un nom composé n’est jamais touché. La règle est tenue en un seul endroit, `app/lib/datesHistoriques.ts` (`SEPARATEUR_INTERVALLE`, `espacerIntervallesHistoriques`), et vaut pour toute date affichée, composée par le site ou lue telle quelle en base — le demi-cadratin ne s’appliquait qu’aux dates composées, si bien que « Vers 329-379 » restait collé.
+**Intervalle de dates.** Un intervalle de dates s’écrit avec un trait d’union simple, sans espaces : 354-430, Vers 480-524, Iᵉʳ-IIᵉ siècle. Le tiret demi-cadratin – n’est jamais employé pour une plage de dates. La forme compacte vaut dans les données comme à l’affichage. Le trait d’union des noms composés ou des abréviations (Bar-le-Duc, av. J.-C.) reste inchangé.
 
 ### 3.5 Titres
 
@@ -314,17 +316,17 @@ Conserver les italiques, gras, exposants, petites capitales et autres enrichisse
 
 **Tout terme en langue étrangère est composé en italique.** La règle vaut pour toute langue, ancienne ou moderne, et quel que soit le degré d’acclimatation du terme au français. Le latin ne fait pas exception : *a priori*, *a fortiori*, *ex nihilo*, *in fine* s’écrivent en italique, la lexicalisation supposée d’une locution n’étant pas un critère retenu. Les abréviations savantes latines s’y rangent aussi : *cf.*, *ibid.*, *op. cit.*, *et al.*, *passim*, *sic*, *circa*, *etc.* La locution latine *et cetera* est systématiquement abrégée en *etc.* dans toute couche de lecture normalisée ou composée ; elle n’est jamais développée en toutes lettres. La transcription source ou diplomatique demeure inchangée. Lorsqu’elle clôt une phrase, le point abréviatif tient aussi lieu de point final : on écrit `etc.`, jamais `etc..`. Ce parti s’écarte sciemment de l’usage de l’Imprimerie nationale, qui laisse *cf.* en romain. Il est retenu pour l’uniformité : une règle sans exception se tient mieux qu’une liste de cas.
 
-**Une seule exception d’alphabet.** Le grec écrit en caractères grecs reste en romain, l’alphabet suffisant à signaler la langue étrangère. Une translittération en alphabet latin d’un terme hébreu, araméen, syriaque ou grec est en revanche mise en italique, comme tout terme étranger.
+**Une seule exception d’alphabet — règle absolue.** Tout texte écrit en caractères grecs reste en romain, l’alphabet suffisant à signaler la langue étrangère. Cette règle ne souffre aucune exception de fonction : elle vaut pour les titres d’œuvres, les titres d’articles, les citations, les lemmes, les termes isolés et les références bibliographiques. ⛔ La qualité de titre ne met jamais un texte grec en italique. Seule une couche source ou diplomatique peut conserver un italique grec lorsqu’il est explicitement attesté par le témoin reproduit. Une translittération en alphabet latin d’un terme hébreu, araméen, syriaque ou grec est en revanche mise en italique, comme tout terme étranger.
 
-**Les noms propres étrangers restent en romain** : personnes, lieux, institutions, revues. Un nom propre nomme, il n’emprunte pas à une langue. Le titre d’une œuvre fait exception à cette exception, son italique lui venant de sa qualité de titre et non de sa langue.
+**Les noms propres étrangers restent en romain** : personnes, lieux, institutions, revues. Un nom propre nomme, il n’emprunte pas à une langue. Le titre d’une œuvre fait normalement exception à cette exception, son italique lui venant de sa qualité de titre et non de sa langue ; ⛔ cette exception ne s’applique jamais au grec écrit en caractères grecs, qui demeure en romain.
 
-**Superposition : l’italique l’emporte et court sur tout le texte.** Un terme étranger placé dans un contexte déjà en italique garde l’italique. On ne revient pas au romain pour l’en distinguer.
+**Superposition.** Un terme étranger en alphabet latin placé dans un contexte déjà en italique garde l’italique. ⛔ Le grec écrit en caractères grecs fait exception à cette superposition : il reste en romain même lorsqu’il apparaît à l’intérieur d’un titre ou d’un passage environnant composé en italique.
 
 **Exception d’échelle hors appareil de notes : un texte entier dans une langue étrangère n’est pas mis en italique.** La règle générale vise le terme ou la locution insérés dans une phrase française et ne s’applique pas à une œuvre ou à un texte importé entièrement dans cette langue. **Dans l’appareil structuré de notes, la règle spéciale des §§ 13.8 et 13.12.2 prévaut : un bloc entièrement latin se compose en italique au rendu à partir de `language = 'la'`, sans ajouter de marqueurs `*…*` dans son texte ; un bloc grec en alphabet grec reste en romain.** Les enrichissements d’auteur attestés par la source restent, eux, traités selon leur fonction propre.
 
 **Balisage et portée.** L’italique se stocke comme celui des titres, sous la forme `*terme*`, et l’application le rend en véritable italique. La règle s’applique absolument partout : notices d’auteur, notices d’œuvre, notices chronologiques, commentaires, notes rédigées par l’éditeur, chapeaux, libellés d’interface et messages du site.
 
-Dans tous les textes éditoriaux de Corpus Scriptura — notamment les notices d’auteur, notices d’œuvre, notices chronologiques, commentaires et notes rédigées par l’éditeur — le titre d’une œuvre individualisée est composé en italique. Le stockage emploie le balisage `*Titre de l’œuvre*`, rendu comme un véritable italique par l’application. L’article est inclus dans l’italique lorsqu’il appartient au titre conventionnel ; lorsqu’il n’est qu’un déterminant syntaxique ajouté par la phrase, seul le titre est en italique. Une désignation générique (`ses lettres`, `ses homélies`, `un commentaire`) reste en romain. Les noms canoniques des livres bibliques et les désignations d’événements, de conciles ou de symboles restent en romain, sauf lorsqu’ils font partie du titre propre d’une œuvre citée.
+Dans tous les textes éditoriaux de Corpus Scriptura — notamment les notices d’auteur, notices d’œuvre, notices chronologiques, commentaires et notes rédigées par l’éditeur — le titre d’une œuvre individualisée est composé en italique lorsqu’il n’est pas écrit en caractères grecs. ⛔ Un titre en caractères grecs reste en romain. Le stockage emploie le balisage `*Titre de l’œuvre*` pour les titres auxquels l’italique s’applique ; ce balisage ne doit jamais entourer un titre grec. L’article est inclus dans l’italique lorsqu’il appartient au titre conventionnel ; lorsqu’il n’est qu’un déterminant syntaxique ajouté par la phrase, seul le titre est en italique. Une désignation générique (`ses lettres`, `ses homélies`, `un commentaire`) reste en romain. Les noms canoniques des livres bibliques et les désignations d’événements, de conciles ou de symboles restent en romain, sauf lorsqu’ils font partie du titre propre d’une œuvre citée.
 
 Les notices d’auteur relèvent intégralement de la typographie éditoriale normalisée du § 3.2 : les espaces insécables, espaces fines insécables, guillemets, apostrophes et enrichissements doivent être conformes dès le stockage et pas seulement corrigés au rendu.
 
@@ -333,6 +335,8 @@ La présence ou l’absence de guillemets, d’italiques ou d’autres marques n
 **Crochets et interventions éditoriales.** Les crochets droits signalent une intervention postérieure sur le texte, une restitution, un ajout ou une indication éditoriale qui n’appartient pas littéralement à la formulation citée. `sic` se compose en italique, mais les crochets restent en romain : `[*sic*]`. Lorsqu’une citation reproduite comporte une omission signalée par des points de suspension entre parenthèses, la forme normalisée est `[…]`, non `(…)`. Si Corpus Scriptura tronque exceptionnellement une citation dans un texte éditorial, l’omission est également signalée par `[…]`. Cette possibilité ne vaut pas autorisation d’amputer le texte d’une édition source : hors opération explicitement autorisée, la modification ou la troncature du texte original reste interdite par la liste blanche.
 
 ### 3.7 Contrôles anti-faux positifs
+
+⛔ **Contrôle grec / italique obligatoire.** Dans toute couche éditoriale composée par Corpus Scriptura, tout empan d’italique contenant au moins un caractère grec est une anomalie à corriger. Le contrôle porte notamment sur les notices, titres d’œuvres, titres d’articles, citations, lemmes et références bibliographiques. Une passe typographique ne se clôt qu’à zéro empan grec en italique, hors reproduction source ou diplomatique explicitement identifiée.
 
 Ne jamais corriger automatiquement, sans contexte, une espace après apostrophe, un trait d’union, une répétition de mot ou une suite de capitales. Ces formes peuvent être légitimes. Les détections de mojibake, caractères de remplacement et balises orphelines servent normalement à produire des candidats, puis à les relire. La réduction des doubles espaces accidentelles relève toutefois de la règle mécanique du § 3.2 dans les éditions non diplomatiques.
 
@@ -544,15 +548,41 @@ Une œuvre brève ou indivise peut donc ne posséder aucun `ref_niv`. L’interf
 
 ### 5.3 Notice
 
+### 5.3.0 Manifeste des notices savantes
+
+⛔ **UNE NOTICE NE DIT QUE CE QUI EST À LA FOIS SÛR ET UTILE.** Ces deux conditions sont cumulatives. Une information séduisante, érudite ou plausible n’entre pas dans la notice si elle n’est pas suffisamment établie ; une information certaine n’y entre pas davantage si elle n’aide pas réellement à identifier, dater, situer, établir, transmettre, comparer ou interpréter l’œuvre ou l’édition.
+
+**Sûr.** Un fait est retenu lorsqu’il est directement attesté par l’édition ou le témoin, établi par une autorité bibliographique fiable, ou soutenu par un résultat critique identifiable. Une hypothèse ne devient jamais un fait par vraisemblance. Lorsqu’une question demeure discutée et qu’elle est utile au lecteur, la notice donne l’état du débat, nomme les positions pertinentes et attribue explicitement les propositions à leurs auteurs. En cas de doute non résolu, l’absence d’information vaut mieux qu’un comblement.
+
+**Utile.** La notice privilégie ce qui change effectivement la compréhension du texte ou de son édition : genèse, datation, authenticité, structure, sources, tradition manuscrite, recensions, texte de base, histoire éditoriale, particularités textuelles, rapports entre versions, réception significative et résultats critiques. Elle écarte les détails décoratifs, les curiosités sans conséquence, les données techniques internes, les répétitions de métadonnées déjà visibles et l’érudition qui ne sert aucune question de lecture ou de recherche.
+
+**Traçable.** Toute précision substantielle doit pouvoir être rapportée à une source ou à une étude identifiable. Les chercheurs modernes nommés dans le corps sont sourcés selon le § 29 ; les faits relatifs à une édition sont vérifiés sur l’édition elle-même ou sur une autorité bibliographique fiable. Une notice n’est pas une bibliographie exhaustive : sa bibliographie finale ne retient que les références qui fondent réellement les informations données.
+
+**Pas de remplissage.** On ne complète jamais une notice pour lui donner de l’ampleur. Une notice courte et solide est préférable à une notice longue faite d’inférences, de généralités ou de détails mal assurés. Les informations empruntées à une autre édition, une autre recension ou un autre témoin ne sont pas projetées sur le texte décrit sans preuve explicite de leur pertinence.
+
 La notice doit identifier au minimum l’auteur, le titre, le traducteur ou éditeur lorsque connu, la date et le lieu de publication lorsque disponibles, ainsi que la source consultée. Les attributions discutées et remarques de traduction vont dans les champs de commentaire prévus, non dans le nom du traducteur.
 
-La notice décrit l’édition réellement transcrite. Elle ne mélange pas les informations de plusieurs témoins sans les distinguer.
+La notice décrit l’édition réellement transcrite. Elle ne mélange pas les informations de plusieurs témoins sans les distinguer. Dans la notice d’une traduction, un texte original parallèle n’est mentionné que s’il a effectivement servi de texte de base à cette traduction ou s’il est nécessaire pour comprendre son établissement. Un témoin parallèle sans lien génétique direct avec la traduction est documenté dans la fiche de sa propre version, non dans la notice française. Ainsi, le latin de Bondurand doit être expliqué pour la traduction Corpus Scriptura de Dhuoda, qui en dépend directement ; le grec de Funk ne doit pas être présenté dans la notice française Laurent 1907 de la *Didachè*.
 
-⛔ **LES GENRES SONT DES LIBELLÉS TAXONOMIQUES AUTONOMES ET PRENNENT UNE CAPITALE INITIALE.** La règle vaut pour `oeuvres.genres`, l’ancien champ `oeuvres.genre`, `catalogue_notices.genre` et toutes les vues qui en dérivent. On écrit `Prosimètre philosophique`, `Commentaire biblique`, `Homélie`, `Théologie spirituelle`, jamais `prosimètre philosophique` ou `commentaire biblique`. Cette convention ne transforme pas le libellé en titre : seule l’initiale est capitalisée, sauf majuscules exigées par un nom propre, un sigle ou une autre règle indépendante. Lorsqu’un genre est inséré ensuite dans une phrase courante, sa casse grammaticale peut être adaptée par la phrase ; la valeur taxonomique enregistrée, elle, garde sa capitale initiale.
+⛔ **LES GENRES SONT DES LIBELLÉS TAXONOMIQUES AUTONOMES ET PRENNENT UNE CAPITALE INITIALE.** La règle vaut pour \`oeuvres.genres\`, l’ancien champ \`oeuvres.genre\`, \`catalogue_notices.genre\` et toutes les vues qui en dérivent. On écrit \`Prosimètre philosophique\`, \`Commentaire biblique\`, \`Homélie\`, \`Théologie spirituelle\`, jamais \`prosimètre philosophique\` ou \`commentaire biblique\`. Cette convention ne transforme pas le libellé en titre : seule l’initiale est capitalisée, sauf majuscules exigées par un nom propre, un sigle ou une autre règle indépendante. Lorsqu’un genre est inséré ensuite dans une phrase courante, sa casse grammaticale peut être adaptée par la phrase ; la valeur taxonomique enregistrée, elle, garde sa capitale initiale.
 
-⛔ **TOUT CHERCHEUR MODERNE CITÉ POUR ARGUMENTER DOIT ÊTRE RÉFÉRENCÉ.** Dès qu’une notice nomme un chercheur pour fonder une datation, une attribution, une lecture, une reconstruction textuelle, un jugement critique, un état de la recherche ou toute autre proposition savante, au moins une référence bibliographique complète correspondant à ce propos figure dans `oeuvres.bibliographie_selective`. Nommer « Smets et Van Esbroeck », « Dombart », « Knöll » ou tout autre savant sans permettre au lecteur d’identifier l’ouvrage invoqué est une notice incomplète. La règle vaut aussi lorsque plusieurs chercheurs sont opposés ou comparés : chacun des travaux effectivement mobilisés est identifiable dans la bibliographie. Un nom cité uniquement comme responsable de l’édition décrite est couvert par la référence complète de cette édition.
+⛔ **TOUT CHERCHEUR MODERNE CITÉ POUR ARGUMENTER DOIT ÊTRE RÉFÉRENCÉ.** Dès qu’une notice nomme un chercheur pour fonder une datation, une attribution, une lecture, une reconstruction textuelle, un jugement critique, un état de la recherche ou toute autre proposition savante, au moins une référence bibliographique complète correspondant à ce propos figure dans \`oeuvres.bibliographie_selective\`. Nommer « Smets et Van Esbroeck », « Dombart », « Knöll » ou tout autre savant sans permettre au lecteur d’identifier l’ouvrage invoqué est une notice incomplète. La règle vaut aussi lorsque plusieurs chercheurs sont opposés ou comparés : chacun des travaux effectivement mobilisés est identifiable dans la bibliographie. Un nom cité uniquement comme responsable de l’édition décrite est couvert par la référence complète de cette édition.
 
-**Aération des notices.** Lorsqu’une notice réunit plusieurs fonctions distinctes — provenance bibliographique, statut critique, histoire de la transmission, avertissement éditorial ou état de contrôle — elles sont séparées en paragraphes par une ligne vide dès que cela clarifie la lecture. Une notice n’est pas comprimée en un seul paragraphe par principe. Les sauts de ligne servent l’articulation intellectuelle, non la décoration.
+⛔ **LES SIGLES SAVANTS SONT EXPLICITÉS À LEUR PREMIÈRE OCCURRENCE DANS CHAQUE FICHE.** Un sigle de répertoire, de collection, de corpus ou d’outil critique ne doit jamais être supposé connu du lecteur. À sa première occurrence dans une fiche, donner son nom développé et, lorsque le nom seul ne suffit pas, préciser brièvement sa fonction. On écrit par exemple : *Clavis Patrum Graecorum* (CPG), répertoire de référence des œuvres patristiques grecques ; *Bibliotheca Hagiographica Graeca* (BHG), répertoire des textes hagiographiques grecs. Les occurrences suivantes dans la même fiche peuvent employer le sigle seul. À la première occurrence, le numéro appartient au répertoire qui vient d’être nommé : écrire « sous le numéro 3587 dans la *Clavis Patrum Graecorum* (CPG) », jamais « sous le numéro CPG 3587 dans la *Clavis Patrum Graecorum* (CPG) ». De même, écrire « sous le numéro 413 dans la *Bibliotheca Hagiographica Graeca* (BHG) », et non « sous le numéro BHG 413 dans la *Bibliotheca Hagiographica Graeca* (BHG) ». La règle recommence dans chaque fiche : l’explication donnée ailleurs sur le site ne dispense jamais de l’explication locale.
+
+⛔ **ORDRE DES ÉLÉMENTS D’UN ARTICLE DE REVUE.** Dans la bibliographie sélective d’une fiche, un article se compose selon l’ordre : Auteur, « Titre de l’article », *Titre de la revue*, année, t. X, pp. x-y. L’année précède donc toujours le tome ou le volume : *Aethiopica*, 2007, t. 10, pp. 58-69, jamais *Aethiopica*, t. 10, 2007, pp. 58-69. Cette règle vaut pour toutes les revues, y compris lorsque le volume est exprimé par un nombre simple ou une forme composée comme 54/1. Elle ne s’applique pas aux monographies en plusieurs tomes, dont le tome appartient à l’identité matérielle de l’ouvrage.
+
+⛔ **FINALITÉ SAVANTE DE LA NOTICE.** Une notice publique s’adresse d’abord au lecteur et au chercheur. Elle ne raconte ni le traitement de la donnée, ni les consignes adressées à l’assistant, ni les précautions du workflow. Elle synthétise, dans une prose documentaire, les informations qui permettent de situer et d’exploiter scientifiquement l’œuvre ou l’édition : genèse et nature du texte, datation, authenticité, contexte, sources, texte biblique ou doctrinal utilisé, tradition manuscrite, recensions, histoire éditoriale, particularités textuelles, état de la recherche et principaux résultats critiques.
+
+⚠️ **GÉNÉRALE, MAIS POINTUE.** La notice reste intelligible à un lecteur cultivé sans perdre ce qui intéresse directement la recherche : témoins ou recensions lorsqu’ils sont pertinents, loci, chronologie, rapports entre versions, résultats attribués aux chercheurs, conséquences historiques, philologiques ou doctrinales. Elle n’accumule ni compteurs, ni détails de contrôle, ni étapes de traitement ; elle retient les faits qui changent la compréhension du texte, de sa transmission ou de son interprétation.
+
+⛔ **PAS DE PROSE PROCÉDURALE.** Une règle de travail interne ne devient pas une information de notice. Éviter les formulations prescriptives telles que « ne doit pas être corrigé », « doit être conservé », « il faut vérifier » ou « ne pas confondre » lorsqu’elles décrivent ce que Corpus Scriptura doit faire. Les reformuler en constat scientifique. Ainsi, écrire : « Les écarts avec la Vulgate courante reflètent l’état de la traduction hiéronymienne utilisé par Augustin et constituent un témoin de l’histoire textuelle de Job », plutôt que : « Ces écarts ne doivent pas être corrigés mécaniquement. » Une indication sur le travail de Corpus Scriptura n’est admise que si elle décrit objectivement l’édition publiée et apporte une information utile au lecteur — source transcrite, apparat reproduit ou non, nature du témoin ou principe de présentation —, jamais comme instruction de production, de contrôle ou de maintenance.
+
+**Densité informative.** Chaque paragraphe apporte d’abord une information positive. Les transitions métadiscursives (« il faut noter », « le dossier demande de la prudence », « cela doit être compris comme ») sont évitées lorsque le fait peut être énoncé directement.
+
+**Aération des notices.** Lorsqu’une notice réunit plusieurs fonctions distinctes — provenance bibliographique, statut critique, genèse et nature du texte, histoire de la transmission, texte de base, histoire éditoriale ou état de la recherche — elles sont séparées en paragraphes par une ligne vide dès que cela clarifie la lecture. Une notice n’est pas comprimée en un seul paragraphe par principe. Les sauts de ligne servent l’articulation intellectuelle, non la décoration.
+
+⛔ **INTERTITRES DES FICHES.** Un intertitre n’est utilisé que s’il distingue réellement plusieurs sous-ensembles d’une même notice. Une notice complémentaire consacrée à une seule traduction ne commence donc pas par « Traduction française, … » : l’identité de l’édition est déjà portée par la fiche et par la phrase d’ouverture. Les intertitres en gras restent justifiés lorsqu’ils séparent plusieurs traductions, une source directement constitutive de la traduction ou des sections de nature différente, par exemple **Manifeste de traduction** ou **Vérifications effectuées**. Ils ne se saisissent jamais comme titres Markdown de niveau 2, 3 ou 4. Les grands titres de page ou de section produits par l’interface restent extérieurs au texte de la notice.
 
 ### 5.4 Lecture assistée de la page de titre
 
@@ -568,7 +598,7 @@ Le traitement passe par l'abonnement, sans clé d'interface de programmation, et
 
 ⛔ **LA PAGE DE TITRE EST CELLE DE L’ÉDITION AFFICHÉE** (demande de l’auteur, 8 septembre 2026 : « elle doit correspondre à l’édition qui est affichée ; si on a deux éditions, la latine et la française, il faut faire en conséquence »). Ce que le § 5.3 exige d’une notice vaut du frontispice : il décrit l’édition qu’on lit, et ne mêle pas deux témoins.
 
-⚠️ **Une version active dit TOUT de son édition, son silence compris.** Le repli sur l’œuvre se faisait champ par champ (`versionActive?.champ ?? oeuvre.champ`), si bien que l’absence d’une donnée passait pour une lacune à combler : le texte latin de Bondurand, qui n’a pas de traducteur, empruntait celui de l’œuvre et sa page de titre annonçait « Traduction par intelligence artificielle sous la direction de Corpus Scriptura ». Dix-neuf textes du corpus étaient dans ce cas, et tous les dix-neuf sont des textes en LANGUE ORIGINALE. L’œuvre ne parle qu’à défaut de version active — ou, quand la version ne porte aucune adresse, pour la version PAR DÉFAUT, seule dont les champs de l’œuvre répondent.
+⚠️ **Une version active dit TOUT de son édition, son silence compris.** Le repli sur l’œuvre se faisait champ par champ (`versionActive?.champ ?? oeuvre.champ`), si bien que l’absence d’une donnée passait pour une lacune à combler : le texte latin de Bondurand, qui n’a pas de traducteur, empruntait celui de l’œuvre et sa page de titre annonçait « Traduction par Corpus Scriptura assistée par IA ». Dix-neuf textes du corpus étaient dans ce cas, et tous les dix-neuf sont des textes en LANGUE ORIGINALE. L’œuvre ne parle qu’à défaut de version active — ou, quand la version ne porte aucune adresse, pour la version PAR DÉFAUT, seule dont les champs de l’œuvre répondent.
 
 ⛔ **Une adresse se prend ENTIÈRE, ou pas du tout.** Une ville d’une édition et un éditeur d’une autre ne font pas une adresse : « D’après l’édition de Paris, Corpus Scriptura, 2026 » prenait Paris à Picard 1887 et le reste à la traduction française, et ne nommait aucune édition réelle.
 
@@ -592,6 +622,7 @@ La règle vit dans `identiteEdition` (`app/oeuvre/[id]/versionTextuelle.ts`) et 
 
 ⚠️ **QUESTION OUVERTE, ET ELLE ATTEND L’AUTEUR : le responsable et la collection n’ont pas de champ par texte.** Le § 38.25.1 veut que la fiche les nomme pour chaque édition ; le § 19.2 les exclut d’`edition_label`, et c’est pourtant le seul endroit où la page sait les lire. Une édition dont le libellé est conforme perd donc son responsable : les deux textes de Zycha et l’Apologétique de Waltzing ne le montrent pas, alors que les métadonnées d’atelier le connaissent. La voie proposée est une colonne par texte pour chacun des deux, lue avant le libellé. Tant que la décision n’est pas prise, on ne réécrit pas un libellé conforme pour y remettre un responsable, et l’on ne retire pas le responsable d’un libellé qui le porte encore : il disparaîtrait de l’écran.
 
+
 ### 5.5.2 La fiche sépare l’œuvre, l’édition, la technique et la bibliographie
 
 ⛔ **QUATRE FONCTIONS, QUATRE EMPLACEMENTS.** Une fiche savante va du général au technique ; elle ne mêle pas dans une même prose ce qui décrit l’œuvre, ce qui décrit l’édition lue, ce qui sert à exploiter son appareil et les références qui fondent la notice.
@@ -608,6 +639,7 @@ La règle vit dans `identiteEdition` (`app/oeuvre/[id]/versionTextuelle.ts`) et 
 ⚠️ **ORDRE DOCUMENTAIRE.** La lecture va du général au spécialisé : présentation de l’œuvre → notes éditoriales → informations complémentaires lorsqu’elles existent → bibliographie sélective. Une rubrique absente n’est pas remplacée par un bloc vide.
 
 ### 5.6 Informations complémentaires d’une édition
+
 
 ⛔ **UNE ÉDITION SAVANTE DÉCLARE CE QU’IL FAUT SAVOIR POUR LA LIRE**, et ce n’est ni son adresse ni sa notice : les manuscrits qu’elle a collationnés et les sigles qui les désignent, les abréviations de son apparat, les conventions de transcription qu’elle s’est données. Sans cette déclaration, « B; est] est et BPQ » est illisible, et le lecteur n’a aucun moyen de savoir ce que B, P et Q nomment.
 
@@ -648,9 +680,11 @@ La rubrique s’appelle **« Informations complémentaires »**, elle vit dans `
 
 ⛔ **LA RÉFÉRENCE BIBLIOGRAPHIQUE, SECONDE NATURE D’ENTRÉE** (demande de l’auteur, 17 septembre 2026 : « un style de bibliographie pour les notices des œuvres »). Une ligne ouverte par `+ ` est une RÉFÉRENCE. Elle reste au rang d’une entrée, un article sous sa rubrique, et le nombre des niveaux ne bouge pas. Deux raisons NOMMÉES la séparent de l’entrée (§ 13.11) : une référence n’a pas de tête et ne se coupe JAMAIS à un séparateur, qu’un titre ou une plage porte souvent ; et elle se compose dans la famille bibliographique du site (§ 47.2), avec les classes des ouvrages cités de la même fiche mais au corps du pied d’une fiche d’auteur, 0,6875 rem (décision de l’auteur, 17 septembre 2026 : « plus petit ») : elle clôt une prose en sans à 0,75 rem, qu’un sérif de même corps écrasait. Les références consécutives font une seule bibliographie ; une ligne vide, une ligne de prose ou une entrée la ferment. ⛔ Elle ne porte PAS de titre (décision de l’auteur, même jour : « pas besoin de titre “Bibliographie” ») : sa composition la distingue de la prose, dont la sépare une ligne vide de cette prose.
 
+
 ⚠️ **LE « PAS DE TITRE » DES LIGNES `+` CONCERNE UNE BIBLIOGRAPHIE INTÉGRÉE À UNE NOTICE.** Il ne contredit pas la section autonome du § 5.5.2 : `oeuvres.bibliographie_selective` est rendue sous le titre d’interface « Bibliographie sélective », mais ce titre n’est jamais recopié dans la valeur du champ.
 
-⛔ **RIEN NE S’Y DEVINE NON PLUS.** L’italique du titre (`*…*`) est ÉCRIT par l’éditeur, selon la forme des notices du site (§ 47.1). ⛔ **LE NOM D’AUTEUR RESTE TOUJOURS EN ROMAIN** : aucune marque `++…++` ne lui est appliquée, qu’il s’agisse d’un auteur ancien, médiéval ou moderne. Le rendu ne tire ni titre, ni auteur, ni éditeur de la chaîne. Les plages de pages suivent le § 3.4 : trait d’union simple, jamais de demi-cadratin. Une référence s’écrit ainsi : `+ Pierre Cazier, « Lectures du livre de Job chez Ambroise, Augustin et Grégoire le Grand », *Graphè*, 6, 1997, pp. 81-111.`
+⛔ **RIEN NE S’Y DEVINE NON PLUS.**
+ L’italique du titre (`*…*`) et les petites capitales du nom de famille (`++…++`) sont ÉCRITS par l’éditeur, selon la forme des notices du site (§ 47.1) : le rendu ne tire ni titre, ni auteur, ni éditeur de la chaîne. Les plages de pages suivent le § 3.4 : trait d’union simple, jamais de demi-cadratin. Une référence s’écrit ainsi : `+ Pierre Cazier, « Lectures du livre de Job chez Ambroise, Augustin et Grégoire le Grand », *Graphè*, 6, 1997, pp. 81-111.`
 
 ⛔ **LA NOTATION SERT AUSSI LES DEUX NOTES ÉDITORIALES D’UNE ŒUVRE** (`oeuvres.note_editoriale_complete` et `note_editoriale_complement`), que la fiche d’une édition rend sous « L’œuvre » et « Notes éditoriales » : ce sont des notices elles aussi, et elles portent des bibliographies. Une note sans marque se rend en prose, comme avant.
 
@@ -3022,7 +3056,7 @@ Le champ `trad_auteur` d’une œuvre publiée suit la même règle : ⛔ **une 
 
 ⛔ **UNE MENTION DE RÉGIME N’EST PAS UN NOM**, et ne se compose pas comme tel. « Traduction IA — Corpus Scriptura » nomme l’instrument et la maison qui en répond, non une personne ; prise pour un nom, elle donnait « Traduction par Traduction IA — Corpus Scriptura » en page de titre — le mot deux fois, et un instrument présenté comme un traducteur — et « Scriptura 2026 » en tête de la colonne française du texte en regard, en face de « Bondurand 1887 », le dernier mot du champ pris pour un patronyme.
 
-Le site la RÉDIGE (décision de l’auteur, 8 septembre 2026) : **« Traduction par intelligence artificielle sous la direction de Corpus Scriptura »** en page de titre et partout où paraît la phrase de responsabilité ; la même formule en bas de casse et sans « trad. » dans une ligne bibliographique, comme une formule de direction ; « Traduction IA 2026 » là où il faut un label court. ⚠️ La donnée, elle, reste INTACTE en base : c’est l’affichage qui rédige, et la règle vit dans `app/lib/traducteurs.ts` avec le reste des mentions de responsabilité.
+Le site la RÉDIGE (décision de l’auteur, 8 septembre 2026) : **« Traduction par Corpus Scriptura assistée par IA »** en page de titre et partout où paraît la phrase de responsabilité ; la même formule en bas de casse et sans « trad. » dans une ligne bibliographique, comme une formule de direction ; « Traduction IA 2026 » là où il faut un label court. ⚠️ La donnée, elle, reste INTACTE en base : c’est l’affichage qui rédige, et la règle vit dans `app/lib/traducteurs.ts` avec le reste des mentions de responsabilité.
 
 `traducteur_status_code` distingue : `PERSONNE`, `PLUSIEURS_PERSONNES`, `COLLECTIF`, `ANONYME`, `NON_ETABLI`, `SANS_OBJET` et `A_CONTROLER`. Une personne ou une liste de personnes exige une valeur non vide dans `traducteur_uniformise`. Les statuts `PERSONNE` et `PLUSIEURS_PERSONNES` sont réservés aux formes d’autorité stables et précisément établies. Un patronyme seul, une initiale non résolue, un titre religieux sans identité complète ou une liste comprenant au moins une autorité partielle reçoit `A_CONTROLER`, même lorsque l’attribution imprimée est certaine. ⛔ **`ANONYME`, `NON_ETABLI` et `SANS_OBJET` sont des statuts, jamais des noms d’autorité.** Une responsabilité communautaire ou institutionnelle reçoit `COLLECTIF` ; son appellation peut être portée dans `traducteur_uniformise` lorsqu’elle est stable et précisément établie.
 
@@ -5930,7 +5964,9 @@ La forme d’autorité d’un nom et sa forme d’affichage sont deux choses. Le
 
 ### 47.1. Normalisation bibliographique des notices
 
-Dans une liste bibliographique éditoriale, la casse du fac-similé ou de l’OCR ne commande jamais l’affichage. Les titres sont ramenés à la casse française normale ; le titre individualisé de l’ouvrage se compose en italique. **Le titre et le sous-titre sont deux champs distincts de la base** — `ouvrages_bibliographiques.titre` et `ouvrages_bibliographiques.sous_titre` — mais ils constituent typographiquement UN SEUL intitulé : ils se composent tous deux en italique et se joignent par un **point** : `*Évangile selon saint Jean. Introduction critique et commentaires*`. Un sous-titre EST un sous-titre, non une apposition qu’un deux-points introduirait. ⚠️ Décision de l’auteur du 28 août 2026, qui remplace le deux-points prescrit le matin même, lequel remplaçait la virgule : ⛔ ni virgule, ni deux-points, ni l’espace insécable qui précédait celui-ci. ⚠️ Un titre qui se ferme DÉJÀ sur une ponctuation forte n’en reçoit pas une seconde, sa ponctuation attestée détachant à elle seule : `*Où en est la question biblique ? Réponse à quelques objections*`.
+Dans une liste bibliographique éditoriale, la casse du fac-similé ou de l’OCR ne commande jamais l’affichage. Les titres sont ramenés à la casse française normale ; le titre individualisé de l’ouvrage se compose en italique. **Le titre et le sous-titre sont deux champs distincts de la base** — `ouvrages_bibliographiques.titre` et `ouvrages_bibliographiques.sous_titre` — mais ils constituent typographiquement UN SEUL intitulé : ils se composent tous deux en italique et se joignent par un **point** : `*Évangile selon saint Jean. Introduction critique et commentaires*`. Un sous-titre EST un sous-titre, non une apposition qu’un deux-points introduirait. ⚠️ Décision de l’auteur du 28 août 2026, qui remplace le deux-points prescrit le matin même, lequel remplaçait la virgule : ⛔ ni virgule, ni deux-points, ni l’espace insécable qui précédait celui-ci. ⚠️ Un titre qui se ferme DÉJÀ sur une ponctuation forte n’en reçoit pas une seconde, sa ponctuation attestée détachant à elle seule : `*Où en est la question biblique ? Réponse à quelques objections*`.\n\n⛔ **ÉDITEUR ET COLLECTION NE SE COMPOSENT PAS DE LA MÊME MANIÈRE.** Le nom commercial ou institutionnel de l’éditeur se compose en romain, sans guillemets : `Paris, Desclée de Brouwer, 1959`. Le nom d’une collection se compose également en romain, mais entre guillemets français, précédé de `coll.` lorsqu’il appartient à une notice : `coll. « Bibliothèque augustinienne », nᵒ 33`. Lorsqu’une collection est renseignée, elle se place systématiquement entre le nom de l’éditeur et l’année de publication ; son numéro reste attaché à la collection. Ainsi : Paris, Desclée de Brouwer, coll. « Bibliothèque augustinienne », nᵒ 33, 1959 ; jamais Paris, Desclée de Brouwer, 1959, coll. « Bibliothèque augustinienne », nᵒ 33.
+
+⛔ Une collection n’est jamais en italique. L’italique est réservé notamment au titre individualisé de l’ouvrage, du périodique ou de l’œuvre selon son régime. Lorsqu’une même dénomination peut désigner soit une maison d’édition soit une collection, établir d’abord sa fonction bibliographique dans l’édition citée : la typographie suit ce rôle, non la forme du nom.
 
 **La source de vérité est la donnée STRUCTURÉE, jamais un texte bibliographique précomposé.** Une liste d’ouvrages se construit champ par champ : `bible_editorial_bibliography_entries` donne l’appartenance à la pièce et le rang de la page imprimée (⚠️ non l’ordre d’affichage, qui se calcule : § 47.3), `ouvrages_bibliographiques` le titre, le sous-titre, le lieu et l’année, `ouvrage_contributeurs_scientifiques` et `auteurs_valeur` l’auteur normalisé, `editeurs_valeur` l’éditeur normalisé. ⛔ On ne découpe jamais une notice précomposée pour en retrouver les parties, et l’ancien texte de lecture des blocs matériels cesse d’être la source de l’affichage : il demeure en base pour la provenance et le témoin source. ⛔ La ponctuation est produite par le rendu à partir des champs présents ; elle n’est pas stockée dans la donnée, et un champ absent emporte son séparateur. **L’identité d’une entrée est `ouvrage_id`**, jamais son rang dans la liste. Un repli sur l’ancien texte n’est admis que si la liste structurée est réellement absente, et il ne se mêle jamais à elle : ou l’une, ou l’autre, jamais quelques entrées de chaque.
 
@@ -5950,9 +5986,9 @@ Lorsqu’une projection textuelle est matérialisée pour compatibilité avec le
 
 **Contrôles bloquants avant clôture.** Pour toute liste bibliographique reprise : 0 entrée identifiable laissée sans recherche de correspondance ; 0 doublon de fiche créé par variation de forme ; 0 ouvrage structuré sans titre ; 0 valeur éditoriale ajoutée sans provenance lorsqu’elle n’est pas directement attestée ; 0 liste d’ouvrages laissée en paratexte générique ; 0 entrée bibliographique rendue depuis la chaîne source quand un `ouvrage_id` structuré existe. Le bilan de passe donne au minimum le nombre d’entrées rencontrées, réutilisées, créées, encore en revue, complétées éditorialement et correctement rattachées à leur nature bibliographique.
 
-Lorsqu’un auteur doit être affiché, il reprend sa forme d’autorité complète et stable. ⛔ **DANS TOUTE NOTICE BIBLIOGRAPHIQUE, LE NOM D’AUTEUR SE COMPOSE EN ROMAIN, SANS PETITES CAPITALES.** La règle vaut sans distinction pour les personnes modernes, antiques ou médiévales, pour les autorités structurées comme pour les noms en texte libre. Les rubriques `prenom` et `nom_famille` restent utiles à l’identité et au tri, jamais à la typographie : `Pierre Cazier`, `Anne-Marie La Bonnardière`, `Augustin d’Hippone`. Un titre nobiliaire ou une qualité postnominale reste également en romain et se place selon la syntaxe de la notice. Dans une rubrique « Du même auteur », le nom n’est pas répété à chaque entrée : le titre de rubrique porte déjà cette information. Le composant bibliographique demeure GÉNÉRIQUE : c’est la pièce qui dit si l’auteur doit paraître, non le composant qui le devine.
+Lorsqu’un auteur doit être affiché, il reprend sa forme d’autorité complète et stable. ⛔ **DANS TOUTE NOTICE BIBLIOGRAPHIQUE, LE NOM D’AUTEUR SE COMPOSE EN ROMAIN, SANS PETITES CAPITALES.** La règle vaut sans distinction pour les personnes modernes, antiques ou médiévales, pour les autorités structurées comme pour les noms en texte libre. Les rubriques prénom et nom de famille restent utiles à l’identité et au tri, jamais à la typographie : Pierre Cazier, Anne-Marie La Bonnardière, Augustin d’Hippone. Un titre nobiliaire ou une qualité postnominale reste également en romain et se place selon la syntaxe de la notice. Dans une rubrique « Du même auteur », le nom n’est pas répété à chaque entrée : le titre de rubrique porte déjà cette information. Le composant bibliographique demeure GÉNÉRIQUE : c’est la pièce qui dit si l’auteur doit paraître, non le composant qui le devine.
 
-Un renvoi à une autre entrée d’une liste bibliographique se compose en une seule phrase : `Xénophane, voir Parménide.` Le mot `voir` suit une virgule et reste en bas de casse ; ne pas écrire `Xénophane. Voir Parménide.`. Les noms placés de part et d’autre du renvoi suivent les règles ordinaires des auteurs et restent en romain.\n\nLes éléments d’une même notice sont séparés par des virgules, et non par une succession de phrases ponctuées de points. L’ordre normal est : titre, lieu, éditeur, date, format et pagination ; le point final clôt seul la notice. Un point-virgule peut séparer deux états ou deux éditions réellement distincts.
+Un renvoi à une autre entrée d’une liste bibliographique se compose en une seule phrase : `Xénophane, voir Parménide.` Le mot `voir` suit une virgule et reste en bas de casse ; ne pas écrire `Xénophane. Voir Parménide.`. Les noms placés de part et d’autre du renvoi suivent les règles ordinaires des auteurs et restent en romain.\n\nLes éléments d’une même notice sont séparés par des virgules, et non par une succession de phrases ponctuées de points. L’ordre normal est : titre, lieu, éditeur, collection et numéro de collection lorsqu’ils existent, date, format et pagination ; le point final clôt seul la notice. En l’absence de collection, l’ordre demeure titre, lieu, éditeur, date. Un point-virgule peut séparer deux états ou deux éditions réellement distincts.
 
 ⛔ **La description MATÉRIELLE ne s’affiche pas dans une liste d’ouvrages** : le format (`in-8°`, `in-4°`), le nombre de pages, la pagination romaine ou arabe, le nombre de planches, les figures et les dimensions sont des données de description, conservées dans la notice, et ne paraissent pas au lecteur. Une liste d’ouvrages nomme des œuvres, elle ne décrit pas des exemplaires. La forme affichée est donc : intitulé, lieu, éditeur normalisé, année, point final — `*Évangile selon saint Jean. Introduction critique et commentaires*, Paris, Lethielleux, 1887.` ⚠️ Décision de l’auteur du 28 août 2026.
 
@@ -7573,6 +7609,7 @@ rejouée sur les 51 éditions publiques, avant et après : **deux changent, et c
 qui étaient fausses** — Knöll et Hartel, les deux seules notices du corpus qui nomment leur
 responsable entre parenthèses. Les quarante-neuf autres rendent le même octet.
 
+
 ### 38.25.2 Les sections de la fiche ont un RANG
 
 ⛔ **« BIBLIOGRAPHIE SÉLECTIVE » EST UNE SECTION SŒUR, PAS UN SOUS-TITRE.** Elle se rend avec le même composant et au même niveau structurel que « Notes éditoriales » et les autres sections autonomes de la fiche. L’écrire comme un `## Bibliographie sélective` à l’intérieur de `note_editoriale_complement` est une erreur de hiérarchie : le lecteur la perçoit alors comme une subdivision des notes, alors qu’elle documente l’ensemble de la fiche.
@@ -7583,7 +7620,8 @@ responsable entre parenthèses. Les quarante-neuf autres rendent le même octet.
 
 ⛔ **LA BIBLIOGRAPHIE N’EST PAS MIROITÉE DANS LES NOTES ÉDITORIALES.** Dès que le rendu autonome existe, toute copie transitoire de son contenu dans `note_editoriale_complement` doit disparaître. Une seule donnée, une seule surface.
 
-### 38.26 Une rangée de contrôles se mesure en REM, et ce qui coûte la largeur est leur NOMBRE
+### 38.26 Une rangée de contrôles se mesure en REM
+, et ce qui coûte la largeur est leur NOMBRE
 
 Relevé de l’auteur, 2026-09-10, sur la tête du volet d’une œuvre : « proportionner la
 taille et l’espacement des logos à la taille de l’écran ; sur écran moyen, c’est trop
@@ -8548,3 +8586,677 @@ Demande de l’auteur du 17 septembre 2026, après la question « Les notes s’
 ⛔ **ELLES SE RECENSENT DANS L’ONGLET « NOTES » DU VOLET DE DROITE** (§ 38.35, 17 septembre 2026), sous le nom de « Note éditoriale », avec le numéro et la place de leur appel.
 
 ⚠️ **CE QUI ATTEND UNE DÉCISION, ET CE QUI ATTEND LA DONNÉE.** Une bible sans famille éditoriale n’offre pas le choix « Sans les commentaires » : ses notes de verset ne se retirent que par l’adresse (`?texte=seul`), et offrir l’axe à ces bibles est une décision. Les notes du découpage de 1730 ont été écrites pour la Polyglotte, où chaque fragment se lit sur sa ligne ; réunies dans une fenêtre, « partie 1 sur 2 » et « partie 2 sur 2 » se lisent l’une sous l’autre, et les reformuler pour les deux pages est une question de donnée. Les remarques de la traduction moderne du témoin, que la révision du § 50.7 n’a pas touchées, parlent encore la langue de l’atelier (« conservée comme extra du témoin », « dans la transcription actuelle »). Les trois notes de Suzanne ne s’atteignent pas, pas plus que son texte (§ 38.11).
+
+
+
+
+
+## 53. La couche sémantique de la Bible et des Pères
+
+### 53.1 Finalité et séparation absolue d’avec les liens
+
+La couche sémantique sert à INDEXER le corpus pour permettre une recherche thématique, rapprocher des passages par notions communes, constituer des faisceaux de connexions entre versets et passages patristiques, et rendre ces rapprochements navigables et explicables.
+
+⛔ **ELLE NE REMPLACE JAMAIS LE SYSTÈME DES LIENS BIBLIQUES.** liens_bibliques reste la couche documentaire qui affirme qu’un passage patristique cite, vise, reprend ou concerne un passage biblique selon les catégories déjà établies. La couche sémantique est parallèle. Elle peut aider à trouver des candidats, à regrouper des liens existants et à expliquer leur voisinage ; elle ne transforme jamais une proximité thématique en lien éditorial.
+
+Deux textes qui partagent un concept ne sont donc pas, pour cette seule raison, « liés » au sens de Corpus Scriptura. Une suggestion issue de la couche sémantique reste une suggestion tant qu’une décision éditoriale n’a pas créé ou validé le lien dans son système propre.
+
+⛔ **AUCUNE ANNOTATION SÉMANTIQUE NE RÉÉCRIT LE TEXTE.** Les versets, segments.segment_texte, segments.texte_norm, segments.texte_original et les liens existants restent hors de cette écriture. La sémantique vit dans des tables dédiées.
+
+### 53.2 Cinq systèmes documentaires distincts
+
+L’architecture ne repose pas sur une liste plate de tags. Elle distingue cinq systèmes qui peuvent se croiser sans se confondre :
+
+1. **le thésaurus conceptuel** : notions théologiques, sujets bibliques et motifs bibliques ;
+2. **les fichiers d’autorité** : personnes, collectifs ou peuples, lieux ou territoires, institutions ou entités politiques ou juridictionnelles, événements ;
+3. **les vocabulaires de relations** : relations conceptuelles, intertextuelles et herméneutiques ;
+4. **le vocabulaire littéraire** : genres et formes littéraires appliqués à des portées textuelles ;
+5. **les annotations** : assertions sourcées et validées reliant une portée textuelle à un concept, une autorité ou une qualification littéraire.
+
+⛔ Une information ne change pas de système pour simplifier une requête. Un lieu reste une autorité géographique ; une typologie reste une relation herméneutique ; une lamentation reste une qualification littéraire.
+
+### 53.3 Métanomenclature normative
+
+**Domaine théologique** : grand champ de classement des notions théologiques. Il organise le vocabulaire ; il n’est pas, par défaut, une annotation posée directement sur un verset.
+
+**Famille théologique** : subdivision documentaire d’un domaine théologique regroupant des concepts proches.
+
+**Famille thématique** : regroupement documentaire de sujets ou motifs qui ne doivent pas être artificiellement doctrinalisés.
+
+**Concept** : unité de sens stable du thésaurus, identifiée indépendamment de ses libellés.
+
+**Notion théologique** : concept exprimant un contenu proprement théologique, moral ou spirituel.
+
+**Sujet** : concept désignant ce dont une portée parle ou une réalité qu’elle met en jeu, sans que cette réalité soit nécessairement une notion théologique. Un sujet peut être biblique, patristique ou commun aux deux corpus.
+
+**Motif** : concept désignant une configuration ou image récurrente dont la répétition ET la fonction dans un ou plusieurs corpus justifient une identification documentaire. ⛔ La simple fréquence d’un objet, d’un mot ou d’une image ne suffit jamais à créer un motif. Le motif est fonctionnel et reçoit une note de portée : « eau » reste un sujet ; « eau comme vie », « eau comme purification » et « eaux comme menace » peuvent devenir des motifs distincts si leurs usages récurrents sont établis. Une même image ne reçoit jamais une signification symbolique universelle par défaut.
+
+**Terme préféré** : libellé éditorial principal d’un concept.
+
+**Terme alternatif** : synonyme, variante historique, morphologique ou linguistique renvoyant au même concept.
+
+**Note de portée** : définition éditoriale fixant ce que le concept couvre et, si nécessaire, ce qu’il exclut.
+
+**Autorité** : identité stable d’une entité nommée ou individualisable indépendamment des formes lexicales qui la désignent.
+
+**Qualification littéraire** : attribution d’un genre ou d’une forme littéraire à une portée textuelle.
+
+**Portée d’annotation** : unité textuelle exacte sur laquelle vaut une annotation : verset, plage continue de versets ou segment patristique.
+
+**Importance** : rôle d’un concept dans la portée annotée : principal, secondaire ou contextuel.
+
+**Relation conceptuelle** : relation interne au thésaurus, par exemple plus général, plus précis ou associé.
+
+**Relation intertextuelle** : relation explicite entre deux passages, par exemple citation, reprise ou allusion.
+
+**Relation herméneutique** : relation interprétative explicitement attestée, par exemple une typologie.
+
+⛔ Les mots domaine théologique, famille, concept, terme, autorité, genre, forme et relation ne sont pas interchangeables.
+
+### 53.4 Identité sémantique, homonymie et polysémie
+
+⛔ **UN CONCEPT REPRÉSENTE UN SENS, NON UN MOT.** Un même libellé peut correspondre à plusieurs concepts si ses sens diffèrent réellement.
+
+La pluralité des classements ne doit jamais servir à masquer une polysémie. Un concept peut appartenir à plusieurs domaines ou familles lorsque LE MÊME SENS relève légitimement de plusieurs classements ; en revanche, deux sens distincts reçoivent deux identifiants distincts.
+
+Exemple : « sacrifice » comme acte rituel concret et « sacrifice » comme notion théologique peuvent être reliés étroitement, mais ils ne sont fusionnés que si leur note de portée montre qu’ils ont réellement la même extension.
+
+La même règle vaut pour les autorités. « Israël » ne constitue pas une identité unique :
+
+* Israël/Jacob = personne ;
+* Israël = peuple ou collectif ;
+* terre d’Israël = lieu ou territoire ;
+* royaume d’Israël = entité politique ;
+* élection d’Israël, vocation d’Israël ou alliance avec Israël = concepts théologiques.
+
+Les homonymes et emplois métonymiques sont donc désambiguïsés par l’identité des objets, non par le contexte implicite d’une chaîne de caractères.
+
+
+### 53.5 Les domaines théologiques organisent ; ils ne préjugent pas du sens du texte
+
+Un domaine théologique est un instrument documentaire construit à partir d’usages académiques reconnus de la théologie systématique et biblique. Il ne constitue pas une prétention à l’existence d’un découpage unique et universel de la théologie.
+
+⛔ **LE PREMIER NIVEAU EST PARCIMONIEUX.** Un domaine théologique n’est créé que s’il demeure nécessaire après tentative de rattachement à un domaine plus large. En cas de doute entre domaine théologique et famille théologique, on choisit la famille. Le nombre de domaines doit rester faible, leurs frontières larges et stables, et aucune discipline spécialisée n’accède au premier niveau par simple tradition académique.
+
+⛔ **AUCUN DOMAINE THÉOLOGIQUE N’EST CRÉÉ AU FIL DE L’ANNOTATION.** L’ensemble des domaines est établi, défini, comparé aux sources savantes et adopté comme une version éditoriale complète AVANT le pilote.
+
+Chaque domaine reçoit un identifiant stable, un nom canonique, une définition, une note de délimitation, ses familles théologiques, ses sources de référence, un statut éditorial et une version.
+
+Un concept peut relever de plusieurs domaines théologiques lorsque son sens l’exige. La polyhiérarchie n’est pas une anomalie.
+
+⛔ Les domaines ne servent jamais à projeter mécaniquement une dogmatique chrétienne sur un texte biblique antérieur ou d’une autre configuration théologique. Ils classent le vocabulaire ; ils ne décident pas, à eux seuls, du sens d’un passage.
+
+#### 53.5.1 Les neuf domaines adoptés
+
+La version initiale du premier niveau comprend exactement neuf domaines théologiques :
+
+* **DTH01 — Dieu** : identité de Dieu, noms et attributs divins, vie divine et action propre de Dieu. La Trinité est une famille ou un ensemble de concepts de ce domaine, non un domaine supplémentaire.
+* **DTH02 — Création** : création, ordre créé, créatures, conservation et gouvernement du créé. La providence appartient à ce domaine.
+* **DTH03 — Humanité** : condition humaine devant Dieu, constitution de l’être humain, vocation, liberté, corporéité, intériorité et conduite humaine. Péché, vie morale et vie spirituelle peuvent y constituer des familles sans épuiser leurs rattachements possibles.
+* **DTH04 — Révélation** : manifestation et communication de Dieu, parole divine et médiations de cette communication. Écriture, inspiration, prophétie, promesse, alliance, élection et Loi peuvent y relever comme familles ou concepts lorsque leur sens l’exige.
+* **DTH05 — Christ** : identité, personne et œuvre propre de Jésus-Christ. Incarnation, titres christologiques, messianité chrétienne, mort et résurrection du Christ y prennent place selon leur portée propre.
+* **DTH06 — Esprit Saint** : identité et action de l’Esprit Saint. Dons, inspiration, inhabitation et sanctification pneumatique peuvent relever de ce domaine.
+* **DTH07 — Salut** : restauration et accomplissement de la relation entre Dieu, l’être humain et la création. Rédemption, expiation, pardon, grâce, justification, réconciliation, sanctification et divinisation peuvent y prendre place.
+* **DTH08 — Église** : constitution, identité et vie de l’Église. Communion, ministères, mission, autorité, sacramentalité et sacrements peuvent y relever sans que tout culte biblique soit rétroactivement ecclésiologisé.
+* **DTH09 — Eschatologie** : accomplissement ultime de l’être humain, de l’histoire et de la création. Jugement, résurrection générale, vie éternelle, parousie et nouvelle création peuvent y prendre place.
+
+Ces neuf domaines constituent le premier niveau adopté. Ils ne sont pas des catégories exclusives : un même concept peut être rattaché à plusieurs domaines si le même sens le justifie.
+
+Les domaines écartés du premier niveau ne disparaissent pas. **Péché et mal**, **Alliance et élection**, **Culte, liturgie et sacrements**, **Théologie morale** et **Vie spirituelle** sont désormais à examiner comme familles théologiques ou ensembles de concepts, avec rattachements multiples si nécessaire.
+
+⛔ **ISRAËL N’EST PAS UN DOMAINE THÉOLOGIQUE.** Israël/Jacob relève de l’autorité de personne ; Israël comme peuple relève de l’autorité de collectif ; la terre d’Israël relève du lieu ou territoire ; le royaume d’Israël relève d’une institution ou entité politique ; l’élection, la vocation et les alliances d’Israël relèvent des concepts théologiques appropriés.
+
+
+### 53.6 Familles théologiques et familles thématiques
+
+Une famille théologique est un niveau de navigation et de maintenance situé sous un ou plusieurs domaines théologiques. Une famille thématique organise les sujets et motifs lorsque leur rangement dans un domaine théologique serait artificiel.
+
+Une famille ne reçoit pas d’annotation directe tant qu’un concept plus précis peut être employé. Elle sert à regrouper les concepts voisins, repérer les lacunes et doublons, comparer les frontières entre notions, présenter le vocabulaire et maintenir une structure stable lorsque des libellés évoluent.
+
+⛔ **LE NIVEAU DES FAMILLES EST LUI AUSSI PARCIMONIEUX.** En cas de doute entre famille et concept, on choisit le concept. Une famille doit regrouper plusieurs concepts réellement distincts et constituer un niveau de navigation durable ; elle ne sert pas à donner un titre plus imposant à une notion unique.
+
+Une famille peut relever de plusieurs domaines lorsque le même ensemble conceptuel le justifie. On ne duplique jamais une famille sous deux noms pour éviter la polyhiérarchie. La rubrique DTHxx sous laquelle une famille est présentée indique son **domaine principal de navigation**, non une appartenance exclusive ; les autres domaines associés sont enregistrés explicitement.
+
+#### 53.6.1 Les trente-cinq familles théologiques adoptées
+
+**DTH01 — Dieu**
+
+* **FTH001 — Noms et identité divine** : noms, désignations, unicité et identité de Dieu.
+* **FTH002 — Attributs et perfections divines** : propriétés et perfections attribuées à Dieu.
+* **FTH003 — Trinité et relations divines** : personnes divines et relations intradivines.
+
+**DTH02 — Création**
+
+* **FTH004 — Acte créateur** : origine créée et action créatrice de Dieu.
+* **FTH005 — Ordre et condition du créé** : bonté, contingence, dépendance et ordre de la création.
+* **FTH006 — Providence et gouvernement du créé** : conservation, gouvernement et sollicitude providentielle.
+* **FTH007 — Créatures spirituelles** : anges, démons et autres créatures spirituelles considérés théologiquement.
+
+**DTH03 — Humanité**
+
+* **FTH008 — Image de Dieu et vocation humaine** : image, ressemblance, vocation et finalité humaines.
+* **FTH009 — Constitution et condition humaines** : corporéité, intériorité, facultés, liberté, fragilité et condition de l’être humain.
+* **FTH010 — Péché et mal moral** : chute, faute, transgression, culpabilité, tentation et corruption morale.
+* **FTH011 — Vie morale et spirituelle** : vertus, vices, conscience, foi vécue, prière, ascèse et progression spirituelle.
+
+**DTH04 — Révélation**
+
+* **FTH012 — Parole et médiations de la révélation** : parole divine, prophétie, théophanie, vision, songe et autres médiations révélatrices.
+* **FTH013 — Écriture et inspiration** : Écriture sainte, inspiration, canon et autorité scripturaire.
+* **FTH014 — Alliance, promesse et élection** : alliance, promesse, élection et fidélité d’alliance ; cette famille comprend la vocation théologique d’Israël comme peuple élu, sans confondre cette réalité avec les autorités Israël/Jacob, peuple d’Israël, terre d’Israël ou royaume d’Israël.
+* **FTH015 — Loi et commandement divins** : Torah, commandement, précepte et instruction divine.
+
+**DTH05 — Christ**
+
+* **FTH016 — Identité, titres et messianité du Christ** : identité du Christ, titres et qualification messianique.
+* **FTH017 — Incarnation et union du divin et de l’humain** : incarnation, préexistence christologique et union des natures.
+* **FTH018 — Mission et ministère du Christ** : envoi, enseignement, action et fonctions du Christ.
+* **FTH019 — Passion, mort, résurrection et exaltation du Christ** : mystère pascal et exaltation du Christ.
+
+**DTH06 — Esprit Saint**
+
+* **FTH020 — Don, présence et inhabitation de l’Esprit** : don, effusion, réception, présence et inhabitation de l’Esprit.
+* **FTH021 — Dons et charismes de l’Esprit** : charismes et dons attribués à l’Esprit.
+* **FTH022 — Vie et sanctification dans l’Esprit** : conduite, fruits, transformation et sanctification dans l’Esprit.
+
+**DTH07 — Salut**
+
+* **FTH023 — Délivrance, rédemption et victoire** : libération, rachat, rédemption et victoire salvifique.
+* **FTH024 — Expiation, pardon et réconciliation** : restauration de la relation rompue par expiation, pardon et réconciliation.
+* **FTH025 — Grâce, justification et adoption** : don gratuit, justification et nouveau statut filial.
+* **FTH026 — Sanctification, transformation et divinisation** : accomplissement transformant du salut.
+
+**DTH08 — Église**
+
+* **FTH027 — Identité, communion et unité de l’Église** : identité ecclésiale, figures, communion, unité et appartenance.
+* **FTH028 — Ministères, autorité et gouvernement** : ministères et structures d’autorité dans l’Église.
+* **FTH029 — Mission et témoignage** : envoi, évangélisation et témoignage ecclésial.
+* **FTH030 — Sacrements et vie liturgique de l’Église** : sacrements et culte proprement ecclésial.
+
+**DTH09 — Eschatologie**
+
+* **FTH031 — Mort et état intermédiaire** : mort et condition des morts avant l’accomplissement final.
+* **FTH032 — Parousie et accomplissement du Royaume** : retour du Christ et accomplissement eschatologique du Royaume.
+* **FTH033 — Résurrection des morts** : résurrection générale et condition ressuscitée.
+* **FTH034 — Jugement et destinées finales** : jugement et destinées ultimes.
+* **FTH035 — Nouvelle création et vie éternelle** : renouvellement cosmique et vie accomplie auprès de Dieu.
+
+Ces identifiants sont stables. La famille FTH003 peut, par exemple, contenir des concepts rattachés simultanément aux domaines Dieu, Christ et Esprit Saint ; son identifiant ne dépend donc pas de son domaine principal.
+
+Les matières écartées du premier niveau des domaines ne disparaissent pas : **Péché et mal**, **Alliance et élection**, **Théologie morale**, **Vie spirituelle** et **Sacrements** sont désormais représentés à ce niveau ou au niveau des concepts. Le culte biblique non chrétien, les pratiques rituelles et leur matériel ne sont pas absorbés par FTH030 : ils relèvent d’abord des sujets, motifs et familles thématiques appropriés, puis reçoivent une qualification théologique lorsqu’elle est justifiée.
+
+L’ensemble des familles théologiques et thématiques est arrêté AVANT le pilote. Une lacune révélée par le pilote devient un cas d’arbitrage ; elle n’autorise pas une création opportuniste.
+
+
+#### 53.6.2 Les dix-sept familles thématiques adoptées
+
+Les familles thématiques organisent les sujets et motifs non théologiques. Elles décrivent des réalités du monde, de l’existence humaine et des pratiques attestées par les textes sans préjuger de leur signification doctrinale.
+
+⛔ Une famille thématique n’est pas un thème théologique. Un même concept peut être rattaché à plusieurs familles thématiques lorsque le même sens l’exige, mais la famille elle-même ne devient jamais une autorité, un genre littéraire ou une relation.
+
+* **FTM001 — Cosmos, milieux naturels et phénomènes** : ciel, terre, eaux, reliefs, climats, phénomènes atmosphériques et autres réalités du milieu naturel.
+* **FTM002 — Animaux et végétaux** : êtres vivants animaux et végétaux, sauvages ou domestiqués, cultivés ou non.
+* **FTM003 — Corps, santé et vie biologique** : corps, organes, fonctions biologiques, naissance, croissance, sexualité biologique, maladie, handicap, guérison, faim, sommeil et autres états corporels.
+* **FTM004 — Émotions, perception et cognition** : émotions, affects, perception, mémoire, imagination, pensée, connaissance, ignorance et autres opérations cognitives ou sensibles.
+* **FTM005 — Famille, parenté et vie domestique** : mariage, filiation, parenté, maisonnée, relations familiales et organisation domestique.
+* **FTM006 — Alimentation, boisson et repas** : aliments, boissons, préparation et consommation, repas ordinaires ou festifs, faim, soif et pratiques alimentaires.
+* **FTM007 — Habitat, architecture et culture matérielle** : bâtiments, espaces construits, mobilier, vêtements, parures, outils, contenants, matériaux ouvrés et autres objets matériels.
+* **FTM008 — Travail, techniques, production et économie** : métiers, travail, agriculture comme activité, élevage comme activité, pêche, artisanat, techniques, production, propriété, monnaie, dette, échange et commerce.
+* **FTM009 — Société, statuts et relations sociales** : classes et statuts sociaux, esclavage, pauvreté, richesse comme position sociale, dépendance, hospitalité, exclusion, solidarité et autres rapports sociaux.
+* **FTM010 — Pouvoir, droit et vie politique** : royauté, administration, institutions politiques, droit humain, justice humaine, tribunal, impôt, gouvernement et domination politique.
+* **FTM011 — Guerre, violence et coercition** : guerre, bataille, siège, armes, meurtre, violence, captivité, prison, persécution factuelle et autres formes de contrainte.
+* **FTM012 — Voyage, mobilité et transport** : marche, route, voyage, navigation, migration, déplacement, moyens et infrastructures de transport.
+* **FTM013 — Langage, communication, écriture et expression** : parole humaine, langues, communication, écriture, lecture, enseignement comme transmission, musique, chant, danse et autres formes d’expression.
+* **FTM014 — Temps, calendrier et rythmes** : jour, nuit, semaine, mois, année, saisons, âge, durée, cycles, calendrier et rythmes temporels.
+* **FTM015 — Nombres, mesures et quantification** : nombres, dénombrement, longueur, surface, volume, poids, distance, proportion, unités et opérations de mesure.
+* **FTM016 — Culte, rites et pratiques religieuses** : sacrifice comme pratique, offrande, purification, jeûne comme pratique, pèlerinage, fête religieuse, circoncision comme rite, divination, magie et autres pratiques cultuelles ou rituelles.
+* **FTM017 — Mort, funérailles et deuil** : décès, cadavre, sépulture, tombeau, ensevelissement, pratiques funéraires, lamentation funèbre et deuil.
+
+Ces familles sont des niveaux d’organisation et ne sont pas destinées à être utilisées comme annotations lorsque des concepts plus précis existent.
+
+Les frontières entre familles sont sémantiques, non lexicales. Un même terme peut donc correspondre à plusieurs concepts distincts : « berger » comme métier relève de FTM008 ; un berger nommé relève d’une autorité de personne ; le berger comme motif royal ou christologique relève d’un concept du thésaurus. De même, « exil » peut désigner une mobilité contrainte, un événement historique ou un motif théologique, qui restent trois objets documentaires distincts.
+
+### 53.7 Concepts, termes et relations conceptuelles
+
+Chaque concept de la version candidate reçoit avant le pilote :
+
+* un identifiant stable ;
+* un terme préféré en français ;
+* une catégorie documentaire unique : notion théologique, sujet ou motif ;
+* si un même terme désigne des sens relevant de catégories différentes, ces sens reçoivent des concepts distincts reliables entre eux ;
+* une définition ou note de portée ;
+* une note d’exclusion lorsque le risque de confusion l’exige ;
+* ses termes alternatifs ;
+* ses domaines théologiques éventuels ;
+* ses familles ;
+* ses relations plus générales, plus précises ou associées ;
+* ses sources de référence ;
+* son statut éditorial ;
+* son historique de création, fusion, scission ou retrait.
+
+Les relations plus général / plus précis / associé servent le THÉSAURUS. Elles ne doivent jamais être confondues avec les relations entre textes.
+
+Le modèle reprend les principes utiles de SKOS : concept distinct de ses libellés, terme préféré, termes alternatifs et relations hiérarchiques ou associatives. Cela n’impose ni RDF ni OWL à l’application ; la première implémentation reste relationnelle dans PostgreSQL.
+
+### 53.8 Sources savantes du vocabulaire
+
+Le vocabulaire n’est pas produit par intuition ou génération libre. Il résulte de la confrontation de sources de natures différentes.
+
+Pour les notions théologiques, les dictionnaires et encyclopédies savantes servent de référentiels de contrôle. Le Dictionnaire critique de théologie dirigé par Jean-Yves Lacoste fait partie des sources à exploiter ; une entrée n’est toutefois pas adoptée parce qu’elle figure dans le dictionnaire. Sa définition et son classement dans Corpus Scriptura doivent être justifiés.
+
+Les ouvrages de théologie systématique servent à comparer les grands domaines ; les travaux de théologie biblique servent à empêcher que cette organisation systématique efface les catégories propres aux corpus bibliques.
+
+Les thésaurus et systèmes d’indexation servent à contrôler la granularité documentaire, les synonymes, la polyhiérarchie et les formes de recherche ; ils ne décident pas de la vérité théologique d’une catégorie.
+
+Les référentiels externes de personnes, lieux et événements peuvent aider à l’identification et à l’alignement des autorités, mais les identifiants maîtres de Corpus Scriptura restent gouvernés par le corpus.
+
+⛔ Une seule source ne constitue jamais, à elle seule, la taxonomie de Corpus Scriptura.
+
+#### 53.8.1 Fonctions des sources
+
+Les sources sont qualifiées selon ce qu’elles prouvent réellement :
+
+* **provenance éditoriale** : documente qui a formulé ou modifié une définition dans Corpus Scriptura ; elle ne vaut pas validation savante externe ;
+* **attestation de corpus** : prouve qu’un terme, une réalité ou une construction est attesté dans un témoin ou une traduction ; elle ne suffit pas à définir le concept ni à identifier avec certitude le lemme source ;
+* **contrôle savant** : dictionnaire, monographie, article ou ouvrage académique effectivement consulté pour fixer terminologie, définition, portée ou distinction conceptuelle ;
+* **alignement d’autorité** : référentiel externe servant à identifier une entité ou un lieu ; il ne décide pas de sa signification théologique.
+
+⛔ **UNE SOURCE NON CONSULTÉE N’EST PAS CITÉE COMME SOURCE DE DÉFINITION.** Une notice bibliographique, une table des matières ou un aperçu partiel peut servir à repérer un ouvrage, jamais à lui attribuer une définition d’article que l’on n’a pas lue. Cela vaut notamment pour le *Dictionnaire critique de théologie* de Jean-Yves Lacoste tant que l’article concerné n’est pas effectivement accessible.
+
+Avant gel de la version candidate, toute **notion théologique** et tout **motif** reçoit au moins un contrôle savant externe ou une justification explicite de l’absence de source adéquate. Pour les sujets concrets courants, l’attestation de corpus peut suffire lorsque la définition est non controversée ; les identifications philologiquement ou historiquement difficiles exigent une source spécialisée.
+
+
+### 53.9 Autorités : sept types stables
+
+Les autorités sont séparées du thésaurus. Elles identifient des entités individualisables indépendamment des mots employés pour les nommer.
+
+La version initiale comprend exactement sept types :
+
+* **AUT01 — Personne humaine** : individu humain nommé ou individualisable.
+* **AUT02 — Être divin ou spirituel individualisé** : Dieu lorsqu’il est visé comme référent personnel, l’Esprit Saint lorsqu’il est visé comme référent personnel, ange, démon, divinité étrangère ou autre être divin ou spirituel individualisé.
+* **AUT03 — Collectif ou peuple** : peuple, tribu, groupe ou collectif identifié comme tel.
+* **AUT04 — Lieu ou territoire** : ville, région, montagne, cours d’eau, territoire ou autre locus géographique individualisé.
+* **AUT05 — Institution ou organisation** : institution religieuse, sociale, administrative ou autre organisation identifiée.
+* **AUT06 — Entité politique ou juridictionnelle** : royaume, empire, cité-État, province ou autre entité politique ayant une identité propre.
+* **AUT07 — Événement** : événement historique, narratif ou traditionnel individualisé.
+
+⛔ **UNE FORME ÉCRITE NE DÉTERMINE JAMAIS LE TYPE D’AUTORITÉ.** Israël/Jacob relève de AUT01 ; Israël comme peuple de AUT03 ; la terre d’Israël de AUT04 ; le royaume d’Israël de AUT06. De même, l’Exode comme événement relève de AUT07, tandis que l’exode comme motif théologique est un concept distinct.
+
+Jésus de Nazareth relève de AUT01. YHWH/Dieu, le Père ou l’Esprit Saint relèvent de AUT02 lorsqu’ils sont annotés comme référents individualisés ; les concepts « unicité divine », « paternité divine », « Trinité », « procession de l’Esprit » ou « inhabitation de l’Esprit » restent des concepts. « Christ », « Messie », « Fils de Dieu » ou « Logos » peuvent fonctionner comme titres ou concepts théologiques ; lorsqu’une forme comme « Christ » désigne simplement Jésus dans un passage, l’autorité Jésus de Nazareth demeure l’identité personnelle. Michel ou Gabriel relèvent de AUT02. Le Sanhédrin relève de AUT05 ; l’Empire romain de AUT06.
+
+Les variantes de nom, langues et graphies d’une même entité sont des formes d’autorité et ne créent pas de nouvelles identités.
+
+⛔ **UNE ENTITÉ INDIVIDUALISÉE N’EST PAS CRÉÉE UNE SECONDE FOIS COMME CONCEPT.** Le thésaurus décrit ce qui peut être affirmé, attribué ou thématisé à propos d’une entité ; le fichier d’autorité identifie l’entité elle-même. Une même chaîne peut donc pointer vers des systèmes différents selon son sens : « Dieu » comme référent personnel → AUT02 ; « nature divine » → concept ; « Christ » comme désignation personnelle de Jésus → AUT01 via une forme d’autorité ; « messianité » → concept.
+
+#### 53.9.1 Réutilisation et alignements externes
+
+Corpus Scriptura conserve ses propres identifiants maîtres. Les référentiels existants ou externes sont reliés à ces identifiants ; ils ne les remplacent pas.
+
+* public.auteurs reste un référentiel spécialisé d’auteurs d’œuvres. Une personne biblique qui est aussi auteur peut lui être reliée, mais l’identité biblique générale ne dépend pas de cette table.
+* zones_geographiques reste un classement en macro-zones ; ce n’est pas un fichier de lieux.
+* public.evenements reste la chronologie générale du projet. Un événement biblique peut lui être relié lorsqu’il correspond réellement à la même entité, mais aucune identité biblique n’est créée automatiquement à partir de cette table.
+* TIPNR peut servir de référentiel externe pour les noms propres bibliques, leurs formes et leurs références. Ses identifiants et données factuelles vérifiables peuvent être alignés ; ses descriptions générées automatiquement ne sont pas adoptées comme notices savantes sans contrôle.
+* Pleiades est le référentiel externe privilégié pour les lieux antiques lorsqu’une correspondance existe. L’alignement porte sur le lieu Pleiades et conserve son URI stable ; nom et localisation restent des informations distinctes conformément au modèle du gazetteer.
+
+Tout alignement externe porte sa provenance et son statut de validation. Une correspondance incertaine reste candidate ; elle n’est jamais transformée en identité exacte pour simplifier les requêtes.
+
+
+### 53.10 Genres et formes littéraires : un vocabulaire autonome
+
+Les genres et formes littéraires constituent un vocabulaire contrôlé séparé du thésaurus conceptuel et des domaines théologiques.
+
+⛔ **UN GENRE N’EST PAS UN THÈME.** Une qualification littéraire décrit une convention de composition, de communication ou de forme ; elle ne décide pas du contenu théologique du passage.
+
+La distinction entre **genre** et **forme** est opérationnelle pour Corpus Scriptura. Le genre désigne une convention littéraire relativement structurante ; la forme une unité stéréotypée plus locale. La bibliographie exégétique ne trace pas toujours cette frontière de la même manière : une divergence savante est conservée dans la provenance et ne devient pas une fausse certitude.
+
+⛔ **IL N’EXISTE PAS DE NIVEAU « GENRE ENGLOBANT ».** L’échelle est portée par la portée textuelle elle-même. Un genre peut qualifier un livre entier ou une unité plus petite ; on ne transforme pas une différence d’échelle en troisième nature littéraire.
+
+Les modes d’expression — prose, poésie, narration, discours, discours direct ou indirect — ne font pas partie de ce vocabulaire initial. Ils pourront former un axe distinct si un besoin réel est démontré.
+
+Une même portée peut recevoir plusieurs qualifications littéraires lorsque celles-ci décrivent réellement des conventions différentes et que chacune est défendable. L’Apocalypse de Jean peut ainsi être qualifiée comme apocalypse tout en présentant un cadre épistolaire et des formes prophétiques ; ces qualifications ne sont pas fusionnées.
+
+Chaque terme littéraire reçoit un identifiant stable, un libellé canonique, une définition, la catégorie genre ou forme, ses termes alternatifs, ses relations plus générales ou plus précises, ses sources savantes, son statut éditorial et son historique.
+
+#### 53.10.1 Les vingt-sept genres adoptés
+
+* **LIT001 — Évangile** : composition chrétienne centrée sur Jésus, articulant récit, enseignement, Passion et proclamation selon la convention littéraire propre aux évangiles.
+* **LIT002 — Lettre ou épître** : composition épistolaire adressée, structurée selon les conventions de la lettre antique.
+* **LIT003 — Apocalypse** : littérature révélatrice à cadre narratif où une révélation médiatisée dévoile une réalité transcendante, temporelle ou spatiale.
+* **LIT004 — Récit historiographique** : composition narrative qui sélectionne, organise et interprète des événements du passé comme histoire ; cette qualification n’est jamais appliquée automatiquement aux « livres historiques ».
+* **LIT005 — Livre prophétique** : composition scripturaire issue de la mise en livre de traditions et discours prophétiques.
+* **LIT006 — Instruction sapientielle** : composition ou unité pédagogique orientée vers l’acquisition de sagesse, de discernement ou de conduite.
+* **LIT007 — Composition juridique** : ensemble littéraire organisé autour de prescriptions, cas ou enseignements juridiques ; ce terme évite de présupposer l’existence d’un « code » au sens moderne.
+* **LIT008 — Poésie lyrique ou chant d’amour** : composition lyrique centrée sur l’expression du désir, de l’amour ou de l’expérience affective, notamment dans le Cantique des cantiques.
+* **LIT009 — Hymne ou chant de louange** : composition de louange développée.
+* **LIT010 — Lamentation** : composition de crise articulant plainte, détresse, appel ou requête ; des sous-types individuels ou communautaires pourront être distingués si le corpus le justifie.
+* **LIT011 — Chant d’action de grâce** : composition de reconnaissance et de louange après un bienfait ou une délivrance.
+* **LIT012 — Prière** : composition adressée à Dieu ou à une divinité sous forme de requête, louange, confession, action de grâce ou combinaison de ces fonctions.
+* **LIT013 — Chant funèbre** : composition de lamentation liée à la mort, à la destruction ou à la perte.
+* **LIT014 — Parabole** : composition figurative ou narrative construite pour susciter une interprétation par comparaison, déplacement ou mise en récit.
+* **LIT015 — Récit de miracle** : récit centré sur un acte extraordinaire présenté comme manifestation de puissance et provoquant une réaction interprétative.
+* **LIT016 — Récit d’appel ou de commission** : récit où un personnage reçoit un appel, une mission ou un mandat.
+* **LIT017 — Rapport de vision** : récit ou compte rendu d’une vision.
+* **LIT018 — Rapport d’action symbolique** : récit d’un geste symbolique accompli comme signe, notamment dans la littérature prophétique.
+* **LIT019 — Rapport de théophanie** : récit d’une manifestation divine.
+* **LIT020 — Oracle prophétique** : parole présentée comme message prophétique ou parole divine transmise.
+* **LIT021 — Exhortation ou admonition** : composition persuasive visant à faire adopter, maintenir ou abandonner une conduite ou une attitude.
+* **LIT022 — Dialogue ou disputation** : échange structuré d’arguments, objections ou réponses ; toute conversation n’est pas une disputation.
+* **LIT023 — Récit didactique** : récit dont l’organisation littéraire assume une fonction pédagogique identifiable.
+* **LIT024 — Poème didactique** : composition poétique organisée autour d’une instruction ou d’un enseignement.
+* **LIT025 — Récit de la Passion** : ensemble narratif consacré à l’arrestation, au procès, à la mort et aux événements immédiatement associés à la Passion du Christ.
+* **LIT026 — Discours ou testament d’adieu** : composition placée à l’approche de la mort ou du départ d’un personnage, associant rétrospective, exhortation, transmission ou bénédiction.
+* **LIT027 — Satire ou chant de dérision** : composition organisée par la moquerie, la dénonciation ou le renversement ironique d’un adversaire, d’un pouvoir ou d’une nation.
+
+#### 53.10.2 Les dix-huit formes adoptées
+
+* **LIT028 — Récit à sentence ou apophtegme** : brève unité narrative dont le point culminant est une parole ou sentence mémorable.
+* **LIT029 — Proverbe ou sentence** : énoncé bref, autonome ou semi-autonome, formulant une observation, une maxime ou une instruction généralisable.
+* **LIT030 — Béatitude** : formule proclamant heureux ou bienheureux un sujet selon une condition ou une situation.
+* **LIT031 — Parole de malheur** : formule de type « malheur à… » annonçant ou déclarant une situation de jugement ou d’infortune.
+* **LIT032 — Bénédiction** : formule qui proclame, souhaite ou transmet un bien.
+* **LIT033 — Malédiction** : formule qui proclame ou appelle un mal, une sanction ou une exclusion.
+* **LIT034 — Doxologie** : formule brève de louange ou de glorification.
+* **LIT035 — Formule confessionnelle ou de foi** : énoncé bref, relativement stable, exprimant une confession ou affirmation de foi.
+* **LIT036 — Liste de vices ou de vertus** : énumération structurée de conduites, dispositions ou qualités morales négatives ou positives.
+* **LIT037 — Code domestique** : série structurée d’instructions relatives aux rôles et relations de la maisonnée.
+* **LIT038 — Loi casuistique** : prescription formulée à partir d’un cas conditionnel, de type « si… alors… ».
+* **LIT039 — Loi apodictique** : commandement ou interdiction formulé sans cas conditionnel préalable.
+* **LIT040 — Prescription rituelle** : instruction procédurale relative à un rite ou à une pratique cultuelle.
+* **LIT041 — Généalogie** : séquence organisée de relations de descendance ou de filiation.
+* **LIT042 — Liste ou recensement** : unité énumérative ordonnée de personnes, groupes, objets ou effectifs.
+* **LIT043 — Adresse ou salutation épistolaire** : forme d’ouverture épistolaire identifiant ou saluant expéditeur et destinataires.
+* **LIT044 — Action de grâce épistolaire** : unité conventionnelle d’action de grâce associée à l’ouverture d’une lettre.
+* **LIT045 — Question-réponse** : petite forme structurée par une question suivie d’une réponse qui en constitue l’unité.
+
+Les sous-types ne sont créés que lorsqu’ils apportent une valeur de recherche récurrente. Ainsi « oracle de jugement », « oracle de salut », « lamentation individuelle » ou « lamentation communautaire » peuvent devenir ultérieurement des termes plus précis de ce vocabulaire si l’annotation réelle le justifie ; ils ne sont pas imposés avant usage.
+
+### 53.11 Portée des qualifications littéraires
+
+Une qualification littéraire porte sur l’unité où elle est défendable, non nécessairement sur un verset isolé.
+
+Elle peut couvrir :
+
+* un livre entier ;
+* une section ;
+* une péricope ou autre plage continue ;
+* exceptionnellement un verset lorsque celui-ci forme réellement l’unité concernée.
+
+Les portées peuvent être emboîtées ou se chevaucher. Un évangile peut contenir un récit de miracle ; celui-ci peut inclure une parole proverbiale ou une citation.
+
+La recherche peut faire apparaître aux versets les qualifications des portées qui les contiennent, mais cette projection n’est pas enregistrée comme une seconde attribution. Le système doit toujours pouvoir dire : « ce verset appartient à une portée classée comme lamentation », et non prétendre que le verset isolé constitue nécessairement une lamentation.
+
+Plusieurs qualifications concurrentes peuvent être conservées lorsque la bibliographie savante diverge. Elles portent chacune leur source, leur statut et, si nécessaire, une note d’arbitrage.
+
+### 53.12 Le verset est l’ancre canonique ; il n’est pas toujours l’unité sémantique
+
+Le verset demeure l’unité de navigation canonique de Corpus Scriptura, mais l’annotation ne doit pas fabriquer un sens artificiel parce qu’une frontière de verset coupe une phrase, une scène ou une argumentation.
+
+Une annotation biblique peut donc porter sur :
+
+* un seul verset ;
+* une plage continue de versets ;
+* plus tard, une autre unité biblique explicitement modélisée si un besoin réel le justifie.
+
+Pour la Bible canonique, la portée est définie sur l’ossature TOL/AELF fixée au § 15.1.1 (TR0012 / TOL_WEB_20260821) : identifiant canonique stable pour un verset, ou bornes canoniques stables pour une plage. ⛔ Une portée n’est jamais identifiée uniquement par une chaîne libre du type « Jn 1,1–18 » ni par la numérotation propre d’une traduction. Les unités hors canon ou propres à un témoin conservent une portée source distincte et ne sont jamais maquillées en créneaux canoniques.
+
+La recherche peut projeter une annotation de plage sur les versets qu’elle contient, mais elle conserve sa portée originale.
+
+⛔ **UN VERSET PEUT NE PORTER AUCUNE NOTION THÉOLOGIQUE DIRECTE.** La couverture totale n’est pas un objectif si elle exige de fabriquer des annotations faibles ou artificielles.
+
+
+### 53.13 Texte, synthèse canonique, synthèse doctrinale, intertextualité et réception
+
+Trois niveaux peuvent qualifier une annotation conceptuelle ; l’intertextualité et la réception restent des données relationnelles distinctes.
+
+**Textuel** : ce que la portée dit, met en scène ou présuppose suffisamment clairement dans son propre contexte. Le classement doit pouvoir être défendu sans recourir à une synthèse ultérieure.
+
+**Canonique** : notion attribuée par mise en relation explicite de plusieurs textes du canon ou par lecture de la portée dans l’ensemble canonique. La base de cette synthèse doit être identifiable ; une simple ressemblance lexicale ne suffit pas.
+
+**Doctrinal** : notion attribuée dans une synthèse théologique explicite — dogmatique, confessionnelle, systématique ou éditoriale — qui dépasse ce que la portée énonce textuellement et ce qu’une relation canonique suffit à établir. La provenance de cette synthèse est conservée lorsqu’elle est pertinente. ⛔ Une annotation doctrinale ne se présente jamais comme sens textuel par défaut.
+
+**Intertextualité** : citation, reprise, allusion ou autre relation entre passages. Elle possède une source, une cible, une qualification et, si nécessaire, un degré de certitude. Elle n’est pas un niveau sémantique.
+
+**Réception** : lecture historiquement attestée chez un auteur, une œuvre ou un témoin. Elle est portée par le segment ou le témoin qui l’atteste et par ses relations avec la Bible.
+
+⛔ **UNE INTERPRÉTATION PATRISTIQUE NE DEVIENT PAS LE SENS DU VERSET PAR HÉRITAGE.**
+
+La réception d’un verset est, autant que possible, CALCULÉE à partir des données existantes :
+
+verset ← lien biblique ← segment patristique → concept.
+
+On évite ainsi de recopier sur le verset une interprétation qui perdrait son auteur, son œuvre et son contexte.
+
+La typologie relève d’une relation herméneutique attestée, non d’un tag.
+
+
+#### 53.13.1 Vocabulaires de relations adoptés
+
+Les relations sont des assertions distinctes des annotations thématiques. Elles possèdent un sujet, un type de relation, un objet et, lorsqu’elle n’est pas portée par le sujet lui-même, une **source d’attestation**. Provenance, certitude, validation et cycle de vie s’appliquent à l’assertion entière.
+
+**Relations conceptuelles**
+
+* **RCO01 — Plus général** : relation hiérarchique d’un concept plus précis vers un concept plus général. La relation inverse « plus précis » est dérivée et n’est pas stockée séparément.
+* **RCO02 — Associé** : relation sémantique non hiérarchique et symétrique entre concepts.
+
+⛔ Deux concepts exactement équivalents ne sont pas reliés par RCO02 pour éviter une fusion : ils sont fusionnés ou maintenus distincts si leur note de portée montre une différence réelle.
+
+**Relations structurelles entre autorités**
+
+* **RAU01 — Partie de** : inclusion structurelle ou géographique entre autorités.
+* **RAU02 — Membre de** : appartenance d’une personne ou d’un collectif à un collectif, une institution ou une entité politique.
+* **RAU03 — Participe à** : participation d’une autorité à un événement.
+* **RAU04 — Se déroule à** : rattachement d’un événement à un lieu ou territoire.
+
+Les relations généalogiques, dynastiques ou de fonction ne sont pas incluses dans la version initiale ; elles seront ajoutées seulement si un besoin de recherche récurrent est démontré.
+
+**Relations intertextuelles nouvelles**
+
+* **RIT01 — Citation ou référence explicite** : un passage cite explicitement un autre passage ou le désigne sans ambiguïté.
+* **RIT02 — Allusion** : un passage renvoie de manière reconnaissable à un autre par formulation, image, scène ou structure sans citation explicite.
+* **RIT03 — Reprise ou adaptation** : un passage réemploie et transforme de manière substantielle un texte ou une tradition textuelle identifiable.
+* **RIT04 — Parallèle textuel** : deux passages présentent une correspondance textuelle ou narrative significative sans que la relation affirme par elle-même une direction de dépendance.
+
+RIT01–RIT03 sont directionnelles ; RIT04 est symétrique.
+
+⛔ **CES RELATIONS NE DOUBLONNENT PAS liens_bibliques.** Pour un segment patristique relié à la Bible, les types T1–T4 existants restent l’autorité éditoriale : T1 citation/référence explicite, T2 allusion, T3 commentaire, T4 écho/rapprochement. Aucune seconde ligne RIT ou RHE n’est créée pour reproduire la même assertion. Une vue de graphe peut projeter ces liens en lecture, en conservant leur type original.
+
+**Relations herméneutiques**
+
+* **RHE01 — Interprétation explicite** : une source d’attestation interprète explicitement un passage ou une réalité déterminée.
+* **RHE02 — Accomplissement** : une source d’attestation présente un texte, une promesse ou une figure comme accompli dans une autre réalité.
+* **RHE03 — Typologie** : une source d’attestation établit une relation de type et d’antitype entre deux réalités.
+* **RHE04 — Application** : une source d’attestation applique un texte antérieur à un nouveau référent ou contexte sans affirmer nécessairement accomplissement ni typologie.
+
+Une relation herméneutique peut donc être **n-aire** : par exemple un passage patristique atteste que Gn 22 est lu typologiquement en relation avec le Christ. Le segment d’Irénée, Gn 22 et le concept ou l’autorité « Christ » ne sont pas écrasés dans une simple paire.
+
+Le mode herméneutique précis — allégorique, moral, anagogique ou autre — n’est pas déduit automatiquement. Il ne devient un vocabulaire supplémentaire que si les données réelles l’exigent.
+
+### 53.14 Importance éditoriale, certitude et confiance technique
+
+Une annotation conceptuelle peut être :
+
+* **principale** : le concept structure le propos de la portée ;
+* **secondaire** : le concept appartient réellement au propos sans l’organiser ;
+* **contextuelle** : le concept est nécessaire au contexte ou réellement présent sans constituer un thème développé.
+
+Le terme « allusif » n’est pas employé comme degré d’importance, car « allusion » désigne une relation intertextuelle.
+
+La **certitude éditoriale** d’une attribution est distincte de son importance. Une annotation peut être principale mais discutée, ou secondaire mais certaine.
+
+La **confiance technique** d’un outil automatique constitue encore une troisième donnée. Aucun score automatique n’est transformé en mesure de pertinence théologique.
+
+
+### 53.15 Provenance, validation et responsabilité
+
+Toute annotation doit pouvoir dire d’où elle vient : saisie éditoriale, proposition automatique, import d’un vocabulaire extérieur, publication savante ou reprise d’une annotation antérieure.
+
+⛔ **PROVENANCE, VALIDATION ET CYCLE DE VIE SONT TROIS AXES DISTINCTS.**
+
+Le **statut de validation** d’une annotation distingue au minimum :
+
+* **candidat** ;
+* **revu par IA** ;
+* **validé humainement** ;
+* **rejeté**.
+
+Le **cycle de vie** indique séparément si une assertion est active, retirée ou remplacée par une autre. Une assertion validée peut être retirée ultérieurement sans devenir pour autant « rejetée » rétroactivement.
+
+La provenance est indépendante de ces deux axes. Une proposition produite ou relue par une IA ne devient jamais une validation humaine par déduction.
+
+Une attribution littéraire ou sémantique fondée sur une source savante conserve la référence de cette source. Une divergence entre sources n’est pas supprimée simplement pour obtenir une classification unique.
+
+### 53.16 Architecture relationnelle visée
+
+Le schéma physique n’est créé qu’après fixation des vocabulaires candidats et du manuel d’annotation. Il doit rester normalisé et séparé des textes.
+
+Le dessin attendu comporte au minimum :
+
+* le thésaurus de concepts et ses termes ;
+* les domaines théologiques ;
+* les familles théologiques et thématiques ;
+* les rattachements domaine ↔ famille, avec domaine principal de navigation et domaines associés ;
+* les relations conceptuelles ;
+* les fichiers d’autorité ;
+* le vocabulaire des genres et formes littéraires ;
+* les portées textuelles ;
+* les associations portée → concept ;
+* les associations portée → autorité ;
+* les associations portée → qualification littéraire ;
+* les associations segment patristique → concept ou autorité ;
+* les relations textuelles et herméneutiques nécessaires.
+
+⛔ **PAS DE TABLEAU DE TAGS EN TEXTE LIBRE DANS versets_v2 OU segments.** Les associations many-to-many vivent dans leurs tables propres avec clés étrangères et contraintes d’unicité.
+
+Cette séparation protège également segments : l’indexation sémantique ou littéraire ne doit provoquer aucune réécriture de segment_texte, texte_norm ou texte_original, ni charger leurs index GIN pour une modification qui ne concerne pas le texte.
+
+### 53.17 Plan de construction
+
+⛔ **LE PILOTE NE VIENT QU’APRÈS LA FIXATION DES VOCABULAIRES.** Il sert à éprouver une construction déjà explicite, non à fabriquer la taxonomie au fil des passages rencontrés.
+
+#### Phase A. Fixer la métanomenclature
+
+Arrêter définitivement les mots du modèle : domaine théologique, famille théologique, famille thématique, concept, notion théologique, sujet, motif, terme préféré, terme alternatif, note de portée, autorité et ses types, qualification littéraire, portée, importance, certitude, relation conceptuelle, intertextuelle et herméneutique, provenance et validation.
+
+#### Phase B. Fixer l’ensemble des domaines théologiques
+
+Établir la liste complète des domaines théologiques de la version candidate. Pour chacun : confronter les découpages de théologie systématique, les dictionnaires théologiques et les catégories de théologie biblique ; définir son extension et ses frontières ; relever ses recouvrements ; documenter les sources.
+
+Aucun domaine théologique n’est ajouté pendant le pilote.
+
+#### Phase C. Fixer les familles théologiques et thématiques
+
+Établir les familles nécessaires sous les domaines et pour les sujets ou motifs qui ne doivent pas être doctrinalisés. Chaque famille reçoit identité, définition, critères d’inclusion et place dans l’organisation.
+
+
+#### Phase D. Fixer les autorités et les vocabulaires de relations
+
+Auditer les autorités déjà présentes pour les personnes, collectifs, lieux ou territoires, institutions ou organisations, entités politiques ou juridictionnelles et événements ; décider lesquelles sont réutilisées, étendues ou simplement reliées, et quels alignements externes sont utiles.
+
+Fixer aussi les vocabulaires de relations conceptuelles, intertextuelles et herméneutiques : définition, direction, critères et degrés éventuels de certitude.
+
+Cette phase précède la constitution du thésaurus complet afin d’éviter de créer comme concepts des entités ou relations qui relèvent d’un autre système documentaire.
+
+#### Phase E. Fixer le vocabulaire des genres et formes littéraires
+
+Établir la liste candidate des genres et formes réellement utiles au corpus, leurs définitions, leurs sources, leurs relations hiérarchiques et leurs règles de portée.
+
+Ne pas mélanger dans cette liste les modes d’expression, fonctions rhétoriques ou figures de style sans décision explicite.
+
+Cette phase précède elle aussi le thésaurus complet afin qu’un genre ou une forme ne soit jamais créé par défaut comme sujet thématique.
+
+#### Phase F. Constituer le thésaurus candidat complet
+
+Recenser les concepts nécessaires à la Bible et à la future indexation patristique une fois les autorités, relations et qualifications littéraires séparées. Pour chaque concept, fixer identité, terme préféré, termes alternatifs, catégorie documentaire unique, note de portée, exclusions, domaines, familles, relations conceptuelles, sources et statut.
+
+Le mot « complet » désigne une VERSION CANDIDATE FERMÉE : elle peut être corrigée après expérimentation, mais le pilote ne l’étend pas opportunément.
+
+#### Phase G. Écrire le manuel d’annotation et figer les versions candidates
+
+Rédiger les règles opérationnelles : homonymie et polysémie, sujet lexical contre sujet réel, sujet contre notion théologique, principal / secondaire / contextuel, importance contre certitude, verset contre plage, textuel contre canonique / théologique, relation intertextuelle contre concept partagé, réception dérivée contre annotation du verset, genre ou forme contre thème.
+
+Publier des versions candidates numérotées du thésaurus, des autorités nécessaires, des relations et du vocabulaire littéraire.
+
+#### Phase H. Créer le schéma minimal
+
+Créer les tables séparées, leurs contraintes, index, statuts et associations. Ne modifier les tables textuelles que si une clé manque réellement ; la préférence va aux tables d’association.
+
+#### Phase I. Pilote biblique contrasté
+
+Tester les vocabulaires FERMÉS sur un échantillon hétérogène de genres et d’époques.
+
+Le pilote ne crée pas de nouveaux termes. Il relève les concepts manquants, ambiguïtés, quasi-synonymes, domaines ou familles mal bornés, portées trop étroites, qualifications littéraires discutables, projections dogmatiques anachroniques et confusions entre concept, autorité, relation ou genre.
+
+Chaque difficulté devient un cas d’arbitrage documenté.
+
+#### Phase J. Arbitrer le pilote et publier les vocabulaires v1
+
+Traiter tous les cas d’arbitrage, corriger les vocabulaires candidats, documenter les changements puis publier les premières versions de production.
+
+#### Phase K. Annotation canonique de la Bible
+
+Démarrer l’annotation systématique dans l’ordre canonique de Corpus Scriptura.
+
+Les passes sont distinctes : autorités, sujets et motifs, notions théologiques textuelles, qualifications littéraires, puis annotations canoniques / théologiques lorsque leur justification est explicite.
+
+#### Phase L. Extension patristique, recherche et suggestions
+
+Appliquer les vocabulaires v1 aux segments patristiques, puis construire la recherche croisée, les faisceaux et les vues de réception.
+
+Les méthodes statistiques, embeddings, recherche vectorielle ou modèles de langue n’interviennent qu’après stabilisation éditoriale. Ils TROUVENT des candidats ; ils ne définissent ni le vocabulaire ni la théologie du corpus, ne créent pas directement de lien dans liens_bibliques et ne valident aucune annotation.
+
+### 53.18 Contrôles de qualité propres à cette couche
+
+Le contrôle doit pouvoir signaler au minimum :
+
+* concept sans définition ou note de portée ;
+* polysémie masquée sous un concept unique ;
+* homonyme non désambiguïsé ;
+* notion théologique sans domaine lorsque ce rattachement est requis ;
+* famille sans définition ;
+* doublon exact ou quasi-synonyme non arbitré ;
+* concept retiré encore utilisé comme actif ;
+* annotation sans provenance ou sans statut ;
+* autorité enregistrée comme concept sans justification ;
+* peuple, territoire et entité politique confondus ;
+* événement historique confondu avec motif ou notion ;
+* genre ou forme enregistré comme thème ;
+* qualification littéraire répétée sur chaque verset alors qu’elle appartient à une portée englobante ;
+* annotation de réception recopiée comme sens textuel ;
+* annotation canonique / théologique sans justification identifiable ;
+* relation intertextuelle enregistrée comme concept ;
+* portée artificiellement réduite au verset ;
+* association dupliquée ;
+* référence vers une autorité supprimée ou inconnue ;
+* domaine, famille, concept, relation ou terme littéraire créé pendant le pilote hors registre d’arbitrage ;
+* suggestion automatique promue sans étape éditoriale ;
+* création ou modification d’un lien biblique imputable au seul moteur sémantique.
+
+Ces contrôles rejoignent le centre de contrôle quand le schéma existe. Avant cela, aucun compteur de couverture sémantique ou littéraire n’est affiché comme si le chantier était commencé.
+
+### 53.19 Gouvernance des vocabulaires
+
+Les vocabulaires sont versionnés éditorialement.
+
+Ajouter un concept est une décision moins grave que changer sa portée ; fusionner, scinder ou retirer un concept doit laisser une trace et permettre de migrer les annotations sans perdre leur histoire.
+
+Un terme préféré peut changer sans changer l’identité du concept. Deux concepts ne sont fusionnés qu’après examen de leurs usages réels.
+
+Les termes littéraires suivent la même discipline : changer la définition d’un genre ou d’une forme peut affecter toutes les portées qui l’emploient et exige une révision contrôlée.
+
+⛔ Les concepts, domaines, familles et termes littéraires ne sont pas créés au fil de l’annotation pour résoudre un cas difficile. La difficulté est d’abord inscrite dans le registre d’arbitrage.
+
+### 53.20 Ce que cette architecture doit permettre
+
+À terme, la couche sémantique et littéraire doit permettre :
+
+* une recherche thématique indépendante des mots exacts d’une traduction ;
+* la navigation d’un concept vers ses portées bibliques et patristiques ;
+* la séparation visible entre notions théologiques, sujets, motifs, autorités, relations et qualifications littéraires ;
+* des recherches combinées par concept, personne, collectif, lieu ou territoire, entité politique, événement, genre ou forme ;
+* la séparation visible entre ce que dit le texte, ce que la synthèse canonique formule et ce que la réception interprète ;
+* des faisceaux de passages calculés et explicables ;
+* des requêtes croisées telles que « alliance + oracle », « résurrection + hymne » ou « justice + littérature sapientielle » lorsque les données les justifient ;
+* des suggestions de rapprochements à examiner ;
+* l’export futur vers un modèle de thésaurus ou de graphe sans imposer ce modèle à la base de production.
+
+La priorité n’est pas de construire immédiatement un graphe de connaissance complet. Elle est d’obtenir d’abord des vocabulaires contrôlés, documentés et fermés pour l’expérimentation, puis des annotations traçables et des distinctions herméneutiques et littéraires solides.
