@@ -1513,6 +1513,11 @@ export default function PolyglottePage() {
     // public n'y voit rien — elle contient aussi la charte éditoriale, qui doit le rester.
     fetch("/api/livres-editions").then(r => r.json()).then(setLivresEd).catch(() => setLivresEd({}));
     (async () => {
+      // La restauration de la session Supabase est asynchrone au rechargement. Sans cette
+      // attente, les vues AELF (réservées aux lecteurs authentifiés) peuvent être interrogées
+      // une première fois avec le rôle anonyme, puis ne sont jamais relues lorsque la session
+      // réapparaît : Fillion reste alors absent du sélecteur malgré sa publication effective.
+      await supabase.auth.getSession();
       // ⛔ `est_biblique` : voir le commentaire dans app/page.tsx — la table tient aussi
       // les notices des traductions patristiques, qui n'ont rien à faire ici.
       // La TABLE garde les métadonnées d'édition et les textes privés de l'administrateur ;
