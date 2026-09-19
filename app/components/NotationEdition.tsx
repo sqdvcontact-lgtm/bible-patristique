@@ -31,7 +31,13 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
  * `*italique*`, `**gras**`, `++petites capitales++` : une notice d'édition écrit des
  * titres de manuscrits, et elle les compose comme le reste du site.
  */
-export default function NotationEdition({ texte }: { texte: string | null | undefined }) {
+export default function NotationEdition({ texte, resserre = false }: {
+  texte: string | null | undefined
+  /** Dans une fiche déjà très structurée, deux paragraphes séparés par une ligne vide
+   *  gardent un petit blanc plutôt qu'une ligne entière. Les sauts simples restent des
+   *  retours à la ligne et le rendu historique demeure le défaut. */
+  resserre?: boolean
+}) {
   const blocs = lireNotationEdition(texte)
   if (!blocs.length) return null
 
@@ -42,6 +48,18 @@ export default function NotationEdition({ texte }: { texte: string | null | unde
         // cousue à la liste qu'elle nomme, et prend son air au-dessus.
         const marginTop = blancAuDessus(blocs[i - 1] ?? null, bloc)
         if (bloc.type === 'prose') {
+          if (resserre) {
+            const paragraphes = bloc.texte.split(/\n\s*\n+/u).map(p => p.trim()).filter(Boolean)
+            return (
+              <Fragment key={`p${i}`}>
+                {paragraphes.map((paragraphe, j) => (
+                  <p key={j} className="cs-notice-prose" style={{ marginTop: j === 0 ? marginTop : '5px' }}>
+                    {rendreTexteEnrichi(paragraphe)}
+                  </p>
+                ))}
+              </Fragment>
+            )
+          }
           return <p key={`p${i}`} className="cs-notice-prose" style={{ marginTop }}>{rendreTexteEnrichi(bloc.texte)}</p>
         }
         // ⛔ Un `<p>`, jamais un titre de rang : la fiche porte déjà ses titres de section,

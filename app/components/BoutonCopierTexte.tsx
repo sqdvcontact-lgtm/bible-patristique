@@ -15,16 +15,45 @@ import { useState } from 'react'
  *  court pour ne pas laisser croire que le bouton est resté enfoncé. */
 const DUREE_ACCUSE_MS = 1400
 
+/** Copie plein-texte avec un repli pour les navigateurs intégrés qui n'accordent pas
+ * l'API asynchrone du presse-papiers. Le champ temporaire ne devient jamais visible et
+ * la sélection antérieure n'est pas une donnée à conserver. */
+async function copierPleinTexte(texte: string): Promise<void> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(texte)
+      return
+    }
+  } catch {
+    // Repli historique ci-dessous.
+  }
+
+  const champ = document.createElement('textarea')
+  champ.value = texte
+  champ.setAttribute('readonly', '')
+  champ.style.position = 'fixed'
+  champ.style.left = '-9999px'
+  document.body.appendChild(champ)
+  champ.select()
+  const copie = document.execCommand('copy')
+  champ.remove()
+  if (!copie) throw new Error('Copie indisponible')
+}
+
 export default function BoutonCopierTexte({
   texte,
   style,
   className,
   titre = 'Copier',
+  libelleVisible,
 }: {
   texte: string
   style?: React.CSSProperties
   className?: string
   titre?: string
+  /** Texte affiché à côté du pictogramme. Les petits boutons de lecture le laissent
+   *  absent ; une action documentaire, comme « Copier la référence », le nomme. */
+  libelleVisible?: string
 }) {
   const [copie, setCopie] = useState(false)
   const [erreur, setErreur] = useState(false)
@@ -32,7 +61,7 @@ export default function BoutonCopierTexte({
   const copier = (e: React.MouseEvent) => {
     e.stopPropagation()
     setErreur(false)
-    navigator.clipboard.writeText(texte).then(() => {
+    copierPleinTexte(texte).then(() => {
       setCopie(true)
       setTimeout(() => setCopie(false), DUREE_ACCUSE_MS)
     }).catch(() => {
@@ -41,17 +70,19 @@ export default function BoutonCopierTexte({
     })
   }
 
-  const libelle = erreur ? 'La copie a échoué. Réessayez.' : titre
+  const libelle = erreur ? 'La copie a échoué. Réessayez.' : copie ? 'Copie effectuée' : titre
+  const texteVisible = erreur ? 'Réessayer' : copie ? 'Copié' : libelleVisible
 
   return (
     <button onClick={copier} title={libelle} aria-label={libelle} aria-live="polite" className={className}
       style={{ ...style, color: copie ? 'var(--cs-vert)' : erreur ? 'var(--cs-danger)' : (style?.color ?? 'var(--cs-texte-faible)') }}>
-      {copie ? '✓' : erreur ? '!' : (
+      {copie ? <span aria-hidden="true">✓</span> : erreur ? <span aria-hidden="true">!</span> : (
         <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display: 'block' }}>
           <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
           <rect x="3" y="3" width="7" height="8.5" rx=".8" stroke="currentColor" strokeWidth="1.2" />
         </svg>
       )}
+      {texteVisible ? <span>{texteVisible}</span> : null}
     </button>
   )
 }

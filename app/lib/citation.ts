@@ -101,6 +101,19 @@ export type CitationRendue = { texte: string; html: string }
 const MENTION_SITE = 'disponible sur le site Corpus Scriptura'
 
 /**
+ * La référence autonome d'une œuvre telle que Corpus Scriptura la compose.
+ *
+ * Elle reprend exactement le moteur bibliographique qui ferme une citation de passage,
+ * mais s'arrête avant les deux-points et le texte cité. La fiche d'une œuvre peut ainsi
+ * proposer une référence à copier sans inventer une seconde ponctuation ni un second
+ * ordre de champs.
+ */
+export function referenceCanoniqueOeuvre(info: InfoCitation): string {
+  const fragments = fragmentsSansPointFinal(fragmentsReference(noticeDUneOeuvre(info)))
+  return [texteFragments(fragments), MENTION_SITE].filter(Boolean).join(SEPARATEUR) + '.'
+}
+
+/**
  * Citation d'un passage patristique, en DEUX formes : `texte` (plein-texte,
  * presse-papiers) et `html` (italiques et petites capitales, pour un collage riche
  * dans un traitement de texte).

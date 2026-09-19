@@ -11,7 +11,7 @@
 //    seule à droite, dans l'étroite — la convention des trois fiches ;
 // ⛔ aucun portrait : le sujet de cette fiche est un LIVRE, et le nom de l'auteur ouvre
 //    sa propre fiche, où le portrait est chez lui ;
-// ⛔ une seule forme de rangée (`LigneTech`) ; aucune rubrique de métadonnées internes « Sur ce site ».
+// ⛔ les données documentaires restent brèves, sous la forme « libellé : valeur ».
 //
 // ⚠️ Elle porte aussi les OUVRAGES CITÉS dans l'édition (demande de l'auteur, 2026-09-15 :
 // « Fenêtre “En savoir plus sur cette œuvre” : ajouter les ouvrages cités dans
@@ -24,14 +24,16 @@
 
 import { Fragment, useEffect, useId, useRef, useState } from 'react'
 
+import BoutonCopierTexte from '@/app/components/BoutonCopierTexte'
 import {
-  Consulter, CorpsFiche, EnTeteFiche, LigneTech, ListeOuvragesCites, ModaleFiche, RubriqueFiche, SectionFiche,
+  Consulter, CorpsFiche, EnTeteFiche, ListeOuvragesCites, ModaleFiche, RubriqueFiche, SectionFiche,
 } from '@/app/components/FicheModele'
 import { FriseAuteur } from '@/app/components/ModaleAuteur'
 import NotationEdition from '@/app/components/NotationEdition'
 import OngletsPage from '@/app/components/OngletsPage'
 import { joindreLieux } from '@/app/lib/adresseEdition'
 import { separateurAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
+import { referenceCanoniqueOeuvre } from '@/app/lib/citation'
 import { espacerIntervallesHistoriques, formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import type { RangChrono } from '@/app/lib/frise'
 import { libelleLangue } from '@/app/lib/langues'
@@ -62,6 +64,30 @@ export type DonneesEdition = {
   aTexteOriginal: boolean
 }
 
+/** Une donnée documentaire sous la forme la plus courte : « libellé : valeur ». Chaque
+ * ligne garde sa propre mesure, de sorte que « Français » ne s'éloigne pas de « Langue »
+ * parce qu'une autre ligne porte « Texte établi par ». */
+function ChampEdition({ libelle, italique = false, children }: {
+  libelle: string
+  italique?: boolean
+  children: React.ReactNode
+}) {
+  if (children === null || children === undefined || children === '') return null
+  return (
+    <div className="cs-fiche-edition-champ">
+      <dt>{libelle} :</dt>
+      <dd style={{ fontStyle: italique ? 'italic' : undefined }}>{children}</dd>
+    </div>
+  )
+}
+
+/** La rangée dit déjà « Traduction : ». Le libellé de frontispice peut donc y perdre
+ * son amorce (« Traduction par », « Traduction de », « Traduction : ») et ne garder que
+ * l'information qui répond au libellé. */
+function valeurTraduction(libelle: string | null | undefined): string {
+  return (libelle ?? '').replace(/^Traduction\s*(?::|par\s+|de\s+)/iu, '').trim()
+}
+
 /**
  * Le contenu de la fiche : l'en-tête et toutes les notices dans la colonne large, la
  * chronologie dans l'étroite, les ouvrages cités en rubrique de clôture.
@@ -77,14 +103,10 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
 }) {
   const { oeuvre, titre, auteurs, auteurNom, versionActive, versions } = donnees
 
-  // Repères de l'œuvre, sur une seule ligne d'étiquettes : c'est la place que la fiche
-  // d'auteur donne aux dates, à la langue et aux traditions.
-  const reperes = [
-    libelleLangue(oeuvre.langue_originale),
-    espacerIntervallesHistoriques(formaterDateHistorique(oeuvre.date_composition)),
-  ].filter(Boolean).join(' · ')
+  const langueOriginale = libelleLangue(oeuvre.langue_originale)
+  const dateComposition = espacerIntervallesHistoriques(formaterDateHistorique(oeuvre.date_composition))
 
-  const traducteur = versionActive?.traducteurLabel ?? libelleTrad(oeuvre.trad_auteur)
+  const traduction = valeurTraduction(versionActive?.traducteurLabel ?? libelleTrad(oeuvre.trad_auteur))
   const sourceUrl = versionActive?.sourceUrl ?? oeuvre.url_source ?? null
   // ── CE QUI DISTINGUE DEUX ÉDITIONS D'UNE MÊME ŒUVRE ───────────────────────────
   // En lecture bilingue, les deux volets portent le même titre d'œuvre et la même ligne
@@ -95,8 +117,7 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
   const languesDistinctes = new Set(versions.map(v => (v.langue ?? '').trim()).filter(Boolean))
   const langue = languesDistinctes.size > 1 ? libelleLangue(versionActive?.langue) : ''
   const responsable = versionActive?.responsableEdition ?? null
-
-  const aEdition = !!(intitule || langue || traducteur || responsable || versionActive?.editionDescription
+  const aEdition = !!(intitule || langue || traduction || responsable || versionActive?.editionDescription
     || oeuvre.editeur || oeuvre.ville || oeuvre.date_publication || oeuvre.collection || sourceUrl)
   // Les deux notes éditoriales parlent de l'ŒUVRE, non de l'édition : elles suivent
   // donc la notice de l'édition, sous leur propre titre.
@@ -107,8 +128,18 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
   //    Elle vit sur le TEXTE, non sur l’œuvre — voir `informationsComplementaires`.
   const informations = versionActive?.informationsComplementaires?.trim() || null
   const commentaire = oeuvre.commentaire_traduction?.trim() || null
-  const aOeuvre = !!(oeuvre.titre_original || (oeuvre.genres && oeuvre.genres.length) || noteComplete)
   const aChrono = chrono.length > 0
+  const referenceCanonique = referenceCanoniqueOeuvre({
+    auteur: auteurNom,
+    titre,
+    sousTitre: oeuvre.sous_titre,
+    tradAuteur: oeuvre.trad_auteur,
+    editeur: oeuvre.editeur,
+    collection: oeuvre.collection,
+    ville: oeuvre.ville,
+    datePublication: oeuvre.date_publication,
+    responsable,
+  })
 
   // Chaque auteur ouvre sa fiche ; une œuvre signée à deux les donne tous.
   const auteursLigne = auteurs.length > 0 ? auteurs.map((a, i) => (
@@ -120,97 +151,110 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
   )) : (auteurNom || null)
 
   return (
-    <CorpsFiche
-      entete={
-        <EnTeteFiche surtitre="À propos de cette édition" titre={rendreTexteEnrichi(titre)} titreId={titreId}
-          sousTitre={oeuvre.sous_titre ? rendreTexteEnrichi(oeuvre.sous_titre) : null}
-          ligne={auteursLigne} reperes={reperes ? rendreSiecles(reperes) : null} />
-      }
+    <div className="cs-fiche-edition">
+      <CorpsFiche
+        entete={
+          <div className="cs-fiche-edition-tete">
+            <EnTeteFiche surtitre="À propos de cette édition" titre={rendreTexteEnrichi(titre)} titreId={titreId}
+              sousTitre={oeuvre.sous_titre ? rendreTexteEnrichi(oeuvre.sous_titre) : null}
+              ligne={auteursLigne} />
+            {(oeuvre.titre_original || oeuvre.genres?.length || langueOriginale || dateComposition) ? (
+              <dl className="cs-fiche-edition-identite" aria-label="Repères sur l’œuvre">
+                <ChampEdition libelle="Titre original" italique>{oeuvre.titre_original}</ChampEdition>
+                <ChampEdition libelle={`Genre${(oeuvre.genres?.length ?? 0) > 1 ? 's' : ''}`}>
+                  {oeuvre.genres?.length ? oeuvre.genres.join(', ') : null}
+                </ChampEdition>
+                <ChampEdition libelle="Langue originale">{langueOriginale}</ChampEdition>
+                <ChampEdition libelle="Composition">{dateComposition ? rendreSiecles(dateComposition) : null}</ChampEdition>
+              </dl>
+            ) : null}
+          </div>
+        }
       /* ── LA CHRONOLOGIE, dans la colonne étroite ── Elle est celle de l'AUTEUR, et il
          n'y en a pas d'autre : douze événements sur 1 346 nomment une œuvre, un par
          œuvre. La question qu'on pose à cette fenêtre — « où ce livre tombe-t-il ? » —
          se répond là : la ligne qui nomme l'œuvre lue s'y détache. */
-      complement={aChrono ? (
-        <SectionFiche titre="Chronologie"><FriseAuteur evenements={chrono} oeuvreEnRelief={oeuvre.id_oeuvre} /></SectionFiche>
-      ) : null}
-      suite={ouvragesCites && ouvragesCites.length > 0 ? (
-        <RubriqueFiche titre="Ouvrages cités dans cette édition">
-          <ListeOuvragesCites notices={ouvragesCites} />
-        </RubriqueFiche>
-      ) : null}
-    >
-      {aEdition && (
-        <SectionFiche titre="Édition de référence">
-          {/* ⛔ Pas de dépli : ces rangées SONT le sujet d'une fiche qui s'appelle « À
-              propos de cette édition ». */}
-          <LigneTech c="Intitulé">
-            {intitule ? <span style={{ fontStyle: 'italic' }}>{intitule}</span> : null}
-          </LigneTech>
-          <LigneTech c="Langue">{langue || null}</LigneTech>
-          <LigneTech c="Traducteur">
-            {traducteur ? `${traducteur}${oeuvre.trad_date ? ` (${formaterDateHistorique(oeuvre.trad_date)})` : ''}` : null}
-          </LigneTech>
-          {/* Le savant qui a établi le texte d'une édition critique : « Pius Knöll (éd.) ». */}
-          <LigneTech c="Texte établi par">{responsable}</LigneTech>
-          <LigneTech c="Édition">{versionActive?.editionDescription}</LigneTech>
-          {/* Éditeur, lieu et année sur trois lignes distinctes : une ligne « Publication »
-              les recollait en une chaîne où l'on ne savait plus lequel des trois manquait. */}
-          <LigneTech c="Éditeur">{formaterEditeur(oeuvre.editeur) || null}</LigneTech>
-          {/* Plusieurs lieux se joignent comme dans toute adresse du site (`joindreLieux`). */}
-          <LigneTech c="Lieu">{joindreLieux(oeuvre.ville)}</LigneTech>
-          <LigneTech c="Année">{formaterDateHistorique(oeuvre.date_publication) || null}</LigneTech>
-          <LigneTech c="Collection">{oeuvre.collection}</LigneTech>
-          <LigneTech c="Source"><Consulter url={sourceUrl} libelle="Consulter la source" /></LigneTech>
-        </SectionFiche>
-      )}
+        complement={aChrono ? (
+          <SectionFiche titre="Chronologie"><FriseAuteur evenements={chrono} oeuvreEnRelief={oeuvre.id_oeuvre} /></SectionFiche>
+        ) : null}
+        suite={ouvragesCites && ouvragesCites.length > 0 ? (
+          <RubriqueFiche titre="Ouvrages cités dans cette édition">
+            <ListeOuvragesCites notices={ouvragesCites} />
+          </RubriqueFiche>
+        ) : null}
+      >
+        {aEdition && (
+          <SectionFiche titre="Édition de référence">
+            {/* ⛔ Pas de dépli : ces rangées SONT le sujet d'une fiche qui s'appelle « À
+                propos de cette édition ». */}
+            <dl className="cs-fiche-edition-champs">
+              <ChampEdition libelle="Intitulé" italique>{intitule}</ChampEdition>
+              <ChampEdition libelle="Langue">{langue || null}</ChampEdition>
+              <ChampEdition libelle="Traduction">
+                {traduction ? `${traduction}${oeuvre.trad_date ? ` (${formaterDateHistorique(oeuvre.trad_date)})` : ''}` : null}
+              </ChampEdition>
+              {/* Le savant qui a établi le texte d'une édition critique : « Pius Knöll (éd.) ». */}
+              <ChampEdition libelle="Texte établi par">{responsable}</ChampEdition>
+              <ChampEdition libelle="Édition">{versionActive?.editionDescription}</ChampEdition>
+              <ChampEdition libelle="Éditeur">{formaterEditeur(oeuvre.editeur) || null}</ChampEdition>
+              <ChampEdition libelle="Lieu">{joindreLieux(oeuvre.ville)}</ChampEdition>
+              <ChampEdition libelle="Année">{formaterDateHistorique(oeuvre.date_publication) || null}</ChampEdition>
+              <ChampEdition libelle="Collection">{oeuvre.collection}</ChampEdition>
+              <ChampEdition libelle="Source"><Consulter url={sourceUrl} libelle="Consulter la source" /></ChampEdition>
+            </dl>
+          </SectionFiche>
+        )}
 
-      {/* Commentaire public de l'édition : la même prose qu'au frontispice. */}
-      {commentaire && (
-        <SectionFiche titre="Cette édition">
-          <p className="cs-notice-prose">{sansPointFinal(commentaire)}</p>
+        <SectionFiche titre="Pour citer cette œuvre" className="cs-fiche-edition-citation">
+          <div className="cs-fiche-edition-citation-ligne">
+            <p>{referenceCanonique}</p>
+            <BoutonCopierTexte texte={referenceCanonique} titre="Copier la référence"
+              libelleVisible="Copier" className="cs-fiche-edition-copier"
+              style={{ color: 'var(--cs-texte-second)' }} />
+          </div>
         </SectionFiche>
-      )}
 
-      {aOeuvre && (
-        <SectionFiche titre="L’œuvre">
-          <LigneTech c="Titre original">
-            {oeuvre.titre_original ? <span style={{ fontStyle: 'italic' }}>{oeuvre.titre_original}</span> : null}
-          </LigneTech>
-          <LigneTech c={`Genre${(oeuvre.genres?.length ?? 0) > 1 ? 's' : ''}`}>
-            {oeuvre.genres?.length ? oeuvre.genres.join(', ') : null}
-          </LigneTech>
-          {/* Ce que l'œuvre EST : son intérêt, sa substance (note_editoriale_complete). */}
-          {noteComplete && (
-            <div style={{ marginTop: '8px' }}><NotationEdition texte={noteComplete} /></div>
-          )}
-        </SectionFiche>
-      )}
+        {/* Commentaire public de l'édition : la même prose qu'au frontispice. */}
+        {commentaire && (
+          <SectionFiche titre="Cette édition">
+            <p className="cs-notice-prose">{sansPointFinal(commentaire)}</p>
+          </SectionFiche>
+        )}
+
+      {/* ⛔ CE QUE L’ÉDITION DÉCLARE POUR QU’ON LA LISE — manuscrits et sigles,
+          abréviations, conventions de transcription (charte § 5.6.1). Elle ne paraît QUE
+          remplie : une rubrique vide promettrait un appareil que l’édition n’a pas
+          déclaré. */}
+        {informations && (
+          <SectionFiche titre="Informations complémentaires">
+            <NotationEdition texte={informations} resserre />
+          </SectionFiche>
+        )}
+
+        {noteComplete && (
+          <SectionFiche titre="Présentation">
+            <NotationEdition texte={noteComplete} resserre />
+          </SectionFiche>
+        )}
 
       {/* Les points de détail de l'œuvre parcourue (note_editoriale_complement). */}
-      {noteComplement && (
-        <SectionFiche titre="Notes éditoriales">
-          <NotationEdition texte={noteComplement} />
-        </SectionFiche>
-      )}
+         {noteComplement && (
+          <SectionFiche titre="Notes éditoriales">
+            {/* ⚠️ La NOTATION du § 5.6.1, comme les informations complémentaires : une note
+                éditoriale porte souvent sa bibliographie (« + » par référence). Sans marque,
+                elle se rend en prose, exactement comme avant. */}
+            <NotationEdition texte={noteComplement} resserre />
+           </SectionFiche>
+         )}
 
-      {/* Couche technique propre à CETTE édition : témoins, sigles, abréviations
-          et conventions nécessaires à l'exploitation de son apparat. */}
-      {informations && (
-        <SectionFiche titre="Informations complémentaires">
-          <NotationEdition texte={informations} />
-        </SectionFiche>
-      )}
-
-      {/* Bibliographie propre à l'œuvre : une SECTION SŒUR des notes éditoriales,
-          jamais une sous-rubrique de celles-ci. Les lignes « + » gardent la composition
-          bibliographique commune de NotationEdition. */}
-      {bibliographieSelective && (
-        <SectionFiche titre="Bibliographie sélective">
-          <NotationEdition texte={bibliographieSelective} />
-        </SectionFiche>
-      )}
-
-    </CorpsFiche>
+        {/* Bibliographie propre à l'œuvre : une section sœur des notes éditoriales. */}
+        {bibliographieSelective && (
+          <SectionFiche titre="Bibliographie sélective">
+            <NotationEdition texte={bibliographieSelective} resserre />
+          </SectionFiche>
+        )}
+      </CorpsFiche>
+    </div>
   )
 }
 

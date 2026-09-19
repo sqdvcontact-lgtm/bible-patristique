@@ -75,6 +75,14 @@ describe('une notice sans marque', () => {
     expect(html).toContain('class="cs-notice-prose"')
     expect(html).not.toContain('<ul')
   })
+
+  it('resserre les paragraphes dans une fiche qui le demande explicitement', () => {
+    const html = renderToStaticMarkup(
+      <NotationEdition texte={'Un premier paragraphe.\n\nUn second.'} resserre />,
+    )
+    expect(html.match(/<p /g)).toHaveLength(2)
+    expect(html).toContain('margin-top:5px')
+  })
 })
 
 describe('le corps de la bibliographie d’une notice, dans la feuille', () => {

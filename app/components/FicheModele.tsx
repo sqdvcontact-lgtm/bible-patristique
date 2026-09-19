@@ -55,7 +55,7 @@ const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLa
 /** Le titre de section, le même pour les trois fiches : sérif italique, à l'encre des
  *  titres de rubrique. */
 export function TitreSection({ children, centre }: { children: ReactNode; centre?: boolean }) {
-  return <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontWeight: 'normal', fontSize: '0.84375rem', color: 'var(--cs-vert)', margin: '0 0 5px', textAlign: centre ? 'center' : 'left' }}>{children}</h3>
+  return <h3 className={`cs-fiche-titre-section${centre ? ' cs-fiche-titre-section--centre' : ''}`}>{children}</h3>
 }
 
 /** Rangée « étiquette · valeur » des sections documentaires. La colonne d'étiquettes

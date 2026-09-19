@@ -7,6 +7,7 @@ import {
   preparerTexteCitation,
   citationPatristique,
   citationBiblique,
+  referenceCanoniqueOeuvre,
 } from './citation'
 import { SEPARATEUR_COEDITEURS } from './editeursNormalisation'
 import { GUILLEMET_FERMANT, GUILLEMET_OUVRANT } from './referenceBibliographique'
@@ -128,6 +129,28 @@ describe('citationPatristique', () => {
   it('sans titre, la citation garde sa provenance et son passage', () => {
     const { texte } = citationPatristique('paix', {})
     expect(texte).toBe('disponible sur le site Corpus Scriptura : « Paix. »')
+  })
+})
+
+describe('referenceCanoniqueOeuvre', () => {
+  it('reprend la notice canonique et la provenance, sans passage cité', () => {
+    expect(referenceCanoniqueOeuvre({
+      auteur: 'Augustin d’Hippone',
+      titre: 'Les Confessions',
+      tradAuteur: 'Joseph Trabucco',
+      editeur: 'Garnier',
+      datePublication: '1937',
+    })).toBe(
+      'Augustin d’Hippone, Les Confessions, trad. Joseph Trabucco, Garnier, 1937, '
+      + 'disponible sur le site Corpus Scriptura.',
+    )
+  })
+
+  it('ne laisse ni deux-points ni guillemets d’une citation de passage', () => {
+    const reference = referenceCanoniqueOeuvre({ auteur: 'Augustin', titre: 'Les Confessions' })
+    expect(reference).toBe('Augustin, Les Confessions, disponible sur le site Corpus Scriptura.')
+    expect(reference).not.toContain(' : ')
+    expect(reference).not.toContain('«')
   })
 })
 
