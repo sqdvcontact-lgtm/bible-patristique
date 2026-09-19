@@ -8921,8 +8921,8 @@ Les autorités sont séparées du thésaurus. Elles identifient des entités ind
 La version initiale comprend exactement sept types :
 
 * **AUT01 — Personne humaine** : individu humain nommé ou individualisable.
-* **AUT02 — Être divin ou spirituel individualisé** : Dieu lorsqu’il est visé comme référent personnel, l’Esprit Saint lorsqu’il est visé comme référent personnel, ange, démon, divinité étrangère ou autre être divin ou spirituel individualisé.
-* **AUT03 — Collectif ou peuple** : peuple, tribu, groupe ou collectif identifié comme tel.
+* **AUT02 — Être divin ou spirituel individualisé** : Dieu lorsqu’il est visé comme référent personnel, l’Esprit Saint lorsqu’il est visé comme référent personnel, ange, démon, divinité étrangère ou autre être divin ou spirituel individualisé. Un membre individualisé d’un collectif spirituel relève de ce type ; le collectif lui-même relève d’AUT03.
+* **AUT03 — Collectif ou peuple** : peuple, tribu, groupe ou collectif identifié comme tel, y compris un collectif d’êtres divins ou spirituels lorsque le texte vise le groupe et non des individus nommés ou individualisés.
 * **AUT04 — Lieu ou territoire** : ville, région, montagne, cours d’eau, territoire ou autre locus géographique individualisé.
 * **AUT05 — Institution ou organisation** : institution religieuse, sociale, administrative ou autre organisation identifiée.
 * **AUT06 — Entité politique ou juridictionnelle** : royaume, empire, cité-État, province ou autre entité politique ayant une identité propre.
@@ -8930,7 +8930,7 @@ La version initiale comprend exactement sept types :
 
 ⛔ **UNE FORME ÉCRITE NE DÉTERMINE JAMAIS LE TYPE D’AUTORITÉ.** Israël/Jacob relève de AUT01 ; Israël comme peuple de AUT03 ; la terre d’Israël de AUT04 ; le royaume d’Israël de AUT06. De même, l’Exode comme événement relève de AUT07, tandis que l’exode comme motif théologique est un concept distinct.
 
-Jésus de Nazareth relève de AUT01. YHWH/Dieu, le Père ou l’Esprit Saint relèvent de AUT02 lorsqu’ils sont annotés comme référents individualisés ; les concepts « unicité divine », « paternité divine », « Trinité », « procession de l’Esprit » ou « inhabitation de l’Esprit » restent des concepts. « Christ », « Messie », « Fils de Dieu » ou « Logos » peuvent fonctionner comme titres ou concepts théologiques ; lorsqu’une forme comme « Christ » désigne simplement Jésus dans un passage, l’autorité Jésus de Nazareth demeure l’identité personnelle. Michel ou Gabriel relèvent de AUT02. Le Sanhédrin relève de AUT05 ; l’Empire romain de AUT06.
+Jésus de Nazareth relève de AUT01. YHWH/Dieu, le Père ou l’Esprit Saint relèvent de AUT02 lorsqu’ils sont annotés comme référents individualisés ; les concepts « unicité divine », « paternité divine », « Trinité », « procession de l’Esprit » ou « inhabitation de l’Esprit » restent des concepts. « Christ », « Messie », « Fils de Dieu », « Verbe » ou « Logos » peuvent fonctionner comme titres ou concepts théologiques ; lorsqu’une telle désignation identifie Jésus dans le contexte, l’autorité demeure Jésus de Nazareth (AUT01) et la désignation est une forme contextuelle de cette autorité, non une identité nouvelle. Cette résolution n’est jamais automatique sur la seule forme lexicale. Le fichier d’autorité distingue en outre Dieu comme référent divin personnel non davantage spécifié et Dieu le Père lorsque le passage identifie explicitement le référent comme Père ; aucune occurrence générique de « Dieu » n’est résolue vers le Père par simple inférence doctrinale. Michel ou Gabriel relèvent de AUT02. Le Sanhédrin relève de AUT05 ; l’Empire romain de AUT06.
 
 Les variantes de nom, langues et graphies d’une même entité sont des formes d’autorité et ne créent pas de nouvelles identités.
 
@@ -8961,11 +8961,13 @@ La distinction entre **genre** et **forme** est opérationnelle pour Corpus Scri
 
 Les modes d’expression — prose, poésie, narration, discours, discours direct ou indirect — ne font pas partie de ce vocabulaire initial. Ils pourront former un axe distinct si un besoin réel est démontré.
 
-Une même portée peut recevoir plusieurs qualifications littéraires lorsque celles-ci décrivent réellement des conventions différentes et que chacune est défendable. L’Apocalypse de Jean peut ainsi être qualifiée comme apocalypse tout en présentant un cadre épistolaire et des formes prophétiques ; ces qualifications ne sont pas fusionnées.
+Une même portée peut recevoir plusieurs qualifications littéraires lorsque celles-ci décrivent réellement des conventions différentes et que chacune est défendable. L’Apocalypse de Jean peut ainsi être qualifiée comme apocalypse tout en présentant un cadre épistolaire et des formes prophétiques ; ces qualifications ne sont pas fusionnées. **LIT014 — Parabole** et **LIT023 — Récit didactique** ne sont ni hiérarchiques ni exclusifs : elles peuvent coexister lorsque la première décrit la construction parabolique et la seconde une fonction pédagogique réellement portée par l’organisation narrative, chacune avec sa source et sa certitude propres.
+
+Le mot « prologue » décrit d’abord une fonction structurale d’ouverture et ne constitue pas, à lui seul, une qualification LIT de la version 1. Pour Jn 1, une qualification hymnique peut être conservée sous **LIT009 — Hymne ou chant de louange** lorsqu’elle est sourcée ; si la bibliographie demeure divisée sur le caractère hymnique du passage, sa certitude est `disputee`.
 
 Chaque terme littéraire reçoit un identifiant stable, un libellé canonique, une définition, la catégorie genre ou forme, ses termes alternatifs, ses relations plus générales ou plus précises, ses sources savantes, son statut éditorial et son historique.
 
-#### 53.10.1 Les vingt-sept genres adoptés
+#### 53.10.1 Les vingt-huit genres adoptés
 
 * **LIT001 — Évangile** : composition chrétienne centrée sur Jésus, articulant récit, enseignement, Passion et proclamation selon la convention littéraire propre aux évangiles.
 * **LIT002 — Lettre ou épître** : composition épistolaire adressée, structurée selon les conventions de la lettre antique.
@@ -8994,6 +8996,7 @@ Chaque terme littéraire reçoit un identifiant stable, un libellé canonique, u
 * **LIT025 — Récit de la Passion** : ensemble narratif consacré à l’arrestation, au procès, à la mort et aux événements immédiatement associés à la Passion du Christ.
 * **LIT026 — Discours ou testament d’adieu** : composition placée à l’approche de la mort ou du départ d’un personnage, associant rétrospective, exhortation, transmission ou bénédiction.
 * **LIT027 — Satire** : composition organisée par ironie, inversion ou ridicule afin de critiquer un comportement, un personnage, une institution ou une convention ; distincte du chant de dérision LIT046.
+* **LIT047 — Psaume de confiance** : psaume dans lequel l’expression de confiance en Dieu, notamment face à la menace, à l’épreuve ou à l’incertitude, constitue la dynamique dominante de la composition ; distinguer d’une simple déclaration de confiance insérée dans une autre forme.
 
 #### 53.10.2 Les dix-neuf formes adoptées
 
@@ -9291,6 +9294,8 @@ Ajouter un concept est une décision moins grave que changer sa portée ; fusion
 Un terme préféré peut changer sans changer l’identité du concept. Deux concepts ne sont fusionnés qu’après examen de leurs usages réels.
 
 Les termes littéraires suivent la même discipline : changer la définition d’un genre ou d’une forme peut affecter toutes les portées qui l’emploient et exige une révision contrôlée.
+
+L’arbitrage de phase J du 19 septembre 2026 a élargi sans changer d’identité **CON001040**, désormais « Berger et troupeau comme conduite et protection » : sa portée couvre la conduite, la protection ou la sollicitude envers un individu aussi bien qu’envers un peuple ou une communauté. Le même arbitrage a créé **CON001123 — Offrande de soi comme sacrifice**, notion théologique distincte du sacrifice rituel concret, du sacrifice du Christ, du sacrifice expiatoire et du sacrifice eucharistique. Ces changements sont des décisions versionnées et ne valent pas comme autorisation de créer de nouveaux termes pendant l’annotation.
 
 ⛔ Les concepts, domaines, familles et termes littéraires ne sont pas créés au fil de l’annotation pour résoudre un cas difficile. La difficulté est d’abord inscrite dans le registre d’arbitrage.
 
