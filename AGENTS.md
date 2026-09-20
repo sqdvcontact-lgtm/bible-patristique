@@ -11763,3 +11763,74 @@ Doctrine : charte `parametres.charte_ia`, **§ 38.35** (« IL PORTE SUR TOUTE LA
 - ⛔ **LA ROUTE NE PREND PLUS DE LIVRE** (`lectureDemandee` : `trad` et `lecture`) ; `releverNotesEditorialesDeLaBible` lit toutes les lignes annotées de la bible, puis met TOUTES les lectures de places dans UNE file `lancerEnParallele` (un livre par requête en vue large, un couple livre-chapitre par le canon ou en regard), jamais des files imbriquées. `maxDuration = 60`. Une fenêtre et une absente portent `livre`.
 - ⚠️ **L’onglet tient des milliers de lignes** : recherche différée (`useDeferredValue`), lignes mémorisées (`memo`, `aller` en `useCallback`), sections en `content-visibility: auto`.
 - ⚠️ **Contrôle** : `tmp/controle-releve-bible-entiere.mts` (non versionné) rejoue la route bible par bible. Le 17 septembre 2026 : 1 852 fenêtres en vue large sur les quatre colonnes (la somme des relevés par livre), 32 par le canon, 32 en regard, aucune absente, de 0,3 à 3,4 s.
+
+# ⛔ L'APPARAT INTRODUCTIF D'UN LIVRE — la manchette, et le rang d'un titre porté (2026-09-20)
+
+Doctrine : charte `parametres.charte_ia`, **§ 35.27**. Ici, ce qu'il faut savoir pour y toucher.
+
+- **La règle vit dans `app/lib/bibleApparatIntroductif.ts`** (module PUR, 7 tests) :
+  `manchettesDApparat` dit quels titres sont absorbés et par quel bloc,
+  `intituleDeManchette` ôte la numérotation. ⛔ Ne décider d'une manchette nulle part
+  ailleurs. Le calcul se fait UNE fois, dans `composerAffichage` (`app/page.tsx`), sur
+  l'ordre MATÉRIEL : la lecture en regard éclate ensuite les blocs par créneau
+  canonique, et le titre y perdrait son développement. Même raison que `baliserBlocs`
+  et `rangDesSousTitres`, qui se calculent au même endroit.
+- ⛔ **L'ORDRE COMPTE** : le développement d'un titre est le PREMIER bloc de corps qui
+  le nomme pour parent APRÈS lui. Un lot mal trié ne rend pas une manchette fausse, il
+  n'en rend aucune.
+- ⛔ **UNE MANCHETTE ROMPT LA SUITE.** `estSuiteDuBloc` (`bibleHierarchieSemantique.ts`)
+  rend faux quand le bloc suivant en porte une : sans cela, deux subdivisions de même
+  rang et de même nature se collaient par `data-suite`, et le blanc qu'on vient de
+  poser tombait.
+- ⛔ **LES NOTES DU TITRE ABSORBÉ SUIVENT LEUR INTITULÉ**, et leur `anchor_text` se
+  DÉNUMÉROTE comme lui : sans quoi « 1. La personne de l'auteur » ne se retrouve plus
+  dans « La personne de l'auteur », l'appel se perd et la note retombe dans la liste
+  de bas de bloc (3 notes du corpus).
+- ⛔ **`manchette` est un champ de `BibleEditionDisplayBodyBlock`, distinct de
+  `heading`** : ce n'est pas un titre — ni balise de titre, ni place au plan. Le rendu
+  la pose en PREMIER dans le contenu du bloc (c'est un FLOTTANT : posé après le texte,
+  il n'a plus rien à habiller) et marque le bloc d'un `data-manchette`, sur quoi la
+  feuille pend le `flow-root` et le blanc.
+- ⛔ **`letter-spacing: 0` EST NÉCESSAIRE sur `.cs-bible-info-label--manchette`** : sans
+  elle, la manchette d'une subdivision gardait la chasse de la rubrique des rangs hauts
+  (`.cs-bible-info--i3 > .cs-bible-info-label`), que la règle de la manchette ne
+  recouvrait pas faute de la nommer.
+- ⛔ **LE BLANC SE POSE SUR LES TROIS SURFACES** (§ 35.17.3) — la grille de l'axe, la
+  fratrie de la mesure étroite, la lecture en regard — et l'on FERME celui du bloc
+  d'avant : sur l'axe de texte, qui est une grille, les marges s'ADDITIONNENT au lieu
+  de fusionner (§ 35.12).
+- ⛔ **`heading_levels` DANS LE REGISTRE** (`work/fillion/semantic_display_hierarchy.json`) :
+  un rang de titre par rang d'information. `resoudreStyleSemantique` le lit APRÈS le
+  rang déclaré par le bloc et après le titre porté d'un nom hérité, jamais avant —
+  ⛔ un nom hérité fait toujours foi, sans quoi le regroupement des styles changerait
+  la composition d'un bloc qui n'a pas bougé.
+  `scripts/fillion/validate_semantic_display_hierarchy.mjs` refuse désormais un style
+  d'information à `heading_role: 'title'` qui ne sait pas composer son titre à CHAQUE
+  rang d'information, et éprouve la résolution de `introduction_titree` à I1 et à I5.
+- ⚠️ **Le défaut que cela ferme, et il ne se voyait nulle part** : `introduction_titree`
+  (canonique) déclarait `heading_role: 'title'` et, sans `embedded_title_level` sur le
+  bloc, `resoudreStyleSemantique` rendait `headingLevel: null` — donc la RUBRIQUE grise
+  de `<p class="cs-bible-info-label">` —, quand son alias `introduction_livre` portait
+  `titre: 'T2'`. La même introduction se composait ainsi en T2 à la Genèse et en
+  rubrique chez Matthieu, selon le code que l'import avait écrit. 55 blocs atteints,
+  44 introductions de livre et 11 de péricope. ⛔ Corrigé dans le CODE, non dans la
+  donnée : **un alias et son canonique doivent résoudre à l'identique.**
+- ⚠️ **La planche `/admin/styles` porte l'unité `bible_apparat/apparat introductif — la
+  MANCHETTE de subdivision`**, qui rend le conteneur d'introduction et deux blocs
+  porteurs avec les VRAIS composants.
+
+## ⛔ `git apply` LANCÉ D'UN SOUS-DOSSIER DU DÉPÔT SAUTE LE CORRECTIF, ET REND ZÉRO
+
+Payé le 2026-09-20 en réparant un index mal constitué. Depuis un sous-dossier
+(`tmp/index/mirror`), `git apply -R` sur un correctif dont les chemins partent de la
+RACINE du dépôt écrit « Skipped patch 'app/globals.css'. », **sort en 0, et n'a rien
+fait** : à l'intérieur d'un dépôt, git apply borne les chemins au préfixe du dossier
+courant. ⚠️ Un `--check` rend le même silence, si bien que la garde ne garde rien. On
+lance donc depuis la RACINE, avec `--directory=<dossier>`, et **on relit le fichier
+après** — jamais le code de sortie seul.
+
+⚠️ Et le correctif de l'index qui a suivi rappelle deux règles déjà écrites plus haut :
+un arbre indexé s'ÉPROUVE (`git write-tree` + `git archive` dans un miroir, `tsc` et
+la suite de tests) avant d'être commité ; et `git archive` y écrit en CRLF, si bien
+qu'une garde qui cherche un saut de ligne simple dans une feuille (`bullePartage`) y
+échoue à tort — on la rejoue dans l'arbre réel avant de conclure.
