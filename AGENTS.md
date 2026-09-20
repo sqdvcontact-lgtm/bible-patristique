@@ -12145,3 +12145,79 @@ sur les données RÉELLES d'une œuvre, avec la feuille du dépôt telle quelle.
   `createRequire` dans le paquet ESM le lui rend.
 - ⚠️ Un chemin absolu Windows ne s'importe qu'en `pathToFileURL(...)` : `import('C:\\…')`
   lève `ERR_UNSUPPORTED_ESM_URL_SCHEME`, et `'file://' + chemin` prend `C:` pour un hôte.
+
+## ⛔ DEUX BIBLIOGRAPHIES D'UNE MÊME FICHE SE COMPOSENT PAREIL (2026-09-20, le soir)
+
+Demande de l'auteur, devant la notice d'une œuvre : « pourrait-on avoir la même mise en
+forme de style pour Bibliographie sélective et Ouvrages cités dans cette édition ?
+Conserver seulement celle de Bibliographie sélective ». Les deux listes se suivaient et ne
+se ressemblaient pas : l'une au cran de la NOTATION (0,6875 rem, interligne 1,32, retrait
+suspendu de 0,9 em), l'autre au cran de la famille (0,75 rem, 1,28, 1,1 em) ; l'une section
+de la colonne principale, l'autre rubrique de clôture, précédée d'un filet et courant sous
+les deux colonnes.
+
+- ⛔ **LE CRAN DES BIBLIOGRAPHIES D'UNE NOTICE S'ÉTEND À TOUTE LA FICHE.**
+  `.cs-fiche-corps .cs-apparat-bibliographie` rejoint `.pied-biblio` et `.cs-notation`
+  dans les trois règles du cran (le corps, l'entrée, son `:last-child`). ⚠️ Le contexte
+  `.cs-notation` RESTE : NotationEdition sert aussi hors d'une fiche. ⛔ On AJOUTE le
+  contexte à la règle existante, on n'écrit pas une seconde déclaration du même cran : deux
+  écritures divergent au premier réglage — le commentaire de la règle le disait déjà, et
+  c'est lui qu'il a fallu corriger, puisqu'il affirmait l'inverse (« les ouvrages cités de
+  la même fiche gardent le corps de la famille »).
+- ⚠️ **Le cran atteint donc TROIS listes de plus**, et c'est voulu : les ouvrages cités
+  d'une fiche d'ÉDITION, ceux d'une fiche de TRADUCTION, et la référence des volumes
+  servis de cette dernière. Une bibliographie de notice se lit au même corps partout.
+  ⛔ La CITATION de « Pour citer cette œuvre » n'est pas touchée : c'est un
+  `.cs-reference-bibliographique` nu, non un bloc d'apparat, et c'est le sujet de sa
+  section.
+- ⛔ **« OUVRAGES CITÉS DANS CETTE ÉDITION » QUITTE LA RUBRIQUE POUR UNE SECTION**
+  (`FicheEdition.tsx`) : elle ferme la colonne principale, sous « Bibliographie sélective »,
+  et `RubriqueFiche` n'a plus d'appelant dans ce fichier. Deux listes d'ouvrages qui se
+  suivent ne peuvent pas se composer de deux façons, et le filet ne distinguait rien — la
+  bibliographie sélective est elle aussi un appareil.
+- ⚠️ **La fiche d'une TRADUCTION garde sa rubrique**, et ce n'est pas un oubli : ses
+  ouvrages cités y voisinent « Conditions d'usage », qui est une rubrique de clôture, et
+  aucune bibliographie sélective ne les touche. Le CRAN, lui, les rejoint.
+- ⚠️ **La planche `tmp/planche-fiche-oeuvre/` ne passait aucun `ouvragesCites`** : elle ne
+  montrait donc jamais la liste. Elle les charge désormais par `chargerOuvragesCitesDuTexte`,
+  le chargeur du site. ⛔ Pour juger les DEUX listes ensemble il faut une œuvre qui porte les
+  deux : **quatorze** sur les 53 à bibliographie sélective (Consolation de la philosophie
+  171 ouvrages cités, Catéchèses baptismales 86, La Cité de Dieu 62… ; « Du corps et du sang
+  du Seigneur », 45, est la plus compacte qui montre bien les deux).
+
+## ⛔ LA QUESTION DE FERMETURE EST UNE PILULE (2026-09-20, le soir)
+
+Demande de l'auteur : « rendre un peu plus élégante la fenêtre de fermeture chronométrée ;
+par ailleurs, si l'utilisateur clique à nouveau dans la fenêtre, la fenêtre chronométrée
+doit se fermer. »
+
+- ⛔ **UN CLIC DANS LA FENÊTRE RETIRE LA QUESTION.** `surClicDedans` (`ModaleFiche`) arrête
+  la remontée du clic — c'est ce que faisait déjà la boîte — ET remet `confirme` à faux.
+  Revenir au texte est la réponse la plus claire qui soit à « voulez-vous fermer ? », et
+  l'on n'oblige pas à viser un bouton ce que le geste dit déjà.
+  ⛔ **LA BARRE, ELLE, ARRÊTE LE CLIC** (`onClick={e => e.stopPropagation()}`) : ce qu'on y
+  fait est une réponse à la question, non une reprise de lecture. Sans cela, « Fermer »
+  aurait retiré la question avant de fermer.
+- ⛔ **C'EST UNE PILULE, non un cadre à boutons encadrés** : rayon 999px, rembourrage
+  asymétrique (14 px devant la question, 7 derrière les boutons), et les boutons deviennent
+  eux-mêmes des pilules de 1,875 rem. La première écriture faisait, au bas d'une page de
+  lecture, une boîte de dialogue de système.
+- ⛔ **LA QUESTION PREND LE SÉRIF DE LA FICHE**, non le sans de l'interface (0,8125 rem,
+  `--cs-texte-fort`) : c'est l'éditeur qui s'adresse au lecteur sur ce qu'il vient de lire.
+- ⛔ **LES DEUX BOUTONS SE COMPOSENT PAREIL**, et `.cs-fiche-confirmer-oui` — avec ses deux
+  `!important` — disparaît. L'anneau dit déjà que le défaut est la FERMETURE, et le foyer va
+  à « Rester », qui est le choix protecteur : un accent posé sur l'un des deux ferait un
+  troisième signal pour deux mots qui se suffisent. Le vert ne vient qu'au survol et au
+  foyer.
+- ⛔ **LA TAILLE DE L'ANNEAU VIT DANS LA FEUILLE, EN REM** (`1.25rem`), et les attributs
+  `width`/`height` quittent le SVG : posée en attributs de présentation, elle ne suivrait pas
+  la police fluide et l'anneau rapetisserait à mesure que l'écran grandit. C'est le piège
+  déjà payé par la rangée d'outils de la barre. Le trait s'affine de 2 à 1,6.
+- ⛔ **L'ENTRÉE, ELLE, EST UN ORNEMENT** (fondu et montée de 6 px, 0,18 s) et s'ÉTEINT sous
+  `prefers-reduced-motion` — à la différence de l'anneau, qui porte une information. ⚠️ Son
+  image finale repose `translate(-50%, 0)`, la transformation même de la règle : sans elle,
+  la fin de l'animation déplacerait la pilule.
+- ⚠️ **SOUS 640 px, LA PILULE S'ENROULE ET REDEVIENT UNE CARTE** (rayon 12px,
+  `flex-wrap: wrap`, la question à `flex: 1 1 8rem`) : elle demande environ 310 px avec ses
+  deux boutons, et la boîte n'en offre plus tant. Un rayon de pilule sur deux rangs ferait
+  deux demi-cercles en guise de flancs.
