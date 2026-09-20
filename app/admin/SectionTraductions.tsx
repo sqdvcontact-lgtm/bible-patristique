@@ -2,6 +2,7 @@
 
 import { Z_MODALE } from '@/app/lib/empilement'
 import IconeChevron from '@/app/components/IconeChevron'
+import { raccourcisEditeur } from '@/app/lib/raccourcisEditeur'
 import React, { useState, useRef } from 'react'
 import { preparerPortrait, BOITE_TRADUCTION, BOITE_TRADUCTION_ENCART } from '@/app/lib/preparerPortrait'
 import {
@@ -379,6 +380,7 @@ function EditeurRichText({ valeur, onChange }: { valeur: string; onChange: (v: s
         contentEditable
         suppressContentEditableWarning
         onInput={e => onChange(e.currentTarget.innerHTML)}
+        onKeyDown={e => raccourcisEditeur(e, { apresChangement: () => onChange(ref.current?.innerHTML ?? '') })}
         style={{
           width: '100%', minHeight: '150px', padding: '12px 14px', fontSize: '0.9375rem',
           fontFamily: 'var(--font-source-serif), Georgia, serif', lineHeight: 1.7, color: 'var(--cs-texte-fort)', outline: 'none',

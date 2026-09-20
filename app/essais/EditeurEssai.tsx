@@ -11,6 +11,7 @@ import { PARAGRAPHE_ESSAI, CITATION_ESSAI, enCss } from '@/app/lib/compositionEs
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { syntaxeVersHtml, htmlVersSyntaxe, styleNote } from '@/app/lib/serialisationEssai'
 import { diffMots } from '@/app/lib/diffTexte'
+import { raccourcisEditeur, collageTexteBrut } from '@/app/lib/raccourcisEditeur'
 import VoletEssai from '@/app/lib/VoletEssai'
 import SelecteurCitation from '@/app/lib/SelecteurCitation'
 import { CATEGORIES_ESSAIS, CONDITIONS, RESUME_MAX, RESUME_MIN, type Metadonnees } from './EtapeMetadonnees'
@@ -404,19 +405,13 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.ctrlKey || e.metaKey) {
-      if (e.key === 'b') { e.preventDefault(); document.execCommand('bold'); declencherChangement() }
-      else if (e.key === 'i') { e.preventDefault(); document.execCommand('italic'); declencherChangement() }
-    }
+    raccourcisEditeur(e, { apresChangement: declencherChangement, exposant: true })
   }
 
   // Le collage ne doit jamais importer de mise en forme extérieure (polices,
   // couleurs, tailles…) — on ne conserve que le texte brut.
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    const texte = e.clipboardData.getData('text/plain')
-    document.execCommand('insertText', false, texte)
-    declencherChangement()
+    collageTexteBrut(e, declencherChangement)
   }
 
   const insererEspaceInsecable = () => {

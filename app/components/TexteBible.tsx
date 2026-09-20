@@ -13,6 +13,7 @@ import { citationBiblique, copierCitation } from "@/app/lib/citation"
 import { usePrelevementsDuChapitre } from "@/app/lib/prelevementsBibliques"
 import { referenceDesVersets, texteDesVersets, UNITE_VERSETS } from "@/app/lib/selectionPassages"
 import LassoLecture from '@/app/components/LassoLecture'
+import { raccourcisEditeur, collageTexteBrut } from '@/app/lib/raccourcisEditeur'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 
@@ -409,6 +410,8 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
         </div>
         {/* Zone d'édition UNIQUE : les enrichissements s'y voient directement (WYSIWYG). */}
         <div ref={edRef} contentEditable suppressContentEditableWarning onInput={sync}
+          onKeyDown={e => raccourcisEditeur(e, { apresChangement: sync, exposant: true })}
+          onPaste={e => collageTexteBrut(e, sync)}
           style={{ width:'100%', minHeight:'96px', maxHeight:'300px', overflowY:'auto', fontSize:'0.8125rem', padding:'8px 10px', border:'1px solid var(--cs-bord)', borderRadius:'4px', background:'var(--cs-fond-clair)', color:'var(--cs-texte-fort)', outline:'none', lineHeight:1.55, boxSizing:'border-box', textAlign:'justify', whiteSpace:'pre-wrap' }} />
         <div style={{ display:'flex', justifyContent:'flex-end', gap:'8px', marginTop:'12px' }}>
           {statut === 'erreur' && <span style={{ fontSize:'0.6875rem', color:'var(--cs-danger)', alignSelf:'center' }}>Erreur d’enregistrement.</span>}

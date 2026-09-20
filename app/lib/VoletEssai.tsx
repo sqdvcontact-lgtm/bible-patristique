@@ -5,6 +5,7 @@ import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { supabase } from '@/app/lib/supabase'
 import { rendreMarquesNote, type ElementPanneau } from './texteEnrichiEssai'
 import { inlineVersHtml, htmlVersSyntaxe } from './serialisationEssai'
+import { raccourcisEditeur, collageTexteBrut } from './raccourcisEditeur'
 
 // ── Zone de rédaction d'une note : UNE seule zone, éditable et WYSIWYG ─────────
 // On y écrit, on enrichit (gras, italique, petites capitales, exposant) et l'on
@@ -61,7 +62,10 @@ function EditeurNoteWysiwyg({ valeur, mode, onChange, onEnregistrer }: {
       </div>
       {/* Zone UNIQUE, éditable, WYSIWYG. */}
       <div ref={ref} className="note-zone" contentEditable suppressContentEditableWarning
-        onInput={synchroniser} data-placeholder="Texte de la note…"
+        onInput={synchroniser}
+        onKeyDown={e => raccourcisEditeur(e, { apresChangement: synchroniser, exposant: true })}
+        onPaste={e => collageTexteBrut(e, synchroniser)}
+        data-placeholder="Texte de la note…"
         style={{ minHeight: '5.5em', fontSize: '0.8125rem', lineHeight: 1.55, color: 'var(--cs-texte-fort)', fontFamily: 'var(--font-source-serif), Georgia, serif', border: '1px solid var(--cs-bord)', borderRadius: '8px', background: 'var(--cs-surface)', padding: '9px 10px', outline: 'none', overflowY: 'auto' }} />
       <button onClick={() => onEnregistrer(valeurCourante())}
         style={{ alignSelf: 'flex-end', fontSize: '0.71875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 600 }}>

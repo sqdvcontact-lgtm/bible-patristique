@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import SelecteurCitation from '@/app/lib/SelecteurCitation'
+import { raccourcisEditeur, collageTexteBrut } from '@/app/lib/raccourcisEditeur'
 
 type Props = {
   value: string
@@ -229,6 +230,8 @@ export default function EditeurCommentaire({ value, onChange, placeholder = 'Vot
         suppressContentEditableWarning
         data-placeholder={placeholder}
         onInput={synchroniser}
+        onKeyDown={e => raccourcisEditeur(e, { apresChangement: synchroniser, exposant: true })}
+        onPaste={e => collageTexteBrut(e, synchroniser)}
         onKeyUp={majActifs}
         onMouseUp={majActifs}
         onFocus={majActifs}
