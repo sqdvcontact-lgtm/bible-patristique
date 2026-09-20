@@ -8,6 +8,12 @@
 
 ---
 
+## § 1. Principes directeurs
+
+**§ 1 — Capitales de phrase**
+
+- ⛔ Ne jamais appliquer mécaniquement la règle à tout caractère `.`.
+
 ## § 3. Typographie — les signes, les espaces, l’enrichissement et le gris
 
 **§ 3 — Typographie — les signes, les espaces, l’enrichissement et le gris**
@@ -40,6 +46,17 @@
 - ⛔ Un titre source conserve sa casse partout.
 - ⛔ Le trait d’union insécable U+2011 n’est pas employé : Source Serif 4 et Source Sans 3, telles que Google les sert, n’en ont pas le glyphe, et le navigateur l’emprunte à une police de secours.
 - ⚠️ Un saut de ligne SAISI dans un intitulé est une frontière que l’équilibrage ne franchit pas, mais il ne rend pas chaque tronçon indépendant : le navigateur équilibre en réduisant une seule largeur commune à toutes les lignes, et dès qu’un tronçon forcé occupe une ligne entière, les tronçons suivants retombent dans l’enroulement ordinaire (mesuré sur les Questions sur l’Heptateuque, 2 007 intitulés dont 652 avec saut…
+
+**§ 3.6 — Enrichissement**
+
+- ⛔ La qualité de titre ne met jamais un texte grec en italique.
+- ⛔ cette exception ne s’applique jamais au grec écrit en caractères grecs, qui demeure en romain.
+- ⛔ Le grec écrit en caractères grecs fait exception à cette superposition : il reste en romain même lorsqu’il apparaît à l’intérieur d’un titre ou d’un passage environnant composé en italique.
+- ⛔ Un titre en caractères grecs reste en romain.
+
+**§ 3.7 — Contrôles anti-faux positifs**
+
+- ⛔ Contrôle grec / italique obligatoire.
 
 **§ 3.8 — Ponctuation des citations**
 
@@ -114,6 +131,16 @@
 
 ## § 5. Métadonnées et page de titre
 
+**§ 5.3.0 — Manifeste des notices savantes**
+
+- ⛔ UNE NOTICE NE DIT QUE CE QUI EST À LA FOIS SÛR ET UTILE.
+- ⛔ LES GENRES SONT DES LIBELLÉS TAXONOMIQUES AUTONOMES ET PRENNENT UNE CAPITALE INITIALE.
+- ⛔ TOUT CHERCHEUR MODERNE CITÉ POUR ARGUMENTER DOIT ÊTRE RÉFÉRENCÉ.
+- ⛔ LES SIGLES SAVANTS SONT EXPLICITÉS À LEUR PREMIÈRE OCCURRENCE DANS CHAQUE FICHE.
+- ⛔ LA PROSE PUBLIQUE N’EST PAS UN APPARAT DE CATALOGUE.
+- ⛔ NOMS DES BASES SAVANTES ET LEUR RÉFÉRENCE.
+- ⛔ ORDRE DES ÉLÉMENTS D’UN ARTICLE DE REVUE.
+
 **§ 5.5 — La page de titre du site**
 
 - ⛔ LA PAGE DE TITRE EST CELLE DE L’ÉDITION AFFICHÉE (demande de l’auteur, 8 septembre 2026 : « elle doit correspondre à l’édition qui est affichée ; si on a deux éditions, la latine et la française, il faut faire en conséquence »).
@@ -134,6 +161,15 @@
 - ⚠️ Deux de ses jugements sont des heuristiques et le disent : l’étiquette de travail dans un intitulé, et l’apparat à sigles.
 - ⚠️ QUESTION OUVERTE, ET ELLE ATTEND L’AUTEUR : le responsable et la collection n’ont pas de champ par texte.
 
+**§ 5.5.2 — La fiche sépare l’œuvre, l’édition, la technique et la bibliographie**
+
+- ⛔ QUATRE FONCTIONS, QUATRE EMPLACEMENTS.
+- ⛔ `oeuvres.commentaire_traduction` EST EXCEPTIONNEL ET NE RÉPÈTE JAMAIS LA FICHE.
+- ⛔ ELLE EST UNE SECTION AUTONOME — jamais une sous-rubrique de « Notes éditoriales » ni un appendice collé à la fin de la présentation générale.
+- ⛔ UNE RÉFÉRENCE COMPLÈTE NE SE RÉPÈTE PAS DANS LES AUTRES RUBRIQUES.
+- ⛔ Toute personne moderne nommée comme autorité d’un argument doit y avoir sa référence identifiable — conformément au § 5.3. Cela évite à la fois les fins de paragraphes encombrées de références et les affirmations d’autorité impossibles à vérifier.
+- ⚠️ LE CHAMP BIBLIOGRAPHIQUE NE PORTE PAS SON PROPRE TITRE.
+
 **§ 5.6 — Informations complémentaires d’une édition**
 
 - ⛔ UNE ÉDITION SAVANTE DÉCLARE CE QU’IL FAUT SAVOIR POUR LA LIRE — et ce n’est ni son adresse ni sa notice : les manuscrits qu’elle a collationnés et les sigles qui les désignent, les abréviations de son apparat, les conventions de transcription qu’elle s’est données.
@@ -144,12 +180,16 @@
 - ⚠️ Et elle peut porter une NOTATION, qui distingue ses niveaux d’information sans rien retrancher à cette prose : voir le § 5.6.1.
 - ⚠️ Colonne nullable et SANS contrainte — comme `essais.couverture` et `profils.theme_lecture` : ce qu’une édition déclare est une matière éditoriale, elle bougera, et une valeur mal formée ne doit ni bloquer une écriture ni vider une fiche.
 
-**§ 5.6.1 — La NOTATION d’une notice — trois niveaux, deux marques**
+**§ 5.6.1 — La NOTATION d’une notice — trois niveaux, trois marques**
 
 - ⛔ CE QU’UNE NOTICE DE TRANSMISSION PORTE N’EST PAS DE LA PROSE SUIVIE.
 - ⛔ LE SÉPARATEUR EST UN TRAIT D’UNION SIMPLE `-`.
 - ⛔ Le demi-cadratin `–` est interdit ici : conformément au § 3.4, il est réservé exclusivement aux incises.
 - ⚠️ C’est le premier trait d’union séparateur qui coupe ; un corps qui contient ensuite un trait d’union lexical ou conventionnel garde le sien.
+- ⛔ LA RÉFÉRENCE BIBLIOGRAPHIQUE, SECONDE NATURE D’ENTRÉE (demande de l’auteur, 17 septembre 2026 : « un style de bibliographie pour les notices des œuvres »).
+- ⛔ Elle ne porte PAS de titre (décision de l’auteur, même jour : « pas besoin de titre “Bibliographie” ») : sa composition la distingue de la prose, dont la sépare une ligne vide de cette prose.
+- ⚠️ LE « PAS DE TITRE » DES LIGNES `+` CONCERNE UNE BIBLIOGRAPHIE INTÉGRÉE À UNE NOTICE.
+- ⛔ LA NOTATION SERT AUSSI LES DEUX NOTES ÉDITORIALES D’UNE ŒUVRE (`oeuvres.note_editoriale_complete` et `note_editoriale_complement`), que la fiche d’une édition rend sous « L’œuvre » et « Notes éditoriales » : ce sont des notices elles aussi, et elles portent des bibliographies.
 - ⛔ UNE RUBRIQUE EST COUSUE À CE QU’ELLE NOMME.
 - ⚠️ Quinze n’est pas le blanc qui sépare deux SECTIONS de la fiche, qui vaut dix-huit : une rubrique est un rang au-dessous, et lui donner le même air aplatirait la hiérarchie qu’on vient de poser.
 - ⚠️ L’ENCRE DE LA RUBRIQUE MONTE D’UN RANG — par rapport à celle d’un volet.
@@ -786,6 +826,14 @@
 - ⛔ Les contrôles automatiques prouvent la cohérence du fichier, non l’exactitude paléographique. Un faux déchiffrement parfaitement encodé peut réussir XML, Relax NG, les tests et le build.
 - ⚠️ Les preuves visuelles sont réservées aux cas difficiles, contestables ou structurants.
 
+**§ 14.8.1 — Protocole obligatoire de contrôle des citations d’une œuvre**
+
+- ⛔ Le contrôle des guillemets, le contrôle de la nature du segment et le contrôle du lien biblique sont trois opérations distinctes — aucun de ces trois plans ne prouve à lui seul les deux autres.
+- ⛔ Un total équilibré ne suffit jamais — deux erreurs peuvent se compenser ; un segment équilibré peut encore porter de mauvaises bornes.
+- ⛔ Le nombre de guillemets n’a pas à être identique entre deux témoins — deux lemmes sources peuvent être réunis dans une seule citation française.
+- ⛔ Un audit du seul `segment_texte` ne permet jamais de déclarer l’œuvre contrôlée si des notes ou blocs citationnels sont publics.
+- ⛔ Une anomalie résiduelle expliquée n’est pas un zéro artificiel — elle est nommée, documentée et laissée ouverte si la règle ne permet pas de trancher.
+
 **§ 14.9 — Versions, candidats et import**
 
 - ⛔ Le candidat reste séparé du TEI actif jusqu’à validation.
@@ -950,6 +998,18 @@
 - ⚠️ Nommée dans une phrase (« Texte original latin »), elle garde son bas de casse.
 - ⛔ celle qu’aucune famille ne reconnaît reste sur la fiche mais ne paraît pas dans le filtre — mieux vaut une pastille de moins qu’une pastille fausse.
 
+**§ 16.13 — Notice d’auteur : composition, singularité et postérité**
+
+- ⛔ UNE FICHE D’AUTEUR PUBLIQUE EST UNE NOTICE ÉDITORIALE, NON UNE FICHE D’AUTORITÉ ENRICHIE.
+- ⛔ Le nom historique `note_theologique` ne limite pas son contenu à la doctrine — ce champ est la notice des PARTICULARITÉS de l’auteur.
+- ⚠️ Ce n’est pas une liste à cocher — on retient les traits réellement distinctifs.
+- ⛔ PAS DE CURIOSITÉ DÉCORATIVE NI DE LÉGENDE RACONTÉE COMME UN FAIT.
+- ⛔ « Grande influence », « auteur majeur » ou « postérité considérable » ne suffisent jamais seuls — la notice nomme les domaines, relais ou transformations qui permettent de comprendre cette postérité.
+- ⛔ `auteurs.chronologie` est un champ hérité et ne constitue plus la source normative de la frise.
+- ⛔ LES CINQ BLOCS NE DOIVENT PAS SE RÉPÉTER.
+- ⛔ On ne personnifie jamais artificiellement une autorité collective ou inconnue.
+- ⛔ On ne détourne pas la bibliographie d’une œuvre pour sourcer artificiellement la biographie générale de son auteur.
+
 ## § 17. Écritures, droits et sécurité
 
 **§ 17.1 — Le verrou de bêta ne protège que les pages**
@@ -1067,6 +1127,7 @@
 - ⚠️ *Une mesure qui valide une règle dans un sens ne la valide pas dans l’autre.* Le contrôle de falsification employé d’abord — 98,9 % des lignes portant `break="no"` finissent par une lettre — était juste et ne prouvait rien du cas symétrique, celui des lignes qui auraient dû le porter et ne le portent pas.
 - ⛔ Ne pas donner de `canon_id` à ces lignes pour les faire paraître : c’est au lecteur de `versets_v2` d’aller les chercher par `(livre, ch_orig, ordre_slot)`, comme le fait déjà le chemin Bible 899 par `alignment_order`.
 - ⛔ Ne pas rendre `canon_id` nullable pour contourner ce problème et ne pas créer de doublon d’ancre pour une même `note_id` / `anchor_key`.
+- ⛔ La présence de `versets_v2.notes` ne constitue jamais un emplacement et le lecteur ne doit jamais en déduire automatiquement un appel en fin de chaîne.
 - ⛔ Le client web ne doit jamais requêter `internal` directement ni obtenir `USAGE` sur ce schéma : créer ou employer une couche backend privilégiée qui ne restitue que les champs nécessaires.
 - ⚠️ Il n’existe toujours ni garde bloquante ni trigger d’audit imposant ce protocole sur ces deux tables.
 
@@ -1358,6 +1419,7 @@
 - ⛔ C'est une évaluation de la source, jamais un jugement de la personne.
 - ⛔ se peuplent depuis ces valeurs distinctes : jamais une liste inventée.
 - ⛔ une référence de faible valeur n'est jamais montrée ; une valeur intermédiaire ne l'est qu'à défaut d'une meilleure disponible pour la même péricope.
+- ⛔ SOURÇAGE DES AUTEURS CRITIQUES EN NOTICE.
 - ⚠️ La réserve ne juge pas la personne et ne préjuge pas de sa valeur académique.
 - ⛔ aucune personne ni maison réelle n'est étiquetée à la légère, en particulier aux niveaux bas.
 
@@ -1667,6 +1729,21 @@
 - ⚠️ Une enveloppe est une surface de plus, et une règle de blanc ne la connaît pas : c’est le § 35.17.3 pris par un quatrième bout.
 - ⚠️ Deux colonnes de commentaire à la manière du fac-similé de Fillion ont été maquettées le même jour, sur la page réelle, et écartées : elles remplissaient la largeur, quand la largeur elle-même était le défaut.
 - ⚠️ Sur téléphone, où les colonnes sont empilées à la largeur de l’écran, rien ne se borne.
+
+**§ 35.27 — L’apparat introductif d’un livre**
+
+- ⛔ UNE SUBDIVISION D’INTRODUCTION SE COMPOSE EN MANCHETTE — posée en tête de son développement, à gauche, en haut, que le texte habille — exactement le repère d’un commentaire de rang bas (§ 35.9).
+- ⚠️ Un titre dont le développement MANQUE — bloc absent du chapitre chargé, corps qui porte déjà son propre intitulé — n’est pas absorbé : il garde sa composition de titre.
+- ⛔ LA NUMÉROTATION IMPRIMÉE NE PARAÎT PLUS (décision de l’auteur, 20 septembre 2026), et la donnée la GARDE : c’est un témoin de la page composée, comme la mention de chapitre.
+- ⚠️ Le chiffre est ARABE : « I — L’état d’innocence » n’est pas une numérotation mais une DÉSIGNATION, qui se compose en titre et chapeau.
+- ⛔ LE BLANC D’UNE SUBDIVISION N’EST PAS CELUI D’UN RANG DE TITRE.
+- ⚠️ Il se pose sur les TROIS surfaces du § 35.17.3, et l’on FERME celui du bloc d’avant : sur l’axe de texte, qui est une grille, les marges s’ADDITIONNENT au lieu de fusionner (§ 35.12).
+- ⛔ LE TITRE PORTÉ D’UNE INTRODUCTION DE LIVRE MONTE D’UN RANG (décision de l’auteur, 20 septembre 2026 : « doit être plus gros »).
+- ⚠️ L’introduction ne prend pas ce rang pour autant : elle reste un bloc d’INFORMATION de portée I1 qui PORTE un titre T2, et c’est sa seule composition qui change.
+- ⛔ UN STYLE À RÔLE DE TITRE DIT LE RANG DE SON TITRE À CHAQUE RANG D’INFORMATION.
+- ⛔ Un code canonique vaut son alias, toujours — le registre porte donc `heading_levels`, un rang de titre par rang d’information, et le validateur REFUSE un style d’information à rôle de titre qui ne sait pas composer son titre à chaque rang.
+- ⚠️ Chaque rang d’information porte le titre de la PORTÉE qu’il explique ; I1 → T2 est la seule exception doctrinale, `titre_livre` (T1) ne paraissant jamais.
+- ⚠️ Le défaut ne se voyait NI dans la donnée, NI dans un test, NI dans le registre lu seul — les deux codes sont canoniques, les deux blocs sont sains, et c’est leur RENCONTRE avec le rendu qui les séparait.
 
 ## § 36. Le modèle d’onglets
 
@@ -2111,6 +2188,9 @@
 
 - ⛔ ELLE N’EST PAS UN HAUT FAIT, et elle n’entrera jamais dans le tableau (décision de l’auteur, 3 septembre 2026).
 - ⛔ Elle n’ouvre NI DROIT, NI ACCÈS, NI FONCTION.
+- ⚠️ Il s’est dessiné en GRAIN du 3 au 20 septembre 2026, avant que l’auteur ne demande le rameau, qui dit la même chose une saison plus tard.
+- ⛔ Les feuilles du rameau MONTENT, et sa taille n’est pas celle du grain.
+- ⚠️ Cela ne se juge jamais sur le tracé vectoriel, toujours beau, mais sur une planche agrandie au plus proche voisin, à la taille réellement servie.
 - ⛔ IL N’Y A QU’UN SEUL SIGNE, et il ne se gradue pas.
 - ⚠️ Corollaire, et c’est ce qui rend la règle tenable : **AUCUN MONTANT N’EST JAMAIS CONSERVÉ.** PayPal tient ce livre-là ; le site ne retient que le FAIT du don.
 - ⚠️ Elle n’est NOMMÉE en toutes lettres qu’à un seul endroit, sur la page de profil, sous le millésime : « Lecteur depuis 2026 · Mécène depuis 2026 ».
@@ -2118,8 +2198,8 @@
 - ⚠️ Le lecteur peut la retirer (`pub_mecene`), comme il retire son rang ou ses favoris.
 - ⛔ Elle ne s’écrit pas depuis un navigateur : la politique RLS borne la LIGNE qu’un lecteur modifie, jamais la VALEUR qu’il y écrit, si bien qu’un lecteur se décernerait la marque par un simple `update` sur sa propre ligne.
 - ⚠️ Le rattachement se fait À LA MAIN, et c’est un choix.
-- ⚠️ Le donateur dont l’adresse de paiement diffère de celle de son compte est INTROUVABLE — et il faut donc le lui dire : la page « Soutenir » l’invite à se signaler par la page de contact.
-- ⛔ Ce mot vient APRÈS le bouton, en petit, et jamais avant : une page qui annonce sa récompense avant son objet vend un badge au lieu de demander un soutien, et Deci, Koestner et Ryan (1999) mesurent que la récompense attendue mine le geste même qu’elle prétend soutenir.
+- ⛔ LA PAGE « SOUTENIR » NE DIT RIEN DE LA MARQUE (décision de l’auteur, 20 septembre 2026).
+- ⚠️ Le donateur dont l’adresse de paiement diffère de celle de son compte est INTROUVABLE, et le site ne le lui dit plus.
 - ⚠️ LE DON S’INSCRIT SEUL (décision de l’auteur, 3 septembre 2026 : « ce serait plus simple si c’était automatique »).
 - ⛔ L’automatique ne supprime pas ce cas, il le réduit à un résidu.
 - ⛔ UNE NOTIFICATION SE VÉRIFIE AVANT D’ÊTRE CRUE.
@@ -2368,7 +2448,9 @@
 
 - ⚠️ Décision de l’auteur du 28 août 2026, qui remplace le deux-points prescrit le matin même, lequel remplaçait la virgule :
 - ⛔ ni virgule, ni deux-points, ni l’espace insécable qui précédait celui-ci.
-- ⚠️ Un titre qui se ferme DÉJÀ sur une ponctuation forte n’en reçoit pas une seconde, sa ponctuation attestée détachant à elle seule : `*Où en est la question biblique ? Réponse à quelques objections*`.
+- ⚠️ Un titre qui se ferme DÉJÀ sur une ponctuation forte n’en reçoit pas une seconde, sa ponctuation attestée détachant à elle seule : `*Où en est la question biblique ? Réponse à quelques objections*`.\n\n
+- ⛔ ÉDITEUR ET COLLECTION NE SE COMPOSENT PAS DE LA MÊME MANIÈRE.
+- ⛔ Une collection n’est jamais en italique.
 - ⚠️ non l’ordre d’affichage, qui se calcule : § 47.3), `ouvrages_bibliographiques` le titre, le sous-titre, le lieu et l’année, `ouvrage_contributeurs_scientifiques` et `auteurs_valeur` l’auteur normalisé, `editeurs_valeur` l’éditeur normalisé.
 - ⛔ On ne découpe jamais une notice précomposée pour en retrouver les parties, et l’ancien texte de lecture des blocs matériels cesse d’être la source de l’affichage : il demeure en base pour la provenance et le témoin source.
 - ⛔ La ponctuation est produite par le rendu à partir des champs présents ; elle n’est pas stockée dans la donnée, et un champ absent emporte son séparateur.
@@ -2376,6 +2458,7 @@
 - ⛔ on ne crée jamais un doublon parce que la casse, la ponctuation, l’abréviation ou l’ordre des éléments diffèrent dans le témoin.
 - ⛔ on ne complète jamais une notice par conjecture.
 - ⛔ elle ne reste pas en `type_unite = 'paratexte'` générique si ses lignes sont des notices d’éditions ou de traductions.
+- ⛔ DANS TOUTE NOTICE BIBLIOGRAPHIQUE, LE NOM D’AUTEUR SE COMPOSE EN ROMAIN, SANS PETITES CAPITALES.
 - ⛔ La description MATÉRIELLE ne s’affiche pas dans une liste d’ouvrages — le format (`in-8°`, `in-4°`), le nombre de pages, la pagination romaine ou arabe, le nombre de planches, les figures et les dimensions sont des données de description, conservées dans la notice, et ne paraissent pas au lecteur.
 - ⚠️ Le retrait suspendu remplace le retrait de première ligne prescrit jusque-là (décision de l’auteur du 28 août 2026).
 
@@ -2792,6 +2875,24 @@
 - ⚠️ L’avis que l’édition imprime (l’argument d’un psaume chez Sacy, une note de saint Jérôme) est un texte de l’édition, et il se garde mot pour mot.
 - ⚠️ CES NOTES PARAISSENT AUSSI SUR LA PAGE BIBLE (§ 13.22, 17 septembre 2026).
 
+**§ 50.8 — Une colonne dont le texte n’est pas dans `versets_v2`**
+
+- ⛔ UNE PAGE NE LIT JAMAIS UNE CHAÎNE DE VUES QUI RECALCULE.
+- ⚠️ Une vue matérialisée se périme : un livre qui rejoint le chantier n’entre au menu qu’après `public.rafraichir_polyglotte_fillion()`.
+- ⚠️ LE MENU N’OFFRE PAS UN TEXTE QUI N’EXISTE PAS ENCORE.
+- ⛔ jamais une liste d’identifiants écrite dans la page, qui mentirait dès le livre suivant.
+- ⛔ LE CRAYON D’ÉDITION NE SE POSE PAS SUR UNE COLONNE QU’ON NE PEUT PAS ÉCRIRE.
+
+**§ 50.9 — Une traduction PRIVÉE ne sort que pour l’administrateur**
+
+- ⛔ UNE VUE `SECURITY DEFINER` DÉFAIT LA RLS EN SILENCE.
+- ⚠️ LA GARDE SE POSE OÙ LA FUITE NAÎT, PAS SUR CHAQUE SURFACE.
+- ⛔ Et le critère n’est JAMAIS une liste d’identifiants : c’est celui de la RLS, `not est_privee or is_admin()` — rendre un texte public ou privé se décide dans `traductions`, et la garde suit.
+- ⚠️ `is_admin()` est VOLATILE : posée dans la clause d’une vue, elle serait évaluée ligne à ligne ; un sous-select non corrélé la réduit à un calcul unique.
+- ⚠️ UNE VUE MATÉRIALISÉE NE PORTE NI RLS NI GARDE DYNAMIQUE — ce qu’on y range est lisible par quiconque la lit.
+- ⚠️ CELA SE VÉRIFIE EN POUSSANT SUR LA PORTE, pas en relisant la définition.
+- ⛔ Il se rejoue après toute reprise de la chaîne AELF : un `create or replace view` emporte la garde sans bruit, comme il emporte `security_invoker` (§ 51.4).
+
 ## § 51. Les objets d’interface partagés
 
 **§ 51.1 — La CELLULE D’ACTIONS — un seul objet, et il ne couvre jamais ce qu’il commande**
@@ -2916,7 +3017,14 @@
 - ⛔ LA COLLECTION DE L’ŒUVRE NE DÉCRIT QUE SON TEXTE PAR DÉFAUT.
 - ⚠️ La mesure est le seul juge, et elle se fait sur le CORPUS.
 
-**§ 38.26 — Une rangée de contrôles se mesure en REM, et ce qui coûte la largeur est leur NOMBRE**
+**§ 38.25.2 — Les sections de la fiche ont un RANG**
+
+- ⛔ « BIBLIOGRAPHIE SÉLECTIVE » EST UNE SECTION SŒUR, PAS UN SOUS-TITRE.
+- ⚠️ LA HIÉRARCHIE VISUELLE SUIT LA HIÉRARCHIE DES DONNÉES.
+- ⛔ LE BLOC « SUR CE SITE » N’APPARTIENT PLUS À CETTE FICHE.
+- ⛔ LA BIBLIOGRAPHIE N’EST PAS MIROITÉE DANS LES NOTES ÉDITORIALES.
+
+**§ 38.26 — Une rangée de contrôles se mesure en REM**
 
 - ⛔ UNE RANGÉE DE CONTRÔLES ÉCRITE EN PIXELS N’EST PAS « TROP GROSSE » : ELLE EST FIXE.
 - ⛔ MAIS LE PLANCHER DE 24 px EST ABSOLU, ET IL BORNE LE REMÈDE.
@@ -3067,7 +3175,9 @@
 
 - ⛔ UNE MARQUE QUI NE TIENT PAS NE SE REND PAS.
 - ⛔ LE CHIFFRE SE CENTRE SUR LA CAPITALE DE LA PREMIÈRE LIGNE, NON SUR SA LIGNE DE BASE.
-- ⚠️ La décision vise le nombre posé à droite du verset.
+- ⚠️ La décision vise le nombre posé à droite du verset — et donc l’écran large.
+- ⛔ AU DOIGT, LE NOMBRE QUITTE LE VERSET (décision de l’auteur, 20 septembre 2026 : « supprimer, en mode mobile, le “10 œuvres en parlent” qui décale tout »).
+- ⚠️ Le compte n’est pas perdu pour autant, et c’est la condition du retrait : il passe sur l’ONGLET « Commentaires », dès qu’un verset est choisi (§ 38.36).
 
 **§ 38.31 — Le verset retenu déborde son texte des DEUX côtés, et le titre du chapitre se tient contre son menu**
 
@@ -3077,6 +3187,7 @@
 - ⛔ LE TITRE DU CHAPITRE SE TIENT CONTRE LE MENU DES BIBLES (« Matthieu❧Chapitre 1 et le menu de sélection de la traduction biblique doivent être plus proches l'un de l'autre ; réduire le blanc qui les sépare »).
 - ⚠️ Rectifié le soir même (« Matthieu❧Chapitre 1 et le menu de sélection de la traduction biblique doivent être très légèrement plus éloignés l'un de l'autre ») : l'interligne reste serré, et la marge remonte à cinq seizièmes de rem.
 - ⛔ Les deux lectures, une colonne et en regard, prennent les mêmes mesures : passer de l'une à l'autre ne déplace ni le titre ni le menu.
+- ⚠️ AU DOIGT, IL N’Y A PLUS DE TITRE À TENIR (décision de l’auteur, 20 septembre 2026 : « supprimer le “Genèse ❧ Chapitre 1” en haut de page, et conserver le menu de sélection de la traduction biblique »).
 
 **§ 38.32 — Le volet d'une ŒUVRE : deux apparats, une invite seule, et le menu des bibles de la page Bible**
 
@@ -3288,6 +3399,117 @@
 - ⛔ ELLES SE RECENSENT DANS L’ONGLET « NOTES » DU VOLET DE DROITE (§ 38.35, 17 septembre 2026), sous le nom de « Note éditoriale », avec le numéro et la place de leur appel.
 - ⚠️ CE QUI ATTEND UNE DÉCISION, ET CE QUI ATTEND LA DONNÉE.
 
+## § 38. Les surfaces de lecture — volets, fiches et listes
+
+**§ 38.36 — L’en-tête de lecture AU DOIGT ne garde que ce qui CHOISIT**
+
+- ⛔ CE QUI NOMME S’EN VA, CE QUI CHOISIT RESTE.
+- ⚠️ Sur écran large, rien ne change : le titre y tient sans rien coûter, et le § 38.31 règle son écart au menu.
+- ⛔ UN COMPTE SE POSE SUR L’ONGLET QU’IL DÉCRIT, non sous le texte qu’il encombre.
+- ⛔ Sans verset retenu, AUCUN chiffre : l’onglet ouvre alors le volet sur le chapitre entier, qui ne se dit pas en un nombre.
+- ⚠️ LE CHIFFRE N’EST PAS UN MOT DU LIBELLÉ.
+- ⛔ Aucune pastille : la barre n’a que 2,875 rem de haut, et un fond rond y ferait une alarme là où l’on ne donne qu’un nombre.
+- ⚠️ À LA VOIX, L’ONGLET DIT LA PHRASE ENTIÈRE « Commentaires — 8 œuvres en parlent, 5 commentaires, 3 citations » —, et le chiffre à l’écran devient alors redondant pour qui écoute.
+- ⛔ Une visite qui nomme ce que l’écran ne montre pas est une case posée sur du vide, en mots — c’est le défaut contre lequel ses sujets sont donnés en repères plutôt qu’en sélecteurs.
+
+## § 53. La couche sémantique de la Bible et des Pères
+
+**§ 53.1 — Finalité et séparation absolue d’avec les liens**
+
+- ⛔ ELLE NE REMPLACE JAMAIS LE SYSTÈME DES LIENS BIBLIQUES.
+- ⛔ AUCUNE ANNOTATION SÉMANTIQUE NE RÉÉCRIT LE TEXTE.
+
+**§ 53.2 — Cinq systèmes documentaires distincts**
+
+- ⛔ Une information ne change pas de système pour simplifier une requête.
+
+**§ 53.3 — Métanomenclature normative**
+
+- ⛔ La simple fréquence d’un objet, d’un mot ou d’une image ne suffit jamais à créer un motif.
+- ⛔ Les mots domaine théologique, famille, concept, terme, autorité, genre, forme et relation ne sont pas interchangeables.
+
+**§ 53.4 — Identité sémantique, homonymie et polysémie**
+
+- ⛔ UN CONCEPT REPRÉSENTE UN SENS, NON UN MOT.
+
+**§ 53.5 — Les domaines théologiques organisent ; ils ne préjugent pas du sens du texte**
+
+- ⛔ AUCUN DOMAINE THÉOLOGIQUE N’EST CRÉÉ AU FIL DE L’ANNOTATION.
+- ⛔ Les domaines ne servent jamais à projeter mécaniquement une dogmatique chrétienne sur un texte biblique antérieur ou d’une autre configuration théologique.
+
+**§ 53.5.1 — Les neuf domaines adoptés**
+
+- ⛔ ISRAËL N’EST PAS UN DOMAINE THÉOLOGIQUE.
+
+**§ 53.6 — Familles théologiques et familles thématiques**
+
+- ⛔ LE NIVEAU DES FAMILLES EST LUI AUSSI PARCIMONIEUX.
+
+**§ 53.6.2 — Les dix-sept familles thématiques adoptées**
+
+- ⛔ Une famille thématique n’est pas un thème théologique.
+
+**§ 53.8 — Sources savantes du vocabulaire**
+
+- ⛔ Une seule source ne constitue jamais, à elle seule, la taxonomie de Corpus Scriptura.
+
+**§ 53.8.1 — Fonctions des sources**
+
+- ⛔ UNE SOURCE NON CONSULTÉE N’EST PAS CITÉE COMME SOURCE DE DÉFINITION.
+
+**§ 53.9 — Autorités : sept types stables**
+
+- ⛔ UNE FORME ÉCRITE NE DÉTERMINE JAMAIS LE TYPE D’AUTORITÉ.
+- ⛔ UNE ENTITÉ INDIVIDUALISÉE N’EST PAS CRÉÉE UNE SECONDE FOIS COMME CONCEPT.
+
+**§ 53.10 — Genres et formes littéraires : un vocabulaire autonome**
+
+- ⛔ IL N’EXISTE PAS DE NIVEAU « GENRE ENGLOBANT ».
+
+**§ 53.12 — Le verset est l’ancre canonique ; il n’est pas toujours l’unité sémantique**
+
+- ⛔ Une portée n’est jamais identifiée uniquement par une chaîne libre du type « Jn 1,1–18 » ni par la numérotation propre d’une traduction.
+- ⛔ UN VERSET PEUT NE PORTER AUCUNE NOTION THÉOLOGIQUE DIRECTE.
+
+**§ 53.13 — Texte, synthèse canonique, synthèse doctrinale, intertextualité et réception**
+
+- ⛔ Une annotation doctrinale ne se présente jamais comme sens textuel par défaut.
+- ⛔ UNE INTERPRÉTATION PATRISTIQUE NE DEVIENT PAS LE SENS DU VERSET PAR HÉRITAGE.
+
+**§ 53.13.1 — Vocabulaires de relations adoptés**
+
+- ⛔ Deux concepts exactement équivalents ne sont pas reliés par RCO02 pour éviter une fusion : ils sont fusionnés ou maintenus distincts si leur note de portée montre une différence réelle.
+- ⛔ CES RELATIONS NE DOUBLONNENT PAS liens_bibliques.
+
+**§ 53.15 — Provenance, validation et responsabilité**
+
+- ⛔ PROVENANCE, VALIDATION ET CYCLE DE VIE SONT TROIS AXES DISTINCTS.
+
+**§ 53.16 — Architecture relationnelle visée**
+
+- ⛔ PAS DE TABLEAU DE TAGS EN TEXTE LIBRE DANS versets_v2 OU segments.
+
+**§ 53.17 — Plan de construction**
+
+- ⛔ LE PILOTE NE VIENT QU’APRÈS LA FIXATION DES VOCABULAIRES.
+
+**§ 53.19 — Gouvernance des vocabulaires**
+
+- ⛔ Les concepts, domaines, familles et termes littéraires ne sont pas créés au fil de l’annotation pour résoudre un cas difficile.
+
+## § 1. Principes directeurs
+
+**§ 1 — Capitales de phrase**
+
+- ⛔ Ne jamais appliquer mécaniquement la règle à tout caractère `.`.
+
+## § 3. Typographie — les signes, les espaces, l’enrichissement et le gris
+
+**§ 3 — Typographie — les signes, les espaces, l’enrichissement et le gris**
+
+- ⛔ La typographie se pose au RENDU, jamais dans la donnée.
+- ⚠️ Trois endroits en traitent légitimement, et il faut savoir pourquoi.
+
 ---
 
 ## Couverture — les chapitres que le noyau représente le moins
@@ -3297,10 +3519,10 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | § | chapitre | signes | énoncés | pour mille signes |
 |---|---|---:|---:|---:|
 | 8 | Notes structurées et références présentes dans | 8 003 | 1 | **0.1** |
-| 52 | Les états de publication et de validation | 43 165 | 16 | **0.4** |
+| 52 | Les états de publication et de validation | 45 197 | 16 | **0.4** |
+| 53 | La couche sémantique de la Bible et des Pères | 61 168 | 26 | **0.4** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
-| 3 | Typographie — les signes, les espaces, l’enric | 69 485 | 57 | **0.8** |
+| 3 | Typographie — les signes, les espaces, l’enric | 70 747 | 62 | **0.9** |
 | 15 | Corpus biblique et traductions | 18 188 | 17 | **0.9** |
-| 35 | Chantier Fillion — la composition du paratexte | 80 126 | 81 | **1.0** |
-| 51 | Les objets d’interface partagés | 99 706 | 105 | **1.1** |
-| 48 | Le protocole d’océrisation d’une bible | 46 229 | 51 | **1.1** |
+| 51 | Les objets d’interface partagés | 102 088 | 105 | **1.0** |
+| 35 | Chantier Fillion — la composition du paratexte | 84 683 | 93 | **1.1** |

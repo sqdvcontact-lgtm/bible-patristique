@@ -4936,6 +4936,24 @@ Une clôture d’œuvre ne repose jamais sur les seuls totaux globaux. Après to
 - **Métadonnées finales.** Après les dernières mutations structurelles, recalculer depuis les tables live les nombres de segments, unités et signes, les statuts de phase et les indicateurs de publication. Les drapeaux œuvre/texte ne doivent pas contredire une note éditoriale explicite de non-publication.
 - **Niveaux de validation.** Distinguer strictement contrôle mécanique, relecture IA et validation humaine. Aucun marqueur IA ou mécanique ne permet de déduire `validated_human=true` ou `controle_verifie=true`.
 
+### 35.27. L’apparat introductif d’un livre
+
+Fillion ouvre chaque livre par une introduction que son imprimeur divise en développements : « 1° La personne de l’auteur », « Le sujet et le but », « Plan et division ». La donnée en fait DEUX blocs par développement — un bloc de TITRE, puis un ou plusieurs blocs de CORPS qui le nomment pour parent.
+
+⛔ **UNE SUBDIVISION D’INTRODUCTION SE COMPOSE EN MANCHETTE**, posée en tête de son développement, à gauche, en haut, que le texte habille — exactement le repère d’un commentaire de rang bas (§ 35.9). C’est la disposition du fac-similé, et elle rend au blanc sa mesure : le développement suivant ne rouvre plus le blanc d’un rang de titre, il ouvre celui d’une subdivision.
+
+⛔ **LA DONNÉE DÉCIDE, ET ELLE SEULE.** Une subdivision se reconnaît à ce que son titre DÉCLARE une introduction pour parent (`semantic_parent_key`) et qu’il porte le rang T4 ; jamais à la forme de son intitulé ni à sa place dans la page. Les autres titres d’une introduction n’en sont pas et ne bougent pas : un `titre_livre`, qui ne paraît jamais, ou l’« Introduction » de Daniel, qui est un T2 et titre la pièce entière. ⚠️ Un titre dont le développement MANQUE — bloc absent du chapitre chargé, corps qui porte déjà son propre intitulé — n’est pas absorbé : il garde sa composition de titre. Une manchette qui n’a pas où se poser doit se voir, non disparaître.
+
+⛔ **LA NUMÉROTATION IMPRIMÉE NE PARAÎT PLUS** (décision de l’auteur, 20 septembre 2026), et la donnée la GARDE : c’est un témoin de la page composée, comme la mention de chapitre. Elle ne dit rien que la suite des manchettes ne dise déjà, et elle divisait le corpus en deux — « 1. La personne de l’auteur » chez Matthieu contre « Le sujet et le but » à la Genèse, pour la même chose. ⚠️ Le chiffre est ARABE : « I — L’état d’innocence » n’est pas une numérotation mais une DÉSIGNATION, qui se compose en titre et chapeau.
+
+⛔ **LE BLANC D’UNE SUBDIVISION N’EST PAS CELUI D’UN RANG DE TITRE.** Il ouvre le développement suivant à l’intérieur d’une même introduction, là où le rang de la sous-section sépare deux parties d’un livre : 2,25 rem contre 6,25, soit 137 px sur l’écran de l’auteur à l’intérieur d’une seule introduction de trois pages (« anormalement grand ; il faut un espace beaucoup plus petit, proportionné »). Il reste franchement sous le plus bas des rangs de titre, une subdivision d’introduction rompant moins qu’une péricope neuve. ⚠️ Il se pose sur les TROIS surfaces du § 35.17.3, et l’on FERME celui du bloc d’avant : sur l’axe de texte, qui est une grille, les marges s’ADDITIONNENT au lieu de fusionner (§ 35.12).
+
+⛔ **LE TITRE PORTÉ D’UNE INTRODUCTION DE LIVRE MONTE D’UN RANG** (décision de l’auteur, 20 septembre 2026 : « doit être plus gros »). C’est la première chose qu’on lit avant le premier verset, et elle se composait au rang d’une PARTIE, dont elle n’est pas. Elle prend donc le corps du rang T1, que `titre_livre` laisse VACANT puisqu’il ne paraît jamais — la page nomme déjà le livre dans son fil d’Ariane (§ 35.1). ⚠️ L’introduction ne prend pas ce rang pour autant : elle reste un bloc d’INFORMATION de portée I1 qui PORTE un titre T2, et c’est sa seule composition qui change. Le chapeau monte avec elle, d’un cran : sous une tête de 1,625 rem, le corps des rangs hauts faisait du nom du livre une légende.
+
+⛔ **UN STYLE À RÔLE DE TITRE DIT LE RANG DE SON TITRE À CHAQUE RANG D’INFORMATION.** `introduction_titree` déclarait `heading_role: "title"` sans dire nulle part quel titre elle porte : faute d’`embedded_title_level` sur le bloc, le rendu ne trouvait aucun rang et retombait sur la RUBRIQUE grise. Seul son alias `introduction_livre` portait ce rang, si bien que la même introduction se composait en T2 à la Genèse et en rubrique chez Matthieu, selon le code que l’import avait écrit. ⛔ **Un code canonique vaut son alias, toujours** : le registre porte donc `heading_levels`, un rang de titre par rang d’information, et le validateur REFUSE un style d’information à rôle de titre qui ne sait pas composer son titre à chaque rang. ⚠️ Chaque rang d’information porte le titre de la PORTÉE qu’il explique ; I1 → T2 est la seule exception doctrinale, `titre_livre` (T1) ne paraissant jamais.
+
+⚠️ **Le défaut ne se voyait NI dans la donnée, NI dans un test, NI dans le registre lu seul** : les deux codes sont canoniques, les deux blocs sont sains, et c’est leur RENCONTRE avec le rendu qui les séparait. Mesuré au jour de la correction : 55 blocs du corpus retrouvent leur titre, 44 introductions de livre et 11 de péricope.
+
 
 ## 36. Le modèle d’onglets
 
@@ -9399,3 +9417,73 @@ L’arbitrage de phase J du 19 septembre 2026 a élargi sans changer d’identit
 * l’export futur vers un modèle de thésaurus ou de graphe sans imposer ce modèle à la base de production.
 
 La priorité n’est pas de construire immédiatement un graphe de connaissance complet. Elle est d’obtenir d’abord des vocabulaires contrôlés, documentés et fermés pour l’expérimentation, puis des annotations traçables et des distinctions herméneutiques et littéraires solides.
+
+
+## Règle normative — Français 899 / TR0009 — mode développé à typographie normalisée
+**Mission :** [TR0009|mode-developpe-typographie-v1-20260920]
+**Version :** 1 — 20 septembre 2026.
+
+### Principe
+Le mode **développé** de Français 899 peut moderniser la **typographie de lecture**, mais il ne modernise jamais l’orthographe, la morphologie, le lexique ni la syntaxe du témoin.
+
+La couche diplomatique reste intacte. La couche développée philologique reste l’autorité textuelle ; la normalisation ci-dessous appartient au rendu développé ou à une couche dérivée réversible. Elle ne doit jamais contaminer `texte_diplomatic` ni servir de prétexte à corriger la langue médiévale.
+
+### 1. Capitales de phrase
+Lorsqu’un point est reconnu avec certitude comme un **véritable point de fin de phrase**, le premier caractère alphabétique de la phrase suivante reçoit une capitale.
+
+Exemple :
+`et il ala. puis troua...` → `Et il ala. Puis troua...`
+
+La casse seule change. L’orthographe reste identique :
+- `apres` → `Apres`, jamais `Après` si l’accent n’appartient pas à la forme transmise ;
+- `eglise` → `Eglise`, jamais `Église` par simple normalisation typographique ;
+- `uostre`, `estoit`, `troua`, `ala`, etc. restent inchangés.
+
+Même principe après un point d’interrogation ou d’exclamation lorsqu’ils marquent réellement une fin de phrase.
+
+⛔ Ne jamais appliquer mécaniquement la règle à tout caractère `.`. Sont notamment exclus :
+- les points qui encadrent un nombre ;
+- les points d’abréviation ;
+- les signes dont la fonction syntaxique demeure incertaine ;
+- les ponctuations faibles ou séparateurs du témoin qui ne correspondent pas à une fin de phrase certaine.
+
+### 2. Chiffres romains
+Les chiffres romains encadrés de points sont présentés sans les points et en capitales :
+
+- `.ii.` → `II`
+- `.xii.` → `XII`
+- `.xxv.` → `XXV`
+- `.iiii.` → `IIII`
+
+La **forme numérique du témoin est conservée**. On ne convertit pas une notation additive en notation soustractive :
+`.iiii.` ne devient jamais `IV` ; `.viiii.` ne devient jamais `IX` si le témoin porte effectivement la forme additive.
+
+Cette transformation ne s’applique qu’à un token identifié avec certitude comme chiffre romain. Elle ne sert jamais à développer arbitrairement une abréviation ressemblante.
+
+### 3. Espacement et signes typographiques
+Lorsque la fonction de la ponctuation est certaine, le rendu développé peut appliquer les conventions typographiques de lecture du projet :
+- suppression des espaces fautives avant virgule et point ;
+- espacement français normalisé autour de `: ; ? !` ;
+- guillemets et apostrophes rendus avec leurs glyphes typographiques lorsqu’ils sont déjà éditorialement établis.
+
+Cette normalisation porte sur l’**habillage** des signes. Elle n’autorise ni l’ajout ni la suppression d’une ponctuation signifiante du témoin sans décision éditoriale distincte.
+
+### 4. Interdictions
+Dans le mode développé typographiquement normalisé, il est interdit de :
+- moderniser l’orthographe : `u`/ `v`, `i`/ `j`, graphies lexicales, consonnes ou voyelles ;
+- ajouter des accents absents au nom d’une orthographe moderne ;
+- moderniser une flexion, un article, un pronom ou une forme verbale ;
+- remplacer un mot médiéval par un mot moderne ;
+- réordonner la syntaxe ;
+- convertir un nombre romain dans une autre notation ;
+- compléter, corriger ou harmoniser le texte d’après TR0013, la Vulgate, l’AELF ou une autre Bible.
+
+### 5. Résumé opérationnel
+**Développé = orthographe du témoin + abréviations développées + typographie de lecture normalisée.**
+
+Exemples :
+- `et il ala. puis troua .ii. homes.` → `Et il ala. Puis troua II homes.`
+- `.iiii. iorz` → `IIII iorz`
+- `apres ce. il uint` → `Apres ce. Il uint`
+
+Toute transformation doit être réversible ou reproductible à partir de la couche développée philologique.
