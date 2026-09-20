@@ -11834,3 +11834,85 @@ un arbre indexé s'ÉPROUVE (`git write-tree` + `git archive` dans un miroir, `t
 la suite de tests) avant d'être commité ; et `git archive` y écrit en CRLF, si bien
 qu'une garde qui cherche un saut de ligne simple dans une feuille (`bullePartage`) y
 échoue à tort — on la rejoue dans l'arbre réel avant de conclure.
+
+# ⛔ LE RANG D'UN TITRE SE DÉCLARE SUR LE BLOC (2026-09-20)
+
+Doctrine : charte `parametres.charte_ia`, **§§ 35.28 et 35.29**. Ici, ce qu'il faut
+savoir pour y toucher.
+
+- ⛔ **L'ORDRE EST LE MÊME SUR LES DEUX AXES** (`resoudreStyleSemantique`) : l'alias
+  hérité d'abord (`porte.niveau`), la déclaration du bloc ensuite (`rang?.niveau`,
+  c'est-à-dire `metadata.semantic_level`), le registre en dernier (`entree.level`).
+  Il valait `entree.level ?? porte.niveau ?? rang?.niveau` : le registre passait
+  devant, et le rang d'un titre était donc son NOM DE STYLE. `titre_pericope` valait
+  T6 quoi que la donnée déclarât, et l'on ne pouvait remonter d'un cran une péricope
+  qu'en la renommant « paragraphe ».
+- ⛔ **L'ALIAS GARDE SA PRÉSÉANCE, et c'est une règle écrite** : un code hérité porte
+  son rang dans son propre nom, sans quoi le regroupement des styles changerait la
+  composition d'un bloc qui n'a pas bougé. ⚠️ Elle ne se heurte jamais à la nouvelle :
+  sur les 46 alias porteurs du registre, **aucun n'est un titre** — tous sont des
+  styles d'information. Vérifier ce fait avant de toucher à l'ordre.
+- ⛔ **UNE DÉCLARATION HORS DE LA FAMILLE DU STYLE EST ÉCARTÉE** (`rangDeclareRecevable`),
+  jamais appliquée : un titre déclaré `I3` rendrait la classe `cs-bible-title--i3`,
+  que la feuille ne connaît pas, c'est-à-dire un titre sans aucune composition. On
+  écarte et l'on retombe sur le registre ; ⛔ on ne lève pas, une faute de donnée ne
+  doit pas coûter la page au lecteur. Le contrôle de la grille la relève à part.
+  ⚠️ Un style d'INFORMATION n'a pas de défaut au registre : une déclaration
+  irrecevable le laisse sans rang, et il est refusé comme un style inconnu.
+- ⚠️ **`entree.heading_level` passe désormais APRÈS `rang?.titre`**, pour que la règle
+  soit vraie telle qu'elle s'énonce. Sans effet aujourd'hui : aucune entrée canonique
+  du registre ne porte `heading_level` au singulier, seul `introduction_titree` porte
+  la table `heading_levels`.
+- ⚠️ **L'effet se MESURE par la vraie fonction, avant et après**, jamais par une copie
+  de sa règle : un script qui relève `resoudreStyleSemantique` sur les 17 592 blocs du
+  corpus, exécuté une fois avant l'édition et une fois après, puis les deux relevés
+  comparés. Résultat du 20 septembre 2026 : **39 blocs changent de rang**, tous des
+  titres, tous dans le sens que la donnée demandait — 34 paragraphes de Job déclarés
+  T4 et rendus T5, 5 sections d'Isaïe déclarées T4 et rendues T3. Aucun bloc
+  d'information, aucun titre porté.
+- ⚠️ **4 948 titres sur 6 316 déclaraient déjà un rang que le rendu ignorait.** C'est
+  le même défaut que `heading_levels` la veille : **la donnée porte un fait que le
+  rendu ne lit pas.** Devant une règle éditoriale « inapplicable », demander d'abord
+  si le champ qui la porterait est seulement LU.
+
+## Le contrôle — `scripts/fillion/controle-grille-titres.mts`
+
+- ⛔ **IL N'A AUCUNE RÈGLE À LUI** : le rang de chaque bloc vient de
+  `resoudreStyleSemantique`, la fonction que la page emploie. Une seconde écriture
+  divergerait au premier ajustement et certifierait un site imaginaire. Il n'écrit
+  rien : la correction est un travail de DONNÉE et de LECTURE.
+- ⚠️ **Le parent d'un titre est le titre le plus PROCHE en remontant**, pas
+  `semantic_parent_key` : un bloc d'information qui s'intercale ne rompt pas la chaîne
+  des titres, il pend à côté d'elle. Compté sur la seule parenté directe, le relevé
+  tombe de 356 à 62 + 294 — même chiffre, autre découpe, et l'on croit à une
+  divergence.
+- **Quatre relevés, du plus dur au plus souple** : déclaration irrecevable (doit valoir
+  zéro, seule à rendre le script rouge), inversion (enfant au-dessus de son père), rang
+  plat (enfant au rang de son père), saut (plus d'un rang d'écart). ⚠️ Le saut n'est
+  PAS une faute : une édition peut n'avoir qu'un niveau analytique sous une section.
+  C'est une question, et le nombre dit s'il faut la poser.
+- **État au 20 septembre 2026**, 6 316 titres : 0 irrecevable, 62 inversions, 294 rangs
+  plats, 140 fratries hétérogènes, 1 579 sauts. ⛔ On reprend livre par livre : une
+  règle qui demanderait de justifier quinze cents sauts au cas par cas ne serait pas
+  une règle mais un arriéré.
+
+## ⚠️ LE REGISTRE EXISTE EN DEUX EXEMPLAIRES, ET ILS DIVERGENT
+
+`work/fillion/semantic_display_hierarchy.json` est lu par le RENDU ;
+`public.bible_styles_semantiques` est lu par le seul verrou de base
+(`bible_style_semantique_connu`). Le second porte `niveau_intitule = null` sur
+`introduction_titree` là où le premier porte `heading_levels` depuis le 20 septembre
+2026. ⛔ Une doctrine ne se copie que dans un sens, et la copie ne décide de rien : la
+table garde le VOCABULAIRE, le JSON garde la COMPOSITION. À réaccorder au prochain
+passage.
+
+## ⚠️ Deux contradictions de la charte, résolues le même jour
+
+- **§ 48** prescrivait U+202F avant le deux-points, contre les §§ 3.2 et 35.0 — et
+  contre la matrice de clôture du même § 48, qui écrivait déjà `U+00A0` avant `:`.
+  Un chapitre qui se contredit lui-même se corrige sur son propre témoin interne.
+- **§ 35** imposait la casse imprimée DANS L'AFFICHAGE, en quatre passages, **en citant
+  le § 3.5** — lequel dit depuis sa double couche que la fidélité n'oblige pas la
+  couche de lecture à reproduire les capitales du témoin. Le § 3.5 prévaut.
+  ⛔ L'application aux données déjà saisies est une MISSION à part : une doctrine qui
+  change ne réécrit jamais la donnée par ricochet.
