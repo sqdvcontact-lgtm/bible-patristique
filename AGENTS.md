@@ -12379,3 +12379,88 @@ quand la colonne de droite ouvre à **457**, et son filet traversait la chronolo
 - ⚠️ **La garde du glyphe a trouvé son premier fautif le jour même** : le commentaire que
   je venais d'écrire dans `FicheModele.tsx` citait le ✕ qu'il remplace. Elle porte sur les
   quatre fichiers, commentaires compris.
+
+# ⛔ LA NOTICE D'UNE TRADUCTION — le nom sur deux lignes, « Édition du texte » sous le titre (2026-09-20)
+
+Doctrine : charte § 38.15 — ⚠️ **non encore poussée**, le verrou de `--push` étant levé par
+la section TR0009 (voir « LA NOTICE D'UN AUTEUR FAIT MODÈLE »). Six reprises demandées par
+l'auteur sur « À propos de cette traduction », mise en forme seulement. Règles de code :
+
+- ⛔ **AUCUN SURTITRE.** La fenêtre porte déjà son nom accessible (`ModaleFiche`, `libelle`),
+  et l'écrire au-dessus du nom de la bible ne l'apprenait à personne : c'est la décision
+  prise le même jour pour la fiche d'une œuvre (§ 38.25.2), appliquée ici. ⚠️ Sur la page
+  « Les traductions » (`surPage`), l'en-tête ne se rend plus DU TOUT : son bandeau nomme
+  déjà la bible, et `EnTeteFiche` sans rien rend `null`.
+- ⛔ **LE NOM SE LIT SUR DEUX LIGNES**, et la coupure vit dans `nomEtQualite`
+  (`ModaleTraduction.tsx`, exportée, pure) : « Bible Fillion » en titre, « Latin (Vulgate) »
+  sous lui, dans `.cs-fiche-langue` — sans empattements, graisse 600, chasse 0,01 em, EN
+  VERT, comme le nom de l'auteur sur la fiche d'une œuvre. ⚠️ Le tiret SÉPARE, il ne compose
+  pas : on ne coupe que sur un tiret CERNÉ D'ESPACES (demi-cadratin ou cadratin), jamais sur
+  le trait d'union d'un nom composé ni sur un tiret collé, et les deux morceaux doivent
+  porter quelque chose. Les noms des œuvres patristiques emploient le CADRATIN : la règle ne
+  sert que les bibles (`est_biblique`), seules surfaces qui montent cette fiche.
+- ⛔ **L'INTITULÉ NE PARAÎT PLUS** (« Recension de Louis-Claude Fillion (éd.) (IVe siècle) ») :
+  `intituleTraduction` est retirée, et `type_objet`, `auteur` et `dates` ne sont plus lus par
+  le rendu. ⚠️ `responsable_edition` remonte alors en rangée « Texte établi par » : la règle
+  « AUCUN AUTEUR EN TÊTE » de `referenceEditionServie` tenait parce que la fiche le nommait
+  deux lignes plus haut, et cette prémisse tombe avec l'intitulé. La RÉFÉRENCE composée, elle,
+  n'en porte toujours aucun.
+- ⛔ **« ÉDITION ET ÉTAT DU TEXTE » DEVIENT « ÉDITION DU TEXTE »**, monte SOUS LE TITRE et
+  quitte la colonne étroite, qui ne garde que la chronologie. Son détail se compose en rangées
+  « libellé : valeur », celles de « Édition de référence » sur la fiche d'une œuvre. ⛔ La
+  référence composée ne paraît plus à l'écran, et elle ne se perd pas : le geste de copie,
+  contre le titre de la section (`SectionFiche`, `action`), la rend par `texteReferenceEdition`
+  telle qu'on la cite.
+- ⛔ **UNE SEULE ÉCRITURE DE LA RANGÉE « libellé : valeur »** : `ChampEdition` quitte
+  `FicheEdition` pour le MODÈLE, sous le nom `ChampFiche` — deux fiches la composent, et deux
+  copies divergeraient au premier réglage. ⚠️ L'insécable de ses deux-points s'écrit en POINT
+  DE CODE (`DEUX_POINTS`) : elle ne se distingue pas d'une espace ordinaire à la lecture du
+  dépôt, et le dépôt en a déjà perdu ainsi. Les classes `cs-fiche-edition-champ(s)` ne
+  bougent pas : elles sont GLOBALES, non imbriquées sous la fiche d'une œuvre.
+- ⛔ **LA MENTION D'ÉDITION SE TAIT PAR LA MÊME RÈGLE QUE LA RÉFÉRENCE** :
+  `mentionEditionAComposer` est exportée de `referenceEditionServie` plutôt que réécrite — un
+  témoin manuscrit n'a pas de mention, et une mention que le titre porte déjà ne se redit pas.
+  Sans elle, la Bible du XIIIe siècle affichait « Édition : Témoin manuscrit » sous un titre
+  qui dit déjà « manuscrit Français 899 ».
+- ⚠️ **« Ouvrages cités dans cette édition » passe de RUBRIQUE en SECTION**, comme sur la fiche
+  d'une œuvre (§ 38.25.2) : deux listes d'ouvrages ne se composent pas de deux façons. Les
+  conditions d'usage ferment seules la fiche, en rubrique.
+
+## ⛔ UNE LISTE « libellé : valeur » NE STRADDLE PAS UN FLOTTANT
+
+C'est la trouvaille de la passe, et elle vaut au-delà de cette fiche.
+
+- ⛔ **LES RANGÉES SONT DES CONTEXTES DE FORMATAGE** (`.cs-fiche-edition-champ` est un flex),
+  et chacune se range où elle peut : les premières à côté du portrait, les suivantes en pleine
+  mesure. Dans de la PROSE c'est l'habillage voulu ; dans une liste de libellés, cela fait DEUX
+  FERS, et l'œil ne retrouve plus la colonne. ⚠️ Le défaut naît d'avoir monté la section SOUS
+  LE TITRE, là où le portrait flotte : la fiche d'une œuvre, qui n'a pas de portrait, ne l'a
+  jamais connu.
+- ⛔ **LA FAIRE TENIR ENTIÈRE À CÔTÉ DU PORTRAIT (`flow-root`) EST PIRE**, et c'est MESURÉ sur
+  planche : la colonne tombe à 272 px, « Particularités » y court sur vingt lignes de
+  vingt-cinq signes, et la moitié droite de la fiche reste blanche. La liste se pose donc SOUS
+  le portrait, à sa pleine mesure, par `cs-fiche-section--degagee` — la classe que le modèle
+  porte déjà, et dont le commentaire disait exactement cela.
+- ⚠️ **Une bible sans portrait ne bouge pas d'un pixel** : `clear: left` sans flottant ne
+  déplace rien. ⚠️ Et le prix est réel : le blanc à droite du portrait, sous le titre, que la
+  chronologie de la colonne étroite compense. Les trois partis ont été rendus EN REGARD avant
+  de trancher.
+
+## ⚠️ La planche : `tmp/planche-fiche-traduction/` (non versionnée)
+
+Elle rend le VRAI `ContenuFicheTraduction` — séparé de sa fenêtre pour cela même (§ 38.33) —
+sur les données RÉELLES de bibles du corpus, avec la feuille du dépôt telle quelle.
+`node --env-file=.env.local tmp/planche-fiche-traduction/batir.mjs TR0011 TR0009 TR0001`.
+⛔ **Prendre au moins une bible SANS portrait et une AVEC** : le défaut ci-dessus ne se voit
+que sur la seconde, et l'absence de régression que sur la première.
+
+- ⛔ Elle pose à la main les deux variables de `next/font` : sans elles,
+  `var(--font-source-serif)` est une propriété non définie, la déclaration entière est
+  invalide, la police est HÉRITÉE, et la planche mesure une autre composition que la page.
+- ⚠️ **DEUX modules se remplacent par un shim, et pour deux raisons distinctes** :
+  `@/app/lib/supabase` ouvre un client NAVIGATEUR dès son import — le composant ne l'appelle
+  jamais pendant son rendu, seuls les crochets de chargement le font, et ils ne s'exécutent pas
+  sous `renderToStaticMarkup` ; `dompurify` veut un DOM, et la planche ne juge que la
+  COMPOSITION. ⛔ Le second raccourci ne vaut QUE pour la planche : la page, elle, assainit.
+- ⚠️ La RÉSERVE du flottant est mesurée par `CorpsFiche` avant la peinture, et la planche
+  n'hydrate rien : elle la repose par un script, sinon le complément ne réserve aucune place.
