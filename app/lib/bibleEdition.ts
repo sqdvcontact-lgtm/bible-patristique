@@ -353,6 +353,16 @@ export type BibleEditionDisplayBodyBlock = {
    * qui porterait les deux afficherait deux repères l'un sur l'autre.
    */
   manchette?: string | null
+  /**
+   * Ce que la donnée du bloc NE DIT PAS, et que le rendu a dû suppléer pour ne
+   * pas le perdre. `orphelin` : le bloc ne déclare aucun parent, aucune
+   * fermeture ne l'atteignait, et il n'existait à l'écran nulle part
+   * (`blocOrphelinSansAncre`).
+   *
+   * ⛔ Il se compose alors en FLUO, avec la mention de son défaut : le rendu
+   * supplée pour ne rien perdre, il ne répare pas. C'est la donnée qui guérit.
+   */
+  defautDeDonnee?: 'orphelin' | null
   placement: BibleEditorialPlacement
   canonIdStart: string | null
   canonIdEnd: string | null

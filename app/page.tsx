@@ -26,6 +26,7 @@ import type {
 import { baliserBlocsDuChapitre, type BornesOrdreChapitre } from '@/app/lib/bibleAxeChapitre'
 import { rangDesSousTitres } from '@/app/lib/bibleHierarchieSemantique'
 import { intituleDeManchette, manchettesDApparat } from '@/app/lib/bibleApparatIntroductif'
+import { blocOrphelinSansAncre } from '@/app/lib/bibleFrontMatter'
 import { grouperPiecesLiminaires, pieceParCle } from '@/app/lib/bibleSommaireEdition'
 import { roleDuBlocDeNote } from '@/app/lib/noteBiblique'
 import { normaliserChapitreBible } from '@/app/lib/bibleNavigation'
@@ -508,6 +509,9 @@ export default async function Home({
         noticeSubtype: sousTypeNoticeValide(block.block_kind, block.notice_subtype),
         heading: block.heading,
         manchette: manchettes.parBloc.get(block.id)?.texte ?? null,
+        // Le bloc n'est là que parce que le rendu l'a adopté, sa donnée ne
+        // déclarant aucun parent : il le dit, et la feuille le crie.
+        defautDeDonnee: blocOrphelinSansAncre(block) ? 'orphelin' as const : null,
         placement: block.placement,
         canonIdStart: block.canon_id_start,
         canonIdEnd: block.canon_id_end,
@@ -675,6 +679,7 @@ export default async function Home({
           noticeSubtype: sousTypeNoticeValide(block.block_kind, block.notice_subtype),
           heading: block.heading,
           manchette: manchettesBilingue.parBloc.get(block.id)?.texte ?? null,
+          defautDeDonnee: blocOrphelinSansAncre(block) ? 'orphelin' as const : null,
           placement: block.placement,
           canonIdStart: block.canon_id_start,
           canonIdEnd: block.canon_id_end,

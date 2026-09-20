@@ -51,7 +51,7 @@ export type BlocTexteBiblique = BibleEditionDisplayTextBlock
 export type BlocEditorialBiblique = Pick<
   BibleEditionDisplayBodyBlock,
   'id' | 'blockKey' | 'semanticStyleCode' | 'semanticLevel' | 'embeddedTitleLevel' | 'rangDuTitre'
-  | 'niveauHtml' | 'noticeSubtype' | 'heading' | 'manchette' | 'placement'
+  | 'niveauHtml' | 'noticeSubtype' | 'heading' | 'manchette' | 'defautDeDonnee' | 'placement'
   | 'textBlocks' | 'presentation'
 > & { internalNotes?: BibleEditionDisplayInternalNote[] }
 
@@ -805,6 +805,15 @@ export function BlocEditorialBible({
 
   const contenu = (
     <>
+      {/* ⛔ LA MENTION DU DÉFAUT VIENT AVANT LE BLOC, et elle dit ce qui manque :
+          un fond fluo sans explication laisserait chercher. Elle disparaîtra
+          d'elle-même le jour où la donnée déclarera le parent. */}
+      {bloc.defautDeDonnee === 'orphelin' && (
+        <p className="cs-bible-defaut-donnee">
+          Donnée incomplète : ce bloc ne déclare aucun parent. Il est rattaché ici
+          pour l’affichage seulement.
+        </p>
+      )}
       {rendreIllustrations(avant)}
       {/* ⛔ LA MANCHETTE VIENT EN PREMIER, avant même ce que la donnée place en
           tête : c'est un FLOTTANT, et un flottant posé après le texte n'a plus
@@ -892,6 +901,11 @@ export function BlocEditorialBible({
     // manchette, et la feuille lui donne le blanc d'une subdivision — non celui
     // d'un rang de titre, qui valait vingt fois plus (charte § 35.27).
     'data-manchette': manchette ? '' : undefined,
+    // ⛔ LE DÉFAUT DE DONNÉE SE VOIT. Le bloc n'est ici que parce que le rendu
+    // l'a adopté faute de parent déclaré ; sans ce drapeau — et le fluo que la
+    // feuille y accroche —, l'adoption ferait passer pour saine une donnée qui
+    // ne l'est pas, et le remède cesserait d'être visible.
+    'data-defaut-donnee': bloc.defautDeDonnee ?? undefined,
   }
   // Une notice se tient à côté du fil de lecture. ⚠️ `excursus` figurait ici : le
   // regroupement du 29 août 2026 l'a fondu dans `notice`, dont il ne se distinguait

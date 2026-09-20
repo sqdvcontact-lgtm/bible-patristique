@@ -495,6 +495,14 @@
      titre — 2,25 contre 4 rem —, une subdivision d'introduction rompant moins qu'une
      péricope neuve. */
   --cs-blanc-subdivision: 2.25rem;
+  /* ⛔ LE FLUO D'UN DÉFAUT DE DONNÉE (décision de l'auteur, 2026-09-20). Il n'est
+     pas une couleur du site : il est fait pour JURER, et pour qu'on le voie en
+     faisant défiler une page sans la lire. Il ne survivra pas à la donnée qu'il
+     dénonce. Même teinte sur les deux thèmes — un fluo qui s'adoucit la nuit
+     cesse d'être un fluo —, seule l'encre change pour rester lisible. */
+  --cs-fluo-defaut: #f4ff3a;
+  --cs-fluo-defaut-encre: #3a2f00;
+  --cs-fluo-defaut-bord: #b8a800;
   --cs-blanc-t6: 4rem;      /* une péricope */
   --cs-blanc-t5: 5rem;      /* un paragraphe (« § I »), un chapitre */
   --cs-blanc-t4: 6.25rem;   /* une sous-section */
@@ -2023,6 +2031,42 @@ button:focus-visible,
 .cs-bible-bloc:has(+ .cs-bible-bloc[data-manchette]),
 [data-lecture='bilingue'] .cs-bible-bloc:has(+ .cs-bible-bloc[data-manchette]) {
   margin-bottom: 0;
+}
+
+/* ── UN BLOC QUE SA DONNÉE LAISSE ORPHELIN SE VOIT (2026-09-20) ───────────────
+   Un bloc sans ancre et sans parent n'était atteint par aucune fermeture : il
+   n'existait à l'écran nulle part — 1 205 blocs dans 35 livres, dont les 326 du
+   second livre des Machabées, l'appareil entier de Fillion sur ce livre. Le
+   rendu l'adopte désormais (`blocsSansAncreDemandes`), et il le DIT.
+   ⛔ Ce fluo n'est pas une couleur du site : il est fait pour jurer. Il ne se
+   discute donc ni en teinte ni en sobriété — il se supprime en écrivant le
+   `semantic_parent_key` qui manque, et il disparaît alors de lui-même.
+   ⚠️ L'encre est forcée sur le bloc ENTIER : un commentaire y garde sa couleur
+   de fil, qui sur ce jaune ne se lirait plus. */
+.cs-bible-bloc[data-defaut-donnee] {
+  background: var(--cs-fluo-defaut);
+  color: var(--cs-fluo-defaut-encre);
+  border: 1px dashed var(--cs-fluo-defaut-bord);
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  /* Le fond colle au texte sans ce retrait ; et le bloc suivant, fluo lui aussi,
+     se confondrait avec celui-ci. */
+  margin-top: 0.75rem;
+}
+.cs-bible-bloc[data-defaut-donnee] * {
+  color: inherit;
+}
+.cs-bible-defaut-donnee {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-source-sans), system-ui, sans-serif;
+  font-size: 0.6875rem;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: left;
+  line-height: 1.35;
+  color: var(--cs-fluo-defaut-encre);
 }
 /* ⛔ Et le rang d'un titre PORTÉ ne l'atteignait pas non plus, pour la raison
    symétrique : la règle générale s'écarte du premier bloc par `:not(:first-of-type)`,
