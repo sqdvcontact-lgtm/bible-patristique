@@ -4,7 +4,7 @@
 // Doctrine : AGENTS.md, « Les ornements se DÉTOURENT, jamais mix-blend-mode ».
 //
 //   node scripts/ornements-detourer.mjs --source <chemin> --nom <nom> --affichage <px>
-//        [--garder-haut] [--ecrire]
+//        [--garder-haut] [--recadrer] [--ecrire]
 //   node scripts/ornements-detourer.mjs --profil <nom>…
 //
 // Sans `--ecrire`, le script MESURE et ne touche à rien : c'est ainsi qu'on relève une
@@ -43,8 +43,85 @@ const args = process.argv.slice(2);
 const opt = (nom) => { const i = args.indexOf('--' + nom); return i >= 0 ? args[i + 1] : null; };
 const ECRIRE = args.includes('--ecrire');
 const GARDER_HAUT = args.includes('--garder-haut');
+const RECADRER = args.includes('--recadrer');
 
 const lum = (r, g, b) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+/** Cherche le DESSIN dans une planche brute, et rend sa boîte au format d'`extract`.
+ *
+ *  ⛔ Le rognage final de la chaîne se fait sur l'alpha, et il ne compte un rang que s'il
+ *  porte trois pixels visibles — un seuil qui suffit à une planche propre, jamais à une
+ *  planche POUSSIÉREUSE. Mesuré le 2026-09-20 sur les vingt-cinq symboles livrés ce
+ *  jour-là : une trompette dont le dessin tient en 57 × 30 à l'affichage 44 rendait
+ *  361 × 376 à l'affichage 190, non parce qu'elle avait grandi, mais parce que la
+ *  réduction, moins forte, laissait passer le seuil à des mouchetures d'encre éparses aux
+ *  quatre coins du papier. La boîte n'englobait plus le dessin : elle englobait la
+ *  planche, et la pose calculée dessus était fausse du double.
+ *
+ *  ⚠️ On ne règle pas cela en durcissant le seuil du rognage : il est partagé avec les
+ *  planches déjà servies, dont certaines n'ont pour tout dessin que des barbes d'un pixel.
+ *  On l'écarte en amont, par la seule mesure qui distingue une moucheture d'un dessin :
+ *  sa TAILLE. Les taches d'encre se comptent en composantes connexes sur une vignette, et
+ *  tout ce qui pèse moins d'un cinquantième de la plus grosse s'en va.
+ *
+ *  ⚠️ Les morceaux DÉTACHÉS du dessin, eux, restent : les trois figures d'une fournaise,
+ *  les rayons d'un soleil, la goutte d'un rayon de miel ne touchent pas le corps du motif
+ *  et compteraient pour des poussières sous un critère de composante unique. */
+async function boiteDuDessin(source) {
+  const VIGNETTE = 512;
+  const meta = await sharp(source).metadata();
+  const { data, info } = await sharp(source).removeAlpha().greyscale()
+    .resize({ width: VIGNETTE, fit: 'inside' }).blur(1).raw().toBuffer({ resolveWithObject: true });
+  const L = info.width, H = info.height;
+
+  // Le papier par son PIC, comme le nettoyage ; l'encre est ce qui s'en écarte franchement.
+  const hist = new Array(256).fill(0);
+  for (let i = 0; i < data.length; i++) hist[data[i]]++;
+  let pic = 0; for (let v = 1; v < 256; v++) if (hist[v] > hist[pic]) pic = v;
+  const SEUIL = Math.max(24, pic - 55);
+
+  // Composantes connexes (huit voisins), à la pile et jamais par récursion : un dessin
+  // plein de deux cent mille pixels ferait déborder la pile d'appels.
+  const marque = new Int32Array(L * H).fill(-1);
+  const boites = [], pile = [];
+  for (let d = 0; d < L * H; d++) {
+    if (data[d] >= SEUIL || marque[d] >= 0) continue;
+    const n = boites.length;
+    const b = { aire: 0, x0: L, y0: H, x1: -1, y1: -1 };
+    marque[d] = n; pile.push(d);
+    while (pile.length) {
+      const q = pile.pop(), x = q % L, y = (q / L) | 0;
+      b.aire++;
+      if (x < b.x0) b.x0 = x; if (x > b.x1) b.x1 = x;
+      if (y < b.y0) b.y0 = y; if (y > b.y1) b.y1 = y;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const vx = x + dx, vy = y + dy;
+        if (vx < 0 || vy < 0 || vx >= L || vy >= H) continue;
+        const v = vy * L + vx;
+        if (data[v] < SEUIL && marque[v] < 0) { marque[v] = n; pile.push(v); }
+      }
+    }
+    boites.push(b);
+  }
+  if (!boites.length) return null;
+
+  const plusGrosse = Math.max(...boites.map(b => b.aire));
+  const gardees = boites.filter(b => b.aire >= plusGrosse / 50);
+  const x0 = Math.min(...gardees.map(b => b.x0)), y0 = Math.min(...gardees.map(b => b.y0));
+  const x1 = Math.max(...gardees.map(b => b.x1)), y1 = Math.max(...gardees.map(b => b.y1));
+
+  // Retour à l'échelle de la planche, avec une marge. ⛔ Elle ne peut pas être plus mince
+  // que le pourtour que l'étape 1 rogne ensuite, sans quoi ce rognage mordrait le dessin.
+  const f = meta.width / L;
+  const marge = Math.max(MARGE + 8, Math.round(f * Math.max(x1 - x0, y1 - y0) * 0.05));
+  const left = Math.max(0, Math.round(x0 * f) - marge), top = Math.max(0, Math.round(y0 * f) - marge);
+  return {
+    left, top,
+    width: Math.min(meta.width - left, Math.round((x1 - x0 + 1) * f) + 2 * marge),
+    height: Math.min(meta.height - top, Math.round((y1 - y0 + 1) * f) + 2 * marge),
+    taches: boites.length - gardees.length,
+  };
+}
 
 /** Profil alpha d'une planche déjà servie. Une gravure au TRAIT rend beaucoup de
  *  transparents pour peu de partiels — les bords, et eux seuls. Un dessin en DEMI-TEINTES
@@ -80,7 +157,24 @@ async function profil(fichier) {
  *  monte à 22, la pose grandit et le rapport retombe vers 1,45 : c'est une réduction
  *  douce, sans commune mesure avec les 2,9 à 3,6 qui faisaient baver le trait. */
 async function fabriquer({ source, nom, affichage }) {
-  const meta = await sharp(source).metadata();
+  const origine = source;
+  let meta = await sharp(source).metadata();
+
+  // ── 0. RECADRER SUR LE DESSIN, quand on le demande ───────────────────────
+  // ⚠️ Facultatif, et c'est voulu : les planches déjà servies ont été jugées sans cette
+  // étape, et les rejouer en la posant d'office changerait des fichiers que personne n'a
+  // demandé de changer. Elle ne sert qu'aux planches dont le papier porte des mouchetures
+  // — voir `boiteDuDessin`, qui dit pourquoi elles faussent la pose.
+  let recadre = null;
+  if (RECADRER) {
+    recadre = await boiteDuDessin(source);
+    if (recadre) {
+      source = await sharp(source).extract({
+        left: recadre.left, top: recadre.top, width: recadre.width, height: recadre.height,
+      }).png().toBuffer();
+      meta = await sharp(source).metadata();
+    }
+  }
 
   // ── 1. ROGNER LE POURTOUR ────────────────────────────────────────────────
   // ⛔ Les planches de Midjourney portent un LISERÉ sombre sur leur bord : 243 de
@@ -183,7 +277,10 @@ async function fabriquer({ source, nom, affichage }) {
   }
 
   const bilan = {
-    nom, source: path.basename(source),
+    // ⚠️ `source` peut être devenu un BUFFER à l'étape 0 : le bilan et la sauvegarde
+    // nomment la planche d'ORIGINE, qui seule a un chemin.
+    nom, source: path.basename(origine),
+    recadre: recadre ? `${recadre.width}x${recadre.height}, ${recadre.taches} taches ôtées` : null,
     papier: propre.pic, plancher: propre.plancher, noir: propre.noir,
     blanchis: +propre.blanchis.toFixed(1),
     videOte: (W - LA) + 'x' + (H - HA),
@@ -197,7 +294,7 @@ async function fabriquer({ source, nom, affichage }) {
   if (ECRIRE) {
     fs.mkdirSync(SAUVEGARDE, { recursive: true });
     const copie = path.join(SAUVEGARDE, nom + '-source.png');
-    if (!fs.existsSync(copie)) fs.copyFileSync(source, copie);
+    if (!fs.existsSync(copie)) fs.copyFileSync(origine, copie);
     const dest = path.join(DOSSIER, nom + '.png');
     await sharp(ajuste, { raw: { width: LA, height: HA, channels: 4 } })
       .png({ compressionLevel: 9 }).toFile(dest + '.tmp');

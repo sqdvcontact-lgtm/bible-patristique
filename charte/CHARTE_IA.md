@@ -9644,3 +9644,53 @@ Toute transformation doit être réversible ou reproductible à partir de la cou
 Règle complémentaire TR0009 — numéraux composés. Dans le mode développé, les composantes numériques romaines conservent leur ordre et leur forme, mais les points typographiques sont remplacés par une séparation lisible : .iiii.c. devient IIII C ; .v.m. devient V M ; .viii. c. devient VIII C. Aucune conversion vers une notation romaine moderne normalisée n’est autorisée.
 
 Complément méthodologique V2 (20/09/2026) : toute passe typographique TR0009 doit appliquer protocole_tr0009_typographie_v2_20260920. Elle exige 0 résidu intra-segment inexpliqué, 0 frontière forte inexpliquée, revue exhaustive des changements dans les balises critiques, tests de régression permanents et contrôle du rendu public texte_expanded_lecture.
+
+### 49.24. LES MOUCHETURES DU PAPIER ANCRENT LA BOÎTE, ET FAUSSENT LA POSE (2026-09-20)
+
+Vingt-cinq symboles apportés par l'auteur pour le choix du fleuron d'une œuvre — six
+ornements, neuf objets, dix figures. Le registre passe de vingt à quarante-cinq. Cinq
+planches sur vingt-cinq ont refusé de converger, et ce qu'elles ont appris vaut pour toute
+la chaîne.
+
+⛔ **LE ROGNAGE SUR L'ALPHA NE SAIT PAS DISTINGUER UNE MOUCHETURE D'UN DESSIN.** Il ne
+compte un rang que s'il porte trois pixels visibles (§ 49.5) : un seuil qui suffit à une
+planche propre, jamais à une planche poussiéreuse. Mesuré sur une trompette dont le dessin
+tient en 57 × 30 à l'affichage 44 : servie à l'affichage 190, elle rendait **361 × 376**,
+non qu'elle eût grandi, mais parce que la réduction, moins forte, laissait passer le seuil à
+des taches d'encre éparses aux quatre coins du papier. La boîte n'englobait plus le dessin,
+elle englobait la planche.
+
+⚠️ **Le symptôme trompe, parce qu'il ressemble à un réglage mal pris.** La correction en
+deux passes — sonder, lire la hauteur servie, corriger l'affichage — **diverge** au lieu de
+converger : chaque tour agrandit l'affichage, chaque agrandissement réveille de nouvelles
+mouchetures, et la planche grossit sans jamais atteindre sa pose. On croit tourner autour
+d'une valeur quand on s'en éloigne.
+
+⛔ **ON NE DURCIT PAS LE SEUIL DU ROGNAGE POUR AUTANT.** Il est partagé avec les planches
+déjà servies, dont certaines n'ont pour tout dessin que des barbes d'un pixel — les épis de
+blé croisés y perdraient leurs barbes avant que la trompette y gagne sa pose. Le remède est
+EN AMONT, et il tient à la seule mesure qui sépare une tache d'un trait : sa TAILLE. Les
+taches se comptent en composantes connexes sur une vignette de la planche, et tout ce qui
+pèse moins d'un cinquantième de la plus grosse s'en va (option `--recadrer` de
+`scripts/ornements-detourer.mjs`).
+
+⚠️ **L'option est FACULTATIVE, et c'est une règle, non une paresse.** Les planches d'avant
+ont été jugées à l'œil sans elle ; les rejouer en la posant d'office changerait des fichiers
+que personne n'a demandé de changer, et le jugement de l'auteur porterait alors sur un
+dessin qu'il n'a pas vu. Une étape neuve de la chaîne s'offre aux planches neuves ; elle ne
+se rétroagit pas.
+
+⚠️ **UN CRITÈRE DE COMPOSANTE UNIQUE AURAIT MANGÉ LES DESSINS.** Les trois figures d'une
+fournaise, les rayons d'un soleil, la goutte d'un rayon de miel ne touchent pas le corps du
+motif : ils sont des composantes à part entière, et un filtre qui ne garderait que la plus
+grosse les prendrait pour des poussières. C'est le rapport à la plus grosse qui décide, non
+le rang.
+
+⚠️ **Et les poses se mesurent toujours à l'œil, six reprises après le premier banc** : la
+rosace, la plus dense du registre, se referme en boule sous 3 rem et se pose à 3,25 ; la
+fournaise et l'ange déchu jouent leur sujet en quelques pixels et montent à 3,5 ; les ailes,
+trop larges à 2,75, redescendent à 2,5 ; la trompette est le seul ornement COUCHÉ du jeu et
+se pose à 2 rem, la pose la plus courte. ⛔ Six de ces figures REGARDENT quelque part —
+corbeau, aigle, pélican, main, trompette, ange déchu —, ce qu'un ornement de séparation ne
+fait pas : elles sont offertes comme le poisson l'a été, avec leur réserve écrite au
+recensement des illustrations.

@@ -918,9 +918,9 @@ formulation était trop large ; le critère juste est : **un ornement de sépara
 regarde nulle part**. Le poisson, lui, reste figuratif et tourné vers la droite : il est
 offert, avec sa réserve écrite au recensement.
 
-## ⛔ DIX-NEUF FLEURONS AU REGISTRE, ET LA POSE EST PROPRE À CHACUN (2026-09-09)
+## ⛔ QUARANTE-CINQ FLEURONS AU REGISTRE, ET LA POSE EST PROPRE À CHACUN (2026-09-09)
 
-⛔ **Le registre est `app/lib/fleurons.ts`, clos et sous garde** (48 tests). `oeuvres.fleuron`
+⛔ **Le registre est `app/lib/fleurons.ts`, clos et sous garde** (100 tests). `oeuvres.fleuron`
 porte une CLÉ ; une clé inconnue, vide ou absente retombe sur le fleuron du site. Colonne
 NULLABLE et SANS CONTRAINTE en base : la liste est éditoriale, elle bougera, et un ornement
 retiré ne doit ni bloquer une écriture ni vider un frontispice. C'est le parti
@@ -978,6 +978,48 @@ erreur — on croit le composant en panne quand c'est la planche qui l'est.
 que la page calcule la largeur (`calc(hauteur * largeur / hauteur)`), et une valeur recopiée
 de travers rendrait un ornement étiré sans que rien ne le dise. Même parti que le
 recensement des illustrations, qui compare sa liste au contenu de `public/`.
+
+### ⛔ VINGT-CINQ SYMBOLES DE PLUS, ET LES MOUCHETURES DU PAPIER FAUSSENT LA POSE (2026-09-20)
+
+Vingt-cinq planches apportées par l'auteur — six ornements (croix à volutes, quadrilobe, lys
+flamboyant, roue, rosace, rayon de miel), neuf objets (calice, encensoir, deux lyres,
+trompette, épée, cognée, échelle aux serpents, serpent d'airain) et dix figures (ailes,
+soleil, corbeau, cerf, aigle, pélican, taureau, main, fournaise, ange déchu). Le registre
+monte de vingt à **quarante-cinq**, et le panneau du volet, qui les range trois par rang,
+demande désormais de défiler.
+
+⛔ **LE ROGNAGE SUR L'ALPHA NE DISTINGUE PAS UNE MOUCHETURE D'UN DESSIN, ET C'EST CE QUI A
+FAUSSÉ LES POSES.** Il ne compte un rang que s'il porte trois pixels visibles — un seuil qui
+suffit à une planche propre, jamais à une planche poussiéreuse. Mesuré sur la trompette,
+dont le dessin tient en 57 × 30 à l'affichage 44 : servie à l'affichage 190, elle rendait
+**361 × 376**, non qu'elle eût grandi, mais parce que la réduction, moins forte, laissait
+passer le seuil à des taches d'encre éparses aux quatre coins du papier. La boîte
+n'englobait plus le dessin, elle englobait la planche. ⚠️ Le symptôme est traître : la
+correction en deux passes de la section précédente **diverge** au lieu de converger, chaque
+tour agrandissant l'affichage et faisant apparaître de nouvelles mouchetures.
+
+⛔ **Le remède ne peut pas être de durcir le seuil du rognage** : il est partagé avec les
+planches déjà servies, dont les épis croisés, qui n'ont pour tout dessin que des barbes d'un
+pixel. Il est en amont, et c'est l'option **`--recadrer`** de `scripts/ornements-detourer.mjs`
+(étape 0, `boiteDuDessin`) : les taches se comptent en composantes connexes sur une vignette,
+et tout ce qui pèse moins d'un cinquantième de la plus grosse s'en va. ⚠️ Facultative, et
+délibérément : les planches d'avant ont été jugées sans elle, et les rejouer d'office
+changerait des fichiers que personne n'a demandé de changer. ⚠️ Les morceaux DÉTACHÉS du
+dessin restent — les trois figures d'une fournaise, les rayons d'un soleil, la goutte d'un
+rayon de miel ne touchent pas le corps du motif et disparaîtraient sous un critère de
+composante unique.
+
+⚠️ **Poses mesurées à la taille réelle, sur les deux sols, six reprises après le premier
+banc** : la rosace est la plus dense du registre et se referme en boule sous 3 rem, d'où
+**3,25** ; la fournaise et l'ange déchu jouent leur sujet en quelques pixels et montent à
+**3,5** ; les ailes, trop larges à 2,75 rem, redescendent à **2,5** ; la trompette est le
+seul ornement COUCHÉ du jeu — deux fois plus large que haute — et se pose à **2 rem**, la
+pose la plus courte du registre. Rapports servis : 1,98 à 2,03.
+
+⚠️ **Six d'entre eux REGARDENT quelque part** — corbeau, aigle, pélican, main, trompette,
+ange déchu —, ce qu'un ornement de séparation ne fait pas. Ils sont offerts comme le poisson
+l'a été, avec leur réserve écrite au recensement : c'est un choix d'auteur, pas un défaut.
+
 ## Le monogramme « CS » — deux planches, deux emplois (2026-08-19)
 
 Le site a une marque : un `C` gothique enlaçant un `S`, la haste du `S` portant une croix. Elle existe en deux planches, rangées dans `work/logo/`, et **`scripts/logo-fabriquer.mjs` fabrique les icônes** — le relancer plutôt que retoucher un fichier produit. ⛔ La seconde planche ne produit plus rien depuis le 2026-09-14 : les deux monogrammes détourés de `public/logo/` ont été supprimés, et le script ne les fabrique plus.

@@ -58,6 +58,35 @@ export const FLEURONS: readonly Fleuron[] = [
   { cle: "epis-croises", nom: "Épis de blé croisés", fichier: "fleuron-epis-croises", planche: { largeur: 73, hauteur: 102 }, hauteur: "3.25rem" },
   { cle: "epi", nom: "Épi de blé", fichier: "fleuron-epi", planche: { largeur: 40, hauteur: 111 }, hauteur: "3.5rem" },
   { cle: "rameau", nom: "Rameau", fichier: "fleuron-rameau", planche: { largeur: 57, hauteur: 87 }, hauteur: "2.75rem" },
+  { cle: "arbre-clochettes-fillion", nom: "Arbre aux clochettes (Fillion)", fichier: "fleuron-arbre-clochettes-fillion", planche: { largeur: 68, hauteur: 132 }, hauteur: "4.125rem" },
+  // ── Les vingt-cinq du 20 septembre 2026 ─────────────────────────────────────
+  // Même ordre que ci-dessus : les ornements d'abord, les objets ensuite, les figures
+  // en dernier — c'est celui du panneau, et il va du plus neutre au plus parlant.
+  { cle: "croix-volutes", nom: "Croix à volutes", fichier: "fleuron-croix-volutes", planche: { largeur: 80, hauteur: 95 }, hauteur: "3rem" },
+  { cle: "quadrilobe", nom: "Quadrilobe", fichier: "fleuron-quadrilobe", planche: { largeur: 90, hauteur: 89 }, hauteur: "2.75rem" },
+  { cle: "lys-flamboyant", nom: "Lys flamboyant", fichier: "fleuron-lys-flamboyant", planche: { largeur: 63, hauteur: 87 }, hauteur: "2.75rem" },
+  { cle: "roue", nom: "Roue ornée", fichier: "fleuron-roue", planche: { largeur: 95, hauteur: 96 }, hauteur: "3rem" },
+  { cle: "rosace", nom: "Rosace", fichier: "fleuron-rosace", planche: { largeur: 107, hauteur: 104 }, hauteur: "3.25rem" },
+  { cle: "rayon-miel", nom: "Rayon de miel", fichier: "fleuron-rayon-miel", planche: { largeur: 71, hauteur: 91 }, hauteur: "2.875rem" },
+  { cle: "calice", nom: "Calice", fichier: "fleuron-calice", planche: { largeur: 48, hauteur: 80 }, hauteur: "2.5rem" },
+  { cle: "encensoir", nom: "Encensoir", fichier: "fleuron-encensoir", planche: { largeur: 68, hauteur: 111 }, hauteur: "3.5rem" },
+  { cle: "lyre-feuillagee", nom: "Lyre feuillagée", fichier: "fleuron-lyre-feuillagee", planche: { largeur: 83, hauteur: 89 }, hauteur: "2.75rem" },
+  { cle: "lyre", nom: "Lyre", fichier: "fleuron-lyre", planche: { largeur: 56, hauteur: 97 }, hauteur: "3rem" },
+  { cle: "trompette", nom: "Trompette", fichier: "fleuron-trompette", planche: { largeur: 127, hauteur: 65 }, hauteur: "2rem" },
+  { cle: "epee", nom: "Épée feuillagée", fichier: "fleuron-epee", planche: { largeur: 58, hauteur: 97 }, hauteur: "3rem" },
+  { cle: "cognee", nom: "Cognée", fichier: "fleuron-cognee", planche: { largeur: 134, hauteur: 89 }, hauteur: "2.75rem" },
+  { cle: "echelle-serpents", nom: "Échelle aux serpents", fichier: "fleuron-echelle-serpents", planche: { largeur: 38, hauteur: 104 }, hauteur: "3.25rem" },
+  { cle: "serpent-airain", nom: "Serpent d’airain", fichier: "fleuron-serpent-airain", planche: { largeur: 56, hauteur: 104 }, hauteur: "3.25rem" },
+  { cle: "ailes", nom: "Ailes déployées", fichier: "fleuron-ailes", planche: { largeur: 137, hauteur: 81 }, hauteur: "2.5rem" },
+  { cle: "soleil", nom: "Soleil", fichier: "fleuron-soleil", planche: { largeur: 98, hauteur: 96 }, hauteur: "3rem" },
+  { cle: "corbeau", nom: "Corbeau", fichier: "fleuron-corbeau", planche: { largeur: 88, hauteur: 89 }, hauteur: "2.75rem" },
+  { cle: "cerf", nom: "Cerf", fichier: "fleuron-cerf", planche: { largeur: 75, hauteur: 105 }, hauteur: "3.25rem" },
+  { cle: "aigle", nom: "Aigle", fichier: "fleuron-aigle", planche: { largeur: 92, hauteur: 87 }, hauteur: "2.75rem" },
+  { cle: "pelican", nom: "Pélican", fichier: "fleuron-pelican", planche: { largeur: 98, hauteur: 96 }, hauteur: "3rem" },
+  { cle: "taureau", nom: "Taureau", fichier: "fleuron-taureau", planche: { largeur: 84, hauteur: 79 }, hauteur: "2.5rem" },
+  { cle: "main", nom: "Main feuillagée", fichier: "fleuron-main", planche: { largeur: 72, hauteur: 89 }, hauteur: "2.75rem" },
+  { cle: "fournaise", nom: "Fournaise", fichier: "fleuron-fournaise", planche: { largeur: 81, hauteur: 113 }, hauteur: "3.5rem" },
+  { cle: "ange-dechu", nom: "Ange déchu", fichier: "fleuron-ange-dechu", planche: { largeur: 76, hauteur: 111 }, hauteur: "3.5rem" },
 ]
 
 /** Le fleuron du SITE — celui que porte toute œuvre qui n'en demande pas d'autre.
