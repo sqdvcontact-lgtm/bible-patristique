@@ -352,14 +352,14 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // rien au texte. ⛔ Sans verset choisi, aucun chiffre — le volet ouvre alors sur le
   // chapitre entier, qui ne se dit pas en un nombre.
   // ⚠️ Un chiffre nu ne se DIT pas : à la voix, l’onglet porte la phrase entière
-  // (« 8 œuvres en parlent — 5 commentaires, 3 citations »), et le nombre à l’écran
+  // (« Commentaires : 8 œuvres en parlent — 5 commentaires, 3 citations »), et le nombre
   // devient alors redondant pour qui écoute.
   // ⛔ ELLE SE COMPOSE DANS UN `useMemo`, et ce n’est pas une optimisation : composée
   //  en clair dans le corps, elle fait ABANDONNER au compilateur de React la
   //  mémoïsation écrite plus bas (`preparerScene`), et toute la page cesse d’être
   //  compilée — « Existing memoization could not be preserved ». Mesuré le 2026-09-20.
   const direCommentaires = useMemo(() => (oeuvresDuVersetChoisi != null && oeuvresDuVersetChoisi > 0 && densiteDuVersetChoisi
-    ? `Commentaires — ${libelleDensiteVerset(densiteDuVersetChoisi)}`
+    ? `Commentaires : ${libelleDensiteVerset(densiteDuVersetChoisi)}`
     : undefined), [oeuvresDuVersetChoisi, densiteDuVersetChoisi])
   const ONGLETS_MOBILE: { cle: 'livres' | 'commentaires' | null; label: string; compte?: number | null; dire?: string }[] = [
     { cle: 'livres', label: 'Livres' },
