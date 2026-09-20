@@ -4032,6 +4032,24 @@ main.lecture-entree [data-cs-bloc],
   color: var(--cs-texte-gris);
   cursor: pointer;
   transition: color 0.12s;
+  /* ⛔ LE PICTOGRAMME SE CENTRE SUR L'ENCRE DU TITRE, non sur sa boîte de ligne : celle-ci
+     descend sous la ligne de base, et « align-items: center » posait la marque 1,5 px trop
+     bas à la racine 16. C'est la règle du chiffre de densité d'un verset, prise ici.
+     ⚠️ UN SEIZIÈME DE REM, ET LA VALEUR EST MESURÉE aux deux bouts de la police fluide :
+     l'écart des encres tombe à +0,5 px à la racine 16 et −0,5 px à la racine 22, un
+     demi-pixel de part et d'autre, sous la grille de l'écran. Un dixième de rem corrigeait
+     la racine 16 et emportait la racine 22 de 1,5 px dans l'autre sens : un décalage
+     optique se mesure aux DEUX bouts, jamais à celui où on l'a vu. */
+  position: relative;
+  top: -0.0625rem;
+}
+/* ⛔ UN DESSIN POSÉ EN PIXELS DANS UNE BOÎTE EN REM RAPETISSE AVEC L'ÉCRAN : les 11 × 12
+   du SVG de `BoutonCopierTexte` sont des attributs de PRÉSENTATION, que la feuille bat.
+   On les redit en rem, à la même mesure à la racine 16, pour que la marque grandisse avec
+   le titre qu'elle accompagne. */
+.cs-fiche-copier svg {
+  width: 0.6875rem;
+  height: 0.75rem;
 }
 .cs-fiche-copier:hover,
 .cs-fiche-copier:focus-visible { color: var(--cs-vert) !important; }
