@@ -12221,3 +12221,55 @@ doit se fermer. »
   `flex-wrap: wrap`, la question à `flex: 1 1 8rem`) : elle demande environ 310 px avec ses
   deux boutons, et la boîte n'en offre plus tant. Un rayon de pilule sur deux rangs ferait
   deux demi-cercles en guise de flancs.
+
+## ⛔ L'ACCUSÉ D'UNE COPIE EST UN ÉCLAT (2026-09-20, le soir)
+
+Demande de l'auteur : « quand on clique sur “copier”, à la place du symbole “validé” et
+“copié”, pourrait-on plutôt avoir un petit éclat lumineux ? propre ? » Le module est
+`app/components/EclatCopie.tsx`, la forme vit dans `globals.css`, § « L'ÉCLAT D'UNE COPIE ».
+
+- ⛔ **LE PICTOGRAMME NE BOUGE PLUS.** Il reste à son poste, s'allume à `--cs-vert`, et un
+  halo bref s'ouvre derrière lui. Échanger l'icône contre un ✓ changeait la largeur du
+  bouton à l'instant même où l'on venait de cliquer dedans, et faisait clignoter la rangée
+  d'actions : c'est la règle déjà posée pour la fiche d'une œuvre — **rien ne bouge entre
+  le survol et le clic**.
+- ⛔ **UNE SEULE ÉCRITURE POUR LES SIX BOUTONS DE COPIE DU SITE**, et le glyphe n'a plus de
+  jumeaux : `IconeCopier` prévenait qu'« un huitième exemplaire ne s'écrit pas, et les six
+  autres se convertissent au prochain passage sur ces boutons ». Les six sont
+  `TexteBible` (page Bible), `PanneauPatristique`, `ActionsVerset`, `BoutonsSegment`,
+  `BoutonsVerset` et `BoutonCopierTexte` (fiche d'une édition, Polyglotte). Ils portaient
+  trois écritures du même geste, et un seul d'entre eux écrivait « Copié ».
+- ⛔ **LE HALO S'OUVRE DERRIÈRE LE PICTOGRAMME**, et ce n'est pas un détail de rendu :
+  posé par-dessus, il embuait le trait de 1,2 px au moment précis où l'on regarde le
+  bouton. Deux frères POSITIONNÉS et le rang tranche (`.cs-eclat` à 0, le `svg` à 1) ;
+  ⛔ jamais un `z-index: -1`, qui passerait derrière le fond de la cellule d'actions.
+- ⛔ **LE CŒUR EST PRESQUE VIDE ET LA LUMIÈRE CULMINE À MI-RAYON.** Trois dégradés ont été
+  rendus EN REGARD sur planche, figés à cinq instants : le halo PLEIN posait sa densité là
+  où le pictogramme se lit, l'anneau NET se lisait comme une onde de commande — non comme
+  une lumière —, et le halo CREUX laisse le trait net pendant que la lumière balaie vers le
+  dehors. ⚠️ Cela ne se juge qu'AGRANDI, à la taille réellement servie (18 px de bouton).
+- ⚠️ **LA LUMIÈRE SUIT LE THÈME SANS ÊTRE DÉCLINÉE** : `--cs-vert-rgb` vaut le vert du site
+  au Clair et l'or du Cuir, si bien que l'éclat est de la famille de l'encre qu'il
+  accompagne. En Cuir il se lit d'autant mieux que la lumière y est vraiment plus claire
+  que son sol.
+- ⛔ **L'ÉCLAT EST UN ACCUSÉ, NON UN ORNEMENT** : sous `prefers-reduced-motion` il garde son
+  fondu et perd sa seule dilatation. L'éteindre retirerait la RÉPONSE au geste au lieu du
+  mouvement — c'est la règle de l'anneau du compte à rebours.
+- ⚠️ **UNE LUMIÈRE NE SE LIT PAS À LA SYNTHÈSE VOCALE.** `EclatCopie` rend une région
+  vivante (`role="status"`) qui dit « Copie effectuée », TOUJOURS présente — une région qui
+  naît avec son texte n'est pas annoncée. ⛔ Le bouton garde donc un `aria-label` STABLE :
+  un nom qui changerait redirait l'accusé une seconde fois, et un bouton sans nom prendrait
+  le texte caché pour le sien. `BoutonCopierTexte` perd son `aria-live`, qui doublait tout.
+- ⚠️ **L'ÉCHEC GARDE SES MOTS** (« ! » et « Réessayer », `--cs-danger`) : une lumière dit
+  qu'un geste a porté, elle ne sait pas dire qu'il a manqué. `DUREE_ACCUSE_MS` devient
+  `DUREE_ERREUR_MS`, la réussite recevant sa durée du crochet.
+- ⚠️ **LE MINUTEUR SE RETIRE AU DÉMONTAGE** (`useEclatCopie`) : une cellule d'actions change
+  de cible à chaque ligne survolée, et un minuteur laissé derrière poserait un état sur un
+  bouton parti.
+- ⚠️ **La planche est `tmp/planche-eclat/`** (non versionnée) : elle inline la feuille du
+  dépôt, pose à la main les deux variables de `next/font`, et FIGE l'animation par un délai
+  NÉGATIF avec `animation-play-state: paused` — c'est la seule façon de juger sur image une
+  forme qui ne dure qu'une demi-seconde. `variantes.mjs` met trois dégradés en regard.
+- ⚠️ **`BoutonCopierTexte.tsx` mêlait CRLF et LF dans la copie de travail (32 / 54) quand
+  son BLOB est tout en LF** : `core.autocrlf` vaut true, et une normalisation en LF ne se
+  voit donc pas dans le diff. ⛔ On le vérifie avant de normaliser, jamais après.
