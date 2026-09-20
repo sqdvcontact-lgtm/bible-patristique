@@ -11258,6 +11258,64 @@ Doctrine : charte `parametres.charte_ia`, **§ 38.33**. Demande de l’auteur : 
 - ⚠️ **Hors du chantier, et c’est de la DONNÉE** : les notices des ouvrages cités sont souvent incomplètes. Au 15 septembre 2026, 693 sur 819 manquent de lieu, d’année ou d’éditeur, dont 40 sur les 64 de Fillion. Les compléter est un travail de base, sur décision.
 - ⛔ **La liste des œuvres d’un auteur : `app/lib/listeOeuvresAuteur.ts`** (charte § 38.33.1, pur et testé). `ordonnerOeuvresAuteur` range les œuvres datées d’une année, puis les périodes par `anneeDeMention` (`chronologiePatristique.ts`, sans nouvelle lecture des siècles), puis les mentions sans repère, puis les œuvres sans date ; le libellé départage avant le titre, ce qui rend contigus les groupes qu’il répète. `colonneDesDates` tait une date qui redit la précédente, et `CelluleDate` (`ModaleAuteur.tsx`) la garde en `.cs-hors-ecran`. La règle `.cs-fiche-rangee-colonne > [data-fiche-colonne]` borne la cellule à `max-width: 8.75em`, avec `text-wrap: balance` et sans `nowrap` : une cellule tue ne compte pas dans la mesure de `useColonneCommune`, et une mention longue s’enroule sur deux lignes au lieu d’élargir la colonne. ⚠️ Mesurer la chasse d’un libellé : `tmp/mesure-libelles-dates.mts` rend les libellés du corpus par le vrai `HistoricalDate` dans une page que Chrome sans tête exécute (`--dump-dom`), sans serveur.
 
+# ⛔ LA NOTICE D'UN AUTEUR FAIT MODÈLE — deux lignes de repères, deux rangs de dates (2026-09-20)
+
+Doctrine : charte § 38.33.2 — ⚠️ **non encore poussée**, le verrou de `--push` étant levé
+par une autre section (voir la fin de ce paragraphe). Demande de l'auteur : « Revoir et
+harmoniser les notices ; mise en forme seulement. […] Occupe-toi seulement de la notice
+auteur pour l'instant ; on mettra ensuite les autres à jour pour correspondre à la notice
+auteur. » Elle est donc le CANON, et la fiche d'une traduction comme celle d'une édition
+s'y aligneront. Règles de code :
+
+- ⛔ **`EnTeteFiche` PORTE DEUX LIGNES, ET ELLES NE DISENT PAS LA MÊME CHOSE.** `reperes`
+  SITUE — des dates, une langue — et garde la capitale espacée de `.cs-fiche-reperes` ;
+  `matieres` dit ce dont la fiche RELÈVE — traditions, écoles, genres — et prend
+  `.cs-fiche-matieres`, en bas de casse, 0,625 rem, `--cs-texte-gris`. ⚠️ Le bas de casse
+  est le GESTE, non la taille : une capitale est une étiquette, et l'on n'étiquette pas six
+  fois de suite. Tout verser dans `reperes` ouvrait la fiche d'Augustin sur TROIS lignes de
+  capitales espacées où la date de sa mort pesait autant qu'« augustinisme ».
+- ⚠️ **Les termes sont stockés COMPOSÉS** (« Patristique latine ») : rien ne les transforme
+  au rendu, et `rendreSiecles` s'applique aux deux lignes — une matière peut nommer un
+  siècle. ⛔ La fiche d'une œuvre y rangera ses GENRES, et rien d'autre : ce qui se nomme
+  par un libellé (« Titre original ») appartient aux rangées d'étiquettes.
+- ⛔ **LA COLONNE DES DATES NE CONNAÎT QUE DEUX RANGS**, `--cs-date` et `--cs-date-douce`,
+  et `ModaleAuteur` n'écrit plus une seule teinte en dur. Ils en portaient QUATRE — `#b7a06a`,
+  `#d2c69f`, `#c9c1b4` et `--cs-or-doux` —, dont trois pour le même rang : rien ne suivait le
+  thème, et le Cuir en RENVERSAIT l'ordre, le rang doux y criant plus fort que le plein sur le
+  brun (vu sur la fiche d'Augustin). ⚠️ Les valeurs du Cuir se prennent à l'ÉCART du Clair,
+  non à un seuil absolu : 2,33 et 1,77 sur le crème, soit un pas de 1,32 ; 6,17 et 4,43 sur
+  le brun, soit un pas de 1,39. Trois teintes ont quitté `couleursEnDurInventaire.ts`.
+- ⛔ **UN FILET QUI MESURE UNE PART SE POSE DANS SON RAIL**
+  (`.cs-fiche-empreinte-rail` / `--part`). Nu, sous le nom qu'il accompagne, il se lit comme
+  un SOULIGNEMENT, et le premier rang, à pleine largeur, comme une règle de tableau : les
+  livres les plus commentés d'un auteur se donnaient ainsi pour un tableau cassé. ⚠️ Le rail
+  prend le sol du bloc (`--cs-fond-doux`), jamais une bordure : un filet de trois pixels
+  n'est pas un bord, et `--cs-bord` le ferait lire comme la séparation de deux rangées.
+- ⛔ **LE ROUGE DU SITE NE SERT PAS D'ORNEMENT** : `.cs-fiche-anecdote` prenait
+  `--cs-danger-bord`, qui dit ce qui alerte ou ce qui détruit. Une anecdote n'alerte de rien,
+  et un rose pâle le long d'une page de vert et d'or n'y était qu'une teinte de plus. Elle
+  prend `--cs-or-doux`.
+- ⚠️ **La planche se bâtit HORS DU SITE, et elle rend la feuille du dépôt TELLE QUELLE**
+  (deux directives Tailwind ôtées, plus le peu de la préflight de Tailwind qui touche ces
+  blocs) : `tmp/planche-fiche-auteur/` (non versionnée), servie en HTTP et capturée par
+  Chrome sans tête. ⛔ Elle pose à la main les deux variables de `next/font` : sans elles,
+  `var(--font-source-serif)` est une propriété non définie, la déclaration entière est
+  invalide, la police est HÉRITÉE, et la planche mesure une autre composition que la page.
+  ⚠️ Le panneau navigateur a répété la capture neuf fois sous un viewport émulé plus petit
+  que la pane : Chrome sans tête rend l'image juste.
+- ⚠️ **CE QUI RESTE, ET C'EST DE LA DONNÉE** : `auteurs.traditions` porte « grecque » sur
+  cinq auteurs, qui n'est pas une tradition mais une langue tronquée. Elle se lit désormais
+  en bas de casse, donc elle se voit. Correction côté GPT.
+- ⛔ **LE VERROU DE `--push` DE LA CHARTE EST LEVÉ, ET PAS PAR CE CHANTIER.** Le contrôle
+  `duplicate_heading_numbers` rend `["1","2","3","4","5"]` : la section « Règle normative —
+  Français 899 / TR0009 — mode développé à typographie normalisée », ajoutée le 20 septembre
+  2026, numérote ses cinq sous-titres `### 1.` à `### 5.`, qui heurtent les chapitres 1 à 5
+  de la charte. ⚠️ Le contrôle ne dit PAS où : on le retrouve en relevant les `^#{1,6}\s+\d`
+  du miroir et en comptant les numéros. ⛔ Le remède ne touche aucun mot de doctrine — ôter
+  le numéro de ces cinq sous-titres, ou les préfixer —, mais il porte sur le chantier Bible
+  899, qui appartient à l'auteur : **à lui de trancher.** Tant qu'il tient, AUCUNE doctrine
+  ne se pousse, de personne.
+
 # ⛔ UNE LECTURE DÉCOUPÉE EN LOTS BORNE CE QU'ELLE GARDE EN VOL (2026-09-16)
 
 Relevé de l'auteur sur La Cité de Dieu, en lecture en regard : « Cette page s'est ouverte
