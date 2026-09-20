@@ -7420,6 +7420,22 @@ Toutes les bibles ne vivent pas dans `versets_v2`. La Fillion, comme le témoin 
 
 **LE LATIN ET LE FRANÇAIS D’UNE MÊME ÉDITION SONT DEUX COLONNES.** La Fillion imprime la Vulgate en regard de sa traduction : ce sont deux textes, chacun sous SA langue dans le menu, et réunis au survol sous le nom de l’édition (§ 50.1, les familles). On peut donc les lire côte à côte — c’est même là tout l’intérêt d’une polyglotte.
 
+### 50.6 Une traduction PRIVÉE ne sort que pour l’administrateur
+
+Demande de l’auteur du 20 septembre 2026 : « il faut réserver l’AELF à mon compte admin ».
+
+La traduction officielle liturgique (TR0012) est sous droits : elle sert à l’atelier, à l’alignement et à la relecture, et elle ne se montre à personne d’autre. `traductions.est_privee` porte cette décision, et la RLS de `versets_v2` l’applique fidèlement.
+
+⛔ **UNE VUE `SECURITY DEFINER` DÉFAIT LA RLS EN SILENCE.** Une vue sans `security_invoker` lit avec les droits de son PROPRIÉTAIRE : la politique de la table ne s’applique plus, et tout ce qu’elle rend est offert à qui a le droit de la lire, elle. Le 20 septembre 2026, `v_aelf_polyglotte_cells` servait ainsi le texte AELF à n’importe quel compte connecté — 31 versets pour la seule Genèse 1 — alors que la table le protégeait correctement. Et la fuite se propageait par dépendance, sans que rien ne le dise : `v_aelf_bible_lecture` en tirait ses colonnes `TR0012`, `v_aelf_bible_books_by_translation` les 74 livres de la traduction et leurs comptes.
+
+⚠️ **LA GARDE SE POSE OÙ LA FUITE NAÎT, PAS SUR CHAQUE SURFACE.** Une seule vue nourrissait les trois : la garde y est posée une fois, et les deux autres se referment d’elles-mêmes. ⛔ Et le critère n’est JAMAIS une liste d’identifiants : c’est celui de la RLS, `not est_privee or is_admin()` — rendre un texte public ou privé se décide dans `traductions`, et la garde suit. ⚠️ `is_admin()` est VOLATILE : posée dans la clause d’une vue, elle serait évaluée ligne à ligne ; un sous-select non corrélé la réduit à un calcul unique. Et une vue qui CACHE des lignes se pose en `security_barrier`.
+
+⚠️ **UNE VUE MATÉRIALISÉE NE PORTE NI RLS NI GARDE DYNAMIQUE** : ce qu’on y range est lisible par quiconque la lit. Sa garde se pose donc au RAFRAÎCHISSEMENT, et elle échoue du bon côté — une traduction qui passe en privée sort de la table au refresh suivant, administrateur compris, qui la relit alors par les tables d’origine. C’est la règle de `v_polyglotte_fillion` (§ 50.5).
+
+⛔ **ET LA LECTURE SEULEMENT.** Une vue ne se donne pas en `arwd` au rôle du lecteur : sur une vue automatiquement modifiable, c’est une porte d’écriture dans les tables du dessous. `revoke all`, puis `grant select`.
+
+⚠️ **CELA SE VÉRIFIE EN POUSSANT SUR LA PORTE, pas en relisant la définition.** Le contrôle `supabase/controles/20260920085349_aelf_reserve_a_ladministrateur_controles.sql` prend le rôle du lecteur, puis celui de l’administrateur, et compte ce que chacun obtient ; il vérifie au passage qu’une traduction PUBLIQUE n’a pas été emportée par la garde. ⛔ Il se rejoue après toute reprise de la chaîne AELF : un `create or replace view` emporte la garde sans bruit, comme il emporte `security_invoker` (§ 51.4).
+
 ## 51. Les objets d’interface partagés
 
 Les objets que plusieurs surfaces se partagent, et qui ne se redessinent donc nulle part : la cellule d’actions, les marques, le bouton-lien, la notification.

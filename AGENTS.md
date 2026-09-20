@@ -73,6 +73,19 @@ Doctrine : charte § 50.5. La Fillion n’est pas dans `versets_v2` : son texte 
 - ⛔ **Pas de crayon d’édition sur ces lignes** (`lectureSeule`) : elles ne s’écrivent pas dans `versets_v2`.
 - ⚠️ **86 cellules tombent hors de `versets_canon`** et restent donc invisibles : 32 dans Judith, 11 dans Esther (un chapitre 0). Versification à arbitrer côté données.
 
+# ⛔ Le texte AELF est RÉSERVÉ à l’administrateur (2026-09-20)
+
+Doctrine : charte § 50.6. `TR0012` (traduction officielle liturgique) est sous droits : `traductions.est_privee = true`, et la RLS de `versets_v2` l’applique. ⛔ Mais une vue SANS `security_invoker` lit avec les droits de son PROPRIÉTAIRE : la politique de la table ne s’applique plus. `v_aelf_polyglotte_cells` servait ainsi le texte AELF à n’importe quel compte connecté (31 versets pour la seule Genèse 1, mesuré), et la fuite se propageait par dépendance à `v_aelf_bible_lecture` (colonnes `TR0012`) et à `v_aelf_bible_books_by_translation` (74 livres et leurs comptes).
+
+Fermé par la migration `20260920085349_aelf_reserve_a_ladministrateur` : garde de publication dans `v_aelf_polyglotte_cells` (les deux autres se referment par dépendance), `security_barrier`, et `revoke all` + `grant select` — les trois vues donnaient `arwd` au rôle du lecteur.
+
+- ⛔ **Le critère n’est jamais une liste d’identifiants** : `not est_privee or is_admin()`, celui de la RLS. Publier ou retirer un texte se décide dans `traductions`.
+- ⚠️ **`is_admin()` est VOLATILE** (et `security definer`, avec `SET search_path`) : dans la clause d’une vue elle serait évaluée ligne à ligne. L’écrire `(select public.is_admin())`, sous-select non corrélé, la réduit à un calcul unique par requête.
+- ⚠️ **Une vue matérialisée ne porte ni RLS ni garde dynamique** : sa garde se pose au RAFRAÎCHISSEMENT (`v_polyglotte_fillion` n’accueille aucune traduction privée) et échoue du bon côté.
+- ⛔ **Se rejoue après toute reprise de la chaîne AELF** : `supabase/controles/20260920085349_aelf_reserve_a_ladministrateur_controles.sql` prend le rôle du lecteur PUIS celui de l’administrateur et compte ce que chacun obtient (7 contrôles, 0 faute le 2026-09-20). Un `create or replace view` emporte la garde sans bruit, comme il emporte `security_invoker`.
+- ⚠️ **Lire `admin_users` AVANT de prendre le rôle du lecteur** dans un contrôle : `authenticated` n’a pas le droit de lire cette table, et le bloc échoue sur une erreur qui n’a rien à voir avec ce qu’on éprouve.
+- ⚠️ **49 vues du projet donnent encore `arwd` à `authenticated`** (relevé du 2026-09-20). Aucune n’est une fuite connue, mais c’est un gisement à reprendre un jour, vue par vue.
+
 # Typer une lecture Supabase : la forme du `select`, jamais celle de la table
 
 ⛔ **Un `as any[]` sur un `.select()` n'est pas un raccourci, c'est un trou.** Il laisse
