@@ -17,7 +17,7 @@ import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 
 
 export function BoutonCopieVerset({ texte, label }: { texte: string; label: string }) {
-  const { copie, briller } = useEclatCopie()
+  const { copie, eclat, briller } = useEclatCopie()
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation()
     copierCitation(citationBiblique(texte, label)).then(briller)
@@ -26,7 +26,7 @@ export function BoutonCopieVerset({ texte, label }: { texte: string; label: stri
     <Bulle texte="Copier ce verset">
       <button onClick={handle} className={avecHoteEclat()} style={{ ...BTN_STYLE, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }} aria-label="Copier ce verset">
         <IconeCopier />
-        <EclatCopie copie={copie} />
+        <EclatCopie eclat={eclat} />
       </button>
     </Bulle>
   )

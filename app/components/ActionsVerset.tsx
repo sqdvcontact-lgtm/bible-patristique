@@ -40,7 +40,7 @@ export default function ActionsVerset({
   tradLabel, userId, prelevementId, onPreleve, onRetire,
 }: ActionsVersetProps) {
   const cle = `${refLivreAbr}|${chapitre}|${verset}`
-  const { copie, briller } = useEclatCopie()
+  const { copie, eclat, briller } = useEclatCopie()
   const [chargement, setChargement] = useState(false)
   const [signalOuvert, setSignalOuvert] = useState(false)
   const [erreur, setErreur] = useState<string | null>(null)
@@ -125,7 +125,7 @@ export default function ActionsVerset({
       <button onClick={copier} className={avecHoteEclat('bouton-action-verset')} title={erreur?.startsWith('La copie') ? erreur : 'Copier ce verset'} aria-label="Copier"
         style={{ ...BTN, opacity: 0, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
         <IconeCopier />
-        <EclatCopie copie={copie} />
+        <EclatCopie eclat={eclat} />
       </button>
 
       <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setSignalOuvert(true) }}

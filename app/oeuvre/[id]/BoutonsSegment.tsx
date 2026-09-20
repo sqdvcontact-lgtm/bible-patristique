@@ -118,7 +118,7 @@ export function BoutonCopieSegment({ texte, auteur, titre, sousTitre, tradAuteur
   responsable?: string
   className?: string
 }) {
-  const { copie, briller } = useEclatCopie()
+  const { copie, eclat, briller } = useEclatCopie()
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation()
     // Titre en italique (collage riche), dates resserrées, guillemets internes anglais,
@@ -132,7 +132,7 @@ export function BoutonCopieSegment({ texte, auteur, titre, sousTitre, tradAuteur
         style={{ ...BTN_STYLE, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}
         aria-label="Copier ce passage">
         <IconeCopier />
-        <EclatCopie copie={copie} />
+        <EclatCopie eclat={eclat} />
       </button>
     </Bulle>
   )

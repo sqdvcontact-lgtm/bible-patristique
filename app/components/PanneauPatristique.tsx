@@ -168,7 +168,7 @@ function BoutonCopieSegment({ texte, auteur, titre, sous_titre, trad_auteur, edi
   trad_auteur?: string; editeur?: string; collection?: string; ville?: string; date_publication?: string
   responsable?: string
 }) {
-  const { copie, briller } = useEclatCopie()
+  const { copie, eclat, briller } = useEclatCopie()
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation()
     const citation = citationPatristique(texte, { auteur, titre, sousTitre: sous_titre, tradAuteur: trad_auteur, editeur, collection, ville, datePublication: date_publication, responsable })
@@ -178,7 +178,7 @@ function BoutonCopieSegment({ texte, auteur, titre, sous_titre, trad_auteur, edi
     <button onClick={handle} title="Copier ce segment" aria-label="Copier ce segment"
       className={avecHoteEclat('cs-bouton-fin')} style={{ ...ACTION_BTN, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
       <IconeCopier />
-      <EclatCopie copie={copie} />
+      <EclatCopie eclat={eclat} />
     </button>
   )
 }

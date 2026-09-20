@@ -59,7 +59,7 @@ export default function BoutonCopierTexte({
   className?: string
   titre?: string
 }) {
-  const { copie, briller } = useEclatCopie()
+  const { copie, eclat, briller } = useEclatCopie()
   const [erreur, setErreur] = useState(false)
 
   const copier = (e: React.MouseEvent) => {
@@ -79,7 +79,7 @@ export default function BoutonCopierTexte({
     <button onClick={copier} title={libelle} aria-label={libelle} className={avecHoteEclat(className)}
       style={{ ...style, color: copie ? 'var(--cs-vert)' : erreur ? 'var(--cs-danger)' : (style?.color ?? 'var(--cs-texte-faible)') }}>
       {erreur ? <span aria-hidden="true">!</span> : <IconeCopier />}
-      <EclatCopie copie={copie} />
+      <EclatCopie eclat={eclat} />
       {erreur ? <span>Réessayer</span> : null}
     </button>
   )

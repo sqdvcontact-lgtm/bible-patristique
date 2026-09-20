@@ -2858,12 +2858,21 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
     rgba(var(--cs-vert-rgb), 0.12) 0%,
     rgba(var(--cs-vert-rgb), 0.6) 44%,
     rgba(var(--cs-vert-rgb), 0) 75%);
-  animation: cs-eclat 0.55s ease-out forwards;
+  /* ⛔ VIF : 0,32 s, et le sommet au quart de la course. Il valait 0,55 s avec son
+     sommet à 35 %, et la lumière s'étalait au lieu de claquer (demande de l'auteur,
+     2026-09-20 : « il doit être plus vif, plus dynamique »).
+     ⚠️ ET L'ÉTENDUE SE RESSERRE : 0,50 → 1,40 au lieu de 0,35 → 1,80. Trois rythmes ont
+     été figés en regard aux mêmes FRACTIONS de leur course — non aux mêmes
+     millisecondes, qui compareraient le début de l'un à la fin de l'autre. Un halo qui
+     part de trop loin n'est encore rien au sommet ; un halo qui va trop loin finit en
+     brume. ⚠️ La MESURE, elle, ne bouge pas : rendue à 20 px, la lumière se colle au
+     pictogramme et se lit comme une tache, non comme un éclat autour de lui. */
+  animation: cs-eclat 0.32s ease-out forwards;
 }
 @keyframes cs-eclat {
-  from { opacity: 0; transform: scale(0.35); }
-  35% { opacity: 1; transform: scale(1); }
-  to { opacity: 0; transform: scale(1.8); }
+  from { opacity: 0; transform: scale(0.5); }
+  26% { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.4); }
 }
 /* ⛔ L'éclat est un ACCUSÉ, non un ornement : sous le réglage de mouvement réduit il
    garde son fondu et perd sa seule dilatation. L'éteindre retirerait la réponse au
@@ -2873,7 +2882,7 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 }
 @keyframes cs-eclat-calme {
   from { opacity: 0; }
-  35% { opacity: 1; }
+  26% { opacity: 1; }
   to { opacity: 0; }
 }
 

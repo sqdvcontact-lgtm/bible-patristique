@@ -104,7 +104,7 @@ type Props = {
 
 // ── Bouton copie ──────────────────────────────────────────────────────────────
 function BoutonCopie({ texte }: { texte: string }) {
-  const { copie, briller } = useEclatCopie()
+  const { copie, eclat, briller } = useEclatCopie()
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation()
     navigator.clipboard.writeText(texte).then(briller)
@@ -117,7 +117,7 @@ function BoutonCopie({ texte }: { texte: string }) {
           illustration, et les deux ne doivent pas diverger. ⛔ Il ne cède plus la place
           à un ✓ : l'accusé est un ÉCLAT, posé par-dessus lui. */}
       <IconeCopier />
-      <EclatCopie copie={copie} />
+      <EclatCopie eclat={eclat} />
     </button>
   )
 }
