@@ -59,6 +59,20 @@ Sans quoi une correction « ne se voit pas » et l'on croit à tort qu'elle a é
 
 **Trouvaille de contexte (2026-08-05)** : la Bible de Sacy (`TR0001`) avait conservé le **numéro de verset imprimé en tête du texte** (« 1. MAis il faut… »), résidu d'un lot d'import — sur ~180 versets (2 Co 7-13, Galates 1, titres de psaumes). Corrigé dans `versets_v2` (retrait du seul préfixe `^\d+\.\s*`, sauvegarde `backup_tr0001_numerotation_20260805`), **puis refresh de la vue**. Segond et Crampon étaient propres : le défaut était propre à un import Sacy.
 
+# `v_polyglotte_fillion` — la Fillion en colonne, et une CTE lue deux fois (2026-09-20)
+
+Doctrine : charte § 50.5. La Fillion n’est pas dans `versets_v2` : son texte est recomposé depuis les tables éditoriales, puis posé sur l’axe canonique par les alignements vérifiés. La Polyglotte le lit dans **`v_polyglotte_fillion`**, vue MATÉRIALISÉE aux colonnes exactes de `versets_v2` (+ `ch_canon`, pour filtrer un chapitre par un entier indexé), et dans **`v_polyglotte_fillion_livres`** pour savoir où elle se lit. Migration `20260920081528_polyglotte_fillion_table_de_lecture`.
+
+⚠️ **Même piège de rafraîchissement que `versets_lecture`** : un livre qui passe en alignement vérifié n’entre au menu qu’après `select public.rafraichir_polyglotte_fillion();` (refresh concurrent, appuyé sur l’index unique). Douze livres au 20 septembre 2026 : 1CH, 2CH, DEU, EST, EXO, EZR, GEN, JDT, LEV, NEH, NUM, TOB.
+
+⛔ **Ne pas lire `v_aelf_polyglotte_cells` ni `v_aelf_bible_books_by_translation` depuis une page.** Leur CTE `rows_fillion` est référencée DEUX FOIS, donc matérialisée par Postgres : aucun filtre n’y descend, et les 18 700 lignes se recalculent à chaque requête — **4,9 s** pour un chapitre de la Genèse, **22,8 s** pour le recensement des livres, quand `authenticated` coupe à **8 s**. La couverture revenait donc toujours en erreur et le menu se refermait sur la Fillion : elle n’apparaissait jamais. Après la vue matérialisée : 3 ms le chapitre, 7 ms le livre entier, 6 ms la couverture. ⚠️ `not materialized` aurait suffi à faire descendre les filtres (4,9 s → 1,35 s), mais 1,35 s reste hors d’une page.
+
+- **Deux colonnes, pas une** : `TR0010` (français) et `TR0011` (latin) sont deux textes de la même édition, chacun sous sa langue dans le menu et réunis au survol sous « Bible Fillion » (`FAMILLES`, `app/polyglotte/page.tsx`).
+- **Le module pur** `app/lib/polyglotteFillion.ts` : `indexerLivresFillion`, `traductionsDisponiblesPourLivres` (ce que le menu offre), `masquerTraductionsIndisponibles` (la colonne se vide hors des livres couverts, le choix restant mémorisé).
+- ⚠️ **`await supabase.auth.getSession()` AVANT la lecture de la couverture** : la session se restaure après le premier rendu, et une vue réservée aux authentifiés interrogée en `anon` revient vide sans jamais être relue.
+- ⛔ **Pas de crayon d’édition sur ces lignes** (`lectureSeule`) : elles ne s’écrivent pas dans `versets_v2`.
+- ⚠️ **86 cellules tombent hors de `versets_canon`** et restent donc invisibles : 32 dans Judith, 11 dans Esther (un chapitre 0). Versification à arbitrer côté données.
+
 # Typer une lecture Supabase : la forme du `select`, jamais celle de la table
 
 ⛔ **Un `as any[]` sur un `.select()` n'est pas un raccourci, c'est un trou.** Il laisse
