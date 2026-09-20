@@ -26,7 +26,8 @@
  *
  * ⛔ UNE CITATION NE MÊLE PAS DEUX LANGUES (demande de l'auteur, 20 septembre 2026). La
  * page dit par `refus` ce qu'elle ne sait pas copier ; le lasso passe alors au ROUGE — la
- * trace, la surbrillance, le compte — et crie au centre de l'écran, jusqu'à ce que le
+ * trace, la surbrillance, le compte — et crie au centre du BLOC DE TEXTE, sur une plaque
+ * de papier qui rend le message lisible, jusqu'à ce que le
  * geste revienne dans une seule colonne. Aucune action n'est offerte sous un refus.
  *
  * ⚠️ Au bureau seulement : la page passe `actif` à faux au doigt, où glisser fait défiler.
@@ -127,6 +128,42 @@ function boitesDe(element: HTMLElement): DOMRect[] {
   return boite.width > 0 && boite.height > 0 ? [boite] : []
 }
 
+/**
+ * La VUE : le défileur de la page, ou la fenêtre sous la barre de navigation.
+ *
+ * ⚠️ Une seule écriture pour le geste ET pour le placement de la barre et du cri : deux
+ * copies de la même mesure divergeraient au premier réglage.
+ */
+function vueDe(defileur: HTMLElement | null): Rect {
+  if (defileur) {
+    const b = defileur.getBoundingClientRect()
+    return { left: b.left, top: b.top, right: b.right, bottom: b.bottom }
+  }
+  const racine = document.documentElement
+  return { left: 0, top: hauteurNavbarPx(), right: racine.clientWidth, bottom: racine.clientHeight }
+}
+
+/**
+ * La BANDE où la lecture se voit : la zone du lasso, ramenée à la vue.
+ *
+ * ⛔ C'est elle qui porte l'axe de la barre ET le centre du cri : un message posé au
+ * milieu de la FENÊTRE se centrerait sur les volets autant que sur le texte, et, sur une
+ * page qui défile, sous la barre de navigation. ⚠️ Sur la page d'une œuvre, la zone fait
+ * dix écrans : c'est bien son intersection avec la vue qu'il faut, jamais sa boîte.
+ */
+function bandeVisible(zone: HTMLElement, defileur: HTMLElement | null): Rect {
+  const z = zone.getBoundingClientRect()
+  const v = vueDe(defileur)
+  return {
+    left: Math.max(z.left, v.left), top: Math.max(z.top, v.top),
+    right: Math.min(z.right, v.right), bottom: Math.min(z.bottom, v.bottom),
+  }
+}
+
+function memeRect(a: Rect | null, b: Rect): boolean {
+  return a !== null && a.left === b.left && a.top === b.top && a.right === b.right && a.bottom === b.bottom
+}
+
 function champDeSaisie(element: Element | null): boolean {
   if (!element) return false
   if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) return true
@@ -146,12 +183,13 @@ function surLaBarre(element: HTMLElement, point: Point): boolean {
 }
 
 export default function LassoLecture(props: LassoLectureProps) {
-  const { zone, actif, contexte, unite, gouttiere } = props
+  const { zone, defileur, actif, contexte, unite, gouttiere } = props
   const [selection, setSelection] = useState<readonly string[]>([])
   const [trace, setTrace] = useState(false)
   const [message, setMessage] = useState<{ texte: string; erreur: boolean } | null>(null)
   const [enCours, setEnCours] = useState<Action | null>(null)
-  const [axe, setAxe] = useState<number | null>(null)
+  // La bande où la lecture SE VOIT : elle porte l'axe de la barre et le centre du cri.
+  const [cadre, setCadre] = useState<Rect | null>(null)
   const traceRef = useRef<HTMLDivElement>(null)
 
   // ⛔ La sélection ne survit pas à ce qui la rend fausse. Recalée PENDANT le rendu, et non
@@ -225,23 +263,8 @@ export default function LassoLecture(props: LassoLectureProps) {
       return d ? { x: d.scrollLeft, y: d.scrollTop } : { x: window.scrollX, y: window.scrollY }
     }
     // Ce qui se voit de ce qui défile : la barre de navigation est au-dessus de la fenêtre.
-    const vue = (): Rect => {
-      const d = defileurEl()
-      if (d) {
-        const b = d.getBoundingClientRect()
-        return { left: b.left, top: b.top, right: b.right, bottom: b.bottom }
-      }
-      const racine = document.documentElement
-      return { left: 0, top: hauteurNavbarPx(), right: racine.clientWidth, bottom: racine.clientHeight }
-    }
-    const bande = (): Rect => {
-      const z = zoneEl.getBoundingClientRect()
-      const v = vue()
-      return {
-        left: Math.max(z.left, v.left), top: Math.max(z.top, v.top),
-        right: Math.min(z.right, v.right), bottom: Math.min(z.bottom, v.bottom),
-      }
-    }
+    const vue = (): Rect => vueDe(defileurEl())
+    const bande = (): Rect => bandeVisible(zoneEl, defileurEl())
 
     // ⚠️ Les boîtes se mesurent UNE fois, au lancement, en coordonnées de contenu : le
     // défilement automatique ne change pas la mise en page, et mesurer mille segments à
@@ -426,28 +449,40 @@ export default function LassoLecture(props: LassoLectureProps) {
     }
   }, [actif, zone])
 
-  // ── L'axe de la barre ─────────────────────────────────────────────────────
+  // ── LE CADRE DE LECTURE : l'axe de la barre, et le centre du cri ──────────
   // ⚠️ Mesuré sur la ZONE, que les volets rétrécissent sans que la fenêtre bouge.
   // ⚠️ AVANT la peinture : la barre ne paraît pas une image au milieu de l'écran pour
   // glisser ensuite sur l'axe. L'observateur prend le relais quand un volet bouge.
+  // ⛔ Et le DÉFILEMENT compte : sur une page d'œuvre, la zone fait dix écrans, et sa
+  // bande visible se déplace quand la fenêtre défile — le cri s'y centre. L'écoute est en
+  // CAPTURE (un défilement ne remonte pas, il descend : c'est le seul moyen d'entendre un
+  // défileur interne) et bornée à une image, et l'état ne se repose QUE s'il a changé.
   const aSelection = actif && selection.length > 0
   useMesureAvantPeinture(() => {
     if (!aSelection) return
     const zoneEl = zone.current
     if (!zoneEl) return
+    let image = 0
     const mesurer = () => {
-      const b = zoneEl.getBoundingClientRect()
-      if (b.width > 0) setAxe(b.left + b.width / 2)
+      const b = bandeVisible(zoneEl, defileur?.current ?? null)
+      if (b.right > b.left && b.bottom > b.top) setCadre(prec => (memeRect(prec, b) ? prec : b))
+    }
+    const bientot = () => {
+      if (image) return
+      image = requestAnimationFrame(() => { image = 0; mesurer() })
     }
     mesurer()
     const observateur = new ResizeObserver(mesurer)
     observateur.observe(zoneEl)
     window.addEventListener('resize', mesurer)
+    window.addEventListener('scroll', bientot, true)
     return () => {
+      if (image) cancelAnimationFrame(image)
       observateur.disconnect()
       window.removeEventListener('resize', mesurer)
+      window.removeEventListener('scroll', bientot, true)
     }
-  }, [aSelection, zone])
+  }, [aSelection, zone, defileur])
 
   if (!actif || (selection.length === 0 && !trace)) return null
 
@@ -461,9 +496,21 @@ export default function LassoLecture(props: LassoLectureProps) {
   const enregistrable = nombre > 0 && (props.enregistrable?.(selection) ?? true)
   const deja = enregistrable ? Math.min(nombre, props.dejaEnregistres(selection)) : 0
   const aEnregistrer = enregistrable ? nombre - deja : 0
+  const axe = cadre === null ? null : cadre.left + (cadre.right - cadre.left) / 2
   const gauche = axe === null
     ? '50%'
     : gouttiere ? 'calc(' + axe + 'px - ' + gouttiere + ' / 2)' : axe + 'px'
+  // ⛔ LE CRI SE CENTRE DANS LE BLOC DE TEXTE, non au milieu de l'écran : sa boîte EST la
+  // bande de lecture, moins la gouttière d'actions — le même axe que la barre et que le
+  // titre du chapitre. Faute de mesure (première image), on retombe sur la fenêtre.
+  const cadreDuCri: React.CSSProperties = cadre === null
+    ? { inset: 0 }
+    : {
+      left: cadre.left + 'px',
+      top: cadre.top + 'px',
+      width: gouttiere ? 'calc(' + (cadre.right - cadre.left) + 'px - ' + gouttiere + ')' : (cadre.right - cadre.left) + 'px',
+      height: (cadre.bottom - cadre.top) + 'px',
+    }
 
   return createPortal(
     <>
@@ -476,9 +523,14 @@ export default function LassoLecture(props: LassoLectureProps) {
           traverse la seconde colonne qu'il faut dire pourquoi il devient rouge. Il ne prend
           aucun pointeur — le geste continue dessous. */}
       {refus && (
-        <div className="cs-lasso-alarme" style={{ zIndex: Z_FLOTTANT }} role="alert" aria-live="assertive">
-          <span className="cs-lasso-alarme-cri">{refus.titre}</span>
-          {refus.detail && <span className="cs-lasso-alarme-detail">{refus.detail}</span>}
+        <div className="cs-lasso-alarme" style={{ zIndex: Z_FLOTTANT, ...cadreDuCri }} role="alert" aria-live="assertive">
+          {/* ⛔ LA PLAQUE est du PAPIER, non une carte : elle efface le texte sous le
+              message, et son bord se fond. Sans elle, le petit texte se lisait sur la
+              page qu'il couvrait, et ne se lisait pas. */}
+          <div className="cs-lasso-alarme-plaque">
+            <span className="cs-lasso-alarme-cri">{refus.titre}</span>
+            {refus.detail && <span className="cs-lasso-alarme-detail">{refus.detail}</span>}
+          </div>
         </div>
       )}
       {nombre > 0 && !trace && (

@@ -3061,23 +3061,40 @@ html[data-lasso-geste] * {
   border-color: rgba(var(--cs-danger-rgb), 0.85);
   background: rgba(var(--cs-danger-rgb), 0.12);
 }
-/* Le CRI, au centre de l'écran. ⛔ Il ne prend aucun pointeur : le geste se poursuit
+/* Le CRI, au centre du BLOC DE TEXTE — sa boîte est posée par le composant, qui mesure la
+   bande où la lecture se voit. ⛔ Il ne prend aucun pointeur : le geste se poursuit
    dessous, et c'est en le poursuivant qu'on le corrige. ⛔ Le sans se NOMME, il ne s'hérite
    pas : porté dans <body>, il prendrait la police de ce qui l'entoure. */
 .cs-lasso-alarme {
   position: fixed;
-  inset: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
   padding: 0 2rem;
   pointer-events: none;
   text-align: center;
   font-family: var(--font-source-sans), Arial, sans-serif;
   font-style: normal;
   color: var(--cs-danger-fonce);
+}
+/* ⛔ LA PLAQUE EST DU PAPIER, JAMAIS UNE CARTE. Le halo de texte ne suffisait pas : il
+   hugge les glyphes et laisse la page paraître entre les mots — mesuré sur la lecture en
+   regard, l'écart-type du fond entre deux lignes du message valait 48 au Clair et 57 en
+   Cuir, c'est-à-dire du texte sous du texte ; avec la plaque, ZÉRO.
+   ⛔ Un fondu RADIAL ne suffit pas non plus, et sa géométrie le dit : l'ellipse opaque
+   n'enferme pas les coins d'un bloc de texte large (coins mesurés à ±40). La plaque est
+   donc une PASTILLE pleine, dont l'ombre de même encre fond le bord — aucune arête, et
+   l'on ne voit pas une carte posée sur la page, mais la page rendue au blanc. */
+.cs-lasso-alarme-plaque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* ⚠️ Le détail se serre SOUS le cri : c'est la même phrase, non un second bloc. */
+  gap: 0.25rem;
+  padding: 1.25rem 2.25rem;
+  border-radius: 999px;
+  background: var(--cs-fond);
+  box-shadow: 0 0 3rem 1.5rem var(--cs-fond);
 }
 /* ⚠️ Le corps est RELATIF à la fenêtre : le cri doit tenir sur un portable comme sur un
    grand écran, et il est fait pour être vu, non lu deux fois. */
@@ -3088,20 +3105,20 @@ html[data-lasso-geste] * {
   line-height: 1.1;
   letter-spacing: 0.01em;
   text-wrap: balance;
-  /* Le halo du papier détache le cri du texte qu'il couvre, sans l'effacer. */
-  text-shadow: 0 0 0.75rem var(--cs-fond), 0 0 1.5rem var(--cs-fond);
-  animation: cs-lasso-alarme-clignote 0.72s steps(1, end) infinite;
+  /* ⛔ Le clignotement est un SOUFFLE, non un gyrophare : il battait de 1 à 0,18 par
+     `steps(1, end)`, c'est-à-dire une alternance franche deux fois par seconde. Il respire
+     désormais — fondu, plus lent, et le creux reste PARFAITEMENT lisible. */
+  animation: cs-lasso-alarme-clignote 1.5s ease-in-out infinite;
 }
 .cs-lasso-alarme-detail {
   max-width: 34ch;
   font-size: clamp(0.8125rem, 1.6vw, 1rem);
   font-weight: 500;
-  line-height: 1.35;
+  line-height: 1.25;
   text-wrap: balance;
-  text-shadow: 0 0 0.75rem var(--cs-fond), 0 0 1.25rem var(--cs-fond);
 }
 @keyframes cs-lasso-alarme-clignote {
-  50% { opacity: 0.18; }
+  50% { opacity: 0.62; }
 }
 /* La barre : la recette de la pastille des volets et de la cellule d'actions — le petit
    objet qui flotte au-dessus de la colonne de lecture —, posée sur l'axe du texte.

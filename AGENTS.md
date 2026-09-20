@@ -12487,7 +12487,8 @@ Règles de code, en plus de « LE LASSO DE LECTURE » (2026-09-16) :
 - ⛔ **SOUS UN REFUS, AUCUNE ACTION N'EST OFFERTE** — ni bouton, ni Ctrl+C (`executer` sort
   d'emblée). La trace passe à `.cs-lasso-trace--refus`, la feuille de surbrillance à
   `--cs-lasso-surbrillance-refus`, le compte à `.cs-lasso-compte--erreur`, et `.cs-lasso-alarme`
-  crie au centre de l'écran. Seul « Défaire la sélection » demeure.
+  crie au centre du BLOC DE TEXTE, sur une plaque de papier qui le rend lisible
+  par-dessus le texte. Seul « Défaire la sélection » demeure.
 - ⛔ **L'ALARME NE PREND AUCUN POINTEUR** (`pointer-events: none`) : le geste se poursuit
   dessous, et c'est EN LE POURSUIVANT qu'on le corrige — revenir dans une seule colonne
   éteint le rouge sans qu'on ait rien à cliquer. ⚠️ Elle est `role="alert"` et
@@ -12500,6 +12501,58 @@ Règles de code, en plus de « LE LASSO DE LECTURE » (2026-09-16) :
   `id_texte`), et un empan de la colonne originale n'en est pas un. Faux, la barre n'offre
   que « Copier » ; ⛔ ne pas le simuler par `dejaEnregistres`, qui rendrait « 0 passage
   enregistré » sous un bouton qui ne ferait rien.
+
+## ⛔ L'ALARME — une PLAQUE, un souffle, et l'axe du BLOC DE TEXTE (2026-09-20, le soir)
+
+Rectification de l'auteur, quelques heures après la pose : « le message d'alerte m'amuse
+beaucoup ; mais il est pas lisible (surtout le petit texte) quand il se trouve par-dessus
+du texte ; le clignotement est pas mal, mais un peu trop violent ; y'a moyen de le
+tamiser un peu ? », puis « centrer dans le bloc de texte d'affichage ; resserrer le texte
+sous l'alerte principale (l'interligne, etc.) ».
+
+- ⛔ **SEULE UNE PLAQUE OPAQUE REND UN TEXTE LISIBLE PAR-DESSUS UN TEXTE**, et les deux
+  autres voies ont été MESURÉES puis écartées. Un HALO de six ombres portées épouse les
+  glyphes et laisse le papier paraître ENTRE les mots : écart-type du fond dans la bande
+  sans glyphe ±7,46 avant, ±7,42 après — rien. Un DÉGRADÉ RADIAL `closest-side` n'enferme
+  pas les coins d'un rectangle large, et c'est une propriété de l'ellipse, non un réglage :
+  mesuré, ±39,59 au Clair et ±47,30 en Cuir aux quatre coins. La plaque est donc une PILULE
+  de `--cs-fond`, dont un `box-shadow: 0 0 3rem 1.5rem var(--cs-fond)` estompe le bord.
+  Mesuré dans la bande sans glyphe entre le cri et le détail : **±48,55 (Clair) et ±56,59
+  (Cuir) avant, ±0 et ±0 après** ; au pire coin, ±44 et ±54 avant, **±5,69 et ±6,65** après.
+- ⛔ **UN CONTRASTE NE SE MESURE PAS EN SUPPOSANT LE FOND CLAIR.** La première sonde prenait
+  « les 55 % les plus clairs » pour le fond : sur le Cuir, c'est l'ENCRE, et elle annonçait
+  1,54 là où les jetons rendent 6,09 (`--cs-danger-fonce` #cf8570 sur #1c1813). La mesure
+  juste ne regarde aucune couleur : elle prend l'ÉCART-TYPE de la luminance dans une bande
+  SANS GLYPHE, qui vaut zéro sur un aplat et croît avec ce qui transparaît.
+- ⛔ **LE SOUFFLE SE JUGE FIGÉ, AUX MÊMES FRACTIONS DE SA COURSE**, jamais aux mêmes
+  millisecondes : deux durées différentes ne se compareraient pas. Le gyrophare valait
+  0,72 s en `steps(1, end)`, creux 0,18 — six instants rendent [1, 1, 1, 0,18, 0,18, 0,18],
+  **amplitude 0,82**, et l'œil n'y voit qu'un interrupteur. Le souffle vaut **1,5 s en
+  `ease-in-out`, creux 0,62** — [1, 0,874, 0,691, 0,62, 0,691, 0,874], **amplitude 0,38**.
+- ⛔ **ET `animation-delay` NE REMET PAS À ZÉRO UNE ANIMATION DÉJÀ LANCÉE** : posé après
+  coup, il décale la suite sans toucher au temps courant, et la première capture « figée au
+  plein » tombait en réalité dans le creux. On fige par l'API DES ANIMATIONS —
+  `getAnimations()[0].currentTime = 0; pause()` —, et l'on relit l'opacité calculée pour
+  s'en assurer.
+- ⛔ **L'ALARME SE CENTRE SUR LA BANDE VISIBLE DE LA ZONE DE LECTURE, non sur la fenêtre**
+  (`vueDe`, `bandeVisible`, `memeRect`, `LassoLecture.tsx`) : l'intersection de la zone et
+  de la vue, c'est-à-dire ce que le lecteur a sous les yeux. Le geste et le placement la
+  partagent — une seule écriture. ⚠️ Sur la page Bible, `gouttiere` retranche la colonne
+  d'actions, comme pour la barre et pour l'anneau d'attente (§ 38.30) : le cri tombe alors
+  sur l'axe du texte. Mesuré : en regard, texte 584 = barre 584 = cri 584 pour une fenêtre
+  centrée à 640 ; sur l'œuvre, 603 = 603 = 603 ; et le milieu vertical de la plaque est
+  celui de la bande visible (427/427, 428/428).
+- ⚠️ **La mesure se refait au DÉFILEMENT, au reflux et au redimensionnement** : écoute en
+  CAPTURE sur la fenêtre (un `scroll` ne remonte pas, mais il descend, et c'est le seul
+  moyen d'entendre le défileur interne de la page Bible), `ResizeObserver` sur la zone, et
+  l'état ne change que si le rectangle a bougé.
+- ⚠️ **Le détail se resserre** : blanc du cri au détail **8 px → 4**, interligne **1,35 →
+  1,25**. Le cri garde le sien (1,1) ; c'est la ligne qu'on lit en second qui devait se
+  ramasser.
+- ⛔ **UNE PLANCHE QUI NE MODÈLE PAS LA GOUTTIÈRE MESURE UN AUTRE AXE** : la première
+  annonçait 584 pour une colonne qui en vaut 603, et l'on cherchait le défaut dans le
+  composant. Elle reprend donc la grille de la page
+  (`minmax(0, var(--mesure-page)) GOUTTIERE_ACTIONS_VERSET`), et les deux tombent d'accord.
 
 ## La BIBLE EN REGARD — `LectureBilingueBible`
 
