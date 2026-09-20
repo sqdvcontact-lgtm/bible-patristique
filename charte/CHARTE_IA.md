@@ -4985,6 +4985,8 @@ Fillion ouvre chaque livre par une introduction que son imprimeur divise en dév
 
 ⛔ **UN STYLE À RÔLE DE TITRE DIT LE RANG DE SON TITRE À CHAQUE RANG D’INFORMATION.** `introduction_titree` déclarait `heading_role: "title"` sans dire nulle part quel titre elle porte : faute d’`embedded_title_level` sur le bloc, le rendu ne trouvait aucun rang et retombait sur la RUBRIQUE grise. Seul son alias `introduction_livre` portait ce rang, si bien que la même introduction se composait en T2 à la Genèse et en rubrique chez Matthieu, selon le code que l’import avait écrit. ⛔ **Un code canonique vaut son alias, toujours** : le registre porte donc `heading_levels`, un rang de titre par rang d’information, et le validateur REFUSE un style d’information à rôle de titre qui ne sait pas composer son titre à chaque rang. ⚠️ Chaque rang d’information porte le titre de la PORTÉE qu’il explique ; I1 → T2 est la seule exception doctrinale, `titre_livre` (T1) ne paraissant jamais.
 
+⛔ **ET LA MANCHETTE VAUT AUSSI EN TEXTE EN REGARD.** La lecture à une colonne et la lecture en regard composent les MÊMES blocs d'apparat : elles doivent donc les composer pareil. La seconde ne recevait pas la manchette — les mêmes intitulés y restaient des titres centrés au rang T4, avec le blanc d'une sous-section à l'intérieur d'une seule introduction — parce que la composition la calculait dans la seule branche d'une colonne. ⚠️ Toute matière d'AFFICHAGE tirée d'un lot de blocs — balisage d'axe, rang des sous-titres, manchettes — s'écrit en UN seul endroit que les deux lectures appellent : deux écritures dérivent au premier ajustement, et c'est ainsi qu'une section entière est restée invisible en ligne pendant que ses tests passaient.
+
 ⚠️ **Le défaut ne se voyait NI dans la donnée, NI dans un test, NI dans le registre lu seul** : les deux codes sont canoniques, les deux blocs sont sains, et c’est leur RENCONTRE avec le rendu qui les séparait. Mesuré au jour de la correction : 55 blocs du corpus retrouvent leur titre, 44 introductions de livre et 11 de péricope.
 
 ### 35.28. La grille des titres — le rang est une PROFONDEUR
@@ -5062,6 +5064,20 @@ Fillion ouvre chaque livre par une introduction que son imprimeur divise en dév
 
 **Le contrôle est `scripts/fillion/controle-registre-styles.mts`** (`--detail`). ⛔ Il n’a aucune règle à lui : les valeurs attendues viennent de `resoudreStyleSemantique`, la fonction que la page emploie — une seconde écriture de la composition divergerait au premier ajustement, et c’est exactement ce qu’il existe pour relever. Il n’écrit rien. Il rougit sur la surface commune, signale les copies périmées, et compte la convention des lignes d’alias. Relevé du 20 septembre 2026 : 58 styles de part et d’autre, zéro écart sur la surface commune, zéro copie périmée.
 
+
+### 35.31. Un bloc que la donnée laisse ORPHELIN s'affiche, et se dénonce
+
+La matière sans ancre d'un livre — l'introduction et ce qui la suit — forme un ARBRE : le bloc de portée `book` en est la racine, ses descendants s'y rattachent par `semantic_parent_key`, et la sélection du rendu ferme transitivement sur ce lien.
+
+⛔ **UN BLOC QUI NE DÉCLARE AUCUN PARENT N'EST ATTEINT PAR RIEN.** Ni chargé, ni rendu, nulle part : ni dans un chapitre, ni dans une pièce liminaire. Il ne manque à aucun test, ne rougit dans aucun contrôle, et rien à l'écran ne dit qu'il existe. Mesuré sur le corpus le 20 septembre 2026 : **1 205 blocs dans 35 livres**, dont les **326 du second livre des Machabées** — l'appareil entier de Fillion sur ce livre, introduction comprise. À Lévitique, le conteneur « Introduction au livre de Lévitique » paraissait seul, ses quatre sous-titres et ses huit paragraphes muets.
+
+⛔ **LE RENDU L'ADOPTE, ET IL LE DIT.** L'orphelin est retenu dès qu'une racine de sa propre source l'est, pour la seule durée de l'affichage — puis composé sur **fond fluo**, bord tireté, sous la mention « ce bloc ne déclare aucun parent ». ⚠️ Rien n'est écrit en base, et rien n'est réparé : une adoption silencieuse ferait passer pour saine une donnée qui ne l'est pas, et le remède — écrire les `semantic_parent_key` qui manquent — cesserait d'être visible. Le fluo disparaîtra de lui-même le jour où la donnée parlera.
+
+⛔ **LE FLUO N'EST PAS UNE COULEUR DU SITE.** Il est fait pour JURER, et pour qu'on le voie en faisant défiler une page sans la lire. Il ne se discute donc ni en teinte ni en sobriété, et il garde la même sur les deux thèmes — un fluo qui s'adoucit la nuit cesse d'être un fluo. ⛔ Il ne se retire pas en changeant la feuille : il se retire en corrigeant la donnée.
+
+⚠️ **L'adoption tient à la SOURCE, non à la place.** 675 des 1 205 orphelins portent `placement = after`, et la page Bible ne demande jamais la matière de queue : bornée à leur place, l'adoption les laisserait invisibles. Leur place continue de se lire dans `data-placement`.
+
+⚠️ **Le rang sémantique n'y est pour rien**, et c'était la fausse piste : les 198 `titre_sous_section` qui ne déclarent aucun niveau reçoivent le T4 du registre (§ 35.28) et se composent très bien. Un bloc qui disparaît sans bruit ne s'explique pas par ce qu'il compose mal, mais par ce qui ne le sélectionne pas.
 
 ## 36. Le modèle d’onglets
 
