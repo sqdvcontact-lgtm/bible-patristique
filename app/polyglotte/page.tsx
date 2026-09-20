@@ -64,20 +64,18 @@ import { nomCommun } from "@/app/lib/menuTraductionsBible";
 import { comparerParMillesime, millesimeEdition, type RangeableParMillesime } from '@/app/lib/millesimeEdition'
 import RailVolet from "@/app/components/RailVolet";
 import {
-  fusionnerCatalogueAelf,
-  indexerLivresAelf,
-  masquerTraductionsAelfIndisponibles,
-  projeterCelluleAelf,
+  indexerLivresFillion,
+  masquerTraductionsIndisponibles,
   traductionsDisponiblesPourLivres,
-  type CellulePolyglotteAelf,
-  type LivreAelfParTraduction,
-  type LivresAelfParTraduction,
-  type TraductionCatalogueAelf,
-  type TraductionPublieeAelf,
-} from '@/app/lib/polyglotteAelf'
+  type LivreFillion,
+  type LivresParTraduction,
+} from '@/app/lib/polyglotteFillion'
 
 type Livre = { code: string; nom_fr: string; ordre: number };
-type Trad = { trad_id: string; nom: string; ordre: number | null; edition: string | null; lang: string; variante?: string; sourceAelf?: boolean };
+// `sourceFillion` : la traduction ne vit pas dans `versets_v2` ; son texte se lit dans la
+// table de lecture de la Fillion (voir `TABLE_FILLION`).
+type Trad = { trad_id: string; nom: string; ordre: number | null; edition: string | null; lang: string; variante?: string; sourceFillion?: boolean };
+type TraductionCatalogue = { trad_id: string; nom: string; ordre: number | null; source_edition: string | null; publication_fin_annee: number | null; langue: string | null };
 
 // ── La Bible du XIIIe siècle porte DEUX états de son texte ────────────────────
 // TR0009 n'est pas une traduction de plus : c'est un manuscrit, dont on lit soit les
@@ -108,7 +106,7 @@ type Point = { livre: string | null; reference: string | null; type: string | nu
 type CanonRow = { id: string; livre: string; ch_canon: number; v_canon: number; est_suscription: boolean };
 // ⚠️ `estGlose899` et `cleGlose899` ne se posent que sur une glose du témoin 899 : la seconde
 // est sa clé de segment, qui lui donne SA ligne parmi les surnuméraires.
-type V2Row = { id: string; canon_id: string | null; canon_id_fin: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null; estLacune899?: boolean; estGlose899?: boolean; cleGlose899?: string; lectureSeuleAelf?: boolean };
+type V2Row = { id: string; canon_id: string | null; canon_id_fin: string | null; livre: string; trad_id: string; ch_orig: number; v_orig: number; v_orig_suffixe: string | null; texte: string | null; notes: string | null; estLacune899?: boolean; estGlose899?: boolean; cleGlose899?: string; lectureSeule?: boolean };
 
 // ⛔ UNE LIGNE SANS TEXTE N'EST PAS UN VERSET À MONTRER (décision de l'auteur, 14 septembre
 // 2026 : « à l'affichage, il ne faut pas afficher une ligne vide »). Une ligne vide posait son
@@ -332,7 +330,7 @@ async function fetchPaged<T>(table: string, cols: string, addFilters: (q: any) =
 // RÉPOND à ce qui est demandé — et donc si l'on attend, et si l'on doit repartir. La
 // couche de la Bible 899 n'y figure plus : elle est portée par l'identifiant de la
 // colonne (voir `couche899De`), et les deux couches arrivent ensemble au cache.
-type Portee = { codes: string[]; tradIds: string[]; tradIdsAelf: string[]; chScope: number | null };
+type Portee = { codes: string[]; tradIds: string[]; tradIdsFillion: string[]; chScope: number | null };
 const memeListe = (a: string[], b: string[]) => a.length === b.length && a.every((x, i) => x === b[i]);
 // Ce qui est chargé couvre la demande quand ce sont les mêmes livres et les mêmes
 // traductions, et que le chapitre demandé est celui qu'on a — ou que l'on a le livre
@@ -342,7 +340,7 @@ function couvre(chargee: Portee | null, demande: Portee): boolean {
   return chargee !== null
     && memeListe(chargee.codes, demande.codes)
     && memeListe([...chargee.tradIds].sort(), [...demande.tradIds].sort())
-    && memeListe([...chargee.tradIdsAelf].sort(), [...demande.tradIdsAelf].sort())
+    && memeListe([...chargee.tradIdsFillion].sort(), [...demande.tradIdsFillion].sort())
     && (chargee.chScope === null || chargee.chScope === demande.chScope);
 }
 
@@ -472,21 +470,36 @@ function partager(cle: string, lancer: () => Promise<void>): Promise<void> {
 // migration `versets_v2_index_chapitre_canonique` (sans lui, la base lisait tout le
 // livre pour en garder un chapitre : 391 ms pour Genèse 1, 4 ms avec).
 // ⚠️ Une erreur est LEVÉE, non rendue en liste vide, et rien n'entre alors au cache.
+//
+// ── La Fillion se lit ailleurs, et de la même façon ──────────────────────────
+// Son texte n'est pas dans `versets_v2` : il est recomposé depuis les tables
+// éditoriales, puis posé sur l'axe canonique par les alignements vérifiés. La base en
+// tient le résultat figé dans `v_polyglotte_fillion`, aux colonnes de `versets_v2` —
+// la page ne change donc que de table, et garde son cache, ses filtres et sa grille.
+// ⛔ Ne pas lire la chaîne de vues qui produit cette table : elle recalcule ses 18 000
+// lignes à chaque requête (4,9 s pour un chapitre, 22,8 s pour le recensement des
+// livres), quand le rôle du lecteur coupe à 8 s — c'est ce qui fermait le menu.
+const TABLE_FILLION = "v_polyglotte_fillion";
+// Ce que le MENU doit savoir : dans quels livres la Fillion se lit déjà.
+const COUVERTURE_FILLION = "v_polyglotte_fillion_livres";
+const COLONNES_TEXTE = "id, canon_id, canon_id_fin, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes";
 async function completerCache(demande: Portee): Promise<void> {
-  const { codes, tradIds, tradIdsAelf, chScope } = demande;
+  const { codes, tradIds, tradIdsFillion, chScope } = demande;
   const scope = scopeDe(chScope);
   const canonManquant = codes.filter(code => !lireCanon(code, scope));
-  const groupes = new Map<string, { trads: string[]; livres: string[] }>();
-  const groupesAelf = new Map<string, { trads: string[]; livres: string[] }>();
-  const surAxeAelf = new Set(tradIdsAelf);
+  // Les groupes sont rangés PAR SOURCE : une même vague ne mêle pas `versets_v2` et la
+  // table de lecture de la Fillion, qui ne se filtrent pas par le même chemin.
+  const groupes = new Map<string, { trads: string[]; livres: string[]; fillion: boolean }>();
+  const surFillion = new Set(tradIdsFillion);
   for (const trad of tradIds) {
     if (est899(trad)) continue;
     const livres = codes.filter(code => !lireTexte(trad, code, scope));
     if (!livres.length) continue;
-    const destination = surAxeAelf.has(trad) ? groupesAelf : groupes;
-    const g = destination.get(livres.join(",")) ?? { trads: [], livres };
+    const fillion = surFillion.has(trad);
+    const cle = `${fillion ? "fillion" : "v2"}|${livres.join(",")}`;
+    const g = groupes.get(cle) ?? { trads: [], livres, fillion };
     g.trads.push(trad);
-    destination.set(livres.join(","), g);
+    groupes.set(cle, g);
   }
   const manquant899 = tradIds.some(est899) ? codes.filter(code => !lire899(code, scope)) : [];
 
@@ -502,28 +515,19 @@ async function completerCache(demande: Portee): Promise<void> {
     // sait nommer qu'un livre) ; le livre entier, lui, peut en réunir plusieurs.
     const lots = scope === "*" ? [g.livres] : g.livres.map(l => [l]);
     for (const livres of lots) {
-      taches.push(partager(`texte|${g.trads.join(",")}|${livres.join(",")}|${scope}`, () =>
-        fetchPaged<V2Row>("versets_v2", "id, canon_id, canon_id_fin, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes",
-          q => { const x = q.in("livre", livres).in("trad_id", g.trads); return scope !== "*" ? x.like("canon_id", `${livres[0]}.${scope}.%`) : x; })
-          .then(rows => {
-            for (const trad of g.trads) for (const livre of livres) {
-              retenir(cacheTexte, `${trad}|${cleLivre(livre, scope)}`, rows.filter(r => r.trad_id === trad && r.livre === livre));
-            }
-          })));
-    }
-  }
-  // Les traductions historiques publiées sur l'axe AELF ne sont pas des lignes de
-  // `versets_v2`. La vue de publication est la seule source : elle ne rend que les livres
-  // et fragments dont la validation structurelle est achevée. Son axe AELF devient le
-  // `canon_id` interne ; la référence historique reste la numérotation d'origine.
-  for (const g of groupesAelf.values()) {
-    const lots = scope === "*" ? [g.livres] : g.livres.map(l => [l]);
-    for (const livres of lots) {
-      taches.push(partager(`texte-aelf|${g.trads.join(",")}|${livres.join(",")}|${scope}`, () =>
-        fetchPaged<CellulePolyglotteAelf>("v_aelf_polyglotte_cells", "id, aelf_book_code, aelf_chapter_base, aelf_verse_base, historical_canon_id, livre, trad_id, ch_orig, v_orig, v_orig_suffixe, texte, notes",
-          q => { const x = q.in("aelf_book_code", livres).in("trad_id", g.trads); return scope !== "*" ? x.eq("aelf_chapter_base", scope) : x; })
-          .then(cellules => {
-            const rows = cellules.map(projeterCelluleAelf);
+      taches.push(partager(`texte|${g.fillion ? "fillion" : "v2"}|${g.trads.join(",")}|${livres.join(",")}|${scope}`, () =>
+        fetchPaged<V2Row>(g.fillion ? TABLE_FILLION : "versets_v2", COLONNES_TEXTE,
+          q => {
+            const x = q.in("livre", livres).in("trad_id", g.trads);
+            if (scope === "*") return x;
+            // La table de la Fillion porte son chapitre canonique en clair, et un entier
+            // indexé vaut mieux qu'un préfixe : `versets_v2` n'a que le `canon_id`.
+            return g.fillion ? x.eq("ch_canon", scope) : x.like("canon_id", `${livres[0]}.${scope}.%`);
+          })
+          .then(brutes => {
+            // ⛔ Le crayon d'édition ne se pose jamais sur la Fillion : ses lignes sont
+            // recomposées depuis les tables éditoriales, et ne s'écrivent pas d'ici.
+            const rows = g.fillion ? brutes.map(r => ({ ...r, lectureSeule: true })) : brutes;
             for (const trad of g.trads) for (const livre of livres) {
               retenir(cacheTexte, `${trad}|${cleLivre(livre, scope)}`, rows.filter(r => r.trad_id === trad && r.livre === livre));
             }
@@ -1270,9 +1274,9 @@ export default function PolyglottePage() {
   // trad_id → code du livre → nom qu'il porte dans cette édition. Seuls les écarts au canon.
   const [livresEd, setLivresEd] = useState<Record<string, Record<string, { nom: string; abrege: string }>>>({});
   const [trads, setTrads] = useState<Trad[]>([]);
-  // La vue de publication décide livre par livre : une traduction venue de l'axe AELF
-  // n'entre dans le menu que là où ses unités sont réellement publiées.
-  const [livresAelfParTraduction, setLivresAelfParTraduction] = useState<LivresAelfParTraduction>(new Map());
+  // La Fillion n'est alignée que sur une partie du canon : le menu ne l'offre que là où
+  // elle se lit vraiment (voir `traductionsDisponiblesPourLivres`).
+  const [livresFillion, setLivresFillion] = useState<LivresParTraduction>(new Map());
   const [points, setPoints] = useState<Point[]>([]);
   // ⛔ LA PAGE NE S'OUVRE PLUS VIDE (demande de l'auteur, 2026-09-04 : « supprimer le
   // dessin et afficher soit le dernier emplacement de lecture de l'utilisateur — il faut
@@ -1513,30 +1517,26 @@ export default function PolyglottePage() {
     // public n'y voit rien — elle contient aussi la charte éditoriale, qui doit le rester.
     fetch("/api/livres-editions").then(r => r.json()).then(setLivresEd).catch(() => setLivresEd({}));
     (async () => {
-      // La restauration de la session Supabase est asynchrone au rechargement. Sans cette
-      // attente, les vues AELF (réservées aux lecteurs authentifiés) peuvent être interrogées
-      // une première fois avec le rôle anonyme, puis ne sont jamais relues lorsque la session
-      // réapparaît : Fillion reste alors absent du sélecteur malgré sa publication effective.
+      // ⚠️ La session Supabase se restaure APRÈS le premier rendu. Sans cette attente, la
+      // couverture de la Fillion — réservée aux lecteurs authentifiés — part avec le rôle
+      // anonyme, revient vide, et n'est jamais relue : la Fillion reste alors hors du menu.
       await supabase.auth.getSession();
       // ⛔ `est_biblique` : voir le commentaire dans app/page.tsx — la table tient aussi
       // les notices des traductions patristiques, qui n'ont rien à faire ici.
-      // La TABLE garde les métadonnées d'édition et les textes privés de l'administrateur ;
-      // les deux VUES disent ce qui est effectivement publié sur l'axe AELF, puis dans quel
-      // livre. Leur intersection ajoute Fillion sans liste d'identifiants codée en dur.
-      const [catalogue, publicationAelf, livresAelf] = await Promise.all([
+      // La TABLE porte le nom, la langue et le millésime de chaque bible ; la couverture
+      // de la Fillion dit, elle, où son texte est réellement aligné. Les deux se lisent
+      // ensemble : aucune liste d'identifiants n'est codée en dur ici, et un livre qui
+      // s'ajoute au chantier entre au menu sans toucher à la page.
+      const [catalogue, couvertureFillion] = await Promise.all([
         supabase.from("traductions").select("trad_id, nom, ordre, source_edition, publication_fin_annee, langue").eq("est_biblique", true).order("ordre"),
-        supabase.from("v_aelf_bible_search_translations").select("trad_id, nom, ordre, langue").order("ordre"),
-        supabase.from("v_aelf_bible_books_by_translation").select("trad_id, livre, nb_unites").gt("nb_unites", 0),
+        supabase.from(COUVERTURE_FILLION).select("trad_id, livre, nb_versets"),
       ]);
       const { data: tr, error: erreurTr } = catalogue;
       if (erreurTr) console.error("Polyglotte : les traductions n’ont pas pu être lues.", erreurTr);
-      if (publicationAelf.error) console.error("Polyglotte : les traductions publiées sur l’axe AELF n’ont pas pu être lues.", publicationAelf.error);
-      if (livresAelf.error) console.error("Polyglotte : les livres publiés par traduction n’ont pas pu être lus.", livresAelf.error);
-      const catalogueVisible = (tr ?? []) as TraductionCatalogueAelf[];
-      const publiees = (publicationAelf.data ?? []) as TraductionPublieeAelf[];
-      const publieeParId = new Map(publiees.map(t => [t.trad_id, t]));
-      const liste = fusionnerCatalogueAelf(catalogueVisible, publiees);
-      setLivresAelfParTraduction(indexerLivresAelf((livresAelf.data ?? []) as LivreAelfParTraduction[]));
+      if (couvertureFillion.error) console.error("Polyglotte : les livres alignés de la Fillion n’ont pas pu être lus.", couvertureFillion.error);
+      const liste = (tr ?? []) as TraductionCatalogue[];
+      const couverture = indexerLivresFillion((couvertureFillion.data ?? []) as LivreFillion[]);
+      setLivresFillion(couverture);
       // Une SONDE par traduction pour savoir laquelle est migrée dans versets_v2, toutes
       // en parallèle. Une ligne suffit : le compte exact d'avant parcourait l'index
       // entier de la traduction (36 000 lignes pour la Vulgate, 13 ms chacune, mesuré),
@@ -1555,16 +1555,18 @@ export default function PolyglottePage() {
       ));
       const migres: Trad[] = [];
       liste.forEach((t, i) => {
-        const publiee = publieeParId.get(t.trad_id);
-        if (presentesDansV2[i] || publiee) migres.push({
+        // Une bible entre au menu si elle est dans `versets_v2`, ou si la Fillion la
+        // porte : le latin et le français de la Fillion sont deux colonnes à part
+        // entière, chacune sous sa langue (voir `FAMILLES` et `GROUPES_LANG`).
+        const surFillion = couverture.has(t.trad_id);
+        if (!presentesDansV2[i] && !surFillion) return;
+        migres.push({
           trad_id: t.trad_id,
-          nom: publiee?.nom ?? t.nom,
-          ordre: publiee?.ordre ?? t.ordre,
+          nom: t.nom,
+          ordre: t.ordre,
           edition: editionTrad(t),
-          lang: codeLangue(publiee?.langue ?? t.langue),
-          // Si la traduction n'existe pas dans `versets_v2`, son texte se lit dans la vue
-          // AELF. La vue des livres bornera ensuite son apparition dans le menu.
-          sourceAelf: !presentesDansV2[i] && Boolean(publiee),
+          lang: codeLangue(t.langue),
+          sourceFillion: !presentesDansV2[i] && surFillion,
         });
       });
       // TR0009 (Bible 899) n'est pas migrée dans `versets_v2` : son texte est recomposé
@@ -1650,11 +1652,13 @@ export default function PolyglottePage() {
     [livresOnglet, livreChoisi, toutAfficher]
   );
   const traductionsDisponibles = useMemo(
-    () => traductionsDisponiblesPourLivres(trads, livresAffiches.map(l => l.code), livresAelfParTraduction),
-    [trads, livresAffiches, livresAelfParTraduction],
+    () => traductionsDisponiblesPourLivres(trads, livresAffiches.map(l => l.code), livresFillion),
+    [trads, livresAffiches, livresFillion],
   );
+  // Ce que les colonnes MONTRENT : le choix gardé, moins ce que les livres affichés ne
+  // portent pas. Le choix lui-même ne bouge pas (voir `masquerTraductionsIndisponibles`).
   const slotsDisponibles = useMemo(
-    () => masquerTraductionsAelfIndisponibles(slots, trads, traductionsDisponibles),
+    () => masquerTraductionsIndisponibles(slots, trads, traductionsDisponibles),
     [slots, trads, traductionsDisponibles],
   );
 
@@ -1677,8 +1681,8 @@ export default function PolyglottePage() {
     const monoLivre = livresAffiches.length === 1;
     const chScope = (!toutAfficher && !sensiblesOnly && !surnumOnly && monoLivre && chapitreChoisi != null) ? chapitreChoisi : null;
     const tradIds = slotsDisponibles.filter(Boolean);
-    const sourcesAelf = new Set(trads.filter(t => t.sourceAelf).map(t => t.trad_id));
-    return { codes: livresAffiches.map(l => l.code), tradIds, tradIdsAelf: tradIds.filter(id => sourcesAelf.has(id)), chScope };
+    const sourcesFillion = new Set(trads.filter(t => t.sourceFillion).map(t => t.trad_id));
+    return { codes: livresAffiches.map(l => l.code), tradIds, tradIdsFillion: tradIds.filter(id => sourcesFillion.has(id)), chScope };
   }, [livresAffiches, slotsDisponibles, trads, chapitreChoisi, toutAfficher, sensiblesOnly, surnumOnly]);
   // Ce que `canon` et `v2` portent réellement. Posé AVEC les données, jamais avant.
   const [porteeChargee, setPorteeChargee] = useState<Portee | null>(null);
@@ -2669,7 +2673,7 @@ export default function PolyglottePage() {
                                   <span className="poly-lettrine-ref" title={referenceOrigine(cs[0])}>
                                     <RefOrigine ligne={cs[0]} note={noteMontree(cs[0], estAdmin)} />
                                   </span>
-                                  {estAdmin && !est899(t.trad_id) && !cs[0].lectureSeuleAelf && <BoutonEditionVerset ligne={cs[0]} fond={fond} onEditer={editerVerset} />}
+                                  {estAdmin && !est899(t.trad_id) && !cs[0].lectureSeule && <BoutonEditionVerset ligne={cs[0]} fond={fond} onEditer={editerVerset} />}
                                 </span>
                               </span>
                             )}
@@ -2703,7 +2707,7 @@ export default function PolyglottePage() {
                                 {k > 0 && (
                                   <span className="poly-ref-en-ligne" title={referenceOrigine(c)}>
                                     <RefOrigine ligne={c} note={noteMontree(c, estAdmin)} />
-                                    {estAdmin && !est899(t.trad_id) && !c.lectureSeuleAelf && <BoutonEditionVerset ligne={c} fond={fond} onEditer={editerVerset} />}
+                                    {estAdmin && !est899(t.trad_id) && !c.lectureSeule && <BoutonEditionVerset ligne={c} fond={fond} onEditer={editerVerset} />}
                                   </span>
                                 )}
                                 {est899(t.trad_id)
