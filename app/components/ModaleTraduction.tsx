@@ -359,7 +359,15 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
               ⛔ La référence composée ne se perd pas : le geste de copie, contre le titre de
               la section, la rend telle qu'on la cite. */}
           {aEdition && (
-            <SectionFiche titre="Édition du texte"
+            /* ⛔ ELLE DÉGAGE LE PORTRAIT (`cs-fiche-section--degagee`), et ce n'est pas un
+               ornement : ses rangées sont des CONTEXTES DE FORMATAGE, et chacune se range
+               où elle peut — les premières à côté du portrait, les suivantes en pleine
+               mesure. Une liste « libellé : valeur » y prenait DEUX FERS, et l'œil ne
+               retrouvait plus la colonne des libellés. ⚠️ La faire tenir ENTIÈRE à côté du
+               portrait (`flow-root`) est pire : « Particularités » y court sur vingt
+               lignes de vingt-cinq signes. La liste se pose donc SOUS le portrait, à sa
+               pleine mesure — et une bible sans portrait ne bouge pas d'un pixel. */
+            <SectionFiche titre="Édition du texte" className="cs-fiche-section--degagee"
               action={referenceACopier ? (
                 <BoutonCopierTexte texte={referenceACopier} titre="Copier la référence"
                   className="cs-fiche-copier cs-cible-fine" />
