@@ -12045,3 +12045,103 @@ normative** : on ne corrige pas le registre pour l'accorder à elle.
   couche de lecture à reproduire les capitales du témoin. Le § 3.5 prévaut.
   ⛔ L'application aux données déjà saisies est une MISSION à part : une doctrine qui
   change ne réécrit jamais la donnée par ricochet.
+
+# ⛔ LA NOTICE D'UNE ŒUVRE — le titre seul, la citation composée, le vert des sections (2026-09-20)
+
+Doctrine : charte § 38.25.2 — ⚠️ **non encore poussée**, le verrou de `--push` étant
+toujours levé par la section TR0009 (voir « LA NOTICE D'UN AUTEUR FAIT MODÈLE »). Sept
+demandes de l'auteur sur « À propos de cette édition », mise en forme seulement. Règles de
+code, dans `app/oeuvre/[id]/FicheEdition.tsx`, `app/components/FicheModele.tsx` et
+`globals.css` :
+
+- ⛔ **L'INTITULÉ N'EXISTE PAS : « on a un titre, et c'est tout ».** La rangée « Intitulé »
+  part de la fiche, et `intituleEdition` de `versionTextuelle.ts` avec elle. ⚠️ La règle
+  SURVIT là où elle jugeait une DONNÉE — `scripts/controle-editions-originales.mts`, sous
+  le nom qu'elle y mérite (`titrePropreDeLEdition`, rubrique « Titre de l'édition ») : elle
+  demande toujours si `titre_version` porte un titre imprimé ou une étiquette d'atelier.
+  ⛔ Une règle qu'on retire d'un RENDU ne se retire pas forcément d'un CONTRÔLE : la
+  première décide de ce qu'on montre, la seconde de ce que la donnée vaut.
+- ⛔ **AUCUN SURTITRE.** La fenêtre s'appelle déjà « À propos de cette édition » — c'est son
+  nom accessible (`ModaleFiche`, `libelle`) — et l'écrire au-dessus du titre de l'œuvre ne
+  l'apprenait à personne. `.cs-fiche-edition .cs-fiche-surtitre` part avec.
+- ⛔ **UNE SEULE ÉCRITURE POUR L'ÉCRAN ET POUR LE PRESSE-PAPIERS.**
+  `fragmentsReferenceCanoniqueOeuvre` (`app/lib/citation.ts`) rend les FRAGMENTS du moteur
+  bibliographique (charte § 47.5) ; la fiche les balise par `FragmentReference` sous
+  `CLASSES_BIBLIOGRAPHIE.reference` — d'où le TITRE EN ITALIQUES, les petites capitales et
+  la ponctuation de la charte —, et `referenceCanoniqueOeuvre` n'en est plus que la sortie
+  plein-texte, pour la copie. ⚠️ Le texte copié ne change pas d'un signe : un test l'exige
+  (`texteFragments(fragments) === referenceCanoniqueOeuvre(info)`).
+  ⛔ Le wrapper `.cs-reference-bibliographique` n'est pas décoratif : les règles de rôle de
+  la famille s'y PENDENT, et sans lui l'italique du titre ne tiendrait que par la balise
+  `<em>` — c'est la leçon déjà payée le 2026-08-28.
+- ⛔ **LE GESTE DE COPIE SORT DE SON CADRE et se pose contre le TITRE DE SECTION.**
+  `SectionFiche` prend une `action`, rendue dans `.cs-fiche-section-tete` (un flex qui porte
+  le blanc du titre, lequel perd le sien). Le bouton est `.cs-fiche-copier` : ni cadre ni
+  fond, `--cs-texte-gris` (3,45 au Clair, 8,24 en Cuir, pour les 3:1 d'un indicateur non
+  textuel ; `--cs-texte-doux` ne rend que 2,71), `.cs-cible-fine` au doigt.
+  ⚠️ `action` sert ce qui agit sur la section ENTIÈRE ; un contrôle qui ne vaudrait que
+  pour une ligne vit avec sa ligne.
+  ⚠️ `BoutonCopierTexte` perd `libelleVisible`, que plus rien n'appelait. ⛔ L'ACCUSÉ
+  (« Copié », « Réessayer ») reste : il vaut pour tout le site, et ce n'est pas lui que
+  l'auteur a refusé — c'est le libellé de REPOS.
+- ⛔ **LE PICTOGRAMME SE CENTRE SUR L'ENCRE DU TITRE, non sur sa boîte de ligne**, qui
+  descend sous la ligne de base : `align-items: center` le posait 1,5 px trop bas. C'est la
+  règle du chiffre de densité d'un verset (§ 38.30), prise ici.
+  ⛔ **ET LA VALEUR SE MESURE AUX DEUX BOUTS DE LA POLICE FLUIDE** : un seizième de rem rend
+  +0,5 px à la racine 16 et −0,5 px à la racine 22 ; un dixième corrigeait la racine 16 et
+  emportait la racine 22 de 1,5 px dans l'autre sens. **Un décalage optique se mesure aux
+  DEUX bouts, jamais à celui où on l'a vu.**
+  ⚠️ Il ne tient que parce que l'ICÔNE suit la racine : les 11 × 12 du SVG de
+  `BoutonCopierTexte` sont des attributs de PRÉSENTATION, que `.cs-fiche-copier svg` bat en
+  rem. C'est le piège déjà consigné pour la rangée d'outils de la barre.
+- ⛔ **LES TITRES DE SECTION REPRENNENT LE MODÈLE** — sérif italique vert de
+  `.cs-fiche-titre-section` — et l'override sans-serif gris de la fiche d'œuvre s'en va : la
+  même rubrique se composait de deux façons d'une fiche à l'autre. ⚠️ Le blanc qui les
+  précède DOUBLE (11 px → 22, la mesure de la colonne de droite) : un titre qui ouvre une
+  section ne se distingue pas du paragraphe qu'il ferme quand onze pixels les séparent tous
+  les deux.
+- ⛔ **UNE DONNÉE PAR LIGNE** dans les repères de l'œuvre (`.cs-fiche-edition-identite` en
+  `display: block`) : en rang, deux libellés et deux valeurs se suivaient sans autre
+  séparation qu'une gouttière, et l'on lisait « Latin Composition » d'un trait.
+- ⛔ **LE NOM DE L'AUTEUR SE COMPOSE EN SANS**, comme `NomVolet` en tête du volet de
+  lecture : sans empattements, graisse 600, chasse 0,01 em. ⚠️ Il porte déjà le vert par
+  `.cs-fiche-lien` ; `--cs-texte` ne teint que les liants d'une œuvre signée à deux.
+
+## ⛔ UN CLIC HORS DE LA FENÊTRE DEMANDE CONFIRMATION, et laisse cinq secondes
+
+- **`ModaleFiche` prend `confirmerFermeture`**, et c'est une DEMANDE DE LA SURFACE, jamais
+  un défaut du cadre : la fiche d'une œuvre la pose, les fiches d'auteur et de traduction
+  ferment au premier clic comme avant.
+- ⛔ **LE DÉLAI N'EST ÉCRIT QU'UNE FOIS** (`DELAI_CONFIRMATION_MS`) : l'anneau reçoit sa
+  durée EN LIGNE depuis cette constante, et la feuille ne pose que le MOUVEMENT. Deux
+  écritures — l'une en millisecondes, l'autre en secondes dans une règle CSS — se
+  désaccorderaient au premier réglage, et la fenêtre se fermerait avant que l'anneau n'ait
+  fini son tour.
+- ⛔ **LA CROIX ET ÉCHAP RESTENT IMMÉDIATS** : ce sont des gestes qui NOMMENT la fermeture.
+  Un SECOND clic dehors ferme aussi, sans redemander — la question a été posée.
+- ⚠️ **LE MINUTEUR NE VIT QUE TANT QU'ON DEMANDE** : monté avec la question, démonté avec
+  elle, si bien qu'un « Rester » l'éteint sans qu'on ait rien à annuler. Le foyer va à
+  « Rester », qui est le choix protecteur : le défaut, lui, est la fermeture.
+- ⛔ **L'ANNEAU NE S'ÉTEINT PAS sous `prefers-reduced-motion`** : il n'orne rien, il DIT le
+  temps qui reste, et l'arrêter retirerait l'information au lieu du mouvement.
+- ⚠️ La question se pose DANS la fenêtre, au bas et au milieu, sous l'ombre nette des petits
+  objets flottants : c'est d'elle qu'il s'agit, et le lecteur vient d'en sortir des yeux.
+
+## ⚠️ La planche : `tmp/planche-fiche-oeuvre/` (non versionnée)
+
+Elle rend le VRAI `ContenuFicheEdition` — séparé de sa fenêtre pour cela même (§ 38.33) —
+sur les données RÉELLES d'une œuvre, avec la feuille du dépôt telle quelle.
+`node --env-file=.env.local tmp/planche-fiche-oeuvre/batir.mjs <ID_OEUVRE>`.
+
+- ⛔ Elle pose à la main les deux variables de `next/font` : sans elles,
+  `var(--font-source-serif)` est une propriété non définie, la déclaration entière est
+  invalide, la police est HÉRITÉE, et la planche mesure une autre composition que la page.
+- ⚠️ Le CADRE et la BARRE DE CONFIRMATION y sont écrits à la main : `ModaleFiche` passe par
+  `createPortal`, qui n'existe pas au rendu serveur. Ce qu'on juge sont les CLASSES et la
+  feuille, qui, elles, sont celles du site.
+- ⚠️ `esbuild` l'empaquette par son API Node, jamais par `node_modules/.bin/esbuild.cmd` :
+  `execFileSync` refuse un `.cmd` sans shell depuis Node 20. Et `next/link`, qui est du
+  CommonJS, demande `react/jsx-runtime` par un `require` : un `banner` qui pose
+  `createRequire` dans le paquet ESM le lui rend.
+- ⚠️ Un chemin absolu Windows ne s'importe qu'en `pathToFileURL(...)` : `import('C:\\…')`
+  lève `ERR_UNSUPPORTED_ESM_URL_SCHEME`, et `'file://' + chemin` prend `C:` pour un hôte.
