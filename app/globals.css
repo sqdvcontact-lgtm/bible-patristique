@@ -3918,7 +3918,18 @@ main.lecture-entree [data-cs-bloc],
 
 /* ⚠️ Écrite APRÈS `.cs-cible-fine`, qui pose `position: relative` au doigt : à
    spécificité égale, c'est l'ordre qui garde la croix à son coin. Elle se tient dans le
-   rembourrage du défileur, hors du texte. */
+   rembourrage du défileur, hors du texte.
+   ⛔ NI CERCLE, NI FILET, NI FOND (décision de l'auteur, 2026-09-20 : « se passer du
+   cercle autour, et simplement mettre une croix, verte, pour qu'on la voie bien »). Le
+   rond faisait, au coin d'une fenêtre de lecture, un objet là où l'on n'attend qu'une
+   marque ; et le glyphe ✕ qu'il cernait ne se centrait jamais tout à fait dans sa
+   boîte. C'est la règle déjà posée pour le geste de copie d'une section.
+   ⛔ LA BOÎTE RESTE UNE CIBLE : `max(26px, 1.625rem)` — la mesure d'hier en bas
+   d'échelle, au-dessus du plancher de 24 px de WCAG 2.2 § 2.5.8, et elle grandit
+   ensuite avec la police racine.
+   ⚠️ Le TRACÉ se mesure ici, en rem : les 14 × 14 du SVG sont des attributs de
+   PRÉSENTATION, que la feuille bat. Posé en pixels, il rapetisserait à mesure que
+   l'écran grandit — le piège déjà payé par la rangée d'outils de la barre. */
 .cs-fiche-fermer {
   position: absolute;
   top: 6px;
@@ -3927,17 +3938,20 @@ main.lecture-entree [data-cs-bloc],
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: 1px solid var(--cs-bord-clair);
-  border-radius: 50%;
-  background: var(--cs-surface);
-  color: var(--cs-texte-second);
-  font-size: 0.875rem;
+  width: max(26px, 1.625rem);
+  height: max(26px, 1.625rem);
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--cs-vert);
   line-height: 1;
   cursor: pointer;
+  transition: color 0.12s;
 }
-.cs-fiche-fermer:hover { border-color: var(--cs-bord); color: var(--cs-texte-fort); }
+.cs-fiche-fermer svg { width: 0.9375rem; height: 0.9375rem; }
+.cs-fiche-fermer:hover,
+.cs-fiche-fermer:focus-visible { color: var(--cs-vert-fonce); }
 
 /* ⛔ La question qu'un clic HORS DE LA FENÊTRE pose ──────────────────────────────
    Demande de l'auteur (2026-09-20) : « demander avec un message bref si l'utilisateur
@@ -4346,8 +4360,15 @@ main.lecture-entree [data-cs-bloc],
    Latin Composition : 197 // ne pas mettre sur la même ligne »). En rang, deux libellés
    et deux valeurs se suivaient sans autre séparation qu'une gouttière, et l'on lisait
    « Latin Composition » d'un trait. */
+/* ⛔ ET SON FILET NE TRAVERSE PAS LA COLONNE DE DROITE : un bloc ordinaire garde
+   toute la mesure du corps — un flottant ne raccourcit que ses LIGNES — et sa bordure
+   passait donc sur la chronologie (relevé de l'auteur, 2026-09-20 : « un trait passe sur
+   la chronologie » ; mesuré sur planche : x=35..797 quand le complément ouvre à 457).
+   `flow-root` en fait un contexte de formatage, qui se range entier à côté du flottant
+   et reprend la pleine mesure sous lui — c'est déjà la règle de `.cs-fiche-rubrique-tete`.
+   ⚠️ Il reste de niveau BLOC : une donnée par ligne, comme ci-dessus. */
 .cs-fiche-edition-identite {
-  display: block;
+  display: flow-root;
   margin-top: 9px;
   padding-top: 8px;
   border-top: 1px solid var(--cs-fond-doux);

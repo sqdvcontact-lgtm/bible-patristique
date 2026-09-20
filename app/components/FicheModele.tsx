@@ -32,6 +32,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 
+import IconeCroix from '@/app/components/IconeCroix'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
 import { CLASSES_BIBLIOGRAPHIE } from '@/app/lib/apparatBibliographie'
 import { Z_MODALE } from '@/app/lib/empilement'
@@ -74,13 +75,15 @@ export const LigneTech = ({ c, children }: { c: string; children: ReactNode }) =
 
 // La rangée des colonnes ÉTROITES : l'étiquette au-dessus de sa valeur. La colonne de
 // droite n'a pas la place d'une colonne d'étiquettes de 8,5 rem.
+// ⚠️ ELLE FAIT CONTEXTE, comme sa sœur : tout ce qui pose un filet horizontal dans une
+// fiche doit s'arrêter où s'arrête le texte, sous peine de traverser la colonne de droite.
 const CLE_EMPILEE: CSSProperties = { fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', lineHeight: 1.4 }
 const VAL_EMPILEE: CSSProperties = { fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.35, display: 'block' }
 
 export function RangeeEmpilee({ c, italique, children }: { c: string; italique?: boolean; children: ReactNode }) {
   if (!children) return null
   return (
-    <div style={{ padding: '4px 0', borderTop: '1px solid var(--cs-fond)' }}>
+    <div style={{ display: 'flow-root', padding: '4px 0', borderTop: '1px solid var(--cs-fond)' }}>
       <span style={CLE_EMPILEE}>{c}</span>
       <span style={{ ...VAL_EMPILEE, fontStyle: italique ? 'italic' : 'normal' }}>{children}</span>
     </div>
@@ -326,7 +329,11 @@ export function ModaleFiche({ titreId, libelle, onFermer, avantCorps, confirmerF
     <div className="cs-fiche-calque" onClick={surClicDehors} style={{ top: HAUTEUR_NAVBAR, zIndex: Z_MODALE }}>
       <div role="dialog" aria-modal="true" aria-labelledby={titreId} aria-label={libelle}
         className="cs-fiche-boite" onClick={surClicDedans}>
-        <button type="button" onClick={onFermer} aria-label="Fermer" title="Fermer" className="cs-fiche-fermer cs-cible-fine">✕</button>
+        {/* ⛔ UN TRACÉ, NON UN GLYPHE, et AUCUN CERCLE AUTOUR : le rond, le filet et
+            le fond faisaient un objet là où l’on n’attend qu’une marque, et le glyphe
+            ne se centrait pas dans sa boîte (décision de l’auteur, 2026-09-20). */}
+        <button type="button" onClick={onFermer} aria-label="Fermer" title="Fermer"
+          className="cs-fiche-fermer cs-cible-fine"><IconeCroix /></button>
         <div ref={defileurRef} tabIndex={-1} className="cs-fiche-defileur cs-defilement-discret">
           {avantCorps}
           {children}

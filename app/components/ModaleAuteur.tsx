@@ -245,7 +245,7 @@ function PiedDeFiche({ pied }: { pied: PiedFiche }) {
 
   return (
     <section aria-label="Renseignements complémentaires"
-      style={{ marginTop: '26px', paddingTop: '15px', borderTop: '1px solid var(--cs-fond-doux)' }}>
+      style={{ display: 'flow-root', marginTop: '26px', paddingTop: '15px', borderTop: '1px solid var(--cs-fond-doux)' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11.5rem, 1fr))', gap: '18px 26px', alignItems: 'start' }}>
 
         {empreinte && (

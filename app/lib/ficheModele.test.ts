@@ -145,3 +145,116 @@ describe('les trois fenêtres « À propos » prennent le modèle commun', () =>
     expect(feuille).not.toContain('.trad-fiche-encart')
   })
 })
+
+// ── LA CROIX DE FERMETURE, ET LES FILETS DU CORPS (2026-09-20) ─────────────────
+// Relevé de l’auteur : « la croix de fermeture est immonde ; pas centrée » et « un trait
+// passe sur la chronologie ». Les deux vivent dans le MODÈLE, donc les trois fiches en
+// répondent ensemble.
+
+describe('la croix de fermeture est un tracé, sans cercle', () => {
+  const feuille = lire('../globals.css')
+  const regle = feuille.slice(feuille.indexOf('.cs-fiche-fermer {'))
+  const corps = regle.slice(0, regle.indexOf('}'))
+
+  it('le modèle rend un tracé, et plus aucune fiche n’écrit le glyphe', () => {
+    const modele = lire('../components/FicheModele.tsx')
+    expect(modele).toContain("import IconeCroix from '@/app/components/IconeCroix'")
+    expect(modele).toContain('<IconeCroix />')
+    // ⛔ Le glyphe ne revient dans AUCUNE des trois fiches ni dans le modèle : il porte sa
+    //    propre assise dans la police et ne se centre pas — c’est tout le motif du tracé.
+    const GLYPHE = String.fromCodePoint(0x2715)
+    for (const chemin of ['../components/FicheModele.tsx', '../components/ModaleAuteur.tsx',
+      '../components/ModaleTraduction.tsx', '../oeuvre/[id]/FicheEdition.tsx']) {
+      expect(lire(chemin).includes(GLYPHE)).toBe(false)
+    }
+  })
+
+  it('ni cercle, ni filet, ni fond', () => {
+    expect(corps).toContain('border: none')
+    expect(corps).toContain('background: none')
+    expect(corps).not.toContain('border-radius')
+  })
+
+  it('elle est verte, et son tracé se mesure en rem', () => {
+    expect(corps).toContain('color: var(--cs-vert)')
+    expect(feuille).toContain('.cs-fiche-fermer svg { width: 0.9375rem; height: 0.9375rem; }')
+    expect(feuille).toContain('.cs-fiche-fermer:focus-visible { color: var(--cs-vert-fonce); }')
+  })
+
+  it('sa boîte reste une cible, et elle suit la police racine', () => {
+    expect(corps).toContain('width: max(26px, 1.625rem)')
+    expect(corps).toContain('height: max(26px, 1.625rem)')
+  })
+})
+
+describe('aucun filet du corps ne traverse la colonne de droite', () => {
+  // ⛔ Un bloc ORDINAIRE garde toute la mesure du corps : un flottant ne raccourcit que
+  //    ses LIGNES, jamais sa boîte. Sa bordure passe donc sous le complément, et l’on voit
+  //    un trait courir sur la chronologie. Tout ce qui pose un filet horizontal dans le
+  //    corps d’une fiche doit faire CONTEXTE, et s’arrêter là où s’arrête le texte.
+  // ⚠️ `.cs-fiche-complement` est la colonne elle-même : son seul filet horizontal vit
+  //    dans la requête de média où elle reprend le flux, sous le texte. Exception NOMMÉE.
+  const HORS_COLONNE = ['.cs-fiche-complement']
+  const CONTEXTE = /display\s*:\s*(flow-root|flex|grid|inline-flex|inline-grid|table)/
+
+  it('chaque filet horizontal est porté par un bloc qui fait contexte', () => {
+    const feuille = lire('../globals.css')
+    const regles = /([^{}]+)\{([^{}]*)\}/g
+    const fautifs: string[] = []
+    let m: RegExpExecArray | null
+    while ((m = regles.exec(feuille))) {
+      const lignes = m[1].trim().split('\n')
+      const selecteur = (lignes[lignes.length - 1] ?? '').trim()
+      if (!selecteur.includes('.cs-fiche-')) continue
+      if (HORS_COLONNE.some(x => selecteur.includes(x))) continue
+      const corps = m[2]
+      if (/border-(top|bottom)\s*:\s*(?!none|0)/.test(corps) && !CONTEXTE.test(corps)) {
+        fautifs.push(selecteur)
+      }
+    }
+    expect(fautifs).toEqual([])
+  })
+
+  it('les repères de l’œuvre font contexte, une donnée par ligne', () => {
+    const feuille = lire('../globals.css')
+    const regle = feuille.slice(feuille.indexOf('.cs-fiche-edition-identite {'))
+    const corps = regle.slice(0, regle.indexOf('}'))
+    expect(corps).toContain('display: flow-root')
+    expect(corps).toContain('border-top')
+  })
+})
+
+describe('les filets posés en STYLE EN LIGNE font contexte eux aussi', () => {
+  // ⚠️ La feuille ne dit pas tout : trois filets horizontaux des fiches vivent dans un
+  //    objet de style — la rangée « étiquette · valeur », la rangée empilée des colonnes
+  //    étroites, et le pied de la fiche d’un auteur. La règle vaut pour eux comme pour
+  //    les autres, et c’est ici qu’on la tient : un objet qui pose `borderTop` ou
+  //    `borderBottom` pose aussi un `display` qui fait contexte.
+  const FICHIERS = ['../components/FicheModele.tsx', '../components/ModaleAuteur.tsx',
+    '../components/ModaleTraduction.tsx', '../oeuvre/[id]/FicheEdition.tsx']
+  const CONTEXTE = /display:\s*'(flow-root|flex|grid|inline-flex|inline-grid|table)'/
+
+  for (const chemin of FICHIERS) {
+    it(`${chemin} : chaque filet horizontal en ligne fait contexte`, () => {
+      const source = lire(chemin)
+      const fautifs: string[] = []
+      // L’objet de style qui porte le filet : on remonte à l’accolade ouvrante la plus
+      // proche et l’on relit jusqu’à sa fermeture, accolades imbriquées comprises.
+      const filets = /border(Top|Bottom):/g
+      let m: RegExpExecArray | null
+      while ((m = filets.exec(source))) {
+        let debut = source.lastIndexOf('{{', m.index)
+        if (debut < 0) debut = source.lastIndexOf('{', m.index)
+        let profondeur = 0
+        let fin = debut
+        for (; fin < source.length; fin++) {
+          if (source[fin] === '{') profondeur++
+          else if (source[fin] === '}' && --profondeur === 0) break
+        }
+        const objet = source.slice(debut, fin + 1)
+        if (!CONTEXTE.test(objet)) fautifs.push(objet.slice(0, 90))
+      }
+      expect(fautifs).toEqual([])
+    })
+  }
+})
