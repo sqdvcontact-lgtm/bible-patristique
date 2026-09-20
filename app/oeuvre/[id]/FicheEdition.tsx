@@ -26,7 +26,7 @@ import { Fragment, useEffect, useId, useRef, useState } from 'react'
 
 import BoutonCopierTexte from '@/app/components/BoutonCopierTexte'
 import {
-  Consulter, CorpsFiche, EnTeteFiche, ListeOuvragesCites, ModaleFiche, RubriqueFiche, SectionFiche,
+  Consulter, CorpsFiche, EnTeteFiche, ListeOuvragesCites, ModaleFiche, SectionFiche,
 } from '@/app/components/FicheModele'
 import { FriseAuteur } from '@/app/components/ModaleAuteur'
 import NotationEdition from '@/app/components/NotationEdition'
@@ -188,11 +188,6 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
         complement={aChrono ? (
           <SectionFiche titre="Chronologie"><FriseAuteur evenements={chrono} oeuvreEnRelief={oeuvre.id_oeuvre} /></SectionFiche>
         ) : null}
-        suite={ouvragesCites && ouvragesCites.length > 0 ? (
-          <RubriqueFiche titre="Ouvrages cités dans cette édition">
-            <ListeOuvragesCites notices={ouvragesCites} />
-          </RubriqueFiche>
-        ) : null}
       >
         {aEdition && (
           <SectionFiche titre="Édition de référence">
@@ -267,6 +262,16 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
         {bibliographieSelective && (
           <SectionFiche titre="Bibliographie sélective">
             <NotationEdition texte={bibliographieSelective} resserre />
+          </SectionFiche>
+        )}
+        {/* —— LES OUVRAGES QUE L’ÉDITION CITE —— Une SECTION, comme la bibliographie
+            sélective au-dessus (demande de l’auteur, 2026-09-20 : « la même mise en forme de
+            style pour Bibliographie sélective et Ouvrages cités dans cette édition »). Elle
+            fermait la fiche en rubrique, sous les deux colonnes et précédée d’un filet : deux
+            listes d’ouvrages qui se suivent ne peuvent pas se composer de deux façons. */}
+        {ouvragesCites && ouvragesCites.length > 0 && (
+          <SectionFiche titre="Ouvrages cités dans cette édition">
+            <ListeOuvragesCites notices={ouvragesCites} />
           </SectionFiche>
         )}
       </CorpsFiche>

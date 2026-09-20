@@ -2184,27 +2184,34 @@ button:focus-visible,
    ⚠️ Le retrait suspendu se resserre avec le corps ; on ne le retire pas, c'est lui
    qui fait voir où commence la notice suivante.
 
-   ⛔ LA BIBLIOGRAPHIE D'UNE NOTICE prend ce même cran (charte § 5.6.1 ; demande de
-   l'auteur, 2026-09-17 : « plus petit »). Elle clôt une notice dont la prose est en
-   sans à 0,75 rem, et à corps égal le sérif pèse davantage : elle disputait le regard
-   à ce qu'elle documente. Le contexte est la NOTATION (`.cs-notation`, le conteneur de
-   NotationEdition), et lui seul : les ouvrages cités de la même fiche gardent le corps
-   de la famille. ⚠️ Même forme, même règle : deux écritures d'un même cran divergent
-   au premier réglage. */
+   ⛔ TOUTE BIBLIOGRAPHIE D'UNE FICHE prend ce même cran (charte § 5.6.1 ; demande de
+   l'auteur, 2026-09-17 : « plus petit », étendue le 2026-09-20 : « la même mise en forme
+   de style pour Bibliographie sélective et Ouvrages cités dans cette édition »). Elle
+   clôt une notice dont la prose est en sans à 0,75 rem, et à corps égal le sérif pèse
+   davantage : elle disputait le regard à ce qu'elle documente.
+   ⛔ Le contexte est donc la FICHE (`.cs-fiche-corps`) autant que la NOTATION
+   (`.cs-notation`, le conteneur de NotationEdition, qui sert aussi hors d'une fiche) :
+   deux bibliographies voisines d'une même fenêtre — celle que la notice porte, celle
+   des ouvrages cités — se composaient à deux crans différents, et l'auteur l'a relevé.
+   ⚠️ Même forme, même règle : deux écritures d'un même cran divergent au premier
+   réglage. */
 .pied-biblio.cs-apparat-bibliographie,
-.cs-notation .cs-apparat-bibliographie {
+.cs-notation .cs-apparat-bibliographie,
+.cs-fiche-corps .cs-apparat-bibliographie {
   font-size: 0.6875rem;
   line-height: 1.32;
 }
 .pied-biblio .cs-apparat-bibliographie__entree,
-.cs-notation .cs-apparat-bibliographie__entree {
+.cs-notation .cs-apparat-bibliographie__entree,
+.cs-fiche-corps .cs-apparat-bibliographie__entree {
   margin-bottom: 0.55em;
   padding-left: 0.9em;
   text-indent: -0.9em;
 }
 /* ⚠️ La règle ci-dessus (0,2,0) l'emporte sur le `:last-child` de la famille, écrit
    avant : sans celle-ci, la dernière référence poserait un blanc au pied de la notice. */
-.cs-notation .cs-apparat-bibliographie__entree:last-child { margin-bottom: 0; }
+.cs-notation .cs-apparat-bibliographie__entree:last-child,
+.cs-fiche-corps .cs-apparat-bibliographie__entree:last-child { margin-bottom: 0; }
 
 /* Les fragments d'une notice STRUCTURÉE, composés selon leur rôle.
 
@@ -3880,69 +3887,100 @@ main.lecture-entree [data-cs-bloc],
 }
 .cs-fiche-fermer:hover { border-color: var(--cs-bord); color: var(--cs-texte-fort); }
 
-/* ── La question qu'un clic HORS DE LA FENÊTRE pose ───────────────────────────
+/* ⛔ La question qu'un clic HORS DE LA FENÊTRE pose ──────────────────────────────
    Demande de l'auteur (2026-09-20) : « demander avec un message bref si l'utilisateur
    est sûr de vouloir fermer ; lui laisser cinq secondes pour réfléchir ; une barre de
    chargement ronde indiquer le temps qui lui reste pour décider ; sinon, la fenêtre se
-   ferme seule. »
+   ferme seule. », puis, le même jour : « rendre un peu plus élégante la fenêtre de
+   fermeture chronométrée. »
    ⚠️ Elle se pose DANS la fenêtre, au bas et au milieu : c'est d'elle qu'il s'agit, et
-   un objet qui flotte prend l'ombre nette de la charte. */
+   un objet qui flotte prend l'ombre nette de la charte.
+   ⛔ C'EST UNE PILULE, non un cadre à boutons encadrés : la première écriture faisait,
+   au bas d'une page de lecture, une boîte de dialogue de système. La question prend la
+   voix de la fiche — le sérif —, les deux boutons se composent pareil, et aucun ne
+   porte d'accent : l'anneau dit déjà que le défaut est la fermeture, et le foyer va à
+   « Rester », qui est le choix protecteur. */
 .cs-fiche-confirmer {
   position: absolute;
   left: 50%;
-  bottom: 18px;
+  bottom: 20px;
   z-index: 2;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 10px;
   max-width: calc(100% - 28px);
-  padding: 8px 12px;
+  padding: 6px 7px 6px 14px;
   border: 1px solid var(--cs-bord-clair);
-  border-radius: 8px;
+  border-radius: 999px;
   background: var(--cs-surface);
   box-shadow: var(--cs-ombre-nette);
+  animation: cs-fiche-confirmer-venir 0.18s ease-out;
 }
+/* ⛔ L'ENTRÉE, elle, EST un ornement, et elle s'éteint sous le réglage de mouvement
+   réduit — à la différence de l'anneau, qui porte une information. */
+@media (prefers-reduced-motion: reduce) {
+  .cs-fiche-confirmer { animation: none; }
+}
+@keyframes cs-fiche-confirmer-venir {
+  from { opacity: 0; transform: translate(-50%, 6px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+/* ⚠️ La question prend le SÉRIF de la fiche, non le sans de l'interface : c'est
+   l'éditeur qui s'adresse au lecteur sur ce qu'il vient de lire. Elle tient sur UNE
+   ligne tant que la boîte la porte ; sous 640 px, la barre s'enroule (plus bas). */
 .cs-fiche-confirmer > p {
   margin: 0;
-  font-family: var(--font-source-sans), Arial, sans-serif;
-  font-size: 0.75rem;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 0.8125rem;
   line-height: 1.3;
   color: var(--cs-texte-fort);
+  white-space: nowrap;
 }
 .cs-fiche-confirmer button {
   flex: 0 0 auto;
-  min-height: 2rem;
-  padding: 0 10px;
+  min-height: 1.875rem;
+  padding: 0 0.875rem;
   border: 1px solid var(--cs-bord);
-  border-radius: 4px;
+  border-radius: 999px;
   background: none;
   font-family: var(--font-source-sans), Arial, sans-serif;
   font-size: 0.6875rem;
   line-height: 1;
   color: var(--cs-texte-second);
   cursor: pointer;
-  transition: border-color 0.12s, color 0.12s;
+  transition: border-color 0.12s, color 0.12s, background-color 0.12s;
 }
 .cs-fiche-confirmer button:hover,
-.cs-fiche-confirmer button:focus-visible { border-color: var(--cs-vert); color: var(--cs-vert); }
-.cs-fiche-confirmer-oui { color: var(--cs-vert) !important; border-color: var(--cs-vert) !important; }
+.cs-fiche-confirmer button:focus-visible {
+  border-color: var(--cs-vert);
+  color: var(--cs-vert);
+  background: rgba(var(--cs-vert-rgb), 0.06);
+}
 
 /* L'ANNEAU du compte à rebours. ⛔ Il reçoit sa DURÉE en style en ligne, depuis la seule
    constante qui la porte (`DELAI_CONFIRMATION_MS`) : la feuille ne décide que du
    mouvement. ⚠️ Il ne s'éteint PAS sous `prefers-reduced-motion` : il n'orne rien, il
-   dit le temps qui reste, et l'arrêter retirerait l'information au lieu du mouvement. */
+   dit le temps qui reste, et l'arrêter retirerait l'information au lieu du mouvement.
+   ⛔ SA TAILLE VIT ICI, EN REM : posée en attributs de présentation sur le tracé, elle
+   ne suivrait pas la police fluide, et l'anneau rapetisserait à mesure que l'écran
+   grandit. C'est le piège déjà payé par la rangée d'outils de la barre. */
 .cs-fiche-rebours { flex: 0 0 auto; display: block; line-height: 0; }
-.cs-fiche-rebours svg { display: block; transform: rotate(-90deg); }
+.cs-fiche-rebours svg {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  transform: rotate(-90deg);
+}
 .cs-fiche-rebours-piste {
   fill: none;
   stroke: var(--cs-bord-clair);
-  stroke-width: 2;
+  stroke-width: 1.6;
 }
 .cs-fiche-rebours-arc {
   fill: none;
   stroke: var(--cs-vert);
-  stroke-width: 2;
+  stroke-width: 1.6;
   stroke-linecap: round;
   animation-name: cs-fiche-rebours;
   animation-timing-function: linear;
@@ -4452,4 +4490,15 @@ a.cs-fiche-oeuvre:hover { background: rgba(var(--cs-vert-rgb), 0.06); }
   .cs-fiche-portrait-fenetre { width: 6.5rem; }
   /* Sur téléphone, 8,5 rem d'étiquette ne laissent plus rien à la valeur. */
   .cs-fiche-corps .cs-fiche-cle { width: 6rem !important; }
+  /* ⛔ LA PILULE S'ENROULE ET REDEVIENT UNE CARTE : la question et ses deux boutons
+     demandent environ 310 px, et la boîte n'en offre plus tant. Un rayon de pilule sur
+     deux rangs ferait deux demi-cercles en guise de flancs. */
+  .cs-fiche-confirmer {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 8px;
+    padding: 9px 12px;
+    border-radius: 12px;
+  }
+  .cs-fiche-confirmer > p { flex: 1 1 8rem; white-space: normal; }
 }

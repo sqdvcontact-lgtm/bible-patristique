@@ -26,6 +26,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type MouseEvent,
   type ReactNode,
   type RefObject,
 } from 'react'
@@ -310,11 +311,21 @@ export function ModaleFiche({ titreId, libelle, onFermer, avantCorps, confirmerF
     setConfirme(true)
   }
 
+  /* ⛔ UN CLIC DANS LA FENÊTRE RETIRE LA QUESTION (demande de l'auteur, 2026-09-20) :
+     revenir au texte est la réponse la plus claire qui soit à « voulez-vous fermer ? »,
+     et l'on n'oblige pas à viser un bouton ce que le geste dit déjà. ⚠️ La barre, elle,
+     ARRÊTE le clic : ce qu'on y fait est une réponse à la question, non une reprise de
+     lecture. */
+  const surClicDedans = (e: MouseEvent) => {
+    e.stopPropagation()
+    if (confirme) setConfirme(false)
+  }
+
   if (typeof document === 'undefined') return null
   return createPortal(
     <div className="cs-fiche-calque" onClick={surClicDehors} style={{ top: HAUTEUR_NAVBAR, zIndex: Z_MODALE }}>
       <div role="dialog" aria-modal="true" aria-labelledby={titreId} aria-label={libelle}
-        className="cs-fiche-boite" onClick={e => e.stopPropagation()}>
+        className="cs-fiche-boite" onClick={surClicDedans}>
         <button type="button" onClick={onFermer} aria-label="Fermer" title="Fermer" className="cs-fiche-fermer cs-cible-fine">✕</button>
         <div ref={defileurRef} tabIndex={-1} className="cs-fiche-defileur cs-defilement-discret">
           {avantCorps}
@@ -323,11 +334,17 @@ export function ModaleFiche({ titreId, libelle, onFermer, avantCorps, confirmerF
         {/* ⚠️ La question se pose DANS la fenêtre, au bas et au milieu : c'est d'elle
             qu'il s'agit, et le lecteur vient d'en sortir des yeux. L'anneau dit le temps
             qui reste ; il n'est pas un ornement, et se joue donc aussi sous
-            `prefers-reduced-motion`, où il serait l'information qu'on retirerait. */}
+            `prefers-reduced-motion`, où il serait l'information qu'on retirerait.
+            ⛔ Ses DEUX boutons se composent pareil : l'anneau dit déjà que le défaut est
+            la fermeture, et le foyer va à « Rester », qui est le choix protecteur. Un
+            accent posé sur l'un des deux ferait un troisième signal pour deux mots qui se
+            suffisent. ⚠️ La TAILLE de l'anneau vit dans la feuille, en rem : les 18 px
+            d'un attribut de présentation ne suivraient pas la police fluide. */}
         {confirme ? (
-          <div className="cs-fiche-confirmer" role="group" aria-label="Confirmer la fermeture">
+          <div className="cs-fiche-confirmer" role="group" aria-label="Confirmer la fermeture"
+            onClick={e => e.stopPropagation()}>
             <span className="cs-fiche-rebours" aria-hidden="true">
-              <svg viewBox="0 0 20 20" width="18" height="18">
+              <svg viewBox="0 0 20 20" role="presentation">
                 <circle cx="10" cy="10" r="8" className="cs-fiche-rebours-piste" />
                 <circle cx="10" cy="10" r="8" className="cs-fiche-rebours-arc"
                   style={{ strokeDasharray: TOUR_ANNEAU, animationDuration: `${DELAI_CONFIRMATION_MS}ms` }} />
@@ -338,7 +355,7 @@ export function ModaleFiche({ titreId, libelle, onFermer, avantCorps, confirmerF
               <span className="cs-hors-ecran"> Sans réponse, elle se fermera dans cinq secondes.</span>
             </p>
             <button ref={resterRef} type="button" onClick={() => setConfirme(false)}>Rester</button>
-            <button type="button" onClick={onFermer} className="cs-fiche-confirmer-oui">Fermer</button>
+            <button type="button" onClick={onFermer}>Fermer</button>
           </div>
         ) : null}
       </div>
