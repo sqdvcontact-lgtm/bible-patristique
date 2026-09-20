@@ -106,6 +106,50 @@ export async function generateMetadata({
   }
 }
 
+/**
+ * Les manchettes d'un lot de blocs, et les notes qu'un titre absorbé lègue à
+ * son développement.
+ *
+ * ⛔ LES SUBDIVISIONS D'UN APPARAT INTRODUCTIF PASSENT EN MANCHETTE, et leur
+ * bloc de titre ne se rend plus pour lui-même (charte § 35.27). Le calcul se
+ * fait sur l'ORDRE MATÉRIEL, avant tout éclatement par créneau canonique : le
+ * titre y perdrait son développement.
+ *
+ * ⛔ **LES DEUX LECTURES LE PARTAGENT.** Une colonne et le texte en regard
+ * composent les mêmes blocs d'apparat ; ils doivent donc les composer pareil.
+ * La lecture en regard s'en passait : « Le sujet et le but » et « Plan et
+ * division » de la Genèse y gardaient le titre centré et le blanc de
+ * sous-section que la lecture ordinaire avait quittés (relevé de l'auteur, 20
+ * septembre 2026). Même raison que `baliserPayload` et `rangerSousTitres` —
+ * une seule écriture, sinon les deux dérivent.
+ */
+function manchettesDuPayload(blocs: BibleEditionChapterPayload['bodyBlocks']) {
+  const manchettes = manchettesDApparat(blocs.map((b) => ({
+    id: b.id,
+    blockKey: b.block_key,
+    semanticStyleCode: b.semantic_style_code,
+    semanticLevel: b.semantic_level,
+    embeddedTitleLevel: b.embedded_title_level,
+    semanticParentKey: b.semantic_parent_key,
+    heading: b.heading,
+  })))
+  // Les notes que le titre absorbé portait sur son intitulé suivent leur
+  // intitulé : elles se rendent dans la manchette, à l'appel près.
+  // ⚠️ L'ancre se dénumérote comme l'intitulé, sans quoi « 1. La personne de
+  // l'auteur » ne se retrouverait plus dans « La personne de l'auteur » et la
+  // note tomberait dans la liste de bas de bloc (3 notes du corpus).
+  const notesDuTitreAbsorbe = new Map<string, BibleEditionChapterPayload['bodyBlocks'][number]['internal_notes']>()
+  for (const [cibleId, manchette] of manchettes.parBloc) {
+    const titre = blocs.find((b) => b.id === manchette.titreId)
+    if (!titre || titre.internal_notes.length === 0) continue
+    notesDuTitreAbsorbe.set(cibleId, titre.internal_notes.map((note) => ({
+      ...note,
+      anchor_text: note.anchor_text ? intituleDeManchette(note.anchor_text) : note.anchor_text,
+    })))
+  }
+  return { manchettes, notesDuTitreAbsorbe }
+}
+
 export default async function Home({
   searchParams,
 }: {
@@ -442,35 +486,7 @@ export default async function Home({
     )
     const balises = baliserPayload(payload.bodyBlocks, bornesAffichage)
     const rangs = rangerSousTitres(payload.bodyBlocks)
-    // ⛔ LES SUBDIVISIONS D'UN APPARAT INTRODUCTIF PASSENT EN MANCHETTE, et leur
-    // bloc de titre ne se rend plus pour lui-même (charte § 35.27). Le calcul se
-    // fait ICI, d'un seul passage sur l'ordre matériel : la lecture en regard
-    // éclate ensuite les blocs par créneau canonique, et le titre y perdrait son
-    // développement. ⚠️ Même raison que `baliserBlocs` et `rangDesSousTitres`,
-    // juste au-dessus — une seule écriture pour les deux lectures.
-    const manchettes = manchettesDApparat(payload.bodyBlocks.map((b) => ({
-      id: b.id,
-      blockKey: b.block_key,
-      semanticStyleCode: b.semantic_style_code,
-      semanticLevel: b.semantic_level,
-      embeddedTitleLevel: b.embedded_title_level,
-      semanticParentKey: b.semantic_parent_key,
-      heading: b.heading,
-    })))
-    // Les notes que le titre absorbé portait sur son intitulé suivent leur
-    // intitulé : elles se rendent dans la manchette, à l'appel près.
-    // ⚠️ L'ancre se dénumérote comme l'intitulé, sans quoi « 1. La personne de
-    // l'auteur » ne se retrouverait plus dans « La personne de l'auteur » et la
-    // note tomberait dans la liste de bas de bloc (3 notes du corpus).
-    const notesDuTitreAbsorbe = new Map<string, BibleEditionChapterPayload['bodyBlocks'][number]['internal_notes']>()
-    for (const [cibleId, manchette] of manchettes.parBloc) {
-      const titre = payload.bodyBlocks.find((b) => b.id === manchette.titreId)
-      if (!titre || titre.internal_notes.length === 0) continue
-      notesDuTitreAbsorbe.set(cibleId, titre.internal_notes.map((note) => ({
-        ...note,
-        anchor_text: note.anchor_text ? intituleDeManchette(note.anchor_text) : note.anchor_text,
-      })))
-    }
+    const { manchettes, notesDuTitreAbsorbe } = manchettesDuPayload(payload.bodyBlocks)
     // Les blocs qui atteignent vraiment l'écran : ceux du membre, moins les
     // titres que leur manchette a absorbés.
     const blocsDuMembre = payload.bodyBlocks
@@ -621,6 +637,10 @@ export default async function Home({
     if (chargee && chargee.colonnes.some((colonne) => colonne.cellules.length > 0)) {
       const balisesBilingue = baliserPayload(payload.bodyBlocks, canonChapitre.bornes)
       const rangsBilingue = rangerSousTitres(payload.bodyBlocks)
+      const {
+        manchettes: manchettesBilingue,
+        notesDuTitreAbsorbe: notesDuTitreAbsorbeBilingue,
+      } = manchettesDuPayload(payload.bodyBlocks)
       // Les notes des versets d'un membre lu par le canon, numérotées APRÈS celles que sa
       // colonne appelle déjà (les siennes et celles de l'édition) : le numéro d'une note
       // d'édition est une donnée, et il ne se recompose pas.
@@ -642,7 +662,7 @@ export default async function Home({
         membres: chargee.colonnes.map((colonne) => colonne.membre),
         colonnes: chargee.colonnes,
         axeCanonique: chargee.axeCanonique,
-        blocs: payload.bodyBlocks.map((block) => ({
+        blocs: payload.bodyBlocks.filter((block) => !manchettesBilingue.absorbes.has(block.id)).map((block) => ({
           id: block.id,
           blockKey: block.block_key,
           semanticStyleCode: block.semantic_style_code,
@@ -654,6 +674,7 @@ export default async function Home({
           rangDuTitre: rangsBilingue.get(block.id),
           noticeSubtype: sousTypeNoticeValide(block.block_kind, block.notice_subtype),
           heading: block.heading,
+          manchette: manchettesBilingue.parBloc.get(block.id)?.texte ?? null,
           placement: block.placement,
           canonIdStart: block.canon_id_start,
           canonIdEnd: block.canon_id_end,
@@ -661,7 +682,10 @@ export default async function Home({
           appliesTo: block.applies_to,
           appliesToMemberId: block.applies_to_member_id,
           textBlocks: blocsTexteEditoriaux(block.id, block.text_content, block.text_features),
-          internalNotes: block.internal_notes.map((note) => ({
+          internalNotes: [
+            ...block.internal_notes,
+            ...(notesDuTitreAbsorbeBilingue.get(block.id) ?? []),
+          ].map((note) => ({
             id: note.id,
             displayNumber: note.display_number,
             printedMarker: note.printed_marker,
