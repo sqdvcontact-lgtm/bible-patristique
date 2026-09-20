@@ -33,7 +33,9 @@ import NotationEdition from '@/app/components/NotationEdition'
 import OngletsPage from '@/app/components/OngletsPage'
 import { joindreLieux } from '@/app/lib/adresseEdition'
 import { separateurAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
-import { referenceCanoniqueOeuvre } from '@/app/lib/citation'
+import { FragmentReference } from '@/app/components/ReferenceBibliographique'
+import { CLASSES_BIBLIOGRAPHIE } from '@/app/lib/apparatBibliographie'
+import { fragmentsReferenceCanoniqueOeuvre, referenceCanoniqueOeuvre } from '@/app/lib/citation'
 import { espacerIntervallesHistoriques, formaterDateHistorique } from '@/app/lib/datesHistoriques'
 import type { RangChrono } from '@/app/lib/frise'
 import { libelleLangue } from '@/app/lib/langues'
@@ -44,7 +46,6 @@ import { supabase } from '@/app/lib/supabase'
 import { sansPointFinal } from '@/app/lib/titres'
 import { libelleTrad, formaterEditeur } from './PageTitre'
 import { rendreTexteEnrichi } from './texteEnrichi'
-import { intituleEdition } from './versionTextuelle'
 import type { Props, VersionTextuelle } from './oeuvreTypes'
 
 /** Tout ce que la fiche a besoin de savoir. Les données lui arrivent chargées : la
@@ -109,15 +110,16 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
   const traduction = valeurTraduction(versionActive?.traducteurLabel ?? libelleTrad(oeuvre.trad_auteur))
   const sourceUrl = versionActive?.sourceUrl ?? oeuvre.url_source ?? null
   // ── CE QUI DISTINGUE DEUX ÉDITIONS D'UNE MÊME ŒUVRE ───────────────────────────
-  // En lecture bilingue, les deux volets portent le même titre d'œuvre et la même ligne
-  // de repères : l'INTITULÉ propre de l'édition, sa LANGUE, et le savant qui a ÉTABLI
-  // le texte quand il n'est pas traduit, disent ce qui change.
-  const intitule = intituleEdition(versionActive, titre)
+  // En lecture bilingue, les deux volets portent le même titre d'œuvre : la LANGUE et le
+  // savant qui a ÉTABLI le texte quand il n'est pas traduit disent ce qui change.
+  // ⛔ PAS D'« INTITULÉ » (décision de l'auteur, 2026-09-20 : « Intitulé n'existe pas.
+  //    On a un titre, et c'est tout »). Le titre de l'édition, quand il diffère de celui
+  //    du catalogue, appartient à la barre d'onglets et au menu des éditions.
   // ⚠️ La langue ne se dit que si les éditions n'ont PAS toutes la même.
   const languesDistinctes = new Set(versions.map(v => (v.langue ?? '').trim()).filter(Boolean))
   const langue = languesDistinctes.size > 1 ? libelleLangue(versionActive?.langue) : ''
   const responsable = versionActive?.responsableEdition ?? null
-  const aEdition = !!(intitule || langue || traduction || responsable || versionActive?.editionDescription
+  const aEdition = !!(langue || traduction || responsable || versionActive?.editionDescription
     || oeuvre.editeur || oeuvre.ville || oeuvre.date_publication || oeuvre.collection || sourceUrl)
   // Les deux notes éditoriales parlent de l'ŒUVRE, non de l'édition : elles suivent
   // donc la notice de l'édition, sous leur propre titre.
@@ -129,7 +131,11 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
   const informations = versionActive?.informationsComplementaires?.trim() || null
   const commentaire = oeuvre.commentaire_traduction?.trim() || null
   const aChrono = chrono.length > 0
-  const referenceCanonique = referenceCanoniqueOeuvre({
+  // ⛔ UNE SEULE ÉCRITURE POUR L'ÉCRAN ET POUR LE PRESSE-PAPIERS : les fragments du
+  //    moteur bibliographique (charte § 47.5) se BALISENT à l'écran — d'où le titre en
+  //    italiques que l'auteur demande — et se joignent en plein-texte pour la copie.
+  //    Deux compositions divergeraient au premier réglage.
+  const infoCitation = {
     auteur: auteurNom,
     titre,
     sousTitre: oeuvre.sous_titre,
@@ -139,7 +145,9 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
     ville: oeuvre.ville,
     datePublication: oeuvre.date_publication,
     responsable,
-  })
+  }
+  const fragmentsCitation = fragmentsReferenceCanoniqueOeuvre(infoCitation)
+  const referenceCanonique = referenceCanoniqueOeuvre(infoCitation)
 
   // Chaque auteur ouvre sa fiche ; une œuvre signée à deux les donne tous.
   const auteursLigne = auteurs.length > 0 ? auteurs.map((a, i) => (
@@ -155,7 +163,10 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
       <CorpsFiche
         entete={
           <div className="cs-fiche-edition-tete">
-            <EnTeteFiche surtitre="À propos de cette édition" titre={rendreTexteEnrichi(titre)} titreId={titreId}
+            {/* ⛔ AUCUN SURTITRE (décision de l'auteur, 2026-09-20) : la fenêtre s'appelle
+                déjà « À propos de cette édition » — son nom accessible le dit —, et
+                l'écrire au-dessus du titre de l'œuvre ne l'apprenait à personne. */}
+            <EnTeteFiche titre={rendreTexteEnrichi(titre)} titreId={titreId}
               sousTitre={oeuvre.sous_titre ? rendreTexteEnrichi(oeuvre.sous_titre) : null}
               ligne={auteursLigne} />
             {(oeuvre.titre_original || oeuvre.genres?.length || langueOriginale || dateComposition) ? (
@@ -188,7 +199,6 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
             {/* ⛔ Pas de dépli : ces rangées SONT le sujet d'une fiche qui s'appelle « À
                 propos de cette édition ». */}
             <dl className="cs-fiche-edition-champs">
-              <ChampEdition libelle="Intitulé" italique>{intitule}</ChampEdition>
               <ChampEdition libelle="Langue">{langue || null}</ChampEdition>
               <ChampEdition libelle="Traduction">
                 {traduction ? `${traduction}${oeuvre.trad_date ? ` (${formaterDateHistorique(oeuvre.trad_date)})` : ''}` : null}
@@ -205,13 +215,19 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
           </SectionFiche>
         )}
 
-        <SectionFiche titre="Pour citer cette œuvre" className="cs-fiche-edition-citation">
-          <div className="cs-fiche-edition-citation-ligne">
-            <p>{referenceCanonique}</p>
-            <BoutonCopierTexte texte={referenceCanonique} titre="Copier la référence"
-              libelleVisible="Copier" className="cs-fiche-edition-copier"
-              style={{ color: 'var(--cs-texte-second)' }} />
-          </div>
+        {/* ⚠️ LE GESTE SE POSE CONTRE LE TITRE, et il n'est plus qu'un pictogramme : un
+            bouton encadré portant le mot « Copier » faisait, au bout de la référence, un
+            second objet là où l'on n'attend qu'une marque. */}
+        <SectionFiche titre="Pour citer cette œuvre" className="cs-fiche-edition-citation"
+          action={<BoutonCopierTexte texte={referenceCanonique} titre="Copier la référence"
+            className="cs-fiche-copier cs-cible-fine" />}>
+          <p className="cs-fiche-edition-citation-texte">
+            <span className={CLASSES_BIBLIOGRAPHIE.reference}>
+              {fragmentsCitation.map((fragment, rang) => (
+                <FragmentReference key={rang} segment={fragment} />
+              ))}
+            </span>
+          </p>
         </SectionFiche>
 
         {/* Commentaire public de l'édition : la même prose qu'au frontispice. */}
@@ -325,6 +341,12 @@ export default function FicheEdition({ volets, onOuvrirAuteur, onFermer }: {
       titreId={titreId}
       libelle="À propos de cette édition"
       onFermer={onFermer}
+      /* ⚠️ UN CLIC DEHORS DEMANDE CONFIRMATION (décision de l'auteur, 2026-09-20). Une
+         fiche d'édition s'ouvre au milieu d'une lecture, et sa mesure laisse beaucoup de
+         calque autour d'elle : on la refermait d'un geste qu'on n'avait pas voulu. ⛔ La
+         croix et Échap, eux, restent immédiats : ce sont des gestes qui NOMMENT la
+         fermeture. */
+      confirmerFermeture
       /* ⛔ LA BARRE D'ONGLETS DU SITE, jamais une barre recomposée en styles en ligne
          (voir `OngletsPage`). Elle prend la mesure de ce qu'elle commande et se pose
          au-dessus de la fiche avec un blanc. */

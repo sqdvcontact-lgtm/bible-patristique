@@ -7,13 +7,16 @@
  *
  * Pour chaque texte en langue originale (sans traducteur, dans la langue demandée), le
  * contrôle rejoue les fonctions MÊMES du site (`versionTextuelleDepuisLigne`,
- * `identiteEdition`, `intituleEdition`, `formulerProvenance`, `mentionEditionEnRegard`,
+ * `identiteEdition`, `formulerProvenance`, `mentionEditionEnRegard`,
  * `libelleVersionComplet`, `identiteCitee`, `citationPatristique`) et imprime ce que le
  * lecteur voit : la page de titre, le menu des éditions, la citation copiée et la page de
  * titre du document extrait. Puis il juge chaque rubrique d'après la charte :
  *
- *  - INTITULÉ : le titre propre de l'édition (§ 5.3, § 38.25.1), non une étiquette de
- *    travail (« … — texte latin (Zycha) ») ;
+ *  - TITRE DE L'ÉDITION : le titre propre que `titre_version` porte (§ 5.3), non une
+ *    étiquette de travail (« … — texte latin (Zycha) »). ⚠️ Il ne se rend plus dans la
+ *    fiche depuis le 20 septembre 2026 (« Intitulé n'existe pas. On a un titre, et c'est
+ *    tout ») : il nomme l'édition dans le menu des éditions et dans la barre d'onglets.
+ *    Le jugement porte donc sur la DONNÉE, et la règle qui le décide vit ici ;
  *  - ADRESSE : `edition_label` sous sa forme normative « Ville, éditeur, année » (§ 19.2,
  *    § 47.7), l'éditeur sous son nom d'autorité (§ 16.6), l'année d'accord avec
  *    `annee_edition` ;
@@ -50,11 +53,11 @@ import {
   type IndexEditeurs,
 } from '@/app/lib/editeursNormalisation'
 import { identiteCitee } from '@/app/lib/identiteCitee'
+import { memeIntitule } from '@/app/lib/titres'
 import { formulerProvenance, mentionEditionEnRegard } from '@/app/oeuvre/[id]/PageTitre'
 import type { VersionTextuelle } from '@/app/oeuvre/[id]/oeuvreTypes'
 import {
   identiteEdition,
-  intituleEdition,
   libelleVersionComplet,
   versionTextuelleDepuisLigne,
   type LigneVersionTextuelle,
@@ -157,15 +160,37 @@ const objet = (v: unknown): Record<string, unknown> | null => (v && typeof v ===
 /** Des mots d'ATELIER dans un titre : la langue du texte, une édition, une parenthèse datée. */
 const ETIQUETTE_RE = /\btexte\s+(?:latin|grec|original)\b|\blatin\s+imprimé\b|\bédition\s+de\b|\([^)]*\b1[0-9]{3}\b[^)]*\)/iu
 
-function jugerIntitule(t: LigneTexte, v: VersionTextuelle, o: LigneOeuvre): Rubrique {
+/** Une version dont le `titre_version` n'est qu'une ÉTIQUETTE DE COLONNE : « Texte
+ *  latin », « Texte français ». Elle nomme la langue, non l'édition. */
+const TITRE_ETIQUETTE_RE = /^texte\s+\S+$/iu
+
+/**
+ * Le TITRE PROPRE de l'édition, quand il en dit plus que le titre de catalogue :
+ * « Sancti Aureli Augustini Confessionum libri XIII » en face des « Confessions ».
+ *
+ * ⛔ C'est une règle de CONTRÔLE, non une règle d'affichage. Elle vivait dans
+ * `versionTextuelle.ts` sous le nom `intituleEdition`, et elle en est sortie le
+ * 20 septembre 2026 avec la rangée « Intitulé » de la fiche. Ce qu'elle juge reste une
+ * question de DONNÉE : `titre_version` porte-t-il un titre, ou une étiquette d'atelier ?
+ */
+function titrePropreDeLEdition(v: VersionTextuelle, titreOeuvre: string | null | undefined): string | null {
+  const titre = v.titre?.trim()
+  if (!titre) return null
+  if (TITRE_ETIQUETTE_RE.test(titre)) return null
+  if (memeIntitule(titre, titreOeuvre)) return null
+  return titre
+}
+
+function jugerTitreEdition(t: LigneTexte, v: VersionTextuelle, o: LigneOeuvre): Rubrique {
   const brut = (t.titre_version ?? '').trim()
-  const ecran = intituleEdition(v, o.titre) ?? '(rien)'
+  const propre = titrePropreDeLEdition(v, o.titre)
+  const ecran = propre ?? '(rien)'
   if (!brut) return { verdict: 'manque', ecran, detail: ['`titre_version` est vide.'] }
-  if (intituleEdition(v, o.titre) === null) {
-    return { verdict: 'manque', ecran, detail: [`« ${brut} » n'est qu'une étiquette de colonne, ou redit le titre de l'œuvre : la fiche ne montre aucun intitulé.`] }
+  if (propre === null) {
+    return { verdict: 'manque', ecran, detail: [`« ${brut} » n'est qu'une étiquette de colonne, ou redit le titre de l'œuvre : l'édition n'a pas de titre à elle.`] }
   }
   if (ETIQUETTE_RE.test(brut)) {
-    return { verdict: 'non conforme', ecran, detail: [`« ${brut} » est une étiquette de travail, non le titre imprimé de l'édition. Elle paraît telle quelle dans la fiche et dans le menu des éditions.`] }
+    return { verdict: 'non conforme', ecran, detail: [`« ${brut} » est une étiquette de travail, non le titre imprimé de l'édition. Elle paraît telle quelle dans le menu des éditions et dans la barre d'onglets de la fiche.`] }
   }
   return { verdict: 'ok', ecran, detail: [] }
 }
@@ -356,7 +381,7 @@ function jugerPublication(t: LigneTexte): Rubrique {
 
 // ── Le rapport ───────────────────────────────────────────────────────────────
 
-const RUBRIQUES = ['Intitulé', 'Adresse', 'Texte établi par', 'Collection', 'Source', 'Informations complémentaires', 'Publication'] as const
+const RUBRIQUES = ['Titre de l’édition', 'Adresse', 'Texte établi par', 'Collection', 'Source', 'Informations complémentaires', 'Publication'] as const
 const COURT: Record<Verdict, string> = { ok: 'ok', manque: 'MANQUE', 'non conforme': 'NON CONF.', 'à vérifier': 'à vérif.', 'sans objet': '—' }
 
 const lignes: string[] = []
@@ -371,7 +396,7 @@ for (const t of textes) {
   const identite = identiteEdition(o, v)
   const savoir = atelier(t)
   const juges: Record<(typeof RUBRIQUES)[number], Rubrique> = {
-    'Intitulé': jugerIntitule(t, v, o),
+    'Titre de l’édition': jugerTitreEdition(t, v, o),
     'Adresse': jugerAdresse(t, v),
     'Texte établi par': jugerChampSavant(identite.responsable, savoir.responsable, 'le responsable scientifique'),
     'Collection': jugerChampSavant(identite.collection, savoir.collection, 'la collection'),

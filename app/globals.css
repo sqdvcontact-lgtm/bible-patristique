@@ -3880,6 +3880,79 @@ main.lecture-entree [data-cs-bloc],
 }
 .cs-fiche-fermer:hover { border-color: var(--cs-bord); color: var(--cs-texte-fort); }
 
+/* ── La question qu'un clic HORS DE LA FENÊTRE pose ───────────────────────────
+   Demande de l'auteur (2026-09-20) : « demander avec un message bref si l'utilisateur
+   est sûr de vouloir fermer ; lui laisser cinq secondes pour réfléchir ; une barre de
+   chargement ronde indiquer le temps qui lui reste pour décider ; sinon, la fenêtre se
+   ferme seule. »
+   ⚠️ Elle se pose DANS la fenêtre, au bas et au milieu : c'est d'elle qu'il s'agit, et
+   un objet qui flotte prend l'ombre nette de la charte. */
+.cs-fiche-confirmer {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  z-index: 2;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 28px);
+  padding: 8px 12px;
+  border: 1px solid var(--cs-bord-clair);
+  border-radius: 8px;
+  background: var(--cs-surface);
+  box-shadow: var(--cs-ombre-nette);
+}
+.cs-fiche-confirmer > p {
+  margin: 0;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--cs-texte-fort);
+}
+.cs-fiche-confirmer button {
+  flex: 0 0 auto;
+  min-height: 2rem;
+  padding: 0 10px;
+  border: 1px solid var(--cs-bord);
+  border-radius: 4px;
+  background: none;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.6875rem;
+  line-height: 1;
+  color: var(--cs-texte-second);
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.cs-fiche-confirmer button:hover,
+.cs-fiche-confirmer button:focus-visible { border-color: var(--cs-vert); color: var(--cs-vert); }
+.cs-fiche-confirmer-oui { color: var(--cs-vert) !important; border-color: var(--cs-vert) !important; }
+
+/* L'ANNEAU du compte à rebours. ⛔ Il reçoit sa DURÉE en style en ligne, depuis la seule
+   constante qui la porte (`DELAI_CONFIRMATION_MS`) : la feuille ne décide que du
+   mouvement. ⚠️ Il ne s'éteint PAS sous `prefers-reduced-motion` : il n'orne rien, il
+   dit le temps qui reste, et l'arrêter retirerait l'information au lieu du mouvement. */
+.cs-fiche-rebours { flex: 0 0 auto; display: block; line-height: 0; }
+.cs-fiche-rebours svg { display: block; transform: rotate(-90deg); }
+.cs-fiche-rebours-piste {
+  fill: none;
+  stroke: var(--cs-bord-clair);
+  stroke-width: 2;
+}
+.cs-fiche-rebours-arc {
+  fill: none;
+  stroke: var(--cs-vert);
+  stroke-width: 2;
+  stroke-linecap: round;
+  animation-name: cs-fiche-rebours;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes cs-fiche-rebours {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: 50.27; }
+}
+
 /* ── Le corps ──────────────────────────────────────────────────────────────────
    Le texte à gauche, le complément à droite, et le texte qui REPREND LA PLEINE MESURE
    sous le complément quand celui-ci s'arrête — ce qu'une grille ne peut pas faire.
@@ -3927,6 +4000,41 @@ main.lecture-entree [data-cs-bloc],
   text-align: left;
 }
 .cs-fiche-titre-section--centre { text-align: center; }
+
+/* La TÊTE d'une section qui porte un geste (copier la référence qu'elle donne).
+   ⚠️ Le blanc sous le titre monte sur la tête : le titre, devenu article de flex, ne
+   doit plus écarter le geste de sa propre ligne. */
+.cs-fiche-section-tete {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 5px;
+}
+.cs-fiche-section-tete > .cs-fiche-titre-section { margin-bottom: 0; }
+
+/* Le GESTE de copie posé contre un titre de section : un pictogramme, et rien d'autre.
+   ⛔ Ni cadre ni fond : un bouton encadré au bout d'une référence se lisait comme un
+   second objet. ⚠️ L'encre est `--cs-texte-gris` et non `--cs-texte-doux` : un
+   indicateur non textuel demande 3:1, et le second ne rend que 2,71 sur le sol de la
+   fiche quand le premier en rend 3,45 (8,24 en Cuir). */
+.cs-fiche-copier {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.65625rem;
+  line-height: 1;
+  color: var(--cs-texte-gris);
+  cursor: pointer;
+  transition: color 0.12s;
+}
+.cs-fiche-copier:hover,
+.cs-fiche-copier:focus-visible { color: var(--cs-vert) !important; }
 
 /* ⚠️ Le filet d'une rubrique est porté par un bloc qui fait contexte : à côté de la
    colonne de droite, il s'arrête où s'arrête le texte au lieu de la traverser. */
@@ -4097,25 +4205,28 @@ main.lecture-entree [data-cs-bloc],
 .cs-fiche-lien:hover,
 .cs-fiche-lien:focus-visible { text-decoration-color: currentcolor; }
 
-/* ── La fiche d'une œuvre : moins de rangs, des données rapprochées ─────────────
+/* ── La fiche d'une œuvre : les données rapprochées, les sections écartées ──────
    Les repères de l'œuvre montent sous le titre ; les données de l'édition s'écrivent
    « libellé : valeur » sans colonne fixe, afin que chaque valeur reste près de ce qui
-   la nomme. Le vert demeure réservé aux liens et aux gestes, non à chaque rang. */
-.cs-fiche-edition .cs-fiche-principal > * + * { margin-top: 11px; }
-.cs-fiche-edition .cs-fiche-surtitre {
-  color: var(--cs-texte-faible);
-  letter-spacing: 0.09em;
-}
+   la nomme.
+   ⛔ LES TITRES DE SECTION NE S'ÉCARTENT PLUS DU MODÈLE : ils reprennent le sérif
+      italique vert des deux autres fiches (décision de l'auteur, 2026-09-20 : « j'aimerais
+      que ce niveau de titre soit en vert »). Ils avaient été dégrisés en sans-serif, si
+      bien que la même rubrique se composait de deux façons d'une fiche à l'autre.
+   ⚠️ Et le BLANC QUI LES PRÉCÈDE double (11 px → 22 px, la mesure de la colonne de
+      droite) : un titre qui ouvre une section ne se distingue pas du paragraphe qu'il
+      ferme quand onze pixels les séparent tous les deux. */
+.cs-fiche-edition .cs-fiche-principal > * + * { margin-top: 22px; }
 .cs-fiche-edition .cs-fiche-titre { color: var(--cs-texte-fort); }
-.cs-fiche-edition .cs-fiche-ligne { color: var(--cs-texte); }
-.cs-fiche-edition .cs-fiche-titre-section {
-  margin-bottom: 4px;
+/* ⛔ LE NOM DE L'AUTEUR SE COMPOSE EN SANS (décision de l'auteur, 2026-09-20 : « comme
+   sur la page de lecture de l'œuvre, en haut du volet de gauche »), c'est-à-dire comme
+   `NomVolet` : sans empattements, graisse 600, chasse 0,01 em. Il porte déjà le vert par
+   `.cs-fiche-lien` ; `--cs-texte` ne teint que les liants d'une œuvre signée à deux. */
+.cs-fiche-edition .cs-fiche-ligne {
   font-family: var(--font-source-sans), Arial, sans-serif;
-  font-size: 0.6875rem;
-  font-style: normal;
   font-weight: 600;
-  letter-spacing: 0.015em;
-  color: var(--cs-texte-second);
+  letter-spacing: 0.01em;
+  color: var(--cs-texte);
 }
 .cs-fiche-edition-tete .cs-fiche-entete { margin: 0; }
 .cs-fiche-edition-identite,
@@ -4123,15 +4234,17 @@ main.lecture-entree [data-cs-bloc],
   margin: 0;
   padding: 0;
 }
+/* ⛔ UNE DONNÉE PAR LIGNE (décision de l'auteur, 2026-09-20 : « Langue originale :
+   Latin Composition : 197 // ne pas mettre sur la même ligne »). En rang, deux libellés
+   et deux valeurs se suivaient sans autre séparation qu'une gouttière, et l'on lisait
+   « Latin Composition » d'un trait. */
 .cs-fiche-edition-identite {
-  display: flex;
-  flex-wrap: wrap;
-  column-gap: 18px;
-  row-gap: 3px;
+  display: block;
   margin-top: 9px;
   padding-top: 8px;
   border-top: 1px solid var(--cs-fond-doux);
 }
+.cs-fiche-edition-identite .cs-fiche-edition-champ + .cs-fiche-edition-champ { margin-top: 3px; }
 .cs-fiche-edition-champ {
   display: flex;
   align-items: baseline;
@@ -4156,37 +4269,15 @@ main.lecture-entree [data-cs-bloc],
 }
 .cs-fiche-edition-identite .cs-fiche-edition-champ { padding: 0; }
 .cs-fiche-edition .cs-notice-prose { line-height: 1.44; }
-.cs-fiche-edition-citation-ligne {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-.cs-fiche-edition-citation-ligne > p {
-  flex: 1 1 auto;
-  min-width: 0;
+/* La référence à citer : une PHRASE, qui prend toute la mesure. Le geste de copie ne
+   la borde plus, il se tient contre le titre de la section (`.cs-fiche-copier`). */
+.cs-fiche-edition-citation-texte {
   margin: 0;
   font-family: var(--font-source-serif), Georgia, serif;
   font-size: 0.71875rem;
   line-height: 1.42;
   color: var(--cs-texte);
 }
-.cs-fiche-edition-copier {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-height: 26px;
-  padding: 3px 8px;
-  border: 1px solid var(--cs-bord-clair);
-  border-radius: 5px;
-  background: transparent;
-  font-family: var(--font-source-sans), Arial, sans-serif;
-  font-size: 0.65625rem;
-  line-height: 1;
-  cursor: pointer;
-}
-.cs-fiche-edition-copier:hover,
-.cs-fiche-edition-copier:focus-visible { border-color: var(--cs-bord); color: var(--cs-texte) !important; }
 
 /* ── La prose propre à une fiche ── Le corps courant est `.cs-notice-prose`, le même
    pour les trois fiches ; voici ce qui s'en écarte. */
@@ -4343,8 +4434,4 @@ a.cs-fiche-oeuvre:hover { background: rgba(var(--cs-vert-rgb), 0.06); }
   .cs-fiche-portrait-fenetre { width: 6.5rem; }
   /* Sur téléphone, 8,5 rem d'étiquette ne laissent plus rien à la valeur. */
   .cs-fiche-corps .cs-fiche-cle { width: 6rem !important; }
-  .cs-fiche-edition-identite { display: block; }
-  .cs-fiche-edition-identite .cs-fiche-edition-champ + .cs-fiche-edition-champ { margin-top: 3px; }
-  .cs-fiche-edition-citation-ligne { display: block; }
-  .cs-fiche-edition-copier { margin-top: 7px; }
 }

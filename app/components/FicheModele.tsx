@@ -225,6 +225,23 @@ export function useColonneCommune(listeRef: RefObject<HTMLElement | null>, cle: 
 const fichesOuvertes: object[] = []
 
 /**
+ * Le temps de réflexion qu'un clic HORS DE LA FENÊTRE laisse au lecteur avant que la
+ * fenêtre ne se ferme d'elle-même (demande de l'auteur, 2026-09-20 : « lui laisser cinq
+ * secondes pour réfléchir ; une barre de chargement ronde indiquer le temps qui lui
+ * reste pour décider ; sinon, la fenêtre se ferme seule »).
+ *
+ * ⛔ IL N'EST ÉCRIT QU'UNE FOIS : l'anneau reçoit sa durée EN LIGNE, depuis cette
+ *    constante, et la feuille ne pose que le mouvement. Deux écritures d'un même délai —
+ *    l'une en millisecondes ici, l'autre en secondes dans une règle CSS — se
+ *    désaccorderaient au premier réglage, et la fenêtre se fermerait avant que l'anneau
+ *    n'ait fini son tour.
+ */
+const DELAI_CONFIRMATION_MS = 5000
+
+/** Le tour de l'anneau du compte à rebours, en unités du tracé (2 π r, r = 8). */
+const TOUR_ANNEAU = 2 * Math.PI * 8
+
+/**
  * Le CADRE d'une fiche : le calque, la boîte, la croix et le défileur.
  *
  * ⛔ UNE BOÎTE, UNE MESURE : 52 rem de large et 48 rem de haut au plus, et la MÊME
@@ -238,15 +255,22 @@ const fichesOuvertes: object[] = []
  *    l'emporte dès que l'en-tête est rendu.
  * ⚠️ `avantCorps` se pose dans le défileur, au-dessus du corps : la barre d'onglets
  *    d'une fiche à plusieurs volets.
+ * ⚠️ `confirmerFermeture` est une DEMANDE DE LA SURFACE, jamais un défaut du cadre : la
+ *    fiche d'une œuvre la pose depuis le 20 septembre 2026, les deux autres ferment au
+ *    premier clic comme avant.
  */
-export function ModaleFiche({ titreId, libelle, onFermer, avantCorps, children }: {
+export function ModaleFiche({ titreId, libelle, onFermer, avantCorps, confirmerFermeture = false, children }: {
   titreId: string
   libelle?: string
   onFermer: () => void
   avantCorps?: ReactNode
+  /** Un clic HORS de la fenêtre demande confirmation, et laisse cinq secondes. */
+  confirmerFermeture?: boolean
   children: ReactNode
 }) {
   const defileurRef = useRef<HTMLDivElement>(null)
+  const resterRef = useRef<HTMLButtonElement>(null)
+  const [confirme, setConfirme] = useState(false)
   const fermerRef = useRef(onFermer)
   useEffect(() => { fermerRef.current = onFermer })
 
@@ -270,9 +294,25 @@ export function ModaleFiche({ titreId, libelle, onFermer, avantCorps, children }
     }
   }, [])
 
+  /* ⛔ LE MINUTEUR NE VIT QUE TANT QU'ON DEMANDE : monté à l'ouverture de la question,
+     démonté avec elle, si bien qu'un « Rester » l'éteint sans qu'on ait rien à annuler. */
+  useEffect(() => {
+    if (!confirme) return
+    resterRef.current?.focus({ preventScroll: true })
+    const t = setTimeout(() => fermerRef.current(), DELAI_CONFIRMATION_MS)
+    return () => clearTimeout(t)
+  }, [confirme])
+
+  /* Un clic hors de la fenêtre : on demande, puis on ferme. ⚠️ Un SECOND clic dehors
+     ferme sans redemander — c'est un geste délibéré, et la question a été posée. */
+  const surClicDehors = () => {
+    if (!confirmerFermeture || confirme) { onFermer(); return }
+    setConfirme(true)
+  }
+
   if (typeof document === 'undefined') return null
   return createPortal(
-    <div className="cs-fiche-calque" onClick={onFermer} style={{ top: HAUTEUR_NAVBAR, zIndex: Z_MODALE }}>
+    <div className="cs-fiche-calque" onClick={surClicDehors} style={{ top: HAUTEUR_NAVBAR, zIndex: Z_MODALE }}>
       <div role="dialog" aria-modal="true" aria-labelledby={titreId} aria-label={libelle}
         className="cs-fiche-boite" onClick={e => e.stopPropagation()}>
         <button type="button" onClick={onFermer} aria-label="Fermer" title="Fermer" className="cs-fiche-fermer cs-cible-fine">✕</button>
@@ -280,6 +320,27 @@ export function ModaleFiche({ titreId, libelle, onFermer, avantCorps, children }
           {avantCorps}
           {children}
         </div>
+        {/* ⚠️ La question se pose DANS la fenêtre, au bas et au milieu : c'est d'elle
+            qu'il s'agit, et le lecteur vient d'en sortir des yeux. L'anneau dit le temps
+            qui reste ; il n'est pas un ornement, et se joue donc aussi sous
+            `prefers-reduced-motion`, où il serait l'information qu'on retirerait. */}
+        {confirme ? (
+          <div className="cs-fiche-confirmer" role="group" aria-label="Confirmer la fermeture">
+            <span className="cs-fiche-rebours" aria-hidden="true">
+              <svg viewBox="0 0 20 20" width="18" height="18">
+                <circle cx="10" cy="10" r="8" className="cs-fiche-rebours-piste" />
+                <circle cx="10" cy="10" r="8" className="cs-fiche-rebours-arc"
+                  style={{ strokeDasharray: TOUR_ANNEAU, animationDuration: `${DELAI_CONFIRMATION_MS}ms` }} />
+              </svg>
+            </span>
+            <p aria-live="assertive">
+              Fermer cette fenêtre&nbsp;?
+              <span className="cs-hors-ecran"> Sans réponse, elle se fermera dans cinq secondes.</span>
+            </p>
+            <button ref={resterRef} type="button" onClick={() => setConfirme(false)}>Rester</button>
+            <button type="button" onClick={onFermer} className="cs-fiche-confirmer-oui">Fermer</button>
+          </div>
+        ) : null}
       </div>
     </div>,
     document.body,
@@ -400,11 +461,26 @@ export function CorpsFiche({ portrait, entete, complement, suite, pied, children
   )
 }
 
-/** Une SECTION de la colonne : un titre et son contenu. */
-export function SectionFiche({ titre, className, children }: { titre?: ReactNode; className?: string; children: ReactNode }) {
+/**
+ * Une SECTION de la colonne : un titre, son contenu, et parfois un GESTE posé contre le
+ * titre.
+ *
+ * ⚠️ `action` sert ce qui agit sur la section ENTIÈRE — copier la référence qu'elle
+ * porte, par exemple (demande de l'auteur, 2026-09-20 : « déplacer le logo copier, le
+ * sortir du bloc-bouton, supprimer le texte copier et le placer à côté de “Pour citer
+ * cette œuvre” »). ⛔ Ce n'est pas la place d'un contrôle qui ne vaudrait que pour une
+ * ligne : celui-là vit avec sa ligne.
+ */
+export function SectionFiche({ titre, action, className, children }: {
+  titre?: ReactNode; action?: ReactNode; className?: string; children: ReactNode
+}) {
   return (
     <section className={className ? `cs-fiche-section ${className}` : 'cs-fiche-section'}>
-      {titre ? <TitreSection>{titre}</TitreSection> : null}
+      {titre ? (
+        action
+          ? <div className="cs-fiche-section-tete"><TitreSection>{titre}</TitreSection>{action}</div>
+          : <TitreSection>{titre}</TitreSection>
+      ) : null}
       {children}
     </section>
   )

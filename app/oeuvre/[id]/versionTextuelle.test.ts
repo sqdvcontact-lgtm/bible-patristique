@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decomposerEdition, identiteEdition, intituleEdition, labelCourtVersion, libelleTraducteurVersion, libelleVersionComplet } from './versionTextuelle'
+import { decomposerEdition, identiteEdition, labelCourtVersion, libelleTraducteurVersion, libelleVersionComplet } from './versionTextuelle'
 
 // La Doctrine des Apôtres porte trois textes : le grec, le français de Laurent et le latin
 // de Funk. Une traduction qui n'est pas française se nomme par sa langue (2026-09-13).
@@ -171,33 +171,3 @@ describe('identiteEdition', () => {
   })
 })
 
-// ── L'intitulé propre d'une édition ──────────────────────────────────────────
-// C'est lui qui distingue à l'œil les deux volets d'une lecture bilingue, dont
-// l'en-tête porte le même titre d'œuvre des deux côtés.
-describe('intituleEdition', () => {
-  it('rend le titre de la version quand il en dit plus que celui de l’œuvre', () => {
-    expect(intituleEdition(
-      { titre: 'Sancti Aureli Augustini Confessionum libri XIII' },
-      'Les Confessions',
-    )).toBe('Sancti Aureli Augustini Confessionum libri XIII')
-  })
-
-  it('⛔ se tait sur une étiquette de colonne : « Texte latin » n’est pas un intitulé', () => {
-    expect(intituleEdition({ titre: 'Texte latin' }, 'La Cité de Dieu')).toBeNull()
-    expect(intituleEdition({ titre: 'Texte français' }, 'La Cité de Dieu')).toBeNull()
-    // Une désignation qui NOMME l'édition, elle, reste : elle dit qui l'a établie.
-    expect(intituleEdition({ titre: 'Texte latin — édition de Joseph Zycha' }, 'Annotations'))
-      .toBe('Texte latin — édition de Joseph Zycha')
-  })
-
-  it('⛔ ne redit pas le titre de l’œuvre', () => {
-    expect(intituleEdition({ titre: 'Les Confessions' }, 'Les Confessions')).toBeNull()
-    // `memeIntitule` ignore la casse, l’apostrophe et le point final.
-    expect(intituleEdition({ titre: 'les confessions.' }, 'Les Confessions')).toBeNull()
-  })
-
-  it('se tait sans version et sans titre', () => {
-    expect(intituleEdition(null, 'Les Confessions')).toBeNull()
-    expect(intituleEdition({ titre: '   ' }, 'Les Confessions')).toBeNull()
-  })
-})

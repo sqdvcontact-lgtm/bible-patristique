@@ -45,15 +45,11 @@ export default function BoutonCopierTexte({
   style,
   className,
   titre = 'Copier',
-  libelleVisible,
 }: {
   texte: string
   style?: React.CSSProperties
   className?: string
   titre?: string
-  /** Texte affiché à côté du pictogramme. Les petits boutons de lecture le laissent
-   *  absent ; une action documentaire, comme « Copier la référence », le nomme. */
-  libelleVisible?: string
 }) {
   const [copie, setCopie] = useState(false)
   const [erreur, setErreur] = useState(false)
@@ -71,7 +67,9 @@ export default function BoutonCopierTexte({
   }
 
   const libelle = erreur ? 'La copie a échoué. Réessayez.' : copie ? 'Copie effectuée' : titre
-  const texteVisible = erreur ? 'Réessayer' : copie ? 'Copié' : libelleVisible
+  // ⚠️ L'ACCUSÉ reste VISIBLE, et il vaut pour tout le site : ce qui a disparu est le
+  // libellé de REPOS (« Copier »), que la fiche d’une édition était seule à poser.
+  const texteVisible = erreur ? 'Réessayer' : copie ? 'Copié' : null
 
   return (
     <button onClick={copier} title={libelle} aria-label={libelle} aria-live="polite" className={className}

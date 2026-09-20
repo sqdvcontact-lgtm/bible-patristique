@@ -7,10 +7,12 @@ import {
   preparerTexteCitation,
   citationPatristique,
   citationBiblique,
+  fragmentsReferenceCanoniqueOeuvre,
   referenceCanoniqueOeuvre,
 } from './citation'
 import { SEPARATEUR_COEDITEURS } from './editeursNormalisation'
 import { GUILLEMET_FERMANT, GUILLEMET_OUVRANT } from './referenceBibliographique'
+import { texteFragments } from './referenceBibliographiqueSorties'
 
 describe('convertirGuillemetsInternes', () => {
   it('remplace les guillemets français internes par des guillemets anglais', () => {
@@ -151,6 +153,40 @@ describe('referenceCanoniqueOeuvre', () => {
     expect(reference).toBe('Augustin, Les Confessions, disponible sur le site Corpus Scriptura.')
     expect(reference).not.toContain(' : ')
     expect(reference).not.toContain('«')
+  })
+})
+
+describe('fragmentsReferenceCanoniqueOeuvre', () => {
+  const oeuvre = {
+    auteur: 'Augustin d’Hippone',
+    titre: 'Les Confessions',
+    tradAuteur: 'Joseph Trabucco',
+    editeur: 'Garnier',
+    datePublication: '1937',
+  }
+
+  it('⛔ UNE SEULE ÉCRITURE : les fragments rendent, au mot près, ce que la copie emporte', () => {
+    expect(texteFragments(fragmentsReferenceCanoniqueOeuvre(oeuvre)))
+      .toBe(referenceCanoniqueOeuvre(oeuvre))
+  })
+
+  it('le TITRE porte la composition italique, que l’écran balise', () => {
+    const titre = fragmentsReferenceCanoniqueOeuvre(oeuvre).find(f => f.champ === 'titre')
+    expect(titre?.composition).toBe('italique')
+    expect(titre?.texte).toBe('Les Confessions')
+  })
+
+  it('la mention du site ferme la phrase, sans champ ni style', () => {
+    const dernier = fragmentsReferenceCanoniqueOeuvre(oeuvre).at(-1)
+    expect(dernier?.champ).toBeNull()
+    expect(dernier?.style).toBeNull()
+    expect(dernier?.texte).toBe(', disponible sur le site Corpus Scriptura.')
+  })
+
+  it('sans notice, la mention ouvre la phrase et ne prend pas de séparateur', () => {
+    const fragments = fragmentsReferenceCanoniqueOeuvre({ auteur: null, titre: null })
+    expect(fragments).toHaveLength(1)
+    expect(fragments[0].texte).toBe('disponible sur le site Corpus Scriptura.')
   })
 })
 

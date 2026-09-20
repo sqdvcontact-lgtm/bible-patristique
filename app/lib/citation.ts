@@ -1,5 +1,5 @@
 import { noticeDUneOeuvre, type OeuvreCitee } from './noticeOeuvre'
-import { fragmentsReference, SEPARATEUR } from './referenceBibliographique'
+import { fragmentsReference, SEPARATEUR, type FragmentNotice } from './referenceBibliographique'
 import {
   echapperHtml,
   fragmentsSansPointFinal,
@@ -108,9 +108,16 @@ const MENTION_SITE = 'disponible sur le site Corpus Scriptura'
  * proposer une référence à copier sans inventer une seconde ponctuation ni un second
  * ordre de champs.
  */
-export function referenceCanoniqueOeuvre(info: InfoCitation): string {
+export function fragmentsReferenceCanoniqueOeuvre(info: InfoCitation): FragmentNotice[] {
   const fragments = fragmentsSansPointFinal(fragmentsReference(noticeDUneOeuvre(info)))
-  return [texteFragments(fragments), MENTION_SITE].filter(Boolean).join(SEPARATEUR) + '.'
+  // ⚠️ La mention du site n'a ni champ ni style : c'est de la ponctuation de phrase,
+  // qui hérite de la séquence où elle tombe, comme les liants du moteur.
+  const mention = texteFragments(fragments) ? SEPARATEUR + MENTION_SITE : MENTION_SITE
+  return [...fragments, { champ: null, style: null, composition: 'romain', texte: `${mention}.` }]
+}
+
+export function referenceCanoniqueOeuvre(info: InfoCitation): string {
+  return texteFragments(fragmentsReferenceCanoniqueOeuvre(info))
 }
 
 /**

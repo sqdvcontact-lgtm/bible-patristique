@@ -1,6 +1,5 @@
 import type { VersionTextuelle } from './oeuvreTypes'
 import { adresseEdition } from '@/app/lib/adresseEdition'
-import { memeIntitule } from '@/app/lib/titres'
 import { estTraductionMachine, libelleTrad } from '@/app/lib/traducteurs'
 import { preciserLangueTraduction } from '@/app/lib/langues'
 import {
@@ -92,32 +91,6 @@ export function libelleVersionComplet(
   // de 1646 » sous « Éditions de ce texte » redisait le mot pour rien.
   const annee = version.anneeEdition ? String(version.anneeEdition) : null
   return [tete, annee].filter(Boolean).join(', ')
-}
-
-/** Une version dont le `titre_version` n'est qu'une ÉTIQUETTE DE COLONNE : « Texte
- *  latin », « Texte français ». Elle nomme la langue, non l'édition. */
-const TITRE_ETIQUETTE_RE = /^texte\s+\S+$/iu
-
-/**
- * L'INTITULÉ PROPRE de l'édition qu'on lit, quand il en dit plus que le titre de
- * catalogue : « Sancti Aureli Augustini Confessionum libri XIII » en face des
- * « Confessions ». C'est ce qui distingue à l'œil les deux volets d'une lecture
- * bilingue, dont l'en-tête porte le même titre d'œuvre des deux côtés.
- *
- * ⛔ Rien quand la version se nomme « Texte latin » : ce n'est pas un intitulé, c'est
- * l'étiquette de sa colonne, et la barre d'onglets la dit déjà. Rien non plus quand
- * elle redit le titre de l'œuvre (`memeIntitule`, qui ignore blancs, casse, apostrophe
- * et point final) : un frontispice ne bégaie pas, une fiche non plus.
- */
-export function intituleEdition(
-  version: Pick<VersionTextuelle, 'titre'> | null | undefined,
-  titreOeuvre: string | null | undefined,
-): string | null {
-  const titre = version?.titre?.trim()
-  if (!titre) return null
-  if (TITRE_ETIQUETTE_RE.test(titre)) return null
-  if (memeIntitule(titre, titreOeuvre)) return null
-  return titre
 }
 
 export function libelleTraducteurVersion(
