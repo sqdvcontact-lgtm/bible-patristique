@@ -384,3 +384,35 @@ describe('estSuiteDuBloc — le paragraphe suivant d’un même développement',
     expect(estSuiteDuBloc(p('inconnu', 'I3'), p('commentaire', 'I3'))).toBe(false)
   })
 })
+
+describe('le rang d’un TITRE se déclare sur le bloc, le registre n’en donne que le défaut', () => {
+  it('honore le niveau déclaré, contre celui que porte le nom du style', () => {
+    // `titre_pericope` vaut T6 au registre ; un bloc qui se déclare T5 se compose en
+    // T5, et l’on n’a plus à le renommer « paragraphe » pour le remonter d’un cran.
+    expect(resoudreStyleSemantique('titre_pericope')?.level).toBe('T6')
+    expect(resoudreStyleSemantique('titre_pericope', { niveau: 'T5' })?.level).toBe('T5')
+    expect(resoudreStyleSemantique('titre_section_livre', { niveau: 'T4' })?.level).toBe('T4')
+  })
+
+  it('⛔ écarte une déclaration hors de la famille du style, et retombe sur le registre', () => {
+    // Les deux échelles ne se mélangent pas (charte § 7.1) : un titre au rang d’une
+    // information rendrait la classe `cs-bible-title--i3`, que la feuille ne connaît
+    // pas — donc un titre sans aucune composition.
+    expect(resoudreStyleSemantique('titre_pericope', { niveau: 'I3' })?.level).toBe('T6')
+    // ⚠️ Un style d’INFORMATION n’a pas de défaut au registre : une déclaration
+    // irrecevable le laisse donc sans rang, et il est refusé comme un style inconnu.
+    expect(resoudreStyleSemantique('commentaire', { niveau: 'T4' })).toBeNull()
+  })
+
+  it('⛔ un alias hérité garde sa préséance : son rang est dans son nom', () => {
+    expect(resoudreStyleSemantique('commentaire_pericope', { niveau: 'I2' })?.level).toBe('I5')
+    expect(resoudreStyleSemantique('introduction_livre', { niveau: 'I4' })?.level).toBe('I1')
+  })
+
+  it('le titre PORTÉ suit le même ordre : alias, bloc, registre', () => {
+    expect(resoudreStyleSemantique('introduction_titree', { niveau: 'I1' })?.headingLevel).toBe('T2')
+    expect(resoudreStyleSemantique('introduction_titree', { niveau: 'I1', titre: 'T3' })?.headingLevel).toBe('T3')
+    expect(resoudreStyleSemantique('introduction_livre', { titre: 'T4' })?.headingLevel).toBe('T2')
+    expect(resoudreStyleSemantique('introduction_titree', { niveau: 'I1', titre: 'I2' })?.headingLevel).toBe('T2')
+  })
+})

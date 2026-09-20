@@ -121,14 +121,38 @@ function propreALAlias(alias: ValeurAlias): Exclude<ValeurAlias, string | null> 
 }
 
 /**
+ * Le rang qu'un bloc DÉCLARE, s'il appartient bien à la famille de son style.
+ *
+ * ⛔ Un titre déclaré `I3`, ou une information déclarée `T4`, ne se compose PAS : la
+ * déclaration est écartée et le défaut du registre reprend la main. Les deux échelles
+ * ne se mélangent pas (charte § 7.1), et la composition le dirait tout de suite — un
+ * titre au rang d'une information rendrait la classe `cs-bible-title--i3`, que la
+ * feuille ne connaît pas, c'est-à-dire un titre sans aucune composition.
+ *
+ * ⚠️ On écarte, on ne lève pas : une déclaration fautive est un défaut de DONNÉE, et
+ * le lecteur ne doit pas perdre la page pour autant. Le contrôle de la grille des
+ * titres la relève à part.
+ */
+function rangDeclareRecevable(kind: string, rang: string | null | undefined): JetonNiveau | undefined {
+  if (!rang) return undefined
+  const attendus: readonly string[] = kind === 'title' ? JETONS_TITRE : JETONS_INFO
+  return attendus.includes(rang) ? (rang as JetonNiveau) : undefined
+}
+
+/**
  * Résout un style au registre. Rend `null` pour un style inconnu : l'appelant
  * doit le REFUSER et le signaler, jamais l'aplatir en paragraphe générique.
  *
  * ⚠️ `rang` est le niveau DÉCLARÉ par le bloc (`metadata.semantic_level`), et `titre`
- * celui du titre qu'il porte (`metadata.embedded_title_level`). Les deux ne servent
- * qu'aux codes CANONIQUES : un code hérité porte son rang dans son propre nom, et ce
- * rang-là fait foi — sans quoi le regroupement changerait la composition d'un bloc
- * qui n'a pas bougé.
+ * celui du titre qu'il porte (`metadata.embedded_title_level`).
+ *
+ * ⛔ **LA DONNÉE DU BLOC L'EMPORTE SUR LE DÉFAUT DU REGISTRE**, et l'ordre est le même
+ * sur les deux axes : l'alias hérité d'abord, la déclaration du bloc ensuite, le
+ * registre en dernier. Un code hérité porte son rang dans son propre nom, et ce
+ * rang-là fait foi — sans quoi le regroupement des styles changerait la composition
+ * d'un bloc qui n'a pas bougé. ⚠️ Aucun alias de TITRE n'en porte, la règle ne s'y
+ * heurte donc jamais (relevé du 20 septembre 2026 : les 46 alias porteurs sont tous
+ * des styles d'information).
  *
  * ⛔ Un style d'INFORMATION sans rang est refusé comme un style inconnu. C'est le sens
  * même du regroupement : le nom dit la nature, le rang se déclare, et un bloc qui n'en
@@ -151,7 +175,14 @@ export function resoudreStyleSemantique(
   if (!trouve) return null
   const entree = ENTREES[trouve.canonique]
   const porte = propreALAlias(trouve.alias)
-  const level = (entree.level ?? porte.niveau ?? rang?.niveau) as JetonNiveau | undefined
+  // ⛔ LE REGISTRE NE DONNE QU'UN DÉFAUT : le rang d'un titre est sa PROFONDEUR dans
+  // l'arbre, non son nom de style. Sans cette préséance, `titre_pericope` valait T6
+  // quoi que le bloc déclarât, et l'on ne pouvait remonter d'un cran une péricope
+  // qu'en la renommant « paragraphe » — c'est-à-dire changer ce qu'elle EST pour
+  // corriger où elle se TIENT.
+  const level = (porte.niveau
+    ?? rangDeclareRecevable(entree.kind, rang?.niveau)
+    ?? entree.level) as JetonNiveau | undefined
   if (!level) return null
   return {
     canonique: trouve.canonique,
@@ -161,8 +192,11 @@ export function resoudreStyleSemantique(
     includeInOutline: entree.include_in_outline || porte.auSommaire === true,
     placement: entree.placement as StyleResolu['placement'],
     headingRole: entree.heading_role as StyleResolu['headingRole'],
-    headingLevel: ((entree.heading_level ?? porte.titre ?? rang?.titre
-      ?? entree.heading_levels?.[level]) as JetonTitre | undefined) ?? null,
+    // Même ordre que le rang, et pour la même raison : l'alias, puis le bloc, puis
+    // le registre. ⚠️ La famille attendue est toujours celle des TITRES — un titre
+    // porté au rang d'une information n'a pas de sens.
+    headingLevel: ((porte.titre ?? rangDeclareRecevable('title', rang?.titre)
+      ?? entree.heading_level ?? entree.heading_levels?.[level]) as JetonTitre | undefined) ?? null,
     headingInOutline: entree.heading_in_outline === true || porte.auPlan === true,
     bodyBlock: entree.body_block && porte.horsCorps !== true,
     hierarchyAxis: (entree.hierarchy_axis ?? porte.axe) === 'material' ? 'material' : 'analytic',

@@ -1586,6 +1586,12 @@
 
 ## § 35. Chantier Fillion — la composition du paratexte biblique
 
+**§ 35.0 — Charte ortho-typographique Fillion — synthèse normative**
+
+- ⛔ LE § 3.5 PRÉVAUT, ET IL IMPOSE DEUX COUCHES — la forme diplomatique exacte — casse comprise — est conservée dans `facsimile_heading`, `source_markup` ou une provenance équivalente, et la forme RENDUE au lecteur reçoit la casse française.
+- ⚠️ Ce point a dit l’inverse jusqu’au 20 septembre 2026, en citant le § 3.5 pour ce que le § 3.5 refuse ; la contradiction est close dans ce sens.
+- ⛔ L’application aux données Fillion déjà saisies est une MISSION à part — rien ne se normalise par ricochet, et un heading dont la forme source n’est pas encore recopiée en provenance ne se réécrit pas.
+
 **§ 35.4 — La présentation vient de la donnée, jamais d’une forme reconnue au passage**
 
 - ⛔ Aucun de ces styles ne se devine à la forme du texte.
@@ -1607,7 +1613,12 @@
 
 **§ 35.5.1 — Liminaires Fillion : casse, repères analytiques et références de portée**
 
+- ⛔ La couche de LECTURE, elle, porte la casse française (§ 3.5) : « Évangile selon saint Luc », « Introduction ».
 - ⛔ Le signe `°` ne paraît jamais comme marqueur ordinal dans l’interface.
+
+**§ 35.5.2 — Sous-sections et références bibliques des titres Fillion**
+
+- ⛔ Ce qui ne se réécrit jamais est le MOT : ni l’ordre, ni le repère, ni la ponctuation ne s’ajustent au goût du jour.
 
 **§ 35.7 — Les guillemets d’une citation en langue étrangère restent en romain**
 
@@ -1632,6 +1643,7 @@
 
 - ⛔ Décision de l’auteur, 26 août 2026 : « laid et pas lisible ».
 - ⚠️ L’italique fait ici le travail que faisait la capitale : elle distingue sans peser, et un titre de péricope ne doit pas peser plus que ce qu’il annonce.
+- ⛔ C’est ce qui rend la casse française du § 3.5 sans conséquence sur la hiérarchie : aucun rang de cette grille ne se lit à ses majuscules.
 - ⚠️ Les petites capitales que la SOURCE applique à un nom d’auteur restent relevées dans les enrichissements ou la provenance, mais ne sont plus reproduites dans la forme normalisée : le nom d’auteur est servi en romain.
 - ⚠️ Le PARAGRAPHE (T5) se centre, seul des rangs bas (décision de l’auteur, 29 août 2026 : « ce niveau de titre me paraît pas bien placé »).
 - ⛔ Le corps de la tête ne monte pas : il égalerait la sous-section.
@@ -1744,6 +1756,28 @@
 - ⛔ Un code canonique vaut son alias, toujours — le registre porte donc `heading_levels`, un rang de titre par rang d’information, et le validateur REFUSE un style d’information à rôle de titre qui ne sait pas composer son titre à chaque rang.
 - ⚠️ Chaque rang d’information porte le titre de la PORTÉE qu’il explique ; I1 → T2 est la seule exception doctrinale, `titre_livre` (T1) ne paraissant jamais.
 - ⚠️ Le défaut ne se voyait NI dans la donnée, NI dans un test, NI dans le registre lu seul — les deux codes sont canoniques, les deux blocs sont sains, et c’est leur RENCONTRE avec le rendu qui les séparait.
+
+**§ 35.28 — La grille des titres — le rang est une PROFONDEUR**
+
+- ⛔ LE RANG D’UN TITRE EST SA PLACE DANS L’ARBRE DES TITRES — et rien d’autre.
+- ⛔ Il ne paraît jamais : la navigation nomme déjà le livre (§ 35.1).
+- ⚠️ Aucune forme numérique n’est requise.
+- ⛔ LA NUMÉROTATION EST UNE CONSÉQUENCE, JAMAIS UN CRITÈRE.
+- ⛔ T6 NE SE DONNE PAS PARCE QUE `scope_kind` VAUT `pericope`.
+- ⛔ LE BLOC DÉCLARE SON RANG (`metadata.semantic_level`), LE REGISTRE N’EN DONNE QUE LE DÉFAUT.
+- ⚠️ Une déclaration hors de la famille du style, un titre déclaré `I3` par exemple, est ÉCARTÉE et le défaut reprend la main : les deux échelles ne se mélangent pas (§ 7.1).
+- ⚠️ Le rendu a ignoré ces déclarations jusqu’au 20 septembre 2026 : 4 948 titres sur 6 316 en portaient une, et 39 en portaient une que le registre contredisait.
+- ⛔ Les trois premiers sont des défauts, le quatrième est une QUESTION.
+- ⚠️ Ce n’est PAS une faute en soi : une édition peut n’avoir qu’un seul niveau analytique sous une section.
+- ⚠️ La fratrie hétérogène — des titres frères d’un même parent à des rangs différents — se relève avec eux : deux frères qui n’ont pas le même poids rendent le plan illisible.
+- ⛔ ON REPREND LIVRE PAR LIVRE, JAMAIS EN MASSE.
+- ⛔ Il n’a aucune règle à lui : le rang de chaque bloc vient de `resoudreStyleSemantique`, la fonction que la page emploie.
+
+**§ 35.29 — La manchette d’un commentaire — trois états, et aucun autre**
+
+- ⛔ Un repère de commentaire de rang bas est une MANCHETTE : jamais un titre, jamais une entrée du plan (§ 35.9).
+- ⛔ ON NE FABRIQUE JAMAIS UN INTITULÉ POUR RÉGULARISER LA PAGE.
+- ⛔ UNE MANCHETTE ÉDITORIALE NE REÇOIT JAMAIS DE `facsimile_heading` — et la raison n’est pas une convention de champ : `facsimile_heading` ATTESTE une forme imprimée.
 
 ## § 36. Le modèle d’onglets
 
@@ -2557,6 +2591,8 @@
 - ⛔ Un titre n’est jamais injecté dans la prose ; un bloc `title` n’a pas de corps ; un intitulé ne se répète pas comme premier paragraphe.
 - ⛔ La casse d’un heading source n’est jamais normalisée.
 - ⛔ Après TOUTE modification d’une projection de heading, contrôler immédiatement toutes les notes et ancres qui la ciblent.
+- ⛔ Les deux ne s’échangent pas — et cette règle est celle des §§ 3.2 et 35.0 : un heading n’a pas de typographie à lui.
+- ⚠️ Ce paragraphe a prescrit U+202F avant `:` jusqu’au 20 septembre 2026, contre la matrice de clôture du présent chapitre, qui écrivait déjà la bonne règle.
 - ⛔ Ne jamais fabriquer un offset pour compenser une mauvaise classification.
 - ⛔ Ne jamais déplacer une ancre par simple delta global lorsque la typographie ou le texte intermédiaire a changé.
 - ⛔ Ne jamais déduire un italique d’un simple motif lexical lorsqu’un homographe français est possible.
@@ -3525,4 +3561,4 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | 3 | Typographie — les signes, les espaces, l’enric | 70 747 | 62 | **0.9** |
 | 15 | Corpus biblique et traductions | 18 188 | 17 | **0.9** |
 | 51 | Les objets d’interface partagés | 102 088 | 105 | **1.0** |
-| 35 | Chantier Fillion — la composition du paratexte | 84 683 | 93 | **1.1** |
+| 48 | Le protocole d’océrisation d’une bible | 46 823 | 53 | **1.1** |

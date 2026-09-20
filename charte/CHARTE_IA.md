@@ -4544,7 +4544,7 @@ Cette synthèse est la porte d’entrée normative du chantier Fillion. Elle hé
 
 **3. Langues étrangères et italiques.** Les termes, locutions, lemmes et citations en latin ainsi que les translittérations de langues anciennes se composent en italique. Le grec écrit en caractères grecs reste en romain, conformément au § 3.6 ; seules les translittérations grecques en alphabet latin se composent en italique. Les guillemets français et la ponctuation française qui encadrent ces passages restent en romain. Les noms propres étrangers restent en romain. La couche source demeure inchangée.
 
-**4. Casse, titres et petites capitales.** Dans Fillion comme ailleurs, un titre qui transcrit un heading imprimé conserve exactement la casse du témoin conformément au § 3.5 ; `facsimile_heading`, `source_markup` ou une provenance équivalente servent à la preuve, non à autoriser une autre casse dans la lecture. Seuls les titres réellement composés par Corpus Scriptura suivent la casse française. Aucun titre biblique n’est composé en petites capitales. Les petites capitales de la source appliquées aux noms d’auteurs sont conservées en provenance mais ne sont pas reproduites dans la forme normalisée : les noms d’auteurs restent en romain. Les autres petites capitales sémantiques restent soumises à leurs règles propres et ne doivent jamais être simulées par une transformation de casse.
+**4. Casse, titres et petites capitales.** ⛔ **LE § 3.5 PRÉVAUT, ET IL IMPOSE DEUX COUCHES** : la forme diplomatique exacte — casse comprise — est conservée dans `facsimile_heading`, `source_markup` ou une provenance équivalente, et la forme RENDUE au lecteur reçoit la casse française. On conserve donc parfaitement le témoin, et l’on ne sert pas nécessairement au lecteur ses longues capitales de composition. ⚠️ Ce point a dit l’inverse jusqu’au 20 septembre 2026, en citant le § 3.5 pour ce que le § 3.5 refuse ; la contradiction est close dans ce sens. ⛔ **L’application aux données Fillion déjà saisies est une MISSION à part** : rien ne se normalise par ricochet, et un heading dont la forme source n’est pas encore recopiée en provenance ne se réécrit pas. Aucun titre biblique n’est composé en petites capitales. Les petites capitales de la source appliquées aux noms d’auteurs sont conservées en provenance mais ne sont pas reproduites dans la forme normalisée : les noms d’auteurs restent en romain. Les autres petites capitales sémantiques restent soumises à leurs règles propres et ne doivent jamais être simulées par une transformation de casse.
 
 **5. Paragraphes.** Aucun tiret artificiel n’est ajouté devant les paragraphes et aucun `::before` ne doit en recréer. Les paragraphes restent distincts, séparés par le blanc prévu par le rendu ; ils ne sont pas concaténés en une ligne continue. Une rupture de page ou de ligne matérielle ne crée pas à elle seule un paragraphe.
 
@@ -4625,7 +4625,7 @@ Et le parent ne se déduit jamais du seul rang du jeton : quand la donnée nomme
 
 #### 35.5.1. Liminaires Fillion : casse, repères analytiques et références de portée
 
-Dans la couche éditoriale Fillion, les têtes liminaires qui transcrivent le nom du livre ou une mention d’introduction conservent la casse imprimée : `ÉVANGILE SELON SAINT LUC` reste `ÉVANGILE SELON SAINT LUC` ; `INTRODUCTION` reste `INTRODUCTION`. Une variante en casse française n’est admise que pour un libellé distinct composé par Corpus Scriptura et ne remplace jamais le heading source.
+Dans la couche SOURCE, les têtes liminaires qui transcrivent le nom du livre ou une mention d’introduction conservent exactement la casse imprimée : `ÉVANGILE SELON SAINT LUC` reste `ÉVANGILE SELON SAINT LUC` ; `INTRODUCTION` reste `INTRODUCTION`. ⛔ La couche de LECTURE, elle, porte la casse française (§ 3.5) : « Évangile selon saint Luc », « Introduction ». La forme imprimée demeure dans `facsimile_heading` ou une provenance équivalente, et elle ne s’efface jamais pour améliorer le rendu.
 
 Le numéro imprimé ne suffit jamais, à lui seul, à créer un niveau de titre. Toutefois, une série continue de repères `1°`, `2°`, `3°`, etc. placés chacun en tête de paragraphes distincts constitue un indice structurel positif lorsqu’elle est confirmée par le contexte du témoin — notamment lorsqu’un niveau interne emploie une autre forme (`1.`, `2.`) et que les énumérations `1°`, `2°`, etc. qui ne sont pas structurelles restent inline dans un même paragraphe. Dans ce cas, tous les membres de la série appartiennent au même niveau analytique, même si certains commencent par une phrase complète plutôt que par un intitulé nominal. Les vrais headings de cette série sont normalisés à l’affichage sous la forme `1.`, `2.`, `3.`, etc.
 
@@ -4642,7 +4642,7 @@ Lorsqu’un titre ou un chapeau analytique est suivi d’une référence bibliqu
 
 Dans la couche éditoriale de lecture, les marqueurs imprimés `§ I.`, `§ II.`, `§ III.`, etc. ne s’affichent pas lorsqu’ils ne font que répéter la hiérarchie déjà portée par le niveau de titre. On conserve l’intitulé descriptif qui suit, ainsi que le niveau sémantique nécessaire à la structure ; on ne modifie pas globalement le style T4 et on ne supprime pas le témoin source. Exemple : `§ I. — Prédiction de la naissance du précurseur. I, 1-25.` → `Prédiction de la naissance du précurseur (1, 1-25)`.
 
-Les désignations structurelles de section qui transcrivent un titre imprimé conservent sa formulation, sa casse et sa ponctuation : `SECTION I. — LES DEUX ANNONCIATIONS` reste `SECTION I. — LES DEUX ANNONCIATIONS`. Le repère (`Section I`, etc.) peut être analysé séparément pour la hiérarchie, mais cette analyse ne réécrit pas le titre source. Une formulation normalisée n’est possible que comme objet éditorial distinct et explicitement qualifié.
+Les désignations structurelles de section conservent la FORMULATION et la PONCTUATION du titre imprimé ; seule la casse suit le § 3.5 : `SECTION I. — LES DEUX ANNONCIATIONS` se lit « Section I. — Les deux Annonciations » et se conserve tel quel en provenance. ⛔ Ce qui ne se réécrit jamais est le MOT : ni l’ordre, ni le repère, ni la ponctuation ne s’ajustent au goût du jour. Le repère (`Section I`, etc.) peut être analysé séparément pour la hiérarchie, mais cette analyse ne réécrit pas le titre source.
 
 Dans tous les titres et chapeaux analytiques Fillion, la référence biblique finale est normalisée dans la couche de lecture : les numéros de chapitres sont écrits en chiffres arabes, la référence est placée entre parenthèses et le nom du livre n’est pas répété lorsque le contexte du livre est sans ambiguïté. Aucun point final n’est ajouté après la parenthèse. Une plage dans un même chapitre garde le trait d’union sans espaces (`1, 1-25`) ; une plage interchapitres emploie un trait d’union simple entouré d’espaces (`3, 21 - 4, 13`). La forme imprimée reste conservée dans `facsimile_heading` ou une provenance équivalente ; `text_content` et `source_markup` ne sont jamais réécrits pour cette normalisation.
 
@@ -4686,7 +4686,7 @@ La disposition vaut pour les repères des rangs bas, chapitre, péricope et vers
 
 ⛔ Décision de l’auteur, 26 août 2026 : « laid et pas lisible ». Quatre rangs de titre sur six les portaient, plus les rubriques d’information. Composée à quinze pixels avec de la chasse, une ligne entière en petites capitales devient une bande grise où l’œil ne trouve plus de mot — et c’est précisément le rang qu’on lit le plus, celui des péricopes, qui en souffrait le plus.
 
-La casse imprimée par Fillion se rend donc telle qu’elle est écrite, et les rangs se séparent autrement : le corps d’abord, puis la POSE — les rangs hauts centrés en romain, la péricope au fer en ITALIQUE. ⚠️ L’italique fait ici le travail que faisait la capitale : elle distingue sans peser, et un titre de péricope ne doit pas peser plus que ce qu’il annonce. Les rubriques suivent, et leur chasse tombe de moitié : une chasse large n’a de sens que sous des capitales.
+Les rangs se séparent donc SANS la capitale : le corps d’abord, puis la POSE — les rangs hauts centrés en romain, la péricope au fer en ITALIQUE. ⚠️ L’italique fait ici le travail que faisait la capitale : elle distingue sans peser, et un titre de péricope ne doit pas peser plus que ce qu’il annonce. Les rubriques suivent, et leur chasse tombe de moitié : une chasse large n’a de sens que sous des capitales. ⛔ C’est ce qui rend la casse française du § 3.5 sans conséquence sur la hiérarchie : aucun rang de cette grille ne se lit à ses majuscules.
 
 ⚠️ Les petites capitales que la SOURCE applique à un nom d’auteur restent relevées dans les enrichissements ou la provenance, mais ne sont plus reproduites dans la forme normalisée : le nom d’auteur est servi en romain. Cette décision ne supprime aucune autre petite capitale justifiée par sa fonction.
 
@@ -4953,6 +4953,50 @@ Fillion ouvre chaque livre par une introduction que son imprimeur divise en dév
 ⛔ **UN STYLE À RÔLE DE TITRE DIT LE RANG DE SON TITRE À CHAQUE RANG D’INFORMATION.** `introduction_titree` déclarait `heading_role: "title"` sans dire nulle part quel titre elle porte : faute d’`embedded_title_level` sur le bloc, le rendu ne trouvait aucun rang et retombait sur la RUBRIQUE grise. Seul son alias `introduction_livre` portait ce rang, si bien que la même introduction se composait en T2 à la Genèse et en rubrique chez Matthieu, selon le code que l’import avait écrit. ⛔ **Un code canonique vaut son alias, toujours** : le registre porte donc `heading_levels`, un rang de titre par rang d’information, et le validateur REFUSE un style d’information à rôle de titre qui ne sait pas composer son titre à chaque rang. ⚠️ Chaque rang d’information porte le titre de la PORTÉE qu’il explique ; I1 → T2 est la seule exception doctrinale, `titre_livre` (T1) ne paraissant jamais.
 
 ⚠️ **Le défaut ne se voyait NI dans la donnée, NI dans un test, NI dans le registre lu seul** : les deux codes sont canoniques, les deux blocs sont sains, et c’est leur RENCONTRE avec le rendu qui les séparait. Mesuré au jour de la correction : 55 blocs du corpus retrouvent leur titre, 44 introductions de livre et 11 de péricope.
+
+### 35.28. La grille des titres — le rang est une PROFONDEUR
+
+⛔ **LE RANG D’UN TITRE EST SA PLACE DANS L’ARBRE DES TITRES**, et rien d’autre. Ni son nom de style, ni son `scope_kind`, ni son marqueur imprimé ne le déterminent. Un « § I » est un T3 dans un livre et un T5 dans un autre ; ce qui décide est : sous quel titre se range-t-il, et combien de niveaux analytiques le séparent de la tête de son livre.
+
+**Les six rangs.**
+
+- **T1 — le livre.** ⛔ Il ne paraît jamais : la navigation nomme déjà le livre (§ 35.1). Il structure, il ne se compose pas.
+- **T2 — la grande division** : une partie du livre, ou le titre que porte l’introduction du livre. ⚠️ Aucune forme numérique n’est requise. « Introduction » est ici le titre, et « Genèse » ou « Évangile selon saint Matthieu » son chapeau (§ 35.13).
+- **T3 — la grande section interne** : « Livre I », « Section I », suivant la structure réelle.
+- **T4 — la sous-section analytique.** « I — Prélude : la généalogie de Notre-Seigneur Jésus-Christ (1, 1-17) » aussi bien que « La création (1, 1 - 2, 3) » : les deux formes sont également légitimes.
+- **T5 — la première division analytique sous un T4.**
+- **T6 — le niveau réellement subordonné à un T5.**
+
+⛔ **LA NUMÉROTATION EST UNE CONSÉQUENCE, JAMAIS UN CRITÈRE.** Dire « T5 égale chiffre arabe » ou « T6 égale numérotation décimale » serait faux : un T5 porte un repère romain si telle est la structure du passage, et la décimale (`2.1`, `2.2`) ne devient nécessaire que lorsque deux niveaux numériques successifs risqueraient de se confondre. La graphie observée se note au carnet ; elle n’entre pas dans la norme.
+
+⛔ **T6 NE SE DONNE PAS PARCE QUE `scope_kind` VAUT `pericope`.** Le `scope_kind` dit la PORTÉE d’un bloc, le rang dit sa PLACE, et les deux ne se déduisent pas l’un de l’autre. C’est l’anomalie mesurée sur Matthieu le 20 septembre 2026 : « I — Prélude » y est un T4 et ses subdivisions, marquées `titre_pericope`, tombaient directement en T6, quand la Genèse encode la même profondeur T4 → T5 → T6.
+
+⛔ **LE BLOC DÉCLARE SON RANG (`metadata.semantic_level`), LE REGISTRE N’EN DONNE QUE LE DÉFAUT.** C’est ce qui permet de tenir la grille sans renommer les styles : **on ne change pas ce qu’un bloc EST pour corriger où il se TIENT.** L’ordre est le même sur les deux axes — l’alias hérité d’abord, la déclaration du bloc ensuite, le registre en dernier. ⚠️ Une déclaration hors de la famille du style, un titre déclaré `I3` par exemple, est ÉCARTÉE et le défaut reprend la main : les deux échelles ne se mélangent pas (§ 7.1). ⚠️ Le rendu a ignoré ces déclarations jusqu’au 20 septembre 2026 : 4 948 titres sur 6 316 en portaient une, et 39 en portaient une que le registre contredisait.
+
+**Quatre relevés, du plus dur au plus souple.** ⛔ Les trois premiers sont des défauts, le quatrième est une QUESTION.
+
+1. **Déclaration irrecevable** — un titre qui déclare un rang d’information, ou l’inverse. Le rendu l’écarte déjà ; c’est une faute de donnée pure, et elle doit valoir zéro.
+2. **Inversion** — un titre à un rang SUPÉRIEUR à celui de son parent. Incohérent par construction : un enfant ne domine pas son père.
+3. **Rang plat** — un titre au MÊME rang que son parent. Une hiérarchie qui ne descend pas n’en est pas une.
+4. **Saut** — un enfant à plus d’un rang sous son parent. ⚠️ Ce n’est PAS une faute en soi : une édition peut n’avoir qu’un seul niveau analytique sous une section. C’est une question à poser au livre, et le nombre dit s’il faut la poser.
+
+⚠️ **La fratrie hétérogène** — des titres frères d’un même parent à des rangs différents — se relève avec eux : deux frères qui n’ont pas le même poids rendent le plan illisible.
+
+⛔ **ON REPREND LIVRE PAR LIVRE, JAMAIS EN MASSE.** Relevé du 20 septembre 2026 sur les 6 316 titres du corpus Fillion : **62 inversions, 294 rangs plats, 140 fratries hétérogènes, 1 579 sauts**, et zéro déclaration irrecevable. Une règle qui demanderait de justifier quinze cents sauts au cas par cas ne serait pas une règle mais un arriéré ; on corrige un livre quand on le reprend, et le contrôle dit où en est chacun.
+
+**Le contrôle est `scripts/fillion/controle-grille-titres.mts`** (`--livre=`, `--detail`, `--strict`). ⛔ Il n’a aucune règle à lui : le rang de chaque bloc vient de `resoudreStyleSemantique`, la fonction que la page emploie. Il n’écrit rien.
+
+### 35.29. La manchette d’un commentaire — trois états, et aucun autre
+
+⛔ Un repère de commentaire de rang bas est une MANCHETTE : jamais un titre, jamais une entrée du plan (§ 35.9). À la clôture d’un livre, chaque commentaire de rang I4 à I6 susceptible d’en porter une se trouve dans **exactement l’un de trois états** :
+
+1. **Manchette source** — l’intitulé est attesté par le témoin, et il est conservé.
+2. **Manchette éditoriale** — composée par Corpus Scriptura, explicitement marquée comme telle, lorsque le commentaire est autonome, sa portée certaine et son intitulé bref, neutre et fiable.
+3. **Absence justifiée** — bloc de continuation, portée incertaine, ou aucun intitulé bref et neutre ne peut être établi.
+
+⛔ **ON NE FABRIQUE JAMAIS UN INTITULÉ POUR RÉGULARISER LA PAGE.** Le troisième état est un état de clôture à part entière, non un échec : une page dont trois commentaires sur dix portent une manchette est close si les sept autres ont leur raison.
+
+⛔ **UNE MANCHETTE ÉDITORIALE NE REÇOIT JAMAIS DE `facsimile_heading`**, et la raison n’est pas une convention de champ : `facsimile_heading` ATTESTE une forme imprimée. Lui donner une forme qu’aucun témoin ne porte, ce n’est pas remplir un champ, c’est falsifier le témoin.
 
 
 ## 36. Le modèle d’onglets
@@ -6240,7 +6284,7 @@ Le protocole est **vivant** : lorsqu’une erreur nouvelle révèle une faibless
 
 **Passe 3 — Titres, casse et références de portée.** Revoir tous les headings après stabilisation de la structure : niveau, fidélité de la casse au témoin, ordinaux, ponctuation, références bibliques finales, titres de section et de péricope, formes redondantes. Appliquer notamment les §§ 35.1, 35.5.1 et 35.5.2. ⛔ **La casse d’un heading source n’est jamais normalisée.** Lorsqu’une référence biblique est transformée pour une projection éditoriale distincte, la forme imprimée du heading reste conservée intégralement dans la donnée de source ou sa provenance ; cette projection ne vaut pas transcription du titre. ⛔ **Après TOUTE modification d’une projection de heading, contrôler immédiatement toutes les notes et ancres qui la ciblent.**
 
-**Ponctuation haute des headings.** Dans une projection éditoriale française, l’espace précédant `;`, `:`, `!` et `?` est l’espace fine insécable U+202F lorsque la charte générale prévoit une espace. Le postcontrôle recherche explicitement U+0020 et U+00A0 avant ces signes, dans tous les headings du périmètre déjà traité et pas seulement dans les objets écrits pendant le lot. ⛔ **La forme source demeure inchangée.**
+**Ponctuation haute des headings.** Dans une projection éditoriale française, l’espace précédant `;`, `!` et `?` est la fine insécable U+202F, et celle qui précède `:` est l’insécable pleine chasse U+00A0. ⛔ **Les deux ne s’échangent pas**, et cette règle est celle des §§ 3.2 et 35.0 : un heading n’a pas de typographie à lui. Le postcontrôle recherche donc U+0020 avant les quatre signes, U+202F avant `:` et U+00A0 avant `;`, `!` et `?`, dans tous les headings du périmètre déjà traité et pas seulement dans les objets écrits pendant le lot. ⚠️ Ce paragraphe a prescrit U+202F avant `:` jusqu’au 20 septembre 2026, contre la matrice de clôture du présent chapitre, qui écrivait déjà la bonne règle. ⛔ **La forme source demeure inchangée.**
 
 **Passe 4 — Notes et apparats.** Traiter l’appareil comme un système : identité de la note, numéro, blocs, ordre, appel imprimé, cible `heading` ou `body`, offsets, texte d’ancre, rendu et état de revue. Toute note attestée doit avoir un véritable appel visible et cliquable lorsque l’appel est localisable ; une note appelée ne doit pas être répétée dans un apparat flottant. ⛔ **Ne jamais fabriquer un offset pour compenser une mauvaise classification.** Le contenu d’une note ordinaire se compose comme prose normale de note — romain et justifié —, jamais avec le style d’une introduction longue ; seules les fonctions réelles (bibliographie, citation, référence, vers, attribution) dérogent à ce cadre. Les bibliographies suivent les §§ 47.0–35.6.3. Toute normalisation de titre, de texte ou de segmentation oblige à revalider les ancres dépendantes dans la même micro-passe.
 
@@ -6337,6 +6381,8 @@ Après toute transformation de ce type, le postcontrôle porte sur **toutes les 
 - les lemmes pointent vers un paragraphe valide et vers un canon existant ;
 - les séquences et clés structurelles restent continues et uniques ;
 - aucun faux `verse_note` ne compense un commentaire mal classé ;
+- la grille des titres ne porte ni déclaration de rang irrecevable, ni inversion, ni rang plat (§ 35.28) — `scripts/fillion/controle-grille-titres.mts` ;
+- les fratries hétérogènes et les sauts de rang sont RELEVÉS et tranchés livre par livre, jamais corrigés en masse ;
 - aucune validation humaine n’est créée automatiquement.
 
 ⚠️ **Un contrôle d’égalité textuelle simple est insuffisant pour les doublons.** Il faut aussi contrôler la structure : si une introduction possède deux sous-blocs et que le second recompose à lui seul exactement le corps principal, le premier est un résidu extérieur au corps et doit être examiné comme titre ou autre élément mal projeté.
@@ -9487,3 +9533,5 @@ Exemples :
 - `apres ce. il uint` → `Apres ce. Il uint`
 
 Toute transformation doit être réversible ou reproductible à partir de la couche développée philologique.
+
+Règle complémentaire TR0009 — numéraux composés. Dans le mode développé, les composantes numériques romaines conservent leur ordre et leur forme, mais les points typographiques sont remplacés par une séparation lisible : .iiii.c. devient IIII C ; .v.m. devient V M ; .viii. c. devient VIII C. Aucune conversion vers une notation romaine moderne normalisée n’est autorisée.
