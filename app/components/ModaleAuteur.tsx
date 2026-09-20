@@ -185,7 +185,7 @@ export function FriseAuteur({ evenements, oeuvreEnRelief = null }: { evenements:
           const pb = dernier && !ouvert ? '0' : '10px'
           return (
             <li key={cle} style={{ display: 'contents' }}>
-              <span style={{ fontFamily: SERIF, fontSize: '0.71875rem', color: contexte ? '#d2c69f' : '#b7a06a', textAlign: 'right', whiteSpace: 'nowrap', lineHeight: 1.18, paddingBottom: pb }}><HistoricalDate value={a.date_affichage_courte} variant="short" /></span>
+              <span style={{ fontFamily: SERIF, fontSize: '0.71875rem', color: contexte ? 'var(--cs-date-douce)' : 'var(--cs-date)', textAlign: 'right', whiteSpace: 'nowrap', lineHeight: 1.18, paddingBottom: pb }}><HistoricalDate value={a.date_affichage_courte} variant="short" /></span>
               {/* Rail + puce. La puce est dimensionnée et positionnée en `em` (relatifs à
                   la taille du titre) : elle suit la police fluide et reste alignée sur la
                   première ligne, quelle que soit l'échelle de l'écran. */}
@@ -257,20 +257,20 @@ function PiedDeFiche({ pied }: { pied: PiedFiche }) {
                 « c'est pas clair »). Un filet dit la PART, qui est la seule chose qu'on
                 veut savoir ici : ce que cet auteur lit le plus. Le compte exact reste à
                 l'infobulle, pour qui le cherche. */}
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            {/* ⛔ Le filet se pose DANS SON RAIL (globals.css) : nu, il se lisait comme
+                un soulignement du nom, et le premier livre, à pleine largeur, comme une
+                règle de tableau. Le rail est le tout ; le filet en est la part. */}
+            <ul className="cs-fiche-empreinte">
               {empreinte.tete.map(l => (
                 <li key={l.livre} title={`${nombreFr(l.liens)} renvois, sur ${nombreFr(l.versets)} versets`} style={{ minWidth: 0 }}>
-                  <span style={{ display: 'block', fontFamily: SERIF, fontSize: '0.71875rem', color: 'var(--cs-texte-second)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {NOM_LIVRE[l.livre] ?? l.livre}
-                  </span>
+                  <span className="cs-fiche-empreinte-nom">{NOM_LIVRE[l.livre] ?? l.livre}</span>
                   {/* ⚠️ La part se mesure sur le PREMIER livre, non sur le total : les
                       six premiers d'Augustin ne font que la moitié de ses renvois, et
                       des filets tous ténus ne classeraient plus rien. */}
-                  <span aria-hidden="true" style={{
-                    display: 'block', height: '2px', marginTop: '2px', borderRadius: '999px',
-                    width: `${partDuFilet(l.liens, empreinte.tete[0]?.liens ?? l.liens)}%`,
-                    background: 'color-mix(in srgb, var(--cs-vert) 34%, transparent)',
-                  }} />
+                  <span aria-hidden="true" className="cs-fiche-empreinte-rail">
+                    <span className="cs-fiche-empreinte-part"
+                      style={{ width: `${partDuFilet(l.liens, empreinte.tete[0]?.liens ?? l.liens)}%` }} />
+                  </span>
                 </li>
               ))}
             </ul>
@@ -346,9 +346,13 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
 }) {
   const listeOeuvresRef = useRef<HTMLUListElement>(null)
   const datesAuteur = espacerIntervallesHistoriques(formaterDateHistorique(auteur.dates))
-  // Dates, langue et traditions sur une même ligne de repères : la langue y prend donc
-  // la capitale, comme le siècle et la tradition qui l'encadrent.
-  const reperes = [datesAuteur, libelleLangue(auteur.langue_principale), ...(auteur.traditions ?? [])].filter(Boolean).join(' · ')
+  // ⛔ DEUX LIGNES. Les REPÈRES situent l'homme — ses dates, sa langue — et prennent la
+  // capitale, qui est une étiquette. Les MATIÈRES disent ce dont il relève, et restent en
+  // bas de casse : on n'étiquette pas six traditions de suite. Tout tenait auparavant sur
+  // la seule ligne de repères, qui ouvrait la fiche d'Augustin sur trois lignes de
+  // capitales espacées où rien ne pesait plus que le reste.
+  const reperes = [datesAuteur, libelleLangue(auteur.langue_principale)].filter(Boolean).join(' · ')
+  const matieres = (auteur.traditions ?? []).filter(Boolean).join(' · ')
 
   // L'ordre et la colonne des dates viennent de `listeOeuvresAuteur` (charte § 38.33.1) :
   // les œuvres datées d'abord, puis les périodes, puis les mentions qu'on ne sait pas
@@ -378,7 +382,9 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
       }
       entete={
         <EnTeteFiche surtitre="À propos de cet auteur" titre={auteur.nom} titreId={titreId}
-          sousTitre={auteur.nom_original} reperes={reperes ? rendreSiecles(reperes) : null} />
+          sousTitre={auteur.nom_original}
+          reperes={reperes ? rendreSiecles(reperes) : null}
+          matieres={matieres ? rendreSiecles(matieres) : null} />
       }
       complement={evenements.length > 0 ? (
         <SectionFiche titre="Chronologie"><FriseAuteur evenements={evenements} /></SectionFiche>
@@ -408,7 +414,7 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
           <ul ref={listeOeuvresRef} className="cs-fiche-liste-colonne">
             {oeuvresPresentes.map((o, rang) => (
               <li key={o.id_oeuvre} className="cs-fiche-rangee-colonne">
-                <CelluleDate cellule={datesPresentes[rang]} precision={o.date_composition_precision_affichage} encre="#b7a06a" encreVide="#c9c1b4" />
+                <CelluleDate cellule={datesPresentes[rang]} precision={o.date_composition_precision_affichage} encre="var(--cs-date)" encreVide="var(--cs-date-douce)" />
                 {/* Œuvre disponible : titre en teinte sobre (pas vert), cliquable vers l'œuvre. */}
                 <span style={{ lineHeight: 1.38 }}>
                   <Link href={`/oeuvre/${o.id_oeuvre}`} onClick={onClose} className="cs-fiche-oeuvre"
@@ -421,7 +427,7 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
             ))}
             {oeuvresAbsentes.map((o, rang) => (
               <li key={o.id_oeuvre} className="cs-fiche-rangee-colonne">
-                <CelluleDate cellule={datesAbsentes[rang]} precision={o.date_composition_precision_affichage} encre="var(--cs-or-doux)" encreVide="var(--cs-bord)" />
+                <CelluleDate cellule={datesAbsentes[rang]} precision={o.date_composition_precision_affichage} encre="var(--cs-date-douce)" encreVide="var(--cs-date-douce)" />
                 {/* Œuvre répertoriée mais pas encore disponible : estompée, non cliquable. */}
                 <span className="cs-fiche-oeuvre--absente" title="Œuvre répertoriée, pas encore disponible" style={{ lineHeight: 1.38 }}>
                   <span style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-texte-faible)' }}>{o.titre}</span>

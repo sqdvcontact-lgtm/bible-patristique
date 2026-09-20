@@ -288,12 +288,20 @@ export function ModaleFiche({ titreId, libelle, onFermer, avantCorps, children }
 
 /**
  * L'EN-TÊTE d'une fiche : un surtitre (« À propos de cet auteur »), le nom, une ligne en
- * italique, une ligne de crédit, les repères. Chaque ligne ne paraît que remplie.
+ * italique, une ligne de crédit, les repères, les matières. Chaque ligne ne paraît que
+ * remplie.
+ *
+ * ⛔ DEUX LIGNES, ET ELLES NE DISENT PAS LA MÊME CHOSE. `reperes` SITUE — des dates, une
+ *    langue — et prend la capitale ; `matieres` dit ce dont la fiche RELÈVE — traditions,
+ *    écoles, genres — et reste en bas de casse. Tout verser dans la première donnait,
+ *    chez Augustin, trois lignes de capitales espacées où la date de sa mort pesait
+ *    autant qu'« augustinisme » (2026-09-20). La fiche d'une œuvre y range ses genres.
  */
-export function EnTeteFiche({ surtitre, titre, titreId, sousTitre, ligne, reperes }: {
-  surtitre?: ReactNode; titre?: ReactNode; titreId?: string; sousTitre?: ReactNode; ligne?: ReactNode; reperes?: ReactNode
+export function EnTeteFiche({ surtitre, titre, titreId, sousTitre, ligne, reperes, matieres }: {
+  surtitre?: ReactNode; titre?: ReactNode; titreId?: string; sousTitre?: ReactNode
+  ligne?: ReactNode; reperes?: ReactNode; matieres?: ReactNode
 }) {
-  if (!surtitre && !titre && !sousTitre && !ligne && !reperes) return null
+  if (!surtitre && !titre && !sousTitre && !ligne && !reperes && !matieres) return null
   return (
     <header className="cs-fiche-entete">
       {surtitre ? <p className="cs-fiche-surtitre">{surtitre}</p> : null}
@@ -301,6 +309,7 @@ export function EnTeteFiche({ surtitre, titre, titreId, sousTitre, ligne, repere
       {sousTitre ? <p className="cs-fiche-soustitre">{sousTitre}</p> : null}
       {ligne ? <p className="cs-fiche-ligne">{ligne}</p> : null}
       {reperes ? <p className="cs-fiche-reperes">{reperes}</p> : null}
+      {matieres ? <p className="cs-fiche-matieres">{matieres}</p> : null}
     </header>
   )
 }

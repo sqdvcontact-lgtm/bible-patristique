@@ -202,6 +202,24 @@
      la citation favorite, dans « Mes citations », en a eu besoin le 2026-09-14, et un jeton
      de rôle ne se définit pas sur une page. */
   --cs-or-lisible: color-mix(in oklab, var(--cs-or) 68%, var(--cs-texte-fort));
+  /* ── LA COLONNE DES DATES d'une fiche : DEUX RANGS, et deux seulement ──
+     Toute fiche range ses lignes « date · intitulé » sur la même colonne d'ocre :
+     la chronologie d'un auteur, la liste de ses œuvres, et demain celles d'une
+     traduction et d'une édition. Deux rangs y suffisent — le PLEIN, pour ce que la
+     fiche affirme (un événement de la vie, une œuvre publiée), et le DOUX, pour ce
+     qu'elle met en retrait (l'arrière-plan, une œuvre seulement répertoriée, une
+     date qu'on ne sait pas).
+     ⛔ Ils étaient écrits EN DUR et en quatre valeurs — #b7a06a, #d2c69f, #c9c1b4
+     et --cs-or-doux —, dont trois pour le même rang. Rien ne suivait donc le thème,
+     et le Cuir en RENVERSAIT l'ordre : le rang doux, plus clair, y criait plus fort
+     que le plein sur le brun (vu sur la fiche d'Augustin, 2026-09-20).
+     ⚠️ Les valeurs du Cuir se prennent à l'ÉCART, non à un seuil absolu : au Clair
+     les deux rangs rendent 2,33 et 1,77 sur le crème, soit un pas de 1,32 ; au Cuir
+     ils rendent 6,17 et 4,43 sur le brun, soit un pas de 1,39. C'est la colonne
+     d'une fiche, non son corps de texte : elle se lit d'un coup d'œil, elle
+     n'appelle pas. */
+  --cs-date: #b7a06a;
+  --cs-date-douce: #c8b89e;
   /* Familles de la navbar. « Corpus » prend le vert, « Communauté » l'or ; « Système &
      doctrine » n'avait pas de teinte à lui et portait le seul bleu du site, écrit en dur,
      donc intransposable en Cuir. Il l'est maintenant. */
@@ -596,6 +614,10 @@
   --cs-or: #c0a065;
   --cs-or-rgb: 192, 160, 101;
   --cs-or-doux:#ab9569;
+  /* La colonne des dates d'une fiche, transposée. ⛔ Le pas se reprend à l'écart du
+     Clair (1,32), non à sa teinte : 6,17 et 4,43 sur le brun. Voir :root. */
+  --cs-date: #ab9569;
+  --cs-date-douce: #8f7c58;
   /* Les quatre tans de l'apparat s'échelonnent en LUMINANCE, faute de pouvoir
      s'échelonner en teinte. Du plus lumineux au plus sourd : lacune (elle porte
      les appels de note à 0,60 em, c'est elle qui doit se voir le mieux), attente,
@@ -3923,6 +3945,47 @@ main.lecture-entree [data-cs-bloc],
   display: flow-root;
 }
 
+/* ── L'EMPREINTE BIBLIQUE d'un auteur : un filet DANS SON RAIL ─────────────────
+   Les livres qu'il commente le plus, et la part de chacun — sans aucun nombre, le
+   compte restant à l'infobulle (voir ModaleAuteur).
+   ⛔ Le filet nu ne se lisait pas comme une mesure mais comme un SOULIGNEMENT : posé
+   sous un nom, à deux pixels de lui, il donnait « Genèse » souligné d'une règle pleine
+   largeur et les suivants soulignés de règles plus courtes — on y voyait un tableau
+   cassé, non un rapport (2026-09-20). Le RAIL porte le tout dont la part se détache :
+   c'est lui, et lui seul, qui fait voir qu'il s'agit d'une part.
+   ⚠️ Le rail prend le sol du pied, jamais une bordure : un filet de 3 px n'est pas un
+   bord, et --cs-bord le ferait lire comme la séparation de deux rangées. */
+.cs-fiche-empreinte {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cs-fiche-empreinte > li + li { margin-top: 8px; }
+.cs-fiche-empreinte-nom {
+  display: block;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 0.71875rem;
+  line-height: 1.3;
+  color: var(--cs-texte-second);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cs-fiche-empreinte-rail {
+  display: block;
+  height: 3px;
+  margin-top: 3px;
+  border-radius: 999px;
+  background: var(--cs-fond-doux);
+  overflow: hidden;
+}
+.cs-fiche-empreinte-part {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cs-vert) 55%, transparent);
+}
+
 /* ── Le portrait ── Zone d'image de 8,75 rem au rapport 2/3, sous un passe-partout de
    5 px. ⛔ `CADRES_PORTRAIT.fiche` (app/lib/photoAuteur.ts) écrit les mêmes mesures
    pour l'écran de cadrage, et `ficheModele.test.ts` confronte les deux écritures.
@@ -3998,6 +4061,24 @@ main.lecture-entree [data-cs-bloc],
   text-transform: uppercase;
   line-height: 1.4;
   color: var(--cs-texte-second);
+}
+
+/* ── LES MATIÈRES ── Ce dont l'auteur, l'œuvre ou la traduction RELÈVE : traditions,
+   écoles, genres. Une seconde ligne, sous les repères.
+   ⛔ Elles ne montent PAS dans la ligne de repères, qui SITUE — des dates, une langue,
+   deux ou trois mots. Augustin y versait cinq traditions de plus, et la fiche ouvrait
+   sur TROIS LIGNES de capitales espacées où tout avait le même poids : la date de sa
+   mort s'y lisait comme « augustinisme » (relevé de l'auteur, 2026-09-20, « doit être
+   revu pour plus de clarté »).
+   ⚠️ Le BAS DE CASSE est le geste, non la taille : une capitale est une étiquette, et
+   l'on n'étiquette pas six fois de suite. Les termes sont stockés composés (« Patristique
+   latine ») ; rien ne les transforme ici. */
+.cs-fiche-matieres {
+  margin: 5px 0 0;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.625rem;
+  line-height: 1.45;
+  color: var(--cs-texte-gris);
 }
 
 /* Un nom qui ouvre une autre fiche : l'encre des liens, le soulignement au survol. */
@@ -4118,12 +4199,15 @@ main.lecture-entree [data-cs-bloc],
   color: var(--cs-texte-second);
 }
 /* ⚠️ Un bloc qui fait contexte : à côté du portrait, son filet se poserait sinon sous
-   lui, et ne paraîtrait qu'en dessous. */
+   lui, et ne paraîtrait qu'en dessous.
+   ⛔ Son filet prend l'OR, non --cs-danger-bord : le rouge du site dit ce qui alerte ou
+   ce qui détruit, et une anecdote n'alerte de rien. Un rose pâle le long d'une page de
+   vert et d'or n'y était qu'une teinte de plus, sans rien signifier (2026-09-20). */
 .cs-fiche-anecdote {
   display: flow-root;
   margin: 0;
   padding-left: 11px;
-  border-left: 1px solid var(--cs-danger-bord);
+  border-left: 1px solid var(--cs-or-doux);
   font-family: var(--font-source-serif), Georgia, serif;
   font-size: 0.71875rem;
   font-style: italic;
