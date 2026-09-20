@@ -139,6 +139,54 @@ function rangDeclareRecevable(kind: string, rang: string | null | undefined): Je
   return attendus.includes(rang) ? (rang as JetonNiveau) : undefined
 }
 
+/** Une déclaration de rang que la résolution a écartée au profit d'une autre source. */
+export type RangNeutralise = {
+  /** `niveau` pour le rang du bloc, `titre` pour celui du titre qu'il porte. */
+  axe: 'niveau' | 'titre'
+  /** Ce que la donnée déclare. */
+  declare: string
+  /** Ce que le rendu retient à sa place. */
+  retenu: string
+}
+
+/**
+ * Les déclarations de rang que `resoudreStyleSemantique` a ÉCARTÉES, et ce qu'il a
+ * retenu à leur place.
+ *
+ * ⛔ **AUCUNE DÉCLARATION DE RANG PRÉSENTE DANS LES DONNÉES NE DOIT ÊTRE NEUTRALISÉE
+ * SILENCIEUSEMENT.** Le rendu peut légitimement préférer le rang qu'un alias hérité
+ * porte dans son nom — c'est la règle, et elle protège les blocs que le regroupement
+ * des styles n'a pas touchés. Mais un bloc qui déclare autre chose dit quelque chose,
+ * et ce quelque chose se SIGNALE au lieu de disparaître.
+ *
+ * ⚠️ Une déclaration hors de la famille du style n'est PAS un conflit de préséance :
+ * elle est irrecevable, et le contrôle de la grille la relève à part.
+ *
+ * ⚠️ Aucun alias de TITRE ne porte de rang au registre : ce relevé ne peut donc rien
+ * trouver sur les titres aujourd'hui. Il existe pour le jour où l'on en ajouterait un,
+ * et pour toute source de rang qu'on ajouterait à l'avenir.
+ */
+export function rangsNeutralises(
+  semanticStyle: string,
+  rang?: { niveau?: string | null; titre?: string | null },
+): RangNeutralise[] {
+  const trouve = PAR_ALIAS.get(semanticStyle)
+  if (!trouve) return []
+  const entree = ENTREES[trouve.canonique]
+  const porte = propreALAlias(trouve.alias)
+  const conflits: RangNeutralise[] = []
+
+  const niveauDeclare = rangDeclareRecevable(entree.kind, rang?.niveau)
+  if (niveauDeclare && porte.niveau && porte.niveau !== niveauDeclare) {
+    conflits.push({ axe: 'niveau', declare: niveauDeclare, retenu: porte.niveau })
+  }
+  const titreDeclare = rangDeclareRecevable('title', rang?.titre)
+  if (titreDeclare && porte.titre && porte.titre !== titreDeclare) {
+    conflits.push({ axe: 'titre', declare: titreDeclare, retenu: porte.titre })
+  }
+  return conflits
+}
+
 /**
  * Résout un style au registre. Rend `null` pour un style inconnu : l'appelant
  * doit le REFUSER et le signaler, jamais l'aplatir en paragraphe générique.

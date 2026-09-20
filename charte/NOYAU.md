@@ -1767,17 +1767,42 @@
 - ⛔ LE BLOC DÉCLARE SON RANG (`metadata.semantic_level`), LE REGISTRE N’EN DONNE QUE LE DÉFAUT.
 - ⚠️ Une déclaration hors de la famille du style, un titre déclaré `I3` par exemple, est ÉCARTÉE et le défaut reprend la main : les deux échelles ne se mélangent pas (§ 7.1).
 - ⚠️ Le rendu a ignoré ces déclarations jusqu’au 20 septembre 2026 : 4 948 titres sur 6 316 en portaient une, et 39 en portaient une que le registre contredisait.
-- ⛔ Les trois premiers sont des défauts, le quatrième est une QUESTION.
+- ⛔ AUCUNE DÉCLARATION DE RANG PRÉSENTE DANS LES DONNÉES N’EST NEUTRALISÉE SILENCIEUSEMENT.
+- ⚠️ C’est le seul moyen de distinguer une donnée qui parle d’une donnée qui se tait, et donc de savoir si la grille a été réellement posée sur un livre.
+- ⛔ Le rendu, lui, ne change rien : il compose ce que la règle dit, et c’est le relevé qui porte le doute.
+- ⛔ TOUTE RELATION TITRE-PARENT DOIT ÊTRE STRICTEMENT DESCENDANTE.
+- ⛔ UNE VIOLATION IMPOSE UNE CORRECTION STRUCTURELLE, PORTANT SELON LE CAS SUR LE RANG DU TITRE OU SUR SA PARENTÉ.
+- ⛔ Le contrôle signale donc une inversion ou un rang plat SANS PRÉJUGER DU CHAMP FAUTIF. Ne jamais corriger automatiquement `semantic_level` au seul motif que la relation est invalide. Vérifier `semantic_parent_key` avant toute correction — et trancher à la LECTURE du livre.
 - ⚠️ Ce n’est PAS une faute en soi : une édition peut n’avoir qu’un seul niveau analytique sous une section.
-- ⚠️ La fratrie hétérogène — des titres frères d’un même parent à des rangs différents — se relève avec eux : deux frères qui n’ont pas le même poids rendent le plan illisible.
+- ⚠️ LA FRATRIE HÉTÉROGÈNE EST UNE ALERTE FORTE, NON UN INVARIANT.
+- ⛔ Aucune normalisation automatique — donc, et aucun durcissement de cette alerte en invariant tant que la garantie n’est pas écrite ici, avec sa démonstration.
 - ⛔ ON REPREND LIVRE PAR LIVRE, JAMAIS EN MASSE.
-- ⛔ Il n’a aucune règle à lui : le rang de chaque bloc vient de `resoudreStyleSemantique`, la fonction que la page emploie.
+- ⚠️ UN RELEVÉ SE DATE ET SE RATTACHE À LA RÈGLE QUI L’A PRODUIT.
+- ⛔ Comparer deux relevés pris sous deux règles ferait conclure à une dégradation là où il n’y a qu’un changement de lecture.
+- ⛔ Il n’a aucune règle à lui : le rang de chaque bloc vient de `resoudreStyleSemantique` et les conflits de préséance de `rangsNeutralises`, les fonctions que la page emploie.
 
 **§ 35.29 — La manchette d’un commentaire — trois états, et aucun autre**
 
 - ⛔ Un repère de commentaire de rang bas est une MANCHETTE : jamais un titre, jamais une entrée du plan (§ 35.9).
 - ⛔ ON NE FABRIQUE JAMAIS UN INTITULÉ POUR RÉGULARISER LA PAGE.
 - ⛔ UNE MANCHETTE ÉDITORIALE NE REÇOIT JAMAIS DE `facsimile_heading` — et la raison n’est pas une convention de champ : `facsimile_heading` ATTESTE une forme imprimée.
+- ⛔ Les trois états sont REPRÉSENTABLES et CONTRÔLABLES dans la donnée, sans quoi ils ne sont qu’une intention : `bible_editorial_body_blocks.manchette_etat` vaut `source`, `editoriale` ou `absente`, et `manchette_motif` porte la raison, obligatoire pour les deux derniers, interdite au premier — le témoin EST la justification d’une manchette source.
+- ⛔ `null` ne veut dire qu’une chose, et une seule : « pas encore relu ».
+- ⚠️ Est ÉLIGIBLE un commentaire de rang I4 à I6 — c’est-à-dire ce que le § 35.9 compose en manchette.
+- ⛔ AUCUN ÉTAT NE S’ÉCRIT EN MASSE, ET AUCUN NE SE DÉDUIT.
+- ⛔ Un quatrième état ne s’invente pas dans une passe : il se décide ici.
+
+**§ 35.30 — Le registre des styles vit en DEUX exemplaires**
+
+- ⛔ LE VOCABULAIRE DES STYLES SÉMANTIQUES EST ÉCRIT DEUX FOIS, ET LES DEUX EXEMPLAIRES NE SE VALENT PAS.
+- ⛔ LA TABLE N’EST JAMAIS UNE SECONDE SOURCE NORMATIVE.
+- ⚠️ Le verrou ne lit que quatre colonnes — `code`, `alias_de`, `niveau`, `kind` —, et c’est là, et là seulement, que les deux exemplaires doivent dire la même chose : une divergence y fait composer au rendu ce que la base refuse, ou l’inverse.
+- ⚠️ Une divergence y est une copie périmée : on la signale, on la corrige du côté de la TABLE, et elle ne change rien à ce que le lecteur voit.
+- ⚠️ UNE LIGNE DE NOM HÉRITÉ NE PORTE QUE CE QUE L’ALIAS AJOUTE.
+- ⛔ Qui lirait la table SEULE s’y tromperait — 142 colonnes sont dans ce cas au 20 septembre 2026 —, et c’est une raison de plus de ne jamais l’ériger en norme.
+- ⛔ `heading_levels` N’A PAS D’ÉQUIVALENT EN BASE, ET N’EN AURA PAS.
+- ⚠️ Ce n’est donc pas une lacune de la table, et le contrôle le DIT plutôt que de le compter.
+- ⛔ Il n’a aucune règle à lui : les valeurs attendues viennent de `resoudreStyleSemantique`, la fonction que la page emploie — une seconde écriture de la composition divergerait au premier ajustement, et c’est exactement ce qu’il existe pour relever.
 
 ## § 36. Le modèle d’onglets
 
@@ -2610,6 +2635,11 @@
 - ⚠️ une donnée déjà conforme n’est jamais réécrite pour uniformiser artificiellement le lot.
 - ⚠️ il n’est jamais édité comme source d’autorité.
 - ⛔ Le protocole ne s’allège jamais en supprimant une garde qui a déjà empêché une erreur réelle — il peut être réorganisé pour éviter les doublons, mais sa couverture ne régresse pas.
+- ⛔ UNE CLÉ `parametres.protocole_*` EST UNE NOTE DE TRAVAIL, JAMAIS UNE NORME.
+- ⚠️ Elles restent utiles : on y dépose un brouillon, un relevé, un plan de mission.
+- ⛔ Mais une règle qui n’est pas dans la charte n’est pas une règle, et l’on ne la cite pas comme telle.
+- ⚠️ UNE SEULE EXCEPTION, ET ELLE EST NOMMÉE — `feedback_liens_protocole`, que le protocole des liens bibliques impose de lire avant toute passe (§ 9.0).
+- ⛔ Toute clé qu’on voudrait traiter de même se nomme ici, avec le § qui la commande — faute de quoi elle ne fait pas autorité.
 
 **§ 48.2 — Séparer strictement témoin source et lecture éditoriale**
 
@@ -3561,4 +3591,4 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 | 3 | Typographie — les signes, les espaces, l’enric | 70 747 | 62 | **0.9** |
 | 15 | Corpus biblique et traductions | 18 188 | 17 | **0.9** |
 | 51 | Les objets d’interface partagés | 102 088 | 105 | **1.0** |
-| 48 | Le protocole d’océrisation d’une bible | 46 823 | 53 | **1.1** |
+| 37 | La notice d’une traduction — le bandeau et l’e | 8 621 | 10 | **1.2** |

@@ -11908,8 +11908,9 @@ savoir pour y toucher.
 - ⛔ **L'ALIAS GARDE SA PRÉSÉANCE, et c'est une règle écrite** : un code hérité porte
   son rang dans son propre nom, sans quoi le regroupement des styles changerait la
   composition d'un bloc qui n'a pas bougé. ⚠️ Elle ne se heurte jamais à la nouvelle :
-  sur les 46 alias porteurs du registre, **aucun n'est un titre** — tous sont des
-  styles d'information. Vérifier ce fait avant de toucher à l'ordre.
+  le registre compte 46 noms hérités, dont 42 portent un rang, et **aucun de ces 42
+  n'est un titre** — tous sont des styles d'information. Vérifier ce fait avant de
+  toucher à l'ordre.
 - ⛔ **UNE DÉCLARATION HORS DE LA FAMILLE DU STYLE EST ÉCARTÉE** (`rangDeclareRecevable`),
   jamais appliquée : un titre déclaré `I3` rendrait la classe `cs-bible-title--i3`,
   que la feuille ne connaît pas, c'est-à-dire un titre sans aucune composition. On
@@ -11922,12 +11923,13 @@ savoir pour y toucher.
   du registre ne porte `heading_level` au singulier, seul `introduction_titree` porte
   la table `heading_levels`.
 - ⚠️ **L'effet se MESURE par la vraie fonction, avant et après**, jamais par une copie
-  de sa règle : un script qui relève `resoudreStyleSemantique` sur les 17 592 blocs du
-  corpus, exécuté une fois avant l'édition et une fois après, puis les deux relevés
-  comparés. Résultat du 20 septembre 2026 : **39 blocs changent de rang**, tous des
-  titres, tous dans le sens que la donnée demandait — 34 paragraphes de Job déclarés
-  T4 et rendus T5, 5 sections d'Isaïe déclarées T4 et rendues T3. Aucun bloc
-  d'information, aucun titre porté.
+  de sa règle : un script qui fait passer les DEUX versions de la fonction — celle
+  d'avant tirée de `git show e774350a^:` — sur tous les blocs du corpus, et compare ce
+  qu'elles composent. Relevé du 20 septembre 2026, 17 643 blocs : **68 rangs changent,
+  tous des TITRES** ; zéro titre porté, zéro nature. Et **16 275 blocs déclarent un
+  rang, 16 275 le voient honoré** — c'est cette dernière égalité qui prouve qu'aucune
+  déclaration n'est plus neutralisée. ⚠️ Un premier relevé, plus tôt dans la journée,
+  donnait 39 sur 17 592 : le corpus grandit sous les pieds, et **un relevé se date**.
 - ⚠️ **4 948 titres sur 6 316 déclaraient déjà un rang que le rendu ignorait.** C'est
   le même défaut que `heading_levels` la veille : **la donnée porte un fait que le
   rendu ne lit pas.** Devant une règle éditoriale « inapplicable », demander d'abord
@@ -11944,25 +11946,94 @@ savoir pour y toucher.
   des titres, il pend à côté d'elle. Compté sur la seule parenté directe, le relevé
   tombe de 356 à 62 + 294 — même chiffre, autre découpe, et l'on croit à une
   divergence.
-- **Quatre relevés, du plus dur au plus souple** : déclaration irrecevable (doit valoir
-  zéro, seule à rendre le script rouge), inversion (enfant au-dessus de son père), rang
-  plat (enfant au rang de son père), saut (plus d'un rang d'écart). ⚠️ Le saut n'est
-  PAS une faute : une édition peut n'avoir qu'un niveau analytique sous une section.
-  C'est une question, et le nombre dit s'il faut la poser.
-- **État au 20 septembre 2026**, 6 316 titres : 0 irrecevable, 62 inversions, 294 rangs
-  plats, 140 fratries hétérogènes, 1 579 sauts. ⛔ On reprend livre par livre : une
-  règle qui demanderait de justifier quinze cents sauts au cas par cas ne serait pas
-  une règle mais un arriéré.
+- **Cinq relevés, du plus dur au plus souple** : déclaration irrecevable, conflit de
+  préséance, relation non descendante (inversion ou rang plat), saut, fratrie
+  hétérogène. ⚠️ Le saut n'est PAS une faute : une édition peut n'avoir qu'un niveau
+  analytique sous une section. La fratrie est une ALERTE, non un invariant — rien n'a
+  démontré que deux frères doivent être au même étage, et ⛔ aucune normalisation
+  automatique.
+- ⛔ **IL NE PRÉJUGE PAS DU CHAMP FAUTIF** (charte § 35.28). Une relation non
+  descendante dit qu'une chose est fausse entre un titre et son parent, jamais
+  laquelle : selon le cas c'est le RANG (`semantic_level`) ou la PARENTÉ
+  (`semantic_parent_key`). ⛔ **On ne corrige jamais `semantic_level` au seul motif que
+  la relation est invalide, et l'on regarde `semantic_parent_key` d'abord.**
+- ⛔ **AUCUNE DÉCLARATION NE SE NEUTRALISE EN SILENCE** : `rangsNeutralises`
+  (`bibleHierarchieSemantique.ts`) dit, pour un bloc, quelle déclaration recevable la
+  préséance de l'alias écarte, et sur quel axe. Le rendu ne change pas ; c'est le
+  relevé qui porte le doute. Zéro conflit au 20 septembre 2026.
+- **Il rougit** sur une déclaration irrecevable ou sur un état de manchette que la
+  donnée contredit ; `--strict` le fait rougir aussi sur les relations non
+  descendantes et les conflits.
+- **État au 20 septembre 2026**, 6 339 titres : 0 irrecevable, 0 conflit, 52 inversions,
+  284 rangs plats, 134 fratries hétérogènes, 1 565 sauts. ⛔ On reprend livre par
+  livre : une règle qui demanderait de justifier quinze cents sauts au cas par cas ne
+  serait pas une règle mais un arriéré.
+- ⛔ **UN RELEVÉ SE RATTACHE À LA RÈGLE QUI L'A PRODUIT, et c'est un piège réel.** Le
+  même jour, le même corpus, mesuré avec la préséance d'AVANT, rend 64 inversions,
+  292 rangs plats et 1 518 sauts. Rendre au bloc son rang déclaré en retire douze et
+  huit, et en OUVRE quarante-sept — arithmétique : un titre qui remonte d'un cran
+  s'éloigne d'autant de ses enfants. Comparer deux relevés pris sous deux règles ferait
+  conclure à une dégradation là où il n'y a qu'un changement de lecture.
 
-## ⚠️ LE REGISTRE EXISTE EN DEUX EXEMPLAIRES, ET ILS DIVERGENT
+## ⛔ LA MANCHETTE A SON CHAMP, ET `null` VEUT DIRE « PAS ENCORE RELU »
 
-`work/fillion/semantic_display_hierarchy.json` est lu par le RENDU ;
-`public.bible_styles_semantiques` est lu par le seul verrou de base
-(`bible_style_semantique_connu`). Le second porte `niveau_intitule = null` sur
-`introduction_titree` là où le premier porte `heading_levels` depuis le 20 septembre
-2026. ⛔ Une doctrine ne se copie que dans un sens, et la copie ne décide de rien : la
-table garde le VOCABULAIRE, le JSON garde la COMPOSITION. À réaccorder au prochain
-passage.
+Doctrine : charte § 35.29. `bible_editorial_body_blocks.manchette_etat` vaut `source`,
+`editoriale` ou `absente` ; `manchette_motif` porte la raison, exigée pour les deux
+derniers et INTERDITE au premier — le témoin EST la justification d'une manchette
+source. Un motif sans état est refusé. Migration `20260920120000_manchette_trois_etats`,
+contrôles dans `supabase/controles/`.
+
+- ⛔ **AUCUNE LIGNE N'A ÉTÉ RENSEIGNÉE** : l'état se pose à la relecture, livre par
+  livre, et c'est un travail de LECTURE. La migration ne décide d'aucun livre.
+- ⚠️ **C'est `null` qui porte tout le dispositif** : sans lui, l'absence et l'oubli se
+  diraient de la même façon, et la clôture d'un livre ne pourrait rien exiger. Avec lui,
+  elle exige zéro `null` parmi les blocs ÉLIGIBLES — un commentaire résolu de rang I4 à
+  I6, ce que le § 35.9 compose en manchette.
+- ⚠️ Le contrôle de la grille les compte par livre (colonne « manch. à relire ») et
+  rougit sur un état que la donnée contredit : « source » sans intitulé, « absente »
+  avec. Relevé du 20 septembre 2026 : **9 517 éligibles, 9 517 non relus, 0 incohérent**.
+- ⛔ `facsimile_heading` n'est pas touché et ne le sera pas : il ATTESTE une forme
+  imprimée, et une manchette éditoriale n'en reçoit jamais.
+
+## ⛔ UNE CLÉ `parametres.protocole_*` N'A AUCUNE AUTORITÉ
+
+Doctrine : charte § 48.1. Ce qui prescrit vit dans `charte_ia`, sous un numéro de §, et
+nulle part ailleurs. Une clé `protocole_*`, un manifeste déposé dans `parametres`, une
+note du centre de contrôle sont des notes de TRAVAIL : elles ne complètent ni ne
+contredisent un §.
+
+- ⚠️ **Vérifié le 20 septembre 2026 : aucune ligne d'`app/` ne lit une clé
+  `protocole_*`.** Seuls des scripts ponctuels en ÉCRIVENT. Le verrou est donc
+  doctrinal, non technique — il n'y avait rien à défaire.
+- ⚠️ **UNE SEULE EXCEPTION, ET ELLE EST NOMMÉE** : `feedback_liens_protocole`, que ce
+  fichier et le § 9.0 imposent de lire avant toute passe sur les liens bibliques. Elle
+  est citée comme une LECTURE obligatoire, non comme une norme concurrente.
+
+## ⛔ LE REGISTRE EXISTE EN DEUX EXEMPLAIRES — `controle-registre-styles.mts`
+
+Doctrine : charte § 35.30. `work/fillion/semantic_display_hierarchy.json` est lu par le
+RENDU et porte la COMPOSITION ; `public.bible_styles_semantiques` est lu par le seul
+verrou de base et porte le VOCABULAIRE. ⛔ **La table n'est jamais une seconde source
+normative** : on ne corrige pas le registre pour l'accorder à elle.
+
+- ⛔ **LA SURFACE COMMUNE TIENT EN QUATRE COLONNES**, et ce sont les seules que
+  `bible_style_semantique_connu` lit : `code`, `alias_de`, `niveau`, `kind` (relu dans
+  `pg_proc`, non supposé). Une divergence y fait composer au rendu ce que la base
+  refuse, ou l'inverse — et le script en rougit. Tout le reste est décoratif.
+- ⛔ **LE SCRIPT N'A AUCUNE RÈGLE À LUI** : les valeurs attendues viennent de
+  `resoudreStyleSemantique`. ⚠️ Une première écriture les recopiait du JSON et rendait
+  onze faux écarts — l'axe par défaut (`analytic`), l'héritage d'un alias, le rang du
+  titre porté. **Recopier une règle pour la contrôler, c'est contrôler sa copie.**
+- ⚠️ **UNE LIGNE D'ALIAS NE PORTE QUE CE QU'ELLE AJOUTE** : son `kind` vaut nul, ses
+  booléens valent faux sans rien vouloir dire, et le verrou va chercher le reste sur le
+  canonique. 142 colonnes sont dans ce cas — qui lirait la table SEULE s'y tromperait,
+  et c'est une raison de plus de ne pas l'ériger en norme.
+- ⛔ **`heading_levels` N'A PAS D'ÉQUIVALENT EN BASE, ET N'EN AURA PAS** : six valeurs
+  contre une, et le verrou ne compose aucun titre. Le contrôle le DIT plutôt que de le
+  compter en lacune. ⚠️ Ce fichier a donné cette absence pour une divergence le matin
+  même : c'en est la réconciliation.
+- **Relevé du 20 septembre 2026** : 58 styles de part et d'autre, 0 écart sur la surface
+  commune, 0 copie périmée.
 
 ## ⚠️ Deux contradictions de la charte, résolues le même jour
 
