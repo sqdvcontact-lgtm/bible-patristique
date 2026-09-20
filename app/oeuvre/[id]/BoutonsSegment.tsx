@@ -9,6 +9,8 @@ import ModalSignalement from './ModalSignalement'
 import { insererSignalement } from './signalements'
 import { Bulle } from '@/app/components/Bulle'
 import IconeSignet from '@/app/components/IconeSignet'
+import IconeCopier from '@/app/components/IconeCopier'
+import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import { citationPatristique, copierCitation } from '@/app/lib/citation'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
@@ -116,25 +118,21 @@ export function BoutonCopieSegment({ texte, auteur, titre, sousTitre, tradAuteur
   responsable?: string
   className?: string
 }) {
-  const [copie, setCopie] = useState(false)
+  const { copie, briller } = useEclatCopie()
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation()
     // Titre en italique (collage riche), dates resserrées, guillemets internes anglais,
     // ponctuation finale normalisée : toutes les règles vivent dans app/lib/citation.ts.
     const citation = citationPatristique(texte, { auteur, titre, sousTitre, tradAuteur, editeur, collection, ville, datePublication, responsable })
-    copierCitation(citation).then(() => { setCopie(true); setTimeout(() => setCopie(false), 1400) })
+    copierCitation(citation).then(briller)
   }
   return (
     <Bulle texte="Copier ce passage">
-      <button onClick={handle} className={className}
+      <button onClick={handle} className={avecHoteEclat(className)}
         style={{ ...BTN_STYLE, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}
         aria-label="Copier ce passage">
-        {copie ? '✓' : (
-          <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
-            <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-            <rect x="3" y="3" width="7" height="8.5" rx=".8" stroke="currentColor" strokeWidth="1.2"/>
-          </svg>
-        )}
+        <IconeCopier />
+        <EclatCopie copie={copie} />
       </button>
     </Bulle>
   )

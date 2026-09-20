@@ -10,6 +10,8 @@ import { useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
 import IconeSignet from '@/app/components/IconeSignet'
+import IconeCopier from '@/app/components/IconeCopier'
+import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
@@ -38,7 +40,7 @@ export default function ActionsVerset({
   tradLabel, userId, prelevementId, onPreleve, onRetire,
 }: ActionsVersetProps) {
   const cle = `${refLivreAbr}|${chapitre}|${verset}`
-  const [copie, setCopie] = useState(false)
+  const { copie, briller } = useEclatCopie()
   const [chargement, setChargement] = useState(false)
   const [signalOuvert, setSignalOuvert] = useState(false)
   const [erreur, setErreur] = useState<string | null>(null)
@@ -53,7 +55,7 @@ export default function ActionsVerset({
     e.stopPropagation()
     setErreur(null)
     navigator.clipboard.writeText(texte).then(() => {
-      setCopie(true); setTimeout(() => setCopie(false), 1400)
+      briller()
     }).catch(() => afficherErreur('La copie a échoué. Réessayez.'))
   }
 
@@ -120,14 +122,10 @@ export default function ActionsVerset({
         </button>
       )}
 
-      <button onClick={copier} className="bouton-action-verset" title={erreur?.startsWith('La copie') ? erreur : 'Copier ce verset'} aria-label="Copier"
+      <button onClick={copier} className={avecHoteEclat('bouton-action-verset')} title={erreur?.startsWith('La copie') ? erreur : 'Copier ce verset'} aria-label="Copier"
         style={{ ...BTN, opacity: 0, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
-        {copie ? '✓' : (
-          <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display: 'block' }}>
-            <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-            <rect x="3" y="3" width="7" height="8.5" rx=".8" stroke="currentColor" strokeWidth="1.2" />
-          </svg>
-        )}
+        <IconeCopier />
+        <EclatCopie copie={copie} />
       </button>
 
       <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setSignalOuvert(true) }}

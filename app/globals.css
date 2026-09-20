@@ -2825,6 +2825,58 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   white-space: nowrap;
 }
 
+/* ── L'ÉCLAT D'UNE COPIE ───────────────────────────────────────────────────────
+   Demande de l'auteur (2026-09-20) : « quand on clique sur “copier”, à la place du
+   symbole “validé” et “copié”, pourrait-on plutôt avoir un petit éclat lumineux ?
+   propre ? » L'accusé cesse d'être un SIGNE — un ✓ posé à la place du pictogramme,
+   parfois suivi du mot « Copié » — pour devenir une LUMIÈRE.
+   ⛔ LE PICTOGRAMME NE BOUGE PAS : il s'allume à l'encre des gestes, et le halo s'ouvre
+   derrière lui, hors du flux. Échanger l'icône contre un ✓ changeait la largeur du
+   bouton à l'instant même où l'on venait de cliquer dedans ; c'est la règle déjà posée
+   pour la fiche d'une œuvre — rien ne bouge entre le survol et le clic.
+   ⚠️ La lumière suit le THÈME : `--cs-vert-rgb` vaut le vert du site au Clair et l'or
+   du Cuir, si bien qu'elle est de la famille de l'encre qu'elle accompagne. */
+.cs-eclat-hote { position: relative; }
+/* ⛔ LE HALO S’OUVRE DERRIÈRE LE PICTOGRAMME : c’est lui qui s’allume, non lui qui
+   disparaît sous une tache. Deux frères positionnés, et le rang tranche. */
+.cs-eclat-hote > svg { position: relative; z-index: 1; }
+.cs-eclat {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: -0.75rem 0 0 -0.75rem;
+  border-radius: 50%;
+  pointer-events: none;
+  /* ⚠️ LE CŒUR EST PRESQUE VIDE, ET LA LUMIÈRE CULMINE À MI-RAYON : trois dégradés ont
+     été rendus en regard (halo plein, halo creux, anneau net). Le halo PLEIN posait sa
+     densité là où le pictogramme se lit et l'embuait ; l'anneau NET se lisait comme une
+     onde de commande, non comme une lumière. */
+  background: radial-gradient(circle,
+    rgba(var(--cs-vert-rgb), 0.12) 0%,
+    rgba(var(--cs-vert-rgb), 0.6) 44%,
+    rgba(var(--cs-vert-rgb), 0) 75%);
+  animation: cs-eclat 0.55s ease-out forwards;
+}
+@keyframes cs-eclat {
+  from { opacity: 0; transform: scale(0.35); }
+  35% { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.8); }
+}
+/* ⛔ L'éclat est un ACCUSÉ, non un ornement : sous le réglage de mouvement réduit il
+   garde son fondu et perd sa seule dilatation. L'éteindre retirerait la réponse au
+   geste au lieu du mouvement — c'est la règle de l'anneau du compte à rebours. */
+@media (prefers-reduced-motion: reduce) {
+  .cs-eclat { animation-name: cs-eclat-calme; }
+}
+@keyframes cs-eclat-calme {
+  from { opacity: 0; }
+  35% { opacity: 1; }
+  to { opacity: 0; }
+}
+
 /* Les entrées du menu ⋮ : la forme d'une option de volet, en plus resserré — c'est
    une liste d'actions, non un axe où l'on retient un état. */
 .cs-entree-menu-volet:hover,

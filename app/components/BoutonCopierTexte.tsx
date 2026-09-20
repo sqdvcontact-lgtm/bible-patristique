@@ -8,12 +8,20 @@
 // forme diffère d'une surface à l'autre — un verset se cite « … » (Gn 1, 1), un segment
 // patristique porte son auteur, son titre et son édition. Le bouton ne connaît que le
 // presse-papiers ; ce qu'on y met regarde l'appelant.
+//
+// ⛔ L'ACCUSÉ D'UNE COPIE EST UN ÉCLAT, et il vit dans `EclatCopie` : le pictogramme
+// reste en place et s'allume, au lieu de céder la place à un ✓ suivi du mot « Copié ».
+// ⚠️ L'ÉCHEC, lui, garde ses mots : une lumière dit qu'un geste a porté, elle ne sait
+// pas dire qu'il a manqué.
 
 import { useState } from 'react'
 
-/** Durée de l'accusé de réception, en millisecondes. Assez long pour être vu, assez
+import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
+import IconeCopier from '@/app/components/IconeCopier'
+
+/** Le temps que l'échec reste écrit, en millisecondes. Assez long pour être lu, assez
  *  court pour ne pas laisser croire que le bouton est resté enfoncé. */
-const DUREE_ACCUSE_MS = 1400
+const DUREE_ERREUR_MS = 1800
 
 /** Copie plein-texte avec un repli pour les navigateurs intégrés qui n'accordent pas
  * l'API asynchrone du presse-papiers. Le champ temporaire ne devient jamais visible et
@@ -51,36 +59,28 @@ export default function BoutonCopierTexte({
   className?: string
   titre?: string
 }) {
-  const [copie, setCopie] = useState(false)
+  const { copie, briller } = useEclatCopie()
   const [erreur, setErreur] = useState(false)
 
   const copier = (e: React.MouseEvent) => {
     e.stopPropagation()
     setErreur(false)
-    copierPleinTexte(texte).then(() => {
-      setCopie(true)
-      setTimeout(() => setCopie(false), DUREE_ACCUSE_MS)
-    }).catch(() => {
+    copierPleinTexte(texte).then(briller).catch(() => {
       setErreur(true)
-      setTimeout(() => setErreur(false), 1800)
+      setTimeout(() => setErreur(false), DUREE_ERREUR_MS)
     })
   }
 
-  const libelle = erreur ? 'La copie a échoué. Réessayez.' : copie ? 'Copie effectuée' : titre
-  // ⚠️ L'ACCUSÉ reste VISIBLE, et il vaut pour tout le site : ce qui a disparu est le
-  // libellé de REPOS (« Copier »), que la fiche d’une édition était seule à poser.
-  const texteVisible = erreur ? 'Réessayer' : copie ? 'Copié' : null
+  // ⛔ Le NOM du bouton ne dit plus la réussite : l'éclat porte son propre accusé, dans
+  // une région vivante, et un nom qui changerait le redirait une seconde fois.
+  const libelle = erreur ? 'La copie a échoué. Réessayez.' : titre
 
   return (
-    <button onClick={copier} title={libelle} aria-label={libelle} aria-live="polite" className={className}
+    <button onClick={copier} title={libelle} aria-label={libelle} className={avecHoteEclat(className)}
       style={{ ...style, color: copie ? 'var(--cs-vert)' : erreur ? 'var(--cs-danger)' : (style?.color ?? 'var(--cs-texte-faible)') }}>
-      {copie ? <span aria-hidden="true">✓</span> : erreur ? <span aria-hidden="true">!</span> : (
-        <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display: 'block' }}>
-          <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-          <rect x="3" y="3" width="7" height="8.5" rx=".8" stroke="currentColor" strokeWidth="1.2" />
-        </svg>
-      )}
-      {texteVisible ? <span>{texteVisible}</span> : null}
+      {erreur ? <span aria-hidden="true">!</span> : <IconeCopier />}
+      <EclatCopie copie={copie} />
+      {erreur ? <span>Réessayer</span> : null}
     </button>
   )
 }

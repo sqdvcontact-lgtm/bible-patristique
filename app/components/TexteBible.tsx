@@ -17,6 +17,7 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 import IconeSignet from '@/app/components/IconeSignet'
 import IconeCopier from '@/app/components/IconeCopier'
+import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
@@ -103,20 +104,20 @@ type Props = {
 
 // ── Bouton copie ──────────────────────────────────────────────────────────────
 function BoutonCopie({ texte }: { texte: string }) {
-  const [copie, setCopie] = useState(false)
+  const { copie, briller } = useEclatCopie()
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation()
-    navigator.clipboard.writeText(texte).then(() => {
-      setCopie(true); setTimeout(() => setCopie(false), 1400)
-    })
+    navigator.clipboard.writeText(texte).then(briller)
   }
   return (
-    <button onClick={handle} title="Copier ce verset" className="bouton-action-verset"
+    <button onClick={handle} title="Copier ce verset" className={avecHoteEclat('bouton-action-verset')}
       style={{ ...VERSET_ACTION_BTN, opacity:0, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}
       aria-label="Copier">
       {/* ⚠️ Le glyphe vient d'`IconeCopier` : la VISITE le reproduit dans son
-          illustration, et les deux ne doivent pas diverger. */}
-      {copie ? '✓' : <IconeCopier />}
+          illustration, et les deux ne doivent pas diverger. ⛔ Il ne cède plus la place
+          à un ✓ : l'accusé est un ÉCLAT, posé par-dessus lui. */}
+      <IconeCopier />
+      <EclatCopie copie={copie} />
     </button>
   )
 }

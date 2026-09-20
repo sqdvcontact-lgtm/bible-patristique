@@ -18,6 +18,8 @@ import { AppelDuVolet, NoteDuVolet } from '@/app/components/NoteDuVolet'
 import { intituleDeLaNote, libelleDeLaNote, LIBELLE_NOTE_SANS_TYPE } from '@/app/lib/typeNote'
 import { signesDeLaNote } from '@/app/lib/compositionNote'
 import IconeSignalement from '@/app/components/IconeSignalement'
+import IconeCopier from '@/app/components/IconeCopier'
+import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { anneeChronologique, comparerChronologie } from '@/app/lib/chronologiePatristique'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
@@ -166,23 +168,17 @@ function BoutonCopieSegment({ texte, auteur, titre, sous_titre, trad_auteur, edi
   trad_auteur?: string; editeur?: string; collection?: string; ville?: string; date_publication?: string
   responsable?: string
 }) {
-  const [copie, setCopie] = useState(false)
+  const { copie, briller } = useEclatCopie()
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation()
     const citation = citationPatristique(texte, { auteur, titre, sousTitre: sous_titre, tradAuteur: trad_auteur, editeur, collection, ville, datePublication: date_publication, responsable })
-    copierCitation(citation).then(() => {
-      setCopie(true); setTimeout(() => setCopie(false), 1400)
-    })
+    copierCitation(citation).then(briller)
   }
   return (
-    <button onClick={handle} title="Copier ce segment"
-      className="cs-bouton-fin" style={{ ...ACTION_BTN, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
-      {copie ? '✓' : (
-        <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
-          <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-          <rect x="3" y="3" width="7" height="8.5" rx=".8" stroke="currentColor" strokeWidth="1.2"/>
-        </svg>
-      )}
+    <button onClick={handle} title="Copier ce segment" aria-label="Copier ce segment"
+      className={avecHoteEclat('cs-bouton-fin')} style={{ ...ACTION_BTN, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
+      <IconeCopier />
+      <EclatCopie copie={copie} />
     </button>
   )
 }

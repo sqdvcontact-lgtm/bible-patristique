@@ -3,13 +3,11 @@
  *  Même gabarit que `IconeSignet` (11 × 12) et `IconeSignalement` : les trois occupent
  *  strictement la même place dans la gouttière d'un verset. Hérite de la couleur.
  *
- *  ⚠️ Le glyphe vit en SEPT exemplaires dans le dépôt (page Bible, volet patristique,
- *  segments et versets d'une œuvre, prélèvements, `ActionsVerset`, `BoutonCopierTexte`).
- *  Ce composant en est la première définition partagée, et il ne sert pour l'instant
- *  que la page Bible et la VISITE, qui reproduit sa colonne d'actions : là, les deux ne
- *  peuvent pas diverger, ce qui est le seul endroit où la divergence se verrait comme un
- *  mensonge. ⛔ Un huitième exemplaire ne s'écrit pas ; les six autres se convertissent
- *  au prochain passage sur ces boutons.
+ *  ⛔ IL EST LA SEULE ÉCRITURE DU GLYPHE depuis le 20 septembre 2026. Il en vivait SEPT
+ *  exemplaires (page Bible, volet patristique, segments et versets d'une œuvre,
+ *  prélèvements, `ActionsVerset`, `BoutonCopierTexte`) ; le passage à l'ÉCLAT les a tous
+ *  convertis, le pictogramme ne cédant plus sa place à un ✓. ⚠️ La VISITE le reproduit
+ *  dans son illustration de la colonne d'actions : les deux ne peuvent pas diverger.
  */
 export default function IconeCopier({ size = 12 }: { size?: number }) {
   const w = Math.round((size * 11) / 12)

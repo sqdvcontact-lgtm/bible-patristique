@@ -9,26 +9,24 @@ import ModalSignalement from './ModalSignalement'
 import { insererSignalement } from './signalements'
 import { Bulle } from '@/app/components/Bulle'
 import IconeSignet from '@/app/components/IconeSignet'
+import IconeCopier from '@/app/components/IconeCopier'
+import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import { citationBiblique, copierCitation } from '@/app/lib/citation'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 
 
 export function BoutonCopieVerset({ texte, label }: { texte: string; label: string }) {
-  const [copie, setCopie] = useState(false)
+  const { copie, briller } = useEclatCopie()
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation()
-    copierCitation(citationBiblique(texte, label)).then(() => { setCopie(true); setTimeout(() => setCopie(false), 1400) })
+    copierCitation(citationBiblique(texte, label)).then(briller)
   }
   return (
     <Bulle texte="Copier ce verset">
-      <button onClick={handle} style={{ ...BTN_STYLE, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }} aria-label="Copier ce verset">
-        {copie ? '✓' : (
-          <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display:'block' }}>
-            <path d="M1 9.2V1.8A.8.8 0 0 1 1.8 1H7.6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-            <rect x="3" y="3" width="7" height="8.5" rx=".8" stroke="currentColor" strokeWidth="1.2"/>
-          </svg>
-        )}
+      <button onClick={handle} className={avecHoteEclat()} style={{ ...BTN_STYLE, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }} aria-label="Copier ce verset">
+        <IconeCopier />
+        <EclatCopie copie={copie} />
       </button>
     </Bulle>
   )
