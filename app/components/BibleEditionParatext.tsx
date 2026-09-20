@@ -51,7 +51,7 @@ export type BlocTexteBiblique = BibleEditionDisplayTextBlock
 export type BlocEditorialBiblique = Pick<
   BibleEditionDisplayBodyBlock,
   'id' | 'blockKey' | 'semanticStyleCode' | 'semanticLevel' | 'embeddedTitleLevel' | 'rangDuTitre'
-  | 'niveauHtml' | 'noticeSubtype' | 'heading' | 'placement'
+  | 'niveauHtml' | 'noticeSubtype' | 'heading' | 'manchette' | 'placement'
   | 'textBlocks' | 'presentation'
 > & { internalNotes?: BibleEditionDisplayInternalNote[] }
 
@@ -767,6 +767,9 @@ export function BlocEditorialBible({
   // de navigation le nomme. Un repère de portée plus étroite, lui, garde
   // l'ordre imprimé et la mesure des désignations.
   const intitule = diviserIntitule(bloc.heading ?? null, { genreEnTitre: resolu.level === 'I1' })
+  // La manchette d'une subdivision d'apparat introductif : l'intitulé d'un bloc
+  // de TITRE voisin, que `manchettesDApparat` a fait tomber ici.
+  const manchette = bloc.manchette?.trim() ? bloc.manchette.trim() : null
   const notesTitre = (bloc.internalNotes ?? []).filter((note) => note.anchorTarget === 'heading')
   const notesCorps = (bloc.internalNotes ?? []).filter((note) => note.anchorTarget === 'body')
   // La balise vient des parents réellement présents, jamais du chiffre du jeton.
@@ -792,12 +795,27 @@ export function BlocEditorialBible({
     releverAppels(notesTitre, intitule.titre)
     if (intitule.sousTitre) releverAppels(notesTitre, intitule.sousTitre)
   }
+  // ⚠️ Les notes du titre ABSORBÉ ont suivi leur intitulé jusqu'ici : elles sont
+  // ancrées sur l'intitulé (`anchorTarget: 'heading'`), qui se compose désormais
+  // en manchette. Sans ce relevé, leur appel se perdrait et la note retomberait
+  // dans la liste de bas de bloc.
+  if (manchette) releverAppels(notesTitre, manchette)
   for (const texte of bloc.textBlocks) releverAppels(notesCorps, texte.text, texte)
   const notesSansAppel = (bloc.internalNotes ?? []).filter((note) => !appelees.has(note.id))
 
   const contenu = (
     <>
       {rendreIllustrations(avant)}
+      {/* ⛔ LA MANCHETTE VIENT EN PREMIER, avant même ce que la donnée place en
+          tête : c'est un FLOTTANT, et un flottant posé après le texte n'a plus
+          rien à habiller. ⚠️ Ce n'est pas un titre — ni balise de titre, ni place
+          au plan : le titre qu'elle absorbe l'avait, et c'est l'introduction
+          entière qui porte désormais le rang (charte § 35.27). */}
+      {manchette && (
+        <p className="cs-bible-info-label cs-bible-info-label--manchette">
+          {rendreContenuAncre(manchette, [], notesTitre)}
+        </p>
+      )}
       {intitule && (resolu.headingRole === 'title' && resolu.headingLevel ? (
         // Cas mixte : l'intitulé EST un titre — celui de la péricope —, distinct
         // du développement qui le suit. Les deux ne se concatènent jamais.
@@ -870,6 +888,10 @@ export function BlocEditorialBible({
     // Un bloc de SUITE : la feuille lui retire sa marge haute, et sa marge basse
     // au bloc qui le précède. L'attribut est vide : c'est un drapeau.
     'data-suite': suite ? '' : undefined,
+    // Le bloc OUVRE une subdivision d'apparat introductif : il en porte la
+    // manchette, et la feuille lui donne le blanc d'une subdivision — non celui
+    // d'un rang de titre, qui valait vingt fois plus (charte § 35.27).
+    'data-manchette': manchette ? '' : undefined,
   }
   // Une notice se tient à côté du fil de lecture. ⚠️ `excursus` figurait ici : le
   // regroupement du 29 août 2026 l'a fondu dans `notice`, dont il ne se distinguait

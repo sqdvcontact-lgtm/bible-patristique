@@ -157,7 +157,15 @@
       "heading_role": "title",
       "body_block": true,
       "hierarchy_axis": "analytic",
-      "note": "L'introduction qui porte son PROPRE titre, et non un simple repère. Elle ouvre ce qu'elle annonce comme un titre le ferait, à son rang. ⚠️ Le rang du titre porté se DÉCLARE : il ne se déduit pas du niveau, I1 portant un T2 et I5 un T6.",
+      "heading_levels": {
+        "I1": "T2",
+        "I2": "T2",
+        "I3": "T3",
+        "I4": "T5",
+        "I5": "T6",
+        "I6": "T6"
+      },
+      "note": "L'introduction qui porte son PROPRE titre, et non un simple repère. Elle ouvre ce qu'elle annonce comme un titre le ferait, à son rang. ⚠️ Ce rang-là ne s'ARITHMÉTISE pas : il se lit dans `heading_levels`, qui donne à chaque rang d'information le rang du TITRE de la portée qu'il explique — une information de section porte le titre d'une section (I3 → T3), une information de chapitre celui d'un chapitre (I4 → T5, les deux échelles divergeant dès le quatrième rang), une information de verset le rang le plus bas, qui est la péricope (I6 → T6, il n'y en a pas au-dessous). ⚠️ Une seule EXCEPTION, et elle est de doctrine : I1 porte un T2 et non un T1, le titre du livre ne paraissant jamais — la page le nomme déjà dans son fil d'Ariane (charte § 35.1). ⛔ Cette table est ce qui manquait : les deux alias la portaient chacun dans son coin, et le code CANONIQUE n'avait que l'`embedded_title_level` du bloc. Les 55 blocs qui ne le déclarent pas — dont les 44 introductions de livre, Matthieu en tête — perdaient donc leur titre SANS BRUIT : `headingLevel` tombait à nul, le rendu retombait sur la branche du simple repère, et « Évangile selon saint Matthieu — Introduction » se composait en rubrique grise de douze pixels quand la Genèse, qui passe par l'alias, gardait son T2 (relevé de l'auteur, 20 septembre 2026). Un alias et son canonique doivent se valoir : c'est tout l'objet du regroupement.",
       "aliases": {
         "introduction_livre": {
           "niveau": "I1",

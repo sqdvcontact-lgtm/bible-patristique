@@ -32,6 +32,62 @@ describe('paratexte des éditions bibliques', () => {
     expect(html).toContain('Introduction à l’Évangile selon saint Marc')
   })
 
+  it('⛔ un code CANONIQUE porte son titre comme son alias : Matthieu vaut la Genèse', () => {
+    // Le défaut du 20 septembre 2026. `introduction_titree` + I1, sans
+    // `embedded_title_level`, perdait son titre SANS BRUIT : le rendu retombait sur
+    // la branche du simple repère et « Évangile selon saint Matthieu — Introduction »
+    // se composait en rubrique grise de douze pixels, quand la Genèse, écrite avec
+    // l'alias `introduction_livre`, gardait son T2. Le registre porte désormais la
+    // table `heading_levels`, et les deux écritures se valent.
+    const matthieu = renderToStaticMarkup(
+      <BlocEditorialBible bloc={{
+        id: 'intro-mat',
+        semanticStyleCode: 'introduction_titree',
+        semanticLevel: 'I1',
+        heading: 'Évangile selon saint Matthieu — Introduction',
+        placement: 'before',
+        textBlocks: [{
+          id: 'intro-mat-p', kind: 'commentary', form: 'prose',
+          text: 'Le premier évangile a été écrit par l’apôtre saint Matthieu.', language: 'fr',
+        }],
+      }} />,
+    )
+    expect(matthieu).toContain('cs-bible-title--t2')
+    expect(matthieu).toContain('cs-bible-title--porte')
+    // ⚠️ Et le GENRE titre, le nom du livre passant en chapeau : le lecteur sait
+    // déjà quel livre il ouvre (charte § 35.15).
+    expect(matthieu).toContain('>Introduction<')
+    expect(matthieu).toContain('cs-bible-chapeau')
+  })
+
+  it('pose la manchette d’une subdivision d’apparat introductif en tête du développement', () => {
+    const html = renderToStaticMarkup(
+      <BlocEditorialBible bloc={{
+        id: 'gen-intro-01-01',
+        semanticStyleCode: 'commentaire',
+        semanticLevel: 'I3',
+        heading: null,
+        manchette: 'Le sujet et le but',
+        placement: 'before',
+        textBlocks: [{
+          id: 'gen-intro-01-01-p', kind: 'commentary', form: 'prose',
+          text: 'La Genèse raconte les origines du monde et des hommes.', language: 'fr',
+        }],
+      }} />,
+    )
+    expect(html).toContain('cs-bible-info-label--manchette')
+    expect(html).toContain('data-manchette=""')
+    expect(html).toContain('Le sujet et le but')
+    // ⛔ Ce n'est PAS un titre : ni balise de titre, ni place au plan
+    // d'accessibilité. Le titre qu'elle absorbe les avait ; l'introduction entière
+    // porte désormais le rang.
+    expect(html).not.toMatch(/<h[1-6]/)
+    // ⛔ Et la manchette vient en PREMIER : c'est un flottant, et un flottant posé
+    // après le texte n'a plus rien à habiller.
+    expect(html.indexOf('cs-bible-info-label--manchette'))
+      .toBeLessThan(html.indexOf('La Genèse raconte'))
+  })
+
   it('compose un style CANONIQUE dont le bloc déclare le rang', () => {
     // ⛔ Depuis le regroupement du 29 août 2026, un style d'information dit une
     // NATURE et le rang se déclare. Sans ce report, la base accepterait un bloc que

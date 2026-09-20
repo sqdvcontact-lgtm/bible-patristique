@@ -468,6 +468,15 @@
   --cs-blanc-couture: 0.4rem;
   /* D'une unité de commentaire à la suivante, dans une même péricope. */
   --cs-blanc-unite: 2.25rem;
+  /* D'une SUBDIVISION d'apparat introductif à la suivante — « Le sujet et le but »,
+     puis « Plan et division ». ⛔ Ce n'est pas un rang de TITRE : les deux se lisent
+     dans une même introduction de trois pages, et le blanc de la sous-section (6,25 rem,
+     soit 137 px sur l'écran de l'auteur) les séparait comme deux parties d'un livre
+     (relevé de l'auteur, 2026-09-20 : « anormalement grand ; il faut un espace beaucoup
+     plus petit, proportionné »). Il reste FRANCHEMENT sous le plus bas des rangs de
+     titre — 2,25 contre 4 rem —, une subdivision d'introduction rompant moins qu'une
+     péricope neuve. */
+  --cs-blanc-subdivision: 2.25rem;
   --cs-blanc-t6: 4rem;      /* une péricope */
   --cs-blanc-t5: 5rem;      /* un paragraphe (« § I »), un chapitre */
   --cs-blanc-t4: 6.25rem;   /* une sous-section */
@@ -1356,6 +1365,27 @@ button:focus-visible,
    change de caractère fait le gros du travail, la taille achève. */
 .cs-bible-title--t1 { font-size: 1.625rem; font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.02em; }
 .cs-bible-title--t2 { font-size: 1.4375rem; font-weight: 400; color: var(--cs-encre-fonce); letter-spacing: 0.04em; margin-bottom: 0.75rem; }
+/* ── LE TITRE D'UNE INTRODUCTION DE LIVRE MONTE D'UN RANG ─────────────────────
+   « Introduction », avec le nom du livre en chapeau, ouvre tout l'apparat d'un
+   livre : c'est la première chose qu'on lit avant le premier verset, et elle se
+   composait au rang d'une PARTIE, dont elle n'est pas (décision de l'auteur,
+   2026-09-20 : « doit être plus gros »).
+   ⚠️ Le corps vient de l'ÉCHELLE, non d'une valeur inventée : c'est celui du rang
+   T1, que `titre_livre` laisse vacant puisqu'il ne paraît jamais — la page nomme
+   déjà le livre dans son fil d'Ariane (charte § 35.1). L'introduction ne prend pas
+   ce rang pour autant : elle reste un bloc d'information I1 qui PORTE un titre T2,
+   et c'est sa seule composition qui change ici.
+   ⚠️ Le chapeau monte avec elle, d'un cran : sous une tête de 1,625 rem, les
+   0,9375 rem des rangs hauts faisaient du nom du livre une légende. */
+.cs-bible-block--introduction > .cs-bible-title--porte.cs-bible-title--t2 {
+  font-size: 1.625rem;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.9rem;
+}
+.cs-bible-block--introduction > .cs-bible-title--porte.cs-bible-title--t2 > .cs-bible-chapeau {
+  font-size: 1rem;
+}
+
 /* ⛔ AUCUNE petite capitale sur un titre biblique (décision de l’auteur,
    2026-08-26) : « pas lisible ». Composée à quinze pixels avec de la chasse, une
    ligne entière en petites capitales devient une bande grise où l’œil ne trouve
@@ -1619,7 +1649,12 @@ button:focus-visible,
    sans-serif et le demi-gras le détachent assez du serif justifié qui l'entoure. */
 .cs-bible-info--i4.cs-bible-block--commentary,
 .cs-bible-info--i5.cs-bible-block--commentary,
-.cs-bible-info--i6.cs-bible-block--commentary {
+.cs-bible-info--i6.cs-bible-block--commentary,
+/* ⚠️ Et le bloc qui ouvre une SUBDIVISION d'apparat introductif, quel que soit son
+   rang : sa manchette ne vient pas de lui mais du bloc de titre qu'elle absorbe
+   (charte § 35.27), et le rang du développement — I3 à la Genèse comme chez
+   Matthieu — ne dit rien de la disposition. */
+.cs-bible-bloc[data-manchette] {
   /* Le bloc contient son flottant. Sans ce contexte, un commentaire plus court
      que sa manchette la laisserait déborder sur ce qui suit.
      ⛔ Jamais par un `container-type` : celui-ci ferait du bloc le référent des
@@ -1628,7 +1663,15 @@ button:focus-visible,
 }
 .cs-bible-info--i4.cs-bible-block--commentary > .cs-bible-info-label,
 .cs-bible-info--i5.cs-bible-block--commentary > .cs-bible-info-label,
-.cs-bible-info--i6.cs-bible-block--commentary > .cs-bible-info-label {
+.cs-bible-info--i6.cs-bible-block--commentary > .cs-bible-info-label,
+/* ⚠️ Le titre d'une subdivision d'apparat introductif prend EXACTEMENT la même
+   composition : « au début du paragraphe, à gauche, en haut » (décision de
+   l'auteur, 2026-09-20). Une seule manchette sur le site, une seule écriture —
+   ⛔ ne pas la redéfinir plus bas, deux écritures feraient deux mesures.
+   ⚠️ Spécificité (0,3,0) : elle doit passer au-dessus de la RUBRIQUE des rangs
+   hauts (`.cs-bible-info--i3 > .cs-bible-info-label`, écrite plus haut), qui
+   centre son repère et le compose en sans chassé. */
+.cs-bible-bloc[data-manchette] > .cs-bible-info-label--manchette {
   float: left;
   /* Deux repères qui se suivent s'empilent, au lieu de se ranger côte à côte
      quand le premier développement est trop court pour les séparer. */
@@ -1652,6 +1695,11 @@ button:focus-visible,
      mécanique même du justifié. Ferré, toutes les espaces gardent leur chasse. */
   text-align: left;
   font-family: var(--font-source-serif), Georgia, serif;
+  /* ⛔ Chasse NULLE, et déclarée : sans cette ligne, la manchette d'une subdivision
+     d'introduction gardait les 0,06 em de la rubrique des rangs hauts, que la
+     présente règle ne recouvrait pas faute de la nommer. Un repère de sept
+     centimètres de colonne n'a pas de chasse à dépenser. */
+  letter-spacing: 0;
   /* La césure fait ici le travail que la justification ferait ailleurs : elle
      REMPLIT les lignes, si bien que le bord libre reste presque droit sans
      qu'une seule espace ait été étirée. Serrée, pour tasser davantage : un mot
@@ -1705,7 +1753,8 @@ button:focus-visible,
 @media (max-width: 700px) {
   .cs-bible-info--i4.cs-bible-block--commentary > .cs-bible-info-label,
   .cs-bible-info--i5.cs-bible-block--commentary > .cs-bible-info-label,
-  .cs-bible-info--i6.cs-bible-block--commentary > .cs-bible-info-label {
+  .cs-bible-info--i6.cs-bible-block--commentary > .cs-bible-info-label,
+  .cs-bible-bloc[data-manchette] > .cs-bible-info-label--manchette {
     float: none;
     width: auto;
     /* Le fer est le même qu'en pleine largeur depuis le 2026-08-27 : seule la
@@ -1926,6 +1975,31 @@ button:focus-visible,
 .cs-bible-axe:has(+ .cs-bible-axe > .cs-bible-bloc[data-suite]) > .cs-bible-bloc,
 .cs-bible-bloc:has(+ .cs-bible-bloc[data-suite]),
 [data-lecture='bilingue'] .cs-bible-bloc:has(+ .cs-bible-bloc[data-suite]) {
+  margin-bottom: 0;
+}
+
+/* ── UNE SUBDIVISION D'APPARAT INTRODUCTIF OUVRE SUR SON PROPRE BLANC (2026-09-20) ─
+   Le bloc qui porte une manchette ouvre un développement de l'introduction — « Le
+   sujet et le but », puis « Plan et division ». Tant que son titre était un bloc à
+   part, c'est le rang T4 qui faisait le blanc : 6,25 rem, soit 137 px sur l'écran de
+   l'auteur, à l'intérieur d'une seule introduction (« anormalement grand ; il faut un
+   espace beaucoup plus petit, proportionné »). Le titre est maintenant DANS le bloc,
+   et c'est au bloc de dire ce qu'il ouvre.
+   ⛔ Le blanc ne se fabrique pas par différence : on le POSE, et on ferme celui du
+   bloc d'avant. L'axe de texte est une grille, où les marges s'ADDITIONNENT au lieu
+   de fusionner — sans la seconde règle, le 1,1 rem de sortie du dernier paragraphe
+   s'ajouterait aux 2,25 et la mesure ne vaudrait plus rien (§ 35.12).
+   ⚠️ TROIS surfaces, trois sélecteurs (§ 35.17.3) : la grille de l'axe, la fratrie de
+   la mesure étroite, la lecture en regard — où la spécificité doit passer au-dessus du
+   « changement d'unité » de `.cs-bible-block--commentary`, à (0,2,0). */
+.cs-bible-axe > .cs-bible-bloc[data-manchette],
+.cs-bible-bloc[data-manchette],
+[data-lecture='bilingue'] .cs-bible-bloc[data-manchette] {
+  margin-top: var(--cs-blanc-subdivision);
+}
+.cs-bible-axe:has(+ .cs-bible-axe > .cs-bible-bloc[data-manchette]) > .cs-bible-bloc,
+.cs-bible-bloc:has(+ .cs-bible-bloc[data-manchette]),
+[data-lecture='bilingue'] .cs-bible-bloc:has(+ .cs-bible-bloc[data-manchette]) {
   margin-bottom: 0;
 }
 /* ⛔ Et le rang d'un titre PORTÉ ne l'atteignait pas non plus, pour la raison

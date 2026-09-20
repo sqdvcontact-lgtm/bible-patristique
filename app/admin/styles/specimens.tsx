@@ -880,6 +880,24 @@ const APPARAT_BIBLES: Unite[] = [
     ),
   },
   {
+    style: 'bible_apparat/apparat introductif — la MANCHETTE de subdivision',
+    note: 'L’introduction d’un livre et ses développements. Le titre d’une subdivision — « Le sujet et le but », « 1. La personne de l’auteur » — n’est plus un bloc à part : il tombe en MANCHETTE au début de son premier paragraphe, à gauche, en haut, et le texte l’habille. C’est la disposition du fac-similé, celle que le repère d’un commentaire de rang bas prend déjà.',
+    alerte: '⛔ Le blanc suivait le rang T4 du titre — 6,25 rem, 137 px sur l’écran de l’auteur — pour séparer deux développements d’une MÊME introduction de trois pages (relevé de l’auteur, 2026-09-20 : « anormalement grand »). Il vaut désormais 2,25 rem, franchement sous le plus bas des rangs de titre. ⛔ La NUMÉROTATION imprimée ne paraît plus : elle divisait le corpus en deux, 140 subdivisions numérotées contre 32 qui ne le sont pas, pour la même chose. ⚠️ Une subdivision se reconnaît à ce que son titre DÉCLARE une introduction pour parent — jamais à la forme de son intitulé.',
+    contenu: (
+      <>
+        <Bible bloc={blocBible('introduction_livre', [
+          'Le premier livre de la Bible porte, dans le texte hébreu, le nom de son premier mot.',
+        ], { heading: 'Genèse — Introduction', niveauHtml: 2 })} />
+        <Bible bloc={blocBible('commentaire', [
+          'Moïse se propose de raconter les origines du monde et celles du peuple choisi, car toutes les nations sont solidaires et proviennent de la même source.',
+        ], { semanticLevel: 'I3', manchette: 'Le sujet et le but' })} />
+        <Bible bloc={blocBible('commentaire', [
+          'Le livre se divise en deux parties fort inégales : une introduction générale à l’histoire sainte, puis l’histoire des patriarches.',
+        ], { semanticLevel: 'I3', manchette: 'Plan et division' })} />
+      </>
+    ),
+  },
+  {
     style: 'bible_apparat/introduction — I1, en PRÉAMBULE',
     note: 'Une introduction dont l’intitulé n’est qu’un repère, et non un titre. Aux rangs I1 et I2 elle compose en PRÉAMBULE : centrée, rentrée de 12 % des deux côtés, elle s’écarte du fil pour dire qu’on n’est pas encore dans le texte biblique.',
     alerte: '⛔ Le retrait de 12 % ne vaut que dans le FIL d’un chapitre. Dans une pièce liminaire lue SEULE, ce texte n’est pas là : l’introduction EST la page, et le retrait ne ferait que resserrer la mesure — elle se composait sur 23,75 rem quand l’apparat qui la suit garde 31,25 rem, deux moitiés d’une même page imprimée sur deux largeurs. C’est la SURFACE qui décide, jamais le genre du bloc.',

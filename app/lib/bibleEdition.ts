@@ -345,6 +345,16 @@ export type BibleEditionDisplayBodyBlock = {
   niveauHtml?: 1 | 2 | 3 | 4 | 5 | 6
   noticeSubtype?: BibleEditorialNoticeSubtype | null
   heading?: string | null
+  /**
+   * La MANCHETTE qu'un titre absorbé a laissée dans ce bloc.
+   *
+   * ⛔ Elle n'est pas un intitulé : l'intitulé vient du bloc, la manchette vient
+   * d'un AUTRE bloc — le titre de la subdivision d'introduction que ce
+   * développement ouvre (`manchettesDApparat`). Ce titre-là ne se rend plus pour
+   * lui-même, et c'est pourquoi les deux champs ne se confondent pas : un bloc
+   * qui porterait les deux afficherait deux repères l'un sur l'autre.
+   */
+  manchette?: string | null
   placement: BibleEditorialPlacement
   canonIdStart: string | null
   canonIdEnd: string | null

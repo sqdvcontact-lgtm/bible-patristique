@@ -90,6 +90,8 @@ type EntreeRegistre = {
   placement: string
   heading_role: string
   heading_level?: string
+  /** Le rang du titre PORTÉ, par rang d'information. Voir `heading_levels` ci-dessous. */
+  heading_levels?: Record<string, string>
   heading_in_outline?: boolean
   body_block: boolean
   hierarchy_axis?: string
@@ -131,6 +133,15 @@ function propreALAlias(alias: ValeurAlias): Exclude<ValeurAlias, string | null> 
  * ⛔ Un style d'INFORMATION sans rang est refusé comme un style inconnu. C'est le sens
  * même du regroupement : le nom dit la nature, le rang se déclare, et un bloc qui n'en
  * déclare aucun ne s'en invente pas un.
+ *
+ * ⚠️ Le rang du TITRE PORTÉ, lui, ne se déclare pas forcément : quand ni le style ni le
+ * bloc ne le disent, le registre le donne par `heading_levels`, table rang
+ * d'information → rang de titre. Ce n'est pas une déduction — I1 porte un T2 et I5 un
+ * T6, aucune arithmétique n'y mène —, c'est la MÊME table que les deux alias portaient
+ * chacun de son côté, écrite une fois. ⛔ Sans elle, un code canonique valait moins que
+ * son alias : les 44 introductions de livre écrites `introduction_titree` perdaient
+ * leur titre en silence et se composaient en rubrique grise, quand celles écrites
+ * `introduction_livre` gardaient leur T2 (relevé de l'auteur, 20 septembre 2026).
  */
 export function resoudreStyleSemantique(
   semanticStyle: string,
@@ -150,7 +161,8 @@ export function resoudreStyleSemantique(
     includeInOutline: entree.include_in_outline || porte.auSommaire === true,
     placement: entree.placement as StyleResolu['placement'],
     headingRole: entree.heading_role as StyleResolu['headingRole'],
-    headingLevel: ((entree.heading_level ?? porte.titre ?? rang?.titre) as JetonTitre | undefined) ?? null,
+    headingLevel: ((entree.heading_level ?? porte.titre ?? rang?.titre
+      ?? entree.heading_levels?.[level]) as JetonTitre | undefined) ?? null,
     headingInOutline: entree.heading_in_outline === true || porte.auPlan === true,
     bodyBlock: entree.body_block && porte.horsCorps !== true,
     hierarchyAxis: (entree.hierarchy_axis ?? porte.axe) === 'material' ? 'material' : 'analytic',
@@ -503,6 +515,8 @@ export type BlocDeSuite = {
   semanticLevel?: string | null
   embeddedTitleLevel?: string | null
   heading?: string | null
+  /** La manchette qu'un titre absorbé lui a laissée (`manchettesDApparat`). */
+  manchette?: string | null
 }
 
 /**
@@ -529,6 +543,12 @@ export type BlocDeSuite = {
  */
 export function estSuiteDuBloc(precedent: BlocDeSuite, bloc: BlocDeSuite): boolean {
   if (bloc.heading && bloc.heading.trim() !== '') return false
+  // ⚠️ Une MANCHETTE ouvre un développement aussi sûrement qu'un intitulé : le
+  // titre d'une subdivision d'introduction n'est plus un bloc à part, il est
+  // tombé dans celui-ci (`manchettesDApparat`). Sans cette ligne, deux
+  // subdivisions voisines — même rang, même nature, aucune des deux n'ayant
+  // d'intitulé propre — se seraient collées sans le moindre blanc.
+  if (bloc.manchette && bloc.manchette.trim() !== '') return false
   const a = resoudreStyleSemantique(precedent.semanticStyleCode, { niveau: precedent.semanticLevel, titre: precedent.embeddedTitleLevel })
   const b = resoudreStyleSemantique(bloc.semanticStyleCode, { niveau: bloc.semanticLevel, titre: bloc.embeddedTitleLevel })
   if (!a || !b) return false

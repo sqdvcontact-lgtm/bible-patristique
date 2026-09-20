@@ -25,6 +25,7 @@ import type {
 } from '@/app/lib/bibleEditionServer'
 import { baliserBlocsDuChapitre, type BornesOrdreChapitre } from '@/app/lib/bibleAxeChapitre'
 import { rangDesSousTitres } from '@/app/lib/bibleHierarchieSemantique'
+import { intituleDeManchette, manchettesDApparat } from '@/app/lib/bibleApparatIntroductif'
 import { grouperPiecesLiminaires, pieceParCle } from '@/app/lib/bibleSommaireEdition'
 import { roleDuBlocDeNote } from '@/app/lib/noteBiblique'
 import { normaliserChapitreBible } from '@/app/lib/bibleNavigation'
@@ -441,10 +442,44 @@ export default async function Home({
     )
     const balises = baliserPayload(payload.bodyBlocks, bornesAffichage)
     const rangs = rangerSousTitres(payload.bodyBlocks)
+    // ⛔ LES SUBDIVISIONS D'UN APPARAT INTRODUCTIF PASSENT EN MANCHETTE, et leur
+    // bloc de titre ne se rend plus pour lui-même (charte § 35.27). Le calcul se
+    // fait ICI, d'un seul passage sur l'ordre matériel : la lecture en regard
+    // éclate ensuite les blocs par créneau canonique, et le titre y perdrait son
+    // développement. ⚠️ Même raison que `baliserBlocs` et `rangDesSousTitres`,
+    // juste au-dessus — une seule écriture pour les deux lectures.
+    const manchettes = manchettesDApparat(payload.bodyBlocks.map((b) => ({
+      id: b.id,
+      blockKey: b.block_key,
+      semanticStyleCode: b.semantic_style_code,
+      semanticLevel: b.semantic_level,
+      embeddedTitleLevel: b.embedded_title_level,
+      semanticParentKey: b.semantic_parent_key,
+      heading: b.heading,
+    })))
+    // Les notes que le titre absorbé portait sur son intitulé suivent leur
+    // intitulé : elles se rendent dans la manchette, à l'appel près.
+    // ⚠️ L'ancre se dénumérote comme l'intitulé, sans quoi « 1. La personne de
+    // l'auteur » ne se retrouverait plus dans « La personne de l'auteur » et la
+    // note tomberait dans la liste de bas de bloc (3 notes du corpus).
+    const notesDuTitreAbsorbe = new Map<string, BibleEditionChapterPayload['bodyBlocks'][number]['internal_notes']>()
+    for (const [cibleId, manchette] of manchettes.parBloc) {
+      const titre = payload.bodyBlocks.find((b) => b.id === manchette.titreId)
+      if (!titre || titre.internal_notes.length === 0) continue
+      notesDuTitreAbsorbe.set(cibleId, titre.internal_notes.map((note) => ({
+        ...note,
+        anchor_text: note.anchor_text ? intituleDeManchette(note.anchor_text) : note.anchor_text,
+      })))
+    }
+    // Les blocs qui atteignent vraiment l'écran : ceux du membre, moins les
+    // titres que leur manchette a absorbés.
+    const blocsDuMembre = payload.bodyBlocks
+      .filter(appartientAuMembre)
+      .filter((block) => !manchettes.absorbes.has(block.id))
     return {
       familyId: membre.family_id,
       memberId: membre.member_id,
-      bodyBlocks: payload.bodyBlocks.filter(appartientAuMembre).map((block) => ({
+      bodyBlocks: blocsDuMembre.map((block) => ({
         id: block.id,
         blockKey: block.block_key,
         semanticStyleCode: block.semantic_style_code,
@@ -456,12 +491,13 @@ export default async function Home({
         rangDuTitre: rangs.get(block.id),
         noticeSubtype: sousTypeNoticeValide(block.block_kind, block.notice_subtype),
         heading: block.heading,
+        manchette: manchettes.parBloc.get(block.id)?.texte ?? null,
         placement: block.placement,
         canonIdStart: block.canon_id_start,
         canonIdEnd: block.canon_id_end,
         materialOrder: block.material_order,
         textBlocks: blocsTexteEditoriaux(block.id, block.text_content, block.text_features),
-        internalNotes: block.internal_notes.map((note) => ({
+        internalNotes: [...block.internal_notes, ...(notesDuTitreAbsorbe.get(block.id) ?? [])].map((note) => ({
           id: note.id,
           displayNumber: note.display_number,
           printedMarker: note.printed_marker,

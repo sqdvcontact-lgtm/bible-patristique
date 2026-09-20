@@ -52,18 +52,20 @@ const propreALAlias = (valeur) => {
   return typeof valeur === 'string' ? { niveau: valeur } : valeur
 }
 
-/** La résolution, telle que `bibleHierarchieSemantique.ts` la fait. */
-const resoudre = (canonique, valeurAlias) => {
+/** La résolution, telle que `bibleHierarchieSemantique.ts` la fait.
+ *  `rang` est le niveau DÉCLARÉ par un bloc, que seul un code canonique emploie. */
+const resoudre = (canonique, valeurAlias, rang = null) => {
   const e = registre.styles[canonique]
   const porte = propreALAlias(valeurAlias)
+  const level = e.level ?? porte.niveau ?? rang ?? null
   return {
     kind: e.kind,
-    level: e.level ?? porte.niveau ?? null,
+    level,
     nature: e.nature,
     includeInOutline: e.include_in_outline || porte.auSommaire === true,
     placement: e.placement,
     headingRole: e.heading_role,
-    headingLevel: e.heading_level ?? porte.titre ?? null,
+    headingLevel: e.heading_level ?? porte.titre ?? (level ? e.heading_levels?.[level] : undefined) ?? null,
     headingInOutline: e.heading_in_outline === true || porte.auPlan === true,
     bodyBlock: e.body_block && porte.horsCorps !== true,
     hierarchyAxis: (e.hierarchy_axis ?? porte.axe) === 'material' ? 'material' : 'analytic',
@@ -111,9 +113,38 @@ const controlerResolution = (nom, r) => {
   }
 }
 
+/**
+ * ⛔ UN STYLE QUI ANNONCE UN TITRE DOIT SAVOIR LE COMPOSER À TOUS SES RANGS.
+ *
+ * Un style d'INFORMATION ne porte pas son rang : un bloc le déclare. Si le style
+ * dit par ailleurs que son intitulé est un vrai TITRE, il doit dire aussi à quel
+ * rang ce titre se compose — et le bloc, lui, n'est pas tenu de le déclarer.
+ * ⚠️ C'est la table `heading_levels` qui le dit, rang d'information par rang
+ * d'information. Sans elle, le titre tombait à nul et le rendu retombait EN
+ * SILENCE sur la branche du simple repère : 44 introductions de livre écrites
+ * `introduction_titree` se composaient en rubrique grise de douze pixels, quand
+ * celles écrites `introduction_livre` — le même style, par son alias — gardaient
+ * leur T2 (relevé de l'auteur, 2026-09-20, sur Matthieu contre la Genèse).
+ */
+const controlerTitrePorteACHaqueRang = (canonique, e) => {
+  if (e.kind !== 'info' || e.heading_role !== 'title') return
+  for (const jeton of JETONS_INFO) {
+    const r = resoudre(canonique, null, jeton)
+    if (!JETONS_TITRE.includes(r.headingLevel ?? '')) {
+      refuser(`« ${canonique} » annonce un intitulé-titre mais ne dit pas à quel rang il se compose quand un bloc se déclare ${jeton} : ajouter heading_levels.${jeton}.`)
+    }
+  }
+}
 for (const [canonique, e] of Object.entries(registre.styles)) {
   const ou = `le style « ${canonique} »`
   reserver(canonique, ou)
+  if (e.heading_levels !== undefined) {
+    for (const [rang, titre] of Object.entries(e.heading_levels)) {
+      if (!JETONS_INFO.includes(rang)) refuser(`${ou} donne un titre porté pour « ${rang} », qui n'est pas un rang d'information.`)
+      if (!JETONS_TITRE.includes(titre)) refuser(`${ou} donne « ${titre} » pour titre porté, qui n'est pas un rang de titre.`)
+    }
+  }
+  controlerTitrePorteACHaqueRang(canonique, e)
   if (typeof e.include_in_outline !== 'boolean') refuser(`${ou} n'a pas de décision de plan.`)
   if (typeof e.body_block !== 'boolean') refuser(`${ou} ne dit pas s'il se rend dans le corps.`)
   if (e.aliases === undefined || Array.isArray(e.aliases) || typeof e.aliases !== 'object') {
@@ -184,6 +215,19 @@ attendu('introduction_pericope', 'level', 'I5')
 attendu('introduction_pericope', 'headingRole', 'title')
 attendu('introduction_pericope', 'headingLevel', 'T6')
 attendu('introduction_pericope', 'headingInOutline', true)
+// ⛔ LE CANONIQUE VAUT SON ALIAS — c'est tout l'objet du regroupement, et c'est
+// précisément ce qui manquait : `introduction_titree` + I1 doit rendre le même T2
+// que `introduction_livre`, et + I5 le même T6 que `introduction_pericope`.
+const parRang = (nom, rang, champ, valeur) => {
+  const trouve = Object.entries(registre.styles).find(([canonique]) => canonique === nom)
+  if (!trouve) return refuser(`Le registre a perdu « ${nom} ».`)
+  const r = resoudre(nom, null, rang)
+  if (JSON.stringify(r[champ]) !== JSON.stringify(valeur)) {
+    refuser(`« ${nom} » déclaré ${rang} doit rendre ${champ} = ${JSON.stringify(valeur)}, et rend ${JSON.stringify(r[champ])}.`)
+  }
+}
+parRang('introduction_titree', 'I1', 'headingLevel', 'T2')
+parRang('introduction_titree', 'I5', 'headingLevel', 'T6')
 attendu('introduction_livre', 'level', 'I1')
 attendu('introduction_livre', 'headingLevel', 'T2')
 attendu('introduction_livre', 'headingInOutline', false)
