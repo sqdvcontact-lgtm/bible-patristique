@@ -217,7 +217,7 @@ describe('aucun filet du corps ne traverse la colonne de droite', () => {
 
   it('les repères de l’œuvre font contexte, une donnée par ligne', () => {
     const feuille = lire('../globals.css')
-    const regle = feuille.slice(feuille.indexOf('.cs-fiche-edition-identite {'))
+    const regle = feuille.slice(feuille.indexOf('.cs-fiche-identite {'))
     const corps = regle.slice(0, regle.indexOf('}'))
     expect(corps).toContain('display: flow-root')
     expect(corps).toContain('border-top')

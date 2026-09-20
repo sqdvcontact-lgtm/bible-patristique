@@ -113,7 +113,7 @@ export function ChampFiche({ libelle, italique = false, children }: {
 }) {
   if (children === null || children === undefined || children === '') return null
   return (
-    <div className="cs-fiche-edition-champ">
+    <div className="cs-fiche-champ">
       {/* ⚠️ L'insécable avant les deux-points est ÉCRITE EN POINT DE CODE : une espace
           insécable ne se distingue pas d'une espace ordinaire à la lecture du dépôt. */}
       <dt>{libelle}{DEUX_POINTS}</dt>
@@ -404,29 +404,27 @@ export function ModaleFiche({ titreId, libelle, onFermer, avantCorps, confirmerF
 }
 
 /**
- * L'EN-TÊTE d'une fiche : un surtitre (« À propos de cet auteur »), le nom, une ligne en
- * italique, une ligne de crédit, les repères, les matières. Chaque ligne ne paraît que
- * remplie.
+ * L'EN-TÊTE d'une fiche : le nom, une ligne en italique, une ligne de crédit. Chaque
+ * ligne ne paraît que remplie.
  *
- * ⛔ DEUX LIGNES, ET ELLES NE DISENT PAS LA MÊME CHOSE. `reperes` SITUE — des dates, une
- *    langue — et prend la capitale ; `matieres` dit ce dont la fiche RELÈVE — traditions,
- *    écoles, genres — et reste en bas de casse. Tout verser dans la première donnait,
- *    chez Augustin, trois lignes de capitales espacées où la date de sa mort pesait
- *    autant qu'« augustinisme » (2026-09-20). La fiche d'une œuvre y range ses genres.
+ * ⛔ AUCUN SURTITRE, sur aucune des trois fiches (décision de l'auteur, 2026-09-20) : la
+ *    fenêtre s'appelle déjà « À propos de cet auteur » — son nom accessible le dit —, et
+ *    l'écrire au-dessus du nom ne l'apprenait à personne.
+ * ⛔ ET AUCUNE LIGNE DE REPÈRES : dates, langue, traditions, genres se rangent tous en
+ *    CHAMPS sous l'en-tête (`.cs-fiche-identite`, « libellé : valeur », une donnée par
+ *    ligne). Tenus sur une ou deux lignes de capitales espacées séparées de points
+ *    médians, ils se lisaient d'un trait — « Vers 160 · Latin » — sans que rien dise ce
+ *    que chaque mot était.
  */
-export function EnTeteFiche({ surtitre, titre, titreId, sousTitre, ligne, reperes, matieres }: {
-  surtitre?: ReactNode; titre?: ReactNode; titreId?: string; sousTitre?: ReactNode
-  ligne?: ReactNode; reperes?: ReactNode; matieres?: ReactNode
+export function EnTeteFiche({ titre, titreId, sousTitre, ligne }: {
+  titre?: ReactNode; titreId?: string; sousTitre?: ReactNode; ligne?: ReactNode
 }) {
-  if (!surtitre && !titre && !sousTitre && !ligne && !reperes && !matieres) return null
+  if (!titre && !sousTitre && !ligne) return null
   return (
     <header className="cs-fiche-entete">
-      {surtitre ? <p className="cs-fiche-surtitre">{surtitre}</p> : null}
       {titre ? <h2 id={titreId} className="cs-fiche-titre">{titre}</h2> : null}
       {sousTitre ? <p className="cs-fiche-soustitre">{sousTitre}</p> : null}
       {ligne ? <p className="cs-fiche-ligne">{ligne}</p> : null}
-      {reperes ? <p className="cs-fiche-reperes">{reperes}</p> : null}
-      {matieres ? <p className="cs-fiche-matieres">{matieres}</p> : null}
     </header>
   )
 }
@@ -482,7 +480,9 @@ export function PortraitFiche({ src, styleImage, initiales, cle }: {
  * ⚠️ `suite` et `pied` courent sous les deux colonnes, mais le texte de `suite` reprend
  *    la pleine mesure sous le complément sans le dégager ; le pied, lui, se dégage.
  */
-export function CorpsFiche({ portrait, entete, complement, suite, pied, children }: {
+export function CorpsFiche({ className, portrait, entete, complement, suite, pied, children }: {
+  /** Le nom que cette fiche-ci donne à son corps, quand son rythme lui appartient. */
+  className?: string
   portrait?: ReactNode; entete?: ReactNode; complement?: ReactNode; suite?: ReactNode; pied?: ReactNode; children?: ReactNode
 }) {
   const corpsRef = useRef<HTMLDivElement>(null)
@@ -503,7 +503,7 @@ export function CorpsFiche({ portrait, entete, complement, suite, pied, children
     return () => ro.disconnect()
   }, [aComplement])
   return (
-    <div ref={corpsRef} className="cs-fiche-corps" data-fiche-corps="" data-complement={aComplement ? '' : undefined}>
+    <div ref={corpsRef} className={'cs-fiche-corps' + (className ? ` ${className}` : '')} data-fiche-corps="" data-complement={aComplement ? '' : undefined}>
       {aComplement ? <div className="cs-fiche-reserve" data-fiche-reserve="" aria-hidden="true" /> : null}
       <div className="cs-fiche-principal">
         {portrait}

@@ -11309,17 +11309,32 @@ auteur pour l'instant ; on mettra ensuite les autres à jour pour correspondre �
 auteur. » Elle est donc le CANON, et la fiche d'une traduction comme celle d'une édition
 s'y aligneront. Règles de code :
 
-- ⛔ **`EnTeteFiche` PORTE DEUX LIGNES, ET ELLES NE DISENT PAS LA MÊME CHOSE.** `reperes`
-  SITUE — des dates, une langue — et garde la capitale espacée de `.cs-fiche-reperes` ;
-  `matieres` dit ce dont la fiche RELÈVE — traditions, écoles, genres — et prend
-  `.cs-fiche-matieres`, en bas de casse, 0,625 rem, `--cs-texte-gris`. ⚠️ Le bas de casse
-  est le GESTE, non la taille : une capitale est une étiquette, et l'on n'étiquette pas six
-  fois de suite. Tout verser dans `reperes` ouvrait la fiche d'Augustin sur TROIS lignes de
-  capitales espacées où la date de sa mort pesait autant qu'« augustinisme ».
-- ⚠️ **Les termes sont stockés COMPOSÉS** (« Patristique latine ») : rien ne les transforme
-  au rendu, et `rendreSiecles` s'applique aux deux lignes — une matière peut nommer un
-  siècle. ⛔ La fiche d'une œuvre y rangera ses GENRES, et rien d'autre : ce qui se nomme
-  par un libellé (« Titre original ») appartient aux rangées d'étiquettes.
+- ⛔ **RECTIFIÉ LE SOIR MÊME : LES REPÈRES SE RANGENT EN CHAMPS, et les deux lignes de
+  l'en-tête sont ABOLIES.** `EnTeteFiche` a porté, le 20 septembre 2026, un couple
+  `reperes` (capitales espacées) / `matieres` (bas de casse) ; l'auteur les a refusés le
+  jour même — « ça fait merdier » — et a demandé « le modèle des notices bible et
+  œuvre ». Dates, langue et traditions prennent donc la forme de la fiche d'une œuvre :
+  un `dl.cs-fiche-identite` de `ChampFiche`, « libellé : valeur », UNE DONNÉE PAR LIGNE,
+  sous un filet. ⛔ `surtitre`, `reperes` et `matieres` n'existent plus dans
+  `EnTeteFiche`, `.cs-fiche-surtitre`, `.cs-fiche-reperes` et `.cs-fiche-matieres` sont
+  retirées de la feuille, et les trois fiches ouvrent désormais sur le NOM.
+- ⚠️ **Ce que la passe du matin avait vu juste demeure** : une seule ligne de capitales
+  espacées pour tout — dates, langue, six traditions — ouvrait la fiche d'Augustin sur
+  trois lignes où rien ne pesait plus que le reste. C'était la DIAGNOSE ; le remède
+  n'était pas un second rang de capitales, mais le libellé qui nomme chaque donnée.
+  ⚠️ Les termes restent stockés COMPOSÉS (« Patristique latine ») : rien ne les
+  transforme au rendu, et `rendreSiecles` s'applique aux valeurs.
+- ⛔ **LES PIÈCES SONT CELLES DU MODÈLE, ET ELLES ONT PERDU LEUR NOM D'ŒUVRE** :
+  `cs-fiche-tete`, `cs-fiche-identite`, `cs-fiche-champ(s)` — elles s'appelaient
+  `cs-fiche-edition-*` quand la seule fiche d'une œuvre les employait, et un nom qui ment
+  sur son périmètre finit par faire écrire une seconde copie. ⛔ Ne pas recomposer une
+  rangée « libellé : valeur » ailleurs : `ChampFiche` est la seule écriture.
+- ⛔ **LE RYTHME DE LA FICHE D'UN AUTEUR EST CELUI DE L'ŒUVRE** : 22 px entre blocs
+  (`.cs-fiche-auteur .cs-fiche-principal > * + *`, passée par la propriété `className` de
+  `CorpsFiche`), et **30 px avant l'ANECDOTE**, qui n'a pas de titre et dont le blanc dit
+  seul qu'on change de voix. ⚠️ Les deux règles vivent AVANT celle du portrait : à
+  spécificité égale, la dernière écrite l'emporte, et l'en-tête reprendrait sinon une
+  marge en haut du portrait.
 - ⛔ **LA COLONNE DES DATES NE CONNAÎT QUE DEUX RANGS**, `--cs-date` et `--cs-date-douce`,
   et `ModaleAuteur` n'écrit plus une seule teinte en dur. Ils en portaient QUATRE — `#b7a06a`,
   `#d2c69f`, `#c9c1b4` et `--cs-or-doux` —, dont trois pour le même rang : rien ne suivait le
@@ -12564,6 +12579,17 @@ du texte ; le clignotement est pas mal, mais un peu trop violent ; y'a moyen de 
 tamiser un peu ? », puis « centrer dans le bloc de texte d'affichage ; resserrer le texte
 sous l'alerte principale (l'interligne, etc.) ».
 
+- ⛔ **RECTIFIÉ LE JOUR MÊME : LA PAGE SE BROUILLE, ELLE NE SE COUVRE PLUS** (« c'est pas
+  beau, ce fond blanc »). La pastille pleine de `--cs-fond` rendait bien le message
+  lisible — c'est la mesure ci-dessous, et elle tient — mais on voyait un grand ovale
+  blanc posé sur le texte. ⛔ Ce qu'il fallait n'était pas d'EFFACER la page, mais de la
+  rendre ILLISIBLE sous le message : `backdrop-filter: blur(10px) saturate(0.92)`, un
+  voile de `color-mix(in srgb, var(--cs-fond) 74%, transparent)` par-dessus — ⚠️ un flou
+  seul garde la LUMINANCE de ce qu'il défait, et le cri se lirait sur des taches —, un
+  filet d'encre du refus (`rgba(var(--cs-danger-rgb), 0.22)`) et `--cs-ombre-flottante`.
+  ⛔ Le rayon est **12px**, le rang « modale/panneau » de l'échelle des formes : `1.25rem`
+  y a vécu une minute et `formes.test.ts` l'a refusé. ⚠️ Un `@supports not` rend la
+  pastille d'avant, à l'identique, à qui ne sait pas filtrer son fond.
 - ⛔ **SEULE UNE PLAQUE OPAQUE REND UN TEXTE LISIBLE PAR-DESSUS UN TEXTE**, et les deux
   autres voies ont été MESURÉES puis écartées. Un HALO de six ombres portées épouse les
   glyphes et laisse le papier paraître ENTRE les mots : écart-type du fond dans la bande

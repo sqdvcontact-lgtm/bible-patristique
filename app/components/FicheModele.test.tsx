@@ -59,9 +59,10 @@ describe('l’en-tête et le cadre', () => {
   })
 
   it('le titre porte l’identifiant qui nomme la fenêtre', () => {
-    const html = renderToStaticMarkup(<EnTeteFiche surtitre="À propos de cet auteur" titre="Augustin" titreId="fiche-titre" />)
+    const html = renderToStaticMarkup(<EnTeteFiche titre="Augustin" titreId="fiche-titre" sousTitre="Aurelius Augustinus" />)
     expect(html).toContain('<h2 id="fiche-titre" class="cs-fiche-titre">Augustin</h2>')
-    expect(html.indexOf('À propos de cet auteur')).toBeLessThan(html.indexOf('Augustin'))
+    // ⛔ Le nom OUVRE la fiche : plus de surtitre au-dessus de lui (2026-09-20).
+    expect(html.indexOf('Augustin<')).toBeLessThan(html.indexOf('Aurelius'))
   })
 
   it('le cadre ne se rend pas hors du navigateur', () => {

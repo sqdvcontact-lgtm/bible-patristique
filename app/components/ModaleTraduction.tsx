@@ -372,7 +372,7 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
                 <BoutonCopierTexte texte={referenceACopier} titre="Copier la référence"
                   className="cs-fiche-copier cs-cible-fine" />
               ) : null}>
-              <dl className="cs-fiche-edition-champs">
+              <dl className="cs-fiche-champs">
                 <ChampFiche libelle="Titre" italique>{enProse(i.titre_edition)}</ChampFiche>
                 <ChampFiche libelle="Sous-titre" italique>{enProse(i.sous_titre_edition)}</ChampFiche>
                 <ChampFiche libelle="Édition">{mentionEdition}</ChampFiche>

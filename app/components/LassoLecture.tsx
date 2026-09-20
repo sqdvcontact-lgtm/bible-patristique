@@ -524,9 +524,10 @@ export default function LassoLecture(props: LassoLectureProps) {
           aucun pointeur — le geste continue dessous. */}
       {refus && (
         <div className="cs-lasso-alarme" style={{ zIndex: Z_FLOTTANT, ...cadreDuCri }} role="alert" aria-live="assertive">
-          {/* ⛔ LA PLAQUE est du PAPIER, non une carte : elle efface le texte sous le
-              message, et son bord se fond. Sans elle, le petit texte se lisait sur la
-              page qu'il couvrait, et ne se lisait pas. */}
+          {/* ⛔ LA PLAQUE est du VERRE DÉPOLI : elle ne couvre pas la page, elle la
+              brouille — la couleur et le grain restent, les mots se défont. Sans elle, le
+              petit texte se lisait sur la page qu'il couvrait, et ne se lisait pas ; avec
+              une pastille opaque, on voyait un ovale blanc posé dessus (globals.css). */}
           <div className="cs-lasso-alarme-plaque">
             <span className="cs-lasso-alarme-cri">{refus.titre}</span>
             {refus.detail && <span className="cs-lasso-alarme-detail">{refus.detail}</span>}

@@ -3077,24 +3077,41 @@ html[data-lasso-geste] * {
   font-style: normal;
   color: var(--cs-danger-fonce);
 }
-/* ⛔ LA PLAQUE EST DU PAPIER, JAMAIS UNE CARTE. Le halo de texte ne suffisait pas : il
-   hugge les glyphes et laisse la page paraître entre les mots — mesuré sur la lecture en
-   regard, l'écart-type du fond entre deux lignes du message valait 48 au Clair et 57 en
-   Cuir, c'est-à-dire du texte sous du texte ; avec la plaque, ZÉRO.
-   ⛔ Un fondu RADIAL ne suffit pas non plus, et sa géométrie le dit : l'ellipse opaque
-   n'enferme pas les coins d'un bloc de texte large (coins mesurés à ±40). La plaque est
-   donc une PASTILLE pleine, dont l'ombre de même encre fond le bord — aucune arête, et
-   l'on ne voit pas une carte posée sur la page, mais la page rendue au blanc. */
+/* ⛔ LA PAGE SE BROUILLE, ELLE NE SE COUVRE PLUS (demande de l'auteur, 2026-09-20 :
+   « c'est pas beau, ce fond blanc »). La plaque fut d'abord une PASTILLE PLEINE de
+   `--cs-fond` : elle rendait le message lisible — le halo de texte, lui, hugge les
+   glyphes et laisse la page paraître entre les mots (écart-type du fond entre deux
+   lignes : 48 au Clair, 57 en Cuir ; avec la pastille, ZÉRO) —, mais on voyait un grand
+   ovale blanc posé sur le texte.
+   ⛔ Ce qu'il fallait n'était pas d'EFFACER la page, mais de la rendre ILLISIBLE sous le
+   message : un flou de dix pixels défait les mots sans rien couvrir, la page garde sa
+   couleur et son grain, et l'on lit le cri sur un verre dépoli. Le VOILE reste nécessaire
+   par-dessus — un flou seul garde la luminance de ce qu'il défait, et le cri se lirait
+   sur des taches.
+   ⛔ Un fondu RADIAL reste exclu, et sa géométrie le dit : l'ellipse n'enferme pas les
+   coins d'un bloc de texte large (coins mesurés à ±40). Le bord est donc FRANC, mais
+   c'est un bord de verre : un filet d'encre du refus, et l'ombre posée du site.
+   ⚠️ Repli pour qui ne sait pas filtrer son fond : la pastille d'avant, à l'identique. */
 .cs-lasso-alarme-plaque {
   display: flex;
   flex-direction: column;
   align-items: center;
   /* ⚠️ Le détail se serre SOUS le cri : c'est la même phrase, non un second bloc. */
   gap: 0.25rem;
-  padding: 1.25rem 2.25rem;
-  border-radius: 999px;
-  background: var(--cs-fond);
-  box-shadow: 0 0 3rem 1.5rem var(--cs-fond);
+  padding: 1.15rem 2rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--cs-fond) 74%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(0.92);
+  backdrop-filter: blur(10px) saturate(0.92);
+  box-shadow: inset 0 0 0 1px rgba(var(--cs-danger-rgb), 0.22), var(--cs-ombre-flottante);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .cs-lasso-alarme-plaque {
+    padding: 1.25rem 2.25rem;
+    border-radius: 999px;
+    background: var(--cs-fond);
+    box-shadow: 0 0 3rem 1.5rem var(--cs-fond);
+  }
 }
 /* ⚠️ Le corps est RELATIF à la fenêtre : le cri doit tenir sur un portable comme sur un
    grand écran, et il est fait pour être vu, non lu deux fois. */
@@ -4169,6 +4186,16 @@ main.lecture-entree [data-cs-bloc],
 .cs-fiche-complement > * + * { margin-top: 22px; }
 
 .cs-fiche-principal > * + * { margin-top: 14px; }
+/* ── La fiche d'un AUTEUR prend le rythme des deux autres ── Ses blocs s'écartent de
+   22 px comme ceux d'une œuvre, et non de 14 (demande de l'auteur, 2026-09-20 :
+   « reprendre le modèle des notices bible et œuvre ») : sous un en-tête devenu sobre,
+   quatorze pixels ne distinguaient plus une section de la prose qu'elle suit.
+   ⚠️ ET L'ANECDOTE PREND PLUS DE BLANC ENCORE : elle n'a pas de titre, et c'est le blanc,
+   seul, qui dit qu'on y change de voix.
+   ⛔ Ces deux règles vivent AVANT celle du portrait : à spécificité égale, la dernière
+   écrite l'emporte, et l'en-tête reprendrait sinon une marge en haut du portrait. */
+.cs-fiche-auteur .cs-fiche-principal > * + * { margin-top: 22px; }
+.cs-fiche-auteur .cs-fiche-principal > .cs-fiche-anecdote { margin-top: 30px; }
 .cs-fiche-principal > .cs-fiche-portrait + * { margin-top: 0; }
 /* Une section qui ferme la colonne reprend la mesure sous le portrait, jamais à côté. */
 .cs-fiche-section--degagee { clear: left; }
@@ -4329,19 +4356,12 @@ main.lecture-entree [data-cs-bloc],
   color: var(--cs-or-doux);
 }
 
-/* ── L'en-tête ── Le surtitre, le nom, une ligne en italique, une ligne de crédit, les
-   repères. ⚠️ Les lignes de second rang prennent `--cs-texte-second` : elles portent
-   seules ce qu'elles disent, et le seuil de 4,5 s'applique. */
+/* ── L'en-tête ── Le nom, une ligne en italique, une ligne de crédit. Ce qui SITUE —
+   dates, langue, traditions, genres — n'y paraît plus : il se range en champs sous
+   l'en-tête (`.cs-fiche-identite`). ⚠️ Les lignes de second rang prennent
+   `--cs-texte-second` : elles portent seules ce qu'elles disent, et le seuil de 4,5
+   s'applique. */
 .cs-fiche-entete > :first-child { margin-top: 0; }
-.cs-fiche-surtitre {
-  margin: 0 0 5px;
-  font-family: var(--font-source-sans), Arial, sans-serif;
-  font-size: 0.53125rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--cs-vert);
-}
 .cs-fiche-titre {
   margin: 0;
   font-family: var(--font-source-serif), Georgia, serif;
@@ -4365,34 +4385,6 @@ main.lecture-entree [data-cs-bloc],
   line-height: 1.3;
   color: var(--cs-texte-second);
 }
-.cs-fiche-reperes {
-  margin: 8px 0 0;
-  font-family: var(--font-source-sans), Arial, sans-serif;
-  font-size: 0.59375rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  line-height: 1.4;
-  color: var(--cs-texte-second);
-}
-
-/* ── LES MATIÈRES ── Ce dont l'auteur, l'œuvre ou la traduction RELÈVE : traditions,
-   écoles, genres. Une seconde ligne, sous les repères.
-   ⛔ Elles ne montent PAS dans la ligne de repères, qui SITUE — des dates, une langue,
-   deux ou trois mots. Augustin y versait cinq traditions de plus, et la fiche ouvrait
-   sur TROIS LIGNES de capitales espacées où tout avait le même poids : la date de sa
-   mort s'y lisait comme « augustinisme » (relevé de l'auteur, 2026-09-20, « doit être
-   revu pour plus de clarté »).
-   ⚠️ Le BAS DE CASSE est le geste, non la taille : une capitale est une étiquette, et
-   l'on n'étiquette pas six fois de suite. Les termes sont stockés composés (« Patristique
-   latine ») ; rien ne les transforme ici. */
-.cs-fiche-matieres {
-  margin: 5px 0 0;
-  font-family: var(--font-source-sans), Arial, sans-serif;
-  font-size: 0.625rem;
-  line-height: 1.45;
-  color: var(--cs-texte-gris);
-}
-
 /* Un nom qui ouvre une autre fiche : l'encre des liens, le soulignement au survol. */
 .cs-fiche-lien {
   padding: 0;
@@ -4429,6 +4421,8 @@ main.lecture-entree [data-cs-bloc],
 }
 
 /* ── La fiche d'une œuvre : les données rapprochées, les sections écartées ──────
+   ⚠️ `.cs-fiche-tete`, `.cs-fiche-identite` et `.cs-fiche-champ` ne sont plus à elle :
+   la fiche d'un auteur y range ses dates, sa langue et ses traditions (2026-09-20).
    Les repères de l'œuvre montent sous le titre ; les données de l'édition s'écrivent
    « libellé : valeur » sans colonne fixe, afin que chaque valeur reste près de ce qui
    la nomme.
@@ -4451,9 +4445,9 @@ main.lecture-entree [data-cs-bloc],
   letter-spacing: 0.01em;
   color: var(--cs-texte);
 }
-.cs-fiche-edition-tete .cs-fiche-entete { margin: 0; }
-.cs-fiche-edition-identite,
-.cs-fiche-edition-champs {
+.cs-fiche-tete .cs-fiche-entete { margin: 0; }
+.cs-fiche-identite,
+.cs-fiche-champs {
   margin: 0;
   padding: 0;
 }
@@ -4468,14 +4462,14 @@ main.lecture-entree [data-cs-bloc],
    `flow-root` en fait un contexte de formatage, qui se range entier à côté du flottant
    et reprend la pleine mesure sous lui — c'est déjà la règle de `.cs-fiche-rubrique-tete`.
    ⚠️ Il reste de niveau BLOC : une donnée par ligne, comme ci-dessus. */
-.cs-fiche-edition-identite {
+.cs-fiche-identite {
   display: flow-root;
   margin-top: 9px;
   padding-top: 8px;
   border-top: 1px solid var(--cs-fond-doux);
 }
-.cs-fiche-edition-identite .cs-fiche-edition-champ + .cs-fiche-edition-champ { margin-top: 3px; }
-.cs-fiche-edition-champ {
+.cs-fiche-identite .cs-fiche-champ + .cs-fiche-champ { margin-top: 3px; }
+.cs-fiche-champ {
   display: flex;
   align-items: baseline;
   gap: 5px;
@@ -4485,19 +4479,19 @@ main.lecture-entree [data-cs-bloc],
   font-size: 0.71875rem;
   line-height: 1.34;
 }
-.cs-fiche-edition-champ dt {
+.cs-fiche-champ dt {
   flex: 0 0 auto;
   margin: 0;
   font-size: 0.65625rem;
   font-weight: 600;
   color: var(--cs-texte-second);
 }
-.cs-fiche-edition-champ dd {
+.cs-fiche-champ dd {
   min-width: 0;
   margin: 0;
   color: var(--cs-texte);
 }
-.cs-fiche-edition-identite .cs-fiche-edition-champ { padding: 0; }
+.cs-fiche-identite .cs-fiche-champ { padding: 0; }
 .cs-fiche-edition .cs-notice-prose { line-height: 1.44; }
 /* La référence à citer : une PHRASE, qui prend toute la mesure. Le geste de copie ne
    la borde plus, il se tient contre le titre de la section (`.cs-fiche-copier`). */

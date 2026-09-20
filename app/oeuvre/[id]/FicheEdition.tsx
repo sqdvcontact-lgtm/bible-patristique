@@ -145,7 +145,7 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
     <div className="cs-fiche-edition">
       <CorpsFiche
         entete={
-          <div className="cs-fiche-edition-tete">
+          <div className="cs-fiche-tete">
             {/* ⛔ AUCUN SURTITRE (décision de l'auteur, 2026-09-20) : la fenêtre s'appelle
                 déjà « À propos de cette édition » — son nom accessible le dit —, et
                 l'écrire au-dessus du titre de l'œuvre ne l'apprenait à personne. */}
@@ -153,7 +153,7 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
               sousTitre={oeuvre.sous_titre ? rendreTexteEnrichi(oeuvre.sous_titre) : null}
               ligne={auteursLigne} />
             {(oeuvre.titre_original || oeuvre.genres?.length || langueOriginale || dateComposition) ? (
-              <dl className="cs-fiche-edition-identite" aria-label="Repères sur l’œuvre">
+              <dl className="cs-fiche-identite" aria-label="Repères sur l’œuvre">
                 <ChampFiche libelle="Titre original" italique>{oeuvre.titre_original}</ChampFiche>
                 <ChampFiche libelle={`Genre${(oeuvre.genres?.length ?? 0) > 1 ? 's' : ''}`}>
                   {oeuvre.genres?.length ? oeuvre.genres.join(', ') : null}
@@ -176,7 +176,7 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
           <SectionFiche titre="Édition de référence">
             {/* ⛔ Pas de dépli : ces rangées SONT le sujet d'une fiche qui s'appelle « À
                 propos de cette édition ». */}
-            <dl className="cs-fiche-edition-champs">
+            <dl className="cs-fiche-champs">
               <ChampFiche libelle="Langue">{langue || null}</ChampFiche>
               <ChampFiche libelle="Traduction">
                 {traduction ? `${traduction}${oeuvre.trad_date ? ` (${formaterDateHistorique(oeuvre.trad_date)})` : ''}` : null}

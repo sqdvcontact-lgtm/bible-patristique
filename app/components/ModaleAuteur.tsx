@@ -15,7 +15,8 @@ import { useEffect, useId, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 
 import {
-  CorpsFiche, EnTeteFiche, ModaleFiche, PortraitFiche, SectionFiche, TitreSection, useColonneCommune,
+  ChampFiche, CorpsFiche, EnTeteFiche, ModaleFiche, PortraitFiche, SectionFiche, TitreSection,
+  useColonneCommune,
 } from '@/app/components/FicheModele'
 import HistoricalDate from '@/app/components/HistoricalDate'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
@@ -346,13 +347,14 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
 }) {
   const listeOeuvresRef = useRef<HTMLUListElement>(null)
   const datesAuteur = espacerIntervallesHistoriques(formaterDateHistorique(auteur.dates))
-  // ⛔ DEUX LIGNES. Les REPÈRES situent l'homme — ses dates, sa langue — et prennent la
-  // capitale, qui est une étiquette. Les MATIÈRES disent ce dont il relève, et restent en
-  // bas de casse : on n'étiquette pas six traditions de suite. Tout tenait auparavant sur
-  // la seule ligne de repères, qui ouvrait la fiche d'Augustin sur trois lignes de
-  // capitales espacées où rien ne pesait plus que le reste.
-  const reperes = [datesAuteur, libelleLangue(auteur.langue_principale)].filter(Boolean).join(' · ')
-  const matieres = (auteur.traditions ?? []).filter(Boolean).join(' · ')
+  // ⛔ LES REPÈRES SE RANGENT EN CHAMPS, comme sur la fiche d'une œuvre et sur celle
+  // d'une bible : « libellé : valeur », une donnée par ligne (demande de l'auteur,
+  // 2026-09-20 : « ça fait merdier »). Ils tenaient sur deux lignes de capitales
+  // espacées, séparées de points médians, et l'on y lisait « Vers 160 · Latin » d'un
+  // trait, sans que rien dise ce que chaque mot était.
+  const langueAuteur = libelleLangue(auteur.langue_principale)
+  const traditions = (auteur.traditions ?? []).filter(Boolean)
+  const aReperes = Boolean(datesAuteur || langueAuteur || traditions.length > 0)
 
   // L'ordre et la colonne des dates viennent de `listeOeuvresAuteur` (charte § 38.33.1) :
   // les œuvres datées d'abord, puis les périodes, puis les mentions qu'on ne sait pas
@@ -373,6 +375,7 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
 
   return (
     <CorpsFiche
+      className="cs-fiche-auteur"
       portrait={
         <PortraitFiche
           src={`${SUPABASE_URL}/storage/v1/object/public/auteurs/${auteur.id_auteur}.jpg`}
@@ -381,10 +384,24 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
           cle={`${auteur.id_auteur}·${auteur.nom}`} />
       }
       entete={
-        <EnTeteFiche surtitre="À propos de cet auteur" titre={auteur.nom} titreId={titreId}
-          sousTitre={auteur.nom_original}
-          reperes={reperes ? rendreSiecles(reperes) : null}
-          matieres={matieres ? rendreSiecles(matieres) : null} />
+        /* ⛔ AUCUN SURTITRE (décision de l'auteur, 2026-09-20) : la fenêtre s'appelle déjà
+           « À propos de cet auteur » — son nom accessible le dit —, et l'écrire au-dessus
+           du nom ne l'apprenait à personne. Les deux autres fiches s'en étaient déjà
+           défaites ; celle-ci reprend leur modèle jusqu'au bout. */
+        <div className="cs-fiche-tete">
+          <EnTeteFiche titre={auteur.nom} titreId={titreId} sousTitre={auteur.nom_original} />
+          {aReperes ? (
+            <dl className="cs-fiche-identite" aria-label="Repères sur l’auteur">
+              <ChampFiche libelle="Dates">{datesAuteur ? rendreSiecles(datesAuteur) : null}</ChampFiche>
+              <ChampFiche libelle="Langue">{langueAuteur || null}</ChampFiche>
+              {/* Les traditions se séparent d'une virgule, non d'un point médian : c'est
+                  une énumération, et elle est déjà nommée par son libellé. */}
+              <ChampFiche libelle={`Tradition${traditions.length > 1 ? 's' : ''}`}>
+                {traditions.length > 0 ? rendreSiecles(traditions.join(', ')) : null}
+              </ChampFiche>
+            </dl>
+          ) : null}
+        </div>
       }
       complement={evenements.length > 0 ? (
         <SectionFiche titre="Chronologie"><FriseAuteur evenements={evenements} /></SectionFiche>
