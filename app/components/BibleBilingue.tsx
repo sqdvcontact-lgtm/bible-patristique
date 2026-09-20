@@ -43,6 +43,7 @@ import {
 import {
   appelsDeLaCellule,
   apparierRangees,
+  cleDeCelluleBilingue,
   colonnesBilingues,
   gloseSansVisAVis,
   rangeesNonVides,
@@ -340,6 +341,13 @@ export default function BibleBilingue({
                 const membre = colonnesOrdonnees[index].membre
                 if (glose && cellule === null) return null
                 const original = membre.memberRole === 'source_text'
+                // ⛔ LE LASSO NE PREND QU'UN VERSET QUI PORTE DU TEXTE DANS CETTE COLONNE,
+                // et jamais une glose : elle n'a pas de créneau, donc aucun numéro sous
+                // lequel s'enregistrer (charte § 15.4). Un créneau qu'une édition ne porte
+                // pas reste hors du lasso : il n'y a rien à copier.
+                const cleLasso = !glose && !cellule?.glose && cellule !== null && cellule.texte.trim() !== ''
+                  ? cleDeCelluleBilingue(membre.translationId, rangee.canonId)
+                  : undefined
                 const appels = appelsDeLaCellule(notesRetenues, rangee, index, membre.id)
                 // ⛔ Un appel se pose à l'ANCRE que la donnée déclare ; sans ancre lisible, il suit le texte.
                 const repartition = repartirAppels(cellule?.texte ?? '', appels, false)
@@ -348,6 +356,7 @@ export default function BibleBilingue({
                     key={membre.id}
                     lang={membre.languageCode}
                     data-membre={membre.id}
+                    data-lasso-cellule={cleLasso}
                     style={seule ? { minWidth: 0, gridColumn: '1 / -1' } : { minWidth: 0 }}
                   >
                     {cellule === null ? (appels.length === 0 ? (

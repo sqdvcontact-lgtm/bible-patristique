@@ -10,7 +10,8 @@ import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin"
 import { useCompte } from "@/app/lib/contexteCompte"
 import { useSansSurvol } from "@/app/lib/useEstMobile"
 import { citationBiblique, copierCitation } from "@/app/lib/citation"
-import { referenceDesVersets, texteDesVersets } from "@/app/lib/selectionPassages"
+import { usePrelevementsDuChapitre } from "@/app/lib/prelevementsBibliques"
+import { referenceDesVersets, texteDesVersets, UNITE_VERSETS } from "@/app/lib/selectionPassages"
 import LassoLecture from '@/app/components/LassoLecture'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
@@ -59,10 +60,6 @@ import {
 // cinq surfaces, qu'il vive dans la gouttière d'un verset, dans le pavé flottant du
 // doigt ou dans la cellule d'actions d'un segment.
 const VERSET_ACTION_BTN = STYLE_BOUTON_ACTION
-
-/** Ce que le lasso compte sur cette page. */
-const UNITE_VERSETS = ['verset', 'versets'] as const
-
 
 type Verset = {
   id_verset: string; ref: string; livre: string
@@ -440,7 +437,9 @@ export default function TexteBible({
   const sansSurvol = useSansSurvol()
   const [editionCible, setEditionCible] = useState<Verset | null>(null)
   const [overrides, setOverrides] = useState<Record<string, Partial<Record<string, string>>>>({})
-  const [sauvegardes, setSauvegardes] = useState<Map<number, string>>(new Map())
+  // ⛔ Le chargement des prélèvements du chapitre vit dans `prelevementsBibliques.ts` : la
+  // lecture en regard le partage, et deux copies divergeraient au premier réglage.
+  const [sauvegardes, setSauvegardes] = usePrelevementsDuChapitre(userId, livreActif, chapitreActif)
   const searchParams = useSearchParams()
   // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui
   // allume la marque au centre de la lecture tant que la page se prépare.
@@ -515,29 +514,6 @@ export default function TexteBible({
       }, 200)
     }
   }, [searchParams, versets, setVersetSelectionne])
-
-  // Les prélèvements du chapitre, et eux seuls, dépendent du chapitre : ils sont
-  // désormais rechargés à part, au lieu d'entraîner avec eux la session et les droits.
-  useEffect(() => {
-    // Rien à effacer sans session : les signets ne sont rendus que sous `userId`.
-    if (!userId) return
-    let vivant = true
-    const abr = ABREV_FR[livreActif] || livreActif
-    supabase
-      .from('prelevements')
-      .select('id, ref_verset')
-      .eq('user_id', userId)
-      .eq('type', 'biblique')
-      .eq('ref_livre_abr', abr)
-      .eq('ref_chapitre', chapitreActif)
-      .then(({ data }) => {
-        if (!vivant) return
-        const m = new Map<number, string>()
-        ;(data ?? []).forEach((r: { ref_verset: number; id: string }) => m.set(r.ref_verset, r.id))
-        setSauvegardes(m)
-      })
-    return () => { vivant = false }
-  }, [userId, livreActif, chapitreActif])
 
   const marquerSauvegarde = (numVerset: number, id: string) => {
     setSauvegardes(prev => new Map([...prev, [numVerset, id]]))

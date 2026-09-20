@@ -25,7 +25,7 @@ import { createPortal } from 'react-dom'
 import { supabase } from "@/app/lib/supabase"
 import type { ChampTitre, SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, NoteStructuree, VersionTextuelle } from './oeuvreTypes'
 import type { BlocOriginal } from './bilingueAlignement'
-import { repartirGroupes, chargerProjectionBilingue, chargerPlaceEnRegard, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, type BlocEnRegard } from './bilingueAlignement'
+import { repartirGroupes, chargerProjectionBilingue, chargerPlaceEnRegard, fondreOriginaux, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, type BlocEnRegard } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
 import { ALIGNEMENT_ACTIONS, BoutonVolet, MenuVolet, STYLE_RANGEE_TETE_VOLET, TitreVolet, useRangeeCondensee, type ActionVolet } from './TeteVolet'
 import { construireNavigationApparat } from './apparatNavigation'
@@ -58,9 +58,9 @@ import { bornerGuillemets } from '@/app/lib/guillemets'
 import { effacerTiretsDeBordure } from '@/app/lib/tirets'
 import { CelluleActions, useCelluleActions } from '@/app/components/CelluleActions'
 import LassoLecture from '@/app/components/LassoLecture'
-import { citationsDeLaSelection } from '@/app/lib/lasso'
+import { citationsDeLaSelection, colonnesTouchees } from '@/app/lib/lasso'
 import { AUCUN_TITRE_MONTRE, passagesQuiOuvrentUnTitre, titresDuGroupe, type NiveauxDuPassage, type ReglageDesTitres } from '@/app/lib/titresDeDivision'
-import { texteDesSuites } from '@/app/lib/selectionPassages'
+import { texteDesSuites, UNITE_PASSAGES } from '@/app/lib/selectionPassages'
 import { citationPatristique, copierCitation } from '@/app/lib/citation'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import {
@@ -584,9 +584,6 @@ const TETE_RUBRIQUE: React.CSSProperties = { flexShrink: 0, display: 'flex', ali
 
 type OngletDroit = 'refs' | 'commentaires' | 'notes'
 
-/** Ce que le lasso compte sur cette page. */
-const UNITE_PASSAGES = ['passage', 'passages'] as const
-
 export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, fleuron = null, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
   const { visiteFaite, oublierVisite, profilPret, exigerCompte } = useCompte()
@@ -923,6 +920,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // une colonne tirée du repli `segments.texte_original` n'est pas une autre édition,
   // c'est la même qui porte son original avec elle, et il n'y a rien de plus à nommer.
   const versionEnRegard = affichageBilingue && ensembleBilingue && idTexteEnRegard
+    ? versionsTextuelles.find(version => version.idTexte === idTexteEnRegard) ?? null
+    : null
+  // ⛔ L'ÉDITION DE L'ORIGINAL, quand c'en est une autre : une citation nomme l'édition du
+  // passage (charte § 5.5.1), et le latin est une édition à part entière. ⚠️ `versionEnRegard`
+  // ne vaut que sous la lecture EN REGARD, parce que la page de titre ne nomme deux éditions
+  // que là ; le latin lu SEUL demande pourtant la même version.
+  const versionDeLOriginal = ensembleBilingue && idTexteEnRegard
     ? versionsTextuelles.find(version => version.idTexte === idTexteEnRegard) ?? null
     : null
   const afficherOriginalSeul = modeTexteEffectif === 'la'
@@ -3169,11 +3173,65 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // colonne française est masquée.
   // ⚠️ La clé est l'identifiant du segment, lu dans la poignée « segment-<id> » que la
   // page pose déjà pour viser un passage.
-  const lassoActif = !mobile && !sansSurvol && vue === 'texte' && !modeComparaisonActif && !afficherOriginalSeul
+  // ⚠️ Le latin SEUL se sélectionne lui aussi : c'est un texte à part entière, et la colonne
+  // française y est simplement masquée — ses boîtes rendent zéro, le lasso ne la mesure donc
+  // pas. Restent hors du lasso l'apparat et la comparaison, où rien ne s'enregistre.
+  const lassoActif = !mobile && !sansSurvol && vue === 'texte' && !modeComparaisonActif
   const segmentsDuLasso = (cles: readonly string[]) => {
     const parCle = new Map(segments.map(s => [String(s.id), s]))
     return cles.map(cle => parCle.get(cle)).filter((s): s is SegData => s !== undefined)
   }
+
+  // ── LE LASSO SUR LE TEXTE ORIGINAL ─────────────────────────────────────────
+  // ⛔ LA CLÉ EST CELLE DU BLOC, non d'un segment latin : la colonne originale se compose
+  // par EMPAN (`originalDuBloc`), un empan réunit plusieurs segments, et c'est le bloc que
+  // le lecteur voit et que le lasso touche. Elle porte le premier segment FRANÇAIS du
+  // bloc, ce qui lui donne du même coup sa place dans l'ordre des titres.
+  const PREFIXE_ORIGINAL = 'original-'
+  const estCleOriginal = (cle: string) => cle.startsWith(PREFIXE_ORIGINAL)
+  // ⛔ CE QU'ON COPIE EST LE TEXTE CANONIQUE, jamais ce que la page compose : celle-ci rend
+  // `affichage`, où les appels de note sont matérialisés. La SOURCE posée sur le document
+  // ne dit donc qu'OÙ retrouver le texte — les groupes d'alignement, ou le segment qui
+  // porte la copie de repli (`segments.texte_original`).
+  const marqueDeLOriginal = (chunk: BlocEnRegard<number>, segs: readonly SegData[]): Record<string, string> => {
+    const cle = chunk.ids.length > 0 ? `${PREFIXE_ORIGINAL}${chunk.ids[0]}` : null
+    if (!cle) return {}
+    if (chunk.groupes.length > 0 && fondreOriginaux(chunk.groupes, blocsOriginalEtat)) {
+      return { 'data-lasso-original': cle, 'data-lasso-source': `g ${chunk.groupes.join(' ')}` }
+    }
+    const seg = segs.find(s => Boolean(s.texteOriginal?.trim()))
+    return seg ? { 'data-lasso-original': cle, 'data-lasso-source': `s ${seg.id}` } : {}
+  }
+  const texteDeLaSource = (source: string, parCle: Map<string, SegData>) => {
+    const [sorte, ...reste] = source.split(' ')
+    if (sorte === 'g') {
+      const fondu = fondreOriginaux(reste, blocsOriginalEtat)
+      return fondu ? { texte: fondu.texte, joinBefore: fondu.joinBefore } : null
+    }
+    if (sorte === 's') {
+      const texte = parCle.get(reste[0] ?? '')?.texteOriginal
+      return texte ? { texte, joinBefore: null } : null
+    }
+    return null
+  }
+
+  // ⛔ UNE CITATION NE MÊLE PAS DEUX LANGUES (demande de l'auteur, 20 septembre 2026) : en
+  // lecture en regard, un lasso tiré en travers prend la traduction ET son original, et le
+  // passage qu'on copierait n'existe nulle part.
+  const refusDuLasso = (cles: readonly string[]) => {
+    const colonnes = colonnesTouchees(cles, cle => (estCleOriginal(cle) ? 'original' : 'traduction'))
+    if (colonnes.length < 2) return null
+    return {
+      titre: 'Une seule colonne à la fois',
+      detail: 'Le lasso tient la traduction et le texte original ensemble ; reprenez le geste dans une seule colonne.',
+    }
+  }
+
+  // ⛔ LE TEXTE ORIGINAL NE S'ENREGISTRE PAS ENCORE : un prélèvement vise un SEGMENT
+  // (`prelevements.segment_id` et `id_texte`), et un empan de la colonne originale n'en est
+  // pas un. On le copie, et la barre n'offre donc que « Copier » — mieux vaut une action de
+  // moins qu'un bouton qui rendrait « 0 passage enregistré ».
+  const lassoEnregistrable = (cles: readonly string[]) => !cles.some(estCleOriginal)
 
   const enregistrerLasso = async (cles: readonly string[]): Promise<number | null> => {
     if (!exigerCompte('enregistrer ces passages') || !userId) return null
@@ -3218,7 +3276,50 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // les arguments hissés en tête d'abord.
   // ⛔ Et une citation ne passe jamais un titre (charte § 38.8.1) : le passage qui ouvre un
   // titre que la page compose commence une autre citation, sous la même référence.
+  // ⚠️ L'ORDRE des empans originaux se lit dans le DOCUMENT : la colonne se compose bloc par
+  // bloc au fil du rendu, et il n'existe hors de la page aucune liste de ses empans. C'est
+  // la lecture même que le lasso fait pour mesurer ses cibles.
+  const copierLassoOriginal = async (cles: readonly string[]) => {
+    const zone = mainRef.current
+    if (!zone) return
+    const sources = new Map<string, string>()
+    const ordre: string[] = []
+    for (const element of Array.from(zone.querySelectorAll<HTMLElement>('[data-lasso-original]'))) {
+      const cle = element.getAttribute('data-lasso-original')
+      const source = element.getAttribute('data-lasso-source')
+      if (!cle || !source) continue
+      ordre.push(cle)
+      sources.set(cle, source)
+    }
+    const parCle = new Map(segments.map(s => [String(s.id), s]))
+    // ⛔ Un titre coupe la citation de l'original comme celle de la traduction (charte
+    // § 38.8.1) : la clé d'un empan porte le premier segment français de son bloc, et c'est
+    // lui que la page compose sous le titre.
+    const ouvrentUnTitre = new Set([...passagesQuiOuvrentUnTitre(groupesFiltres, titresAuDepart, reglageDesTitres,
+      id => segMap.get(id)?.nature !== 'introduction')].map(String))
+    const textes = citationsDeLaSelection(
+      cles.filter(cle => sources.has(cle)),
+      ordre,
+      cle => ouvrentUnTitre.has(cle.slice(PREFIXE_ORIGINAL.length)),
+    )
+      .map(citation => texteDesSuites(citation.map(suite => suite
+        .map(cle => texteDeLaSource(sources.get(cle) ?? '', parCle))
+        .filter((morceau): morceau is { texte: string; joinBefore: string | null } => morceau !== null))))
+      .filter(texte => texte !== '')
+    if (textes.length === 0) return
+    const oeuvreDeLOriginal = versionDeLOriginal ? oeuvrePourVersion(versionDeLOriginal) : oeuvreAffichee
+    await copierCitation(citationPatristique(textes, {
+      auteur, titre: oeuvreDeLOriginal.titre, sousTitre: oeuvreDeLOriginal.sous_titre,
+      tradAuteur: oeuvreDeLOriginal.trad_auteur, editeur: oeuvreDeLOriginal.editeur,
+      collection: oeuvreDeLOriginal.collection, ville: oeuvreDeLOriginal.ville,
+      datePublication: oeuvreDeLOriginal.date_publication,
+      responsable: (versionDeLOriginal ?? versionActive)?.responsableEdition,
+    }))
+  }
+
   const copierLasso = async (cles: readonly string[]) => {
+    // La colonne ORIGINALE a sa propre citation : son édition, son ordre, ses liants.
+    if (cles.length > 0 && cles.every(estCleOriginal)) return copierLassoOriginal(cles)
     const parCle = new Map(segments.map(s => [String(s.id), s]))
     const ordre = [...new Set([...introsEnTete, ...segmentsFiltres].map(s => String(s.id)))]
     const ouvrentUnTitre = new Set([...passagesQuiOuvrentUnTitre(groupesFiltres, titresAuDepart, reglageDesTitres,
@@ -4171,6 +4272,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 const segs = bloc.ids.map(id => introParId.get(id)).filter((s): s is SegData => Boolean(s))
                 if (segs.length === 0) return null
                 const original = originalDuBloc(bloc)
+                // La colonne originale d'un argument se sélectionne comme celle du corps.
+                const marqueOriginal = marqueDeLOriginal(bloc, segs)
                 // ⛔ La GRILLE se garde même sans original à composer, dès lors que
                 // l'alignement COUVRE le bloc : un argument dont l'empan est composé plus
                 // haut ne reprend pas toute la largeur au milieu d'une page en regard.
@@ -4196,7 +4299,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     {contenu}
                     {enRegardTexte && original && (
                       originalEnVers ? (
-                        <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original"
+                        <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original" {...marqueOriginal}
                           style={styleColonneOriginale({ surface: 'argument', seul: afficherOriginalSeul, grec: estGrec, vers: true })}>
                           {lignesDeVers(original.affichage).map((ligne, i) => (
                             <span key={i} style={styleLigneDeVers({ rang: 0 })}>
@@ -4205,7 +4308,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           ))}
                         </div>
                       ) : (
-                        <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original"
+                        <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original" {...marqueOriginal}
                           style={styleColonneOriginale({ surface: 'argument', seul: afficherOriginalSeul, grec: estGrec })}>
                           {rendreTexteAvecNotes(estGrec ? cesurerGrec(original.affichage) : cesurerLatin(normaliserEspacesOriginal(original.affichage)), original.notes)}
                         </p>
@@ -4352,6 +4455,12 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       le poème se refait. */}
                   {blocsDeLecture(itemsReels).map((chunk, iBloc, blocs) => {
                     const original = originalDuBloc(chunk)
+                    // ⛔ Le lasso prend la colonne originale comme il prend le français : la
+                    // clé du bloc, et la SOURCE de son texte canonique (voir plus haut).
+                    const marqueOriginal = marqueDeLOriginal(
+                      chunk,
+                      chunk.ids.map(sid => segMap.get(sid)).filter((s): s is SegData => Boolean(s)),
+                    )
                     // ⛔ La GRILLE se garde même sans original à composer, dès lors que
                     // l'alignement couvre le bloc : un paragraphe dont l'empan est
                     // composé plus haut ne reprend pas toute la largeur au milieu d'une
@@ -4534,7 +4643,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                              ⚠️ Pas de rang d'alinéa ici : la source ne mesure l'indentation
                              que du texte TRADUIT. On ne pose donc que l'alinéa de base, et
                              le retrait de suite, qui appartiennent à la composition. */
-                          <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={styleColonneOriginale({ surface: 'lecture', seul: afficherOriginalSeul, grec: estGrec, vers: true })}>
+                          <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original" {...marqueOriginal} style={styleColonneOriginale({ surface: 'lecture', seul: afficherOriginalSeul, grec: estGrec, vers: true })}>
                             {lignesDeVers(original.affichage).map((ligne, i) => (
                               <span key={i} style={{ display: 'block', lineHeight: 1.4, marginLeft: `${retraitVers(0)}em`, paddingLeft: `${RETRAIT_SUITE}em`, textIndent: `-${RETRAIT_SUITE}em`, hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
                                 {rendreTexteAvecNotes(estGrec ? cesurerGrec(ligne) : cesurerLatin(normaliserEspacesOriginal(ligne)), original.notes)}
@@ -4546,7 +4655,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         // français (mêmes taille et teinte). La langue de l'original commande la
                         // césure (latine ou grecque) et l'attribut `lang` : un texte grec composé
                         // avec le syllabateur latin coupait faux et se déclarait à tort « la ».
-                        <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original" style={styleColonneOriginale({ surface: 'lecture', seul: afficherOriginalSeul, grec: estGrec })}>
+                        <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original" {...marqueOriginal} style={styleColonneOriginale({ surface: 'lecture', seul: afficherOriginalSeul, grec: estGrec })}>
                           {rendreTexteAvecNotes(estGrec ? cesurerGrec(original.affichage) : cesurerLatin(normaliserEspacesOriginal(original.affichage)), original.notes)}
                         </p>
                         )
@@ -5066,10 +5175,15 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         zone={mainRef}
         actif={lassoActif}
         contexte={`${idTexte}|${niv1Actif}|${pageActuelle}|${vue}|${modeTexteEffectif}`}
-        selecteurCibles='.seg-inline[id^="segment-"], .seg-wrapper[id^="segment-"]'
-        cleDe={element => element.id.startsWith('segment-') ? element.id.slice('segment-'.length) : null}
-        surbrillance={cle => `#segment-${cle}.seg-inline, #segment-${cle} > .seg-p, #segment-${cle} .citation-sortie`}
+        selecteurCibles='.seg-inline[id^="segment-"], .seg-wrapper[id^="segment-"], [data-lasso-original]'
+        cleDe={element => element.getAttribute('data-lasso-original')
+          ?? (element.id.startsWith('segment-') ? element.id.slice('segment-'.length) : null)}
+        surbrillance={cle => estCleOriginal(cle)
+          ? `[data-lasso-original="${cle}"]`
+          : `#segment-${cle}.seg-inline, #segment-${cle} > .seg-p, #segment-${cle} .citation-sortie`}
         horsLasso=".seg-p, .texte-original"
+        refus={refusDuLasso}
+        enregistrable={lassoEnregistrable}
         unite={UNITE_PASSAGES}
         dejaEnregistres={cles => segmentsDuLasso(cles).filter(s => sauvegardesSegs.has(s.id)).length}
         onEnregistrer={enregistrerLasso}

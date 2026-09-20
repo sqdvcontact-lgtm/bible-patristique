@@ -3031,6 +3031,10 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
    poser sur les cibles. */
 :root {
   --cs-lasso-surbrillance: inset 0 0 0 100vmax rgba(var(--cs-vert-rgb), 0.14);
+  /* ⛔ Le REFUS prend la famille du danger, seule du site qui dise « ce geste ne se fera
+     pas ». Un cran plus dense que la surbrillance ordinaire : elle doit se distinguer
+     d'elle au premier regard, sans couvrir le texte qu'on vient de prendre. */
+  --cs-lasso-surbrillance-refus: inset 0 0 0 100vmax rgba(var(--cs-danger-rgb), 0.18);
 }
 /* Pendant le geste, rien ne se sélectionne : le lasso passe sur le texte sans le prendre. */
 html[data-lasso-geste],
@@ -3049,6 +3053,55 @@ html[data-lasso-geste] * {
   border-radius: 0;
   background: rgba(var(--cs-vert-rgb), 0.07);
   will-change: transform, width, height;
+}
+/* ⛔ LE CHAMP DU LASSO DEVIENT ROUGE quand la page refuse ce qu'il tient (deux langues à
+   la fois). La classe se pose sur la trace ; sa GÉOMÉTRIE reste écrite par le style, image
+   par image, et rien ici ne la touche. */
+.cs-lasso-trace--refus {
+  border-color: rgba(var(--cs-danger-rgb), 0.85);
+  background: rgba(var(--cs-danger-rgb), 0.12);
+}
+/* Le CRI, au centre de l'écran. ⛔ Il ne prend aucun pointeur : le geste se poursuit
+   dessous, et c'est en le poursuivant qu'on le corrige. ⛔ Le sans se NOMME, il ne s'hérite
+   pas : porté dans <body>, il prendrait la police de ce qui l'entoure. */
+.cs-lasso-alarme {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 2rem;
+  pointer-events: none;
+  text-align: center;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-style: normal;
+  color: var(--cs-danger-fonce);
+}
+/* ⚠️ Le corps est RELATIF à la fenêtre : le cri doit tenir sur un portable comme sur un
+   grand écran, et il est fait pour être vu, non lu deux fois. */
+.cs-lasso-alarme-cri {
+  max-width: 24ch;
+  font-size: clamp(1.5rem, 4.5vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+  /* Le halo du papier détache le cri du texte qu'il couvre, sans l'effacer. */
+  text-shadow: 0 0 0.75rem var(--cs-fond), 0 0 1.5rem var(--cs-fond);
+  animation: cs-lasso-alarme-clignote 0.72s steps(1, end) infinite;
+}
+.cs-lasso-alarme-detail {
+  max-width: 34ch;
+  font-size: clamp(0.8125rem, 1.6vw, 1rem);
+  font-weight: 500;
+  line-height: 1.35;
+  text-wrap: balance;
+  text-shadow: 0 0 0.75rem var(--cs-fond), 0 0 1.25rem var(--cs-fond);
+}
+@keyframes cs-lasso-alarme-clignote {
+  50% { opacity: 0.18; }
 }
 /* La barre : la recette de la pastille des volets et de la cellule d'actions — le petit
    objet qui flotte au-dessus de la colonne de lecture —, posée sur l'axe du texte.
@@ -3128,6 +3181,9 @@ html[data-lasso-geste] * {
   .cs-lasso-barre { animation: none; }
   .cs-lasso-action,
   .cs-lasso-fermer { transition: none; }
+  /* ⛔ Le cri ne CLIGNOTE plus, il reste : c'est le mouvement qu'on retire, jamais le
+     message — un refus qu'on n'aurait plus sous les yeux ne s'expliquerait pas. */
+  .cs-lasso-alarme-cri { animation: none; }
 }
 
 /* ── UNE NOTIFICATION EST UNE RANGÉE, non une carte ───────────────────────────

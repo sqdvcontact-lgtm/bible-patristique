@@ -12464,3 +12464,116 @@ que sur la seconde, et l'absence de régression que sur la première.
   COMPOSITION. ⛔ Le second raccourci ne vaut QUE pour la planche : la page, elle, assainit.
 - ⚠️ La RÉSERVE du flottant est mesurée par `CorpsFiche` avant la peinture, et la planche
   n'hydrate rien : elle la repose par un script, sinon le complément ne réserve aucune place.
+
+# ⛔ UNE CITATION NE MÊLE PAS DEUX COLONNES — le REFUS du lasso (2026-09-20)
+
+Demande de l'auteur : « Mettre en place le lasso pour le latin. Mettre en place le lasso
+sur la page bible ; attention, on ne doit pouvoir copier qu'une seule traduction ; si dans
+une traduction en regard le lasso sélectionne le français et le latin, le champ et le style
+du lasso doivent devenir rouges et un message d'erreur doit s'afficher au centre de l'écran.
+Le lasso passe sur les commentaires bibliques (Fillion par ex.) sans les sélectionner. »
+Règles de code, en plus de « LE LASSO DE LECTURE » (2026-09-16) :
+
+- ⛔ **LA RÈGLE DU REFUS EST PURE, et elle vit dans `colonnesTouchees` (`app/lib/lasso.ts`)** :
+  elle range les clés retenues par colonne, dans l'ordre où on les rencontre, et la page
+  refuse dès qu'il y en a plus d'une. ⚠️ Une clé que la page ne range NULLE PART (`null`) ne
+  compte pour aucune colonne : un chapitre qui vient de changer ne doit pas, à lui seul,
+  faire croire à un mélange.
+- ⛔ **LE COMPOSANT NE SAIT PAS CE QU'IL REFUSE** : `refus(cles)` rend un `RefusDeLasso`
+  (`titre`, `detail`) ou `null`, et c'est la PAGE qui l'écrit — elle seule sait ce qu'elle a
+  mis en regard, deux langues d'une bible ou une traduction et son original. Le refus se
+  calcule PENDANT LE RENDU, depuis la sélection déjà en état : aucun état de plus, et la
+  règle « AUCUN ÉTAT DE PAGE PENDANT LE GESTE » tient.
+- ⛔ **SOUS UN REFUS, AUCUNE ACTION N'EST OFFERTE** — ni bouton, ni Ctrl+C (`executer` sort
+  d'emblée). La trace passe à `.cs-lasso-trace--refus`, la feuille de surbrillance à
+  `--cs-lasso-surbrillance-refus`, le compte à `.cs-lasso-compte--erreur`, et `.cs-lasso-alarme`
+  crie au centre de l'écran. Seul « Défaire la sélection » demeure.
+- ⛔ **L'ALARME NE PREND AUCUN POINTEUR** (`pointer-events: none`) : le geste se poursuit
+  dessous, et c'est EN LE POURSUIVANT qu'on le corrige — revenir dans une seule colonne
+  éteint le rouge sans qu'on ait rien à cliquer. ⚠️ Elle est `role="alert"` et
+  `aria-live="assertive"` : un cri qui ne se voit pas doit s'entendre.
+- ⚠️ **LE CLIGNOTEMENT S'ÉTEINT SOUS `prefers-reduced-motion`, LE MESSAGE NON**
+  (`animation: none` sur le seul `.cs-lasso-alarme-cri`) : on retire le mouvement, jamais
+  l'information. C'est la règle de l'anneau du compte à rebours et de l'éclat d'une copie.
+- ⛔ **`enregistrable(cles)` EST UN AXE À PART, et ce n'est pas un refus** : le latin d'une
+  œuvre se COPIE et ne s'ENREGISTRE pas — un prélèvement vise un SEGMENT (`segment_id`,
+  `id_texte`), et un empan de la colonne originale n'en est pas un. Faux, la barre n'offre
+  que « Copier » ; ⛔ ne pas le simuler par `dejaEnregistres`, qui rendrait « 0 passage
+  enregistré » sous un bouton qui ne ferait rien.
+
+## La BIBLE EN REGARD — `LectureBilingueBible`
+
+- ⛔ **LA CLÉ D'UNE CELLULE EST `translationId:canonId`** (`cleDeCelluleBilingue`,
+  `colonneDeLaCleBilingue`, `app/lib/bibleEditionBilingue.ts`), jamais l'identifiant du membre
+  ni le rang de la colonne : elle entre dans un SÉLECTEUR CSS (`cleDeLassoValide`), elle doit
+  se lire, et l'ordre des colonnes change avec la largeur de l'écran.
+- ⛔ **NE SE SÉLECTIONNE QUE CE QUI S'ENREGISTRE UN PAR UN** : un verset qui porte un texte
+  dans SA colonne et un numéro canonique (`numeroCanonique`). Une glose n'a pas de créneau
+  (charte § 15.4), et un créneau qu'une édition ne porte pas n'a rien à copier.
+- ⛔ **LE LASSO PASSE PAR-DESSUS L'APPAREIL SANS LE PRENDRE**, et cela tient à DEUX choses :
+  les seules cibles sont les cellules (`[data-lasso-cellule]`), et `horsLasso` nomme tout ce
+  qui porte du texte — `[data-canon-id], [data-glose], [data-membre], .cs-bible-bloc,
+  .cs-bible-regard`. Un commentaire de Fillion posé entre deux versets n'est donc ni une
+  cible ni un point de départ : le geste le traverse. **Éprouvé : un lasso tiré des versets 3
+  à 7 saute le commentaire et ne retient que cinq cellules.**
+- ⚠️ **LE PRÉLÈVEMENT VISE LA CLÉ NATURELLE** — ce lecteur, ce chapitre, ces versets —, comme
+  en lecture simple : un verset se montre prélevé quelle que soit la colonne qu'on lit, et
+  deux cellules d'un même créneau ne s'enregistrent qu'une fois.
+- **`usePrelevementsDuChapitre` (`app/lib/prelevementsBibliques.ts`)** est la recette des
+  prélèvements d'un chapitre, sortie de `TexteBible` pour que les deux lectures la partagent.
+  ⛔ Ne pas en écrire une seconde copie.
+
+## LE LATIN D'UNE ŒUVRE — `OeuvreClient`
+
+- ⛔ **LA CLÉ EST CELLE DU BLOC, non d'un segment latin** : la colonne originale se compose
+  par EMPAN (`originalDuBloc`), un empan réunit plusieurs segments, et c'est le bloc que le
+  lecteur voit et que le lasso touche. Elle porte le PREMIER SEGMENT FRANÇAIS du bloc
+  (`original-<id>`), ce qui lui donne du même coup sa place dans l'ordre des titres
+  (charte § 38.8.1).
+- ⛔ **CE QU'ON COPIE EST LE TEXTE CANONIQUE, jamais ce que la page compose** : celle-ci rend
+  `affichage`, où les appels de note sont matérialisés. `data-lasso-source` ne dit donc
+  qu'OÙ retrouver le texte — `g <groupes…>` pour `fondreOriginaux`, `s <segmentId>` pour la
+  copie de repli (`segments.texte_original`) —, et `texteDeLaSource` le rebâtit à la copie.
+- ⚠️ **L'ORDRE DES EMPANS SE LIT DANS LE DOCUMENT** (`[data-lasso-original]` sous `mainRef`) :
+  la colonne se compose bloc par bloc au fil du rendu, et il n'existe hors de la page aucune
+  liste de ses empans. C'est la lecture même que le lasso fait pour mesurer ses cibles.
+- ⛔ **UNE CITATION NOMME L'ÉDITION DU PASSAGE** (charte § 5.5.1) : `copierLassoOriginal`
+  compose sa notice depuis `versionDeLOriginal`, non depuis l'œuvre lue. ⚠️ `versionEnRegard`
+  ne vaut que SOUS la lecture en regard ; le latin lu SEUL demande la même version, d'où
+  `versionDeLOriginal`, calculée sur `ensembleBilingue && idTexteEnRegard`.
+- ⛔ **LE LATIN SEUL SE SÉLECTIONNE, LUI AUSSI** : `lassoActif` a perdu sa garde
+  `!afficherOriginalSeul`. La colonne française y est simplement MASQUÉE — ses boîtes rendent
+  zéro, le lasso ne la mesure donc pas. Restent hors du lasso l'apparat et la comparaison, où
+  rien ne s'enregistre.
+
+## ⚠️ Ce qui n'est PAS couvert
+
+La **Polyglotte** n'a toujours pas de lasso : ses colonnes sont des cellules de tableau, son
+corps a son propre défileur et son propre en-tête collant, et ses cellules d'actions sont
+bornées par la cellule (`ancrer(el, cle, { borne })`). C'est un chantier à part, non un
+raccordement. Restent aussi hors du lasso l'apparat et la comparaison d'une œuvre, et le
+téléphone.
+
+## ⚠️ L'épreuve — `tmp/planche-lasso/` (non versionné)
+
+⛔ **UN GESTE DE SOURIS SE CONTRÔLE AVEC DES ÉVÉNEMENTS DE CONFIANCE** : Chrome sans tête
+piloté par le protocole de débogage (`Input.dispatchMouseEvent`), sur une planche qui rend le
+VRAI composant. `entree.tsx` porte quatre pages — la Bible, la Bible EN REGARD (avec un
+commentaire de Fillion entre les versets), l'œuvre en une colonne, l'œuvre en regard de son
+latin ; `epreuve-cdp.mjs` éprouve le geste ordinaire, `epreuve-refus.mjs` le refus,
+`epreuve-trace-refus.mjs` la trace POINTEUR TENU — ⛔ lâché, la trace se retire et l'on ne
+verrait plus rien.
+
+- ⚠️ **La planche se sert en HTTP** (`node tmp/serveur-planches.mjs`, port 4173) : le panneau
+  navigateur refuse `file://`, et Chrome sans tête se lance avec un `--user-data-dir` ABSOLU.
+- ⚠️ **Relevé du 20 septembre 2026, fenêtre de 1280 × 800.** En regard : cinq cellules pour un
+  lasso tiré dans la seule colonne française, dix et le rouge pour un lasso tiré en travers,
+  et Ctrl+C n'y copie RIEN (journal vide). Trace : `rgba(61,107,79,0.55)` dans une colonne,
+  `rgba(192,86,42,0.85)` en travers. Cri : `rgb(154,42,42)`, 44 px, graisse 700, Source Sans 3,
+  animation `cs-lasso-alarme-clignote` à 0,72 s. Sur l'œuvre : deux empans latins pour douze
+  segments français, la barre n'offre que « Copier », et le lasso tiré en travers rend
+  quatorze clés, le rouge et le cri.
+- ⚠️ **L'alarme se centre sur la fenêtre de MISE EN PAGE, non sur `innerWidth`** : `html` porte
+  `scrollbar-gutter: stable`, qui réserve quinze pixels. Mesuré 633 pour une fenêtre de 1280,
+  soit le centre exact des 1265 px de la fenêtre de mise en page. ⚠️ Et le CRI se tient
+  au-dessus du centre parce que le DÉTAIL le suit : c'est le groupe qui est centré.

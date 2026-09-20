@@ -24,6 +24,11 @@
  * n'écrit rien dans des nœuds que React gère. Elle se pose en `box-shadow` inset, qui
  * passe par-dessus un fond posé EN LIGNE (le verset retenu en porte un) sans le remplacer.
  *
+ * ⛔ UNE CITATION NE MÊLE PAS DEUX LANGUES (demande de l'auteur, 20 septembre 2026). La
+ * page dit par `refus` ce qu'elle ne sait pas copier ; le lasso passe alors au ROUGE — la
+ * trace, la surbrillance, le compte — et crie au centre de l'écran, jusqu'à ce que le
+ * geste revienne dans une seule colonne. Aucune action n'est offerte sous un refus.
+ *
  * ⚠️ Au bureau seulement : la page passe `actif` à faux au doigt, où glisser fait défiler.
  */
 
@@ -39,6 +44,14 @@ import {
 import { libelleResultat, libelleSelection } from '@/app/lib/selectionPassages'
 
 type Action = 'enregistrer' | 'retirer' | 'copier'
+
+/**
+ * Ce qu'un refus dit au lecteur : un cri, et de quoi le comprendre.
+ *
+ * ⛔ Le message vient de la PAGE : elle seule sait ce qu'elle a mis en regard — deux
+ * langues d'une bible, une traduction et son original. Le composant ne fait que le crier.
+ */
+export type RefusDeLasso = { titre: string; detail?: string }
 
 export type LassoLectureProps = {
   /** Là où le lasso peut naître : la zone de lecture. */
@@ -59,6 +72,10 @@ export type LassoLectureProps = {
   horsLasso?: string
   /** « verset », « versets ». */
   unite: readonly [string, string]
+  /** Ce qui interdit d'agir sur une sélection — deux langues à la fois —, ou `null`. */
+  refus?: (cles: readonly string[]) => RefusDeLasso | null
+  /** Faux là où la page ne sait qu'en copier : le latin d'une œuvre n'a pas de prélèvement. */
+  enregistrable?: (cles: readonly string[]) => boolean
   /** Combien, parmi ces clés, le lecteur a déjà enregistrés. */
   dejaEnregistres: (cles: readonly string[]) => number
   /** Rendent le nombre traité, ou `null` quand le geste s'arrête sans rien faire (compte requis). */
@@ -90,6 +107,7 @@ type Geste = {
 const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 const DECLARATION_SURBRILLANCE = 'box-shadow: var(--cs-lasso-surbrillance);'
+const DECLARATION_SURBRILLANCE_REFUS = 'box-shadow: var(--cs-lasso-surbrillance-refus);'
 const DUREE_MESSAGE_MS = 2600
 
 /**
@@ -149,9 +167,16 @@ export default function LassoLecture(props: LassoLectureProps) {
   // format du doigt) ne laisse pas sa trace en suspens : la barre ne reparaîtrait plus.
   if (!actif && trace) setTrace(false)
 
+  // ⛔ CE QUE LA PAGE REFUSE. Jugé À CHAQUE RENDU sur la sélection courante, et non dans un
+  // état de plus : la sélection est déjà le seul état qui remonte pendant le geste, et le
+  // refus n'en est qu'une lecture. ⚠️ `refus` doit donc être bon marché — une table de
+  // correspondance, jamais une mesure du document.
+  const refus = actif && selection.length > 0 ? (props.refus?.(selection) ?? null) : null
+
   const executer = async (action: Action) => {
     const cles = selection
-    if (cles.length === 0 || enCours) return
+    // ⛔ Un refus ferme TOUTES les actions, la copie comprise : c'est elle que la règle vise.
+    if (cles.length === 0 || enCours || refus) return
     setEnCours(action)
     setMessage(null)
     try {
@@ -428,11 +453,14 @@ export default function LassoLecture(props: LassoLectureProps) {
 
   const feuille = feuilleDeSurbrillance(
     selection.filter(cleDeLassoValide).map(cle => props.surbrillance(cle)),
-    DECLARATION_SURBRILLANCE,
+    // ⛔ La surbrillance d'un REFUS est rouge elle aussi : le lecteur doit voir CE QUI est
+    // pris, non seulement qu'on lui refuse quelque chose.
+    refus ? DECLARATION_SURBRILLANCE_REFUS : DECLARATION_SURBRILLANCE,
   )
   const nombre = selection.length
-  const deja = nombre > 0 ? Math.min(nombre, props.dejaEnregistres(selection)) : 0
-  const aEnregistrer = nombre - deja
+  const enregistrable = nombre > 0 && (props.enregistrable?.(selection) ?? true)
+  const deja = enregistrable ? Math.min(nombre, props.dejaEnregistres(selection)) : 0
+  const aEnregistrer = enregistrable ? nombre - deja : 0
   const gauche = axe === null
     ? '50%'
     : gouttiere ? 'calc(' + axe + 'px - ' + gouttiere + ' / 2)' : axe + 'px'
@@ -440,16 +468,30 @@ export default function LassoLecture(props: LassoLectureProps) {
   return createPortal(
     <>
       {feuille && <style>{feuille}</style>}
-      {trace && <div ref={traceRef} className="cs-lasso-trace" style={{ zIndex: Z_FLOTTANT }} aria-hidden="true" />}
+      {trace && (
+        <div ref={traceRef} className={'cs-lasso-trace' + (refus ? ' cs-lasso-trace--refus' : '')}
+          style={{ zIndex: Z_FLOTTANT }} aria-hidden="true" />
+      )}
+      {/* ⛔ LE CRI PARAÎT PENDANT LE GESTE COMME APRÈS LUI : c'est au moment où le cadre
+          traverse la seconde colonne qu'il faut dire pourquoi il devient rouge. Il ne prend
+          aucun pointeur — le geste continue dessous. */}
+      {refus && (
+        <div className="cs-lasso-alarme" style={{ zIndex: Z_FLOTTANT }} role="alert" aria-live="assertive">
+          <span className="cs-lasso-alarme-cri">{refus.titre}</span>
+          {refus.detail && <span className="cs-lasso-alarme-detail">{refus.detail}</span>}
+        </div>
+      )}
       {nombre > 0 && !trace && (
         <div className="cs-lasso-barre" role="region" aria-label="Passages sélectionnés"
           style={{ zIndex: Z_FLOTTANT, left: gauche }}>
-          <span className={'cs-lasso-compte' + (message?.erreur ? ' cs-lasso-compte--erreur' : '')}
+          <span className={'cs-lasso-compte' + (message?.erreur || refus ? ' cs-lasso-compte--erreur' : '')}
             role="status" aria-live="polite">
             {message ? message.texte : libelleSelection(nombre, unite)}
           </span>
+          {/* ⛔ Sous un refus, la barre ne garde que de quoi DÉFAIRE : offrir une action
+              qu'on refuserait au clic serait une promesse en l'air. */}
           <span className="cs-lasso-actions">
-            {aEnregistrer > 0 && (
+            {!refus && aEnregistrer > 0 && (
               <button type="button" className="cs-lasso-action cs-lasso-action--principale"
                 disabled={enCours !== null} onClick={() => void executer('enregistrer')}
                 title={deja > 0
@@ -458,16 +500,18 @@ export default function LassoLecture(props: LassoLectureProps) {
                 {enCours === 'enregistrer' ? 'Enregistrement…' : 'Enregistrer'}
               </button>
             )}
-            {deja > 0 && (
+            {!refus && deja > 0 && (
               <button type="button" className="cs-lasso-action" disabled={enCours !== null}
                 onClick={() => void executer('retirer')} title="Retirer de mes citations">
                 {enCours === 'retirer' ? 'Retrait…' : 'Retirer'}
               </button>
             )}
-            <button type="button" className="cs-lasso-action" disabled={enCours !== null}
-              onClick={() => void executer('copier')} title="Copier la citation (Ctrl+C)">
-              Copier
-            </button>
+            {!refus && (
+              <button type="button" className="cs-lasso-action" disabled={enCours !== null}
+                onClick={() => void executer('copier')} title="Copier la citation (Ctrl+C)">
+                Copier
+              </button>
+            )}
             <button type="button" className="cs-lasso-fermer" onClick={() => setSelection([])}
               aria-label="Défaire la sélection" title="Défaire la sélection (Échap)">
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ display: 'block' }}>

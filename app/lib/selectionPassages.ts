@@ -9,6 +9,13 @@ import { recomposerSegments, type SegmentARecomposer } from './jonctionSegments'
 /** L'élision posée entre deux morceaux qui ne se suivent pas, espaces comprises. */
 const ELISION = ` ${MARQUE_ELISION} `
 
+/** Ce que le lasso compte sur les deux lectures de la page Bible. ⚠️ Les deux unités du
+ *  site sont masculines. */
+export const UNITE_VERSETS = ['verset', 'versets'] as const
+
+/** Ce que le lasso compte sur la page d'une œuvre. */
+export const UNITE_PASSAGES = ['passage', 'passages'] as const
+
 /**
  * La liste des versets d'un chapitre, à la française : « 3 », « 3-5 », « 3-5.7.9-10 ».
  *

@@ -116,6 +116,28 @@ export function memesCles<K>(a: readonly K[] | null, b: readonly K[] | null): bo
 }
 
 /**
+ * Les COLONNES qu'une sélection traverse, dans l'ordre où elle les rencontre.
+ *
+ * ⛔ UNE CITATION NE MÊLE PAS DEUX LANGUES (demande de l'auteur, 20 septembre 2026 : « on
+ * ne doit pouvoir copier qu'une seule traduction »). Une lecture en regard pose deux
+ * textes côte à côte, et un lasso tiré en travers les prend tous les deux : le passage
+ * qu'on copierait n'existe nulle part. La page range donc ses cibles par colonne, et
+ * refuse dès qu'il y en a plus d'une.
+ *
+ * ⚠️ Une clé que la page ne range nulle part ne compte pour AUCUNE colonne : elle ne doit
+ * pas, à elle seule, faire croire à un mélange.
+ */
+export function colonnesTouchees<K, C>(cles: readonly K[], colonneDe: (cle: K) => C | null): C[] {
+  const vues: C[] = []
+  for (const cle of cles) {
+    const colonne = colonneDe(cle)
+    if (colonne === null || vues.includes(colonne)) continue
+    vues.push(colonne)
+  }
+  return vues
+}
+
+/**
  * Les CITATIONS d'une sélection, dans l'ordre de lecture. Chacune est une liste de SUITES :
  * les clés qui se suivent y sont réunies, et un passage laissé de côté ouvre une seconde
  * suite, que la copie joint par une élision marquée.

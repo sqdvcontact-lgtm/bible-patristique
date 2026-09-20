@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   BORD_DEFILEMENT_PX, SEUIL_LASSO_PX, VITESSE_DEFILEMENT_MAX_PX,
-  cleDeLassoValide, clesTouchees, combinerSelection, depasseLeSeuil, feuilleDeSurbrillance,
+  cleDeLassoValide, clesTouchees, colonnesTouchees, combinerSelection, depasseLeSeuil, feuilleDeSurbrillance,
   citationsDeLaSelection, memesCles, peutOuvrirLeLasso, rectangleEntre, seCroisent,
   surUneBarreDeDefilement, traceVisible, vitesseDeDefilement,
   type BoiteDefilante, type NoeudDom,
@@ -310,5 +310,26 @@ describe('les clés et la feuille de surbrillance', () => {
 
   it('réunit les sélecteurs en une seule règle', () => {
     expect(feuilleDeSurbrillance(['#a', '#b'], 'box-shadow: none;')).toBe('#a,\n#b { box-shadow: none; }')
+  })
+})
+
+describe('colonnesTouchees', () => {
+  const colonne = (cle: string) => (cle.includes(':') ? cle.split(':')[0] : null)
+
+  it('ne rend qu’une colonne quand la sélection reste d’un seul côté', () => {
+    expect(colonnesTouchees(['TR0010:GEN.1.1', 'TR0010:GEN.1.2'], colonne)).toEqual(['TR0010'])
+  })
+
+  it('rend les deux colonnes d’un lasso tiré en travers, dans l’ordre de rencontre', () => {
+    expect(colonnesTouchees(['TR0011:GEN.1.1', 'TR0010:GEN.1.1'], colonne)).toEqual(['TR0011', 'TR0010'])
+  })
+
+  it('ne compte pour aucune colonne ce que la page ne range nulle part', () => {
+    expect(colonnesTouchees(['123', '456'], colonne)).toEqual([])
+    expect(colonnesTouchees(['123', 'TR0010:GEN.1.1'], colonne)).toEqual(['TR0010'])
+  })
+
+  it('ne rend rien sur une sélection vide', () => {
+    expect(colonnesTouchees([], colonne)).toEqual([])
   })
 })

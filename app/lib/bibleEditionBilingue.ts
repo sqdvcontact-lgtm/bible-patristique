@@ -345,6 +345,35 @@ export function lectureBilinguePossible(membres: readonly MembreBilingue[]): boo
   return new Set(membres.map((membre) => membre.id)).size >= 2
 }
 
+/**
+ * La clé du LASSO pour une cellule : la colonne, puis le créneau.
+ *
+ * ⛔ La colonne se nomme par son `translationId` (« TR0010 »), non par l'identifiant du
+ * membre : la clé entre dans un sélecteur CSS (`cleDeLassoValide`), elle se lit dans le
+ * document, et l'ordre des colonnes change d'un écran à l'autre — un rang y désignerait
+ * une autre langue selon la largeur de la fenêtre.
+ */
+export function cleDeCelluleBilingue(translationId: string, canonId: string): string {
+  return `${translationId}:${canonId}`
+}
+
+/** La COLONNE d'une clé de cellule : ce qui précède les deux-points. */
+export function colonneDeLaCleBilingue(cle: string): string | null {
+  const coupe = cle.indexOf(':')
+  return coupe > 0 ? cle.slice(0, coupe) : null
+}
+
+/** Le numéro CANONIQUE d'un créneau (« GEN.1.3 » → 3), ou `null` s'il n'en a pas. */
+export function numeroCanonique(canonId: string): number | null {
+  const parts = canonId.split('.')
+  if (parts.length < 3) return null
+  const verset = parts[parts.length - 1]
+  // ⚠️ Un créneau suffixé (« 3a ») se range à son numéro : c'est la clé naturelle d'un
+  // prélèvement, qui ne connaît pas les suffixes.
+  const chiffres = verset.match(/^([0-9]+)[a-z]?$/)
+  return chiffres ? Number(chiffres[1]) : null
+}
+
 /** Une tête de code de livre — « ACT », « 1KI », « TOB » — suivie d'un blanc. */
 const TETE_CODE_LIVRE = /^[0-9]?[A-Z]{2,4}\s+/
 /** Ce qui, après elle, fait bien une référence : un chapitre, une virgule, un verset. */
