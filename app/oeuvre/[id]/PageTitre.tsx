@@ -157,6 +157,14 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
   // frontispice. L'administrateur, lui, le garde sous les yeux : c'est le champ
   // qu'il doit pouvoir corriger.
   const titreAffiche = oeuvre.titre_affichage || titre
+  // ⛔ CHAQUE ÉLÉMENT DU FRONTISPICE A SES DEUX FACES (2026-09-20), sur le modèle du
+  // titre : le champ de CATALOGUE nomme la chose partout ailleurs et s'écrit d'un seul
+  // tenant ; la colonne composée ne vaut QUE ce frontispice, sauts de ligne compris.
+  // ⚠️ La composition ne décide jamais d'un AFFICHAGE : c'est le catalogue qui dit si
+  // l'élément paraît (voir `titreOriginalVisible` juste dessous, qui compare des
+  // identités). Une composition ne fait que remplacer la forme, pas la règle.
+  const auteurAffiche = oeuvre.auteur_affichage || auteur
+  const sousTitreAffiche = oeuvre.sous_titre_affichage || oeuvre.sous_titre || ''
   const titreOriginal = oeuvre.titre_original ?? ''
   const titreOriginalVisible = titreOriginal !== ''
     && (!memeIntitule(titreOriginal, titreAffiche) || estAdmin)
@@ -164,7 +172,12 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
   //    version active, silence compris (voir `identiteEdition`).
   const identite = identiteEdition(oeuvre, versionActive)
   const traducteur = identite.traducteur
-  const traducteurLabel = identite.traducteurLabel ?? libelleTrad(traducteur)
+  // ⚠️ La composition du traducteur porte la LIGNE ENTIÈRE, mention comprise : la page
+  // ne montre pas `trad_auteur` tel quel, elle en forme « Traduction de… ». Composer le
+  // seul nom n'aurait rien donné. Elle ne vaut que pour l'édition par défaut : sur une
+  // version, la mention se prend à la version (voir `identiteEdition`).
+  const traducteurLabel = (!versionActive && oeuvre.trad_auteur_affichage)
+    || (identite.traducteurLabel ?? libelleTrad(traducteur))
   const commentaireTraduction = versionActive && !versionActive.isDefault
     ? null
     : oeuvre.commentaire_traduction
@@ -221,9 +234,18 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
     }}>
       {/* Nom d'auteur : sérif, corps agrandi, interlettrage resserré (approche des
           lettres) pour une capitale plus dense et plus posée. */}
-      <p style={{ fontFamily: SERIF, fontSize: '1.0625rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert-fonce)', marginBottom: '1.05em', paddingLeft: '0.12em' }}>
-        {auteur}
-      </p>
+      <div style={{ position: 'relative', alignSelf: 'stretch' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '1.0625rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert-fonce)', marginBottom: '1.05em', paddingLeft: '0.12em', whiteSpace: 'pre-line' }}>
+          {rendreIntitule(auteurAffiche)}
+        </p>
+        {/* ⚠️ Le crayon du nom d'auteur ne vise QUE la composition : le nom de catalogue
+            vit dans la fiche de l'auteur et nomme toutes ses œuvres — le corriger ici
+            changerait les autres frontispices sans prévenir. */}
+        {estAdmin && (
+          <button onClick={() => onModifier('auteur_affichage', oeuvre.auteur_affichage ?? '')} title="Composer le nom d’auteur pour cette page de titre"
+            style={{ ...BTN, right: crayonDroite, top: 0 }}><IconeCrayon size={12} /></button>
+        )}
+      </div>
 
       {/* Titre principal (nom de l'œuvre en français) — agrandi
           ── LES BLANCS DU FRONTISPICE SE MESURENT EN em ──────────────────────────
@@ -251,7 +273,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
       {(oeuvre.sous_titre || estAdmin) && (
         <div style={{ position: 'relative', alignSelf: 'stretch' }}>
           <p style={{ fontFamily: SERIF, fontSize: 'clamp(1.125rem, 2.4vw, 1.5rem)', fontStyle: 'normal', color: 'var(--cs-texte)', maxWidth: MESURE_TITRE, margin: titreOriginalVisible ? '0 auto 0.5em' : '0 auto 1em', lineHeight: 1.34, whiteSpace: 'pre-line', minHeight: oeuvre.sous_titre ? undefined : estAdmin ? '1em' : undefined }}>
-            {oeuvre.sous_titre ? rendreIntitule(sansPointFinal(oeuvre.sous_titre)) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.8125rem' }}>Sous-titre…</span> : null}
+            {oeuvre.sous_titre ? rendreIntitule(sansPointFinal(sousTitreAffiche)) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.8125rem' }}>Sous-titre…</span> : null}
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('sous_titre', oeuvre.sous_titre ?? '')} title="Modifier le sous-titre"
@@ -264,7 +286,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
       {(titreOriginalVisible || estAdmin) && (
         <div style={{ position: 'relative', alignSelf: 'stretch' }}>
           <p style={{ fontFamily: SERIF, fontSize: 'clamp(1rem, 2.1vw, 1.3125rem)', fontStyle: 'italic', color: 'var(--cs-texte-second)', maxWidth: MESURE_TITRE, margin: '0 auto 1em', letterSpacing: 0, whiteSpace: 'pre-line' }}>
-            {titreOriginalVisible ? rendreIntitule(titreOriginal) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontSize: '0.8125rem' }}>Titre original…</span> : null}
+            {titreOriginalVisible ? rendreIntitule(oeuvre.titre_original_affichage || titreOriginal) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontSize: '0.8125rem' }}>Titre original…</span> : null}
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('titre_original', titreOriginal)} title="Modifier le titre original"
@@ -300,7 +322,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
           traducteur qu'il n'a pas. */}
       {(traducteur || (estAdmin && !versionActive)) && (
         <div style={{ position: 'relative', alignSelf: 'stretch' }}>
-          <p style={{ fontFamily: SERIF, fontSize: '0.875rem', color: 'var(--cs-texte-second)', marginBottom: '6px' }}>
+          <p style={{ fontFamily: SERIF, fontSize: '0.875rem', color: 'var(--cs-texte-second)', marginBottom: '6px', whiteSpace: 'pre-line' }}>
             {traducteur ? <>{traducteurLabel}</> : <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic', fontSize: '0.75rem' }}>Traduction de…</span>}
           </p>
           {estAdmin && !versionActive && (
@@ -335,12 +357,26 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
       <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--cs-vert)', marginBottom: '6px' }}>
         Corpus Scriptura
       </p>
-      {(editeur || ville || datePublication) && (
-        <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', marginBottom: '3px' }}>
-          {versionActive?.editionDescription && versionActive.publicationLabel
-            ? versionActive.publicationLabel
-            : formulerProvenance(editeur, ville, formaterDateHistorique(datePublication))}
-        </p>
+      {/* ⚠️ La PROVENANCE n'est pas un champ mais une PHRASE, formée de l'éditeur, de la
+          ville et de l'année. Sa composition porte donc la ligne entière — et elle ne
+          vaut, comme celle du traducteur, que pour l'édition par défaut : sur une
+          version, c'est la version qui dit sa publication. */}
+      {(editeur || ville || datePublication || (estAdmin && !versionActive)) && (
+        <div style={{ position: 'relative', alignSelf: 'stretch' }}>
+          <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', marginBottom: '3px', whiteSpace: 'pre-line' }}>
+            {versionActive?.editionDescription && versionActive.publicationLabel
+              ? versionActive.publicationLabel
+              : (!versionActive && oeuvre.provenance_affichage)
+                ? oeuvre.provenance_affichage
+                : (editeur || ville || datePublication)
+                  ? formulerProvenance(editeur, ville, formaterDateHistorique(datePublication))
+                  : <span style={{ color: 'var(--cs-bord)', fontStyle: 'italic' }}>Provenance…</span>}
+          </p>
+          {estAdmin && !versionActive && (
+            <button onClick={() => onModifier('provenance_affichage', oeuvre.provenance_affichage ?? '')} title="Composer la ligne de provenance"
+              style={{ ...BTN, right: crayonDroite, top: 0 }}><IconeCrayon size={12} /></button>
+          )}
+        </div>
       )}
       {anneeEnLigne && (
         <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)' }}>

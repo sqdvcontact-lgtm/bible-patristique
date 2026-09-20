@@ -12630,3 +12630,70 @@ verrait plus rien.
   `scrollbar-gutter: stable`, qui réserve quinze pixels. Mesuré 633 pour une fenêtre de 1280,
   soit le centre exact des 1265 px de la fenêtre de mise en page. ⚠️ Et le CRI se tient
   au-dessus du centre parce que le DÉTAIL le suit : c'est le groupe qui est centré.
+
+# ⛔ LE CATALOGUE ET LA COMPOSITION, GÉNÉRALISÉS — `compositionTitres.ts` (2026-09-20)
+
+Doctrine : à écrire à la charte — ⚠️ **le `--push` est BLOQUÉ** par
+`duplicate_heading_numbers` (voir « LA NOTICE D'UN AUTEUR FAIT MODÈLE ») : la règle vit
+ici en attendant. Demande de l'auteur : « Généraliser le système Titre catalogue / Titre
+composé à l'ensemble des éléments de la page de titres, et l'étendre aux intertitres de
+niveau 1, 2, etc. » Périmètre arrêté avec lui : **tous les éléments, sauf ce qui est fixe**
+(« Corpus Scriptura », « Édition en ligne », la marque d'imprimeur). Règles de code :
+
+- ⛔ **LA RÈGLE VIT DANS `app/oeuvre/[id]/compositionTitres.ts`**, pur : les deux faces d'un
+  élément du frontispice (`variantesFrontispice`), les deux faces d'un intertitre
+  (`variantesIntertitre`), la clé d'une composition d'intertitre (`cleTitreCompose`) et sa
+  lecture (`titreComposeDe`). ⛔ Ne recomposer ni libellé ni correspondance ailleurs : ils
+  l'étaient en ligne dans `OeuvreClient`, et c'est ainsi qu'un seul champ sur six avait sa
+  face composée.
+- ⛔ **CINQ COLONNES DE PLUS SUR `oeuvres`**, et deux d'entre elles portent une LIGNE
+  ENTIÈRE : `auteur_affichage`, `sous_titre_affichage`, `titre_original_affichage`,
+  `trad_auteur_affichage`, `provenance_affichage`. La page ne montre pas `trad_auteur` ni
+  `editeur`/`ville`/`date` tels quels — elle en FORME une phrase (`libelleTrad`,
+  `formulerProvenance`) —, et composer les ingrédients séparément n'aurait rien donné.
+  ⚠️ `auteur_affichage` vit sur l'ŒUVRE, non sur l'auteur : c'est la composition de CE
+  frontispice, pas un second nom qui rejaillirait sur toutes ses œuvres.
+- ⛔ **LA COMPOSITION NE DÉCIDE JAMAIS D'UN AFFICHAGE** : c'est le CATALOGUE qui dit si un
+  élément paraît (`titreOriginalVisible` compare des identités par `memeIntitule`). Une
+  composition ne fait que remplacer la forme, pas la règle.
+- ⛔ **LES DEUX LIGNES COMPOSÉES NE VALENT QUE L'ÉDITION PAR DÉFAUT** (`!versionActive`) :
+  sur une version, le traducteur et la publication se prennent à la version, silence
+  compris (§ 5.5, `identiteEdition`). Le crayon de la provenance ne paraît donc pas non
+  plus sous une version.
+- ⛔ **UN INTERTITRE COMPOSÉ NE VA PAS DANS `segments`** : la table est immense, porte cinq
+  index GIN et une colonne engendrée, et `ref_nivN` y est RÉPÉTÉ sur chaque segment du
+  groupe — une composition y serait écrite mille fois pour un seul titre. Elle vit dans
+  `oeuvres.titres_composes` (jsonb), que la page charge déjà avec l'œuvre : aucune
+  jointure, aucune requête de plus, la RLS d'`oeuvres` pour seul verrou.
+- ⛔ **LA CLÉ EST LE CHEMIN DE LA DIVISION JUSQU'AU NIVEAU VISÉ** — `niv2␟Livre I␟Chapitre
+  III`, joint par le séparateur d'unité (U+001F, écrit par `String.fromCharCode(31)` pour
+  qu'aucun outil d'édition ne l'avale). Elle ne descend PAS plus bas : un titre de niveau 1
+  vaut pour tous les groupes qui le partagent, et sa composition aussi — prendre le chemin
+  entier obligerait à la réécrire sous chacun de ses chapitres.
+- ⛔ **LA CLÉ SE CALCULE DANS LA ROUTE, jamais reçue du navigateur** : elle indexe un objet
+  de la base, et une clé libre y permettrait d'écrire n'importe quelle entrée.
+  `/api/admin/titre-compose` ne reçoit que le champ visé et le chemin du groupe.
+- ⛔ **LA COMPOSITION PASSE AVANT `titresAffichage`** dans `rendu()` : c'est le même partage
+  que `titre` / `titre_affichage`, l'identité d'un côté, la mise en page de l'autre. Elle
+  l'emporte donc aussi sur les appels de note projetés — un titre composé porte les siens,
+  écrits à la main.
+- ⛔ **LA BARRE DE DIVISION EST UN SITE DE RENDU, et c'est LE plus important** : en lecture
+  ordinaire, le titre de niveau 1 ne se compose QUE là (le corps ne le rend qu'en texte
+  entier, et les deux s'excluent). L'oublier, c'est composer partout sauf là où l'on lit.
+- ⛔ **LE SOMMAIRE GARDE L'IDENTITÉ** : une composition ne vaut que la lecture, comme
+  `titre_affichage` ne vaut que le frontispice. `ref_nivN` reste ce que lisent le sommaire,
+  la navigation, `get_niv1_list` et les ancres.
+- ⚠️ **NEUF CRAYONS D'INTERTITRE PASSENT PAR `cibleTitre`** (barre de division, niveaux 2 à
+  4, titre et sous-titre) : écrits un à un, l'un d'eux écrirait encore à l'aveugle dans le
+  catalogue. C'est la leçon du crayon du frontispice, qui a vécu ainsi jusqu'au 2026-08-17.
+- ⚠️ **L'AIDE DE LA MODALE PARAÎT MÊME AVEC UNE SEULE VARIANTE** : le nom d'auteur et la
+  ligne de provenance n'ont pas de face de catalogue éditable ici — l'un vit dans la fiche
+  de l'auteur, l'autre est une phrase faite de trois champs —, et c'est justement ce qu'il
+  faut dire.
+- ⛔ **CINQ ÉTAGES À TENIR D'ACCORD, et l'un d'eux EFFACE en silence s'il manque** (piège
+  déjà payé par `titre_affichage` et par `informations_complementaires`) : la colonne, la
+  liste blanche de `admin_update_oeuvre_champ`, celle de `/api/admin/update-oeuvre`, le
+  formulaire de `SectionBibliotheque` et le `select` de `app/admin/page.tsx`. **Un champ
+  présent dans le formulaire et absent du `select` s'enregistre à vide, donc EFFACE la
+  colonne.**
+- ⚠️ Migration `20260920182947_composition_frontispice_et_intertitres`.

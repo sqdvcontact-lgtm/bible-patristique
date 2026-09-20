@@ -24,6 +24,7 @@ import IconeCrayon from '@/app/components/IconeCrayon'
 import { createPortal } from 'react-dom'
 import { supabase } from "@/app/lib/supabase"
 import type { ChampTitre, SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, NoteStructuree, VersionTextuelle } from './oeuvreTypes'
+import { variantesFrontispice, variantesIntertitre, titreComposeDe, cleTitreCompose, type TitresComposes } from './compositionTitres'
 import type { BlocOriginal } from './bilingueAlignement'
 import { repartirGroupes, chargerProjectionBilingue, chargerPlaceEnRegard, fondreOriginaux, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, type BlocEnRegard } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
@@ -584,7 +585,7 @@ const TETE_RUBRIQUE: React.CSSProperties = { flexShrink: 0, display: 'flex', ali
 
 type OngletDroit = 'refs' | 'commentaires' | 'notes'
 
-export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, fleuron = null, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
+export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, fleuron = null, titresComposes: titresComposesInit = null, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1 }: Props) {
   // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
   const { visiteFaite, oublierVisite, profilPret, exigerCompte } = useCompte()
   const { modeUtilisateurStandard } = useAffichageAdmin()
@@ -628,6 +629,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const [editionCible, setEditionCible] = useState<EditionCible | null>(null)
   const [titreAffiche, setTitreAffiche] = useState(oeuvre.titre)
   const [oeuvreLocale, setOeuvreLocale] = useState<Props['oeuvre']>(oeuvre)
+  // Les INTERTITRES COMPOSÉS de l'œuvre (`compositionTitres.ts`). Ils vivent à côté des
+  // groupes et non dedans : un titre de division est répété sur tous ses segments, et
+  // sa composition ne s'écrit qu'une fois, sur l'œuvre. L'état local suit les retouches
+  // de l'administrateur sans recharger la page, comme `oeuvreLocale` pour le frontispice.
+  const [titresComposes, setTitresComposes] = useState<TitresComposes>(titresComposesInit ?? {})
+  // ⛔ UN CRAYON D'INTERTITRE OUVRE LES DEUX FACES, comme celui du titre de l'œuvre :
+  // l'identité de la division d'un côté — elle s'écrit sur tous ses segments et porte la
+  // navigation —, sa composition de l'autre, qui ne vaut que cette page. Neuf crayons
+  // les ouvrent (barre de division, niveaux 2 à 4, titre et sous-titre) : ils passent
+  // tous par ici, faute de quoi l'un d'eux écrirait encore à l'aveugle dans le catalogue.
+  const cibleTitre = useCallback((niveau: 1 | 2 | 3 | 4, groupe: GroupeData, schemaTexte: boolean, texteActuel: string): EditionCible => {
+    const champ = `niv${niveau}${schemaTexte ? '_texte' : ''}` as ChampTitre
+    return {
+      type: 'titre', niveau, groupe, texteActuel, schemaTexte,
+      variantes: variantesIntertitre(champ, texteActuel, titresComposes[cleTitreCompose(champ, groupe)] ?? ''),
+    }
+  }, [titresComposes])
   const versionActive = versionsTextuelles.find(version => version.idTexte === idTexte) ?? null
   // ⛔ L'identité de l'édition qu'on lit se prend à la version active, silence compris :
   //    le repli champ par champ mêlait deux éditions (voir `identiteEdition`).
@@ -4066,18 +4084,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               du bloc. Les deux traductions comparées sont nommées en tête de colonnes plus
               bas. */}
           <PageTitre auteur={auteur} oeuvre={oeuvreLocale} versionActive={versionActive} versionEnRegard={versionEnRegard} titre={titreAffiche} estAdmin={estAdmin} mobile={mobile}
-            notes={notesDuTitre([oeuvreLocale.titre_affichage, titreAffiche, oeuvreLocale.sous_titre, oeuvreLocale.titre_original])}
+            notes={notesDuTitre([oeuvreLocale.titre_affichage, titreAffiche, oeuvreLocale.sous_titre, oeuvreLocale.sous_titre_affichage, oeuvreLocale.titre_original, oeuvreLocale.titre_original_affichage, oeuvreLocale.auteur_affichage])}
             onModifier={(champ, va) => setEditionCible({
+              // Chaque élément du frontispice a ses deux colonnes, et la page montre la
+              // composée dès qu'elle est renseignée : on laisse donc choisir celle qu'on
+              // modifie, au lieu d'écrire dans l'une pendant que l'écran affiche l'autre.
+              // Les deux faces et leurs libellés vivent dans `compositionTitres.ts`.
               type: 'titre_oeuvre', champ, texteActuel: va,
-              // Le titre a deux colonnes, et la page de titre montre la seconde dès
-              // qu'elle est renseignée : on laisse donc choisir celle qu'on modifie,
-              // au lieu d'écrire dans l'une pendant que l'écran affiche l'autre.
-              variantes: champ === 'titre' ? [
-                { champ: 'titre', libelle: 'Titre de catalogue', texte: titreAffiche,
-                  aide: 'Le nom de l’œuvre : bibliothèque, recherche, citations, fil d’Ariane. Il s’écrit d’un seul tenant.' },
-                { champ: 'titre_affichage', libelle: 'Titre composé', texte: oeuvreLocale.titre_affichage ?? '',
-                  aide: 'La composition du seul frontispice, sauts de ligne compris. Renseignée, c’est elle qui paraît ici, à la place du titre de catalogue.' },
-              ] : undefined,
+              variantes: variantesFrontispice(champ, oeuvreLocale, va),
             })} />
 
           {/* Ce que le serveur n'a pas pu charger, dit au lecteur : la page s'ouvre
@@ -4158,7 +4172,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     {(() => {
                       const intitule = intituleDeNiveau1(niv1Actif, niv1TexteMap)
                       // ⛔ Le titre RENDU porte ses appels ; `niv1Actif` reste l'identité.
-                      const pose = niv1Actif === NIV1_LIMINAIRES ? intitule : (groupes[0]?.titresAffichage?.niv1 ?? intitule)
+                      // ⚠️ Et la COMPOSITION passe avant : c'est ICI qu'on lit le titre de
+                      // niveau 1 en lecture ordinaire, le corps ne le rendant qu'en texte
+                      // entier. L'oublier, c'est composer partout sauf là où l'on lit.
+                      const compose1 = groupes[0] ? titreComposeDe(titresComposes, 'niv1', groupes[0]) : undefined
+                      const pose = niv1Actif === NIV1_LIMINAIRES ? intitule : (compose1 ?? groupes[0]?.titresAffichage?.niv1 ?? intitule)
                       return rendreTitreColophonAvecNotes(
                         pose,
                         notesDuTitre([intitule], segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes),
@@ -4171,15 +4189,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       const titreAffiche = intituleDeNiveau1(niv1Actif, niv1TexteMap)
                       const txt = complementDeTitre(titreAffiche, groupes[0]?.niv1_texte || niv1TexteMap[niv1Actif])
                       const notesTitre = notesDuTitre([txt], segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes)
-                      return txt && configNiveaux.txtCorps[0]
-                        ? <span style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{rendreTexteAvecNotes(preparerTitreColophon(groupes[0]?.titresAffichage?.niv1_texte ?? txt), notesTitre)}</span>
+                      const composeTexte = groupes[0] ? titreComposeDe(titresComposes, 'niv1_texte', groupes[0]) : undefined
+                      return (composeTexte || txt) && configNiveaux.txtCorps[0]
+                        ? <span style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{rendreTexteAvecNotes(preparerTitreColophon(composeTexte ?? groupes[0]?.titresAffichage?.niv1_texte ?? txt), notesTitre)}</span>
                         : null
                     })()}
                     {estAdmin && niv1Actif !== NIV1_LIMINAIRES && (() => { const g = groupes[0] ?? { niv1: niv1Actif, niv2: '', niv3: '', niv4: '', anchor: '', itemIds: [] }; return (
                       <div style={{ position: 'absolute', right: '-52px', top: '2px', display: 'flex', gap: '3px', alignItems: 'center' }}>
-                        <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe: g, texteActuel: niv1Actif, schemaTexte: false })}
+                        <button onClick={() => setEditionCible(cibleTitre(1, g, false, niv1Actif))}
                           title="Modifier le titre" style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}><IconeCrayon size={12} /></button>
-                        <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe: g, texteActuel: g.niv1_texte ?? '', schemaTexte: true })}
+                        <button onClick={() => setEditionCible(cibleTitre(1, g, true, g.niv1_texte ?? ''))}
                           title="Modifier le sous-titre" style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1, fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                       </div>
                     )})()}
@@ -4380,7 +4399,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               )
               // ⛔ Le titre RENDU porte ses appels de note ; le titre CANONIQUE reste
               // l'identité, celle sur quoi la navigation et le sommaire s'appuient.
-              const rendu = (champ: ChampTitre, brut: string) => groupe.titresAffichage?.[champ] ?? brut
+              // ⚠️ Et la COMPOSITION passe avant tout (2026-09-20) : c'est le même partage
+              // que `titre` / `titre_affichage` sur le frontispice, l'identité d'un côté,
+              // la mise en page de l'autre. Elle l'emporte donc aussi sur les appels de
+              // note projetés : un titre composé porte les siens, écrits à la main.
+              const rendu = (champ: ChampTitre, brut: string) => titreComposeDe(titresComposes, champ, groupe) ?? groupe.titresAffichage?.[champ] ?? brut
               // Le complément d'un titre est FACULTATIF, et il ne se compose que s'il
               // dit autre chose que le titre lui-même (cf. `complementDeTitre`).
               const sousTitre1 = complementDeTitre(groupe.niv1, groupe.niv1_texte)
@@ -4406,9 +4429,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       {sousTitre2 && configNiveaux.txtCorps[1] && <p style={styleSousTitreNiveau(2)}>{rendreTitreColophonAvecNotes(rendu('niv2_texte', sousTitre2), notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '-52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
-                          <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2, schemaTexte: false })}
+                          <button onClick={() => setEditionCible(cibleTitre(2, groupe, false, groupe.niv2))}
                             title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
-                          <button onClick={() => setEditionCible({ type: 'titre', niveau: 2, groupe, texteActuel: groupe.niv2_texte ?? '', schemaTexte: true })}
+                          <button onClick={() => setEditionCible(cibleTitre(2, groupe, true, groupe.niv2_texte ?? ''))}
                             title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                         </div>
                       )}
@@ -4420,9 +4443,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       {sousTitre3 && configNiveaux.txtCorps[2] && <p style={styleSousTitreNiveau(3)}>{rendreTitreColophonAvecNotes(rendu('niv3_texte', sousTitre3), notesTitre)}</p>}
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '-52px', top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
-                          <button onClick={() => setEditionCible({ type: 'titre', niveau: 3, groupe, texteActuel: groupe.niv3, schemaTexte: false })}
+                          <button onClick={() => setEditionCible(cibleTitre(3, groupe, false, groupe.niv3))}
                             title="Modifier le titre" style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
-                          <button onClick={() => setEditionCible({ type: 'titre', niveau: 3, groupe, texteActuel: groupe.niv3_texte ?? '', schemaTexte: true })}
+                          <button onClick={() => setEditionCible(cibleTitre(3, groupe, true, groupe.niv3_texte ?? ''))}
                             title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                         </div>
                       )}
@@ -4434,9 +4457,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       {sousTitre4 && configNiveaux.txtCorps[3] && <span style={styleSousTitreNiveau(4)}>{rendreTitreColophonAvecNotes(rendu('niv4_texte', sousTitre4), notesTitre)}</span>}
                       {estAdmin && (
                         <span style={{ position: 'absolute', right: '-52px', top: 0, display: 'inline-flex', gap: '3px', alignItems: 'center', textTransform: 'none' }}>
-                          <button onClick={() => setEditionCible({ type: 'titre', niveau: 4, groupe, texteActuel: groupe.niv4, schemaTexte: false })}
+                          <button onClick={() => setEditionCible(cibleTitre(4, groupe, false, groupe.niv4))}
                             title="Modifier le titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
-                          <button onClick={() => setEditionCible({ type: 'titre', niveau: 4, groupe, texteActuel: groupe.niv4_texte ?? '', schemaTexte: true })}
+                          <button onClick={() => setEditionCible(cibleTitre(4, groupe, true, groupe.niv4_texte ?? ''))}
                             title="Modifier le sous-titre" style={{ fontSize: '0.5rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
                         </span>
                       )}
@@ -4752,7 +4775,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   )
                   // Même règle que dans le texte suivi, pour le complément comme pour
                   // les appels de note que le titre RENDU porte.
-                  const rendu = (champ: ChampTitre, brut: string) => groupe.titresAffichage?.[champ] ?? brut
+                  const rendu = (champ: ChampTitre, brut: string) => titreComposeDe(titresComposes, champ, groupe) ?? groupe.titresAffichage?.[champ] ?? brut
                   const sousTitre1 = complementDeTitre(groupe.niv1, groupe.niv1_texte)
                   const sousTitre2 = complementDeTitre(groupe.niv2, groupe.niv2_texte)
                   // La MAIN change-t-elle ici ? L'apparat de l'auteur ouvre la vue, celui
@@ -4787,7 +4810,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           <h2 style={styleTitreNiveau(1)}>{rendreTitreColophonAvecNotes(rendu('niv1', groupe.niv1), notesTitre, 'titre')}</h2>
                           {sousTitre1 && <p style={styleSousTitreNiveau(1)}>{rendreTitreColophonAvecNotes(rendu('niv1_texte', sousTitre1), notesTitre)}</p>}
                           {estAdmin && (
-                            <button onClick={() => setEditionCible({ type: 'titre', niveau: 1, groupe, texteActuel: groupe.niv1_texte || groupe.niv1, schemaTexte: true })}
+                            <button onClick={() => setEditionCible(cibleTitre(1, groupe, true, groupe.niv1_texte || groupe.niv1))}
                               title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           )}
                         </div>
@@ -5474,6 +5497,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             if (champ === 'titre') setTitreAffiche(valeur)
             setOeuvreLocale(prev => ({ ...prev, [champ]: valeur || undefined }))
           }}
+          onTitreComposeModifie={(cle, valeur) => setTitresComposes(prev => {
+            // Une composition retirée SORT de l'objet : une chaîne vide s'y lirait comme un
+            // titre composé vide, et l'intertitre ne reviendrait pas à son catalogue.
+            const suite = { ...prev }
+            if (valeur.trim()) suite[cle] = valeur
+            else delete suite[cle]
+            return suite
+          })}
           onClose={() => setEditionCible(null)}
           onEnregistre={() => vue === 'apparat' ? chargerApparatData() : changerNiv1(niv1Actif, { forceRefresh: true, conserverPosition: true })}
         />

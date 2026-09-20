@@ -99,6 +99,12 @@ export async function POST(req: NextRequest) {
     // était LUE par la page de titre mais éditable par aucune interface : une
     // correction du titre restait donc invisible sur toute œuvre qui la portait.
     'titre_affichage',
+    // Les autres COMPOSITIONS du frontispice (2026-09-20) : chaque élément de la page de
+    // titre a désormais sa face de catalogue et sa face composée, sur le modèle du titre.
+    // ⚠️ Deux d'entre elles portent une LIGNE entière — le traducteur et la provenance —
+    // que la page formait elle-même à partir de plusieurs champs.
+    'auteur_affichage', 'sous_titre_affichage', 'titre_original_affichage',
+    'trad_auteur_affichage', 'provenance_affichage',
     // Le fleuron qui sépare la page de titre du texte : une CLÉ du registre
     // `app/lib/fleurons.ts`, ou null pour celui du site.
     'fleuron',

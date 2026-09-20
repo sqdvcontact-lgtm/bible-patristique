@@ -9,6 +9,14 @@ export type Oeuvre = {
   // Composition du titre pour la seule page de titre (sauts de ligne éditoriaux).
   // Renseignée, elle y paraît à la place de `titre`.
   titre_affichage?: string | null
+  // Les autres compositions du frontispice (2026-09-20), sur le même modèle : la face de
+  // catalogue nomme la chose partout, la face composée ne vaut que la page de titre.
+  // ⚠️ `trad_auteur_affichage` et `provenance_affichage` portent une LIGNE entière.
+  auteur_affichage?: string | null
+  sous_titre_affichage?: string | null
+  titre_original_affichage?: string | null
+  trad_auteur_affichage?: string | null
+  provenance_affichage?: string | null
   titre_original: string | null
   profondeur_sommaire?: number | null
   sous_titre?: string | null

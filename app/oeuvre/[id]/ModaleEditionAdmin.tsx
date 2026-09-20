@@ -3,7 +3,8 @@
 import { Z_MODALE } from '@/app/lib/empilement'
 import { useState, useRef, useEffect, useId } from 'react'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
-import type { ChampOeuvre, EditionCible, VarianteTitre } from './oeuvreTypes'
+import type { ChampTitre, EditionCible, VarianteTitre } from './oeuvreTypes'
+import { cleTitreCompose } from './compositionTitres'
 
 const BTN_MODAL: React.CSSProperties = { fontSize: '0.6875rem', padding: '4px 9px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }
 
@@ -42,13 +43,21 @@ const CHAMP_LABEL: Record<string, string> = {
   titre: "Modifier le titre de l'œuvre",
   titre_affichage: "Modifier le titre de l'œuvre",
   sous_titre: 'Modifier le sous-titre',
+  sous_titre_affichage: 'Modifier le sous-titre',
   titre_original: 'Modifier le titre original',
+  titre_original_affichage: 'Modifier le titre original',
   trad_auteur: 'Modifier le traducteur',
+  trad_auteur_affichage: 'Modifier le traducteur',
+  auteur_affichage: 'Composer le nom d’auteur',
+  provenance_affichage: 'Composer la ligne de provenance',
 }
 
-export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregistre, onTitreOeuvreModifie }: {
+export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregistre, onTitreOeuvreModifie, onTitreComposeModifie }: {
   cible: EditionCible; idOeuvre: string; onClose: () => void; onEnregistre: () => void
   onTitreOeuvreModifie?: (champ: string, valeur: string) => void
+  /** Une COMPOSITION d'intertitre vient d'être écrite : la page la reporte sur sa copie
+   *  locale (`titresComposes`) sans recharger la division. */
+  onTitreComposeModifie?: (cle: string, valeur: string) => void
 }) {
   const [valeur, setValeur] = useState(cible.type === 'segment' ? cible.seg.texte : cible.texteActuel)
   const [etape, setEtape] = useState<'edition' | 'confirmation' | 'confirmation-suppression'>('edition')
@@ -68,9 +77,18 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
   // frontispice. On choisit ici laquelle on modifie, au lieu d'écrire à l'aveugle
   // dans l'une pendant que l'écran montre l'autre. Les saisies en cours sont
   // gardées de part et d'autre : passer d'un onglet à l'autre ne perd rien.
-  const variantes = cible.type === 'titre_oeuvre' ? cible.variantes ?? [] : []
-  const [champActif, setChampActif] = useState<ChampOeuvre | null>(cible.type === 'titre_oeuvre' ? cible.champ : null)
+  // ⚠️ Les DEUX cibles à titres en ont désormais : le titre de l'œuvre depuis toujours, les
+  // intertitres depuis le 2026-09-20 (l'identité de la division d'un côté, sa composition
+  // de l'autre). Le champ actif n'est donc plus forcément une colonne d'`oeuvres` : une
+  // variante composée d'intertitre porte un nom suffixé, que `variante.compose` distingue.
+  const variantes = cible.type === 'segment' ? [] : cible.variantes ?? []
+  const [champActif, setChampActif] = useState<string | null>(
+    cible.type === 'titre_oeuvre' ? cible.champ
+      : cible.type === 'titre' ? (cible.variantes?.[0]?.champ ?? null)
+      : null,
+  )
   const [brouillons, setBrouillons] = useState<Record<string, string>>({})
+  const varianteActive = variantes.find(v => v.champ === champActif) ?? null
 
   const changerDeColonne = (variante: VarianteTitre) => {
     if (!champActif || variante.champ === champActif) return
@@ -102,6 +120,12 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
       resultat = await appelerAPI('/api/admin/segment-modifier', { id: cible.seg.id, segment_texte: valeur })
     } else if (cible.type === 'titre_oeuvre') {
       resultat = await appelerAPI('/api/admin/update-oeuvre', { id_oeuvre: idOeuvre, champ: champActif ?? cible.champ, valeur: valeur || null })
+    } else if (varianteActive?.compose) {
+      // ⛔ Une COMPOSITION d'intertitre ne touche pas `segments` : elle vit sur l'œuvre, par
+      // chemin de division (`compositionTitres.ts`). L'identité de la division ne bouge pas.
+      resultat = await appelerAPI('/api/admin/titre-compose', {
+        id_oeuvre: idOeuvre, champ: champDeLIntertitre(cible), groupe: cible.groupe, valeur,
+      })
     } else {
       resultat = await appelerAPI('/api/admin/segment-titre', {
         id_oeuvre: idOeuvre, niveau: cible.niveau, action: 'modifier', valeur,
@@ -110,8 +134,17 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
     }
     if (!resultat.ok) { setStatut('erreur'); setErreurMsg(resultat.error ?? null); setEtape('edition'); return }
     if (cible.type === 'titre_oeuvre') onTitreOeuvreModifie?.(champActif ?? cible.champ, valeur)
+    else if (varianteActive?.compose && cible.type === 'titre') {
+      onTitreComposeModifie?.(cleTitreCompose(champDeLIntertitre(cible), cible.groupe), valeur)
+    }
     else onEnregistre()
     onClose()
+  }
+
+  // Le champ de division que la cible vise, dans le vocabulaire de `GroupeData` :
+  // le niveau, plus le suffixe du complément quand le crayon vise le sous-titre.
+  function champDeLIntertitre(c: Extract<EditionCible, { type: 'titre' }>): ChampTitre {
+    return `niv${c.niveau}${c.schemaTexte ? '_texte' : ''}` as ChampTitre
   }
 
   const viderChampOeuvre = async (champ: string) => {
@@ -125,6 +158,18 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
   const supprimerTitre = async () => {
     if (cible.type !== 'titre') return
     setStatut('envoi')
+    // Sous l'onglet COMPOSÉ, « supprimer » rend l'intertitre à son identité : on retire la
+    // composition, jamais le titre de la division, qui porte la navigation.
+    if (varianteActive?.compose) {
+      const champ = champDeLIntertitre(cible)
+      const res = await appelerAPI('/api/admin/titre-compose', {
+        id_oeuvre: idOeuvre, champ, groupe: cible.groupe, valeur: '',
+      })
+      if (!res.ok) { setStatut('erreur'); setErreurMsg(res.error ?? null); setEtape('edition'); return }
+      onTitreComposeModifie?.(cleTitreCompose(champ, cible.groupe), '')
+      onClose()
+      return
+    }
     // schemaTexte = true → on vide uniquement le champ _texte (ne pas toucher au titre principal)
     const resultat = cible.schemaTexte
       ? await appelerAPI('/api/admin/segment-titre', {
@@ -167,8 +212,12 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
         </div>
 
         {etape === 'edition' ? <>
-          {variantes.length > 1 && (
+          {/* ⚠️ L'AIDE paraît même quand il n'y a qu'une variante : le nom d'auteur et la
+              ligne de provenance n'ont pas de face de catalogue qu'on puisse éditer ici, et
+              c'est justement ce qu'il faut dire. */}
+          {variantes.length > 0 && (
             <div style={{ marginBottom: '10px' }}>
+              {variantes.length > 1 && (
               <div style={{ display: 'flex', gap: '4px' }}>
                 {variantes.map(variante => {
                   const actif = variante.champ === champActif
@@ -186,8 +235,9 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
                   )
                 })}
               </div>
-              <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', margin: '6px 0 0', lineHeight: 1.45 }}>
-                {variantes.find(v => v.champ === champActif)?.aide}
+              )}
+              <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', margin: variantes.length > 1 ? '6px 0 0' : 0, lineHeight: 1.45 }}>
+                {varianteActive?.aide}
               </p>
             </div>
           )}
@@ -201,13 +251,13 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             <button onClick={() => entourer('“', '”')} title="Guillemets anglais (citation imbriquée)" style={BTN_MODAL}>” ”</button>
           </div>
           <textarea ref={taRef} value={valeur} onChange={e => setValeur(e.target.value)}
-            rows={cible.type === 'segment' ? 8 : cible.type === 'titre_oeuvre' && (champActif === 'titre' || champActif === 'titre_affichage') ? 3 : 2} autoFocus
+            rows={cible.type === 'segment' ? 8 : varianteActive?.compose || champActif === 'titre' ? 3 : 2} autoFocus
             style={{ width: '100%', fontSize: '0.78125rem', padding: '8px 10px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.55, boxSizing: 'border-box', fontFamily: cible.type === 'segment' ? 'var(--font-source-sans), Arial, sans-serif' : 'inherit' }} />
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
             {cible.type === 'titre' ? (
               <button onClick={supprimerTitre} style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                Supprimer
+                {varianteActive?.compose ? 'Revenir au titre de catalogue' : 'Supprimer'}
               </button>
             ) : cible.type === 'segment' ? (
               <button onClick={() => setEtape('confirmation-suppression')} style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -218,7 +268,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
               // `titre_affichage` est en revanche légitime, et rend le frontispice
               // au titre de catalogue.
               <button onClick={() => viderChampOeuvre(champActif)} style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                {champActif === 'titre_affichage' ? 'Revenir au titre de catalogue' : 'Supprimer'}
+                {varianteActive?.compose ? 'Revenir au champ de catalogue' : 'Supprimer'}
               </button>
             ) : <span />}
             <div style={{ display: 'flex', gap: '8px' }}>

@@ -1179,9 +1179,19 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
     // Composition du titre pour la page de titre seule (sauts de ligne compris).
     // Renseignée, c'est elle que le frontispice affiche à la place du titre.
     { key: 'titre_affichage', label: 'Titre composé (page de titre)' },
+    // ⚠️ Chaque élément du frontispice a sa face COMPOSÉE depuis le 2026-09-20, sur le
+    // modèle du titre : elle ne vaut que la page de titre, sauts de ligne compris, et le
+    // champ de catalogue reste celui que lisent la bibliothèque, la recherche et les
+    // citations. Deux d'entre elles portent une LIGNE entière, que la page formait
+    // elle-même à partir de plusieurs champs.
+    { key: 'auteur_affichage', label: 'Nom d’auteur composé (page de titre)' },
     { key: 'sous_titre', label: 'Sous-titre' },
+    { key: 'sous_titre_affichage', label: 'Sous-titre composé (page de titre)' },
     { key: 'titre_original', label: 'Titre original' },
+    { key: 'titre_original_affichage', label: 'Titre original composé (page de titre)' },
     { key: 'trad_auteur', label: 'Traducteur' },
+    { key: 'trad_auteur_affichage', label: 'Ligne du traducteur composée (page de titre)' },
+    { key: 'provenance_affichage', label: 'Ligne de provenance composée (colophon)' },
     { key: 'editeur', label: 'Éditeur' },
     { key: 'collection', label: 'Collection' },
     { key: 'ville', label: 'Ville' },
@@ -1205,8 +1215,12 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
     setEditionOeuvre(o.id_oeuvre)
     setFormOeuvre({
       titre: o.titre ?? '', titre_affichage: o.titre_affichage ?? '',
-      sous_titre: o.sous_titre ?? '', titre_original: o.titre_original ?? '',
-      trad_auteur: o.trad_auteur ?? '', editeur: o.editeur ?? '', collection: o.collection ?? '',
+      auteur_affichage: o.auteur_affichage ?? '',
+      sous_titre: o.sous_titre ?? '', sous_titre_affichage: o.sous_titre_affichage ?? '',
+      titre_original: o.titre_original ?? '', titre_original_affichage: o.titre_original_affichage ?? '',
+      trad_auteur: o.trad_auteur ?? '', trad_auteur_affichage: o.trad_auteur_affichage ?? '',
+      provenance_affichage: o.provenance_affichage ?? '',
+      editeur: o.editeur ?? '', collection: o.collection ?? '',
       ville: o.ville ?? '', date_publication: o.date_publication ?? '',
       date_composition: o.date_composition ?? '', url_source: o.url_source ?? '',
       langue_originale: o.langue_originale ?? '',

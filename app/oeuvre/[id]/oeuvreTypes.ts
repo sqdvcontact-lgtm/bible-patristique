@@ -280,9 +280,13 @@ export type Props = {
   /** La clé du fleuron qui sépare la page de titre du texte (`app/lib/fleurons.ts`).
    *  ⚠️ `null` est le cas ORDINAIRE et veut dire « celui du site », non « aucun ». */
   fleuron?: string | null
+  /** Les INTERTITRES COMPOSÉS de l'œuvre, par chemin de division (`compositionTitres.ts`).
+   *  ⚠️ Presque toujours vide : un titre ne se compose que là où l'auteur l'a voulu, et
+   *  l'identité de la division (`ref_nivN`) reste ce que le sommaire et les ancres lisent. */
+  titresComposes?: Record<string, string> | null
   // `nb_signes` mesure le texte PAR DÉFAUT de l'œuvre, et lui seul : la fiche
   // « À propos de cette édition » ne l'annonce donc que sur cette édition-là.
-  oeuvre: { titre: string; titre_affichage?: string | null; sous_titre?: string; titre_original?: string; trad_auteur?: string; trad_date?: string; commentaire_traduction?: string | null; note_editoriale_complete?: string | null; note_editoriale_complement?: string | null; bibliographie_selective?: string | null; note_editoriale_titre?: string | null; editeur?: string; collection?: string; ville?: string; date_publication?: string; date_mise_en_ligne?: string | null; id_oeuvre?: string; date_composition?: string | null; langue_originale?: string | null; genres?: string[] | null; url_source?: string | null; nb_signes?: number | null }
+  oeuvre: { titre: string; titre_affichage?: string | null; sous_titre?: string; sous_titre_affichage?: string | null; titre_original?: string; titre_original_affichage?: string | null; auteur_affichage?: string | null; trad_auteur?: string; trad_auteur_affichage?: string | null; provenance_affichage?: string | null; trad_date?: string; commentaire_traduction?: string | null; note_editoriale_complete?: string | null; note_editoriale_complement?: string | null; bibliographie_selective?: string | null; note_editoriale_titre?: string | null; editeur?: string; collection?: string; ville?: string; date_publication?: string; date_mise_en_ligne?: string | null; id_oeuvre?: string; date_composition?: string | null; langue_originale?: string | null; genres?: string[] | null; url_source?: string | null; nb_signes?: number | null }
   groupes: GroupeData[]
   segments: SegData[]
   tocApparat: TocEntry[]
@@ -311,7 +315,18 @@ export type Props = {
   niv1InitialPartiel?: boolean
 }
 
-export type ChampOeuvre = 'titre' | 'titre_affichage' | 'sous_titre' | 'titre_original' | 'trad_auteur'
+// ⚠️ TOUT élément de la page de titre a désormais ses deux faces (2026-09-20) : le
+// champ de CATALOGUE, d'un seul tenant, et sa COMPOSITION pour le seul frontispice.
+// Les correspondances et les libellés vivent dans `compositionTitres.ts`.
+// `trad_auteur_affichage` et `provenance_affichage` composent une LIGNE entière, que
+// la page formait elle-même à partir de plusieurs champs.
+export type ChampOeuvre =
+  | 'titre' | 'titre_affichage'
+  | 'sous_titre' | 'sous_titre_affichage'
+  | 'titre_original' | 'titre_original_affichage'
+  | 'trad_auteur' | 'trad_auteur_affichage'
+  | 'provenance_affichage'
+  | 'auteur_affichage'
 
 // Le titre d'une œuvre vit dans DEUX colonnes, et l'on ne modifie pas la même
 // chose selon celle que l'on vise. `titre` est le titre de catalogue : il nomme
@@ -320,12 +335,20 @@ export type ChampOeuvre = 'titre' | 'titre_affichage' | 'sous_titre' | 'titre_or
 // frontispice seul : c'est là que vivent les sauts de ligne voulus par l'auteur.
 // Dès qu'il est renseigné, c'est LUI qui paraît sur la page de titre, et une
 // correction portée sur `titre` y reste donc invisible.
-export type VarianteTitre = { champ: ChampOeuvre; libelle: string; texte: string; aide: string }
+export type VarianteTitre = {
+  champ: string
+  libelle: string
+  texte: string
+  aide: string
+  /** La face COMPOSÉE. Elle ne s'écrit jamais dans le catalogue : colonne `*_affichage`
+   *  pour le frontispice, `oeuvres.titres_composes` pour un intertitre. */
+  compose?: boolean
+}
 
 // Description de ce qui est en cours d'édition dans la modale admin :
 // un segment de texte, un titre de niveau 2/3/4 rattaché à un groupe,
 // ou un champ de la fiche œuvre (titre, sous_titre, titre_original, trad_auteur…).
 export type EditionCible =
   | { type: 'segment'; seg: SegData }
-  | { type: 'titre'; niveau: 1 | 2 | 3 | 4; groupe: GroupeData; texteActuel: string; schemaTexte: boolean }
+  | { type: 'titre'; niveau: 1 | 2 | 3 | 4; groupe: GroupeData; texteActuel: string; schemaTexte: boolean; variantes?: VarianteTitre[] }
   | { type: 'titre_oeuvre'; champ: ChampOeuvre; texteActuel: string; variantes?: VarianteTitre[] }
