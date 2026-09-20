@@ -8,12 +8,6 @@
 
 ---
 
-## § 1. Principes directeurs
-
-**§ 1 — Capitales de phrase**
-
-- ⛔ Ne jamais appliquer mécaniquement la règle à tout caractère `.`.
-
 ## § 3. Typographie — les signes, les espaces, l’enrichissement et le gris
 
 **§ 3 — Typographie — les signes, les espaces, l’enrichissement et le gris**
@@ -24,6 +18,7 @@
 **§ 3.2 — Normalisation typographique**
 
 - ⚠️ Cette règle appartient à la typographie et **ne franchit pas la frontière posée plus bas** : elle vaut pour ce que Corpus Scriptura compose, jamais pour une orthographe ancienne reproduite d’une source.
+- ⛔ Une suite numérotée de plusieurs unités syntaxiquement autonomes ne se compose pas en chapelet dans un même paragraphe, séparée par des points-virgules.
 - ⚠️ La mention d’édition s’écrit en TOUTES LETTRES (décision de l’auteur, 4 septembre 2026) : `deuxième édition`, jamais `2e édition` — et l’abréviation s’ouvre avec l’ordinal, `2e éd.` et `2e édit.` étant proscrits au même titre.
 - ⛔ Elle ne vaut pas pour la couche SOURCE, où la graphie du témoin est conservée : « p. 510 de la 2e édit.
 - ⚠️ Corriger un ordinal dans une couche de lecture ALLONGE la chaîne : les empans d’italique qui l’indexent (`inline_spans`) se recalculent DANS LA MÊME ÉCRITURE, depuis les intitulés eux-mêmes et non par un décalage arithmétique, puis se vérifient en relisant chaque empan.
@@ -37,6 +32,7 @@
 
 - ⛔ LE TIRET DEMI-CADRATIN `–` EST RÉSERVÉ EXCLUSIVEMENT AUX INCISES VERBALES.
 - ⛔ UNE RÉFÉRENCE QUI CONSTITUE À ELLE SEULE UNE INCIDENCE N’EST PAS UNE INCISE AU TIRET.
+- ⛔ SI UN APPEL DE NOTE SUIT LA RÉFÉRENCE, L’ORDRE EST : PARENTHÈSE FERMANTE → APPEL → PONCTUATION FINALE.
 
 **§ 3.5 — Titres**
 
@@ -63,6 +59,7 @@
 - ⚠️ La suppression ne dispense pas de la syntaxe : la phrase d’accueil doit rester correcte une fois la ponctuation retirée.
 - ⚠️ Un deux-points ne suffit donc pas à conclure.
 - ⚠️ Elle ne s’applique QUE si la ponctuation forte est déjà au dedans : lorsque la citation n’en porte pas, le signe qui suit le guillemet appartient à la phrase d’accueil et se conserve.
+- ⛔ Un même segment ne reçoit jamais deux paires de guillemets au même niveau.
 - ⚠️ Ne pas confondre avec la transformation inverse, appliquée au copier-coller : une citation copiée est encadrée de guillemets français, ce qui fait passer ses guillemets internes en anglais.
 - ⚠️ Une citation POSÉE VERSET PAR VERSET ne se recolle pas.
 
@@ -194,6 +191,22 @@
 - ⚠️ Quinze n’est pas le blanc qui sépare deux SECTIONS de la fiche, qui vaut dix-huit : une rubrique est un rang au-dessous, et lui donner le même air aplatirait la hiérarchie qu’on vient de poser.
 - ⚠️ L’ENCRE DE LA RUBRIQUE MONTE D’UN RANG — par rapport à celle d’un volet.
 - ⛔ NI JUSTIFICATION NI CÉSURE SUR UNE ENTRÉE.
+
+**§ 5.7 — Le catalogue et la composition**
+
+- ⛔ TOUT CE QUI SE COMPOSE A DEUX FACES (demande de l’auteur, 20 septembre 2026 : « généraliser le système titre de catalogue / titre composé à l’ensemble des éléments de la page de titres »).
+- ⛔ LA COMPOSITION NE DÉCIDE JAMAIS D’UN AFFICHAGE.
+- ⛔ UNE LIGNE QUE LA PAGE FORME SE COMPOSE ENTIÈRE.
+- ⚠️ LE NOM D’AUTEUR COMPOSÉ VIT SUR L’ŒUVRE — non sur l’auteur : c’est la composition de CE frontispice — « SAINT AUGUSTIN / ÉVÊQUE D’HIPPONE » —, non un second nom, qui rejaillirait sur toutes ses œuvres.
+- ⛔ LES DEUX LIGNES FORMÉES NE VALENT QUE L’ÉDITION PAR DÉFAUT.
+- ⛔ CE QUI EST FIXE NE SE COMPOSE PAS (périmètre arrêté avec l’auteur) : la marque d’imprimeur, « Corpus Scriptura » et « Édition en ligne » appartiennent au site, non à l’édition.
+
+**§ 5.7.1 — Les intertitres composés**
+
+- ⛔ `ref_nivN` EST UNE IDENTITÉ, et elle ne se compose pas.
+- ⛔ LA COMPOSITION NE VA PAS DANS `segments`.
+- ⚠️ LA BARRE DE DIVISION EST LE SITE DE RENDU QUI COMPTE.
+- ⛔ LA COMPOSITION L’EMPORTE SUR LES APPELS DE NOTE PROJETÉS (§ 13.6) : un titre composé porte les siens, écrits à la main.
 
 ## § 6. Structure, niveaux, paragraphes et rangs
 
@@ -1622,7 +1635,8 @@
 
 **§ 35.7 — Les guillemets d’une citation en langue étrangère restent en romain**
 
-- ⛔ L’italique ne se pose pas sur le conteneur qui porte les guillemets, ni la langue étrangère sur la ponctuation française qui les entoure.
+- ⛔ L’italique ne se pose pas sur le conteneur qui porte les guillemets, ni la langue étrangère sur la ponctuation française qui les entoure.\n\n
+- ⛔ UN LEMME LATIN REPRIS DU VERSET EST UNE CITATION.
 - ⛔ le rendu ne le rentre pas dans la citation, et ne recompose pas davantage l’apostrophe typographique, qui demeure U+2019 sur toutes les surfaces éditoriales françaises.
 
 **§ 35.9 — Le repère d’un commentaire se pose en manchette**
@@ -1783,12 +1797,15 @@
 
 **§ 35.29 — La manchette d’un commentaire — trois états, et aucun autre**
 
-- ⛔ Un repère de commentaire de rang bas est une MANCHETTE : jamais un titre, jamais une entrée du plan (§ 35.9).
+- ⛔ Une MANCHETTE est le petit INTITULÉ ANALYTIQUE qui surmonte un paragraphe ou un groupe de commentaires de rang bas — par exemple : `2-5. Les ancêtres de Notre-Seigneur Jésus-Christ depuis Abraham jusqu’à David`.
+- ⛔ La portée numérique d’une manchette suit la segmentation réelle du commentaire : lorsqu’un verset est partagé en membres `a/b`, les suffixes sont conservés (`1-4a`, `4b-7a`, `7b-8`, etc.) ; il est interdit d’arrondir deux unités voisines au même verset entier.
+- ⛔ Lorsqu’un livre ne fournit pas ce niveau d’intitulés, Corpus Scriptura les CRÉE par défaut dès que la portée et le contenu permettent un intitulé bref, neutre et fiable.
 - ⛔ ON NE FABRIQUE JAMAIS UN INTITULÉ POUR RÉGULARISER LA PAGE.
 - ⛔ UNE MANCHETTE ÉDITORIALE NE REÇOIT JAMAIS DE `facsimile_heading` — et la raison n’est pas une convention de champ : `facsimile_heading` ATTESTE une forme imprimée.
 - ⛔ Les trois états sont REPRÉSENTABLES et CONTRÔLABLES dans la donnée, sans quoi ils ne sont qu’une intention : `bible_editorial_body_blocks.manchette_etat` vaut `source`, `editoriale` ou `absente`, et `manchette_motif` porte la raison, obligatoire pour les deux derniers, interdite au premier — le témoin EST la justification d’une manchette source.
 - ⛔ `null` ne veut dire qu’une chose, et une seule : « pas encore relu ».
 - ⚠️ Est ÉLIGIBLE un commentaire de rang I4 à I6 — c’est-à-dire ce que le § 35.9 compose en manchette.
+- ⛔ `metadata.source_record.printed_anchor` sert à attester le repère imprimé d’un commentaire ; il ne constitue jamais, à lui seul, la preuve d’une manchette.
 - ⛔ AUCUN ÉTAT NE S’ÉCRIT EN MASSE, ET AUCUN NE SE DÉDUIT.
 - ⛔ Un quatrième état ne s’invente pas dans une passe : il se décide ici.
 
@@ -2608,6 +2625,19 @@
 
 - ⛔ on ne mélange pas plusieurs familles de correction dans une même passe — lorsque cela empêcherait d’en mesurer l’effet.
 - ⛔ on ne corrige jamais seulement l’exemple rencontré.
+- ⛔ TOUT LIVRE FILLION SE TRAITE DÉSORMAIS COMME UNE UNITÉ ÉDITORIALE ET PAS COMME UNE SIMPLE COLLECTION D’ANOMALIES.
+- ⛔ Aucun travail d’un livre ne commence sur des chiffres hérités d’un ancien rapport sans relecture de la base.
+- ⛔ si une première subdivision autonome est réellement reconstructible par sa portée et son contenu, Corpus Scriptura CRÉE le `1°` éditorial nécessaire avec un intitulé bref, neutre et fondé sur le texte ; cette création est explicitement marquée éditoriale et ne reçoit jamais de `facsimile_heading`.
+- ⛔ Un lemme latin réellement repris du verset et servant de tête au commentaire est une citation : guillemets français explicites, latin en italique à l’intérieur seulement, classification de lemme ; une expression latine grammaticalement intégrée à la phrase reste simplement en italique.
+- ⛔ TOUTE SÉRIE DÉPLACÉE EN NOTE REÇOIT UN APPEL AU LOCUS LE PLUS LOGIQUE LORSQU’UN LOCUS SÉMANTIQUE IDENTIFIABLE EXISTE.
+- ⛔ Pour une note attachée à une référence parenthétique en fin de phrase, l’ordre est : **parenthèse fermante → appel de note → ponctuation finale**, par exemple `(Gn 6, 9)¹.`.
+- ⛔ Un livre dont les commentaires sont propres mais dont le corps biblique n’a pas été audité n’est pas fermé au niveau L6.
+- ⛔ Ne jamais transformer une validation structurelle/typographique en prétention de collation textuelle intégrale.
+- ⛔ L9 N’EST PAS UNE PASSE DE CORRECTION FORCÉE.
+- ⛔ Ne jamais poser une question vague du type « que préférez-vous ?
+- ⛔ Un livre ne reçoit le statut final de clôture qu’après L9 = closed_no_questions ou L9 = closed_resolved.
+- ⛔ Le statut de clôture antérieur ne protège jamais un livre contre une règle nouvelle.
+- ⛔ Les compteurs sont relus depuis la base au moment de la clôture, jamais recopiés d’un message antérieur.
 - ⛔ Aucun « tout est bon » ne remplace ces contrôles.
 - ⛔ Une micro-passe qui échoue à son postcontrôle n’est pas poursuivie comme si elle était close.
 - ⛔ Ne jamais corriger seulement le bloc ni seulement le miroir.
@@ -3563,18 +3593,11 @@
 
 - ⛔ Les concepts, domaines, familles et termes littéraires ne sont pas créés au fil de l’annotation pour résoudre un cas difficile.
 
-## § 1. Principes directeurs
+## § 54. Règle normative — Français 899 / TR0009 — mode développé à typographie normalisée
 
-**§ 1 — Capitales de phrase**
+**§ 54.1 — Capitales de phrase**
 
 - ⛔ Ne jamais appliquer mécaniquement la règle à tout caractère `.`.
-
-## § 3. Typographie — les signes, les espaces, l’enrichissement et le gris
-
-**§ 3 — Typographie — les signes, les espaces, l’enrichissement et le gris**
-
-- ⛔ La typographie se pose au RENDU, jamais dans la donnée.
-- ⚠️ Trois endroits en traitent légitimement, et il faut savoir pourquoi.
 
 ---
 
@@ -3586,9 +3609,9 @@ Un chapitre qui prescrit sans employer ⛔ ni ⚠️ passe sous le noyau. La col
 |---|---|---:|---:|---:|
 | 8 | Notes structurées et références présentes dans | 8 003 | 1 | **0.1** |
 | 52 | Les états de publication et de validation | 45 197 | 16 | **0.4** |
-| 53 | La couche sémantique de la Bible et des Pères | 61 168 | 26 | **0.4** |
+| 53 | La couche sémantique de la Bible et des Pères | 60 489 | 26 | **0.4** |
 | 6 | Structure, niveaux, paragraphes et rangs | 10 424 | 8 | **0.8** |
-| 3 | Typographie — les signes, les espaces, l’enric | 70 747 | 62 | **0.9** |
+| 3 | Typographie — les signes, les espaces, l’enric | 73 723 | 65 | **0.9** |
 | 15 | Corpus biblique et traductions | 18 188 | 17 | **0.9** |
 | 51 | Les objets d’interface partagés | 102 088 | 105 | **1.0** |
-| 37 | La notice d’une traduction — le bandeau et l’e | 8 621 | 10 | **1.2** |
+| 48 | Le protocole d’océrisation d’une bible | 62 438 | 71 | **1.1** |

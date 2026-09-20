@@ -11260,8 +11260,8 @@ Doctrine : charte `parametres.charte_ia`, **§ 38.33**. Demande de l’auteur : 
 
 # ⛔ LA NOTICE D'UN AUTEUR FAIT MODÈLE — deux lignes de repères, deux rangs de dates (2026-09-20)
 
-Doctrine : charte § 38.33.2 — ⚠️ **non encore poussée**, le verrou de `--push` étant levé
-par une autre section (voir la fin de ce paragraphe). Demande de l'auteur : « Revoir et
+Doctrine : charte § 38.33.2 — ⚠️ **reste à porter à la charte** ; le verrou de `--push`,
+qui l'en empêchait, est levé depuis le 20 septembre 2026 (voir la fin de ce paragraphe). Demande de l'auteur : « Revoir et
 harmoniser les notices ; mise en forme seulement. […] Occupe-toi seulement de la notice
 auteur pour l'instant ; on mettra ensuite les autres à jour pour correspondre à la notice
 auteur. » Elle est donc le CANON, et la fiche d'une traduction comme celle d'une édition
@@ -11306,15 +11306,27 @@ s'y aligneront. Règles de code :
 - ⚠️ **CE QUI RESTE, ET C'EST DE LA DONNÉE** : `auteurs.traditions` porte « grecque » sur
   cinq auteurs, qui n'est pas une tradition mais une langue tronquée. Elle se lit désormais
   en bas de casse, donc elle se voit. Correction côté GPT.
-- ⛔ **LE VERROU DE `--push` DE LA CHARTE EST LEVÉ, ET PAS PAR CE CHANTIER.** Le contrôle
-  `duplicate_heading_numbers` rend `["1","2","3","4","5"]` : la section « Règle normative —
-  Français 899 / TR0009 — mode développé à typographie normalisée », ajoutée le 20 septembre
-  2026, numérote ses cinq sous-titres `### 1.` à `### 5.`, qui heurtent les chapitres 1 à 5
-  de la charte. ⚠️ Le contrôle ne dit PAS où : on le retrouve en relevant les `^#{1,6}\s+\d`
-  du miroir et en comptant les numéros. ⛔ Le remède ne touche aucun mot de doctrine — ôter
-  le numéro de ces cinq sous-titres, ou les préfixer —, mais il porte sur le chantier Bible
-  899, qui appartient à l'auteur : **à lui de trancher.** Tant qu'il tient, AUCUNE doctrine
-  ne se pousse, de personne.
+- ✅ **LE VERROU DE `--push` A TENU UNE JOURNÉE, ET IL EST LEVÉ** (sur décision de
+  l'auteur, le soir du 20 septembre 2026). Le contrôle `duplicate_heading_numbers` rendait
+  `["1","2","3","4","5"]` : la section « Règle normative — Français 899 / TR0009 — mode
+  développé à typographie normalisée », ajoutée le jour même, était la SEULE section `##`
+  de la charte sans numéro de chapitre, et ses cinq sous-titres, numérotés `### 1.` à
+  `### 5.`, heurtaient les chapitres 1 à 5. Elle devient le **chapitre 54**, ses
+  sous-titres `54.1` à `54.5` ; ⛔ aucun mot de doctrine n'est touché, seuls six intitulés
+  reçoivent leur numéro. Sauvegarde d'avant dans `audit/charte-sync-2026-08-21/`.
+- ⚠️ **Le contrôle ne dit PAS où**, et c'est ce qui coûte : on le retrouve en relevant les
+  titres qui ouvrent sur un nombre, dans le miroir, et en comptant les numéros. ⛔ Écarter
+  au passage les suffixes `bis` et `ter`, que le garde-fou admet (`7.0 bis`, `9.4 bis`,
+  `23.11 bis`, `29 bis` vivent dans la charte depuis longtemps) : les compter ferait
+  chercher un doublon là où il n'y en a pas.
+- ⛔ **UNE RÈGLE NORMATIVE VIT SOUS UN NUMÉRO DE §** (§ 48.1, qui le disait déjà d'une autre
+  façon : ce qui prescrit vit dans `charte_ia`, sous un numéro de §). Une section `##` sans
+  numéro n'est donc pas un style d'écriture, c'est une doctrine mal rangée — et elle finit
+  par prendre les numéros de quelqu'un d'autre.
+- ⚠️ **UNE RÉÉCRITURE DE SES PROPRES LIGNES SE POUSSE AVEC `--retirer`**, et seulement après
+  un essai à blanc : `--push --dry` donne `lignes_retirees` (six ici, les six intitulés) et
+  un `supabase.mis_a_jour` qui doit être celui du tirage. ⛔ Sans cette double lecture, on
+  ne distingue pas ce qu'on a réécrit de ce qu'un autre a poussé entre-temps.
 
 # ⛔ UNE LECTURE DÉCOUPÉE EN LOTS BORNE CE QU'ELLE GARDE EN VOL (2026-09-16)
 
@@ -12048,8 +12060,8 @@ normative** : on ne corrige pas le registre pour l'accorder à elle.
 
 # ⛔ LA NOTICE D'UNE ŒUVRE — le titre seul, la citation composée, le vert des sections (2026-09-20)
 
-Doctrine : charte § 38.25.2 — ⚠️ **non encore poussée**, le verrou de `--push` étant
-toujours levé par la section TR0009 (voir « LA NOTICE D'UN AUTEUR FAIT MODÈLE »). Sept
+Doctrine : charte § 38.25.2 — ⚠️ **reste à porter à la charte** ; le verrou de `--push`
+est levé depuis le 20 septembre 2026 (voir « LA NOTICE D'UN AUTEUR FAIT MODÈLE »). Sept
 demandes de l'auteur sur « À propos de cette édition », mise en forme seulement. Règles de
 code, dans `app/oeuvre/[id]/FicheEdition.tsx`, `app/components/FicheModele.tsx` et
 `globals.css` :
@@ -12382,8 +12394,8 @@ quand la colonne de droite ouvre à **457**, et son filet traversait la chronolo
 
 # ⛔ LA NOTICE D'UNE TRADUCTION — le nom sur deux lignes, « Édition du texte » sous le titre (2026-09-20)
 
-Doctrine : charte § 38.15 — ⚠️ **non encore poussée**, le verrou de `--push` étant levé par
-la section TR0009 (voir « LA NOTICE D'UN AUTEUR FAIT MODÈLE »). Six reprises demandées par
+Doctrine : charte § 38.15 — ⚠️ **reste à porter à la charte** ; le verrou de `--push` est
+levé depuis le 20 septembre 2026 (voir « LA NOTICE D'UN AUTEUR FAIT MODÈLE »). Six reprises demandées par
 l'auteur sur « À propos de cette traduction », mise en forme seulement. Règles de code :
 
 - ⛔ **AUCUN SURTITRE.** La fenêtre porte déjà son nom accessible (`ModaleFiche`, `libelle`),
@@ -12633,9 +12645,9 @@ verrait plus rien.
 
 # ⛔ LE CATALOGUE ET LA COMPOSITION, GÉNÉRALISÉS — `compositionTitres.ts` (2026-09-20)
 
-Doctrine : à écrire à la charte — ⚠️ **le `--push` est BLOQUÉ** par
-`duplicate_heading_numbers` (voir « LA NOTICE D'UN AUTEUR FAIT MODÈLE ») : la règle vit
-ici en attendant. Demande de l'auteur : « Généraliser le système Titre catalogue / Titre
+Doctrine : charte `parametres.charte_ia`, **§ 5.7** et **§ 5.7.1** (poussés le 2026-09-20,
+le verrou de `--push` levé — voir la section suivante). Ici, ce qu'il faut savoir pour y
+toucher. Demande de l'auteur : « Généraliser le système Titre catalogue / Titre
 composé à l'ensemble des éléments de la page de titres, et l'étendre aux intertitres de
 niveau 1, 2, etc. » Périmètre arrêté avec lui : **tous les éléments, sauf ce qui est fixe**
 (« Corpus Scriptura », « Édition en ligne », la marque d'imprimeur). Règles de code :
