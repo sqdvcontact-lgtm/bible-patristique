@@ -12273,3 +12273,67 @@ Demande de l'auteur : « quand on clique sur “copier”, à la place du symbol
 - ⚠️ **`BoutonCopierTexte.tsx` mêlait CRLF et LF dans la copie de travail (32 / 54) quand
   son BLOB est tout en LF** : `core.autocrlf` vaut true, et une normalisation en LF ne se
   voit donc pas dans le diff. ⛔ On le vérifie avant de normaliser, jamais après.
+
+## ⛔ LA CROIX D'UNE FICHE EST UN TRACÉ, ET AUCUN FILET NE TRAVERSE LA COLONNE (2026-09-20, le soir)
+
+Deux relevés de l'auteur sur la notice d'une œuvre — « la croix de fermeture est
+immonde ; pas centrée, etc. ; se passer du cercle autour, et simplement mettre une croix,
+verte, pour qu'on la voie bien » et « un trait passe sur la chronologie, c'est
+particulièrement disgracieux ». Les deux vivent dans le MODÈLE (`FicheModele.tsx`,
+§ 38.33) : les notices d'auteur et de traduction en répondent donc ensemble, sans qu'on
+ait à les toucher.
+
+- ⛔ **UN GLYPHE NE SE CENTRE PAS, UN TRACÉ SI.** Le ✕ (U+2715) porte sa propre approche
+  et sa propre assise dans la police, et le décalage change avec la police de secours :
+  posé dans une boîte carrée, il n'y est jamais tout à fait centré. `IconeCroix`
+  (`app/components/IconeCroix.tsx`) le remplace — deux traits, `currentColor`, viewBox de
+  14. Mesuré après : **écart des centres 0,00 px** aux racines 16 et 22, au Clair comme en
+  Cuir. ⚠️ Le site écrit encore le glyphe sur une quinzaine de surfaces (administration,
+  bibliothèque, compte, messagerie) : elles se convertissent au prochain passage sur ces
+  boutons, et un seizième exemplaire ne s'écrit pas.
+- ⛔ **NI CERCLE, NI FILET, NI FOND.** Le rond faisait, au coin d'une fenêtre de lecture,
+  un objet là où l'on n'attend qu'une marque — c'est la règle déjà posée pour le geste de
+  copie d'une section (§ 38.25.2). L'encre passe à `--cs-vert`, `--cs-vert-fonce` au
+  survol et au foyer ; en Cuir le jeton vaut l'or, donc la croix suit le thème sans être
+  déclinée deux fois.
+- ⛔ **LA BOÎTE RESTE UNE CIBLE, ET EN REM** : `max(26px, 1.625rem)` — la mesure d'hier en
+  bas d'échelle, au-dessus du plancher de 24 px de WCAG 2.2 § 2.5.8, et elle grandit
+  ensuite. ⚠️ Le TRACÉ se mesure dans la feuille, `0.9375rem` : les 14 × 14 du SVG sont
+  des attributs de PRÉSENTATION, que toute règle bat, et posé en pixels il rapetisserait à
+  mesure que l'écran grandit — le piège déjà payé par la rangée d'outils de la barre.
+- ⛔ **LE TRAIT SE JUGE RASTÉRISÉ, à la taille servie, sur les DEUX sols.** Six graisses
+  rendues en regard (14 et 15 px × 1,5, 1,7 et 1,9), agrandies au plus proche voisin :
+  **15 px et 1,7** l'emportent, soit un trait rendu de **1,82 px** — plus franc que le
+  1,22 des pictogrammes d'une rangée d'actions, et c'est voulu, une croix isolée au coin
+  d'une fenêtre devant se voir. ⚠️ En Cuir un trait clair sur sol sombre pèse davantage :
+  1,9 y devenait lourd quand il passait encore au Clair. Banc : `tmp/banc-croix.mjs`.
+
+### ⛔ UN FLOTTANT NE RACCOURCIT QUE LES LIGNES, JAMAIS LA BOÎTE
+
+C'est la cause du trait, et elle vaut au-delà des fiches. Le corps d'une notice pose le
+complément en absolu et lui réserve la place par un flottant (§ 38.33) : un bloc ORDINAIRE
+de la colonne principale garde donc toute la mesure du corps, et sa bordure passe SOUS le
+complément. Mesuré sur planche : `.cs-fiche-edition-identite` courait de **x=35 à x=797**
+quand la colonne de droite ouvre à **457**, et son filet traversait la chronologie.
+
+- ⛔ **`flow-root` EST LE REMÈDE, et il était déjà écrit** : `.cs-fiche-rubrique-tete` le
+  portait seule, avec sa raison en commentaire. Un contexte de formatage se range entier à
+  côté du flottant, puis reprend la pleine mesure sous lui — ce qu'une grille ne sait pas
+  faire, et c'est tout le parti du corps.
+- ⛔ **ON NE LE POSE PAS SUR `.cs-fiche-principal`.** La colonne entière se narrerait sur
+  toute sa hauteur, et le texte ne reprendrait JAMAIS la pleine mesure sous le complément :
+  ce serait défaire la composition qu'on répare. Bloc par bloc, donc.
+- ⚠️ **LA PLANCHE NE MONTRAIT PAS LE DÉFAUT, parce qu'elle n'hydrate rien** : la réserve du
+  flottant est mesurée par `CorpsFiche` avant la peinture, et sans JavaScript elle vaut
+  zéro. `tmp/planche-fiche-oeuvre/batir.mjs` pose donc un script qui la mesure comme le
+  composant. **Une planche sans la mesure qu'un effet pose ne juge pas la même page.**
+- **Deux gardes** (`ficheModele.test.ts`), éprouvées ROUGES sur le défaut réintroduit : la
+  FEUILLE — tout filet horizontal d'une règle `.cs-fiche-*` est porté par un bloc qui fait
+  contexte, `.cs-fiche-complement` excepté et NOMMÉ (son seul filet horizontal vit dans la
+  requête de média où elle reprend le flux) — et les STYLES EN LIGNE des quatre fichiers,
+  où trois filets vivaient hors de la feuille : `LigneTech` (déjà un flex), `RangeeEmpilee`
+  et le pied de la fiche d'un auteur, qui prennent `flow-root` pour que la règle soit vraie
+  partout.
+- ⚠️ **La garde du glyphe a trouvé son premier fautif le jour même** : le commentaire que
+  je venais d'écrire dans `FicheModele.tsx` citait le ✕ qu'il remplace. Elle porte sur les
+  quatre fichiers, commentaires compris.
