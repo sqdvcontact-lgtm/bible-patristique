@@ -9,6 +9,11 @@ import NavLivres, { type PieceSommaireBible } from './NavLivres'
 import TexteBible from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
 import { supabase } from '@/app/lib/supabase'
+import { chargerDensiteChapitre, libelleDensiteVerset, type DensiteVerset } from '@/app/lib/densitePatristique'
+
+/** ⚠️ Posée AU MODULE : une table neuve à chaque rendu donnerait une prop neuve à la
+ *  colonne du texte, et la ferait rendre pour rien tant que la densité n’est pas là. */
+const DENSITES_VIDES: ReadonlyMap<string, DensiteVerset> = new Map()
 import { ABREV_FR } from '@/app/lib/bible'
 import { formaterPlageCanonique, parsePointCanonique } from '@/app/lib/referencesBibliques'
 import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE, HAUTEUR_NAVBAR } from '@/app/lib/mesures'
@@ -27,7 +32,7 @@ import type { LectureBilingueProps } from './BibleBilingue'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
 import { memoriserTraductionBible } from '@/app/lib/preferenceBible'
 import VisiteGuidee from './VisiteGuidee'
-import { CLE_VISITE_BIBLE, VISITE_BIBLE_CLASSIQUE } from '@/app/lib/visiteBibleClassique'
+import { CLE_VISITE_BIBLE, visiteBibleClassiquePour } from '@/app/lib/visiteBibleClassique'
 import BoutonProportions from '@/app/components/BoutonProportions'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { type EtapeVisite, type SceneVisite } from '@/app/lib/visiteGuidee'
@@ -134,6 +139,35 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
     && versetSelectionne.chapitre === chapitreActif
     ? versetSelectionne
     : null
+  // ── OÙ LES PÈRES PARLENT ───────────────────────────────────────────────────
+  // Combien d’ŒUVRES parlent de chaque verset du chapitre. La PAGE le charge, et non
+  // la colonne du texte : au doigt, l’onglet « Commentaires » porte ce compte pour le
+  // verset choisi, et la marge du bureau le porte pour chaque verset. Un seul fait, une
+  // seule requête, deux emplois.
+  // ⛔ Il ne retarde RIEN : le chapitre est déjà rendu quand il arrive, et un échec ne
+  // fait pas tomber la lecture (charte § 18).
+  // ⚠️ Ce qui est chargé porte LA CLÉ du chapitre qu’il décrit, et l’on en déduit ce
+  // qu’on montre. Vider l’état au départ de l’effet reviendrait à poser un état dans
+  // un effet, et à rendre deux fois pour rien ; ici, changer de chapitre suffit à ce
+  // que la table d’avant cesse de répondre. C’est le patron du compte des
+  // commentaires (PanneauPatristique) et celui de l’attente de la Polyglotte.
+  const clefDuChapitre = `${livreActif}|${chapitreActif}`
+  const [densitesChargees, setDensitesChargees] = useState<{ pour: string; table: Map<string, DensiteVerset> } | null>(null)
+  useEffect(() => {
+    let vivant = true
+    const pour = `${livreActif}|${chapitreActif}`
+    void chargerDensiteChapitre(supabase, livreActif, chapitreActif)
+      .then(table => { if (vivant) setDensitesChargees({ pour, table }) })
+    return () => { vivant = false }
+  }, [livreActif, chapitreActif])
+  const densites = densitesChargees?.pour === clefDuChapitre ? densitesChargees.table : DENSITES_VIDES
+  // ⚠️ Le compte de l’onglet ne vaut que pour un verset CHOISI, et pour celui-là seul :
+  // sans sélection, l’onglet ouvre le volet sur le chapitre entier, qui ne se compte pas
+  // en un chiffre. `null` se lit « rien à dire », jamais « zéro ».
+  const densiteDuVersetChoisi = versetSelectionneCourant
+    ? densites.get(versetSelectionneCourant.id_verset) ?? null
+    : null
+  const oeuvresDuVersetChoisi = densiteDuVersetChoisi?.oeuvres ?? null
   // ⛔ EN LECTURE EN REGARD, LA SÉLECTION SE FAIT SUR L'AXE CANONIQUE, jamais sur
   // une colonne (demande de l'auteur, 2026-09-04 : « permettre de cliquer sur un
   // verset pour afficher les liens patristiques, sur l'AF et le Français »). Les
@@ -311,10 +345,26 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // Commentaires nomment tous trois un contenu, quand « Sommaire » nommait un dispositif.
   // ⚠️ « Livres » paraît donc deux fois, mais imbriqué et dans le même sens : le
   // premier dit où l'on est, le second ce qu'on y montre.
-  const ONGLETS_MOBILE: { cle: 'livres' | 'commentaires' | null; label: string }[] = [
+  // ⚠️ « Commentaires » porte un COMPTE dès qu'un verset est choisi (demande de l'auteur,
+  // 2026-09-20) : celui des ŒUVRES qui en parlent, c'est-à-dire ce que l'onglet ouvrira.
+  // C'est la mention « N œuvres en parlent » d'autrefois, qui prenait une ligne sous
+  // chaque verset et repoussait le suivant : elle retrouve ici une place qui ne coûte
+  // rien au texte. ⛔ Sans verset choisi, aucun chiffre — le volet ouvre alors sur le
+  // chapitre entier, qui ne se dit pas en un nombre.
+  // ⚠️ Un chiffre nu ne se DIT pas : à la voix, l’onglet porte la phrase entière
+  // (« 8 œuvres en parlent — 5 commentaires, 3 citations »), et le nombre à l’écran
+  // devient alors redondant pour qui écoute.
+  // ⛔ ELLE SE COMPOSE DANS UN `useMemo`, et ce n’est pas une optimisation : composée
+  //  en clair dans le corps, elle fait ABANDONNER au compilateur de React la
+  //  mémoïsation écrite plus bas (`preparerScene`), et toute la page cesse d’être
+  //  compilée — « Existing memoization could not be preserved ». Mesuré le 2026-09-20.
+  const direCommentaires = useMemo(() => (oeuvresDuVersetChoisi != null && oeuvresDuVersetChoisi > 0 && densiteDuVersetChoisi
+    ? `Commentaires — ${libelleDensiteVerset(densiteDuVersetChoisi)}`
+    : undefined), [oeuvresDuVersetChoisi, densiteDuVersetChoisi])
+  const ONGLETS_MOBILE: { cle: 'livres' | 'commentaires' | null; label: string; compte?: number | null; dire?: string }[] = [
     { cle: 'livres', label: 'Livres' },
     { cle: null, label: 'Texte' },
-    { cle: 'commentaires', label: 'Commentaires' },
+    { cle: 'commentaires', label: 'Commentaires', compte: oeuvresDuVersetChoisi, dire: direCommentaires },
   ]
   // Défilement de l'onglet Texte : la page entière défile, donc masquer le texte
   // (display:none) le retire du flux et l'écran remonte. On mémorise la position au
@@ -674,6 +724,10 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // Ce que la visite demande à la page de préparer. Sur un écran large, les trois
   // volets sont là et il n'y a rien à faire ; sur un téléphone, ce sont des
   // onglets, et le sujet d'une étape n'existe pas tant que le sien est fermé.
+  // ⚠️ Le scénario se RECOMPOSE quand on passe au doigt, et pas plus souvent : au
+  //  téléphone, une étape ne dit pas la même chose (voir `visiteBibleClassiquePour`).
+  const visiteDeLaPage = useMemo(() => visiteBibleClassiquePour(mobile), [mobile])
+
   const preparerScene = useCallback((scene: SceneVisite | undefined) => {
     if (!mobile || !scene?.volet) return
     setVoletMobile(scene.volet === 'texte' ? null : scene.volet)
@@ -721,9 +775,19 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           {ONGLETS_MOBILE.map(o => {
             const actif = voletMobile === o.cle
             return (
-              <button key={o.label} onClick={() => changerOnglet(o.cle)}
-                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: actif ? 'rgba(var(--cs-vert-rgb),0.05)' : 'none', border: 'none', borderBottom: actif ? '2px solid var(--cs-vert-aplat)' : '2px solid transparent', cursor: 'pointer', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-gris)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: actif ? 600 : 500, transition: 'color 0.12s, background 0.12s' }}>
+              <button key={o.label} onClick={() => changerOnglet(o.cle)} aria-label={o.dire} title={o.dire}
+                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem', background: actif ? 'rgba(var(--cs-vert-rgb),0.05)' : 'none', border: 'none', borderBottom: actif ? '2px solid var(--cs-vert-aplat)' : '2px solid transparent', cursor: 'pointer', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-gris)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: actif ? 600 : 500, transition: 'color 0.12s, background 0.12s' }}>
                 {o.label}
+                {/* ⚠️ Le chiffre ne prend ni l'espacement des capitales ni la graisse de
+                    l'onglet actif : c'est un nombre, pas un mot du libellé. Il garde sa
+                    propre encre pour qu'on le lise comme une indication, et non comme la
+                    suite du nom. ⛔ Aucune pastille : la barre n'a que 2,875 rem de haut,
+                    et un fond rond y ferait une alarme là où l'on ne donne qu'un nombre. */}
+                {o.compte != null && o.compte > 0 && (
+                  <span style={{ fontSize: '0.625rem', letterSpacing: 0, fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-faible)' }}>
+                    {o.compte}
+                  </span>
+                )}
               </button>
             )
           })}
@@ -802,6 +866,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           nomLivre={nomLivre}
           versetSelectionne={versetSelectionneCourant}
           setVersetSelectionne={setVersetSelectionne}
+          densites={densites}
           mobile={mobile}
           editionChapter={editionChapter}
           notesDesVersets={notesDesVersets}
@@ -854,7 +919,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
       {visite > 0 && (
         <VisiteGuidee
           key={visite}
-          visite={VISITE_BIBLE_CLASSIQUE}
+          visite={visiteDeLaPage}
           onScene={preparerScene}
           onSujet={montrerSujet}
           onFin={() => setVisite(0)}

@@ -25,13 +25,13 @@ import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { marquerLacunesDuTemoin, rendreMarqueurs899 } from '@/app/lib/marqueurs899'
 import { estTraductionModerne899 } from '@/app/lib/bible899'
 import {
-  marqueDensiteTient, styleDensiteVerset, STYLE_DENSITE_MOBILE,
+  marqueDensiteTient, styleDensiteVerset,
   STYLE_LACUNE, STYLE_NUMERO_ALTERNATIF, STYLE_NUMERO_VERSET, STYLE_VERSET_VIDE,
   styleAxeTexte, styleBlocVerset, styleGrilleRangee, styleRangeeVerset, styleTexteVerset,
   BLANC_TITRE_MENU, GOUTTIERE_ACTIONS_VERSET, INTERLIGNE_TITRE_CHAPITRE, RETRAIT_ACTIONS_VERSET,
 } from '@/app/lib/compositionBible'
 import {
-  chargerDensiteChapitre, libelleDensiteVerset, type DensiteVerset,
+  libelleDensiteVerset, type DensiteVerset,
 } from '@/app/lib/densitePatristique'
 import { tailleRacinePx } from '@/app/lib/fenetreContextuelle'
 import SelecteurTraductionBible from '@/app/components/SelecteurTraductionBible'
@@ -85,6 +85,9 @@ type Props = {
   nomLivre: string
   versetSelectionne: Verset | null
   setVersetSelectionne: (v: Verset | null) => void
+  /** Combien d’ŒUVRES parlent de chaque verset du chapitre. Vient de la page, qui la
+   *  charge une fois : la barre d’onglets du doigt en a besoin autant que la marge. */
+  densites: ReadonlyMap<string, DensiteVerset>
   mobile?: boolean
   /** Appareil de l’édition : introductions, commentaires, notes, illustrations.
    *  Nul en lecture « Texte biblique seul » — la page ne le charge alors pas. */
@@ -424,7 +427,7 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
 export default function TexteBible({
   versets, traduction, traductionIndex, setTraductionIndex, traductions,
   livreActif, chapitreActif, nomLivre,
-  versetSelectionne, setVersetSelectionne, mobile = false,
+  versetSelectionne, setVersetSelectionne, densites, mobile = false,
   editionChapter, notesDesVersets = null, maniereDeLire, pieceAffichee = null,
 }: Props) {
   // Session et droits : lus dans le contexte partagé, jamais redemandés ici. Ce
@@ -453,16 +456,9 @@ export default function TexteBible({
   // cliquait un verset et l'on découvrait, ou non. Une marque discrète dit combien
   // d'ŒUVRES en parlent — c'est ce que le volet de droite ouvrira, et c'est le seul
   // compte qui ne vaille jamais zéro quand il y a quelque chose.
-  // ⛔ Elle ne retarde RIEN : le chapitre est déjà rendu quand elle arrive, et un échec
-  // ne fait pas tomber la lecture (charte § 18).
-  const [densites, setDensites] = useState<Map<string, DensiteVerset>>(new Map())
-  useEffect(() => {
-    let vivant = true
-    setDensites(new Map())
-    void chargerDensiteChapitre(supabase, livreActif, chapitreActif)
-      .then(t => { if (vivant) setDensites(t) })
-    return () => { vivant = false }
-  }, [livreActif, chapitreActif])
+  // ⚠️ Le chapitre est chargé PAR LA PAGE (voir BibleLayout) depuis le 20 septembre 2026 :
+  // au doigt, l'onglet « Commentaires » porte le même compte pour le verset choisi, et
+  // deux enfants ne demandent pas deux fois le même fait à la base.
 
   // ⛔ LA MARQUE NE SE REND QUE SI ELLE TIENT À DROITE DES ACTIONS (décision de l'auteur,
   // 2026-09-13 : « quand la largeur de l'écran le permet »). La place se mesure sur la
@@ -741,7 +737,13 @@ export default function TexteBible({
         {/* Titre + navigation chapitres. Calé sur LE MÊME gabarit que les versets
             (bloc de texte de 500 px + colonne d'actions de 38 px) : le titre est centré
             sur la seule première colonne — donc sur le bloc vert de sélection —, la colonne
-            des boutons (signaler, prélever…) étant exclue du centrage. */}
+            des boutons (signaler, prélever…) étant exclue du centrage.
+            ⛔ IL NE PARAÎT PAS AU DOIGT (décision de l'auteur, 2026-09-20 : « supprimer le
+            "Genèse ❧ Chapitre 1" en haut de page, et conserver le menu de sélection de la
+            traduction »). Sur un écran étroit, il prend une bande entière pour dire ce que
+            le volet des livres et le bandeau du bas disent déjà — et ce dernier porte les
+            mêmes flèches de chapitre : rien ne se perd. */}
+        {!mobile && (
         <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`, alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
           {/* Les deux flèches viennent de `FlecheChapitre` : à une borne (Gn 1, Gn 50)
@@ -772,12 +774,13 @@ export default function TexteBible({
         </div>
           <div />
         </div>
+        )}
 
         {/* Séparateur fin + choix de traduction : petits filets de part et d'autre.
             Calé sur LE MÊME gabarit que le titre « Genèse ❧ Chapitre 1 » (bloc texte
             de 500 px + colonne d'actions de 38 px exclue du centrage), pour que le menu
             se centre sur le même axe que le titre, et non sur la pleine largeur. */}
-        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: `${BLANC_TITRE_MENU} auto 0`, display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`, alignItems: 'center' }}>
+        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: mobile ? 0 : `${BLANC_TITRE_MENU} auto 0`, display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`, alignItems: 'center' }}>
           <SelecteurTraductionBible
             traductions={traductions}
             traductionIndex={traductionIndex}
@@ -958,16 +961,13 @@ export default function TexteBible({
                       <AppelNoteBiblique key={note.id} note={note} figures={figuresDeLaNote(indexIllustrations.byNote.get(note.id))} />
                     ))}
                   </p>
-                  {/* ⚠️ SOUS le verset au doigt : la marge droite n'existe pas là, les
-                      actions en étant sorties. La marque se pose donc en fin de bloc,
-                      au fer du texte. */}
-                  {mobile && densites.get(v.id_verset) && (
-                    <p style={STYLE_DENSITE_MOBILE} title={libelleDensiteVerset(densites.get(v.id_verset)!)}>
-                      {densites.get(v.id_verset)!.oeuvres > 1
-                        ? `${densites.get(v.id_verset)!.oeuvres} œuvres en parlent`
-                        : '1 œuvre en parle'}
-                    </p>
-                  )}
+                  {/* ⛔ PAS DE MARQUE DE DENSITÉ AU DOIGT (décision de l'auteur, 2026-09-20 :
+                      « supprimer, en mode mobile, le "10 œuvres en parlent" qui décale tout »).
+                      Elle se posait en fin de bloc, en toutes lettres, et sa ligne repoussait le
+                      verset suivant : une mention de service coûtait au texte la place qu'un
+                      écran étroit n'a pas. Le volet de droite dit la même chose, et mieux, dès
+                      qu'on touche le verset. ⚠️ La marque du bureau, elle, reste : c'est un
+                      chiffre nu posé dans une marge qui existe là (voir `marque-densite`). */}
                 </div>
 
                 {/* Boutons d'action — hors du bloc sélectionné. Sur mobile, ils

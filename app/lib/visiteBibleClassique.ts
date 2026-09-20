@@ -175,3 +175,28 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
     },
   ],
 }
+
+/**
+ * ⚠️ LA VISITE DIT CE QUE L’ÉCRAN MONTRE, et l’en-tête ne montre pas la même chose
+ * partout. Au doigt, le titre « Genèse ❧ Chapitre 1 » n’y est plus (2026-09-20, voir
+ * `TexteBible`) : il ne reste que le menu des bibles. Une phrase qui nomme un titre
+ * absent est une case posée sur du vide, en mots — et c’est le même défaut que celui
+ * contre lequel les sujets sont donnés en repères plutôt qu’en sélecteurs.
+ * ⛔ La visite ne se DUPLIQUE pas pour autant : une seule étape change, et elle change
+ * ici, au même endroit que le scénario.
+ */
+export function visiteBibleClassiquePour(mobile: boolean): Visite {
+  if (!mobile) return VISITE_BIBLE_CLASSIQUE
+  return {
+    ...VISITE_BIBLE_CLASSIQUE,
+    etapes: VISITE_BIBLE_CLASSIQUE.etapes.map((etape) => (etape.cle === 'entete'
+      ? {
+          ...etape,
+          texte: [
+            'Le menu indique la traduction affichée.',
+            'Il permet d’en changer sans quitter le passage.',
+          ],
+        }
+      : etape)),
+  }
+}

@@ -310,15 +310,8 @@ export function marqueDensiteTient({ finDesActions, bordDeLaZone, racine }: {
   return finDesActions + demande <= bordDeLaZone
 }
 
-/** La même, au doigt : sous le verset et en toutes lettres, la marge droite n'existant
- *  plus. ⚠️ Un chiffre nu y flotterait sans rien pour le nommer. */
-export const STYLE_DENSITE_MOBILE: CSSProperties = {
-  margin: '0.25rem 0 0',
-  fontSize: '0.5625rem',
-  lineHeight: 1.3,
-  color: 'var(--cs-texte-faible)',
-  letterSpacing: '0.02em',
-}
+/* ⛔ La marque de densité ne se pose PAS au doigt (2026-09-20) : elle y prenait une ligne
+ * sous chaque verset commenté, et repoussait le suivant. Son style est parti avec elle. */
 
 /* ── Les MENTIONS des grilles de comparaison ───────────────────────────────────────
  * La Polyglotte et la Polyglotte de la page Recherche ne rendent pas que du texte :
