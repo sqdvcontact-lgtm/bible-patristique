@@ -12777,3 +12777,50 @@ niveau 1, 2, etc. » Périmètre arrêté avec lui : **tous les éléments, sauf
   présent dans le formulaire et absent du `select` s'enregistre à vide, donc EFFACE la
   colonne.**
 - ⚠️ Migration `20260920182947_composition_frontispice_et_intertitres`.
+
+# ⛔ LES RACCOURCIS D'ENRICHISSEMENT — `raccourcisEditeur.ts` (2026-09-20)
+
+Doctrine : charte `parametres.charte_ia`, **§ 3.6** (le souligné n'est pas une ressource
+typographique du site). Demande de l'auteur : « permettre les raccourcis de type Ctrl+B pour
+mettre en gras ; ça s'active seulement quand une interface de texte est cliquée ». Règles de
+code :
+
+- ⛔ **CTRL+B, CTRL+I ET CTRL+U SONT DÉJÀ NATIFS DANS UN `contentEditable`**, et c'est le
+  fait qui commande tout le reste : le navigateur les applique de lui-même, sans qu'aucune
+  ligne du site les demande. La question n'était donc pas de les AJOUTER mais de reprendre la
+  main sur eux. ⚠️ Devant un raccourci qu'on croit absent d'une zone riche, MESURER ce que le
+  navigateur en fait déjà avant d'écrire un gestionnaire.
+- ⛔ **CTRL+U EST REFUSÉ, ET C'ÉTAIT LE VRAI DÉFAUT.** Aucune sérialisation du site ne
+  connaît `<u>` — ni `htmlVersSyntaxe` (essais, notes, commentaires), ni celle de
+  `TexteBible` — et le souligné natif s'affichait donc pendant la frappe puis disparaissait
+  en silence à l'enregistrement. ⚠️ Un enrichissement que le rendu ignore ne se voit pas comme
+  un défaut : il se voit comme une donnée perdue, et le lecteur accuse la base.
+- ⛔ **LE GESTIONNAIRE SE POSE SUR LA ZONE, JAMAIS SUR `window`** : le focus fait alors le
+  filtrage tout seul, et rien n'est intercepté pendant la lecture. Un écouteur global devrait
+  deviner s'il est dans un champ, et avalerait des touches ailleurs.
+- **Cinq zones, une seule règle** (`app/lib/raccourcisEditeur.ts`, `raccourcisEditeur`,
+  `collageTexteBrut`) : l'éditeur d'essai, le composeur de commentaire, la zone de note d'un
+  essai, la modale d'édition d'un verset, l'atelier des traductions. ⛔ Ne pas recomposer un
+  gestionnaire de raccourcis ailleurs : l'éditeur d'essai portait le sien, et il était le seul
+  des cinq à en avoir un.
+- ⛔ **CE QUI EST PRIS EST CE QUI SE SÉRIALISE** : l'exposant (`exposant: true`) n'est offert
+  qu'aux quatre zones dont la syntaxe connaît `^^…^^` ; l'atelier des traductions ne l'a pas.
+  ⛔ Et aucun `<textarea>` n'est branché : Ctrl+B n'y aurait de sens qu'en Markdown, et
+  ailleurs il ne ferait qu'insérer des astérisques dans un champ qui n'en veut pas.
+- ⚠️ **L'EXPOSANT EST CTRL+POINT, et le choix est contraint** : Ctrl+Maj+P ouvre une fenêtre
+  privée dans Firefox, et un raccourci réservé du navigateur ne s'annule pas. ⚠️ Ctrl+Maj+
+  Espace pose l'insécable, qui n'existait que dans l'éditeur d'essai.
+- ⛔ **ALTGR EST UN CTRL+ALT sur les claviers français** : le module SORT sur `e.altKey`,
+  sans quoi @ # { } deviendraient inatteignables dans toutes les zones de rédaction du site.
+- ⛔ **`document.execCommand` EST DÉPRÉCIÉ ET RESTE LE SEUL OUTIL JUSTE ICI** : lui seul
+  modifie un `contentEditable` en passant par la pile d'annulation du navigateur, si bien que
+  Ctrl+Z défait l'enrichissement comme il défait une frappe. Le dépôt l'emploie déjà partout ;
+  écrire dans le DOM à la main casserait l'annulation sans que rien ne le dise.
+- **Le collage passe au texte brut dans les quatre zones de lecture et de rédaction**,
+  l'éditeur d'essai le faisant déjà : sans lui, une mise en forme extérieure rapporterait le
+  souligné qu'on vient de refuser au clavier. ⚠️ L'atelier des traductions (admin) garde son
+  collage riche, qui peut y servir à un import.
+- ⚠️ **Piège d'édition payé ici, et déjà consigné** : `'\u00A0'` écrit par l'outil Write
+  arrive dans le fichier comme une insécable LITTÉRALE. La chaîne fonctionne, la source ne se
+  relit plus. On contrôle les points de code après écriture (`cat -A`, ou `codePointAt`),
+  jamais le rendu d'un outil de lecture.
