@@ -12274,6 +12274,48 @@ Demande de l'auteur : « quand on clique sur “copier”, à la place du symbol
   son BLOB est tout en LF** : `core.autocrlf` vaut true, et une normalisation en LF ne se
   voit donc pas dans le diff. ⛔ On le vérifie avant de normaliser, jamais après.
 
+### ⛔ ET IL REPART À CHAQUE CLIC (2026-09-20, le soir même)
+
+Demande de l'auteur, quelques heures après la pose : « revoir légèrement l'effet de clic
+sur “copier” ; il doit être plus vif, plus dynamique, on doit pouvoir cliquer dessus même
+si l'animation n'est pas terminée, et relancer l'animation ; un simple petit éclat
+lumineux suffit ».
+
+- ⛔ **L'ÉCLAT EST UN RANG DE CLIC, NON UN BOOLÉEN.** Avec un booléen, recliquer pendant la
+  lumière reposait `true` sur `true` : React ne rendait rien, l'élément n'était pas
+  remonté, et **une animation de la feuille ne redémarre qu'au MONTAGE**. Le geste restait
+  donc sans réponse, ce qu'un accusé existe précisément pour éviter. Le rang sert de
+  `key` : chaque clic monte un élément neuf, et la lumière repart de zéro.
+- ⚠️ **Le rang retombe à 0 à l'extinction, et il ne peut pas se répéter sur un élément
+  encore monté** : l'extinction vient d'un MINUTEUR et le clic d'un ÉVÉNEMENT, deux tâches
+  que React ne groupe jamais ensemble — le démontage passe toujours avant le montage
+  suivant. ⛔ Le minuteur en cours se retire AVANT qu'on en arme un neuf, sinon le premier
+  éteindrait l'éclat du second.
+- ⛔ **ÉPROUVÉ DANS LES DEUX SENS, SUR LE VRAI COMPOSANT MONTÉ DANS UN NAVIGATEUR**
+  (`tmp/planche-eclat/relance/`, non versionnée : esbuild empaquette `useEclatCopie` et
+  `EclatCopie` du dépôt, la feuille est inlinée, deux clics sont joués). Avec la clé, le
+  second clic **remonte** l'élément et **détache** l'ancien ; sans elle, c'est le même
+  élément. ⚠️ **L'HORLOGE D'UNE ANIMATION N'AVANCE PAS SOUS `--virtual-time-budget`** :
+  l'état se lit bien `running`, mais `currentTime` reste à 0, Chrome sans tête n'y
+  produisant aucune image. C'est donc l'IDENTITÉ de l'élément qui tranche, jamais un temps.
+- ⛔ **LE RYTHME SE JUGE FIGÉ, AUX MÊMES FRACTIONS DE LA COURSE**, non aux mêmes
+  millisecondes — qui compareraient le début de l'un à la fin de l'autre
+  (`tmp/planche-eclat/rythmes.mjs`, trois rythmes en regard, sur les deux sols). Retenu :
+  **0,32 s, sommet au quart, étendue 0,50 → 1,40**. Il valait 0,55 s, sommet à 35 %,
+  0,35 → 1,80 : un halo qui part de trop loin n'est encore rien au sommet, et un halo qui
+  va trop loin finit en brume.
+- ⛔ **LA MESURE, ELLE, NE BOUGE PAS.** Rendue à 20 px au lieu de 24, la lumière se colle
+  au pictogramme et se lit comme une TACHE, non comme un éclat autour de lui. « Plus
+  petit » ne se traduit donc pas par une boîte plus petite : c'est la DURÉE et l'ÉTENDUE
+  qui font le « petit éclat ».
+- ⚠️ **L'ENCRE DU PICTOGRAMME TOMBE DE 750 À 420 ms**, et c'est un INVARIANT sous garde :
+  elle doit survivre à la lumière — sinon le halo brillerait sur un pictogramme déjà
+  éteint — sans s'attarder plus d'une demi-seconde après elle. La garde lit la durée DANS
+  la feuille et la compare à la constante : les deux ne peuvent plus diverger.
+- ⚠️ **La planche des instants se réaccorde quand la durée change** : figée aux
+  millisecondes de l'ancien rythme, elle montrait deux vignettes déjà éteintes et donnait
+  à croire que l'éclat ne se voyait plus.
+
 ## ⛔ LA CROIX D'UNE FICHE EST UN TRACÉ, ET AUCUN FILET NE TRAVERSE LA COLONNE (2026-09-20, le soir)
 
 Deux relevés de l'auteur sur la notice d'une œuvre — « la croix de fermeture est
