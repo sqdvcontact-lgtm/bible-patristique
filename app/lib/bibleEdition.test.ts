@@ -219,6 +219,23 @@ describe('modèle éditorial biblique', () => {
     expect(source).toBe('1° Le titre. — Corps source.\n\nSecond paragraphe.')
   })
 
+  it('saute un élément nul de la couche sans perdre le reste du lot', () => {
+    // La couche en porte : 49 `null` dans 47 unités de la Genèse. Les lire
+    // jetait, et la page entière tombait avec eux — quinze chapitres servaient
+    // l'écran de panne (repère 4057425526, relevé le 20 septembre 2026).
+    const blocs = blocsTexteEditoriaux('gen', 'Corps source.', {
+      editorial_normalization: {
+        blocks: [
+          null,
+          { id: 'gen:p1', kind: 'commentary', form: 'prose', reading_text: 'Premier.' },
+          'ceci n’est pas un bloc',
+          { id: 'gen:p2', kind: 'commentary', form: 'prose', reading_text: 'Second.' },
+        ],
+      },
+    })
+    expect(blocs.map((bloc) => bloc.text)).toEqual(['Premier.', 'Second.'])
+  })
+
   it('rend les paragraphes source séparément tant que la couche manque', () => {
     const blocs = blocsTexteEditoriaux('intro', 'Premier.\n\nSecond.', null)
     expect(blocs.map((bloc) => bloc.text)).toEqual(['Premier.', 'Second.'])

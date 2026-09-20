@@ -127,19 +127,6 @@ export type BibleEditionDisplayInlineSpan = {
   rendering?: 'italic' | 'small_caps' | 'quotation_italic' | null
 }
 
-type EditorialNormalizationBlock = {
-  id?: unknown
-  kind?: unknown
-  form?: unknown
-  reading_text?: unknown
-  language?: unknown
-  source_start_offset_unicode?: unknown
-  source_end_offset_unicode?: unknown
-  heading_level?: unknown
-  presentation?: unknown
-  inline_spans?: unknown
-}
-
 const TEXT_BLOCK_KINDS = new Set<BibleEditionDisplayTextBlock['kind']>([
   'heading', 'lemma', 'commentary', 'quotation', 'translation', 'reference', 'attribution',
 ])
@@ -254,10 +241,21 @@ export function blocsTexteEditoriaux(
 ): BibleEditionDisplayTextBlock[] {
   const features = objet(textFeatures)
   const normalization = objet(features?.editorial_normalization)
-  const candidates = Array.isArray(normalization?.blocks)
-    ? normalization.blocks as EditorialNormalizationBlock[]
-    : []
-  const structured = candidates.flatMap((candidate, index): BibleEditionDisplayTextBlock[] => {
+  const candidates = Array.isArray(normalization?.blocks) ? normalization.blocks as unknown[] : []
+  const structured = candidates.flatMap((brut, index): BibleEditionDisplayTextBlock[] => {
+    // ⛔ UN ÉLÉMENT QUI N'EST PAS UN OBJET NE SE LIT PAS — il se saute, et le
+    // reste du lot se compose. La couche en porte : 49 `null` dans 47 unités,
+    // toutes de la Genèse (relevé du 20 septembre 2026). Lire `reading_text`
+    // sur l'un d'eux jetait, et comme rien ne rattrape une exception de rendu,
+    // c'est la PAGE ENTIÈRE qui tombait : quinze chapitres de la Genèse — 2, 8
+    // à 12, 20, 21, 24, 25, 28, 30, 37, 38, 49 — servaient l'écran de panne
+    // (repère 4057425526) au lieu de leur texte.
+    // ⚠️ La garde n'est pas une précaution : c'est ce que l'en-tête de cette
+    // fonction promet depuis le premier jour — « une couche mal formée est
+    // ignorée au lieu d'injecter des métadonnées au rendu ». La lecture des
+    // spans, juste au-dessus, l'honorait déjà par `objet()` ; celle-ci non.
+    const candidate = objet(brut)
+    if (!candidate) return []
     const text = typeof candidate.reading_text === 'string' ? candidate.reading_text : null
     const kind = String(candidate.kind ?? '') as BibleEditionDisplayTextBlock['kind']
     const form = candidate.form === 'verse' ? 'verse' : 'prose'
