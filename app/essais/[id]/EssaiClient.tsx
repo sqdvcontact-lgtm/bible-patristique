@@ -265,7 +265,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             {essai.auteur_pseudo && (
               <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                 {essai.auteur_pseudo}
-                {essai.auteur_mecene && <>{' '}<MarqueMecene taille="0.9em" /></>}
+                {essai.auteur_mecene && <>{' '}<MarqueMecene taille="1.1em" /></>}
               </p>
             )}
             <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.0625rem', fontWeight: 600, color: 'var(--cs-encre-fonce)', lineHeight: 1.28, margin: 0 }}>{essai.titre}</h2>
@@ -327,7 +327,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             {essai.auteur_pseudo && (
               <p style={{ fontSize: '0.71875rem', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-vert)', marginBottom: '28px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                 {essai.auteur_pseudo}
-                {essai.auteur_mecene && <>{' '}<MarqueMecene taille="0.9em" /></>}
+                {essai.auteur_mecene && <>{' '}<MarqueMecene taille="1.1em" /></>}
               </p>
             )}
             <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: 'clamp(1.625rem, 4vw, 2.375rem)', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', lineHeight: 1.2, margin: '0 0 14px', maxWidth: '35rem' }}>

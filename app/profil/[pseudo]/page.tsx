@@ -245,7 +245,7 @@ export default function ProfilPublicPage() {
             )}
           </div>
 
-          {/* Pseudo — et, pour un mécène, le grain à sa suite. ⚠️ Sur cet en-tête vert
+          {/* Pseudo — et, pour un mécène, le rameau à sa suite. ⚠️ Sur cet en-tête vert
               sombre, l'or de la charte est illisible : c'est sa version pâle qui sert. */}
           <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', fontWeight: 'normal', color: 'var(--cs-vert-clair)', margin: '0 0 4px', letterSpacing: '0.01em' }}>
             {profil.pseudo}
@@ -269,7 +269,7 @@ export default function ProfilPublicPage() {
           {/* Date + email */}
           <p style={{ fontSize: '0.625rem', color: 'var(--cs-or-clair)', margin: '0 0 12px', letterSpacing: '0.05em' }}>
             Lecteur depuis {annee}
-            {/* ⚠️ Le grain est nommé ICI, en toutes lettres, et nulle part ailleurs. Son
+            {/* ⚠️ Le rameau est nommé ICI, en toutes lettres, et nulle part ailleurs. Son
                 infobulle suffit à la souris, mais elle n'existe pas sur un téléphone :
                 sans cette ligne, la marque resterait une énigme sur la moitié des
                 écrans. Une fois lue une fois, elle se reconnaît partout. */}

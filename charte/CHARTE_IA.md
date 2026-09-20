@@ -5540,7 +5540,9 @@ Le collectionnable est le CORPUS lui-même, non le point. Le lecteur ne collecti
 
 ⛔ **Elle n’ouvre NI DROIT, NI ACCÈS, NI FONCTION.** C’est déjà la règle des hauts faits, et elle vaut ici à plus forte raison : la page « Soutenir le projet » promet un site « ouvert à tous, sans abonnement ni registre », et un don qui ouvrirait une porte ferait de cette promesse une réclame. Le mécène lit ce que lit le visiteur.
 
-**Sa forme est celle du COLOPHON DU BIENFAITEUR.** Les manuscrits nomment qui a payé la copie, et c’est le registre du site. Le signe est un GRAIN, celui que le semeur de la page « Soutenir » confie au sillon : le donateur est le semeur, et le corpus est ce qui germe.
+**Sa forme est celle du COLOPHON DU BIENFAITEUR.** Les manuscrits nomment qui a payé la copie, et c’est le registre du site. Le signe est un RAMEAU. Le semeur de la page « Soutenir » confie un grain au sillon : le donateur est ce semeur, et le rameau est ce qui a levé. ⚠️ Il s’est dessiné en GRAIN du 3 au 20 septembre 2026, avant que l’auteur ne demande le rameau, qui dit la même chose une saison plus tard.
+
+⛔ **Les feuilles du rameau MONTENT, et sa taille n’est pas celle du grain.** À l’horizontale, les feuilles donnent au petit corps une silhouette de croix, et un signe de gratitude ne se confond pas avec celui-là. Une silhouette évidée, par ailleurs, ne porte qu’un tiers de l’encre d’une forme pleine : le rameau se pose plus grand que ne se posait le grain, faute de quoi il s’efface sur un nom de commentaire. ⚠️ Cela ne se juge jamais sur le tracé vectoriel, toujours beau, mais sur une planche agrandie au plus proche voisin, à la taille réellement servie.
 
 ⛔ **IL N’Y A QU’UN SEUL SIGNE, et il ne se gradue pas.** Un signe qui suivrait le montant afficherait publiquement le prix de chacun : il gênerait les grands dons autant qu’il découragerait les petits, et il rendrait une page de profil lisible comme un relevé. ⚠️ Corollaire, et c’est ce qui rend la règle tenable : **AUCUN MONTANT N’EST JAMAIS CONSERVÉ.** PayPal tient ce livre-là ; le site ne retient que le FAIT du don. Une donnée financière qu’on ne garde pas est une donnée qu’on n’a pas à protéger.
 
@@ -5554,7 +5556,9 @@ Le collectionnable est le CORPUS lui-même, non le point. Le lecteur ne collecti
 
 ⚠️ **Le rattachement se fait À LA MAIN, et c’est un choix.** PayPal ne rend qu’un nom et une adresse électronique : rien qui pointe vers un compte du site. La notification automatique demande un réglage dont on n’a pas besoin pour quelques dons, et elle retomberait de toute façon sur une comparaison d’adresses approximative. On inscrit le don tel que PayPal le donne, on cherche le compte sur son pseudonyme ou sur l’une de ses adresses, on rattache : trente secondes. La référence de transaction est déjà en base pour le jour où le flux justifiera d’automatiser, et son unicité empêchera de compter deux fois le même don.
 
-⚠️ **Le donateur dont l’adresse de paiement diffère de celle de son compte est INTROUVABLE**, et il faut donc le lui dire : la page « Soutenir » l’invite à se signaler par la page de contact. ⛔ Ce mot vient APRÈS le bouton, en petit, et jamais avant : une page qui annonce sa récompense avant son objet vend un badge au lieu de demander un soutien, et Deci, Koestner et Ryan (1999) mesurent que la récompense attendue mine le geste même qu’elle prétend soutenir. La gratitude se constate après coup, elle ne se promet pas.
+⛔ **LA PAGE « SOUTENIR » NE DIT RIEN DE LA MARQUE** (décision de l’auteur, 20 septembre 2026). Ni le rameau, ni ce qu’il ne donne pas, ni le mot sur les deux adresses. Une page qui annonce sa récompense vend un badge au lieu de demander un soutien, et Deci, Koestner et Ryan (1999) mesurent que la récompense attendue mine le geste même qu’elle prétend soutenir. On avait d’abord cru s’en tirer en plaçant le mot APRÈS le bouton, en petit : un mot discret et placé bas reste une promesse. La gratitude se constate après coup, elle ne se promet pas, et le rameau paraît seul.
+
+⚠️ **Le donateur dont l’adresse de paiement diffère de celle de son compte est INTROUVABLE, et le site ne le lui dit plus.** C’est le prix payé sciemment pour la règle ci-dessus. Depuis que le don s’inscrit seul, la marque se pose d’elle-même dès que l’adresse du paiement est celle de la connexion du lecteur ou celle qu’il affiche ; la TROISIÈME adresse n’est plus qu’un résidu, et elle se règle par la page de contact comme n’importe quelle autre question.
 
 
 ⚠️ **LE DON S’INSCRIT SEUL** (décision de l’auteur, 3 septembre 2026 : « ce serait plus simple si c’était automatique »). PayPal notifie le site à chaque paiement encaissé : le don entre au registre, et la marque se pose dans la seconde dès que l’adresse du paiement est celle de la connexion du lecteur ou celle qu’il affiche sur sa page. Le rattachement à la main demeure, et il n’est pas un vestige : il sert le donateur qui paie depuis une TROISIÈME adresse, que le site n’a jamais vue. Rien ne peut deviner qu’elle est la sienne ; son don s’inscrit tout de même, sans compte, et attend une main. ⛔ L’automatique ne supprime pas ce cas, il le réduit à un résidu.
@@ -7404,7 +7408,7 @@ Quatre demandes de l’auteur du 14 septembre 2026, sur la Polyglotte.
 
 ⚠️ **CES NOTES PARAISSENT AUSSI SUR LA PAGE BIBLE** (§ 13.22, 17 septembre 2026). Une note se rédige une fois, pour les deux pages : ce qu’elle dit d’un fragment se lit dans la Polyglotte à côté de ce fragment, et sur la page Bible dans la fenêtre du créneau qui réunit les fragments.
 
-### 50.5 Une colonne dont le texte n’est pas dans `versets_v2`
+### 50.8 Une colonne dont le texte n’est pas dans `versets_v2`
 
 Demande de l’auteur du 20 septembre 2026 : « il faut que les livres traités de Fillion y apparaissent ; le latin et le français, séparément ».
 
@@ -7420,7 +7424,7 @@ Toutes les bibles ne vivent pas dans `versets_v2`. La Fillion, comme le témoin 
 
 **LE LATIN ET LE FRANÇAIS D’UNE MÊME ÉDITION SONT DEUX COLONNES.** La Fillion imprime la Vulgate en regard de sa traduction : ce sont deux textes, chacun sous SA langue dans le menu, et réunis au survol sous le nom de l’édition (§ 50.1, les familles). On peut donc les lire côte à côte — c’est même là tout l’intérêt d’une polyglotte.
 
-### 50.6 Une traduction PRIVÉE ne sort que pour l’administrateur
+### 50.9 Une traduction PRIVÉE ne sort que pour l’administrateur
 
 Demande de l’auteur du 20 septembre 2026 : « il faut réserver l’AELF à mon compte admin ».
 
@@ -7430,7 +7434,7 @@ La traduction officielle liturgique (TR0012) est sous droits : elle sert à l’
 
 ⚠️ **LA GARDE SE POSE OÙ LA FUITE NAÎT, PAS SUR CHAQUE SURFACE.** Une seule vue nourrissait les trois : la garde y est posée une fois, et les deux autres se referment d’elles-mêmes. ⛔ Et le critère n’est JAMAIS une liste d’identifiants : c’est celui de la RLS, `not est_privee or is_admin()` — rendre un texte public ou privé se décide dans `traductions`, et la garde suit. ⚠️ `is_admin()` est VOLATILE : posée dans la clause d’une vue, elle serait évaluée ligne à ligne ; un sous-select non corrélé la réduit à un calcul unique. Et une vue qui CACHE des lignes se pose en `security_barrier`.
 
-⚠️ **UNE VUE MATÉRIALISÉE NE PORTE NI RLS NI GARDE DYNAMIQUE** : ce qu’on y range est lisible par quiconque la lit. Sa garde se pose donc au RAFRAÎCHISSEMENT, et elle échoue du bon côté — une traduction qui passe en privée sort de la table au refresh suivant, administrateur compris, qui la relit alors par les tables d’origine. C’est la règle de `v_polyglotte_fillion` (§ 50.5).
+⚠️ **UNE VUE MATÉRIALISÉE NE PORTE NI RLS NI GARDE DYNAMIQUE** : ce qu’on y range est lisible par quiconque la lit. Sa garde se pose donc au RAFRAÎCHISSEMENT, et elle échoue du bon côté — une traduction qui passe en privée sort de la table au refresh suivant, administrateur compris, qui la relit alors par les tables d’origine. C’est la règle de `v_polyglotte_fillion` (§ 50.8).
 
 ⛔ **ET LA LECTURE SEULEMENT.** Une vue ne se donne pas en `arwd` au rôle du lecteur : sur une vue automatiquement modifiable, c’est une porte d’écriture dans les tables du dessous. `revoke all`, puis `grant select`.
 

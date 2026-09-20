@@ -530,12 +530,12 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
           bougent pas d'un pixel quand la couverture se retourne. */}
       <span className="couverture-cadre" style={{ borderColor: "var(--couv-filet)" }} aria-hidden="true" />
       <span className="couverture-tete">
-        {/* ⚠️ Le grain prend ici l'ENCRE DE LA COUVERTURE, non l'or de la charte : le
+        {/* ⚠️ Le rameau prend ici l'ENCRE DE LA COUVERTURE, non l'or de la charte : le
             carton n'a qu'une encre, celle que l'auteur a choisie, et une seconde
             couleur y ferait tache. La marque se reconnaît à sa forme. */}
         <span className="couverture-auteur">
           {e.auteur}
-          {e.mecene && <>{' '}<MarqueMecene couleur="currentColor" taille="0.8em" /></>}
+          {e.mecene && <>{' '}<MarqueMecene couleur="currentColor" taille="1em" /></>}
         </span>
         <span className="couverture-etoile">
           <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={13} />

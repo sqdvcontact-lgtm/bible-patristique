@@ -107,37 +107,16 @@ export default function SoutenirPage() {
         Vous serez redirigé vers le site sécurisé de PayPal.
       </p>
 
-      {/* LA MARQUE DE MÉCÈNE, annoncée ici et nulle part ailleurs.
-          ⛔ Elle est nommée APRÈS le bouton, en petit, et jamais avant : une page qui
-          annonce sa récompense avant son objet vend un badge au lieu de demander un
-          soutien, et Deci, Koestner et Ryan (1999) mesurent que la récompense attendue
-          mine précisément le geste qu'elle prétend soutenir. Elle se dit donc comme ce
-          qu'elle est, une gratitude constatée après coup.
-          ⚠️ Le mot sur les deux adresses n'est pas une politesse : PayPal ne rend que
-          l'adresse du paiement, et c'est le seul fil qui mène à un compte. Sans cette
-          phrase, le donateur dont les deux adresses diffèrent n'est jamais retrouvé. */}
-      <p style={{
-        fontFamily: "var(--font-source-serif), Georgia, serif",
-        fontSize: "clamp(0.65625rem, 0.55rem + 0.18vw, 0.8rem)",
-        color: "var(--cs-texte-doux)",
-        /* Cinq lignes pleines : c'est un paragraphe, il prend la composition dense
-           du site (audit du 2026-09-05). */
-        lineHeight: 1.52,
-        textAlign: "justify",
-        textJustify: "inter-word",
-        hyphens: "auto",
-        WebkitHyphens: "auto",
-        wordSpacing: "-0.025em",
-        letterSpacing: 0,
-        maxWidth: "26rem",
-        marginTop: "clamp(18px, 2.4vh, 30px)",
-        flexShrink: 0,
-      } as React.CSSProperties}>
-        Les lecteurs qui ont soutenu le corpus portent un grain auprès de leur nom.
-        Il ne donne aucun droit et ne dit aucune somme. Si l’adresse de votre don n’est
-        pas celle de votre compte, dites-le-nous par la <a href="/contact" style={{ color: "var(--cs-vert-fonce)" }}>page de contact</a> et nous
-        ferons le rapprochement.
-      </p>
+      {/* ⛔ LA PAGE NE DIT RIEN DE LA MARQUE DE MÉCÈNE, et c'est le parti (décision de
+          l'auteur, 20 septembre 2026). Une page qui annonce sa récompense vend un badge
+          au lieu de demander un soutien, et Deci, Koestner et Ryan (1999) mesurent que la
+          récompense attendue mine précisément le geste qu'elle prétend soutenir. La
+          gratitude se constate après coup : le rameau paraît tout seul, à côté du nom, et
+          la page de profil le nomme en toutes lettres — « Mécène depuis 2026 ».
+          ⚠️ Le mot sur les deux adresses est parti avec le reste. Il servait le donateur
+          qui paie depuis une adresse que le site n'a jamais vue ; depuis que le don
+          s'inscrit seul (charte § 40.7), ce cas n'est plus qu'un résidu, et il se règle
+          par la page de contact comme n'importe quelle autre question. */}
 
     </section>
   );
