@@ -4336,6 +4336,25 @@ main.lecture-entree [data-cs-bloc],
 .cs-fiche-lien:hover,
 .cs-fiche-lien:focus-visible { text-decoration-color: currentcolor; }
 
+/* ── LA QUALITÉ D'UNE BIBLE, sous son nom ──────────────────────────────────────
+   « Bible Fillion – Latin (Vulgate) » : le nom porte le titre, et ce qui le qualifie
+   descend d'une ligne (décision de l'auteur, 2026-09-20 : « la partie “Latin (Vulgate)”
+   doit apparaître sous le nom de la bible, en vert, comme le nom de l'auteur sur la page
+   “en savoir plus sur cette œuvre” »).
+   ⛔ Elle se compose donc comme ce nom-là (`.cs-fiche-edition .cs-fiche-ligne`) : sans
+      empattements, graisse 600, chasse 0,01 em. Seule l'ENCRE diffère — le nom d'un auteur
+      est un LIEN, et prend le vert par `.cs-fiche-lien` ; celle-ci n'ouvre rien, et porte
+      donc le vert elle-même.
+   ⚠️ Elle se pend à la LIGNE de l'en-tête, non à la seule classe : c'est là qu'elle vit,
+      et le jour où une autre surface voudra la même qualité, elle la nommera à son tour
+      plutôt que de recevoir celle-ci par hasard. */
+.cs-fiche-ligne .cs-fiche-langue {
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--cs-vert);
+}
+
 /* ── La fiche d'une œuvre : les données rapprochées, les sections écartées ──────
    Les repères de l'œuvre montent sous le titre ; les données de l'édition s'écrivent
    « libellé : valeur » sans colonne fixe, afin que chaque valeur reste près de ce qui

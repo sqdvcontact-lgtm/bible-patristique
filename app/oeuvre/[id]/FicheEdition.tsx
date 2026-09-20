@@ -26,7 +26,7 @@ import { Fragment, useEffect, useId, useRef, useState } from 'react'
 
 import BoutonCopierTexte from '@/app/components/BoutonCopierTexte'
 import {
-  Consulter, CorpsFiche, EnTeteFiche, ListeOuvragesCites, ModaleFiche, SectionFiche,
+  ChampFiche, Consulter, CorpsFiche, EnTeteFiche, ListeOuvragesCites, ModaleFiche, SectionFiche,
 } from '@/app/components/FicheModele'
 import { FriseAuteur } from '@/app/components/ModaleAuteur'
 import NotationEdition from '@/app/components/NotationEdition'
@@ -63,23 +63,6 @@ export type DonneesEdition = {
   versions: VersionTextuelle[]
   /** Un texte en langue originale se lit-il en regard du français ? */
   aTexteOriginal: boolean
-}
-
-/** Une donnée documentaire sous la forme la plus courte : « libellé : valeur ». Chaque
- * ligne garde sa propre mesure, de sorte que « Français » ne s'éloigne pas de « Langue »
- * parce qu'une autre ligne porte « Texte établi par ». */
-function ChampEdition({ libelle, italique = false, children }: {
-  libelle: string
-  italique?: boolean
-  children: React.ReactNode
-}) {
-  if (children === null || children === undefined || children === '') return null
-  return (
-    <div className="cs-fiche-edition-champ">
-      <dt>{libelle} :</dt>
-      <dd style={{ fontStyle: italique ? 'italic' : undefined }}>{children}</dd>
-    </div>
-  )
 }
 
 /** La rangée dit déjà « Traduction : ». Le libellé de frontispice peut donc y perdre
@@ -171,12 +154,12 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
               ligne={auteursLigne} />
             {(oeuvre.titre_original || oeuvre.genres?.length || langueOriginale || dateComposition) ? (
               <dl className="cs-fiche-edition-identite" aria-label="Repères sur l’œuvre">
-                <ChampEdition libelle="Titre original" italique>{oeuvre.titre_original}</ChampEdition>
-                <ChampEdition libelle={`Genre${(oeuvre.genres?.length ?? 0) > 1 ? 's' : ''}`}>
+                <ChampFiche libelle="Titre original" italique>{oeuvre.titre_original}</ChampFiche>
+                <ChampFiche libelle={`Genre${(oeuvre.genres?.length ?? 0) > 1 ? 's' : ''}`}>
                   {oeuvre.genres?.length ? oeuvre.genres.join(', ') : null}
-                </ChampEdition>
-                <ChampEdition libelle="Langue originale">{langueOriginale}</ChampEdition>
-                <ChampEdition libelle="Composition">{dateComposition ? rendreSiecles(dateComposition) : null}</ChampEdition>
+                </ChampFiche>
+                <ChampFiche libelle="Langue originale">{langueOriginale}</ChampFiche>
+                <ChampFiche libelle="Composition">{dateComposition ? rendreSiecles(dateComposition) : null}</ChampFiche>
               </dl>
             ) : null}
           </div>
@@ -194,18 +177,18 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
             {/* ⛔ Pas de dépli : ces rangées SONT le sujet d'une fiche qui s'appelle « À
                 propos de cette édition ». */}
             <dl className="cs-fiche-edition-champs">
-              <ChampEdition libelle="Langue">{langue || null}</ChampEdition>
-              <ChampEdition libelle="Traduction">
+              <ChampFiche libelle="Langue">{langue || null}</ChampFiche>
+              <ChampFiche libelle="Traduction">
                 {traduction ? `${traduction}${oeuvre.trad_date ? ` (${formaterDateHistorique(oeuvre.trad_date)})` : ''}` : null}
-              </ChampEdition>
+              </ChampFiche>
               {/* Le savant qui a établi le texte d'une édition critique : « Pius Knöll (éd.) ». */}
-              <ChampEdition libelle="Texte établi par">{responsable}</ChampEdition>
-              <ChampEdition libelle="Édition">{versionActive?.editionDescription}</ChampEdition>
-              <ChampEdition libelle="Éditeur">{formaterEditeur(oeuvre.editeur) || null}</ChampEdition>
-              <ChampEdition libelle="Lieu">{joindreLieux(oeuvre.ville)}</ChampEdition>
-              <ChampEdition libelle="Année">{formaterDateHistorique(oeuvre.date_publication) || null}</ChampEdition>
-              <ChampEdition libelle="Collection">{oeuvre.collection}</ChampEdition>
-              <ChampEdition libelle="Source"><Consulter url={sourceUrl} libelle="Consulter la source" /></ChampEdition>
+              <ChampFiche libelle="Texte établi par">{responsable}</ChampFiche>
+              <ChampFiche libelle="Édition">{versionActive?.editionDescription}</ChampFiche>
+              <ChampFiche libelle="Éditeur">{formaterEditeur(oeuvre.editeur) || null}</ChampFiche>
+              <ChampFiche libelle="Lieu">{joindreLieux(oeuvre.ville)}</ChampFiche>
+              <ChampFiche libelle="Année">{formaterDateHistorique(oeuvre.date_publication) || null}</ChampFiche>
+              <ChampFiche libelle="Collection">{oeuvre.collection}</ChampFiche>
+              <ChampFiche libelle="Source"><Consulter url={sourceUrl} libelle="Consulter la source" /></ChampFiche>
             </dl>
           </SectionFiche>
         )}

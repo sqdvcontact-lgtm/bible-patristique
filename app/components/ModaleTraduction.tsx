@@ -18,13 +18,24 @@
 //
 // Ce que les relevés de l'auteur ont fixé, et qui tient toujours (charte §§ 38.4, 38.15) :
 // ⛔ ni les gravures de l'édition, ni les repères sous le nom ;
-// ⛔ « Édition et état du texte » vit sous la chronologie, sa référence en TÊTE, ses
-//    rangées réduites à ce que la référence ne dit pas ;
 // ⛔ rien de l'atelier : ni « Vérification », ni renvoi aux conditions d'utilisation ;
 // ⚠️ « Particularités » porte de la prose, et la source numérique ne donne que le nom du
 //    site, qui porte le lien ;
-// ⚠️ deux rubriques ferment la fiche : les ouvrages cités (repliés au-delà de dix), puis
-//    les conditions d'usage.
+// ⚠️ les conditions d'usage ferment la fiche, en rubrique.
+//
+// Ce que l'auteur a repris le 2026-09-20 :
+// ⛔ AUCUN SURTITRE : la fenêtre s'appelle déjà « À propos de cette traduction », son nom
+//    accessible le dit, et l'écrire au-dessus du nom de la bible ne l'apprenait à
+//    personne — c'est la décision prise le même jour pour la fiche d'une œuvre ;
+// ⛔ le nom se lit sur DEUX lignes : « Bible Fillion » en titre, « Latin (Vulgate) » sous
+//    lui, EN VERT, comme le nom de l'auteur sur la fiche d'une œuvre ;
+// ⛔ l'intitulé (« Recension de Louis-Claude Fillion (éd.) (IVe siècle) ») ne paraît plus ;
+// ⛔ « Édition et état du texte » devient « Édition du texte », monte SOUS LE TITRE et
+//    quitte la colonne étroite ; son détail se compose en rangées « libellé : valeur »,
+//    celles de « Édition de référence » sur la fiche d'une œuvre, et un geste de copie se
+//    tient contre son titre — il rend la RÉFÉRENCE composée des volumes servis ;
+// ⚠️ « Ouvrages cités dans cette édition » passe en SECTION, comme sur la fiche d'une
+//    œuvre : deux listes d'ouvrages ne se composent pas de deux façons (charte § 38.25.2).
 //
 // ⚠️ Le CONTENU est séparé de la fenêtre : `createPortal` n'existe pas au rendu serveur,
 // et une planche de contrôle hors session ne pourrait pas rendre la fiche autrement.
@@ -32,13 +43,13 @@
 import DOMPurify from 'dompurify'
 import { useEffect, useId, useState, type ReactNode } from 'react'
 
+import BoutonCopierTexte from '@/app/components/BoutonCopierTexte'
 import {
-  Consulter, CorpsFiche, EnTeteFiche, ListeOuvragesCites, ModaleFiche, PortraitFiche,
-  RangeeEmpilee, RubriqueFiche, SectionFiche,
+  ChampFiche, Consulter, CorpsFiche, EnTeteFiche, ListeOuvragesCites, ModaleFiche,
+  PortraitFiche, RubriqueFiche, SectionFiche,
 } from '@/app/components/FicheModele'
 import { FriseAuteur } from '@/app/components/ModaleAuteur'
-import { FragmentReference } from '@/app/components/ReferenceBibliographique'
-import { CLASSES_BIBLIOGRAPHIE } from '@/app/lib/apparatBibliographie'
+import { joindreLieux } from '@/app/lib/adresseEdition'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { indexEditeursNavigateur, useEditeursCharges } from '@/app/lib/editeurs'
 import { joindreEditeurs } from '@/app/lib/editeursNormalisation'
@@ -49,7 +60,9 @@ import {
   portraitTraduction, styleImagePortrait, type PositionsPhotoTraduction,
 } from '@/app/lib/portraitTraduction'
 import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
-import { segmentsReferenceEdition } from '@/app/lib/referenceEditionServie'
+import {
+  mentionEditionAComposer, texteReferenceEdition, type EditionServie,
+} from '@/app/lib/referenceEditionServie'
 import { sieclesEnHtml } from '@/app/lib/siecles'
 import { libelleSourceNumerique } from '@/app/lib/sourceNumerique'
 import { supabase } from '@/app/lib/supabase'
@@ -79,13 +92,27 @@ export type InfoTrad = {
   import_maj_le: string | null
 }
 
-/** Intitulé juste selon le type d'objet (jamais la valeur technique brute). */
-function intituleTraduction(i: InfoTrad): string | null {
-  const a = i.auteur?.trim() || null
-  if (i.type_objet === 'edition_critique') { const r = i.responsable_edition?.trim() || a; return r ? `Édition critique établie par ${r}` : null }
-  if (i.type_objet === 'recension') return a ? `Recension de ${a}` : null
-  if (i.type_objet === 'traduction') return a ? `Traduction de ${a}` : null
-  return a
+/**
+ * Le NOM d'une bible se lit sur DEUX lignes : « Bible Fillion – Latin (Vulgate) » donne
+ * « Bible Fillion » pour titre et « Latin (Vulgate) » pour QUALITÉ, sous lui, en vert
+ * (demande de l'auteur, 2026-09-20).
+ *
+ * ⚠️ Le tiret SÉPARE, il ne compose pas : on ne coupe que sur un tiret CERNÉ D'ESPACES —
+ * demi-cadratin ou cadratin —, jamais sur le trait d'union d'un nom composé
+ * (« Bar-le-Duc ») ni sur un tiret collé.
+ * ⛔ La coupure se fait au PREMIER séparateur, et les deux morceaux doivent porter
+ * quelque chose : un nom qui n'en a pas reste entier, et rien ne paraît sous lui.
+ */
+const SEPARATEUR_NOM = new RegExp(
+  `\\s[${String.fromCharCode(0x2013)}${String.fromCharCode(0x2014)}]\\s`,
+)
+
+export function nomEtQualite(nom: string): { nom: string; qualite: string | null } {
+  const trouve = SEPARATEUR_NOM.exec(nom)
+  if (!trouve) return { nom, qualite: null }
+  const titre = nom.slice(0, trouve.index).trim()
+  const qualite = nom.slice(trouve.index + trouve[0].length).trim()
+  return titre && qualite ? { nom: titre, qualite } : { nom, qualite: null }
 }
 
 /**
@@ -101,8 +128,8 @@ export const enProse = (t: string | null | undefined) => rendreEnrichi(t ? norma
  * La source numérique : son NOM porte le lien, et il n'y a rien d'autre.
  * ⚠️ Le nom se rend TOUJOURS, lien ou pas ; sans nom, c'est l'HÔTE de l'adresse.
  * ⛔ Ne donner que le NOM DU SITE (`app/lib/sourceNumerique.ts`).
- * ⛔ C'EST UNE FONCTION, ET NON UN COMPOSANT : `RangeeEmpilee` se tait sur un enfant
- * FAUX, et un élément de composant est toujours vrai, fût-il rendu à `null`.
+ * ⛔ C'EST UNE FONCTION, ET NON UN COMPOSANT : `ChampFiche` se tait sur un enfant NUL, et
+ * un élément de composant n'est jamais nul, fût-il rendu à `null`.
  */
 function sourceNumerique(nom: string | null, url: string | null): ReactNode {
   const libelle = libelleSourceNumerique(nom, url)
@@ -240,7 +267,6 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
   // la Vulgate, et n'apporte rien au lecteur).
   const numerotation = (i.schema_numerotation && i.schema_numerotation !== 'vulgate')
     ? (NUMEROTATION_LABEL[i.schema_numerotation] ?? i.schema_numerotation) : null
-  const intitule = intituleTraduction(i)
   const licenceDP = (i.licence_traduction ?? '').toLowerCase().includes('domaine public')
   // ⛔ Une licence RÉDIGÉE se rend telle quelle, jamais rabattue sur la formule du
   // domaine public : la réserve qu'elle porte tomberait avec elle.
@@ -253,74 +279,54 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
   const portrait = portraitTraduction(i)
   const miseAJour = dateMiseAJour(i.import_maj_le)
 
-  // La RÉFÉRENCE des volumes servis, composée champ par champ. ⚠️ L'ÉDITEUR y prend sa
-  // forme normalisée ; tant que le cache n'est pas prêt, la forme brute — jamais un vide.
-  const referenceEdition = segmentsReferenceEdition({
+  // L'ÉDITION SERVIE, champ par champ. ⚠️ L'ÉDITEUR y prend sa forme normalisée ; tant que
+  // le cache n'est pas prêt, la forme brute — jamais un vide.
+  const editeurCompose = joindreEditeurs(i.editeur, indexEditeurs)
+  const edition: EditionServie = {
     titreEdition: i.titre_edition, sousTitreEdition: i.sous_titre_edition,
     mentionEdition: i.mention_edition,
-    lieuEdition: i.lieu_edition, editeur: joindreEditeurs(i.editeur, indexEditeurs),
+    lieuEdition: i.lieu_edition, editeur: editeurCompose,
     anneeEdition: i.annee_edition, nombreTomes: i.nombre_tomes,
     depotManuscrit: i.depot_manuscrit, coteManuscrit: i.cote_manuscrit,
-  })
+  }
+  // ⛔ La référence composée ne paraît plus À L'ÉCRAN, mais elle ne disparaît pas pour
+  //    autant : c'est elle que le geste de copie rend, telle qu'on la cite (charte § 47.1).
+  const referenceACopier = texteReferenceEdition(edition)
+  // ⚠️ La mention d'édition se TAIT quand elle n'apprend rien — un témoin manuscrit n'en a
+  //    pas, et une mention que le titre porte déjà ne se redit pas. La règle est celle de
+  //    la référence composée, et il n'y en a qu'une (`mentionEditionAComposer`).
+  const mentionEdition = mentionEditionAComposer(edition)
+  // ⚠️ « 1 vol. » ne s'écrit pas : un volume unique est le cas ordinaire.
+  const tomes = typeof i.nombre_tomes === 'number' && i.nombre_tomes > 1 ? `${i.nombre_tomes} vol.` : null
+  // ⛔ Un TÉMOIN MANUSCRIT se nomme par son dépôt ET sa cote : la cote fait le manuscrit,
+  //    et le dépôt seul ne désigne rien.
+  const cote = i.cote_manuscrit?.trim() || null
+
+  const { nom: nomPrincipal, qualite } = nomEtQualite((i.nom || nomFallback).trim())
 
   const aChrono = chrono.length > 0
-  const aEdition = referenceEdition.length > 0 || !!(i.source_numerique_nom
-    || i.source_numerique_url || i.graphie || numerotation || i.particularites || miseAJour)
-  const sousTitre = intitule ? rendreEnrichi(i.dates ? `${intitule} (${i.dates})` : intitule) : null
+  const aEdition = !!(i.titre_edition || i.sous_titre_edition || mentionEdition
+    || i.responsable_edition || joindreLieux(i.lieu_edition) || editeurCompose
+    || i.annee_edition || tomes || cote || i.source_numerique_nom || i.source_numerique_url
+    || i.graphie || numerotation || i.particularites || miseAJour)
 
   return (
     <CorpsFiche
       portrait={portrait ? (
         <PortraitFiche src={portrait.url} styleImage={styleImagePortrait(portrait)} cle={i.trad_id ?? nomFallback} />
       ) : null}
-      entete={surPage ? (
-        <EnTeteFiche sousTitre={sousTitre} />
-      ) : (
-        <EnTeteFiche surtitre="À propos de cette traduction" titre={rendreEnrichi(i.nom || nomFallback)}
-          titreId={titreId} sousTitre={sousTitre} />
+      entete={surPage ? null : (
+        /* ⛔ AUCUN SURTITRE : la fenêtre s'appelle déjà « À propos de cette traduction »
+           (son nom accessible le dit), et la page « Les traductions » porte un bandeau qui
+           nomme déjà la bible — d'où l'en-tête ABSENT en `surPage`. */
+        <EnTeteFiche titre={rendreEnrichi(nomPrincipal)} titreId={titreId}
+          ligne={qualite ? <span className="cs-fiche-langue">{rendreEnrichi(qualite)}</span> : null} />
       )}
-      complement={info !== null && (aChrono || aEdition) ? (
-        <>
-          {aChrono && <SectionFiche titre="Chronologie"><FriseAuteur evenements={chrono} /></SectionFiche>}
-          {aEdition && (
-            <SectionFiche titre="Édition et état du texte">
-              {referenceEdition.length > 0 && (
-                <div className={`${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.sansHote}`} style={{ marginBottom: '7px' }}>
-                  <ul className={CLASSES_BIBLIOGRAPHIE.liste}>
-                    <li className={CLASSES_BIBLIOGRAPHIE.entree}>
-                      {referenceEdition.map((segment, rang) => (
-                        <FragmentReference key={rang} segment={segment} />
-                      ))}
-                    </li>
-                  </ul>
-                </div>
-              )}
-              <RangeeEmpilee c="Source numérique">{sourceNumerique(i.source_numerique_nom, i.source_numerique_url)}</RangeeEmpilee>
-              <RangeeEmpilee c="Graphie">{enProse(i.graphie)}</RangeeEmpilee>
-              <RangeeEmpilee c="Numérotation">{numerotation}</RangeeEmpilee>
-              {/* ⚠️ « PARTICULARITÉS » PORTE DE LA PROSE : l'interligne et la césure d'un
-                  paragraphe, en SPAN (la valeur d'une rangée en est un), sans
-                  justification (la colonne ne porte qu'une quarantaine de signes). */}
-              <RangeeEmpilee c="Particularités">{i.particularites
-                ? <span style={{ display: 'block', lineHeight: 1.5, hyphens: 'auto' }}>{enProse(i.particularites)}</span>
-                : null}</RangeeEmpilee>
-              <RangeeEmpilee c="Texte mis à jour le">{miseAJour}</RangeeEmpilee>
-            </SectionFiche>
-          )}
-        </>
+      complement={info !== null && aChrono ? (
+        <SectionFiche titre="Chronologie"><FriseAuteur evenements={chrono} /></SectionFiche>
       ) : null}
       suite={info !== null ? (
         <>
-          {/* ── LES OUVRAGES QUE L'ÉDITION CITE ── « Je veux qu'on constitue une nouvelle
-              rubrique contenant, proprement, tous les ouvrages cités dans l'édition
-              utilisée […] Si cette rubrique est vide, elle ne doit pas apparaître »
-              (2026-09-04). Composés par le moteur bibliographique, en notices entières,
-              et repliés au-delà de dix (2026-09-15). */}
-          {ouvragesCites.length > 0 && (
-            <RubriqueFiche titre="Ouvrages cités dans cette édition">
-              <ListeOuvragesCites notices={ouvragesCites} />
-            </RubriqueFiche>
-          )}
           {/* ── CONDITIONS D'USAGE ── La licence dit ce que le TEXTE permet ; la
               transcription, la structuration, les alignements et les liens ne sont pas
               libres pour autant. ⛔ La formule dit en deux paragraphes le § 6 des
@@ -346,12 +352,60 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
         <MotAttente centre marge="30px 0" />
       ) : (
         <>
+          {/* ── L'ÉDITION D'OÙ LE TEXTE EST TIRÉ ── Elle vivait sous la chronologie, dans la
+              colonne étroite, et donnait sa référence composée en une ligne. L'auteur l'a
+              voulue SOUS LE TITRE et dans la forme de « Édition de référence » sur la fiche
+              d'une œuvre : « libellé : valeur », une donnée par ligne (2026-09-20).
+              ⛔ La référence composée ne se perd pas : le geste de copie, contre le titre de
+              la section, la rend telle qu'on la cite. */}
+          {aEdition && (
+            <SectionFiche titre="Édition du texte"
+              action={referenceACopier ? (
+                <BoutonCopierTexte texte={referenceACopier} titre="Copier la référence"
+                  className="cs-fiche-copier cs-cible-fine" />
+              ) : null}>
+              <dl className="cs-fiche-edition-champs">
+                <ChampFiche libelle="Titre" italique>{enProse(i.titre_edition)}</ChampFiche>
+                <ChampFiche libelle="Sous-titre" italique>{enProse(i.sous_titre_edition)}</ChampFiche>
+                <ChampFiche libelle="Édition">{mentionEdition}</ChampFiche>
+                <ChampFiche libelle="Texte établi par">{enProse(i.responsable_edition)}</ChampFiche>
+                <ChampFiche libelle="Lieu">{joindreLieux(i.lieu_edition)}</ChampFiche>
+                <ChampFiche libelle="Dépôt">{cote ? i.depot_manuscrit : null}</ChampFiche>
+                <ChampFiche libelle="Cote">{cote}</ChampFiche>
+                <ChampFiche libelle="Éditeur">{editeurCompose}</ChampFiche>
+                <ChampFiche libelle="Année">{i.annee_edition}</ChampFiche>
+                <ChampFiche libelle="Volumes">{tomes}</ChampFiche>
+                <ChampFiche libelle="Source numérique">{sourceNumerique(i.source_numerique_nom, i.source_numerique_url)}</ChampFiche>
+                <ChampFiche libelle="Graphie">{enProse(i.graphie)}</ChampFiche>
+                <ChampFiche libelle="Numérotation">{numerotation}</ChampFiche>
+                {/* ⚠️ « PARTICULARITÉS » PORTE DE LA PROSE : l'interligne et la césure d'un
+                    paragraphe. La valeur d'une rangée est une cellule de flex : le bloc s'y
+                    range sans rien déplacer. */}
+                <ChampFiche libelle="Particularités">{i.particularites
+                  ? <span style={{ display: 'block', lineHeight: 1.45, hyphens: 'auto' }}>{enProse(i.particularites)}</span>
+                  : null}</ChampFiche>
+                <ChampFiche libelle="Texte mis à jour le">{miseAJour}</ChampFiche>
+              </dl>
+            </SectionFiche>
+          )}
           {i.bio_courte && <p className="cs-fiche-bio">{enProse(i.bio_courte)}</p>}
           {/* Notice éditoriale : HTML (h2/p/em/ul/li) composé par la feuille — titres de
               section en sérif italique, prose en sans justifiée. */}
           {i.commentaire_editorial && (
             <div className="cs-fiche-notice"
               dangerouslySetInnerHTML={{ __html: noticeEditorialeEnHtml(i.commentaire_editorial) }} />
+          )}
+          {/* ── LES OUVRAGES QUE L'ÉDITION CITE ── « Je veux qu'on constitue une nouvelle
+              rubrique contenant, proprement, tous les ouvrages cités dans l'édition
+              utilisée […] Si cette rubrique est vide, elle ne doit pas apparaître »
+              (2026-09-04). Composés par le moteur bibliographique, en notices entières, et
+              repliés au-delà de dix (2026-09-15).
+              ⛔ Une SECTION, comme sur la fiche d'une œuvre (2026-09-20) : deux listes
+              d'ouvrages ne peuvent pas se composer de deux façons. */}
+          {ouvragesCites.length > 0 && (
+            <SectionFiche titre="Ouvrages cités dans cette édition">
+              <ListeOuvragesCites notices={ouvragesCites} />
+            </SectionFiche>
           )}
         </>
       )}

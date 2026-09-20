@@ -106,6 +106,21 @@ function mentionAComposer(
 }
 
 /**
+ * La MENTION D'ÉDITION telle qu'une fiche doit l'écrire — ou `null` quand elle n'apprend
+ * rien (voir `mentionAComposer`).
+ *
+ * ⚠️ Elle est exportée depuis que la fiche d'une traduction décompose l'adresse de son
+ * édition en rangées « libellé : valeur » (« Édition du texte », 2026-09-20) : la règle
+ * qui fait taire une mention redondante doit valoir là comme dans la référence composée,
+ * sous peine de voir « Témoin manuscrit » sous un titre qui dit déjà « manuscrit ».
+ */
+export function mentionEditionAComposer(edition: EditionServie): string | null {
+  const titre = propre(edition.titreEdition)
+  if (!titre) return null
+  return mentionAComposer(edition, titre, propre(edition.coteManuscrit))
+}
+
+/**
  * La référence, fragment par fragment.
  *
  * Forme attendue, ponctuation comprise :

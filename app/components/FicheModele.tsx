@@ -90,6 +90,38 @@ export function RangeeEmpilee({ c, italique, children }: { c: string; italique?:
   )
 }
 
+/** « libellé : valeur » — l'insécable et les deux-points d'un libellé de rangée. */
+const DEUX_POINTS = `${String.fromCharCode(0x00a0)}:`
+
+/**
+ * Une donnée documentaire sous la forme la plus courte : « libellé : valeur ». Chaque
+ * ligne garde sa propre mesure, de sorte que « Français » ne s'éloigne pas de « Langue »
+ * parce qu'une autre ligne porte « Texte établi par ».
+ *
+ * ⚠️ ELLE SERT DEUX FICHES : « Édition de référence » sur celle d'une œuvre, et
+ *    « Édition du texte » sur celle d'une traduction, depuis que l'auteur a demandé la
+ *    même mise en forme pour les deux (2026-09-20). Elle vivait dans `FicheEdition` :
+ *    elle appartient au MODÈLE, comme tout ce que deux fiches partagent.
+ * ⚠️ La rangée est un FLEX, donc un contexte de formatage à elle : à côté du portrait ou
+ *    de la colonne de droite, elle se range entière dans la place qui reste et reprend
+ *    la pleine mesure sous eux, rangée par rangée.
+ */
+export function ChampFiche({ libelle, italique = false, children }: {
+  libelle: string
+  italique?: boolean
+  children: ReactNode
+}) {
+  if (children === null || children === undefined || children === '') return null
+  return (
+    <div className="cs-fiche-edition-champ">
+      {/* ⚠️ L'insécable avant les deux-points est ÉCRITE EN POINT DE CODE : une espace
+          insécable ne se distingue pas d'une espace ordinaire à la lecture du dépôt. */}
+      <dt>{libelle}{DEUX_POINTS}</dt>
+      <dd style={{ fontStyle: italique ? 'italic' : undefined }}>{children}</dd>
+    </div>
+  )
+}
+
 /** Lien vers une source extérieure. Rien du tout si l'adresse n'en est pas une.
  *  ⚠️ C'est un bouton-lien AUTONOME : il prend la forme commune (globals.css).
  *  ⛔ Un élément de composant est toujours VRAI, fût-il rendu à `null` : devant une
