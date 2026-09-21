@@ -161,11 +161,12 @@ describe('le paquet .docx', () => {
     }
   })
 
-  it('ferme le corps sur un paragraphe qui porte la section', () => {
+  it('ferme le corps sur un paragraphe vide, puis sur la section, enfant du corps', () => {
     const document = parties.get('word/document.xml')!.toString('utf8')
-    // ⚠️ Word exige un paragraphe après un tableau en fin de corps, et c'est là que
-    // vivent la taille de page et le pied. Ne pas le retirer en croyant nettoyer.
-    expect(document).toMatch(/<w:sectPr>[\s\S]*<\/w:sectPr><\/w:pPr><\/w:p><\/w:body><\/w:document>$/)
+    // ⚠️ Word exige un paragraphe après un tableau en fin de corps. ⛔ Et la section est un
+    // enfant du CORPS : dans un paragraphe, elle ferait un saut de page, donc une page blanche.
+    expect(document).toMatch(/<\/w:pPr><\/w:p><w:sectPr>[\s\S]*<\/w:sectPr><\/w:body><\/w:document>$/)
+    expect(document).not.toMatch(/<w:pPr>(?:(?!<\/w:pPr>)[\s\S])*<w:sectPr>/)
   })
 
   it('compose le tableau en regard à deux colonnes, chacune avec un paragraphe', () => {

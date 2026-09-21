@@ -10,7 +10,9 @@
 
 import IconeChevron from '@/app/components/IconeChevron'
 import IconeCopier from '@/app/components/IconeCopier'
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { cssServi } from '@/app/lib/cssServi'
+import { noticeEnSyntaxe, type GroupeExtrait, type SectionExtraite } from '@/app/lib/extractionCitations'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
@@ -18,7 +20,7 @@ import { useEspace } from "@/app/compte/EspaceCompte";
 import { BandeauLecteur, SommaireEspace } from "@/app/compte/piecesEspace";
 import { ancresCitations } from "@/app/lib/espaceLecteurNavigation";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
-import { citationPatristique, citationBiblique, copierCitation, preparerTexteCitation, type CitationRendue } from "@/app/lib/citation";
+import { citationPatristique, citationBiblique, copierCitation, fragmentsReferenceCanoniqueOeuvre, preparerTexteCitation, type CitationRendue, type InfoCitation } from "@/app/lib/citation";
 import { COLONNES_IDENTITE_TEXTE, identiteCitee, parametreTexte, type LigneIdentiteTexte } from "@/app/lib/identiteCitee";
 import { indexEditeursNavigateur } from "@/app/lib/editeurs";
 import { colorMix } from "@/app/lib/couleurs";
@@ -191,11 +193,46 @@ function colonneDeLecture(traductions: Traduction[], active: string): string {
 // exactement comme sur la page de lecture (règles centralisées dans app/lib/citation.ts).
 // ⛔ L'identité est celle de l'ÉDITION du passage, silence compris (`identiteCitee`) : lue à
 // l'œuvre, un passage du latin des Confessions se citait sous Arnauld d'Andilly, 1649.
-function citationPatristiqueDepuisInfo(texte: string, auteur: string, titre: string, info?: OeuvreInfo, edition?: LigneIdentiteTexte): CitationRendue {
-  return citationPatristique(texte, {
+function infoPatristique(auteur: string, titre: string, info?: OeuvreInfo, edition?: LigneIdentiteTexte): InfoCitation {
+  return {
     auteur, titre, sousTitre: info?.sous_titre,
     ...identiteCitee(info ?? {}, edition, indexEditeursNavigateur()),
-  });
+  };
+}
+
+function citationPatristiqueDepuisInfo(texte: string, auteur: string, titre: string, info?: OeuvreInfo, edition?: LigneIdentiteTexte): CitationRendue {
+  return citationPatristique(texte, infoPatristique(auteur, titre, info, edition));
+}
+
+// ── L'extraction en document Word ─────────────────────────────────────────────
+//
+// ⚠️ La page envoie ce qu'elle MONTRE (le verset dans la traduction du menu, les passages
+// réunis, leur lieu, la notice de leur édition) : la route ne fait que le mettre en page
+// (`app/api/compte/citations/extraction`, `app/lib/docx/documentCitations.ts`).
+
+type EtatCase = "tout" | "partiel" | "rien";
+
+function etatDes(listes: string[][], selection: ReadonlySet<string>): EtatCase {
+  const choisies = listes.filter(ids => ids.every(id => selection.has(id))).length;
+  return choisies === 0 ? "rien" : choisies === listes.length ? "tout" : "partiel";
+}
+
+// ⚠️ L'état « partiel » n'existe qu'en propriété DOM (`indeterminate`), pas en attribut :
+// il se pose après le rendu.
+function CaseACocher({ etat, onChange, libelle }: { etat: EtatCase; onChange: () => void; libelle: string }) {
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => { if (ref.current) ref.current.indeterminate = etat === "partiel"; }, [etat]);
+  return (
+    <input ref={ref} type="checkbox" className="prel-case" checked={etat === "tout"}
+      onChange={onChange} onClick={e => e.stopPropagation()} aria-label={libelle} />
+  );
+}
+
+/** Le nom du fichier, lu dans la réponse : la route le compose, la page ne le devine pas. */
+function nomDuFichierRecu(entete: string | null): string {
+  const utf8 = entete?.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+  if (utf8) { try { return decodeURIComponent(utf8); } catch { /* repli ci-dessous */ } }
+  return entete?.match(/filename="([^"]+)"/i)?.[1] ?? "Mes citations.docx";
 }
 
 // ── Micro-composants ──────────────────────────────────────────────────────────
@@ -243,6 +280,25 @@ function BoutonLien({ href }: { href: string }) {
   );
 }
 
+// La page d'un document : le geste d'extraction se reconnaît avant de se lire.
+function IconeDocument() {
+  return (
+    <svg width="11" height="12" viewBox="0 0 11 12" fill="none" aria-hidden="true" style={{ display: "block" }}>
+      <path d="M2 1h4.5L9 3.5V11H2z" stroke="currentColor" strokeWidth="1.1" strokeLinejoin="round" />
+      <path d="M6.5 1v2.5H9M3.7 6h3.6M3.7 8.2h3.6" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ListeVide({ mention, href, lien }: { mention: string; href: string; lien: string }) {
+  return (
+    <div className="prel-vide">
+      <p>{mention}</p>
+      <Link href={href} className="cs-bouton-lien">{lien}</Link>
+    </div>
+  );
+}
+
 // ── Groupe repliable ──────────────────────────────────────────────────────────
 //
 // ⛔ LE LIVRE ET L'AUTEUR PRENNENT LE TITRE DE SECTION DE L'ESPACE — sérif italique vert,
@@ -250,18 +306,24 @@ function BoutonLien({ href }: { href: string }) {
 // capitales espacées, c'est-à-dire le vocabulaire d'une interface là où les trois autres
 // pages de l'espace composent un titre. Le compte et le chevron se rangent sur la même
 // ligne : c'est le titre lui-même qui déplie.
-function GroupeRepliable({ ancre, label, count, ouvert, onToggle, children }: {
-  ancre: string; label: React.ReactNode; count: number; ouvert: boolean; onToggle: () => void; children: React.ReactNode;
+// ⚠️ En mode sélection, la case du groupe se pose DEVANT le bouton, jamais dedans : une
+// case dans un bouton n'est pas du HTML valide, et le clic y ferait les deux gestes.
+function GroupeRepliable({ ancre, label, count, ouvert, onToggle, caseGroupe, children }: {
+  ancre: string; label: React.ReactNode; count: number; ouvert: boolean; onToggle: () => void;
+  caseGroupe?: React.ReactNode; children: React.ReactNode;
 }) {
   return (
     // ⚠️ Le décalage d'ancre se compose sur HAUTEUR_NAVBAR, jamais en pixels : la barre
     // mesure 56 px à la racine 16 et 77 à la racine 22 (charte, « Responsive »).
     <section id={ancre} className="prel-groupe" style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 1.5rem)` }}>
-      <button type="button" className="prel-groupe-tete" onClick={onToggle} aria-expanded={ouvert}>
-        <h2>{label}</h2>
-        <span className="prel-groupe-compte">{count}</span>
-        <span className="prel-groupe-chevron" data-ouvert={ouvert} aria-hidden="true"><IconeChevron dir="down" size={10} strokeWidth={1.5} /></span>
-      </button>
+      <div className="prel-groupe-ligne">
+        {caseGroupe}
+        <button type="button" className="prel-groupe-tete" onClick={onToggle} aria-expanded={ouvert}>
+          <h2>{label}</h2>
+          <span className="prel-groupe-compte">{count}</span>
+          <span className="prel-groupe-chevron" data-ouvert={ouvert} aria-hidden="true"><IconeChevron dir="down" size={10} strokeWidth={1.5} /></span>
+        </button>
+      </div>
       {ouvert && <div>{children}</div>}
     </section>
   );
@@ -275,7 +337,13 @@ export default function PagePrelevements() {
   const [chargement, setChargement] = useState(true);
   const [prelevements, setPrelevements] = useState<Prelevement[]>([]);
   const [onglet, setOnglet] = useState<TypePrelevement>("biblique");
-  const [groupesOuverts, setGroupesOuverts] = useState<Set<string>>(new Set());
+  // ⚠️ On retient les groupes FERMÉS, non les ouverts : tout est ouvert par défaut, et un
+  // groupe nouveau (un prélèvement de plus) paraît ouvert sans qu'un effet ait à le dire.
+  const [groupesFermes, setGroupesFermes] = useState<Set<string>>(new Set());
+  // `null` : hors du mode sélection. Sinon, les identifiants des prélèvements retenus pour
+  // l'extraction, sur les DEUX corpus à la fois.
+  const [selection, setSelection] = useState<Set<string> | null>(null);
+  const [extraction, setExtraction] = useState<{ enCours: boolean; erreur: string | null }>({ enCours: false, erreur: null });
   const [oeuvresInfo, setOeuvresInfo] = useState<Record<string, OeuvreInfo>>({});
   // Les éditions des œuvres citées, pour citer un passage sous la sienne.
   const [editions, setEditions] = useState<Record<string, LigneIdentiteTexte>>({});
@@ -421,7 +489,8 @@ export default function PagePrelevements() {
       );
       const map: Record<string, string> = {};
       results.forEach(({ data }) => {
-        (data ?? []).forEach((v: any) => {
+        // ⚠️ Le `select` porte une colonne CALCULÉE : PostgREST n'en infère pas le type.
+        ((data ?? []) as unknown as Record<string, unknown>[]).forEach(v => {
           map[`${v.livre}:${v.chapitre}:${v.verset}`] = String(v[colonne] ?? "");
         });
       });
@@ -565,6 +634,57 @@ export default function PagePrelevements() {
   const textesPrets = textesTraduits.colonne === colonneLue;
   const nomColonneLue = nomTraduction(colonneLue);
 
+  // ── Ce que la page montre, composé UNE fois ────────────────────────────────
+  // La liste et l'extraction lisent les mêmes entrées : le document dit exactement ce que
+  // l'écran montre.
+  const vueBiblique = groupesBibliquesBruts.map(({ label, items }) => ({
+    label,
+    nom: NOM_COMPLET[label] ?? items[0]?.ref_livre ?? label,
+    entrees: agglomererBibliques(items).map(g => {
+      const nomTrad = nomTraduction(g.traduction);
+      return {
+        cle: g.ids.join("_"),
+        ids: g.ids,
+        groupe: g,
+        texte: texteGroupe(g),
+        ref: refBiblique(g),
+        // La favorite garde la traduction où on la LIT : celle dont vient le texte montré,
+        // quand tous ses versets s'y trouvent, celle du prélèvement sinon.
+        tradLue: g.traduit ? nomTraduction(textesTraduits.colonne ?? traductionActive) : nomTrad,
+        // ⛔ La provenance ne se dit que si elle nomme le texte MONTRÉ : un verset que la
+        // traduction du menu ne porte pas, lu dans celle du prélèvement.
+        provenance: nomTrad && textesPrets && !g.traduit && nomTrad !== nomColonneLue ? nomTrad : null,
+      };
+    }),
+  }));
+
+  const vuePatristique = groupesPatristiques.map(({ label, items }) => {
+    const [auteur, titre] = label.split("||");
+    // ⚠️ Les passages d'une même œuvre qui se suivent, ou que sépare une courte élision, se
+    // lisent d'un trait, comme dans le volet de la page Bible (demande de l'auteur,
+    // 2026-09-04). Les actions portent alors sur TOUT le groupe.
+    const entrees = regrouperCitations(items, cleCitation, signesElides, titreEntre).map(groupe => {
+      const p = groupe[0];
+      const ids = groupe.map(x => x.id);
+      return {
+        cle: ids.join("_"),
+        ids,
+        p,
+        texte: texteDuGroupe(groupe, cleCitation),
+        lieu: lieuPatristique(p),
+        info: p.id_oeuvre ? oeuvresInfo[p.id_oeuvre] : undefined,
+        edition: editions[texteDuPrelevement(p) ?? ""],
+      };
+    });
+    return {
+      label, auteur, titre, entrees,
+      idAuteur: items[0]?.id_oeuvre ? oeuvresInfo[items[0].id_oeuvre]?.id_auteur : undefined,
+      // ⛔ La colonne de la manchette ne tombe que lorsque la mesure est faite : tant que
+      // les segments ne sont pas relus, un lieu peut encore venir.
+      sansManchette: mesuresPatristiques.pret && entrees.every(e => !e.lieu),
+    };
+  });
+
   const tousLesGroupes = onglet === "biblique"
     ? groupesBibliquesBruts.map(g => g.label)
     : groupesPatristiques.map(g => g.label);
@@ -595,9 +715,9 @@ export default function PagePrelevements() {
       };
     });
 
-  const toggleGroupe = (label: string) => setGroupesOuverts(prev => {
+  const toggleGroupe = (label: string) => setGroupesFermes(prev => {
     const next = new Set(prev);
-    next.has(label) ? next.delete(label) : next.add(label);
+    if (next.has(label)) next.delete(label); else next.add(label);
     return next;
   });
 
@@ -606,14 +726,117 @@ export default function PagePrelevements() {
   // précède reste en place.
   const deplierPourLAncre = (ancre: string) => {
     const vise = tousLesGroupes.find(label => ancreDuGroupe(label) === ancre);
-    if (vise) setGroupesOuverts(prev => (prev.has(vise) ? prev : new Set(prev).add(vise)));
+    if (vise) setGroupesFermes(prev => {
+      if (!prev.has(vise)) return prev;
+      const next = new Set(prev);
+      next.delete(vise);
+      return next;
+    });
   };
 
-  useEffect(() => {
-    setGroupesOuverts(new Set(tousLesGroupes));
-  }, [onglet, prelevements]);
-
   const listeActive = onglet === "biblique" ? bibliques : patristiques;
+
+  // ── La sélection pour l'extraction ─────────────────────────────────────────
+  const choisi = (ids: string[]) => selection !== null && ids.every(id => selection.has(id));
+  // Coche ou décoche un ensemble d'un seul geste : tout, s'il n'était pas tout coché.
+  const basculer = (listes: string[][]) => setSelection(prev => {
+    if (!prev) return prev;
+    const ids = listes.flat();
+    const cocher = !ids.every(id => prev.has(id));
+    const next = new Set(prev);
+    for (const id of ids) { if (cocher) next.add(id); else next.delete(id); }
+    return next;
+  });
+  const entreesDe = (vue: { entrees: { ids: string[] }[] }[]) => vue.flatMap(g => g.entrees.map(e => e.ids));
+  const entreesOnglet = entreesDe(onglet === "biblique" ? vueBiblique : vuePatristique);
+  const nbVersetsChoisis = entreesDe(vueBiblique).filter(choisi).length;
+  const nbPassagesChoisis = entreesDe(vuePatristique).filter(choisi).length;
+  const nbChoisis = nbVersetsChoisis + nbPassagesChoisis;
+  // ⚠️ On ne compose pas un document avant que la page ait fini de composer ce qu'elle
+  // montre : la traduction des versets et la réunion des passages arrivent après la liste.
+  const pretPourExtraire = textesPrets && mesuresPatristiques.pret;
+
+  const quitterSelection = () => { setSelection(null); setExtraction({ enCours: false, erreur: null }); };
+
+  const extraire = async () => {
+    if (!selection || nbChoisis === 0 || extraction.enCours) return;
+    const sections: SectionExtraite[] = [];
+
+    const groupesBibliques: GroupeExtrait[] = vueBiblique.map(g => ({
+      titre: g.nom,
+      citations: g.entrees.filter(e => choisi(e.ids)).map(e => ({
+        reference: e.ref,
+        texte: preparerTexteCitation(e.texte),
+        ...(e.provenance ? { glose: `Texte de la ${e.provenance}` } : {}),
+      })),
+    })).filter(g => g.citations.length > 0);
+    if (groupesBibliques.length > 0) {
+      sections.push({
+        corpus: "biblique",
+        ...(nomColonneLue ? { chapeau: `Texte de la ${nomColonneLue}` } : {}),
+        groupes: groupesBibliques,
+      });
+    }
+
+    const groupesPatristiquesChoisis: GroupeExtrait[] = [];
+    for (const g of vuePatristique) {
+      const retenues = g.entrees.filter(e => choisi(e.ids));
+      if (retenues.length === 0) continue;
+      // La notice se dit une fois pour le groupe quand toutes ses citations viennent de la
+      // même édition ; sinon, sous chacune (charte § 5.5.1 : un passage se cite sous SON
+      // édition).
+      const notices = retenues.map(e =>
+        noticeEnSyntaxe(fragmentsReferenceCanoniqueOeuvre(infoPatristique(g.auteur, g.titre, e.info, e.edition))));
+      const commune = notices.every(n => n === notices[0]) ? notices[0] : undefined;
+      groupesPatristiquesChoisis.push({
+        titre: g.titre ? `${g.auteur || "Sans auteur"}, *${g.titre}*` : (g.auteur || "Sans auteur"),
+        ...(commune ? { notice: commune } : {}),
+        citations: retenues.map((e, i) => ({
+          reference: e.lieu,
+          texte: preparerTexteCitation(e.texte),
+          ...(!commune && notices[i] ? { glose: notices[i] } : {}),
+        })),
+      });
+    }
+    if (groupesPatristiquesChoisis.length > 0) {
+      sections.push({ corpus: "patristique", groupes: groupesPatristiquesChoisis });
+    }
+
+    setExtraction({ enCours: true, erreur: null });
+    try {
+      const res = await fetch("/api/compte/citations/extraction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lecteur: profil.pseudo ?? "", sections }),
+      });
+      // ⚠️ Le verrou de session redirige au lieu de refuser : une page de connexion revient
+      // alors en 200. On contrôle la redirection et le type avant de croire au document.
+      const type = res.headers.get("content-type") ?? "";
+      if (res.redirected || !res.ok || !type.includes("wordprocessingml")) {
+        let message = "Le document n’a pas pu être composé. Réessayez.";
+        if (type.includes("json")) { try { message = (await res.json()).error || message; } catch { /* message par défaut */ } }
+        throw new Error(message);
+      }
+      const blob = await res.blob();
+      const adresse = URL.createObjectURL(blob);
+      const lien = document.createElement("a");
+      lien.href = adresse;
+      lien.download = nomDuFichierRecu(res.headers.get("content-disposition"));
+      document.body.appendChild(lien);
+      lien.click();
+      lien.remove();
+      setTimeout(() => URL.revokeObjectURL(adresse), 10_000);
+      setExtraction({ enCours: false, erreur: null });
+    } catch (e) {
+      console.error("Mes citations : l’extraction a échoué.", e);
+      setExtraction({ enCours: false, erreur: e instanceof Error ? e.message : "Le document n’a pas pu être composé." });
+    }
+  };
+
+  const resumeSelection = [
+    nbVersetsChoisis ? `${nbVersetsChoisis} verset${nbVersetsChoisis > 1 ? "s" : ""}` : "",
+    nbPassagesChoisis ? `${nbPassagesChoisis} passage${nbPassagesChoisis > 1 ? "s" : ""}` : "",
+  ].filter(Boolean).join(" · ");
 
   // ⚠️ Le bandeau porte ce que la tête de page disait : le compte des citations.
   const pluriel = prelevements.length > 1 ? "s" : "";
@@ -630,7 +853,7 @@ export default function PagePrelevements() {
         surAncre={deplierPourLAncre} />
 
       <div className="esp-page">
-      <style>{`
+      <style>{cssServi(`
         /* Le titre d'un groupe : celui d'une section de l'espace, et le geste de dépli
            avec lui. Le filet qui sépare deux groupes est celui des sections. */
         .prel-groupe + .prel-groupe { margin-top: 28px; padding-top: 22px;
@@ -759,7 +982,48 @@ export default function PagePrelevements() {
         /* Le menu de traduction. ⛔ Son chevron est celui du site, et il prend l'encre du
            thème : la flèche était une image en data-URI, d'une teinte écrite en dur que le
            Cuir ne pouvait pas retourner. Il se ferre, comme toute la page (§ 40.11). */
-        .prel-trad { position: relative; display: flex; align-items: center; width: fit-content; margin-bottom: 18px; }
+        .prel-trad { position: relative; display: flex; align-items: center; width: fit-content; }
+
+        /* La barre d'outils : la traduction au fer à gauche, l'extraction au fer à droite. */
+        .prel-outils { display: flex; align-items: center; justify-content: space-between;
+          gap: 12px; flex-wrap: wrap; margin-bottom: 16px; min-height: 1.75rem; }
+        .prel-outils-choix { display: inline-flex; align-items: center; gap: 7px; }
+        .prel-outil { display: inline-flex; align-items: center; gap: 6px; background: none;
+          border: none; padding: 3px 0; cursor: pointer; font-family: inherit;
+          font-size: 0.75rem; color: var(--cs-texte-second); transition: color 0.12s; }
+        .prel-outil:hover { color: var(--cs-vert); }
+
+        /* ── Le mode sélection ──
+           ⚠️ Les actions se retirent : la rangée entière devient la cible, et la case
+           prend la colonne qu'elles laissent, au fer à gauche. */
+        .prel-case { accent-color: var(--cs-vert); width: 14px; height: 14px; margin: 0;
+          cursor: pointer; flex-shrink: 0; }
+        .prel-case-cellule { display: flex; padding-top: 3px; }
+        .prel-item.prel-item--selection { grid-template-columns: 1.25rem 7rem minmax(0, 1fr);
+          cursor: pointer; }
+        .prel-item.prel-item--selection.prel-item--sans-ref { grid-template-columns: 1.25rem minmax(0, 1fr); }
+        .prel-item.prel-item--choisi { background: rgba(var(--cs-vert-rgb), 0.06); }
+        .prel-groupe-ligne { display: flex; align-items: baseline; gap: 10px; }
+        .prel-groupe-ligne .prel-groupe-tete { flex: 1; min-width: 0; }
+        .prel-groupe-oeuvre { font-style: italic; color: var(--cs-texte-second); }
+
+        /* La barre de l'extraction, collante au pied de la colonne. */
+        .prel-barre { position: sticky; bottom: 0; z-index: 5; margin-top: 24px;
+          display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px;
+          padding: 10px 14px; background: var(--cs-surface);
+          border: 1px solid var(--cs-bord-clair); border-radius: 8px;
+          box-shadow: var(--cs-ombre-posee-haut); }
+        .prel-barre-compte { font-size: 0.8125rem; color: var(--cs-texte); }
+        .prel-barre-erreur { font-size: 0.75rem; color: var(--cs-danger-fonce); }
+        .prel-barre-gestes { margin-left: auto; display: inline-flex; align-items: center; gap: 16px; }
+        .prel-bouton { font-family: inherit; font-size: 0.8125rem; font-weight: 600;
+          padding: 6px 14px; border-radius: 4px; border: 1px solid var(--cs-vert-aplat);
+          background: var(--cs-vert-aplat); color: var(--cs-sur-aplat); cursor: pointer; }
+        .prel-bouton:hover:not(:disabled) { background: var(--cs-vert-aplat-fonce); }
+        .prel-bouton:disabled { opacity: 0.45; cursor: default; }
+
+        .prel-vide { text-align: center; padding: 64px 0; }
+        .prel-vide p { font-size: 0.875rem; color: var(--cs-texte-second); margin: 0 0 14px; }
         .prel-trad-sel {
           appearance: none; -webkit-appearance: none;
           font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; font-style: normal;
@@ -784,8 +1048,12 @@ export default function PagePrelevements() {
           .prel-ref { grid-area: ref; padding-top: 0; align-self: center; }
           .prel-corps { grid-area: corps; }
           .prel-actions { grid-area: actions; margin-left: 0; }
+          .prel-item.prel-item--selection { grid-template-columns: 1.25rem minmax(0, 1fr);
+            grid-template-areas: "case ref" "case corps"; }
+          .prel-item.prel-item--selection.prel-item--sans-ref { grid-template-areas: "case corps"; }
+          .prel-case-cellule { grid-area: case; }
         }
-      `}</style>
+      `)}</style>
 
         <BandeauLecteur lecteur={profil} reperes={reperes} />
 
@@ -815,71 +1083,84 @@ export default function PagePrelevements() {
           actif={onglet}
           choisir={setOnglet}
           intitule="Corpus des citations"
-          style={{ marginBottom: "18px" }}
+          style={{ marginBottom: "14px" }}
         />
 
-        {/* ── Sélecteur de traduction ── */}
-        {onglet === "biblique" && traductions.length > 0 && listeActive.length > 0 && (
-          <div className="prel-trad">
-            <select value={traductionActive} onChange={e => setTraductionActive(e.target.value)}
-              className="prel-trad-sel" aria-label="Traduction des versets">
-              {traductions.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
-            </select>
-            <span className="prel-trad-chevron" aria-hidden="true"><IconeChevron dir="down" size={10} strokeWidth={1.6} /></span>
+        {/* ── La barre d'outils : la traduction à gauche, l'extraction à droite ──
+            ⚠️ Une seule rangée pour les deux : chacune tenait sa ligne, et la page
+            descendait de deux rangs avant la première citation. */}
+        {listeActive.length > 0 && (
+          <div className="prel-outils">
+            {onglet === "biblique" && traductions.length > 0 ? (
+              <div className="prel-trad">
+                <select value={traductionActive} onChange={e => setTraductionActive(e.target.value)}
+                  className="prel-trad-sel" aria-label="Traduction des versets">
+                  {traductions.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
+                </select>
+                <span className="prel-trad-chevron" aria-hidden="true"><IconeChevron dir="down" size={10} strokeWidth={1.6} /></span>
+              </div>
+            ) : <span />}
+            {selection === null ? (
+              <button type="button" className="prel-outil" onClick={() => setSelection(new Set())}>
+                <IconeDocument />Extraire en Word
+              </button>
+            ) : (
+              <span className="prel-outils-choix">
+                <CaseACocher etat={etatDes(entreesOnglet, selection)} onChange={() => basculer(entreesOnglet)}
+                  libelle={onglet === "biblique" ? "Tous les versets" : "Tous les passages"} />
+                <button type="button" className="prel-outil" onClick={() => basculer(entreesOnglet)}>
+                  {etatDes(entreesOnglet, selection) === "tout" ? "Tout décocher" : "Tout cocher"}
+                </button>
+              </span>
+            )}
           </div>
         )}
 
         {/* ── Citations bibliques ── */}
         {onglet === "biblique" && (
           bibliques.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "64px 0" }}>
-              <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.875rem", color: "var(--cs-texte-doux)", marginBottom: "20px" }}>
-                Aucun verset enregistré.
-              </p>
-              <Link href="/?livre=GEN&chapitre=1" style={{ fontSize: "0.71875rem", color: "var(--cs-vert)", textDecoration: "none", letterSpacing: "0.04em" }}>Ouvrir la Bible →</Link>
-            </div>
+            <ListeVide mention="Aucun verset enregistré." href="/?livre=GEN&chapitre=1" lien="Ouvrir la Bible" />
           ) : (
             <div>
-              {groupesBibliquesBruts.map(({ label, items }) => {
-                const agglomeres = agglomererBibliques(items);
-                const ouvert = groupesOuverts.has(label);
-                return (
-                  <GroupeRepliable key={label} ancre={ancreDuGroupe(label)}
-                    label={NOM_COMPLET[label] ?? items[0].ref_livre ?? label}
-                    count={agglomeres.length} ouvert={ouvert} onToggle={() => toggleGroupe(label)}>
-                    {agglomeres.map((g, i) => {
-                      const texte = texteGroupe(g);
-                      const ref = refBiblique(g);
-                      const estPref = favorites.biblique != null && g.ids.includes(favorites.biblique.id);
-                      const nomTrad = nomTraduction(g.traduction);
-                      // La favorite garde la traduction où on la LIT : celle dont vient le
-                      // texte montré, quand tous ses versets s'y trouvent, celle du prélèvement
-                      // sinon.
-                      const tradLue = g.traduit ? nomTraduction(textesTraduits.colonne ?? traductionActive) : nomTrad;
-                      // ⛔ La provenance ne se dit que si elle nomme le texte MONTRÉ : un verset
-                      // que la traduction du menu ne porte pas, lu dans celle du prélèvement.
-                      const provenance = nomTrad && textesPrets && !g.traduit && nomTrad !== nomColonneLue ? nomTrad : null;
-                      return (
-                        <div key={i} className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
-                          <span className="prel-ref">{ref}</span>
-                          <div className="prel-corps">
-                            <p className="prel-texte">
-                              «&#8201;{rendreTexteEnrichi(preparerTexteCitation(texte))}&#8201;»
-                            </p>
-                            {provenance && <p className="prel-provenance">Texte de la {provenance}</p>}
-                          </div>
+              {vueBiblique.map(({ label, nom, entrees }) => (
+                <GroupeRepliable key={label} ancre={ancreDuGroupe(label)} label={nom}
+                  count={entrees.length} ouvert={!groupesFermes.has(label)} onToggle={() => toggleGroupe(label)}
+                  caseGroupe={selection && (
+                    <CaseACocher etat={etatDes(entrees.map(e => e.ids), selection)}
+                      onChange={() => basculer(entrees.map(e => e.ids))} libelle={`Tout ${nom}`} />
+                  )}>
+                  {entrees.map(({ cle, ids, groupe: g, texte, ref, tradLue, provenance }) => {
+                    const estPref = favorites.biblique != null && ids.includes(favorites.biblique.id);
+                    const estChoisi = choisi(ids);
+                    return (
+                      <div key={cle}
+                        className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}${selection ? " prel-item--selection" : ""}${estChoisi ? " prel-item--choisi" : ""}`}
+                        onClick={selection ? () => basculer([ids]) : undefined}>
+                        {selection && (
+                          <span className="prel-case-cellule">
+                            <CaseACocher etat={estChoisi ? "tout" : "rien"} onChange={() => basculer([ids])} libelle={ref} />
+                          </span>
+                        )}
+                        <span className="prel-ref">{ref}</span>
+                        <div className="prel-corps">
+                          <p className="prel-texte">
+                            «&#8201;{rendreTexteEnrichi(preparerTexteCitation(texte))}&#8201;»
+                          </p>
+                          {provenance && <p className="prel-provenance">Texte de la {provenance}</p>}
+                        </div>
+                        {!selection && (
                           <div className="prel-actions">
-                            <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: g.ids[0], ids: g.ids, texte, type: "biblique", ref, traduction: tradLue ?? undefined }); }} />
+                            <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: ids[0], ids, texte, type: "biblique", ref, traduction: tradLue ?? undefined }); }} />
                             <BoutonCopie citation={citationBiblique(texteSansEnrichissement(texte), ref)} />
                             <BoutonLien href={`/?livre=${CODE_PAR_ABREV[g.ref_livre_abr] ?? g.ref_livre_abr}&chapitre=${g.ref_chapitre}&verset=${g.verset_debut}&trad=${traductionActive}`} />
-                            <BoutonSuppr onSuppr={() => supprimerIds(g.ids)} />
+                            <BoutonSuppr onSuppr={() => supprimerIds(ids)} />
                           </div>
-                        </div>
-                      );
-                    })}
-                  </GroupeRepliable>
-                );
-              })}
+                        )}
+                      </div>
+                    );
+                  })}
+                </GroupeRepliable>
+              ))}
             </div>
           )
         )}
@@ -887,73 +1168,85 @@ export default function PagePrelevements() {
         {/* ── Citations patristiques ── */}
         {onglet === "patristique" && (
           patristiques.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "64px 0" }}>
-              <p style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.875rem", color: "var(--cs-texte-doux)", marginBottom: "20px" }}>
-                Aucun passage enregistré.
-              </p>
-              <Link href="/bibliotheque" style={{ fontSize: "0.71875rem", color: "var(--cs-vert)", textDecoration: "none", letterSpacing: "0.04em" }}>Ouvrir la bibliothèque →</Link>
-            </div>
+            <ListeVide mention="Aucun passage enregistré." href="/bibliotheque" lien="Ouvrir la bibliothèque" />
           ) : (
             <div>
-              {groupesPatristiques.map(({ label, items }) => {
-                const [auteur, titre] = label.split("||");
-                const ouvert = groupesOuverts.has(label);
-                const idAuteur = items[0]?.id_oeuvre ? oeuvresInfo[items[0].id_oeuvre]?.id_auteur : undefined;
-                // ⚠️ Les passages d’une même œuvre qui se suivent, ou que sépare une courte
-                // élision, se lisent d’un trait, comme dans le volet de la page Bible
-                // (demande de l’auteur, 2026-09-04). Les actions portent alors sur TOUT le
-                // groupe, comme elles le font depuis toujours pour une suite de versets.
-                const regroupes = regrouperCitations(items, cleCitation, signesElides, titreEntre);
-                const lieux = regroupes.map(groupe => lieuPatristique(groupe[0]));
-                // ⛔ La colonne de la manchette ne tombe que lorsque la mesure est faite :
-                // tant que les segments ne sont pas relus, un lieu peut encore venir.
-                const sansManchette = mesuresPatristiques.pret && lieux.every(l => !l);
-                return (
-                  <GroupeRepliable key={label} ancre={ancreDuGroupe(label)} label={
-                    <>
-                      {idAuteur ? (
-                        <Link href={`/auteur/${idAuteur}`} onClick={e => e.stopPropagation()}
-                          style={{ color: "inherit", textDecoration: "none" }}>
-                          {auteur}
-                        </Link>
-                      ) : auteur}
-                      {titre && <span style={{ textTransform: "none", fontStyle: "italic", fontWeight: 400, color: "var(--cs-texte-second)" }}>, {titre}</span>}
-                    </>
-                  } count={regroupes.length} ouvert={ouvert} onToggle={() => toggleGroupe(label)}>
-                    {regroupes.map((groupe, rang) => {
-                      const p = groupe[0];
-                      const ids = groupe.map(x => x.id);
-                      const texteReuni = texteDuGroupe(groupe, cleCitation);
-                      const estPref = favorites.patristique != null && ids.includes(favorites.patristique.id);
-                      const editionDuPassage = editions[texteDuPrelevement(p) ?? ""];
-                      return (
-                        <div key={ids.join("_")} className={`prel-item${sansManchette ? " prel-item--sans-ref" : ""}${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}`}>
-                          {/* ⚠️ La manchette tient sa colonne même vide : un passage sans
-                              lieu ne doit pas décaler le fer de ses voisins. */}
-                          <span className="prel-ref">{lieux[rang]}</span>
-                          <div className="prel-corps">
-                            <p className="prel-texte">
-                              «&#8201;{rendreTexteEnrichi(preparerTexteCitation(texteReuni))}&#8201;»
-                            </p>
-                          </div>
+              {vuePatristique.map(({ label, auteur, titre, idAuteur, entrees, sansManchette }) => (
+                <GroupeRepliable key={label} ancre={ancreDuGroupe(label)} label={
+                  <>
+                    {idAuteur ? (
+                      <Link href={`/auteur/${idAuteur}`} onClick={e => e.stopPropagation()}
+                        style={{ color: "inherit", textDecoration: "none" }}>
+                        {auteur}
+                      </Link>
+                    ) : auteur}
+                    {titre && <span className="prel-groupe-oeuvre">, {titre}</span>}
+                  </>
+                } count={entrees.length} ouvert={!groupesFermes.has(label)} onToggle={() => toggleGroupe(label)}
+                  caseGroupe={selection && (
+                    <CaseACocher etat={etatDes(entrees.map(e => e.ids), selection)}
+                      onChange={() => basculer(entrees.map(e => e.ids))}
+                      libelle={`Tout ${auteur}${titre ? `, ${titre}` : ""}`} />
+                  )}>
+                  {entrees.map(({ cle, ids, p, texte, lieu, info, edition }) => {
+                    const estPref = favorites.patristique != null && ids.includes(favorites.patristique.id);
+                    const estChoisi = choisi(ids);
+                    return (
+                      <div key={cle}
+                        className={`prel-item${sansManchette ? " prel-item--sans-ref" : ""}${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}${selection ? " prel-item--selection" : ""}${estChoisi ? " prel-item--choisi" : ""}`}
+                        onClick={selection ? () => basculer([ids]) : undefined}>
+                        {selection && (
+                          <span className="prel-case-cellule">
+                            <CaseACocher etat={estChoisi ? "tout" : "rien"} onChange={() => basculer([ids])}
+                              libelle={lieu || `${auteur}, ${titre}`} />
+                          </span>
+                        )}
+                        {/* ⚠️ La manchette tient sa colonne même vide : un passage sans
+                            lieu ne doit pas décaler le fer de ses voisins. */}
+                        <span className="prel-ref">{lieu}</span>
+                        <div className="prel-corps">
+                          <p className="prel-texte">
+                            «&#8201;{rendreTexteEnrichi(preparerTexteCitation(texte))}&#8201;»
+                          </p>
+                        </div>
+                        {!selection && (
                           <div className="prel-actions">
-                            <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: p.id, ids, texte: texteReuni, type: "patristique", auteur: p.auteur, titre_oeuvre: p.titre_oeuvre }); }} />
-                            <BoutonCopie citation={citationPatristiqueDepuisInfo(texteSansEnrichissement(texteReuni), auteur, titre, p.id_oeuvre ? oeuvresInfo[p.id_oeuvre] : undefined, editionDuPassage)} />
+                            <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: p.id, ids, texte, type: "patristique", auteur: p.auteur, titre_oeuvre: p.titre_oeuvre }); }} />
+                            <BoutonCopie citation={citationPatristiqueDepuisInfo(texteSansEnrichissement(texte), auteur, titre, info, edition)} />
                             {p.id_oeuvre && (
                               // ⚠️ `?texte=` rouvre l'édition du passage : sans lui, un passage latin
                               // rouvrait la traduction française, texte par défaut de l'œuvre.
-                              <BoutonLien href={`/oeuvre/${p.id_oeuvre}${parametreTexte(editionDuPassage) ? `?${parametreTexte(editionDuPassage)}` : ''}${p.segment_numero ? `#s${p.segment_numero}` : ''}`} />
+                              <BoutonLien href={`/oeuvre/${p.id_oeuvre}${parametreTexte(edition) ? `?${parametreTexte(edition)}` : ''}${p.segment_numero ? `#s${p.segment_numero}` : ''}`} />
                             )}
                             <BoutonSuppr onSuppr={() => supprimerIds(ids)} />
                           </div>
-                        </div>
-                      );
-                    })}
-                  </GroupeRepliable>
-                );
-              })}
+                        )}
+                      </div>
+                    );
+                  })}
+                </GroupeRepliable>
+              ))}
             </div>
           )
+        )}
+
+        {/* ── La barre de l'extraction ──
+            ⚠️ Collante au pied de la colonne : la sélection se fait en descendant la
+            liste, et le geste qui la conclut doit rester sous la main. */}
+        {selection && (
+          <div className="prel-barre" role="region" aria-label="Extraction en document Word">
+            <span className="prel-barre-compte" aria-live="polite">
+              {nbChoisis === 0 ? "Cochez les citations à extraire." : `${resumeSelection} sélectionné${nbChoisis > 1 ? "s" : ""}`}
+            </span>
+            {extraction.erreur && <span className="prel-barre-erreur" role="alert">{extraction.erreur}</span>}
+            <span className="prel-barre-gestes">
+              <button type="button" className="cs-bouton-lien" onClick={quitterSelection}>Annuler</button>
+              <button type="button" className="prel-bouton" onClick={extraire}
+                disabled={nbChoisis === 0 || !pretPourExtraire || extraction.enCours}>
+                {extraction.enCours ? "Composition…" : !pretPourExtraire ? "Préparation…" : "Extraire en Word"}
+              </button>
+            </span>
+          </div>
         )}
 
         </>)}

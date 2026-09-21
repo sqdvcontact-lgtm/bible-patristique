@@ -659,9 +659,9 @@ function section(): string {
 /**
  * Compose le document et rend le `.docx` entier.
  *
- * ⚠️ Le corps se termine TOUJOURS par un paragraphe vide portant la section : Word
- * exige un paragraphe après un tableau en fin de corps, et c'est aussi là que vivent
- * la taille de page et le pied. Ne pas le retirer en croyant nettoyer un blanc.
+ * ⚠️ Le corps se termine TOUJOURS par un paragraphe vide, puis par la section : Word
+ * exige un paragraphe après un tableau en fin de corps. Ne pas le retirer en croyant
+ * nettoyer un blanc.
  */
 export function construireDocx(doc: DocumentDocx): Buffer {
   const contexte: Contexte = { notes: [], liens: new Map() }
@@ -676,7 +676,10 @@ export function construireDocx(doc: DocumentDocx): Buffer {
     + `<w:document ${NS_W} ${NS_R}><w:body>`
     + corps
     + `<w:p><w:pPr><w:pStyle w:val="Normal"/></w:pPr></w:p>`
-    + `<w:p><w:pPr><w:pStyle w:val="Normal"/>${section()}</w:pPr></w:p>`
+    // ⛔ LA DERNIÈRE SECTION EST UN ENFANT DU CORPS, jamais la propriété d'un paragraphe :
+    // posée dans un paragraphe, elle devient un SAUT DE SECTION « page suivante », et Word
+    // ajoutait une page blanche à la fin de chaque document (relevé le 2026-09-21).
+    + section()
     + '</w:body></w:document>'
 
   const texte = (chemin: string, contenu: string): FichierZip =>
