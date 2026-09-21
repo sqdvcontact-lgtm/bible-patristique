@@ -3595,6 +3595,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         .citation-verset { display: block; margin: 0 0 ${BLANC_ENTRE_VERSETS} ${RETRAIT_VERSET}; font-size: 0.95em; line-height: 1.62; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; white-space: pre-line; }
         .citation-verset:last-child { margin-bottom: 0; }
         @media(max-width: 980px){ .citation-verset { margin-left: ${RETRAIT_VERSET_ETROIT}; } }
+        /* Les crayons d'administration des titres pendent à 52 px hors de la colonne :
+           sur un écran étroit ils la faisaient déborder de 38 px. Ils rentrent alors
+           dans le flux, sous le titre, et passent à la ligne s'il le faut. */
+        @media(max-width: 900px){ .cs-outils-titre { position: static !important; justify-content: center; flex-wrap: wrap; margin-top: 2px; } }
         /* Le NUMÉRO DE VERSET, dans la face de la page Bible : graisse 600, teinte
            faible, et le corps dans le rapport qu'il y tient (0,625 rem contre 0,875,
            soit 0,71). La page Bible le pose dans une gouttière, qui se battrait ici
@@ -4293,7 +4297,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         : null
                     })()}
                     {estAdmin && niv1Actif !== NIV1_LIMINAIRES && (() => { const g = groupes[0] ?? { niv1: niv1Actif, niv2: '', niv3: '', niv4: '', anchor: '', itemIds: [] }; return (
-                      <div style={{ position: 'absolute', right: '-52px', top: '2px', display: 'flex', gap: '3px', alignItems: 'center' }}>
+                      <div className="cs-outils-titre" style={{ position: 'absolute', right: '-52px', top: '2px', display: 'flex', gap: '3px', alignItems: 'center' }}>
                         <button onClick={() => setEditionCible(cibleTitre(1, g, false, niv1Actif))}
                           title="Modifier le titre" style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}><IconeCrayon size={12} /></button>
                         <button onClick={() => setEditionCible(cibleTitre(1, g, true, g.niv1_texte ?? ''))}
@@ -4527,7 +4531,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       <h3 style={styleTitreNiveau(2)}>{rendreTitreColophonAvecNotes(rendu('niv2', groupe.niv2), notesTitre, 'titre')}</h3>
                       {sousTitre2 && configNiveaux.txtCorps[1] && <p style={styleSousTitreNiveau(2)}>{rendreTitreColophonAvecNotes(rendu('niv2_texte', sousTitre2), notesTitre)}</p>}
                       {estAdmin && (
-                        <div style={{ position: 'absolute', right: '-52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
+                        <div className="cs-outils-titre" style={{ position: 'absolute', right: '-52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible(cibleTitre(2, groupe, false, groupe.niv2))}
                             title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible(cibleTitre(2, groupe, true, groupe.niv2_texte ?? ''))}
@@ -4541,7 +4545,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       <h4 style={{ ...styleTitreNiveau(3), textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophonAvecNotes(rendu('niv3', groupe.niv3), notesTitre)}</h4>
                       {sousTitre3 && configNiveaux.txtCorps[2] && <p style={styleSousTitreNiveau(3)}>{rendreTitreColophonAvecNotes(rendu('niv3_texte', sousTitre3), notesTitre)}</p>}
                       {estAdmin && (
-                        <div style={{ position: 'absolute', right: '-52px', top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
+                        <div className="cs-outils-titre" style={{ position: 'absolute', right: '-52px', top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible(cibleTitre(3, groupe, false, groupe.niv3))}
                             title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible(cibleTitre(3, groupe, true, groupe.niv3_texte ?? ''))}
