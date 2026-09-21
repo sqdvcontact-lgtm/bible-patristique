@@ -158,6 +158,29 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
     && versetSelectionne.chapitre === chapitreActif
     ? versetSelectionne
     : null
+  // ── LE VERSET RETENU S'INSCRIT DANS L'ADRESSE (audit ergonomique 2026-09-21) ──
+  // `&verset=N`, en REMPLACEMENT : retenir un verset n'empile pas l'historique. La
+  // lecture du paramètre (`TexteBible`) sait déjà rétablir l'état au rechargement.
+  // ⛔ `history.replaceState`, jamais `router.replace` : la page Bible est rendue par
+  // le serveur à partir de ses paramètres, et un clic de verset n'a rien à lui demander.
+  // ⚠️ Le paramètre ne s'efface que s'il vient de nous : à l'arrivée sur `?verset=5`,
+  // la sélection est encore vide le temps que `TexteBible` la pose, et l'effacer
+  // perdrait le verset demandé.
+  const versetEcritDansAdresse = useRef<string | null>(null)
+  const numeroRetenu = versetSelectionneCourant ? String(versetSelectionneCourant.verset) : null
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const present = url.searchParams.get('verset')
+    if (numeroRetenu) {
+      if (present === numeroRetenu) { versetEcritDansAdresse.current = numeroRetenu; return }
+      url.searchParams.set('verset', numeroRetenu)
+    } else {
+      if (!present || present !== versetEcritDansAdresse.current) return
+      url.searchParams.delete('verset')
+    }
+    versetEcritDansAdresse.current = numeroRetenu
+    window.history.replaceState(window.history.state, '', url)
+  }, [numeroRetenu])
   // ── OÙ LES PÈRES PARLENT ───────────────────────────────────────────────────
   // Combien d’ŒUVRES parlent de chaque verset du chapitre. La PAGE le charge, et non
   // la colonne du texte : au doigt, l’onglet « Commentaires » porte ce compte pour le

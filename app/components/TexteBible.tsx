@@ -493,10 +493,17 @@ export default function TexteBible({
     return () => ro.disconnect()
   }, [mobile, nbVersets, traduction, livreActif, chapitreActif, userId, estAdmin, modeUtilisateurStandard, piecePosee])
 
+  // Le verset retenu, lu par l'effet ci-dessous sans en être une dépendance : c'est la
+  // page qui écrit `&verset=N` quand on retient un verset (`BibleLayout`), et l'adresse
+  // qui change alors ne doit ni reposer la sélection ni faire défiler la colonne.
+  const versetRetenuRef = useRef(versetSelectionne)
+  useEffect(() => { versetRetenuRef.current = versetSelectionne }, [versetSelectionne])
+
   useEffect(() => {
     const versetCible = searchParams.get('verset')
     if (!versetCible) return
     const num = parseInt(versetCible)
+    if (versetRetenuRef.current?.verset === num) return
     const v = versets.find(v => v.verset === num)
     if (v) setVersetSelectionne(v)
     const el = document.getElementById(`verset-${versetCible}`)
