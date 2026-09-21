@@ -678,6 +678,12 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           <div>
             <label htmlFor="cs-mdp" style={labelStyle}>MOT DE PASSE</label>
             <input id="cs-mdp" autoComplete={mode === "connexion" ? "current-password" : "new-password"} type="password" value={mdp} onChange={e => setMdp(e.target.value)} required minLength={6} placeholder="··········" style={inputStyle} />
+            {mode === "connexion" && (
+              <a href="/auth/mot-de-passe-oublie" className="cs-lien-phrase"
+                style={{ display: "inline-block", marginTop: "0.4375rem", fontSize: "0.75rem", color: "var(--cs-texte-second)" }}>
+                Mot de passe oublié ?
+              </a>
+            )}
           </div>
           <button type="submit" disabled={chargement}
             style={{ marginTop: "0.375rem", padding: "0.625rem", borderRadius: "8px", border: "none", background: chargement ? "var(--cs-vert-clair)" : "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
