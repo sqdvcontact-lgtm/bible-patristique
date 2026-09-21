@@ -42,6 +42,7 @@ import {
 import { tailleRacinePx } from '@/app/lib/fenetreContextuelle'
 import SelecteurTraductionBible from '@/app/components/SelecteurTraductionBible'
 import FlecheChapitre, { type CibleChapitre } from '@/app/components/FlecheChapitre'
+import NavigationBasChapitre from '@/app/components/NavigationBasChapitre'
 import { BlocEditorialBible, figuresDeLaNote, IllustrationBible, PieceLiminaire } from '@/app/components/BibleEditionParatext'
 import { estSuiteDuBloc } from '@/app/lib/bibleHierarchieSemantique'
 import AppelNoteBiblique from '@/app/components/NoteBibliqueFenetre'
@@ -1020,6 +1021,13 @@ export default function TexteBible({
             )
           })}
           {rendreFluxEditorial(indexBlocs.closing, indexIllustrations.closing)}
+
+          {/* Sous le dernier verset, le chapitre précédent et le suivant, nommés : qui a lu
+              jusqu'au bout n'a plus à remonter chercher la flèche (audit du 2026-09-21).
+              ⚠️ Pas sous une mention d'absence : il n'y a rien eu à lire. */}
+          {!texteAbsent && surAxeTexte(
+            <NavigationBasChapitre precedent={voisins.precedent} suivant={voisins.suivant} onAller={naviguer} />,
+          )}
           </>)}
         </div>
       </div>

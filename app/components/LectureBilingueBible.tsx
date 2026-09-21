@@ -12,6 +12,7 @@ import { useNaviguer } from '@/app/lib/attenteNavigation'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { BLANC_TITRE_MENU, GOUTTIERE_ACTIONS_VERSET, INTERLIGNE_TITRE_CHAPITRE } from '@/app/lib/compositionBible'
 import FlecheChapitre, { type CibleChapitre } from './FlecheChapitre'
+import NavigationBasChapitre from './NavigationBasChapitre'
 import BibleBilingue, { type LectureBilingueProps } from './BibleBilingue'
 import SelecteurTraductionBible from './SelecteurTraductionBible'
 import LassoLecture from './LassoLecture'
@@ -271,6 +272,11 @@ export default function LectureBilingueBible({
             : { width: `min(calc(var(--mesure-page) + ${GOUTTIERE_ACTIONS_VERSET}), 100%)`, margin: '0 auto', display: 'grid', gridTemplateColumns: `minmax(0, var(--mesure-page)) ${GOUTTIERE_ACTIONS_VERSET}` }}
         >
           <BibleBilingue {...contenu} mobile={mobile || colonnesEtroites} />
+          {/* Sous le dernier verset, les chapitres voisins, nommés (audit du 2026-09-21).
+              ⚠️ Dans la PREMIÈRE colonne de la grille : la seconde est la gouttière. */}
+          <div style={mobile ? undefined : { gridColumn: 1 }}>
+            <NavigationBasChapitre precedent={voisins.precedent} suivant={voisins.suivant} onAller={naviguer} />
+          </div>
         </div>
       </div>
       {/* ⛔ Le blanc d'où le lasso naît est le rembourrage du défileur et la gouttière

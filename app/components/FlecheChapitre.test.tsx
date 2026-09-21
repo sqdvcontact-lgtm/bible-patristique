@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import FlecheChapitre, { clicSimple, libelleFleche, type CibleChapitre, type FlecheChapitreProps } from './FlecheChapitre'
+import NavigationBasChapitre from './NavigationBasChapitre'
 
 const GN3: CibleChapitre = { livre: 'GEN', chapitre: 3, href: '/?livre=GEN&chapitre=3&trad=TR0001', nom: 'Genèse 3' }
 const MC1: CibleChapitre = { livre: 'MRK', chapitre: 1, href: '/?livre=MRK&chapitre=1&trad=TR0001', nom: 'Marc 1' }
@@ -117,5 +118,25 @@ describe('géométrie des surfaces', () => {
       expect(style.border).toBe('none')
     }
     expect(actif.color).toBe('var(--cs-texte-faible)')
+  })
+})
+
+describe('la navigation du bas de chapitre', () => {
+  it('nomme les deux chapitres voisins, en liens', () => {
+    const html = renderToStaticMarkup(NavigationBasChapitre({ precedent: GN3, suivant: MC1, onAller: () => {} })!)
+    expect(html).toContain('aria-label="Chapitres voisins"')
+    expect(html).toContain('Chapitre précédent')
+    expect(html).toContain('Genèse 3')
+    expect(html).toContain('Chapitre suivant')
+    expect(html).toContain('Marc 1')
+    expect(html).toContain('rel="prev"')
+    expect(html).toContain('rel="next"')
+  })
+
+  it('à une borne, le lien manquant laisse sa case vide ; sans voisin, rien ne se rend', () => {
+    const html = renderToStaticMarkup(NavigationBasChapitre({ precedent: null, suivant: MC1, onAller: () => {} })!)
+    expect(html).not.toContain('Chapitre précédent')
+    expect(html).toContain('Marc 1')
+    expect(NavigationBasChapitre({ precedent: null, suivant: null, onAller: () => {} })).toBeNull()
   })
 })
