@@ -197,7 +197,7 @@ export const STYLE_SIGNET_VERSET: CSSProperties = {
   // et une marge de 0,15 em font l'écart, environ 3,5 px à la racine 16.
   marginLeft: '-0.975em',
   marginRight: '0.15em',
-  color: 'var(--cs-texte-doux)',
+  color: 'var(--cs-texte-faible)',
   lineHeight: 0,
 }
 
