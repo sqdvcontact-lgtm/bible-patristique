@@ -51,6 +51,7 @@ export const ANCRES_COMPTE: GroupeAncres[] = [
     rubrique: 'Réglages',
     ancres: [
       { id: 'lecture', label: 'Lecture' },
+      { id: 'messagerie', label: 'Messagerie' },
       { id: 'connexion', label: 'Connexion' },
     ],
   },

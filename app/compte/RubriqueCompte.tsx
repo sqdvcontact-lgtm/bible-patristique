@@ -69,6 +69,8 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
   const [statutPublique, setStatutPublique] = useStatutPassager()
   const [statutPortrait, setStatutPortrait] = useStatutPassager()
   const [statutTrad, setStatutTrad] = useStatutPassager()
+  const [accuses, setAccuses] = useState(profil.accuses_lecture ?? true)
+  const [statutAccuses, setStatutAccuses] = useStatutPassager()
   const [connexionEnAttente, setConnexionEnAttente] = useState(false)
 
   // Ce qui diffère de la base, section par section. La comparaison se fait sur la
@@ -185,6 +187,16 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
     setStatutTrad(r)
   }
 
+  // ⚠️ Les accusés de lecture sont une PRÉFÉRENCE : ils s'appliquent aussitôt. La route
+  // de la messagerie lit ce réglage côté serveur (réciprocité : qui n'en envoie pas
+  // n'en reçoit pas), l'interface ne fait que le poser.
+  const poserAccuses = async (v: boolean) => {
+    setAccuses(v); setStatutAccuses(null)
+    const r = await ecrire({ accuses_lecture: v })
+    if (!r.ok) setAccuses(!v)
+    setStatutAccuses(r)
+  }
+
   // ⛔ Le thème ne passe PAS par le bouton : il s'applique à l'instant, comme depuis
   // le menu de la barre, et `changerTheme` écrit l'écran, le miroir local et le
   // compte ensemble (charte, « Le thème est une préférence de COMPTE »).
@@ -295,6 +307,17 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
                 Revoir les visites
               </button>
             </span>
+          </Rangee>
+        </Section>
+
+        <Section id="messagerie" titre="Messagerie">
+          <Rangee label="Accusés de lecture" note={statutAccuses && !statutAccuses.ok
+            ? <span style={{ color: 'var(--cs-danger-fonce)' }}>{statutAccuses.msg}</span>
+            : <>Activés, vos correspondants voient quand vous avez lu leurs messages, et vous voyez quand ils ont lu les vôtres. Désactivés, ni l’un ni l’autre : qui n’en envoie pas n’en reçoit pas. S’applique aussitôt. <a href="/confidentialite#messagerie" className="cs-lien-phrase">En savoir plus</a>.</>}>
+            <div className="esp-bascules">
+              <Interrupteur libelle="Signaler que j’ai lu les messages" actif={accuses}
+                onChange={v => { void poserAccuses(v) }} />
+            </div>
           </Rangee>
         </Section>
 

@@ -1,7 +1,7 @@
 -- Politiques RLS et droits des tables d’utilisateurs, TELS QUE LA BASE LES APPLIQUE.
 -- Relevé par `node --env-file=.env.local scripts/audit-droits-lecteur.mjs --politiques`.
 -- Ce fichier est un MIROIR : on ne l’édite pas, on change la base par migration puis on le relève.
--- Relevé du 2026-09-11.
+-- Relevé du 2026-09-21.
 
 -- profils : RLS activée
 --   authenticated : DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE
@@ -18,7 +18,7 @@ create policy "profils_modification" on public.profils as permissive for update 
 -- (aucune politique : table fermée à l’API, clé de service seulement)
 
 -- commentaires : RLS activée
---   authenticated : DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE
+--   authenticated : DELETE, INSERT, UPDATE
 create policy "commentaires_suppression" on public.commentaires as permissive for delete to public
   using (( SELECT is_admin() AS is_admin));
 create policy "commentaires_insertion" on public.commentaires as permissive for insert to public
@@ -106,7 +106,7 @@ create policy "hauts_faits_obtenus_lecture" on public.hauts_faits_obtenus as per
   using ((( SELECT auth.uid() AS uid) = user_id));
 
 -- messages : RLS activée
---   authenticated : DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE
+--   authenticated : DELETE, INSERT, REFERENCES, TRIGGER, TRUNCATE
 create policy "messages_insert" on public.messages as permissive for insert to authenticated
   with check ((( SELECT auth.uid() AS uid) = expediteur_id));
 create policy "messages_select" on public.messages as permissive for select to authenticated

@@ -25,11 +25,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ pseu
 
   const db = admin()
 
-  const { data: partenaire } = await db
-    .from('profils')
-    .select('id, pseudo, mecene_depuis, pub_mecene')
-    .eq('pseudo', decodeURIComponent(pseudo))
-    .maybeSingle()
+  const [{ data: partenaire }, { data: moi }] = await Promise.all([
+    db.from('profils')
+      .select('id, pseudo, mecene_depuis, pub_mecene, accuses_lecture')
+      .eq('pseudo', decodeURIComponent(pseudo))
+      .maybeSingle(),
+    db.from('profils').select('accuses_lecture').eq('id', user.id).maybeSingle(),
+  ])
 
   if (!partenaire) return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 })
   if (partenaire.id === user.id) return NextResponse.json({ error: 'Impossible de vous écrire à vous-même' }, { status: 400 })
@@ -44,6 +46,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ pseu
     .order('created_at', { ascending: true })
 
   if (error) return erreur500(error)
+
+  // ⛔ LES ACCUSÉS DE LECTURE SONT UN RÉGLAGE, ET IL SE LIT ICI, CÔTÉ SERVEUR
+  // (profils.accuses_lecture, audit d'ergonomie du 2026-09-21). Réciprocité : l'état
+  // « lu » d'un message envoyé n'est rendu que si les DEUX correspondants l'acceptent.
+  // La colonne `lu` continue de s'écrire, parce qu'elle sert le compte des messages
+  // non lus du DESTINATAIRE ; elle n'est plus lisible par l'API publique (droit de
+  // colonne retiré), si bien que cette route est le seul chemin vers elle.
+  const accusesPartages = (moi?.accuses_lecture ?? true) && (partenaire.accuses_lecture ?? true)
 
   // Marquer les messages reçus comme lus
   const nonLus = (msgs ?? []).filter(m => m.expediteur_id === pid && !m.lu).map(m => m.id)
@@ -60,7 +70,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ pseu
       id: m.id,
       de_moi: m.expediteur_id === uid,
       contenu: m.contenu,
-      lu: m.lu,
+      // Un message REÇU dit toujours son état à son destinataire ; un message ENVOYÉ ne
+      // le dit que si l'accusé est partagé.
+      lu: m.expediteur_id === uid ? (accusesPartages && m.lu) : m.lu,
       created_at: m.created_at,
     })),
   })

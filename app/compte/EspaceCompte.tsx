@@ -46,6 +46,9 @@ export type ProfilLecteur = {
   // appartient au lecteur, qui peut se taire. Voir app/components/MarqueMecene.tsx.
   mecene_depuis: string | null
   pub_mecene: boolean
+  // Signaler à ses correspondants qu'on a lu leurs messages, et voir s'ils ont lu les
+  // siens : les deux vont ensemble (réciprocité). Lu par /api/messagerie/[pseudo].
+  accuses_lecture: boolean
   onboarding_vu: boolean | null
   // ⛔ `membre_depuis` n'existe pas dans `profils` : c'est `created_at`, renommé à
   // la lecture, comme le fait déjà l'API de la page publique.
@@ -60,7 +63,7 @@ export type ProfilLecteur = {
 
 const CHAMPS_PROFIL =
   'id, pseudo, nom, prenom, traduction_defaut, theme_lecture, bio, contact_email, ' +
-  'pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, mecene_depuis, pub_mecene, onboarding_vu, ' +
+  'pub_rang, pub_essais, pub_favoris_oeuvre, pub_favoris_versets, mecene_depuis, pub_mecene, accuses_lecture, onboarding_vu, ' +
   'avatar_ref, avatar_pos_x, avatar_pos_y, avatar_zoom, membre_depuis:created_at'
 
 export type UtilisateurEspace = { id: string; email: string; email_confirmed_at: string | null }
@@ -162,7 +165,7 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
       id: userId, pseudo: pseudo.trim(), nom: null, prenom: null, traduction_defaut: 'TR0001',
       theme_lecture: null, bio: null, contact_email: null,
       pub_rang: true, pub_essais: true, pub_favoris_oeuvre: false, pub_favoris_versets: false,
-      mecene_depuis: null, pub_mecene: true,
+      mecene_depuis: null, pub_mecene: true, accuses_lecture: true,
       onboarding_vu: false, membre_depuis: null,
       avatar_ref: null, avatar_pos_x: null, avatar_pos_y: null, avatar_zoom: null,
     })
