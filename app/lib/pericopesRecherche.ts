@@ -95,24 +95,43 @@ export type RequetePericope = {
   livre: string | null
   chapitre: number | null
   verset: number | null
+  /** Dernier verset d'une PLAGE (« Mt 5, 3-12 » → 12), ou `null`. */
+  versetFin: number | null
 }
 
 /**
- * Décompose une saisie. « Mt 5 » et « Matthieu 5, 3 » donnent une référence ;
- * « Jonas » donne un livre SANS chapitre (on réunira alors le livre et les titres
- * qui portent ce mot) ; tout le reste reste du texte libre.
+ * La grammaire d'une référence chiffrée : livre, chapitre, puis un verset facultatif
+ * après une virgule, un deux-points, un point OU UNE SIMPLE ESPACE (« Jn 3 16 »), puis
+ * une fin de plage facultative après un trait d'union ou un tiret (« Mt 5, 3-12 »).
+ * ⚠️ Le livre se prend au plus court : « 1 Co 13 » garde « 1 Co » pour livre, car un
+ * chapitre nu en tête (« 1 ») ne laisserait pas la suite finir en chiffres.
+ */
+const REFERENCE_CHIFFREE = /^(.*?)[\s.]*(\d{1,3})(?:(?:\s*[,:.]\s*|\s+)(\d{1,3})(?:\s*[-–—]\s*(\d{1,3}))?)?\s*$/
+
+/**
+ * Décompose une saisie. « Mt 5 », « Matthieu 5, 3 », « Jn 3 16 », « Jn 3:16 » et
+ * « Mt 5, 3-12 » donnent une référence ; « Jonas » donne un livre SANS chapitre (on
+ * réunira alors le livre et les titres qui portent ce mot) ; tout le reste reste du
+ * texte libre.
  */
 export function analyserRequetePericope(q: string): RequetePericope {
-  const vide: RequetePericope = { texte: '', livre: null, chapitre: null, verset: null }
+  const vide: RequetePericope = { texte: '', livre: null, chapitre: null, verset: null, versetFin: null }
   const brut = q.trim()
   if (!brut) return vide
-  const m = /^(.*?)[\s.]*(\d{1,3})(?:\s*[,:.]\s*(\d{1,3}))?\s*$/.exec(brut)
+  const m = REFERENCE_CHIFFREE.exec(brut)
   if (m && m[1].trim()) {
     const livre = trouverLivre(m[1])
-    if (livre) return { texte: '', livre, chapitre: Number(m[2]), verset: m[3] ? Number(m[3]) : null }
+    if (livre) {
+      const verset = m[3] ? Number(m[3]) : null
+      const fin = m[4] ? Number(m[4]) : null
+      return {
+        texte: '', livre, chapitre: Number(m[2]), verset,
+        versetFin: verset != null && fin != null && fin > verset ? fin : null,
+      }
+    }
   }
   const livreSeul = trouverLivre(brut)
-  return { texte: normaliserRecherche(brut), livre: livreSeul, chapitre: null, verset: null }
+  return { texte: normaliserRecherche(brut), livre: livreSeul, chapitre: null, verset: null, versetFin: null }
 }
 
 /** Vrai si la plage de la péricope contient le point (chapitre, verset) demandé. */

@@ -84,7 +84,10 @@ export type ReferenceBiblique = {
   nom: string
   chapitre: number
   verset: number | null
-  /** L'adresse de la page Bible, ancrée sur le verset quand il y en a un. */
+  /** Dernier verset d'une plage (« Mt 5, 3-12 »), ou `null`. */
+  versetFin: number | null
+  /** L'adresse de la page Bible, ancrée sur le verset quand il y en a un. ⚠️ Le
+   *  lecteur ne sait retenir qu'UN verset : une plage s'ouvre sur son premier. */
   href: string
   /** « Jean 3, 16 », « Genèse 22 ». */
   libelle: string
@@ -94,7 +97,7 @@ const NOM_LIVRE: Record<string, string> = Object.fromEntries(LIVRES.map(l => [l.
 
 /**
  * La référence chiffrée que la saisie désigne, ou rien. « Jean 3, 16 », « Jn 3,16 »,
- * « Genèse 22 » en sont ; « Jonas » (un livre sans chapitre) et « fils de Dieu » n'en
+ * « Jn 3 16 », « Jn 3:16 », « Mt 5, 3-12 », « Genèse 22 » en sont ; « Jonas » (un livre sans chapitre) et « fils de Dieu » n'en
  * sont pas. ⛔ La grammaire est celle du module des péricopes (`analyserRequetePericope`),
  * et d'elle seule : la barre, le catalogue des péricopes et la page des résultats
  * lisent une référence de la même façon.
@@ -103,11 +106,12 @@ export function referenceBiblique(q: string): ReferenceBiblique | null {
   const r = analyserRequetePericope(q)
   if (!r.livre || r.chapitre == null) return null
   const nom = NOM_LIVRE[r.livre] ?? r.livre
+  const versets = r.verset != null ? (r.versetFin != null ? `${r.verset}–${r.versetFin}` : String(r.verset)) : null
   const base = `/?livre=${encodeURIComponent(r.livre)}&chapitre=${r.chapitre}`
   return {
-    livre: r.livre, nom, chapitre: r.chapitre, verset: r.verset,
+    livre: r.livre, nom, chapitre: r.chapitre, verset: r.verset, versetFin: r.versetFin,
     href: r.verset != null ? `${base}&verset=${r.verset}#verset-${r.verset}` : base,
-    libelle: r.verset != null ? `${nom} ${r.chapitre}, ${r.verset}` : `${nom} ${r.chapitre}`,
+    libelle: versets ? `${nom} ${r.chapitre}, ${versets}` : `${nom} ${r.chapitre}`,
   }
 }
 

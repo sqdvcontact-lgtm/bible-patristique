@@ -73,6 +73,26 @@ describe('analyserRequetePericope', () => {
   })
   it('ne prend pas un chiffre isolé pour une référence', () => {
     expect(analyserRequetePericope('22')).toMatchObject({ livre: null, chapitre: null })
+    expect(analyserRequetePericope('3 16')).toMatchObject({ livre: null, chapitre: null })
+  })
+  it('lit le verset après une espace ou un deux-points (audit ergonomique 2026-09-21)', () => {
+    expect(analyserRequetePericope('Jn 3 16')).toMatchObject({ livre: 'JHN', chapitre: 3, verset: 16, versetFin: null, texte: '' })
+    expect(analyserRequetePericope('Jn 3:16')).toMatchObject({ livre: 'JHN', chapitre: 3, verset: 16 })
+    expect(analyserRequetePericope('Jean 3 : 16')).toMatchObject({ livre: 'JHN', chapitre: 3, verset: 16 })
+  })
+  it('garde le chiffre d’un livre numéroté dans son nom', () => {
+    expect(analyserRequetePericope('1 Co 13')).toMatchObject({ livre: '1CO', chapitre: 13, verset: null })
+    expect(analyserRequetePericope('1 Co 13 4')).toMatchObject({ livre: '1CO', chapitre: 13, verset: 4 })
+  })
+  it('lit une plage de versets', () => {
+    expect(analyserRequetePericope('Mt 5, 3-12')).toMatchObject({ livre: 'MAT', chapitre: 5, verset: 3, versetFin: 12 })
+    expect(analyserRequetePericope('Mt 5,3-12')).toMatchObject({ livre: 'MAT', chapitre: 5, verset: 3, versetFin: 12 })
+    expect(analyserRequetePericope('Mt 5, 3 – 12')).toMatchObject({ livre: 'MAT', chapitre: 5, verset: 3, versetFin: 12 })
+    expect(analyserRequetePericope('Jn 3,16-18')).toMatchObject({ livre: 'JHN', chapitre: 3, verset: 16, versetFin: 18 })
+    expect(analyserRequetePericope('Mt 5')).toMatchObject({ livre: 'MAT', chapitre: 5, verset: null, versetFin: null })
+  })
+  it('ignore une fin de plage qui ne suit pas le premier verset', () => {
+    expect(analyserRequetePericope('Mt 5, 12-3')).toMatchObject({ livre: 'MAT', chapitre: 5, verset: 12, versetFin: null })
   })
 })
 

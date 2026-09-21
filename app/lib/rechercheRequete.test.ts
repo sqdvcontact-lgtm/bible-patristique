@@ -54,6 +54,18 @@ describe('référence biblique', () => {
     expect(referenceBiblique('Jn 3,16')).toMatchObject({ livre: 'JHN', chapitre: 3, verset: 16 })
     expect(referenceBiblique('Genèse 22')).toMatchObject({ livre: 'GEN', chapitre: 22, verset: null, libelle: 'Genèse 22', href: '/?livre=GEN&chapitre=22' })
   })
+  it('reconnaît « Jn 3 16 », « Jn 3:16 » et les plages (audit ergonomique 2026-09-21)', () => {
+    expect(referenceBiblique('Jn 3 16')).toMatchObject({ livre: 'JHN', chapitre: 3, verset: 16, href: '/?livre=JHN&chapitre=3&verset=16#verset-16' })
+    expect(referenceBiblique('Jn 3:16')).toMatchObject({ livre: 'JHN', chapitre: 3, verset: 16 })
+    expect(referenceBiblique('Mt 5')).toMatchObject({ livre: 'MAT', chapitre: 5, verset: null, versetFin: null, href: '/?livre=MAT&chapitre=5' })
+    // Une plage ouvre le chapitre sur son PREMIER verset, et se nomme entière.
+    for (const saisie of ['Mt 5, 3-12', 'Mt 5,3-12']) {
+      expect(referenceBiblique(saisie)).toMatchObject({
+        livre: 'MAT', chapitre: 5, verset: 3, versetFin: 12,
+        libelle: 'Matthieu 5, 3–12', href: '/?livre=MAT&chapitre=5&verset=3#verset-3',
+      })
+    }
+  })
   it('ne prend ni un livre seul ni des mots pour une référence', () => {
     expect(referenceBiblique('Jonas')).toBeNull()
     expect(referenceBiblique('fils de Dieu')).toBeNull()
