@@ -454,11 +454,26 @@ export default function RechercheClient() {
 
   const lancerAbortRef = useRef<AbortController | null>(null)
 
+  // ── LA RECHERCHE LANCÉE S'INSCRIT DANS L'ADRESSE (audit ergonomique 2026-09-21) ──
+  // Entrée, une suggestion, « Tout rechercher » : l'adresse porte la requête AFFICHÉE,
+  // qu'on peut donc copier, recharger, et retrouver par Précédent (une entrée
+  // d'historique par recherche nouvelle). La signature est posée AVANT l'écriture :
+  // l'effet qui lit l'URL reconnaît alors sa propre adresse et ne relance rien.
+  const inscrireRecherche = (q: string, m: Mode) => {
+    const url = new URL(window.location.href)
+    if (url.searchParams.get('q')?.trim() === q && modeDepuisParametre(url.searchParams.get('mode')) === m) return
+    url.searchParams.set('q', q)
+    url.searchParams.set('mode', m)
+    paramsSigRef.current = `${q}|${m}`
+    window.history.pushState(null, '', url)
+  }
+
   const lancer = async (queryForce?: string, modeForce?: Mode, scopeForce?: string) => {
     const q = (queryForce ?? query).trim()
     const modeActif = modeForce ?? mode
     const scopeActif = scopeForce ?? tradScope
     if (!q) return
+    inscrireRecherche(q, modeActif)
 
     lancerAbortRef.current?.abort()
     lancerAbortRef.current = new AbortController()
