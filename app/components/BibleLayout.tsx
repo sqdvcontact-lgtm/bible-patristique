@@ -6,7 +6,7 @@ import { hauteurNavbarPx } from '@/app/lib/fenetreContextuelle'
 import { DUREE_ENTREE_MS, DUREE_OUVERTURE_MS, SELECTEUR_BLOCS_BIBLE, elementEnTete, ordonnerBlocsVisibles } from '@/app/lib/passageTexte'
 import { retenirPositionBible } from '@/app/lib/repriseLecture'
 import NavLivres, { type PieceSommaireBible } from './NavLivres'
-import TexteBible from './TexteBible'
+import TexteBible, { texteAbsentDuChapitre, type BiblePorteuse } from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
 import { supabase } from '@/app/lib/supabase'
 import { chargerDensiteChapitre, libelleDensiteVerset, type DensiteVerset } from '@/app/lib/densitePatristique'
@@ -529,14 +529,22 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // Fillion, la Bible 899. C’est le même partage que le cache des livres vides
   // ci-dessus, et il ne se réécrit pas ici : les deux fonctions le portent.
   const [livreAbsent, setLivreAbsent] = useState<Livre | null>(null)
-  const [bibliesDuLivre, setBibliesDuLivre] = useState<TraductionProposee[] | null>(null)
+  // ⚠️ La même recherche sert aussi le chapitre qu'on LIT quand la bible ne porte pas
+  // son livre (audit ergonomique, 2026-09-21) : la page propose alors les bibles qui le
+  // portent, au lieu d'une phrase sans issue. La fenêtre l'emporte quand elle est ouverte.
+  const texteAbsentIci = !lectureBilingue && !pieceAffichee && texteAbsentDuChapitre(versets, traduction)
+  const livreCherche = livreAbsent?.code ?? (texteAbsentIci ? livreActif : null)
+  const [porteuses, setPorteuses] = useState<{ cle: string; liste: TraductionProposee[] } | null>(null)
+  const bibliesDuLivre = livreAbsent && porteuses?.cle === `${livreAbsent.code}|${traduction}` ? porteuses.liste : null
+  const porteusesIci = texteAbsentIci && porteuses?.cle === `${livreActif}|${traduction}` ? porteuses.liste : null
   // ⚠️ La remise à « on cherche encore » (`null`) se fait dans le GESTE qui ouvre la
   // fenêtre, non dans cet effet : un `setState` synchrone dans un effet déclenche une
   // cascade de rendus, et la charte le proscrit. L'effet ne fait donc que LIRE.
-  const ouvrirLivreAbsent = (livre: Livre) => { setBibliesDuLivre(null); setLivreAbsent(livre) }
+  const ouvrirLivreAbsent = (livre: Livre) => setLivreAbsent(livre)
   useEffect(() => {
-    if (!livreAbsent) return
-    const code = livreAbsent.code
+    if (!livreCherche) return
+    const code = livreCherche
+    const cle = `${code}|${traduction}`
     let annule = false
     const porteuses = async (): Promise<Set<string>> => {
       const trouvees = new Set<string>()
@@ -554,15 +562,15 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
     porteuses()
       .then((trouvees) => {
         if (annule) return
-        setBibliesDuLivre(listeTraductions
+        setPorteuses({ cle, liste: listeTraductions
           .filter((t) => t.code !== traduction && trouvees.has(t.code))
-          .map((t) => ({ code: t.code, label: t.label })))
+          .map((t) => ({ code: t.code, label: t.label })) })
       })
       // Une requête qui échoue ne laisse pas la fenêtre sur « Recherche… » sans fin :
       // elle dit qu’on n’a rien trouvé, ce qui est vrai de ce qu’on sait.
-      .catch(() => { if (!annule) setBibliesDuLivre([]) })
+      .catch(() => { if (!annule) setPorteuses({ cle, liste: [] }) })
     return () => { annule = true }
-  }, [livreAbsent, listeTraductions, readingCapabilities, traduction])
+  }, [livreCherche, listeTraductions, readingCapabilities, traduction])
 
   // Largeurs des volets : on RELIT d'abord, on enregistre ensuite.
   //
@@ -639,6 +647,16 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // Ce qui décrit la MANIÈRE de lire, d'un bloc : reporté tel quel par le volet des
   // livres et par les flèches de chapitre, plutôt qu'énuméré réglage par réglage.
   const maniereDeLire: ManiereDeLireBible = { couche, bilingue: !!lectureBilingue, texteSeul }
+  // Les bibles qui portent le livre que la bible lue n'a pas, avec l'adresse de CE
+  // chapitre dans chacune (la manière de lire voyage, comme partout).
+  const adresseDansBible = (code: string) => urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: chapitreActif, trad: code })
+  const biblesDuLivreAbsent: BiblePorteuse[] | null = porteusesIci
+    ? porteusesIci.map(t => ({ code: t.code, label: t.label, href: adresseDansBible(t.code) }))
+    : null
+  const choisirBiblePorteuse = (code: string) => {
+    memoriserTraductionBible(code)
+    naviguer(adresseDansBible(code))
+  }
 
   // ── LES CHAPITRES VOISINS ──────────────────────────────────────────────────
   // Où mènent les flèches de l'en-tête, celles du bandeau mobile, la navigation du bas
@@ -998,6 +1016,8 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           notesDesVersets={notesDesVersets}
           pieceAffichee={pieceAffichee}
           voisins={voisins}
+          biblesDuLivreAbsent={biblesDuLivreAbsent}
+          onChoisirBible={choisirBiblePorteuse}
         />
         )}
         {/* La réponse au clic : un anneau qui tourne au centre du bloc de texte, sur

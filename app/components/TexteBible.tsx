@@ -110,7 +110,24 @@ type Props = {
   /** Les chapitres voisins, adresses composées par la page (`chapitreVoisin`) : au bout
    *  d'un livre, le livre voisin ; `null` à une borne réelle. */
   voisins?: { precedent: CibleChapitre | null; suivant: CibleChapitre | null }
+  /** Les bibles qui portent ce livre quand la bible lue ne le porte pas (audit
+   *  ergonomique, 2026-09-21) ; `null` tant qu'on cherche, ou hors de ce cas. */
+  biblesDuLivreAbsent?: readonly BiblePorteuse[] | null
+  onChoisirBible?: (code: string) => void
 }
+
+/** La bible lue ne porte rien de ce chapitre. ⛔ Une seule écriture : la page
+ *  (`BibleLayout`) la relit pour aller chercher les bibles qui portent le livre. */
+export function texteAbsentDuChapitre(versets: readonly object[], traduction: string): boolean {
+  return versets.length === 0 || versets.every(v => {
+    const l = v as Record<string, unknown>
+    return !l[traduction] && l._est899 !== true
+  })
+}
+
+/** Une bible qui porte le livre que la bible lue n'a pas : son nom, et l'adresse de ce
+ *  chapitre dans elle. La page les compose ; le texte ne fait que les offrir. */
+export type BiblePorteuse = { code: string; label: string; href: string }
 
 // ── Bouton copie ──────────────────────────────────────────────────────────────
 function BoutonCopie({ texte }: { texte: string }) {
@@ -423,6 +440,7 @@ export default function TexteBible({
   versetSelectionne, setVersetSelectionne, densites, mobile = false,
   editionChapter, notesDesVersets = null, pieceAffichee = null,
   voisins = { precedent: null, suivant: null },
+  biblesDuLivreAbsent = null, onChoisirBible,
 }: Props) {
   // Session et droits : lus dans le contexte partagé, jamais redemandés ici. Ce
   // composant tenait son propre abonnement d'authentification et sa propre lecture
@@ -543,7 +561,7 @@ export default function TexteBible({
   const estLigneEditoriale = (v: Verset) => v._estEditorial === true
   const estLacune899 = (v: Verset) => v._estLacune === true
   // La bible lue ne porte rien de ce chapitre : la mention d'absence prend la page.
-  const texteAbsent = versets.length === 0 || versets.every(v => !v[traduction] && !estLigne899(v))
+  const texteAbsent = texteAbsentDuChapitre(versets, traduction)
   // La traduction moderne du même témoin n'est pas recomposée, mais son texte porte les
   // lacunes du manuscrit en clair : il faut les mettre en forme, sans passer par le
   // tokeniseur du témoin, qui prendrait ses restitutions pour des marqueurs à cheval.
@@ -841,6 +859,27 @@ export default function TexteBible({
             <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', lineHeight: 1.65, margin: '0 auto', padding: '18vh 16px 0', maxWidth: '21.25rem' }}>
               La traduction <em style={{ fontStyle: 'normal', color: 'var(--cs-texte-second)' }}>{traductionLabel}</em> ne comporte pas ce livre.
             </p>
+          )}
+          {/* L'issue : les bibles qui le portent, en liens directs (audit ergonomique,
+              2026-09-21). La phrase seule laissait le lecteur chercher le menu et deviner. */}
+          {texteAbsent && biblesDuLivreAbsent && biblesDuLivreAbsent.length > 0 && (
+            <nav aria-label="Bibles qui comportent ce livre" style={{ margin: '14px auto 0', maxWidth: '21.25rem', padding: '0 16px', textAlign: 'center', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', lineHeight: 1.65, color: 'var(--cs-texte-second)' }}>
+              <p style={{ margin: '0 0 4px' }}>Il se lit dans :</p>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                {biblesDuLivreAbsent.map(b => (
+                  <li key={b.code}>
+                    <a href={b.href} className="cs-lien-phrase" style={{ color: 'var(--cs-vert)' }}
+                      onClick={e => {
+                        if (!onChoisirBible || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+                        e.preventDefault()
+                        onChoisirBible(b.code)
+                      }}>
+                      {b.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           )}
 
           {/* Chapitre entièrement absent du témoin : une mention unique, sobre, au lieu
