@@ -938,6 +938,9 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         chapitreActif={chapitreActif}
         traductionIndex={traductionIndex}
         traductions={listeTraductions}
+        choisirTraduction={handleSetTraductionIndex}
+        choisirEnRegard={choisirEnRegard}
+        enRegard={!!lectureBilingue}
         panelWidth={navWidth}
         onWidthChange={setNavWidth}
         livresVides={livresVides}

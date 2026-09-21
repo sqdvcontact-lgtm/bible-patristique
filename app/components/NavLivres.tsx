@@ -6,6 +6,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { useNaviguer } from '@/app/lib/attenteNavigation'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import EncartTraduction, { type TraductionEncart } from '@/app/components/EncartTraduction'
+import type { BibleDuMenu } from '@/app/lib/menuTraductionsBible'
 import RailVolet from '@/app/components/RailVolet'
 import OngletsPage from '@/app/components/OngletsPage'
 import SommaireEdition, { type PieceSommaireBible } from '@/app/components/SommaireEdition'
@@ -106,16 +107,22 @@ const ABREV_TO_CODE: Record<string, string> = {
 
 type Livre = { code: string; nom: string; testament: string }
 // Le type vit auprès de la carte qui le rend ; une seule déclaration pour les deux.
-type Traduction = TraductionEncart
+// La famille éditoriale sert au menu des bibles que le nom de la carte ouvre.
+type Traduction = TraductionEncart & Pick<BibleDuMenu, 'famille'>
 
 type Props = {
   livres: Livre[]
   livreActif: string
   chapitreActif: number
-  // Le volet MONTRE la bible qu'on lit (encart « Traduction ») ; il n'en change pas.
-  // Le choix se prend dans le menu central, seul endroit qui nomme les bibles.
+  // Le volet MONTRE la bible qu'on lit (encart « Traduction »). ⛔ UN GESTE, UN EFFET
+  // (audit ergonomique du 2026-09-21) : son nom ouvre le MÊME menu de choix que le nom
+  // posé sous le titre du chapitre, quand la page le fournit (`choisirTraduction`) ;
+  // la fiche de la traduction s'ouvre par le bouton « i » voisin.
   traductionIndex: number
   traductions: Traduction[]
+  choisirTraduction?: (index: number) => void
+  choisirEnRegard?: (index: number) => void
+  enRegard?: boolean
   panelWidth?: number | null
   onWidthChange?: (w: number) => void
   livresVides?: Set<string>
@@ -213,7 +220,7 @@ function parseRefBiblique(saisie: string): { code: string; chapitre: number; ver
 
 export default function NavLivres({
   livres, livreActif, chapitreActif,
-  traductionIndex, traductions,
+  traductionIndex, traductions, choisirTraduction, choisirEnRegard, enRegard = false,
   panelWidth = null, onWidthChange,
   livresVides, onLivreAbsent, onChoisirLivre, sansChapitres, titre, libelleRail,
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, onPreparerChapitre, entierActif,
@@ -609,6 +616,7 @@ export default function NavLivres({
       {/* Encart traduction (Bible classique, desktop) — au-dessus de la recherche. */}
       {!polyMode && !sansChapitres && !mobile && traductions[traductionIndex] && (
         <EncartTraduction trad={traductions[traductionIndex]} reglage={reglageEdition}
+          menu={choisirTraduction ? { traductions, traductionIndex, choisir: choisirTraduction, choisirEnRegard, enRegard } : undefined}
           onReduire={peutSeReduire ? () => setOuvert(false) : undefined} />
       )}
 
