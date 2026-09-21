@@ -405,7 +405,12 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
           jamais la longueur du texte — les appels de note se posent par offset.
           ⚠️ Elle passe AVANT `rendreTexteAvecNotes` : la capitale appartient au texte, non
           au balisage, et l'appliquer après aurait demandé de descendre dans le rendu. */}
-      <p lang="fr" style={{ fontSize:'0.75rem', lineHeight:'1.32', color:'var(--cs-texte-fort)', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
+      {/* ⛔ Les appels de note s'y GRISENT (décision de l'auteur, 21 septembre 2026) : le
+          volet est déjà de l'appareil, et l'ocre des appels y faisait une couleur de plus
+          à chaque ligne. On redéfinit le jeton qu'ils lisent, sur ce seul paragraphe :
+          l'appel et le séparateur « & » suivent ensemble. Encre `--cs-texte-second`, qui
+          tient le seuil de 4,5 d'un signe qui porte seul son information. */}
+      <p lang="fr" style={{ '--cs-lacune':'var(--cs-texte-second)', fontSize:'0.75rem', lineHeight:'1.32', color:'var(--cs-texte-fort)', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
         {/* ⚠️ La capitale et les appels projetés arrivent POSÉS (`composerExtrait`) : la
             capitale passe avant la projection, qui compte ses offsets dans le texte. */}
         {rendreTexteAvecNotes(texteAffichage, notes, 'corps', {
