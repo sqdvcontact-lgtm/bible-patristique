@@ -961,7 +961,72 @@ export default function TexteBible({
               style={styleRangeeVerset({ mobile })}>
 
               <div style={styleGrilleRangee({ mobile })}>
-                <div className="verset-bloc" data-lasso-verset={dansLeLasso ? v.id_verset : undefined} style={styleBlocVerset({ actif: actif || dansPlage, mobile })}>
+                {/* ⛔ LES ACTIONS PRÉCÈDENT LE VERSET DANS LE DOCUMENT (audit ergonomique du
+                    2026-09-21). À la tabulation, les appels de note et les liens du texte
+                    passaient avant les boutons du verset, qui semblaient appartenir au verset
+                    suivant. L'ordre est désormais : les actions du verset, son numéro (le
+                    bouton qui le retient), puis son texte, notes et liens compris, dans
+                    l'ordre de lecture. Les outils se trouvent avant ce qu'ils servent, et le
+                    numéro reste collé au texte qu'il désigne. ⚠️ Le DESSIN ne bouge pas : la
+                    grille place les actions en seconde colonne et le bloc en première,
+                    explicitement ; au doigt, le pavé est hors du flux, comme avant.
+                    Boutons d'action — hors du bloc sélectionné. Sur mobile, ils
+                    sortent de la grille : pavé flottant en haut à droite du
+                    verset, montré seulement après un appui long. */}
+                <div className="verset-actions" style={mobile ? {
+                  // Au-dessus du verset (et non sur lui) : le texte reste lisible.
+                  position: 'absolute', bottom: '100%', right: '0.25rem', marginBottom: '3px', zIndex: 6,
+                  display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
+                  background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '0.25rem 0.375rem',
+                } : { gridColumn: 2, gridRow: 1, width: GOUTTIERE_ACTIONS_VERSET, paddingLeft: RETRAIT_ACTIONS_VERSET, display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible', position: 'relative' }}>
+                  {/* ⛔ LES LIGNES RECOMPOSÉES ONT LEURS ACTIONS (demande de l'auteur, 2026-09-20).
+                      Le prélèvement vise la clé NATURELLE (livre, chapitre, verset), la copie
+                      prend le texte, le signalement part par la référence. Seule la
+                      modification reste réservée aux lignes de `versets_v2`, qu'elle écrit. */}
+                    <>
+                      {userId && (
+                        <BoutonEnregistrer
+                          verset={v} nomLivre={nomLivre} livreActif={livreActif}
+                          chapitreActif={chapitreActif} traduction={traduction} userId={userId}
+                          traductionLabel={traductionLabel}
+                          dejaSauvegarde={sauvegardes.has(v.verset)}
+                          idPrelevement={sauvegardes.get(v.verset) ?? null}
+                          onSauvegarde={(id) => marquerSauvegarde(v.verset, id)}
+                          onSupprimer={() => retirerSauvegarde(v.verset)}
+                        />
+                      )}
+                      <BoutonCopie texte={citationBiblique(
+                        String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? ''),
+                        `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`,
+                      )} />
+                      {!polyglotteTropEtroite && (() => { const p = placeCanoniqueDuVerset(v, livreActif, chapitreActif); return <BoutonPolyglotte href={urlPolyglotte(p.livre, p.chapitre, p.verset)} /> })()}
+                      {typeof v._facsDebut899 === 'string' && (
+                        <BoutonFacsimile
+                          reference={`${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`}
+                          debut={v._facsDebut899}
+                          fin={typeof v._facsFin899 === 'string' ? v._facsFin899 : null}
+                        />
+                      )}
+                      <BoutonSignaler versetId={v.id_verset} versetRef={v.ref} texte={String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')} />
+                      {estAdmin && !modeUtilisateurStandard && !ligneSource && (
+                        <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
+                          style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
+                          <IconeCrayon size={12} />
+                        </button>
+                      )}
+                    </>
+                  {/* ⛔ La marque de densité FERME la rangée d'actions, et ne paraît qu'au
+                      survol (feuille ci-dessus). Elle ne se rend pas du tout quand elle ne
+                      tient pas dans la zone de lecture : une opacité nulle déborderait
+                      quand même du défileur. Voir marqueDensiteTient (compositionBible). */}
+                  {!mobile && densiteTient && densites.get(v.id_verset) && (
+                    <span className="marque-densite" title={libelleDensiteVerset(densites.get(v.id_verset)!)}
+                      style={styleDensiteVerset()}>
+                      {densites.get(v.id_verset)!.oeuvres}
+                    </span>
+                  )}
+                </div>
+                <div className="verset-bloc" data-lasso-verset={dansLeLasso ? v.id_verset : undefined} style={mobile ? styleBlocVerset({ actif: actif || dansPlage, mobile }) : { ...styleBlocVerset({ actif: actif || dansPlage, mobile }), gridColumn: 1, gridRow: 1 }}>
                   {/* Numéro — inclus dans le bloc sélectionné, aligné sur la 1re ligne du texte (ligne de base) */}
                   {/* ⛔ Le numéro est le BOUTON du verset pour le clavier : la rangée entière
                       porte déjà des liens et des boutons, on ne la rend pas focalisable. */}
@@ -1021,62 +1086,6 @@ export default function TexteBible({
                       chiffre nu posé dans une marge qui existe là (voir `marque-densite`). */}
                 </div>
 
-                {/* Boutons d'action — hors du bloc sélectionné. Sur mobile, ils
-                    sortent de la grille : pavé flottant en haut à droite du
-                    verset, montré seulement après un appui long. */}
-                <div className="verset-actions" style={mobile ? {
-                  // Au-dessus du verset (et non sur lui) : le texte reste lisible.
-                  position: 'absolute', bottom: '100%', right: '0.25rem', marginBottom: '3px', zIndex: 6,
-                  display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
-                  background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '0.25rem 0.375rem',
-                } : { width: GOUTTIERE_ACTIONS_VERSET, paddingLeft: RETRAIT_ACTIONS_VERSET, display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible', position: 'relative' }}>
-                  {/* ⛔ LES LIGNES RECOMPOSÉES ONT LEURS ACTIONS (demande de l'auteur, 2026-09-20).
-                      Le prélèvement vise la clé NATURELLE (livre, chapitre, verset), la copie
-                      prend le texte, le signalement part par la référence. Seule la
-                      modification reste réservée aux lignes de `versets_v2`, qu'elle écrit. */}
-                    <>
-                      {userId && (
-                        <BoutonEnregistrer
-                          verset={v} nomLivre={nomLivre} livreActif={livreActif}
-                          chapitreActif={chapitreActif} traduction={traduction} userId={userId}
-                          traductionLabel={traductionLabel}
-                          dejaSauvegarde={sauvegardes.has(v.verset)}
-                          idPrelevement={sauvegardes.get(v.verset) ?? null}
-                          onSauvegarde={(id) => marquerSauvegarde(v.verset, id)}
-                          onSupprimer={() => retirerSauvegarde(v.verset)}
-                        />
-                      )}
-                      <BoutonCopie texte={citationBiblique(
-                        String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? ''),
-                        `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`,
-                      )} />
-                      {!polyglotteTropEtroite && (() => { const p = placeCanoniqueDuVerset(v, livreActif, chapitreActif); return <BoutonPolyglotte href={urlPolyglotte(p.livre, p.chapitre, p.verset)} /> })()}
-                      {typeof v._facsDebut899 === 'string' && (
-                        <BoutonFacsimile
-                          reference={`${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`}
-                          debut={v._facsDebut899}
-                          fin={typeof v._facsFin899 === 'string' ? v._facsFin899 : null}
-                        />
-                      )}
-                      <BoutonSignaler versetId={v.id_verset} versetRef={v.ref} texte={String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')} />
-                      {estAdmin && !modeUtilisateurStandard && !ligneSource && (
-                        <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
-                          style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
-                          <IconeCrayon size={12} />
-                        </button>
-                      )}
-                    </>
-                  {/* ⛔ La marque de densité FERME la rangée d'actions, et ne paraît qu'au
-                      survol (feuille ci-dessus). Elle ne se rend pas du tout quand elle ne
-                      tient pas dans la zone de lecture : une opacité nulle déborderait
-                      quand même du défileur. Voir marqueDensiteTient (compositionBible). */}
-                  {!mobile && densiteTient && densites.get(v.id_verset) && (
-                    <span className="marque-densite" title={libelleDensiteVerset(densites.get(v.id_verset)!)}
-                      style={styleDensiteVerset()}>
-                      {densites.get(v.id_verset)!.oeuvres}
-                    </span>
-                  )}
-                </div>
               </div>
             </div>
             {rendreFluxEditorial(blocsApres, illustrationsApres)}
