@@ -29,6 +29,17 @@ const MIN_CARACTERES_PUBLICATION = 2000
 const ROUGE_COMPTE = '#a8564d'
 const BTN: React.CSSProperties = { fontSize: '0.65625rem', padding: '8px 6px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', cursor: 'pointer', width: '100%', textAlign: 'center' }
 
+// Le titre d'un brouillon qu'on n'a pas encore nommé : sans lui, la sauvegarde
+// renonçait en silence et le texte n'existait nulle part.
+const TITRE_PROVISOIRE = 'Sans titre'
+
+/** La clé de ce qui s'enregistre : deux états de même clé ont le même contenu en base. */
+function cleEtatEssai(contenu: string, meta: Metadonnees, signature: string, couverture: string, embleme: string): string {
+  return JSON.stringify([contenu, meta.titre.trim(), meta.sousTitre.trim(), meta.resume.trim(), meta.categories, signature, couverture, embleme])
+}
+
+type ChampEnErreur = 'session' | 'titre' | 'resume' | 'categories' | 'principale' | 'texte'
+
 type Props = {
   essaiExistant?: { couverture?: string | null; embleme?: string | null; id: number; titre: string; sous_titre: string | null; resume: string | null; categories: string[]; contenu: string; statut: string; afficher_nom_reel?: boolean; anonyme?: boolean; publie_at?: string | null; verset_en_tete?: string | null }
   modeAdmin?: boolean
@@ -92,6 +103,34 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   const contenuOriginalRef = useRef(essaiExistant?.contenu ?? '')
   const creationInitialeRef = useRef(false)
 
+  // ── Un essai EN LIGNE ne se retouche qu'en connaissance de cause ──────────
+  // ⛔ La règle de modération ne change pas (déclencheur `forcer_statut_essai`) :
+  // toute retouche de ce qui se lit renvoie l'essai en vérification et le retire de
+  // la lecture. On l'ANNONCE avant la première modification, et l'on attend une
+  // confirmation. Tant qu'elle n'est pas donnée, aucune modification ne passe.
+  const enLigne = !modeAdmin && essaiExistant?.statut === 'publie'
+  const [retoucheAcceptee, setRetoucheAcceptee] = useState(!enLigne)
+  // Une seule fenêtre de confirmation, trois raisons de l'ouvrir.
+  const [avertissement, setAvertissement] = useState<null | 'retouche' | 'brouillon' | 'quitter'>(null)
+  const departDemandeRef = useRef<string | null>(null)
+  const fermerAvertissement = useCallback(() => setAvertissement(null), [])
+  useFermerAEchap(avertissement !== null, fermerAvertissement)
+  const boiteAvertissement = useRef<HTMLDivElement>(null)
+  useFenetreModale(boiteAvertissement, avertissement !== null)
+  const retoucheAccepteeRef = useRef(retoucheAcceptee)
+  useEffect(() => { retoucheAccepteeRef.current = retoucheAcceptee }, [retoucheAcceptee])
+  /** Vrai si la modification peut passer ; sinon ouvre l'avertissement. */
+  const autoriserRetouche = useCallback(() => {
+    if (retoucheAccepteeRef.current) return true
+    setAvertissement('retouche')
+    return false
+  }, [])
+
+  // ── Contrôle avant soumission : des messages EN LIGNE, près des champs ──────
+  // Ils ne paraissent qu'après une première tentative, puis se mettent à jour à
+  // mesure que l'auteur corrige.
+  const [tentativeSoumission, setTentativeSoumission] = useState(false)
+
   // Refs toujours à jour pour les closures du setInterval (pas de dépendance stale)
   const contenuTexteRef = useRef(contenuTexte)
   contenuTexteRef.current = contenuTexte
@@ -99,7 +138,19 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   metaRef.current = meta
   const signatureRef = useRef(signature)
   signatureRef.current = signature
-  const derniereCleSauvegardeeRef = useRef('')
+  const couvertureRef = useRef(couverture)
+  useEffect(() => { couvertureRef.current = couverture }, [couverture])
+  const emblemeRef = useRef(embleme)
+  useEffect(() => { emblemeRef.current = embleme }, [embleme])
+  // L'état ENREGISTRÉ, sous forme de clé : ce qui diffère de lui n'est pas encore
+  // en base. Il sert la ligne d'état et la garde de sortie.
+  const cleInitiale = cleEtatEssai(essaiExistant?.contenu ?? '', {
+    titre: essaiExistant?.titre ?? '', sousTitre: essaiExistant?.sous_titre ?? '',
+    resume: essaiExistant?.resume ?? '', categories: essaiExistant?.categories ?? [],
+  }, signatureDe(essaiExistant ?? {}), essaiExistant?.couverture ?? '', essaiExistant?.embleme ?? '')
+  const derniereCleSauvegardeeRef = useRef(essaiExistant ? cleInitiale : '')
+  const [cleEnregistree, setCleEnregistree] = useState(essaiExistant ? cleInitiale : '')
+  const [titreProvisoire, setTitreProvisoire] = useState(false)
   const [derniereSauvegardeAt, setDerniereSauvegardeAt] = useState<Date | null>(null)
 
   const editableRef = useRef<HTMLDivElement>(null)
@@ -122,7 +173,12 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       user_id: userId, titre: metadonneesInitiales.titre, sous_titre: metadonneesInitiales.sousTitre || null,
       resume: metadonneesInitiales.resume, categories: metadonneesInitiales.categories, contenu: '', statut: 'brouillon',
     }).select('id').single().then(({ data }) => {
-      if (data) { setId(data.id); idRef.current = data.id }
+      if (data) {
+        setId(data.id); idRef.current = data.id
+        const cle = cleEtatEssai('', metadonneesInitiales, signatureRef.current, '', '')
+        derniereCleSauvegardeeRef.current = cle
+        setCleEnregistree(cle)
+      }
     })
   }, [userId, metadonneesInitiales])
 
@@ -137,11 +193,13 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   // ── Sauvegarde automatique ────────────────────────────────────────────────
   const sauvegarder = useCallback(async (statutForce?: 'brouillon' | 'en_attente') => {
     if (!userId) return false
-    const titre = meta.titre.trim()
-    if (!titre) {
-      if (statutForce) alert('Le titre est obligatoire.')
-      return false
-    }
+    // Un essai en ligne dont la retouche n'est pas acceptée ne s'écrit pas.
+    if (!retoucheAccepteeRef.current) return false
+    // Sans titre, le brouillon s'enregistre sous un titre PROVISOIRE, que la ligne
+    // d'état signale. Une soumission, elle, exige un vrai titre (contrôlée en amont).
+    const titreSaisi = meta.titre.trim()
+    const titre = titreSaisi || TITRE_PROVISOIRE
+    const cleSauvee = cleEtatEssai(contenuTexte, meta, signature, couverture, embleme)
     setStatutEnr('enregistrement')
     const payload: any = {
       titre, sous_titre: meta.sousTitre.trim() || null, resume: meta.resume.trim(),
@@ -166,34 +224,107 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       if (data) { setId(data.id); idRef.current = data.id }
     }
     setStatutEnr(error ? 'erreur' : 'enregistre')
+    if (!error) {
+      derniereCleSauvegardeeRef.current = cleSauvee
+      setCleEnregistree(cleSauvee)
+      setTitreProvisoire(!titreSaisi)
+      setDerniereSauvegardeAt(new Date())
+    }
     setTimeout(() => setStatutEnr('idle'), 1500)
     return !error
   }, [userId, meta, contenuTexte, signature, couverture, embleme, versetEnTete, modeAdmin, essaiExistant?.publie_at])
 
+  // Ce qui n'est pas encore en base. Il commande la ligne d'état et la garde de sortie.
+  const cleCourante = cleEtatEssai(contenuTexte, meta, signature, couverture, embleme)
+  const nonEnregistre = cleCourante !== cleEnregistree && (!!contenuTexte.trim() || id !== null)
+
   useEffect(() => {
     if (!contenuTexte.trim()) return
+    // Rien à écrire tant que l'état est celui de la base (à l'ouverture, notamment).
+    if (cleEtatEssai(contenuTexte, meta, signature, couverture, embleme) === derniereCleSauvegardeeRef.current) return
     const t = setTimeout(() => sauvegarder(), 2500)
     return () => clearTimeout(t)
-  }, [contenuTexte, sauvegarder])
+  }, [contenuTexte, meta, signature, couverture, embleme, sauvegarder])
+
+  // ── Verrou d'un essai en ligne ────────────────────────────────────────────
+  // Toute saisie (frappe, suppression, collage, dépôt, mise en forme native) passe
+  // par `beforeinput` : on l'arrête là, dans toute la page d'édition, tant que la
+  // retouche n'est pas acceptée, et l'on pose la question.
+  const mainRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (retoucheAcceptee) return
+    const avantSaisie = (e: Event) => {
+      const cible = e.target as Node | null
+      if (!cible || !mainRef.current?.contains(cible)) return
+      e.preventDefault()
+      setAvertissement('retouche')
+    }
+    document.addEventListener('beforeinput', avantSaisie, true)
+    return () => document.removeEventListener('beforeinput', avantSaisie, true)
+  }, [retoucheAcceptee])
+  /** Pour les boutons de mise en forme et de métadonnées : un clic ne passe pas. */
+  const retenirClicSiVerrouille = (e: React.MouseEvent) => {
+    if (retoucheAcceptee) return
+    if (!(e.target as Element).closest('button')) return
+    e.preventDefault()
+    e.stopPropagation()
+    setAvertissement('retouche')
+  }
+
+  // ── Garde de sortie ───────────────────────────────────────────────────────
+  // Fermer l'onglet ou recharger : le navigateur pose sa propre question.
+  useEffect(() => {
+    if (!nonEnregistre) return
+    const retenir = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
+    window.addEventListener('beforeunload', retenir)
+    return () => window.removeEventListener('beforeunload', retenir)
+  }, [nonEnregistre])
+
+  // Un lien interne du site : on intercepte le clic, en capture, et l'on demande.
+  // ⚠️ Le routeur de Next n'émet aucun événement de départ : c'est le clic qu'on
+  // retient, avant qu'il n'atteigne le <Link>.
+  useEffect(() => {
+    if (!nonEnregistre) return
+    const auClic = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const lien = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null
+      if (!lien || lien.target === '_blank' || lien.hasAttribute('download')) return
+      let url: URL
+      try { url = new URL(lien.href, window.location.href) } catch { return }
+      if (url.origin !== window.location.origin) return
+      if (url.pathname === window.location.pathname && url.search === window.location.search) return
+      e.preventDefault()
+      e.stopPropagation()
+      departDemandeRef.current = url.pathname + url.search + url.hash
+      setAvertissement('quitter')
+    }
+    document.addEventListener('click', auClic, true)
+    return () => document.removeEventListener('click', auClic, true)
+  }, [nonEnregistre])
 
   // ── Auto-sauvegarde périodique toutes les 30 secondes ────────────────────
   useEffect(() => {
     if (!userId) return
     const sauvegarderAuto = async () => {
-      if (!idRef.current) return
-      const cle = `${contenuTexteRef.current}:::${signatureRef.current}:::${JSON.stringify(metaRef.current)}`
+      if (!idRef.current || !retoucheAccepteeRef.current) return
+      const cle = cleEtatEssai(contenuTexteRef.current, metaRef.current, signatureRef.current, couvertureRef.current, emblemeRef.current)
       if (!contenuTexteRef.current.trim() || cle === derniereCleSauvegardeeRef.current) return
       setStatutEnr('enregistrement')
+      const titreSaisi = metaRef.current.titre.trim()
       const payload: Record<string, unknown> = {
-        titre: metaRef.current.titre, sous_titre: metaRef.current.sousTitre || null,
-        resume: metaRef.current.resume, categories: metaRef.current.categories,
+        titre: titreSaisi || TITRE_PROVISOIRE, sous_titre: metaRef.current.sousTitre.trim() || null,
+        resume: metaRef.current.resume.trim(), categories: metaRef.current.categories,
         contenu: contenuTexteRef.current, ...colonnesSignature(signatureRef.current),
+        couverture: couvertureRef.current || null,
+        embleme: emblemeRef.current || null,
         verset_en_tete: versetEnTete ? JSON.stringify(versetEnTete) : null,
         updated_at: new Date().toISOString(),
       }
       const { error } = await supabase.from('essais').update(payload).eq('id', idRef.current!)
       if (!error) {
         derniereCleSauvegardeeRef.current = cle
+        setCleEnregistree(cle)
+        setTitreProvisoire(!titreSaisi)
         setDerniereSauvegardeAt(new Date())
       }
       setStatutEnr(error ? 'erreur' : 'enregistre')
@@ -316,6 +447,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
   const enregistrerNoteDepuisVolet = (texte: string) => {
     if (!texte.trim()) return
+    if (!autoriserRetouche()) return
     if (editionNote?.mode === 'modification' && noteCibleRef.current) {
       noteCibleRef.current.dataset.note = encodeURIComponent(texte)
       setPanneau({ type: 'note', texte })
@@ -411,12 +543,23 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // Verrouillé, les raccourcis de mise en forme ne passent pas (ils écrivent par
+    // execCommand, qui n'émet pas de beforeinput) ; la frappe, elle, est arrêtée
+    // par l'écoute de beforeinput.
+    if (!retoucheAccepteeRef.current) {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !['c', 'a', 'f'].includes(e.key.toLowerCase())) {
+        e.preventDefault()
+        setAvertissement('retouche')
+      }
+      return
+    }
     raccourcisEditeur(e, { apresChangement: declencherChangement, exposant: true })
   }
 
   // Le collage ne doit jamais importer de mise en forme extérieure (polices,
   // couleurs, tailles…) — on ne conserve que le texte brut.
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    if (!autoriserRetouche()) { e.preventDefault(); return }
     collageTexteBrut(e, declencherChangement)
   }
 
@@ -461,38 +604,24 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     })
   }
 
+  // Les manques, champ par champ. ⛔ Plus de série de fenêtres `alert()` : chaque
+  // message se lit sous le champ qu'il concerne, et tous ensemble.
+  const erreursSoumission: Partial<Record<ChampEnErreur, string>> = {}
+  if (!userId) erreursSoumission.session = 'Vous devez être connecté pour soumettre une publication.'
+  if (!meta.titre.trim()) erreursSoumission.titre = 'Le titre est obligatoire.'
+  if (!resumeOk) erreursSoumission.resume = `Le résumé doit faire entre ${RESUME_MIN} et ${RESUME_MAX} caractères.`
+  if (meta.categories.length === 0) erreursSoumission.categories = 'Choisissez au moins une catégorie.'
+  // Plusieurs catégories : l’auteur désigne la principale, qui est écrite sur la
+  // couverture et qui en donne l’emblème. Elle ne se devine pas.
+  else if (meta.categories.length > 1 && !(embleme && meta.categories.includes(embleme))) erreursSoumission.principale = 'Choisissez la catégorie principale de votre publication.'
+  if (nbCar < MIN_CARACTERES_PUBLICATION) erreursSoumission.texte = `Votre texte doit compter au moins ${MIN_CARACTERES_PUBLICATION.toLocaleString('fr')} caractères pour être soumis à publication.`
+  else if (nbCar > MAX_CARACTERES) erreursSoumission.texte = `Votre texte dépasse la limite de ${MAX_CARACTERES.toLocaleString('fr')} caractères.`
+  const erreursAffichees = tentativeSoumission ? erreursSoumission : {}
+  const nbErreursAffichees = Object.keys(erreursAffichees).length
+
   const validerAvantSoumission = () => {
-    if (!userId) {
-      alert('Vous devez être connecté pour soumettre une publication.')
-      return false
-    }
-    if (!meta.titre.trim()) {
-      alert('Le titre est obligatoire.')
-      return false
-    }
-    if (!resumeOk) {
-      alert(`Le résumé doit faire entre ${RESUME_MIN} et ${RESUME_MAX} caractères.`)
-      return false
-    }
-    if (meta.categories.length === 0) {
-      alert('Choisissez au moins une catégorie.')
-      return false
-    }
-    // Plusieurs catégories : l’auteur désigne la principale, qui est écrite sur la
-    // couverture et qui en donne l’emblème. Elle ne se devine pas.
-    if (meta.categories.length > 1 && !(embleme && meta.categories.includes(embleme))) {
-      alert('Choisissez la catégorie principale de votre publication.')
-      return false
-    }
-    if (nbCar < MIN_CARACTERES_PUBLICATION) {
-      alert(`Votre texte doit compter au moins ${MIN_CARACTERES_PUBLICATION.toLocaleString('fr')} caractères pour être soumis à publication.`)
-      return false
-    }
-    if (nbCar > MAX_CARACTERES) {
-      alert(`Votre texte dépasse la limite de ${MAX_CARACTERES.toLocaleString('fr')} caractères.`)
-      return false
-    }
-    return true
+    setTentativeSoumission(true)
+    return Object.keys(erreursSoumission).length === 0
   }
 
   const ouvrirConfirmationPublication = () => {
@@ -514,6 +643,35 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     if (idRef.current) router.push(`/essais/${idRef.current}`)
   }
 
+  // « Enregistrer comme brouillon » sur un essai en ligne le RETIRE de la lecture :
+  // on le dit avant de le faire.
+  const enregistrerBrouillon = () => {
+    if (enLigne) { setAvertissement('brouillon'); return }
+    void sauvegarder('brouillon')
+  }
+
+  const confirmerAvertissement = async () => {
+    const raison = avertissement
+    setAvertissement(null)
+    if (raison === 'retouche') {
+      setRetoucheAcceptee(true)
+      retoucheAccepteeRef.current = true
+      editableRef.current?.focus({ preventScroll: true })
+    } else if (raison === 'brouillon') {
+      setRetoucheAcceptee(true)
+      retoucheAccepteeRef.current = true
+      await sauvegarder('brouillon')
+    } else if (raison === 'quitter') {
+      const cible = departDemandeRef.current
+      departDemandeRef.current = null
+      if (cible) {
+        // La garde de sortie tombe avec la décision : on ne redemande pas.
+        setCleEnregistree(cleCourante)
+        router.push(cible)
+      }
+    }
+  }
+
   const diff = comparaisonOuverte ? diffMots(contenuOriginalRef.current, contenuTexte) : null
 
   if (mobile) {
@@ -532,7 +690,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   }
 
   return (
-    <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100dvh - 3.5rem)', paddingRight: '320px' }}>
+    <main ref={mainRef} style={{ background: 'var(--cs-fond)', minHeight: 'calc(100dvh - 3.5rem)', paddingRight: '320px' }}>
       <style>{`
         /* La pastille de choix montre la couverture TELLE QU'ELLE PARAÎTRA : en Cuir
            le rayon est en reliures de cuir, et un nuancier vert y mentirait. */
@@ -571,6 +729,21 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         .editeur-essai blockquote + h3 { margin-top: 3mm; }
       `}</style>
       <div style={{ maxWidth: '56.25rem', margin: '0 auto', padding: '32px 32px 100px' }}>
+        {enLigne && (
+          <div role="note" style={{ marginLeft: '128px', marginBottom: '14px', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-bord)', borderLeft: '3px solid var(--cs-attente)', borderRadius: '8px', padding: '11px 14px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <p style={{ flex: 1, margin: 0, fontSize: '0.75rem', lineHeight: 1.55, color: 'var(--cs-texte)' }}>
+              {retoucheAcceptee
+                ? 'Retouche en cours. Dès le premier enregistrement, l’essai quitte la lecture et repart en vérification jusqu’à sa validation.'
+                : 'Cet essai est en ligne. Toute modification de son texte, de son titre ou de ses informations de publication le renverra en vérification, et il quittera la lecture jusqu’à sa validation.'}
+            </p>
+            {!retoucheAcceptee && (
+              <button type="button" onClick={() => setAvertissement('retouche')}
+                style={{ flexShrink: 0, fontSize: '0.71875rem', padding: '6px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', cursor: 'pointer' }}>
+                Modifier l’essai
+              </button>
+            )}
+          </div>
+        )}
 
         {essaiExistant && (
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
@@ -601,7 +774,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
           </div>
         ) : (
           <>
-            <div style={{ paddingLeft: '128px', marginBottom: '14px' }}>
+            <div style={{ paddingLeft: '128px', marginBottom: '14px' }} onClickCapture={retenirClicSiVerrouille}>
               <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '16px 18px 18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '18px', alignItems: 'flex-start', marginBottom: '14px' }}>
                   <div>
@@ -626,6 +799,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                         Limite dépassée
                       </p>
                     )}
+                    {erreursAffichees.texte && <MessageChamp id="erreur-texte">{erreursAffichees.texte}</MessageChamp>}
                   </div>
                 </div>
 
@@ -633,12 +807,15 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                   <div>
                     <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Titre *</label>
                     <input aria-label="Titre"
+                      aria-invalid={!!erreursAffichees.titre}
+                      aria-describedby={erreursAffichees.titre ? 'erreur-titre' : undefined}
                       value={meta.titre}
                       onChange={e => setMeta(prev => ({ ...prev, titre: e.target.value }))}
                       autoComplete="off"
                       placeholder="Titre"
-                      style={{ width: '100%', fontSize: '1rem', fontFamily: 'var(--font-source-serif), Georgia, serif', padding: '7px 0 5px', border: 'none', borderBottom: '1px solid var(--cs-bord)', outline: 'none', color: 'var(--cs-encre-fonce)', background: 'transparent', boxSizing: 'border-box' }}
+                      style={{ width: '100%', fontSize: '1rem', fontFamily: 'var(--font-source-serif), Georgia, serif', padding: '7px 0 5px', border: 'none', borderBottom: `1px solid ${erreursAffichees.titre ? 'var(--cs-danger)' : 'var(--cs-bord)'}`, outline: 'none', color: 'var(--cs-encre-fonce)', background: 'transparent', boxSizing: 'border-box' }}
                     />
+                    {erreursAffichees.titre && <MessageChamp id="erreur-titre">{erreursAffichees.titre}</MessageChamp>}
                   </div>
                   <div>
                     <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Sous-titre</label>
@@ -660,12 +837,15 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                     </span>
                   </div>
                   <textarea aria-label="Résumé"
+                    aria-invalid={!!erreursAffichees.resume}
+                    aria-describedby={erreursAffichees.resume ? 'erreur-resume' : undefined}
                     value={meta.resume}
                     onChange={e => setMeta(prev => ({ ...prev, resume: e.target.value }))}
                     rows={3}
                     placeholder={`${RESUME_MIN} à ${RESUME_MAX} caractères présentant la publication`}
-                    style={{ width: '100%', fontSize: '0.78125rem', padding: '7px 9px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5 }}
+                    style={{ width: '100%', fontSize: '0.78125rem', padding: '7px 9px', border: `1px solid ${erreursAffichees.resume ? 'var(--cs-danger)' : 'var(--cs-bord)'}`, borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5 }}
                   />
+                  {erreursAffichees.resume && <MessageChamp id="erreur-resume">{erreursAffichees.resume}</MessageChamp>}
                 </div>
 
                 {/* Couverture : la publication se présente en petit livre sur la liste,
@@ -722,6 +902,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                     })}
                   </div>
 
+                  {erreursAffichees.categories && <MessageChamp id="erreur-categories">{erreursAffichees.categories}</MessageChamp>}
+
                   {/* LA CATÉGORIE PRINCIPALE. Elle ne se demande qu'à partir de deux
                       catégories : sous deux, il n'y a rien à choisir. Elle est écrite
                       sur la couverture et en donne l'emblème (`essais.embleme`). */}
@@ -754,6 +936,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                           )
                         })}
                       </div>
+                      {erreursAffichees.principale && <MessageChamp id="erreur-principale">{erreursAffichees.principale}</MessageChamp>}
                     </div>
                   )}
                 </div>
@@ -762,7 +945,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
             {/* Barre d'outils et zone de rédaction */}
             <div style={{ display: 'flex', gap: '20px', paddingLeft: '128px' }}>
-              <div style={{
+              <div onClickCapture={retenirClicSiVerrouille} style={{
                 position: 'fixed', top: '3.5rem', left: 0, width: '8rem', height: 'calc(100dvh - 3.5rem)',
                 background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', padding: '20px 14px', overflowY: 'auto',
                 zIndex: 50, display: 'flex', flexDirection: 'column', gap: '5px',
@@ -846,27 +1029,37 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '10px 24px', gap: '12px',
         }}>
-          <span style={{ fontSize: '0.6875rem', color: statutEnr === 'erreur' ? 'var(--cs-danger)' : nbCar > MAX_CARACTERES ? ROUGE_COMPTE : 'var(--cs-texte-doux)', flexShrink: 0 }}>
+          {/* La ligne d'état dit ce qui est en base, et ce qui ne l'est pas encore.
+              ⚠️ aria-live : elle change sans qu'on la regarde. */}
+          <span aria-live="polite" style={{ fontSize: '0.6875rem', color: statutEnr === 'erreur' || nbErreursAffichees > 0 ? 'var(--cs-danger)' : nbCar > MAX_CARACTERES ? ROUGE_COMPTE : 'var(--cs-texte-second)', flexShrink: 1, minWidth: 0 }}>
             {statutEnr === 'enregistrement' ? 'Enregistrement…'
               : statutEnr === 'enregistre' ? 'Enregistré ✓'
               : statutEnr === 'erreur' ? 'Erreur d’enregistrement'
+              : nbErreursAffichees > 0 ? (erreursAffichees.session ?? (nbErreursAffichees > 1 ? 'Des champs sont à compléter avant la soumission : ils sont signalés en rouge.' : 'Un champ est à compléter avant la soumission : il est signalé en rouge.'))
               : nbCar > MAX_CARACTERES ? `Limite dépassée (${nbCar.toLocaleString('fr')} / ${MAX_CARACTERES.toLocaleString('fr')} caractères)`
+              : nonEnregistre && !contenuTexte.trim() ? 'Pas encore enregistré : commencez le texte pour qu’il s’enregistre.'
+              : nonEnregistre ? 'Modifications non enregistrées'
+              : titreProvisoire ? `Enregistré sous le titre provisoire « ${TITRE_PROVISOIRE} » : donnez-lui un titre.`
               : derniereSauvegardeAt ? `Enregistré à ${derniereSauvegardeAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} ✓`
               : ' '}
           </span>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             {!(modeAdmin && essaiExistant?.statut === 'publie') && (
               <button
-                onClick={() => sauvegarder('brouillon')}
+                onClick={enregistrerBrouillon}
                 style={{ fontSize: '0.78125rem', padding: '7px 18px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
                 Enregistrer comme brouillon
               </button>
             )}
-            <button
-              onClick={modeAdmin && essaiExistant?.statut === 'publie' ? publier : ouvrirConfirmationPublication}
-              style={{ fontSize: '0.78125rem', padding: '7px 20px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 600 }}>
-              {modeAdmin && essaiExistant?.statut === 'publie' ? 'Enregistrer les corrections' : 'Soumettre la publication'}
-            </button>
+            {/* En ligne et intact, il n'y a rien à soumettre : le bouton n'apparaît
+                qu'une fois la retouche acceptée. */}
+            {!(enLigne && !retoucheAcceptee) && (
+              <button
+                onClick={modeAdmin && essaiExistant?.statut === 'publie' ? publier : ouvrirConfirmationPublication}
+                style={{ fontSize: '0.78125rem', padding: '7px 20px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 600 }}>
+                {modeAdmin && essaiExistant?.statut === 'publie' ? 'Enregistrer les corrections' : enLigne ? 'Soumettre les corrections' : 'Soumettre la publication'}
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -922,6 +1115,41 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         document.body
       )}
 
+      {/* ── Avertissement : retouche d'un essai en ligne, brouillon, départ ──────
+          Même dessin et même mécanique que la fenêtre de soumission (portail,
+          Échap, foyer piégé). */}
+      {avertissement && typeof document !== 'undefined' && createPortal(
+        <div onClick={fermerAvertissement} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div ref={boiteAvertissement} role="dialog" aria-modal="true" aria-labelledby="titre-avertissement-essai" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
+            <h3 id="titre-avertissement-essai" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
+              {avertissement === 'retouche' ? 'Modifier un essai en ligne ?'
+                : avertissement === 'brouillon' ? 'Remettre cet essai en brouillon ?'
+                : 'Quitter sans enregistrer ?'}
+            </h3>
+            <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte)', lineHeight: 1.55, margin: 0 }}>
+              {avertissement === 'retouche'
+                ? 'Cet essai est publié. Dès la première modification enregistrée, il repartira en vérification et ne sera plus lisible par les autres lecteurs jusqu’à sa validation par la modération.'
+                : avertissement === 'brouillon'
+                  ? 'Enregistrer comme brouillon retire l’essai de la lecture. Il ne sera de nouveau visible qu’une fois republié, et toute modification de son contenu passera par la modération.'
+                  : 'Certaines modifications ne sont pas encore enregistrées. Si vous quittez la page maintenant, elles seront perdues.'}
+            </p>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
+              <button onClick={fermerAvertissement}
+                style={{ fontSize: '0.75rem', padding: '7px 16px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
+                {avertissement === 'quitter' ? 'Rester sur la page' : 'Annuler'}
+              </button>
+              <button onClick={() => { void confirmerAvertissement() }}
+                style={{ fontSize: '0.75rem', padding: '7px 18px', borderRadius: '4px', border: avertissement === 'retouche' ? 'none' : '1px solid var(--cs-danger-bord)', background: avertissement === 'retouche' ? 'var(--cs-vert-aplat)' : 'var(--cs-danger-fond)', color: avertissement === 'retouche' ? 'var(--cs-sur-aplat)' : 'var(--cs-danger-fonce)', cursor: 'pointer', fontWeight: 600 }}>
+                {avertissement === 'retouche' ? 'Modifier l’essai'
+                  : avertissement === 'brouillon' ? 'Retirer et mettre en brouillon'
+                  : 'Quitter sans enregistrer'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {selecteurOuvert && <SelecteurCitation onChoisir={inserrerCitation} onFermer={() => setSelecteurOuvert(false)} />}
       <VoletEssai element={panneau} onFermer={() => setPanneau(null)} toujoursVisible editionNote={editionNote ? { actif: true, mode: editionNote.mode } : undefined} onEnregistrerNote={enregistrerNoteDepuisVolet} enTete={
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -949,5 +1177,14 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         </div>
       } />
     </main>
+  )
+}
+
+/** Le message qui accompagne un champ incomplet, sous lui. */
+function MessageChamp({ id, children }: { id: string; children: React.ReactNode }) {
+  return (
+    <p id={id} role="alert" style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)', margin: '4px 0 0', lineHeight: 1.45 }}>
+      {children}
+    </p>
   )
 }
