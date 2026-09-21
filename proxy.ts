@@ -67,7 +67,7 @@ const AUTORISES = [process.env.ADMIN_EMAIL, process.env.ACCES_INVITES]
 // s'inscrire sans qu'on l'apprenne. Le risque est borné : la route ne rend aucune
 // donnée, n'écrit rien avant que PayPal ait confirmé sa propre signature, et sans les
 // trois clés de l'environnement elle ne fait rien du tout.
-const LIBRES = ['/chantier', '/auth', '/api/auth', '/api/compte', '/api/attente', '/api/chiffres',
+const LIBRES = ['/chantier', '/auth', '/api/compte', '/api/attente', '/api/chiffres',
                 '/confidentialite', '/conditions-utilisation', '/contact', '/api/contact',
                 '/api/audience', '/api/paypal',
                 // Réservation TDM : doit rester lisible (y compris par les crawlers).

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import SelecteurCitation from '@/app/lib/SelecteurCitation'
 import { raccourcisEditeur, collageTexteBrut } from '@/app/lib/raccourcisEditeur'
+import { hrefSur } from '@/app/lib/liensSurs'
 
 type Props = {
   value: string
@@ -36,7 +37,9 @@ function styleBouton(actif: boolean, extra?: React.CSSProperties): React.CSSProp
 }
 
 function echapper(s: string) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  // Les guillemets aussi : le texte est reposé dans des attributs (data-label, href),
+  // et un guillemet laissé brut en sortirait pour y greffer un gestionnaire d'événement.
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
 
 function syntaxeVersHtml(s: string) {
@@ -45,7 +48,10 @@ function syntaxeVersHtml(s: string) {
     .replace(/\+\+(.+?)\+\+/g, '<span style="font-variant:small-caps;letter-spacing:0.04em">$1</span>')
     .replace(/\^\^(.+?)\^\^/g, '<sup>$1</sup>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>')
+    .replace(/\[(.+?)\]\((.+?)\)/g, (_m, label: string, adresse: string) => {
+      const href = hrefSur(adresse)
+      return href ? `<a href="${href}">${label}</a>` : label
+    })
     .replace(/\n/g, '<br>')
 }
 

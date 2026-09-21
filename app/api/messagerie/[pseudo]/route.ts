@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { erreur500 } from '@/app/lib/apiErreur'
 import { checkRateLimit } from '@/app/lib/rateLimiter'
 
 function admin() {
@@ -42,7 +43,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ pseu
     .or(`and(expediteur_id.eq.${uid},destinataire_id.eq.${pid}),and(expediteur_id.eq.${pid},destinataire_id.eq.${uid})`)
     .order('created_at', { ascending: true })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return erreur500(error)
 
   // Marquer les messages reçus comme lus
   const nonLus = (msgs ?? []).filter(m => m.expediteur_id === pid && !m.lu).map(m => m.id)
@@ -98,7 +99,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ pse
     contenu,
   })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return erreur500(error)
 
   return NextResponse.json({ ok: true })
 }

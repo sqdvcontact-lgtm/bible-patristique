@@ -8,6 +8,7 @@ import { terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
 import { rendreTexteEnrichi } from './texteEnrichi'
+import { hrefSur } from '@/app/lib/liensSurs'
 import { intituleDeLaNote, libelleDeLaNote, LIBELLE_NOTE_SANS_TYPE } from '@/app/lib/typeNote'
 import type { NoteAffichee } from './oeuvreTypes'
 import {
@@ -414,7 +415,7 @@ export function rendreTexteAvecNotes(
     else if (m[2] !== undefined) noeuds.push(<sup key={k++}>{rendreTexteAvecNotes(m[2], notes, variante, options)}</sup>)
     else if (m[3] !== undefined) noeuds.push(<em key={k++}>{rendreTexteAvecNotes(m[3], notes, variante, options)}</em>)
     else if (m[4] !== undefined) noeuds.push(
-      <a key={k++} href={m[5]} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteAvecNotes(m[4], notes, variante, options)}</a>
+      <a key={k++} href={hrefSur(m[5]) ?? undefined} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>{rendreTexteAvecNotes(m[4], notes, variante, options)}</a>
     )
     else if (m[6] !== undefined) {
       // L’appel n’est pas rendu seul : on lit la suite entière (appels collés,

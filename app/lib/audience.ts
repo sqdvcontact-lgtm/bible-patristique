@@ -73,8 +73,13 @@ const PARAMETRES_CONSERVES: Record<string, readonly string[]> = {
  * longueur, et sans chaîne de requête hormis les coordonnées ci-dessus.
  */
 export function cheminNormalise(brut: string): string {
-  const [avant, requete = ''] = brut.split('#')[0].split('?')
-  const sansFinale = avant.length > 1 ? avant.replace(/\/+$/, '') : avant
+  // Bornée D'ABORD : la route est publique, et une chaîne démesurée ne doit coûter
+  // aucun calcul. Les barres finales se retirent sans expression rationnelle, dont
+  // le retour arrière sur « ////…x » croît avec le carré de la longueur.
+  const [avant, requete = ''] = brut.slice(0, LONGUEUR_CHEMIN_MAX * 2).split('#')[0].split('?')
+  let fin = avant.length
+  while (fin > 1 && avant[fin - 1] === '/') fin--
+  const sansFinale = avant.slice(0, fin)
   const chemin = sansFinale || '/'
 
   const gardes = PARAMETRES_CONSERVES[chemin]

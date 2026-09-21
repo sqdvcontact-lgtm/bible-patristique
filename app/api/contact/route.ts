@@ -23,6 +23,7 @@ const FORME_COURRIEL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 // survit pas à un redémarrage et n'est pas partagé entre instances.
 const FENETRE_MS = 10 * 60 * 1000
 const MAX_PAR_FENETRE = 5
+const COURRIELS_PAR_JOUR_MAX = 30
 
 const propre = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
 
@@ -30,7 +31,9 @@ export async function POST(request: Request) {
   // L'adresse ne s'écrit nulle part : une empreinte salée du jour la remplace,
   // pour le débit comme pour la trace (voir app/lib/empreinteAnonyme.ts).
   const empreinte = empreinteAnonyme(adresseDuClient(request), request.headers.get('user-agent') ?? '')
-  if (!checkRateLimit(`contact:${empreinte}`, MAX_PAR_FENETRE, FENETRE_MS)) {
+  // Le débit se compte sur l’adresse SEULE : un agent changé à chaque requête
+  // rendrait sinon chaque envoi « nouveau » et la limite inopérante.
+  if (!checkRateLimit(`contact:${empreinteAnonyme(adresseDuClient(request), '')}`, MAX_PAR_FENETRE, FENETRE_MS)) {
     return NextResponse.json({ error: 'Trop de messages envoyés. Réessayez dans quelques minutes.' },
       { status: 429, headers: { 'Retry-After': String(FENETRE_MS / 1000) } })
   }
@@ -53,7 +56,13 @@ export async function POST(request: Request) {
   if (error) return NextResponse.json({ error: 'L’enregistrement a échoué. Réessayez plus tard.' }, { status: 500 })
 
   // 2. E-mail, au mieux. Un échec d'envoi ne doit pas perdre le message déjà sauvé.
-  if (process.env.RESEND_API_KEY) {
+  // Plafond GLOBAL du jour : la limite par adresse vit en mémoire, instance par
+  // instance, et ne tient pas contre des adresses multiples. Au-delà, le message
+  // reste en base mais ne déclenche plus d'e-mail (ni de quota Resend épuisé).
+  const { count: duJour } = await supabaseAdmin.from('messages_contact')
+    .select('id', { count: 'exact', head: true })
+    .gte('cree_le', new Date(Date.now() - 86_400_000).toISOString())
+  if (process.env.RESEND_API_KEY && (duJour ?? 0) <= COURRIELS_PAR_JOUR_MAX) {
     try {
       const { Resend } = await import('resend')
       const resend = new Resend(process.env.RESEND_API_KEY)

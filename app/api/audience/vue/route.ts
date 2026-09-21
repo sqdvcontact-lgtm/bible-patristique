@@ -56,7 +56,8 @@ export async function POST(req: Request) {
 
   // Généreux à dessein : un lecteur qui parcourt une œuvre tourne beaucoup de
   // pages en peu de temps. Le seuil n'est là que contre une boucle.
-  if (!checkRateLimit(`audience:${empreinte}`, 200, 600_000)) {
+  // Compté sur l’adresse seule, pour qu’un agent changeant ne s’y soustraie pas.
+  if (!checkRateLimit(`audience:${empreinteAnonyme(ip, '')}`, 200, 600_000)) {
     return new NextResponse(null, { status: 204 })
   }
 

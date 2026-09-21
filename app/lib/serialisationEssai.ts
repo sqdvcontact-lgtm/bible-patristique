@@ -6,7 +6,9 @@
 import { PARAGRAPHE_ESSAI, CITATION_ESSAI, enCss } from '@/app/lib/compositionEssai'
 
 function echapper(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  // Les guillemets aussi : le texte est reposé dans des attributs (data-label, href),
+  // et un guillemet laissé brut en sortirait pour y greffer un gestionnaire d'événement.
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
 
 // Appel de note en exposant qui N'AUGMENTE PAS l'interligne : on n'utilise plus

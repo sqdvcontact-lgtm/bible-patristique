@@ -27,7 +27,9 @@ const MAX_PAR_FENETRE = 5
 export async function POST(request: Request) {
   // L'adresse ne sert qu'à compter : une empreinte salée du jour la remplace, comme
   // dans /api/contact — le débit se limite sans qu'aucune adresse ne soit retenue.
-  const empreinte = empreinteAnonyme(adresseDuClient(request), request.headers.get('user-agent') ?? '')
+  // Il se compte sur l’adresse SEULE : un agent changé à chaque requête rendrait
+  // sinon chaque envoi « nouveau » et la limite inopérante.
+  const empreinte = empreinteAnonyme(adresseDuClient(request), '')
   if (!checkRateLimit(`attente:${empreinte}`, MAX_PAR_FENETRE, FENETRE_MS)) {
     return NextResponse.json(
       { error: 'Trop de tentatives. Réessayez dans quelques minutes.' },

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { erreur500 } from '@/app/lib/apiErreur'
 import { createClient } from '@supabase/supabase-js'
 
 function admin() {
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
     .order('created_at', { ascending: false })
     .limit(500)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return erreur500(error)
 
   const map = new Map<string, { partenaire_id: string; dernier_message: string; dernier_at: string; nb_non_lus: number }>()
 

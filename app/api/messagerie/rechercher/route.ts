@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { erreur500 } from '@/app/lib/apiErreur'
 import { createClient } from '@supabase/supabase-js'
 
 // Recherche de PSEUDONYMES uniquement (jamais les noms réels) pour démarrer une
@@ -31,6 +32,6 @@ export async function GET(request: Request) {
     .order('pseudo')
     .limit(8)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return erreur500(error)
   return NextResponse.json((data ?? []).map(p => p.pseudo).filter(Boolean))
 }

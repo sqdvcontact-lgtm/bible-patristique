@@ -15,7 +15,9 @@ export async function POST(request: Request) {
     const message = typeof body?.message === 'string' ? body.message.trim().slice(0, 4000) : ''
     const importanceStr = typeof body?.importance === 'string' ? body.importance : null
     const importance: number = importanceStr === 'bloquant' ? 3 : importanceStr === 'mineur' ? 1 : 2
-    const urlSource = typeof body?.url_source === 'string' && body.url_source ? body.url_source.slice(0, 500) : null
+    // Un chemin INTERNE seulement : l’adresse devient un lien cliquable dans la
+    // modération, et ne doit pas pouvoir y planter un site tiers.
+    const urlSource = typeof body?.url_source === 'string' && /^\/(?![/\\])/.test(body.url_source) ? body.url_source.slice(0, 500) : null
     const idSegmentRaw = body?.id_segment
     const idSegment = typeof idSegmentRaw === 'number' && Number.isFinite(idSegmentRaw)
       ? idSegmentRaw

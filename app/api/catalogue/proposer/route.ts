@@ -34,7 +34,9 @@ export async function POST(request: Request) {
   // L'adresse ne s'écrit nulle part : une empreinte salée du jour la remplace,
   // pour le débit comme pour la trace (voir app/lib/empreinteAnonyme.ts).
   const empreinte = empreinteAnonyme(adresseDuClient(request), request.headers.get('user-agent') ?? '')
-  if (tropDeRequetes(empreinte)) {
+  // Le débit se compte sur l’adresse SEULE : un agent changé à chaque requête
+  // rendrait sinon chaque envoi « nouveau » et la limite inopérante.
+  if (tropDeRequetes(empreinteAnonyme(adresseDuClient(request), ''))) {
     return NextResponse.json({ error: 'Trop de propositions envoyées. Réessayez dans quelques minutes.' },
       { status: 429, headers: { 'Retry-After': String(FENETRE_MS / 1000) } })
   }

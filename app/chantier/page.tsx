@@ -380,7 +380,15 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         // Seuls les chemins internes sont acceptés — une URL absolue permettrait
         // de renvoyer l'utilisateur connecté vers un site tiers.
         const suite = new URLSearchParams(window.location.search).get("suite");
-        const cible = suite && suite.startsWith("/") && !suite.startsWith("//") ? suite : "/accueil";
+        // Le test sur la chaîne ne suffit pas : « /\hote » ou « /%09/hote » se lisent
+        // comme « //hote ». On résout donc l'adresse et on exige la même origine.
+        let cible = "/accueil";
+        if (suite) {
+          try {
+            const url = new URL(suite, window.location.origin);
+            if (url.origin === window.location.origin) cible = url.pathname + url.search + url.hash;
+          } catch { /* adresse illisible : point d'arrivée par défaut */ }
+        }
         router.push(cible);
       }
     } else {
