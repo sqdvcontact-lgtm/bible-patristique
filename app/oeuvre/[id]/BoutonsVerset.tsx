@@ -24,7 +24,7 @@ export function BoutonCopieVerset({ texte, label }: { texte: string; label: stri
   }
   return (
     <Bulle texte="Copier ce verset">
-      <button onClick={handle} className={avecHoteEclat()} style={{ ...BTN_STYLE, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }} aria-label="Copier ce verset">
+      <button onClick={handle} className={avecHoteEclat('cs-bouton-action')} style={{ ...BTN_STYLE, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }} aria-label="Copier ce verset">
         <IconeCopier />
         <EclatCopie eclat={eclat} />
       </button>
@@ -48,7 +48,7 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
 
   if (idPrelev) return (
     <Bulle texte="Retirer des prélèvements">
-      <button onClick={supprimer} disabled={loading} style={{ ...BTN_STYLE, color:'var(--cs-vert)' }} aria-label="Retirer des prélèvements">
+      <button onClick={supprimer} disabled={loading} className="cs-bouton-action" style={{ ...BTN_STYLE, color:'var(--cs-vert)' }} aria-label="Retirer des prélèvements">
         {loading ? '…' : <IconeSignet plein />}
       </button>
     </Bulle>
@@ -71,7 +71,7 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
 
   return (
     <Bulle texte="Enregistrer dans mes prélèvements">
-      <button onClick={enregistrer} disabled={loading} style={{ ...BTN_STYLE, color:'var(--cs-bord)' }} aria-label="Enregistrer dans mes prélèvements">
+      <button onClick={enregistrer} disabled={loading} className="cs-bouton-action" style={{ ...BTN_STYLE, color:'var(--cs-bord)' }} aria-label="Enregistrer dans mes prélèvements">
         {loading ? '…' : <IconeSignet />}
       </button>
     </Bulle>
@@ -84,7 +84,7 @@ export function BoutonSignalerVerset({ versetId, label, texte, segmentId }: { ve
   return (
     <>
       <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setOuvert(true) }}
-        title="Signaler une erreur" style={{ ...BTN_STYLE, color:'var(--cs-bord)' }}><IconeSignalement /></button>
+        title="Signaler une erreur" className="cs-bouton-action" style={{ ...BTN_STYLE, color:'var(--cs-bord)' }}><IconeSignalement /></button>
       {ouvert && (
         <ModalSignalement
           titre={label}

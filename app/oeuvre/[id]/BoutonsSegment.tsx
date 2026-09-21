@@ -110,7 +110,7 @@ export function BoutonEnregistrerSegment({
 }
 
 
-export function BoutonCopieSegment({ texte, auteur, titre, sousTitre, tradAuteur, editeur, collection, ville, datePublication, responsable, className = '' }: {
+export function BoutonCopieSegment({ texte, auteur, titre, sousTitre, tradAuteur, editeur, collection, ville, datePublication, responsable, className = 'cs-bouton-action' }: {
   texte: string; auteur?: string; titre?: string; sousTitre?: string
   tradAuteur?: string; editeur?: string; collection?: string
   ville?: string; datePublication?: string
@@ -138,7 +138,7 @@ export function BoutonCopieSegment({ texte, auteur, titre, sousTitre, tradAuteur
   )
 }
 
-export function BoutonSignalerSegment({ segId, texteObjet, titreOeuvre, className = '' }: { segId: number; texteObjet: string; titreOeuvre?: string; className?: string }) {
+export function BoutonSignalerSegment({ segId, texteObjet, titreOeuvre, className = 'cs-bouton-action' }: { segId: number; texteObjet: string; titreOeuvre?: string; className?: string }) {
   const [ouvert, setOuvert] = useState(false)
   const { exigerCompte } = useCompte()
   return (

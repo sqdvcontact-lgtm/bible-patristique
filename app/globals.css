@@ -3267,6 +3267,24 @@ html[data-lasso-geste] * {
 }
 .cs-lasso-action--principale:hover { background: var(--cs-vert-aplat-fonce); }
 .cs-lasso-action:disabled { opacity: 0.6; cursor: default; }
+
+/* Les boutons d'ACTION d'un verset ou d'un passage (prélever, copier, signaler,
+   aller à la Polyglotte) se teintent au survol, sur la page Bible, la Polyglotte,
+   le volet patristique et la page d'une œuvre (demande de l'auteur, 2026-09-21).
+   C'est le FOND qui change, non l'icône : sa couleur dit un état (vert = prélevé,
+   copié) qu'un survol ne doit pas effacer.
+   ⚠️ Le point d'exclamation bat le `background: none` posé EN LIGNE par
+   STYLE_BOUTON_ACTION (app/lib/celluleActions.ts). */
+.bouton-action-verset, .cs-bouton-fin, .seg-btn-enreg, .poly-act, .cs-bouton-action {
+  transition: color 0.15s, background-color 0.12s !important;
+}
+@media (hover: hover) {
+  .bouton-action-verset:hover:not(:disabled), .cs-bouton-fin:hover:not(:disabled),
+  .seg-btn-enreg:hover:not(:disabled), .poly-act:hover:not(:disabled),
+  .cs-bouton-action:hover:not(:disabled) {
+    background: rgba(var(--cs-vert-rgb), 0.11) !important;
+  }
+}
 .cs-lasso-fermer {
   display: inline-flex;
   align-items: center;
