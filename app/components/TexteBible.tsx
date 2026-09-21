@@ -53,7 +53,7 @@ import type { PieceLiminaireAffichee } from '@/app/components/BibleLayout'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import { activerAuClavier } from '@/app/lib/activerAuClavier'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
-import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import {
   indexerBlocsDeCorps,
   habillerLesVignettes,
@@ -321,10 +321,13 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
   onClose: () => void; onEnregistre: (nouvelleValeur: string) => void
 }) {
   useFermerAEchap(true, onClose)
-  useRendreLeFoyer(true)
   const [valeur, setValeur] = useState(valeurActuelle)
   const [statut, setStatut] = useState<'idle' | 'envoi' | 'erreur'>('idle')
   const edRef = useRef<HTMLDivElement>(null)
+  // Tab et Maj+Tab restent dans la fenêtre, et le foyer revient au crayon à la
+  // fermeture. ⚠️ Pas de foyer initial : la zone d'édition le prend elle-même.
+  const boiteRef = useRef<HTMLDivElement>(null)
+  useFenetreModale(boiteRef, true, { foyerInitial: false })
 
   // La zone éditable est peuplée UNE fois avec le texte rendu : les enrichissements y
   // sont directement visibles (WYSIWYG), dans la même et unique zone de saisie.
@@ -378,12 +381,13 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
   // (onglets 1300, bandeau 1250), et sous la barre de navigation (3000).
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:2700, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background:'var(--cs-surface)', borderRadius:'8px', padding:'20px 22px', width:'30rem', maxWidth:'100%', boxShadow:'var(--cs-ombre-modale)' }}>
+      <div ref={boiteRef} role="dialog" aria-modal="true" aria-label={`Modifier ${refCourt} de la ${traductionLabel}`}
+        onClick={e => e.stopPropagation()} style={{ background:'var(--cs-surface)', borderRadius:'8px', padding:'20px 22px', width:'30rem', maxWidth:'100%', boxShadow:'var(--cs-ombre-modale)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px' }}>
           <p style={{ fontSize:'0.75rem', fontWeight:600, color:'var(--cs-attente)', margin:0 }}>
             Modifier {refCourt} de la {traductionLabel}
           </p>
-          <button onClick={onClose} style={{ fontSize:'0.875rem', color:'var(--cs-texte-faible)', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
+          <button type="button" onClick={onClose} aria-label="Fermer" style={{ fontSize:'0.875rem', color:'var(--cs-texte-faible)', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
         </div>
         <div style={{ display:'flex', gap:'6px', marginBottom:'8px', flexWrap:'wrap' }}>
           <button onMouseDown={gardeSel} onClick={() => commande('bold')} style={{ ...btnEd, fontWeight:700 }}>G</button>
