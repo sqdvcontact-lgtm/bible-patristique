@@ -5142,10 +5142,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         })}
                       </div>
                     )}
-                    {estAdmin
-                      ? <AssocierVerset segId={segActifData.id} onAssocie={associerVersetLocal(segActifData.id)} />
-                      : userId && <ProposerLienBiblique segId={segActifData.id} />
-                    }
                   </>
                 ) : (
                   <div style={{ flex: '1 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 0' }}>
@@ -5176,6 +5172,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               </div>
             )}
           </div>
+
+          {/* ⛔ LE GESTE QUI AJOUTE UN LIEN SE TIENT EN BAS DU VOLET (demande de l'auteur,
+              2026-09-21), hors du défileur : il reste à la même place quelle que soit la
+              longueur de la liste des versets, et ne se perd pas sous elle. Un filet le
+              sépare de ce qu'il complète. */}
+          {ongletDroit === 'refs' && segActifData && (estAdmin || userId) && (
+            <div style={{ flexShrink: 0, borderTop: '1px solid var(--cs-fond-doux)', padding: '2px 12px 10px' }}>
+              {estAdmin
+                ? <AssocierVerset segId={segActifData.id} onAssocie={associerVersetLocal(segActifData.id)} />
+                : <ProposerLienBiblique segId={segActifData.id} />}
+            </div>
+          )}
 
         </aside>
         </>
