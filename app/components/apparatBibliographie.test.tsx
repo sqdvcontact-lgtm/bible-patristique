@@ -68,7 +68,7 @@ function mesureEm(corps: string, propriete: string): number {
 function blocMobile(): string {
   const depuis = CSS.indexOf('.cs-reference-bibliographique .cs-apparat-bibliographie__auteur')
   expect(depuis).toBeGreaterThan(-1)
-  const media = CSS.indexOf('@media (max-width: 700px) {', depuis)
+  const media = CSS.indexOf('@media (max-width: 640px) {', depuis)
   expect(media, 'aucune requête média pour la famille').toBeGreaterThan(-1)
   // La requête se ferme sur une accolade en TÊTE de ligne ; celle de la règle
   // qu'elle contient est indentée, et ne peut donc pas être prise pour elle.

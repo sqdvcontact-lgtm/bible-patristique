@@ -3,6 +3,7 @@ import BibliothequeClient from "./BibliothequeClient"
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur"
 import { chargerAuteursParOeuvre, grouperOeuvresParAuteur } from "@/app/lib/auteursOeuvre"
 import { SELECT_AUTEURS_BIBLIOTHEQUE, SELECT_OEUVRES_BIBLIOTHEQUE } from "@/app/lib/bibliothequeSelects"
+import IndiceTelephoneServeur from '@/app/lib/IndiceTelephoneServeur'
 
 // Base fermée au rôle anonyme : on interroge avec la session du visiteur. La
 // page devient dynamique (elle lit les cookies) et perd donc son cache d'une
@@ -51,8 +52,10 @@ export default async function BibliothequePage() {
   const erreurChargement = Boolean(auteursResultat.error || oeuvresResultat.error)
 
   return (
+    <IndiceTelephoneServeur>
     <Suspense fallback={null}>
       <BibliothequeClient auteurs={auteurs} erreurChargement={erreurChargement} />
     </Suspense>
+    </IndiceTelephoneServeur>
   )
 }

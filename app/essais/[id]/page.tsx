@@ -6,6 +6,7 @@ import { estAdmin } from '@/app/lib/verifAdmin'
 import { JsonLd, donneesArticle, donneesFilAriane } from '@/app/lib/donneesStructurees'
 import EssaiClient from './EssaiClient'
 import { nomSigne } from '@/app/lib/signatureEssai'
+import IndiceTelephoneServeur from '@/app/lib/IndiceTelephoneServeur'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -69,7 +70,7 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
   const nomAffiche = nomSigne(essai, profil)
 
   return (
-    <>
+    <IndiceTelephoneServeur>
       {/* Article JSON-LD + fil d'Ariane — seulement pour une publication publiée. */}
       {essai.statut === 'publie' && (
         <>
@@ -93,6 +94,6 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
         // et n'a donc pas le filtre de la vue `mecenes_publics` derrière elle.
         auteur_mecene: !!profil?.mecene_depuis && profil.pub_mecene !== false,
       }} />
-    </>
+    </IndiceTelephoneServeur>
   )
 }

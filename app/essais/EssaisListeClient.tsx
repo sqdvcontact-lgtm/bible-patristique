@@ -619,7 +619,7 @@ function OngletCommunaute({
         }
 
         @media (max-width: 900px) { .rayon { grid-template-columns: repeat(2, 14.5rem); gap: 1.4rem 1.2rem; } }
-        @media (max-width: 520px) { .rayon { grid-template-columns: 14.5rem; } }
+        @media (max-width: 640px) { .rayon { grid-template-columns: 14.5rem; } }
         /* ⛔ Deux couvertures de 14,5rem et leur gouttière font 483px ; avec les 64px
            de rembourrage de la page, le rayon en réclamait 547 quand il ne passe à une
            colonne qu'à 520. Entre les deux, jusqu'à 27px de débordement. Le rembourrage
@@ -972,12 +972,12 @@ function OngletMesEcrits({
         .ecrit-ligne:hover .ecrit-actions, .ecrit-ligne:focus-within .ecrit-actions { opacity: 1; }
         @media (hover: none) { .ecrit-actions { opacity: 1; } }
 
-        @media (max-width: 700px) {
+        @media (max-width: 640px) {
           .mes-ecrits { grid-template-columns: minmax(0, 1fr); row-gap: 12px; }
           .mes-ecrits-volet { position: static; border-right: none; border-bottom: 1px solid var(--cs-bord-clair); padding: 0 7px 10px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
           .mes-ecrits-axe { margin-top: 0; }
         }
-        @media (max-width: 520px) {
+        @media (max-width: 640px) {
           .ecrit-ligne { grid-template-columns: 14px minmax(0, 1fr); }
           .ecrit-actions { grid-column: 2; padding-top: 4px; }
         }

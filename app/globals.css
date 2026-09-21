@@ -1069,7 +1069,7 @@ button:focus-visible,
    deux se déplient donc ensemble : sous cette largeur, il ne reste pas deux
    cents pixels de texte à côté d'une vignette, l'habillage se défait et la
    gravure se centre. */
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .cs-bible-gravure--flottante { float: none !important; margin: 0.75rem auto !important; width: 60% !important; }
 }
 
@@ -1166,7 +1166,7 @@ button:focus-visible,
    En pleine largeur, la photo prenait une haute bande verticale à gauche de la
    carte. Sur mobile/petit écran, on s'en passe entièrement : le texte gagne toute
    la place. `!important` car la taille est posée en style inline. */
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   /* ── Progression : la jauge passe AU-DESSUS du texte ──
      La colonne de gauche est un disque de 132 px, plantée dans une grille 150px 1fr.
      Sur un téléphone de 375 px, la carte dispose de 283 px : la jauge et sa gouttière
@@ -1467,7 +1467,7 @@ button:focus-visible,
    pour un blanc qu'on traverse au pouce. Ils se resserrent d'un tiers ; les trois
    bas ne bougent pas, un titre de péricope ouvrant là ce qu'on va lire tout de
    suite. ⚠️ L'ordre des rangs est conservé, c'est lui qui porte la hiérarchie. */
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .cs-bible-title--t1 { margin-top: 7.5rem; }
   .cs-bible-title--t2 { margin-top: 6.25rem; }
   .cs-bible-title--t3 { margin-top: 5.25rem; }
@@ -1889,7 +1889,7 @@ button:focus-visible,
    trentaine de signes par ligne, et le justifié s'y creuserait de lézardes. Le
    repère reprend alors toute la mesure et le texte le suit, au lieu de
    l'habiller. */
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .cs-bible-info--i4.cs-bible-block--commentary > .cs-bible-info-label,
   .cs-bible-info--i5.cs-bible-block--commentary > .cs-bible-info-label,
   .cs-bible-info--i6.cs-bible-block--commentary > .cs-bible-info-label,
@@ -2434,7 +2434,7 @@ button:focus-visible,
    RÉDUIT, il ne disparaît pas — la hiérarchie bibliographique tient à lui. Le
    corps, lui, ne bouge pas : une liste déjà d'un cran sous le texte ne se lit
    plus si on la rapetisse encore. */
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .cs-apparat-bibliographie__entree {
     padding-left: 0.7em;
     text-indent: -0.7em;
@@ -2629,7 +2629,7 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   border-radius: 4px;
   transition: background 0.12s;
 }
-@media (max-width: 980px) {
+@media (max-width: 1023px) {
   .citation-sortie { margin-left: calc(5mm - 4px); margin-right: -4px; }
 }
 

@@ -137,7 +137,7 @@ function rendreFrise(texte: string | null | undefined, q: string): React.ReactNo
 export default function HistoireClient(
   { evs, series, relations }: { evs: RangFrise[]; series: SerieFrise[]; relations: RelationFrise[] },
 ) {
-  const mobile = useEstMobile(900)
+  const mobile = useEstMobile()
   const [mode, setMode] = useState<ModeLecture>('reperes')
   const [f, setF] = useState<Filtres>(FILTRES_VIDES)
   const [panneauOuvert, setPanneauOuvert] = useState(false)

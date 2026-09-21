@@ -52,7 +52,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   // L'éditeur est un outil d'écriture à trois panneaux (mise en forme, texte,
   // notes) : impraticable sur téléphone. Comme la Polyglotte, on y renvoie vers
   // un grand écran plutôt que d'entasser les panneaux (voir AGENTS § mobile).
-  const mobile = useEstMobile(900)
+  const mobile = useEstMobile()
   const [meta, setMeta] = useState<Metadonnees>({
     titre: essaiExistant?.titre ?? metadonneesInitiales?.titre ?? '',
     sousTitre: essaiExistant?.sous_titre ?? metadonneesInitiales?.sousTitre ?? '',

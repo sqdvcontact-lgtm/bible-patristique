@@ -180,7 +180,7 @@ function PericopesCitantes({ entree, noms }: { entree: EntreeBibliographie; noms
 }
 
 export default function BibliographieClient({ entrees: servies, nomsPericopes }: { entrees: EntreeBibliographie[]; nomsPericopes: NomsPericopes }) {
-  const mobile = useEstMobile(900)
+  const mobile = useEstMobile()
   const [filtres, setFiltres] = useState<FiltresBibliographie>(FILTRES_VIDES)
   const [tousSiecles, setTousSiecles] = useState(false)
   const [panneauOuvert, setPanneauOuvert] = useState(false)
@@ -407,7 +407,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
         .biblio-entree:hover .biblio-copier, .biblio-entree:focus-within .biblio-copier { opacity: 1; }
         .biblio-copier:hover { color: ${VERT}; border-color: ${VERT}; }
         @media (hover: none) { .biblio-copier { opacity: 1; } }
-        @media (max-width: 700px) { .biblio-l2 { margin-left: 0.7em; } }
+        @media (max-width: 640px) { .biblio-l2 { margin-left: 0.7em; } }
         @media (prefers-reduced-motion: reduce) {
           .biblio-entree, .biblio-copier, .biblio-lien-lettre { transition: none; }
         }

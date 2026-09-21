@@ -32,6 +32,7 @@ import { urlLectureBible } from '@/app/lib/bibleNavigation'
 import { styleTexteVerset } from '@/app/lib/compositionBible'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { useEstMobile } from '@/app/lib/useEstMobile'
+import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
 
 type Etat = {
   /** La DEMANDE que cet état satisfait. ⛔ L'attente se DÉDUIT de sa comparaison avec la
@@ -64,7 +65,7 @@ export default function PageChaine() {
   // ⚠️ Le seuil est celui de la GRILLE de l'entrée, non celui du téléphone : sous 640 px
   // la référence passe au-dessus du lemme et la mesure devient trop étroite pour se
   // justifier sans lézarder (charte, § 3.11.4).
-  const etroit = useEstMobile(640)
+  const etroit = useEstMobile(POINTS_DE_RUPTURE.telephone)
 
   useEffect(() => {
     let annule = false

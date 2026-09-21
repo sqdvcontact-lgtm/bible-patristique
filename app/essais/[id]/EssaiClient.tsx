@@ -71,7 +71,7 @@ function BoutonPartage({ label, onClick, children, loading }: { label: string; o
 export default function EssaiClient({ essai }: { essai: Essai }) {
   // ≤ 900px : le volet Commentaires devient une barre fixe en bas + tiroir,
   // et le texte prend toute la largeur (voir AGENTS § Responsive mobile).
-  const mobile = useEstMobile(900)
+  const mobile = useEstMobile()
   const [voletOuvert, setVoletOuvert] = useState(true)
   // Le tiroir d'un téléphone se ferme à Échap, comme une fenêtre.
   useFermerAEchap(mobile && voletOuvert, () => setVoletOuvert(false))

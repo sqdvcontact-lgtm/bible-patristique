@@ -3,6 +3,7 @@ import { cache } from "react";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
 import { formaterPlageCanonique } from "@/app/lib/referencesBibliques";
 import { JsonLd, donneesPericope, donneesFilAriane } from "@/app/lib/donneesStructurees";
+import IndiceTelephoneServeur from '@/app/lib/IndiceTelephoneServeur'
 import {
   couperDescription, descriptionPericope, enTetesPartage, naturePatristique, titrePericope,
 } from "@/app/lib/metadonneesSeo";
@@ -81,7 +82,7 @@ export default async function PericopeLayout({
   const { id } = await params;
   const { p, appellations, reference, presence } = await chargerFichePericope(id);
   return (
-    <>
+    <IndiceTelephoneServeur>
       {p?.nom && (
         <>
           <JsonLd
@@ -107,6 +108,6 @@ export default async function PericopeLayout({
         </>
       )}
       {children}
-    </>
+    </IndiceTelephoneServeur>
   );
 }

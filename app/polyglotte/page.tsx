@@ -42,6 +42,7 @@ import { colonnesPolyglotteDemandees, livreEntierDemande, placePolyglotteDemande
 import { allerAElement } from "@/app/lib/defilement";
 import { hauteurNavbarPx } from "@/app/lib/fenetreContextuelle";
 import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile";
+import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture';
 import VisiteGuidee from "@/app/components/VisiteGuidee";
 import { CLE_VISITE_POLYGLOTTE, VISITE_POLYGLOTTE } from "@/app/lib/visitePolyglotte";
 import { type SceneVisite } from "@/app/lib/visiteGuidee";
@@ -2076,7 +2077,7 @@ export default function PolyglottePage() {
   // aussitôt. Et elle attend que les colonnes soient venues : le texte de cette
   // page est chargé par le NAVIGATEUR, à la différence de la Bible classique, dont
   // le serveur rend le chapitre.
-  const ecranEtroit = useEstMobile(820);
+  const ecranEtroit = useEstMobile(POINTS_DE_RUPTURE.tablette);
   const visitePrete = !ecranEtroit && colonnes.length > 0 && !attenteGlobale;
 
   // ⚠️ Un COMPTEUR, non un drapeau : rappelée par la barre alors qu'elle est déjà

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEstMobile } from '@/app/lib/useEstMobile'
+import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
 
 // Enveloppe de la lecture « Latin & Français » : même châssis que la lecture
 // ordinaire — en-tête, navigation de chapitre, zone de défilement — pour que le
@@ -66,7 +67,7 @@ export default function LectureBilingueBible({
   //    regard se partageait environ 320 px : 140 et 180 px par colonne. Sous 980 —
   //    un seuil de la liste admise, celui du sommaire d’œuvre et du bilingue d’une
   //    œuvre — les deux colonnes s’empilent par verset, l’axe canonique restant commun.
-  const colonnesEtroites = useEstMobile(980)
+  const colonnesEtroites = useEstMobile(POINTS_DE_RUPTURE.moyen)
   // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui
   // allume la marque au centre de la lecture tant que la page se prépare.
   const naviguer = useNaviguer()

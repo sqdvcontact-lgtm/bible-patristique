@@ -174,7 +174,7 @@ function LigneCompte({ actif, onClick, label, n }: { actif: boolean; onClick: ()
 }
 
 export default function PericopesCatalogueClient({ items }: { items: PericopeCatalogueItem[] }) {
-  const mobile = useEstMobile(900)
+  const mobile = useEstMobile()
   const [q, setQ] = useState('')
   const [testament, setTestament] = useState<ChoixTestament>('TOUT')
   const [registres, setRegistres] = useState<Set<string>>(new Set())

@@ -263,7 +263,7 @@ function snippetEssai(texte: string, terme: string, max = 220): string {
 export default function RechercheClient() {
   // ≤ 900px : le formulaire et les résultats s'empilent (le côte-à-côte
   // écraserait les deux). Voir AGENTS § Responsive mobile.
-  const mobile = useEstMobile(900)
+  const mobile = useEstMobile()
   // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
   const { visiteFaite, oublierVisite, profilPret } = useCompte()
   const searchParams = useSearchParams()

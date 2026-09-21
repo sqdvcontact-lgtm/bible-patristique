@@ -6,6 +6,7 @@ import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
 import { auteurDeLigne, auteursDuCorpus, type AuteurDuCorpus } from "@/app/lib/auteursDuCorpus";
 import { cssServi } from "@/app/lib/cssServi";
 import { enTetesPartage } from "@/app/lib/metadonneesSeo";
+import IndiceTelephoneServeur from '@/app/lib/IndiceTelephoneServeur'
 
 // La devise du frontispice, mot pour mot. « Lectures bibliques et patristiques »
 // décrivait un rayon de bibliothèque ; la phrase dit ce que le site FAIT, et que
@@ -129,6 +130,7 @@ export default async function AccueilPage() {
   );
 
   return (
+    <IndiceTelephoneServeur>
     <div className="accueil">
       {/* ⚠️ Les commentaires de ce bloc font partie du littéral, donc du HTML servi :
           mesurés, ils y pesaient 12 Ko sur 19,3. On les retire au SERVICE, jamais de la
@@ -919,6 +921,7 @@ export default async function AccueilPage() {
         </div>
       </footer>
     </div>
+    </IndiceTelephoneServeur>
   );
 }
 

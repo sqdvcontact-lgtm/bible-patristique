@@ -214,7 +214,7 @@ const lireTradDuCookie = () => lireTraductionMemorisee(document.cookie)
 export default function PericopePage() {
   const params = useParams<{ id: string }>()
   const id = params?.id
-  const mobile = useEstMobile(900)
+  const mobile = useEstMobile()
   const [etat, setEtat] = useState<'chargement' | 'ok' | 'introuvable' | 'erreur'>('chargement')
   const [peri, setPeri] = useState<Pericope | null>(null)
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])

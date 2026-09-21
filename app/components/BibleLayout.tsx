@@ -384,7 +384,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
 
   // Sur téléphone/tablette portrait, les trois volets s'empilent verticalement
   // (voir AGENTS.md § Responsive mobile) : le côte-à-côte écraserait le texte.
-  const mobile = useEstMobile(900)
+  const mobile = useEstMobile()
 
   // Mobile : navigation par TROIS ONGLETS en haut (Livres / Texte / Commentaires).
   // L'onglet actif est porté par `voletMobile` : null = Texte, 'livres' = Livres,

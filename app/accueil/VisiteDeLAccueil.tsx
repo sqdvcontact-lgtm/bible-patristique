@@ -21,11 +21,12 @@ import { CLE_VISITE_ACCUEIL, VISITE_ACCUEIL } from '@/app/lib/visiteAccueil'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { useEstMobile } from '@/app/lib/useEstMobile'
+import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
 
 /** Le seuil du menu déroulant de la barre : `lg`, 1024 px. ⚠️ Ce n'est PAS le 900
  *  de la charte, et c'est motivé — la barre se replie à `lg`, non à 900, et c'est
  *  elle que la visite montre. */
-const SEUIL_BARRE_DEPLOYEE = 1024
+const SEUIL_BARRE_DEPLOYEE = POINTS_DE_RUPTURE.moyen
 
 export default function VisiteDeLAccueil() {
   const barrePliee = useEstMobile(SEUIL_BARRE_DEPLOYEE)

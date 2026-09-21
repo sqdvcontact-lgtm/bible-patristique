@@ -10,6 +10,7 @@ import { estVerseEditorial, estVerseSurColonnes, withCanonicalV2Capability } fro
 import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleReadingModes'
 import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
 import { chargerVersetsCanoniquesV2, chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
+import IndiceTelephoneServeur from '@/app/lib/IndiceTelephoneServeur'
 import {
   canonDuChapitre, chargerBibliographiesEdition, chargerLectureBilingue, chargerLiminairesEdition,
   chargerPieceLiminaire, loadBibleEditionCatalog, loadBibleEditionChapter,
@@ -882,7 +883,7 @@ export default async function Home({
   const reference = `${nomLivreReference(livre)} ${chapitre}`
 
   return (
-    <>
+    <IndiceTelephoneServeur>
       <JsonLd
         donnees={donneesChapitreBible({
           livre, chapitre, reference, nomLivre: NOMS_LIVRES[livre] || livre, auteurs,
@@ -922,6 +923,6 @@ export default async function Home({
         }))}
         pieceAffichee={pieceAffichee}
       />
-    </>
+    </IndiceTelephoneServeur>
   )
 }

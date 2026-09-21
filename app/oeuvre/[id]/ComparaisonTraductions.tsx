@@ -531,7 +531,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
   userId: string | null
   auteur: string
 }) {
-  const mobile = useEstMobile(900)
+  const mobile = useEstMobile()
   const [filtre, setFiltre] = useState<FiltreAlignement>('tous')
   const [groupes, setGroupes] = useState<Groupe[]>([])
   const [membres, setMembres] = useState<Membre[]>([])

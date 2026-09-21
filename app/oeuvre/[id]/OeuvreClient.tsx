@@ -711,7 +711,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const [navOuverte, setNavOuverte] = useState(true)
   const [panneauOuvert, setPanneauOuvert] = useState(true)
   // ≤ 900px : nav et apparat en barres fixes + tiroirs (voir AGENTS § mobile).
-  const mobile = useEstMobile(900)
+  const mobile = useEstMobile()
 
   // Mémorise l'ÉDITION ouverte dans les « dernières consultées » (survol de
   // « Patristique » dans la navbar). Local au navigateur. Le texte ne se retient que
@@ -3594,7 +3594,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         .citation-versets { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.8125rem; color: var(--cs-texte-fort); margin: 0 0 0.72rem; word-spacing: -0.025em; letter-spacing: 0; }
         .citation-verset { display: block; margin: 0 0 ${BLANC_ENTRE_VERSETS} ${RETRAIT_VERSET}; font-size: 0.95em; line-height: 1.62; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; white-space: pre-line; }
         .citation-verset:last-child { margin-bottom: 0; }
-        @media(max-width: 980px){ .citation-verset { margin-left: ${RETRAIT_VERSET_ETROIT}; } }
+        @media(max-width: 1023px){ .citation-verset { margin-left: ${RETRAIT_VERSET_ETROIT}; } }
         /* Les crayons d'administration des titres pendent à 52 px hors de la colonne :
            sur un écran étroit ils la faisaient déborder de 38 px. Ils rentrent alors
            dans le flux, sous le titre, et passent à la ligne s'il le faut. */
@@ -3609,7 +3609,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         .num-verset { font-size: 0.71em; font-weight: 600; color: var(--cs-texte-doux); line-height: 0; vertical-align: baseline; position: relative; top: -0.5em; margin-right: 0.25em; user-select: none; }
         .texte-original { color: var(--cs-original); font-family: var(--font-source-serif), Georgia, serif; }
         .para-bilingue > .texte-original { font-family: var(--font-source-sans), Arial, sans-serif; }
-        @media(max-width: 980px){
+        @media(max-width: 1023px){
           .seg-wrapper::after { display: none !important; width: 0 !important; right: 0 !important; }
           .titre-colophon{max-width:100%!important;line-height:1.32!important;word-spacing:normal!important;letter-spacing:0!important;}
           .titre-colophon > span{display:inline!important;width:auto!important;max-width:100%!important;}

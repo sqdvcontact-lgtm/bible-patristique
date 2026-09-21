@@ -5,6 +5,7 @@ import Image from "next/image";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile";
+import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
 import { lirePositionBible, type PositionBible } from '@/app/lib/repriseLecture'
 import { cssServi } from "@/app/lib/cssServi";
 
@@ -78,7 +79,7 @@ function CarteAccueil({
   // largeur et garde la souris, se comporte alors comme un vrai téléphone. C'est
   // ce qui rend le dessin vérifiable autrement que sur l'appareil.
   const sansSurvol = useSansSurvol()
-  const empilee = useEstMobile(640)
+  const empilee = useEstMobile(POINTS_DE_RUPTURE.telephone)
   const [ouvert, setOuvert] = useState(false)
   const carteRef = useRef<HTMLDivElement | null>(null)
   const choixAuTap = (sansSurvol || empilee) && !!reprendreHref

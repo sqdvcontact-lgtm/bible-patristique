@@ -25,6 +25,7 @@ import { descriptionOeuvre, enTetesPartage, titreOeuvre } from '@/app/lib/metado
 import { porteDesLiensBibliques } from '@/app/lib/metadonneesSeoServeur'
 import OeuvreClient from './OeuvreClient'
 import type { AlignementDisponible, ChampTitre, TocEntry } from './oeuvreTypes'
+import IndiceTelephoneServeur from '@/app/lib/IndiceTelephoneServeur'
 import {
   chargerProjectionBilingue,
   type BlocOriginal,
@@ -797,7 +798,7 @@ export default async function OeuvrePage({
   const retour = lireRetour(sp.depuis)
 
   return (
-    <>
+    <IndiceTelephoneServeur>
       {/* Book JSON-LD — seulement pour une œuvre publique (jamais un brouillon admin). */}
       {estOeuvrePubliee(oeuvre) && texteActif.is_public && (
         <>
@@ -858,6 +859,6 @@ export default async function OeuvrePage({
       filAriane={<FilAriane elements={filAriane.slice(1)} retour={retour} />}
       retour={retour}
     />
-    </>
+    </IndiceTelephoneServeur>
   )
 }
