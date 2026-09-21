@@ -34,8 +34,8 @@ describe('les onglets du volet des Pères', () => {
 })
 
 describe('« Aucune occurrence »', () => {
-  it('⛔ ne porte plus de carapace : la seule qui reste est celle de l’onglet Commentaires', () => {
-    expect(PANNEAU.match(/carapace-posee\.png/g) ?? []).toHaveLength(1)
+  it('⛔ ne porte plus aucune carapace : les états vides se ferment par un fleuron', () => {
+    expect(PANNEAU.match(/carapace-posee\.png/g) ?? []).toHaveLength(0)
     expect(PANNEAU).toContain("'Aucune occurrence.'")
   })
 })

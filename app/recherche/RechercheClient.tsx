@@ -6,6 +6,7 @@ import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { useSearchParams } from 'next/navigation'
+import FleuronDiscret from '@/app/components/FleuronDiscret'
 import IconeChevron from '@/app/components/IconeChevron'
 import { supabase } from '@/app/lib/supabase'
 import { nettoyerFin } from '@/app/lib/ponctuation'
@@ -1359,28 +1360,11 @@ export default function RechercheClient() {
             {!done && !loading && !reference && (
               <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
                 ...(mobile ? { marginTop:'40px', marginBottom:'24px' } : { height:'100%' }) }}>
-                {/* Un désert et une fosse tiennent la page tant qu'aucune requête n'est lancée.
-
-                    La pose est celle de la tour de Babel sur le Polyglotte, et pour la même
-                    raison : sur PC cette colonne fait TOUTE la hauteur sous la navbar et se
-                    trouve entièrement vide, l'intitulé, la recherche et les onglets vivant dans
-                    le volet de gauche. C'est donc un écran d'attente, non un blanc de pied de
-                    page — d'où la même mesure, la même opacité et la même invite en sérif
-                    italique. Un cul-de-lampe discret posé en haut de la colonne y flottait.
-
-                    ⚠️ Le centrage vertical vient du flux, la zone étant de hauteur définie sur
-                    PC. En MOBILE elle ne l'est pas (minHeight en vh, débordement visible) : un
-                    « height: 100 % » s'y effondrerait, et le groupe reprend donc des marges.
-
-                    ⛔ Aucune LARGEUR posée, deux MAXIMA seulement (charte). Le plafond de hauteur
-                    est l'autre moitié du réglage et vaut pour les écrans BAS : la planche est
-                    large de 1600 sur 780, donc à 816 px elle en ferait 398 de haut, ce qui ne
-                    tient plus sous une fenêtre de 720 px. Les deux dimensions restant
-                    automatiques, le navigateur applique les maxima l'un après l'autre en tenant
-                    le rapport (CSS 2.1, § 10.4). */}
-                <img className="cs-ornement" src="/ornements/desert-fosse.png" alt="" aria-hidden="true"
-                  style={{ maxWidth:'min(68rem, 96%)', maxHeight:'calc(100dvh - 3.5rem - 15rem)', opacity:0.72, marginBottom:'16px' }} />
-                <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.9375rem', fontStyle:'italic', color:'var(--cs-texte-doux)', letterSpacing:'0.02em', margin:0 }}>Lancez une recherche</p>
+                {/* Une invite, puis un fleuron du registre (21 septembre 2026 : le désert et la fosse
+                    ont cédé leur place). Centrée sur PC, où la colonne fait toute la hauteur sous
+                    la barre ; en mobile, le groupe reprend des marges. Voir `FleuronDiscret`. */}
+                <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.9375rem', fontStyle:'italic', color:'var(--cs-texte-second)', letterSpacing:'0.02em', margin:'0 0 0.875rem' }}>Lancez une recherche</p>
+                <FleuronDiscret vide="recherche" />
               </div>
             )}
             {loading && (

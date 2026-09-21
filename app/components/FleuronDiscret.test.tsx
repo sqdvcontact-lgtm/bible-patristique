@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import FleuronDiscret, { HAUTEUR_FLEURON_DISCRET, OPACITE_FLEURON_DISCRET, PLANCHE_FLEURON_DISCRET } from './FleuronDiscret'
+import FleuronDiscret, { FLEURONS_DES_VIDES, HAUTEUR_FLEURON_DISCRET, OPACITE_FLEURON_DISCRET, PLANCHE_FLEURON_DISCRET, poseDuVide, type VideFleuronne } from './FleuronDiscret'
+import { FLEURONS } from '../lib/fleurons'
 
 // ── LE PETIT FLEURON DE « AUCUNE OCCURRENCE » ─────────────────────────────────────────
 //
@@ -37,9 +38,34 @@ describe('le petit fleuron d’un état vide', () => {
     expect(OPACITE_FLEURON_DISCRET).toBeLessThanOrEqual(0.5)
   })
 
-  it('⛔ ne suit que « Aucune occurrence », jamais un filtre qui vide la liste', () => {
+  it('⛔ ne suit que « Aucune occurrence » dans le volet des Pères, jamais un filtre qui vide la liste', () => {
     const panneau = readFileSync(join(process.cwd(), 'app/components/PanneauPatristique.tsx'), 'utf8')
-    expect(panneau.match(/<FleuronDiscret\b/g) ?? []).toHaveLength(1)
     expect(panneau).toContain('{itemsAffiches.length === 0 && <FleuronDiscret />}')
+    expect(panneau).toContain('<FleuronDiscret vide="commentaires" />')
+    expect(panneau.match(/<FleuronDiscret/g) ?? []).toHaveLength(2)
+  })
+
+  it('⛔ chaque vide prend un fleuron du registre, servi au double de sa pose au plus', () => {
+    for (const vide of Object.keys(FLEURONS_DES_VIDES) as VideFleuronne[]) {
+      const p = poseDuVide(vide)
+      expect(dimensionsPng(join(process.cwd(), 'public', p.chemin)), vide).toEqual({ largeur: p.largeur, hauteur: p.hauteur })
+      expect(p.hauteur / (Number.parseFloat(p.pose) * 16), vide).toBeLessThanOrEqual(2.05)
+      const cle = FLEURONS_DES_VIDES[vide]
+      if (cle !== null) expect(FLEURONS.some(f => f.cle === cle), vide).toBe(true)
+    }
+  })
+
+  it('⛔ plus aucune gravure d’état vide : chaque vide pose son fleuron', () => {
+    const poses: [string, string][] = [
+      ['app/oeuvre/[id]/OngletCommentaires.tsx', 'commentaires'],
+      ['app/oeuvre/[id]/OeuvreClient.tsx', 'liensBibliques'],
+      ['app/recherche/RechercheClient.tsx', 'recherche'],
+      ['app/polyglotte/page.tsx', 'polyglotte'],
+    ]
+    for (const [f, vide] of poses) {
+      const src = readFileSync(join(process.cwd(), f), 'utf8')
+      expect(src, f).toContain(`<FleuronDiscret vide="${vide}" />`)
+      expect(src, f).not.toMatch(/carapace-posee|arbre-corbeau|desert-fosse|ordinateur-ardent/)
+    }
   })
 })

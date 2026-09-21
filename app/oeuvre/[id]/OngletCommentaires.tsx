@@ -8,6 +8,7 @@ import { supabase } from "@/app/lib/supabase"
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { insererSignalement } from './signalements'
+import FleuronDiscret from '@/app/components/FleuronDiscret'
 import EditeurCommentaire from '@/app/components/EditeurCommentaire'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
@@ -442,21 +443,13 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           </div>
         )}
         {!loading && !erreurChargement && commentaires.length === 0 && (
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '8px 0' }}>
-            {/* La carapace vide tient le volet tant que personne n'a parlé, et elle se pose au
-                MILIEU de la zone défilante, en largeur comme en hauteur. Le centrage vertical
-                vient du « height: 100 % » de cette enveloppe : la zone est déjà « flex: 1 », donc
-                sa hauteur tient compte du formulaire épinglé au bas du volet sans qu'on ait à la
-                calculer. Un plafond composé sur la fenêtre, lui, devrait deviner cette hauteur.
-
-                ⛔ Aucune LARGEUR ni HAUTEUR posée sur la gravure, deux MAXIMA seulement (charte,
-                « Une illustration se borne par deux maxima, jamais par une largeur posée »). Le
-                plafond réserve 3,5 rem à l'invite qui se pose dessous, et « flexShrink: 0 » interdit
-                à la colonne de comprimer la planche : une hauteur imposée à une largeur déjà
-                arrêtée écraserait le dessin au lieu de le recalculer. */}
-            <img className="cs-ornement" src="/ornements/carapace-posee.png" alt="" aria-hidden="true"
-              style={{ maxWidth: 'min(20rem, 82%)', maxHeight: 'calc(100% - 3.5rem)', flexShrink: 0, opacity: 0.42 }} />
-            <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', margin: 0 }}>Aucun commentaire pour ce passage.</p>
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', padding: '8px 0' }}>
+            {/* L'absence se dit, puis un fleuron la ferme (demande de l'auteur, 21 septembre
+                2026 : les gravures d'état vide cèdent aux fleurons du registre). Même composition
+                que « Aucune occurrence. » : au MILIEU de la zone, la mention au-dessus. Voir
+                `FleuronDiscret`, qui dit quel fleuron ferme quel vide. */}
+            <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', textAlign: 'center', margin: 0 }}>Aucun commentaire pour ce passage.</p>
+            <FleuronDiscret vide="commentaires" />
           </div>
         )}
         {principaux.map(c => (

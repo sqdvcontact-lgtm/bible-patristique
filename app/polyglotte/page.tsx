@@ -20,6 +20,7 @@ import { createPortal } from "react-dom";
 import { cesurerGrec, codeLangue, copierSansCesures } from "@/app/lib/grec";
 import { cesurerLatin } from "@/app/lib/cesuresLatines";
 import { supabase } from "@/app/lib/supabase";
+import FleuronDiscret from "@/app/components/FleuronDiscret";
 import NavLivres from "@/app/components/NavLivres";
 import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } from "@/app/lib/chapitresCanon";
 import IconeCrayon from "@/app/components/IconeCrayon";
@@ -2217,27 +2218,9 @@ export default function PolyglottePage() {
           <br /><br />
           <strong>Ouvrez-la depuis un ordinateur ou une tablette.</strong>
         </p>
-        {/* CUL-DE-LAMPE, et non frontispice. Placée en tête, la gravure devenait l'enseigne
-            de la page et l'on butait dessus avant de savoir de quoi il retournait. En pied,
-            elle fait ce que font les autres ornements du site : elle ferme le propos et le
-            commente. L'ordinateur sous les langues de feu de la Pentecôte, l'alpha et
-            l'oméga sur le moniteur, c'est la Polyglotte dite en une image, celle des langues
-            rassemblées ; le grand écran qu'on demande s'entend alors comme une promesse
-            plutôt que comme une porte fermée.
-            L'INTENSITÉ et l'ENCRE sont celles de la tour de Babel, à l'autre bout de la même
-            page : cet écran n'a lui non plus qu'une gravure pour tout contenu, et elle porte le
-            propos au lieu d'orner un vide.
-            ⛔ Deux MAXIMA, aucune largeur ni hauteur posée (charte). Le plafond de hauteur n'est
-            pas décoratif ici : la planche est en hauteur là où la précédente était en largeur,
-            et sur un téléphone bas elle chasserait le texte hors de l'écran.
-            PNG DÉTOURÉ, jamais mix-blend-mode. L'opacité posée sur la même image crée un
-            contexte d'empilement qui isole l'élément et annule le mélange : le fond crème
-            réapparaîtrait (voir la note des ornements dans app/chantier/page.tsx). Ici la
-            luminance du papier est passée en canal alpha, et l'encre REPOSÉE en une teinte
-            unique, mesurée sur la planche : la décomposition par pixel divise par l'alpha et
-            fait virer les bords au bruit coloré sur un papier presque blanc. */}
-        <img className="cs-ornement" src="/ornements/ordinateur-ardent.png" alt="" aria-hidden="true"
-          style={{ display: "block", maxWidth: "min(16rem, 76%)", maxHeight: "46dvh", margin: "34px auto 0", opacity: 0.92 }} />
+        {/* Un fleuron du registre ferme le message (21 septembre 2026 : l'ordinateur ardent a
+            cédé sa place). Voir `FleuronDiscret`, qui dit quel fleuron ferme quel vide. */}
+        <div style={{ display: "flex", justifyContent: "center", marginTop: "34px" }}><FleuronDiscret vide="polyglotte" /></div>
       </div>
 
       {/* Le MÊME volet que la page Bible — pas un cousin qui lui ressemble. Un seul composant

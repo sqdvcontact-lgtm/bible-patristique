@@ -856,22 +856,13 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
       <div style={{ flex:1, minHeight:0, overflowY:'auto' }}>
         {loading && <MotAttente />}
         {!loading && commentaires.length === 0 && (
-          <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'12px', padding:'8px 0' }}>
-            {/* Même carapace que le volet d'une œuvre, et posée de la même façon : au MILIEU
-                de la zone défilante, en largeur comme en hauteur, l'invite dessous. Le centrage
-                vertical vient du flux, la zone étant déjà « flex: 1 » : sa hauteur tient donc
-                compte de la saisie épinglée au bas du volet, sans qu'on ait à la calculer.
-
-                ⛔ Plus de `mix-blend-mode` : la planche est DÉTOURÉE, elle n'a plus de fond blanc
-                à fondre dans le papier, et l'opacité posée sur la même image créait de toute
-                façon un contexte d'empilement qui annulait le mélange (charte).
-
-                ⛔ Aucune LARGEUR posée, deux MAXIMA seulement. Le `min(168px, 58%)` d'avant était
-                une valeur absolue, qui ne suivait pas la police racine : la gravure rapetissait à
-                mesure que l'écran s'agrandissait. */}
-            <img className="cs-ornement" src="/ornements/carapace-posee.png" alt="" aria-hidden="true"
-              style={{ maxWidth:'min(20rem, 82%)', maxHeight:'calc(100% - 3.5rem)', flexShrink:0, opacity:0.42 }} />
-            <p style={{ fontSize:'0.75rem', color:'var(--cs-texte-faible)', fontStyle:'italic', margin:0 }}>Aucun commentaire.</p>
+          <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'0.75rem', padding:'8px 0' }}>
+            {/* L'absence se dit, puis un fleuron la ferme (demande de l'auteur, 21 septembre
+                2026 : les gravures d'état vide cèdent aux fleurons du registre). Même composition
+                que « Aucune occurrence. » : au MILIEU de la zone, la mention au-dessus. Voir
+                `FleuronDiscret`, qui dit quel fleuron ferme quel vide. */}
+            <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', textAlign: 'center', margin: 0 }}>Aucun commentaire.</p>
+            <FleuronDiscret vide="commentaires" />
           </div>
         )}
         {principaux.map(c => (

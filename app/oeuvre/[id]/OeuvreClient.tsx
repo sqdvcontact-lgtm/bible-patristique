@@ -11,6 +11,7 @@ import { codesTraductionsLecture } from '@/app/lib/traductions'
 // fermait la division (2026-09-05, voir `app/lib/chargementTolerant.ts`).
 import { champDuTitre, projeterAppelsNotesStructureesEnSignalant as projeterAppels } from '@/app/lib/appelsNotesStructurees'
 import type { DegradationChargement } from '@/app/lib/chargementTolerant'
+import FleuronDiscret from '@/app/components/FleuronDiscret'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
 import { CLASSES_BIBLIOGRAPHIE, estBlocBibliographique } from '@/app/lib/apparatBibliographie'
 import { comparerOuvragesDUnVolume, ouvrageDeLaNotice, type OuvrageBibliographique } from '@/app/lib/bibleBibliographieOuvrages'
@@ -5034,22 +5035,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 {segActifData ? (
                   <>
                     {segActifData.versets.length === 0 ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '18px' }}>
-                        {/* La mesure et l'opacité de l'arbre ardent, qui tenait le volet resté
-                            vide jusqu'au 15 septembre 2026 : il en est parti, l'invite y demeure
-                            seule. L'arbre est ici mort et le corbeau seul — le passage n'a pas de
-                            lien biblique, et l'image le dit avant la phrase.
-
-                            ⛔ Aucune LARGEUR posée, deux MAXIMA seulement (charte, « Une illustration
-                            se borne par deux maxima, jamais par une largeur posée »).
-
-                            Le plafond de hauteur réserve 13,5 rem là où l'arbre ardent en réservait
-                            11,5 : outre la barre, les onglets et le sélecteur de traduction, il faut
-                            ici la place de l'invite ET du bouton de proposition, qui se pose dessous
-                            et sortirait de l'écran sur une fenêtre basse. */}
-                        <img className="cs-ornement" src="/ornements/arbre-corbeau.png" alt="" aria-hidden="true"
-                          style={{ maxWidth: 'min(24rem, 88%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 13.5rem)`, opacity: 0.42 }} />
-                        <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', margin: '10px 0 0' }}>Aucun lien biblique pour ce passage.</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', marginTop: '18px' }}>
+                        {/* L'absence se dit, puis un fleuron la ferme (demande de l'auteur, 21 septembre
+                            2026 : les gravures d'état vide cèdent aux fleurons du registre). Même composition
+                            que « Aucune occurrence. » : au MILIEU de la zone, la mention au-dessus. Voir
+                            `FleuronDiscret`, qui dit quel fleuron ferme quel vide. */}
+                        <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', textAlign: 'center', margin: 0 }}>Aucun lien biblique pour ce passage.</p>
+                        <FleuronDiscret vide="liensBibliques" />
                       </div>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
