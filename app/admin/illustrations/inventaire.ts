@@ -172,11 +172,9 @@ export const ILLUSTRATIONS: Illustration[] = [
   {
     chemin: '/ornements/fleuron-volutes-petit.png',
     nom: 'Fleuron — volutes, en petit',
-    fonction: 'blanc',
-    emploi: 'Suit « Aucune occurrence. » dans le volet des Pères, quand aucun Père ne cite ni ne commente le passage désigné : il ferme la mention sans illustrer l’absence. Depuis le 21 septembre 2026, les autres états vides prennent chacun un fleuron du registre (app/components/FleuronDiscret.tsx, FLEURONS_DES_VIDES).',
-    lieu: { href: '/?livre=1CH&chapitre=3&verset=1&trad=TR0001', label: '1 Chroniques 3, 1', repere: 'Volet de droite, onglet « Pères de l’Église » : sous la mention « Aucune occurrence. », au centre de la colonne.' },
-    source: 'app/components/FleuronDiscret.tsx',
-    traitement: { masque: true, opacite: 0.5, pose: { hauteur: '2rem', sol: 'surface' } },
+    fonction: 'reserve',
+    emploi: 'A suivi « Aucune occurrence. » dans le volet des Pères du 14 au 21 septembre 2026. Remplacé ce soir-là par la croix à volutes du registre, posée désormais sous toutes les mentions d’état vide (décision de l’auteur : « utilise-le, plutôt ; partout »). La planche demeure au dépôt, sans emploi.',
+    traitement: { masque: true, opacite: 0.5 },
     note: 'Demandé par l’auteur le 14 septembre 2026 : « ajoute un petit fleuron parmi la liste des fleurons ; le plus élégant, discret ». C’est le fleuron à volutes, le plus ajouré du jeu, refait à sa taille par la chaîne commune (scripts/ornements-detourer.mjs) et servi en 38 × 63 pour une pose de 2rem de haut, soit 1,97 fois sa taille d’affichage à la racine 16. ⛔ Il n’entre pas au registre des fleurons (app/lib/fleurons.ts) : le registre est la liste qu’on offre à une œuvre, et cette planche paraîtrait à la roulette du volet. ⚠️ Opacité de 0,5, celle des culs-de-lampe, qui n’ornent qu’un vide ; posé en masque, il prend l’encre du texte second dans les deux thèmes. Jugé sur planche aux racines 16 et 22, sur les deux sols, à côté de la croix du site, plus lourde à cette taille. La planche du registre, servie en 60 × 103 pour 3,25 rem, l’aurait été plus de trois fois à cette pose.',
   },
 
@@ -468,11 +466,11 @@ export const ILLUSTRATIONS: Illustration[] = [
   {
     chemin: '/ornements/fleuron-croix-volutes.png',
     nom: 'Fleuron — croix à volutes',
-    fonction: 'coiffer',
-    emploi: "Offert au choix du fleuron d’une œuvre, dans le panneau de la roulette du volet. Croix latine prise dans quatre paires de volutes, la plus typographique du lot. Elle est SYMÉTRIQUE sur ses deux axes, comme le fleuron du site. Livré le 20 septembre 2026 avec les vingt-quatre autres symboles.",
-    lieu: { href: '/oeuvre/A0010O0100', label: 'Annotations sur le livre de Job', repere: 'Entre le colophon de la page de titre et le premier titre de division. Le choix se prend à la roulette du volet, onglet « Fleuron ».' },
-    source: 'app/lib/fleurons.ts',
-    traitement: { masque: true, pose: { hauteur: '3rem', sol: 'papier' } },
+    fonction: 'blanc',
+    emploi: "Ferme, depuis le 21 septembre 2026, toutes les mentions d’état vide du site (« Aucune occurrence. », « Aucun commentaire », « Aucun lien biblique », l’invite de la recherche, le message de la Polyglotte sur petit écran), à 3 rem et à l’opacité 0,5 d’un cul-de-lampe (décision de l’auteur : « utilise-le, plutôt ; partout »). Offert aussi au choix du fleuron d’une œuvre, dans le panneau de la roulette du volet. Croix latine prise dans quatre paires de volutes, la plus typographique du lot. Elle est SYMÉTRIQUE sur ses deux axes, comme le fleuron du site. Livré le 20 septembre 2026 avec les vingt-quatre autres symboles.",
+    lieu: { href: '/?livre=1CH&chapitre=3&verset=1&trad=TR0001', label: '1 Chroniques 3, 1', repere: 'Volet de droite, onglet « Pères de l’Église » : sous la mention « Aucune occurrence. ». Même fleuron sous tous les états vides.' },
+    source: 'app/components/FleuronDiscret.tsx',
+    traitement: { masque: true, opacite: 0.5, pose: { hauteur: '3rem', sol: 'papier' } },
     note: "Fabriquée par la chaîne commune (scripts/ornements-detourer.mjs, option --recadrer), servie en 80 × 95 pour une pose de 3rem de haut — une planche se sert au double de sa taille d’affichage, jamais plus. ⚠️ Sa hauteur de pose est MESURÉE, à la taille réelle, sur planche agrandie au plus proche voisin, sur les deux sols. ⛔ La changer oblige à rejouer la planche. Le registre, ses dimensions et sa garde vivent dans app/lib/fleurons.ts. La planche brute est conservée dans tmp/fleurons-source-20260920/, hors dépôt, et sa copie de chaîne dans C:\\Corpus Scriptura\\ornements-originaux-20260823.",
   },
   {

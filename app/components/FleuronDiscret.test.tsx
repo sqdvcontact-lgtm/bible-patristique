@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import FleuronDiscret, { FLEURONS_DES_VIDES, HAUTEUR_FLEURON_DISCRET, OPACITE_FLEURON_DISCRET, PLANCHE_FLEURON_DISCRET, poseDuVide, type VideFleuronne } from './FleuronDiscret'
+import FleuronDiscret, { FLEURONS_DES_VIDES, OPACITE_FLEURON_DISCRET, poseDuVide, type VideFleuronne } from './FleuronDiscret'
 import { FLEURONS } from '../lib/fleurons'
 
 // ── LE PETIT FLEURON DE « AUCUNE OCCURRENCE » ─────────────────────────────────────────
@@ -17,23 +17,15 @@ function dimensionsPng(chemin: string) {
 }
 
 describe('le petit fleuron d’un état vide', () => {
-  it('déclare les dimensions réelles de sa planche', () => {
-    const reelles = dimensionsPng(join(process.cwd(), 'public', PLANCHE_FLEURON_DISCRET.chemin))
-    expect(reelles).toEqual({ largeur: PLANCHE_FLEURON_DISCRET.largeur, hauteur: PLANCHE_FLEURON_DISCRET.hauteur })
-  })
-
-  it('⛔ se sert au double de sa taille d’affichage, jamais plus', () => {
-    const affichee = Number.parseFloat(HAUTEUR_FLEURON_DISCRET) * 16
-    const rapport = PLANCHE_FLEURON_DISCRET.hauteur / affichee
-    expect(rapport).toBeLessThanOrEqual(2)
-    expect(rapport).toBeGreaterThanOrEqual(1.75)
+  it('⛔ tous les vides prennent la croix à volutes (décision de l’auteur, 21 septembre 2026)', () => {
+    for (const cle of Object.values(FLEURONS_DES_VIDES)) expect(cle).toBe('croix-volutes')
   })
 
   it('se pose en masque, muet, à l’opacité d’un ornement de vide', () => {
     const html = renderToStaticMarkup(<FleuronDiscret />)
     expect(html).toContain('class="cs-fleuron"')
     expect(html).toContain('aria-hidden="true"')
-    expect(html).toContain(`mask-image:url(${PLANCHE_FLEURON_DISCRET.chemin})`)
+    expect(html).toContain(`mask-image:url(${poseDuVide('peres').chemin})`)
     expect(OPACITE_FLEURON_DISCRET).toBeGreaterThanOrEqual(0.42)
     expect(OPACITE_FLEURON_DISCRET).toBeLessThanOrEqual(0.5)
   })
@@ -51,7 +43,7 @@ describe('le petit fleuron d’un état vide', () => {
       expect(dimensionsPng(join(process.cwd(), 'public', p.chemin)), vide).toEqual({ largeur: p.largeur, hauteur: p.hauteur })
       expect(p.hauteur / (Number.parseFloat(p.pose) * 16), vide).toBeLessThanOrEqual(2.05)
       const cle = FLEURONS_DES_VIDES[vide]
-      if (cle !== null) expect(FLEURONS.some(f => f.cle === cle), vide).toBe(true)
+      expect(FLEURONS.some(f => f.cle === cle), vide).toBe(true)
     }
   })
 

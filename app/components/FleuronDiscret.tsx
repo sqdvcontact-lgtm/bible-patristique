@@ -9,8 +9,7 @@
 // ⛔ UNE SEULE TABLE DIT QUEL FLEURON FERME QUEL VIDE : `FLEURONS_DES_VIDES`. Chaque vide
 // a le sien, pris au REGISTRE (`app/lib/fleurons.ts`) et posé à la hauteur que le registre
 // lui mesure : une planche se sert au double de sa taille d'affichage, jamais plus, et le
-// registre la tient déjà. Le vide des Pères garde sa planche propre, le fleuron à volutes
-// refait à 2 rem, qui n'est pas au registre (elle paraîtrait à la roulette du volet).
+// registre la tient déjà. Depuis le soir du 21 septembre 2026, tous prennent la croix à volutes.
 //
 // ⚠️ Posé en MASQUE, comme tout fleuron : `.cs-fleuron` porte l'encre du texte second, et
 // une seule planche sert les deux thèmes. L'opacité est celle des culs-de-lampe, qui
@@ -21,26 +20,20 @@
 
 import { FLEURONS } from '../lib/fleurons'
 
-/** La planche du vide des Pères, et ses dimensions RÉELLES. */
-export const PLANCHE_FLEURON_DISCRET = { chemin: '/ornements/fleuron-volutes-petit.png', largeur: 38, hauteur: 63 } as const
-
-/** Sa hauteur de pose. ⚠️ 63 pixels de planche pour 32 affichés à la racine 16 : 1,97. */
-export const HAUTEUR_FLEURON_DISCRET = '2rem'
-
 export const OPACITE_FLEURON_DISCRET = 0.5
 
-/** Quel fleuron ferme quel vide. `null` : la planche propre du vide des Pères. */
+/** Quel fleuron ferme quel vide. ⚠️ Un seul depuis le 21 septembre 2026, la croix à volutes, « partout » (décision de l’auteur) ; la table reste pour qu’un vide puisse un jour en prendre un autre. */
 export const FLEURONS_DES_VIDES = {
   /** « Aucune occurrence. » — volet des Pères, page Bible et péricopes. */
-  peres: null,
+  peres: 'croix-volutes',
   /** « Aucun commentaire » — volets de commentaires de la Bible et d'une œuvre. */
-  commentaires: 'calice',
+  commentaires: 'croix-volutes',
   /** « Aucun lien biblique pour ce passage. » — volet de droite d'une œuvre. */
-  liensBibliques: 'fleur-de-lys',
+  liensBibliques: 'croix-volutes',
   /** « Lancez une recherche » — page des résultats, avant toute requête. */
-  recherche: 'oeil',
+  recherche: 'croix-volutes',
   /** « Elle demande un écran large » — Polyglotte sur un petit écran. */
-  polyglotte: 'quadrilobe',
+  polyglotte: 'croix-volutes',
 } as const
 
 export type VideFleuronne = keyof typeof FLEURONS_DES_VIDES
@@ -49,7 +42,6 @@ export type VideFleuronne = keyof typeof FLEURONS_DES_VIDES
  *  table écrite dans le code, et une faute de frappe doit se voir aux tests. */
 export function poseDuVide(vide: VideFleuronne): { chemin: string; largeur: number; hauteur: number; pose: string } {
   const cle = FLEURONS_DES_VIDES[vide]
-  if (cle === null) return { ...PLANCHE_FLEURON_DISCRET, pose: HAUTEUR_FLEURON_DISCRET }
   const f = FLEURONS.find(x => x.cle === cle)
   if (!f) throw new Error(`Fleuron « ${cle} » absent du registre`)
   return { chemin: `/ornements/${f.fichier}.png`, largeur: f.planche.largeur, hauteur: f.planche.hauteur, pose: f.hauteur }
