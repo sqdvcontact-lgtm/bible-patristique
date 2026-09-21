@@ -142,7 +142,10 @@ export function styleBlocVerset({ actif, mobile }: { actif?: boolean; mobile?: b
     borderRadius: '4px',
     padding: `0.0625rem ${symetrique ? DEBORD_BLOC_VERSET_REM : DEBORD_DROIT_ETROIT_REM}rem 0.0625rem 0`,
     ...(symetrique ? { marginRight: `-${EMPIETEMENT_BLOC_VERSET_REM}rem` } : null),
-    background: actif ? 'rgba(var(--cs-vert-rgb),0.11)' : 'transparent',
+    // ⛔ Pas de fond au repos : le survol se pose par la feuille (`.verset-row:hover
+    // .verset-bloc`), et un `transparent` en ligne le battrait.
+    ...(actif ? { background: 'var(--cs-lecture-retenu)' } : null),
+    transition: 'background-color 0.12s ease',
   }
 }
 

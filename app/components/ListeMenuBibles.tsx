@@ -62,9 +62,14 @@ type Props = {
   style: CSSProperties
   /** Le côté où les familles déploient leur sous-menu, et où leur chevron se pose. */
   cote?: CoteSousMenu
+  /** Ouvrir une famille EN REGARD, à partir de l'index de son texte d'origine. Absent, le
+   *  sous-menu ne propose que les langues (le volet de droite d'une œuvre). */
+  choisirEnRegard?: (index: number) => void
+  /** La page lit-elle déjà la famille active en regard ? */
+  enRegard?: boolean
 }
 
-export default function ListeMenuBibles({ id, libelle, traductions, traductionIndex, choisir, fermer, cadre, style, cote = 'droite' }: Props) {
+export default function ListeMenuBibles({ id, libelle, traductions, traductionIndex, choisir, fermer, cadre, style, cote = 'droite', choisirEnRegard, enRegard = false }: Props) {
   const [deploye, setDeploye] = useState<{ cle: string; place: PlacementSousMenu } | null>(null)
   const lignes = useRef<(HTMLButtonElement | null)[]>([])
   const sousLignes = useRef<(HTMLButtonElement | null)[]>([])
@@ -190,6 +195,26 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
         const actif = entree.membres.some(m => m.index === traductionIndex)
         const ouverte = deploye?.cle === entree.cle
         const defaut = entree.membres[0]
+        // ⛔ LA LECTURE EN REGARD SE CHOISIT AUSSI ICI (demande de l'auteur, 2026-09-21),
+        // en dernière ligne du sous-menu, après les langues : « Ancien français & Français
+        // moderne ». Elle reste dans le menu « Mode de lecture » du volet de gauche.
+        // ⚠️ Le libellé suit la règle du volet : la langue d'ORIGINE ouvre, la traduction suit.
+        const sousLignesFamille: { cle: string; libelle: string; titre: string; courant: boolean; choisir: () => void }[] = [
+          ...entree.membres.map(membre => ({
+            cle: traductions[membre.index].code,
+            libelle: membre.libelle,
+            titre: traductions[membre.index].label,
+            courant: !enRegard && membre.index === traductionIndex,
+            choisir: () => choisir(membre.index),
+          })),
+          ...(choisirEnRegard && entree.membres.length >= 2 ? [{
+            cle: `${entree.cle}:regard`,
+            libelle: `${entree.membres[0].libelle} & ${entree.membres[1].libelle}`,
+            titre: `${entree.nom} : les deux textes en regard`,
+            courant: enRegard && actif,
+            choisir: () => choisirEnRegard(defaut.index),
+          }] : []),
+        ]
         // ⚠️ Le chevron déploie SANS choisir : sur un écran tactile, la main ne survole pas,
         // et c'est lui qui donne accès aux autres langues. Il se pose au bord du côté où le
         // sous-menu s'ouvre, et regarde vers lui.
@@ -198,7 +223,7 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
             onClick={e => {
               e.stopPropagation()
               if (ouverte) setDeploye(null)
-              else deployer(entree.cle, e.currentTarget.parentElement, entree.membres.length)
+              else deployer(entree.cle, e.currentTarget.parentElement, sousLignesFamille.length)
             }}>
             <IconeChevron dir={cote === 'gauche' ? 'left' : 'right'} taille={TAILLE_CHEVRON_MENU} strokeWidth={1.6} />
           </span>
@@ -207,14 +232,14 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
           <div key={entree.cle} role="none" onMouseLeave={replierBientot}>
             <button type="button" role="menuitem" aria-haspopup="menu" aria-expanded={ouverte}
               ref={el => { lignes.current[rang] = el }}
-              title={`${entree.nom} : ${entree.membres.map(m => m.libelle).join(', ')}`}
+              title={`${entree.nom} : ${sousLignesFamille.map(l => l.libelle).join(', ')}`}
               onClick={() => choisir(defaut.index)}
-              onMouseEnter={e => deployer(entree.cle, e.currentTarget, entree.membres.length)}
+              onMouseEnter={e => deployer(entree.cle, e.currentTarget, sousLignesFamille.length)}
               onKeyDown={e => {
                 if (circuler(e, rang, lignes.current, entrees.length)) return
                 if (e.key === toucheOuvrir) {
                   e.preventDefault()
-                  deployer(entree.cle, e.currentTarget, entree.membres.length)
+                  deployer(entree.cle, e.currentTarget, sousLignesFamille.length)
                   window.setTimeout(() => sousLignes.current[0]?.focus({ preventScroll: true }), 0)
                 } else if (e.key === toucheFermer) {
                   e.preventDefault()
@@ -237,15 +262,15 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
                   top: deploye.place.top, left: deploye.place.left, right: deploye.place.right,
                   minWidth: `${LARGEUR_SOUS_MENU_REM}rem`,
                 }}>
-                {entree.membres.map((membre, sousRang) => {
-                  const courant = membre.index === traductionIndex
+                {sousLignesFamille.map((ligne, sousRang) => {
+                  const courant = ligne.courant
                   return (
-                    <button key={traductions[membre.index].code} type="button" role="menuitemradio" aria-checked={courant}
+                    <button key={ligne.cle} type="button" role="menuitemradio" aria-checked={courant}
                       ref={el => { sousLignes.current[sousRang] = el }}
-                      title={traductions[membre.index].label}
-                      onClick={() => choisir(membre.index)}
+                      title={ligne.titre}
+                      onClick={ligne.choisir}
                       onKeyDown={e => {
-                        if (circuler(e, sousRang, sousLignes.current, entree.membres.length)) return
+                        if (circuler(e, sousRang, sousLignes.current, sousLignesFamille.length)) return
                         if (e.key === toucheFermer) {
                           e.preventDefault()
                           setDeploye(null)
@@ -260,8 +285,8 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
                       }}
                       onMouseEnter={e => { if (!courant) e.currentTarget.style.background = FOND_SURVOL_MENU }}
                       onMouseLeave={e => { if (!courant) e.currentTarget.style.background = 'var(--cs-surface)' }}
-                      style={styleLigneMenu(courant, sousRang === 0, sousRang === entree.membres.length - 1)}>
-                      {rendreEnrichi(membre.libelle)}
+                      style={styleLigneMenu(courant, sousRang === 0, sousRang === sousLignesFamille.length - 1)}>
+                      {rendreEnrichi(ligne.libelle)}
                     </button>
                   )
                 })}

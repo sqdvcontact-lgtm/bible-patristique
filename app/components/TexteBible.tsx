@@ -83,6 +83,8 @@ type Props = {
   traduction: string
   traductionIndex: number
   setTraductionIndex: (i: number) => void
+  /** Ouvrir une famille en regard depuis le menu central (voir `ListeMenuBibles`). */
+  choisirEnRegard?: (index: number) => void
   traductions: Traduction[]
   livreActif: string
   chapitreActif: number
@@ -469,7 +471,7 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
 }
 
 export default function TexteBible({
-  titresMasques, versets, traduction, traductionIndex, setTraductionIndex, traductions,
+  titresMasques, versets, traduction, traductionIndex, setTraductionIndex, choisirEnRegard, traductions,
   livreActif, chapitreActif, nomLivre,
   versetSelectionne, setVersetSelectionne, densites, mobile = false,
   editionChapter, notesDesVersets = null, maniereDeLire, pieceAffichee = null,
@@ -809,6 +811,7 @@ export default function TexteBible({
             traductions={traductions}
             traductionIndex={traductionIndex}
             setTraductionIndex={setTraductionIndex}
+            choisirEnRegard={choisirEnRegard}
           />
           <div />
         </div>
@@ -825,7 +828,6 @@ export default function TexteBible({
             l'autre (voir `BibleLayout`, « passage »). L'en-tête, lui, ne bouge pas. */}
         <div className="cs-lecture-colonne" data-colonne-lecture="" style={{ maxWidth: 'var(--mesure-page)', margin: '0 auto', paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
           <style>{`
-            .verset-row:hover { background: rgba(var(--cs-vert-rgb),0.05); }
             .verset-row:hover .bouton-action-verset { opacity: 1 !important; }
             .verset-row--actif .bouton-action-verset { opacity: 0.5; }
             /* ⛔ La densité ne paraît qu'au SURVOL, avec les actions dont elle ferme la

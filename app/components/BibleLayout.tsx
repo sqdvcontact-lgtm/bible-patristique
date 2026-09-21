@@ -709,6 +709,12 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
     texteSeul: cible.texteSeul ?? texteSeul,
   })
   const choisirModeLecture = (cible: CibleLectureAlternative) => { naviguer(urlDuMode(cible)) }
+  // Le menu central ouvre aussi une famille EN REGARD (demande de l'auteur, 2026-09-21) :
+  // l'index est celui du texte d'origine, et la lecture en regard garde le reste de la manière.
+  const choisirEnRegard = (index: number) => {
+    const code = listeTraductions[index]?.code
+    if (code) choisirModeLecture({ trad: code, bilingue: true })
+  }
   // La page est DEMANDÉE AU SURVOL, avant même le clic : le temps qu'on descende
   // du libellé au bouton, le serveur a commencé. Une fois par adresse.
   const preparerModeLecture = (cible: CibleLectureAlternative) => { precharger(urlDuMode(cible)) }
@@ -888,6 +894,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
             traductions={listeTraductions}
             traductionIndex={traductionIndex}
             setTraductionIndex={handleSetTraductionIndex}
+            choisirEnRegard={choisirEnRegard}
             canonSelectionne={versetSelectionneCourant?.id_verset ?? null}
             onSelectionnerVerset={selectionnerCanon}
           />
@@ -898,6 +905,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           traduction={traduction}
           traductionIndex={traductionIndex}
           setTraductionIndex={handleSetTraductionIndex}
+          choisirEnRegard={choisirEnRegard}
           traductions={listeTraductions}
           livreActif={livreActif}
           chapitreActif={chapitreActif}

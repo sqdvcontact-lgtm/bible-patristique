@@ -154,6 +154,11 @@
   --cs-gravure: #22211e;
   /* Vert d'accent : teinte pâle pour encarts (l'aplat est au-dessus) */
   --cs-vert-pale: #dfe8e0;
+  /* ⛔ LA MARQUE DE LECTURE : un seul jeu pour tout ce qu'on survole ou retient en lisant
+     (verset, segment, rangée en regard ; 2026-09-21). Deux doses d'une même teinte, et la
+     même boîte pour les deux états. Suit le thème par --cs-vert-rgb, posé sur la même racine. */
+  --cs-lecture-survol: rgba(var(--cs-vert-rgb), 0.07);
+  --cs-lecture-retenu: rgba(var(--cs-vert-rgb), 0.13);
   /* Danger & alerte (rouges-orangés d'action destructive) */
   --cs-danger: #c0562a;
   --cs-danger-rgb: 192, 86, 42;
@@ -1992,8 +1997,13 @@ button:focus-visible,
   border-radius: 4px;
   cursor: pointer;
 }
-.cs-regard-rangee:hover { background: rgba(var(--cs-vert-rgb), 0.05); }
-.cs-regard-rangee.cs-regard-rangee--retenue { background: rgba(var(--cs-vert-rgb), 0.11); }
+.cs-regard-rangee { transition: background-color 0.12s ease; }
+.cs-regard-rangee:hover { background: var(--cs-lecture-survol); }
+.cs-regard-rangee.cs-regard-rangee--retenue { background: var(--cs-lecture-retenu); }
+/* ⛔ Le verset de la lecture simple : le survol teint le BLOC du verset, la boîte même que
+   la sélection teint (styleBlocVerset), et non plus toute la rangée, gouttière d'actions
+   comprise. Le verset retenu porte son fond en ligne, qui l'emporte sur le survol. */
+.verset-row:hover .verset-bloc { background: var(--cs-lecture-survol); }
 /* ⛔ LA MARQUE DÉBORDE LE TEXTE AUTANT À DROITE QU'À GAUCHE (décision de l'auteur,
    14 septembre 2026 : « le bloc de sélection du verset doit être aussi long à droite qu'à
    gauche »). À gauche, le vert commence 0,25 rem avant la colonne du numéro, donc

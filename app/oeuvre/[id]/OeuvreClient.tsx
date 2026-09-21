@@ -3424,8 +3424,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            cellule qui paraît est pleine, et elle ne paraît que si on la demande. */
         /* Segments coulant dans un même bloc, délimités au survol. */
         .seg-inline { border-radius: 4px; padding: 0 0.5px; cursor: pointer; transition: background 0.12s; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
-        .seg-inline:hover { background: rgba(var(--cs-vert-rgb),0.09); }
-        .seg-inline--actif { background: var(--cs-vert-pale); }
+        .seg-inline:hover { background: var(--cs-lecture-survol); }
+        .seg-inline--actif { background: var(--cs-lecture-retenu); }
         /* ⛔ Le rapport des colonnes se MESURE, il ne se devine pas. Le français a
            besoin de plus de place que le latin : ses vers demandent 302 px au neuvième
            dixième contre 227, et 343 au quatre-vingt-dix-neuvième contre 283. Le
@@ -3487,8 +3487,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            en ligne : un enfant en display:block sort de l'inline et resterait sans
            surbrillance. Le survol et la sélection doivent donc l'atteindre à part,
            sans quoi une citation sortie ne se désigne plus au survol comme les autres. */
-        .seg-inline:hover .citation-sortie { background: rgba(var(--cs-vert-rgb),0.09); }
-        .seg-inline--actif .citation-sortie { background: var(--cs-vert-pale); }
+        .seg-inline:hover .citation-sortie { background: var(--cs-lecture-survol); }
+        .seg-inline--actif .citation-sortie { background: var(--cs-lecture-retenu); }
         /* Un segment entièrement cité ne laisse devant son bloc qu'un fragment en
            ligne VIDE. Son rembourrage y peignait au survol un trait vert d'un
            demi-pixel, flottant seul dans la marge au-dessus de la citation. */

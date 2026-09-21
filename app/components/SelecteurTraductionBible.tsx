@@ -3,10 +3,12 @@
 // Le menu déroulant CENTRAL de la page Bible : le nom du témoin qu'on lit, entre
 // deux filets, et la liste de TOUTES les bibles lisibles.
 //
-// ⛔ Il ne liste QUE des bibles. Les façons de lire — lecture en regard, texte nu,
-// graphie — vivent dans le menu « Mode de lecture » du volet de gauche : mêlées ici, elles
-// se donnaient pour des traductions de plus, et le lecteur qui les choisissait
-// croyait changer de bible. C'est aussi pourquoi ce menu est le MÊME dans toutes
+// ⛔ Il ne liste QUE des bibles, à UNE exception. Les façons de lire — texte nu, graphie —
+// vivent dans le menu « Mode de lecture » du volet de gauche : mêlées ici, elles se
+// donnaient pour des traductions de plus, et le lecteur qui les choisissait croyait
+// changer de bible. ⚠️ L’exception est la LECTURE EN REGARD (demande de l’auteur,
+// 2026-09-21) : elle se range dans le sous-menu de sa famille, après les langues, où elle
+// se lit comme une manière de lire CETTE bible et non comme une bible de plus. C'est aussi pourquoi ce menu est le MÊME dans toutes
 // les vues de la page (une colonne comme en regard) : on doit toujours pouvoir
 // changer de bible, quelle que soit la manière dont on lit celle qu'on a sous les
 // yeux.
@@ -26,7 +28,7 @@ import { STYLE_CHEVRON_MENU, TAILLE_CHEVRON_MENU } from '@/app/lib/stylesMenuBib
 import { useCallback, useId, useRef, useState } from 'react'
 
 import { rendreEnrichi } from '@/app/lib/enrichissements'
-import type { BibleDuMenu } from '@/app/lib/menuTraductionsBible'
+import { nomCommun, type BibleDuMenu } from '@/app/lib/menuTraductionsBible'
 
 /**
  * Le chevron du menu.
@@ -61,11 +63,16 @@ type Props = {
   traductions: readonly BibleDuMenu[]
   traductionIndex: number
   setTraductionIndex: (index: number) => void
+  /** Ouvrir une famille en regard (voir `ListeMenuBibles`). */
+  choisirEnRegard?: (index: number) => void
+  /** La page lit la famille en regard : le bouton nomme la famille, non l’un de ses textes. */
+  enRegard?: boolean
 }
 
-export default function SelecteurTraductionBible({ traductions, traductionIndex, setTraductionIndex }: Props) {
+export default function SelecteurTraductionBible({ traductions, traductionIndex, setTraductionIndex, choisirEnRegard, enRegard = false }: Props) {
   const [ouvert, setOuvert] = useState(false)
-  const label = traductions[traductionIndex]?.label ?? traductions[traductionIndex]?.code ?? 'Bible'
+  const nomLu = traductions[traductionIndex]?.label ?? traductions[traductionIndex]?.code ?? 'Bible'
+  const label = enRegard ? `${nomCommun(nomLu)} – en regard` : nomLu
   const cadre = useRef<HTMLDivElement>(null)
   const bouton = useRef<HTMLButtonElement>(null)
   const idListe = useId()
@@ -126,6 +133,8 @@ export default function SelecteurTraductionBible({ traductions, traductionIndex,
           <ListeMenuBibles id={idListe} libelle="Bibles disponibles"
             traductions={traductions} traductionIndex={traductionIndex}
             choisir={choisir} fermer={fermer} cadre={cadre}
+            choisirEnRegard={choisirEnRegard ? (index) => { choisirEnRegard(index); fermer(true) } : undefined}
+            enRegard={enRegard}
             style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', zIndex: 50, minWidth: '230px' }} />
         )}
       </div>

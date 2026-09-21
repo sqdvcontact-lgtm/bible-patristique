@@ -42,6 +42,8 @@ export type LectureBilingueBibleProps = LectureBilingueProps & {
   traductions: readonly { code: string; label: string }[]
   traductionIndex: number
   setTraductionIndex: (index: number) => void
+  /** Ouvrir une famille en regard depuis le menu central. */
+  choisirEnRegard?: (index: number) => void
 }
 
 export default function LectureBilingueBible({
@@ -52,6 +54,7 @@ export default function LectureBilingueBible({
   traductions,
   traductionIndex,
   setTraductionIndex,
+  choisirEnRegard,
   mobile = false,
   ...contenu
 }: LectureBilingueBibleProps) {
@@ -227,6 +230,8 @@ export default function LectureBilingueBible({
             traductions={traductions}
             traductionIndex={traductionIndex}
             setTraductionIndex={setTraductionIndex}
+            choisirEnRegard={choisirEnRegard}
+            enRegard
           />
           <div />
         </div>
