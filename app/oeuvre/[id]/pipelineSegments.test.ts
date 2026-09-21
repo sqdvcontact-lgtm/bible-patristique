@@ -223,7 +223,24 @@ describe('composerSegments', () => {
       seg({ id: 2, texte_original: 'in principio', cle_original: 'o2' }),
     ], contexte)
     expect(segments[0].texteOriginalAffichage).toBeUndefined()
-    expect(segments[1].texteOriginalAffichage).toBe('in principio')
+    // Identique à l’original, la projection ne voyage pas : on relit `texteOriginal`.
+    expect('texteOriginalAffichage' in segments[1]).toBe(false)
+    expect(segments[1].texteOriginal).toBe('in principio')
+  })
+
+  it('ne fait voyager aucune case vide', () => {
+    const { segments } = composerSegments([seg({ id: 1 })], contexte)
+    for (const cle of ['texteOriginal', 'cleOriginal', 'notesOriginal', 'groupeOriginal', 'alinea', 'stropheAvant', 'numeroVerset', 'forme'])
+      expect(cle in segments[0]).toBe(false)
+  })
+
+  it('ne fait voyager le texte projeté que s’il diffère du texte', () => {
+    const { segments } = composerSegments([
+      seg({ id: 1, segment_key: 'a', segment_texte: 'sans appel' }),
+      seg({ id: 2, segment_key: 'b', segment_texte: 'avec appel' }),
+    ], { ...contexte, projeterAppels: (t: string, cle: string | null) => (cle === 'b' ? `${t}[[1]]` : t) })
+    expect('texteAffichage' in segments[0]).toBe(false)
+    expect(segments[1].texteAffichage).toBe('avec appel[[1]]')
   })
 })
 

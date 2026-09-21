@@ -260,6 +260,10 @@ export type Props = {
   alignementsDisponibles: AlignementDisponible[]
   notesStructurees?: Record<string, Record<string, NoteStructuree>>
   ancresNotesStructurees?: Record<string, AncreNoteStructureeProjection[]>
+  /** Vrai quand la page n'a reçu que les notes des segments qu'elle rend (et, depuis le
+   *  2026-09-21, AUCUNE ancre) : le navigateur demande le reste quand il en a besoin
+   *  (voir `notesDuTexteUtiles`, `notesEnRegard.ts`). */
+  notesStructureesPartielles?: boolean
   /** Notes et ancres du TEXTE EN LANGUE ORIGINALE lu en regard, indexées par la
    *  `segment_key` de ce texte. Elles servent la seconde colonne du bilingue, que la
    *  traduction ne peut pas fournir : son `texte_original` n'est qu'une copie. */

@@ -20,7 +20,7 @@ import { codeLangue } from '@/app/lib/grec'
 import { JsonLd, donneesLivre, donneesFilAriane } from '@/app/lib/donneesStructurees'
 import FilAriane from '@/app/components/FilAriane'
 import { lireRetour } from '@/app/lib/retourLecture'
-import { notesEnRegardUtiles } from './notesEnRegard'
+import { notesDuTexteUtiles, notesEnRegardUtiles } from './notesEnRegard'
 import { descriptionOeuvre, enTetesPartage, titreOeuvre } from '@/app/lib/metadonneesSeo'
 import { porteDesLiensBibliques } from '@/app/lib/metadonneesSeoServeur'
 import OeuvreClient from './OeuvreClient'
@@ -756,6 +756,16 @@ export default async function OeuvrePage({
     ...segmentsApparatData.map(seg => seg.notesOriginal),
   ])
 
+  // Les notes du texte LU ne partent que pour les segments que la page rend, et sans leurs
+  // ancres : les segments portent déjà leurs notes, leurs appels sont déjà projetés. Les
+  // Homélies sur la Genèse envoyaient ainsi leurs 1 318 notes et leurs ancres en double de ce
+  // que portaient déjà les segments. Le navigateur demande le tout quand il en a besoin :
+  // l'inventaire des notes, une autre division, l'apparat rechargé (voir `notesEnRegard.ts`).
+  const notesDuTexteEnvoyees = notesDuTexteUtiles(
+    notesStructurees,
+    [...segmentsTexte, ...segmentsApparat].map(seg => seg.segment_key),
+  )
+
   // Le sommaire de l'apparat : une entrée par changement de niveau 1 ou 2.
   const tocApparat: TocEntry[] = []
   let la1 = '', la2 = ''
@@ -826,8 +836,8 @@ export default async function OeuvrePage({
       estAdmin={estAdmin}
       versionsTextuelles={versionsTextuelles}
       alignementsDisponibles={alignementsDisponibles}
-      notesStructurees={notesStructurees}
-      ancresNotesStructurees={ancresNotesStructurees}
+      notesStructurees={notesDuTexteEnvoyees.notes}
+      notesStructureesPartielles={notesDuTexteEnvoyees.partielles}
       notesOriginales={notesEnRegardEnvoyees.notes}
       ancresNotesOriginales={notesEnRegardEnvoyees.ancres}
       notesOriginalesPartielles={notesEnRegardEnvoyees.partielles}

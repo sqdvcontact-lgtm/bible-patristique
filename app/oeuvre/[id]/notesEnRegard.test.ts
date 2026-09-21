@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { notesEnRegardUtiles } from './notesEnRegard'
+import { notesDuTexteUtiles, notesEnRegardUtiles } from './notesEnRegard'
 import type { NoteStructuree } from './oeuvreTypes'
 
 const note = (noteKey: string): NoteStructuree => ({ noteKey, noteNumber: 1, blocks: [] })
@@ -37,5 +37,25 @@ describe('notesEnRegardUtiles', () => {
     const r = notesEnRegardUtiles({}, { 'L1:1': [ancre('N1')] }, [])
     expect(r.partielles).toBe(true)
     expect(notesEnRegardUtiles({}, {}, []).partielles).toBe(false)
+  })
+})
+
+describe('notesDuTexteUtiles', () => {
+  const notes = {
+    'T:1': { '1': note('N1') },
+    'T:2': { '2': note('N2') },
+  }
+
+  it('ne garde que les notes des segments rendus, et le dit', () => {
+    const r = notesDuTexteUtiles(notes, ['T:1', null, undefined, 'T:9'])
+    expect(Object.keys(r.notes)).toEqual(['T:1'])
+    expect(r.notes['T:1']).toBe(notes['T:1'])
+    expect(r.partielles).toBe(true)
+  })
+
+  it('n’est pas partielle quand tout est rendu', () => {
+    const r = notesDuTexteUtiles(notes, ['T:1', 'T:2'])
+    expect(Object.keys(r.notes).sort()).toEqual(['T:1', 'T:2'])
+    expect(r.partielles).toBe(false)
   })
 })

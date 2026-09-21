@@ -65,3 +65,34 @@ export function notesEnRegardUtiles(
   if (!partielles && Object.keys(ancres).some(segment => !(segment in gardees))) partielles = true
   return { notes: gardees, ancres: ancresGardees, partielles }
 }
+
+/**
+ * LES NOTES DU TEXTE LU qui partent avec la page (2026-09-21).
+ *
+ * Elles partaient ENTIÈRES, avec leurs ancres, parce que l'inventaire des notes (onglet
+ * « Notes », réservé à l'administrateur) et la recomposition d'une autre division en ont
+ * besoin. Or les segments rendus PORTENT déjà leurs notes (`SegData.notes`, les mêmes
+ * objets, que la charge RSC ne sérialise qu'une fois), et leurs appels sont déjà projetés
+ * dans le texte : les ancres ne servent qu'à recomposer. ⛔ On n'envoie donc que les
+ * notes des segments que la page rend, et AUCUNE ancre ; le navigateur demande le tout,
+ * une seule fois, quand il en a besoin — à l'ouverture de l'onglet « Notes », au
+ * changement de division, au rechargement de l'apparat (`OeuvreClient`,
+ * `notesDuTexteCompletes`).
+ *
+ * ⚠️ Les numéros affichés (`displayNumber`) sont calculés par le serveur sur l'appareil
+ * entier, AVANT ce tri : une note gardée garde le numéro que la page complète lui donne.
+ */
+export function notesDuTexteUtiles(
+  notes: NotesParSegment,
+  clesRendues: Iterable<string | null | undefined>,
+): { notes: NotesParSegment; partielles: boolean } {
+  const rendues = new Set<string>()
+  for (const cle of clesRendues) if (cle) rendues.add(cle)
+  const gardees: NotesParSegment = {}
+  let partielles = false
+  for (const [segment, table] of Object.entries(notes)) {
+    if (rendues.has(segment)) gardees[segment] = table
+    else partielles = true
+  }
+  return { notes: gardees, partielles }
+}

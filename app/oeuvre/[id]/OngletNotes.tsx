@@ -20,7 +20,7 @@
  * ⚠️ La règle — recensement, tri, filtres, aperçu — vit dans `notesInventaire.ts`, pure et
  * testée. Ce composant ne fait que la montrer et rendre le clic.
  */
-import { useEffect, useMemo, useState } from 'react'
+import { memo, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
@@ -155,6 +155,9 @@ export default function OngletNotes({
 }) {
   const [charge, setCharge] = useState<Charge | null>(null)
   const [recherche, setRecherche] = useState('')
+  // ⚠️ La liste se filtre sur une recherche DIFFÉRÉE : sur les 1 318 notes des Homélies
+  // sur la Genèse, filtrer à chaque frappe gelait le champ (patron de l'inventaire d'une bible).
+  const rechercheDifferee = useDeferredValue(recherche)
   const [intitule, setIntitule] = useState<string | null>(null)
   const [sourceRetenue, setSourceRetenue] = useState<string | null>(null)
   const [aRevoir, setARevoir] = useState(false)
@@ -194,8 +197,8 @@ export default function OngletNotes({
   const facettes = useMemo(() => comptesParIntitule(toutes), [toutes])
   const facettesTexte = useMemo(() => comptesParSource(toutes), [toutes])
   const retenues = useMemo(
-    () => filtrerNotes(toutes, { texte: recherche, intitule, source: sourceRetenue, aRevoir, sansPlace }),
-    [toutes, recherche, intitule, sourceRetenue, aRevoir, sansPlace],
+    () => filtrerNotes(toutes, { texte: rechercheDifferee, intitule, source: sourceRetenue, aRevoir, sansPlace }),
+    [toutes, rechercheDifferee, intitule, sourceRetenue, aRevoir, sansPlace],
   )
   const groupes = useMemo(() => grouperParDivision(retenues), [retenues])
   const filtre = Boolean(recherche.trim()) || intitule !== null || sourceRetenue !== null || aRevoir || sansPlace
@@ -286,7 +289,9 @@ export default function OngletNotes({
         {groupes.map(groupe => (
           // ⛔ La clé du groupe est le couple (texte, division), jamais la division seule :
           // les « Prolégomènes » de Dhuoda s'écrivent ainsi des deux côtés.
-          <section key={groupe.cle}>
+          // ⚠️ `content-visibility` : une division hors de la vue ne se compose pas, et une
+          // liste de mille notes s'ouvre sans attendre (patron de l'inventaire d'une bible).
+          <section key={groupe.cle} style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 320px' }}>
             <p style={{ ...RUBRIQUE_AXE, margin: '12px 0 4px' }}>
               {plusieursTextes && (
                 <span style={{ color: 'var(--cs-texte-doux)' }}>{groupe.source.libelle} · </span>
@@ -313,7 +318,7 @@ export default function OngletNotes({
  * Une note de l'inventaire. ⚠️ Le dessin de la ligne vit dans `LigneNoteInventaire`,
  * partagé avec l'inventaire d'une bible ; on ne dit ici que ce qu'elle montre.
  */
-function LigneNote({ note, courante, horsVue, onAller }: {
+const LigneNote = memo(function LigneNote({ note, courante, horsVue, onAller }: {
   note: NoteRecensee
   courante: boolean
   /** Sa place existe, mais la vue courante ne la compose pas : le bouton se tait. */
@@ -346,4 +351,4 @@ function LigneNote({ note, courante, horsVue, onAller }: {
         : <em style={{ color: 'var(--cs-texte-doux)' }}>note sans texte</em>}
     </LigneNoteInventaire>
   )
-}
+})

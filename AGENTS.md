@@ -12851,3 +12851,14 @@ Demande de l'auteur : un symbole au survol d'un verset, qui ouvre une fenêtre c
 - ⛔ **L'IMAGE EST UNE BALISE `<img>`, JAMAIS `next/image`**, et le lecteur de chantier porte `unoptimized` : l'optimisation d'images de Vercel compte chaque colonne à chaque largeur, sur un quota.
 - ⚠️ La fenêtre est montée DANS la rangée du verset : son calque arrête le clic (`stopPropagation`), un portail remontant ses événements par l'arbre React.
 - ⚠️ **Pas encore couvert** : la lecture en regard (`BibleBilingue`) et la Polyglotte. La provenance des images (Gallica ou autre) n'est notée nulle part : le pied de la fenêtre ne dit que « Paris, Bibliothèque nationale de France, français 899 ».
+
+
+# ⛔ LA CHARGE D'UNE PAGE D'ŒUVRE : notes du texte lu à la demande, aucune case vide (2026-09-21)
+
+Suite de 724d4a39 (notes du texte en regard). Mesuré hors serveur avec le VRAI sérialiseur Flight de Next (`next/dist/compiled/react-server-dom-webpack/server.node`, sous `--conditions=react-server`), qui DÉDOUBLONNE les objets référencés deux fois mais jamais les chaînes.
+
+- ⛔ **Les notes du texte LU ne partent que pour les segments rendus, et SANS ANCRES** (`notesDuTexteUtiles`, `notesEnRegard.ts`) : les segments portent déjà leurs notes (les mêmes objets) et leurs appels projetés. `OeuvreClient` demande le tout UNE fois (`notesDuTexteCompletes`) là où l'on recompose ou recense : l'onglet « Notes » à son ouverture (il attend jusque-là), une autre division, l'apparat rechargé. ⚠️ `displayNumber` est calculé sur l'appareil entier avant le tri.
+- ⛔ **Le texte projeté ne voyage que s'il diffère** (`projeterSegment`) : `texteAffichage` valait `texte` sur les 6 917 segments des Homélies sur la Genèse. Tous les lecteurs retombent sur `s.texteAffichage ?? s.texte`.
+- ⛔ **Une case vide ne voyage pas** (`CHAMPS_VIDES_OMIS`) : Flight écrit `null` et `"$undefined"` en toutes lettres. ⚠️ Un lecteur de ces champs teste `!= null`, jamais `=== null`.
+- **Mesures (charge Flight)** : Homélies sur la Genèse 7,7 → 4,4 Mo ; Confessions (latin lu) 4,0 → 0,3 ; Cité de Dieu (latin) 2,1 → 0,2 ; Catéchèses baptismales 1,96 → 0,26 ; Somme théologique 1,35 → 0,70. Harnais : `tmp/poids-notes/mesure.mts` (non versionné).
+- ⚠️ **Ce qui reste au-delà d'1 Mo : les Homélies sur la Genèse**, seules, parce qu'elles se lisent en TEXTE ENTIER (`lecture_texte_entier`) : les 1,9 M signes partent d'un bloc. Le remède est de paginer côté serveur ce mode, non les notes.
