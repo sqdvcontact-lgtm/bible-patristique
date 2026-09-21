@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
@@ -38,6 +39,8 @@ type Essai = {
   /** L'auteur porte-t-il la marque de mécène. Voir app/components/MarqueMecene.tsx. */
   auteur_mecene?: boolean
   verset_en_tete?: string | null
+  /** Le motif écrit par la modération, pour un essai renvoyé ou refusé, et seulement là. */
+  motif_moderation?: string | null
 }
 
 const MOTS_NOMBRES = ['zéro','une','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf','vingt']
@@ -313,14 +316,34 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
               Cet essai est en attente de validation par l’administration — seul vous pouvez le voir ainsi.
             </p>
           )}
-          {/* Charte § 52 : « à revoir » et « refusé » viennent de la modération, et son
-              motif se lit dans « Mes écrits ». */}
+          {/* Charte § 52 : « à revoir » et « refusé » viennent de la modération. Le bandeau
+              reprend son MOTIF (audit d'ergonomie du 2026-09-21) : l'apprendre ici et devoir
+              le chercher ailleurs, c'était deux clics de trop pour l'essai qui demande une
+              action. Un renvoi sans motif écrit le dit, au lieu de renvoyer à un vide. */}
           {(essai.statut === 'a_reviser' || essai.statut === 'refuse') && (
-            <p style={{ fontSize: '0.71875rem', color: 'var(--cs-danger-fonce)', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', padding: '8px 12px', margin: '24px 0 0' }}>
-              {essai.statut === 'a_reviser'
-                ? 'La modération vous a renvoyé cet essai pour qu’il soit revu. Son motif figure dans « Mes écrits » ; soumettez-le de nouveau une fois repris.'
-                : 'La modération n’a pas retenu cet essai. Son motif figure dans « Mes écrits ».'}
-            </p>
+            <div role="status" style={{ fontSize: '0.75rem', lineHeight: 1.5, color: 'var(--cs-danger-fonce)', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', padding: '10px 14px', margin: '24px 0 0' }}>
+              <p style={{ margin: 0 }}>
+                {essai.statut === 'a_reviser'
+                  ? 'La modération vous a renvoyé cet essai pour qu’il soit revu.'
+                  : 'La modération n’a pas retenu cet essai.'}
+              </p>
+              {essai.motif_moderation ? (
+                <>
+                  <p style={{ margin: '8px 0 2px', fontWeight: 600 }}>Motif de la modération :</p>
+                  <p style={{ margin: 0, color: 'var(--cs-texte)', whiteSpace: 'pre-line' }}>{essai.motif_moderation}</p>
+                </>
+              ) : (
+                <p style={{ margin: '6px 0 0', color: 'var(--cs-texte)' }}>
+                  La modération n’a pas écrit de motif. Vous pouvez lui écrire par le <Link href="/contact" className="cs-lien-phrase">formulaire de contact</Link>.
+                </p>
+              )}
+              {essai.statut === 'a_reviser' && (
+                <p style={{ margin: '8px 0 0' }}>
+                  <Link href={`/essais/${essai.id}/modifier`} className="cs-lien-phrase">Reprendre l’essai</Link>
+                  {' '}puis soumettez-le de nouveau.
+                </p>
+              )}
+            </div>
           )}
 
           {/* Page de titre — rapprochée du texte (moins de hauteur et de marge basse). */}

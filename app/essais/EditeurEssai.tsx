@@ -47,6 +47,9 @@ type Props = {
   versetEnTeteInitial?: { ref: string; texte: string } | null
 }
 
+/** La cible d'un départ demandé par le bouton Retour du navigateur, et non par un lien. */
+const RETOUR_NAVIGATEUR = '__retour_navigateur__'
+
 export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInitiales, versetEnTeteInitial }: Props) {
   const router = useRouter()
   // L'éditeur est un outil d'écriture à trois panneaux (mise en forme, texte,
@@ -301,6 +304,46 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     document.addEventListener('click', auClic, true)
     return () => document.removeEventListener('click', auClic, true)
   }, [nonEnregistre])
+
+  // Le bouton RETOUR du navigateur (audit d'ergonomie du 2026-09-21). Ni
+  // `beforeunload` ni la capture des clics ne le voient : Next le traite comme une
+  // navigation interne. Dès qu'une modification attend, on pose une entrée
+  // SENTINELLE à la même adresse ; Retour la dépile (`popstate`), on la repose et
+  // l'on demande. Quitter quand même recule de deux entrées : la sentinelle et
+  // l'éditeur. Une fois tout enregistré, un Retour qui tombe sur la sentinelle
+  // recule d'une entrée de plus, et le lecteur ne voit rien de ce mécanisme.
+  // ⚠️ La sentinelle reste en place une fois posée : l'ôter demanderait un recul,
+  // qui est lui-même un `popstate`. Les départs par le site la remplacent donc
+  // (`partirVers`) au lieu d'empiler une entrée par-dessus.
+  const sentinelleRef = useRef(false)
+  const nonEnregistreRef = useRef(nonEnregistre)
+  useEffect(() => { nonEnregistreRef.current = nonEnregistre }, [nonEnregistre])
+  useEffect(() => {
+    if (!nonEnregistre || sentinelleRef.current) return
+    window.history.pushState(null, '', window.location.href)
+    sentinelleRef.current = true
+  }, [nonEnregistre])
+  useEffect(() => {
+    const auRetour = () => {
+      if (!sentinelleRef.current) return
+      if (!nonEnregistreRef.current) {
+        sentinelleRef.current = false
+        window.history.back()
+        return
+      }
+      window.history.pushState(null, '', window.location.href)
+      departDemandeRef.current = RETOUR_NAVIGATEUR
+      setAvertissement('quitter')
+    }
+    window.addEventListener('popstate', auRetour)
+    return () => window.removeEventListener('popstate', auRetour)
+  }, [])
+  /** Quitter l'éditeur par le site : la sentinelle, si elle est posée, cède sa
+   *  place à la destination au lieu de rester dans l'historique. */
+  const partirVers = (cible: string) => {
+    if (sentinelleRef.current) { sentinelleRef.current = false; router.replace(cible) }
+    else router.push(cible)
+  }
 
   // ── Auto-sauvegarde périodique toutes les 30 secondes ────────────────────
   useEffect(() => {
@@ -634,13 +677,13 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   const publier = async () => {
     if (modeAdmin && essaiExistant?.statut === 'publie') {
       const ok = await sauvegarder()
-      if (ok && idRef.current) router.push(`/essais/${idRef.current}`)
+      if (ok && idRef.current) partirVers(`/essais/${idRef.current}`)
       return
     }
     if (!validerAvantSoumission()) return
     const ok = await sauvegarder('en_attente')
     if (!ok) return
-    if (idRef.current) router.push(`/essais/${idRef.current}`)
+    if (idRef.current) partirVers(`/essais/${idRef.current}`)
   }
 
   // « Enregistrer comme brouillon » sur un essai en ligne le RETIRE de la lecture :
@@ -664,10 +707,17 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
     } else if (raison === 'quitter') {
       const cible = departDemandeRef.current
       departDemandeRef.current = null
-      if (cible) {
+      if (cible === RETOUR_NAVIGATEUR) {
+        // Retour du navigateur confirmé : on recule par-dessus la sentinelle reposée
+        // ET l'entrée de l'éditeur. La sentinelle tombe d'abord, pour que le
+        // `popstate` qui suit ne soit pas pris pour une nouvelle demande.
+        setCleEnregistree(cleCourante)
+        sentinelleRef.current = false
+        window.history.go(-2)
+      } else if (cible) {
         // La garde de sortie tombe avec la décision : on ne redemande pas.
         setCleEnregistree(cleCourante)
-        router.push(cible)
+        partirVers(cible)
       }
     }
   }

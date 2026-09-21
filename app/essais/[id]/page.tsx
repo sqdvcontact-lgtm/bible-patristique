@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function EssaiPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const { data: essai } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, contenu, statut, nb_vues, user_id, created_at, publie_at, afficher_nom_reel, anonyme, couverture, embleme, verset_en_tete').eq('id', id).single()
+  const { data: essai } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, contenu, statut, nb_vues, user_id, created_at, publie_at, afficher_nom_reel, anonyme, couverture, embleme, verset_en_tete, note_admin').eq('id', id).single()
   if (!essai) {
     return (
       <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -90,6 +90,10 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
         categories: essai.categories ?? [], contenu: essai.contenu, statut: essai.statut,
         nb_vues: essai.nb_vues, user_id: anonyme ? null : essai.user_id, created_at: essai.created_at, publie_at: essai.publie_at,
         auteur_pseudo: nomAffiche, anonyme, verset_en_tete: essai.verset_en_tete ?? null,
+        // ⛔ Le motif de la modération ne part au navigateur que pour un essai RENVOYÉ, que
+        // seuls son auteur et l'administration peuvent ouvrir (garde plus haut). Publié, il
+        // resterait dans la charge de la page de tout lecteur.
+        motif_moderation: (essai.statut === 'a_reviser' || essai.statut === 'refuse') ? (essai.note_admin?.trim() || null) : null,
         // ⚠️ `pub_mecene` compte ICI : cette page lit `profils` avec la clé de service
         // et n'a donc pas le filtre de la vue `mecenes_publics` derrière elle.
         auteur_mecene: !!profil?.mecene_depuis && profil.pub_mecene !== false,
