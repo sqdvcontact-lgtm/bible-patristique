@@ -130,7 +130,7 @@ export default function AppelNoteBiblique({
    *  son signe remplace le numéro, sa tête et son nom accessible sont les siens. ⚠️ Il ne
    *  porte pas d'identifiant d'ancre : aucun inventaire ne le vise, et deux marques d'un
    *  même verset en feraient un doublon. */
-  repere?: { signe: string; intitule: string; nomAccessible: string }
+  repere?: { signe: ReactNode; intitule: string; nomAccessible: string; icone?: boolean }
 }) {
   const [ouvert, setOuvert] = useState(false)
   const ancre = useRef<HTMLElement>(null)
@@ -174,6 +174,9 @@ export default function AppelNoteBiblique({
   // n'apprenait rien à qui venait de cliquer.
   const intitule = repere ? repere.intitule : intituleNoteBiblique(note)
   const signe: ReactNode = repere ? repere.signe : note.displayNumber
+  // ⚠️ Un signe DESSINÉ (le cercle de la Polyglotte) ne se pose pas en exposant : il a sa
+  // propre assise, que la feuille règle (`.poly-note-marque`).
+  const Balise = repere?.icone ? 'span' : 'sup'
   const boite = rect ?? { top: 300, bottom: 316, left: 0 }
   const largeur = largeurEncartPx(racine)
   // La hauteur SUIT la note. Elle valait 420 px pour toutes, ce qui promettait une
@@ -196,8 +199,9 @@ export default function AppelNoteBiblique({
 
   return (
     <>
-      <sup
+      <Balise
         ref={ancre as React.RefObject<HTMLElement>}
+        className={repere?.icone ? 'poly-note-marque' : undefined}
         data-note-biblique=""
         id={repere ? undefined : ancreAppelNoteBible(note.id, memberId)}
         role="button"
@@ -208,10 +212,12 @@ export default function AppelNoteBiblique({
         aria-expanded={ouvert}
         // L'appel MARQUÉ tant que son encart est ouvert : le second lien entre
         // l'appel et sa note, celui qu'on suit des yeux en revenant au texte.
-        style={ouvert ? { ...styleAppelNote(variante), ...STYLE_APPEL_OUVERT } : styleAppelNote(variante)}
+        style={repere?.icone
+          ? { cursor: 'pointer', ...(ouvert ? STYLE_APPEL_OUVERT : {}) }
+          : (ouvert ? { ...styleAppelNote(variante), ...STYLE_APPEL_OUVERT } : styleAppelNote(variante))}
       >
         {signe}
-      </sup>
+      </Balise>
       {ouvert && typeof document !== 'undefined' && createPortal(
         <EncartNote
           numero={signe}

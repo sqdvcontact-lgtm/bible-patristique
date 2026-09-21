@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { STYLE_MENTION_DANS_LE_FIL } from './compositionBible'
 import { normaliserEspaces } from './typographie'
 import AppelNoteBiblique from '../components/NoteBibliqueFenetre'
+import IconeSignalement from '../components/IconeSignalement'
 
 // Rendu des marqueurs éditoriaux INLINE portés par le texte recomposé de TR0009
 // (Bible 899) : « lecture incertaine », « lacune », « ajout marginal ». Ce sont des
@@ -229,8 +230,11 @@ const RE_MARQUEUR_TEMOIN = /\[\s*(?:…|\.\.\.|[Ll]acune)\s*\]|\[\s*lacune\s*:\s
 // donner, exactement comme « Absent de cette traduction » et la lacune. La colonne du
 // MANUSCRIT, elle, garde sa teinte grise : là, le passage incertain EST le texte.
 const STYLE_INCERTAINE_TRADUCTION: React.CSSProperties = { ...STYLE_MENTION_DANS_LE_FIL }
+// ⛔ LE SIGNE EST CELUI DE LA POLYGLOTTE (décision de l'auteur, 2026-09-21) : le cercle qui y
+// marque la note éditoriale d'un verset, même dessin, même encre, même mesure.
 const REPERE_INCERTAINE = {
-  signe: '?',
+  signe: <IconeSignalement />,
+  icone: true,
   intitule: 'Lecture incertaine',
   nomAccessible: 'Lecture incertaine du manuscrit : explication',
 }
