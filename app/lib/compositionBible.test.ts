@@ -46,7 +46,7 @@ describe('le bloc sélectionné d’un verset déborde le texte des deux côtés
     expect(RETRAIT_ACTIONS_VERSET).toBe('1.875rem')
     const page = readFileSync(join(process.cwd(), 'app/components/TexteBible.tsx'), 'utf8')
     expect(page).toContain('paddingLeft: RETRAIT_ACTIONS_VERSET')
-    expect(page).toContain('styleBlocVerset({ actif, mobile })')
+    expect(page).toContain('styleBlocVerset({ actif: actif || dansPlage, mobile })')
   })
 
   it('au doigt, rien ne change : les actions sortent de la grille', () => {
