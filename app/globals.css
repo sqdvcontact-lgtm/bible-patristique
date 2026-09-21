@@ -823,6 +823,24 @@ button:focus-visible,
   outline-offset: 2px;
 }
 
+/* ── Le foyer dans la barre de navigation ──
+   L'anneau global vaut --cs-vert, qui est exactement le fond de la barre au Clair :
+   il y rendait 1,00 de contraste, donc rien. La barre porte aussi des menus sur
+   papier clair, où un anneau blanc disparaîtrait à son tour. D'où un anneau DOUBLE,
+   qui se voit sur les deux sols : un trait clair collé au contrôle, puis un trait
+   de l'encre d'accent autour de lui. Sur la barre (verte au Clair, cuir au Cuir),
+   c'est le trait clair qui se lit ; sur un menu, c'est le trait d'accent. */
+[data-cs-navbar] a:focus-visible,
+[data-cs-navbar] button:focus-visible,
+[data-cs-navbar] input:focus-visible,
+[data-cs-navbar] select:focus-visible,
+[data-cs-navbar] [role="button"]:focus-visible,
+[data-cs-navbar] [tabindex="0"]:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.92) !important;
+  outline-offset: 0 !important;
+  box-shadow: 0 0 0 4px var(--cs-vert) !important;
+}
+
 /* ── Le foyer sur une surface de lecture ──
    Un verset en regard, un segment d'œuvre, une cellule de la Polyglotte se
    retiennent au clavier (tabIndex 0). L'anneau global de deux pixels y cernerait
