@@ -1,10 +1,9 @@
 /**
  * LA VISITE DE LA BIBLIOTHÈQUE — la troisième, au patron des deux premières.
  *
- * ⚠️ La barre de navigation appelle cette page « Patristique », son titre dit
- * « Bibliothèque », et son adresse est /bibliotheque. Le code prend le nom de la
- * PAGE, qui est aussi celui de sa route : « Patristique » nomme une section de la
- * barre, non l'écran qu'on ouvre.
+ * ⚠️ La page s'appelle « Patristique » (barre, titre, onglet du navigateur : audit
+ * ergonomique du 2026-09-21), et son adresse reste /bibliotheque. Le code garde le
+ * nom de la route.
  *
  * Cinq arrêts, dans l'ordre où la page SE PRÉSENTE : de haut en bas (règle de
  * l'auteur, 2026-09-06). Les trois sections, ce qui restreint la liste, une carte
@@ -46,9 +45,9 @@ export const CLE_VISITE_BIBLIOTHEQUE = 'bibliotheque'
 
 export const VISITE_BIBLIOTHEQUE: Visite = {
   cle: CLE_VISITE_BIBLIOTHEQUE,
-  titre: 'La Bibliothèque',
+  titre: 'La Patristique',
   accroche: [
-    'La Bibliothèque rassemble les Pères de l’Église, leurs œuvres et les éditions dans lesquelles vous pouvez les lire.',
+    'La Patristique rassemble les Pères de l’Église, leurs œuvres et les éditions dans lesquelles vous pouvez les lire.',
   ],
   etapes: [
     {
@@ -56,7 +55,7 @@ export const VISITE_BIBLIOTHEQUE: Visite = {
       sujet: ['[data-visite="bib-onglets"]'],
       titre: 'Sections',
       texte: [
-        '**Bibliothèque** présente les auteurs dont au moins une œuvre est disponible.',
+        '**Auteurs** présente les auteurs dont au moins une œuvre est disponible.',
         '**Favoris** rassemble les éditions que vous avez conservées.',
         '**Catalogue des traductions** recense les traductions connues qui ne sont pas encore en ligne.',
       ],

@@ -790,7 +790,7 @@ export default async function OeuvrePage({
           })} />
           <JsonLd donnees={donneesFilAriane([
             { nom: 'Accueil', url: '/accueil' },
-            { nom: 'Bibliothèque', url: '/bibliotheque' },
+            { nom: 'Patristique', url: '/bibliotheque' },
             ...(auteur ? [{ nom: auteur, url: `/auteur/${auteurId}` }] : []),
             { nom: oeuvre.titre, url: `/oeuvre/${id}` },
           ])} />

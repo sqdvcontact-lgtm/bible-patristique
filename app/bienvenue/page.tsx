@@ -46,7 +46,7 @@ export default function BienvenuePage() {
             },
             {
               href: '/bibliotheque',
-              titre: 'Découvrir la bibliothèque',
+              titre: 'Découvrir la Patristique',
               desc: 'Explorez les œuvres patristiques disponibles dans le catalogue.',
             },
             {

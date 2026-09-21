@@ -34,9 +34,9 @@ describe('libellePage', () => {
   })
 
   it('ignore un libellé vide ou fait d’espaces', () => {
-    expect(libellePage('/bibliotheque', '')).toBe('Bibliothèque')
-    expect(libellePage('/bibliotheque', '   ')).toBe('Bibliothèque')
-    expect(libellePage('/bibliotheque', null)).toBe('Bibliothèque')
+    expect(libellePage('/bibliotheque', '')).toBe('Patristique')
+    expect(libellePage('/bibliotheque', '   ')).toBe('Patristique')
+    expect(libellePage('/bibliotheque', null)).toBe('Patristique')
   })
 
   it('nomme la lecture biblique, que la base ne peut pas résoudre', () => {

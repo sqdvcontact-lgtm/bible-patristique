@@ -10,7 +10,7 @@ import { SELECT_AUTEURS_BIBLIOTHEQUE, SELECT_OEUVRES_BIBLIOTHEQUE } from "@/app/
 // authentifiée.
 
 export const metadata = {
-  title: "Bibliothèque",
+  title: "Patristique",
 }
 
 type AuteurBibliotheque = { id_auteur: string; [cle: string]: unknown }

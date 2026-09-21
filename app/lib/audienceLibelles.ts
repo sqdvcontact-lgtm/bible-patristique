@@ -15,7 +15,7 @@ import { nomLivreReference } from './referencesBibliques'
  */
 const PAGES_NOMMEES: Record<string, string> = {
   '/accueil': 'Accueil',
-  '/bibliotheque': 'Bibliothèque',
+  '/bibliotheque': 'Patristique',
   '/pericopes': 'Catalogue des péricopes',
   '/essais': 'Communauté',
   '/essais/nouveau': 'Écrire une publication',

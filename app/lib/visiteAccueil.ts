@@ -74,8 +74,8 @@ export const VISITE_ACCUEIL: Visite = {
       sujetBis: ['.ac-patristique'],
       titre: 'Pères de l’Église',
       texte: [
-        'La Bibliothèque rassemble les auteurs, leurs œuvres et les éditions disponibles.',
-        'Le menu conserve les dernières œuvres que vous avez ouvertes. La carte de l’accueil mène également à la Bibliothèque.',
+        'La Patristique rassemble les auteurs, leurs œuvres et les éditions disponibles.',
+        'Le menu conserve les dernières œuvres que vous avez ouvertes. La carte de l’accueil y mène également.',
       ],
       cote: 'dessous',
     },

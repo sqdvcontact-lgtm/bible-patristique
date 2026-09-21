@@ -101,7 +101,7 @@ export default async function AuteurLayout({
           <JsonLd
             donnees={donneesFilAriane([
               { nom: "Accueil", url: "/accueil" },
-              { nom: "Bibliothèque", url: "/bibliotheque" },
+              { nom: "Patristique", url: "/bibliotheque" },
               { nom: data.nom, url: `/auteur/${id}` },
             ])}
           />

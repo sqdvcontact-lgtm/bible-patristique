@@ -2140,7 +2140,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
             entre chaque strate pour former un bloc au rythme régulier. */}
         <div style={{ textAlign: 'center', marginBottom: '14px' }}>
           <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, letterSpacing: '0.01em', margin: 0, lineHeight: 1.1 }}>
-            Bibliothèque
+            Patristique
           </h1>
         </div>
 
@@ -2154,7 +2154,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
           choisir={setOnglet}
           style={{ marginBottom: '14px' }}
           onglets={[
-            { cle: 'bibliotheque' as Onglet, libelle: 'Bibliothèque' },
+            { cle: 'bibliotheque' as Onglet, libelle: 'Auteurs' },
             { cle: 'favoris' as Onglet, libelle: 'Favoris' },
             { cle: 'catalogue' as Onglet, libelle: 'Catalogue des traductions' },
           ]}
