@@ -167,6 +167,17 @@ describe('rendreMarqueurs899', () => {
       ])
     })
 
+    // « lecture difficile » est le synonyme de « lecture incertaine » : même marque, même
+    // infobulle, et plus jamais de crochet brut dans la traduction.
+    it('traite « lecture difficile » comme une lecture incertaine', () => {
+      const out = reduireTout(marquerLacunesDuTemoin('tu guetteras ses [lecture difficile : « oures »]. »', 't0')) as ReturnType<typeof reduire>[]
+      expect(out).toEqual([
+        { t: 'texte', v: 'tu guetteras ses ' },
+        { t: 'marque', titre: 'Lecture incertaine (transcription du manuscrit)', texte: '« oures »' },
+        { t: 'texte', v: '. »' },
+      ])
+    })
+
     // Une restitution qui OUVRE le verset : son crochet fermant suit un crochet ouvrant,
     // ce n’est donc pas une fermeture orpheline, et rien n’est grisé.
     it('ne prend pas la restitution qui ouvre un verset pour une portée à cheval', () => {

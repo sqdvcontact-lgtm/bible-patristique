@@ -82,7 +82,9 @@ export function libelleLacune(cause?: string | null): string {
 // portée ouverte au verset d’avant.
 // ⚠️ La lacune nue s’écrit AUSSI en toutes lettres, « [lacune] » : c’est la forme que porte la
 // traduction moderne (Gn 38, 9 ; Gn 50, 26), qui s’imprimait brute faute d’être reconnue.
-const RE_TOKEN = /\[\s*(?:…|\.\.\.|[Ll]acune)\s*\]|\[\s*lacune\s*:\s*(?<cause>[^\]]*)\]|\[(?<type>lecture incertaine|lacune|ajout marginal)\s*:\s*|\]/gu
+// ⚠️ « lecture difficile » est le SYNONYME de « lecture incertaine » (décision de l'auteur,
+// 2026-09-21) : même mode, même infobulle. Elle ne se distingue que par son libellé en base.
+const RE_TOKEN = /\[\s*(?:…|\.\.\.|[Ll]acune)\s*\]|\[\s*lacune\s*:\s*(?<cause>[^\]]*)\]|\[(?<type>lecture incertaine|lecture difficile|lacune|ajout marginal)\s*:\s*|\]/gu
 
 type Mode = 'normal' | 'incertaine' | 'ajout' | 'lacune'
 
@@ -217,7 +219,15 @@ export function rendreMarqueurs899(texteBrut: string): ReactNode {
 //
 // La forme rendue est alors la même des deux côtés — même marque, même style, même
 // infobulle : c'est le même fait dans les deux membres d'une même édition.
-const RE_MARQUEUR_TEMOIN = /\[\s*(?:…|\.\.\.|[Ll]acune)\s*\]|\[\s*lacune\s*:\s*(?<cause>[^\]]*)\]|\[\s*(?<type>lecture incertaine|ajout marginal)\s*:\s*(?<contenu>[^\]]*)\]|\[\s*(?<ouvert>lecture incertaine|ajout marginal|lacune)\s*:\s*(?<reste>[^\]]*)$/gu
+const RE_MARQUEUR_TEMOIN = /\[\s*(?:…|\.\.\.|[Ll]acune)\s*\]|\[\s*lacune\s*:\s*(?<cause>[^\]]*)\]|\[\s*(?<type>lecture incertaine|lecture difficile|ajout marginal)\s*:\s*(?<contenu>[^\]]*)\]|\[\s*(?<ouvert>lecture incertaine|lecture difficile|ajout marginal|lacune)\s*:\s*(?<reste>[^\]]*)$/gu
+
+// ⛔ DANS LA TRADUCTION, UNE LECTURE INCERTAINE PREND LA VOIX DES MENTIONS (décision de
+// l'auteur, 2026-09-21 : « s'inspirer du style de la Polyglotte quand il manque un texte ou
+// qu'il est corrompu »). Ce qu'elle porte n'est pas du texte traduit mais l'ancien français
+// laissé tel quel : c'est l'éditeur qui parle à la place d'une traduction qu'il n'a pas pu
+// donner, exactement comme « Absent de cette traduction » et la lacune. La colonne du
+// MANUSCRIT, elle, garde sa teinte grise : là, le passage incertain EST le texte.
+const STYLE_INCERTAINE_TRADUCTION: React.CSSProperties = { ...STYLE_MENTION_DANS_LE_FIL }
 
 /**
  * Transformation à passer à `rendreTexteEnrichi` : elle met en forme les marqueurs du
@@ -242,7 +252,7 @@ export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
     if (c && /[\p{L}\p{N}]/u.test(c)) noeuds.push(FINE)
   }
   const marqueTexte = (contenu: string, nom?: string) => (
-    <span key={`${cle}-i${n++}`} title={infobulle(nom === 'ajout marginal' ? 'ajout' : 'incertaine')} style={STYLE_INCERTAINE}>{contenu}</span>
+    <span key={`${cle}-i${n++}`} title={infobulle(nom === 'ajout marginal' ? 'ajout' : 'incertaine')} style={nom === 'ajout marginal' ? STYLE_INCERTAINE : STYLE_INCERTAINE_TRADUCTION}>{contenu}</span>
   )
 
   // La FERMETURE ORPHELINE qui ouvre le verset : un marqueur commencé au verset d'avant se
