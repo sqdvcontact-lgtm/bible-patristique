@@ -229,7 +229,9 @@ const RE_MARQUEUR_TEMOIN = /\[\s*(?:…|\.\.\.|[Ll]acune)\s*\]|\[\s*lacune\s*:\s
 // laissé tel quel : c'est l'éditeur qui parle à la place d'une traduction qu'il n'a pas pu
 // donner, exactement comme « Absent de cette traduction » et la lacune. La colonne du
 // MANUSCRIT, elle, garde sa teinte grise : là, le passage incertain EST le texte.
-const STYLE_INCERTAINE_TRADUCTION: React.CSSProperties = { ...STYLE_MENTION_DANS_LE_FIL }
+// ⚠️ L'encre est celle du CERCLE qui suit le mot (`.poly-note-marque`, `--cs-surnum`) :
+// le mot et son appel se lisent comme une seule marque (décision de l'auteur, 2026-09-21).
+const STYLE_INCERTAINE_TRADUCTION: React.CSSProperties = { ...STYLE_MENTION_DANS_LE_FIL, color: 'var(--cs-surnum)' }
 // ⛔ LE SIGNE EST CELUI DE LA POLYGLOTTE (décision de l'auteur, 2026-09-21) : le cercle qui y
 // marque la note éditoriale d'un verset, même dessin, même encre, même mesure.
 const REPERE_INCERTAINE = {
