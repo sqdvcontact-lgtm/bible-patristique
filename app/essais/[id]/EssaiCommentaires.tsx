@@ -86,10 +86,16 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
     if (!error) setCommentaires(prev => prev.map(c => c.id === id ? { ...c, supprime: true } : c))
   }
 
+  // Le commentaire part en relecture : on le DIT, en ton neutre. Sans ce mot,
+  // l'auteur le voyait rejoindre la liste sous une bande de danger, et croyait à
+  // une erreur ou à une sanction.
+  const [accuse, setAccuse] = useState(false)
+
   const envoyer = async () => {
     if (!exigerCompte('commenter cette publication')) return
     if (!texte.trim() || !userId) return
     setErreur('')
+    setAccuse(false)
     setEnvoi(true)
     const { data, error } = await supabase.from('essais_commentaires').insert({
       id_essai: idEssai,
@@ -104,6 +110,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
     if (error) { setErreur(error.code === 'ZL001' ? error.message : 'L’envoi a échoué.'); return }
     if (data) {
       setCommentaires(prev => [...prev, data])
+      setAccuse(true)
       setTexte('')
       setPassageCite('')
       setAfficherPassage(false)
@@ -164,8 +171,11 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const CorpsCommentaire = ({ c, reponse, suivie = false }: { c: CommentaireEssai; reponse: boolean; suivie?: boolean }) => {
     const rang = c.lecture ? calculerRang(c.lecture.nb_auteurs, c.lecture.total_auteurs).rang : null
     const rangCouleur = rang ? couleurRang(rang) : null
+    // ⚠️ Son PROPRE commentaire en attente n'est pas un commentaire signalé : il
+    // se lit en teinte neutre, déplié, avec la raison de l'attente.
+    const monAttente = !c.valide && !!userId && c.user_id === userId
     return (
-      <div className="commentaire-carte" style={{ ...carteCommentaire({ enRevision: !c.valide, reponse, suivie }), viewTransitionName: `commentaire-essai-${c.id}` }}>
+      <div className="commentaire-carte" style={{ ...carteCommentaire({ enRevision: !c.valide && !monAttente, reponse, suivie }), viewTransitionName: `commentaire-essai-${c.id}` }}>
         <div style={ENTETE_COMMENTAIRE}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0 }}>
             <span style={NOM_COMMENTAIRE}>
@@ -173,7 +183,9 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
               {c.mecene && <>{' '}<MarqueMecene /></>}
             </span>
             {rang && rangCouleur && <span style={{ ...BADGE_RANG, color: rangCouleur.texte, background: rangCouleur.fond }}>{rang}</span>}
-            {!c.valide && <span style={{ ...BADGE_ETAT, color: 'var(--cs-danger-fonce)', background: 'rgba(var(--cs-danger-rgb),0.10)' }}>EN RÉVISION</span>}
+            {!c.valide && (monAttente
+              ? <span style={{ ...BADGE_ETAT, color: 'var(--cs-texte-second)', background: 'var(--cs-fond-doux)' }}>EN ATTENTE DE RELECTURE</span>
+              : <span style={{ ...BADGE_ETAT, color: 'var(--cs-danger-fonce)', background: 'rgba(var(--cs-danger-rgb),0.10)' }}>EN RÉVISION</span>)}
           </div>
           <span style={DATE_COMMENTAIRE}>{dateHeureCommentaire(c.created_at)}</span>
         </div>
@@ -181,6 +193,11 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
           <blockquote style={CITATION_COMMENTAIRE}>« {c.passage_cite} »</blockquote>
         )}
         <div style={TEXTE_COMMENTAIRE}>{rendreTexteEnrichi(c.texte)}</div>
+        {monAttente && (
+          <p style={{ margin: '6px 0 0', fontSize: '0.65625rem', fontStyle: 'italic', color: 'var(--cs-texte-second)' }}>
+            Votre commentaire paraîtra pour les autres lecteurs après sa relecture par la modération.
+          </p>
+        )}
         <LigneActions c={c} />
       </div>
     )
@@ -189,7 +206,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const Carte = ({ c }: { c: CommentaireEssai }) => {
     const rendre = (x: CommentaireEssai, reponse: boolean, suivie = false) => {
       if (x.supprime) return <CommentaireEfface key={x.id} c={x} reponse={reponse} suivie={suivie} />
-      if (!x.valide && !revelees.has(x.id)) return <CommentaireRetracte key={x.id} c={x} reponse={reponse} suivie={suivie} />
+      if (!x.valide && x.user_id !== userId && !revelees.has(x.id)) return <CommentaireRetracte key={x.id} c={x} reponse={reponse} suivie={suivie} />
       return <CorpsCommentaire key={x.id} c={x} reponse={reponse} suivie={suivie} />
     }
     // Le fil se sépare du suivant par un BLANC un peu plus large que celui qui règne
@@ -243,9 +260,14 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
             <textarea aria-label="Passage cité" value={passageCite} onChange={e => setPassageCite(e.target.value)} rows={2} placeholder="Passage exact à commenter…"
               style={{ width: '100%', fontSize: '0.71875rem', fontStyle: 'italic', padding: '6px 8px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte)', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
           )}
-          {erreur && <p style={{ margin: 0, fontSize: '0.65625rem', color: 'var(--cs-danger)' }}>{erreur}</p>}
+          {erreur && <p role="alert" style={{ margin: 0, fontSize: '0.65625rem', color: 'var(--cs-danger)' }}>{erreur}</p>}
+          {accuse && !erreur && (
+            <p role="status" style={{ margin: 0, fontSize: '0.65625rem', color: 'var(--cs-texte-second)' }}>
+              Merci. Votre commentaire paraîtra après relecture.
+            </p>
+          )}
           <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: texte.trim() ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: texte.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
-            {envoi ? 'Envoi…' : 'Publier'}
+            {envoi ? 'Envoi…' : 'Envoyer'}
           </button>
         </div>
       ) : (
