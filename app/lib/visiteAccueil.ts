@@ -93,11 +93,11 @@ export const VISITE_ACCUEIL: Visite = {
       cle: 'plus-loin',
       sujet: ['[data-visite="nav-plus-loin"]'],
       // ⚠️ RELU LE 2026-09-21 : l'onglet s'appelle « Aller plus loin », son menu compte
-      // SIX pages (la bibliographie manquait), et un clic sur son nom mène aux librairies.
+      // SIX pages (la bibliographie manquait), et un clic sur son nom mène aux traductions.
       titre: 'Aller plus loin',
       texte: [
         'Cet onglet réunit les traductions, la bibliographie, les librairies, les statistiques, les péricopes et l’histoire de l’Église.',
-        'Le menu s’ouvre au survol et présente brièvement chacune de ces pages. Un clic sur l’onglet mène aux librairies.',
+        'Le menu s’ouvre au survol et présente brièvement chacune de ces pages. Un clic sur l’onglet ouvre la page des traductions.',
       ],
       cote: 'dessous',
     },

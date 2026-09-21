@@ -88,14 +88,18 @@ const LIENS_LECTURE: { href: string; label: string; exact?: boolean }[] = [
 //   voyait pas : à graisse égale, c'est l'encre qui fait le poids, et blanc à 85 %
 //   contre 60 % se lit comme une graisse de plus. Un rang qui ne se distingue que par
 //   une valeur que personne ne mesure n'est pas un rang.
-const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?: boolean }[] = [
-  { href: "/bibliotheque", label: "Patristique" },
-  { href: "/essais", label: "Communauté", discret: true },
-  // ⚠️ L'onglet ouvre sur « Acheter des livres », et non sur « Les traductions »
-  // (demande de l'auteur, 2026-09-04). Le menu du survol n'a pas changé d'ordre : c'est
-  // le CLIC sur le libellé qui mène ailleurs, vers la page la plus utile à qui n'a rien
-  // demandé de précis.
-  { href: "/librairies", label: "Aller plus loin", discret: true },
+// `prefixes` : les chemins où l'onglet reste ALLUMÉ (audit ergonomique, 2026-09-21).
+//   L'état actif ne comparait le chemin qu'au seul `href` : « Patristique » s'éteignait
+//   dès qu'on ouvrait une œuvre ou un auteur, et le lecteur perdait son repère au moment
+//   même où il entrait dans un contenu.
+const PAGES_ALLER_PLUS_LOIN = ["/traductions", "/bibliographie", "/librairies", "/statistiques", "/pericopes", "/histoire"];
+const LIENS_PRIMAIRES: { href: string; label: string; exact?: boolean; discret?: boolean; prefixes?: string[] }[] = [
+  { href: "/bibliotheque", label: "Patristique", prefixes: ["/bibliotheque", "/oeuvre", "/auteur"] },
+  { href: "/essais", label: "Communauté", discret: true, prefixes: ["/essais", "/profil"] },
+  // ⚠️ L'onglet ouvre sur « Les traductions », la première page de son menu (audit
+  // ergonomique, 2026-09-21). Il ouvrait sur « Acheter des livres » : l'entrée qui
+  // regroupe six outils d'étude se résumait, pour qui cliquait, à une page marchande.
+  { href: "/traductions", label: "Aller plus loin", discret: true, prefixes: PAGES_ALLER_PLUS_LOIN },
 ];
 // Pages regroupées sous « Aller plus loin » : anciennement des onglets d'une même page,
 // désormais des pages indépendantes. Le menu déroulant (au survol) les recense.
@@ -411,7 +415,7 @@ function OngletAllerPlusLoin({ label, style, actif }: { label: string; style: Re
     // ligne donnait au menu l'air d'un jeu d'icônes générique (auteur, 2026-09-21).
     // « Statistiques » et « Péricopes » surtout ne s'expliquent pas d'eux-mêmes :
     // une liste de cinq mots laissait le lecteur ouvrir au hasard.
-    <OngletMenu href="/librairies" label={label} style={style} actif={actif} repere="nav-plus-loin"
+    <OngletMenu href="/traductions" label={label} style={style} actif={actif} repere="nav-plus-loin"
       classeMenu="cs-plus-menu--riche cs-plus-menu--pages">
       {LIENS_ALLER_PLUS_LOIN.map(l => (
         <Link key={l.href} href={l.href} className="cs-plus-riche">
@@ -1219,13 +1223,14 @@ export default function Navbar() {
 
   // L'état actif ne se disait qu'en couleur : `aria-current` le dit aussi à qui lit la
   // page à l'oreille. Une seule règle, partagée par le style et par l'attribut.
-  const estCheminActif = (href: string, exact?: boolean) => {
+  const estCheminActif = (href: string, exact?: boolean, prefixes?: string[]) => {
     const chemin = href.split("?")[0] || "/";
-    return exact ? pathname === chemin : pathname.startsWith(chemin);
+    if (exact) return pathname === chemin;
+    return (prefixes ?? [chemin]).some(p => pathname === p || pathname.startsWith(`${p}/`));
   };
 
-  const styleLien = (href: string, exact: boolean | undefined, primaire: boolean) => {
-    const actif = estCheminActif(href, exact);
+  const styleLien = (href: string, exact: boolean | undefined, primaire: boolean, prefixes?: string[]) => {
+    const actif = estCheminActif(href, exact, prefixes);
     // Le fond ne s'écrit PAS en ligne : un style en ligne l'emporte sur toute règle
     // de feuille, et `.cs-nav-onglet:hover` n'aurait donc jamais pu s'appliquer. Il passe
     // par deux variables que la classe lit — l'une pour l'état, l'autre pour le survol.
@@ -1756,9 +1761,9 @@ export default function Navbar() {
   // les liens sont enfants d'un <div> bloc et non du flex-colonne du panneau — restés
   // inline, ils se chevauchaient. Un flex est de niveau bloc : le cas ne peut plus
   // se produire, et il n'y a plus qu'une écriture.
-  const lienMobile = (href: string, label: string) => {
+  const lienMobile = (href: string, label: string, prefixes?: string[]) => {
     const chemin = href.split("?")[0] || "/";
-    const actif = pathname === chemin || (chemin !== "/" && pathname.startsWith(chemin));
+    const actif = pathname === chemin || (chemin !== "/" && (prefixes ?? [chemin]).some(p => pathname.startsWith(p)));
     return (
       <Link key={href} href={href} onClick={() => setMobileOuvert(false)}
         aria-current={actif ? "page" : undefined}
@@ -2163,14 +2168,14 @@ export default function Navbar() {
             {/* Les deux bibles, en quatre états selon la place : deux onglets, un onglet
                 qui se fend au survol, puis « La Bible » et « Bible » avec menu déroulant. */}
             <OngletBibles etat={etatBible} pathname={pathname} styleLien={styleLien} />
-            {LIENS_PRIMAIRES.map(({ href, label, exact, discret }) => (
+            {LIENS_PRIMAIRES.map(({ href, label, exact, discret, prefixes }) => (
               href === "/bibliotheque"
-                ? <OngletPatristique key={href} href={href} label={label} style={styleLien(href, exact, !discret)} actif={estCheminActif(href, exact)} />
-                : href === "/librairies"
+                ? <OngletPatristique key={href} href={href} label={label} style={styleLien(href, exact, !discret, prefixes)} actif={estCheminActif(href, exact, prefixes)} />
+                : href === "/traductions"
                 // « Aller plus loin » garde sa place à toute largeur : c'est une entrée de
                 // lecture, et elle ne se range pas sous un nom de compte.
-                ? <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret)} actif={estCheminActif(href, exact)} />
-                : <Link key={href} href={href} data-visite={href === "/essais" ? "nav-communaute" : undefined} className="cs-nav-onglet" aria-current={estCheminActif(href, exact) ? "page" : undefined} style={styleLien(href, exact, !discret)}>{label}</Link>
+                ? <OngletAllerPlusLoin key={href} label={label} style={styleLien(href, exact, !discret, prefixes)} actif={estCheminActif(href, exact, prefixes)} />
+                : <Link key={href} href={href} data-visite={href === "/essais" ? "nav-communaute" : undefined} className="cs-nav-onglet" aria-current={estCheminActif(href, exact, prefixes) ? "page" : undefined} style={styleLien(href, exact, !discret, prefixes)}>{label}</Link>
             ))}
             {(estAdmin || estAdminEmail) && (
               <OngletAdministration label="Administration" style={styleLien("/admin", false, true)} actif={estCheminActif("/admin", false)} />
@@ -2283,7 +2288,7 @@ export default function Navbar() {
               {/* Liste verticale : lecture, puis Patristique/Publications, puis les pages
                   d'« Aller plus loin » dépliées, et enfin les sections d'admin. */}
               {/* ⚠️ Le premier lien est celui des bibles : il rouvre où l'on en était. */}
-              {[...LIENS_LECTURE.map(l => (l.href === HREF_BIBLE_CLASSIQUE ? { ...l, href: hrefBibleMobile } : l)), ...LIENS_PRIMAIRES.filter(l => l.href !== "/librairies")].map(({ href, label }) => lienMobile(href, label))}
+              {[...LIENS_LECTURE.map(l => (l.href === HREF_BIBLE_CLASSIQUE ? { ...l, href: hrefBibleMobile } : l)), ...LIENS_PRIMAIRES.filter(l => l.href !== "/traductions")].map(l => lienMobile(l.href, l.label, (l as { prefixes?: string[] }).prefixes))}
 
               <p style={INTERTITRE_MOBILE}>Aller plus loin</p>
               {/* ⚠️ `dit` n'est PAS passé : la glose reste au menu de bureau, qui a la
