@@ -279,6 +279,18 @@ const COMPOSITIONS: Record<CompositionParagraphe, CSSProperties> = {
   // La bibliographie a sa propre matière — la famille `.cs-apparat-bibliographie`,
   // voir `BibliographieBible` — et n'ajoute donc rien au style du paragraphe.
   bibliographie: {},
+  // Une énumération déclarée par la donnée (« 1. l’histoire du ciel et de la terre… »).
+  // Léger retrait à gauche, numéro en saillie, interligne resserré, blanc de quelques
+  // pixels entre deux articles : la liste se lit d’un trait, et le blanc qui la sépare
+  // du paragraphe suivant vient de la feuille (`.cs-bible-liste`), seule à savoir
+  // quel article est le dernier.
+  liste: {
+    textAlign: 'left',
+    paddingLeft: '2em',
+    textIndent: '-1.25em',
+    lineHeight: 1.22,
+    margin: '0 0 0.0625rem',
+  },
 }
 
 function rendreBlocTexte(
@@ -672,7 +684,7 @@ export function IllustrationBible({ illustration, habillage }: {
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={ancienne.url}
-              alt={altDistinct ? `${altDistinct} (ancienne version)` : 'Ancienne version'}
+              alt={altDistinct ? `${altDistinct} (version originale)` : 'Version originale'}
               width={ancienne.width}
               height={ancienne.height}
               style={{

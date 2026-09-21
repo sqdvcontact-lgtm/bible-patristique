@@ -1644,6 +1644,14 @@ button:focus-visible,
   padding-right: 0;
 }
 .cs-bible-block--commentary { font-style: normal; }
+
+/* LA LISTE DÉCLARÉE PAR LA DONNÉE (presentation.style = liste, 2026-09-21).
+   Le blanc entre deux articles est posé en ligne (quelques pixels) ; le DERNIER
+   article reprend le blanc d’un paragraphe d’apparat, que seule la feuille sait
+   poser. Le point d’exclamation n’est pas un ornement : la marge de l’article
+   est écrite EN LIGNE, qui bat toute règle de feuille sans lui. */
+.cs-bible-liste:not(:has(+ .cs-bible-liste)) { margin-bottom: 0.3rem !important; }
+.cs-bible-liste:not(.cs-bible-liste + .cs-bible-liste) { margin-top: 0.1rem !important; }
 /* Le vocabulaire a ete REGROUPE le 29 aout 2026 : la notice absorbe l'excursus,
    qui composait exactement comme elle, et la transition, qui portait deja sa
    nature ; le sommaire rejoint l'introduction, la conclusion le commentaire. Les

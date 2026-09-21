@@ -110,7 +110,7 @@ export type BibleEditionDisplayTextBlock = {
 }
 
 /** Le vocabulaire est CLOS : un style inconnu est ignoré plutôt qu'appliqué. */
-export const STYLES_COMPOSITION_BLOC = ['bibliographie', 'renvois-bible'] as const
+export const STYLES_COMPOSITION_BLOC = ['bibliographie', 'renvois-bible', 'liste'] as const
 export type StyleCompositionBloc = typeof STYLES_COMPOSITION_BLOC[number]
 
 export function styleCompositionSur(value: unknown): StyleCompositionBloc | null {
@@ -273,6 +273,9 @@ export function blocsTexteEditoriaux(
       sourceEndOffsetUnicode: entierOuNull(candidate.source_end_offset_unicode),
       headingLevel,
       presentation: presentationSure(candidate.presentation),
+      // Une énumération que la donnée déclare (`presentation.style = liste`) se
+      // compose en liste, un article par paragraphe ; rien ne se devine du texte.
+      presentationStyle: styleCompositionDeNote(candidate.presentation),
       inlineSpans: spansSurs(candidate.inline_spans, text.length),
     }]
   })
