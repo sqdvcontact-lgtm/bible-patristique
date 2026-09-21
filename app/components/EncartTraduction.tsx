@@ -205,7 +205,7 @@ export default function EncartTraduction({ trad, onReduire, reglage, menu }: {
                 titre="Choisir la bible">{rendreEnrichi(trad.label)}</NomVolet>
               <button type="button" onClick={() => setModaleOuverte(true)}
                 title="À propos de cette traduction" aria-label="À propos de cette traduction"
-                className="cs-cible-fine cs-volet-reduire"
+                className="cs-cible-fine cs-volet-reduire cs-volet-apropos"
                 // Un « i » cerclé, du corps du nom : il se voit, se distingue du nom qui
                 // ouvre le menu, et au doigt `.cs-cible-fine` agrandit la zone de frappe.
                 style={{ flexShrink: 0, width: '1.125rem', height: '1.125rem', padding: 0, border: '1px solid currentColor', borderRadius: '50%', background: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontWeight: 600, fontSize: '0.6875rem', lineHeight: 1 }}>

@@ -1111,6 +1111,9 @@ button:focus-visible,
    ⛔ La couleur se déclare ICI : posée en style en ligne, elle battrait la règle
    de survol — piège déjà payé quatre fois dans ce dépôt. */
 .cs-volet-reduire { color: var(--cs-texte-doux); transition: color 0.14s; }
+/* Le « i » cerclé de la carte de traduction est une LETTRE à 11 px : il prend le gris,
+   non le doux du chevron. Écrite avant le survol, qui garde la main. */
+.cs-volet-reduire.cs-volet-apropos { color: var(--cs-texte-gris); }
 .cs-volet-reduire:hover { color: var(--cs-vert); }
 
 .cs-rail-volet { transition: background 0.14s, color 0.14s; }
@@ -3823,7 +3826,10 @@ main.lecture-entree [data-cs-bloc],
   font-family: var(--font-source-sans), Arial, sans-serif;
   font-weight: 400; letter-spacing: 0.03em;
   font-variant-numeric: tabular-nums;
-  color: var(--cs-texte-doux); text-align: right;
+  /* Le numéro qu'elle porte est à 11 px (.poly-lettrine-ref) : sous 12 px, l'encre
+     est le gris et non le doux, même quand la taille et la couleur sont posées par
+     deux règles différentes. */
+  color: var(--cs-texte-gris); text-align: right;
 }
 /* Le numéro est petit, mais son étui fait EXACTEMENT une ligne de texte (1.36em,
    l'interligne de la cellule) : le flottant ne repousse donc qu'une seule ligne,
@@ -3841,7 +3847,7 @@ main.lecture-entree [data-cs-bloc],
 }
 /* Le chapitre s'efface derrière le verset : les deux sont là, mais l'œil qui
    parcourt la colonne accroche le numéro qui change. */
-.poly-lettrine-ch { font-weight: 400; color: var(--cs-texte-doux); }
+.poly-lettrine-ch { font-weight: 400; color: var(--cs-texte-gris); }
 /* L'étui d'un numéro fait EXACTEMENT une ligne de texte : le flottant ne repousse
    donc qu'une ligne, et deux versets partageant un créneau en repoussent deux.
    ⛔ Il porte le STRUT DE LA CELLULE — police sérif, interligne de la cellule — et

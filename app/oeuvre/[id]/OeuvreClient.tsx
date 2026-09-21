@@ -3670,7 +3670,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            garde son second rang par le corps et l'italique. ⚠️ Aucune couleur en ligne sur
            le lien : elle battrait ces règles. */
         .lien-meme-auteur { color: var(--cs-texte); transition: color 0.12s; }
-        .lien-meme-auteur .lien-meme-auteur-edition { color: var(--cs-texte-doux); transition: color 0.12s; }
+        .lien-meme-auteur .lien-meme-auteur-edition { color: var(--cs-texte-gris); transition: color 0.12s; }
         .lien-meme-auteur:hover, .lien-meme-auteur:focus-visible,
         .lien-meme-auteur:hover .lien-meme-auteur-edition,
         .lien-meme-auteur:focus-visible .lien-meme-auteur-edition { color: var(--cs-vert); }
