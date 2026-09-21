@@ -11,6 +11,7 @@
 // auteur : ses données, sa frise, la liste de ses œuvres et le pied de sa fiche.
 
 import Link from 'next/link'
+import FilAriane from '@/app/components/FilAriane'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 
@@ -460,7 +461,14 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
   )
 }
 
-export default function ModaleAuteur({ id, onClose }: { id: string | null; onClose: () => void }) {
+/**
+ * `filAriane` : la fiche est ouverte par sa PROPRE ROUTE (`/auteur/[id]`), et elle y
+ * porte le fil d'Ariane de la page. ⛔ Il vivait dans le gabarit de la route, donc SOUS
+ * le voile de la fenêtre (audit ergonomique du 2026-09-21) : une ligne grisée, derrière
+ * le calque, qu'on ne pouvait ni lire ni suivre. Il se pose désormais dans la fenêtre,
+ * en tête, et ne paraît pas quand la fiche s'ouvre par-dessus une autre page.
+ */
+export default function ModaleAuteur({ id, onClose, filAriane = false }: { id: string | null; onClose: () => void; filAriane?: boolean }) {
   const titreId = useId()
   const [auteur, setAuteur] = useState<Auteur | null>(null)
   const [evenements, setEvenements] = useState<RangChrono[]>([])
@@ -574,7 +582,15 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
       ) : !auteur || auteur.id_auteur !== id ? (
         <MotAttente centre marge="30px 0" />
       ) : (
-        <Contenu auteur={auteur} onClose={onClose} evenements={evenements} pied={pied} titreId={titreId} />
+        <>
+          {filAriane && (
+            <FilAriane
+              elements={[{ nom: 'Patristique', url: '/bibliotheque' }, { nom: auteur.nom, url: `/auteur/${auteur.id_auteur}` }]}
+              style={{ padding: '0 0 0.75rem' }}
+            />
+          )}
+          <Contenu auteur={auteur} onClose={onClose} evenements={evenements} pied={pied} titreId={titreId} />
+        </>
       )}
     </ModaleFiche>
   )

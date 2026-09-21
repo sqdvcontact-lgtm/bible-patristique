@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { cache } from "react";
 import { creerSupabaseServeur } from "@/app/lib/supabaseServeur";
 import { JsonLd, donneesPersonne, donneesFilAriane } from "@/app/lib/donneesStructurees";
-import FilAriane from "@/app/components/FilAriane";
 // Description et JSON-LD prennent le texte NU : une notice enrichie y laisserait
 // ses astérisques, que ni un moteur ni un aperçu de partage ne savent lire.
 import { sansEnrichissements } from "@/app/lib/enrichissements";
@@ -108,14 +107,10 @@ export default async function AuteurLayout({
           />
         </>
       )}
-      {/* Le fil d'Ariane, visible et discret (audit ergonomique, 2026-09-21) : le même
-          que celui qu'on déclare aux moteurs, sans l'accueil. */}
-      {data?.nom && (
-        <FilAriane
-          elements={[{ nom: "Patristique", url: "/bibliotheque" }, { nom: data.nom, url: `/auteur/${id}` }]}
-          style={{ maxWidth: "52rem", padding: "0.875rem 16px 0" }}
-        />
-      )}
+      {/* ⛔ Le fil d'Ariane VISIBLE ne vit plus ici : la page n'est qu'une fenêtre sur un
+          fond neutre, et il passait sous son voile. La fenêtre le porte en tête
+          (`ModaleAuteur`, `filAriane`), avec les mêmes éléments que ceux qu'on déclare
+          aux moteurs, sans l'accueil. */}
       {children}
     </>
   );
