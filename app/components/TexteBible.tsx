@@ -8,7 +8,7 @@ import { useNaviguer } from '@/app/lib/attenteNavigation'
 import { supabase } from "@/app/lib/supabase"
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin"
 import { useCompte } from "@/app/lib/contexteCompte"
-import { useSansSurvol } from "@/app/lib/useEstMobile"
+import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile"
 import { citationBiblique, copierCitation } from "@/app/lib/citation"
 import { usePrelevementsDuChapitre } from "@/app/lib/prelevementsBibliques"
 import { referenceDesVersets, texteDesVersets, UNITE_VERSETS } from "@/app/lib/selectionPassages"
@@ -431,6 +431,10 @@ export default function TexteBible({
   const { userId, estAdmin, exigerCompte } = useCompte()
   // ⛔ L'axe du lasso est la CAPACITÉ du pointeur : au doigt, glisser fait défiler.
   const sansSurvol = useSansSurvol()
+  // ⛔ La Polyglotte n'offre sous 820 px qu'un message « écran large requis » : le
+  // bouton qui y mène ne se propose donc pas sur un écran si étroit (audit
+  // ergonomique, 2026-09-21). Seuil de la page elle-même, non celui du téléphone.
+  const polyglotteTropEtroite = useEstMobile(820)
   const [editionCible, setEditionCible] = useState<Verset | null>(null)
   const [overrides, setOverrides] = useState<Record<string, Partial<Record<string, string>>>>({})
   // ⛔ Le chargement des prélèvements du chapitre vit dans `prelevementsBibliques.ts` : la
@@ -998,7 +1002,7 @@ export default function TexteBible({
                         String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? ''),
                         `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`,
                       )} />
-                      {(() => { const p = placeCanoniqueDuVerset(v, livreActif, chapitreActif); return <BoutonPolyglotte href={urlPolyglotte(p.livre, p.chapitre, p.verset)} /> })()}
+                      {!polyglotteTropEtroite && (() => { const p = placeCanoniqueDuVerset(v, livreActif, chapitreActif); return <BoutonPolyglotte href={urlPolyglotte(p.livre, p.chapitre, p.verset)} /> })()}
                       {typeof v._facsDebut899 === 'string' && (
                         <BoutonFacsimile
                           reference={`${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`}
