@@ -35,6 +35,9 @@ import VisiteGuidee from './VisiteGuidee'
 import { CLE_VISITE_BIBLE, visiteBibleClassiquePour } from '@/app/lib/visiteBibleClassique'
 import BoutonProportions from '@/app/components/BoutonProportions'
 import { useCompte } from '@/app/lib/contexteCompte'
+import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
+import ReglageTitresBible from './ReglageTitresBible'
+import { lireTitresMasques, type RangTitreBible } from '@/app/lib/titresMasquesBible'
 import { type EtapeVisite, type SceneVisite } from '@/app/lib/visiteGuidee'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { modesLectureAlternatifs, nomLangue, type CibleLectureAlternative, type MembreFamilleLecture } from '@/app/lib/bibleModesAlternatifs'
@@ -87,6 +90,8 @@ type Props = {
   membresFamille?: MembreFamilleLecture[]
   /** L’édition lue porte un appareil éditorial : on peut demander le texte nu. */
   paratexteDisponible?: boolean
+  /** Rangs de titre que l’édition lue ne rend pas (`bible_edition_families.titres_masques`). */
+  titresMasques?: readonly string[]
   /** Lecture « Texte biblique seul » demandée : la page n’a pas passé l’appareil. */
   texteSeul?: boolean
   /** Sommaire de l’édition : ses pièces liminaires. Vide, l’onglet ne paraît pas. */
@@ -127,9 +132,21 @@ export default function BibleLayout(props: Props) {
   )
 }
 
-function PageBible({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, editionChapter, notesDesVersets = null, lectureBilingue, membresFamille, paratexteDisponible = false, texteSeul = false, sommaireEdition = [], pieceAffichee = null }: Props) {
+function PageBible({ livres, versets, traductions, livreActif, chapitreActif, nomLivre, tradInitiale, readingCapabilities, couche, couchesDisponibles, editionChapter, notesDesVersets = null, lectureBilingue, membresFamille, paratexteDisponible = false, titresMasques: titresMasquesRecus, texteSeul = false, sommaireEdition = [], pieceAffichee = null }: Props) {
   // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
-  const { visiteFaite, oublierVisite, profilPret } = useCompte()
+  const { visiteFaite, oublierVisite, profilPret, estAdmin: estAdminReel } = useCompte()
+  const { modeUtilisateurStandard } = useAffichageAdmin()
+  const estAdmin = estAdminReel && !modeUtilisateurStandard
+  // Les rangs de titre masqués : ce que le serveur a lu, puis ce que la roue vient
+  // de régler, montré sans attendre. ⚠️ Recalé PENDANT le rendu sur une CLÉ de
+  // texte : le tableau reçu est neuf à chaque rendu serveur.
+  const cleMasquesRecus = lireTitresMasques(titresMasquesRecus).join(',')
+  const [masquesPour, setMasquesPour] = useState(cleMasquesRecus)
+  const [titresMasques, setTitresMasques] = useState<RangTitreBible[]>(() => lireTitresMasques(titresMasquesRecus))
+  if (masquesPour !== cleMasquesRecus) {
+    setMasquesPour(cleMasquesRecus)
+    setTitresMasques(lireTitresMasques(titresMasquesRecus))
+  }
   const listeTraductions = traductions
   const indexInitial = listeTraductions.findIndex(t => t.code === tradInitiale)
   const [traductionIndex, setTraductionIndex] = useState(indexInitial >= 0 ? indexInitial : 0)
@@ -597,6 +614,11 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // identité neuve à chaque rendu le ferait relire pour rien.
   const familleCle = listeTraductions[traductionIndex]?.famille?.cle ?? null
   const familleLue = paratexteDisponible ? familleCle : null
+  // La roue des niveaux de titre : l’administrateur seul, sur une édition qui porte
+  // un appareil (c’est lui qui a des titres à masquer).
+  const reglageTitres = estAdmin && familleLue
+    ? <ReglageTitresBible familleId={familleLue} masques={titresMasques} onChange={setTitresMasques} />
+    : null
   const libelleBibleLue = listeTraductions[traductionIndex]?.label ?? traduction
   const membresEnRegard = lectureBilingue?.membres
   const biblesLues = useMemo<BibleLue[]>(() => {
@@ -809,6 +831,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         barreMobile={false}
         presentation="inline"
         maniereDeLire={maniereDeLire}
+        reglageEdition={reglageTitres}
         modesLecture={modesLecture}
         onChoisirModeLecture={choisirModeLecture}
         onPreparerModeLecture={preparerModeLecture}
@@ -843,6 +866,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         {lectureBilingue ? (
           <LectureBilingueBible
             {...lectureBilingue}
+            titresMasques={titresMasques}
             mobile={mobile}
             livreActif={livreActif}
             chapitreActif={chapitreActif}
@@ -856,6 +880,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           />
         ) : (
         <TexteBible
+          titresMasques={titresMasques}
           versets={versets}
           traduction={traduction}
           traductionIndex={traductionIndex}

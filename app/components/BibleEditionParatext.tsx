@@ -25,6 +25,7 @@ import {
 } from '@/app/lib/bibleHierarchieSemantique'
 import { ancreNoteSansAppelBible } from '@/app/lib/ancresNotesBible'
 import { compositionSousTitre } from '@/app/lib/compositionBible'
+import { titreMasque } from '@/app/lib/titresMasquesBible'
 import { lignesDeVers, styleLigneDeVers } from '@/app/lib/compositionVers'
 import { detecterCitationSortie } from '@/app/lib/citationSortie'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -756,6 +757,7 @@ export function BlocEditorialBible({
   illustrations = [],
   habillage = [],
   suite = false,
+  titresMasques,
 }: {
   bloc: BlocEditorialBiblique
   illustrations?: IllustrationBibliqueAffichable[]
@@ -765,6 +767,9 @@ export function BlocEditorialBible({
    *  ne rouvre pas le blanc de son rang (`estSuiteDuBloc`, § 35.17.5). Décidé par
    *  l'appelant, qui seul connaît le bloc d'avant. */
   suite?: boolean
+  /** Les rangs de titre que l'édition ne rend pas (`bible_edition_families.titres_masques`,
+   *  réglage d'administration). Le titre se tait, le corps du bloc paraît toujours. */
+  titresMasques?: readonly string[]
 }) {
   const avant = illustrations.filter((illustration) => illustration.placement === 'before')
   const dansLeFlux = illustrations.filter((illustration) => illustration.placement === 'inline')
@@ -787,6 +792,13 @@ export function BlocEditorialBible({
   // revanche de traverser l'axe analytique : c'est sa PLACE qui compte, non son
   // intitulé, et sans elle le 2° remonterait sous le 1°.
   if (resolu.redondantAvecNavigation) return null
+  // ⛔ Un rang que l'édition masque ne rend pas son intitulé ; un bloc qui n'est QUE
+  // ce titre ne rend rien, et le sous-titre d'un titre masqué se tait avec lui.
+  // La place dans l'axe analytique, elle, ne bouge pas : `baliserBlocs` l'a déjà
+  // calculée sur la donnée entière.
+  const intituleMasque = titreMasque(resolu.headingLevel, titresMasques)
+  if (intituleMasque && resolu.kind === 'title' && bloc.textBlocks.length === 0 && illustrations.length === 0) return null
+  if (bloc.presentation && ROLES_SOUS_TITRE.has(bloc.presentation.displayRole ?? '') && titreMasque(bloc.rangDuTitre, titresMasques)) return null
 
   // ⚠️ Un bloc de portée HAUTE (I1 : la Bible, un testament, un groupe de
   // livres, un livre) nomme sa portée puis dit son genre — « Évangile selon
@@ -853,7 +865,7 @@ export function BlocEditorialBible({
           {rendreContenuAncre(manchette, [], notesTitre)}
         </p>
       )}
-      {intitule && (resolu.headingRole === 'title' && resolu.headingLevel ? (
+      {intitule && !intituleMasque && (resolu.headingRole === 'title' && resolu.headingLevel ? (
         // Cas mixte : l'intitulé EST un titre — celui de la péricope —, distinct
         // du développement qui le suit. Les deux ne se concatènent jamais.
         <Balise className={classeIntituleTitre(resolu.headingLevel) + ' ' + CLASSE_TITRE_PORTE}>
@@ -878,7 +890,7 @@ export function BlocEditorialBible({
           `display: flow-root`, sans quoi il déborderait sur le titre suivant. */}
       {rendreIllustrations(dansLeFlux, true)}
       {rendreHabillage(habillage)}
-      {bloc.textBlocks.map((texte, rang) => rendreBlocTexte(
+      {bloc.textBlocks.map((texte, rang) => (texte.kind === 'heading' && titreMasque(texte.headingLevel, titresMasques)) ? null : rendreBlocTexte(
         texte, resolu, notesCorps, bloc.niveauHtml, compositionDuParagraphe(bloc, texte, rang),
         bloc.rangDuTitre,
       ))}

@@ -2,7 +2,7 @@
 
 import { Z_FENETRE, Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
 import IconeChevron from '@/app/components/IconeChevron'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { useNaviguer } from '@/app/lib/attenteNavigation'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import EncartTraduction, { type TraductionEncart } from '@/app/components/EncartTraduction'
@@ -155,6 +155,8 @@ type Props = {
   // le lecteur de la manière dont il lisait (lecture en regard, graphie, texte nu)
   // sans qu'il l'ait demandé. On reporte le bloc entier, jamais réglage par réglage.
   maniereDeLire?: ManiereDeLireBible
+  /** Réglage d'administration posé dans la carte de l'édition (niveaux de titre). */
+  reglageEdition?: ReactNode
   // Menu OCCASIONNEL des manières de lire (graphie, texte nu, lecture en regard),
   // composé par le parent à partir des DONNÉES. Vide, il ne paraît pas.
   modesLecture?: GroupeLectureBible[]
@@ -208,7 +210,7 @@ export default function NavLivres({
   livresVides, onLivreAbsent, onChoisirLivre, sansChapitres, titre, libelleRail,
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, onPreparerChapitre, entierActif,
   mobile = false, voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
-  sansReduire = false, maniereDeLire,
+  sansReduire = false, maniereDeLire, reglageEdition,
   modesLecture = [], onChoisirModeLecture, onPreparerModeLecture,
   sommaireEdition = [], pieceActive = null,
 }: Props) {
@@ -584,7 +586,7 @@ export default function NavLivres({
       <div className="cs-volet-echelle" style={{ display: 'contents' }}>
       {/* Encart traduction (Bible classique, desktop) — au-dessus de la recherche. */}
       {!polyMode && !sansChapitres && !mobile && traductions[traductionIndex] && (
-        <EncartTraduction trad={traductions[traductionIndex]}
+        <EncartTraduction trad={traductions[traductionIndex]} reglage={reglageEdition}
           onReduire={peutSeReduire ? () => setOuvert(false) : undefined} />
       )}
 

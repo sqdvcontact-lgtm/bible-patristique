@@ -469,6 +469,12 @@ export default async function Home({
       supabase.from('bible_verse_notes').select('id', { count: 'exact', head: true }).eq('family_id', editionMember.family_id),
     ]).then(([blocs, notes]) => (blocs.count ?? 0) + (notes.count ?? 0) > 0).catch(() => false)
     : Promise.resolve(false)
+  // Les rangs de titre que l’édition ne rend pas : réglage d’administration, lu sous
+  // la RLS du lecteur, dans la même vague. Un échec les rend tous visibles.
+  const titresMasquesPromis: Promise<string[]> = editionMember
+    ? Promise.resolve(supabase.from('bible_edition_families').select('titres_masques').eq('id', editionMember.family_id).maybeSingle())
+      .then(({ data }) => (data?.titres_masques as string[] | null) ?? []).catch(() => [])
+    : Promise.resolve([])
   // Même raison que ci-dessus : en regard, cet appareil n'est jamais rendu (c'est
   // `lectureBilingue` qui porte le sien), et le charger d'office coûtait cinq
   // allers-retours pour rien.
@@ -776,11 +782,12 @@ export default async function Home({
       versetsPromis.then((versets) => versets.map((verset) => verset.id_verset)),
     )
     : null
-  const [versetsCharges, liminaires, tradsV2, paratexteDisponible] = await Promise.all([
+  const [versetsCharges, liminaires, tradsV2, paratexteDisponible, titresMasques] = await Promise.all([
     versetsPromis,
     editionMember ? chargerLiminairesEdition(supabase, editionMember.family_id) : Promise.resolve([]),
     tradsV2Promis,
     paratexteDisponiblePromis,
+    titresMasquesPromis,
   ])
   // Les traductions lues dans `versets_v2` rejoignent le catalogue de CETTE page,
   // et le menu avec elles (voir plus haut, « Les traductions lues dans versets_v2 »).
@@ -908,6 +915,7 @@ export default async function Home({
         lectureBilingue={lectureBilingue}
         membresFamille={membresFamille}
         paratexteDisponible={paratexteDisponible}
+        titresMasques={titresMasques}
         texteSeul={texteSeul}
         sommaireEdition={piecesLiminaires.map(({ cle, titre, portee, scopeKind }) => ({
           cle, titre, portee, scopeKind,

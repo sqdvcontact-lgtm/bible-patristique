@@ -141,6 +141,8 @@ type IllustrationBilingue = BibleEditionDisplayAsset & Appartenance
 
 export type LectureBilingueProps = {
   membres: readonly MembreBilingue[]
+  /** Rangs de titre que l'édition ne rend pas (réglage d'administration). */
+  titresMasques?: readonly string[]
   colonnes: readonly ColonneBilingue[]
   /** Créneaux canoniques du chapitre, dans l'ordre : c'est l'axe d'alignement. */
   axeCanonique: readonly string[]
@@ -171,6 +173,7 @@ export default function BibleBilingue({
   canonSelectionne = null,
   onSelectionnerVerset,
   mobile = false,
+  titresMasques,
 }: LectureBilingueProps): ReactNode {
   const ordre = colonnesBilingues(membres, mobile ? 'mobile' : 'desktop')
   const colonnesOrdonnees = ordre
@@ -259,6 +262,7 @@ export default function BibleBilingue({
       bloc={bloc}
       illustrations={imagesParBloc.get(bloc.id) ?? []}
       suite={i > 0 && estSuiteDuBloc(liste[i - 1], bloc)}
+      titresMasques={titresMasques}
     />
   ))
   const rendreImages = (liste: readonly BibleEditionDisplayAsset[]) => liste.map((illustration) => surMesure(

@@ -78,6 +78,8 @@ type Traduction = { code: string; label: string }
 
 type Props = {
   versets: Verset[]
+  /** Rangs de titre que l'édition ne rend pas (réglage d'administration). */
+  titresMasques?: readonly string[]
   traduction: string
   traductionIndex: number
   setTraductionIndex: (i: number) => void
@@ -467,7 +469,7 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
 }
 
 export default function TexteBible({
-  versets, traduction, traductionIndex, setTraductionIndex, traductions,
+  titresMasques, versets, traduction, traductionIndex, setTraductionIndex, traductions,
   livreActif, chapitreActif, nomLivre,
   versetSelectionne, setVersetSelectionne, densites, mobile = false,
   editionChapter, notesDesVersets = null, maniereDeLire, pieceAffichee = null,
@@ -646,6 +648,7 @@ export default function TexteBible({
                 illustrations={indexIllustrations.byBodyBlock.get(item.id) ?? []}
                 habillage={habillage.parBloc.get(item.id) ?? []}
                 suite={suite}
+                titresMasques={titresMasques}
               />
             )
           : <IllustrationBible key={`illustration:${item.id}`} illustration={item.value} />, `axe:${item.id}`)

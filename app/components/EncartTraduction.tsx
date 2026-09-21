@@ -96,7 +96,7 @@
 // d'un côté l'auteur, de l'autre la bible, et il n'y a pas deux façons de le dire.
 // ⛔ Rien ne paraît au survol, ni ici ni là (voir `NomVolet`).
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { libelleEditionTraduction } from '@/app/lib/editionTraduction'
 import ModaleTraduction from '@/app/components/ModaleTraduction'
 import NomVolet from '@/app/components/NomVolet'
@@ -119,8 +119,10 @@ export type TraductionEncart = {
   coteManuscrit?: string | null
 }
 
-export default function EncartTraduction({ trad, onReduire }: {
+export default function EncartTraduction({ trad, onReduire, reglage }: {
   trad: TraductionEncart
+  /** Un réglage d'administration posé avant le chevron (la roue des niveaux de titre). */
+  reglage?: ReactNode
   /** Replier le volet. Absent, la carte ne porte pas de chevron — c'est le cas du
    *  volet de la Polyglotte, qui gère son repli lui-même, et du téléphone en
    *  onglets, où les onglets font office de navigation. */
@@ -169,6 +171,7 @@ export default function EncartTraduction({ trad, onReduire }: {
         <div style={{ minWidth: 0, flex: 1 }}>
           <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{rendreEnrichi(trad.label)}</NomVolet>
         </div>
+        {reglage}
         {onReduire && (
           <button onClick={onReduire} title="Réduire le volet" aria-label="Réduire le volet"
             className="cs-volet-reduire"
