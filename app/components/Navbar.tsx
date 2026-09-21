@@ -377,21 +377,8 @@ function OngletPatristique({ href, label, style, actif }: { href: string; label:
     <OngletMenu href={href} label={label} style={style} actif={actif} repere="nav-patristique"
       classeMenu="cs-plus-menu--riche cs-plus-menu--oeuvres"
       auSurvol={() => setRecentes({ recentes: lireOeuvresRecentes(), maintenant: Date.now() })}>
-      {/* ⛔ LA PORTE DE LA RUBRIQUE, EN TÊTE DE SON PROPRE MENU. Le libellé de
-          l'onglet y mène déjà, mais rien ne le dit : un menu qui s'ouvre au survol
-          capture l'œil, et l'on cherche dedans ce qu'on est venu chercher. Les trois
-          autres menus nomment tous leurs pages ; celui-ci ne montrait qu'un journal
-          de lecture, et la bibliothèque n'y figurait nulle part.
-          ⚠️ Elle prend « href », celui de l'onglet, jamais une adresse recopiée :
-          les deux ne peuvent pas diverger. */}
-      <Link href={href} className="cs-plus-riche">
-        <span className="cs-plus-riche-texte">
-          <span className="cs-plus-riche-nom cs-plus-riche-nom--fort">Les Pères de l’Église</span>
-          <span className="cs-plus-riche-dit">La bibliothèque, auteur par auteur.</span>
-        </span>
-      </Link>
-      <div className="cs-plus-sep" />
-      <p className="cs-plus-titre">Dernières œuvres consultées</p>
+      {/* Le menu ne porte que les œuvres récentes : le libellé de l'onglet mène
+          déjà à la bibliothèque (décision de l'auteur, 2026-09-21). */}
       {recentes.length > 0 ? recentes.map(o => {
         const edition = editionAMontrer(o, ambigus);
         const quand = quandConsultee(o.vu, maintenant);
