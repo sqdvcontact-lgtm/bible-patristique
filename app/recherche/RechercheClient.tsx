@@ -1058,7 +1058,7 @@ export default function RechercheClient() {
                 commande, et un fond léger au seul foyer. */}
             {/* Champ principal */}
             <div data-visite="recherche-champ" style={{ position:'relative', width:'100%', borderBottom:'1px solid var(--cs-bord)' }}>
-              <input ref={inputRef} value={query}
+              <input aria-label="Chercher un mot, une expression" ref={inputRef} value={query}
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => {
                   if (e.key === 'Enter') { setShowSugg(false); lancer() }
@@ -1163,7 +1163,7 @@ export default function RechercheClient() {
               <div data-visite="recherche-perimetre" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
                 <div>
                   <p style={{ ...RUBRIQUE_AXE, margin:'0 0 2px' }}>Chercher dans</p>
-                  <select className="ctrl-sel" style={{ width:'100%' }} value={tradScope}
+                  <select aria-label="Chercher dans" className="ctrl-sel" style={{ width:'100%' }} value={tradScope}
                     onChange={e => { const v=e.target.value; setTradScope(v); if(v!=='ALL') setTradAffichage(v) }}>
                     <option value="ALL">Toutes les bibles</option>
                     {traductions.map(t=><option key={t.code} value={t.code}>{t.label}</option>)}
@@ -1171,7 +1171,7 @@ export default function RechercheClient() {
                 </div>
                 <div>
                   <p style={{ ...RUBRIQUE_AXE, margin:'0 0 2px' }}>Afficher en</p>
-                  <select className="ctrl-sel" style={{ width:'100%' }} value={tradAffichage} onChange={e=>setTradAffichage(e.target.value)}>
+                  <select aria-label="Afficher en" className="ctrl-sel" style={{ width:'100%' }} value={tradAffichage} onChange={e=>setTradAffichage(e.target.value)}>
                     {traductions.map(t=><option key={t.code} value={t.code}>{t.label}</option>)}
                   </select>
                 </div>

@@ -216,7 +216,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
             <div style={{ flexShrink: 0, borderTop: '1px solid var(--cs-bord-clair)', background: 'var(--cs-fond-clair)', padding: '10px 12px' }}>
               {erreurEnvoi && <p role="alert" style={{ fontSize: '0.6875rem', color: 'var(--cs-danger-fonce)', margin: '0 0 7px', lineHeight: 1.4 }}>{erreurEnvoi}</p>}
               <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-                <textarea value={texte}
+                <textarea aria-label="Votre message" value={texte}
                   onChange={e => { setTexte(sansEmoticones(e.target.value)); setErreurEnvoi(null) }}
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); envoyer() } }}
                   placeholder="Écrire un message… (Entrée pour envoyer)" rows={2} maxLength={2000}
@@ -232,7 +232,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
           // ── Vue liste + recherche de pseudos ────────────────────────────
           <>
             <div style={{ flexShrink: 0, padding: '10px 14px 8px', borderBottom: '1px solid var(--cs-fond-doux)', position: 'relative' }}>
-              <input value={recherche} onChange={e => setRecherche(e.target.value)}
+              <input aria-label="Chercher un pseudonyme" value={recherche} onChange={e => setRecherche(e.target.value)}
                 placeholder="Chercher un pseudonyme pour écrire…"
                 style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.78125rem', padding: '7px 11px', border: '1px solid var(--cs-bord)', borderRadius: '999px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none' }} />
               {recherche.trim().length >= 2 && (

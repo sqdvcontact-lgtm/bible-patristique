@@ -250,7 +250,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             <button onClick={() => entourer('« ', ' »')} title="Guillemets français" style={BTN_MODAL}>« »</button>
             <button onClick={() => entourer('“', '”')} title="Guillemets anglais (citation imbriquée)" style={BTN_MODAL}>” ”</button>
           </div>
-          <textarea ref={taRef} value={valeur} onChange={e => setValeur(e.target.value)}
+          <textarea aria-label="Texte en cours d’édition" ref={taRef} value={valeur} onChange={e => setValeur(e.target.value)}
             rows={cible.type === 'segment' ? 8 : varianteActive?.compose || champActif === 'titre' ? 3 : 2} autoFocus
             style={{ width: '100%', fontSize: '0.78125rem', padding: '8px 10px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.55, boxSizing: 'border-box', fontFamily: cible.type === 'segment' ? 'var(--font-source-sans), Arial, sans-serif' : 'inherit' }} />
 

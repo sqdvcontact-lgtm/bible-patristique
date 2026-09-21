@@ -236,7 +236,7 @@ export default function ModalLienBiblique({
           )}
 
           <main style={{ minHeight: 0, overflowY: 'auto', padding: mobile ? '12px 12px 14px' : '14px 16px 16px' }}>
-            <input
+            <input aria-label="Rechercher un mot, une expression ou une référence"
               value={recherche}
               onChange={e => {
                 const valeur = e.target.value

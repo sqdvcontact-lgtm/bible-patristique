@@ -852,9 +852,9 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
         <EditeurCommentaire value={texte} onChange={setTexte} placeholder={cibleReponse ? 'Votre réponse…' : 'Votre commentaire…'} minHeight={62} />
         {!userId && (
           <>
-            <input type="text" value={nom} onChange={e => setNom(e.target.value)} placeholder="Nom *"
+            <input aria-label="Nom" type="text" value={nom} onChange={e => setNom(e.target.value)} placeholder="Nom *"
               style={{ width:'100%', fontSize:'0.71875rem', padding:'4px 7px', borderRadius:'4px', border:`1px solid ${erreur && !nom.trim() ? 'var(--cs-danger)' : 'var(--cs-bord)'}`, background:'var(--cs-surface)', color:'var(--cs-texte-fort)', outline:'none', boxSizing:'border-box' }} />
-            <input type="email" value={mail} onChange={e => setMail(e.target.value)} placeholder="Adresse e-mail *"
+            <input aria-label="Adresse électronique" type="email" value={mail} onChange={e => setMail(e.target.value)} placeholder="Adresse e-mail *"
               style={{ width:'100%', fontSize:'0.71875rem', padding:'4px 7px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', outline:'none', boxSizing:'border-box' }} />
             <p style={{ fontSize:'0.625rem', color:'var(--cs-texte-faible)', margin:0 }}>* L’adresse e-mail ne sera pas publiée.</p>
           </>
@@ -1730,7 +1730,7 @@ export default function PanneauPatristique({
                     {/* Recherche auteur */}
                     <p style={{ ...STYLE_RUBRIQUE_FILTRE, margin: '0 0 5px' }}>Auteurs</p>
                     <div style={{ position: 'relative', marginBottom: resultatsAuteur.length ? '0' : '4px' }}>
-                      <input
+                      <input aria-label="Chercher un auteur"
                         type="text"
                         value={rechercheAuteur}
                         onChange={e => setRechercheAuteur(e.target.value)}

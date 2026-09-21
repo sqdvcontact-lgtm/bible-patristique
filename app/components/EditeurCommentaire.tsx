@@ -236,6 +236,9 @@ export default function EditeurCommentaire({ value, onChange, placeholder = 'Vot
         ref={ref}
         contentEditable
         suppressContentEditableWarning
+        role="textbox"
+        aria-multiline="true"
+        aria-label={placeholder.replace(/…$/, '')}
         data-placeholder={placeholder}
         onInput={synchroniser}
         onKeyDown={e => raccourcisEditeur(e, { apresChangement: synchroniser, exposant: true })}

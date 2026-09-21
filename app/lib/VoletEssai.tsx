@@ -62,6 +62,7 @@ function EditeurNoteWysiwyg({ valeur, mode, onChange, onEnregistrer }: {
       </div>
       {/* Zone UNIQUE, éditable, WYSIWYG. */}
       <div ref={ref} className="note-zone" contentEditable suppressContentEditableWarning
+        role="textbox" aria-multiline="true" aria-label="Texte de la note"
         onInput={synchroniser}
         onKeyDown={e => raccourcisEditeur(e, { apresChangement: synchroniser, exposant: true })}
         onPaste={e => collageTexteBrut(e, synchroniser)}

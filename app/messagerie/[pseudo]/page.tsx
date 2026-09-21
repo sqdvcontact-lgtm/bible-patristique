@@ -178,7 +178,7 @@ export default function ConversationPage() {
       {connecte && !erreur && (
         <div style={{ background: 'var(--cs-fond-clair)', borderTop: '1px solid var(--cs-bord-clair)', padding: '12px 20px', maxWidth: '45rem', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
-            <textarea
+            <textarea aria-label="Votre message"
               className="msg-input"
               value={texte}
               onChange={e => setTexte(e.target.value)}

@@ -175,7 +175,7 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
         <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', marginBottom: '20px', lineHeight: 1.5 }}>Il vous identifie sur le site et doit être unique.</p>
         {erreur && <p style={{ fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', marginBottom: '12px' }}>{erreur}</p>}
         <form onSubmit={valider} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <input type="text" value={pseudo} onChange={e => setPseudo(e.target.value)} maxLength={32} autoFocus placeholder="Pseudonyme"
+          <input aria-label="Pseudonyme" type="text" value={pseudo} onChange={e => setPseudo(e.target.value)} maxLength={32} autoFocus placeholder="Pseudonyme"
             style={{ width: '100%', padding: '9px 12px', fontSize: '0.84375rem', border: '1px solid var(--cs-bord)', borderRadius: '8px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
           <button type="submit" disabled={envoi}
             style={{ padding: '10px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', fontSize: '0.84375rem', fontWeight: 500, cursor: 'pointer' }}>

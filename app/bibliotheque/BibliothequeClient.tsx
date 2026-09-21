@@ -1263,7 +1263,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
         </button>
         {/* Recherche — identique en placement et en forme à l'onglet Bibliothèque */}
         <div style={{ position: 'relative', width: '100%', maxWidth: '21.25rem' }}>
-          <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
+          <input aria-label="Rechercher un auteur ou une œuvre" type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
             placeholder="Rechercher un auteur ou une œuvre"
             style={{ width: '100%', fontSize: '0.8125rem', padding: '9px 14px 9px 38px', border: '1px solid var(--cs-bord)', borderRadius: '8px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ color: 'var(--cs-texte-fort)', position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
@@ -1388,7 +1388,7 @@ function ComboAuteur({ value, onChange, onAuteurId }: {
 
   if (libre) return (
     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-      <input autoFocus value={saisie} onChange={e => { setSaisie(e.target.value); onChange(e.target.value) }}
+      <input aria-label="Nom de l’auteur" autoFocus value={saisie} onChange={e => { setSaisie(e.target.value); onChange(e.target.value) }}
         placeholder="Nom de l'auteur" style={CHAMP_STYLE} />
       <button type="button" onClick={() => { setLibre(false); setSaisie(''); onChange(''); onAuteurId?.(null) }}
         style={{ fontSize: '0.6875rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-gris)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -1399,7 +1399,7 @@ function ComboAuteur({ value, onChange, onAuteurId }: {
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
-      <input value={saisie} onChange={e => { setSaisie(e.target.value); onChange(''); onAuteurId?.(null) }}
+      <input aria-label="Auteur de l’œuvre" value={saisie} onChange={e => { setSaisie(e.target.value); onChange(''); onAuteurId?.(null) }}
         onFocus={() => saisie.trim().length >= 2 && setOuvert(true)}
         placeholder="Commencez à taper…" style={CHAMP_STYLE} autoComplete="off" />
       {ouvert && (
@@ -1466,7 +1466,7 @@ function ComboTitre({ value, onChange, auteurNom }: {
 
   if (libre) return (
     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-      <input autoFocus value={saisie} onChange={e => { setSaisie(e.target.value); onChange(e.target.value) }}
+      <input aria-label="Titre de l’œuvre" autoFocus value={saisie} onChange={e => { setSaisie(e.target.value); onChange(e.target.value) }}
         placeholder="Titre de l'œuvre" style={CHAMP_STYLE} />
       <button type="button" onClick={() => { setLibre(false); setSaisie(''); onChange('') }}
         style={{ fontSize: '0.6875rem', padding: '6px 10px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-gris)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -1477,7 +1477,7 @@ function ComboTitre({ value, onChange, auteurNom }: {
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
-      <input value={saisie} onChange={e => { setSaisie(e.target.value); onChange('') }}
+      <input aria-label="Titre de l’œuvre" value={saisie} onChange={e => { setSaisie(e.target.value); onChange('') }}
         onFocus={() => saisie.trim().length >= 2 && setOuvert(true)}
         placeholder="Commencez à taper…" style={CHAMP_STYLE} autoComplete="off" />
       {ouvert && (
@@ -1684,11 +1684,11 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>Traducteur</label>
-            <input value={form.traducteur} onChange={set('traducteur')} placeholder="ex. Louis de Mondalon" style={CHAMP_STYLE} />
+            <input aria-label="Traducteur" value={form.traducteur} onChange={set('traducteur')} placeholder="ex. Louis de Mondalon" style={CHAMP_STYLE} />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>Éditeur</label>
-            <input value={form.editeur} onChange={set('editeur')} placeholder="ex. Desclée de Brouwer" style={CHAMP_STYLE} />
+            <input aria-label="Éditeur" value={form.editeur} onChange={set('editeur')} placeholder="ex. Desclée de Brouwer" style={CHAMP_STYLE} />
           </div>
         </div>
 
@@ -1696,15 +1696,15 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>Collection</label>
-            <input value={form.collection} onChange={set('collection')} placeholder="ex. Sources chrétiennes" style={CHAMP_STYLE} />
+            <input aria-label="Collection" value={form.collection} onChange={set('collection')} placeholder="ex. Sources chrétiennes" style={CHAMP_STYLE} />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>Ville</label>
-            <input value={form.ville} onChange={set('ville')} placeholder="ex. Paris" style={CHAMP_STYLE} />
+            <input aria-label="Ville" value={form.ville} onChange={set('ville')} placeholder="ex. Paris" style={CHAMP_STYLE} />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>Date de publication</label>
-            <input value={form.date_publication} onChange={set('date_publication')} placeholder="ex. 1924" style={CHAMP_STYLE} />
+            <input aria-label="Date de publication" value={form.date_publication} onChange={set('date_publication')} placeholder="ex. 1924" style={CHAMP_STYLE} />
           </div>
         </div>
 
@@ -1712,11 +1712,11 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>Siècle de l’auteur</label>
-            <input value={form.siecle} onChange={set('siecle')} placeholder="ex. IVe" style={CHAMP_STYLE} />
+            <input aria-label="Siècle de l’auteur" value={form.siecle} onChange={set('siecle')} placeholder="ex. IVe" style={CHAMP_STYLE} />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>Langue originale</label>
-            <select value={form.langue} onChange={set('langue')} style={CHAMP_STYLE}>
+            <select aria-label="Langue originale" value={form.langue} onChange={set('langue')} style={CHAMP_STYLE}>
               <option value="">— sélectionner —</option>
               {['Grec', 'Latin', 'Syriaque', 'Copte', 'Arménien', 'Autre'].map(l => <option key={l} value={l}>{l}</option>)}
             </select>
@@ -1728,7 +1728,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
           <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>
             Note (source, droits, contexte)
           </label>
-          <textarea value={form.note} onChange={set('note')} rows={3}
+          <textarea aria-label="Remarques pour l’équipe éditoriale" value={form.note} onChange={set('note')} rows={3}
             placeholder="Précisez la source du texte, confirmez qu'il est dans le domaine public, ou toute remarque utile à l'équipe éditoriale."
             style={{ ...CHAMP_STYLE, resize: 'vertical', lineHeight: 1.6 }} />
         </div>
@@ -1738,7 +1738,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
           <label style={{ display: 'block', fontSize: '0.65625rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '5px' }}>
             Texte complet
           </label>
-          <textarea value={form.texte} onChange={set('texte')} rows={18}
+          <textarea aria-label="Texte intégral de l’œuvre" value={form.texte} onChange={set('texte')} rows={18}
             placeholder="Collez ici le texte intégral de l'œuvre. Un texte structuré avec des titres de chapitres est préférable."
             style={{ ...CHAMP_STYLE, fontFamily: 'ui-monospace, Consolas, monospace', fontSize: '0.75rem', resize: 'vertical', lineHeight: 1.65 }} />
           {form.texte && (
@@ -2167,7 +2167,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
             {/* Recherche + bouton Filtres, côte à côte. */}
             <div data-visite="bib-recherche" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', margin: '0 auto 12px', maxWidth: '30rem' }}>
               <div style={{ position: 'relative', flex: 1, maxWidth: '21.25rem' }}>
-                <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
+                <input aria-label="Rechercher un auteur ou une œuvre" type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
                   placeholder="Rechercher un auteur ou une œuvre"
                   style={{ width: '100%', fontSize: '0.78125rem', padding: '7px 14px 7px 36px', border: '1px solid var(--cs-bord)', borderRadius: '8px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ color: 'var(--cs-texte-fort)', position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>

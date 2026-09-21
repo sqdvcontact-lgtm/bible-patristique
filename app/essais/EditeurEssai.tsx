@@ -626,7 +626,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '12px', marginBottom: '12px' }}>
                   <div>
                     <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Titre *</label>
-                    <input
+                    <input aria-label="Titre"
                       value={meta.titre}
                       onChange={e => setMeta(prev => ({ ...prev, titre: e.target.value }))}
                       autoComplete="off"
@@ -636,7 +636,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                   </div>
                   <div>
                     <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Sous-titre</label>
-                    <input
+                    <input aria-label="Sous-titre"
                       value={meta.sousTitre}
                       onChange={e => setMeta(prev => ({ ...prev, sousTitre: e.target.value }))}
                       autoComplete="off"
@@ -653,7 +653,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                       {resumeLen.toLocaleString('fr')} / {RESUME_MAX.toLocaleString('fr')} caractères
                     </span>
                   </div>
-                  <textarea
+                  <textarea aria-label="Résumé"
                     value={meta.resume}
                     onChange={e => setMeta(prev => ({ ...prev, resume: e.target.value }))}
                     rows={3}

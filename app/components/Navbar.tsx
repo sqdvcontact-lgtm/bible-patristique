@@ -1279,7 +1279,7 @@ export default function Navbar() {
       `)}</style>
       {/* Champ + bouton page de recherche */}
       <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-        <input
+        <input aria-label="Rechercher dans le site"
           type="text"
           value={requeteRapide}
           onChange={e => setRequeteRapide(e.target.value)}

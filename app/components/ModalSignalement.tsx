@@ -92,7 +92,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
               </div>
             )}
 
-            <textarea value={message} onChange={e => setMessage(e.target.value)}
+            <textarea aria-label="Description du problème" value={message} onChange={e => setMessage(e.target.value)}
               placeholder={placeholder} rows={4} autoFocus
               style={{ width: '100%', fontSize: '0.75rem', padding: '8px 10px', border: '1px solid var(--cs-danger-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
 

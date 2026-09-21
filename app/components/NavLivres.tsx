@@ -732,7 +732,7 @@ export default function NavLivres({
          Il est posé sur la RANGÉE et non sur le champ : la case de la visite cerne le
          bloc tel qu'il se voit, gouttières comprises, et non la boîte de saisie. */
       <div data-visite="recherche-livre" style={{ flexShrink: 0, borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center' }}>
-        <input
+        <input aria-label="Rechercher un livre biblique"
           type="text"
           className="cs-volet-recherche"
           placeholder="Rechercher un livre biblique"

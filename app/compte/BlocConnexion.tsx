@@ -99,9 +99,9 @@ export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte 
       <Rangee label="Mot de passe"
         note={statutMdp ? <span style={{ color: statutMdp.ok ? 'var(--cs-vert)' : 'var(--cs-danger-fonce)' }}>{statutMdp.msg}</span> : 'Six caractères au moins.'}>
         <span style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <input type="password" autoComplete="new-password" className="esp-court" style={inputStyle}
+          <input aria-label="Nouveau mot de passe" type="password" autoComplete="new-password" className="esp-court" style={inputStyle}
             value={nouveauMdp} onChange={e => { setNouveauMdp(e.target.value); setStatutMdp(null) }} placeholder="Nouveau" />
-          <input type="password" autoComplete="new-password" className="esp-court" style={inputStyle}
+          <input aria-label="Confirmer le nouveau mot de passe" type="password" autoComplete="new-password" className="esp-court" style={inputStyle}
             value={confirmationMdp} onChange={e => { setConfirmationMdp(e.target.value); setStatutMdp(null) }} placeholder="Confirmer" />
           <button onClick={modifierMotDePasse} disabled={envoiMdp || !nouveauMdp || !confirmationMdp} style={BTN_DISCRET}>
             {envoiMdp ? 'Modification…' : 'Changer'}

@@ -472,7 +472,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
                   </div>
                 )}
 
-                <textarea value={texte} onChange={e => setTexte(e.target.value)} rows={3}
+                <textarea aria-label="Référence proposée" value={texte} onChange={e => setTexte(e.target.value)} rows={3}
                   placeholder="Référence, ou ce qui vous la fait proposer…"
                   style={{ width: '100%', fontSize: '0.6875rem', padding: '7px 9px', marginTop: '8px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
               </>

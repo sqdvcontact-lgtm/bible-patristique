@@ -632,7 +632,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
           <button onClick={() => entourer("« ", " »")} title="Guillemets français" style={outil}>« »</button>
           <button onClick={() => entourer("“", "”")} title="Guillemets anglais (citation imbriquée)" style={outil}>“”</button>
         </div>
-        <textarea ref={ta} autoFocus value={valeur} onChange={e => setValeur(e.target.value)}
+        <textarea aria-label="Texte du verset" ref={ta} autoFocus value={valeur} onChange={e => setValeur(e.target.value)}
           onKeyDown={e => { if (e.key === "Escape") onFermer(); if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) onEnregistrer(valeur); }}
           rows={5}
           style={{ width: "100%", boxSizing: "border-box", fontSize: '0.84375rem', lineHeight: 1.5, fontFamily: "var(--font-source-serif), Georgia, serif", padding: "9px 11px", border: "1px solid var(--cs-bord)", borderRadius: 4, background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", resize: "vertical" }} />
@@ -840,7 +840,7 @@ function CelluleNote({ valeur, refLisible, onChange }: {
     );
   }
   return (
-    <textarea value={valeur} onChange={e => onChange(e.target.value)}
+    <textarea aria-label={`Note sur ${refLisible}`} value={valeur} onChange={e => onChange(e.target.value)}
       ref={el => { if (el && demarrer.current) { el.focus(); demarrer.current = false; } }}
       onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
       style={{ width: "100%", resize: "none", minHeight: "1.9rem", boxSizing: "border-box", border: "1px solid var(--cs-bord-clair)", borderRadius: 4,
