@@ -708,6 +708,55 @@ export default function RechercheClient() {
   const essaisFiltres = useMemo(() => filtres.essai != null ? essaisRes.filter(e => e.id === filtres.essai) : essaisRes, [essaisRes, filtres.essai])
   const essaisPage   = essaisFiltres.slice(pageE * PAGE, (pageE + 1) * PAGE)
 
+  // ── UN RÉSULTAT VIDE PROPOSE UNE SUITE (audit ergonomique 2026-09-21) ──────
+  // « Aucun verset trouvé » laissait le lecteur sans rien. La page dit maintenant ce
+  // qui retient les résultats (un filtre, une seule bible, le mode), où le mot se
+  // trouve ailleurs, et donne des exemples de requêtes qui répondent.
+  const EXEMPLES_REQUETES = ['grâce', 'lumière du monde', 'Jn 3, 16', 'Mt 5, 3-12']
+  const relancerAvec = (q: string, m: Mode = mode, scope: string = tradScope) => {
+    setQuery(q); setMode(m); setTradScope(scope); void lancer(q, m, scope)
+  }
+  const rendreVide = (texte: string) => {
+    const q = lastQuery
+    const coteBible = onglet === 'bible' || onglet === 'polyglotte'
+    const filtreActif = coteBible ? filtres.livre != null : onglet === 'patristique' ? filtres.oeuvre != null : filtres.essai != null
+    const ailleurs: { cle: Onglet; libelle: string }[] = []
+    if (!coteBible && versetsTotal > 0) ailleurs.push({ cle: 'bible', libelle: `${versetsTotal} verset${versetsTotal > 1 ? 's' : ''} dans la Bible` })
+    if (onglet !== 'patristique' && segmentsTotal > 0) ailleurs.push({ cle: 'patristique', libelle: `${segmentsTotal} passage${segmentsTotal > 1 ? 's' : ''} chez les Pères` })
+    if (onglet !== 'essais' && essaisRes.length > 0) ailleurs.push({ cle: 'essais', libelle: `${essaisRes.length} essai${essaisRes.length > 1 ? 's' : ''} de la communauté` })
+    const piste = { margin:'0 0 6px' } as const
+    return (
+      <div style={{ marginTop:'24px', textAlign:'center', fontSize:'0.75rem', color:'var(--cs-texte-second)' }}>
+        <p style={{ color:'var(--cs-texte-faible)', fontStyle:'italic', margin:'0 0 14px' }}>{texte}</p>
+        {q && (
+          <div style={{ display:'inline-block', textAlign:'left', maxWidth:'34rem' }}>
+            {filtreActif && (
+              <p style={piste}>Un filtre restreint les résultats. <button className="pag-btn" onClick={() => setFiltres({ livre: null, oeuvre: null, essai: null })}>Retirer le filtre</button></p>
+            )}
+            {ailleurs.length > 0 && (
+              <p style={piste}>Le mot se trouve ailleurs :{' '}
+                {ailleurs.map(a => <button key={a.cle} className="pag-btn" style={{ marginRight:'6px' }} onClick={() => setOnglet(a.cle)}>{a.libelle}</button>)}
+              </p>
+            )}
+            {coteBible && tradScope !== 'ALL' && (
+              <p style={piste}>La recherche ne porte que sur une bible. <button className="pag-btn" onClick={() => relancerAvec(q, mode, 'ALL')}>Chercher dans toutes les bibles</button></p>
+            )}
+            {mode === 'exact' && (
+              <p style={piste}>Le mode exact ne prend que le mot entier. <button className="pag-btn" onClick={() => relancerAvec(q, 'prefixe')}>Chercher en début de mot</button></p>
+            )}
+            {mode !== 'famille' && (
+              <p style={piste}>Pour trouver aussi les formes voisines (aimer, aime, aimé) : <button className="pag-btn" onClick={() => relancerAvec(q, 'famille')}>Chercher la famille du mot</button></p>
+            )}
+            <p style={piste}>Vérifiez l’orthographe : les accents et les majuscules sont facultatifs, mais chaque lettre compte.</p>
+          </div>
+        )}
+        <p style={{ margin:'12px 0 0' }}>Exemples :{' '}
+          {EXEMPLES_REQUETES.map(x => <button key={x} className="pag-btn" style={{ marginRight:'6px' }} onClick={() => relancerAvec(x)}>{x}</button>)}
+        </p>
+      </div>
+    )
+  }
+
   // La page DEMANDÉE de chaque corpus, et celle qui est là. Quand les deux clés
   // diffèrent, la page est EN ATTENTE : l'effet ci-dessous la redemande, et les lignes
   // d'avant restent sous un voile le temps qu'elle vienne. ⚠️ Rien ne s'allume ni ne
@@ -1430,7 +1479,7 @@ export default function RechercheClient() {
             {/* ── Bible ── */}
             {done && onglet==='bible' && (
               versetsTotalFiltre===0
-                ? <Vide texte="Aucun verset trouvé." />
+                ? rendreVide('Aucun verset trouvé.')
                 : <div style={{ ...styleFamille('bible'), ...styleAttente(versetsEnAttente) }}>
                   {/* Un groupe par LIVRE. Les versets arrivant dans l'ordre canonique, une
                       tranche consécutive est exactement un livre. Le nom du livre monte donc
@@ -1489,7 +1538,7 @@ export default function RechercheClient() {
             {/* ── Patristique ── */}
             {done && onglet==='patristique' && (
               segmentsTotalFiltre===0
-                ? <Vide texte="Aucun passage trouvé." />
+                ? rendreVide('Aucun passage trouvé.')
                 : <div style={{ ...styleFamille('patristique'), ...styleAttente(segmentsEnAttente) }}>
                   {/* Un groupe par ŒUVRE. La base range les passages par auteur puis par
                       œuvre : une tranche consécutive est exactement une œuvre. L'auteur et
@@ -1538,7 +1587,7 @@ export default function RechercheClient() {
             {/* ── Essais ── */}
             {done && onglet==='essais' && (
               essaisFiltres.length===0
-                ? <Vide texte="Aucun essai trouvé." />
+                ? rendreVide('Aucun essai trouvé.')
                 : <div style={styleFamille('essais')}>
                   {/* Une publication est déjà un groupe à elle seule : son titre monte dans la
                       rubrique avec sa catégorie, et la ligne garde le sous-titre et l'extrait. */}
@@ -1573,7 +1622,7 @@ export default function RechercheClient() {
                 qui a besoin d'un titre collant, parce qu'elle descend un livre entier. */}
             {done && onglet==='polyglotte' && (
               versetsTotalFiltre===0
-                ? <Vide texte="Aucun verset trouvé." />
+                ? rendreVide('Aucun verset trouvé.')
                 : (
                     <div className="poly-outer" style={styleAttente(versetsEnAttente)}>
                       {versetsPage.lignes.map(v => (
@@ -1685,8 +1734,4 @@ export default function RechercheClient() {
       )}
     </>
   )
-}
-
-function Vide({ texte }: { texte: string }) {
-  return <p style={{ fontSize:'0.75rem', color:'var(--cs-texte-faible)', fontStyle:'italic', marginTop:'24px', textAlign:'center' }}>{texte}</p>
 }
