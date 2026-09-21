@@ -52,6 +52,7 @@ import { cleInventaireNotesBible, type ContexteNotesBible } from '@/app/lib/note
 // ⛔ L'inventaire des notes d'une bible ne se charge qu'avec son onglet : il ne sert qu'à
 // l'administrateur, et le lecteur n'a pas à en payer le poids.
 const OngletNotesBible = dynamic(() => import('@/app/components/OngletNotesBible'))
+const OngletSemantique = dynamic(() => import('@/app/components/OngletSemantique'))
 
 /** Ce que le rail et la barre mobile écrivent quand le volet est fermé : l'ACTION,
  *  jamais le contenu. « Commentaires » sur une bande fermée décrit ce qu'on ne voit
@@ -948,7 +949,7 @@ export default function PanneauPatristique({
   verset, livreActif, chapitreActif,
   panelWidth = null, onWidthChange, mobile = false,
   voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer', sousBarres = true,
-  plage, refAffichee, notesBible = null,
+  plage, refAffichee, notesBible = null, onChoisirVerset,
 }: {
   verset: Verset | null
   livreActif: string
@@ -979,8 +980,11 @@ export default function PanneauPatristique({
    *  2026-09-16) ; `null` hors d'une famille éditoriale qui porte un appareil. La page
    *  la compose, parce qu'elle seule sait la manière de lire. */
   notesBible?: ContexteNotesBible | null
+  /** Choisir un verset depuis le volet (onglet « Sémantique »). Sans lui, pas d'onglet :
+   *  seule la page Bible le donne. */
+  onChoisirVerset?: (creneau: string) => void
 }) {
-  type Onglet = 'patristique' | 'commentaires' | 'notes'
+  type Onglet = 'patristique' | 'commentaires' | 'notes' | 'semantique'
   type SousOnglet = 'citations' | 'doctrine' | 'echos'
   const ITEMS_PAR_PAGE = 20
   const [onglet, setOnglet] = useState<Onglet>('patristique')
@@ -1057,6 +1061,15 @@ export default function PanneauPatristique({
   const cleNotes = notesBible ? cleInventaireNotesBible(notesBible) : null
   const [compteNotes, setCompteNotes] = useState<{ pour: string; n: number | null } | null>(null)
   const reporterCompteNotes = useCallback((pour: string, n: number | null) => { setCompteNotes({ pour, n }) }, [])
+
+  // ── L'annotation sémantique (administrateur SEUL, demande de l'auteur, 2026-09-21) ────
+  // ⛔ Les tables `semantique_*` ne se lisent que par la route d'administration ; l'onglet
+  // ne paraît jamais à un lecteur, ni sur une péricope. Voir `semantiqueVerset.ts`.
+  // ⚠️ Comme celui des notes, son chiffre vient de l'onglet, une fois ouvert.
+  const semantiqueOfferte = isAdmin && !plage && !!livreActif && !!onChoisirVerset
+  const cleSemantique = `${livreActif}|${chapitreActif}|${verset?.id_verset ?? ''}`
+  const [compteSemantique, setCompteSemantique] = useState<{ pour: string; n: number | null } | null>(null)
+  const reporterCompteSemantique = useCallback((pour: string, n: number | null) => { setCompteSemantique({ pour, n }) }, [])
 
   // ── Filtres avancés ──────────────────────────────────────────────────────────
   const [filtreVoletOuvert, setFiltreVoletOuvert] = useState(false)
@@ -1329,6 +1342,7 @@ export default function PanneauPatristique({
   // verset, les notes hors du mode administrateur — rend la main aux Pères, sans qu'un effet
   // ait à le reposer.
   const ongletAffiche: Onglet = (onglet === 'commentaires' && !verset) || (onglet === 'notes' && !notesOffertes)
+    || (onglet === 'semantique' && !semantiqueOfferte)
     ? 'patristique'
     : onglet
   const ONGLETS: { code: Onglet; label: string; count?: number | null; enAttente: boolean }[] = [
@@ -1339,6 +1353,11 @@ export default function PanneauPatristique({
       code: 'notes' as Onglet, label: 'Notes',
       count: compteNotes !== null && compteNotes.pour === cleNotes ? compteNotes.n : null,
       enAttente: ongletAffiche === 'notes' && compteNotes?.pour !== cleNotes,
+    }] : []),
+    ...(semantiqueOfferte ? [{
+      code: 'semantique' as Onglet, label: 'Sémantique',
+      count: compteSemantique !== null && compteSemantique.pour === cleSemantique ? compteSemantique.n : null,
+      enAttente: ongletAffiche === 'semantique' && compteSemantique?.pour !== cleSemantique,
     }] : []),
   ]
 
@@ -1684,6 +1703,9 @@ export default function PanneauPatristique({
               // referme avant qu'on montre la note.
               <OngletNotesBible contexte={notesBible} onCompte={reporterCompteNotes}
                 onAvantOuvrir={mobile ? () => setOuvert(false) : undefined} />
+            ) : ongletAffiche === 'semantique' && onChoisirVerset ? (
+              <OngletSemantique livre={livreActif} chapitre={chapitreActif} verset={verset?.id_verset ?? null}
+                onChoisirVerset={onChoisirVerset} onCompte={reporterCompteSemantique} />
             ) : (
               <>
                 {/* Sous-onglets Citations / Doctrine / Échos */}

@@ -205,6 +205,19 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
     }
     setVersetSelectionne(actuel => (actuel?.id_verset === canonId ? null : choisi))
   }
+  // Le volet choisit un verset (onglet « Sémantique » de l'administrateur) : il le POSE,
+  // sans le relâcher au second clic comme le fait la colonne.
+  const choisirCanon = (canonId: string) => {
+    const point = parsePointCanonique(canonId)
+    if (!point || point.chapitre == null || point.verset == null) return
+    setVersetSelectionne({
+      id_verset: canonId,
+      ref: formaterPlageCanonique(canonId),
+      livre: point.livre,
+      chapitre: point.chapitre,
+      verset: point.verset,
+    })
+  }
   // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui
   // allume la marque au centre du bloc de texte tant que la page se prépare.
   const naviguer = useNaviguer()
@@ -917,6 +930,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         barreMobile={false}
         presentation="inline"
         notesBible={notesBible}
+        onChoisirVerset={choisirCanon}
       />
 
       {/* Bandeau de navigation mobile — tout en bas, sous la barre « Commentaires ».
