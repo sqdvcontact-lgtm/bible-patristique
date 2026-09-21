@@ -23,6 +23,7 @@
 
 import { analyserRequetePericope } from './pericopesRecherche'
 import { LIVRES } from './bible'
+import { ecrirePlageVersets } from './bibleNavigation'
 
 // ── 1. Les termes et le mode ─────────────────────────────────────────────────
 
@@ -86,8 +87,8 @@ export type ReferenceBiblique = {
   verset: number | null
   /** Dernier verset d'une plage (« Mt 5, 3-12 »), ou `null`. */
   versetFin: number | null
-  /** L'adresse de la page Bible, ancrée sur le verset quand il y en a un. ⚠️ Le
-   *  lecteur ne sait retenir qu'UN verset : une plage s'ouvre sur son premier. */
+  /** L'adresse de la page Bible, ancrée sur le verset quand il y en a un. Une plage
+   *  s'écrit `verset=3-12` : le lecteur la surligne entière et défile au premier. */
   href: string
   /** « Jean 3, 16 », « Genèse 22 ». */
   libelle: string
@@ -110,7 +111,7 @@ export function referenceBiblique(q: string): ReferenceBiblique | null {
   const base = `/?livre=${encodeURIComponent(r.livre)}&chapitre=${r.chapitre}`
   return {
     livre: r.livre, nom, chapitre: r.chapitre, verset: r.verset, versetFin: r.versetFin,
-    href: r.verset != null ? `${base}&verset=${r.verset}#verset-${r.verset}` : base,
+    href: r.verset != null ? `${base}&verset=${ecrirePlageVersets(r.verset, r.versetFin)}#verset-${r.verset}` : base,
     libelle: versets ? `${nom} ${r.chapitre}, ${versets}` : `${nom} ${r.chapitre}`,
   }
 }

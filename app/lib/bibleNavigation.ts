@@ -109,6 +109,30 @@ export function urlLectureBible(cible: CibleLectureBible): string {
   return `/?${parametres.toString()}`
 }
 
+// ── Une PLAGE de versets dans l'adresse (audit ergonomique du 2026-09-21) ────
+// « Mt 5, 3-12 » ouvrait le chapitre sur le seul verset 3. Le paramètre `verset`
+// porte désormais une plage, `verset=3-12` : le lecteur la surligne entière et
+// défile au premier. ⛔ Un verset unique s'écrit toujours `verset=3`, et tout ce qui
+// le lit ailleurs le lit comme avant.
+
+export type PlageVersets = { debut: number; fin: number }
+
+/** « 3 » → 3 à 3 ; « 3-12 » ou « 3–12 » → 3 à 12. Une plage à l'envers ou illisible
+ *  ne vaut rien ; une plage d'un seul verset (« 5-5 ») vaut ce verset. */
+export function lirePlageVersets(valeur: string | null | undefined): PlageVersets | null {
+  const m = (valeur ?? '').trim().match(/^(\d{1,3})(?:\s*[-–]\s*(\d{1,3}))?$/)
+  if (!m) return null
+  const debut = Number(m[1])
+  const fin = m[2] != null ? Number(m[2]) : debut
+  if (debut < 1 || fin < debut) return null
+  return { debut, fin }
+}
+
+/** La valeur du paramètre `verset` : « 3 », ou « 3-12 » pour une plage. */
+export function ecrirePlageVersets(debut: number, fin?: number | null): string {
+  return fin != null && fin > debut ? `${debut}-${fin}` : String(debut)
+}
+
 // ── La Polyglotte ouverte sur un verset ──────────────────────────────────────
 // Le bouton « Voir dans la Polyglotte » d'une rangée de verset (page Bible) y mène.
 // ⛔ Les coordonnées sont celles du CANON : la Polyglotte range ses lignes sur

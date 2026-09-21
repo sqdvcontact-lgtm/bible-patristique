@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  ecrirePlageVersets,
+  lirePlageVersets,
   placeCanoniqueDuVerset,
   placePolyglotteDemandee,
   urlEtatPolyglotte,
@@ -160,5 +162,24 @@ describe('l’état de la Polyglotte dans l’adresse', () => {
     expect(colonnesPolyglotteDemandees('?livre=GEN')).toBeNull()
     expect(colonnesPolyglotteDemandees('?trads=,,')).toBeNull()
     expect(colonnesPolyglotteDemandees('?trads=TR0001,<x>')).toEqual(['TR0001', ''])
+  })
+})
+
+describe('plage de versets dans l’adresse', () => {
+  it('lit un verset unique comme avant, et une plage à tiret court ou demi-cadratin', () => {
+    expect(lirePlageVersets('3')).toEqual({ debut: 3, fin: 3 })
+    expect(lirePlageVersets('3-12')).toEqual({ debut: 3, fin: 12 })
+    expect(lirePlageVersets('3–12')).toEqual({ debut: 3, fin: 12 })
+  })
+  it('refuse une plage à l’envers ou illisible', () => {
+    expect(lirePlageVersets('12-3')).toBeNull()
+    expect(lirePlageVersets('0')).toBeNull()
+    expect(lirePlageVersets('abc')).toBeNull()
+    expect(lirePlageVersets(null)).toBeNull()
+  })
+  it('écrit un verset seul sans tiret', () => {
+    expect(ecrirePlageVersets(3)).toBe('3')
+    expect(ecrirePlageVersets(3, 3)).toBe('3')
+    expect(ecrirePlageVersets(3, 12)).toBe('3-12')
   })
 })

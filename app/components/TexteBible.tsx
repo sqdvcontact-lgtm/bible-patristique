@@ -9,6 +9,7 @@ import { supabase } from "@/app/lib/supabase"
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin"
 import { useCompte } from "@/app/lib/contexteCompte"
 import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile"
+import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
 import { citationBiblique, copierCitation } from "@/app/lib/citation"
 import { usePrelevementsDuChapitre } from "@/app/lib/prelevementsBibliques"
 import { referenceDesVersets, texteDesVersets, UNITE_VERSETS } from "@/app/lib/selectionPassages"
@@ -48,7 +49,7 @@ import { estSuiteDuBloc } from '@/app/lib/bibleHierarchieSemantique'
 import AppelNoteBiblique from '@/app/components/NoteBibliqueFenetre'
 import { rendreTexteAvecAppels, repartirAppels } from '@/app/lib/ancresAppelsBible'
 import { separateurAppels, styleSeparateurAppels } from '@/app/lib/appelsDeNote'
-import { placeCanoniqueDuVerset, urlPolyglotte } from '@/app/lib/bibleNavigation'
+import { lirePlageVersets, placeCanoniqueDuVerset, urlPolyglotte } from '@/app/lib/bibleNavigation'
 import type { PieceLiminaireAffichee } from '@/app/components/BibleLayout'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import { activerAuClavier } from '@/app/lib/activerAuClavier'
@@ -452,7 +453,7 @@ export default function TexteBible({
   // ⛔ La Polyglotte n'offre sous 820 px qu'un message « écran large requis » : le
   // bouton qui y mène ne se propose donc pas sur un écran si étroit (audit
   // ergonomique, 2026-09-21). Seuil de la page elle-même, non celui du téléphone.
-  const polyglotteTropEtroite = useEstMobile(820)
+  const polyglotteTropEtroite = useEstMobile(POINTS_DE_RUPTURE.tablette)
   const [editionCible, setEditionCible] = useState<Verset | null>(null)
   const [overrides, setOverrides] = useState<Record<string, Partial<Record<string, string>>>>({})
   // ⛔ Le chargement des prélèvements du chapitre vit dans `prelevementsBibliques.ts` : la
@@ -525,19 +526,26 @@ export default function TexteBible({
   const versetRetenuRef = useRef(versetSelectionne)
   useEffect(() => { versetRetenuRef.current = versetSelectionne }, [versetSelectionne])
 
+  // ── UNE PLAGE DEMANDÉE PAR L'ADRESSE (audit ergonomique du 2026-09-21) ──
+  // `verset=3-12` : toute la plage est surlignée, rien n'est retenu (le volet des Pères
+  // garde le chapitre), et la colonne défile au premier verset. Retenir ensuite un
+  // verset réécrit l'adresse (`BibleLayout`), et la plage s'éteint d'elle-même.
+  const plageDemandee = lirePlageVersets(searchParams.get('verset'))
+  const plageSurlignee = plageDemandee && plageDemandee.fin > plageDemandee.debut ? plageDemandee : null
+
   useEffect(() => {
-    const versetCible = searchParams.get('verset')
-    if (!versetCible) return
-    const num = parseInt(versetCible)
+    const plage = lirePlageVersets(searchParams.get('verset'))
+    if (!plage) return
+    const num = plage.debut
+    const defiler = () => {
+      const el = document.getElementById(`verset-${num}`)
+      if (el) setTimeout(() => { el.scrollIntoView({ behavior: 'smooth', block: 'center' }) }, 200)
+    }
+    if (plage.fin > plage.debut) { defiler(); return }
     if (versetRetenuRef.current?.verset === num) return
     const v = versets.find(v => v.verset === num)
     if (v) setVersetSelectionne(v)
-    const el = document.getElementById(`verset-${versetCible}`)
-    if (el) {
-      setTimeout(() => {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }, 200)
-    }
+    defiler()
   }, [searchParams, versets, setVersetSelectionne])
 
   const marquerSauvegarde = (numVerset: number, id: string) => {
@@ -911,6 +919,7 @@ export default function TexteBible({
               paraît alors en « — », avec son appel. */}
           {!chapitreToutLacune && versets.filter(v => estLigne899(v) || v[traduction] || notesParCanon.has(v.id_verset)).map(v => {
             const actif = versetSelectionne?.id_verset === v.id_verset
+            const dansPlage = !!plageSurlignee && v.verset >= plageSurlignee.debut && v.verset <= plageSurlignee.fin
             const ligne899 = estLigne899(v)
             const ligneEditoriale = estLigneEditoriale(v)
             const ligneSource = ligne899 || ligneEditoriale
@@ -947,12 +956,12 @@ export default function TexteBible({
             <div
               id={`verset-${v.verset}`}
               onClick={choisirVerset}
-              className={`verset-row${actif ? ' verset-row--actif' : ''}`}
+              className={`verset-row${actif ? ' verset-row--actif' : ''}${dansPlage ? ' verset-row--plage' : ''}`}
               data-oeuvres={densites.get(v.id_verset)?.oeuvres}
               style={styleRangeeVerset({ mobile })}>
 
               <div style={styleGrilleRangee({ mobile })}>
-                <div className="verset-bloc" data-lasso-verset={dansLeLasso ? v.id_verset : undefined} style={styleBlocVerset({ actif, mobile })}>
+                <div className="verset-bloc" data-lasso-verset={dansLeLasso ? v.id_verset : undefined} style={styleBlocVerset({ actif: actif || dansPlage, mobile })}>
                   {/* Numéro — inclus dans le bloc sélectionné, aligné sur la 1re ligne du texte (ligne de base) */}
                   {/* ⛔ Le numéro est le BOUTON du verset pour le clavier : la rangée entière
                       porte déjà des liens et des boutons, on ne la rend pas focalisable. */}

@@ -62,7 +62,7 @@ describe('référence biblique', () => {
     for (const saisie of ['Mt 5, 3-12', 'Mt 5,3-12']) {
       expect(referenceBiblique(saisie)).toMatchObject({
         livre: 'MAT', chapitre: 5, verset: 3, versetFin: 12,
-        libelle: 'Matthieu 5, 3–12', href: '/?livre=MAT&chapitre=5&verset=3#verset-3',
+        libelle: 'Matthieu 5, 3–12', href: '/?livre=MAT&chapitre=5&verset=3-12#verset-3',
       })
     }
   })
