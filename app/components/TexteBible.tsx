@@ -51,6 +51,8 @@ import { placeCanoniqueDuVerset, urlLectureBible, urlPolyglotte, type ManiereDeL
 import type { PieceLiminaireAffichee } from '@/app/components/BibleLayout'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import { activerAuClavier } from '@/app/lib/activerAuClavier'
+import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
+import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
 import {
   indexerBlocsDeCorps,
   habillerLesVignettes,
@@ -316,6 +318,8 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
   verset: Verset; traduction: string; traductionLabel: string; refCourt: string; valeurActuelle: string
   onClose: () => void; onEnregistre: (nouvelleValeur: string) => void
 }) {
+  useFermerAEchap(true, onClose)
+  useRendreLeFoyer(true)
   const [valeur, setValeur] = useState(valeurActuelle)
   const [statut, setStatut] = useState<'idle' | 'envoi' | 'erreur'>('idle')
   const edRef = useRef<HTMLDivElement>(null)

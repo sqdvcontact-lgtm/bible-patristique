@@ -18,6 +18,8 @@ import { libelleVersionComplet, versionTextuelleDepuisLigne } from '@/app/oeuvre
 import { fragmentsReference, SEPARATEUR } from '@/app/lib/referenceBibliographique'
 import { baliseFragments, fragmentsSansPointFinal } from '@/app/lib/referenceBibliographiqueSorties'
 import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
+import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
+import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
 
 const NOM_FR: Record<string, string> = {
   GEN:'Genèse',EXO:'Exode',LEV:'Lévitique',NUM:'Nombres',DEU:'Deutéronome',JOS:'Josué',JDG:'Juges',RUT:'Ruth',
@@ -247,6 +249,9 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
   const demanderFermeture = () => {
     if (window.confirm('Fermer l’outil de citation ? Votre sélection en cours sera perdue.')) onFermer()
   }
+  // Échap passe par la même confirmation que la croix.
+  useFermerAEchap(true, demanderFermeture)
+  useRendreLeFoyer(true)
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,22,0.45)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>

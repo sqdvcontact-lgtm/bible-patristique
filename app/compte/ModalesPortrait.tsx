@@ -8,6 +8,8 @@ import React, { useEffect, useState } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Image from 'next/image'
 import { CADRAGE_PAR_DEFAUT, urlPortrait, ZOOM_MAX, ZOOM_MIN, type Cadrage } from '@/app/lib/portraits'
+import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
+import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
 
 export type PortraitChoisi = { ref: string; nom: string; cadrage: Cadrage }
 
@@ -16,6 +18,8 @@ type Famille = { cle: string; titre: string; portraits: Portrait[] }
 
 // ── Choix de l'illustration ──────────────────────────────────────────────────
 export function ModalePortrait({ onChoisir, onClose }: { onChoisir: (choix: PortraitChoisi) => void; onClose: () => void }) {
+  useFermerAEchap(true, onClose)
+  useRendreLeFoyer(true)
   const [familles, setFamilles] = useState<Famille[] | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
 
@@ -106,6 +110,8 @@ export function ModaleCadrage({ refPortrait: ref, nom, cadrage, onSauvegarder, o
   onChanger: () => void
   onClose: () => void
 }) {
+  useFermerAEchap(true, onClose)
+  useRendreLeFoyer(true)
   const [posX, setPosX] = useState(cadrage?.posX ?? CADRAGE_PAR_DEFAUT.posX)
   const [posY, setPosY] = useState(cadrage?.posY ?? CADRAGE_PAR_DEFAUT.posY)
   const [zoom, setZoom] = useState(cadrage?.zoom ?? CADRAGE_PAR_DEFAUT.zoom)

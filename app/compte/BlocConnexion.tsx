@@ -6,6 +6,8 @@ import { supabase } from '@/app/lib/supabase'
 import { useEspace } from '@/app/compte/EspaceCompte'
 import { inputStyle, type Statut } from '@/app/compte/champsCompte'
 import { Rangee } from '@/app/compte/piecesEspace'
+import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
+import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
 
 /** Le bouton d'une action secondaire, à côté d'un champ. */
 const BTN_DISCRET: React.CSSProperties = {
@@ -44,6 +46,9 @@ export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte 
   useEffect(() => { if (ouvrirSuppression) { setConsentSuppression(false); setErreurSuppression(null) } }, [ouvrirSuppression])
   const [suppressionEnCours, setSuppressionEnCours] = useState(false)
   const [erreurSuppression, setErreurSuppression] = useState<string | null>(null)
+  // Échap ferme la fenêtre de suppression, sauf pendant la suppression elle-même.
+  useFermerAEchap(modaleSuppression && !suppressionEnCours, () => setModaleSuppression(false))
+  useRendreLeFoyer(modaleSuppression)
 
   const modifierEmail = async () => {
     if (!nouvelEmail.trim() || nouvelEmail.trim() === user.email) return

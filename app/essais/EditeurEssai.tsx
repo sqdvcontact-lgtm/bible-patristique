@@ -19,6 +19,8 @@ import { COUVERTURES, couvertureDe } from '@/app/lib/couverturesEssai'
 import { emblemeDe } from '@/app/lib/emblemesCouverture'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import { NOM_ANONYME, colonnesSignature, nomReel, nomSigne, signatureDe, type Signature } from '@/app/lib/signatureEssai'
+import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
+import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
 
 const MAX_CARACTERES = 8000
 const MIN_CARACTERES_PUBLICATION = 2000
@@ -81,6 +83,9 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   const [blocActif, setBlocActif] = useState<'h2' | 'h3' | 'blockquote' | 'p' | null>(null)
   const [comparaisonOuverte, setComparaisonOuverte] = useState(false)
   const [confirmPublier, setConfirmPublier] = useState(false)
+  const fermerConfirmPublier = useCallback(() => setConfirmPublier(false), [])
+  useFermerAEchap(confirmPublier, fermerConfirmPublier)
+  useRendreLeFoyer(confirmPublier)
   const [accepteConditions, setAccepteConditions] = useState(false)
   const [erreurConditions, setErreurConditions] = useState<string | null>(null)
   const contenuOriginalRef = useRef(essaiExistant?.contenu ?? '')

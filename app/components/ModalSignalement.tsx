@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
+import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
 
 // Modale de signalement UNIQUE, partagée par toutes les pages (Bible, Œuvre,
 // Polyglotte, Panneau patristique…). Même mise en forme partout.
@@ -27,6 +29,8 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
   titreFenetre?: string
   placeholder?: string
 }) {
+  useFermerAEchap(true, onClose)
+  useRendreLeFoyer(true)
   const [message, setMessage] = useState('')
   const [statut, setStatut] = useState<'idle' | 'sending' | 'ok' | 'err'>('idle')
   const [importance, setImportance] = useState<Niveau>('important')

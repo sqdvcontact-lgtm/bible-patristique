@@ -51,6 +51,8 @@ import CompteEnAttente from '@/app/components/CompteEnAttente'
 import dynamic from 'next/dynamic'
 import { cleInventaireNotesBible, type ContexteNotesBible } from '@/app/lib/notesBibleInventaire'
 import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
+import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
+import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
 
 // ⛔ L'inventaire des notes d'une bible ne se charge qu'avec son onglet : il ne sert qu'à
 // l'administrateur, et le lecteur n'a pas à en payer le poids.
@@ -955,6 +957,10 @@ export default function PanneauPatristique({
   // Mobile : accordéon piloté par le parent (un seul volet ouvert). Desktop : local.
   const ouvert = mobile ? voletMobile === 'commentaires' : ouvertLocal
   const setOuvert = (v: boolean) => { if (mobile) setVoletMobile?.(v ? 'commentaires' : null); else setOuvertLocal(v) }
+  // Le tiroir d'un téléphone se ferme à Échap, comme une fenêtre.
+  const tiroirOuvert = mobile && presentation !== 'inline' && ouvert
+  useFermerAEchap(tiroirOuvert, () => setOuvert(false))
+  useRendreLeFoyer(tiroirOuvert)
 
   // Citations = lien_1 (exactes) + lien_2 (libres) fusionnés ; Doctrine = lien_3.
   // Longueur de chaque segment chargé ou mesuré, par « id_texte|numero ». Elle sert

@@ -20,6 +20,8 @@ import { OPTION_VOLET, RUBRIQUE_AXE, styleEntreeListeVolet } from '@/app/lib/sty
 import { chargerChapitresParLivre, estLivreOuvrable, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
 import { supabase } from '@/app/lib/supabase'
 import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
+import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
+import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
 
 // Encart d'informations sur la traduction actuellement lue (volet gauche, Bible
 // classique). Taille FIXE (hauteur constante, contenu rogné) pour ne jamais faire
@@ -287,6 +289,10 @@ export default function NavLivres({
   // ouvert à la fois). Sur desktop, état local du volet.
   const ouvert = mobile ? voletMobile === 'livres' : ouvertLocal
   const setOuvert = (v: boolean) => { if (mobile) setVoletMobile?.(v ? 'livres' : null); else setOuvertLocal(v) }
+  // Le tiroir d'un téléphone se ferme à Échap, comme une fenêtre.
+  const tiroirOuvert = mobile && presentation !== 'inline' && ouvert
+  useFermerAEchap(tiroirOuvert, () => setOuvert(false))
+  useRendreLeFoyer(tiroirOuvert)
   const scrollRef = useRef<HTMLDivElement>(null)
   const refPanel = useRef<HTMLDivElement>(null)
   // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui

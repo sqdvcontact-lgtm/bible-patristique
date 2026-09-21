@@ -4,6 +4,8 @@ import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { Z_MODALE } from '@/app/lib/empilement'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
+import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
+import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
 
 // Destination du bouton « Créer un compte ». L'inscription libre n'existe pas
 // encore : on renvoie pour l'instant vers /chantier (connexion + liste d'attente),
@@ -25,6 +27,8 @@ function amorce(contexte: string): string {
 // Rendue dans un portail vers <body> pour échapper aux ancêtres à `transform`
 // (cartes au survol), comme ModalSignalement.
 export default function ModaleCompteRequis({ contexte = '', onClose }: { contexte?: string; onClose: () => void }) {
+  useFermerAEchap(true, onClose)
+  useRendreLeFoyer(true)
   if (typeof document === 'undefined') return null
   return createPortal(
     <div onClick={onClose}

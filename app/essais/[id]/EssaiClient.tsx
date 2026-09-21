@@ -16,6 +16,8 @@ import { useCompte } from '@/app/lib/contexteCompte'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import MarqueMecene from '@/app/components/MarqueMecene'
+import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
+import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
 
 const ABREV_VERS_NOM: Record<string, string> = Object.fromEntries(
   Object.entries(ABREV_FR).map(([code, abrev]) => [abrev, LIVRES.find(l => l.code === code)?.nom ?? abrev])
@@ -71,6 +73,9 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   // et le texte prend toute la largeur (voir AGENTS § Responsive mobile).
   const mobile = useEstMobile(900)
   const [voletOuvert, setVoletOuvert] = useState(true)
+  // Le tiroir d'un téléphone se ferme à Échap, comme une fenêtre.
+  useFermerAEchap(mobile && voletOuvert, () => setVoletOuvert(false))
+  useRendreLeFoyer(mobile && voletOuvert)
   // ⛔ Fermé d'office sous 1100 px, non sous 900. Volet gauche 15rem, volet droit
   //    18,75rem et 112 px de rembourrage : à 901 px il ne restait que 249 px de mesure
   //    au texte, et 328 mesurés à 1010 px. Le seuil n'est pas celui du hook parce qu'il
