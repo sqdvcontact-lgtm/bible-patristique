@@ -4846,21 +4846,18 @@ a.cs-fiche-oeuvre:hover { background: rgba(var(--cs-vert-rgb), 0.06); }
    deux liens en sérif, le geste en petites lettres au-dessus du nom. ⚠️ Le survol
    vit ici : un style en ligne battrait la règle. */
 .cs-nav-bas-chapitre {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 1.5rem;
   margin: 2.5rem 0 0.5rem; padding-top: 0.75rem;
   border-top: 1px solid var(--cs-bord-clair);
 }
 .cs-nav-bas-chapitre > div:last-child { text-align: right; }
+.cs-nav-bas-chapitre-fleuron { display: block; opacity: 0.55; }
 .cs-nav-bas-chapitre-lien {
-  display: inline-flex; flex-direction: column; justify-content: center; gap: 0.1875rem;
+  display: inline-flex; flex-direction: column; justify-content: center;
   min-height: 2.75rem; padding: 0.375rem 0;
   text-decoration: none; color: var(--cs-encre);
 }
 .cs-nav-bas-chapitre-lien--suivant { align-items: flex-end; }
-.cs-nav-bas-chapitre-geste {
-  font-family: var(--font-source-sans), system-ui, sans-serif;
-  font-size: 0.6875rem; letter-spacing: 0.02em; color: var(--cs-texte-second);
-}
 .cs-nav-bas-chapitre-nom {
   font-family: var(--font-source-serif), Georgia, serif;
   font-size: 1rem; line-height: 1.3; transition: color 0.15s;
