@@ -836,7 +836,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
 // ses deux axes côte à côte.
 
 type TriEcrits = 'modification' | 'publication' | 'titre' | 'lectures'
-type FiltreEcrits = 'tous' | 'brouillon' | 'en_attente' | 'publie'
+type FiltreEcrits = 'tous' | 'a_revoir' | 'brouillon' | 'en_attente' | 'publie'
 
 const TRIS_ECRITS: { cle: TriEcrits; libelle: string }[] = [
   { cle: 'modification', libelle: 'Dernière modification' },
@@ -845,11 +845,15 @@ const TRIS_ECRITS: { cle: TriEcrits; libelle: string }[] = [
   { cle: 'lectures', libelle: 'Lectures' },
 ]
 
-// ⚠️ Quatre états, et non six : « à réviser » et « refusé » ne peuvent pas exister
-// en base, la contrainte de `essais.statut` ne les admettant pas. Un écrit d'un
-// état inconnu ne paraît que sous « Tous ».
+// ⚠️ « À revoir » réunit les écrits que la modération a renvoyés (`a_reviser`,
+// posé par /api/admin/essai-demander-modification) et ceux qu'elle a refusés : ce
+// sont les seuls qui demandent une action de l'auteur. Le filtre ne paraît que
+// s'il en compte, en tête après « Tous ». Un écrit d'un état inconnu ne paraît que
+// sous « Tous ».
+const estARevoir = (e: EssaiPerso) => e.statut === 'a_reviser' || e.statut === 'refuse'
 const FILTRES_ECRITS: { cle: FiltreEcrits; libelle: string; test: (e: EssaiPerso) => boolean }[] = [
   { cle: 'tous', libelle: 'Tous', test: () => true },
+  { cle: 'a_revoir', libelle: 'À revoir', test: estARevoir },
   { cle: 'brouillon', libelle: 'Brouillons', test: e => e.statut === 'brouillon' },
   { cle: 'en_attente', libelle: 'En vérification', test: e => e.statut === 'en_attente' },
   { cle: 'publie', libelle: 'Publiés', test: e => e.statut === 'publie' },
@@ -982,7 +986,7 @@ function OngletMesEcrits({
       <aside className="mes-ecrits-volet" aria-label="Afficher et trier mes écrits">
         <div>
           <span style={RUBRIQUE_AXE}>Afficher</span>
-          {FILTRES_ECRITS.map(f => (
+          {FILTRES_ECRITS.filter(f => f.cle !== 'a_revoir' || filtre === 'a_revoir' || essais.some(estARevoir)).map(f => (
             <OptionVolet key={f.cle} actif={filtre === f.cle} onClick={() => setFiltre(f.cle)} libelle={f.libelle} nombre={essais.filter(f.test).length} />
           ))}
         </div>
