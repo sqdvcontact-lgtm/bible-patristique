@@ -52,7 +52,38 @@ const STATUTS: Record<string, { label: string; couleur: string }> = {
   refuse: { label: 'Refusé', couleur: 'var(--cs-danger)' },
 }
 
-function sansAccents(s: string): string { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase() }
+// La recherche compare des formes PLIÉES : sans accents, sans casse, et avec la
+// typographie du rendu ramenée à celle du clavier. La page affiche l'apostrophe
+// courbe (normaliserSaisie) ; un titre recopié depuis elle doit se retrouver.
+function plier(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .replace(/[’‘ʼ]/g, "'").replace(/œ/g, 'oe').replace(/æ/g, 'ae')
+    .replace(/[  ]/g, ' ')
+}
+
+// ── L'état du rayon vit dans l'ADRESSE ──
+// Onglet, catégorie, recherche et ordre : ouvrir une publication puis revenir les
+// retrouve, et un rayon filtré se partage par son lien. On lit l'adresse après le
+// montage et on l'écrit par `history.replaceState` : `useSearchParams` ferait
+// perdre à la page son rendu statique (revalidate). Les autres paramètres, dont
+// `?visite`, ne sont pas touchés.
+type Ordre = 'recents' | 'lus'
+const ONGLETS_ADRESSE: Record<string, Onglet> = { 'mes-ecrits': 'mes-ecrits', ecrire: 'ecrire' }
+
+function ecrireAdresse(valeurs: Record<string, string | null>) {
+  const params = new URLSearchParams(window.location.search)
+  for (const [cle, v] of Object.entries(valeurs)) {
+    if (v) params.set(cle, v)
+    else params.delete(cle)
+  }
+  const chaine = params.toString()
+  const cible = window.location.pathname + (chaine ? `?${chaine}` : '') + window.location.hash
+  if (cible !== window.location.pathname + window.location.search + window.location.hash) {
+    // `null`, comme le veut Next.js : il reprend alors l'adresse dans son routeur, et
+    // le retour arrière depuis une publication rend le rayon filtré.
+    window.history.replaceState(null, '', cible)
+  }
+}
 
 export default function EssaisListeClient({ essais }: { essais: EssaiResume[] }) {
   const [onglet, setOnglet] = useState<Onglet>('communaute')
@@ -60,8 +91,37 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
   const [sousEcrire, setSousEcrire] = useState<'rediger' | 'suggestion'>('rediger')
   const [recherche, setRecherche] = useState('')
   const [filtreCategorie, setFiltreCategorie] = useState<string | null>(null)
+  const [ordre, setOrdre] = useState<Ordre>('recents')
   const [mesEcrits, setMesEcrits] = useState<EssaiPerso[] | null>(null)
   const [connecte, setConnecte] = useState<boolean | null>(null)
+
+  // Lecture de l'adresse, une fois, après le montage. Tant qu'elle n'est pas lue,
+  // on n'écrit rien : l'état par défaut effacerait les paramètres qu'on vient de suivre.
+  const [adresseLue, setAdresseLue] = useState(false)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const o = ONGLETS_ADRESSE[params.get('onglet') ?? '']
+    if (o) setOnglet(o)
+    if (params.get('ecrire') === 'verset') setSousEcrire('suggestion')
+    const c = params.get('categorie')
+    if (c && (CATEGORIES as readonly string[]).includes(c)) setFiltreCategorie(c)
+    const r = params.get('q')
+    if (r) setRecherche(r)
+    if (params.get('tri') === 'lus') setOrdre('lus')
+    setAdresseLue(true)
+  }, [])
+  // La recherche s'écrit après une courte pause : pas une entrée d'historique par touche.
+  useEffect(() => {
+    if (!adresseLue) return
+    const t = window.setTimeout(() => ecrireAdresse({
+      onglet: onglet === 'communaute' ? null : onglet,
+      ecrire: onglet === 'ecrire' && sousEcrire === 'suggestion' ? 'verset' : null,
+      categorie: onglet === 'communaute' ? filtreCategorie : null,
+      q: onglet === 'communaute' ? recherche.trim() || null : null,
+      tri: onglet === 'communaute' && ordre === 'lus' ? 'lus' : null,
+    }), 300)
+    return () => window.clearTimeout(t)
+  }, [adresseLue, onglet, sousEcrire, filtreCategorie, recherche, ordre])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -107,12 +167,23 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
     await chargerMesEcrits()
   }
 
-  const q = sansAccents(recherche.trim())
+  const q = plier(recherche.trim())
   const essaisFiltres = useMemo(() => essais.filter(e => {
     if (filtreCategorie && !e.categories.includes(filtreCategorie)) return false
     if (!q) return true
-    return sansAccents(e.auteur).includes(q) || sansAccents(e.titre).includes(q) || (e.resume && sansAccents(e.resume).includes(q))
+    // Le sous-titre est cherché : il est écrit sur la face, le lecteur le lit.
+    return [e.auteur, e.titre, e.sous_titre, e.resume].some(x => !!x && plier(x).includes(q))
   }), [essais, filtreCategorie, q])
+
+  // ⛔ Les plus lus se comptent sur TOUT le rayon, jamais sur ce que le filtre a
+  // laissé : une recherche qui ne retenait que deux publications les sacrait toutes
+  // deux « parmi les plus lus ».
+  const plusLus = useMemo(() => new Set(
+    [...essais]
+      .sort((a, b) => (b.nb_vues - a.nb_vues) || (b.nb_likes - a.nb_likes))
+      .slice(0, 3)
+      .map(e => e.id),
+  ), [essais])
 
 
   // ── La visite (charte § 46 ; mécanique : AGENTS.md, « LA VISITE ») ──
@@ -182,7 +253,11 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
             setRecherche={setRecherche}
             filtreCategorie={filtreCategorie}
             setFiltreCategorie={setFiltreCategorie}
+            ordre={ordre}
+            setOrdre={setOrdre}
             essais={essaisFiltres}
+            total={essais.length}
+            plusLus={plusLus}
           />
         ) : onglet === 'mes-ecrits' ? (
           <OngletMesEcrits connecte={connecte} essais={mesEcrits} changerStatut={changerStatut} supprimer={supprimer} />
@@ -212,34 +287,32 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
 
 function formaterDateLongue(publie_at: string | null): string {
   if (!publie_at) return ''
-  return new Date(publie_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  // ⚠️ Le fuseau est FIXÉ : la page est rendue sur un serveur à l'heure universelle
+  // et réhydratée à l'heure du lecteur. Sans lui, une publication parue entre minuit
+  // et deux heures portait deux dates, et React relevait le désaccord.
+  return new Date(publie_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' })
 }
 
 function OngletCommunaute({
-  recherche, setRecherche, filtreCategorie, setFiltreCategorie, essais,
+  recherche, setRecherche, filtreCategorie, setFiltreCategorie, ordre, setOrdre, essais, total, plusLus,
 }: {
   recherche: string; setRecherche: (v: string) => void
   filtreCategorie: string | null; setFiltreCategorie: (v: string | null) => void
-  essais: EssaiResume[]
+  ordre: Ordre; setOrdre: (v: Ordre) => void
+  essais: EssaiResume[]; total: number; plusLus: Set<number>
 }) {
   const { favoris: favorisEssais, toggle: toggleFavoriEssai } = useFavoris('essai')
 
-  // Fil chronologique : du plus récent au plus ancien.
-  const tries = useMemo(
-    () => [...essais].sort((a, b) => (b.publie_at ?? '').localeCompare(a.publie_at ?? '')),
-    [essais],
-  )
+  // Le filtrage par catégorie et par recherche se fait chez l'appelant : le rayon
+  // reçoit déjà les publications retenues, et n'a plus qu'à les ordonner. Deux
+  // ordres : le fil chronologique, du plus récent au plus ancien, ou les lectures.
+  const tries = useMemo(() => [...essais].sort(ordre === 'lus'
+    ? (a, b) => (b.nb_vues - a.nb_vues) || (b.nb_likes - a.nb_likes)
+    : (a, b) => (b.publie_at ?? '').localeCompare(a.publie_at ?? '')),
+  [essais, ordre])
 
-  // Le filtrage par catégorie et par recherche se fait chez l'appelant : la table
-  // reçoit déjà les publications retenues, et n'a plus qu'à les ordonner.
-
-  // Les plus lus : signalés au dos de la couverture, sans être retirés du fil.
-  const plusLus = useMemo(() => new Set(
-    [...tries]
-      .sort((a, b) => (b.nb_vues - a.nb_vues) || (b.nb_likes - a.nb_likes))
-      .slice(0, 3)
-      .map(e => e.id),
-  ), [tries])
+  const filtre = !!filtreCategorie || !!recherche.trim()
+  const toutAfficher = () => { setFiltreCategorie(null); setRecherche('') }
 
   return (
     <>
@@ -247,6 +320,7 @@ function OngletCommunaute({
       <div data-visite="communaute-recherche" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '18px' }}>
         <div style={{ position: 'relative', width: '13.75rem', flexShrink: 0 }}>
           <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
+            aria-label="Chercher parmi les auteurs, les titres et les résumés"
             placeholder="Auteur, titre, résumé…"
             style={{ width: '100%', fontSize: '0.6875rem', padding: '5px 12px 5px 28px', border: '1px solid var(--cs-bord)', borderRadius: '999px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
           <svg width="11" height="11" viewBox="0 0 13 13" fill="none" style={{ color: 'var(--cs-texte-fort)', position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.32 }}>
@@ -254,9 +328,10 @@ function OngletCommunaute({
             <line x1="9" y1="9" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
           </svg>
         </div>
-        <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <button onClick={() => setFiltreCategorie(null)} style={tagFiltre(!filtreCategorie)}>Tout</button>
-          {CATEGORIES.map(c => <button key={c} onClick={() => setFiltreCategorie(c)} style={tagFiltre(filtreCategorie === c)}>{c}</button>)}
+        <div role="group" aria-label="Catégories" style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button type="button" aria-pressed={!filtreCategorie} onClick={() => setFiltreCategorie(null)} style={tagFiltre(!filtreCategorie)}>Tout</button>
+          {/* Un second clic sur l'étiquette active la relâche : on n'a pas à viser « Tout ». */}
+          {CATEGORIES.map(c => <button type="button" key={c} aria-pressed={filtreCategorie === c} onClick={() => setFiltreCategorie(filtreCategorie === c ? null : c)} style={tagFiltre(filtreCategorie === c)}>{c}</button>)}
         </div>
       </div>
 
@@ -267,9 +342,29 @@ function OngletCommunaute({
           content: ""; height: 1px; flex: 1;
           background: linear-gradient(90deg, rgba(var(--cs-or-rgb),0.04), rgba(var(--cs-or-rgb),0.34), rgba(var(--cs-or-rgb),0.04));
         }
-        .publications-sommaire-tete span {
-          font-size: 0.59375rem; font-weight: 700; letter-spacing: 0.24em;
-          text-transform: uppercase; color: var(--cs-lacune);
+        /* La tête du sommaire porte les deux ordres du rayon, séparés d'un losange.
+           Elle garde le dessin de l'ancien « Au sommaire » : on y lit l'ordre en
+           cours, et l'autre se tient en retrait, à un clic. */
+        .publications-sommaire-ordres { display: flex; align-items: baseline; gap: 10px; }
+        .publications-sommaire-ordres button {
+          background: none; border: none; padding: 2px 0 2px 0.24em; cursor: pointer;
+          font: inherit; font-size: 0.59375rem; font-weight: 700; letter-spacing: 0.24em;
+          text-transform: uppercase; color: var(--cs-lacune); opacity: 0.5;
+          transition: opacity 0.15s ease;
+        }
+        .publications-sommaire-ordres button:hover { opacity: 0.8; }
+        .publications-sommaire-ordres button[aria-pressed="true"] { opacity: 1; cursor: default; }
+        .publications-sommaire-losange { font-size: 0.5rem; color: var(--cs-lacune); opacity: 0.45; }
+        /* Sous la tête, quand un filtre retient : combien, sur combien, et de quoi
+           tout rendre. Une ligne, en italique, sans cadre. */
+        .publications-compte {
+          margin: -4px 0 18px; text-align: center;
+          font-size: 0.75rem; font-style: italic; color: var(--cs-texte-doux);
+        }
+        .publications-compte button {
+          background: none; border: none; padding: 0; margin-left: 4px; cursor: pointer;
+          font: inherit; font-style: normal; color: var(--cs-vert); text-decoration: underline;
+          text-underline-offset: 2px; text-decoration-thickness: 1px;
         }
 
         /* Trois couvertures par rang, comme une table d'étalage. */
@@ -323,7 +418,14 @@ function OngletCommunaute({
             radial-gradient(120% 90% at 22% 8%, rgba(255,255,255,0.09), rgba(255,255,255,0) 58%),
             radial-gradient(130% 100% at 50% 100%, rgba(0,0,0,0.16), rgba(0,0,0,0) 62%);
         }
-        .couverture:hover { transform: translateY(-5px); box-shadow: 0 2px 6px rgba(40,30,15,0.22), 0 22px 38px -14px rgba(40,30,15,0.48); }
+        /* ⛔ La CASE porte le carton et, hors de lui, l'étoile des favoris : un bouton
+           n'a pas sa place dans un lien, ni pour le balisage ni pour le clavier. Elle
+           est un conteneur de même largeur que la couverture, si bien que les mesures
+           en cqw de l'étoile n'ont pas bougé. C'est elle qu'on survole : l'étoile,
+           posée par-dessus, ne fait pas retomber le livre. */
+        .couverture-case { position: relative; container-type: inline-size; }
+        .couverture-case:hover .couverture { transform: translateY(-5px); box-shadow: 0 2px 6px rgba(40,30,15,0.22), 0 22px 38px -14px rgba(40,30,15,0.48); }
+        .couverture:focus-visible { outline: 2px solid var(--cs-vert); outline-offset: 4px; }
 
 
         /* ⛔ La TÊTE, c'est-à-dire le nom de l'auteur et l'étoile des favoris, et le
@@ -428,7 +530,17 @@ function OngletCommunaute({
           padding-left: 0.24em; font-variation-settings: "opsz" 9, "wght" 400;
         }
 
-        .couverture-etoile { position: absolute; top: 9.6cqw; right: 7cqw; z-index: 8; line-height: 1; }
+        /* L'étoile suit le livre quand il se soulève, et prend SON encre : le carton
+           n'en a qu'une. Vide, elle se tient en retrait ; pleine, elle est entière. */
+        .couverture-etoile {
+          position: absolute; top: 9.6cqw; right: 7cqw; z-index: 8; line-height: 1;
+          transition: transform 0.24s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+        .couverture-case:hover .couverture-etoile { transform: translateY(-5px); }
+        .couverture-etoile .etoile-favori { color: var(--couv-encre) !important; opacity: 0.62; }
+        .couverture-etoile .etoile-favori[aria-pressed="true"],
+        .couverture-etoile .etoile-favori:hover { opacity: 1; }
+        :root[data-theme="sombre"] .couverture-etoile .etoile-favori { color: var(--couv-encre-s) !important; }
 
         /* La quatrième : elle se retourne au survol. Même famille que la face — la
            couverture entière est en empattement — mais une composition plus large :
@@ -441,8 +553,11 @@ function OngletCommunaute({
           padding: 5cqw 11cqw 15cqw 11.8cqw;
           opacity: 0; pointer-events: none; transition: opacity 0.22s ease;
         }
-        .couverture:hover .couverture-dos { opacity: 1; pointer-events: auto; }
-        .couverture:hover .couverture-face { opacity: 0; }
+        /* Au clavier aussi : le lien qui prend le focus se retourne comme au survol. */
+        .couverture-case:hover .couverture-dos,
+        .couverture:focus-visible .couverture-dos { opacity: 1; pointer-events: auto; }
+        .couverture-case:hover .couverture-face,
+        .couverture:focus-visible .couverture-face { opacity: 0; }
         /* Le résumé prend une interligne large et une coupe de petit corps : c'est un
            paragraphe de lecture, pas une légende. Écrêté à sept lignes — une de moins
            qu'avant, le blanc valant mieux que la ligne de trop. */
@@ -467,7 +582,8 @@ function OngletCommunaute({
           background: linear-gradient(90deg, transparent, currentColor 30%, currentColor 70%, transparent);
           opacity: 0.5;
         }
-        .couverture:hover .couverture-lire { opacity: 1; }
+        .couverture-case:hover .couverture-lire,
+        .couverture:focus-visible .couverture-lire { opacity: 1; }
         /* Les chiffres au pied, hors du bloc de lecture : ils appartiennent au carton,
            pas au texte. Assez bas pour laisser respirer le résumé, assez haut pour
            rester dans le cadre. */
@@ -489,26 +605,60 @@ function OngletCommunaute({
           .essais-corps { padding-left: 16px !important; padding-right: 16px !important; }
         }
 
-        /* Tactile : rien ne se survole. La face reste, le dos ne s'affiche jamais ;
-           le résumé se lit sur la page de la publication, à un doigt de là. */
+        /* La légende : ce que la quatrième dit au survol, écrit SOUS le livre là où
+           rien ne se survole. Absente partout ailleurs. */
+        .couverture-legende { display: none; }
+
+        /* Tactile : rien ne se survole. La face reste et le dos ne s'affiche jamais ;
+           le résumé passe sous la couverture, en légende de quatre lignes. */
         @media (hover: none) {
           .couverture-dos { display: none; }
-          .couverture:hover .couverture-face { opacity: 1; }
-          .couverture:hover { transform: none; }
+          .couverture-case:hover .couverture-face { opacity: 1; }
+          .couverture-case:hover .couverture, .couverture-case:hover .couverture-etoile { transform: none; }
+          .couverture-legende {
+            display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden;
+            margin: 0.7rem 0.15rem 0;
+            font-family: var(--font-source-serif), Georgia, serif;
+            font-size: 0.8125rem; line-height: 1.5; color: var(--cs-texte-second); text-wrap: pretty;
+          }
+          .couverture-legende-marque {
+            font-size: 0.625rem; letter-spacing: 0.16em; text-transform: uppercase;
+            color: var(--cs-lacune); margin-right: 6px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .couverture, .couverture-etoile, .couverture-face, .couverture-dos { transition: none; }
+          .couverture-case:hover .couverture, .couverture-case:hover .couverture-etoile { transform: none; }
         }
       `}</style>
 
-      {tries.length === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun essai trouvé.</p>
+      {total === 0 ? (
+        <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucune publication pour l’instant.</p>
       ) : (
         <>
-          <div className="publications-sommaire-tete"><span>Au sommaire</span></div>
-          <div className="rayon">
+          <div className="publications-sommaire-tete">
+            <div className="publications-sommaire-ordres" role="group" aria-label="Ordre du sommaire">
+              <button type="button" aria-pressed={ordre === 'recents'} onClick={() => setOrdre('recents')}>Les plus récents</button>
+              <span className="publications-sommaire-losange" aria-hidden="true">◆</span>
+              <button type="button" aria-pressed={ordre === 'lus'} onClick={() => setOrdre('lus')}>Les plus lus</button>
+            </div>
+          </div>
+          {/* Le compte est annoncé aux lecteurs d'écran à chaque frappe (aria-live). */}
+          <p className="publications-compte" aria-live="polite">
+            {filtre && <>
+              {tries.length === 0
+                ? 'Aucune publication ne répond à cette recherche.'
+                : `${tries.length} publication${tries.length > 1 ? 's' : ''} sur ${total}.`}
+              <button type="button" onClick={toutAfficher}>Tout afficher</button>
+            </>}
+          </p>
+          {tries.length > 0 && <div className="rayon">
             {tries.map(e => (
               <CouvertureEssai key={e.id} essai={e} plusLu={plusLus.has(e.id)}
                 favorisEssais={favorisEssais} toggleFavoriEssai={toggleFavoriEssai} />
             ))}
-          </div>
+          </div>}
         </>
       )}
     </>
@@ -539,16 +689,18 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
   const sousTitre = e.sous_titre ? normaliserSaisie(e.sous_titre) : null
   const resume = e.resume ? normaliserSaisie(e.resume) : null
   return (
-    <Link href={`/essais/${e.id}`} className="couverture"
-      /* ⛔ Le carton porte ses SIX valeurs en propriétés personnalisées, et c'est le
-         CSS qui choisit selon le thème. Choisir en JavaScript ferait paraître la
-         couverture dans une teinte puis sauter dans l'autre après l'hydratation. */
+    <div className="couverture-case"
+      /* ⛔ La case porte les SIX valeurs du carton en propriétés personnalisées, et
+         c'est le CSS qui choisit selon le thème. Choisir en JavaScript ferait paraître
+         la couverture dans une teinte puis sauter dans l'autre après l'hydratation.
+         Posées sur la case et non sur le lien, elles atteignent aussi l'étoile. */
       style={{
         '--couv-fond': c.fond, '--couv-encre': c.encre, '--couv-filet': c.filet,
         '--couv-fond-s': c.fondSombre, '--couv-encre-s': c.encreSombre, '--couv-filet-s': c.filetSombre,
-        background: 'var(--couv-fond)', color: 'var(--couv-encre)',
-      } as React.CSSProperties}
-      title={`${e.titre} — ${e.auteur}`}>
+      } as React.CSSProperties}>
+    <Link href={`/essais/${e.id}`} className="couverture"
+      style={{ background: 'var(--couv-fond)', color: 'var(--couv-encre)' }}
+      title={`${titre} — ${e.auteur}`}>
 
       {/* La tête et le cadre sont posés sur le CARTON, hors des deux faces : ils ne
           bougent pas d'un pixel quand la couverture se retourne. */}
@@ -560,9 +712,6 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
         <span className="couverture-auteur">
           {e.auteur}
           {e.mecene && <>{' '}<MarqueMecene couleur="currentColor" taille="1em" /></>}
-        </span>
-        <span className="couverture-etoile">
-          <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={13} />
         </span>
       </span>
 
@@ -597,6 +746,17 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
         </span>
       </span>
     </Link>
+    <span className="couverture-etoile">
+      <EtoileFavori actif={favorisEssais.has(String(e.id))} onToggle={() => toggleFavoriEssai(String(e.id))} size={13}
+        title={favorisEssais.has(String(e.id)) ? `Retirer « ${titre} » des favoris` : `Ajouter « ${titre} » aux favoris`} />
+    </span>
+    {resume && (
+      <p className="couverture-legende">
+        {plusLu && <span className="couverture-legende-marque">◆ Parmi les plus lus</span>}
+        {resume}
+      </p>
+    )}
+    </div>
   )
 }
 

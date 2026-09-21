@@ -12,8 +12,8 @@
  * les autres onglets comme sur un sommaire vide, deux des trois arrêts n'ont pas de
  * sujet (« une page doit porter de quoi DONNER sa visite », charte § 46).
  * ⚠️ Elle s'ouvre sur un téléphone : la page y est la même, en une ou deux
- * couvertures par rang. La quatrième de couverture, elle, n'y existe pas, et l'arrêt
- * le dit sans promettre un survol.
+ * couvertures par rang. La quatrième de couverture n'y existe pas : son résumé passe
+ * en légende sous le livre (2026-09-21), et l'arrêt le dit.
  */
 
 import type { Visite } from './visiteGuidee'
@@ -57,7 +57,7 @@ export const VISITE_COMMUNAUTE: Visite = {
       titre: 'Publication',
       texte: [
         'Chaque publication se présente comme un petit livre, dont l’auteur a choisi la couleur. Un clic ouvre le texte.',
-        'Avec une souris, la couverture se retourne au survol et donne le résumé.',
+        'Avec une souris, la couverture se retourne au survol et donne le résumé. Sur un écran tactile, le résumé s’écrit sous elle.',
         'L’étoile ajoute la publication à vos favoris.',
       ],
       cote: 'droite',

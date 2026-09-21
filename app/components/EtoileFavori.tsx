@@ -13,6 +13,9 @@ export default function EtoileFavori({ actif, onToggle, size = 16, style, title 
     <button
       onClick={e => { e.preventDefault(); e.stopPropagation(); onToggle() }}
       title={title ?? (actif ? 'Retirer des favoris' : 'Ajouter aux favoris')}
+      aria-label={title ?? (actif ? 'Retirer des favoris' : 'Ajouter aux favoris')}
+      aria-pressed={actif}
+      type="button"
       className="etoile-favori"
       style={{
         background: 'none', border: 'none', cursor: 'pointer',
