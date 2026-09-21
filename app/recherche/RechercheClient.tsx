@@ -934,6 +934,7 @@ export default function RechercheClient() {
            même constat, sur la même page, et il ne se dit pas de deux façons. */
         .grp-ligne--absent { background:var(--cs-absence-fond); }
         .grp-ligne--absent:hover { background:var(--cs-absence-fond); }
+        .grp-glose-absent { margin:0 0 2px; font-size:0.65625rem; font-style:italic; color:var(--cs-texte-second); }
         /* ── Sigles de bible ──
            Sept noms entiers ne tiennent pas sur une ligne et repoussaient le verset à un
            troisième rang ; sept sigles y tiennent. Le nom entier reste en title. */
@@ -1152,7 +1153,7 @@ export default function RechercheClient() {
               )}
               </div>
               <button type="submit" disabled={!query.trim()}
-                style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:'5px', padding:'4px 10px', border:'1px solid var(--cs-bord)', borderRadius:'6px', background:'var(--cs-surface)', color:'var(--cs-vert-fonce)', fontSize:'0.75rem', fontWeight:600, cursor: query.trim() ? 'pointer' : 'default', opacity: query.trim() ? 1 : 0.55 }}>
+                style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:'5px', padding:'4px 10px', border:'1px solid var(--cs-bord)', borderRadius:'4px', background:'var(--cs-surface)', color:'var(--cs-vert-fonce)', fontSize:'0.75rem', fontWeight:600, cursor: query.trim() ? 'pointer' : 'default', opacity: query.trim() ? 1 : 0.55 }}>
                 <svg aria-hidden="true" width="13" height="13" viewBox="0 0 20 20" fill="none">
                   <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.8"/>
                   <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
@@ -1503,11 +1504,19 @@ export default function RechercheClient() {
                           const contientDans = lastQuery
                             ? traductions.filter(t => contientMarque(String((v as any)[t.code]??''), marque))
                             : []
+                          // ⛔ LE MOT EST AILLEURS (audit ergonomique 2026-09-21) : la base cherche
+                          // dans TOUTES les bibles du périmètre, et « charité » répond par Sacy là où
+                          // Segond ou Crampon écrivent « amour ». Montrer le texte de la bible
+                          // affichée laissait le lecteur devant un verset sans le mot. On montre
+                          // donc le texte d'une bible qui le porte, et la ligne le dit.
+                          const temoin = !displayLeMot ? contientDans.find(t => t.code !== tradBible) : undefined
+                          const texteMontre = temoin ? String((v as any)[temoin.code] ?? '') : texte
+                          const tradLien = temoin ? temoin.code : tradBible
                           return (
                             <a key={v.id_verset}
                               // Lien vers la page Bible : livre, chapitre, verset ET la traduction
                               // choisie, avec l'ancre du verset pour l'y amener et l'y sélectionner.
-                              href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
+                              href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradLien}#verset-${v.verset}`}
                               target="_blank" rel="noopener noreferrer"
                               className={`grp-ligne${!displayLeMot && contientDans.length ? ' grp-ligne--absent' : ''}`}>
                               <div style={{ display:'flex', alignItems:'baseline', gap:'7px', flexWrap:'wrap' }}>
@@ -1521,9 +1530,14 @@ export default function RechercheClient() {
                               </div>
                               {/* Toujours le texte de la traduction CHOISIE, SANS SÉRIF. Surligné si le
                                   mot y est ; sinon montré tel quel (la ligne du haut dit où il se trouve). */}
+                              {temoin && (
+                                <p className="grp-glose-absent">
+                                  Le mot n’est pas dans {labelDisplay}. Texte de {temoin.label}.
+                                </p>
+                              )}
                               <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
-                                {texte
-                                  ? rendreEtSurligner(texte, marque)
+                                {texteMontre
+                                  ? rendreEtSurligner(texteMontre, marque)
                                   : <span style={{ color:'var(--cs-texte-faible)', fontStyle:'italic' }}>Ce verset n’existe pas dans {labelDisplay}.</span>}
                               </p>
                             </a>
