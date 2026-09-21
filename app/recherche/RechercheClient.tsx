@@ -1510,7 +1510,7 @@ export default function RechercheClient() {
                           // affichée laissait le lecteur devant un verset sans le mot. On montre
                           // donc le texte d'une bible qui le porte, et la ligne le dit.
                           const temoin = !displayLeMot ? contientDans.find(t => t.code !== tradBible) : undefined
-                          const texteMontre = temoin ? String((v as any)[temoin.code] ?? '') : texte
+                          const texteMontre = temoin ? String((v as unknown as Record<string, unknown>)[temoin.code] ?? '') : texte
                           const tradLien = temoin ? temoin.code : tradBible
                           return (
                             <a key={v.id_verset}
