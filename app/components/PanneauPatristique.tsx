@@ -704,7 +704,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
     const payload: any = { id_verset: verset.id_verset, texte: texte.trim(), valide: false, reponse_a: cibleReponse?.id ?? null, demande_validation: demandeValidation }
     if (userId) { payload.user_id = userId; payload.auteur_nom = pseudoMoi ?? 'Utilisateur' }
     else { payload.auteur_nom = nom.trim(); payload.auteur_mail = mail.trim() }
-    const { data, error } = await supabase.from('commentaires').insert(payload).select().single()
+    const { data, error } = await supabase.from('commentaires').insert(payload).select('id, texte, auteur_nom, created_at, user_id, valide, reponse_a, demande_validation, certifie, supprime').single()
     setEnvoi(false)
     if (!error && data) {
       // Affichage immédiat, sans recharger ni attendre la validation.

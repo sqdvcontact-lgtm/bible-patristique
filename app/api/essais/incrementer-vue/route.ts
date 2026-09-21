@@ -24,6 +24,7 @@ export async function POST(request: Request) {
   const { error } = await supabaseAdmin.rpc('increment_nb_vues', { p_id: idNum })
   if (error) return NextResponse.json({ error: 'Erreur lors de la mise a jour.' }, { status: 500 })
 
-  const { data } = await supabaseAdmin.from('essais').select('nb_vues').eq('id', idNum).maybeSingle()
+  // Un essai non publié ne dit rien, pas même qu'il existe.
+  const { data } = await supabaseAdmin.from('essais').select('nb_vues').eq('id', idNum).eq('statut', 'publie').maybeSingle()
   return NextResponse.json({ nb_vues: data?.nb_vues ?? 0 })
 }

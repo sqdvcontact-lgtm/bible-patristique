@@ -262,7 +262,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     const { data, error } = await supabase.from('commentaires').insert({
       id_segment: segActif, texte: texte.trim(), valide: false, user_id: userId,
       reponse_a: cibleReponse?.id ?? null, demande_validation: demandeValidation,
-    }).select().single()
+    }).select('id, texte, valide, created_at, user_id, reponse_a, demande_validation, certifie, supprime').single()
     setStatut('idle')
     // ⛔ UN ÉCHEC DIT SA CAUSE (2026-09-15). Tout refus s'affichait « vérifiez qu'il n'y a pas
     // plus de 5 capitales à la suite », une panne de réseau comme un refus de la base : le
