@@ -424,7 +424,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
           le bouton-lien, sans cadre ni fond. Le cadre en pointillés sur un lavis vert se
           lisait comme une zone de dépôt, et le « + » redisait le verbe. Centré sous
           l'arbre des versets, qui l'est aussi. */}
-      <p style={{ margin: '10px 0 0', textAlign: 'center' }}>
+      <p style={{ margin: 0, display: 'flex', justifyContent: 'center' }}>
         <button type="button" className="cs-bouton-lien"
           onClick={() => { if (!exigerCompte('proposer un lien biblique')) return; reinitialiser(); setOuvert(true) }}>
           Proposer un lien biblique
@@ -5178,7 +5178,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               longueur de la liste des versets, et ne se perd pas sous elle. Un filet le
               sépare de ce qu'il complète. */}
           {ongletDroit === 'refs' && segActifData && (estAdmin || userId) && (
-            <div style={{ flexShrink: 0, borderTop: '1px solid var(--cs-fond-doux)', padding: '2px 12px 10px' }}>
+            <div style={{ flexShrink: 0, minHeight: '2.75rem', boxSizing: 'border-box', borderTop: '1px solid var(--cs-fond-doux)', padding: '0.5rem 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
               {estAdmin
                 ? <AssocierVerset segId={segActifData.id} onAssocie={associerVersetLocal(segActifData.id)} />
                 : <ProposerLienBiblique segId={segActifData.id} />}

@@ -74,14 +74,14 @@ export default function AssocierVerset({ segId, onAssocie }: {
           le même geste, il ne se présente pas de deux façons selon qu'on est
           administrateur ou non. Bouton-lien du site (charte § 51.3), centré sous l'arbre
           des versets, qui l'est aussi. */}
-      <p style={{ margin: '10px 0 0', textAlign: 'center' }}>
+      <p style={{ margin: 0, display: 'flex', justifyContent: 'center' }}>
         <button type="button" className="cs-bouton-lien"
           onClick={() => { setErreur(null); setOuvert(true) }}
           title="Ajouter un lien biblique à ce segment">
           Ajouter un lien biblique
         </button>
       </p>
-      {erreur && <p style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', margin: '6px 0 0', textAlign: 'center' }}>{erreur}</p>}
+      {erreur && <p style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', margin: 0, textAlign: 'center' }}>{erreur}</p>}
       {ouvert && (
         <ModalLienBiblique
           ouvert={ouvert}
