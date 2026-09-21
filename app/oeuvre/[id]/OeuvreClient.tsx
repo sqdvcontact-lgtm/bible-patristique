@@ -13,6 +13,7 @@ import { codesTraductionsLecture } from '@/app/lib/traductions'
 import { champDuTitre, projeterAppelsNotesStructureesEnSignalant as projeterAppels, type AncreNoteStructureeProjection } from '@/app/lib/appelsNotesStructurees'
 import type { DegradationChargement } from '@/app/lib/chargementTolerant'
 import { chargerNotesStructurees } from '@/app/lib/notesStructureesChargement'
+import RetourFlottant from './RetourFlottant'
 import FleuronDiscret from '@/app/components/FleuronDiscret'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
 import { CLASSES_BIBLIOGRAPHIE, estBlocBibliographique } from '@/app/lib/apparatBibliographie'
@@ -606,7 +607,7 @@ const TETE_RUBRIQUE: React.CSSProperties = { flexShrink: 0, display: 'flex', ali
 
 type OngletDroit = 'refs' | 'commentaires' | 'notes'
 
-export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales: notesOriginalesRecues = AUCUNE_NOTE_EN_REGARD, ancresNotesOriginales: ancresNotesOriginalesRecues = AUCUNE_ANCRE_EN_REGARD, notesOriginalesPartielles = false, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, fleuron = null, titresComposes: titresComposesInit = null, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1, filAriane = null }: Props) {
+export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales: notesOriginalesRecues = AUCUNE_NOTE_EN_REGARD, ancresNotesOriginales: ancresNotesOriginalesRecues = AUCUNE_ANCRE_EN_REGARD, notesOriginalesPartielles = false, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, fleuron = null, titresComposes: titresComposesInit = null, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1, filAriane = null, retour = null }: Props) {
   // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
   const { visiteFaite, oublierVisite, profilPret, exigerCompte } = useCompte()
   const { modeUtilisateurStandard } = useAffichageAdmin()
@@ -1274,6 +1275,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // La COLONNE de lecture : c'est elle que la manchette borde, et c'est son
   // `position: relative` qui fait le bloc conteneur des renvois posés en marge.
   const colonneRef = useRef<HTMLDivElement>(null)
+  const refFilAriane = useRef<HTMLDivElement>(null)
   const [sortie, setSortie] = useState(false)
   // Vrai dès le PREMIER rendu quand on arrive d'un autre texte : la classe doit être là
   // avant la première peinture, sinon la page paraît entière, s'efface, et reparaît.
@@ -4174,7 +4176,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               composant, même rembourrage symétrique, le titre centré sur toute la largeur
               du bloc. Les deux traductions comparées sont nommées en tête de colonnes plus
               bas. */}
-          {filAriane}
+          {/* Le fil d'Ariane est OBSERVÉ : tant qu'il se voit, son lien de retour suffit ;
+              passé hors de vue — à l'arrivée sur un passage lointain —, le retour se tient
+              en haut de la colonne (`RetourFlottant`). */}
+          <div ref={refFilAriane}>{filAriane}</div>
+          {retour && <RetourFlottant retour={retour} filAriane={refFilAriane} mobile={mobile} />}
           <PageTitre auteur={auteur} oeuvre={oeuvreLocale} versionActive={versionActive} versionEnRegard={versionEnRegard} titre={titreAffiche} estAdmin={estAdmin} mobile={mobile}
             notes={notesDuTitre([oeuvreLocale.titre_affichage, titreAffiche, oeuvreLocale.sous_titre, oeuvreLocale.sous_titre_affichage, oeuvreLocale.titre_original, oeuvreLocale.titre_original_affichage, oeuvreLocale.auteur_affichage])}
             onModifier={(champ, va) => setEditionCible({

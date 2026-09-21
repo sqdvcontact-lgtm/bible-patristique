@@ -856,6 +856,7 @@ export default async function OeuvrePage({
       comparaisonLivreInitial={Number(sp.book ?? '1')}
       comparaisonDivisionInitiale={Number(sp.division ?? '1')}
       filAriane={<FilAriane elements={filAriane.slice(1)} retour={retour} />}
+      retour={retour}
     />
     </>
   )
