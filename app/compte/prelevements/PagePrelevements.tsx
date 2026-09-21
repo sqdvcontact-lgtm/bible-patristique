@@ -27,7 +27,7 @@ import { colorMix } from "@/app/lib/couleurs";
 import { codesTraductionsLecture } from "@/app/lib/traductions";
 import { useSansSurvol } from "@/app/lib/useEstMobile";
 import {
-  BoutonCitationPreferee, MarqueCitation, ModaleRemplacerCitation,
+  BoutonCitationPreferee, ModaleRemplacerCitation,
 } from "@/app/components/CitationPreferee";
 import {
   COLONNE_FAVORITE, favoritePourEcriture, lireFavorite,
@@ -782,21 +782,21 @@ export default function PagePrelevements() {
     for (const g of vuePatristique) {
       const retenues = g.entrees.filter(e => choisi(e.ids));
       if (retenues.length === 0) continue;
-      // La notice se dit une fois pour le groupe quand toutes ses citations viennent de la
-      // même édition ; sinon, sous chacune (charte § 5.5.1 : un passage se cite sous SON
-      // édition).
-      const notices = retenues.map(e =>
-        noticeEnSyntaxe(fragmentsReferenceCanoniqueOeuvre(infoPatristique(g.auteur, g.titre, e.info, e.edition))));
-      const commune = notices.every(n => n === notices[0]) ? notices[0] : undefined;
-      groupesPatristiquesChoisis.push({
-        titre: g.titre ? `${g.auteur || "Sans auteur"}, *${g.titre}*` : (g.auteur || "Sans auteur"),
-        ...(commune ? { notice: commune } : {}),
-        citations: retenues.map((e, i) => ({
-          reference: e.lieu,
-          texte: preparerTexteCitation(e.texte),
-          ...(!commune && notices[i] ? { glose: notices[i] } : {}),
-        })),
-      });
+      // ⛔ LA RÉFÉRENCE PRÉCISE DE L'ŒUVRE SE POSE SOUS SON TITRE, toujours. Un passage se
+      // cite sous SON édition (charte § 5.5.1) : des passages de deux éditions d'une même
+      // œuvre font donc deux titres, chacun sous sa notice.
+      const parEdition = new Map<string, typeof retenues>();
+      for (const e of retenues) {
+        const notice = noticeEnSyntaxe(fragmentsReferenceCanoniqueOeuvre(infoPatristique(g.auteur, g.titre, e.info, e.edition)));
+        parEdition.set(notice, [...(parEdition.get(notice) ?? []), e]);
+      }
+      for (const [notice, entrees] of parEdition) {
+        groupesPatristiquesChoisis.push({
+          titre: g.titre ? `${g.auteur || "Sans auteur"}, *${g.titre}*` : (g.auteur || "Sans auteur"),
+          ...(notice ? { notice } : {}),
+          citations: entrees.map(e => ({ reference: e.lieu, texte: preparerTexteCitation(e.texte) })),
+        });
+      }
     }
     if (groupesPatristiquesChoisis.length > 0) {
       sections.push({ corpus: "patristique", groupes: groupesPatristiquesChoisis });
@@ -1056,15 +1056,6 @@ export default function PagePrelevements() {
       `)}</style>
 
         <BandeauLecteur lecteur={profil} reperes={reperes} />
-
-        {/* Filet à quadrilobe. C'est la MÊME marque que le bouton de choix dans la liste :
-            l'emblème enseigne le geste, sans mode d'emploi. ⚠️ Il a perdu le titre qu'il
-            soulignait, que le bandeau porte désormais, mais non son office. */}
-        <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "-10px 0 20px", color: "var(--cs-or-doux)" }}>
-          <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, var(--cs-or-doux))" }} />
-          <MarqueCitation taille={22} />
-          <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, var(--cs-or-doux))" }} />
-        </div>
 
         {chargement && <MotAttente />}
         {!chargement && (<>
