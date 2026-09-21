@@ -8476,10 +8476,13 @@ leurs hauteurs dans le panneau navigateur à 320, 360, 375, 390 et 414 px.
   fenêtre : `window.innerWidth` y vaut 0 et toutes les mesures sont fausses. Et chaque
   `navigate` ouvre un onglet NEUF, qu'il faut redimensionner.
 
-⚠️ **QUELLES VISITES S'OUVRENT SUR UN TÉLÉPHONE** : la Bible classique, la Bibliothèque
-et la recherche, et elles seules. L'accueil attend la barre déployée, la Polyglotte un
-écran de 820 px, la page d'œuvre refuse le mobile (ses volets y sont des tiroirs
-fermés). ⛔ Une visite nouvelle dit elle-même si elle s'y ouvre : rien ne le devine.
+⚠️ **QUELLES VISITES S'OUVRENT SUR UN TÉLÉPHONE** : la Bible classique, la Bibliothèque,
+la recherche et la Communauté, et elles seules. L'accueil attend la barre déployée, la
+Polyglotte un écran de 820 px, la page d'œuvre refuse le mobile (ses volets y sont des
+tiroirs fermés), la Bibliographie et les péricopes aussi (leur volet y est un panneau
+replié). **Neuf visites depuis le 2026-09-21** : les six premières, plus Communauté
+(`/essais`, onglet des écrits seulement et sommaire non vide), Bibliographie et
+Péricopes — même câblage que la Bibliothèque, condition réunie dans `visitePossible`. ⛔ Une visite nouvelle dit elle-même si elle s'y ouvre : rien ne le devine.
 
 ⛔ **AUCUNE ÉTAPE SUR LA BARRE, SAUF DANS LA VISITE DE L'ACCUEIL** (décisions de
 l'auteur, 2026-09-06 au soir, dans cet ordre). Les visites de page en ont porté une, sur

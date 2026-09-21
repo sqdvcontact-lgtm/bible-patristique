@@ -49,10 +49,14 @@
 // d'un testament à l'autre à qui le cherche, et les onglets le donnent à qui le veut ;
 // une barre de titre au milieu de la course n'ajoutait qu'une halte.
 
-import { Fragment, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { LIVRES } from '@/app/lib/bible'
 import { useEstMobile } from '@/app/lib/useEstMobile'
+import VisiteGuidee from '@/app/components/VisiteGuidee'
+import { CLE_VISITE_PERICOPES, VISITE_PERICOPES } from '@/app/lib/visitePericopes'
+import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
+import { useCompte } from '@/app/lib/contexteCompte'
 import { parsePointCanonique } from '@/app/lib/referencesBibliques'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { allerAAncre } from '@/app/lib/defilement'
@@ -252,9 +256,28 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
     requestAnimationFrame(() => { allerAAncre(`livre-${code}`) })
   }
 
+
+  // ── La visite (charte § 46 ; mécanique : AGENTS.md, « LA VISITE ») ──
+  // ⛔ On attend `profilPret` : le passage d'une visite vit sur le COMPTE.
+  const { visiteFaite, oublierVisite, profilPret } = useCompte()
+  const [visite, setVisite] = useState(0)
+  const visiteProposee = useRef(false)
+  const visitePossible = !mobile && groupes.length > 0
+  useEffect(() => {
+    if (!visitePossible || !profilPret || visiteProposee.current) return
+    visiteProposee.current = true
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('visite')) oublierVisite(CLE_VISITE_PERICOPES)
+    else if (visiteFaite(CLE_VISITE_PERICOPES)) return
+    const depart = window.setTimeout(() => setVisite(1), 260)
+    return () => window.clearTimeout(depart)
+  }, [visitePossible, profilPret, visiteFaite, oublierVisite])
+  // La barre n'offre son bouton que là où la visite peut se donner.
+  useEffect(() => { if (!visitePossible) return; return offrirLaVisite(() => setVisite(n => n + 1)) }, [visitePossible])
+
   const contenuFiltres = (
     <>
-      <div style={{ position: 'relative', marginTop: '2px' }}>
+      <div data-visite="peri-recherche" style={{ position: 'relative', marginTop: '2px' }}>
         <input value={q} onChange={e => setQ(e.target.value)} type="text"
           placeholder="Un titre, « Mt 5 », « Genèse »…" aria-label="Rechercher une péricope, un livre ou une référence"
           style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.75rem', padding: '7px 24px 7px 28px', borderRadius: '8px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)', outline: 'none' }} />
@@ -285,7 +308,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
           recherche qui les surmonte. Même parti que le volet de la Bible classique, dont
           le défileur retire d'avance ces six pixels à sa gouttière. */}
       {groupes.length > 0 && (
-        <div style={{ marginTop: '14px', marginLeft: '-6px', marginRight: '-6px' }}>
+        <div data-visite="peri-sommaire" style={{ marginTop: '14px', marginLeft: '-6px', marginRight: '-6px' }}>
           {TESTAMENTS.map(grp => {
             const livres = groupes.filter(g => (TESTAMENT_LIVRE[g.livre] ?? 'AUTRES') === grp.code)
             if (livres.length === 0) return null
@@ -312,7 +335,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
       <Rubrique>Filtrer</Rubrique>
 
       {registresPresents.length > 0 && (
-        <GroupeFiltre label="Registre">
+        <div data-visite="peri-filtres"><GroupeFiltre label="Registre">
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {registresMontres.map(([cat, n]) => (
               <LigneCompte key={cat} actif={registres.has(cat)} onClick={() => toggle(registres, cat, setRegistres)} label={libelleCategoriePericope(cat)} n={n} />
@@ -323,7 +346,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
               {tousRegistres ? 'Afficher moins' : `Afficher les ${registresCaches} autres`}
             </button>
           )}
-        </GroupeFiltre>
+        </GroupeFiltre></div>
       )}
 
       {filtresActifs && (
@@ -587,6 +610,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
           </div>
         </section>
       </div>
+      {visite > 0 && <VisiteGuidee key={visite} visite={VISITE_PERICOPES} onFin={() => setVisite(0)} />}
     </main>
   )
 }

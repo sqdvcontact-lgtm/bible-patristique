@@ -68,7 +68,7 @@ export const VISITE_BIBLIOTHEQUE: Visite = {
       titre: 'Recherche',
       texte: [
         'Le champ recherche un auteur ou un titre d’œuvre.',
-        'Les filtres permettent de limiter la liste par période, par langue ou par tradition.',
+        'Le bouton **Filtres** limite la liste par siècle, par langue ou par tradition.',
       ],
       cote: 'dessous',
     },

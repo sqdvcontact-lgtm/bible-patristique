@@ -8,6 +8,10 @@ import { CATEGORIES_ESSAIS } from './EtapeMetadonnees'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import OngletsPage from '@/app/components/OngletsPage'
+import VisiteGuidee from '@/app/components/VisiteGuidee'
+import { CLE_VISITE_COMMUNAUTE, VISITE_COMMUNAUTE } from '@/app/lib/visiteCommunaute'
+import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
+import { useCompte } from '@/app/lib/contexteCompte'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { couvertureDe } from '@/app/lib/couverturesEssai'
 import { categorieEmblemeDe, emblemeDe } from '@/app/lib/emblemesCouverture'
@@ -110,6 +114,25 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
     return sansAccents(e.auteur).includes(q) || sansAccents(e.titre).includes(q) || (e.resume && sansAccents(e.resume).includes(q))
   }), [essais, filtreCategorie, q])
 
+
+  // ── La visite (charte § 46 ; mécanique : AGENTS.md, « LA VISITE ») ──
+  // ⛔ On attend `profilPret` : le passage d'une visite vit sur le COMPTE.
+  const { visiteFaite, oublierVisite, profilPret } = useCompte()
+  const [visite, setVisite] = useState(0)
+  const visiteProposee = useRef(false)
+  const visitePossible = onglet === 'communaute' && essaisFiltres.length > 0
+  useEffect(() => {
+    if (!visitePossible || !profilPret || visiteProposee.current) return
+    visiteProposee.current = true
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('visite')) oublierVisite(CLE_VISITE_COMMUNAUTE)
+    else if (visiteFaite(CLE_VISITE_COMMUNAUTE)) return
+    const depart = window.setTimeout(() => setVisite(1), 260)
+    return () => window.clearTimeout(depart)
+  }, [visitePossible, profilPret, visiteFaite, oublierVisite])
+  // La barre n'offre son bouton que là où la visite peut se donner.
+  useEffect(() => { if (!visitePossible) return; return offrirLaVisite(() => setVisite(n => n + 1)) }, [visitePossible])
+
   return (
     <main style={{
       background: 'var(--cs-fond)',
@@ -181,6 +204,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
           </>
         )}
       </div>
+      {visite > 0 && <VisiteGuidee key={visite} visite={VISITE_COMMUNAUTE} onFin={() => setVisite(0)} />}
     </main>
   )
 }
@@ -220,7 +244,7 @@ function OngletCommunaute({
   return (
     <>
       {/* Recherche + filtres de catégorie, centrés ; les tags passent à la ligne. */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '18px' }}>
+      <div data-visite="communaute-recherche" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '18px' }}>
         <div style={{ position: 'relative', width: '13.75rem', flexShrink: 0 }}>
           <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
             placeholder="Auteur, titre, résumé…"

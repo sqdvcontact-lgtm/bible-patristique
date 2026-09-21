@@ -92,10 +92,12 @@ export const VISITE_ACCUEIL: Visite = {
     {
       cle: 'plus-loin',
       sujet: ['[data-visite="nav-plus-loin"]'],
-      titre: 'Ressources',
+      // ⚠️ RELU LE 2026-09-21 : l'onglet s'appelle « Aller plus loin », son menu compte
+      // SIX pages (la bibliographie manquait), et un clic sur son nom mène aux librairies.
+      titre: 'Aller plus loin',
       texte: [
-        'Cet onglet réunit les traductions, les péricopes, l’histoire de l’Église, les statistiques et une page consacrée aux librairies.',
-        'Le menu s’ouvre au survol et présente brièvement chacune de ces pages.',
+        'Cet onglet réunit les traductions, la bibliographie, les librairies, les statistiques, les péricopes et l’histoire de l’Église.',
+        'Le menu s’ouvre au survol et présente brièvement chacune de ces pages. Un clic sur l’onglet mène aux librairies.',
       ],
       cote: 'dessous',
     },
@@ -104,18 +106,21 @@ export const VISITE_ACCUEIL: Visite = {
       sujet: ['[data-visite="nav-recherche"]'],
       titre: 'Recherche',
       texte: [
-        'La recherche propose des œuvres, des livres bibliques, des auteurs et des péricopes à mesure que vous écrivez.',
-        'La touche Entrée ouvre la recherche complète dans les textes.',
+        'La recherche propose des livres bibliques, des œuvres, des auteurs, des péricopes et des traductions à mesure que vous écrivez.',
+        'Une référence comme « Jean 3, 16 » ouvre directement le passage. Pour un mot, la touche Entrée ouvre la recherche complète dans les textes.',
       ],
       cote: 'dessous',
     },
     {
       cle: 'compte',
       sujet: ['[data-visite="nav-compte"]'],
-      titre: 'Compte',
+      // ⚠️ RELU LE 2026-09-21 : la rangée ouvre sur la BOUSSOLE, qui rejoue la visite, et
+      // le menu de compte ne porte plus que la page publique, les réglages et les citations.
+      // Messages et notifications n'y paraissent qu'avec une session.
+      titre: 'Outils et compte',
       texte: [
-        'Vous trouvez ici le soutien au projet, vos messages, vos notifications et votre compte.',
-        'Celui-ci conserve vos favoris, vos prélèvements et vos lectures en cours.',
+        'La boussole rejoue la visite de la page ouverte. Le cœur mène au soutien du projet.',
+        'Une fois connecté, vous trouvez ici vos messages, vos notifications et le menu de votre compte : votre page publique, vos réglages et vos citations.',
       ],
       cote: 'gauche',
     },

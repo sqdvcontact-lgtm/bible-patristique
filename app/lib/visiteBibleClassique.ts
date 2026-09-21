@@ -102,7 +102,8 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       titre: 'Livres et chapitres',
       texte: [
         'Ouvrez un livre pour afficher ses chapitres.',
-        'Plus la case d’un chapitre est verte, plus ce chapitre contient de versets commentés par les Pères.',
+        // ⚠️ « Teintée » et non « verte » : en thème sombre, la teinte est l'or.
+        'Plus la case d’un chapitre est teintée, plus ce chapitre contient de versets commentés par les Pères.',
       ],
       cote: 'droite',
       scene: { volet: 'livres' },
@@ -166,9 +167,11 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       sujet: ['[data-visite="peres"]'],
       titre: 'Pères de l’Église',
       texte: [
-        'Le volet de droite rassemble les œuvres qui citent ou commentent le verset choisi.',
-        'Vous pouvez les filtrer par auteur, par siècle ou par tradition.',
-        'L’onglet **Commentaires** permet d’écrire le vôtre.',
+        // ⚠️ RELU LE 2026-09-21 : les filtres sont Auteur, Tradition, Genre et Période, et
+        // « Commentaires » nomme DEUX onglets, celui des Pères et celui des lecteurs.
+        'Le volet de droite rassemble les œuvres qui citent le verset choisi, le commentent ou y font écho : **Citations**, **Commentaires**, **Échos**.',
+        'Vous pouvez les filtrer par auteur, par tradition, par genre ou par période.',
+        'En tête du volet, l’onglet **Commentaires** réunit ceux des lecteurs et permet d’écrire le vôtre.',
       ],
       cote: 'gauche',
       scene: { volet: 'commentaires' },

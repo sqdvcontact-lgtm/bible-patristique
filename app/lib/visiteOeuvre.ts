@@ -63,7 +63,7 @@ export const VISITE_OEUVRE: Visite = {
       texte: [
         'Le titre ouvre la fiche de l’édition suivie : ce qu’est l’œuvre, et sur quel texte elle est établie.',
         'Sous lui, le nom de l’auteur ouvre sa fiche, avec sa notice, sa chronologie et ses œuvres.',
-        'L’étoile ajoute l’œuvre à vos favoris.',
+        'L’étoile ajoute l’œuvre à vos favoris. Les commandes voisines la partagent ou l’extraient au format Word.',
       ],
       cote: 'droite',
     },

@@ -81,8 +81,8 @@ export const VISITE_RECHERCHE: Visite = {
       sujet: ['[data-visite="recherche-garder"]'],
       titre: 'Recherches enregistrées',
       texte: [
-        '**Enregistrer** conserve les termes recherchés, la page et l’endroit où vous en étiez.',
-        '**Reprendre** vous y ramène lors d’une visite ultérieure.',
+        '**Enregistrer ma recherche** conserve les termes recherchés, la page et l’endroit où vous en étiez.',
+        '**Reprendre ma recherche** vous y ramène lors d’une visite ultérieure.',
       ],
       cote: 'droite',
     },
@@ -92,7 +92,7 @@ export const VISITE_RECHERCHE: Visite = {
       titre: 'Corpus',
       texte: [
         '**Bible** et **Polyglotte** présentent les mêmes versets sous deux formes : en liste ou en colonnes.',
-        '**Pères de l’Église** recherche dans les œuvres. **Communauté** recherche dans les publications des lecteurs.',
+        '**Pères de l’Église** recherche dans les œuvres. **Publications de la communauté** recherche dans les textes des lecteurs.',
         'Sous l’onglet ouvert, vous pouvez encore limiter les résultats à un livre ou à une œuvre.',
       ],
       cote: 'droite',

@@ -89,7 +89,7 @@ export const VISITE_POLYGLOTTE: Visite = {
       sujet: ['[data-visite="poly-entete"]'],
       titre: 'Traductions',
       texte: [
-        'Chaque en-tête ouvre la liste des Bibles, classées par langue.',
+        'Chaque en-tête ouvre la liste des Bibles disponibles.',
         'Si vous choisissez une traduction déjà affichée dans une autre colonne, les deux échangent leur place.',
       ],
       cote: 'dessous',
@@ -113,7 +113,7 @@ export const VISITE_POLYGLOTTE: Visite = {
       revele: 'actions',
       titre: 'Actions',
       texte: [
-        'Au survol d’une cellule, trois boutons apparaissent dans son coin.',
+        'Au survol d’une cellule, ses actions apparaissent.',
         'Ils ne concernent que cette traduction : le texte copié ou cité est bien celui de la colonne choisie.',
       ],
       illustration: 'actions-verset',

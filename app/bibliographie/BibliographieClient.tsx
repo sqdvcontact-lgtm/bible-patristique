@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
 import IconeChevron from '@/app/components/IconeChevron'
@@ -10,6 +10,10 @@ import { htmlFragments, texteFragments } from '@/app/lib/referenceBibliographiqu
 import { rendreSiecles, siecleEnTexte } from '@/app/lib/siecles'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { useEstMobile } from '@/app/lib/useEstMobile'
+import VisiteGuidee from '@/app/components/VisiteGuidee'
+import { CLE_VISITE_BIBLIOGRAPHIE, VISITE_BIBLIOGRAPHIE } from '@/app/lib/visiteBibliographie'
+import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
+import { useCompte } from '@/app/lib/contexteCompte'
 import { allerAAncre } from '@/app/lib/defilement'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
@@ -206,6 +210,24 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
   }
   const reinitialiser = () => setFiltres(FILTRES_VIDES)
 
+  // ── La visite (charte § 46 ; mécanique : AGENTS.md, « LA VISITE ») ──
+  // ⛔ On attend `profilPret` : le passage d'une visite vit sur le COMPTE.
+  const { visiteFaite, oublierVisite, profilPret } = useCompte()
+  const [visite, setVisite] = useState(0)
+  const visiteProposee = useRef(false)
+  const visitePossible = !mobile && groupes.length > 0
+  useEffect(() => {
+    if (!visitePossible || !profilPret || visiteProposee.current) return
+    visiteProposee.current = true
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('visite')) oublierVisite(CLE_VISITE_BIBLIOGRAPHIE)
+    else if (visiteFaite(CLE_VISITE_BIBLIOGRAPHIE)) return
+    const depart = window.setTimeout(() => setVisite(1), 260)
+    return () => window.clearTimeout(depart)
+  }, [visitePossible, profilPret, visiteFaite, oublierVisite])
+  // La barre n'offre son bouton que là où la visite peut se donner.
+  useEffect(() => { if (!visitePossible) return; return offrirLaVisite(() => setVisite(n => n + 1)) }, [visitePossible])
+
   // Un siècle retenu reste visible même replié : on ne cache pas un filtre qui agit.
   const sieclesMontres = tousSiecles ? siecles : siecles.filter((s, i) => i < SIECLES_VISIBLES || filtres.siecles.has(s.valeur))
   const sieclesCaches = siecles.length - sieclesMontres.length
@@ -218,7 +240,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
 
   const contenuFiltres = (
     <>
-      <div style={{ position: 'relative', marginTop: '2px' }}>
+      <div data-visite="biblio-recherche" style={{ position: 'relative', marginTop: '2px' }}>
         <input value={filtres.q} onChange={e => poser({ q: e.target.value })} type="text"
           placeholder="Un auteur, un titre, une collection…" aria-label="Rechercher un ouvrage par auteur, titre, collection, maison ou année"
           style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.75rem', padding: '7px 24px 7px 28px', borderRadius: '8px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)', outline: 'none' }} />
@@ -241,7 +263,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
         <>
           <Rubrique>Parcourir</Rubrique>
           <GroupeFiltre label="Aller à une lettre">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px 4px' }}>
+            <div data-visite="biblio-lettres" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px 4px' }}>
               {lettres.map(l => (
                 <button key={l} type="button" className="biblio-lien-lettre" onClick={() => allerALaLettre(l)}
                   disabled={!lettresPresentes.has(l)} aria-label={`Aller à la lettre ${l}`}>
@@ -255,6 +277,8 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
 
       <Rubrique>Filtrer</Rubrique>
 
+      {/* Le repère de la visite cerne les quatre axes ensemble. */}
+      <div data-visite="biblio-filtres">
       {genres.length > 0 && (
         <GroupeFiltre label="Genre">
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -299,6 +323,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
           )}
         </GroupeFiltre>
       )}
+      </div>
 
       {actifs && (
         <button type="button" onClick={reinitialiser}
@@ -483,6 +508,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
           </div>
         </section>
       </div>
+      {visite > 0 && <VisiteGuidee key={visite} visite={VISITE_BIBLIOGRAPHIE} onFin={() => setVisite(0)} />}
     </main>
   )
 }
