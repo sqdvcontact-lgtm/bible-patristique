@@ -20,10 +20,12 @@
  *    écrit en dur (`rgba(255,255,255,0.54)`), c'est-à-dire un voile laiteux sur le
  *    sol du Cuir. Le texte se pose maintenant à même la carte.
  *
- * ⚠️ Une RÉPONSE ne reprend pas de filet : elle s'indente, et son fond rentre d'un
- * cran (`--cs-fond-doux`). Le décalage et le sol disent la subordination, et tous
- * deux tiennent sous les deux thèmes — ce que ne faisait pas `--cs-fond-clair`,
- * qui vaut EXACTEMENT `--cs-surface` en Cuir : la réponse y aurait été invisible.
+ * ⚠️ Une RÉPONSE S'ACCROCHE sous la carte qu'elle commente (demande de l'auteur,
+ * 2026-09-21) : indentée, sans filet ni coins hauts, elle pend au bord bas de son
+ * parent, qui perd son coin bas droit. Les cartes d'un même fil se touchent ; deux
+ * fils indépendants se séparent par un BLANC (`ESPACE_FIL`). La réponse n'a plus de
+ * fond à elle : la couleur ne dit que l'ÉTAT (en révision, ordinaire, certifié), et
+ * un fond propre à la réponse se lisait comme un quatrième état.
  *
  * Les valeurs sont toutes des jetons, tous les rayons sont sur l'échelle des
  * formes et tous les corps sur celle des tailles ; les trois gardes mécaniques
@@ -36,35 +38,52 @@ export type EtatCommentaire = {
   certifie?: boolean
   /** Commentaire encore soumis au contrôle, visible de son auteur et de l'admin. */
   enRevision?: boolean
-  /** Réponse à un commentaire : indentée, posée un cran plus bas que son parent. */
+  /** Réponse à un commentaire : indentée, accrochée sous la carte qui la précède. */
   reponse?: boolean
+  /** Une réponse suit cette carte dans le fil : pas de blanc, et le coin bas s'efface. */
+  suivie?: boolean
 }
 
 /** L'indentation d'une réponse, en pixels. Le volet d'un verset est étroit : au-delà,
  *  la colonne de texte se paie plus cher que la hiérarchie ne rapporte. */
 export const RETRAIT_REPONSE = 14
 
+/** Le blanc qui sépare deux fils indépendants. Dans un fil, les cartes se touchent. */
+export const ESPACE_FIL = 14
+
+/** La forme d'une carte dans son fil : retrait, blanc dessous, filets et coins.
+ *  Partagée avec la carte repliée d'un commentaire en attente. */
+export function formeCommentaire({ reponse, suivie }: EtatCommentaire = {}): CSSProperties {
+  const haut = reponse ? 0 : 8
+  const basDroit = suivie ? 0 : 8
+  const basGauche = suivie && reponse ? 0 : 8
+  return {
+    borderStyle: 'solid',
+    borderWidth: reponse ? '0 1px 1px' : '1px',
+    borderRadius: `${haut}px ${haut}px ${basDroit}px ${basGauche}px`,
+    marginBottom: suivie ? 0 : `${ESPACE_FIL}px`,
+    marginLeft: reponse ? `${RETRAIT_REPONSE}px` : 0,
+  }
+}
+
 /** La carte elle-même : un fond, un filet, un rayon, un creux. Rien d'autre. */
-export function carteCommentaire({ certifie, enRevision, reponse }: EtatCommentaire = {}): CSSProperties {
+export function carteCommentaire(etat: EtatCommentaire = {}): CSSProperties {
+  const { certifie, enRevision } = etat
   const fond = certifie
     ? 'rgba(var(--cs-vert-rgb),0.07)'
     : enRevision
       ? 'var(--cs-danger-fond)'
-      : reponse
-        ? 'var(--cs-fond-doux)'
-        : 'var(--cs-surface)'
+      : 'var(--cs-surface)'
   const bord = certifie
     ? 'rgba(var(--cs-vert-rgb),0.30)'
     : enRevision
       ? 'var(--cs-danger-bord)'
       : 'var(--cs-bord-clair)'
   return {
+    ...formeCommentaire(etat),
     background: fond,
-    border: `1px solid ${bord}`,
-    borderRadius: '8px',
+    borderColor: bord,
     padding: '10px 12px',
-    marginBottom: '8px',
-    marginLeft: reponse ? `${RETRAIT_REPONSE}px` : 0,
   }
 }
 

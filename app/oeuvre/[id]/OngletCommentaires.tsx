@@ -14,7 +14,7 @@ import IconeSignalement from '@/app/components/IconeSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
 import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import MarqueMecene from '@/app/components/MarqueMecene'
-import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, RETRAIT_REPONSE } from '@/app/lib/styleCommentaire'
+import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, formeCommentaire } from '@/app/lib/styleCommentaire'
 
 // Pas plus de 5 majuscules consécutives (accentuées comprises).
 const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
@@ -316,13 +316,14 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     </div>
   )
 
-  const renderCommentaire = (c: CommentaireAvecAuteur, estReponse: boolean) => {
+  const renderCommentaire = (c: CommentaireAvecAuteur, estReponse: boolean, suivie = false) => {
+    const forme = formeCommentaire({ reponse: estReponse, suivie })
     const cache = !c.supprime && !c.valide && !revelees.has(c.id)
     if (cache) {
       return (
-        <div key={c.id} style={{ marginLeft: estReponse ? `${RETRAIT_REPONSE}px` : 0, marginBottom: '8px' }}>
+        <div key={c.id} style={{ marginLeft: forme.marginLeft, marginBottom: forme.marginBottom }}>
           <button className="commentaire-retracte" onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
-            style={{ width: '100%', display: 'block', position: 'relative', overflow: 'hidden', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', cursor: 'pointer', padding: '9px 12px', textAlign: 'left' }}>
+            style={{ width: '100%', display: 'block', position: 'relative', overflow: 'hidden', background: 'var(--cs-danger-fond)', borderStyle: 'solid', borderColor: 'var(--cs-danger-bord)', borderWidth: forme.borderWidth, borderRadius: forme.borderRadius, cursor: 'pointer', padding: '9px 12px', textAlign: 'left' }}>
             <span className="commentaire-retracte-contenu" style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--cs-danger-fonce)', fontWeight: 600 }}>
               Commentaire en attente de contrôle.
             </span>
@@ -337,7 +338,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     const aDesActionsADroite = userId === c.user_id || (estAdmin && userId !== c.user_id)
     return (
       <div className="commentaire-carte" key={c.id}
-        style={{ ...carteCommentaire({ certifie: estCertifie, enRevision: estRevision, reponse: estReponse }), viewTransitionName: `commentaire-oeuvre-${c.id}` }}>
+        style={{ ...carteCommentaire({ certifie: estCertifie, enRevision: estRevision, reponse: estReponse, suivie }), viewTransitionName: `commentaire-oeuvre-${c.id}` }}>
         {c.supprime ? (
           <p style={EFFACE_COMMENTAIRE}>
             {c.pseudo ?? 'Un utilisateur'} a supprimé un commentaire
@@ -452,12 +453,15 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
             <FleuronDiscret vide="commentaires" />
           </div>
         )}
-        {principaux.map(c => (
-          <div key={c.id}>
-            {renderCommentaire(c, false)}
-            {reponsesDe(c.id).map(r => renderCommentaire(r, true))}
-          </div>
-        ))}
+        {principaux.map(c => {
+          const reponses = reponsesDe(c.id)
+          return (
+            <div key={c.id}>
+              {renderCommentaire(c, false, reponses.length > 0)}
+              {reponses.map((r, i) => renderCommentaire(r, true, i < reponses.length - 1))}
+            </div>
+          )
+        })}
       </div>
       {/* ⚠️ Un blanc sous le formulaire : le bouton « Soumettre » touchait le bord bas de la
           fenêtre (mesuré le 2026-09-15, 0 px entre les deux). */}
@@ -467,7 +471,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
         ) : (
           <>
             {cibleReponse && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(var(--cs-vert-rgb),0.07)', border: '1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius: '4px', padding: '6px 10px', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 2px', marginBottom: '6px' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.6875rem', color: 'var(--cs-vert)' }}>
                   <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
                     <path d="M7 4 3.5 7.5 7 11M3.5 7.5H10a2.5 2.5 0 0 1 2.5 2.5V12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>

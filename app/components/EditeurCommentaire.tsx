@@ -12,15 +12,17 @@ type Props = {
   minHeight?: number
 }
 
+// Un outil d'enrichissement est un MOT, non une case : ni filet ni fond au repos
+// (demande de l'auteur, 2026-09-21, « moins de blocs »). Le survol vit dans la feuille.
 const boutonOutil: React.CSSProperties = {
-  fontSize: '0.625rem',
-  padding: '2px 7px',
+  fontSize: '0.6875rem',
+  padding: '2px 6px',
   borderRadius: '4px',
-  borderWidth: '1px',
+  borderWidth: '0',
   borderStyle: 'solid',
-  borderColor: 'var(--cs-bord)',
-  background: 'var(--cs-surface)',
-  color: 'var(--cs-texte-fort)',
+  borderColor: 'transparent',
+  background: 'transparent',
+  color: 'var(--cs-texte-second)',
   cursor: 'pointer',
   lineHeight: 1.35,
   transition: 'background 0.12s, border-color 0.12s, color 0.12s',
@@ -31,7 +33,7 @@ const boutonOutil: React.CSSProperties = {
 function styleBouton(actif: boolean, extra?: React.CSSProperties): React.CSSProperties {
   return {
     ...boutonOutil,
-    ...(actif ? { background: 'rgba(var(--cs-vert-rgb),0.14)', borderColor: 'var(--cs-vert-clair)', color: 'var(--cs-vert-fonce)', fontWeight: 600 } : {}),
+    ...(actif ? { background: 'rgba(var(--cs-vert-rgb),0.12)', color: 'var(--cs-vert-fonce)', fontWeight: 600 } : {}),
     ...extra,
   }
 }
@@ -214,16 +216,16 @@ export default function EditeurCommentaire({ value, onChange, placeholder = 'Vot
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '4px' }}>
-        <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => commande('bold')} title="Gras" style={styleBouton(actifs.gras, { fontWeight: 700 })}>G</button>
-        <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => commande('italic')} title="Italique" style={styleBouton(actifs.italique, { fontStyle: 'italic' })}>I</button>
-        <button type="button" onMouseDown={e => e.preventDefault()} onClick={basculerPetitesCaps} title="Petites capitales" style={styleBouton(actifs.petitesCaps, { fontVariant: 'small-caps', letterSpacing: '0.03em' })}>Petites capitales</button>
-        <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => commande('superscript')} title="Exposant" style={styleBouton(actifs.exposant)}>x²</button>
-        <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => entourerTexte('« ', ' »')} title="Guillemets français" style={boutonOutil}>« »</button>
-        <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => entourerTexte('“', '”')} title="Guillemets anglais" style={boutonOutil}>“ ”</button>
+      <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap', marginBottom: '4px', marginLeft: '-6px' }}>
+        <button type="button" className="cs-outil-editeur" onMouseDown={e => e.preventDefault()} onClick={() => commande('bold')} title="Gras" style={styleBouton(actifs.gras, { fontWeight: 700 })}>G</button>
+        <button type="button" className="cs-outil-editeur" onMouseDown={e => e.preventDefault()} onClick={() => commande('italic')} title="Italique" style={styleBouton(actifs.italique, { fontStyle: 'italic' })}>I</button>
+        <button type="button" className="cs-outil-editeur" onMouseDown={e => e.preventDefault()} onClick={basculerPetitesCaps} title="Petites capitales" style={styleBouton(actifs.petitesCaps, { fontVariant: 'small-caps', letterSpacing: '0.03em' })}>Petites capitales</button>
+        <button type="button" className="cs-outil-editeur" onMouseDown={e => e.preventDefault()} onClick={() => commande('superscript')} title="Exposant" style={styleBouton(actifs.exposant)}>x²</button>
+        <button type="button" className="cs-outil-editeur" onMouseDown={e => e.preventDefault()} onClick={() => entourerTexte('« ', ' »')} title="Guillemets français" style={boutonOutil}>« »</button>
+        <button type="button" className="cs-outil-editeur" onMouseDown={e => e.preventDefault()} onClick={() => entourerTexte('“', '”')} title="Guillemets anglais" style={boutonOutil}>“ ”</button>
         {/* Le libellé « Référence » est retiré : seul le symbole de lien subsiste, pour que
             toute la barre d'enrichissement tienne sur une seule ligne. */}
-        <button type="button" onMouseDown={e => e.preventDefault()} onClick={ouvrirSelecteur} title="Insérer un renvoi vers un verset ou un segment" style={{ ...boutonOutil, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button type="button" className="cs-outil-editeur" onMouseDown={e => e.preventDefault()} onClick={ouvrirSelecteur} title="Insérer un renvoi vers un verset ou un segment" style={{ ...boutonOutil, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
             <path d="M6.5 9.5 9.5 6.5M6.8 4.4 8 3.2a2.6 2.6 0 0 1 3.7 3.7l-1.2 1.2M9.2 11.6 8 12.8a2.6 2.6 0 0 1-3.7-3.7l1.2-1.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -241,9 +243,10 @@ export default function EditeurCommentaire({ value, onChange, placeholder = 'Vot
         onKeyUp={majActifs}
         onMouseUp={majActifs}
         onFocus={majActifs}
-        style={{ minHeight, maxHeight: 180, overflowY: 'auto', width: '100%', fontSize: '0.71875rem', padding: '7px 8px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box', lineHeight: 1.45, boxShadow: 'inset 3px 0 0 rgba(var(--cs-vert-rgb),0.12)', whiteSpace: 'pre-wrap' }}
+        style={{ minHeight, maxHeight: 180, overflowY: 'auto', width: '100%', fontSize: '0.71875rem', padding: '8px 10px', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box', lineHeight: 1.45, whiteSpace: 'pre-wrap' }}
       />
       <style>{`
+        .cs-outil-editeur:hover { background: rgba(var(--cs-vert-rgb),0.08) !important; color: var(--cs-texte-fort) !important; }
         [contenteditable][data-placeholder]:empty::before {
           content: attr(data-placeholder);
           color: var(--cs-texte-faible);

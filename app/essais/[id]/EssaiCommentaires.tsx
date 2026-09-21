@@ -8,7 +8,7 @@ import EditeurCommentaire from '@/app/components/EditeurCommentaire'
 import { useCompte } from '@/app/lib/contexteCompte'
 import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import MarqueMecene from '@/app/components/MarqueMecene'
-import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, CITATION_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, RETRAIT_REPONSE } from '@/app/lib/styleCommentaire'
+import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, CITATION_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, formeCommentaire } from '@/app/lib/styleCommentaire'
 
 type CommentaireEssai = {
   id: number; texte: string; passage_cite: string | null; reponse_a: number | null
@@ -140,10 +140,10 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
     )
   }
 
-  const CommentaireRetracte = ({ c, reponse }: { c: CommentaireEssai; reponse: boolean }) => (
-    <div style={{ marginLeft: reponse ? `${RETRAIT_REPONSE}px` : 0, marginBottom: '8px' }}>
+  const CommentaireRetracte = ({ c, reponse, suivie = false }: { c: CommentaireEssai; reponse: boolean; suivie?: boolean }) => (
+    <div style={{ marginLeft: formeCommentaire({ reponse, suivie }).marginLeft, marginBottom: formeCommentaire({ reponse, suivie }).marginBottom }}>
       <button className="commentaire-retracte" onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
-        style={{ width: '100%', display: 'block', position: 'relative', overflow: 'hidden', background: 'var(--cs-danger-fond)', border: '1px solid var(--cs-danger-bord)', borderRadius: '8px', cursor: 'pointer', padding: '9px 12px', textAlign: 'left' }}>
+        style={{ width: '100%', display: 'block', position: 'relative', overflow: 'hidden', background: 'var(--cs-danger-fond)', borderStyle: 'solid', borderColor: 'var(--cs-danger-bord)', borderWidth: formeCommentaire({ reponse, suivie }).borderWidth, borderRadius: formeCommentaire({ reponse, suivie }).borderRadius, cursor: 'pointer', padding: '9px 12px', textAlign: 'left' }}>
         <span className="commentaire-retracte-contenu" style={{ display: 'block', fontSize: '0.71875rem', color: 'var(--cs-danger-fonce)', fontWeight: 600 }}>
           Commentaire en attente de contrôle.
         </span>
@@ -151,8 +151,8 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
     </div>
   )
 
-  const CommentaireEfface = ({ c, reponse }: { c: CommentaireEssai; reponse: boolean }) => (
-    <div className="commentaire-carte" style={{ ...carteCommentaire({ reponse }), viewTransitionName: `commentaire-essai-${c.id}` }}>
+  const CommentaireEfface = ({ c, reponse, suivie = false }: { c: CommentaireEssai; reponse: boolean; suivie?: boolean }) => (
+    <div className="commentaire-carte" style={{ ...carteCommentaire({ reponse, suivie }), viewTransitionName: `commentaire-essai-${c.id}` }}>
       <p style={EFFACE_COMMENTAIRE}>{c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire</p>
     </div>
   )
@@ -160,11 +160,11 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   // ⚠️ UNE seule écriture de la carte, pour la racine comme pour la réponse. Les deux
   // vivaient côte à côte, à quelques dixièmes de rem près : c'est ainsi que le dessin
   // s'était mis à diverger d'un rang à l'autre.
-  const CorpsCommentaire = ({ c, reponse }: { c: CommentaireEssai; reponse: boolean }) => {
+  const CorpsCommentaire = ({ c, reponse, suivie = false }: { c: CommentaireEssai; reponse: boolean; suivie?: boolean }) => {
     const rang = c.lecture ? calculerRang(c.lecture.nb_auteurs, c.lecture.total_auteurs).rang : null
     const rangCouleur = rang ? couleurRang(rang) : null
     return (
-      <div className="commentaire-carte" style={{ ...carteCommentaire({ enRevision: !c.valide, reponse }), viewTransitionName: `commentaire-essai-${c.id}` }}>
+      <div className="commentaire-carte" style={{ ...carteCommentaire({ enRevision: !c.valide, reponse, suivie }), viewTransitionName: `commentaire-essai-${c.id}` }}>
         <div style={ENTETE_COMMENTAIRE}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0 }}>
             <span style={NOM_COMMENTAIRE}>
@@ -186,18 +186,19 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   }
 
   const Carte = ({ c }: { c: CommentaireEssai }) => {
-    const rendre = (x: CommentaireEssai, reponse: boolean) => {
-      if (x.supprime) return <CommentaireEfface key={x.id} c={x} reponse={reponse} />
-      if (!x.valide && !revelees.has(x.id)) return <CommentaireRetracte key={x.id} c={x} reponse={reponse} />
-      return <CorpsCommentaire key={x.id} c={x} reponse={reponse} />
+    const rendre = (x: CommentaireEssai, reponse: boolean, suivie = false) => {
+      if (x.supprime) return <CommentaireEfface key={x.id} c={x} reponse={reponse} suivie={suivie} />
+      if (!x.valide && !revelees.has(x.id)) return <CommentaireRetracte key={x.id} c={x} reponse={reponse} suivie={suivie} />
+      return <CorpsCommentaire key={x.id} c={x} reponse={reponse} suivie={suivie} />
     }
     // Le fil se sépare du suivant par un BLANC un peu plus large que celui qui règne
     // entre ses cartes. Le filet d'avant ne servait plus qu'à couper deux cartes déjà
     // cernées chacune par la sienne.
+    const reponses = commentaires.filter(r => r.reponse_a === c.id)
     return (
-      <article style={{ marginBottom: '6px' }}>
-        {rendre(c, false)}
-        {commentaires.filter(r => r.reponse_a === c.id).map(r => rendre(r, true))}
+      <article>
+        {rendre(c, false, reponses.length > 0)}
+        {reponses.map((r, i) => rendre(r, true, i < reponses.length - 1))}
       </article>
     )
   }

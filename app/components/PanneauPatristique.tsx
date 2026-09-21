@@ -36,7 +36,7 @@ import { COLONNES_IDENTITE_TEXTE, identiteCitee, parametreTexte, type LigneIdent
 import { indexEditeursNavigateur } from '@/app/lib/editeurs'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import MarqueMecene from '@/app/components/MarqueMecene'
-import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, RETRAIT_REPONSE } from '@/app/lib/styleCommentaire'
+import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, formeCommentaire } from '@/app/lib/styleCommentaire'
 import RailVolet from '@/app/components/RailVolet'
 import IconeChevron from '@/app/components/IconeChevron'
 import { ecartsAMesurer, numerosDeLEcart, regrouperCitations, texteDuGroupe, type Ecart } from '@/app/lib/regrouperCitations'
@@ -716,13 +716,14 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
     } else setErreur(`Erreur : ${error?.message}`)
   }
 
-  const renderCommentaire = (c: Commentaire2, estReponse: boolean) => {
+  const renderCommentaire = (c: Commentaire2, estReponse: boolean, suivie = false) => {
+    const forme = formeCommentaire({ reponse: estReponse, suivie })
     const cache = !c.supprime && !c.valide && !revelees.has(c.id)
     if (cache) {
       return (
-        <div key={c.id} style={{ marginLeft: estReponse ? `${RETRAIT_REPONSE}px` : 0, marginBottom:'8px' }}>
+        <div key={c.id} style={{ marginLeft: forme.marginLeft, marginBottom: forme.marginBottom }}>
           <button className="commentaire-retracte" onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
-            style={{ width:'100%', display:'block', position:'relative', overflow:'hidden', background:'var(--cs-danger-fond)', border:'1px solid var(--cs-danger-bord)', borderRadius:'8px', cursor:'pointer', padding:'9px 12px', textAlign:'left' }}>
+            style={{ width:'100%', display:'block', position:'relative', overflow:'hidden', background:'var(--cs-danger-fond)', borderStyle:'solid', borderColor:'var(--cs-danger-bord)', borderWidth: forme.borderWidth, borderRadius: forme.borderRadius, cursor:'pointer', padding:'9px 12px', textAlign:'left' }}>
             <span className="commentaire-retracte-contenu" style={{ display:'block', fontSize:'0.71875rem', color:'var(--cs-danger-fonce)', fontWeight:600 }}>
               Commentaire en attente de contrôle.
             </span>
@@ -737,7 +738,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
     const aDesActionsADroite = userId === c.user_id || (isAdmin && userId !== c.user_id)
     return (
       <div className="commentaire-carte" key={c.id}
-        style={{ ...carteCommentaire({ certifie: estCertifie, enRevision: estRevision, reponse: estReponse }), viewTransitionName: `commentaire-bible-${c.id}` }}>
+        style={{ ...carteCommentaire({ certifie: estCertifie, enRevision: estRevision, reponse: estReponse, suivie }), viewTransitionName: `commentaire-bible-${c.id}` }}>
         {c.supprime ? (
           <p style={EFFACE_COMMENTAIRE}>
             {c.pseudo ?? c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire
@@ -865,17 +866,20 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
             <FleuronDiscret vide="commentaires" />
           </div>
         )}
-        {principaux.map(c => (
-          <div key={c.id}>
-            {renderCommentaire(c, false)}
-            {reponsesDe(c.id).map(r => renderCommentaire(r, true))}
-          </div>
-        ))}
+        {principaux.map(c => {
+          const reponses = reponsesDe(c.id)
+          return (
+            <div key={c.id}>
+              {renderCommentaire(c, false, reponses.length > 0)}
+              {reponses.map((r, i) => renderCommentaire(r, true, i < reponses.length - 1))}
+            </div>
+          )
+        })}
       </div>
       <div style={{ flexShrink:0, display:'flex', flexDirection:'column', gap:'5px', borderTop:'1px solid var(--cs-fond-doux)', marginTop:'4px', paddingTop:'10px' }}>
         {!aUnCompte ? <InvitationCompteInline action="commenter ce passage" /> : <>
         {cibleReponse && (
-          <div style={{ display:'flex', alignItems:'center', gap:'6px', background:'rgba(var(--cs-vert-rgb),0.07)', border:'1px solid rgba(var(--cs-vert-rgb),0.18)', borderRadius:'4px', padding:'5px 8px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'6px', padding:'0 2px' }}>
             <span style={{ display:'inline-flex', alignItems:'center', gap:'5px', fontSize:'0.71875rem', color:'var(--cs-vert)' }}>
               <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
                 <path d="M7 4 3.5 7.5 7 11M3.5 7.5H10a2.5 2.5 0 0 1 2.5 2.5V12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -896,15 +900,17 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
           </>
         )}
         {erreur && <p style={{ fontSize:'0.65625rem', color:'var(--cs-danger)', margin:0 }}>{erreur}</p>}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px' }}>
         <label style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'0.65625rem', color:'var(--cs-texte-second)', cursor:'pointer', lineHeight:1, height:'16px' }}>
           <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
             style={{ width:'12px', height:'12px', flexShrink:0, accentColor:'var(--cs-vert)', cursor:'pointer', margin:0 }} />
           <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demander la certification</span>
         </label>
         <button onClick={envoyer} disabled={envoi}
-          style={{ alignSelf:'flex-end', fontSize:'0.71875rem', padding:'4px 12px', borderRadius:'4px', border:'none', background:'var(--cs-vert-aplat)', color:'var(--cs-sur-aplat)', cursor:'pointer', fontWeight:500 }}>
+          style={{ fontSize:'0.71875rem', padding:'4px 12px', borderRadius:'4px', border:'none', background:'var(--cs-vert-aplat)', color:'var(--cs-sur-aplat)', cursor:'pointer', fontWeight:500 }}>
           {envoi ? '…' : 'Envoyer'}
         </button>
+        </div>
         </>}
       </div>
       {commentaireSignale && (
