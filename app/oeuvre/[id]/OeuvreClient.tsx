@@ -692,11 +692,15 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // ≤ 900px : nav et apparat en barres fixes + tiroirs (voir AGENTS § mobile).
   const mobile = useEstMobile(900)
 
-  // Mémorise l'œuvre ouverte dans les « dernières consultées » (survol de
-  // « Patristique » dans la navbar). Local au navigateur.
+  // Mémorise l'ÉDITION ouverte dans les « dernières consultées » (survol de
+  // « Patristique » dans la navbar). Local au navigateur. Le texte ne se retient que
+  // s'il n'est pas celui que l'œuvre ouvre par défaut, et l'édition se nomme pour
+  // départager deux entrées de même titre.
+  const texteRecent = versionActive && !versionActive.isDefault ? versionActive.idTexte : null
+  const editionRecente = versionActive ? libelleVersionComplet(versionActive) : null
   useEffect(() => {
-    enregistrerOeuvreRecente({ id: idOeuvre, titre: oeuvre.titre, auteur })
-  }, [idOeuvre, oeuvre.titre, auteur])
+    enregistrerOeuvreRecente({ id: idOeuvre, titre: oeuvre.titre, auteur, texte: texteRecent, edition: editionRecente })
+  }, [idOeuvre, oeuvre.titre, auteur, texteRecent, editionRecente])
   // Mobile : actions de segment masquées, révélées à l'appui long (comme les
   // versets de la page Bible).
   const [infoEditionOuverte, setInfoEditionOuverte] = useState(false)

@@ -12,7 +12,7 @@ import { useCompte } from "@/app/lib/contexteCompte";
 import { LIVRES } from "@/app/lib/bible";
 import { lirePositionBible } from "@/app/lib/repriseLecture";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
-import { lireOeuvresRecentes, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
+import { adresseOeuvreRecente, editionAMontrer, lireOeuvresRecentes, quandConsultee, titresAmbigus, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
 import EmblemeNavigation from "@/app/components/EmblemesNavigation";
 import { ligneEdition, type EditionOeuvre } from "@/app/lib/editionOeuvre";
 import { chargerEditeurs, indexEditeursNavigateur } from "@/app/lib/editeurs";
@@ -369,11 +369,14 @@ function OngletMenu({ href, label, style, actif, classeMenu, auSurvol, repere, c
 // autres onglets — d'où le mot qui tient la place quand rien n'a été consulté :
 // un chevron qui n'ouvrirait rien serait une promesse en l'air.
 function OngletPatristique({ href, label, style, actif }: { href: string; label: string; style: React.CSSProperties; actif?: boolean }) {
-  const [recentes, setRecentes] = useState<OeuvreRecente[]>([]);
+  // ⚠️ L'heure se lit AU GESTE, avec la liste : lue pendant le rendu, elle ferait un
+  // composant impur, et la date relative (« hier ») se calcule sur elle.
+  const [{ recentes, maintenant }, setRecentes] = useState<{ recentes: OeuvreRecente[]; maintenant: number }>({ recentes: [], maintenant: 0 });
+  const ambigus = titresAmbigus(recentes);
   return (
     <OngletMenu href={href} label={label} style={style} actif={actif} repere="nav-patristique"
       classeMenu="cs-plus-menu--riche cs-plus-menu--oeuvres"
-      auSurvol={() => setRecentes(lireOeuvresRecentes())}>
+      auSurvol={() => setRecentes({ recentes: lireOeuvresRecentes(), maintenant: Date.now() })}>
       {/* ⛔ LA PORTE DE LA RUBRIQUE, EN TÊTE DE SON PROPRE MENU. Le libellé de
           l'onglet y mène déjà, mais rien ne le dit : un menu qui s'ouvre au survol
           capture l'œil, et l'on cherche dedans ce qu'on est venu chercher. Les trois
@@ -389,14 +392,25 @@ function OngletPatristique({ href, label, style, actif }: { href: string; label:
       </Link>
       <div className="cs-plus-sep" />
       <p className="cs-plus-titre">Dernières œuvres consultées</p>
-      {recentes.length > 0 ? recentes.map(o => (
-        <Link key={o.id} href={`/oeuvre/${o.id}`} className="cs-plus-riche">
-          <span className="cs-plus-riche-texte">
-            <span className="cs-plus-riche-nom cs-plus-riche-nom--oeuvre">{o.titre}</span>
-            {o.auteur && <span className="cs-plus-riche-dit">{o.auteur}</span>}
-          </span>
-        </Link>
-      )) : (
+      {recentes.length > 0 ? recentes.map(o => {
+        const edition = editionAMontrer(o, ambigus);
+        const quand = quandConsultee(o.vu, maintenant);
+        return (
+          <Link key={`${o.id}|${o.texte ?? ''}`} href={adresseOeuvreRecente(o)} className="cs-plus-riche cs-plus-recente">
+            <span className="cs-plus-riche-texte">
+              <span className="cs-plus-riche-nom cs-plus-riche-nom--oeuvre">{o.titre}</span>
+              {(o.auteur || edition) && (
+                <span className="cs-plus-riche-dit">
+                  {o.auteur}
+                  {o.auteur && edition && ' · '}
+                  {edition && <span className="cs-plus-recente-edition">{edition}</span>}
+                </span>
+              )}
+            </span>
+            {quand && <span className="cs-plus-recente-date">{quand}</span>}
+          </Link>
+        );
+      }) : (
         <p className="cs-plus-vide">Aucune encore : les œuvres ouvertes viendront se ranger ici.</p>
       )}
     </OngletMenu>
@@ -2089,6 +2103,17 @@ export default function Navbar() {
           .cs-plus-riche-dit {
             font-size: 0.6875rem; line-height: 1.4; color: var(--cs-texte-gris);
             white-space: normal;
+          }
+          /* Les œuvres récentes : douze entrées de deux lignes faisaient un menu de six
+             cents pixels. La rangée se resserre, et la date de dernière consultation se
+             pose au fer à droite, sur la ligne du titre, dans le gris de la glose. */
+          .cs-plus-recente { padding: 5px 10px; }
+          .cs-plus-recente .cs-plus-riche-texte { flex: 1 1 auto; }
+          .cs-plus-recente-edition { color: var(--cs-texte-second); }
+          .cs-plus-recente-date {
+            flex-shrink: 0; margin-left: auto; padding-top: 0.125rem;
+            font-size: 0.625rem; line-height: 1.4; color: var(--cs-texte-gris);
+            white-space: nowrap; font-variant-numeric: tabular-nums;
           }
           .cs-plus-sep { height: 1px; background: var(--cs-fond-doux); margin: 3px 6px; }
           /* Le mot qui tient la place quand un menu n'a encore rien à montrer. Ni
