@@ -264,6 +264,9 @@ export type Props = {
    *  traduction ne peut pas fournir : son `texte_original` n'est qu'une copie. */
   notesOriginales?: Record<string, Record<string, NoteStructuree>>
   ancresNotesOriginales?: Record<string, AncreNoteStructureeProjection[]>
+  /** Vrai quand la page n'a reçu que les notes du texte en regard qu'elle compose : le
+   *  navigateur demande le reste quand il en a besoin (voir `notesEnRegard.ts`). */
+  notesOriginalesPartielles?: boolean
   /** L'original mis en regard, groupe d'alignement par groupe d'alignement. C'est la
    *  SEULE source de la colonne de droite quand l'œuvre est alignée : le texte y est
    *  lu depuis ses propres segments, où il n'existe qu'une fois. Vide quand l'œuvre

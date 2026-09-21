@@ -20,6 +20,7 @@ import { codeLangue } from '@/app/lib/grec'
 import { JsonLd, donneesLivre, donneesFilAriane } from '@/app/lib/donneesStructurees'
 import FilAriane from '@/app/components/FilAriane'
 import { lireRetour } from '@/app/lib/retourLecture'
+import { notesEnRegardUtiles } from './notesEnRegard'
 import { descriptionOeuvre, enTetesPartage, titreOeuvre } from '@/app/lib/metadonneesSeo'
 import { porteDesLiensBibliques } from '@/app/lib/metadonneesSeoServeur'
 import OeuvreClient from './OeuvreClient'
@@ -744,6 +745,16 @@ export default async function OeuvrePage({
     { prefixeAncre: 'a', avecSection: true },
   )
 
+  // Les notes du texte en regard ne partent que pour ce que la page COMPOSE : l'apparat
+  // entier de Knöll (7 277 notes) faisait l'essentiel des 4,5 Mo de HTML des Confessions,
+  // quand le premier livre n'en appelle que 506. Le navigateur demande le reste quand il
+  // en a besoin (voir `notesEnRegard.ts`).
+  const notesEnRegardEnvoyees = notesEnRegardUtiles(notesOriginales, ancresNotesOriginales, [
+    ...[...projectionBilingue.blocParGroupe.values()].map(bloc => bloc.notes),
+    ...segmentsData.map(seg => seg.notesOriginal),
+    ...segmentsApparatData.map(seg => seg.notesOriginal),
+  ])
+
   // Le sommaire de l'apparat : une entrée par changement de niveau 1 ou 2.
   const tocApparat: TocEntry[] = []
   let la1 = '', la2 = ''
@@ -816,8 +827,9 @@ export default async function OeuvrePage({
       alignementsDisponibles={alignementsDisponibles}
       notesStructurees={notesStructurees}
       ancresNotesStructurees={ancresNotesStructurees}
-      notesOriginales={notesOriginales}
-      ancresNotesOriginales={ancresNotesOriginales}
+      notesOriginales={notesEnRegardEnvoyees.notes}
+      ancresNotesOriginales={notesEnRegardEnvoyees.ancres}
+      notesOriginalesPartielles={notesEnRegardEnvoyees.partielles}
       blocsOriginal={blocsOriginal}
       niv1List={niv1List}
       niv1TexteMap={niv1TexteMap}

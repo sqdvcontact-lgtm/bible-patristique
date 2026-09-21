@@ -10,8 +10,9 @@ import { codesTraductionsLecture } from '@/app/lib/traductions'
 // ⛔ La projection qui ne faillit pas : une ancre hors du texte est laissée de côté
 // et dite à la console, le segment se lit. La stricte lève, et une seule ancre
 // fermait la division (2026-09-05, voir `app/lib/chargementTolerant.ts`).
-import { champDuTitre, projeterAppelsNotesStructureesEnSignalant as projeterAppels } from '@/app/lib/appelsNotesStructurees'
+import { champDuTitre, projeterAppelsNotesStructureesEnSignalant as projeterAppels, type AncreNoteStructureeProjection } from '@/app/lib/appelsNotesStructurees'
 import type { DegradationChargement } from '@/app/lib/chargementTolerant'
+import { chargerNotesStructurees } from '@/app/lib/notesStructureesChargement'
 import FleuronDiscret from '@/app/components/FleuronDiscret'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
 import { CLASSES_BIBLIOGRAPHIE, estBlocBibliographique } from '@/app/lib/apparatBibliographie'
@@ -522,6 +523,14 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
  */
 const AUCUN_BLOC: Record<string, BlocOriginal> = {}
 const AUCUNE_DEGRADATION: DegradationChargement[] = []
+// Des replis STABLES : un objet neuf à chaque rendu changerait l'identité de
+// `notesEnRegardCompletes`, et l'effet qui la guette se rejouerait à chaque rendu.
+const AUCUNE_NOTE_EN_REGARD: Record<string, Record<string, NoteStructuree>> = {}
+const AUCUNE_ANCRE_EN_REGARD: Record<string, AncreNoteStructureeProjection[]> = {}
+type NotesEnRegardLues = {
+  notes: Record<string, Record<string, NoteStructuree>>
+  ancres: Record<string, AncreNoteStructureeProjection[]>
+}
 
 /**
  * LA BARRE FIXE D’UN VOLET SUR TÉLÉPHONE, et elle ne disparaît jamais.
@@ -597,7 +606,7 @@ const TETE_RUBRIQUE: React.CSSProperties = { flexShrink: 0, display: 'flex', ali
 
 type OngletDroit = 'refs' | 'commentaires' | 'notes'
 
-export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales = {}, ancresNotesOriginales = {}, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, fleuron = null, titresComposes: titresComposesInit = null, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1, filAriane = null }: Props) {
+export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre = [], idOeuvre, idTexte, versionsTextuelles, alignementsDisponibles, notesStructurees = {}, ancresNotesStructurees = {}, notesOriginales: notesOriginalesRecues = AUCUNE_NOTE_EN_REGARD, ancresNotesOriginales: ancresNotesOriginalesRecues = AUCUNE_ANCRE_EN_REGARD, notesOriginalesPartielles = false, blocsOriginal = AUCUN_BLOC, estAdmin: estAdminReel, niv1List: niv1ListProp, niv1TexteMap: niv1TexteMapProp = {}, niveauxSommaire = 1, niveauxCorps = 1, txtSommaire = [], txtCorps = [], afficherNumeros = true, lectureTexteEntier = false, fleuron = null, titresComposes: titresComposesInit = null, oeuvre, groupes: groupesInit, segments: segmentsInit, tocApparat, groupesApparat: groupesApparatInit, segmentsApparat: segmentsApparatInit, noticesBibliographiques: noticesBibliographiquesInit = {}, degradations = AUCUNE_DEGRADATION, segmentCibleId = null, cibleReprise = false, niv1Initial = null, vueInitiale = 'texte', niv1InitialPartiel = false, comparaisonInitiale = false, alignmentSetIdInitial = null, comparaisonLivreInitial = 1, comparaisonDivisionInitiale = 1, filAriane = null }: Props) {
   // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
   const { visiteFaite, oublierVisite, profilPret, exigerCompte } = useCompte()
   const { modeUtilisateurStandard } = useAffichageAdmin()
@@ -796,6 +805,37 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // qu'on lit : c'est lui que l'alignement met en regard.
   const idTexteEnRegard = paireDeLecture.idTexteEnRegard
   const ensembleBilingue = paireDeLecture.ensembleBilingue
+  // ⛔ LES NOTES DU TEXTE EN REGARD ne partent avec la page que pour ce qu'elle compose
+  // (`notesEnRegard.ts`) : l'apparat entier de Knöll faisait l'essentiel des 4,5 Mo de
+  // HTML des Confessions. Le reste se demande ici, UNE fois, dès qu'il sert : la lecture
+  // en regard (l'inventaire des notes) ou une autre division (sa colonne originale).
+  // ⚠️ Une fonction qui compose en différé lit le résultat de la PROMESSE, jamais l'état :
+  // celui-ci est celui du rendu où elle a été créée.
+  const [notesEnRegardChargees, setNotesEnRegardChargees] = useState<NotesEnRegardLues | null>(null)
+  const notesOriginales = notesEnRegardChargees?.notes ?? notesOriginalesRecues
+  const ancresNotesOriginales = notesEnRegardChargees?.ancres ?? ancresNotesOriginalesRecues
+  const chargementNotesEnRegardRef = useRef<Promise<NotesEnRegardLues> | null>(null)
+  const notesEnRegardCompletes = useCallback((): Promise<NotesEnRegardLues> => {
+    const recues: NotesEnRegardLues = { notes: notesOriginalesRecues, ancres: ancresNotesOriginalesRecues }
+    if (!notesOriginalesPartielles || !idTexteEnRegard) return Promise.resolve(recues)
+    if (!chargementNotesEnRegardRef.current) {
+      const incidents: DegradationChargement[] = []
+      chargementNotesEnRegardRef.current = chargerNotesStructurees(supabase, idTexteEnRegard, incidents)
+        .then(({ notesParSegment, ancresParSegment }) => {
+          if (incidents.length > 0) console.error(`[lecture] notes du texte en regard (${idTexteEnRegard}) :`, incidents)
+          const lues = { notes: notesParSegment, ancres: ancresParSegment }
+          setNotesEnRegardChargees(lues)
+          return lues
+        })
+        .catch((erreur: unknown) => {
+          // Couche secondaire : sans elle, la colonne originale garde ce que la page a reçu.
+          console.error(`[lecture] notes du texte en regard illisibles (${idTexteEnRegard}) :`, erreur)
+          chargementNotesEnRegardRef.current = null
+          return recues
+        })
+    }
+    return chargementNotesEnRegardRef.current
+  }, [notesOriginalesPartielles, idTexteEnRegard, notesOriginalesRecues, ancresNotesOriginalesRecues])
   // Mode d'affichage du texte : français seul, bilingue (français + latin), latin seul.
   const [modeTexte, setModeTexte] = useState<'fr' | 'bilingue' | 'la'>('fr')
   // « Traductions parallèles » est désactivé pour le moment (mode de lecture jugé
@@ -949,6 +989,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const enRegardSurPlace = paireDeLecture.enRegardSurPlace
   const modeTexteEffectif = modeDeLectureEffectif(modeTexte, paireDeLecture)
   const affichageBilingue = modeTexteEffectif === 'bilingue'
+  useEffect(() => {
+    if (affichageBilingue && ensembleBilingue && notesOriginalesPartielles) void notesEnRegardCompletes()
+  }, [affichageBilingue, ensembleBilingue, notesOriginalesPartielles, notesEnRegardCompletes])
   // L'ÉDITION MISE EN REGARD, quand c'en est une autre : la page de titre la nomme au
   // même titre que celle qu'on lit. ⚠️ `ensembleBilingue` est la garde qui compte —
   // une colonne tirée du repli `segments.texte_original` n'est pas une autre édition,
@@ -1863,13 +1906,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const rattacherAlignement = async (segs: SegData[]): Promise<SegData[]> => {
     if (!ensembleBilingue || !idTexteEnRegard) return segs
     try {
+      const enRegard = await notesEnRegardCompletes()
       const projection = await chargerProjectionBilingue(supabase, {
         alignmentSetId: ensembleBilingue.alignmentSetId,
         idTexteTraduit: idTexte,
         idTexteOriginal: idTexteEnRegard,
         clesTraduites: segs.map(s => s.segmentKey).filter((c): c is string => Boolean(c)),
-        notesOriginales,
-        ancresOriginales: ancresNotesOriginales,
+        notesOriginales: enRegard.notes,
+        ancresOriginales: enRegard.ancres,
       })
       if (projection.blocParGroupe.size > 0) {
         setBlocsOriginalEtat(prev => ({ ...prev, ...Object.fromEntries(projection.blocParGroupe) }))
@@ -1885,6 +1929,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }
 
   const chargerNiv1Data = async (n1: string): Promise<{ groupes: GroupeData[]; segments: SegData[] }> => {
+    // Les notes du texte en regard partent AVEC les segments, non après eux.
+    const enRegardPromis = notesEnRegardCompletes()
     // ⛔ `apparat_auteur` (prologue, avertissement de l'auteur) appartient au CORPS :
     // il se lit à sa place dans le texte. Ne pas le retirer de cette liste — c'est
     // ce qui l'avait fait disparaître du rendu. Distinct d'`apparat_critique`.
@@ -1967,11 +2013,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // numérotation locale remet le compteur à zéro à chaque `ref_niv1`, ce que celui d'ici
     // ne faisait pas — sans effet tant qu'on ne charge qu'une division, faux dès qu'on en
     // charge deux.
+    const enRegard = await enRegardPromis
     const { segments: newSegs, groupes: newGroupes } = composerSegments(segs as SegmentBrut[], {
       versetsCites: versetMap,
       notes: notesStructurees,
-      notesOriginal: notesOriginales,
+      notesOriginal: enRegard.notes,
       ...projectionsDeNotes,
+      projeterAppelsOriginal: (texte: string, cle: string | null) =>
+        projeterAppels(texte, cle ? enRegard.ancres[cle] : undefined),
     })
 
     // Enrichir la carte niv1 → niv1_texte avec ce qu'on vient de charger
@@ -2005,6 +2054,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // après une modification ou une suppression admin, puisque l'apparat n'est
   // sinon chargé qu'une seule fois au rendu serveur de la page.
   const chargerApparatData = async () => {
+    const enRegardPromis = notesEnRegardCompletes()
     const { data, error } = await limiterRequeteSegmentsALaSurface(
       supabase
         .from('segments')
@@ -2026,13 +2076,16 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
     // La MÊME chaîne que le corps, à trois mots près : l'apparat porte des notices
     // bibliographiques, n'ouvre aucun volet biblique, et sa SECTION coupe ses groupes.
+    const enRegard = await enRegardPromis
     const { segments: newSegs, groupes: newGroupes } = composerSegments(
       segs as SegmentBrut[],
       {
         versetsCites: {},
         notes: notesStructurees,
-        notesOriginal: notesOriginales,
+        notesOriginal: enRegard.notes,
         ...projectionsDeNotes,
+        projeterAppelsOriginal: (texte: string, cle: string | null) =>
+          projeterAppels(texte, cle ? enRegard.ancres[cle] : undefined),
         avecOuvrage: true,
         sansVersets: true,
       },
