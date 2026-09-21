@@ -1,6 +1,6 @@
 'use client'
 
-import { activerAuClavier } from '@/app/lib/activerAuClavier'
+import { activerAuClavier, ID_AIDE_SEGMENT } from '@/app/lib/activerAuClavier'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { createPortal } from 'react-dom'
@@ -224,7 +224,7 @@ type BlocLecture = { type: 'prose' | 'vers' | 'versets' | 'rubrique' | 'exergue'
 // de `.seg-inline` vient du bloc <style> parent (OeuvreClient).
 const POLICE_ORIGINALE = 'var(--font-source-sans), Arial, sans-serif'
 
-function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSurvol, onQuitter, onClic, mobile, langue }: {
+function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSurvol, onQuitter, onClic, onFoyer, onQuitterFoyer, mobile, langue }: {
   membres: MembreComparable[]
   segments: Map<string, SegmentComparaison>
   notes: NotesParSegment
@@ -234,6 +234,9 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
   onSurvol: (el: HTMLElement, id: number) => void
   onQuitter: (id: number) => void
   onClic: (el: HTMLElement, id: number, actif: boolean) => void
+  /** Le foyer CLAVIER arrive sur un segment : sa cellule d'actions s'ouvre. */
+  onFoyer: (el: HTMLElement, id: number) => void
+  onQuitterFoyer: (suivant: EventTarget | null) => void
   mobile: boolean
   langue: string | null
 }) {
@@ -303,7 +306,10 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
       <span id={`cmp-seg-${segment.id}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`}
         onClick={e => onClic(e.currentTarget, segment.id, actif)}
         tabIndex={0}
+        aria-describedby={ID_AIDE_SEGMENT}
         onKeyDown={e => activerAuClavier(e, () => onClic(e.currentTarget, segment.id, actif))}
+        onFocus={e => { if (e.target === e.currentTarget) onFoyer(e.currentTarget, segment.id) }}
+        onBlur={e => onQuitterFoyer(e.relatedTarget)}
         onMouseEnter={mobile ? undefined : e => onSurvol(e.currentTarget, segment.id)}
         onMouseLeave={mobile ? undefined : () => onQuitter(segment.id)}>
         {renderSegmentTexte(
@@ -632,6 +638,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
   const espaceDe = (el: HTMLElement) => ({ borne: el.closest<HTMLElement>('[data-colonne-comparaison]') })
   const positionnerToolbar = (el: HTMLElement, id: number) => cellule.ancrer(el, id, espaceDe(el))
   const masquerToolbar = (id: number) => cellule.relacher(id)
+  const foyerSegment = (el: HTMLElement, id: number) => cellule.ancrerAuFoyer(el, id, espaceDe(el))
   const clicSegment = (el: HTMLElement, id: number, actif: boolean) => {
     if (actif) { setSegActif(null); cellule.fermer() }
     else { setSegActif(id); cellule.ancrer(el, id, espaceDe(el)) }
@@ -675,7 +682,8 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
       <div key={colonne.label} data-colonne-comparaison="" style={{ minWidth: 0 }}>
         {mobile && <h3 style={{ margin: '0 0 6px', fontSize: '0.59375rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{colonne.label}</h3>}
         <ColonneLecture membres={colonne.members} segments={segments} notes={notes} ancres={ancresNotes} vide={colonne.empty} langue={colonne.langue}
-          segActif={segActif} onSurvol={positionnerToolbar} onQuitter={masquerToolbar} onClic={clicSegment} mobile={mobile} />
+          segActif={segActif} onSurvol={positionnerToolbar} onQuitter={masquerToolbar} onClic={clicSegment}
+          onFoyer={foyerSegment} onQuitterFoyer={cellule.quitterFoyer} mobile={mobile} />
       </div>
     ))
 
@@ -749,7 +757,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
         return (
           <CelluleActions
             ancre={cellule.ancre} onRetenir={cellule.retenir} onRelacher={cellule.relacher}
-            onFermer={cellule.fermer} sansSurvol={sansSurvol} boutons={userId ? 3 : 2}>
+            onFermer={cellule.fermer} sansSurvol={sansSurvol} onQuitterFoyer={cellule.quitterFoyer} boutons={userId ? 3 : 2}>
             {userId && s.id_oeuvre && <BoutonEnregistrerSegment seg={segData} auteur={auteur} titreOeuvre={meta?.titre ?? ''} idOeuvre={s.id_oeuvre} userId={userId} dejaSauvegarde={sauvegardes.has(s.id)} onChangement={preleve => marquerSauvegarde(s.id, preleve)} />}
             <BoutonCopieSegment texte={texteSansEnrichissement(s.segment_texte)} auteur={auteur} titre={meta?.titre} sousTitre={meta?.sous_titre ?? undefined} tradAuteur={meta?.trad_auteur ?? undefined} editeur={meta?.editeur ?? undefined} collection={meta?.collection ?? undefined} ville={meta?.ville ?? undefined} datePublication={meta?.date_publication ?? undefined} />
             <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.segment_texte)} titreOeuvre={meta?.titre ?? ''} />

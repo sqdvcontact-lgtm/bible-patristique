@@ -32,6 +32,7 @@ import {
   type EspaceCellule, type PositionCellule,
 } from '@/app/lib/celluleActions'
 import { hauteurNavbarPx } from '@/app/lib/fenetreContextuelle'
+import { elementsFocalisables, estTabulation, premierFocalisableApres } from '@/app/lib/foyerClavier'
 
 // La cellule se MESURE puis se replace avant la peinture : sans cela, on la verrait un
 // instant à sa position estimée avant qu'elle ne saute à la bonne. `useLayoutEffect`
@@ -93,7 +94,16 @@ export function useCelluleActions<K, D = undefined>() {
   const fermeture = useRef<ReturnType<typeof setTimeout> | null>(null)
   const attente = useRef<{ cle: K; minuteur: ReturnType<typeof setTimeout> } | null>(null)
 
-  const poser = useCallback((a: AncreCellule<K, D> | null) => { courante.current = a; setAncre(a) }, [])
+  // ⛔ Ouverte au CLAVIER, la cellule se referme quand le foyer quitte la cible ET la
+  // cellule ; ouverte à la souris, elle garde son comportement (sortie du curseur, tap
+  // dehors). Le drapeau suit la CIBLE : une même cible ré-ancrée le garde, une autre le perd.
+  const auClavier = useRef(false)
+  const poser = useCallback((a: AncreCellule<K, D> | null, clavier = false) => {
+    const memeCible = !!a && !!courante.current && Object.is(courante.current.cle, a.cle)
+    auClavier.current = a ? (clavier || (memeCible && auClavier.current)) : false
+    courante.current = a
+    setAncre(a)
+  }, [])
   const arreterFermeture = useCallback(() => {
     if (fermeture.current) { clearTimeout(fermeture.current); fermeture.current = null }
   }, [])
@@ -139,6 +149,34 @@ export function useCelluleActions<K, D = undefined>() {
     arreterFermeture(); arreterAttente(); poser(null)
   }, [poser, arreterFermeture, arreterAttente])
 
+  /** Le foyer CLAVIER arrive sur une cible : la cellule s'ouvre aussitôt, sans le temps de
+   *  pose du survol. ⛔ Un foyer venu de la SOURIS (un clic sur la cible) ne fait rien :
+   *  `:focus-visible` est ce qui les départage, et le clic garde son geste propre. */
+  const ancrerAuFoyer = useCallback((el: HTMLElement, cle: K, options?: OptionsAncrage<D>) => {
+    let visible = false
+    try { visible = el.matches(':focus-visible') } catch { visible = false }
+    if (!visible) return
+    arreterFermeture(); arreterAttente()
+    poser({
+      cle, el, borne: options?.borne ?? null,
+      sommet: options?.sommet, pied: options?.pied, donnees: options?.donnees,
+    }, true)
+  }, [poser, arreterFermeture, arreterAttente])
+
+  /** Le foyer quitte la cible OU la cellule. On ne ferme que si la cellule a été ouverte au
+   *  clavier et que le foyer ne va ni dans la cible, ni dans la cellule, ni dans une fenêtre
+   *  qu'un de ses boutons vient d'ouvrir (un signalement). */
+  const quitterFoyer = useCallback((suivant: EventTarget | null) => {
+    if (!auClavier.current) return
+    const a = courante.current
+    if (!a) return
+    if (suivant instanceof Element) {
+      if (a.el.contains(suivant)) return
+      if (suivant.closest('[data-cellule-actions], [aria-modal="true"]')) return
+    }
+    fermer()
+  }, [fermer])
+
   /** Tap : re-taper la cible active referme, au lieu de replacer la cellule indéfiniment.
    *  ⛔ Un tap ne s'attend pas : il POSE. Le temps de pose vaut pour une main qui glisse,
    *  non pour un doigt qui désigne. */
@@ -153,7 +191,7 @@ export function useCelluleActions<K, D = undefined>() {
 
   useEffect(() => () => { arreterFermeture(); arreterAttente() }, [arreterFermeture, arreterAttente])
 
-  return { ancre, ancrer, relacher, retenir, fermer, basculer }
+  return { ancre, ancrer, relacher, retenir, fermer, basculer, ancrerAuFoyer, quitterFoyer }
 }
 
 export type CelluleActionsProps<K, D = undefined> = {
@@ -169,6 +207,8 @@ export type CelluleActionsProps<K, D = undefined> = {
   /** Nombre de boutons rendus, pour le placement d'AVANT mesure. Facultatif : la cellule
    *  se mesure de toute façon, ce chiffre ne fait qu'épargner un rendu. */
   boutons?: number
+  /** Le foyer quitte un bouton de la cellule (`quitterFoyer` du crochet). */
+  onQuitterFoyer?: (suivant: EventTarget | null) => void
   children: React.ReactNode
 }
 
@@ -184,7 +224,7 @@ export function CelluleActions<K, D = undefined>(props: CelluleActionsProps<K, D
 }
 
 function CelluleAncree<K, D>({
-  ancre, onRetenir, onRelacher, onFermer, sansSurvol, boutons, children,
+  ancre, onRetenir, onRelacher, onFermer, sansSurvol, boutons, onQuitterFoyer, children,
 }: CelluleActionsProps<K, D> & { ancre: AncreCellule<K, D> }) {
   const ref = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<PositionCellule | null>(null)
@@ -274,12 +314,49 @@ function CelluleAncree<K, D>({
     return () => document.removeEventListener('pointerdown', auTapDehors, true)
   }, [sansSurvol, ancre.el, onFermer])
 
+  // ⛔ LA CELLULE VIT AU BOUT DU DOCUMENT (portail), et Tab doit pourtant l'atteindre
+  // JUSTE APRÈS sa cible. Tab depuis la cible entre dans la cellule ; Tab depuis son
+  // dernier bouton rend la main à ce qui suit la cible ; Maj+Tab depuis son premier revient
+  // à la cible. Au milieu, la touche garde son effet naturel.
+  useEffect(() => {
+    const entrer = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || !estTabulation(e) || e.shiftKey) return
+      if (document.activeElement !== ancre.el || !ref.current) return
+      const premier = elementsFocalisables(ref.current)[0]
+      if (!premier) return
+      e.preventDefault()
+      premier.focus()
+    }
+    document.addEventListener('keydown', entrer)
+    return () => document.removeEventListener('keydown', entrer)
+  }, [ancre.el])
+
+  const circuler = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!estTabulation(e) || !ref.current) return
+    const suite = elementsFocalisables(ref.current)
+    if (suite.length === 0) return
+    const actif = document.activeElement
+    if (e.shiftKey) {
+      if (actif !== suite[0] || !ancre.el.isConnected) return
+      e.preventDefault()
+      ancre.el.focus()
+    } else {
+      if (actif !== suite[suite.length - 1]) return
+      const suivant = premierFocalisableApres(ancre.el, ref.current)
+      if (!suivant) return
+      e.preventDefault()
+      suivant.focus()
+    }
+  }
+
   return createPortal(
     <div
       ref={ref}
       data-cellule-actions=""
       onMouseEnter={onRetenir}
       onMouseLeave={() => onRelacher(ancre.cle)}
+      onKeyDown={circuler}
+      onBlur={onQuitterFoyer ? e => onQuitterFoyer(e.relatedTarget) : undefined}
       style={{
         ...STYLE_CELLULE,
         top: pos?.top ?? 0,

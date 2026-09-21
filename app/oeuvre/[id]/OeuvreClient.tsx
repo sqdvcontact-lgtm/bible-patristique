@@ -1,5 +1,5 @@
 'use client'
-import { activerAuClavier } from '@/app/lib/activerAuClavier'
+import { activerAuClavier, AIDE_SEGMENT, ID_AIDE_SEGMENT } from '@/app/lib/activerAuClavier'
 import { Z_MODALE, Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
 import { LIVRES } from '@/app/lib/bible'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
@@ -3196,6 +3196,25 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     else { setSegActif(sid); cellule.ancrer(el, sid, { borne: colonneDuSegment(el), ...bandeDeLecture() }) }
   }
 
+  // ⛔ LE CLAVIER. Tab atteint un segment, et sa cellule d'actions s'ouvre au FOYER CLAVIER
+  // (jamais au clic de souris, qui garde son geste) ; ses boutons viennent juste après lui
+  // dans l'ordre de tabulation (CelluleActions), et elle se referme quand le foyer quitte
+  // le segment ET la cellule. Entrée ou Espace retient le segment.
+  // ⚠️ Pas de `role="button"` : il rendrait muets les appels de note du segment. Une
+  // indication partagée (`ID_AIDE_SEGMENT`) dit le geste à la synthèse vocale.
+  const clavierSegment = (sid: number, actif: boolean) => ({
+    tabIndex: 0,
+    'aria-describedby': ID_AIDE_SEGMENT,
+    onKeyDown: (e: React.KeyboardEvent<HTMLElement>) =>
+      activerAuClavier(e, () => tapSegmentParagraphe(e.currentTarget, sid, actif)),
+    onFocus: (e: React.FocusEvent<HTMLElement>) => {
+      if (e.target !== e.currentTarget) return
+      const el = e.currentTarget
+      cellule.ancrerAuFoyer(el, sid, { borne: colonneDuSegment(el), ...bandeDeLecture() })
+    },
+    onBlur: (e: React.FocusEvent<HTMLElement>) => cellule.quitterFoyer(e.relatedTarget),
+  })
+
   // ── LE LASSO ───────────────────────────────────────────────────────────────
   // Tirer un cadre depuis le blanc de la page sélectionne plusieurs passages, qu'on
   // enregistre ou qu'on copie d'un coup (app/components/LassoLecture.tsx).
@@ -4297,6 +4316,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               onMouseEnter: sansSurvol ? undefined : (e: React.MouseEvent<HTMLElement>) =>
                 positionnerToolbar(e.currentTarget, s.id),
               onMouseLeave: sansSurvol ? undefined : () => masquerToolbar(s.id),
+              ...clavierSegment(s.id, segActif === s.id),
             })
             const corpsArgument = (s: SegData) =>
               rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})
@@ -4587,8 +4607,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                 <span key={sid} style={styleLigneDeVers({ rang: rangs[i], ouvreStrophe: strophe })}>
                                   <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
                                     onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
-                                    tabIndex={0}
-                                    onKeyDown={(e) => activerAuClavier(e, () => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif))}
+                                    {...clavierSegment(sid, actif)}
                                     onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                     onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                     {rendreCorpsSegment(s, estPremier)}
@@ -4615,8 +4634,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               <span key={sid} className="citation-verset">
                                 <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
                                   onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
-                                  tabIndex={0}
-                                  onKeyDown={(e) => activerAuClavier(e, () => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif))}
+                                  {...clavierSegment(sid, actif)}
                                   onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                   onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                   {rendreCorpsSegment(s, false, null, true)}
@@ -4660,8 +4678,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                 {afficherLiant ? liantAvantSegment(s.joinBefore) : null}
                                 <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
                                   onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
-                                  tabIndex={0}
-                                  onKeyDown={(e) => activerAuClavier(e, () => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif))}
+                                  {...clavierSegment(sid, actif)}
                                   onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                   onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                   {rendreCorpsSegment(s, estPremier, sortieStructurelle ? textesStructurels[i] : null)}
@@ -4756,8 +4773,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   {i > 0 ? liantAvantSegment(s.joinBefore) : null}
                   <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
                     onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
-                    tabIndex={0}
-                    onKeyDown={(e) => activerAuClavier(e, () => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif))}
+                    {...clavierSegment(sid, actif)}
                     onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                     onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                     {configNiveaux.afficherNumeros && <sup style={STYLE_NUMERO_SEGMENT}>{s.numero}</sup>}
@@ -4897,8 +4913,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                   <span key={sid} style={styleLigneDeVers({ rang: rangs[i], ouvreStrophe: strophe })}>
                                     <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
                                       onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
-                                      tabIndex={0}
-                                      onKeyDown={(e) => activerAuClavier(e, () => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif))}
+                                      {...clavierSegment(sid, actif)}
                                       onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                       onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                       {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})}
@@ -5209,6 +5224,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         )}
       </div>
 
+      {/* L'indication que les segments nomment par `aria-describedby` : une seule par page. */}
+      <span id={ID_AIDE_SEGMENT} className="cs-hors-ecran">{AIDE_SEGMENT}</span>
+
       <LassoLecture
         zone={mainRef}
         actif={lassoActif}
@@ -5238,7 +5256,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         return (
           <CelluleActions
             ancre={cellule.ancre} onRetenir={cellule.retenir} onRelacher={cellule.relacher}
-            onFermer={cellule.fermer} sansSurvol={sansSurvol}
+            onFermer={cellule.fermer} sansSurvol={sansSurvol} onQuitterFoyer={cellule.quitterFoyer}
             boutons={(userId ? 1 : 0) + 2 + (estAdmin ? 1 : 0)}>
             {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onChangement={preleve => marquerSauvegardeSeg(s.id, preleve)} />}
             <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} responsable={versionActive?.responsableEdition ?? undefined} />
