@@ -10,9 +10,9 @@
  *  Le tracé est identique dans les deux cas ; seul le remplissage change, ce
  *  qui garantit que les deux états occupent exactement la même place.
  */
-export default function IconeSignet({ plein = false }: { plein?: boolean }) {
+export default function IconeSignet({ plein = false, taille }: { plein?: boolean; taille?: string }) {
   return (
-    <svg width="11" height="12" viewBox="0 0 12 13" aria-hidden="true" style={{ display: 'block' }}
+    <svg width="11" height="12" viewBox="0 0 12 13" aria-hidden="true" style={{ display: 'block', ...(taille ? { width: taille, height: 'auto' } : null) }}
       fill={plein ? 'currentColor' : 'none'}>
       <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z"
         stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" />

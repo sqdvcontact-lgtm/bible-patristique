@@ -32,7 +32,7 @@ import { fondreAppelsDansLaMarque, marquerLacunesDuTemoin, rendreMarqueurs899 } 
 import { estTraductionModerne899 } from '@/app/lib/bible899'
 import {
   marqueDensiteTient, styleDensiteVerset,
-  STYLE_LACUNE, STYLE_NUMERO_ALTERNATIF, STYLE_NUMERO_VERSET, STYLE_VERSET_VIDE,
+  STYLE_LACUNE, STYLE_NUMERO_ALTERNATIF, STYLE_NUMERO_VERSET, STYLE_SIGNET_VERSET, STYLE_VERSET_VIDE,
   styleAxeTexte, styleBlocVerset, styleGrilleRangee, styleRangeeVerset, styleTexteVerset,
   BLANC_TITRE_MENU, GOUTTIERE_ACTIONS_VERSET, INTERLIGNE_TITRE_CHAPITRE, RETRAIT_ACTIONS_VERSET,
 } from '@/app/lib/compositionBible'
@@ -211,64 +211,6 @@ function BoutonFacsimile({ reference, debut, fin }: { reference: string; debut: 
 }
 
 // ── Bouton enregistrer ────────────────────────────────────────────────────────
-// Filet reliant le signet de prélèvement à la fin de la phrase. Il est MESURÉ : sa
-// longueur va du dernier mot de la ligne qui fait face au signet jusqu'au signet lui-même.
-// Pour un verset court, dont la ligne s'arrête loin du bord, le trait est long ; pour une
-// ligne pleine, il se réduit au petit espace de marge. Très fin et très pâle, il ne fait
-// que guider l'œil. Remesuré à chaque reflux du texte (redimensionnement, changement de
-// traduction) via un ResizeObserver.
-function FiletSignet({ signal }: { signal: string }) {
-  const ref = useRef<HTMLSpanElement>(null)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const p = el.closest('.verset-row')?.querySelector('[data-verse-text]') as HTMLElement | null
-    if (!p) return
-    const mesurer = () => {
-      // Rectangle de la LIGNE qui fait face au signet : la première ligne du verset
-      // (le signet est calé en haut). Son bord droit = fin de cette ligne.
-      const range = document.createRange()
-      range.selectNodeContents(p)
-      const rects = range.getClientRects()
-      if (!rects.length) { el.style.width = '0px'; return }
-      const finLigne = rects[0].right
-      // Le bord droit du filet est ancré au signet (right:100%) : sa position ne dépend
-      // pas de la largeur, on peut donc la lire pour caler la longueur.
-      const ancreDroite = el.getBoundingClientRect().right
-      const distance = Math.max(0, ancreDroite - finLigne)
-      // Pas de filet quand le texte arrive déjà près du signet : en deçà de ce seuil,
-      // le trait ne guiderait rien et n'ajouterait qu'un parasite. Il n'apparaît que
-      // lorsque le verset est court et que le signet reste seul, loin dans la marge.
-      const SEUIL = 34
-      el.style.width = distance < SEUIL ? '0px' : `${distance}px`
-    }
-    // Au changement de traduction, le texte est remplacé : on remesure APRÈS le reflux
-    // (rAF), sans quoi l'ancienne longueur subsiste et le filet chevauche le nouveau texte,
-    // souvent plus long. Double rAF pour laisser la mise en page se stabiliser.
-    let raf1 = 0, raf2 = 0
-    const remesurer = () => { raf1 = requestAnimationFrame(() => { raf2 = requestAnimationFrame(mesurer) }) }
-    mesurer()
-    remesurer()
-    // Le ResizeObserver sur `p` couvre déjà les reflux du texte, y compris ceux
-    // provoqués par un redimensionnement de la fenêtre (la mesure de ligne change) :
-    // pas besoin d'un listener `resize` global en plus (un par verset prélevé).
-    const ro = new ResizeObserver(mesurer)
-    ro.observe(p)
-    return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); ro.disconnect() }
-  }, [signal])
-  return (
-    <span ref={ref} aria-hidden style={{
-      position: 'absolute', right: '100%', top: '50%', transform: 'translateY(-50%)',
-      width: '0px', height: '1px', marginRight: '5px',
-      // Filet volontairement ténu : palissant vers le texte, il ne fait qu'effleurer
-      // l'œil. Encore aminci de 30 % (0.16 → 0.112, 0.10 → 0.07), adouci près du signet,
-      // pour rester élégant plutôt que d'afficher une barre franche.
-      background: 'linear-gradient(to left, rgba(var(--cs-vert-rgb),0.112), rgba(var(--cs-vert-rgb),0.07) 55%, rgba(var(--cs-vert-rgb),0))',
-      pointerEvents: 'none',
-    }} />
-  )
-}
-
 function BoutonEnregistrer({
   verset, nomLivre, livreActif, chapitreActif, traduction, userId,
   traductionLabel, dejaSauvegarde, idPrelevement, onSauvegarde, onSupprimer,
@@ -292,23 +234,16 @@ function BoutonEnregistrer({
       onSupprimer()
     }
     return (
-      /* Le verset prélevé garde son signet visible sans survol. Les autres
-         actions n'apparaissent qu'au passage de la souris parce qu'elles
-         PROPOSENT quelque chose ; celle-ci CONSTATE un état, et un état
-         qu'il faut survoler pour connaître ne se voit jamais.
-         Un fin filet vert part du signet vers le texte : quand le signet est
-         loin dans la marge (verset court), ce trait dégradé — franc près du
-         signet, effacé du côté du texte — permet de retrouver d'un coup d'œil
-         le verset auquel il se rapporte, sans jamais barrer les mots. */
-      <span style={{ position:'relative', display:'inline-flex', alignItems:'center' }}>
-        <FiletSignet signal={String(verset[traduction] ?? '')} />
-        <button onClick={supprimer} disabled={loading}
-          title="Retirer des prélèvements" className="bouton-action-verset"
-          style={{ ...VERSET_ACTION_BTN, opacity:1, color:'var(--cs-vert)' }}
-          aria-label="Retirer des prélèvements">
-          {loading ? '…' : <IconeSignet plein />}
-        </button>
-      </span>
+      /* ⛔ Le signet PLEIN ne paraît plus qu'au survol, comme ses voisins (décision de
+         l'auteur, 21 septembre 2026). L'état se dit désormais à gauche du numéro, par
+         une petite marque discrète (`STYLE_SIGNET_VERSET`), qui ne pèse pas sur la
+         colonne d'actions. Au doigt, le pavé montre ses boutons pleins, comme avant. */
+      <button onClick={supprimer} disabled={loading}
+        title="Retirer des prélèvements" className="bouton-action-verset"
+        style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-vert)' }}
+        aria-label="Retirer des prélèvements">
+        {loading ? '…' : <IconeSignet plein />}
+      </button>
     )
   }
 
@@ -953,6 +888,11 @@ export default function TexteBible({
                 <div className="verset-bloc" data-lasso-verset={dansLeLasso ? v.id_verset : undefined} style={styleBlocVerset({ actif, mobile })}>
                   {/* Numéro — inclus dans le bloc sélectionné, aligné sur la 1re ligne du texte (ligne de base) */}
                   <span style={STYLE_NUMERO_VERSET}>
+                    {!mobile && sauvegardes.has(v.verset) && (
+                      <span role="img" aria-label="Verset enregistré" title="Enregistré dans vos prélèvements" style={STYLE_SIGNET_VERSET}>
+                        <IconeSignet plein taille="0.5rem" />
+                      </span>
+                    )}
                     {v.verset}
                     {v.chapitre_alternatif != null && (
                       <span style={STYLE_NUMERO_ALTERNATIF}>

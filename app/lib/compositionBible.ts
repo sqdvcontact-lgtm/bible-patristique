@@ -166,6 +166,31 @@ export const STYLE_NUMERO_VERSET: CSSProperties = {
   color: 'var(--cs-texte-faible)',
   lineHeight: 1.40,
   whiteSpace: 'nowrap',
+  // ⛔ Relevé sur la CAPITALE de la première ligne, non posé sur sa ligne de base
+  // (décision de l'auteur, 21 septembre 2026 : « réaligner un peu mieux le numéro face
+  // à la première ligne »). Un chiffre de 10 px sur la ligne de base d'un texte de 14 px
+  // pend sous le milieu des lettres qu'il désigne : son milieu doit tomber sur celui de
+  // la capitale. En `em` du numéro, pour suivre la police racine fluide ; c'est la
+  // règle de la marque de densité (§ 38.30). Ni la grille ni la ligne ne bougent.
+  position: 'relative',
+  top: '-0.14em',
+}
+
+/**
+ * La marque d'un verset ENREGISTRÉ, à gauche de son numéro (décision de l'auteur,
+ * 21 septembre 2026). Elle remplace le signet plein qui restait affiché dans la colonne
+ * d'actions. ⛔ Posée hors du flux, au bord gauche du numéro : elle ne décale ni le
+ * numéro ni le texte, et une ligne enregistrée garde sa géométrie. Encre discrète, celle
+ * de l'appareil. ⚠️ Bureau seulement : au doigt, le pavé d'actions dit l'état.
+ */
+export const STYLE_SIGNET_VERSET: CSSProperties = {
+  position: 'absolute',
+  right: '100%',
+  top: '50%',
+  transform: 'translateY(-50%)',
+  marginRight: '0.125rem',
+  color: 'var(--cs-texte-gris)',
+  lineHeight: 0,
 }
 
 /** La numérotation d'une AUTRE édition, entre parenthèses : elle ne pèse pas. */
