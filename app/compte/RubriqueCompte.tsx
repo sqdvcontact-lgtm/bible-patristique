@@ -14,10 +14,13 @@
 // et plus long à l'usage, inatteignable au doigt, et l'auteur l'a écarté. Les champs
 // sont là, sous la main.
 //
-// ⛔ UN SEUL BOUTON D'ENREGISTREMENT pour toute la page. Il y en avait deux sur la
-// seule « Présentation », sans que rien ne dise lequel couvrait quoi. ⚠️ Le thème et
-// la traduction font exception et s'appliquent AUSSITÔT : le thème le fait déjà
-// depuis le menu de la barre, et deux façons de poser le même réglage divergeraient.
+// ⛔ UN SEUL MODÈLE D'ENREGISTREMENT (audit d'ergonomie du 2026-09-21, constat 13).
+// Ce que les autres voient de vous (Identité, Page publique) s'enregistre par le
+// bouton de SA section, qui ne s'allume que lorsqu'un champ diffère de la base et le
+// dit (« Modifications non enregistrées »). Vos PRÉFÉRENCES (portrait choisi dans sa
+// fenêtre, traduction, thème) s'appliquent aussitôt, et la ligne le dit. L'adresse et
+// le mot de passe restent des actions d'authentification, chacune avec son bouton.
+// Quitter la page avec une section modifiée demande confirmation.
 
 import React, { useEffect, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
@@ -26,10 +29,11 @@ import { themeValide, type Theme } from '@/app/lib/theme'
 import { useEspace } from '@/app/compte/EspaceCompte'
 import { BandeauLecteur, Rangee, Section, SommaireEspace } from '@/app/compte/piecesEspace'
 import { ANCRES_COMPTE } from '@/app/lib/espaceLecteurNavigation'
-import { Interrupteur, inputStyle, LigneEnregistrer, type Statut } from '@/app/compte/champsCompte'
+import { Interrupteur, inputStyle, PiedSection, useStatutPassager } from '@/app/compte/champsCompte'
 import { CADRAGE_PAR_DEFAUT, type Cadrage } from '@/app/lib/portraits'
 import { ModaleCadrage, ModalePortrait, type PortraitChoisi } from '@/app/compte/ModalesPortrait'
 import BlocConnexion from '@/app/compte/BlocConnexion'
+import { MESSAGE_SORTIE, useGardeDeSortie } from '@/app/compte/gardeDeSortie'
 
 const BIO_MAX = 400
 
@@ -44,12 +48,13 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
   const [bio, setBio] = useState(profil.bio ?? '')
   const [contact, setContact] = useState(profil.contact_email ?? '')
   const [trad, setTrad] = useState(profil.traduction_defaut)
-  const [vis, setVis] = useState({
+  const visDuProfil = {
     pub_rang: profil.pub_rang ?? true,
     pub_essais: profil.pub_essais ?? true,
     pub_favoris_oeuvre: profil.pub_favoris_oeuvre ?? false,
     pub_mecene: profil.pub_mecene ?? true,
-  })
+  }
+  const [vis, setVis] = useState(visDuProfil)
   // ⛔ L'interrupteur de la marque ne paraît QU'AUX MÉCÈNES. Montré à tous, il
   // annoncerait une distinction que le lecteur n'a pas, et transformerait la page du
   // compte en catalogue de ce qui lui manque. Voir app/components/MarqueMecene.tsx.
@@ -58,8 +63,27 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
   const [choixOuvert, setChoixOuvert] = useState(false)
   const [cadrageOuvert, setCadrageOuvert] = useState(false)
   const [suppressionOuverte, setSuppressionOuverte] = useState(false)
-  const [occupe, setOccupe] = useState(false)
-  const [statut, setStatut] = useState<Statut>(null)
+  const [occupeIdentite, setOccupeIdentite] = useState(false)
+  const [statutIdentite, setStatutIdentite] = useStatutPassager()
+  const [occupePublique, setOccupePublique] = useState(false)
+  const [statutPublique, setStatutPublique] = useStatutPassager()
+  const [statutPortrait, setStatutPortrait] = useStatutPassager()
+  const [statutTrad, setStatutTrad] = useStatutPassager()
+  const [connexionEnAttente, setConnexionEnAttente] = useState(false)
+
+  // Ce qui diffère de la base, section par section. La comparaison se fait sur la
+  // forme ENREGISTRÉE (rognée, vide rendu à null), sinon une espace de fin laisserait
+  // la section « modifiée » après l'enregistrement.
+  const identiteModifiee =
+    pseudo.trim() !== profil.pseudo
+    || (prenom.trim() || null) !== (profil.prenom ?? null)
+    || (nom.trim() || null) !== (profil.nom ?? null)
+  const publiqueModifiee =
+    (bio.trim() || null) !== (profil.bio ?? null)
+    || (contact.trim() || null) !== (profil.contact_email ?? null)
+    || (Object.keys(vis) as (keyof typeof vis)[]).some(k => vis[k] !== visDuProfil[k])
+  const enAttente = identiteModifiee || publiqueModifiee || connexionEnAttente
+  useGardeDeSortie(enAttente)
 
   const cadrage: Cadrage = {
     posX: profil.avatar_pos_x ?? CADRAGE_PAR_DEFAUT.posX,
@@ -93,8 +117,16 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
       avatar_zoom: cadre?.zoom ?? null,
     }
     majProfil(champs)
+    setStatutPortrait(null)
     supabase.from('profils').update(champs).eq('id', user.id)
-      .then(({ error }) => { if (error) console.error('Mon compte : le portrait n’a pas pu être enregistré.', error) })
+      .then(({ error }) => {
+        if (error) {
+          console.error('Mon compte : le portrait n’a pas pu être enregistré.', error)
+          setStatutPortrait({ ok: false, msg: 'Le portrait n’a pas pu être enregistré. Réessayez.' })
+          return
+        }
+        setStatutPortrait({ ok: true, msg: 'Portrait enregistré.' })
+      })
   }
 
   const choisirPortrait = (choix: PortraitChoisi) => {
@@ -105,27 +137,52 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
     setChoixOuvert(false); setCadrageOuvert(false)
   }
 
-  const enregistrer = async () => {
-    setOccupe(true); setStatut(null)
-    const champs = {
-      pseudo: pseudo.trim(), prenom: prenom.trim() || null, nom: nom.trim() || null,
-      bio: bio.trim() || null, contact_email: contact.trim() || null,
-      traduction_defaut: trad, ...vis,
-    }
+  // Une écriture de section : la base peut refuser le pseudonyme (unique, format,
+  // lexique), et son message est écrit pour être lu.
+  const ecrire = async (champs: Partial<typeof profil>): Promise<{ ok: boolean; msg: string }> => {
     const { error } = await supabase.from('profils').update(champs).eq('id', user.id)
-    setOccupe(false)
     if (error) {
-      // ⚠️ Le pseudonyme est unique en base : c'est la seule erreur qu'un lecteur
-      // puisse provoquer sans se tromper, et elle mérite son mot à elle.
       console.error('Mon compte : l’enregistrement a échoué.', error)
       // 23514 et ZL001 : la base refuse le pseudonyme (format, nom réservé, lexique)
       // et dit pourquoi ; son message est écrit pour être lu.
       const refus = error.code === '23514' || error.code === 'ZL001'
-      setStatut({ ok: false, msg: error.code === '23505' ? 'Ce pseudonyme est déjà pris.' : refus ? error.message : 'L’enregistrement a échoué.' })
-      return
+      return { ok: false, msg: error.code === '23505' ? 'Ce pseudonyme est déjà pris.' : refus ? error.message : 'L’enregistrement a échoué. Réessayez.' }
     }
     majProfil(champs)
-    setStatut({ ok: true, msg: 'Enregistré.' })
+    return { ok: true, msg: 'Enregistré.' }
+  }
+
+  const enregistrerIdentite = async () => {
+    setOccupeIdentite(true); setStatutIdentite(null)
+    const champs = { pseudo: pseudo.trim(), prenom: prenom.trim() || null, nom: nom.trim() || null }
+    const r = await ecrire(champs)
+    setOccupeIdentite(false)
+    if (r.ok) { setPseudo(champs.pseudo); setPrenom(champs.prenom ?? ''); setNom(champs.nom ?? '') }
+    setStatutIdentite(r)
+  }
+  const annulerIdentite = () => {
+    setPseudo(profil.pseudo); setPrenom(profil.prenom ?? ''); setNom(profil.nom ?? ''); setStatutIdentite(null)
+  }
+
+  const enregistrerPublique = async () => {
+    setOccupePublique(true); setStatutPublique(null)
+    const champs = { bio: bio.trim() || null, contact_email: contact.trim() || null, ...vis }
+    const r = await ecrire(champs)
+    setOccupePublique(false)
+    if (r.ok) { setBio(champs.bio ?? ''); setContact(champs.contact_email ?? '') }
+    setStatutPublique(r)
+  }
+  const annulerPublique = () => {
+    setBio(profil.bio ?? ''); setContact(profil.contact_email ?? ''); setVis(visDuProfil); setStatutPublique(null)
+  }
+
+  // ⚠️ La traduction est une PRÉFÉRENCE : elle s'applique aussitôt, comme le thème.
+  const poserTraduction = async (t: string) => {
+    const avant = trad
+    setTrad(t); setStatutTrad(null)
+    const r = await ecrire({ traduction_defaut: t })
+    if (!r.ok) setTrad(avant)
+    setStatutTrad(r)
   }
 
   // ⛔ Le thème ne passe PAS par le bouton : il s'applique à l'instant, comme depuis
@@ -145,7 +202,9 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
         <BandeauLecteur lecteur={profil} reperes={reperes || 'Votre compte'} />
 
         <Section id="identite" titre="Identité">
-          <Rangee label="Portrait" note="Choisi parmi les visages qui illustrent déjà les Pères et les traducteurs.">
+          <Rangee label="Portrait" note={statutPortrait
+            ? <span style={{ color: statutPortrait.ok ? 'var(--cs-vert)' : 'var(--cs-danger-fonce)' }}>{statutPortrait.msg}</span>
+            : 'Choisi parmi les visages qui illustrent déjà les Pères et les traducteurs. Il s’enregistre dès qu’on le choisit.'}>
             <span style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
               <span className="esp-fixe">{nomPortrait || (profil.avatar_ref ? 'Un visage est choisi' : 'Aucun visage')}</span>
               <button type="button" onClick={() => setChoixOuvert(true)} style={BTN_DISCRET}>
@@ -158,23 +217,25 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
           </Rangee>
           <Rangee label="Pseudonyme" pour="pseudo" note="C’est le nom sous lequel les autres lecteurs vous voient.">
             <input id="pseudo" className="esp-court" style={inputStyle} value={pseudo}
-              onChange={e => { setPseudo(e.target.value); setStatut(null) }} maxLength={40} />
+              onChange={e => { setPseudo(e.target.value); setStatutIdentite(null) }} maxLength={40} />
           </Rangee>
           <Rangee label="Prénom" pour="prenom">
             <input id="prenom" className="esp-court" style={inputStyle} value={prenom}
-              onChange={e => { setPrenom(e.target.value); setStatut(null) }} maxLength={60} />
+              onChange={e => { setPrenom(e.target.value); setStatutIdentite(null) }} maxLength={60} />
           </Rangee>
           <Rangee label="Nom" pour="nom">
             <input id="nom" className="esp-court" style={inputStyle} value={nom}
-              onChange={e => { setNom(e.target.value); setStatut(null) }} maxLength={60} />
+              onChange={e => { setNom(e.target.value); setStatutIdentite(null) }} maxLength={60} />
           </Rangee>
+          <PiedSection modifie={identiteModifiee} occupe={occupeIdentite} statut={statutIdentite}
+            onEnregistrer={enregistrerIdentite} onAnnuler={annulerIdentite} />
         </Section>
 
         <Section id="page-publique" titre="Page publique">
           <Rangee label="Quelques mots" pour="bio" note={`${bio.length} / ${BIO_MAX}`}>
             <textarea id="bio" className="esp-long" style={inputStyle} rows={3} maxLength={BIO_MAX}
               placeholder="Quelques mots sur vous…" value={bio}
-              onChange={e => { setBio(e.target.value); setStatut(null) }} />
+              onChange={e => { setBio(e.target.value); setStatutPublique(null) }} />
           </Rangee>
           {/* ⛔ L'adresse de contact N'EST PAS publique : l'API du profil l'exclut, et
               seul son titulaire la voit sur sa propre page. Le libellé le dit, en note
@@ -183,7 +244,7 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
             note="Elle ne paraît pas sur votre page publique : vous seul la voyez, et l’administration peut s’en servir pour vous répondre.">
             <input id="contact" type="email" className="esp-moyen" style={inputStyle}
               placeholder="adresse@exemple.fr" value={contact}
-              onChange={e => { setContact(e.target.value); setStatut(null) }} />
+              onChange={e => { setContact(e.target.value); setStatutPublique(null) }} />
           </Rangee>
           {/* ⛔ EN COLONNE (auteur, 1er septembre 2026) : en rang, les quatre
               bascules débordaient la mesure et la dernière se coupait. */}
@@ -200,16 +261,20 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
                 ['pub_mecene', 'Marque de mécène'],
               ] as const).filter(([cle]) => cle !== 'pub_mecene' || estMecene).map(([cle, libelle]) => (
                 <Interrupteur key={cle} libelle={libelle} actif={vis[cle]}
-                  onChange={v => { setVis(x => ({ ...x, [cle]: v })); setStatut(null) }} />
+                  onChange={v => { setVis(x => ({ ...x, [cle]: v })); setStatutPublique(null) }} />
               ))}
             </div>
           </Rangee>
+          <PiedSection modifie={publiqueModifiee} occupe={occupePublique} statut={statutPublique}
+            onEnregistrer={enregistrerPublique} onAnnuler={annulerPublique} />
         </Section>
 
         <Section id="lecture" titre="Lecture">
-          <Rangee label="Traduction" pour="trad">
+          <Rangee label="Traduction" pour="trad" note={statutTrad
+            ? <span style={{ color: statutTrad.ok ? 'var(--cs-vert)' : 'var(--cs-danger-fonce)' }}>{statutTrad.ok ? '✓ ' : ''}{statutTrad.msg}</span>
+            : 'S’applique aussitôt.'}>
             <select id="trad" className="esp-menu" style={inputStyle} value={trad}
-              onChange={e => { setTrad(e.target.value); setStatut(null) }}>
+              onChange={e => { void poserTraduction(e.target.value) }}>
               {traductions.map(t => <option key={t.id} value={t.id}>{t.nom}</option>)}
             </select>
           </Rangee>
@@ -234,15 +299,15 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
         </Section>
 
         <Section id="connexion" titre="Connexion">
-          <BlocConnexion ouvrirSuppression={suppressionOuverte} onSuppressionOuverte={setSuppressionOuverte} />
+          <BlocConnexion ouvrirSuppression={suppressionOuverte} onSuppressionOuverte={setSuppressionOuverte}
+            onEnAttente={setConnexionEnAttente} />
         </Section>
 
-        <div className="esp-enregistrer">
-          <LigneEnregistrer onClick={enregistrer} occupe={occupe} statut={statut} />
-        </div>
-
         <div className="esp-pied">
-          <button onClick={() => { void supabase.auth.signOut().then(() => { window.location.href = '/' }) }}>
+          <button onClick={() => {
+            if (enAttente && !window.confirm(MESSAGE_SORTIE)) return
+            void supabase.auth.signOut().then(() => { window.location.href = '/' })
+          }}>
             Se déconnecter
           </button>
           <button className="esp-danger" onClick={() => setSuppressionOuverte(true)}>Supprimer mon compte</button>

@@ -274,9 +274,10 @@ export const FEUILLE_ESPACE = `
    colonne »). En rang, les quatre bascules débordaient la mesure et se coupaient. */
 .esp-bascules { display: flex; flex-direction: column; gap: 9px; padding-top: 5px; }
 
-.esp-enregistrer { margin-top: 30px; padding-top: 18px;
-  border-top: 1px solid var(--cs-bord-clair); display: flex; align-items: center;
-  gap: 14px; flex-wrap: wrap; }
+/* Le pied d'une section qui s'enregistre : sous les champs, aligné sur eux. */
+.esp-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin: 10px 0 0 calc(8.5rem + 14px); min-height: 2rem; }
+@media (max-width: 640px) { .esp-actions { margin-left: 0; } }
 .esp-pied { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--cs-bord-clair);
   display: flex; gap: 22px; font-size: 0.6875rem; flex-wrap: wrap; }
 .esp-pied button { background: none; border: none; padding: 0; cursor: pointer;

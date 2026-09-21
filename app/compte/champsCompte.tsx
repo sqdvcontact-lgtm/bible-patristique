@@ -7,7 +7,7 @@
 // fois, ils auraient dérivé au premier réglage. C'est la règle déjà posée pour les
 // barres du site (charte § 36.2) : on prend le modèle, on ne le redessine pas.
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 
 export const inputStyle: React.CSSProperties = {
@@ -58,24 +58,54 @@ export function Carte({ titre, danger, children }: { titre?: string; danger?: bo
   )
 }
 
-/** Le bouton d'enregistrement et son message, toujours côte à côte. */
-export function LigneEnregistrer({ onClick, occupe, statut, libelle = 'Enregistrer' }: {
-  onClick: () => void
+/** Un statut qui s'efface seul quand il annonce un succès.
+ *
+ *  ⚠️ « Enregistré » est une confirmation DISCRÈTE : elle dit que c'est fait, puis
+ *  se retire. Un échec, lui, reste affiché jusqu'à la prochaine action. */
+export function useStatutPassager(): [Statut, (s: Statut) => void] {
+  const [statut, setStatut] = useState<Statut>(null)
+  useEffect(() => {
+    if (!statut?.ok) return
+    const t = setTimeout(() => setStatut(null), 3500)
+    return () => clearTimeout(t)
+  }, [statut])
+  return [statut, setStatut]
+}
+
+/** Le pied d'une section qui s'enregistre par son bouton.
+ *
+ *  ⛔ UN MODÈLE POUR TOUTE LA PAGE (audit d'ergonomie du 2026-09-21, constat 13) :
+ *  ce que les autres voient de vous s'enregistre par le bouton de SA section ; vos
+ *  préférences (thème, traduction, messagerie) s'appliquent aussitôt. Le bouton reste
+ *  en place et ne s'allume que lorsqu'un champ diffère de ce qui est enregistré, avec
+ *  la mention « Modifications non enregistrées ». */
+export function PiedSection({ modifie, occupe, statut, onEnregistrer, onAnnuler }: {
+  modifie: boolean
   occupe: boolean
   statut: Statut
-  libelle?: string
+  onEnregistrer: () => void
+  onAnnuler: () => void
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-      <button onClick={onClick} disabled={occupe}
-        style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', fontSize: '0.8125rem', fontWeight: 500, cursor: occupe ? 'default' : 'pointer' }}>
-        {occupe ? 'Enregistrement…' : libelle}
+    <div className="esp-actions">
+      <button type="button" onClick={onEnregistrer} disabled={occupe || !modifie}
+        style={{ padding: '7px 16px', borderRadius: '8px', border: 'none', fontSize: '0.78125rem', fontWeight: 500,
+          background: modifie ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', color: 'var(--cs-sur-aplat)',
+          cursor: occupe || !modifie ? 'default' : 'pointer' }}>
+        {occupe ? 'Enregistrement…' : 'Enregistrer'}
       </button>
-      {statut && (
-        <span role="status" style={{ fontSize: '0.78125rem', color: statut.ok ? 'var(--cs-vert)' : 'var(--cs-danger-fonce)' }}>
-          {statut.ok ? '✓' : '✗'} {statut.msg}
-        </span>
+      {modifie && !occupe && (
+        <button type="button" onClick={onAnnuler}
+          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', textDecoration: 'underline' }}>
+          Annuler les modifications
+        </button>
       )}
+      <span role="status" style={{ fontSize: '0.71875rem' }}>
+        {statut && !statut.ok ? <span style={{ color: 'var(--cs-danger-fonce)' }}>{statut.msg}</span>
+          : modifie ? <span style={{ color: 'var(--cs-attente)' }}>Modifications non enregistrées</span>
+          : statut?.ok ? <span style={{ color: 'var(--cs-vert)' }}>✓ {statut.msg}</span>
+          : null}
+      </span>
     </div>
   )
 }

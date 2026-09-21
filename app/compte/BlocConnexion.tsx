@@ -24,9 +24,12 @@ function urlCompte(): string {
 /** Le bloc Connexion : adresse, mot de passe, et la modale de suppression que le
  *  pied de page ouvre. ⛔ Plus de cartes ni d'en-tête : il est une SECTION d'une
  *  page unique depuis la refonte du 1er septembre 2026. */
-export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte }: {
+export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte, onEnAttente }: {
   ouvrirSuppression: boolean
   onSuppressionOuverte: (v: boolean) => void
+  /** Dit à la page qu'une adresse ou un mot de passe est saisi sans être envoyé :
+   *  la garde de sortie les compte avec les sections. Rappel STABLE. */
+  onEnAttente?: (v: boolean) => void
 }) {
   const router = useRouter()
   const { user } = useEspace()
@@ -39,6 +42,9 @@ export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte 
   const [confirmationMdp, setConfirmationMdp] = useState('')
   const [statutMdp, setStatutMdp] = useState<Statut>(null)
   const [envoiMdp, setEnvoiMdp] = useState(false)
+
+  const enAttente = (nouvelEmail.trim() !== '' && nouvelEmail.trim() !== user.email) || nouveauMdp !== '' || confirmationMdp !== ''
+  useEffect(() => { onEnAttente?.(enAttente) }, [enAttente, onEnAttente])
 
   const modaleSuppression = ouvrirSuppression
   const setModaleSuppression = onSuppressionOuverte
