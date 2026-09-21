@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   accorderVisites, cadreDuSujet, decoupeDuVoile, ecrireVisites, etapesPresentes, lireVisites,
-  defilementDuSujet, placerCarteVisite, traitVersSujet,
+  defilementDuSujet, placerCarteVisite, traitVersSujet, VISITES_REFUSEES,
   type Cadre, type EtapeVisite,
 } from './visiteGuidee'
 
@@ -262,6 +262,15 @@ describe('la mémoire des visites', () => {
 // règle, et elle décide de ce qu'un lecteur revoit ou non : elle s'éprouve dans les
 // deux sens, jamais par « ça a l'air juste ».
 describe('accorderVisites — le poste et le compte', () => {
+  // Le refus de toutes les visites est une préférence : le compte l'emporte dès
+  // qu'il a parlé, sans quoi un poste resté sur l'ancien refus le lui rendrait.
+  it('laisse le compte trancher le refus des visites, mais le reçoit d’un poste quand le compte n’a jamais parlé', () => {
+    expect(accorderVisites([VISITES_REFUSEES, 'accueil'], ['accueil']).retenues.has(VISITES_REFUSEES)).toBe(false)
+    expect(accorderVisites([VISITES_REFUSEES, 'accueil'], ['accueil']).aEcrireAuCompte).toBeNull()
+    expect(accorderVisites([], [VISITES_REFUSEES]).retenues.has(VISITES_REFUSEES)).toBe(true)
+    expect(accorderVisites([VISITES_REFUSEES], null).aEcrireAuCompte).toEqual([VISITES_REFUSEES])
+  })
+
   it('rend l’UNION, et non le compte seul : deux postes ne se contredisent pas', () => {
     const { retenues } = accorderVisites(['accueil'], ['bible-classique'])
     expect([...retenues].sort()).toEqual(['accueil', 'bible-classique'])

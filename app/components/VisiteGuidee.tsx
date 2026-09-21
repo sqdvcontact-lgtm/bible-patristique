@@ -213,7 +213,7 @@ function trouverSujet(selecteurs: string[]): HTMLElement | null {
 export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: VisiteProps) {
   // La décision de passer cette visite est une préférence de COMPTE : c'est le
   // contexte qui la retient, dans le miroir de ce poste et en base à la fois.
-  const { marquerVisiteFaite } = useCompte()
+  const { marquerVisiteFaite, proposerLesVisites } = useCompte()
   // -1 : le grand message d'ouverture. Ensuite, le rang dans le scénario ENTIER —
   // jamais dans la liste réduite, qui change en cours de route.
   const [rang, setRang] = useState(-1)
@@ -264,6 +264,8 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
   }, [visite.etapes, absentes])
 
   const terminer = useCallback(() => { finRef.current() }, [])
+  // Refuser toutes les visites d'un geste : aucune ne s'ouvrira plus d'elle-même.
+  const refuser = useCallback(() => { proposerLesVisites(false); finRef.current() }, [proposerLesVisites])
 
   const aller = useCallback((sens: 1 | -1) => {
     sensRef.current = sens
@@ -564,6 +566,7 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
           derniere={derniere}
           onAller={aller}
           onTerminer={terminer}
+          onRefuser={refuser}
         />
       </div>
     </div>,
@@ -581,7 +584,7 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
 //
 // ⚠️ AUCUN CROCHET ICI : le composant doit se rendre sous `renderToStaticMarkup`.
 
-export function ProposVisite({ visite, etape, position, total, derniere, onAller, onTerminer }: {
+export function ProposVisite({ visite, etape, position, total, derniere, onAller, onTerminer, onRefuser }: {
   visite: Visite
   etape: EtapeVisite | null
   position: number
@@ -589,6 +592,8 @@ export function ProposVisite({ visite, etape, position, total, derniere, onAller
   derniere: boolean
   onAller: (sens: 1 | -1) => void
   onTerminer: () => void
+  /** Absent : la case ne propose pas le refus (planches). */
+  onRefuser?: () => void
 }) {
   return (
     <>
@@ -647,6 +652,14 @@ export function ProposVisite({ visite, etape, position, total, derniere, onAller
           </button>
           <button onClick={onTerminer} className="cs-visite-bouton cs-visite-bouton--second cs-visite-bouton--large" style={STYLE_SECOND}>Passer</button>
         </div>
+        {/* Le refus de TOUTES les visites se prend ici, à l'ouverture, où l'on décide
+            de suivre ou non. Le pied des arrêts n'a plus la place d'un quatrième
+            bouton sur téléphone. Mon compte permet de revenir sur ce choix. */}
+        {onRefuser && (
+          <div className="cs-visite-pied cs-visite-pied--message" style={{ ...STYLE_PIED_MESSAGE, marginTop: '4px' }}>
+            <button onClick={onRefuser} className="cs-visite-bouton cs-visite-passer" style={STYLE_PASSER}>Ne plus proposer de visites</button>
+          </div>
+        )}
       </>
     )}
     </>

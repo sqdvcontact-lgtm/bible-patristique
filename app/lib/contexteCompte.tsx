@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback, useRef, ty
 import { supabase } from './supabase'
 import { appliquerTheme, lireTheme, themeValide, type Theme } from './theme'
 import { appliquerCorps, CORPS_DEFAUT, corpsValide, lireCorps, type CorpsLecture } from './corpsLecture'
-import { accorderVisites, poserVisitesDuPoste, visitesDuPoste } from './visiteGuidee'
+import { accorderVisites, poserVisitesDuPoste, visitesDuPoste, VISITES_REFUSEES } from './visiteGuidee'
 import { CADRAGE_PAR_DEFAUT, type Cadrage } from './portraits'
 import ModaleCompteRequis from '@/app/components/ModaleCompteRequis'
 
@@ -66,6 +66,12 @@ type ContexteCompte = {
   /** Rejouer une visite (`?visite=1`) : on oublie des trois côtés, sinon le compte la
    *  rendrait « faite » au prochain rapprochement. */
   oublierVisite: (cle: string) => void
+  /** Faux quand le lecteur a refusé toutes les visites : aucune ne s'ouvre plus
+   *  d'elle-même, le bouton de la barre et `?visite=1` les rouvrent toujours. */
+  visitesProposees: boolean
+  proposerLesVisites: (oui: boolean) => void
+  /** Tout oublier, refus compris : chaque page rouvre sa visite à la prochaine venue. */
+  revoirLesVisites: () => void
   // Vrai seulement pour un compte PERSONNEL (ni anonyme, ni compte de démo partagé).
   aUnCompte: boolean
   // Garde à poser en tête de toute action d'écriture : renvoie true si le visiteur
@@ -80,6 +86,7 @@ const Contexte = createContext<ContexteCompte>({
   profilPret: false, rafraichirProfil: () => {},
   theme: 'clair', changerTheme: async () => {}, changerCorps: async (corps) => appliquerCorps(corps),
   visiteFaite: () => false, marquerVisiteFaite: () => {}, oublierVisite: () => {},
+  visitesProposees: true, proposerLesVisites: () => {}, revoirLesVisites: () => {},
   aUnCompte: false, exigerCompte: () => false,
 })
 
@@ -209,13 +216,26 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  // L'interrupteur du compte a besoin d'un ÉTAT : la référence ne rend pas.
+  const [visitesProposees, setVisitesProposees] = useState(true)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setVisitesProposees(!visitesRetenues().has(VISITES_REFUSEES))
+  }, [visitesRetenues])
+
   const noterVisites = useCallback((retenues: Set<string>) => {
     visitesRef.current = retenues
+    setVisitesProposees(!retenues.has(VISITES_REFUSEES))
     poserVisitesDuPoste(retenues)
     if (userId) confierVisitesAuCompte(userId, [...retenues].sort())
   }, [userId, confierVisitesAuCompte])
 
-  const visiteFaite = useCallback((cle: string) => visitesRetenues().has(cle), [visitesRetenues])
+  // Un refus général vaut « faite » pour toutes : c'est ce qui coupe le lancement
+  // spontané sans toucher aux neuf pages.
+  const visiteFaite = useCallback((cle: string) => {
+    const retenues = visitesRetenues()
+    return retenues.has(cle) || retenues.has(VISITES_REFUSEES)
+  }, [visitesRetenues])
 
   const marquerVisiteFaite = useCallback((cle: string) => {
     const retenues = visitesRetenues()
@@ -231,6 +251,17 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
     noterVisites(reste)
   }, [visitesRetenues, noterVisites])
 
+  const proposerLesVisites = useCallback((oui: boolean) => {
+    const retenues = visitesRetenues()
+    if (retenues.has(VISITES_REFUSEES) !== oui) return
+    const suite = new Set(retenues)
+    if (oui) suite.delete(VISITES_REFUSEES)
+    else suite.add(VISITES_REFUSEES)
+    noterVisites(suite)
+  }, [visitesRetenues, noterVisites])
+
+  const revoirLesVisites = useCallback(() => { noterVisites(new Set()) }, [noterVisites])
+
   // Le rapprochement, à l'arrivée du profil, une seule fois par session. ⛔ C'est
   // l'UNION et non « le compte l'emporte » : une visite passée est un FAIT, et deux
   // postes qui en retiennent chacun un ne se contredisent pas. La règle est pure et
@@ -238,6 +269,7 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
   const accorderLesVisites = useCallback((pour: string, duCompte: string[] | null) => {
     const { retenues, aEcrireAuCompte } = accorderVisites(visitesRetenues(), duCompte)
     visitesRef.current = retenues
+    setVisitesProposees(!retenues.has(VISITES_REFUSEES))
     poserVisitesDuPoste(retenues)
     if (aEcrireAuCompte) confierVisitesAuCompte(pour, aEcrireAuCompte)
   }, [visitesRetenues, confierVisitesAuCompte])
@@ -310,7 +342,7 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
   }, [aUnCompte])
 
   return (
-    <Contexte.Provider value={{ userId, email, pret, pseudo, estAdmin, portrait, cadragePortrait, estMecene, profilPret, rafraichirProfil, theme, changerTheme, changerCorps, visiteFaite, marquerVisiteFaite, oublierVisite, aUnCompte, exigerCompte }}>
+    <Contexte.Provider value={{ userId, email, pret, pseudo, estAdmin, portrait, cadragePortrait, estMecene, profilPret, rafraichirProfil, theme, changerTheme, changerCorps, visiteFaite, marquerVisiteFaite, oublierVisite, visitesProposees, proposerLesVisites, revoirLesVisites, aUnCompte, exigerCompte }}>
       {children}
       {invitation !== null && (
         <ModaleCompteRequis contexte={invitation} onClose={() => setInvitation(null)} />

@@ -35,7 +35,8 @@ const BIO_MAX = 400
 
 export default function RubriqueCompte({ traductions }: { traductions: { id: string; nom: string }[] }) {
   const { user, profil, majProfil } = useEspace()
-  const { theme, changerTheme } = useCompte()
+  const { theme, changerTheme, visitesProposees, proposerLesVisites, revoirLesVisites } = useCompte()
+  const [visitesRendues, setVisitesRendues] = useState(false)
 
   const [pseudo, setPseudo] = useState(profil.pseudo)
   const [prenom, setPrenom] = useState(profil.prenom ?? '')
@@ -218,6 +219,17 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
               <option value="clair">Clair</option>
               <option value="sombre">Cuir</option>
             </select>
+          </Rangee>
+          {/* Comme le thème, les visites s'appliquent aussitôt et ne passent pas par
+              le bouton d'enregistrement : c'est le contexte du compte qui les retient. */}
+          <Rangee label="Visites" note={visitesRendues ? 'Chaque page rouvrira sa visite à votre prochaine venue.' : 'La boussole de la barre rouvre toujours celle de la page où vous êtes.'}>
+            <span style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <Interrupteur libelle="Proposer les visites guidées" actif={visitesProposees}
+                onChange={v => { proposerLesVisites(v); setVisitesRendues(false) }} />
+              <button type="button" onClick={() => { revoirLesVisites(); setVisitesRendues(true) }} style={BTN_DISCRET}>
+                Revoir les visites
+              </button>
+            </span>
           </Rangee>
         </Section>
 

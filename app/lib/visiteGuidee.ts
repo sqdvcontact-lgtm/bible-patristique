@@ -514,6 +514,22 @@ export function etapesPresentes(etapes: EtapeVisite[], trouver: (selecteur: stri
 /** Les pages déjà visitées, par clé de visite. */
 export const CLE_VISITES = 'cs_visites'
 
+/**
+ * LE REFUS DE TOUTES LES VISITES (audit d'ergonomie du 2026-09-21) : neuf pages
+ * lançaient chacune la leur, et rien ne permettait de dire non une fois pour
+ * toutes. Le refus loge dans la MÊME liste que les visites faites, sous une clé
+ * qu'aucune visite ne peut porter : ni colonne neuve, ni migration, et le miroir
+ * comme le compte le portent sans rien apprendre.
+ *
+ * ⛔ Il ne coupe que le lancement SPONTANÉ. Le bouton « Visite » de la barre et
+ * l'adresse `?visite=1` rouvrent toujours la visite demandée.
+ *
+ * ⚠️ Au rapprochement, cette clé ne suit PAS l'union : c'est une préférence, une
+ * valeur, et le compte l'emporte dès qu'il a jamais été écrit (le parti du thème).
+ * Sans quoi un poste resté sur l'ancien refus le rendrait au compte qui l'a levé.
+ */
+export const VISITES_REFUSEES = '*refusees'
+
 /** Le contenu du stockage, lu sans jamais faillir : tout ce qui n'est pas une
  *  liste de chaînes vaut « aucune visite faite ». */
 export function lireVisites(brut: string | null): Set<string> {
@@ -562,6 +578,8 @@ export function accorderVisites(
   let apporteesParLePoste = false
   for (const cle of duPoste) {
     if (typeof cle !== 'string' || cle === '') continue
+    // Le refus suit le compte dès que celui-ci a parlé (voir `VISITES_REFUSEES`).
+    if (cle === VISITES_REFUSEES && duCompte != null) continue
     if (!retenues.has(cle)) { retenues.add(cle); apporteesParLePoste = true }
   }
   // Le compte n'est réécrit que si le poste lui apprend quelque chose, ou s'il n'a
