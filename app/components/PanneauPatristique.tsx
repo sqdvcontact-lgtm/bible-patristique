@@ -52,7 +52,7 @@ import dynamic from 'next/dynamic'
 import { cleInventaireNotesBible, type ContexteNotesBible } from '@/app/lib/notesBibleInventaire'
 import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
-import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 
 // ⛔ L'inventaire des notes d'une bible ne se charge qu'avec son onglet : il ne sert qu'à
 // l'administrateur, et le lecteur n'a pas à en payer le poids.
@@ -960,7 +960,7 @@ export default function PanneauPatristique({
   // Le tiroir d'un téléphone se ferme à Échap, comme une fenêtre.
   const tiroirOuvert = mobile && presentation !== 'inline' && ouvert
   useFermerAEchap(tiroirOuvert, () => setOuvert(false))
-  useRendreLeFoyer(tiroirOuvert)
+  useFenetreModale(refPanel, tiroirOuvert)
 
   // Citations = lien_1 (exactes) + lien_2 (libres) fusionnés ; Doctrine = lien_3.
   // Longueur de chaque segment chargé ou mesuré, par « id_texte|numero ». Elle sert
@@ -1548,7 +1548,8 @@ export default function PanneauPatristique({
     {/* `data-visite` : le repère de la visite guidée (app/lib/visiteBibleClassique.ts).
         Le volet ENTIER : l'étape parle de ce qu'il réunit, de ses filtres et de son
         onglet de commentaires, et les trois n'ont pas de boîte commune plus étroite. */}
-    <div ref={refPanel} data-visite="peres" style={mobile
+    <div ref={refPanel} data-visite="peres" role={tiroirOuvert ? 'dialog' : undefined} aria-modal={tiroirOuvert || undefined} aria-label={tiroirOuvert ? 'Pères de l’Église' : undefined}
+      style={mobile
       ? (presentation === 'inline'
         ? { width:'100%', background:'var(--cs-surface)', display:'flex', flexDirection:'column', ...(sousBarres ? { paddingTop:'2.875rem', minHeight:`calc(100dvh - ${HAUTEUR_NAVBAR})`, paddingBottom:BANDEAU_NAV_MOBILE } : {}) }
         : { position:'fixed', bottom:BANDEAU_NAV_MOBILE, left:0, right:0, zIndex: Z_TIROIR, background:'var(--cs-surface)', borderTop:'1px solid var(--cs-bord)', display:'flex', flexDirection:'column', maxHeight:`calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem - ${BANDEAU_NAV_MOBILE})`, minHeight:0, boxShadow:'var(--cs-ombre-modale-haut)' })

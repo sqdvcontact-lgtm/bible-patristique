@@ -2,7 +2,8 @@
 
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { Z_MODALE } from '@/app/lib/empilement'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { supabase } from '@/app/lib/supabase'
@@ -168,6 +169,9 @@ export default function ModalLienBiblique({
     return () => document.removeEventListener('keydown', onKey)
   }, [ouvert, onFermer])
 
+  // ⚠️ AVANT la sortie qui suit : un crochet ne se pose pas derrière un retour conditionnel.
+  const boite = useRef<HTMLDivElement>(null)
+  useFenetreModale(boite, ouvert)
   if (!ouvert) return null
 
   const basculerVerset = (v: VersetLienBiblique) => {
@@ -192,7 +196,7 @@ export default function ModalLienBiblique({
 
   return (
     <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: mobile ? '10px' : '22px', background: 'rgba(20, 25, 20, 0.32)', backdropFilter: 'blur(2px)', overflow: 'hidden' }}>
-      <div style={{ width: 'min(940px, 100%)', maxHeight: mobile ? '100%' : 'min(760px, 100%)', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr) auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-modale)', overflow: 'hidden' }}>
+      <div ref={boite} role="dialog" aria-modal="true" aria-label={titre} style={{ width: 'min(940px, 100%)', maxHeight: mobile ? '100%' : 'min(760px, 100%)', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr) auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-modale)', overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px 13px', borderBottom: '1px solid var(--cs-bord-clair)', display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'flex-start' }}>
           <div>
             <p style={{ margin: '0 0 4px', fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '.12em', color: '#8b7a5c', fontWeight: 700 }}>Lien biblique</p>

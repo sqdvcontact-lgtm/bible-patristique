@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { supabase } from '@/app/lib/supabase'
@@ -17,7 +17,7 @@ import IconeSignalement from '@/app/components/IconeSignalement'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
-import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 
 const ABREV_VERS_NOM: Record<string, string> = Object.fromEntries(
   Object.entries(ABREV_FR).map(([code, abrev]) => [abrev, LIVRES.find(l => l.code === code)?.nom ?? abrev])
@@ -75,7 +75,8 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   const [voletOuvert, setVoletOuvert] = useState(true)
   // Le tiroir d'un téléphone se ferme à Échap, comme une fenêtre.
   useFermerAEchap(mobile && voletOuvert, () => setVoletOuvert(false))
-  useRendreLeFoyer(mobile && voletOuvert)
+  const refVolet = useRef<HTMLDivElement>(null)
+  useFenetreModale(refVolet, mobile && voletOuvert)
   // ⛔ Fermé d'office sous 1100 px, non sous 900. Volet gauche 15rem, volet droit
   //    18,75rem et 112 px de rembourrage : à 901 px il ne restait que 249 px de mesure
   //    au texte, et 328 mesurés à 1010 px. Le seuil n'est pas celui du hook parce qu'il
@@ -389,7 +390,8 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
       {voletOuvert ? (
         <>
         {mobile && <div onClick={() => setVoletOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: 2400 }} />}
-        <div style={mobile
+        <div ref={refVolet} role={mobile ? 'dialog' : undefined} aria-modal={mobile || undefined} aria-label={mobile ? 'Commentaires' : undefined}
+          style={mobile
           ? { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, background: 'var(--cs-fond-clair)', borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale-haut)' }
           : { width: '18.75rem', flexShrink: 0, background: 'var(--cs-fond-clair)', borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', height: '100%' }}>
 

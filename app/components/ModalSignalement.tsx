@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
-import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 
 // Modale de signalement UNIQUE, partagée par toutes les pages (Bible, Œuvre,
 // Polyglotte, Panneau patristique…). Même mise en forme partout.
@@ -30,7 +30,8 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
   placeholder?: string
 }) {
   useFermerAEchap(true, onClose)
-  useRendreLeFoyer(true)
+  const boite = useRef<HTMLDivElement>(null)
+  useFenetreModale(boite)
   const [message, setMessage] = useState('')
   const [statut, setStatut] = useState<'idle' | 'sending' | 'ok' | 'err'>('idle')
   const [importance, setImportance] = useState<Niveau>('important')
@@ -55,7 +56,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
       //    l'écran en paysage, son en-tête et sa croix passaient sous la barre, peinte
       //    par-dessus, et devenaient inatteignables (charte, § Fenêtres contextuelles).
       style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(30,26,20,0.5)', zIndex: 2800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
-      <div onClick={e => e.stopPropagation()}
+      <div ref={boite} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={titreFenetre}
         style={{ background: 'var(--cs-surface)', borderRadius: '8px', border: '1px solid var(--cs-danger-bord)', width: '100%', maxWidth: '26.25rem', boxShadow: 'var(--cs-ombre-modale)', display: 'flex', flexDirection: 'column', maxHeight: '100%', overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px 13px', borderBottom: '1px solid var(--cs-bord-clair)', background: 'linear-gradient(180deg, var(--cs-danger-fond) 0%, var(--cs-danger-fond) 100%)', flexShrink: 0 }}>
           <p style={{ display: 'flex', alignItems: 'center', gap: '9px', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: '#7a2f18', margin: 0 }}>

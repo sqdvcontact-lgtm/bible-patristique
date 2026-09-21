@@ -2,8 +2,9 @@
 
 import LireQuandMeme, { FEUILLE_COMMENTAIRE_RETRACTE } from '@/app/components/LireQuandMeme'
 import { Z_MODALE } from '@/app/lib/empilement'
-import { useState, useEffect, useId } from 'react'
+import { useState, useEffect, useId, useRef } from 'react'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { supabase } from "@/app/lib/supabase"
 import { calculerRang, couleurRang } from '@/app/lib/classement'
@@ -45,6 +46,8 @@ function ModalSignalerCommentaire({ titre, onClose, onEnvoyer }: {
 }) {
   const [message, setMessage] = useState('')
   const [statut, setStatut] = useState<'idle' | 'sending' | 'ok' | 'err'>('idle')
+  const boite = useRef<HTMLDivElement>(null)
+  useFenetreModale(boite)
   // ⛔ Échap ferme, et c'est le SEUL chemin du clavier : le voile et la croix ne
   //    servent que le curseur.
   const idTitre = useId()
@@ -68,7 +71,7 @@ function ModalSignalerCommentaire({ titre, onClose, onEnvoyer }: {
     //    y logeaient — lequel passait devant ne tenait plus qu'à l'ordre du document.
     //    2700 est le rang que le site donne à une modale qui doit couvrir le reste,
     //    tiroirs mobiles compris (2400/2401), et cette fenêtre s'ouvre depuis l'un d'eux.
-    <div onClick={onClose} role="dialog" aria-modal="true" aria-labelledby={idTitre}
+    <div ref={boite} onClick={onClose} role="dialog" aria-modal="true" aria-labelledby={idTitre}
       style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
       <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', width: 'min(21.25rem, 100%)', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>

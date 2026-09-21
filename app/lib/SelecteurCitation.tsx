@@ -2,7 +2,7 @@
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 
-import { useState, useEffect, type CSSProperties, type ReactNode } from 'react'
+import { useState, useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { sansAppelsDeNote } from '@/app/lib/appelsDeNote'
@@ -19,7 +19,7 @@ import { fragmentsReference, SEPARATEUR } from '@/app/lib/referenceBibliographiq
 import { baliseFragments, fragmentsSansPointFinal } from '@/app/lib/referenceBibliographiqueSorties'
 import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
-import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 
 const NOM_FR: Record<string, string> = {
   GEN:'Genèse',EXO:'Exode',LEV:'Lévitique',NUM:'Nombres',DEU:'Deutéronome',JOS:'Josué',JDG:'Juges',RUT:'Ruth',
@@ -251,11 +251,12 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
   }
   // Échap passe par la même confirmation que la croix.
   useFermerAEchap(true, demanderFermeture)
-  useRendreLeFoyer(true)
+  const boite = useRef<HTMLDivElement>(null)
+  useFenetreModale(boite)
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,22,0.45)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: '100%', maxWidth: '45rem', height: '78vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
+      <div ref={boite} role="dialog" aria-modal="true" aria-label="Outil de citation" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: '100%', maxWidth: '45rem', height: '78vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 12px', borderBottom: '1px solid var(--cs-bord-clair)' }}>
           <div style={{ display: 'flex', gap: '6px' }}>

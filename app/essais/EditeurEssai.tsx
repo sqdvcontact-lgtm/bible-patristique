@@ -20,7 +20,7 @@ import { emblemeDe } from '@/app/lib/emblemesCouverture'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import { NOM_ANONYME, colonnesSignature, nomReel, nomSigne, signatureDe, type Signature } from '@/app/lib/signatureEssai'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
-import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 
 const MAX_CARACTERES = 8000
 const MIN_CARACTERES_PUBLICATION = 2000
@@ -85,7 +85,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   const [confirmPublier, setConfirmPublier] = useState(false)
   const fermerConfirmPublier = useCallback(() => setConfirmPublier(false), [])
   useFermerAEchap(confirmPublier, fermerConfirmPublier)
-  useRendreLeFoyer(confirmPublier)
+  const boiteConfirmPublier = useRef<HTMLDivElement>(null)
+  useFenetreModale(boiteConfirmPublier, confirmPublier)
   const [accepteConditions, setAccepteConditions] = useState(false)
   const [erreurConditions, setErreurConditions] = useState<string | null>(null)
   const contenuOriginalRef = useRef(essaiExistant?.contenu ?? '')
@@ -876,7 +877,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
           Resserrée et épurée. */}
       {confirmPublier && typeof document !== 'undefined' && createPortal(
         <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
+          <div ref={boiteConfirmPublier} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
               Soumettre cette publication ?
             </h3>

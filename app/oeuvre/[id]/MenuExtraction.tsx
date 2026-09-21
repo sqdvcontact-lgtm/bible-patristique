@@ -22,8 +22,9 @@
 // endroit pour le même geste ferait deux vérités.
 
 import { Z_MODALE } from '@/app/lib/empilement'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import {
@@ -93,6 +94,8 @@ export default function MenuExtraction({ donnees, onFermer }: {
   donnees: DonneesExtraction
   onFermer: () => void
 }) {
+  const boite = useRef<HTMLDivElement>(null)
+  useFenetreModale(boite)
   const [options, setOptions] = useState<OptionsExtraction>({
     ...OPTIONS_PAR_DEFAUT,
     idTexte: donnees.idTexte,
@@ -158,7 +161,7 @@ export default function MenuExtraction({ donnees, onFermer }: {
        56 px à la racine 16 et 77 à la racine 22. */
     <div onClick={onFermer} className="cs-extraction-calque"
       style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MENU, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', overflow: 'hidden' }}>
-      <div role="dialog" aria-modal="true" aria-labelledby="extraction-titre" onClick={e => e.stopPropagation()}
+      <div ref={boite} role="dialog" aria-modal="true" aria-labelledby="extraction-titre" onClick={e => e.stopPropagation()}
         style={{ position: 'relative', width: '100%', maxWidth: '26rem', maxHeight: '100%', overflowY: 'auto', overscrollBehavior: 'contain', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', boxShadow: 'var(--cs-ombre-modale)', padding: '24px 26px 22px' }}>
         <button onClick={onFermer} aria-label="Fermer" className="cs-cible-fine" title="Fermer"
           style={{ position: 'sticky', float: 'right', top: 0, marginRight: '-6px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>

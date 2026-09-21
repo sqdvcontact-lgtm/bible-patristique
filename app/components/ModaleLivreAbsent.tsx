@@ -34,7 +34,8 @@
 
 import { Z_MODALE } from '@/app/lib/empilement'
 import { createPortal } from 'react-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 const SERIF = 'var(--font-source-serif), Georgia, serif'
@@ -95,6 +96,8 @@ export default function ModaleLivreAbsent({
   onFermer: () => void
 }) {
   // Échap ferme, comme partout ailleurs.
+  const boite = useRef<HTMLDivElement>(null)
+  useFenetreModale(boite)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onFermer() }
     document.addEventListener('keydown', onKey)
@@ -109,7 +112,7 @@ export default function ModaleLivreAbsent({
          ombre, et un jeton se retournerait avec le thème — au Cuir il tirerait un
          rideau clair sur la page (charte, § Encre contre aplat). */
       style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.45)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cs-livre-absent-titre"
+      <div ref={boite} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cs-livre-absent-titre"
         style={{ position: 'relative', background: 'var(--cs-surface)', borderRadius: '12px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '22rem', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)', padding: '20px 24px 22px' }}>
 
         <button onClick={onFermer} aria-label="Fermer" className="cs-cible-fine" title="Fermer"

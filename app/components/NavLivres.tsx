@@ -21,7 +21,7 @@ import { chargerChapitresParLivre, estLivreOuvrable, nombreDeChapitres, type Cha
 import { supabase } from '@/app/lib/supabase'
 import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
-import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 
 // Encart d'informations sur la traduction actuellement lue (volet gauche, Bible
 // classique). Taille FIXE (hauteur constante, contenu rogné) pour ne jamais faire
@@ -292,9 +292,10 @@ export default function NavLivres({
   // Le tiroir d'un téléphone se ferme à Échap, comme une fenêtre.
   const tiroirOuvert = mobile && presentation !== 'inline' && ouvert
   useFermerAEchap(tiroirOuvert, () => setOuvert(false))
-  useRendreLeFoyer(tiroirOuvert)
   const scrollRef = useRef<HTMLDivElement>(null)
   const refPanel = useRef<HTMLDivElement>(null)
+  // Le tiroir d'un téléphone est une fenêtre : le foyer y entre, y reste, et en revient.
+  useFenetreModale(refPanel, tiroirOuvert)
   // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui
   // allume la marque au centre de la lecture tant que la page se prépare.
   const naviguer = useNaviguer()
@@ -550,7 +551,8 @@ export default function NavLivres({
         toute la page sous la barre d'onglets, sans fond assombri. En mode tiroir, il
         se superpose au texte avec un fond assombri qui le referme au tap. */}
     {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: Z_TIROIR_VOILE }} />}
-    <div ref={refPanel} style={mobile ? (presentation === 'inline' ? {
+    <div ref={refPanel} role={tiroirOuvert ? 'dialog' : undefined} aria-modal={tiroirOuvert || undefined} aria-label={tiroirOuvert ? 'Livres de la Bible' : undefined}
+      style={mobile ? (presentation === 'inline' ? {
       width: '100%', background: 'var(--cs-fond-clair)', display: 'flex', flexDirection: 'column',
       paddingTop: '2.875rem', minHeight: `calc(100dvh - ${HAUTEUR_NAVBAR})`,
       paddingBottom: `calc(0.75rem + 2.5rem)`,

@@ -4,12 +4,12 @@
 
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { Z_FENETRE, Z_MODALE } from '@/app/lib/empilement'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Image from 'next/image'
 import { CADRAGE_PAR_DEFAUT, urlPortrait, ZOOM_MAX, ZOOM_MIN, type Cadrage } from '@/app/lib/portraits'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
-import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 
 export type PortraitChoisi = { ref: string; nom: string; cadrage: Cadrage }
 
@@ -19,7 +19,8 @@ type Famille = { cle: string; titre: string; portraits: Portrait[] }
 // ── Choix de l'illustration ──────────────────────────────────────────────────
 export function ModalePortrait({ onChoisir, onClose }: { onChoisir: (choix: PortraitChoisi) => void; onClose: () => void }) {
   useFermerAEchap(true, onClose)
-  useRendreLeFoyer(true)
+  const boite = useRef<HTMLDivElement>(null)
+  useFenetreModale(boite)
   const [familles, setFamilles] = useState<Famille[] | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
 
@@ -45,7 +46,7 @@ export function ModalePortrait({ onChoisir, onClose }: { onChoisir: (choix: Port
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', zIndex: Z_FENETRE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
-      <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="titre-portrait"
+      <div onClick={e => e.stopPropagation()} ref={boite} role="dialog" aria-modal="true" aria-labelledby="titre-portrait"
         style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '28px', width: '37.5rem', maxWidth: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexShrink: 0 }}>
           <h2 id="titre-portrait" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>Choisir un visage</h2>
@@ -111,7 +112,8 @@ export function ModaleCadrage({ refPortrait: ref, nom, cadrage, onSauvegarder, o
   onClose: () => void
 }) {
   useFermerAEchap(true, onClose)
-  useRendreLeFoyer(true)
+  const boite = useRef<HTMLDivElement>(null)
+  useFenetreModale(boite)
   const [posX, setPosX] = useState(cadrage?.posX ?? CADRAGE_PAR_DEFAUT.posX)
   const [posY, setPosY] = useState(cadrage?.posY ?? CADRAGE_PAR_DEFAUT.posY)
   const [zoom, setZoom] = useState(cadrage?.zoom ?? CADRAGE_PAR_DEFAUT.zoom)
@@ -143,7 +145,7 @@ export function ModaleCadrage({ refPortrait: ref, nom, cadrage, onSauvegarder, o
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
-      <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="titre-cadrage"
+      <div onClick={e => e.stopPropagation()} ref={boite} role="dialog" aria-modal="true" aria-labelledby="titre-cadrage"
         style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '28px', width: '21.25rem', maxWidth: '100%', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
           <h2 id="titre-cadrage" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>Recadrer</h2>

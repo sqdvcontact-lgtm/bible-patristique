@@ -27,7 +27,8 @@
 // la gouttière d'actions des prélèvements, où une action qui ne venait qu'au survol
 // était hors d'atteinte au doigt et invisible au clavier.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Link from 'next/link'
 import { createPortal } from 'react-dom'
@@ -69,6 +70,8 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
   const [erreurChargement, setErreurChargement] = useState(false)
   const [archives, setArchives] = useState<Set<string>>(new Set())
   const [onglet, setOnglet] = useState<Onglet>('nouvelles')
+  const boite = useRef<HTMLDivElement>(null)
+  useFenetreModale(boite)
 
   useEffect(() => {
     setArchives(lireSetLocalStorage(cleArchivesNotifications(uid)))
@@ -115,7 +118,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
   return createPortal(
     <>
       <div onClick={onFermer} style={{ position: 'fixed', inset: 0, zIndex: 2400 }} />
-      <div role="dialog" aria-label="Notifications"
+      <div ref={boite} role="dialog" aria-modal="true" aria-label="Notifications"
         style={{
           position: 'fixed', top: `calc(${HAUTEUR_NAVBAR} + 6px)`, right: '12px',
           width: 'min(26rem, calc(100vw - 20px))', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 22px)`,

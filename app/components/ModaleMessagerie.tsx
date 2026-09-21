@@ -9,6 +9,7 @@
 
 import { Z_MODALE } from '@/app/lib/empilement'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { createPortal } from 'react-dom'
 import { supabase } from '@/app/lib/supabase'
@@ -55,6 +56,8 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
   const [resultats, setResultats] = useState<string[]>([])
   const [erreurRecherche, setErreurRecherche] = useState<string | null>(null)
   const basRef = useRef<HTMLDivElement>(null)
+  const panneauRef = useRef<HTMLDivElement>(null)
+  useFenetreModale(panneauRef, ouvert)
   const rechercheTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   // Session + liste des conversations à l'ouverture.
@@ -167,7 +170,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
           .msg-panneau { animation: msg-fond 0.18s ease-out }
         }
       `}</style>
-      <div onClick={e => e.stopPropagation()} className="msg-panneau"
+      <div ref={panneauRef} role="dialog" aria-modal="true" aria-label="Messagerie" onClick={e => e.stopPropagation()} className="msg-panneau"
         style={{ position: 'fixed', top: HAUTEUR_NAVBAR, right: 0, bottom: 0, width: 'min(27.5rem, 100vw)', background: 'var(--cs-fond)', borderLeft: '1px solid var(--cs-bord-clair)', borderTopLeftRadius: '12px', boxShadow: '-16px 0 50px rgba(40,30,15,0.26)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* En-tête */}

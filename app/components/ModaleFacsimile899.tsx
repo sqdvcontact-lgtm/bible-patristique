@@ -26,6 +26,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Z_MODALE } from '@/app/lib/empilement'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
 import { Anneau } from '@/app/lib/attenteEnCreux'
 import IconeChevron from '@/app/components/IconeChevron'
@@ -86,6 +87,8 @@ export default function ModaleFacsimile899({ reference, repereDebut, repereFin, 
   }, [])
 
   useFermerAEchap(true, onFermer)
+  // La boîte prend et rend le foyer elle-même (plus haut) : le crochet n'y ajoute que le piège.
+  useFenetreModale(boiteRef, true, { foyerInitial: false, rendreLeFoyer: false })
 
   const rangDepart = table && table !== 'erreur' && debut ? table.rang.get(debut.colonne) : undefined
   const total = table && table !== 'erreur' ? table.colonnes.length : 0

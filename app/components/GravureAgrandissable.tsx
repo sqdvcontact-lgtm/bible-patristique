@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
@@ -54,6 +55,8 @@ export function GravureAgrandissable({
   // ⚠️ Chaque ouverture repart de la version servie : c'est elle qu'on a cliquée.
   const [voirAncien, setVoirAncien] = useState(false)
   const ouvrir = () => { setVoirAncien(false); setOuvert(true) }
+  const boite = useRef<HTMLDivElement>(null)
+  useFenetreModale(boite, ouvert)
   useEffect(() => {
     if (!ouvert) return
     const auClavier = (e: KeyboardEvent) => { if (e.key === 'Escape') setOuvert(false) }
@@ -76,6 +79,7 @@ export function GravureAgrandissable({
       </button>
       {ouvert && typeof document !== 'undefined' && createPortal(
         <div
+          ref={boite}
           onClick={() => setOuvert(false)}
           role="dialog" aria-modal="true" aria-label={alt}
           style={{

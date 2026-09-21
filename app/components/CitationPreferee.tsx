@@ -29,6 +29,7 @@
 import { Z_MODALE } from '@/app/lib/empilement'
 import { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { colorMix } from '@/app/lib/couleurs'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -141,6 +142,9 @@ export function ModaleRemplacerCitation({ actuelle, nouvelle, onConfirmer, onAnn
   onConfirmer: () => void; onAnnuler: () => void
 }) {
   const boutonRef = useRef<HTMLButtonElement>(null)
+  const boite = useRef<HTMLDivElement>(null)
+  // La fenêtre pose son propre foyer d'entrée (le bouton principal) : on ne le contredit pas.
+  useFenetreModale(boite, true, { foyerInitial: false })
 
   useEffect(() => {
     boutonRef.current?.focus()
@@ -159,7 +163,7 @@ export function ModaleRemplacerCitation({ actuelle, nouvelle, onConfirmer, onAnn
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '20px', overflow: 'hidden',
       }}>
-      <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cs-remplacer-titre"
+      <div ref={boite} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cs-remplacer-titre"
         style={{
           background: 'var(--cs-surface)', borderRadius: '12px', border: '1px solid var(--cs-bord)',
           width: '100%', maxWidth: '34rem', maxHeight: '100%', overflowY: 'auto',

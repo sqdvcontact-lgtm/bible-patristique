@@ -3,6 +3,7 @@
 import { Z_MODALE } from '@/app/lib/empilement'
 import { useState, useRef, useEffect, useId } from 'react'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import type { ChampTitre, EditionCible, VarianteTitre } from './oeuvreTypes'
 import { cleTitreCompose } from './compositionTitres'
 
@@ -72,6 +73,8 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
     return () => window.removeEventListener('keydown', surTouche)
   }, [onClose])
   const taRef = useRef<HTMLTextAreaElement>(null)
+  const boite = useRef<HTMLDivElement>(null)
+  useFenetreModale(boite)
 
   // Le titre de l'œuvre a deux colonnes : celle du catalogue et celle du
   // frontispice. On choisit ici laquelle on modifie, au lieu d'écrire à l'aveugle
@@ -201,7 +204,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
     // ⛔ Et le rang passe de 1100 à 1200, celui que la page donne à ses fenêtres : à
     //    1100, une fenêtre d'administration ouverte derrière « Proposer un lien » ou
     //    « Niveaux d'affichage » se serait retrouvée DESSOUS.
-    <div role="dialog" aria-modal="true" aria-labelledby={idTitre}
+    <div ref={boite} role="dialog" aria-modal="true" aria-labelledby={idTitre}
       style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
       <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 24px', width: '42.5rem', maxWidth: '100%', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>

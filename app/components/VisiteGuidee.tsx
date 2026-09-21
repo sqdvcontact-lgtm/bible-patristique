@@ -46,6 +46,7 @@
 import { Z_VISITE as Z_RANG_VISITE, Z_VISITE_BARRE as Z_RANG_VISITE_BARRE } from '@/app/lib/empilement'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { hauteurNavbarPx, tailleRacinePx } from '@/app/lib/fenetreContextuelle'
 import { ENCRE_TITRE_CARTE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import {
@@ -220,6 +221,9 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
   const [mesure, setMesure] = useState<Mesure | null>(null)
   const [taille, setTaille] = useState<{ largeur: number; hauteur: number } | null>(null)
   const carteRef = useRef<HTMLDivElement>(null)
+  // La case prend le foyer à chaque étape (plus bas) : le crochet n'y ajoute que le piège
+  // et le retour du foyer à la fin de la visite.
+  useFenetreModale(carteRef, true, { foyerInitial: false })
   /** La taille de la case, tenue à jour par le même effet de mise en page que
    *  l'état : la boucle du sujet la lit pour décider où faire défiler la page, et
    *  elle tourne dans un rendu où l'état porte encore la taille d'avant. */

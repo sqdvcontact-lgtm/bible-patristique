@@ -31,6 +31,7 @@ import {
   type RefObject,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 
 import IconeCroix from '@/app/components/IconeCroix'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
@@ -306,6 +307,9 @@ export function ModaleFiche({ titreId, libelle, onFermer, avantCorps, confirmerF
 }) {
   const defileurRef = useRef<HTMLDivElement>(null)
   const resterRef = useRef<HTMLButtonElement>(null)
+  const boiteRef = useRef<HTMLDivElement>(null)
+  // La fiche pose son foyer d'entrée et le rend elle-même : le crochet n'y ajoute que le piège.
+  useFenetreModale(boiteRef, true, { foyerInitial: false, rendreLeFoyer: false })
   const [confirme, setConfirme] = useState(false)
   const fermerRef = useRef(onFermer)
   useEffect(() => { fermerRef.current = onFermer })
@@ -359,7 +363,7 @@ export function ModaleFiche({ titreId, libelle, onFermer, avantCorps, confirmerF
   if (typeof document === 'undefined') return null
   return createPortal(
     <div className="cs-fiche-calque" onClick={surClicDehors} style={{ top: HAUTEUR_NAVBAR, zIndex: Z_MODALE }}>
-      <div role="dialog" aria-modal="true" aria-labelledby={titreId} aria-label={libelle}
+      <div ref={boiteRef} role="dialog" aria-modal="true" aria-labelledby={titreId} aria-label={libelle}
         className="cs-fiche-boite" onClick={surClicDedans}>
         {/* ⛔ UN TRACÉ, NON UN GLYPHE, et AUCUN CERCLE AUTOUR : le rond, le filet et
             le fond faisaient un objet là où l’on n’attend qu’une marque, et le glyphe

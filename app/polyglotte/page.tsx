@@ -18,6 +18,7 @@ import { activerAuClavier } from '@/app/lib/activerAuClavier'
 import { Z_MODALE } from '@/app/lib/empilement'
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { cesurerGrec, codeLangue, copierSansCesures } from "@/app/lib/grec";
 import { cesurerLatin } from "@/app/lib/cesuresLatines";
 import { supabase } from "@/app/lib/supabase";
@@ -601,6 +602,8 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
 }) {
   const [valeur, setValeur] = useState(valeurInitiale);
   const ta = useRef<HTMLTextAreaElement>(null);
+  const boite = useRef<HTMLDivElement>(null);
+  useFenetreModale(boite);
   const outil: React.CSSProperties = { fontSize: '0.6875rem', padding: "4px 9px", borderRadius: 4, border: "1px solid var(--cs-bord)", background: "var(--cs-surface)", color: "var(--cs-texte-fort)", cursor: "pointer", fontFamily: "inherit", lineHeight: 1 };
   const entourer = (avant: string, apres: string = avant) => {
     const el = ta.current; if (!el) return;
@@ -616,7 +619,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
   };
   return (
     <div onClick={onFermer} style={{ position: "fixed", inset: 0, background: "rgba(30,25,20,0.4)", zIndex: Z_MODALE, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "var(--cs-surface)", borderRadius: 8, padding: "18px 20px", width: 520, maxWidth: "100%", boxShadow: "var(--cs-ombre-modale)" }}>
+      <div ref={boite} role="dialog" aria-modal="true" aria-label={`Modifier ${reference}`} onClick={e => e.stopPropagation()} style={{ background: "var(--cs-surface)", borderRadius: 8, padding: "18px 20px", width: 520, maxWidth: "100%", boxShadow: "var(--cs-ombre-modale)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
           <p style={{ margin: 0, fontSize: '0.78125rem', fontWeight: 600, color: VERT }}>Modifier — {reference}</p>
           <button onClick={onFermer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: '0.9375rem', color: "var(--cs-texte-faible)", lineHeight: 1, padding: 0 }}>✕</button>

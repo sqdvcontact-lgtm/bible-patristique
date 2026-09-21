@@ -154,6 +154,7 @@ import type { SourceInventaire } from './OngletNotes'
 import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import { useEstMobile, useSansSurvol } from '@/app/lib/useEstMobile'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { COMPOSITION_INTITULE, cleTriTitre, complementDeTitre } from '@/app/lib/titres'
 import { partagerOpuscules } from '@/app/lib/opuscules'
 import IconeChevron from '@/app/components/IconeChevron'
@@ -397,6 +398,8 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
   // ⛔ Le voile et la croix ne servent que le curseur : Échap est le seul chemin du clavier.
   const fermer = useCallback(() => setOuvert(false), [])
   useFermerAEchap(ouvert, fermer)
+  const boiteLien = useRef<HTMLDivElement>(null)
+  useFenetreModale(boiteLien, ouvert)
 
   const versets = selection?.versets ?? []
   // Un texte SEUL reste recevable : on peut vouloir signaler un rapprochement sans savoir
@@ -439,7 +442,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
           {/* ⚠️ `aria-modal` dit à un lecteur d'écran que le reste de la page est hors jeu
               tant que la fenêtre est là ; `aria-label` la nomme, faute d'un titre à viser
               par `aria-labelledby` — le titre vit dans un `<p>`, non dans un rang de titre. */}
-          <div role="dialog" aria-modal="true" aria-label="Proposer un lien biblique"
+          <div ref={boiteLien} role="dialog" aria-modal="true" aria-label="Proposer un lien biblique"
             onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(22.5rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 22px 10px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Proposer un lien biblique</p>
@@ -1072,6 +1075,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Échap referme la fenêtre des niveaux, comme le voile et la croix le font à la souris.
   const fermerConfig = useCallback(() => setConfigOuverte(false), [])
   useFermerAEchap(configOuverte, fermerConfig)
+  const boiteConfig = useRef<HTMLDivElement>(null)
+  useFenetreModale(boiteConfig, configOuverte)
 
   // ── LES ACTIONS RANGÉES SOUS LE ⋮ DE LA TÊTE DU VOLET ─────────────────────
   // ⚠️ Elles sont NOMMÉES : la rangée ne les portait qu'en glyphes de treize pixels,
@@ -5347,7 +5352,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             et ne peut jamais dépasser la place disponible. */
         <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}
           onClick={() => setConfigOuverte(false)}>
-          <div role="dialog" aria-modal="true" aria-label="Niveaux d'affichage"
+          <div ref={boiteConfig} role="dialog" aria-modal="true" aria-label="Niveaux d'affichage"
             onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(25rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 22px 12px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Niveaux d'affichage</p>

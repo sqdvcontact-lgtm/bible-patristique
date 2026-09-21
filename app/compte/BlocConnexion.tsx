@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { useEspace } from '@/app/compte/EspaceCompte'
 import { inputStyle, type Statut } from '@/app/compte/champsCompte'
 import { Rangee } from '@/app/compte/piecesEspace'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
-import { useRendreLeFoyer } from '@/app/lib/useRendreLeFoyer'
+import { useFenetreModale } from '@/app/lib/useFenetreModale'
 
 /** Le bouton d'une action secondaire, à côté d'un champ. */
 const BTN_DISCRET: React.CSSProperties = {
@@ -48,7 +48,8 @@ export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte 
   const [erreurSuppression, setErreurSuppression] = useState<string | null>(null)
   // Échap ferme la fenêtre de suppression, sauf pendant la suppression elle-même.
   useFermerAEchap(modaleSuppression && !suppressionEnCours, () => setModaleSuppression(false))
-  useRendreLeFoyer(modaleSuppression)
+  const boiteSuppression = useRef<HTMLDivElement>(null)
+  useFenetreModale(boiteSuppression, modaleSuppression)
 
   const modifierEmail = async () => {
     if (!nouvelEmail.trim() || nouvelEmail.trim() === user.email) return
@@ -117,7 +118,7 @@ export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte 
       {modaleSuppression && (
         <div onClick={() => !suppressionEnCours && setModaleSuppression(false)}
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="titre-suppression"
+          <div ref={boiteSuppression} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="titre-suppression"
             style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '32px', width: '30rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h2 id="titre-suppression" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', fontWeight: 'normal', color: 'var(--cs-texte-fort)', margin: '0 0 16px' }}>Suppression du compte</h2>
             <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.65, margin: '0 0 14px' }}>
