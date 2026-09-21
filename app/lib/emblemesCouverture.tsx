@@ -119,6 +119,14 @@ export function categorieEmblemeDe(
   return liste.find(aUnEmbleme) ?? liste[0] ?? null
 }
 
+/** La CATÉGORIE PRINCIPALE d'une publication (décision de l'auteur, 2026-09-21).
+ *  Une publication peut porter plusieurs catégories ; son auteur en désigne une, qui
+ *  est écrite sur la couverture ET qui en donne l'emblème. Elle est stockée dans
+ *  `essais.embleme` (la colonne garde son nom : la donnée le porte), et se lit avec
+ *  la même tolérance que l'emblème. ⛔ La couverture n'affiche plus `categories[0]` :
+ *  la catégorie écrite et le dessin disaient deux choses différentes. */
+export const categoriePrincipale = categorieEmblemeDe
+
 /** Les registres entre lesquels l'auteur peut choisir : ceux qu'il a cochés et qui
  *  ont un dessin. Sous deux, le choix ne se pose pas et l'éditeur n'en montre rien. */
 export function emblemesAuChoix(categories: readonly string[] | null | undefined): string[] {

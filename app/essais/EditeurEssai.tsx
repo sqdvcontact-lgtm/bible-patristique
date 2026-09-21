@@ -16,7 +16,7 @@ import VoletEssai from '@/app/lib/VoletEssai'
 import SelecteurCitation from '@/app/lib/SelecteurCitation'
 import { CATEGORIES_ESSAIS, CONDITIONS, RESUME_MAX, RESUME_MIN, type Metadonnees } from './EtapeMetadonnees'
 import { COUVERTURES, couvertureDe } from '@/app/lib/couverturesEssai'
-import { categorieEmblemeDe, emblemeDe, emblemesAuChoix } from '@/app/lib/emblemesCouverture'
+import { emblemeDe } from '@/app/lib/emblemesCouverture'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import { NOM_ANONYME, colonnesSignature, nomReel, nomSigne, signatureDe, type Signature } from '@/app/lib/signatureEssai'
 
@@ -472,6 +472,12 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       alert('Choisissez au moins une catégorie.')
       return false
     }
+    // Plusieurs catégories : l’auteur désigne la principale, qui est écrite sur la
+    // couverture et qui en donne l’emblème. Elle ne se devine pas.
+    if (meta.categories.length > 1 && !(embleme && meta.categories.includes(embleme))) {
+      alert('Choisissez la catégorie principale de votre publication.')
+      return false
+    }
     if (nbCar < MIN_CARACTERES_PUBLICATION) {
       alert(`Votre texte doit compter au moins ${MIN_CARACTERES_PUBLICATION.toLocaleString('fr')} caractères pour être soumis à publication.`)
       return false
@@ -710,32 +716,34 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                     })}
                   </div>
 
-                  {/* L'EMBLÈME. Il ne paraît qu'à partir de deux registres illustrés :
-                      sous deux, il n'y a rien à choisir, et une rangée d'un seul bouton
-                      ferait croire à une décision qui n'existe pas. */}
-                  {emblemesAuChoix(meta.categories).length > 1 && (
+                  {/* LA CATÉGORIE PRINCIPALE. Elle ne se demande qu'à partir de deux
+                      catégories : sous deux, il n'y a rien à choisir. Elle est écrite
+                      sur la couverture et en donne l'emblème (`essais.embleme`). */}
+                  {meta.categories.length > 1 && (
                     <div style={{ marginTop: '14px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', marginBottom: '5px' }}>
-                        <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Emblème de la couverture</label>
-                        <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)' }}>
-                          {categorieEmblemeDe(meta.categories, embleme) ?? '—'}
+                        <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Catégorie principale *</label>
+                        <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)' }}>
+                          {embleme && meta.categories.includes(embleme) ? embleme : 'À choisir'}
                         </span>
                       </div>
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                        {emblemesAuChoix(meta.categories).map(categorie => {
-                          const actif = categorieEmblemeDe(meta.categories, embleme) === categorie
+                        {meta.categories.map(categorie => {
+                          const actif = embleme === categorie
                           return (
                             <button key={categorie} type="button"
                               onClick={() => setEmbleme(categorie)}
-                              title={categorie} aria-label={`Emblème ${categorie}`} aria-pressed={actif}
+                              title={categorie} aria-label={`Catégorie principale : ${categorie}`} aria-pressed={actif}
                               style={{
-                                width: '2.5rem', height: '2.5rem', borderRadius: '4px', cursor: 'pointer',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px',
+                                height: '2.5rem', borderRadius: '4px', cursor: 'pointer', gap: '6px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px 10px 4px 4px',
+                                fontSize: '0.75rem', fontWeight: actif ? 600 : 400,
                                 background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)',
                                 border: actif ? '2px solid var(--cs-vert)' : '1px solid var(--cs-bord)',
                                 boxShadow: actif ? '0 0 0 2px rgba(var(--cs-vert-rgb),0.18)' : 'none',
                               }}>
-                              <svg viewBox="0 0 64 64" width="100%" height="100%" role="presentation">{emblemeDe(categorie)}</svg>
+                              <svg viewBox="0 0 64 64" width="30" height="30" role="presentation" aria-hidden="true">{emblemeDe(categorie)}</svg>
+                              <span>{categorie}</span>
                             </button>
                           )
                         })}

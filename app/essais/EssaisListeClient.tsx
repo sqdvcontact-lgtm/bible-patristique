@@ -13,8 +13,8 @@ import { CLE_VISITE_COMMUNAUTE, VISITE_COMMUNAUTE } from '@/app/lib/visiteCommun
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
-import { couvertureDe } from '@/app/lib/couverturesEssai'
-import { categorieEmblemeDe, emblemeDe } from '@/app/lib/emblemesCouverture'
+import { couvertureDe, fondSombre } from '@/app/lib/couverturesEssai'
+import { categoriePrincipale, emblemeDe } from '@/app/lib/emblemesCouverture'
 import { normaliserSaisie } from '@/app/lib/typographie'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
@@ -98,7 +98,9 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
   // Lecture de l'adresse, une fois, après le montage. Tant qu'elle n'est pas lue,
   // on n'écrit rien : l'état par défaut effacerait les paramètres qu'on vient de suivre.
   const [adresseLue, setAdresseLue] = useState(false)
-  useEffect(() => {
+  // ⚠️ Dans un minuteur, non dans le corps de l'effet : un setState synchrone y
+  // déclencherait un rendu en cascade (react-hooks/set-state-in-effect).
+  useEffect(() => { const t = window.setTimeout(() => {
     const params = new URLSearchParams(window.location.search)
     const o = ONGLETS_ADRESSE[params.get('onglet') ?? '']
     if (o) setOnglet(o)
@@ -109,7 +111,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
     if (r) setRecherche(r)
     if (params.get('tri') === 'lus') setOrdre('lus')
     setAdresseLue(true)
-  }, [])
+  }, 0); return () => window.clearTimeout(t) }, [])
   // La recherche s'écrit après une courte pause : pas une entrée d'historique par touche.
   useEffect(() => {
     if (!adresseLue) return
@@ -522,6 +524,28 @@ function OngletCommunaute({
            chargé des dix, se met alors à disputer le titre. */
         .couverture-embleme { display: block; margin: auto 0; width: 50cqw; opacity: 0.9; }
         .couverture-embleme svg { display: block; width: 100%; height: auto; }
+        /* LA PLAQUE (2026-09-21). Les emblèmes sont des GRAVURES : rendues en encre
+           claire sur un fond sombre, elles passent en négatif, les hachures d’ombre
+           devenant des lumières. Sur une couverture sombre, la gravure se pose donc
+           sur une étiquette de l’encre de la couverture, et se dessine dans la
+           couleur du fond, comme une vignette contrecollée sur une reliure. Un filet
+           intérieur, du trait à faible intensité, borde l’étiquette. Sur un fond
+           clair, la plaque est transparente et rien ne change. L’étiquette prend
+           56cqw pour que le dessin garde à peu près sa taille (47cqw contre 50), et
+           elle est pleine : l’opacité de l’emblème ne s’y applique pas. */
+        .couverture-embleme {
+          background: var(--couv-plaque); color: var(--couv-trait);
+          padding: 4.5cqw; border-radius: 2px; box-sizing: border-box;
+          box-shadow: inset 0 0 0 1.4cqw var(--couv-plaque), inset 0 0 0 calc(1.4cqw + 1px) color-mix(in srgb, var(--couv-trait) 38%, var(--couv-plaque));
+        }
+        .couverture-embleme[data-plaque="non"] { padding: 0; box-shadow: none; }
+        :root[data-theme="sombre"] .couverture-embleme { background: var(--couv-plaque-s); color: var(--couv-trait-s);
+          box-shadow: inset 0 0 0 1.4cqw var(--couv-plaque-s), inset 0 0 0 calc(1.4cqw + 1px) color-mix(in srgb, var(--couv-trait-s) 38%, var(--couv-plaque-s)); }
+        :root[data-theme="sombre"] .couverture-embleme[data-plaque-s="non"] { padding: 0; box-shadow: none; }
+        :root[data-theme="sombre"] .couverture-embleme[data-plaque-s="oui"] { padding: 4.5cqw; }
+        .couverture-embleme[data-plaque="oui"] { width: 56cqw; opacity: 1; }
+        :root[data-theme="sombre"] .couverture-embleme[data-plaque-s="oui"] { width: 56cqw; opacity: 1; }
+        :root[data-theme="sombre"] .couverture-embleme[data-plaque-s="non"] { width: 50cqw; opacity: 0.9; }
         /* Le pied garde son blanc au-dessus même quand l'emblème remplit tout : la
            date ne se colle jamais au dessin. */
         .couverture-pied { margin-top: 4cqw; display: flex; flex-direction: column; align-items: center; }
@@ -678,10 +702,14 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
   const c = couvertureDe(e.couverture, e.id)
   // Le premier registre annonce le genre sous le nom de l’auteur ; les autres
   // servent au filtrage et n’ont pas leur place ici.
-  const categorie = e.categories?.[0] ?? null
-  // L’EMBLÈME, lui, ne suit pas forcément ce premier registre : l’auteur choisit
-  // lequel de ses registres illustre sa couverture (`essais.embleme`).
-  const categorieDessin = categorieEmblemeDe(e.categories, e.embleme)
+  // La catégorie écrite et l’emblème sont ceux de la CATÉGORIE PRINCIPALE, que
+  // l’auteur désigne (`essais.embleme`) : ils disent enfin la même chose.
+  const categorie = categoriePrincipale(e.categories, e.embleme)
+  const categorieDessin = categorie
+  // Sur un fond sombre, la gravure se pose sur une PLAQUE de l’encre de la
+  // couverture, et se dessine dans la couleur du fond : une gravure inversée (trait
+  // clair sur sombre) se lit en négatif, ses ombres devenant des lumières.
+  const plaque = fondSombre(c.fond), plaqueS = fondSombre(c.fondSombre)
   // Titre, sous-titre et résumé sont tapés par l’auteur dans un formulaire : ils
   // arrivent avec l’apostrophe droite et la ponctuation collée du clavier. La norme
   // s’applique AU RENDU (charte §3.2), jamais dans la donnée.
@@ -697,6 +725,10 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
       style={{
         '--couv-fond': c.fond, '--couv-encre': c.encre, '--couv-filet': c.filet,
         '--couv-fond-s': c.fondSombre, '--couv-encre-s': c.encreSombre, '--couv-filet-s': c.filetSombre,
+        // La plaque de l’emblème, pour chaque thème : sur fond sombre, l’encre fait la
+        // plaque et le fond fait le trait ; sur fond clair, pas de plaque.
+        '--couv-plaque': plaque ? c.encre : 'transparent', '--couv-trait': plaque ? c.fond : 'currentColor',
+        '--couv-plaque-s': plaqueS ? c.encreSombre : 'transparent', '--couv-trait-s': plaqueS ? c.fondSombre : 'currentColor',
       } as React.CSSProperties}>
     <Link href={`/essais/${e.id}`} className="couverture"
       style={{ background: 'var(--couv-fond)', color: 'var(--couv-encre)' }}
@@ -722,7 +754,8 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
           {sousTitre && <span className="couverture-soustitre">{sousTitre}</span>}
           {/* L'emblème est un ornement, pas une information : il double la catégorie,
               déjà écrite au-dessus, et n'a donc rien à annoncer. */}
-          <span className="couverture-embleme" aria-hidden="true">
+          <span className="couverture-embleme" aria-hidden="true"
+            data-plaque={plaque ? 'oui' : 'non'} data-plaque-s={plaqueS ? 'oui' : 'non'}>
             <svg viewBox="0 0 64 64" role="presentation">{emblemeDe(categorieDessin)}</svg>
           </span>
           <span className="couverture-pied">
