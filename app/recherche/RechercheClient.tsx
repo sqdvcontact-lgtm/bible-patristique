@@ -1072,15 +1072,21 @@ export default function RechercheClient() {
                 DANS le champ, rien autour, un filet en pied qui le sépare de ce qu'il
                 commande, et un fond léger au seul foyer. */}
             {/* Champ principal */}
-            <div data-visite="recherche-champ" style={{ position:'relative', width:'100%', borderBottom:'1px solid var(--cs-bord)' }}>
-              <input aria-label="Chercher un mot, une expression" ref={inputRef} value={query}
+            {/* ⛔ UN FORMULAIRE, ET UN BOUTON QUI SE VOIT (audit ergonomique 2026-09-21) :
+                Entrée n'était pas la seule voie à connaître, et le clavier d'un téléphone
+                affiche maintenant « Rechercher » (`role="search"`, `enterKeyHint`). */}
+            <form role="search" data-visite="recherche-champ"
+              onSubmit={e => { e.preventDefault(); setShowSugg(false); void lancer() }}
+              style={{ position:'relative', width:'100%', borderBottom:'1px solid var(--cs-bord)', display:'flex', alignItems:'center', gap:'8px' }}>
+              <div style={{ position:'relative', flex:1, minWidth:0 }}>
+              <input aria-label="Chercher un mot, une expression ou une référence" ref={inputRef} value={query}
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => {
-                  if (e.key === 'Enter') { setShowSugg(false); lancer() }
                   if (e.key === 'Escape') setShowSugg(false)
                 }}
                 onFocus={() => sugg.length > 0 && setShowSugg(true)}
-                placeholder="Chercher un mot, une expression…"
+                placeholder="Un mot, une expression ou Jn 3, 16…"
+                enterKeyHint="search"
                 autoFocus
                 /* Sans cela le navigateur pré-remplissait le champ avec une saisie passée
                    (« Am imp »…). `type=search` + autoComplete off + name neutre le coupent. */
@@ -1091,15 +1097,19 @@ export default function RechercheClient() {
                 spellCheck={false}
                 className="cs-volet-recherche"
                 style={{ fontSize:'0.84375rem', padding:'7px 26px 7px 0', color:'var(--cs-texte-fort)', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box' }} />
-              {query ? (
-                <button onClick={() => { setQuery(''); setSugg([]); setDone(false); setRequete(null); setRepartitionLivres([]); setRepartitionOeuvres([]); setEssaisRes([]); setShowSugg(false) }}
-                  style={{ position:'absolute', right:'2px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--cs-texte-faible)', fontSize:'1rem', lineHeight:1, padding:0 }} title="Effacer">×</button>
-              ) : (
-                <svg style={{ position:'absolute', right:'2px', top:'50%', transform:'translateY(-50%)', color:'var(--cs-bord)', pointerEvents:'none' }} width="15" height="15" viewBox="0 0 20 20" fill="none">
-                  <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.6"/>
-                  <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-                </svg>
+              {query && (
+                <button type="button" onClick={() => { setQuery(''); setSugg([]); setDone(false); setRequete(null); setRepartitionLivres([]); setRepartitionOeuvres([]); setEssaisRes([]); setShowSugg(false) }}
+                  style={{ position:'absolute', right:'2px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--cs-texte-faible)', fontSize:'1rem', lineHeight:1, padding:0 }} title="Effacer" aria-label="Effacer la saisie">×</button>
               )}
+              </div>
+              <button type="submit" disabled={!query.trim()}
+                style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:'5px', padding:'4px 10px', border:'1px solid var(--cs-bord)', borderRadius:'6px', background:'var(--cs-surface)', color:'var(--cs-vert-fonce)', fontSize:'0.75rem', fontWeight:600, cursor: query.trim() ? 'pointer' : 'default', opacity: query.trim() ? 1 : 0.55 }}>
+                <svg aria-hidden="true" width="13" height="13" viewBox="0 0 20 20" fill="none">
+                  <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.8"/>
+                  <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+                Chercher
+              </button>
               {showSugg && sugg.length > 0 && (
                 <ul ref={suggRef} style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, background:'var(--cs-surface)', border:'1px solid var(--cs-bord)', borderRadius:'8px', boxShadow:'var(--cs-ombre-flottante)', margin:0, padding:'5px 0 0', listStyle:'none', zIndex:100, maxHeight:'300px', overflowY:'auto' }}>
                   {sugg.map(s => (
@@ -1125,7 +1135,7 @@ export default function RechercheClient() {
                   </li>
                 </ul>
               )}
-            </div>
+            </form>
 
             {/* Contrôles, en colonne dans le volet */}
             <div style={{ display:'flex', flexDirection:'column', gap:'11px' }}>
