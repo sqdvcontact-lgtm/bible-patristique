@@ -323,7 +323,9 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
   const niveaux = [s.ref_niv1, s.ref_niv2, s.ref_niv3].filter(Boolean).join(', ')
 
   return (
-    <div style={{ paddingTop:'6px', paddingBottom:'4px', borderBottom:'1px solid var(--cs-fond-doux)' }}>
+    // ⚠️ La carte déborde de 6 px de chaque côté (marge négative rendue en rembourrage) :
+    // le fond du survol respire autour du texte, qui garde son fer.
+    <div className="pp-carte" style={{ padding:'10px 6px 9px', margin:'0 -6px', borderBottom:'1px solid var(--cs-fond-doux)' }}>
 
       {/* Ligne méta : auteur + titre + niveaux (gauche), badge + actions (droite) */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'6px' }}>
@@ -352,7 +354,7 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
               (décision de l'auteur, 21 septembre 2026). Les sous-onglets et les filtres la
               disent déjà. */}
         </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:'4px', alignItems:'flex-end', flexShrink:0 }}>
+        <div className="pp-actions" style={{ display:'flex', flexDirection:'column', gap:'4px', alignItems:'flex-end', flexShrink:0 }}>
           <div style={{ display:'flex', gap:'1px', alignItems:'center', justifyContent:'flex-end' }}>
             <BoutonEnregistrerSegment segment={s} info={info} userId={userId} />
             <BoutonCopieSegment
@@ -1545,6 +1547,14 @@ export default function PanneauPatristique({
         .pp-tag { display: inline-grid; align-items: center; justify-items: center; }
         .pp-tag > span { grid-area: 1 / 1; }
         .pp-tag::after { content: attr(data-label); grid-area: 1 / 1; font-weight: 600; visibility: hidden; white-space: nowrap; }
+        /* Une citation : un léger fond vert au survol, et ses actions (signet, copie,
+           signalement) n'y paraissent qu'alors (décision de l'auteur, 21 septembre 2026).
+           Au clavier, le foyer les montre ; au doigt, elles restent visibles. */
+        .pp-carte { transition: background-color 0.12s ease; }
+        .pp-carte:hover { background-color: rgba(var(--cs-vert-rgb), 0.05); }
+        .pp-actions { opacity: 0; transition: opacity 0.12s ease; }
+        .pp-carte:hover .pp-actions, .pp-carte:focus-within .pp-actions { opacity: 1; }
+        @media (hover: none) { .pp-actions { opacity: 1; } }
       `}</style>
       {!mobile && handleDrag && (
         <div onMouseDown={handleDrag} title="Glisser pour redimensionner"
