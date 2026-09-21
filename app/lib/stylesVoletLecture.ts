@@ -33,7 +33,7 @@ export const RUBRIQUE_AXE: CSSProperties = {
   fontSize: '0.59375rem',
   fontWeight: 600,
   letterSpacing: '0.06em',
-  color: 'var(--cs-texte-faible)',
+  color: 'var(--cs-texte-doux)',
   // ⚠️ 1 pixel, non 3 : une rubrique doit toucher la liste qu'elle coiffe. Le blanc
   // qui compte est celui qui SÉPARE les deux axes (6 pixels dans `NavLivres`) ; à
   // trois pixels de part et d'autre, les deux blancs se ressemblaient assez pour

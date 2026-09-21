@@ -455,7 +455,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         .peri-corps { min-width: 0; }
         .peri-titre { display: block; font-family: ${SERIF}; font-size: 0.875rem; font-weight: 500; color: var(--cs-encre-fonce); line-height: 1.26; transition: color 0.14s ease; }
         .peri-entree:hover .peri-titre, .peri-entree:focus-visible .peri-titre { color: ${VERT}; }
-        .peri-glose { margin-left: 6px; font-family: ${SERIF}; font-style: italic; font-size: 0.65625rem; font-weight: 400; color: var(--cs-texte-faible); }
+        .peri-glose { margin-left: 6px; font-family: ${SERIF}; font-style: italic; font-size: 0.65625rem; font-weight: 400; color: var(--cs-texte-doux); }
         .peri-l2 { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 2px; }
         /* La notice est bornée à deux lignes : la première phrase fait 118 signes en
            moyenne et tient donc sur une, mais quelques-unes débordent. */

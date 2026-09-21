@@ -144,7 +144,7 @@ export default function ModaleLivreAbsent({
           </p>
         ) : (
           <>
-            <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '17px 0 2px' }}>
+            <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '17px 0 2px' }}>
               On le lit dans
             </p>
             <div style={{ display: 'flex', flexDirection: 'column' }}>

@@ -424,7 +424,7 @@ export default function NavLivres({
           width: '100%', textAlign: 'left',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           ...(suggere ? { background: 'rgba(var(--cs-vert-rgb),0.12)' } : null),
-          ...(vide ? { color: 'var(--cs-texte-faible)' } : null),
+          ...(vide ? { color: 'var(--cs-texte-doux)' } : null),
           border: suggere ? '1px solid rgba(var(--cs-vert-rgb),0.30)' : '1px solid transparent',
           cursor: 'pointer', boxSizing: 'border-box',
           opacity: vide ? 0.55 : 1,
@@ -434,7 +434,7 @@ export default function NavLivres({
               l'Ancien Testament, et c'est elle seule qui les en distingue. */}
           <span>{livre.nom}{estLivreNonCanonique(livre.code) && <MarqueNonCanonique />}</span>
           {!vide && !sansChapitres && (
-            <span style={{ display: 'inline-flex', color: 'var(--cs-texte-faible)', flexShrink: 0, opacity: 0.75 }}>
+            <span style={{ display: 'inline-flex', color: 'var(--cs-texte-doux)', flexShrink: 0, opacity: 0.75 }}>
               <IconeChevron dir={ouvert ? 'up' : 'down'} size={9} strokeWidth={1.5} />
             </span>
           )}

@@ -881,7 +881,7 @@ function OptionVolet({ actif, onClick, libelle, nombre }: { actif: boolean; onCl
       <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px' }}>
         <span>{libelle}</span>
         {nombre !== undefined && (
-          <span style={{ fontSize: '0.625rem', color: actif ? 'var(--cs-texte-second)' : 'var(--cs-texte-faible)', fontVariantNumeric: 'tabular-nums' }}>{nombre}</span>
+          <span style={{ fontSize: '0.625rem', color: actif ? 'var(--cs-texte-second)' : 'var(--cs-texte-doux)', fontVariantNumeric: 'tabular-nums' }}>{nombre}</span>
         )}
       </span>
     </button>
@@ -963,7 +963,7 @@ function OngletMesEcrits({
         .ecrit-titre { font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-size: 0.875rem; font-weight: 500; color: var(--cs-encre); line-height: 1.3; text-decoration: none; }
         .ecrit-titre:hover { color: var(--cs-vert-fonce); }
         .ecrit-sous-titre { margin-left: 6px; font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-size: 0.75rem; color: var(--cs-texte-gris); }
-        .ecrit-meta { display: flex; flex-wrap: wrap; align-items: baseline; margin-top: 2px; font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.6875rem; color: var(--cs-texte-faible); }
+        .ecrit-meta { display: flex; flex-wrap: wrap; align-items: baseline; margin-top: 2px; font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.6875rem; color: var(--cs-texte-doux); }
         .ecrit-meta > span + span::before { content: "·"; margin: 0 6px; color: var(--cs-bord); }
 
         /* Les actions se tiennent en retrait tant qu'on ne les regarde pas, comme le
@@ -1156,7 +1156,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
             <button
               onClick={() => charger(versets)}
               disabled={!peutRelancer || chargement}
-              style={{ fontSize: '0.71875rem', color: peutRelancer ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: peutRelancer ? 'pointer' : 'default', padding: 0, textDecoration: peutRelancer && !chargement ? 'underline' : 'none', fontStyle: 'italic' }}>
+              style={{ fontSize: '0.71875rem', color: peutRelancer ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: peutRelancer ? 'pointer' : 'default', padding: 0, textDecoration: peutRelancer && !chargement ? 'underline' : 'none', fontStyle: 'italic' }}>
               {chargement ? 'Chargement…' : peutRelancer ? 'Autre suggestion' : 'Limite atteinte pour aujourd\'hui'}
             </button>
             <span style={{ fontSize: '0.625rem', color: 'var(--cs-bord)' }}>({versets.length}/{MAX_SUGGESTIONS_JOUR})</span>

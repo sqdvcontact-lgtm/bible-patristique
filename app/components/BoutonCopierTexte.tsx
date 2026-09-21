@@ -77,7 +77,7 @@ export default function BoutonCopierTexte({
 
   return (
     <button onClick={copier} title={libelle} aria-label={libelle} className={avecHoteEclat(className)}
-      style={{ ...style, color: copie ? 'var(--cs-vert)' : erreur ? 'var(--cs-danger)' : (style?.color ?? 'var(--cs-texte-faible)') }}>
+      style={{ ...style, color: copie ? 'var(--cs-vert)' : erreur ? 'var(--cs-danger)' : (style?.color ?? 'var(--cs-texte-doux)') }}>
       {erreur ? <span aria-hidden="true">!</span> : <IconeCopier />}
       <EclatCopie eclat={eclat} />
       {erreur ? <span>Réessayer</span> : null}

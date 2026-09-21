@@ -264,7 +264,7 @@ const DESSIN = `
 .hf-jeton--creux { background: color-mix(in srgb, var(--cs-texte) 5%, var(--cs-fond));
   border-color: color-mix(in srgb, var(--cs-texte) 9%, var(--cs-fond));
   box-shadow: inset 0 2px 5px rgba(0,0,0,0.07); }
-.hf-jeton--creux .hf-nom { color: var(--cs-texte-faible); }
+.hf-jeton--creux .hf-nom { color: var(--cs-texte-doux); }
 /* La seule case désignée du rayon vide : son filet prend l'encre de sa famille. */
 .hf-jeton--proche { border-color: currentColor; }
 .hf-jeton--proche .hf-nom { color: var(--cs-texte-second); }

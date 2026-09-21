@@ -173,7 +173,7 @@ export function ContenuDeLaNote({ contenu }: { contenu: NoteAffichee }) {
   const texte = terminerNote(contenu)
   return texte
     ? <>{rendreTexteEnrichi(texte)}</>
-    : <em style={{ color: 'var(--cs-texte-faible)' }}>Note indisponible</em>
+    : <em style={{ color: 'var(--cs-texte-doux)' }}>Note indisponible</em>
 }
 
 // ── L'ENCART D'UNE NOTE ───────────────────────────────────────────────────────

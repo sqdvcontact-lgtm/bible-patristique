@@ -128,7 +128,7 @@ export default function StatistiquesClient() {
           </div>
         )}
         {calculeLe && (
-          <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', textAlign: 'center', margin: '14px 0 0' }}>
+          <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', margin: '14px 0 0' }}>
             Classement calculé le {new Date(calculeLe).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}.
           </p>
         )}

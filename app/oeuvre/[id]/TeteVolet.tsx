@@ -126,9 +126,9 @@ export function BoutonVolet({ titre, onClick, children, refBouton, ...aria }: {
   return (
     <button ref={refBouton} type="button" onClick={onClick} title={titre} aria-label={titre}
       className="cs-bouton-volet" {...aria}
-      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, transition: 'color 0.15s' }}
+      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-doux)', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, transition: 'color 0.15s' }}
       onMouseEnter={e => { e.currentTarget.style.color = 'var(--cs-vert)' }}
-      onMouseLeave={e => { e.currentTarget.style.color = 'var(--cs-texte-faible)' }}>
+      onMouseLeave={e => { e.currentTarget.style.color = 'var(--cs-texte-doux)' }}>
       {children}
     </button>
   )
@@ -528,7 +528,7 @@ export function MenuVolet({ titre, actions }: { titre: string; actions: ActionVo
                 setOuvert(false)
                 a.onChoisir(ancre)
               }}>
-              <span aria-hidden="true" style={{ display: 'flex', flexShrink: 0, color: a.teinte ?? 'var(--cs-texte-faible)' }}>{a.icone}</span>
+              <span aria-hidden="true" style={{ display: 'flex', flexShrink: 0, color: a.teinte ?? 'var(--cs-texte-doux)' }}>{a.icone}</span>
               {a.libelle}
             </button>
           ))}

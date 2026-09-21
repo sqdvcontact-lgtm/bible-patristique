@@ -117,7 +117,7 @@ describe('géométrie des surfaces', () => {
       expect(style.background).toBe('none')
       expect(style.border).toBe('none')
     }
-    expect(actif.color).toBe('var(--cs-texte-faible)')
+    expect(actif.color).toBe('var(--cs-texte-doux)')
   })
 })
 

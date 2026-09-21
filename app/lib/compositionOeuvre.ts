@@ -28,7 +28,7 @@ export const CORPS_LECTURE = '0.8125rem'
  *  ⛔ Il s'efface dans un bloc de versets, où le numéro de VERSET prend sa place. */
 export const STYLE_NUMERO_SEGMENT: CSSProperties = {
   fontSize: '0.50rem',
-  color: 'var(--cs-texte-faible)',
+  color: 'var(--cs-texte-doux)',
   userSelect: 'none',
   marginRight: '2px',
   lineHeight: 1,
@@ -559,7 +559,7 @@ export function styleTitreNiveau(rang: RangTitreOeuvre): CSSProperties {
   // Rang 4 : le seul qui prenne la capitale, et le seul dont le sous-titre reste
   // sur la même ligne. C'est le rang des intertitres serrés d'un commentaire.
   return {
-    fontSize: '0.71875rem', fontWeight: 600, color: 'var(--cs-texte-faible)',
+    fontSize: '0.71875rem', fontWeight: 600, color: 'var(--cs-texte-doux)',
     letterSpacing: '0.10em', textTransform: 'uppercase',
     margin: '0.5rem 0 0.25rem', whiteSpace: 'pre-line',
   } as CSSProperties

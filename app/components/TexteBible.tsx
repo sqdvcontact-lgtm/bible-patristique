@@ -263,7 +263,7 @@ function BoutonEnregistrer({
          Même encre grise que la marque (reprise du 21 septembre 2026). */
       <button onClick={supprimer} disabled={loading}
         title="Retirer des prélèvements" className="bouton-action-verset"
-        style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-texte-faible)' }}
+        style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-texte-doux)' }}
         aria-label="Retirer des prélèvements">
         {loading ? '…' : <IconeSignet plein />}
       </button>
@@ -404,7 +404,7 @@ function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, va
           <p style={{ fontSize:'0.75rem', fontWeight:600, color:'var(--cs-attente)', margin:0 }}>
             Modifier {refCourt} de la {traductionLabel}
           </p>
-          <button type="button" onClick={onClose} aria-label="Fermer" style={{ fontSize:'0.875rem', color:'var(--cs-texte-faible)', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
+          <button type="button" onClick={onClose} aria-label="Fermer" style={{ fontSize:'0.875rem', color:'var(--cs-texte-doux)', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
         </div>
         <div style={{ display:'flex', gap:'6px', marginBottom:'8px', flexWrap:'wrap' }}>
           <button onMouseDown={gardeSel} onClick={() => commande('bold')} style={{ ...btnEd, fontWeight:700 }}>G</button>

@@ -275,7 +275,7 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
               </button>
             ))}
           </div>
-          <button onClick={demanderFermeture} style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+          <button onClick={demanderFermeture} style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>

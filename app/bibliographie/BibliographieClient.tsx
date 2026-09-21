@@ -346,7 +346,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
         .biblio-lien-lettre:hover:not(:disabled) { color: ${VERT}; text-decoration: underline; text-underline-offset: 3px; }
         /* Une lettre que le filtre a vidée reste à sa place, en pâle : la grille ne
            se recompose pas sous la main, et l'on voit ce que le filtre a écarté. */
-        .biblio-lien-lettre:disabled { color: var(--cs-texte-faible); cursor: default; opacity: 0.55; }
+        .biblio-lien-lettre:disabled { color: var(--cs-texte-doux); cursor: default; opacity: 0.55; }
         .biblio-lien-discret {
           background: none; border: none; padding: 4px 0; cursor: pointer;
           font-family: ${SERIF}; font-size: 0.6875rem; font-style: italic; color: var(--cs-texte-second);
@@ -497,7 +497,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
                     </div>
                   </div>
                 ))}
-                <p style={{ marginTop: '2.5rem', fontFamily: SERIF, fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <p style={{ marginTop: '2.5rem', fontFamily: SERIF, fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   Les librairies et collections où trouver ces ouvrages
                   <Link href="/librairies" style={{ color: 'var(--cs-vert)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                     sont réunies ici <IconeChevron dir="right" size={11} strokeWidth={1.5} />

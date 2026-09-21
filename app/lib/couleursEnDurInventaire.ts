@@ -96,7 +96,7 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'essais/[id]/EssaiClient.tsx': ['#e4c4a0'],
   'essais/EditeurEssai.tsx': ['#5b544c', '#7a5a30', '#a8564d', '#e8d5a0'],
   'essais/EssaisListeClient.tsx': ['#c8d8cc', '#fff', 'rgba(0,0,0,0)', 'rgba(120,110,96,0.06)', 'rgba(255,255,255,0)', 'rgba(40,30,15,0.18)', 'rgba(40,30,15,0.22)', 'rgba(40,30,15,0.40)', 'rgba(40,30,15,0.48)'],
-  'histoire/HistoireClient.tsx': ['#5a5044', '#7a6f61', '#7a746d', '#b7a06a', 'rgba(183,160,106,0.38)'],
+  'histoire/HistoireClient.tsx': ['#5a5044', '#7a6f61', '#7a746d', 'rgba(183,160,106,0.38)'],
   // ⛔ Un dégradé et une encre posés SUR UNE PHOTOGRAPHIE, non sur le sol du site.
   // Un jeton se retourne avec le thème ; une image, non. `var(--cs-fond)` valait le
   // crème au Clair et devenait le brun sombre en Cuir, c'est-à-dire du brun écrit sur

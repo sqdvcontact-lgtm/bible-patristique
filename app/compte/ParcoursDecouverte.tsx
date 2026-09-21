@@ -17,7 +17,7 @@ export default function ParcoursDecouverte(etat: EtatLecteur) {
       </p>
       {/* ⚠️ Le motif de l'avance se DIT. Nunes et Drèze : l'effet des cases déjà
           cochées disparaît quand on ne justifie pas pourquoi elles le sont. */}
-      <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', margin: '0 0 18px', lineHeight: 1.6, fontStyle: 'italic' }}>
+      <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', margin: '0 0 18px', lineHeight: 1.6, fontStyle: 'italic' }}>
         Les trois premiers sont acquis : vous les avez faits en vous inscrivant.
       </p>
 
@@ -38,7 +38,7 @@ export default function ParcoursDecouverte(etat: EtatLecteur) {
               {href && !fait ? (
                 <a href={href} style={{ fontSize: '0.8125rem', color: 'var(--cs-vert)', textDecoration: 'none', fontWeight: 500 }}>{libelle}</a>
               ) : (
-                <span style={{ fontSize: '0.8125rem', color: fait ? 'var(--cs-texte-faible)' : 'var(--cs-texte)' }}>{libelle}</span>
+                <span style={{ fontSize: '0.8125rem', color: fait ? 'var(--cs-texte-doux)' : 'var(--cs-texte)' }}>{libelle}</span>
               )}
               {/* La glose s'efface une fois le geste appris : elle enseigne, elle ne
                   décore pas. Gardée sur les dix lignes, elle ferait un mur. Les trois
@@ -48,7 +48,7 @@ export default function ParcoursDecouverte(etat: EtatLecteur) {
                 <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', margin: '2px 0 0', lineHeight: 1.5 }}>{glose}</p>
               )}
               {acquise && (
-                <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', margin: '1px 0 0', lineHeight: 1.45, fontStyle: 'italic' }}>{glose}</p>
+                <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', margin: '1px 0 0', lineHeight: 1.45, fontStyle: 'italic' }}>{glose}</p>
               )}
             </div>
           </li>

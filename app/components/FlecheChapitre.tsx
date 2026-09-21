@@ -44,7 +44,7 @@ export type CibleChapitre = {
 }
 
 const GABARITS: Readonly<Record<VarianteFlecheChapitre, { fontSize: string; padding: string | number; couleur: string }>> = {
-  entete: { fontSize: '1.25rem', padding: 0, couleur: 'var(--cs-texte-faible)' },
+  entete: { fontSize: '1.25rem', padding: 0, couleur: 'var(--cs-texte-doux)' },
   bandeau: { fontSize: '1.375rem', padding: '0 8px', couleur: 'var(--cs-texte-gris)' },
 }
 

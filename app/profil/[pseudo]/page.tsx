@@ -108,8 +108,8 @@ export default function ProfilPublicPage() {
   if (erreur) return (
     <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
-        <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', color: 'var(--cs-texte-faible)', marginBottom: '8px' }}>Profil introuvable</p>
-        <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-faible)' }}>@{pseudo}</p>
+        <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', color: 'var(--cs-texte-doux)', marginBottom: '8px' }}>Profil introuvable</p>
+        <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)' }}>@{pseudo}</p>
         <Link href="/" style={{ fontSize: '0.75rem', color: 'var(--cs-vert-fonce)', textDecoration: 'none', marginTop: '16px', display: 'inline-block' }}>← Accueil</Link>
       </div>
     </main>
@@ -385,7 +385,7 @@ export default function ProfilPublicPage() {
                     {e.titre}
                   </span>
                   {e.publie_at && (
-                    <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', flexShrink: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                    <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', flexShrink: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                       {new Date(e.publie_at).getFullYear()}
                     </span>
                   )}
@@ -397,7 +397,7 @@ export default function ProfilPublicPage() {
 
         {/* Rien de public */}
         {rienDePublic && (
-          <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', textAlign: 'center', paddingTop: '32px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+          <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', paddingTop: '32px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
             Ce profil ne partage pas encore d&apos;informations publiques.
           </p>
         )}

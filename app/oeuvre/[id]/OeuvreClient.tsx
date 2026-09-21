@@ -448,7 +448,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
             onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(22.5rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 22px 10px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Proposer un lien biblique</p>
-              <button onClick={() => setOuvert(false)} style={{ fontSize: '0.875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
+              <button onClick={() => setOuvert(false)} style={{ fontSize: '0.875rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
             </div>
             <div className="cs-defilement-discret" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '0 22px' }}>
             {statut === 'ok' ? (
@@ -466,7 +466,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 
                 {selection && versets.length > 0 && (
                   <div style={{ marginTop: '8px', padding: '8px 10px', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-fond-doux)', borderRadius: '4px' }}>
-                    <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 4px' }}>{libelleTypeLien(selection.champ)}</p>
+                    <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 4px' }}>{libelleTypeLien(selection.champ)}</p>
                     {versets.map(v => (
                       <p key={v.id} style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-fort)', margin: '2px 0 0', lineHeight: 1.4 }}>{v.label}</p>
                     ))}
@@ -3602,7 +3602,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            ⚠️ Exposant à la manière de la maison (voir siecles.tsx) : line-height 0 et
            calage par top, jamais vertical-align:super, qui gonfle la boîte de ligne —
            et le blanc entre versets, qui est léger, s'en trouverait rouvert. */
-        .num-verset { font-size: 0.71em; font-weight: 600; color: var(--cs-texte-faible); line-height: 0; vertical-align: baseline; position: relative; top: -0.5em; margin-right: 0.25em; user-select: none; }
+        .num-verset { font-size: 0.71em; font-weight: 600; color: var(--cs-texte-doux); line-height: 0; vertical-align: baseline; position: relative; top: -0.5em; margin-right: 0.25em; user-select: none; }
         .texte-original { color: var(--cs-original); font-family: var(--font-source-serif), Georgia, serif; }
         .para-bilingue > .texte-original { font-family: var(--font-source-sans), Arial, sans-serif; }
         @media(max-width: 980px){
@@ -3621,7 +3621,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            garde son second rang par le corps et l'italique. ⚠️ Aucune couleur en ligne sur
            le lien : elle battrait ces règles. */
         .lien-meme-auteur { color: var(--cs-texte); transition: color 0.12s; }
-        .lien-meme-auteur .lien-meme-auteur-edition { color: var(--cs-texte-faible); transition: color 0.12s; }
+        .lien-meme-auteur .lien-meme-auteur-edition { color: var(--cs-texte-doux); transition: color 0.12s; }
         .lien-meme-auteur:hover, .lien-meme-auteur:focus-visible,
         .lien-meme-auteur:hover .lien-meme-auteur-edition,
         .lien-meme-auteur:focus-visible .lien-meme-auteur-edition { color: var(--cs-vert); }
@@ -3759,7 +3759,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           ⚠️ C'est le seul écart avec le volet de la Bible, et il est motivé :
                           « Latin » vise une AUTRE adresse, donc un rendu serveur entier, quand
                           les axes de la Bible se règlent le plus souvent sur place. */}
-                      <span aria-hidden="true" style={{ width: '0.6rem', textAlign: 'right', color: 'var(--cs-texte-faible)', opacity: attend ? 1 : 0, transition: 'opacity 0.12s' }}>…</span>
+                      <span aria-hidden="true" style={{ width: '0.6rem', textAlign: 'right', color: 'var(--cs-texte-doux)', opacity: attend ? 1 : 0, transition: 'opacity 0.12s' }}>…</span>
                     </button>
                   )
                 })}
@@ -3930,11 +3930,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           <button type="button" onClick={() => setOpusculesOuverts(o => !o)} aria-expanded={deployee}
                             title={deployee ? 'Replier les opuscules' : 'Les textes brefs de cet auteur'}
                             style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '0.3125rem 0', textAlign: 'left' }}>
-                            <span style={{ display: 'inline-flex', color: 'var(--cs-texte-faible)' }}>
+                            <span style={{ display: 'inline-flex', color: 'var(--cs-texte-doux)' }}>
                               <IconeChevron dir={deployee ? 'down' : 'right'} size={11} strokeWidth={1.4} />
                             </span>
                             <span style={{ fontSize: '0.6875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)' }}>Opuscules</span>
-                            <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)' }}>{opuscules.length}</span>
+                            <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)' }}>{opuscules.length}</span>
                           </button>
                           {deployee && lignes(opuscules)}
                         </div>
@@ -4132,7 +4132,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               }}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0 2px 16px' }}>
                               <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-doux)', display: 'block', lineHeight: 1.3, ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n3)}</span>
-                              {n3txt && configNiveaux.txtSommaire[2] && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', display: 'block', lineHeight: 1.2, ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n3txt)}</span>}
+                              {n3txt && configNiveaux.txtSommaire[2] && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.2, ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n3txt)}</span>}
                             </button>
                           )
                         })}
@@ -4295,9 +4295,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     {estAdmin && niv1Actif !== NIV1_LIMINAIRES && (() => { const g = groupes[0] ?? { niv1: niv1Actif, niv2: '', niv3: '', niv4: '', anchor: '', itemIds: [] }; return (
                       <div style={{ position: 'absolute', right: '-52px', top: '2px', display: 'flex', gap: '3px', alignItems: 'center' }}>
                         <button onClick={() => setEditionCible(cibleTitre(1, g, false, niv1Actif))}
-                          title="Modifier le titre" style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}><IconeCrayon size={12} /></button>
+                          title="Modifier le titre" style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}><IconeCrayon size={12} /></button>
                         <button onClick={() => setEditionCible(cibleTitre(1, g, true, g.niv1_texte ?? ''))}
-                          title="Modifier le sous-titre" style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1, fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
+                          title="Modifier le sous-titre" style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1, fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                       </div>
                     )})()}
                   </>
@@ -4529,9 +4529,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '-52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible(cibleTitre(2, groupe, false, groupe.niv2))}
-                            title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
+                            title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible(cibleTitre(2, groupe, true, groupe.niv2_texte ?? ''))}
-                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                         </div>
                       )}
                     </div>
@@ -4543,9 +4543,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '-52px', top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible(cibleTitre(3, groupe, false, groupe.niv3))}
-                            title="Modifier le titre" style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
+                            title="Modifier le titre" style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible(cibleTitre(3, groupe, true, groupe.niv3_texte ?? ''))}
-                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                         </div>
                       )}
                     </div>
@@ -4557,9 +4557,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       {estAdmin && (
                         <span style={{ position: 'absolute', right: '-52px', top: 0, display: 'inline-flex', gap: '3px', alignItems: 'center', textTransform: 'none' }}>
                           <button onClick={() => setEditionCible(cibleTitre(4, groupe, false, groupe.niv4))}
-                            title="Modifier le titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
+                            title="Modifier le titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible(cibleTitre(4, groupe, true, groupe.niv4_texte ?? ''))}
-                            title="Modifier le sous-titre" style={{ fontSize: '0.5rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.5rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
                         </span>
                       )}
                     </h5>
@@ -4914,7 +4914,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           {sousTitre1 && <p style={styleSousTitreNiveau(1)}>{rendreTitreColophonAvecNotes(rendu('niv1_texte', sousTitre1), notesTitre)}</p>}
                           {estAdmin && (
                             <button onClick={() => setEditionCible(cibleTitre(1, groupe, true, groupe.niv1_texte || groupe.niv1))}
-                              title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '0.6875rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
+                              title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           )}
                         </div>
                       )}
@@ -5075,7 +5075,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             {/* ⛔ ELLE NE PARAÎT PLUS SUR TÉLÉPHONE : elle y regardait à DROITE, vers un
                 rail de BUREAU qui n’existe pas là. C’est la barre du bas qui ferme. */}
             {!mobile && <button onClick={() => setPanneauOuvert(false)} title="Réduire le panneau" aria-label="Réduire le panneau"
-              style={{ position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 1, minWidth: '24px', padding: '0 6px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-faible)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              style={{ position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 1, minWidth: '24px', padding: '0 6px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-doux)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <IconeChevron dir="right" size={14} strokeWidth={1.5} />
             </button>}
             <OngletsPage
@@ -5328,7 +5328,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
             {estAdmin && (
               <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" aria-label="Modifier ce segment"
-                style={{ ...BTN_STYLE, color: 'var(--cs-texte-faible)' }}><IconeCrayon size={12} /></button>
+                style={{ ...BTN_STYLE, color: 'var(--cs-texte-doux)' }}><IconeCrayon size={12} /></button>
             )}
           </CelluleActions>
         )
@@ -5416,7 +5416,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(25rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 22px 12px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Niveaux d'affichage</p>
-              <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+              <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
             </div>
             {/* `minHeight: 0` est ce qui autorise un enfant de flexbox à devenir plus court
                 que son contenu : sans lui, le corps refuse de rétrécir et la carte déborde
@@ -5511,7 +5511,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               )
             })}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.10em', color: 'var(--cs-texte-faible)', margin: 0, textTransform: 'uppercase' }}>Numéros de segments</p>
+              <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.10em', color: 'var(--cs-texte-doux)', margin: 0, textTransform: 'uppercase' }}>Numéros de segments</p>
               <button onClick={() => setConfigNiveaux(prev => ({ ...prev, afficherNumeros: !prev.afficherNumeros }))}
                 style={{ fontSize: '0.6875rem', padding: '4px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: configNiveaux.afficherNumeros ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: configNiveaux.afficherNumeros ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', cursor: 'pointer' }}>
                 {configNiveaux.afficherNumeros ? 'Affichés' : 'Masqués'}

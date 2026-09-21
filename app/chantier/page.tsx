@@ -449,7 +449,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
            de mouvement. */
         .cs-suite { display: inline-flex; align-items: center; justify-content: center;
                     margin-top: 1.25rem; width: 2.75rem; height: 2.75rem; padding: 0;
-                    border: none; background: none; color: var(--cs-texte-faible); cursor: pointer;
+                    border: none; background: none; color: var(--cs-texte-doux); cursor: pointer;
                     border-radius: 50%; transition: color 0.2s ease;
                     animation: cs-suite-bob 2.4s ease-in-out infinite; }
         .cs-suite:hover { color: var(--cs-lacune); }

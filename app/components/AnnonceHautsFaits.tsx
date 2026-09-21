@@ -228,7 +228,7 @@ export function CorpsAnnonce({ annonce, onFermer }: { annonce: Annonce; onFermer
                   background: 'color-mix(in srgb, var(--cs-texte) 5%, var(--cs-fond))',
                   border: '1px solid color-mix(in srgb, var(--cs-texte) 9%, var(--cs-fond))',
                   boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.07)',
-                  color: 'var(--cs-texte-faible)',
+                  color: 'var(--cs-texte-doux)',
                 }),
           }}>
           <span style={{

@@ -289,7 +289,7 @@ export default function OngletNotes({
           <section key={groupe.cle}>
             <p style={{ ...RUBRIQUE_AXE, margin: '12px 0 4px' }}>
               {plusieursTextes && (
-                <span style={{ color: 'var(--cs-texte-faible)' }}>{groupe.source.libelle} · </span>
+                <span style={{ color: 'var(--cs-texte-doux)' }}>{groupe.source.libelle} · </span>
               )}
               {(groupe.division && rendreIntituleDeSommaire(groupe.division)) || 'Sans division'}
             </p>

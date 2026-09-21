@@ -75,7 +75,7 @@ function Inspection({ champs }: { champs: [string, ReactNode][] }) {
     <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '1px 8px', margin: '6px 0 0', fontSize: '0.5625rem', lineHeight: 1.4, color: 'var(--cs-texte-second)', fontVariantNumeric: 'tabular-nums' }}>
       {pleins.map(([k, v]) => (
         <div key={k} style={{ display: 'contents' }}>
-          <dt style={{ color: 'var(--cs-texte-faible)' }}>{k}</dt>
+          <dt style={{ color: 'var(--cs-texte-doux)' }}>{k}</dt>
           <dd style={{ margin: 0, overflowWrap: 'anywhere' }}>{v}</dd>
         </div>
       ))}

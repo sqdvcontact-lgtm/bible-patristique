@@ -533,7 +533,7 @@ function ListeFrise({ items, mobile, toutesNotes, recherche, liensParEvenement, 
               position: 'sticky', top: HAUTEUR_NAVBAR, zIndex: 2, margin: 0,
               padding: '9px 0 5px', background: FOND,
               fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700,
-              letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)',
+              letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)',
             }}>
               {t.nom}
             </h2>
@@ -600,7 +600,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
   // Colonnes date et famille : chacune sur UNE ligne (troncature discrète si trop long,
   // le texte entier restant accessible en infobulle).
   const dateCol = (
-    <div title={dateTexte} style={{ fontFamily: SERIF, fontSize: '0.75rem', color: '#b7a06a', lineHeight: 1.35, fontVariantNumeric: 'tabular-nums', textAlign: mobile ? 'left' : 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+    <div title={dateTexte} style={{ fontFamily: SERIF, fontSize: '0.75rem', color: 'var(--cs-date)', lineHeight: 1.35, fontVariantNumeric: 'tabular-nums', textAlign: mobile ? 'left' : 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
       <HistoricalDate value={e.date_affichage} variant="short" />
     </div>
   )
@@ -665,7 +665,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
           remonter son origine avant son événement principal quelle que soit l'année. */}
       {afficheNotice && places.map(pl => (
         <div key={pl.code} style={{ marginTop: '6px' }}>
-          <p style={{ margin: 0, fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>
+          <p style={{ margin: 0, fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>
             {pl.titre} · {pl.rang} sur {pl.total}{pl.role ? ` · ${pl.role}` : ''}
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px', marginTop: '2px' }}>
@@ -685,7 +685,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
           trente nœuds, et elle ne dirait rien de plus que la phrase. */}
       {afficheNotice && liens.length > 0 && (
         <div style={{ marginTop: '6px' }}>
-          <p style={{ margin: 0, fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>Autour</p>
+          <p style={{ margin: 0, fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>Autour</p>
           <ul style={{ listStyle: 'none', margin: '2px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {liens.map((l, i) => (
               <li key={`${l.autreId}-${i}`} style={{ fontFamily: SERIF, fontSize: '0.71875rem', lineHeight: 1.35, color: 'var(--cs-texte-second)' }}>

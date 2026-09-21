@@ -727,7 +727,7 @@ export default function RechercheClient() {
     const piste = { margin:'0 0 6px' } as const
     return (
       <div style={{ marginTop:'24px', textAlign:'center', fontSize:'0.75rem', color:'var(--cs-texte-second)' }}>
-        <p style={{ color:'var(--cs-texte-faible)', fontStyle:'italic', margin:'0 0 14px' }}>{texte}</p>
+        <p style={{ color:'var(--cs-texte-doux)', fontStyle:'italic', margin:'0 0 14px' }}>{texte}</p>
         {q && (
           <div style={{ display:'inline-block', textAlign:'left', maxWidth:'34rem' }}>
             {filtreActif && (
@@ -941,13 +941,13 @@ export default function RechercheClient() {
         .sigles { display:inline-flex; gap:4px; flex-wrap:wrap; align-items:baseline; }
         .sigle { font-size:0.5625rem; font-weight:600; letter-spacing:0.03em; line-height:1.55; padding:0 4px; border-radius:4px; color:var(--cs-texte-doux); background:color-mix(in srgb, var(--fam) 12%, var(--cs-surface)); }
         .sigle--affichee { color:var(--fam); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--fam) 34%, var(--cs-surface)); }
-        .sigle--absente { color:var(--cs-texte-faible); background:transparent; text-decoration:line-through; }
+        .sigle--absente { color:var(--cs-texte-doux); background:transparent; text-decoration:line-through; }
         /* Lignes de répartition cliquables (filtre par livre / œuvre / publication). */
         .brk-row { display:flex; align-items:baseline; justify-content:space-between; gap:8px; width:100%; text-align:left; border:none; background:transparent; cursor:pointer; padding:2px 6px; border-radius:4px; font-size:0.6875rem; color:var(--cs-texte-second); line-height:1.4; font-family:inherit; transition:background 0.1s; }
         .brk-row:hover { background:color-mix(in srgb, var(--fam) 10%, var(--cs-surface)); }
         .brk-row--actif { background:color-mix(in srgb, var(--fam) 15%, var(--cs-surface)); color:var(--fam); font-weight:600; }
         .brk-row--actif:hover { background:color-mix(in srgb, var(--fam) 21%, var(--cs-surface)); }
-        .brk-count { flex-shrink:0; font-size:0.59375rem; color:var(--cs-texte-faible); font-variant-numeric:tabular-nums; }
+        .brk-count { flex-shrink:0; font-size:0.59375rem; color:var(--cs-texte-doux); font-variant-numeric:tabular-nums; }
         .brk-row--actif .brk-count { color:var(--fam); }
         /* ── Onglets VERTICAUX du volet gauche ──
            Une pastille carrée devant chaque libellé donne la clef du code de couleurs :
@@ -962,7 +962,7 @@ export default function RechercheClient() {
         .ong-vert--actif { background:color-mix(in srgb, var(--fam) 11%, var(--cs-surface)); color:var(--fam); font-weight:600; }
         .ong-vert .lib { display:flex; align-items:center; gap:8px; min-width:0; line-height:1.25; }
         .ong-vert .pastille { width:7px; height:7px; flex-shrink:0; border-radius:4px; background:var(--fam); }
-        .ong-count { flex-shrink:0; font-size:0.625rem; font-weight:400; color:var(--cs-texte-faible); font-variant-numeric:tabular-nums; }
+        .ong-count { flex-shrink:0; font-size:0.625rem; font-weight:400; color:var(--cs-texte-doux); font-variant-numeric:tabular-nums; }
         .ong-vert--actif .ong-count { color:var(--fam); }
         .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:999px; background:var(--cs-surface); color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
         .pag-btn:hover:not(:disabled) { background:var(--cs-vert-aplat); color:var(--cs-sur-aplat); border-color:var(--cs-vert-aplat); }
@@ -1111,7 +1111,7 @@ export default function RechercheClient() {
               <h1 style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:TITRE_VOLET, fontWeight:GRAISSE_TITRE_VOLET, color:ENCRE_TITRE, margin:0, lineHeight:1.2 }}>Recherche</h1>
               {done && (() => {
                 const total = versetsTotal + segmentsTotal + essaisRes.length
-                return <span style={{ fontSize:'0.65625rem', color:'var(--cs-texte-faible)', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
+                return <span style={{ fontSize:'0.65625rem', color:'var(--cs-texte-doux)', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
               })()}
             </div>
 
@@ -1149,7 +1149,7 @@ export default function RechercheClient() {
                 style={{ fontSize:'0.84375rem', padding:'7px 26px 7px 0', color:'var(--cs-texte-fort)', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box' }} />
               {query && (
                 <button type="button" onClick={() => { setQuery(''); setSugg([]); setDone(false); setRequete(null); setRepartitionLivres([]); setRepartitionOeuvres([]); setEssaisRes([]); setShowSugg(false) }}
-                  style={{ position:'absolute', right:'2px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--cs-texte-faible)', fontSize:'1rem', lineHeight:1, padding:0 }} title="Effacer" aria-label="Effacer la saisie">×</button>
+                  style={{ position:'absolute', right:'2px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--cs-texte-doux)', fontSize:'1rem', lineHeight:1, padding:0 }} title="Effacer" aria-label="Effacer la saisie">×</button>
               )}
               </div>
               <button type="submit" disabled={!query.trim()}
@@ -1169,7 +1169,7 @@ export default function RechercheClient() {
                       onMouseEnter={e => (e.currentTarget.style.background='var(--cs-fond)')}
                       onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
                       <span>{s.mot}</span>
-                      {s.freq > 0 && <span style={{ fontSize:'0.625rem', color:'var(--cs-texte-faible)' }}>{s.freq}</span>}
+                      {s.freq > 0 && <span style={{ fontSize:'0.625rem', color:'var(--cs-texte-doux)' }}>{s.freq}</span>}
                     </li>
                   ))}
                   {/* Tout rechercher : lance la recherche par DÉBUT DE MOT sur ce qui est
@@ -1286,7 +1286,7 @@ export default function RechercheClient() {
                         Reprendre ma recherche
                         <span style={{ color:'var(--cs-texte-doux)', fontStyle:'italic' }}> {rechercheSauvee.query}</span>
                       </span>
-                      {rechercheSauvee.ts ? <span style={{ flexShrink:0, color:'var(--cs-texte-faible)', fontStyle:'italic', fontSize:'0.59375rem' }}>{formatDateCourt(rechercheSauvee.ts)}</span> : null}
+                      {rechercheSauvee.ts ? <span style={{ flexShrink:0, color:'var(--cs-texte-doux)', fontStyle:'italic', fontSize:'0.59375rem' }}>{formatDateCourt(rechercheSauvee.ts)}</span> : null}
                     </button>
                   )}
                 </div>
@@ -1312,7 +1312,7 @@ export default function RechercheClient() {
                         l'état actif et la ligne filtrée en dérivent tous par `color-mix`. */}
                     <button className={`ong-vert${actif ? ' ong-vert--actif' : ''}`} style={styleFamille(o.k)} onClick={()=>setOnglet(o.k)}>
                       <span className="lib"><span className="pastille" aria-hidden="true" />{o.label}</span>
-                      <span className="ong-count">{o.n > 0 ? o.n : <span style={{ fontWeight: 400, color: 'var(--cs-texte-faible)' }} title="Aucune occurrence" aria-label="Aucune occurrence">∅</span>}</span>
+                      <span className="ong-count">{o.n > 0 ? o.n : <span style={{ fontWeight: 400, color: 'var(--cs-texte-doux)' }} title="Aucune occurrence" aria-label="Aucune occurrence">∅</span>}</span>
                     </button>
                     {/* Répartition détaillée sous l'onglet actif : livres (Bible/Polyglotte),
                         œuvres (Pères), publications (communauté), avec le nombre d'occurrences.
@@ -1444,7 +1444,7 @@ export default function RechercheClient() {
             )}
             {loading && (
               <div style={{ textAlign:'center', marginTop:'80px' }}>
-                <p style={{ fontSize:'0.8125rem', color:'var(--cs-texte-faible)', fontStyle:'italic' }}>Recherche en cours…</p>
+                <p style={{ fontSize:'0.8125rem', color:'var(--cs-texte-doux)', fontStyle:'italic' }}>Recherche en cours…</p>
               </div>
             )}
             {/* Une panne se DIT, et propose de réessayer : un échec rendu « aucun
@@ -1538,7 +1538,7 @@ export default function RechercheClient() {
                               <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
                                 {texteMontre
                                   ? rendreEtSurligner(texteMontre, marque)
-                                  : <span style={{ color:'var(--cs-texte-faible)', fontStyle:'italic' }}>Ce verset n’existe pas dans {labelDisplay}.</span>}
+                                  : <span style={{ color:'var(--cs-texte-doux)', fontStyle:'italic' }}>Ce verset n’existe pas dans {labelDisplay}.</span>}
                               </p>
                             </a>
                           )
@@ -1710,7 +1710,7 @@ export default function RechercheClient() {
               <button className="pag-btn" disabled={pageActive===0} style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}
                 onMouseDown={()=>demarrerDefilement(-1)} onMouseUp={arreterDefilement} onMouseLeave={arreterDefilement}
                 onTouchStart={e=>{e.preventDefault();demarrerDefilement(-1)}} onTouchEnd={arreterDefilement}><IconeChevron dir="left" size={12} />Précédent</button>
-              <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-faible)' }}>{debut}–{fin} <span style={{ color:'var(--cs-bord)' }}>sur</span> {totalActive}</span>
+              <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-doux)' }}>{debut}–{fin} <span style={{ color:'var(--cs-bord)' }}>sur</span> {totalActive}</span>
               <button className="pag-btn" disabled={pageActive>=pagesTotal-1} style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}
                 onMouseDown={()=>demarrerDefilement(1)} onMouseUp={arreterDefilement} onMouseLeave={arreterDefilement}
                 onTouchStart={e=>{e.preventDefault();demarrerDefilement(1)}} onTouchEnd={arreterDefilement}>Suivant<IconeChevron dir="right" size={12} /></button>

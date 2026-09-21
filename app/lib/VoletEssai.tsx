@@ -52,7 +52,7 @@ function EditeurNoteWysiwyg({ valeur, mode, onChange, onEnregistrer }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <style>{`.note-zone:empty:before { content: attr(data-placeholder); color: var(--cs-texte-faible); font-style: italic; }`}</style>
+      <style>{`.note-zone:empty:before { content: attr(data-placeholder); color: var(--cs-texte-doux); font-style: italic; }`}</style>
       {/* Barre d'enrichissement : agit sur la sélection, dans la zone même. */}
       <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => commande('bold')} title="Gras" style={{ ...BTN_NOTE, fontWeight: 700 }}>G</button>
@@ -148,7 +148,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
         <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>
           {!elementActif ? 'Notes et citations' : elementActif.type === 'note' ? 'Note' : elementActif.type === 'verset' ? 'Référence biblique' : 'Référence patristique'}
         </span>
-        {elementActif && !toujoursVisible && <button onClick={onFermer} style={{ background: 'none', border: 'none', color: 'var(--cs-texte-faible)', cursor: 'pointer', fontSize: '0.875rem' }}>×</button>}
+        {elementActif && !toujoursVisible && <button onClick={onFermer} style={{ background: 'none', border: 'none', color: 'var(--cs-texte-doux)', cursor: 'pointer', fontSize: '0.875rem' }}>×</button>}
       </div>
 
       {!elementActif ? (

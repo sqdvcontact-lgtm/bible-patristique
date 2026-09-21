@@ -73,7 +73,7 @@ export const STYLE_TITRE: React.CSSProperties = {
 /** Où l'on en est. ⚠️ Le total ne compte que les étapes qui ont un sujet à l'écran :
  *  une visite ne promet pas ce qu'elle ne montrera pas. */
 export const STYLE_COMPTEUR: React.CSSProperties = {
-  flexShrink: 0, fontSize: '0.65625rem', color: 'var(--cs-texte-faible)',
+  flexShrink: 0, fontSize: '0.65625rem', color: 'var(--cs-texte-doux)',
   fontVariantNumeric: 'tabular-nums',
 }
 

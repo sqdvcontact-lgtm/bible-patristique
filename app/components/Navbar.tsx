@@ -1380,7 +1380,7 @@ export default function Navbar() {
           </div>
 
           {rechercheRapideLoading && pericopes.length === 0 && !pericopesLoading && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && essaisTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && evenementsTrouves.length === 0 ? (
-            <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-faible)", textAlign: "center", padding: "11px 12px", margin: 0 }}>…</p>
+            <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-doux)", textAlign: "center", padding: "11px 12px", margin: 0 }}>…</p>
           ) : aucunResultat ? (
             <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-doux)", fontStyle: "italic", textAlign: "center", padding: "11px 12px", margin: 0 }}>Aucun résultat — Entrée pour une recherche complète.</p>
           ) : (
@@ -1483,9 +1483,9 @@ export default function Navbar() {
                       );
                     })
                   ) : pericopesLoading ? (
-                    <p className="rr-vide" style={{ color: "var(--cs-texte-faible)", fontStyle: "normal" }}>…</p>
+                    <p className="rr-vide" style={{ color: "var(--cs-texte-doux)", fontStyle: "normal" }}>…</p>
                   ) : pericopesErreur ? (
-                    <p className="rr-vide" style={{ color: "var(--cs-texte-faible)" }}>Recherche de péricopes momentanément indisponible.</p>
+                    <p className="rr-vide" style={{ color: "var(--cs-texte-doux)" }}>Recherche de péricopes momentanément indisponible.</p>
                   ) : (
                     <p className="rr-vide">Aucune péricope trouvée.</p>
                   )}
@@ -2134,7 +2134,7 @@ export default function Navbar() {
              consultées ». Les deux menus le portaient à deux tailles et deux approches
              différentes ; une seule mesure désormais. La COULEUR, elle, reste au menu :
              chaque famille d'administration a la sienne, quand les œuvres gardent le gris. */
-          .cs-plus-titre { font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--cs-texte-faible); padding: 6px 12px 2px; margin: 0; }
+          .cs-plus-titre { font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--cs-texte-doux); padding: 6px 12px 2px; margin: 0; }
           /* Familles d'administration : l'intertitre prend la couleur du domaine (posée
              en ligne), et un filet de la même couleur borde chaque entrée. */
           .cs-admin-fam { opacity: 0.9; }

@@ -235,7 +235,7 @@ function BoutonEnregistrerSegment({ segment, info, userId }: {
   if (idPrelev) {
     return (
       <button onClick={supprimer} disabled={loading} title="Retirer des prélèvements"
-        className="cs-bouton-fin" style={{ ...ACTION_BTN, color:'var(--cs-texte-faible)' }}>
+        className="cs-bouton-fin" style={{ ...ACTION_BTN, color:'var(--cs-texte-doux)' }}>
         {loading ? '…' : <IconeSignet plein />}
       </button>
     )
@@ -463,7 +463,7 @@ const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
 // ⚠️ Demande de l'auteur (21 septembre 2026) : ∅ remplace « Aucune occurrence » sous tous
 // les onglets. Il prend le corps du compte et l'encre faible, et dit la mention en toutes
 // lettres au survol et aux lecteurs d'écran.
-const STYLE_COMPTE_NUL: React.CSSProperties = { fontWeight: 400, color: 'var(--cs-texte-faible)' }
+const STYLE_COMPTE_NUL: React.CSSProperties = { fontWeight: 400, color: 'var(--cs-texte-doux)' }
 
 function LigneCompte({ enAttente, compte, style, videDit }: {
   enAttente: boolean
@@ -773,14 +773,14 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
               rien dire. Le chiffre paraît au premier vote. */}
           <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
             <button onClick={() => basculerVote(c, 1)} title="J'aime"
-              style={{ display:'flex', alignItems:'center', gap:'3px', color: c.monVote === 1 ? 'var(--cs-vert)' : 'var(--cs-texte-faible)', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
+              style={{ display:'flex', alignItems:'center', gap:'3px', color: c.monVote === 1 ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
               <svg width="12" height="12" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
               {c.nbLikes > 0 && <span style={{ fontWeight:600, fontSize:'0.625rem' }}>{c.nbLikes}</span>}
             </button>
             <button onClick={() => basculerVote(c, -1)} title="Je n'aime pas"
-              style={{ display:'flex', alignItems:'center', gap:'3px', color: c.monVote === -1 ? 'var(--cs-danger-fonce)' : 'var(--cs-texte-faible)', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
+              style={{ display:'flex', alignItems:'center', gap:'3px', color: c.monVote === -1 ? 'var(--cs-danger-fonce)' : 'var(--cs-texte-doux)', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
               <svg width="12" height="12" viewBox="0 0 20 20" fill="none" style={{ transform:'rotate(180deg)' }} aria-hidden="true">
                 <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
@@ -867,7 +867,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
               style={{ width:'100%', fontSize:'0.71875rem', padding:'4px 7px', borderRadius:'4px', border:`1px solid ${erreur && !nom.trim() ? 'var(--cs-danger)' : 'var(--cs-bord)'}`, background:'var(--cs-surface)', color:'var(--cs-texte-fort)', outline:'none', boxSizing:'border-box' }} />
             <input aria-label="Adresse électronique" type="email" value={mail} onChange={e => setMail(e.target.value)} placeholder="Adresse e-mail *"
               style={{ width:'100%', fontSize:'0.71875rem', padding:'4px 7px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', outline:'none', boxSizing:'border-box' }} />
-            <p style={{ fontSize:'0.625rem', color:'var(--cs-texte-faible)', margin:0 }}>* L’adresse e-mail ne sera pas publiée.</p>
+            <p style={{ fontSize:'0.625rem', color:'var(--cs-texte-doux)', margin:0 }}>* L’adresse e-mail ne sera pas publiée.</p>
           </>
         )}
         {erreur && <p style={{ fontSize:'0.65625rem', color:'var(--cs-danger)', margin:0 }}>{erreur}</p>}
@@ -1667,7 +1667,7 @@ export default function PanneauPatristique({
                 <span style={{ fontSize:'0.65625rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: ongletAffiche === t.code ? 600 : 400, textAlign: 'center', lineHeight: 1.15 }}>{t.label}</span>
                 {/* ⛔ Une ligne de compte, toujours, et d'une hauteur écrite : voir `LigneCompte`. */}
                 <LigneCompte enAttente={t.enAttente} compte={t.count} videDit="∅"
-                  style={{ fontSize: '0.625rem', lineHeight: 1, height: '1em', fontWeight: 500, color: ongletAffiche === t.code ? 'var(--cs-vert)' : 'var(--cs-texte-faible)' }} />
+                  style={{ fontSize: '0.625rem', lineHeight: 1, height: '1em', fontWeight: 500, color: ongletAffiche === t.code ? 'var(--cs-vert)' : 'var(--cs-texte-doux)' }} />
               </button>
             ))}
           </div>
@@ -1714,7 +1714,7 @@ export default function PanneauPatristique({
                           }}>
                           <span>{label}</span>
                           <LigneCompte enAttente={enAttente} compte={nb} videDit="∅"
-                            style={{ fontSize: '0.5625rem', lineHeight: 1.2, height: '1.2em', color: sousOnglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-faible)' }} />
+                            style={{ fontSize: '0.5625rem', lineHeight: 1.2, height: '1.2em', color: sousOnglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-doux)' }} />
                         </button>
                       ))}
                     </div>

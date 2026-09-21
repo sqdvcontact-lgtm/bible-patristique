@@ -132,7 +132,7 @@ const STYLE_REFERENCE = {
   textAlign: 'right' as const,
   fontSize: '0.625rem',
   fontWeight: 600,
-  color: 'var(--cs-texte-faible)',
+  color: 'var(--cs-texte-doux)',
   whiteSpace: 'nowrap' as const,
 }
 

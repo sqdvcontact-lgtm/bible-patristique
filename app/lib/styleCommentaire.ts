@@ -98,7 +98,7 @@ export const NOM_COMMENTAIRE: CSSProperties = {
 }
 
 export const DATE_COMMENTAIRE: CSSProperties = {
-  fontSize: '0.625rem', color: 'var(--cs-texte-faible)',
+  fontSize: '0.625rem', color: 'var(--cs-texte-doux)',
   whiteSpace: 'nowrap', flexShrink: 0, marginLeft: 'auto',
 }
 

@@ -146,7 +146,7 @@ function BlocVersets({ vs, ctx }: { vs: VersetPericope[]; ctx: CtxActions }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr) auto', columnGap: '10px', alignItems: 'start' }}>
               {/* Numéro centré verticalement sur la PREMIÈRE ligne du verset (boîte à la hauteur
                   d'une ligne, contenu centré) — plutôt qu'aligné sur la ligne de base. */}
-              <span style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 600, color: 'var(--cs-texte-faible)', minWidth: '1.1rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: 'calc(0.875rem * 1.55)', lineHeight: 1 }}>{v.verset}</span>
+              <span style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 600, color: 'var(--cs-texte-doux)', minWidth: '1.1rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: 'calc(0.875rem * 1.55)', lineHeight: 1 }}>{v.verset}</span>
               {/* ⚠️ Justifié, donc césuré : c'est ainsi que le site compose partout
                   ailleurs un verset (`.citation-verset`, `.segment-texte`). Ce
                   paragraphe-ci était le seul de la page à justifier sans césure, quand
@@ -456,7 +456,7 @@ export default function PericopePage() {
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '9px', marginBottom: '7px', paddingBottom: '4px', borderBottom: `1px solid ${SEP}` }}>
                   <span style={{ fontFamily: SERIF, fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-encre)' }}>{formaterPlageCanonique(o.canon_id_debut, o.canon_id_fin)}</span>
                   {o.est_principale && <span style={{ fontFamily: SANS, fontSize: '0.53125rem', letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--cs-vert)' }}>principale</span>}
-                  {o.fiabilite && <span style={{ fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>{o.fiabilite}</span>}
+                  {o.fiabilite && <span style={{ fontFamily: SANS, fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{o.fiabilite}</span>}
                 </div>
               )}
               {texteLoading ? (
@@ -483,7 +483,7 @@ export default function PericopePage() {
 
       {/* Informations */}
       <section>
-        <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 8px' }}>Informations</p>
+        <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 8px' }}>Informations</p>
         <dl style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: '7px' }}>
           {categorie && <LigneInfo label="Registre">{categorie}{peri.est_collection ? ' · Ensemble' : ''}</LigneInfo>}
           {principale && <LigneInfo label="Référence">{formaterPlageCanonique(principale.canon_id_debut, principale.canon_id_fin)}</LigneInfo>}
@@ -495,7 +495,7 @@ export default function PericopePage() {
         </dl>
         {occurrences.length > 1 && (
           <div style={{ marginTop: '10px' }}>
-            <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 5px' }}>Occurrences</p>
+            <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 5px' }}>Occurrences</p>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {occurrences.map(o => (
                 <li key={o.id} style={{ fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-texte)', display: 'flex', alignItems: 'baseline', gap: '7px' }}>
@@ -510,14 +510,14 @@ export default function PericopePage() {
 
       {/* Options : choix de la traduction (menu déroulant) */}
       <section style={{ borderTop: `1px solid ${SEP}`, paddingTop: '14px' }}>
-        <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 8px' }}>Traduction</p>
+        <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 8px' }}>Traduction</p>
         <SelecteurTraduction trad={trad} setTrad={setTrad} />
       </section>
 
       {/* Notices — toutes les catégories rédigées, denses, suivies des notes bibliographiques. */}
       {(peri.notice || peri.notice_contexte || peri.notice_exegetique || peri.notice_theologique || peri.notice_tradition) && (
         <section style={{ borderTop: `1px solid ${SEP}`, paddingTop: '14px' }}>
-          <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 8px' }}>Notice</p>
+          <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 8px' }}>Notice</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {peri.notice && (
               <p style={{ fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte)', lineHeight: 1.4, textAlign: 'justify', hyphens: 'auto', wordSpacing: '-0.03em', letterSpacing: '-0.01em', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(peri.notice))}</p>
@@ -529,7 +529,7 @@ export default function PericopePage() {
               { label: 'Réception et tradition', v: peri.notice_tradition },
             ] as const).filter(b => b.v).map(b => (
               <div key={b.label}>
-                <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 3px' }}>{b.label}</p>
+                <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 3px' }}>{b.label}</p>
                 <p style={{ fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.4, textAlign: 'justify', hyphens: 'auto', wordSpacing: '-0.03em', letterSpacing: '-0.01em', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(b.v as string))}</p>
               </div>
             ))}
@@ -549,7 +549,7 @@ export default function PericopePage() {
           que rien d'externe n'atteste ne paraît pas ici (voir app/lib/provenanceNoms.ts). */}
       {attestations.length > 0 && (
         <section style={{ borderTop: `1px solid ${SEP}`, paddingTop: '14px' }}>
-          <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 10px' }}>Attestation des noms</p>
+          <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 10px' }}>Attestation des noms</p>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '13px' }}>
             {attestations.map(n => (
               <li key={n.nomId}>
@@ -561,7 +561,7 @@ export default function PericopePage() {
                 <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {n.liens.map((l, i) => (
                     <li key={`${l.source.code}-${i}`} style={{ borderLeft: `2px solid ${SEP}`, paddingLeft: '8px' }}>
-                      <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 3px' }}>
+                      <p style={{ fontFamily: SANS, fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 3px' }}>
                         {libelleDuLien(l)}
                       </p>
                       <div style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.4 }}>
@@ -622,7 +622,7 @@ export default function PericopePage() {
           nom se rangeaient sinon au hasard de la déduplication. */}
       {groupesBiblio.length > 0 && (
         <section style={{ borderTop: `1px solid ${SEP}`, paddingTop: '14px' }}>
-          <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', margin: '0 0 10px' }}>Bibliographie</p>
+          <p style={{ fontFamily: SANS, fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 10px' }}>Bibliographie</p>
           <ul className={`${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.sansHote} ${CLASSES_BIBLIOGRAPHIE.liste}`}>
             {(() => {
               const vus = new Set<string>()
@@ -648,7 +648,7 @@ export default function PericopePage() {
               return (
                 <li key={r.ouvrage_id ?? `libre-${i}`} className={CLASSES_BIBLIOGRAPHIE.entree}>
                   <ReferenceBibliographique notice={notice} />
-                  {pages && <span style={{ color: 'var(--cs-texte-faible)' }}> {typo(pages)}</span>}
+                  {pages && <span style={{ color: 'var(--cs-texte-doux)' }}> {typo(pages)}</span>}
                 </li>
               )
             })}

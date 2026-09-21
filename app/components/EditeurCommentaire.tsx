@@ -252,7 +252,7 @@ export default function EditeurCommentaire({ value, onChange, placeholder = 'Vot
         .cs-outil-editeur:hover { background: rgba(var(--cs-vert-rgb),0.08) !important; color: var(--cs-texte-fort) !important; }
         [contenteditable][data-placeholder]:empty::before {
           content: attr(data-placeholder);
-          color: var(--cs-texte-faible);
+          color: var(--cs-texte-doux);
           font-style: italic;
         }
       `}</style>

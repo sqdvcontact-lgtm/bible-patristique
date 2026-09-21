@@ -116,13 +116,18 @@
   --cs-bord-rgb: 214, 208, 196;
   --cs-bord-clair: #e4dfd8;
   /* Texte — échelle de gris chauds, du plus ténu au corps */
+  /* ⛔ --cs-texte-faible est un rang d'ORNEMENT (filets, séparateurs, puces) : il ne
+     porte plus de texte (2,35 sur la carte). Le texte ténu prend --cs-texte-doux, monté
+     à 4,50 sur la carte (décision de l'auteur, 2026-09-21, audit d'ergonomie). */
   --cs-texte-faible: #b0a89e;
-  --cs-texte-doux: #9a958d;
+  --cs-texte-doux: #7b766f;
   /* Le barreau qui manquait à l'échelle. Il était écrit en dur 80 fois dans 40 fichiers,
      à 46 du token le plus proche : ce n'était pas un doublon, c'était un rang que le code
      avait créé tout seul, par usage, pour la prose explicative. On le nomme plutôt que de
      le rabattre : un token de plus vaut mieux qu'une teinte déplacée dans quarante fichiers. */
-  --cs-texte-gris: #8a8278;
+  /* Réespacé le 2026-09-21 : 5,00 sur la carte, un cran net entre doux (4,50) et
+     --cs-texte-second (5,74). Même teinte et même chroma OKLCH, seule la clarté descend. */
+  --cs-texte-gris: #766e65;
   --cs-texte-second: #6b6560;
   --cs-texte: #3a3530;
   --cs-texte-fort: #2a2520;
@@ -160,11 +165,13 @@
   --cs-lecture-survol: rgba(var(--cs-vert-rgb), 0.07);
   --cs-lecture-retenu: rgba(var(--cs-vert-rgb), 0.13);
   /* Danger & alerte (rouges-orangés d'action destructive) */
-  --cs-danger: #c0562a;
-  --cs-danger-rgb: 192, 86, 42;
+  /* 4,52 sur le fond de page, où paraissent les messages d'échec (4,16 avant le
+     2026-09-21) ; même teinte, même chroma. L'aplat, lui, reste à #c0562a. */
+  --cs-danger: #b95023;
+  --cs-danger-rgb: 185, 80, 35;
   --cs-danger-fonce: #9a2a2a;
   /* L aplat du danger : la pastille de notifications, qui porte du blanc. Au Clair
-     il vaut exactement --cs-danger, donc rien n y bouge ; en Cuir il
+     il garde la valeur d avant le 2026-09-21 (--cs-danger a foncé, lui), donc rien n y bouge ; en Cuir il
      descend quand l encre monte. */
   --cs-danger-aplat: #c0562a;
   --cs-danger-fond: #fdf2ee;
@@ -191,12 +198,13 @@
      dit l'absence d'un témoin. Aucun ne convenait, d'où ce terre de Sienne dédié. */
   --cs-attente: #9a5a2a;
   /* Or — accent doré (références, fleurons, favoris) */
-  --cs-or: #9a7a38;
+  /* 4,51 sur la carte (2026-09-21 ; 4,03 avant). */
+  --cs-or: #91722f;
   /* Composantes de l'or, pour ses variantes translucides : `rgba(var(--cs-or-rgb), α)`.
      Elles manquaient, si bien que cinq encadrements dorés recopiaient la teinte à la
      main et restaient donc en dur — le même défaut que la page des prélèvements avait
      déjà corrigé de son côté, faute d'un nom où se ranger. */
-  --cs-or-rgb: 154, 122, 56;
+  --cs-or-rgb: 145, 114, 47;
   --cs-or-doux: #c8b89e;
   /* L'or LISIBLE : l'or quand il porte un TEXTE. --cs-or ne rend que 3,67 sur le papier
      (3,80 sur le papier clair, 3,37 sous un lavis d'or), sous les 4,5 d'un texte courant ;
@@ -223,7 +231,7 @@
      ils rendent 6,17 et 4,43 sur le brun, soit un pas de 1,39. C'est la colonne
      d'une fiche, non son corps de texte : elle se lit d'un coup d'œil, elle
      n'appelle pas. */
-  --cs-date: #b7a06a;
+  --cs-date: #8a743f; /* 4,52 sur la carte, 2026-09-21 (#b7a06a avant, 2,55) */
   --cs-date-douce: #c8b89e;
   /* Familles de la navbar. « Corpus » prend le vert, « Communauté » l'or ; « Système &
      doctrine » n'avait pas de teinte à lui et portait le seul bleu du site, écrit en dur,
@@ -418,7 +426,7 @@
   /* Libellé chaud en petites capitales (« RÉCIT », « Chapitre 3 ») : un tan discret
      qui n'existait dans aucune famille — d'où son token dédié (valeur claire =
      l'actuelle, pour que le Clair ne bouge pas). */
-  --cs-etiquette: #9e8e6a;
+  --cs-etiquette: #857552; /* 4,50 sur la carte, 2026-09-21 (#9e8e6a avant, 3,22) */
   /* Encre du texte en LANGUE ORIGINALE composé en regard du français (Bible bilingue,
      colonne latine d'une œuvre). Une teinte à part, plus effacée que le corps sans être
      un gris de service : elle vaut 65 % du contraste du corps, et les trois thèmes
@@ -3509,7 +3517,7 @@ html[data-lasso-geste] * {
   transition: background 0.14s;
 }
 .cs-volet-recherche::placeholder {
-  color: var(--cs-texte-faible);
+  color: var(--cs-texte-doux);
   opacity: 1; /* Firefox l'abaisse à 0,54 : la teinte est déjà choisie. */
 }
 .cs-volet-recherche:focus {
@@ -3777,7 +3785,7 @@ main.lecture-entree [data-cs-bloc],
 }
 /* Le chapitre s'efface derrière le verset : les deux sont là, mais l'œil qui
    parcourt la colonne accroche le numéro qui change. */
-.poly-lettrine-ch { font-weight: 400; color: var(--cs-texte-faible); }
+.poly-lettrine-ch { font-weight: 400; color: var(--cs-texte-doux); }
 /* L'étui d'un numéro fait EXACTEMENT une ligne de texte : le flottant ne repousse
    donc qu'une ligne, et deux versets partageant un créneau en repoussent deux.
    ⛔ Il porte le STRUT DE LA CELLULE — police sérif, interligne de la cellule — et

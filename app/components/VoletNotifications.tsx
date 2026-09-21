@@ -134,7 +134,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
                 Tout archiver
               </button>
             )}
-            <button onClick={onFermer} aria-label="Fermer" className="cs-cible-fine" style={{ background: 'none', border: 'none', color: 'var(--cs-texte-faible)', cursor: 'pointer', fontSize: '0.9375rem', lineHeight: 1, padding: 0 }}>✕</button>
+            <button onClick={onFermer} aria-label="Fermer" className="cs-cible-fine" style={{ background: 'none', border: 'none', color: 'var(--cs-texte-doux)', cursor: 'pointer', fontSize: '0.9375rem', lineHeight: 1, padding: 0 }}>✕</button>
           </div>
         </div>
 
@@ -145,7 +145,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
           ]).map(o => (
             <button key={o.key} onClick={() => setOnglet(o.key)}
               style={{ padding: '8px 12px', fontSize: '0.71875rem', fontWeight: onglet === o.key ? 600 : 400, color: onglet === o.key ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', background: 'transparent', border: 'none', borderBottom: onglet === o.key ? '2px solid var(--cs-vert)' : '2px solid transparent', cursor: 'pointer' }}>
-              {o.label}<span style={{ marginLeft: '5px', fontSize: '0.5625rem', color: 'var(--cs-texte-faible)' }}>{o.count > 0 ? `(${o.count})` : <span title="Aucune notification" aria-label="Aucune notification">∅</span>}</span>
+              {o.label}<span style={{ marginLeft: '5px', fontSize: '0.5625rem', color: 'var(--cs-texte-doux)' }}>{o.count > 0 ? `(${o.count})` : <span title="Aucune notification" aria-label="Aucune notification">∅</span>}</span>
             </button>
           ))}
         </div>

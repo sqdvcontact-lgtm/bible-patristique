@@ -32,7 +32,7 @@ export default function MarqueNonCanonique({ taille = '0.5625rem' }: { taille?: 
         fontWeight: 400,
         fontStyle: 'normal',
         letterSpacing: '0.04em',
-        color: 'var(--cs-texte-faible)',
+        color: 'var(--cs-texte-doux)',
         whiteSpace: 'nowrap',
         verticalAlign: 'baseline',
       }}

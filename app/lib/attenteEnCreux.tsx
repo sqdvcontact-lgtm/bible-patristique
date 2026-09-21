@@ -31,7 +31,7 @@ import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
  */
 export const MOT_ATTENTE: CSSProperties = {
   fontSize: '0.8125rem',
-  color: 'var(--cs-texte-faible)',
+  color: 'var(--cs-texte-doux)',
   fontStyle: 'italic',
   animation: 'cs-attente-paraitre 0.3s ease-out 0.45s both',
 }

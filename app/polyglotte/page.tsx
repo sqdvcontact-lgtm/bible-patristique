@@ -622,7 +622,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
       <div ref={boite} role="dialog" aria-modal="true" aria-label={`Modifier ${reference}`} onClick={e => e.stopPropagation()} style={{ background: "var(--cs-surface)", borderRadius: 8, padding: "18px 20px", width: 520, maxWidth: "100%", boxShadow: "var(--cs-ombre-modale)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
           <p style={{ margin: 0, fontSize: '0.78125rem', fontWeight: 600, color: VERT }}>Modifier — {reference}</p>
-          <button onClick={onFermer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: '0.9375rem', color: "var(--cs-texte-faible)", lineHeight: 1, padding: 0 }}>✕</button>
+          <button onClick={onFermer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: '0.9375rem', color: "var(--cs-texte-doux)", lineHeight: 1, padding: 0 }}>✕</button>
         </div>
         <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap", alignItems: "center" }}>
           <button onClick={() => entourer("**", "**")} title="Gras" style={{ ...outil, fontWeight: 700 }}>G</button>
@@ -641,7 +641,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
           style={{ width: "100%", boxSizing: "border-box", fontSize: '0.84375rem', lineHeight: 1.5, fontFamily: "var(--font-source-serif), Georgia, serif", padding: "9px 11px", border: "1px solid var(--cs-bord)", borderRadius: 4, background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", resize: "vertical" }} />
         {/* Aperçu en direct : l'apparence enrichie du verset, telle qu'elle s'affichera. */}
         <div style={{ marginTop: 8 }}>
-          <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: "var(--cs-texte-faible)" }}>Aperçu</span>
+          <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: "var(--cs-texte-doux)" }}>Aperçu</span>
           <div style={{ marginTop: 3, minHeight: "2.4em", fontSize: '0.84375rem', lineHeight: 1.55, fontFamily: "var(--font-source-serif), Georgia, serif", color: "var(--cs-texte-fort)", padding: "8px 11px", border: "1px solid var(--cs-fond-doux)", borderRadius: 4, background: "var(--cs-surface)" }}>
             {valeur.trim() ? texteEnrichi(valeur) : <span style={{ color: "var(--cs-bord)", fontStyle: "italic" }}>—</span>}
           </div>
@@ -702,7 +702,7 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
   return (
     <button onClick={basculer} title={saved ? "Retirer de mes citations" : "Ajouter à mes citations"} className="poly-act"
       onMouseEnter={() => setSurvol(true)} onMouseLeave={() => setSurvol(false)}
-      style={{ ...ACT_BTN, color: montrerCroix ? "var(--cs-danger)" : saved ? VERT : "var(--cs-texte-faible)" }}
+      style={{ ...ACT_BTN, color: montrerCroix ? "var(--cs-danger)" : saved ? VERT : "var(--cs-texte-doux)" }}
       aria-label={saved ? "Retirer de mes citations" : "Ajouter à mes citations"}>
       {busy ? "…" : montrerCroix ? "✕" : <IconeSignet plein={!!saved} />}
     </button>
@@ -726,7 +726,7 @@ function BoutonSignalerVerset({ refLisible, texte }: { refLisible: string; texte
   return (
     <>
       <button onClick={e => { e.stopPropagation(); if (exigerCompte("signaler une erreur")) setOuvert(true); }} title="Signaler une erreur" className="poly-act"
-        style={{ ...ACT_BTN, color: "var(--cs-texte-faible)" }} aria-label="Signaler"><IconeSignalement /></button>
+        style={{ ...ACT_BTN, color: "var(--cs-texte-doux)" }} aria-label="Signaler"><IconeSignalement /></button>
       {ouvert && <ModalSignalement titre={refLisible} texteObjet={texte || undefined} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   );
@@ -2309,7 +2309,7 @@ export default function PolyglottePage() {
               {/* Même bouton « réduire » que la page Bible et les pages d'œuvre : nu, sans
                   cadre, chevron discret. */}
               <button onClick={() => setVoletReduit(true)} title="Rabattre le volet" aria-label="Rabattre le volet"
-                style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: "3px", color: "var(--cs-texte-faible)", display: "flex", alignItems: "center" }}>
+                style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: "3px", color: "var(--cs-texte-doux)", display: "flex", alignItems: "center" }}>
                 <IconeChevron dir="left" size={14} strokeWidth={1.5} />
               </button>
             </div>
@@ -2488,7 +2488,7 @@ export default function PolyglottePage() {
                     /* Colonne ouverte : toute la cellule est cliquable ; au survol, « Notes »
                        laisse place à « Fermer ». */
                     <button onClick={() => setNotesReduites(true)} title="Fermer la colonne Notes" className="poly-notes-head"
-                      style={{ background: "none", border: "none", cursor: "pointer", width: "100%", height: "100%", padding: 0, position: "relative", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cs-texte-faible)" }}>
+                      style={{ background: "none", border: "none", cursor: "pointer", width: "100%", height: "100%", padding: 0, position: "relative", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cs-texte-doux)" }}>
                       <span className="lbl-notes" style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.53125rem", fontWeight: 700, letterSpacing: "0.16em", textIndent: "0.16em", textTransform: "uppercase" }}>Notes</span>
                       <span className="lbl-fermer" style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.53125rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--cs-texte-second)" }}>
                         Fermer
@@ -2702,7 +2702,7 @@ export default function PolyglottePage() {
                           case vide, et un point corrigé garde tout son pouvoir d'explication
                           quand il a cessé d'être une tâche. */}
                       <div title={estAdmin && desc ? desc : undefined} className="poly-marge-ref"
-                        style={{ color: signaler ? ROUGE : ligneVide ? 'var(--cs-texte-faible)' : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : undefined }}>
+                        style={{ color: signaler ? ROUGE : ligneVide ? 'var(--cs-texte-doux)' : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : undefined }}>
                         <span>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</span>
                       </div>
                       {slotCols.map((sc, i) => {

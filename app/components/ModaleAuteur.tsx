@@ -225,7 +225,7 @@ export function FriseAuteur({ evenements, oeuvreEnRelief = null }: { evenements:
 function DetailChrono({ label, children }: { label?: string; children: ReactNode }) {
   return (
     <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.59375rem', lineHeight: 1.3, letterSpacing: '-0.005em', color: 'var(--cs-texte-gris)', margin: '0 0 2px', textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto' } as CSSProperties}>
-      {label && <span style={{ color: 'var(--cs-texte-faible)' }}>{label} : </span>}{children}
+      {label && <span style={{ color: 'var(--cs-texte-doux)' }}>{label} : </span>}{children}
     </p>
   )
 }
@@ -447,9 +447,9 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
                 <CelluleDate cellule={datesAbsentes[rang]} precision={o.date_composition_precision_affichage} encre="var(--cs-date-douce)" encreVide="var(--cs-date-douce)" />
                 {/* Œuvre répertoriée mais pas encore disponible : estompée, non cliquable. */}
                 <span className="cs-fiche-oeuvre--absente" title="Œuvre répertoriée, pas encore disponible" style={{ lineHeight: 1.38 }}>
-                  <span style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-texte-faible)' }}>{o.titre}</span>
+                  <span style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-texte-doux)' }}>{o.titre}</span>
                   <MentionCoAuteurs auteurs={o.auteurs} />
-                  <span style={{ marginLeft: '7px', fontSize: '0.53125rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)' }}>répertoriée</span>
+                  <span style={{ marginLeft: '7px', fontSize: '0.53125rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>répertoriée</span>
                 </span>
               </li>
             ))}
@@ -570,7 +570,7 @@ export default function ModaleAuteur({ id, onClose }: { id: string | null; onClo
   return (
     <ModaleFiche titreId={titreId} libelle="À propos de cet auteur" onFermer={onClose}>
       {erreur ? (
-        <p style={{ fontFamily: SERIF, fontSize: '1rem', color: 'var(--cs-texte-faible)', textAlign: 'center', margin: '30px 0' }}>Auteur introuvable</p>
+        <p style={{ fontFamily: SERIF, fontSize: '1rem', color: 'var(--cs-texte-doux)', textAlign: 'center', margin: '30px 0' }}>Auteur introuvable</p>
       ) : !auteur || auteur.id_auteur !== id ? (
         <MotAttente centre marge="30px 0" />
       ) : (

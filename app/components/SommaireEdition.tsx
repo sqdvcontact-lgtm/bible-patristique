@@ -77,7 +77,7 @@ export default function SommaireEdition({ pieces, pieceActive, onOuvrir }: {
             {nouvellePortee && (
               <div style={{
                 padding: rang === 0 ? '2px 0 4px' : `${BLANC_AVANT_PORTEE} 0 4px`, fontSize: '0.5625rem',
-                fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-faible)',
+                fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)',
               }}>
                 {piece.portee}
               </div>

@@ -163,7 +163,7 @@ export const STYLE_NUMERO_VERSET: CSSProperties = {
   paddingRight: '0.4375rem',
   fontSize: '0.625rem',
   fontWeight: 600,
-  color: 'var(--cs-texte-faible)',
+  color: 'var(--cs-texte-doux)',
   lineHeight: 1.40,
   whiteSpace: 'nowrap',
   // ⛔ Relevé sur la CAPITALE de la première ligne, non posé sur sa ligne de base
@@ -197,7 +197,7 @@ export const STYLE_SIGNET_VERSET: CSSProperties = {
   // et une marge de 0,15 em font l'écart, environ 3,5 px à la racine 16.
   marginLeft: '-0.975em',
   marginRight: '0.15em',
-  color: 'var(--cs-texte-faible)',
+  color: 'var(--cs-texte-doux)',
   lineHeight: 0,
 }
 
@@ -205,7 +205,7 @@ export const STYLE_SIGNET_VERSET: CSSProperties = {
 export const STYLE_NUMERO_ALTERNATIF: CSSProperties = {
   fontWeight: 400,
   fontStyle: 'italic',
-  color: 'var(--cs-texte-faible)',
+  color: 'var(--cs-texte-doux)',
 }
 
 /** Le texte du verset. Justifié sur écran large, au fer sur mobile. */
@@ -306,7 +306,7 @@ export function styleDensiteVerset(): CSSProperties {
     marginLeft: `${ECART_MARQUE_DENSITE_REM}rem`,
     fontSize: '0.5625rem',
     lineHeight: 1.2,
-    color: 'var(--cs-texte-faible)',
+    color: 'var(--cs-texte-doux)',
     fontVariantNumeric: 'tabular-nums',
     // ⚠️ À neuf pixels, deux chiffres collés se lisent comme un seul nombre plus grand.
     letterSpacing: '0.02em',

@@ -139,7 +139,7 @@ export default function ConversationPage() {
             {pseudo}
             {mecene && <>{' '}<MarqueMecene /></>}
           </Link>
-          <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', margin: '1px 0 0', letterSpacing: '0.04em' }}>
+          <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', margin: '1px 0 0', letterSpacing: '0.04em' }}>
             Conversation privée
           </p>
         </div>
@@ -152,7 +152,7 @@ export default function ConversationPage() {
         ) : messages === null ? (
           <MotAttente centre />
         ) : messages.length === 0 ? (
-          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', marginTop: '40px' }}>
+          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', marginTop: '40px' }}>
             Début de votre conversation avec {pseudo}.
           </p>
         ) : (
@@ -178,7 +178,7 @@ export default function ConversationPage() {
                     {m.contenu}
                   </div>
                   {(!sameMinute || i === messages.length - 1) && (
-                    <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-faible)', margin: '2px 4px 0' }}>
+                    <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-doux)', margin: '2px 4px 0' }}>
                       {heure(m.created_at)}
                       {m.de_moi && (
                         <span style={{ marginLeft: '4px', color: m.lu ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>

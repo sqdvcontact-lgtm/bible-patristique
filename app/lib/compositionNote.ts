@@ -883,7 +883,7 @@ const FACE_NUMERO: CSSProperties = {
   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
   fontSize: CORPS_NUMERO_TETE,
   fontWeight: 600,
-  color: 'var(--cs-texte-faible)',
+  color: 'var(--cs-texte-doux)',
   userSelect: 'none',
 }
 
@@ -950,7 +950,7 @@ export const STYLE_INTITULE_ENCART: CSSProperties = {
   fontWeight: 700,
   letterSpacing: '0.09em',
   textTransform: 'uppercase',
-  color: 'var(--cs-texte-faible)',
+  color: 'var(--cs-texte-doux)',
   // ⛔ UNE TÊTE PEUT PRENDRE DEUX LIGNES (14 septembre 2026). Une note peut porter
   // plusieurs responsabilités, et la tête nomme celles que la note ne signe pas elle-même
   // (charte § 13.12.1) : écrêtée, « Note de l'édition et de Corpus Scriptura » taisait
@@ -984,7 +984,7 @@ export const STYLE_FERMER_ENCART: CSSProperties = {
   cursor: 'pointer',
   // ⛔ `#b0a08a` était écrit en dur dans deux des trois encarts, et gelé au
   // registre des couleurs en dur. Le jeton le remplace, et le registre décroît.
-  color: 'var(--cs-texte-faible)',
+  color: 'var(--cs-texte-doux)',
   fontSize: '0.9375rem',
   lineHeight: 1,
   padding: '0 2px',

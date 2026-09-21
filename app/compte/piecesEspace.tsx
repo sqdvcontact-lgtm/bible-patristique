@@ -221,7 +221,7 @@ export const FEUILLE_ESPACE = `
 .esp-pages { margin: 0 0 14px; padding-bottom: 12px;
   border-bottom: 1px solid var(--cs-bord-clair); }
 .esp-rubrique { display: block; font-size: 0.59375rem; font-weight: 600; letter-spacing: 0.06em;
-  color: var(--cs-texte-faible); margin: 0 0 1px; }
+  color: var(--cs-texte-doux); margin: 0 0 1px; }
 .esp-groupe + .esp-groupe { margin-top: 14px; }
 .esp-lien { display: block; width: calc(100% + 14px); margin: 0 -7px; box-sizing: border-box;
   padding: 2px 7px; border-radius: 4px; font-size: 0.71875rem; line-height: 1.3;
@@ -258,7 +258,7 @@ export const FEUILLE_ESPACE = `
 }
 .esp-rangee > label, .esp-etiquette { font-size: 0.625rem; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--cs-texte-doux); padding-top: 7px; }
-.esp-note { display: block; font-size: 0.625rem; color: var(--cs-texte-faible);
+.esp-note { display: block; font-size: 0.625rem; color: var(--cs-texte-doux);
   font-style: italic; margin-top: 3px; line-height: 1.5; }
 .esp-fixe { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.875rem;
   color: var(--cs-texte-fort); }

@@ -193,7 +193,7 @@ function renderSegmentTexte(texte: string, notes: NoteStructuree[]) {
       const note = parNumero.get(appel)
       appels.push(note
         ? <AppelNote key={k++} note={note} />
-        : <sup key={k++} style={{ color: 'var(--cs-texte-faible)', fontSize: '0.62em' }}>{appel}</sup>)
+        : <sup key={k++} style={{ color: 'var(--cs-texte-doux)', fontSize: '0.62em' }}>{appel}</sup>)
     })
     noeuds.push(<span key={k++} style={{ whiteSpace: 'nowrap' }}>{appels}{ponctuation}</span>)
   }
@@ -253,7 +253,7 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
   const composer = codeLangue === 'grc' ? cesurerGrec : codeLangue === 'la' ? cesurerLatin : (t: string) => t
   const ordonnes = membres.map(membre => segments.get(membre.segment_key)).filter(Boolean) as SegmentComparaison[]
   if (ordonnes.length === 0) {
-    return <p style={{ margin: 0, fontSize: '0.71875rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic' }}>{vide}</p>
+    return <p style={{ margin: 0, fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{vide}</p>
   }
 
   // ⛔ Un `verset` ne fait BLOC que si son paragraphe n'en porte QUE, et c'est la
@@ -708,7 +708,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
       {chargement && <MotAttente>Chargement de la division…</MotAttente>}
       {erreur && <p role="alert" style={{ color: 'var(--cs-danger)', fontSize: '0.75rem' }}>{erreur}</p>}
       {!chargement && !erreur && groupesAffiches.length === 0 && (
-        <p style={{ color: 'var(--cs-texte-faible)', fontSize: '0.75rem' }}>{filtre === 'uncertain' ? 'Aucun groupe à relire dans cette division.' : 'Aucun passage aligné dans cette division.'}</p>
+        <p style={{ color: 'var(--cs-texte-doux)', fontSize: '0.75rem' }}>{filtre === 'uncertain' ? 'Aucun groupe à relire dans cette division.' : 'Aucun passage aligné dans cette division.'}</p>
       )}
       {/* Deux traductions nommées en tête de colonnes — discret (pas de fond, pas de
           bandeau), pour savoir laquelle est laquelle sans quitter la mise en page de lecture. */}

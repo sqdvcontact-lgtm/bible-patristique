@@ -153,11 +153,11 @@ function SectionOpuscules({ nombre, ouverteDeForce, children }: {
       <button onClick={() => setOuverte(o => !o)} aria-expanded={deployee}
         title={deployee ? 'Replier les opuscules' : 'Les textes brefs de cet auteur'}
         style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '6px 18px 6px 20px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
-        <span style={{ display: 'inline-flex', color: 'var(--cs-texte-faible)' }}>
+        <span style={{ display: 'inline-flex', color: 'var(--cs-texte-doux)' }}>
           <IconeChevron dir={deployee ? 'down' : 'right'} size={11} strokeWidth={1.4} />
         </span>
         <span style={{ fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-second)' }}>Opuscules</span>
-        <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)' }}>{nombre}</span>
+        <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)' }}>{nombre}</span>
       </button>
       {deployee && <div style={{ paddingBottom: '2px' }}>{children}</div>}
     </div>
@@ -1059,7 +1059,7 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
         style={{ margin: 'auto', background: 'var(--cs-fond)', borderRadius: '8px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '41.25rem', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 22px 12px', borderBottom: '1px solid var(--cs-bord-clair)' }}>
           <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-texte)', margin: 0 }}>{(auteur || titre) ? 'Proposer cette œuvre' : 'Proposer une œuvre'}</h3>
-          <button onClick={tenterFermer} aria-label="Fermer" className="cs-cible-fine" style={{ fontSize: '1rem', color: 'var(--cs-texte-faible)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+          <button onClick={tenterFermer} aria-label="Fermer" className="cs-cible-fine" style={{ fontSize: '1rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
         <div style={{ padding: '0 22px' }}>
           <OngletProposer valeursInitiales={{ auteur_nom: auteur, titre }} onDirtyChange={d => { modifieRef.current = d }} />
@@ -1742,7 +1742,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
             placeholder="Collez ici le texte intégral de l'œuvre. Un texte structuré avec des titres de chapitres est préférable."
             style={{ ...CHAMP_STYLE, fontFamily: 'ui-monospace, Consolas, monospace', fontSize: '0.75rem', resize: 'vertical', lineHeight: 1.65 }} />
           {form.texte && (
-            <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-faible)', marginTop: '4px' }}>
+            <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', marginTop: '4px' }}>
               {form.texte.length.toLocaleString('fr-FR')} caractères
             </p>
           )}
