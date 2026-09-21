@@ -42,6 +42,9 @@ import BibliographieBible from './BibleBibliographie'
  */
 export type FiguresDeNote = { avant?: ReactNode; apres?: ReactNode }
 
+/** Ce qui porte le texte : versets (une colonne), cellules (en regard), blocs d'apparat. */
+const SELECTEUR_TEXTE_BIBLE = '[data-verse-text], [data-membre], .cs-bible-bloc'
+
 export function ContenuNoteBiblique({ note, figures }: {
   note: Pick<BibleEditionDisplayNote, 'blocks'>
   /** ⛔ La fenêtre est le SEUL lieu d'une note de verset depuis le 13 septembre 2026 : l'image
@@ -132,7 +135,7 @@ export default function AppelNoteBiblique({
     if (ancre.current) {
       const r = ancre.current.getBoundingClientRect()
       setRect({ left: r.left, top: r.top, bottom: r.bottom })
-      setColonne(colonneDeLecture(ancre.current))
+      setColonne(colonneDeLecture(ancre.current, SELECTEUR_TEXTE_BIBLE))
     }
     setOuvert((o) => !o)
   }

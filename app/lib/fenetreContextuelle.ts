@@ -138,20 +138,42 @@ export const MARQUE_COLONNE_LECTURE = 'data-colonne-lecture'
 
 /** La colonne de lecture qui porte cet élément, mesurée. ⚠️ À lire au moment du
  *  GESTE, jamais pendant un rendu : c'est une lecture de mise en page. */
-export function colonneDeLecture(depuis: Element | null | undefined): ColonneLecture | null {
+export function colonneDeLecture(
+  depuis: Element | null | undefined,
+  /** Ce qui porte réellement le TEXTE dans la colonne. La colonne de la page Bible
+   *  est plus large que ses versets (gouttière d'actions, mesure de page) : mesurée
+   *  sur elle, la note se posait loin du paragraphe. Sans sélecteur, la colonne fait foi. */
+  selecteurTexte?: string,
+): ColonneLecture | null {
   const colonne = depuis?.closest(`[${MARQUE_COLONNE_LECTURE}]`)
   if (!colonne) return null
   const boite = colonne.getBoundingClientRect()
+  let gauche = boite.left
+  let droite = boite.right
+  if (selecteurTexte) {
+    let g = Infinity
+    let d = -Infinity
+    for (const el of colonne.querySelectorAll(selecteurTexte)) {
+      const r = el.getBoundingClientRect()
+      if (r.width === 0) continue
+      g = Math.min(g, r.left)
+      d = Math.max(d, r.right)
+    }
+    if (d > g) { gauche = Math.max(gauche, g); droite = Math.min(droite, d) }
+  }
   // ⚠️ La BORNE est le parent : le bloc de lecture, dont les volets sont les frères.
   // C'est la même lecture que celle de la manchette. ⛔ Intercaler une enveloppe
   // entre la colonne et ce bloc rendrait la borne plus étroite qu'elle n'est.
-  const borne = colonne.parentElement?.getBoundingClientRect()
-  return {
-    gauche: boite.left,
-    droite: boite.right,
-    borneGauche: borne?.left ?? boite.left,
-    borneDroite: borne?.right ?? boite.right,
-  }
+  const parent = colonne.parentElement
+  const borne = parent?.getBoundingClientRect()
+  // ⛔ Sa BOÎTE CLIENTE, non sa boîte de bordure : sur la page Bible, le parent est le
+  // défileur, et sa barre de défilement se tient dans la boîte de bordure — la note
+  // posée au bord passait dessus (relevé de l'auteur, 2026-09-21). Et jamais au-delà
+  // de la fenêtre de mise en page.
+  const vueDroite = typeof document !== 'undefined' ? document.documentElement.clientWidth : Infinity
+  const borneGauche = parent && borne ? borne.left + parent.clientLeft : boite.left
+  const borneDroite = parent && borne ? Math.min(borne.left + parent.clientLeft + parent.clientWidth, vueDroite) : boite.right
+  return { gauche, droite, borneGauche, borneDroite }
 }
 
 export type PlacementEnMarge = PlacementFenetre & {
