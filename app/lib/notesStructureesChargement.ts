@@ -25,7 +25,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { chargerPagesEnParallele, chargerToutesPagesSupabase, lotsPourClauseIn } from '@/app/lib/paginationSupabase'
+import { chargerPagesEnParallele, chargerParTranchesDeCle, chargerToutesPagesSupabase, lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import {
   estNoteApparatCritique,
   lireMetadonneesBlocNote,
@@ -248,10 +248,10 @@ export async function chargerNotesStructurees(
   if (!idTexte) return AUCUNE_NOTE()
   let rows: [NoteRow[], AnchorRow[], BlockRow[], RelationRow[]]
   try {
-    // Par vagues de deux pages : les trois grosses tables d'un apparat savant (Knöll :
-    // 7 277 notes, huit pages chacune) se lisaient page après page, soit huit
-    // allers-retours avant la numérotation. Deux par vague, c'est quatre, et six requêtes
-    // en vol au plus (REQUETES_EN_VOL).
+    // Notes et ancres par vagues de deux pages : sur un apparat savant (Knöll : 7 277
+    // notes, huit pages chacune) elles se lisaient page après page, soit huit
+    // allers-retours. Les blocs vont par tranches de clé, et le tout garde au plus cinq
+    // requêtes en vol (REQUETES_EN_VOL).
     rows = await Promise.all([
       chargerPagesEnParallele<NoteRow>((debut, fin) => supabase.from('texte_notes')
         .select(COLONNES_NOTES).eq('id_texte', idTexte)
@@ -263,10 +263,14 @@ export async function chargerNotesStructurees(
         .select(COLONNES_ANCRES)
         .eq('id_texte', idTexte).order('note_key').order('segment_key')
         .order('segment_offset_unicode').range(debut, fin), { vague: 2 }),
-      chargerPagesEnParallele<BlockRowBrute>((debut, fin) => supabase.from('texte_note_blocs')
-        .select(COLONNES_BLOCS)
-        .eq('id_texte', idTexte).order('note_key').order('rank').range(debut, fin), { vague: 2 })
-        .then(l => l.map(versBlockRow)),
+      // ⛔ PAR TRANCHES DE CLÉ, jamais par décalage : un décalage fait décompresser à la
+      // base le jsonb de chaque ligne SAUTÉE, huit fois (une par clé extraite). Voir
+      // `chargerParTranchesDeCle`.
+      chargerParTranchesDeCle<BlockRowBrute>((depuis, taille) => {
+        let q = supabase.from('texte_note_blocs').select(COLONNES_BLOCS).eq('id_texte', idTexte)
+        if (depuis !== null) q = q.gte('note_key', depuis)
+        return q.order('note_key').order('rank').range(0, taille - 1)
+      }, ligne => ligne.note_key).then(l => l.map(versBlockRow)),
       chargerToutesPagesSupabase<RelationRow>((debut, fin) => supabase.from('texte_note_relations')
         .select(COLONNES_RELATIONS)
         .eq('id_texte', idTexte).order('note_key').order('source_block_id')

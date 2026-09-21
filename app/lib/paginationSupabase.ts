@@ -74,6 +74,51 @@ export async function chargerPagesEnParallele<T>(
 }
 
 /**
+ * Charge toute une liste PAR TRANCHES DE CLÉ, et non par décalage (2026-09-21).
+ *
+ * ⛔ Un `range` à décalage fait calculer à la base TOUTES les lignes qu'il saute : la
+ * projection se fait dans le parcours, avant la limite. Tant qu'elle ne fait que recopier
+ * des colonnes, cela ne coûte presque rien ; dès qu'elle EXTRAIT d'un jsonb logé hors de
+ * la ligne (`metadata->cle`), chaque ligne sautée est décompressée à nouveau. Mesuré sur
+ * les 7 277 blocs de l'apparat de Knöll : la quatrième page coûtait 498 ms pour en rendre
+ * mille, parce qu'elle en décompressait quatre mille, et la liste entière se payait au
+ * carré du nombre de pages.
+ *
+ * Chaque tranche reprend donc à la DERNIÈRE clé vue (`gte`), et l'on retire de la tranche
+ * cette dernière clé, dont les lignes peuvent se poursuivre sur la suivante : elle est
+ * relue en entier au tour d'après. La fabrique ordonne par la clé PUIS par un départage
+ * stable, pose `gte(colonne, depuis)` quand `depuis` n'est pas nul, et borne par
+ * `range(0, taille - 1)`.
+ *
+ * ⚠️ Séquentiel par construction : une tranche ne part qu'avec la clé de la précédente.
+ * ⛔ Une seule clé qui remplirait une tranche entière ne se découpe pas : on lève, plutôt
+ * que de boucler.
+ */
+export async function chargerParTranchesDeCle<T>(
+  fabriquer: (depuis: string | null, taille: number) => PromiseLike<ReponsePageSupabase<T>>,
+  cle: (ligne: T) => string,
+  taille = 1000,
+): Promise<T[]> {
+  if (!Number.isInteger(taille) || taille <= 1) throw new Error(`Taille de tranche invalide : ${taille}`)
+  const lignes: T[] = []
+  let depuis: string | null = null
+  for (;;) {
+    const page = await fabriquer(depuis, taille)
+    if (page.error) throw page.error
+    const donnees = page.data ?? []
+    if (donnees.length < taille) {
+      lignes.push(...donnees)
+      return lignes
+    }
+    const derniere = cle(donnees[donnees.length - 1])
+    const completes = donnees.filter(ligne => cle(ligne) !== derniere)
+    if (completes.length === 0) throw new Error(`Une seule clé remplit une tranche entière : ${derniere}`)
+    lignes.push(...completes)
+    depuis = derniere
+  }
+}
+
+/**
  * Le nombre de requêtes qu'une même lecture garde EN VOL.
  *
  * ⛔ Six, et c'est une borne de POOL, non de débit. Une lecture qui part d'un

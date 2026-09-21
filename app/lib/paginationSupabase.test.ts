@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { REQUETES_EN_VOL, chargerPagesEnParallele, chargerToutesPagesSupabase, lancerEnParallele, lotsPourClauseIn } from './paginationSupabase'
+import { REQUETES_EN_VOL, chargerPagesEnParallele, chargerParTranchesDeCle, chargerToutesPagesSupabase, lancerEnParallele, lotsPourClauseIn } from './paginationSupabase'
 
 describe('pagination Supabase', () => {
   it('charge au-delà du plafond et demande la page vide après un multiple exact', async () => {
@@ -190,5 +190,32 @@ describe('lots d’une clause in', () => {
 
   it('ne fabrique pas de lot vide', () => {
     expect(lotsPourClauseIn([])).toEqual([])
+  })
+})
+
+describe('chargerParTranchesDeCle', () => {
+  // Une table rangée par clé puis par rang, et une fabrique qui fait ce que PostgREST fait.
+  const table = ['a', 'a', 'b', 'b', 'b', 'c', 'd', 'd', 'e'].map((cle, i) => ({ cle, i }))
+  const fabrique = (appels: (string | null)[]) => (depuis: string | null, taille: number) => {
+    appels.push(depuis)
+    const lignes = table.filter(l => depuis === null || l.cle >= depuis).slice(0, taille)
+    return Promise.resolve({ data: lignes, error: null })
+  }
+
+  it('rend toutes les lignes, une fois, en reprenant à la dernière clé vue', async () => {
+    const appels: (string | null)[] = []
+    const lignes = await chargerParTranchesDeCle(fabrique(appels), l => l.cle, 4)
+    expect(lignes.map(l => l.i)).toEqual(table.map(l => l.i))
+    expect(appels[0]).toBeNull()
+    expect(appels.slice(1).every(a => a !== null)).toBe(true)
+  })
+
+  it('lève sur une clé qui remplit une tranche entière, au lieu de boucler', async () => {
+    await expect(chargerParTranchesDeCle(fabrique([]), l => l.cle, 2)).rejects.toThrow(/tranche entière/)
+  })
+
+  it('lève sur une erreur de la base', async () => {
+    const enPanne = () => Promise.resolve({ data: null, error: new Error('panne') })
+    await expect(chargerParTranchesDeCle(enPanne, (l: { cle: string }) => l.cle)).rejects.toThrow('panne')
   })
 })
