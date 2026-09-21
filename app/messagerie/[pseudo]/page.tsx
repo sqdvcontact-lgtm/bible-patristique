@@ -35,20 +35,30 @@ export default function ConversationPage() {
   const [erreur, setErreur] = useState<string | null>(null)
   const [texte, setTexte] = useState('')
   const [envoi, setEnvoi] = useState(false)
+  // L'échec d'un ENVOI se dit sous le champ, et ne ferme pas la conversation :
+  // le texte reste où il est, le bouton se rend, et l'on peut réessayer.
+  const [erreurEnvoi, setErreurEnvoi] = useState<string | null>(null)
   const bas = useRef<HTMLDivElement>(null)
 
-  const charger = useCallback(async (tok: string) => {
-    const res = await fetch(`/api/messagerie/${encodeURIComponent(pseudo)}`, {
-      headers: { Authorization: `Bearer ${tok}` },
-    })
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}))
-      setErreur(json.error ?? 'Erreur')
-      return
+  const charger = useCallback(async (tok: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`/api/messagerie/${encodeURIComponent(pseudo)}`, {
+        headers: { Authorization: `Bearer ${tok}` },
+      })
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        setErreur(json.error ?? 'La conversation n’a pas pu être chargée.')
+        return false
+      }
+      const data = await res.json()
+      setMessages(data.messages)
+      setMecene(data.partenaire_mecene === true)
+      setErreur(null)
+      return true
+    } catch {
+      setErreur('La conversation n’a pas pu être chargée. Vérifiez votre connexion, puis rechargez la page.')
+      return false
     }
-    const data = await res.json()
-    setMessages(data.messages)
-    setMecene(data.partenaire_mecene === true)
   }, [pseudo])
 
   useEffect(() => {
@@ -68,16 +78,27 @@ export default function ConversationPage() {
   async function envoyer() {
     if (!texte.trim() || !token || envoi) return
     setEnvoi(true)
-    const res = await fetch(`/api/messagerie/${encodeURIComponent(pseudo)}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contenu: texte.trim() }),
-    })
-    if (res.ok) {
+    setErreurEnvoi(null)
+    try {
+      const res = await fetch(`/api/messagerie/${encodeURIComponent(pseudo)}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contenu: texte.trim() }),
+      })
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        setErreurEnvoi(typeof json.error === 'string' && json.error
+          ? `Le message n’a pas pu être envoyé : ${json.error}`
+          : 'Le message n’a pas pu être envoyé. Réessayez.')
+        return
+      }
       setTexte('')
       await charger(token)
+    } catch {
+      setErreurEnvoi('Le message n’a pas pu être envoyé. Vérifiez votre connexion, puis réessayez.')
+    } finally {
+      setEnvoi(false)
     }
-    setEnvoi(false)
   }
 
   function onKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -106,7 +127,7 @@ export default function ConversationPage() {
             de la barre de navigation (cf. app/components/ModaleMessagerie.tsx). Cette
             conversation ne s'ouvre plus que depuis « Envoyer un message » d'un profil,
             et c'est là que le lecteur revient. */}
-        <button onClick={() => router.back()}
+        <button onClick={() => router.back()} aria-label="Retour"
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-gris)', padding: '4px', lineHeight: 0 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -127,7 +148,7 @@ export default function ConversationPage() {
       {/* Zone messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 8px', maxWidth: '45rem', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
         {erreur ? (
-          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: '#c87070', fontStyle: 'italic' }}>{erreur}</p>
+          <p role="alert" style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-danger)', fontStyle: 'italic' }}>{erreur}</p>
         ) : messages === null ? (
           <MotAttente centre />
         ) : messages.length === 0 ? (
@@ -181,7 +202,7 @@ export default function ConversationPage() {
             <textarea aria-label="Votre message"
               className="msg-input"
               value={texte}
-              onChange={e => setTexte(e.target.value)}
+              onChange={e => { setTexte(e.target.value); if (erreurEnvoi) setErreurEnvoi(null) }}
               onKeyDown={onKey}
               placeholder="Écrire un message… (Entrée pour envoyer)"
               rows={2}
@@ -220,6 +241,9 @@ export default function ConversationPage() {
               {envoi ? '…' : 'Envoyer'}
             </button>
           </div>
+          {erreurEnvoi && (
+            <p role="alert" style={{ fontSize: '0.71875rem', color: 'var(--cs-danger)', margin: '6px 0 0' }}>{erreurEnvoi}</p>
+          )}
           <p style={{ fontSize: '0.59375rem', color: 'var(--cs-bord)', margin: '5px 0 0', textAlign: 'right' }}>
             {texte.length}/2000
           </p>
