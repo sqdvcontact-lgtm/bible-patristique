@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import MesureAudience from "./components/MesureAudience";
 import { ProvisionAffichageAdmin } from "./lib/contexteAffichageAdmin";
 import { SCRIPT_THEME, THEME_DEFAUT } from "./lib/theme";
+import { CORPS_DEFAUT, SCRIPT_CORPS } from "./lib/corpsLecture";
 import { ProvisionCompte } from "./lib/contexteCompte";
 import AnnonceHautsFaits from "./components/AnnonceHautsFaits";
 import { HAUTEUR_NAVBAR } from "./lib/mesures";
@@ -78,11 +79,12 @@ export default function RootLayout({
     <html
       lang="fr"
       data-theme={THEME_DEFAUT}
+      data-corps={CORPS_DEFAUT}
       className={`${sourceSans.variable} ${sourceSerif.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: SCRIPT_THEME }} />
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_THEME + SCRIPT_CORPS }} />
       </head>
       <body className="min-h-full flex flex-col">
         {/* ⛔ LE LIEN D'ÉVITEMENT, ET IL VIENT EN PREMIER. La barre de navigation porte une

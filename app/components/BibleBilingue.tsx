@@ -57,7 +57,9 @@ import {
   type MembreBilingue,
   type NoteBilingue,
 } from '@/app/lib/bibleEditionBilingue'
-import { CORPS_GLOSE, LIBELLE_GLOSE, STYLE_VERSET_VIDE } from '@/app/lib/compositionBible'
+import {
+  CORPS_GLOSE, CORPS_LECTURE_BIBLE, INTERLIGNE_LECTURE_BIBLE, LIBELLE_GLOSE, RAPPORT_ORIGINAL_EN_REGARD, STYLE_VERSET_VIDE,
+} from '@/app/lib/compositionBible'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
 import { rendreTexteAvecAppels, repartirAppels } from '@/app/lib/ancresAppelsBible'
 import { separateurAppels, styleSeparateurAppels } from '@/app/lib/appelsDeNote'
@@ -79,11 +81,12 @@ const SERIF = 'var(--font-source-serif), Georgia, serif'
 //
 // Le texte est RESSERRÉ dans la LIGNE — interligne court — mais les versets
 // respirent ENTRE eux : trop serrés, ils formaient un pavé où l'œil se perdait.
-const INTERLIGNE = 1.42
+// ⚠️ Le corps et l'interligne suivent le réglage « Taille du texte » du lecteur
+// (compositionBible.ts, CORPS_LECTURE_BIBLE), comme la lecture simple.
 const STYLE_VERSET = {
   fontFamily: SERIF,
-  fontSize: '0.875rem',
-  lineHeight: INTERLIGNE,
+  fontSize: CORPS_LECTURE_BIBLE,
+  lineHeight: INTERLIGNE_LECTURE_BIBLE,
   color: 'var(--cs-texte-fort)',
   textAlign: 'justify' as const,
   hyphens: 'auto' as const,
@@ -96,7 +99,7 @@ const STYLE_VERSET = {
 const STYLE_VERSET_ORIGINAL = {
   ...STYLE_VERSET,
   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
-  fontSize: '0.8125rem',
+  fontSize: `calc(${CORPS_LECTURE_BIBLE} * ${RAPPORT_ORIGINAL_EN_REGARD})`,
   color: 'var(--cs-original)',
   wordSpacing: '-0.025em',
 }

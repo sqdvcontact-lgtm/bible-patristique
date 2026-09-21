@@ -952,6 +952,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         modesLecture={modesLecture}
         onChoisirModeLecture={choisirModeLecture}
         onPreparerModeLecture={preparerModeLecture}
+        reglageCorps
         sommaireEdition={sommaireEdition}
         pieceActive={pieceAffichee?.cle ?? null}
       />

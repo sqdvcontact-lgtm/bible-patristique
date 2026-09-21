@@ -97,6 +97,22 @@ export function styleGrilleRangee({ mobile }: { mobile?: boolean } = {}): CSSPro
 /** La colonne du NUMÉRO de verset et la gouttière qui le sépare de son texte, en rem.
  *  ⚠️ Ensemble, elles font ce que le bloc sélectionné déborde du texte À GAUCHE. */
 export const NUMERO_VERSET_REM = 1.4375
+
+/**
+ * ⛔ LE CORPS DU TEXTE BIBLIQUE EST UNE VARIABLE (décision de l’auteur, 2026-09-21) :
+ * 16 px et interligne 1,55 par défaut, et trois crans que le lecteur règle dans le volet
+ * des livres (app/lib/corpsLecture.ts). Les valeurs vivent dans globals.css, sur :root ;
+ * les replis ci-dessous sont celles du cran normal.
+ */
+export const CORPS_LECTURE_BIBLE = 'var(--cs-lecture-corps, 1rem)'
+export const INTERLIGNE_LECTURE_BIBLE = 'var(--cs-lecture-interligne, 1.55)'
+/** Le numéro en gouttière vaut 0,714 du verset : ses 0,625 rem pour les 0,875 d’hier. */
+export const RAPPORT_NUMERO_VERSET = 0.714
+/** La colonne ORIGINALE de la lecture en regard, un cran sous le verset (15 px pour 16). */
+export const RAPPORT_ORIGINAL_EN_REGARD = 0.9375
+/** Une glose, un point sous le texte de sa colonne (voir CORPS_GLOSE). */
+export const RAPPORT_GLOSE_VERSET = 0.917
+export const RAPPORT_GLOSE_ORIGINAL = 0.85
 export const GOUTTIERE_NUMERO_VERSET_REM = 0.1875
 
 /** Ce que le bloc sélectionné déborde du texte, à gauche comme à droite : 1,625 rem. */
@@ -164,10 +180,14 @@ export const STYLE_NUMERO_VERSET: CSSProperties = {
   // ⛔ EN RAPPORT AU VERSET, non en rem (2026-09-21, plancher des petits corps) : il
   // valait 0,625 rem pour un verset de 0,875, soit 0,714 du verset, et il suit
   // désormais le corps du verset quand le lecteur le règle.
-  fontSize: 'calc(var(--cs-lecture-corps, 0.875rem) * 0.714)',
+  fontSize: `calc(${CORPS_LECTURE_BIBLE} * ${RAPPORT_NUMERO_VERSET})`,
   fontWeight: 600,
   color: 'var(--cs-texte-doux)',
-  lineHeight: 1.40,
+  // ⚠️ L'interligne SUIT celui du verset, pour que le numéro reste posé sur la capitale
+  // de la première ligne quel que soit le cran : son milieu doit tomber 0,31 corps de
+  // verset au-dessus du milieu de la ligne, ce que (interligne − 0,42) / 0,714 donne
+  // (1,40 pour l'ancien 1,42 ; 1,58 pour 1,55).
+  lineHeight: `calc((${INTERLIGNE_LECTURE_BIBLE} - 0.42) / ${RAPPORT_NUMERO_VERSET})`,
   whiteSpace: 'nowrap',
   // ⛔ Relevé sur la CAPITALE de la première ligne, non posé sur sa ligne de base
   // (décision de l'auteur, 21 septembre 2026 : « réaligner un peu mieux le numéro face
@@ -230,7 +250,7 @@ export function styleTexteVerset({ mobile, enVers }: { mobile?: boolean; enVers?
   if (enVers) {
     return {
       fontFamily: SERIF,
-      fontSize: '0.875rem',
+      fontSize: CORPS_LECTURE_BIBLE,
       color: 'var(--cs-texte-fort)',
       margin: 0,
       // ⛔ Ni justification ni césure : c'est ce qui fait un vers, partout.
@@ -242,8 +262,8 @@ export function styleTexteVerset({ mobile, enVers }: { mobile?: boolean; enVers?
   }
   return {
     fontFamily: SERIF,
-    fontSize: '0.875rem',
-    lineHeight: 1.42,
+    fontSize: CORPS_LECTURE_BIBLE,
+    lineHeight: INTERLIGNE_LECTURE_BIBLE,
     color: 'var(--cs-texte-fort)',
     margin: 0,
     textAlign: mobile ? 'left' : 'justify',
@@ -420,10 +440,10 @@ export const CORPS_INVITE = '0.625rem'
  * `compositionBible.test.ts` confronte.
  */
 export const CORPS_GLOSE = {
-  /** Sous un verset composé à 0,875 rem : la lecture simple, la colonne traduite en regard. */
-  sousVerset: '0.78125rem',
-  /** Sous la colonne originale de la lecture en regard, composée à 0,8125 rem. */
-  sousOriginal: '0.71875rem',
+  /** Sous un verset : la lecture simple, la colonne traduite en regard. */
+  sousVerset: `calc(${CORPS_LECTURE_BIBLE} * ${RAPPORT_GLOSE_VERSET})`,
+  /** Sous la colonne originale de la lecture en regard. */
+  sousOriginal: `calc(${CORPS_LECTURE_BIBLE} * ${RAPPORT_GLOSE_ORIGINAL})`,
 } as const
 
 /**

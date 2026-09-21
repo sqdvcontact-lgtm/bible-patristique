@@ -31,6 +31,6 @@
 
 .verset-row[id^="verset--"] [data-verse-text] {
   color: var(--cs-texte-second) !important;
-  font-size: 0.78125rem !important;
+  font-size: calc(var(--cs-lecture-corps, 1rem) * 0.917) !important;
   font-style: italic;
 }

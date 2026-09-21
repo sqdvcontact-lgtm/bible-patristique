@@ -55,6 +55,14 @@
      le fer de l'appareil doit tomber sur celui du texte des versets. */
   --regard-numero: 1.6rem;
   --regard-numero-gouttiere: 0.3125rem;
+  /* ── Le CORPS du texte biblique (décision de l'auteur, 2026-09-21) ──
+     16 px et interligne 1,55 par défaut, sur la piste de 30 rem (≈ 60 signes).
+     Trois crans, réglés par le lecteur dans le volet des livres et posés sur
+     <html> par `data-corps` (app/lib/corpsLecture.ts) : petit 15/1,50,
+     normal 16/1,55, grand 18/1,60. Le verset, la colonne en regard, le numéro
+     en gouttière et les gloses suivent ; l'appareil, les volets et la barre non. */
+  --cs-lecture-corps: 1rem;
+  --cs-lecture-interligne: 1.55;
 
   /* ── Couleur d'accent : le vert du site ──
      Source unique de la teinte verte, jusqu'ici répétée en dur (~470 fois pour
@@ -567,6 +575,15 @@
    encore à la famille chaude, elle ne se lit pas comme « une couleur », mais un
    bouton destructif continue de se signaler sans qu'il faille lire son libellé.
    Ne pas la ramener au beige : c'est le seul endroit où la couleur travaille.  */
+:root[data-corps="petit"] {
+  --cs-lecture-corps: 0.9375rem;
+  --cs-lecture-interligne: 1.5;
+}
+:root[data-corps="grand"] {
+  --cs-lecture-corps: 1.125rem;
+  --cs-lecture-interligne: 1.6;
+}
+
 :root[data-theme="sombre"] {
   color-scheme: dark;
   --cs-fond: #1c1813;

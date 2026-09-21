@@ -3,7 +3,7 @@ import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 import {
-  AIR_MARQUE_DENSITE_REM, CORPS_GLOSE, ECART_MARQUE_DENSITE_REM, LARGEUR_MARQUE_DENSITE_REM, LIBELLE_GLOSE,
+  AIR_MARQUE_DENSITE_REM, CORPS_GLOSE, CORPS_LECTURE_BIBLE, RAPPORT_ORIGINAL_EN_REGARD, ECART_MARQUE_DENSITE_REM, LARGEUR_MARQUE_DENSITE_REM, LIBELLE_GLOSE,
   compositionSousTitre, marqueDensiteTient, styleDensiteVerset, styleTexteVerset,
   DEBORD_BLOC_VERSET_REM, EMPIETEMENT_BLOC_VERSET_REM, GOUTTIERE_NUMERO_VERSET_REM, NUMERO_VERSET_REM,
   RETRAIT_ACTIONS_VERSET, STYLE_NUMERO_VERSET, styleBlocVerset,
@@ -159,16 +159,31 @@ describe('la composition d’un sous-titre suit le rang de SON titre', () => {
  */
 describe('le corps d’une glose : un point sous son texte', () => {
   const UN_POINT = 4 / 3
-  const enPixels = (rem: string) => Number.parseFloat(rem) * 16
 
-  it('sous un verset, le rang le plus proche d’un point de moins', () => {
-    const verset = enPixels(String(styleTexteVerset().fontSize))
-    expect(verset).toBe(14)
-    expect(enPixels(CORPS_GLOSE.sousVerset)).toBe(rangLePlusProche(verset - UN_POINT))
+  // Le corps du verset est une VARIABLE (--cs-lecture-corps, trois crans) : on éprouve
+  // les rapports au cran normal, 16 px, et aux deux autres, 15 et 18.
+  const CRANS = [15, 16, 18]
+  const rapport = (calc: string) => Number(calc.match(/\*\s*([0-9.]+)\)/)?.[1])
+
+  it('le verset lit la variable du réglage, au cran normal 16 px', () => {
+    expect(String(styleTexteVerset().fontSize)).toBe(CORPS_LECTURE_BIBLE)
+    expect(CORPS_LECTURE_BIBLE).toBe('var(--cs-lecture-corps, 1rem)')
   })
 
-  it('sous la colonne originale de la lecture en regard (0,8125 rem), de même', () => {
-    expect(enPixels(CORPS_GLOSE.sousOriginal)).toBe(rangLePlusProche(13 - UN_POINT))
+  it('sous un verset, le rang le plus proche d’un point de moins, à chaque cran', () => {
+    // ⚠️ Un rapport unique ne peut tomber sur le même RANG à chaque cran : on exige un
+    // écart de moins d'un demi-pixel au point de moins, et le rang juste au cran normal.
+    for (const verset of CRANS) {
+      expect(Math.abs(verset * rapport(CORPS_GLOSE.sousVerset) - (verset - UN_POINT))).toBeLessThan(0.5)
+    }
+    expect(rangLePlusProche(16 * rapport(CORPS_GLOSE.sousVerset))).toBe(rangLePlusProche(16 - UN_POINT))
+  })
+
+  it('sous la colonne originale de la lecture en regard, de même', () => {
+    for (const verset of CRANS) {
+      const original = verset * RAPPORT_ORIGINAL_EN_REGARD
+      expect(Math.abs(verset * rapport(CORPS_GLOSE.sousOriginal) - (original - UN_POINT))).toBeLessThan(0.5)
+    }
   })
 
   it('la lecture simple lit le même corps, et l’italique, dans sa feuille', () => {
