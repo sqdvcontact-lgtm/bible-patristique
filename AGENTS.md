@@ -1719,6 +1719,19 @@ La charte disait déjà comment faire, à propos du monogramme : « le détourag
 
 ⚠️ **Un `<button>` n'est PAS un élément étiquetable.** Enveloppé dans un `<label>`, il en reçoit le curseur de pointeur sans en recevoir le clic : la rangée « Mode sombre » avait l'air cliquable et ne l'était pas. Le défaut ne se lit pas dans le code, l'imbrication paraissant correcte ; il se voit au doigt.
 
+## ⛔ L'audit d'ergonomie du 2026-09-21 : contrastes, plancher, corps de lecture, clavier, adresse
+
+Doctrine dans la charte, ` 18 (couleurs et corps) et ` 51.10 (clavier et adresse). Ce qu'il faut savoir en écrivant du code :
+
+- **Contraste au Clair : 4,5 sur la carte.** Jetons foncés à teinte et chroma OKLCH constantes : `--cs-texte-gris` #766e65, `--cs-texte-doux` #7b766f, `--cs-or` #91722f, `--cs-etiquette` #857552, `--cs-date` #8a743f, `--cs-danger` #b95023 (4,52 sur le fond de page ; l'aplat reste #c0562a). ⛔ `--cs-texte-faible` est un rang d'ORNEMENT (filets, séparateurs, puces) : jamais sur du texte.
+- **Plancher : 11 px (0,6875 rem), 10 px (0,625 rem) pour les capitales espacées**, hors administration ; `echelleTypographique.test.ts` le verrouille. Sous 0,75 rem, l'encre est `--cs-texte-gris`, jamais doux ni faible ; une capitale espacée à 10 px prend `--cs-texte-second`. Hors plancher : appels de note et exposants en em, pastilles à boîte fixe.
+- **Texte biblique : 16 px, interligne 1,55**, par `--cs-lecture-corps` et `--cs-lecture-interligne` que règle `data-corps` sur `<html>` (petit 15/1,50, normal 16/1,55, grand 18/1,60). Le cran se mémorise comme le thème : `profils.corps_lecture` fait foi, `cs-corps` en est le miroir local, `ProvisionCompte` rapproche les deux (`accorderCorps`). ⛔ Changer le cran par `changerCorps` du contexte, jamais par `appliquerCorps` seul, qui oublierait le compte.
+- **Une fenêtre n'écrit aucune couleur** : modèle `ModalSignalement` (`.cs-signalement-*`, jetons `--cs-importance-*` dans les deux thèmes, garde `ModalSignalement.test.ts`).
+- **Navigation de chapitre** : flèches en liens, zone de frappe 2,75 rem (`.cs-fleche-chapitre`), livre voisin au bout d'un livre, touches ← → hors champ, menu, modale et modificateur ; bas de chapitre au format ‹ « N sur M » › de la pagination des œuvres.
+- ⛔ **Toute modale ou tout tiroir passe par `useFenetreModale`** (piège de tabulation, retour du foyer, `role="dialog"` et `aria-modal`).
+- ⛔ **Un segment d'œuvre est focalisable sans `role="button"`**, qui rendrait muets ses appels de note ; `aria-describedby` vers l'indication « Entrée : actions sur ce passage ».
+- ⛔ **L'état de lecture s'écrit dans l'adresse** par l'API d'historique : Polyglotte (livre, chapitre, colonnes), recherche (`q`, mode), verset retenu (`&verset=N` par `replaceState`).
+
 ## L'audit au navigateur (2026-08-23) — six défauts qu'aucune mesure locale ne voyait
 
 Le site étant fermé, il a fallu le parcourir SOUS SESSION dans le navigateur de l'auteur, sur la version EN LIGNE. Six défauts, dont un introduit par la passe de la veille. Aucun n'apparaissait dans le dépôt : ils ne se voient qu'en page composée.
