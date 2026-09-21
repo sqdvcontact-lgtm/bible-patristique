@@ -1236,7 +1236,7 @@ export default function RechercheClient() {
                         l'état actif et la ligne filtrée en dérivent tous par `color-mix`. */}
                     <button className={`ong-vert${actif ? ' ong-vert--actif' : ''}`} style={styleFamille(o.k)} onClick={()=>setOnglet(o.k)}>
                       <span className="lib"><span className="pastille" aria-hidden="true" />{o.label}</span>
-                      <span className="ong-count">{o.n}</span>
+                      <span className="ong-count">{o.n > 0 ? o.n : <span style={{ fontWeight: 400, color: 'var(--cs-texte-faible)' }} title="Aucune occurrence" aria-label="Aucune occurrence">∅</span>}</span>
                     </button>
                     {/* Répartition détaillée sous l'onglet actif : livres (Bible/Polyglotte),
                         œuvres (Pères), publications (communauté), avec le nombre d'occurrences.

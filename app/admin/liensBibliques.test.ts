@@ -19,7 +19,7 @@ describe('la vue des liens bibliques', () => {
 describe('les comptes', () => {
   it('ne se posent sur le libellé que connus', () => {
     expect(libelleAvecCompte('Vérifications', null)).toBe('Vérifications')
-    expect(libelleAvecCompte('Vérifications', 0)).toBe('Vérifications (0)')
+    expect(libelleAvecCompte('Vérifications', 0)).toBe('Vérifications (∅)')
     expect(libelleAvecCompte('Constituer liens', 43)).toBe('Constituer liens (43)')
   })
 

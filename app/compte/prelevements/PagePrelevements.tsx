@@ -1058,8 +1058,8 @@ export default function PagePrelevements() {
             qui change ne déplace pas son voisin. */}
         <OngletsPage
           onglets={[
-            { cle: "biblique" as TypePrelevement, libelle: `Versets bibliques (${bibliques.length})` },
-            { cle: "patristique" as TypePrelevement, libelle: `Textes patristiques (${patristiques.length})` },
+            { cle: "biblique" as TypePrelevement, libelle: `Versets bibliques (${bibliques.length || '∅'})` },
+            { cle: "patristique" as TypePrelevement, libelle: `Textes patristiques (${patristiques.length || '∅'})` },
           ]}
           actif={onglet}
           choisir={setOnglet}

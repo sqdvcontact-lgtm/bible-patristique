@@ -33,7 +33,7 @@ export function adresseVueLiens(recherche: string, vue: VueLiens): string {
 
 /** Le libellé d'un onglet, avec le compte de sa file quand on le connaît. */
 export function libelleAvecCompte(libelle: string, compte: number | null): string {
-  return compte === null ? libelle : `${libelle} (${compte})`
+  return compte === null ? libelle : `${libelle} (${compte || '∅'})`
 }
 
 /** Ce que la pastille du sommaire annonce : les deux files ensemble, ou rien tant que l'une
