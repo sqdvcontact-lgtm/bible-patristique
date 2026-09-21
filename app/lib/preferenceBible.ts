@@ -36,6 +36,22 @@ export function codeTraductionValide(valeur: string | null | undefined): string 
 }
 
 /**
+ * Relit la bible mémorisée dans une chaîne `document.cookie` : la page d'une péricope,
+ * rendue par le navigateur, n'a pas d'autre moyen de la connaître (audit ergonomique,
+ * 2026-09-21). Rend `null` si le cookie manque ou ne porte pas un code valide.
+ */
+export function lireTraductionMemorisee(cookies: string | null | undefined): string | null {
+  if (!cookies) return null
+  for (const morceau of cookies.split(';')) {
+    const egal = morceau.indexOf('=')
+    if (egal < 0) continue
+    if (morceau.slice(0, egal).trim() !== COOKIE_TRAD_BIBLE) continue
+    return codeTraductionValide(morceau.slice(egal + 1))
+  }
+  return null
+}
+
+/**
  * Mémorise la bible lue, pour que le prochain rendu SERVEUR la connaisse.
  * Sans effet hors du navigateur, et sans effet sur une valeur mal formée.
  */

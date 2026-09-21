@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { codeTraductionValide, COOKIE_TRAD_BIBLE } from './preferenceBible'
+import { codeTraductionValide, COOKIE_TRAD_BIBLE, lireTraductionMemorisee } from './preferenceBible'
 
 describe('code de traduction reçu du navigateur', () => {
   it('accepte les identifiants du catalogue', () => {
@@ -32,5 +32,16 @@ describe('code de traduction reçu du navigateur', () => {
     // sans la renommer là-bas ferait silencieusement retomber tout le monde sur la
     // première bible de la liste.
     expect(COOKIE_TRAD_BIBLE).toBe('cs_trad_bible')
+  })
+})
+
+describe('bible mémorisée relue dans document.cookie', () => {
+  it('trouve le cookie parmi les autres', () => {
+    expect(lireTraductionMemorisee('a=1; cs_trad_bible=TR0003; b=2')).toBe('TR0003')
+  })
+  it('rend null sans cookie ou sur une valeur mal formée', () => {
+    expect(lireTraductionMemorisee('')).toBeNull()
+    expect(lireTraductionMemorisee('autre=TR0003')).toBeNull()
+    expect(lireTraductionMemorisee('cs_trad_bible=TR00<03')).toBeNull()
   })
 })

@@ -6,7 +6,8 @@
 // AU CENTRE, le texte biblique de chaque occurrence, verset par verset. À DROITE, l'apparat
 // patristique (doublon du volet de la page Bible). Lecture avec la session normale.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { lireTraductionMemorisee, memoriserTraductionBible } from '@/app/lib/preferenceBible'
 import { EcranAttente, MotAttente } from '@/app/lib/attenteEnCreux'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
@@ -207,6 +208,9 @@ function SelecteurTraduction({ trad, setTrad }: { trad: string; setTrad: (c: str
   )
 }
 
+const sAbonnerSansEffet = () => () => {}
+const lireTradDuCookie = () => lireTraductionMemorisee(document.cookie)
+
 export default function PericopePage() {
   const params = useParams<{ id: string }>()
   const id = params?.id
@@ -217,7 +221,15 @@ export default function PericopePage() {
   const [variantes, setVariantes] = useState<Variante[]>([])
   const [attestations, setAttestations] = useState<NomAtteste[]>([])
   const [biblio, setBiblio] = useState<RefBiblio[]>([])
-  const [trad, setTrad] = useState<string>('TR0001')
+  // La bible mémorisée par la page Bible (cookie) ouvre la péricope ; un choix fait ici
+  // l'emporte, et se mémorise à son tour (audit ergonomique, 2026-09-21). ⚠️ Lue par
+  // useSyncExternalStore : le rendu serveur voit « rien », le navigateur rattrape sans
+  // désaccord d'hydratation.
+  const tradMemorisee = useSyncExternalStore(sAbonnerSansEffet, lireTradDuCookie, () => null)
+  const [tradChoisie, setTradChoisie] = useState<string | null>(null)
+  const tradDefaut = tradMemorisee && TRADUCTIONS_BIBLE.some(t => t.code === tradMemorisee) ? tradMemorisee : 'TR0001'
+  const trad = tradChoisie ?? tradDefaut
+  const setTrad = (code: string) => { setTradChoisie(code); memoriserTraductionBible(code) }
   const [textes, setTextes] = useState<Record<number, VersetPericope[]>>({})
   const [texteLoading, setTexteLoading] = useState(false)
   const [voletMobile, setVoletMobile] = useState<'livres' | 'commentaires' | null>('commentaires')
