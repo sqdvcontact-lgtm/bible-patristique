@@ -123,7 +123,7 @@ export default function ProfilPublicPage() {
   const favorites = profil.citations_favorites ?? []
   const aBibliotheque = profil.bibliotheque && profil.bibliotheque.length > 0
   const aEssais = profil.essais && profil.essais.length > 0
-  const rienDePublic = !profil.lecture && !aEssais && !favorites.length && !profil.bio && !profil.contact_email && !aBibliotheque
+  const rienDePublic = !profil.lecture && !aEssais && !favorites.length && !profil.bio && !aBibliotheque
 
   const envoyerSignalementProfil = async (message: string) => {
     const { supabase } = await import('@/app/lib/supabase')
@@ -287,6 +287,8 @@ export default function ProfilPublicPage() {
                     Afficher l&apos;adresse mail
                   </button>
                 )}
+                {/* Cette adresse n'est injectée que pour le titulaire du profil. */}
+                <span style={{ opacity: 0.75 }}> (visible par vous seul)</span>
               </>
             )}
           </p>

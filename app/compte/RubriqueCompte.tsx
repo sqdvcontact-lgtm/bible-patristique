@@ -175,9 +175,13 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
               placeholder="Quelques mots sur vous…" value={bio}
               onChange={e => { setBio(e.target.value); setStatut(null) }} />
           </Rangee>
-          <Rangee label="Adresse de contact" pour="contact">
+          {/* ⛔ L'adresse de contact N'EST PAS publique : l'API du profil l'exclut, et
+              seul son titulaire la voit sur sa propre page. Le libellé le dit, en note
+              permanente, et non dans un texte indicatif que la saisie efface. */}
+          <Rangee label="Adresse de contact" pour="contact"
+            note="Elle ne paraît pas sur votre page publique : vous seul la voyez, et l’administration peut s’en servir pour vous répondre.">
             <input id="contact" type="email" className="esp-moyen" style={inputStyle}
-              placeholder="Visible publiquement" value={contact}
+              placeholder="adresse@exemple.fr" value={contact}
               onChange={e => { setContact(e.target.value); setStatut(null) }} />
           </Rangee>
           {/* ⛔ EN COLONNE (auteur, 1er septembre 2026) : en rang, les quatre
