@@ -20,8 +20,9 @@ import { OPTION_VOLET, RUBRIQUE_AXE, styleEntreeListeVolet } from '@/app/lib/sty
 import { chargerChapitresParLivre, estLivreOuvrable, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
 import { supabase } from '@/app/lib/supabase'
 import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
-import { appliquerCorps, CRANS_CORPS } from '@/app/lib/corpsLecture'
+import { CRANS_CORPS } from '@/app/lib/corpsLecture'
 import { useCorpsLecture } from '@/app/lib/useCorpsLecture'
+import { useCompte } from '@/app/lib/contexteCompte'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 
@@ -169,7 +170,7 @@ type Props = {
    *  au bouton, le serveur a commencé. */
   onPreparerModeLecture?: (cible: CibleLectureAlternative) => void
   /** Offre l'axe « Taille du texte » (page Bible) : le corps du texte biblique, en trois
-   *  crans, mémorisé dans ce navigateur comme le mode sombre (app/lib/corpsLecture.ts). */
+   *  crans, mémorisé sur le compte comme le mode sombre (app/lib/corpsLecture.ts). */
   reglageCorps?: boolean
   /**
    * Le SOMMAIRE de l'édition : ses pièces liminaires, dans l'ordre du volume.
@@ -222,6 +223,7 @@ export default function NavLivres({
   sommaireEdition = [], pieceActive = null,
 }: Props) {
   const corpsLecture = useCorpsLecture()
+  const { changerCorps } = useCompte()
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
   const [chapitreActifLocal, setChapitreActifLocal] = useState(chapitreActif)
@@ -661,7 +663,10 @@ export default function NavLivres({
               {CRANS_CORPS.map((cran) => (
                 <button key={cran.cle} type="button" title={cran.description}
                   aria-pressed={corpsLecture === cran.cle}
-                  onClick={() => { if (corpsLecture !== cran.cle) appliquerCorps(cran.cle) }}
+                  onClick={() => {
+                    if (corpsLecture === cran.cle) return
+                    changerCorps(cran.cle).catch(e => console.warn('[corps] taille non retenue au compte :', e?.message ?? e))
+                  }}
                   className="cs-option-volet"
                   style={OPTION_VOLET(corpsLecture === cran.cle)}>
                   {cran.label}

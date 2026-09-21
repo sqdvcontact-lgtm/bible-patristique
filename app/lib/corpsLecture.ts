@@ -14,10 +14,14 @@
 // par défaut, le script en AJOUTERAIT un, et React signalerait le désaccord ; sans le
 // script, le verset changerait de corps sous les yeux du lecteur à chaque page.
 //
-// ⚠️ La préférence ne vit encore que dans CE NAVIGATEUR (clé `cs-corps`) : la colonne
-// `profils.corps_lecture` qui la porterait sur le compte, comme `theme_lecture`, n'est
-// pas créée. Revenir au normal EFFACE la clé, de sorte que « pas de choix » reste
-// distinguable d'un choix.
+// La préférence vit sur le COMPTE, dans `profils.corps_lecture` (migration
+// 20260921183032), comme `theme_lecture`, et c'est elle qui fait foi. Le stockage local
+// (clé `cs-corps`) n'en est que le MIROIR : lui seul pose le cran avant peinture, et il
+// tient seul lieu de mémoire sans session. Le rapprochement se fait dans
+// `ProvisionCompte` (`accorderCorps`) : le compte l'emporte, un poste qui porte un choix
+// que le compte ignore le lui remonte. Le volet écrit par `changerCorps` du contexte,
+// jamais par `appliquerCorps` seul, qui oublierait le compte. Revenir au normal EFFACE la
+// clé locale, de sorte que « pas de choix » reste distinguable d'un choix sur ce poste.
 //
 // Module PUR de React, sans « use client » : le gabarit racine (composant serveur)
 // importe `SCRIPT_CORPS`.

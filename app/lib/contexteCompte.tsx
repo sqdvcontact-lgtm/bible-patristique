@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react'
 import { supabase } from './supabase'
 import { appliquerTheme, lireTheme, themeValide, type Theme } from './theme'
+import { appliquerCorps, CORPS_DEFAUT, corpsValide, lireCorps, type CorpsLecture } from './corpsLecture'
 import { accorderVisites, poserVisitesDuPoste, visitesDuPoste } from './visiteGuidee'
 import { CADRAGE_PAR_DEFAUT, type Cadrage } from './portraits'
 import ModaleCompteRequis from '@/app/components/ModaleCompteRequis'
@@ -43,6 +44,11 @@ type ContexteCompte = {
   theme: Theme
   /** Rend l'écriture en base, pour qui veut en signaler l'échec (page du compte). */
   changerTheme: (theme: Theme) => Promise<void>
+  // La taille du texte biblique (trois crans). MÊME PARTI que le thème : retenue dans
+  // `profils.corps_lecture`, miroitée dans le stockage local (`cs-corps`), qui seul sait
+  // la poser avant peinture. Le cran courant se lit par `useCorpsLecture`, qui suit le
+  // miroir ; `changerCorps` écrit l'écran, le miroir et le compte.
+  changerCorps: (corps: CorpsLecture) => Promise<void>
   // ── LA MÉMOIRE DES VISITES ────────────────────────────────────────────────────
   // Le passage d'un tutoriel est une PRÉFÉRENCE DE COMPTE, retenue dans
   // `profils.visites_faites` et miroitée dans le stockage local. UNE DÉCISION PAR
@@ -72,7 +78,7 @@ const Contexte = createContext<ContexteCompte>({
   userId: null, email: null, pret: false,
   pseudo: null, estAdmin: false, portrait: null, cadragePortrait: null, estMecene: false,
   profilPret: false, rafraichirProfil: () => {},
-  theme: 'clair', changerTheme: async () => {},
+  theme: 'clair', changerTheme: async () => {}, changerCorps: async (corps) => appliquerCorps(corps),
   visiteFaite: () => false, marquerVisiteFaite: () => {}, oublierVisite: () => {},
   aUnCompte: false, exigerCompte: () => false,
 })
@@ -155,6 +161,30 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // ── Taille du texte biblique ────────────────────────────────────────────────
+  // Le même mécanisme que le thème, sans état propre : le cran vit dans le miroir
+  // local (`corpsLecture.ts`), que `useCorpsLecture` suit déjà. Le lire au MOMENT du
+  // rapprochement suffit donc, là où le thème a besoin de sa référence.
+  const changerCorps = useCallback(async (choisi: CorpsLecture) => {
+    appliquerCorps(choisi)
+    if (!userId) return
+    const { error } = await supabase.from('profils').update({ corps_lecture: choisi }).eq('id', userId)
+    if (error) throw error
+  }, [userId])
+
+  // Rapprochement, à l'arrivée du profil : le COMPTE l'emporte, et un poste qui porte
+  // un choix que le compte ignore encore le lui remonte. Voir `accorderTheme`.
+  const accorderCorps = useCallback((pour: string, duCompte: CorpsLecture | null) => {
+    const duPoste = lireCorps()
+    if (duCompte && duCompte !== duPoste) {
+      appliquerCorps(duCompte)
+      return
+    }
+    if (!duCompte && duPoste !== CORPS_DEFAUT) {
+      supabase.from('profils').update({ corps_lecture: duPoste }).eq('id', pour).then(() => {})
+    }
+  }, [])
+
   // ── La mémoire des visites ──────────────────────────────────────────────────
   // Ce qu'on retient POUR CETTE SESSION : le miroir de ce poste, complété par le
   // compte à l'arrivée du profil.
@@ -223,7 +253,7 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
     // montre sur toutes les pages : demandé à part, il aurait ajouté une requête par
     // chargement pour quatre colonnes que celle-ci rapporte sans rien coûter de plus.
     supabase.from('profils')
-      .select('pseudo, est_admin, theme_lecture, avatar_ref, avatar_pos_x, avatar_pos_y, avatar_zoom, mecene_depuis, pub_mecene, visites_faites')
+      .select('pseudo, est_admin, theme_lecture, corps_lecture, avatar_ref, avatar_pos_x, avatar_pos_y, avatar_zoom, mecene_depuis, pub_mecene, visites_faites')
       .eq('id', userId).maybeSingle()
       .then(({ data }) => {
         if (!vivant) return
@@ -249,9 +279,10 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
             : null,
         })
         accorderTheme(userId, themeValide(data?.theme_lecture))
+        accorderCorps(userId, corpsValide(data?.corps_lecture))
       })
     return () => { vivant = false }
-  }, [userId, relecture, accorderTheme, accorderLesVisites])
+  }, [userId, relecture, accorderTheme, accorderCorps, accorderLesVisites])
 
   const rafraichirProfil = useCallback(() => setRelecture(n => n + 1), [])
 
@@ -279,7 +310,7 @@ export function ProvisionCompte({ children }: { children: ReactNode }) {
   }, [aUnCompte])
 
   return (
-    <Contexte.Provider value={{ userId, email, pret, pseudo, estAdmin, portrait, cadragePortrait, estMecene, profilPret, rafraichirProfil, theme, changerTheme, visiteFaite, marquerVisiteFaite, oublierVisite, aUnCompte, exigerCompte }}>
+    <Contexte.Provider value={{ userId, email, pret, pseudo, estAdmin, portrait, cadragePortrait, estMecene, profilPret, rafraichirProfil, theme, changerTheme, changerCorps, visiteFaite, marquerVisiteFaite, oublierVisite, aUnCompte, exigerCompte }}>
       {children}
       {invitation !== null && (
         <ModaleCompteRequis contexte={invitation} onClose={() => setInvitation(null)} />
