@@ -1,5 +1,6 @@
 'use client'
 
+import LireQuandMeme, { FEUILLE_COMMENTAIRE_RETRACTE } from '@/app/components/LireQuandMeme'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -146,7 +147,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
         style={{ width: '100%', display: 'block', position: 'relative', overflow: 'hidden', background: 'var(--cs-danger-fond)', borderStyle: 'solid', borderColor: 'var(--cs-danger-bord)', borderWidth: formeCommentaire({ reponse, suivie }).borderWidth, borderRadius: formeCommentaire({ reponse, suivie }).borderRadius, cursor: 'pointer', padding: '9px 12px', textAlign: 'left' }}>
         <span className="commentaire-retracte-contenu" style={{ display: 'block', fontSize: '0.71875rem', color: 'var(--cs-danger-fonce)', fontWeight: 600 }}>
           Commentaire en attente de contrôle.
-        </span>
+        </span><LireQuandMeme />
       </button>
     </div>
   )
@@ -209,40 +210,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
         .commentaire-carte {
           transition: opacity 180ms ease, box-shadow 180ms ease, margin 180ms ease;
         }
-        .commentaire-retracte {
-          transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
-        }
-        .commentaire-retracte:hover {
-          background: color-mix(in srgb, var(--cs-danger-aplat) 10%, var(--cs-danger-fond)) !important;
-          border-color: var(--cs-danger) !important;
-          transform: translateX(1px);
-        }
-        .commentaire-retracte-contenu {
-          transition: opacity 150ms ease, transform 150ms ease;
-        }
-        .commentaire-retracte:hover .commentaire-retracte-contenu {
-          opacity: 0.13;
-          transform: translateX(-6px);
-        }
-        .commentaire-retracte::after {
-          content: "Lire tout de même  →";
-          position: absolute;
-          inset: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: transparent;
-          font-size:0.75rem;
-          font-weight: 800;
-          letter-spacing: 0.04em;
-          pointer-events: none;
-          transform: translateX(-10px);
-          transition: color 160ms ease, transform 160ms ease;
-        }
-        .commentaire-retracte:hover::after {
-          color: var(--cs-danger-fonce);
-          transform: translateX(0);
-        }
+        ${FEUILLE_COMMENTAIRE_RETRACTE}
       `}</style>
       {/* Décompte, en tête (le tri a été retiré). */}
       <div style={{ flexShrink: 0, padding: '12px 14px 8px' }}>
