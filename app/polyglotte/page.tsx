@@ -37,7 +37,7 @@ import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
 import { MarqueAttente } from "@/app/lib/attenteNavigation";
 import { DUREE_ENTREE_MS, ordonnerBlocsVisibles, ordonnerColonnesVisibles } from "@/app/lib/passageTexte";
 import { LIVRE_PAR_DEFAUT, ouvertureDeLaPolyglotte, retenirPositionPolyglotte } from "@/app/lib/repriseLecture";
-import { placePolyglotteDemandee } from "@/app/lib/bibleNavigation";
+import { colonnesPolyglotteDemandees, livreEntierDemande, placePolyglotteDemandee, urlEtatPolyglotte } from "@/app/lib/bibleNavigation";
 import { allerAElement } from "@/app/lib/defilement";
 import { hauteurNavbarPx } from "@/app/lib/fenetreContextuelle";
 import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile";
@@ -1479,6 +1479,55 @@ export default function PolyglottePage() {
     retenirPositionPolyglotte(livreChoisi, chapitreChoisi);
   }, [livreChoisi, chapitreChoisi]);
 
+  // ── LA PLACE ET LES COLONNES S'INSCRIVENT DANS L'ADRESSE (audit ergonomique 2026-09-21) ──
+  // Livre, chapitre (ou livre entier) et colonnes affichées : l'adresse désigne ce qu'on
+  // voit, et l'on peut la partager, la recharger, et revenir en arrière. Un changement de
+  // LIVRE ou de CHAPITRE empile une entrée d'historique ; un changement de colonnes la
+  // remplace, un clic mineur ne devant pas remplir le bouton Précédent.
+  // ⛔ `history.pushState` / `replaceState`, jamais le routeur : la page est rendue dans le
+  // navigateur, et une navigation redemanderait au serveur une page qu'on a déjà.
+  // ⚠️ Rien ne s'écrit avant que les colonnes soient connues : l'adresse d'arrivée en porte
+  // peut-être, et une réécriture prématurée les effacerait. Le verset désigné par l'adresse
+  // reste tant qu'on ne quitte pas son chapitre.
+  const placeEcriteRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!livreChoisi || !trads.length || !slots.length) return;
+    const ici = new URLSearchParams(window.location.search);
+    const place = `${livreChoisi}|${chapitreChoisi ?? "entier"}`;
+    const memeLieu = ici.get("livre") === livreChoisi
+      && (chapitreChoisi == null ? ici.get("entier") === "1" : ici.get("chapitre") === String(chapitreChoisi));
+    const verset = memeLieu ? Number(ici.get("verset")) || null : null;
+    const url = urlEtatPolyglotte({ livre: livreChoisi, chapitre: chapitreChoisi, colonnes: slots, verset });
+    const empiler = placeEcriteRef.current !== null && placeEcriteRef.current !== place;
+    placeEcriteRef.current = place;
+    if (url === window.location.pathname + window.location.search) return;
+    if (empiler) window.history.pushState(null, "", url);
+    else window.history.replaceState(null, "", url);
+  }, [livreChoisi, chapitreChoisi, slots, trads.length]);
+
+  // Précédent / Suivant : la page reprend la place et les colonnes que l'adresse nomme.
+  useEffect(() => {
+    const surRetour = () => {
+      const recherche = window.location.search;
+      const place = placePolyglotteDemandee(recherche);
+      if (!place || !livres.some(l => l.code === place.livre)) return;
+      const entier = livreEntierDemande(recherche);
+      placeEcriteRef.current = `${place.livre}|${entier ? "entier" : place.chapitre}`;
+      setOnglet(ensembleDeLivre(livres, place.livre));
+      setLivreChoisi(place.livre);
+      setChapitreChoisi(entier ? null : place.chapitre);
+      setToutAfficher(false);
+      setVersetCible(null);
+      const colonnes = colonnesPolyglotteDemandees(recherche);
+      if (colonnes) {
+        const dispo = new Set(trads.map(t => t.trad_id));
+        setSlots(colonnes.map(c => (dispo.has(c) ? c : "")));
+      }
+    };
+    window.addEventListener("popstate", surRetour);
+    return () => window.removeEventListener("popstate", surRetour);
+  }, [livres, trads]);
+
   const choisirLivre = useCallback((code: string) => {
     setOnglet(ensembleDe(code));
     setLivreChoisi(code);
@@ -1497,6 +1546,9 @@ export default function PolyglottePage() {
 
   // Chargement initial (livres, points, traductions migrées)
   useEffect(() => {
+    // ⛔ L'ADRESSE D'ARRIVÉE SE LIT UNE FOIS, AU MONTAGE : la page la réécrit dès que
+    // l'état est posé, et les deux réponses qui s'en servent arrivent plus tard.
+    const rechercheInitiale = window.location.search;
     supabase.from("livres").select("code, nom_fr, ordre").order("ordre").then(({ data, error }) => {
       // ⚠️ Lire l'erreur : un volet vide se lit « rien à comparer », ce qui ment sur une panne.
       if (error) console.error("Polyglotte : les livres n’ont pas pu être lus.", error);
@@ -1513,12 +1565,13 @@ export default function PolyglottePage() {
       // ⛔ UNE ADRESSE QUI NOMME UN VERSET L'EMPORTE sur la reprise de lecture : c'est le
       // bouton « Voir dans la Polyglotte » de la page Bible qui l'écrit (2026-09-20). Le
       // verset se désigne et se surligne un instant, comme depuis la recherche du volet.
-      const demande = placePolyglotteDemandee(window.location.search);
+      const demande = placePolyglotteDemandee(rechercheInitiale);
       const livreDemande = demande ? liste.find(l => l.code === demande.livre) : undefined;
       if (demande && livreDemande) {
         setOnglet(ensembleDeLivre(liste, livreDemande.code));
         setLivreChoisi(livreDemande.code);
-        setChapitreChoisi(demande.chapitre);
+        setChapitreChoisi(livreEntierDemande(rechercheInitiale) ? null : demande.chapitre);
+        placeEcriteRef.current = `${livreDemande.code}|${livreEntierDemande(rechercheInitiale) ? "entier" : demande.chapitre}`;
         if (demande.verset !== null) {
           setVersetCible({ ch: demande.chapitre, v: demande.verset });
           setVersetDesigne({ livre: livreDemande.code, ch: demande.chapitre, v: demande.verset });
@@ -1604,12 +1657,15 @@ export default function PolyglottePage() {
         migres.push({ trad_id: TRAD_ID_899_DIPLO, ...commun, variante: "Transcription diplomatique" });
       }
       setTrads(migres);
-      // Choix des colonnes : celui que l'utilisateur a laissé la dernière fois (localStorage),
-      // sinon par défaut les quatre premières traductions distinctes. On ne retient d'un choix
-      // sauvegardé que les traductions encore disponibles.
+      // Choix des colonnes : celui que l'ADRESSE nomme (lien partagé, rechargement), sinon
+      // celui que l'utilisateur a laissé la dernière fois (localStorage), sinon par défaut les
+      // quatre premières traductions distinctes. On ne retient d'un choix que les traductions
+      // encore disponibles.
       const dispo = new Set(migres.map(m => m.trad_id));
       let init: string[] | null = null;
-      try {
+      const demandees = colonnesPolyglotteDemandees(rechercheInitiale);
+      if (demandees && demandees.some(x => dispo.has(x))) init = demandees.map(x => (dispo.has(x) ? x : ""));
+      if (!init) try {
         const brut = typeof window !== "undefined" ? window.localStorage.getItem(CLE_SLOTS) : null;
         const parse = brut ? JSON.parse(brut) : null;
         if (Array.isArray(parse) && parse.some((x: string) => dispo.has(x))) {

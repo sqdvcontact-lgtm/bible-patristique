@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   placeCanoniqueDuVerset,
   placePolyglotteDemandee,
+  urlEtatPolyglotte,
+  colonnesPolyglotteDemandees,
+  livreEntierDemande,
   urlPolyglotte,
   chapitreSuivantDisponible,
   dernierChapitreBible,
@@ -134,5 +137,28 @@ describe('La Polyglotte ouverte sur un verset', () => {
     expect(placeCanoniqueDuVerset({ id_verset: 'PSA.9.22', verset: 1 }, 'PSA', 10)).toEqual({ livre: 'PSA', chapitre: 9, verset: 22 })
     expect(placeCanoniqueDuVerset({ id_verset: 'a1b2', ref: 'LUK.13.1', verset: 1 }, 'LUK', 13)).toEqual({ livre: 'LUK', chapitre: 13, verset: 1 })
     expect(placeCanoniqueDuVerset({ id_verset: 'a1b2', ref: '', verset: 5 }, 'JHN', 2)).toEqual({ livre: 'JHN', chapitre: 2, verset: 5 })
+  })
+})
+
+describe('l’état de la Polyglotte dans l’adresse', () => {
+  it('écrit livre, chapitre et colonnes, et se relit', () => {
+    const url = urlEtatPolyglotte({ livre: 'GEN', chapitre: 3, colonnes: ['TR0001', '', 'TR0009#diplomatic'] })
+    const recherche = url.slice(url.indexOf('?'))
+    expect(placePolyglotteDemandee(recherche)).toEqual({ livre: 'GEN', chapitre: 3, verset: null })
+    expect(colonnesPolyglotteDemandees(recherche)).toEqual(['TR0001', '', 'TR0009#diplomatic'])
+    expect(livreEntierDemande(recherche)).toBe(false)
+  })
+  it('écrit le livre entier sans chapitre ni verset', () => {
+    const url = urlEtatPolyglotte({ livre: 'PSA', chapitre: null, colonnes: ['TR0004'], verset: 5 })
+    expect(url).toBe('/polyglotte?livre=PSA&entier=1&trads=TR0004')
+    expect(livreEntierDemande(url.slice(url.indexOf('?')))).toBe(true)
+  })
+  it('garde le verset désigné d’un chapitre', () => {
+    expect(urlEtatPolyglotte({ livre: 'JHN', chapitre: 3, colonnes: [], verset: 16 })).toBe('/polyglotte?livre=JHN&chapitre=3&verset=16')
+  })
+  it('ne nomme aucune colonne sans code lisible : les réglages mémorisés font le repli', () => {
+    expect(colonnesPolyglotteDemandees('?livre=GEN')).toBeNull()
+    expect(colonnesPolyglotteDemandees('?trads=,,')).toBeNull()
+    expect(colonnesPolyglotteDemandees('?trads=TR0001,<x>')).toEqual(['TR0001', ''])
   })
 })

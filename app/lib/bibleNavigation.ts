@@ -139,6 +139,47 @@ export function placePolyglotteDemandee(recherche: string): PlacePolyglotte | nu
   return { livre, chapitre: entier(p.get('chapitre')) ?? 1, verset: entier(p.get('verset')) }
 }
 
+// ── L'état de la Polyglotte dans l'adresse (audit ergonomique 2026-09-21) ────
+// Livre, chapitre (ou livre entier) et colonnes affichées : l'adresse désigne ce
+// qu'on voit, pour qu'on puisse la partager, la recharger et revenir en arrière.
+// ⛔ Les colonnes gardent leur RANG, une colonne vide s'écrivant vide
+// (« TR0001,,TR0004 ») : c'est l'ordre du tableau, non un ensemble.
+
+export type EtatPolyglotte = {
+  livre: string
+  /** `null` : le livre entier. */
+  chapitre: number | null
+  colonnes: string[]
+  verset?: number | null
+}
+
+const RE_COLONNE = /^[A-Za-z0-9#_.:-]{1,40}$/
+
+export function urlEtatPolyglotte(etat: EtatPolyglotte): string {
+  const parametres = new URLSearchParams()
+  parametres.set('livre', etat.livre)
+  if (etat.chapitre == null) parametres.set('entier', '1')
+  else parametres.set('chapitre', String(etat.chapitre))
+  if (etat.verset != null && etat.chapitre != null) parametres.set('verset', String(etat.verset))
+  if (etat.colonnes.some(Boolean)) parametres.set('trads', etat.colonnes.join(','))
+  return `/polyglotte?${parametres.toString()}`
+}
+
+/** Les colonnes que l'adresse nomme, dans leur ordre, ou `null` si elle n'en nomme
+ *  aucune (les réglages mémorisés font alors le repli). Un code illisible vaut une
+ *  colonne vide : il garde son rang sans rien imposer. */
+export function colonnesPolyglotteDemandees(recherche: string): string[] | null {
+  const brut = new URLSearchParams(recherche).get('trads')
+  if (!brut) return null
+  const colonnes = brut.split(',').slice(0, 12).map(c => (RE_COLONNE.test(c.trim()) ? c.trim() : ''))
+  return colonnes.some(Boolean) ? colonnes : null
+}
+
+/** Vrai si l'adresse demande le livre ENTIER plutôt qu'un chapitre. */
+export function livreEntierDemande(recherche: string): boolean {
+  return new URLSearchParams(recherche).get('entier') === '1'
+}
+
 const RE_CANON_VERSET = /^([A-Z0-9]{2,6})\.(\d+)\.(\d+)$/
 
 /** La place canonique d'une rangée de verset : son identifiant (`GEN.29.3`, ou
