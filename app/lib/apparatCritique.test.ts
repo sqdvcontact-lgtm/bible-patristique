@@ -208,7 +208,7 @@ describe('metadonneesDesColonnes', () => {
 
   it('demande chaque clé lue, une fois, sous son nom de colonne', () => {
     for (const cle of CLES_METADONNEES_BLOC_LUES) {
-      expect(SELECT_METADONNEES_BLOC_LUES.split(',')).toContain(`md_${cle}:metadata->${cle}`)
+      expect(SELECT_METADONNEES_BLOC_LUES.split(',')).toContain(`md_${cle}:metadata_lecture->${cle}`)
     }
     expect(SELECT_METADONNEES_BLOC_LUES.split(',')).toHaveLength(CLES_METADONNEES_BLOC_LUES.length)
     expect(SELECT_METADONNEES_BLOC_LUES).not.toMatch(/(^|,)metadata(,|$)/)

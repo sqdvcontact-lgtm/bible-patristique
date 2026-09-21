@@ -85,7 +85,10 @@ export type MetadonneesBlocNoteBrutes = {
 }
 
 /** Les SEULES clés de `metadata` que `lireMetadonneesBlocNote` lit, demandées une à une
- *  à PostgREST (`md_<clé>:metadata-><clé>`), qui garde leur type JSON.
+ *  à PostgREST (`md_<clé>:metadata_lecture-><clé>`), qui garde leur type JSON.
+ *  `metadata_lecture` est une colonne ENGENDRÉE qui ne porte que ces clés (migration
+ *  20260921180931, fonction `metadata_lecture_de`) : la lecture ne décompresse plus le jsonb
+ *  d'atelier.
  *
  *  ⛔ NE JAMAIS REDEMANDER `metadata` ENTIER POUR LE RENDU. Le jsonb d'un bloc porte les
  *  traces de toutes les passes d'atelier (`p12_review`, `ogl_xml_check_…`,
@@ -94,7 +97,7 @@ export type MetadonneesBlocNoteBrutes = {
  *  d'octets. La page des Confessions tirait ces 38,7 Mo de la base à CHAQUE ouverture
  *  (les notes du latin en regard), et ne finissait qu'à 13,2 s (audit ergonomique).
  *  ⚠️ Une clé ajoutée à la lecture ci-dessous s'ajoute AUSSI ici, sans quoi elle vaudra
- *  toujours `null`. */
+ *  toujours `null`, ET dans la fonction SQL `metadata_lecture_de` (nouvelle migration). */
 export const CLES_METADONNEES_BLOC_LUES = [
   'editorial_role', 'printed_line', 'visual_review_reason', 'human_validated',
   'citation_layout', 'bibliography_list_item', 'reader_style', 'reader_label',
@@ -102,10 +105,10 @@ export const CLES_METADONNEES_BLOC_LUES = [
 
 /** Le fragment de `select` qui les demande. */
 export const SELECT_METADONNEES_BLOC_LUES =
-  'md_editorial_role:metadata->editorial_role,md_printed_line:metadata->printed_line,'
-  + 'md_visual_review_reason:metadata->visual_review_reason,md_human_validated:metadata->human_validated,'
-  + 'md_citation_layout:metadata->citation_layout,md_bibliography_list_item:metadata->bibliography_list_item,'
-  + 'md_reader_style:metadata->reader_style,md_reader_label:metadata->reader_label'
+  'md_editorial_role:metadata_lecture->editorial_role,md_printed_line:metadata_lecture->printed_line,'
+  + 'md_visual_review_reason:metadata_lecture->visual_review_reason,md_human_validated:metadata_lecture->human_validated,'
+  + 'md_citation_layout:metadata_lecture->citation_layout,md_bibliography_list_item:metadata_lecture->bibliography_list_item,'
+  + 'md_reader_style:metadata_lecture->reader_style,md_reader_label:metadata_lecture->reader_label'
 
 /** Les colonnes `md_*` d'une ligne, telles que `SELECT_METADONNEES_BLOC_LUES` les rend. */
 export type ColonnesMetadonneesBloc = { [Cle in (typeof CLES_METADONNEES_BLOC_LUES)[number] as `md_${Cle}`]?: unknown }
