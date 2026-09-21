@@ -11,7 +11,7 @@ const NBSP = ' '   // espace insécable U+00A0
 function reduire(noeud: unknown): { t: string; v?: string; titre?: string; texte?: unknown } {
   if (typeof noeud === 'string') return { t: 'texte', v: noeud }
   const props = (noeud as { props?: { title?: string; children?: unknown } }).props ?? {}
-  return { t: 'marque', titre: props.title, texte: props.children }
+  return { t: 'marque', titre: props.title, texte: Array.isArray(props.children) ? props.children.filter(Boolean).join('') : props.children }
 }
 
 function reduireTout(resultat: unknown) {
@@ -163,7 +163,7 @@ describe('rendreMarqueurs899', () => {
       const out = reduireTout(marquerLacunesDuTemoin('Le Seigneur [les eut frappés] et [lecture incertaine : il partit]', 't1')) as ReturnType<typeof reduire>[]
       expect(out).toEqual([
         { t: 'texte', v: 'Le Seigneur [les eut frappés] et ' },
-        { t: 'marque', titre: 'Lecture incertaine (transcription du manuscrit)', texte: 'il partit' },
+        { t: 'marque', titre: 'Lecture incertaine (transcription du manuscrit)', texte: 'lecture incertaine'+NBSP+': il partit' },
       ])
     })
 
@@ -173,7 +173,7 @@ describe('rendreMarqueurs899', () => {
       const out = reduireTout(marquerLacunesDuTemoin('tu guetteras ses [lecture difficile : « oures »]. »', 't0')) as ReturnType<typeof reduire>[]
       expect(out).toEqual([
         { t: 'texte', v: 'tu guetteras ses ' },
-        { t: 'marque', titre: 'Lecture incertaine (transcription du manuscrit)', texte: '« oures »' },
+        { t: 'marque', titre: 'Lecture incertaine (transcription du manuscrit)', texte: 'lecture incertaine'+NBSP+': « oures »' },
         { t: 'texte', v: '. »' },
       ])
     })
@@ -191,7 +191,7 @@ describe('rendreMarqueurs899', () => {
       const debut = reduireTout(marquerLacunesDuTemoin('Alors dist il [lecture incertaine : à cause des faux', 't0')) as ReturnType<typeof reduire>[]
       expect(debut).toEqual([
         { t: 'texte', v: 'Alors dist il ' },
-        { t: 'marque', titre: 'Lecture incertaine (transcription du manuscrit)', texte: 'à cause des faux' },
+        { t: 'marque', titre: 'Lecture incertaine (transcription du manuscrit)', texte: 'lecture incertaine'+NBSP+': à cause des faux' },
       ])
       const suite = reduireTout(marquerLacunesDuTemoin('témoignages] et il se tut.', 't0')) as ReturnType<typeof reduire>[]
       expect(suite).toEqual([
