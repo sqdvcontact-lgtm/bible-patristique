@@ -23,7 +23,7 @@ import {
 } from '@/app/lib/fenetreContextuelle'
 import { styleAppelNote, type VarianteAppelNote } from '@/app/lib/appelsDeNote'
 import { EncartNote } from './EncartNote'
-import { hauteurSouhaiteeNote, largeurEncartMinPx, largeurEncartPx, MARGE_PARAGRAPHE_ENCART, reliefDeLaNote, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
+import { hauteurSouhaiteeNote, largeurEncartMinBiblePx, largeurEncartPx, MARGE_PARAGRAPHE_ENCART, reliefDeLaNote, signesDeLaNote, STYLE_APPEL_OUVERT } from '@/app/lib/compositionNote'
 // L'axe est la CAPACITÉ DU POINTEUR, jamais la largeur (charte, « LE DOIGT »).
 import { useSansSurvol } from '@/app/lib/useEstMobile'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -180,7 +180,7 @@ export default function AppelNoteBiblique({
   const hautNavbar = hauteurNavbarPx()
   // ⛔ D'ABORD LA MARGE : une note ouverte par-dessus la colonne cache le verset
   // qu'elle commente. ⚠️ Faute de place, on retombe sous l'appel.
-  const placement = (colonne && placerEnMarge({ ancre: boite, largeur, largeurMin: largeurEncartMinPx(racine), hauteurSouhaitee: hauteurVoulue, vue, hautNavbar, colonne, ecartGauche: DEBORD_BLOC_VERSET_REM * racine + 12 }))
+  const placement = (colonne && placerEnMarge({ ancre: boite, largeur, largeurMin: largeurEncartMinBiblePx(racine), hauteurSouhaitee: hauteurVoulue, vue, hautNavbar, colonne, ecartGauche: DEBORD_BLOC_VERSET_REM * racine + 12 }))
     ?? placerFenetre({ ancre: boite, largeur, hauteurSouhaitee: hauteurVoulue(), vue, hautNavbar, ecart: 8, prefereDessus: sansSurvol })
 
   return (

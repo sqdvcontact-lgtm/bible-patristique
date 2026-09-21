@@ -101,6 +101,19 @@ export function largeurEncartMinPx(racine: number): number {
   return LARGEUR_ENCART_MIN_REM * racine
 }
 
+/**
+ * Le minimum de la PAGE BIBLE, plus bas que celui d'une œuvre (demande de l'auteur,
+ * 2026-09-21 : la note s'ouvre dans la marge « et s'adapte à sa largeur, qu'on soit
+ * en langue unique ou bilingue »). Les deux volets ouverts, la marge droite n'y offre
+ * que 264 px à la racine 22 ; à 16 rem (352) la note retombait sous son appel.
+ * ⚠️ 11 rem laisse une piste d'environ 24 signes : les notes de verset sont brèves.
+ */
+export const LARGEUR_ENCART_MIN_BIBLE_REM = 11
+
+export function largeurEncartMinBiblePx(racine: number): number {
+  return LARGEUR_ENCART_MIN_BIBLE_REM * racine
+}
+
 /** Le blanc qui SUIT le numéro quand il pend.
  *
  *  ⛔ LE NUMÉRO N'A PLUS DE GOUTTIÈRE, il épouse ses chiffres (demande de l'auteur,

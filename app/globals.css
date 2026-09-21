@@ -980,7 +980,9 @@ button:focus-visible,
    épreuve, avant : 215 px ; après : 334, la mesure sur laquelle se calcule le
    seuil d’habillage. ⚠️ Le dégagement vaut des DEUX côtés : à droite aussi la
    manchette rognait la piste, de 502 à 222 px. */
-.cs-bible-gravure--flottante { clear: both; }
+/* ⚠️ Depuis le modèle F (2026-09-21), le texte ne passe plus sous la manchette :
+   la vignette n'a plus qu'à s'empiler sous une vignette voisine, à droite. */
+.cs-bible-gravure--flottante { clear: right; }
 /* ⛔ LE SEUIL DE REPLI EST CELUI DE LA MANCHETTE, 700 px, et non un seuil à lui.
    Il valait 620, un NEUVIÈME seuil que le tableau de la charte ne connaissait
    pas ; et entre les deux, la manchette reprenait déjà toute la mesure pendant
@@ -1751,8 +1753,17 @@ button:focus-visible,
      colonne, l'espace la plus large atteignait 1,609 em, six fois le quart de
      cadratin, et aucune propriété CSS ne borne cet étirement — c'est la
      mécanique même du justifié. Ferré, toutes les espaces gardent leur chasse. */
-  text-align: left;
-  font-family: var(--font-source-serif), Georgia, serif;
+  /* ⛔ RECTIFIÉ LE 2026-09-21 (modèle « F », choisi par l'auteur sur planche) :
+     le repère se FERRE À DROITE, contre le filet qui le sépare de son
+     développement, et se compose en SANS, jamais en italique. Le texte ne
+     l'habille plus : il tient sa propre colonne (voir la règle du filet, plus
+     bas), si bien que le bord droit du repère est le seul fer qui compte.
+     ⚠️ « !important » : un repère interne (« 1-3 ») porte son alignement EN
+     LIGNE, repris de la présentation déclarée. */
+  text-align: right !important;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-style: normal !important;
+  font-size: 0.75rem;
   /* ⛔ Chasse NULLE, et déclarée : sans cette ligne, la manchette d'une subdivision
      d'introduction gardait les 0,06 em de la rubrique des rangs hauts, que la
      présente règle ne recouvrait pas faute de la nommer. Un repère de sept
@@ -1775,7 +1786,7 @@ button:focus-visible,
      ⚠️ Descente mesurée, non devinée : deux pixels à cette conduite. Elle vaut
      zéro quand les deux conduites sont égales ; toute autre valeur se remesure
      plutôt qu'elle ne se calcule. */
-  line-height: 1.15;
+  line-height: 1.25;
   /* Le blanc du BAS vaut celui de la DROITE : la manchette est cernée du même
      blanc sur ses deux côtés libres. ⚠️ Il ne se règle pas à la même valeur pour
      autant. En bas, c'est la GRILLE qui fait le blanc : le texte laisse une
@@ -1787,12 +1798,14 @@ button:focus-visible,
      ⚠️ Le blanc de DROITE est passé de 1,25 à 0,9 rem le 2026-08-29 : la gouttière
      entre le repère et son développement se lisait plus large que le retrait qui
      les sépare de la page, et la manchette s'en détachait au lieu de le coiffer. */
-  margin: 0.125rem var(--cs-manchette-gouttiere) 0.75rem 0;
+  margin: 0.125rem 0 0.75rem 0;
   padding: 0;
   /* Détaché du fil, le repère n'a plus besoin de s'effacer pour tenir sa
      place : le gris de l'apparat s'y lisait anémique. */
-  color: var(--cs-texte-second);
-  /* ⛔ ET IL NE DOIT PAS LE PARAÎTRE PLUS SOMBRE (décision de l'auteur, 2026-08-30 :
+  color: var(--cs-encre);
+  /* ⚠️ L'encre d'un titre depuis le modèle F (2026-09-21) : en sans, à part
+     dans sa colonne, le repère ne se lit plus comme un quatrième rang de gris.
+     ⛔ ET IL NE DOIT PAS LE PARAÎTRE PLUS SOMBRE (décision de l'auteur, 2026-08-30 :
      « doit être dans la couleur du texte des commentaires »). Il PORTE cette couleur
      depuis toujours — mesuré rgb(107, 101, 96) sur le repère comme sur le paragraphe
      qu'il coiffe —, et l'auteur y lisait pourtant un gris de plus. Ce n'était donc
@@ -1808,13 +1821,75 @@ button:focus-visible,
    trentaine de signes par ligne, et le justifié s'y creuserait de lézardes. Le
    repère reprend alors toute la mesure et le texte le suit, au lieu de
    l'habiller. */
+/* ── LE MODÈLE F : le repère dans sa colonne, un filet, le texte à côté ─────────
+   Décision de l'auteur, 2026-09-21, sur planche : le développement ne passe plus
+   SOUS le repère, il tient sa colonne, et un filet fin sépare les deux. Le repère
+   reste un flottant (il n'y a pas d'autre moyen de le poser à côté de plusieurs
+   paragraphes et d'une vignette qui, elle, doit continuer de flotter à droite) ;
+   c'est la MARGE GAUCHE des autres enfants qui les tient hors de sa colonne.
+   ⚠️ « !important » sur la marge : les paragraphes portent leur marge EN LIGNE.
+   ⛔ Les FIGURES et la mention d'un défaut de donnée gardent la pleine mesure. */
+.cs-bible-info--i4.cs-bible-block--commentary:has(> .cs-bible-info-label),
+.cs-bible-info--i5.cs-bible-block--commentary:has(> .cs-bible-info-label),
+.cs-bible-info--i6.cs-bible-block--commentary:has(> .cs-bible-info-label),
+.cs-bible-bloc[data-manchette] {
+  position: relative;
+}
+.cs-bible-info--i4.cs-bible-block--commentary:has(> .cs-bible-info-label)::before,
+.cs-bible-info--i5.cs-bible-block--commentary:has(> .cs-bible-info-label)::before,
+.cs-bible-info--i6.cs-bible-block--commentary:has(> .cs-bible-info-label)::before,
+.cs-bible-bloc[data-manchette]::before {
+  content: '';
+  position: absolute;
+  top: 0.125rem;
+  bottom: 0.25rem;
+  left: calc(var(--cs-manchette-colonne) + var(--cs-manchette-gouttiere));
+  border-left: 1px solid var(--cs-bord-clair);
+  pointer-events: none;
+}
+.cs-bible-info--i4.cs-bible-block--commentary:has(> .cs-bible-info-label) > :not(.cs-bible-info-label):not(figure):not(.cs-bible-defaut-donnee),
+.cs-bible-info--i5.cs-bible-block--commentary:has(> .cs-bible-info-label) > :not(.cs-bible-info-label):not(figure):not(.cs-bible-defaut-donnee),
+.cs-bible-info--i6.cs-bible-block--commentary:has(> .cs-bible-info-label) > :not(.cs-bible-info-label):not(figure):not(.cs-bible-defaut-donnee),
+.cs-bible-bloc[data-manchette] > :not(.cs-bible-info-label):not(figure):not(.cs-bible-defaut-donnee) {
+  margin-left: calc(var(--cs-manchette-colonne) + 2 * var(--cs-manchette-gouttiere)) !important;
+}
+/* Le numéro du repère (« 21 ») se pose AU-DESSUS de son intitulé, discret. */
+.cs-manchette-num {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-texte-gris);
+  margin-bottom: 0.125rem;
+}
+/* ⛔ LE TEXTE D'UN COMMENTAIRE SE CONDENSE (demande de l'auteur, 2026-09-21 :
+   « le texte des commentaires doit être bien condensé »). Interligne et chasse
+   des espaces resserrés ; « !important » parce que le corps de l'apparat pose son
+   interligne EN LIGNE (STYLE_CORPS). */
+.cs-bible-block--commentary > p:not(.cs-bible-info-label) {
+  line-height: 1.22 !important;
+  word-spacing: -0.02em;
+}
+
 @media (max-width: 700px) {
+  .cs-bible-info--i4.cs-bible-block--commentary:has(> .cs-bible-info-label)::before,
+  .cs-bible-info--i5.cs-bible-block--commentary:has(> .cs-bible-info-label)::before,
+  .cs-bible-info--i6.cs-bible-block--commentary:has(> .cs-bible-info-label)::before,
+  .cs-bible-bloc[data-manchette]::before { display: none; }
+  .cs-bible-info--i4.cs-bible-block--commentary:has(> .cs-bible-info-label) > :not(.cs-bible-info-label):not(figure):not(.cs-bible-defaut-donnee),
+  .cs-bible-info--i5.cs-bible-block--commentary:has(> .cs-bible-info-label) > :not(.cs-bible-info-label):not(figure):not(.cs-bible-defaut-donnee),
+  .cs-bible-info--i6.cs-bible-block--commentary:has(> .cs-bible-info-label) > :not(.cs-bible-info-label):not(figure):not(.cs-bible-defaut-donnee),
+  .cs-bible-bloc[data-manchette] > :not(.cs-bible-info-label):not(figure):not(.cs-bible-defaut-donnee) {
+    margin-left: 0 !important;
+  }
   .cs-bible-info--i4.cs-bible-block--commentary > .cs-bible-info-label,
   .cs-bible-info--i5.cs-bible-block--commentary > .cs-bible-info-label,
   .cs-bible-info--i6.cs-bible-block--commentary > .cs-bible-info-label,
   .cs-bible-bloc[data-manchette] > .cs-bible-info-label--manchette {
     float: none;
     width: auto;
+    text-align: left !important;
     /* Le fer est le même qu'en pleine largeur depuis le 2026-08-27 : seule la
        colonne disparaît, le repère prend toute la mesure et le texte le suit. */
     margin: 0 0 0.4rem;
