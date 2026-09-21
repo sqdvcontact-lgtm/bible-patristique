@@ -237,10 +237,11 @@ function BoutonEnregistrer({
       /* ⛔ Le signet PLEIN ne paraît plus qu'au survol, comme ses voisins (décision de
          l'auteur, 21 septembre 2026). L'état se dit désormais à gauche du numéro, par
          une petite marque discrète (`STYLE_SIGNET_VERSET`), qui ne pèse pas sur la
-         colonne d'actions. Au doigt, le pavé montre ses boutons pleins, comme avant. */
+         colonne d'actions. Au doigt, le pavé montre ses boutons pleins, comme avant.
+         Même encre grise que la marque (reprise du 21 septembre 2026). */
       <button onClick={supprimer} disabled={loading}
         title="Retirer des prélèvements" className="bouton-action-verset"
-        style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-vert)' }}
+        style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-texte-faible)' }}
         aria-label="Retirer des prélèvements">
         {loading ? '…' : <IconeSignet plein />}
       </button>
