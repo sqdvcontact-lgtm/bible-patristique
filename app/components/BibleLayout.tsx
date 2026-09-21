@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef } from 'react'
+import { Z_BANDEAU_LECTURE, Z_ONGLETS_LECTURE } from '@/app/lib/empilement'
 import { MarqueAttente, ProvisionAttente, useAvantDeNaviguer, useEnAttente, useNaviguer, usePrecharger } from '@/app/lib/attenteNavigation'
 import { hauteurNavbarPx } from '@/app/lib/fenetreContextuelle'
 import { DUREE_ENTREE_MS, DUREE_OUVERTURE_MS, SELECTEUR_BLOCS_BIBLE, elementEnTete, ordonnerBlocsVisibles } from '@/app/lib/passageTexte'
@@ -910,7 +911,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         : { position: 'relative', display: 'flex', height: HAUTEUR_SOUS_NAVBAR, overflow: 'hidden' }}>
       {/* Onglets mobiles, fixés sous la navbar : Sommaire / Texte / Commentaires. */}
       {mobile && (
-        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: 1300, height: '2.875rem', display: 'flex', alignItems: 'stretch', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }}>
+        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: Z_ONGLETS_LECTURE, height: '2.875rem', display: 'flex', alignItems: 'stretch', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }}>
           {ONGLETS_MOBILE.map(o => {
             const actif = voletMobile === o.cle
             return (
@@ -1049,7 +1050,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
       {/* Bandeau de navigation mobile — tout en bas, sous la barre « Commentaires ».
           Forme abrégée « Gn ❧ 1 » et flèches pour changer de chapitre. */}
       {mobile && (
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1250, height: BANDEAU_NAV_MOBILE, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', background: 'var(--cs-fond-doux)', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)' }}>
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: Z_BANDEAU_LECTURE, height: BANDEAU_NAV_MOBILE, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', background: 'var(--cs-fond-doux)', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)' }}>
           {/* Mêmes flèches que les en-têtes de lecture (`FlecheChapitre`, gabarit
               `bandeau` : même boîte qu'avant), mêmes cibles : au bout d'un livre, le livre
               voisin ; à une borne réelle, le chevron reste en place, grisé et inerte. */}

@@ -32,9 +32,7 @@
  *    entrer dans l'échelle demanderait de nommer « au-dessus de la barre » trois fois.
  */
 export const RANGS_HORS_ECHELLE: Record<string, readonly number[]> = {
-  'components/BibleLayout.tsx': [1250, 1300],
   'components/Navbar.tsx': [3090, 3100],
   'components/VoletNotifications.tsx': [2500],
   'globals.css': [3100],
-  'polyglotte/page.tsx': [3001],
 }

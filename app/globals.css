@@ -26,6 +26,27 @@
   --background: var(--cs-fond);
   --foreground: var(--cs-texte);
 
+  /* ── L'échelle d'empilement, en jetons ──
+     Les rangs de PAGE du site (900 et au-delà), pour ce qui s'écrit dans une feuille.
+     ⛔ La source est `app/lib/empilement.ts` ; ces valeurs y sont recopiées, et
+     `empilement.test.ts` refuse qu'elles dérivent. Un z-index de 1 à 50 vit dans un
+     contexte local et n'a pas de jeton. */
+  --cs-z-attente: 900;
+  --cs-z-flottant: 1100;
+  --cs-z-fenetre: 1200;
+  --cs-z-bandeau-lecture: 1250;
+  --cs-z-onglets-lecture: 1300;
+  --cs-z-tiroir-voile: 2400;
+  --cs-z-tiroir: 2401;
+  --cs-z-modale: 2700;
+  --cs-z-visite: 2800;
+  --cs-z-barre: 3000;
+  --cs-z-menu-porte: 3050;
+  --cs-z-sous-menu-porte: 3051;
+  --cs-z-visite-barre: 3200;
+  --cs-z-notification: 4000;
+  --cs-z-infobulle: 9999;
+
   /* ⛔ CE QUE LE NAVIGATEUR PEINT LUI-MÊME. `color-scheme` ne colore rien dans la
      page : il dit au navigateur dans quel registre rendre SES propres surfaces —
      barres de défilement natives, cases à cocher, menus déroulants de `<select>`,

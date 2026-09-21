@@ -39,6 +39,15 @@ export const Z_FLOTTANT = 1100
  *  `HAUTEUR_NAVBAR`, la barre reste visible, et l'on ne perd jamais la sortie. */
 export const Z_FENETRE = 1200
 
+/** Le CHROME DES PAGES DE LECTURE au doigt : le bandeau de chapitre fixé en bas
+ *  (`BANDEAU`), puis la barre d'onglets fixée sous la barre de navigation
+ *  (`ONGLETS`). Rangés le 21 septembre 2026 (reste de l'audit du 9 septembre, § 8) :
+ *  ils vivaient en chiffres, au registre hors échelle. ⚠️ Au-dessus d'une fenêtre de
+ *  page, qui ne les couvre donc pas ; SOUS le tiroir et la modale, qui les couvrent.
+ *  Les onglets passent devant le bandeau, qu'ils ne croisent jamais. */
+export const Z_BANDEAU_LECTURE = 1250
+export const Z_ONGLETS_LECTURE = 1300
+
 /** Le voile d'un tiroir mobile, et le tiroir lui-même. ⚠️ Les deux vont ensemble :
  *  le voile referme au tap, le tiroir se pose dessus. */
 export const Z_TIROIR_VOILE = 2400
@@ -62,18 +71,50 @@ export const Z_VISITE_BARRE = 3200
  *  `HAUTEUR_NAVBAR` : la barre reste visible, et l'on ne perd jamais la sortie. */
 export const Z_BARRE = 3000
 
+/** Un MENU PORTÉ dans un portail (le choix de bible d'une colonne de la Polyglotte),
+ *  et son sous-menu, un cran dessus. Rangés le 21 septembre 2026 : ils vivaient à 3000
+ *  et 3001, c'est-à-dire AU RANG de la barre, et ne passaient devant elle que par
+ *  l'ordre du document. ⚠️ Au-dessus de la barre, parce qu'un menu ouvert près du haut
+ *  de page déborde sur elle ; sous la visite qui couvre la barre. */
+export const Z_MENU_PORTE = 3050
+export const Z_SOUS_MENU_PORTE = 3051
+
 /** Le carton d'une notification, qui doit se voir quoi qu'on lise. */
 export const Z_NOTIFICATION = 4000
 
 /** L'infobulle d'un appel de note : le dernier objet posé sur la page. */
 export const Z_INFOBULLE = 9999
 
-/** Les onze rangs, DANS L'ORDRE, pour la garde. ⛔ On n'en ajoute pas un sans écrire
- *  ce qu'il sert et pourquoi aucun des onze ne suffisait. */
+/** Les quinze rangs, DANS L'ORDRE, pour la garde. ⛔ On n'en ajoute pas un sans écrire
+ *  ce qu'il sert et pourquoi aucun des autres ne suffisait. */
 export const ECHELLE_EMPILEMENT: readonly number[] = [
-  Z_ATTENTE, Z_FLOTTANT, Z_FENETRE, Z_TIROIR_VOILE, Z_TIROIR,
-  Z_MODALE, Z_VISITE, Z_BARRE, Z_VISITE_BARRE, Z_NOTIFICATION, Z_INFOBULLE,
+  Z_ATTENTE, Z_FLOTTANT, Z_FENETRE, Z_BANDEAU_LECTURE, Z_ONGLETS_LECTURE,
+  Z_TIROIR_VOILE, Z_TIROIR, Z_MODALE, Z_VISITE, Z_BARRE, Z_MENU_PORTE,
+  Z_SOUS_MENU_PORTE, Z_VISITE_BARRE, Z_NOTIFICATION, Z_INFOBULLE,
 ]
+
+/**
+ * LES MÊMES RANGS EN JETONS CSS (`--cs-z-…`, globals.css, sur `:root`), pour ce qui
+ * s'écrit dans une feuille. ⛔ Les valeurs y sont RECOPIÉES, et la garde
+ * (`empilement.test.ts`) vérifie qu'elles n'ont pas dérivé : ce module reste la source.
+ */
+export const JETONS_EMPILEMENT: Readonly<Record<string, number>> = {
+  '--cs-z-attente': Z_ATTENTE,
+  '--cs-z-flottant': Z_FLOTTANT,
+  '--cs-z-fenetre': Z_FENETRE,
+  '--cs-z-bandeau-lecture': Z_BANDEAU_LECTURE,
+  '--cs-z-onglets-lecture': Z_ONGLETS_LECTURE,
+  '--cs-z-tiroir-voile': Z_TIROIR_VOILE,
+  '--cs-z-tiroir': Z_TIROIR,
+  '--cs-z-modale': Z_MODALE,
+  '--cs-z-visite': Z_VISITE,
+  '--cs-z-barre': Z_BARRE,
+  '--cs-z-menu-porte': Z_MENU_PORTE,
+  '--cs-z-sous-menu-porte': Z_SOUS_MENU_PORTE,
+  '--cs-z-visite-barre': Z_VISITE_BARRE,
+  '--cs-z-notification': Z_NOTIFICATION,
+  '--cs-z-infobulle': Z_INFOBULLE,
+}
 
 /** Le plancher d'un rang de PAGE. Au-dessous, on est dans un contexte local. */
 export const PLANCHER_RANG_DE_PAGE = 900
@@ -93,7 +134,8 @@ export const PLANCHER_RANG_DE_PAGE = 900
  *     et celle à 1300 les y rejoignent : une modale est une modale.
  *
  * ⚠️ CE QUI RESTE HORS ÉCHELLE n'est PAS de la même famille, et n'a pas été touché :
- * le chrome de page (les deux barres mobiles de la lecture biblique, 1250 et 1300 ; la
- * pastille de réinitialisation des volets, 2500), et les rangs internes de la barre de
- * navigation (3001, 3090, 3100), qui se comparent à elle et non au reste de la page.
+ * la pastille de réinitialisation des volets (2500), et les rangs internes de la barre
+ * de navigation (3090, 3100), qui se comparent à elle et non au reste de la page. Les
+ * deux barres mobiles de la lecture biblique (1250, 1300) et les menus portés de la
+ * Polyglotte (3000, 3001) ont été rangés le 21 septembre 2026.
  */

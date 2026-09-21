@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { ECHELLE_EMPILEMENT, PLANCHER_RANG_DE_PAGE } from './empilement'
+import { ECHELLE_EMPILEMENT, JETONS_EMPILEMENT, PLANCHER_RANG_DE_PAGE } from './empilement'
 import { RANGS_HORS_ECHELLE } from './empilementInventaire'
 
 /**
@@ -101,5 +101,15 @@ describe('empilement', () => {
     //    et n'aurait rien dit d'un rang déplacé dans la déclaration. C'est l'ORDRE du
     //    module qui enseigne l'échelle à qui la lit.
     expect([...ECHELLE_EMPILEMENT]).toEqual(triee)
+  })
+})
+
+describe('empilement en jetons CSS', () => {
+  it('les jetons --cs-z-… de globals.css recopient exactement l’échelle', () => {
+    const feuille = readFileSync(join(RACINE, 'globals.css'), 'utf8')
+    const lus: Record<string, number> = {}
+    for (const m of feuille.matchAll(/(--cs-z-[a-z-]+)\s*:\s*(\d+)\s*;/g)) lus[m[1]] = Number(m[2])
+    expect(lus).toEqual({ ...JETONS_EMPILEMENT })
+    expect(Object.values(JETONS_EMPILEMENT).sort((a, b) => a - b)).toEqual([...ECHELLE_EMPILEMENT])
   })
 })

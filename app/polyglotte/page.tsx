@@ -15,7 +15,7 @@
 // ────────────────────────────────────────────────────────────────────────────
 
 import { activerAuClavier } from '@/app/lib/activerAuClavier'
-import { Z_MODALE } from '@/app/lib/empilement'
+import { Z_MENU_PORTE, Z_MODALE, Z_SOUS_MENU_PORTE } from '@/app/lib/empilement'
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
@@ -1242,7 +1242,7 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
           // main, cette position n'a plus cours et il se replie.
           onScroll={() => { retenirVolet(); setVolet(null); }}
           style={{ ...STYLE_CADRE_MENU, position: "fixed", top: rect.top, left: rect.left, minWidth: rect.minWidth,
-            maxWidth: `${LARGEUR_MAX_MENU_REM}rem`, zIndex: 3000, maxHeight: "62vh", overflowY: "auto" }}>
+            maxWidth: `${LARGEUR_MAX_MENU_REM}rem`, zIndex: Z_MENU_PORTE, maxHeight: "62vh", overflowY: "auto" }}>
           {entrees.map((e, rang) => e.sorte === "famille"
             ? optionFamille(e.famille, rang, entrees.length)
             : optionTrad(e.trad, rang, entrees.length, false))}
@@ -1257,7 +1257,7 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
         <div ref={voletRef} role="menu" aria-label={nomCommun(familleDeployee.principal.nom)}
           onMouseEnter={retenirVolet} onMouseLeave={replierBientot}
           style={{ ...STYLE_CADRE_MENU, position: "fixed", top: volet.top, left: volet.left, right: volet.right,
-            minWidth: `${LARGEUR_SOUS_MENU_REM}rem`, maxWidth: `${LARGEUR_MAX_MENU_REM}rem`, zIndex: 3001, maxHeight: "62vh", overflowY: "auto" }}>
+            minWidth: `${LARGEUR_SOUS_MENU_REM}rem`, maxWidth: `${LARGEUR_MAX_MENU_REM}rem`, zIndex: Z_SOUS_MENU_PORTE, maxHeight: "62vh", overflowY: "auto" }}>
           {membresDeployes.map((m, k) => optionTrad(m.trad, k, membresDeployes.length, true, m.libelle, m.titre))}
         </div>,
         document.body,
