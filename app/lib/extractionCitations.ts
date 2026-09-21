@@ -137,7 +137,7 @@ export function lireDemandeExtraction(brut: unknown): DemandeExtractionCitations
  * de liaison et le sous-titre sont trois fragments d'un seul intitulé, et balisés un à un
  * ils donneraient une italique fermée puis rouverte (`*Titre**. **Sous-titre*`).
  */
-export function noticeEnSyntaxe(fragments: readonly FragmentNotice[]): string {
+export function noticeEnSyntaxe(fragments: readonly Pick<FragmentNotice, 'composition' | 'texte'>[]): string {
   const courses: { composition: FragmentNotice['composition']; texte: string }[] = []
   for (const f of fragments) {
     if (!f.texte) continue

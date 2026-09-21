@@ -12,6 +12,8 @@ import IconeChevron from '@/app/components/IconeChevron'
 import IconeCopier from '@/app/components/IconeCopier'
 import { useEffect, useRef, useState } from "react";
 import { cssServi } from '@/app/lib/cssServi'
+import { joindreEditeurs } from '@/app/lib/editeursNormalisation'
+import { segmentsReferenceEdition, type EditionServie } from '@/app/lib/referenceEditionServie'
 import { noticeEnSyntaxe, type GroupeExtrait, type SectionExtraite } from '@/app/lib/extractionCitations'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Link from "next/link";
@@ -299,32 +301,24 @@ function ListeVide({ mention, href, lien }: { mention: string; href: string; lie
   );
 }
 
-// ── Groupe repliable ──────────────────────────────────────────────────────────
+// ── Groupe ────────────────────────────────────────────────────────────────────
 //
 // ⛔ LE LIVRE ET L'AUTEUR PRENNENT LE TITRE DE SECTION DE L'ESPACE — sérif italique vert,
-// le rang que « Ma chaîne » donne déjà à un livre. Ils portaient une bande verte à
-// capitales espacées, c'est-à-dire le vocabulaire d'une interface là où les trois autres
-// pages de l'espace composent un titre. Le compte et le chevron se rangent sur la même
-// ligne : c'est le titre lui-même qui déplie.
-// ⚠️ En mode sélection, la case du groupe se pose DEVANT le bouton, jamais dedans : une
-// case dans un bouton n'est pas du HTML valide, et le clic y ferait les deux gestes.
-function GroupeRepliable({ ancre, label, count, ouvert, onToggle, caseGroupe, children }: {
-  ancre: string; label: React.ReactNode; count: number; ouvert: boolean; onToggle: () => void;
-  caseGroupe?: React.ReactNode; children: React.ReactNode;
+// le rang que « Ma chaîne » donne déjà à un livre.
+// ⚠️ Plus de repli ni de compte (2026-09-21, « fais au plus simple ») : le sommaire de
+// gauche mène à chaque groupe, et un titre qui se replie demandait un chevron, un compte
+// et un état pour une liste qu'on parcourt d'un trait.
+function GroupeCitations({ ancre, label, caseGroupe, children }: {
+  ancre: string; label: React.ReactNode; caseGroupe?: React.ReactNode; children: React.ReactNode;
 }) {
   return (
-    // ⚠️ Le décalage d'ancre se compose sur HAUTEUR_NAVBAR, jamais en pixels : la barre
-    // mesure 56 px à la racine 16 et 77 à la racine 22 (charte, « Responsive »).
+    // ⚠️ Le décalage d'ancre se compose sur HAUTEUR_NAVBAR, jamais en pixels.
     <section id={ancre} className="prel-groupe" style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 1.5rem)` }}>
-      <div className="prel-groupe-ligne">
+      <div className="prel-groupe-tete">
         {caseGroupe}
-        <button type="button" className="prel-groupe-tete" onClick={onToggle} aria-expanded={ouvert}>
-          <h2>{label}</h2>
-          <span className="prel-groupe-compte">{count}</span>
-          <span className="prel-groupe-chevron" data-ouvert={ouvert} aria-hidden="true"><IconeChevron dir="down" size={10} strokeWidth={1.5} /></span>
-        </button>
+        <h2>{label}</h2>
       </div>
-      {ouvert && <div>{children}</div>}
+      {children}
     </section>
   );
 }
@@ -337,9 +331,6 @@ export default function PagePrelevements() {
   const [chargement, setChargement] = useState(true);
   const [prelevements, setPrelevements] = useState<Prelevement[]>([]);
   const [onglet, setOnglet] = useState<TypePrelevement>("biblique");
-  // ⚠️ On retient les groupes FERMÉS, non les ouverts : tout est ouvert par défaut, et un
-  // groupe nouveau (un prélèvement de plus) paraît ouvert sans qu'un effet ait à le dire.
-  const [groupesFermes, setGroupesFermes] = useState<Set<string>>(new Set());
   // `null` : hors du mode sélection. Sinon, les identifiants des prélèvements retenus pour
   // l'extraction, sur les DEUX corpus à la fois.
   const [selection, setSelection] = useState<Set<string> | null>(null);
@@ -374,6 +365,14 @@ export default function PagePrelevements() {
     );
     if (byLabel) return byLabel.label;
     return val;
+  };
+
+  // Le code d'une traduction, quand la ligne ne porte que son nom (même lecture que
+  // `nomTraduction`) : c'est par lui qu'on retrouve la fiche de son édition.
+  const codeTraduction = (val?: string | null): string | null => {
+    if (!val) return null;
+    if (/^TR\d+$/.test(val)) return val;
+    return traductions.find(t => t.label === val || t.label.endsWith(` ${val}`) || t.label.endsWith(` de ${val}`))?.code ?? null;
   };
 
   // Le titre d'onglet vient du layout (« Mes citations ») ; on ne le réécrit plus
@@ -650,6 +649,9 @@ export default function PagePrelevements() {
         ref: refBiblique(g),
         // La favorite garde la traduction où on la LIT : celle dont vient le texte montré,
         // quand tous ses versets s'y trouvent, celle du prélèvement sinon.
+        // La traduction dont vient le texte MONTRÉ : celle du menu quand tous ses versets s'y
+        // trouvent, celle du prélèvement sinon. C'est sa référence que le document porte.
+        codeLu: g.traduit ? (textesTraduits.colonne ?? traductionActive) : codeTraduction(g.traduction),
         tradLue: g.traduit ? nomTraduction(textesTraduits.colonne ?? traductionActive) : nomTrad,
         // ⛔ La provenance ne se dit que si elle nomme le texte MONTRÉ : un verset que la
         // traduction du menu ne porte pas, lu dans celle du prélèvement.
@@ -685,10 +687,6 @@ export default function PagePrelevements() {
     };
   });
 
-  const tousLesGroupes = onglet === "biblique"
-    ? groupesBibliquesBruts.map(g => g.label)
-    : groupesPatristiques.map(g => g.label);
-
   // ── Le sommaire de la colonne de gauche ─────────────────────────────────────
   //
   // ⚠️ Il porte les GROUPES de l'onglet courant : les livres d'un côté, les auteurs de
@@ -714,25 +712,6 @@ export default function PagePrelevements() {
         nom: repete && titre ? `${auteur}, ${titre}` : (auteur || "Sans auteur"),
       };
     });
-
-  const toggleGroupe = (label: string) => setGroupesFermes(prev => {
-    const next = new Set(prev);
-    if (next.has(label)) next.delete(label); else next.add(label);
-    return next;
-  });
-
-  // ⚠️ Sauter à un groupe le DÉPLIE, sinon l'ancre mènerait à un titre fermé. Déplier ne
-  // déplace pas la cible : ce qui s'ouvre s'ouvre SOUS le titre visé, et tout ce qui le
-  // précède reste en place.
-  const deplierPourLAncre = (ancre: string) => {
-    const vise = tousLesGroupes.find(label => ancreDuGroupe(label) === ancre);
-    if (vise) setGroupesFermes(prev => {
-      if (!prev.has(vise)) return prev;
-      const next = new Set(prev);
-      next.delete(vise);
-      return next;
-    });
-  };
 
   const listeActive = onglet === "biblique" ? bibliques : patristiques;
 
@@ -762,21 +741,51 @@ export default function PagePrelevements() {
     if (!selection || nbChoisis === 0 || extraction.enCours) return;
     const sections: SectionExtraite[] = [];
 
-    const groupesBibliques: GroupeExtrait[] = vueBiblique.map(g => ({
-      titre: g.nom,
-      citations: g.entrees.filter(e => choisi(e.ids)).map(e => ({
-        reference: e.ref,
-        texte: preparerTexteCitation(e.texte),
-        ...(e.provenance ? { glose: `Texte de la ${e.provenance}` } : {}),
-      })),
-    })).filter(g => g.citations.length > 0);
-    if (groupesBibliques.length > 0) {
-      sections.push({
-        corpus: "biblique",
-        ...(nomColonneLue ? { chapeau: `Texte de la ${nomColonneLue}` } : {}),
-        groupes: groupesBibliques,
-      });
+    // ⛔ LA RÉFÉRENCE PRÉCISE DE LA BIBLE SE POSE SOUS CHAQUE TITRE DE LIVRE, comme celle
+    // d'une œuvre sous son titre. Elle vient de la fiche de son édition (`v_traductions_page`),
+    // composée par la même règle que la fiche « À propos de cette traduction »
+    // (`segmentsReferenceEdition`). Des versets de deux bibles font deux titres.
+    const bibliquesRetenus = vueBiblique.map(g => ({ g, entrees: g.entrees.filter(e => choisi(e.ids)) }))
+      .filter(x => x.entrees.length > 0);
+    const codesBibles = [...new Set(bibliquesRetenus.flatMap(x => x.entrees.map(e => e.codeLu)).filter((c): c is string => !!c))];
+    const referencesBibles = new Map<string, string>();
+    if (codesBibles.length > 0) {
+      const { data, error } = await supabase.from("v_traductions_page")
+        .select("trad_id, titre_edition, sous_titre_edition, mention_edition, lieu_edition, editeur, annee_edition, nombre_tomes, depot_manuscrit, cote_manuscrit")
+        .in("trad_id", codesBibles);
+      // ⚠️ Une fiche illisible ne ferme pas l'extraction : le livre garde le nom de sa bible.
+      if (error) console.error("Mes citations : fiches des bibles illisibles.", error);
+      for (const i of (data ?? []) as Record<string, string | number | null>[]) {
+        const edition: EditionServie = {
+          titreEdition: i.titre_edition as string | null, sousTitreEdition: i.sous_titre_edition as string | null,
+          mentionEdition: i.mention_edition as string | null, lieuEdition: i.lieu_edition as string | null,
+          editeur: joindreEditeurs(i.editeur as string | null, indexEditeursNavigateur()),
+          anneeEdition: i.annee_edition as string | null, nombreTomes: i.nombre_tomes as number | null,
+          depotManuscrit: i.depot_manuscrit as string | null, coteManuscrit: i.cote_manuscrit as string | null,
+        };
+        const reference = noticeEnSyntaxe(segmentsReferenceEdition(edition));
+        if (reference) referencesBibles.set(String(i.trad_id), reference);
+      }
     }
+    const noticeBible = (code: string | null): string => {
+      const morceaux = [nomTraduction(code), code ? referencesBibles.get(code)?.replace(/\.\s*$/, "") : null]
+        .filter((m): m is string => !!m);
+      return morceaux.length ? `${morceaux.join(" : ")}, disponible sur le site Corpus Scriptura.` : "";
+    };
+    const groupesBibliques: GroupeExtrait[] = [];
+    for (const { g, entrees } of bibliquesRetenus) {
+      const parBible = new Map<string, typeof entrees>();
+      for (const e of entrees) parBible.set(e.codeLu ?? "", [...(parBible.get(e.codeLu ?? "") ?? []), e]);
+      for (const [code, lot] of parBible) {
+        const notice = noticeBible(code || null);
+        groupesBibliques.push({
+          titre: g.nom,
+          ...(notice ? { notice } : {}),
+          citations: lot.map(e => ({ reference: e.ref, texte: preparerTexteCitation(e.texte) })),
+        });
+      }
+    }
+    if (groupesBibliques.length > 0) sections.push({ corpus: "biblique", groupes: groupesBibliques });
 
     const groupesPatristiquesChoisis: GroupeExtrait[] = [];
     for (const g of vuePatristique) {
@@ -850,7 +859,7 @@ export default function PagePrelevements() {
     <div className="esp-cadre">
 
       <SommaireEspace page="citations" groupes={ancresCitations(rubriqueDuSommaire, groupesDuSommaire)}
-        surAncre={deplierPourLAncre} />
+ />
 
       <div className="esp-page">
       <style>{cssServi(`
@@ -858,17 +867,10 @@ export default function PagePrelevements() {
            avec lui. Le filet qui sépare deux groupes est celui des sections. */
         .prel-groupe + .prel-groupe { margin-top: 28px; padding-top: 22px;
           border-top: 1px solid var(--cs-bord-clair); }
-        .prel-groupe-tete { display: flex; align-items: baseline; gap: 9px; width: 100%;
-          padding: 0 0 9px; background: none; border: none; cursor: pointer;
-          text-align: left; font-family: inherit; }
+        .prel-groupe-tete { display: flex; align-items: baseline; gap: 10px; padding: 0 0 9px; }
         .prel-groupe-tete h2 { font-family: var(--font-source-serif), Georgia, serif;
           font-style: italic; font-weight: normal; font-size: 0.84375rem;
           color: var(--cs-vert); margin: 0; }
-        .prel-groupe-compte { font-size: 0.625rem; letter-spacing: 0.06em;
-          color: var(--cs-texte-second); }
-        .prel-groupe-chevron { margin-left: auto;
-          color: var(--cs-texte-doux); transition: transform 0.18s; display: inline-flex; }
-        .prel-groupe-chevron[data-ouvert="false"] { transform: rotate(-90deg); }
 
         /* ⛔ UNE CITATION SE COMPOSE COMME LE VERSET QU'ELLE EST : la référence en
            MANCHETTE, dans sa colonne, le texte au fer à côté d'elle, les actions au bout.
@@ -898,10 +900,6 @@ export default function PagePrelevements() {
           position: relative;
           transition: background 0.12s;
         }
-        .prel-item::after { content: ""; position: absolute; left: var(--prel-debord);
-          right: var(--prel-debord); bottom: 0; border-bottom: 1px solid var(--cs-bord-clair);
-          pointer-events: none; }
-        .prel-item:last-child::after { display: none; }
         .prel-item:hover { background: rgba(var(--cs-vert-rgb),0.03); }
 
         /* La manchette NOMME, elle ne mène nulle part : la gouttière d'actions porte déjà
@@ -971,13 +969,8 @@ export default function PagePrelevements() {
           margin-top: 6px; margin-bottom: 6px;
           padding-top: 12px; padding-bottom: 13px;
         }
-        .prel-item.prel-pref::after { display: none; }
         .prel-item.prel-pref .prel-ref { color: var(--cs-or-lisible); }
         .prel-item.prel-pref .prel-actions { opacity: 1; }
-        /* ⚠️ À part, et non dans une liste de sélecteurs : un navigateur qui ignore
-           « :has() » jetterait la règle entière, et le cadre garderait le filet de la
-           citation qui le précède. */
-        .prel-item:has(+ .prel-pref)::after { display: none; }
 
         /* Le menu de traduction. ⛔ Son chevron est celui du site, et il prend l'encre du
            thème : la flèche était une image en data-URI, d'une teinte écrite en dur que le
@@ -987,7 +980,6 @@ export default function PagePrelevements() {
         /* La barre d'outils : la traduction au fer à gauche, l'extraction au fer à droite. */
         .prel-outils { display: flex; align-items: center; justify-content: space-between;
           gap: 12px; flex-wrap: wrap; margin-bottom: 16px; min-height: 1.75rem; }
-        .prel-outils-choix { display: inline-flex; align-items: center; gap: 7px; }
         .prel-outil { display: inline-flex; align-items: center; gap: 6px; background: none;
           border: none; padding: 3px 0; cursor: pointer; font-family: inherit;
           font-size: 0.75rem; color: var(--cs-texte-second); transition: color 0.12s; }
@@ -1003,8 +995,6 @@ export default function PagePrelevements() {
           cursor: pointer; }
         .prel-item.prel-item--selection.prel-item--sans-ref { grid-template-columns: 1.25rem minmax(0, 1fr); }
         .prel-item.prel-item--choisi { background: rgba(var(--cs-vert-rgb), 0.06); }
-        .prel-groupe-ligne { display: flex; align-items: baseline; gap: 10px; }
-        .prel-groupe-ligne .prel-groupe-tete { flex: 1; min-width: 0; }
         .prel-groupe-oeuvre { font-style: italic; color: var(--cs-texte-second); }
 
         /* La barre de l'extraction, collante au pied de la colonne. */
@@ -1096,13 +1086,9 @@ export default function PagePrelevements() {
                 <IconeDocument />Extraire en Word
               </button>
             ) : (
-              <span className="prel-outils-choix">
-                <CaseACocher etat={etatDes(entreesOnglet, selection)} onChange={() => basculer(entreesOnglet)}
-                  libelle={onglet === "biblique" ? "Tous les versets" : "Tous les passages"} />
-                <button type="button" className="prel-outil" onClick={() => basculer(entreesOnglet)}>
-                  {etatDes(entreesOnglet, selection) === "tout" ? "Tout décocher" : "Tout cocher"}
-                </button>
-              </span>
+              <button type="button" className="prel-outil" onClick={() => basculer(entreesOnglet)}>
+                {etatDes(entreesOnglet, selection) === "tout" ? "Tout décocher" : "Tout cocher"}
+              </button>
             )}
           </div>
         )}
@@ -1114,8 +1100,7 @@ export default function PagePrelevements() {
           ) : (
             <div>
               {vueBiblique.map(({ label, nom, entrees }) => (
-                <GroupeRepliable key={label} ancre={ancreDuGroupe(label)} label={nom}
-                  count={entrees.length} ouvert={!groupesFermes.has(label)} onToggle={() => toggleGroupe(label)}
+                <GroupeCitations key={label} ancre={ancreDuGroupe(label)} label={nom}
                   caseGroupe={selection && (
                     <CaseACocher etat={etatDes(entrees.map(e => e.ids), selection)}
                       onChange={() => basculer(entrees.map(e => e.ids))} libelle={`Tout ${nom}`} />
@@ -1150,7 +1135,7 @@ export default function PagePrelevements() {
                       </div>
                     );
                   })}
-                </GroupeRepliable>
+                </GroupeCitations>
               ))}
             </div>
           )
@@ -1163,7 +1148,7 @@ export default function PagePrelevements() {
           ) : (
             <div>
               {vuePatristique.map(({ label, auteur, titre, idAuteur, entrees, sansManchette }) => (
-                <GroupeRepliable key={label} ancre={ancreDuGroupe(label)} label={
+                <GroupeCitations key={label} ancre={ancreDuGroupe(label)} label={
                   <>
                     {idAuteur ? (
                       <Link href={`/auteur/${idAuteur}`} onClick={e => e.stopPropagation()}
@@ -1173,7 +1158,7 @@ export default function PagePrelevements() {
                     ) : auteur}
                     {titre && <span className="prel-groupe-oeuvre">, {titre}</span>}
                   </>
-                } count={entrees.length} ouvert={!groupesFermes.has(label)} onToggle={() => toggleGroupe(label)}
+                }
                   caseGroupe={selection && (
                     <CaseACocher etat={etatDes(entrees.map(e => e.ids), selection)}
                       onChange={() => basculer(entrees.map(e => e.ids))}
@@ -1215,7 +1200,7 @@ export default function PagePrelevements() {
                       </div>
                     );
                   })}
-                </GroupeRepliable>
+                </GroupeCitations>
               ))}
             </div>
           )
