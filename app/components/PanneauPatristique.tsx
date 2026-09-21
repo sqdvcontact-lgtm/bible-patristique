@@ -454,9 +454,11 @@ const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
 // ⛔ LA LIGNE EST TOUJOURS RENDUE, et sa HAUTEUR est écrite, en `em` de son propre corps : ce
 // qu'elle porte ne décide plus de la hauteur de la barre.
 // ⚠️ Trois contenus : des lettres grecques tant qu'on attend (`CompteEnAttente`, dans le corps
-// et l'encre du compte), le nombre, ou « Aucune occurrence » sous un onglet du haut. Un
-// sous-onglet se tait sur un compte nul : trop étroit pour la mention, il ne l'a jamais portée.
-const STYLE_COMPTE_NUL: React.CSSProperties = { fontSize: '0.59375rem', fontStyle: 'italic', fontWeight: 400, color: 'var(--cs-texte-faible)' }
+// et l'encre du compte), le nombre, ou ∅ sur un compte nul.
+// ⚠️ Demande de l'auteur (21 septembre 2026) : ∅ remplace « Aucune occurrence » sous tous
+// les onglets. Il prend le corps du compte et l'encre faible, et dit la mention en toutes
+// lettres au survol et aux lecteurs d'écran.
+const STYLE_COMPTE_NUL: React.CSSProperties = { fontWeight: 400, color: 'var(--cs-texte-faible)' }
 
 function LigneCompte({ enAttente, compte, style, videDit }: {
   enAttente: boolean
@@ -470,7 +472,7 @@ function LigneCompte({ enAttente, compte, style, videDit }: {
     <span style={{ display: 'block', whiteSpace: 'nowrap', ...style }}>
       {enAttente ? <CompteEnAttente />
         : compte != null && compte > 0 ? compte
-        : compte === 0 && videDit ? <span style={STYLE_COMPTE_NUL}>{videDit}</span>
+        : compte === 0 && videDit ? <span style={STYLE_COMPTE_NUL} title="Aucune occurrence" aria-label="Aucune occurrence">{videDit}</span>
         : null}
     </span>
   )
@@ -1664,7 +1666,7 @@ export default function PanneauPatristique({
                     réservation basse qui le ferait descendre. */}
                 <span style={{ fontSize:'0.65625rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: ongletAffiche === t.code ? 600 : 400, textAlign: 'center', lineHeight: 1.15 }}>{t.label}</span>
                 {/* ⛔ Une ligne de compte, toujours, et d'une hauteur écrite : voir `LigneCompte`. */}
-                <LigneCompte enAttente={t.enAttente} compte={t.count} videDit="Aucune occurrence"
+                <LigneCompte enAttente={t.enAttente} compte={t.count} videDit="∅"
                   style={{ fontSize: '0.625rem', lineHeight: 1, height: '1em', fontWeight: 500, color: ongletAffiche === t.code ? 'var(--cs-vert)' : 'var(--cs-texte-faible)' }} />
               </button>
             ))}
@@ -1708,7 +1710,7 @@ export default function PanneauPatristique({
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px',
                           }}>
                           <span>{label}</span>
-                          <LigneCompte enAttente={enAttente} compte={nb} videDit="Aucune occurrence"
+                          <LigneCompte enAttente={enAttente} compte={nb} videDit="∅"
                             style={{ fontSize: '0.5625rem', lineHeight: 1.2, height: '1.2em', color: sousOnglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-faible)' }} />
                         </button>
                       ))}
