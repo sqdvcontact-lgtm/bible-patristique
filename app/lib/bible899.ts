@@ -95,13 +95,17 @@ export type Ligne899 = {
   texte_expanded: string | null
   /** Présent seulement si la vue expose la couche modernisée (voir couchesDisponibles899). */
   texte_modernized?: string | null
+  /** Les lignes du témoin où le segment commence et finit (`f100r_a_l04`), lues dans les
+   *  métadonnées du segment : le chemin du fac-similé (`facsimiles899.ts`). */
+  ligne_debut?: string | null
+  ligne_fin?: string | null
 }
 
 /** Plafond de lignes que l'API de données rend par réponse. Pas un réglage : une borne. */
 const TAILLE_TRANCHE_899 = 1000
 
 const COLONNES_META_899 =
-  'trad_id, canon_id, canon_id_fin, livre, chapitre, verset, alignment_order, alignment_status, verification_status, segment_key, editorial_label, phenomenon, manuscript_extra, canonical_context'
+  'trad_id, canon_id, canon_id_fin, livre, chapitre, verset, alignment_order, alignment_status, verification_status, segment_key, editorial_label, phenomenon, manuscript_extra, canonical_context, ligne_debut:metadata->>source_line_start, ligne_fin:metadata->>source_line_end'
 const COLONNE_TEXTE_899: Record<Couche899, string> = {
   diplomatic: 'texte_diplomatic',
   expanded: 'texte_expanded',
@@ -305,6 +309,9 @@ export type VersetAdapte899 = {
   _estGlose899?: true
   _libelle899?: string | null
   _canonContexte899?: string | null
+  /** Où le verset commence et finit dans le témoin (`f100r_a_l04`) : le fac-similé. */
+  _facsDebut899?: string | null
+  _facsFin899?: string | null
   [traduction: string]: string | number | boolean | null | undefined
 }
 
@@ -336,6 +343,8 @@ export function adapterVersets899(
         _estGlose899: true,
         _libelle899: ligne.editorial_label ?? 'Glose',
         _canonContexte899: ligne.canonical_context ?? null,
+        _facsDebut899: ligne.ligne_debut ?? null,
+        _facsFin899: ligne.ligne_fin ?? null,
         [trad]: texteCouche899(ligne, couche),
       })
       continue
@@ -349,6 +358,8 @@ export function adapterVersets899(
       verset: ligne.verset ?? 0,
       _est899: true,
       _estLacune: estLacune,
+      _facsDebut899: estLacune ? null : ligne.ligne_debut ?? null,
+      _facsFin899: estLacune ? null : ligne.ligne_fin ?? null,
       [trad]: estLacune ? null : texteCouche899(ligne, couche),
     })
   }

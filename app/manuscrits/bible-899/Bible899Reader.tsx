@@ -71,6 +71,7 @@ function Facsimile({
             width={facsimile.width!}
             height={facsimile.height!}
             sizes="(max-width: 900px) 100vw, 42vw"
+            unoptimized
             alt={`Zone du fac-similé du folio ${folio}, colonne ${column}`}
             priority={priority}
             style={{
@@ -89,6 +90,7 @@ function Facsimile({
           width={facsimile.width!}
           height={facsimile.height!}
           sizes="(max-width: 900px) 100vw, 42vw"
+          unoptimized
           alt={`Fac-similé du folio ${folio}, colonne ${column}`}
           priority={priority}
         />

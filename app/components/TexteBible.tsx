@@ -23,6 +23,8 @@ import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/Eclat
 import IconeCrayon from '@/app/components/IconeCrayon'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import IconePolyglotte from '@/app/components/IconePolyglotte'
+import IconeFacsimile from '@/app/components/IconeFacsimile'
+import ModaleFacsimile899 from '@/app/components/ModaleFacsimile899'
 import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
@@ -183,6 +185,24 @@ function BoutonPolyglotte({ href }: { href: string }) {
       style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
       <IconePolyglotte />
     </a>
+  )
+}
+
+// ── Bouton « Voir le manuscrit » ──
+// Seuls les versets de la Bible du XIIIe siècle qui savent où ils commencent dans le
+// témoin le portent (`_facsDebut899`, posé par le chargeur). La fenêtre ne se monte
+// qu'au clic, et c'est elle qui charge la table des colonnes puis l'image.
+function BoutonFacsimile({ reference, debut, fin }: { reference: string; debut: string; fin: string | null }) {
+  const [ouvert, setOuvert] = useState(false)
+  return (
+    <>
+      <button type="button" onClick={e => { e.stopPropagation(); setOuvert(true) }}
+        className="bouton-action-verset" title="Voir le manuscrit" aria-label={`Voir ${reference} dans le manuscrit`}
+        style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
+        <IconeFacsimile />
+      </button>
+      {ouvert && <ModaleFacsimile899 reference={reference} repereDebut={debut} repereFin={fin} onFermer={() => setOuvert(false)} />}
+    </>
   )
 }
 
@@ -1001,6 +1021,13 @@ export default function TexteBible({
                         `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`,
                       )} />
                       {(() => { const p = placeCanoniqueDuVerset(v, livreActif, chapitreActif); return <BoutonPolyglotte href={urlPolyglotte(p.livre, p.chapitre, p.verset)} /> })()}
+                      {typeof v._facsDebut899 === 'string' && (
+                        <BoutonFacsimile
+                          reference={`${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`}
+                          debut={v._facsDebut899}
+                          fin={typeof v._facsFin899 === 'string' ? v._facsFin899 : null}
+                        />
+                      )}
                       <BoutonSignaler versetId={v.id_verset} versetRef={v.ref} texte={String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')} />
                       {estAdmin && !modeUtilisateurStandard && !ligneSource && (
                         <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"

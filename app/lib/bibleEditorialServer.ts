@@ -322,7 +322,15 @@ export async function chargerVersetsCanoniquesV2(
       ])
     : Promise.resolve(null)
 
-  const [, glosesChargees] = await Promise.all([chargementCanonique, chargementGloses])
+  // La traduction moderne du témoin mène à son fac-similé par le témoin lui-même : les
+  // segments de TR0009 disent où chaque verset commence et finit dans le manuscrit. Couche
+  // SECONDAIRE (charte § 18) : son échec laisse le chapitre sans symbole, jamais sans texte.
+  const chargementFacs: Promise<Map<string, { debut: string | null; fin: string | null }>> =
+    options.translationId === TRAD_ID_BIBLE899_MODERNE
+      ? chargerLignesDuTemoin(client, canonRows.map((row) => row.id))
+      : Promise.resolve(new Map())
+
+  const [, glosesChargees, facsParCanon] = await Promise.all([chargementCanonique, chargementGloses, chargementFacs])
 
   // Plusieurs lignes peuvent viser le même créneau (un verset scindé) : elles se
   // suivent par `ordre_slot`, puis par numérotation native.
@@ -345,10 +353,12 @@ export async function chargerVersetsCanoniquesV2(
     const natives = [...new Set(groupe.map(nativeDe).filter((n): n is string => !!n))]
     const canonNative = `${canon.ch_canon}, ${canon.v_canon}`
     const differentes = natives.filter((n) => n !== canonNative)
+    const facs = texte.length > 0 ? facsParCanon.get(canon.id) : undefined
     return {
       ...adapterCanonSansTexte(canon, options.translationId),
       [options.translationId]: texte.length > 0 ? texte : null,
       [`num_${options.translationId}`]: differentes.length > 0 ? differentes.join(' · ') : null,
+      ...(facs ? { _facsDebut899: facs.debut, _facsFin899: facs.fin } : {}),
     }
   })
 
@@ -394,4 +404,40 @@ export async function chargerVersetsCanoniquesV2(
     })
     return [canon, ...gloses]
   })
+}
+
+/**
+ * Où chaque créneau commence et finit dans le témoin BnF fr. 899 : la première ligne du
+ * premier alignement, la dernière du dernier. Lu dans `v_bible899_verse_recomposed` par
+ * `canon_id` (index, 27 ms mesurés sur Genèse 3), jamais par livre et chapitre, que la vue
+ * ne sait pas pousser. Un échec se consigne et rend une carte vide.
+ */
+async function chargerLignesDuTemoin(
+  client: SupabaseClient,
+  canonIds: readonly string[],
+): Promise<Map<string, { debut: string | null; fin: string | null }>> {
+  const carte = new Map<string, { debut: string | null; fin: string | null }>()
+  if (canonIds.length === 0) return carte
+  try {
+    const lignes: { canon_id: string; alignment_order: number; ligne_debut: string | null; ligne_fin: string | null }[] = []
+    await Promise.all(lotsPourClauseIn([...canonIds]).map(async (lot) => {
+      const { data, error } = await client
+        .from('v_bible899_verse_recomposed')
+        .select('canon_id, alignment_order, ligne_debut:metadata->>source_line_start, ligne_fin:metadata->>source_line_end')
+        .eq('trad_id', TRAD_ID_BIBLE899)
+        .in('canon_id', lot)
+      if (error) throw new Error(error.message)
+      lignes.push(...((data ?? []) as unknown as typeof lignes))
+    }))
+    lignes.sort((a, b) => a.alignment_order - b.alignment_order)
+    for (const ligne of lignes) {
+      const deja = carte.get(ligne.canon_id)
+      if (!deja) carte.set(ligne.canon_id, { debut: ligne.ligne_debut, fin: ligne.ligne_fin })
+      else if (ligne.ligne_fin) deja.fin = ligne.ligne_fin
+    }
+  } catch (erreur) {
+    console.error('[lecture] chapitre servi sans les renvois au fac-similé du témoin 899 :', erreur)
+    carte.clear()
+  }
+  return carte
 }
