@@ -765,14 +765,14 @@ export default function TexteBible({
             l'autre (voir `BibleLayout`, « passage »). L'en-tête, lui, ne bouge pas. */}
         <div className="cs-lecture-colonne" data-colonne-lecture="" style={{ maxWidth: 'var(--mesure-page)', margin: '0 auto', paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
           <style>{`
-            .verset-row:hover .bouton-action-verset,
+            .verset-row:hover .bouton-action-verset { opacity: 1 !important; }
             .verset-row:has(:focus-visible) .bouton-action-verset { opacity: 1 !important; }
             .verset-row--actif .bouton-action-verset { opacity: 0.5; }
             /* ⛔ La densité ne paraît qu'au SURVOL, avec les actions dont elle ferme la
                rangée (décision de l'auteur, 2026-09-13). Ni au repos, ni sur le verset
                retenu : c'est la ligne qu'on vise qui la demande. */
             .marque-densite { opacity: 0; transition: opacity 0.12s; }
-            .verset-row:hover .marque-densite,
+            .verset-row:hover .marque-densite { opacity: 1; }
             .verset-row:has(:focus-visible) .marque-densite { opacity: 1; }
             /* Les flèches encadrent le titre : elles prennent sa teinte, non le vert. */
             .nav-chap-arrow:hover { color: var(--cs-mention) !important; }
