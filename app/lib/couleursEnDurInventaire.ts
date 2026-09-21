@@ -69,7 +69,6 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'components/ModaleCompteRequis.tsx': ['rgba(30,26,20,0.5)'],
   'components/ModaleMessagerie.tsx': ['rgba(30,26,20,0.42)', 'rgba(40,30,15,0.26)'],
   'components/ModalLienBiblique.tsx': ['#5f574d', '#8b7a5c', '#b05638', '#b07b65', 'rgba(20,25,20,0.32)'],
-  'components/ModalSignalement.tsx': ['#5a1010', '#6b1010', '#7a2f18', '#7b0000', '#a06060', '#a85c3a', '#b5764a', '#c09a86', '#c53030', '#efd8c6', '#f0a0a0', 'rgba(30,26,20,0.5)'],
   // ⬇ DIX teintes retirées le 2026-08-28, avec le passage de la recherche rapide aux
   //    familles de corpus : le bleu de la Bible (#3a5a8c et ses trois translucides), le
   //    violet de la chronologie (#6d5a86 et ses deux), et les trois ocres des

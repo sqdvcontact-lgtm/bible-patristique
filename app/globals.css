@@ -184,6 +184,18 @@
   --cs-danger-aplat: #c0562a;
   --cs-danger-fond: #fdf2ee;
   --cs-danger-bord: #e4c4b8;
+  /* ── LES TROIS NIVEAUX D'IMPORTANCE d'un signalement (2026-09-21) ──
+     Une seule famille, la brique, qui monte d'un cran à chaque niveau : l'ocre
+     d'une remarque, la terre cuite d'une erreur, la brique d'un blocage. Ils étaient
+     sept rouges écrits en dur dans la modale, dont trois roses criards, et aucun ne
+     suivait le thème. Encre sur fond : 5,55 · 5,91 · 6,22 au Clair ; 7,24 · 6,64 ·
+     6,12 en Cuir, où les fonds deviennent des cuirs sourds et les encres montent. */
+  --cs-importance-mineur-fond: #ece0c8;
+  --cs-importance-mineur-encre: #6b5327;
+  --cs-importance-important-fond: #f0d2c0;
+  --cs-importance-important-encre: #7c3a22;
+  --cs-importance-bloquant-fond: #9a3b2a;
+  --cs-importance-bloquant-encre: #fbf1ea;
   /* ── LE FOND D'ABSENCE ────────────────────────────────────────────────────
      La colonne d'une bible qui NE PORTE PAS le mot cherché, dans les résultats de
      recherche. Ce n'est pas une alerte — c'est un constat de collation —, mais
@@ -761,6 +773,12 @@
   --cs-danger-aplat: #8a3d29;
   --cs-danger-fond: #2f211b;
   --cs-danger-bord: #4a3a30;
+  --cs-importance-mineur-fond: #463a24;
+  --cs-importance-mineur-encre: #e3cf9f;
+  --cs-importance-important-fond: #5a3526;
+  --cs-importance-important-encre: #efc3ae;
+  --cs-importance-bloquant-fond: #8a3d29;
+  --cs-importance-bloquant-encre: #f6e4da;
   /* Le fond d'absence, relu sur le sol brun (voir la note du Clair). ⚠️ Il prend
      presque la moitié de l'aplat là où le Clair en prend un tiers : sur un sol
      sombre, un tiers de brique ne fait qu'un brun de plus, et la colonne muette
@@ -4329,6 +4347,241 @@ main.lecture-entree [data-cs-bloc],
 @keyframes cs-fiche-rebours {
   from { stroke-dashoffset: 0; }
   to { stroke-dashoffset: 50.27; }
+}
+
+/* ── LA MODALE DE SIGNALEMENT (app/components/ModalSignalement.tsx, 2026-09-21) ──
+   Relevé de l'auteur : « immonde » en Cuir. Elle portait onze couleurs écrites en dur,
+   un titre brun sur un aplat rose qui rendait 1,66 sur le cuir, et trois roses criards
+   pour les niveaux. Elle prend désormais le CADRE des fiches (§ 38.33) — le sol de la
+   page, un filet clair, le rayon d'une fenêtre, l'ombre modale, la croix verte — et
+   toutes ses couleurs viennent des jetons. Le rouge ne reste qu'à UN endroit, le filet
+   qui borde le passage cité, et au bouton qui envoie : c'est lui qui dit « erreur ».
+   ⛔ Toute la forme est ici : un style en ligne battrait le survol et le foyer. */
+.cs-signalement-calque {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--cs-calque-modale);
+  overflow: hidden;
+}
+.cs-signalement-boite {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 27rem;
+  max-height: 100%;
+  background: var(--cs-fond);
+  border: 1px solid var(--cs-bord-clair);
+  border-radius: 12px;
+  box-shadow: var(--cs-ombre-modale);
+  overflow: hidden;
+}
+.cs-signalement-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 16px 14px 13px 22px;
+  border-bottom: 1px solid var(--cs-bord-clair);
+}
+.cs-signalement-titre {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 1.0625rem;
+  line-height: 1.25;
+  color: var(--cs-encre-fonce);
+}
+/* La seule touche de brique de la tête : un filet vertical, non un fond. */
+.cs-signalement-titre::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 3px;
+  height: 1.05em;
+  border-radius: 4px;
+  background: var(--cs-danger);
+}
+.cs-signalement-fermer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: max(26px, 1.625rem);
+  height: max(26px, 1.625rem);
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--cs-vert);
+  cursor: pointer;
+  transition: color 0.12s;
+}
+.cs-signalement-fermer svg { width: 0.9375rem; height: 0.9375rem; }
+.cs-signalement-fermer:hover,
+.cs-signalement-fermer:focus-visible { color: var(--cs-vert-fonce); }
+.cs-signalement-corps {
+  padding: 16px 22px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.cs-signalement-merci {
+  margin: 0;
+  padding: 28px 22px;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 0.875rem;
+  font-style: italic;
+  text-align: center;
+  color: var(--cs-vert);
+}
+/* Rubrique en capitales espacées : le rang des rubriques d'un volet, en second. */
+.cs-signalement-rubrique {
+  display: block;
+  margin: 0 0 6px;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cs-texte-second);
+}
+.cs-signalement-objet { margin-bottom: 16px; }
+.cs-signalement-objet-titre {
+  margin: 0 0 6px;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 0.8125rem;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--cs-texte-second);
+}
+.cs-signalement-cite {
+  margin: 0;
+  padding: 9px 12px 9px 13px;
+  max-height: 150px;
+  overflow-y: auto;
+  background: var(--cs-fond-doux);
+  border-left: 3px solid var(--cs-danger);
+  border-radius: 0 4px 4px 0;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--cs-texte);
+  white-space: pre-wrap;
+}
+/* ⛔ Les NIVEAUX : au repos, une pastille neutre ; retenue, elle prend la dose de brique
+   de son niveau. La couleur n'est jamais le seul signe : la graisse et aria-pressed le
+   disent aussi. */
+.cs-signalement-niveaux {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+  border: none;
+}
+.cs-signalement-niveaux > legend { float: left; margin: 0 4px 0 0; padding: 0; }
+.cs-signalement-niveaux > legend .cs-signalement-rubrique { margin: 0; }
+.cs-signalement-niveau {
+  min-height: 1.75rem;
+  padding: 0 0.8125rem;
+  border: 1px solid var(--cs-bord);
+  border-radius: 999px;
+  background: none;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.6875rem;
+  line-height: 1;
+  color: var(--cs-texte-second);
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.cs-signalement-niveau:hover { border-color: var(--cs-texte-gris); color: var(--cs-texte); }
+.cs-signalement-niveau[aria-pressed='true'] { font-weight: 600; border-color: transparent; }
+.cs-signalement-niveau--mineur[aria-pressed='true'] {
+  background: var(--cs-importance-mineur-fond);
+  color: var(--cs-importance-mineur-encre);
+}
+.cs-signalement-niveau--important[aria-pressed='true'] {
+  background: var(--cs-importance-important-fond);
+  color: var(--cs-importance-important-encre);
+}
+.cs-signalement-niveau--bloquant[aria-pressed='true'] {
+  background: var(--cs-importance-bloquant-fond);
+  color: var(--cs-importance-bloquant-encre);
+}
+.cs-signalement-champ {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 11px;
+  border: 1px solid var(--cs-bord);
+  border-radius: 4px;
+  background: var(--cs-surface);
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--cs-texte-fort);
+  resize: vertical;
+  transition: border-color 0.12s;
+}
+.cs-signalement-champ::placeholder { color: var(--cs-texte-gris); opacity: 1; }
+.cs-signalement-champ:focus { border-color: var(--cs-vert); outline: none; }
+.cs-signalement-pied {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.cs-signalement-erreur {
+  margin-right: auto;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: var(--cs-danger-fonce);
+}
+.cs-signalement-bouton {
+  min-height: 2rem;
+  padding: 0 0.9375rem;
+  border-radius: 4px;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.12s, border-color 0.12s, color 0.12s;
+}
+.cs-signalement-bouton--annuler {
+  border: 1px solid var(--cs-bord);
+  background: none;
+  color: var(--cs-texte-second);
+}
+.cs-signalement-bouton--annuler:hover,
+.cs-signalement-bouton--annuler:focus-visible { border-color: var(--cs-vert); color: var(--cs-vert); }
+.cs-signalement-bouton--envoyer {
+  border: 1px solid transparent;
+  background: var(--cs-danger-aplat);
+  color: var(--cs-sur-aplat);
+  font-weight: 600;
+}
+.cs-signalement-bouton--envoyer:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--cs-danger-aplat) 86%, var(--cs-texte-fort));
+}
+.cs-signalement-bouton--envoyer:disabled {
+  background: var(--cs-fond-doux);
+  border-color: var(--cs-bord-clair);
+  color: var(--cs-texte-gris);
+  cursor: default;
+}
+@media (hover: none) {
+  .cs-signalement-bouton, .cs-signalement-niveau { min-height: 2.25rem; }
 }
 
 /* ── Le corps ──────────────────────────────────────────────────────────────────
