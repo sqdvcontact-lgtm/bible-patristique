@@ -28,7 +28,7 @@ import type { BibliographiePiece } from '@/app/lib/bibleBibliographieOuvrages'
 import LectureBilingueBible from './LectureBilingueBible'
 import ModaleLivreAbsent, { type TraductionProposee } from './ModaleLivreAbsent'
 import FlecheChapitre, { type CibleChapitre } from './FlecheChapitre'
-import { chargerChapitresParLivre, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
+import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
 import { chapitreVoisin, sensDeLaTouche, type PlaceChapitre } from '@/app/lib/chapitresVoisins'
 import type { LectureBilingueProps } from './BibleBilingue'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
@@ -686,6 +686,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   const voisins = {
     precedent: cibleDuChapitre(chapitreVoisin(livreActif, chapitreActif, 'precedent', contexteVoisins)),
     suivant: cibleDuChapitre(chapitreVoisin(livreActif, chapitreActif, 'suivant', contexteVoisins)),
+    position: { actuel: chapitreActif, total: nombreDeChapitres(livreActif, tableChapitres) },
   }
 
   // Les touches ← et → changent de chapitre. ⛔ Inactives quand le foyer est dans un

@@ -45,7 +45,7 @@ export type LectureBilingueBibleProps = LectureBilingueProps & {
   /** Ouvrir une famille en regard depuis le menu central. */
   choisirEnRegard?: (index: number) => void
   /** Les chapitres voisins, adresses composées par la page (`chapitreVoisin`). */
-  voisins?: { precedent: CibleChapitre | null; suivant: CibleChapitre | null }
+  voisins?: { precedent: CibleChapitre | null; suivant: CibleChapitre | null; position?: { actuel: number; total: number } | null }
 }
 
 export default function LectureBilingueBible({
@@ -275,7 +275,7 @@ export default function LectureBilingueBible({
           {/* Sous le dernier verset, les chapitres voisins, nommés (audit du 2026-09-21).
               ⚠️ Dans la PREMIÈRE colonne de la grille : la seconde est la gouttière. */}
           <div style={mobile ? undefined : { gridColumn: 1 }}>
-            <NavigationBasChapitre precedent={voisins.precedent} suivant={voisins.suivant} onAller={naviguer} />
+            <NavigationBasChapitre precedent={voisins.precedent} suivant={voisins.suivant} position={voisins.position} onAller={naviguer} />
           </div>
         </div>
       </div>

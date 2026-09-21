@@ -109,7 +109,7 @@ type Props = {
   pieceAffichee?: PieceLiminaireAffichee | null
   /** Les chapitres voisins, adresses composées par la page (`chapitreVoisin`) : au bout
    *  d'un livre, le livre voisin ; `null` à une borne réelle. */
-  voisins?: { precedent: CibleChapitre | null; suivant: CibleChapitre | null }
+  voisins?: { precedent: CibleChapitre | null; suivant: CibleChapitre | null; position?: { actuel: number; total: number } | null }
   /** Les bibles qui portent ce livre quand la bible lue ne le porte pas (audit
    *  ergonomique, 2026-09-21) ; `null` tant qu'on cherche, ou hors de ce cas. */
   biblesDuLivreAbsent?: readonly BiblePorteuse[] | null
@@ -1080,7 +1080,7 @@ export default function TexteBible({
               jusqu'au bout n'a plus à remonter chercher la flèche (audit du 2026-09-21).
               ⚠️ Pas sous une mention d'absence : il n'y a rien eu à lire. */}
           {!texteAbsent && surAxeTexte(
-            <NavigationBasChapitre precedent={voisins.precedent} suivant={voisins.suivant} onAller={naviguer} />,
+            <NavigationBasChapitre precedent={voisins.precedent} suivant={voisins.suivant} position={voisins.position} onAller={naviguer} />,
           )}
           </>)}
         </div>
