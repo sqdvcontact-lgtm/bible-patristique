@@ -1639,10 +1639,25 @@ export default function RechercheClient() {
                 ? rendreVide('Aucun verset trouvé.')
                 : (
                     <div className="poly-outer" style={styleAttente(versetsEnAttente)}>
-                      {versetsPage.lignes.map(v => (
+                      {versetsPage.lignes.map(v => {
+                        // ⛔ LE MOT EST AILLEURS, ici aussi (comme l'onglet Bible, 2026-09-21) :
+                        // la base cherche dans TOUTES les bibles du périmètre, et une rangée peut
+                        // n'avoir le mot dans AUCUNE des colonnes affichées. Le lien ouvrait alors
+                        // la bible du lecteur, sans le mot. Il ouvre désormais la première colonne
+                        // qui le porte, sinon une bible du périmètre qui le porte, et la rangée le dit.
+                        const porte = (code: string) => !!lastQuery && contientMarque(texteSansEnrichissement(String((v as unknown as Record<string, unknown>)[code] ?? '')), marque)
+                        const colonneQuiPorte = colAffichees.find(porte)
+                        const temoin = lastQuery && !colonneQuiPorte ? traductions.find(t => porte(t.code)) : undefined
+                        const tradLien = colonneQuiPorte ?? temoin?.code ?? tradBible
+                        return (
                         <a key={v.id_verset} className="poly-row" style={{ gridTemplateColumns:polyTmpl }}
-                          href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradBible}#verset-${v.verset}`}
+                          href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradLien}#verset-${v.verset}`}
                           target="_blank" rel="noopener noreferrer">
+                                {temoin && (
+                                  <p className="grp-glose-absent" style={{ gridColumn:'1 / -1', margin:'4px 0 0 var(--poly-marge-x, 11px)' }}>
+                                    Le mot n’est dans aucune colonne affichée. Il se lit dans {temoin.label}, que le lien ouvre.
+                                  </p>
+                                )}
                                 {/* ⛔ LA RÉFÉRENCE CANONIQUE EST EN MARGE, non dans une colonne
                                     bordée : elle accompagne le verset au lieu de l'encadrer, et
                                     elle emprunte le strut de la cellule pour poser sa ligne de
@@ -1697,7 +1712,8 @@ export default function RechercheClient() {
                                   )
                                 })}
                               </a>
-                      ))}
+                        )
+                      })}
                     </div>
                   )
             )}
