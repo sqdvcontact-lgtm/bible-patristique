@@ -288,7 +288,7 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
 const libelleNoteVolet = (contenu: NoteAffichee | undefined) =>
   !contenu || typeof contenu === 'string' ? LIBELLE_NOTE_SANS_TYPE : libelleDeLaNote(contenu)
 
-function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, userId, isAdmin, colonneLien, natures, onSignaler, onSupprimeLien }: {
+function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, userId, isAdmin, colonneLien, onSignaler, onSupprimeLien }: {
   s: Segment; info?: OeuvreInfo; userId: string | null; isAdmin: boolean
   /** L'ÉDITION du passage (`oeuvre_textes`) : c'est elle que la citation nomme, non l'œuvre. */
   edition?: LigneIdentiteTexte
@@ -300,7 +300,6 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
   /** Ses notes structurées ne sont pas encore arrivées. */
   notesEnAttente: boolean
   colonneLien: string
-  natures?: string[]
   onSignaler: (s: Segment, titreOeuvre?: string) => void
   onSupprimeLien: (id: number) => void
 }) {
@@ -322,51 +321,36 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
   //    l'œuvre, un extrait de Ceriziers 1646 se citait sous Mirandol, Hachette, 1861.
   const identite = identiteCitee(info ?? {}, edition, indexEditeursNavigateur())
   const niveaux = [s.ref_niv1, s.ref_niv2, s.ref_niv3].filter(Boolean).join(', ')
-  const LIBELLE_NATURE: Record<string, string> = {
-    citation_directe: 'Citation directe', paraphrase: 'Paraphrase',
-    commentaire: 'Commentaire', echo: 'Écho thématique',
-  }
 
   return (
     <div style={{ paddingTop:'6px', paddingBottom:'4px', borderBottom:'1px solid var(--cs-fond-doux)' }}>
 
       {/* Ligne méta : auteur + titre + niveaux (gauche), badge + actions (droite) */}
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'8px' }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'6px' }}>
         <div style={{ minWidth:0 }}>
           <div style={{ display:'flex', alignItems:'center', gap:'4px', marginBottom:'1px' }}>
             {info?.id_auteur ? (
               <a href={`/auteur/${info.id_auteur}`} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize:'0.78125rem', fontWeight:600, color:'var(--cs-vert)', lineHeight:1.2, letterSpacing:'0.026em', textDecoration:'none' }}>
+                style={{ fontSize:'0.75rem', fontWeight:600, color:'var(--cs-vert)', lineHeight:1.2, letterSpacing:'0.026em', textDecoration:'none' }}>
                 {info.auteur_nom || s.id_oeuvre}
               </a>
             ) : (
-              <span style={{ fontSize:'0.78125rem', fontWeight:600, color:'var(--cs-vert)', lineHeight:1.2, letterSpacing:'0.026em' }}>
+              <span style={{ fontSize:'0.75rem', fontWeight:600, color:'var(--cs-vert)', lineHeight:1.2, letterSpacing:'0.026em' }}>
                 {info?.auteur_nom || s.id_oeuvre}
               </span>
             )}
-            {/* ⚠️ La page ne cherche le segment visé que dans le texte qu'elle ouvre : un
-                passage d'une autre édition que celle par défaut porte `texte=`. */}
-            <a href={`/oeuvre/${s.id_oeuvre}?${[parametreTexte(edition), `segment=${s.id}`].filter(Boolean).join('&')}#segment-${s.id}`} target="_blank" rel="noopener noreferrer"
-              title="Accéder au passage exact dans l'œuvre"
-              style={{ color:'var(--cs-texte-faible)', textDecoration:'none', flexShrink:0, display:'flex', alignItems:'center' }}>
-              <svg width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-                <path d="M4 1.5H8.5V6M8.5 1.5L2 8" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </a>
           </div>
-          <a href={`/oeuvre/${s.id_oeuvre}`} target="_blank" rel="noopener noreferrer"
-            title={niveaux || undefined}
-            style={{ display:'block', fontSize:'0.78125rem', color:'var(--cs-texte-gris)', fontStyle:'italic', margin:0, lineHeight:1.2, letterSpacing:'0.02em', textDecoration:'none' }}>
+          {/* ⛔ Plus de flèche à côté du nom (décision de l'auteur, 21 septembre 2026) : le
+              TITRE mène au passage exact. ⚠️ La page ne cherche le segment visé que dans le
+              texte qu'elle ouvre : un passage d'une autre édition porte `texte=`. */}
+          <a href={`/oeuvre/${s.id_oeuvre}?${[parametreTexte(edition), `segment=${s.id}`].filter(Boolean).join('&')}#segment-${s.id}`} target="_blank" rel="noopener noreferrer"
+            title={niveaux ? `${niveaux} — accéder au passage` : 'Accéder au passage exact dans l’œuvre'}
+            style={{ display:'block', fontSize:'0.75rem', color:'var(--cs-texte-gris)', fontStyle:'italic', margin:0, lineHeight:1.2, letterSpacing:'0.02em', textDecoration:'none' }}>
             {info?.titre || ''}
           </a>
-          {/* À quel titre ce passage est ici. Discret : la référence et l'auteur
-              priment ; la nature du rapport se lit si l'on y prend garde. Un
-              passage cité PUIS commenté les porte toutes les deux. */}
-          {natures && natures.length > 0 && (
-            <span style={{ display:'block', fontSize:'0.65625rem', color:'var(--cs-texte-faible)', letterSpacing:'0.03em', marginTop:'2px' }}>
-              {natures.map(n => LIBELLE_NATURE[n] ?? n).join(' · ')}
-            </span>
-          )}
+          {/* ⛔ La nature du rapport (citation directe, paraphrase…) ne s'affiche plus
+              (décision de l'auteur, 21 septembre 2026). Les sous-onglets et les filtres la
+              disent déjà. */}
         </div>
         <div style={{ display:'flex', flexDirection:'column', gap:'4px', alignItems:'flex-end', flexShrink:0 }}>
           <div style={{ display:'flex', gap:'1px', alignItems:'center', justifyContent:'flex-end' }}>
@@ -419,7 +403,7 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
           jamais la longueur du texte — les appels de note se posent par offset.
           ⚠️ Elle passe AVANT `rendreTexteAvecNotes` : la capitale appartient au texte, non
           au balisage, et l'appliquer après aurait demandé de descendre dans le rendu. */}
-      <p lang="fr" style={{ fontSize:'0.78125rem', lineHeight:'1.38', color:'var(--cs-texte-fort)', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
+      <p lang="fr" style={{ fontSize:'0.75rem', lineHeight:'1.32', color:'var(--cs-texte-fort)', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
         {/* ⚠️ La capitale et les appels projetés arrivent POSÉS (`composerExtrait`) : la
             capitale passe avant la projection, qui compte ses offsets dans le texte. */}
         {rendreTexteAvecNotes(texteAffichage, notes, 'corps', {
@@ -1886,11 +1870,10 @@ export default function PanneauPatristique({
                 {itemsPage.map(groupe => {
                   const premier = groupe[0]
                   // Occurrence réunie : les textes des segments consécutifs mis à la suite en un
-                  // seul paragraphe ; natures cumulées. Métadonnées et liens = premier segment.
+                  // seul paragraphe. Métadonnées et liens = premier segment.
                   const segFusionne = groupe.length === 1
                     ? premier.seg
                     : { ...premier.seg, segment_texte: texteDuGroupe(groupe, cleCitation), notes: groupe.map(g => g.seg.notes).filter(Boolean).join('\n') || null }
-                  const naturesUnion = Array.from(new Set(groupe.flatMap(g => g.categories)))
                   // Ce qu'on LIT : la capitale, les appels structurés projetés, et les notes
                   // que ces appels ouvrent (voir `composerExtrait`).
                   const extrait = composerExtrait(groupe, notesVolet)
@@ -1900,7 +1883,7 @@ export default function PanneauPatristique({
                       edition={editions[premier.seg.id_texte]}
                       texteAffichage={extrait.texte} notes={extrait.notes} notesEnAttente={extrait.enAttente}
                       userId={userId} isAdmin={isAdmin}
-                      colonneLien={premier.col} natures={naturesUnion}
+                      colonneLien={premier.col}
                       onSignaler={(s, titreOeuvre) => { if (exigerCompte('signaler une erreur')) setSegSignale({ seg: s, titreOeuvre }) }} onSupprimeLien={premier.onSupprime}
                     />
                   )
