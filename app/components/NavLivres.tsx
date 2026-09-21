@@ -349,17 +349,19 @@ export default function NavLivres({
       return
     }
     const pos = scrollRef.current?.scrollTop || 0
-    setLivreActifLocal(code)
-    if (onChoisirLivre) { onChoisirLivre(code); setLivreOuvert(code) }
+    if (onChoisirLivre) { setLivreActifLocal(code); onChoisirLivre(code); setLivreOuvert(code) }
     else if (livreOuvert === code) {
       setLivreOuvert(null)
     } else {
+      // ⛔ CHOISIR UN LIVRE OUVRE SA GRILLE, ET RIEN D'AUTRE (audit d'ergonomie du
+      // 2026-09-21). Le clic naviguait en même temps vers le chapitre 1 : pour aller à
+      // Jn 3, la page chargeait Jn 1 puis Jn 3, deux chargements et deux fondus, et l'on
+      // ne pouvait pas regarder la grille d'un livre sans quitter ce qu'on lisait. On ne
+      // navigue plus qu'au choix du chapitre (`handleChapitre`), qui marque alors le
+      // livre et le chapitre à l'instant. Le livre qu'on lit reste marqué en attendant.
+      // ⚠️ Un livre d'UN seul chapitre n'a pas de grille à consulter : il s'ouvre.
       setLivreOuvert(code)
-      // Le chapitre 1 se SÉLECTIONNE à l'instant dans le volet : sans cela, l'ancien
-      // numéro restait en surbrillance dans la liste du nouveau livre, le temps que
-      // la page arrive (demande de l'auteur, 2026-09-21).
-      setChapitreActifLocal(1)
-      naviguer(urlLectureBible({ ...maniereDeLire, livre: code, chapitre: 1, trad: tradCode }))
+      if (!sansChapitres && nombreDeChapitres(code, chapitres) === 1) handleChapitre(code, 1)
     }
     requestAnimationFrame(() => {
       if (scrollRef.current) scrollRef.current.scrollTop = pos
