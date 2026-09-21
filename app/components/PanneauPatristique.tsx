@@ -66,6 +66,29 @@ const OngletSemantique = dynamic(() => import('@/app/components/OngletSemantique
 const LIBELLE_RAIL = 'Ouvrir les commentaires'
 
 type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
+/** Ce qu'un extrait VISE dans le texte biblique : ses créneaux (« JHN.3.14 »), et s'il
+ *  est aussi rattaché au chapitre entier. Sert la référence de chaque carte en mode
+ *  chapitre (audit ergonomique du 2026-09-21). */
+type RepereBiblique = { canons: Set<string>; chapitre: boolean }
+
+/** « v. 14 », « v. 3, 5 », « 4, 2 » hors du chapitre ouvert, ou « tout le chapitre ». */
+function libelleRepere(r: RepereBiblique, chapitreOuvert: number | null): string | null {
+  const parChapitre = new Map<number, number[]>()
+  for (const c of r.canons) {
+    const [, ch, v] = c.split('.')
+    const nch = Number(ch), nv = Number(v)
+    if (!Number.isFinite(nch) || !Number.isFinite(nv)) continue
+    if (!parChapitre.has(nch)) parChapitre.set(nch, [])
+    parChapitre.get(nch)!.push(nv)
+  }
+  const morceaux = [...parChapitre.entries()].sort((a, b) => a[0] - b[0]).map(([ch, vs]) => {
+    const liste = [...new Set(vs)].sort((a, b) => a - b).join(', ')
+    return ch === chapitreOuvert ? liste : `${ch}, ${liste}`
+  })
+  if (!morceaux.length) return r.chapitre ? 'tout le chapitre' : null
+  const seulChapitreOuvert = chapitreOuvert != null && parChapitre.size === 1 && parChapitre.has(chapitreOuvert)
+  return (seulChapitreOuvert ? 'v. ' : '') + morceaux.join(' ; ')
+}
 type Segment = {
   // ⛔ `id_texte` DÉCIDE des regroupements, `id_oeuvre` ne fait que nommer : une œuvre
   // porte plusieurs textes (La Cité de Dieu son latin et son français, tous deux liés
@@ -300,8 +323,11 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
 const libelleNoteVolet = (contenu: NoteAffichee | undefined) =>
   !contenu || typeof contenu === 'string' ? LIBELLE_NOTE_SANS_TYPE : libelleDeLaNote(contenu)
 
-function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, userId, isAdmin, colonneLien, retour, onSignaler, onSupprimeLien }: {
+function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, userId, isAdmin, colonneLien, retour, onSignaler, onSupprimeLien, repere }: {
   s: Segment; info?: OeuvreInfo; userId: string | null; isAdmin: boolean
+  /** En mode chapitre, le verset que l'extrait vise : « v. 14 ». Avec `canon` et
+   *  `onChoisir`, c'est un bouton qui retient ce verset dans le texte. */
+  repere?: { libelle: string; canon: string | null; onChoisir?: (canon: string) => void } | null
   /** Le chemin du verset (ou de la péricope) d'où l'on ouvre le passage : la page
    *  d'œuvre en fait un lien « Retour à … » (`?depuis=`, voir `retourLecture`). */
   retour: string | null
@@ -344,6 +370,23 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
       {/* Ligne méta : auteur + titre + niveaux (gauche), badge + actions (droite) */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'6px' }}>
         <div style={{ minWidth:0 }}>
+          {/* ⛔ LE VERSET VISÉ, EN MODE CHAPITRE (audit ergonomique du 2026-09-21) : sans
+              verset retenu, le volet montre l'apparat de tout le chapitre, et rien ne disait
+              quelle ligne du texte l'extrait commente. Un verset unique est un bouton qui le
+              retient dans le texte, comme un clic sur le verset lui-même. */}
+          {repere && (
+            repere.canon && repere.onChoisir ? (
+              <button type="button" onClick={e => { e.stopPropagation(); repere.onChoisir?.(repere.canon as string) }}
+                className="cs-fiche-lien" title="Retenir ce verset dans le texte"
+                style={{ display:'block', minHeight:'24px', padding:0, margin:'-4px 0 -3px', background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', fontSize:'0.6875rem', fontWeight:600, letterSpacing:'0.02em', fontVariantNumeric:'tabular-nums', textAlign:'left' }}>
+                {repere.libelle}
+              </button>
+            ) : (
+              <span style={{ display:'block', margin:'0 0 2px', fontSize:'0.6875rem', fontWeight:600, letterSpacing:'0.02em', color:'var(--cs-texte-second)', fontVariantNumeric:'tabular-nums' }}>
+                {repere.libelle}
+              </span>
+            )
+          )}
           <div style={{ display:'flex', alignItems:'center', gap:'4px', marginBottom:'1px' }}>
             {info?.id_auteur ? (
               <a href={`/auteur/${info.id_auteur}`}
@@ -925,7 +968,7 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
 
 // ── Panneau principal ─────────────────────────────────────────────────────────
 export default function PanneauPatristique({
-  verset, livreActif, chapitreActif,
+  verset, livreActif, chapitreActif, nomLivre,
   panelWidth = null, onWidthChange, mobile = false,
   voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer', sousBarres = true,
   plage, refAffichee, notesBible = null, onChoisirVerset,
@@ -1012,6 +1055,8 @@ export default function PanneauPatristique({
   const [loading, setLoading] = useState(false)
   // La demande dont les trois listes de segments portent la réponse (voir `cleDemande`).
   const [segmentsPour, setSegmentsPour] = useState<string | null>(null)
+  // Ce que chaque lien vise, par segment porteur (`idLien`) : la référence des cartes.
+  const [reperes, setReperes] = useState<Map<number, RepereBiblique>>(() => new Map())
   const isAdminReel = useIsAdmin()
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const isAdmin = isAdminReel && !modeUtilisateurStandard
@@ -1143,7 +1188,12 @@ export default function PanneauPatristique({
       // obligatoire. Ne garder qu'un type par segment vidait la rubrique Doctrine
       // de tout un commentaire suivi.
       const typesParSegment = new Map<number, Set<TypeLien>>()
+      const reperesNeufs = new Map<number, RepereBiblique>()
       for (const l of liens) {
+        if (!reperesNeufs.has(l.segment_id)) reperesNeufs.set(l.segment_id, { canons: new Set(), chapitre: false })
+        const r = reperesNeufs.get(l.segment_id)!
+        if (l.canon_id) r.canons.add(l.canon_id)
+        else r.chapitre = true
         if (!typesParSegment.has(l.segment_id)) typesParSegment.set(l.segment_id, new Set())
         typesParSegment.get(l.segment_id)!.add(l.type)
       }
@@ -1186,6 +1236,7 @@ export default function PanneauPatristique({
       setSegmentsCitations(citations)
       setSegmentsDoctrine(doctrine)
       setSegmentsEcho(echo)
+      setReperes(reperesNeufs)
       setSegmentsPour(cle)
       setLoading(false)
     })()
@@ -1908,6 +1959,17 @@ export default function PanneauPatristique({
                     {itemsAffiches.length === 0 && <FleuronDiscret />}
                   </EtatVideVolet>
                 )}
+                {/* ⛔ LA PORTÉE DU VOLET (audit ergonomique du 2026-09-21) : rien ne disait si
+                    la liste répondait au chapitre ou à un verset, ni si un clic avait porté. */}
+                {(verset || modeChapitre) && (
+                  <p style={{ margin: '8px 0 0', fontSize: '0.6875rem', color: 'var(--cs-texte-second)', letterSpacing: '0.02em' }}>
+                    {verset
+                      ? <><strong style={{ fontWeight: 600, color: 'var(--cs-encre)' }}>{nomLivre ? `${nomLivre} ${verset.chapitre}, ${verset.verset}` : verset.ref}</strong>, verset retenu</>
+                      : plage
+                        ? <>Tout le passage{refAffichee ? ` : ${refAffichee}` : ''}</>
+                        : <><strong style={{ fontWeight: 600, color: 'var(--cs-encre)' }}>{nomLivre ? `${nomLivre} ${chapitreActif}` : `Chapitre ${chapitreActif}`}</strong>, tout le chapitre</>}
+                  </p>
+                )}
                 {itemsPage.length > 0 && (
                 <div style={{ marginTop: '6px' }}>
                 {itemsPage.map(groupe => {
@@ -1928,6 +1990,20 @@ export default function PanneauPatristique({
                       userId={userId} isAdmin={isAdmin}
                       colonneLien={premier.col}
                       retour={adresseRetour}
+                      repere={modeChapitre ? (() => {
+                        // Les liens de tous les segments réunis dans la carte.
+                        const fusion: RepereBiblique = { canons: new Set(), chapitre: false }
+                        for (const g of groupe) {
+                          const r = reperes.get(g.seg.idLien)
+                          if (!r) continue
+                          r.canons.forEach(c => fusion.canons.add(c))
+                          if (r.chapitre) fusion.chapitre = true
+                        }
+                        const libelle = libelleRepere(fusion, plage ? null : chapitreActif)
+                        if (!libelle) return null
+                        const canon = fusion.canons.size === 1 && !plage ? [...fusion.canons][0] : null
+                        return { libelle, canon, onChoisir: onChoisirVerset }
+                      })() : null}
                       onSignaler={(s, titreOeuvre) => { if (exigerCompte('signaler une erreur')) setSegSignale({ seg: s, titreOeuvre }) }} onSupprimeLien={premier.onSupprime}
                     />
                   )
