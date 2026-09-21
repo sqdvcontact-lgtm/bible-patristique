@@ -12824,3 +12824,14 @@ code :
   arrive dans le fichier comme une insécable LITTÉRALE. La chaîne fonctionne, la source ne se
   relit plus. On contrôle les points de code après écriture (`cat -A`, ou `codePointAt`),
   jamais le rendu d'un outil de lecture.
+
+# ⛔ LE FAC-SIMILÉ D'UN VERSET DE LA BIBLE DU XIIIe SIÈCLE (2026-09-21)
+
+Demande de l'auteur : un symbole au survol d'un verset, qui ouvre une fenêtre chargeant la colonne du manuscrit, avec l'anneau d'attente. Règles de code :
+
+- ⛔ **LA CLÉ D'UNE COLONNE SUIT LES IMAGES, LE FOLIO AFFICHÉ SUIT LE MANUSCRIT.** Les identifiants de ligne du TEI (`f296r_a_l01`), que les segments recopient dans `metadata.source_line_start` / `source_line_end`, numérotent les feuillets MATÉRIELS ; le manuscrit saute le folio 296, si bien que l'image `f296r_a` montre le folio 297r. Et 393 fichiers portent un numéro complété de zéros (`f001v_b.png` pour la clé `f1v_b`). La correspondance vit dans `app/lib/facsimiles899.json`, engendrée par `node scripts/facsimiles899/table-des-colonnes.mjs` (lecture seule du manifeste et du TEI) : ⛔ la régénérer si le manifeste change, jamais l'éditer.
+- **La ligne de départ voyage avec le texte, sans requête de plus** : `chargerVersets899` la lit dans la vue (`ligne_debut:metadata->>source_line_start`), `adapterVersets899` pose `_facsDebut899` / `_facsFin899`. Pour TR0013, `chargerVersetsCanoniquesV2` la demande au témoin par `canon_id` (index ; jamais par livre et chapitre, que la vue ne pousse pas), en couche SECONDAIRE : un échec se consigne et le chapitre reste lisible.
+- ⛔ **RIEN NE SE CHARGE AVANT LE CLIC** : la table (64 Ko) par `import()` dans `chargerTableFacsimiles899`, l'image au montage de `ModaleFacsimile899`. L'attente se DÉDUIT (`srcChargee !== src`), la colonne voisine se précharge après chargement.
+- ⛔ **L'IMAGE EST UNE BALISE `<img>`, JAMAIS `next/image`**, et le lecteur de chantier porte `unoptimized` : l'optimisation d'images de Vercel compte chaque colonne à chaque largeur, sur un quota.
+- ⚠️ La fenêtre est montée DANS la rangée du verset : son calque arrête le clic (`stopPropagation`), un portail remontant ses événements par l'arbre React.
+- ⚠️ **Pas encore couvert** : la lecture en regard (`BibleBilingue`) et la Polyglotte. La provenance des images (Gallica ou autre) n'est notée nulle part : le pied de la fenêtre ne dit que « Paris, Bibliothèque nationale de France, français 899 ».
