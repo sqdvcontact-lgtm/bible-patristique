@@ -25,8 +25,14 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { chargerToutesPagesSupabase, lotsPourClauseIn } from '@/app/lib/paginationSupabase'
-import { estNoteApparatCritique, lireMetadonneesBlocNote } from '@/app/lib/apparatCritique'
+import { chargerPagesEnParallele, chargerToutesPagesSupabase, lotsPourClauseIn } from '@/app/lib/paginationSupabase'
+import {
+  estNoteApparatCritique,
+  lireMetadonneesBlocNote,
+  metadonneesDesColonnes,
+  SELECT_METADONNEES_BLOC_LUES,
+  type ColonnesMetadonneesBloc,
+} from '@/app/lib/apparatCritique'
 import { natureBlocNoteSur } from '@/app/lib/naturesNote'
 import { messageDErreur, noterDegradation, tolerer, type DegradationChargement } from '@/app/lib/chargementTolerant'
 import {
@@ -83,12 +89,26 @@ type BlockRow = {
   text: string
   rendering: string | null
   needs_review: boolean
-  // Le jsonb entier est lu ici, mais N'EST PAS transmis au client : seuls les
-  // cinq scalaires de `lireMetadonneesBlocNote` passent dans les props, et le
-  // reste (pdf_page, apparatus_editor…) reste au serveur. Sur les 7 266 blocs de
-  // l'apparat de Knöll, la différence de charge n'est pas théorique.
+  // ⛔ Le jsonb n'est PLUS lu entier : seules ses clés de rendu sont demandées
+  // (`SELECT_METADONNEES_BLOC_LUES`), puis recomposées ici. Entier, il pesait 38,7 Mo
+  // sur les 7 277 blocs de l'apparat de Knöll — les traces de toutes les passes
+  // d'atelier —, tirés de la base à CHAQUE ouverture des Confessions (2026-09-21).
   metadata: Record<string, unknown> | null
 }
+/** La ligne telle que PostgREST la rend, avant recomposition de `metadata`. */
+type BlockRowBrute = Omit<BlockRow, 'metadata'> & ColonnesMetadonneesBloc & { metadata?: unknown }
+const versBlockRow = (ligne: BlockRowBrute): BlockRow => ({
+  note_key: ligne.note_key,
+  block_id: ligne.block_id,
+  rank: ligne.rank,
+  kind: ligne.kind,
+  form: ligne.form,
+  language: ligne.language,
+  text: ligne.text,
+  rendering: ligne.rendering,
+  needs_review: ligne.needs_review,
+  metadata: metadonneesDesColonnes(ligne),
+})
 type RelationRow = {
   note_key: string
   relation_kind: string
@@ -98,7 +118,7 @@ type RelationRow = {
 
 const COLONNES_NOTES = 'note_key,note_number'
 const COLONNES_ANCRES = 'note_key,marker,segment_key,source_target,segment_offset_unicode'
-const COLONNES_BLOCS = 'note_key,block_id,rank,kind,form,language,text,rendering,needs_review,metadata'
+const COLONNES_BLOCS = `note_key,block_id,rank,kind,form,language,text,rendering,needs_review,${SELECT_METADONNEES_BLOC_LUES}`
 const COLONNES_RELATIONS = 'note_key,relation_kind,source_block_id,target_block_id'
 
 export type NotesAssemblees = NotesStructureesChargees & {
@@ -228,20 +248,25 @@ export async function chargerNotesStructurees(
   if (!idTexte) return AUCUNE_NOTE()
   let rows: [NoteRow[], AnchorRow[], BlockRow[], RelationRow[]]
   try {
+    // Par vagues de deux pages : les trois grosses tables d'un apparat savant (Knöll :
+    // 7 277 notes, huit pages chacune) se lisaient page après page, soit huit
+    // allers-retours avant la numérotation. Deux par vague, c'est quatre, et six requêtes
+    // en vol au plus (REQUETES_EN_VOL).
     rows = await Promise.all([
-      chargerToutesPagesSupabase<NoteRow>((debut, fin) => supabase.from('texte_notes')
+      chargerPagesEnParallele<NoteRow>((debut, fin) => supabase.from('texte_notes')
         .select(COLONNES_NOTES).eq('id_texte', idTexte)
         // Le numéro recommence à 1 dans chaque division. Il ne suffit donc plus
         // à stabiliser une pagination : sans ce départage, une note peut tomber
         // dans deux pages successives et une autre disparaître entre les deux.
-        .order('note_number').order('note_key').range(debut, fin)),
-      chargerToutesPagesSupabase<AnchorRow>((debut, fin) => supabase.from('texte_note_ancres')
+        .order('note_number').order('note_key').range(debut, fin), { vague: 2 }),
+      chargerPagesEnParallele<AnchorRow>((debut, fin) => supabase.from('texte_note_ancres')
         .select(COLONNES_ANCRES)
         .eq('id_texte', idTexte).order('note_key').order('segment_key')
-        .order('segment_offset_unicode').range(debut, fin)),
-      chargerToutesPagesSupabase<BlockRow>((debut, fin) => supabase.from('texte_note_blocs')
+        .order('segment_offset_unicode').range(debut, fin), { vague: 2 }),
+      chargerPagesEnParallele<BlockRowBrute>((debut, fin) => supabase.from('texte_note_blocs')
         .select(COLONNES_BLOCS)
-        .eq('id_texte', idTexte).order('note_key').order('rank').range(debut, fin)),
+        .eq('id_texte', idTexte).order('note_key').order('rank').range(debut, fin), { vague: 2 })
+        .then(l => l.map(versBlockRow)),
       chargerToutesPagesSupabase<RelationRow>((debut, fin) => supabase.from('texte_note_relations')
         .select(COLONNES_RELATIONS)
         .eq('id_texte', idTexte).order('note_key').order('source_block_id')
@@ -286,7 +311,9 @@ export async function chargerNotesStructurees(
     const divisionsRows = await tolerer(
       degradations,
       { quoi: 'la numérotation des notes par division', publique: false },
-      () => chargerToutesPagesSupabase<DivisionRow>((debut, fin) =>
+      // Par vagues parallèles : sept pages SÉQUENTIELLES sur les Homélies sur la Genèse
+      // (6 931 segments), une par aller-retour, avant que la page puisse numéroter.
+      () => chargerPagesEnParallele<DivisionRow>((debut, fin) =>
         supabase.from('segments').select('segment_key,ref_niv1,espace_textuel')
           .eq('id_texte', idTexte).order('segment_numero').range(debut, fin)),
       () => [] as DivisionRow[],
@@ -400,9 +427,9 @@ export async function chargerNotesDesSegments(
         Promise.all(lots.map(lot => chargerToutesPagesSupabase<NoteRow>((debut, fin) => supabase.from('texte_notes')
           .select(COLONNES_NOTES).eq('id_texte', idTexte).in('note_key', lot)
           .order('note_number').order('note_key').range(debut, fin)))).then(l => l.flat()),
-        Promise.all(lots.map(lot => chargerToutesPagesSupabase<BlockRow>((debut, fin) => supabase.from('texte_note_blocs')
+        Promise.all(lots.map(lot => chargerToutesPagesSupabase<BlockRowBrute>((debut, fin) => supabase.from('texte_note_blocs')
           .select(COLONNES_BLOCS).eq('id_texte', idTexte).in('note_key', lot)
-          .order('note_key').order('rank').range(debut, fin)))).then(l => l.flat()),
+          .order('note_key').order('rank').range(debut, fin)))).then(l => l.flat().map(versBlockRow)),
         Promise.all(lots.map(lot => chargerToutesPagesSupabase<RelationRow>((debut, fin) => supabase.from('texte_note_relations')
           .select(COLONNES_RELATIONS).eq('id_texte', idTexte).in('note_key', lot)
           .order('note_key').order('source_block_id').order('relation_kind').range(debut, fin)))).then(l => l.flat()),
@@ -457,9 +484,9 @@ export async function chargerNotePourRenvoi(
     chargerToutesPagesSupabase<NoteRow>((debut, fin) => supabase.from('texte_notes')
       .select(COLONNES_NOTES).eq('id_texte', cible.idTexte).eq('note_key', cible.noteKey)
       .order('note_key').range(debut, fin)),
-    chargerToutesPagesSupabase<BlockRow>((debut, fin) => supabase.from('texte_note_blocs')
+    chargerToutesPagesSupabase<BlockRowBrute>((debut, fin) => supabase.from('texte_note_blocs')
       .select(COLONNES_BLOCS).eq('id_texte', cible.idTexte).eq('note_key', cible.noteKey)
-      .order('rank').range(debut, fin)),
+      .order('rank').range(debut, fin)).then(l => l.map(versBlockRow)),
     chargerToutesPagesSupabase<RelationRow>((debut, fin) => supabase.from('texte_note_relations')
       .select(COLONNES_RELATIONS).eq('id_texte', cible.idTexte).eq('note_key', cible.noteKey)
       .order('source_block_id').order('relation_kind').range(debut, fin)),

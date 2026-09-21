@@ -84,6 +84,46 @@ export type MetadonneesBlocNoteBrutes = {
   clarity_summary?: boolean
 }
 
+/** Les SEULES clés de `metadata` que `lireMetadonneesBlocNote` lit, demandées une à une
+ *  à PostgREST (`md_<clé>:metadata-><clé>`), qui garde leur type JSON.
+ *
+ *  ⛔ NE JAMAIS REDEMANDER `metadata` ENTIER POUR LE RENDU. Le jsonb d'un bloc porte les
+ *  traces de toutes les passes d'atelier (`p12_review`, `ogl_xml_check_…`,
+ *  `pixel_target_…`) : mesuré le 21 septembre 2026, 38,7 Mo sur les 7 277 blocs de
+ *  l'apparat de Knöll, soit 5,3 Ko par bloc pour un rendu qui en garde une trentaine
+ *  d'octets. La page des Confessions tirait ces 38,7 Mo de la base à CHAQUE ouverture
+ *  (les notes du latin en regard), et ne finissait qu'à 13,2 s (audit ergonomique).
+ *  ⚠️ Une clé ajoutée à la lecture ci-dessous s'ajoute AUSSI ici, sans quoi elle vaudra
+ *  toujours `null`. */
+export const CLES_METADONNEES_BLOC_LUES = [
+  'editorial_role', 'printed_line', 'visual_review_reason', 'human_validated',
+  'citation_layout', 'bibliography_list_item', 'reader_style', 'reader_label',
+] as const satisfies readonly (keyof MetadonneesBlocNoteBrutes)[]
+
+/** Le fragment de `select` qui les demande. */
+export const SELECT_METADONNEES_BLOC_LUES =
+  'md_editorial_role:metadata->editorial_role,md_printed_line:metadata->printed_line,'
+  + 'md_visual_review_reason:metadata->visual_review_reason,md_human_validated:metadata->human_validated,'
+  + 'md_citation_layout:metadata->citation_layout,md_bibliography_list_item:metadata->bibliography_list_item,'
+  + 'md_reader_style:metadata->reader_style,md_reader_label:metadata->reader_label'
+
+/** Les colonnes `md_*` d'une ligne, telles que `SELECT_METADONNEES_BLOC_LUES` les rend. */
+export type ColonnesMetadonneesBloc = { [Cle in (typeof CLES_METADONNEES_BLOC_LUES)[number] as `md_${Cle}`]?: unknown }
+
+/** Recompose, depuis les colonnes `md_*`, l'objet `metadata` que lit
+ *  `lireMetadonneesBlocNote`. ⚠️ Une ligne qui porte encore `metadata` entier (un
+ *  `select` d'atelier, un faux client de test) le garde tel quel. */
+export function metadonneesDesColonnes(ligne: ColonnesMetadonneesBloc & { metadata?: unknown }): Record<string, unknown> | null {
+  if ('metadata' in ligne) return (ligne.metadata ?? null) as Record<string, unknown> | null
+  const colonnes = ligne as Record<string, unknown>
+  const metadata: Record<string, unknown> = {}
+  for (const cle of CLES_METADONNEES_BLOC_LUES) {
+    const valeur = colonnes[`md_${cle}`]
+    if (valeur != null) metadata[cle] = valeur
+  }
+  return metadata
+}
+
 export const METADONNEES_BLOC_VIDES: MetadonneesBlocNote = {
   editorialRole: null, printedLine: null, visualReviewReason: null, humanValidated: null, citationLayout: null,
   bibliographyListItem: false, readerStyle: null, readerLabel: null,

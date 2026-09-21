@@ -39,7 +39,7 @@ import {
   type AncreNoteStructureeProjection,
 } from '@/app/lib/appelsNotesStructurees'
 import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
-import { lireMetadonneesBlocNote } from '@/app/lib/apparatCritique'
+import { lireMetadonneesBlocNote, metadonneesDesColonnes, SELECT_METADONNEES_BLOC_LUES, type ColonnesMetadonneesBloc } from '@/app/lib/apparatCritique'
 import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import {
   groupesSelonFiltre,
@@ -419,10 +419,9 @@ async function chargerNotes(segmentKeys: string[]): Promise<{
     text: string
     rendering: string | null
     needs_review: boolean
-    // Lu au serveur, projeté sur cinq scalaires avant d'entrer dans les blocs (jamais
-    // les traces documentaires : voir `lireMetadonneesBlocNote`).
-    metadata: Record<string, unknown> | null
-  }
+    // ⛔ Le jsonb n'est plus lu entier : ses seules clés de rendu arrivent en colonnes
+    // `md_*` (`SELECT_METADONNEES_BLOC_LUES`), et `metadonneesDesColonnes` les recompose.
+  } & ColonnesMetadonneesBloc
   type RelationRow = {
     id_texte: string
     note_key: string
@@ -444,7 +443,7 @@ async function chargerNotes(segmentKeys: string[]): Promise<{
       .from('texte_notes').select('id_texte,note_key,note_number').in('note_key', batch)
       .order('note_key').range(debut, fin)))).then(pages => pages.flat()),
     Promise.all(lotsNotes.map(batch => chargerToutesPagesSupabase<BlocRow>((debut, fin) => supabase
-      .from('texte_note_blocs').select('id_texte,note_key,block_id,rank,kind,form,language,text,rendering,needs_review,metadata')
+      .from('texte_note_blocs').select(`id_texte,note_key,block_id,rank,kind,form,language,text,rendering,needs_review,${SELECT_METADONNEES_BLOC_LUES}`)
       .in('note_key', batch).order('note_key').order('rank').range(debut, fin)))).then(pages => pages.flat()),
     Promise.all(lotsNotes.map(batch => chargerToutesPagesSupabase<RelationRow>((debut, fin) => supabase
       .from('texte_note_relations').select('id_texte,note_key,relation_kind,source_block_id,target_block_id')
@@ -465,7 +464,7 @@ async function chargerNotes(segmentKeys: string[]): Promise<{
     const note = notes.get(`${block.id_texte}|${block.note_key}`)
     if (!note) continue
     const relation = relations.get(`${block.id_texte}|${block.note_key}|${block.block_id}`) ?? {}
-    const meta = lireMetadonneesBlocNote(block.metadata)
+    const meta = lireMetadonneesBlocNote(metadonneesDesColonnes(block))
     note.blocks.push({
       blockId: block.block_id,
       rank: block.rank,

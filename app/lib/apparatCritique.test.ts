@@ -6,6 +6,9 @@ import {
   lireMetadonneesBlocNote,
   retirerLigneImprimee,
   texteApparatAffiche,
+  metadonneesDesColonnes,
+  CLES_METADONNEES_BLOC_LUES,
+  SELECT_METADONNEES_BLOC_LUES,
 } from './apparatCritique'
 
 const apparat = (text: string, printedLine: number | null) => ({
@@ -176,5 +179,47 @@ describe('lireMetadonneesBlocNote', () => {
   it('relève la raison de contrôle visuel', () => {
     const raison = 'abréviation « ds » à contrôler sur le fac-similé'
     expect(lireMetadonneesBlocNote({ visual_review_reason: raison }).visualReviewReason).toBe(raison)
+  })
+})
+
+// ⛔ Le jsonb d'un bloc ne se lit plus entier (38,7 Mo sur l'apparat de Knöll) : seules
+// ses clés de rendu sont demandées, et la lecture doit en rendre EXACTEMENT ce qu'elle
+// rendait du jsonb complet.
+describe('metadonneesDesColonnes', () => {
+  const complet = {
+    editorial_role: 'source_editorial_note', printed_line: 10, visual_review_reason: 'à revoir',
+    human_validated: false, citation_layout: 'block', bibliography_list_item: true,
+    reader_style: 'corpus_explanation', reader_label: 'Corpus Scriptura',
+    p12_review: { lourd: 'x'.repeat(500) }, pixel_target_20260904: [1, 2, 3],
+  }
+  const enColonnes = Object.fromEntries(CLES_METADONNEES_BLOC_LUES.map(c => [`md_${c}`, (complet as Record<string, unknown>)[c]]))
+
+  it('recompose ce que la lecture lit, et rien d’autre', () => {
+    const recompose = metadonneesDesColonnes(enColonnes)
+    expect(lireMetadonneesBlocNote(recompose)).toEqual(lireMetadonneesBlocNote(complet))
+    expect(recompose).not.toHaveProperty('p12_review')
+  })
+
+  it('omet une clé nulle, et garde un `metadata` entier quand la ligne le porte', () => {
+    expect(metadonneesDesColonnes({ md_editorial_role: null, md_printed_line: 3 })).toEqual({ printed_line: 3 })
+    expect(metadonneesDesColonnes({ metadata: { editorial_role: 'x' } })).toEqual({ editorial_role: 'x' })
+    expect(metadonneesDesColonnes({ metadata: null })).toBeNull()
+  })
+
+  it('demande chaque clé lue, une fois, sous son nom de colonne', () => {
+    for (const cle of CLES_METADONNEES_BLOC_LUES) {
+      expect(SELECT_METADONNEES_BLOC_LUES.split(',')).toContain(`md_${cle}:metadata->${cle}`)
+    }
+    expect(SELECT_METADONNEES_BLOC_LUES.split(',')).toHaveLength(CLES_METADONNEES_BLOC_LUES.length)
+    expect(SELECT_METADONNEES_BLOC_LUES).not.toMatch(/(^|,)metadata(,|$)/)
+  })
+
+  it('couvre toutes les clés que `lireMetadonneesBlocNote` interroge', () => {
+    // Chaque clé lue change la sortie quand on la retire du jsonb : sinon elle n'est pas lue.
+    for (const cle of CLES_METADONNEES_BLOC_LUES) {
+      const sans = { ...complet } as Record<string, unknown>
+      delete sans[cle]
+      expect(lireMetadonneesBlocNote(sans)).not.toEqual(lireMetadonneesBlocNote(complet))
+    }
   })
 })
