@@ -202,6 +202,17 @@ function notificationModerationCommentaire(c: LigneCommentaire): NotificationIte
   }
 }
 
+/** La clé d'une décision de modération sur une publication. ⛔ Jamais `updated_at` :
+ *  la sauvegarde automatique de l'auteur le change à chaque frappe, et la notification
+ *  archivée renaissait. La décision est le statut et le motif de l'administration,
+ *  que le déclencheur `forcer_statut_essai` fige contre toute écriture de l'auteur. */
+export function cleDecisionEssai(prefixe: string, e: Pick<LigneEssai, 'id' | 'statut' | 'note_admin'>): string {
+  const note = e.note_admin ?? ''
+  let h = 5381
+  for (let i = 0; i < note.length; i++) h = ((h * 33) ^ note.charCodeAt(i)) >>> 0
+  return `${prefixe}:${e.id}:${e.statut}:${h.toString(36)}`
+}
+
 function notificationStatutEssai(e: LigneEssai): NotificationItem | null {
   if (e.statut === 'publie') {
     return {
@@ -220,7 +231,7 @@ function notificationStatutEssai(e: LigneEssai): NotificationItem | null {
   if (e.statut === 'a_reviser' || e.statut === 'brouillon') {
     if (!e.note_admin) return null
     return {
-      key: `essai-revoir:${e.id}:${e.updated_at ?? ''}`,
+      key: cleDecisionEssai('essai-revoir', e),
       id: e.id,
       type: 'essai',
       // ⚠️ « À revoir » se range avec les REFUS, non avec le reste : la publication
@@ -236,7 +247,7 @@ function notificationStatutEssai(e: LigneEssai): NotificationItem | null {
   }
   if (e.statut === 'refuse') {
     return {
-      key: `essai-refuse:${e.id}:${e.updated_at ?? ''}`,
+      key: cleDecisionEssai('essai-refuse', e),
       id: e.id,
       type: 'essai',
       ton: 'refus',
