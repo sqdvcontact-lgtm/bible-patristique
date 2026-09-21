@@ -234,6 +234,16 @@ const RE_MARQUEUR_TEMOIN = /\[\s*(?:…|\.\.\.|[Ll]acune)\s*\]|\[\s*lacune\s*:\s
 const STYLE_INCERTAINE_TRADUCTION: React.CSSProperties = { ...STYLE_MENTION_DANS_LE_FIL, color: 'var(--cs-surnum)' }
 // ⛔ LE SIGNE EST CELUI DE LA POLYGLOTTE (décision de l'auteur, 2026-09-21) : le cercle qui y
 // marque la note éditoriale d'un verset, même dessin, même encre, même mesure.
+/**
+ * ⛔ LES GUILLEMETS QUI CITENT L'ANCIEN FRANÇAIS SONT DE TROP (décision de l'auteur,
+ * 2026-09-21) : l'italique et l'encre disent déjà que le mot n'est pas traduit. On ôte le
+ * guillemet OUVRANT en tête et le FERMANT en fin, chacun pour son compte : une marque à
+ * cheval sur deux versets porte l'un dans le premier, l'autre dans le second.
+ */
+function sansGuillemetsDeCitation(texte: string): string {
+  return texte.replace(/^\s*«\s*/u, '').replace(/\s*»\s*$/u, '')
+}
+
 const REPERE_INCERTAINE = {
   signe: <IconeSignalement />,
   icone: true,
@@ -281,7 +291,7 @@ export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
     const rang = n++
     return (
       <span key={`${cle}-i${rang}`}>
-        <span style={STYLE_INCERTAINE_TRADUCTION}>{contenu}</span>
+        <span style={STYLE_INCERTAINE_TRADUCTION}>{sansGuillemetsDeCitation(contenu)}</span>
         {nom ? (
           <AppelNoteBiblique
             note={{ id: `incertaine-${cle}-${rang}`, displayNumber: 0, blocks: [BLOC_EXPLICATION_INCERTAINE] }}

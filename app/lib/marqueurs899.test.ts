@@ -179,7 +179,7 @@ describe('rendreMarqueurs899', () => {
       const out = reduireTout(marquerLacunesDuTemoin('tu guetteras ses [lecture difficile : « oures »]. »', 't0')) as ReturnType<typeof reduire>[]
       expect(out).toEqual([
         { t: 'texte', v: 'tu guetteras ses ' },
-        { t: 'marque', titre: 'appel', texte: '« oures »' },
+        { t: 'marque', titre: 'appel', texte: 'oures' },
         { t: 'texte', v: '. »' },
       ])
     })
