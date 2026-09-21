@@ -1,4 +1,5 @@
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 export const metadata = {
   title: { absolute: "Politique de confidentialité · Corpus Scriptura" },
@@ -25,7 +26,7 @@ export default function ConfidentialitePage() {
         </h1>
 
         <p style={{ fontSize: "0.75rem", color: "var(--cs-texte-doux)", marginBottom: "40px", fontStyle: "italic" }}>
-          Dernière mise à jour : juillet 2026
+          Dernière mise à jour : septembre 2026
         </p>
 
         {/* ⛔ Même composition que les conditions d'utilisation, et pour la même raison
@@ -57,8 +58,8 @@ export default function ConfidentialitePage() {
             <ul style={{ paddingLeft: "20px", margin: "8px 0", textAlign: "left" }}>
               <li>
                 <strong>Adresse e-mail</strong> – lors de la création d&rsquo;un compte, via le service
-                d&rsquo;authentification Supabase. Elle est utilisée pour l&rsquo;identification et, le cas échéant,
-                la récupération de compte.
+                d&rsquo;authentification Supabase. Elle sert à vous identifier et à vous envoyer, si vous
+                l&rsquo;avez oublié, un lien pour choisir un nouveau mot de passe (voir ci-dessous).
               </li>
               <li>
                 <strong>Identifiant de compte</strong> – généré automatiquement, sans valeur identifiante
@@ -81,6 +82,25 @@ export default function ConfidentialitePage() {
                 personnelle que vous choisissez de rendre publics depuis les paramètres de votre compte.
               </li>
               <li>
+                <strong>Prénom et nom</strong> – facultatifs, indiqués dans Mon compte. Ils ne deviennent
+                publics que si vous signez une publication de votre nom réel (voir le point 3).
+              </li>
+              <li>
+                <strong>Adresse de contact</strong> – facultative, indiquée dans Mon compte. Elle ne paraît
+                pas sur votre page publique : vous seul la voyez, et l&rsquo;administration peut s&rsquo;en servir
+                pour vous répondre.
+              </li>
+              <li>
+                <strong>Messages privés</strong> – ceux que vous échangez avec d&rsquo;autres membres par la
+                messagerie du site, avec leur date et l&rsquo;indication qu&rsquo;ils ont été lus (voir le point 3).
+              </li>
+              <li>
+                <strong>Messages du formulaire de contact</strong> – votre message et, si vous les indiquez,
+                votre nom, un sujet et une adresse de réponse. Ils sont lus par l&rsquo;éditeur seul. Votre
+                adresse IP n&rsquo;y est pas enregistrée : une empreinte chiffrée, qui change chaque jour,
+                sert seulement à limiter les envois abusifs.
+              </li>
+              <li>
                 <strong>Compteurs de consultation</strong> – le site enregistre en base de données le nombre
                 de vues par verset et par essai (<em>nb_vues</em>, <em>nb_lectures</em>) à des fins de mise
                 en avant éditoriale. Ces compteurs sont agrégés et ne permettent pas d&rsquo;identifier un
@@ -100,12 +120,47 @@ export default function ConfidentialitePage() {
               par le site lui-même. Suivre le bouton de don vous conduit sur le site de ce prestataire, qui
               applique alors sa propre politique de confidentialité.
             </p>
+            <p id="mot-de-passe">
+              Si vous avez oublié votre mot de passe, la page «&nbsp;Mot de passe oublié&nbsp;» envoie à
+              l&rsquo;adresse de votre compte un courriel qui contient un lien pour en choisir un nouveau. Ce
+              courriel est envoyé par le service d&rsquo;authentification Supabase. La page répond de la même
+              façon qu&rsquo;un compte existe ou non à l&rsquo;adresse saisie : elle ne permet donc pas de savoir
+              si quelqu&rsquo;un est inscrit.
+            </p>
           </Section>
 
-          <Section titre="3. Finalités du traitement">
+          <Section id="messagerie" titre="3. Messagerie, accusés de lecture et nom réel">
+            <p>
+              Les membres peuvent s&rsquo;écrire par la messagerie du site. Un message y est conservé avec son
+              texte, son expéditeur, son destinataire, sa date et l&rsquo;indication qu&rsquo;il a été lu. Il
+              n&rsquo;est lisible que par ses deux correspondants : les règles de la base réservent chaque
+              conversation à l&rsquo;expéditeur et au destinataire, et le site n&rsquo;offre à l&rsquo;administration
+              aucun écran pour la consulter. Les messages restent néanmoins enregistrés dans la base du
+              site, que l&rsquo;éditeur administre, comme toutes les données décrites ici.
+            </p>
+            <p>
+              Quand vous ouvrez une conversation, les messages que vous avez reçus sont marqués comme lus.
+              Par défaut, chacun voit ainsi, sous ses propres messages, que son correspondant les a lus.
+              Vous pouvez désactiver ces accusés de lecture dans Mon compte, à la section Messagerie. Le
+              réglage est réciproque : vos correspondants ne voient plus quand vous avez lu leurs messages,
+              et vous ne voyez plus quand ils ont lu les vôtres. L&rsquo;indication reste enregistrée, parce
+              qu&rsquo;elle sert à compter vos messages non lus, mais elle n&rsquo;est plus montrée à personne.
+            </p>
+            <p>
+              Le prénom et le nom que vous pouvez indiquer dans Mon compte ne paraissent nulle part par
+              défaut : vous seul les voyez dans votre espace, et l&rsquo;administration peut les consulter. Ils
+              deviennent publics dans un seul cas, quand vous choisissez de signer une publication de votre
+              nom réel. Ils paraissent alors en signature de cette publication, dans la page Communauté
+              comme sur la page de la publication, et votre page publique les affiche à côté de votre
+              pseudonyme tant qu&rsquo;au moins une publication ainsi signée est en ligne.
+            </p>
+          </Section>
+
+          <Section titre="4. Finalités du traitement">
             <p>Vos données sont utilisées exclusivement pour :</p>
             <ul style={{ paddingLeft: "20px", margin: "8px 0", textAlign: "left" }}>
               <li>permettre la création et la gestion de votre compte utilisateur ;</li>
+              <li>acheminer les messages que vous échangez avec d&rsquo;autres membres ;</li>
               <li>sauvegarder vos prélèvements bibliques et patristiques d&rsquo;une session à l&rsquo;autre ;</li>
               <li>afficher, après modération, les commentaires et essais que vous publiez ;</li>
               <li>traiter les signalements d&rsquo;erreurs que vous transmettez ;</li>
@@ -118,7 +173,7 @@ export default function ConfidentialitePage() {
             </p>
           </Section>
 
-          <Section titre="4. Base légale">
+          <Section titre="5. Base légale">
             <p>
               Le traitement de vos données repose sur l&rsquo;exécution du service que vous demandez en créant un
               compte ou en soumettant un contenu (article 6.1.b du RGPD), ainsi que, pour les compteurs de
@@ -129,12 +184,12 @@ export default function ConfidentialitePage() {
             </p>
           </Section>
 
-          <Section titre="5. Destinataires des données">
+          <Section titre="6. Destinataires des données">
             <p>
               Vos données sont hébergées par <strong>Supabase Inc.</strong> (base de données et
               authentification) et le site lui-même est servi par <strong>Vercel Inc.</strong> La mesure
               d&rsquo;audience est réalisée par le site lui-même et ne fait intervenir aucun tiers (voir le
-              point 8). Ces prestataires agissent en qualité de sous-traitants
+              point 9). Ces prestataires agissent en qualité de sous-traitants
               au sens du RGPD et n&rsquo;accèdent à vos données que dans la mesure nécessaire à la fourniture de
               leurs services techniques.
             </p>
@@ -143,7 +198,7 @@ export default function ConfidentialitePage() {
             </p>
           </Section>
 
-          <Section titre="6. Transferts hors Union européenne">
+          <Section titre="7. Transferts hors Union européenne">
             <p>
               Supabase Inc. et Vercel Inc. sont des sociétés dont les infrastructures peuvent impliquer un
               hébergement de données hors de l&rsquo;Union européenne (notamment aux États-Unis). Ces transferts
@@ -152,11 +207,19 @@ export default function ConfidentialitePage() {
             </p>
           </Section>
 
-          <Section titre="7. Durée de conservation">
+          <Section titre="8. Durée de conservation">
             <ul style={{ paddingLeft: "20px", margin: "8px 0", textAlign: "left" }}>
               <li>
                 Les données de compte sont conservées tant que le compte est actif, et supprimées dans un
                 délai raisonnable après une demande de clôture de compte.
+              </li>
+              <li>
+                Les messages privés sont conservés tant que les deux comptes existent. La suppression de
+                votre compte supprime les conversations auxquelles vous avez pris part, pour vous comme
+                pour vos correspondants.
+              </li>
+              <li>
+                Les messages du formulaire de contact sont supprimés automatiquement au bout de douze mois.
               </li>
               <li>
                 Les commentaires et essais non validés par la modération sont supprimés au bout de trois
@@ -172,12 +235,12 @@ export default function ConfidentialitePage() {
               </li>
               <li>
                 Les données de mesure d&rsquo;audience sont supprimées automatiquement au bout de
-                vingt-cinq mois (voir le point 8).
+                vingt-cinq mois (voir le point 9).
               </li>
             </ul>
           </Section>
 
-          <Section titre="8. Cookies et mesure d’audience">
+          <Section titre="9. Cookies et mesure d’audience">
             <p>
               Le site utilise uniquement des cookies strictement nécessaires à son fonctionnement (maintien
               de la session de connexion). Ces cookies ne nécessitent pas de consentement préalable au titre
@@ -210,7 +273,7 @@ export default function ConfidentialitePage() {
             </p>
           </Section>
 
-          <Section titre="9. Vos droits">
+          <Section titre="10. Vos droits">
             <p>
               Conformément au RGPD et à la loi Informatique et Libertés, vous disposez des droits suivants :
             </p>
@@ -238,7 +301,7 @@ export default function ConfidentialitePage() {
             </p>
           </Section>
 
-          <Section titre="10. Sécurité">
+          <Section titre="11. Sécurité">
             <p>
               Des mesures techniques raisonnables sont mises en œuvre pour protéger vos données contre
               l&rsquo;accès non autorisé, la perte ou l&rsquo;altération : chiffrement des échanges en HTTPS, contrôle
@@ -247,7 +310,7 @@ export default function ConfidentialitePage() {
             </p>
           </Section>
 
-          <Section titre="11. Modification de cette politique">
+          <Section titre="12. Modification de cette politique">
             <p>
               Cette politique peut être mise à jour pour refléter une évolution du site, l&rsquo;ajout de
               nouvelles fonctionnalités ou une modification de la réglementation applicable. La date de
@@ -262,9 +325,9 @@ export default function ConfidentialitePage() {
   );
 }
 
-function Section({ titre, children }: { titre: string; children: React.ReactNode }) {
+function Section({ id, titre, children }: { id?: string; titre: string; children: React.ReactNode }) {
   return (
-    <section style={{ marginBottom: "32px" }}>
+    <section id={id} style={{ marginBottom: "32px", scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 1rem)` }}>
       <h2 style={{
         fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem",
         fontWeight: "normal", color: "var(--cs-encre)", marginBottom: "10px",
