@@ -96,3 +96,63 @@ describe('échelle typographique', () => {
     expect(fautives, `Tailles hors échelle. Rangs admis : ${ECHELLE_REM.join(', ')}`).toEqual([])
   })
 })
+
+// ── LE PLANCHER DES PETITS CORPS (décision de l'auteur, 2026-09-21) ──────────────────
+// Le site composait 402 textes entre 8 et 10,5 px. Plancher : 0,6875 rem (11 px) pour ce
+// qu'on lit ; 0,625 rem (10 px) toléré pour une CAPITALE ESPACÉE, qui se lit plus gros que
+// son corps. Hors plancher, et NOMMÉS ici : l'administration (lecteur unique), les appels
+// de note et exposants (ils sont en `em` de leur texte, et ceux qui restent en rem le
+// disent par leur `verticalAlign`), les ornements (losange, fleuron) et les pastilles à
+// boîte fixe (cercle de moins de 20 px, un pictogramme et non un texte).
+const PLANCHER_REM = 0.6875
+const PLANCHER_CAPITALES_REM = 0.625
+const DOSSIERS_HORS_PLANCHER = ['admin', 'quiz']
+const EST_CAPITALE_ESPACEE = (objet: string) =>
+  /uppercase|small-caps|smallCaps|fontVariantCaps/.test(objet) ||
+  parseFloat(objet.match(/letter-?[sS]pacing\s*:\s*['"]?(0?\.\d+)em/)?.[1] ?? '0') >= 0.06
+const EST_HORS_PLANCHER = (tete: string, objet: string) =>
+  /verticalAlign\s*:\s*['"](super|top)|vertical-align\s*:\s*(super|top)|[Aa]ppel|[Ee]xposant/.test(tete + objet) ||
+  /losange|fleuron|ornement/i.test(tete + objet) ||
+  (/border-?[rR]adius\s*:\s*['"]?50%/.test(objet) && /(^|[\s{;,])height\s*:\s*['"]?1\dpx/.test(objet))
+
+/** L'objet de style (ou la règle CSS) qui enveloppe la position `i`. */
+function enveloppe(source: string, i: number): [number, number] {
+  let prof = 0
+  let a = i
+  for (; a >= 0; a--) {
+    if (source[a] === '}') prof++
+    else if (source[a] === '{') { if (prof === 0) break; prof-- }
+  }
+  prof = 0
+  let b = i
+  for (; b < source.length; b++) {
+    if (source[b] === '{') prof++
+    else if (source[b] === '}') { if (prof === 0) break; prof-- }
+  }
+  return [Math.max(a, 0), b]
+}
+
+describe('plancher des petits corps', () => {
+  it('aucun texte sous 11 px, ni sous 10 px pour une capitale espacée', () => {
+    const fautives: string[] = []
+    for (const chemin of fichiersDeStyle(RACINE)) {
+      const relatif = relative(RACINE, chemin)
+      if (/\.test\.tsx?$/.test(relatif) || /899/.test(relatif)) continue
+      if (EXEMPTS.some(e => relatif.endsWith(e))) continue
+      if (DOSSIERS_HORS_PLANCHER.includes(relatif.split(sep)[0])) continue
+      const source = sansCommentaires(readFileSync(chemin, 'utf8'))
+      for (const declaration of source.matchAll(DECLARATION)) {
+        if (EST_COMPOSITION.test(declaration[0])) continue
+        const valeurs = [...declaration[0].matchAll(VALEUR_REM)].map(v => parseFloat(v[1]))
+        if (!valeurs.some(v => v < PLANCHER_REM)) continue
+        const [a, b] = enveloppe(source, declaration.index ?? 0)
+        const objet = source.slice(a, b + 1)
+        const tete = source.slice(source.lastIndexOf('\n', a - 1) + 1, a)
+        if (EST_HORS_PLANCHER(tete, objet)) continue
+        const plancher = EST_CAPITALE_ESPACEE(objet) ? PLANCHER_CAPITALES_REM : PLANCHER_REM
+        if (valeurs.some(v => v < plancher)) fautives.push(`${relatif} · ${declaration[0].trim()}`)
+      }
+    }
+    expect(fautives, 'Corps sous le plancher (charte, audit d’ergonomie du 2026-09-21)').toEqual([])
+  })
+})

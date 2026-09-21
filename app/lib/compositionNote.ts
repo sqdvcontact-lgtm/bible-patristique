@@ -299,7 +299,7 @@ export const STYLE_LIBELLE_EXPLICATION: CSSProperties = {
   userSelect: 'none',
 }
 export const STYLE_FACE_LIBELLE_EXPLICATION: CSSProperties = {
-  fontSize: '0.5625rem',
+  fontSize: '0.625rem',
   fontWeight: 700,
   letterSpacing: '0.09em',
   textTransform: 'uppercase',

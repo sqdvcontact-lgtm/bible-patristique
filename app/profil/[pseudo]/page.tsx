@@ -34,7 +34,7 @@ function Filet({ couleur = 'var(--cs-or-doux)', symbole = '✦', maxWidth = '200
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', maxWidth, margin: '0 auto' }}>
       <div style={{ flex: 1, height: '1px', background: `linear-gradient(to right, transparent, ${couleur})` }} />
-      <span style={{ fontSize: '0.5625rem', color: couleur, letterSpacing: '0.18em', display: 'inline-flex', alignItems: 'center' }}>{symbole}</span>
+      <span style={{ fontSize: '0.625rem', color: couleur, letterSpacing: '0.18em', display: 'inline-flex', alignItems: 'center' }}>{symbole}</span>
       <div style={{ flex: 1, height: '1px', background: `linear-gradient(to left, transparent, ${couleur})` }} />
     </div>
   )
@@ -43,7 +43,7 @@ function Filet({ couleur = 'var(--cs-or-doux)', symbole = '✦', maxWidth = '200
 // ── Étiquette de section ──────────────────────────────────────────────────────
 function Etiquette({ children }: { children: React.ReactNode }) {
   return (
-    <h2 style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', margin: '0 0 16px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+    <h2 style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', margin: '0 0 16px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
       {children}
     </h2>
   )
@@ -267,7 +267,7 @@ export default function ProfilPublicPage() {
           )}
 
           {/* Date + email */}
-          <p style={{ fontSize: '0.625rem', color: 'var(--cs-or-clair)', margin: '0 0 12px', letterSpacing: '0.05em' }}>
+          <p style={{ fontSize: '0.6875rem', color: 'var(--cs-or-clair)', margin: '0 0 12px', letterSpacing: '0.05em' }}>
             Lecteur depuis {annee}
             {/* ⚠️ Le rameau est nommé ICI, en toutes lettres, et nulle part ailleurs. Son
                 infobulle suffit à la souris, mais elle n'existe pas sur un téléphone :
@@ -307,7 +307,7 @@ export default function ProfilPublicPage() {
               {/* ⚠️ Le point médian sépare à lui seul : la marge de 8 px qu'il portait
                   en plus ouvrait un blanc d'un côté et pas de l'autre, et le titre
                   paraissait détaché de son compte. */}
-              <span style={{ fontSize: '0.625rem', color: 'var(--cs-or-clair)', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+              <span style={{ fontSize: '0.6875rem', color: 'var(--cs-or-clair)', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                 {' · '}{profil.lecture!.nb_auteurs} Père{profil.lecture!.nb_auteurs !== 1 ? 's' : ''} retenu{profil.lecture!.nb_auteurs !== 1 ? 's' : ''}
               </span>
             </div>
@@ -360,7 +360,7 @@ export default function ProfilPublicPage() {
                   <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', color: 'var(--cs-encre-fonce)', flex: 1, lineHeight: 1.4 }}>
                     {o.titre}
                   </span>
-                  <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-gris)', flexShrink: 0, marginLeft: '12px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                  <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', flexShrink: 0, marginLeft: '12px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                     {o.auteur}
                   </span>
                 </Link>
@@ -385,7 +385,7 @@ export default function ProfilPublicPage() {
                     {e.titre}
                   </span>
                   {e.publie_at && (
-                    <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', flexShrink: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                    <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', flexShrink: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
                       {new Date(e.publie_at).getFullYear()}
                     </span>
                   )}

@@ -928,7 +928,7 @@ export default function PagePrelevements() {
            faisait lire dans une autre traduction : la glose nommait alors un texte que la
            page ne montrait pas. Elle ne dit plus que l'exception, le verset que la
            traduction du menu ne porte pas et dont on montre alors le texte prélevé. */
-        .prel-provenance { font-size: 0.625rem; font-style: italic;
+        .prel-provenance { font-size: 0.6875rem; font-style: italic;
           color: var(--cs-texte-second); margin: 4px 0 0; }
 
         /* La gouttière d'actions ne paraissait qu'au survol : hors d'atteinte au
@@ -952,7 +952,7 @@ export default function PagePrelevements() {
         .prel-marque { color: var(--cs-or); }
         .prel-marque:hover { color: var(--cs-or-lisible); }
         .prel-marque-active { color: var(--cs-or) !important; opacity: 1 !important; }
-        .prel-confirm { font-size:0.65625rem; color: var(--cs-texte-doux); display: flex; align-items: center; white-space: nowrap; }
+        .prel-confirm { font-size:0.6875rem; color: var(--cs-texte-gris); display: flex; align-items: center; white-space: nowrap; }
 
         /* ⛔ LA FAVORITE PREND L'AIR QUE SON CADRE DEMANDE (2026-09-14). Le cadre est un
            filet d'or d'un pixel, posé en ombre intérieure pour ne rien déplacer, et le

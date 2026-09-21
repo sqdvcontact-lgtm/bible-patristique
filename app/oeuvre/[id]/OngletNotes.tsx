@@ -262,7 +262,7 @@ export default function OngletNotes({
           </Pastille>
         </div>
 
-        <p style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-second)', margin: '8px 0 0', lineHeight: 1.4 }}>
+        <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', margin: '8px 0 0', lineHeight: 1.4 }}>
           {filtre
             ? `${retenues.length} note${retenues.length > 1 ? 's' : ''} sur ${toutes.length}`
             : `${toutes.length} note${toutes.length > 1 ? 's' : ''} dans ${plusieursTextes ? (sources.length === 2 ? 'les deux textes' : 'ces textes') : 'ce texte'}`}

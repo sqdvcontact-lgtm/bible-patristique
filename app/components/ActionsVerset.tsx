@@ -134,7 +134,7 @@ export default function ActionsVerset({
         <IconeSignalement />
       </button>
 
-      {erreur && <span role="alert" style={{ position: 'absolute', right: 0, top: '100%', zIndex: 5, width: '15rem', padding: '5px 7px', borderRadius: '4px', background: 'var(--cs-surface)', border: '1px solid var(--cs-danger-bord)', color: 'var(--cs-danger-fonce)', fontSize: '0.625rem', lineHeight: 1.35 }}>{erreur}</span>}
+      {erreur && <span role="alert" style={{ position: 'absolute', right: 0, top: '100%', zIndex: 5, width: '15rem', padding: '5px 7px', borderRadius: '4px', background: 'var(--cs-surface)', border: '1px solid var(--cs-danger-bord)', color: 'var(--cs-danger-fonce)', fontSize: '0.6875rem', lineHeight: 1.35 }}>{erreur}</span>}
 
       {signalOuvert && (
         <ModalSignalement titre={refAffichee} texteObjet={texte} avecNiveauImportance

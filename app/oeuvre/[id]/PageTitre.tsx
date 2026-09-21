@@ -363,7 +363,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
           version, c'est la version qui dit sa publication. */}
       {(editeur || ville || datePublication || (estAdmin && !versionActive)) && (
         <div style={{ position: 'relative', alignSelf: 'stretch' }}>
-          <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', marginBottom: '3px', whiteSpace: 'pre-line' }}>
+          <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', marginBottom: '3px', whiteSpace: 'pre-line' }}>
             {versionActive?.editionDescription && versionActive.publicationLabel
               ? versionActive.publicationLabel
               : (!versionActive && oeuvre.provenance_affichage)
@@ -379,7 +379,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
         </div>
       )}
       {anneeEnLigne && (
-        <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte-doux)' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', color: 'var(--cs-texte-gris)' }}>
           Édition en ligne, {anneeEnLigne}
         </p>
       )}

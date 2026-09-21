@@ -233,7 +233,7 @@ export function CorpsAnnonce({ annonce, onFermer }: { annonce: Annonce; onFermer
           }}>
           <span style={{
             fontFamily: 'var(--font-source-serif), Georgia, serif',
-            fontSize: grande ? '0.75rem' : '0.625rem',
+            fontSize: grande ? '0.75rem' : '0.6875rem',
             lineHeight: 1.25, color: 'inherit',
           }}>
             {courante.c.nom}
@@ -246,7 +246,7 @@ export function CorpsAnnonce({ annonce, onFermer }: { annonce: Annonce; onFermer
               <p style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: encre, margin: '0 0 2px' }}>
                 Haut fait obtenu
               </p>
-              <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.6875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', margin: '0 0 7px' }}>
+              <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.6875rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', margin: '0 0 7px' }}>
                 {courante.c.points} points
               </p>
               {/* ⛔ La notice EST la récompense : elle paraît ici, au moment où la case
@@ -258,7 +258,7 @@ export function CorpsAnnonce({ annonce, onFermer }: { annonce: Annonce; onFermer
             </>
           ) : (
             <>
-              <p style={{ fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 3px' }}>
+              <p style={{ fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 3px' }}>
                 {courante.c.serie_nom}
               </p>
               <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte)', lineHeight: 1.4, margin: 0 }}>

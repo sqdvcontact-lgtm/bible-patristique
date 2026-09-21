@@ -641,7 +641,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
           style={{ width: "100%", boxSizing: "border-box", fontSize: '0.84375rem', lineHeight: 1.5, fontFamily: "var(--font-source-serif), Georgia, serif", padding: "9px 11px", border: "1px solid var(--cs-bord)", borderRadius: 4, background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", resize: "vertical" }} />
         {/* Aperçu en direct : l'apparence enrichie du verset, telle qu'elle s'affichera. */}
         <div style={{ marginTop: 8 }}>
-          <span style={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: "var(--cs-texte-doux)" }}>Aperçu</span>
+          <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: "var(--cs-texte-second)" }}>Aperçu</span>
           <div style={{ marginTop: 3, minHeight: "2.4em", fontSize: '0.84375rem', lineHeight: 1.55, fontFamily: "var(--font-source-serif), Georgia, serif", color: "var(--cs-texte-fort)", padding: "8px 11px", border: "1px solid var(--cs-fond-doux)", borderRadius: 4, background: "var(--cs-surface)" }}>
             {valeur.trim() ? texteEnrichi(valeur) : <span style={{ color: "var(--cs-bord)", fontStyle: "italic" }}>—</span>}
           </div>
@@ -816,7 +816,7 @@ function BoutonEditionVerset({ ligne, fond, onEditer }: { ligne: V2Row; fond: st
   return (
     <button title="Modifier ce verset" aria-label="Modifier ce verset" className="poly-edit"
       onClick={() => onEditer(ligne)}
-      style={{ border: "none", cursor: "pointer", color: 'var(--cs-texte-second)', fontSize: '0.65625rem', lineHeight: 1, background: fond, transition: "color .15s" }}
+      style={{ border: "none", cursor: "pointer", color: 'var(--cs-texte-second)', fontSize: '0.6875rem', lineHeight: 1, background: fond, transition: "color .15s" }}
       onMouseEnter={e => { e.currentTarget.style.color = VERT; }}
       onMouseLeave={e => { e.currentTarget.style.color = 'var(--cs-texte-second)'; }}>
       <IconeCrayon size={11} />
@@ -951,7 +951,7 @@ const CHOIX_DISCRET = (actif: boolean, teinte: string): React.CSSProperties => (
   fontFamily: "var(--font-source-sans), Arial, sans-serif",
   fontSize: "0.6875rem", lineHeight: 1.4,
   fontWeight: actif ? 600 : 400,
-  color: actif ? teinte : "var(--cs-texte-doux)",
+  color: actif ? teinte : "var(--cs-texte-gris)",
   whiteSpace: "nowrap",
 });
 
@@ -1225,7 +1225,7 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
               en-tête. Le cas ne se présente que si l'on ouvre deux états du témoin 899
               côte à côte, et l'auteur l'a tranché. */}
           {courante?.edition && (
-            <span style={{ display: "block", marginTop: 3, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: "0.15em", textIndent: "0.15em", color: "var(--cs-texte-gris)" }}>
+            <span style={{ display: "block", marginTop: 3, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.15em", textIndent: "0.15em", color: "var(--cs-texte-second)" }}>
               {courante.edition}
             </span>
           )}
@@ -2331,7 +2331,7 @@ export default function PolyglottePage() {
           </div>
           {/* Choix du nombre de traductions affichées (Auto = selon la largeur d'écran). */}
           <div data-visite="poly-colonnes" style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
-            <span style={{ display: "block", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-doux)", marginBottom: "5px" }}>Traductions visibles</span>
+            <span style={{ display: "block", fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-second)", marginBottom: "5px" }}>Traductions visibles</span>
             <div role="group" aria-label="Nombre de traductions visibles" style={RANGEE_CASES}>
               {([["Auto", null], ["2", 2], ["3", 3], ["4", 4], ["5", 5]] as const).map(([lbl, val], rang) => (
                 <button key={lbl} onClick={() => setNbTradPref(val)} aria-pressed={nbTradPref === val}
@@ -2347,7 +2347,7 @@ export default function PolyglottePage() {
               titres. ⚠️ Ils s'excluent l'un l'autre : activer l'un éteint l'autre. */}
           {estAdmin && (
             <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
-              <span style={{ display: "block", fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-doux)", marginBottom: "5px" }}>Relecture</span>
+              <span style={{ display: "block", fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-second)", marginBottom: "5px" }}>Relecture</span>
               {/* Deux interrupteurs INDÉPENDANTS, donc une option par ligne : leurs
                   libellés sont longs, et un rang les ferait retomber en escalier dans un
                   volet de 200 px. La teinte reste celle de chacun — c'est elle qui dit
@@ -2489,8 +2489,8 @@ export default function PolyglottePage() {
                        laisse place à « Fermer ». */
                     <button onClick={() => setNotesReduites(true)} title="Fermer la colonne Notes" className="poly-notes-head"
                       style={{ background: "none", border: "none", cursor: "pointer", width: "100%", height: "100%", padding: 0, position: "relative", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cs-texte-doux)" }}>
-                      <span className="lbl-notes" style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.53125rem", fontWeight: 700, letterSpacing: "0.16em", textIndent: "0.16em", textTransform: "uppercase" }}>Notes</span>
-                      <span className="lbl-fermer" style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.53125rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--cs-texte-second)" }}>
+                      <span className="lbl-notes" style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.16em", textIndent: "0.16em", textTransform: "uppercase" }}>Notes</span>
+                      <span className="lbl-fermer" style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--cs-texte-second)" }}>
                         Fermer
                         <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M3.5 2L6.5 5L3.5 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </span>

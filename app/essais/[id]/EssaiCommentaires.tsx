@@ -194,7 +194,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
         )}
         <div style={TEXTE_COMMENTAIRE}>{rendreTexteEnrichi(c.texte)}</div>
         {monAttente && (
-          <p style={{ margin: '6px 0 0', fontSize: '0.65625rem', fontStyle: 'italic', color: 'var(--cs-texte-second)' }}>
+          <p style={{ margin: '6px 0 0', fontSize: '0.6875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)' }}>
             Votre commentaire paraîtra pour les autres lecteurs après sa relecture par la modération.
           </p>
         )}
@@ -231,7 +231,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
       `}</style>
       {/* Décompte, en tête (le tri a été retiré). */}
       <div style={{ flexShrink: 0, padding: '12px 14px 8px' }}>
-        <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>
+        <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic' }}>
           {racines.length > 0 ? `${racines.length} commentaire${racines.length > 1 ? 's' : ''}` : 'Aucun commentaire'}
         </span>
       </div>
@@ -245,28 +245,28 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
       {aUnCompte ? (
         <div style={{ flexShrink: 0, borderTop: '1px solid var(--cs-fond-doux)', background: 'var(--cs-fond-clair)', padding: '10px 14px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {cibleReponse && (
-            <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)', background: 'var(--cs-surface)', padding: '4px 8px', borderRadius: '4px', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+            <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', background: 'var(--cs-surface)', padding: '4px 8px', borderRadius: '4px', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
               <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
                 <path d="M7 4 3.5 7.5 7 11M3.5 7.5H10a2.5 2.5 0 0 1 2.5 2.5V12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               En réponse à <strong>{cibleReponse.auteur_nom}</strong>{' '}
-              <button onClick={() => setCibleReponse(null)} style={{ color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.65625rem', padding: 0 }}>✕</button>
+              <button onClick={() => setCibleReponse(null)} style={{ color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.6875rem', padding: 0 }}>✕</button>
             </p>
           )}
           <EditeurCommentaire value={texte} onChange={setTexte} placeholder="Votre commentaire…" minHeight={64} />
           {!afficherPassage ? (
-            <button onClick={() => setAfficherPassage(true)} style={{ fontSize: '0.625rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', alignSelf: 'flex-start', padding: 0 }}>+ Citer un passage</button>
+            <button onClick={() => setAfficherPassage(true)} style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', alignSelf: 'flex-start', padding: 0 }}>+ Citer un passage</button>
           ) : (
             <textarea aria-label="Passage cité" value={passageCite} onChange={e => setPassageCite(e.target.value)} rows={2} placeholder="Passage exact à commenter…"
               style={{ width: '100%', fontSize: '0.71875rem', fontStyle: 'italic', padding: '6px 8px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte)', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
           )}
-          {erreur && <p role="alert" style={{ margin: 0, fontSize: '0.65625rem', color: 'var(--cs-danger)' }}>{erreur}</p>}
+          {erreur && <p role="alert" style={{ margin: 0, fontSize: '0.6875rem', color: 'var(--cs-danger)' }}>{erreur}</p>}
           {accuse && !erreur && (
-            <p role="status" style={{ margin: 0, fontSize: '0.65625rem', color: 'var(--cs-texte-second)' }}>
+            <p role="status" style={{ margin: 0, fontSize: '0.6875rem', color: 'var(--cs-texte-second)' }}>
               Merci. Votre commentaire paraîtra après relecture.
             </p>
           )}
-          <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: texte.trim() ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: texte.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
+          <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: texte.trim() ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: texte.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-gris)', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
             {envoi ? 'Envoi…' : 'Envoyer'}
           </button>
         </div>

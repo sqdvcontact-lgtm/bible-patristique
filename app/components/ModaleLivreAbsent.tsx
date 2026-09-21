@@ -120,7 +120,7 @@ export default function ModaleLivreAbsent({
 
         {/* La tête : rubrique, nom du livre, filet. C'est celle de la fiche
             « À propos de cette traduction », à la mesure d'une petite fenêtre. */}
-        <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', color: 'var(--cs-vert)', margin: '0 0 5px', textTransform: 'uppercase' }}>
+        <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', color: 'var(--cs-vert)', margin: '0 0 5px', textTransform: 'uppercase' }}>
           Absent de cette traduction
         </p>
         <h2 id="cs-livre-absent-titre"
@@ -135,7 +135,7 @@ export default function ModaleLivreAbsent({
         </p>
 
         {propositions === null ? (
-          <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', margin: '14px 0 0' }}>
+          <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', margin: '14px 0 0' }}>
             Recherche des bibles qui le donnent…
           </p>
         ) : propositions.length === 0 ? (
@@ -144,7 +144,7 @@ export default function ModaleLivreAbsent({
           </p>
         ) : (
           <>
-            <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '17px 0 2px' }}>
+            <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '17px 0 2px' }}>
               On le lit dans
             </p>
             <div style={{ display: 'flex', flexDirection: 'column' }}>

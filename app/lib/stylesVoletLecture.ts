@@ -30,10 +30,10 @@ import type { CSSProperties } from 'react'
  */
 export const RUBRIQUE_AXE: CSSProperties = {
   display: 'block',
-  fontSize: '0.59375rem',
+  fontSize: '0.625rem',
   fontWeight: 600,
   letterSpacing: '0.06em',
-  color: 'var(--cs-texte-doux)',
+  color: 'var(--cs-texte-second)',
   // ⚠️ 1 pixel, non 3 : une rubrique doit toucher la liste qu'elle coiffe. Le blanc
   // qui compte est celui qui SÉPARE les deux axes (6 pixels dans `NavLivres`) ; à
   // trois pixels de part et d'autre, les deux blancs se ressemblaient assez pour

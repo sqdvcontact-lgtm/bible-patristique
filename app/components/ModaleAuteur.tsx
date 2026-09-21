@@ -94,7 +94,7 @@ const POS_DEFAUT: AuteurPhotoPos = { x: 50, y: 24, scale: 1, scaleX: 1, scaleY: 
 function MentionCoAuteurs({ auteurs }: { auteurs?: AuteurOeuvre[] }) {
   if (!auteurs || auteurs.length < 2) return null
   return (
-    <span style={{ marginLeft: '7px', fontSize: '0.625rem', color: 'var(--cs-texte-doux)', whiteSpace: 'normal' }}>
+    <span style={{ marginLeft: '7px', fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', whiteSpace: 'normal' }}>
       {libelleAuteurs(auteurs)}
     </span>
   )
@@ -157,7 +157,7 @@ export function FriseAuteur({ evenements, oeuvreEnRelief = null }: { evenements:
       {brins.length > 1 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', marginBottom: '13px', justifyContent: 'flex-start' }}>
           {brins.map(t => (
-            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.5625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>
+            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>
               <span aria-hidden style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0, ...stylePuce(t) }} />
               {LIB_TYPE[t] ?? t}
             </span>
@@ -224,7 +224,7 @@ export function FriseAuteur({ evenements, oeuvreEnRelief = null }: { evenements:
 // deux lignes suffisent à le voir (audit de densité, 2026-09-05).
 function DetailChrono({ label, children }: { label?: string; children: ReactNode }) {
   return (
-    <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.59375rem', lineHeight: 1.3, letterSpacing: '-0.005em', color: 'var(--cs-texte-gris)', margin: '0 0 2px', textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto' } as CSSProperties}>
+    <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6875rem', lineHeight: 1.3, letterSpacing: '-0.005em', color: 'var(--cs-texte-gris)', margin: '0 0 2px', textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto' } as CSSProperties}>
       {label && <span style={{ color: 'var(--cs-texte-doux)' }}>{label} : </span>}{children}
     </p>
   )
@@ -449,7 +449,7 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
                 <span className="cs-fiche-oeuvre--absente" title="Œuvre répertoriée, pas encore disponible" style={{ lineHeight: 1.38 }}>
                   <span style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-texte-doux)' }}>{o.titre}</span>
                   <MentionCoAuteurs auteurs={o.auteurs} />
-                  <span style={{ marginLeft: '7px', fontSize: '0.53125rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>répertoriée</span>
+                  <span style={{ marginLeft: '7px', fontSize: '0.625rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>répertoriée</span>
                 </span>
               </li>
             ))}

@@ -921,7 +921,7 @@ export default function RechercheClient() {
         .grp-hd { display:flex; align-items:baseline; gap:8px; padding:1px 10px 2px; line-height:1.25; border-radius:8px 8px 0 0; background:var(--fam-aplat); color:var(--cs-sur-aplat); font-family:var(--font-source-serif), Georgia, serif; }
         .grp-hd .nom { font-size:0.75rem; font-weight:600; letter-spacing:0.035em; }
         .grp-hd .compl { min-width:0; font-size:0.6875rem; font-style:italic; opacity:0.84; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .grp-hd .n { margin-left:auto; flex-shrink:0; font-size:0.625rem; font-weight:400; font-variant-numeric:tabular-nums; opacity:0.74; }
+        .grp-hd .n { margin-left:auto; flex-shrink:0; font-size:0.6875rem; font-weight:400; font-variant-numeric:tabular-nums; opacity:0.74; }
         .grp-corps { border:1px solid color-mix(in srgb, var(--fam) 22%, var(--cs-surface)); border-top:none; border-radius:0 0 8px 8px; background:color-mix(in srgb, var(--fam) 7%, var(--cs-surface)); overflow:hidden; }
         .grp-ligne { display:block; text-decoration:none; padding:4px 10px 5px; transition:background 0.1s; }
         .grp-ligne + .grp-ligne { border-top:1px solid color-mix(in srgb, var(--fam) 22%, var(--cs-surface)); }
@@ -934,12 +934,12 @@ export default function RechercheClient() {
            même constat, sur la même page, et il ne se dit pas de deux façons. */
         .grp-ligne--absent { background:var(--cs-absence-fond); }
         .grp-ligne--absent:hover { background:var(--cs-absence-fond); }
-        .grp-glose-absent { margin:0 0 2px; font-size:0.65625rem; font-style:italic; color:var(--cs-texte-second); }
+        .grp-glose-absent { margin:0 0 2px; font-size:0.6875rem; font-style:italic; color:var(--cs-texte-second); }
         /* ── Sigles de bible ──
            Sept noms entiers ne tiennent pas sur une ligne et repoussaient le verset à un
            troisième rang ; sept sigles y tiennent. Le nom entier reste en title. */
         .sigles { display:inline-flex; gap:4px; flex-wrap:wrap; align-items:baseline; }
-        .sigle { font-size:0.5625rem; font-weight:600; letter-spacing:0.03em; line-height:1.55; padding:0 4px; border-radius:4px; color:var(--cs-texte-doux); background:color-mix(in srgb, var(--fam) 12%, var(--cs-surface)); }
+        .sigle { font-size:0.6875rem; font-weight:600; letter-spacing:0.03em; line-height:1.55; padding:0 4px; border-radius:4px; color:var(--cs-texte-gris); background:color-mix(in srgb, var(--fam) 12%, var(--cs-surface)); }
         .sigle--affichee { color:var(--fam); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--fam) 34%, var(--cs-surface)); }
         .sigle--absente { color:var(--cs-texte-doux); background:transparent; text-decoration:line-through; }
         /* Lignes de répartition cliquables (filtre par livre / œuvre / publication). */
@@ -947,7 +947,7 @@ export default function RechercheClient() {
         .brk-row:hover { background:color-mix(in srgb, var(--fam) 10%, var(--cs-surface)); }
         .brk-row--actif { background:color-mix(in srgb, var(--fam) 15%, var(--cs-surface)); color:var(--fam); font-weight:600; }
         .brk-row--actif:hover { background:color-mix(in srgb, var(--fam) 21%, var(--cs-surface)); }
-        .brk-count { flex-shrink:0; font-size:0.59375rem; color:var(--cs-texte-doux); font-variant-numeric:tabular-nums; }
+        .brk-count { flex-shrink:0; font-size:0.6875rem; color:var(--cs-texte-gris); font-variant-numeric:tabular-nums; }
         .brk-row--actif .brk-count { color:var(--fam); }
         /* ── Onglets VERTICAUX du volet gauche ──
            Une pastille carrée devant chaque libellé donne la clef du code de couleurs :
@@ -962,7 +962,7 @@ export default function RechercheClient() {
         .ong-vert--actif { background:color-mix(in srgb, var(--fam) 11%, var(--cs-surface)); color:var(--fam); font-weight:600; }
         .ong-vert .lib { display:flex; align-items:center; gap:8px; min-width:0; line-height:1.25; }
         .ong-vert .pastille { width:7px; height:7px; flex-shrink:0; border-radius:4px; background:var(--fam); }
-        .ong-count { flex-shrink:0; font-size:0.625rem; font-weight:400; color:var(--cs-texte-doux); font-variant-numeric:tabular-nums; }
+        .ong-count { flex-shrink:0; font-size:0.6875rem; font-weight:400; color:var(--cs-texte-gris); font-variant-numeric:tabular-nums; }
         .ong-vert--actif .ong-count { color:var(--fam); }
         .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:999px; background:var(--cs-surface); color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
         .pag-btn:hover:not(:disabled) { background:var(--cs-vert-aplat); color:var(--cs-sur-aplat); border-color:var(--cs-vert-aplat); }
@@ -1056,7 +1056,7 @@ export default function RechercheClient() {
            nommait, et il ne prend pas un rang à lui. ⚠️ Un cran SOUS le numéro en encre —
            la référence entière reste verte, mais le nom du livre, qui se répète de rangée
            en rangée, n'a pas à peser autant que le chiffre, qui change. */
-        .poly-outer .poly-marge-ref > span { font-size:0.625rem; font-weight:600; }
+        .poly-outer .poly-marge-ref > span { font-size:0.6875rem; font-weight:600; }
         /* ⛔ L'écart au chiffre est une ESPACE, non une marge : la référence se copie, et
            « Pr9, 10 » n'est pas une référence. */
         .poly-outer .poly-livre-sigle { font-weight:500; opacity:0.78; }
@@ -1081,7 +1081,7 @@ export default function RechercheClient() {
           .expl-badge { width:1.5rem; height:1.5rem; font-size:0.6875rem; }
         }
         .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #b6ccbd; color:var(--cs-vert); background:var(--cs-vert-pale); font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
-        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:var(--cs-surface); border:1px solid var(--cs-bord); border-radius:8px; box-shadow:var(--cs-ombre-modale); padding:9px 11px; font-size:0.65625rem; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
+        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:var(--cs-surface); border:1px solid var(--cs-bord); border-radius:8px; box-shadow:var(--cs-ombre-modale); padding:9px 11px; font-size:0.6875rem; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
         .expl-wrap:hover .expl-tip { opacity:1; visibility:visible; transform:translateY(0); }
         ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--cs-bord);border-radius:4px}
       `}</style>
@@ -1111,7 +1111,7 @@ export default function RechercheClient() {
               <h1 style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:TITRE_VOLET, fontWeight:GRAISSE_TITRE_VOLET, color:ENCRE_TITRE, margin:0, lineHeight:1.2 }}>Recherche</h1>
               {done && (() => {
                 const total = versetsTotal + segmentsTotal + essaisRes.length
-                return <span style={{ fontSize:'0.65625rem', color:'var(--cs-texte-doux)', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
+                return <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
               })()}
             </div>
 
@@ -1169,7 +1169,7 @@ export default function RechercheClient() {
                       onMouseEnter={e => (e.currentTarget.style.background='var(--cs-fond)')}
                       onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
                       <span>{s.mot}</span>
-                      {s.freq > 0 && <span style={{ fontSize:'0.625rem', color:'var(--cs-texte-doux)' }}>{s.freq}</span>}
+                      {s.freq > 0 && <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)' }}>{s.freq}</span>}
                     </li>
                   ))}
                   {/* Tout rechercher : lance la recherche par DÉBUT DE MOT sur ce qui est
@@ -1197,7 +1197,7 @@ export default function RechercheClient() {
                   <span className="expl-wrap">
                     <span className="expl-badge">?</span>
                     <span className="expl-tip">
-                      <span style={{ display:'block', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', fontSize:'0.53125rem', color:'var(--cs-texte-doux)', marginBottom:'7px' }}>Les trois modes</span>
+                      <span style={{ display:'block', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', fontSize:'0.625rem', color:'var(--cs-texte-second)', marginBottom:'7px' }}>Les trois modes</span>
 
                       <span style={{ display:'block', marginBottom:'8px' }}>
                         <span style={{ display:'block', fontWeight:700, color:'var(--cs-vert-fonce)', marginBottom:'1px' }}>Début de mot</span>
@@ -1286,7 +1286,7 @@ export default function RechercheClient() {
                         Reprendre ma recherche
                         <span style={{ color:'var(--cs-texte-doux)', fontStyle:'italic' }}> {rechercheSauvee.query}</span>
                       </span>
-                      {rechercheSauvee.ts ? <span style={{ flexShrink:0, color:'var(--cs-texte-doux)', fontStyle:'italic', fontSize:'0.59375rem' }}>{formatDateCourt(rechercheSauvee.ts)}</span> : null}
+                      {rechercheSauvee.ts ? <span style={{ flexShrink:0, color:'var(--cs-texte-gris)', fontStyle:'italic', fontSize:'0.6875rem' }}>{formatDateCourt(rechercheSauvee.ts)}</span> : null}
                     </button>
                   )}
                 </div>
@@ -1520,7 +1520,7 @@ export default function RechercheClient() {
                               target="_blank" rel="noopener noreferrer"
                               className={`grp-ligne${!displayLeMot && contientDans.length ? ' grp-ligne--absent' : ''}`}>
                               <div style={{ display:'flex', alignItems:'baseline', gap:'7px', flexWrap:'wrap' }}>
-                                <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'var(--cs-texte-second)', letterSpacing:'0.01em', fontVariantNumeric:'tabular-nums' }}>{v.chapitre}, {v.verset}</span>
+                                <span style={{ fontSize:'0.6875rem', fontWeight:600, color:'var(--cs-texte-second)', letterSpacing:'0.01em', fontVariantNumeric:'tabular-nums' }}>{v.chapitre}, {v.verset}</span>
                                 <span className="sigles">
                                   <span className={`sigle ${displayLeMot ? 'sigle--affichee' : 'sigle--absente'}`} title={labelDisplay}>{siglesParCode[tradBible] ?? tradBible}</span>
                                   {contientDans.filter(t => t.code !== tradBible).map(t => (
@@ -1571,14 +1571,14 @@ export default function RechercheClient() {
                             {/* Le niveau 1 seul, et seulement s'il existe : le reste est dans la rubrique. */}
                             {s.ref_niv1 && (
                               <div style={{ display:'flex', alignItems:'baseline', gap:'7px', flexWrap:'wrap' }}>
-                                <span style={{ fontSize:'0.65625rem', fontWeight:600, color:'var(--cs-texte-second)' }}>{s.ref_niv1}</span>
+                                <span style={{ fontSize:'0.6875rem', fontWeight:600, color:'var(--cs-texte-second)' }}>{s.ref_niv1}</span>
                               </div>
                             )}
                             {/* Résultat latin/grec : on n'affiche QUE l'original (badge de langue,
                                 latin en italiques, grec en romain). Sinon, le texte français. */}
                             {s.matchOrig && s.texte_original ? (
                               <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
-                                <span style={{ display:'inline-block', fontStyle:'normal', fontSize:'0.5rem', fontWeight:700, letterSpacing:'0.05em', textTransform:'uppercase', color:'var(--fam)', background:'color-mix(in srgb, var(--fam) 14%, var(--cs-surface))', borderRadius:'4px', padding:'0 5px', marginRight:'6px', verticalAlign:'1px' }}>{s.langue || 'Original'}</span>
+                                <span style={{ display:'inline-block', fontStyle:'normal', fontSize:'0.625rem', fontWeight:700, letterSpacing:'0.05em', textTransform:'uppercase', color:'var(--fam)', background:'color-mix(in srgb, var(--fam) 14%, var(--cs-surface))', borderRadius:'4px', padding:'0 5px', marginRight:'6px', verticalAlign:'1px' }}>{s.langue || 'Original'}</span>
                                 <span style={{ fontStyle: s.langue === 'Latin' ? 'italic' : 'normal' }}>
                                   {rendreEtSurligner(nettoyerFin(s.texte_original), marqueOriginal)}
                                 </span>
@@ -1710,7 +1710,7 @@ export default function RechercheClient() {
               <button className="pag-btn" disabled={pageActive===0} style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}
                 onMouseDown={()=>demarrerDefilement(-1)} onMouseUp={arreterDefilement} onMouseLeave={arreterDefilement}
                 onTouchStart={e=>{e.preventDefault();demarrerDefilement(-1)}} onTouchEnd={arreterDefilement}><IconeChevron dir="left" size={12} />Précédent</button>
-              <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-doux)' }}>{debut}–{fin} <span style={{ color:'var(--cs-bord)' }}>sur</span> {totalActive}</span>
+              <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)' }}>{debut}–{fin} <span style={{ color:'var(--cs-bord)' }}>sur</span> {totalActive}</span>
               <button className="pag-btn" disabled={pageActive>=pagesTotal-1} style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}
                 onMouseDown={()=>demarrerDefilement(1)} onMouseUp={arreterDefilement} onMouseLeave={arreterDefilement}
                 onTouchStart={e=>{e.preventDefault();demarrerDefilement(1)}} onTouchEnd={arreterDefilement}>Suivant<IconeChevron dir="right" size={12} /></button>

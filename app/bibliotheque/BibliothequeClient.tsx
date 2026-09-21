@@ -157,7 +157,7 @@ function SectionOpuscules({ nombre, ouverteDeForce, children }: {
           <IconeChevron dir={deployee ? 'down' : 'right'} size={11} strokeWidth={1.4} />
         </span>
         <span style={{ fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-second)' }}>Opuscules</span>
-        <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)' }}>{nombre}</span>
+        <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)' }}>{nombre}</span>
       </button>
       {deployee && <div style={{ paddingBottom: '2px' }}>{children}</div>}
     </div>
@@ -370,7 +370,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
             .bib-correspond { background: rgba(var(--cs-vert-rgb),0.07); }
             .bib-lire {
               display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0;
-              font-size:0.625rem; font-style: italic; letter-spacing: 0.03em; color: var(--cs-vert);
+              font-size:0.6875rem; font-style: italic; letter-spacing: 0.03em; color: var(--cs-vert);
               font-family: var(--font-source-serif), Georgia, serif;
               opacity: 0; transform: translateX(4px); transition: opacity 0.22s ease, transform 0.22s ease;
               white-space: nowrap; pointer-events: none;
@@ -434,7 +434,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                       l'a écrite. Une œuvre à auteur unique ne répète pas le nom de
                       l'étagère qui la porte. */}
                   {(grp.versions[0].auteurs?.length ?? 0) > 1 && (
-                    <span style={{ display: 'block', fontSize: '0.625rem', color: 'var(--cs-texte-doux)', lineHeight: 1.3, padding: '1px 18px 0 20px' }}>
+                    <span style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', lineHeight: 1.3, padding: '1px 18px 0 20px' }}>
                       {libelleAuteurs(grp.versions[0].auteurs!)}
                     </span>
                   )}
@@ -493,7 +493,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                             style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: `${AIR_LIGNE_OEUVRE} 12px ${AIR_LIGNE_OEUVRE} 9px`, textDecoration: 'none' }}>
                             <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
                               <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', fontWeight: 400 }}>{libelleTexteOriginal(o.langue_originale)}</span>
-                              {o.titre_original && <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{o.titre_original}</span>}
+                              {o.titre_original && <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic' }}>{o.titre_original}</span>}
                             </span>
                             <span className="bib-lire">
                               Lire
@@ -524,8 +524,8 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                           style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: `${AIR_LIGNE_OEUVRE} 12px ${AIR_LIGNE_OEUVRE} 9px`, textDecoration: 'none' }}>
                           <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
                             <span style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', fontWeight: 400 }}>{libelle}</span>
-                            {(trad || langueSeule) && aEdition && <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)' }}>{edition}</span>}
-                            {!trad && !langueSeule && !aEdition && <span style={{ fontSize: '0.625rem', color: 'var(--cs-or-doux)', fontStyle: 'italic' }}>Certaines données manquent.</span>}
+                            {(trad || langueSeule) && aEdition && <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)' }}>{edition}</span>}
+                            {!trad && !langueSeule && !aEdition && <span style={{ fontSize: '0.6875rem', color: 'var(--cs-or-doux)', fontStyle: 'italic' }}>Certaines données manquent.</span>}
                           </span>
                           <span className="bib-lire">
                             Lire
@@ -627,7 +627,7 @@ function stylePastille(actif: boolean, vide = false, etroite = false): React.CSS
 
 /** Le COMPTE, ou la croix : ce qui suit le libellé se compose toujours de la même façon. */
 const SUFFIXE_PASTILLE: React.CSSProperties = {
-  fontStyle: 'normal', fontSize: '0.625rem', fontVariantNumeric: 'tabular-nums', opacity: 0.68,
+  fontStyle: 'normal', fontSize: '0.6875rem', fontVariantNumeric: 'tabular-nums', opacity: 0.68,
 }
 
 /**
@@ -736,7 +736,7 @@ function LigneFiltres({ label, mobile, children }: { label: string; mobile: bool
     }}>
       <span style={{
         fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em',
-        textTransform: 'uppercase', color: 'var(--cs-texte-doux)',
+        textTransform: 'uppercase', color: 'var(--cs-texte-second)',
         textAlign: mobile ? 'left' : 'right',
         // La chasse ajoute une espace APRÈS la dernière lettre : au fer à droite, elle
         // décalerait la rubrique du bord de sa colonne. On la reprend.
@@ -785,7 +785,7 @@ function Pagination({ page, nbPages, onChanger, mobile }: {
       {!mobile && <button onClick={() => onChanger(1)} disabled={aLaFin} aria-label="Page suivante" style={flecheFixe('droite', aLaFin)}>{chevron('droite', 14)}</button>}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '22px' }}>
         <button onClick={() => onChanger(-1)} disabled={auDebut} aria-label="Page précédente" style={flechePied(auDebut)}>{chevron('gauche', 12)}</button>
-        <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
           Page {page + 1} sur {nbPages}
         </span>
         <button onClick={() => onChanger(1)} disabled={aLaFin} aria-label="Page suivante" style={flechePied(aLaFin)}>{chevron('droite', 12)}</button>
@@ -924,7 +924,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
           </h2>
 
           <button onClick={() => setOuvert(!ouvert)}
-            style={{ fontSize: '0.65625rem', color: '#8a7a5a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}>
+            style={{ fontSize: '0.6875rem', color: '#8a7a5a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}>
             <span style={{ display: 'inline-flex' }}><IconeChevron dir={ouvert ? 'up' : 'down'} size={9} strokeWidth={1.5} /></span>
             {nbMot.charAt(0).toUpperCase() + nbMot.slice(1)} œuvre{nb > 1 ? 's' : ''} répertoriée{nb > 1 ? 's' : ''}
           </button>
@@ -971,13 +971,13 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                       const meta = [metaAvantDate, dateEdition].filter(Boolean).join(', ')
                       const dp = n.domaine_public?.includes('oui')
                       return (
-                        <span key={n.id} style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', lineHeight: 1.4 }}>
+                        <span key={n.id} style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', lineHeight: 1.4 }}>
                           {meta ? <>{metaAvantDate}{metaAvantDate && dateEdition ? ', ' : null}{dateEdition && <span title={n.date_edition_precision_affichage ?? undefined}><HistoricalDate value={dateEdition} variant="short" /></span>}</> : titreDeclineCatalogue(n)}
                           {/* ⛔ « Domaine public » EN TOUTES LETTRES, et sans infobulle
                               (décision de l'auteur, 2026-09-04). « DP » demandait qu'on
                               survole pour le comprendre, et l'infobulle ne faisait que
                               développer le sigle : deux gestes pour deux mots. */}
-                          {dp && <span style={{ marginLeft: '5px', fontSize: '0.5625rem', color: '#7a8a6a', fontWeight: 700, letterSpacing: '0.04em' }}>Domaine public</span>}
+                          {dp && <span style={{ marginLeft: '5px', fontSize: '0.6875rem', color: '#7a8a6a', fontWeight: 700, letterSpacing: '0.04em' }}>Domaine public</span>}
                           <BoutonSignalerNotice reference={`${nomAuteur} — ${groupe.titreStable}`} texte={meta || titreDeclineCatalogue(n)} />
                         </span>
                       )
@@ -1674,7 +1674,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         {/* Dit UNE fois pourquoi ces cases ne s'ouvrent pas : un champ figé sans un mot
             se lit comme un champ en panne. */}
         {figes.size > 0 && (
-          <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', lineHeight: 1.5, margin: '-8px 0 0' }}>
+          <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', lineHeight: 1.5, margin: '-8px 0 0' }}>
             Ces informations viennent de la notice du catalogue et ne se modifient pas ici.
             Pour proposer une autre œuvre, passez par l’onglet « Proposer une œuvre ».
           </p>
@@ -1742,7 +1742,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
             placeholder="Collez ici le texte intégral de l'œuvre. Un texte structuré avec des titres de chapitres est préférable."
             style={{ ...CHAMP_STYLE, fontFamily: 'ui-monospace, Consolas, monospace', fontSize: '0.75rem', resize: 'vertical', lineHeight: 1.65 }} />
           {form.texte && (
-            <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', marginTop: '4px' }}>
+            <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', marginTop: '4px' }}>
               {form.texte.length.toLocaleString('fr-FR')} caractères
             </p>
           )}
@@ -1766,7 +1766,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
           </span>
         </label>
 
-        <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>
+        <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', margin: 0 }}>
           Les contributions acceptées rapportent des points à leur apporteur et sont visibles dans votre profil.
         </p>
 
@@ -1847,7 +1847,7 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
         <svg width="14" height="14" viewBox="0 0 16 16" fill="#b88a45" style={{ flexShrink: 0 }}>
           <path d="M8 1.5l1.854 3.756 4.146.603-3 2.924.708 4.131L8 10.765l-3.708 1.949.708-4.131-3-2.924 4.146-.603z"/>
         </svg>
-        <span style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>Œuvres favorites</span>
+        <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>Œuvres favorites</span>
         <div style={{ flex: 1, height: '1px', background: 'var(--cs-bord-clair)' }} />
       </div>
       {/* Présentation reprise de l'onglet Bibliothèque, en version compacte : cartes

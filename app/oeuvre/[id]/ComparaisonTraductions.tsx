@@ -253,7 +253,7 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
   const composer = codeLangue === 'grc' ? cesurerGrec : codeLangue === 'la' ? cesurerLatin : (t: string) => t
   const ordonnes = membres.map(membre => segments.get(membre.segment_key)).filter(Boolean) as SegmentComparaison[]
   if (ordonnes.length === 0) {
-    return <p style={{ margin: 0, fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{vide}</p>
+    return <p style={{ margin: 0, fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic' }}>{vide}</p>
   }
 
   // ⛔ Un `verset` ne fait BLOC que si son paragraphe n'en porte QUE, et c'est la
@@ -679,7 +679,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
       { label: alignement.alignedLabel, members: alnMembres, empty: `Pas de correspondant dans ${alignement.alignedLabel}`, langue: alignement.alignedLangue },
     ] as const).map(colonne => (
       <div key={colonne.label} data-colonne-comparaison="" style={{ minWidth: 0 }}>
-        {mobile && <h3 style={{ margin: '0 0 6px', fontSize: '0.59375rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{colonne.label}</h3>}
+        {mobile && <h3 style={{ margin: '0 0 6px', fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-second)', fontWeight: 600 }}>{colonne.label}</h3>}
         <ColonneLecture membres={colonne.members} segments={segments} notes={notes} ancres={ancresNotes} vide={colonne.empty} langue={colonne.langue}
           segActif={segActif} onSurvol={positionnerToolbar} onQuitter={masquerToolbar} onClic={clicSegment}
           onFoyer={foyerSegment} onQuitterFoyer={cellule.quitterFoyer} mobile={mobile} />
@@ -715,7 +715,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
       {!mobile && !chargement && !erreur && groupesAffiches.length > 0 && (
         <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '1.6rem', padding: '0 0 8px', borderBottom: '1px solid var(--cs-bord-clair)', marginBottom: '6px' }}>
           {[alignement.referenceLabel, alignement.alignedLabel].map(label => (
-            <p key={label} style={{ margin: 0, fontSize: '0.59375rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{label}</p>
+            <p key={label} style={{ margin: 0, fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-second)', fontWeight: 600 }}>{label}</p>
           ))}
         </div>
       )}

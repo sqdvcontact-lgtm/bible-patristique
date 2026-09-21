@@ -49,7 +49,7 @@ export function Carte({ titre, danger, children }: { titre?: string; danger?: bo
   return (
     <section style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '24px 26px', marginBottom: '16px' }}>
       {titre && (
-        <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: danger ? 'var(--cs-danger)' : 'var(--cs-texte-doux)', margin: '0 0 18px' }}>
+        <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: danger ? 'var(--cs-danger)' : 'var(--cs-texte-second)', margin: '0 0 18px' }}>
           {titre}
         </p>
       )}

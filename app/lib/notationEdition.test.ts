@@ -204,7 +204,7 @@ describe('la composition', () => {
 
   it('monte l’encre de la rubrique d’un rang, et garde le rang du volet', () => {
     expect(STYLE_RUBRIQUE_NOTATION.color).toBe('var(--cs-texte-second)')
-    expect(STYLE_RUBRIQUE_NOTATION.fontSize).toBe('0.59375rem')
+    expect(STYLE_RUBRIQUE_NOTATION.fontSize).toBe('0.625rem')
     expect(STYLE_RUBRIQUE_NOTATION.letterSpacing).toBe('0.06em')
   })
 

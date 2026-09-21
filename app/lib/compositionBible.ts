@@ -161,7 +161,10 @@ export const STYLE_NUMERO_VERSET: CSSProperties = {
   minWidth: `${NUMERO_VERSET_REM}rem`,
   textAlign: 'right',
   paddingRight: '0.4375rem',
-  fontSize: '0.625rem',
+  // ⛔ EN RAPPORT AU VERSET, non en rem (2026-09-21, plancher des petits corps) : il
+  // valait 0,625 rem pour un verset de 0,875, soit 0,714 du verset, et il suit
+  // désormais le corps du verset quand le lecteur le règle.
+  fontSize: 'calc(var(--cs-lecture-corps, 0.875rem) * 0.714)',
   fontWeight: 600,
   color: 'var(--cs-texte-doux)',
   lineHeight: 1.40,
@@ -261,11 +264,12 @@ export const STYLE_VERSET_VIDE: CSSProperties = {
 }
 
 /** Ce que la marque de densité demande à droite du dernier bouton, en rem. L'ÉCART la
- *  détache de lui ; la LARGEUR porte deux chiffres tabulaires à 0,5625 rem, chasse
- *  comprise (17 œuvres au plus dans le corpus, mesuré le 2026-09-06) ; l'AIR la tient
+ *  détache de lui ; la LARGEUR porte deux chiffres tabulaires à 0,6875 rem (plancher des
+ *  petits corps, 2026-09-21), chasse comprise (17 œuvres au plus dans le corpus, mesuré
+ *  le 2026-09-06) ; l'AIR la tient
  *  loin du bord de la zone de lecture, c'est-à-dire du volet de droite. */
 export const ECART_MARQUE_DENSITE_REM = 0.25
-export const LARGEUR_MARQUE_DENSITE_REM = 0.75
+export const LARGEUR_MARQUE_DENSITE_REM = 0.875
 export const AIR_MARQUE_DENSITE_REM = 0.5
 
 /**
@@ -304,11 +308,11 @@ export function styleDensiteVerset(): CSSProperties {
     flexShrink: 0,
     marginTop: '0.09375rem',
     marginLeft: `${ECART_MARQUE_DENSITE_REM}rem`,
-    fontSize: '0.5625rem',
+    fontSize: '0.6875rem',
     lineHeight: 1.2,
-    color: 'var(--cs-texte-doux)',
+    color: 'var(--cs-texte-gris)',
     fontVariantNumeric: 'tabular-nums',
-    // ⚠️ À neuf pixels, deux chiffres collés se lisent comme un seul nombre plus grand.
+    // ⚠️ À onze pixels, deux chiffres collés se lisent comme un seul nombre plus grand.
     letterSpacing: '0.02em',
     whiteSpace: 'nowrap',
   }

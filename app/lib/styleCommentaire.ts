@@ -98,19 +98,19 @@ export const NOM_COMMENTAIRE: CSSProperties = {
 }
 
 export const DATE_COMMENTAIRE: CSSProperties = {
-  fontSize: '0.625rem', color: 'var(--cs-texte-doux)',
+  fontSize: '0.6875rem', color: 'var(--cs-texte-gris)',
   whiteSpace: 'nowrap', flexShrink: 0, marginLeft: 'auto',
 }
 
 /** Le rang de lecture (« Disciple »…) : sa teinte vient de `couleurRang`. */
 export const BADGE_RANG: CSSProperties = {
-  fontSize: '0.5625rem', fontWeight: 600, padding: '1px 6px',
+  fontSize: '0.6875rem', fontWeight: 600, padding: '1px 6px',
   borderRadius: '4px', letterSpacing: '0.02em', whiteSpace: 'nowrap',
 }
 
 /** Un état de modération : capitales, et la couleur porte le sens. */
 export const BADGE_ETAT: CSSProperties = {
-  fontSize: '0.5625rem', fontWeight: 700, padding: '1px 6px',
+  fontSize: '0.6875rem', fontWeight: 700, padding: '1px 6px',
   borderRadius: '4px', letterSpacing: '0.04em', whiteSpace: 'nowrap',
 }
 
@@ -134,11 +134,11 @@ export const PIED_COMMENTAIRE: CSSProperties = {
 
 /** Un bouton d'action : du texte, et rien qui l'entoure. */
 export const ACTION_COMMENTAIRE: CSSProperties = {
-  fontSize: '0.625rem', color: 'var(--cs-texte-doux)', background: 'none',
+  fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'none',
   border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0,
 }
 
 /** La ligne d'un commentaire supprimé : elle tient la place, sans faire une carte. */
 export const EFFACE_COMMENTAIRE: CSSProperties = {
-  fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0,
+  fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', margin: 0,
 }

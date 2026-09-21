@@ -27,7 +27,7 @@ const MIN_CARACTERES_PUBLICATION = 2000
 // Rouge sourd, terreux : signale un compte hors limite (insuffisant ou excédant)
 // sans crier — plus discret et élégant que le rouge-rouille vif des messages d'erreur.
 const ROUGE_COMPTE = '#a8564d'
-const BTN: React.CSSProperties = { fontSize: '0.65625rem', padding: '8px 6px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', cursor: 'pointer', width: '100%', textAlign: 'center' }
+const BTN: React.CSSProperties = { fontSize: '0.6875rem', padding: '8px 6px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', cursor: 'pointer', width: '100%', textAlign: 'center' }
 
 // Le titre d'un brouillon qu'on n'a pas encore nommé : sans lui, la sauvegarde
 // renonçait en silence et le texte n'existait nulle part.
@@ -756,7 +756,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         {comparaisonOuverte && diff ? (
           <div style={{ display: 'flex', gap: '20px' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--cs-texte-doux)', marginBottom: '8px' }}>VERSION D’ORIGINE</p>
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--cs-texte-second)', marginBottom: '8px' }}>VERSION D’ORIGINE</p>
               <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '20px 22px', fontSize: '0.84375rem', lineHeight: 1.7, color: 'var(--cs-texte-fort)', whiteSpace: 'pre-wrap' }}>
                 {diff.gauche.map((s, i) => s.type === 'supprime'
                   ? <span key={i} style={{ color: 'var(--cs-danger)', textDecoration: 'line-through' }}>{s.texte}</span>
@@ -764,7 +764,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
               </div>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--cs-texte-doux)', marginBottom: '8px' }}>VERSION MODIFIÉE</p>
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--cs-texte-second)', marginBottom: '8px' }}>VERSION MODIFIÉE</p>
               <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '20px 22px', fontSize: '0.84375rem', lineHeight: 1.7, color: 'var(--cs-texte-fort)', whiteSpace: 'pre-wrap' }}>
                 {diff.droite.map((s, i) => s.type === 'ajoute'
                   ? <span key={i} style={{ color: 'var(--cs-danger)', fontWeight: 600 }}>{s.texte}</span>
@@ -778,10 +778,10 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
               <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '16px 18px 18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '18px', alignItems: 'flex-start', marginBottom: '14px' }}>
                   <div>
-                    <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 4px' }}>
+                    <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 4px' }}>
                       Informations de publication
                     </p>
-                    <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', margin: 0 }}>
+                    <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', margin: 0 }}>
                       Ces informations accompagnent le texte au moment de la soumission.
                     </p>
                   </div>
@@ -790,12 +790,12 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                       {nbCar.toLocaleString('fr')} / {MAX_CARACTERES.toLocaleString('fr')} caractères
                     </p>
                     {nbCar < MIN_CARACTERES_PUBLICATION && !(modeAdmin && essaiExistant?.statut === 'publie') && (
-                      <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', margin: '3px 0 0' }}>
+                      <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', margin: '3px 0 0' }}>
                         Publication possible à partir de {MIN_CARACTERES_PUBLICATION.toLocaleString('fr')} caractères
                       </p>
                     )}
                     {nbCar > MAX_CARACTERES && (
-                      <p style={{ fontSize: '0.65625rem', color: ROUGE_COMPTE, margin: '3px 0 0' }}>
+                      <p style={{ fontSize: '0.6875rem', color: ROUGE_COMPTE, margin: '3px 0 0' }}>
                         Limite dépassée
                       </p>
                     )}
@@ -805,7 +805,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '12px', marginBottom: '12px' }}>
                   <div>
-                    <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Titre *</label>
+                    <label style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-second)', textTransform: 'uppercase' }}>Titre *</label>
                     <input aria-label="Titre"
                       aria-invalid={!!erreursAffichees.titre}
                       aria-describedby={erreursAffichees.titre ? 'erreur-titre' : undefined}
@@ -818,7 +818,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                     {erreursAffichees.titre && <MessageChamp id="erreur-titre">{erreursAffichees.titre}</MessageChamp>}
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Sous-titre</label>
+                    <label style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-second)', textTransform: 'uppercase' }}>Sous-titre</label>
                     <input aria-label="Sous-titre"
                       value={meta.sousTitre}
                       onChange={e => setMeta(prev => ({ ...prev, sousTitre: e.target.value }))}
@@ -831,8 +831,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
                 <div style={{ marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', marginBottom: '5px' }}>
-                    <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Résumé *</label>
-                    <span style={{ fontSize: '0.65625rem', color: meta.resume.length > 0 && !resumeOk ? ROUGE_COMPTE : 'var(--cs-texte-doux)', fontVariantNumeric: 'tabular-nums' }}>
+                    <label style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-second)', textTransform: 'uppercase' }}>Résumé *</label>
+                    <span style={{ fontSize: '0.6875rem', color: meta.resume.length > 0 && !resumeOk ? ROUGE_COMPTE : 'var(--cs-texte-gris)', fontVariantNumeric: 'tabular-nums' }}>
                       {resumeLen.toLocaleString('fr')} / {RESUME_MAX.toLocaleString('fr')} caractères
                     </span>
                   </div>
@@ -853,8 +853,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                     quatrième, qui se retourne au survol. */}
                 <div style={{ marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', marginBottom: '5px' }}>
-                    <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Couverture</label>
-                    <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)' }}>
+                    <label style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-second)', textTransform: 'uppercase' }}>Couverture</label>
+                    <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)' }}>
                       {couverture ? couvertureDe(couverture).libelle : 'Au hasard'}
                     </span>
                   </div>
@@ -887,7 +887,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase', display: 'block', marginBottom: '7px' }}>Catégories *</label>
+                  <label style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-second)', textTransform: 'uppercase', display: 'block', marginBottom: '7px' }}>Catégories *</label>
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                     {CATEGORIES_ESSAIS.map(categorie => {
                       const actif = meta.categories.includes(categorie)
@@ -910,8 +910,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                   {meta.categories.length > 1 && (
                     <div style={{ marginTop: '14px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', marginBottom: '5px' }}>
-                        <label style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', textTransform: 'uppercase' }}>Catégorie principale *</label>
-                        <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)' }}>
+                        <label style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-second)', textTransform: 'uppercase' }}>Catégorie principale *</label>
+                        <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)' }}>
                           {embleme && meta.categories.includes(embleme) ? embleme : 'À choisir'}
                         </span>
                       </div>
@@ -979,7 +979,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                     {meta.sousTitre && <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', margin: '0 0 12px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{meta.sousTitre}</p>}
                     <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '8px' }}>
                       {meta.categories.map(c => (
-                        <span key={c} style={{ fontSize: '0.59375rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.08)', padding: '1px 8px', borderRadius: '8px', fontWeight: 600, fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{c}</span>
+                        <span key={c} style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.08)', padding: '1px 8px', borderRadius: '8px', fontWeight: 600, fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{c}</span>
                       ))}
                     </div>
                   </div>
@@ -990,7 +990,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                       <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', lineHeight: 1.8, color: 'var(--cs-texte)', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
                         {'« '}{rendreTexteEnrichi(versetEnTete.texte)}{' »'}
                       </p>
-                      <p style={{ fontSize: '0.65625rem', letterSpacing: '0.1em', color: 'var(--cs-texte-doux)', margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif", textTransform: 'uppercase' }}>
+                      <p style={{ fontSize: '0.65625rem', letterSpacing: '0.1em', color: 'var(--cs-texte-second)', margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif", textTransform: 'uppercase' }}>
                         {versetEnTete.ref}
                       </p>
                     </div>
@@ -1155,20 +1155,20 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {profil && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: 0 }}>Signature</p>
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: 0 }}>Signature</p>
               {choixSignature.map(c => (
-                <label key={c.valeur} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '0.65625rem', color: 'var(--cs-texte-gris)', cursor: 'pointer', lineHeight: 1.4 }}>
+                <label key={c.valeur} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', cursor: 'pointer', lineHeight: 1.4 }}>
                   <input type="radio" name="signature" value={c.valeur} checked={signature === c.valeur} onChange={() => setSignature(c.valeur)} style={{ marginTop: '2px' }} />
                   {c.libelle}
                 </label>
               ))}
               {signature === 'nom_reel' && (
-                <p style={{ fontSize: '0.625rem', color: '#7a5a30', background: 'var(--cs-fond-clair)', border: '1px solid #e8d5a0', borderRadius: '4px', padding: '6px 9px', margin: 0, lineHeight: 1.55 }}>
+                <p style={{ fontSize: '0.6875rem', color: '#7a5a30', background: 'var(--cs-fond-clair)', border: '1px solid #e8d5a0', borderRadius: '4px', padding: '6px 9px', margin: 0, lineHeight: 1.55 }}>
                   Votre nom réel apparaîtra sur cet essai et sur votre profil public.
                 </p>
               )}
               {signature === 'anonyme' && (
-                <p style={{ fontSize: '0.625rem', color: '#7a5a30', background: 'var(--cs-fond-clair)', border: '1px solid #e8d5a0', borderRadius: '4px', padding: '6px 9px', margin: 0, lineHeight: 1.55 }}>
+                <p style={{ fontSize: '0.6875rem', color: '#7a5a30', background: 'var(--cs-fond-clair)', border: '1px solid #e8d5a0', borderRadius: '4px', padding: '6px 9px', margin: 0, lineHeight: 1.55 }}>
                   Rien ne reliera cette publication à votre compte : ni la liste, ni la page, ni votre page publique ne porteront votre nom. Seule l’administration sait qui écrit, pour la modération.
                 </p>
               )}
@@ -1183,7 +1183,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 /** Le message qui accompagne un champ incomplet, sous lui. */
 function MessageChamp({ id, children }: { id: string; children: React.ReactNode }) {
   return (
-    <p id={id} role="alert" style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)', margin: '4px 0 0', lineHeight: 1.45 }}>
+    <p id={id} role="alert" style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', margin: '4px 0 0', lineHeight: 1.45 }}>
       {children}
     </p>
   )

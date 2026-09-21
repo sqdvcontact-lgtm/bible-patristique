@@ -207,7 +207,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                       <div style={{ maxWidth: '78%', background: m.de_moi ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: m.de_moi ? 'var(--cs-fond)' : 'var(--cs-encre-fonce)', border: m.de_moi ? 'none' : '1px solid var(--cs-bord-clair)', borderRadius: m.de_moi ? '14px 14px 3px 14px' : '14px 14px 14px 3px', padding: '8px 12px', fontSize: '0.8125rem', lineHeight: 1.45, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                         {m.contenu}
                       </div>
-                      <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', margin: '2px 4px 0' }}>
+                      <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', margin: '2px 4px 0' }}>
                         {heure(m.created_at)}{m.de_moi && <span style={{ marginLeft: '4px', color: m.lu ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>{m.lu ? '✓✓' : '✓'}</span>}
                       </span>
                     </div>
@@ -243,7 +243,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                   {erreurRecherche ? (
                     <p role="alert" style={{ fontSize: '0.71875rem', color: 'var(--cs-danger-fonce)', padding: '8px 12px', margin: 0 }}>{erreurRecherche}</p>
                   ) : resultats.length === 0 ? (
-                    <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '8px 12px', margin: 0 }}>Aucun pseudonyme trouvé.</p>
+                    <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', padding: '8px 12px', margin: 0 }}>Aucun pseudonyme trouvé.</p>
                   ) : resultats.map(p => (
                     <button key={p} onClick={() => ouvrirConversation(p)}
                       style={{ display: 'block', width: '100%', textAlign: 'left', fontSize: '0.78125rem', padding: '8px 12px', border: 'none', borderBottom: '1px solid var(--cs-fond-doux)', background: 'var(--cs-surface)', color: 'var(--cs-encre)', cursor: 'pointer' }}>
@@ -279,9 +279,9 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                             {c.partenaire_pseudo}
                             {c.partenaire_mecene && <>{' '}<MarqueMecene /></>}
                           </span>
-                          {c.nb_non_lus > 0 && <span style={{ background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', fontSize: '0.5625rem', fontWeight: 700, borderRadius: '8px', padding: '1px 6px' }}>{c.nb_non_lus}</span>}
+                          {c.nb_non_lus > 0 && <span style={{ background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', fontSize: '0.6875rem', fontWeight: 700, borderRadius: '8px', padding: '1px 6px' }}>{c.nb_non_lus}</span>}
                         </span>
-                        <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-doux)', flexShrink: 0 }}>{dateRelative(c.dernier_at)}</span>
+                        <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', flexShrink: 0 }}>{dateRelative(c.dernier_at)}</span>
                       </span>
                       <span style={{ display: 'block', fontSize: '0.75rem', color: c.nb_non_lus > 0 ? 'var(--cs-texte)' : 'var(--cs-texte-gris)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.dernier_message}</span>
                     </button>

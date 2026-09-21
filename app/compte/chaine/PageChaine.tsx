@@ -273,7 +273,7 @@ function ChaineVide() {
 // ⚠️ Elle vit dans un littéral de gabarit : nommer les propriétés entre guillemets
 // français, jamais entre accents graves, qui fermeraient la chaîne.
 const FEUILLE_CHAINE = `
-.chn-avis { font-size: 0.71875rem; font-style: italic; color: var(--cs-texte-doux);
+.chn-avis { font-size: 0.71875rem; font-style: italic; color: var(--cs-texte-gris);
   line-height: 1.5; margin: -14px 0 8px; }
 .chn-erreur { font-size: 0.78125rem; color: var(--cs-danger-fonce); margin: 0 0 12px; }
 

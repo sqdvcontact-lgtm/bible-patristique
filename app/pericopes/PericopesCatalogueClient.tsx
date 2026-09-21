@@ -168,7 +168,7 @@ function LigneCompte({ actif, onClick, label, n }: { actif: boolean; onClick: ()
         background: actif ? VERT : 'transparent', transition: 'background 0.12s, border-color 0.12s',
       }} />
       <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-      <span style={{ fontFamily: SANS, fontSize: '0.625rem', color: actif ? VERT : 'var(--cs-texte-second)' }}>{n}</span>
+      <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: actif ? VERT : 'var(--cs-texte-second)' }}>{n}</span>
     </button>
   )
 }
@@ -455,7 +455,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         .peri-corps { min-width: 0; }
         .peri-titre { display: block; font-family: ${SERIF}; font-size: 0.875rem; font-weight: 500; color: var(--cs-encre-fonce); line-height: 1.26; transition: color 0.14s ease; }
         .peri-entree:hover .peri-titre, .peri-entree:focus-visible .peri-titre { color: ${VERT}; }
-        .peri-glose { margin-left: 6px; font-family: ${SERIF}; font-style: italic; font-size: 0.65625rem; font-weight: 400; color: var(--cs-texte-doux); }
+        .peri-glose { margin-left: 6px; font-family: ${SERIF}; font-style: italic; font-size: 0.6875rem; font-weight: 400; color: var(--cs-texte-gris); }
         .peri-l2 { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 2px; }
         /* La notice est bornée à deux lignes : la première phrase fait 118 signes en
            moyenne et tient donc sur une, mais quelques-unes débordent. */
@@ -472,7 +472,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         .peri-entree:hover .peri-fleche,
         .peri-entree:focus-visible .peri-fleche { opacity: 1; transform: translateX(0); }
         @media (hover: none) { .peri-fleche { opacity: 0.5; transform: none; } }
-        .peri-via { display: block; margin-top: 2px; font-family: ${SERIF}; font-style: italic; font-size: 0.65625rem; color: var(--cs-etiquette); }
+        .peri-via { display: block; margin-top: 2px; font-family: ${SERIF}; font-style: italic; font-size: 0.6875rem; color: var(--cs-etiquette); }
 
         @media (prefers-reduced-motion: reduce) {
           .peri-entree, .peri-titre, .peri-fleche, .peri-lien-livre { transition: none; }

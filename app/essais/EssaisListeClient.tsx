@@ -350,7 +350,7 @@ function OngletCommunaute({
         .publications-sommaire-ordres { display: flex; align-items: baseline; gap: 10px; }
         .publications-sommaire-ordres button {
           background: none; border: none; padding: 2px 0 2px 0.24em; cursor: pointer;
-          font: inherit; font-size: 0.59375rem; font-weight: 700; letter-spacing: 0.24em;
+          font: inherit; font-size: 0.625rem; font-weight: 700; letter-spacing: 0.24em;
           text-transform: uppercase; color: var(--cs-lacune); opacity: 0.5;
           transition: opacity 0.15s ease;
         }
@@ -807,7 +807,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
   if (connecte === null) return <MotAttente centre />
   return (
     <div style={{ maxWidth: '38.75rem', margin: '0 auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '30px 34px', textAlign: 'center' }}>
-      <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px' }}>
+      <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px' }}>
         Espace de rédaction
       </p>
       <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 10px' }}>
@@ -881,7 +881,7 @@ function OptionVolet({ actif, onClick, libelle, nombre }: { actif: boolean; onCl
       <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px' }}>
         <span>{libelle}</span>
         {nombre !== undefined && (
-          <span style={{ fontSize: '0.625rem', color: actif ? 'var(--cs-texte-second)' : 'var(--cs-texte-doux)', fontVariantNumeric: 'tabular-nums' }}>{nombre}</span>
+          <span style={{ fontSize: '0.6875rem', color: actif ? 'var(--cs-texte-second)' : 'var(--cs-texte-gris)', fontVariantNumeric: 'tabular-nums' }}>{nombre}</span>
         )}
       </span>
     </button>
@@ -963,7 +963,7 @@ function OngletMesEcrits({
         .ecrit-titre { font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-size: 0.875rem; font-weight: 500; color: var(--cs-encre); line-height: 1.3; text-decoration: none; }
         .ecrit-titre:hover { color: var(--cs-vert-fonce); }
         .ecrit-sous-titre { margin-left: 6px; font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-size: 0.75rem; color: var(--cs-texte-gris); }
-        .ecrit-meta { display: flex; flex-wrap: wrap; align-items: baseline; margin-top: 2px; font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.6875rem; color: var(--cs-texte-doux); }
+        .ecrit-meta { display: flex; flex-wrap: wrap; align-items: baseline; margin-top: 2px; font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.6875rem; color: var(--cs-texte-gris); }
         .ecrit-meta > span + span::before { content: "·"; margin: 0 6px; color: var(--cs-bord); }
 
         /* Les actions se tiennent en retrait tant qu'on ne les regarde pas, comme le
@@ -1034,14 +1034,14 @@ function OngletMesEcrits({
               <div className="ecrit-actions">
                 <button onClick={() => basculerPublication(e)} disabled={!peutBasculer || verrouille}
                   title={!dejaValide ? "Publication possible après validation par l'administration." : verrouille ? 'Interrupteur disponible une heure après le dernier changement.' : e.statut === 'publie' ? 'Dépublier' : 'Publier'}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.625rem', color: e.statut === 'publie' ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.4 : 1, fontWeight: 600 }}>
-                  {timer && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', fontWeight: 600 }}>{timer}</span>}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.6875rem', color: e.statut === 'publie' ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.4 : 1, fontWeight: 600 }}>
+                  {timer && <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontWeight: 600 }}>{timer}</span>}
                   <span style={{ width: '26px', height: '14px', borderRadius: '999px', background: e.statut === 'publie' ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', position: 'relative', display: 'inline-block', transition: 'background 0.15s' }}>
                     <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '14px' : '2px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.18)' }} />
                   </span>
                 </button>
-                <Link href={`/essais/${e.id}/modifier`} style={{ fontSize: '0.65625rem', color: 'var(--cs-vert)', textDecoration: 'none', fontWeight: 600 }}>Modifier</Link>
-                <button onClick={() => supprimer(e.id)} style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Supprimer</button>
+                <Link href={`/essais/${e.id}/modifier`} style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', textDecoration: 'none', fontWeight: 600 }}>Modifier</Link>
+                <button onClick={() => supprimer(e.id)} style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Supprimer</button>
               </div>
             </div>
           )
@@ -1124,7 +1124,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
       ) : (
         <>
           <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '34px 36px 28px', marginBottom: '18px' }}>
-            <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 20px' }}>
+            <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 20px' }}>
               Verset proposé à la méditation
             </p>
             <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', lineHeight: 1.8, color: 'var(--cs-encre-fonce)', fontStyle: 'italic', margin: '0 0 18px' }}>
@@ -1156,10 +1156,10 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
             <button
               onClick={() => charger(versets)}
               disabled={!peutRelancer || chargement}
-              style={{ fontSize: '0.71875rem', color: peutRelancer ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: peutRelancer ? 'pointer' : 'default', padding: 0, textDecoration: peutRelancer && !chargement ? 'underline' : 'none', fontStyle: 'italic' }}>
+              style={{ fontSize: '0.71875rem', color: peutRelancer ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: peutRelancer ? 'pointer' : 'default', padding: 0, textDecoration: peutRelancer && !chargement ? 'underline' : 'none', fontStyle: 'italic' }}>
               {chargement ? 'Chargement…' : peutRelancer ? 'Autre suggestion' : 'Limite atteinte pour aujourd\'hui'}
             </button>
-            <span style={{ fontSize: '0.625rem', color: 'var(--cs-bord)' }}>({versets.length}/{MAX_SUGGESTIONS_JOUR})</span>
+            <span style={{ fontSize: '0.6875rem', color: 'var(--cs-bord)' }}>({versets.length}/{MAX_SUGGESTIONS_JOUR})</span>
           </div>
 
           {versets.length > 1 && (
@@ -1174,7 +1174,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
       )}
 
       {connecte === false && (
-        <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', marginTop: '18px', fontStyle: 'italic' }}>
+        <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', marginTop: '18px', fontStyle: 'italic' }}>
           <Link href="/chantier" style={{ color: 'var(--cs-vert)', textDecoration: 'underline' }}>Connectez-vous</Link> pour enregistrer votre méditation.
         </p>
       )}
@@ -1186,7 +1186,7 @@ function tagFiltre(actif: boolean): React.CSSProperties {
   // Tags resserrés et plus légers : pastilles fines, sans bordure au repos ; l'actif se
   // marque d'un aplat vert discret. Plus élégant que les anciens contours gris.
   return {
-    fontSize: '0.625rem', padding: '3px 10px', borderRadius: '999px',
+    fontSize: '0.6875rem', padding: '3px 10px', borderRadius: '999px',
     border: '1px solid ' + (actif ? 'var(--cs-vert)' : 'transparent'),
     background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'rgba(120,110,96,0.06)',
     color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', cursor: 'pointer',

@@ -78,7 +78,7 @@ function ModalSignalerCommentaire({ titre, onClose, onEnvoyer }: {
           <p id={idTitre} style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-danger)', margin: 0 }}>Signaler</p>
           <button onClick={onClose} aria-label="Fermer" style={{ fontSize: '0.875rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
-        <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', marginBottom: '10px', lineHeight: 1.4 }}>{titre}</p>
+        <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', marginBottom: '10px', lineHeight: 1.4 }}>{titre}</p>
         {statut === 'ok' ? (
           <p style={{ fontSize: '0.71875rem', color: 'var(--cs-vert)', fontStyle: 'italic', textAlign: 'center', padding: '8px 0' }}>Signalement envoyé, merci !</p>
         ) : (
@@ -86,10 +86,10 @@ function ModalSignalerCommentaire({ titre, onClose, onEnvoyer }: {
             <textarea aria-label="Description du problème" value={message} onChange={e => setMessage(e.target.value)} placeholder="Décrivez le problème…" rows={4} autoFocus
               style={{ width: '100%', fontSize: '0.6875rem', padding: '7px 9px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px', gap: '8px' }}>
-              {statut === 'err' && <span style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', alignSelf: 'center' }}>Erreur d’envoi.</span>}
+              {statut === 'err' && <span style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', alignSelf: 'center' }}>Erreur d’envoi.</span>}
               <button onClick={onClose} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
               <button onClick={envoyer} disabled={statut === 'sending' || !message.trim()}
-                style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: message.trim() ? 'pointer' : 'default', background: message.trim() ? 'var(--cs-danger-aplat)' : 'var(--cs-bord-clair)', color: message.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
+                style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: message.trim() ? 'pointer' : 'default', background: message.trim() ? 'var(--cs-danger-aplat)' : 'var(--cs-bord-clair)', color: message.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-gris)', fontWeight: 500 }}>
                 {statut === 'sending' ? 'Envoi…' : 'Envoyer'}
               </button>
             </div>
@@ -307,14 +307,14 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
         <svg width="12" height="12" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
         </svg>
-        {c.nbLikes > 0 && <span style={{ fontWeight: 600, fontSize: '0.625rem' }}>{c.nbLikes}</span>}
+        {c.nbLikes > 0 && <span style={{ fontWeight: 600, fontSize: '0.6875rem' }}>{c.nbLikes}</span>}
       </button>
       <button onClick={() => basculerVote(c, -1)} title="Je n'aime pas"
         style={{ display: 'flex', alignItems: 'center', gap: '3px', color: c.monVote === -1 ? 'var(--cs-danger-fonce)' : 'var(--cs-texte-doux)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
         <svg width="12" height="12" viewBox="0 0 20 20" fill="none" style={{ transform: 'rotate(180deg)' }} aria-hidden="true">
           <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
         </svg>
-        {c.nbDislikes > 0 && <span style={{ fontWeight: 600, fontSize: '0.625rem' }}>{c.nbDislikes}</span>}
+        {c.nbDislikes > 0 && <span style={{ fontWeight: 600, fontSize: '0.6875rem' }}>{c.nbDislikes}</span>}
       </button>
     </div>
   )
@@ -452,15 +452,15 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
               </div>
             )}
             <EditeurCommentaire value={texte} onChange={setTexte} placeholder={cibleReponse ? 'Votre réponse…' : 'Votre commentaire sur ce passage…'} minHeight={70} />
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.65625rem', color: 'var(--cs-texte-second)', cursor: 'pointer', lineHeight: 1, height: '16px', marginTop: '6px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.6875rem', color: 'var(--cs-texte-second)', cursor: 'pointer', lineHeight: 1, height: '16px', marginTop: '6px' }}>
               <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
                 style={{ width: '12px', height: '12px', flexShrink: 0, accentColor: 'var(--cs-vert)', cursor: 'pointer', margin: 0 }} />
               <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demander la certification</span>
             </label>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px', gap: '8px', alignItems: 'center' }}>
-              {statut === 'err' && motifErreur && <span role="alert" style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)' }}>{motifErreur}</span>}
+              {statut === 'err' && motifErreur && <span role="alert" style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)' }}>{motifErreur}</span>}
               <button onClick={soumettre} disabled={statut === 'sending' || !texte.trim()}
-                style={{ fontSize: '0.71875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: texte.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
+                style={{ fontSize: '0.71875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: texte.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-gris)', fontWeight: 500 }}>
                 {statut === 'sending' ? 'Envoi…' : 'Soumettre'}
               </button>
             </div>

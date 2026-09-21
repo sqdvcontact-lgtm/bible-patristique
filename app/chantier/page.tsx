@@ -551,7 +551,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           .cs-route-liste { gap: 0.75rem; }
           .cs-chiffres { gap: 0; justify-content: space-between; margin: 0.25rem 0 1.75rem; }
           .cs-chiffre-valeur { font-size: 1.5rem !important; }
-          .cs-chiffre-libelle { font-size: 0.5625rem !important; letter-spacing: 0.06em !important; }
+          .cs-chiffre-libelle { font-size: 0.625rem !important; letter-spacing: 0.06em !important; }
           .cs-prevenir-champs { flex-direction: column; }
           .cs-prevenir-champs > * { width: 100%; }
           .cs-prevenir-champs button { padding: 0.75rem 1.125rem !important; }

@@ -269,7 +269,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         <aside style={{ width: '15rem', flexShrink: 0, background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', height: '100%', overflowY: 'auto', padding: '22px 16px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
             {essai.auteur_pseudo && (
-              <p style={{ fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                 {essai.auteur_pseudo}
                 {essai.auteur_mecene && <>{' '}<MarqueMecene taille="1.1em" /></>}
               </p>
@@ -278,8 +278,8 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             {essai.sous_titre && (
               <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', margin: '5px 0 0', lineHeight: 1.35 }}>{essai.sous_titre}</p>
             )}
-            <p style={{ fontSize: '0.625rem', letterSpacing: '0.04em', color: 'var(--cs-texte-doux)', margin: '12px 0 0', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Publié le {dateFormatee}</p>
-            <p style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-doux)', margin: '3px 0 0', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Lu {nbVues} fois</p>
+            <p style={{ fontSize: '0.6875rem', letterSpacing: '0.04em', color: 'var(--cs-texte-gris)', margin: '12px 0 0', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Publié le {dateFormatee}</p>
+            <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', margin: '3px 0 0', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Lu {nbVues} fois</p>
           </div>
 
           <div style={{ display: 'flex', gap: '6px' }}>
@@ -288,7 +288,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
 
           {sommaire.length > 0 && (
             <div style={{ borderTop: '1px solid var(--cs-fond-doux)', paddingTop: '14px' }}>
-              <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 9px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Sommaire</p>
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 9px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>Sommaire</p>
               <nav style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
                 {sommaire.map(s => (
                   <button key={s.id} onClick={() => allerAu(s.id)}
@@ -345,15 +345,15 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
               </p>
             )}
             <div style={{ width: '32px', height: '1px', background: 'var(--cs-bord)', marginBottom: '16px' }} />
-            <p style={{ fontSize: '0.6875rem', letterSpacing: '0.06em', color: 'var(--cs-texte-doux)', marginBottom: '28px' }}>
+            <p style={{ fontSize: '0.6875rem', letterSpacing: '0.06em', color: 'var(--cs-texte-gris)', marginBottom: '28px' }}>
               {dateFormatee}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
-              <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', letterSpacing: '0.04em', margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+              <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', letterSpacing: '0.04em', margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                 Cette publication a été lue {nbVues} fois
               </p>
               <button onClick={toggleApprecier} disabled={!userId}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.65625rem', color: aApprecie ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', background: 'none', border: 'none', padding: 0, cursor: userId ? 'pointer' : 'default', fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: '0.03em' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.6875rem', color: aApprecie ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', background: 'none', border: 'none', padding: 0, cursor: userId ? 'pointer' : 'default', fontFamily: "var(--font-source-sans), Arial, sans-serif", letterSpacing: '0.03em' }}>
                 <svg width="11" height="11" viewBox="0 0 12 12" fill={aApprecie ? 'currentColor' : 'none'} aria-hidden="true">
                   <path d="M6 11S1 7.5 1 4a2.5 2.5 0 0 1 5-.8A2.5 2.5 0 0 1 11 4c0 3.5-5 7-5 7z" stroke="currentColor" strokeWidth="1"/>
                 </svg>
@@ -373,7 +373,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
               <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', lineHeight: 1.8, color: 'var(--cs-texte)', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
                 {'« '}{rendreTexteEnrichi(versetParse.texte)}{' »'}
               </p>
-              <p style={{ fontSize: '0.65625rem', letterSpacing: '0.1em', color: 'var(--cs-texte-doux)', margin: 0, fontFamily: 'var(--font-source-sans), Arial, sans-serif', textTransform: 'uppercase' }}>
+              <p style={{ fontSize: '0.65625rem', letterSpacing: '0.1em', color: 'var(--cs-texte-second)', margin: 0, fontFamily: 'var(--font-source-sans), Arial, sans-serif', textTransform: 'uppercase' }}>
                 {expanderRef(versetParse.ref)}
               </p>
             </div>
@@ -403,7 +403,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
                 <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <span style={{ flex: 1, minWidth: 0, alignSelf: 'center', textAlign: 'center', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', whiteSpace: 'nowrap' }}>Commentaires</span>
+            <span style={{ flex: 1, minWidth: 0, alignSelf: 'center', textAlign: 'center', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', whiteSpace: 'nowrap' }}>Commentaires</span>
             {/* En desktop, les actions vivent dans le volet gauche ; en mobile, ici. */}
             {mobile && (
               <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
@@ -434,7 +434,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M10 4l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span style={{ writingMode: 'vertical-rl', fontSize: '0.5rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-doux)' }}>Commentaires</span>
+          <span style={{ writingMode: 'vertical-rl', fontSize: '0.625rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Commentaires</span>
         </button>
       )}
 

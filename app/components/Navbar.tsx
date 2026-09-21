@@ -615,7 +615,7 @@ const STYLE_BADGE: React.CSSProperties = {
   position: 'absolute', top: '-0.0625rem', right: '-0.125rem',
   minWidth: '0.875rem', height: '0.875rem', lineHeight: '0.875rem',
   background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px',
-  fontSize: '0.625rem', fontWeight: 700, textAlign: 'center',
+  fontSize: '0.6875rem', fontWeight: 700, textAlign: 'center',
   padding: '0 0.1875rem', boxSizing: 'border-box',
 };
 
@@ -1271,12 +1271,12 @@ export default function Navbar() {
            même corps qu'avant. Ce n'est pas un titre — elle nomme un genre de
            résultat, non une œuvre. Seule la couleur a changé de place, du texte
            vers la bande. */
-        .rr-hd { padding:2px 12px 3px; background:var(--fam-aplat); color:var(--cs-sur-aplat); font-size:0.59375rem; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; }
+        .rr-hd { padding:2px 12px 3px; background:var(--fam-aplat); color:var(--cs-sur-aplat); font-size:0.625rem; font-weight:700; letter-spacing:0.09em; text-transform:uppercase; }
         .rr-corps { background:color-mix(in srgb, var(--fam) 7%, var(--cs-surface)); }
         .rr-ligne { display:block; padding:3px 12px; text-decoration:none; transition:background 0.1s; }
         .rr-ligne + .rr-ligne { border-top:1px solid color-mix(in srgb, var(--fam) 18%, var(--cs-surface)); }
         .rr-ligne:hover { background:color-mix(in srgb, var(--fam) 14%, var(--cs-surface)); }
-        .rr-vide { margin:0; padding:3px 12px; font-size:0.71875rem; color:var(--cs-texte-doux); font-style:italic; }
+        .rr-vide { margin:0; padding:3px 12px; font-size:0.71875rem; color:var(--cs-texte-gris); font-style:italic; }
         /* Le rang atteint au CLAVIER prend la teinte de sa propre famille, et non
            plus un gris commun : la flèche descend d'un domaine à l'autre, et le
            surlignage doit le dire. */
@@ -1423,7 +1423,7 @@ export default function Navbar() {
                       className="rr-ligne" style={{ padding: "4px 12px" }}>
                       <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>{surlignerMatch(o.titre, requeteRapide.trim())}</span>
                       {o.auteurs?.nom && <span style={{ display: "block", fontSize: "0.71875rem", fontStyle: "italic", color: "var(--cs-texte-second)", lineHeight: 1.25, marginTop: "1px" }}>{o.auteurs.nom}</span>}
-                      {edition && <span style={{ display: "block", fontSize: "0.6875rem", color: "var(--cs-texte-doux)", lineHeight: 1.3, marginTop: "1px" }}>{edition}</span>}
+                      {edition && <span style={{ display: "block", fontSize: "0.6875rem", color: "var(--cs-texte-gris)", lineHeight: 1.3, marginTop: "1px" }}>{edition}</span>}
                     </Link>
                     );
                   })}
@@ -1478,7 +1478,7 @@ export default function Navbar() {
                             {ref && p.categorie ? <span style={{ color: "var(--cs-texte-faible)" }}> · </span> : null}
                             {p.categorie ? <span style={{ color: "var(--cs-texte-doux)" }}>{libelleCategoriePericope(p.categorie)}</span> : null}
                           </span>
-                          {corr && <span style={{ display: "block", fontSize: "0.65625rem", color: "var(--cs-texte-doux)", fontStyle: "italic", lineHeight: 1.2 }}>Correspond à : {corr}</span>}
+                          {corr && <span style={{ display: "block", fontSize: "0.6875rem", color: "var(--cs-texte-gris)", fontStyle: "italic", lineHeight: 1.2 }}>Correspond à : {corr}</span>}
                         </Link>
                       );
                     })
@@ -1502,7 +1502,7 @@ export default function Navbar() {
                     return (
                       <Link key={e.id} id={`nav-ev:${e.id}`} href={`/histoire#${e.id}`} onClick={fermerRechercheRapide} className="rr-ligne">
                         <span style={{ display: "block", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>{surlignerMatch(titrePropre, requeteRapide.trim())}</span>
-                        {e.date_affichage && <span style={{ display: "block", fontSize: "0.71875rem", color: "var(--cs-texte-doux)", lineHeight: 1.25 }}>{e.date_affichage}</span>}
+                        {e.date_affichage && <span style={{ display: "block", fontSize: "0.71875rem", color: "var(--cs-texte-gris)", lineHeight: 1.25 }}>{e.date_affichage}</span>}
                       </Link>
                     );
                   })}
@@ -1669,7 +1669,7 @@ export default function Navbar() {
                 centré » : un rond plus court que son bloc ne se pose sur rien. */}
             <PortraitLecteur refPortrait={portrait} cadrage={cadragePortrait} initiale={pseudo ?? user.email} taille={34} />
             <div style={{ minWidth: 0 }}>
-              <p style={{ fontSize: "0.6875rem", color: "var(--cs-texte-doux)", margin: 0 }}>Connecté en tant que</p>
+              <p style={{ fontSize: "0.6875rem", color: "var(--cs-texte-gris)", margin: 0 }}>Connecté en tant que</p>
               <p style={{ fontSize: "0.8125rem", color: "var(--cs-encre)", fontWeight: 500, margin: "1px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pseudo ?? user.email}</p>
             </div>
           </div>
@@ -2123,7 +2123,7 @@ export default function Navbar() {
           .cs-plus-recente-edition { color: var(--cs-texte-second); }
           .cs-plus-recente-date {
             flex-shrink: 0; margin-left: auto; padding-top: 0.125rem;
-            font-size: 0.625rem; line-height: 1.4; color: var(--cs-texte-gris);
+            font-size: 0.6875rem; line-height: 1.4; color: var(--cs-texte-gris);
             white-space: nowrap; font-variant-numeric: tabular-nums;
           }
           .cs-plus-sep { height: 1px; background: var(--cs-fond-doux); margin: 3px 6px; }
@@ -2134,7 +2134,7 @@ export default function Navbar() {
              consultées ». Les deux menus le portaient à deux tailles et deux approches
              différentes ; une seule mesure désormais. La COULEUR, elle, reste au menu :
              chaque famille d'administration a la sienne, quand les œuvres gardent le gris. */
-          .cs-plus-titre { font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--cs-texte-doux); padding: 6px 12px 2px; margin: 0; }
+          .cs-plus-titre { font-size: 0.625rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--cs-texte-second); padding: 6px 12px 2px; margin: 0; }
           /* Familles d'administration : l'intertitre prend la couleur du domaine (posée
              en ligne), et un filet de la même couleur borde chaque entrée. */
           .cs-admin-fam { opacity: 0.9; }

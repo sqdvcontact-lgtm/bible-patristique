@@ -15,7 +15,7 @@ import type { CSSProperties, ReactNode } from 'react'
 
 /** Le type d'une note, en tête de sa ligne : « Critique textuelle », « Note de l'édition ». */
 export const STYLE_INTITULE_LIGNE_NOTE: CSSProperties = {
-  fontSize: '0.5625rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--cs-texte-second)',
+  fontSize: '0.625rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--cs-texte-second)',
 }
 
 /** Ce qu'une note dit, ramené à une ligne d'aperçu. */
@@ -42,7 +42,7 @@ export function PastilleFacette({ actif, alerte, onClick, children }: {
   return (
     <button type="button" onClick={onClick} aria-pressed={actif}
       style={{
-        fontSize: '0.625rem', lineHeight: 1.2, padding: '4px 8px', borderRadius: '4px',
+        fontSize: '0.6875rem', lineHeight: 1.2, padding: '4px 8px', borderRadius: '4px',
         border: `1px solid ${actif ? teinte : 'var(--cs-bord)'}`,
         background: actif ? 'var(--cs-vert-pale)' : 'var(--cs-surface)',
         color: actif ? teinte : 'var(--cs-texte-second)',
@@ -56,7 +56,7 @@ export function PastilleFacette({ actif, alerte, onClick, children }: {
 export function MarqueNote({ alerte, children }: { alerte?: boolean; children: ReactNode }) {
   return (
     <span style={{
-      fontSize: '0.5rem', letterSpacing: '0.05em', textTransform: 'uppercase',
+      fontSize: '0.625rem', letterSpacing: '0.05em', textTransform: 'uppercase',
       padding: '1px 5px', borderRadius: '4px',
       border: `1px solid ${alerte ? 'var(--cs-danger-bord)' : 'var(--cs-bord)'}`,
       color: alerte ? 'var(--cs-danger-fonce)' : 'var(--cs-texte-second)',

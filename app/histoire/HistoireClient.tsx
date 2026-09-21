@@ -418,7 +418,7 @@ export default function HistoireClient(
             <option value="">Tous les pays</option>
             {rep.pays.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
-          <p style={{ margin: '6px 0 0', fontSize: '0.625rem', lineHeight: 1.4, color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>
+          <p style={{ margin: '6px 0 0', fontSize: '0.6875rem', lineHeight: 1.4, color: 'var(--cs-texte-gris)', fontStyle: 'italic' }}>
             Territoire actuel du lieu. La désignation historique reste affichée sur l’événement.
           </p>
         </GroupeFiltre>
@@ -532,8 +532,8 @@ function ListeFrise({ items, mobile, toutesNotes, recherche, liensParEvenement, 
             <h2 style={{
               position: 'sticky', top: HAUTEUR_NAVBAR, zIndex: 2, margin: 0,
               padding: '9px 0 5px', background: FOND,
-              fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700,
-              letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)',
+              fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700,
+              letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-second)',
             }}>
               {t.nom}
             </h2>
@@ -605,7 +605,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
     </div>
   )
   const familleCol = (
-    <div title={e.famille ?? ''} style={{ fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: c, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+    <div title={e.famille ?? ''} style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: c, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
       {e.famille ?? ''}
     </div>
   )
@@ -665,7 +665,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
           remonter son origine avant son événement principal quelle que soit l'année. */}
       {afficheNotice && places.map(pl => (
         <div key={pl.code} style={{ marginTop: '6px' }}>
-          <p style={{ margin: 0, fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>
+          <p style={{ margin: 0, fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>
             {pl.titre} · {pl.rang} sur {pl.total}{pl.role ? ` · ${pl.role}` : ''}
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px', marginTop: '2px' }}>
@@ -685,7 +685,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
           trente nœuds, et elle ne dirait rien de plus que la phrase. */}
       {afficheNotice && liens.length > 0 && (
         <div style={{ marginTop: '6px' }}>
-          <p style={{ margin: 0, fontFamily: SANS, fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>Autour</p>
+          <p style={{ margin: 0, fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>Autour</p>
           <ul style={{ listStyle: 'none', margin: '2px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {liens.map((l, i) => (
               <li key={`${l.autreId}-${i}`} style={{ fontFamily: SERIF, fontSize: '0.71875rem', lineHeight: 1.35, color: 'var(--cs-texte-second)' }}>
@@ -796,7 +796,7 @@ function Lien({ valeur }: { valeur: string }) {
 
 function LigneDetail({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <p style={{ margin: '0 0 3px', fontFamily: SANS, fontSize: '0.65625rem', lineHeight: 1.5, color: 'var(--cs-texte-second)' }}>
+    <p style={{ margin: '0 0 3px', fontFamily: SANS, fontSize: '0.6875rem', lineHeight: 1.5, color: 'var(--cs-texte-second)' }}>
       <span style={{ color: 'var(--cs-texte-doux)' }}>{label} : </span>{children}
     </p>
   )

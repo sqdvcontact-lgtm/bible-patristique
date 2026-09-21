@@ -79,7 +79,7 @@ export default function RailVolet({ cote, libelle, complement, onOuvrir }: {
             qu'on s'en approche. */}
         <span aria-hidden style={{
           writingMode: 'vertical-rl', fontSize: '0.65625rem', letterSpacing: '0.12em',
-          textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-gris)',
+          textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxHeight: '58%',
         }}>
           {libelle}
@@ -87,7 +87,7 @@ export default function RailVolet({ cote, libelle, complement, onOuvrir }: {
         {complement && (
           <span aria-hidden style={{
             writingMode: 'vertical-rl', fontFamily: 'var(--font-source-serif), Georgia, serif',
-            fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', letterSpacing: '0.04em',
+            fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', letterSpacing: '0.04em',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxHeight: '32%',
           }}>
             {complement}

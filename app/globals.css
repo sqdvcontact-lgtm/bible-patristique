@@ -3051,7 +3051,7 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
    avaleraient les taps du voisin — c'est le raisonnement de « .cs-appel-cible ». */
 .cs-bouton-lien {
   font-family: inherit;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-style: normal;
   font-weight: 400;
   line-height: 1.35;
@@ -3818,7 +3818,7 @@ main.lecture-entree [data-cs-bloc],
   font-weight: 400;
   letter-spacing: 0.03em;
   font-variant-numeric: tabular-nums;
-  color: var(--cs-texte-doux);
+  color: var(--cs-texte-gris);
   white-space: nowrap;
   text-indent: 0;
 }
@@ -4399,7 +4399,7 @@ main.lecture-entree [data-cs-bloc],
   border: none;
   background: none;
   font-family: var(--font-source-sans), Arial, sans-serif;
-  font-size: 0.65625rem;
+  font-size: 0.6875rem;
   line-height: 1;
   color: var(--cs-texte-gris);
   cursor: pointer;
@@ -4641,7 +4641,7 @@ main.lecture-entree [data-cs-bloc],
 .cs-fiche-champ dt {
   flex: 0 0 auto;
   margin: 0;
-  font-size: 0.65625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: var(--cs-texte-second);
 }

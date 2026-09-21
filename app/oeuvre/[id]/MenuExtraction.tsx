@@ -250,7 +250,7 @@ export default function MenuExtraction({ donnees, onFermer }: {
           style={{ display: 'block', width: '100%', marginTop: '18px', padding: '9px 12px', borderRadius: '4px', border: 'none', background: enCours ? 'var(--cs-bord)' : 'var(--cs-vert-aplat)', color: 'var(--cs-surface)', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.78125rem', fontWeight: 600, cursor: enCours ? 'progress' : 'pointer', transition: 'background 0.14s' }}>
           {enCours ? 'Préparation du document…' : 'Extraire en Word'}
         </button>
-        <p style={{ fontSize: '0.625rem', lineHeight: 1.45, color: 'var(--cs-texte-gris)', margin: '10px 0 0', textAlign: 'center' }}>
+        <p style={{ fontSize: '0.6875rem', lineHeight: 1.45, color: 'var(--cs-texte-gris)', margin: '10px 0 0', textAlign: 'center' }}>
           L’extraction est libre. Merci de citer Corpus Scriptura.
         </p>
       </div>

@@ -455,7 +455,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
               <p style={{ fontSize: '0.71875rem', color: 'var(--cs-vert)', fontStyle: 'italic', textAlign: 'center', padding: '8px 0 16px' }}>Proposition envoyée, merci !</p>
             ) : (
               <>
-                <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '0 0 10px', lineHeight: 1.45 }}>
+                <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', margin: '0 0 10px', lineHeight: 1.45 }}>
                   Choisissez les versets dans la Bible, ou écrivez la référence et ce qui vous la fait proposer. L’un ou l’autre suffit.
                 </p>
 
@@ -466,7 +466,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 
                 {selection && versets.length > 0 && (
                   <div style={{ marginTop: '8px', padding: '8px 10px', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-fond-doux)', borderRadius: '4px' }}>
-                    <p style={{ fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 4px' }}>{libelleTypeLien(selection.champ)}</p>
+                    <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 4px' }}>{libelleTypeLien(selection.champ)}</p>
                     {versets.map(v => (
                       <p key={v.id} style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-fort)', margin: '2px 0 0', lineHeight: 1.4 }}>{v.label}</p>
                     ))}
@@ -485,10 +485,10 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
             </div>
             {statut !== 'ok' && (
               <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', padding: '10px 22px 18px' }}>
-                {statut === 'err' && <span style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', marginRight: 'auto' }}>Erreur d’envoi.</span>}
+                {statut === 'err' && <span style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', marginRight: 'auto' }}>Erreur d’envoi.</span>}
                 <button onClick={() => setOuvert(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                 <button onClick={envoyer} disabled={statut === 'envoi' || !peutEnvoyer}
-                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: peutEnvoyer ? 'pointer' : 'default', background: peutEnvoyer ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: peutEnvoyer ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
+                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: peutEnvoyer ? 'pointer' : 'default', background: peutEnvoyer ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: peutEnvoyer ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-gris)', fontWeight: 500 }}>
                   {statut === 'envoi' ? 'Envoi…' : 'Envoyer'}
                 </button>
               </div>
@@ -3851,7 +3851,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               blanc entre deux œuvres reste cinq fois plus large. */}
                           {distinction && (
                             <span className="lien-meme-auteur-edition"
-                              style={{ display: 'block', fontSize: '0.625rem', fontStyle: 'italic', lineHeight: 1.1, marginTop: '0.0625rem', ...(courante ? { color: 'var(--cs-vert)' } : null) }}>
+                              style={{ display: 'block', fontSize: '0.6875rem', fontStyle: 'italic', lineHeight: 1.1, marginTop: '0.0625rem', ...(courante ? { color: 'var(--cs-vert)' } : null) }}>
                               {distinction}
                             </span>
                           )}
@@ -3934,7 +3934,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               <IconeChevron dir={deployee ? 'down' : 'right'} size={11} strokeWidth={1.4} />
                             </span>
                             <span style={{ fontSize: '0.6875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)' }}>Opuscules</span>
-                            <span style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)' }}>{opuscules.length}</span>
+                            <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)' }}>{opuscules.length}</span>
                           </button>
                           {deployee && lignes(opuscules)}
                         </div>
@@ -4003,7 +4003,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                 </a>
                                 {entry.niveaux2.map((niveau2) => (
                                   <a key={niveau2.niv2} href={`#${niveau2.anchor}`} onClick={(e) => { e.preventDefault(); setVue('apparat'); setSegActif(null); setApparatNiv1Actif(cle); setAncreEnAttente(niveau2.anchor) }} className="toc-lien-n2"
-                                    style={{ display: 'block', paddingLeft: '10px', fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
+                                    style={{ display: 'block', paddingLeft: '10px', fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', marginBottom: '2px', lineHeight: 1.35, textDecoration: 'none' }}>
                                     {rendreIntituleDeSommaire(niveau2.niv2)}
                                   </a>
                                 ))}
@@ -4074,7 +4074,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           <div key={d.division} style={{ borderLeft: actif2 ? '2px solid var(--cs-vert)' : '2px solid transparent', marginBottom: '2px' }}>
                             <button onClick={() => naviguerComparaison(bk, d.division)}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0 3px 8px' }}>
-                              <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{rendreIntituleDeSommaire(d.niv2 || libelleDivisionComparaison(d.division))}</span>
+                              <span style={{ fontSize: '0.6875rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3 }}>{rendreIntituleDeSommaire(d.niv2 || libelleDivisionComparaison(d.division))}</span>
                             </button>
                           </div>
                         )
@@ -4097,7 +4097,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0', fontSize: '0.71875rem', fontWeight: estActif ? 600 : 400, color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte)', lineHeight: 1.35, ...COMPOSITION_INTITULE }}>
                     {rendreIntituleDeSommaire(intituleDeNiveau1(n1, niv1TexteMap))}
                     {n1 !== NIV1_LIMINAIRES && n1txt && configNiveaux.txtSommaire[0] && (
-                      <span style={{ fontSize: '0.59375rem', color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px', ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n1txt)}</span>
+                      <span style={{ fontSize: '0.6875rem', color: estActif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px', ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n1txt)}</span>
                     )}
                   </button>
 
@@ -4116,8 +4116,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         <button
                           onClick={() => allerAuNiv2(actif2 ? null : n2)}
                           style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0 3px 8px' }}>
-                          <span style={{ fontSize: '0.65625rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3, ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n2)}</span>
-                          {n2txt && configNiveaux.txtSommaire[1] && <span style={{ fontSize: '0.59375rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px', ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n2txt)}</span>}
+                          <span style={{ fontSize: '0.6875rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-second)', fontWeight: actif2 ? 600 : 400, display: 'block', lineHeight: 1.3, ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n2)}</span>
+                          {n2txt && configNiveaux.txtSommaire[1] && <span style={{ fontSize: '0.6875rem', color: actif2 ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', fontStyle: 'italic', display: 'block', lineHeight: 1.3, marginTop: '1px', ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n2txt)}</span>}
                         </button>
                         {/* Niv3 — toujours visible, sans accordéon */}
                         {niv3DeN2.map(n3 => {
@@ -4131,8 +4131,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                 if (ancre) naviguerVersAncre(ancre)
                               }}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0 2px 16px' }}>
-                              <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-doux)', display: 'block', lineHeight: 1.3, ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n3)}</span>
-                              {n3txt && configNiveaux.txtSommaire[2] && <span style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', display: 'block', lineHeight: 1.2, ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n3txt)}</span>}
+                              <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', display: 'block', lineHeight: 1.3, ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n3)}</span>
+                              {n3txt && configNiveaux.txtSommaire[2] && <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', display: 'block', lineHeight: 1.2, ...COMPOSITION_INTITULE }}>{rendreIntituleDeSommaire(n3txt)}</span>}
                             </button>
                           )
                         })}
@@ -4297,7 +4297,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         <button onClick={() => setEditionCible(cibleTitre(1, g, false, niv1Actif))}
                           title="Modifier le titre" style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}><IconeCrayon size={12} /></button>
                         <button onClick={() => setEditionCible(cibleTitre(1, g, true, g.niv1_texte ?? ''))}
-                          title="Modifier le sous-titre" style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1, fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
+                          title="Modifier le sous-titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1, fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                       </div>
                     )})()}
                   </>
@@ -4529,9 +4529,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '-52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible(cibleTitre(2, groupe, false, groupe.niv2))}
-                            title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
+                            title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible(cibleTitre(2, groupe, true, groupe.niv2_texte ?? ''))}
-                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                         </div>
                       )}
                     </div>
@@ -4543,9 +4543,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       {estAdmin && (
                         <div style={{ position: 'absolute', right: '-52px', top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible(cibleTitre(3, groupe, false, groupe.niv3))}
-                            title="Modifier le titre" style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
+                            title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible(cibleTitre(3, groupe, true, groupe.niv3_texte ?? ''))}
-                            title="Modifier le sous-titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic' }}><IconeCrayon size={12} /></button>
                         </div>
                       )}
                     </div>
@@ -4557,9 +4557,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       {estAdmin && (
                         <span style={{ position: 'absolute', right: '-52px', top: 0, display: 'inline-flex', gap: '3px', alignItems: 'center', textTransform: 'none' }}>
                           <button onClick={() => setEditionCible(cibleTitre(4, groupe, false, groupe.niv4))}
-                            title="Modifier le titre" style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
+                            title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible(cibleTitre(4, groupe, true, groupe.niv4_texte ?? ''))}
-                            title="Modifier le sous-titre" style={{ fontSize: '0.5rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
+                            title="Modifier le sous-titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', fontStyle: 'italic', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
                         </span>
                       )}
                     </h5>
@@ -4914,7 +4914,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           {sousTitre1 && <p style={styleSousTitreNiveau(1)}>{rendreTitreColophonAvecNotes(rendu('niv1_texte', sousTitre1), notesTitre)}</p>}
                           {estAdmin && (
                             <button onClick={() => setEditionCible(cibleTitre(1, groupe, true, groupe.niv1_texte || groupe.niv1))}
-                              title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
+                              title="Modifier ce titre (admin)" style={{ position: 'absolute', right: 0, top: 0, fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           )}
                         </div>
                       )}
@@ -5115,7 +5115,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     aria-haspopup="menu" aria-expanded={tradOuverte} aria-controls={tradOuverte ? idMenuTraductions : undefined}
                     aria-label={`${lecture.label}, choisir la traduction biblique`}
                     title="Choisir la traduction biblique"
-                    style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '4px', border: `1px solid ${tradOuverte ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: 'var(--cs-surface)', fontSize: '0.65625rem', color: 'var(--cs-encre)', cursor: 'pointer', transition: 'border-color 0.12s' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '4px', border: `1px solid ${tradOuverte ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: 'var(--cs-surface)', fontSize: '0.6875rem', color: 'var(--cs-encre)', cursor: 'pointer', transition: 'border-color 0.12s' }}>
                     <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{lecture.label}</span>
                     <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: 'var(--cs-texte-doux)', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </button>
@@ -5207,7 +5207,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                       des Pères. */}
                                   {estAdmin && (
                                     <button onClick={() => supprimerLiensBibliques(segActifData.id, groupe.map(v => v.id))} title="Supprimer ce lien biblique"
-                                      style={{ fontSize: '0.59375rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                      style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>
                                       {multiple ? 'Supprimer les liens' : 'Supprimer le lien'}
                                     </button>
                                   )}
@@ -5219,7 +5219,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                 </div>
                               </div>
                               {note && (
-                                <p style={{ fontSize: '0.625rem', fontStyle: 'italic', color: 'var(--cs-etiquette)', margin: '0 0 3px', lineHeight: 1.3 }}>
+                                <p style={{ fontSize: '0.6875rem', fontStyle: 'italic', color: 'var(--cs-etiquette)', margin: '0 0 3px', lineHeight: 1.3 }}>
                                   ↳ {note}
                                 </p>
                               )}
@@ -5449,7 +5449,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   </button>
                 ))}
               </div>
-              <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-gris)', lineHeight: 1.45, margin: 0 }}>Le texte entier conserve ses titres et son sommaire. La pagination ne s’arrête plus à chaque niveau 1.</p>
+              <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', lineHeight: 1.45, margin: 0 }}>Le texte entier conserve ses titres et son sommaire. La pagination ne s’arrête plus à chaque niveau 1.</p>
             </div>
             {(['sommaire', 'corps'] as Surface[]).map(type => {
               const { profondeur: key, chapeaux: txtKey } = clesDeSurface(type)
@@ -5461,7 +5461,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   {/* ⛔ Le panneau n'offre que les niveaux que CETTE surface sait rendre :
                       trois pour le sommaire, quatre pour le corps. Il en proposait cinq
                       de chaque côté, dont aucun rendu ne s'occupe. */}
-                  <label style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Niveaux de titres affichés</label>
+                  <label style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Niveaux de titres affichés</label>
                   <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
                     {niveauxOfferts(type).map(n => {
                       const choisi = configNiveaux[key] === n
@@ -5492,7 +5492,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       donc ÉTEINT, et non vert-et-grisé — c'est-à-dire coché sans qu'on
                       puisse le décocher. Baisser le niveau l'éteint pour de bon
                       (`poserProfondeur`), si bien que la donnée dit ce que l'écran dit. */}
-                  <label style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-second)', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Chapeaux descriptifs</label>
+                  <label style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', display: 'block', margin: '0 0 6px', fontWeight: 600 }}>Chapeaux descriptifs</label>
                   <div style={{ display: 'flex', gap: '4px' }}>
                     {niveauxOfferts(type).map(n => {
                       const disponible = n <= configNiveaux[key]
@@ -5501,7 +5501,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         <button key={n} disabled={!disponible}
                           onClick={() => setConfigNiveaux(prev => basculerChapeau(prev, type, n))}
                           title={disponible ? `Chapeau du niveau ${n}` : `Le niveau ${n} n’est pas affiché`}
-                          style={{ width: '34px', height: '30px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: actif ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontSize: '0.65625rem', cursor: disponible ? 'pointer' : 'default', opacity: disponible ? 1 : 0.4 }}>
+                          style={{ width: '34px', height: '30px', borderRadius: '4px', border: `1px solid ${actif ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: actif ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-gris)', fontSize: '0.6875rem', cursor: disponible ? 'pointer' : 'default', opacity: disponible ? 1 : 0.4 }}>
                           N{n}
                         </button>
                       )
@@ -5511,9 +5511,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               )
             })}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.10em', color: 'var(--cs-texte-doux)', margin: 0, textTransform: 'uppercase' }}>Numéros de segments</p>
+              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.10em', color: 'var(--cs-texte-second)', margin: 0, textTransform: 'uppercase' }}>Numéros de segments</p>
               <button onClick={() => setConfigNiveaux(prev => ({ ...prev, afficherNumeros: !prev.afficherNumeros }))}
-                style={{ fontSize: '0.6875rem', padding: '4px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: configNiveaux.afficherNumeros ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: configNiveaux.afficherNumeros ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', cursor: 'pointer' }}>
+                style={{ fontSize: '0.6875rem', padding: '4px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: configNiveaux.afficherNumeros ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: configNiveaux.afficherNumeros ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-gris)', cursor: 'pointer' }}>
                 {configNiveaux.afficherNumeros ? 'Affichés' : 'Masqués'}
               </button>
             </div>
@@ -5540,7 +5540,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     <span style={{ display: 'flex', flex: '1 1 auto', alignItems: 'center' }}>
                       <Fleuron cle={duSite ? FLEURON_DU_SITE : cle} />
                     </span>
-                    <span style={{ fontSize: '0.5625rem', lineHeight: 1.25, textAlign: 'center', color: choisi ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', fontWeight: choisi ? 700 : 400 }}>{nom}</span>
+                    <span style={{ fontSize: '0.6875rem', lineHeight: 1.25, textAlign: 'center', color: choisi ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', fontWeight: choisi ? 700 : 400 }}>{nom}</span>
                   </button>
                 )
               })}
@@ -5548,7 +5548,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             </>)}
             </div>
             {configErreur && (
-              <p role="alert" style={{ flexShrink: 0, margin: 0, padding: '10px 22px 0', fontSize: '0.65625rem', lineHeight: 1.45, color: 'var(--cs-danger-fonce)' }}>{configErreur}</p>
+              <p role="alert" style={{ flexShrink: 0, margin: 0, padding: '10px 22px 0', fontSize: '0.6875rem', lineHeight: 1.45, color: 'var(--cs-danger-fonce)' }}>{configErreur}</p>
             )}
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end', gap: '8px', padding: '12px 22px 20px', borderTop: '1px solid var(--cs-fond-doux)' }}>
               <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>

@@ -274,11 +274,11 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
         setLoading(false)
         onSupprime()
       }} disabled={loading}
-        style={{ fontSize:'0.625rem', padding:'1px 5px', borderRadius:'4px', border:'none', background:'var(--cs-danger-aplat)', color:'var(--cs-sur-aplat)', cursor:'pointer' }}>
+        style={{ fontSize:'0.6875rem', padding:'1px 5px', borderRadius:'4px', border:'none', background:'var(--cs-danger-aplat)', color:'var(--cs-sur-aplat)', cursor:'pointer' }}>
         {loading ? '…' : 'Oui'}
       </button>
       <button onClick={e => { e.stopPropagation(); setConfirme(false) }}
-        style={{ fontSize:'0.625rem', padding:'1px 5px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-second)', cursor:'pointer' }}>
+        style={{ fontSize:'0.6875rem', padding:'1px 5px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-second)', cursor:'pointer' }}>
         Non
       </button>
     </span>
@@ -503,13 +503,13 @@ const OR_SURVOL = 'rgba(var(--cs-or-rgb), 0.10)'
 
 /** La rubrique d'une facette du volet de filtres : « Auteurs », « Tradition »… */
 const STYLE_RUBRIQUE_FILTRE: React.CSSProperties = {
-  fontSize: '0.59375rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: OR_ENCRE,
+  fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: OR_ENCRE,
 }
 
 /** Une pastille de facette : retenue, offerte, ou indisponible sous le tri en cours. */
 function stylePastilleFiltre(sel: boolean, dispo: boolean): React.CSSProperties {
   return {
-    fontSize: '0.625rem', padding: '2px 7px', borderRadius: '8px', cursor: dispo ? 'pointer' : 'default',
+    fontSize: '0.6875rem', padding: '2px 7px', borderRadius: '8px', cursor: dispo ? 'pointer' : 'default',
     border: `1px solid ${sel ? 'var(--cs-or)' : dispo ? 'var(--cs-or-doux)' : 'var(--cs-bord-clair)'}`,
     background: sel ? OR_SELECTION : dispo ? 'var(--cs-surface)' : 'transparent',
     color: sel ? OR_ENCRE : dispo ? 'var(--cs-texte-second)' : 'var(--cs-or-doux)',
@@ -777,14 +777,14 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
               <svg width="12" height="12" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
-              {c.nbLikes > 0 && <span style={{ fontWeight:600, fontSize:'0.625rem' }}>{c.nbLikes}</span>}
+              {c.nbLikes > 0 && <span style={{ fontWeight:600, fontSize:'0.6875rem' }}>{c.nbLikes}</span>}
             </button>
             <button onClick={() => basculerVote(c, -1)} title="Je n'aime pas"
               style={{ display:'flex', alignItems:'center', gap:'3px', color: c.monVote === -1 ? 'var(--cs-danger-fonce)' : 'var(--cs-texte-doux)', background:'transparent', border:'none', cursor:'pointer', padding:0 }}>
               <svg width="12" height="12" viewBox="0 0 20 20" fill="none" style={{ transform:'rotate(180deg)' }} aria-hidden="true">
                 <path d="M7 9V17H4.5C3.67 17 3 16.33 3 15.5V10.5C3 9.67 3.67 9 4.5 9H7ZM7 9L10.5 3.5C10.78 3.06 11.32 2.91 11.77 3.15C12.97 3.79 13.5 5.22 12.97 6.47L12 8.75H15.5C16.6 8.75 17.42 9.76 17.18 10.84L16.05 15.84C15.87 16.64 15.16 17.21 14.35 17.21H10C8.9 17.21 7.85 16.83 7 16.18" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
               </svg>
-              {c.nbDislikes > 0 && <span style={{ fontWeight:600, fontSize:'0.625rem' }}>{c.nbDislikes}</span>}
+              {c.nbDislikes > 0 && <span style={{ fontWeight:600, fontSize:'0.6875rem' }}>{c.nbDislikes}</span>}
             </button>
           </div>
           {!estReponse && (
@@ -867,12 +867,12 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
               style={{ width:'100%', fontSize:'0.71875rem', padding:'4px 7px', borderRadius:'4px', border:`1px solid ${erreur && !nom.trim() ? 'var(--cs-danger)' : 'var(--cs-bord)'}`, background:'var(--cs-surface)', color:'var(--cs-texte-fort)', outline:'none', boxSizing:'border-box' }} />
             <input aria-label="Adresse électronique" type="email" value={mail} onChange={e => setMail(e.target.value)} placeholder="Adresse e-mail *"
               style={{ width:'100%', fontSize:'0.71875rem', padding:'4px 7px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', outline:'none', boxSizing:'border-box' }} />
-            <p style={{ fontSize:'0.625rem', color:'var(--cs-texte-doux)', margin:0 }}>* L’adresse e-mail ne sera pas publiée.</p>
+            <p style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', margin:0 }}>* L’adresse e-mail ne sera pas publiée.</p>
           </>
         )}
-        {erreur && <p style={{ fontSize:'0.65625rem', color:'var(--cs-danger)', margin:0 }}>{erreur}</p>}
+        {erreur && <p style={{ fontSize:'0.6875rem', color:'var(--cs-danger)', margin:0 }}>{erreur}</p>}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px' }}>
-        <label style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'0.65625rem', color:'var(--cs-texte-second)', cursor:'pointer', lineHeight:1, height:'16px' }}>
+        <label style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'0.6875rem', color:'var(--cs-texte-second)', cursor:'pointer', lineHeight:1, height:'16px' }}>
           <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}
             style={{ width:'12px', height:'12px', flexShrink:0, accentColor:'var(--cs-vert)', cursor:'pointer', margin:0 }} />
           <span title="La certification met le commentaire en avant après validation et le fait remonter dans la liste.">Demander la certification</span>
@@ -1667,7 +1667,7 @@ export default function PanneauPatristique({
                 <span style={{ fontSize:'0.65625rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: ongletAffiche === t.code ? 600 : 400, textAlign: 'center', lineHeight: 1.15 }}>{t.label}</span>
                 {/* ⛔ Une ligne de compte, toujours, et d'une hauteur écrite : voir `LigneCompte`. */}
                 <LigneCompte enAttente={t.enAttente} compte={t.count} videDit="∅"
-                  style={{ fontSize: '0.625rem', lineHeight: 1, height: '1em', fontWeight: 500, color: ongletAffiche === t.code ? 'var(--cs-vert)' : 'var(--cs-texte-doux)' }} />
+                  style={{ fontSize: '0.6875rem', lineHeight: 1, height: '1em', fontWeight: 500, color: ongletAffiche === t.code ? 'var(--cs-vert)' : 'var(--cs-texte-gris)' }} />
               </button>
             ))}
           </div>
@@ -1707,14 +1707,14 @@ export default function PanneauPatristique({
                             flex: 1, background: 'none', border: 'none',
                             borderBottom: sousOnglet === key ? '2px solid var(--cs-vert)' : '2px solid transparent',
                             padding: '5px 2px 4px', cursor: 'pointer',
-                            color: sousOnglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-doux)',
-                            fontSize: '0.625rem', fontWeight: sousOnglet === key ? 600 : 400,
+                            color: sousOnglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-gris)',
+                            fontSize: '0.6875rem', fontWeight: sousOnglet === key ? 600 : 400,
                             letterSpacing: '0.04em', lineHeight: 1.2,
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px',
                           }}>
                           <span>{label}</span>
                           <LigneCompte enAttente={enAttente} compte={nb} videDit="∅"
-                            style={{ fontSize: '0.5625rem', lineHeight: 1.2, height: '1.2em', color: sousOnglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-doux)' }} />
+                            style={{ fontSize: '0.6875rem', lineHeight: 1.2, height: '1.2em', color: sousOnglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-gris)' }} />
                         </button>
                       ))}
                     </div>
@@ -1726,7 +1726,7 @@ export default function PanneauPatristique({
                   <button onClick={() => setFiltreVoletOuvert(o => !o)} aria-expanded={filtreVoletOuvert} style={{
                     position: 'relative',
                     display: 'flex', width: '100%', justifyContent: 'center', alignItems: 'center', gap: '4px',
-                    fontSize: '0.65625rem', padding: '5px 9px', borderRadius: '8px', cursor: 'pointer',
+                    fontSize: '0.6875rem', padding: '5px 9px', borderRadius: '8px', cursor: 'pointer',
                     // L'or dit l'outil, ouvert ou non ; le filet franc et le lavis disent qu'il agit.
                     border: `1px solid ${filtreVoletOuvert || nombreFiltresActifs > 0 ? 'var(--cs-or)' : OR_FILET}`,
                     background: filtreVoletOuvert || nombreFiltresActifs > 0 ? OR_LAVIS : 'var(--cs-surface)',
@@ -1739,7 +1739,7 @@ export default function PanneauPatristique({
                     Filtres
                     {/* Badge en ABSOLU : « Filtres » reste centré, la barre ne s'élargit pas. */}
                     {nombreFiltresActifs > 0 && (
-                      <span style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: OR_ENCRE, color: 'var(--cs-surface)', borderRadius: '8px', fontSize: '0.5625rem', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
+                      <span style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: OR_ENCRE, color: 'var(--cs-surface)', borderRadius: '8px', fontSize: '0.6875rem', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
                         {nombreFiltresActifs}
                       </span>
                     )}
@@ -1782,7 +1782,7 @@ export default function PanneauPatristique({
                     {filtreAuteursBlancs.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '5px' }}>
                         {filtreAuteursBlancs.map(a => (
-                          <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '0.625rem', padding: '1px 5px 1px 7px', background: OR_SELECTION, color: OR_ENCRE, border: '1px solid var(--cs-or)', borderRadius: '8px', fontWeight: 500 }}>
+                          <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '0.6875rem', padding: '1px 5px 1px 7px', background: OR_SELECTION, color: OR_ENCRE, border: '1px solid var(--cs-or)', borderRadius: '8px', fontWeight: 500 }}>
                             {a.nom}
                             <button onClick={() => {
                               setFiltreAuteursIds(prev => { const n = new Set(prev); n.delete(a.id_auteur); return n })
@@ -1936,7 +1936,7 @@ export default function PanneauPatristique({
                 style={{ fontSize:'1.25rem', lineHeight:1, padding:'0 6px', border:'none', background:'none', color: pageCouranteItems === 0 ? 'var(--cs-bord)' : 'var(--cs-texte-second)', cursor: pageCouranteItems === 0 ? 'default' : 'pointer' }}>
                 ‹
               </button>
-              <span style={{ fontSize:'0.65625rem', color:'var(--cs-texte-doux)', whiteSpace:'nowrap', padding:'0 2px' }}>
+              <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', whiteSpace:'nowrap', padding:'0 2px' }}>
                 {debutItems + 1}–{finItems} / {itemsGroupes.length}{nombreFiltresActifs > 0 ? ` (${itemsAffiches.length})` : ''}
               </span>
               <button onClick={() => setPageItems(Math.min(pageCouranteItems + 1, nbPagesItems - 1))} disabled={pageCouranteItems >= nbPagesItems - 1}

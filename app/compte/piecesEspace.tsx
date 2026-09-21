@@ -220,8 +220,8 @@ export const FEUILLE_ESPACE = `
    barre mais une grille (la sous-barre de l'administration a tranché ce cas). */
 .esp-pages { margin: 0 0 14px; padding-bottom: 12px;
   border-bottom: 1px solid var(--cs-bord-clair); }
-.esp-rubrique { display: block; font-size: 0.59375rem; font-weight: 600; letter-spacing: 0.06em;
-  color: var(--cs-texte-doux); margin: 0 0 1px; }
+.esp-rubrique { display: block; font-size: 0.625rem; font-weight: 600; letter-spacing: 0.06em;
+  color: var(--cs-texte-second); margin: 0 0 1px; }
 .esp-groupe + .esp-groupe { margin-top: 14px; }
 .esp-lien { display: block; width: calc(100% + 14px); margin: 0 -7px; box-sizing: border-box;
   padding: 2px 7px; border-radius: 4px; font-size: 0.71875rem; line-height: 1.3;
@@ -235,7 +235,7 @@ export const FEUILLE_ESPACE = `
 .esp-bandeau h1 { font-family: var(--font-source-serif), Georgia, serif; font-size: 1.4375rem;
   font-weight: normal; color: var(--cs-encre-fonce); margin: 0; line-height: 1.1; }
 .esp-reperes { font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--cs-texte-doux); margin: 5px 0 0; }
+  color: var(--cs-texte-second); margin: 5px 0 0; }
 .esp-public { margin-left: auto; font-size: 0.71875rem; color: var(--cs-vert);
   text-decoration: none; white-space: nowrap; flex-shrink: 0; }
 
@@ -257,8 +257,8 @@ export const FEUILLE_ESPACE = `
   .esp-rangee > label, .esp-etiquette { padding-top: 0; }
 }
 .esp-rangee > label, .esp-etiquette { font-size: 0.625rem; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--cs-texte-doux); padding-top: 7px; }
-.esp-note { display: block; font-size: 0.625rem; color: var(--cs-texte-doux);
+  text-transform: uppercase; color: var(--cs-texte-second); padding-top: 7px; }
+.esp-note { display: block; font-size: 0.6875rem; color: var(--cs-texte-gris);
   font-style: italic; margin-top: 3px; line-height: 1.5; }
 .esp-fixe { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.875rem;
   color: var(--cs-texte-fort); }
@@ -278,7 +278,7 @@ export const FEUILLE_ESPACE = `
   border-top: 1px solid var(--cs-bord-clair); display: flex; align-items: center;
   gap: 14px; flex-wrap: wrap; }
 .esp-pied { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--cs-bord-clair);
-  display: flex; gap: 22px; font-size: 0.65625rem; flex-wrap: wrap; }
+  display: flex; gap: 22px; font-size: 0.6875rem; flex-wrap: wrap; }
 .esp-pied button { background: none; border: none; padding: 0; cursor: pointer;
   font-family: inherit; font-size: inherit; color: var(--cs-texte-doux); }
 .esp-pied button.esp-danger { color: var(--cs-danger); }

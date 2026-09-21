@@ -67,7 +67,7 @@ export function TitreSection({ children, centre }: { children: ReactNode; centre
  *  ⚠️ La rangée est un FLEX, donc un contexte de formatage à elle : à côté de la colonne
  *  de droite, elle se range entière dans la place qui reste, et reprend la pleine
  *  mesure sous elle — rangée par rangée. */
-const cleTech: CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', lineHeight: 1.5, paddingTop: '1px' }
+const cleTech: CSSProperties = { flexShrink: 0, width: '8.5rem', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', lineHeight: 1.5, paddingTop: '1px' }
 export const LigneTech = ({ c, children }: { c: string; children: ReactNode }) => children ? (
   <div style={{ display: 'flex', gap: '12px', padding: '4px 0', borderTop: '1px solid var(--cs-fond)', alignItems: 'baseline' }}>
     <span className="cs-fiche-cle" style={cleTech}>{c}</span><span style={{ flex: 1, fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.45 }}>{children}</span>
@@ -78,7 +78,7 @@ export const LigneTech = ({ c, children }: { c: string; children: ReactNode }) =
 // droite n'a pas la place d'une colonne d'étiquettes de 8,5 rem.
 // ⚠️ ELLE FAIT CONTEXTE, comme sa sœur : tout ce qui pose un filet horizontal dans une
 // fiche doit s'arrêter où s'arrête le texte, sous peine de traverser la colonne de droite.
-const CLE_EMPILEE: CSSProperties = { fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', display: 'block', lineHeight: 1.4 }
+const CLE_EMPILEE: CSSProperties = { fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', display: 'block', lineHeight: 1.4 }
 const VAL_EMPILEE: CSSProperties = { fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.35, display: 'block' }
 
 export function RangeeEmpilee({ c, italique, children }: { c: string; italique?: boolean; children: ReactNode }) {

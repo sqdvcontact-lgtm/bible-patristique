@@ -130,9 +130,9 @@ const STYLE_LIGNE_VERSET = {
 const STYLE_REFERENCE = {
   minWidth: 'var(--regard-numero)',
   textAlign: 'right' as const,
-  fontSize: '0.625rem',
+  fontSize: '0.6875rem',
   fontWeight: 600,
-  color: 'var(--cs-texte-doux)',
+  color: 'var(--cs-texte-gris)',
   whiteSpace: 'nowrap' as const,
 }
 

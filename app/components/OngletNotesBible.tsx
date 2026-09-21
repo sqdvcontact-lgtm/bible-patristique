@@ -209,7 +209,7 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
           </PastilleFacette>
         </div>
 
-        <p style={{ fontSize: '0.5625rem', color: 'var(--cs-texte-second)', margin: '8px 0 0', lineHeight: 1.4 }}>
+        <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', margin: '8px 0 0', lineHeight: 1.4 }}>
           {filtre
             ? `${retenues.length} note${retenues.length > 1 ? 's' : ''} sur ${toutes.length}`
             : `${toutes.length} note${toutes.length > 1 ? 's' : ''} dans cette bible`}
@@ -225,7 +225,7 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
         {/* ⚠️ Un relevé incomplet le DIT : un inventaire qui tait ce qu'il n'a pas pu lire
             se lit comme un livre sans notes. */}
         {echecs.map(echec => (
-          <p key={echec.trad} role="alert" style={{ fontSize: '0.5625rem', color: 'var(--cs-danger-fonce)', margin: '4px 0 0', lineHeight: 1.4 }}>
+          <p key={echec.trad} role="alert" style={{ fontSize: '0.6875rem', color: 'var(--cs-danger-fonce)', margin: '4px 0 0', lineHeight: 1.4 }}>
             Les notes éditoriales de {echec.libelle} n’ont pas pu être relevées.
           </p>
         ))}
@@ -282,7 +282,7 @@ const LigneNoteBible = memo(function LigneNoteBible({ note, courante, nommerLaBi
       onClick={() => onAller(note)}
       entete={<>
         {note.origine !== 'bloc' && note.reperes && (
-          <span style={{ fontSize: '0.625rem', fontWeight: 600, color: 'var(--cs-texte)', fontVariantNumeric: 'tabular-nums' }}>
+          <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-texte)', fontVariantNumeric: 'tabular-nums' }}>
             {note.reperes}
           </span>
         )}
@@ -293,7 +293,7 @@ const LigneNoteBible = memo(function LigneNoteBible({ note, courante, nommerLaBi
         {note.origine === 'bloc' && note.reperes && (
           <span style={{
             flexBasis: '100%', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic',
-            fontSize: '0.625rem', lineHeight: 1.3, color: 'var(--cs-texte-second)',
+            fontSize: '0.6875rem', lineHeight: 1.3, color: 'var(--cs-texte-second)',
           }}>
             {note.reperes}
           </span>

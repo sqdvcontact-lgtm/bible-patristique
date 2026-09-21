@@ -103,7 +103,7 @@ function LigneCompte({ actif, onClick, label, n }: { actif: boolean; onClick: ()
         background: actif ? VERT : 'transparent', transition: 'background 0.12s, border-color 0.12s',
       }} />
       <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-      <span style={{ fontFamily: SANS, fontSize: '0.625rem', color: actif ? VERT : 'var(--cs-texte-second)' }}>{n}</span>
+      <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: actif ? VERT : 'var(--cs-texte-second)' }}>{n}</span>
     </button>
   )
 }
@@ -255,7 +255,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
         )}
       </div>
 
-      <p aria-live="polite" style={{ margin: '7px 0 0', fontFamily: SANS, fontSize: '0.625rem', letterSpacing: '0.04em', color: actifs ? VERT : 'var(--cs-texte-second)' }}>
+      <p aria-live="polite" style={{ margin: '7px 0 0', fontFamily: SANS, fontSize: '0.6875rem', letterSpacing: '0.04em', color: actifs ? VERT : 'var(--cs-texte-second)' }}>
         {libelleCompte(entrees.length, retenues.length, actifs)}
       </p>
 
@@ -384,7 +384,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
         .biblio-l2 {
           display: flex; align-items: baseline; gap: 6px 14px; flex-wrap: wrap;
           margin: 4px 0 0 1.1em;
-          font-family: ${SANS}; font-size: 0.65625rem; line-height: 1.45; color: var(--cs-texte-second);
+          font-family: ${SANS}; font-size: 0.6875rem; line-height: 1.45; color: var(--cs-texte-second);
         }
         .biblio-l2 > * { min-width: 0; }
         .biblio-nature { white-space: nowrap; color: var(--cs-texte-gris); }
@@ -401,7 +401,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
            liste de six cents boutons ne se lit pas. Sans curseur, il reste visible. */
         .biblio-copier {
           margin-left: auto; background: none; border: 1px solid var(--cs-bord-clair); border-radius: 4px;
-          padding: 1px 7px; cursor: pointer; font-family: ${SANS}; font-size: 0.625rem; color: var(--cs-texte-second);
+          padding: 1px 7px; cursor: pointer; font-family: ${SANS}; font-size: 0.6875rem; color: var(--cs-texte-second);
           opacity: 0; transition: opacity 0.14s ease, color 0.14s ease, border-color 0.14s ease;
         }
         .biblio-entree:hover .biblio-copier, .biblio-entree:focus-within .biblio-copier { opacity: 1; }
@@ -497,7 +497,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
                     </div>
                   </div>
                 ))}
-                <p style={{ marginTop: '2.5rem', fontFamily: SERIF, fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <p style={{ marginTop: '2.5rem', fontFamily: SERIF, fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   Les librairies et collections où trouver ces ouvrages
                   <Link href="/librairies" style={{ color: 'var(--cs-vert)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                     sont réunies ici <IconeChevron dir="right" size={11} strokeWidth={1.5} />

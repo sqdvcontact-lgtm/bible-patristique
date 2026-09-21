@@ -59,7 +59,7 @@ function ContenuNote({ el, onNaviguer }: {
   if (el.type !== 'note') {
     return (
       <span style={{ display: 'block' }}>
-        <span style={{ display: 'block', fontSize: '0.53125rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: 'var(--cs-vert)', marginBottom: '5px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+        <span style={{ display: 'block', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: 'var(--cs-vert)', marginBottom: '5px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
           {el.type === 'verset' ? 'Référence biblique' : 'Référence patristique'}
         </span>
         <span style={{ display: 'block', fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-vert)', marginBottom: '6px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{el.label}</span>
@@ -216,7 +216,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
 
             {/* Label « Note X » dans le coin supérieur gauche */}
             {el.type === 'note' && profondeur === el && (
-              <span style={{ display: 'block', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', marginBottom: '5px', fontFamily: "var(--font-source-sans), Arial, sans-serif", wordSpacing: 0 }}>
+              <span style={{ display: 'block', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', marginBottom: '5px', fontFamily: "var(--font-source-sans), Arial, sans-serif", wordSpacing: 0 }}>
                 Note {lettre}
               </span>
             )}
@@ -224,7 +224,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
             {/* Retour (navigation dans la note) */}
             {profondeur !== el && (
               <button onClick={() => setProfondeur(el)}
-                style={{ fontSize: '0.625rem', color: 'var(--cs-vert)', background: 'none', border: 'none', padding: '0 0 6px', cursor: 'pointer', display: 'block', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+                style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', padding: '0 0 6px', cursor: 'pointer', display: 'block', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
                 ← Retour
               </button>
             )}

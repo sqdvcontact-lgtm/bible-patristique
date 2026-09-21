@@ -225,7 +225,7 @@ export default function ModalLienBiblique({
           <aside style={{ minHeight: 0, overflowY: 'auto', borderRight: '1px solid var(--cs-fond-doux)', padding: '14px 12px', background: 'var(--cs-fond-clair)' }}>
             {(['AT', 'NT'] as const).map(testament => (
               <div key={testament} style={{ marginBottom: '16px' }}>
-                <p style={{ margin: '0 0 7px', fontSize: '0.5625rem', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', fontWeight: 700 }}>{testament === 'AT' ? 'Ancien Testament' : 'Nouveau Testament'}</p>
+                <p style={{ margin: '0 0 7px', fontSize: '0.625rem', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', fontWeight: 700 }}>{testament === 'AT' ? 'Ancien Testament' : 'Nouveau Testament'}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   {livresParTestament[testament].map(l => (
                     <button key={l.code} onClick={() => { setChargementLivre(true); setLivre(l.code) }}
@@ -258,7 +258,7 @@ export default function ModalLienBiblique({
 
             {recherche.trim().length >= 2 ? (
               <div>
-                <p style={{ margin: '0 0 9px', fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--cs-texte-doux)', fontWeight: 700 }}>
+                <p style={{ margin: '0 0 9px', fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--cs-texte-second)', fontWeight: 700 }}>
                   {chargementRecherche ? 'Recherche...' : `${resultats.length} résultat(s)`}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
@@ -299,7 +299,7 @@ export default function ModalLienBiblique({
           </main>
 
           <aside style={{ minHeight: 0, overflowY: 'auto', padding: '14px 14px', background: 'var(--cs-fond-clair)', ...(mobile ? { borderTop: '1px solid var(--cs-fond-doux)', maxHeight: '38dvh' } : { borderLeft: '1px solid var(--cs-fond-doux)' }) }}>
-            <p style={{ margin: '0 0 8px', fontSize: '0.5625rem', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', fontWeight: 700 }}>Type de lien</p>
+            <p style={{ margin: '0 0 8px', fontSize: '0.625rem', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', fontWeight: 700 }}>Type de lien</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
               {TYPES_LIEN.filter(t => champs.includes(t.champ)).map(t => (
                 <button key={t.champ} onClick={() => setChamp(t.champ)}
@@ -310,9 +310,9 @@ export default function ModalLienBiblique({
             </div>
             <p style={{ margin: '0 0 15px', color: 'var(--cs-texte-gris)', fontStyle: 'italic', fontSize: '0.71875rem', lineHeight: 1.45 }}>{typeActif.aide}</p>
 
-            <p style={{ margin: '0 0 8px', fontSize: '0.5625rem', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', fontWeight: 700 }}>Sélection</p>
+            <p style={{ margin: '0 0 8px', fontSize: '0.625rem', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', fontWeight: 700 }}>Sélection</p>
             {selectionListe.length === 0 ? (
-              <p style={{ color: 'var(--cs-texte-doux)', fontStyle: 'italic', fontSize: '0.71875rem', lineHeight: 1.45 }}>Sélectionnez un ou plusieurs versets dans la Bible.</p>
+              <p style={{ color: 'var(--cs-texte-gris)', fontStyle: 'italic', fontSize: '0.71875rem', lineHeight: 1.45 }}>Sélectionnez un ou plusieurs versets dans la Bible.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 {selectionListe.map(v => (

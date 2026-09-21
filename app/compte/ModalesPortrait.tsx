@@ -52,7 +52,7 @@ export function ModalePortrait({ onChoisir, onClose }: { onChoisir: (choix: Port
           <h2 id="titre-portrait" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>Choisir un visage</h2>
           <button onClick={onClose} aria-label="Fermer" className="cs-cible-fine" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--cs-texte-doux)', padding: '2px' }}>✕</button>
         </div>
-        <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', margin: '0 0 18px', flexShrink: 0, lineHeight: 1.55 }}>
+        <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', margin: '0 0 18px', flexShrink: 0, lineHeight: 1.55 }}>
           Prenez le visage d’un Père de l’Église ou d’un traducteur du corpus. C’est lui qui vous représentera sur le site.
           {total > 0 && <> Le fonds en compte {total} pour l’instant, et il grandit avec la bibliothèque.</>}
         </p>
@@ -67,7 +67,7 @@ export function ModalePortrait({ onChoisir, onClose }: { onChoisir: (choix: Port
           <div style={{ overflowY: 'auto', paddingRight: '4px' }}>
             {familles.map((famille, rang) => (
               <section key={famille.cle} style={rang > 0 ? { marginTop: '22px', paddingTop: '18px', borderTop: '1px solid var(--cs-fond-doux)' } : undefined}>
-                <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', margin: '0 0 12px' }}>
+                <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 12px' }}>
                   {famille.titre}
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '12px' }}>
@@ -94,9 +94,9 @@ function Vignette({ portrait, onChoisir }: { portrait: Portrait; onChoisir: () =
         <Image src={portrait.url} alt="" fill sizes="72px" unoptimized
           style={{ objectFit: 'cover', objectPosition: `${portrait.cadrage.posX}% ${portrait.cadrage.posY}%` }} />
       </div>
-      <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte)', textAlign: 'center', lineHeight: 1.3, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>{portrait.nom}</span>
+      <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte)', textAlign: 'center', lineHeight: 1.3, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>{portrait.nom}</span>
       {portrait.detail && (
-        <span style={{ fontSize: '0.5rem', color: 'var(--cs-texte-doux)', textAlign: 'center', lineHeight: 1.3, marginTop: '-4px' }}>{portrait.detail}</span>
+        <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', textAlign: 'center', lineHeight: 1.3, marginTop: '-4px' }}>{portrait.detail}</span>
       )}
     </button>
   )
@@ -163,15 +163,15 @@ export function ModaleCadrage({ refPortrait: ref, nom, cadrage, onSauvegarder, o
           )}
         </div>
         {nom && <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', textAlign: 'center', margin: '0 0 4px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>{nom}</p>}
-        <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', textAlign: 'center', margin: '0 0 16px', fontStyle: 'italic' }}>
+        <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', textAlign: 'center', margin: '0 0 16px', fontStyle: 'italic' }}>
           Le cadrage retenu par la bibliothèque est déjà posé. Faites glisser pour le changer.
         </p>
         <div style={{ marginBottom: '12px' }}>
-          <label htmlFor="cadrage-zoom" style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-gris)', display: 'block', marginBottom: '6px' }}>ZOOM</label>
+          <label htmlFor="cadrage-zoom" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-second)', display: 'block', marginBottom: '6px' }}>ZOOM</label>
           <input id="cadrage-zoom" type="range" min={ZOOM_MIN} max={ZOOM_MAX} step="0.05" value={zoom} onChange={e => setZoom(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--cs-vert)' }} />
         </div>
         <div style={{ marginBottom: '20px' }}>
-          <label htmlFor="cadrage-x" style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-gris)', display: 'block', marginBottom: '6px' }}>POSITION HORIZONTALE</label>
+          <label htmlFor="cadrage-x" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-second)', display: 'block', marginBottom: '6px' }}>POSITION HORIZONTALE</label>
           <input id="cadrage-x" type="range" min="0" max="100" step="1" value={posX} onChange={e => setPosX(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--cs-vert)' }} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

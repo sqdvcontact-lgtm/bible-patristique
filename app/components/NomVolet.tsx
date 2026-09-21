@@ -63,7 +63,7 @@ export default function NomVolet({
       // rien déplacer. La forme `tete` s'en passe : elle porte un corps de treize pixels.
       className={credit ? 'cs-cible-fine' : undefined}
       style={{
-        fontSize: credit ? '0.625rem' : '0.8125rem', fontWeight: 600, color: 'var(--cs-vert)',
+        fontSize: credit ? '0.6875rem' : '0.8125rem', fontWeight: 600, color: 'var(--cs-vert)',
         fontFamily: 'inherit', margin: 0, padding: 0, background: 'none', border: 'none',
         textAlign: 'left', cursor: inactif ? 'default' : 'pointer',
         letterSpacing: credit ? '0.04em' : '0.01em',

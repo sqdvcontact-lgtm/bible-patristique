@@ -139,7 +139,7 @@ export default function ConversationPage() {
             {pseudo}
             {mecene && <>{' '}<MarqueMecene /></>}
           </Link>
-          <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', margin: '1px 0 0', letterSpacing: '0.04em' }}>
+          <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', margin: '1px 0 0', letterSpacing: '0.04em' }}>
             Conversation privée
           </p>
         </div>
@@ -178,7 +178,7 @@ export default function ConversationPage() {
                     {m.contenu}
                   </div>
                   {(!sameMinute || i === messages.length - 1) && (
-                    <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-doux)', margin: '2px 4px 0' }}>
+                    <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', margin: '2px 4px 0' }}>
                       {heure(m.created_at)}
                       {m.de_moi && (
                         <span style={{ marginLeft: '4px', color: m.lu ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
@@ -244,7 +244,7 @@ export default function ConversationPage() {
           {erreurEnvoi && (
             <p role="alert" style={{ fontSize: '0.71875rem', color: 'var(--cs-danger)', margin: '6px 0 0' }}>{erreurEnvoi}</p>
           )}
-          <p style={{ fontSize: '0.59375rem', color: 'var(--cs-bord)', margin: '5px 0 0', textAlign: 'right' }}>
+          <p style={{ fontSize: '0.6875rem', color: 'var(--cs-bord)', margin: '5px 0 0', textAlign: 'right' }}>
             {texte.length}/2000
           </p>
         </div>

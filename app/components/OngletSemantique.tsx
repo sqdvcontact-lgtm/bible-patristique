@@ -61,7 +61,7 @@ const STYLE_TEXTE: CSSProperties = {
   fontFamily: 'var(--font-source-serif), Georgia, serif',
   fontSize: '0.6875rem', lineHeight: 1.42, color: 'var(--cs-texte)', overflowWrap: 'anywhere',
 }
-const STYLE_DISCRET: CSSProperties = { fontSize: '0.625rem', lineHeight: 1.4, color: 'var(--cs-texte-second)' }
+const STYLE_DISCRET: CSSProperties = { fontSize: '0.6875rem', lineHeight: 1.4, color: 'var(--cs-texte-second)' }
 const STYLE_RUBRIQUE: CSSProperties = { ...RUBRIQUE_AXE, marginTop: '14px', textTransform: 'uppercase' }
 
 function numeroDuVerset(id: string): string {
@@ -72,7 +72,7 @@ function numeroDuVerset(id: string): string {
 function Inspection({ champs }: { champs: [string, ReactNode][] }) {
   const pleins = champs.filter(([, v]) => v !== null && v !== undefined && v !== '')
   return (
-    <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '1px 8px', margin: '6px 0 0', fontSize: '0.5625rem', lineHeight: 1.4, color: 'var(--cs-texte-second)', fontVariantNumeric: 'tabular-nums' }}>
+    <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '1px 8px', margin: '6px 0 0', fontSize: '0.6875rem', lineHeight: 1.4, color: 'var(--cs-texte-second)', fontVariantNumeric: 'tabular-nums' }}>
       {pleins.map(([k, v]) => (
         <div key={k} style={{ display: 'contents' }}>
           <dt style={{ color: 'var(--cs-texte-doux)' }}>{k}</dt>

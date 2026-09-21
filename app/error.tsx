@@ -44,7 +44,7 @@ export default function Erreur({ error, reset }: { error: Error & { digest?: str
           </Link>
         </div>
         {error.digest && (
-          <p style={{ fontSize: '0.6875rem', letterSpacing: '0.08em', color: 'var(--cs-texte-doux)', marginTop: '2rem' }}>
+          <p style={{ fontSize: '0.6875rem', letterSpacing: '0.08em', color: 'var(--cs-texte-gris)', marginTop: '2rem' }}>
             Repère de la panne : {error.digest}
           </p>
         )}

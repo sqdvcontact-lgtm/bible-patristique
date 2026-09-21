@@ -215,9 +215,9 @@ const DESSIN = `
 .hf-phrase em { font-style: normal; color: var(--cs-encre); }
 
 .hf-serie { margin: 0 0 22px; }
-.hf-rubrique { font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.5625rem;
+.hf-rubrique { font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.625rem;
   font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--cs-texte-doux); margin: 0 0 9px; }
+  color: var(--cs-texte-second); margin: 0 0 9px; }
 
 /* ⛔ QUATRE COLONNES FIXES, jamais «auto-fill». Toutes les séries n'ont pas quatre
    degrés : sous auto-fill, un rayon de trois s'étire et ses cases n'ont plus la
@@ -279,7 +279,7 @@ const DESSIN = `
 .hf-explication { position: absolute; inset: 0; z-index: 2;
   display: flex; align-items: center; justify-content: center;
   padding: 6px 8px; text-align: center;
-  font-family: var(--font-source-serif), Georgia, serif; font-size: 0.625rem;
+  font-family: var(--font-source-serif), Georgia, serif; font-size: 0.6875rem;
   line-height: 1.35; color: ${ENCRE_RELIURE_DOUCE};
   opacity: 0; transition: opacity 0.16s ease; pointer-events: none; }
 /* ⚠️ Sous «(hover: hover)» seulement : au doigt il n'y a pas de survol, et la face

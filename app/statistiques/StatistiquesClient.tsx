@@ -38,7 +38,7 @@ function EnteteStat({ titre, intro, style }: { titre: string; intro: string; sty
   return (
     <div style={{ marginBottom: '12px', ...style }}>
       <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 4px' }}>{titre}</h2>
-      <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-doux)', lineHeight: 1.55, margin: 0 }}>{intro}</p>
+      <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', lineHeight: 1.55, margin: 0 }}>{intro}</p>
     </div>
   )
 }
@@ -117,7 +117,7 @@ export default function StatistiquesClient() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={statRef}>{NOM_LIVRE[v.livre] ?? v.livre} {v.chapitre}, {v.verset}</p>
                   {v.TR0002 && <p style={statTexte}>{v.TR0002}</p>}
-                  <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', margin: '3px 0 0' }}>{detailCite(v)}</p>
+                  <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', margin: '3px 0 0' }}>{detailCite(v)}</p>
                 </div>
                 <span title="Score patristique"
                   style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.09)', border: '1px solid rgba(var(--cs-vert-rgb),0.22)', borderRadius: '8px', padding: '2px 9px', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
@@ -128,7 +128,7 @@ export default function StatistiquesClient() {
           </div>
         )}
         {calculeLe && (
-          <p style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', margin: '14px 0 0' }}>
+          <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', textAlign: 'center', margin: '14px 0 0' }}>
             Classement calculé le {new Date(calculeLe).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}.
           </p>
         )}

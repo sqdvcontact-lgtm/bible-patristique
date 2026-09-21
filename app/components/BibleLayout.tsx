@@ -923,7 +923,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
                     suite du nom. ⛔ Aucune pastille : la barre n'a que 2,875 rem de haut,
                     et un fond rond y ferait une alarme là où l'on ne donne qu'un nombre. */}
                 {o.compte != null && (
-                  <span style={{ fontSize: '0.625rem', letterSpacing: 0, fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-doux)' }}>
+                  <span style={{ fontSize: '0.6875rem', letterSpacing: 0, fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)' }}>
                     {o.compte > 0 ? o.compte : <span style={{ fontWeight: 400, color: 'var(--cs-texte-doux)' }} title="Aucune occurrence" aria-label="Aucune occurrence">∅</span>}
                   </span>
                 )}

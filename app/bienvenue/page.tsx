@@ -26,7 +26,7 @@ export default function BienvenuePage() {
       <div style={{ width: '100%', maxWidth: '30rem', textAlign: 'center' }}>
 
         {/* En-tête */}
-        <p style={{ fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-vert-clair)', margin: '0 0 18px' }}>
+        <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-vert-clair)', margin: '0 0 18px' }}>
           Corpus Scriptura
         </p>
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: '0 0 10px', lineHeight: 1.3 }}>

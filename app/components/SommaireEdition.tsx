@@ -76,7 +76,7 @@ export default function SommaireEdition({ pieces, pieceActive, onOuvrir }: {
                 ligne : « Bible », puis « Ancien Testament », puis « Pentateuque ». */}
             {nouvellePortee && (
               <div style={{
-                padding: rang === 0 ? '2px 0 4px' : `${BLANC_AVANT_PORTEE} 0 4px`, fontSize: '0.5625rem',
+                padding: rang === 0 ? '2px 0 4px' : `${BLANC_AVANT_PORTEE} 0 4px`, fontSize: '0.625rem',
                 fontWeight: 600, letterSpacing: '0.09em', color: 'var(--cs-texte-doux)',
               }}>
                 {piece.portee}

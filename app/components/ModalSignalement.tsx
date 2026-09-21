@@ -72,7 +72,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
           <div style={{ padding: '14px 20px 18px', overflowY: 'auto' }}>
             {(titre || texteObjet) && (
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ display: 'block', fontSize: '0.5625rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b5764a', marginBottom: '5px' }}>Objet du signalement</span>
+                <span style={{ display: 'block', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: '#b5764a', marginBottom: '5px' }}>Objet du signalement</span>
                 {titre && <p style={{ fontSize: '0.6875rem', color: '#a85c3a', fontStyle: 'italic', margin: '0 0 5px', lineHeight: 1.45 }}>{titre}</p>}
                 {texteObjet && (
                   <blockquote style={{ margin: 0, padding: '9px 12px', background: 'var(--cs-danger-fond)', border: '1px solid #efd8c6', borderLeft: '3px solid var(--cs-danger)', borderRadius: '0 4px 4px 0', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.6, maxHeight: '150px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
@@ -84,12 +84,12 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
 
             {avecNiveauImportance && (
               <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.65625rem', color: 'var(--cs-texte-doux)', flexShrink: 0 }}>Niveau :</span>
+                <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', flexShrink: 0 }}>Niveau :</span>
                 {NIVEAUX.map(n => {
                   const actif = importance === n.val
                   return (
                     <button key={n.val} onClick={() => setImportance(n.val)}
-                      style={{ fontSize: '0.65625rem', padding: '3px 10px', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: actif ? 600 : 400, background: actif ? n.bgOn : n.bg, color: actif ? n.colorOn : n.color, transition: 'background 0.15s' }}>
+                      style={{ fontSize: '0.6875rem', padding: '3px 10px', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: actif ? 600 : 400, background: actif ? n.bgOn : n.bg, color: actif ? n.colorOn : n.color, transition: 'background 0.15s' }}>
                       {n.label}
                     </button>
                   )
@@ -102,10 +102,10 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
               style={{ width: '100%', fontSize: '0.75rem', padding: '8px 10px', border: '1px solid var(--cs-danger-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', gap: '8px', alignItems: 'center' }}>
-              {statut === 'err' && <span role="alert" style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', marginRight: 'auto' }}>Le signalement n’a pas pu être envoyé. Réessayez.</span>}
+              {statut === 'err' && <span role="alert" style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', marginRight: 'auto' }}>Le signalement n’a pas pu être envoyé. Réessayez.</span>}
               <button onClick={onClose} style={{ fontSize: '0.71875rem', padding: '6px 13px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
               <button onClick={envoyer} disabled={statut === 'sending' || !message.trim()}
-                style={{ fontSize: '0.71875rem', padding: '6px 15px', borderRadius: '4px', border: 'none', cursor: message.trim() ? 'pointer' : 'default', background: message.trim() ? 'var(--cs-danger-aplat)' : 'var(--cs-bord-clair)', color: message.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
+                style={{ fontSize: '0.71875rem', padding: '6px 15px', borderRadius: '4px', border: 'none', cursor: message.trim() ? 'pointer' : 'default', background: message.trim() ? 'var(--cs-danger-aplat)' : 'var(--cs-bord-clair)', color: message.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-gris)', fontWeight: 500 }}>
                 {statut === 'sending' ? 'Envoi…' : 'Envoyer'}
               </button>
             </div>

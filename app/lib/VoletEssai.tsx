@@ -145,7 +145,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
     <>
       {enTete && <div style={{ marginBottom: '18px', paddingBottom: '16px', borderBottom: '1px solid var(--cs-fond-doux)' }}>{enTete}</div>}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-        <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)' }}>
+        <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>
           {!elementActif ? 'Notes et citations' : elementActif.type === 'note' ? 'Note' : elementActif.type === 'verset' ? 'Référence biblique' : 'Référence patristique'}
         </span>
         {elementActif && !toujoursVisible && <button onClick={onFermer} style={{ background: 'none', border: 'none', color: 'var(--cs-texte-doux)', cursor: 'pointer', fontSize: '0.875rem' }}>×</button>}

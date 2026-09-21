@@ -239,7 +239,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
                 })}
               </div>
               )}
-              <p style={{ fontSize: '0.625rem', color: 'var(--cs-texte-doux)', margin: variantes.length > 1 ? '6px 0 0' : 0, lineHeight: 1.45 }}>
+              <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', margin: variantes.length > 1 ? '6px 0 0' : 0, lineHeight: 1.45 }}>
                 {varianteActive?.aide}
               </p>
             </div>
@@ -259,18 +259,18 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
             {cible.type === 'titre' ? (
-              <button onClick={supprimerTitre} style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <button onClick={supprimerTitre} style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 {varianteActive?.compose ? 'Revenir au titre de catalogue' : 'Supprimer'}
               </button>
             ) : cible.type === 'segment' ? (
-              <button onClick={() => setEtape('confirmation-suppression')} style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <button onClick={() => setEtape('confirmation-suppression')} style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 Supprimer
               </button>
             ) : cible.type === 'titre_oeuvre' && champActif && champActif !== 'titre' ? (
               // `titre` ne se supprime jamais : c'est le nom de l'œuvre. Vider
               // `titre_affichage` est en revanche légitime, et rend le frontispice
               // au titre de catalogue.
-              <button onClick={() => viderChampOeuvre(champActif)} style={{ fontSize: '0.65625rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <button onClick={() => viderChampOeuvre(champActif)} style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 {varianteActive?.compose ? 'Revenir au champ de catalogue' : 'Supprimer'}
               </button>
             ) : <span />}
@@ -283,7 +283,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             </div>
           </div>
           {statut === 'erreur' && (
-            <p style={{ fontSize: '0.625rem', color: 'var(--cs-danger)', marginTop: '8px' }}>
+            <p style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', marginTop: '8px' }}>
               Erreur d&rsquo;enregistrement{erreurMsg ? ` — ${erreurMsg}` : ' — rien n’a été modifié.'}
             </p>
           )}

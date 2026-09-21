@@ -73,7 +73,7 @@ export default function BibleSourceReader({
   return (
     <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', padding: '1.25rem clamp(1rem, 4vw, 3rem) 3rem' }}>
       <header style={{ maxWidth: '58rem', margin: '0 auto 1rem', display: 'grid', gap: '0.875rem' }}>
-        <p style={{ margin: 0, color: 'var(--cs-texte-doux)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+        <p style={{ margin: 0, color: 'var(--cs-texte-gris)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           Lecture du témoin
         </p>
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem 1.25rem' }}>
@@ -122,7 +122,7 @@ export default function BibleSourceReader({
             {nativeDivisionLabel(selectedDivision, parentBook)}
           </h1>
           {firstUnit?.native_folio_raw ? (
-            <p style={{ margin: '0.35rem 0 0', color: 'var(--cs-texte-doux)', fontSize: '0.6875rem' }}>
+            <p style={{ margin: '0.35rem 0 0', color: 'var(--cs-texte-gris)', fontSize: '0.6875rem' }}>
               Début au folio {firstUnit.native_folio_raw}
             </p>
           ) : null}
