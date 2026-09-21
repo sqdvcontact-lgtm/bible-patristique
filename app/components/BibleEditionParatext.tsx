@@ -902,19 +902,7 @@ export function BlocEditorialBible({
         // Simple repère interne : jamais une balise de titre, sans quoi il
         // entrerait dans le plan d'accessibilité par la bande.
         <p className="cs-bible-info-label">
-          {(() => {
-            // Modèle F (2026-09-21) : le numéro du repère (« 21 ») se pose AU-DESSUS
-            // de son intitulé. ⚠️ Seulement quand un intitulé le suit : un repère
-            // fait du seul numéro (« 1-3 ») reste tel quel.
-            const numero = /^(\d+(?:\s*[-–]\s*\d+)?)\.\s+(\S[\s\S]*)$/.exec(intitule.titre)
-            if (!numero) return rendreContenuAncre(intitule.titre, [], notesTitre)
-            return (
-              <>
-                <span className="cs-manchette-num">{numero[1]}</span>
-                {rendreContenuAncre(numero[2], [], notesTitre)}
-              </>
-            )
-          })()}
+          {rendreContenuAncre(intitule.titre, [], notesTitre)}
           {intitule.sousTitre && <span className="cs-bible-chapeau">{rendreContenuAncre(intitule.sousTitre, [], notesTitre)}</span>}
         </p>
       ))}
