@@ -213,10 +213,7 @@ export default function AppelNoteBiblique({
         // L'appel MARQUÉ tant que son encart est ouvert : le second lien entre
         // l'appel et sa note, celui qu'on suit des yeux en revenant au texte.
         style={repere?.icone
-          // ⛔ Le cercle est un APPEL : il se colle au mot et se lève comme un exposant, au lieu
-          // de flotter à une espace, sur la ligne (relevé de l'auteur, 2026-09-21). Décalage
-          // relatif, jamais `vertical-align: super`, qui gonflerait l'interligne.
-          ? { cursor: 'pointer', marginLeft: '0.1em', verticalAlign: 'baseline', position: 'relative', top: '-0.45em', ...(ouvert ? STYLE_APPEL_OUVERT : {}) }
+          ? { cursor: 'pointer', ...(ouvert ? STYLE_APPEL_OUVERT : {}) }
           : (ouvert ? { ...styleAppelNote(variante), ...STYLE_APPEL_OUVERT } : styleAppelNote(variante))}
       >
         {signe}
