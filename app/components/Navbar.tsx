@@ -1720,6 +1720,11 @@ export default function Navbar() {
         {/* Mode sombre — un réglage de LECTURE, rangé avec le compte parce que c'est là
             que le lecteur vient chercher ce qui le concerne lui, et non le corpus. */}
         {rangeeInterrupteur({ mobile, label: "Mode sombre", actif: themeSombre, basculer: basculerThemeSombre })}
+        {/* Contact et pages légales, qui ne vivaient qu'au pied de l'accueil (audit
+            ergonomique, 2026-09-21). Ici plutôt qu'un pied de page commun, qui
+            gênerait les pages de lecture à pleine hauteur. Sur téléphone, la même
+            ligne ferme le panneau pour tout le monde (`liensAPropos`). */}
+        {!mobile && liensAPropos(false)}
         <button onClick={seDeconnecter}
           style={mobile
             // ⚠️ L'encre du danger reste : c'est un signal, non un ornement. Seule la
@@ -1739,6 +1744,26 @@ export default function Navbar() {
       : { display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.25rem 0.6875rem", borderRadius: "4px", fontSize: "0.875rem", color: "rgba(255,255,255,0.75)", textDecoration: "none", border: "1px solid rgba(255,255,255,0.20)" }}>
       Se connecter
     </Link>
+  );
+
+  // Contact et pages légales : une ligne discrète, dans le menu de compte sur un
+  // ordinateur et au pied du panneau sur téléphone.
+  const liensAPropos = (mobile: boolean) => (
+    <nav aria-label="Contact et informations légales"
+      style={mobile
+        ? { display: "flex", flexWrap: "wrap", gap: "0.25rem 0.75rem", padding: "10px 12px 0", fontSize: "0.8125rem" }
+        : { display: "flex", flexWrap: "wrap", gap: "0.25rem 0.625rem", padding: "0.5rem 0.875rem", fontSize: "0.75rem", borderBottom: "1px solid var(--cs-fond-doux)" }}>
+      {[
+        { href: "/contact", label: "Contact" },
+        { href: "/conditions-utilisation", label: "Conditions" },
+        { href: "/confidentialite", label: "Confidentialité" },
+      ].map(l => (
+        <Link key={l.href} href={l.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}
+          style={{ color: mobile ? "rgba(255,255,255,0.72)" : "var(--cs-texte-second)", textDecoration: "none" }}>
+          {l.label}
+        </Link>
+      ))}
+    </nav>
   );
 
   // Lien du panneau mobile — UN NOM, RIEN D'AUTRE.
@@ -2349,6 +2374,7 @@ export default function Navbar() {
               {user && actionMobile("Notifications", nbNotifications, () => setNotifsOuvertes(true))}
               {blocCompte(true)}
             </div>
+            {liensAPropos(true)}
           </div>
         )}
         {toastNotification && (
