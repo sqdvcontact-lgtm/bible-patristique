@@ -49,6 +49,7 @@ import {
   type SourceDeNotes,
 } from './notesInventaire'
 import type { NoteStructuree } from './oeuvreTypes'
+import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
 
 /**
  * UN TEXTE dont l'inventaire relève les notes.
@@ -278,9 +279,9 @@ export default function OngletNotes({
 
       <div className="cs-defilement-discret" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 0 16px' }}>
         {retenues.length === 0 && (
-          <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', padding: '14px 0' }}>
-            Aucune note ne correspond aux filtres retenus.
-          </p>
+          <EtatVideVolet>
+            <MentionVide>Aucune note ne correspond aux filtres retenus.</MentionVide>
+          </EtatVideVolet>
         )}
         {groupes.map(groupe => (
           // ⛔ La clé du groupe est le couple (texte, division), jamais la division seule :

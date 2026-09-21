@@ -50,6 +50,7 @@ import FleuronDiscret from '@/app/components/FleuronDiscret'
 import CompteEnAttente from '@/app/components/CompteEnAttente'
 import dynamic from 'next/dynamic'
 import { cleInventaireNotesBible, type ContexteNotesBible } from '@/app/lib/notesBibleInventaire'
+import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
 
 // ⛔ L'inventaire des notes d'une bible ne se charge qu'avec son onglet : il ne sert qu'à
 // l'administrateur, et le lecteur n'a pas à en payer le poids.
@@ -816,14 +817,14 @@ function OngletCommentaires({ verset, userId, isAdmin, onCount }: { verset: Vers
       <div style={{ flex:1, minHeight:0, overflowY:'auto' }}>
         {loading && <MotAttente />}
         {!loading && commentaires.length === 0 && (
-          <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'0.75rem', padding:'8px 0' }}>
+          <EtatVideVolet>
             {/* L'absence se dit, puis un fleuron la ferme (demande de l'auteur, 21 septembre
                 2026 : les gravures d'état vide cèdent aux fleurons du registre). Même composition
                 que « Aucune occurrence. » : au MILIEU de la zone, la mention au-dessus. Voir
                 `FleuronDiscret`, qui dit quel fleuron ferme quel vide. */}
-            <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', textAlign: 'center', margin: 0 }}>Aucun commentaire.</p>
+            <MentionVide>Aucun commentaire.</MentionVide>
             <FleuronDiscret vide="commentaires" />
-          </div>
+          </EtatVideVolet>
         )}
         {principaux.map(c => {
           const reponses = reponsesDe(c.id)
@@ -1866,12 +1867,12 @@ export default function PanneauPatristique({
                     pour ces filtres », qui appelle un geste plutôt qu'un repos. */}
                 <div style={{ opacity: enAttente ? 0 : 1, transition: 'opacity .16s ease', flex: '1 0 auto', display: 'flex', flexDirection: 'column' }}>
                 {!enAttente && itemsFiltres.length === 0 && (
-                  <div style={{ flex: '1 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', textAlign: 'center', padding: '24px 0' }}>
-                    <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', margin: 0 }}>
+                  <EtatVideVolet>
+                    <MentionVide>
                       {itemsAffiches.length === 0 ? 'Aucune occurrence.' : 'Aucun résultat pour ces filtres.'}
-                    </p>
+                    </MentionVide>
                     {itemsAffiches.length === 0 && <FleuronDiscret />}
-                  </div>
+                  </EtatVideVolet>
                 )}
                 {itemsPage.length > 0 && (
                 <div style={{ marginTop: '6px' }}>
@@ -1952,30 +1953,13 @@ export default function PanneauPatristique({
            replier le volet : il faudrait alors lui donner la flèche AU MÊME ENDROIT, en
            haut à gauche, et non ailleurs — un contrôle qui change de place selon ce que le
            volet montre ne s'apprend jamais (défaut déjà payé sur `NavLivres`). */
-        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-start', padding:'48px 24px 0' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:'8px', width:'100%', marginBottom:'22px' }}>
-            <div style={{ flex:1, height:'1px', background:'linear-gradient(to right, transparent, var(--cs-bord))' }} />
-            <span style={{ fontSize:'0.625rem', color:'var(--cs-bord)', letterSpacing:'0.2em', flexShrink:0 }}>· · ·</span>
-            <div style={{ flex:1, height:'1px', background:'linear-gradient(to left, transparent, var(--cs-bord))' }} />
-          </div>
-          <div style={{ textAlign:'center', marginBottom:'14px' }}>
-            <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'1.5rem', color:'var(--cs-bord)', lineHeight:1 }}>❧</span>
-          </div>
-          <div style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.84375rem', fontStyle:'italic', color:'var(--cs-texte-doux)', lineHeight:1.85, textAlign:'center' }}>
-            {[
-              ['Cliquez sur un verset pour voir', '220px'],
-              ['les textes des Pères', '155px'],
-              ['de l\'Église', '100px'],
-              ['associés.', '76px'],
-            ].map(([line, width], i) => (
-              <p key={i} style={{ maxWidth: width, margin: '0 auto' }}>{line}</p>
-            ))}
-          </div>
-          <div style={{ display:'flex', alignItems:'center', gap:'8px', width:'100%', marginTop:'22px' }}>
-            <div style={{ flex:1, height:'1px', background:'linear-gradient(to right, transparent, var(--cs-bord))' }} />
-            <span style={{ fontSize:'0.625rem', color:'var(--cs-bord)', letterSpacing:'0.2em', flexShrink:0 }}>· · ·</span>
-            <div style={{ flex:1, height:'1px', background:'linear-gradient(to left, transparent, var(--cs-bord))' }} />
-          </div>
+        // ⛔ L'invite se tient où se tiennent tous les états vides des volets (2026-09-21) :
+        // au tiers supérieur, dans la voix des mentions. Les filets pointés et le glyphe ❧
+        // sont retirés : un fleuron du site est une planche, et une invite n'en prend pas.
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 24px' }}>
+          <EtatVideVolet>
+            <MentionVide>Cliquez sur un verset pour voir les textes des Pères de l’Église associés.</MentionVide>
+          </EtatVideVolet>
         </div>
       )}
     </div>

@@ -159,6 +159,7 @@ import IconeChevron from '@/app/components/IconeChevron'
 import RailVolet from '@/app/components/RailVolet'
 import OngletsPage from '@/app/components/OngletsPage'
 import { enregistrerOeuvreRecente } from '@/app/lib/oeuvresRecentes'
+import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
 import { HAUTEUR_BARRE_VOLET, HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
 import { CLASSE_ACTIONS_CARTE_VOLET, CLASSE_CARTE_VOLET, CORPS_CARTE_VOLET, FEUILLE_CARTE_VOLET, INTERLIGNE_CARTE_VOLET, STYLE_CARTE_VOLET } from '@/app/lib/carteVolet'
@@ -5042,18 +5043,18 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     d'un segment sont chargés avec sa tranche de texte, donc déjà en mémoire
                     quand on clique. Le volet de la page Bible, lui, va les chercher. */}
                 <div key={segActif ?? 'aucun'} className="cs-volet-echange"
-                  style={segActifData ? undefined : { flex: '1 0 auto', display: 'flex', flexDirection: 'column' }}>
+                  style={{ flex: '1 0 auto', display: 'flex', flexDirection: 'column' }}>
                 {segActifData ? (
                   <>
                     {segActifData.versets.length === 0 ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', marginTop: '18px' }}>
+                      <EtatVideVolet>
                         {/* L'absence se dit, puis un fleuron la ferme (demande de l'auteur, 21 septembre
                             2026 : les gravures d'état vide cèdent aux fleurons du registre). Même composition
                             que « Aucune occurrence. » : au MILIEU de la zone, la mention au-dessus. Voir
                             `FleuronDiscret`, qui dit quel fleuron ferme quel vide. */}
-                        <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', textAlign: 'center', margin: 0 }}>Aucun lien biblique pour ce passage.</p>
+                        <MentionVide>Aucun lien biblique pour ce passage.</MentionVide>
                         <FleuronDiscret vide="liensBibliques" />
-                      </div>
+                      </EtatVideVolet>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         {regrouperVersetsConsecutifs(ordonnerAuCanon(segActifData.versets)).map(groupe => {
@@ -5144,7 +5145,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     )}
                   </>
                 ) : (
-                  <div style={{ flex: '1 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 0' }}>
+                  <EtatVideVolet>
                     {/* ⛔ PLUS D'ARBRE ARDENT (décision de l'auteur, 2026-09-15 : « supprimer
                         l'arbre, garder centré »). L'invite reste seule, CENTRÉE dans la hauteur
                         que le volet laisse sous le sélecteur de traduction, comme « Aucune
@@ -5155,8 +5156,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         raison pour laquelle ils le sont.
                         ⚠️ Son encre passe à `--cs-texte-second` : l'invite porte seule ce qu'elle
                         dit, et `--cs-texte-doux` restait sous le seuil de 4,5 sur le volet. */}
-                    <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', textAlign: 'center', margin: 0 }}>Cliquez sur un paragraphe.</p>
-                  </div>
+                    <MentionVide>Cliquez sur un paragraphe.</MentionVide>
+                  </EtatVideVolet>
                 )}
                 </div>
               </>

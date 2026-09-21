@@ -16,6 +16,7 @@ import { useCompte } from '@/app/lib/contexteCompte'
 import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, formeCommentaire } from '@/app/lib/styleCommentaire'
+import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
 
 // Pas plus de 5 majuscules consécutives (accentuées comprises).
 const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
@@ -106,9 +107,7 @@ export const ID_SEGMENT_MAX = 2147483647
  *  seuil de 4,5. */
 function InviteCentree({ children }: { children: string }) {
   return (
-    <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 0' }}>
-      <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', textAlign: 'center', margin: 0 }}>{children}</p>
-    </div>
+    <EtatVideVolet><MentionVide>{children}</MentionVide></EtatVideVolet>
   )
 }
 
@@ -412,14 +411,14 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           </div>
         )}
         {!loading && !erreurChargement && commentaires.length === 0 && (
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', padding: '8px 0' }}>
+          <EtatVideVolet>
             {/* L'absence se dit, puis un fleuron la ferme (demande de l'auteur, 21 septembre
                 2026 : les gravures d'état vide cèdent aux fleurons du registre). Même composition
                 que « Aucune occurrence. » : au MILIEU de la zone, la mention au-dessus. Voir
                 `FleuronDiscret`, qui dit quel fleuron ferme quel vide. */}
-            <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', textAlign: 'center', margin: 0 }}>Aucun commentaire pour ce passage.</p>
+            <MentionVide>Aucun commentaire pour ce passage.</MentionVide>
             <FleuronDiscret vide="commentaires" />
-          </div>
+          </EtatVideVolet>
         )}
         {principaux.map(c => {
           const reponses = reponsesDe(c.id)

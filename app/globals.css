@@ -3033,6 +3033,23 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 .cs-bouton-lien.cs-bouton-lien--or { color: var(--cs-or-lisible); }
 .cs-bouton-lien.cs-bouton-lien--or:hover { color: color-mix(in oklab, var(--cs-or) 45%, var(--cs-texte-fort)); }
 
+/* L'ÉTAT VIDE D'UN VOLET (EtatVideVolet.tsx) : centré en largeur, posé au TIERS
+   SUPÉRIEUR de la hauteur libre par deux espaceurs dans le rapport 1 à 2. Les deux
+   façons de prendre la hauteur servent les deux hôtes : colonne flexible, défileur.
+   ⛔ La mention porte seule son information : --cs-texte-second (5,74 au Clair). */
+.cs-etat-vide {
+  flex: 1 0 auto; min-height: 100%; box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 16px 0; text-align: center;
+}
+.cs-etat-vide::before { content: ''; flex: 1 1 0; }
+.cs-etat-vide::after { content: ''; flex: 2 1 0; }
+.cs-etat-vide-corps { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+.cs-etat-vide-mention {
+  font-size: 0.78125rem; line-height: 1.4; font-style: italic;
+  color: var(--cs-texte-second); margin: 0;
+}
+
 /* Le lien pris DANS UNE PHRASE : il garde le corps de son hôte, et ne prend d'ici que
    le trait PLEIN — jamais le pointillé, qui promettait une infobulle qui n'existe pas —
    et la teinte des liens. */

@@ -28,6 +28,7 @@ import { useNaviguer } from '@/app/lib/attenteNavigation'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { chargerNotesDeLaBible } from '@/app/lib/notesBibleChargement'
 import { ouvrirNoteBible } from '@/app/lib/ouvrirNoteBible'
+import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
 import {
   cleInventaireNotesBible,
   comptesParIntituleBible,
@@ -232,9 +233,9 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
 
       <div className="cs-defilement-discret" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 0 16px' }}>
         {retenues.length === 0 && (
-          <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)', fontStyle: 'italic', padding: '14px 0' }}>
-            {toutes.length === 0 ? 'Aucune note dans cette bible.' : 'Aucune note ne correspond aux filtres retenus.'}
-          </p>
+          <EtatVideVolet>
+            <MentionVide>{toutes.length === 0 ? 'Aucune note dans cette bible.' : 'Aucune note ne correspond aux filtres retenus.'}</MentionVide>
+          </EtatVideVolet>
         )}
         {groupes.map(groupe => (
           // ⚠️ Des milliers de lignes : un chapitre hors de la vue ne se compose pas.
