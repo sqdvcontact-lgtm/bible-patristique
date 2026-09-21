@@ -10,7 +10,14 @@
 // ⛔ LA PAGE NE RÉÉCRIT JAMAIS LE TEXTE (même règle que la projection des notes d'œuvre) :
 // elle cherche dans le texte affiché celui de la ligne que l'ancre vise — la vue large réunit
 // plusieurs lignes sous un créneau —, compte l'offset en points de code, et pose l'appel là.
-// Une ancre qu'on ne sait pas situer rend l'appel à la suite du verset, comme avant.
+// Une ancre qu'on ne sait pas situer rend l'appel au DERNIER MOT du verset, devant sa
+// ponctuation finale.
+//
+// ⛔ JAMAIS D'APPEL SEUL EN DÉBUT DE LIGNE (relevé de l'auteur, 2026-09-21, Gn 50, 10 de la
+// TR0013 : un « 4 » tombé sous le verset). L'appel « à la suite » était un enfant du
+// paragraphe, hors de tout `nowrap` : quand la dernière ligne était pleine, il passait seul à
+// la ligne. Une note sans ancre lisible entre donc dans un groupe comme les autres ; il ne
+// reste « à la suite » que les appels d'un verset sans texte.
 //
 // ⛔ Le balisage se ferme avant l'appel (`<i>mot</i>¹`, jamais dans l'italique), et l'appel
 // voyage dans un `nowrap` avec le dernier mot qui le précède et la ponctuation qui le suit
@@ -18,7 +25,7 @@
 
 import { Fragment, type CSSProperties, type ReactNode } from 'react'
 import type { AncreAppelBible } from './bibleEdition'
-import { PONCTUATION_ATTACHEE, detacherDernierMot } from './appelsDeNote'
+import { detacherDernierMot } from './appelsDeNote'
 
 // ⚠️ EXACTEMENT l'alternance de `rendreTexteEnrichi` : une coupe ne doit jamais tomber dans
 // ce qu'il lit comme un seul élément.
@@ -101,7 +108,28 @@ export function detacherDernierMotBalise(avant: string, balisage = true): [strin
 
 export type GroupeDAppels<N> = { position: number; notes: N[] }
 
-/** Les notes d'un verset : celles qu'on pose à leur ancre, par position, et celles qui le suivent. */
+/** La ponctuation qui part avec l'appel, blancs insécables compris (« mot¹ ? »). `\s` couvre U+00A0 et U+202F. */
+const PONCTUATION_SUIVANTE = /^(?:\s*[.,;:!?…»)\]]+)+/
+
+/** La fin du dernier mot : l'appel d'une note sans ancre s'y pose, devant la ponctuation finale. */
+export function finDuDernierMot(texte: string, balisage = true): number | null {
+  const queue = /[\s.,;:!?…»)\]]*$/.exec(texte)
+  let position = queue?.index ?? texte.length
+  if (position === 0) return null
+  // Jamais dans un crochet (« […] », « [lecture incertaine : …] ») : l'appel suit sa fermeture.
+  if (texte.lastIndexOf('[', position - 1) > texte.lastIndexOf(']', position - 1)) {
+    const fermeture = texte.indexOf(']', position)
+    if (fermeture >= 0) position = fermeture + 1
+  }
+  if (!balisage) return position
+  const plage = plagesDuBalisage(texte).find((p) => p.debut < position && position < p.fin)
+  return plage ? plage.fin : position
+}
+
+/**
+ * Les notes d'un verset, groupées par position. Sans ancre lisible, l'appel se pose au dernier
+ * mot ; ne restent « à la suite » que les appels d'un verset sans texte.
+ */
 export function repartirAppels<N extends { ancre?: AncreAppelBible | null }>(
   texte: string,
   notes: readonly N[],
@@ -109,8 +137,12 @@ export function repartirAppels<N extends { ancre?: AncreAppelBible | null }>(
 ): { groupes: GroupeDAppels<N>[]; aLaSuite: N[] } {
   const parPosition = new Map<number, N[]>()
   const aLaSuite: N[] = []
+  const fin = finDuDernierMot(texte, balisage)
   for (const note of notes) {
-    const position = positionDeLAncre(texte, note.ancre, balisage)
+    const ancree = positionDeLAncre(texte, note.ancre, balisage)
+    // Une ancre posée dans la ponctuation finale rejoint le dernier mot : son appel,
+    // sans mot à emporter, repartirait seul.
+    const position = ancree === null || (fin !== null && ancree >= fin) ? fin : ancree
     if (position === null) aLaSuite.push(note)
     else parPosition.set(position, [...(parPosition.get(position) ?? []), note])
   }
@@ -139,7 +171,7 @@ export function rendreTexteAvecAppels<N>(
     const ici = Math.max(position, curseur)
     const [tete, mot] = detacherDernierMotBalise(texte.slice(curseur, ici), balisage)
     if (tete) noeuds.push(<Fragment key={`texte:${curseur}`}>{rendreTexte(tete)}</Fragment>)
-    const ponctuation = PONCTUATION_ATTACHEE.exec(texte.slice(ici))?.[0] ?? ''
+    const ponctuation = PONCTUATION_SUIVANTE.exec(texte.slice(ici))?.[0] ?? ''
     noeuds.push(
       <span key={`appel:${ici}`} style={NOWRAP}>
         {mot ? rendreTexte(mot) : null}
