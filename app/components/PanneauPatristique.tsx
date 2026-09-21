@@ -99,9 +99,15 @@ type OeuvreInfo = {
 }
 type Commentaire = { id: number; texte: string; auteur_nom: string; created_at: string }
 
+// ⛔ 24 PX DE CIBLE, LE DESSIN INCHANGÉ (audit ergonomique du 2026-09-21) : les icônes
+// faisaient des boîtes de 16 px, collées l'une à l'autre, et un clic manqué sur la copie
+// tombait sur la suppression d'un lien. La boîte passe au plancher AA de 24 px, l'icône
+// garde sa taille, et la grappe s'espace de 4 px. Au doigt, `.cs-bouton-fin` porte la
+// boîte à 36 px (globals.css) ; ⚠️ pas de `.cs-cible-fine` ici : son débord de 12 px
+// ferait avaler à un bouton les taps de son voisin, et c'est précisément le défaut corrigé.
 const ACTION_BTN: React.CSSProperties = {
-  background:'none', border:'none', cursor:'pointer', padding:'1px 2px',
-  borderRadius:'4px', width:'16px', height:'16px', display:'inline-flex',
+  background:'none', border:'none', cursor:'pointer', padding:'4px',
+  borderRadius:'4px', width:'24px', height:'24px', display:'inline-flex',
   alignItems:'center', justifyContent:'center', fontSize:'0.84375rem',
   lineHeight:1, flexShrink:0, transition:'color 0.15s',
 }
@@ -234,14 +240,14 @@ function BoutonEnregistrerSegment({ segment, info, userId }: {
 
   if (idPrelev) {
     return (
-      <button onClick={supprimer} disabled={loading} title="Retirer des prélèvements"
+      <button onClick={supprimer} disabled={loading} title="Retirer des prélèvements" aria-label="Retirer des prélèvements"
         className="cs-bouton-fin" style={{ ...ACTION_BTN, color:'var(--cs-texte-doux)' }}>
         {loading ? '…' : <IconeSignet plein />}
       </button>
     )
   }
   return (
-    <button onClick={enregistrer} disabled={loading} title="Enregistrer dans mes prélèvements"
+    <button onClick={enregistrer} disabled={loading} title="Enregistrer dans mes prélèvements" aria-label="Enregistrer dans mes prélèvements"
       className="cs-bouton-fin" style={{ ...ACTION_BTN, color:'var(--cs-bord)' }}>
       {loading ? '…' : <IconeSignet />}
     </button>
@@ -259,14 +265,14 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
   if (!confirme) {
     return (
       <button onClick={e => { e.stopPropagation(); setConfirme(true) }}
-        title={`Supprimer ${colonneLien}`}
+        title="Supprimer ce lien biblique" aria-label="Supprimer ce lien biblique"
         className="cs-bouton-fin" style={{ ...ACTION_BTN, fontSize:'1.125rem', color:'var(--cs-bord)' }}>
         ×
       </button>
     )
   }
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:'2px', flexShrink:0 }}>
+    <span style={{ display:'inline-flex', alignItems:'center', gap:'6px', flexShrink:0 }}>
       <button onClick={async e => {
         e.stopPropagation()
         setLoading(true)
@@ -274,12 +280,13 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
         setLoading(false)
         onSupprime()
       }} disabled={loading}
-        style={{ fontSize:'0.6875rem', padding:'1px 5px', borderRadius:'4px', border:'none', background:'var(--cs-danger-aplat)', color:'var(--cs-sur-aplat)', cursor:'pointer' }}>
-        {loading ? '…' : 'Oui'}
+        aria-label="Confirmer la suppression du lien"
+        style={{ fontSize:'0.6875rem', minHeight:'24px', padding:'2px 8px', borderRadius:'4px', border:'none', background:'var(--cs-danger-aplat)', color:'var(--cs-sur-aplat)', cursor:'pointer' }}>
+        {loading ? '…' : 'Supprimer'}
       </button>
       <button onClick={e => { e.stopPropagation(); setConfirme(false) }}
-        style={{ fontSize:'0.6875rem', padding:'1px 5px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-second)', cursor:'pointer' }}>
-        Non
+        style={{ fontSize:'0.6875rem', minHeight:'24px', padding:'2px 8px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-second)', cursor:'pointer' }}>
+        Annuler
       </button>
     </span>
   )
@@ -367,7 +374,7 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
               disent déjà. */}
         </div>
         <div className={CLASSE_ACTIONS_CARTE_VOLET} style={{ display:'flex', flexDirection:'column', gap:'4px', alignItems:'flex-end', flexShrink:0 }}>
-          <div style={{ display:'flex', gap:'1px', alignItems:'center', justifyContent:'flex-end' }}>
+          <div style={{ display:'flex', gap:'4px', alignItems:'center', justifyContent:'flex-end' }}>
             <BoutonEnregistrerSegment segment={s} info={info} userId={userId} />
             <BoutonCopieSegment
               texte={texteSansEnrichissement(s.segment_texte)} auteur={info?.auteur_nom || s.id_oeuvre} titre={info?.titre || ''}
@@ -376,15 +383,19 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
               collection={identite.collection ?? undefined} ville={identite.ville ?? undefined}
               date_publication={identite.datePublication ?? undefined} responsable={identite.responsable ?? undefined}
             />
-            <button onClick={e => { e.stopPropagation(); onSignaler(s, info?.titre) }} title="Signaler une erreur"
+            <button onClick={e => { e.stopPropagation(); onSignaler(s, info?.titre) }} title="Signaler une erreur" aria-label="Signaler une erreur"
               className="cs-bouton-fin" style={{ ...ACTION_BTN, color:'var(--cs-bord)' }}>
               <IconeSignalement />
             </button>
-            <BoutonSupprimerLien
-              segmentId={s.idLien} colonneLien={colonneLien}
-              isAdmin={isAdmin} onSupprime={() => onSupprimeLien(s.idLien)}
-            />
           </div>
+          {/* ⛔ LA SUPPRESSION VIT À PART (audit ergonomique du 2026-09-21) : collé à la
+              copie, le « × » d'administration se prenait pour elle. Il descend sur sa
+              propre rangée, sous les actions qui ne détruisent rien, et demande toujours
+              confirmation. */}
+          <BoutonSupprimerLien
+            segmentId={s.idLien} colonneLien={colonneLien}
+            isAdmin={isAdmin} onSupprime={() => onSupprimeLien(s.idLien)}
+          />
         </div>
       </div>
 
