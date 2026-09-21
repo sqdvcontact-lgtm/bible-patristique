@@ -10,6 +10,13 @@
 // lire comme une collection reliée par le même éditeur, non comme un nuancier.
 // Aucune teinte étrangère à cette gamme : sur un site crème et vert d'encre, un
 // bleu ou un violet, même sourd, fait tache.
+//
+// ⚠️ Élargie le 2026-09-21 de six à NEUF couvertures, sans sortir de la gamme : le
+// MAROQUIN est la reliure des Pères sur l'accueil et dans la recherche (--cs-peres),
+// le TABAC un brun de cuir, le LICHEN un vert pâle qui manquait aux fonds clairs.
+// Le rayon alignait trois fonds clairs presque de même valeur ; ils se séparent
+// désormais par la teinte. ⚠️ Le tirage des publications sans couleur choisie se
+// fait sur le jeu entier : l'élargir a redistribué leurs couleurs, une fois.
 
 export type Couverture = {
   /** Clé stockée dans `essais.couverture`. Ne jamais la renommer : la donnée la porte. */
@@ -71,6 +78,14 @@ export const COUVERTURES: Couverture[] = [
   // entre les deux — assez sombre pour porter son encre, assez loin du vert.
   { cle: 'sauge', libelle: 'Sauge',        fond: '#4f5b41', encre: '#f9f0d7', filet: 'rgba(249,240,215,0.42)',
     fondSombre: '#63421f', encreSombre: '#f7edd6', filetSombre: 'rgba(247,237,214,0.42)' },
+  // Le maroquin du carton des Pères (--cs-peres) et son or pâle ; en Cuir, la teinte
+  // basse du même carton.
+  { cle: 'maroquin', libelle: 'Maroquin', fond: '#5a2a26', encre: '#ecd4a2', filet: 'rgba(236,212,162,0.36)',
+    fondSombre: '#4e2823', encreSombre: '#efdcb4', filetSombre: 'rgba(239,220,180,0.36)' },
+  // Un brun de cuir, le plus profond des fonds chauds. En Cuir il descend sous le
+  // brun neutre du vert d'encre, dont il se confondait à 8,7.
+  { cle: 'tabac', libelle: 'Tabac', fond: '#3a2c1f', encre: '#e6d0a4', filet: 'rgba(230,208,164,0.34)',
+    fondSombre: '#211912', encreSombre: '#e8d7b4', filetSombre: 'rgba(232,215,180,0.34)' },
   // L'or du site (`--cs-or`, #9a7a38) sert d'accent sur fond crème ; en aplat il ne
   // contraste pas assez, d'où ce vieil or plus profond. Son encre est un vert pâle :
   // sur un fond doré, un or clair ne serait qu'un ton sur ton. ⚠️ Un premier essai
@@ -79,6 +94,10 @@ export const COUVERTURES: Couverture[] = [
   // assombrir le fond d'autant (#7d6224 -> #705319 -> #664b17).
   { cle: 'or',    libelle: 'Vieil or',     fond: '#664b17', encre: '#dce9c6', filet: 'rgba(220,233,198,0.40)',
     fondSombre: '#bda471', encreSombre: '#1e1609', filetSombre: 'rgba(30,22,9,0.40)' },
+  // Un vert pâle : le seul fond clair de la famille des verts. En Cuir, un parchemin
+  // olivâtre, tenu à plus de 10 de l'ocre et du crème qui l'entourent.
+  { cle: 'lichen', libelle: 'Lichen', fond: '#c0cbac', encre: '#1e3125', filet: 'rgba(30,49,37,0.34)',
+    fondSombre: '#b5bb9f', encreSombre: '#241a0c', filetSombre: 'rgba(36,26,12,0.34)' },
   // Les deux fonds clairs prennent au contraire le vert le plus profond de la gamme.
   { cle: 'ocre',  libelle: 'Ocre pâle',    fond: '#cdbea6', encre: '#1e3125', filet: 'rgba(30,49,37,0.34)',
     fondSombre: '#cdbc96', encreSombre: '#241a0c', filetSombre: 'rgba(36,26,12,0.34)' },
