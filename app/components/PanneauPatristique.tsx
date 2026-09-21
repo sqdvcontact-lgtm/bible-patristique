@@ -1708,7 +1708,7 @@ export default function PanneauPatristique({
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px',
                           }}>
                           <span>{label}</span>
-                          <LigneCompte enAttente={enAttente} compte={nb}
+                          <LigneCompte enAttente={enAttente} compte={nb} videDit="Aucune occurrence"
                             style={{ fontSize: '0.5625rem', lineHeight: 1.2, height: '1.2em', color: sousOnglet === key ? 'var(--cs-vert)' : 'var(--cs-texte-faible)' }} />
                         </button>
                       ))}

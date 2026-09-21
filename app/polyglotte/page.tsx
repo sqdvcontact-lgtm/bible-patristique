@@ -1388,6 +1388,10 @@ export default function PolyglottePage() {
   // Verset ciblé par la barre de recherche du volet (« Gn 1 1 ») : on y défile et on le
   // surligne brièvement, à la manière de la page Bible.
   const [versetCible, setVersetCible] = useState<{ ch: number; v: number } | null>(null);
+  // Le verset que l'ADRESSE désigne (bouton « Voir dans la Polyglotte » de la page Bible).
+  // ⛔ Il reste marqué en vert tant que son chapitre est affiché : la fenêtre s'ouvre à
+  // côté de la lecture, et l'on doit y retrouver le verset d'un coup d'œil.
+  const [versetDesigne, setVersetDesigne] = useState<{ livre: string; ch: number; v: number } | null>(null);
   const [toutAfficher, setToutAfficher] = useState(false);              // …sauf demande explicite
   // Édition en place (admin). L'affordance dépend du client, mais l'autorisation réelle
   // est revérifiée côté serveur par /api/admin/verset-modifier (charte §17).
@@ -1513,7 +1517,10 @@ export default function PolyglottePage() {
         setOnglet(ensembleDeLivre(liste, livreDemande.code));
         setLivreChoisi(livreDemande.code);
         setChapitreChoisi(demande.chapitre);
-        if (demande.verset !== null) setVersetCible({ ch: demande.chapitre, v: demande.verset });
+        if (demande.verset !== null) {
+          setVersetCible({ ch: demande.chapitre, v: demande.verset });
+          setVersetDesigne({ livre: livreDemande.code, ch: demande.chapitre, v: demande.verset });
+        }
         return;
       }
       const ou = ouvertureDeLaPolyglotte();
@@ -2639,7 +2646,7 @@ export default function PolyglottePage() {
                 return (
                   <Fragment key={r.id}>
                     <div className="poly-row" id={`poly-${l.code}-${r.ch_canon}-${r.v_canon}`}
-                      style={{ display: "grid", gridTemplateColumns: tmpl, background: (versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) ? 'var(--cs-vise-fond)' : fond, fontSize: '0.875rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_ENTETE + 8}px)`, transition: "background .4s" }}>
+                      style={{ display: "grid", gridTemplateColumns: tmpl, background: ((versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) || (versetDesigne && versetDesigne.livre === livreChoisi && versetDesigne.ch === r.ch_canon && versetDesigne.v === r.v_canon)) ? 'rgba(var(--cs-vert-rgb),0.14)' : fond, fontSize: '0.875rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_ENTETE + 8}px)`, transition: "background .4s" }}>
                       {/* La référence canonique, EN MARGE : elle accompagne le verset au lieu
                           d'occuper une colonne bordée. Alignée à droite pour que les numéros
                           tombent tous au même fer, et calée sur la première ligne du texte.

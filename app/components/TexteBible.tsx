@@ -173,10 +173,12 @@ function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; vers
 
 // ── Bouton « Voir dans la Polyglotte » ──
 // Un lien, non un geste : il ouvre la Polyglotte sur le même verset du CANON, qui s'y
-// désigne et s'y surligne un instant (voir placePolyglotteDemandee).
+// désigne et s'y marque en vert (voir placePolyglotteDemandee). ⛔ Dans une NOUVELLE
+// fenêtre, par défaut (demande de l'auteur, 2026-09-20) : on bascule sans perdre
+// l'endroit où l'on lisait.
 function BoutonPolyglotte({ href }: { href: string }) {
   return (
-    <a href={href} onClick={e => e.stopPropagation()}
+    <a href={href} target="_blank" rel="noopener" onClick={e => e.stopPropagation()}
       className="bouton-action-verset" title="Voir dans la Polyglotte" aria-label="Voir ce verset dans la Polyglotte"
       style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
       <IconePolyglotte />
