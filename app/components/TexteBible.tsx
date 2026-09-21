@@ -890,7 +890,7 @@ export default function TexteBible({
                   <span style={STYLE_NUMERO_VERSET}>
                     {!mobile && sauvegardes.has(v.verset) && (
                       <span role="img" aria-label="Verset enregistré" title="Enregistré dans vos prélèvements" style={STYLE_SIGNET_VERSET}>
-                        <IconeSignet plein taille="0.5rem" />
+                        <IconeSignet plein taille="100%" />
                       </span>
                     )}
                     {v.verset}

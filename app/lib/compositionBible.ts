@@ -179,16 +179,23 @@ export const STYLE_NUMERO_VERSET: CSSProperties = {
 /**
  * La marque d'un verset ENREGISTRÉ, à gauche de son numéro (décision de l'auteur,
  * 21 septembre 2026). Elle remplace le signet plein qui restait affiché dans la colonne
- * d'actions. ⛔ Posée hors du flux, au bord gauche du numéro : elle ne décale ni le
- * numéro ni le texte, et une ligne enregistrée garde sa géométrie. Encre discrète, celle
+ * d'actions. ⛔ Elle ne décale ni le numéro ni le texte : une ligne enregistrée garde
+ * sa géométrie. Encre discrète, celle
  * de l'appareil. ⚠️ Bureau seulement : au doigt, le pavé d'actions dit l'état.
  */
 export const STYLE_SIGNET_VERSET: CSSProperties = {
-  position: 'absolute',
-  right: '100%',
-  top: '50%',
-  transform: 'translateY(-50%)',
-  marginRight: '0.125rem',
+  // ⛔ ALIGNÉ SUR LES CHIFFRES, non centré sur la boîte de ligne (reprise du 21 septembre
+  // 2026 : « aligner parfaitement le signet et le numéro ; les rapprocher »). Le signet
+  // est EN LIGNE et se pose sur la ligne de base du numéro ; ses mesures sont en `em` du
+  // numéro, calculées sur le tracé (viewBox 12 × 13, dessin de y 1,4 à 11) : le dessin
+  // va de la ligne de base à la hauteur des chiffres (0,66 em).
+  display: 'inline-block',
+  width: '0.825em',
+  verticalAlign: '-0.1375em',
+  // ⚠️ La marge négative rend exactement sa largeur : le numéro ne bouge pas, et la
+  // colonne ne s'élargit pas. Le blanc qui reste (un quart du tracé, à droite du dessin)
+  // fait l'écart, environ 2 px à la racine 16.
+  marginLeft: '-0.825em',
   color: 'var(--cs-texte-gris)',
   lineHeight: 0,
 }
