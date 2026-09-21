@@ -823,6 +823,21 @@ button:focus-visible,
   outline-offset: 2px;
 }
 
+/* ── Le foyer sur une surface de lecture ──
+   Un verset en regard, un segment d'œuvre, une cellule de la Polyglotte se
+   retiennent au clavier (tabIndex 0). L'anneau global de deux pixels y cernerait
+   des paragraphes entiers : un trait d'un pixel suffit à dire où l'on est, et la
+   souris n'en voit rien (:focus-visible). */
+.seg-inline:focus-visible,
+.cs-regard-rangee:focus-visible {
+  outline: 1px solid var(--cs-vert);
+  outline-offset: 1px;
+}
+.poly-texte-cell:focus-visible {
+  outline: 1px solid var(--cs-vert);
+  outline-offset: -2px;
+}
+
 /* ── LE LIEN D'ÉVITEMENT ──────────────────────────────────────────────────────
    Première cible du document, invisible tant qu'on ne l'atteint pas au clavier.
    ⛔ Ni `display: none` ni `visibility: hidden` : les deux le retirent de l'ordre de

@@ -1,5 +1,6 @@
 'use client'
 
+import { activerAuClavier } from '@/app/lib/activerAuClavier'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { createPortal } from 'react-dom'
@@ -301,6 +302,8 @@ function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSu
     return (
       <span id={`cmp-seg-${segment.id}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`}
         onClick={e => onClic(e.currentTarget, segment.id, actif)}
+        tabIndex={0}
+        onKeyDown={e => activerAuClavier(e, () => onClic(e.currentTarget, segment.id, actif))}
         onMouseEnter={mobile ? undefined : e => onSurvol(e.currentTarget, segment.id)}
         onMouseLeave={mobile ? undefined : () => onQuitter(segment.id)}>
         {renderSegmentTexte(

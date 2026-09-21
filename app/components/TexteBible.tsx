@@ -50,6 +50,7 @@ import { separateurAppels, styleSeparateurAppels } from '@/app/lib/appelsDeNote'
 import { placeCanoniqueDuVerset, urlLectureBible, urlPolyglotte, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
 import type { PieceLiminaireAffichee } from '@/app/components/BibleLayout'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
+import { activerAuClavier } from '@/app/lib/activerAuClavier'
 import {
   indexerBlocsDeCorps,
   habillerLesVignettes,
@@ -764,13 +765,15 @@ export default function TexteBible({
             l'autre (voir `BibleLayout`, « passage »). L'en-tête, lui, ne bouge pas. */}
         <div className="cs-lecture-colonne" data-colonne-lecture="" style={{ maxWidth: 'var(--mesure-page)', margin: '0 auto', paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
           <style>{`
-            .verset-row:hover .bouton-action-verset { opacity: 1 !important; }
+            .verset-row:hover .bouton-action-verset,
+            .verset-row:has(:focus-visible) .bouton-action-verset { opacity: 1 !important; }
             .verset-row--actif .bouton-action-verset { opacity: 0.5; }
             /* ⛔ La densité ne paraît qu'au SURVOL, avec les actions dont elle ferme la
                rangée (décision de l'auteur, 2026-09-13). Ni au repos, ni sur le verset
                retenu : c'est la ligne qu'on vise qui la demande. */
             .marque-densite { opacity: 0; transition: opacity 0.12s; }
-            .verset-row:hover .marque-densite { opacity: 1; }
+            .verset-row:hover .marque-densite,
+            .verset-row:has(:focus-visible) .marque-densite { opacity: 1; }
             /* Les flèches encadrent le titre : elles prennent sa teinte, non le vert. */
             .nav-chap-arrow:hover { color: var(--cs-mention) !important; }
             /* Mobile : dans le pavé flottant (appui long), les boutons sont pleins. */
@@ -859,28 +862,30 @@ export default function TexteBible({
             // ⛔ Un appel se pose à l'ANCRE que la donnée déclare ; sans ancre lisible, il suit le verset.
             const appelsDuVerset = repartirAppels(!lacune && !ligne899 ? texteDuVerset(v) : '', notesDuVerset)
             const dansLeLasso = lassoActif && !lacune && Boolean(overrides[v.id_verset]?.[traduction] ?? v[traduction])
+            // Retenir le verset : au clic sur la rangée, ou au clavier sur son numéro.
+            const choisirVerset = () => {
+              const incrementer = () => fetch('/api/versets/incrementer-lecture', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_verset: v.id_verset }),
+              }).catch(() => {})
+              if (mobile) {
+                // Sur mobile, un tap sélectionne le verset ET fait apparaître
+                // immédiatement le pavé d'actions ; un second tap referme.
+                // Les lignes recomposées ne ciblent pas `versets_v2` : pas de comptage
+                // de lecture ; leur pavé d'actions, lui, paraît (2026-09-20).
+                if (actif) { setVersetSelectionne(null); setActionsMobileId(null) }
+                else { if (!ligneSource) incrementer(); setActionsMobileId(v.id_verset); setVersetSelectionne(v) }
+                return
+              }
+              if (!actif && !ligneSource) incrementer()
+              setVersetSelectionne(actif ? null : v)
+            }
             return (
             <Fragment key={v.id_verset}>
             {rendreFluxEditorial(blocsAvant, illustrationsAvant)}
             <div
               id={`verset-${v.verset}`}
-              onClick={() => {
-                const incrementer = () => fetch('/api/versets/incrementer-lecture', {
-                  method: 'POST', headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ id_verset: v.id_verset }),
-                }).catch(() => {})
-                if (mobile) {
-                  // Sur mobile, un tap sélectionne le verset ET fait apparaître
-                  // immédiatement le pavé d'actions ; un second tap referme.
-                  // Les lignes recomposées ne ciblent pas `versets_v2` : pas de comptage
-                  // de lecture ; leur pavé d'actions, lui, paraît (2026-09-20).
-                  if (actif) { setVersetSelectionne(null); setActionsMobileId(null) }
-                  else { if (!ligneSource) incrementer(); setActionsMobileId(v.id_verset); setVersetSelectionne(v) }
-                  return
-                }
-                if (!actif && !ligneSource) incrementer()
-                setVersetSelectionne(actif ? null : v)
-              }}
+              onClick={choisirVerset}
               className={`verset-row${actif ? ' verset-row--actif' : ''}`}
               data-oeuvres={densites.get(v.id_verset)?.oeuvres}
               style={styleRangeeVerset({ mobile })}>
@@ -888,7 +893,11 @@ export default function TexteBible({
               <div style={styleGrilleRangee({ mobile })}>
                 <div className="verset-bloc" data-lasso-verset={dansLeLasso ? v.id_verset : undefined} style={styleBlocVerset({ actif, mobile })}>
                   {/* Numéro — inclus dans le bloc sélectionné, aligné sur la 1re ligne du texte (ligne de base) */}
-                  <span style={STYLE_NUMERO_VERSET}>
+                  {/* ⛔ Le numéro est le BOUTON du verset pour le clavier : la rangée entière
+                      porte déjà des liens et des boutons, on ne la rend pas focalisable. */}
+                  <span style={STYLE_NUMERO_VERSET} role="button" tabIndex={0} aria-pressed={actif}
+                    aria-label={`Verset ${v.verset}`}
+                    onKeyDown={e => activerAuClavier(e, choisirVerset)}>
                     {!mobile && sauvegardes.has(v.verset) && (
                       <span role="img" aria-label="Verset enregistré" title="Enregistré dans vos prélèvements" style={STYLE_SIGNET_VERSET}>
                         <IconeSignet plein taille="100%" />

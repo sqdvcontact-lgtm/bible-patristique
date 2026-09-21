@@ -30,7 +30,8 @@
 // Le composant ne décide de rien : la répartition, l'appariement et l'indexation
 // viennent de modules purs et testés.
 
-import { Fragment, type ReactNode } from 'react'
+import { Fragment, type KeyboardEvent, type ReactNode } from 'react'
+import { activerAuClavier } from '@/app/lib/activerAuClavier'
 
 import {
   indexerBlocsDeCorps,
@@ -295,6 +296,9 @@ export default function BibleBilingue({
       // où le débord se loge.
       className: `cs-regard-rangee${mobile ? '' : ' cs-regard-rangee--symetrique'}${retenue ? ' cs-regard-rangee--retenue' : ''}`,
       onClick: () => choisir(canonId),
+      // Au clavier, la rangée se retient comme au clic : Tab l'atteint, Entrée ou Espace la retient.
+      tabIndex: 0,
+      onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => activerAuClavier(e, () => choisir(canonId)),
     }
   }
 

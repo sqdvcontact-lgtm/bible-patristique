@@ -1,4 +1,5 @@
 'use client'
+import { activerAuClavier } from '@/app/lib/activerAuClavier'
 import { Z_MODALE, Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
 import { LIVRES } from '@/app/lib/bible'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
@@ -4586,6 +4587,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                 <span key={sid} style={styleLigneDeVers({ rang: rangs[i], ouvreStrophe: strophe })}>
                                   <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
                                     onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
+                                    tabIndex={0}
+                                    onKeyDown={(e) => activerAuClavier(e, () => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif))}
                                     onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                     onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                     {rendreCorpsSegment(s, estPremier)}
@@ -4612,6 +4615,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               <span key={sid} className="citation-verset">
                                 <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
                                   onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
+                                  tabIndex={0}
+                                  onKeyDown={(e) => activerAuClavier(e, () => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif))}
                                   onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                   onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                   {rendreCorpsSegment(s, false, null, true)}
@@ -4655,6 +4660,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                 {afficherLiant ? liantAvantSegment(s.joinBefore) : null}
                                 <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
                                   onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
+                                  tabIndex={0}
+                                  onKeyDown={(e) => activerAuClavier(e, () => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif))}
                                   onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                   onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                   {rendreCorpsSegment(s, estPremier, sortieStructurelle ? textesStructurels[i] : null)}
@@ -4749,6 +4756,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   {i > 0 ? liantAvantSegment(s.joinBefore) : null}
                   <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
                     onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
+                    tabIndex={0}
+                    onKeyDown={(e) => activerAuClavier(e, () => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif))}
                     onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                     onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                     {configNiveaux.afficherNumeros && <sup style={STYLE_NUMERO_SEGMENT}>{s.numero}</sup>}
@@ -4888,6 +4897,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                   <span key={sid} style={styleLigneDeVers({ rang: rangs[i], ouvreStrophe: strophe })}>
                                     <span id={`segment-${sid}`} className={`seg-inline${actif ? ' seg-inline--actif' : ''}`} style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}
                                       onClick={(e) => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif)}
+                                      tabIndex={0}
+                                      onKeyDown={(e) => activerAuClavier(e, () => tapSegmentParagraphe(e.currentTarget as HTMLElement, sid, actif))}
                                       onMouseEnter={mobile ? undefined : (e) => positionnerToolbar(e.currentTarget as HTMLElement, sid)}
                                       onMouseLeave={mobile ? undefined : () => masquerToolbar(sid)}>
                                       {rendreTexteAvecNotes(composerCorps(preparerTexteSegment(s.texteAffichage ?? s.texte)), s.notes ?? {})}

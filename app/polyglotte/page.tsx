@@ -14,6 +14,7 @@
 // Écran large requis : la page est signalée indisponible sous 820 px.
 // ────────────────────────────────────────────────────────────────────────────
 
+import { activerAuClavier } from '@/app/lib/activerAuClavier'
 import { Z_MODALE } from '@/app/lib/empilement'
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -2522,6 +2523,8 @@ export default function PolyglottePage() {
                       onMouseEnter={actionsSurnum ? e => ancrerActions(e.currentTarget, actionsSurnum) : undefined}
                       onMouseLeave={actionsSurnum ? () => celluleActions.relacher(actionsSurnum.cle) : undefined}
                       onClick={actionsSurnum ? e => celluleActions.basculer(e.currentTarget, actionsSurnum.cle, celluleActions.ancre?.cle === actionsSurnum.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsSurnum }) : undefined}
+                      tabIndex={actionsSurnum ? 0 : undefined}
+                      onKeyDown={actionsSurnum ? e => activerAuClavier(e, () => celluleActions.basculer(e.currentTarget, actionsSurnum.cle, celluleActions.ancre?.cle === actionsSurnum.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsSurnum })) : undefined}
                       style={{ borderLeft: "1px solid var(--cs-surnum-bord)", color: r ? 'var(--cs-surnum-fort)' : 'var(--cs-surnum-bord)', ...(r?.estGlose899 ? { fontStyle: 'italic', fontSize: CORPS_GLOSE.sousVerset } : {}) }}>
                       {/* Même lettrine que les versets canoniques, au violet des surnuméraires :
                           la référence d'origine est ici la seule qui existe. Une glose y porte
@@ -2670,6 +2673,8 @@ export default function PolyglottePage() {
                             onMouseEnter={actionsCell ? e => ancrerActions(e.currentTarget, actionsCell) : undefined}
                             onMouseLeave={actionsCell ? () => celluleActions.relacher(actionsCell.cle) : undefined}
                             onClick={actionsCell ? e => celluleActions.basculer(e.currentTarget, actionsCell.cle, celluleActions.ancre?.cle === actionsCell.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsCell }) : undefined}
+                            tabIndex={actionsCell ? 0 : undefined}
+                            onKeyDown={actionsCell ? e => activerAuClavier(e, () => celluleActions.basculer(e.currentTarget, actionsCell.cle, celluleActions.ancre?.cle === actionsCell.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsCell })) : undefined}
                             style={{ borderLeft: `1px solid ${FILET_COL}`, color: signaler ? 'var(--cs-danger-fonce)' : "var(--cs-encre-fonce)" }}>
                             {/* La lettrine : la PREMIÈRE référence d'origine et son crayon, en bloc
                                 flottant que le texte habille. ⛔ Les suivantes ne s'y empilent plus
