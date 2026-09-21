@@ -80,7 +80,7 @@ export function etapesParcours({ marques, aUnPortrait, aUneBio }: EtatLecteur): 
       cle: 'verset', fait: marques.versets > 0,
       libelle: 'Retenir un verset',
       glose: 'Un passage vous arrête : gardez-le. Vous le retrouverez dans vos citations.',
-      href: '/bible',
+      href: '/?livre=GEN&chapitre=1',
     },
     {
       cle: 'pere', fait: marques.peres > 0,
@@ -104,7 +104,7 @@ export function etapesParcours({ marques, aUnPortrait, aUneBio }: EtatLecteur): 
       cle: 'commentaire', fait: marques.commentaires > 0,
       libelle: 'Commenter un passage',
       glose: 'Dire ce qu’un verset vous fait entendre, à côté de ce qu’en ont dit les Pères.',
-      href: '/bible',
+      href: '/?livre=GEN&chapitre=1',
     },
     {
       cle: 'essai', fait: marques.essais > 0,

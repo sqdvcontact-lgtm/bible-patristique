@@ -40,7 +40,7 @@ export default function BienvenuePage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '48px' }}>
           {[
             {
-              href: '/bible',
+              href: '/?livre=GEN&chapitre=1',
               titre: 'Lire la Bible',
               desc: 'Parcourez les Écritures verset par verset, avec les commentaires des Pères.',
             },
