@@ -1,6 +1,7 @@
 'use client'
 
 import LireQuandMeme, { FEUILLE_COMMENTAIRE_RETRACTE } from '@/app/components/LireQuandMeme'
+import { CLASSE_ACTIONS_CARTE_VOLET, CLASSE_CARTE_VOLET, CORPS_CARTE_VOLET, FEUILLE_CARTE_VOLET, INTERLIGNE_CARTE_VOLET, STYLE_CARTE_VOLET } from '@/app/lib/carteVolet'
 import { Z_FENETRE, Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
 import { useState, useEffect, useId, useMemo, useRef, useCallback } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
@@ -230,7 +231,7 @@ function BoutonEnregistrerSegment({ segment, info, userId }: {
   if (idPrelev) {
     return (
       <button onClick={supprimer} disabled={loading} title="Retirer des prélèvements"
-        className="cs-bouton-fin" style={{ ...ACTION_BTN, color:'var(--cs-vert)' }}>
+        className="cs-bouton-fin" style={{ ...ACTION_BTN, color:'var(--cs-texte-faible)' }}>
         {loading ? '…' : <IconeSignet plein />}
       </button>
     )
@@ -323,9 +324,8 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
   const niveaux = [s.ref_niv1, s.ref_niv2, s.ref_niv3].filter(Boolean).join(', ')
 
   return (
-    // ⚠️ La carte déborde de 6 px de chaque côté (marge négative rendue en rembourrage) :
-    // le fond du survol respire autour du texte, qui garde son fer.
-    <div className="pp-carte" style={{ padding:'10px 6px 9px', margin:'0 -6px', borderBottom:'1px solid var(--cs-fond-doux)' }}>
+    // La case : même forme que celle du volet biblique d'une œuvre (`carteVolet.ts`).
+    <div className={CLASSE_CARTE_VOLET} style={STYLE_CARTE_VOLET}>
 
       {/* Ligne méta : auteur + titre + niveaux (gauche), badge + actions (droite) */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'6px' }}>
@@ -354,7 +354,7 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
               (décision de l'auteur, 21 septembre 2026). Les sous-onglets et les filtres la
               disent déjà. */}
         </div>
-        <div className="pp-actions" style={{ display:'flex', flexDirection:'column', gap:'4px', alignItems:'flex-end', flexShrink:0 }}>
+        <div className={CLASSE_ACTIONS_CARTE_VOLET} style={{ display:'flex', flexDirection:'column', gap:'4px', alignItems:'flex-end', flexShrink:0 }}>
           <div style={{ display:'flex', gap:'1px', alignItems:'center', justifyContent:'flex-end' }}>
             <BoutonEnregistrerSegment segment={s} info={info} userId={userId} />
             <BoutonCopieSegment
@@ -410,7 +410,7 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
           à chaque ligne. On redéfinit le jeton qu'ils lisent, sur ce seul paragraphe :
           l'appel et le séparateur « & » suivent ensemble. Encre `--cs-texte-second`, qui
           tient le seuil de 4,5 d'un signe qui porte seul son information. */}
-      <p lang="fr" style={{ '--cs-lacune':'var(--cs-texte-second)', fontSize:'0.75rem', lineHeight:'1.32', color:'var(--cs-texte-fort)', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
+      <p lang="fr" style={{ '--cs-lacune':'var(--cs-texte-second)', fontSize:CORPS_CARTE_VOLET, lineHeight:INTERLIGNE_CARTE_VOLET, color:'var(--cs-texte-fort)', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
         {/* ⚠️ La capitale et les appels projetés arrivent POSÉS (`composerExtrait`) : la
             capitale passe avant la projection, qui compte ses offsets dans le texte. */}
         {rendreTexteAvecNotes(texteAffichage, notes, 'corps', {
@@ -1552,14 +1552,7 @@ export default function PanneauPatristique({
         .pp-tag { display: inline-grid; align-items: center; justify-items: center; }
         .pp-tag > span { grid-area: 1 / 1; }
         .pp-tag::after { content: attr(data-label); grid-area: 1 / 1; font-weight: 600; visibility: hidden; white-space: nowrap; }
-        /* Une citation : un léger fond vert au survol, et ses actions (signet, copie,
-           signalement) n'y paraissent qu'alors (décision de l'auteur, 21 septembre 2026).
-           Au clavier, le foyer les montre ; au doigt, elles restent visibles. */
-        .pp-carte { transition: background-color 0.12s ease; }
-        .pp-carte:hover { background-color: rgba(var(--cs-vert-rgb), 0.05); }
-        .pp-actions { opacity: 0; transition: opacity 0.12s ease; }
-        .pp-carte:hover .pp-actions, .pp-carte:focus-within .pp-actions { opacity: 1; }
-        @media (hover: none) { .pp-actions { opacity: 1; } }
+        ${FEUILLE_CARTE_VOLET}
       `}</style>
       {!mobile && handleDrag && (
         <div onMouseDown={handleDrag} title="Glisser pour redimensionner"

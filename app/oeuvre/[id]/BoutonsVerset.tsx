@@ -48,7 +48,7 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
 
   if (idPrelev) return (
     <Bulle texte="Retirer des prélèvements">
-      <button onClick={supprimer} disabled={loading} className="cs-bouton-action" style={{ ...BTN_STYLE, color:'var(--cs-vert)' }} aria-label="Retirer des prélèvements">
+      <button onClick={supprimer} disabled={loading} className="cs-bouton-action" style={{ ...BTN_STYLE, color:'var(--cs-texte-faible)' }} aria-label="Retirer des prélèvements">
         {loading ? '…' : <IconeSignet plein />}
       </button>
     </Bulle>

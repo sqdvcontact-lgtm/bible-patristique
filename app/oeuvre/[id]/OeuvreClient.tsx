@@ -35,7 +35,6 @@ import { chargerProfondeurPresente } from './niveauxPresents'
 // ⛔ LE PIPELINE DES SEGMENTS, celui-là même que le rendu serveur emploie. Cinq de ses
 // fonctions vivaient ici en copie, et c'est là qu'elles avaient divergé.
 import {
-  NATURE_LIEN,
   composerSegments,
   estIntroduction,
   indexerVersetsCites,
@@ -162,6 +161,7 @@ import OngletsPage from '@/app/components/OngletsPage'
 import { enregistrerOeuvreRecente } from '@/app/lib/oeuvresRecentes'
 import { HAUTEUR_BARRE_VOLET, HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { BoutonCopieVerset, BoutonEnregistrerVerset, BoutonSignalerVerset } from './BoutonsVerset'
+import { CLASSE_ACTIONS_CARTE_VOLET, CLASSE_CARTE_VOLET, CORPS_CARTE_VOLET, FEUILLE_CARTE_VOLET, INTERLIGNE_CARTE_VOLET, STYLE_CARTE_VOLET } from '@/app/lib/carteVolet'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { insererSignalement } from './signalements'
@@ -3412,6 +3412,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     <ProvisionNotesConnues registre={registreNotes}>
     <div style={{ background: 'var(--cs-fond)', minHeight: HAUTEUR_SOUS_NAVBAR }}>
       <style>{`
+        ${FEUILLE_CARTE_VOLET}
         .seg-wrapper { position: relative; }
         .seg-p { transition: background 0.12s; }
         .seg-p:hover { background: rgba(var(--cs-vert-rgb),0.05) !important; }
@@ -5044,7 +5045,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         <FleuronDiscret vide="liensBibliques" />
                       </div>
                     ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
                         {regrouperVersetsConsecutifs(ordonnerAuCanon(segActifData.versets)).map(groupe => {
                           const premier = groupe[0]
                           const dernier = groupe[groupe.length - 1]
@@ -5077,11 +5078,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           // La note éditoriale n'est portée que par un verset seul (sinon on fond
                           // simplement les corps).
                           const note = multiple ? null : extraireNoteVerset(textesDuGroupe[0] ?? '').note
-                          // Les natures se cumulent sur le groupe, et se disent dans l'ordre de la
-                          // charte (§9.1 à §9.4) : « citation · reprise », et non dans l'ordre du
-                          // verset qui ouvre le groupe.
-                          const portees = new Set(groupe.flatMap(v => (v as any).natures ?? []) as string[])
-                          const natures: string[] = NATURE_LIEN.filter(n => portees.has(n))
                           // Objet synthétique pour les actions (copie/enregistrement) sur le groupe :
                           // textes fondus par traduction, label en fourchette.
                           // ⚠️ La traduction LUE y est réécrite avec ce qui est à l'écran : un
@@ -5093,23 +5089,20 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                             : { ...premier, textes: { ...premier.textes, [trad]: textesDuGroupe[0] ?? '' } }
                           const key = groupe.map(v => v.id).join('_')
                           return (
-                            <div key={key}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: note ? '2px' : '4px' }}>
+                            // ⛔ La case prend la forme de celle du volet des Pères (`carteVolet.ts`) :
+                            // fond au survol, actions au survol seulement, un filet entre deux cases.
+                            <div key={key} className={CLASSE_CARTE_VOLET} style={STYLE_CARTE_VOLET}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: note ? '2px' : '6px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
                                   {/* ⚠️ La graphie part AVEC l'adresse : on ouvre la page Bible sur
                                       le texte qu'on avait sous les yeux, et non sur un autre état du
                                       même témoin. La page Bible la normalise contre les graphies
                                       qu'elle expose vraiment, et ne s'en trouble pas si elle ne la
                                       connaît pas (`normaliserCouche899`). */}
-                                  <a href={`/?livre=${encodeURIComponent(premier.livre)}&chapitre=${encodeURIComponent(premier.chapitre)}&verset=${encodeURIComponent(premier.verset)}&trad=${encodeURIComponent(trad)}${lecture.couche ? `&couche=${encodeURIComponent(lecture.couche)}` : ''}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0, textDecoration: 'none' }}>{labelGroupe}</a>
-                                  {/* La nature du rapport, dite sans peser : le lecteur
-                                      voit la référence d'abord, et peut savoir à quel
-                                      titre elle est là s'il y prend garde. */}
-                                  {natures.length > 0 && (
-                                    <span style={{ fontSize: '0.59375rem', color: 'var(--cs-texte-faible)', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
-                                      {natures.join(' · ')}
-                                    </span>
-                                  )}
+                                  <a href={`/?livre=${encodeURIComponent(premier.livre)}&chapitre=${encodeURIComponent(premier.chapitre)}&verset=${encodeURIComponent(premier.verset)}&trad=${encodeURIComponent(trad)}${lecture.couche ? `&couche=${encodeURIComponent(lecture.couche)}` : ''}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0, textDecoration: 'none' }}>{labelGroupe}</a>
+                                  {/* ⛔ La nature du rapport (citation, reprise…) ne s'affiche plus
+                                      (décision de l'auteur, 21 septembre 2026), comme dans le volet
+                                      des Pères. */}
                                   {estAdmin && (
                                     <button onClick={() => supprimerLiensBibliques(segActifData.id, groupe.map(v => v.id))} title="Supprimer ce lien biblique"
                                       style={{ fontSize: '0.59375rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>
@@ -5117,7 +5110,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                                     </button>
                                   )}
                                 </div>
-                                <div style={{ display: 'flex', gap: '1px', alignItems: 'center' }}>
+                                <div className={CLASSE_ACTIONS_CARTE_VOLET} style={{ display: 'flex', gap: '1px', alignItems: 'center' }}>
                                   <BoutonEnregistrerVerset verset={versetAction} trad={trad} userId={userId} />
                                   <BoutonCopieVerset texte={corps} label={labelGroupe} />
                                   <BoutonSignalerVerset versetId={premier.id} label={labelGroupe} texte={corps} segmentId={segActifData.id} />
@@ -5131,7 +5124,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               {/* Texte du/des verset(s) réuni(s) : SANS SÉRIF, même mise en forme que les
                                   citations patristiques du panneau Bible — justifié, wordSpacing serré,
                                   césure. Enrichissement (« <i> » de Sacy) rendu. */}
-                              <p lang="fr" style={{ fontSize: '0.6875rem', lineHeight: '1.38', color: 'var(--cs-texte-fort)', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.08em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 4px' } as React.CSSProperties}>
+                              <p lang="fr" style={{ fontSize: CORPS_CARTE_VOLET, lineHeight: INTERLIGNE_CARTE_VOLET, color: 'var(--cs-texte-fort)', textAlign: 'justify', textJustify: 'inter-word', wordSpacing: '-0.08em', hyphens: 'auto', WebkitHyphens: 'auto', overflowWrap: 'break-word', margin: '0 0 1px' } as React.CSSProperties}>
                                 {corps ? rendreTexteEnrichi(corps) : '—'}
                               </p>
                             </div>

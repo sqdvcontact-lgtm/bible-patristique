@@ -74,10 +74,9 @@ export function BoutonEnregistrerSegment({
       <Bulle texte="Retirer des prélèvements">
         <button onClick={supprimer} disabled={loading}
           className="seg-btn-enreg"
-          // Visible sans survol : le signet plein constate un état, et un état
-          // qu'il faut survoler pour connaître ne se voit jamais. La classe est
-          // conservée pour le reste de son style ; seule l'opacité est forcée.
-          style={{ ...BTN_STYLE, color:'var(--cs-vert)', opacity:1 }}
+          // Visible dans la cellule d'actions : le signet plein constate un état. Il est
+          // GRIS, comme sur la page Bible (décision de l'auteur, 21 septembre 2026).
+          style={{ ...BTN_STYLE, color:'var(--cs-texte-faible)', opacity:1 }}
           aria-label="Retirer des prélèvements">{loading ? '…' : <IconeSignet plein />}</button>
       </Bulle>
     )
