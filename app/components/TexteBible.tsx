@@ -207,7 +207,7 @@ function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; vers
 function BoutonPolyglotte({ href }: { href: string }) {
   return (
     <a href={href} target="_blank" rel="noopener" onClick={e => e.stopPropagation()}
-      className="bouton-action-verset" title="Voir dans la Polyglotte" aria-label="Voir ce verset dans la Polyglotte"
+      className="bouton-action-verset" title="Voir dans la Polyglotte (nouvel onglet)" aria-label="Voir ce verset dans la Polyglotte (nouvel onglet)"
       style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
       <IconePolyglotte />
     </a>

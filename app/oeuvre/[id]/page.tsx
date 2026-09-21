@@ -18,6 +18,8 @@ import { chargerIndexEditeurs } from '@/app/lib/editeursServeur'
 import { normaliserNomEditeur } from '@/app/lib/editeursNormalisation'
 import { codeLangue } from '@/app/lib/grec'
 import { JsonLd, donneesLivre, donneesFilAriane } from '@/app/lib/donneesStructurees'
+import FilAriane from '@/app/components/FilAriane'
+import { lireRetour } from '@/app/lib/retourLecture'
 import { descriptionOeuvre, enTetesPartage, titreOeuvre } from '@/app/lib/metadonneesSeo'
 import { porteDesLiensBibliques } from '@/app/lib/metadonneesSeoServeur'
 import OeuvreClient from './OeuvreClient'
@@ -240,7 +242,7 @@ export default async function OeuvrePage({
   params:Promise<{id:string}>
   // `niv1`, `groupe` et `cle` sont la POSITION DE LECTURE emportée d'un texte à
   // l'autre de la même œuvre : voir `passageTexte.ts` et `resoudrePassage` plus bas.
-  searchParams?:Promise<{segment?:string;texte?:string;compare?:string;book?:string;division?:string;mt?:string;niv1?:string;groupe?:string;cle?:string}>
+  searchParams?:Promise<{segment?:string;texte?:string;compare?:string;book?:string;division?:string;mt?:string;niv1?:string;groupe?:string;cle?:string;depuis?:string}>
 }) {
   const {id}=await params
   const sp = searchParams ? await searchParams : {}
@@ -772,6 +774,17 @@ export default async function OeuvrePage({
       return {} as Record<number, NoticeBibliographique>
     })
 
+  // Le fil d'Ariane : le même pour les moteurs et pour le lecteur (audit ergonomique,
+  // 2026-09-21), qui le voit désormais au-dessus du frontispice avec, s'il vient d'un
+  // verset, le chemin du retour.
+  const filAriane = [
+    { nom: 'Accueil', url: '/accueil' },
+    { nom: 'Patristique', url: '/bibliotheque' },
+    ...(auteur ? [{ nom: auteur, url: `/auteur/${auteurId}` }] : []),
+    { nom: oeuvre.titre, url: `/oeuvre/${id}` },
+  ]
+  const retour = lireRetour(sp.depuis)
+
   return (
     <>
       {/* Book JSON-LD — seulement pour une œuvre publique (jamais un brouillon admin). */}
@@ -788,12 +801,7 @@ export default async function OeuvrePage({
             editeur: normaliserNomEditeur(identiteActive.editeur, indexEditeurs) || null,
             langue: codeLangue(versionActive.langue),
           })} />
-          <JsonLd donnees={donneesFilAriane([
-            { nom: 'Accueil', url: '/accueil' },
-            { nom: 'Patristique', url: '/bibliotheque' },
-            ...(auteur ? [{ nom: auteur, url: `/auteur/${auteurId}` }] : []),
-            { nom: oeuvre.titre, url: `/oeuvre/${id}` },
-          ])} />
+          <JsonLd donnees={donneesFilAriane(filAriane)} />
         </>
       )}
     <OeuvreClient
@@ -835,6 +843,7 @@ export default async function OeuvrePage({
       alignmentSetIdInitial={alignementDemande?.alignmentSetId ?? null}
       comparaisonLivreInitial={Number(sp.book ?? '1')}
       comparaisonDivisionInitiale={Number(sp.division ?? '1')}
+      filAriane={<FilAriane elements={filAriane.slice(1)} retour={retour} />}
     />
     </>
   )

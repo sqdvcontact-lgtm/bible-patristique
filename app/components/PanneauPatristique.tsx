@@ -53,6 +53,7 @@ import { cleInventaireNotesBible, type ContexteNotesBible } from '@/app/lib/note
 import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
+import { adresseRetourBible } from '@/app/lib/retourLecture'
 
 // ⛔ L'inventaire des notes d'une bible ne se charge qu'avec son onglet : il ne sert qu'à
 // l'administrateur, et le lecteur n'a pas à en payer le poids.
@@ -292,8 +293,11 @@ function BoutonSupprimerLien({ segmentId, colonneLien, isAdmin, onSupprime }: {
 const libelleNoteVolet = (contenu: NoteAffichee | undefined) =>
   !contenu || typeof contenu === 'string' ? LIBELLE_NOTE_SANS_TYPE : libelleDeLaNote(contenu)
 
-function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, userId, isAdmin, colonneLien, onSignaler, onSupprimeLien }: {
+function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, userId, isAdmin, colonneLien, retour, onSignaler, onSupprimeLien }: {
   s: Segment; info?: OeuvreInfo; userId: string | null; isAdmin: boolean
+  /** Le chemin du verset (ou de la péricope) d'où l'on ouvre le passage : la page
+   *  d'œuvre en fait un lien « Retour à … » (`?depuis=`, voir `retourLecture`). */
+  retour: string | null
   /** L'ÉDITION du passage (`oeuvre_textes`) : c'est elle que la citation nomme, non l'œuvre. */
   edition?: LigneIdentiteTexte
   /** Ce qu'on LIT : l'initiale capitalisée et les appels structurés projetés (voir
@@ -335,7 +339,7 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
         <div style={{ minWidth:0 }}>
           <div style={{ display:'flex', alignItems:'center', gap:'4px', marginBottom:'1px' }}>
             {info?.id_auteur ? (
-              <a href={`/auteur/${info.id_auteur}`} target="_blank" rel="noopener noreferrer"
+              <a href={`/auteur/${info.id_auteur}`}
                 style={{ fontSize:'0.75rem', fontWeight:600, color:'var(--cs-vert)', lineHeight:1.2, letterSpacing:'0.026em', textDecoration:'none' }}>
                 {info.auteur_nom || s.id_oeuvre}
               </a>
@@ -347,10 +351,15 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
           </div>
           {/* ⛔ Plus de flèche à côté du nom (décision de l'auteur, 21 septembre 2026) : le
               TITRE mène au passage exact. ⚠️ La page ne cherche le segment visé que dans le
-              texte qu'elle ouvre : un passage d'une autre édition porte `texte=`. */}
-          <a href={`/oeuvre/${s.id_oeuvre}?${[parametreTexte(edition), `segment=${s.id}`].filter(Boolean).join('&')}#segment-${s.id}`} target="_blank" rel="noopener noreferrer"
+              texte qu'elle ouvre : un passage d'une autre édition porte `texte=`.
+              ⛔ DANS LE MÊME ONGLET, et il se LIT comme un lien (audit ergonomique,
+              2026-09-21) : le vert des liens du site, souligné au survol et au foyer
+              (`.cs-fiche-lien`). Précédent ramène au verset ; `depuis=` donne à la page
+              d'œuvre un lien de retour. */}
+          <a href={`/oeuvre/${s.id_oeuvre}?${[parametreTexte(edition), `segment=${s.id}`, retour ? `depuis=${encodeURIComponent(retour)}` : ''].filter(Boolean).join('&')}#segment-${s.id}`}
+            className="cs-fiche-lien"
             title={niveaux ? `${niveaux} — accéder au passage` : 'Accéder au passage exact dans l’œuvre'}
-            style={{ display:'block', fontSize:'0.75rem', color:'var(--cs-texte-gris)', fontStyle:'italic', margin:0, lineHeight:1.2, letterSpacing:'0.02em', textDecoration:'none' }}>
+            style={{ display:'block', fontSize:'0.75rem', fontStyle:'italic', margin:0, lineHeight:1.2, letterSpacing:'0.02em' }}>
             {info?.titre || ''}
           </a>
           {/* ⛔ La nature du rapport (citation directe, paraphrase…) ne s'affiche plus
@@ -946,6 +955,13 @@ export default function PanneauPatristique({
   type Onglet = 'patristique' | 'commentaires' | 'notes' | 'semantique'
   type SousOnglet = 'citations' | 'doctrine' | 'echos'
   const ITEMS_PAR_PAGE = 20
+  // Le chemin de retour d'un passage ouvert depuis ce volet (voir `SegmentCard`). ⚠️ Lu
+  // dans `window` au rendu : les cartes ne se rendent qu'une fois les passages chargés
+  // par le navigateur, jamais au rendu serveur.
+  const adresseRetour = typeof window === 'undefined' ? null
+    : plage ? window.location.pathname
+    : livreActif ? adresseRetourBible({ livre: livreActif, chapitre: chapitreActif, verset: verset?.verset ?? null }, window.location.search)
+    : null
   const [onglet, setOnglet] = useState<Onglet>('patristique')
   const [sousOnglet, setSousOnglet] = useState<SousOnglet>('citations')
   const [pageItems, setPageItems] = useState(0)
@@ -1900,6 +1916,7 @@ export default function PanneauPatristique({
                       texteAffichage={extrait.texte} notes={extrait.notes} notesEnAttente={extrait.enAttente}
                       userId={userId} isAdmin={isAdmin}
                       colonneLien={premier.col}
+                      retour={adresseRetour}
                       onSignaler={(s, titreOeuvre) => { if (exigerCompte('signaler une erreur')) setSegSignale({ seg: s, titreOeuvre }) }} onSupprimeLien={premier.onSupprime}
                     />
                   )

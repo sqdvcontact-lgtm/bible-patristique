@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import type { AncreNoteStructureeProjection } from '@/app/lib/appelsNotesStructurees'
 import type { BlocOriginal } from './bilingueAlignement'
@@ -310,6 +311,9 @@ export type Props = {
   alignmentSetIdInitial?: string | null
   comparaisonLivreInitial?: number
   comparaisonDivisionInitiale?: number
+  /** Le fil d'Ariane visible, et le retour au verset d'où l'on vient (`?depuis=`),
+   *  composés par la page serveur et posés au-dessus du frontispice. */
+  filAriane?: ReactNode
   // Le serveur n'a envoyé que la 1re tranche du niv1 initial : le client charge
   // le reste en tâche de fond (grosses divisions).
   niv1InitialPartiel?: boolean
