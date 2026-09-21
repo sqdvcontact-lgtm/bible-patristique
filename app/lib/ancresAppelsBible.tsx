@@ -164,14 +164,28 @@ export function rendreTexteAvecAppels<N>(
   rendreTexte: (morceau: string) => ReactNode,
   rendreAppels: (notes: readonly N[]) => ReactNode,
   balisage = true,
+  /** Une surface qui sait loger les appels DANS une marque qui finit le morceau (la lecture
+   *  incertaine du témoin, dont le cercle ferme la marque) : elle rend le morceau entier,
+   *  appels et ponctuation compris, ou `null` pour laisser la règle ordinaire. */
+  fondre?: (avant: string, appels: ReactNode, ponctuation: ReactNode) => ReactNode | null,
 ): ReactNode[] {
   const noeuds: ReactNode[] = []
   let curseur = 0
   for (const { position, notes } of groupes) {
     const ici = Math.max(position, curseur)
+    const ponctuation = PONCTUATION_SUIVANTE.exec(texte.slice(ici))?.[0] ?? ''
+    const fondu = fondre?.(
+      texte.slice(curseur, ici),
+      rendreAppels(notes),
+      ponctuation ? rendreTexte(ponctuation) : null,
+    )
+    if (fondu != null) {
+      noeuds.push(<Fragment key={`fondu:${ici}`}>{fondu}</Fragment>)
+      curseur = ici + ponctuation.length
+      continue
+    }
     const [tete, mot] = detacherDernierMotBalise(texte.slice(curseur, ici), balisage)
     if (tete) noeuds.push(<Fragment key={`texte:${curseur}`}>{rendreTexte(tete)}</Fragment>)
-    const ponctuation = PONCTUATION_SUIVANTE.exec(texte.slice(ici))?.[0] ?? ''
     noeuds.push(
       <span key={`appel:${ici}`} style={NOWRAP}>
         {mot ? rendreTexte(mot) : null}

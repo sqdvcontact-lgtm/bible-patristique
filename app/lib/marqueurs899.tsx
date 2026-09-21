@@ -3,6 +3,7 @@ import { STYLE_MENTION_DANS_LE_FIL } from './compositionBible'
 import { normaliserEspaces } from './typographie'
 import AppelNoteBiblique from '../components/NoteBibliqueFenetre'
 import IconeSignalement from '../components/IconeSignalement'
+import { detacherDernierMot } from './appelsDeNote'
 
 // Rendu des marqueurs éditoriaux INLINE portés par le texte recomposé de TR0009
 // (Bible 899) : « lecture incertaine », « lacune », « ajout marginal ». Ce sont des
@@ -267,8 +268,13 @@ const BLOC_EXPLICATION_INCERTAINE = {
  * vivre dans une portion précédente, et le crochet resterait littéral. La règle dégrade
  * donc du bon côté — un marqueur non reconnu s'imprime, aucune restitution n'est mangée.
  */
-export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
+/** Les appels de note d'un verset qui tombent sur la fin d'une marque, et la ponctuation qui
+ *  les suit : `fondreAppelsDansLaMarque` les loge entre le dernier mot et le cercle. */
+export type AppelsFinaux = { appels: ReactNode; ponctuation: ReactNode }
+
+export function marquerLacunesDuTemoin(texte: string, cle: string, final?: AppelsFinaux): ReactNode {
   if (!texte || (!texte.includes('[') && !texte.includes(']'))) return texte
+  let finalPose = false
 
   const noeuds: ReactNode[] = []
   let n = 0
@@ -288,20 +294,41 @@ export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
   // chiffre doit rester collé au dernier mot (relevé de l'auteur, 2026-09-21 :
   // « erant⁷ », puis le cercle). Une marque à cheval sur deux versets porte donc son
   // cercle dans le second.
-  const marqueTexte = (contenu: string, nom: string | undefined, ferme: boolean) => {
+  // ⛔ ET LES APPELS DE NOTE DU VERSET QUI TOMBENT SUR LA FIN DE LA MARQUE SE COLLENT AU
+  // DERNIER MOT, AVANT LE CERCLE (relevé de l'auteur, 2026-09-21 : « erant⁷ », puis le
+  // cercle, puis le point). Le dernier mot, les appels, le cercle et la ponctuation font un
+  // seul groupe insécable, comme partout ailleurs (charte § 13.7).
+  const marqueTexte = (contenu: string, nom: string | undefined, ferme: boolean, finit = false) => {
     if (nom === 'ajout marginal') {
       return <span key={`${cle}-i${n++}`} title={infobulle('ajout')} style={STYLE_INCERTAINE}>{contenu}</span>
     }
     const rang = n++
+    const cercle = ferme ? (
+      <AppelNoteBiblique
+        note={{ id: `incertaine-${cle}-${rang}`, displayNumber: 0, blocks: [BLOC_EXPLICATION_INCERTAINE] }}
+        repere={REPERE_INCERTAINE}
+      />
+    ) : null
+    const mots = sansGuillemetsDeCitation(contenu)
+    if (final && finit && !finalPose) {
+      finalPose = true
+      const [tete, mot] = detacherDernierMot(mots)
+      return (
+        <span key={`${cle}-i${rang}`}>
+          {tete ? <span style={STYLE_INCERTAINE_TRADUCTION}>{tete}</span> : null}
+          <span style={{ whiteSpace: 'nowrap' }}>
+            {mot ? <span style={STYLE_INCERTAINE_TRADUCTION}>{mot}</span> : null}
+            {final.appels}
+            {cercle}
+            {final.ponctuation}
+          </span>
+        </span>
+      )
+    }
     return (
       <span key={`${cle}-i${rang}`}>
-        <span style={STYLE_INCERTAINE_TRADUCTION}>{sansGuillemetsDeCitation(contenu)}</span>
-        {ferme ? (
-          <AppelNoteBiblique
-            note={{ id: `incertaine-${cle}-${rang}`, displayNumber: 0, blocks: [BLOC_EXPLICATION_INCERTAINE] }}
-            repere={REPERE_INCERTAINE}
-          />
-        ) : null}
+        <span style={STYLE_INCERTAINE_TRADUCTION}>{mots}</span>
+        {cercle}
       </span>
     )
   }
@@ -311,7 +338,7 @@ export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
   const iFerme = texte.indexOf(']')
   const iOuvre = texte.indexOf('[')
   if (cle === 't0' && iFerme >= 0 && (iOuvre < 0 || iFerme < iOuvre)) {
-    noeuds.push(marqueTexte(texte.slice(0, iFerme), undefined, true))
+    noeuds.push(marqueTexte(texte.slice(0, iFerme), undefined, true, iFerme + 1 === texte.length))
     dernier = iFerme + 1
   }
 
@@ -324,7 +351,7 @@ export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
     if (type !== undefined) {
       // Marqueur nommé et COMPLET : son contenu est du texte à lire, la teinte dit le
       // doute, l'infobulle porte le sens savant. Pas de crochets à l'écran.
-      noeuds.push(marqueTexte(contenu ?? '', type, true))
+      noeuds.push(marqueTexte(contenu ?? '', type, true, m.index + m[0].length === texte.length))
     } else if (ouvert !== undefined) {
       // Marqueur OUVERT jusqu'au bout du verset : la portée se ferme au verset suivant.
       // ⚠️ Une LACUNE ouverte n'a pas de cause lisible — celle qu'on voit est tronquée —,
@@ -346,8 +373,31 @@ export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
     }
     dernier = m.index + m[0].length
   }
-  if (noeuds.length === 0) return texte
   const suite = texte.slice(dernier)
-  if (suite) noeuds.push(suite)
+  if (noeuds.length === 0 && !final) return texte
+  if (noeuds.length === 0) noeuds.push(texte)
+  else if (suite) noeuds.push(suite)
+  // Filet : des appels qu'aucune marque n'a logés ne se perdent pas, ils suivent le texte.
+  if (final && !finalPose) noeuds.push(<span key={`${cle}-final`} style={{ whiteSpace: 'nowrap' }}>{final.appels}{final.ponctuation}</span>)
   return noeuds
+}
+
+/**
+ * Le morceau d'un verset qui FINIT sur une lecture incertaine, rendu avec ses appels logés
+ * entre le dernier mot et le cercle — ou `null` quand le morceau ne finit pas ainsi, et la
+ * règle ordinaire des appels reprend. `rendre` est le rendu enrichi de la surface, qui
+ * reçoit la transformation à appliquer.
+ */
+export function fondreAppelsDansLaMarque(
+  avant: string,
+  appels: ReactNode,
+  ponctuation: ReactNode,
+  rendre: (texte: string, transform: (s: string, cle: string) => ReactNode) => ReactNode,
+): ReactNode | null {
+  const fin = avant.trimEnd()
+  if (!fin.endsWith(']')) return null
+  const ouvre = fin.lastIndexOf('[')
+  if (ouvre < 0 || !/^\[\s*lecture (?:incertaine|difficile)\s*:/u.test(fin.slice(ouvre))) return null
+  if (fin !== avant) return null
+  return rendre(avant, (s, cle) => marquerLacunesDuTemoin(s, cle, { appels, ponctuation }))
 }

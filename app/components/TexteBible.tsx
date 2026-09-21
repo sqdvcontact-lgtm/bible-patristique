@@ -28,7 +28,7 @@ import ModaleFacsimile899 from '@/app/components/ModaleFacsimile899'
 import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
-import { marquerLacunesDuTemoin, rendreMarqueurs899 } from '@/app/lib/marqueurs899'
+import { fondreAppelsDansLaMarque, marquerLacunesDuTemoin, rendreMarqueurs899 } from '@/app/lib/marqueurs899'
 import { estTraductionModerne899 } from '@/app/lib/bible899'
 import {
   marqueDensiteTient, styleDensiteVerset,
@@ -979,7 +979,12 @@ export default function TexteBible({
                             // (« […] ») : elles se mettent en forme comme dans la colonne du
                             // manuscrit, sans que le reste de l'enrichissement soit touché.
                             lacunesEnClair ? marquerLacunesDuTemoin : undefined,
-                          ), appelerEnSuite)
+                          ), appelerEnSuite, true,
+                          // Un appel qui tombe sur la fin d'une lecture incertaine se colle au
+                          // dernier mot, avant le cercle (marqueurs899).
+                          lacunesEnClair
+                            ? (avant, appels, ponctuation) => fondreAppelsDansLaMarque(avant, appels, ponctuation, rendreTexteEnrichi)
+                            : undefined)
                     ) : (
                       <span style={STYLE_VERSET_VIDE}>—</span>
                     )}
