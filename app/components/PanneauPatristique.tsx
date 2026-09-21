@@ -1614,14 +1614,13 @@ export default function PanneauPatristique({
         <div style={{ display:'flex', flexDirection:'column', flex:1, minHeight:0 }}>
 
           {/* Onglets pleine largeur, la flèche de repli au bord gauche.
-              ⛔ UN CHEVRON N'ENTRE PAS DANS LE CENTRAGE DES LIBELLÉS QU'IL ACCOMPAGNE :
-              posé seul à gauche, il pousse les onglets de sa largeur et « Pères de
-              l'Église » cesse de tomber sur l'axe du volet. Une cale de même mesure lui
-              répond à droite — le procédé du menu des bibles, où le chevron est doublé,
-              son double invisible.
-              ⚠️ Elle se centre dans la HAUTEUR par le flex de la barre : la rangée grandit
-              avec son compteur, et un décalage écrit en pixels s'en déferait au premier
-              onglet sans chiffre. */}
+              ⛔ LE CHEVRON EST HORS DU FLUX (décision de l'auteur, 2026-09-20 : « ignorer
+              la flèche dans la logique de centrage, afin que les deux lignes et les trois
+              onglets soient alignés »). Posé en absolu contre le bord gauche, il ne pousse
+              plus rien : les onglets se partagent TOUTE la largeur du volet, comme les
+              sous-onglets Citations / Commentaires / Échos dessous, qui la prennent eux
+              aussi entière. Les deux rangées tombent alors sur les mêmes tiers. La cale
+              de droite, qui ne répondait qu'au chevron, est partie avec lui. */}
           {/* ⛔ LA BARRE PORTE SON FOND, PAS L'ONGLET RETENU (demande de l'auteur,
               2026-09-10 : « il faut que la ligne soit de couleur uniforme, légèrement
               verte »). L'aplat vivait sur le seul bouton actif : la flèche de repli et la
@@ -1632,7 +1631,7 @@ export default function PanneauPatristique({
               ⚠️ L'ONGLET RETENU SE DISTINGUE ALORS COMME DANS LE MODÈLE PARTAGÉ du site
               (`.cs-onglet`, globals.css), qui ne pose AUCUN fond : par son trait vert, sa
               graisse 600 et son encre. Trois axes, là où la charte en demande deux. */}
-          <div style={{ display:'flex', alignItems:'stretch', borderBottom:'1px solid var(--cs-bord)', background:'rgba(var(--cs-vert-rgb),0.04)' }}>
+          <div style={{ position:'relative', display:'flex', alignItems:'stretch', borderBottom:'1px solid var(--cs-bord)', background:'rgba(var(--cs-vert-rgb),0.04)' }}>
             {/* ⛔ ELLE NE DÉPEND PAS DE LA PRÉSENTATION MOBILE, et c'est ce qui l'avait fait
                 disparaître du bureau (demande de l'auteur, 2026-09-04). `presentation` dit
                 comment le volet s'empile sur un TÉLÉPHONE, où les onglets du haut font
@@ -1643,7 +1642,7 @@ export default function PanneauPatristique({
             {peutSeReduire && (
               <button onClick={() => setOuvert(false)} title="Réduire le volet" aria-label="Réduire le volet"
                 className="cs-volet-reduire"
-                style={{ flexShrink:0, width:'1.75rem', background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                style={{ position:'absolute', left:0, top:0, bottom:0, zIndex:1, width:'1.75rem', background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <IconeChevron dir="right" size={14} strokeWidth={1.5} />
               </button>
             )}
@@ -1669,22 +1668,6 @@ export default function PanneauPatristique({
                   style={{ fontSize: '0.625rem', lineHeight: 1, height: '1em', fontWeight: 500, color: ongletAffiche === t.code ? 'var(--cs-vert)' : 'var(--cs-texte-faible)' }} />
               </button>
             ))}
-            {/* ⛔ LA CALE NE PARAÎT QUE SOUS UN SEUL ONGLET, et ce n'est pas une économie :
-                elle existe pour rendre l'axe du volet à un libellé qui doit y tomber, et
-                un libellé unique est le seul dans ce cas. Deux onglets ne sont centrés sur
-                rien — ce qui compte alors est qu'ils soient ÉGAUX, ce que la flèche seule
-                leur laisse.
-                ⚠️ Et elle coûte : mesuré sur la composition réelle, deux onglets dans un
-                volet de 260 px — sa largeur par défaut sur un portable — enroulent « Pères
-                de l'Église » sur deux lignes avec la cale, sur une seule sans elle. Le prix
-                est une frontière posée 14 px à droite de l'axe, que l'œil ne compare à
-                aucun repère.
-                ⚠️ Reste une bande étroite, autour de 240 px, où le libellé s'enroule alors
-                qu'il tenait avant : il y faut un volet resserré SOUS son défaut, et deux
-                onglets, donc un verset désigné. */}
-            {peutSeReduire && ONGLETS.length === 1 && (
-              <span aria-hidden="true" style={{ flexShrink:0, width:'1.75rem' }} />
-            )}
           </div>
 
           {/* Contenu scrollable (sauf onglets commentaires et notes : leur liste défile en
@@ -1712,7 +1695,7 @@ export default function PanneauPatristique({
                     ['echos', 'Échos', nbEchos],
                   ]
                   return (
-                    <div style={{ display: 'flex', borderBottom: '1px solid var(--cs-fond-doux)', margin: '6px -12px 0', padding: '0 12px' }}>
+                    <div style={{ display: 'flex', borderBottom: '1px solid var(--cs-fond-doux)', margin: '6px -12px 0', padding: 0 }}>
                       {subTabs.map(([key, label, nb]) => (
                         <button key={key} onClick={() => setSousOnglet(key)}
                           style={{

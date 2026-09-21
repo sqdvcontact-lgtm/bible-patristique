@@ -35,6 +35,8 @@ import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
 import { MarqueAttente } from "@/app/lib/attenteNavigation";
 import { DUREE_ENTREE_MS, ordonnerBlocsVisibles, ordonnerColonnesVisibles } from "@/app/lib/passageTexte";
 import { LIVRE_PAR_DEFAUT, ouvertureDeLaPolyglotte, retenirPositionPolyglotte } from "@/app/lib/repriseLecture";
+import { placePolyglotteDemandee } from "@/app/lib/bibleNavigation";
+import { allerAElement } from "@/app/lib/defilement";
 import { hauteurNavbarPx } from "@/app/lib/fenetreContextuelle";
 import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile";
 import VisiteGuidee from "@/app/components/VisiteGuidee";
@@ -1502,6 +1504,18 @@ export default function PolyglottePage() {
       // avoir disparu du canon offert. On retombe alors sur la Genèse, puis sur le premier
       // livre venu, pour que la page ouvre TOUJOURS sur un texte.
       // ⚠️ Le chapitre ne suit que si c'est bien le livre retenu qu'on ouvre.
+      // ⛔ UNE ADRESSE QUI NOMME UN VERSET L'EMPORTE sur la reprise de lecture : c'est le
+      // bouton « Voir dans la Polyglotte » de la page Bible qui l'écrit (2026-09-20). Le
+      // verset se désigne et se surligne un instant, comme depuis la recherche du volet.
+      const demande = placePolyglotteDemandee(window.location.search);
+      const livreDemande = demande ? liste.find(l => l.code === demande.livre) : undefined;
+      if (demande && livreDemande) {
+        setOnglet(ensembleDeLivre(liste, livreDemande.code));
+        setLivreChoisi(livreDemande.code);
+        setChapitreChoisi(demande.chapitre);
+        if (demande.verset !== null) setVersetCible({ ch: demande.chapitre, v: demande.verset });
+        return;
+      }
       const ou = ouvertureDeLaPolyglotte();
       const livre = liste.find(l => l.code === ou.livre)
         ?? liste.find(l => l.code === LIVRE_PAR_DEFAUT)
@@ -1876,11 +1890,17 @@ export default function PolyglottePage() {
   useEffect(() => {
     if (!versetCible || !livreChoisi) return;
     const id = `poly-${livreChoisi}-${versetCible.ch}-${versetCible.v}`;
+    // ⚠️ Le surlignage ne s'éteint qu'une fois le verset TROUVÉ : à l'ouverture de la
+    // page, le chapitre peut mettre plus longtemps à venir que le surlignage à durer.
+    let t2: ReturnType<typeof setTimeout> | undefined;
     const t = setTimeout(() => {
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      const el = document.getElementById(id);
+      if (!el) return;
+      // ⛔ Pas de défilement doux nu : il peut ne rien faire du tout (voir defilement.ts).
+      allerAElement(el);
+      t2 = setTimeout(() => setVersetCible(null), 2600);
     }, 120);
-    const t2 = setTimeout(() => setVersetCible(null), 2600);
-    return () => { clearTimeout(t); clearTimeout(t2); };
+    return () => { clearTimeout(t); if (t2) clearTimeout(t2); };
   }, [versetCible, livreChoisi, canon]);
 
   // Index (canon_id, trad_id) → cellule ; canon groupé par livre

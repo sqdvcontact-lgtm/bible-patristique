@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  placeCanoniqueDuVerset,
+  placePolyglotteDemandee,
+  urlPolyglotte,
   chapitreSuivantDisponible,
   dernierChapitreBible,
   normaliserChapitreBible,
@@ -112,5 +115,24 @@ describe('borne terminale certifiée de la Genèse', () => {
     }
     // Hors périmètre, le serveur garde la main.
     expect(chapitreSuivantDisponible('INCONNU', 1)).toBe(true)
+  })
+})
+
+describe('La Polyglotte ouverte sur un verset', () => {
+  it('compose et relit la même place', () => {
+    const url = urlPolyglotte('GEN', 29, 3)
+    expect(url).toBe('/polyglotte?livre=GEN&chapitre=29&verset=3')
+    expect(placePolyglotteDemandee(url.slice(url.indexOf('?')))).toEqual({ livre: 'GEN', chapitre: 29, verset: 3 })
+  })
+  it('écarte une adresse sans livre plausible, borne le reste', () => {
+    expect(placePolyglotteDemandee('?livre=gen')).toBeNull()
+    expect(placePolyglotteDemandee('')).toBeNull()
+    expect(placePolyglotteDemandee('?livre=PSA&chapitre=abc&verset=-2')).toEqual({ livre: 'PSA', chapitre: 1, verset: null })
+  })
+  it('prend la place CANONIQUE d’une ligne, recomposée comprise', () => {
+    expect(placeCanoniqueDuVerset({ id_verset: '899:GEN.29.3', verset: 3 }, 'GEN', 29)).toEqual({ livre: 'GEN', chapitre: 29, verset: 3 })
+    expect(placeCanoniqueDuVerset({ id_verset: 'PSA.9.22', verset: 1 }, 'PSA', 10)).toEqual({ livre: 'PSA', chapitre: 9, verset: 22 })
+    expect(placeCanoniqueDuVerset({ id_verset: 'a1b2', ref: 'LUK.13.1', verset: 1 }, 'LUK', 13)).toEqual({ livre: 'LUK', chapitre: 13, verset: 1 })
+    expect(placeCanoniqueDuVerset({ id_verset: 'a1b2', ref: '', verset: 5 }, 'JHN', 2)).toEqual({ livre: 'JHN', chapitre: 2, verset: 5 })
   })
 })

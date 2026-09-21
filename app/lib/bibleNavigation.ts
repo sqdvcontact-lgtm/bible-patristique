@@ -108,3 +108,50 @@ export function urlLectureBible(cible: CibleLectureBible): string {
   if (cible.piece) parametres.set('piece', cible.piece)
   return `/?${parametres.toString()}`
 }
+
+// ── La Polyglotte ouverte sur un verset ──────────────────────────────────────
+// Le bouton « Voir dans la Polyglotte » d'une rangée de verset (page Bible) y mène.
+// ⛔ Les coordonnées sont celles du CANON : la Polyglotte range ses lignes sur
+// l'ossature canonique, non sur la numérotation d'une édition.
+
+const RE_CODE_LIVRE = /^[A-Z0-9]{2,6}$/
+
+export type PlacePolyglotte = { livre: string; chapitre: number; verset: number | null }
+
+export function urlPolyglotte(livre: string, chapitre: number, verset?: number | null): string {
+  const parametres = new URLSearchParams()
+  parametres.set('livre', livre)
+  parametres.set('chapitre', String(chapitre))
+  if (verset != null) parametres.set('verset', String(verset))
+  return `/polyglotte?${parametres.toString()}`
+}
+
+/** Relit l'adresse de la Polyglotte. `null` sans livre plausible : la page retombe
+ *  alors sur la reprise de lecture. Un chapitre absurde vaut 1, un verset absurde rien. */
+export function placePolyglotteDemandee(recherche: string): PlacePolyglotte | null {
+  const p = new URLSearchParams(recherche)
+  const livre = p.get('livre')
+  if (!livre || !RE_CODE_LIVRE.test(livre)) return null
+  const entier = (v: string | null) => {
+    const n = Number(v)
+    return v !== null && Number.isInteger(n) && n >= 1 && n <= 400 ? n : null
+  }
+  return { livre, chapitre: entier(p.get('chapitre')) ?? 1, verset: entier(p.get('verset')) }
+}
+
+const RE_CANON_VERSET = /^([A-Z0-9]{2,6})\.(\d+)\.(\d+)$/
+
+/** La place canonique d'une rangée de verset : son identifiant (`GEN.29.3`, ou
+ *  `899:GEN.29.3` pour une ligne recomposée), sinon sa référence, sinon ce que la
+ *  page affiche. */
+export function placeCanoniqueDuVerset(
+  v: { id_verset: string; ref?: string | null; verset: number },
+  livre: string,
+  chapitre: number,
+): PlacePolyglotte {
+  for (const candidat of [String(v.id_verset).replace(/^[^:]*:/, ''), v.ref ?? '']) {
+    const m = RE_CANON_VERSET.exec(candidat)
+    if (m) return { livre: m[1], chapitre: Number(m[2]), verset: Number(m[3]) }
+  }
+  return { livre, chapitre, verset: v.verset }
+}

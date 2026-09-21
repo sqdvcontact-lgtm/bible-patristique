@@ -22,6 +22,7 @@ import IconeCopier from '@/app/components/IconeCopier'
 import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
 import IconeCrayon from '@/app/components/IconeCrayon'
 import IconeSignalement from '@/app/components/IconeSignalement'
+import IconePolyglotte from '@/app/components/IconePolyglotte'
 import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
@@ -44,7 +45,7 @@ import { estSuiteDuBloc } from '@/app/lib/bibleHierarchieSemantique'
 import AppelNoteBiblique from '@/app/components/NoteBibliqueFenetre'
 import { rendreTexteAvecAppels, repartirAppels } from '@/app/lib/ancresAppelsBible'
 import { separateurAppels, styleSeparateurAppels } from '@/app/lib/appelsDeNote'
-import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
+import { placeCanoniqueDuVerset, urlLectureBible, urlPolyglotte, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
 import type { PieceLiminaireAffichee } from '@/app/components/BibleLayout'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import {
@@ -144,7 +145,12 @@ function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; vers
     const res = await fetch('/api/signalements', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ id_verset: versetId, message: msg, importance, url_source: window.location.href }),
+      // ⚠️ Une ligne RECOMPOSÉE (Bible du XIIIe siècle, segmentation éditoriale) porte un
+      // identifiant synthétique (« 899:GEN.29.3 ») que la route refuse : elle part alors
+      // par sa RÉFÉRENCE, consignée en tête du message, comme depuis la Polyglotte.
+      body: JSON.stringify(/^[A-Z0-9.]{2,20}$/.test(versetId)
+        ? { id_verset: versetId, message: msg, importance, url_source: window.location.href }
+        : { reference: versetRef ? refFrBible(versetRef) : versetId, message: msg, importance, url_source: window.location.href }),
     })
     if (!res.ok) {
       const details = await res.json().catch(() => null)
@@ -162,6 +168,19 @@ function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; vers
       </button>
       {ouvert && <ModalSignalement titre={ref} texteObjet={texte} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
+  )
+}
+
+// ── Bouton « Voir dans la Polyglotte » ──
+// Un lien, non un geste : il ouvre la Polyglotte sur le même verset du CANON, qui s'y
+// désigne et s'y surligne un instant (voir placePolyglotteDemandee).
+function BoutonPolyglotte({ href }: { href: string }) {
+  return (
+    <a href={href} onClick={e => e.stopPropagation()}
+      className="bouton-action-verset" title="Voir dans la Polyglotte" aria-label="Voir ce verset dans la Polyglotte"
+      style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
+      <IconePolyglotte />
+    </a>
   )
 }
 
@@ -637,9 +656,9 @@ export default function TexteBible({
   // ── LE LASSO ───────────────────────────────────────────────────────────────
   // Tirer un cadre depuis le blanc de la page sélectionne plusieurs versets, qu'on
   // enregistre ou qu'on copie d'un coup (app/components/LassoLecture.tsx).
-  // ⛔ Ne se sélectionne que ce qui s'enregistre un par un : un verset qui porte son texte
-  // dans une traduction du canon. Les lignes recomposées d'une édition n'ont pas d'actions,
-  // et le lasso ne leur en prête pas.
+  // ⛔ Ne se sélectionne que ce qui s'enregistre un par un : un verset qui porte son texte.
+  // Les lignes recomposées d'une édition (Bible du XIIIe siècle) y entrent depuis le
+  // 2026-09-20 : le prélèvement vise la clé naturelle, non l'identifiant de la ligne.
   // ⚠️ La clé est l'identifiant du verset, non son numéro : une glose partage le numéro
   // de son hôte.
   const lassoActif = !mobile && !sansSurvol && !pieceAffichee && !chapitreToutLacune
@@ -876,7 +895,7 @@ export default function TexteBible({
             const notesDuVerset = notesParCanon.get(v.id_verset) ?? []
             // ⛔ Un appel se pose à l'ANCRE que la donnée déclare ; sans ancre lisible, il suit le verset.
             const appelsDuVerset = repartirAppels(!lacune && !ligne899 ? texteDuVerset(v) : '', notesDuVerset)
-            const dansLeLasso = lassoActif && !ligneSource && !lacune && Boolean(overrides[v.id_verset]?.[traduction] ?? v[traduction])
+            const dansLeLasso = lassoActif && !lacune && Boolean(overrides[v.id_verset]?.[traduction] ?? v[traduction])
             return (
             <Fragment key={v.id_verset}>
             {rendreFluxEditorial(blocsAvant, illustrationsAvant)}
@@ -891,9 +910,9 @@ export default function TexteBible({
                   // Sur mobile, un tap sélectionne le verset ET fait apparaître
                   // immédiatement le pavé d'actions ; un second tap referme.
                   // Les lignes recomposées ne ciblent pas `versets_v2` : pas de comptage
-                  // de lecture ni de pavé d'actions tant que ces routes ne les acceptent pas.
+                  // de lecture ; leur pavé d'actions, lui, paraît (2026-09-20).
                   if (actif) { setVersetSelectionne(null); setActionsMobileId(null) }
-                  else { if (!ligneSource) { incrementer(); setActionsMobileId(v.id_verset) } setVersetSelectionne(v) }
+                  else { if (!ligneSource) incrementer(); setActionsMobileId(v.id_verset); setVersetSelectionne(v) }
                   return
                 }
                 if (!actif && !ligneSource) incrementer()
@@ -959,10 +978,10 @@ export default function TexteBible({
                   display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
                   background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '0.25rem 0.375rem',
                 } : { width: GOUTTIERE_ACTIONS_VERSET, paddingLeft: RETRAIT_ACTIONS_VERSET, display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible', position: 'relative' }}>
-                  {/* Les actions écrivent encore dans le modèle `versets_v2`. On les masque
-                      pour toutes les lignes éditoriales recomposées ; la colonne reste
-                      réservée pour préserver l'alignement de la mise en page. */}
-                  {!ligneSource && (
+                  {/* ⛔ LES LIGNES RECOMPOSÉES ONT LEURS ACTIONS (demande de l'auteur, 2026-09-20).
+                      Le prélèvement vise la clé NATURELLE (livre, chapitre, verset), la copie
+                      prend le texte, le signalement part par la référence. Seule la
+                      modification reste réservée aux lignes de `versets_v2`, qu'elle écrit. */}
                     <>
                       {userId && (
                         <BoutonEnregistrer
@@ -979,15 +998,15 @@ export default function TexteBible({
                         String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? ''),
                         `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`,
                       )} />
+                      {(() => { const p = placeCanoniqueDuVerset(v, livreActif, chapitreActif); return <BoutonPolyglotte href={urlPolyglotte(p.livre, p.chapitre, p.verset)} /> })()}
                       <BoutonSignaler versetId={v.id_verset} versetRef={v.ref} texte={String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')} />
-                      {estAdmin && !modeUtilisateurStandard && (
+                      {estAdmin && !modeUtilisateurStandard && !ligneSource && (
                         <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
                           style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
                           <IconeCrayon size={12} />
                         </button>
                       )}
                     </>
-                  )}
                   {/* ⛔ La marque de densité FERME la rangée d'actions, et ne paraît qu'au
                       survol (feuille ci-dessus). Elle ne se rend pas du tout quand elle ne
                       tient pas dans la zone de lecture : une opacité nulle déborderait
