@@ -115,6 +115,7 @@ export default function AppelNoteBiblique({
   memberId,
   variante = 'corps',
   figures,
+  repere,
 }: {
   /** `sousType` : la discipline d'une note de VERSET ; une note de bloc n'en porte pas. */
   note: Pick<BibleEditionDisplayNote, 'id' | 'displayNumber' | 'blocks' | 'sousType'>
@@ -124,6 +125,12 @@ export default function AppelNoteBiblique({
   /** L'appel prend la forme du texte qui l'accueille : un intitulé de paratexte
    *  ne porte pas la teinte brune du corps, qui y ferait une tache. */
   variante?: VarianteAppelNote
+  /** Un appel qui n'est pas une note NUMÉROTÉE de l'édition, mais une explication que le
+   *  site pose sur une marque du texte (la lecture incertaine du témoin, charte § 50.3) :
+   *  son signe remplace le numéro, sa tête et son nom accessible sont les siens. ⚠️ Il ne
+   *  porte pas d'identifiant d'ancre : aucun inventaire ne le vise, et deux marques d'un
+   *  même verset en feraient un doublon. */
+  repere?: { signe: string; intitule: string; nomAccessible: string }
 }) {
   const [ouvert, setOuvert] = useState(false)
   const ancre = useRef<HTMLElement>(null)
@@ -165,7 +172,8 @@ export default function AppelNoteBiblique({
   // remplacer. ⚠️ Faute de l'une et de l'autre, la tête se TAIT : c'est le NUMÉRO, dans sa
   // gouttière, qui dit à quelle note l'encart répond. ⛔ Jamais « Note » écrit en dur, qui
   // n'apprenait rien à qui venait de cliquer.
-  const intitule = intituleNoteBiblique(note)
+  const intitule = repere ? repere.intitule : intituleNoteBiblique(note)
+  const signe: ReactNode = repere ? repere.signe : note.displayNumber
   const boite = rect ?? { top: 300, bottom: 316, left: 0 }
   const largeur = largeurEncartPx(racine)
   // La hauteur SUIT la note. Elle valait 420 px pour toutes, ce qui promettait une
@@ -191,22 +199,22 @@ export default function AppelNoteBiblique({
       <sup
         ref={ancre as React.RefObject<HTMLElement>}
         data-note-biblique=""
-        id={ancreAppelNoteBible(note.id, memberId)}
+        id={repere ? undefined : ancreAppelNoteBible(note.id, memberId)}
         role="button"
         tabIndex={0}
         onClick={basculer}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') basculer(e) }}
-        aria-label={`Consulter la note ${note.displayNumber}`}
+        aria-label={repere ? repere.nomAccessible : `Consulter la note ${note.displayNumber}`}
         aria-expanded={ouvert}
         // L'appel MARQUÉ tant que son encart est ouvert : le second lien entre
         // l'appel et sa note, celui qu'on suit des yeux en revenant au texte.
         style={ouvert ? { ...styleAppelNote(variante), ...STYLE_APPEL_OUVERT } : styleAppelNote(variante)}
       >
-        {note.displayNumber}
+        {signe}
       </sup>
       {ouvert && typeof document !== 'undefined' && createPortal(
         <EncartNote
-          numero={note.displayNumber}
+          numero={signe}
           // ⛔ Plus de « Note » écrit en dur : l'intitulé nomme qui parle et la discipline,
           // et se tait quand la donnée ne déclare ni l'une ni l'autre. Le numéro, dans sa
           // gouttière, dit à quelle note l'encart répond.

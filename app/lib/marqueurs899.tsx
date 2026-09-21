@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { STYLE_MENTION_DANS_LE_FIL } from './compositionBible'
 import { normaliserEspaces } from './typographie'
+import AppelNoteBiblique from '../components/NoteBibliqueFenetre'
 
 // Rendu des marqueurs éditoriaux INLINE portés par le texte recomposé de TR0009
 // (Bible 899) : « lecture incertaine », « lacune », « ajout marginal ». Ce sont des
@@ -228,8 +229,17 @@ const RE_MARQUEUR_TEMOIN = /\[\s*(?:…|\.\.\.|[Ll]acune)\s*\]|\[\s*lacune\s*:\s
 // donner, exactement comme « Absent de cette traduction » et la lacune. La colonne du
 // MANUSCRIT, elle, garde sa teinte grise : là, le passage incertain EST le texte.
 const STYLE_INCERTAINE_TRADUCTION: React.CSSProperties = { ...STYLE_MENTION_DANS_LE_FIL }
-const LIBELLE_INCERTAINE = 'lecture incertaine'
-const INSECABLE = String.fromCharCode(0xa0)
+const REPERE_INCERTAINE = {
+  signe: '?',
+  intitule: 'Lecture incertaine',
+  nomAccessible: 'Lecture incertaine du manuscrit : explication',
+}
+const BLOC_EXPLICATION_INCERTAINE = {
+  id: 'explication-lecture-incertaine',
+  kind: 'commentary' as const,
+  form: 'prose' as const,
+  text: 'Le manuscrit se lit mal à cet endroit. La traduction garde donc l’ancien français du copiste, tel qu’il est écrit, sans en proposer de sens.',
+}
 
 /**
  * Transformation à passer à `rendreTexteEnrichi` : elle met en forme les marqueurs du
@@ -253,17 +263,25 @@ export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
     // ouvrirait un blanc que la typographie française ne connaît pas.
     if (c && /[\p{L}\p{N}]/u.test(c)) noeuds.push(FINE)
   }
-  // ⛔ LA MENTION DIT LE FAIT EN TOUTES LETTRES (décision de l'auteur, 2026-09-21) : une
-  // infobulle ne se voit pas au doigt, et sans elle l'ancien français paraissait sans raison.
-  // Un seul mot pour un seul fait : « lecture difficile » se rend « lecture incertaine ».
-  // ⚠️ La suite d'une portée ouverte au verset d'avant (`nom` absent) ne redit pas le libellé.
+  // ⛔ LE TEXTE NE PORTE QUE LE MOT, L'EXPLICATION VIT DANS UN APPEL (décision de l'auteur,
+  // 2026-09-21). Un libellé « lecture incertaine : » écrit dans le fil cassait la phrase à
+  // chaque occurrence ; une infobulle ne se voit pas au doigt. L'appel « ? » ouvre l'encart
+  // des notes du site, au clic. ⚠️ La suite d'une portée ouverte au verset d'avant (`nom`
+  // absent) ne redonne pas d'appel : il est posé sur l'ouverture.
   const marqueTexte = (contenu: string, nom?: string) => {
     if (nom === 'ajout marginal') {
       return <span key={`${cle}-i${n++}`} title={infobulle('ajout')} style={STYLE_INCERTAINE}>{contenu}</span>
     }
+    const rang = n++
     return (
-      <span key={`${cle}-i${n++}`} title={infobulle('incertaine')} style={STYLE_INCERTAINE_TRADUCTION}>
-        {nom ? `${LIBELLE_INCERTAINE}${INSECABLE}: ` : null}{contenu}
+      <span key={`${cle}-i${rang}`}>
+        <span style={STYLE_INCERTAINE_TRADUCTION}>{contenu}</span>
+        {nom ? (
+          <AppelNoteBiblique
+            note={{ id: `incertaine-${cle}-${rang}`, displayNumber: 0, blocks: [BLOC_EXPLICATION_INCERTAINE] }}
+            repere={REPERE_INCERTAINE}
+          />
+        ) : null}
       </span>
     )
   }
