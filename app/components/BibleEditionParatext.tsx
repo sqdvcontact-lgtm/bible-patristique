@@ -585,7 +585,8 @@ export function IllustrationBible({ illustration, habillage }: {
   //    fait 1,7 fois la taille d'affichage, l'agrandissement est donc modeste, et
   //    c'est voulu — on ne montre pas en grand une image dont la définition ne
   //    le justifie pas (décision de l'auteur, 2026-09-02).
-  const encre = (largeur: string, plafond?: string) => (
+  const ancienne = illustration.ancienne ?? null
+  const encre = (largeur: string, plafond?: string, source: { url: string; width: number; height: number } = illustration) => (
     <span
       className="cs-bible-gravure-encre"
       role="img"
@@ -596,9 +597,9 @@ export function IllustrationBible({ illustration, habillage }: {
         maxWidth: plafond,
         maxHeight: plafond ? '78vh' : undefined,
         margin: plafond ? '0 auto' : undefined,
-        aspectRatio: `${illustration.width} / ${illustration.height}`,
-        WebkitMaskImage: masque,
-        maskImage: masque,
+        aspectRatio: `${source.width} / ${source.height}`,
+        WebkitMaskImage: source === illustration ? masque : `url("${source.url}")`,
+        maskImage: source === illustration ? masque : `url("${source.url}")`,
       }}
     />
   )
@@ -624,6 +625,7 @@ export function IllustrationBible({ illustration, habillage }: {
           legende={illustration.caption}
           enfant={encre('100%')}
           agrandi={encre('100%', `${illustration.width}px`)}
+          ancien={ancienne ? encre('100%', `${ancienne.width}px`, ancienne) : undefined}
         />
       ) : (
         // ⛔ Une PHOTOGRAVURE et une PLANCHE gardent leur papier : elles sont
@@ -666,6 +668,20 @@ export function IllustrationBible({ illustration, habillage }: {
               }}
             />
           )}
+          ancien={ancienne ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={ancienne.url}
+              alt={altDistinct ? `${altDistinct} (ancienne version)` : 'Ancienne version'}
+              width={ancienne.width}
+              height={ancienne.height}
+              style={{
+                display: 'block', margin: '0 auto',
+                maxWidth: `min(100%, ${ancienne.width}px)`,
+                maxHeight: '78vh', width: 'auto', height: 'auto',
+              }}
+            />
+          ) : undefined}
         />
       )}
       {/* La légende suit le corps du paratexte : plus grosse que le commentaire,

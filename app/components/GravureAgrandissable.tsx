@@ -37,7 +37,7 @@ const SERIF = 'var(--font-source-serif), Georgia, serif'
 const Z_PLANCHE = 2700
 
 export function GravureAgrandissable({
-  legende, alt, enfant, agrandi,
+  legende, alt, enfant, agrandi, ancien,
 }: {
   legende?: string | null
   alt: string
@@ -45,8 +45,14 @@ export function GravureAgrandissable({
   enfant: ReactNode
   /** La même, à sa taille naturelle, pour le calque. */
   agrandi: ReactNode
+  /** L'ancienne version, à la même taille : une bascule sobre la montre à la
+   *  place de la version servie. Absente, rien ne s'affiche. */
+  ancien?: ReactNode
 }) {
   const [ouvert, setOuvert] = useState(false)
+  // ⚠️ Chaque ouverture repart de la version servie : c'est elle qu'on a cliquée.
+  const [voirAncien, setVoirAncien] = useState(false)
+  const ouvrir = () => { setVoirAncien(false); setOuvert(true) }
   useEffect(() => {
     if (!ouvert) return
     const auClavier = (e: KeyboardEvent) => { if (e.key === 'Escape') setOuvert(false) }
@@ -63,7 +69,7 @@ export function GravureAgrandissable({
     <>
       {/* ⚠️ Un BOUTON, non un lien : il n'y a pas d'adresse à ouvrir, et le
           clavier doit pouvoir agrandir comme la souris. */}
-      <button type="button" style={cadre} onClick={() => setOuvert(true)}
+      <button type="button" style={cadre} onClick={ouvrir}
         aria-label={`Agrandir : ${alt}`} title="Agrandir">
         {enfant}
       </button>
@@ -102,7 +108,16 @@ export function GravureAgrandissable({
                 borderRadius: '999px', color: 'var(--cs-texte-doux)',
                 fontSize: '0.9375rem', lineHeight: 1, cursor: 'pointer',
               }}>✕</button>
-            {agrandi}
+            {ancien && voirAncien ? ancien : agrandi}
+            {ancien && (
+              <div role="group" aria-label="Version de la gravure" className="cs-gravure-versions">
+                <button type="button" aria-pressed={!voirAncien} onClick={() => setVoirAncien(false)}
+                  className="cs-gravure-version">Version restaurée</button>
+                <span aria-hidden="true" className="cs-gravure-versions-sep">·</span>
+                <button type="button" aria-pressed={voirAncien} onClick={() => setVoirAncien(true)}
+                  className="cs-gravure-version">Ancienne version</button>
+              </div>
+            )}
             {legende && (
               <figcaption style={{
                 margin: '10px auto 0', maxWidth: '34rem', fontFamily: SERIF, fontStyle: 'italic',

@@ -16,7 +16,7 @@ import {
 } from '@/app/lib/bibleEditionServer'
 import { bibliographieDesBlocs } from '@/app/lib/bibleBibliographieOuvrages'
 import {
-  blocsTexteEditoriaux, presentationDeBloc, regimeEtPartDeLActif, sousTypeNoticeValide, styleCompositionDeNote,
+  blocsTexteEditoriaux, presentationDeBloc, regimeEtPartDeLActif, ancienneVersionDeLActif, sousTypeNoticeValide, styleCompositionDeNote,
   type BibleEditionChapterDisplay, type BibleEditionDisplayTextBlock,
   adresseVersionnee,
 } from '@/app/lib/bibleEdition'
@@ -560,6 +560,7 @@ export default async function Home({
         noteId: asset.note_id,
         materialOrder: asset.material_order,
           ...regimeEtPartDeLActif(asset),
+          ancienne: ancienneVersionDeLActif(asset),
       })),
     }
   }
@@ -731,6 +732,7 @@ export default async function Home({
           noteId: asset.note_id,
           materialOrder: asset.material_order,
           ...regimeEtPartDeLActif(asset),
+          ancienne: ancienneVersionDeLActif(asset),
           appliesTo: asset.applies_to,
           appliesToMemberId: asset.applies_to_member_id,
         })),

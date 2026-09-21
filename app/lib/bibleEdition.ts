@@ -536,6 +536,33 @@ export type BibleEditionDisplayAsset = {
    *  telle que la chaîne d'image l'a écrite (colonne « part_colonne »). Le fichier
    *  servi fait le double : la page ne la recalcule pas. */
   part: number
+  /** L'état de la gravure AVANT sa dernière restauration, quand la chaîne d'image
+   *  l'a gardé (`metadata.quality_revision`). Le lecteur le revoit en agrandissant. */
+  ancienne?: AncienneVersionGravure | null
+}
+
+export type AncienneVersionGravure = { url: string; width: number; height: number }
+
+/** L'ANCIENNE version d'une gravure : le témoin non IA d'abord
+ *  (`quality_revision.reference_non_ai`), à défaut l'état d'avant (`before`).
+ *  Rien si elle manque, si elle est incomplète, ou si c'est le fichier servi. */
+export function ancienneVersionDeLActif(actif: {
+  metadata: Record<string, unknown> | null
+  web_sha256: string | null
+}): AncienneVersionGravure | null {
+  const revision = actif.metadata?.quality_revision
+  if (!revision || typeof revision !== 'object') return null
+  const { reference_non_ai: temoin, before } = revision as Record<string, unknown>
+  for (const candidat of [temoin, before]) {
+    if (!candidat || typeof candidat !== 'object') continue
+    const { public_uri: uri, sha256, width_px: width, height_px: height } = candidat as Record<string, unknown>
+    if (typeof uri !== 'string' || !uri) continue
+    if (typeof width !== 'number' || typeof height !== 'number' || width <= 0 || height <= 0) continue
+    const empreinte = typeof sha256 === 'string' ? sha256 : null
+    if (empreinte && empreinte === actif.web_sha256) return null
+    return { url: adresseVersionnee(uri, empreinte), width, height }
+  }
+  return null
 }
 
 /** Contrat sérialisable entre la page serveur et le lecteur client. */

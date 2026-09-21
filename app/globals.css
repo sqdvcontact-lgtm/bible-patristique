@@ -922,6 +922,26 @@ button:focus-visible,
 /* Une PLANCHE hors-texte garde le papier de 1923 : elle se pose dans un
    passe-partout qui l'assume, au lieu de le subir. */
 .cs-bible-gravure-passe { display: block; padding: 10px; background: var(--cs-fond-doux); }
+/* La bascule entre la gravure servie et son ANCIENNE version, sous la gravure
+   agrandie. Deux mots et un point médian : ni cadre, ni fond. La version montrée
+   prend l’encre verte et un trait ; la graisse ne change pas, pour que rien ne
+   bouge au clic. */
+.cs-gravure-versions {
+  display: flex; justify-content: center; align-items: baseline; gap: 0.5rem;
+  margin-top: 0.625rem;
+  font-family: var(--font-source-sans), system-ui, sans-serif; font-size: 0.71875rem;
+}
+.cs-gravure-versions-sep { color: var(--cs-texte-faible); }
+.cs-gravure-version {
+  min-height: 24px; padding: 0 0.125rem; border: 0; background: none; cursor: pointer;
+  font: inherit; color: var(--cs-texte-second);
+  text-decoration: underline; text-decoration-color: transparent;
+  text-decoration-thickness: 1px; text-underline-offset: 3px;
+  transition: color 0.15s, text-decoration-color 0.15s;
+}
+.cs-gravure-version:hover { color: var(--cs-texte-fort); }
+.cs-gravure-version[aria-pressed="true"] { color: var(--cs-vert); text-decoration-color: currentColor; cursor: default; }
+@media (hover: none) { .cs-gravure-version { min-height: 2.25rem; } }
 /* ⛔ UNE PLANCHE HORS-TEXTE PREND LA MESURE DE LA PAGE, NON CELLE DU BLOC (2026-09-02).
    Vingt-huit planches sur trente-deux sont en PAYSAGE : posées dans les 500 px du
    bloc de texte, elles tombent à 314 px de haut et leurs légendes gravées ne se
