@@ -1,7 +1,7 @@
 // Emblèmes des entrées d'« Aller plus loin » : un petit dessin au trait par page,
 // posé devant son nom dans le menu déroulant.
 //
-// Même cadre que les emblèmes de couverture (`app/lib/emblemesCouverture.tsx`) :
+// Même grammaire que les emblèmes de couverture (`app/lib/emblemesCouverture.tsx`) :
 // une viewBox carrée, aucune couleur écrite, tout en `currentColor`, si bien que le
 // dessin prend l'encre de la ligne qui l'accueille et suit le thème sans être décliné
 // deux fois. ⛔ Pas de `fill=` littéral : la charte le proscrit pour tout SVG
@@ -9,104 +9,106 @@
 //
 // ⛔ Un emblème ne doit se confondre avec AUCUNE marque déjà employée : l'étoile dit
 // « favori », le quadrilobe « citation choisie », le cœur « soutenir », la loupe
-// « chercher », le chevron « avancer ». Les six ci-dessous disent chacun ce que sa
+// « chercher », le chevron « avancer ». Les cinq ci-dessous disent chacun ce que sa
 // page CONTIENT, et rien d'autre.
 //
 // ⚠️ Ils se jugent à la taille RÉELLE, autour de dix-sept pixels, jamais dans
 // l'éditeur : c'est la leçon des neuf premières ébauches d'emblèmes de couverture,
-// dont cinq passaient pour autre chose une fois rendues.
+// dont cinq passaient pour autre chose une fois rendues. Le trait est donc épais
+// (1,5 sur 24) et les formes tenues à trois ou quatre traits.
 
 const CADRE = {
   viewBox: '0 0 24 24',
   fill: 'none',
   stroke: 'currentColor',
-  strokeWidth: 1.35,
-  strokeLinecap: 'butt' as const,
+  strokeWidth: 1.5,
+  strokeLinecap: 'round' as const,
   strokeLinejoin: 'round' as const,
 }
 
-// ⛔ Un plein se peint en `currentColor`, jamais en teinte écrite : c'est le seul
-// `fill` que la charte admet sur un SVG d'interface.
-const PLEIN = { fill: 'currentColor', stroke: 'none' }
-
-// ⚠️ Redessinés le 2026-09-21 (demande de l'auteur : « qu'ils fassent moins IA »).
-// La première série suivait la grammaire des jeux d'icônes génériques : trait
-// uniforme, bouts ronds, pictogrammes attendus (devanture, barres, colonne). Celle-ci
-// emprunte au répertoire du livre ancien : pleins et déliés, bouts francs, un aplat
-// par dessin, et des motifs que la tradition connaît — pied-de-mouche, bâtons de
-// comptage, chrisme, enseigne de libraire.
-
-/** Un livre ouvert, ses deux pages écrites, et son signet qui pend : le même texte
- *  servi en plusieurs versions. */
+/** Deux pages en regard : le même texte servi en plusieurs versions. */
 function Traductions() {
   return (
     <>
-      <path d="M12 6.8C9.6 5.2 6.6 4.8 3.4 5.3V18.1C6.6 17.6 9.6 18 12 19.6" />
-      <path d="M12 6.8C14.4 5.2 17.4 4.8 20.6 5.3V18.1C17.4 17.6 14.4 18 12 19.6" />
-      <path d="M12 6.8V19.6" strokeWidth={1} />
-      <path d="M5.6 8.9c1.7-.2 3.3 0 4.6.6M5.6 11.6c1.7-.2 3.3 0 4.6.6M13.8 9.5c1.3-.6 2.9-.8 4.6-.6M13.8 12.2c1.3-.6 2.9-.8 4.6-.6" strokeWidth={0.9} />
-      <path d="M11.1 19.4v3l.9-.8.9.8v-3z" {...PLEIN} />
+      <path d="M12 7.2v12" />
+      <path d="M12 7.2C10.2 5.7 7.2 5.1 4 5.6v11.9c3.2-.5 6.2.1 8 1.6" />
+      <path d="M12 7.2c1.8-1.5 4.8-2.1 8-1.6v11.9c-3.2-.5-6.2.1-8 1.6" />
     </>
   )
 }
 
-/** L'enseigne d'un libraire, pendue à sa potence : un lieu où l'on va, non un livre
- *  de plus. */
+/** Une devanture sous son store : c'est un lieu où l'on va, non un livre de plus.
+ *  ⚠️ Une pile de livres aurait dit la même chose que la page précédente. */
 function Librairies() {
   return (
     <>
-      <path d="M3.2 2.8v6" />
-      <path d="M3.2 4.4h14.6" strokeWidth={1.7} />
-      <path d="M3.2 8.6l4.2-4.2" />
-      <path d="M8.6 4.4v3.2M15.8 4.4v3.2" strokeWidth={0.9} />
-      <path d="M7.2 7.6h10v9.2h-10z" />
-      <path d="M9.8 10h4.8v4.4H9.8z" {...PLEIN} />
+      <path d="M3.2 9h17.6L18.9 4.9H5.1z" />
+      <path d="M5.2 9v10.3h13.6V9" />
+      <path d="M9.5 19.3v-5.6h5v5.6" />
     </>
   )
 }
 
-/** Trois livres couchés en pile, leurs dos marqués d'une nervure : ce qu'on consulte
- *  et qu'on range. */
+/** Une ÉTAGÈRE : deux dos droits et un penché, sur leur sol. Ce qu'on consulte et
+ *  qu'on range, non ce qu'on achète — la devanture dit cela — ni ce qu'on lit en
+ *  regard — les deux pages disent cela.
+ *  ⛔ DEUX dos droits, jamais trois : trois traits de même hauteur se lisent comme
+ *  trois colonnes (leçon de la colonne antique voisine). Le dos penché fait
+ *  l'étagère à lui seul : sans lui, ce sont des barres. */
 function Bibliographie() {
   return (
     <>
-      <path d="M3 15.6h17.2v4H3z" />
-      <path d="M5.2 11.2h13.6v4.4H5.2z" />
-      <path d="M4.3 7.9l12.4-1.6.6 4.4-12.4 1.6z" />
-      <path d="M5.4 15.6h1.3v4H5.4zM16.4 11.2h1.3v4.4h-1.3zM6.3 7.7l1.3-.2.6 4.4-1.3.2z" {...PLEIN} />
+      <path d="M4 19.4h16" />
+      <path d="M6.2 19.4V6.4h3.2v13" />
+      <path d="M11.6 19.4V6.4h2.6v13" />
+      <path d="M15.1 7.6l3.3-.9 3.1 12.1-3.3.9z" />
     </>
   )
 }
 
-/** Des bâtons de comptage, le cinquième en travers : ce que le site compte, à la
- *  main plutôt qu'au graphique. */
+/** Trois barres croissantes sur leur ligne de sol : ce que le site compte. */
 function Statistiques() {
   return (
     <>
-      <path d="M6.2 6.4l-.3 11.2M9.4 6.1l.1 11.4M12.7 6.5l-.1 11.1M16 6.2l.2 11.3" />
-      <path d="M3.6 15.2L19.8 8.4" strokeWidth={1.6} />
+      <path d="M4 19.5h16" />
+      <path d="M7.5 19.5v-4.8" />
+      <path d="M12 19.5v-9.3" />
+      <path d="M16.5 19.5v-6.6" />
     </>
   )
 }
 
-/** Le pied-de-mouche, signe dont les manuscrits marquaient le début d'un passage. */
+/** Trois lignes de texte, dont une MARQUÉE d'un trait dans la marge : un passage
+ *  qu'on met à part dans le fil de l'Écriture.
+ *  ⚠️ Une accolade avait été essayée : à dix-sept pixels elle se lisait comme une
+ *  simple parenthèse, et l'emblème entier passait pour « ( ≡ ». Un trait plein,
+ *  plus épais que le reste du dessin, dit le prélèvement sans ambiguïté. */
 function Pericopes() {
   return (
     <>
-      <path d="M12.2 4.6H10.1C7.8 4.6 6.2 6.5 6.2 8.7s1.6 4.1 3.9 4.1h2.1z" {...PLEIN} />
-      <path d="M12.2 4.6V20M15.8 4.6V20" />
-      <path d="M11 4.6h6.8" strokeWidth={1.5} />
+      <path d="M4.8 8.9v6.2" strokeWidth={2.8} />
+      <path d="M9.4 7h10.4" />
+      <path d="M9.4 12h10.4" />
+      <path d="M9.4 17h10.4" />
     </>
   )
 }
 
-/** Le chrisme : l'Église des premiers siècles, dont la frise raconte l'histoire. */
+/** Une colonne antique : chapiteau, fût cannelé, base. L'Antiquité chrétienne,
+ *  et non un graphique de plus.
+ *  ⚠️ Une frise à repères avait été essayée : à dix-sept pixels elle se lisait
+ *  comme trois petits points, et de loin comme les barres voisines. ⛔ DEUX
+ *  cannelures, jamais trois : trois traits de même largeur se lisent comme trois
+ *  colonnes, piège déjà rencontré sur les emblèmes de couverture. */
 function Histoire() {
   return (
     <>
-      <path d="M12 3.4V20.6" strokeWidth={1.6} />
-      <path d="M12 3.6h2.1a3 3 0 0 1 0 6H12" />
-      <path d="M7.3 9.4L16.7 18.6M16.7 9.4L7.3 18.6" />
+      <path d="M5.6 4.8h12.8" />
+      <path d="M7 8h10" />
+      <path d="M10 8v8" />
+      <path d="M14 8v8" />
+      <path d="M7 16h10" />
+      <path d="M5.6 19.2h12.8" />
     </>
   )
 }
