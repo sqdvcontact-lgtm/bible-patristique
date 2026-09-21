@@ -228,9 +228,9 @@ export function placerEnMarge({
   /** Le jeu à GAUCHE, quand la colonne y laisse pendre quelque chose : la page Bible
    *  y pose ses numéros de verset, que l'encart ne doit pas couvrir. */
   ecartGauche?: number
-  /** La marge où l'encart se range d'abord, s'il y tient. La page d'une œuvre garde la
-   *  droite (sa gauche porte la manchette des renvois) ; la page Bible prend la gauche,
-   *  décision de l'auteur du 2026-09-21. */
+  /** La marge où l'encart se range d'abord, s'il y tient. Toutes les pages prennent la
+   *  droite, comme la page d'une œuvre (la page Bible aussi, décision de l'auteur du
+   *  2026-09-21, qui a renoncé le jour même à la gauche). */
   cotePrefere?: 'gauche' | 'droite'
 }): PlacementEnMarge | null {
   // ⛔ La borne est le VOLET, non la fenêtre : `marge` garde son office — le blanc qu'on

@@ -45,8 +45,9 @@ export function GravureAgrandissable({
   enfant: ReactNode
   /** La même, à sa taille naturelle, pour le calque. */
   agrandi: ReactNode
-  /** L'ancienne version, à la même taille : une bascule sobre la montre à la
-   *  place de la version servie. Absente, rien ne s'affiche. */
+  /** La version originale : une bascule sobre la montre DANS la boîte de la version
+   *  servie, qui garde seule la mesure. Elle doit donc se borner à 100 % des deux côtés
+   *  en largeur comme en hauteur. Absente, rien ne s'affiche. */
   ancien?: ReactNode
 }) {
   const [ouvert, setOuvert] = useState(false)
@@ -108,7 +109,19 @@ export function GravureAgrandissable({
                 borderRadius: '999px', color: 'var(--cs-texte-doux)',
                 fontSize: '0.9375rem', lineHeight: 1, cursor: 'pointer',
               }}>✕</button>
-            {ancien && voirAncien ? ancien : agrandi}
+            {/* ⛔ LA FENÊTRE NE CHANGE PAS DE TAILLE D'UNE VERSION À L'AUTRE (demande de
+                l'auteur, 2026-09-21). La version servie reste dans le flux et mesure la
+                boîte — cachée, non retirée, quand on regarde l'originale ; celle-ci se pose
+                PAR-DESSUS, dans la même boîte, et s'y RÉDUIT si elle est plus grande
+                (objet ajusté, deux maxima à 100 %). */}
+            <div style={{ position: 'relative' }}>
+              <div style={{ visibility: ancien && voirAncien ? 'hidden' : 'visible' }}>{agrandi}</div>
+              {ancien && voirAncien && (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {ancien}
+                </div>
+              )}
+            </div>
             {ancien && (
               <div role="group" aria-label="Version de la gravure" className="cs-gravure-versions">
                 <button type="button" aria-pressed={!voirAncien} onClick={() => setVoirAncien(false)}

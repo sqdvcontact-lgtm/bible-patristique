@@ -349,6 +349,10 @@ export default function NavLivres({
       setLivreOuvert(null)
     } else {
       setLivreOuvert(code)
+      // Le chapitre 1 se SÉLECTIONNE à l'instant dans le volet : sans cela, l'ancien
+      // numéro restait en surbrillance dans la liste du nouveau livre, le temps que
+      // la page arrive (demande de l'auteur, 2026-09-21).
+      setChapitreActifLocal(1)
       naviguer(urlLectureBible({ ...maniereDeLire, livre: code, chapitre: 1, trad: tradCode }))
     }
     requestAnimationFrame(() => {

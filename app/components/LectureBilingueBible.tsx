@@ -256,8 +256,12 @@ export default function LectureBilingueBible({
             d'écart, et le passage simple ↔ bilingue déplaçait le texte sans
             déplacer le titre. ⚠️ L'appareil, lui, est bordé par le fer des versets :
             voir `surMesure` (BibleBilingue) et `.cs-bible-regard` (globals.css). */}
+        {/* `data-colonne-lecture` : la colonne se DÉCLARE, pour que l'encart d'une note se range
+            dans la marge au lieu de couvrir le verset (`placerEnMarge`). La lecture en regard
+            ne la portait pas, et ses notes s'ouvraient toutes sous leur appel. */}
         <div
           className="cs-lecture-colonne"
+          data-colonne-lecture=""
           style={mobile
             ? { maxWidth: '100%', margin: '0 auto' }
             : { width: `min(calc(var(--mesure-page) + ${GOUTTIERE_ACTIONS_VERSET}), 100%)`, margin: '0 auto', display: 'grid', gridTemplateColumns: `minmax(0, var(--mesure-page)) ${GOUTTIERE_ACTIONS_VERSET}` }}

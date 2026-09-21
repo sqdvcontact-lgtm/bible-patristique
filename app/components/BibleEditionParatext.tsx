@@ -617,6 +617,24 @@ export function IllustrationBible({ illustration, habillage }: {
     />
   )
 
+  // La version ORIGINALE d'une vignette détourée se loge dans la boîte de la version
+  // servie, qui garde la mesure de la fenêtre : le masque la réduit à la boîte (`contain`)
+  // et la centre, au lieu d'imposer sa propre hauteur.
+  const encreDansLaBoite = (source: { url: string }) => (
+    <span
+      className="cs-bible-gravure-encre"
+      role="img"
+      {...nom}
+      style={{
+        display: 'block', width: '100%', height: '100%',
+        WebkitMaskImage: `url("${source.url}")`, maskImage: `url("${source.url}")`,
+        WebkitMaskSize: 'contain', maskSize: 'contain',
+        WebkitMaskPosition: 'center', maskPosition: 'center',
+        WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat',
+      }}
+    />
+  )
+
   return (
     <figure
       id={`illustration-${illustration.assetKey}`}
@@ -638,7 +656,7 @@ export function IllustrationBible({ illustration, habillage }: {
           legende={illustration.caption}
           enfant={encre('100%')}
           agrandi={encre('100%', `${illustration.width}px`)}
-          ancien={ancienne ? encre('100%', `${ancienne.width}px`, ancienne) : undefined}
+          ancien={ancienne ? encreDansLaBoite(ancienne) : undefined}
         />
       ) : (
         // ⛔ Une PHOTOGRAVURE et une PLANCHE gardent leur papier : elles sont
@@ -689,9 +707,10 @@ export function IllustrationBible({ illustration, habillage }: {
               width={ancienne.width}
               height={ancienne.height}
               style={{
-                display: 'block', margin: '0 auto',
-                maxWidth: `min(100%, ${ancienne.width}px)`,
-                maxHeight: '78vh', width: 'auto', height: 'auto',
+                // Elle se loge dans la boîte de la version servie, qui garde la mesure
+                // de la fenêtre : plus grande, elle s'y réduit ; plus petite, elle s'y centre.
+                display: 'block', maxWidth: '100%', maxHeight: '100%',
+                width: 'auto', height: 'auto', objectFit: 'contain',
               }}
             />
           ) : undefined}
@@ -796,7 +815,9 @@ export function BlocEditorialBible({
   // ce titre ne rend rien, et le sous-titre d'un titre masqué se tait avec lui.
   // La place dans l'axe analytique, elle, ne bouge pas : `baliserBlocs` l'a déjà
   // calculée sur la donnée entière.
-  const intituleMasque = titreMasque(resolu.headingLevel, titresMasques)
+  // ⚠️ Le rang d'un bloc de TITRE vit dans `level` (T3 pour « Le divin prélude ») :
+  // son `headingLevel` est nul, celui-ci ne servant qu'au titre PORTÉ d'un bloc mixte.
+  const intituleMasque = titreMasque(resolu.headingLevel ?? (resolu.kind === 'title' ? resolu.level : null), titresMasques)
   if (intituleMasque && resolu.kind === 'title' && bloc.textBlocks.length === 0 && illustrations.length === 0) return null
   if (bloc.presentation && ROLES_SOUS_TITRE.has(bloc.presentation.displayRole ?? '') && titreMasque(bloc.rangDuTitre, titresMasques)) return null
 
