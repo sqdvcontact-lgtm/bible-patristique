@@ -10,9 +10,8 @@ import { useEstMobile } from '@/app/lib/useEstMobile'
 import { useNaviguer } from '@/app/lib/attenteNavigation'
 
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
-import { urlLectureBible } from '@/app/lib/bibleNavigation'
 import { BLANC_TITRE_MENU, GOUTTIERE_ACTIONS_VERSET, INTERLIGNE_TITRE_CHAPITRE } from '@/app/lib/compositionBible'
-import FlecheChapitre from './FlecheChapitre'
+import FlecheChapitre, { type CibleChapitre } from './FlecheChapitre'
 import BibleBilingue, { type LectureBilingueProps } from './BibleBilingue'
 import SelecteurTraductionBible from './SelecteurTraductionBible'
 import LassoLecture from './LassoLecture'
@@ -44,6 +43,8 @@ export type LectureBilingueBibleProps = LectureBilingueProps & {
   setTraductionIndex: (index: number) => void
   /** Ouvrir une famille en regard depuis le menu central. */
   choisirEnRegard?: (index: number) => void
+  /** Les chapitres voisins, adresses composées par la page (`chapitreVoisin`). */
+  voisins?: { precedent: CibleChapitre | null; suivant: CibleChapitre | null }
 }
 
 export default function LectureBilingueBible({
@@ -56,6 +57,7 @@ export default function LectureBilingueBible({
   setTraductionIndex,
   choisirEnRegard,
   mobile = false,
+  voisins = { precedent: null, suivant: null },
   ...contenu
 }: LectureBilingueBibleProps) {
   // ⛔ Deux colonnes ne tiennent pas dans la bande 901–980 px. Le shell y reste
@@ -67,9 +69,6 @@ export default function LectureBilingueBible({
   // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui
   // allume la marque au centre de la lecture tant que la page se prépare.
   const naviguer = useNaviguer()
-  const allerAuChapitre = (chapitre: number) => {
-    naviguer(urlLectureBible({ livre: livreActif, chapitre, trad: tradCode, mode: 'verse', bilingue: true }))
-  }
 
   // ── LE LASSO ───────────────────────────────────────────────────────────────
   // Tirer un cadre depuis le blanc sélectionne plusieurs versets, qu'on enregistre ou
@@ -208,7 +207,7 @@ export default function LectureBilingueBible({
         <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`, alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
             {/* Mêmes flèches qu'en lecture simple : à une borne, chevron en place, grisé, inerte. */}
-            <FlecheChapitre livre={livreActif} chapitre={chapitreActif} sens="precedent" variante="entete" onAller={allerAuChapitre} />
+            <FlecheChapitre sens="precedent" variante="entete" cible={voisins.precedent} onAller={naviguer} />
             <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px', lineHeight: INTERLIGNE_TITRE_CHAPITRE }}>
               <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>{nomLivre}</span>
               <span style={{ color: '#b0a088', fontSize: '1.25rem', lineHeight: 1 }}>❧</span>
@@ -216,7 +215,7 @@ export default function LectureBilingueBible({
                   redevient pas vert parce que le texte passe en deux colonnes. */}
               <span style={{ fontSize: '1.0625rem', color: 'var(--cs-mention)', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>
             </h1>
-            <FlecheChapitre livre={livreActif} chapitre={chapitreActif} sens="suivant" variante="entete" onAller={allerAuChapitre} />
+            <FlecheChapitre sens="suivant" variante="entete" cible={voisins.suivant} onAller={naviguer} />
           </div>
           <div />
         </div>

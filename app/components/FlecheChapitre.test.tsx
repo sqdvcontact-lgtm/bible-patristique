@@ -1,113 +1,101 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
-import FlecheChapitre, { chapitreVise, flecheChapitreDisponible, type FlecheChapitreProps } from './FlecheChapitre'
+import FlecheChapitre, { clicSimple, libelleFleche, type CibleChapitre, type FlecheChapitreProps } from './FlecheChapitre'
+
+const GN3: CibleChapitre = { livre: 'GEN', chapitre: 3, href: '/?livre=GEN&chapitre=3&trad=TR0001', nom: 'Genèse 3' }
+const MC1: CibleChapitre = { livre: 'MRK', chapitre: 1, href: '/?livre=MRK&chapitre=1&trad=TR0001', nom: 'Marc 1' }
 
 /** Le composant est sans crochet : on l'appelle comme une fonction et on lit l'élément rendu. */
-function rendre(props: Partial<FlecheChapitreProps> & Pick<FlecheChapitreProps, 'chapitre' | 'sens'>) {
+function rendre(props: Partial<FlecheChapitreProps> & Pick<FlecheChapitreProps, 'cible'>) {
   const onAller = vi.fn()
-  const element = FlecheChapitre({ livre: 'GEN', variante: 'entete', onAller, ...props })
+  const element = FlecheChapitre({ sens: 'suivant', variante: 'entete', onAller, ...props })
   return { element, props: element.props as Record<string, unknown>, onAller }
 }
 
-describe('disponibilité des flèches de chapitre', () => {
-  it('Gn 49 autorise le chapitre suivant', () => {
-    expect(flecheChapitreDisponible('GEN', 49, 'suivant')).toBe(true)
-    expect(chapitreVise(49, 'suivant')).toBe(50)
+/** Un événement de clic minimal : ce que `clicSimple` et le gestionnaire lisent. */
+function clic(modifs: Partial<{ button: number; ctrlKey: boolean; metaKey: boolean; shiftKey: boolean; altKey: boolean }> = {}) {
+  const preventDefault = vi.fn()
+  return {
+    evt: { button: 0, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, defaultPrevented: false, preventDefault, ...modifs },
+    preventDefault,
+  }
+}
+
+describe('une flèche active est un LIEN', () => {
+  it('elle porte l’adresse du chapitre visé, lisible et ouvrable dans un autre onglet', () => {
+    const { element, props } = rendre({ cible: GN3 })
+    expect(element.type).toBe('a')
+    expect(props.href).toBe(GN3.href)
+    expect(renderToStaticMarkup(element)).toContain(`href="${GN3.href.replace(/&/g, '&amp;')}"`)
   })
 
-  it('Gn 50 ne l’autorise pas', () => {
-    expect(flecheChapitreDisponible('GEN', 50, 'suivant')).toBe(false)
-    // La flèche arrière, elle, reste ouverte au dernier chapitre.
-    expect(flecheChapitreDisponible('GEN', 50, 'precedent')).toBe(true)
+  it('le clic simple passe par la provision d’attente, sans suivre le lien', () => {
+    const { props, onAller } = rendre({ cible: GN3 })
+    const { evt, preventDefault } = clic()
+    ;(props.onClick as (e: unknown) => void)(evt)
+    expect(preventDefault).toHaveBeenCalledTimes(1)
+    expect(onAller).toHaveBeenCalledWith(GN3.href)
   })
 
-  it('Gn 1 ferme la flèche arrière et ouvre la flèche avant', () => {
-    expect(flecheChapitreDisponible('GEN', 1, 'precedent')).toBe(false)
-    expect(flecheChapitreDisponible('GEN', 1, 'suivant')).toBe(true)
-    expect(chapitreVise(1, 'suivant')).toBe(2)
-  })
-
-  it('laisse les chapitres intermédiaires ouverts des deux côtés', () => {
-    for (const chapitre of [2, 10, 25, 48, 49]) {
-      expect(flecheChapitreDisponible('GEN', chapitre, 'precedent')).toBe(true)
-      expect(flecheChapitreDisponible('GEN', chapitre, 'suivant')).toBe(true)
+  it('un clic du milieu ou tenu avec Ctrl, Cmd, Maj ou Alt revient au navigateur', () => {
+    for (const modifs of [{ button: 1 }, { ctrlKey: true }, { metaKey: true }, { shiftKey: true }, { altKey: true }]) {
+      const { props, onAller } = rendre({ cible: GN3 })
+      const { evt, preventDefault } = clic(modifs)
+      ;(props.onClick as (e: unknown) => void)(evt)
+      expect(preventDefault).not.toHaveBeenCalled()
+      expect(onAller).not.toHaveBeenCalled()
     }
-    expect(chapitreVise(25, 'precedent')).toBe(24)
-    expect(chapitreVise(25, 'suivant')).toBe(26)
   })
 
-  it('hors du périmètre certifié, le serveur garde la main', () => {
-    expect(flecheChapitreDisponible('PSA', 150, 'suivant')).toBe(true)
-    expect(flecheChapitreDisponible('PSA', 1, 'precedent')).toBe(false)
+  it('elle nomme sa cible, et l’infobulle de l’en-tête dit la touche', () => {
+    const { props } = rendre({ cible: MC1 })
+    expect(props['aria-label']).toBe('Chapitre suivant : Marc 1')
+    expect(props.title).toBe('Chapitre suivant : Marc 1 (→)')
+    const arriere = rendre({ cible: GN3, sens: 'precedent' })
+    expect(arriere.props.title).toBe('Chapitre précédent : Genèse 3 (←)')
+    expect(libelleFleche('precedent', GN3)).toBe('Chapitre précédent : Genèse 3')
+  })
+
+  it('sa zone de frappe vient de `.cs-fleche-chapitre`, et elle fait 2,75 rem', () => {
+    const { props } = rendre({ cible: GN3 })
+    expect(props.className).toBe('nav-chap-arrow cs-fleche-chapitre')
+    const css = readFileSync(join(process.cwd(), 'app', 'globals.css'), 'utf8')
+    expect(css).toMatch(/\.cs-fleche-chapitre \{ position: relative;/)
+    expect(css).toMatch(/\.cs-fleche-chapitre::after \{[^}]*width: 2\.75rem; height: 2\.75rem;/)
   })
 })
 
-describe('flèche terminale : présente mais inerte', () => {
-  it('Gn 50 : le chevron droit reste rendu, grisé et désactivé', () => {
-    const { element, props } = rendre({ chapitre: 50, sens: 'suivant' })
-    expect(element.type).toBe('button')
-    expect(props.disabled).toBe(true)
-    expect(props['aria-disabled']).toBe('true')
-    expect((props.style as Record<string, unknown>).color).toBe('var(--cs-bord)')
-    expect((props.style as Record<string, unknown>).cursor).toBe('default')
-    const html = renderToStaticMarkup(element)
-    expect(html).toContain('›')
-    expect(html).toContain('disabled=""')
+describe('clicSimple', () => {
+  it('ne retient que le bouton principal, sans modification ni défaut déjà empêché', () => {
+    expect(clicSimple(clic().evt)).toBe(true)
+    expect(clicSimple({ ...clic().evt, defaultPrevented: true })).toBe(false)
+    expect(clicSimple(clic({ button: 2 }).evt)).toBe(false)
   })
+})
 
-  it('aucun clic possible sur la flèche terminale', () => {
-    const { props, onAller } = rendre({ chapitre: 50, sens: 'suivant' })
+describe('flèche inerte, à une borne réelle', () => {
+  it('le chevron reste rendu, grisé, sans lien ni promesse', () => {
+    const { element, props, onAller } = rendre({ cible: null })
+    expect(element.type).toBe('span')
+    expect(props.href).toBeUndefined()
     expect(props.onClick).toBeUndefined()
-    // Ni classe de survol, ni infobulle : la flèche ne promet rien.
     expect(props.className).toBeUndefined()
     expect(props.title).toBeUndefined()
-    // Même un appel forcé du gestionnaire ne déclenche aucune navigation.
-    ;(props.onClick as undefined | (() => void))?.()
+    expect(props['aria-hidden']).toBe('true')
+    expect((props.style as Record<string, unknown>).color).toBe('var(--cs-bord)')
+    expect((props.style as Record<string, unknown>).cursor).toBe('default')
+    expect(renderToStaticMarkup(element)).toContain('›')
     expect(onAller).not.toHaveBeenCalled()
-  })
-
-  it('Gn 1 : le chevron gauche est inerte de la même façon', () => {
-    const { props, onAller } = rendre({ chapitre: 1, sens: 'precedent' })
-    expect(props.disabled).toBe(true)
-    expect(props.onClick).toBeUndefined()
-    expect(onAller).not.toHaveBeenCalled()
-  })
-})
-
-describe('flèche active', () => {
-  it('Gn 49 : le clic mène à Gn 50 et acquitte la navigation', () => {
-    const { props, onAller } = rendre({ chapitre: 49, sens: 'suivant' })
-    expect(props.disabled).toBeUndefined()
-    // `cs-cible-fine` agrandit la ZONE DE FRAPPE au doigt sans changer la boîte
-    // (globals.css, § LE DOIGT) ; `nav-chap-arrow` porte le survol à la souris.
-    expect(props.className).toBe('nav-chap-arrow cs-cible-fine')
-    expect(props.title).toBe('Chapitre suivant')
-    ;(props.onClick as () => void)()
-    expect(onAller).toHaveBeenCalledTimes(1)
-    expect(onAller).toHaveBeenCalledWith(50)
-  })
-
-  it('Gn 1 : le chevron droit mène à Gn 2', () => {
-    const { props, onAller } = rendre({ chapitre: 1, sens: 'suivant' })
-    ;(props.onClick as () => void)()
-    expect(onAller).toHaveBeenCalledWith(2)
-  })
-
-  it('Gn 25 : les deux chevrons mènent à 24 et 26', () => {
-    const arriere = rendre({ chapitre: 25, sens: 'precedent' })
-    ;(arriere.props.onClick as () => void)()
-    expect(arriere.onAller).toHaveBeenCalledWith(24)
-    const avant = rendre({ chapitre: 25, sens: 'suivant' })
-    ;(avant.props.onClick as () => void)()
-    expect(avant.onAller).toHaveBeenCalledWith(26)
   })
 })
 
 describe('géométrie des surfaces', () => {
   it('le bandeau mobile garde sa boîte, actif ou inerte', () => {
-    const actif = rendre({ chapitre: 49, sens: 'suivant', variante: 'bandeau' }).props.style as Record<string, unknown>
-    const inerte = rendre({ chapitre: 50, sens: 'suivant', variante: 'bandeau' }).props.style as Record<string, unknown>
+    const actif = rendre({ cible: GN3, variante: 'bandeau' }).props.style as Record<string, unknown>
+    const inerte = rendre({ cible: null, variante: 'bandeau' }).props.style as Record<string, unknown>
     for (const style of [actif, inerte]) {
       expect(style.fontSize).toBe('1.375rem')
       expect(style.padding).toBe('0 8px')
@@ -116,12 +104,12 @@ describe('géométrie des surfaces', () => {
     expect(actif.color).toBe('var(--cs-texte-gris)')
     expect(inerte.color).toBe('var(--cs-bord)')
     // Le bandeau se lit à l'étiquette, pas à l'infobulle.
-    expect(rendre({ chapitre: 49, sens: 'suivant', variante: 'bandeau' }).props.title).toBeUndefined()
+    expect(rendre({ cible: GN3, variante: 'bandeau' }).props.title).toBeUndefined()
   })
 
   it('l’en-tête garde son gabarit, lecture simple comme lecture en regard', () => {
-    const actif = rendre({ chapitre: 49, sens: 'suivant' }).props.style as Record<string, unknown>
-    const inerte = rendre({ chapitre: 50, sens: 'suivant' }).props.style as Record<string, unknown>
+    const actif = rendre({ cible: GN3 }).props.style as Record<string, unknown>
+    const inerte = rendre({ cible: null }).props.style as Record<string, unknown>
     for (const style of [actif, inerte]) {
       expect(style.fontSize).toBe('1.25rem')
       expect(style.padding).toBe(0)

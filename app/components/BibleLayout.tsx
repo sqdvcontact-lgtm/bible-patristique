@@ -15,7 +15,7 @@ import { chargerDensiteChapitre, libelleDensiteVerset, type DensiteVerset } from
  *  colonne du texte, et la ferait rendre pour rien tant que la densité n’est pas là. */
 const DENSITES_VIDES: ReadonlyMap<string, DensiteVerset> = new Map()
 import { ABREV_FR } from '@/app/lib/bible'
-import { formaterPlageCanonique, parsePointCanonique } from '@/app/lib/referencesBibliques'
+import { formaterPlageCanonique, nomLivreReference, parsePointCanonique } from '@/app/lib/referencesBibliques'
 import { HAUTEUR_SOUS_NAVBAR, BANDEAU_NAV_MOBILE, HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { GOUTTIERE_ACTIONS_VERSET } from '@/app/lib/compositionBible'
 import { useEstMobile } from '@/app/lib/useEstMobile'
@@ -27,7 +27,9 @@ import type { BibleEditionChapterDisplay, BibleEditionDisplayNote } from '@/app/
 import type { BibliographiePiece } from '@/app/lib/bibleBibliographieOuvrages'
 import LectureBilingueBible from './LectureBilingueBible'
 import ModaleLivreAbsent, { type TraductionProposee } from './ModaleLivreAbsent'
-import FlecheChapitre from './FlecheChapitre'
+import FlecheChapitre, { type CibleChapitre } from './FlecheChapitre'
+import { chargerChapitresParLivre, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
+import { chapitreVoisin, sensDeLaTouche, type PlaceChapitre } from '@/app/lib/chapitresVoisins'
 import type { LectureBilingueProps } from './BibleBilingue'
 import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
 import { memoriserTraductionBible } from '@/app/lib/preferenceBible'
@@ -615,6 +617,60 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // livres et par les flèches de chapitre, plutôt qu'énuméré réglage par réglage.
   const maniereDeLire: ManiereDeLireBible = { couche, bilingue: !!lectureBilingue, texteSeul }
 
+  // ── LES CHAPITRES VOISINS ──────────────────────────────────────────────────
+  // Où mènent les flèches de l'en-tête, celles du bandeau mobile, la navigation du bas
+  // de chapitre et les touches ← et → (audit d'ergonomie du 2026-09-21). ⛔ Composées
+  // ICI, et une seule fois : la page seule sait la manière de lire, les livres que la
+  // bible lue porte et l'ordre du volet. Au bout d'un livre, le livre voisin
+  // (`chapitreVoisin`, app/lib/chapitresVoisins.ts).
+  // ⚠️ Le nombre de chapitres vient de l'ossature, par la promesse que le volet des
+  // livres partage déjà : aucune requête de plus.
+  const [tableChapitres, setTableChapitres] = useState<ChapitresParLivre | null>(null)
+  useEffect(() => {
+    let vivant = true
+    void chargerChapitresParLivre(supabase).then(t => { if (vivant) setTableChapitres(t) })
+    return () => { vivant = false }
+  }, [])
+  const ordreDesLivres = useMemo(() => livres.map(l => l.code), [livres])
+  const livresAbsents = livresVidesCache[traduction] ?? null
+  const cibleDuChapitre = (place: PlaceChapitre | null): CibleChapitre | null => place && {
+    ...place,
+    nom: `${nomLivreReference(place.livre)} ${place.chapitre}`,
+    href: urlLectureBible({
+      ...maniereDeLire, livre: place.livre, chapitre: place.chapitre, trad: traduction,
+      ...(lectureBilingue ? { mode: 'verse' } : {}),
+    }),
+  }
+  const contexteVoisins = { ordre: ordreDesLivres, chapitres: tableChapitres, absents: livresAbsents }
+  const voisins = {
+    precedent: cibleDuChapitre(chapitreVoisin(livreActif, chapitreActif, 'precedent', contexteVoisins)),
+    suivant: cibleDuChapitre(chapitreVoisin(livreActif, chapitreActif, 'suivant', contexteVoisins)),
+  }
+
+  // Les touches ← et → changent de chapitre. ⛔ Inactives quand le foyer est dans un
+  // champ, une zone éditable, un menu ou une fenêtre, quand une fenêtre modale est
+  // ouverte (la visite et le fac-similé écoutent les mêmes touches), quand une touche de
+  // modification est tenue, et pendant qu'une navigation est déjà en route.
+  // ⚠️ L'écoute ne se repose pas à chaque rendu : elle lit les voisins dans une référence,
+  // mise à jour après le rendu.
+  const raccourcisRef = useRef({ voisins, naviguer, enAttente })
+  useEffect(() => { raccourcisRef.current = { voisins, naviguer, enAttente } })
+  useEffect(() => {
+    const surTouche = (e: KeyboardEvent) => {
+      const { voisins: v, naviguer: aller, enAttente: attente } = raccourcisRef.current
+      if (attente) return
+      const modale = document.querySelector('[aria-modal="true"], [role="dialog"]') !== null
+      const sens = sensDeLaTouche(e, document.activeElement, modale)
+      if (!sens) return
+      const cible = v[sens]
+      if (!cible) return
+      e.preventDefault()
+      aller(cible.href)
+    }
+    window.addEventListener('keydown', surTouche)
+    return () => window.removeEventListener('keydown', surTouche)
+  }, [])
+
   // ── L'INVENTAIRE DES NOTES (administrateur) ─────────────────────────────────
   // L'édition qu'on lit, telle que l'onglet « Notes » du volet de droite en a besoin
   // (demande de l'auteur, 2026-09-16). Le volet ne l'offre qu'à l'administrateur.
@@ -897,6 +953,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
             choisirEnRegard={choisirEnRegard}
             canonSelectionne={versetSelectionneCourant?.id_verset ?? null}
             onSelectionnerVerset={selectionnerCanon}
+            voisins={voisins}
           />
         ) : (
         <TexteBible
@@ -916,8 +973,8 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           mobile={mobile}
           editionChapter={editionChapter}
           notesDesVersets={notesDesVersets}
-          maniereDeLire={maniereDeLire}
           pieceAffichee={pieceAffichee}
+          voisins={voisins}
         />
         )}
         {/* La réponse au clic : un anneau qui tourne au centre du bloc de texte, sur
@@ -946,17 +1003,15 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
       {mobile && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1250, height: BANDEAU_NAV_MOBILE, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', background: 'var(--cs-fond-doux)', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)' }}>
           {/* Mêmes flèches que les en-têtes de lecture (`FlecheChapitre`, gabarit
-              `bandeau` : même boîte qu'avant). À Gn 1 comme à Gn 50 le chevron
-              reste à sa place, grisé et inerte : ni navigation, ni marque d'attente. */}
-          <FlecheChapitre livre={livreActif} chapitre={chapitreActif} sens="precedent" variante="bandeau"
-            onAller={(n) => naviguer(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: n, trad: traduction }))} />
+              `bandeau` : même boîte qu'avant), mêmes cibles : au bout d'un livre, le livre
+              voisin ; à une borne réelle, le chevron reste en place, grisé et inerte. */}
+          <FlecheChapitre sens="precedent" variante="bandeau" cible={voisins.precedent} onAller={naviguer} />
           <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', display: 'inline-flex', alignItems: 'baseline', gap: '8px', fontSize: '0.875rem' }}>
             <span style={{ fontWeight: 500, color: 'var(--cs-encre)' }}>{ABREV_FR[livreActif] ?? livreActif}</span>
             <span style={{ color: '#b0a088' }}>❧</span>
             <span style={{ fontStyle: 'italic', color: 'var(--cs-vert)' }}>{chapitreActif}</span>
           </span>
-          <FlecheChapitre livre={livreActif} chapitre={chapitreActif} sens="suivant" variante="bandeau"
-            onAller={(n) => naviguer(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: n, trad: traduction }))} />
+          <FlecheChapitre sens="suivant" variante="bandeau" cible={voisins.suivant} onAller={naviguer} />
         </div>
       )}
       {!mobile && isDirty && <BoutonProportions onRetablir={reset} />}

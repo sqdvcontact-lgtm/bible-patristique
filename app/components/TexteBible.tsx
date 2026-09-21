@@ -41,13 +41,13 @@ import {
 } from '@/app/lib/densitePatristique'
 import { tailleRacinePx } from '@/app/lib/fenetreContextuelle'
 import SelecteurTraductionBible from '@/app/components/SelecteurTraductionBible'
-import FlecheChapitre from '@/app/components/FlecheChapitre'
+import FlecheChapitre, { type CibleChapitre } from '@/app/components/FlecheChapitre'
 import { BlocEditorialBible, figuresDeLaNote, IllustrationBible, PieceLiminaire } from '@/app/components/BibleEditionParatext'
 import { estSuiteDuBloc } from '@/app/lib/bibleHierarchieSemantique'
 import AppelNoteBiblique from '@/app/components/NoteBibliqueFenetre'
 import { rendreTexteAvecAppels, repartirAppels } from '@/app/lib/ancresAppelsBible'
 import { separateurAppels, styleSeparateurAppels } from '@/app/lib/appelsDeNote'
-import { placeCanoniqueDuVerset, urlLectureBible, urlPolyglotte, type ManiereDeLireBible } from '@/app/lib/bibleNavigation'
+import { placeCanoniqueDuVerset, urlPolyglotte } from '@/app/lib/bibleNavigation'
 import type { PieceLiminaireAffichee } from '@/app/components/BibleLayout'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import { activerAuClavier } from '@/app/lib/activerAuClavier'
@@ -106,8 +106,9 @@ type Props = {
   notesDesVersets?: Readonly<Record<string, readonly BibleEditionDisplayNote[]>> | null
   /** Pièce liminaire de l'édition, lue SEULE : elle remplace le chapitre. */
   pieceAffichee?: PieceLiminaireAffichee | null
-  /** La manière de lire courante, reportée sur les flèches de chapitre. */
-  maniereDeLire?: ManiereDeLireBible
+  /** Les chapitres voisins, adresses composées par la page (`chapitreVoisin`) : au bout
+   *  d'un livre, le livre voisin ; `null` à une borne réelle. */
+  voisins?: { precedent: CibleChapitre | null; suivant: CibleChapitre | null }
 }
 
 // ── Bouton copie ──────────────────────────────────────────────────────────────
@@ -415,7 +416,8 @@ export default function TexteBible({
   titresMasques, versets, traduction, traductionIndex, setTraductionIndex, choisirEnRegard, traductions,
   livreActif, chapitreActif, nomLivre,
   versetSelectionne, setVersetSelectionne, densites, mobile = false,
-  editionChapter, notesDesVersets = null, maniereDeLire, pieceAffichee = null,
+  editionChapter, notesDesVersets = null, pieceAffichee = null,
+  voisins = { precedent: null, suivant: null },
 }: Props) {
   // Session et droits : lus dans le contexte partagé, jamais redemandés ici. Ce
   // composant tenait son propre abonnement d'authentification et sa propre lecture
@@ -516,10 +518,6 @@ export default function TexteBible({
   const tradCode = traductionActive?.code ?? 'TR0001'
   const traductionLabel = traductionActive?.label ?? tradCode
 
-  // Changement de chapitre en navigation douce : on ne recharge pas toute la page,
-  // le composant reçoit simplement les nouveaux versets et les volets latéraux (état
-  // client : largeurs, verset sélectionné) restent en place.
-  const allerAuChapitre = (n: number) => naviguer(urlLectureBible({ ...maniereDeLire, livre: livreActif, chapitre: n, trad: tradCode }))
 
   // TR0009 (Bible 899) et éditions à segmentation éditoriale : l'adaptateur marque ses
   // lignes (`_est899`, `_estEditorial`). La GRAPHIE, la lecture en regard et le texte nu
@@ -528,6 +526,8 @@ export default function TexteBible({
   const estLigne899 = (v: Verset) => v._est899 === true
   const estLigneEditoriale = (v: Verset) => v._estEditorial === true
   const estLacune899 = (v: Verset) => v._estLacune === true
+  // La bible lue ne porte rien de ce chapitre : la mention d'absence prend la page.
+  const texteAbsent = versets.length === 0 || versets.every(v => !v[traduction] && !estLigne899(v))
   // La traduction moderne du même témoin n'est pas recomposée, mais son texte porte les
   // lacunes du manuscrit en clair : il faut les mettre en forme, sans passer par le
   // tokeniseur du témoin, qui prendrait ses restitutions pour des marqueurs à cheval.
@@ -713,9 +713,11 @@ export default function TexteBible({
         {!mobile && (
         <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`, alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
-          {/* Les deux flèches viennent de `FlecheChapitre` : à une borne (Gn 1, Gn 50)
-              le chevron reste en place, grisé et inerte, sans navigation ni attente. */}
-          <FlecheChapitre livre={livreActif} chapitre={chapitreActif} sens="precedent" variante="entete" onAller={allerAuChapitre} />
+          {/* Les deux flèches viennent de `FlecheChapitre` : des LIENS, dont la page compose
+              l'adresse (`voisins`). Au bout d'un livre elles mènent au livre voisin ; à une
+              borne réelle le chevron reste en place, grisé et inerte. Le clic simple passe
+              par la provision d'attente : les volets gardent leur état. */}
+          <FlecheChapitre sens="precedent" variante="entete" cible={voisins.precedent} onAller={naviguer} />
 
           <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px', lineHeight: INTERLIGNE_TITRE_CHAPITRE }}>
             {/* La marque suit le titre du chapitre comme elle suit le nom au volet : un
@@ -737,7 +739,7 @@ export default function TexteBible({
             <span style={{ fontSize: '1.0625rem', color: 'var(--cs-mention)', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>
           </h1>
 
-          <FlecheChapitre livre={livreActif} chapitre={chapitreActif} sens="suivant" variante="entete" onAller={allerAuChapitre} />
+          <FlecheChapitre sens="suivant" variante="entete" cible={voisins.suivant} onAller={naviguer} />
         </div>
           <div />
         </div>
@@ -812,7 +814,7 @@ export default function TexteBible({
 
           {rendreFluxEditorial(indexBlocs.opening, indexIllustrations.opening)}
 
-          {(versets.length === 0 || versets.every(v => !v[traduction] && !estLigne899(v))) && (
+          {texteAbsent && (
             /* ⛔ PLUS DE GRAVURE ICI (demande de l'auteur, 2026-09-04 : « supprimer le
                dessin »). La cité ruinée occupait soixante pour cent de la hauteur pour dire
                ce qu'une phrase dit mieux, et l'écran se rencontre désormais plus souvent :

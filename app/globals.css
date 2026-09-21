@@ -4829,3 +4829,15 @@ a.cs-fiche-oeuvre:hover { background: rgba(var(--cs-vert-rgb), 0.06); }
   }
   .cs-fiche-confirmer > p { flex: 1 1 8rem; white-space: normal; }
 }
+
+/* ── LA FLÈCHE DE CHAPITRE ET LA NAVIGATION DU BAS DE CHAPITRE (2026-09-21) ──
+   Audit d'ergonomie : les flèches de chapitre de la page Bible faisaient 7 × 28 px,
+   22 au doigt. La ZONE DE FRAPPE s'agrandit à 2,75 rem de côté autour du chevron,
+   le DESSIN ne bouge pas : c'est le patron de « .cs-cible-fine », posé au centre du
+   glyphe et valable sur toute surface. Le titre qu'elle chevauche ne se clique pas ;
+   le menu des bibles, dessous, est positionné et passe par-dessus. */
+.cs-fleche-chapitre { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+.cs-fleche-chapitre::after {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 2.75rem; height: 2.75rem; transform: translate(-50%, -50%);
+}
