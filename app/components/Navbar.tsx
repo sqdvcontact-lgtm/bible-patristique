@@ -13,7 +13,6 @@ import { LIVRES } from "@/app/lib/bible";
 import { lirePositionBible } from "@/app/lib/repriseLecture";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import { adresseOeuvreRecente, editionAMontrer, lireOeuvresRecentes, quandConsultee, titresAmbigus, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
-import EmblemeNavigation from "@/app/components/EmblemesNavigation";
 import { ligneEdition, type EditionOeuvre } from "@/app/lib/editionOeuvre";
 import { chargerEditeurs, indexEditeursNavigateur } from "@/app/lib/editeurs";
 import type { IndexEditeurs } from "@/app/lib/editeursNormalisation";
@@ -408,16 +407,14 @@ function OngletPatristique({ href, label, style, actif }: { href: string; label:
 // libellé mène aux Traductions (utile au tactile, sans survol).
 function OngletAllerPlusLoin({ label, style, actif }: { label: string; style: React.CSSProperties; actif?: boolean }) {
   return (
-    // Le menu DIT ce que chaque page contient, et le montre d'un emblème.
+    // Le menu DIT ce que chaque page contient, sans emblème : un pictogramme par
+    // ligne donnait au menu l'air d'un jeu d'icônes générique (auteur, 2026-09-21).
     // « Statistiques » et « Péricopes » surtout ne s'expliquent pas d'eux-mêmes :
     // une liste de cinq mots laissait le lecteur ouvrir au hasard.
     <OngletMenu href="/librairies" label={label} style={style} actif={actif} repere="nav-plus-loin"
       classeMenu="cs-plus-menu--riche cs-plus-menu--pages">
       {LIENS_ALLER_PLUS_LOIN.map(l => (
         <Link key={l.href} href={l.href} className="cs-plus-riche">
-          <span className="cs-plus-riche-emb" aria-hidden="true">
-            <EmblemeNavigation href={l.href} />
-          </span>
           <span className="cs-plus-riche-texte">
             <span className="cs-plus-riche-nom">{l.label}</span>
             <span className="cs-plus-riche-dit">{l.dit}</span>
@@ -2070,9 +2067,6 @@ export default function Navbar() {
              = 1,1375 rem) au dixième de pixel près : c'est ce qui le cale sur elle, et le
              décalage de deux pixels écrit à la main n'a plus lieu d'être. Il valait 17 px
              pour un nom de 13 et se lisait comme une tache plutôt que comme un dessin. */
-          .cs-plus-riche-emb { display: flex; color: var(--cs-vert); }
-          .cs-plus-riche-emb svg { width: 1.1875rem; height: 1.1875rem; }
-          .cs-plus-riche:hover .cs-plus-riche-emb { color: var(--cs-vert-fonce); }
           .cs-plus-riche-texte { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
           /* Le nom monte d'un rang, 13 → 14 px : c'est LUI qu'on vient chercher, et deux
              pixels et un gris le séparaient seuls de la glose qui l'explique. */
