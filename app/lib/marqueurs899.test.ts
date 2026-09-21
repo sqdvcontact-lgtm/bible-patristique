@@ -184,6 +184,18 @@ describe('rendreMarqueurs899', () => {
       ])
     })
 
+    // ⛔ Un appel de note du verset tombe avant « »] » et coupe la marque : le cercle se pose
+    // sur la moitié qui FERME, pour que le chiffre reste collé au dernier mot.
+    it('pose le cercle sur la fermeture quand un appel coupe la marque', () => {
+      const ouverture = reduireTout(marquerLacunesDuTemoin('come il [lecture difficile : « Quant li frere come il erant', 't0')) as ReturnType<typeof reduire>[]
+      expect(ouverture[1]).toEqual({ t: 'marque', titre: 'suite', texte: 'Quant li frere come il erant' })
+      const fermeture = reduireTout(marquerLacunesDuTemoin(' »].', 't0')) as ReturnType<typeof reduire>[]
+      expect(fermeture).toEqual([
+        { t: 'marque', titre: 'appel', texte: '' },
+        { t: 'texte', v: '.' },
+      ])
+    })
+
     // Une restitution qui OUVRE le verset : son crochet fermant suit un crochet ouvrant,
     // ce n’est donc pas une fermeture orpheline, et rien n’est grisé.
     it('ne prend pas la restitution qui ouvre un verset pour une portée à cheval', () => {
@@ -197,11 +209,11 @@ describe('rendreMarqueurs899', () => {
       const debut = reduireTout(marquerLacunesDuTemoin('Alors dist il [lecture incertaine : à cause des faux', 't0')) as ReturnType<typeof reduire>[]
       expect(debut).toEqual([
         { t: 'texte', v: 'Alors dist il ' },
-        { t: 'marque', titre: 'appel', texte: 'à cause des faux' },
+        { t: 'marque', titre: 'suite', texte: 'à cause des faux' },
       ])
       const suite = reduireTout(marquerLacunesDuTemoin('témoignages] et il se tut.', 't0')) as ReturnType<typeof reduire>[]
       expect(suite).toEqual([
-        { t: 'marque', titre: 'suite', texte: 'témoignages' },
+        { t: 'marque', titre: 'appel', texte: 'témoignages' },
         { t: 'texte', v: ' et il se tut.' },
       ])
     })

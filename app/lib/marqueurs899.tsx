@@ -282,9 +282,13 @@ export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
   // ⛔ LE TEXTE NE PORTE QUE LE MOT, L'EXPLICATION VIT DANS UN APPEL (décision de l'auteur,
   // 2026-09-21). Un libellé « lecture incertaine : » écrit dans le fil cassait la phrase à
   // chaque occurrence ; une infobulle ne se voit pas au doigt. L'appel « ? » ouvre l'encart
-  // des notes du site, au clic. ⚠️ La suite d'une portée ouverte au verset d'avant (`nom`
-  // absent) ne redonne pas d'appel : il est posé sur l'ouverture.
-  const marqueTexte = (contenu: string, nom?: string) => {
+  // des notes du site, au clic.
+  // ⛔ LE CERCLE SE POSE OÙ LA MARQUE SE FERME (`ferme`), jamais sur son ouverture : un appel
+  // de note du verset tombe souvent juste avant « »] », coupe la marque en deux, et le
+  // chiffre doit rester collé au dernier mot (relevé de l'auteur, 2026-09-21 :
+  // « erant⁷ », puis le cercle). Une marque à cheval sur deux versets porte donc son
+  // cercle dans le second.
+  const marqueTexte = (contenu: string, nom: string | undefined, ferme: boolean) => {
     if (nom === 'ajout marginal') {
       return <span key={`${cle}-i${n++}`} title={infobulle('ajout')} style={STYLE_INCERTAINE}>{contenu}</span>
     }
@@ -292,7 +296,7 @@ export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
     return (
       <span key={`${cle}-i${rang}`}>
         <span style={STYLE_INCERTAINE_TRADUCTION}>{sansGuillemetsDeCitation(contenu)}</span>
-        {nom ? (
+        {ferme ? (
           <AppelNoteBiblique
             note={{ id: `incertaine-${cle}-${rang}`, displayNumber: 0, blocks: [BLOC_EXPLICATION_INCERTAINE] }}
             repere={REPERE_INCERTAINE}
@@ -307,7 +311,7 @@ export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
   const iFerme = texte.indexOf(']')
   const iOuvre = texte.indexOf('[')
   if (cle === 't0' && iFerme >= 0 && (iOuvre < 0 || iFerme < iOuvre)) {
-    if (iFerme > 0) noeuds.push(marqueTexte(texte.slice(0, iFerme)))
+    noeuds.push(marqueTexte(texte.slice(0, iFerme), undefined, true))
     dernier = iFerme + 1
   }
 
@@ -320,7 +324,7 @@ export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
     if (type !== undefined) {
       // Marqueur nommé et COMPLET : son contenu est du texte à lire, la teinte dit le
       // doute, l'infobulle porte le sens savant. Pas de crochets à l'écran.
-      noeuds.push(marqueTexte(contenu ?? '', type))
+      noeuds.push(marqueTexte(contenu ?? '', type, true))
     } else if (ouvert !== undefined) {
       // Marqueur OUVERT jusqu'au bout du verset : la portée se ferme au verset suivant.
       // ⚠️ Une LACUNE ouverte n'a pas de cause lisible — celle qu'on voit est tronquée —,
@@ -330,7 +334,7 @@ export function marquerLacunesDuTemoin(texte: string, cle: string): ReactNode {
         fineSiColle(m.index - 1)
         noeuds.push(<span key={`${cle}-l${n++}`} title={TITRE_LACUNE} style={STYLE_LACUNE}>{libelleLacune()}</span>)
       } else {
-        noeuds.push(marqueTexte(reste ?? '', ouvert))
+        noeuds.push(marqueTexte(reste ?? '', ouvert, false))
       }
     } else {
       // Lacune, nue ou motivée : la CAUSE s'imprime quand la donnée la porte.
