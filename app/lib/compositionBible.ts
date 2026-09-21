@@ -192,11 +192,12 @@ export const STYLE_SIGNET_VERSET: CSSProperties = {
   display: 'inline-block',
   width: '0.825em',
   verticalAlign: '-0.1375em',
-  // ⚠️ La marge négative rend exactement sa largeur : le numéro ne bouge pas, et la
+  // ⚠️ La marge négative rend exactement sa largeur et sa marge droite : le numéro ne bouge pas, et la
   // colonne ne s'élargit pas. Le blanc qui reste (un quart du tracé, à droite du dessin)
-  // fait l'écart, environ 2 px à la racine 16.
-  marginLeft: '-0.825em',
-  color: 'var(--cs-texte-gris)',
+  // et une marge de 0,15 em font l'écart, environ 3,5 px à la racine 16.
+  marginLeft: '-0.975em',
+  marginRight: '0.15em',
+  color: 'var(--cs-texte-doux)',
   lineHeight: 0,
 }
 
