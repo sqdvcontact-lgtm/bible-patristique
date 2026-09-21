@@ -4235,11 +4235,12 @@ main.lecture-entree [data-cs-bloc],
    « reprendre le modèle des notices bible et œuvre ») : sous un en-tête devenu sobre,
    quatorze pixels ne distinguaient plus une section de la prose qu'elle suit.
    ⚠️ ET L'ANECDOTE PREND PLUS DE BLANC ENCORE : elle n'a pas de titre, et c'est le blanc,
-   seul, qui dit qu'on y change de voix.
+   seul, qui dit qu'on y change de voix. Trente pixels en faisaient trop (2026-09-21) :
+   vingt-six suffisent à le dire.
    ⛔ Ces deux règles vivent AVANT celle du portrait : à spécificité égale, la dernière
    écrite l'emporte, et l'en-tête reprendrait sinon une marge en haut du portrait. */
 .cs-fiche-auteur .cs-fiche-principal > * + * { margin-top: 22px; }
-.cs-fiche-auteur .cs-fiche-principal > .cs-fiche-anecdote { margin-top: 30px; }
+.cs-fiche-auteur .cs-fiche-principal > .cs-fiche-anecdote { margin-top: 26px; }
 .cs-fiche-principal > .cs-fiche-portrait + * { margin-top: 0; }
 /* Une section qui ferme la colonne reprend la mesure sous le portrait, jamais à côté. */
 .cs-fiche-section--degagee { clear: left; }
@@ -4543,6 +4544,14 @@ main.lecture-entree [data-cs-bloc],
   margin: 0;
   font-family: var(--font-source-serif), Georgia, serif;
   font-size: 0.71875rem;
+/* ⛔ DANS L'EN-TÊTE, UNE VALEUR QUI PASSE À LA LIGNE REVIENT AU FER À GAUCHE
+   (demande de l'auteur, 2026-09-21). En flex, la suite des traditions s'alignait sous
+   leur premier mot, à droite du libellé, et creusait un retrait brutal sous le nom.
+   Le libellé et la valeur courent donc dans une même ligne de texte. */
+.cs-fiche-identite .cs-fiche-champ { display: block; }
+.cs-fiche-identite .cs-fiche-champ dt,
+.cs-fiche-identite .cs-fiche-champ dd { display: inline; }
+.cs-fiche-identite .cs-fiche-champ dt { margin-right: 5px; }
   line-height: 1.42;
   color: var(--cs-texte);
 }
