@@ -31,6 +31,7 @@ import { composerBibliographie } from '@/app/lib/bibleBibliographie'
 import { ancreAppelNoteBible, type BibleEditionDisplayNote } from '@/app/lib/bibleEdition'
 import { blocDeNoteBibliqueDiscret, intituleNoteBiblique } from '@/app/lib/noteBiblique'
 import { SEUIL_CITATION_SORTIE } from '@/app/lib/citationSortie'
+import { DEBORD_BLOC_VERSET_REM } from '@/app/lib/compositionBible'
 import BibliographieBible from './BibleBibliographie'
 
 /**
@@ -179,7 +180,7 @@ export default function AppelNoteBiblique({
   const hautNavbar = hauteurNavbarPx()
   // ⛔ D'ABORD LA MARGE : une note ouverte par-dessus la colonne cache le verset
   // qu'elle commente. ⚠️ Faute de place, on retombe sous l'appel.
-  const placement = (colonne && placerEnMarge({ ancre: boite, largeur, largeurMin: largeurEncartMinPx(racine), hauteurSouhaitee: hauteurVoulue, vue, hautNavbar, colonne }))
+  const placement = (colonne && placerEnMarge({ ancre: boite, largeur, largeurMin: largeurEncartMinPx(racine), hauteurSouhaitee: hauteurVoulue, vue, hautNavbar, colonne, cotePrefere: 'gauche', ecartGauche: DEBORD_BLOC_VERSET_REM * racine + 12 }))
     ?? placerFenetre({ ancre: boite, largeur, hauteurSouhaitee: hauteurVoulue(), vue, hautNavbar, ecart: 8, prefereDessus: sansSurvol })
 
   return (

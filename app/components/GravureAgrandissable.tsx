@@ -115,7 +115,7 @@ export function GravureAgrandissable({
                   className="cs-gravure-version">Version restaurée</button>
                 <span aria-hidden="true" className="cs-gravure-versions-sep">·</span>
                 <button type="button" aria-pressed={voirAncien} onClick={() => setVoirAncien(true)}
-                  className="cs-gravure-version">Ancienne version</button>
+                  className="cs-gravure-version">Version originale</button>
               </div>
             )}
             {legende && (

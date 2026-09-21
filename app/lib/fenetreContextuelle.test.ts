@@ -168,6 +168,26 @@ describe('l’encart se range dans une marge', () => {
     expect(p.auDessus).toBe(false)
   })
 
+  // La page Bible range ses notes à GAUCHE (2026-09-21), au-delà de ses numéros de verset.
+  it('prend la GAUCHE quand on la préfère, et s’écarte de ce qui y pend', () => {
+    const p = placerEnMarge({
+      ancre: ancre(300), largeur: 100, largeurMin: 100, hauteurSouhaitee: 300, vue: VUE,
+      hautNavbar: NAVBAR, colonne: COLONNE, cotePrefere: 'gauche', ecartGauche: 38,
+    })!
+    expect(p.cote).toBe('gauche')
+    expect(p.left).toBe(350 - 38 - 100)
+    expect(p.left).toBeGreaterThanOrEqual(COLONNE.borneGauche)
+  })
+
+  it('préférée, la gauche cède à la droite quand elle ne porte pas le minimum', () => {
+    const p = placerEnMarge({
+      ancre: ancre(300), largeur: 100, largeurMin: 100, hauteurSouhaitee: 300, vue: VUE,
+      hautNavbar: NAVBAR, colonne: { gauche: 250, droite: 750, borneGauche: 200, borneDroite: 1000 },
+      cotePrefere: 'gauche',
+    })!
+    expect(p.cote).toBe('droite')
+  })
+
   it('ne couvre JAMAIS la colonne de texte', () => {
     const p = enMarge(ancre(300))!
     expect(p.left).toBeGreaterThanOrEqual(COLONNE.droite)

@@ -203,7 +203,7 @@ export type PlacementEnMarge = PlacementFenetre & {
  */
 export function placerEnMarge({
   ancre, largeur, largeurMin, hauteurSouhaitee, vue, hautNavbar, colonne,
-  marge = MARGE_FENETRE, ecart = 12,
+  marge = MARGE_FENETRE, ecart = 12, ecartGauche = ecart, cotePrefere = 'droite',
 }: {
   ancre: Ancre
   /** La largeur voulue ; l'encart se resserre jusqu'à `largeurMin` s'il le faut. */
@@ -225,11 +225,18 @@ export function placerEnMarge({
   marge?: number
   /** Le jeu entre la colonne de texte et l'encart. */
   ecart?: number
+  /** Le jeu à GAUCHE, quand la colonne y laisse pendre quelque chose : la page Bible
+   *  y pose ses numéros de verset, que l'encart ne doit pas couvrir. */
+  ecartGauche?: number
+  /** La marge où l'encart se range d'abord, s'il y tient. La page d'une œuvre garde la
+   *  droite (sa gauche porte la manchette des renvois) ; la page Bible prend la gauche,
+   *  décision de l'auteur du 2026-09-21. */
+  cotePrefere?: 'gauche' | 'droite'
 }): PlacementEnMarge | null {
   // ⛔ La borne est le VOLET, non la fenêtre : `marge` garde son office — le blanc qu'on
   // laisse au bord utile — et c'est le bord utile qui a changé.
   const placeDroite = (colonne.borneDroite - marge) - (colonne.droite + ecart)
-  const placeGauche = (colonne.gauche - ecart) - (colonne.borneGauche + marge)
+  const placeGauche = (colonne.gauche - ecartGauche) - (colonne.borneGauche + marge)
 
   // ⛔ LA DROITE L'EMPORTE DÈS QU'ELLE PORTE LE MINIMUM, et non plus à la seule égalité.
   // La marge de gauche porte la manchette des renvois, que l'encart couvrirait : elle ne
@@ -237,8 +244,9 @@ export function placerEnMarge({
   // les deux volets sont ouverts (mesuré : 280,7 px de chaque côté à 1920) ; un seul
   // volet replié ferait sinon gagner son côté, et la gauche l'emporterait sur un écran
   // où rien ne l'exige.
-  const cote: 'gauche' | 'droite' = placeDroite >= largeurMin || placeDroite >= placeGauche
-    ? 'droite' : 'gauche'
+  const cote: 'gauche' | 'droite' = cotePrefere === 'gauche'
+    ? (placeGauche >= largeurMin || placeGauche >= placeDroite ? 'gauche' : 'droite')
+    : (placeDroite >= largeurMin || placeDroite >= placeGauche ? 'droite' : 'gauche')
   const place = cote === 'gauche' ? placeGauche : placeDroite
   if (place < largeurMin) return null
   const largeurRetenue = Math.min(largeur, place)
@@ -260,7 +268,7 @@ export function placerEnMarge({
   // au moins `hauteurPlacement`, par construction du `top` : la boîte ne peut que
   // gagner de la place, jamais en perdre.
   const hauteurMax = Math.max(0, basUtile - top)
-  const left = cote === 'gauche' ? colonne.gauche - ecart - largeurRetenue : colonne.droite + ecart
+  const left = cote === 'gauche' ? colonne.gauche - ecartGauche - largeurRetenue : colonne.droite + ecart
 
   return { top, left, hauteurMax, auDessus: false, cote, largeur: largeurRetenue }
 }
