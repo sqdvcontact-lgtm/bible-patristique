@@ -420,10 +420,16 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 
   return (
     <>
-      <button onClick={() => { if (!exigerCompte('proposer un lien biblique')) return; reinitialiser(); setOuvert(true) }}
-        style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed var(--cs-bord)', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px', width: '100%', textAlign: 'center' }}>
-        + Proposer un lien biblique
-      </button>
+      {/* ⛔ Une action SECONDAIRE a la forme du site pour ces actions (charte § 51.3) :
+          le bouton-lien, sans cadre ni fond. Le cadre en pointillés sur un lavis vert se
+          lisait comme une zone de dépôt, et le « + » redisait le verbe. Centré sous
+          l'arbre des versets, qui l'est aussi. */}
+      <p style={{ margin: '10px 0 0', textAlign: 'center' }}>
+        <button type="button" className="cs-bouton-lien"
+          onClick={() => { if (!exigerCompte('proposer un lien biblique')) return; reinitialiser(); setOuvert(true) }}>
+          Proposer un lien biblique
+        </button>
+      </p>
       {/* Sous la barre de navigation et bornée en hauteur, comme les autres fenêtres de
           cette page : le pied porte le bouton d'envoi, il ne peut pas sortir de l'écran. */}
       {ouvert && (

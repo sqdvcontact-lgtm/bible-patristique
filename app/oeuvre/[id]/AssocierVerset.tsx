@@ -70,21 +70,18 @@ export default function AssocierVerset({ segId, onAssocie }: {
 
   return (
     <>
-      <button
-        onClick={() => { setErreur(null); setOuvert(true) }}
-        title="Ajouter un lien biblique à ce segment"
-        // ⛔ Pleine largeur et libellé CENTRÉ, comme « + Proposer un lien biblique »
-        // que voit le lecteur : c'est le même geste, il ne doit pas se présenter de
-        // deux façons selon qu'on est administrateur ou non. Le bouton se dimensionnait
-        // à son texte et pendait donc à gauche, sous un arbre qui, lui, est centré
-        // dans le volet (relevé par l'auteur le 2026-08-28).
-        // ⚠️ `boxSizing` : sans lui, le rembourrage et le filet s'ajouteraient aux
-        // 100 %, et le bouton déborderait le volet de vingt-deux pixels.
-        style={{ width: '100%', boxSizing: 'border-box', textAlign: 'center', fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.04)', border: '1px dashed #b8cdc0', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer', marginTop: '8px' }}
-      >
-        + Ajouter un lien biblique
-      </button>
-      {erreur && <p style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', margin: '6px 0 0' }}>{erreur}</p>}
+      {/* ⛔ La même forme que « Proposer un lien biblique » que voit le lecteur : c'est
+          le même geste, il ne se présente pas de deux façons selon qu'on est
+          administrateur ou non. Bouton-lien du site (charte § 51.3), centré sous l'arbre
+          des versets, qui l'est aussi. */}
+      <p style={{ margin: '10px 0 0', textAlign: 'center' }}>
+        <button type="button" className="cs-bouton-lien"
+          onClick={() => { setErreur(null); setOuvert(true) }}
+          title="Ajouter un lien biblique à ce segment">
+          Ajouter un lien biblique
+        </button>
+      </p>
+      {erreur && <p style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', margin: '6px 0 0', textAlign: 'center' }}>{erreur}</p>}
       {ouvert && (
         <ModalLienBiblique
           ouvert={ouvert}
