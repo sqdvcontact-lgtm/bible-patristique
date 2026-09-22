@@ -4189,6 +4189,8 @@ Une traduction ponctue par-dessus les versets. Sorti de son contexte — dans le
 
 **Règle** : une navigation FONCTIONNELLE (sommaire, ancre de note, retour à un segment, descente en bas d’une conversation) ne passe jamais par un `scrollIntoView` doux et nu. Elle passe par `allerAAncre` / `allerAElement` (`app/lib/defilement.ts`), qui demandent le glissement puis **vérifient** : si `scrollY` n’a pas bougé de 2 px après 150 ms, on y va d’un coup. L’animation est gardée là où elle fonctionne, la destination est atteinte partout. Si le lecteur a fait défiler lui-même entre-temps, `scrollY` a bougé et le rattrapage ne se déclenche pas : c’est lui qui commande.
 
+⛔ **`allerAElement` juge le mouvement sur `window.scrollY`, et ne convient donc pas à un bloc qui défile EN INTERNE** (2026-09-22). La colonne de la Bible, au bureau, défile dans son propre défileur : la fenêtre ne bouge jamais, la vérification concluait toujours à l'échec et coupait l'animation au bout de 150 ms. Là, employer `amenerAuCentre` de `app/lib/defilementLecture.ts`, qui mesure le défileur portant réellement l'élément.
+
 ⚠️ **Le même piège était déjà connu ailleurs, sous une autre cause.** `scrollNiveauDesYeux` (page œuvre) commente : « Défilement INSTANTANÉ (et non “smooth”) : un défilement animé était annulé dès la première frame par le re-rendu déclenché par la sélection du segment. » Deux raisons distinctes, une même conclusion — le doux ne tient pas ses promesses.
 
 **Reste à convertir** (2026-08-22) : sept appels doux subsistent hors de la page œuvre, et ils sont morts sur les mêmes machines — `components/TexteBible.tsx` (navigation de verset), `messagerie/[pseudo]/page.tsx` et `components/ModaleMessagerie.tsx` (descente en bas de conversation), `polyglotte/page.tsx`, `traductions/AllerPlusLoinClient.tsx`, `essais/[id]/EssaiClient.tsx`, `chantier/page.tsx`. Repérage : `grep -rn "behavior: 'smooth'" app` ne doit plus renvoyer que ce qui est purement décoratif.
@@ -5985,6 +5987,8 @@ Mesuré dans la page servie, sous session : **280 bascules entre Segond et Cramp
 Deux gardes, et il faut les deux : le numéro se borne à l'entrée (`normaliserChapitreBible`, `bibleNavigation.ts`, testé), et la comparaison passe par **`Object.is`**, parce qu'un composant ne doit pas dépendre de la prudence de ses appelants. Même vigilance partout où le motif « ajuster l'état pendant le rendu » porte sur un nombre.
 
 ⚠️ **Corollaire** : le dépôt a désormais un `app/error.tsx` et un `app/not-found.tsx`, en français et avec la navigation. Il n'en avait aucun : toute panne de rendu servait l'écran par défaut de Next, en anglais et sans retour possible.
+
+⛔ **`error.tsx` appelle `retry()`, jamais `reset()` seul** (Next 16.3, 2026-09-22) : `reset()` ne fait que redessiner l'arbre déjà en défaut et ne relance pas le chargement serveur, si bien que « Réessayer » ne réessayait rien. `reset` ne reste qu'en repli, si `retry` manque.
 
 ## ⚠️ On RELIT avant d'enregistrer, sinon on relit ce qu'on vient d'effacer
 
@@ -10471,6 +10475,8 @@ Demande du même jour, doctrine charte **§ 38.27**.
 Deux demandes de l'auteur dans la même soirée, la seconde rectifiant ce que la première
 venait de servir. Doctrine : charte `parametres.charte_ia`, **§ 38.28**. Ici, ce qu'il faut
 savoir pour y toucher — tout vit dans `app/components/PanneauPatristique.tsx`.
+
+⚠️ **Plus tout à fait depuis le 2026-09-22** (commit 684f1154) : `OngletCommentaires` et `FiltresPatristiques` sont sortis du fichier. ⛔ **`ModaleEditionVerset` (appelée par `TexteBible`) et `OngletCommentaires` (appelé par `PanneauPatristique`) sont des fichiers SÉPARÉS, chargés par `next/dynamic`** : on ne les réintègre pas dans leur appelant, ils ne servent qu'après un geste.
 
 ⛔ **L'EN-TÊTE NE PORTE PLUS LA FLÈCHE, ET IL NE PARAÎT DONC PLUS DU TOUT.** « La ligne tout
 en haut, avec la flèche pour rabattre le volet, n'est pas nécessaire ; on peut très bien
