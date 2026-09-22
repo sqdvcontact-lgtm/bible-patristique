@@ -1083,6 +1083,11 @@ export default function RechercheClient() {
         .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #b6ccbd; color:var(--cs-vert); background:var(--cs-vert-pale); font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
         .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:var(--cs-surface); border:1px solid var(--cs-bord); border-radius:8px; box-shadow:var(--cs-ombre-modale); padding:9px 11px; font-size:0.6875rem; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
         .expl-wrap:hover .expl-tip { opacity:1; visibility:visible; transform:translateY(0); }
+        /* Cachée, l'infobulle garde sa boîte : ses 250 px ouvraient un défilement
+           horizontal sur un téléphone de 320 px (mesuré le 2026-09-21). Elle se borne
+           à la fenêtre, et ne se pose pas du tout là où rien ne se survole. */
+        .expl-tip { max-width: calc(100vw - 8rem); }
+        @media (hover: none) { .expl-tip { display: none; } }
         ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--cs-bord);border-radius:4px}
       `}</style>
 

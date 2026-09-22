@@ -158,6 +158,12 @@ export function styleBlocVerset({ actif, mobile }: { actif?: boolean; mobile?: b
     borderRadius: '4px',
     padding: `0.0625rem ${symetrique ? DEBORD_BLOC_VERSET_REM : DEBORD_DROIT_ETROIT_REM}rem 0.0625rem 0`,
     ...(symetrique ? { marginRight: `-${EMPIETEMENT_BLOC_VERSET_REM}rem` } : null),
+    // ⛔ AU DOIGT, LE BLOC NE DÉPASSE PAS SA MESURE (relevé du 2026-09-21, Dt 33 sur
+    // Chrome Android). La piste de texte est bornée à 29,5 rem et la colonne du numéro
+    // est en `auto` : sur une rangée pleine largeur de 520 à 900 px, c'est le NUMÉRO qui
+    // prenait toute la place restante — 81 px de retrait à 768 px au lieu de 25. Borné
+    // à `--mesure-bloc` et centré, le bloc reprend la géométrie du bureau.
+    ...(mobile ? { width: '100%', maxWidth: 'var(--mesure-bloc)', justifySelf: 'center' } : null),
     // ⛔ Pas de fond au repos : le survol se pose par la feuille (`.verset-row:hover
     // .verset-bloc`), et un `transparent` en ligne le battrait.
     ...(actif ? { background: 'var(--cs-lecture-retenu)' } : null),

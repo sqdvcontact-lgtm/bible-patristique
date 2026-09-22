@@ -41,7 +41,7 @@ import {
 import {
   libelleDensiteVerset, type DensiteVerset,
 } from '@/app/lib/densitePatristique'
-import { tailleRacinePx } from '@/app/lib/fenetreContextuelle'
+import { hauteurNavbarPx, tailleRacinePx } from '@/app/lib/fenetreContextuelle'
 import SelecteurTraductionBible from '@/app/components/SelecteurTraductionBible'
 import FlecheChapitre, { type CibleChapitre } from '@/app/components/FlecheChapitre'
 import NavigationBasChapitre from '@/app/components/NavigationBasChapitre'
@@ -470,6 +470,11 @@ export default function TexteBible({
   // étroit. On les masque, et un simple tap sur le verset fait surgir un pavé
   // flottant. `actionsMobileId` = verset dont les actions sont visibles.
   const [actionsMobileId, setActionsMobileId] = useState<string | null>(null)
+  // Le pavé se pose au-dessus du verset, sauf quand ce verset touche les onglets
+  // fixes du haut (barre de navigation + « Livres | Texte | Commentaires ») : posé
+  // au-dessus, il passerait dessous, et ses boutons seraient couverts. Il descend
+  // alors sous le verset. Mesuré au tap : la place ne change qu'en défilant.
+  const [actionsDessous, setActionsDessous] = useState(false)
 
   // ── OÙ LES PÈRES PARLENT ───────────────────────────────────────────────────
   // 37 % du canon porte un renvoi patristique, et la page n'en laissait rien voir : on
@@ -934,7 +939,7 @@ export default function TexteBible({
             const appelsDuVerset = repartirAppels(!lacune && !ligne899 ? texteDuVerset(v) : '', notesDuVerset)
             const dansLeLasso = lassoActif && !lacune && Boolean(overrides[v.id_verset]?.[traduction] ?? v[traduction])
             // Retenir le verset : au clic sur la rangée, ou au clavier sur son numéro.
-            const choisirVerset = () => {
+            const choisirVerset = (e?: { currentTarget: Element }) => {
               const incrementer = () => fetch('/api/versets/incrementer-lecture', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_verset: v.id_verset }),
@@ -945,7 +950,15 @@ export default function TexteBible({
                 // Les lignes recomposées ne ciblent pas `versets_v2` : pas de comptage
                 // de lecture ; leur pavé d'actions, lui, paraît (2026-09-20).
                 if (actif) { setVersetSelectionne(null); setActionsMobileId(null) }
-                else { if (!ligneSource) incrementer(); setActionsMobileId(v.id_verset); setVersetSelectionne(v) }
+                else {
+                  if (!ligneSource) incrementer()
+                  // Sommet utile : la barre (3,5 rem) et les onglets (2,875 rem).
+                  // Hauteur du pavé : ses boutons de 2,25 rem au doigt, son cadre, sa marge.
+                  const racine = tailleRacinePx()
+                  const haut = (e?.currentTarget.closest('.verset-row') ?? e?.currentTarget)?.getBoundingClientRect().top
+                  setActionsDessous(haut !== undefined && haut - 2.75 * racine < hauteurNavbarPx() + 2.875 * racine)
+                  setActionsMobileId(v.id_verset); setVersetSelectionne(v)
+                }
                 return
               }
               if (!actif && !ligneSource) incrementer()
@@ -976,7 +989,8 @@ export default function TexteBible({
                     verset, montré seulement après un appui long. */}
                 <div className="verset-actions" style={mobile ? {
                   // Au-dessus du verset (et non sur lui) : le texte reste lisible.
-                  position: 'absolute', bottom: '100%', right: '0.25rem', marginBottom: '3px', zIndex: 6,
+                  position: 'absolute', right: '0.25rem', zIndex: 6,
+                  ...(actionsDessous ? { top: '100%', marginTop: '3px' } : { bottom: '100%', marginBottom: '3px' }),
                   display: actionsMobileId === v.id_verset ? 'flex' : 'none', alignItems: 'center', gap: '0.25rem',
                   background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-flottante)', padding: '0.25rem 0.375rem',
                 } : { gridColumn: 2, gridRow: 1, width: GOUTTIERE_ACTIONS_VERSET, paddingLeft: RETRAIT_ACTIONS_VERSET, display: 'flex', alignItems: 'flex-start', gap: 0, paddingTop: '0.28125rem', overflow: 'visible', position: 'relative' }}>

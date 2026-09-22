@@ -611,9 +611,12 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
   )
 
   // Intitulé sur une seule ligne ; cliquable (quand il y a une notice) pour la déplier.
+  // ⚠️ Au téléphone il s'enroule : sur 340 px la ligne ne portait qu'une trentaine de
+  // signes, et presque chaque intitulé finissait coupé (relevé du 2026-09-21).
   const styleTitre: React.CSSProperties = {
     margin: 0, fontFamily: SERIF, fontSize: '0.9375rem', lineHeight: 1.35, color: TEXTE, fontWeight: 500,
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0,
+    minWidth: 0,
+    ...(mobile ? { whiteSpace: 'normal', overflowWrap: 'break-word' } : { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }),
   }
   const titre = aNotice ? (
     <button onClick={() => setNoticeOuverte(o => !o)} aria-expanded={noticeOuverte} title="Afficher la notice"

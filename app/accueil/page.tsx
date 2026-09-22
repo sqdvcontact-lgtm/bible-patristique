@@ -324,7 +324,11 @@ export default async function AccueilPage() {
         /* ⛔ UN NOM NE SE COUPE JAMAIS EN DEUX, ET SON SÉPARATEUR RESTE AVEC LUI.
            C'est l'enveloppe qui porte les deux, non le lien. Sans l'insécabilité, la
            bande rendait « Cyrille / de Jérusalem » et « Augustin / d'Hippone ». */
-        .seuil-noms-nom { white-space: nowrap; }
+        /* Un nom ne se coupe pas… sauf s'il est à lui seul plus large que la ligne :
+           « inline-block » le garde d'un tenant, « max-width: 100% » le laisse alors
+           passer à la ligne en dedans. En « nowrap » seul, un nom long sortait de
+           l'écran sur un téléphone de 320 à 360 px (mesuré le 2026-09-21). */
+        .seuil-noms-nom { display: inline-block; max-width: 100%; }
         /* ⛔ LE SÉPARATEUR EST COLLÉ AU NOM QUI LE PRÉCÈDE. Trois raisons, payées
            l'une après l'autre. Les noms étant insécables, une ligne dont le
            séparateur est lui aussi collé DES DEUX CÔTÉS n'a plus AUCUNE occasion de

@@ -4341,8 +4341,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         ? <span style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{rendreTexteAvecNotes(preparerTitreColophon(composeTexte ?? groupes[0]?.titresAffichage?.niv1_texte ?? txt), notesTitre)}</span>
                         : null
                     })()}
+                    {/* ⚠️ Au téléphone il n'y a pas de marge : un crayon à −52 px y sortait de
+                        l'écran et ouvrait un défilement horizontal de 38 px (relevé du
+                        2026-09-21). Il reste alors dans le bloc, comme au frontispice. */}
                     {estAdmin && niv1Actif !== NIV1_LIMINAIRES && (() => { const g = groupes[0] ?? { niv1: niv1Actif, niv2: '', niv3: '', niv4: '', anchor: '', itemIds: [] }; return (
-                      <div className="cs-outils-titre" style={{ position: 'absolute', right: '-52px', top: '2px', display: 'flex', gap: '3px', alignItems: 'center' }}>
+                      <div className="cs-outils-titre" style={{ position: 'absolute', right: mobile ? 0 : '-52px', top: '2px', display: 'flex', gap: '3px', alignItems: 'center' }}>
                         <button onClick={() => setEditionCible(cibleTitre(1, g, false, niv1Actif))}
                           title="Modifier le titre" style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}><IconeCrayon size={12} /></button>
                         <button onClick={() => setEditionCible(cibleTitre(1, g, true, g.niv1_texte ?? ''))}
@@ -4576,7 +4579,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       <h3 style={styleTitreNiveau(2)}>{rendreTitreColophonAvecNotes(rendu('niv2', groupe.niv2), notesTitre, 'titre')}</h3>
                       {sousTitre2 && configNiveaux.txtCorps[1] && <p style={styleSousTitreNiveau(2)}>{rendreTitreColophonAvecNotes(rendu('niv2_texte', sousTitre2), notesTitre)}</p>}
                       {estAdmin && (
-                        <div className="cs-outils-titre" style={{ position: 'absolute', right: '-52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
+                        <div className="cs-outils-titre" style={{ position: 'absolute', right: mobile ? 0 : '-52px', top: '0.5rem', display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible(cibleTitre(2, groupe, false, groupe.niv2))}
                             title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible(cibleTitre(2, groupe, true, groupe.niv2_texte ?? ''))}
@@ -4590,7 +4593,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       <h4 style={{ ...styleTitreNiveau(3), textAlign: groupe.niv3.length >= SEUIL_TITRE_COLOPHON ? 'center' : undefined }}>{rendreTitreColophonAvecNotes(rendu('niv3', groupe.niv3), notesTitre)}</h4>
                       {sousTitre3 && configNiveaux.txtCorps[2] && <p style={styleSousTitreNiveau(3)}>{rendreTitreColophonAvecNotes(rendu('niv3_texte', sousTitre3), notesTitre)}</p>}
                       {estAdmin && (
-                        <div className="cs-outils-titre" style={{ position: 'absolute', right: '-52px', top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
+                        <div className="cs-outils-titre" style={{ position: 'absolute', right: mobile ? 0 : '-52px', top: 0, display: 'flex', gap: '3px', alignItems: 'center' }}>
                           <button onClick={() => setEditionCible(cibleTitre(3, groupe, false, groupe.niv3))}
                             title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible(cibleTitre(3, groupe, true, groupe.niv3_texte ?? ''))}
@@ -4604,7 +4607,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       {rendreTitreColophonAvecNotes(rendu('niv4', groupe.niv4), notesTitre)}
                       {sousTitre4 && configNiveaux.txtCorps[3] && <span style={styleSousTitreNiveau(4)}>{rendreTitreColophonAvecNotes(rendu('niv4_texte', sousTitre4), notesTitre)}</span>}
                       {estAdmin && (
-                        <span style={{ position: 'absolute', right: '-52px', top: 0, display: 'inline-flex', gap: '3px', alignItems: 'center', textTransform: 'none' }}>
+                        <span style={{ position: 'absolute', right: mobile ? 0 : '-52px', top: 0, display: 'inline-flex', gap: '3px', alignItems: 'center', textTransform: 'none' }}>
                           <button onClick={() => setEditionCible(cibleTitre(4, groupe, false, groupe.niv4))}
                             title="Modifier le titre" style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', letterSpacing: 0 }}><IconeCrayon size={12} /></button>
                           <button onClick={() => setEditionCible(cibleTitre(4, groupe, true, groupe.niv4_texte ?? ''))}
