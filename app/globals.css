@@ -1113,7 +1113,6 @@ button:focus-visible,
 .cs-volet-reduire { color: var(--cs-texte-doux); transition: color 0.14s; }
 /* Le « i » cerclé de la carte de traduction est une LETTRE à 11 px : il prend le gris,
    non le doux du chevron. Écrite avant le survol, qui garde la main. */
-.cs-volet-reduire.cs-volet-apropos { color: var(--cs-texte-gris); }
 .cs-volet-reduire:hover { color: var(--cs-vert); }
 
 .cs-rail-volet { transition: background 0.14s, color 0.14s; }

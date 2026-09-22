@@ -21,9 +21,6 @@ import { OPTION_VOLET, RUBRIQUE_AXE, styleEntreeListeVolet } from '@/app/lib/sty
 import { chargerChapitresParLivre, estLivreOuvrable, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
 import { supabase } from '@/app/lib/supabase'
 import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
-import { CRANS_CORPS } from '@/app/lib/corpsLecture'
-import { useCorpsLecture } from '@/app/lib/useCorpsLecture'
-import { useCompte } from '@/app/lib/contexteCompte'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 
@@ -114,15 +111,8 @@ type Props = {
   livres: Livre[]
   livreActif: string
   chapitreActif: number
-  // Le volet MONTRE la bible qu'on lit (encart « Traduction »). ⛔ UN GESTE, UN EFFET
-  // (audit ergonomique du 2026-09-21) : son nom ouvre le MÊME menu de choix que le nom
-  // posé sous le titre du chapitre, quand la page le fournit (`choisirTraduction`) ;
-  // la fiche de la traduction s'ouvre par le bouton « i » voisin.
   traductionIndex: number
   traductions: Traduction[]
-  choisirTraduction?: (index: number) => void
-  choisirEnRegard?: (index: number) => void
-  enRegard?: boolean
   panelWidth?: number | null
   onWidthChange?: (w: number) => void
   livresVides?: Set<string>
@@ -176,9 +166,6 @@ type Props = {
   /** Demande la page au SURVOL, avant le clic : le temps de descendre du libellé
    *  au bouton, le serveur a commencé. */
   onPreparerModeLecture?: (cible: CibleLectureAlternative) => void
-  /** Offre l'axe « Taille du texte » (page Bible) : le corps du texte biblique, en trois
-   *  crans, mémorisé sur le compte comme le mode sombre (app/lib/corpsLecture.ts). */
-  reglageCorps?: boolean
   /**
    * Le SOMMAIRE de l'édition : ses pièces liminaires, dans l'ordre du volume.
    * Vide, l'onglet ne paraît pas — une bible sans apparat éditorial n'a rien à y
@@ -220,17 +207,15 @@ function parseRefBiblique(saisie: string): { code: string; chapitre: number; ver
 
 export default function NavLivres({
   livres, livreActif, chapitreActif,
-  traductionIndex, traductions, choisirTraduction, choisirEnRegard, enRegard = false,
+  traductionIndex, traductions,
   panelWidth = null, onWidthChange,
   livresVides, onLivreAbsent, onChoisirLivre, sansChapitres, titre, libelleRail,
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, onPreparerChapitre, entierActif,
   mobile = false, voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
   sansReduire = false, maniereDeLire, reglageEdition,
-  modesLecture = [], onChoisirModeLecture, onPreparerModeLecture, reglageCorps = false,
+  modesLecture = [], onChoisirModeLecture, onPreparerModeLecture,
   sommaireEdition = [], pieceActive = null,
 }: Props) {
-  const corpsLecture = useCorpsLecture()
-  const { changerCorps } = useCompte()
   const [recherche, setRecherche] = useState('')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
   const [chapitreActifLocal, setChapitreActifLocal] = useState(chapitreActif)
@@ -616,7 +601,6 @@ export default function NavLivres({
       {/* Encart traduction (Bible classique, desktop) — au-dessus de la recherche. */}
       {!polyMode && !sansChapitres && !mobile && traductions[traductionIndex] && (
         <EncartTraduction trad={traductions[traductionIndex]} reglage={reglageEdition}
-          menu={choisirTraduction ? { traductions, traductionIndex, choisir: choisirTraduction, choisirEnRegard, enRegard } : undefined}
           onReduire={peutSeReduire ? () => setOuvert(false) : undefined} />
       )}
 
@@ -640,7 +624,7 @@ export default function NavLivres({
           livre. Rien n'y est retranché — même rubriques, mêmes options, même pastille
           — seuls les blancs se referment. Le rembourrage et l'écart entre les deux
           axes vivent ici, la rangée et sa rubrique dans `stylesVoletLecture`. */}
-      {(modesLecture.length > 0 || reglageCorps) && (
+      {modesLecture.length > 0 && (
         <div style={{ flexShrink: 0, padding: 'var(--volet-air) calc(var(--volet-gouttiere) + 2px) calc(var(--volet-air) + 1px)', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)' }}>
           {modesLecture.map((groupe, rang) => (
             <div key={groupe.cle} style={rang > 0 ? { marginTop: 'var(--volet-air)' } : undefined}>
@@ -662,26 +646,6 @@ export default function NavLivres({
               ))}
             </div>
           ))}
-          {/* ⛔ L'axe « Taille du texte » (décision de l'auteur, 2026-09-21) : trois crans,
-              une option par ligne, comme les autres axes. Il se règle SUR PLACE — aucune
-              navigation —, et il ne touche que le texte biblique. */}
-          {reglageCorps && (
-            <div style={modesLecture.length > 0 ? { marginTop: 'var(--volet-air)' } : undefined}>
-              <span style={RUBRIQUE_AXE}>Taille du texte</span>
-              {CRANS_CORPS.map((cran) => (
-                <button key={cran.cle} type="button" title={cran.description}
-                  aria-pressed={corpsLecture === cran.cle}
-                  onClick={() => {
-                    if (corpsLecture === cran.cle) return
-                    changerCorps(cran.cle).catch(e => console.warn('[corps] taille non retenue au compte :', e?.message ?? e))
-                  }}
-                  className="cs-option-volet"
-                  style={OPTION_VOLET(corpsLecture === cran.cle)}>
-                  {cran.label}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       )}
 

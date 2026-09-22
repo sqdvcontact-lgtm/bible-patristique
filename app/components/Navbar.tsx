@@ -9,6 +9,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { useCompte } from "@/app/lib/contexteCompte";
+import { CRANS_CORPS } from "@/app/lib/corpsLecture";
+import { useCorpsLecture } from "@/app/lib/useCorpsLecture";
 import { LIVRES } from "@/app/lib/bible";
 import { lirePositionBible } from "@/app/lib/repriseLecture";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
@@ -795,7 +797,8 @@ export default function Navbar() {
   // Session et profil viennent du contexte partagé, jamais d'une requête à soi : la
   // barre tenait son propre abonnement et sa propre lecture de `profils`, qui partait
   // en double (`getSession` puis l'événement de session initiale). Voir contexteCompte.
-  const { userId, email: emailCompte, pseudo, estAdmin, portrait, cadragePortrait, theme, changerTheme } = useCompte();
+  const { userId, email: emailCompte, pseudo, estAdmin, portrait, cadragePortrait, theme, changerTheme, changerCorps } = useCompte();
+  const corpsLecture = useCorpsLecture();
   const user = useMemo(
     () => (userId ? { id: userId, email: emailCompte ?? '' } : null),
     [userId, emailCompte],
@@ -1720,6 +1723,36 @@ export default function Navbar() {
         {/* Mode sombre — un réglage de LECTURE, rangé avec le compte parce que c'est là
             que le lecteur vient chercher ce qui le concerne lui, et non le corpus. */}
         {rangeeInterrupteur({ mobile, label: "Mode sombre", actif: themeSombre, basculer: basculerThemeSombre })}
+        {/* Taille du texte, descendue du volet de la Bible dans le menu de compte
+            (décision de l'auteur, 2026-09-22) : c'est un réglage du lecteur, comme le
+            mode sombre. Trois crans ; pour l'heure il ne règle que le texte biblique,
+            et doit s'étendre à tous les textes du site (`corpsLecture.ts`). */}
+        <div style={mobile
+          ? { ...RANGEE_MOBILE, userSelect: "none" }
+          : { display: "flex", alignItems: "center", gap: "0.625rem", padding: "0.625rem 0.875rem", fontSize: "0.875rem", color: "var(--cs-encre)", userSelect: "none", borderBottom: "1px solid var(--cs-fond-doux)" }}>
+          <span style={{ flex: 1 }}>Taille du texte</span>
+          <span role="group" aria-label="Taille du texte" style={{ display: "inline-flex", gap: "2px", flexShrink: 0 }}>
+            {CRANS_CORPS.map((cran, i) => {
+              const actif = corpsLecture === cran.cle;
+              return (
+                <button key={cran.cle} type="button" title={cran.description} aria-pressed={actif} aria-label={cran.label}
+                  onClick={() => {
+                    if (actif) return;
+                    changerCorps(cran.cle).catch(e => console.error('Taille du texte : la préférence n’a pas pu être enregistrée sur le compte.', e));
+                  }}
+                  style={{
+                    width: "1.625rem", height: "1.5rem", padding: 0, cursor: actif ? "default" : "pointer", borderRadius: "4px",
+                    border: mobile ? "1px solid rgba(255,255,255,0.35)" : "1px solid var(--cs-bord)",
+                    background: actif ? "var(--cs-vert-aplat)" : "transparent",
+                    color: actif ? (mobile ? "#fff" : "var(--cs-sur-aplat)") : "inherit",
+                    fontSize: ["0.75rem", "0.875rem", "1rem"][i], lineHeight: 1, fontWeight: 600,
+                  }}>
+                  A
+                </button>
+              );
+            })}
+          </span>
+        </div>
         {/* Contact et pages légales, qui ne vivaient qu'au pied de l'accueil (audit
             ergonomique, 2026-09-21). Ici plutôt qu'un pied de page commun, qui
             gênerait les pages de lecture à pleine hauteur. Sur téléphone, la même

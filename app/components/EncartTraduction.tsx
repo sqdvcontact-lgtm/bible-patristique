@@ -97,10 +97,7 @@
 // d'un côté l'auteur, de l'autre la bible, et il n'y a pas deux façons de le dire.
 // ⛔ Rien ne paraît au survol, ni ici ni là (voir `NomVolet`).
 
-import { useCallback, useId, useRef, useState, type ReactNode } from 'react'
-import ListeMenuBibles from '@/app/components/ListeMenuBibles'
-import { Z_FENETRE } from '@/app/lib/empilement'
-import type { BibleDuMenu } from '@/app/lib/menuTraductionsBible'
+import { useState, type ReactNode } from 'react'
 import { libelleEditionTraduction } from '@/app/lib/editionTraduction'
 import ModaleTraduction from '@/app/components/ModaleTraduction'
 import NomVolet from '@/app/components/NomVolet'
@@ -123,22 +120,8 @@ export type TraductionEncart = {
   coteManuscrit?: string | null
 }
 
-export default function EncartTraduction({ trad, onReduire, reglage, menu }: {
+export default function EncartTraduction({ trad, onReduire, reglage }: {
   trad: TraductionEncart
-  /**
-   * ⛔ UN GESTE, UN EFFET (audit ergonomique du 2026-09-21). Le même nom de bible
-   * ouvrait ici la FICHE et, sous le titre du chapitre, le MENU de choix : le premier
-   * clic du lecteur tombait sur la fiche. Quand la page fournit le menu, le nom ouvre
-   * désormais le choix des bibles, et la fiche s'ouvre par un bouton distinct, « i »,
-   * nommé « À propos de cette traduction ». Sans menu, le nom garde la fiche.
-   */
-  menu?: {
-    traductions: readonly BibleDuMenu[]
-    traductionIndex: number
-    choisir: (index: number) => void
-    choisirEnRegard?: (index: number) => void
-    enRegard?: boolean
-  }
   /** Un réglage d'administration posé avant le chevron (la roue des niveaux de titre). */
   reglage?: ReactNode
   /** Replier le volet. Absent, la carte ne porte pas de chevron — c'est le cas du
@@ -147,14 +130,6 @@ export default function EncartTraduction({ trad, onReduire, reglage, menu }: {
   onReduire?: () => void
 }) {
   const [modaleOuverte, setModaleOuverte] = useState(false)
-  const [menuOuvert, setMenuOuvert] = useState(false)
-  const cadreMenu = useRef<HTMLDivElement>(null)
-  const boutonNom = useRef<HTMLButtonElement>(null)
-  const idListe = useId()
-  const fermerMenu = useCallback((rendreLeFoyer: boolean) => {
-    setMenuOuvert(false)
-    if (rendreLeFoyer) boutonNom.current?.focus()
-  }, [])
   // D'où vient le texte : une phrase, ou rien du tout quand la base ne donne pas
   // d'année à nommer (voir `libelleEditionTraduction`).
   const edition = libelleEditionTraduction(trad)
@@ -169,9 +144,7 @@ export default function EncartTraduction({ trad, onReduire, reglage, menu }: {
        parle. Un sélecteur de structure tenu au loin se casserait au premier
        remaniement, sans que rien ne le signale. */
     <div data-visite="edition" className="cs-volet-carte" style={{ flexShrink: 0, boxSizing: 'border-box',
-      // ⚠️ La carte s'ouvre quand le menu des bibles est déplié : fermée, elle
-      // l'aurait coupé à son bord inférieur. Le nom, lui, s'écrête de lui-même.
-      overflow: menuOuvert ? 'visible' : 'hidden', padding: 'calc(var(--volet-air) + 1px) calc(var(--volet-gouttiere) + 2px)', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', display: 'flex', flexDirection: 'column', gap: 'var(--volet-air-fin)' }}>
+      overflow: 'hidden', padding: 'calc(var(--volet-air) + 1px) calc(var(--volet-gouttiere) + 2px)', borderBottom: '1px solid var(--cs-bord)', background: 'var(--cs-fond)', display: 'flex', flexDirection: 'column', gap: 'var(--volet-air-fin)' }}>
       {/* Le NOM de la bible ouvre la carte, et il en est la première ligne — plus de
           rangée partagée avec une étiquette, puisqu'il n'y a plus d'étiquette.
           ⚠️ Le nom est donc un enfant DIRECT du flex en colonne : il s'y étire sur la
@@ -197,33 +170,11 @@ export default function EncartTraduction({ trad, onReduire, reglage, menu }: {
           ⚠️ Il se tient au bord de la carte et pointe vers le bord où le volet va se
           ranger : c'est désormais la seule marque de cette ligne. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <div ref={cadreMenu} style={{ minWidth: 0, flex: 1, position: 'relative', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {menu ? (
-            <>
-              <NomVolet refBouton={boutonNom} menu={{ ouvert: menuOuvert, idListe }}
-                onOuvrir={() => (menuOuvert ? fermerMenu(false) : setMenuOuvert(true))}
-                titre="Choisir la bible">{rendreEnrichi(trad.label)}</NomVolet>
-              <button type="button" onClick={() => setModaleOuverte(true)}
-                title="À propos de cette traduction" aria-label="À propos de cette traduction"
-                className="cs-cible-fine cs-volet-reduire cs-volet-apropos"
-                // Un « i » cerclé, du corps du nom : il se voit, se distingue du nom qui
-                // ouvre le menu, et au doigt `.cs-cible-fine` agrandit la zone de frappe.
-                style={{ flexShrink: 0, width: '1.125rem', height: '1.125rem', padding: 0, border: '1px solid currentColor', borderRadius: '50%', background: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic', fontWeight: 600, fontSize: '0.6875rem', lineHeight: 1 }}>
-                <span aria-hidden="true">i</span>
-              </button>
-              {menuOuvert && (
-                <ListeMenuBibles id={idListe} libelle="Bibles disponibles"
-                  traductions={menu.traductions} traductionIndex={menu.traductionIndex}
-                  choisir={(index) => { menu.choisir(index); fermerMenu(true) }}
-                  fermer={fermerMenu} cadre={cadreMenu}
-                  choisirEnRegard={menu.choisirEnRegard ? (index) => { menu.choisirEnRegard?.(index); fermerMenu(true) } : undefined}
-                  enRegard={menu.enRegard}
-                  style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: Z_FENETRE, minWidth: '100%' }} />
-              )}
-            </>
-          ) : (
-            <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{rendreEnrichi(trad.label)}</NomVolet>
-          )}
+        {/* ⛔ LE NOM ROUVRE LA FICHE, comme partout ailleurs (décision de l'auteur,
+            2026-09-22) : plus de menu des bibles ici, ni flèche, ni bouton « i ». Le
+            choix des bibles se prend au menu central, sous le titre du chapitre. */}
+        <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center' }}>
+          <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{rendreEnrichi(trad.label)}</NomVolet>
         </div>
         {reglage}
         {onReduire && (

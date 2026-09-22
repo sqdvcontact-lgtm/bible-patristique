@@ -32,12 +32,10 @@
 // petit que son contenu, et sans lui le nom pousse l'étiquette hors du volet au
 // lieu de s'écrêter.
 
-import { useState, type Ref } from 'react'
-import IconeChevron from '@/app/components/IconeChevron'
-import { STYLE_CHEVRON_MENU, TAILLE_CHEVRON_MENU } from '@/app/lib/stylesMenuBibles'
+import { useState } from 'react'
 
 export default function NomVolet({
-  children, onOuvrir, titre, inactif = false, variante = 'tete', menu, refBouton,
+  children, onOuvrir, titre, inactif = false, variante = 'tete',
 }: {
   children: React.ReactNode
   onOuvrir: () => void
@@ -52,22 +50,12 @@ export default function NomVolet({
    * fiche au bout. La page Bible garde `tete`, où la traduction est bien en tête.
    */
   variante?: 'tete' | 'credit'
-  /**
-   * Le nom OUVRE UN MENU, et non une fiche (audit ergonomique du 2026-09-21 : un
-   * geste, un effet). Sur la page Bible, le nom de la traduction ouvre le choix des
-   * bibles, comme le même nom sous le titre du chapitre ; la fiche a son propre
-   * bouton « i ». Le nom porte alors le chevron des menus et les attributs d'un menu.
-   */
-  menu?: { ouvert: boolean; idListe?: string }
-  refBouton?: Ref<HTMLButtonElement>
 }) {
   const [survol, setSurvol] = useState(false)
   const allume = survol && !inactif
   const credit = variante === 'credit'
   return (
-    <button ref={refBouton} type="button" onClick={onOuvrir} disabled={inactif} title={inactif ? undefined : titre}
-      aria-haspopup={menu ? 'menu' : undefined} aria-expanded={menu ? menu.ouvert : undefined}
-      aria-controls={menu?.ouvert ? menu.idListe : undefined}
+    <button type="button" onClick={onOuvrir} disabled={inactif} title={inactif ? undefined : titre}
       onMouseEnter={() => setSurvol(true)} onMouseLeave={() => setSurvol(false)}
       onFocus={() => setSurvol(true)} onBlur={() => setSurvol(false)}
       // ⚠️ Dix pixels de haut ne font pas une cible au DOIGT : `.cs-cible-fine`
@@ -88,11 +76,6 @@ export default function NomVolet({
       }}>
         {children}
       </span>
-      {menu && (
-        <span aria-hidden="true" style={{ ...STYLE_CHEVRON_MENU, flexShrink: 0, marginLeft: '4px' }}>
-          <IconeChevron dir={menu.ouvert ? 'up' : 'down'} taille={TAILLE_CHEVRON_MENU} strokeWidth={1.6} />
-        </span>
-      )}
     </button>
   )
 }
