@@ -164,13 +164,17 @@ function PortraitAvecMenu({ visage, actions, nom }: { visage: React.ReactNode; a
 
 /** ⛔ CONDENSÉ (auteur, 1er septembre 2026 : « je veux que le bandeau nom, prénom,
  *  pseudo, photo soit condensé et propre »). Le visage, le pseudonyme, et sous lui
- *  UNE ligne de repères — le nom civil et ce que la page a de chiffré. Cinquante-deux
- *  pixels de haut, là où la version d'avant occupait une carte entière. */
-export function BandeauEspace({ visage, pseudo, reperes, hrefPublic, actionsPortrait, nomPortrait }: {
+ *  les repères, une ligne chacun : le nom civil, puis ce que la page a de chiffré.
+ *
+ *  ⛔ Le portrait est CARRÉ et aussi haut que ce bloc (auteur, 2026-09-22 : « embrasser
+ *  tout le bloc qui la contient »). ⛔ Le renvoi « Ma page publique » a quitté le
+ *  bandeau le même jour : il se pose à côté du titre « Page publique » de « Mon
+ *  compte », et le menu de compte le porte sur toutes les pages. */
+export function BandeauEspace({ visage, pseudo, reperes, actionsPortrait, nomPortrait }: {
   visage: React.ReactNode
   pseudo: string
-  reperes: string
-  hrefPublic: string | null
+  /** Une ligne par repère. */
+  reperes: string | string[]
   /** Les actions du menu qu'ouvre le portrait. Sans elles, le portrait n'est qu'une image. */
   actionsPortrait?: ActionPortrait[]
   nomPortrait?: string
@@ -179,16 +183,11 @@ export function BandeauEspace({ visage, pseudo, reperes, hrefPublic, actionsPort
     <header className="esp-bandeau">
       {actionsPortrait?.length
         ? <PortraitAvecMenu visage={visage} actions={actionsPortrait} nom={nomPortrait} />
-        : visage}
-      <div className="esp-bandeau-nom" style={{ minWidth: 0 }}>
-        <h1>{pseudo}</h1>
-        <p className="esp-reperes">{reperes}</p>
+        : <div className="esp-portrait">{visage}</div>}
+      <div className="esp-bandeau-nom">
+        <h1 title={pseudo}>{pseudo}</h1>
+        {[reperes].flat().map(r => <p key={r} className="esp-reperes">{r}</p>)}
       </div>
-      {hrefPublic && (
-        <a className="esp-public" href={hrefPublic} target="_blank" rel="noopener noreferrer">
-          Ma page publique&nbsp;↗
-        </a>
-      )}
     </header>
   )
 }
@@ -212,7 +211,7 @@ export type LecteurDuBandeau = {
 
 export function BandeauLecteur({ lecteur, reperes, actionsPortrait, nomPortrait }: {
   lecteur: LecteurDuBandeau
-  reperes: string
+  reperes: string | string[]
   actionsPortrait?: ActionPortrait[]
   nomPortrait?: string
 }) {
@@ -222,7 +221,6 @@ export function BandeauLecteur({ lecteur, reperes, actionsPortrait, nomPortrait 
       reperes={reperes}
       actionsPortrait={actionsPortrait}
       nomPortrait={nomPortrait}
-      hrefPublic={`/profil/${encodeURIComponent(lecteur.pseudo)}`}
       visage={
         <PortraitLecteur
           refPortrait={lecteur.avatar_ref}
@@ -232,7 +230,7 @@ export function BandeauLecteur({ lecteur, reperes, actionsPortrait, nomPortrait 
             zoom: lecteur.avatar_zoom ?? CADRAGE_PAR_DEFAUT.zoom,
           }}
           initiale={lecteur.pseudo}
-          taille={52} />
+          taille={52} carre />
       } />
   )
 }
@@ -241,10 +239,18 @@ export function BandeauLecteur({ lecteur, reperes, actionsPortrait, nomPortrait 
 
 /** ⚠️ `titre` est facultatif : la première section de « Mon compte » (pseudonyme,
  *  prénom, nom) suit le bandeau sans titre, qui ne disait rien de plus que ses champs. */
-export function Section({ id, titre, children }: { id: string; titre?: string; children: React.ReactNode }) {
+export function Section({ id, titre, renvoi, children }: {
+  id: string
+  titre?: string
+  /** Un lien posé sur la ligne du titre, à sa droite. */
+  renvoi?: React.ReactNode
+  children: React.ReactNode
+}) {
   return (
     <section id={id} className="esp-section">
-      {titre && <h2>{titre}</h2>}
+      {titre && (renvoi
+        ? <div className="esp-section-tete"><h2>{titre}</h2>{renvoi}</div>
+        : <h2>{titre}</h2>)}
       {children}
     </section>
   )
@@ -309,19 +315,27 @@ export const FEUILLE_ESPACE = `
 .esp-lien:hover, .esp-lien:focus-visible { background: rgba(var(--cs-vert-rgb), 0.05); color: var(--cs-texte); }
 .esp-lien[aria-current] { background: rgba(var(--cs-vert-rgb), 0.10); color: var(--cs-encre); font-weight: 600; }
 
-.esp-bandeau { display: flex; align-items: center; gap: 14px; padding-bottom: 16px;
-  border-bottom: 1px solid var(--cs-bord-clair); margin-bottom: 30px; }
+/* ⛔ UNE GRILLE ET NON UN FLEX : le portrait carré prend la HAUTEUR du bloc de texte
+   (« stretch ») et en tire sa largeur par « aspect-ratio ». Un élément flexible ne sait
+   pas faire ce trajet : mesuré dans Chrome, il tombait à zéro pixel de large. Le
+   plancher de largeur est un filet de sûreté pour un moteur qui ne le saurait pas non
+   plus.
+   ⚠️ Le pseudonyme tient en DEUX lignes au plus : le carré suivant le bloc, un
+   pseudonyme de quarante signes le portait à 147 px sur un téléphone de 320. */
+.esp-bandeau { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: stretch;
+  gap: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--cs-bord-clair); margin-bottom: 20px; }
 .esp-bandeau h1 { font-family: var(--font-source-serif), Georgia, serif; font-size: 1.4375rem;
-  font-weight: normal; color: var(--cs-encre-fonce); margin: 0; line-height: 1.1; }
+  font-weight: normal; color: var(--cs-encre-fonce); margin: 0; line-height: 1.1;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+  overflow: hidden; overflow-wrap: anywhere; }
 .esp-reperes { font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--cs-texte-second); margin: 5px 0 0; }
-.esp-public { margin-left: auto; font-size: 0.71875rem; color: var(--cs-vert);
-  text-decoration: none; white-space: nowrap; flex-shrink: 0; }
+  color: var(--cs-texte-second); margin: 3px 0 0; line-height: 1.4; }
+.esp-reperes + .esp-reperes { margin-top: 1px; }
 
 /* Le portrait qui ouvre son menu : un anneau au survol dit qu'on peut le toucher. */
-.esp-portrait { position: relative; flex-shrink: 0; }
-.esp-portrait-bouton { display: block; padding: 0; border: none; background: none;
-  border-radius: 50%; cursor: pointer; transition: box-shadow 0.12s; }
+.esp-portrait { position: relative; aspect-ratio: 1; min-width: 2.75rem; }
+.esp-portrait-bouton { display: block; width: 100%; height: 100%; padding: 0; border: none;
+  background: none; border-radius: 4px; cursor: pointer; transition: box-shadow 0.12s; }
 .esp-portrait-bouton:hover, .esp-portrait-bouton[aria-expanded="true"] {
   box-shadow: 0 0 0 2px rgba(var(--cs-vert-rgb), 0.45); }
 .esp-menu-portrait { position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
@@ -333,18 +347,28 @@ export const FEUILLE_ESPACE = `
 .esp-menu-portrait button:hover, .esp-menu-portrait button:focus-visible {
   background: rgba(var(--cs-vert-rgb), 0.08); color: var(--cs-encre); }
 @media (hover: none) { .esp-menu-portrait button { min-height: 2.25rem; } }
-.esp-alerte { font-size: 0.71875rem; color: var(--cs-danger-fonce); margin: -18px 0 20px; }
+.esp-alerte { font-size: 0.71875rem; color: var(--cs-danger-fonce); margin: -10px 0 16px; }
 
 /* ⚠️ Le décalage d'ancre se compose sur HAUTEUR_NAVBAR, jamais en pixels : la barre
    mesure 56 px à la racine 16 et 77 px à la racine 22 (charte, « Responsive »). */
 .esp-section { scroll-margin-top: calc(${HAUTEUR_NAVBAR} + 1.5rem); }
 .esp-section + .esp-section { margin-top: 34px; padding-top: 26px;
   border-top: 1px solid var(--cs-bord-clair); }
-.esp-section > h2 { font-family: var(--font-source-serif), Georgia, serif; font-style: italic;
-  font-weight: normal; font-size: 0.84375rem; color: var(--cs-vert); margin: 0 0 14px; }
+.esp-section > h2, .esp-section-tete h2 { font-family: var(--font-source-serif), Georgia, serif;
+  font-style: italic; font-weight: normal; font-size: 0.84375rem; color: var(--cs-vert); margin: 0 0 14px; }
+/* Un titre et son renvoi sur la même ligne, le renvoi au fer à droite. */
+.esp-section-tete { display: flex; align-items: baseline; justify-content: space-between;
+  gap: 4px 14px; flex-wrap: wrap; margin: 0 0 14px; }
+.esp-section-tete h2 { margin: 0; }
+
+/* ⛔ « MON COMPTE » EST CONDENSÉ (auteur, 2026-09-22 : « condense un peu tout ») : ses
+   sections se suivent de plus près que celles des pages qui se LISENT, où le blanc
+   sépare des livres et des auteurs. Ici il ne sépare que des réglages. */
+.esp-page--compte .esp-section + .esp-section { margin-top: 22px; padding-top: 18px; }
+.esp-page--compte .esp-section > h2, .esp-page--compte .esp-section-tete { margin-bottom: 8px; }
 
 .esp-rangee { display: grid; grid-template-columns: 8.5rem 1fr; gap: 14px;
-  align-items: start; padding: 6px 0; }
+  align-items: start; padding: 4px 0; }
 /* ⛔ La colonne d'étiquettes de 8,5rem ne laissait que 122px au champ sur un
    téléphone de 320, 177 sur un de 375 : sous 640 l'étiquette monte au-dessus de
    ce qu'elle nomme, et le champ prend la mesure entière. */
@@ -369,14 +393,16 @@ export const FEUILLE_ESPACE = `
 
 /* ⛔ EN COLONNE (auteur, 1er septembre 2026 : « ce qui paraît : plutôt une
    colonne »). En rang, les quatre bascules débordaient la mesure et se coupaient. */
-.esp-bascules { display: flex; flex-direction: column; gap: 9px; padding-top: 5px; }
+.esp-bascules { display: flex; flex-direction: column; gap: 8px; padding-top: 5px; }
 
 /* Le pied d'une section qui s'enregistre : sous les champs, aligné sur eux. */
 .esp-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  margin: 10px 0 0 calc(8.5rem + 14px); min-height: 2rem; }
+  margin: 6px 0 0 calc(8.5rem + 14px); min-height: 2rem; }
 @media (max-width: 640px) { .esp-actions { margin-left: 0; } }
-.esp-pied { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--cs-bord-clair);
-  display: flex; gap: 22px; font-size: 0.6875rem; flex-wrap: wrap; }
+/* ⛔ Centré (auteur, 2026-09-22) : ces deux actions ne règlent rien de la colonne des
+   champs, elles ferment la page. */
+.esp-pied { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--cs-bord-clair);
+  display: flex; justify-content: center; gap: 8px 22px; font-size: 0.6875rem; flex-wrap: wrap; }
 .esp-pied button { background: none; border: none; padding: 0; cursor: pointer;
   font-family: inherit; font-size: inherit; color: var(--cs-texte-doux); }
 .esp-pied button.esp-danger { color: var(--cs-danger); }
@@ -413,14 +439,9 @@ export const FEUILLE_ESPACE = `
   .esp-pages .esp-lien[aria-current] { background: none; color: var(--cs-vert); font-weight: 600; }
 }
 /* ⛔ RIEN NE DÉBORDE UN TÉLÉPHONE. La gouttière descend à 16 px, le bandeau se
-   resserre, et « Ma page publique » passe sous le nom au lieu de le serrer : il était en
-   « nowrap » et ne cédait jamais, si bien qu'un pseudonyme long poussait la page. */
+   resserre, et un pseudonyme long se coupe au lieu de pousser la page. */
 @media (max-width: 640px) {
   .esp-cadre { padding: 16px 16px 72px; }
-  .esp-bandeau { flex-wrap: wrap; gap: 4px 12px; padding-bottom: 12px; margin-bottom: 18px; }
-  .esp-bandeau-nom { flex: 1 1 0; }
-  .esp-bandeau h1 { overflow-wrap: anywhere; }
-  .esp-public { flex-basis: 100%; margin-left: 0; padding-left: calc(3.25rem + 12px);
-    box-sizing: border-box; white-space: normal; }
+  .esp-bandeau { gap: 12px; padding-bottom: 10px; margin-bottom: 16px; }
 }
 `

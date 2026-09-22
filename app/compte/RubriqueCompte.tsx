@@ -203,16 +203,17 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
 
   const annee = profil.membre_depuis ? new Date(profil.membre_depuis).getFullYear() : null
   const civil = [prenom.trim(), nom.trim()].filter(Boolean).join(' ')
-  const reperes = [civil, annee ? `lecteur depuis ${annee}` : null].filter(Boolean).join(' · ')
+  // ⛔ Une ligne chacun (auteur, 2026-09-22) : le nom civil, puis l'ancienneté.
+  const reperes = [civil, annee ? `Lecteur depuis ${annee}` : null].filter((r): r is string => !!r)
 
   return (
     <div className="esp-cadre">
       <SommaireEspace page="compte" groupes={ANCRES_COMPTE} />
 
-      <div className="esp-page">
+      <div className="esp-page esp-page--compte">
         {/* ⛔ Le portrait n'a plus de rangée (auteur, 2026-09-22) : c'est le visage du
             bandeau qu'on touche, et il ouvre un menu. Il s'enregistre dès qu'on choisit. */}
-        <BandeauLecteur lecteur={profil} reperes={reperes || 'Votre compte'} nomPortrait={nomPortrait}
+        <BandeauLecteur lecteur={profil} reperes={reperes.length ? reperes : 'Votre compte'} nomPortrait={nomPortrait}
           actionsPortrait={[
             { label: 'Choisir un portrait', onChoisir: () => setChoixOuvert(true) },
             ...(profil.avatar_ref ? [{ label: 'Recadrer', onChoisir: () => setCadrageOuvert(true) }] : []),
@@ -237,7 +238,14 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
             onEnregistrer={enregistrerIdentite} onAnnuler={annulerIdentite} />
         </Section>
 
-        <Section id="page-publique" titre="Page publique">
+        {/* ⛔ Le renvoi vers la page publique vit ICI, à côté de ce qui la règle, et non
+            plus dans le bandeau (auteur, 2026-09-22). */}
+        <Section id="page-publique" titre="Page publique" renvoi={
+          <a className="cs-bouton-lien" href={`/profil/${encodeURIComponent(profil.pseudo)}`}
+            target="_blank" rel="noopener noreferrer">
+            Voir ma page&nbsp;↗
+          </a>
+        }>
           <Rangee label="Quelques mots" pour="bio" note={bio.length > BIO_MAX - 50 ? `${bio.length} / ${BIO_MAX}` : undefined}>
             <textarea id="bio" className="esp-long" style={inputStyle} rows={3} maxLength={BIO_MAX}
               placeholder="Quelques mots sur vous…" value={bio}
@@ -255,16 +263,18 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
           <Rangee label="Ce qui paraît">
             <div className="esp-bascules">
               {([
-                ['pub_rang', 'Rang'],
-                ['pub_essais', 'Publications'],
-                ['pub_favoris_oeuvre', 'Œuvres favorites'],
+                // ⛔ Chaque bascule dit ce qu'elle montre (auteur, 2026-09-22), d'après ce que
+                // sert app/api/profil/[pseudo]/route.ts.
+                ['pub_rang', 'Rang', 'Votre degré de lecteur et le nombre de Pères retenus.'],
+                ['pub_essais', 'Publications', 'Vos dernières publications, hors celles parues sans nom.'],
+                ['pub_favoris_oeuvre', 'Œuvres favorites', 'Les œuvres que vous avez mises en favori.'],
                 // ⛔ « Citations retenues » est RETIRÉ le 2026-09-14 : la page publique ne
                 // montre plus la liste des passages retenus, seulement les deux citations
                 // favorites, qui paraissent parce qu'on les choisit. Un interrupteur qui ne
                 // gouverne plus rien mentirait. La colonne `pub_favoris_versets` reste.
-                ['pub_mecene', 'Marque de mécène'],
-              ] as const).filter(([cle]) => cle !== 'pub_mecene' || estMecene).map(([cle, libelle]) => (
-                <Interrupteur key={cle} libelle={libelle} actif={vis[cle]}
+                ['pub_mecene', 'Marque de mécène', 'La marque et son année, à côté de votre nom.'],
+              ] as const).filter(([cle]) => cle !== 'pub_mecene' || estMecene).map(([cle, libelle, detail]) => (
+                <Interrupteur key={cle} libelle={libelle} detail={detail} actif={vis[cle]}
                   onChange={v => { setVis(x => ({ ...x, [cle]: v })); setStatutPublique(null) }} />
               ))}
             </div>
@@ -274,7 +284,7 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
         </Section>
 
         <Section id="lecture" titre="Lecture">
-          <Rangee label="Traduction" pour="trad" note={statutTrad
+          <Rangee label="Traduction favorite" pour="trad" note={statutTrad
             ? <span style={{ color: statutTrad.ok ? 'var(--cs-vert)' : 'var(--cs-danger-fonce)' }}>{statutTrad.ok ? '✓ ' : ''}{statutTrad.msg}</span>
             : undefined}>
             <select id="trad" className="esp-menu" style={inputStyle} value={trad}

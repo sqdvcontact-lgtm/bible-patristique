@@ -14,7 +14,7 @@
 import Image from 'next/image'
 import { CADRAGE_PAR_DEFAUT, urlPortrait, type Cadrage } from '@/app/lib/portraits'
 
-export default function PortraitLecteur({ refPortrait: ref, cadrage, initiale, taille, alt = '' }: {
+export default function PortraitLecteur({ refPortrait: ref, cadrage, initiale, taille, carre = false, alt = '' }: {
   refPortrait: string | null | undefined
   cadrage?: Cadrage | null
   /** La lettre qui tient lieu de portrait tant qu'aucun n'est choisi. */
@@ -34,6 +34,13 @@ export default function PortraitLecteur({ refPortrait: ref, cadrage, initiale, t
    * ⚠️ Le FILET, lui, reste en pixels : un rem le rendrait flou. C'est la règle du dépôt.
    */
   taille: number
+  /**
+   * CARRÉ et à la mesure de sa boîte, au lieu du rond de `taille` : c'est le parent qui
+   * dit la mesure. Le bandeau de l'espace du lecteur le veut aussi haut que le bloc de
+   * texte qu'il accompagne (auteur, 2026-09-22). `taille` ne règle plus alors que
+   * l'initiale.
+   */
+  carre?: boolean
   alt?: string
 }) {
   const url = urlPortrait(ref)
@@ -41,10 +48,9 @@ export default function PortraitLecteur({ refPortrait: ref, cadrage, initiale, t
   // ⛔ EN REM, jamais en pixels : voir la note de `taille`. Le nombre reçu dit la mesure
   // à la racine 16, et le rond suit la racine partout ailleurs.
   const mesure = `${taille / 16}rem`
-  const commun = {
-    width: mesure, height: mesure, borderRadius: '50%',
-    border: '2px solid var(--cs-bord)', flexShrink: 0,
-  } as const
+  const commun = carre
+    ? { width: '100%', height: '100%', borderRadius: '4px', border: '1px solid var(--cs-bord)', flexShrink: 0 } as const
+    : { width: mesure, height: mesure, borderRadius: '50%', border: '2px solid var(--cs-bord)', flexShrink: 0 } as const
 
   if (!url) {
     return (

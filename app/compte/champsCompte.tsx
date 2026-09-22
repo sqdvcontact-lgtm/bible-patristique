@@ -111,14 +111,19 @@ export function PiedSection({ modifie, occupe, statut, onEnregistrer, onAnnuler 
 }
 
 /** L'interrupteur des réglages de visibilité. */
-export function Interrupteur({ actif, onChange, libelle }: { actif: boolean; onChange: (v: boolean) => void; libelle: string }) {
+/** ⚠️ `detail` dit en une phrase ce que la bascule gouverne ; il se pose sous le libellé,
+ *  et la bascule s'aligne alors sur la première ligne. */
+export function Interrupteur({ actif, onChange, libelle, detail }: { actif: boolean; onChange: (v: boolean) => void; libelle: string; detail?: string }) {
   return (
-    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
+    <label style={{ display: 'flex', alignItems: detail ? 'flex-start' : 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
       <button type="button" role="switch" aria-checked={actif} onClick={() => onChange(!actif)}
         style={{ width: '32px', height: '18px', borderRadius: '999px', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0, background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', position: 'relative', transition: 'background 0.15s' }}>
         <span style={{ position: 'absolute', top: '3px', left: actif ? '15px' : '3px', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left 0.15s' }} />
       </button>
-      <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte)' }}>{libelle}</span>
+      <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: detail ? '18px' : undefined }}>
+        {libelle}
+        {detail && <span style={{ display: 'block', fontSize: '0.6875rem', lineHeight: 1.4, color: 'var(--cs-texte-second)' }}>{detail}</span>}
+      </span>
     </label>
   )
 }
