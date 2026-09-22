@@ -82,7 +82,9 @@ export default function LectureBilingueBible({
   const { userId, exigerCompte } = useCompte()
   // ⛔ L'axe du lasso est la CAPACITÉ du pointeur : au doigt, glisser fait défiler.
   const sansSurvol = useSansSurvol()
-  const [sauvegardes, setSauvegardes] = usePrelevementsDuChapitre(userId, livreActif, chapitreActif)
+  // ⛔ Les gestes retiennent la clé de la liste AU DÉPART : une réponse arrivée après un
+  // changement de chapitre ne s'inscrit pas dans la liste suivante (prelevementsBibliques).
+  const [sauvegardes, , clePrelevementsCourante, modifierPrelevementsPour] = usePrelevementsDuChapitre(userId, livreActif, chapitreActif)
   const lassoActif = !mobile && !sansSurvol
 
   // Ce que porte chaque cellule sélectionnable, rangée par sa clé de lasso.
@@ -135,7 +137,8 @@ export default function LectureBilingueBible({
     [...new Set(cellulesChoisies(cles).map(c => c.numero).filter(n => sauvegardes.has(n)))]
 
   const enregistrerLasso = async (cles: readonly string[]): Promise<number | null> => {
-    if (!exigerCompte('enregistrer ces versets') || !userId) return null
+    if (!exigerCompte('prélever ces versets') || !userId) return null
+    const cleDepart = clePrelevementsCourante
     const vus = new Set<number>()
     const aEcrire = cellulesChoisies(cles).filter(c => {
       if (sauvegardes.has(c.numero) || vus.has(c.numero)) return false
@@ -150,7 +153,7 @@ export default function LectureBilingueBible({
       texte: c.texte, traduction: c.label,
     }))).select('id, ref_verset')
     if (error) throw error
-    setSauvegardes(prev => {
+    modifierPrelevementsPour(cleDepart, prev => {
       const suite = new Map(prev)
       for (const ligne of (data ?? []) as { id: string; ref_verset: number }[]) suite.set(ligne.ref_verset, ligne.id)
       return suite
@@ -161,6 +164,7 @@ export default function LectureBilingueBible({
 
   const retirerLasso = async (cles: readonly string[]): Promise<number | null> => {
     if (!userId) return null
+    const cleDepart = clePrelevementsCourante
     const numeros = numerosEnregistres(cles)
     if (numeros.length === 0) return 0
     const { error } = await supabase.from('prelevements').delete()
@@ -168,7 +172,7 @@ export default function LectureBilingueBible({
       .eq('ref_livre_abr', abreviationLivre).eq('ref_chapitre', chapitreActif)
       .in('ref_verset', numeros)
     if (error) throw error
-    setSauvegardes(prev => {
+    modifierPrelevementsPour(cleDepart, prev => {
       const suite = new Map(prev)
       for (const n of numeros) suite.delete(n)
       return suite
@@ -212,7 +216,7 @@ export default function LectureBilingueBible({
             <FlecheChapitre sens="precedent" variante="entete" cible={voisins.precedent} onAller={naviguer} />
             <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px', lineHeight: INTERLIGNE_TITRE_CHAPITRE }}>
               <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>{nomLivre}</span>
-              <span style={{ color: '#b0a088', fontSize: '1.25rem', lineHeight: 1 }}>❧</span>
+              <span aria-hidden="true" style={{ color: 'var(--cs-or-doux)', fontSize: '1.25rem', lineHeight: 1 }}>❧</span>
               {/* Même voix éditoriale que la lecture simple : le chapitre ne
                   redevient pas vert parce que le texte passe en deux colonnes. */}
               <span style={{ fontSize: '1.0625rem', color: 'var(--cs-mention)', fontStyle: 'italic' }}>Chapitre {chapitreActif}</span>

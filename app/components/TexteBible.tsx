@@ -1,10 +1,15 @@
 'use client'
 import { ABREV_FR, estLivreNonCanonique } from '@/app/lib/bible'
-import { Z_MODALE } from '@/app/lib/empilement'
 import MarqueNonCanonique from '@/app/components/MarqueNonCanonique'
 
-import { Fragment, useState, useEffect, useRef } from 'react'
+import { Fragment, useState, useEffect, useMemo, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import { useSearchParams } from 'next/navigation'
+import { amenerAuCentre } from '@/app/lib/defilementLecture'
+import { cesurerSelonLangue, useLangueBible } from '@/app/lib/langueBible'
+import { copierSansCesures } from '@/app/lib/grec'
+import { EclatEchec, STYLE_HOTE_ECHEC, useEclatEchec } from '@/app/components/EclatEchec'
+import LassoTactile from '@/app/components/LassoTactile'
 import { useNaviguer } from '@/app/lib/attenteNavigation'
 import { supabase } from "@/app/lib/supabase"
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin"
@@ -15,7 +20,6 @@ import { citationBiblique, copierCitation } from "@/app/lib/citation"
 import { usePrelevementsDuChapitre } from "@/app/lib/prelevementsBibliques"
 import { referenceDesVersets, texteDesVersets, UNITE_VERSETS } from "@/app/lib/selectionPassages"
 import LassoLecture from '@/app/components/LassoLecture'
-import { raccourcisEditeur, collageTexteBrut } from '@/app/lib/raccourcisEditeur'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
 
@@ -26,9 +30,12 @@ import IconeCrayon from '@/app/components/IconeCrayon'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import IconePolyglotte from '@/app/components/IconePolyglotte'
 import IconeFacsimile from '@/app/components/IconeFacsimile'
-import ModaleFacsimile899 from '@/app/components/ModaleFacsimile899'
 import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
-import ModalSignalement from '@/app/components/ModalSignalement'
+// ⛔ Les fenêtres ne se chargent qu'au CLIC (2026-09-22) : le fac-similé, le signalement,
+// l'édition d'un verset n'ont rien à peser sur la lecture tant qu'on ne les ouvre pas.
+const ModaleFacsimile899 = dynamic(() => import('@/app/components/ModaleFacsimile899'), { ssr: false })
+const ModalSignalement = dynamic(() => import('@/app/components/ModalSignalement'), { ssr: false })
+const ModaleEditionVerset = dynamic(() => import('@/app/components/ModaleEditionVerset'), { ssr: false })
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import { fondreAppelsDansLaMarque, marquerLacunesDuTemoin, rendreMarqueurs899 } from '@/app/lib/marqueurs899'
 import { estTraductionModerne899 } from '@/app/lib/bible899'
@@ -54,8 +61,6 @@ import { lirePlageVersets, placeCanoniqueDuVerset, urlPolyglotte } from '@/app/l
 import type { PieceLiminaireAffichee } from '@/app/components/BibleLayout'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import { activerAuClavier } from '@/app/lib/activerAuClavier'
-import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
-import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import {
   indexerBlocsDeCorps,
   habillerLesVignettes,
@@ -80,7 +85,9 @@ type Verset = {
   [traduction: string]: string | number | boolean | null | undefined
 }
 
-type Traduction = { code: string; label: string }
+/** `langue` : celle de `traductions.langue`, quand la page la passe. À défaut, la page la
+ *  lit une fois par session (`useLangueBible`). */
+type Traduction = { code: string; label: string; langue?: string | null }
 
 type Props = {
   versets: Verset[]
@@ -132,21 +139,29 @@ export function texteAbsentDuChapitre(versets: readonly object[], traduction: st
 export type BiblePorteuse = { code: string; label: string; href: string }
 
 // ── Bouton copie ──────────────────────────────────────────────────────────────
-function BoutonCopie({ texte }: { texte: string }) {
+function BoutonCopie({ texte, numero }: { texte: string; numero: number }) {
   const { copie, eclat, briller } = useEclatCopie()
+  const { echec, signaler } = useEclatEchec()
   const handle = (e: React.MouseEvent) => {
     e.stopPropagation()
-    navigator.clipboard.writeText(texte).then(briller)
+    // ⛔ Un échec du presse-papiers (permission refusée, page hors foyer) se DIT : il
+    // passait en silence, et le lecteur croyait avoir copié.
+    const presse = typeof navigator !== 'undefined' ? navigator.clipboard : undefined
+    if (!presse) { signaler('La copie a échoué.'); return }
+    presse.writeText(texte).then(briller, (erreur: unknown) => {
+      console.error('[copie] verset', erreur)
+      signaler('La copie a échoué.')
+    })
   }
   return (
-    <button onClick={handle} title="Copier ce verset" className={avecHoteEclat('bouton-action-verset')}
-      style={{ ...VERSET_ACTION_BTN, opacity:0, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}
-      aria-label="Copier">
+    <button onClick={handle} title={echec ? 'La copie a échoué' : 'Copier ce verset'} className={avecHoteEclat('bouton-action-verset')}
+      style={{ ...VERSET_ACTION_BTN, opacity:0, color: echec ? 'var(--cs-danger)' : copie ? 'var(--cs-vert)' : 'var(--cs-bord)', ...(echec ? STYLE_HOTE_ECHEC : null) }}
+      aria-label={`Copier le verset ${numero}`}>
       {/* ⚠️ Le glyphe vient d'`IconeCopier` : la VISITE le reproduit dans son
           illustration, et les deux ne doivent pas diverger. ⛔ Il ne cède plus la place
           à un ✓ : l'accusé est un ÉCLAT, posé par-dessus lui. */}
       <IconeCopier />
-      <EclatCopie eclat={eclat} />
+      {echec ? <EclatEchec echec={echec} /> : <EclatCopie eclat={eclat} />}
     </button>
   )
 }
@@ -192,7 +207,7 @@ function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; vers
     <>
       <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setOuvert(true) }}
         className="bouton-action-verset"
-        title="Signaler une erreur"
+        title="Signaler une erreur" aria-label={`Signaler une erreur dans ${ref}`}
         style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
         <IconeSignalement />
       </button>
@@ -236,25 +251,37 @@ function BoutonFacsimile({ reference, debut, fin }: { reference: string; debut: 
 
 // ── Bouton enregistrer ────────────────────────────────────────────────────────
 function BoutonEnregistrer({
-  verset, nomLivre, livreActif, chapitreActif, traduction, userId,
+  verset, texte, nomLivre, livreActif, chapitreActif, userId,
   traductionLabel, dejaSauvegarde, idPrelevement, onSauvegarde, onSupprimer,
 }: {
-  verset: Verset; nomLivre: string; livreActif: string
-  chapitreActif: number; traduction: string; userId: string
+  verset: Verset
+  /** Le texte tel que la page le montre, corrections de l'administrateur comprises
+   *  (`texteDuVerset`) : c'est lui qu'on met de côté, comme la copie et le lasso. */
+  texte: string
+  nomLivre: string; livreActif: string
+  chapitreActif: number; userId: string
   traductionLabel: string
   dejaSauvegarde: boolean; idPrelevement: string | null
   onSauvegarde: (id: string) => void; onSupprimer: () => void
 }) {
   const [loading, setLoading] = useState(false)
   const { exigerCompte } = useCompte()
+  const { echec, signaler } = useEclatEchec()
+  const styleEchec = echec ? STYLE_HOTE_ECHEC : null
 
   if (dejaSauvegarde) {
     const supprimer = async (e: React.MouseEvent) => {
       e.stopPropagation()
       if (!idPrelevement) return
       setLoading(true)
-      await supabase.from('prelevements').delete().eq('id', idPrelevement)
+      // ⛔ L'erreur se LIT : un retrait refusé laisse le signet plein, et le dit.
+      const { error } = await supabase.from('prelevements').delete().eq('id', idPrelevement).eq('user_id', userId)
       setLoading(false)
+      if (error) {
+        console.error('[prélèvements] retrait', error)
+        signaler('Le retrait a échoué. Réessayez.')
+        return
+      }
       onSupprimer()
     }
     return (
@@ -264,10 +291,11 @@ function BoutonEnregistrer({
          colonne d'actions. Au doigt, le pavé montre ses boutons pleins, comme avant.
          Même encre grise que la marque (reprise du 21 septembre 2026). */
       <button onClick={supprimer} disabled={loading}
-        title="Retirer des prélèvements" className="bouton-action-verset"
-        style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-texte-doux)' }}
-        aria-label="Retirer des prélèvements">
+        title={echec ? 'Le retrait a échoué' : 'Retirer de mes prélèvements'} className={avecHoteEclat('bouton-action-verset')}
+        style={{ ...VERSET_ACTION_BTN, opacity:0, color: echec ? 'var(--cs-danger)' : 'var(--cs-texte-doux)', ...styleEchec }}
+        aria-label={`Retirer le verset ${verset.verset} de mes prélèvements`}>
         {loading ? '…' : <IconeSignet plein />}
+        <EclatEchec echec={echec} />
       </button>
     )
   }
@@ -276,7 +304,6 @@ function BoutonEnregistrer({
     e.stopPropagation()
     if (!exigerCompte('prélever ce verset')) return
     setLoading(true)
-    const texte = String(verset[traduction] ?? '')
     const abr = ABREV_FR[livreActif] || livreActif
     const { data, error } = await supabase.from('prelevements').insert({
       user_id: userId, type: 'biblique',
@@ -285,157 +312,28 @@ function BoutonEnregistrer({
       texte, traduction: traductionLabel,
     }).select('id').single()
     setLoading(false)
-    if (!error && data) { onSauvegarde(data.id); signalerProgression() }
+    // ⛔ L'erreur se LIT : un prélèvement refusé laisse le signet vide, et le dit.
+    if (error || !data) {
+      console.error('[prélèvements] ajout', error)
+      signaler('Le prélèvement a échoué. Réessayez.')
+      return
+    }
+    onSauvegarde(data.id)
+    signalerProgression()
   }
 
   return (
-    <button onClick={enregistrer} disabled={loading} title="Enregistrer dans mes prélèvements"
-      className="bouton-action-verset"
-      style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}
-      aria-label="Enregistrer">
+    <button onClick={enregistrer} disabled={loading} title={echec ? 'Le prélèvement a échoué' : 'Ajouter à mes prélèvements'}
+      className={avecHoteEclat('bouton-action-verset')}
+      style={{ ...VERSET_ACTION_BTN, opacity:0, color: echec ? 'var(--cs-danger)' : 'var(--cs-bord)', ...styleEchec }}
+      aria-label={`Ajouter le verset ${verset.verset} à mes prélèvements`}>
       {loading ? '…' : <IconeSignet />}
+      <EclatEchec echec={echec} />
     </button>
   )
 }
 
-// Conversions markup ↔ HTML pour la zone éditable WYSIWYG du verset. Le markup est
-// EXACTEMENT celui que lit `rendreTexteEnrichi` : **gras**, *ital*, ^^exp^^, ++petites
-// capitales++, [texte](url). L'italique `<i>` de Sacy est chargé comme italique éditable
-// et ré-émis en `*…*` (rendu identique), pour que les balises produites correspondent
-// toujours au système d'affichage.
-function versetMarkupVersHtml(s: string): string {
-  const esc = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  return esc
-    .replace(/&lt;i&gt;([\s\S]*?)&lt;\/i&gt;/g, '<em>$1</em>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\+\+(.+?)\+\+/g, '<span style="font-variant:small-caps;letter-spacing:0.04em">$1</span>')
-    .replace(/\^\^(.+?)\^\^/g, '<sup>$1</sup>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>')
-}
-
-function versetHtmlVersMarkup(html: string): string {
-  const div = document.createElement('div')
-  div.innerHTML = html
-  const rendre = (n: Node): string => {
-    if (n.nodeType === Node.TEXT_NODE) return n.textContent ?? ''
-    const el = n as HTMLElement
-    const tag = el.tagName?.toLowerCase()
-    if (tag === 'br') return '\n'
-    const enfants = Array.from(el.childNodes).map(rendre).join('')
-    if (tag === 'strong' || tag === 'b') return `**${enfants}**`
-    if (tag === 'sup') return `^^${enfants}^^`
-    if (tag === 'span' && el.style.fontVariant === 'small-caps') return `++${enfants}++`
-    if (tag === 'em' || tag === 'i') return `*${enfants}*`
-    if (tag === 'a') return `[${enfants}](${el.getAttribute('href') ?? ''})`
-    return enfants
-  }
-  return Array.from(div.childNodes).map(rendre).join('').replace(/\n{2,}/g, '\n').trim()
-}
-
 // ── Composant principal ───────────────────────────────────────────────────────
-// ── Modale d'édition d'un verset (admin réel, vérifié côté serveur) ──────────
-function ModaleEditionVerset({ verset, traduction, traductionLabel, refCourt, valeurActuelle, onClose, onEnregistre }: {
-  verset: Verset; traduction: string; traductionLabel: string; refCourt: string; valeurActuelle: string
-  onClose: () => void; onEnregistre: (nouvelleValeur: string) => void
-}) {
-  useFermerAEchap(true, onClose)
-  const [valeur, setValeur] = useState(valeurActuelle)
-  const [statut, setStatut] = useState<'idle' | 'envoi' | 'erreur'>('idle')
-  const edRef = useRef<HTMLDivElement>(null)
-  // Tab et Maj+Tab restent dans la fenêtre, et le foyer revient au crayon à la
-  // fermeture. ⚠️ Pas de foyer initial : la zone d'édition le prend elle-même.
-  const boiteRef = useRef<HTMLDivElement>(null)
-  useFenetreModale(boiteRef, true, { foyerInitial: false })
-
-  // La zone éditable est peuplée UNE fois avec le texte rendu : les enrichissements y
-  // sont directement visibles (WYSIWYG), dans la même et unique zone de saisie.
-  useEffect(() => {
-    if (edRef.current) edRef.current.innerHTML = versetMarkupVersHtml(valeurActuelle)
-    setTimeout(() => edRef.current?.focus(), 0)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // À chaque frappe : on relit le HTML de la zone et on le reconvertit dans le markup
-  // stocké (celui que lit l'affichage), pour que les balises correspondent toujours.
-  const sync = () => { if (edRef.current) setValeur(versetHtmlVersMarkup(edRef.current.innerHTML)) }
-
-  const commande = (cmd: string) => { edRef.current?.focus(); document.execCommand(cmd); sync() }
-  const inserer = (t: string) => { edRef.current?.focus(); document.execCommand('insertText', false, t); sync() }
-  const entourer = (avant: string, apres: string = avant) => {
-    edRef.current?.focus()
-    const texte = window.getSelection()?.toString() || 'texte'
-    document.execCommand('insertText', false, `${avant}${texte}${apres}`)
-    sync()
-  }
-  // Petites capitales : span dédié inséré autour de la sélection (pas de commande native).
-  const petitesCaps = () => {
-    const el = edRef.current; if (!el) return; el.focus()
-    const sel = window.getSelection(); if (!sel || sel.rangeCount === 0) return
-    const range = sel.getRangeAt(0)
-    const texte = sel.toString() || 'texte'
-    range.deleteContents()
-    const span = document.createElement('span')
-    span.style.fontVariant = 'small-caps'; span.style.letterSpacing = '0.04em'; span.textContent = texte
-    range.insertNode(span); sel.collapseToEnd(); sync()
-  }
-
-  const enregistrer = async () => {
-    setStatut('envoi')
-    const { data: session } = await supabase.auth.getSession()
-    const token = session.session?.access_token
-    const res = await fetch('/api/admin/verset-modifier-canon', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ id_verset: verset.id_verset, traduction, valeur }),
-    })
-    if (!res.ok) { setStatut('erreur'); return }
-    onEnregistre(valeur)
-  }
-
-  const btnEd: React.CSSProperties = { fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', cursor:'pointer' }
-  const gardeSel = (e: React.MouseEvent) => e.preventDefault()
-
-  // `Z_MODALE` : la fenêtre d'édition passe au-dessus des barres mobiles de la page
-  // Bible (`Z_ONGLETS_LECTURE`, `Z_BANDEAU_LECTURE`), et sous la barre de navigation.
-  return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:Z_MODALE, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }} onClick={onClose}>
-      <div ref={boiteRef} role="dialog" aria-modal="true" aria-label={`Modifier ${refCourt} de la ${traductionLabel}`}
-        onClick={e => e.stopPropagation()} style={{ background:'var(--cs-surface)', borderRadius:'8px', padding:'20px 22px', width:'30rem', maxWidth:'100%', boxShadow:'var(--cs-ombre-modale)' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px' }}>
-          <p style={{ fontSize:'0.75rem', fontWeight:600, color:'var(--cs-attente)', margin:0 }}>
-            Modifier {refCourt} de la {traductionLabel}
-          </p>
-          <button type="button" onClick={onClose} aria-label="Fermer" style={{ fontSize:'0.875rem', color:'var(--cs-texte-doux)', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
-        </div>
-        <div style={{ display:'flex', gap:'6px', marginBottom:'8px', flexWrap:'wrap' }}>
-          <button onMouseDown={gardeSel} onClick={() => commande('bold')} style={{ ...btnEd, fontWeight:700 }}>G</button>
-          <button onMouseDown={gardeSel} onClick={() => commande('italic')} style={{ ...btnEd, fontStyle:'italic' }}>I</button>
-          <button onMouseDown={gardeSel} onClick={petitesCaps} title="Petites capitales" style={{ ...btnEd, fontSize:'0.625rem', fontVariant:'small-caps', letterSpacing:'0.04em' }}>Petites capitales</button>
-          <button onMouseDown={gardeSel} onClick={() => commande('superscript')} title="Exposant" style={btnEd}>x²</button>
-          <span style={{ width:'1px', background:'var(--cs-bord-clair)' }} />
-          <button onClick={() => inserer('\u00A0')} title="Espace insécable" style={{ fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', cursor:'pointer' }}>Esp. insécable</button>
-          <button onClick={() => inserer('\u202F')} title="Espace fine insécable" style={{ fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', cursor:'pointer' }}>Esp. fine</button>
-          <button onClick={() => entourer('«\u202F', '\u202F»')} title="Guillemets français" style={{ fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', cursor:'pointer' }}>« »</button>
-          <button onClick={() => entourer('\u201C', '\u201D')} title="Guillemets anglais (citation imbriquée)" style={{ fontSize:'0.6875rem', padding:'4px 9px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-fort)', cursor:'pointer' }}>“ ”</button>
-        </div>
-        {/* Zone d'édition UNIQUE : les enrichissements s'y voient directement (WYSIWYG). */}
-        <div ref={edRef} contentEditable suppressContentEditableWarning onInput={sync}
-          onKeyDown={e => raccourcisEditeur(e, { apresChangement: sync, exposant: true })}
-          onPaste={e => collageTexteBrut(e, sync)}
-          style={{ width:'100%', minHeight:'96px', maxHeight:'300px', overflowY:'auto', fontSize:'0.8125rem', padding:'8px 10px', border:'1px solid var(--cs-bord)', borderRadius:'4px', background:'var(--cs-fond-clair)', color:'var(--cs-texte-fort)', outline:'none', lineHeight:1.55, boxSizing:'border-box', textAlign:'justify', whiteSpace:'pre-wrap' }} />
-        <div style={{ display:'flex', justifyContent:'flex-end', gap:'8px', marginTop:'12px' }}>
-          {statut === 'erreur' && <span style={{ fontSize:'0.6875rem', color:'var(--cs-danger)', alignSelf:'center' }}>Erreur d’enregistrement.</span>}
-          <button onClick={onClose} style={{ fontSize:'0.6875rem', padding:'5px 14px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-second)', cursor:'pointer' }}>Annuler</button>
-          <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize:'0.6875rem', padding:'5px 16px', borderRadius:'4px', border:'none', background:'var(--cs-vert-aplat)', color:'var(--cs-sur-aplat)', cursor:'pointer', fontWeight:500 }}>
-            {statut === 'envoi' ? 'Enregistrement…' : 'Enregistrer'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function TexteBible({
   titresMasques, versets, traduction, traductionIndex, setTraductionIndex, choisirEnRegard, traductions,
   livreActif, chapitreActif, nomLivre,
@@ -459,7 +357,11 @@ export default function TexteBible({
   const [overrides, setOverrides] = useState<Record<string, Partial<Record<string, string>>>>({})
   // ⛔ Le chargement des prélèvements du chapitre vit dans `prelevementsBibliques.ts` : la
   // lecture en regard le partage, et deux copies divergeraient au premier réglage.
-  const [sauvegardes, setSauvegardes] = usePrelevementsDuChapitre(userId, livreActif, chapitreActif)
+  // ⛔ La liste est attachée à sa clé (lecteur, livre, chapitre) : elle se montre vide dès
+  // que la clé change, et une réponse d'enregistrement arrivée APRÈS un changement de
+  // chapitre ne s'inscrit nulle part (`modifierPrelevementsPour`, avec la clé retenue au
+  // départ du geste).
+  const [sauvegardes, , clePrelevementsCourante, modifierPrelevementsPour] = usePrelevementsDuChapitre(userId, livreActif, chapitreActif)
   const searchParams = useSearchParams()
   // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui
   // allume la marque au centre de la lecture tant que la page se prépare.
@@ -539,27 +441,40 @@ export default function TexteBible({
   const plageDemandee = lirePlageVersets(searchParams.get('verset'))
   const plageSurlignee = plageDemandee && plageDemandee.fin > plageDemandee.debut ? plageDemandee : null
 
+  // ⛔ LE DÉFILEMENT VERS LE VERSET VISÉ EST DOUX QUAND LE CHAPITRE EST DÉJÀ À L'ÉCRAN
+  // (l'auteur veut voir l'effet), et SAUTE quand on arrive sur la page ou sur un autre
+  // chapitre (il n'y a rien à suivre des yeux). Il passe par `amenerAuCentre`, qui vérifie
+  // que le glissement a eu lieu (charte, « Défilement doux ») et mesure le défileur de la
+  // colonne, non la fenêtre. Le minuteur est retiré au démontage.
+  const chapitreDejaAffiche = useRef<string | null>(null)
+  const cleChapitreAffiche = `${livreActif}|${chapitreActif}`
   useEffect(() => {
+    const doux = chapitreDejaAffiche.current === cleChapitreAffiche
+    chapitreDejaAffiche.current = cleChapitreAffiche
     const plage = lirePlageVersets(searchParams.get('verset'))
     if (!plage) return
     const num = plage.debut
-    const defiler = () => {
+    let annulerDefilement: () => void = () => {}
+    const minuteur = window.setTimeout(() => {
       const el = document.getElementById(`verset-${num}`)
-      if (el) setTimeout(() => { el.scrollIntoView({ behavior: 'smooth', block: 'center' }) }, 200)
-    }
-    if (plage.fin > plage.debut) { defiler(); return }
-    if (versetRetenuRef.current?.verset === num) return
+      if (el) annulerDefilement = amenerAuCentre(el, { doux })
+    }, doux ? 0 : 200)
+    const nettoyer = () => { window.clearTimeout(minuteur); annulerDefilement() }
+    if (plage.fin > plage.debut) return nettoyer
+    if (versetRetenuRef.current?.verset === num) { nettoyer(); return }
     const v = versets.find(v => v.verset === num)
     if (v) setVersetSelectionne(v)
-    defiler()
-  }, [searchParams, versets, setVersetSelectionne])
+    return nettoyer
+  }, [searchParams, versets, setVersetSelectionne, cleChapitreAffiche])
 
-  const marquerSauvegarde = (numVerset: number, id: string) => {
-    setSauvegardes(prev => new Map([...prev, [numVerset, id]]))
+  // Les gestes retiennent la clé de la liste AU MOMENT DU RENDU qui les a portés : une
+  // réponse arrivée après un changement de chapitre ne touche pas la liste suivante.
+  const marquerSauvegarde = (cle: string | null, numVerset: number, id: string) => {
+    modifierPrelevementsPour(cle, prev => new Map([...prev, [numVerset, id]]))
   }
 
-  const retirerSauvegarde = (numVerset: number) => {
-    setSauvegardes(prev => { const n = new Map(prev); n.delete(numVerset); return n })
+  const retirerSauvegarde = (cle: string | null, numVerset: number) => {
+    modifierPrelevementsPour(cle, prev => { const n = new Map(prev); n.delete(numVerset); return n })
   }
 
   const traductionActive = traductions[traductionIndex]
@@ -580,14 +495,18 @@ export default function TexteBible({
   // lacunes du manuscrit en clair : il faut les mettre en forme, sans passer par le
   // tokeniseur du témoin, qui prendrait ses restitutions pour des marqueurs à cheval.
   const lacunesEnClair = estTraductionModerne899(traduction)
-  const indexBlocs = indexerBlocsDeCorps(editionChapter?.bodyBlocks ?? [])
-  const indexIllustrations = indexerIllustrations(editionChapter?.assets ?? [])
+  // ⚠️ Mémorisés : ces index ne dépendent que de l'appareil et des versets, et ils étaient
+  // recalculés à chaque rendu — donc à chaque verset survolé ou retenu.
+  const corpsEdition = editionChapter?.bodyBlocks
+  const illustrationsEdition = editionChapter?.assets
+  const indexBlocs = useMemo(() => indexerBlocsDeCorps(corpsEdition ?? []), [corpsEdition])
+  const indexIllustrations = useMemo(() => indexerIllustrations(illustrationsEdition ?? []), [illustrationsEdition])
   // ⛔ LES VIGNETTES SE FONDENT DANS LE COMMENTAIRE QUI COUVRE LEUR VERSET, et y
   //    flottent. L'ancre ne bouge pas : c'est une donnée de provenance. Voir
   //    `habillerLesVignettes`, qui porte toute la règle et ses tests.
-  const habillage = habillerLesVignettes(
+  const habillage = useMemo(() => habillerLesVignettes(
     versets.map((v) => v.id_verset), indexBlocs, indexIllustrations,
-  )
+  ), [versets, indexBlocs, indexIllustrations])
   // ⛔ L'AXE DE LECTURE de la page : le bloc de texte, la colonne d'actions
   // EXCLUE du centrage. Le titre du chapitre et les rangées de verset s'y posaient
   // déjà ; les blocs éditoriaux, les pièces liminaires et les notes se centraient,
@@ -647,15 +566,19 @@ export default function TexteBible({
   }
   // ⛔ LES NOTES DE L'ÉDITION ET CELLES DES VERSETS S'APPELLENT DE LA MÊME FAÇON (charte
   // § 13.22) : une note de `versets_v2` arrive avec sa ligne et son numéro, posés par la page.
-  const notesParCanon = new Map<string, BibleEditionDisplayNote[]>()
-  for (const note of [...(editionChapter?.notes ?? []), ...(notesDesVersets?.[traduction] ?? [])]) {
-    const notes = notesParCanon.get(note.canonId) ?? []
-    notes.push(note)
-    notesParCanon.set(note.canonId, notes)
-  }
-  for (const notes of notesParCanon.values()) {
-    notes.sort((a, b) => a.displayNumber - b.displayNumber || a.materialOrder - b.materialOrder)
-  }
+  const notesEdition = editionChapter?.notes
+  const notesParCanon = useMemo(() => {
+    const parCanon = new Map<string, BibleEditionDisplayNote[]>()
+    for (const note of [...(notesEdition ?? []), ...(notesDesVersets?.[traduction] ?? [])]) {
+      const notes = parCanon.get(note.canonId) ?? []
+      notes.push(note)
+      parCanon.set(note.canonId, notes)
+    }
+    for (const notes of parCanon.values()) {
+      notes.sort((a, b) => a.displayNumber - b.displayNumber || a.materialOrder - b.materialOrder)
+    }
+    return parCanon
+  }, [notesEdition, notesDesVersets, traduction])
   // Les appels posés à une même ancre se lisent « 2 & 3 », comme partout (charte § 13.7).
   const appelerEnSuite = (notes: readonly BibleEditionDisplayNote[]) => notes.map((note, rang) => (
     <Fragment key={note.id}>
@@ -678,8 +601,26 @@ export default function TexteBible({
   // ⚠️ La clé est l'identifiant du verset, non son numéro : une glose partage le numéro
   // de son hôte.
   const lassoActif = !mobile && !sansSurvol && !pieceAffichee && !chapitreToutLacune
+  // ⛔ AU DOIGT, LE LASSO NAÎT D'UN APPUI LONG (`LassoTactile`) : glisser y fait défiler,
+  // et seul un doigt resté immobile demande un lasso.
+  const lassoTactileActif = (mobile || sansSurvol) && !pieceAffichee && !chapitreToutLacune
   const texteDuVerset = (v: Verset) => String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')
-  const versetsParId = new Map(versets.map(v => [v.id_verset, v]))
+  const versetsParId = useMemo(() => new Map(versets.map(v => [v.id_verset, v])), [versets])
+  // ⛔ L'IDENTIFIANT `verset-N` NE SE DONNE QU'AU VERSET HÔTE : une glose partage le
+  // numéro de son verset, et deux `id` pareils faisaient viser l'une pour l'autre. Les
+  // liens `?verset=N` visent ainsi toujours le verset, jamais sa glose.
+  const idsDeVerset = useMemo(() => {
+    const vus = new Set<number>()
+    const ids = new Map<string, string>()
+    for (const v of versets) {
+      if (v._estGlose899 || v._estGloseV2 || vus.has(v.verset)) continue
+      vus.add(v.verset)
+      ids.set(v.id_verset, `verset-${v.verset}`)
+    }
+    return ids
+  }, [versets])
+  // La langue du texte lu : `lang` sur le paragraphe, et les césures du latin et du grec.
+  const langueLue = useLangueBible(traduction, traductionActive?.langue)
   const versetsDuLasso = (cles: readonly string[]) =>
     cles.map(cle => versetsParId.get(cle)).filter((v): v is Verset => v !== undefined)
   const abreviationLivre = ABREV_FR[livreActif] || livreActif
@@ -687,7 +628,9 @@ export default function TexteBible({
     [...new Set(versetsDuLasso(cles).map(v => v.verset).filter(n => sauvegardes.has(n)))]
 
   const enregistrerLasso = async (cles: readonly string[]): Promise<number | null> => {
-    if (!exigerCompte('enregistrer ces versets') || !userId) return null
+    if (!exigerCompte('prélever ces versets') || !userId) return null
+    // La clé de la liste au DÉPART du geste : la réponse ne s'inscrit que sous elle.
+    const cleDepart = clePrelevementsCourante
     const vus = new Set<number>()
     const aEcrire = versetsDuLasso(cles).filter(v => {
       if (sauvegardes.has(v.verset) || vus.has(v.verset)) return false
@@ -702,7 +645,7 @@ export default function TexteBible({
       texte: texteDuVerset(v), traduction: traductionLabel,
     }))).select('id, ref_verset')
     if (error) throw error
-    setSauvegardes(prev => {
+    modifierPrelevementsPour(cleDepart, prev => {
       const suite = new Map(prev)
       for (const ligne of (data ?? []) as { id: string; ref_verset: number }[]) suite.set(ligne.ref_verset, ligne.id)
       return suite
@@ -715,6 +658,7 @@ export default function TexteBible({
   // signet le montre : un verset se montre prélevé quelle que soit la traduction retenue.
   const retirerLasso = async (cles: readonly string[]): Promise<number | null> => {
     if (!userId) return null
+    const cleDepart = clePrelevementsCourante
     const numeros = numerosEnregistres(cles)
     if (numeros.length === 0) return 0
     const { error } = await supabase.from('prelevements').delete()
@@ -722,7 +666,7 @@ export default function TexteBible({
       .eq('ref_livre_abr', abreviationLivre).eq('ref_chapitre', chapitreActif)
       .in('ref_verset', numeros)
     if (error) throw error
-    setSauvegardes(prev => {
+    modifierPrelevementsPour(cleDepart, prev => {
       const suite = new Map(prev)
       for (const n of numeros) suite.delete(n)
       return suite
@@ -758,6 +702,12 @@ export default function TexteBible({
             traduction »). Sur un écran étroit, il prend une bande entière pour dire ce que
             le volet des livres et le bandeau du bas disent déjà — et ce dernier porte les
             mêmes flèches de chapitre : rien ne se perd. */}
+        {/* ⛔ AU TÉLÉPHONE, LA PAGE GARDE SON TITRE, MAIS HORS DE L'ÉCRAN (2026-09-22) :
+            sans lui, elle n'avait aucun titre de niveau 1 pour qui navigue par titres.
+            Aucun changement visible (`.cs-hors-ecran`). */}
+        {mobile && (
+          <h1 className="cs-hors-ecran">{pieceAffichee ? pieceAffichee.titre : `${nomLivre}, chapitre ${chapitreActif}`}</h1>
+        )}
         {!mobile && (
         <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`, alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
@@ -773,7 +723,7 @@ export default function TexteBible({
             <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>
               {nomLivre}{estLivreNonCanonique(livreActif) && <MarqueNonCanonique />}
             </span>
-            <span style={{ color: '#b0a088', fontSize: '1.25rem', lineHeight: 1 }}>❧</span>
+            <span aria-hidden="true" style={{ color: 'var(--cs-or-doux)', fontSize: '1.25rem', lineHeight: 1 }}>❧</span>
             {/* ⛔ PAS DE VERT DANS CE TITRE (décision de l'auteur, 2026-08-30). Le rang
                 de chapitre portait `--cs-vert`, qui jurait contre le fleuron chaud posé
                 juste avant. Il prend le DORÉ-GRIS du site : la teinte de l'or à moitié
@@ -878,7 +828,7 @@ export default function TexteBible({
               2026-09-21). La phrase seule laissait le lecteur chercher le menu et deviner. */}
           {texteAbsent && biblesDuLivreAbsent && biblesDuLivreAbsent.length > 0 && (
             <nav aria-label="Bibles qui comportent ce livre" style={{ margin: '14px auto 0', maxWidth: '21.25rem', padding: '0 16px', textAlign: 'center', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', lineHeight: 1.65, color: 'var(--cs-texte-second)' }}>
-              <p style={{ margin: '0 0 4px' }}>Il se lit dans :</p>
+              <p style={{ margin: '0 0 4px' }}>{'On le lit dans\u00A0:'}</p>
               <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
                 {biblesDuLivreAbsent.map(b => (
                   <li key={b.code}>
@@ -935,9 +885,11 @@ export default function TexteBible({
             const illustrationsAvant = indexIllustrations.beforeByCanon.get(v.id_verset) ?? []
             const illustrationsApres = indexIllustrations.afterByCanon.get(v.id_verset) ?? []
             const notesDuVerset = notesParCanon.get(v.id_verset) ?? []
+            // Une seule lecture de la densité par rangée.
+            const densite = densites.get(v.id_verset)
             // ⛔ Un appel se pose à l'ANCRE que la donnée déclare ; sans ancre lisible, il suit le verset.
             const appelsDuVerset = repartirAppels(!lacune && !ligne899 ? texteDuVerset(v) : '', notesDuVerset)
-            const dansLeLasso = lassoActif && !lacune && Boolean(overrides[v.id_verset]?.[traduction] ?? v[traduction])
+            const dansLeLasso = (lassoActif || lassoTactileActif) && !lacune && Boolean(overrides[v.id_verset]?.[traduction] ?? v[traduction])
             // Retenir le verset : au clic sur la rangée, ou au clavier sur son numéro.
             const choisirVerset = (e?: { currentTarget: Element }) => {
               const incrementer = () => fetch('/api/versets/incrementer-lecture', {
@@ -968,10 +920,10 @@ export default function TexteBible({
             <Fragment key={v.id_verset}>
             {rendreFluxEditorial(blocsAvant, illustrationsAvant)}
             <div
-              id={`verset-${v.verset}`}
+              id={idsDeVerset.get(v.id_verset)}
               onClick={choisirVerset}
               className={`verset-row${actif ? ' verset-row--actif' : ''}${dansPlage ? ' verset-row--plage' : ''}`}
-              data-oeuvres={densites.get(v.id_verset)?.oeuvres}
+              data-oeuvres={densite?.oeuvres}
               style={styleRangeeVerset({ mobile })}>
 
               <div style={styleGrilleRangee({ mobile })}>
@@ -1001,19 +953,19 @@ export default function TexteBible({
                     <>
                       {userId && (
                         <BoutonEnregistrer
-                          verset={v} nomLivre={nomLivre} livreActif={livreActif}
-                          chapitreActif={chapitreActif} traduction={traduction} userId={userId}
+                          verset={v} texte={texteDuVerset(v)} nomLivre={nomLivre} livreActif={livreActif}
+                          chapitreActif={chapitreActif} userId={userId}
                           traductionLabel={traductionLabel}
                           dejaSauvegarde={sauvegardes.has(v.verset)}
                           idPrelevement={sauvegardes.get(v.verset) ?? null}
-                          onSauvegarde={(id) => marquerSauvegarde(v.verset, id)}
-                          onSupprimer={() => retirerSauvegarde(v.verset)}
+                          onSauvegarde={(id) => marquerSauvegarde(clePrelevementsCourante, v.verset, id)}
+                          onSupprimer={() => retirerSauvegarde(clePrelevementsCourante, v.verset)}
                         />
                       )}
                       <BoutonCopie texte={citationBiblique(
                         String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? ''),
                         `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`,
-                      )} />
+                      )} numero={v.verset} />
                       {!polyglotteTropEtroite && (() => { const p = placeCanoniqueDuVerset(v, livreActif, chapitreActif); return <BoutonPolyglotte href={urlPolyglotte(p.livre, p.chapitre, p.verset)} /> })()}
                       {typeof v._facsDebut899 === 'string' && (
                         <BoutonFacsimile
@@ -1034,10 +986,10 @@ export default function TexteBible({
                       survol (feuille ci-dessus). Elle ne se rend pas du tout quand elle ne
                       tient pas dans la zone de lecture : une opacité nulle déborderait
                       quand même du défileur. Voir marqueDensiteTient (compositionBible). */}
-                  {!mobile && densiteTient && densites.get(v.id_verset) && (
-                    <span className="marque-densite" title={libelleDensiteVerset(densites.get(v.id_verset)!)}
+                  {!mobile && densiteTient && densite && (
+                    <span className="marque-densite" title={libelleDensiteVerset(densite)}
                       style={styleDensiteVerset()}>
-                      {densites.get(v.id_verset)!.oeuvres}
+                      {densite.oeuvres}
                     </span>
                   )}
                 </div>
@@ -1049,7 +1001,7 @@ export default function TexteBible({
                     aria-label={`Verset ${v.verset}`}
                     onKeyDown={e => activerAuClavier(e, choisirVerset)}>
                     {!mobile && sauvegardes.has(v.verset) && (
-                      <span role="img" aria-label="Verset enregistré" title="Enregistré dans vos prélèvements" style={STYLE_SIGNET_VERSET}>
+                      <span role="img" aria-label="Verset prélevé" title="Dans mes prélèvements" style={STYLE_SIGNET_VERSET}>
                         <IconeSignet plein taille="100%" />
                       </span>
                     )}
@@ -1065,7 +1017,9 @@ export default function TexteBible({
                       TR0009 : lacune du manuscrit rendue explicitement ; marqueurs éditoriaux
                       inline (lecture incertaine, ajout marginal) rendus discrètement. Aucun
                       statut technique d'alignement n'est montré au lecteur. */}
-                  <p data-verse-text lang={ligne899 ? 'fro' : undefined} style={styleTexteVerset({ mobile })}>
+                  <p data-verse-text lang={ligne899 ? 'fro' : langueLue}
+                    onCopy={langueLue === 'la' || langueLue === 'grc' ? copierSansCesures : undefined}
+                    style={styleTexteVerset({ mobile })}>
                     {lacune ? (
                       // Verset isolé absent du témoin (chapitre par ailleurs porté). Italique
                       // de labeur, capitale initiale, teinte effacée : signalé sans peser.
@@ -1074,7 +1028,9 @@ export default function TexteBible({
                       ligne899
                         ? rendreMarqueurs899(String(v[traduction] ?? ''))
                         : rendreTexteAvecAppels(texteDuVerset(v), appelsDuVerset.groupes, (morceau) => rendreTexteEnrichi(
-                            morceau,
+                            // Les césures du latin et du grec se posent morceau par morceau,
+                            // APRÈS le placement des appels (qui se fait par offset).
+                            cesurerSelonLangue(morceau, langueLue),
                             // La traduction moderne du témoin porte ses lacunes en clair
                             // (« […] ») : elles se mettent en forme comme dans la colonne du
                             // manuscrit, sans que le reste de l'enrichissement soit touché.
@@ -1129,6 +1085,19 @@ export default function TexteBible({
         horsLasso=".verset-row, .cs-bible-bloc"
         unite={UNITE_VERSETS}
         gouttiere={GOUTTIERE_ACTIONS_VERSET}
+        dejaEnregistres={cles => numerosEnregistres(cles).length}
+        onEnregistrer={enregistrerLasso}
+        onRetirer={retirerLasso}
+        onCopier={copierLasso}
+      />
+      <LassoTactile
+        zone={refDefileur}
+        actif={lassoTactileActif}
+        contexte={`${livreActif}|${chapitreActif}|${traduction}`}
+        selecteurCibles="[data-lasso-verset]"
+        cleDe={element => element.getAttribute('data-lasso-verset')}
+        surbrillance={cle => `[data-lasso-verset="${cle}"]`}
+        unite={UNITE_VERSETS}
         dejaEnregistres={cles => numerosEnregistres(cles).length}
         onEnregistrer={enregistrerLasso}
         onRetirer={retirerLasso}

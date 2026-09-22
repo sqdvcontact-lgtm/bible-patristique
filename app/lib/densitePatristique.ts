@@ -53,7 +53,8 @@ export function encreDuCran(cran: number | null | undefined): string | undefined
 /** Ce que dit l'infobulle d'une case. ⚠️ On ne dit ni le score ni le cran : ce sont des
  *  mesures internes, et le lecteur veut savoir combien de versets sont commentés. */
 export function libelleDensiteChapitre(d: DensiteChapitre | undefined): string | undefined {
-  if (!d) return undefined
+  // ⚠️ Zéro verset commenté ne se dit pas « 1 verset » : il ne se dit pas du tout.
+  if (!d || !(d.versetsCommentes >= 1)) return undefined
   return d.versetsCommentes > 1
     ? `${d.versetsCommentes} versets commentés par les Pères`
     : '1 verset commenté par les Pères'

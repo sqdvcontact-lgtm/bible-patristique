@@ -155,7 +155,7 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       // rangée d'actions et ne paraît qu'avec elle, au survol, quand il y tient.
       texte: [
         'Au survol d’un passage, les actions apparaissent dans la marge.',
-        'Elles permettent de le conserver, de le copier ou de le signaler. Vous les retrouverez partout où le site donne à lire un texte.',
+        'Elles permettent de le prélever, de le copier ou de le signaler. Vous les retrouverez partout où le site donne à lire un texte.',
         'Quand la place le permet, un nombre les suit : celui des œuvres en ligne qui commentent le passage.',
       ],
       illustration: 'actions-verset',
@@ -167,11 +167,12 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       sujet: ['[data-visite="peres"]'],
       titre: 'Pères de l’Église',
       texte: [
-        // ⚠️ RELU LE 2026-09-21 : les filtres sont Auteur, Tradition, Genre et Période, et
-        // « Commentaires » nomme DEUX onglets, celui des Pères et celui des lecteurs.
+        // ⚠️ RELU LE 2026-09-21 : les filtres sont Auteur, Tradition, Genre et Période.
+        // ⚠️ RELU LE 2026-09-22 : l'onglet des lecteurs s'appelle « Discussion », et
+        // « Commentaires » ne nomme plus que le sous-onglet des Pères.
         'Le volet de droite rassemble les œuvres qui citent le verset choisi, le commentent ou y font écho : **Citations**, **Commentaires**, **Échos**.',
         'Vous pouvez les filtrer par auteur, par tradition, par genre ou par période.',
-        'En tête du volet, l’onglet **Commentaires** réunit ceux des lecteurs et permet d’écrire le vôtre.',
+        'En tête du volet, l’onglet **Discussion** réunit les commentaires des lecteurs et permet d’écrire le vôtre.',
       ],
       cote: 'gauche',
       scene: { volet: 'commentaires' },
@@ -180,26 +181,52 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
 }
 
 /**
- * ⚠️ LA VISITE DIT CE QUE L’ÉCRAN MONTRE, et l’en-tête ne montre pas la même chose
- * partout. Au doigt, le titre « Genèse ❧ Chapitre 1 » n’y est plus (2026-09-20, voir
- * `TexteBible`) : il ne reste que le menu des bibles. Une phrase qui nomme un titre
- * absent est une case posée sur du vide, en mots — et c’est le même défaut que celui
- * contre lequel les sujets sont donnés en repères plutôt qu’en sélecteurs.
- * ⛔ La visite ne se DUPLIQUE pas pour autant : une seule étape change, et elle change
- * ici, au même endroit que le scénario.
+ * ⚠️ LA VISITE DIT CE QUE L’ÉCRAN MONTRE, et le téléphone ne montre pas la même page.
+ * Au doigt, les trois volets sont trois ONGLETS en tête de page (« Livres », « Texte »,
+ * « Pères ») : il n’y a ni gauche ni droite, et rien ne se survole. L’accroche et
+ * quatre étapes changent donc, et elles changent ici, au même endroit que le scénario :
+ * - l’accroche, qui situait les volets à gauche et à droite ;
+ * - l’en-tête : le titre « Genèse ❧ Chapitre 1 » n’y est plus (2026-09-20, voir
+ *   `TexteBible`), il ne reste que le menu des bibles ;
+ * - le verset : ce que les Pères en disent s’ouvre dans l’onglet **Pères**, non « à
+ *   droite » ;
+ * - les actions : elles viennent d’une touche, non d’un survol, et un appui long
+ *   passe en mode lasso pour choisir plusieurs versets d’un seul geste ;
+ * - les Pères : l’étape les présente comme un onglet, non comme « le volet de droite ».
+ * ⛔ La visite ne se DUPLIQUE pas pour autant : seuls ces textes changent, le reste du
+ * scénario (sujets, scènes, ordre) est celui du bureau.
  */
+const TEXTES_AU_DOIGT: Readonly<Record<string, readonly string[]>> = {
+  entete: [
+    'Le menu indique la traduction affichée.',
+    'Il permet d’en changer sans quitter le passage.',
+  ],
+  verset: [
+    'Touchez un verset pour le choisir.',
+    'L’onglet **Pères** affiche alors ce que les Pères de l’Église en ont dit.',
+  ],
+  actions: [
+    'Touchez un verset : ses actions paraissent à côté de lui.',
+    'Elles permettent de le prélever, de le copier ou de le signaler. Vous les retrouverez partout où le site donne à lire un texte.',
+    'Un appui long sur le texte passe en mode lasso : on choisit alors plusieurs versets d’un seul geste.',
+  ],
+  peres: [
+    'Cet onglet rassemble les œuvres qui citent le verset choisi, le commentent ou y font écho : **Citations**, **Commentaires**, **Échos**.',
+    'Vous pouvez les filtrer par auteur, par tradition, par genre ou par période.',
+    'En tête de l’onglet, **Discussion** réunit les commentaires des lecteurs et permet d’écrire le vôtre.',
+  ],
+}
+
 export function visiteBibleClassiquePour(mobile: boolean): Visite {
   if (!mobile) return VISITE_BIBLE_CLASSIQUE
   return {
     ...VISITE_BIBLE_CLASSIQUE,
-    etapes: VISITE_BIBLE_CLASSIQUE.etapes.map((etape) => (etape.cle === 'entete'
-      ? {
-          ...etape,
-          texte: [
-            'Le menu indique la traduction affichée.',
-            'Il permet d’en changer sans quitter le passage.',
-          ],
-        }
-      : etape)),
+    accroche: [
+      'La page se lit en trois onglets : **Livres**, **Texte** et **Pères**.',
+    ],
+    etapes: VISITE_BIBLE_CLASSIQUE.etapes.map((etape) => {
+      const texte = TEXTES_AU_DOIGT[etape.cle]
+      return texte ? { ...etape, texte: [...texte] } : etape
+    }),
   }
 }

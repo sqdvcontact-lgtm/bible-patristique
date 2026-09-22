@@ -134,9 +134,9 @@ export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte,
               <li>Votre profil et toutes vos informations personnelles</li>
               <li>Vos essais publiés et brouillons</li>
               <li>Tous vos commentaires</li>
-              <li>Vos citations enregistrées</li>
+              <li>Vos prélèvements (passages des Pères)</li>
               <li>Votre bibliothèque et œuvres favorites</li>
-              <li>Vos versets enregistrés</li>
+              <li>Vos prélèvements bibliques (versets)</li>
               <li>Votre historique et points de rang</li>
             </ul>
             <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', marginBottom: '20px' }}>

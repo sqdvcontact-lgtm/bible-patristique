@@ -62,10 +62,8 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // avec la carte « Communauté », et quatre autres ont été remplacées quand le bronze
   // décoloré de la Patristique a cédé la place au maroquin rouge.
   'components/AccueilCards.tsx': ['#1e2e24', '#2a3d30', '#3a3125', '#3e1a17', '#4a3d2d', '#4e2823', '#5a2a26', '#6a3a31', 'rgba(10,18,8,0.30)', 'rgba(20,30,16,0.34)'],
-  'components/BibleLayout.tsx': ['#b0a088'],
   'components/Bulle.tsx': ['#6a9a7a', 'rgba(242,237,230,0.55)'],
   'components/EtoileFavori.tsx': ['#8a7a5e', '#a07028', '#c8933a'],
-  'components/LectureBilingueBible.tsx': ['#b0a088'],
   'components/ModaleCompteRequis.tsx': ['rgba(30,26,20,0.5)'],
   'components/ModaleMessagerie.tsx': ['rgba(30,26,20,0.42)', 'rgba(40,30,15,0.26)'],
   'components/ModalLienBiblique.tsx': ['#5f574d', '#8b7a5c', '#b05638', '#b07b65', 'rgba(20,25,20,0.32)'],
@@ -89,7 +87,6 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // L'or écrit en composantes de la pastille de période est parti le 2026-09-14 : le volet
   // de filtres des Pères parle l'or par jetons (`stylePastilleFiltre`).
   'components/PanneauPatristique.tsx': ['rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)'],
-  'components/TexteBible.tsx': ['#b0a088'],
   // 'compte/page.tsx' : retiré le 2026-09-01. La page unique de 978 lignes a été
   // découpée en rubriques, et ses trois teintes ont été transposées au passage :
   // #3d7a3d → --cs-vert-aplat-fonce, #c8c0b8 → --cs-texte-faible, #c8d8cc → --cs-bord.

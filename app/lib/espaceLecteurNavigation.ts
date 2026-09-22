@@ -27,7 +27,7 @@ export const PAGES_ESPACE: { cle: PageEspace; href: string; label: string }[] = 
   { cle: 'compte', href: '/compte', label: 'Mon compte' },
   { cle: 'parcours', href: '/compte/parcours', label: 'Mon parcours' },
   { cle: 'chaine', href: '/compte/chaine', label: 'Mes annotations' },
-  { cle: 'citations', href: '/compte/prelevements', label: 'Mes citations' },
+  { cle: 'citations', href: '/compte/prelevements', label: 'Mes prélèvements' },
 ]
 
 /** Une entrée du sommaire : le titre d'une section, et l'ancre où elle se trouve. */
@@ -109,7 +109,7 @@ export function pageCourante(chemin: string): PageEspace {
   return 'compte'
 }
 
-/** Le sommaire de « Mes citations » : les livres ou les auteurs qu'on a retenus, selon
+/** Le sommaire de « Mes prélèvements » : les livres ou les auteurs qu'on a retenus, selon
  *  le corpus qu'on regarde. ⚠️ Les groupes sont ceux de l'onglet COURANT, et ils sont
  *  repliables : sauter à l'un d'eux le DÉPLIE, sans quoi l'ancre mènerait à un titre
  *  fermé. */

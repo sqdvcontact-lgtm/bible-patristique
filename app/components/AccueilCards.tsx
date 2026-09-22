@@ -6,7 +6,7 @@ import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile";
 import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
-import { lirePositionBible, type PositionBible } from '@/app/lib/repriseLecture'
+import { adresseDeReprise, lirePositionBible, type PositionBible } from '@/app/lib/repriseLecture'
 import { cssServi } from "@/app/lib/cssServi";
 
 // ⛔ PLUS DE TROISIÈME CARTE (décision de l'auteur, 2026-08-31). La Communauté est
@@ -165,7 +165,9 @@ export default function AccueilCards() {
           icon={<IconBible />}
           titre="Bible"
           sousTitre="Lire et comparer les traductions"
-          reprendreHref={bible ? `/?livre=${bible.livre}&chapitre=${bible.chapitre}&trad=${bible.trad}` : undefined}
+          // ⚠️ La carte rouvre au verset retenu (`adresseDeReprise`) et dans la bible qu'on
+          // lisait : elle garde donc `trad`, que la barre, elle, laisse au serveur.
+          reprendreHref={bible ? `${adresseDeReprise(bible)}${bible.trad ? `&trad=${encodeURIComponent(bible.trad)}` : ''}` : undefined}
           reprendreLabel={bible ? `${bible.nomLivre} ${bible.chapitre}` : undefined}
         />
 

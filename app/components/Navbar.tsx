@@ -12,7 +12,7 @@ import { useCompte } from "@/app/lib/contexteCompte";
 import { CRANS_CORPS } from "@/app/lib/corpsLecture";
 import { useCorpsLecture } from "@/app/lib/useCorpsLecture";
 import { LIVRES } from "@/app/lib/bible";
-import { lirePositionBible } from "@/app/lib/repriseLecture";
+import { adresseDeReprise, lirePositionBible } from "@/app/lib/repriseLecture";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import { adresseOeuvreRecente, editionAMontrer, lireOeuvresRecentes, quandConsultee, titresAmbigus, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
 import { ligneEdition, type EditionOeuvre } from "@/app/lib/editionOeuvre";
@@ -73,7 +73,9 @@ function useHrefBibleClassique(): string {
     const place = lirePositionBible();
     if (!place) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setHref(`/?livre=${encodeURIComponent(place.livre)}&chapitre=${place.chapitre}`);
+    // Le verset en tête de fenêtre voyage avec la place : un long chapitre rouvre là
+    // où on le lisait (`adresseDeReprise`, qui n'y met jamais la bible).
+    setHref(adresseDeReprise(place));
   }, []);
   return href;
 }
@@ -1683,12 +1685,12 @@ export default function Navbar() {
           // ⚠️ La page publique vient EN PREMIER, et son nom vient de la table des
           // rubriques (app/lib/espaceLecteurNavigation.ts) : le menu et la colonne de
           // /compte la nomment donc pareil, quoi qu'il advienne de l'une ou de l'autre.
-          // Elle s'appelait « Ma page », entre « Mon compte » et « Mes citations », et
+          // Elle s'appelait « Ma page », entre « Mon compte » et « Mes prélèvements », et
           // rien ne disait qu'elle menait à ce que les autres voient.
           // ⛔ Plus de marqueur de lien sortant ni d'onglet neuf (auteur, 2026-09-22).
           ...(pagePublique ? [{ href: pagePublique.href, label: pagePublique.label, badge: 0, icone: null }] : []),
           { href: "/compte", label: "Réglages du compte", badge: 0, icone: null },
-          { href: "/compte/prelevements", label: "Mes citations", badge: 0, icone: null },
+          { href: "/compte/prelevements", label: "Mes prélèvements", badge: 0, icone: null },
           // Le lien Administration reste toujours accessible à un vrai admin, quel que
           // soit l'état de l'interrupteur d'affichage « mode utilisateur standard ».
           ...((estAdmin || estAdminEmail) ? [{ href: "/admin", label: "Administration", badge: nbActionsAdmin + nbVerifAdmin, icone: "epee" }] : []),

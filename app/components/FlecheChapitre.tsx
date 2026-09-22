@@ -54,6 +54,10 @@ const LIBELLES: Readonly<Record<SensFlecheChapitre, string>> = {
   suivant: 'Chapitre suivant',
 }
 const TOUCHES: Readonly<Record<SensFlecheChapitre, string>> = { precedent: '←', suivant: '→' }
+/** Les mêmes touches, sous le nom que leur donne `aria-keyshortcuts` (valeurs de
+ *  `KeyboardEvent.key`) : le raccourci se DIT au lecteur d'écran, et non seulement à
+ *  l'infobulle, qu'il ne lit pas. Écouté par la page (`sensDeLaTouche`, BibleLayout). */
+export const RACCOURCIS: Readonly<Record<SensFlecheChapitre, string>> = { precedent: 'ArrowLeft', suivant: 'ArrowRight' }
 
 /** Le nom accessible d'une flèche active : le geste, puis la cible. */
 export function libelleFleche(sens: SensFlecheChapitre, cible: CibleChapitre): string {
@@ -113,6 +117,7 @@ export default function FlecheChapitre({ sens, variante, cible, onAller }: Flech
       }}
       className="nav-chap-arrow cs-fleche-chapitre"
       aria-label={libelle}
+      aria-keyshortcuts={RACCOURCIS[sens]}
       title={variante === 'entete' ? `${libelle} (${TOUCHES[sens]})` : undefined}
       style={style}
     >

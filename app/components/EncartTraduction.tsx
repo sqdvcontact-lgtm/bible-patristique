@@ -99,10 +99,14 @@
 
 import { useState, type ReactNode } from 'react'
 import { libelleEditionTraduction } from '@/app/lib/editionTraduction'
-import ModaleTraduction from '@/app/components/ModaleTraduction'
+import dynamic from 'next/dynamic'
 import NomVolet from '@/app/components/NomVolet'
 import IconeChevron from '@/app/components/IconeChevron'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
+
+// ⛔ La fiche ne se charge qu'au CLIC (2026-09-22) : elle tire la chronologie, les ouvrages
+// cités et l'assainisseur de notices, que la lecture n'a pas à payer tant qu'on ne l'ouvre pas.
+const ModaleTraduction = dynamic(() => import('@/app/components/ModaleTraduction'), { ssr: false })
 
 export type TraductionEncart = {
   code: string

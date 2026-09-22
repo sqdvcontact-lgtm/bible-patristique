@@ -80,7 +80,7 @@ function RangeeBible({ label, premiere, onChoisir }: {
 }
 
 export default function ModaleLivreAbsent({
-  nomLivre, nomTraduction, propositions, onChoisir, onFermer,
+  nomLivre, nomTraduction, propositions, erreur = false, onChoisir, onFermer,
 }: {
   nomLivre: string
   /** La bible qu'on lit, nommée : « la Bible Fillion ne donne pas ce livre ». */
@@ -92,6 +92,11 @@ export default function ModaleLivreAbsent({
    * n'ouvre rien pendant une requête est le défaut qu'on vient de corriger.
    */
   propositions: readonly TraductionProposee[] | null
+  /**
+   * La recherche a ÉCHOUÉ sans rien trouver. ⛔ Ce n'est pas une liste vide : on ne dit
+   * pas qu'aucune bible ne porte le livre quand on n'a pas pu le savoir.
+   */
+  erreur?: boolean
   onChoisir: (code: string) => void
   onFermer: () => void
 }) {
@@ -134,7 +139,11 @@ export default function ModaleLivreAbsent({
           qu’elle est publiée ici.
         </p>
 
-        {propositions === null ? (
+        {erreur && (propositions === null || propositions.length === 0) ? (
+          <p role="status" style={{ fontSize: '0.75rem', color: 'var(--cs-texte-second)', lineHeight: 1.6, margin: '12px 0 0' }}>
+            Les autres bibles n’ont pas pu être consultées. Réessayez dans un instant.
+          </p>
+        ) : propositions === null ? (
           <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', margin: '14px 0 0' }}>
             Recherche des bibles qui le donnent…
           </p>

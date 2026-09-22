@@ -1,7 +1,7 @@
 /**
  * L'EXTRACTION DES CITATIONS d'un lecteur — la route qui compose le recueil et le dépose.
  *
- * Elle reçoit ce que la page « Mes citations » a composé (voir `extractionCitations.ts`),
+ * Elle reçoit ce que la page « Mes prélèvements » a composé (voir `extractionCitations.ts`),
  * le borne, le met en page (`documentCitations.ts`) et rend le `.docx`.
  *
  * ⛔ ELLE EXIGE UNE SESSION : un lecteur n'extrait que ses propres citations, et une route
@@ -23,7 +23,7 @@ export const runtime = 'nodejs'
 export async function POST(request: NextRequest) {
   const supabase = await creerSupabaseServeur()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Connectez-vous pour extraire vos citations.' }, { status: 401 })
+  if (!user) return NextResponse.json({ error: 'Connectez-vous pour extraire vos prélèvements.' }, { status: 401 })
 
   const corps = await request.text()
   if (corps.length > OCTETS_MAX_DEMANDE) {
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     blocs: composerRecueilCitations(demande, dateIso),
   })
 
-  const nom = nomDuFichier('Mes citations', dateDuRecueil(dateIso), 'docx')
+  const nom = nomDuFichier('Mes prélèvements', dateDuRecueil(dateIso), 'docx')
   return new NextResponse(new Uint8Array(document), {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

@@ -5,6 +5,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { blocsSansAncreDemandes } from './bibleFrontMatter'
 import {
   chargerPieceLiminaire as chargerPieceLiminaireBase,
+  COLONNES_BLOC,
   isMissingBibleEditionRelation,
   loadBibleEditionChapter as loadBibleEditionChapterBase,
   type BibleEditionBodyBlockRow,
@@ -52,10 +53,26 @@ export async function loadBibleEditionChapter(
   client: SupabaseClient,
   options: OptionsChapitreEdition,
 ): Promise<BibleEditionChapterPayload> {
+  const includeBookFrontMatter = options.includeBookFrontMatter === true
+  const includeBookBackMatter = options.includeBookBackMatter === true
   const ciblesPromise = chargerCiblesDeGloses(client, options.familyId, options.canonIds)
-  const [baseBrute, cibles] = await Promise.all([
+  // ⚠️ La descendance des liminaires part DANS LA MÊME VAGUE que la base (2026-09-22) :
+  // elle ne dépend que de la famille et du livre, et l'attendre derrière la base ajoutait
+  // un aller-retour à chaque premier chapitre. `COLONNES_BLOC` et non `*` : la vue porte
+  // dix-huit colonnes de travail que ni le tri ni la pièce ne lisent.
+  const liminairesPromise = (includeBookFrontMatter || includeBookBackMatter)
+    ? Promise.resolve(client
+      .from('v_bible_editorial_body_blocks')
+      .select(COLONNES_BLOC)
+      .eq('family_id', options.familyId)
+      .eq('scope_book_code', options.bookCode)
+      .is('canon_order_start', null)
+      .order('material_order'))
+    : null
+  const [baseBrute, cibles, liminaires] = await Promise.all([
     loadBibleEditionChapterBase(client, options),
     ciblesPromise,
+    liminairesPromise,
   ])
   const base: BibleEditionChapterPayload = cibles.length === 0
     ? baseBrute
@@ -64,17 +81,8 @@ export async function loadBibleEditionChapter(
         notes: retargeterNotesVersGloses(baseBrute.notes, cibles),
       }
 
-  const includeBookFrontMatter = options.includeBookFrontMatter === true
-  const includeBookBackMatter = options.includeBookBackMatter === true
-  if (!includeBookFrontMatter && !includeBookBackMatter) return base
-
-  const { data, error } = await client
-    .from('v_bible_editorial_body_blocks')
-    .select('*')
-    .eq('family_id', options.familyId)
-    .eq('scope_book_code', options.bookCode)
-    .is('canon_order_start', null)
-    .order('material_order')
+  if (!liminaires) return base
+  const { data, error } = liminaires
 
   if (isMissingBibleEditionRelation(error)) return base
   if (error) throw new Error(`Descendance des liminaires du livre illisible : ${error.message}`)

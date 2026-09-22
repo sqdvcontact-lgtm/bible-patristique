@@ -33,8 +33,13 @@ describe('le petit fleuron d’un état vide', () => {
   it('⛔ ne suit que « Aucune occurrence » dans le volet des Pères, jamais un filtre qui vide la liste', () => {
     const panneau = readFileSync(join(process.cwd(), 'app/components/PanneauPatristique.tsx'), 'utf8')
     expect(panneau).toContain('{itemsAffiches.length === 0 && <FleuronDiscret />}')
-    expect(panneau).toContain('<FleuronDiscret vide="commentaires" />')
-    expect(panneau.match(/<FleuronDiscret/g) ?? []).toHaveLength(2)
+    expect(panneau.match(/<FleuronDiscret/g) ?? []).toHaveLength(1)
+    // La discussion des lecteurs vit depuis le 2026-09-22 dans son propre onglet : c'est
+    // lui qui ferme « Aucun commentaire. » par le fleuron des commentaires, et lui seul.
+    const discussion = readFileSync(join(process.cwd(), 'app/components/OngletCommentaires.tsx'), 'utf8')
+    expect(discussion).toContain('<FleuronDiscret vide="commentaires" />')
+    expect(discussion.match(/<FleuronDiscret/g) ?? []).toHaveLength(1)
+    expect(panneau).toContain("const OngletCommentaires = dynamic(() => import('@/app/components/OngletCommentaires'))")
   })
 
   it('⛔ chaque vide prend un fleuron du registre, servi au double de sa pose au plus', () => {
@@ -50,6 +55,7 @@ describe('le petit fleuron d’un état vide', () => {
   it('⛔ plus aucune gravure d’état vide : chaque vide pose son fleuron', () => {
     const poses: [string, string][] = [
       ['app/oeuvre/[id]/OngletCommentaires.tsx', 'commentaires'],
+      ['app/components/OngletCommentaires.tsx', 'commentaires'],
       ['app/oeuvre/[id]/OeuvreClient.tsx', 'liensBibliques'],
       ['app/recherche/RechercheClient.tsx', 'recherche'],
       ['app/polyglotte/page.tsx', 'polyglotte'],

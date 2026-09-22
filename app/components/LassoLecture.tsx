@@ -42,9 +42,15 @@ import {
   memesCles, peutOuvrirLeLasso, rectangleEntre, surUneBarreDeDefilement, traceVisible,
   vitesseDeDefilement, type CibleMesuree, type Point, type Rect,
 } from '@/app/lib/lasso'
-import { libelleResultat, libelleSelection } from '@/app/lib/selectionPassages'
+import { compter, libelleSelection } from '@/app/lib/selectionPassages'
 
 type Action = 'enregistrer' | 'retirer' | 'copier'
+
+/** « 7 versets prélevés », « 1 passage retiré » : le vocabulaire du site est celui des
+ *  PRÉLÈVEMENTS (décision de l'auteur, 2026-09-22). */
+export function libelleAction(nombre: number, unite: readonly [string, string], participe: 'prélevé' | 'retiré'): string {
+  return `${compter(nombre, unite)} ${participe}${nombre > 1 ? 's' : ''}`
+}
 
 /**
  * Ce qu'un refus dit au lecteur : un cri, et de quoi le comprendre.
@@ -224,7 +230,7 @@ export default function LassoLecture(props: LassoLectureProps) {
       } else {
         const faits = action === 'enregistrer' ? await props.onEnregistrer(cles) : await props.onRetirer(cles)
         if (faits !== null) {
-          setMessage({ texte: libelleResultat(faits, unite, action === 'enregistrer' ? 'enregistre' : 'retire'), erreur: false })
+          setMessage({ texte: libelleAction(faits, unite, action === 'enregistrer' ? 'prélevé' : 'retiré'), erreur: false })
         }
       }
     } catch (erreur) {
@@ -548,14 +554,14 @@ export default function LassoLecture(props: LassoLectureProps) {
               <button type="button" className="cs-lasso-action cs-lasso-action--principale"
                 disabled={enCours !== null} onClick={() => void executer('enregistrer')}
                 title={deja > 0
-                  ? 'Enregistrer dans mes citations les ' + aEnregistrer + ' qui ne le sont pas'
-                  : 'Enregistrer dans mes citations'}>
-                {enCours === 'enregistrer' ? 'Enregistrement…' : 'Enregistrer'}
+                  ? 'Ajouter à mes prélèvements les ' + aEnregistrer + ' qui n’y sont pas'
+                  : 'Ajouter à mes prélèvements'}>
+                {enCours === 'enregistrer' ? 'Prélèvement…' : 'Prélever'}
               </button>
             )}
             {!refus && deja > 0 && (
               <button type="button" className="cs-lasso-action" disabled={enCours !== null}
-                onClick={() => void executer('retirer')} title="Retirer de mes citations">
+                onClick={() => void executer('retirer')} title="Retirer de mes prélèvements">
                 {enCours === 'retirer' ? 'Retrait…' : 'Retirer'}
               </button>
             )}

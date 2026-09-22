@@ -240,7 +240,9 @@ function CelluleAncree<K, D>({
     if (r.bottom < 0 || r.top > window.innerHeight) { onFermer(); return }
 
     const espace: EspaceCellule = {
-      droite: window.innerWidth,
+      // ⚠️ La largeur de MISE EN PAGE, sans la barre de défilement : une boîte fixe compte
+      // son bord droit sans elle, et `innerWidth` la faisait déborder de quinze pixels.
+      droite: document.documentElement.clientWidth,
       sommet: ancre.sommet ?? hauteurNavbarPx(),
       // ⚠️ Le PIED borne TOUTES les branches, non le seul troisième côté : la cellule
       // passe sous le chrome fixe d’une page depuis que `Z_FLOTTANT` est sous

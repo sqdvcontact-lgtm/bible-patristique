@@ -1,6 +1,6 @@
 import { permanentRedirect } from 'next/navigation'
 
-// « Mes citations » a rejoint l'espace du lecteur le 7 septembre 2026.
+// « Mes prélèvements » (naguère « Mes citations ») a rejoint l'espace du lecteur le 7 septembre 2026.
 //
 // ⛔ `permanentRedirect` (308), jamais `redirect` (307) : le déplacement est DÉFINITIF,
 // et seul le permanent transmet les signaux d'une adresse à l'autre. Trois déplacements

@@ -70,15 +70,18 @@ export function estLivreOuvrable(code: string, table: ChapitresParLivre | null):
   return table === null || (table[code] ?? 0) > 0
 }
 
-let promesse: Promise<LigneLivreLisible[]> | null = null
+let promesse: Promise<LigneLivreLisible[] | null> | null = null
 
 /**
  * Une seule lecture pour tout le site : la promesse est retenue, et les deux volets qui
- * en ont besoin la partagent. ⚠️ Un échec est JOURNALISÉ et rend une table vide, jamais
- * une exception : le volet retombe alors sur le repli, et la navigation tient.
- * ⛔ L'échec n'est pas retenu : la fois suivante réessaie.
+ * en ont besoin la partagent. ⚠️ Un échec est JOURNALISÉ et rend `null`, jamais une
+ * exception : le volet retombe alors sur le repli, et la navigation tient.
+ * ⛔ Pas une liste VIDE (corrigé le 2026-09-22) : une table vide dit « aucun livre n'a de
+ * chapitre », si bien que `estLivreOuvrable` retirait TOUS les livres du volet, qui
+ * annonçait « Aucun résultat ». `null` dit « on ne sait pas », et l'on ne retire rien.
+ * ⛔ L'échec n'est pas retenu : le montage suivant réessaie.
  */
-export function chargerLivresLisibles(client: LecteurCanon): Promise<LigneLivreLisible[]> {
+export function chargerLivresLisibles(client: LecteurCanon): Promise<LigneLivreLisible[] | null> {
   if (promesse) return promesse
   // ⚠️ `livres_lisibles`, non plus `livres_canon` (2026-09-06) : la première ajoute à
   // l'ossature les écrits que le canon ne reçoit pas et que la Septante porte pourtant —
@@ -86,14 +89,20 @@ export function chargerLivresLisibles(client: LecteurCanon): Promise<LigneLivreL
   // canonique, et c'est cette colonne qui porte la marque affichée à côté du nom.
   promesse = Promise.resolve(client.from('livres_lisibles').select('code, chapitres, canonique'))
     .then(({ data, error }) => {
-      if (error) { console.error('Le compte des chapitres n’a pas pu être lu.', error); promesse = null; return [] }
+      if (error) { console.error('Le compte des chapitres n’a pas pu être lu.', error); promesse = null; return null }
       return data ?? []
+    }, (erreur: unknown) => {
+      console.error('Le compte des chapitres n’a pas pu être lu.', erreur)
+      promesse = null
+      return null
     })
   return promesse
 }
 
-export function chargerChapitresParLivre(client: LecteurCanon): Promise<ChapitresParLivre> {
+/** La table des chapitres, ou `null` quand elle n'a pas pu être lue (repli). */
+export function chargerChapitresParLivre(client: LecteurCanon): Promise<ChapitresParLivre | null> {
   return chargerLivresLisibles(client).then(lignes => {
+    if (lignes === null) return null
     const table: ChapitresParLivre = {}
     for (const ligne of lignes) table[ligne.code] = ligne.chapitres
     return table

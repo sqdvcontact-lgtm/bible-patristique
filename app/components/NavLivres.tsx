@@ -20,6 +20,7 @@ import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigat
 import { OPTION_VOLET, RUBRIQUE_AXE, styleEntreeListeVolet } from '@/app/lib/stylesVoletLecture'
 import { chargerChapitresParLivre, estLivreOuvrable, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
 import { supabase } from '@/app/lib/supabase'
+import { analyserRechercheVolet, libellePassage } from '@/app/lib/rechercheVoletLivres'
 import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
@@ -32,75 +33,11 @@ import { useFenetreModale } from '@/app/lib/useFenetreModale'
 // ⛔ LE NOMBRE DE CHAPITRES NE S'ÉCRIT PLUS ICI. Il venait d'une table à la main qui
 // ignorait les deutérocanoniques — le Siracide s'y offrait à UN chapitre pour 51 — et
 // qui avait dérivé sur ceux qu'elle portait. Il vient de l'ossature (`chapitresCanon`).
+// ⛔ LA TABLE DES ABRÉVIATIONS NON PLUS (2026-09-22) : la recherche lit une référence
+// par la grammaire commune du site (`rechercheVoletLivres`), sur `LIVRES` et `ABREV_FR`.
 
-const ABREV_TO_CODE: Record<string, string> = {
-  gn:'GEN',gen:'GEN',genese:'GEN',
-  ex:'EXO',exo:'EXO',exode:'EXO',
-  lv:'LEV',lev:'LEV',levitique:'LEV',
-  nb:'NUM',num:'NUM',nombres:'NUM',
-  dt:'DEU',deu:'DEU',deuteronome:'DEU',
-  jos:'JOS',josue:'JOS',
-  jg:'JDG',jdg:'JDG',juges:'JDG',
-  rt:'RUT',rut:'RUT',ruth:'RUT',
-  '1s':'1SA','1sa':'1SA','1samuel':'1SA',
-  '2s':'2SA','2sa':'2SA','2samuel':'2SA',
-  '1r':'1KI','1ki':'1KI','1rois':'1KI',
-  '2r':'2KI','2ki':'2KI','2rois':'2KI',
-  '1ch':'1CH','1chr':'1CH','1chroniques':'1CH',
-  '2ch':'2CH','2chr':'2CH','2chroniques':'2CH',
-  esd:'EZR',ezr:'EZR',esdras:'EZR',
-  ne:'NEH',neh:'NEH',nehemie:'NEH',
-  est:'EST',esther:'EST',
-  jb:'JOB',job:'JOB',
-  ps:'PSA',psa:'PSA',psaume:'PSA',psaumes:'PSA',
-  pr:'PRO',pro:'PRO',proverbes:'PRO',
-  qo:'ECC',ecc:'ECC',ecclesiaste:'ECC',
-  ct:'SNG',sng:'SNG',cantique:'SNG',
-  is:'ISA',isa:'ISA',isaie:'ISA',
-  jr:'JER',jer:'JER',jeremie:'JER',
-  lm:'LAM',lam:'LAM',lamentations:'LAM',
-  ez:'EZK',ezk:'EZK',ezechiel:'EZK',
-  dn:'DAN',dan:'DAN',daniel:'DAN',
-  os:'HOS',hos:'HOS',osee:'HOS',
-  jl:'JOL',jol:'JOL',joel:'JOL',
-  am:'AMO',amo:'AMO',amos:'AMO',
-  ab:'OBA',oba:'OBA',abdias:'OBA',
-  jon:'JON',jonas:'JON',
-  mi:'MIC',mic:'MIC',michee:'MIC',
-  na:'NAM',nam:'NAM',nahum:'NAM',
-  ha:'HAB',hab:'HAB',habacuc:'HAB',
-  so:'ZEP',zep:'ZEP',sophonie:'ZEP',
-  ag:'HAG',hag:'HAG',aggee:'HAG',
-  za:'ZEC',zec:'ZEC',zacharie:'ZEC',
-  ml:'MAL',mal:'MAL',malachie:'MAL',
-  mt:'MAT',mat:'MAT',matthieu:'MAT',
-  mc:'MRK',mrk:'MRK',marc:'MRK',
-  lc:'LUK',luk:'LUK',luc:'LUK',
-  jn:'JHN',jhn:'JHN',jean:'JHN',
-  ac:'ACT',act:'ACT',actes:'ACT',
-  rm:'ROM',rom:'ROM',romains:'ROM',
-  '1co':'1CO','1cor':'1CO','1corinthiens':'1CO',
-  '2co':'2CO','2cor':'2CO','2corinthiens':'2CO',
-  ga:'GAL',gal:'GAL',galates:'GAL',
-  ep:'EPH',eph:'EPH',ephesiens:'EPH',
-  ph:'PHP',php:'PHP',philippiens:'PHP',
-  col:'COL',colossiens:'COL',
-  '1th':'1TH','1thess':'1TH','1thessaloniciens':'1TH',
-  '2th':'2TH','2thess':'2TH','2thessaloniciens':'2TH',
-  '1tm':'1TI','1ti':'1TI','1timothee':'1TI',
-  '2tm':'2TI','2ti':'2TI','2timothee':'2TI',
-  tt:'TIT',tit:'TIT',tite:'TIT',
-  phm:'PHM',philemon:'PHM',
-  he:'HEB',heb:'HEB',hebreux:'HEB',
-  jc:'JAS',jas:'JAS',jacques:'JAS',
-  '1p':'1PE','1pe':'1PE','1pierre':'1PE',
-  '2p':'2PE','2pe':'2PE','2pierre':'2PE',
-  '1jn':'1JN','1jean':'1JN',
-  '2jn':'2JN','2jean':'2JN',
-  '3jn':'3JN','3jean':'3JN',
-  jude:'JUD',jud:'JUD',
-  ap:'REV',rev:'REV',apocalypse:'REV',
-}
+/** Aucune densité connue : une seule carte vide, pour ne pas en fabriquer une par rendu. */
+const DENSITES_VIDES: ReadonlyMap<number, DensiteChapitre> = new Map()
 
 type Livre = { code: string; nom: string; testament: string }
 // Le type vit auprès de la carte qui le rend ; une seule déclaration pour les deux.
@@ -179,31 +116,6 @@ type Props = {
 // Le type vit auprès du composant qui le rend ; il se réexporte ici, où
 // `BibleLayout` l'a toujours trouvé.
 export type { PieceSommaireBible }
-
-/**
- * Parse "ex 20 20", "ex 20, 20", "Exode 20:20", "1Co 3 1"…
- * Retourne { code, chapitre, verset } ou null.
- */
-function parseRefBiblique(saisie: string): { code: string; chapitre: number; verset: number } | null {
-  const norm = saisie.trim()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[,.:;]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-
-  // Extraire les deux derniers nombres
-  const m = norm.match(/^(.+?)\s+(\d{1,3})\s+(\d{1,3})$/)
-  if (!m) return null
-
-  const livreRaw = m[1].replace(/\s+/g, '')
-  const chapitre = parseInt(m[2])
-  const verset   = parseInt(m[3])
-  const code     = ABREV_TO_CODE[livreRaw]
-  if (!code || chapitre < 1 || verset < 1) return null
-
-  return { code, chapitre, verset }
-}
 
 export default function NavLivres({
   livres, livreActif, chapitreActif,
@@ -301,34 +213,6 @@ export default function NavLivres({
   const naviguer = useNaviguer()
 
   const tradCode = traductions[traductionIndex]?.code ?? 'TR0001'
-  const refParsee = parseRefBiblique(recherche)
-
-  // ── La densité patristique du livre OUVERT ─────────────────────────────────
-  // ⚠️ Elle ne se charge que pour le livre dont on regarde les chapitres : c'est le
-  // seul dont on voie les cases, et la table de tout le canon ferait 1 217 lignes pour
-  // en montrer cinquante. Le module garde ce qu'il a lu, si bien qu'y revenir ne coûte
-  // rien. ⛔ Un échec ne fait rien tomber : la teinte est un ornement de lecture.
-  const [densites, setDensites] = useState<Map<number, DensiteChapitre>>(new Map())
-  const livreDesCases = livreOuvert ?? (refParsee?.code ?? null)
-  useEffect(() => {
-    if (!livreDesCases || sansChapitres) { setDensites(new Map()); return }
-    let vivant = true
-    void chargerDensiteLivre(supabase, livreDesCases).then(t => { if (vivant) setDensites(t) })
-    return () => { vivant = false }
-  }, [livreDesCases, sansChapitres])
-
-  // Si ref parsée : filtrer ne fait rien (on affiche tout pour voir le livre suggéré)
-  // Recherche par D\u00c9BUT DE MOT, non par sous-cha\u00eene : \u00ab Ps \u00bb trouve \u00ab Psaumes \u00bb (un mot
-  // qui commence par Ps), jamais \u00ab Apocalypse \u00bb (ps au milieu). On teste chaque mot du nom,
-  // les mots \u00e9tant coup\u00e9s aux espaces, apostrophes et traits d'union.
-  const filtrer = (liste: Livre[]) => {
-    if (!recherche.trim() || refParsee) return liste
-    const q = recherche.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
-    return liste.filter(l => l.nom.toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .split(/[\s'\u2019-]+/)
-      .some(mot => mot.startsWith(q)))
-  }
 
   // ⛔ UN LIVRE QUE L'OSSATURE NE PORTE PAS NE SE LISTE PAS (décision de l'auteur,
   // 2026-09-04, sur « Esther (grec) » : « ça doit disparaître »). Le tableau se compose
@@ -337,9 +221,56 @@ export default function NavLivres({
   // non canoniques encore à charger, dont la rubrique disparaît faute d'entrées.
   // ⚠️ Tant que l'ossature n'a pas répondu, on ne retire rien : voir `estLivreOuvrable`.
   const offrables = livres.filter(l => estLivreOuvrable(l.code, chapitres))
+
+  // ── Ce que la recherche désigne ────────────────────────────────────────────
+  // ⛔ La grammaire est celle de tout le site (`rechercheVoletLivres`, qui délègue à
+  // `analyserRequetePericope`) : « Jean 3 », « Ps 23 », « Jn 3, 16 », « Jn 3:16 »,
+  // « Jn 3, 16-18 », les deutérocanoniques (« Si 24 », « 1 M 2 »), accents et casse
+  // ignorés. Une référence complète donne UN résultat, le passage ; un nom commencé
+  // donne les livres qu'il commence ; une référence hors des bornes (« Ps 200 ») ne
+  // mène nulle part et le dit.
+  const analyse = analyserRechercheVolet(recherche, offrables, chapitres)
+  const refParsee = analyse.genre === 'passage' ? analyse : null
+  const refHorsBornes = analyse.genre === 'hors-bornes' ? analyse : null
+  const referenceReconnue = refParsee !== null || refHorsBornes !== null
+  const nomDuLivre = (code: string) => livres.find(l => l.code === code)?.nom ?? code
+
+  // ── La densité patristique du livre OUVERT ─────────────────────────────────
+  // ⚠️ Elle ne se charge que pour le livre dont on regarde les chapitres : c'est le
+  // seul dont on voie les cases, et la table de tout le canon ferait 1 217 lignes pour
+  // en montrer cinquante. Le module garde ce qu'il a lu, si bien qu'y revenir ne coûte
+  // rien. ⛔ Un échec ne fait rien tomber : la teinte est un ornement de lecture.
+  // ⛔ La table est retenue AVEC le livre auquel elle appartient, et la densité montrée
+  // se DÉDUIT : rien ne se remet à zéro dans le corps de l'effet (2026-09-22).
+  const [densitesLues, setDensitesLues] = useState<{ pour: string; table: Map<number, DensiteChapitre> } | null>(null)
+  const livreDesCases = sansChapitres ? null : (livreOuvert ?? (refParsee?.code ?? null))
+  const densites = livreDesCases && densitesLues?.pour === livreDesCases ? densitesLues.table : DENSITES_VIDES
+  useEffect(() => {
+    if (!livreDesCases) return
+    let vivant = true
+    void chargerDensiteLivre(supabase, livreDesCases).then(t => { if (vivant) setDensitesLues({ pour: livreDesCases, table: t }) })
+    return () => { vivant = false }
+  }, [livreDesCases])
+
+  // Une référence reconnue remplace la liste ; un nom commencé la restreint aux livres
+  // qu'il commence (mot par mot : « Ps » trouve « Psaumes », jamais « Apocalypse »).
+  const filtrer = (liste: Livre[]) => {
+    if (analyse.genre !== 'livres') return liste
+    return liste.filter(l => analyse.codes.has(l.code))
+  }
   const AT = filtrer(offrables.filter(l => l.testament === 'AT'))
   const NT = filtrer(offrables.filter(l => l.testament === 'NT'))
   const AUTRES = filtrer(offrables.filter(l => l.testament === 'AUTRES'))
+
+  // ⚠️ Le défilement se rend à l'image suivante ; l'image se retire au démontage et quand
+  // un nouveau clic la remplace, sans quoi elle écrirait dans un volet déjà parti.
+  const imageDefilementRef = useRef<number | null>(null)
+  // Un glissement de la poignée en cours : ses écouteurs se retirent au démontage.
+  const finGlissementRef = useRef<(() => void) | null>(null)
+  useEffect(() => () => {
+    if (imageDefilementRef.current !== null) cancelAnimationFrame(imageDefilementRef.current)
+    finGlissementRef.current?.()
+  }, [])
 
   const handleLivre = (code: string) => {
     // Un livre grisé n'ouvre pas ses chapitres : il DIT pourquoi, et où le lire.
@@ -364,7 +295,9 @@ export default function NavLivres({
       setLivreOuvert(code)
       if (!sansChapitres && nombreDeChapitres(code, chapitres) === 1) handleChapitre(code, 1)
     }
-    requestAnimationFrame(() => {
+    if (imageDefilementRef.current !== null) cancelAnimationFrame(imageDefilementRef.current)
+    imageDefilementRef.current = requestAnimationFrame(() => {
+      imageDefilementRef.current = null
       if (scrollRef.current) scrollRef.current.scrollTop = pos
     })
   }
@@ -380,22 +313,39 @@ export default function NavLivres({
     naviguer(urlLectureBible({ ...maniereDeLire, livre: code, chapitre: ch, trad: tradCode }))
   }
 
-  // Navigation vers ref parsée :
-  // 1. Ouvre le livre dans le nav (déplie les chapitres)
-  // 2. Navigue vers le chapitre avec le verset ciblé dans l'URL (?verset=N)
-  //    TexteBible scrollera jusqu'à lui et l'affichera en surbrillance
+  // Aller au passage reconnu :
+  // 1. Ouvre le livre dans le volet (déplie ses chapitres) ;
+  // 2. Navigue vers le chapitre, et vers le PREMIER verset d'une plage (?verset=N),
+  //    que TexteBible fait défiler et met en évidence.
   const appliquerRefParsee = () => {
     if (!refParsee) return
+    // Un livre absent de la bible lue ne s'ouvre pas : il dit où le lire.
+    if (livresVides?.has(refParsee.code)) { handleLivre(refParsee.code); return }
     setLivreOuvert(refParsee.code)
     setLivreActifLocal(refParsee.code)
     setChapitreActifLocal(refParsee.chapitre)
     setRecherche('')
-    // Polyglotte : cibler le verset sur place, sans changer de page.
-    if (onChoisirVerset) { onChoisirVerset(refParsee.code, refParsee.chapitre, refParsee.verset); return }
+    if (mobile) setOuvert(false)
+    // Polyglotte : cibler le verset (ou le chapitre) sur place, sans changer de page.
+    if (refParsee.verset == null) {
+      if (onChoisirChapitre) { onChoisirChapitre(refParsee.code, refParsee.chapitre); return }
+    } else if (onChoisirVerset) { onChoisirVerset(refParsee.code, refParsee.chapitre, refParsee.verset); return }
     // La lecture en regard tombe d'elle-même (`urlLectureBible`) : viser un verset
     // précis suppose de pouvoir le désigner, ce que les deux colonnes ne font pas. Le
     // lecteur retrouve donc la colonne unique, qui sait mettre le verset en évidence.
-    naviguer(urlLectureBible({ ...maniereDeLire, livre: refParsee.code, chapitre: refParsee.chapitre, trad: tradCode, verset: refParsee.verset }))
+    naviguer(urlLectureBible({
+      ...maniereDeLire, livre: refParsee.code, chapitre: refParsee.chapitre, trad: tradCode,
+      ...(refParsee.verset != null ? { verset: refParsee.verset } : null),
+    }))
+  }
+
+  // Entrée : le passage reconnu, ou le seul livre que la saisie désigne.
+  const validerRecherche = () => {
+    if (refParsee) { appliquerRefParsee(); return }
+    if (analyse.genre === 'livres' && analyse.codes.size === 1) {
+      const [code] = analyse.codes
+      if (livreOuvert !== code) handleLivre(code)
+    }
   }
 
   const renderLivre = (livre: Livre) => {
@@ -416,6 +366,9 @@ export default function NavLivres({
       <div key={livre.code}>
         <button onClick={() => handleLivre(livre.code)}
           title={vide ? 'Absent de cette traduction — voir où le lire' : undefined}
+          // Le bouton déplie la grille des chapitres : il le dit. Un livre grisé, ou sans
+          // grille (la Polyglotte sans chapitres), n'a rien à déplier.
+          aria-expanded={!vide && !sansChapitres ? montrerOptions : undefined}
           style={{
           // ⛔ La typographie de l'entrée vient de `styleEntreeListeVolet`, que le sommaire de
           // l'édition lit aussi : « Genèse » et « Avant-propos » ne se composent plus de deux
@@ -482,8 +435,15 @@ export default function NavLivres({
                      la suggestion de recherche gardent leurs accents, qui répondent à une
                      autre question — où je suis, où l'on me propose d'aller. */
                   title={libelleDensiteChapitre(densites.get(ch))}
+                  // Une case ne dit qu'un chiffre : son nom accessible dit « Chapitre 3 », et
+                  // la densité quand elle est connue. Le chapitre lu porte `aria-current`.
+                  aria-label={[`Chapitre ${ch}`, libelleDensiteChapitre(densites.get(ch))].filter(Boolean).join(', ')}
+                  aria-current={actif && chapitreActifLocal === ch ? 'page' : undefined}
+                  // ⚠️ Le corps du chiffre vit dans la feuille (`.cs-case-chapitre`) : au doigt,
+                  // la case grandit et le chiffre avec elle, ce qu'un style en ligne battrait.
+                  className="cs-case-chapitre"
                   style={{
-                  fontSize: '0.6875rem', height: 'var(--volet-case)', borderRadius: '4px',
+                  height: 'var(--volet-case)', borderRadius: '4px',
                   border: estChapSuggere ? '1px solid var(--cs-vert)' : 'none',
                   cursor: 'pointer', padding: 0,
                   /* Cases plus petites, gris léger au repos (le vert reste l'accent du
@@ -540,9 +500,17 @@ export default function NavLivres({
     const startW = panelWidth ?? refPanel.current?.getBoundingClientRect().width ?? 220
     const startX = e.clientX
     const onMove = (ev: MouseEvent) => onWidthChange(Math.max(120, Math.min(400, startW + ev.clientX - startX)))
-    const onUp = () => document.removeEventListener('mousemove', onMove)
+    // ⚠️ La fin du glissement retire les DEUX écouteurs, et elle est retenue : un volet
+    // démonté pendant qu'on glisse les retire aussi (effet de démontage, plus haut).
+    finGlissementRef.current?.()
+    const finir = () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', finir)
+      if (finGlissementRef.current === finir) finGlissementRef.current = null
+    }
+    finGlissementRef.current = finir
     document.addEventListener('mousemove', onMove)
-    document.addEventListener('mouseup', onUp, { once: true })
+    document.addEventListener('mouseup', finir)
   }
 
   return (
@@ -744,13 +712,13 @@ export default function NavLivres({
          Il est posé sur la RANGÉE et non sur le champ : la case de la visite cerne le
          bloc tel qu'il se voit, gouttières comprises, et non la boîte de saisie. */
       <div data-visite="recherche-livre" style={{ flexShrink: 0, borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center' }}>
-        <input aria-label="Rechercher un livre biblique"
+        <input aria-label="Livre ou référence biblique"
           type="text"
           className="cs-volet-recherche"
-          placeholder="Rechercher un livre biblique"
+          placeholder="Livre ou référence (Jn 3, 16)"
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && refParsee) appliquerRefParsee() }}
+          onKeyDown={e => { if (e.key === 'Enter') validerRecherche() }}
           style={{ flex: 1, minWidth: 0, fontSize: '0.8125rem', padding: 'calc(var(--volet-air) + 2px) var(--volet-gouttiere) var(--volet-air)', color: 'var(--cs-texte)', boxSizing: 'border-box' }}
         />
       </div>
@@ -789,10 +757,21 @@ export default function NavLivres({
             background: 'rgba(var(--cs-vert-rgb),0.10)', border: '1px solid rgba(var(--cs-vert-rgb),0.25)',
             color: 'var(--cs-encre)', cursor: 'pointer', lineHeight: 1.5, boxSizing: 'border-box',
           }}>
-            ↳ {livres.find(l => l.code === refParsee.code)?.nom ?? refParsee.code}
-            {' · ch.'} {refParsee.chapitre} · v. {refParsee.verset}
+            ↳ {libellePassage(nomDuLivre(refParsee.code), refParsee.chapitre, refParsee.verset, refParsee.versetFin)}
           </button>
         </div>
+      )}
+
+      {/* Une référence hors des bornes ne mène nulle part, et le dit. */}
+      {!sommaireOuvert && refHorsBornes && (
+        <p role="status" style={{
+          margin: 0, padding: 'var(--volet-gouttiere)', fontSize: '0.8125rem',
+          fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.5,
+        }}>
+          {refHorsBornes.chapitre < 1 || refHorsBornes.chapitre > refHorsBornes.chapitresDuLivre
+            ? `Le livre ${nomDuLivre(refHorsBornes.code)} n’a que ${refHorsBornes.chapitresDuLivre} chapitre${refHorsBornes.chapitresDuLivre > 1 ? 's' : ''}.`
+            : `Aucun chapitre de la Bible ne compte ${refHorsBornes.verset} versets.`}
+        </p>
       )}
 
       {/* Liste des livres — masquée tant qu'une référence est reconnue */}
@@ -800,14 +779,14 @@ export default function NavLivres({
           par défaut de devenir plus petit que son contenu, si bien que `overflowY: auto` ne
           s'enclenchait jamais. Le volet s'allongeait à la hauteur des soixante-treize livres
           et emportait la barre de recherche hors de l'écran dès qu'on descendait. */}
-      {!sommaireOuvert && !refParsee && (
+      {!sommaireOuvert && !referenceReconnue && (
       /* `data-visite` : le repère de la visite guidée. Le DÉFILEUR entier, non le
          premier livre : l'étape parle de la liste et de la teinte de ses cases de
          chapitre, c'est-à-dire de tout ce bloc. */
       <div ref={scrollRef} data-visite="livres" style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: 'calc(var(--volet-air-fin) + 2px) calc(var(--volet-gouttiere) - 6px)' }}>
         {AT.length > 0 && (
           <>
-            <button onClick={() => setAtOuvert(!atOuvert)} style={{
+            <button onClick={() => setAtOuvert(!atOuvert)} aria-expanded={atOuvert} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               width: '100%', background: 'none', border: 'none', cursor: 'pointer',
               padding: 'calc(var(--volet-air-fin) + 3px) 6px var(--volet-air-fin)', textAlign: 'left',
@@ -821,7 +800,7 @@ export default function NavLivres({
 
         {NT.length > 0 && (
           <>
-            <button onClick={() => setNtOuvert(!ntOuvert)} style={{
+            <button onClick={() => setNtOuvert(!ntOuvert)} aria-expanded={ntOuvert} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               width: '100%', background: 'none', border: 'none', cursor: 'pointer',
               padding: 'calc(var(--volet-air-fin) + 5px) 6px var(--volet-air-fin)', textAlign: 'left',
@@ -835,7 +814,7 @@ export default function NavLivres({
 
         {AUTRES.length > 0 && (
           <>
-            <button onClick={() => setAutresOuvert(!autresOuvert)} style={{
+            <button onClick={() => setAutresOuvert(!autresOuvert)} aria-expanded={autresOuvert} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               width: '100%', background: 'none', border: 'none', cursor: 'pointer',
               padding: 'calc(var(--volet-air-fin) + 5px) 6px var(--volet-air-fin)', textAlign: 'left',

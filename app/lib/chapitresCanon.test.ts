@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   CHAPITRES_PROTOCANON, chargerChapitresParLivre, chargerLivresLisibles,
   estLivreOuvrable, nombreDeChapitres,
@@ -86,10 +86,41 @@ describe('chargerLivresLisibles', () => {
     const lignes = await chargerLivresLisibles(client)
 
     expect(demandes).toEqual([{ table: 'livres_lisibles', colonnes: 'code, chapitres, canonique' }])
-    expect(lignes.find(l => l.code === 'DAG')?.canonique).toBe(false)
+    expect(lignes?.find(l => l.code === 'DAG')?.canonique).toBe(false)
     // La table des chapitres se dérive de la MÊME lecture : une seule requête pour tout
     // le site, comme avant.
     expect(await chargerChapitresParLivre(client)).toEqual({ GEN: 50, DAG: 12 })
     expect(demandes).toHaveLength(1)
+  })
+
+  it('⛔ un échec rend `null` (le repli), jamais une table vide, et n’est pas retenu', async () => {
+    // Module neuf : la promesse du test précédent est retenue au niveau du module.
+    vi.resetModules()
+    const mod = await import('./chapitresCanon')
+    const erreur = console.error
+    console.error = () => {}
+    try {
+      let appels = 0
+      const client = {
+        from: () => ({
+          select: () => {
+            appels++
+            return Promise.resolve(appels === 1
+              ? { data: null, error: { message: 'délai dépassé' } }
+              : { data: [{ code: 'GEN', chapitres: 50, canonique: true }], error: null })
+          },
+        }),
+      }
+      const table = await mod.chargerChapitresParLivre(client)
+      expect(table).toBeNull()
+      // Avec `null`, aucun livre n'est retiré du volet.
+      expect(mod.estLivreOuvrable('GEN', table)).toBe(true)
+      expect(mod.nombreDeChapitres('PSA', table)).toBe(150)
+      // Le montage suivant réessaie.
+      expect(await mod.chargerChapitresParLivre(client)).toEqual({ GEN: 50 })
+      expect(appels).toBe(2)
+    } finally {
+      console.error = erreur
+    }
   })
 })

@@ -1,11 +1,11 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { Z_BANDEAU_LECTURE, Z_ONGLETS_LECTURE } from '@/app/lib/empilement'
 import { MarqueAttente, ProvisionAttente, useAvantDeNaviguer, useEnAttente, useNaviguer, usePrecharger } from '@/app/lib/attenteNavigation'
 import { hauteurNavbarPx } from '@/app/lib/fenetreContextuelle'
 import { DUREE_ENTREE_MS, DUREE_OUVERTURE_MS, SELECTEUR_BLOCS_BIBLE, elementEnTete, ordonnerBlocsVisibles } from '@/app/lib/passageTexte'
-import { retenirPositionBible } from '@/app/lib/repriseLecture'
+import { retenirPositionBible, versetDeReprise } from '@/app/lib/repriseLecture'
 import NavLivres, { type PieceSommaireBible } from './NavLivres'
 import TexteBible, { texteAbsentDuChapitre, type BiblePorteuse } from './TexteBible'
 import PanneauPatristique from './PanneauPatristique'
@@ -387,9 +387,15 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // (voir AGENTS.md § Responsive mobile) : le côte-à-côte écraserait le texte.
   const mobile = useEstMobile()
 
-  // Mobile : navigation par TROIS ONGLETS en haut (Livres / Texte / Commentaires).
+  // Mobile : navigation par TROIS ONGLETS en haut (Livres / Texte / Pères).
   // L'onglet actif est porté par `voletMobile` : null = Texte, 'livres' = Livres,
-  // 'commentaires' = Commentaires. Chaque volet s'affiche alors en pleine page.
+  // 'commentaires' = Pères. Chaque volet s'affiche alors en pleine page.
+  // ⛔ LE TROISIÈME S'APPELLE « PÈRES » (demande de l'auteur, 2026-09-22). « Commentaires »
+  // y nommait le volet des Pères, et le même mot nommait dans ce volet l'onglet des
+  // lecteurs et le sous-onglet patristique : trois objets pour un mot. L'onglet des
+  // lecteurs devient « Discussion », le sous-onglet garde « Commentaires », et l'onglet de
+  // la page nomme ce qu'il ouvre. ⚠️ La clé interne reste `'commentaires'` : elle est
+  // partagée avec les volets et la visite (`SceneVisite.volet`).
   //
   // ⛔ Le premier s'appelait « Sommaire », et le mot était pris DEUX fois : le volet
   // qu'il ouvre porte lui-même une barre « Livres | Sommaire », où « Sommaire » nomme
@@ -401,27 +407,31 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // Commentaires nomment tous trois un contenu, quand « Sommaire » nommait un dispositif.
   // ⚠️ « Livres » paraît donc deux fois, mais imbriqué et dans le même sens : le
   // premier dit où l'on est, le second ce qu'on y montre.
-  // ⚠️ « Commentaires » porte un COMPTE dès qu'un verset est choisi (demande de l'auteur,
+  // ⚠️ « Pères » porte un COMPTE dès qu'un verset est choisi (demande de l'auteur,
   // 2026-09-20) : celui des ŒUVRES qui en parlent, c'est-à-dire ce que l'onglet ouvrira.
   // C'est la mention « N œuvres en parlent » d'autrefois, qui prenait une ligne sous
   // chaque verset et repoussait le suivant : elle retrouve ici une place qui ne coûte
   // rien au texte. ⛔ Sans verset choisi, aucun chiffre — le volet ouvre alors sur le
   // chapitre entier, qui ne se dit pas en un nombre.
   // ⚠️ Un chiffre nu ne se DIT pas : à la voix, l’onglet porte la phrase entière
-  // (« Commentaires : 8 œuvres en parlent — 5 commentaires, 3 citations »), et le nombre
+  // (« Pères : 8 œuvres en parlent — 5 commentaires, 3 citations »), et le nombre
   // devient alors redondant pour qui écoute.
   // ⛔ ELLE SE COMPOSE DANS UN `useMemo`, et ce n’est pas une optimisation : composée
   //  en clair dans le corps, elle fait ABANDONNER au compilateur de React la
   //  mémoïsation écrite plus bas (`preparerScene`), et toute la page cesse d’être
   //  compilée — « Existing memoization could not be preserved ». Mesuré le 2026-09-20.
   const direCommentaires = useMemo(() => (oeuvresDuVersetChoisi != null && oeuvresDuVersetChoisi > 0 && densiteDuVersetChoisi
-    ? `Commentaires : ${libelleDensiteVerset(densiteDuVersetChoisi)}`
+    ? `Pères : ${libelleDensiteVerset(densiteDuVersetChoisi)}`
     : undefined), [oeuvresDuVersetChoisi, densiteDuVersetChoisi])
   const ONGLETS_MOBILE: { cle: 'livres' | 'commentaires' | null; label: string; compte?: number | null; dire?: string }[] = [
     { cle: 'livres', label: 'Livres' },
     { cle: null, label: 'Texte' },
-    { cle: 'commentaires', label: 'Commentaires', compte: oeuvresDuVersetChoisi, dire: direCommentaires },
+    { cle: 'commentaires', label: 'Pères', compte: oeuvresDuVersetChoisi, dire: direCommentaires },
   ]
+  // ⛔ LES IDENTIFIANTS DE LA BARRE ET DES PANNEAUX s'écrivent une fois : l'onglet les
+  // nomme par `aria-controls`, le panneau répond par `aria-labelledby`.
+  const idOnglet = (cle: 'livres' | 'commentaires' | null) => `cs-bible-onglet-${cle ?? 'texte'}`
+  const idPanneau = (cle: 'livres' | 'commentaires' | null) => `cs-bible-panneau-${cle ?? 'texte'}`
   // Défilement de l'onglet Texte : la page entière défile, donc masquer le texte
   // (display:none) le retire du flux et l'écran remonte. On mémorise la position au
   // départ et on la restaure au retour, pour que le texte reste EXACTEMENT en place.
@@ -434,6 +444,94 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
       requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, y)))
     }
   }
+  // ── LA BARRE D'ONGLETS SE PARCOURT AUX FLÈCHES (motif « tablist » de l'ARIA) ──
+  // ← et → passent à l'onglet voisin (en boucle), Début et Fin aux deux bouts ; l'onglet
+  // atteint s'ACTIVE (activation automatique : les trois panneaux sont déjà montés, rien
+  // ne se charge). ⚠️ Un seul onglet est dans l'ordre de tabulation, celui qui est
+  // retenu : la tabulation entre dans la barre puis en sort, les flèches y circulent.
+  // ⛔ `stopPropagation` : la page écoute ← et → pour changer de CHAPITRE, et la touche
+  // qui circule dans la barre ne doit pas tourner la page.
+  const barreOngletsRef = useRef<HTMLDivElement>(null)
+  const surToucheOnglet = (e: ReactKeyboardEvent<HTMLButtonElement>, rang: number) => {
+    const n = ONGLETS_MOBILE.length
+    const cible = e.key === 'ArrowRight' ? (rang + 1) % n
+      : e.key === 'ArrowLeft' ? (rang - 1 + n) % n
+      : e.key === 'Home' ? 0
+      : e.key === 'End' ? n - 1
+      : null
+    if (cible === null) return
+    e.preventDefault()
+    e.stopPropagation()
+    changerOnglet(ONGLETS_MOBILE[cible].cle)
+    barreOngletsRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[cible]?.focus({ preventScroll: true })
+  }
+
+  // ── LE FOYER NE RETOMBE PAS SUR LE DOCUMENT ────────────────────────────────
+  // Replier un volet fait disparaître le bouton qui l'a replié (le rail le remplace), le
+  // déplier fait disparaître le rail ; choisir un chapitre au téléphone referme l'onglet
+  // des livres et cache le lien qu'on vient de toucher. Le foyer tombait alors sur
+  // `<body>`, et le clavier repartait du haut de la page. ⚠️ Les boutons de repli vivent
+  // dans les volets (`EncartTraduction`, `PanneauPatristique`) : la page ne les touche
+  // pas, elle se contente de REMARQUER, après chaque geste, que l'élément qui avait le
+  // foyer n'est plus là, et de le rendre à son vis-à-vis dans la même zone :
+  // - au bureau, le rail du volet replié (\`.cs-rail-volet\`) ou le bouton qui le replie ;
+  // - au téléphone, l'onglet retenu de la barre ;
+  // - à défaut, le bloc de lecture (\`tabIndex -1\`).
+  // ⛔ \`focus({ preventScroll: true })\`, et c'est \`:focus-visible\` qui décide de l'anneau :
+  // après un clic de souris le navigateur ne le montre pas, après une touche il le montre.
+  // ⛔ On ne prend JAMAIS le foyer à qui l'a déjà : la reprise n'agit que si le document
+  // l'a perdu (\`<body>\`), ou si l'élément qui le garde n'est plus visible.
+  const racineRef = useRef<HTMLDivElement>(null)
+  const mobileRef = useRef(mobile)
+  useEffect(() => { mobileRef.current = mobile }, [mobile])
+  useEffect(() => {
+    const racine = racineRef.current
+    if (!racine) return
+    let dernier: { el: HTMLElement; zone: string } | null = null
+    const minuteurs: number[] = []
+    const surFocus = (e: FocusEvent) => {
+      const el = e.target as HTMLElement
+      const zone = el.closest<HTMLElement>('[data-zone-bible]')?.dataset.zoneBible ?? 'page'
+      dernier = { el, zone }
+    }
+    const visible = (el: Element) => el.isConnected && el.getClientRects().length > 0
+    const reprendre = () => {
+      const perdu = dernier
+      if (!perdu || visible(perdu.el)) return
+      const actif = document.activeElement
+      if (actif && actif !== document.body && actif !== perdu.el) return
+      let cible: HTMLElement | null = null
+      if (mobileRef.current) {
+        cible = barreOngletsRef.current?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]') ?? null
+      } else {
+        const zone = racine.querySelector<HTMLElement>(`[data-zone-bible="${perdu.zone}"]`)
+        const candidats = zone
+          ? Array.from(zone.querySelectorAll<HTMLElement>('.cs-rail-volet, button.cs-volet-reduire[aria-label="Réduire le volet"]'))
+          : []
+        cible = candidats.find(visible) ?? null
+      }
+      cible ??= lectureRef.current
+      if (!cible || !visible(cible)) return
+      cible.focus({ preventScroll: true })
+      dernier = { el: cible, zone: cible.closest<HTMLElement>('[data-zone-bible]')?.dataset.zoneBible ?? 'page' }
+    }
+    // Après le geste, le rendu de React est déjà fait (événement discret) ; une seconde
+    // passe rattrape un volet qui se replie en transition.
+    const apresGeste = () => {
+      for (const m of minuteurs.splice(0)) window.clearTimeout(m)
+      minuteurs.push(window.setTimeout(reprendre, 0), window.setTimeout(reprendre, 160))
+    }
+    const surTouche = (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') apresGeste() }
+    racine.addEventListener('focusin', surFocus)
+    racine.addEventListener('click', apresGeste)
+    racine.addEventListener('keyup', surTouche)
+    return () => {
+      racine.removeEventListener('focusin', surFocus)
+      racine.removeEventListener('click', apresGeste)
+      racine.removeEventListener('keyup', surTouche)
+      for (const m of minuteurs) window.clearTimeout(m)
+    }
+  }, [])
 
   // Changer de livre ou de chapitre efface la sélection héritée du chapitre
   // précédent : le volet de droite bascule alors sur l'apparat de tout le nouveau
@@ -498,19 +596,30 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
       const chargerLivres = trad === TRAD_ID_BIBLE899
         ? livresDisponibles899(supabase)
         : livresDisponiblesEditoriaux(supabase, trad)
-      chargerLivres.then(marquerVides).catch(() => {})
+      // ⛔ Un échec ne grise RIEN : une liste vide dirait tous les livres absents.
+      chargerLivres.then(marquerVides).catch((erreur: unknown) => {
+        console.error(`[bible] livres de ${trad} illisibles, aucun livre grisé :`, erreur)
+      })
       return () => { annule = true }
     }
     // On demande la LISTE DES LIVRES, pas tous les versets pour en déduire la liste : l'API
     // plafonne à 1 000 lignes, si bien que la version précédente ne voyait jamais que les deux
     // premiers livres de la Bible et grisait tous les autres.
-    supabase
+    // ⚠️ Le filtre sur `trad_id` descend dans la vue (clé de son regroupement, index
+    // `idx_v2_native`) : la vue reste la bonne porte, elle réunit aussi les apocryphes.
+    // ⛔ ERREUR ET LISTE VIDE NE SE CONFONDENT PAS (2026-09-22) : `data` nul sur une erreur
+    // ne grise rien, et l'échec part au journal ; une liste vide, elle, dit bien qu'aucun
+    // livre ne porte de texte.
+    void supabase
       .from('livres_par_traduction')
       .select('livre')
       .eq('trad_id', trad)
-      .then(({ data }) => {
-        if (!data) return
-        marquerVides(new Set(data.map((r: { livre: string }) => r.livre)))
+      .then(({ data, error }) => {
+        if (error || !data) {
+          console.error(`[bible] livres_par_traduction illisible pour ${trad}, aucun livre grisé :`, error)
+          return
+        }
+        marquerVides(new Set((data as { livre: string }[]).map(r => r.livre)))
       })
     return () => { annule = true }
   }, [traduction, livres, readingCapabilities])
@@ -535,8 +644,10 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // portent, au lieu d'une phrase sans issue. La fenêtre l'emporte quand elle est ouverte.
   const texteAbsentIci = !lectureBilingue && !pieceAffichee && texteAbsentDuChapitre(versets, traduction)
   const livreCherche = livreAbsent?.code ?? (texteAbsentIci ? livreActif : null)
-  const [porteuses, setPorteuses] = useState<{ cle: string; liste: TraductionProposee[] } | null>(null)
-  const bibliesDuLivre = livreAbsent && porteuses?.cle === `${livreAbsent.code}|${traduction}` ? porteuses.liste : null
+  const [porteuses, setPorteuses] = useState<{ cle: string; liste: TraductionProposee[]; erreur?: boolean } | null>(null)
+  const reponseLivreAbsent = livreAbsent && porteuses?.cle === `${livreAbsent.code}|${traduction}` ? porteuses : null
+  const bibliesDuLivre = reponseLivreAbsent && !reponseLivreAbsent.erreur ? reponseLivreAbsent.liste : null
+  const rechercheLivreEchouee = reponseLivreAbsent?.erreur === true
   const porteusesIci = texteAbsentIci && porteuses?.cle === `${livreActif}|${traduction}` ? porteuses.liste : null
   // ⚠️ La remise à « on cherche encore » (`null`) se fait dans le GESTE qui ouvre la
   // fenêtre, non dans cet effet : un `setState` synchrone dans un effet déclenche une
@@ -547,29 +658,58 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
     const code = livreCherche
     const cle = `${code}|${traduction}`
     let annule = false
-    const porteuses = async (): Promise<Set<string>> => {
+    // ⚠️ `.eq('livre', …)` descend dans la vue (clé de son regroupement, index
+    // `idx_versets_v2_livre`, 65 ms mesurés sur le Siracide) : aucune table ne ferait mieux,
+    // la vue réunissant aussi les apocryphes.
+    // ⛔ ERREUR ET LISTE VIDE NE SE CONFONDENT PAS (2026-09-22). Chaque source qui échoue
+    // rend la recherche INCOMPLÈTE : ce qu'on a trouvé reste vrai et se propose, mais
+    // « aucune bible ne le donne » ne se dit que sur une recherche complète.
+    const porteuses = async (): Promise<{ trouvees: Set<string>; complet: boolean }> => {
       const trouvees = new Set<string>()
-      const { data } = await supabase.from('livres_par_traduction').select('trad_id').eq('livre', code)
-      for (const ligne of (data ?? []) as { trad_id: string }[]) trouvees.add(ligne.trad_id)
+      let complet = true
+      const { data, error } = await supabase.from('livres_par_traduction').select('trad_id').eq('livre', code)
+      if (error || !data) {
+        complet = false
+        console.error(`[bible] livres_par_traduction illisible pour ${code} :`, error)
+      } else {
+        for (const ligne of data as { trad_id: string }[]) trouvees.add(ligne.trad_id)
+      }
       const editoriales = listeTraductions.filter((t) => estVerseEditorial(readingCapabilities[t.code]))
       await Promise.all(editoriales.map(async (t) => {
-        const dispo = t.code === TRAD_ID_BIBLE899
-          ? await livresDisponibles899(supabase)
-          : await livresDisponiblesEditoriaux(supabase, t.code)
-        if (dispo.has(code)) trouvees.add(t.code)
+        try {
+          const dispo = t.code === TRAD_ID_BIBLE899
+            ? await livresDisponibles899(supabase)
+            : await livresDisponiblesEditoriaux(supabase, t.code)
+          if (dispo.has(code)) trouvees.add(t.code)
+        } catch (erreur) {
+          complet = false
+          console.error(`[bible] livres de ${t.code} illisibles :`, erreur)
+        }
       }))
-      return trouvees
+      return { trouvees, complet }
     }
-    porteuses()
-      .then((trouvees) => {
+    // Trois tentatives, espacées : une panne passagère ne laisse pas la fenêtre sans
+    // réponse. ⚠️ Au bout de la troisième, une recherche incomplète qui n'a RIEN trouvé
+    // se dit en ÉCHEC (`erreur`), jamais en liste vide : la fenêtre ne doit pas faire dire
+    // à tort qu'aucune bible ne porte le livre.
+    const DELAIS = [0, 1500, 4000]
+    const chercher = async () => {
+      for (const delai of DELAIS) {
+        if (delai) await new Promise((r) => window.setTimeout(r, delai))
         if (annule) return
-        setPorteuses({ cle, liste: listeTraductions
+        const { trouvees, complet } = await porteuses()
+        if (annule) return
+        const liste = listeTraductions
           .filter((t) => t.code !== traduction && trouvees.has(t.code))
-          .map((t) => ({ code: t.code, label: t.label })) })
-      })
-      // Une requête qui échoue ne laisse pas la fenêtre sur « Recherche… » sans fin :
-      // elle dit qu’on n’a rien trouvé, ce qui est vrai de ce qu’on sait.
-      .catch(() => { if (!annule) setPorteuses({ cle, liste: [] }) })
+          .map((t) => ({ code: t.code, label: t.label }))
+        if (complet || liste.length > 0) {
+          setPorteuses({ cle, liste })
+          return
+        }
+      }
+      if (!annule) setPorteuses({ cle, liste: [], erreur: true })
+    }
+    void chercher()
     return () => { annule = true }
   }, [livreCherche, listeTraductions, readingCapabilities, traduction])
 
@@ -600,7 +740,11 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   const largeursMontees = useRef(false)
   useEffect(() => {
     if (!largeursMontees.current) { largeursMontees.current = true; return }
-    localStorage.setItem('cs_volets_bible2', JSON.stringify({ nav: navWidth, pann: pannWidth }))
+    // ⚠️ Un stockage fermé (navigation privée, réglage du navigateur) lève : on règle
+    // alors les volets sans les retenir, comme partout ailleurs sur la page.
+    try {
+      localStorage.setItem('cs_volets_bible2', JSON.stringify({ nav: navWidth, pann: pannWidth }))
+    } catch {}
   }, [navWidth, pannWidth])
 
   // ⛔ Aucun effet ne substitue plus la bible après coup, et il ne faut pas en
@@ -617,17 +761,58 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
   // ⚠️ La forme de la place retenue vit dans `app/lib/repriseLecture.ts`, avec sa clé :
   // la Polyglotte la relit pour s'ouvrir là où l'on en était, et la carte de l'accueil
   // pour proposer la reprise. Écrite ici à la main, elle l'était aussi à l'accueil.
+  // ⛔ LE VERSET EN TÊTE DE FENÊTRE SE RETIENT AUSSI (demande de l'auteur, 2026-09-22 :
+  // rouvrir le Psaume 119 repartait du haut). Il vit dans une RÉFÉRENCE, rattachée à son
+  // chapitre : changer de bible au même chapitre le garde, changer de chapitre le remet
+  // au haut. La reprise le vise par `&verset=` (`adresseDeReprise`, repriseLecture.ts).
+  const placeRetenueRef = useRef<{ cle: string; verset: number | null }>({ cle: '', verset: null })
   useEffect(() => {
-    retenirPositionBible({ livre: livreActif, chapitre: chapitreActif, trad: tradInitiale, nomLivre })
+    const cle = `${livreActif}|${chapitreActif}`
+    const verset = placeRetenueRef.current.cle === cle ? placeRetenueRef.current.verset : null
+    placeRetenueRef.current = { cle, verset }
+    retenirPositionBible({ livre: livreActif, chapitre: chapitreActif, trad: tradInitiale, nomLivre, verset })
     memoriserTraductionBible(tradInitiale)
   }, [livreActif, chapitreActif, tradInitiale, nomLivre])
+  // Le verset se relève au DÉFILEMENT, sobrement : une lecture par arrêt, 700 ms après le
+  // dernier mouvement, et une écriture seulement quand il a changé. ⚠️ L'écoute est en
+  // CAPTURE sur la fenêtre : un défilement ne remonte pas, mais il descend, et c'est le
+  // seul moyen d'entendre le défileur interne du bureau comme la fenêtre du téléphone.
+  // ⚠️ Pas de verset sur une pièce liminaire, qui n'en a pas ; et le haut du chapitre
+  // (moins de 40 px descendus) vaut « pas de verset », pour rouvrir au titre.
+  useEffect(() => {
+    if (pieceAffichee) return
+    let minuteur: number | undefined
+    const noter = () => {
+      const racine = lectureRef.current
+      if (!racine || racine.getClientRects().length === 0) return
+      const def = defileur()
+      const descendu = def ? def.scrollTop : window.scrollY
+      const verset = descendu < 40 ? null : versetDeReprise(versetEnTete(hautDeLecture())?.verset)
+      const cle = `${livreActif}|${chapitreActif}`
+      if (placeRetenueRef.current.cle === cle && placeRetenueRef.current.verset === verset) return
+      placeRetenueRef.current = { cle, verset }
+      retenirPositionBible({ livre: livreActif, chapitre: chapitreActif, trad: tradInitiale, nomLivre, verset })
+    }
+    const surDefilement = () => {
+      window.clearTimeout(minuteur)
+      minuteur = window.setTimeout(noter, 700)
+    }
+    window.addEventListener('scroll', surDefilement, { capture: true, passive: true })
+    return () => {
+      window.removeEventListener('scroll', surDefilement, { capture: true })
+      window.clearTimeout(minuteur)
+    }
+    // ⚠️ `defileur`, `versetEnTete` et `hautDeLecture` ne lisent que des références.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [livreActif, chapitreActif, tradInitiale, nomLivre, pieceAffichee])
 
   const handleSetTraductionIndex = (idx: number) => {
     const code = listeTraductions[idx]?.code
     if (!code) return
     memoriserTraductionBible(code)
     const modes = selectableReadingModes(readingCapabilities[code] ?? { translationId: code, modes: [] })
-    const saved = localStorage.getItem(`cs_bible_mode:${code}`)
+    let saved: string | null = null
+    try { saved = localStorage.getItem(`cs_bible_mode:${code}`) } catch {}
     const mode = modes.find((item) => item.value === saved)?.value ?? modes[0]?.value ?? 'verse'
     // ⚠️ L'échange EN MÉMOIRE n'est possible qu'entre colonnes DÉJÀ chargées. Les
     // versets d'une segmentation éditoriale (Bible 899, Fillion, Vulgate Fillion) ne
@@ -905,17 +1090,22 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
     // qui est déjà le patron mobile de la charte. Après hydratation le drapeau passe
     // à vrai, la classe n'est plus posée, et les onglets prennent la main.
     <div
+      ref={racineRef}
       className={mobile ? '' : 'flex overflow-hidden cs-bible-coquille'}
       style={mobile
         ? { position: 'relative', display: 'flex', flexDirection: 'column' }
         : { position: 'relative', display: 'flex', height: HAUTEUR_SOUS_NAVBAR, overflow: 'hidden' }}>
-      {/* Onglets mobiles, fixés sous la navbar : Sommaire / Texte / Commentaires. */}
+      {/* Onglets mobiles, fixés sous la navbar : Livres / Texte / Pères. Une vraie liste
+          d'onglets (`tablist`), qui nomme les panneaux qu'elle commande. */}
       {mobile && (
-        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: Z_ONGLETS_LECTURE, height: '2.875rem', display: 'flex', alignItems: 'stretch', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }}>
-          {ONGLETS_MOBILE.map(o => {
+        <div ref={barreOngletsRef} role="tablist" aria-label="Parties de la page" style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: Z_ONGLETS_LECTURE, height: '2.875rem', display: 'flex', alignItems: 'stretch', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)' }}>
+          {ONGLETS_MOBILE.map((o, rang) => {
             const actif = voletMobile === o.cle
             return (
-              <button key={o.label} onClick={() => changerOnglet(o.cle)} aria-label={o.dire} title={o.dire}
+              <button key={o.label} type="button" role="tab" id={idOnglet(o.cle)}
+                aria-selected={actif} aria-controls={idPanneau(o.cle)} tabIndex={actif ? 0 : -1}
+                onClick={() => changerOnglet(o.cle)} onKeyDown={e => surToucheOnglet(e, rang)}
+                aria-label={o.dire} title={o.dire}
                 style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem', background: actif ? 'rgba(var(--cs-vert-rgb),0.05)' : 'none', border: 'none', borderBottom: actif ? '2px solid var(--cs-vert-aplat)' : '2px solid transparent', cursor: 'pointer', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-gris)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: actif ? 600 : 500, transition: 'color 0.12s, background 0.12s' }}>
                 {o.label}
                 {/* ⚠️ Le chiffre ne prend ni l'espacement des capitales ni la graisse de
@@ -933,6 +1123,12 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           })}
         </div>
       )}
+      {/* ⚠️ Les volets vivent dans des enveloppes en `display: contents` : elles ne
+          changent rien à la mise en page (le volet reste l'enfant de flex de la coquille),
+          mais elles portent le nom du panneau que l'onglet commande, et la ZONE où la
+          page rend le foyer (`data-zone-bible`). */}
+      <div id={idPanneau('livres')} data-zone-bible="livres" style={{ display: 'contents' }}
+        {...(mobile ? { role: 'tabpanel', 'aria-labelledby': idOnglet('livres') } : {})}>
       <NavLivres
         livres={livres}
         livreActif={livreActif}
@@ -956,6 +1152,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         sommaireEdition={sommaireEdition}
         pieceActive={pieceAffichee?.cle ?? null}
       />
+      </div>
       {/* Un livre grisé, cliqué : la fenêtre dit pourquoi, et où le lire. Le choix
           d’une autre bible NAVIGUE — au chapitre 1 du livre demandé, et non au
           chapitre qu’on lisait ailleurs, qui n’a rien à voir avec lui. ⛔ Pas
@@ -966,6 +1163,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           nomLivre={livreAbsent.nom}
           nomTraduction={listeTraductions[traductionIndex]?.label ?? 'cette traduction'}
           propositions={bibliesDuLivre}
+          erreur={rechercheLivreEchouee}
           onChoisir={(code) => {
             setLivreAbsent(null)
             memoriserTraductionBible(code)
@@ -980,7 +1178,9 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           `display: contents` jusqu'au 2026-09-03, mais une boîte sans dimensions ne
           peut pas porter la marque d'attente, qui se centre sur ELLE — c'est-à-dire
           sur le bloc de texte, et non plus sur l'écran entier. */}
-      <div ref={lectureRef} data-passage={passage ?? undefined} style={mobile ? { display: voletMobile === null ? 'block' : 'none', width: '100%', position: 'relative' } : { flex: 1, minWidth: 0, display: 'flex', position: 'relative' }}>
+      <div ref={lectureRef} id={idPanneau(null)} data-zone-bible="texte" tabIndex={-1}
+        {...(mobile ? { role: 'tabpanel', 'aria-labelledby': idOnglet(null) } : {})}
+        data-passage={passage ?? undefined} style={mobile ? { display: voletMobile === null ? 'block' : 'none', width: '100%', position: 'relative' } : { flex: 1, minWidth: 0, display: 'flex', position: 'relative' }}>
         {lectureBilingue ? (
           <LectureBilingueBible
             {...lectureBilingue}
@@ -1027,6 +1227,8 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
             une navigation préchargée revenant plus vite qu'on ne le verrait. */}
         <MarqueAttente enAttente={enAttente} gouttiere={mobile ? undefined : GOUTTIERE_ACTIONS_VERSET} />
       </div>
+      <div id={idPanneau('commentaires')} data-zone-bible="peres" style={{ display: 'contents' }}
+        {...(mobile ? { role: 'tabpanel', 'aria-labelledby': idOnglet('commentaires') } : {})}>
       <PanneauPatristique
         verset={versetSelectionneCourant}
         livreActif={livreActif}
@@ -1042,6 +1244,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         notesBible={notesBible}
         onChoisirVerset={choisirCanon}
       />
+      </div>
 
       {/* Bandeau de navigation mobile — tout en bas, sous la barre « Commentaires ».
           Forme abrégée « Gn ❧ 1 » et flèches pour changer de chapitre. */}
@@ -1053,7 +1256,9 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           <FlecheChapitre sens="precedent" variante="bandeau" cible={voisins.precedent} onAller={naviguer} />
           <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', display: 'inline-flex', alignItems: 'baseline', gap: '8px', fontSize: '0.875rem' }}>
             <span style={{ fontWeight: 500, color: 'var(--cs-encre)' }}>{ABREV_FR[livreActif] ?? livreActif}</span>
-            <span style={{ color: '#b0a088' }}>❧</span>
+            {/* Le fleuron prend le rang d'ORNEMENT de la palette (`--cs-texte-faible`, qui
+                se retourne avec le Cuir), et se tait au lecteur d'écran. */}
+            <span aria-hidden="true" style={{ color: 'var(--cs-texte-faible)' }}>❧</span>
             <span style={{ fontStyle: 'italic', color: 'var(--cs-vert)' }}>{chapitreActif}</span>
           </span>
           <FlecheChapitre sens="suivant" variante="bandeau" cible={voisins.suivant} onAller={naviguer} />

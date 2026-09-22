@@ -41,7 +41,7 @@ const PAGES_NOMMEES: Record<string, string> = {
   '/compte/presentation': 'Mon compte — Présentation (retiré)',
   '/compte/lecture': 'Mon compte — Lecture (retiré)',
   '/compte/connexion': 'Mon compte — Connexion (retiré)',
-  '/compte/prelevements': 'Mes citations',
+  '/compte/prelevements': 'Mes prélèvements',
   '/compte/chaine': 'Mes annotations',
   '/notifications': 'Notifications',
   '/messagerie': 'Messagerie',

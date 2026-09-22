@@ -10,7 +10,7 @@ import {
   type BibleEditorialScopeKind,
   type BibleSourceFragment,
 } from './bibleEdition'
-import { chargerVersetsCanoniquesV2, chargerVersetsEditoriaux, type CanonRow } from './bibleEditorialServer'
+import { chargerVersetsCanoniquesV2, chargerVersetsEditoriaux, lireCanonDuChapitre, type CanonRow } from './bibleEditorialServer'
 import { chargerGloses899, TRAD_ID_BIBLE899 } from './bible899'
 import { axeAvecGloses, cellulesDeGloses, type CelluleBilingue } from './bibleEditionBilingue'
 
@@ -389,7 +389,7 @@ async function chargerNotesInternesParBloc(
  * AJOUTÉE ici, faute de quoi elle arrivera `undefined` sans qu'aucun type ne
  * s'en plaigne : le type de la ligne est déclaré, il n'est pas vérifié.
  */
-const COLONNES_BLOC = 'id,family_id,source_id,segmentation_id,segment_id,block_key,block_kind,'
+export const COLONNES_BLOC = 'id,family_id,source_id,segmentation_id,segment_id,block_key,block_kind,'
   + 'scope_kind,notice_subtype,placement,applies_to,applies_to_member_id,heading,scope_book_code,'
   + 'scope_label,printed_page_start,canon_id_start,canon_id_end,canon_order_start,canon_order_end,'
   + 'material_order,semantic_style_code,presentation,semantic_parent_key,'
@@ -674,6 +674,8 @@ export async function chargerLectureBilingue(
      * qui aligne les deux colonnes. Voir `withCanonicalV2Capability`.
      */
     membresCanoniquesV2?: ReadonlySet<string>
+    /** Les créneaux du chapitre, quand l'appelant les a déjà (`canonDuChapitre`). */
+    canonRows?: readonly CanonRow[] | null
   },
 ): Promise<LectureBilingueChargee | null> {
   const { familyRows, livre, chapitre } = options
@@ -701,16 +703,24 @@ export async function chargerLectureBilingue(
   }
   if (membres.size < 2) return null
 
+  // ⚠️ LE CANON SE LIT UNE FOIS, AVANT LES COLONNES (2026-09-22) : chaque chargeur le
+  // relisait pour son compte, deux lectures identiques par chapitre en regard. La page le
+  // passe quand elle l'a ; un canon reçu vide se relit ici, et un échec LÈVE.
+  const canonRows = options.canonRows && options.canonRows.length > 0
+    ? [...options.canonRows]
+    : await lireCanonDuChapitre(client, livre, chapitre)
+
   const colonnes = await Promise.all([...membres.values()].map(async (membre) => {
     const lueParLeCanon = canoniquesV2.has(membre.translationId)
     const [lignes, glosesDuTemoin] = await Promise.all([
       lueParLeCanon
-        ? chargerVersetsCanoniquesV2(client, { translationId: membre.translationId, livre, chapitre })
+        ? chargerVersetsCanoniquesV2(client, { translationId: membre.translationId, livre, chapitre, canonRows })
         : chargerVersetsEditoriaux(client, {
           sourceIds: [...(sourcesParMembre.get(membre.id) ?? [])],
           translationId: membre.translationId,
           livre,
           chapitre,
+          canonRows,
         }),
       // ⛔ LE TÉMOIN PORTE DES GLOSES QUE SON CHEMIN ÉDITORIAL NE LIT PAS : elles n'ont pas
       // de créneau, et `chargerVersetsEditoriaux` ne lit que des créneaux. Sa traduction
@@ -890,7 +900,15 @@ export async function canonDuChapitre(
     .eq('livre', livre)
     .eq('ch_canon', chapitre)
     .order('ordre')
-  if (error || !data || data.length === 0) return { lignes: [], bornes: null }
+  // ⚠️ Un échec ne lève pas ici — la page n'a pas à payer le canon d'une bible
+  // ordinaire —, mais il ne se TAIT plus (2026-09-22) : il part au journal, et les
+  // chargeurs de versets, qui reçoivent alors un canon vide, le RELISENT et lèvent
+  // (`lireCanonDuChapitre`). Un chapitre de Fillion ne se sert donc plus vide sans un mot.
+  if (error) {
+    console.error(`[lecture] canon de ${livre} ${chapitre} illisible : ${error.message}`)
+    return { lignes: [], bornes: null }
+  }
+  if (!data || data.length === 0) return { lignes: [], bornes: null }
   const lignes = data as CanonRow[]
   const ordres = lignes.map((row) => row.ordre)
   return { lignes, bornes: { premier: Math.min(...ordres), dernier: Math.max(...ordres) } }

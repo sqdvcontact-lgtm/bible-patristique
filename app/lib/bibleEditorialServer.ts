@@ -10,7 +10,8 @@ import {
 } from './bibleCanoniqueV2'
 import { numerotationAlternative, referenceNativeDuSegment } from './bibleReferenceNative'
 import { TRAD_ID_BIBLE899, TRAD_ID_BIBLE899_MODERNE } from './bible899'
-import { lotsPourClauseIn } from './paginationSupabase'
+import { chargerToutesPagesSupabase, lancerEnParallele, lotsPourClauseIn } from './paginationSupabase'
+import { messageDErreur } from './chargementTolerant'
 
 export type CanonRow = {
   id: string
@@ -82,6 +83,27 @@ function sourceUnitKey(sourceId: string, unitId: string): string {
   return `${sourceId}:${unitId}`
 }
 
+/**
+ * Les créneaux canoniques d'un chapitre, dans l'ordre du canon. ⛔ Un échec LÈVE : le
+ * canon est l'axe du TEXTE, et un axe illisible pris pour un chapitre sans créneau
+ * servait une page vide sans un mot. Les chargeurs d'un chapitre et la lecture en
+ * regard l'emploient tous : une seule lecture de l'axe, une seule façon d'échouer.
+ */
+export async function lireCanonDuChapitre(
+  client: SupabaseClient,
+  livre: string,
+  chapitre: number,
+): Promise<CanonRow[]> {
+  const { data, error } = await client
+    .from('versets_canon')
+    .select('id,livre,ch_canon,v_canon,ordre')
+    .eq('livre', livre)
+    .eq('ch_canon', chapitre)
+    .order('ordre')
+  if (error) throw new Error(`Créneaux canoniques de ${livre} ${chapitre} illisibles : ${error.message}`)
+  return (data ?? []) as CanonRow[]
+}
+
 export async function chargerVersetsEditoriaux(
   client: SupabaseClient,
   options: {
@@ -106,17 +128,13 @@ export async function chargerVersetsEditoriaux(
   const sourceIds = [...new Set(options.sourceIds)]
   if (sourceIds.length === 0) return []
 
-  const canonDejaLu = options.canonRows ?? null
-  const { data: canonData, error: canonError } = canonDejaLu
-    ? { data: canonDejaLu, error: null }
-    : await client
-      .from('versets_canon')
-      .select('id,livre,ch_canon,v_canon,ordre')
-      .eq('livre', options.livre)
-      .eq('ch_canon', options.chapitre)
-      .order('ordre')
-  if (canonError) throw new Error(`Créneaux canoniques illisibles : ${canonError.message}`)
-  const canonRows = (canonData ?? []) as CanonRow[]
+  // ⛔ Un canon reçu VIDE se relit (2026-09-22), comme dans `chargerVersetsCanoniquesV2` :
+  // la page passe `[]` quand sa propre lecture a échoué, et ce tableau vide, pris pour
+  // « le chapitre n'a aucun créneau », servait un chapitre de Fillion VIDE sans un mot.
+  // Relu ici, un échec LÈVE, et la page le dit.
+  const canonRows = options.canonRows && options.canonRows.length > 0
+    ? [...options.canonRows]
+    : await lireCanonDuChapitre(client, options.livre, options.chapitre)
   if (canonRows.length === 0) return []
   const canonIds = canonRows.map((row) => row.id)
 
@@ -135,30 +153,51 @@ export async function chargerVersetsEditoriaux(
     return canonRows.map((row) => adapterCanonSansTexte(row, options.translationId))
   }
 
-  const [segmentsResult, sourcesResult] = await Promise.all([
-    client
-      .from('bible_editorial_segments')
-      .select('id,source_id,editorial_sequence,editorial_label,metadata')
-      .in('id', segmentIds),
-    client
-      .from('bible_editorial_segment_sources')
-      .select('source_id,segment_id,unit_id,unit_sequence,start_offset,end_offset,join_before')
-      .in('segment_id', segmentIds)
-      .order('unit_sequence'),
+  // ⚠️ Les identifiants de segment sont des UUID : 176 créneaux (Psaume 119) font une
+  // clause de plus de six kilo-octets. Lots par octets, jamais par nombre, et lancés
+  // par `lancerEnParallele` (voir `lotsPourClauseIn`).
+  const lotsSegments = lotsPourClauseIn(segmentIds)
+  const [segmentsParLot, sourcesParLot] = await Promise.all([
+    lancerEnParallele(lotsSegments.map((lot) => async () => {
+      const { data, error } = await client
+        .from('bible_editorial_segments')
+        .select('id,source_id,editorial_sequence,editorial_label,metadata')
+        .in('id', lot)
+      if (error) throw new Error(`Segments éditoriaux illisibles : ${error.message}`)
+      return (data ?? []) as EditorialSegmentRow[]
+    })),
+    lancerEnParallele(lotsSegments.map((lot) => () =>
+      chargerToutesPagesSupabase<SegmentSourceRow>((debut, fin) => client
+        .from('bible_editorial_segment_sources')
+        .select('source_id,segment_id,unit_id,unit_sequence,start_offset,end_offset,join_before')
+        .in('segment_id', lot)
+        .order('segment_id')
+        .order('unit_sequence')
+        .range(debut, fin)).catch((erreur: unknown) => {
+        throw new Error(`Unités des versets éditoriaux illisibles : ${messageDErreur(erreur)}`)
+      }))),
   ])
-  if (segmentsResult.error) throw new Error(`Segments éditoriaux illisibles : ${segmentsResult.error.message}`)
-  if (sourcesResult.error) throw new Error(`Unités des versets éditoriaux illisibles : ${sourcesResult.error.message}`)
-  const segments = (segmentsResult.data ?? []) as EditorialSegmentRow[]
-  const segmentSources = (sourcesResult.data ?? []) as SegmentSourceRow[]
+  const segments = segmentsParLot.flat()
+  const segmentSources = sourcesParLot.flat()
   const unitIds = [...new Set(segmentSources.map((row) => row.unit_id))]
 
-  const { data: textData, error: textError } = await client
-    .from('v_bible_source_unit_texts')
-    .select('source_id,unit_id,layer_code,layer_kind,text_content')
-    .in('source_id', sourceIds)
-    .in('unit_id', unitIds)
-  if (textError) throw new Error(`Texte éditorial des versets illisible : ${textError.message}`)
-  const unitTexts = (textData ?? []) as UnitTextRow[]
+  // ⚠️ PAGINÉE, TRIÉE, et la clause `in` DÉCOUPÉE (2026-09-22) : un chapitre long porte
+  // plusieurs couches par unité, et une réponse unique pouvait buter sur le plafond de
+  // mille lignes de PostgREST — le texte d'une fin de chapitre aurait manqué sans un
+  // mot. L'ordre est stable (source, unité, couche), condition de la pagination.
+  const textesParLot = await lancerEnParallele(lotsPourClauseIn(unitIds).map((lot) => () =>
+    chargerToutesPagesSupabase<UnitTextRow>((debut, fin) => client
+      .from('v_bible_source_unit_texts')
+      .select('source_id,unit_id,layer_code,layer_kind,text_content')
+      .in('source_id', sourceIds)
+      .in('unit_id', lot)
+      .order('source_id')
+      .order('unit_id')
+      .order('layer_code')
+      .range(debut, fin)).catch((erreur: unknown) => {
+      throw new Error(`Texte éditorial des versets illisible : ${messageDErreur(erreur)}`)
+    })))
+  const unitTexts = textesParLot.flat()
   const bestUnitText = new Map<string, UnitTextRow>()
   for (const row of unitTexts) {
     const key = sourceUnitKey(row.source_id, row.unit_id)
@@ -271,17 +310,9 @@ export async function chargerVersetsCanoniquesV2(
     canonRows?: readonly CanonRow[] | null
   },
 ): Promise<VersetEditorialAdapte[]> {
-  const canonDejaLu = options.canonRows && options.canonRows.length > 0 ? options.canonRows : null
-  const { data: canonData, error: canonError } = canonDejaLu
-    ? { data: canonDejaLu, error: null }
-    : await client
-      .from('versets_canon')
-      .select('id,livre,ch_canon,v_canon,ordre')
-      .eq('livre', options.livre)
-      .eq('ch_canon', options.chapitre)
-      .order('ordre')
-  if (canonError) throw new Error(`Créneaux canoniques illisibles : ${canonError.message}`)
-  const canonRows = (canonData ?? []) as CanonRow[]
+  const canonRows = options.canonRows && options.canonRows.length > 0
+    ? [...options.canonRows]
+    : await lireCanonDuChapitre(client, options.livre, options.chapitre)
   if (canonRows.length === 0) return []
 
   // Un chapitre tient sous le plafond de lignes, mais pas toujours sous celui de
@@ -319,7 +350,10 @@ export async function chargerVersetsCanoniquesV2(
           .eq('ch_orig', options.chapitre)
           .is('canon_id', null)
           .order('ordre_slot'),
-      ])
+      ]).catch((erreur: unknown) => {
+        console.error(`[lecture] ${options.livre} ${options.chapitre} (${options.translationId}) servi sans les gloses : ${messageDErreur(erreur)}`)
+        return null
+      })
     : Promise.resolve(null)
 
   // La traduction moderne du témoin mène à son fac-similé par le témoin lui-même : les
@@ -362,21 +396,38 @@ export async function chargerVersetsCanoniquesV2(
     }
   })
 
+  // ⛔ LES GLOSES SONT UNE COUCHE SECONDAIRE (charte § 18, 2026-09-22) : leur échec, ou
+  // une glose rattachée hors du chapitre, faisait tomber TOUT le chapitre de TR0013. On
+  // journalise et l'on sert le chapitre sans les gloses — ou sans la seule glose fautive.
   if (glosesChargees === null) return canoniques
   const [sourcesResult, extrasResult] = glosesChargees
-  if (sourcesResult.error) throw new Error(`Gloses du témoin 899 illisibles : ${sourcesResult.error.message}`)
-  if (extrasResult.error) throw new Error(`Extras de ${options.translationId} illisibles : ${extrasResult.error.message}`)
+  const echecGloses = sourcesResult.error
+    ? `gloses du témoin 899 illisibles : ${sourcesResult.error.message}`
+    : extrasResult.error
+      ? `extras de ${options.translationId} illisibles : ${extrasResult.error.message}`
+      : null
+  if (echecGloses) {
+    console.error(`[lecture] ${options.livre} ${options.chapitre} (${options.translationId}) servi sans les gloses : ${echecGloses}`)
+    return canoniques
+  }
 
-  const glosesParCanon = selectionnerGlosesCanoniquesV2(
-    (sourcesResult.data ?? []) as SourceGloseCanoniqueV2[],
-    (extrasResult.data ?? []) as LigneExtraCanoniqueV2[],
-  )
+  let glosesParCanon: ReturnType<typeof selectionnerGlosesCanoniquesV2>
+  try {
+    glosesParCanon = selectionnerGlosesCanoniquesV2(
+      (sourcesResult.data ?? []) as SourceGloseCanoniqueV2[],
+      (extrasResult.data ?? []) as LigneExtraCanoniqueV2[],
+    )
+  } catch (erreur) {
+    console.error(`[lecture] ${options.livre} ${options.chapitre} (${options.translationId}) servi sans les gloses : ${messageDErreur(erreur)}`)
+    return canoniques
+  }
   if (glosesParCanon.size === 0) return canoniques
 
   const canonIds = new Set(canonRows.map((canon) => canon.id))
-  for (const canonId of glosesParCanon.keys()) {
+  for (const canonId of [...glosesParCanon.keys()]) {
     if (!canonIds.has(canonId)) {
-      throw new Error(`Glose V2 rattachée hors du chapitre demandé : ${canonId}`)
+      console.error(`[lecture] ${options.livre} ${options.chapitre} (${options.translationId}) : glose V2 rattachée hors du chapitre demandé (${canonId}), écartée`)
+      glosesParCanon.delete(canonId)
     }
   }
 

@@ -10,7 +10,7 @@
 // Ils vivent maintenant dans `liens_bibliques`, une ligne par lien, avec clés
 // étrangères et index. LES QUATRE TYPES SONT CONSERVÉS À L'IDENTIQUE (charte §9) —
 // c'est leur portage qui change, pas la distinction éditoriale.
-import { lancerEnParallele, lotsPourClauseIn } from '@/app/lib/paginationSupabase'
+import { chargerPagesEnParallele, chargerToutesPagesSupabase, lancerEnParallele, lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { supabase } from '@/app/lib/supabase'
 
 export type TypeLien = 1 | 2 | 3 | 4
@@ -128,8 +128,27 @@ export async function liensDeSegments(
   return parSegment
 }
 
-/** Tous les liens d'un lot de segments, groupés par segment puis par type.
- *  Une seule requête, quel que soit le nombre de segments. */
+// ⛔ Toute lecture de `liens_bibliques` par verset, chapitre ou plage est PAGINÉE et
+// triée par `id` : le plafond PostgREST de 1 000 lignes tronquait en silence (Genèse 1
+// porte 2 773 liens), et sans ordre stable deux pages peuvent se recouvrir ou se trouer.
+const requeteLiens = () => supabase.from('liens_bibliques').select(COLS)
+type RequeteLiens = ReturnType<typeof requeteLiens>
+type ReponseLiens = PromiseLike<{ data: Lien[] | null; error: unknown }>
+
+/** Une lecture qui tient d'ordinaire en une page (un verset, les liens de chapitre) :
+ *  pages en série, sans spéculer une vague inutile. */
+const lireLiensEnSerie = (filtrer: (q: RequeteLiens) => RequeteLiens) =>
+  chargerToutesPagesSupabase<Lien>((debut, fin) =>
+    filtrer(requeteLiens()).order('id', { ascending: true }).range(debut, fin) as unknown as ReponseLiens,
+  )
+
+/** Une lecture qui dépasse souvent une page (les liens au verset d'un chapitre) :
+ *  pages par vagues parallèles. */
+const lireLiensParVagues = (filtrer: (q: RequeteLiens) => RequeteLiens) =>
+  chargerPagesEnParallele<Lien>((debut, fin) =>
+    filtrer(requeteLiens()).order('id', { ascending: true }).range(debut, fin) as unknown as ReponseLiens,
+  )
+
 /** Recherche inverse : les segments qui renvoient à un verset donné.
  *
  *  Un lien peut viser trois choses — un créneau du canon, un verset surnuméraire
@@ -139,13 +158,11 @@ export async function liensDeSegments(
  */
 export async function segmentsLiesAuVerset(canonId: string): Promise<Lien[]> {
   const [livre, chapitre] = canonId.split('.')
-  const [parVerset, parChapitre] = await Promise.all([
-    supabase.from('liens_bibliques').select(COLS).eq('canon_id', canonId),
-    supabase.from('liens_bibliques').select(COLS).eq('livre', livre).eq('chapitre', Number(chapitre)),
+  const [parVerset, parChapitre] = await lancerEnParallele([
+    () => lireLiensEnSerie(q => q.eq('canon_id', canonId)),
+    () => lireLiensEnSerie(q => q.eq('livre', livre).eq('chapitre', Number(chapitre))),
   ])
-  if (parVerset.error) throw parVerset.error
-  if (parChapitre.error) throw parChapitre.error
-  return [...(parVerset.data ?? []), ...(parChapitre.data ?? [])] as Lien[]
+  return [...parVerset, ...parChapitre]
 }
 
 /** Recherche inverse à l'échelle d'un CHAPITRE entier : tous les segments qui
@@ -168,13 +185,11 @@ export async function segmentsLiesAuVerset(canonId: string): Promise<Lien[]> {
  *  retient d'abord les lignes du chapitre, la politique ne s'évalue que sur elles.
  */
 export async function segmentsLiesAuChapitre(livre: string, chapitre: number): Promise<Lien[]> {
-  const [parVerset, parChapitre] = await Promise.all([
-    supabase.from('liens_bibliques').select(COLS).eq('canon_livre', livre).eq('canon_chapitre', chapitre),
-    supabase.from('liens_bibliques').select(COLS).eq('livre', livre).eq('chapitre', chapitre),
+  const [parVerset, parChapitre] = await lancerEnParallele([
+    () => lireLiensParVagues(q => q.eq('canon_livre', livre).eq('canon_chapitre', chapitre)),
+    () => lireLiensEnSerie(q => q.eq('livre', livre).eq('chapitre', chapitre)),
   ])
-  if (parVerset.error) throw parVerset.error
-  if (parChapitre.error) throw parChapitre.error
-  return [...(parVerset.data ?? []), ...(parChapitre.data ?? [])] as Lien[]
+  return [...parVerset, ...parChapitre]
 }
 
 /** Recherche inverse sur une PLAGE canonique (péricope) : les segments qui renvoient
@@ -194,14 +209,16 @@ export async function segmentsLiesAPlage(livre: string, canonDebut: string, cano
   const chapitres: number[] = []
   for (let c = c1; c <= c2; c++) chapitres.push(c)
   // Même filtre leakproof que `segmentsLiesAuChapitre` : jamais `like` sur `canon_id`.
-  const requetesVerset = chapitres.map(c => supabase.from('liens_bibliques').select(COLS).eq('canon_livre', livre).eq('canon_chapitre', c))
-  const requeteChapitre = supabase.from('liens_bibliques').select(COLS).is('canon_id', null).eq('livre', livre).in('chapitre', chapitres)
-  const resultats = await Promise.all([...requetesVerset, requeteChapitre])
+  // La liste `chapitres` est bornée par construction (les chapitres d'une péricope) :
+  // la clause `in` n'a pas à passer par `lotsPourClauseIn`. Chaque lecture est paginée.
+  const resultats = await lancerEnParallele([
+    ...chapitres.map(c => () => lireLiensParVagues(q => q.eq('canon_livre', livre).eq('canon_chapitre', c))),
+    () => lireLiensEnSerie(q => q.is('canon_id', null).eq('livre', livre).in('chapitre', chapitres)),
+  ])
   const out: Lien[] = []
-  resultats.forEach((r, idx) => {
-    if (r.error) throw r.error
-    for (const l of (r.data ?? []) as Lien[]) {
-      if (idx < requetesVerset.length) {
+  resultats.forEach((liens, idx) => {
+    for (const l of liens) {
+      if (idx < chapitres.length) {
         // Lien au verset : ne garder que ceux DANS la plage (bornes aux chapitres extrêmes).
         const p = point(l.canon_id ?? '')
         if (p.verset == null) continue

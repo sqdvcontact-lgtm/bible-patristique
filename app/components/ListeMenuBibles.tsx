@@ -36,6 +36,7 @@ import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 
 import { createPortal } from 'react-dom'
 import IconeChevron from '@/app/components/IconeChevron'
 import { Z_MODALE } from '@/app/lib/empilement'
+import { useSansSurvol } from '@/app/lib/useEstMobile'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { entreesDuMenu, type BibleDuMenu } from '@/app/lib/menuTraductionsBible'
 import {
@@ -75,6 +76,11 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
   const sousLignes = useRef<(HTMLButtonElement | null)[]>([])
   const boiteSousMenu = useRef<HTMLDivElement>(null)
   const repli = useRef<number | null>(null)
+  // La mise au point différée d'un sous-menu qu'on ouvre au clavier : retirée si la liste
+  // se démonte avant, ou si une autre la remplace.
+  const focusDiffere = useRef<number | null>(null)
+  // L'axe est la CAPACITÉ du pointeur, jamais la largeur de l'écran.
+  const sansSurvol = useSansSurvol()
   // Les flèches du clavier suivent le côté : on entre dans le sous-menu par la flèche qui
   // regarde vers lui, et l'on en sort par l'autre.
   const toucheOuvrir = cote === 'gauche' ? 'ArrowLeft' : 'ArrowRight'
@@ -94,7 +100,11 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
   // composant démonté.
   useEffect(() => {
     const minuteur = repli
-    return () => { if (minuteur.current !== null) window.clearTimeout(minuteur.current) }
+    const miseAuPoint = focusDiffere
+    return () => {
+      if (minuteur.current !== null) window.clearTimeout(minuteur.current)
+      if (miseAuPoint.current !== null) window.clearTimeout(miseAuPoint.current)
+    }
   }, [])
 
   // La liste se referme comme tout menu du site : au clic à côté, et à la touche
@@ -215,41 +225,66 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
             choisir: () => choisirEnRegard(defaut.index),
           }] : []),
         ]
-        // ⚠️ Le chevron déploie SANS choisir : sur un écran tactile, la main ne survole pas,
-        // et c'est lui qui donne accès aux autres langues. Il se pose au bord du côté où le
-        // sous-menu s'ouvre, et regarde vers lui.
-        const chevron = (
-          <span aria-hidden="true" style={STYLE_CHEVRON_MENU}
-            onClick={e => {
-              e.stopPropagation()
-              if (ouverte) setDeploye(null)
-              else deployer(entree.cle, e.currentTarget.parentElement, sousLignesFamille.length)
-            }}>
+        // ⚠️ Le chevron déploie SANS choisir. ⛔ C'est un VRAI bouton, nommé (il était un
+        // `span` masqué aux lecteurs d'écran, qu'on ne pouvait viser qu'à la souris) ; et
+        // comme un bouton ne se pose pas dans un bouton, il vit à côté de la ligne, par-dessus
+        // la place qu'une réserve invisible lui garde dans la ligne : le dessin ne bouge pas.
+        const basculer = () => {
+          if (ouverte) setDeploye(null)
+          else deployer(entree.cle, lignes.current[rang] ?? null, sousLignesFamille.length)
+        }
+        const reserveChevron = (
+          <span aria-hidden="true" style={{ ...STYLE_CHEVRON_MENU, visibility: 'hidden' }}>
             <IconeChevron dir={cote === 'gauche' ? 'left' : 'right'} taille={TAILLE_CHEVRON_MENU} strokeWidth={1.6} />
           </span>
         )
         return (
-          <div key={entree.cle} role="none" onMouseLeave={replierBientot}>
+          <div key={entree.cle} role="none" onMouseLeave={replierBientot} style={{ position: 'relative' }}>
             <button type="button" role="menuitem" aria-haspopup="menu" aria-expanded={ouverte}
               ref={el => { lignes.current[rang] = el }}
               title={`${entree.nom} : ${sousLignesFamille.map(l => l.libelle).join(', ')}`}
-              onClick={() => choisir(defaut.index)}
-              onMouseEnter={e => deployer(entree.cle, e.currentTarget, sousLignesFamille.length)}
+              // ⛔ AU DOIGT, TOUCHER UNE FAMILLE LA DÉPLIE (2026-09-22) : sans survol, le
+              // sous-menu des langues n'était atteignable que par le chevron, et le toucher
+              // choisissait d'office le texte d'origine. À la souris, le clic choisit comme
+              // avant, le survol ayant déjà déplié.
+              onClick={() => { if (sansSurvol) basculer(); else choisir(defaut.index) }}
+              onMouseEnter={e => { if (!sansSurvol) deployer(entree.cle, e.currentTarget, sousLignesFamille.length) }}
               onKeyDown={e => {
                 if (circuler(e, rang, lignes.current, entrees.length)) return
                 if (e.key === toucheOuvrir) {
                   e.preventDefault()
                   deployer(entree.cle, e.currentTarget, sousLignesFamille.length)
-                  window.setTimeout(() => sousLignes.current[0]?.focus({ preventScroll: true }), 0)
+                  if (focusDiffere.current !== null) window.clearTimeout(focusDiffere.current)
+                  focusDiffere.current = window.setTimeout(() => {
+                    focusDiffere.current = null
+                    sousLignes.current[0]?.focus({ preventScroll: true })
+                  }, 0)
                 } else if (e.key === toucheFermer) {
                   e.preventDefault()
                   setDeploye(null)
                 }
               }}
               style={{ ...styleLigneMenu(actif, premiere, derniere), ...(ouverte && !actif ? { background: FOND_SURVOL_MENU } : null) }}>
-              {cote === 'gauche' && chevron}
+              {cote === 'gauche' && reserveChevron}
               <span style={{ flex: 1 }}>{rendreEnrichi(entree.nom)}</span>
-              {cote === 'droite' && chevron}
+              {cote === 'droite' && reserveChevron}
+            </button>
+            <button type="button" tabIndex={-1}
+              aria-label={`${ouverte ? 'Replier' : 'Afficher'} les langues de ${entree.nom}`}
+              aria-expanded={ouverte}
+              onClick={e => { e.stopPropagation(); basculer() }}
+              onMouseEnter={() => { if (!sansSurvol) deployer(entree.cle, lignes.current[rang] ?? null, sousLignesFamille.length) }}
+              style={{
+                position: 'absolute', top: 0, bottom: 0, [cote === 'gauche' ? 'left' : 'right']: 0,
+                width: `calc(16px + ${TAILLE_CHEVRON_MENU} + 5px)`,
+                display: 'flex', alignItems: 'center',
+                justifyContent: cote === 'gauche' ? 'flex-start' : 'flex-end',
+                padding: cote === 'gauche' ? '0 0 0 16px' : '0 16px 0 0',
+                border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.8125rem',
+              }}>
+              <span aria-hidden="true" style={STYLE_CHEVRON_MENU}>
+                <IconeChevron dir={cote === 'gauche' ? 'left' : 'right'} taille={TAILLE_CHEVRON_MENU} strokeWidth={1.6} />
+              </span>
             </button>
             {ouverte && typeof document !== 'undefined' && createPortal(
               // ⛔ Le rang est celui d'une MODALE, non d'une fenêtre de page : sur un

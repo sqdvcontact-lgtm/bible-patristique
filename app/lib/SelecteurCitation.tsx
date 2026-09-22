@@ -271,7 +271,7 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
             {(['parcourir', 'mes-citations'] as const).map(m => (
               <button key={m} onClick={() => setMode(m)}
                 style={{ fontSize: '0.6875rem', padding: '5px 11px', borderRadius: '12px', border: `1px solid ${mode === m ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, cursor: 'pointer', background: mode === m ? 'rgba(var(--cs-vert-rgb),0.10)' : 'var(--cs-surface)', color: mode === m ? 'var(--cs-vert)' : 'var(--cs-texte-gris)' }}>
-                {m === 'parcourir' ? 'Parcourir' : 'Mes citations'}
+                {m === 'parcourir' ? 'Parcourir' : 'Mes prélèvements'}
               </button>
             ))}
           </div>
@@ -623,7 +623,7 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
   }, [source])
 
   if (items === null) return <MotAttente />
-  if (items.length === 0) return <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucune citation enregistrée dans « Mes citations » pour l’instant.</p>
+  if (items.length === 0) return <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun passage enregistré dans « Mes prélèvements » pour l’instant.</p>
 
   const choisir = async (it: any) => {
     if (source === 'bible') {

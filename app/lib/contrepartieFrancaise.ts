@@ -35,7 +35,20 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { lotsPourClauseIn } from './paginationSupabase'
+import { lancerEnParallele, lotsPourClauseIn } from './paginationSupabase'
+
+/** Les lots d'une lecture découpée, lancés en parallèle BORNÉE (`lancerEnParallele`), et
+ *  réunis : `null` si l'un d'eux a échoué (l'erreur part au journal). */
+async function lireParLots<T>(
+  valeurs: string[],
+  lire: (lot: string[]) => PromiseLike<{ data: unknown; error: unknown }>,
+  quoi: string,
+): Promise<T[] | null> {
+  const reponses = await lancerEnParallele(lotsPourClauseIn(valeurs).map(lot => () => lire(lot)))
+  const enEchec = reponses.find(r => r.error)
+  if (enEchec) { console.error(`Contrepartie française : ${quoi} n’ont pas pu être lus.`, enEchec.error); return null }
+  return reponses.flatMap(r => (r.data ?? []) as T[])
+}
 
 /** Ce que la langue d'un texte doit valoir pour qu'il soit une traduction. */
 export const LANGUE_FRANCAISE = 'Français'
@@ -160,37 +173,21 @@ export async function chargerContrepartiesFrancaises(
   const setIds = [...new Set(ensembles.map((e) => e.alignment_set_id))]
 
   // 3. Le groupe d'alignement de chaque segment d'origine.
-  const membresSource: LigneMembre[] = []
-  for (const lot of lotsPourClauseIn(aTraduire.map((s) => s.segment_key as string))) {
-    const { data, error } = await client
-      .from('texte_alignement_membres')
-      .select('alignment_set_id, alignment_id, id_texte, segment_key, member_order')
-      .in('alignment_set_id', setIds).in('id_texte', sources).in('segment_key', lot)
-    if (error) {
-      console.error('Contrepartie française : les membres d’alignement n’ont pas pu être lus.', error)
-      return vide
-    }
-    membresSource.push(...((data ?? []) as LigneMembre[]))
-  }
-  if (membresSource.length === 0) return vide
+  const membresSource = await lireParLots<LigneMembre>(aTraduire.map((s) => s.segment_key as string), lot => client
+    .from('texte_alignement_membres')
+    .select('alignment_set_id, alignment_id, id_texte, segment_key, member_order')
+    .in('alignment_set_id', setIds).in('id_texte', sources).in('segment_key', lot), 'les membres d’alignement')
+  if (!membresSource || membresSource.length === 0) return vide
   const groupeDuSegment = new Map<string, string>()
   for (const m of membresSource) groupeDuSegment.set(`${m.id_texte}|${m.segment_key}`, m.alignment_id)
 
   // 4. TOUS les membres de ces groupes, des deux côtés : c'est la CARDINALITÉ du
   //    groupe qui décide de la correspondance (voir plus bas).
-  const membresDuGroupe: LigneMembre[] = []
-  for (const lot of lotsPourClauseIn([...new Set(membresSource.map((m) => m.alignment_id))])) {
-    const { data, error } = await client
-      .from('texte_alignement_membres')
-      .select('alignment_set_id, alignment_id, id_texte, segment_key, member_order')
-      .in('alignment_id', lot).in('id_texte', [...sources, ...francais])
-    if (error) {
-      console.error('Contrepartie française : les membres d’un groupe n’ont pas pu être lus.', error)
-      return vide
-    }
-    membresDuGroupe.push(...((data ?? []) as LigneMembre[]))
-  }
-  if (membresDuGroupe.length === 0) return vide
+  const membresDuGroupe = await lireParLots<LigneMembre>([...new Set(membresSource.map((m) => m.alignment_id))], lot => client
+    .from('texte_alignement_membres')
+    .select('alignment_set_id, alignment_id, id_texte, segment_key, member_order')
+    .in('alignment_id', lot).in('id_texte', [...sources, ...francais]), 'les membres d’un groupe')
+  if (!membresDuGroupe || membresDuGroupe.length === 0) return vide
   const parOrdre = (a: LigneMembre, b: LigneMembre) =>
     (a.member_order ?? 0) - (b.member_order ?? 0) || a.segment_key.localeCompare(b.segment_key)
   const cotesDuGroupe = new Map<string, { source: LigneMembre[]; francais: LigneMembre[] }>()
@@ -204,18 +201,11 @@ export async function chargerContrepartiesFrancaises(
   const membresFr = membresDuGroupe.filter((m) => francais.includes(m.id_texte))
 
   // 5. Les segments français eux-mêmes.
-  const segsFr: SegmentFrancais[] = []
-  for (const lot of lotsPourClauseIn([...new Set(membresFr.map((m) => m.segment_key))])) {
-    const { data, error } = await client
-      .from('segments')
-      .select('id, id_texte, segment_key, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4, notes')
-      .in('id_texte', francais).in('segment_key', lot)
-    if (error) {
-      console.error('Contrepartie française : les segments français n’ont pas pu être lus.', error)
-      return vide
-    }
-    segsFr.push(...((data ?? []) as SegmentFrancais[]))
-  }
+  const segsFr = await lireParLots<SegmentFrancais>([...new Set(membresFr.map((m) => m.segment_key))], lot => client
+    .from('segments')
+    .select('id, id_texte, segment_key, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4, notes')
+    .in('id_texte', francais).in('segment_key', lot), 'les segments français')
+  if (!segsFr) return vide
   const segFrParCle = new Map(segsFr.map((s) => [`${s.id_texte}|${s.segment_key}`, s]))
 
   // ⛔ LA CARDINALITÉ DU GROUPE DÉCIDE, et l'on n'invente jamais de correspondance.

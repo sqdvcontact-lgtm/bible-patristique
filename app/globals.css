@@ -3577,6 +3577,20 @@ html[data-lasso-geste] * {
   --volet-case-ecart: clamp(0.125rem, 1cqi, 0.25rem);
 }
 
+/* Le chiffre d'une case de chapitre. Il vit dans la feuille, non en style en
+   ligne, pour que le doigt puisse le grossir avec la case. */
+.cs-case-chapitre { font-size: 0.6875rem; }
+
+/* Au doigt, la case devient une cible : 2,625 rem, à peu près 42 px, et un écart
+   qui garde la grille aérée. L'axe est la capacité du pointeur, jamais la largeur. */
+@media (hover: none) {
+  .cs-volet-echelle {
+    --volet-case: 2.625rem;
+    --volet-case-ecart: 0.375rem;
+  }
+  .cs-case-chapitre { font-size: 0.8125rem; }
+}
+
 /* ── La recherche d'un livre, dans le volet de lecture ────────────────────────
    ⛔ ELLE N'EST PAS UNE BOÎTE (demande de l'auteur, 2026-09-04 : « plus claire,
    moins visible spontanément, et occuper l'ensemble du bloc »). Le champ portait

@@ -171,7 +171,7 @@ export default async function AccueilPage() {
            (la signature), 5,71 sur le papier du seuil (les dates). Au Cuir : 6,76,
            7,88 et 9,17. Les trois usages du jeton montent ensemble.
            ⚠️ Le jeton vit dans globals.css depuis le 2026-09-14 : la référence d'une
-           citation favorite, dans « Mes citations », en avait besoin aussi, et un jeton de
+           citation favorite, dans « Mes prélèvements », en avait besoin aussi, et un jeton de
            rôle ne se définit pas sur une page. */
 
         .colophon-ornement { font-size: 1.125rem; color: var(--cs-texte-second); letter-spacing: 0.25em; }

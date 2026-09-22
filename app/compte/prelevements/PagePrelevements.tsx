@@ -234,7 +234,7 @@ function CaseACocher({ etat, onChange, libelle }: { etat: EtatCase; onChange: ()
 function nomDuFichierRecu(entete: string | null): string {
   const utf8 = entete?.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
   if (utf8) { try { return decodeURIComponent(utf8); } catch { /* repli ci-dessous */ } }
-  return entete?.match(/filename="([^"]+)"/i)?.[1] ?? "Mes citations.docx";
+  return entete?.match(/filename="([^"]+)"/i)?.[1] ?? "Mes prélèvements.docx";
 }
 
 // ── Micro-composants ──────────────────────────────────────────────────────────
@@ -395,8 +395,8 @@ export default function PagePrelevements() {
     return traductions.find(t => t.label === val || t.label.endsWith(` ${val}`) || t.label.endsWith(` de ${val}`))?.code ?? null;
   };
 
-  // Le titre d'onglet vient du layout (« Mes citations ») ; on ne le réécrit plus
-  // ici en « Mes prélèvements » (contradiction avec la métadonnée et le titre de page).
+  // Le titre d'onglet vient du layout (« Mes prélèvements ») ; on ne le réécrit plus
+  // ici : un second titre contredirait la métadonnée et le titre de page.
 
   // L'écriture, sans question : la colonne du corpus, et elle seule. La page change
   // aussitôt, et reprend l'état d'avant si la base refuse.
@@ -409,7 +409,7 @@ export default function PagePrelevements() {
       .update({ [COLONNE_FAVORITE[type]]: pref ? favoritePourEcriture(pref) : null })
       .eq("id", user.id);
     if (error) {
-      console.error("Mes citations : la citation favorite n’a pas été enregistrée.", error);
+      console.error("Mes prélèvements : la citation favorite n’a pas été enregistrée.", error);
       setFavorites(f => ({ ...f, [type]: avant }));
     }
   };
@@ -774,7 +774,7 @@ export default function PagePrelevements() {
         .select("trad_id, titre_edition, sous_titre_edition, mention_edition, lieu_edition, editeur, annee_edition, nombre_tomes, depot_manuscrit, cote_manuscrit")
         .in("trad_id", codesBibles);
       // ⚠️ Une fiche illisible ne ferme pas l'extraction : le livre garde le nom de sa bible.
-      if (error) console.error("Mes citations : fiches des bibles illisibles.", error);
+      if (error) console.error("Mes prélèvements : fiches des bibles illisibles.", error);
       for (const i of (data ?? []) as Record<string, string | number | null>[]) {
         const edition: EditionServie = {
           titreEdition: i.titre_edition as string | null, sousTitreEdition: i.sous_titre_edition as string | null,
@@ -857,7 +857,7 @@ export default function PagePrelevements() {
       setTimeout(() => URL.revokeObjectURL(adresse), 10_000);
       setExtraction({ enCours: false, erreur: null });
     } catch (e) {
-      console.error("Mes citations : l’extraction a échoué.", e);
+      console.error("Mes prélèvements : l’extraction a échoué.", e);
       setExtraction({ enCours: false, erreur: e instanceof Error ? e.message : "Le document n’a pas pu être composé." });
     }
   };
@@ -870,8 +870,8 @@ export default function PagePrelevements() {
   // ⚠️ Le bandeau porte ce que la tête de page disait : le compte des citations.
   const pluriel = prelevements.length > 1 ? "s" : "";
   const reperes = prelevements.length
-    ? `${prelevements.length} citation${pluriel} enregistrée${pluriel}`
-    : "Vos citations";
+    ? `${prelevements.length} prélèvement${pluriel}`
+    : "Vos prélèvements";
 
   const rubriqueDuSommaire = onglet === "biblique" ? "Livres" : "Auteurs";
 

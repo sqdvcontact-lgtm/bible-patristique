@@ -16,7 +16,8 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
-export default function Erreur({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+// `retry` relance le chargement serveur ; `reset` ne fait que redessiner l'arbre déjà en défaut.
+export default function Erreur({ error, reset, retry }: { error: Error & { digest?: string }; reset: () => void; retry?: () => void }) {
   useEffect(() => {
     console.error('Corpus Scriptura — page en défaut :', error)
   }, [error])
@@ -33,7 +34,7 @@ export default function Erreur({ error, reset }: { error: Error & { digest?: str
         </p>
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
           <button
-            onClick={reset}
+            onClick={retry ?? reset}
             style={{ padding: '7px 16px', borderRadius: '999px', border: '1px solid rgba(var(--cs-vert-rgb),0.35)', background: 'rgba(var(--cs-vert-rgb),0.06)', color: 'var(--cs-vert)', cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem' }}>
             Réessayer
           </button>

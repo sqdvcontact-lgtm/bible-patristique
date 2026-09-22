@@ -4,11 +4,15 @@ import type { Metadata } from 'next'
 import { cache, type ComponentProps } from 'react'
 import BibleLayout from './components/BibleLayout'
 import BibleSourceReader from './components/BibleSourceReader'
+import ChapitreIndisponible from './components/ChapitreIndisponible'
 import { LIVRES, estLivreNonCanonique } from '@/app/lib/bible'
 import { loadBibleReadingCatalog, loadSourceReading } from '@/app/lib/bibleMultimodeServer'
 import { estVerseEditorial, estVerseSurColonnes, withCanonicalV2Capability } from '@/app/lib/bibleMultimode'
 import { selectableReadingModes, type BibleReadingMode } from '@/app/lib/bibleReadingModes'
-import { adapterVersets899, chargerVersets899, couchesDisponibles899, normaliserCouche899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
+import {
+  adapterVersets899, chargerVersets899, couchesDisponibles899, COUCHES_TOUJOURS_899, normaliserCouche899, TRAD_ID_BIBLE899,
+  type Couche899,
+} from '@/app/lib/bible899'
 import { chargerVersetsCanoniquesV2, chargerVersetsEditoriaux } from '@/app/lib/bibleEditorialServer'
 import IndiceTelephoneServeur from '@/app/lib/IndiceTelephoneServeur'
 import {
@@ -187,8 +191,22 @@ export default async function Home({
   // du CHAPITRE au lieu de ceux du livre entier — mesuré sur Matthieu 1 : 224 ms
   // et 744 Ko avant, 73 ms et 26 Ko après.
   const canonPromis = canonDuChapitre(supabase, livre, chapitre)
-    .catch(() => ({ lignes: [] as Awaited<ReturnType<typeof canonDuChapitre>>['lignes'], bornes: null }))
-  const [catalog, editionCatalog, { data: rawTranslations }, { data: rawEditions }, tradProfil, indexEditeurs] = await Promise.all([
+    .catch((erreur: unknown) => {
+      // ⚠️ Journalisé, puis dégradé : un canon vide fait RELIRE l'axe par le chargeur
+      // de versets, qui lève alors une erreur explicite (`lireCanonDuChapitre`).
+      console.error(`[lecture] canon de ${livre} ${chapitre} illisible :`, erreur)
+      return { lignes: [] as Awaited<ReturnType<typeof canonDuChapitre>>['lignes'], bornes: null }
+    })
+  // L'adresse de la page, à redemander telle quelle quand le texte n'a pas pu se lire.
+  const adressePage = `/?${new URLSearchParams(
+    Object.entries(params).filter((e): e is [string, string] => typeof e[1] === 'string'),
+  ).toString()}`
+  const [
+    catalog, editionCatalog,
+    { data: rawTranslations, error: erreurTraductions },
+    { data: rawEditions, error: erreurEditions },
+    tradProfil, indexEditeurs, couchesPrechargees,
+  ] = await Promise.all([
     loadBibleReadingCatalog(supabase),
     loadBibleEditionCatalog(supabase),
     // `dates` = vie et mort de l'auteur ; `date_publication` = la ligne d'édition
@@ -246,7 +264,28 @@ export default async function Home({
     // ⛔ La résolution se fait ICI, sur le serveur : envoyer l'index au navigateur
     // ferait voyager la table entière des éditeurs pour composer deux mots.
     chargerIndexEditeurs(supabase),
+    // ⚠️ Les COUCHES du témoin 899 partent avec la vague (2026-09-22), au lieu d'être
+    // attendues seules une fois la bible choisie. On ne les demande que si la bible
+    // lue PEUT être ce témoin (adresse ou cookie qui le nomment, ou rien de demandé).
+    // ⛔ Leur échec ne ferme pas la page : `null`, et la page retombe sur les deux
+    // couches que la vue porte toujours.
+    (tradDemandee == null || tradDemandee === TRAD_ID_BIBLE899)
+      ? couchesDisponibles899(supabase).catch((erreur: unknown) => {
+        console.error('[lecture] couches du témoin 899 illisibles :', erreur)
+        return null
+      })
+      : Promise.resolve(null),
   ])
+  // ⛔ UNE PANNE N'EST PAS UNE ABSENCE (2026-09-22). La liste des traductions en panne
+  // se lisait comme « aucune traduction », et la page redirigeait vers l'accueil. Elle
+  // dit maintenant qu'elle n'a pas pu se charger. L'adresse des éditions n'est qu'un
+  // ornement de la carte : son échec se journalise et la carte se passe de l'adresse.
+  if (erreurTraductions) {
+    console.error(`[lecture] traductions illisibles (${livre} ${chapitre}) :`, erreurTraductions)
+    return <ChapitreIndisponible adresse={adressePage} titre="La page n’a pas pu se charger"
+      explication="La liste des traductions n’a pas répondu à temps. Réessayez dans un instant." />
+  }
+  if (erreurEditions) console.error('[lecture] adresses des éditions illisibles, carte servie sans elles :', erreurEditions)
   // L'adresse de l'édition servie, rangée par bible. ⚠️ Une bible sans fiche
   // d'édition n'a pas d'adresse : la phrase de la carte se compose alors avec les
   // seules dates, et son séparateur part avec le champ absent.
@@ -269,6 +308,8 @@ export default async function Home({
         anneeEdition: fiche?.annee_edition ?? null,
         depotManuscrit: fiche?.depot_manuscrit ?? null,
         coteManuscrit: fiche?.cote_manuscrit ?? null,
+        // La langue voyage dès le premier rendu : TexteBible sait la lire.
+        langue: t.langue ?? null,
       }
     })
   // La langue de chaque bible, au code du site (`grc`, `la`, `fr`) : celle du texte qu'une
@@ -353,12 +394,17 @@ export default async function Home({
   // « Graphie » du volet de gauche. Aucune n'est écartée ici — la transcription
   // diplomatique est un état du texte comme les autres, et le lecteur qui la demande
   // sait ce qu'il demande. Le menu ne paraît qu'à partir de deux couches.
-  const couchesBible = bible899 ? await couchesDisponibles899(supabase) : []
+  const couchesBible: Couche899[] = !bible899 ? []
+    : couchesPrechargees
+      ?? await couchesDisponibles899(supabase).catch((erreur: unknown) => {
+        console.error('[lecture] couches du témoin 899 illisibles :', erreur)
+        return [...COUCHES_TOUJOURS_899]
+      })
   const couche = normaliserCouche899(params.couche, couchesBible)
   // ⚠️ Une FONCTION, non un chargement immédiat : la lecture en regard rend ses deux
   // colonnes par son propre chemin et n'a que faire de celui-ci. Chargé d'office, il
   // coûtait quatre allers-retours pour rien sur la Fillion en regard.
-  const chargerVersetsDuChapitre = async (): Promise<ComponentProps<typeof BibleLayout>['versets']> => {
+  const lireVersetsDuChapitre = async (): Promise<ComponentProps<typeof BibleLayout>['versets']> => {
     if (bible899) {
       const lignes = await chargerVersets899(supabase, { livre, chapitre }, [couche])
       return adapterVersets899(lignes, trad, livre, chapitre, couche)
@@ -385,6 +431,9 @@ export default async function Home({
       // à un nom de vue (voir la migration 20260906125959).
       .from(estLivreNonCanonique(livre) ? 'versets_lecture_apocryphes' : 'versets_lecture')
       .select('*')
+      // ⛔ L'erreur se LÈVE (2026-09-22) : ignorée, un délai dépassé rendait une liste vide,
+      // et la page annonçait « La traduction ne comporte pas ce livre ».
+      .throwOnError()
       .eq('livre', livre)
       .eq('chapitre', chapitre)
       .order('verset')
@@ -394,6 +443,21 @@ export default async function Home({
       // décide du rang des notes des versets, et l'inventaire du volet de droite le rejoue.
       .order('id_verset')
     return data || []
+  }
+  // ⛔ LE TEXTE EST LA SEULE COUCHE DONT L'ÉCHEC FERME LA PAGE (charte § 18), et il la
+  // ferme en le DISANT. L'échec est retenu ici plutôt que levé : la promesse des versets
+  // nourrit aussi celle de l'appareil, et un rejet laissé sans preneur ferait tomber le
+  // processus. La page lit `echecTexte.erreur` après la vague et rend « Le chapitre n'a pas pu
+  // se charger », avec un « Réessayer » qui redemande vraiment la page.
+  const echecTexte: { erreur: unknown } = { erreur: null }
+  const chargerVersetsDuChapitre = async (): Promise<ComponentProps<typeof BibleLayout>['versets']> => {
+    try {
+      return await lireVersetsDuChapitre()
+    } catch (erreur) {
+      echecTexte.erreur = erreur
+      console.error(`[lecture] ${livre} ${chapitre} (${trad}) : le texte n’a pas pu se charger :`, erreur)
+      return []
+    }
   }
 
   // Les balises de titre se calculent sur les seuls blocs qui atteignent l'axe
@@ -465,10 +529,18 @@ export default async function Home({
   // proposait d'écarter un appareil qui n'existe pas. Deux comptes en tête, sous la
   // RLS du lecteur — elle ne rend que ce qui est publié —, dans la vague des versets.
   const paratexteDisponiblePromis: Promise<boolean> = editionMember
+    // ⚠️ Deux SONDES d'une ligne, non deux comptes exacts (2026-09-22) : on veut savoir
+    // s'il y a UN bloc ou UNE note, et `count: 'exact'` parcourait toute la famille pour
+    // n'en retenir que « plus de zéro ». Un échec se journalise et vaut « non ».
     ? Promise.all([
-      supabase.from('bible_editorial_body_blocks').select('id', { count: 'exact', head: true }).eq('family_id', editionMember.family_id),
-      supabase.from('bible_verse_notes').select('id', { count: 'exact', head: true }).eq('family_id', editionMember.family_id),
-    ]).then(([blocs, notes]) => (blocs.count ?? 0) + (notes.count ?? 0) > 0).catch(() => false)
+      supabase.from('bible_editorial_body_blocks').select('id').eq('family_id', editionMember.family_id).limit(1),
+      supabase.from('bible_verse_notes').select('id').eq('family_id', editionMember.family_id).limit(1),
+    ]).then(([blocs, notes]) => {
+      if (blocs.error || notes.error) {
+        console.error('[lecture] sonde de l’appareil éditorial en échec :', blocs.error ?? notes.error)
+      }
+      return (blocs.data?.length ?? 0) + (notes.data?.length ?? 0) > 0
+    }).catch(() => false)
     : Promise.resolve(false)
   // Les rangs de titre que l’édition ne rend pas : réglage d’administration, lu sous
   // la RLS du lecteur, dans la même vague. Un échec les rend tous visibles.
@@ -628,7 +700,11 @@ export default async function Home({
     // contre 2,0). Même règle qu'en une colonne : sans les commentaires, l'appareil
     // n'est pas chargé du tout, les trois listes vides suffisent.
     const membresCanoniquesV2 = new Set(await tradsV2Promis)
-    const chargeePromise = chargerLectureBilingue(supabase, { familyRows, livre, chapitre, membresCanoniquesV2 })
+    // Le canon, déjà lu en tête de page, part avec : la lecture en regard ne le relit
+    // plus pour chaque colonne.
+    const chargeePromise = chargerLectureBilingue(supabase, {
+      familyRows, livre, chapitre, membresCanoniquesV2, canonRows: canonChapitre.lignes,
+    })
     // Les notes des versets ne vivent que chez un membre lu par le canon : un membre à
     // segmentation éditoriale n'a pas de ligne dans `versets_v2`.
     const notesEnRegardPromis = lancerNotesVersetsV2([...new Set(familyRows.map((row) => row.trad_id))]
@@ -790,6 +866,13 @@ export default async function Home({
     paratexteDisponiblePromis,
     titresMasquesPromis,
   ])
+  // Le texte n'a pas pu se lire : on le DIT, au lieu d'annoncer un chapitre vide. Une
+  // pièce liminaire demandée n'a pas besoin des versets, elle se sert quand même.
+  if (echecTexte.erreur && !params.piece) {
+    // L'appareil attend encore : il ne doit pas rejeter sans preneur.
+    void appareilPromis?.catch(() => null)
+    return <ChapitreIndisponible adresse={adressePage} />
+  }
   // Les traductions lues dans `versets_v2` rejoignent le catalogue de CETTE page,
   // et le menu avec elles (voir plus haut, « Les traductions lues dans versets_v2 »).
   const capabilitiesLecture = withCanonicalV2Capability(catalog.capabilities, tradsV2)

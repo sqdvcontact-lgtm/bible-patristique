@@ -26,10 +26,11 @@ const EXEMPTS: { chemin: string; motif: string }[] = [
     motif: 'ancien français (lang="fro") : aucune syllabation disponible',
   },
   {
-    // La zone d'édition d'un segment biblique. Un CHAMP DE SAISIE ne promet rien du
+    // La zone d'édition d'un verset biblique, sortie de TexteBible le 2026-09-22 pour être
+    // chargée au clic. Un CHAMP DE SAISIE ne promet rien du
     // rendu final : on ne césure pas ce qu'on est en train de taper. ⚠️ Un éditeur
     // WYSIWYG, lui, promet la forme finale et prend la césure (voir `compositionEssai`).
-    chemin: join('components', 'TexteBible.tsx'),
+    chemin: join('components', 'ModaleEditionVerset.tsx'),
     motif: 'champ de saisie : ne promet pas le rendu final',
   },
   {

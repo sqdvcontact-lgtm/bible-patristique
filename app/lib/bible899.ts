@@ -274,10 +274,37 @@ export async function livresDisponibles899(client: SupabaseClient): Promise<Set<
 const COUCHES_CACHE_MS = 5 * 60_000
 let coucheCache: { expiresAt: number; promise: Promise<Couche899[]> } | null = null
 
+// ⛔ LA SONDE LÈVE SUR UNE PANNE, ET ELLE NE DEMANDE QUE DES COLONNES NOMMÉES
+// (2026-09-22). Elle faisait `select('*')` sur une vue qui recompose le texte, et elle
+// ignorait `error` : une panne rendait une ligne absente, donc la seule couche de repli,
+// et ce faux résultat restait CINQ MINUTES en cache pour tous les lecteurs — le menu
+// « Graphie » disparaissait sans que rien ne le dise. On sonde désormais une colonne
+// CONNUE (`texte_expanded`, qui prouve que la vue répond) et la seule colonne dont la
+// présence est une question (`texte_modernized`), chacune par `limit(1)`. Une colonne
+// inconnue rend 42703 : c'est une ABSENCE, non une panne. Toute autre erreur lève, et
+// `couchesDisponibles899` n'en garde rien en cache.
+const COLONNE_INCONNUE = '42703'
+
+/** Les deux couches que la vue porte toujours : le repli d'une sonde en échec. */
+export const COUCHES_TOUJOURS_899: readonly Couche899[] = ['diplomatic', 'expanded']
+
 async function sonderCouchesDisponibles899(client: SupabaseClient): Promise<Couche899[]> {
-  const { data } = await client.from('v_bible899_verse_recomposed').select('*').limit(1)
-  const ligne = (data ?? [])[0] as Record<string, unknown> | undefined
-  return couchesDisponiblesDepuisColonnes(ligne ? Object.keys(ligne) : [])
+  const sonder = (colonne: string) => client
+    .from('v_bible899_verse_recomposed')
+    .select(colonne)
+    .eq('trad_id', TRAD_ID_BIBLE899)
+    .limit(1)
+  const [connue, modernisee] = await Promise.all([
+    sonder(COLONNE_TEXTE_899.expanded),
+    sonder(COLONNE_TEXTE_899.modernized),
+  ])
+  if (connue.error) throw new Error(`Couches du témoin 899 illisibles : ${connue.error.message}`)
+  const colonnes = [COLONNE_TEXTE_899.diplomatic, COLONNE_TEXTE_899.expanded]
+  if (!modernisee.error) colonnes.push(COLONNE_TEXTE_899.modernized)
+  else if (modernisee.error.code !== COLONNE_INCONNUE) {
+    throw new Error(`Couche modernisée du témoin 899 illisible : ${modernisee.error.message}`)
+  }
+  return couchesDisponiblesDepuisColonnes(colonnes)
 }
 
 export async function couchesDisponibles899(client: SupabaseClient): Promise<Couche899[]> {

@@ -70,7 +70,10 @@ describe('densité patristique', () => {
     expect(texte).not.toContain('.verset-row--actif .marque-densite')
     expect(texte.indexOf('className="marque-densite"')).toBeGreaterThan(texte.indexOf('<BoutonSignaler versetId'))
     // ⛔ Et elle ne se rend que si elle TIENT : une opacité nulle déborderait quand même.
-    expect(texte).toContain('densiteTient && densites.get(v.id_verset)')
+    // La densité se lit UNE fois par rangée (2026-09-22).
+    expect(texte).toContain('const densite = densites.get(v.id_verset)')
+    expect(texte).toContain('densiteTient && densite')
+    expect(texte.split('densites.get(v.id_verset)').length - 1).toBe(1)
   })
 
   it('⛔ ne recalcule RIEN : les deux échelles viennent du même cache', () => {

@@ -119,12 +119,16 @@ describe('segmentsLiesAuChapitre', () => {
       select: vi.fn(),
       eq: vi.fn(),
       like: vi.fn(),
+      order: vi.fn(),
+      range: vi.fn(),
       // La chaîne est « thenable » : `await` la résout comme une réponse PostgREST.
       then: (resoudre: (v: unknown) => unknown) => Promise.resolve({ data: [], error: null }).then(resoudre),
     }
     chaine.select.mockReturnValue(chaine)
     chaine.eq.mockImplementation((...args: unknown[]) => { appels.eq.push(args); return chaine })
     chaine.like.mockImplementation((...args: unknown[]) => { appels.like.push(args); return chaine })
+    chaine.order.mockReturnValue(chaine)
+    chaine.range.mockReturnValue(chaine)
     ;(supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValue(chaine)
 
     await segmentsLiesAuChapitre('GEN', 1)
@@ -137,5 +141,58 @@ describe('segmentsLiesAuChapitre', () => {
     expect(appels.eq).toContainEqual(['canon_chapitre', 1])
     expect(appels.eq).toContainEqual(['livre', 'GEN'])
     expect(appels.eq).toContainEqual(['chapitre', 1])
+  })
+
+  // ⛔ Le plafond PostgREST de 1 000 lignes tronquait en silence : Genèse 1 porte 2 773
+  // liens. Chaque lecture est paginée, triée par `id` pour que les pages ne se
+  // recouvrent ni ne se trouent, et continue tant qu'une page revient pleine.
+  it('pagine par tranches de 1 000, triées par id, au-delà du plafond PostgREST', async () => {
+    const TOTAL_AU_VERSET = 2773
+    type Requete = { eq: unknown[][]; order: unknown[][]; range: [number, number] | null }
+    const requetes: Requete[] = []
+    const lien = (id: number) => ({ id, segment_id: id, canon_id: `GEN.1.${1 + (id % 31)}`, type: 1 })
+    ;(supabase.from as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      const r: Requete = { eq: [], order: [], range: null }
+      requetes.push(r)
+      const chaine = {
+        select: () => chaine,
+        eq: (...args: unknown[]) => { r.eq.push(args); return chaine },
+        order: (...args: unknown[]) => { r.order.push(args); return chaine },
+        range: (debut: number, fin: number) => { r.range = [debut, fin]; return chaine },
+        then: (resoudre: (v: unknown) => unknown) => {
+          // Les liens au verset (canon_livre) en portent 2 773 ; ceux du chapitre, aucun.
+          const auVerset = r.eq.some(([c]) => c === 'canon_livre')
+          const [debut, fin] = r.range ?? [0, 999]
+          const data = auVerset
+            ? Array.from({ length: Math.max(0, Math.min(fin, TOTAL_AU_VERSET - 1) - debut + 1) }, (_, i) => lien(debut + i))
+            : []
+          return Promise.resolve({ data, error: null }).then(resoudre)
+        },
+      }
+      return chaine
+    })
+
+    const liens = await segmentsLiesAuChapitre('GEN', 1)
+
+    expect(liens).toHaveLength(TOTAL_AU_VERSET)
+    expect(new Set(liens.map(l => l.id)).size).toBe(TOTAL_AU_VERSET)
+    for (const r of requetes) {
+      expect(r.order).toContainEqual(['id', { ascending: true }])
+      expect(r.range).not.toBeNull()
+      expect(r.range![1] - r.range![0]).toBe(999)
+    }
+    const pagesAuVerset = requetes.filter(r => r.eq.some(([c]) => c === 'canon_livre')).map(r => r.range![0]).sort((a, b) => a - b)
+    expect(pagesAuVerset.slice(0, 3)).toEqual([0, 1000, 2000])
+  })
+
+  it('lève sur une erreur de la base au lieu de rendre une liste tronquée', async () => {
+    ;(supabase.from as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      const chaine = {
+        select: () => chaine, eq: () => chaine, order: () => chaine, range: () => chaine,
+        then: (resoudre: (v: unknown) => unknown) => Promise.resolve({ data: null, error: { message: 'délai dépassé' } }).then(resoudre),
+      }
+      return chaine
+    })
+    await expect(segmentsLiesAuChapitre('GEN', 1)).rejects.toEqual({ message: 'délai dépassé' })
   })
 })

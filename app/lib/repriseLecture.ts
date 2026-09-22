@@ -43,6 +43,10 @@ export const LIVRE_PAR_DEFAUT = 'GEN'
  *  large à dessein — elle écarte une valeur absurde, elle ne juge pas le canon. */
 const CHAPITRE_MAX = 400
 
+/** Le plus long chapitre du canon compte 176 versets (Psaume 119) ; même parti que
+ *  pour le chapitre : la borne écarte l'absurde, elle ne juge pas le canon. */
+const VERSET_MAX = 400
+
 export type PositionBible = {
   livre: string
   chapitre: number
@@ -50,6 +54,14 @@ export type PositionBible = {
   trad: string
   /** Le nom du livre tel que la page l'affichait, pour l'écrire sans le rechercher. */
   nomLivre: string
+  /**
+   * Le verset qui se tenait en tête de fenêtre, pour rouvrir au même endroit d'un long
+   * chapitre (demande de l'auteur, 2026-09-22 : rouvrir le Psaume 119 repartait du
+   * haut). `null` : le haut du chapitre. ⚠️ Champ d'AGRÉMENT, comme `trad` et
+   * `nomLivre` : une place écrite avant lui se relit sans lui, et un verset illisible
+   * ne fait pas tomber le reste de la position.
+   */
+  verset: number | null
 }
 
 export type PositionPolyglotte = {
@@ -57,7 +69,7 @@ export type PositionPolyglotte = {
   chapitre: number
 }
 
-/** Un code de livre plausible : trois à cinq signes, capitales et chiffres. Le
+/** Un code de livre plausible : deux à six signes, capitales et chiffres. Le
  *  seul contrôle qui vaille est celui de l'appelant, qui a la liste ; celui-ci
  *  n'écarte qu'une valeur qui n'a jamais pu être un code. */
 function codeLivrePlausible(v: unknown): v is string {
@@ -66,6 +78,15 @@ function codeLivrePlausible(v: unknown): v is string {
 
 function chapitrePlausible(v: unknown): v is number {
   return typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= CHAPITRE_MAX
+}
+
+/**
+ * Le verset qui vaut d'être retenu : un entier plausible, et SUPÉRIEUR À 1. Le premier
+ * verset est le haut du chapitre, où l'on rouvre de toute façon ; le retenir ferait
+ * viser — donc sélectionner — le verset 1 à chaque reprise.
+ */
+export function versetDeReprise(v: unknown): number | null {
+  return typeof v === 'number' && Number.isInteger(v) && v > 1 && v <= VERSET_MAX ? v : null
 }
 
 /** Relit ce que la Bible classique a écrit. `null` sur tout ce qui n'est pas une
@@ -79,7 +100,19 @@ export function positionBibleDepuis(brut: unknown): PositionBible | null {
     chapitre: o.chapitre,
     trad: typeof o.trad === 'string' ? o.trad : '',
     nomLivre: typeof o.nomLivre === 'string' ? o.nomLivre : '',
+    verset: versetDeReprise(o.verset),
   }
+}
+
+/**
+ * L'adresse qui rouvre la Bible classique à la place retenue. Le verset passe par le
+ * paramètre `verset`, que `TexteBible` sait déjà viser (il y fait défiler la colonne).
+ * ⛔ La bible n'y est PAS : elle se décide sur le serveur, par le cookie puis le profil
+ * (`preferenceBible`), et un `?trad=` figerait le lien.
+ */
+export function adresseDeReprise(position: Pick<PositionBible, 'livre' | 'chapitre' | 'verset'>): string {
+  const verset = versetDeReprise(position.verset)
+  return `/?livre=${encodeURIComponent(position.livre)}&chapitre=${position.chapitre}${verset ? `&verset=${verset}` : ''}`
 }
 
 /** Relit ce que la Polyglotte a écrit. */
