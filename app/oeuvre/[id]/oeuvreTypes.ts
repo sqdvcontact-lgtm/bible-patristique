@@ -95,23 +95,11 @@ export type SegData = {
   notes?: Record<string, NoteAffichee>
   paragraphe?: number | null
   rang?: number | null
-  texteOriginal?: string | null
-  /** Le segment du texte en langue originale dont `texteOriginal` est la copie
-   *  (`segment_metadata.original_segment_key`). C'est par lui qu'on retrouve les
-   *  notes de ce bloc latin : elles pendent au texte original, pas à la traduction. */
-  cleOriginal?: string | null
-  /** `texteOriginal` avec ses appels de note matérialisés, comme `texteAffichage`
-   *  pour le corps. ⛔ Jamais renvoyé dans un `update` Supabase. */
-  texteOriginalAffichage?: string
   /** Le GROUPE d'alignement auquel ce segment appartient — l'unité qui se recoupe d'une
    *  colonne à l'autre en lecture bilingue, et qui y tient lieu de paragraphe. C'est par
    *  lui qu'on trouve l'original en regard, dans `blocsOriginal`. `null` quand aucun
    *  alignement ne couvre le segment : il retombe alors sur `paragraphe`. */
   groupeOriginal?: string | null
-  /** Les notes du bloc latin, séparées de `notes` qui sert la colonne française :
-   *  un même segment porte les deux, et les mêler ferait sortir l'apparat de Knöll
-   *  dans le texte d'Arnauld d'Andilly. */
-  notesOriginal?: Record<string, NoteAffichee>
   nature?: string | null
   espaceTextuel?: string | null
   joinBefore?: string | null
@@ -266,7 +254,7 @@ export type Props = {
   notesStructureesPartielles?: boolean
   /** Notes et ancres du TEXTE EN LANGUE ORIGINALE lu en regard, indexées par la
    *  `segment_key` de ce texte. Elles servent la seconde colonne du bilingue, que la
-   *  traduction ne peut pas fournir : son `texte_original` n'est qu'une copie. */
+   *  traduction ne peut pas fournir. */
   notesOriginales?: Record<string, Record<string, NoteStructuree>>
   ancresNotesOriginales?: Record<string, AncreNoteStructureeProjection[]>
   /** Vrai quand la page n'a reçu que les notes du texte en regard qu'elle compose : le
@@ -275,8 +263,7 @@ export type Props = {
   /** L'original mis en regard, groupe d'alignement par groupe d'alignement. C'est la
    *  SEULE source de la colonne de droite quand l'œuvre est alignée : le texte y est
    *  lu depuis ses propres segments, où il n'existe qu'une fois. Vide quand l'œuvre
-   *  n'a pas d'alignement — la colonne retombe alors sur `segments.texte_original`,
-   *  repli qui s'éteindra avec elle (voir `bilingueAlignement.ts`). */
+   *  n'a pas d'alignement : rien ne se met alors en regard (voir `bilingueAlignement.ts`). */
   blocsOriginal?: Record<string, BlocOriginal>
   niv1List: string[]
   niv1TexteMap?: Record<string, string>

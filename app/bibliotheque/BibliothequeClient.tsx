@@ -1898,18 +1898,13 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
 
   // Œuvres qui offrent aussi leur texte original, lisible dans la page de l'œuvre. Sert à
   // proposer le texte original sous la traduction, dans la liste des œuvres.
-  // ⛔ L'ORIGINAL SE RECONNAÎT À SES TEXTES, pas à la seule colonne héritée : la vue
-  // `v_oeuvres_texte_original` ne voit que `segments.texte_original`, et le grec de la
-  // Doctrine des Apôtres, texte à part entière, n'était proposé nulle part (relevé du
-  // 2026-09-13). La règle est celle de la page d'œuvre (`originauxDisponibles`).
+  // ⛔ L'ORIGINAL SE RECONNAÎT À SES TEXTES, et à eux seuls (2026-09-22) : la règle est
+  // celle de la page d'œuvre (`originauxDisponibles`).
   const [sourcesOriginaux, setSourcesOriginaux] = useState<OriginauxDisponibles>(ORIGINAUX_VIDES)
   useEffect(() => {
-    Promise.all([
-      supabase.from('v_oeuvres_texte_original').select('id_oeuvre'),
-      supabase.from('oeuvre_textes').select('id_oeuvre, langue, traducteur, statut'),
-    ]).then(([repli, textes]) => {
-      if (repli.error || textes.error) console.warn('[bibliotheque] textes originaux incomplets', repli.error ?? textes.error)
-      setSourcesOriginaux(composerOriginauxDisponibles(repli.data ?? [], textes.data ?? []))
+    supabase.from('oeuvre_textes').select('id_oeuvre, langue, traducteur, statut').then(textes => {
+      if (textes.error) console.warn('[bibliotheque] textes originaux incomplets', textes.error)
+      setSourcesOriginaux(composerOriginauxDisponibles(textes.data ?? []))
     })
   }, [])
   const originaux = useMemo(() => new Set(auteurs.flatMap(auteur => auteur.oeuvres

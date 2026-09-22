@@ -40,10 +40,10 @@
  * 57 groupes de la Didachè le font. La coupure de l'ÉDITION l'emporte alors ; le rang
  * suivant garde sa grille, colonne de droite vide, l'empan étant composé au-dessus.
  *
- * ⚠️ `texte_original` reste lu en REPLI, le temps que les sept œuvres dont l'original
- * n'a pas encore de texte propre (Consolation de Mirandol, Ratramne, Hexaéméron,
- * Discours 38, Jonas, Joël, Abdias) reçoivent le leur. Ce repli n'est pas une seconde
- * façon de faire : c'est la première qui s'éteint. Il tombe avec la colonne.
+ * ⛔ UN SEUL MODE (décision de l'auteur, 2026-09-22). `texte_original` a été lu en REPLI
+ * tant que des œuvres n'avaient pas d'original propre. Toutes l'ont reçu, et les
+ * 1 135 segments qui portaient encore la copie avaient chacun leur vis-à-vis dans les
+ * tables. Le repli est retiré : sans alignement, rien ne se met en regard.
  */
 
 import type { NoteStructuree } from './oeuvreTypes'
@@ -339,62 +339,31 @@ export type OriginalEnRegard<N> = {
   /** Le même, appels de note matérialisés. */
   affichage: string
   notes: N
-  /** `null` = l'origine ne sait pas si c'est du vers ; la colonne française tranchera. */
-  toutVers: boolean | null
+  toutVers: boolean
 }
 
 /**
- * L'original mis en regard d'un bloc de lecture : celui de l'ALIGNEMENT quand le bloc
- * en a un, la colonne `texte_original` en repli.
+ * L'original mis en regard d'un bloc de lecture : celui de l'ALIGNEMENT, et lui seul.
  *
- * ⛔ L'alignement a la priorité, et sans condition. Une œuvre peut porter les deux — les
- * Confessions ont leur latin comme texte à part entière ET recopié dans les 932 segments
- * de la traduction — et c'est alors le texte qui fait foi, jamais la copie : elle seule
- * peut avoir dérivé. Le repli ne sert qu'aux œuvres dont l'original n'a pas encore de
- * texte propre, et il tombera avec la colonne.
- *
- * Rend `null` quand il n'y a rien à mettre en regard : le bloc se compose alors seul,
- * sans ouvrir une grille bilingue vide.
+ * Rend `null` quand il n'y a rien à mettre en regard — aucun groupe, ou un empan déjà
+ * composé par un bloc précédent : le bloc se compose alors seul, ou garde sa grille,
+ * colonne de droite vide (voir `BlocEnRegard.couvert`).
  */
 export function originalEnRegard<N>(params: {
   /** Les groupes que CE bloc compose, dans l'ordre de lecture — ceux dont il est le
    *  premier à porter l'empan. Leurs originaux se suivent dans une seule colonne, et
    *  s'y joignent comme le paragraphe d'en face (voir `fondreOriginaux`). */
   groupes: readonly string[]
-  /** Le bloc est COUVERT par l'alignement sans rien avoir à composer : son empan l'a
-   *  été par un bloc précédent. Sa colonne de droite reste vide, et il ne va surtout
-   *  pas chercher la copie — elle redirait ce que la colonne porte déjà plus haut. */
-  couvert?: boolean
   blocs: Record<string, BlocOriginal>
-  /** Les segments TRADUITS du bloc, dans l'ordre de lecture — pour le seul repli. */
-  segmentsDuBloc: readonly {
-    texteOriginal?: string | null
-    texteOriginalAffichage?: string
-    notesOriginal?: N
-    notes?: N
-  }[]
-  /** La table de notes vide, faute de savoir la fabriquer sur un type générique. */
-  notesVides: N
 }): OriginalEnRegard<N> | null {
-  const { groupes, couvert, blocs, segmentsDuBloc, notesVides } = params
+  const { groupes, blocs } = params
   const fondu = groupes.length > 0 ? fondreOriginaux(groupes, blocs) : null
-  if (fondu) return {
+  if (!fondu) return null
+  return {
     texte: fondu.texte,
     affichage: fondu.texteAffichage,
     notes: fondu.notes as N,
     toutVers: fondu.toutVers,
-  }
-  // ⛔ Le bloc n'a rien à composer et son empan est ailleurs : sa colonne reste vide.
-  // Retomber ici sur la copie ferait paraître deux fois le même original, une fois dans
-  // le bloc qui porte l'empan et une fois dans chacun de ceux qui le prolongent.
-  if (groupes.length === 0 && couvert) return null
-  const seg = segmentsDuBloc.find(s => Boolean(s?.texteOriginal?.trim()))
-  if (!seg?.texteOriginal) return null
-  return {
-    texte: seg.texteOriginal,
-    affichage: seg.texteOriginalAffichage ?? seg.texteOriginal,
-    notes: seg.notesOriginal ?? seg.notes ?? notesVides,
-    toutVers: null,
   }
 }
 

@@ -73,8 +73,7 @@ export type SegmentExtrait = {
   stropheAvant: boolean | null
   numeroVerset: string | null
   forme: string | null
-  /** Le repli `segments.texte_original`, quand aucun alignement ne couvre le segment. */
-  texteOriginal: string | null
+
   /** L'identifiant du groupe d'alignement, quand l'œuvre est alignée. */
   groupeOriginal: string | null
   niv1: string; niv1Texte: string
@@ -323,7 +322,7 @@ export function titresDuChangement(precedent: SegmentExtrait | null, segment: Se
   return titres
 }
 
-/** Les originaux qu'un bloc porte : ceux dont il ouvre le groupe, ou le repli. */
+/** Les originaux qu'un bloc porte : ceux dont il ouvre le groupe d'alignement. */
 function originauxDuBloc(
   entree: EntreeDocument,
   bloc: readonly SegmentExtrait[],
@@ -342,11 +341,7 @@ function originauxDuBloc(
     const original = entree.originaux.get(groupe)
     if (original) sortie.push(original)
   }
-  if (sortie.length > 0) return sortie
-  // ⚠️ `segments.texte_original` est un REPLI qui s'éteint : il ne sert que là où aucun
-  // alignement ne couvre le texte (sept œuvres au 2026-09-07).
-  const repli = bloc.find(s => (s.texteOriginal ?? '').trim())
-  return repli?.texteOriginal ? [{ texte: repli.texteOriginal, toutVers: estBlocDeVers(bloc), notes: {} }] : []
+  return sortie
 }
 
 /**

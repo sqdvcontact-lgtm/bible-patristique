@@ -755,17 +755,10 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // garde-fou de `paragraphesDe` isole alors chaque segment dans son propre bloc, ce
   // qui rend très exactement ce que faisait l'ancien mode. C'est pourquoi le drapeau
   // `eligibleParagraphes` a pu partir avec lui : il ne gardait plus aucune porte.
-  // L'original en regard vient de DEUX sources, et la seconde s'éteindra.
-  //
-  // `blocsOriginal` est la bonne : le texte est lu dans SES PROPRES segments, sous son
-  // propre `id_texte`, et l'alignement dit quel bloc répond à quel paragraphe. C'est le
-  // seul chemin pour une œuvre dont l'original est entré comme texte à part entière —
-  // la Doctrine des Apôtres n'a jamais eu de colonne `texte_original`, et sa lecture
-  // bilingue ne montrait donc que le français.
-  //
-  // ⚠️ `texteOriginal` est la seconde, celle qui recopie l'original dans la traduction.
-  // Elle sert encore les sept œuvres dont l'original n'a pas de texte propre (voir
-  // `bilingueAlignement.ts`) et tombera avec la colonne.
+  // L'original en regard vient d'UNE source, `blocsOriginal` : le texte est lu dans SES
+  // PROPRES segments, sous son propre `id_texte`, et l'alignement dit quel bloc répond à
+  // quel paragraphe. ⛔ La copie `segments.texte_original` ne sert plus (2026-09-22) :
+  // voir `bilingueAlignement.ts`.
   // Les blocs reçus du serveur ne couvrent que la division rendue : changer de division
   // en apporte d'autres, qu'on ACCUMULE. D'où un état, recalé sur la propriété PENDANT
   // le rendu (patron des états qui recopient une propriété, charte § linter) : dans un
@@ -775,15 +768,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   if (blocsRecus !== blocsOriginal) { setBlocsRecus(blocsOriginal); setBlocsOriginalEtat(blocsOriginal) }
 
   const blocsAlignes = useMemo(() => Object.keys(blocsOriginalEtat).length > 0, [blocsOriginalEtat])
-  // Le REPLI, et lui seul : `segments.texte_original`, la copie de l'original recollée
-  // dans la traduction. ⛔ À ne pas confondre avec `aTexteOriginal`, qui répond à « y
-  // a-t-il quelque chose à mettre en regard », alignement compris. C'est ce repli-là,
-  // et non l'autre, qui autorise le mode bilingue faute d'alignement.
-  const repliTexteOriginal = useMemo(
-    () => [...segmentsInit, ...segmentsApparatInit].some(s => Boolean(s.texteOriginal?.trim())),
-    [segmentsInit, segmentsApparatInit],
-  )
-  const aTexteOriginal = blocsAlignes || repliTexteOriginal
+  const aTexteOriginal = blocsAlignes
 
   // ── LA PAIRE DE LECTURE ────────────────────────────────────────────────────
   // Quelle traduction, quel original, quel alignement : la règle vit dans
@@ -798,9 +783,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       versions: versionsTextuelles,
       alignements: alignementsDisponibles,
       langueOriginale: oeuvre.langue_originale,
-      repliTexteOriginal,
     }),
-    [idTexte, versionsTextuelles, alignementsDisponibles, oeuvre.langue_originale, repliTexteOriginal],
+    [idTexte, versionsTextuelles, alignementsDisponibles, oeuvre.langue_originale],
   )
   // Le texte en langue originale de CETTE œuvre, s'il en a un et si ce n'est pas celui
   // qu'on lit : c'est lui que l'alignement met en regard.
@@ -814,7 +798,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // celui-ci est celui du rendu où elle a été créée.
   const [notesEnRegardChargees, setNotesEnRegardChargees] = useState<NotesEnRegardLues | null>(null)
   const notesOriginales = notesEnRegardChargees?.notes ?? notesOriginalesRecues
-  const ancresNotesOriginales = notesEnRegardChargees?.ancres ?? ancresNotesOriginalesRecues
   const chargementNotesEnRegardRef = useRef<Promise<NotesEnRegardLues> | null>(null)
   const notesEnRegardCompletes = useCallback((): Promise<NotesEnRegardLues> => {
     const recues: NotesEnRegardLues = { notes: notesOriginalesRecues, ancres: ancresNotesOriginalesRecues }
@@ -1019,8 +1002,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
   // ── UNE LECTURE EN REGARD NE S'OUVRE JAMAIS À VIDE ─────────────────────────
   // ⛔ Le mode demandé ne vaut que si une colonne peut RÉELLEMENT se composer en face
-  // du texte lu : un ensemble d'alignement qui couvre ce texte, ou le repli
-  // `segments.texte_original`. Sans cela, « Français & Latin » allumait son bouton et
+  // du texte lu : un ensemble d'alignement qui couvre ce texte. Sans cela, « Français &
+  // Latin » allumait son bouton et
   // ne rendait qu'une colonne (relevé sur A0010O0100 le 2026-09-05), et « Latin »
   // masquait le français pour ne rien mettre à sa place — une page blanche, qu'une
   // préférence gardée dans le navigateur suffisait à rouvrir.
@@ -1035,9 +1018,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     if (ongletDroit === 'notes' && estAdmin && notesStructureesPartielles) void notesDuTexteCompletes()
   }, [ongletDroit, estAdmin, notesStructureesPartielles, notesDuTexteCompletes])
   // L'ÉDITION MISE EN REGARD, quand c'en est une autre : la page de titre la nomme au
-  // même titre que celle qu'on lit. ⚠️ `ensembleBilingue` est la garde qui compte —
-  // une colonne tirée du repli `segments.texte_original` n'est pas une autre édition,
-  // c'est la même qui porte son original avec elle, et il n'y a rien de plus à nommer.
+  // même titre que celle qu'on lit. `ensembleBilingue` est la garde qui compte.
   const versionEnRegard = affichageBilingue && ensembleBilingue && idTexteEnRegard
     ? versionsTextuelles.find(version => version.idTexte === idTexteEnRegard) ?? null
     : null
@@ -1335,7 +1316,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     const cible = adresseAvecPosition(url, {
       niv1: vue === 'texte' && niv1Actif ? niv1Actif : null,
       groupe: memeOeuvre ? seg?.groupeOriginal ?? null : null,
-      cle: memeOeuvre ? seg?.cleOriginal ?? seg?.segmentKey ?? null : null,
+      cle: memeOeuvre ? seg?.segmentKey ?? null : null,
     })
     annoncerBascule({ defilement: window.scrollY, hauteurTete: tete?.y ?? null })
     if (main) ordonnerBlocsVisibles(main, haut)
@@ -1736,8 +1717,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
    *
    * ⛔ ET SEULEMENT EN LECTURE EN REGARD : hors du bilingue, les appels du texte
    * original ne sont pas rendus, et une note qu'on listerait ne pourrait pas s'ouvrir.
-   * ⚠️ `ensembleBilingue` est la garde qui compte : une colonne tirée du repli
-   * `segments.texte_original` n'est pas un texte, elle n'a ni notes ni segments à soi.
+   * ⚠️ `ensembleBilingue` est la garde qui compte.
    *
    * ⚠️ Le libellé est la LANGUE, celle que la donnée déclare (« Latin », « Français ») :
    * c'est ce qui distingue les deux colonnes à l'œil. Le nom court de l'édition ne sert
@@ -1929,8 +1909,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const projectionsDuTexte = (ancres: Record<string, AncreNoteStructureeProjection[]>) => ({
     projeterAppels: (texte: string, cle: string | null) =>
       projeterAppels(texte, cle ? ancres[cle] : undefined),
-    projeterAppelsOriginal: (texte: string, cle: string | null) =>
-      projeterAppels(texte, cle ? ancresNotesOriginales[cle] : undefined),
     // ⛔ Un CHAMP DE TITRE se projette comme le texte, et ses ancres se cherchent dans
     // TOUS les segments du groupe : l'ancre d'un chapeau tombe parfois quelques segments
     // plus loin que le premier.
@@ -1972,8 +1950,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   }
 
   const chargerNiv1Data = async (n1: string): Promise<{ groupes: GroupeData[]; segments: SegData[] }> => {
-    // Les notes du texte en regard partent AVEC les segments, non après eux.
-    const enRegardPromis = notesEnRegardCompletes()
+    // Les notes du texte en regard partent AVEC les segments, non après eux : la
+    // projection bilingue (`rattacherAlignement`) les attendra.
+    void notesEnRegardCompletes()
     const duTextePromis = notesDuTexteCompletes()
     // ⛔ `apparat_auteur` (prologue, avertissement de l'auteur) appartient au CORPS :
     // il se lit à sa place dans le texte. Ne pas le retirer de cette liste — c'est
@@ -2057,15 +2036,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     // numérotation locale remet le compteur à zéro à chaque `ref_niv1`, ce que celui d'ici
     // ne faisait pas — sans effet tant qu'on ne charge qu'une division, faux dès qu'on en
     // charge deux.
-    const enRegard = await enRegardPromis
     const duTexte = await duTextePromis
     const { segments: newSegs, groupes: newGroupes } = composerSegments(segs as SegmentBrut[], {
       versetsCites: versetMap,
       notes: duTexte.notes,
-      notesOriginal: enRegard.notes,
       ...projectionsDuTexte(duTexte.ancres),
-      projeterAppelsOriginal: (texte: string, cle: string | null) =>
-        projeterAppels(texte, cle ? enRegard.ancres[cle] : undefined),
     })
 
     // Enrichir la carte niv1 → niv1_texte avec ce qu'on vient de charger
@@ -2099,7 +2074,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // après une modification ou une suppression admin, puisque l'apparat n'est
   // sinon chargé qu'une seule fois au rendu serveur de la page.
   const chargerApparatData = async () => {
-    const enRegardPromis = notesEnRegardCompletes()
     const duTextePromis = notesDuTexteCompletes()
     const { data, error } = await limiterRequeteSegmentsALaSurface(
       supabase
@@ -2122,17 +2096,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
     // La MÊME chaîne que le corps, à trois mots près : l'apparat porte des notices
     // bibliographiques, n'ouvre aucun volet biblique, et sa SECTION coupe ses groupes.
-    const enRegard = await enRegardPromis
     const duTexte = await duTextePromis
     const { segments: newSegs, groupes: newGroupes } = composerSegments(
       segs as SegmentBrut[],
       {
         versetsCites: {},
         notes: duTexte.notes,
-        notesOriginal: enRegard.notes,
         ...projectionsDuTexte(duTexte.ancres),
-        projeterAppelsOriginal: (texte: string, cle: string | null) =>
-          projeterAppels(texte, cle ? enRegard.ancres[cle] : undefined),
         avecOuvrage: true,
         sansVersets: true,
       },
@@ -2662,9 +2632,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       },
     })
     const lu = volet(versionActive, versionActive?.idTexte ?? 'lu')
-    // ⚠️ `versionEnRegard` est déjà nul quand la colonne originale vient du repli
-    // `segments.texte_original` : ce n'est pas une autre édition, c'est la même qui
-    // porte son original avec elle, et il n'y aurait rien de plus à décrire.
     if (!versionEnRegard || versionEnRegard.idTexte === versionActive?.idTexte) return [lu]
     return [lu, volet(versionEnRegard, versionEnRegard.idTexte)]
   }, [oeuvrePourVersion, titreAffiche, auteursCliquables, auteur, versionActive, versionEnRegard, versionsTextuelles, aTexteOriginal])
@@ -2764,8 +2731,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // édition en langue ORIGINALE (langue_trad vide, langue_originale renseignée)
   // est le texte original ; les autres sont des traductions. « versions » = les
   // œuvres sœurs (même titre normalisé), langue comprise ; l'œuvre courante en
-  // fait partie. Le mode « original » vise l'ŒUVRE latine/grecque AUTONOME quand
-  // elle existe (titres d'origine), sinon le texte_original de la traduction (mt=la).
+  // fait partie. Le mode « original » vise le TEXTE en langue originale de l'œuvre,
+  // sinon l'ŒUVRE latine/grecque AUTONOME quand elle existe (titres d'origine).
   const estEditionOriginale = (v: { langue_trad: string | null; langue_originale: string | null }) =>
     !(v?.langue_trad && v.langue_trad.trim()) && !!(v?.langue_originale && v.langue_originale.trim())
   // Le latin d'une œuvre n'a plus besoin d'être une ŒUVRE à part pour se lire à ses
@@ -2828,15 +2795,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   // Cible du mode « original » :
   //  - si l'œuvre courante EST l'original, on la lit elle-même (mt=fr = son texte) ;
   //  - sinon l'œuvre latine/grecque AUTONOME sœur si elle existe (mt=fr, titres d'origine) ;
-  //  - sinon le texte_original de la traduction (mt=la).
+  //  - sinon la colonne originale lue seule sur place (mt=la), que l'alignement compose.
   const origAutonome = !couranteEstOriginale && !!editionOrigRef && editionOrigRef.id_oeuvre !== editionFrRef?.id_oeuvre
   const cibleOrigOeuvre = couranteEstOriginale ? idOeuvre : origAutonome ? editionOrigRef!.id_oeuvre : (editionFrRef?.id_oeuvre ?? idOeuvre)
   const cibleOrigMt: 'fr' | 'la' = (couranteEstOriginale || origAutonome) ? 'fr' : 'la'
   type ModeLecture = { cle: string; label: string; cibleOeuvre: string; cibleTexte?: string | null; cibleMt: 'fr' | 'bilingue' | 'la'; actif: boolean }
   const modesLecture: ModeLecture[] = []
   // Le texte en langue originale de CETTE œuvre passe avant l'œuvre sœur : il porte
-  // ses titres d'origine ET son apparat, là où `texte_original` n'est que la colonne
-  // du bilingue, sans sommaire propre ni notes.
+  // ses titres d'origine ET son apparat.
   //
   // ⚠️ LA GARDE PORTE SUR LA CIBLE, et non sur ce qui permet de la calculer. Les
   // œuvres sœurs (`versions`) sont chargées par un effet : elles sont VIDES au premier
@@ -2858,8 +2824,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     modesLecture.push({ cle: 'fr', label: labelTraductionMenu, cibleOeuvre: cibleFrOeuvre, cibleTexte: cibleFrTexte, cibleMt: 'fr',
       actif: surFr && modeTexteEffectif === 'fr' })
     // ⛔ Le mode ne s'offre que si quelque chose peut réellement paraître en regard :
-    // un ensemble d'alignement, ou le repli `segments.texte_original`. « Un original
-    // quelconque existe quelque part dans l'œuvre » ne suffit plus.
+    // un ensemble d'alignement. « Un original quelconque existe quelque part dans
+    // l'œuvre » ne suffit pas.
     if (paireDeLecture.bilingueOffert) {
       modesLecture.push({ cle: 'bilingue', label: labelBilingueMenu, cibleOeuvre: cibleFrOeuvre, cibleTexte: cibleBilingueTexte, cibleMt: 'bilingue',
         actif: surFr && modeTexteEffectif === 'bilingue' })
@@ -3264,10 +3230,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const originalDuBloc = (chunk: BlocEnRegard<number>) =>
     originalEnRegard<Record<string, NoteAffichee>>({
       groupes: chunk.groupes,
-      couvert: chunk.couvert,
       blocs: blocsOriginalEtat,
-      segmentsDuBloc: chunk.ids.map(sid => segMap.get(sid)).filter((s): s is SegData => Boolean(s)),
-      notesVides: {},
     })
 
   // Survol d'un segment : la règle de position vit dans app/lib/celluleActions.ts, avec
@@ -3346,28 +3309,20 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
   const estCleOriginal = (cle: string) => cle.startsWith(PREFIXE_ORIGINAL)
   // ⛔ CE QU'ON COPIE EST LE TEXTE CANONIQUE, jamais ce que la page compose : celle-ci rend
   // `affichage`, où les appels de note sont matérialisés. La SOURCE posée sur le document
-  // ne dit donc qu'OÙ retrouver le texte — les groupes d'alignement, ou le segment qui
-  // porte la copie de repli (`segments.texte_original`).
-  const marqueDeLOriginal = (chunk: BlocEnRegard<number>, segs: readonly SegData[]): Record<string, string> => {
+  // ne dit donc qu'OÙ retrouver le texte : les groupes d'alignement du bloc.
+  const marqueDeLOriginal = (chunk: BlocEnRegard<number>): Record<string, string> => {
     const cle = chunk.ids.length > 0 ? `${PREFIXE_ORIGINAL}${chunk.ids[0]}` : null
     if (!cle) return {}
     if (chunk.groupes.length > 0 && fondreOriginaux(chunk.groupes, blocsOriginalEtat)) {
       return { 'data-lasso-original': cle, 'data-lasso-source': `g ${chunk.groupes.join(' ')}` }
     }
-    const seg = segs.find(s => Boolean(s.texteOriginal?.trim()))
-    return seg ? { 'data-lasso-original': cle, 'data-lasso-source': `s ${seg.id}` } : {}
+    return {}
   }
-  const texteDeLaSource = (source: string, parCle: Map<string, SegData>) => {
+  const texteDeLaSource = (source: string) => {
     const [sorte, ...reste] = source.split(' ')
-    if (sorte === 'g') {
-      const fondu = fondreOriginaux(reste, blocsOriginalEtat)
-      return fondu ? { texte: fondu.texte, joinBefore: fondu.joinBefore } : null
-    }
-    if (sorte === 's') {
-      const texte = parCle.get(reste[0] ?? '')?.texteOriginal
-      return texte ? { texte, joinBefore: null } : null
-    }
-    return null
+    if (sorte !== 'g') return null
+    const fondu = fondreOriginaux(reste, blocsOriginalEtat)
+    return fondu ? { texte: fondu.texte, joinBefore: fondu.joinBefore } : null
   }
 
   // ⛔ UNE CITATION NE MÊLE PAS DEUX LANGUES (demande de l'auteur, 20 septembre 2026) : en
@@ -3446,7 +3401,6 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       ordre.push(cle)
       sources.set(cle, source)
     }
-    const parCle = new Map(segments.map(s => [String(s.id), s]))
     // ⛔ Un titre coupe la citation de l'original comme celle de la traduction (charte
     // § 38.8.1) : la clé d'un empan porte le premier segment français de son bloc, et c'est
     // lui que la page compose sous le titre.
@@ -3458,7 +3412,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       cle => ouvrentUnTitre.has(cle.slice(PREFIXE_ORIGINAL.length)),
     )
       .map(citation => texteDesSuites(citation.map(suite => suite
-        .map(cle => texteDeLaSource(sources.get(cle) ?? '', parCle))
+        .map(cle => texteDeLaSource(sources.get(cle) ?? ''))
         .filter((morceau): morceau is { texte: string; joinBefore: string | null } => morceau !== null))))
       .filter(texte => texte !== '')
     if (textes.length === 0) return
@@ -4413,9 +4367,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               const enVers = (ids: readonly number[]) => estBlocDeVers(ids.map(sid => introParId.get(sid)))
               // Hors regard, rien ne change : le POÈME se refait par-dessus les segments.
               if (!enRegardTexte) return seul(fusionnerBlocs(morceaux, enVers))
-              // ⛔ Faute d'alignement, on ne fond RIEN : le repli `texte_original` vit sur
-              // chaque segment, et fondre un poème n'en garderait qu'un seul original.
-              // Même règle et même raison que `blocsDeLecture`.
+              // Faute d'alignement, rien n'est en regard : même règle que `blocsDeLecture`.
               if (!blocsAlignes) return seul(morceaux)
               return fusionnerBlocsDeVers(
                 repartirGroupes(morceaux, sid => introParId.get(sid)?.groupeOriginal, bornesGroupes),
@@ -4443,7 +4395,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 if (segs.length === 0) return null
                 const original = originalDuBloc(bloc)
                 // La colonne originale d'un argument se sélectionne comme celle du corps.
-                const marqueOriginal = marqueDeLOriginal(bloc, segs)
+                const marqueOriginal = marqueDeLOriginal(bloc)
                 // ⛔ La GRILLE se garde même sans original à composer, dès lors que
                 // l'alignement COUVRE le bloc : un argument dont l'empan est composé plus
                 // haut ne reprend pas toute la largeur au milieu d'une page en regard.
@@ -4631,10 +4583,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     const original = originalDuBloc(chunk)
                     // ⛔ Le lasso prend la colonne originale comme il prend le français : la
                     // clé du bloc, et la SOURCE de son texte canonique (voir plus haut).
-                    const marqueOriginal = marqueDeLOriginal(
-                      chunk,
-                      chunk.ids.map(sid => segMap.get(sid)).filter((s): s is SegData => Boolean(s)),
-                    )
+                    const marqueOriginal = marqueDeLOriginal(chunk)
                     // ⛔ La GRILLE se garde même sans original à composer, dès lors que
                     // l'alignement couvre le bloc : un paragraphe dont l'empan est
                     // composé plus haut ne reprend pas toute la largeur au milieu d'une

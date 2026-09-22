@@ -336,8 +336,7 @@ export default async function OeuvrePage({
 
   // « ?mt=la » désigne le texte original de l'œuvre. Quand ce texte existe pour
   // lui-même dans `oeuvre_textes` (le latin de Knöll sous Les Confessions), on l'y
-  // envoie : il a ses titres d'origine, ses sommaires et son apparat, là où
-  // `segments.texte_original` n'est que la colonne du bilingue. Une seule porte à
+  // envoie : il a ses titres d'origine, ses sommaires et son apparat. Une seule porte à
   // tenir plutôt que quatre : la bibliothèque, le compte, le profil public et les
   // favoris pointent tous sur « ?mt=la ».
   const texteEnLangueOriginale = paireDeLecture.original
@@ -474,8 +473,7 @@ export default async function OeuvrePage({
   // par accident.
 
   // Le texte latin ou grec lu EN REGARD, quand ce n'est pas celui qu'on lit : ses
-  // notes alimentent la seconde colonne du bilingue, où `texte_original` n'apporte
-  // que la lettre.
+  // notes alimentent la seconde colonne du bilingue.
   const idTexteEnRegard = paireDeLecture.idTexteEnRegard
 
   // Les alignements qui se disputent CETTE paire de textes. Quand il y en a plusieurs,
@@ -494,8 +492,8 @@ export default async function OeuvrePage({
   // ── Le passage visé, et ce qu'on en tire AVANT la vague 2 ─────────────────
   // Trois façons de viser un passage : `?segment=` (un lien profond : le segment sera
   // SÉLECTIONNÉ), `?groupe=` (le groupe d'alignement du paragraphe qu'on lisait dans
-  // l'autre texte de l'œuvre) et `?cle=` (une clé de segment du texte original, ou la
-  // sienne propre pour le chemin inverse). Les deux derniers sont une REPRISE : changer
+  // l'autre texte de l'œuvre) et `?cle=` (la clé du segment qu'on lisait, qui vaut dans
+  // ce texte-ci quand on y revient). Les deux derniers sont une REPRISE : changer
   // de texte ne ramène pas au début, on retombe sur le même passage, sans le
   // sélectionner. Le client compose ces adresses dans `passageTexte.ts`.
   type PassageVise = { id: number; ref_niv1: string | null; nature: string | null; espace_textuel: string | null; reprise: boolean }
@@ -525,14 +523,9 @@ export default async function OeuvrePage({
       }
     }
     if (cle) {
-      // La clé désigne un segment du texte ORIGINAL : ou bien c'est ce texte qu'on
-      // ouvre, et la clé est la sienne ; ou bien c'est la traduction, dont un segment
-      // porte la copie de ce segment-là (`segment_metadata.original_segment_key`).
-      const [propre, copie] = await Promise.all([
-        corps().eq('segment_key', cle).limit(1).maybeSingle(),
-        corps().eq('segment_metadata->>original_segment_key', cle).order('segment_numero').limit(1).maybeSingle(),
-      ])
-      const data = propre.data ?? copie.data
+      // ⛔ La clé ne se cherche que dans le texte ouvert : la correspondance d'un texte
+      // à l'autre passe par le groupe d'alignement, jamais par une copie (2026-09-22).
+      const { data } = await corps().eq('segment_key', cle).limit(1).maybeSingle()
       if (data) return { ...(data as Omit<PassageVise, 'reprise'>), reprise: true }
     }
     return null
@@ -725,11 +718,8 @@ export default async function OeuvrePage({
   const contexteProjection = {
     versetsCites: versetMap,
     notes: notesStructurees,
-    notesOriginal: notesOriginales,
     projeterAppels: (texte: string, cle: string | null) =>
       projeter(texte, cle ? ancresNotesStructurees[cle] : undefined),
-    projeterAppelsOriginal: (texte: string, cle: string | null) =>
-      projeter(texte, cle ? ancresNotesOriginales[cle] : undefined),
     // ⛔ Un CHAMP DE TITRE se projette comme le texte, et ses ancres se cherchent dans
     // TOUS les segments du groupe : l'ancre d'un chapeau tombe parfois quelques segments
     // plus loin que le premier.
@@ -752,8 +742,6 @@ export default async function OeuvrePage({
   // en a besoin (voir `notesEnRegard.ts`).
   const notesEnRegardEnvoyees = notesEnRegardUtiles(notesOriginales, ancresNotesOriginales, [
     ...[...projectionBilingue.blocParGroupe.values()].map(bloc => bloc.notes),
-    ...segmentsData.map(seg => seg.notesOriginal),
-    ...segmentsApparatData.map(seg => seg.notesOriginal),
   ])
 
   // Les notes du texte LU ne partent que pour les segments que la page rend, et sans leurs

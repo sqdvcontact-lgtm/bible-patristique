@@ -114,7 +114,6 @@ describe('la traduction visée par le bilingue', () => {
     const paire = paireJob(FR)
     expect(paire.enRegardSurPlace).toBe(true)
     expect(paire.navigationBilingue).toBeNull()
-    expect(paire.enRegardParRepli).toBe(false)
   })
 
   it('quitte l’archive non alignée pour la traduction alignée', () => {
@@ -185,13 +184,12 @@ describe('deux traductions, toutes deux alignées', () => {
 })
 
 describe('quand rien ne peut se mettre en regard', () => {
-  it('n’offre pas le bilingue : original présent, mais ni alignement ni repli', () => {
+  it('n’offre pas le bilingue : original présent, mais aucun alignement', () => {
     const paire = choisirPaireDeLecture({
       idTexteActif: FR,
       versions: [traduction(FR, { isDefault: true }), original(LA)],
       alignements: [],
       langueOriginale: 'Latin',
-      repliTexteOriginal: false,
     })
     expect(paire.bilingueOffert).toBe(false)
     expect(paire.traductionBilingue).toBeNull()
@@ -217,38 +215,30 @@ describe('quand rien ne peut se mettre en regard', () => {
   })
 })
 
-describe('le repli « segments.texte_original »', () => {
-  // ⛔ Il ne disparaît pas avec cette correction : il sert encore les œuvres dont
-  // l'original n'a pas de texte propre, et il tombera avec la colonne, pas avant.
-  it('porte le bilingue quand l’original n’a pas de texte autonome', () => {
+describe('un seul mode de mise en regard : l’alignement (2026-09-22)', () => {
+  // ⛔ La copie `segments.texte_original` n'offre plus le bilingue : sans ensemble
+  // d'alignement, une traduction seule ne se lit qu'en français.
+  it('n’offre pas le bilingue à une traduction seule, sans alignement', () => {
     const paire = choisirPaireDeLecture({
       idTexteActif: FR,
       versions: [traduction(FR, { isDefault: true })],
       alignements: [],
       langueOriginale: 'Latin',
-      repliTexteOriginal: true,
     })
-    expect(paire.bilingueOffert).toBe(true)
-    expect(paire.enRegardSurPlace).toBe(true)
-    expect(paire.enRegardParRepli).toBe(true)
-    expect(paire.traductionBilingue?.idTexte).toBe(FR)
-    expect(paire.navigationBilingue).toBeNull()
-    expect(modeDeLectureEffectif('bilingue', paire)).toBe('bilingue')
-    expect(modeDeLectureEffectif('la', paire)).toBe('la')
+    expect(paire.bilingueOffert).toBe(false)
+    expect(paire.enRegardSurPlace).toBe(false)
+    expect(modeDeLectureEffectif('bilingue', paire)).toBe('fr')
+    expect(modeDeLectureEffectif('la', paire)).toBe('fr')
   })
 
-  it('cède le pas à l’alignement quand les deux existent', () => {
-    // Les Confessions portent les deux : le latin comme texte à part entière ET recopié
-    // dans les 932 segments de la traduction. C'est le texte qui fait foi, jamais la
-    // copie — même règle que dans `originalEnRegard`.
+  it('porte le bilingue par l’ensemble d’alignement', () => {
     const paire = choisirPaireDeLecture({
       idTexteActif: FR,
       versions: VERSIONS_JOB,
       alignements: ALIGNEMENTS_JOB,
       langueOriginale: 'Latin',
-      repliTexteOriginal: true,
     })
-    expect(paire.enRegardParRepli).toBe(false)
+    expect(paire.enRegardSurPlace).toBe(true)
     expect(paire.ensembleBilingue?.alignmentSetId).toBe(ENSEMBLE)
   })
 })

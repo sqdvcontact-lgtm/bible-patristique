@@ -67,15 +67,14 @@ export type PositionDeLecture = {
   niv1: string | null
   /** Le groupe d'alignement du paragraphe en tête de fenêtre, s'il en a un. */
   groupe: string | null
-  /** À défaut, une clé de segment du texte ORIGINAL : celle que porte la copie
-   *  qu'on lisait (`cle_original`), ou la sienne propre si c'est l'original qu'on
-   *  quitte. Le serveur tente les deux lectures. */
+  /** À défaut, la clé du segment qu'on lisait. Elle ne vaut que dans ce texte-ci, quand
+   *  on y revient ; d'un texte à l'autre, c'est le groupe qui fait le lien. */
   cle: string | null
 }
 
 /** L'adresse d'un texte, complétée de la position de lecture. Le groupe
  *  l'emporte sur la clé : il est le lien que l'alignement a établi, la clé
- *  n'est qu'une provenance de copie. */
+ *  ne vaut que dans le texte d'où elle vient. */
 export function adresseAvecPosition(url: string, position: PositionDeLecture): string {
   const adresse = new URL(url, 'http://corpus.invalid')
   if (position.niv1) adresse.searchParams.set('niv1', position.niv1)

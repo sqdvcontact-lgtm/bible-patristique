@@ -3,14 +3,12 @@
 //
 // ⛔ LA MÊME RÈGLE QUE LA PAGE D'ŒUVRE (`paireDeLecture`) : un texte est l'original quand
 // il n'a pas de traducteur et que sa langue est celle de l'œuvre ; une version retirée
-// (invalide, charte § 52) n'est jamais une cible implicite. La colonne héritée
-// `segments.texte_original` compte aussi, tant qu'elle sert de repli au bilingue.
+// (invalide, charte § 52) n'est jamais une cible implicite.
 //
-// ⚠️ CE QU'IL RÉPARE (relevé de l'auteur, 2026-09-13). La bibliothèque ne lisait que la vue
-// `v_oeuvres_texte_original`, c'est-à-dire la seule colonne héritée : cinq œuvres. Le grec
-// de la Doctrine des Apôtres, texte à part entière d'`oeuvre_textes`, n'y était proposé
-// nulle part, et la seule langue qui parût sous les Douze Apôtres était le latin de la
-// Doctrina apostolorum, donné pour un « Texte original latin ».
+// ⛔ LES TEXTES SEULS (2026-09-22). La colonne héritée `segments.texte_original` et sa vue
+// `v_oeuvres_texte_original` ne comptent plus : les cinq œuvres qu'elles portaient ont
+// toutes leur original comme texte à part entière, et la lecture en regard ne passe plus
+// que par l'alignement.
 //
 // Module PUR : les lignes arrivent de l'appelant, qui les a lues.
 
@@ -26,18 +24,13 @@ export type TexteDOeuvre = {
 }
 
 export type OriginauxDisponibles = {
-  /** Les œuvres dont les segments portent `texte_original` (vue `v_oeuvres_texte_original`). */
-  repli: ReadonlySet<string>
   /** Par œuvre, les langues de ses textes SANS traducteur et non retirés. */
   languesSansTraducteur: ReadonlyMap<string, readonly string[]>
 }
 
-export const ORIGINAUX_VIDES: OriginauxDisponibles = { repli: new Set(), languesSansTraducteur: new Map() }
+export const ORIGINAUX_VIDES: OriginauxDisponibles = { languesSansTraducteur: new Map() }
 
-export function composerOriginauxDisponibles(
-  repli: readonly { id_oeuvre: string }[],
-  textes: readonly TexteDOeuvre[],
-): OriginauxDisponibles {
+export function composerOriginauxDisponibles(textes: readonly TexteDOeuvre[]): OriginauxDisponibles {
   const langues = new Map<string, string[]>()
   for (const texte of textes) {
     const langue = texte.langue?.trim()
@@ -45,7 +38,7 @@ export function composerOriginauxDisponibles(
     if (etatValidation(texte.statut) === 'invalide') continue
     langues.set(texte.id_oeuvre, [...(langues.get(texte.id_oeuvre) ?? []), langue])
   }
-  return { repli: new Set(repli.map(ligne => ligne.id_oeuvre)), languesSansTraducteur: langues }
+  return { languesSansTraducteur: langues }
 }
 
 /**
@@ -60,7 +53,6 @@ export function traductionAvecOriginal(
   originaux: OriginauxDisponibles,
 ): boolean {
   if (!oeuvre.langue_trad?.trim()) return false
-  if (originaux.repli.has(oeuvre.id_oeuvre)) return true
   return (originaux.languesSansTraducteur.get(oeuvre.id_oeuvre) ?? [])
     .some(langue => memeLangue(langue, oeuvre.langue_originale))
 }

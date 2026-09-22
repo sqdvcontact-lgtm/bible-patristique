@@ -36,7 +36,7 @@ export type NotesEnRegardEnvoyees = {
 /**
  * Les notes du texte en regard que la page compose, et elles seules.
  * `montrees` porte les tables de notes réellement posées dans le rendu : celles des
- * blocs originaux, celles que les segments portent (`notesOriginal`).
+ * blocs originaux.
  */
 export function notesEnRegardUtiles(
   notes: NotesParSegment,

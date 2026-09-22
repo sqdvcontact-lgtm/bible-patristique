@@ -93,9 +93,7 @@ function minusculeInitiale(texte: string): string {
  * les yeux, et rien ne le nommait. Le texte établi vient EN PREMIER, la traduction
  * ensuite — l'ordre du titre d'un bilingue.
  *
- * ⚠️ Elle ne paraît QUE lorsqu'une seconde édition existe réellement. Une colonne en
- * regard tirée du repli `segments.texte_original` n'est pas une autre édition : c'est
- * la même, qui porte son original avec elle, et il n'y a rien de plus à nommer.
+ * ⚠️ Elle ne paraît QUE lorsqu'une seconde édition existe réellement.
  */
 export function mentionEditionEnRegard(
   version: Pick<VersionTextuelle, 'langue' | 'titre' | 'villeEdition' | 'editeurEdition' | 'dateEdition'>,

@@ -13,7 +13,7 @@ function segment(partiel: Partial<SegmentExtrait> & { texte: string }): SegmentE
   return {
     segmentKey: null, nature: 'texte', joinBefore: null, paragraphe: 1, rang: 1,
     alinea: null, stropheAvant: null, numeroVerset: null, forme: null,
-    texteOriginal: null, groupeOriginal: null,
+    groupeOriginal: null,
     niv1: '', niv1Texte: '', niv2: '', niv2Texte: '', niv3: '', niv3Texte: '', niv4: '', niv4Texte: '',
     notes: {},
     ...partiel,
@@ -272,12 +272,10 @@ describe('le texte original', () => {
     expect(regard.lignes[1].droite).toHaveLength(0)
   })
 
-  it('retombe sur `texte_original` quand aucun alignement ne couvre', () => {
-    const blocs = composer(
-      [segment({ texte: 'Le français.', texteOriginal: 'Latinum.' })],
-      { original: 'suite' },
-    )
-    expect(paragraphes(blocs).filter(p => p.style === 'Texteoriginal')).toHaveLength(1)
+  // ⛔ UN SEUL MODE (2026-09-22) : sans alignement, rien ne se met en regard.
+  it('ne compose aucun original quand aucun alignement ne couvre', () => {
+    const blocs = composer([segment({ texte: 'Le français.' })], { original: 'suite' })
+    expect(paragraphes(blocs).some(p => p.style === 'Texteoriginal')).toBe(false)
   })
 
   it('n’en compose aucun quand le lecteur ne l’a pas demandé', () => {

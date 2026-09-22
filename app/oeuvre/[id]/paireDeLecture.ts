@@ -144,14 +144,12 @@ export type PaireDeLecture = {
   /** L'original MIS EN REGARD — l'original retenu, sauf quand c'est lui qu'on lit. */
   idTexteEnRegard: string | null
   /** L'ensemble qui porte la lecture en regard DU TEXTE LU. `null` dès que le regard
-   *  passe par une autre traduction (il faut alors naviguer) ou par le repli. */
+   *  passe par une autre traduction : il faut alors naviguer. */
   ensembleBilingue: EnsembleLisible | null
   /** Une colonne peut-elle se composer en regard du texte lu ? C'est la condition du
    *  bilingue ET de l'original seul : sans elle, « Latin » masquerait le français pour
    *  ne rien mettre à sa place. */
   enRegardSurPlace: boolean
-  /** Cette colonne ne tient qu'au repli `segments.texte_original`, faute d'alignement. */
-  enRegardParRepli: boolean
   /** Le mode « Français & Latin/Grec » est-il offert, ici ou ailleurs ? */
   bilingueOffert: boolean
   /** Le texte à rejoindre pour lire en bilingue. `null` : on y est déjà (ou jamais). */
@@ -165,7 +163,6 @@ const PAIRE_VIDE: PaireDeLecture = {
   idTexteEnRegard: null,
   ensembleBilingue: null,
   enRegardSurPlace: false,
-  enRegardParRepli: false,
   bilingueOffert: false,
   navigationBilingue: null,
 }
@@ -179,16 +176,16 @@ const PAIRE_VIDE: PaireDeLecture = {
  *  b. le texte par défaut, s'il est aligné ;
  *  c. une version `published` et publique, si elle est alignée ;
  *  d. toute autre version non retirée, si elle est alignée ;
- *  e. à défaut, aucune : le bilingue passe par le repli, ou ne s'offre pas.
+ *  e. à défaut, aucune : le bilingue ne s'offre pas.
  *
  * ⚠️ On parcourt les originaux dans le même ordre, et l'on retient LE PREMIER QUI TROUVE
  * UNE TRADUCTION ALIGNÉE. Une œuvre n'a qu'un original en service, mais elle peut en
  * garder trois en base (Hexaéméron) : préférer aveuglément le mieux classé mettrait en
  * regard un texte que rien ne relie à ce qu'on lit.
  *
- * ⛔ L'ALIGNEMENT AVANT LE REPLI, comme dans `originalEnRegard`. `segments.texte_original`
- * n'est qu'une copie de l'original recollée dans la traduction ; elle peut avoir dérivé,
- * et elle s'éteindra. Elle ne sert donc qu'à défaut de tout ensemble d'alignement.
+ * ⛔ L'ALIGNEMENT, ET LUI SEUL (2026-09-22). `segments.texte_original`, la copie de
+ * l'original recollée dans la traduction, ne décide plus de rien : sans ensemble
+ * d'alignement, le bilingue ne s'offre pas.
  */
 export function choisirPaireDeLecture(params: {
   /** Le texte qu'on lit. `null` quand la page n'en a pas encore. */
@@ -196,13 +193,8 @@ export function choisirPaireDeLecture(params: {
   versions: readonly VersionLisible[]
   alignements: readonly EnsembleLisible[]
   langueOriginale: string | null | undefined
-  /** Les segments du texte lu portent-ils réellement la colonne `texte_original` ?
-   *  ⚠️ Le SERVEUR ne le sait pas quand il choisit la paire, et n'en a pas besoin : le
-   *  repli sert à composer, jamais à choisir l'original ni l'ensemble. Il ne change que
-   *  l'offre du mode bilingue, que le client seul dresse. */
-  repliTexteOriginal?: boolean
 }): PaireDeLecture {
-  const { idTexteActif, versions, langueOriginale, repliTexteOriginal = false } = params
+  const { idTexteActif, versions, langueOriginale } = params
   if (versions.length === 0) return PAIRE_VIDE
 
   const comparer = comparerVersions(idTexteActif)
@@ -234,26 +226,19 @@ export function choisirPaireDeLecture(params: {
     if (ensembleAligne) break
   }
 
-  const versionActive = idTexteActif ? retenues.find(v => v.idTexte === idTexteActif) ?? null : null
-  const actifEstTraduction = Boolean(versionActive) && traductions.some(v => v.idTexte === idTexteActif)
-  const alignementSurPlace = Boolean(ensembleAligne) && traductionAlignee?.idTexte === idTexteActif
+  const enRegardSurPlace = Boolean(ensembleAligne) && traductionAlignee?.idTexte === idTexteActif
 
-  // La cible du bilingue, dans l'ordre : l'alignement du texte lu, l'alignement d'une
-  // autre traduction (il faudra naviguer), puis seulement le repli du texte lu.
-  const traductionBilingue = ensembleAligne
-    ? traductionAlignee
-    : actifEstTraduction && repliTexteOriginal ? versionActive : null
-  const enRegardParRepli = Boolean(traductionBilingue) && !ensembleAligne
-  const enRegardSurPlace = alignementSurPlace || enRegardParRepli
+  // La cible du bilingue : l'alignement du texte lu, ou celui d'une autre traduction
+  // (il faudra alors naviguer).
+  const traductionBilingue = ensembleAligne ? traductionAlignee : null
 
   return {
     original,
     traductionFr: traductions[0] ?? null,
     traductionBilingue,
     idTexteEnRegard: original && original.idTexte !== idTexteActif ? original.idTexte : null,
-    ensembleBilingue: alignementSurPlace ? ensembleAligne : null,
+    ensembleBilingue: enRegardSurPlace ? ensembleAligne : null,
     enRegardSurPlace,
-    enRegardParRepli,
     bilingueOffert: traductionBilingue !== null,
     navigationBilingue: traductionBilingue && traductionBilingue.idTexte !== idTexteActif
       ? traductionBilingue.idTexte

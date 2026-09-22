@@ -19,10 +19,10 @@ const seg = (p: Partial<SegmentBrut> & { id: number }): SegmentBrut => ({
   ref_niv1: null, ref_niv2: null, ref_niv3: null, ref_niv4: null, ref_niv5: null,
   ref_niv1_texte: null, ref_niv2_texte: null, ref_niv3_texte: null, ref_niv4_texte: null,
   lien_1: null, lien_2: null, lien_3: null, lien_4: null,
-  nature: 'texte', paragraphe: null, rang: null, texte_original: null,
+  nature: 'texte', paragraphe: null, rang: null,
   espace_textuel: null, join_before: null,
   alinea: null, strophe_avant: null, numero_verset: null, forme: null,
-  cle_original: null, ouvrage_id: null, style_presentation: null,
+  ouvrage_id: null, style_presentation: null,
   ...p,
 })
 
@@ -168,9 +168,7 @@ describe('composerSegments', () => {
   const contexte: Omit<ContexteProjection, 'ordinaux'> = {
     versetsCites: {},
     notes: {},
-    notesOriginal: {},
     projeterAppels: t => t,
-    projeterAppelsOriginal: t => t,
   }
 
   it('projette, groupe et numérote d’un seul tenant', () => {
@@ -217,20 +215,10 @@ describe('composerSegments', () => {
     expect(Object.keys(segments[1].notes ?? {})).toHaveLength(1)
   })
 
-  it('ne projette l’original que s’il y en a un', () => {
-    const { segments } = composerSegments([
-      seg({ id: 1 }),
-      seg({ id: 2, texte_original: 'in principio', cle_original: 'o2' }),
-    ], contexte)
-    expect(segments[0].texteOriginalAffichage).toBeUndefined()
-    // Identique à l’original, la projection ne voyage pas : on relit `texteOriginal`.
-    expect('texteOriginalAffichage' in segments[1]).toBe(false)
-    expect(segments[1].texteOriginal).toBe('in principio')
-  })
 
   it('ne fait voyager aucune case vide', () => {
     const { segments } = composerSegments([seg({ id: 1 })], contexte)
-    for (const cle of ['texteOriginal', 'cleOriginal', 'notesOriginal', 'groupeOriginal', 'alinea', 'stropheAvant', 'numeroVerset', 'forme'])
+    for (const cle of ['groupeOriginal', 'alinea', 'stropheAvant', 'numeroVerset', 'forme'])
       expect(cle in segments[0]).toBe(false)
   })
 

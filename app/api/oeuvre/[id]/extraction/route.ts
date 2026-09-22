@@ -271,7 +271,7 @@ export async function GET(requete: NextRequest, contexte: { params: Promise<{ id
         : String(ligne.strophe_avant) === 'true',
       numeroVerset: (ligne.numero_verset as string | null) ?? null,
       forme: (ligne.forme as string | null) ?? null,
-      texteOriginal: (ligne.texte_original as string | null) ?? null,
+
       groupeOriginal: cle ? groupeParCle.get(cle) ?? null : null,
       niv1: String(ligne.ref_niv1 ?? ''), niv1Texte: String(ligne.ref_niv1_texte ?? ''),
       niv2: String(ligne.ref_niv2 ?? ''), niv2Texte: String(ligne.ref_niv2_texte ?? ''),

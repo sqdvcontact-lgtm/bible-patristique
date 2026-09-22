@@ -23,13 +23,13 @@ export const COLONNES_SEGMENT = [
   'id', 'id_texte', 'segment_key', 'segment_numero', 'segment_texte',
   'ref_niv1', 'ref_niv2', 'ref_niv3', 'ref_niv4', 'ref_niv5',
   'ref_niv1_texte', 'ref_niv2_texte', 'ref_niv3_texte', 'ref_niv4_texte',
-  'nature', 'notes', 'paragraphe', 'rang', 'texte_original',
+  'nature', 'notes', 'paragraphe', 'rang',
   'espace_textuel', 'join_before',
   'alinea:segment_metadata->>indent_inches',
   'strophe_avant:segment_metadata->>stanza_before',
   'numero_verset:segment_metadata->>biblical_verse_number',
   'forme:segment_metadata->>forme',
-  'cle_original:segment_metadata->>original_segment_key',
+
   'ouvrage_id:segment_metadata->>ouvrage_id',
   'style_presentation:segment_metadata->presentation->>style',
 ] as const

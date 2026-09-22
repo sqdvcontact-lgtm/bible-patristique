@@ -65,11 +65,10 @@ export type SegmentBrut = {
   ref_niv3_texte: string | null; ref_niv4_texte: string | null
   lien_1: string | null; lien_2: string | null; lien_3: string | null; lien_4: string | null
   nature: string | null
-  paragraphe: number | null; rang: number | null; texte_original: string | null
+  paragraphe: number | null; rang: number | null
   espace_textuel: string | null; join_before: string | null
   alinea: string | null; strophe_avant: string | null; numero_verset: string | null
   forme: string | null
-  cle_original: string | null
   ouvrage_id: string | null
   /** `segment_metadata.presentation.style` : le style de composition que la donnée déclare. */
   style_presentation: string | null
@@ -280,12 +279,8 @@ export type ContexteProjection = {
   versetsCites: VersetsCites
   /** Les notes structurées du texte lu, par clé de segment. */
   notes: Record<string, Record<string, NoteAffichee>>
-  /** Celles du texte en langue originale, par clé d'origine. */
-  notesOriginal: Record<string, Record<string, NoteAffichee>>
   /** Pose les appels de note dans un texte, sans faillir. */
   projeterAppels: (texte: string, cle: string | null) => string
-  /** Pose les appels dans le texte ORIGINAL, dont les ancres sont indexées autrement. */
-  projeterAppelsOriginal: (texte: string, cle: string | null) => string
   /**
    * Pose les appels dans un CHAMP DE TITRE. ⛔ Sans elle, une note qui vise
    * `ref_niv1_texte`, `ref_niv2` ou un autre champ de titre n'a AUCUN appel : la
@@ -324,9 +319,6 @@ export function projeterSegment(s: SegmentBrut, ctx: ContexteProjection): SegDat
     notes: (s.segment_key && ctx.notes[s.segment_key]) || parseNotes(s.notes),
     paragraphe: s.paragraphe,
     rang: s.rang,
-    texteOriginal: s.texte_original,
-    cleOriginal: s.cle_original,
-    notesOriginal: (s.cle_original && ctx.notesOriginal[s.cle_original]) || undefined,
     groupeOriginal: ctx.groupeOriginal ? ctx.groupeOriginal(s.segment_key) : null,
     nature: s.nature,
     espaceTextuel: s.espace_textuel,
@@ -343,10 +335,6 @@ export function projeterSegment(s: SegmentBrut, ctx: ContexteProjection): SegDat
   // `undefined`, que la charge RSC écrirait en toutes lettres.
   const affichage = ctx.projeterAppels(s.segment_texte, s.segment_key)
   if (affichage !== s.segment_texte) projete.texteAffichage = affichage
-  if (s.texte_original) {
-    const original = ctx.projeterAppelsOriginal(s.texte_original, s.cle_original)
-    if (original !== s.texte_original) projete.texteOriginalAffichage = original
-  }
   // ⛔ La notice bibliographique n'appartient qu'à l'apparat : la poser sur un segment de
   // corps ferait chercher un ouvrage à des milliers de lignes qui n'en citent aucun.
   if (ctx.avecOuvrage) projete.ouvrageId = identifiantOuvrage(s.ouvrage_id)
@@ -354,9 +342,9 @@ export function projeterSegment(s: SegmentBrut, ctx: ContexteProjection): SegDat
   // au 11 septembre 2026, et une clé nulle sur tous les autres pèserait sur chaque page.
   const style = s.style_presentation?.trim()
   if (style) projete.presentationStyle = style
-  // ⛔ UNE CASE VIDE NE VOYAGE PAS (2026-09-21). Ces neuf champs sont facultatifs et vides
+  // ⛔ UNE CASE VIDE NE VOYAGE PAS (2026-09-21). Ces champs sont facultatifs et vides
   // sur presque tout le corpus ; la charge RSC écrit pourtant `"forme":null` et
-  // `"notesOriginal":"$undefined"` en toutes lettres, segment après segment : 1,1 Mo sur les
+  // `"groupeOriginal":"$undefined"` en toutes lettres, segment après segment : 1,1 Mo sur les
   // 6 917 segments des Homélies sur la Genèse. Leurs lecteurs tiennent déjà l'absence pour
   // le vide (`!= null`, `??`), et le type les déclare facultatifs.
   for (const cle of CHAMPS_VIDES_OMIS) if (projete[cle] == null) delete projete[cle]
@@ -364,7 +352,7 @@ export function projeterSegment(s: SegmentBrut, ctx: ContexteProjection): SegDat
 }
 
 const CHAMPS_VIDES_OMIS = [
-  'texteOriginal', 'cleOriginal', 'notesOriginal', 'groupeOriginal', 'joinBefore',
+  'groupeOriginal', 'joinBefore',
   'alinea', 'stropheAvant', 'numeroVerset', 'forme',
 ] as const satisfies readonly (keyof SegData)[]
 

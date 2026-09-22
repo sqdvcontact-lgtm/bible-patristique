@@ -11,7 +11,7 @@ const textes = [
   { id_oeuvre: 'A0012O0003', langue: 'Latin', traducteur: null, statut: 'en_cours' },
   { id_oeuvre: 'RETIRE', langue: 'Grec', traducteur: null, statut: 'rejete' },
 ]
-const originaux = composerOriginauxDisponibles([{ id_oeuvre: 'A0010O0001' }], textes)
+const originaux = composerOriginauxDisponibles(textes)
 
 describe('le texte original qu’une traduction offre aussi', () => {
   it('reconnaît l’original à sa langue, jamais au premier texte sans traducteur', () => {
@@ -26,8 +26,14 @@ describe('le texte original qu’une traduction offre aussi', () => {
     expect(traductionAvecOriginal({ id_oeuvre: 'RETIRE', langue_originale: 'Grec', langue_trad: 'Français' }, originaux)).toBe(false)
   })
 
-  it('garde le repli de la colonne héritée', () => {
-    expect(traductionAvecOriginal({ id_oeuvre: 'A0010O0001', langue_originale: 'Latin', langue_trad: 'Français' }, originaux)).toBe(true)
+  it('ne lit plus la colonne héritée : une traduction sans texte original n’en offre aucun', () => {
+    // Les Confessions portent leur latin comme TEXTE : c'est lui, et lui seul, qui l'offre.
+    expect(traductionAvecOriginal({ id_oeuvre: 'A0010O0001', langue_originale: 'Latin', langue_trad: 'Français' }, originaux)).toBe(false)
+    const avecLatin = composerOriginauxDisponibles([
+      ...textes,
+      { id_oeuvre: 'A0010O0001', langue: 'Latin', traducteur: null, statut: 'valide' },
+    ])
+    expect(traductionAvecOriginal({ id_oeuvre: 'A0010O0001', langue_originale: 'Latin', langue_trad: 'Français' }, avecLatin)).toBe(true)
   })
 
   it('ne propose pas à une édition originale le texte qu’elle est déjà', () => {

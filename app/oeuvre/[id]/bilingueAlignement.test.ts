@@ -267,58 +267,20 @@ describe('l’original mis en regard', () => {
     toutVers: false,
     joinBefore: ' ',
   }
-  type Notes = Record<string, unknown>
-  const segAvecCopie: { texteOriginal: string; texteOriginalAffichage: string; notesOriginal: Notes } = {
-    texteOriginal: 'copie latine',
-    texteOriginalAffichage: 'copie latine[[9]]',
-    notesOriginal: { n9: 'note du latin' },
-  }
-
   it('compose depuis l’alignement quand le bloc en a un', () => {
-    const r = originalEnRegard({ groupes: ['g1'], blocs: { g1: bloc }, segmentsDuBloc: [], notesVides: {} })
+    const r = originalEnRegard({ groupes: ['g1'], blocs: { g1: bloc } })
     expect(r).toEqual({ texte: 'Ὁδοὶ δύο εἰσί', affichage: 'Ὁδοὶ δύο εἰσί[[1]]', notes: bloc.notes, toutVers: false })
   })
 
-  // ⛔ Les Confessions portent les DEUX : le latin comme texte à part entière, et sa
-  // copie dans les 932 segments de la traduction. C'est le texte qui fait foi.
-  it('préfère l’alignement à la copie quand les deux existent', () => {
-    const r = originalEnRegard({ groupes: ['g1'], blocs: { g1: bloc }, segmentsDuBloc: [segAvecCopie], notesVides: {} })
-    expect(r?.texte).toBe('Ὁδοὶ δύο εἰσί')
+  it('dit si l’original est en vers', () => {
+    expect(originalEnRegard({ groupes: ['g1'], blocs: { g1: { ...bloc, toutVers: true } } })?.toutVers).toBe(true)
   })
 
-  it('retombe sur `texte_original` faute d’alignement', () => {
-    const r = originalEnRegard({ groupes: [], blocs: {}, segmentsDuBloc: [segAvecCopie], notesVides: {} })
-    expect(r).toEqual({
-      texte: 'copie latine', affichage: 'copie latine[[9]]',
-      notes: { n9: 'note du latin' }, toutVers: null,
-    })
-  })
-
-  // Le repli n'a qu'une chaîne : il ne sait pas si l'original est en vers, et c'est la
-  // colonne française qui tranchera. `null` porte cette ignorance, `false` la nierait.
-  it('ne prononce rien sur les vers en repli, mais le dit en alignement', () => {
-    expect(originalEnRegard({ groupes: [], blocs: {}, segmentsDuBloc: [segAvecCopie], notesVides: {} })?.toutVers).toBeNull()
-    expect(originalEnRegard({ groupes: ['g1'], blocs: { g1: { ...bloc, toutVers: true } }, segmentsDuBloc: [], notesVides: {} })?.toutVers).toBe(true)
-  })
-
-  // Un groupe annoncé mais dont l'original n'est pas chargé (division voisine encore en
-  // vol) ne doit pas faire perdre la copie qui, elle, est là.
-  it('retombe sur la copie quand le groupe annoncé n’a pas encore son bloc', () => {
-    expect(originalEnRegard({ groupes: ['g-absent'], blocs: {}, segmentsDuBloc: [segAvecCopie], notesVides: {} })?.texte).toBe('copie latine')
-  })
-
-  it('rend `null` quand il n’y a rien à mettre en regard', () => {
-    expect(originalEnRegard({ groupes: [], blocs: {}, segmentsDuBloc: [{ texteOriginal: '   ' }], notesVides: {} })).toBeNull()
-    expect(originalEnRegard({ groupes: [], blocs: {}, segmentsDuBloc: [], notesVides: {} })).toBeNull()
-  })
-
-  // La colonne latine porte l'apparat de SON texte ; à défaut seulement, celui de la
-  // traduction. Les mêler ferait sortir l'apparat de Knöll chez Arnauld d'Andilly.
-  it('ne sert les notes de la traduction que faute de notes propres', () => {
-    const propres = originalEnRegard({ groupes: [], blocs: {}, notesVides: {}, segmentsDuBloc: [{ texteOriginal: 'x', notesOriginal: { a: 1 }, notes: { b: 2 } }] })
-    expect(propres?.notes).toEqual({ a: 1 })
-    const sansPropres = originalEnRegard({ groupes: [], blocs: {}, notesVides: {}, segmentsDuBloc: [{ texteOriginal: 'x', notes: { b: 2 } }] })
-    expect(sansPropres?.notes).toEqual({ b: 2 })
+  // ⛔ UN SEUL MODE (2026-09-22) : sans groupe, ou sans le bloc d'un groupe annoncé, il n'y
+  // a rien à mettre en regard. La copie `segments.texte_original` ne sert plus de repli.
+  it('rend `null` sans alignement', () => {
+    expect(originalEnRegard({ groupes: [], blocs: {} })).toBeNull()
+    expect(originalEnRegard({ groupes: ['g-absent'], blocs: {} })).toBeNull()
   })
 })
 
@@ -511,23 +473,18 @@ describe('les originaux fondus dans un même bloc', () => {
   })
 
   it('compose depuis TOUS les groupes du bloc, et non depuis le seul premier', () => {
-    const r = originalEnRegard({ groupes: ['g1', 'g2'], blocs, segmentsDuBloc: [], notesVides: {} })
+    const r = originalEnRegard({ groupes: ['g1', 'g2'], blocs })
     expect(r?.texte).toBe('Carmina qui quondam\nFlebilis, heu!')
     expect(r?.toutVers).toBe(true)
   })
 
   it('compose le seul groupe du bloc quand il n’y en a qu’un', () => {
-    expect(originalEnRegard({ groupes: ['g1'], blocs, segmentsDuBloc: [], notesVides: {} })?.texte)
+    expect(originalEnRegard({ groupes: ['g1'], blocs })?.texte)
       .toBe('Carmina qui quondam')
   })
 
-  // ⛔ Un bloc COUVERT qui ne compose rien garde sa colonne vide : l'empan est plus haut,
-  // et retomber sur la copie ferait paraître deux fois le même original.
-  it('ne retombe pas sur la copie quand l’empan est composé plus haut', () => {
-    const r = originalEnRegard({
-      groupes: [], couvert: true, blocs,
-      segmentsDuBloc: [{ texteOriginal: 'copie latine' }], notesVides: {},
-    })
-    expect(r).toBeNull()
+  // ⛔ Un bloc COUVERT qui ne compose rien garde sa colonne vide : l'empan est plus haut.
+  it('ne compose rien quand l’empan est composé plus haut', () => {
+    expect(originalEnRegard({ groupes: [], blocs })).toBeNull()
   })
 })
