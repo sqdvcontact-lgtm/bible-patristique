@@ -80,7 +80,7 @@ function RangeeBible({ label, premiere, onChoisir }: {
 }
 
 export default function ModaleLivreAbsent({
-  nomLivre, nomTraduction, propositions, erreur = false, onChoisir, onFermer,
+  nomLivre, nomTraduction, propositions, erreur = false, onReessayer, onChoisir, onFermer,
 }: {
   nomLivre: string
   /** La bible qu'on lit, nommée : « la Bible Fillion ne donne pas ce livre ». */
@@ -97,6 +97,8 @@ export default function ModaleLivreAbsent({
    * pas qu'aucune bible ne porte le livre quand on n'a pas pu le savoir.
    */
   erreur?: boolean
+  /** Relance la recherche après un échec. Absent, la fenêtre ne propose pas de réessayer. */
+  onReessayer?: () => void
   onChoisir: (code: string) => void
   onFermer: () => void
 }) {
@@ -141,10 +143,16 @@ export default function ModaleLivreAbsent({
 
         {erreur && (propositions === null || propositions.length === 0) ? (
           <p role="status" style={{ fontSize: '0.75rem', color: 'var(--cs-texte-second)', lineHeight: 1.6, margin: '12px 0 0' }}>
-            Les autres bibles n’ont pas pu être consultées. Réessayez dans un instant.
+            Les autres bibles n’ont pas pu être consultées.
+            {onReessayer && (
+              <>
+                {' '}
+                <button type="button" className="cs-bouton-lien" onClick={onReessayer}>Réessayer</button>
+              </>
+            )}
           </p>
         ) : propositions === null ? (
-          <p style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', margin: '14px 0 0' }}>
+          <p role="status" style={{ fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', margin: '14px 0 0' }}>
             Recherche des bibles qui le donnent…
           </p>
         ) : propositions.length === 0 ? (

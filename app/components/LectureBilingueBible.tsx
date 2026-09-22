@@ -17,8 +17,13 @@ import NavigationBasChapitre from './NavigationBasChapitre'
 import BibleBilingue, { type LectureBilingueProps } from './BibleBilingue'
 import SelecteurTraductionBible from './SelecteurTraductionBible'
 import LassoLecture from './LassoLecture'
+import LassoTactile from './LassoTactile'
+import { useSearchParams } from 'next/navigation'
+import { lirePlageVersets } from '@/app/lib/bibleNavigation'
+import { lireRepere, PARAMETRE_REPERE } from '@/app/lib/repriseLecture'
+import { amenerAuCentre, annoncerReprise, poserEnHaut, positionDuDefileur, terminerReprise } from '@/app/lib/defilementLecture'
 import { signalerProgression } from './AnnonceHautsFaits'
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { useSansSurvol } from '@/app/lib/useEstMobile'
@@ -33,6 +38,19 @@ import {
   colonneDeLaCleBilingue,
   numeroCanonique,
 } from '@/app/lib/bibleEditionBilingue'
+
+// La reprise (`repere=N`) repose son verset tant que polices et gravures arrivent : la
+// première seconde et demie, et seulement tant que le lecteur n'a pas bougé. Mêmes délais
+// que la lecture simple (`TexteBible`).
+const REPOSES_REPRISE_MS = [150, 400, 800, 1500] as const
+const DUREE_REPRISE_MS = 1600
+
+/** « le latin », mais « l’ancien français », « l’hébreu » : l'article s'élide devant une
+ *  voyelle ou un h muet. */
+export function avecArticle(nom: string): string {
+  const bas = nom.toLowerCase()
+  return /^[aeiouyhâàäéèêëîïôöûüœ]/.test(bas) ? `l’${bas}` : `le ${bas}`
+}
 
 export type LectureBilingueBibleProps = LectureBilingueProps & {
   livreActif: string
@@ -86,6 +104,110 @@ export default function LectureBilingueBible({
   // changement de chapitre ne s'inscrit pas dans la liste suivante (prelevementsBibliques).
   const [sauvegardes, , clePrelevementsCourante, modifierPrelevementsPour] = usePrelevementsDuChapitre(userId, livreActif, chapitreActif)
   const lassoActif = !mobile && !sansSurvol
+  // ⛔ AU DOIGT, LE LASSO NAÎT D'UN APPUI LONG sur la marge d'un verset (`LassoTactile`,
+  // `data-lasso-depart`) : glisser y fait défiler. La marge dit aussi la COLONNE du
+  // geste, et le lasso ne retient que les cellules de celle-là : empilées, les deux langues
+  // d'un verset se suivent, et un cadre tiré de haut en bas les prendrait toujours toutes
+  // les deux, si bien que la règle de `refusDuLasso` refuserait chaque geste.
+  const lassoTactileActif = mobile || sansSurvol
+  const colonneTactile = useRef<string | null>(null)
+  useEffect(() => {
+    if (!lassoTactileActif) return
+    const surAppui = (e: PointerEvent) => {
+      const depart = (e.target as Element | null)?.closest?.('[data-lasso-depart]')
+      colonneTactile.current = depart?.getAttribute('data-lasso-depart') ?? null
+    }
+    window.addEventListener('pointerdown', surAppui, true)
+    return () => window.removeEventListener('pointerdown', surAppui, true)
+  }, [lassoTactileActif])
+  const cleTactile = (element: Element) => {
+    const cle = element.getAttribute('data-lasso-cellule')
+    if (!cle) return null
+    const colonne = colonneTactile.current
+    return colonne && colonneDeLaCleBilingue(cle) !== colonne ? null : cle
+  }
+
+  // ── `verset=N` ET `repere=N` (contrat partagé avec la lecture simple) ─────────────
+  // `verset=N` VISE : le créneau se retient (la sélection de la page) et se pose au centre,
+  // en douceur si le chapitre est déjà à l'écran. `repere=N` REND UNE PLACE : le créneau se
+  // pose EN HAUT de la zone de lecture, sous les barres collantes, sans rien retenir.
+  // ⚠️ La cible est `data-canon-id`, que la reprise enregistre déjà ; une glose n'en porte
+  // pas. Et `verset` l'emporte quand les deux sont là.
+  const searchParams = useSearchParams()
+  const cleChapitre = `${livreActif}|${chapitreActif}`
+  const creneau = (n: number) => refDefileur.current?.querySelector<HTMLElement>(`[data-canon-id="${livreActif}.${chapitreActif}.${n}"]`) ?? null
+  // Lus par les effets sans en être des dépendances : c'est la page qui réécrit l'adresse
+  // quand on retient un verset, et ce changement ne doit ni resélectionner ni défiler.
+  const selectionRef = useRef(contenu.canonSelectionne ?? null)
+  const selectionnerRef = useRef(contenu.onSelectionnerVerset)
+  useEffect(() => {
+    selectionRef.current = contenu.canonSelectionne ?? null
+    selectionnerRef.current = contenu.onSelectionnerVerset
+  })
+  const chapitreDejaAffiche = useRef<string | null>(null)
+  useEffect(() => {
+    const doux = chapitreDejaAffiche.current === cleChapitre
+    chapitreDejaAffiche.current = cleChapitre
+    const plage = lirePlageVersets(searchParams.get('verset'))
+    if (!plage) return
+    let annulerDefilement: () => void = () => {}
+    const minuteur = window.setTimeout(() => {
+      const el = creneau(plage.debut)
+      if (el) annulerDefilement = amenerAuCentre(el, { doux })
+    }, doux ? 0 : 200)
+    const nettoyer = () => { window.clearTimeout(minuteur); annulerDefilement() }
+    if (plage.fin > plage.debut) return nettoyer
+    const canonId = `${livreActif}.${chapitreActif}.${plage.debut}`
+    if (selectionRef.current === canonId) { nettoyer(); return }
+    // ⚠️ La sélection de la page BASCULE (un second clic relâche) : on ne l'appelle que si
+    // le créneau n'est pas déjà retenu, ce qui revient à le poser.
+    selectionnerRef.current?.(canonId)
+    return nettoyer
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `creneau` ne lit qu'une référence
+  }, [searchParams, cleChapitre])
+
+  const repereTraite = useRef<string | null>(null)
+  const repereDemande = searchParams.get('verset') ? null : lireRepere(searchParams.get(PARAMETRE_REPERE))
+  useEffect(() => {
+    if (repereDemande === null) return
+    const cle = `${cleChapitre}|${repereDemande}|${mobile ? 1 : 0}`
+    if (repereTraite.current === cle) return
+    repereTraite.current = cle
+    annoncerReprise(DUREE_REPRISE_MS)
+    const minuteurs: number[] = []
+    let posee: { el: HTMLElement; position: number } | null = null
+    let fini = false
+    let commence = false
+    const finir = () => { if (!fini) { fini = true; terminerReprise() } }
+    const poser = () => {
+      const el = creneau(repereDemande)
+      if (!el) return false
+      poserEnHaut(el)
+      posee = { el, position: positionDuDefileur(el) }
+      return true
+    }
+    minuteurs.push(window.setTimeout(() => {
+      commence = true
+      if (!poser()) { finir(); return }
+      REPOSES_REPRISE_MS.forEach((delai, rang) => {
+        minuteurs.push(window.setTimeout(() => {
+          if (fini || !posee) return
+          // Le lecteur a fait défiler lui-même : c'est lui qui commande.
+          if (Math.abs(positionDuDefileur(posee.el) - posee.position) > 1) { finir(); return }
+          poser()
+          if (rang === REPOSES_REPRISE_MS.length - 1) finir()
+        }, delai))
+      })
+    }, 0))
+    return () => {
+      for (const m of minuteurs) window.clearTimeout(m)
+      // ⚠️ Un démontage avant la première pose (double montage du mode strict) ne compte
+      // pas pour une reprise faite : la suivante la refera, comme en lecture simple.
+      if (!commence) repereTraite.current = null
+      finir()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `creneau` ne lit qu'une référence
+  }, [repereDemande, cleChapitre, mobile])
 
   // Ce que porte chaque cellule sélectionnable, rangée par sa clé de lasso.
   // ⛔ Ne s'y sélectionne que ce qui s'enregistre un par un : un verset qui porte un texte
@@ -122,7 +244,7 @@ export default function LectureBilingueBible({
     if (colonnes.length < 2) return null
     const langues = colonnes.map(code => {
       const membre = contenu.colonnes.find(colonne => colonne.membre.translationId === code)?.membre
-      return 'le ' + (membre ? nomLangue(membre.languageCode) : code).toLowerCase()
+      return avecArticle(membre ? nomLangue(membre.languageCode) : code)
     })
     return {
       titre: 'Une seule traduction à la fois',
@@ -136,7 +258,15 @@ export default function LectureBilingueBible({
   const numerosEnregistres = (cles: readonly string[]) =>
     [...new Set(cellulesChoisies(cles).map(c => c.numero).filter(n => sauvegardes.has(n)))]
 
+  // ⛔ Les gestes REFUSENT eux aussi une sélection qui mêle deux colonnes : le lasso de la
+  // souris n'offre alors aucune action, mais celui du doigt n'a pas de règle de refus à lui.
+  const garderUneColonne = (cles: readonly string[]) => {
+    const refus = refusDuLasso(cles)
+    if (refus) throw new Error(refus.titre)
+  }
+
   const enregistrerLasso = async (cles: readonly string[]): Promise<number | null> => {
+    garderUneColonne(cles)
     if (!exigerCompte('prélever ces versets') || !userId) return null
     const cleDepart = clePrelevementsCourante
     const vus = new Set<number>()
@@ -163,6 +293,7 @@ export default function LectureBilingueBible({
   }
 
   const retirerLasso = async (cles: readonly string[]): Promise<number | null> => {
+    garderUneColonne(cles)
     if (!userId) return null
     const cleDepart = clePrelevementsCourante
     const numeros = numerosEnregistres(cles)
@@ -182,6 +313,7 @@ export default function LectureBilingueBible({
 
   // La citation d'une sélection : « … » (Gn 1, 3-5.7), une élision là où un verset manque.
   const copierLasso = async (cles: readonly string[]) => {
+    garderUneColonne(cles)
     const choisies = cellulesChoisies(cles)
     if (choisies.length === 0) return
     await copierCitation(citationBiblique(
@@ -189,6 +321,10 @@ export default function LectureBilingueBible({
       `${abreviationLivre || nomLivre} ${chapitreActif}, ${referenceDesVersets(choisies.map(c => c.numero))}`,
     ))
   }
+
+  // La copie d’une seule cellule, depuis son bouton au survol (bureau) : la citation du
+  // lasso, réduite à un verset.
+  const copierCellule = (cle: string) => copierLasso([cle])
 
   return (
     <div
@@ -210,7 +346,12 @@ export default function LectureBilingueBible({
           .nav-chap-arrow:hover { color: var(--cs-mention) !important; }
         `}</style>
 
-        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`, alignItems: 'center' }}>
+        {/* ⛔ AU TÉLÉPHONE, LE TITRE EST HORS DE L'ÉCRAN, comme en lecture simple : le volet des
+            livres et le bandeau du bas disent déjà le chapitre, et le bandeau porte les
+            mêmes flèches. Il reste le titre de niveau 1 de la page (`.cs-hors-ecran`). */}
+        {mobile && <h1 className="cs-hors-ecran">{`${nomLivre}, chapitre ${chapitreActif}`}</h1>}
+        {!mobile && (
+        <div style={{ width: 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`, alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
             {/* Mêmes flèches qu'en lecture simple : à une borne, chevron en place, grisé, inerte. */}
             <FlecheChapitre sens="precedent" variante="entete" cible={voisins.precedent} onAller={naviguer} />
@@ -225,12 +366,13 @@ export default function LectureBilingueBible({
           </div>
           <div />
         </div>
+        )}
 
         {/* Le MÊME menu central qu'en lecture ordinaire : même axe de 500 px,
             gouttière d'actions exclue. On doit pouvoir changer de bible sans
             quitter d'abord la lecture en regard. Choisir une autre bible en sort
             d'elle-même, la famille éditoriale n'étant pas la même. */}
-        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: `${BLANC_TITRE_MENU} auto 0`, display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`, alignItems: 'center' }}>
+        <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: mobile ? 0 : `${BLANC_TITRE_MENU} auto 0`, display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}`, alignItems: 'center' }}>
           <SelecteurTraductionBible
             traductions={traductions}
             traductionIndex={traductionIndex}
@@ -276,7 +418,7 @@ export default function LectureBilingueBible({
             ? { maxWidth: '100%', margin: '0 auto' }
             : { width: `min(calc(var(--mesure-page) + ${GOUTTIERE_ACTIONS_VERSET}), 100%)`, margin: '0 auto', display: 'grid', gridTemplateColumns: `minmax(0, var(--mesure-page)) ${GOUTTIERE_ACTIONS_VERSET}` }}
         >
-          <BibleBilingue {...contenu} mobile={mobile || colonnesEtroites} />
+          <BibleBilingue {...contenu} mobile={mobile || colonnesEtroites} copierCellule={copierCellule} />
           {/* Sous le dernier verset, les chapitres voisins, nommés (audit du 2026-09-21).
               ⚠️ Dans la PREMIÈRE colonne de la grille : la seconde est la gouttière. */}
           <div style={mobile ? undefined : { gridColumn: 1 }}>
@@ -300,6 +442,21 @@ export default function LectureBilingueBible({
         unite={UNITE_VERSETS}
         gouttiere={GOUTTIERE_ACTIONS_VERSET}
         refus={refusDuLasso}
+        dejaEnregistres={cles => numerosEnregistres(cles).length}
+        onEnregistrer={enregistrerLasso}
+        onRetirer={retirerLasso}
+        onCopier={copierLasso}
+      />
+      {/* Au doigt, les mêmes props que la lecture simple (`TexteBible`), la clé filtrée
+          par la colonne où le geste est né (`cleTactile`). */}
+      <LassoTactile
+        zone={refDefileur}
+        actif={lassoTactileActif}
+        contexte={`${livreActif}|${chapitreActif}|${tradCode}`}
+        selecteurCibles="[data-lasso-cellule]"
+        cleDe={cleTactile}
+        surbrillance={cle => `[data-lasso-cellule="${cle}"]`}
+        unite={UNITE_VERSETS}
         dejaEnregistres={cles => numerosEnregistres(cles).length}
         onEnregistrer={enregistrerLasso}
         onRetirer={retirerLasso}

@@ -83,7 +83,7 @@ function chapitrePlausible(v: unknown): v is number {
 /**
  * Le verset qui vaut d'être retenu : un entier plausible, et SUPÉRIEUR À 1. Le premier
  * verset est le haut du chapitre, où l'on rouvre de toute façon ; le retenir ferait
- * viser — donc sélectionner — le verset 1 à chaque reprise.
+ * poser le verset 1 en tête, ce que l’ouverture du chapitre fait déjà.
  */
 export function versetDeReprise(v: unknown): number | null {
   return typeof v === 'number' && Number.isInteger(v) && v > 1 && v <= VERSET_MAX ? v : null
@@ -105,14 +105,31 @@ export function positionBibleDepuis(brut: unknown): PositionBible | null {
 }
 
 /**
- * L'adresse qui rouvre la Bible classique à la place retenue. Le verset passe par le
- * paramètre `verset`, que `TexteBible` sait déjà viser (il y fait défiler la colonne).
+ * Le paramètre d'adresse de la REPRISE : `repere=N` pose le verset N en haut de la zone de
+ * lecture, sous les barres collantes, SANS le sélectionner ni ouvrir le volet des Pères
+ * sur lui. ⛔ Ce n'est pas `verset=N`, qui VISE un verset (il le retient et le centre) :
+ * rouvrir sa lecture n'est pas choisir un verset. Contrat partagé avec la lecture en
+ * regard, qui l'honore de son côté.
+ */
+export const PARAMETRE_REPERE = 'repere'
+
+/** Relit `repere=N` : un entier plausible, sinon `null`. */
+export function lireRepere(brut: string | null | undefined): number | null {
+  if (!brut || !/^\d{1,3}$/.test(brut.trim())) return null
+  const n = Number.parseInt(brut, 10)
+  return n >= 1 && n <= VERSET_MAX ? n : null
+}
+
+/**
+ * L'adresse qui rouvre la Bible classique à la place retenue. Le verset passe par
+ * `repere` (voir `PARAMETRE_REPERE`), jamais par `verset` : la reprise sélectionnait le
+ * verset et le posait au centre, si bien que la place REMONTAIT à chaque réouverture.
  * ⛔ La bible n'y est PAS : elle se décide sur le serveur, par le cookie puis le profil
  * (`preferenceBible`), et un `?trad=` figerait le lien.
  */
 export function adresseDeReprise(position: Pick<PositionBible, 'livre' | 'chapitre' | 'verset'>): string {
   const verset = versetDeReprise(position.verset)
-  return `/?livre=${encodeURIComponent(position.livre)}&chapitre=${position.chapitre}${verset ? `&verset=${verset}` : ''}`
+  return `/?livre=${encodeURIComponent(position.livre)}&chapitre=${position.chapitre}${verset ? `&${PARAMETRE_REPERE}=${verset}` : ''}`
 }
 
 /** Relit ce que la Polyglotte a écrit. */
@@ -157,9 +174,17 @@ function ecrireJson(cle: string, valeur: unknown): void {
   }
 }
 
+/**
+ * L'événement qui dit qu'une place vient d'être retenue, pour ce qui la montre ailleurs
+ * dans le même onglet (le lien « Bible » de la barre, qui ne se remonte pas d'une page à
+ * l'autre). ⚠️ Un autre onglet l'apprend par l'événement `storage` du navigateur.
+ */
+export const EVENEMENT_POSITION_BIBLE = 'cs-position-bible'
+
 /** La Bible classique retient sa place. */
 export function retenirPositionBible(position: PositionBible): void {
   ecrireJson(CLE_BIBLE, position)
+  try { window.dispatchEvent(new Event(EVENEMENT_POSITION_BIBLE)) } catch { /* hors navigateur */ }
 }
 
 /** La carte de reprise de l'accueil. */

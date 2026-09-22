@@ -163,13 +163,19 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     // ⛔ La marque de mécène se lit dans `mecenes_publics`, jamais dans `profils` : la
     // vue ne rend que des identifiants, et elle filtre déjà sur le choix du lecteur de
     // la montrer ou non. Voir app/components/MarqueMecene.tsx.
-    const [classementRes, likesRes, mecenesRes] = await Promise.all([
+    // ⛔ La table `commentaires_likes` ne rend plus que SA PROPRE ligne (migration
+    // 20260922190000) : les totaux viennent de `totaux_votes_commentaires`, qui ne dit ni
+    // qui a voté ni quoi, et le vote du lecteur se lit à part.
+    const [classementRes, totauxRes, mesVotesRes, mecenesRes] = await Promise.all([
       idsUtilisateurs.length > 0
         ? supabase.from('lecture_utilisateurs').select('user_id, pseudo, nb_auteurs, total_auteurs').in('user_id', idsUtilisateurs)
         : Promise.resolve({ data: [] as any[] }),
       idsCommentaires.length > 0
-        ? supabase.from('commentaires_likes').select('id_commentaire, user_id, valeur').in('id_commentaire', idsCommentaires)
-        : Promise.resolve({ data: [] as any[] }),
+        ? supabase.rpc('totaux_votes_commentaires', { p_ids: idsCommentaires })
+        : Promise.resolve({ data: [] as any[], error: null }),
+      idsCommentaires.length > 0 && userId
+        ? supabase.from('commentaires_likes').select('id_commentaire, valeur').eq('user_id', userId).in('id_commentaire', idsCommentaires)
+        : Promise.resolve({ data: [] as any[], error: null }),
       idsUtilisateurs.length > 0
         ? supabase.from('mecenes_publics').select('user_id').in('user_id', idsUtilisateurs)
         : Promise.resolve({ data: [] as { user_id: string }[] }),
@@ -177,11 +183,15 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     const classementMap = new Map((classementRes.data ?? []).map((c: any) => [c.user_id, c]))
     const mecenes = new Set((mecenesRes.data ?? []).map((m: { user_id: string }) => m.user_id))
     const parCommentaire = new Map<number, { likes: number; dislikes: number; mon: 1 | -1 | null }>()
-    ;(likesRes.data ?? []).forEach((l: any) => {
-      const cur = parCommentaire.get(l.id_commentaire) ?? { likes: 0, dislikes: 0, mon: null }
-      if (l.valeur === 1) cur.likes++; else cur.dislikes++
-      if (l.user_id === userId) cur.mon = l.valeur
-      parCommentaire.set(l.id_commentaire, cur)
+    if (totauxRes.error) console.warn('[oeuvre] totaux des votes non chargés', totauxRes.error)
+    if (mesVotesRes.error) console.warn('[oeuvre] votes du lecteur non chargés', mesVotesRes.error)
+    ;((totauxRes.data ?? []) as { id_commentaire: number; likes: number; dislikes: number }[]).forEach(t => {
+      parCommentaire.set(Number(t.id_commentaire), { likes: t.likes, dislikes: t.dislikes, mon: null })
+    })
+    ;((mesVotesRes.data ?? []) as { id_commentaire: number; valeur: number }[]).forEach(v => {
+      const cur = parCommentaire.get(v.id_commentaire) ?? { likes: 0, dislikes: 0, mon: null }
+      cur.mon = v.valeur === 1 ? 1 : -1
+      parCommentaire.set(v.id_commentaire, cur)
     })
 
     setCommentaires(lignes.map(c => ({
@@ -234,8 +244,16 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
       if (!retire) { if (valeur === 1) nbLikes++; else nbDislikes++ }
       return { ...x, nbLikes, nbDislikes, monVote: retire ? null : valeur }
     }))
-    if (retire) await supabase.from('commentaires_likes').delete().eq('id_commentaire', c.id).eq('user_id', userId)
-    else await supabase.from('commentaires_likes').upsert({ id_commentaire: c.id, user_id: userId, valeur }, { onConflict: 'id_commentaire,user_id' })
+    // L'upsert change un vote existant grâce à la politique UPDATE `likes_modification`
+    // (migration 20260922190000) ; avant elle, il échouait sans bruit.
+    const { error } = retire
+      ? await supabase.from('commentaires_likes').delete().eq('id_commentaire', c.id).eq('user_id', userId)
+      : await supabase.from('commentaires_likes').upsert({ id_commentaire: c.id, user_id: userId, valeur }, { onConflict: 'id_commentaire,user_id' })
+    if (error) {
+      console.warn('[oeuvre] vote non enregistré', error)
+      // On rend l'état d'avant : l'affichage ne doit pas promettre un vote que la base n'a pas.
+      setCommentaires(prev => prev.map(x => x.id === c.id ? { ...x, nbLikes: c.nbLikes, nbDislikes: c.nbDislikes, monVote: c.monVote } : x))
+    }
   }
 
   const supprimerCommentaire = async (c: CommentaireAvecAuteur) => {

@@ -1,7 +1,7 @@
 -- Politiques RLS et droits des tables d’utilisateurs, TELS QUE LA BASE LES APPLIQUE.
 -- Relevé par `node --env-file=.env.local scripts/audit-droits-lecteur.mjs --politiques`.
 -- Ce fichier est un MIROIR : on ne l’édite pas, on change la base par migration puis on le relève.
--- Relevé du 2026-09-21.
+-- Relevé du 2026-09-22.
 
 -- profils : RLS activée
 --   authenticated : DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE
@@ -35,8 +35,11 @@ create policy "likes_retrait" on public.commentaires_likes as permissive for del
   using ((( SELECT auth.uid() AS uid) = user_id));
 create policy "likes_ajout" on public.commentaires_likes as permissive for insert to public
   with check ((( SELECT auth.uid() AS uid) = user_id));
-create policy "Lecture publique des likes" on public.commentaires_likes as permissive for select to public
-  using (true);
+create policy "likes_lecture_proprietaire" on public.commentaires_likes as permissive for select to authenticated
+  using ((( SELECT auth.uid() AS uid) = user_id));
+create policy "likes_modification" on public.commentaires_likes as permissive for update to authenticated
+  using ((( SELECT auth.uid() AS uid) = user_id))
+  with check ((( SELECT auth.uid() AS uid) = user_id));
 
 -- essais : RLS activée
 --   authenticated : DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE

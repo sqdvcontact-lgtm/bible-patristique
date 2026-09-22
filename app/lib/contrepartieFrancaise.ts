@@ -73,7 +73,10 @@ export type SegmentFrancais = {
   id_texte: string
   segment_key: string | null
   segment_numero: number
-  segment_texte: string
+  /** Absent quand on a demandé les colonnes LÉGÈRES (`{ texte: false }`). */
+  segment_texte?: string
+  /** La longueur du texte (champ calculé `longueur_texte`), quand on ne rapatrie pas le texte. */
+  longueur?: number | null
   ref_niv1: string
   ref_niv2: string
   ref_niv3: string
@@ -128,6 +131,9 @@ type LigneMembre = { alignment_set_id: string; alignment_id: string; id_texte: s
 export async function chargerContrepartiesFrancaises(
   client: SupabaseClient,
   segments: readonly SegmentAContrepartie[],
+  /** `texte: false` : les colonnes LÉGÈRES, sans texte ni notes, la longueur à leur place
+   *  (le volet des Pères ne charge le texte que de la page qu'il montre, 2026-09-22). */
+  { texte = true }: { texte?: boolean } = {},
 ): Promise<Map<number, SegmentFrancais>> {
   const vide = new Map<number, SegmentFrancais>()
   const oeuvres = [...new Set(segments.map((s) => s.id_oeuvre).filter(Boolean))]
@@ -203,7 +209,9 @@ export async function chargerContrepartiesFrancaises(
   // 5. Les segments français eux-mêmes.
   const segsFr = await lireParLots<SegmentFrancais>([...new Set(membresFr.map((m) => m.segment_key))], lot => client
     .from('segments')
-    .select('id, id_texte, segment_key, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4, notes')
+    .select(texte
+      ? 'id, id_texte, segment_key, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4, notes'
+      : 'id, id_texte, segment_key, segment_numero, ref_niv1, ref_niv2, ref_niv3, ref_niv4, longueur:longueur_texte')
     .in('id_texte', francais).in('segment_key', lot), 'les segments français')
   if (!segsFr) return vide
   const segFrParCle = new Map(segsFr.map((s) => [`${s.id_texte}|${s.segment_key}`, s]))
@@ -236,8 +244,10 @@ export async function chargerContrepartiesFrancaises(
     // seul paragraphe, notes comprises, la première ligne portant l'identité.
     contreparties.set(s.id, segs.length === 1 ? segs[0] : {
       ...segs[0],
-      segment_texte: segs.map((x) => x.segment_texte).join(' '),
-      notes: segs.map((x) => x.notes).filter(Boolean).join('\n') || null,
+      ...(texte
+        ? { segment_texte: segs.map((x) => x.segment_texte).join(' '), notes: segs.map((x) => x.notes).filter(Boolean).join('\n') || null }
+        // Les morceaux se joignent d'une espace : la longueur de l'empan le compte.
+        : { longueur: segs.reduce((n, x) => n + (x.longueur ?? 0), 0) + segs.length - 1 }),
       // ⚠️ Et chacun des paragraphes réunis, que le volet relit pour poser les appels et
       // lire les notes de chacun : le texte réuni ne porte plus que la clé du premier.
       parties: segs,

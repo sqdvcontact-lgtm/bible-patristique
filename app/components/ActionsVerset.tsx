@@ -85,7 +85,7 @@ export default function ActionsVerset({
     setChargement(true)
     try {
       if (preleve) {
-        const { error } = await supabase.from('prelevements').delete().eq('id', prelevementId)
+        const { error } = await supabase.from('prelevements').delete().eq('id', prelevementId).eq('user_id', userId)
         if (error) {
           afficherErreur('Le prélèvement n’a pas pu être retiré. Réessayez.')
           return
@@ -112,12 +112,17 @@ export default function ActionsVerset({
 
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', position: 'relative' }}>
+      {/* ⛔ Le vocabulaire et la marque sont ceux de la lecture simple (TexteBible) :
+          « Ajouter à mes prélèvements » / « Retirer de mes prélèvements », et plus de
+          signet plein vert au repos. Le bouton ne paraît qu'au survol, comme ses
+          voisins ; l'état se dit à côté du numéro, par la marque discrète que la page
+          hôte pose (`STYLE_SIGNET_VERSET`). */}
       {userId && (
         <button onClick={basculerPrelevement} disabled={chargement}
           className="bouton-action-verset"
-          title={preleve ? 'Retirer des prélèvements' : 'Enregistrer dans mes prélèvements'}
-          aria-label={preleve ? 'Retirer des prélèvements' : 'Enregistrer'}
-          style={{ ...BTN, opacity: preleve ? 1 : 0, color: preleve ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
+          title={preleve ? 'Retirer de mes prélèvements' : 'Ajouter à mes prélèvements'}
+          aria-label={preleve ? `Retirer ${refAffichee} de mes prélèvements` : `Ajouter ${refAffichee} à mes prélèvements`}
+          style={{ ...BTN, opacity: 0, color: preleve ? 'var(--cs-texte-doux)' : 'var(--cs-bord)' }}>
           {chargement ? '…' : <IconeSignet plein={preleve} />}
         </button>
       )}

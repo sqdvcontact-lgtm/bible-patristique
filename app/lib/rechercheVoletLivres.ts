@@ -22,7 +22,7 @@
  */
 
 import { ABREV_FR, LIVRES } from './bible'
-import { nombreDeChapitres, type ChapitresParLivre } from './chapitresCanon'
+import { chapitresConnus, type ChapitresParLivre } from './chapitresCanon'
 import { analyserRequetePericope, normaliserRecherche, trouverLivre } from './pericopesRecherche'
 
 /** Le plus long chapitre du canon (Psaume 119) : un verset au-delà n'existe nulle part. */
@@ -35,7 +35,11 @@ export type RechercheVolet =
   /** Un passage : le chapitre, et le premier verset de la plage s'il y en a un. */
   | { genre: 'passage'; code: string; chapitre: number; verset: number | null; versetFin: number | null }
   /** Une référence que le livre ne peut pas porter : on ne propose rien d'autre. */
-  | { genre: 'hors-bornes'; code: string; chapitre: number; verset: number | null; chapitresDuLivre: number }
+  | { genre: 'hors-bornes'; code: string; chapitre: number; verset: number | null
+      /** `null` quand la borne en chapitres n'est pas connue (le verset est alors en cause). */
+      chapitresDuLivre: number | null
+      /** Le nombre de versets du chapitre quand il est connu, `null` sinon. */
+      versetsDuChapitre: number | null }
   /** Des livres : ceux que la saisie commence. `codes` vide veut dire « aucun ». */
   | { genre: 'livres'; codes: ReadonlySet<string> }
 
@@ -72,23 +76,36 @@ export function livresQuiCommencent(saisie: string, livres: readonly LivreDuVole
 }
 
 /**
+ * Le nombre de versets d'un chapitre, quand on le connaît : `null` sinon. Aucune table
+ * de versets n'est chargée par le volet ; la page peut passer celui du chapitre qu'elle lit.
+ */
+export type VersetsConnus = (code: string, chapitre: number) => number | null
+
+/**
  * Ce que la saisie désigne. ⚠️ `chapitres` vaut `null` tant que l'ossature n'a pas
- * répondu : on borne alors sur le repli de `nombreDeChapitres`, qui connaît au moins
- * les livres protocanoniques.
+ * répondu : on ne borne alors que ce que le repli protocanonique connaît.
+ * ⛔ Une borne INCONNUE ne juge rien (2026-09-22) : « Si 3 » sans l'ossature passait
+ * pour hors des bornes, le Siracide valant « 1 chapitre » par défaut. Le verset se borne
+ * par le compte du chapitre quand on le connaît, sinon par le plus long du canon.
  */
 export function analyserRechercheVolet(
   saisie: string,
   livres: readonly LivreDuVolet[],
   chapitres: ChapitresParLivre | null,
+  versetsConnus?: VersetsConnus,
 ): RechercheVolet {
   if (!saisie.trim()) return { genre: 'vide' }
   const r = analyserRequetePericope(avecAbreviationFrancaise(saisie))
   if (r.livre && r.chapitre != null && livres.some((l) => l.code === r.livre)) {
-    const max = nombreDeChapitres(r.livre, chapitres)
-    const horsBornes = r.chapitre < 1 || r.chapitre > max
-      || (r.verset != null && (r.verset < 1 || r.verset > VERSET_MAX))
-    if (horsBornes) {
-      return { genre: 'hors-bornes', code: r.livre, chapitre: r.chapitre, verset: r.verset, chapitresDuLivre: max }
+    const max = chapitresConnus(r.livre, chapitres)
+    const chapitreFaux = r.chapitre < 1 || (max !== null && r.chapitre > max)
+    const nbVersets = chapitreFaux ? null : (versetsConnus?.(r.livre, r.chapitre) ?? null)
+    const versetFaux = r.verset != null && (r.verset < 1 || r.verset > (nbVersets ?? VERSET_MAX))
+    if (chapitreFaux || versetFaux) {
+      return {
+        genre: 'hors-bornes', code: r.livre, chapitre: r.chapitre, verset: r.verset,
+        chapitresDuLivre: max, versetsDuChapitre: chapitreFaux ? null : nbVersets,
+      }
     }
     return { genre: 'passage', code: r.livre, chapitre: r.chapitre, verset: r.verset, versetFin: r.versetFin }
   }

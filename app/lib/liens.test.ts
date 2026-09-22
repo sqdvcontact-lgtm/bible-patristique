@@ -143,30 +143,32 @@ describe('segmentsLiesAuChapitre', () => {
     expect(appels.eq).toContainEqual(['chapitre', 1])
   })
 
-  // ⛔ Le plafond PostgREST de 1 000 lignes tronquait en silence : Genèse 1 porte 2 773
-  // liens. Chaque lecture est paginée, triée par `id` pour que les pages ne se
-  // recouvrent ni ne se trouent, et continue tant qu'une page revient pleine.
-  it('pagine par tranches de 1 000, triées par id, au-delà du plafond PostgREST', async () => {
+  // ⛔ Le plafond PostgREST de 1 000 lignes tronquait en silence : Genèse 1 porte 2 839
+  // liens. Les liens au verset se lisent par CURSEUR (id > dernier), triés par id, tant
+  // qu'une page revient pleine ; jamais de page spéculée, jamais de décalage.
+  it('pagine par curseur sur l’id, sans décalage ni page spéculée', async () => {
     const TOTAL_AU_VERSET = 2773
-    type Requete = { eq: unknown[][]; order: unknown[][]; range: [number, number] | null }
+    type Requete = { eq: unknown[][]; gt: unknown[][]; order: unknown[][]; range: [number, number] | null }
     const requetes: Requete[] = []
-    const lien = (id: number) => ({ id, segment_id: id, canon_id: `GEN.1.${1 + (id % 31)}`, type: 1 })
+    let enVol = 0, volMax = 0
+    const lien = (id: number) => ({ id, segment_id: id, canon_id: 'GEN.1.' + (1 + (id % 31)), type: 1 })
     ;(supabase.from as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => {
-      const r: Requete = { eq: [], order: [], range: null }
+      const r: Requete = { eq: [], gt: [], order: [], range: null }
       requetes.push(r)
       const chaine = {
         select: () => chaine,
         eq: (...args: unknown[]) => { r.eq.push(args); return chaine },
+        gt: (...args: unknown[]) => { r.gt.push(args); return chaine },
         order: (...args: unknown[]) => { r.order.push(args); return chaine },
         range: (debut: number, fin: number) => { r.range = [debut, fin]; return chaine },
         then: (resoudre: (v: unknown) => unknown) => {
-          // Les liens au verset (canon_livre) en portent 2 773 ; ceux du chapitre, aucun.
+          enVol++; volMax = Math.max(volMax, enVol)
           const auVerset = r.eq.some(([c]) => c === 'canon_livre')
-          const [debut, fin] = r.range ?? [0, 999]
+          const depuis = r.gt.length ? Number(r.gt[0][1]) + 1 : 0
           const data = auVerset
-            ? Array.from({ length: Math.max(0, Math.min(fin, TOTAL_AU_VERSET - 1) - debut + 1) }, (_, i) => lien(debut + i))
+            ? Array.from({ length: Math.max(0, Math.min(1000, TOTAL_AU_VERSET - depuis)) }, (_, i) => lien(depuis + i))
             : []
-          return Promise.resolve({ data, error: null }).then(resoudre)
+          return Promise.resolve().then(() => { enVol--; return { data, error: null } }).then(resoudre)
         },
       }
       return chaine
@@ -176,19 +178,21 @@ describe('segmentsLiesAuChapitre', () => {
 
     expect(liens).toHaveLength(TOTAL_AU_VERSET)
     expect(new Set(liens.map(l => l.id)).size).toBe(TOTAL_AU_VERSET)
-    for (const r of requetes) {
+    const auVerset = requetes.filter(r => r.eq.some(([c]) => c === 'canon_livre'))
+    for (const r of auVerset) {
       expect(r.order).toContainEqual(['id', { ascending: true }])
-      expect(r.range).not.toBeNull()
-      expect(r.range![1] - r.range![0]).toBe(999)
+      expect(r.range).toEqual([0, 999])
     }
-    const pagesAuVerset = requetes.filter(r => r.eq.some(([c]) => c === 'canon_livre')).map(r => r.range![0]).sort((a, b) => a - b)
-    expect(pagesAuVerset.slice(0, 3)).toEqual([0, 1000, 2000])
+    // Trois pages pour 2 773 liens, et pas une de plus.
+    expect(auVerset.map(r => r.gt[0]?.[1] ?? null)).toEqual([null, 999, 1999])
+    // Deux lectures (au verset, au chapitre), chacune en série : deux requêtes en vol au plus.
+    expect(volMax).toBeLessThanOrEqual(2)
   })
 
   it('lève sur une erreur de la base au lieu de rendre une liste tronquée', async () => {
     ;(supabase.from as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => {
       const chaine = {
-        select: () => chaine, eq: () => chaine, order: () => chaine, range: () => chaine,
+        select: () => chaine, eq: () => chaine, gt: () => chaine, order: () => chaine, range: () => chaine,
         then: (resoudre: (v: unknown) => unknown) => Promise.resolve({ data: null, error: { message: 'délai dépassé' } }).then(resoudre),
       }
       return chaine

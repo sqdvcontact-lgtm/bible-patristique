@@ -30,8 +30,18 @@
 // Le composant ne décide de rien : la répartition, l'appariement et l'indexation
 // viennent de modules purs et testés.
 
-import { Fragment, type KeyboardEvent, type ReactNode } from 'react'
+import { Fragment, useMemo, type KeyboardEvent, type ReactNode } from 'react'
 import { activerAuClavier } from '@/app/lib/activerAuClavier'
+import { cesurerSelonLangue } from '@/app/lib/langueBible'
+import { copierSansCesures } from '@/app/lib/grec'
+import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
+import { fondreAppelsDansLaMarque, marquerLacunesDuTemoin, rendreMarqueurs899 } from '@/app/lib/marqueurs899'
+import { estTraductionModerne899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
+import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
+import IconeCopier from './IconeCopier'
+import { nomLangue } from '@/app/lib/bibleModesAlternatifs'
+import { avecHoteEclat, EclatCopie, useEclatCopie } from './EclatCopie'
+import { EclatEchec, STYLE_HOTE_ECHEC, useEclatEchec } from './EclatEchec'
 
 import {
   indexerBlocsDeCorps,
@@ -47,6 +57,7 @@ import {
   cleDeCelluleBilingue,
   colonnesBilingues,
   gloseSansVisAVis,
+  numeroCanonique,
   rangeesNonVides,
   referenceCanoniqueLisible,
   referenceNativeLisible,
@@ -69,6 +80,11 @@ import {
   figuresDeLaNote,
   IllustrationBible,
 } from './BibleEditionParatext'
+
+// Le bouton de copie d'une cellule ne paraît qu'au survol de sa rangée, au foyer, ou
+// sur un écran sans survol. ⚠️ Son opacité est posée en ligne : la feuille la bat par
+// « !important », comme les actions d'un verset en lecture simple.
+const FEUILLE_COPIE_REGARD = '[data-canon-id]:hover .cs-regard-copier, [data-canon-id]:focus-within .cs-regard-copier { opacity: 1 !important; } @media (hover: none) { .cs-regard-copier { opacity: 1 !important; } }'
 
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 
@@ -158,6 +174,9 @@ export type LectureBilingueProps = {
   /** Cliquer une rangée ouvre l'apparat patristique de son créneau canonique.
    *  Absent, la lecture n'est pas cliquable et ne porte aucune marque de survol. */
   onSelectionnerVerset?: (canonId: string) => void
+  /** Copier le verset d'UNE colonne, par sa clé de cellule (`cleDeCelluleBilingue`). Présent,
+   *  chaque cellule qui porte un texte offre au survol un bouton de copie (bureau seul). */
+  copierCellule?: (cle: string) => Promise<void>
   mobile?: boolean
 }
 
@@ -166,27 +185,75 @@ type ApparatColonne = {
   images: BibleEditionAssetIndex
 }
 
+// ── LA COPIE D'UNE COLONNE (audit du 2026-09-22) ──────────────────────────────
+// La lecture en regard n'avait aucun moyen de copier un verset hors du lasso. Un seul
+// bouton par cellule, au survol de la rangée, posé HORS du texte : dans la gouttière entre
+// les deux colonnes, ou à droite de la dernière. ⛔ Il n'est pas cliquable au travers : le
+// clic s'arrête là, et ne retient pas le verset.
+function CopieCellule({ copier, numero, langue, derniere }: {
+  copier: () => Promise<void>
+  numero: number | null
+  langue: string
+  derniere: boolean
+}) {
+  const { copie, eclat, briller } = useEclatCopie()
+  const { echec, signaler } = useEclatEchec()
+  const objet = numero === null ? 'ce verset' : `le verset ${numero}`
+  return (
+    <button
+      type="button"
+      className={avecHoteEclat('cs-regard-copier')}
+      onClick={(e) => {
+        e.stopPropagation()
+        copier().then(briller, (erreur: unknown) => {
+          console.error('[copie] verset en regard', erreur)
+          signaler('La copie a échoué.')
+        })
+      }}
+      title={echec ? 'La copie a échoué' : `Copier ${objet} (${langue.toLowerCase()})`}
+      aria-label={`Copier ${objet} (${langue.toLowerCase()})`}
+      style={{
+        ...STYLE_BOUTON_ACTION,
+        position: 'absolute',
+        top: '0.15rem',
+        left: derniere ? 'calc(100% + 0.3rem)' : `calc(100% + 0.55rem - ${STYLE_BOUTON_ACTION.width} / 2)`,
+        opacity: 0,
+        color: echec ? 'var(--cs-danger)' : copie ? 'var(--cs-vert)' : 'var(--cs-bord)',
+        ...(echec ? STYLE_HOTE_ECHEC : null),
+      }}
+    >
+      <IconeCopier />
+      {echec ? <EclatEchec echec={echec} /> : <EclatCopie eclat={eclat} />}
+    </button>
+  )
+}
+
+// Une liste vide STABLE : un `= []` en défaut de paramètre en ferait une neuve à chaque
+// rendu, et les mémoires ci-dessous se recalculeraient toujours.
+const AUCUN: readonly never[] = []
 
 export default function BibleBilingue({
   membres,
   colonnes,
   axeCanonique,
-  blocs = [],
-  notes = [],
-  illustrations = [],
+  blocs = AUCUN,
+  notes = AUCUN,
+  illustrations = AUCUN,
   canonSelectionne = null,
   onSelectionnerVerset,
+  copierCellule,
   mobile = false,
   titresMasques,
 }: LectureBilingueProps): ReactNode {
-  const ordre = colonnesBilingues(membres, mobile ? 'mobile' : 'desktop')
-  const colonnesOrdonnees = ordre
+  // ⚠️ MÉMORISÉS (audit du 2026-09-22) : la répartition, les index, l'appariement et les
+  // notes retenues ne dépendent que de la matière du chapitre et de l'écran. Ils étaient
+  // recalculés à chaque rendu, donc à chaque verset retenu.
+  const ordre = useMemo(() => colonnesBilingues(membres, mobile ? 'mobile' : 'desktop'), [membres, mobile])
+  const colonnesOrdonnees = useMemo(() => ordre
     .map((membre) => colonnes.find((colonne) => colonne.membre.id === membre.id))
-    .filter((colonne): colonne is ColonneBilingue => colonne !== undefined)
+    .filter((colonne): colonne is ColonneBilingue => colonne !== undefined), [ordre, colonnes])
 
-  const blocsRepartis = repartirBlocsDeCorps(blocs, ordre)
-  const illustrationsReparties = repartirIllustrations(illustrations, ordre)
-  const notesRetenues = notesDuChapitreBilingue(notes, ordre)
+  const notesRetenues = useMemo(() => notesDuChapitreBilingue(notes, ordre), [notes, ordre])
 
   // ⛔ Un bloc du corps IGNORE les colonnes, qu'il soit commun à l'édition ou
   // propre à une langue. Les introductions et les commentaires de Fillion n’ont
@@ -195,16 +262,20 @@ export default function BibleBilingue({
   // colonnes, et l’appartenance reste une donnée de provenance, non une
   // consigne de mise en page. ⚠️ Ils ne prennent pas pour autant toute la
   // largeur des colonnes : voir `surMesure`, plus bas.
-  const commun: ApparatColonne = {
-    blocs: indexerBlocsDeCorps([
-      ...blocsRepartis.communs,
-      ...[...blocsRepartis.parMembre.values()].flat(),
-    ]),
-    images: indexerIllustrations([
-      ...illustrationsReparties.communs,
-      ...[...illustrationsReparties.parMembre.values()].flat(),
-    ]),
-  }
+  const commun: ApparatColonne = useMemo(() => {
+    const blocsRepartis = repartirBlocsDeCorps(blocs, ordre)
+    const illustrationsReparties = repartirIllustrations(illustrations, ordre)
+    return {
+      blocs: indexerBlocsDeCorps([
+        ...blocsRepartis.communs,
+        ...[...blocsRepartis.parMembre.values()].flat(),
+      ]),
+      images: indexerIllustrations([
+        ...illustrationsReparties.communs,
+        ...[...illustrationsReparties.parMembre.values()].flat(),
+      ]),
+    }
+  }, [blocs, illustrations, ordre])
   const imagesParBloc = commun.images.byBodyBlock
   const imagesParNote = commun.images.byNote
 
@@ -212,10 +283,10 @@ export default function BibleBilingue({
   // 2026 : « il ne faut pas que les notes de bas de page existent »). La série du bas de
   // chapitre est retirée, et avec elle le lien qui y revenait : chaque cellule appelle ses
   // notes par `appelsDeLaCellule`, et une rangée qui porte une note ne se retire pas.
-  const rangees = rangeesNonVides(
+  const rangees = useMemo(() => rangeesNonVides(
     apparierRangees(axeCanonique, colonnesOrdonnees),
     new Set(notesRetenues.map((note) => note.canonId)),
-  )
+  ), [axeCanonique, colonnesOrdonnees, notesRetenues])
   // L'image qu'une note porte suit sa fenêtre (`figuresDeLaNote`).
   const appeler = (appels: readonly NoteBilingue[], memberId: string) => appels.map((note) => (
     <AppelNoteBiblique
@@ -289,6 +360,8 @@ export default function BibleBilingue({
   // (`.cs-regard-rangee`) : posés en style en ligne, ils battraient toute règle de
   // feuille, et le survol serait mort sans que rien ne le dise.
   const choisir = onSelectionnerVerset
+  // La copie d'une colonne : au bureau seulement ; au doigt, le lasso tactile la porte.
+  const copier = mobile ? undefined : copierCellule
   const marquesDeRangee = (canonId: string) => {
     if (!choisir) return {}
     const retenue = canonId === canonSelectionne
@@ -299,9 +372,21 @@ export default function BibleBilingue({
       // où le débord se loge.
       className: `cs-regard-rangee${mobile ? '' : ' cs-regard-rangee--symetrique'}${retenue ? ' cs-regard-rangee--retenue' : ''}`,
       onClick: () => choisir(canonId),
-      // Au clavier, la rangée se retient comme au clic : Tab l'atteint, Entrée ou Espace la retient.
+      // ⛔ La rangée n'est plus focalisable (audit du 2026-09-22) : elle l'était sans rôle ni
+      // nom, et elle porte des appels de note. Au clavier, c'est son NUMÉRO qui la retient,
+      // comme en lecture simple (`boutonDuNumero`).
+    }
+  }
+  // Le numéro, bouton du verset pour le clavier : rôle, état et nom, comme dans TexteBible.
+  const boutonDuNumero = (canonId: string) => {
+    if (!choisir) return {}
+    const numero = numeroCanonique(canonId)
+    return {
+      role: 'button' as const,
       tabIndex: 0,
-      onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => activerAuClavier(e, () => choisir(canonId)),
+      'aria-pressed': canonId === canonSelectionne,
+      'aria-label': numero === null ? 'Verset' : `Verset ${numero}`,
+      onKeyDown: (e: KeyboardEvent<HTMLSpanElement>) => activerAuClavier(e, () => choisir(canonId)),
     }
   }
 
@@ -338,6 +423,7 @@ export default function BibleBilingue({
 
   return (
     <div data-lecture="bilingue">
+      {copier && <style>{FEUILLE_COPIE_REGARD}</style>}
       {rendreBlocs(commun.blocs.opening)}
       {rendreImages(commun.images.opening)}
 
@@ -349,6 +435,8 @@ export default function BibleBilingue({
         // vis-à-vis prend la largeur des deux (`gloseSansVisAVis`).
         const glose = rangee.glose
         const seule = gloseSansVisAVis(rangee)
+        // Le numéro qui sert de bouton : celui de la première cellule qui porte un texte.
+        const indexBouton = rangee.cellules.findIndex((c) => c !== null)
         const libelleReference = (cellule: (typeof rangee.cellules)[number]) => cellule === null
           ? referenceCanoniqueLisible(rangee.canonId)
           : cellule.glose
@@ -376,18 +464,40 @@ export default function BibleBilingue({
                   ? cleDeCelluleBilingue(membre.translationId, rangee.canonId)
                   : undefined
                 const appels = appelsDeLaCellule(notesRetenues, rangee, index, membre.id)
+                // ── LE TEXTE SE COMPOSE COMME EN LECTURE SIMPLE (audit du 2026-09-22) ──
+                // Il sortait brut : ni enrichissement (`<i>` de Sacy, petites capitales),
+                // ni espaces françaises, ni césures du latin et du grec, ni marqueurs du
+                // témoin de 1260. Même chaîne que `TexteBible` : le témoin passe par
+                // `rendreMarqueurs899` d'un bloc, ses appels à la suite ; la traduction
+                // moderne met ses lacunes en forme par `marquerLacunesDuTemoin`.
+                const langue = membre.languageCode?.toLowerCase()
+                const temoin899 = membre.translationId === TRAD_ID_BIBLE899
+                const lacunesEnClair = estTraductionModerne899(membre.translationId)
                 // ⛔ Un appel se pose à l'ANCRE que la donnée déclare ; sans ancre lisible, il suit le texte.
-                const repartition = repartirAppels(cellule?.texte ?? '', appels, false)
+                const repartition = repartirAppels(temoin899 ? '' : (cellule?.texte ?? ''), appels, true)
+                const copieSansCesures = langue === 'la' || langue === 'grc' ? copierSansCesures : undefined
                 // ⛔ Empilé, le numéro ne paraît qu'une fois, sur la première cellule : la
                 // seconde garde INVISIBLE celui de la première, pour que son texte reprenne
                 // le même fer.
                 // ⚠️ Sauf si la première cellule est vide : la seconde est alors seule à
                 // dire son numéro.
                 const referenceRepetee = mobile && index > 0 && rangee.cellules[0] !== null
+                // ⛔ LE NUMÉRO EST LE BOUTON DU VERSET POUR LE CLAVIER, comme en lecture simple :
+                // la rangée porte des appels de note, on ne la rend pas focalisable. Un seul
+                // bouton par rangée, sur la première cellule qui dit son numéro.
+                const estBouton = !glose && index === indexBouton
+                // ⚠️ `data-lasso-depart` : le lasso du doigt ne naît que sur la marge d'un
+                // verset (contrat de `LassoTactile`), et il y apprend sa COLONNE. Le numéro
+                // répété, invisible, garde sa boîte : l'enveloppe reste touchable.
+                const departLasso = cleLasso ? membre.translationId : undefined
                 const reference = (
-                  <span style={referenceRepetee ? { ...STYLE_REFERENCE, visibility: 'hidden' as const } : STYLE_REFERENCE}
-                    aria-hidden={referenceRepetee || undefined}>
-                    {libelleReference(referenceRepetee ? rangee.cellules[0] : cellule)}
+                  <span style={STYLE_REFERENCE}
+                    aria-hidden={referenceRepetee || undefined}
+                    data-lasso-depart={departLasso}
+                    {...(estBouton && !referenceRepetee ? boutonDuNumero(rangee.canonId) : {})}>
+                    {referenceRepetee
+                      ? <span style={{ visibility: 'hidden' as const }}>{libelleReference(rangee.cellules[0])}</span>
+                      : libelleReference(cellule)}
                   </span>
                 )
                 return (
@@ -396,7 +506,7 @@ export default function BibleBilingue({
                     lang={membre.languageCode}
                     data-membre={membre.id}
                     data-lasso-cellule={cleLasso}
-                    style={seule ? { minWidth: 0, gridColumn: '1 / -1' } : { minWidth: 0 }}
+                    style={seule ? { minWidth: 0, gridColumn: '1 / -1' } : { minWidth: 0, ...(copier && cleLasso ? { position: 'relative' as const } : {}) }}
                   >
                     {cellule === null ? (appels.length === 0 ? (
                       // Un créneau que cette édition ne porte pas reste vide :
@@ -425,13 +535,32 @@ export default function BibleBilingue({
                             ⚠️ Empilées, voir `referenceRepetee`. */}
                         {reference}
                         <p
+                          onCopy={copieSansCesures}
                           style={cellule.glose
                             ? (original ? STYLE_GLOSE_ORIGINAL : STYLE_GLOSE)
                             : (original ? STYLE_VERSET_ORIGINAL : STYLE_VERSET)}
                         >
-                          {rendreTexteAvecAppels(cellule.texte, repartition.groupes, (morceau) => morceau, (notes) => appelerEnSuite(notes, membre.id), false)}
+                          {temoin899
+                            ? rendreMarqueurs899(cellule.texte)
+                            : rendreTexteAvecAppels(cellule.texte, repartition.groupes, (morceau) => rendreTexteEnrichi(
+                                // Les césures se posent morceau par morceau, APRÈS le placement
+                                // des appels (qui se fait par offset sur le texte entier).
+                                cesurerSelonLangue(morceau, langue),
+                                lacunesEnClair ? marquerLacunesDuTemoin : undefined,
+                              ), (notes) => appelerEnSuite(notes, membre.id), true,
+                              lacunesEnClair
+                                ? (avant, appelsFondus, ponctuation) => fondreAppelsDansLaMarque(avant, appelsFondus, ponctuation, rendreTexteEnrichi)
+                                : undefined)}
                           {appeler(repartition.aLaSuite, membre.id)}
                         </p>
+                        {copier && cleLasso && (
+                          <CopieCellule
+                            copier={() => copier(cleLasso)}
+                            numero={numeroCanonique(rangee.canonId)}
+                            langue={nomLangue(membre.languageCode)}
+                            derniere={index === rangee.cellules.length - 1}
+                          />
+                        )}
                       </div>
                     )}
                   </div>

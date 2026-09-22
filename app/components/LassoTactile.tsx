@@ -9,11 +9,23 @@
 // doigt, glisser FAIT DÉFILER : un geste ordinaire ne peut pas devenir un lasso. Il faut
 // donc un signal que le défilement n'emploie pas, et c'est l'appui long.
 //
+// ⛔ IL NE NAÎT QUE SUR UN ÉLÉMENT `[data-lasso-depart]` (2026-09-22) : le NUMÉRO d'un
+// verset, une marge, une gouttière — ce que la page désigne. Il naissait partout dans la
+// zone, et à 450 ms il devançait la sélection native (~500 ms) : on ne pouvait plus
+// copier une demi-phrase. L'appui long sur le TEXTE revient donc à la sélection native.
+//
 // ⛔ LE DÉFILEMENT RESTE ENTIER HORS DU MODE. Rien n'est empêché tant que le doigt n'est
 // pas resté ~450 ms sans bouger de plus de 10 px : un doigt qui part tout de suite défile
-// comme avant. Une fois le mode ouvert — et SEULEMENT alors — le `touchmove` est annulé
-// (écoute non passive, sans quoi l'annulation serait ignorée), le menu contextuel natif et
-// la sélection de texte sont empêchés.
+// comme avant. Une fois le mode ouvert — et SEULEMENT alors — le `touchmove` est annulé,
+// le menu contextuel natif et la sélection de texte sont empêchés.
+// ⛔ L'ÉCOUTE NON PASSIVE N'EST PLUS POSÉE SUR LE DOCUMENT : elle bloquait le défilement
+// de toute la page (le navigateur attend chaque écouteur non passif avant de défiler).
+// Elle ne vit que sur les éléments de départ, et ne fait rien hors du mode.
+// ⚠️ Elle ne peut pas naître à l'ouverture du mode : le navigateur décide AU TOUCHSTART
+// si une suite de gestes est annulable (zone des écouteurs bloquants), et un écouteur
+// posé ensuite recevrait des `touchmove` non annulables — le doigt ferait défiler la
+// page, et le navigateur couperait le geste par un `pointercancel`. La zone bloquante se
+// borne donc aux seuls éléments d'où un lasso peut naître.
 // ⛔ LE CLIC QUI SUIT LE GESTE EST AVALÉ : lâché sur un verset, il le retiendrait et
 // ouvrirait son pavé d'actions.
 // ⚠️ Les cibles se mesurent UNE fois, à l'ouverture du mode, en coordonnées de fenêtre :
@@ -42,7 +54,23 @@ const DUREE_MESSAGE_MS = 2600
 const DECLARATION_SURBRILLANCE = 'box-shadow: var(--cs-lasso-surbrillance);'
 /** Ce sur quoi un appui long ne naît pas : les commandes ont leur propre geste. */
 const NE_NAIT_PAS_SUR = 'a, button, input, textarea, select, [contenteditable="true"], .verset-actions, [data-cellule-actions]'
+/** L'attribut que la page pose là où un lasso peut naître (contrat partagé avec la
+ *  lecture en regard). */
+export const ATTRIBUT_DEPART_LASSO = 'data-lasso-depart'
+const SELECTEUR_DEPART = `[${ATTRIBUT_DEPART_LASSO}]`
 
+/**
+ * Le lasso au doigt. ⚠️ Deux pages le montent — la lecture simple (`TexteBible`) et la
+ * lecture en regard — avec les mêmes propriétés que `LassoLecture`, moins ce qui tient à
+ * la souris :
+ * - `zone` : le bloc où les cibles se mesurent et d'où le geste peut partir ;
+ * - `actif` : au doigt seulement (`mobile || sansSurvol`), hors pièce liminaire ;
+ * - `contexte` : ce qui, en changeant, vide la sélection (chapitre, traduction) ;
+ * - `selecteurCibles`, `cleDe`, `surbrillance` : les cibles et leur clé ;
+ * - `unite`, `dejaEnregistres`, `onEnregistrer`, `onRetirer`, `onCopier` : ce qu'on en fait.
+ * ⛔ Et la page pose `data-lasso-depart` sur les éléments d'où le geste peut naître :
+ * sans eux, il ne naît nulle part.
+ */
 type Props = {
   zone: RefObject<HTMLElement | null>
   actif: boolean
@@ -135,6 +163,7 @@ export default function LassoTactile(props: Props) {
     }
     const finir = () => {
       geste = null
+      annulerAttente()
       document.documentElement.removeAttribute('data-lasso-geste')
       setTrace(false)
       // ⛔ Le clic qui suit le lâcher ne retient pas le verset sous le doigt.
@@ -152,7 +181,12 @@ export default function LassoTactile(props: Props) {
       const zone = derniers.current.zone.current
       const cible = e.target as Element | null
       if (!zone || !cible || !zone.contains(cible)) return
-      if (cible.closest(NE_NAIT_PAS_SUR)) return
+      // ⛔ Seulement depuis un élément de départ. Une commande posée DANS lui (un lien
+      // dans une marge) garde son geste ; l'élément de départ, lui, peut être un bouton.
+      const elDepart = cible.closest(SELECTEUR_DEPART)
+      if (!elDepart || !zone.contains(elDepart)) return
+      const commande = cible.closest(NE_NAIT_PAS_SUR)
+      if (commande && commande !== elDepart && elDepart.contains(commande)) return
       const depart = { x: e.clientX, y: e.clientY }
       attente = { id: e.pointerId, depart, minuteur: window.setTimeout(ouvrirLeMode, DELAI_APPUI_LONG_MS) }
     }
@@ -174,16 +208,36 @@ export default function LassoTactile(props: Props) {
       if (geste && e.pointerId === geste.id) finir()
     }
     // ⛔ Non passive : c'est la seule façon d'empêcher le défilement, et SEULEMENT en mode.
+    // Posée sur les seuls éléments de départ (voir l'en-tête), rebranchée quand la page
+    // en rend de nouveaux.
     const surToucheMouvement = (e: TouchEvent) => { if (geste && e.cancelable) e.preventDefault() }
     const surMenuContextuel = (e: Event) => { if (geste || attente) e.preventDefault() }
     const surDefilement = () => annulerAttente()
+    const ecoutes = new Set<Element>()
+    const brancherDeparts = () => {
+      const zone = derniers.current.zone.current
+      for (const el of ecoutes) {
+        if (el.isConnected && el.hasAttribute(ATTRIBUT_DEPART_LASSO)) continue
+        el.removeEventListener('touchmove', surToucheMouvement as EventListener)
+        ecoutes.delete(el)
+      }
+      if (!zone) return
+      for (const el of Array.from(zone.querySelectorAll(SELECTEUR_DEPART))) {
+        if (ecoutes.has(el)) continue
+        el.addEventListener('touchmove', surToucheMouvement as EventListener, { passive: false })
+        ecoutes.add(el)
+      }
+    }
+    brancherDeparts()
+    const zoneObservee = derniers.current.zone.current
+    const observateur = new MutationObserver(brancherDeparts)
+    if (zoneObservee) observateur.observe(zoneObservee, { childList: true, subtree: true, attributes: true, attributeFilter: [ATTRIBUT_DEPART_LASSO] })
 
     window.addEventListener('pointerdown', surAppui, true)
     window.addEventListener('pointermove', surMouvement, true)
     window.addEventListener('pointerup', surLacher, true)
     window.addEventListener('pointercancel', surLacher, true)
     window.addEventListener('scroll', surDefilement, true)
-    document.addEventListener('touchmove', surToucheMouvement, { passive: false })
     document.addEventListener('contextmenu', surMenuContextuel, true)
     return () => {
       annulerAttente()
@@ -194,8 +248,10 @@ export default function LassoTactile(props: Props) {
       window.removeEventListener('pointerup', surLacher, true)
       window.removeEventListener('pointercancel', surLacher, true)
       window.removeEventListener('scroll', surDefilement, true)
-      document.removeEventListener('touchmove', surToucheMouvement)
       document.removeEventListener('contextmenu', surMenuContextuel, true)
+      observateur.disconnect()
+      for (const el of ecoutes) el.removeEventListener('touchmove', surToucheMouvement as EventListener)
+      ecoutes.clear()
     }
   }, [actif])
 

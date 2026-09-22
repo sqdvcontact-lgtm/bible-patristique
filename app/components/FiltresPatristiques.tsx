@@ -7,7 +7,6 @@
 // droite ne garde que la liste qu'on filtre.
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { supabase } from '@/app/lib/supabase'
 
 // ── LE FILTRE ET SON VOLET PARLENT L'OR ─────────────────────────────────────
 //
@@ -36,10 +35,28 @@ function stylePastilleFiltre(sel: boolean, dispo: boolean): React.CSSProperties 
   }
 }
 
-/** ⛔ Un `%` ou un `_` tapé dans la recherche est une LETTRE, non un joker : sans échappement,
- *  « _ » trouvait tous les auteurs. L'antislash est l'échappement par défaut de LIKE. */
-export function echapperMotifIlike(saisie: string): string {
-  return saisie.replace(/[\\%_]/g, c => `\\${c}`)
+/** La forme d'un nom qu'on compare à une saisie : bas de casse, sans accents, apostrophe
+ *  typographique ramenée à la droite. */
+export function replierNom(nom: string): string {
+  return nom.normalize('NFD').replace(/\p{M}/gu, '').replace(/[’ʼ]/g, "'").toLowerCase().trim()
+}
+
+/** Les auteurs d'une liste d'extraits dont le nom contient la saisie, dans l'ordre
+ *  alphabétique français, six au plus. ⛔ Rien ne part en base (2026-09-22) : la recherche
+ *  interrogeait la table `auteurs` entière, et proposait des auteurs qu'aucun extrait du
+ *  volet ne porte — les retenir vidait la liste. */
+export function auteursQuiRepondent(
+  auteurs: readonly { id_auteur: string; nom: string }[],
+  saisie: string,
+  exclus: ReadonlySet<string>,
+  plafond = 6,
+): { id_auteur: string; nom: string }[] {
+  const q = replierNom(saisie)
+  if (!q) return []
+  return auteurs
+    .filter(a => !exclus.has(a.id_auteur) && replierNom(a.nom).includes(q))
+    .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
+    .slice(0, plafond)
 }
 
 // ── Siècles ────────────────────────────────────────────────────────────────────
@@ -139,7 +156,7 @@ function GroupeTags({ titre, signature, children }: { titre: string; signature: 
 
 // ── L'état et le calcul ────────────────────────────────────────────────────────
 export type MetaAuteur = { traditions: string[]; siecle: number | null; date_mort: string | null }
-type OeuvreFiltrable = { id_auteur?: string; genre?: string | null }
+type OeuvreFiltrable = { id_auteur?: string; auteur_nom?: string; genre?: string | null }
 type Facette = 'traditions' | 'siecles' | 'genres'
 
 /** L'état des filtres et la liste filtrée. `onChange` est appelé à chaque changement de
@@ -192,7 +209,14 @@ export function useFiltresPatristiques<T extends { seg: { id_oeuvre: string } }>
       if (meta?.siecle && passeSauf(seg, 'siecles')) actifs.siecles.add(meta.siecle)
       if (info?.genre && passeSauf(seg, 'genres')) actifs.genres.add(info.genre)
     }
+    // Les auteurs présents dans les extraits du volet : c'est parmi eux qu'on cherche.
+    const auteurs = new Map<string, string>()
+    for (const { seg } of items) {
+      const info = oeuvres[seg.id_oeuvre]
+      if (info?.id_auteur && info.auteur_nom) auteurs.set(info.id_auteur, info.auteur_nom)
+    }
     return {
+      auteursDisponibles: [...auteurs].map(([id_auteur, nom]) => ({ id_auteur, nom })),
       traditionsDisponibles: [...dispo.traditions].sort(),
       sieclesDisponibles: [...dispo.siecles].sort((a, b) => rangSiecle(a) - rangSiecle(b)),
       genresDisponibles: [...dispo.genres].sort(),
@@ -239,26 +263,13 @@ export function useFiltresPatristiques<T extends { seg: { id_oeuvre: string } }>
 export type PanneauFiltresProps = ReturnType<typeof useFiltresPatristiques>['panneau']
 
 // ── La recherche d'un auteur ───────────────────────────────────────────────────
-function RechercheAuteur({ exclus, onChoisir }: { exclus: Set<string>; onChoisir: (a: { id_auteur: string; nom: string }) => void }) {
+function RechercheAuteur({ auteurs, exclus, onChoisir }: {
+  auteurs: readonly { id_auteur: string; nom: string }[]
+  exclus: Set<string>
+  onChoisir: (a: { id_auteur: string; nom: string }) => void
+}) {
   const [saisie, setSaisie] = useState('')
-  // Les résultats sont retenus AVEC la saisie qui les a demandés : une réponse ancienne,
-  // arrivée après une plus récente, ne s'affiche jamais sous la saisie courante.
-  const [resultats, setResultats] = useState<{ pour: string; liste: { id_auteur: string; nom: string }[] } | null>(null)
-  const q = saisie.trim()
-  useEffect(() => {
-    if (!q) return
-    let annule = false
-    const t = setTimeout(() => {
-      supabase.from('auteurs').select('id_auteur, nom').ilike('nom', `%${echapperMotifIlike(q)}%`).limit(6)
-        .then(({ data, error }) => {
-          if (annule) return
-          if (error) { console.error('[volet] recherche d’auteur impossible :', error); setResultats({ pour: q, liste: [] }); return }
-          setResultats({ pour: q, liste: (data ?? []) as { id_auteur: string; nom: string }[] })
-        })
-    }, 200)
-    return () => { annule = true; clearTimeout(t) }
-  }, [q])
-  const liste = q && resultats?.pour === q ? resultats.liste.filter(a => !exclus.has(a.id_auteur)) : []
+  const liste = useMemo(() => auteursQuiRepondent(auteurs, saisie, exclus), [auteurs, saisie, exclus])
   return (
     <div style={{ position: 'relative', marginBottom: liste.length ? '0' : '4px' }}>
       <input aria-label="Chercher un auteur" type="text" value={saisie} onChange={e => setSaisie(e.target.value)}
@@ -322,7 +333,7 @@ export default function FiltresPatristiques(p: PanneauFiltresProps) {
       {p.ouvert && (
         <div style={{ margin: '6px 0 2px', padding: '8px 10px', background: OR_LAVIS, border: `1px solid ${OR_FILET}`, borderRadius: '8px' }}>
           <p style={{ ...STYLE_RUBRIQUE_FILTRE, margin: '0 0 5px' }}>Auteurs</p>
-          <RechercheAuteur exclus={p.auteursIds} onChoisir={p.ajouterAuteur} />
+          <RechercheAuteur auteurs={p.auteursDisponibles} exclus={p.auteursIds} onChoisir={p.ajouterAuteur} />
           {p.auteursChoisis.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: '5px' }}>
               {p.auteursChoisis.map(a => (

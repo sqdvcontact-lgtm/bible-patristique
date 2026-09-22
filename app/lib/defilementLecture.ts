@@ -1,3 +1,5 @@
+import { hauteurNavbarPx, tailleRacinePx } from './fenetreContextuelle'
+
 // ── AMENER UN VERSET SOUS LES YEUX, DANS SON DÉFILEUR ─────────────────────────
 //
 // Le principe est celui d'`allerAElement` (app/lib/defilement.ts) : on demande le
@@ -17,6 +19,84 @@
 
 const DELAI_CONSTAT_MS = 150
 const SEUIL_IMMOBILE_PX = 2
+
+// ── LE REPÈRE DE REPRISE : un verset posé EN HAUT de la zone de lecture ──────────
+//
+// La reprise de lecture (`?repere=N`, `adresseDeReprise`) ne vise pas un verset : elle
+// rend une PLACE. Le verset se pose donc en haut de la bande visible, sous les barres
+// collantes, et il n'est ni sélectionné ni centré. ⛔ Centré, il remontait à chaque
+// réouverture : la page retenait ensuite le verset de TÊTE, plus haut que lui (Ps 119 :
+// 105, 98, 91…).
+
+/** L'air laissé entre le haut de la bande et le verset posé. */
+export const ECART_REPERE_REM = 0.5
+
+/** L'écart en pixels, à la racine courante. */
+export function ecartRepere(): number {
+  return ECART_REPERE_REM * tailleRacinePx()
+}
+
+/**
+ * Le marqueur des barres FIXES qui couvrent le haut de la lecture quand la fenêtre
+ * défile (au téléphone, la barre d'onglets « Livres | Texte | Pères »). La page le pose
+ * sur la barre ; la mesure ne connaît pas les pages.
+ */
+export const ATTRIBUT_BARRE_LECTURE = 'data-barre-lecture'
+
+/**
+ * Le haut utile de la fenêtre : sous la barre du site, et sous toute barre fixe de la
+ * lecture qui paraît (`data-barre-lecture`). ⛔ La barre d'onglets du téléphone n'était
+ * pas comptée : le verset « en tête » était pris SOUS elle, donc caché.
+ */
+export function sommetDeLecture(): number {
+  let sommet = hauteurNavbarPx()
+  if (typeof document === 'undefined') return sommet
+  for (const barre of Array.from(document.querySelectorAll<HTMLElement>(`[${ATTRIBUT_BARRE_LECTURE}]`))) {
+    const r = barre.getBoundingClientRect()
+    if (r.height > 0 && r.top < sommet + 1) sommet = Math.max(sommet, r.bottom)
+  }
+  return sommet
+}
+
+/**
+ * La reprise en cours : tant qu'elle défile et repose son verset, la page ne retient
+ * AUCUNE place (elle retiendrait un état de passage). Tenu au module : la page qui
+ * retient la place et le texte qui défile sont deux composants.
+ */
+let finReprise = 0
+
+export function annoncerReprise(dureeMs: number): void {
+  finReprise = Date.now() + dureeMs
+}
+
+export function terminerReprise(): void {
+  finReprise = 0
+}
+
+export function repriseEnCours(): boolean {
+  return Date.now() < finReprise
+}
+
+/**
+ * Pose l'élément en haut de sa bande visible, à `ecartRepere()` sous son bord : le
+ * défileur interne au bureau, la fenêtre sous ses barres fixes au téléphone. Instantané :
+ * on arrive sur une page, il n'y a rien à suivre des yeux. Rend le déplacement appliqué.
+ */
+export function poserEnHaut(element: HTMLElement): number {
+  const defileur = defileurDe(element)
+  const haut = defileur ? defileur.getBoundingClientRect().top + defileur.clientTop : sommetDeLecture()
+  const delta = element.getBoundingClientRect().top - haut - ecartRepere()
+  if (Math.abs(delta) < 1) return 0
+  if (defileur) defileur.scrollTop += delta
+  else window.scrollBy(0, delta)
+  return delta
+}
+
+/** La position de défilement de la bande qui porte l'élément (pour savoir si le lecteur
+ *  a bougé entre deux reposes). */
+export function positionDuDefileur(element: HTMLElement): number {
+  return positionDe(defileurDe(element))
+}
 
 /** Le premier ancêtre qui défile verticalement, ou `null` (c'est alors la fenêtre). */
 function defileurDe(element: HTMLElement): HTMLElement | null {
@@ -38,7 +118,10 @@ function positionDe(defileur: HTMLElement | null): number {
 export function amenerAuCentre(element: HTMLElement, { doux }: { doux: boolean }): () => void {
   const defileur = defileurDe(element)
   const cible = element.getBoundingClientRect()
-  const bande = defileur ? defileur.getBoundingClientRect() : { top: 0, height: window.innerHeight }
+  // Sans défileur (téléphone), la bande commence sous les barres fixes : la barre du site
+  // ET la barre d'onglets de la lecture, qu'on ne compte pas deux fois.
+  const sommet = defileur ? 0 : sommetDeLecture()
+  const bande = defileur ? defileur.getBoundingClientRect() : { top: sommet, height: window.innerHeight - sommet }
   const depart = positionDe(defileur)
   const but = Math.max(0, depart + (cible.top - bande.top) - (bande.height - cible.height) / 2)
   const aller = (behavior: ScrollBehavior) => {

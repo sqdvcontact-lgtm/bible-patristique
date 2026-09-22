@@ -5,7 +5,9 @@ import MarqueNonCanonique from '@/app/components/MarqueNonCanonique'
 import { Fragment, useState, useEffect, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { useSearchParams } from 'next/navigation'
-import { amenerAuCentre } from '@/app/lib/defilementLecture'
+import { amenerAuCentre, annoncerReprise, poserEnHaut, positionDuDefileur, terminerReprise } from '@/app/lib/defilementLecture'
+import { lireRepere, PARAMETRE_REPERE } from '@/app/lib/repriseLecture'
+import { texteLisible899 } from '@/app/lib/texteLisible899'
 import { cesurerSelonLangue, useLangueBible } from '@/app/lib/langueBible'
 import { copierSansCesures } from '@/app/lib/grec'
 import { EclatEchec, STYLE_HOTE_ECHEC, useEclatEchec } from '@/app/components/EclatEchec'
@@ -76,6 +78,19 @@ import {
 // doigt ou dans la cellule d'actions d'un segment.
 const VERSET_ACTION_BTN = STYLE_BOUTON_ACTION
 
+/** La ligne qui dit où en est la recherche des bibles d'un livre absent : la mesure de la
+ *  liste qui la remplacera, pour que rien ne saute quand elle arrive. */
+const STYLE_ETAT_RECHERCHE: React.CSSProperties = {
+  margin: '14px auto 0', maxWidth: '21.25rem', padding: '0 16px', textAlign: 'center',
+  fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', lineHeight: 1.65,
+  color: 'var(--cs-texte-second)',
+}
+
+/** La reprise de lecture (`repere=N`) : combien de temps la page s'abstient de retenir une
+ *  place, et quand le verset se repose tant que le lecteur n'a pas bougé. */
+const DUREE_REPRISE_MS = 1800
+const REPOSES_REPRISE_MS = [120, 350, 700, 1200] as const
+
 type Verset = {
   id_verset: string; ref: string; livre: string
   chapitre: number; verset: number
@@ -123,7 +138,14 @@ type Props = {
    *  ergonomique, 2026-09-21) ; `null` tant qu'on cherche, ou hors de ce cas. */
   biblesDuLivreAbsent?: readonly BiblePorteuse[] | null
   onChoisirBible?: (code: string) => void
+  /** Où en est la recherche de ces bibles : `en-cours` tant qu'on cherche, `echec` quand
+   *  elle n'a pas pu se faire (ce n'est PAS « aucune bible ne le donne »), `faite` sinon. */
+  rechercheBiblesAbsent?: EtatRechercheBibles | null
+  onReessayerBiblesAbsent?: () => void
 }
+
+/** L'état de la recherche des bibles qui portent un livre absent. */
+export type EtatRechercheBibles = 'en-cours' | 'echec' | 'faite'
 
 /** La bible lue ne porte rien de ce chapitre. ⛔ Une seule écriture : la page
  *  (`BibleLayout`) la relit pour aller chercher les bibles qui portent le livre. */
@@ -333,6 +355,19 @@ function BoutonEnregistrer({
   )
 }
 
+/** Le nom du numéro d'un verset, pour qui ne voit pas la page : son numéro, la
+ *  numérotation d'une autre tradition s'il en porte une, et l'état prélevé. */
+export function libelleNumeroVerset(
+  v: { verset: number; chapitre_alternatif?: number | null; verset_alternatif?: number | null },
+  preleve: boolean,
+): string {
+  let libelle = `Verset ${v.verset}`
+  if (v.chapitre_alternatif != null) {
+    libelle += ` (autre numérotation : ${v.chapitre_alternatif}${v.verset_alternatif != null ? `, ${v.verset_alternatif}` : ''})`
+  }
+  return preleve ? `${libelle}, prélevé` : libelle
+}
+
 // ── Composant principal ───────────────────────────────────────────────────────
 export default function TexteBible({
   titresMasques, versets, traduction, traductionIndex, setTraductionIndex, choisirEnRegard, traductions,
@@ -341,6 +376,7 @@ export default function TexteBible({
   editionChapter, notesDesVersets = null, pieceAffichee = null,
   voisins = { precedent: null, suivant: null },
   biblesDuLivreAbsent = null, onChoisirBible,
+  rechercheBiblesAbsent = null, onReessayerBiblesAbsent,
 }: Props) {
   // Session et droits : lus dans le contexte partagé, jamais redemandés ici. Ce
   // composant tenait son propre abonnement d'authentification et sa propre lecture
@@ -466,6 +502,58 @@ export default function TexteBible({
     if (v) setVersetSelectionne(v)
     return nettoyer
   }, [searchParams, versets, setVersetSelectionne, cleChapitreAffiche])
+
+  // ── LA REPRISE DE LECTURE : `repere=N` (contrat partagé avec la lecture en regard) ──
+  // Le verset N se pose EN HAUT de la zone de lecture, sous les barres collantes
+  // (`poserEnHaut`), et rien n'est retenu : ni sélection, ni volet des Pères ouvert sur
+  // lui. ⛔ Ce n'est pas `verset=N`, qui l'emporte quand les deux sont là.
+  // ⚠️ On REPOSE pendant la première seconde et demie, tant que le lecteur n'a pas bougé :
+  // polices et gravures arrivent après la première peinture et déplacent ce qui les suit.
+  // Pendant ce temps la page ne retient aucune place (`annoncerReprise`), sans quoi elle
+  // retiendrait un état de passage.
+  // ⚠️ La clé porte `mobile` : sur un téléphone, le premier rendu est celui du bureau
+  // (le drapeau part à faux), et la place se reprend quand la mise en page bascule.
+  const repereTraite = useRef<string | null>(null)
+  const repereDemande = searchParams.get('verset') ? null : lireRepere(searchParams.get(PARAMETRE_REPERE))
+  useEffect(() => {
+    if (repereDemande === null) return
+    const cle = `${cleChapitreAffiche}|${repereDemande}|${mobile ? 1 : 0}`
+    if (repereTraite.current === cle) return
+    repereTraite.current = cle
+    annoncerReprise(DUREE_REPRISE_MS)
+    const minuteurs: number[] = []
+    let posee: { el: HTMLElement; position: number } | null = null
+    let fini = false
+    let commence = false
+    const finir = () => { if (!fini) { fini = true; terminerReprise() } }
+    const poser = () => {
+      const el = document.getElementById(`verset-${repereDemande}`)
+      if (!el) return false
+      poserEnHaut(el)
+      posee = { el, position: positionDuDefileur(el) }
+      return true
+    }
+    minuteurs.push(window.setTimeout(() => {
+      commence = true
+      if (!poser()) { finir(); return }
+      REPOSES_REPRISE_MS.forEach((delai, rang) => {
+        minuteurs.push(window.setTimeout(() => {
+          if (fini || !posee) return
+          // Le lecteur a fait défiler lui-même : c'est lui qui commande.
+          if (Math.abs(positionDuDefileur(posee.el) - posee.position) > 1) { finir(); return }
+          poser()
+          if (rang === REPOSES_REPRISE_MS.length - 1) finir()
+        }, delai))
+      })
+    }, 0))
+    return () => {
+      for (const m of minuteurs) window.clearTimeout(m)
+      // ⚠️ Un démontage avant la première pose (double montage du mode strict) ne compte
+      // pas pour une reprise faite : la suivante la refera.
+      if (!commence) repereTraite.current = null
+      finir()
+    }
+  }, [repereDemande, cleChapitreAffiche, mobile])
 
   // Les gestes retiennent la clé de la liste AU MOMENT DU RENDU qui les a portés : une
   // réponse arrivée après un changement de chapitre ne touche pas la liste suivante.
@@ -604,7 +692,13 @@ export default function TexteBible({
   // ⛔ AU DOIGT, LE LASSO NAÎT D'UN APPUI LONG (`LassoTactile`) : glisser y fait défiler,
   // et seul un doigt resté immobile demande un lasso.
   const lassoTactileActif = (mobile || sansSurvol) && !pieceAffichee && !chapitreToutLacune
-  const texteDuVerset = (v: Verset) => String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')
+  // ⛔ Ce qui SORT de la page (copie, prélèvement, lasso, signalement) est le texte qu'elle
+  // MONTRE. Une ligne du témoin porte ses marqueurs éditoriaux bruts (« [lecture
+  // incertaine : …] »), que l'écran rend d'une teinte : `texteLisible899` en rend le texte.
+  const texteDuVerset = (v: Verset) => {
+    const brut = String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')
+    return estLigne899(v) ? texteLisible899(brut) : brut
+  }
   const versetsParId = useMemo(() => new Map(versets.map(v => [v.id_verset, v])), [versets])
   // ⛔ L'IDENTIFIANT `verset-N` NE SE DONNE QU'AU VERSET HÔTE : une glose partage le
   // numéro de son verset, et deux `id` pareils faisaient viser l'une pour l'autre. Les
@@ -767,7 +861,10 @@ export default function TexteBible({
       <div ref={refDefileur} className={mobile ? '' : 'overflow-y-auto flex-1'} style={{ paddingTop: '20px', paddingBottom: '20px', ...(mobile ? {} : { scrollbarGutter: 'stable both-edges' }) }}>
         {/* `cs-lecture-colonne` : ce qui s'efface et paraît quand on passe d'un texte à
             l'autre (voir `BibleLayout`, « passage »). L'en-tête, lui, ne bouge pas. */}
-        <div className="cs-lecture-colonne" data-colonne-lecture="" style={{ maxWidth: 'var(--mesure-page)', margin: '0 auto', paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
+        {/* ⛔ La copie retire les césures conditionnelles sur la COLONNE ENTIÈRE, non sur le
+            seul paragraphe : une sélection commencée sur le numéro d'un verset ne passait
+            pas par le paragraphe, et emportait des U+00AD dans le presse-papiers. */}
+        <div className="cs-lecture-colonne" data-colonne-lecture="" onCopy={copierSansCesures} style={{ maxWidth: 'var(--mesure-page)', margin: '0 auto', paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
           <style>{`
             .verset-row:hover .bouton-action-verset { opacity: 1 !important; }
             .verset-row:has(:focus-visible) .bouton-action-verset { opacity: 1 !important; }
@@ -822,6 +919,29 @@ export default function TexteBible({
                illustrations). ⚠️ La mention, elle, reste : c'est elle qu'on lisait. */
             <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', lineHeight: 1.65, margin: '0 auto', padding: '18vh 16px 0', maxWidth: '21.25rem' }}>
               La traduction <em style={{ fontStyle: 'normal', color: 'var(--cs-texte-second)' }}>{traductionLabel}</em> ne comporte pas ce livre.
+            </p>
+          )}
+          {/* ⛔ L'ATTENTE ET L'ÉCHEC SE DISENT (2026-09-22) : rien ne paraissait pendant la
+              recherche, ni quand elle échouait, et la page restait sur sa seule phrase.
+              ⚠️ Un échec n'est pas « aucune bible ne le donne » : on ne le sait pas. */}
+          {texteAbsent && rechercheBiblesAbsent === 'en-cours' && (
+            <p role="status" style={{ ...STYLE_ETAT_RECHERCHE, fontStyle: 'italic', color: 'var(--cs-texte-gris)' }}>
+              Recherche des bibles qui le donnent…
+            </p>
+          )}
+          {texteAbsent && rechercheBiblesAbsent === 'echec' && (
+            <div role="status" style={STYLE_ETAT_RECHERCHE}>
+              <p style={{ margin: 0 }}>Les autres bibles n’ont pas pu être consultées.</p>
+              {onReessayerBiblesAbsent && (
+                <button type="button" className="cs-bouton-lien" onClick={onReessayerBiblesAbsent} style={{ marginTop: '6px' }}>
+                  Réessayer
+                </button>
+              )}
+            </div>
+          )}
+          {texteAbsent && rechercheBiblesAbsent === 'faite' && biblesDuLivreAbsent?.length === 0 && (
+            <p style={STYLE_ETAT_RECHERCHE}>
+              Aucune des bibles publiées sur Corpus Scriptura ne le donne pour l’instant.
             </p>
           )}
           {/* L'issue : les bibles qui le portent, en liens directs (audit ergonomique,
@@ -963,7 +1083,7 @@ export default function TexteBible({
                         />
                       )}
                       <BoutonCopie texte={citationBiblique(
-                        String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? ''),
+                        texteDuVerset(v),
                         `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`,
                       )} numero={v.verset} />
                       {!polyglotteTropEtroite && (() => { const p = placeCanoniqueDuVerset(v, livreActif, chapitreActif); return <BoutonPolyglotte href={urlPolyglotte(p.livre, p.chapitre, p.verset)} /> })()}
@@ -974,7 +1094,7 @@ export default function TexteBible({
                           fin={typeof v._facsFin899 === 'string' ? v._facsFin899 : null}
                         />
                       )}
-                      <BoutonSignaler versetId={v.id_verset} versetRef={v.ref} texte={String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')} />
+                      <BoutonSignaler versetId={v.id_verset} versetRef={v.ref} texte={texteDuVerset(v)} />
                       {estAdmin && !modeUtilisateurStandard && !ligneSource && (
                         <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
                           style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
@@ -997,11 +1117,17 @@ export default function TexteBible({
                   {/* Numéro — inclus dans le bloc sélectionné, aligné sur la 1re ligne du texte (ligne de base) */}
                   {/* ⛔ Le numéro est le BOUTON du verset pour le clavier : la rangée entière
                       porte déjà des liens et des boutons, on ne la rend pas focalisable. */}
+                  {/* ⛔ Son NOM dit tout ce que le numéro montre : la numérotation alternative et
+                      l'état prélevé. `aria-label` remplace le contenu, et « Verset N » seul
+                      les taisait. ⚠️ `data-lasso-depart` : au doigt, c'est ICI, et seulement
+                      ici, que naît le lasso (`LassoTactile`) ; l'appui long sur le texte reste
+                      à la sélection native, pour copier une demi-phrase. */}
                   <span style={STYLE_NUMERO_VERSET} role="button" tabIndex={0} aria-pressed={actif}
-                    aria-label={`Verset ${v.verset}`}
+                    aria-label={libelleNumeroVerset(v, sauvegardes.has(v.verset))}
+                    data-lasso-depart={lassoTactileActif ? '' : undefined}
                     onKeyDown={e => activerAuClavier(e, choisirVerset)}>
                     {!mobile && sauvegardes.has(v.verset) && (
-                      <span role="img" aria-label="Verset prélevé" title="Dans mes prélèvements" style={STYLE_SIGNET_VERSET}>
+                      <span aria-hidden="true" title="Dans mes prélèvements" style={STYLE_SIGNET_VERSET}>
                         <IconeSignet plein taille="100%" />
                       </span>
                     )}
@@ -1018,7 +1144,6 @@ export default function TexteBible({
                       inline (lecture incertaine, ajout marginal) rendus discrètement. Aucun
                       statut technique d'alignement n'est montré au lecteur. */}
                   <p data-verse-text lang={ligne899 ? 'fro' : langueLue}
-                    onCopy={langueLue === 'la' || langueLue === 'grc' ? copierSansCesures : undefined}
                     style={styleTexteVerset({ mobile })}>
                     {lacune ? (
                       // Verset isolé absent du témoin (chapitre par ailleurs porté). Italique

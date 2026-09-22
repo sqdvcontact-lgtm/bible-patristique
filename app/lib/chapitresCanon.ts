@@ -56,6 +56,15 @@ export function nombreDeChapitres(code: string, table: ChapitresParLivre | null)
 }
 
 /**
+ * Le nombre de chapitres qu'on CONNAÎT, ou `null`. ⛔ À la différence de
+ * `nombreDeChapitres`, pas de repli sur 1 : sans l'ossature, un deutérocanonique n'a pas
+ * de borne connue, et juger « Si 3 » hors des bornes sur un chiffre inventé serait faux.
+ */
+export function chapitresConnus(code: string, table: ChapitresParLivre | null): number | null {
+  return table?.[code] ?? CHAPITRES_PROTOCANON[code] ?? null
+}
+
+/**
  * Un livre se LISTE-t-il ? ⛔ Un livre que RIEN ne peut rendre est un cul-de-sac, et on
  * ne l'offre pas (décision de l'auteur, 2026-09-04, sur « Esther (grec) » : « ça doit
  * disparaître »). La règle n'a pas changé ; ce qui a changé, c'est ce qui peut rendre.

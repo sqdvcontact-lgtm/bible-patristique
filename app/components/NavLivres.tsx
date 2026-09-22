@@ -20,7 +20,8 @@ import { urlLectureBible, type ManiereDeLireBible } from '@/app/lib/bibleNavigat
 import { OPTION_VOLET, RUBRIQUE_AXE, styleEntreeListeVolet } from '@/app/lib/stylesVoletLecture'
 import { chargerChapitresParLivre, estLivreOuvrable, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
 import { supabase } from '@/app/lib/supabase'
-import { analyserRechercheVolet, libellePassage } from '@/app/lib/rechercheVoletLivres'
+import { analyserRechercheVolet, libellePassage, type VersetsConnus } from '@/app/lib/rechercheVoletLivres'
+import { sommetDeLecture } from '@/app/lib/defilementLecture'
 import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
@@ -111,6 +112,13 @@ type Props = {
   sommaireEdition?: PieceSommaireBible[]
   /** La pièce ouverte, s'il y en a une : elle décide de l'onglet montré à l'arrivée. */
   pieceActive?: string | null
+  /**
+   * Un rang de demande : chaque fois qu'il change, le volet revient aux livres, déplie le
+   * livre lu et l'amène sous les yeux (le repère « Gn ❧ 1 » du bandeau d'un téléphone).
+   */
+  demandeLivreCourant?: number
+  /** Le nombre de versets d'un chapitre, quand la page le connaît (borne de la recherche). */
+  versetsConnus?: VersetsConnus
 }
 
 // Le type vit auprès du composant qui le rend ; il se réexporte ici, où
@@ -126,16 +134,44 @@ export default function NavLivres({
   mobile = false, voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
   sansReduire = false, maniereDeLire, reglageEdition,
   modesLecture = [], onChoisirModeLecture, onPreparerModeLecture,
-  sommaireEdition = [], pieceActive = null,
+  sommaireEdition = [], pieceActive = null, demandeLivreCourant = 0, versetsConnus,
 }: Props) {
   const [recherche, setRecherche] = useState('')
+  const [livreOuvert, setLivreOuvert] = useState<string | null>(livreActif)
+  // Onglet du volet (voir plus bas, « Onglet du volet »).
+  const [ongletVolet, setOngletVolet] = useState<'livres' | 'sommaire'>(pieceActive ? 'sommaire' : 'livres')
+  const [atOuvert, setAtOuvert] = useState(true)
+  const [ntOuvert, setNtOuvert] = useState(true)
+  // Les écrits non canoniques restent repliés par défaut : ils sont là pour qui les cherche,
+  // sans allonger la liste de ceux qui ne les consultent pas. Ils s'ouvrent d'eux-mêmes
+  // quand le livre lu est des leurs (`suivreLivre`).
+  const [autresOuvert, setAutresOuvert] = useState(() => livres.find(l => l.code === livreActif)?.testament === 'AUTRES')
   const [livreActifLocal, setLivreActifLocal] = useState(livreActif)
   const [chapitreActifLocal, setChapitreActifLocal] = useState(chapitreActif)
   // Réalignement sur la propriété PENDANT le rendu, et non dans un effet : React
   // réexécute le composant immédiatement, au lieu de peindre l'ancienne valeur puis
   // la nouvelle. C'est le motif « ajuster l'état pendant le rendu » de la doc React.
   const [livreRecu, setLivreRecu] = useState(livreActif)
-  if (livreRecu !== livreActif) { setLivreRecu(livreActif); setLivreActifLocal(livreActif) }
+  // ⛔ Quand le livre reçu CHANGE, le volet le suit (2026-09-22) : le livre lu se déplie,
+  // l'autre se replie, sa section s'ouvre, et la liste l'amène sous les yeux. Il restait
+  // sur le livre d'avant, replié, et le livre lu pouvait être hors de vue.
+  const [demandeRecue, setDemandeRecue] = useState(demandeLivreCourant)
+  const [defilementDemande, setDefilementDemande] = useState<{ code: string; rang: number }>({ code: livreActif, rang: 1 })
+  const suivreLivre = (code: string) => {
+    setLivreOuvert(code)
+    const testament = livres.find(l => l.code === code)?.testament
+    if (testament === 'AT') setAtOuvert(true)
+    else if (testament === 'NT') setNtOuvert(true)
+    else if (testament === 'AUTRES') setAutresOuvert(true)
+    setDefilementDemande(d => ({ code, rang: d.rang + 1 }))
+  }
+  if (livreRecu !== livreActif) { setLivreRecu(livreActif); setLivreActifLocal(livreActif); suivreLivre(livreActif) }
+  if (demandeRecue !== demandeLivreCourant) {
+    setDemandeRecue(demandeLivreCourant)
+    setOngletVolet('livres')
+    setRecherche('')
+    suivreLivre(livreActif)
+  }
   // ⛔ `Object.is` et non `!==` : un `NaN` n'est jamais égal à lui-même, si bien que
   // la condition restait VRAIE à chaque rendu et que l'état se reposait sans fin.
   // Une adresse du genre `?chapitre=abc` faisait ainsi tomber la page entière sur
@@ -144,7 +180,6 @@ export default function NavLivres({
   // parce qu'un composant ne doit pas dépendre de la prudence de ses appelants.
   const [chapitreRecu, setChapitreRecu] = useState(chapitreActif)
   if (!Object.is(chapitreRecu, chapitreActif)) { setChapitreRecu(chapitreActif); setChapitreActifLocal(chapitreActif) }
-  const [livreOuvert, setLivreOuvert] = useState<string | null>(livreActif)
   // Combien de chapitres offrir, et quels livres lister : l'OSSATURE le dit, une table
   // à la main le disait mal. La promesse est partagée par tout le site (`chapitresCanon`),
   // si bien que les deux volets du site ne font qu'une requête. ⚠️ La grille des chapitres
@@ -160,7 +195,6 @@ export default function NavLivres({
   // depuis le sommaire recharge la page ; l'onglet doit donc se retrouver ouvert
   // au retour, sinon le lecteur perd sa place à chaque pièce lue. Même patron de
   // recalage PENDANT le rendu que le livre et le chapitre ci-dessus.
-  const [ongletVolet, setOngletVolet] = useState<'livres' | 'sommaire'>(pieceActive ? 'sommaire' : 'livres')
   const [pieceRecue, setPieceRecue] = useState(pieceActive)
   if (pieceRecue !== pieceActive) {
     setPieceRecue(pieceActive)
@@ -175,11 +209,6 @@ export default function NavLivres({
   // filets ; la cause était sa LARGEUR, non ce filet — voir `cs-onglets--volet`.
   const barreVolet = sommaireEdition.length > 0
   const polyMode = !!onChoisirChapitre
-  const [atOuvert, setAtOuvert] = useState(true)
-  const [ntOuvert, setNtOuvert] = useState(true)
-  // Les écrits non canoniques restent repliés par défaut : ils sont là pour qui les cherche,
-  // sans allonger la liste de ceux qui ne les consultent pas.
-  const [autresOuvert, setAutresOuvert] = useState(false)
   // ⚠️ Le rail nomme l'ACTION : « Ouvrir les livres ». Un parent qui donne à son
   // volet un autre nom (la Polyglotte : « Livres à comparer ») le voit repris tel
   // quel, précédé du verbe.
@@ -206,6 +235,28 @@ export default function NavLivres({
   useFermerAEchap(tiroirOuvert, () => setOuvert(false))
   const scrollRef = useRef<HTMLDivElement>(null)
   const refPanel = useRef<HTMLDivElement>(null)
+  // Le défilement demandé (`suivreLivre`) se fait quand la liste est VISIBLE : un volet
+  // replié, un onglet caché ou une référence en cours de saisie la retirent, et la demande
+  // attend alors. Le dernier rang servi vit dans une référence, jamais dans l'état.
+  const defilementServiRef = useRef(0)
+  useEffect(() => {
+    const { code, rang } = defilementDemande
+    if (defilementServiRef.current === rang) return
+    const liste = scrollRef.current
+    const el = liste?.querySelector<HTMLElement>(`[data-livre="${code}"]`)
+    if (!liste || !el || el.getClientRects().length === 0) return
+    defilementServiRef.current = rang
+    const air = 8
+    const r = el.getBoundingClientRect()
+    if (liste.scrollHeight > liste.clientHeight + 1) {
+      const cadre = liste.getBoundingClientRect()
+      if (r.top < cadre.top || r.bottom > cadre.bottom) liste.scrollTop += r.top - cadre.top - air
+    } else {
+      // Sur un téléphone la page entière défile : le haut utile est sous les barres fixes.
+      const haut = sommetDeLecture()
+      if (r.top < haut || r.bottom > window.innerHeight) window.scrollBy(0, r.top - haut - air)
+    }
+  })
   // Le tiroir d'un téléphone est une fenêtre : le foyer y entre, y reste, et en revient.
   useFenetreModale(refPanel, tiroirOuvert)
   // Le clic est ACQUITTÉ : la navigation passe par la provision d'attente, qui
@@ -229,7 +280,7 @@ export default function NavLivres({
   // ignorés. Une référence complète donne UN résultat, le passage ; un nom commencé
   // donne les livres qu'il commence ; une référence hors des bornes (« Ps 200 ») ne
   // mène nulle part et le dit.
-  const analyse = analyserRechercheVolet(recherche, offrables, chapitres)
+  const analyse = analyserRechercheVolet(recherche, offrables, chapitres, versetsConnus)
   const refParsee = analyse.genre === 'passage' ? analyse : null
   const refHorsBornes = analyse.genre === 'hors-bornes' ? analyse : null
   const referenceReconnue = refParsee !== null || refHorsBornes !== null
@@ -363,7 +414,7 @@ export default function NavLivres({
     const entierSel = polyMode && actif && !!entierActif
 
     return (
-      <div key={livre.code}>
+      <div key={livre.code} data-livre={livre.code}>
         <button onClick={() => handleLivre(livre.code)}
           title={vide ? 'Absent de cette traduction — voir où le lire' : undefined}
           // Le bouton déplie la grille des chapitres : il le dit. Un livre grisé, ou sans
@@ -768,8 +819,12 @@ export default function NavLivres({
           margin: 0, padding: 'var(--volet-gouttiere)', fontSize: '0.8125rem',
           fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.5,
         }}>
-          {refHorsBornes.chapitre < 1 || refHorsBornes.chapitre > refHorsBornes.chapitresDuLivre
+          {refHorsBornes.chapitre < 1
+            ? `Le livre ${nomDuLivre(refHorsBornes.code)} commence au chapitre 1.`
+            : refHorsBornes.chapitresDuLivre !== null && refHorsBornes.chapitre > refHorsBornes.chapitresDuLivre
             ? `Le livre ${nomDuLivre(refHorsBornes.code)} n’a que ${refHorsBornes.chapitresDuLivre} chapitre${refHorsBornes.chapitresDuLivre > 1 ? 's' : ''}.`
+            : refHorsBornes.versetsDuChapitre !== null
+            ? `Le chapitre ${refHorsBornes.chapitre} de ${nomDuLivre(refHorsBornes.code)} compte ${refHorsBornes.versetsDuChapitre} verset${refHorsBornes.versetsDuChapitre > 1 ? 's' : ''}.`
             : `Aucun chapitre de la Bible ne compte ${refHorsBornes.verset} versets.`}
         </p>
       )}

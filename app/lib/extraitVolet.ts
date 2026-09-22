@@ -77,24 +77,42 @@ export function composerExtrait(
 ): ExtraitCompose {
   let enAttente = false
   const notes: Record<string, NoteAffichee> = {}
-  const textes = groupe.map(({ seg }, rang) => morceauxDe(seg).map((morceau, i) => {
-    const cle = morceau.segment_key ? cleNotesDuSegment(morceau.id_texte, morceau.segment_key) : null
-    const charge = cle === null ? null : charges.get(cle)
-    if (cle !== null && charge === undefined) enAttente = true
-    const structurees = charge && Object.keys(charge.notes).length > 0 ? charge.notes : null
-    const propres: Record<string, NoteAffichee> = structurees ?? parseNotes(morceau.notes)
-    // ⚠️ Un marqueur déjà servi par un morceau précédent garde sa note : dans un même
-    // texte, deux segments voisins ne portent pas deux notes sous le même numéro.
-    for (const [marqueur, contenu] of Object.entries(propres)) {
-      if (!(marqueur in notes)) notes[marqueur] = contenu
+  // Chaque morceau rend son texte ET ses notes ; les notes ne s'enregistrent qu'ensuite.
+  const rendus: { texte: string; propres: Record<string, NoteAffichee> }[][] = groupe.map(({ seg }, rang) =>
+    morceauxDe(seg).map((morceau, i) => {
+      const cle = morceau.segment_key ? cleNotesDuSegment(morceau.id_texte, morceau.segment_key) : null
+      const charge = cle === null ? null : charges.get(cle)
+      if (cle !== null && charge === undefined) enAttente = true
+      const structurees = charge && Object.keys(charge.notes).length > 0 ? charge.notes : null
+      const propres: Record<string, NoteAffichee> = structurees ?? parseNotes(morceau.notes)
+      // ⚠️ L'INITIALE SE CAPITALISE AVANT LA PROJECTION (demande de l'auteur, 2026-09-04 :
+      // un extrait commence souvent au milieu d'une phrase de l'édition). `capitaliserInitiale`
+      // ne change jamais la longueur du texte, et les offsets des ancres restent justes.
+      const brut = rang === 0 && i === 0 ? capitaliserInitiale(morceau.segment_texte) : morceau.segment_texte
+      const texte = charge && charge.ancres.length > 0 ? projeterAppelsNotesStructureesEnSignalant(brut, charge.ancres) : brut
+      return { texte, propres }
+    }))
+  // ⛔ UN MARQUEUR APPARTIENT D'ABORD AU MORCEAU QUI LE PORTE DANS SON TEXTE (2026-09-22).
+  // Les notes d'un segment, telles que le chargeur les range par marqueur, comprennent
+  // aussi celles des ancres d'un AUTRE champ du même segment (`texte_original`, un titre) :
+  // chez Bareille (Jonas 2), le segment 254 range sous « 112 » à « 120 » les notes de son
+  // latin, et le premier morceau venu gardait ces marqueurs — le « [[112]] » du segment 259
+  // s'ouvrait alors sur la note 108, et toute la suite de la carte repartait à 108.
+  // Première passe : les marqueurs PRÉSENTS dans le texte du morceau ; seconde passe, en
+  // repli et sans rien écraser : les autres (une note rangée sur un segment voisin).
+  for (const passe of ['present', 'repli'] as const) {
+    for (const morceaux of rendus) {
+      for (const { texte, propres } of morceaux) {
+        for (const [marqueur, contenu] of Object.entries(propres)) {
+          if (marqueur in notes) continue
+          const present = texte.includes(`[[${marqueur}]]`)
+          if ((passe === 'present') === present) notes[marqueur] = contenu
+        }
+      }
     }
-    // ⚠️ L'INITIALE SE CAPITALISE AVANT LA PROJECTION (demande de l'auteur, 2026-09-04 :
-    // un extrait commence souvent au milieu d'une phrase de l'édition). `capitaliserInitiale`
-    // ne change jamais la longueur du texte, et les offsets des ancres restent justes.
-    const brut = rang === 0 && i === 0 ? capitaliserInitiale(morceau.segment_texte) : morceau.segment_texte
-    return charge && charge.ancres.length > 0 ? projeterAppelsNotesStructureesEnSignalant(brut, charge.ancres) : brut
+  }
   // ⚠️ Les morceaux d'un empan se joignent comme `chargerContrepartiesFrancaises` les joint.
-  }).join(' '))
+  const textes = rendus.map(morceaux => morceaux.map(m => m.texte).join(' '))
   const texte = texteDuGroupe(
     groupe.map(({ seg }, rang) => ({ seg, texte: textes[rang] })),
     ({ seg, texte: t }) => ({ idOeuvre: seg.id_oeuvre, idTexte: seg.id_texte, numero: seg.segment_numero, texte: t }),

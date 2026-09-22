@@ -45,12 +45,28 @@ export function normaliserEspaces(texte: string): string {
 // 3. si elle porte déjà une ponctuation forte à l'intérieur, une seconde
 //    ponctuation juste après le guillemet fermant disparaît.
 //
-// Les trois points placés APRÈS le guillemet sont volontairement préservés :
-// dans plusieurs éditions ils servent de marque d'omission entre deux citations
-// (« phrase. »... « reprise ») et ne constituent donc pas un doublon univoque.
+// ⛔ LES POINTS DE SUSPENSION PLACÉS ENTRE DEUX CITATIONS SE RENDENT « […] »
+// (décision de l'auteur, 2026-09-22, devant Ambroise traduit par Bareille, Jonas 2 :
+// « … âme » ;... « et notre âme … »). Plusieurs éditions marquent ainsi l'omission
+// d'un passage entre deux fragments cités ; la charte veut qu'une coupe dans une
+// citation se marque « […] », marqueur AUTONOME. On ne touche qu'au cas sûr : des
+// points (`...`, `....`, `…`), précédés ou non de `;` `,` et d'espaces, placés juste
+// APRÈS un guillemet fermant et suivis d'un guillemet ouvrant, d'une fin de ligne ou
+// de la fin du texte. La ponctuation faible qui précédait les points disparaît avec
+// eux. L'espace avant le crochet est INSÉCABLE : le marqueur ne commence jamais une
+// ligne et ne se sépare pas de son guillemet. Les « … » de la prose restent intacts.
+// Relevé du 2026-09-22 : 12 segments dans 3 textes, tous des omissions entre citations.
 // La donnée source n'est jamais réécrite : tout ceci appartient au rendu.
+const POINTS_ENTRE_CITATIONS = new RegExp(
+  `»${ESPACES}*[;,]?${ESPACES}*(?:\\.{3,}|…\\.*)${ESPACES}*(?=(«|\\n|$))`,
+  'g',
+)
+
 export function normaliserPonctuationCitations(texte: string): string {
-  const sansPonctuationFaible = texte.replace(
+  const coupes = texte.replace(POINTS_ENTRE_CITATIONS, (_m, suivant: string) =>
+    `»${INSECABLE}[…]${suivant === '«' ? ' ' : ''}`)
+
+  const sansPonctuationFaible = coupes.replace(
     new RegExp(`${ESPACES}*[,;:]${ESPACES}*»`, 'g'),
     `${FINE}»`,
   )

@@ -22,6 +22,8 @@ import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import FleuronDiscret from '@/app/components/FleuronDiscret'
 import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
+import { avecHoteEclat } from '@/app/components/EclatCopie'
+import { EclatEchec, STYLE_HOTE_ECHEC, useEclatEchec } from '@/app/components/EclatEchec'
 import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, formeCommentaire } from '@/app/lib/styleCommentaire'
 
 type Verset = { id_verset: string }
@@ -55,6 +57,32 @@ function motifDuRefus(error: { code?: string; message?: string } | null): string
 const CIBLE_VOTE: React.CSSProperties = {
   display:'flex', alignItems:'center', gap:'3px', background:'transparent', border:'none', cursor:'pointer',
   padding:'6px', margin:'-6px', minHeight:'24px', minWidth:'24px', boxSizing:'border-box',
+}
+
+/** Un bouton de suppression qui DIT son échec (2026-09-22) : l'éclat rouge du site
+ *  (`EclatEchec`), l'annonce aux lecteurs d'écran, et un libellé qui invite à réessayer.
+ *  Un refus ne se consignait qu'à la console, et le commentaire restait là sans un mot. */
+function BoutonSupprimer({ libelle, titre, couleur, marge, onSupprimer }: {
+  libelle: string; titre: string; couleur: string; marge: string | number
+  /** Rend `false` si la suppression a échoué. */
+  onSupprimer: () => Promise<boolean>
+}) {
+  const { echec, signaler } = useEclatEchec()
+  const [enCours, setEnCours] = useState(false)
+  return (
+    <button disabled={enCours} className={avecHoteEclat()}
+      onClick={async () => {
+        setEnCours(true)
+        const ok = await onSupprimer().catch(() => false)
+        setEnCours(false)
+        if (!ok) signaler('La suppression a échoué.')
+      }}
+      title={echec ? 'La suppression a échoué : réessayer' : titre}
+      style={{ ...ACTION_COMMENTAIRE, color: echec ? 'var(--cs-danger)' : couleur, marginLeft: marge, ...(echec ? STYLE_HOTE_ECHEC : null) }}>
+      {enCours ? '…' : echec ? 'Échec : réessayer' : libelle}
+      <EclatEchec echec={echec} />
+    </button>
+  )
 }
 
 export default function OngletCommentaires({ verset, userId, isAdmin, onCount }: {
@@ -91,24 +119,31 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
         const ids = base.map(c => c.id)
         const idsUtilisateurs = [...new Set(base.map(c => c.user_id).filter((id): id is string => !!id))]
         // ⛔ La marque de mécène se lit dans `mecenes_publics`, jamais dans `profils`.
-        const [likesRes, classementRes, mecenesRes] = await Promise.all([
-          ids.length > 0 ? supabase.from('commentaires_likes').select('id_commentaire, user_id, valeur').in('id_commentaire', ids) : Promise.resolve({ data: [], error: null }),
+        const [likesRes, classementRes, mecenesRes, mesVotesRes] = await Promise.all([
+          // ⛔ LES VOTES D'AUTRUI NE SE LISENT PLUS (2026-09-22) : les TOTAUX viennent de
+          // `totaux_votes_commentaires` (qui ne dit ni qui ni quoi), et l'on ne lit dans
+          // `commentaires_likes` que SA PROPRE ligne. Voir la migration
+          // `20260922155227_volet_peres_audit` (fonction) et `20260922190000` (politique).
+          ids.length > 0 ? supabase.rpc('totaux_votes_commentaires', { p_ids: ids }) : Promise.resolve({ data: [], error: null }),
           idsUtilisateurs.length > 0 ? supabase.from('lecture_utilisateurs').select('user_id, pseudo, nb_auteurs, total_auteurs').in('user_id', idsUtilisateurs) : Promise.resolve({ data: [], error: null }),
           idsUtilisateurs.length > 0 ? supabase.from('mecenes_publics').select('user_id').in('user_id', idsUtilisateurs) : Promise.resolve({ data: [], error: null }),
+          ids.length > 0 && userId ? supabase.from('commentaires_likes').select('id_commentaire, valeur').eq('user_id', userId).in('id_commentaire', ids) : Promise.resolve({ data: [], error: null }),
         ])
         // ⚠️ Votes, rangs et marques sont SECONDAIRES : une panne se consigne, et les
         // commentaires paraissent sans eux.
-        for (const r of [likesRes, classementRes, mecenesRes]) if (r.error) console.error('[discussion] donnée secondaire indisponible :', r.error)
+        for (const r of [likesRes, classementRes, mecenesRes, mesVotesRes]) if (r.error) console.error('[discussion] donnée secondaire indisponible :', r.error)
         if (annule) return
         type Classement = { user_id: string; pseudo: string | null; nb_auteurs: number; total_auteurs: number }
         const classementMap = new Map(((classementRes.data ?? []) as Classement[]).map(c => [c.user_id, c]))
         const mecenes = new Set(((mecenesRes.data ?? []) as { user_id: string }[]).map(m => m.user_id))
         const parCommentaire = new Map<number, { likes: number; dislikes: number; mon: 1 | -1 | null }>()
-        for (const l of (likesRes.data ?? []) as { id_commentaire: number; user_id: string; valeur: 1 | -1 }[]) {
-          const cur = parCommentaire.get(l.id_commentaire) ?? { likes: 0, dislikes: 0, mon: null }
-          if (l.valeur === 1) cur.likes++; else cur.dislikes++
-          if (l.user_id === userId) cur.mon = l.valeur
-          parCommentaire.set(l.id_commentaire, cur)
+        for (const t of (likesRes.data ?? []) as { id_commentaire: number; likes: number; dislikes: number }[]) {
+          parCommentaire.set(t.id_commentaire, { likes: t.likes, dislikes: t.dislikes, mon: null })
+        }
+        for (const v of (mesVotesRes.data ?? []) as { id_commentaire: number; valeur: 1 | -1 }[]) {
+          const cur = parCommentaire.get(v.id_commentaire) ?? { likes: 0, dislikes: 0, mon: null }
+          cur.mon = v.valeur
+          parCommentaire.set(v.id_commentaire, cur)
         }
         setCommentaires(base.map(c => ({
           ...c,
@@ -173,6 +208,8 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
       if (!retire) { if (valeur === 1) nbLikes++; else nbDislikes++ }
       return { ...x, nbLikes, nbDislikes, monVote: retire ? null : valeur }
     }))
+    // L'upsert change un vote existant grâce à la politique UPDATE `likes_modification`
+    // (migration 20260922190000) : une seule écriture, sans fenêtre où le vote disparaît.
     const { error } = retire
       ? await supabase.from('commentaires_likes').delete().eq('id_commentaire', c.id).eq('user_id', userId)
       : await supabase.from('commentaires_likes').upsert({ id_commentaire: c.id, user_id: userId, valeur }, { onConflict: 'id_commentaire,user_id' })
@@ -183,24 +220,35 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
     }
   }
 
-  const supprimerCommentaire = async (c: Commentaire) => {
-    if (!confirm('Supprimer définitivement ce commentaire ?')) return
+  // ⛔ La route retire le commentaire ET SES RÉPONSES (elles revenaient sinon au premier
+  // niveau, orphelines) ; la question le dit, et un refus se dit à l'écran.
+  const supprimerCommentaire = async (c: Commentaire): Promise<boolean> => {
+    const nbReponses = commentaires.filter(x => x.reponse_a === c.id).length
+    const question = nbReponses === 0
+      ? 'Supprimer définitivement ce commentaire ?'
+      : `Supprimer définitivement ce commentaire et ${nbReponses === 1 ? 'sa réponse' : `ses ${nbReponses} réponses`} ?`
+    if (!confirm(question)) return true
     const { data: session } = await supabase.auth.getSession()
     const token = session.session?.access_token
     const res = await fetch('/api/admin/commentaire-supprimer', {
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ id: c.id }),
-    })
-    if (res.ok) setCommentaires(prev => prev.filter(x => x.id !== c.id && x.reponse_a !== c.id))
-    else console.error('[discussion] suppression refusée :', res.status)
+    }).catch(() => null)
+    if (res?.ok && !res.redirected) {
+      setCommentaires(prev => prev.filter(x => x.id !== c.id && x.reponse_a !== c.id))
+      return true
+    }
+    console.error('[discussion] suppression refusée :', res?.status ?? 'réseau')
+    return false
   }
 
   // Suppression par son propre auteur : la ligne reste (fil des réponses préservé).
-  const supprimerMonCommentaire = async (c: Commentaire) => {
-    if (!confirm('Supprimer ce commentaire ? Il restera visible en tant que « commentaire supprimé ».')) return
+  const supprimerMonCommentaire = async (c: Commentaire): Promise<boolean> => {
+    if (!confirm('Supprimer ce commentaire ? Il restera visible en tant que « commentaire supprimé ».')) return true
     const { error } = await supabase.from('commentaires').update({ supprime: true }).eq('id', c.id)
-    if (!error) setCommentaires(prev => prev.map(x => x.id === c.id ? { ...x, supprime: true } : x))
-    else console.error('[discussion] suppression refusée :', error)
+    if (!error) { setCommentaires(prev => prev.map(x => x.id === c.id ? { ...x, supprime: true } : x)); return true }
+    console.error('[discussion] suppression refusée :', error)
+    return false
   }
 
   const mailValide = (m: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m)
@@ -300,14 +348,12 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
             <button onClick={() => setCibleReponse(c)} style={ACTION_COMMENTAIRE}>Répondre</button>
           )}
           {userId === c.user_id && (
-            <button onClick={() => supprimerMonCommentaire(c)} title="Supprimer mon commentaire" style={{ ...ACTION_COMMENTAIRE, marginLeft:'auto' }}>
-              Supprimer
-            </button>
+            <BoutonSupprimer libelle="Supprimer" titre="Supprimer mon commentaire" couleur={ACTION_COMMENTAIRE.color as string}
+              marge="auto" onSupprimer={() => supprimerMonCommentaire(c)} />
           )}
           {isAdmin && userId !== c.user_id && (
-            <button onClick={() => supprimerCommentaire(c)} title="Supprimer ce commentaire" style={{ ...ACTION_COMMENTAIRE, color:'var(--cs-danger)', marginLeft:'auto' }}>
-              Supprimer (admin)
-            </button>
+            <BoutonSupprimer libelle="Supprimer (admin)" titre="Supprimer ce commentaire et ses réponses" couleur="var(--cs-danger)"
+              marge="auto" onSupprimer={() => supprimerCommentaire(c)} />
           )}
           <button onClick={() => { if (exigerCompte('signaler ce commentaire')) setCommentaireSignale(c) }} title="Signaler ce commentaire" aria-label="Signaler ce commentaire"
             style={{ ...ACTION_COMMENTAIRE, color:'var(--cs-bord)', marginLeft: aDesActionsADroite ? 0 : 'auto', display:'inline-flex', alignItems:'center' }}>

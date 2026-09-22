@@ -45,6 +45,22 @@ describe('analyserRechercheVolet', () => {
     expect(analyserRechercheVolet(`Ps 119, ${VERSET_MAX + 1}`, livres, chapitres)).toMatchObject({ genre: 'hors-bornes' })
   })
 
+  it('sans l’ossature, un deutérocanonique n’est pas jugé sur ses chapitres', () => {
+    expect(analyserRechercheVolet('Si 3', livres, null)).toMatchObject({ genre: 'passage', code: 'SIR', chapitre: 3 })
+    // Le protocanon, lui, garde sa borne connue.
+    expect(analyserRechercheVolet('Ps 200', livres, null)).toMatchObject({ genre: 'hors-bornes', chapitresDuLivre: 150 })
+  })
+
+  it('le verset se borne par le compte du chapitre quand il est connu', () => {
+    const versets = (code: string, ch: number) => (code === 'JHN' && ch === 3 ? 36 : null)
+    expect(analyserRechercheVolet('Jn 3, 40', livres, chapitres, versets)).toMatchObject({
+      genre: 'hors-bornes', code: 'JHN', chapitre: 3, verset: 40, versetsDuChapitre: 36,
+    })
+    expect(analyserRechercheVolet('Jn 3, 36', livres, chapitres, versets)).toMatchObject({ genre: 'passage', verset: 36 })
+    // Inconnu : on laisse passer jusqu'au plus long chapitre du canon.
+    expect(analyserRechercheVolet('Jn 4, 50', livres, chapitres, versets)).toMatchObject({ genre: 'passage', verset: 50 })
+  })
+
   it('un nom commencé rend quelques livres, jamais une avalanche', () => {
     const r = analyserRechercheVolet('Jé', livres, chapitres)
     expect(r.genre).toBe('livres')

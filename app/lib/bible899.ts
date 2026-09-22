@@ -251,7 +251,23 @@ export async function chargerGloses899(
 }
 
 /** Ensemble des livres canoniques réellement portés par TR0009 (pour la navigation). */
-export async function livresDisponibles899(client: SupabaseClient): Promise<Set<string>> {
+// ⛔ La liste se lit UNE fois par client et par module : le volet des livres, la page et la
+// modale d'un livre absent la redemandaient chacun. Un ÉCHEC ne se garde pas : la promesse
+// rejetée est oubliée, et la demande suivante réessaie.
+const livres899ParClient = new WeakMap<SupabaseClient, Promise<Set<string>>>()
+
+export function livresDisponibles899(client: SupabaseClient): Promise<Set<string>> {
+  const deja = livres899ParClient.get(client)
+  if (deja) return deja
+  const promesse = lireLivres899(client)
+  livres899ParClient.set(client, promesse)
+  promesse.catch(() => {
+    if (livres899ParClient.get(client) === promesse) livres899ParClient.delete(client)
+  })
+  return promesse
+}
+
+async function lireLivres899(client: SupabaseClient): Promise<Set<string>> {
   // ⛔ On demande la LISTE DES LIVRES, jamais tous les versets pour en déduire la liste.
   // C'est la règle déjà posée pour les traductions ordinaires (`livres_par_traduction`,
   // cf. le commentaire de `BibleLayout`). Vue jumelle : `livres_bible899`.

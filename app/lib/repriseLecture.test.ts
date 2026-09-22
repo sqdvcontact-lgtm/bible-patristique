@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   LIVRE_PAR_DEFAUT,
   adresseDeReprise,
+  lireRepere,
   ouvertureDepuis,
   positionBibleDepuis,
   positionPolyglotteDepuis,
@@ -59,8 +60,9 @@ describe('versetDeReprise', () => {
 })
 
 describe('adresseDeReprise', () => {
-  it('vise le verset retenu par le paramètre que la page Bible sait lire', () => {
-    expect(adresseDeReprise({ livre: 'PSA', chapitre: 119, verset: 97 })).toBe('/?livre=PSA&chapitre=119&verset=97')
+  it('rend la place par `repere`, jamais par `verset`, qui sélectionnerait le verset', () => {
+    expect(adresseDeReprise({ livre: 'PSA', chapitre: 119, verset: 97 })).toBe('/?livre=PSA&chapitre=119&repere=97')
+    expect(adresseDeReprise({ livre: 'PSA', chapitre: 119, verset: 97 })).not.toContain('verset=')
   })
 
   it('rouvre au haut du chapitre sans verset, ou sur le premier', () => {
@@ -95,6 +97,18 @@ describe('ouvertureDepuis', () => {
       [{ livre: 'GEN', chapitre: -1 }, 'JHN.3'],
     ] as [unknown, unknown][]) {
       expect(ouvertureDepuis(poly, bible)).toEqual({ livre: LIVRE_PAR_DEFAUT, chapitre: 1 })
+    }
+  })
+})
+
+describe('lireRepere', () => {
+  it('relit un numéro de verset plausible', () => {
+    expect(lireRepere('97')).toBe(97)
+    expect(lireRepere('1')).toBe(1)
+  })
+  it('écarte ce qui n’en est pas un', () => {
+    for (const brut of [null, undefined, '', '0', '-3', '2.5', 'abc', '9999', ' 12a']) {
+      expect(lireRepere(brut), String(brut)).toBeNull()
     }
   })
 })

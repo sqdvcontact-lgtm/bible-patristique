@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+// La langue d'une bible se lit par le client du navigateur (`langueBible`), que la suite
+// n'a pas : le composant n'en appelle rien pendant son rendu.
+vi.mock('../lib/supabase', () => ({ supabase: {} }))
 
 import BibleBilingue from './BibleBilingue'
 import { cleDeGlose, type MembreBilingue } from '../lib/bibleEditionBilingue'
@@ -45,7 +49,8 @@ describe('lecture bilingue de la page Bible', () => {
     expect(html).not.toContain('I, 1')
     expect(html).toContain('>1<')
     // Le créneau que le français ne porte pas ne reçoit jamais le texte latin.
-    const apresDeuxieme = html.slice(html.indexOf('MRK.1.2'))
+    // ⚠️ Le latin porte ses césures conditionnelles (U+00AD) : on les ôte pour lire le texte.
+    const apresDeuxieme = html.slice(html.indexOf('MRK.1.2')).split(String.fromCharCode(173)).join('')
     expect(apresDeuxieme.split('Sicut scriptum est in Isaia')).toHaveLength(2)
   })
 
@@ -520,5 +525,69 @@ describe('⛔ aucune série de notes au bas du chapitre (décision de l’auteur
       const source = readFileSync(`app/components/${fichier}`, 'utf8')
       expect(source, fichier).not.toMatch(/NotesBibleChapitre|notes-bible-chapitre/)
     }
+  })
+})
+
+/**
+ * ⛔ AUDIT DU 2026-09-22 : le numéro est le bouton du verset, le texte se compose comme en
+ * lecture simple, et chaque cellule offre sa copie au bureau.
+ */
+describe('la lecture en regard, mise à niveau de la lecture simple', () => {
+  const cliquable = { ...COMMUN, onSelectionnerVerset: () => {}, canonSelectionne: 'MRK.1.1' }
+
+  it('fait du NUMÉRO le bouton du verset, un seul par rangée, et ne rend plus la rangée focalisable', () => {
+    const html = renderToStaticMarkup(<BibleBilingue {...cliquable} />)
+    expect(html).not.toMatch(/class="cs-regard-rangee[^"]*"[^>]*tabindex/)
+    const rangee = html.slice(html.indexOf('data-canon-id="MRK.1.1"'), html.indexOf('data-canon-id="MRK.1.2"'))
+    expect(rangee.match(/role="button"/g)).toHaveLength(1)
+    expect(rangee).toContain('aria-label="Verset 1"')
+    expect(rangee).toContain('aria-pressed="true"')
+    const suivante = html.slice(html.indexOf('data-canon-id="MRK.1.2"'))
+    expect(suivante).toContain('aria-label="Verset 2"')
+    expect(suivante).toContain('aria-pressed="false"')
+    // Sans sélection possible, aucun bouton.
+    expect(renderToStaticMarkup(<BibleBilingue {...COMMUN} />)).not.toContain('role="button"')
+  })
+
+  it('pose data-lasso-depart sur la marge d’un verset qui porte du texte, avec sa colonne', () => {
+    const html = renderToStaticMarkup(<BibleBilingue {...COMMUN} mobile />)
+    expect(html).toContain('data-lasso-depart="TR0010"')
+    expect(html).toContain('data-lasso-depart="TR0011"')
+    // MRK.1.2 n'a pas de français : sa cellule vide n'offre pas de départ.
+    const suivante = html.slice(html.indexOf('data-canon-id="MRK.1.2"'))
+    expect(suivante).not.toContain('data-lasso-depart="TR0010"')
+  })
+
+  it('compose le texte par l’enrichissement du site, et césure le latin', () => {
+    const colonnes = [
+      { membre: LATIN, cellules: [{ canonId: 'MRK.1.1', texte: 'Initium Evangelii', referenceNative: null }] },
+      { membre: FRANCAIS, cellules: [{ canonId: 'MRK.1.1', texte: 'Commencement de l’<i>Évangile</i>', referenceNative: null }] },
+    ]
+    const html = renderToStaticMarkup(<BibleBilingue {...COMMUN} colonnes={colonnes} />)
+    expect(html).toContain('<em>Évangile</em>')
+    expect(html).not.toContain('&lt;i&gt;')
+    const latin = html.slice(html.indexOf('lang="la"'))
+    expect(latin).toContain(String.fromCharCode(173))
+  })
+
+  it('rend les marqueurs du témoin de 1260 sans crochet brut', () => {
+    const TEMOIN = { ...LATIN, id: 'af', translationId: 'TR0009', languageCode: 'fro', label: 'Témoin' }
+    const colonnes = [
+      { membre: TEMOIN, cellules: [{ canonId: 'MRK.1.1', texte: 'Au [lecture incertaine : commencement] fu', referenceNative: null }] },
+      { membre: FRANCAIS, cellules: [{ canonId: 'MRK.1.1', texte: 'Au commencement', referenceNative: null }] },
+    ]
+    const html = renderToStaticMarkup(<BibleBilingue {...COMMUN} membres={[FRANCAIS, TEMOIN]} colonnes={colonnes} />)
+    expect(html).not.toContain('[lecture incertaine')
+  })
+
+  it('offre au bureau la copie de chaque cellule qui porte un texte, et rien au doigt', () => {
+    const copier = async () => {}
+    const html = renderToStaticMarkup(<BibleBilingue {...COMMUN} copierCellule={copier} />)
+    expect(html).toContain('aria-label="Copier le verset 1 (français)"')
+    expect(html).toContain('aria-label="Copier le verset 1 (latin)"')
+    expect(html).toContain('aria-label="Copier le verset 2 (latin)"')
+    expect(html).not.toContain('aria-label="Copier le verset 2 (français)"')
+    expect(renderToStaticMarkup(<BibleBilingue {...COMMUN} copierCellule={copier} mobile />)).not.toContain('cs-regard-copier')
+    expect(renderToStaticMarkup(<BibleBilingue {...COMMUN} />)).not.toContain('cs-regard-copier')
   })
 })

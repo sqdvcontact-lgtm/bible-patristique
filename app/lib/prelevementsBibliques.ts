@@ -18,6 +18,13 @@
 // et un signet « hérité » supprimait au clic le prélèvement d'un AUTRE chapitre. Dès que la
 // clé ne correspond plus, le crochet rend une liste VIDE ; une réponse arrivée après un
 // changement de chapitre ne s'applique pas (`modifierPour`).
+//
+// ⛔ UNE MODIFICATION FAITE AVANT QUE LA LISTE N'ARRIVE N'EST PAS PERDUE (2026-09-22). Tant
+// que la première lecture n'avait pas répondu, `modifierPour` ignorait tout : un
+// prélèvement réussi laissait le signet VIDE, et un second clic écrivait un doublon. Les
+// modifications faites sous la clé COURANTE attendent donc la liste, et s'y rejouent à son
+// arrivée. ⚠️ Elles sont idempotentes (poser un identifiant, retirer un numéro) : qu'une
+// lecture partie avant l'écriture la contienne déjà ou non, le résultat est le même.
 
 import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import { ABREV_FR } from './bible'
@@ -35,11 +42,36 @@ export function clePrelevements(userId: string | null, livreActif: string, chapi
 
 const VIDE: PrelevementsDuChapitre = new Map()
 
-type Etat = { cle: string | null; liste: PrelevementsDuChapitre }
+type Action = SetStateAction<PrelevementsDuChapitre>
+
+type Etat = {
+  cle: string | null
+  liste: PrelevementsDuChapitre
+  /** Les modifications faites sous une clé dont la liste n'est pas encore arrivée. */
+  enAttente: { cle: string; actions: Action[] } | null
+}
 
 /** Applique une modification à une liste, en forme de valeur ou de fonction. */
-function appliquer(liste: PrelevementsDuChapitre, action: SetStateAction<PrelevementsDuChapitre>): PrelevementsDuChapitre {
+function appliquer(liste: PrelevementsDuChapitre, action: Action): PrelevementsDuChapitre {
   return typeof action === 'function' ? action(liste) : action
+}
+
+/** La liste qui arrive, les modifications en attente rejouées dessus. */
+export function listeArrivee(liste: PrelevementsDuChapitre, cle: string, enAttente: Etat['enAttente']): PrelevementsDuChapitre {
+  if (!enAttente || enAttente.cle !== cle) return liste
+  return enAttente.actions.reduce(appliquer, liste)
+}
+
+/**
+ * Où va une modification : dans la liste si elle porte la clé visée ; en attente si la clé
+ * visée est la clé COURANTE et que sa liste n'est pas encore là ; nulle part sinon (une
+ * réponse tardive d'un autre chapitre).
+ */
+export function modifierEtat(etat: Etat, cleVisee: string, cleCourante: string | null, action: Action): Etat {
+  if (etat.cle === cleVisee) return { ...etat, liste: appliquer(etat.liste, action) }
+  if (cleVisee !== cleCourante) return etat
+  const actions = etat.enAttente?.cle === cleVisee ? [...etat.enAttente.actions, action] : [action]
+  return { ...etat, enAttente: { cle: cleVisee, actions } }
 }
 
 /**
@@ -64,7 +96,7 @@ export function usePrelevementsDuChapitre(
   (cle: string | null, action: SetStateAction<PrelevementsDuChapitre>) => void,
 ] {
   const cle = clePrelevements(userId, livreActif, chapitreActif)
-  const [etat, setEtat] = useState<Etat>({ cle: null, liste: VIDE })
+  const [etat, setEtat] = useState<Etat>({ cle: null, liste: VIDE, enAttente: null })
   // La clé courante, lue par les gestes (jamais pendant le rendu).
   const cleCourante = useRef(cle)
   useEffect(() => { cleCourante.current = cle }, [cle])
@@ -90,22 +122,22 @@ export function usePrelevementsDuChapitre(
         // de CETTE clé est posée vide : rien d'un autre chapitre ne peut y survivre.
         if (error) {
           console.error('[prélèvements] chapitre', error)
-          setEtat({ cle, liste: new Map() })
+          setEtat(prev => ({ cle, liste: listeArrivee(new Map(), cle, prev.enAttente), enAttente: null }))
           return
         }
         const m: PrelevementsDuChapitre = new Map()
         ;(data ?? []).forEach((r: { ref_verset: number; id: string }) => m.set(r.ref_verset, r.id))
-        setEtat({ cle, liste: m })
+        setEtat(prev => ({ cle, liste: listeArrivee(m, cle, prev.enAttente), enAttente: null }))
       })
     return () => { vivant = false }
   }, [userId, livreActif, chapitreActif, cle])
 
-  const modifierPour = useCallback((cleAttendue: string | null, action: SetStateAction<PrelevementsDuChapitre>) => {
+  const modifierPour = useCallback((cleAttendue: string | null, action: Action) => {
     if (!cleAttendue) return
-    setEtat(prev => prev.cle !== cleAttendue ? prev : { cle: prev.cle, liste: appliquer(prev.liste, action) })
+    setEtat(prev => modifierEtat(prev, cleAttendue, cleCourante.current, action))
   }, [])
 
-  const modifier = useCallback((action: SetStateAction<PrelevementsDuChapitre>) => {
+  const modifier = useCallback((action: Action) => {
     modifierPour(cleCourante.current, action)
   }, [modifierPour])
 

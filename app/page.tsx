@@ -692,6 +692,9 @@ export default async function Home({
   const bilingueDisponible = membresFamille.length >= 2
 
   let lectureBilingue: ComponentProps<typeof BibleLayout>['lectureBilingue'] = null
+  // L'appareil que la lecture en regard a déjà chargé, quand elle n'a pas pu se servir :
+  // la lecture ordinaire qui prend le relais le REPREND au lieu de le redemander.
+  let appareilDuRegard: BibleEditionChapterDisplay | null = null
   if (editionMember && bilingueDisponible && params.bilingue === '1') {
     // Les deux membres et l'appareil partent ENSEMBLE : l'appareil ne tient des
     // membres que l'axe canonique, qu'il accepte en promesse (même dispositif qu'en
@@ -702,14 +705,24 @@ export default async function Home({
     const membresCanoniquesV2 = new Set(await tradsV2Promis)
     // Le canon, déjà lu en tête de page, part avec : la lecture en regard ne le relit
     // plus pour chaque colonne.
+    // ⛔ Le texte en regard qui ne se lit pas ferme la page en le DISANT, comme en lecture
+    // simple (`echecTexte`) : l'échec est retenu, non levé, parce que la même promesse
+    // nourrit l'appareil et qu'un rejet sans preneur ferait tomber le processus.
+    const echecRegard: { erreur: unknown } = { erreur: null }
     const chargeePromise = chargerLectureBilingue(supabase, {
       familyRows, livre, chapitre, membresCanoniquesV2, canonRows: canonChapitre.lignes,
+    }).catch((erreur: unknown) => {
+      echecRegard.erreur = erreur
+      console.error(`[lecture] ${livre} ${chapitre} en regard : le texte n’a pas pu se charger :`, erreur)
+      return null
     })
     // Les notes des versets ne vivent que chez un membre lu par le canon : un membre à
     // segmentation éditoriale n'a pas de ligne dans `versets_v2`.
     const notesEnRegardPromis = lancerNotesVersetsV2([...new Set(familyRows.map((row) => row.trad_id))]
       .filter((code) => membresCanoniquesV2.has(code)))
-    const [chargee, payload, lignesNotesEnRegard] = await Promise.all([
+    // ⚠️ L'appareil en panne ne ferme pas la page : le texte se sert sans lui, et l'échec
+    // part au journal (charte § 18). `null` le distingue d'un appareil vide.
+    const [chargee, payloadLu, lignesNotesEnRegard] = await Promise.all([
       chargeePromise,
       texteSeul
         ? Promise.resolve<BibleEditionChapterPayload>({ bodyBlocks: [], notes: [], assets: [] })
@@ -719,9 +732,20 @@ export default async function Home({
           canonIds: chargeePromise.then((c) => c?.axeCanonique ?? []),
           bornesChapitre: canonChapitre.bornes,
           includeBookFrontMatter: chapitre === 1,
+        }).catch((erreur: unknown): BibleEditionChapterPayload | null => {
+          console.error(`[lecture] ${livre} ${chapitre} en regard servi sans l’appareil :`, erreur)
+          return null
         }),
       notesEnRegardPromis,
     ])
+    if (echecRegard.erreur) return <ChapitreIndisponible adresse={adressePage} />
+    const payload: BibleEditionChapterPayload = payloadLu ?? { bodyBlocks: [], notes: [], assets: [] }
+    // Servie ou non, la lecture en regard a chargé l'appareil de la famille sur l'axe du
+    // chapitre : si elle cède la place, la lecture ordinaire le compose tel quel. ⚠️ Pas
+    // s'il a échoué, ni sur un axe vide (ses notes de verset n'auraient pas été lues).
+    if (!texteSeul && payloadLu && chargee && chargee.axeCanonique.length > 0) {
+      appareilDuRegard = composerAffichage(editionMember, payloadLu, canonChapitre.bornes)
+    }
     if (chargee && chargee.colonnes.some((colonne) => colonne.cellules.length > 0)) {
       const balisesBilingue = baliserPayload(payload.bodyBlocks, canonChapitre.bornes)
       const rangsBilingue = rangerSousTitres(payload.bodyBlocks)
@@ -853,11 +877,17 @@ export default async function Home({
   // l'ADRESSE (`params.piece`) et non sur la pièce résolue, qui n'est connue
   // qu'après le sommaire : une pièce demandée remplace le chapitre, et son
   // appareil n'a alors pas à être chargé.
-  const appareilPromis = (editionMember && !lectureBilingue && !texteSeul && !params.piece)
-    ? chargerAppareilDuChapitre(
-      editionMember,
-      versetsPromis.then((versets) => versets.map((verset) => verset.id_verset)),
-    )
+  // ⛔ Son échec ne ferme pas la page : `null`, au journal, et le texte se sert sans lui.
+  const appareilPromis: Promise<BibleEditionChapterDisplay | null> | null = (editionMember && !lectureBilingue && !texteSeul && !params.piece)
+    ? (appareilDuRegard
+      ? Promise.resolve(appareilDuRegard)
+      : chargerAppareilDuChapitre(
+        editionMember,
+        versetsPromis.then((versets) => versets.map((verset) => verset.id_verset)),
+      ).catch((erreur: unknown) => {
+        console.error(`[lecture] ${livre} ${chapitre} servi sans l’appareil :`, erreur)
+        return null
+      }))
     : null
   const [versetsCharges, liminaires, tradsV2, paratexteDisponible, titresMasques] = await Promise.all([
     versetsPromis,

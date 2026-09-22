@@ -153,10 +153,12 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       // seule prose (demande de l'auteur, 2026-09-06).
       // ⚠️ Le nombre d'œuvres se présente ICI depuis le 13 septembre 2026 : il ferme la
       // rangée d'actions et ne paraît qu'avec elle, au survol, quand il y tient.
+      // ⚠️ Le lasso se présente ICI depuis le 22 septembre 2026 : il agit sur les mêmes
+      // passages que les actions, plusieurs à la fois, et il naît du blanc de la page.
       texte: [
-        'Au survol d’un passage, les actions apparaissent dans la marge.',
-        'Elles permettent de le prélever, de le copier ou de le signaler. Vous les retrouverez partout où le site donne à lire un texte.',
+        'Au survol d’un passage, les actions apparaissent dans la marge : le prélever, le copier ou le signaler. Vous les retrouverez partout où le site donne à lire un texte.',
         'Quand la place le permet, un nombre les suit : celui des œuvres en ligne qui commentent le passage.',
+        'Tirer un cadre à la souris depuis le blanc de la page sélectionne plusieurs versets d’un coup.',
       ],
       illustration: 'actions-verset',
       cote: 'gauche',
@@ -190,8 +192,9 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
  *   `TexteBible`), il ne reste que le menu des bibles ;
  * - le verset : ce que les Pères en disent s’ouvre dans l’onglet **Pères**, non « à
  *   droite » ;
- * - les actions : elles viennent d’une touche, non d’un survol, et un appui long
- *   passe en mode lasso pour choisir plusieurs versets d’un seul geste ;
+ * - les actions : elles viennent d’une touche, non d’un survol, et un appui long sur le
+ *   NUMÉRO d’un verset passe en mode lasso pour en choisir plusieurs d’un seul geste
+ *   (sur le texte, l’appui long garde la sélection de mots du système) ;
  * - les Pères : l’étape les présente comme un onglet, non comme « le volet de droite ».
  * ⛔ La visite ne se DUPLIQUE pas pour autant : seuls ces textes changent, le reste du
  * scénario (sujets, scènes, ordre) est celui du bureau.
@@ -208,7 +211,7 @@ const TEXTES_AU_DOIGT: Readonly<Record<string, readonly string[]>> = {
   actions: [
     'Touchez un verset : ses actions paraissent à côté de lui.',
     'Elles permettent de le prélever, de le copier ou de le signaler. Vous les retrouverez partout où le site donne à lire un texte.',
-    'Un appui long sur le texte passe en mode lasso : on choisit alors plusieurs versets d’un seul geste.',
+    'Un appui long sur le numéro d’un verset passe en mode lasso : on choisit alors plusieurs versets d’un seul geste.',
   ],
   peres: [
     'Cet onglet rassemble les œuvres qui citent le verset choisi, le commentent ou y font écho : **Citations**, **Commentaires**, **Échos**.',

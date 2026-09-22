@@ -10,7 +10,7 @@
 // Ils vivent maintenant dans `liens_bibliques`, une ligne par lien, avec clés
 // étrangères et index. LES QUATRE TYPES SONT CONSERVÉS À L'IDENTIQUE (charte §9) —
 // c'est leur portage qui change, pas la distinction éditoriale.
-import { chargerPagesEnParallele, chargerToutesPagesSupabase, lancerEnParallele, lotsPourClauseIn } from '@/app/lib/paginationSupabase'
+import { chargerToutesPagesSupabase, lancerEnParallele, lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { supabase } from '@/app/lib/supabase'
 
 export type TypeLien = 1 | 2 | 3 | 4
@@ -142,12 +142,36 @@ const lireLiensEnSerie = (filtrer: (q: RequeteLiens) => RequeteLiens) =>
     filtrer(requeteLiens()).order('id', { ascending: true }).range(debut, fin) as unknown as ReponseLiens,
   )
 
-/** Une lecture qui dépasse souvent une page (les liens au verset d'un chapitre) :
- *  pages par vagues parallèles. */
-const lireLiensParVagues = (filtrer: (q: RequeteLiens) => RequeteLiens) =>
-  chargerPagesEnParallele<Lien>((debut, fin) =>
-    filtrer(requeteLiens()).order('id', { ascending: true }).range(debut, fin) as unknown as ReponseLiens,
-  )
+/** La taille d'une page de liens : le plafond PostgREST. */
+const PAGE_LIENS = 1000
+
+/** Une lecture qui dépasse souvent une page (les liens au verset d'un chapitre) : pages
+ *  par CURSEUR (`id > dernier`), en série (2026-09-22).
+ *
+ *  ⛔ PLUS DE VAGUES PARALLÈLES À DÉCALAGE. Mesuré sous `authenticated` sur Genèse 1
+ *  (2 839 liens) : une page à décalage évalue la politique de lecture sur TOUTES les
+ *  lignes du chapitre puis les trie, si bien que trois pages la payaient trois fois
+ *  (52 ms la page à chaud, 1,8 s à froid) ; et la vague spéculait deux pages vides par
+ *  chapitre. Par curseur, sur l'index (canon_livre, canon_chapitre, id) (migration
+ *  `20260922155227_volet_peres_audit`), une page s'arrête à ses mille lignes (22 ms) et
+ *  chaque ligne n'est évaluée qu'une fois. ⚠️ En série par construction : une page ne
+ *  part qu'avec l'identifiant de la précédente, si bien qu'une lecture ne garde JAMAIS
+ *  plus d'une requête en vol, et que la borne de `lancerEnParallele` qui l'enveloppe
+ *  est la borne réelle. */
+async function lireLiensParCurseur(filtrer: (q: RequeteLiens) => RequeteLiens): Promise<Lien[]> {
+  const lignes: Lien[] = []
+  let dernier: number | null = null
+  for (;;) {
+    let q = filtrer(requeteLiens())
+    if (dernier !== null) q = q.gt('id', dernier)
+    const page = await (q.order('id', { ascending: true }).range(0, PAGE_LIENS - 1) as unknown as ReponseLiens)
+    if (page.error) throw page.error
+    const donnees = page.data ?? []
+    lignes.push(...donnees)
+    if (donnees.length < PAGE_LIENS) return lignes
+    dernier = donnees[donnees.length - 1].id
+  }
+}
 
 /** Recherche inverse : les segments qui renvoient à un verset donné.
  *
@@ -186,7 +210,7 @@ export async function segmentsLiesAuVerset(canonId: string): Promise<Lien[]> {
  */
 export async function segmentsLiesAuChapitre(livre: string, chapitre: number): Promise<Lien[]> {
   const [parVerset, parChapitre] = await lancerEnParallele([
-    () => lireLiensParVagues(q => q.eq('canon_livre', livre).eq('canon_chapitre', chapitre)),
+    () => lireLiensParCurseur(q => q.eq('canon_livre', livre).eq('canon_chapitre', chapitre)),
     () => lireLiensEnSerie(q => q.eq('livre', livre).eq('chapitre', chapitre)),
   ])
   return [...parVerset, ...parChapitre]
@@ -212,7 +236,7 @@ export async function segmentsLiesAPlage(livre: string, canonDebut: string, cano
   // La liste `chapitres` est bornée par construction (les chapitres d'une péricope) :
   // la clause `in` n'a pas à passer par `lotsPourClauseIn`. Chaque lecture est paginée.
   const resultats = await lancerEnParallele([
-    ...chapitres.map(c => () => lireLiensParVagues(q => q.eq('canon_livre', livre).eq('canon_chapitre', c))),
+    ...chapitres.map(c => () => lireLiensParCurseur(q => q.eq('canon_livre', livre).eq('canon_chapitre', c))),
     () => lireLiensEnSerie(q => q.is('canon_id', null).eq('livre', livre).in('chapitre', chapitres)),
   ])
   const out: Lien[] = []

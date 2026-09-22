@@ -36,7 +36,7 @@ import RailVolet from '@/app/components/RailVolet'
 import IconeChevron from '@/app/components/IconeChevron'
 import { ecartsAMesurer, numerosDeLEcart, regrouperCitations, texteDuGroupe, type Ecart } from '@/app/lib/regrouperCitations'
 import { niveauxDuSegment, titreEntrePassages, type NiveauxDuPassage } from '@/app/lib/titresDeDivision'
-import { lancerEnParallele, lotsPourClauseIn } from '@/app/lib/paginationSupabase'
+import { chargerToutesPagesSupabase, lancerEnParallele, lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import FiltresPatristiques, { useFiltresPatristiques, type MetaAuteur } from '@/app/components/FiltresPatristiques'
 import { chargerContrepartiesFrancaises } from '@/app/lib/contrepartieFrancaise'
 import { MarqueAttenteVolet } from '@/app/lib/attenteNavigation'
@@ -57,19 +57,35 @@ const OngletSemantique = dynamic(() => import('@/app/components/OngletSemantique
 const OngletCommentaires = dynamic(() => import('@/app/components/OngletCommentaires'))
 
 /** Ce que le rail et la barre mobile écrivent quand le volet est fermé : l'ACTION,
- *  jamais le contenu. « Commentaires » sur une bande fermée décrit ce qu'on ne voit
- *  pas ; « Ouvrir les commentaires » dit ce qu'un clic fera. */
-const LIBELLE_RAIL = 'Ouvrir les commentaires'
+ *  jamais le contenu. Le volet s'appelle « Pères de l’Église » : « Ouvrir les Pères » dit
+ *  ce qu'un clic fera, dans le nom de ce qu'il ouvre (2026-09-22 ; le rail disait
+ *  « Ouvrir les commentaires » et la barre mobile « Ouvrir les textes patristiques »). */
+const LIBELLE_RAIL = 'Ouvrir les Pères'
 
 type Verset = { id_verset: string; ref: string; verset: number; chapitre: number }
+/** Un morceau d'extrait tel que le volet le lit : sa clé, et — une fois la page connue —
+ *  son texte et ses notes héritées. */
+type Morceau = {
+  id?: number; id_texte: string; segment_key: string | null
+  longueur?: number | null
+  segment_texte?: string; notes?: string | null
+}
 type Segment = {
   // ⛔ `id_texte` DÉCIDE des regroupements, `id_oeuvre` ne fait que nommer : une œuvre
   // porte plusieurs textes (La Cité de Dieu son latin et son français, tous deux liés
   // à des versets) et leurs `segment_numero` se recouvrent.
   id: number; id_oeuvre: string; id_texte: string; segment_numero: number
-  segment_texte: string; ref_niv1: string; ref_niv2: string
-  ref_niv3: string; ref_niv4?: string | null; notes?: string | null
+  ref_niv1: string; ref_niv2: string
+  ref_niv3: string; ref_niv4?: string | null
   segment_key?: string | null
+  /** ⛔ LA LONGUEUR SEULE VOYAGE AVEC LA LISTE (2026-09-22) : comptes, filtres, tris,
+   *  regroupements et mesure des élisions se font sur des colonnes légères, et le texte
+   *  (559 Ko sur Genèse 1, pour vingt extraits montrés) ne se charge que pour la PAGE
+   *  affichée. Champ calculé `longueur_texte` (migration `20260922155227_volet_peres_audit`). */
+  longueur?: number | null
+  /** Le texte et les notes héritées : absents tant que la page qui montre ce segment n'a
+   *  pas été chargée (voir `hydrater`). */
+  segment_texte?: string; notes?: string | null
   // ⚠️ Le segment qui PORTE le lien biblique, quand ce n'est pas celui qu'on montre :
   // un lien posé sur un latin s'affiche dans sa contrepartie française (voir
   // `contrepartieFrancaise`). Ce qu'on lit, ouvre et prélève est le français ; le
@@ -78,8 +94,12 @@ type Segment = {
   /** Les segments français d'un EMPAN, quand la contrepartie d'un latin en réunit
    *  plusieurs (`chargerContrepartiesFrancaises`) : le volet pose les appels et lit les
    *  notes de chacun (`composerExtrait`). */
-  parties?: { id_texte: string; segment_key: string | null; segment_texte: string; notes?: string | null }[]
+  parties?: Morceau[]
 }
+/** Un segment dont la page a chargé le texte : c'est ce que la carte montre, copie et prélève. */
+type SegmentHydrate = Segment & { segment_texte: string; parties?: (Morceau & { segment_texte: string })[] }
+/** Une ligne de `liens_bibliques`, gardée pour le RETRAIT : son type et sa cible. */
+type LigneLien = { id: number; type: TypeLien; canon_id: string | null; livre: string | null; chapitre: number | null }
 type OeuvreInfo = {
   titre: string; sous_titre?: string; auteur_nom: string; id_auteur?: string
   trad_auteur: string | null; editeur: string | null
@@ -161,7 +181,7 @@ function BoutonCopieSegment({ texte, auteur, titre, sous_titre, trad_auteur, edi
 // enregistré s'enregistrait une seconde fois. Il montre son geste aussitôt, et le défait si
 // la base le refuse, en le disant discrètement (encre d'alerte et infobulle).
 function BoutonEnregistrerSegment({ segment, info, userId, enregistre, onChange }: {
-  segment: Segment; info?: OeuvreInfo; userId: string | null
+  segment: SegmentHydrate; info?: OeuvreInfo; userId: string | null
   /** `null` : l'état n'est pas encore connu, le bouton attend. */
   enregistre: boolean | null
   onChange: (segmentId: number, enregistre: boolean) => void
@@ -237,8 +257,15 @@ function BoutonEnregistrerSegment({ segment, info, userId, enregistre, onChange 
 // `segments.lien_N = null`, des colonnes mortes, et la carte disparaissait sans que rien ne
 // change en base. On supprime les lignes (la politique `liens_bibliques_admin_all` l'ouvre à
 // l'administrateur), on lit l'erreur, et la carte ne part qu'en cas de succès.
-function BoutonSupprimerLien({ lienIds, isAdmin, onSupprime }: {
-  lienIds: number[]; isAdmin: boolean; onSupprime: () => void
+function BoutonSupprimerLien({ lienIds, confirmation, isAdmin, onSupprime }: {
+  lienIds: number[]
+  /** Ce que la confirmation dit AVANT le retrait : combien de liens, et vers quels versets.
+   *  ⛔ Obligatoire en vue chapitre et sur une plage, où la carte ne dit pas quel verset
+   *  elle représente et où le retrait peut en viser plusieurs. */
+  confirmation: string | null
+  isAdmin: boolean
+  /** Les identifiants que la base a RÉELLEMENT retirés. */
+  onSupprime: (retires: number[]) => void
 }) {
   const [confirme, setConfirme] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -246,25 +273,32 @@ function BoutonSupprimerLien({ lienIds, isAdmin, onSupprime }: {
   if (!isAdmin || lienIds.length === 0) return null
 
   if (!confirme) {
+    const nom = lienIds.length > 1 ? 'Supprimer ces liens bibliques' : 'Supprimer ce lien biblique'
     return (
       <button onClick={e => { e.stopPropagation(); setConfirme(true); setErreur(false) }}
-        title="Supprimer ce lien biblique" aria-label="Supprimer ce lien biblique"
+        title={nom} aria-label={nom}
         className="cs-bouton-fin" style={{ ...ACTION_BTN, fontSize:'1.125rem', color:'var(--cs-bord)' }}>
         ×
       </button>
     )
   }
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:'6px', flexShrink:0, flexWrap:'wrap', justifyContent:'flex-end' }}>
+    <span style={{ display:'inline-flex', alignItems:'center', gap:'6px', flexShrink:0, flexWrap:'wrap', justifyContent:'flex-end', maxWidth:'13rem' }}>
+      {confirmation && (
+        <span role="note" style={{ width:'100%', textAlign:'right', fontSize:'0.6875rem', lineHeight:1.3, color:'var(--cs-texte-second)' }}>{confirmation}</span>
+      )}
       <button onClick={async e => {
         e.stopPropagation()
         setLoading(true); setErreur(false)
-        const { error } = await supabase.from('liens_bibliques').delete().in('id', lienIds)
+        // ⚠️ On relit ce que la base a retiré : une politique qui refuse ne lève pas, elle
+        // retire zéro ligne, et la carte serait partie sans que rien ne change.
+        const { data, error } = await supabase.from('liens_bibliques').delete().in('id', lienIds).select('id')
         setLoading(false)
-        if (error) { console.error('[volet] suppression du lien refusée :', error); setErreur(true); return }
-        onSupprime()
+        const retires = ((data ?? []) as { id: number }[]).map(l => l.id)
+        if (error || retires.length === 0) { console.error('[volet] suppression du lien refusée :', error ?? 'aucune ligne retirée'); setErreur(true); return }
+        onSupprime(retires)
       }} disabled={loading}
-        aria-label="Confirmer la suppression du lien"
+        aria-label={lienIds.length > 1 ? `Confirmer la suppression des ${lienIds.length} liens` : 'Confirmer la suppression du lien'}
         style={{ fontSize:'0.6875rem', minHeight:'24px', padding:'2px 8px', borderRadius:'4px', border:'none', background:'var(--cs-danger-aplat)', color:'var(--cs-sur-aplat)', cursor:'pointer' }}>
         {loading ? '…' : 'Supprimer'}
       </button>
@@ -285,8 +319,8 @@ function BoutonSupprimerLien({ lienIds, isAdmin, onSupprime }: {
 const libelleNoteVolet = (contenu: NoteAffichee | undefined) =>
   !contenu || typeof contenu === 'string' ? LIBELLE_NOTE_SANS_TYPE : libelleDeLaNote(contenu)
 
-function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, userId, isAdmin, lienIds, enregistre, onEnregistre, retour, onSignaler, onSupprimeLien }: {
-  s: Segment; info?: OeuvreInfo; userId: string | null; isAdmin: boolean
+function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, userId, isAdmin, lienIds, confirmationSuppression, enregistre, onEnregistre, retour, onSignaler, onSupprimeLien }: {
+  s: SegmentHydrate; info?: OeuvreInfo; userId: string | null; isAdmin: boolean
   /** Le chemin du verset (ou de la péricope) d'où l'on ouvre le passage : la page
    *  d'œuvre en fait un lien « Retour à … » (`?depuis=`, voir `retourLecture`). */
   retour: string | null
@@ -301,11 +335,13 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
   notesEnAttente: boolean
   /** Les lignes de `liens_bibliques` que le bouton d'administration supprime. */
   lienIds: number[]
+  /** Ce que la confirmation du retrait dit (voir `BoutonSupprimerLien`). */
+  confirmationSuppression: string | null
   /** Le passage est-il dans les prélèvements du lecteur ? `null` : pas encore lu. */
   enregistre: boolean | null
   onEnregistre: (segmentId: number, enregistre: boolean) => void
-  onSignaler: (s: Segment, titreOeuvre?: string) => void
-  onSupprimeLien: () => void
+  onSignaler: (s: SegmentHydrate, titreOeuvre?: string) => void
+  onSupprimeLien: (retires: number[]) => void
 }) {
   // ── LA NOTE DÉPLIÉE ─────────────────────────────────────────────────────────
   // Une seule à la fois par extrait : ouvrir une autre la remplace, recliquer son appel
@@ -383,7 +419,7 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
               copie, le « × » d'administration se prenait pour elle. Il descend sur sa
               propre rangée, sous les actions qui ne détruisent rien, et demande toujours
               confirmation. */}
-          <BoutonSupprimerLien lienIds={lienIds} isAdmin={isAdmin} onSupprime={onSupprimeLien} />
+          <BoutonSupprimerLien lienIds={lienIds} confirmation={confirmationSuppression} isAdmin={isAdmin} onSupprime={onSupprimeLien} />
         </div>
       </div>
 
@@ -484,10 +520,29 @@ function LigneCompte({ enAttente, compte, style, videDit }: {
 // leur erreur. Il lit désormais les œuvres et les éditions des extraits qu'il montre, en
 // parallèle, l'auteur embarqué dans l'œuvre, et garde tout dans un cache de module : revenir
 // à un verset déjà vu ne coûte rien.
-// ⚠️ `null` : l'œuvre n'est pas publiée (ou introuvable), et ses extraits ne paraissent pas.
-const cacheOeuvres = new Map<string, OeuvreInfo | null>()
-const cacheAuteurs = new Map<string, MetaAuteur>()
-const cacheEditions = new Map<string, LigneIdentiteTexte | null>()
+// ⛔ DURÉE DE VIE, ABSENCES, LECTEUR (2026-09-22). Une entrée vit cinq minutes : une œuvre
+// publiée entre-temps, ou retirée, se voit sans recharger la page. Une ABSENCE (œuvre non
+// publiée, introuvable, édition illisible) ne se retient PAS : elle se redemande au passage
+// suivant, sans quoi une œuvre qu'on vient de publier resterait invisible jusqu'au
+// rechargement. Et tout le cache se vide quand le LECTEUR change : ce qu'on lit dépend de
+// sa session (la politique de lecture), et un cache de module survit à la déconnexion.
+const DUREE_CACHE_MS = 5 * 60 * 1000
+type EntreeCache<T> = { valeur: T; t: number }
+const cacheOeuvres = new Map<string, EntreeCache<OeuvreInfo>>()
+const cacheAuteurs = new Map<string, EntreeCache<MetaAuteur>>()
+const cacheEditions = new Map<string, EntreeCache<LigneIdentiteTexte>>()
+let lecteurDuCache: string | null | undefined
+const frais = <T,>(e: EntreeCache<T> | undefined): e is EntreeCache<T> => e !== undefined && Date.now() - e.t < DUREE_CACHE_MS
+function accorderCacheAuLecteur(lecteur: string | null) {
+  if (lecteurDuCache === lecteur) return
+  cacheOeuvres.clear(); cacheAuteurs.clear(); cacheEditions.clear()
+  lecteurDuCache = lecteur
+}
+const instantane = <T,>(cache: Map<string, EntreeCache<T>>): Record<string, T> => {
+  const r: Record<string, T> = {}
+  for (const [id, e] of cache) if (frais(e)) r[id] = e.valeur
+  return r
+}
 
 const COLONNES_OEUVRE = 'id_oeuvre, titre, sous_titre, id_auteur, trad_auteur, editeur, collection, ville, date_publication, date_composition, genre, niveaux_corps, acces_public, auteurs!oeuvres_id_auteur_fkey(nom, traditions, siecle, date_mort)'
 
@@ -503,9 +558,10 @@ type LigneOeuvre = {
 /** Charge les œuvres et les éditions qui manquent au cache. Une œuvre illisible LÈVE : sans
  *  elle, l'extrait ne peut pas se nommer. Une édition illisible se consigne seulement : la
  *  citation retombe sur l'œuvre. */
-async function chargerMetadonnees(idsOeuvres: string[], idsTextes: string[]) {
-  const oeuvresManquantes = [...new Set(idsOeuvres)].filter(id => !cacheOeuvres.has(id))
-  const textesManquants = [...new Set(idsTextes)].filter(id => id && !cacheEditions.has(id))
+async function chargerMetadonnees(idsOeuvres: string[], idsTextes: string[], lecteur: string | null) {
+  accorderCacheAuLecteur(lecteur)
+  const oeuvresManquantes = [...new Set(idsOeuvres)].filter(id => !frais(cacheOeuvres.get(id)))
+  const textesManquants = [...new Set(idsTextes)].filter(id => id && !frais(cacheEditions.get(id)))
   const [reponsesOeuvres, reponsesTextes] = await Promise.all([
     lancerEnParallele(lotsPourClauseIn(oeuvresManquantes).map(lot => () =>
       supabase.from('oeuvres').select(COLONNES_OEUVRE).in('id_oeuvre', lot))),
@@ -513,11 +569,14 @@ async function chargerMetadonnees(idsOeuvres: string[], idsTextes: string[]) {
       supabase.from('oeuvre_textes').select(COLONNES_IDENTITE_TEXTE).in('id_texte', lot))),
   ])
   for (const r of reponsesOeuvres) if (r.error) throw r.error
+  const t = Date.now()
   for (const r of reponsesOeuvres) {
     for (const o of (r.data ?? []) as unknown as LigneOeuvre[]) {
       const auteur = Array.isArray(o.auteurs) ? o.auteurs[0] ?? null : o.auteurs
-      if (o.id_auteur && auteur) cacheAuteurs.set(o.id_auteur, { traditions: auteur.traditions ?? [], siecle: auteur.siecle ?? null, date_mort: auteur.date_mort ?? null })
-      cacheOeuvres.set(o.id_oeuvre, estOeuvrePubliee(o) ? {
+      if (o.id_auteur && auteur) cacheAuteurs.set(o.id_auteur, { valeur: { traditions: auteur.traditions ?? [], siecle: auteur.siecle ?? null, date_mort: auteur.date_mort ?? null }, t })
+      // ⛔ Une œuvre non publiée ne se retient pas (et une entrée périmée qui l'était se retire).
+      if (!estOeuvrePubliee(o)) { cacheOeuvres.delete(o.id_oeuvre); continue }
+      cacheOeuvres.set(o.id_oeuvre, { t, valeur: {
         titre: o.titre || o.id_oeuvre,
         sous_titre: o.sous_titre || undefined,
         id_auteur: o.id_auteur || undefined,
@@ -530,29 +589,19 @@ async function chargerMetadonnees(idsOeuvres: string[], idsTextes: string[]) {
         date_composition: o.date_composition || null,
         genre: o.genre || null,
         niveaux_corps: o.niveaux_corps ?? null,
-      } : null)
+      } })
     }
   }
-  // Ce que la base n'a pas rendu n'est pas lisible : on ne le redemandera pas.
-  for (const id of oeuvresManquantes) if (!cacheOeuvres.has(id)) cacheOeuvres.set(id, null)
   const echecTextes = reponsesTextes.find(r => r.error)
   if (echecTextes) console.error('[volet] éditions illisibles, citation à l’œuvre :', echecTextes.error)
   else {
-    for (const r of reponsesTextes) for (const l of (r.data ?? []) as unknown as LigneIdentiteTexte[]) cacheEditions.set(l.id_texte, l)
-    for (const id of textesManquants) if (!cacheEditions.has(id)) cacheEditions.set(id, null)
+    for (const r of reponsesTextes) for (const l of (r.data ?? []) as unknown as LigneIdentiteTexte[]) cacheEditions.set(l.id_texte, { valeur: l, t })
   }
 }
 
-const instantaneOeuvres = () => {
-  const r: Record<string, OeuvreInfo> = {}
-  for (const [id, o] of cacheOeuvres) if (o) r[id] = o
-  return r
-}
-const instantaneEditions = () => {
-  const r: Record<string, LigneIdentiteTexte> = {}
-  for (const [id, e] of cacheEditions) if (e) r[id] = e
-  return r
-}
+const instantaneOeuvres = () => instantane(cacheOeuvres)
+const instantaneEditions = () => instantane(cacheEditions)
+const instantaneAuteurs = () => instantane(cacheAuteurs)
 
 // Quatre natures de lien : citation directe (1), paraphrase (2), commentaire (3), écho (4).
 type Categorie = 'citation_directe' | 'paraphrase' | 'commentaire' | 'echo'
@@ -562,6 +611,89 @@ const estCitation = (cats: Categorie[]) => cats.includes('citation_directe') || 
 /** Le type de lien qu'une colonne héritée désignait (la carte le garde pour savoir quoi
  *  supprimer). */
 const TYPE_DE_COLONNE: Record<string, TypeLien> = { lien_1: 1, lien_2: 2, lien_3: 3, lien_4: 4 }
+
+/** Les types de lien que MONTRE un sous-onglet, donc ceux que son « × » retire (charte §9) :
+ *  Citations = citation (1) et reprise (2), Commentaires = doctrine (3), Échos = écho (4).
+ *  ⛔ Le type retiré se dérive de l'onglet REGARDÉ, jamais de la première rubrique de
+ *  l'extrait : un passage cité ET commenté, supprimé depuis « Commentaires », perdait son
+ *  lien de CITATION et gardait le commentaire qu'on voulait retirer (2026-09-22). */
+const TYPES_DU_SOUS_ONGLET: Record<'citations' | 'doctrine' | 'echos', readonly TypeLien[]> = {
+  citations: [1, 2], doctrine: [3], echos: [4],
+}
+
+/** La clé d'un morceau pour la carte des textes chargés : sa clé stable, sinon son id. */
+const cleTexteDe = (m: { id?: number; id_texte: string; segment_key?: string | null }) =>
+  m.segment_key ? `${m.id_texte}|${m.segment_key}` : `id:${m.id}`
+
+type TexteDeSegment = { segment_texte: string; notes: string | null }
+
+/** Le texte et les notes héritées d'une page d'extraits, par (texte, clé) — jamais par
+ *  l'identifiant, qu'un bigint au-delà de 2^53 arrondit dans le navigateur (`liensDeSegments`). */
+async function chargerTextesDesSegments(cles: readonly string[]): Promise<Map<string, TexteDeSegment>> {
+  const parTexte = new Map<string, string[]>()
+  const parId: string[] = []
+  for (const c of cles) {
+    if (c.startsWith('id:')) { parId.push(c.slice(3)); continue }
+    const i = c.indexOf('|')
+    const t = c.slice(0, i)
+    parTexte.set(t, [...(parTexte.get(t) ?? []), c.slice(i + 1)])
+  }
+  const taches: (() => PromiseLike<{ data: unknown; error: unknown }>)[] = []
+  for (const [t, cles] of parTexte) for (const lot of lotsPourClauseIn(cles)) {
+    taches.push(() => supabase.from('segments').select('id_texte, segment_key, segment_texte, notes').eq('id_texte', t).in('segment_key', lot))
+  }
+  for (const lot of lotsPourClauseIn(parId)) {
+    taches.push(() => supabase.from('segments').select('id, id_texte, segment_key, segment_texte, notes').in('id', lot))
+  }
+  const reponses = await lancerEnParallele(taches)
+  const textes = new Map<string, TexteDeSegment>()
+  for (const r of reponses) {
+    if (r.error) throw r.error
+    for (const l of (r.data ?? []) as { id?: number; id_texte: string; segment_key: string | null; segment_texte: string | null; notes: string | null }[]) {
+      const valeur = { segment_texte: l.segment_texte ?? '', notes: l.notes ?? null }
+      if (l.id !== undefined) textes.set(`id:${l.id}`, valeur)
+      if (l.segment_key) textes.set(`${l.id_texte}|${l.segment_key}`, valeur)
+    }
+  }
+  return textes
+}
+
+/** Le segment tel que la carte le montre, son texte posé ; `null` tant qu'un morceau manque. */
+function hydrater(seg: Segment, textes: ReadonlyMap<string, TexteDeSegment>): SegmentHydrate | null {
+  if (seg.parties && seg.parties.length > 0) {
+    const parties: (Morceau & { segment_texte: string })[] = []
+    for (const p of seg.parties) {
+      const t = textes.get(cleTexteDe(p))
+      if (!t) return null
+      parties.push({ ...p, segment_texte: t.segment_texte, notes: t.notes })
+    }
+    // ⚠️ L'empan se recompose comme `chargerContrepartiesFrancaises` le recompose.
+    return { ...seg, parties, segment_texte: parties.map(p => p.segment_texte).join(' '), notes: parties.map(p => p.notes).filter(Boolean).join('\n') || null }
+  }
+  const t = textes.get(cleTexteDe(seg))
+  return t ? { ...seg, parties: undefined, segment_texte: t.segment_texte, notes: t.notes } : null
+}
+
+/** Le numéro d'un verset visé, pour la confirmation d'un retrait : « 7 » dans un chapitre,
+ *  « 3, 7 » sur une plage qui traverse des chapitres. */
+function repereDuLien(l: LigneLien, surPlage: boolean): string {
+  if (!l.canon_id) return l.chapitre != null ? `le chapitre ${l.chapitre} entier` : 'une cible à constituer'
+  const [, c, v] = l.canon_id.split('.')
+  return surPlage ? `${c}, ${v}` : v
+}
+
+/** Ce que la confirmation d'un retrait dit en vue chapitre ou plage : combien, et lesquels. */
+function confirmationDuRetrait(lignes: readonly LigneLien[], surPlage: boolean): string {
+  const auVerset = [...new Set(lignes.filter(l => l.canon_id).map(l => repereDuLien(l, surPlage)))]
+    .sort((a, b) => a.localeCompare(b, 'fr', { numeric: true }))
+  const auChapitre = [...new Set(lignes.filter(l => !l.canon_id).map(l => repereDuLien(l, surPlage)))]
+  const cibles = [
+    ...(auVerset.length ? [`${auVerset.length > 1 ? 'versets' : 'verset'} ${auVerset.join(', ')}`] : []),
+    ...auChapitre,
+  ]
+  const n = lignes.length
+  return `${n > 1 ? `${n} liens seront retirés` : 'Un lien sera retiré'} : ${cibles.join(' ; ')}.`
+}
 
 /** La circulation aux flèches dans une barre d'onglets (`role="tablist"`) : ← → passent au
  *  voisin, Début et Fin aux bouts, et le foyer suit l'onglet choisi. */
@@ -650,13 +782,13 @@ export default function PanneauPatristique({
   // Les niveaux de division des segments lus dans un écart : un titre qui le traverse
   // empêche la réunion (charte § 38.8.1).
   const [niveauxEcarts, setNiveauxEcarts] = useState<Map<string, NiveauxDuPassage>>(new Map())
-  const [segmentsCitations, setSegmentsCitations] = useState<{ seg: Segment; col: string }[]>([])
-  const [segmentsDoctrine, setSegmentsDoctrine] = useState<Segment[]>([])
-  const [segmentsEcho, setSegmentsEcho] = useState<Segment[]>([])
-  // Les lignes de `liens_bibliques` de chaque segment porteur, pour la suppression.
-  const [liensParSegment, setLiensParSegment] = useState<Map<number, { id: number; type: TypeLien }[]>>(new Map())
+  // Les segments liés, LÉGERS (sans texte), leur contrepartie française posée.
+  const [segsCharges, setSegsCharges] = useState<Segment[]>([])
+  // Les lignes de `liens_bibliques` de chaque segment porteur (`idLien`) : elles disent
+  // ses rubriques, et c'est elles que le « × » d'administration retire.
+  const [liensParSegment, setLiensParSegment] = useState<Map<number, LigneLien[]>>(new Map())
   const [oeuvres, setOeuvres] = useState<Record<string, OeuvreInfo>>(instantaneOeuvres)
-  const [auteurMeta, setAuteurMeta] = useState<Record<string, MetaAuteur>>(() => Object.fromEntries(cacheAuteurs))
+  const [auteurMeta, setAuteurMeta] = useState<Record<string, MetaAuteur>>(instantaneAuteurs)
   // Les éditions, pour citer un passage sous la sienne.
   const [editions, setEditions] = useState<Record<string, LigneIdentiteTexte>>(instantaneEditions)
   const [loading, setLoading] = useState(false)
@@ -670,7 +802,7 @@ export default function PanneauPatristique({
   const { modeUtilisateurStandard } = useAffichageAdmin()
   const isAdmin = isAdminReel && !modeUtilisateurStandard
   const { userId, exigerCompte } = useCompte()
-  const [segSignale, setSegSignale] = useState<{ seg: Segment; titreOeuvre?: string } | null>(null)
+  const [segSignale, setSegSignale] = useState<{ seg: SegmentHydrate; titreOeuvre?: string } | null>(null)
 
   // ── Compteurs onglets ────────────────────────────────────────────────────────
   // ⛔ LE COMPTE EST RETENU AVEC LE VERSET AUQUEL IL APPARTIENT (14 septembre 2026).
@@ -728,7 +860,7 @@ export default function PanneauPatristique({
   useEffect(() => {
     setPageItems(0)
     if (demande === null) {
-      setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); setLiensParSegment(new Map()); setSegmentsPour(null)
+      setSegsCharges([]); setLiensParSegment(new Map()); setSegmentsPour(null)
       return
     }
     const cle = cleDemande
@@ -736,8 +868,11 @@ export default function PanneauPatristique({
     setErreurPour(null)
     let annule = false
 
-    // La recherche inverse passe par `liens_bibliques` (index sur `canon_id`, paginé).
-    const SEG_COLS = 'id, id_oeuvre, id_texte, segment_key, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4, notes'
+    // ⛔ DES COLONNES LÉGÈRES (2026-09-22) : ni texte ni notes. La liste entière ne sert
+    // qu'à compter, filtrer, trier et regrouper ; le texte d'un extrait se charge avec la
+    // page qui le montre (`chargerTextesDesSegments`). La longueur voyage, par le champ
+    // calculé `longueur_texte` : c'est elle qui juge une élision.
+    const SEG_COLS = 'id, id_oeuvre, id_texte, segment_key, segment_numero, ref_niv1, ref_niv2, ref_niv3, ref_niv4, longueur:longueur_texte'
     ;(async () => {
       try {
         const liens = demande.type === 'plage'
@@ -748,60 +883,42 @@ export default function PanneauPatristique({
         if (annule) return
         // UN SEGMENT PEUT RELEVER DE PLUSIEURS RUBRIQUES À LA FOIS, et il le doit : chez un
         // commentateur, le même passage est cité (type 1) PUIS commenté (type 3).
-        const typesParSegment = new Map<number, Set<TypeLien>>()
-        const lignes = new Map<number, { id: number; type: TypeLien }[]>()
+        const lignes = new Map<number, LigneLien[]>()
         for (const l of liens) {
-          if (!typesParSegment.has(l.segment_id)) typesParSegment.set(l.segment_id, new Set())
-          typesParSegment.get(l.segment_id)!.add(l.type)
           if (!lignes.has(l.segment_id)) lignes.set(l.segment_id, [])
-          lignes.get(l.segment_id)!.push({ id: l.id, type: l.type })
+          lignes.get(l.segment_id)!.push({ id: l.id, type: l.type, canon_id: l.canon_id, livre: l.livre, chapitre: l.chapitre })
         }
-        const ids = [...typesParSegment.keys()]
+        const ids = [...lignes.keys()]
         if (!ids.length) {
-          setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); setLiensParSegment(new Map()); setSegmentsPour(cle)
+          setSegsCharges([]); setLiensParSegment(new Map()); setSegmentsPour(cle)
           return
         }
         // ⛔ Lots d'OCTETS D'ADRESSE, lancés en parallèle bornée : jamais un lot de 500 en série.
         const reponses = await lancerEnParallele(lotsPourClauseIn(ids.map(String)).map(lot => () =>
           supabase.from('segments').select(SEG_COLS).in('id', lot)))
         for (const r of reponses) if (r.error) throw r.error
-        const bruts = reponses.flatMap(r => (r.data ?? []) as unknown as Segment[])
+        const bruts = reponses.flatMap(r => (r.data ?? []) as unknown as Omit<Segment, 'idLien'>[])
         if (annule) return
         // ⛔ ON LIT TOUJOURS UNE TRADUCTION FRANÇAISE (2026-09-04) : le segment AFFICHÉ
         // devient sa contrepartie française ; seul `idLien` garde celui qui porte le lien.
-        const contreparties = await chargerContrepartiesFrancaises(supabase, bruts)
+        const contreparties = await chargerContrepartiesFrancaises(supabase, bruts, { texte: false })
         if (annule) return
         const segs: Segment[] = bruts.map(s => {
           const fr = contreparties.get(s.id)
           return fr ? { ...s, ...fr, id_oeuvre: s.id_oeuvre, idLien: s.id } : { ...s, idLien: s.id }
         })
-        await chargerMetadonnees(segs.map(s => s.id_oeuvre), segs.map(s => s.id_texte))
+        await chargerMetadonnees(segs.map(s => s.id_oeuvre), segs.map(s => s.id_texte), userId)
         if (annule) return
-        // Citations = types 1 et 2 réunis ; doctrine = 3 ; écho = 4. ⚠️ Les TYPES se
-        // cherchent par `idLien` : ils sont portés par le lien, non par le segment montré.
-        const citations: { seg: Segment; col: string }[] = []
-        const doctrine: Segment[] = []
-        const echo: Segment[] = []
-        for (const s of segs) {
-          const types = typesParSegment.get(s.idLien)
-          if (!types) continue
-          if (types.has(1)) citations.push({ seg: s, col: 'lien_1' })
-          else if (types.has(2)) citations.push({ seg: s, col: 'lien_2' })
-          if (types.has(3)) doctrine.push(s)
-          if (types.has(4)) echo.push(s)
-        }
         setOeuvres(instantaneOeuvres())
-        setAuteurMeta(Object.fromEntries(cacheAuteurs))
+        setAuteurMeta(instantaneAuteurs())
         setEditions(instantaneEditions())
-        setSegmentsCitations(citations)
-        setSegmentsDoctrine(doctrine)
-        setSegmentsEcho(echo)
+        setSegsCharges(segs)
         setLiensParSegment(lignes)
         setSegmentsPour(cle)
       } catch (erreur) {
         if (annule) return
         console.error('[volet] les textes des Pères n’ont pas pu être chargés :', erreur)
-        setSegmentsCitations([]); setSegmentsDoctrine([]); setSegmentsEcho([]); setLiensParSegment(new Map())
+        setSegsCharges([]); setLiensParSegment(new Map())
         setErreurPour(cle)
         setSegmentsPour(cle)
       } finally {
@@ -809,7 +926,37 @@ export default function PanneauPatristique({
       }
     })()
     return () => { annule = true }
-  }, [demande, cleDemande, tentative])
+    // ⚠️ `userId` : ce qu'on lit dépend de la session (politique de lecture), et le cache
+    // des métadonnées se vide quand le lecteur change.
+  }, [demande, cleDemande, tentative, userId])
+
+  // Citations = types 1 et 2 réunis ; doctrine = 3 ; écho = 4. ⚠️ Les TYPES se cherchent
+  // par `idLien` : ils sont portés par le lien, non par le segment montré. Dérivées des
+  // lignes de liens, les rubriques suivent d'elles-mêmes un retrait.
+  const { segmentsCitations, segmentsDoctrine, segmentsEcho } = useMemo(() => {
+    const citations: { seg: Segment; col: string }[] = []
+    const doctrine: Segment[] = []
+    const echo: Segment[] = []
+    for (const seg of segsCharges) {
+      const types = new Set((liensParSegment.get(seg.idLien) ?? []).map(l => l.type))
+      if (types.has(1)) citations.push({ seg, col: 'lien_1' })
+      else if (types.has(2)) citations.push({ seg, col: 'lien_2' })
+      if (types.has(3)) doctrine.push(seg)
+      if (types.has(4)) echo.push(seg)
+    }
+    return { segmentsCitations: citations, segmentsDoctrine: doctrine, segmentsEcho: echo }
+  }, [segsCharges, liensParSegment])
+
+  // Les segments PORTEURS de chaque segment montré : deux latins d'un même paragraphe
+  // rendent la même contrepartie française, et le retrait doit viser les deux.
+  const porteursDuSegment = useMemo(() => {
+    const m = new Map<number, Set<number>>()
+    for (const seg of segsCharges) {
+      if (!m.has(seg.id)) m.set(seg.id, new Set())
+      m.get(seg.id)!.add(seg.idLien)
+    }
+    return m
+  }, [segsCharges])
 
   // ── MESURER LES ÉLISIONS ────────────────────────────────────────────────────
   // Deux citations d'un même texte séparées par un ou deux paragraphes se lisent d'un
@@ -817,53 +964,88 @@ export default function PanneauPatristique({
   // ⚠️ La mesure ne part QUE s'il y a un écart à mesurer, et la page n'en dépend jamais.
   useEffect(() => {
     const tous = [...segmentsCitations.map(c => c.seg), ...segmentsDoctrine, ...segmentsEcho]
+    // ⚠️ Ce que la liste porte déjà se sait sans requête : sa longueur, et ses niveaux.
     const connues = new Map<string, number>()
-    for (const seg of tous) connues.set(`${seg.id_texte}|${seg.segment_numero}`, (seg.segment_texte ?? '').length)
+    const niveauxConnus = new Map<string, NiveauxDuPassage>()
+    for (const seg of tous) {
+      connues.set(`${seg.id_texte}|${seg.segment_numero}`, seg.longueur ?? 0)
+      niveauxConnus.set(`${seg.id_texte}|${seg.segment_numero}`, niveauxDuSegment(seg))
+    }
     const rangee = tous
-      .map(seg => ({ idOeuvre: seg.id_oeuvre, idTexte: seg.id_texte, numero: seg.segment_numero, texte: seg.segment_texte }))
+      .map(seg => ({ idOeuvre: seg.id_oeuvre, idTexte: seg.id_texte, numero: seg.segment_numero, texte: '' }))
       .sort((x, y) => (x.idTexte ?? '').localeCompare(y.idTexte ?? '') || x.numero - y.numero)
     const ecarts = ecartsAMesurer(rangee, c => c)
+    // ⛔ LES PAIRES UTILES, TEXTE PAR TEXTE (2026-09-22). La requête croisait
+    // `.in('id_texte', textes).in('segment_numero', numéros)` : tous les numéros dans tous
+    // les textes, soit 2 566 lignes sur Genèse 1 pour 424 utiles, tronquées à 1 000 par
+    // PostgREST. Chaque texte ne demande plus que SES numéros, pages comprises.
+    const parTexte = new Map<string, Set<number>>()
+    for (const e of ecarts) for (const n of numerosDeLEcart(e)) {
+      if (connues.has(`${e.idTexte}|${n}`)) continue
+      if (!parTexte.has(e.idTexte)) parTexte.set(e.idTexte, new Set())
+      parTexte.get(e.idTexte)!.add(n)
+    }
     let annule = false
     ;(async () => {
-      const textes = [...new Set(ecarts.map(e => e.idTexte))]
-      const numeros = [...new Set(ecarts.flatMap(numerosDeLEcart))]
-      const trouvees = new Map(connues)
-      const niveaux = new Map<string, NiveauxDuPassage>()
       type Ligne = {
-        id_texte: string; segment_numero: number; segment_texte: string | null
+        id_texte: string; segment_numero: number; longueur: number | null
         ref_niv1: string | null; ref_niv2: string | null; ref_niv3: string | null; ref_niv4: string | null
       }
-      const reponses = await lancerEnParallele(lotsPourClauseIn(numeros.map(String)).map(lot => () =>
-        supabase.from('segments')
-          .select('id_texte, segment_numero, segment_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4')
-          .in('id_texte', textes).in('segment_numero', lot.map(Number))))
-      // ⚠️ Une erreur se LIT : elle ne doit pas se lire « rien à élider ».
-      const enEchec = reponses.find(r => r.error)
-      if (enEchec) { console.error('Volet patristique : les élisions n’ont pas pu être mesurées.', enEchec.error); return }
-      for (const r of reponses) {
-        for (const l of (r.data ?? []) as Ligne[]) {
-          trouvees.set(`${l.id_texte}|${l.segment_numero}`, (l.segment_texte ?? '').length)
+      const taches: (() => Promise<Ligne[]>)[] = []
+      for (const [idTexte, numeros] of parTexte) {
+        for (const lot of lotsPourClauseIn([...numeros].map(String))) {
+          taches.push(() => chargerToutesPagesSupabase<Ligne>((debut, fin) =>
+            supabase.from('segments')
+              .select('id_texte, segment_numero, longueur:longueur_texte, ref_niv1, ref_niv2, ref_niv3, ref_niv4')
+              .eq('id_texte', idTexte).in('segment_numero', lot.map(Number))
+              .order('segment_numero', { ascending: true }).range(debut, fin) as unknown as PromiseLike<{ data: Ligne[] | null; error: unknown }>))
+        }
+      }
+      // ⚠️ Chaque tâche pagine EN SÉRIE : la borne de `lancerEnParallele` est la borne réelle.
+      const lots = await lancerEnParallele(taches)
+      const trouvees = new Map(connues)
+      const niveaux = new Map(niveauxConnus)
+      for (const lignes of lots) {
+        for (const l of lignes) {
+          trouvees.set(`${l.id_texte}|${l.segment_numero}`, l.longueur ?? 0)
           niveaux.set(`${l.id_texte}|${l.segment_numero}`, niveauxDuSegment(l))
         }
       }
       if (!annule) { setLongueurs(trouvees); setNiveauxEcarts(niveaux) }
+    // ⚠️ Une erreur se LIT : elle ne doit pas se lire « rien à élider ».
     })().catch(e => console.error('Volet patristique : mesure des élisions impossible.', e))
     return () => { annule = true }
   }, [segmentsCitations, segmentsDoctrine, segmentsEcho])
 
-  // Retirer une carte dont le lien vient d'être supprimé : de sa rubrique, et des lignes
-  // de liens de son segment porteur.
-  const retirerLien = useCallback((col: string, idLien: number) => {
-    const type = TYPE_DE_COLONNE[col]
-    if (col === 'lien_1' || col === 'lien_2') setSegmentsCitations(prev => prev.filter(({ seg }) => seg.idLien !== idLien))
-    else if (col === 'lien_3') setSegmentsDoctrine(prev => prev.filter(s => s.idLien !== idLien))
-    else setSegmentsEcho(prev => prev.filter(s => s.idLien !== idLien))
+  // Retirer les lignes que la base vient de supprimer : les rubriques se recalculent, et
+  // un segment qui garde un lien d'un autre type reste sous son autre onglet.
+  const retirerLiens = useCallback((retires: readonly number[]) => {
+    const partis = new Set(retires)
     setLiensParSegment(prev => {
-      const apres = new Map(prev)
-      apres.set(idLien, (prev.get(idLien) ?? []).filter(l => l.type !== type))
+      const apres = new Map<number, LigneLien[]>()
+      for (const [id, lignes] of prev) apres.set(id, lignes.filter(l => !partis.has(l.id)))
       return apres
     })
   }, [])
+
+  // ⛔ CE QUE LE « × » D'UNE CARTE RETIRE (2026-09-22). Les lignes de TOUS les segments de
+  // l'occurrence (une occurrence réunie en porte plusieurs), du TYPE de l'onglet regardé,
+  // et, en vue verset, du SEUL verset montré : le retrait ne visait que le premier segment,
+  // prenait le type de sa première rubrique, et emportait en vue chapitre les liens du
+  // segment vers TOUS les versets du chapitre, sans le dire.
+  const cibleDuRetrait = useCallback((groupe: readonly ItemAffiche[]): { ids: number[]; confirmation: string | null } => {
+    const types = TYPES_DU_SOUS_ONGLET[sousOnglet]
+    const porteurs = new Set<number>()
+    for (const it of groupe) for (const p of porteursDuSegment.get(it.seg.id) ?? [it.seg.idLien]) porteurs.add(p)
+    const lignes = [...porteurs].flatMap(p => liensParSegment.get(p) ?? []).filter(l => types.includes(l.type))
+    if (demande?.type === 'verset') {
+      const auVerset = lignes.filter(l => l.canon_id === demande.idVerset)
+      if (auVerset.length > 0) return { ids: auVerset.map(l => l.id), confirmation: null }
+      // Le passage n'est lié qu'au chapitre entier : le retrait vaut pour tout le chapitre.
+      return { ids: lignes.map(l => l.id), confirmation: lignes.length ? confirmationDuRetrait(lignes, false) : null }
+    }
+    return { ids: lignes.map(l => l.id), confirmation: lignes.length ? confirmationDuRetrait(lignes, demande?.type === 'plage') : null }
+  }, [sousOnglet, porteursDuSegment, liensParSegment, demande])
 
 
   // UN SEGMENT NE PARAÎT QU'UNE FOIS, en portant toutes les natures de son rapport au
@@ -922,7 +1104,7 @@ export default function PanneauPatristique({
     ? 'patristique'
     : onglet
   const ONGLETS: { code: Onglet; label: string; count?: number | null; enAttente: boolean }[] = [
-    { code: 'patristique',  label: 'Pères de l\'Église', count: comptesSousOnglets.peres, enAttente },
+    { code: 'patristique',  label: 'Pères de l’Église', count: comptesSousOnglets.peres, enAttente },
     // L'onglet des commentaires de LECTEURS s'appelle « Discussion » : « Commentaires » est
     // le sous-onglet des commentaires PATRISTIQUES, et les deux se confondaient.
     ...(verset ? [{ code: 'commentaires' as Onglet, label: 'Discussion', count: nbCommentairesBible, enAttente: attenteCommentaires }] : []),
@@ -967,7 +1149,7 @@ export default function PanneauPatristique({
   }, [longueurs])
   const cleCitation = useCallback((it: ItemAffiche) => ({
     idOeuvre: it.seg.id_oeuvre, idTexte: it.seg.id_texte,
-    numero: it.seg.segment_numero, texte: it.seg.segment_texte,
+    numero: it.seg.segment_numero, texte: it.seg.segment_texte ?? '',
   }), [])
   // ⛔ Ni d'un trait ni par une élision par-dessus un titre (charte § 38.8.1).
   const titreEntre = useCallback((ecart: Ecart, precedent: ItemAffiche, suivant: ItemAffiche) => {
@@ -995,7 +1177,9 @@ export default function PanneauPatristique({
   const [notesVolet, setNotesVolet] = useState<Map<string, NotesDuSegment | null>>(() => new Map())
   const notesDemandees = useRef<Set<string>>(new Set())
   // ⚠️ Une CHAÎNE, et non la liste : l'effet ne se rejoue que si la page change d'extraits.
-  const clesPage = clesDesExtraits(itemsPage).join('\n')
+  // ⚠️ Les clés ne lisent que `id_texte` et `segment_key` : la page LÉGÈRE suffit, et les
+  // notes partent sans attendre les textes.
+  const clesPage = clesDesExtraits(itemsPage as unknown as Parameters<typeof clesDesExtraits>[0]).join('\n')
   useEffect(() => {
     const manquantes = clesPage ? clesPage.split('\n').filter(cle => !notesDemandees.current.has(cle)) : []
     if (manquantes.length === 0) return
@@ -1015,6 +1199,44 @@ export default function PanneauPatristique({
         })
       })
   }, [clesPage])
+
+  // ── LES TEXTES DE LA PAGE ──────────────────────────────────────────────────
+  // ⛔ LE TEXTE NE SE CHARGE QUE POUR LA PAGE MONTRÉE (2026-09-22) : vingt extraits, non
+  // plus les 2 446 segments de Genèse 1. Retenus par clé, ils servent de nouveau quand on
+  // revient à une page déjà vue.
+  const [textes, setTextes] = useState<Map<string, TexteDeSegment>>(() => new Map())
+  const textesDemandes = useRef<Set<string>>(new Set())
+  const [echecTextesPour, setEchecTextesPour] = useState<string | null>(null)
+  const [tentativeTextes, setTentativeTextes] = useState(0)
+  const clesTextesPage = [...new Set(itemsPage.flatMap(g => g.flatMap(({ seg }) =>
+    seg.parties && seg.parties.length > 0 ? seg.parties.map(cleTexteDe) : [cleTexteDe(seg)])))].join('\n')
+  useEffect(() => {
+    const manquantes = clesTextesPage ? clesTextesPage.split('\n').filter(cle => !textesDemandes.current.has(cle)) : []
+    if (manquantes.length === 0) return
+    for (const cle of manquantes) textesDemandes.current.add(cle)
+    const pour = clesTextesPage
+    chargerTextesDesSegments(manquantes)
+      .then(charges => setTextes(avant => {
+        const apres = new Map(avant)
+        for (const [cle, t] of charges) apres.set(cle, t)
+        return apres
+      }))
+      .catch(erreur => {
+        // Une clé en échec se redemandera au prochain essai.
+        for (const cle of manquantes) textesDemandes.current.delete(cle)
+        console.error('[volet] textes de la page illisibles :', erreur)
+        setEchecTextesPour(pour)
+      })
+  }, [clesTextesPage, tentativeTextes])
+  // Les groupes de la page, leur texte posé ; `null` tant qu'un morceau manque.
+  const groupesHydrates = useMemo(() => itemsPage.map(groupe => {
+    const h = groupe.map(it => { const seg = hydrater(it.seg, textes); return seg ? { ...it, seg } : null })
+    return h.every(x => x !== null) ? h as (ItemAffiche & { seg: SegmentHydrate })[] : null
+  }), [itemsPage, textes])
+  const echecTextes = echecTextesPour !== null && echecTextesPour === clesTextesPage
+  const attenteTextes = !echecTextes && groupesHydrates.some(g => g === null)
+  // Le fondu couvre aussi l'arrivée des textes ; les comptes, eux, n'en dépendent pas.
+  const enAttenteListe = enAttente || attenteTextes
 
   // ── LES PRÉLÈVEMENTS DE LA PAGE ────────────────────────────────────────────
   // ⛔ Le bouton d'un extrait partait toujours de « non prélevé » : on lit ceux de la page,
@@ -1057,7 +1279,7 @@ export default function PanneauPatristique({
     if (mobile) {
       if (!barreMobile) return null
       return (
-        <button onClick={() => setOuvert(true)} title="Ouvrir les textes patristiques"
+        <button onClick={() => setOuvert(true)} title={LIBELLE_RAIL} aria-label={LIBELLE_RAIL}
           style={{ position: 'fixed', bottom: BANDEAU_NAV_MOBILE, left: 0, right: 0, zIndex: Z_FENETRE, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(-90deg)', color: 'var(--cs-texte-doux)' }}>
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1210,14 +1432,20 @@ export default function PanneauPatristique({
 
                 {/* ⛔ LES RÉFÉRENCES DU PASSAGE QU'ON QUITTE S'EFFACENT AUSSITÔT (2026-09-04),
                     en fondu, et leur PLACE reste. */}
-                <MarqueAttenteVolet enAttente={enAttente} />
+                <MarqueAttenteVolet enAttente={enAttenteListe} />
                 <div id={idSousPanneau} role="tabpanel" aria-labelledby={idSousOnglet(sousOnglet)}
-                  style={{ opacity: enAttente ? 0 : 1, transition: 'opacity .16s ease', flex: '1 0 auto', display: 'flex', flexDirection: 'column' }}>
+                  style={{ opacity: enAttenteListe ? 0 : 1, transition: 'opacity .16s ease', flex: '1 0 auto', display: 'flex', flexDirection: 'column' }}>
                 {/* ⛔ UNE PANNE SE DIT, dans la voix du volet, avec de quoi réessayer. */}
                 {echec && (
                   <EtatVideVolet>
                     <MentionVide>Les textes des Pères n’ont pas pu être chargés.</MentionVide>
                     <button onClick={() => setTentative(t => t + 1)} className="cs-bouton-lien">Réessayer</button>
+                  </EtatVideVolet>
+                )}
+                {!echec && echecTextes && (
+                  <EtatVideVolet>
+                    <MentionVide>Les textes de cette page n’ont pas pu être chargés.</MentionVide>
+                    <button onClick={() => { setEchecTextesPour(null); setTentativeTextes(t => t + 1) }} className="cs-bouton-lien">Réessayer</button>
                   </EtatVideVolet>
                 )}
                 {/* « Aucune occurrence » au centre, un petit fleuron la ferme (2026-09-14). */}
@@ -1231,28 +1459,30 @@ export default function PanneauPatristique({
                 )}
                 {itemsPage.length > 0 && (
                 <div style={{ marginTop: '6px' }}>
-                {itemsPage.map(groupe => {
+                {itemsPage.map((groupeLeger, rang) => {
+                  const groupe = groupesHydrates[rang]
+                  if (!groupe) return null
                   const premier = groupe[0]
                   // Occurrence réunie : les textes des segments consécutifs en un seul
-                  // paragraphe. Métadonnées et liens = premier segment.
-                  const segFusionne = groupe.length === 1
+                  // paragraphe. Métadonnées = premier segment ; liens = TOUS ses segments.
+                  const segFusionne: SegmentHydrate = groupe.length === 1
                     ? premier.seg
                     : { ...premier.seg, segment_texte: texteDuGroupe(groupe, cleCitation) }
                   const extrait = composerExtrait(groupe, notesVolet)
-                  const type = TYPE_DE_COLONNE[premier.col]
-                  const lienIds = (liensParSegment.get(premier.seg.idLien) ?? []).filter(l => l.type === type).map(l => l.id)
+                  const retrait = isAdmin ? cibleDuRetrait(groupeLeger) : { ids: [], confirmation: null }
                   return (
                     <SegmentCard
                       key={groupe.map(g => g.seg.id).join('_')} s={segFusionne} info={oeuvres[premier.seg.id_oeuvre]}
                       edition={editions[premier.seg.id_texte]}
                       texteAffichage={extrait.texte} notes={extrait.notes} notesEnAttente={extrait.enAttente}
                       userId={userId} isAdmin={isAdmin}
-                      lienIds={lienIds}
+                      lienIds={retrait.ids}
+                      confirmationSuppression={retrait.confirmation}
                       enregistre={prelevesPage ? prelevesPage.has(premier.seg.id) : null}
                       onEnregistre={marquerPreleve}
                       retour={adresseRetour}
                       onSignaler={(s, titreOeuvre) => { if (exigerCompte('signaler une erreur')) setSegSignale({ seg: s, titreOeuvre }) }}
-                      onSupprimeLien={() => retirerLien(premier.col, premier.seg.idLien)}
+                      onSupprimeLien={retirerLiens}
                     />
                   )
                 })}

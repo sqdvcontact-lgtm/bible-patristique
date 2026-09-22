@@ -7,10 +7,17 @@
 // patristique (doublon du volet de la page Bible). Lecture avec la session normale.
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import Link from 'next/link'
 import { lireTraductionMemorisee, memoriserTraductionBible } from '@/app/lib/preferenceBible'
 import { EcranAttente, MotAttente } from '@/app/lib/attenteEnCreux'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
+import { useCompte } from '@/app/lib/contexteCompte'
+import { chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
+import { urlLectureBible } from '@/app/lib/bibleNavigation'
+import { PARAMETRE_REPERE } from '@/app/lib/repriseLecture'
+import IconeSignet from '@/app/components/IconeSignet'
+import { STYLE_SIGNET_VERSET } from '@/app/lib/compositionBible'
 import { useEstMobile, useSansSurvol } from '@/app/lib/useEstMobile'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { formaterPlageCanonique, parsePointCanonique, nomLivreReference } from '@/app/lib/referencesBibliques'
@@ -167,7 +174,17 @@ function BlocVersets({ vs, ctx }: { vs: VersetPericope[]; ctx: CtxActions }) {
             <div style={{ display: 'grid', gridTemplateColumns: ctx.auDoigt ? 'auto minmax(0, 1fr)' : 'auto minmax(0, 1fr) auto', columnGap: '10px', alignItems: 'start' }}>
               {/* Numéro centré verticalement sur la PREMIÈRE ligne du verset (boîte à la hauteur
                   d'une ligne, contenu centré) — plutôt qu'aligné sur la ligne de base. */}
-              <span style={{ fontFamily: SANS, fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-texte-gris)', minWidth: '1.1rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: 'calc(0.875rem * 1.55)', lineHeight: 1 }}>{v.verset}</span>
+              {/* Un verset prélevé se dit à gauche de son numéro, par la marque discrète de
+                  la page Bible (`STYLE_SIGNET_VERSET`), au bureau ; au doigt, le pavé
+                  d'actions dit l'état. */}
+              <span style={{ fontFamily: SANS, fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-texte-gris)', minWidth: '1.1rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: 'calc(0.875rem * 1.55)', lineHeight: 1 }}>
+                {!ctx.auDoigt && ctx.prelevements.has(cle) && (
+                  <span aria-hidden="true" title="Dans mes prélèvements" style={STYLE_SIGNET_VERSET}>
+                    <IconeSignet plein taille="100%" />
+                  </span>
+                )}
+                {v.verset}
+              </span>
               {/* ⚠️ Justifié, donc césuré : c'est ainsi que le site compose partout
                   ailleurs un verset (`.citation-verset`, `.segment-texte`). Ce
                   paragraphe-ci était le seul de la page à justifier sans césure, quand
@@ -252,8 +269,11 @@ export default function PericopePage() {
   const [textes, setTextes] = useState<Record<number, VersetPericope[]>>({})
   const [texteLoading, setTexteLoading] = useState(false)
   const [voletMobile, setVoletMobile] = useState<'livres' | 'commentaires' | null>('commentaires')
-  const [userId, setUserId] = useState<string | null>(null)
+  // La session vient du contexte du compte (une lecture par session), non d'un
+  // `getSession` propre à la page.
+  const { userId } = useCompte()
   const [prelevements, setPrelevements] = useState<Map<string, string>>(new Map())
+  const [erreurPrelevements, setErreurPrelevements] = useState(false)
 
   const principale = useMemo(
     () => occurrences.find(o => o.est_principale) ?? occurrences[0] ?? null,
@@ -377,28 +397,45 @@ export default function PericopePage() {
     return () => { annule = true; ctrl.abort() }
   }, [occurrences, trad])
 
-  // Session + prélèvements bibliques du lecteur pour les versets affichés (clé
+  // Prélèvements bibliques du lecteur pour les versets affichés (clé
   // « abréviation|chapitre|verset »), afin de montrer d'emblée les versets déjà prélevés.
+  // ⛔ Bornés aux CHAPITRES des occurrences, livre par livre, et paginés : un lecteur qui
+  // a prélevé tout un livre ne doit pas voir la liste tronquée à mille lignes. Une
+  // lecture en échec se DIT (`erreurPrelevements`) au lieu de passer pour « rien ».
   useEffect(() => {
     let annule = false
-    supabase.auth.getSession().then(({ data }) => {
-      if (annule) return
-      const uid = data.session?.user.id ?? null
-      setUserId(uid)
-      if (!uid || occurrences.length === 0) { setPrelevements(new Map()); return }
-      const abrs = [...new Set(occurrences.map(o => ABREV_FR[o.livre] ?? o.livre))]
-      supabase.from('prelevements').select('id, ref_livre_abr, ref_chapitre, ref_verset')
-        .eq('user_id', uid).eq('type', 'biblique').in('ref_livre_abr', abrs)
-        .then(({ data: lignes }) => {
-          if (annule) return
-          const m = new Map<string, string>()
-          ;(lignes ?? []).forEach((r: { id: string; ref_livre_abr: string; ref_chapitre: number; ref_verset: number }) =>
-            m.set(`${r.ref_livre_abr}|${r.ref_chapitre}|${r.ref_verset}`, r.id))
-          setPrelevements(m)
-        })
-    })
+    if (!userId || occurrences.length === 0) { setPrelevements(new Map()); setErreurPrelevements(false); return }
+    const bornes = new Map<string, { min: number; max: number }>()
+    for (const o of occurrences) {
+      const abr = ABREV_FR[o.livre] ?? o.livre
+      const deb = parsePointCanonique(o.canon_id_debut)?.chapitre
+      const fin = parsePointCanonique(o.canon_id_fin ?? o.canon_id_debut)?.chapitre ?? deb
+      if (deb == null || fin == null) continue
+      const b = bornes.get(abr)
+      bornes.set(abr, { min: Math.min(b?.min ?? deb, deb, fin), max: Math.max(b?.max ?? fin, deb, fin) })
+    }
+    type Ligne = { id: string; ref_livre_abr: string; ref_chapitre: number; ref_verset: number }
+    Promise.all([...bornes.entries()].map(([abr, { min, max }]) =>
+      chargerToutesPagesSupabase<Ligne>((a, b) => supabase.from('prelevements')
+        .select('id, ref_livre_abr, ref_chapitre, ref_verset')
+        .eq('user_id', userId).eq('type', 'biblique').eq('ref_livre_abr', abr)
+        .gte('ref_chapitre', min).lte('ref_chapitre', max)
+        .order('id').range(a, b)),
+    ))
+      .then(listes => {
+        if (annule) return
+        const m = new Map<string, string>()
+        listes.flat().forEach(r => m.set(`${r.ref_livre_abr}|${r.ref_chapitre}|${r.ref_verset}`, r.id))
+        setPrelevements(m)
+        setErreurPrelevements(false)
+      })
+      .catch((erreur: unknown) => {
+        if (annule) return
+        console.error('[péricope] prélèvements illisibles', erreur)
+        setErreurPrelevements(true)
+      })
     return () => { annule = true }
-  }, [occurrences])
+  }, [occurrences, userId])
 
   const onPreleve = (cle: string, id: string) => setPrelevements(prev => new Map(prev).set(cle, id))
   const onRetire = (cle: string) => setPrelevements(prev => { const n = new Map(prev); n.delete(cle); return n })
@@ -467,6 +504,11 @@ export default function PericopePage() {
         )}
       </header>
 
+      {erreurPrelevements && (
+        <p role="status" style={{ fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-texte-second)', margin: '0 0 10px' }}>
+          Vos prélèvements n’ont pas pu être lus : les versets déjà prélevés ne sont pas marqués.
+        </p>
+      )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {occurrences.map(o => {
           const vs = (textes[o.id] ?? []).filter(v => v.texte && v.texte.trim())
@@ -490,6 +532,16 @@ export default function PericopePage() {
                    première ligne du passage. */
                 <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', margin: '1.25rem 0' }}>Texte indisponible dans cette traduction.</p>
               ) : <BlocVersets vs={vs} ctx={{ ...ctxBase, livre: o.livre }} />}
+              {vs.length > 0 && !texteLoading && (
+                /* Le passage dans son chapitre, posé en haut de la zone de lecture sur son
+                   premier verset (`repere`, contrat partagé : sans sélection). */
+                <p style={{ margin: '6px 0 0', textAlign: 'right' }}>
+                  <Link className="cs-bouton-lien"
+                    href={`${urlLectureBible({ livre: o.livre, chapitre: vs[0].chapitre, trad })}&${PARAMETRE_REPERE}=${vs[0].verset}`}>
+                    Lire dans son chapitre
+                  </Link>
+                </p>
+              )}
             </div>
           )
         })}

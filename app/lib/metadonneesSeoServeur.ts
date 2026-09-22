@@ -19,7 +19,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { anneeChronologique } from './chronologiePatristique'
 import { estOeuvrePubliee } from './oeuvresPublication'
 
-type Client = Pick<SupabaseClient, 'from'>
+type Client = Pick<SupabaseClient, 'from' | 'rpc'>
 
 export type PresencePatristique = {
   /** Les types de lien (charte §9 : 1 citation, 2 reprise, 3 doctrine, 4 écho)
@@ -33,7 +33,8 @@ export type PresencePatristique = {
 
 const AUCUNE: PresencePatristique = { types: [], auteurs: [] }
 
-type LigneLien = { type: number; canon_id?: string | null; segments: { id_oeuvre: string } | { id_oeuvre: string }[] | null }
+/** Une ligne de `presence_patristique_plage` : une œuvre liée, et les types de ses liens. */
+type LignePresence = { id_oeuvre: string; types: number[] | null }
 type Catalogue = Map<string, { nom: string; annee: number | null }>
 
 /** Auteur et repère chronologique, par œuvre PUBLIÉE. Cinquante lignes, donc on
@@ -52,7 +53,7 @@ async function lireCatalogue(client: Client): Promise<Catalogue | null> {
   }
   const { data, error } = await client.from('oeuvres')
     .select('id_oeuvre, acces_public, date_composition, auteurs!oeuvres_id_auteur_fkey(nom, date_mort, siecle)')
-  if (error) return null
+  if (error) { console.error('[métadonnées] catalogue des œuvres illisible :', error); return null }
   const parOeuvre: Catalogue = new Map()
   for (const o of (data ?? []) as unknown as LigneCatalogue[]) {
     if (!estOeuvrePubliee(o)) continue
@@ -70,17 +71,17 @@ async function lireCatalogue(client: Client): Promise<Catalogue | null> {
   return parOeuvre
 }
 
-/** Des liens bruts aux natures présentes et aux auteurs rangés dans le temps. */
-function depouiller(lignes: readonly LigneLien[], catalogue: Catalogue): PresencePatristique {
+/** Des œuvres liées (agrégées en base) aux natures présentes et aux auteurs rangés dans
+ *  le temps. */
+function depouiller(lignes: readonly LignePresence[], catalogue: Catalogue): PresencePatristique {
   const types = new Set<number>()
   // Un auteur est daté par la PLUS ANCIENNE de ses œuvres liées ici : c'est la
   // place que le volet patristique lui donne dans le fil du temps.
   const anneeParAuteur = new Map<string, number | null>()
   for (const ligne of lignes) {
-    const segment = Array.isArray(ligne.segments) ? ligne.segments[0] : ligne.segments
-    const oeuvre = segment ? catalogue.get(segment.id_oeuvre) : undefined
+    const oeuvre = catalogue.get(ligne.id_oeuvre)
     if (!oeuvre) continue
-    types.add(ligne.type)
+    for (const t of ligne.types ?? []) types.add(t)
     const connue = anneeParAuteur.get(oeuvre.nom)
     if (!anneeParAuteur.has(oeuvre.nom)) anneeParAuteur.set(oeuvre.nom, oeuvre.annee)
     else if (oeuvre.annee != null && (connue == null || oeuvre.annee < connue)) {
@@ -94,43 +95,54 @@ function depouiller(lignes: readonly LigneLien[], catalogue: Catalogue): Presenc
     // ne sait pas dater.
     .sort((a, b) => (a[1] ?? Infinity) - (b[1] ?? Infinity) || a[0].localeCompare(b[0], 'fr'))
     .map(([nom]) => nom)
-  return { types: [...types], auteurs }
+  return { types: [...types].sort((a, b) => a - b), auteurs }
+}
+
+/** Les œuvres liées à une plage canonique, AGRÉGÉES EN BASE (2026-09-22).
+ *
+ *  ⛔ On ne rapatrie plus les liens un à un : la lecture d'avant prenait les 2 839 liens
+ *  de Genèse 1 sans pagination, si bien que le plafond PostgREST de 1 000 lignes
+ *  décidait QUELS auteurs nommer. `presence_patristique_plage` (migration
+ *  `20260922155227_volet_peres_audit`, INVOKER : la politique de lecture du visiteur
+ *  s'applique) rend une ligne par œuvre, avec ses types — vingt-quatre lignes sur
+ *  Genèse 1, 102 ms sous `authenticated`.
+ *  ⛔ Un échec se JOURNALISE avant de rendre `null` : un titre qui retombe sur sa forme
+ *  la plus simple sans que rien ne le dise ne se corrige jamais. */
+async function lirePresence(
+  client: Client,
+  quoi: string,
+  args: { p_livre: string; p_chapitre_debut: number; p_verset_debut: number | null; p_chapitre_fin: number; p_verset_fin: number | null },
+): Promise<LignePresence[] | null> {
+  const { data, error } = await client.rpc('presence_patristique_plage', args)
+  if (error) {
+    console.error(`[métadonnées] présence patristique illisible (${quoi}) :`, error)
+    return null
+  }
+  return (data ?? []) as LignePresence[]
 }
 
 /** Les auteurs dont un texte renvoie à l'un des versets d'un chapitre, ou au
  *  chapitre entier. Même recherche inverse que le volet patristique
  *  (`app/lib/liens.ts`), mais réduite à ce qu'un titre a besoin de savoir.
  *
- *  UNE seule vague : les deux formes de lien (au verset, au chapitre) partent
- *  ensemble, et le catalogue des œuvres avec elles. */
+ *  UNE seule vague : l'agrégat en base (liens au verset et au chapitre) et le
+ *  catalogue des œuvres partent ensemble. */
 export async function chargerPresencePatristique(
   client: Client,
   livre: string,
   chapitre: number,
 ): Promise<PresencePatristique> {
   try {
-    const [parVerset, parChapitre, catalogue] = await Promise.all([
-      // ⚠️ `order` n'est pas un ornement : PostgREST plafonne le nombre de lignes
-      // rendues, et le chapitre le plus lié du corpus en compte 1 286. Sans ordre
-      // imposé, une troncature laisserait Postgres choisir QUELLES lignes rendre —
-      // et le même chapitre nommerait deux auteurs différents d'une visite à
-      // l'autre. Un titre doit être le même à chaque fois.
-      // ⛔ Le chapitre se filtre par `canon_livre` + `canon_chapitre`, jamais par
-      // `like` : sous la RLS le motif n'est pas leakproof et la politique
-      // s'évaluait sur les 66 236 lignes de la table (2 337 ms, huit secondes sous
-      // charge, quatorze 500 le 4 septembre 2026). Voir `segmentsLiesAuChapitre`.
-      client.from('liens_bibliques').select('type, segments!inner(id_oeuvre)')
-        .eq('canon_livre', livre).eq('canon_chapitre', chapitre).order('id'),
-      client.from('liens_bibliques').select('type, segments!inner(id_oeuvre)')
-        .is('canon_id', null).eq('livre', livre).eq('chapitre', chapitre).order('id'),
+    const [lignes, catalogue] = await Promise.all([
+      lirePresence(client, `${livre} ${chapitre}`, {
+        p_livre: livre, p_chapitre_debut: chapitre, p_verset_debut: null, p_chapitre_fin: chapitre, p_verset_fin: null,
+      }),
       lireCatalogue(client),
     ])
-    if (parVerset.error || parChapitre.error || !catalogue) return AUCUNE
-    return depouiller(
-      [...(parVerset.data ?? []), ...(parChapitre.data ?? [])] as unknown as LigneLien[],
-      catalogue,
-    )
-  } catch {
+    if (!lignes || !catalogue) return AUCUNE
+    return depouiller(lignes, catalogue)
+  } catch (erreur) {
+    console.error(`[métadonnées] présence patristique illisible (${livre} ${chapitre}) :`, erreur)
     return AUCUNE
   }
 }
@@ -139,10 +151,8 @@ export async function chargerPresencePatristique(
  *  verset s'appliquent aux chapitres extrêmes, comme dans `segmentsLiesAPlage`
  *  (`app/lib/liens.ts`), dont c'est la même recherche inverse.
  *
- *  Une vague : un `like` par chapitre traversé, la requête des liens de chapitre
- *  et le catalogue partent ensemble. Les péricopes du corpus tiennent en un ou
- *  deux chapitres ; une plage aberrante est bornée à seize, faute de quoi une
- *  donnée fautive ouvrirait des centaines de requêtes. */
+ *  Une vague : l'agrégat en base et le catalogue partent ensemble. Les péricopes du
+ *  corpus tiennent en un ou deux chapitres ; une plage aberrante est bornée à seize. */
 export async function chargerPresencePatristiquePlage(
   client: Client,
   livre: string,
@@ -158,32 +168,22 @@ export async function chargerPresencePatristiquePlage(
   const f = canonFin ? point(canonFin) : d
   const c1 = d.chapitre
   const c2 = Math.min(f.chapitre ?? c1, c1 + 15)
-  const chapitres: number[] = []
-  for (let c = c1; c <= c2; c++) chapitres.push(c)
+  const verset = (v: number | null) => (v != null && Number.isFinite(v) ? v : null)
 
   try {
-    const [catalogue, ...lots] = await Promise.all([
+    const [lignes, catalogue] = await Promise.all([
+      lirePresence(client, `${livre} ${canonDebut}–${canonFin ?? ''}`, {
+        p_livre: livre, p_chapitre_debut: c1, p_verset_debut: verset(d.verset),
+        // ⚠️ Une plage aberrante est bornée à seize chapitres : la borne de verset ne
+        // vaut alors que si le chapitre de fin n'a pas été rabattu.
+        p_chapitre_fin: c2, p_verset_fin: c2 === f.chapitre ? verset(f.verset) : null,
+      }),
       lireCatalogue(client),
-      ...chapitres.map(c => client.from('liens_bibliques')
-        .select('type, canon_id, segments!inner(id_oeuvre)')
-        .eq('canon_livre', livre).eq('canon_chapitre', c).order('id')),
-      client.from('liens_bibliques').select('type, canon_id, segments!inner(id_oeuvre)')
-        .is('canon_id', null).eq('livre', livre).in('chapitre', chapitres).order('id'),
     ])
-    if (!catalogue || lots.some(l => l.error)) return AUCUNE
-    const lignes = lots.flatMap(l => (l.data ?? []) as unknown as LigneLien[])
-      // Un lien AU VERSET ne compte que s'il tombe DANS la plage ; un lien au
-      // chapitre (canon_id nul) vaut pour le chapitre entier, donc il compte.
-      .filter(ligne => {
-        if (!ligne.canon_id) return true
-        const p = point(ligne.canon_id)
-        if (p.verset == null) return false
-        if (d.verset != null && p.chapitre === c1 && p.verset < d.verset) return false
-        if (f.verset != null && p.chapitre === c2 && p.verset > f.verset) return false
-        return true
-      })
+    if (!lignes || !catalogue) return AUCUNE
     return depouiller(lignes, catalogue)
-  } catch {
+  } catch (erreur) {
+    console.error(`[métadonnées] présence patristique illisible (${livre} ${canonDebut}) :`, erreur)
     return AUCUNE
   }
 }

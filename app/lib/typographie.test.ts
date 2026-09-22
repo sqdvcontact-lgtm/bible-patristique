@@ -101,9 +101,25 @@ describe('ponctuation des citations au rendu — charte §3.8', () => {
       .toBe(`Il conclut${NBSP}: «${FINE}Ainsi soit-il.${FINE}» Ensuite`)
   })
 
-  it('préserve les trois points placés après une citation close lorsqu’ils marquent une omission', () => {
+  it('rend « […] » les points d’omission placés entre deux citations closes', () => {
     expect(normaliserTypographieLecture('« Première citation. »... « Seconde citation. »'))
-      .toBe(`«${FINE}Première citation.${FINE}»... «${FINE}Seconde citation.${FINE}»`)
+      .toBe(`«${FINE}Première citation.${FINE}»${NBSP}[…] «${FINE}Seconde citation.${FINE}»`)
+  })
+
+  it('rend « […] » le cas Bareille (Ambroise, Jonas 2) : « ;... », « ;.... » et fin de passage', () => {
+    const joint = '« Sauvez-moi, Seigneur, parce que les eaux sont entrées jusque dans mon âme[[109]]  » ;... '
+      + '« et notre âme a traversé le torrent[[110]]  » ;.... « Que l’ouverture du puits ne m’ensevelisse pas[[111]]  » ;'
+    expect(normaliserTypographieLecture(joint)).toBe(
+      `«${FINE}Sauvez-moi, Seigneur, parce que les eaux sont entrées jusque dans mon âme[[109]]${FINE}»${NBSP}[…] `
+      + `«${FINE}et notre âme a traversé le torrent[[110]]${FINE}»${NBSP}[…] `
+      + `«${FINE}Que l’ouverture du puits ne m’ensevelisse pas[[111]]${FINE}»${FINE};`)
+    expect(normaliserTypographieLecture('« un abîme très-profond[[115]] » ;....'))
+      .toBe(`«${FINE}un abîme très-profond[[115]]${FINE}»${NBSP}[…]`)
+  })
+
+  it('ne touche pas aux points de suspension de la prose', () => {
+    expect(normaliserTypographieLecture('Il hésita... puis reprit « sa route »… et partit.'))
+      .toBe(`Il hésita... puis reprit «${FINE}sa route${FINE}»… et partit.`)
   })
 
   it('normalise aussi le deux-points et reste idempotent', () => {

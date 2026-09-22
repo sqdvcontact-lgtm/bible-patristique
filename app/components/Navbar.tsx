@@ -12,7 +12,7 @@ import { useCompte } from "@/app/lib/contexteCompte";
 import { CRANS_CORPS } from "@/app/lib/corpsLecture";
 import { useCorpsLecture } from "@/app/lib/useCorpsLecture";
 import { LIVRES } from "@/app/lib/bible";
-import { adresseDeReprise, lirePositionBible } from "@/app/lib/repriseLecture";
+import { adresseDeReprise, CLE_BIBLE, EVENEMENT_POSITION_BIBLE, lirePositionBible } from "@/app/lib/repriseLecture";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import { adresseOeuvreRecente, editionAMontrer, lireOeuvresRecentes, quandConsultee, titresAmbigus, type OeuvreRecente } from "@/app/lib/oeuvresRecentes";
 import { ligneEdition, type EditionOeuvre } from "@/app/lib/editionOeuvre";
@@ -70,12 +70,23 @@ const HREF_BIBLE_CLASSIQUE = "/?livre=GEN&chapitre=1";
 function useHrefBibleClassique(): string {
   const [href, setHref] = useState(HREF_BIBLE_CLASSIQUE);
   useEffect(() => {
-    const place = lirePositionBible();
-    if (!place) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     // Le verset en tête de fenêtre voyage avec la place : un long chapitre rouvre là
     // où on le lisait (`adresseDeReprise`, qui n'y met jamais la bible).
-    setHref(adresseDeReprise(place));
+    // ⛔ La barre ne se remonte pas d'une page à l'autre : lue une seule fois au montage,
+    // la place restait celle de la première page. On la relit quand elle change
+    // (même onglet : EVENEMENT_POSITION_BIBLE ; autre onglet : `storage`).
+    const relire = () => {
+      const place = lirePositionBible();
+      setHref(place ? adresseDeReprise(place) : HREF_BIBLE_CLASSIQUE);
+    };
+    relire();
+    const surStockage = (e: StorageEvent) => { if (e.key === null || e.key === CLE_BIBLE) relire(); };
+    window.addEventListener(EVENEMENT_POSITION_BIBLE, relire);
+    window.addEventListener("storage", surStockage);
+    return () => {
+      window.removeEventListener(EVENEMENT_POSITION_BIBLE, relire);
+      window.removeEventListener("storage", surStockage);
+    };
   }, []);
   return href;
 }
