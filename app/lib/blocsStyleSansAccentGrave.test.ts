@@ -79,7 +79,7 @@ function fichiersTs(dossier: string): string[] {
  *
  *  ⛔ La garde ne visait que les gabarits écrits DANS le bloc, et onze feuilles du site
  *  vivent ailleurs — `FEUILLE_ESPACE`, `CSS_CONTROLE`, `STYLES_FICHE`… Elles courent
- *  exactement le même risque, et le trou s'est payé le 2026-09-07 sur « Ma chaîne » : un
+ *  exactement le même risque, et le trou s'est payé le 2026-09-07 sur « Ma chaîne » (aujourd’hui « Mes annotations ») : un
  *  commentaire CSS qui nommait une propriété entre accents graves a fermé le gabarit, et
  *  la feuille de la page a disparu. ⚠️ Là, le fichier ne s'est PAS parsé — c'est un
  *  hasard heureux, non la règle : deux accents graves qui se referment sur un texte sans

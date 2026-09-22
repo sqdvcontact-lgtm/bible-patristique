@@ -75,7 +75,10 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   //    publications. Toutes vivaient dans la table DOMAINE, laquelle contredisait la
   //    page de résultats. Elles passent aux jetons --cs-ecriture / --cs-peres /
   //    --cs-communaute, et les fonds se dérivent par color-mix.
-  'components/Navbar.tsx': ['#fff'],
+  // `#f0b4a8` : l'encre maroquin de l'administration dans le panneau mobile (2026-09-22).
+  // Aucun jeton ne la porte dans les deux thèmes : --cs-peres est sombre en Clair, et
+  // le panneau reste vert ou cuir en toutes circonstances. 4,80 sur le vert, 7,36 sur le cuir.
+  'components/Navbar.tsx': ['#fff', '#f0b4a8'],
   'components/NavLivres.tsx': ['rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)'],
   // Les trois écritures d'une CARTE DE COMMENTAIRE ont perdu leurs teintes le 2026-09-08,
   // en même temps que leur bandeau de gauche et leur boîte dans la boîte : le rouge du

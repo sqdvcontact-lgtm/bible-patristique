@@ -112,6 +112,21 @@ const ACTION_BTN: React.CSSProperties = {
   lineHeight:1, flexShrink:0, transition:'color 0.15s',
 }
 
+/**
+ * Les actions d'une carte, AU TÉLÉPHONE (demande de l'auteur, 2026-09-22) : plus
+ * petites, serrées, calées en haut à droite sur la ligne du nom de l'auteur.
+ * ⚠️ La règle globale `@media (hover: none)` porte chaque `.cs-bouton-fin` à 36 px, en
+ * `!important` : trois boutons y faisaient une grappe de 116 px, centrée sur deux lignes.
+ * On revient ici au plancher AA de 24 px, sans écart, glyphe de 10 px. La marge
+ * négative centre le bouton sur la ligne de l'auteur (0,75 rem × 1,2).
+ */
+const ACTIONS_CARTE_MOBILE = `
+  [data-visite='peres'] .cs-carte-volet-actions { margin-top: calc(0.45rem - 12px); }
+  [data-visite='peres'] .cs-carte-volet-actions > div { gap: 0 !important; }
+  [data-visite='peres'] .cs-carte-volet-actions .cs-bouton-fin { width: 24px !important; height: 24px !important; padding: 0 !important; }
+  [data-visite='peres'] .cs-carte-volet-actions svg { width: 10px; height: 11px; }
+`
+
 // ── Détection admin fiable, via profils.est_admin du compte connecté ─────────
 // (le cookie bp_admin_session est HttpOnly, donc invisible et inutilisable
 // depuis un composant client — c'est pour ça que ça ne fonctionnait jamais.)
@@ -1550,6 +1565,9 @@ export default function PanneauPatristique({
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>{LIBELLE_RAIL}</span>
+          {/* ⛔ Le chevron DOUBLÉ, son double invisible de l'autre côté : sans lui, le
+              libellé se pose à côté de l'axe (même barre que `BarreVoletMobile`). */}
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ visibility: 'hidden', flexShrink: 0 }} />
         </button>
       )
     }
@@ -1590,6 +1608,7 @@ export default function PanneauPatristique({
         .pp-tag > span { grid-area: 1 / 1; }
         .pp-tag::after { content: attr(data-label); grid-area: 1 / 1; font-weight: 600; visibility: hidden; white-space: nowrap; }
         ${FEUILLE_CARTE_VOLET}
+        ${mobile ? ACTIONS_CARTE_MOBILE : ''}
       `}</style>
       {!mobile && handleDrag && (
         <div onMouseDown={handleDrag} title="Glisser pour redimensionner"

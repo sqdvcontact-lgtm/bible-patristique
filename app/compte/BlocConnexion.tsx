@@ -96,7 +96,7 @@ export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte,
     <>
       <Rangee label="Adresse" pour="courriel"
         note={statutEmail ? <span style={{ color: statutEmail.ok ? 'var(--cs-vert)' : 'var(--cs-danger-fonce)' }}>{statutEmail.msg}</span>
-          : user.email_confirmed_at ? 'Adresse vérifiée.' : 'Adresse non confirmée.'}>
+          : user.email_confirmed_at ? undefined : 'Adresse non confirmée.'}>
         <span style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <input id="courriel" type="email" className="esp-moyen" style={inputStyle} value={nouvelEmail}
             onChange={e => { setNouvelEmail(e.target.value); setStatutEmail(null) }} />
@@ -109,7 +109,7 @@ export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte,
           une action d'authentification, qui part chez Supabase et non dans la même
           écriture. Un seul « Enregistrer » ne peut pas couvrir les deux. */}
       <Rangee label="Mot de passe"
-        note={statutMdp ? <span style={{ color: statutMdp.ok ? 'var(--cs-vert)' : 'var(--cs-danger-fonce)' }}>{statutMdp.msg}</span> : 'Six caractères au moins.'}>
+        note={statutMdp ? <span style={{ color: statutMdp.ok ? 'var(--cs-vert)' : 'var(--cs-danger-fonce)' }}>{statutMdp.msg}</span> : undefined}>
         <span style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <input aria-label="Nouveau mot de passe" type="password" autoComplete="new-password" className="esp-court" style={inputStyle}
             value={nouveauMdp} onChange={e => { setNouveauMdp(e.target.value); setStatutMdp(null) }} placeholder="Nouveau" />

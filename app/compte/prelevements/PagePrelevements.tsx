@@ -4,7 +4,7 @@
 //
 // ⚠️ La page vivait à /prelevements, seule, avec sa tête et son sol à elle. Elle est
 // entrée dans l'espace du lecteur le 7 septembre 2026, à la demande de l'auteur : ce
-// qu'on retient est de la même nature que ce qu'on écrit (« Ma chaîne ») et se visite
+// qu'on retient est de la même nature que ce qu'on écrit (« Mes annotations ») et se visite
 // à la même heure. Le titre, le compte et le sol lui viennent donc du cadre ; ⛔ elle ne
 // pose plus de <main> ni de fond, que le cadre porte déjà.
 
@@ -304,7 +304,7 @@ function ListeVide({ mention, href, lien }: { mention: string; href: string; lie
 // ── Groupe ────────────────────────────────────────────────────────────────────
 //
 // ⛔ LE LIVRE ET L'AUTEUR PRENNENT LE TITRE DE SECTION DE L'ESPACE — sérif italique vert,
-// le rang que « Ma chaîne » donne déjà à un livre.
+// le rang que « Mes annotations » donne déjà à un livre.
 // ⚠️ Plus de repli ni de compte (2026-09-21, « fais au plus simple ») : le sommaire de
 // gauche mène à chaque groupe, et un titre qui se replie demandait un chevron, un compte
 // et un état pour une liste qu'on parcourt d'un trait.
@@ -876,7 +876,7 @@ export default function PagePrelevements() {
            MANCHETTE, dans sa colonne, le texte au fer à côté d'elle, les actions au bout.
            Elle était en trois lignes empilées — texte, puis référence et provenance en
            9 px gris, sous le seuil de contraste — si bien que ce qui identifie le passage
-           était ce qu'on lisait le moins. C'est la composition de « Ma chaîne », et les
+           était ce qu'on lisait le moins. C'est la composition de « Mes annotations », et les
            deux pages de l'espace montrent le même corpus.
 
            ⛔ LA RANGÉE DÉBORDE DE SA COLONNE, ET LE TEXTE NE BOUGE PAS (2026-09-14). Le
@@ -904,7 +904,7 @@ export default function PagePrelevements() {
 
         /* La manchette NOMME, elle ne mène nulle part : la gouttière d'actions porte déjà
            le chemin vers le passage, et deux façons d'y aller en font une de trop. Sur
-           « Ma chaîne », qui n'a pas de gouttière, la même manchette est un lien. */
+           « Mes annotations », qui n'a pas de gouttière, la même manchette est un lien. */
         .prel-ref { font-family: var(--font-source-serif), Georgia, serif;
           font-size: 0.8125rem; font-weight: 600; line-height: 1.35;
           color: var(--cs-texte-fort); padding-top: 1px; }

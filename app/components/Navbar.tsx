@@ -5,7 +5,7 @@ import IconeChevron from '@/app/components/IconeChevron'
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin";
 import { useCompte } from "@/app/lib/contexteCompte";
@@ -602,9 +602,9 @@ function surlignerMatch(texte: string, query: string): React.ReactNode {
 // ⚠️ CE QUI RESTE, ET POURQUOI. Les GLOSES d'« Aller plus loin » : elles sont des
 // mots, non des logos, et l'auteur les a demandées le 2026-09-06 pour que six noms
 // alignés disent ce qu'ils ouvrent. Les COMPTEURS, qui portent un fait. Les deux
-// INTERRUPTEURS, qui sont des contrôles. Le CHEVRON d'« Administration », qui dit
-// un état de dépli. Et le marqueur de LIEN SORTANT de « Ma page publique », sans
-// lequel un onglet qui surgit passe pour une bizarrerie.
+// INTERRUPTEURS, qui sont des contrôles. ⛔ Le chevron d'« Administration » est parti
+// avec son dépli, et le marqueur de lien sortant de « Ma page publique » avec son
+// onglet neuf (décision de l'auteur, 2026-09-22) : la page s'ouvre sur place.
 /** Le filet qui sépare les OUTILS de l'espace du lecteur. ⚠️ Il n'y en a plus qu'UN :
  *  le second, qui isolait l'interrupteur d'administration, est parti avec lui — et les
  *  deux ne portaient pas la même marge (4 px contre 2). */
@@ -634,14 +634,20 @@ const RANGEE_MOBILE: React.CSSProperties = {
   background: "transparent", border: "none", textAlign: "left",
   width: "100%", fontFamily: "inherit", boxSizing: "border-box",
 };
-// ⚠️ Le rembourrage LATÉRAL est le même que celui d'une rangée : c'est ce qui donne
-// au panneau son unique bord gauche. Il était en marge, donc à 10 px quand les
-// rangées du compte étaient à 12.
-const INTERTITRE_MOBILE: React.CSSProperties = {
-  fontSize: "0.65625rem", fontWeight: 700, letterSpacing: "0.12em",
-  textTransform: "uppercase", color: "rgba(255,255,255,0.5)",
-  margin: "10px 0 2px", padding: "0 12px",
+// ⛔ PLUS D'INTERTITRES DANS LE PANNEAU (décision de l'auteur, 2026-09-22 : « trop
+// d'intitulés ; délimiter les groupes par un filet »). « Aller plus loin », « Mon
+// espace », « Administration » et les trois familles d'administration sont partis :
+// un groupe se sépare du suivant par ce seul filet. Il est rentré de 12 px de chaque
+// côté, le rembourrage d'une rangée, pour commencer et finir au bord du texte.
+const FILET_MOBILE: React.CSSProperties = {
+  height: "1px", border: "none", margin: "0 12px", flexShrink: 0,
+  background: "rgba(255,255,255,0.14)",
 };
+// L'encre de l'administration dans le panneau : un maroquin monté au rang d'encre,
+// pour que l'auteur, seul à la voir, la distingue d'un coup d'œil. ⚠️ Le maroquin du
+// site (#5a2a26) est illisible sur le vert du panneau ; celui-ci rend 4,80 sur le vert
+// (#2e5440) et 7,36 sur le cuir (#4a2721), les deux fonds du panneau.
+const ENCRE_ADMIN_MOBILE = "#f0b4a8";
 /**
  * LA TAILLE DES DESSINS DE LA RANGÉE D'OUTILS, EN REM.
  *
@@ -810,9 +816,6 @@ export default function Navbar() {
   // dessiner l'interrupteur. Partir de la valeur mémorisée ferait diverger les deux
   // rendus et React reprocherait l'hydratation.
   const themeSombre = theme === 'sombre';
-  // Les seize sections d'administration allongeaient le panneau mobile de trois écrans,
-  // au-dessus de la recherche et du compte : elles se déplient maintenant à la demande.
-  const [adminMobileOuvert, setAdminMobileOuvert] = useState(false);
   const [nbNotifications, setNbNotifications] = useState(0);
   const [notifsOuvertes, setNotifsOuvertes] = useState(false);
   const [nbMessages, setNbMessages] = useState(0);
@@ -1655,10 +1658,9 @@ export default function Navbar() {
       {/* ⛔ SUR TÉLÉPHONE, PLUS D'APLAT : c'était le seul objet du panneau à porter un
           fond propre (rgba blanc à 6 %) et des coins arrondis, si bien que quatre
           rangées sur vingt vivaient dans une boîte quand les seize autres coulaient
-          dans la colonne. Une section se nomme, elle ne s'encadre pas — c'est ce que
-          font déjà « Aller plus loin » et « Administration ». L'intertitre est posé
-          par le panneau, juste au-dessus de la messagerie, pour que les rangées de
-          l'espace du lecteur se suivent d'un seul tenant. */}
+          dans la colonne. Une section se sépare par un filet, elle ne s'encadre pas.
+          Le filet est posé par le panneau, juste au-dessus de la messagerie, pour que
+          les rangées de l'espace du lecteur se suivent d'un seul tenant. */}
       <div style={mobile ? { display: "flex", flexDirection: "column", gap: "2px" } : { position: "absolute", top: `calc(100% + ${SOUS_LA_BARRE})`, right: 0, background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: "var(--cs-ombre-flottante)", minWidth: "11.875rem", zIndex: 3100, overflow: "hidden", display: menuOuvert ? "block" : "none" }}>
         {!mobile && (
           /* ⚠️ Les blancs de la tête suivent la racine, comme le rond et les deux textes.
@@ -1683,7 +1685,8 @@ export default function Navbar() {
           // /compte la nomment donc pareil, quoi qu'il advienne de l'une ou de l'autre.
           // Elle s'appelait « Ma page », entre « Mon compte » et « Mes citations », et
           // rien ne disait qu'elle menait à ce que les autres voient.
-          ...(pagePublique ? [{ href: pagePublique.href, label: pagePublique.label, badge: 0, icone: "sortant" }] : []),
+          // ⛔ Plus de marqueur de lien sortant ni d'onglet neuf (auteur, 2026-09-22).
+          ...(pagePublique ? [{ href: pagePublique.href, label: pagePublique.label, badge: 0, icone: null }] : []),
           { href: "/compte", label: "Réglages du compte", badge: 0, icone: null },
           { href: "/compte/prelevements", label: "Mes citations", badge: 0, icone: null },
           // Le lien Administration reste toujours accessible à un vrai admin, quel que
@@ -1691,20 +1694,12 @@ export default function Navbar() {
           ...((estAdmin || estAdminEmail) ? [{ href: "/admin", label: "Administration", badge: nbActionsAdmin + nbVerifAdmin, icone: "epee" }] : []),
         ].map(item => (
           <Link key={item.href} href={item.href} onClick={() => { setMenuOuvert(false); setMobileOuvert(false) }}
-            {...(item.icone === "sortant" ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             style={mobile
-              ? RANGEE_MOBILE
+              // Sur téléphone, « Administration » prend l'encre maroquin de son groupe.
+              ? (item.icone === "epee" ? { ...RANGEE_MOBILE, color: ENCRE_ADMIN_MOBILE } : RANGEE_MOBILE)
               : { display: "flex", alignItems: "center", gap: "0.4375rem", padding: "0.625rem 0.875rem", fontSize: "0.875rem", color: "var(--cs-encre)", textDecoration: "none", borderBottom: "1px solid var(--cs-fond-doux)" }}>
             {/* Administration : plus d'icône ; libellé simplement mis en vert (menu desktop). */}
             <span style={item.icone === "epee" && !mobile ? { color: "var(--cs-vert)", fontWeight: 600 } : undefined}>{item.label}</span>
-            {/* ⚠️ La page publique s'ouvre à part, et l'icône le DIT : sans elle, un
-                onglet qui surgit passe pour une bizarrerie. Même dessin que dans la
-                colonne de /compte, pour que la même entrée se reconnaisse. */}
-            {item.icone === "sortant" && (
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ flexShrink: 0, opacity: 0.55 }}>
-                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
             {item.badge > 0 && (
               <span style={{ marginLeft: '4px', fontSize: '0.6875rem', background: 'var(--cs-danger-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', padding: '1px 6px', fontWeight: 700 }}>{item.badge}</span>
             )}
@@ -1784,7 +1779,8 @@ export default function Navbar() {
   const liensAPropos = (mobile: boolean) => (
     <nav aria-label="Contact et informations légales"
       style={mobile
-        ? { display: "flex", flexWrap: "wrap", gap: "0.25rem 0.75rem", padding: "10px 12px 0", fontSize: "0.8125rem" }
+        // Centrés sur téléphone (auteur, 2026-09-22) : un pied de panneau, non une rangée.
+        ? { display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0.25rem 0.75rem", padding: "2px 12px 0", fontSize: "0.8125rem" }
         : { display: "flex", flexWrap: "wrap", gap: "0.25rem 0.625rem", padding: "0.5rem 0.875rem", fontSize: "0.75rem", borderBottom: "1px solid var(--cs-fond-doux)" }}>
       {[
         { href: "/contact", label: "Contact" },
@@ -1819,13 +1815,30 @@ export default function Navbar() {
   // les liens sont enfants d'un <div> bloc et non du flex-colonne du panneau — restés
   // inline, ils se chevauchaient. Un flex est de niveau bloc : le cas ne peut plus
   // se produire, et il n'y a plus qu'une écriture.
-  const lienMobile = (href: string, label: string, prefixes?: string[]) => {
-    const chemin = href.split("?")[0] || "/";
-    const actif = pathname === chemin || (chemin !== "/" && (prefixes ?? [chemin]).some(p => pathname.startsWith(p)));
+  //
+  // ⛔ L'ÉTAT ACTIF LIT AUSSI L'ONGLET. Les sections d'administration partagent le
+  // chemin `/admin` et ne diffèrent que par `?onglet=` : comparé au seul chemin, tout
+  // le groupe s'allumait à la fois sur /admin (relevé de l'auteur, 2026-09-22). Seul
+  // `onglet` est comparé, pas la requête entière : le lien des bibles porte la sienne,
+  // qui ne dit pas quelle page est ouverte. ⚠️ `window.location` se lit sans risque
+  // d'hydratation : le panneau n'est jamais rendu par le serveur, il naît fermé.
+  //
+  // ⚠️ L'état actif est un TRAIT au bord et une graisse, non un aplat arrondi : une
+  // pastille par rangée faisait d'une liste une colonne de boîtes.
+  const lienMobile = (href: string, label: string, prefixes?: string[], couleur?: string) => {
+    const [chemin = "/", requete] = href.split("?");
+    const onglet = requete ? new URLSearchParams(requete).get("onglet") : null;
+    const actif = onglet
+      ? pathname === chemin && new URLSearchParams(window.location.search).get("onglet") === onglet
+      : pathname === chemin || (chemin !== "/" && (prefixes ?? [chemin]).some(p => pathname.startsWith(p)));
     return (
       <Link key={href} href={href} onClick={() => setMobileOuvert(false)}
         aria-current={actif ? "page" : undefined}
-        style={{ ...RANGEE_MOBILE, background: actif ? "rgba(255,255,255,0.12)" : "transparent" }}>
+        style={{
+          ...RANGEE_MOBILE,
+          ...(couleur ? { color: couleur } : {}),
+          ...(actif ? { fontWeight: 600, borderRadius: 0, boxShadow: "inset 2px 0 0 currentColor" } : {}),
+        }}>
         {label}
       </Link>
     );
@@ -2342,56 +2355,39 @@ export default function Navbar() {
           //    posé là, il battait `lg:hidden` et le panneau se dépliait sur un
           //    ordinateur, sous une barre qui portait déjà ses menus déroulants.
           <div className="flex lg:hidden cs-defilement-discret" style={{ background: "var(--cs-barre-fond-profond)", borderTop: "1px solid rgba(255,255,255,0.10)", padding: "12px 16px 16px", flexDirection: "column", gap: "10px", maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR})`, overflowY: "auto", overscrollBehavior: "contain" }}>
+            {/* ⛔ LA RECHERCHE EN TÊTE, toujours (auteur, 2026-09-22) : sur un téléphone
+                c'est le geste le plus direct, et elle ne doit pas descendre sous vingt
+                rangées de navigation. */}
+            {blocRecherche(true)}
+            <hr style={FILET_MOBILE} />
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-              {/* Liste verticale : lecture, puis Patristique/Publications, puis les pages
-                  d'« Aller plus loin » dépliées, et enfin les sections d'admin. */}
               {/* ⚠️ Le premier lien est celui des bibles : il rouvre où l'on en était. */}
               {[...LIENS_LECTURE.map(l => (l.href === HREF_BIBLE_CLASSIQUE ? { ...l, href: hrefBibleMobile } : l)), ...LIENS_PRIMAIRES.filter(l => l.href !== "/traductions")].map(l => lienMobile(l.href, l.label, (l as { prefixes?: string[] }).prefixes))}
-
-              <p style={INTERTITRE_MOBILE}>Aller plus loin</p>
+            </div>
+            <hr style={FILET_MOBILE} />
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
               {/* ⚠️ `dit` n'est PAS passé : la glose reste au menu de bureau, qui a la
                   place de la porter. Voir `lienMobile`. */}
               {LIENS_ALLER_PLUS_LOIN.map(({ href, label }) => lienMobile(href, label))}
-
-              {(estAdmin || estAdminEmail) && (
-                <>
-                  {/* Repliée par défaut : sur un téléphone, l'administration est l'exception,
-                      la lecture la règle. Le chevron dit l'état ; le bouton porte la même
-                      graisse que les autres intertitres pour ne pas se donner d'importance. */}
-                  <button type="button" onClick={() => setAdminMobileOuvert(v => !v)}
-                    aria-expanded={adminMobileOuvert} aria-controls="cs-admin-mobile"
-                    style={{ ...INTERTITRE_MOBILE, display: "flex", alignItems: "center", gap: "6px", width: "100%", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
-                    Administration
-                    <span style={{ display: "inline-flex", opacity: 0.7 }}>
-                      <IconeChevron dir={adminMobileOuvert ? "up" : "down"} size={8} strokeWidth={1.4} />
-                    </span>
-                  </button>
-                  {adminMobileOuvert && (
-                    <div id="cs-admin-mobile">
-                      {FAMILLES_ADMIN.map(fam => {
-                        const liens = entreesDeFamille(fam.cle);
-                        return (
-                          <div key={fam.cle}>
-                            {/* ⚠️ MÊME CORPS que les autres intertitres : celui-ci valait
-                                0,5rem — huit pixels — c'est-à-dire deux rangs sous le plus
-                                petit texte du site. Ce qui range une famille sous
-                                « Administration » est sa COULEUR et sa place, non un corps
-                                plus maigre. */}
-                            <p style={{ ...INTERTITRE_MOBILE, color: fam.couleurMobile }}>{fam.label}</p>
-                            {liens.map(({ href, label }) => lienMobile(href, label))}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </>
-              )}
             </div>
-            {blocRecherche(true)}
-            {boutonVisite(true)}
-            <Link href="/soutenir" onClick={() => setMobileOuvert(false)} style={RANGEE_MOBILE}>
-              Soutenir le projet
-            </Link>
+            {/* L'administration, DÉPLIÉE et en maroquin : l'auteur est seul à la voir, et
+                son encre la distingue mieux qu'un intertitre. Une famille par groupe. */}
+            {(estAdmin || estAdminEmail) && FAMILLES_ADMIN.map(fam => (
+              <Fragment key={fam.cle}>
+                <hr style={FILET_MOBILE} />
+                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                  {entreesDeFamille(fam.cle).map(({ href, label }) => lienMobile(href, label, undefined, ENCRE_ADMIN_MOBILE))}
+                </div>
+              </Fragment>
+            ))}
+            <hr style={FILET_MOBILE} />
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+              {boutonVisite(true)}
+              <Link href="/soutenir" onClick={() => setMobileOuvert(false)} style={RANGEE_MOBILE}>
+                Soutenir le projet
+              </Link>
+            </div>
+            <hr style={FILET_MOBILE} />
             {/* ⛔ Messagerie et notifications ne vivaient QUE dans le bloc `hidden lg:flex` :
                 sous 1024px, deux fonctions entières de l'espace du lecteur n'avaient aucun
                 accès, la route /notifications renvoyant à l'accueil. Elles se prennent ici,
@@ -2399,14 +2395,14 @@ export default function Navbar() {
             {/* ⛔ UN SEUL GROUPE POUR L'ESPACE DU LECTEUR. La messagerie, les
                 notifications et le menu de compte étaient trois blocs séparés par les
                 10 px du panneau, dont le dernier portait en outre son propre aplat :
-                trois objets pour une seule rubrique. Un intertitre les nomme, et les
-                rangées se suivent à 2 px comme partout ailleurs. */}
+                trois objets pour une seule rubrique. Un filet les sépare du reste, et
+                les rangées se suivent à 2 px comme partout ailleurs. */}
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-              {user && <p style={INTERTITRE_MOBILE}>Mon espace</p>}
               {user && actionMobile("Messages", nbMessages, () => setMessagerieOuverte(true))}
               {user && actionMobile("Notifications", nbNotifications, () => setNotifsOuvertes(true))}
               {blocCompte(true)}
             </div>
+            <hr style={FILET_MOBILE} />
             {liensAPropos(true)}
           </div>
         )}

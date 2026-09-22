@@ -88,10 +88,10 @@ export default function PageChaine() {
       // ⚠️ Un panneau qui se rend vide sur une erreur qu'il n'a pas lue fait croire au
       // lecteur qu'il n'a rien écrit. On dit l'échec, et on le journalise.
       if (gloses.error || notes.error) {
-        console.error('Ma chaîne : les gloses n’ont pas pu être lues.', gloses.error ?? notes.error)
+        console.error('Mes annotations : les gloses n’ont pas pu être lues.', gloses.error ?? notes.error)
         throw gloses.error ?? notes.error
       }
-      if (trads.error) console.error('Ma chaîne : le catalogue des bibles n’a pas pu être lu.', trads.error)
+      if (trads.error) console.error('Mes annotations : le catalogue des bibles n’a pas pu être lu.', trads.error)
 
       const groupes = composerChaine(gloses.data ?? [], notes.data ?? [])
 
@@ -110,7 +110,7 @@ export default function PageChaine() {
             supabase.from('versets_lecture').select(`id_verset, "${trad}"`).in('id_verset', lot)),
         )
         for (const lot of lots) {
-          if (lot.error) { console.error('Ma chaîne : un lemme n’a pas pu être lu.', lot.error); continue }
+          if (lot.error) { console.error('Mes annotations : un lemme n’a pas pu être lu.', lot.error); continue }
           for (const ligne of lot.data ?? []) {
             const texte = (ligne as Record<string, unknown>)[trad]
             if (typeof texte === 'string' && texte.trim()) textes.set(ligne.id_verset as string, texte)
@@ -122,7 +122,7 @@ export default function PageChaine() {
     }
 
     charger().catch(e => {
-      console.error('Ma chaîne : la page n’a pas pu être composée.', e)
+      console.error('Mes annotations : la page n’a pas pu être composée.', e)
       if (!annule) setEchec(cle)
     })
 
@@ -142,7 +142,7 @@ export default function PageChaine() {
       compte.notes > 0 ? accorder(compte.notes, 'note') : null,
       compte.commentaires > 0 ? accorder(compte.commentaires, 'commentaire') : null,
     ].filter(Boolean).join(' · ')
-    : 'Votre chaîne'
+    : 'Vos annotations'
 
   const lemme = useCallback((e: EntreeChaine) => pret?.textes.get(e.canonId), [pret])
 

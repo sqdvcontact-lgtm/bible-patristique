@@ -580,12 +580,14 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
   // ⚠️ Le dépli s'ouvre aussi pour un événement SANS notice qui tient dans une série ou
   // porte des relations : sinon son fil resterait derrière un titre qu'on ne peut pas
   // cliquer, et rien ne dirait qu'il existe.
+  // Au téléphone, le fil et les relations ne s'affichent pas : trop de couleurs pour
+  // la mesure (demande de l'auteur, 2026-09-22). Ils ne rendent donc pas le titre cliquable.
+  const filVisible = !mobile
   const aNotice = !!(
     (e.notice && e.notice.trim())
     || (e.date_precision_affichage && e.date_precision_affichage.trim())
     || (e.note_datation && e.note_datation.trim())
-    || places.length > 0
-    || liens.length > 0
+    || (filVisible && (places.length > 0 || liens.length > 0))
   )
   // La notice s'affiche si le mode global est actif OU si l'on a cliqué sur l'intitulé.
   const afficheNotice = toutesNotes || noticeOuverte
@@ -666,7 +668,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
           conclusion. C'est ce qui transforme une liste en récit, pour le moins de
           travail. ⚠️ L'ordre est celui de l'éditeur, non la date : une série fait
           remonter son origine avant son événement principal quelle que soit l'année. */}
-      {afficheNotice && places.map(pl => (
+      {afficheNotice && filVisible && places.map(pl => (
         <div key={pl.code} style={{ marginTop: '6px' }}>
           <p style={{ margin: 0, fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>
             {pl.titre} · {pl.rang} sur {pl.total}{pl.role ? ` · ${pl.role}` : ''}
@@ -686,7 +688,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
           618 relations entre événements, que le site rendait en liste plate.
           ⛔ Surtout PAS de visualisation en réseau : coûteuse, illisible au delà de
           trente nœuds, et elle ne dirait rien de plus que la phrase. */}
-      {afficheNotice && liens.length > 0 && (
+      {afficheNotice && filVisible && liens.length > 0 && (
         <div style={{ marginTop: '6px' }}>
           <p style={{ margin: 0, fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>Autour</p>
           <ul style={{ listStyle: 'none', margin: '2px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -696,7 +698,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
                 <button onClick={() => allerAEvenement(l.autreId)}
                   title="Aller à cet événement dans la frise"
                   style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', color: VERT, textAlign: 'left' }}>
-                  {l.autreTitre}
+                  {rendreFrise(l.autreTitre, '')}
                 </button>
               </li>
             ))}
@@ -759,7 +761,7 @@ function LienFil({ id, titre, sens, aller }: { id: string; titre: string | undef
     <button onClick={() => aller(id)} title="Aller à cet événement dans la frise"
       style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SERIF, fontSize: '0.71875rem', lineHeight: 1.35, color: VERT, textAlign: 'left', maxWidth: '100%', display: 'inline-flex', alignItems: 'baseline', gap: '4px', minWidth: 0 }}>
       {sens === 'avant' && <span aria-hidden style={{ color: 'var(--cs-texte-doux)' }}>‹</span>}
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{titre}</span>
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rendreFrise(titre, '')}</span>
       {sens === 'apres' && <span aria-hidden style={{ color: 'var(--cs-texte-doux)' }}>›</span>}
     </button>
   )

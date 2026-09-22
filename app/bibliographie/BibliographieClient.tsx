@@ -234,11 +234,12 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
 
   const lettresPresentes = new Set(groupes.map(g => g.lettre))
   const allerALaLettre = (lettre: string) => {
-    if (mobile) setPanneauOuvert(false)
     requestAnimationFrame(() => { allerAAncre(`lettre-${lettre}`) })
   }
 
-  const contenuFiltres = (
+  // Au téléphone, le résultat vient sous le champ : les axes se replient derrière
+  // un bouton, et l'index des lettres, qui n'y servait qu'à descendre, disparaît.
+  const recherche = (
     <>
       <div data-visite="biblio-recherche" style={{ position: 'relative', marginTop: '2px' }}>
         <input value={filtres.q} onChange={e => poser({ q: e.target.value })} type="text"
@@ -258,8 +259,12 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
       <p aria-live="polite" style={{ margin: '7px 0 0', fontFamily: SANS, fontSize: '0.6875rem', letterSpacing: '0.04em', color: actifs ? VERT : 'var(--cs-texte-second)' }}>
         {libelleCompte(entrees.length, retenues.length, actifs)}
       </p>
+    </>
+  )
 
-      {groupes.length > 0 && (
+  const axes = (
+    <>
+      {!mobile && groupes.length > 0 && (
         <>
           <Rubrique>Parcourir</Rubrique>
           <GroupeFiltre label="Aller à une lettre">
@@ -436,16 +441,18 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
 
           {mobile ? (
             <>
+              <div style={{ padding: '12px 15px 10px' }}>{recherche}</div>
               <button type="button" onClick={() => setPanneauOuvert(o => !o)} aria-expanded={panneauOuvert} aria-controls="bibliographie-filtres"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderBottom: panneauOuvert ? `1px solid ${SEP}` : 'none', background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-texte)' }}>
-                <span>Rechercher et filtrer{actifs ? ' (actifs)' : ''}</span>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderTop: `1px solid ${SEP}`, background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-texte)' }}>
+                <span>Filtres{filtresActifs({ ...filtres, q: '' }) ? ' (actifs)' : ''}</span>
                 <span aria-hidden style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={panneauOuvert ? 'up' : 'down'} size={11} strokeWidth={1.5} /></span>
               </button>
-              {panneauOuvert && <div id="bibliographie-filtres" style={{ padding: '0 15px 18px' }}>{contenuFiltres}</div>}
+              {panneauOuvert && <div id="bibliographie-filtres" style={{ padding: '0 15px 18px' }}>{axes}</div>}
             </>
           ) : (
             <div id="bibliographie-filtres" className="cs-defilement-discret" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '10px 15px 22px' }}>
-              {contenuFiltres}
+              {recherche}
+              {axes}
             </div>
           )}
         </aside>

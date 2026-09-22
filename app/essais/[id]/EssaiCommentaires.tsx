@@ -171,11 +171,13 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const CorpsCommentaire = ({ c, reponse, suivie = false }: { c: CommentaireEssai; reponse: boolean; suivie?: boolean }) => {
     const rang = c.lecture ? calculerRang(c.lecture.nb_auteurs, c.lecture.total_auteurs).rang : null
     const rangCouleur = rang ? couleurRang(rang) : null
-    // ⚠️ Son PROPRE commentaire en attente n'est pas un commentaire signalé : il
-    // se lit en teinte neutre, déplié, avec la raison de l'attente.
+    // Son PROPRE commentaire en attente se lit déplié, avec la raison de l'attente.
+    // ⚠️ Mais sa carte est ROUGE, comme au volet d'un verset et à l'onglet d'une
+    // œuvre (demande de l'auteur, 2026-09-22) : un commentaire non contrôlé se
+    // reconnaît partout à la même teinte, y compris sous les yeux de qui l'écrit.
     const monAttente = !c.valide && !!userId && c.user_id === userId
     return (
-      <div className="commentaire-carte" style={{ ...carteCommentaire({ enRevision: !c.valide && !monAttente, reponse, suivie }), viewTransitionName: `commentaire-essai-${c.id}` }}>
+      <div className="commentaire-carte" style={{ ...carteCommentaire({ enRevision: !c.valide, reponse, suivie }), viewTransitionName: `commentaire-essai-${c.id}` }}>
         <div style={ENTETE_COMMENTAIRE}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', minWidth: 0 }}>
             <span style={NOM_COMMENTAIRE}>
@@ -183,9 +185,11 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
               {c.mecene && <>{' '}<MarqueMecene /></>}
             </span>
             {rang && rangCouleur && <span style={{ ...BADGE_RANG, color: rangCouleur.texte, background: rangCouleur.fond }}>{rang}</span>}
-            {!c.valide && (monAttente
-              ? <span style={{ ...BADGE_ETAT, color: 'var(--cs-texte-second)', background: 'var(--cs-fond-doux)' }}>EN ATTENTE DE RELECTURE</span>
-              : <span style={{ ...BADGE_ETAT, color: 'var(--cs-danger-fonce)', background: 'rgba(var(--cs-danger-rgb),0.10)' }}>EN RÉVISION</span>)}
+            {!c.valide && (
+              <span style={{ ...BADGE_ETAT, color: 'var(--cs-danger-fonce)', background: 'rgba(var(--cs-danger-rgb),0.10)' }}>
+                {monAttente ? 'EN ATTENTE DE RELECTURE' : 'EN RÉVISION'}
+              </span>
+            )}
           </div>
           <span style={DATE_COMMENTAIRE}>{dateHeureCommentaire(c.created_at)}</span>
         </div>
@@ -229,15 +233,13 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
         }
         ${FEUILLE_COMMENTAIRE_RETRACTE}
       `}</style>
-      {/* Décompte, en tête (le tri a été retiré). */}
-      <div style={{ flexShrink: 0, padding: '12px 14px 8px' }}>
-        <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic' }}>
-          {racines.length > 0 ? `${racines.length} commentaire${racines.length > 1 ? 's' : ''}` : 'Aucun commentaire'}
-        </span>
-      </div>
-
-      {/* Liste défilante des commentaires. */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 14px 12px' }}>
+      {/* Liste défilante des commentaires. ⚠️ Pas de décompte en tête (demande de
+          l'auteur, 2026-09-22) : « 1 commentaire » au-dessus d'une seule carte ne
+          disait rien que la liste ne montre. Le vide seul se dit. */}
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 14px' }}>
+        {racines.length === 0 && (
+          <p style={{ margin: 0, fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic' }}>Aucun commentaire</p>
+        )}
         {racinesTriees.map(c => <Carte key={c.id} c={c} />)}
       </div>
 

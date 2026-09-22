@@ -669,7 +669,9 @@ export default function NavLivres({
       {barreVolet && (
         <OngletsPage
           intitule="Ce que montre le volet"
-          className="cs-onglets--volet"
+          /* ⚠️ `cs-onglets--segment` : au téléphone, un sélecteur segmenté, pour ne
+             pas se confondre avec la barre de la page (voir globals.css). */
+          className="cs-onglets--volet cs-onglets--segment"
           actif={ongletVolet}
           /* ⛔ L'ONGLET « Livres » EST LE RETOUR (décision de l'auteur, 2026-08-28).
              Une pièce liminaire portait en pied un « Revenir à Luc 1 » ; il est

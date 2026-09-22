@@ -127,7 +127,6 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
           setStatutPortrait({ ok: false, msg: 'Le portrait n’a pas pu être enregistré. Réessayez.' })
           return
         }
-        setStatutPortrait({ ok: true, msg: 'Portrait enregistré.' })
       })
   }
 
@@ -211,23 +210,18 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
       <SommaireEspace page="compte" groupes={ANCRES_COMPTE} />
 
       <div className="esp-page">
-        <BandeauLecteur lecteur={profil} reperes={reperes || 'Votre compte'} />
+        {/* ⛔ Le portrait n'a plus de rangée (auteur, 2026-09-22) : c'est le visage du
+            bandeau qu'on touche, et il ouvre un menu. Il s'enregistre dès qu'on choisit. */}
+        <BandeauLecteur lecteur={profil} reperes={reperes || 'Votre compte'} nomPortrait={nomPortrait}
+          actionsPortrait={[
+            { label: 'Choisir un portrait', onChoisir: () => setChoixOuvert(true) },
+            ...(profil.avatar_ref ? [{ label: 'Recadrer', onChoisir: () => setCadrageOuvert(true) }] : []),
+          ]} />
+        {statutPortrait && !statutPortrait.ok && <p className="esp-alerte" role="alert">{statutPortrait.msg}</p>}
 
-        <Section id="identite" titre="Identité">
-          <Rangee label="Portrait" note={statutPortrait
-            ? <span style={{ color: statutPortrait.ok ? 'var(--cs-vert)' : 'var(--cs-danger-fonce)' }}>{statutPortrait.msg}</span>
-            : 'Choisi parmi les visages qui illustrent déjà les Pères et les traducteurs. Il s’enregistre dès qu’on le choisit.'}>
-            <span style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span className="esp-fixe">{nomPortrait || (profil.avatar_ref ? 'Un visage est choisi' : 'Aucun visage')}</span>
-              <button type="button" onClick={() => setChoixOuvert(true)} style={BTN_DISCRET}>
-                {profil.avatar_ref ? 'Changer' : 'Choisir'}
-              </button>
-              {profil.avatar_ref && (
-                <button type="button" onClick={() => setCadrageOuvert(true)} style={BTN_DISCRET}>Recadrer</button>
-              )}
-            </span>
-          </Rangee>
-          <Rangee label="Pseudonyme" pour="pseudo" note="C’est le nom sous lequel les autres lecteurs vous voient.">
+        {/* ⛔ Sans titre : « Identité » ne disait rien que ses trois champs ne disent. */}
+        <Section id="identite">
+          <Rangee label="Pseudonyme" pour="pseudo">
             <input id="pseudo" className="esp-court" style={inputStyle} value={pseudo}
               onChange={e => { setPseudo(e.target.value); setStatutIdentite(null) }} maxLength={40} />
           </Rangee>
@@ -244,16 +238,14 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
         </Section>
 
         <Section id="page-publique" titre="Page publique">
-          <Rangee label="Quelques mots" pour="bio" note={`${bio.length} / ${BIO_MAX}`}>
+          <Rangee label="Quelques mots" pour="bio" note={bio.length > BIO_MAX - 50 ? `${bio.length} / ${BIO_MAX}` : undefined}>
             <textarea id="bio" className="esp-long" style={inputStyle} rows={3} maxLength={BIO_MAX}
               placeholder="Quelques mots sur vous…" value={bio}
               onChange={e => { setBio(e.target.value); setStatutPublique(null) }} />
           </Rangee>
-          {/* ⛔ L'adresse de contact N'EST PAS publique : l'API du profil l'exclut, et
-              seul son titulaire la voit sur sa propre page. Le libellé le dit, en note
-              permanente, et non dans un texte indicatif que la saisie efface. */}
-          <Rangee label="Adresse de contact" pour="contact"
-            note="Elle ne paraît pas sur votre page publique : vous seul la voyez, et l’administration peut s’en servir pour vous répondre.">
+          {/* ⛔ L'adresse de contact N'EST PAS publique : l'API du profil l'exclut. La
+              note le dit en trois mots, seule explication qu'on garde ici. */}
+          <Rangee label="Adresse de contact" pour="contact" note="Visible de vous seul.">
             <input id="contact" type="email" className="esp-moyen" style={inputStyle}
               placeholder="adresse@exemple.fr" value={contact}
               onChange={e => { setContact(e.target.value); setStatutPublique(null) }} />
@@ -284,13 +276,13 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
         <Section id="lecture" titre="Lecture">
           <Rangee label="Traduction" pour="trad" note={statutTrad
             ? <span style={{ color: statutTrad.ok ? 'var(--cs-vert)' : 'var(--cs-danger-fonce)' }}>{statutTrad.ok ? '✓ ' : ''}{statutTrad.msg}</span>
-            : 'S’applique aussitôt.'}>
+            : undefined}>
             <select id="trad" className="esp-menu" style={inputStyle} value={trad}
               onChange={e => { void poserTraduction(e.target.value) }}>
               {traductions.map(t => <option key={t.id} value={t.id}>{t.nom}</option>)}
             </select>
           </Rangee>
-          <Rangee label="Thème" pour="theme" note="S’applique aussitôt, ici comme depuis le menu de la barre.">
+          <Rangee label="Thème" pour="theme">
             <select id="theme" className="esp-menu" style={inputStyle} value={theme}
               onChange={e => poserTheme(themeValide(e.target.value) ?? 'clair')}>
               <option value="clair">Clair</option>
@@ -299,7 +291,7 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
           </Rangee>
           {/* Comme le thème, les visites s'appliquent aussitôt et ne passent pas par
               le bouton d'enregistrement : c'est le contexte du compte qui les retient. */}
-          <Rangee label="Visites" note={visitesRendues ? 'Chaque page rouvrira sa visite à votre prochaine venue.' : 'La boussole de la barre rouvre toujours celle de la page où vous êtes.'}>
+          <Rangee label="Visites" note={visitesRendues ? <span style={{ color: 'var(--cs-vert)' }}>✓ Les visites reviendront.</span> : undefined}>
             <span style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
               <Interrupteur libelle="Proposer les visites guidées" actif={visitesProposees}
                 onChange={v => { proposerLesVisites(v); setVisitesRendues(false) }} />
@@ -313,7 +305,7 @@ export default function RubriqueCompte({ traductions }: { traductions: { id: str
         <Section id="messagerie" titre="Messagerie">
           <Rangee label="Accusés de lecture" note={statutAccuses && !statutAccuses.ok
             ? <span style={{ color: 'var(--cs-danger-fonce)' }}>{statutAccuses.msg}</span>
-            : <>Activés, vos correspondants voient quand vous avez lu leurs messages, et vous voyez quand ils ont lu les vôtres. Désactivés, ni l’un ni l’autre : qui n’en envoie pas n’en reçoit pas. S’applique aussitôt. <a href="/confidentialite#messagerie" className="cs-lien-phrase">En savoir plus</a>.</>}>
+            : undefined}>
             <div className="esp-bascules">
               <Interrupteur libelle="Signaler que j’ai lu les messages" actif={accuses}
                 onChange={v => { void poserAccuses(v) }} />

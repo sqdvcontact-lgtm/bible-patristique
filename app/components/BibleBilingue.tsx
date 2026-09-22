@@ -305,8 +305,19 @@ export default function BibleBilingue({
     }
   }
 
+  // ⛔ EMPILÉES, LES DEUX COLONNES D'UN VERSET SE LISENT COMME UNE ŒUVRE EN REGARD
+  // (demande de l'auteur, 2026-09-22 : « reprendre le modèle bilingue des œuvres
+  // patristiques, avec le filet ») : la paire serrée, un filet pâle sous elle, celui
+  // de `.para-bilingue` (OeuvreClient). Le numéro ne se répète pas : voir
+  // `referenceRepetee`.
   const styleGrille = mobile
-    ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', rowGap: '0.35rem' }
+    ? {
+      display: 'grid',
+      gridTemplateColumns: 'minmax(0, 1fr)',
+      rowGap: '0.15rem',
+      borderBottom: '1px solid rgba(var(--cs-bord-rgb), 0.55)',
+      marginBottom: '0.55rem',
+    }
     : {
       display: 'grid',
       // Colonnes de largeurs INÉGALES, comme en traductions parallèles : le texte
@@ -338,6 +349,11 @@ export default function BibleBilingue({
         // vis-à-vis prend la largeur des deux (`gloseSansVisAVis`).
         const glose = rangee.glose
         const seule = gloseSansVisAVis(rangee)
+        const libelleReference = (cellule: (typeof rangee.cellules)[number]) => cellule === null
+          ? referenceCanoniqueLisible(rangee.canonId)
+          : cellule.glose
+            ? LIBELLE_GLOSE
+            : referenceNativeLisible(cellule.referenceNative) ?? referenceCanoniqueLisible(rangee.canonId)
         return (
           <div key={rangee.canonId}>
             {rendreBlocs(commun.blocs.beforeByCanon.get(rangee.canonId) ?? [])}
@@ -362,6 +378,18 @@ export default function BibleBilingue({
                 const appels = appelsDeLaCellule(notesRetenues, rangee, index, membre.id)
                 // ⛔ Un appel se pose à l'ANCRE que la donnée déclare ; sans ancre lisible, il suit le texte.
                 const repartition = repartirAppels(cellule?.texte ?? '', appels, false)
+                // ⛔ Empilé, le numéro ne paraît qu'une fois, sur la première cellule : la
+                // seconde garde INVISIBLE celui de la première, pour que son texte reprenne
+                // le même fer.
+                // ⚠️ Sauf si la première cellule est vide : la seconde est alors seule à
+                // dire son numéro.
+                const referenceRepetee = mobile && index > 0 && rangee.cellules[0] !== null
+                const reference = (
+                  <span style={referenceRepetee ? { ...STYLE_REFERENCE, visibility: 'hidden' as const } : STYLE_REFERENCE}
+                    aria-hidden={referenceRepetee || undefined}>
+                    {libelleReference(referenceRepetee ? rangee.cellules[0] : cellule)}
+                  </span>
+                )
                 return (
                   <div
                     key={membre.id}
@@ -381,7 +409,7 @@ export default function BibleBilingue({
                       // seul chemin, et la note dit pourquoi le verset manque. La cellule garde
                       // son vide, rendu « — » comme dans la lecture simple.
                       <div style={STYLE_LIGNE_VERSET}>
-                        <span style={STYLE_REFERENCE}>{referenceCanoniqueLisible(rangee.canonId)}</span>
+                        {reference}
                         <p style={original ? STYLE_VERSET_ORIGINAL : STYLE_VERSET}>
                           <span style={STYLE_VERSET_VIDE}>—</span>
                           {appeler(appels, membre.id)}
@@ -393,12 +421,9 @@ export default function BibleBilingue({
                             2026-09-04). Une édition ne dit sa numérotation propre que
                             lorsqu'elle DIFFÈRE du canon ; à défaut la colonne portait une
                             gouttière vide, et le lecteur n'avait de numéro que d'un bord.
-                            Une glose y porte son libellé, sans numéro (charte § 15.4). */}
-                        <span style={STYLE_REFERENCE}>
-                          {cellule.glose
-                            ? LIBELLE_GLOSE
-                            : referenceNativeLisible(cellule.referenceNative) ?? referenceCanoniqueLisible(rangee.canonId)}
-                        </span>
+                            Une glose y porte son libellé, sans numéro (charte § 15.4).
+                            ⚠️ Empilées, voir `referenceRepetee`. */}
+                        {reference}
                         <p
                           style={cellule.glose
                             ? (original ? STYLE_GLOSE_ORIGINAL : STYLE_GLOSE)

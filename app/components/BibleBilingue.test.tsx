@@ -59,6 +59,19 @@ describe('lecture bilingue de la page Bible', () => {
     expect(html).not.toContain('Vulgate Fillion')
   })
 
+  it('empilé, ne répète pas le numéro et sépare les versets d’un filet', () => {
+    const html = renderToStaticMarkup(<BibleBilingue {...COMMUN} mobile />)
+    const rangee = html.slice(html.indexOf('data-canon-id="MRK.1.1"'), html.indexOf('data-canon-id="MRK.1.2"'))
+    // Le latin garde la place du numéro, invisible, pour reprendre le fer du français.
+    const latin = rangee.slice(rangee.indexOf('lang="la"'))
+    expect(latin).toContain('visibility:hidden')
+    expect(latin).toContain('aria-hidden="true"')
+    expect(rangee.slice(0, rangee.indexOf('lang="la"'))).not.toContain('visibility:hidden')
+    expect(rangee).toContain('border-bottom:1px solid')
+    // Sur grand écran, chaque colonne dit toujours son numéro.
+    expect(renderToStaticMarkup(<BibleBilingue {...COMMUN} />)).not.toContain('visibility:hidden')
+  })
+
   it('rend un commentaire commun UNE seule fois, hors des colonnes', () => {
     const html = renderToStaticMarkup(
       <BibleBilingue

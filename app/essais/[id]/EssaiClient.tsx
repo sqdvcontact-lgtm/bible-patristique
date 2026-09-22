@@ -9,6 +9,7 @@ import { rendreEssai, extraireSommaire } from '@/app/lib/texteEnrichiEssai'
 import { PARAGRAPHE_ESSAI, CITATION_ESSAI, enCss } from '@/app/lib/compositionEssai'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import EssaiCommentaires from './EssaiCommentaires'
+import BarreVoletMobile from '@/app/components/BarreVoletMobile'
 import { useFavoris } from '@/app/lib/useFavoris'
 import EtoileFavori from '@/app/components/EtoileFavori'
 import ModalSignalement from '@/app/components/ModalSignalement'
@@ -418,21 +419,21 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           ? { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 2401, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, background: 'var(--cs-fond-clair)', borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale-haut)' }
           : { width: '18.75rem', flexShrink: 0, background: 'var(--cs-fond-clair)', borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', height: '100%' }}>
 
-          {/* Barre supérieure : fermer | titre | partager */}
-          <div style={{ minHeight: '41px', padding: '6px 8px 6px 6px', borderBottom: '1px solid var(--cs-fond-doux)', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {/* Barre supérieure : fermer | titre | partager. ⚠️ Trois colonnes dont les
+              deux bords sont à parts égales : le titre tient l'axe du volet quelle que
+              soit la largeur des boutons qui l'encadrent (même règle que le chevron doublé). */}
+          <div style={{ minHeight: '41px', padding: '6px 8px 6px 6px', borderBottom: '1px solid var(--cs-fond-doux)', flexShrink: 0, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '6px' }}>
             <button onClick={() => setVoletOuvert(false)} title="Réduire le volet"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-doux)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              style={{ justifySelf: 'start', background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-doux)', display: 'flex', alignItems: 'center' }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <span style={{ flex: 1, minWidth: 0, alignSelf: 'center', textAlign: 'center', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', whiteSpace: 'nowrap' }}>Commentaires</span>
+            <span style={{ textAlign: 'center', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', whiteSpace: 'nowrap' }}>Commentaires</span>
             {/* En desktop, les actions vivent dans le volet gauche ; en mobile, ici. */}
-            {mobile && (
-              <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
-                {boutonsPartage}
-              </div>
-            )}
+            <div style={{ justifySelf: 'end', display: 'flex', gap: '4px', alignItems: 'center' }}>
+              {mobile && boutonsPartage}
+            </div>
           </div>
 
           {/* Commentaires — la liste défile, l'outil de rédaction reste ancré en bas. */}
@@ -442,14 +443,10 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         </div>
         </>
       ) : mobile ? (
-        /* Volet droit — barre fixe en bas (mobile) */
-        <button onClick={() => setVoletOuvert(true)} title="Ouvrir les commentaires"
-          style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1200, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(-90deg)', color: 'var(--cs-texte-doux)' }}>
-            <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Commentaires</span>
-        </button>
+        /* Volet droit — barre fixe en bas (mobile). La même barre que celle d'une
+           œuvre : libellé centré, chevron doublé. */
+        <BarreVoletMobile cote="bas" ouvert={false} libelle="Commentaires" titre="Ouvrir les commentaires"
+          onBasculer={() => setVoletOuvert(true)} />
       ) : (
         /* Volet droit — réduit (tab vertical) */
         <button onClick={() => setVoletOuvert(true)} title="Ouvrir le panneau"

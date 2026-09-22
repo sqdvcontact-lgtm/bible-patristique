@@ -6,7 +6,7 @@
 // forme recopiée à deux endroits ne reste identique que par accident. C'est la même
 // raison qui a réuni `stylesVoletLecture.ts`.
 
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useId, useRef, useState } from 'react'
 import Link from 'next/link'
 import { allerAAncre } from '@/app/lib/defilement'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
@@ -97,19 +97,89 @@ export function SommaireEspace({ page, groupes, surAncre }: {
 
 // ── Le bandeau d'identité ────────────────────────────────────────────────────
 
+/** Une action du menu du portrait. */
+export type ActionPortrait = { label: string; onChoisir: () => void }
+
+/** Le portrait du bandeau, quand il porte un menu : un clic l'ouvre, et les actions
+ *  s'y choisissent. ⛔ Le portrait n'a plus de rangée à lui dans la page (auteur,
+ *  2026-09-22) : c'est le visage lui-même qu'on touche pour le changer. */
+function PortraitAvecMenu({ visage, actions, nom }: { visage: React.ReactNode; actions: ActionPortrait[]; nom?: string }) {
+  const [ouvert, setOuvert] = useState(false)
+  const cadre = useRef<HTMLDivElement>(null)
+  const bouton = useRef<HTMLButtonElement>(null)
+  const menu = useRef<HTMLDivElement>(null)
+  const idMenu = useId()
+
+  const fermer = useCallback((rendreLeFoyer: boolean) => {
+    setOuvert(false)
+    if (rendreLeFoyer) bouton.current?.focus()
+  }, [])
+
+  // Le foyer entre dans le menu à l'ouverture ; un clic à côté ou Échap le ferme.
+  useEffect(() => {
+    if (!ouvert) return
+    menu.current?.querySelector<HTMLButtonElement>('button')?.focus()
+    const dehors = (e: PointerEvent) => {
+      if (!cadre.current?.contains(e.target as Node)) fermer(false)
+    }
+    const touche = (e: KeyboardEvent) => { if (e.key === 'Escape') fermer(true) }
+    document.addEventListener('pointerdown', dehors)
+    document.addEventListener('keydown', touche)
+    return () => {
+      document.removeEventListener('pointerdown', dehors)
+      document.removeEventListener('keydown', touche)
+    }
+  }, [ouvert, fermer])
+
+  const circuler = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+    e.preventDefault()
+    const items = [...(menu.current?.querySelectorAll<HTMLButtonElement>('button') ?? [])]
+    const i = items.indexOf(document.activeElement as HTMLButtonElement)
+    const pas = e.key === 'ArrowDown' ? 1 : -1
+    items[(i + pas + items.length) % items.length]?.focus()
+  }
+
+  return (
+    <div className="esp-portrait" ref={cadre}>
+      <button ref={bouton} type="button" className="esp-portrait-bouton"
+        aria-label="Changer de portrait" title={nom || 'Changer de portrait'}
+        aria-haspopup="menu" aria-expanded={ouvert} aria-controls={ouvert ? idMenu : undefined}
+        onClick={() => setOuvert(o => !o)}>
+        {visage}
+      </button>
+      {ouvert && (
+        <div ref={menu} id={idMenu} role="menu" className="esp-menu-portrait" onKeyDown={circuler}>
+          {actions.map(a => (
+            <button key={a.label} type="button" role="menuitem"
+              onClick={() => { fermer(false); a.onChoisir() }}>
+              {a.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /** ⛔ CONDENSÉ (auteur, 1er septembre 2026 : « je veux que le bandeau nom, prénom,
  *  pseudo, photo soit condensé et propre »). Le visage, le pseudonyme, et sous lui
  *  UNE ligne de repères — le nom civil et ce que la page a de chiffré. Cinquante-deux
  *  pixels de haut, là où la version d'avant occupait une carte entière. */
-export function BandeauEspace({ visage, pseudo, reperes, hrefPublic }: {
+export function BandeauEspace({ visage, pseudo, reperes, hrefPublic, actionsPortrait, nomPortrait }: {
   visage: React.ReactNode
   pseudo: string
   reperes: string
   hrefPublic: string | null
+  /** Les actions du menu qu'ouvre le portrait. Sans elles, le portrait n'est qu'une image. */
+  actionsPortrait?: ActionPortrait[]
+  nomPortrait?: string
 }) {
   return (
     <header className="esp-bandeau">
-      {visage}
+      {actionsPortrait?.length
+        ? <PortraitAvecMenu visage={visage} actions={actionsPortrait} nom={nomPortrait} />
+        : visage}
       <div style={{ minWidth: 0 }}>
         <h1>{pseudo}</h1>
         <p className="esp-reperes">{reperes}</p>
@@ -140,11 +210,18 @@ export type LecteurDuBandeau = {
   avatar_zoom: number | null
 }
 
-export function BandeauLecteur({ lecteur, reperes }: { lecteur: LecteurDuBandeau; reperes: string }) {
+export function BandeauLecteur({ lecteur, reperes, actionsPortrait, nomPortrait }: {
+  lecteur: LecteurDuBandeau
+  reperes: string
+  actionsPortrait?: ActionPortrait[]
+  nomPortrait?: string
+}) {
   return (
     <BandeauEspace
       pseudo={lecteur.pseudo}
       reperes={reperes}
+      actionsPortrait={actionsPortrait}
+      nomPortrait={nomPortrait}
       hrefPublic={`/profil/${encodeURIComponent(lecteur.pseudo)}`}
       visage={
         <PortraitLecteur
@@ -162,10 +239,12 @@ export function BandeauLecteur({ lecteur, reperes }: { lecteur: LecteurDuBandeau
 
 // ── Une section de page, et son titre ────────────────────────────────────────
 
-export function Section({ id, titre, children }: { id: string; titre: string; children: React.ReactNode }) {
+/** ⚠️ `titre` est facultatif : la première section de « Mon compte » (pseudonyme,
+ *  prénom, nom) suit le bandeau sans titre, qui ne disait rien de plus que ses champs. */
+export function Section({ id, titre, children }: { id: string; titre?: string; children: React.ReactNode }) {
   return (
     <section id={id} className="esp-section">
-      <h2>{titre}</h2>
+      {titre && <h2>{titre}</h2>}
       {children}
     </section>
   )
@@ -201,7 +280,7 @@ export const FEUILLE_ESPACE = `
 .esp-cadre { display: flex; gap: 34px; max-width: 54rem; margin: 0 auto;
   padding: 28px 24px 90px; align-items: flex-start; }
 /* ⚠️ 13,5rem et non 12,5 depuis que les onglets sont TROIS : « Mon compte » et
-   « Mon parcours » en demandaient 135 px à eux deux, « Ma chaîne » en ajoute une
+   « Mon parcours » en demandaient 135 px à eux deux, « Mes annotations » en ajoute une
    soixantaine, et les libellés se coupaient en deux lignes. On élargit la colonne
    plutôt que d'abréger ce que l'auteur a nommé — une mesure est un réglage, un nom
    est une décision. */
@@ -239,6 +318,23 @@ export const FEUILLE_ESPACE = `
 .esp-public { margin-left: auto; font-size: 0.71875rem; color: var(--cs-vert);
   text-decoration: none; white-space: nowrap; flex-shrink: 0; }
 
+/* Le portrait qui ouvre son menu : un anneau au survol dit qu'on peut le toucher. */
+.esp-portrait { position: relative; flex-shrink: 0; }
+.esp-portrait-bouton { display: block; padding: 0; border: none; background: none;
+  border-radius: 50%; cursor: pointer; transition: box-shadow 0.12s; }
+.esp-portrait-bouton:hover, .esp-portrait-bouton[aria-expanded="true"] {
+  box-shadow: 0 0 0 2px rgba(var(--cs-vert-rgb), 0.45); }
+.esp-menu-portrait { position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
+  min-width: 11rem; padding: 4px; background: var(--cs-surface);
+  border: 1px solid var(--cs-bord); border-radius: 8px; box-shadow: var(--cs-ombre-nette); }
+.esp-menu-portrait button { display: block; width: 100%; text-align: left; padding: 7px 10px;
+  border: none; border-radius: 4px; background: none; cursor: pointer; font-family: inherit;
+  font-size: 0.78125rem; color: var(--cs-texte); }
+.esp-menu-portrait button:hover, .esp-menu-portrait button:focus-visible {
+  background: rgba(var(--cs-vert-rgb), 0.08); color: var(--cs-encre); }
+@media (hover: none) { .esp-menu-portrait button { min-height: 2.25rem; } }
+.esp-alerte { font-size: 0.71875rem; color: var(--cs-danger-fonce); margin: -18px 0 20px; }
+
 /* ⚠️ Le décalage d'ancre se compose sur HAUTEUR_NAVBAR, jamais en pixels : la barre
    mesure 56 px à la racine 16 et 77 px à la racine 22 (charte, « Responsive »). */
 .esp-section { scroll-margin-top: calc(${HAUTEUR_NAVBAR} + 1.5rem); }
@@ -248,7 +344,7 @@ export const FEUILLE_ESPACE = `
   font-weight: normal; font-size: 0.84375rem; color: var(--cs-vert); margin: 0 0 14px; }
 
 .esp-rangee { display: grid; grid-template-columns: 8.5rem 1fr; gap: 14px;
-  align-items: start; padding: 7px 0; }
+  align-items: start; padding: 6px 0; }
 /* ⛔ La colonne d'étiquettes de 8,5rem ne laissait que 122px au champ sur un
    téléphone de 320, 177 sur un de 375 : sous 640 l'étiquette monte au-dessus de
    ce qu'elle nomme, et le champ prend la mesure entière. */
@@ -256,12 +352,13 @@ export const FEUILLE_ESPACE = `
   .esp-rangee { grid-template-columns: 1fr; gap: 4px; }
   .esp-rangee > label, .esp-etiquette { padding-top: 0; }
 }
-.esp-rangee > label, .esp-etiquette { font-size: 0.625rem; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--cs-texte-second); padding-top: 7px; }
+/* ⛔ Les étiquettes en casse ordinaire (auteur, 2026-09-22 : « plus propre, plus
+   lisible ») : les petites capitales espacées de 10 px se lisaient mal, et chaque
+   rangée criait son nom. Le blanc du haut pose l'étiquette sur la ligne du champ. */
+.esp-rangee > label, .esp-etiquette { font-size: 0.78125rem; color: var(--cs-texte-second);
+  padding-top: 8px; line-height: 1.4; }
 .esp-note { display: block; font-size: 0.6875rem; color: var(--cs-texte-gris);
   font-style: italic; margin-top: 3px; line-height: 1.5; }
-.esp-fixe { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.875rem;
-  color: var(--cs-texte-fort); }
 
 /* ⛔ Chaque champ à SA mesure : un prénom n'a pas la largeur d'une bio. Tous
    faisaient 636 px avant la refonte, mot de passe compris. */

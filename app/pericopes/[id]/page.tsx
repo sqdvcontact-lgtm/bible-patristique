@@ -11,7 +11,7 @@ import { lireTraductionMemorisee, memoriserTraductionBible } from '@/app/lib/pre
 import { EcranAttente, MotAttente } from '@/app/lib/attenteEnCreux'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
-import { useEstMobile } from '@/app/lib/useEstMobile'
+import { useEstMobile, useSansSurvol } from '@/app/lib/useEstMobile'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { formaterPlageCanonique, parsePointCanonique, nomLivreReference } from '@/app/lib/referencesBibliques'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -125,9 +125,13 @@ type CtxActions = {
   prelevements: Map<string, string>
   onPreleve: (cle: string, id: string) => void
   onRetire: (cle: string) => void
+  /** Téléphone ou écran tactile : le verset prend toute la mesure, et ses actions ne
+   *  paraissent qu'au tap, sous lui (demande de l'auteur, 2026-09-22). */
+  auDoigt: boolean
 }
 
 function BlocVersets({ vs, ctx }: { vs: VersetPericope[]; ctx: CtxActions }) {
+  const [actif, setActif] = useState<VersetPericope['id_verset'] | null>(null)
   const multiChapitres = new Set(vs.map(v => v.chapitre)).size > 1
   const abr = ABREV_FR[ctx.livre] ?? ctx.livre
   return (
@@ -135,15 +139,32 @@ function BlocVersets({ vs, ctx }: { vs: VersetPericope[]; ctx: CtxActions }) {
       {vs.map((v, i) => {
         const nouveauChapitre = multiChapitres && (i === 0 || v.chapitre !== vs[i - 1].chapitre)
         const cle = `${abr}|${v.chapitre}|${v.verset}`
+        const actions = (
+          <ActionsVerset
+            idVerset={v.id_verset} refAffichee={`${abr} ${v.chapitre}, ${v.verset}`}
+            nomLivre={nomLivreReference(ctx.livre)} refLivreAbr={abr}
+            chapitre={v.chapitre} verset={v.verset} texte={String(v.texte)}
+            tradLabel={ctx.tradLabel} userId={ctx.userId}
+            prelevementId={ctx.prelevements.get(cle) ?? null}
+            onPreleve={ctx.onPreleve} onRetire={ctx.onRetire} />
+        )
+        // ⚠️ Un clic venu d'un portail (la fenêtre de signalement) remonte par React
+        // jusqu'ici sans être dans la rangée : il ne referme rien. Un lien ou un appel
+        // de note du texte garde son geste.
+        const taper = ctx.auDoigt ? (e: React.MouseEvent<HTMLDivElement>) => {
+          const cible = e.target as Element
+          if (!e.currentTarget.contains(cible) || cible.closest('a, button')) return
+          setActif(a => (a === v.id_verset ? null : v.id_verset))
+        } : undefined
         return (
-          <div key={v.id_verset} className="peri-verset-row">
+          <div key={v.id_verset} className="peri-verset-row" onClick={taper} style={ctx.auDoigt ? { cursor: 'pointer' } : undefined}>
             {nouveauChapitre && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: i === 0 ? '0 0 8px' : '15px 0 8px' }}>
                 <span style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', whiteSpace: 'nowrap' }}>Chapitre {v.chapitre}</span>
                 <span style={{ flex: 1, height: '1px', background: 'var(--cs-bord)' }} />
               </div>
             )}
-            <div style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr) auto', columnGap: '10px', alignItems: 'start' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: ctx.auDoigt ? 'auto minmax(0, 1fr)' : 'auto minmax(0, 1fr) auto', columnGap: '10px', alignItems: 'start' }}>
               {/* Numéro centré verticalement sur la PREMIÈRE ligne du verset (boîte à la hauteur
                   d'une ligne, contenu centré) — plutôt qu'aligné sur la ligne de base. */}
               <span style={{ fontFamily: SANS, fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-texte-gris)', minWidth: '1.1rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: 'calc(0.875rem * 1.55)', lineHeight: 1 }}>{v.verset}</span>
@@ -155,16 +176,13 @@ function BlocVersets({ vs, ctx }: { vs: VersetPericope[]; ctx: CtxActions }) {
                 {rendreTexteEnrichi(String(v.texte))}
               </p>
               {/* Boutons d'action centrés en face de cette même première ligne. */}
-              <span style={{ display: 'flex', alignItems: 'center', height: 'calc(0.875rem * 1.55)' }}>
-                <ActionsVerset
-                  idVerset={v.id_verset} refAffichee={`${abr} ${v.chapitre}, ${v.verset}`}
-                  nomLivre={nomLivreReference(ctx.livre)} refLivreAbr={abr}
-                  chapitre={v.chapitre} verset={v.verset} texte={String(v.texte)}
-                  tradLabel={ctx.tradLabel} userId={ctx.userId}
-                  prelevementId={ctx.prelevements.get(cle) ?? null}
-                  onPreleve={ctx.onPreleve} onRetire={ctx.onRetire} />
-              </span>
+              {!ctx.auDoigt && (
+                <span style={{ display: 'flex', alignItems: 'center', height: 'calc(0.875rem * 1.55)' }}>{actions}</span>
+              )}
             </div>
+            {ctx.auDoigt && actif === v.id_verset && (
+              <div className="peri-actions-doigt" style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2px' }}>{actions}</div>
+            )}
           </div>
         )
       })}
@@ -215,6 +233,7 @@ export default function PericopePage() {
   const params = useParams<{ id: string }>()
   const id = params?.id
   const mobile = useEstMobile()
+  const sansSurvol = useSansSurvol()
   const [etat, setEtat] = useState<'chargement' | 'ok' | 'introuvable' | 'erreur'>('chargement')
   const [peri, setPeri] = useState<Pericope | null>(null)
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
@@ -400,7 +419,7 @@ export default function PericopePage() {
   const tradActive = TRADUCTIONS_BIBLE.find(t => t.code === trad) ?? TRADUCTIONS_BIBLE[0]
   const langAttr = tradActive.langue === 'la' ? 'la' : tradActive.langue === 'grc' ? 'grc' : 'fr'
   const chapPrincipale = principale ? (parsePointCanonique(principale.canon_id_debut)?.chapitre ?? 1) : 1
-  const ctxBase = { tradLabel: tradActive.nom, userId, prelevements, onPreleve, onRetire }
+  const ctxBase = { tradLabel: tradActive.nom, userId, prelevements, onPreleve, onRetire, auDoigt: mobile || sansSurvol }
 
   // ── Volet gauche : apparat patristique (doublon du volet de la page Bible) ──
   const panneauPatristique = principale ? (
@@ -432,6 +451,7 @@ export default function PericopePage() {
         .peri-verset-row .bouton-action-verset { opacity: 0; }
         .peri-verset-row:hover .bouton-action-verset { opacity: 1 !important; }
         @media (hover: none) { .peri-verset-row .bouton-action-verset { opacity: 1 !important; } }
+        .peri-actions-doigt .bouton-action-verset { opacity: 1 !important; }
       `}</style>
       <header style={{ textAlign: 'center', paddingBottom: '1rem', marginBottom: '1.3rem', borderBottom: `1px solid ${SEP}` }}>
         {categorie && (

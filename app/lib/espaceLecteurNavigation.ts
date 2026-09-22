@@ -26,7 +26,7 @@ export type PageEspace = 'compte' | 'parcours' | 'chaine' | 'citations'
 export const PAGES_ESPACE: { cle: PageEspace; href: string; label: string }[] = [
   { cle: 'compte', href: '/compte', label: 'Mon compte' },
   { cle: 'parcours', href: '/compte/parcours', label: 'Mon parcours' },
-  { cle: 'chaine', href: '/compte/chaine', label: 'Ma chaîne' },
+  { cle: 'chaine', href: '/compte/chaine', label: 'Mes annotations' },
   { cle: 'citations', href: '/compte/prelevements', label: 'Mes citations' },
 ]
 
@@ -37,13 +37,14 @@ export type AncreEspace = { id: string; label: string }
 export type GroupeAncres = { rubrique: string; ancres: AncreEspace[] }
 
 /** ⛔ Les ancres de « Mon compte » sont FIXES : la page les porte toutes, toujours,
- *  et le sommaire ne peut donc pas mentir. Celles de « Mon parcours » se déduisent
+ *  et le sommaire ne peut donc pas mentir. ⚠️ La première section (pseudonyme, prénom,
+ *  nom) n’a plus de titre depuis le 2026-09-22 : elle suit le bandeau, et le sommaire ne la
+ *  nomme plus. Celles de « Mon parcours » se déduisent
  *  au contraire des séries que la base porte — voir `ancresParcours`. */
 export const ANCRES_COMPTE: GroupeAncres[] = [
   {
     rubrique: 'Vous',
     ancres: [
-      { id: 'identite', label: 'Identité' },
       { id: 'page-publique', label: 'Page publique' },
     ],
   },
@@ -77,7 +78,7 @@ export function ancresParcours(series: { serie: string; nom: string }[]): Groupe
   return groupes
 }
 
-/** Le sommaire de « Ma chaîne » : les livres qu'on a glosés, sous leur rubrique.
+/** Le sommaire de « Mes annotations » : les livres qu'on a glosés, sous leur rubrique.
  *
  *  ⚠️ Comme celui du parcours, il se déduit de ce que la page PORTE : un lecteur ne
  *  glose pas deux fois le même canon, et un sommaire qui listerait les soixante-treize
