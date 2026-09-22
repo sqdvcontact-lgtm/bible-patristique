@@ -282,6 +282,23 @@ function BoutonLien({ href }: { href: string }) {
   );
 }
 
+// ⛔ AU TÉLÉPHONE, LES ACTIONS D'UNE CITATION SE REPLIENT DERRIÈRE CE BOUTON (2026-09-22).
+// Quatre icônes répétées sous chaque passage faisaient le gros du poids de la page ; le
+// bouton les montre d'un toucher, et les range de même. ⚠️ Il n'existe qu'au téléphone :
+// la feuille le masque au-delà de 640 px, où les actions viennent au survol.
+function BoutonPlus({ ouvert, onBasculer }: { ouvert: boolean; onBasculer: () => void }) {
+  return (
+    <button type="button" onClick={e => { e.stopPropagation(); onBasculer(); }}
+      className="prel-action prel-plus" aria-expanded={ouvert}
+      aria-label={ouvert ? "Masquer les actions" : "Afficher les actions"}
+      title={ouvert ? "Masquer les actions" : "Actions"}>
+      <svg width="13" height="3" viewBox="0 0 13 3" fill="currentColor" aria-hidden="true" style={{ display: "block" }}>
+        <circle cx="1.5" cy="1.5" r="1.3" /><circle cx="6.5" cy="1.5" r="1.3" /><circle cx="11.5" cy="1.5" r="1.3" />
+      </svg>
+    </button>
+  );
+}
+
 // La page d'un document : le geste d'extraction se reconnaît avant de se lire.
 function IconeDocument() {
   return (
@@ -335,6 +352,9 @@ export default function PagePrelevements() {
   // l'extraction, sur les DEUX corpus à la fois.
   const [selection, setSelection] = useState<Set<string> | null>(null);
   const [extraction, setExtraction] = useState<{ enCours: boolean; erreur: string | null }>({ enCours: false, erreur: null });
+  // Au téléphone, la citation dont les actions sont dépliées (sa clé), ou aucune.
+  const [actionsOuvertes, setActionsOuvertes] = useState<string | null>(null);
+  const basculerActions = (cle: string) => setActionsOuvertes(o => (o === cle ? null : cle));
   const [oeuvresInfo, setOeuvresInfo] = useState<Record<string, OeuvreInfo>>({});
   // Les éditions des œuvres citées, pour citer un passage sous la sienne.
   const [editions, setEditions] = useState<Record<string, LigneIdentiteTexte>>({});
@@ -1012,6 +1032,9 @@ export default function PagePrelevements() {
         .prel-bouton:hover:not(:disabled) { background: var(--cs-vert-aplat-fonce); }
         .prel-bouton:disabled { opacity: 0.45; cursor: default; }
 
+        .prel-onglets { margin-bottom: 14px; }
+        .prel-plus { display: none; }
+
         .prel-vide { text-align: center; padding: 64px 0; }
         .prel-vide p { font-size: 0.875rem; color: var(--cs-texte-second); margin: 0 0 14px; }
         .prel-trad-sel {
@@ -1042,6 +1065,31 @@ export default function PagePrelevements() {
             grid-template-areas: "case ref" "case corps"; }
           .prel-item.prel-item--selection.prel-item--sans-ref { grid-template-areas: "case corps"; }
           .prel-case-cellule { grid-area: case; }
+
+          /* ⛔ ALLÉGÉE AU TÉLÉPHONE (2026-09-22, « allège la page des citations »). Moins
+             de blanc entre les groupes et autour de chaque passage, une référence d'un
+             rang plus discrète, et les actions repliées derrière un seul bouton : elles
+             se répétaient à chaque citation. La favorite garde sa marque d'or en vue.
+             Le bureau ne change pas. */
+          .prel-groupe + .prel-groupe { margin-top: 16px; padding-top: 12px; }
+          .prel-groupe-tete { padding-bottom: 2px; }
+          .prel-item { padding: 6px var(--prel-debord) 8px; }
+          .prel-item.prel-pref { margin-top: 4px; margin-bottom: 4px; padding-top: 8px; padding-bottom: 9px; }
+          .prel-ref { font-size: 0.75rem; color: var(--cs-texte-second); }
+          .prel-texte { font-size: 0.84375rem; line-height: 1.38; }
+          .prel-provenance { margin-top: 2px; }
+          .prel-actions { opacity: 1; margin: -6px -8px -6px 0; }
+          .prel-plus { display: inline-flex; }
+          .prel-plus[aria-expanded="true"] { color: var(--cs-vert); }
+          .prel-item:not(.prel-item--ouvert) .prel-actions > :not(.prel-plus):not(.prel-marque-active) { display: none; }
+          .prel-onglets { margin-bottom: 8px; }
+          .prel-onglets .cs-onglet { padding: 6px 4px; }
+          .prel-outils { margin-bottom: 8px; min-height: 0; flex-wrap: nowrap; }
+          .prel-trad { flex: 1 1 0; min-width: 0; max-width: 100%; }
+          .prel-trad-sel { width: 100%; overflow: hidden; text-overflow: ellipsis; }
+          .prel-outil { flex-shrink: 0; }
+          .prel-vide { padding: 32px 0; }
+          .prel-barre { margin-top: 14px; padding: 8px 10px; }
         }
       `)}</style>
 
@@ -1064,7 +1112,7 @@ export default function PagePrelevements() {
           actif={onglet}
           choisir={setOnglet}
           intitule="Corpus des citations"
-          style={{ marginBottom: "14px" }}
+          className="prel-onglets"
         />
 
         {/* ── La barre d'outils : la traduction à gauche, l'extraction à droite ──
@@ -1110,7 +1158,7 @@ export default function PagePrelevements() {
                     const estChoisi = choisi(ids);
                     return (
                       <div key={cle}
-                        className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}${selection ? " prel-item--selection" : ""}${estChoisi ? " prel-item--choisi" : ""}`}
+                        className={`prel-item${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}${selection ? " prel-item--selection" : ""}${estChoisi ? " prel-item--choisi" : ""}${actionsOuvertes === cle ? " prel-item--ouvert" : ""}`}
                         onClick={selection ? () => basculer([ids]) : undefined}>
                         {selection && (
                           <span className="prel-case-cellule">
@@ -1130,6 +1178,7 @@ export default function PagePrelevements() {
                             <BoutonCopie citation={citationBiblique(texteSansEnrichissement(texte), ref)} />
                             <BoutonLien href={`/?livre=${CODE_PAR_ABREV[g.ref_livre_abr] ?? g.ref_livre_abr}&chapitre=${g.ref_chapitre}&verset=${g.verset_debut}&trad=${traductionActive}`} />
                             <BoutonSuppr onSuppr={() => supprimerIds(ids)} />
+                            <BoutonPlus ouvert={actionsOuvertes === cle} onBasculer={() => basculerActions(cle)} />
                           </div>
                         )}
                       </div>
@@ -1169,7 +1218,7 @@ export default function PagePrelevements() {
                     const estChoisi = choisi(ids);
                     return (
                       <div key={cle}
-                        className={`prel-item${sansManchette ? " prel-item--sans-ref" : ""}${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}${selection ? " prel-item--selection" : ""}${estChoisi ? " prel-item--choisi" : ""}`}
+                        className={`prel-item${sansManchette ? " prel-item--sans-ref" : ""}${estPref ? " prel-pref" : ""}${sansSurvol ? " prel-tactile" : ""}${selection ? " prel-item--selection" : ""}${estChoisi ? " prel-item--choisi" : ""}${actionsOuvertes === cle ? " prel-item--ouvert" : ""}`}
                         onClick={selection ? () => basculer([ids]) : undefined}>
                         {selection && (
                           <span className="prel-case-cellule">
@@ -1195,6 +1244,7 @@ export default function PagePrelevements() {
                               <BoutonLien href={`/oeuvre/${p.id_oeuvre}${parametreTexte(edition) ? `?${parametreTexte(edition)}` : ''}${p.segment_numero ? `#s${p.segment_numero}` : ''}`} />
                             )}
                             <BoutonSuppr onSuppr={() => supprimerIds(ids)} />
+                            <BoutonPlus ouvert={actionsOuvertes === cle} onBasculer={() => basculerActions(cle)} />
                           </div>
                         )}
                       </div>

@@ -180,7 +180,7 @@ export function BandeauEspace({ visage, pseudo, reperes, hrefPublic, actionsPort
       {actionsPortrait?.length
         ? <PortraitAvecMenu visage={visage} actions={actionsPortrait} nom={nomPortrait} />
         : visage}
-      <div style={{ minWidth: 0 }}>
+      <div className="esp-bandeau-nom" style={{ minWidth: 0 }}>
         <h1>{pseudo}</h1>
         <p className="esp-reperes">{reperes}</p>
       </div>
@@ -381,18 +381,46 @@ export const FEUILLE_ESPACE = `
   font-family: inherit; font-size: inherit; color: var(--cs-texte-doux); }
 .esp-pied button.esp-danger { color: var(--cs-danger); }
 
-/* ⚠️ Sous 900px le sommaire ne peut plus tenir à gauche : il passe au-dessus, en
-   ligne, et ne garde que les quatre PAGES — une liste d'ancres empilée y ferait un
+/* ⚠️ Sous 900px le sommaire ne peut plus tenir à gauche : il passe au-dessus, et
+   ne garde que les quatre PAGES — une liste d'ancres empilée y ferait un
    rouleau avant le premier mot de la page.
    ⚠️ 900px, le seuil de la charte, et non les 60rem d'avant : ils valaient 960 et
    n'appartenaient à aucun des huit seuils admis (audit du 2026-09-06).
-   ⚠️ Les pages y reprennent le RANG : en colonne elles débordent de sept pixels de
-   chaque côté, ce qui n'a de sens que dans une colonne étroite. */
+   ⚠️ Les pages y perdent le débord de sept pixels, qui n'a de sens que dans une
+   colonne étroite, et se rangent en grille (ci-dessous). */
 @media (max-width: 900px) {
-  .esp-cadre { flex-direction: column; gap: 18px; }
+  /* ⚠️ « stretch » et non plus « flex-start » : en colonne, un enfant à la largeur de
+     son contenu se règle sur son plus long mot — le menu des traductions de « Mes
+     citations » portait la page à 476 px sur un téléphone de 375. */
+  .esp-cadre { flex-direction: column; align-items: stretch; gap: 14px; }
   .esp-sommaire { width: 100%; position: static; }
   .esp-groupe { display: none; }
-  .esp-pages { display: flex; flex-wrap: wrap; gap: 2px 6px; }
-  .esp-pages .esp-lien { width: auto; margin: 0; }
+  /* ⛔ AU TÉLÉPHONE, LES QUATRE PAGES SONT UNE GRILLE DE DEUX SUR DEUX (2026-09-22).
+     En ligne, elles ne tenaient pas dans 375 px : le rang débordait, les libellés se
+     coupaient, et la page gagnait un défilement horizontal. Quatre cases égales, sans
+     pastille ; des filets fins pour seule séparation ; la page ouverte en vert et en
+     graisse 600. Les libellés restent entiers : un nom est une décision de l'auteur. */
+  .esp-pages { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0; padding: 0; border-top: 1px solid var(--cs-bord-clair);
+    border-bottom: 1px solid var(--cs-bord-clair); }
+  .esp-pages .esp-lien { width: auto; margin: 0; border-radius: 0; box-sizing: border-box;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    min-height: 2.5rem; padding: 6px 8px; font-size: 0.78125rem; min-width: 0;
+    overflow-wrap: anywhere; }
+  .esp-pages .esp-lien:nth-child(odd) { border-right: 1px solid var(--cs-bord-clair); }
+  .esp-pages .esp-lien:nth-child(-n+2) { border-bottom: 1px solid var(--cs-bord-clair); }
+  .esp-pages .esp-lien:hover, .esp-pages .esp-lien:focus-visible { background: rgba(var(--cs-vert-rgb), 0.04); }
+  .esp-pages .esp-lien[aria-current] { background: none; color: var(--cs-vert); font-weight: 600; }
+}
+/* ⛔ RIEN NE DÉBORDE UN TÉLÉPHONE. La gouttière descend à 16 px, le bandeau se
+   resserre, et « Ma page publique » passe sous le nom au lieu de le serrer : il était en
+   « nowrap » et ne cédait jamais, si bien qu'un pseudonyme long poussait la page. */
+@media (max-width: 640px) {
+  .esp-cadre { padding: 16px 16px 72px; }
+  .esp-bandeau { flex-wrap: wrap; gap: 4px 12px; padding-bottom: 12px; margin-bottom: 18px; }
+  .esp-bandeau-nom { flex: 1 1 0; }
+  .esp-bandeau h1 { overflow-wrap: anywhere; }
+  .esp-public { flex-basis: 100%; margin-left: 0; padding-left: calc(3.25rem + 12px);
+    box-sizing: border-box; white-space: normal; }
 }
 `

@@ -8938,8 +8938,13 @@ filet qui sépare ce qui NAVIGUE de ce qui SAUTE.
   sous-barre de l'administration, et une barre sur deux rangées n'est plus une barre.
 - ⛔ **Pas de libellés abrégés** non plus : « Mon compte » et « Mon parcours » sont des noms
   que l'auteur a donnés. Une mesure est un réglage, un nom est une décision.
-- ⚠️ Sous 900 px, les pages repassent EN LIGNE (`flex-wrap`) et reprennent leur rang : le
-  débord de sept pixels de chaque côté n'a de sens que dans une colonne étroite.
+- ⛔ Sous 900 px, les pages se rangent en GRILLE DE DEUX SUR DEUX (2026-09-22) : en ligne,
+  elles débordaient un téléphone de 375 px. Quatre cases égales, des filets fins, la page
+  ouverte en vert et en graisse 600, libellés entiers. Sous 640 px, la gouttière de
+  l'espace tombe à 16 px et « Ma page publique » passe sous le nom (`.esp-bandeau-nom`).
+- ⚠️ « Mes citations » au téléphone : les actions d'une citation se replient derrière un
+  bouton ⋯ (`BoutonPlus`, `prel-item--ouvert`), la favorite gardant sa marque d'or ; blancs,
+  référence et onglets resserrés. Tout vit sous la requête de 640 px de la page.
 
 ## ⚠️ Ce qui reste ouvert sur cette page
 
