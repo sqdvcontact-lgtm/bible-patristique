@@ -6379,9 +6379,19 @@ Le protocole est **vivant** : lorsqu’une erreur nouvelle révèle une faibless
 
 **L1 — Plan du livre, titres, rangs, parents et portées.** Lire le livre dans son ordre et reconstruire son plan réel à partir de Fillion : parties, livres internes, sections, sous-sections, paragraphes, péricopes et autres divisions. Vérifier chaque `semantic_parent_key`, chaque rang T1–T6, chaque portée et chaque frontière. Le rang est une profondeur (§ 35.28), jamais une conséquence mécanique du style, du marqueur ou du `scope_kind`. Examiner les titres manquants éventuels ; créer un titre éditorial seulement lorsque la structure l’exige réellement et que son statut éditorial est explicite. Ne jamais fabriquer `facsimile_heading` pour un titre non imprimé. Contrôler aussi les numérotations apparemment incomplètes. Un `2°` sans `1°` impose d’examiner la séquence qui précède : ⛔ si une première subdivision autonome est réellement reconstructible par sa portée et son contenu, Corpus Scriptura CRÉE le `1°` éditorial nécessaire avec un intitulé bref, neutre et fondé sur le texte ; cette création est explicitement marquée éditoriale et ne reçoit jamais de `facsimile_heading`. Si la première subdivision ne peut pas être établie sans arbitraire, aucun titre n’est inventé. **Clôture L1 :** zéro déclaration irrecevable ; zéro relation titre-parent non descendante ; tout rang explicite requis posé ; tout saut ou fratrie hétérogène effectivement relu et soit corrigé, soit justifié ; zéro portée enfant débordant de son parent ; tout écart entre portée imprimée et portée analytique documenté sans altérer la provenance source.
 
-**Sous-passe L1-T — Non-redondance des titres et synchronisation des projections.** Après stabilisation du plan, contrôler toutes les surfaces susceptibles de rendre un même intitulé : bloc `title`, heading, sous-titre/chapeau composite, premier paragraphe et segment éditorial correspondant. Lorsqu’un composant source a été fusionné dans un titre parent, il reste conservé comme témoin/provenance mais ne doit pas être rendu une seconde fois. Le bloc et son segment doivent alors porter une projection cohérente : composant `source_only`, présence technique supprimée selon le statut du bloc, `technical_publication_override = false`, et même `composite_parent_key`. Le contrôle recherche aussi les headings publics de même portée canonique et de libellé normalisé identique, ainsi que la répétition immédiate d’un titre comme sous-titre ou premier paragraphe. ⛔ On ne supprime jamais un vrai sous-titre autonome sous prétexte qu’il ressemble au parent : la suppression n’est admise que si la fusion éditoriale est explicitement établie. **Clôture L1-T :** zéro incohérence bloc/segment pour les composants composites supprimés ; zéro doublon public de titre à portée identique non justifié ; zéro répétition titre/sous-titre non voulue ; témoin source intact.
+**Sous-passe L1-T — Non-redondance des titres et synchronisation des projections.** Après stabilisation du plan, contrôler toutes les surfaces susceptibles de rendre un même intitulé : bloc `title`, heading, sous-titre/chapeau composite, premier paragraphe et segment éditorial correspondant. Lorsqu’un composant source a été fusionné dans un titre parent, il reste conservé comme témoin/provenance mais ne doit pas être rendu une seconde fois. Le bloc et son segment doivent alors porter une projection cohérente : composant `source_only`, présence technique supprimée selon le statut du bloc, `technical_publication_override = false`, et même `composite_parent_key`. Le contrôle recherche aussi les headings publics de même portée canonique et de libellé normalisé identique, ainsi que la répétition immédiate d’un titre comme sous-titre ou premier paragraphe. ⛔ On ne supprime jamais un vrai sous-titre autonome sous prétexte qu’il ressemble au parent : la suppression n’est admise que si la fusion éditoriale est explicitement établie. **Contrôle de complétude des titres structurels.** Avant de clore L1-T, rechercher systématiquement les titres publics dont le `heading` ne porte qu’une désignation structurelle nue — notamment `Première partie`, `Deuxième partie`, `Troisième partie`, `Section I`, `Section II`, `§ I`, `§ II` ou un repère romain équivalent. Pour chacun, examiner le composant documentaire immédiatement suivant et de même portée. Si le témoin ou `facsimile_heading` atteste un intitulé analytique qui complète la désignation, cet intitulé appartient au titre autonome : la couche de lecture réunit désignation, intitulé et portée selon la grille du § 35.5 ; le composant documentaire reste conservé comme provenance mais passe `site_projection = source_only`, avec présence technique supprimée et `technical_publication_override = false`. ⛔ Un titre structurel nu ne peut subsister par accident parce que son intitulé se trouve dans le bloc suivant. Il ne peut rester nu que si le témoin est réellement nu ou si l’intitulé ne peut être rattaché sans conjecture ; le motif est alors explicite. Après fusion, recontrôler immédiatement les doublons titre/composant, les ancres, les notes et les surfaces dépendantes.
 
-**L2 — Commentaires, manchettes et topologie du livre.** Revoir les blocs de commentaire dans leur relation aux titres et à leur portée. Pour chaque commentaire I4–I6 susceptible d’en porter une, clore la manchette dans exactement l’un des trois états du § 35.29 : `source`, `editoriale`, `absente`. Vérifier les repères imprimés, les faux repères issus d’OCR ou de coupures de paragraphe, les continuations, les commentaires hors portée et les parents manquants. Une manchette éditoriale n’a jamais de `facsimile_heading`. **Clôture L2 :** zéro `manchette_etat = null` parmi les blocs éligibles ; zéro contradiction état/ancre/motif ; zéro parent introuvable ; zéro commentaire hors portée de son parent ; aucune manchette inventée pour régulariser la page.
+**Clôture L1-T :** zéro titre structurel nu non examiné ; zéro intitulé analytique attesté laissé dans un bloc voisin alors qu’il complète le titre ;  zéro incohérence bloc/segment pour les composants composites supprimés ; zéro doublon public de titre à portée identique non justifié ; zéro répétition titre/sous-titre non voulue ; témoin source intact.
+
+**L2 — Commentaires, manchettes et topologie du livre.** Revoir les blocs de commentaire dans leur relation aux titres et à leur portée. Pour chaque commentaire public, sans exception, clore la manchette dans exactement l’un des trois états du § 35.29 : `source`, `editoriale`, `absente`. L’absence de manchette est elle-même une décision éditoriale et doit être motivée ; ⛔ aucun commentaire public ne peut rester hors inventaire sous prétexte qu’il ne paraît pas, à première vue, « susceptible » d’en porter une. Vérifier les repères imprimés, les faux repères issus d’OCR ou de coupures de paragraphe, les continuations, les commentaires hors portée et les parents manquants. Une manchette éditoriale n’a jamais de `facsimile_heading`. **Clôture L2 :** zéro `manchette_etat = null` parmi les commentaires publics ; zéro contradiction état/ancre/motif ; zéro parent introuvable ; zéro commentaire hors portée de son parent ; aucune manchette inventée pour régulariser la page.
+
+**Sous-passe L2-M — Exhaustivité des manchettes et garde de portée.** Cette sous-passe est obligatoire après L2 et avant toute recomposition L3. Elle repart d’un recensement de **tous** les commentaires publics du livre, et non des seuls blocs déjà munis d’un état ou d’un repère reconnu. Chaque commentaire reçoit exactement une disposition documentée : `source`, `editoriale` ou `absente`. Le total des trois états doit être égal au nombre total de commentaires publics ; ⛔ `manchette_etat IS NULL` est un échec de passe, jamais un état implicite.
+
+Détecter systématiquement les débuts forts de type numéro ou plage + point (`1.`, `17-19.`, `12b-14.`, etc.), mais ⛔ ne jamais conclure qu’ils sont des manchettes par leur seule forme. Avant extraction, établir la portée du repère : la priorité va à la portée native attestée dans la provenance source ; à défaut seulement, une portée canonique non ambiguë peut servir de contre-épreuve. Une manchette éditoriale n’est extraite que si le repère et son intitulé couvrent **tout le bloc de commentaire**. Si le premier repère ne couvre qu’une sous-partie, si plusieurs repères numérotés structurent le même commentaire, ou si la portée native reste incertaine, le bloc est classé composite/incertain et aucune manchette générale n’est fabriquée. Un titre autonome de même portée prime : le commentaire reste sans manchette distincte, sauf preuve documentaire contraire, afin d’éviter le double affichage.
+
+Lorsqu’une manchette est extraite du premier paragraphe, elle est retirée du corps de lecture pour ne pas être rendue deux fois. La passe recalcule dans la même transaction : `editorial_normalization.blocks`, `reading_text`, `paragraph_count`, `projection_text_sha256`, les offsets des `inline_spans`, les registres `double_lemmas` et leurs `paragraph_id`, les ancres de notes, les offsets/longueurs/SHA des occurrences bibliographiques et toute projection dépendante. Aucun span ne peut traverser la frontière manchette/corps sans décision explicite. Si tout le corps disparaît parce que le commentaire n’était qu’une manchette, l’unité reçoit un rôle explicite de type `heading_only_commentary` et le fallback brut public est interdit.
+
+**Clôture L2-M :** somme `source + editoriale + absente = commentaires publics` ; zéro état NULL ; zéro amorce forte non classée ; zéro manchette éditoriale redondante avec un titre autonome de même portée ; tout commentaire composite identifié et soit segmenté avec preuve, soit explicitement laissé sans manchette générale ; zéro span hors borne ; zéro `double_lemma` orphelin ; notes et bibliographie encore ancrées exactement ; miroir, compte de paragraphes et SHA de projection cohérents ; couche SOURCE intacte.
 
 **L3 — Architecture de lecture : paragraphes, citations longues, listes et blocs.** Recomposer la lecture après stabilisation de la structure : frontières de paragraphes, séparateurs source, blancs, chapeaux, blocs de sous-titre, citations, listes et autres dispositions signifiantes. Toute citation isolée, terminale et longue suit le seuil de 400 signes ; une citation sortie devient un bloc `quotation` sans guillemets d’encadrement dans la LECTURE, la SOURCE restant intacte. Une énumération développée d’unités autonomes devient une vraie liste : un bloc par item, `presentation.style = "liste"`, `list_style = "decimal"` lorsqu’elle est numérotée, index explicite et marqueur visible conservé dans le texte. Les retours de ligne décoratifs de l’OCR ne créent jamais des paragraphes. Toute modification d’un bloc impose la reconstruction du miroir `editorial_normalization.reading_text`. **Clôture L3 :** miroir et blocs identiques à la recomposition canonique ; zéro paragraphe vide ou rupture fantôme ; zéro liste développée laissée en chapelet si elle doit être structurée ; zéro citation longue admissible laissée en ligne.
 
@@ -6395,9 +6405,17 @@ Le protocole est **vivant** : lorsqu’une erreur nouvelle révèle une faibless
 
 **L7 — Intégrité croisée et non-régression.** Refaire les contrôles dépendants après toutes les écritures : blocs ↔ miroir de lecture ; headings ↔ titres ↔ parents ; notes ↔ ancres ↔ surfaces ; manchettes ↔ repères source ; `inline_spans` ↔ texte qu’ils couvrent ; portées enfant ↔ parent ; provenance ↔ projection éditoriale. Vérifier explicitement que les couches SOURCE/diplomatiques n’ont pas été réécrites par une correction de lecture et que les formes imprimées fautives mais documentaires restent conservées dans leur champ de provenance. **Clôture L7 :** zéro span hors limites ; zéro miroir divergent ; zéro ancre invalide ; zéro contradiction d’état ; zéro parent/portée invalide ; `source_text_modified = false` pour les passes purement éditoriales.
 
-**L8 — Contre-audit indépendant.** Reprendre le livre avec les contrôles globaux ET des sondages humains répartis au début, au milieu et à la fin, sur plusieurs niveaux de titres, plusieurs commentaires, plusieurs notes, plusieurs versets et les cas corrigés les plus sensibles. Les sondages ne doivent pas se limiter aux lignes déjà modifiées. Rejouer les invariants L1–L7, mesurer tous les reliquats et classifier explicitement ce qui est volontairement irrégulier. Le bilan distingue ce qui est **vérifié**, ce qui est **justifié**, ce qui reste **réservé**, et ce qui n’a **pas** été audité. ⛔ Ne jamais transformer une validation structurelle/typographique en prétention de collation textuelle intégrale. L8 ne clôt plus à elle seule le livre : elle prépare obligatoirement L9.
+**L8 — Contre-audit indépendant.** Reprendre le livre avec les contrôles globaux ET des sondages humains répartis au début, au milieu et à la fin, sur plusieurs niveaux de titres, plusieurs commentaires, plusieurs notes, plusieurs versets et les cas corrigés les plus sensibles. Les sondages ne doivent pas se limiter aux lignes déjà modifiées. Rejouer les invariants L1–L7, mesurer tous les reliquats et classifier explicitement ce qui est volontairement irrégulier. Le bilan distingue ce qui est **vérifié**, ce qui est **justifié**, ce qui reste **réservé**, et ce qui n’a **pas** été audité. ⛔ Ne jamais transformer une validation structurelle/typographique en prétention de collation textuelle intégrale. L8 ne clôt plus à elle seule le livre : elle prépare obligatoirement L8-R, qui recalcule les invariants sur l’état vivant avant L9.
 
-**L9 — Passe des étrangetés, réserves et questions à l’auteur.** Après L8, effectuer une dernière lecture orientée non vers les erreurs déterministes déjà couvertes, mais vers tout ce qui paraît bizarre, singulier, incohérent, inhabituel, douteux ou éditorialement discutable, ainsi que vers tout cas que l’opérateur ne se sent pas légitime à résoudre seul. Cette passe recherche notamment : numérotations surprenantes ; titres, manchettes ou parentés qui restent atypiques malgré leur cohérence formelle ; portées imprimées difficiles à interpréter ; formulations pouvant être coquille, OCR ou choix de l’auteur ; ponctuation dont plusieurs lectures sont plausibles ; statut incertain d’un lemme, d’une citation, d’une liste ou d’un renvoi ; note dont le meilleur locus d’ancrage n’est pas certain ; série de références dont la fonction hésite entre prose et apparat ; lacune possible de titre ; répétition étrange ; divergence entre source, provenance et lecture ; cas où deux solutions éditoriales seraient également défendables.
+**Sous-passe L8-R — Recalcul post-mutation et preuve de fermeture.** L8-R est obligatoire après L8 et avant L9. Elle ne relit aucun compteur hérité d’un ancien rapport : elle recalcule l’état du livre directement depuis les tables vivantes, après toutes les mutations L1–L8. Son rôle est de détecter les dépendances silencieusement périmées par une correction pourtant juste.
+
+Recalculer au minimum : nombre de blocs publics par nature ; grille T1–T6 et parents ; titres structurels nus ; états de manchette et motifs ; doublons titre/manchette à portée identique ; commentaires à amorce numérotée encore non classés ; nombre d’unités, de paragraphes et d’unités vides avec rôle explicite ; égalité `reading_text` / recomposition des blocs ; `paragraph_count` ; SHA source et SHA de projection ; spans hors borne et chevauchements ; `double_lemmas.paragraph_id` orphelins ; notes, ancres et `needs_review` ; bibliographie structurée avec citation, offsets, longueur, SHA et projection lecteur ; cohérence `canonical_ids_review` et relation topologique avec les alignements vivants ; mappings AELF, en particulier **zéro mapping source sur `CANONICAL_GAP`** ; égalité des projections live et matérialisées ; inventaire et statut des assets. Toute correction éditoriale pure est enfin comparée à sa sauvegarde pour prouver `text_content` et `source_markup` inchangés.
+
+⛔ Un compteur « zéro résidu » provenant d’une passe antérieure n’est pas une preuve L8-R. Si L8-R trouve une anomalie, revenir à la passe responsable, corriger avec sauvegarde, puis rejouer L8-R depuis le début. Une resynchronisation déterministe de SHA, offsets ou ancres devenue nécessaire par une mutation admise peut être faite dans le lot dépendant, mais L8-R est ensuite rejouée intégralement.
+
+**Clôture L8-R :** zéro état inconnu ou NULL ; zéro titre structurel nu non justifié ; zéro doublon titre/manchette non justifié ; zéro miroir, compte de paragraphes ou SHA de projection divergent ; zéro span hors borne/chevauché ; zéro `double_lemma` orphelin ; toutes les notes et occurrences bibliographiques exactes sur leur surface actuelle ; zéro métadonnée canonique périmée ; zéro mapping sur un gap canonique ; zéro différence live/matérialisé ; toutes les réserves restantes nommées et non bloquantes ; différentiel SOURCE nul pour les passes éditoriales.
+
+**L9 — Passe des étrangetés, réserves et questions à l’auteur.** Après L8-R, effectuer une dernière lecture orientée non vers les erreurs déterministes déjà couvertes, mais vers tout ce qui paraît bizarre, singulier, incohérent, inhabituel, douteux ou éditorialement discutable, ainsi que vers tout cas que l’opérateur ne se sent pas légitime à résoudre seul. Cette passe recherche notamment : numérotations surprenantes ; titres, manchettes ou parentés qui restent atypiques malgré leur cohérence formelle ; portées imprimées difficiles à interpréter ; formulations pouvant être coquille, OCR ou choix de l’auteur ; ponctuation dont plusieurs lectures sont plausibles ; statut incertain d’un lemme, d’une citation, d’une liste ou d’un renvoi ; note dont le meilleur locus d’ancrage n’est pas certain ; série de références dont la fonction hésite entre prose et apparat ; lacune possible de titre ; répétition étrange ; divergence entre source, provenance et lecture ; cas où deux solutions éditoriales seraient également défendables.
 
 ⛔ **L9 N’EST PAS UNE PASSE DE CORRECTION FORCÉE.** Lorsqu’une règle existante et le témoin permettent finalement de trancher avec certitude, le cas peut être résolu et le contrôle dépendant est rejoué. Dans le cas contraire, on ne choisit pas par préférence, harmonie, vraisemblance ou désir de régularité : le cas devient une QUESTION À L’AUTEUR. Une irrégularité manifestement voulue par la source peut être classée source_justifiee sans question.
 
@@ -6407,11 +6425,11 @@ Le protocole est **vivant** : lorsqu’une erreur nouvelle révèle une faibless
 
 **États L9.** Le dossier de clôture porte exactement l’un des états : closed_no_questions ; awaiting_user ; closed_resolved. Les questions actives sont stockées sous forme structurée avec au minimum question_id, locus, current_form, issue, options, impact et why_user_needed. Une réponse conserve la question et ajoute la décision ; elle n’efface jamais l’historique. ⛔ Un livre ne reçoit le statut final de clôture qu’après L9 = closed_no_questions ou L9 = closed_resolved.
 
-**Dépendances et réouverture.** Une correction L1 rouvre L2–L9. Une correction L2 qui change portée, parent ou découpage rouvre L3–L9. Une correction L3 qui change le texte ou les blocs rouvre L4–L9. Une correction L4 qui change la longueur ou la segmentation rouvre localement L5 et obligatoirement L7–L9. Une correction L5 rouvre L7–L9. Toute règle générale nouvelle née d’un retour utilisateur déclenche un rétro-audit des livres déjà clos susceptibles d’être touchés. ⛔ Le statut de clôture antérieur ne protège jamais un livre contre une règle nouvelle.
+**Dépendances et réouverture.** Une correction L1 rouvre L1-T, L2, L2-M et L3–L9. Une correction L1-T qui fusionne, déplace ou masque un composant rouvre L2, L2-M et toutes les passes dépendantes jusqu’à L9. Une correction L2 ou L2-M qui change une manchette, une portée, un parent, un découpage ou la surface de lecture rouvre L3–L8-R puis L9 ; si elle change la longueur de surface, L5 est obligatoirement rejouée pour les notes et la bibliographie. Une correction L3 qui change le texte ou les blocs rouvre L4–L8-R puis L9. Une correction L4 qui change la longueur ou la segmentation rouvre localement L5 et obligatoirement L7, L8, L8-R et L9. Une correction L5 rouvre L7, L8, L8-R et L9. Toute correction effectuée après L8-R invalide L8-R : la sous-passe est rejouée intégralement avant L9. Toute règle générale nouvelle née d’un retour utilisateur déclenche un rétro-audit des livres déjà clos susceptibles d’être touchés. ⛔ Le statut de clôture antérieur ne protège jamais un livre contre une règle nouvelle.
 
 **Livres complexes et répétition des passes.** Le cycle peut être répété sans changer sa nomenclature : `L1-A`, `L1-B`, etc. Un livre dont la structure, la numérotation ou la matière sont particulièrement complexes reçoit au moins deux parcours indépendants des étapes qui le justifient. **Les Psaumes exigent au minimum deux passes globales ; toute correction substantielle découverte à la seconde impose un troisième contre-audit ciblé avant clôture.**
 
-**Dossier de clôture obligatoire.** Le bilan de chaque livre est stocké dans `bible_text_sources.metadata.editorial_structure_reviews.<BOOK>.cycle_livre_L0_L9` ou dans l’emplacement équivalent de l’édition active. Il enregistre au minimum : statut L0–L9 ; date ; nombre d’unités bibliques et éditorialisées contrôlées ; titres et rangs ; corrections de parents et de portées ; titres éditoriaux créés ; états de manchette ; notes et ancres ; séries de références déplacées ; citations sorties ; listes structurées ; lemmes citationnels normalisés ; anomalies typographiques restantes ; spans hors limites ; reliquats justifiés ; `source_text_modified` ; `textual_collation_claimed` ; `editorial_validation_claimed`. ⛔ Les compteurs sont relus depuis la base au moment de la clôture, jamais recopiés d’un message antérieur.
+**Dossier de clôture obligatoire.** Le bilan de chaque livre est stocké dans `bible_text_sources.metadata.editorial_structure_reviews.<BOOK>.cycle_livre_L0_L9` ou dans l’emplacement équivalent de l’édition active. Il enregistre au minimum : statut L0–L9, y compris les sous-passes L1-T, L2-M, L4-C et L8-R ; date ; nombre d’unités bibliques et éditorialisées contrôlées ; titres et rangs ; corrections de parents et de portées ; titres éditoriaux créés ; états de manchette ; notes et ancres ; séries de références déplacées ; citations sorties ; listes structurées ; lemmes citationnels normalisés ; anomalies typographiques restantes ; spans hors limites ; reliquats justifiés ; `source_text_modified` ; `textual_collation_claimed` ; `editorial_validation_claimed`. ⛔ Les compteurs sont relus depuis la base au moment de la clôture, jamais recopiés d’un message antérieur.
 
 
 **Discipline d’exécution — micro-passes et lots courts.** Une passe est réalisée par micro-passes homogènes. Pour une lecture ou une correction séquentielle, le lot ordinaire couvre au plus quatre chapitres ou divisions consécutifs ; trois à quatre constituent la taille normale. Un lot plus large n’est admis que pour un audit en lecture seule, un contrôle déterministe transversal ou une transformation réellement globale dont l’invariant est explicitement vérifiable. À chaque arrêt, le bilan est chiffré depuis la base et distingue au minimum : objets relus, objets réellement modifiés, typographie, latin et grec, références, spans/enrichissements, notes et ancres, transformations/provenance et reliquats. ⛔ **Aucun « tout est bon » ne remplace ces contrôles.**
@@ -9761,3 +9779,131 @@ se pose à 2 rem, la pose la plus courte. ⛔ Six de ces figures REGARDENT quelq
 corbeau, aigle, pélican, main, trompette, ange déchu —, ce qu'un ornement de séparation ne
 fait pas : elles sont offertes comme le poisson l'a été, avec leur réserve écrite au
 recensement des illustrations.
+
+#### 6.1.2 Un EXTRAIT du volet patristique se joint par `join_before`, jamais par un liant imposé
+
+Relevé de l’auteur, 23 septembre 2026, sur une citation d’Augustin donnée dans le volet de
+droite : « pour ainsi dire, les causes efficientes » s’ouvrait sur une minuscule après un
+saut de ligne et une ponctuation forte. ⛔ **C’est un défaut d’AFFICHAGE, non de donnée**, et
+la distinction commande tout : le segment 3174 de la Cité de Dieu porte `join_before` à
+l’espace, l’édition prescrit donc une espace, et la composition de l’extrait imposait un saut
+de ligne à tous les segments qui se suivent.
+
+⛔ **Un extrait du volet est une RECOMPOSITION, et il relève donc du § 6.1.1 comme les cinq
+autres surfaces.** Le liant d’un segment vient de sa propre colonne, matérialisée par le
+vocabulaire unique ; le liant écrit dans la surface n’est que le DÉFAUT, celui qui s’applique
+quand la colonne est nulle. ⚠️ Au 23 septembre 2026, 97 033 segments l’ont nulle et gardent
+donc le saut de ligne : la règle ne déplace que ce que l’édition a réellement prescrit.
+
+⚠️ **La capitale d’une élision reste gouvernée par la PONCTUATION qui la précède**, non par le
+liant. Ce qu’on élide entre deux phrases sont des phrases entières, et la suivante commence
+comme une phrase ; rien après un deux-points, un point-virgule ou une virgule. Les deux règles
+se lisent ensemble et ne se remplacent pas.
+
+#### 3.11.7 La chasse et l’espace de mot d’une COLONNE ÉTROITE
+
+⛔ **Une colonne justifiée de deux cents pixels ne se compose pas comme une page.** La règle
+du gris (§ 3.11.2) ramène l’espace au quart de cadratin ; dans une colonne étroite et
+justifiée, la justification rouvre ce que le resserrement vient de fermer, et le texte s’y
+lit troué. ⚠️ Relevé de l’auteur, 23 septembre 2026, sur le volet de droite : « les
+caractères sont très légèrement trop serrés, et l’espace entre les mots est légèrement trop
+important ; il y a une disproportion entre les deux ».
+
+⛔ **LES DEUX SE RÈGLENT ENSEMBLE, ou ni l’un ni l’autre.** Ouvrir la chasse sans resserrer
+l’espace de mot ne fait qu’ajouter du blanc ; resserrer l’espace sans ouvrir la chasse rend
+un texte qui se referme. Le pas est d’un centième de cadratin sur la chasse et d’un dixième
+sur l’espace, et l’on n’y touche pas au delà : l’auteur aime les textes condensés, et une
+chasse plus ouverte cesse de l’être.
+
+⚠️ **C’est une dérogation LOCALE, à sa surface**, non un réglage du site : une déclaration
+plus proche l’emporte sur les jetons d’interface, et les blocs denses qui posent déjà leur
+propre espace de mot ne bougent pas.
+
+### 51.11 La fenêtre de SIGNALEMENT — aucun anneau au foyer, et un rebours qui dit le temps
+
+⛔ **AUCUN ANNEAU VERT SUR LA ZONE DE SAISIE.** L’anneau d’accessibilité du site est écrit
+`!important` pour battre les `outline: none` posés en ligne, et il bat donc aussi celui qu’une
+fenêtre voudrait taire : une règle sans point d’exclamation ne peut pas y suffire, et c’est le
+défaut que l’auteur a relevé deux fois, les 22 et 23 septembre 2026. ⚠️ La zone s’ouvre au
+foyer (`autoFocus`) : l’anneau paraissait donc à l’ouverture même de la fenêtre, sur un champ
+que rien ne disputait.
+
+⛔ **LE FOYER SE VOIT QUAND MÊME, et par la couleur de la fenêtre** : le filet du champ et un
+halo bref prennent l’encre de brique du signalement. Taire un anneau sans rien mettre à sa
+place retirerait au clavier son seul repère.
+
+⛔ **UNE FENÊTRE QUI SE FERME SEULE DIT LE TEMPS QU’IL LUI RESTE.** Un remerciement qui
+s’efface au bout d’une seconde et huit dixièmes se lit comme un défaut ; il porte donc un
+anneau de rebours et le compte en clair. ⚠️ Sa durée s’écrit UNE fois et se passe en ligne à
+l’animation : deux écritures, l’une en millisecondes dans le code et l’autre en secondes dans
+la feuille, se désaccorderaient au premier réglage, et la fenêtre partirait avant que l’anneau
+n’ait fini son tour.
+
+⛔ **L’anneau ne s’éteint PAS sous `prefers-reduced-motion`** : il n’orne rien, il dit le temps
+qui reste avant que la fenêtre ne parte, et l’arrêter retirerait l’information au lieu du
+mouvement. C’est la règle de l’anneau de confirmation d’une fiche.
+
+### 51.12 La MENTION d’une copie se pose AU CURSEUR, et elle nomme ce qu’elle a copié
+
+⛔ **CE N’EST PAS L’ÉCLAT D’UNE COPIE, ET LES DEUX NE SE REMPLACENT PAS.** L’éclat est
+l’accusé d’un BOUTON : il s’allume DANS la cible, qui est un pictogramme qu’on vient de viser,
+et le lecteur regarde donc déjà l’endroit où la lumière naît. Quand la cible est une PHRASE
+que rien n’annonce comme cliquable, il n’y a ni pictogramme à allumer ni endroit où l’œil
+attende : l’accusé se pose LÀ OÙ LE CURSEUR EST.
+
+⛔ **IL NOMME CE QUI EST COPIÉ, non le geste.** Une ligne d’édition cliquée met la RÉFÉRENCE
+des volumes dans le presse-papiers, non la phrase qu’on a sous les yeux : écrire « Copié »
+laisserait croire qu’on a pris ce qu’on lit. ⚠️ C’est la seule raison pour laquelle la mention
+porte des mots là où un éclat se passe des siens.
+
+⚠️ **AUCUN INDICE AVANT LE CLIC, et seulement le curseur qui change** : une carte de volet n’a
+pas la place d’annoncer un geste qui ne sert qu’une fois. ⛔ L’accusé, lui, demeure : ne rien
+dire après le clic laisserait croire que rien n’a porté.
+
+⚠️ **Ses places sont ÉCRITES, non tirées au hasard** : un accusé dont la forme change à chaque
+clic cesse d’être reconnaissable. Et il ne reçoit aucun pointeur : le clic suivant doit
+atteindre ce qu’il vise, non l’accusé du précédent.
+
+### 38.37 Les actions d’une rangée EN REGARD se rangent à droite des deux versets
+
+⛔ **UNE GRAPPE DE BOUTONS POSÉE DANS UNE COLONNE DE LECTURE EN REGARD N’A PAS DE PLACE.** La
+lecture en regard partage sa mesure entre deux colonnes ; une gouttière d’actions par colonne
+y prend deux fois ce qu’elle prend en lecture simple, et les pictogrammes s’y lisent comme une
+troisième colonne. Relevé de l’auteur, 23 septembre 2026 : « les symboles copier, signaler,
+etc., dans le mode lecteur bilingue, sont immondes ».
+
+⛔ **ELLES SE RANGENT DONC À DROITE DES DEUX VERSETS, SUR DEUX LIGNES NOMMÉES.** Une ligne par
+colonne, chacune précédée du nom de son texte : ce qui distingue les deux grappes n’est plus
+leur place dans la grille mais le mot qui les annonce. ⚠️ Une colonne qui ne porte aucun texte
+n’ouvre pas de ligne : on ne propose pas de copier ce qui n’est pas là.
+
+⛔ **LA PLACE SE MESURE, ELLE NE SE SUPPOSE PAS.** La colonne de lecture est de largeur fixe et
+centrée : la marge qui reste à sa droite varie avec les volets, non avec la fenêtre. On mesure
+donc le bord utile du défileur et celui de la rangée, et l’on ne pose le bloc dans la marge
+que s’il y tient entier. ⚠️ Le bord utile d’un défileur qui réserve sa gouttière des deux
+côtés n’est pas son bord droit : c’est son bord de contenu, gouttière déduite.
+
+⛔ **SOUS LA MESURE, LE BLOC SE REPLIE EN CARTE FLOTTANTE contre le bord de la rangée**, sur le
+sol des surfaces et sous l’ombre nette des petits objets qui flottent. Jamais rogné, jamais de
+défilement horizontal ouvert pour une grappe de boutons.
+
+⚠️ **Le libellé prend le plancher du site, onze pixels** : les dix pixels sont réservés aux
+capitales espacées, et la garde de l’échelle typographique le refuse.
+
+⚠️ **Au doigt, rien ne change** : la lecture empilée garde sa gouttière par cellule, la marge
+d’une colonne n’existant pas sur un téléphone.
+
+### 38.38 Le geste de copie d’une section de fiche se tient CONTRE son titre
+
+⚠️ **Rectification de l’auteur, 23 septembre 2026**, contre le fer à droite essayé le matin
+même : « il doit être près du texte, mais pas collé comme il l’était ; la taille est
+parfaite ».
+
+⛔ **CE QUI SE RÈGLE EST L’ÉCART, ET IL SE RÈGLE UNE FOIS, SUR LA TÊTE DE SECTION.** À huit
+pixels du titre, un geste secondaire se lit comme une part du titre ; renvoyé au bout d’une
+tête presque vide, il ne touche plus à rien et ne se rattache à rien. Il se tient donc à la
+distance d’un mot. ⚠️ La mesure du pictogramme, elle, ne bouge pas : c’est la place qui était
+en cause, non la taille.
+
+⛔ **LE FER SE POSE DANS LE RACCOURCI, jamais dans une déclaration écrite à côté** : une marge
+remise à zéro après lui ramènerait le geste contre le titre sans qu’on l’ait demandé.

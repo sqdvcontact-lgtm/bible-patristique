@@ -13031,3 +13031,89 @@ survol, mais quand on clique dessus, copier la référence bibliographique ».
 - ⛔ **La ligne garde EXACTEMENT sa composition** : un bouton qui se dessinerait en
   annoncerait un, et c'est ce qu'on refuse. Sans référence à copier, elle redevient un
   `<span>`.
+
+# ⛔ SIGNALEMENT, MENTION DE COPIE, EMPAN ET ACTIONS EN REGARD (2026-09-23)
+
+Doctrine : charte `parametres.charte_ia`, **§§ 6.1.2, 3.11.7, 51.11, 51.12, 38.37 et 38.38**
+(poussés le 2026-09-23). Ici, ce qu'il faut savoir pour y toucher.
+
+## La fenêtre de signalement — `app/components/ModalSignalement.tsx`
+
+- ⛔ **`.cs-signalement-champ:focus` PORTE `!important`, ET C'EST LE SEUL MOYEN.** L'anneau
+  d'accessibilité du site (`input, textarea… :focus-visible`, `globals.css`) est écrit
+  `!important` pour battre les `outline: none` posés en ligne : une règle de feuille sans
+  point d'exclamation ne le bat pas, quelle que soit sa spécificité. La reprise du
+  2026-09-22 n'avait posé que `outline: none`, et le cadre vert restait. ⚠️ La zone porte
+  `autoFocus` : il paraissait donc à l'OUVERTURE de la fenêtre, avant tout geste.
+- ⛔ **ON NE TAIT PAS UN ANNEAU SANS RIEN METTRE À SA PLACE** : le champ prend un filet et un
+  halo de `--cs-danger-aplat`, et les cibles de la fenêtre gardent un anneau de brique.
+- ⛔ **LA DURÉE DU REBOURS S'ÉCRIT UNE FOIS** (`DELAI_FERMETURE_MS`) et se passe EN LIGNE à
+  l'animation (`animationDuration`) : la feuille ne pose que le MOUVEMENT. Deux écritures,
+  l'une en millisecondes et l'autre en secondes dans une règle CSS, se désaccorderaient au
+  premier réglage — c'est la règle de l'anneau de confirmation d'une fiche (§ 38.25.2 du
+  présent fichier).
+- ⚠️ **L'ANNEAU PREND LA TAILLE DE LA MARQUE** (`inset: -1px` sur `.cs-signalement-merci-marque`,
+  qui passe en `position: relative`) : sa mesure n'est donc écrite nulle part, et il suit la
+  police fluide sans qu'on ait à le dire. ⛔ `TOUR_ANNEAU` est `2πr` du rayon du cercle, et
+  `strokeDasharray` se pose en ligne : les deux doivent bouger ensemble.
+- ⚠️ **Le compte descend par un minuteur d'une seconde**, et `reste === 0` ferme : rien ne se
+  remet à zéro dans le corps d'un effet, et la fermeture est la CONSÉQUENCE de l'état, non un
+  second minuteur posé à côté.
+
+## La mention d'une copie — `app/components/MentionCopiee.tsx`
+
+- ⛔ **CE N'EST PAS `EclatCopie`, ET LE MODULE LE DIT EN TÊTE.** L'éclat s'allume dans un
+  pictogramme ; ici la cible est la ligne d'édition d'une carte de bible, trois lignes de
+  prose que rien n'annonce comme cliquable. ⛔ Ne pas « unifier » les deux : ils répondent à
+  deux gestes différents.
+- ⛔ **LE PORTAIL N'EST PAS UN RANGEMENT** : la carte du volet est en `overflow: hidden` et
+  son défileur rogne tout ce qui déborde. Posée dedans, la mention serait coupée au bord de
+  la colonne — le défaut déjà payé par le sous-menu d'un menu de bibles.
+- ⛔ **LA `key` EST LE RANG DU CLIC** (`useMentionCopiee`), comme dans `useEclatCopie` :
+  recliquer pendant l'animation reposerait le même état, React ne remonterait rien, et une
+  animation de la feuille ne repart qu'au MONTAGE. Le geste resterait sans réponse.
+- ⛔ **`signaler` PREND LE POINT DU GESTE, jamais l'élément cliqué** : la ligne d'édition
+  court sur deux ou trois lignes, et une mention posée sur sa boîte tomberait loin de
+  l'endroit qu'on vient de viser.
+- ⚠️ **Les six étincelles ont leurs places ÉCRITES** (`[data-etincelle='n']`, `--cs-etincelle-x/y`
+  et un délai par étincelle) : tirées au hasard, l'accusé changerait de forme à chaque clic.
+  ⚠️ `pointer-events: none`, et `aria-hidden` : ce qu'il faut annoncer se dit dans une région
+  `.cs-hors-ecran` posée par l'appelant.
+- ⚠️ **`prefers-reduced-motion` garde le fondu et retire le mouvement** : l'accusé demeure,
+  son ornement s'éteint.
+
+## Le liant d'un extrait du volet — `extraitVolet.ts`, `regrouperCitations.ts`
+
+- ⛔ **`liantAvantSegment(joinBefore, defaut)` DÉCIDE, ET `'\n'` N'EST QUE LE DÉFAUT.** Les
+  deux surfaces qui recomposent un extrait — les parties d'un empan (`composerExtrait`) et
+  les segments consécutifs d'un groupe (`texteDuGroupe`) — passent par la table unique de
+  `app/lib/jonctionSegments.ts`. ⛔ Ne pas y réécrire un séparateur : c'est le § 6.1.1.
+- ⛔ **LA COLONNE VOYAGE AVEC LE SEGMENT** : `join_before` entre dans les deux `select` de
+  `chargerTextesDesSegments` (`PanneauPatristique`), et `Morceau`, `Segment` et
+  `CitationRegroupable` le portent jusqu'au liant. Une seule de ces étapes oubliée, et le
+  liant retombe silencieusement sur le défaut.
+- ⚠️ **La capitale d'une élision reste jugée sur la PONCTUATION FORTE** qui précède
+  (`PONCTUATION_FORTE`), non sur le liant : les deux règles se lisent ensemble.
+- ⚠️ **Mesuré le 2026-09-23** : le segment 3174 de `TXT_A0010O0002_FR_1870_1873_BARREAU_VIVES`
+  porte l'espace, 97 033 segments ont la colonne nulle et gardent le saut de ligne.
+
+## Les actions d'une rangée en regard — `BibleBilingue.tsx`, `LectureBilingueBible.tsx`
+
+- ⛔ **LA MARGE SE MESURE, ET SUR LE BORD UTILE DU DÉFILEUR.** `scrollbar-gutter: stable
+  both-edges` réserve la gouttière des DEUX côtés : le bord utile est
+  `rect.left + clientLeft + clientWidth`, jamais `rect.right`. Un `ResizeObserver` observe le
+  défileur ET la colonne, et la mesure part de `colonne.firstElementChild` — la première
+  rangée — pour que la gouttière d'actions soit comptée sans qu'on ait à l'écrire.
+- ⛔ **AUCUNE LECTURE DU DOCUMENT PENDANT LE RENDU** : la première écriture composait
+  `margeActions + parseFloat(getComputedStyle(document.documentElement).fontSize)` dans le
+  JSX — impur, et `document` n'existe pas au rendu serveur. Tout se mesure dans l'effet.
+- ⛔ **`ACTIONS_LARGEUR_PX` (164) EST LE SEUIL DU REPLI**, et il se remesure quand le libellé
+  ou son corps changent : « Texte français » demande environ 74 px à 0,6875 rem, plus la
+  grappe de boutons et la gouttière. Sous le seuil, `ActionsDeLaRangee` se pose en carte
+  flottante contre le bord de la rangée (`--cs-surface`, `--cs-ombre-nette`), jamais rognée.
+- ⛔ **LE LIBELLÉ EST À 0,6875 rem** : `echelleTypographique.test.ts` refuse 0,625, réservé
+  aux capitales espacées. C'est la garde qui l'a dit, non la relecture.
+- ⚠️ **`actionsEnRangee = !mobile && …`** : au doigt, les boutons restent dans la gouttière de
+  chaque cellule, la marge d'une colonne n'existant pas sur un téléphone.
+- ⚠️ **Les deux fichiers sont en CRLF** quand leurs voisins sont en LF : un script de reprise
+  normalise en mémoire et rend la fin de ligne d'origine, sinon l'ancre ne s'apparie pas.
