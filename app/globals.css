@@ -86,6 +86,13 @@
      le fer de l'appareil doit tomber sur celui du texte des versets. */
   --regard-numero: 1.6rem;
   --regard-numero-gouttiere: 0.3125rem;
+  /* Ce que le SIGNET d'un verset prélevé pend à GAUCHE de son numéro, sans rien
+     pousser : `STYLE_SIGNET_VERSET` le tire de 0,975 em sur un numéro de 0,6875 rem,
+     soit 0,67 rem, arrondi au pixel supérieur à la racine 16. C'est de quoi la
+     sélection d'une rangée s'étend à gauche pour l'englober (demande de l'auteur,
+     2026-09-23), et rien d'autre : elle ne s'étend pas d'autant à droite, où la
+     gouttière porte les boutons de la cellule. */
+  --regard-signet: 0.6875rem;
   /* ── Le CORPS du texte biblique (décision de l'auteur, 2026-09-21) ──
      16 px et interligne 1,55 par défaut, sur la piste de 30 rem (≈ 60 signes).
      Trois crans, réglés par le lecteur dans le volet des livres et posés sur
@@ -2142,9 +2149,13 @@ button:focus-visible,
    ⚠️ Le verset retenu se déclare à DEUX classes : à une seule, il perdrait sa
    marque au survol, le `:hover` pesant plus lourd que lui. */
 .cs-regard-rangee {
-  margin-left: -0.25rem;
+  /* ⛔ À GAUCHE, LA MARQUE VA CHERCHER LE SIGNET (demande de l'auteur, 2026-09-23) : il
+     pend hors de la colonne du numéro pour ne rien pousser (`--regard-signet`), et un
+     verset mis de côté montrait son signet dehors quand toute sa rangée était teintée.
+     ⚠️ Le débord reste en marge NÉGATIVE : les colonnes ne bougent pas d'un pixel. */
+  margin-left: calc(-1 * (0.25rem + var(--regard-signet)));
   margin-right: -0.25rem;
-  padding-left: 0.25rem;
+  padding-left: calc(0.25rem + var(--regard-signet));
   padding-right: 0.25rem;
   border-radius: 4px;
   cursor: pointer;

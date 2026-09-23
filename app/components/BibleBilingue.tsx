@@ -39,6 +39,7 @@ import { fondreAppelsDansLaMarque, marquerLacunesDuTemoin, rendreMarqueurs899 } 
 import { estTraductionModerne899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
 import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
 import IconeCopier from './IconeCopier'
+import IconeSignalement from './IconeSignalement'
 import IconeSignet from './IconeSignet'
 import { libelleNumeroVerset } from '@/app/lib/libelleVerset'
 import { nomLangue } from '@/app/lib/bibleModesAlternatifs'
@@ -71,7 +72,8 @@ import {
   type NoteBilingue,
 } from '@/app/lib/bibleEditionBilingue'
 import {
-  CORPS_GLOSE, CORPS_LECTURE_BIBLE, INTERLIGNE_LECTURE_BIBLE, LIBELLE_GLOSE, RAPPORT_ORIGINAL_EN_REGARD, STYLE_VERSET_VIDE,
+  CORPS_GLOSE, CORPS_LECTURE_BIBLE, INTERLIGNE_LECTURE_BIBLE, LIBELLE_GLOSE, RAPPORT_ORIGINAL_EN_REGARD,
+  STYLE_SIGNET_VERSET, STYLE_VERSET_VIDE,
 } from '@/app/lib/compositionBible'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
 import { rendreTexteAvecAppels, repartirAppels } from '@/app/lib/ancresAppelsBible'
@@ -88,17 +90,15 @@ import {
 // « !important », comme les actions d'un verset en lecture simple.
 const FEUILLE_COPIE_REGARD = '[data-canon-id]:hover .cs-regard-action, [data-canon-id]:focus-within .cs-regard-action { opacity: 1 !important; } @media (hover: none) { .cs-regard-action { opacity: 1 !important; } }'
 
-// ⛔ LE SIGNET D'UN VERSET PRÉLEVÉ, à gauche de son numéro, comme en lecture simple
-// (`STYLE_SIGNET_VERSET`) : l'état se dit sur la ligne, il ne pèse pas sur la gouttière
-// d'actions, et il paraît même quand la souris est ailleurs.
-const STYLE_SIGNET_REGARD = {
-  display: 'inline-block' as const,
-  width: '0.5em',
-  height: '0.65em',
-  marginRight: '0.2em',
-  color: 'var(--cs-texte-doux)',
-  verticalAlign: 'baseline' as const,
-}
+// ⛔ LE SIGNET D'UN VERSET PRÉLEVÉ PREND LA COMPOSITION DE LA LECTURE SIMPLE, et non une
+// composition à lui (demande de l'auteur, 2026-09-23 : « revenir à la mise en forme
+// ancienne du signet grisé à gauche du numéro de verset ; étendre, simplement, la
+// sélection pour l'englober »). Celle du 22 septembre PESAIT dans la colonne du numéro —
+// une demi-chasse de large, plus son écart — si bien qu'un verset mis de côté poussait son
+// numéro et, la colonne étant en `auto`, décalait le texte de sa rangée. `STYLE_SIGNET_VERSET`
+// le rend en marge NÉGATIVE : il pend à gauche du chiffre et rien ne bouge.
+// ⚠️ Ce qu'il pend au-delà de la rangée, c'est la SÉLECTION qui va le chercher
+// (`--regard-signet`, globals.css), non le signet qui rentre.
 
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 
@@ -199,6 +199,11 @@ export type LectureBilingueProps = {
    *  (`cleDeCelluleBilingue`) : c'est elle qui dit quel texte et quelle bible on met de
    *  côté, comme pour la copie. */
   basculerPrelevement?: (cle: string) => Promise<void>
+  /** Signaler une erreur dans le verset d'UNE colonne, par sa clé de cellule
+   *  (`cleDeCelluleBilingue`). Présent, chaque cellule qui porte un texte offre au survol
+   *  son drapeau, comme la lecture simple. ⚠️ La FENÊTRE vit chez l'appelant : c'est lui
+   *  qui sait le texte et la référence de la cellule (voir `LectureBilingueBible`). */
+  signalerCellule?: (cle: string) => void
   mobile?: boolean
 }
 
@@ -206,6 +211,20 @@ type ApparatColonne = {
   blocs: BibleEditionBodyBlockIndex
   images: BibleEditionAssetIndex
 }
+
+// ── LA PLACE D'UN BOUTON DANS LA GOUTTIÈRE D'UNE CELLULE ──────────────────────
+// Les boutons d'une cellule s'EMPILENT dans la gouttière qui la suit — celle qui sépare
+// les deux colonnes, ou la marge à droite de la dernière —, du premier rang au dernier.
+// ⚠️ Une seule écriture : trois boutons qui calculeraient chacun leur place finiraient par
+// se chevaucher au premier changement de gabarit (`COTE_BOUTON` a passé de 18 à 21 px le
+// 2026-09-23).
+const placeDansLaGouttiere = (rang: number, derniere: boolean) => ({
+  ...STYLE_BOUTON_ACTION,
+  position: 'absolute' as const,
+  top: rang === 0 ? '0.15rem' : `calc(0.15rem + ${rang} * ${STYLE_BOUTON_ACTION.height})`,
+  left: derniere ? 'calc(100% + 0.3rem)' : `calc(100% + 0.55rem - ${STYLE_BOUTON_ACTION.width} / 2)`,
+  opacity: 0,
+})
 
 // ── LA COPIE D'UNE COLONNE (audit du 2026-09-22) ──────────────────────────────
 // La lecture en regard n'avait aucun moyen de copier un verset hors du lasso. Un seul
@@ -237,11 +256,7 @@ function CopieCellule({ copier, numero, langue, derniere, rang }: {
       title={echec ? 'La copie a échoué' : `Copier ${objet} (${langue.toLowerCase()})`}
       aria-label={`Copier ${objet} (${langue.toLowerCase()})`}
       style={{
-        ...STYLE_BOUTON_ACTION,
-        position: 'absolute',
-        top: rang === 0 ? '0.15rem' : `calc(0.15rem + ${STYLE_BOUTON_ACTION.height})`,
-        left: derniere ? 'calc(100% + 0.3rem)' : `calc(100% + 0.55rem - ${STYLE_BOUTON_ACTION.width} / 2)`,
-        opacity: 0,
+        ...placeDansLaGouttiere(rang, derniere),
         color: echec ? 'var(--cs-danger)' : copie ? 'var(--cs-vert)' : 'var(--cs-bord)',
         ...(echec ? STYLE_HOTE_ECHEC : null),
       }}
@@ -256,11 +271,12 @@ function CopieCellule({ copier, numero, langue, derniere, rang }: {
 // La lecture en regard n'offrait AUCUN geste par verset — ni signet, ni copie — quand la
 // lecture simple en porte quatre. Le signet est le jumeau du bouton de copie : même
 // gabarit, même gouttière, rangé au-dessus de lui.
-function SignetCellule({ basculer, preleve, numero, derniere }: {
+function SignetCellule({ basculer, preleve, numero, derniere, rang }: {
   basculer: () => Promise<void>
   preleve: boolean
   numero: number | null
   derniere: boolean
+  rang: number
 }) {
   const [attente, setAttente] = useState(false)
   const { echec, signaler } = useEclatEchec()
@@ -286,17 +302,42 @@ function SignetCellule({ basculer, preleve, numero, derniere }: {
       title={echec ? 'Le geste a échoué' : geste}
       aria-label={geste}
       style={{
-        ...STYLE_BOUTON_ACTION,
-        position: 'absolute',
-        top: '0.15rem',
-        left: derniere ? 'calc(100% + 0.3rem)' : `calc(100% + 0.55rem - ${STYLE_BOUTON_ACTION.width} / 2)`,
-        opacity: 0,
+        ...placeDansLaGouttiere(rang, derniere),
         color: echec ? 'var(--cs-danger)' : preleve ? 'var(--cs-texte-doux)' : 'var(--cs-bord)',
         ...(echec ? STYLE_HOTE_ECHEC : null),
       }}
     >
       {attente ? '…' : <IconeSignet plein={preleve} />}
       <EclatEchec echec={echec} />
+    </button>
+  )
+}
+
+// ── LE SIGNALEMENT D'UNE CELLULE (demande de l'auteur, 2026-09-23) ────────────
+// « Au survol d'un verset, le bouton “signaler” n'existe plus ; restaurer. » La lecture
+// simple porte son drapeau depuis toujours ; la lecture en regard, qui n'offrait aucun
+// geste avant le 22 septembre, en avait reçu deux et pas celui-là. ⛔ Il signale le verset
+// de SA colonne : c'est la langue lue qui porte la faute, et le modérateur doit savoir
+// laquelle. ⚠️ La fenêtre s'ouvre chez l'appelant, qui seul tient le texte de la cellule.
+function SignalerCellule({ signaler, numero, langue, derniere, rang }: {
+  signaler: () => void
+  numero: number | null
+  langue: string
+  derniere: boolean
+  rang: number
+}) {
+  const objet = numero === null ? 'ce verset' : `le verset ${numero}`
+  const geste = `Signaler une erreur dans ${objet} (${langue.toLowerCase()})`
+  return (
+    <button
+      type="button"
+      className="cs-regard-action"
+      onClick={(e) => { e.stopPropagation(); signaler() }}
+      title={geste}
+      aria-label={geste}
+      style={{ ...placeDansLaGouttiere(rang, derniere), color: 'var(--cs-bord)' }}
+    >
+      <IconeSignalement />
     </button>
   )
 }
@@ -317,6 +358,7 @@ export default function BibleBilingue({
   copierCellule,
   prelevementDe,
   basculerPrelevement,
+  signalerCellule,
   mobile = false,
   titresMasques,
 }: LectureBilingueProps): ReactNode {
@@ -440,6 +482,14 @@ export default function BibleBilingue({
   // ⛔ Le signet reste offert AU DOIGT, à la différence de la copie : le lasso tactile
   // enregistre une sélection, il ne bascule pas un verset seul.
   const basculer = basculerPrelevement
+  // ⛔ Le drapeau aussi reste offert au doigt : signaler une faute ne se remplace par
+  // aucun autre geste, et le pavé d'actions de la lecture simple le porte déjà au tactile.
+  const signaler = signalerCellule
+  // Le rang de chaque bouton dans la gouttière : ils s'y empilent dans l'ordre où ils sont
+  // rendus, et une lecture qui n'en offre qu'un le pose tout en haut.
+  const rangDuSignet = 0
+  const rangDeLaCopie = basculer ? 1 : 0
+  const rangDuDrapeau = (basculer ? 1 : 0) + (copier ? 1 : 0)
   const estPreleve = (canonId: string) => (prelevementDe ? prelevementDe(canonId) !== null : false)
   const marquesDeRangee = (canonId: string) => {
     if (!choisir) return {}
@@ -517,7 +567,7 @@ export default function BibleBilingue({
 
   return (
     <div data-lecture="bilingue">
-      {(copier || basculer) && <style>{FEUILLE_COPIE_REGARD}</style>}
+      {(copier || basculer || signaler) && <style>{FEUILLE_COPIE_REGARD}</style>}
       {rendreBlocs(commun.blocs.opening)}
       {rendreImages(commun.images.opening)}
 
@@ -570,12 +620,21 @@ export default function BibleBilingue({
                 // ⛔ Un appel se pose à l'ANCRE que la donnée déclare ; sans ancre lisible, il suit le texte.
                 const repartition = repartirAppels(temoin899 ? '' : (cellule?.texte ?? ''), appels, true)
                 const copieSansCesures = langue === 'la' || langue === 'grc' ? copierSansCesures : undefined
-                // ⛔ Empilé, le numéro ne paraît qu'une fois, sur la première cellule : la
-                // seconde garde INVISIBLE celui de la première, pour que son texte reprenne
-                // le même fer.
-                // ⚠️ Sauf si la première cellule est vide : la seconde est alors seule à
-                // dire son numéro.
-                const referenceRepetee = mobile && index > 0 && rangee.cellules[0] !== null
+                // ⛔ LE NUMÉRO NE SE DIT QU'UNE FOIS PAR RANGÉE (demande de l'auteur,
+                // 2026-09-23 : « dans les traductions bilingues, ne pas réafficher le numéro
+                // de verset à côté du texte de la colonne de droite »). Il revenait des deux
+                // côtés depuis le 2026-09-04, et le lecteur lisait deux fois le même chiffre
+                // sur une seule ligne. La colonne suivante garde INVISIBLE celui de la
+                // première, pour que son texte reprenne le même fer et que le tapotement du
+                // lasso garde sa cible.
+                // ⚠️ Sauf s'il DIFFÈRE : une édition dont la numérotation propre n'est pas
+                // celle du canon ne redit pas la même chose, elle en dit une autre — c'est
+                // pour cela que la référence native paraît (voir `libelleReference`).
+                // ⚠️ Sauf, aussi, si la première cellule est vide : la seconde est alors seule
+                // à dire son numéro. Empilées, les deux colonnes se lisent comme une paire :
+                // le numéro ne s'y répète jamais, fût-il différent.
+                const referenceRepetee = index > 0 && rangee.cellules[0] !== null
+                  && (mobile || libelleReference(cellule) === libelleReference(rangee.cellules[0]))
                 // ⛔ LE NUMÉRO EST LE BOUTON DU VERSET POUR LE CLAVIER, comme en lecture simple :
                 // la rangée porte des appels de note, on ne la rend pas focalisable. Un seul
                 // bouton par rangée, sur la première cellule qui dit son numéro.
@@ -595,7 +654,7 @@ export default function BibleBilingue({
                     data-lasso-depart={departLasso}
                     {...(estBouton && !referenceRepetee ? boutonDuNumero(glose ? (glose.canonHote as string) : rangee.canonId, glose ? LIBELLE_GLOSE : null) : {})}>
                     {!referenceRepetee && estBouton && !glose && estPreleve(rangee.canonId) && (
-                      <span aria-hidden="true" title="Dans mes prélèvements" style={STYLE_SIGNET_REGARD}>
+                      <span aria-hidden="true" title="Dans mes prélèvements" style={STYLE_SIGNET_VERSET}>
                         <IconeSignet plein taille="100%" />
                       </span>
                     )}
@@ -610,7 +669,7 @@ export default function BibleBilingue({
                     lang={membre.languageCode}
                     data-membre={membre.id}
                     data-lasso-cellule={cleLasso}
-                    style={seule ? { minWidth: 0, gridColumn: '1 / -1' } : { minWidth: 0, ...((copier || basculer) && cleLasso ? { position: 'relative' as const } : {}) }}
+                    style={seule ? { minWidth: 0, gridColumn: '1 / -1' } : { minWidth: 0, ...((copier || basculer || signaler) && cleLasso ? { position: 'relative' as const } : {}) }}
                   >
                     {cellule === null ? (appels.length === 0 ? (
                       // Un créneau que cette édition ne porte pas reste vide :
@@ -663,6 +722,7 @@ export default function BibleBilingue({
                             preleve={estPreleve(rangee.canonId)}
                             numero={numeroCanonique(rangee.canonId)}
                             derniere={index === rangee.cellules.length - 1}
+                            rang={rangDuSignet}
                           />
                         )}
                         {copier && cleLasso && (
@@ -671,7 +731,16 @@ export default function BibleBilingue({
                             numero={numeroCanonique(rangee.canonId)}
                             langue={nomLangue(membre.languageCode)}
                             derniere={index === rangee.cellules.length - 1}
-                            rang={basculer ? 1 : 0}
+                            rang={rangDeLaCopie}
+                          />
+                        )}
+                        {signaler && cleLasso && (
+                          <SignalerCellule
+                            signaler={() => signaler(cleLasso)}
+                            numero={numeroCanonique(rangee.canonId)}
+                            langue={nomLangue(membre.languageCode)}
+                            derniere={index === rangee.cellules.length - 1}
+                            rang={rangDuDrapeau}
                           />
                         )}
                       </div>

@@ -23,7 +23,9 @@ import { lirePlageVersets } from '@/app/lib/bibleNavigation'
 import { lireRepere, PARAMETRE_REPERE } from '@/app/lib/repriseLecture'
 import { amenerAuCentre, annoncerReprise, poserEnHaut, positionDuDefileur, terminerReprise } from '@/app/lib/defilementLecture'
 import { signalerProgression } from './AnnonceHautsFaits'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
+import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { useSansSurvol } from '@/app/lib/useEstMobile'
 import { canonIdDeLigne, prelevementDuVerset, usePrelevementsDuChapitre } from '@/app/lib/prelevementsBibliques'
@@ -46,6 +48,8 @@ import {
 // La reprise (`repere=N`) repose son verset tant que polices et gravures arrivent : la
 // première seconde et demie, et seulement tant que le lecteur n'a pas bougé. Mêmes délais
 // que la lecture simple (`TexteBible`).
+const ModalSignalement = dynamic(() => import('@/app/components/ModalSignalement'), { ssr: false })
+
 const REPOSES_REPRISE_MS = [150, 400, 800, 1500] as const
 const DUREE_REPRISE_MS = 1600
 
@@ -327,6 +331,52 @@ export default function LectureBilingueBible({
     else await enregistrerLasso([cle])
   }
 
+  // ⛔ LE SIGNALEMENT D'UNE CELLULE (relevé de l'auteur, 2026-09-23 : « au survol d'un
+  // verset, le bouton “signaler” n'existe plus »). La lecture simple le porte depuis
+  // toujours (`BoutonSignaler`, TexteBible) ; la lecture en regard ne l'avait jamais eu.
+  // ⚠️ La CLÉ de la cellule, non le créneau : on signale ce qu'on lit, c'est-à-dire le
+  // texte d'UNE colonne, et la fenêtre le cite (`texteObjet`).
+  const [signalement, setSignalement] = useState<string | null>(null)
+  const signalerCellule = (cle: string) => {
+    if (!cellulesDuLasso.has(cle)) return
+    if (!exigerCompte('signaler une erreur')) return
+    setSignalement(cle)
+  }
+  const passageSignale = signalement === null ? null : cellulesDuLasso.get(signalement) ?? null
+  const referenceSignalee = passageSignale === null
+    ? ''
+    : `${abreviationLivre} ${chapitreActif}, ${passageSignale.numero}`
+
+  const envoyerSignalement = async (msg: string, importance?: string) => {
+    if (!passageSignale) return
+    const { data } = await supabase.auth.getSession()
+    const headers: HeadersInit = { 'Content-Type': 'application/json' }
+    const token = data.session?.access_token
+    if (token) headers.Authorization = `Bearer ${token}`
+    // ⚠️ La route n'accepte un `id_verset` qu'à la forme canonique ; une ligne recomposée
+    // (Bible du XIIIe siècle) porte un identifiant synthétique, et part alors par sa
+    // RÉFÉRENCE, comme depuis la lecture simple.
+    // ⛔ `url_source` est un chemin INTERNE : la route écarte en silence une adresse
+    // absolue, et le signalement perdait l'endroit d'où il vient.
+    const corps: Record<string, unknown> = {
+      message: msg,
+      importance,
+      url_source: window.location.pathname + window.location.search,
+    }
+    const canonId = passageSignale.canonId
+    if (typeof canonId === 'string' && /^[A-Z0-9.]{2,20}$/.test(canonId)) corps.id_verset = canonId
+    else corps.reference = referenceSignalee
+    const res = await fetch('/api/signalements', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(corps),
+    })
+    if (!res.ok) {
+      const details = await res.json().catch(() => null)
+      throw new Error(details?.error ?? "Erreur d'envoi du signalement")
+    }
+  }
+
   return (
     <div
       className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'}
@@ -419,7 +469,7 @@ export default function LectureBilingueBible({
             ? { maxWidth: '100%', margin: '0 auto' }
             : { width: `min(calc(var(--mesure-page) + ${GOUTTIERE_ACTIONS_VERSET}), 100%)`, margin: '0 auto', display: 'grid', gridTemplateColumns: `minmax(0, var(--mesure-page)) ${GOUTTIERE_ACTIONS_VERSET}` }}
         >
-          <BibleBilingue {...contenu} mobile={mobile || colonnesEtroites} copierCellule={copierCellule} prelevementDe={prelevementDeLaRangee} basculerPrelevement={basculerPrelevement} />
+          <BibleBilingue {...contenu} mobile={mobile || colonnesEtroites} copierCellule={copierCellule} prelevementDe={prelevementDeLaRangee} basculerPrelevement={basculerPrelevement} signalerCellule={signalerCellule} />
           {/* Sous le dernier verset, les chapitres voisins, nommés (audit du 2026-09-21).
               ⚠️ Dans la PREMIÈRE colonne de la grille : la seconde est la gouttière. */}
           <div style={mobile ? undefined : { gridColumn: 1 }}>
@@ -463,6 +513,15 @@ export default function LectureBilingueBible({
         onRetirer={retirerLasso}
         onCopier={copierLasso}
       />
+      {passageSignale && (
+        <ModalSignalement
+          titre={referenceSignalee}
+          texteObjet={passageSignale.texte}
+          avecNiveauImportance
+          onClose={() => setSignalement(null)}
+          onEnvoyer={envoyerSignalement}
+        />
+      )}
     </div>
   )
 }
