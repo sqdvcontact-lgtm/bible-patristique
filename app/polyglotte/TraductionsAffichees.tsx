@@ -19,6 +19,8 @@ import { libelleEditionTraduction } from '@/app/lib/editionTraduction'
 import { joindreEditeurs } from '@/app/lib/editeursNormalisation'
 import { indexEditeursNavigateur, useEditeursCharges } from '@/app/lib/editeurs'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
+import { texteReferenceEdition } from '@/app/lib/referenceEditionServie'
+import { MentionCopiee, useMentionCopiee } from '@/app/components/MentionCopiee'
 
 const ModaleTraduction = dynamic(() => import('@/app/components/ModaleTraduction'), { ssr: false })
 
@@ -32,6 +34,11 @@ export type FicheTraductionPoly = {
   anneeEdition: string | null
   depotManuscrit: string | null
   coteManuscrit: string | null
+  /** Ce que la référence des volumes demande en plus (voir `texteReferenceEdition`). */
+  titreEdition: string | null
+  sousTitreEdition: string | null
+  mentionEdition: string | null
+  nombreTomes: number | null
 }
 
 /** Une colonne du tableau : `code` désigne la notice, `variante` l'état du texte lu. */
@@ -43,6 +50,11 @@ const LIGNE: React.CSSProperties = {
   overflowWrap: 'break-word', hyphens: 'auto',
 }
 
+/** Un auteur qui n’est pas une personne (« Tradition latine, principalement hiéronymienne »,
+ *  pour la Vulgate) ne se dit pas dans le volet (demande de l’auteur, 2026-09-23) : la
+ *  notice le garde, où il se lit comme une provenance et non comme un nom. */
+const AUTEUR_TU = /^Tradition/
+
 export default function TraductionsAffichees({ colonnes, fiches }: {
   colonnes: ColonneAffichee[]
   fiches: Map<string, FicheTraductionPoly>
@@ -51,6 +63,16 @@ export default function TraductionsAffichees({ colonnes, fiches }: {
   useEditeursCharges()
   const index = indexEditeursNavigateur()
   const [ouverte, setOuverte] = useState<{ code: string; nom: string } | null>(null)
+  const { mention, signaler } = useMentionCopiee()
+  // ⛔ Même geste que la carte de la Bible classique (`EncartTraduction`) : la ligne
+  // d’édition, cliquée, met la RÉFÉRENCE des volumes dans le presse-papiers, sans indice
+  // autre que le curseur. ⚠️ Le point du clic se prend avant la promesse.
+  const copier = (e: React.MouseEvent, reference: string) => {
+    const point = { clientX: e.clientX, clientY: e.clientY }
+    navigator.clipboard?.writeText(reference).then(() => signaler(point), (erreur: unknown) => {
+      console.error('[volet] référence non copiée :', erreur)
+    })
+  }
   if (colonnes.length === 0) return null
   return (
     // ⛔ LA SECTION NE DONNE PAS SA LARGEUR AU VOLET (relevé de l'auteur, 2026-09-23 : « cette
@@ -68,11 +90,16 @@ export default function TraductionsAffichees({ colonnes, fiches }: {
         {colonnes.map(c => {
           const f = fiches.get(c.code)
           const datesDuTexte = /\(éd\.\)\s*$/.test(f?.auteur ?? '')
-          const auteur = f?.auteur ? (f.dates && !datesDuTexte ? `${f.auteur} (${f.dates})` : f.auteur) : null
+          const auteur = f?.auteur && !AUTEUR_TU.test(f.auteur) ? (f.dates && !datesDuTexte ? `${f.auteur} (${f.dates})` : f.auteur) : null
           const edition = f ? libelleEditionTraduction({
             datePublication: f.datePublication, lieuEdition: f.lieuEdition,
             editeur: joindreEditeurs(f.editeur, index), anneeEdition: f.anneeEdition,
             depotManuscrit: f.depotManuscrit, coteManuscrit: f.coteManuscrit,
+          }) : null
+          const reference = f ? texteReferenceEdition({
+            titreEdition: f.titreEdition, sousTitreEdition: f.sousTitreEdition, mentionEdition: f.mentionEdition,
+            lieuEdition: f.lieuEdition, editeur: joindreEditeurs(f.editeur, index), anneeEdition: f.anneeEdition,
+            nombreTomes: f.nombreTomes, depotManuscrit: f.depotManuscrit, coteManuscrit: f.coteManuscrit,
           }) : null
           return (
             <li key={c.cle} style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1px' }}>
@@ -81,11 +108,22 @@ export default function TraductionsAffichees({ colonnes, fiches }: {
               </NomVolet>
               {c.variante && <span style={{ ...LIGNE, fontStyle: 'italic' }}>{c.variante}</span>}
               {auteur && <span style={LIGNE}>{rendreEnrichi(auteur)}</span>}
-              {edition && <span style={{ ...LIGNE, color: 'var(--cs-texte-gris)' }}>{rendreEnrichi(edition)}</span>}
+              {edition && (reference
+                ? (
+                  <button type="button" onClick={e => copier(e, reference)}
+                    aria-label={`Copier la référence bibliographique : ${c.nom}`}
+                    style={{ ...LIGNE, color: 'var(--cs-texte-gris)', display: 'block', width: '100%', textAlign: 'left',
+                      background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer' }}>
+                    {rendreEnrichi(edition)}
+                  </button>
+                )
+                : <span style={{ ...LIGNE, color: 'var(--cs-texte-gris)' }}>{rendreEnrichi(edition)}</span>)}
             </li>
           )
         })}
       </ol>
+      <span className="cs-hors-ecran" role="status">{mention ? 'Référence bibliographique copiée' : ''}</span>
+      <MentionCopiee mention={mention}>Référence bibliographique copiée</MentionCopiee>
       {ouverte && <ModaleTraduction code={ouverte.code} nomFallback={ouverte.nom} onFermer={() => setOuverte(null)} />}
     </div>
   )

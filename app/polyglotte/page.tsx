@@ -187,6 +187,30 @@ function texteEnrichi(t: string | null, transform?: (s: string, cle: string) => 
 // jamais les marques `**`, `++`, `^^` ni `<i>`, dont le nom de balise n'a qu'une lettre.
 function texteCesure(t: string | null, lang?: string, transform?: (s: string, cle: string) => React.ReactNode) {
   if (!t) return texteEnrichi(t, transform);
+  // ⛔ UN TEXTE SE COMPOSE UNE FOIS, NON À CHAQUE RENDU (audit du 2026-09-23, « livre entier »
+  // : « toujours pas fluide »). La page est un seul composant : un survol, un changement du
+  // nombre de colonnes la rendent en entier, et chaque rendu reposait les césures du grec et
+  // du latin puis réanalysait l'enrichissement de TOUS les versets affichés — un livre entier
+  // en compte des milliers par colonne. Le résultat ne dépend que du texte et de la langue :
+  // il se garde. ⚠️ Rendre le MÊME élément React d'un rendu à l'autre fait aussi sauter à
+  // React la comparaison de tout le sous-arbre. Une transformation (lacunes de la 899) n'a
+  // pas d'identité stable : elle ne passe pas par la réserve.
+  if (!transform) {
+    const cle = `${lang ?? ""}|${t}`;
+    const garde = COMPOSITIONS.get(cle);
+    if (garde !== undefined) return garde;
+    const compose = composerCesure(t, lang);
+    if (COMPOSITIONS.size >= COMPOSITIONS_MAX) COMPOSITIONS.clear();
+    COMPOSITIONS.set(cle, compose);
+    return compose;
+  }
+  return composerCesure(t, lang, transform);
+}
+// La réserve des compositions : bornée, et vidée d'un coup quand elle déborde (un livre
+// entier sur six colonnes en demande quelques milliers ; au-delà, on repart de zéro).
+const COMPOSITIONS = new Map<string, React.ReactNode>();
+const COMPOSITIONS_MAX = 40000;
+function composerCesure(t: string, lang?: string, transform?: (s: string, cle: string) => React.ReactNode) {
   if (lang === "grc") return texteEnrichi(cesurerGrec(t), transform);
   if (lang === "la") return texteEnrichi(cesurerLatin(t), transform);
   return texteEnrichi(t, transform);
@@ -1376,20 +1400,23 @@ export default function PolyglottePage() {
   const [livresLus, setLivresLus] = useState(false);
   const [slots, setSlots] = useState<string[]>([]);
   // Nombre de colonnes tenant à l'écran (mesuré), et conteneur du tableau observé.
-  const [maxSlots, setMaxSlots] = useState(NB_SLOTS);
+  // ⛔ LE NOMBRE DE COLONNES SE DÉDUIT, IL NE SE RECOPIE PAS (audit du 2026-09-23, « livre
+  // entier » : « toujours pas fluide »). Un clic sur « 3 » enchaînait TROIS rendus complets
+  // du tableau avant que la moindre colonne ne glisse — la préférence, puis un effet qui
+  // recopiait `maxSlots`, puis un effet qui ajustait `slots` —, soit trois fois des milliers
+  // de lignes sur un livre entier. La mesure seule reste un état (`autoSlots`) ; le compte
+  // en dérive pendant le rendu, et les colonnes s'y ajustent dans le même rendu.
+  const [autoSlots, setAutoSlots] = useState(NB_SLOTS);
   // Préférence utilisateur du nombre de traductions visibles (null = automatique, selon
-  // la largeur d'écran). Mémorisée. Un ref évite la fermeture périmée dans le ResizeObserver.
+  // la largeur d'écran). Mémorisée.
   const [nbTradPref, setNbTradPref] = useState<number | null>(null);
-  const prefRef = useRef<number | null>(null);
-  const autoRef = useRef<number>(NB_SLOTS);
   useEffect(() => {
     try { const v = window.localStorage.getItem("polyglotte-nbtrad"); if (v === "auto") setNbTradPref(null); else if (v) { const n = parseInt(v, 10); if (n >= MIN_SLOTS && n <= MAX_SLOTS) setNbTradPref(n); } } catch { /* stockage indisponible */ }
   }, []);
-  useEffect(() => { prefRef.current = nbTradPref; }, [nbTradPref]);
-  // Applique la préférence (ou revient à la valeur automatique mesurée).
+  const maxSlots = nbTradPref != null ? Math.max(MIN_SLOTS, Math.min(MAX_SLOTS, nbTradPref)) : autoSlots;
+  // Mémorise la préférence (la valeur, elle, se déduit ci-dessus).
   const nbTradEcrit = useRef(false);
   useEffect(() => {
-    setMaxSlots(nbTradPref != null ? Math.max(MIN_SLOTS, Math.min(MAX_SLOTS, nbTradPref)) : autoRef.current);
     // Ne JAMAIS écrire au premier rendu : la valeur lue du localStorage (effet ci-dessus)
     // n'est pas encore appliquée, et l'état initial `null` écraserait la préférence mémorisée.
     if (!nbTradEcrit.current) { nbTradEcrit.current = true; return; }
@@ -1429,9 +1456,9 @@ export default function PolyglottePage() {
       // ci-dessous, un lecteur qui ne prend pas de notes lit une édition de plus.
       const dispo = el.clientWidth - 24 - LARGEUR_REF - (notesReduites ? 26 : 208);
       const n = Math.max(MIN_SLOTS, Math.min(MAX_SLOTS, Math.floor(dispo / MIN_COL_PX)));
-      autoRef.current = n;
-      // La préférence utilisateur prime sur la mesure ; sinon on suit la largeur d'écran.
-      setMaxSlots(prefRef.current != null ? Math.max(MIN_SLOTS, Math.min(MAX_SLOTS, prefRef.current)) : n);
+      // La préférence utilisateur prime sur la mesure (`maxSlots`, déduit) ; on ne retient
+      // ici que ce que l'écran permet.
+      setAutoSlots(n);
     };
     calc();
     const ro = new ResizeObserver(calc);
@@ -1450,19 +1477,20 @@ export default function PolyglottePage() {
   // aussi les boutons sous le curseur qui les visait.
   // Ajuste le nombre de slots à la largeur : préserve les traductions déjà choisies,
   // complète par des slots vides, ou retire les colonnes qui ne tiennent plus.
-  useEffect(() => {
-    if (slots.length === maxSlots) return;
-    setSlots(prev => {
-      if (prev.length > maxSlots) return prev.slice(0, maxSlots);   // écran plus étroit : on retire les colonnes en trop
+  // ⚠️ PENDANT LE RENDU, non dans un effet : un effet laissait passer un rendu complet du
+  // tableau à l'ancien nombre de colonnes avant de rendre le bon.
+  if (slots.length !== maxSlots) {
+    if (slots.length > maxSlots) setSlots(slots.slice(0, maxSlots));   // écran plus étroit : on retire les colonnes en trop
+    else {
       // Écran plus large : on complète les nouveaux slots avec des traductions
       // pas encore affichées (plutôt que des colonnes vides), pour que le grand
       // écran montre directement plus de traductions.
-      const used = new Set(prev.filter(Boolean));
+      const used = new Set(slots.filter(Boolean));
       const libres = trads.map(t => t.trad_id).filter(id => !used.has(id));
       let k = 0;
-      return Array.from({ length: maxSlots }, (_, i) => prev[i] ?? (libres[k++] ?? ""));
-    });
-  }, [maxSlots, slots.length, trads]);
+      setSlots(Array.from({ length: maxSlots }, (_, i) => slots[i] ?? (libres[k++] ?? "")));
+    }
+  }
   const [canon, setCanon] = useState<CanonRow[]>([]);
   const [v2, setV2] = useState<V2Row[]>([]);
   const [sensiblesOnly, setSensiblesOnly] = useState(false);
@@ -1694,20 +1722,22 @@ export default function PolyglottePage() {
       const [catalogue, couvertureFillion, fichesEdition] = await Promise.all([
         supabase.from("traductions").select("trad_id, nom, ordre, source_edition, publication_fin_annee, langue, auteur, dates, date_publication").eq("est_biblique", true).order("ordre"),
         supabase.from(COUVERTURE_FILLION).select("trad_id, livre, nb_versets"),
-        supabase.from("editions_sources").select("trad_id, lieu_edition, editeur, annee_edition, depot_manuscrit, cote_manuscrit"),
+        supabase.from("editions_sources").select("trad_id, titre_edition, sous_titre_edition, mention_edition, lieu_edition, editeur, annee_edition, nombre_tomes, depot_manuscrit, cote_manuscrit"),
       ]);
       const { data: tr, error: erreurTr } = catalogue;
       if (erreurTr) console.error("Polyglotte : les traductions n’ont pas pu être lues.", erreurTr);
       if (couvertureFillion.error) console.error("Polyglotte : les livres alignés de la Fillion n’ont pas pu être lus.", couvertureFillion.error);
       if (fichesEdition.error) console.error("Polyglotte : les fiches d’édition n’ont pas pu être lues.", fichesEdition.error);
       const liste = (tr ?? []) as TraductionCatalogue[];
-      const parEdition = new Map(((fichesEdition.data ?? []) as { trad_id: string; lieu_edition: string | null; editeur: string | null; annee_edition: string | null; depot_manuscrit: string | null; cote_manuscrit: string | null }[]).map(f => [f.trad_id, f]));
+      const parEdition = new Map(((fichesEdition.data ?? []) as { trad_id: string; titre_edition: string | null; sous_titre_edition: string | null; mention_edition: string | null; lieu_edition: string | null; editeur: string | null; annee_edition: string | null; nombre_tomes: number | null; depot_manuscrit: string | null; cote_manuscrit: string | null }[]).map(f => [f.trad_id, f]));
       setFichesTrad(new Map(liste.map(t => {
         const e = parEdition.get(t.trad_id);
         return [t.trad_id, {
           auteur: t.auteur ?? null, dates: t.dates ?? null, datePublication: t.date_publication ?? null,
           lieuEdition: e?.lieu_edition ?? null, editeur: e?.editeur ?? null, anneeEdition: e?.annee_edition ?? null,
           depotManuscrit: e?.depot_manuscrit ?? null, coteManuscrit: e?.cote_manuscrit ?? null,
+          titreEdition: e?.titre_edition ?? null, sousTitreEdition: e?.sous_titre_edition ?? null,
+          mentionEdition: e?.mention_edition ?? null, nombreTomes: e?.nombre_tomes ?? null,
         }];
       })));
       const couverture = indexerLivresFillion((couvertureFillion.data ?? []) as LivreFillion[]);
@@ -2688,7 +2718,7 @@ export default function PolyglottePage() {
             <span style={{ display: "block", fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-second)", marginBottom: "5px" }}>Traductions visibles</span>
             <div role="group" aria-label="Nombre de traductions visibles" style={RANGEE_CASES}>
               {([["Auto", null], ["2", 2], ["3", 3], ["4", 4], ["5", 5]] as const).map(([lbl, val], rang) => (
-                <button key={lbl} onClick={() => setNbTradPref(val)} aria-pressed={nbTradPref === val}
+                <button key={lbl} onClick={() => startTransition(() => setNbTradPref(val))} aria-pressed={nbTradPref === val}
                   className="poly-case" style={CASE_ECHELLE(rang === 0)}>
                   {lbl}
                 </button>
@@ -2946,7 +2976,7 @@ export default function PolyglottePage() {
                     <div key={i} className={`poly-texte-cell poly-col poly-col-${sc.etat}`} lang={sc.trad?.lang} onCopy={copierSansCesures}
                       onMouseEnter={actionsSurnum ? e => ancrerActions(e.currentTarget, actionsSurnum) : undefined}
                       onMouseLeave={actionsSurnum ? () => celluleActions.relacher(actionsSurnum.cle) : undefined}
-                      onClick={actionsSurnum ? e => celluleActions.basculer(e.currentTarget, actionsSurnum.cle, celluleActions.ancre?.cle === actionsSurnum.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsSurnum }) : undefined}
+                      onClick={actionsSurnum ? e => celluleActions.basculer(e.currentTarget, actionsSurnum.cle, sansSurvol && celluleActions.ancre?.cle === actionsSurnum.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsSurnum }) : undefined}
                       tabIndex={actionsSurnum ? 0 : undefined}
                       onKeyDown={actionsSurnum ? e => activerAuClavier(e, () => celluleActions.basculer(e.currentTarget, actionsSurnum.cle, celluleActions.ancre?.cle === actionsSurnum.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsSurnum })) : undefined}
                       style={{ borderLeft: "1px solid var(--cs-surnum-bord)", color: r ? 'var(--cs-surnum-fort)' : 'var(--cs-surnum-bord)', ...(r?.estGlose899 ? { fontStyle: 'italic', fontSize: CORPS_GLOSE.sousVerset } : {}) }}>
@@ -3103,7 +3133,7 @@ export default function PolyglottePage() {
                             data-lasso-fond={lassoActif ? "" : undefined}
                             onMouseEnter={actionsCell ? e => ancrerActions(e.currentTarget, actionsCell) : undefined}
                             onMouseLeave={actionsCell ? () => celluleActions.relacher(actionsCell.cle) : undefined}
-                            onClick={actionsCell ? e => celluleActions.basculer(e.currentTarget, actionsCell.cle, celluleActions.ancre?.cle === actionsCell.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsCell }) : undefined}
+                            onClick={actionsCell ? e => celluleActions.basculer(e.currentTarget, actionsCell.cle, sansSurvol && celluleActions.ancre?.cle === actionsCell.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsCell }) : undefined}
                             tabIndex={actionsCell ? 0 : undefined}
                             onKeyDown={actionsCell ? e => activerAuClavier(e, () => celluleActions.basculer(e.currentTarget, actionsCell.cle, celluleActions.ancre?.cle === actionsCell.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsCell })) : undefined}
                             style={{ borderLeft: `1px solid ${FILET_COL}`, color: signaler ? 'var(--cs-danger-fonce)' : "var(--cs-encre-fonce)" }}>

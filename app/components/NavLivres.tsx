@@ -783,7 +783,10 @@ export default function NavLivres({
       /* `data-visite` : le repère de la visite guidée (app/lib/visiteBibleClassique.ts).
          Il est posé sur la RANGÉE et non sur le champ : la case de la visite cerne le
          bloc tel qu'il se voit, gouttières comprises, et non la boîte de saisie. */
-      <div data-visite="recherche-livre" style={{ flexShrink: 0, borderBottom: '1px solid var(--cs-bord-clair)', display: 'flex', alignItems: 'center' }}>
+      // ⚠️ Filet À MOITIÉ de --cs-bord-clair (demande de l'auteur, 2026-09-23 : « encore un
+      // peu plus » clair) : la recherche appartient à la liste des livres, qu'il ne coupe
+      // presque plus. Le mélange avec le transparent vaut pour le Cuir aussi.
+      <div data-visite="recherche-livre" style={{ flexShrink: 0, borderBottom: '1px solid color-mix(in srgb, var(--cs-bord-clair) 50%, transparent)', display: 'flex', alignItems: 'center' }}>
         <input aria-label="Livre ou référence biblique"
           type="text"
           className="cs-volet-recherche"

@@ -166,6 +166,24 @@ const STYLE_LIGNE_VERSET = {
   alignItems: 'baseline' as const,
 }
 
+// ⛔ LE FOND DU LASSO SE COUPE EN DEUX À LA JOINTURE DES COLONNES (demande de l'auteur,
+// 2026-09-23 : « pour les éditions bilingues, tu coupes en deux, mais tu donnes un peu de
+// marge dans la partie centrale »). Chaque cellule retenue prend, sur ses bords extérieurs,
+// le débord même que la rangée prend au clic (`.cs-regard-rangee--symetrique`), et laisse
+// au milieu de la gouttière de 1,1 rem un blanc de 0,3 rem : 0,4 rem de chaque côté.
+// Les débords se passent en variables à l'ombre du lasso (`ombreDeSurbrillance`).
+const DEBORD_LASSO_GAUCHE = 'calc(0.25rem + var(--regard-signet))'
+const DEBORD_LASSO_DROIT = 'calc(0.25rem + var(--regard-numero) + var(--regard-numero-gouttiere))'
+const DEBORD_LASSO_MILIEU = '0.4rem'
+function debordsDuLasso(index: number, colonnes: number, seule: boolean): React.CSSProperties {
+  const premiere = seule || index === 0
+  const derniere = seule || index === colonnes - 1
+  return {
+    ['--lasso-g' as string]: premiere ? DEBORD_LASSO_GAUCHE : DEBORD_LASSO_MILIEU,
+    ['--lasso-d' as string]: derniere ? DEBORD_LASSO_DROIT : DEBORD_LASSO_MILIEU,
+  } as React.CSSProperties
+}
+
 const STYLE_REFERENCE = {
   minWidth: 'var(--regard-numero)',
   textAlign: 'right' as const,
@@ -822,7 +840,7 @@ export default function BibleBilingue({
                     lang={membre.languageCode}
                     data-membre={membre.id}
                     data-lasso-cellule={cleLasso}
-                    style={seule ? { minWidth: 0, gridColumn: '1 / -1' } : { minWidth: 0, ...((copier || basculer || signaler) && cleLasso ? { position: 'relative' as const } : {}) }}
+                    style={{ ...(seule ? { minWidth: 0, gridColumn: '1 / -1' } : { minWidth: 0, ...((copier || basculer || signaler) && cleLasso ? { position: 'relative' as const } : {}) }), ...(!mobile && cleLasso ? debordsDuLasso(index, rangee.cellules.length, seule) : {}) }}
                   >
                     {cellule === null ? (appels.length === 0 ? (
                       // Un créneau que cette édition ne porte pas reste vide :

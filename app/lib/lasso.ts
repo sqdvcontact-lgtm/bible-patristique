@@ -304,6 +304,19 @@ export function cleDeLassoValide(cle: string): boolean {
   return /^[\w.:-]+$/.test(cle)
 }
 
+/**
+ * L'ombre qui éclaire une cible retenue (2026-09-23) : la teinte remplit la boîte, et deux
+ * ombres DÉCALÉES, sans flou ni étalement, la prolongent à gauche de `--lasso-g` et à droite
+ * de `--lasso-d`. Une ombre extérieure ne se peint jamais sous la boîte : les trois morceaux
+ * se juxtaposent sans se recouvrir, et la teinte reste égale d'un bord à l'autre.
+ * ⛔ Les deux débords se lisent SUR LA CIBLE, et c'est pour cela que l'ombre s'écrit dans la
+ * déclaration et non dans un jeton de `:root` : un `var()` s'y résoudrait à la racine, où
+ * ils ne valent rien. Sans eux (lecture simple, œuvre), ils valent zéro et rien ne déborde.
+ */
+export function ombreDeSurbrillance(teinte: string): string {
+  return `inset 0 0 0 100vmax ${teinte}, calc(-1 * var(--lasso-g, 0px)) 0 0 0 ${teinte}, var(--lasso-d, 0px) 0 0 0 ${teinte}`
+}
+
 /** La feuille qui éclaire la sélection : une règle, ou rien du tout. */
 export function feuilleDeSurbrillance(selecteurs: readonly string[], declaration: string): string {
   const retenus = selecteurs.filter(s => s.trim() !== '')

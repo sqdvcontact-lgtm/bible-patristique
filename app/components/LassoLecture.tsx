@@ -46,7 +46,7 @@ import { createPortal } from 'react-dom'
 import { Z_FLOTTANT } from '@/app/lib/empilement'
 import { hauteurNavbarPx } from '@/app/lib/fenetreContextuelle'
 import {
-  cleDeLassoValide, clesTouchees, combinerSelection, depasseLeSeuil, feuilleDeSurbrillance,
+  cleDeLassoValide, clesTouchees, combinerSelection, depasseLeSeuil, feuilleDeSurbrillance, ombreDeSurbrillance,
   memesCles, peutOuvrirLeLasso, rectangleEntre, surUneBarreDeDefilement, traceVisible,
   vitesseDeDefilement, type CibleMesuree, type Point, type Rect,
 } from '@/app/lib/lasso'
@@ -123,9 +123,9 @@ type Geste = {
 // d'ESLint ne le reconnaît pas (même alias que la cellule d'actions).
 const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
-const DECLARATION_SURBRILLANCE = 'box-shadow: var(--cs-lasso-surbrillance);'
-const DECLARATION_SURBRILLANCE_REFUS = 'box-shadow: var(--cs-lasso-surbrillance-refus);'
-const DECLARATION_SURBRILLANCE_EVICTION = 'box-shadow: var(--cs-lasso-surbrillance-eviction); cursor: pointer;'
+const DECLARATION_SURBRILLANCE = `box-shadow: ${ombreDeSurbrillance('var(--cs-lasso-teinte)')};`
+const DECLARATION_SURBRILLANCE_REFUS = `box-shadow: ${ombreDeSurbrillance('var(--cs-lasso-teinte-refus)')};`
+const DECLARATION_SURBRILLANCE_EVICTION = `box-shadow: ${ombreDeSurbrillance('var(--cs-lasso-teinte-eviction)')}; cursor: pointer;`
 /** L'indice suit le pointeur, en bas à droite de sa pointe. */
 const DECALAGE_INDICE_PX = { x: 14, y: 18 }
 const DUREE_MESSAGE_MS = 2600

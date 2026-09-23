@@ -40,7 +40,7 @@ import { createPortal } from 'react-dom'
 import { Z_FLOTTANT } from '@/app/lib/empilement'
 import { BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import {
-  clesTouchees, cleDeLassoValide, feuilleDeSurbrillance, rectangleEntre,
+  clesTouchees, cleDeLassoValide, feuilleDeSurbrillance, ombreDeSurbrillance, rectangleEntre,
   type CibleMesuree, type Point,
 } from '@/app/lib/lasso'
 import { libelleSelection } from '@/app/lib/selectionPassages'
@@ -51,7 +51,7 @@ export const DELAI_APPUI_LONG_MS = 450
 export const TOLERANCE_APPUI_PX = 10
 
 const DUREE_MESSAGE_MS = 2600
-const DECLARATION_SURBRILLANCE = 'box-shadow: var(--cs-lasso-surbrillance);'
+const DECLARATION_SURBRILLANCE = `box-shadow: ${ombreDeSurbrillance('var(--cs-lasso-teinte)')};`
 /** Ce sur quoi un appui long ne naît pas : les commandes ont leur propre geste. */
 const NE_NAIT_PAS_SUR = 'a, button, input, textarea, select, [contenteditable="true"], .verset-actions, [data-cellule-actions]'
 /** L'attribut que la page pose là où un lasso peut naître (contrat partagé avec la

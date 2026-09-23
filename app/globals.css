@@ -3415,11 +3415,16 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
    le remplacer. Elle s'écrit une fois, ici, et la feuille du composant ne fait que la
    poser sur les cibles. */
 :root {
-  --cs-lasso-surbrillance: inset 0 0 0 100vmax rgba(var(--cs-vert-rgb), 0.14);
+  /* ⛔ LA TEINTE EST CELLE DU VERSET RETENU AU CLIC (demande de l'auteur, 2026-09-23 :
+     « ça doit correspondre au fond de sélection des versets au clic hors lasso »). Elle
+     valait un vert à 14 % quand le clic pose `--cs-lecture-retenu` : deux verts voisins
+     pour une seule chose, la sélection. La forme de l'ombre vit dans `ombreDeSurbrillance`
+     (app/lib/lasso.ts), qui prolonge la cible des débords qu'elle déclare. */
+  --cs-lasso-teinte: var(--cs-lecture-retenu);
   /* ⛔ Le REFUS prend la famille du danger, seule du site qui dise « ce geste ne se fera
      pas ». Un cran plus dense que la surbrillance ordinaire : elle doit se distinguer
      d'elle au premier regard, sans couvrir le texte qu'on vient de prendre. */
-  --cs-lasso-surbrillance-refus: inset 0 0 0 100vmax rgba(var(--cs-danger-rgb), 0.18);
+  --cs-lasso-teinte-refus: rgba(var(--cs-danger-rgb), 0.18);
 }
 /* Pendant le geste, rien ne se sélectionne : le lasso passe sur le texte sans le prendre. */
 html[data-lasso-geste],
@@ -3583,7 +3588,7 @@ html[data-lasso-geste] * {
 /* ⛔ ÉVINCER (2026-09-23) : le bouton enfoncé dit le mode, et le verset survolé PÂLIT —
    la surbrillance montre déjà ce que le clic laissera. L'indice suit le pointeur (posé
    par son style, comme la trace) ; il ne paraît que sur ce qui sortirait au clic. */
-:root { --cs-lasso-surbrillance-eviction: inset 0 0 0 100vmax rgba(var(--cs-vert-rgb), 0.045); }
+:root { --cs-lasso-teinte-eviction: rgba(var(--cs-vert-rgb), 0.045); }
 .cs-lasso-action[aria-pressed='true'] {
   background: var(--cs-vert-pale);
   box-shadow: inset 0 0 0 1px rgba(var(--cs-vert-rgb), 0.35);
