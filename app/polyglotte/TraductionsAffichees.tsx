@@ -69,7 +69,10 @@ export default function TraductionsAffichees({ colonnes, fiches }: {
   // autre que le curseur. ⚠️ Le point du clic se prend avant la promesse.
   const copier = (e: React.MouseEvent, reference: string) => {
     const point = { clientX: e.clientX, clientY: e.clientY }
-    navigator.clipboard?.writeText(reference).then(() => signaler(point), (erreur: unknown) => {
+    // ⚠️ Hors contexte sûr, `navigator.clipboard` manque : l'optionnel rendait `undefined`,
+    // et `.then` sur lui levait une TypeError.
+    if (!navigator.clipboard) { console.error('[volet] presse-papiers indisponible'); return }
+    navigator.clipboard.writeText(reference).then(() => signaler(point), (erreur: unknown) => {
       console.error('[volet] référence non copiée :', erreur)
     })
   }

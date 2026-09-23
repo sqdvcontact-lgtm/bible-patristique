@@ -114,7 +114,7 @@ export const VISITE_POLYGLOTTE: Visite = {
       titre: 'Actions',
       texte: [
         'Au survol d’une cellule, ses actions apparaissent.',
-        'Ils ne concernent que cette traduction : le texte copié ou cité est bien celui de la colonne choisie.',
+        'Elles ne concernent que cette traduction : le texte copié ou cité est bien celui de la colonne choisie.',
       ],
       illustration: 'actions-verset',
       cote: 'dessous',

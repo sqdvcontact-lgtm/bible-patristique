@@ -247,7 +247,9 @@ const ROUGE_FOND = "var(--cs-danger-fond)";
 // correction tentée ou pesée, non résolue — souvent parce que le contrôle de contenu
 // a refusé le déplacement que le comptage suggérait. À distinguer du rouge, qui
 // signale un point à vérifier : ici, on a déjà cherché et l'on a buté.
-const ROSE_FOND = "var(--cs-danger-fond)";
+// ⚠️ Il valait EXACTEMENT le rouge (audit du 2026-09-23) : la distinction que ce commentaire
+// décrit ne se voyait pas. Le rose est le même fond, à moitié fondu dans le papier.
+const ROSE_FOND = "color-mix(in srgb, var(--cs-danger-fond) 50%, var(--cs-fond))";
 // ⛔ PLUS DE ZÉBRAGE : une ligne sur deux teintée est la marque d'un tableur, et c'est
 // précisément ce dont la page devait sortir. Toutes les lignes portent le papier.
 // ⚠️ Elles le portent EN DUR, et non en transparent, et ce n'est pas la même chose : la
@@ -724,7 +726,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
       <div ref={boite} role="dialog" aria-modal="true" aria-label={`Modifier ${reference}`} onClick={e => e.stopPropagation()} style={{ background: "var(--cs-surface)", borderRadius: 8, padding: "18px 20px", width: 520, maxWidth: "100%", boxShadow: "var(--cs-ombre-modale)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
           <p style={{ margin: 0, fontSize: '0.78125rem', fontWeight: 600, color: VERT }}>Modifier — {reference}</p>
-          <button onClick={onFermer} style={{ border: "none", background: "none", cursor: "pointer", fontSize: '0.9375rem', color: "var(--cs-texte-doux)", lineHeight: 1, padding: 0 }}>✕</button>
+          <button onClick={onFermer} aria-label="Fermer" title="Fermer" style={{ border: "none", background: "none", cursor: "pointer", fontSize: '0.9375rem', color: "var(--cs-texte-doux)", lineHeight: 1, padding: 0 }}>✕</button>
         </div>
         <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap", alignItems: "center" }}>
           <button onClick={() => entourer("**", "**")} title="Gras" style={{ ...outil, fontWeight: 700 }}>G</button>
@@ -784,19 +786,26 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
     e.stopPropagation();
     if (busy) return;
     setBusy(true);
-    if (saved) {
-      await supabase.from("prelevements").delete().eq("id", saved);
-      onRemoved(cle);
-    } else {
-      const { data, error } = await supabase.from("prelevements").insert({
-        user_id: userId, type: "biblique",
-        ref_livre: refLivre, ref_livre_abr: refAbr,
-        ref_chapitre: chapitre, ref_verset: verset,
-        texte: texteSansEnrichissement(texte), traduction: traductionLabel, trad_id: codeDeTraduction(tradId),
-      }).select("id").single();
-      if (!error && data) { onSaved(cle, data.id); signalerProgression(); }
+    // ⛔ Le signet ne dit « retiré » que si la base l'a retiré (audit du 2026-09-23) : il
+    // se vidait sur un échec, et le prélèvement reparaissait au rechargement.
+    try {
+      if (saved) {
+        const { error } = await supabase.from("prelevements").delete().eq("id", saved).eq("user_id", userId);
+        if (error) console.error("[polyglotte] retrait d'une citation impossible :", error);
+        else onRemoved(cle);
+      } else {
+        const { data, error } = await supabase.from("prelevements").insert({
+          user_id: userId, type: "biblique",
+          ref_livre: refLivre, ref_livre_abr: refAbr,
+          ref_chapitre: chapitre, ref_verset: verset,
+          texte: texteSansEnrichissement(texte), traduction: traductionLabel, trad_id: codeDeTraduction(tradId),
+        }).select("id").single();
+        if (error) console.error("[polyglotte] enregistrement d'une citation impossible :", error);
+        else if (data) { onSaved(cle, data.id); signalerProgression(); }
+      }
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   };
   // Enregistré : signet plein (vert) ; au survol, il cède la place à une croix pour
   // signifier « cliquer = retirer de la liste ».
@@ -838,7 +847,8 @@ function BoutonSignalerVerset({ refLisible, texte }: { refLisible: string; texte
       method: "POST", headers,
       body: JSON.stringify({ reference: refLisible, message, importance, url_source: typeof window !== "undefined" ? window.location.href : null }),
     });
-    if (!res.ok) throw new Error("échec du signalement");
+    // ⚠️ Le verrou de bêta REDIRIGE au lieu de refuser : sa page revient en 200.
+    if (!res.ok || res.redirected) throw new Error("échec du signalement");
   };
   return (
     <>
@@ -944,15 +954,16 @@ function BoutonEditionVerset({ ligne, fond, onEditer }: { ligne: V2Row; fond: st
 // Cellule de la colonne « Notes » : vide, elle montre une invite centrée et discrète
 // (« Note sur Gn 1, 6 ») ; au clic, elle devient une vraie zone de saisie (sans poignée
 // d'étirement). L'enregistrement se fait via `onChange` (débouncé côté parent).
-function CelluleNote({ valeur, refLisible, onChange }: {
-  valeur: string; refLisible: string; onChange: (t: string) => void;
+function CelluleNote({ valeur, refLisible, onChange, cleFoyer }: {
+  valeur: string; refLisible: string; onChange: (t: string) => void; cleFoyer: string;
 }) {
   const [focus, setFocus] = useState(false);
   const demarrer = useRef(false);
   const vide = !valeur.trim();
   if (vide && !focus) {
     return (
-      <button onClick={() => { demarrer.current = true; setFocus(true); }}
+      <button onClick={() => { demarrer.current = true; setFocus(true); }} tabIndex={-1}
+        data-poly-cellule={cleFoyer} data-poly-colonne="notes"
         style={{ ...STYLE_INVITE, width: "100%", minHeight: "1.9rem", display: "flex", alignItems: "center", justifyContent: "center",
           background: "none", border: "none", borderRadius: 4, cursor: "text", padding: "3px 6px" }}>
         Prendre une note sur {refLisible}
@@ -1881,12 +1892,14 @@ export default function PolyglottePage() {
     setEnregistre("envoi");
     const { data: s } = await supabase.auth.getSession();
     const token = s.session?.access_token;
+    // ⚠️ Le verrou de bêta REDIRIGE au lieu de refuser : sa page revient en 200 et passait
+    // pour un enregistrement réussi. On exige donc une réponse JSON, et non redirigée.
     const res = await fetch("/api/admin/verset-modifier", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify({ id, texte }),
-    });
-    if (res.ok) {
+    }).catch((e: unknown) => { console.error("[polyglotte] enregistrement du verset impossible :", e); return null; });
+    if (res && res.ok && !res.redirected && (res.headers.get("content-type") ?? "").includes("application/json")) {
       setV2(rows => rows.map(r => (r.id === id ? { ...r, texte } : r)));   // mise à jour locale
       corrigerTexteEnCache(id, texte);
       setEnregistre("ok"); setCibleEdition(null);
@@ -2174,14 +2187,19 @@ export default function PolyglottePage() {
   // Index (canon_id, trad_id) → cellule ; canon groupé par livre
   const cellule = useMemo(() => {
     const m = new Map<string, V2Row[]>();
-    for (const r of v2) { if (!porteDuTexte(r)) continue; const k = `${r.canon_id}|${r.trad_id}`; m.set(k, [...(m.get(k) ?? []), r]); }
+    for (const r of v2) {
+      if (!porteDuTexte(r)) continue;
+      const k = `${r.canon_id}|${r.trad_id}`;
+      const liste = m.get(k);
+      if (liste) liste.push(r); else m.set(k, [r]);   // ⚠️ push : recopier la liste à chaque ligne coûtait un livre entier au carré
+    }
     // versets fusionnés (many→1) : afficher dans l'ordre d'origine (ch_orig, v_orig)
     for (const arr of m.values()) if (arr.length > 1) arr.sort((a, b) => a.ch_orig - b.ch_orig || a.v_orig - b.v_orig);
     return m;
   }, [v2]);
   const parLivre = useMemo(() => {
     const m = new Map<string, CanonRow[]>();
-    for (const r of canon) m.set(r.livre, [...(m.get(r.livre) ?? []), r]);
+    for (const r of canon) { const liste = m.get(r.livre); if (liste) liste.push(r); else m.set(r.livre, [r]); }
     return m;
   }, [canon]);
   // ⛔ UN CRÉNEAU COUVERT PAR UN EMPAN N'EST PAS UN CRÉNEAU VIDE. Quand une édition réunit
@@ -2484,6 +2502,55 @@ export default function PolyglottePage() {
     if (plie !== null) setNotesReduites(plie);
   }, []);
 
+  // ── LE TOUR CLAVIER DU TABLEAU (audit du 2026-09-23) ──────────────────────────
+  // ⛔ UN SEUL ARRÊT DE TABULATION pour tout le tableau : chaque cellule en posait un, et
+  // un chapitre en offrait des centaines à traverser avant d'atteindre la suite de la page.
+  // Les flèches circulent ensuite de cellule en cellule (↑ ↓ dans la colonne, ← → dans la
+  // rangée) ; Entrée ouvre les actions, comme avant. La souris ne voit rien de tout cela.
+  // ⚠️ Le tabIndex se règle dans le DOCUMENT, non dans l'état : la cellule retenue change
+  // au geste, et un rendu de la page pour elle serait un rendu de trop. React ne réécrit
+  // pas une propriété qui n'a pas changé : la valeur posée ici tient.
+  const foyerCelluleRef = useRef<string | null>(null);
+  useEffect(() => {
+    const table = refTable.current;
+    if (!table) return;
+    const premiere = table.querySelector<HTMLElement>("[data-poly-cellule]");
+    if (!premiere) return;
+    const retenue = foyerCelluleRef.current
+      ? table.querySelector<HTMLElement>(`[data-poly-cellule="${CSS.escape(foyerCelluleRef.current)}"]`)
+      : null;
+    const cible = retenue ?? premiere;
+    for (const c of table.querySelectorAll<HTMLElement>('[data-poly-cellule][tabindex="0"]')) if (c !== cible) c.tabIndex = -1;
+    if (cible.tabIndex !== 0) cible.tabIndex = 0;
+  });
+  const surFoyerDuTableau = useCallback((e: React.FocusEvent<HTMLElement>) => {
+    const cellule = (e.target as HTMLElement).closest<HTMLElement>("[data-poly-cellule]");
+    if (!cellule || cellule !== e.target) return;
+    foyerCelluleRef.current = cellule.dataset.polyCellule ?? null;
+    for (const c of refTable.current?.querySelectorAll<HTMLElement>('[data-poly-cellule][tabindex="0"]') ?? []) if (c !== cellule) c.tabIndex = -1;
+    cellule.tabIndex = 0;
+  }, []);
+  const surToucheDuTableau = useCallback((e: React.KeyboardEvent<HTMLElement>) => {
+    const ici = e.target as HTMLElement;
+    if (!ici.hasAttribute("data-poly-cellule") || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    const table = refTable.current;
+    if (!table) return;
+    let voisine: HTMLElement | undefined;
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      const colonne = ici.dataset.polyColonne;
+      const liste = Array.from(table.querySelectorAll<HTMLElement>(`[data-poly-colonne="${colonne}"]`));
+      voisine = liste[liste.indexOf(ici) + (e.key === "ArrowUp" ? -1 : 1)];
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      const rangee = ici.closest(".poly-row, .poly-surnum-row");
+      const liste = rangee ? Array.from(rangee.querySelectorAll<HTMLElement>("[data-poly-cellule]")) : [];
+      voisine = liste[liste.indexOf(ici) + (e.key === "ArrowLeft" ? -1 : 1)];
+    } else return;
+    // ⛔ La flèche reste au tableau, même au bord : sans quoi ← et → changeraient de
+    // chapitre sous une cellule retenue (`sensDeLaTouche` lit `defaultPrevented`).
+    e.preventDefault();
+    voisine?.focus();
+  }, []);
+
   // ── LES CHAPITRES VOISINS (audit du 2026-09-23) ────────────────────────────────
   // Sous le tableau, ‹ « N sur M » ›, et les touches ← et →, sur le modèle de la page Bible
   // (`NavigationBasChapitre`, `chapitreVoisin`, `sensDeLaTouche`). Au bout d'un livre, le
@@ -2518,7 +2585,7 @@ export default function PolyglottePage() {
     const surTouche = (e: KeyboardEvent) => {
       const { voisinsPoly: v, allerAuChapitre: aller, attenteGlobale: attente } = toucheChapitreRef.current;
       if (!v || attente) return;
-      const modale = document.querySelector('[aria-modal="true"], [role="dialog"]') !== null;
+      const modale = document.querySelector('[role="dialog"], [role="alertdialog"]') !== null;
       const sensTouche = sensDeLaTouche(e, document.activeElement, modale);
       const cible = sensTouche ? v[sensTouche] : null;
       if (!cible) return;
@@ -2764,16 +2831,10 @@ export default function PolyglottePage() {
         /* Surbrillance très légère de la ligne survolée. Elle passe par un filtre
            (et non par le background) pour agir par-dessus les fonds inline — zébrage,
            signalétique, surnuméraires — sans les remplacer. */
-        /* Ligne survolée : une légère surbrillance permanente (sans mouvement), PLUS un
-           bref pulse discret TOUTES LES 3 s pour rappeler où se trouve le lecteur. */
-        .poly-row:hover, .poly-surnum-row:hover { filter: brightness(0.955); animation: poly-rappel-ligne 3s ease-in-out infinite; }
-        @keyframes poly-rappel-ligne {
-          0%, 82%, 100% { filter: brightness(0.955); }
-          91% { filter: brightness(0.915); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .poly-row:hover, .poly-surnum-row:hover { animation: none; }
-        }
+        /* Ligne survolée : une légère surbrillance, sans mouvement. ⛔ Le pouls qui la
+           rappelait toutes les trois secondes est retiré (audit du 2026-09-23) : une ligne
+           qui palpite sous le curseur distrait de ce qu'on y lit. */
+        .poly-row:hover, .poly-surnum-row:hover { filter: brightness(0.955); }
         /* Le nom d'édition ouvre son menu sur toute sa surface, mais son choix est composé
            en deux lignes : titre en sérif, millésime plus discret. ⚠️ Les deux états
            prenaient un voile BLANC translucide, juste sur l'ancien aplat vert et invisible
@@ -2832,6 +2893,8 @@ export default function PolyglottePage() {
         /* ⛔ L'ANCIEN FRANÇAIS NE SE JUSTIFIE PAS (audit du 2026-09-23) : aucun navigateur n'a
            de dictionnaire de coupure pour lui, et un texte justifié sans césure s'y creuse de
            lézardes. Il se ferre, comme le lecteur du témoin (charte § 3.11). */
+        /* L'anneau du clavier : deux pixels, dans la cellule, et seulement au clavier. */
+        .poly-texte-cell:focus-visible { outline: 2px solid var(--cs-vert); outline-offset: -2px; }
         .poly-texte-cell:lang(fro) { text-align: left; text-align-last: left; hyphens: manual; -webkit-hyphens: manual; }
         .poly-texte-cell[dir="rtl"] { text-align: right; text-align-last: right; }
       `}</style>
@@ -2904,7 +2967,7 @@ export default function PolyglottePage() {
           </div>
           {/* Choix du nombre de traductions affichées (Auto = selon la largeur d'écran). */}
           <div data-visite="poly-colonnes" style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
-            <span style={{ display: "block", fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-second)", marginBottom: "5px" }}>Traductions visibles</span>
+            <span style={{ display: "block", fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-second)", marginBottom: "5px" }}>Nombre de colonnes</span>
             <div role="group" aria-label="Nombre de traductions visibles" style={RANGEE_CASES}>
               {([["Auto", null], ["2", 2], ["3", 3], ["4", 4], ["5", 5]] as const).map(([lbl, val], rang) => (
                 <button key={lbl} onClick={() => startTransition(() => setNbTradPref(val))} aria-pressed={nbTradPref === val}
@@ -2967,7 +3030,7 @@ export default function PolyglottePage() {
       {/* ⚠️ Le rembourrage latéral est celui d'une marge de page, non celui d'une carte : il
           valait 18 px de chaque côté pour dégager l'ombre du bloc, qui n'existe plus. Toute
           largeur reprise ici revient au texte, et le calcul de largeur adaptative la compte. */}
-      <div ref={refTable} style={{ flex: 1, minWidth: 0, padding: "0 12px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "var(--cs-texte-fort)" }}>
+      <div ref={refTable} onFocus={surFoyerDuTableau} onKeyDown={surToucheDuTableau} style={{ flex: 1, minWidth: 0, padding: "0 12px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "var(--cs-texte-fort)" }}>
         {/* ⛔ PLUS DE GRAVURE NI D'INVITE « Ouvrez un livre » (demande de l'auteur,
             2026-09-04 : « supprimer le dessin et afficher soit le dernier emplacement de
             lecture de l'utilisateur, soit la Genèse »). La tour de Babel ruinée occupait
@@ -3139,7 +3202,7 @@ export default function PolyglottePage() {
               ? `Glose du témoin, après le verset ${g.ch}, ${g.v}`
               : editions > 1
                 ? `Verset hors ossature canonique, porté par ${editions} éditions au même numéro (${g.ch}, ${g.v})`
-                : `Verset propre à cette édition — hors ossature canonique (${g.ch}, ${g.v})`;
+                : `Verset propre à cette édition, hors de l'ossature canonique (${g.ch}, ${g.v})`;
             return (
               <div key={cle} className="poly-surnum-row poly-grille" style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid var(--cs-surnum-bord)", fontSize: '0.875rem' }}>
                 {/* « ✦ » plutôt que « ＋ » : le plus disait « on a ajouté quelque chose », ce qui
@@ -3166,7 +3229,8 @@ export default function PolyglottePage() {
                       onMouseEnter={actionsSurnum ? e => ancrerActions(e.currentTarget, actionsSurnum) : undefined}
                       onMouseLeave={actionsSurnum ? () => celluleActions.relacher(actionsSurnum.cle) : undefined}
                       onClick={actionsSurnum ? e => celluleActions.basculer(e.currentTarget, actionsSurnum.cle, sansSurvol && celluleActions.ancre?.cle === actionsSurnum.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsSurnum }) : undefined}
-                      tabIndex={actionsSurnum ? 0 : undefined}
+                      tabIndex={actionsSurnum ? -1 : undefined}
+                      data-poly-cellule={actionsSurnum ? `s|${cle}|${sc.slot}` : undefined} data-poly-colonne={actionsSurnum ? sc.slot : undefined}
                       onKeyDown={actionsSurnum ? e => activerAuClavier(e, () => celluleActions.basculer(e.currentTarget, actionsSurnum.cle, celluleActions.ancre?.cle === actionsSurnum.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsSurnum })) : undefined}
                       style={{ borderLeft: "1px solid var(--cs-surnum-bord)", color: r ? 'var(--cs-surnum-fort)' : 'var(--cs-surnum-bord)', ...(r?.estGlose899 ? { fontStyle: 'italic', fontSize: CORPS_GLOSE.sousVerset } : {}) }}>
                       {/* Même lettrine que les versets canoniques, au violet des surnuméraires :
@@ -3323,7 +3387,8 @@ export default function PolyglottePage() {
                             onMouseEnter={actionsCell ? e => ancrerActions(e.currentTarget, actionsCell) : undefined}
                             onMouseLeave={actionsCell ? () => celluleActions.relacher(actionsCell.cle) : undefined}
                             onClick={actionsCell ? e => celluleActions.basculer(e.currentTarget, actionsCell.cle, sansSurvol && celluleActions.ancre?.cle === actionsCell.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsCell }) : undefined}
-                            tabIndex={actionsCell ? 0 : undefined}
+                            tabIndex={actionsCell ? -1 : undefined}
+                            data-poly-cellule={actionsCell ? `${r.id}|${sc.slot}` : undefined} data-poly-colonne={actionsCell ? sc.slot : undefined}
                             onKeyDown={actionsCell ? e => activerAuClavier(e, () => celluleActions.basculer(e.currentTarget, actionsCell.cle, celluleActions.ancre?.cle === actionsCell.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsCell })) : undefined}
                             style={{ borderLeft: `1px solid ${FILET_COL}`, color: signaler ? 'var(--cs-danger-fonce)' : "var(--cs-encre-fonce)" }}>
                             {/* La lettrine : la PREMIÈRE référence d'origine et son crayon, en bloc
@@ -3390,7 +3455,7 @@ export default function PolyglottePage() {
                       {/* Colonne Notes : note personnelle du verset (enregistrée sur le compte). */}
                       {notesVisibles && (
                         <div style={{ borderLeft: `1px solid ${FILET_COL}`, padding: notesReduites ? 0 : "3px 5px", display: "flex" }} onClick={e => e.stopPropagation()}>
-                          {notesReduites ? null : <CelluleNote valeur={notes.get(r.id) ?? ""} refLisible={refLisible} onChange={t => majNote(r.id, t)} />}
+                          {notesReduites ? null : <CelluleNote valeur={notes.get(r.id) ?? ""} refLisible={refLisible} onChange={t => majNote(r.id, t)} cleFoyer={`n|${r.id}`} />}
                         </div>
                       )}
                     </div>
