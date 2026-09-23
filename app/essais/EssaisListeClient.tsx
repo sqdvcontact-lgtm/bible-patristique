@@ -13,8 +13,8 @@ import { CLE_VISITE_COMMUNAUTE, VISITE_COMMUNAUTE } from '@/app/lib/visiteCommun
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
-import { couvertureDe, fondSombre } from '@/app/lib/couverturesEssai'
-import { categoriePrincipale, emblemeDe } from '@/app/lib/emblemesCouverture'
+import { couvertureDe } from '@/app/lib/couverturesEssai'
+import { categoriePrincipale, FleuronGenre } from '@/app/lib/fleuronsCouverture'
 import { normaliserSaisie } from '@/app/lib/typographie'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
@@ -33,7 +33,7 @@ type EssaiResume = {
   mecene?: boolean
   /** Clé de la couleur de couverture choisie par l'auteur (voir couverturesEssai.ts). */
   couverture?: string | null
-  /** Registre dont l'emblème illustre la couverture, quand il y en a plusieurs. */
+  /** Catégorie principale, écrite sur la couverture et qui en donne le fleuron. */
   embleme?: string | null
 }
 
@@ -391,9 +391,9 @@ function OngletCommunaute({
         /* Une couverture : proportion d'un petit livre, couleur pleine, composition
            CENTRÉE et EN EMPATTEMENT, comme une page de titre gravée. La face
            s'ordonne en six temps du haut vers le bas : auteur, catégorie, titre,
-           sous-titre, emblème, date. C'est cette suite, non un cadre, qui fait le
+           sous-titre, fleuron, date. C'est cette suite, non un cadre, qui fait le
            livre ancien. Deux losanges filetés séparaient jadis ces temps ; ils ont
-           été retirés, la gravure suffisant désormais à tenir le milieu de la page.
+           été retirés ; le fleuron de genre tient désormais leur rôle.
            Bloc volontairement bridé : elle n'a pas à occuper le tiers d'un écran
            large. Elle se cale au milieu de sa case, et toute sa typographie est
            donnée en cqw, pourcentage de SA largeur, de sorte qu'elle garde ses
@@ -446,7 +446,7 @@ function OngletCommunaute({
            mesure ait à être recopiée d'une règle à l'autre. */
         .couverture-corps { position: relative; z-index: 2; flex: 1; min-height: 0; }
         /* La suite verticale. Rien n'est posé en absolu : chaque temps pousse le
-           suivant, et l'emblème, seul à porter des marges automatiques, absorbe la
+           suivant, et le fleuron, seul à porter des marges automatiques, absorbe la
            hauteur qui reste. Un titre de quatre lignes serre donc la composition au
            lieu de la faire déborder. */
         .couverture-face {
@@ -504,50 +504,22 @@ function OngletCommunaute({
           font-variation-settings: "opsz" 14, "wght" 400;
           overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
         }
-        /* L'emblème : la vignette gravée. Ses marges automatiques le centrent dans le
-           blanc qui reste entre le sous-titre et la date. Sa largeur est passée de 42
-           à 50cqw le jour où les losanges ont disparu : la place qu'ils occupaient
-           revient au dessin, qui est ce qu'on vient voir.
+        /* Le fleuron (2026-09-23) : un ornement d'imprimerie par genre, en lieu et
+           place des gravures. Ses marges automatiques le centrent dans le blanc qui
+           reste entre le sous-titre et la date, où le compositeur posait la vignette
+           d'une page de titre. Il ne fait que 18cqw de haut : c'est le titre qui
+           tient la page, le fleuron la ponctue.
 
-           Sur l'OPACITÉ, qui revient six fois dans ce bloc et n'est pas un bricolage.
-           La couverture n'a qu'une encre, celle que l'auteur a choisie, prise partout
+           Sur l'OPACITÉ, qui revient dans tout ce bloc et n'est pas un bricolage. La
+           couverture n'a qu'une encre, celle que l'auteur a choisie, prise partout
            par currentColor. Toute la hiérarchie se fait donc en INTENSITÉS de cette
-           encre unique, et non en couleurs : nom 0.9, emblème 0.9, catégorie et titre
-           0.76, date 0.66, filet du cadre 0.42. Écrire à la place des teintes fixes
-           obligerait à les décliner six fois, une par couverture, ce que currentColor
-           existe précisément pour éviter.
-
-           L'emblème est passé de 0.82 à 0.9, au rang du nom de l'auteur : depuis qu'il
-           occupe le centre de la face, les trois dessins les plus clairs (Philosophie,
-           Spiritualité, Théologie) s'effaçaient. Mesuré sur le vert d'encre, le gain
-           est de 9 % de contraste. Ne pas monter à 1 : le tronc d'Histoire, le plus
-           chargé des dix, se met alors à disputer le titre. */
-        .couverture-embleme { display: block; margin: auto 0; width: 50cqw; opacity: 0.9; }
-        .couverture-embleme svg { display: block; width: 100%; height: auto; }
-        /* LA PLAQUE (2026-09-21). Les emblèmes sont des GRAVURES : rendues en encre
-           claire sur un fond sombre, elles passent en négatif, les hachures d’ombre
-           devenant des lumières. Sur une couverture sombre, la gravure se pose donc
-           sur une étiquette de l’encre de la couverture, et se dessine dans la
-           couleur du fond, comme une vignette contrecollée sur une reliure. Un filet
-           intérieur, du trait à faible intensité, borde l’étiquette. Sur un fond
-           clair, la plaque est transparente et rien ne change. L’étiquette prend
-           56cqw pour que le dessin garde à peu près sa taille (47cqw contre 50), et
-           elle est pleine : l’opacité de l’emblème ne s’y applique pas. */
-        .couverture-embleme {
-          background: var(--couv-plaque); color: var(--couv-trait);
-          padding: 4.5cqw; border-radius: 2px; box-sizing: border-box;
-          box-shadow: inset 0 0 0 1.4cqw var(--couv-plaque), inset 0 0 0 calc(1.4cqw + 1px) color-mix(in srgb, var(--couv-trait) 38%, var(--couv-plaque));
-        }
-        .couverture-embleme[data-plaque="non"] { padding: 0; box-shadow: none; }
-        :root[data-theme="sombre"] .couverture-embleme { background: var(--couv-plaque-s); color: var(--couv-trait-s);
-          box-shadow: inset 0 0 0 1.4cqw var(--couv-plaque-s), inset 0 0 0 calc(1.4cqw + 1px) color-mix(in srgb, var(--couv-trait-s) 38%, var(--couv-plaque-s)); }
-        :root[data-theme="sombre"] .couverture-embleme[data-plaque-s="non"] { padding: 0; box-shadow: none; }
-        :root[data-theme="sombre"] .couverture-embleme[data-plaque-s="oui"] { padding: 4.5cqw; }
-        .couverture-embleme[data-plaque="oui"] { width: 56cqw; opacity: 1; }
-        :root[data-theme="sombre"] .couverture-embleme[data-plaque-s="oui"] { width: 56cqw; opacity: 1; }
-        :root[data-theme="sombre"] .couverture-embleme[data-plaque-s="non"] { width: 50cqw; opacity: 0.9; }
-        /* Le pied garde son blanc au-dessus même quand l'emblème remplit tout : la
-           date ne se colle jamais au dessin. */
+           encre unique : nom 0.9, fleuron 0.86, catégorie et sous-titre 0.84, date
+           0.78, filet du cadre 0.42. Un fleuron est tracé en traits pleins et d'un
+           seul ton : sur fond sombre comme sur fond clair il se lit à l'endroit, et
+           n'a pas besoin de la plaque que réclamaient les gravures. */
+        .couverture-fleuron { display: block; flex: none; margin: auto 0; width: 54cqw; height: auto; opacity: 0.86; }
+        /* Le pied garde son blanc au-dessus même quand le titre remplit tout : la
+           date ne se colle jamais au fleuron. */
         .couverture-pied { margin-top: 4cqw; display: flex; flex-direction: column; align-items: center; }
         .couverture-date {
           font-size: 3.3cqw; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.78;
@@ -702,14 +674,9 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
   const c = couvertureDe(e.couverture, e.id)
   // Le premier registre annonce le genre sous le nom de l’auteur ; les autres
   // servent au filtrage et n’ont pas leur place ici.
-  // La catégorie écrite et l’emblème sont ceux de la CATÉGORIE PRINCIPALE, que
-  // l’auteur désigne (`essais.embleme`) : ils disent enfin la même chose.
+  // La catégorie écrite et le fleuron sont ceux de la CATÉGORIE PRINCIPALE, que
+  // l’auteur désigne (`essais.embleme`) : ils disent la même chose.
   const categorie = categoriePrincipale(e.categories, e.embleme)
-  const categorieDessin = categorie
-  // Sur un fond sombre, la gravure se pose sur une PLAQUE de l’encre de la
-  // couverture, et se dessine dans la couleur du fond : une gravure inversée (trait
-  // clair sur sombre) se lit en négatif, ses ombres devenant des lumières.
-  const plaque = fondSombre(c.fond), plaqueS = fondSombre(c.fondSombre)
   // Titre, sous-titre et résumé sont tapés par l’auteur dans un formulaire : ils
   // arrivent avec l’apostrophe droite et la ponctuation collée du clavier. La norme
   // s’applique AU RENDU (charte §3.2), jamais dans la donnée.
@@ -725,10 +692,6 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
       style={{
         '--couv-fond': c.fond, '--couv-encre': c.encre, '--couv-filet': c.filet,
         '--couv-fond-s': c.fondSombre, '--couv-encre-s': c.encreSombre, '--couv-filet-s': c.filetSombre,
-        // La plaque de l’emblème, pour chaque thème : sur fond sombre, l’encre fait la
-        // plaque et le fond fait le trait ; sur fond clair, pas de plaque.
-        '--couv-plaque': plaque ? c.encre : 'transparent', '--couv-trait': plaque ? c.fond : 'currentColor',
-        '--couv-plaque-s': plaqueS ? c.encreSombre : 'transparent', '--couv-trait-s': plaqueS ? c.fondSombre : 'currentColor',
       } as React.CSSProperties}>
     <Link href={`/essais/${e.id}`} className="couverture"
       style={{ background: 'var(--couv-fond)', color: 'var(--couv-encre)' }}
@@ -752,12 +715,9 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
           {categorie && <span className="couverture-categorie">{categorie}</span>}
           <span className="couverture-titre">{titre}</span>
           {sousTitre && <span className="couverture-soustitre">{sousTitre}</span>}
-          {/* L'emblème est un ornement, pas une information : il double la catégorie,
+          {/* Le fleuron est un ornement, pas une information : il double la catégorie,
               déjà écrite au-dessus, et n'a donc rien à annoncer. */}
-          <span className="couverture-embleme" aria-hidden="true"
-            data-plaque={plaque ? 'oui' : 'non'} data-plaque-s={plaqueS ? 'oui' : 'non'}>
-            <svg viewBox="0 0 64 64" role="presentation">{emblemeDe(categorieDessin)}</svg>
-          </span>
+          <FleuronGenre categorie={categorie} className="couverture-fleuron" />
           <span className="couverture-pied">
             {e.publie_at && <span className="couverture-date">{formaterDateLongue(e.publie_at)}</span>}
           </span>

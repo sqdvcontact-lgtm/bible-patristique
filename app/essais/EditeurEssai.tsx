@@ -16,7 +16,7 @@ import VoletEssai from '@/app/lib/VoletEssai'
 import SelecteurCitation from '@/app/lib/SelecteurCitation'
 import { CATEGORIES_ESSAIS, CONDITIONS, RESUME_MAX, RESUME_MIN, type Metadonnees } from './EtapeMetadonnees'
 import { COUVERTURES, couvertureDe } from '@/app/lib/couverturesEssai'
-import { emblemeDe } from '@/app/lib/emblemesCouverture'
+import { FleuronGenre } from '@/app/lib/fleuronsCouverture'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import { NOM_ANONYME, colonnesSignature, nomReel, nomSigne, signatureDe, type Signature } from '@/app/lib/signatureEssai'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
@@ -956,7 +956,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
                   {/* LA CATÉGORIE PRINCIPALE. Elle ne se demande qu'à partir de deux
                       catégories : sous deux, il n'y a rien à choisir. Elle est écrite
-                      sur la couverture et en donne l'emblème (`essais.embleme`). */}
+                      sur la couverture et en donne le fleuron (`essais.embleme`). */}
                   {meta.categories.length > 1 && (
                     <div style={{ marginTop: '14px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', marginBottom: '5px' }}>
@@ -974,13 +974,13 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                               title={categorie} aria-label={`Catégorie principale : ${categorie}`} aria-pressed={actif}
                               style={{
                                 height: '2.5rem', borderRadius: '4px', cursor: 'pointer', gap: '6px',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px 10px 4px 4px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px 10px 4px 6px',
                                 fontSize: '0.75rem', fontWeight: actif ? 600 : 400,
                                 background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)',
                                 border: actif ? '2px solid var(--cs-vert)' : '1px solid var(--cs-bord)',
                                 boxShadow: actif ? '0 0 0 2px rgba(var(--cs-vert-rgb),0.18)' : 'none',
                               }}>
-                              <svg viewBox="0 0 64 64" width="30" height="30" role="presentation" aria-hidden="true">{emblemeDe(categorie)}</svg>
+                              <FleuronGenre categorie={categorie} width="54" height="18" />
                               <span>{categorie}</span>
                             </button>
                           )

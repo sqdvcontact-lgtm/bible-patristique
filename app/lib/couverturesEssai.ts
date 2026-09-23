@@ -149,16 +149,6 @@ export function couvertureDe(cle: string | null | undefined, graine?: number): C
   return graine === undefined ? COUVERTURE_PAR_DEFAUT : couvertureTiree(graine)
 }
 
-/** Vrai si le fond est SOMBRE, c'est-à-dire porte une encre claire. Sert à la
- *  plaque de l'emblème : une gravure ne se pose pas en négatif. Le seuil est la
- *  clarté relative de 0,18, au milieu de la bande que la gamme évite (voir plus
- *  haut) : aucun fond du jeu n'en approche, si bien qu'il ne tranche jamais au hasard. */
-export function fondSombre(hex: string): boolean {
-  const lin = (v: number) => (v / 255 <= 0.03928 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4)
-  const [r, g, b] = [0, 1, 2].map(i => lin(parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16)))
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 0.18
-}
-
 /** Vrai si la clé désigne une couverture du jeu. Sert à la validation d'écriture. */
 export function estCouvertureConnue(cle: string | null | undefined): boolean {
   return PAR_CLE.has((cle ?? '').trim())
