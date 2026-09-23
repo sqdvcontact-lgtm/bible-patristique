@@ -521,13 +521,13 @@ export default function NavLivres({
                 style={{
                   height: 'var(--volet-case)', borderRadius: '4px', border: 'none', cursor: 'pointer', padding: 0,
                   background: entierSel ? 'var(--cs-vert-aplat)' : 'var(--cs-fond-doux)',
-                  color: entierSel ? 'var(--cs-sur-aplat)' : 'var(--cs-or-lisible)',
+                  color: entierSel ? 'var(--cs-sur-aplat)' : 'var(--cs-vert-fonce)',
                   lineHeight: 1, textAlign: 'center',
                 }}>
-                {/* ⛔ α ω, DORÉS, ET NON PLUS ∞ (demande de l'auteur, 2026-09-23) : le début et la
-                    fin, c'est-à-dire le livre d'un bout à l'autre. Une fine insécable les sépare
-                    et les garde ensemble. L'or est `--cs-or-lisible`, l'or du site mesuré pour du
-                    texte ; allumée, la case prend l'aplat vert de ses voisines. */}
+                {/* ⛔ α ω, ET NON PLUS ∞ (demande de l'auteur, 2026-09-23) : le début et la fin,
+                    c'est-à-dire le livre d'un bout à l'autre. Une fine insécable les sépare et les
+                    garde ensemble. En VERT SOMBRE (`--cs-vert-fonce`), non plus en or : décision
+                    de l'auteur, le même soir. Allumée, la case prend l'aplat vert de ses voisines. */}
                 <span aria-hidden="true" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontWeight: 600, lineHeight: 1, whiteSpace: 'nowrap' }}>α&#8239;ω</span>
               </button>
             )}
@@ -783,7 +783,7 @@ export default function NavLivres({
       /* `data-visite` : le repère de la visite guidée (app/lib/visiteBibleClassique.ts).
          Il est posé sur la RANGÉE et non sur le champ : la case de la visite cerne le
          bloc tel qu'il se voit, gouttières comprises, et non la boîte de saisie. */
-      <div data-visite="recherche-livre" style={{ flexShrink: 0, borderBottom: '1px solid var(--cs-bord)', display: 'flex', alignItems: 'center' }}>
+      <div data-visite="recherche-livre" style={{ flexShrink: 0, borderBottom: '1px solid var(--cs-bord-clair)', display: 'flex', alignItems: 'center' }}>
         <input aria-label="Livre ou référence biblique"
           type="text"
           className="cs-volet-recherche"
