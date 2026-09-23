@@ -877,7 +877,7 @@ export const ILLUSTRATIONS: Illustration[] = [
  *  convention de nom. Elles ne peuvent donc pas s'afficher par leur chemin de
  *  fichier, et la planche les appelle par la route que Next leur donne. */
 export const ICONES_ONGLET: { route: string; fichier: string; nom: string; emploi: string }[] = [
-  { route: '/icon.png', fichier: 'app/icon.png', nom: 'Icône d’onglet', emploi: 'L’icône que montre l’onglet du navigateur et le favori.' },
+  { route: '/icon.svg', fichier: 'app/icon.svg', nom: 'Icône d’onglet', emploi: 'Le chiffre seul, vert sur une barre claire, blanc cassé sur une barre sombre : l’icône que montrent l’onglet et le favori.' },
   { route: '/apple-icon.png', fichier: 'app/apple-icon.png', nom: 'Icône Apple', emploi: 'L’icône retenue quand on ajoute le site à l’écran d’accueil d’un iPhone.' },
   { route: '/favicon.ico', fichier: 'app/favicon.ico', nom: 'Favicon', emploi: 'Repli pour les navigateurs anciens, qui demandent encore `/favicon.ico`.' },
 ]

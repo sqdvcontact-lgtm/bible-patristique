@@ -15,6 +15,15 @@
 //   • au-delà — le dessin tel quel, avec une marge.
 // L'icône Apple est un carré plein : iOS arrondit lui-même les coins.
 //
+// ⛔ L'ONGLET PREND UN SVG, et c'est lui qui compte (2026-09-23, relevé de l'auteur :
+// « pas super élégant »). Le chiffre y est SEUL, sans carré : vert (#3d6b4f) sur une
+// barre claire, blanc cassé sur une barre sombre, par `prefers-color-scheme`. Le
+// tracé vient de `scripts/logo/chiffre-cs.svg`, vectorisé par potrace depuis
+// chiffre-cs.png (écart moyen 1,3/255 sur la planche). Sous 28 puis 20 px de rendu,
+// un trait de la même encre l'épaissit : une requête de largeur, dans un SVG, se juge
+// sur la taille où on le peint. Le .ico et l'icône Apple gardent le carré vert : ils
+// servent là où l'on ne sait pas de quelle couleur est le fond.
+//
 // Usage : node scripts/logo-fabriquer.mjs
 
 import { createRequire } from 'node:module'
@@ -102,8 +111,16 @@ function ico(images) {
 
 const serie = tailles => Promise.all(tailles.map(async taille => ({ taille, png: await icone(taille) })))
 
-await writeFile(dans('app/icon.png'), await icone(512))
-console.log('  app/icon.png — 512×512')
+const trace = (await import('node:fs')).readFileSync(dans('scripts/logo/chiffre-cs.svg'), 'utf8').match(/ d="([^"]+)"/)[1]
+const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 992 992"><style>' +
+  ':root{color:' + FOND + '}' +
+  '@media (prefers-color-scheme:dark){:root{color:#f2f5f3}}' +
+  'path{fill:currentColor;stroke:currentColor;stroke-width:0;stroke-linejoin:round}' +
+  '@media (max-width:28px){path{stroke-width:20}}' +
+  '@media (max-width:20px){path{stroke-width:36}}' +
+  '</style><path fill-rule="evenodd" transform="translate(0 24)" d="' + trace + '"/></svg>' + String.fromCharCode(10)
+await writeFile(dans('app/icon.svg'), svg)
+console.log('  app/icon.svg — le chiffre seul, clair ou sombre selon la barre')
 await writeFile(dans('app/apple-icon.png'), await icone(180, { plein: true }))
 console.log('  app/apple-icon.png — 180×180, carré plein')
 

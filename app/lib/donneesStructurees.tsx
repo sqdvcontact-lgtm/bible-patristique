@@ -33,7 +33,7 @@ export function donneesSite() {
         '@id': `${BASE}/#organization`,
         name: 'Corpus Scriptura',
         url: BASE,
-        logo: `${BASE}/icon.png`,
+        logo: `${BASE}/apple-icon.png`,
         description: "Bibliothèque d'étude consacrée aux liens entre la Bible et les textes des Pères de l'Église.",
       },
       {
