@@ -504,20 +504,22 @@ function OngletCommunaute({
           font-variation-settings: "opsz" 14, "wght" 400;
           overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
         }
-        /* Le fleuron (2026-09-23) : un ornement d'imprimerie par genre, en lieu et
-           place des gravures. Ses marges automatiques le centrent dans le blanc qui
-           reste entre le sous-titre et la date, où le compositeur posait la vignette
-           d'une page de titre. Il ne fait que 18cqw de haut : c'est le titre qui
+        /* Le fleuron (2026-09-23) : un fleuron du registre de l'auteur par genre, en
+           lieu et place des gravures (app/lib/fleuronsCouverture.tsx). Ses marges
+           automatiques le centrent dans le blanc qui reste entre le sous-titre et la
+           date, où le compositeur posait la vignette d'une page de titre. Sa taille
+           est posée par le composant : la hauteur de pose du registre, un rem de
+           pose valant 8cqw, soit 20 à 28cqw selon la planche. C'est le titre qui
            tient la page, le fleuron la ponctue.
 
            Sur l'OPACITÉ, qui revient dans tout ce bloc et n'est pas un bricolage. La
            couverture n'a qu'une encre, celle que l'auteur a choisie, prise partout
            par currentColor. Toute la hiérarchie se fait donc en INTENSITÉS de cette
            encre unique : nom 0.9, fleuron 0.86, catégorie et sous-titre 0.84, date
-           0.78, filet du cadre 0.42. Un fleuron est tracé en traits pleins et d'un
-           seul ton : sur fond sombre comme sur fond clair il se lit à l'endroit, et
-           n'a pas besoin de la plaque que réclamaient les gravures. */
-        .couverture-fleuron { display: block; flex: none; margin: auto 0; width: 54cqw; height: auto; opacity: 0.86; }
+           0.78, filet du cadre 0.42. Le fleuron est posé en masque sur l'encre de
+           la couverture ; seuls ceux qui supportent le négatif y ont droit, si bien
+           qu'il n'a pas besoin de la plaque que réclamaient les gravures. */
+        .couverture-fleuron { margin: auto 0; opacity: 0.86; }
         /* Le pied garde son blanc au-dessus même quand le titre remplit tout : la
            date ne se colle jamais au fleuron. */
         .couverture-pied { margin-top: 4cqw; display: flex; flex-direction: column; align-items: center; }
@@ -717,7 +719,7 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
           {sousTitre && <span className="couverture-soustitre">{sousTitre}</span>}
           {/* Le fleuron est un ornement, pas une information : il double la catégorie,
               déjà écrite au-dessus, et n'a donc rien à annoncer. */}
-          <FleuronGenre categorie={categorie} className="couverture-fleuron" />
+          <FleuronGenre categorie={categorie} echelle="8cqw" className="couverture-fleuron" />
           <span className="couverture-pied">
             {e.publie_at && <span className="couverture-date">{formaterDateLongue(e.publie_at)}</span>}
           </span>
