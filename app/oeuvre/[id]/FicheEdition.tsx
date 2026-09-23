@@ -198,7 +198,7 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
             second objet là où l'on n'attend qu'une marque. */}
         <SectionFiche titre="Pour citer cette œuvre" className="cs-fiche-edition-citation"
           action={<BoutonCopierTexte texte={referenceCanonique} titre="Copier la référence"
-            className="cs-fiche-copier cs-cible-fine" />}>
+            mention="Référence bibliographique copiée" className="cs-fiche-copier cs-cible-fine" />}>
           <p className="cs-fiche-edition-citation-texte">
             <span className={CLASSES_BIBLIOGRAPHIE.reference}>
               {fragmentsCitation.map((fragment, rang) => (

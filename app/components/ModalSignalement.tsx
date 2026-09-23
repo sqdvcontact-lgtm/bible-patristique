@@ -34,6 +34,15 @@ import IconeCroix from './IconeCroix'
  */
 const DELAI_FERMETURE_MS = 6000
 
+/**
+ * Le fondu par lequel la fenêtre s'en va, une fois le compte tombé (relevé de l'auteur,
+ * 2026-09-23 : « le symbole de chargement manque un peu de fluidité »). Elle disparaissait
+ * d'un coup à zéro, l'anneau encore visible : la fin coupait le mouvement au lieu de le
+ * finir. ⚠️ Même règle que `DELAI_FERMETURE_MS` : la durée passe EN LIGNE à l'animation,
+ * et la feuille ne pose que le mouvement.
+ */
+const DUREE_SORTIE_MS = 240
+
 /** Le tour de l'anneau, en unités du tracé (2 π r, r = 9). */
 const TOUR_ANNEAU = 2 * Math.PI * 9
 
@@ -83,21 +92,30 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
   //    rebours ne doit pas rappeler `onClose` une seconde plus tard.
   useEffect(() => {
     if (reste === null) return
-    if (reste <= 0) { onClose(); return }
+    // ⚠️ À zéro, la fenêtre ne part pas encore : elle s'efface (`sortie`, déduite du
+    // compte, sans état de plus), puis se ferme au bout du fondu.
+    if (reste <= 0) {
+      const t = setTimeout(onClose, DUREE_SORTIE_MS)
+      return () => clearTimeout(t)
+    }
     const t = setTimeout(() => setReste(n => (n === null ? null : n - 1)), 1000)
     return () => clearTimeout(t)
   }, [reste, onClose])
 
+  const sortie = reste !== null && reste <= 0
+
   if (typeof document === 'undefined') return null
   return createPortal(
-    <div onClick={onClose} className="cs-signalement-calque"
+    <div onClick={onClose} className={`cs-signalement-calque${sortie ? ' cs-signalement-calque--sortie' : ''}`}
       // ⛔ 2800, non 2000 : le signalement s'ouvre DEPUIS le tiroir des commentaires d'un
       //    essai (voile 2400, tiroir 2401) et depuis les fiches (2700). À 2000 il paraissait
       //    SOUS le voile de ce qui l'avait appelé. Il reste sous la barre (3000).
       // ⛔ Le calque part du BAS DE LA BARRE, jamais de `inset: 0` : centré sur tout
       //    l'écran en paysage, son en-tête et sa croix passaient sous la barre, peinte
       //    par-dessus, et devenaient inatteignables (charte, § Fenêtres contextuelles).
-      style={{ top: HAUTEUR_NAVBAR, zIndex: 2800 }}>
+      // ⚠️ Le fondu de sortie se pose sur le CALQUE : le voile s'efface avec la fenêtre,
+      //    au lieu de rester sombre une image après elle.
+      style={{ top: HAUTEUR_NAVBAR, zIndex: 2800, ...(sortie ? { animationDuration: `${DUREE_SORTIE_MS}ms` } : null) }}>
       <div ref={boite} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={titreFenetre}
         className="cs-signalement-boite">
         <div className="cs-signalement-tete">
@@ -134,7 +152,11 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
                 « Signalement envoyé », qui est ce qu'on est venu lire. */}
             {reste !== null && (
               <p className="cs-signalement-merci-rebours">
-                Cette fenêtre se ferme dans {reste}&nbsp;seconde{reste > 1 ? 's' : ''}.
+                Cette fenêtre se ferme dans{' '}
+                {/* ⚠️ Le CHIFFRE se remonte à chaque seconde (sa `key`) et entre en fondu :
+                    il ne saute plus d'une valeur à l'autre. */}
+                <span key={reste} className="cs-signalement-merci-chiffre">{Math.max(reste, 0)}</span>
+                &nbsp;seconde{reste > 1 ? 's' : ''}.
               </p>
             )}
           </div>

@@ -54,6 +54,7 @@ export default function BoutonCopierTexte({
   style,
   className,
   titre = 'Copier',
+  mention,
 }: {
   /** ⚠️ Une CITATION porte DEUX formes : le collage riche garde l'italique du corpus,
    *  quand le plein-texte emporterait ses balises en clair. Une chaîne reste admise
@@ -62,6 +63,9 @@ export default function BoutonCopierTexte({
   style?: React.CSSProperties
   className?: string
   titre?: string
+  /** Ce que la mention au curseur dit avoir copié (« Référence bibliographique copiée »).
+   *  Par défaut, celle d'`EclatCopie` : une citation. */
+  mention?: string
 }) {
   const { copie, eclat, briller } = useEclatCopie()
   const [erreur, setErreur] = useState(false)
@@ -90,7 +94,7 @@ export default function BoutonCopierTexte({
     <button onClick={copier} title={libelle} aria-label={libelle} className={avecHoteEclat(className)}
       style={{ ...style, color: copie ? 'var(--cs-vert)' : erreur ? 'var(--cs-danger)' : (style?.color ?? 'var(--cs-texte-doux)') }}>
       {erreur ? <span aria-hidden="true">!</span> : <IconeCopier />}
-      <EclatCopie eclat={eclat} />
+      <EclatCopie eclat={eclat} mention={mention} />
       {erreur ? <span>Réessayer</span> : null}
     </button>
   )

@@ -7,21 +7,26 @@
 // symbole ; il faut simplement afficher “Référence bibliographique copiée” à côté du
 // curseur, en petit, avec un petit effet d'étincelles vertes autour. »
 //
-// ⛔ CE N'EST PAS `EclatCopie`, ET LES DEUX NE SE REMPLACENT PAS. L'éclat est l'accusé d'un
-//    BOUTON : il s'allume DANS la cible, qui est un pictogramme qu'on vient de viser, et le
-//    lecteur regarde donc déjà l'endroit où la lumière naît. Ici la cible est une PHRASE de
-//    trois lignes que rien n'annonce comme cliquable (charte : « aucun indice, seul le
-//    curseur change ») : un halo posé au milieu d'un texte ne se lirait pas comme un accusé,
-//    et l'on n'a pas non plus de pictogramme à allumer. L'accusé se pose donc LÀ OÙ L'ŒIL
-//    EST — sous le curseur — et il DIT ce qu'il a fait, puisque rien d'autre ne le dira.
+// ⛔ RECTIFIÉ LE SOIR MÊME : C'EST DÉSORMAIS L'ACCUSÉ DE TOUTES LES COPIES DU SITE.
+//    « Il faudrait que l'effet soit moins centré, mais se diffuse un peu autour du
+//    message ; utilise ce même effet et ce même texte pour le symbole “copier”. » Les
+//    boutons de copie (`EclatCopie`) ne font plus briller un halo derrière leur
+//    pictogramme : ils posent cette mention, contre le bouton, et elle NOMME ce qu'ils
+//    ont copié (« Citation copiée », « Verset copié », « Référence bibliographique
+//    copiée »).
 //
-// ⛔ ET IL NOMME CE QUI EST COPIÉ, non le geste : la ligne cliquée porte la phrase d'édition,
+// ⛔ ELLE NOMME CE QUI EST COPIÉ, non le geste : la ligne cliquée porte la phrase d'édition,
 //    le presse-papiers reçoit la RÉFÉRENCE des volumes. Écrire « Copié » laisserait croire
 //    qu'on a pris la phrase qu'on a sous les yeux.
 //
+// ⛔ LES ÉTINCELLES NAISSENT SUR LE POURTOUR DU MESSAGE, et s'en écartent un peu. Elles
+//    partaient toutes de son centre, c'est-à-dire de dessous le texte, et l'effet se
+//    ramassait au milieu d'un message de deux cents pixels. Leurs places sont ÉCRITES dans
+//    la feuille : tirées au hasard, l'accusé ne serait jamais deux fois le même.
+//
 // La forme vit dans `app/globals.css`, § « LA MENTION D'UNE COPIE ».
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 /** Le temps que la mention reste à l'écran, étincelles comprises.
@@ -31,11 +36,23 @@ import { createPortal } from 'react-dom'
  *  un portail pour rien, et le clic suivant paraîtrait relancer une animation déjà finie. */
 export const DUREE_MENTION_MS = 1300
 
-/** Le nombre d'étincelles. ⚠️ SIX, et leurs places sont ÉCRITES dans la feuille : tirées au
- *  hasard, elles changeraient à chaque clic et l'accusé cesserait d'être reconnaissable. */
-const ETINCELLES = 6
+/** Le nombre d'étincelles. ⚠️ DIX, et leurs places sont ÉCRITES dans la feuille
+ *  (`[data-etincelle='n']`) : en ajouter une demande d'y écrire sa place. */
+export const ETINCELLES = 10
+
+/** L'écart minimal, en pixels, entre la mention et le bord de la fenêtre. */
+const MARGE_BORD_PX = 8
+
+const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 export type MentionAuCurseur = { rang: number; x: number; y: number }
+
+/** Le point où poser la mention d'un geste fait sur un ÉLÉMENT (un bouton, au clavier comme à
+ *  la souris) : son centre. La feuille la pose ensuite au-dessus et à droite. */
+export function pointDeLElement(el: Element): { clientX: number; clientY: number } {
+  const r = el.getBoundingClientRect()
+  return { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 }
+}
 
 /**
  * L'état d'une mention. `signaler` prend le POINT du geste — jamais l'élément cliqué : la
@@ -69,11 +86,28 @@ export function useMentionCopiee() {
  * ⛔ ELLE NE REÇOIT AUCUN POINTEUR : le clic suivant doit atteindre ce qu'il vise, et non
  *    l'accusé du précédent.
  * ⚠️ La `key` est le rang du clic : c'est elle, et elle seule, qui fait repartir l'animation.
+ * ⚠️ ELLE NE SORT PAS DE LA FENÊTRE : un bouton de copie vit souvent au bord droit de la
+ *    colonne, et la mention, posée à droite du geste, y déborderait. Elle se mesure une fois
+ *    montée, avant la peinture, et se décale d'autant — par une propriété de la feuille, sans
+ *    état ni second rendu.
  */
 export function MentionCopiee({ mention, children }: { mention: MentionAuCurseur | null; children: React.ReactNode }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const rang = mention?.rang ?? 0
+  useMesureAvantPeinture(() => {
+    const el = ref.current
+    if (!el) return
+    el.style.removeProperty('--cs-mention-decalage')
+    const r = el.getBoundingClientRect()
+    const vue = document.documentElement.clientWidth
+    let decalage = 0
+    if (r.right > vue - MARGE_BORD_PX) decalage = vue - MARGE_BORD_PX - r.right
+    if (r.left + decalage < MARGE_BORD_PX) decalage = MARGE_BORD_PX - r.left
+    if (decalage !== 0) el.style.setProperty('--cs-mention-decalage', `${Math.round(decalage)}px`)
+  }, [rang])
   if (typeof document === 'undefined' || mention === null) return null
   return createPortal(
-    <span key={mention.rang} className="cs-mention-copiee" aria-hidden="true"
+    <span ref={ref} key={mention.rang} className="cs-mention-copiee" aria-hidden="true"
       style={{ left: mention.x, top: mention.y }}>
       {children}
       {Array.from({ length: ETINCELLES }, (_, i) => (

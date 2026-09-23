@@ -3162,17 +3162,19 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 /* ── LA MENTION D'UNE COPIE ────────────────────────────────────────────────────
    Demande de l'auteur (2026-09-23) pour la ligne d'édition de la carte d'une bible :
    « afficher “Référence bibliographique copiée” à côté du curseur, en petite, avec un
-   petit effet d'étincelles vertes autour ».
+   petit effet d'étincelles vertes autour ». Rectifié le soir même : c'est l'accusé de
+   TOUTES les copies du site, boutons « copier » compris (`EclatCopie`).
    ⛔ ELLE SE POSE AU POINT DU GESTE, en `fixed` : c'est là que l'œil se trouve, et la ligne
    cliquée, qui court sur trois lignes, ne dit pas où l'on a visé.
    ⚠️ La translation de moitié la CENTRE sur le curseur, puis le décalage la pose au-dessus
-   et à droite, où la main ne la couvre pas. */
+   et à droite, où la main ne la couvre pas. `--cs-mention-decalage` la ramène dans la
+   fenêtre quand elle en sortirait (posé par `MentionCopiee`, une fois mesurée). */
 .cs-mention-copiee {
   position: fixed;
   z-index: var(--cs-z-infobulle);
   pointer-events: none;
   transform: translate(-50%, -50%);
-  margin: -1.25rem 0 0 3.5rem;
+  margin: -1.25rem 0 0 calc(3.5rem + var(--cs-mention-decalage, 0px));
   padding: 3px 9px;
   border-radius: 999px;
   background: var(--cs-surface);
@@ -3193,35 +3195,48 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   to { opacity: 0; transform: translate(-50%, calc(-50% - 5px)); }
 }
 /* ⛔ LES ÉTINCELLES SONT DES LOSANGES, non des ronds : un rond de trois pixels se lit comme
-   une puce, un losange comme un éclat. Elles partent du centre de la mention et filent vers
-   six places ÉCRITES — tirées au hasard, l'accusé ne serait jamais deux fois le même. */
+   une puce, un losange comme un éclat.
+   ⛔ ELLES NAISSENT SUR LE POURTOUR DU MESSAGE, et s'en écartent de quelques pixels
+   (rectifié le 2026-09-23 : « il faudrait que l'effet soit moins centré, mais se diffuse
+   un peu autour du message »). Elles partaient toutes du centre, donc de dessous le texte,
+   et l'effet se ramassait au milieu d'un message de deux cents pixels. Chacune a sa place
+   sur le bord (`--cs-etincelle-l`, `--cs-etincelle-t`, en pour cent du message), sa
+   dérive vers le dehors (`-x`, `-y`) et son retard : dix places ÉCRITES — tirées au
+   hasard, l'accusé ne serait jamais deux fois le même. */
 .cs-mention-etincelle {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  left: var(--cs-etincelle-l, 50%);
+  top: var(--cs-etincelle-t, 50%);
   width: 5px;
   height: 5px;
   margin: -2.5px 0 0 -2.5px;
   background: var(--cs-vert);
   clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
   opacity: 0;
-  animation: cs-mention-etincelle 0.7s ease-out forwards;
+  animation: cs-mention-etincelle 0.8s ease-out forwards;
 }
-.cs-mention-etincelle[data-etincelle='1'] { --cs-etincelle-x: -34px; --cs-etincelle-y: -14px; animation-delay: 0s; }
-.cs-mention-etincelle[data-etincelle='2'] { --cs-etincelle-x: -18px; --cs-etincelle-y: 17px; animation-delay: 0.08s; }
-.cs-mention-etincelle[data-etincelle='3'] { --cs-etincelle-x: 8px; --cs-etincelle-y: -19px; animation-delay: 0.04s; }
-.cs-mention-etincelle[data-etincelle='4'] { --cs-etincelle-x: 31px; --cs-etincelle-y: 15px; animation-delay: 0.14s; }
-.cs-mention-etincelle[data-etincelle='5'] { --cs-etincelle-x: 46px; --cs-etincelle-y: -12px; animation-delay: 0.1s; }
-.cs-mention-etincelle[data-etincelle='6'] { --cs-etincelle-x: -2px; --cs-etincelle-y: 21px; animation-delay: 0.19s; }
+.cs-mention-etincelle[data-etincelle='1']  { --cs-etincelle-l: 6%;   --cs-etincelle-t: 0;    --cs-etincelle-x: -6px;  --cs-etincelle-y: -9px;  animation-delay: 0s; }
+.cs-mention-etincelle[data-etincelle='2']  { --cs-etincelle-l: 30%;  --cs-etincelle-t: 0;    --cs-etincelle-x: -2px;  --cs-etincelle-y: -12px; animation-delay: 0.07s; }
+.cs-mention-etincelle[data-etincelle='3']  { --cs-etincelle-l: 58%;  --cs-etincelle-t: 0;    --cs-etincelle-x: 3px;   --cs-etincelle-y: -11px; animation-delay: 0.13s; }
+.cs-mention-etincelle[data-etincelle='4']  { --cs-etincelle-l: 86%;  --cs-etincelle-t: 0;    --cs-etincelle-x: 7px;   --cs-etincelle-y: -9px;  animation-delay: 0.03s; }
+.cs-mention-etincelle[data-etincelle='5']  { --cs-etincelle-l: 100%; --cs-etincelle-t: 50%;  --cs-etincelle-x: 13px;  --cs-etincelle-y: 0px;   animation-delay: 0.1s; }
+.cs-mention-etincelle[data-etincelle='6']  { --cs-etincelle-l: 92%;  --cs-etincelle-t: 100%; --cs-etincelle-x: 8px;   --cs-etincelle-y: 10px;  animation-delay: 0.16s; }
+.cs-mention-etincelle[data-etincelle='7']  { --cs-etincelle-l: 64%;  --cs-etincelle-t: 100%; --cs-etincelle-x: 2px;   --cs-etincelle-y: 12px;  animation-delay: 0.05s; }
+.cs-mention-etincelle[data-etincelle='8']  { --cs-etincelle-l: 36%;  --cs-etincelle-t: 100%; --cs-etincelle-x: -3px;  --cs-etincelle-y: 11px;  animation-delay: 0.12s; }
+.cs-mention-etincelle[data-etincelle='9']  { --cs-etincelle-l: 10%;  --cs-etincelle-t: 100%; --cs-etincelle-x: -8px;  --cs-etincelle-y: 9px;   animation-delay: 0.02s; }
+.cs-mention-etincelle[data-etincelle='10'] { --cs-etincelle-l: 0;    --cs-etincelle-t: 50%;  --cs-etincelle-x: -13px; --cs-etincelle-y: -1px;  animation-delay: 0.09s; }
+/* ⚠️ Une étincelle sur deux est plus petite : dix losanges de même taille font un cadre
+   pointillé, non un éclat. */
+.cs-mention-etincelle:nth-child(even) { width: 4px; height: 4px; margin: -2px 0 0 -2px; }
 @keyframes cs-mention-etincelle {
   from { opacity: 0; transform: translate(0, 0) scale(0.2) rotate(0deg); }
-  30% { opacity: 1; transform: translate(calc(var(--cs-etincelle-x) * 0.6), calc(var(--cs-etincelle-y) * 0.6)) scale(1) rotate(35deg); }
-  to { opacity: 0; transform: translate(var(--cs-etincelle-x), var(--cs-etincelle-y)) scale(0.35) rotate(80deg); }
+  35% { opacity: 1; transform: translate(calc(var(--cs-etincelle-x) * 0.55), calc(var(--cs-etincelle-y) * 0.55)) scale(1) rotate(30deg); }
+  to { opacity: 0; transform: translate(var(--cs-etincelle-x), var(--cs-etincelle-y)) scale(0.4) rotate(70deg); }
 }
 /* ⛔ L'ACCUSÉ RESTE, LE MOUVEMENT PART : sous le réglage de mouvement réduit, la mention
    garde son fondu et perd sa montée, et les étincelles ne s'écartent plus. Les éteindre
-   retirerait la réponse au geste au lieu du mouvement — c'est la règle de l'éclat d'une
-   copie et de l'anneau du compte à rebours. */
+   retirerait la réponse au geste au lieu du mouvement — c'est la règle de l'anneau du
+   compte à rebours. */
 @media (prefers-reduced-motion: reduce) {
   .cs-mention-copiee { animation-name: cs-mention-copiee-calme; }
   .cs-mention-etincelle { animation-name: cs-mention-etincelle-calme; }
@@ -3232,9 +3247,9 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   to { opacity: 0; }
 }
 @keyframes cs-mention-etincelle-calme {
-  from { opacity: 0; transform: translate(var(--cs-etincelle-x), var(--cs-etincelle-y)); }
-  30% { opacity: 1; transform: translate(var(--cs-etincelle-x), var(--cs-etincelle-y)); }
-  to { opacity: 0; transform: translate(var(--cs-etincelle-x), var(--cs-etincelle-y)); }
+  from { opacity: 0; }
+  35% { opacity: 1; }
+  to { opacity: 0; }
 }
 
 /* Les entrées du menu ⋮ : la forme d'une option de volet, en plus resserré — c'est
@@ -4723,6 +4738,53 @@ main.lecture-entree [data-cs-bloc],
   from { stroke-dashoffset: 0; }
   to { stroke-dashoffset: 56.55; }
 }
+/* ⛔ LE REBOURS SE LIT COMME UN SEUL MOUVEMENT (relevé de l'auteur, 2026-09-23 : « le
+   symbole de chargement manque un peu de fluidité »). Trois à-coups l'interrompaient : le
+   remerciement tombait d'un coup à la place du formulaire, le chiffre sautait d'une valeur
+   à l'autre, et la fenêtre disparaissait à zéro, l'anneau encore visible. Le remerciement
+   entre en fondu, le chiffre aussi, et la fenêtre s'efface avant de partir.
+   ⚠️ L'anneau, lui, reste LINÉAIRE : il mesure le temps, et une courbe le ferait mentir.
+   ⚠️ Sous le réglage de mouvement réduit, les fondus restent et les déplacements partent. */
+.cs-signalement-merci { animation: cs-signalement-entree 0.32s ease-out both; }
+.cs-signalement-merci-chiffre {
+  display: inline-block;
+  min-width: 0.6em;
+  text-align: center;
+  animation: cs-signalement-chiffre 0.35s ease-out both;
+}
+.cs-signalement-calque--sortie {
+  animation-name: cs-signalement-sortie;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+  pointer-events: none;
+}
+.cs-signalement-rebours circle { will-change: stroke-dashoffset; }
+.cs-signalement-rebours { shape-rendering: geometricPrecision; }
+@keyframes cs-signalement-entree {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes cs-signalement-chiffre {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes cs-signalement-sortie {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+.cs-signalement-calque--sortie .cs-signalement-boite { animation: cs-signalement-recul 0.24s ease-in forwards; }
+@keyframes cs-signalement-recul {
+  from { transform: none; }
+  to { transform: scale(0.985); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-signalement-merci { animation-name: cs-signalement-fondu; }
+  .cs-signalement-merci-chiffre { animation-name: cs-signalement-fondu; }
+  .cs-signalement-calque--sortie { animation-name: cs-signalement-fondu-sortie; }
+  .cs-signalement-calque--sortie .cs-signalement-boite { animation: none; }
+}
+@keyframes cs-signalement-fondu { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cs-signalement-fondu-sortie { from { opacity: 1; } to { opacity: 0; } }
 .cs-signalement-merci-rebours {
   margin: 2px 0 0;
   font-family: var(--font-source-sans), Arial, sans-serif;

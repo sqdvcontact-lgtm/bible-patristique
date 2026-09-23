@@ -130,7 +130,7 @@ export default function ActionsVerset({
       <button onClick={copier} className={avecHoteEclat('bouton-action-verset')} title={erreur?.startsWith('La copie') ? erreur : 'Copier ce verset'} aria-label="Copier"
         style={{ ...BTN, opacity: 0, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
         <IconeCopier />
-        <EclatCopie eclat={eclat} />
+        <EclatCopie eclat={eclat} mention="Verset copié" />
       </button>
 
       <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setSignalOuvert(true) }}

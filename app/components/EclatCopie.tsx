@@ -34,51 +34,88 @@
 //    ÉVÉNEMENT, deux tâches que React ne groupe jamais ensemble — le démontage passe
 //    donc toujours avant le montage suivant.
 //
-// La forme vit dans `app/globals.css`, § « L'ÉCLAT D'UNE COPIE ».
+// ⛔ RECTIFIÉ LE 2026-09-23 : L'ACCUSÉ N'EST PLUS UN HALO, C'EST LA MENTION AU CURSEUR.
+//    Demande de l'auteur : « utilise ce même effet et ce même texte pour le symbole
+//    “copier” » — l'effet de la ligne d'édition d'une carte de bible (`MentionCopiee`).
+//    Le halo derrière le pictogramme ne disait PAS ce qu'on avait copié ; la mention le
+//    nomme, contre le bouton, avec ses étincelles sur son pourtour. Le pictogramme garde
+//    son allumage : il dit que CE bouton a répondu.
+// ⚠️ LA MENTION VIT PLUS LONGTEMPS QUE L'ENCRE DU PICTOGRAMME : deux durées, deux états.
+//    Le rang (`eclat`) tient la mention `DUREE_MENTION_MS` ; `copie` n'allume le
+//    pictogramme que `DUREE_ECLAT_MS`.
+//
+// La forme vit dans `app/globals.css`, § « LA MENTION D'UNE COPIE ».
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { DUREE_MENTION_MS, MentionCopiee, pointDeLElement, type MentionAuCurseur } from './MentionCopiee'
 
-/** Le temps que le pictogramme reste allumé.
- *  ⚠️ IL NE DESCEND PAS SOUS LA DURÉE DE L'ÉCLAT (0,32 s dans la feuille) : l'encre
- *  tient un instant de plus que la lumière, puis revient en fondu par la transition du
- *  bouton. L'inverse laisserait le halo briller sur un pictogramme déjà éteint.
- *  ⚠️ Il valait 750 ms jusqu'au 20 septembre 2026 : l'encre s'attardait alors une
- *  demi-seconde après que la lumière était partie, et le bouton paraissait lent. */
+/** ⚠️ L'alias DOIT être une constante de module nommée « use… » : c'est ce qui le fait
+ *  reconnaître pour un crochet, et la mesure du document est l'usage même de l'outil. */
+const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLayoutEffect
+
+/** Le temps que le pictogramme reste allumé, à l'encre des gestes. */
 export const DUREE_ECLAT_MS = 420
 
-/** La classe que porte le BOUTON : c'est lui qui donne son repère à l'éclat, posé en
- *  absolu par-dessus. ⚠️ Aucun des six boutons ne pose `position` en style en ligne, qui
- *  battrait la règle de la feuille. */
+/** La classe que porte le BOUTON. ⚠️ Aucun des boutons ne pose `position` en style en
+ *  ligne, qui battrait la règle de la feuille. */
 export const CLASSE_HOTE_ECLAT = 'cs-eclat-hote'
 
-const ACCUSE_COPIE = 'Copie effectuée'
+/** Ce que dit la mention quand l'appelant ne le précise pas : ces boutons copient une
+ *  CITATION, référence comprise. */
+export const MENTION_PAR_DEFAUT = 'Citation copiée'
 
-/** L'état d'un bouton de copie. `eclat` est le RANG du clic — 0 quand rien ne brille —,
- *  `copie` allume le pictogramme, `briller` relance la lumière.
- *  ⚠️ Le minuteur se retire au démontage — une cellule d'actions change de cible à chaque
- *  ligne survolée, et un minuteur laissé derrière poserait un état sur un bouton parti. */
+/** L'état d'un bouton de copie. `eclat` est le RANG du clic — 0 quand rien ne se montre —,
+ *  `copie` allume le pictogramme, `briller` relance l'accusé.
+ *  ⚠️ Les minuteurs se retirent au démontage — une cellule d'actions change de cible à
+ *  chaque ligne survolée, et un minuteur laissé derrière poserait un état sur un bouton
+ *  parti. */
 export function useEclatCopie() {
   const [eclat, setEclat] = useState(0)
-  const minuteur = useRef<ReturnType<typeof setTimeout> | null>(null)
-  useEffect(() => () => { if (minuteur.current) clearTimeout(minuteur.current) }, [])
-  const briller = useCallback(() => {
-    if (minuteur.current) clearTimeout(minuteur.current)
-    setEclat(n => n + 1)
-    minuteur.current = setTimeout(() => setEclat(0), DUREE_ECLAT_MS)
+  const [copie, setCopie] = useState(false)
+  const rang = useRef(0)
+  const minuteurMention = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const minuteurEncre = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => {
+    if (minuteurMention.current) clearTimeout(minuteurMention.current)
+    if (minuteurEncre.current) clearTimeout(minuteurEncre.current)
   }, [])
-  return { copie: eclat > 0, eclat, briller }
+  const briller = useCallback(() => {
+    if (minuteurMention.current) clearTimeout(minuteurMention.current)
+    if (minuteurEncre.current) clearTimeout(minuteurEncre.current)
+    rang.current += 1
+    setEclat(rang.current)
+    setCopie(true)
+    minuteurEncre.current = setTimeout(() => setCopie(false), DUREE_ECLAT_MS)
+    minuteurMention.current = setTimeout(() => setEclat(0), DUREE_MENTION_MS)
+  }, [])
+  return { copie, eclat, briller }
 }
 
-/** L'éclat et son accusé, posés DANS le bouton.
- *  ⛔ La `key` est le rang du clic : c'est elle, et elle seule, qui fait repartir
- *  l'animation quand on reclique avant la fin.
+/** L'accusé, posé DANS le bouton : un repère invisible, par lequel la mention retrouve le
+ *  bouton qui l'a demandée, et la région vivante.
+ *  ⛔ La mention se pose au CENTRE DU BOUTON, et non au point du pointeur : le geste peut
+ *  venir du clavier, et le bouton est de toute façon sous le curseur quand on clique.
  *  ⚠️ La région vivante est TOUJOURS rendue : une région qui naît avec son texte n'est
  *  pas annoncée. */
-export function EclatCopie({ eclat }: { eclat: number }) {
+export function EclatCopie({ eclat, mention = MENTION_PAR_DEFAUT }: { eclat: number; mention?: string }) {
+  const repere = useRef<HTMLSpanElement>(null)
+  const [pose, setPose] = useState<MentionAuCurseur | null>(null)
+  // ⚠️ La position se lit dans l'effet, jamais pendant le rendu : c'est une lecture du
+  // document, avant la peinture. Elle ne se refait qu'au rang suivant.
+  useMesureAvantPeinture(() => {
+    if (eclat === 0) return
+    const hote = repere.current?.parentElement
+    if (!hote) return
+    const { clientX, clientY } = pointDeLElement(hote)
+    setPose({ rang: eclat, x: clientX, y: clientY })
+  }, [eclat])
+  // ⚠️ Une pose d'un rang passé ne se montre pas : rien ne se remet à zéro dans l'effet.
+  const montree = eclat > 0 && pose?.rang === eclat ? pose : null
   return (
     <>
-      {eclat > 0 ? <span key={eclat} className="cs-eclat" aria-hidden="true" /> : null}
-      <span className="cs-hors-ecran" role="status">{eclat > 0 ? ACCUSE_COPIE : ''}</span>
+      <span ref={repere} hidden />
+      <MentionCopiee mention={montree}>{mention}</MentionCopiee>
+      <span className="cs-hors-ecran" role="status">{eclat > 0 ? mention : ''}</span>
     </>
   )
 }
