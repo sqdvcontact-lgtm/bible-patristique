@@ -799,6 +799,11 @@ export default function TexteBible({
   }, [versets])
   // La langue du texte lu : `lang` sur le paragraphe, et les césures du latin et du grec.
   const langueLue = useLangueBible(traduction, traductionActive?.langue)
+  // ⛔ Le lasso part : le verset choisi d’un clic se lâche (demande de l’auteur, 2026-09-23).
+  // Deux sélections à la fois, l’une d’un clic et l’autre d’un cadre, ne disent plus sur
+  // quoi l’on agit ; et le volet des Pères, qui suit le verset choisi, redevient celui du
+  // chapitre.
+  const lacherLeVersetChoisi = () => { setVersetSelectionne(null); setActionsMobileId(null) }
   const versetsDuLasso = (cles: readonly string[]) =>
     cles.map(cle => versetsParId.get(cle)).filter((v): v is Verset => v !== undefined)
   const abreviationLivre = ABREV_FR[livreActif] || livreActif
@@ -1278,6 +1283,7 @@ export default function TexteBible({
         onEnregistrer={enregistrerLasso}
         onRetirer={retirerLasso}
         onCopier={copierLasso}
+        onLance={lacherLeVersetChoisi}
       />
       <LassoTactile
         zone={refDefileur}
@@ -1291,6 +1297,7 @@ export default function TexteBible({
         onEnregistrer={enregistrerLasso}
         onRetirer={retirerLasso}
         onCopier={copierLasso}
+        onLance={lacherLeVersetChoisi}
       />
       {editionCible && (
         <ModaleEditionVerset

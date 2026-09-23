@@ -59,6 +59,7 @@ import { colonnesTouchees } from "@/app/lib/lasso";
 import { referenceDesVersets, texteDesVersets, UNITE_VERSETS } from "@/app/lib/selectionPassages";
 import { texteLisibleDeLaBible } from "@/app/lib/texteLisible899";
 import { enumererNoms } from "@/app/lib/traducteurs";
+import AvisLivreEntier, { avisLivreEntierEteint } from "./AvisLivreEntier";
 import TraductionsAffichees, { type ColonneAffichee, type FicheTraductionPoly } from "./TraductionsAffichees";
 import { useCompte } from "@/app/lib/contexteCompte";
 import { aRevoir899, chargerVersets899, estGlose899, estTraductionModerne899, NOTE_ALIGNEMENT_A_REVOIR, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
@@ -1647,6 +1648,23 @@ export default function PolyglottePage() {
     setChapitreChoisi(1);   // on ouvre sur le premier chapitre, pas le livre entier
   }, [ensembleDe]);
 
+  // ── LE LIVRE ENTIER SE DEMANDE, IL NE SE CHARGE PAS D'EMBLÉE (demande de l'auteur, 2026-09-23) ──
+  // Une petite fenêtre prévient que ce mode mobilise beaucoup de texte, et rien ne se charge
+  // avant qu'on l'ait confirmé. `avisLivreEntier` porte le livre visé tant que la question est
+  // posée. ⚠️ Une adresse partagée qui ouvre sur le livre entier n'y passe pas : c'est un choix
+  // déjà fait, non un geste.
+  const [avisLivreEntier, setAvisLivreEntier] = useState<string | null>(null);
+  const ouvrirLivreEntier = useCallback((code: string) => {
+    if (code !== livreChoisi) choisirLivre(code);
+    setChapitreChoisi(null); setToutAfficher(false); setVersetCible(null);
+  }, [livreChoisi, choisirLivre]);
+  const demanderLivreEntier = useCallback((code: string) => {
+    if (code === livreChoisi && chapitreChoisi === null && !toutAfficher) return;   // déjà ouvert
+    if (avisLivreEntierEteint()) ouvrirLivreEntier(code);
+    else setAvisLivreEntier(code);
+  }, [livreChoisi, chapitreChoisi, toutAfficher, ouvrirLivreEntier]);
+  const annulerLivreEntier = useCallback(() => setAvisLivreEntier(null), []);
+
   // Le volet de navigation attend le vocabulaire de la page Bible.
   const livresNav = useMemo(() => livres.map(l => ({
     code: l.code, nom: l.nom_fr,
@@ -2763,7 +2781,7 @@ export default function PolyglottePage() {
               traductions={[]}
               onChoisirLivre={choisirLivre}
               onChoisirChapitre={(code, ch) => { if (code !== livreChoisi) choisirLivre(code); setChapitreChoisi(ch); setToutAfficher(false); setVersetCible(null); }}
-              onChoisirLivreEntier={(code) => { if (code !== livreChoisi) choisirLivre(code); setChapitreChoisi(null); setToutAfficher(false); setVersetCible(null); }}
+              onChoisirLivreEntier={demanderLivreEntier}
               onChoisirVerset={(code, ch, v) => { if (code !== livreChoisi) choisirLivre(code); setChapitreChoisi(ch); setToutAfficher(false); setVersetCible({ ch, v }); }}
               entierActif={chapitreChoisi === null && !toutAfficher}
               onPreparerChapitre={preparerChapitre}
@@ -3279,6 +3297,14 @@ export default function PolyglottePage() {
       {visite > 0 && (
         <VisiteGuidee key={visite} visite={VISITE_POLYGLOTTE} onScene={preparerScene}
           onFin={() => { setVisite(0); rendreLePliDesNotes(); }} />
+      )}
+
+      {avisLivreEntier && (
+        <AvisLivreEntier
+          nomLivre={livres.find(l => l.code === avisLivreEntier)?.nom_fr ?? avisLivreEntier}
+          onAnnuler={annulerLivreEntier}
+          onConfirmer={() => { const code = avisLivreEntier; setAvisLivreEntier(null); ouvrirLivreEntier(code); }}
+        />
       )}
 
       {cibleEdition && (

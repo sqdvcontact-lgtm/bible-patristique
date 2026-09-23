@@ -83,6 +83,8 @@ type Props = {
   onEnregistrer: (cles: readonly string[]) => Promise<number | null>
   onRetirer: (cles: readonly string[]) => Promise<number | null>
   onCopier: (cles: readonly string[]) => Promise<void>
+  /** Le lasso part : la page lâche le verset choisi d’un toucher. */
+  onLance?: () => void
 }
 
 type Action = 'enregistrer' | 'retirer' | 'copier'
@@ -157,6 +159,7 @@ export default function LassoTactile(props: Props) {
       navigator.vibrate?.(12)
       setMessage(null)
       setTrace(true)
+      derniers.current.onLance?.()
       // La trace n'est montée qu'au rendu suivant : on la pose à l'image d'après.
       requestAnimationFrame(() => poserTrace(depart, depart))
       choisir(depart, depart)

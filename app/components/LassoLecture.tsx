@@ -99,6 +99,9 @@ export type LassoLectureProps = {
   onCopier: (cles: readonly string[]) => Promise<void>
   /** La gouttière exclue du centrage de la page : la barre se pose sur l'axe du texte. */
   gouttiere?: string
+  /** Le lasso part : la page lâche le verset ou le segment choisi d’un clic. Deux sélections
+   *  à la fois, l’une d’un clic et l’autre d’un cadre, ne diraient plus sur quoi l’on agit. */
+  onLance?: () => void
 }
 
 /** Le geste en cours, tenu hors de React : il change à chaque image. */
@@ -415,6 +418,7 @@ export default function LassoLecture(props: LassoLectureProps) {
       document.documentElement.setAttribute('data-lasso-geste', '')
       setTrace(true)
       setMessage(null)
+      derniers.current.props.onLance?.()
       actualiser(g)
       image = window.requestAnimationFrame(dessiner)
     }

@@ -289,6 +289,12 @@ export default function LectureBilingueBible({
   // ⛔ UNE CITATION NE MÊLE PAS DEUX LANGUES (demande de l'auteur, 20 septembre 2026).
   // ⚠️ La colonne se lit dans la CLÉ, non dans la table : une clé que la table ne connaît
   // plus (un chapitre qui vient de changer) ne doit pas faire croire à une sélection pure.
+  // ⛔ Le lasso part : le créneau choisi d’un clic se lâche (demande de l’auteur, 2026-09-23).
+  // La sélection de la page BASCULE : on la rappelle sur le créneau retenu, ce qui le relâche.
+  const lacherLeVersetChoisi = () => {
+    const choisi = contenu.canonSelectionne
+    if (choisi) contenu.onSelectionnerVerset?.(choisi)
+  }
   const refusDuLasso = (cles: readonly string[]) => {
     const colonnes = colonnesTouchees(cles, colonneDeLaCleBilingue)
     if (colonnes.length < 2) return null
@@ -543,6 +549,7 @@ export default function LectureBilingueBible({
         onEnregistrer={enregistrerLasso}
         onRetirer={retirerLasso}
         onCopier={copierLasso}
+        onLance={lacherLeVersetChoisi}
       />
       {/* Au doigt, les mêmes props que la lecture simple (`TexteBible`), la clé filtrée
           par la colonne où le geste est né (`cleTactile`). */}
@@ -558,6 +565,7 @@ export default function LectureBilingueBible({
         onEnregistrer={enregistrerLasso}
         onRetirer={retirerLasso}
         onCopier={copierLasso}
+        onLance={lacherLeVersetChoisi}
       />
       {passageSignale && (
         <ModalSignalement
