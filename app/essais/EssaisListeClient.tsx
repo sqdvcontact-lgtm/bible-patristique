@@ -798,7 +798,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
     return (
       <div style={{ textAlign: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '28px 24px', maxWidth: '32.5rem', margin: '0 auto' }}>
         <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', marginBottom: '14px' }}>Connectez-vous pour écrire un essai ou une méditation.</p>
-        <Link href="/chantier" style={{ display: 'inline-block', padding: '8px 18px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert-aplat)', color: '#fff', borderRadius: '4px', textDecoration: 'none' }}>
+        <Link href="/chantier" style={{ display: 'inline-block', padding: '8px 18px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '4px', textDecoration: 'none' }}>
           Se connecter
         </Link>
       </div>
@@ -816,7 +816,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
       <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.65, margin: '0 auto 20px', maxWidth: '27.5rem' }}>
         Le titre, le résumé, les catégories et le texte se renseignent désormais dans la même page.
       </p>
-      <Link href="/essais/nouveau?depuis=publications" style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert-aplat)', color: '#fff', borderRadius: '4px', textDecoration: 'none' }}>
+      <Link href="/essais/nouveau?depuis=publications" style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '4px', textDecoration: 'none' }}>
         Ouvrir la rédaction
       </Link>
     </div>
@@ -1142,12 +1142,12 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
                 const ref = `${LIVRES.find(l => l.code === verset.livre)?.nom ?? verset.livre} ${verset.chapitre},${verset.verset}`
                 sessionStorage.setItem('suggestion-verset-en-tete', JSON.stringify({ ref, texte: verset.texte }))
               }}
-              style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert-aplat)', color: '#fff', borderRadius: '4px', textDecoration: 'none' }}>
+              style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '4px', textDecoration: 'none' }}>
               Écrire sur ce verset
             </Link>
             <Link
               href={`/?livre=${verset.livre}&chapitre=${verset.chapitre}&verset=${verset.verset}`}
-              style={{ display: 'inline-block', padding: '9px 16px', fontSize: '0.78125rem', color: 'var(--cs-vert)', borderRadius: '4px', textDecoration: 'none', border: '1px solid #c8d8cc' }}>
+              style={{ display: 'inline-block', padding: '9px 16px', fontSize: '0.78125rem', color: 'var(--cs-vert)', borderRadius: '4px', textDecoration: 'none', border: '1px solid rgba(var(--cs-vert-rgb), 0.25)' }}>
               Lire dans la Bible
             </Link>
           </div>
@@ -1188,7 +1188,7 @@ function tagFiltre(actif: boolean): React.CSSProperties {
   return {
     fontSize: '0.6875rem', padding: '3px 10px', borderRadius: '999px',
     border: '1px solid ' + (actif ? 'var(--cs-vert)' : 'transparent'),
-    background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'rgba(120,110,96,0.06)',
+    background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'color-mix(in srgb, var(--cs-texte-gris) 6%, transparent)',
     color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', cursor: 'pointer',
     fontWeight: actif ? 600 : 400, letterSpacing: '0.02em', lineHeight: 1.3,
     transition: 'background 0.12s, color 0.12s',

@@ -34,7 +34,7 @@ export default function ModaleCompteRequis({ contexte = '', onClose }: { context
   if (typeof document === 'undefined') return null
   return createPortal(
     <div onClick={onClose}
-      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(30,26,20,0.5)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
+      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
       <div ref={boite} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cs-compte-titre"
         style={{ background: 'var(--cs-surface)', borderRadius: '12px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '25rem', maxHeight: '100%', boxShadow: 'var(--cs-ombre-modale)', overflowY: 'auto' }}>
 

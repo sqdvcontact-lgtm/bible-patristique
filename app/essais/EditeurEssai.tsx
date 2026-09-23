@@ -727,7 +727,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   if (mobile) {
     return (
       <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100dvh - 3.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
-        <div style={{ maxWidth: '32.5rem', textAlign: 'center', color: '#5b544c', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
+        <div style={{ maxWidth: '32.5rem', textAlign: 'center', color: 'var(--cs-texte-second)', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
           <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: '0 0 14px' }}>Écrire</h1>
           <p style={{ fontSize: '0.9375rem', lineHeight: 1.6, margin: 0 }}>
             L’éditeur demande un écran large : il réunit la mise en forme, les notes et les citations.

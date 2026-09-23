@@ -966,7 +966,7 @@ export default function RechercheClient() {
         .ong-vert--actif .ong-count { color:var(--fam); }
         .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:999px; background:var(--cs-surface); color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
         .pag-btn:hover:not(:disabled) { background:var(--cs-vert-aplat); color:var(--cs-sur-aplat); border-color:var(--cs-vert-aplat); }
-        .pag-btn:disabled { color:#c8c0b8; border-color:var(--cs-fond-doux); cursor:default; }
+        .pag-btn:disabled { color:var(--cs-texte-faible); border-color:var(--cs-fond-doux); cursor:default; }
         /* (« .mode-btn » est parti avec le contrôle segmenté : le mode se prend désormais
            en options de volet, dont la forme vit dans « stylesVoletLecture ».) */
         /* ── Polyglotte : LA FORME DE LA PAGE POLYGLOTTE, telle qu'elle est depuis le
@@ -1080,8 +1080,8 @@ export default function RechercheClient() {
           .pag-btn { padding:10px 16px; }
           .expl-badge { width:1.5rem; height:1.5rem; font-size:0.6875rem; }
         }
-        .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid #b6ccbd; color:var(--cs-vert); background:var(--cs-vert-pale); font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
-        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:var(--cs-surface); border:1px solid var(--cs-bord); border-radius:8px; box-shadow:var(--cs-ombre-modale); padding:9px 11px; font-size:0.6875rem; line-height:1.5; color:#5a5248; text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
+        .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid rgba(var(--cs-vert-rgb),0.35); color:var(--cs-vert); background:var(--cs-vert-pale); font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
+        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:var(--cs-surface); border:1px solid var(--cs-bord); border-radius:8px; box-shadow:var(--cs-ombre-modale); padding:9px 11px; font-size:0.6875rem; line-height:1.5; color:var(--cs-texte-second); text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
         .expl-wrap:hover .expl-tip { opacity:1; visibility:visible; transform:translateY(0); }
         /* Cachée, l'infobulle garde sa boîte : ses 250 px ouvraient un défilement
            horizontal sur un téléphone de 320 px (mesuré le 2026-09-21). Elle se borne
@@ -1744,7 +1744,7 @@ export default function RechercheClient() {
           quand une autre recherche est déjà mémorisée. « Écraser » remplace la précédente. */}
       {confirmEcrasement && rechercheSauvee && (
         <div onClick={() => setConfirmEcrasement(false)}
-          style={{ position:'fixed', top: HAUTEUR_NAVBAR, left:0, right:0, bottom:0, background:'rgba(30,28,24,0.38)', display:'flex', alignItems:'center', justifyContent:'center', zIndex: Z_MODALE, padding:'20px', overflow:'hidden' }}>
+          style={{ position:'fixed', top: HAUTEUR_NAVBAR, left:0, right:0, bottom:0, background:'var(--cs-calque-modale)', display:'flex', alignItems:'center', justifyContent:'center', zIndex: Z_MODALE, padding:'20px', overflow:'hidden' }}>
           <div onClick={e => e.stopPropagation()}
             style={{ background:'var(--cs-fond-clair)', border:'1px solid var(--cs-bord)', borderRadius:'8px', boxShadow:'var(--cs-ombre-modale)', padding:'20px 22px', maxWidth:'21.25rem', width:'100%', maxHeight:'100%', overflowY:'auto' }}>
             <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.875rem', fontWeight:600, color:'var(--cs-encre)', margin:'0 0 8px' }}>Écraser la recherche précédente ?</p>

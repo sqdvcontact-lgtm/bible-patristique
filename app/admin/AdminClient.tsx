@@ -108,7 +108,7 @@ export default function AdminClient({
       `}</style>
 
       {erreurChargement && (
-        <div role="alert" style={{ background: 'var(--cs-danger-fond)', borderBottom: '1px solid var(--cs-danger-bord)', color: '#a2564a', fontSize: '0.8125rem', padding: '10px 20px', textAlign: 'center' }}>
+        <div role="alert" style={{ background: 'var(--cs-danger-fond)', borderBottom: '1px solid var(--cs-danger-bord)', color: 'var(--cs-danger-fonce)', fontSize: '0.8125rem', padding: '10px 20px', textAlign: 'center' }}>
           Certaines données n’ont pas pu être chargées : des sections peuvent être incomplètes. Rechargez la page pour réessayer.
         </div>
       )}

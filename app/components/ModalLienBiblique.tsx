@@ -195,13 +195,13 @@ export default function ModalLienBiblique({
   }
 
   return (
-    <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: mobile ? '10px' : '22px', background: 'rgba(20, 25, 20, 0.32)', backdropFilter: 'blur(2px)', overflow: 'hidden' }}>
+    <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: mobile ? '10px' : '22px', background: 'var(--cs-calque-modale)', backdropFilter: 'blur(2px)', overflow: 'hidden' }}>
       <div ref={boite} role="dialog" aria-modal="true" aria-label={titre} style={{ width: 'min(940px, 100%)', maxHeight: mobile ? '100%' : 'min(760px, 100%)', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr) auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-modale)', overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px 13px', borderBottom: '1px solid var(--cs-bord-clair)', display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'flex-start' }}>
           <div>
-            <p style={{ margin: '0 0 4px', fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '.12em', color: '#8b7a5c', fontWeight: 700 }}>Lien biblique</p>
+            <p style={{ margin: '0 0 4px', fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '.12em', color: 'var(--cs-etiquette)', fontWeight: 700 }}>Lien biblique</p>
             <h2 style={{ margin: 0, fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', fontWeight: 400, color: 'var(--cs-encre-fonce)' }}>{titre}</h2>
-            {erreur && <p style={{ margin: '7px 0 0', color: '#b05638', fontSize: '0.75rem' }}>{erreur}</p>}
+            {erreur && <p style={{ margin: '7px 0 0', color: 'var(--cs-danger)', fontSize: '0.75rem' }}>{erreur}</p>}
           </div>
           <button onClick={onFermer} style={{ border: 0, background: 'transparent', color: 'var(--cs-texte-doux)', cursor: 'pointer', fontSize: '1.125rem', lineHeight: 1, padding: '2px 4px' }}>×</button>
         </div>
@@ -229,7 +229,7 @@ export default function ModalLienBiblique({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   {livresParTestament[testament].map(l => (
                     <button key={l.code} onClick={() => { setChargementLivre(true); setLivre(l.code) }}
-                      style={{ border: 0, borderRadius: '4px', textAlign: 'left', padding: '5px 7px', cursor: 'pointer', background: livre === l.code ? 'var(--cs-fond-doux)' : 'transparent', color: livre === l.code ? 'var(--cs-vert-fonce)' : '#5f574d', fontSize: '0.71875rem', fontWeight: livre === l.code ? 700 : 400 }}>
+                      style={{ border: 0, borderRadius: '4px', textAlign: 'left', padding: '5px 7px', cursor: 'pointer', background: livre === l.code ? 'var(--cs-fond-doux)' : 'transparent', color: livre === l.code ? 'var(--cs-vert-fonce)' : 'var(--cs-texte-second)', fontSize: '0.71875rem', fontWeight: livre === l.code ? 700 : 400 }}>
                       {l.nom}
                     </button>
                   ))}

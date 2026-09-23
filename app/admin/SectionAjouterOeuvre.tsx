@@ -440,7 +440,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
         <div style={{ display: 'flex', gap: '0', marginBottom: '4px' }}>
           {ETAPES_LABEL.map(([k, l], i) => (
             <div key={k} style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8125rem', fontWeight: etape === k ? 600 : 400, color: etape === k ? 'var(--cs-vert)' : i < indexEtape ? 'var(--cs-texte-doux)' : '#c8c3bc' }}>
+              <span style={{ fontSize: '0.8125rem', fontWeight: etape === k ? 600 : 400, color: etape === k ? 'var(--cs-vert)' : i < indexEtape ? 'var(--cs-texte-doux)' : 'var(--cs-texte-faible)' }}>
                 {i + 1}. {l}
               </span>
               {i < ETAPES_LABEL.length - 1 && <span style={{ margin: '0 10px', color: 'var(--cs-bord)' }}>→</span>}

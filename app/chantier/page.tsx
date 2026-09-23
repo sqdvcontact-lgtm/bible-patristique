@@ -660,7 +660,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             <p style={{ fontSize: "0.8125rem", color: "var(--cs-vert-fonce)", lineHeight: 1.65, margin: 0 }}>Compte créé. Vérifiez votre boîte mail pour confirmer votre adresse, puis connectez-vous.</p>
           </div>
         ) : erreur ? (
-          <div style={{ background: "rgba(180,50,40,0.06)", border: "1px solid rgba(180,50,40,0.18)", borderRadius: "8px", padding: "0.625rem 0.875rem", marginBottom: "1.125rem" }}>
+          <div style={{ background: "var(--cs-danger-fond)", border: "1px solid var(--cs-danger-bord)", borderRadius: "8px", padding: "0.625rem 0.875rem", marginBottom: "1.125rem" }}>
             <p style={{ fontSize: "0.78125rem", color: "var(--cs-danger-fonce)", margin: 0, lineHeight: 1.55 }}>{erreur}</p>
           </div>
         ) : null}

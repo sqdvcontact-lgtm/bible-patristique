@@ -323,7 +323,7 @@ function ThSort({ label, active, dir, onClick }: { label: string; active: boolea
 }
 
 function Td({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) {
-  return <td style={{ padding: '8px 8px', verticalAlign: 'top', fontSize: '0.78125rem', color: '#4a4540', textAlign: align, overflow: 'hidden' }}>{children}</td>
+  return <td style={{ padding: '8px 8px', verticalAlign: 'top', fontSize: '0.78125rem', color: 'var(--cs-texte)', textAlign: align, overflow: 'hidden' }}>{children}</td>
 }
 
 function DateInfo({ label, valeur, discret = false }: { label: string; valeur: string | null | undefined; discret?: boolean }) {

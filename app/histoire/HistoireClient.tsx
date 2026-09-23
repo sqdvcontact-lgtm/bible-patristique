@@ -27,7 +27,7 @@ import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 const FOND = 'var(--cs-fond)'
 const TEXTE = 'var(--cs-texte-fort)'
-const TEXTE2 = '#7a746d'
+const TEXTE2 = 'var(--cs-texte-doux)'
 const BORD = 'var(--cs-bord)'
 const SEP = 'var(--cs-fond-doux)'
 const VERT = 'var(--cs-vert)'
@@ -651,13 +651,13 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
       )}
 
       {afficheNotice && e.date_precision_affichage && (
-        <p style={{ fontFamily: SERIF, fontSize: '0.75rem', color: '#7a6f61', lineHeight: 1.5, margin: '4px 0 0' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.75rem', color: 'var(--cs-texte-gris)', lineHeight: 1.5, margin: '4px 0 0' }}>
           <HistoricalDate value={e.date_precision_affichage} variant="short" />
         </p>
       )}
 
       {afficheNotice && e.note_datation && (
-        <p style={{ fontFamily: SERIF, fontSize: '0.75rem', color: '#7a6f61', lineHeight: 1.5, margin: '4px 0 0' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.75rem', color: 'var(--cs-texte-gris)', lineHeight: 1.5, margin: '4px 0 0' }}>
           {rendreFrise(e.note_datation, recherche)}
         </p>
       )}

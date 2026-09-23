@@ -176,9 +176,9 @@ export default function SectionModeration(props: Props) {
         .mod-texte{font-size:0.8125rem;color:var(--cs-texte-fort);line-height:1.6;margin:0 0 10px;white-space:pre-line;}
         .mod-cible{font-size:0.71875rem;color:var(--cs-texte-second);line-height:1.55;font-style:italic;border-left:2px solid var(--cs-danger-bord);padding-left:10px;margin:0 0 9px;max-height:110px;overflow:auto;}
         /* Message auquel un commentaire répond : encart discret, gris-vert, au-dessus du texte. */
-        .mod-reponse{font-size:0.6875rem;color:var(--cs-texte-second);line-height:1.5;background:var(--cs-fond);border-left:2px solid #b8ccbd;border-radius:0 4px 4px 0;padding:6px 10px;margin:0 0 8px;}
+        .mod-reponse{font-size:0.6875rem;color:var(--cs-texte-second);line-height:1.5;background:var(--cs-fond);border-left:2px solid rgba(var(--cs-vert-rgb),0.35);border-radius:0 4px 4px 0;padding:6px 10px;margin:0 0 8px;}
         .mod-reponse .qui{display:block;font-size:0.59375rem;font-weight:700;letter-spacing:.03em;color:var(--cs-vert);margin-bottom:2px;}
-        .mod-reponse .quoi{display:block;font-style:italic;color:#7a746c;max-height:70px;overflow:auto;}
+        .mod-reponse .quoi{display:block;font-style:italic;color:var(--cs-texte-doux);max-height:70px;overflow:auto;}
         .mod-auteur{font-size:0.6875rem;color:var(--cs-texte-second);font-weight:500;margin:0 0 10px;}
         .mod-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;}
         .mod-btn{font-size:0.6875rem;padding:5px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--cs-bord);background:var(--cs-surface);color:var(--cs-texte);transition:background .12s,border-color .12s;}

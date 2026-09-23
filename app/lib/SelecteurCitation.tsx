@@ -230,7 +230,7 @@ function BoutonRetour({ onClick, children, inline = false }: { onClick: () => vo
   return (
     <button type="button" onClick={onClick}
       style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: inline ? 0 : '10px' }}>
-      <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', borderRadius: '50%', border: '1px solid #cddbd1', background: 'var(--cs-fond-clair)' }}>
+      <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', borderRadius: '50%', border: '1px solid rgba(var(--cs-vert-rgb), 0.25)', background: 'var(--cs-fond-clair)' }}>
         <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
           <path d="M10 3.5L5.5 8l4.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
@@ -255,7 +255,7 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
   useFenetreModale(boite)
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,22,0.45)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div ref={boite} role="dialog" aria-modal="true" aria-label="Outil de citation" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: '100%', maxWidth: '45rem', height: '78vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 12px', borderBottom: '1px solid var(--cs-bord-clair)' }}>

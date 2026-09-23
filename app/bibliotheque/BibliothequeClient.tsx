@@ -764,12 +764,12 @@ function Pagination({ page, nbPages, onChanger, mobile }: {
     width: '42px', height: '42px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
     background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-posee)',
     cursor: inactive ? 'default' : 'pointer', opacity: inactive ? 0.35 : 1,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cs-etiquette)',
   })
   const flechePied = (inactive: boolean): React.CSSProperties => ({
     width: '30px', height: '30px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
     background: 'var(--cs-surface)', cursor: inactive ? 'default' : 'pointer', opacity: inactive ? 0.3 : 1,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a6a48', flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cs-etiquette)', flexShrink: 0,
   })
   const chevron = (cote: 'gauche' | 'droite', taille: number) => (
     <svg width={taille} height={taille} viewBox="0 0 16 16" fill="none">
@@ -859,7 +859,7 @@ function BoutonSignalerNotice({ reference, texte }: { reference: string; texte?:
     <>
       <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setOuvert(true) }} title="Signaler une erreur sur cette traduction"
         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: '7px', color: 'var(--cs-or-doux)', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}
-        onMouseEnter={e => (e.currentTarget.style.color = '#b0442a')}
+        onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-danger)')}
         onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-or-doux)')}><IconeSignalement /></button>
       {ouvert && <ModalSignalement titre={reference} texteObjet={texte} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
@@ -919,12 +919,12 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
 
         {/* Infos auteur + bouton */}
         <div style={{ flex: 1, padding: '9px 16px 8px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1px' }}>
-          <h2 style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.8125rem', fontWeight: 600, color: '#4a4030', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
+          <h2 style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: '0.8125rem', fontWeight: 600, color: 'var(--cs-texte)', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
             {nomAuteur}
           </h2>
 
           <button onClick={() => setOuvert(!ouvert)}
-            style={{ fontSize: '0.6875rem', color: '#8a7a5a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}>
+            style={{ fontSize: '0.6875rem', color: 'var(--cs-etiquette)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}>
             <span style={{ display: 'inline-flex' }}><IconeChevron dir={ouvert ? 'up' : 'down'} size={9} strokeWidth={1.5} /></span>
             {nbMot.charAt(0).toUpperCase() + nbMot.slice(1)} œuvre{nb > 1 ? 's' : ''} répertoriée{nb > 1 ? 's' : ''}
           </button>
@@ -936,7 +936,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
         <div style={{ borderTop: '1px solid var(--cs-bord-clair)', padding: '6px 0 10px' }}>
           <style>{`
             .cat-ligne { display: flex; align-items: flex-start; padding: 8px 14px 8px 20px; transition: background-color 0.18s ease; gap: 10px; }
-            .cat-ligne:hover { background-color: rgba(139,107,60,0.05); }
+            .cat-ligne:hover { background-color: rgba(var(--cs-or-rgb), 0.05); }
           `}</style>
           {groupes.map((groupe, idx) => {
             const aVoté = aVote(groupe.notices)
@@ -994,9 +994,9 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                   <button
                     onClick={() => onProposer(nomAuteur, groupe.titreStable)}
                     title="Proposer cette œuvre à l'équipe éditoriale"
-                    style={{ ...BOUTON_ICONE, color: '#b8a888' }}
+                    style={{ ...BOUTON_ICONE, color: 'var(--cs-or-doux)' }}
                     onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-lacune)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = '#b8a888')}>
+                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-or-doux)')}>
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                       <path d="M8 3.5v9M3.5 8h9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
                     </svg>
@@ -1054,7 +1054,7 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
 
   return (
     <div onMouseDown={tenterFermer}
-      style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(30,26,20,0.42)', display: 'flex', padding: '20px', overflowY: 'auto' }}>
+      style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'var(--cs-calque-modale)', display: 'flex', padding: '20px', overflowY: 'auto' }}>
       <div onMouseDown={e => e.stopPropagation()} onInput={() => { toucheRef.current = true }}
         style={{ margin: 'auto', background: 'var(--cs-fond)', borderRadius: '8px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '41.25rem', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 22px 12px', borderBottom: '1px solid var(--cs-bord-clair)' }}>
@@ -1070,7 +1070,7 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
           qu'une saisie est en cours, pour éviter une perte accidentelle. */}
       {demandeFermeture && (
         <div onMouseDown={e => { e.stopPropagation(); setDemandeFermeture(false) }}
-          style={{ position: 'fixed', inset: 0, zIndex: 110, background: 'rgba(30,26,20,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          style={{ position: 'fixed', inset: 0, zIndex: 110, background: 'var(--cs-calque-modale)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div onMouseDown={e => e.stopPropagation()}
             style={{ background: 'var(--cs-surface)', borderRadius: '8px', border: '1px solid var(--cs-bord-clair)', width: '100%', maxWidth: '23.75rem', padding: '20px 22px', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h4 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-texte)', margin: '0 0 8px' }}>Fermer sans enregistrer ?</h4>
@@ -1258,7 +1258,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
           ouvrant une fenêtre plutôt que de basculer d'onglet. */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', minHeight: '40px' }}>
         <button onClick={() => setProposition({ auteur: '', titre: '' })}
-          style={{ position: 'absolute', left: 0, fontSize: '0.6875rem', color: '#7a6a48', background: 'rgba(139,107,60,0.08)', border: '1px solid rgba(139,107,60,0.22)', borderRadius: '4px', cursor: 'pointer', padding: '7px 12px' }}>
+          style={{ position: 'absolute', left: 0, fontSize: '0.6875rem', color: 'var(--cs-etiquette)', background: 'rgba(var(--cs-or-rgb), 0.08)', border: '1px solid rgba(var(--cs-or-rgb), 0.22)', borderRadius: '4px', cursor: 'pointer', padding: '7px 12px' }}>
           Proposer une œuvre
         </button>
         {/* Recherche — identique en placement et en forme à l'onglet Bibliothèque */}
@@ -2125,7 +2125,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
       minHeight: 'calc(100dvh - 3.5rem)',
     }}>
       {erreurChargement && (
-        <div role="alert" style={{ background: 'var(--cs-danger-fond)', borderBottom: '1px solid var(--cs-danger-bord)', color: '#a2564a', fontSize: '0.8125rem', padding: '10px 20px', textAlign: 'center' }}>
+        <div role="alert" style={{ background: 'var(--cs-danger-fond)', borderBottom: '1px solid var(--cs-danger-bord)', color: 'var(--cs-danger-fonce)', fontSize: '0.8125rem', padding: '10px 20px', textAlign: 'center' }}>
           La bibliothèque n’a pas pu être chargée entièrement. Rechargez la page pour réessayer.
         </div>
       )}

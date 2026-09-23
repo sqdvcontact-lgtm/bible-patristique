@@ -26,7 +26,7 @@ export default function EtoileFavori({ actif, onToggle, size = 16, style, title 
         flexShrink: 0,
         ...style,
       }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = actif ? '#a07028' : '#8a7a5e'; (e.currentTarget as HTMLElement).style.transform = 'scale(1.18)' }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = actif ? 'var(--cs-or)' : 'var(--cs-etiquette)'; (e.currentTarget as HTMLElement).style.transform = 'scale(1.18)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = actif ? '#c8933a' : 'var(--cs-texte-doux)'; (e.currentTarget as HTMLElement).style.transform = 'scale(1)' }}
     >
       <svg width={size} height={size} viewBox="0 0 16 16" fill={actif ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={actif ? 0 : 1.4} strokeLinejoin="round">

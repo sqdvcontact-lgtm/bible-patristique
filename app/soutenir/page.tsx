@@ -59,9 +59,9 @@ export default function SoutenirPage() {
 
       {/* Filet ornemental */}
       <div style={{ display: "flex", alignItems: "center", gap: "0.7em", width: "clamp(9.375rem, 12vw, 13rem)", margin: "0 auto clamp(16px, 2.4vh, 30px)", flexShrink: 0 }}>
-        <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, #cfc6b6)" }} />
-        <span style={{ fontSize: "clamp(0.5rem, 0.4rem + 0.3vw, 0.75rem)", color: "#b0a088", letterSpacing: "0.22em" }}>· · ·</span>
-        <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, #cfc6b6)" }} />
+        <div style={{ flex: 1, height: "1px", background: "linear-gradient(to right, transparent, var(--cs-bord))" }} />
+        <span style={{ fontSize: "clamp(0.5rem, 0.4rem + 0.3vw, 0.75rem)", color: "var(--cs-texte-faible)", letterSpacing: "0.22em" }}>· · ·</span>
+        <div style={{ flex: 1, height: "1px", background: "linear-gradient(to left, transparent, var(--cs-bord))" }} />
       </div>
 
       {/* Colophon pyramide */}

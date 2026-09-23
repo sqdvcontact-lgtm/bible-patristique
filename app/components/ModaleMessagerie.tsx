@@ -157,7 +157,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
 
   return createPortal(
     <div onClick={onClose} className="msg-backdrop"
-      style={{ position: 'fixed', inset: 0, background: 'rgba(30,26,20,0.42)', zIndex: Z_MODALE }}>
+      style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE }}>
       {/* Ouverture fluide : le fond se pose en fondu, le volet glisse depuis la droite,
           sous la navbar, et surplombe le contenu sur toute la hauteur. */}
       <style>{`

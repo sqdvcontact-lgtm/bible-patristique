@@ -47,7 +47,7 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
   const modifiees = lignes.filter(l => l._modifie)
   const inchangees = lignes.length - modifiees.length
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: Z_MODALE, background: 'rgba(30,26,22,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: Z_MODALE, background: 'var(--cs-calque-modale)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: '100%', maxWidth: '53.75rem', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--cs-bord-clair)', flexShrink: 0 }}>
           <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.25rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 6px' }}>Validation de l’import</h2>
@@ -410,7 +410,7 @@ function LiensUrlNotice({ urlTexte, urlNotice }: { urlTexte: string | null; urlN
   const lien = (href: string | null, label: string, titre: string) => {
     const ok = !!href && /^https?:\/\//i.test(href)
     const base: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.71875rem', fontWeight: 500, textDecoration: 'none', whiteSpace: 'nowrap' }
-    if (!ok) return <span style={{ ...base, color: '#c2bcb2', cursor: 'default' }} title="Aucune URL renseignée">{label}<FlecheRaide muted /></span>
+    if (!ok) return <span style={{ ...base, color: 'var(--cs-texte-faible)', cursor: 'default' }} title="Aucune URL renseignée">{label}<FlecheRaide muted /></span>
     return <a href={href!} target="_blank" rel="noopener noreferrer" title={titre} style={{ ...base, color: 'var(--cs-vert)' }}>{label}<FlecheRaide /></a>
   }
   return (
@@ -543,7 +543,7 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
                   title={n.verifie_admin ? 'Déjà validée par un administrateur' : 'Valider cette fiche (contrôle humain)'}
                   style={{
                     fontSize: '0.6875rem', fontWeight: 600, padding: '4px 10px', borderRadius: '4px',
-                    border: `1px solid ${n.verifie_admin ? 'var(--cs-vert-clair)' : '#cbe0d4'}`,
+                    border: `1px solid ${n.verifie_admin ? 'var(--cs-vert-clair)' : 'rgba(var(--cs-vert-rgb), 0.25)'}`,
                     background: n.verifie_admin ? 'var(--cs-vert-aplat)' : 'var(--cs-fond-clair)',
                     color: n.verifie_admin ? 'var(--cs-sur-aplat)' : 'var(--cs-vert-fonce)',
                     cursor: n.verifie_admin ? 'default' : 'pointer', whiteSpace: 'nowrap',
@@ -623,7 +623,7 @@ function BoutonsAdminNotice({ n, onValiderAdmin, onRefuser }: {
       <button onClick={() => onValiderAdmin(n.id)} disabled={n.verifie_admin}
         title={n.verifie_admin ? 'Déjà validée par un administrateur' : 'Valider cette fiche (contrôle humain)'}
         style={{ fontSize: '0.6875rem', fontWeight: 600, padding: '3px 9px', borderRadius: '4px',
-          border: `1px solid ${n.verifie_admin ? 'var(--cs-vert-clair)' : '#cbe0d4'}`,
+          border: `1px solid ${n.verifie_admin ? 'var(--cs-vert-clair)' : 'rgba(var(--cs-vert-rgb), 0.25)'}`,
           background: n.verifie_admin ? 'var(--cs-vert-aplat)' : 'var(--cs-fond-clair)', color: n.verifie_admin ? 'var(--cs-sur-aplat)' : 'var(--cs-vert-fonce)',
           cursor: n.verifie_admin ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
         {n.verifie_admin ? '✓ Validation admin' : 'Validation admin'}
@@ -905,7 +905,7 @@ function abregerDecision(d: string): string {
 
 function decorDecision(d: string): React.CSSProperties {
   const s = d.toLowerCase()
-  if (s.startsWith('candidat')) return { background: 'var(--cs-vert-pale)', color: 'var(--cs-vert-fonce)', border: '1px solid #c8d8ce' }
+  if (s.startsWith('candidat')) return { background: 'var(--cs-vert-pale)', color: 'var(--cs-vert-fonce)', border: '1px solid rgba(var(--cs-vert-rgb), 0.25)' }
   if (s.startsWith('bibliographie')) return { background: 'var(--cs-fond)', color: 'var(--cs-surnum)', border: '1px solid #cfc8e6' }
   if (s.startsWith('écarter') || s.startsWith('ecarter')) return { background: 'var(--cs-danger-fond)', color: 'var(--cs-danger-fonce)', border: '1px solid var(--cs-danger-bord)' }
   return { background: 'var(--cs-fond)', color: 'var(--cs-texte-second)', border: '1px solid var(--cs-bord)' }
@@ -1921,7 +1921,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
                   }
                   const btnVert = {
                     ...btnSobre,
-                    border: '1px solid #c8d8ce',
+                    border: '1px solid rgba(var(--cs-vert-rgb), 0.25)',
                     background: 'var(--cs-fond-clair)',
                     color: 'var(--cs-vert-fonce)',
                   }
@@ -1934,7 +1934,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
                   return (
                   /* Œuvre PUBLIÉE : léger liseré vert discret (par opposition à l'ocre-rouge
                      des œuvres seulement au catalogue). */
-                  <div key={oeuvre.id_oeuvre} style={{ borderBottom: '1px solid var(--cs-fond-doux)', borderLeft: `2px solid ${publiee ? '#cfe0d5' : 'var(--cs-bord)'}`, background: titreMatch ? 'rgba(var(--cs-vert-rgb),0.03)' : (publiee ? undefined : 'rgba(150,110,70,0.035)') }}>
+                  <div key={oeuvre.id_oeuvre} style={{ borderBottom: '1px solid var(--cs-fond-doux)', borderLeft: `2px solid ${publiee ? 'rgba(var(--cs-vert-rgb), 0.25)' : 'var(--cs-bord)'}`, background: titreMatch ? 'rgba(var(--cs-vert-rgb),0.03)' : (publiee ? undefined : 'rgba(150,110,70,0.035)') }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 18px 5px 14px', gap: '12px', flexWrap: 'nowrap', minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, overflow: 'hidden', flex: 1 }}>
                       <a href={`/oeuvre/${oeuvre.id_oeuvre}`} target="_blank" rel="noopener noreferrer" title="Ouvrir l'œuvre"
@@ -1988,7 +1988,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
                         Score {noticeCatalogue?.score_fiabilite ?? '?'}
                       </span>
                       <span title="Validation ADMIN de la fiche catalogue (distincte du score IA)"
-                        style={{ fontSize: '0.71875rem', padding: '3px 7px', borderRadius: '4px', border: `1px solid ${noticeCatalogue?.verifie ? '#c8d8ce' : 'var(--cs-bord)'}`, background: noticeCatalogue?.verifie ? 'var(--cs-fond-clair)' : 'var(--cs-fond-clair)', color: noticeCatalogue?.verifie ? 'var(--cs-vert-fonce)' : 'var(--cs-attente)', fontWeight: 600, width: '78px', boxSizing: 'border-box', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        style={{ fontSize: '0.71875rem', padding: '3px 7px', borderRadius: '4px', border: `1px solid ${noticeCatalogue?.verifie ? 'rgba(var(--cs-vert-rgb), 0.25)' : 'var(--cs-bord)'}`, background: noticeCatalogue?.verifie ? 'var(--cs-fond-clair)' : 'var(--cs-fond-clair)', color: noticeCatalogue?.verifie ? 'var(--cs-vert-fonce)' : 'var(--cs-attente)', fontWeight: 600, width: '78px', boxSizing: 'border-box', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {noticeCatalogue?.verifie ? 'Validé' : 'À vérifier'}
                       </span>
                       {/* Redirections directes : notice source et fichier plein texte en ligne.
@@ -2002,7 +2002,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
                           ? <a key={label} href={href!} target="_blank" rel="noopener noreferrer" title={titre}
                               style={{ ...btnVert, minWidth: '72px', textAlign: 'center', boxSizing: 'border-box' }}>{label} ↗</a>
                           : <span key={label} title="Aucune URL renseignée"
-                              style={{ ...btnSobre, minWidth: '72px', textAlign: 'center', boxSizing: 'border-box', color: '#c2bcb2', background: 'var(--cs-fond-clair)', cursor: 'default' }}>{label} —</span>
+                              style={{ ...btnSobre, minWidth: '72px', textAlign: 'center', boxSizing: 'border-box', color: 'var(--cs-texte-faible)', background: 'var(--cs-fond-clair)', cursor: 'default' }}>{label} —</span>
                         return <>{lien(okN, urlNotice, 'Notice', 'Ouvrir la notice source')}{lien(okF, urlFichier, 'Fichier', 'Ouvrir le fichier en ligne (PDF, TXT…)')}</>
                       })()}
                       <button onClick={() => setCatalogueDeploye(prev => ({ ...prev, [oeuvre.id_oeuvre]: !prev[oeuvre.id_oeuvre] }))}

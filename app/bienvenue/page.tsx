@@ -32,7 +32,7 @@ export default function BienvenuePage() {
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: '0 0 10px', lineHeight: 1.3 }}>
           Bienvenue.
         </h1>
-        <p style={{ fontSize: '0.84375rem', color: '#7a7068', lineHeight: 1.75, margin: '0 0 52px', maxWidth: '21.25rem', marginLeft: 'auto', marginRight: 'auto' }}>
+        <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-gris)', lineHeight: 1.75, margin: '0 0 52px', maxWidth: '21.25rem', marginLeft: 'auto', marginRight: 'auto' }}>
           Corpus Scriptura est un espace de lecture et de méditation des Écritures, éclairé par les Pères de l’Église.
         </p>
 

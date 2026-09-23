@@ -29,7 +29,6 @@
  * se transpose.
  */
 export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
-  'admin/AdminClient.tsx': ['#a2564a'],
   'admin/controleQualite.ts': ['#8a541d', '#c7832f'],
   // ⛔ Ces cinq valeurs NE PEUVENT PAS être des jetons, et c'est le principe même de
   // la page : la planche des illustrations montre chaque gravure sur les fonds du site
@@ -39,22 +38,19 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // Même cas que la gamme des couvertures : une valeur DESSINÉE, non une teinte
   // d'interface. Elles recopient `globals.css` et se remesurent s'il change.
   'admin/illustrations/PlancheIllustrations.tsx': ['#1c1813', '#2f2a22', '#e6ded0', '#f7f4ef', '#ffffff'],
-  'admin/SectionAjouterOeuvre.tsx': ['#c8c3bc'],
-  'admin/SectionBibliotheque.tsx': ['#4a4038', '#5a5650', '#5f5952', '#7a6a48', '#8a5a00', '#9a6a3e', '#a85a44', '#b06a54', '#b0a480', '#b14b38', '#b3261e', '#b44a34', '#b8ccc0', '#c07a4a', '#c0836a', '#c0a86a', '#c2bcb2', '#c6a08c', '#c8d8ce', '#cbe0d4', '#cfc8e6', '#cfe0d5', '#d8b48f', '#e5a99b', 'rgba(150,110,70,0.035)', 'rgba(30,26,22,0.55)'],
+  'admin/SectionBibliotheque.tsx': ['#4a4038', '#5a5650', '#5f5952', '#7a6a48', '#8a5a00', '#9a6a3e', '#a85a44', '#b06a54', '#b0a480', '#b14b38', '#b3261e', '#b44a34', '#b8ccc0', '#c07a4a', '#c0836a', '#c0a86a', '#c6a08c', '#cfc8e6', '#d8b48f', '#e5a99b', 'rgba(150,110,70,0.035)'],
   'admin/SectionConstituerLiens.tsx': ['#9a6a3e', '#d8b48f'],
   'admin/SectionControleOeuvres.tsx': ['#5b3a7a', '#6f2a19', '#8aa185', '#c3aed6', '#c7832f', '#e2b9aa'],
-  'admin/SectionEssaisAdmin.tsx': ['#4a4540'],
   'admin/SectionEvenements.tsx': ['#b7a06a', '#e7d3b8'],
   'admin/SectionFiabilite.tsx': ['#6f8a3e'],
-  'admin/SectionModeration.tsx': ['#3d5a6b', '#573f86', '#6b4fa0', '#6b5fa0', '#7a746c', '#8a1f1f', '#9a6650', '#b0442a', '#b8ccbd', '#d8c9ec', '#db988c', '#e2b9aa', '#e6ab95', '#ece3f8'],
+  'admin/SectionModeration.tsx': ['#3d5a6b', '#573f86', '#6b4fa0', '#6b5fa0', '#8a1f1f', '#9a6650', '#b0442a', '#d8c9ec', '#db988c', '#e2b9aa', '#e6ab95', '#ece3f8'],
   'admin/SectionPropositions.tsx': ['#5a6b9a'],
   'admin/SectionRemplacerSegments.tsx': ['#8a4a1a', '#9a6a3a', '#a0b8aa', '#e4c4a0'],
   'admin/SectionTraductions.tsx': ['#a0b8aa'],
   'admin/SectionValidationNotices.tsx': ['#6f8a3e'],
   'admin/SectionVerifications.tsx': ['rgba(60,50,30,0.06)'],
-  'bibliotheque/BibliothequeClient.tsx': ['#4a4030', '#7a6a48', '#7a8a6a', '#8a7a5a', '#a2564a', '#b0442a', '#b87a30', '#b88a45', '#b8a888', 'rgba(139,107,60,0.05)', 'rgba(139,107,60,0.08)', 'rgba(139,107,60,0.22)', 'rgba(30,26,20,0.42)', 'rgba(30,26,20,0.55)'],
-  'bienvenue/page.tsx': ['#7a7068'],
-  'chantier/page.tsx': ['#bca877', 'rgba(180,50,40,0.06)', 'rgba(180,50,40,0.18)'],
+  'bibliotheque/BibliothequeClient.tsx': ['#7a8a6a', '#b87a30', '#b88a45'],
+  'chantier/page.tsx': ['#bca877'],
   // Les deux cartons de l'accueil sont une GAMME DESSINÉE, non des teintes
   // d'interface : leur contraste est arrêté à la main, thème par thème, et un jeton
   // s'y retournerait (charte, « Encre contre aplat »). Ils restent donc au registre,
@@ -63,10 +59,9 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // décoloré de la Patristique a cédé la place au maroquin rouge.
   'components/AccueilCards.tsx': ['#1e2e24', '#2a3d30', '#3a3125', '#3e1a17', '#4a3d2d', '#4e2823', '#5a2a26', '#6a3a31', 'rgba(10,18,8,0.30)', 'rgba(20,30,16,0.34)'],
   'components/Bulle.tsx': ['#6a9a7a', 'rgba(242,237,230,0.55)'],
-  'components/EtoileFavori.tsx': ['#8a7a5e', '#a07028', '#c8933a'],
-  'components/ModaleCompteRequis.tsx': ['rgba(30,26,20,0.5)'],
-  'components/ModaleMessagerie.tsx': ['rgba(30,26,20,0.42)', 'rgba(40,30,15,0.26)'],
-  'components/ModalLienBiblique.tsx': ['#5f574d', '#8b7a5c', '#b05638', '#b07b65', 'rgba(20,25,20,0.32)'],
+  'components/EtoileFavori.tsx': ['#c8933a'],
+  'components/ModaleMessagerie.tsx': ['rgba(40,30,15,0.26)'],
+  'components/ModalLienBiblique.tsx': ['#b07b65'],
   // ⬇ DIX teintes retirées le 2026-08-28, avec le passage de la recherche rapide aux
   //    familles de corpus : le bleu de la Bible (#3a5a8c et ses trois translucides), le
   //    violet de la chronologie (#6d5a86 et ses deux), et les trois ocres des
@@ -77,7 +72,7 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // Aucun jeton ne la porte dans les deux thèmes : --cs-peres est sombre en Clair, et
   // le panneau reste vert ou cuir en toutes circonstances. 4,80 sur le vert, 7,36 sur le cuir.
   'components/Navbar.tsx': ['#fff', '#f0b4a8'],
-  'components/NavLivres.tsx': ['rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)'],
+  'components/NavLivres.tsx': ['rgba(122,96,64,0.08)'],
   // Les trois écritures d'une CARTE DE COMMENTAIRE ont perdu leurs teintes le 2026-09-08,
   // en même temps que leur bandeau de gauche et leur boîte dans la boîte : le rouge du
   // contrôle — onze valeurs de rgba(176,58,42,…), plus #b0392b et #6f3d35 — passe par
@@ -86,16 +81,16 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // et deux entrées disparaissent entièrement du registre.
   // L'or écrit en composantes de la pastille de période est parti le 2026-09-14 : le volet
   // de filtres des Pères parle l'or par jetons (`stylePastilleFiltre`).
-  'components/PanneauPatristique.tsx': ['rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)'],
+  'components/PanneauPatristique.tsx': ['rgba(122,96,64,0.08)'],
   // 'compte/page.tsx' : retiré le 2026-09-01. La page unique de 978 lignes a été
   // découpée en rubriques, et ses trois teintes ont été transposées au passage :
   // #3d7a3d → --cs-vert-aplat-fonce, #c8c0b8 → --cs-texte-faible, #c8d8cc → --cs-bord.
   'conditions-utilisation/page.tsx': ['#4133'],
   'contact/page.tsx': ['#566150'],
   'essais/[id]/EssaiClient.tsx': ['#e4c4a0'],
-  'essais/EditeurEssai.tsx': ['#5b544c', '#7a5a30', '#a8564d', '#e8d5a0'],
-  'essais/EssaisListeClient.tsx': ['#c8d8cc', '#fff', 'rgba(0,0,0,0)', 'rgba(120,110,96,0.06)', 'rgba(255,255,255,0)', 'rgba(40,30,15,0.18)', 'rgba(40,30,15,0.22)', 'rgba(40,30,15,0.40)', 'rgba(40,30,15,0.48)'],
-  'histoire/HistoireClient.tsx': ['#5a5044', '#7a6f61', '#7a746d', 'rgba(183,160,106,0.38)'],
+  'essais/EditeurEssai.tsx': ['#7a5a30', '#a8564d', '#e8d5a0'],
+  'essais/EssaisListeClient.tsx': ['rgba(0,0,0,0)', 'rgba(255,255,255,0)', 'rgba(40,30,15,0.18)', 'rgba(40,30,15,0.22)', 'rgba(40,30,15,0.40)', 'rgba(40,30,15,0.48)'],
+  'histoire/HistoireClient.tsx': ['#5a5044', 'rgba(183,160,106,0.38)'],
   // ⛔ Un dégradé et une encre posés SUR UNE PHOTOGRAPHIE, non sur le sol du site.
   // Un jeton se retourne avec le thème ; une image, non. `var(--cs-fond)` valait le
   // crème au Clair et devenait le brun sombre en Cuir, c'est-à-dire du brun écrit sur
@@ -106,24 +101,14 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'lib/bandeauTraduction.ts': ['#f7f4ef', 'rgba(26,19,12,0)', 'rgba(26,19,12,0.06)', 'rgba(26,19,12,0.24)', 'rgba(26,19,12,0.50)', 'rgba(26,19,12,0.68)', 'rgba(247,244,239,0.58)', 'rgba(247,244,239,0.7)', 'rgba(247,244,239,0.82)'],
   'lib/frise.ts': ['#6d7d43', '#746187', '#83a06a', '#8a7440', '#b54d3f', '#c19a3e', '#c79a3a'],
   'lib/NoteTooltip.tsx': ['#c0a878', 'rgba(10,8,4,0.06)', 'rgba(10,8,4,0.13)', 'rgba(185,165,120,0.35)', 'rgba(255,248,235,0.7)'],
-  'lib/SelecteurCitation.tsx': ['#cddbd1', 'rgba(30,26,22,0.45)'],
   'librairies/page.tsx': ['#153f78', '#5d3a6e', '#5e3a1c', 'rgba(124,88,47,0.38)', 'rgba(151,30,37,0.36)', 'rgba(22,63,125,0.32)', 'rgba(31,90,90,0.34)', 'rgba(93,58,110,0.34)'],
   'manuscrits/bible-899/bible899.module.css': ['#4c4942', '#4f5e54', '#514a42', '#5e574e', '#5f503d', '#73664f', '#765718', '#777168', '#7d746a', '#8d432e', '#b57735', '#c9c1b6', '#f2e7c9', 'rgba(255,253,248,0.97)', 'rgba(53,44,32,0.1)', 'rgba(58,48,35,0.08)'],
   'oeuvre/[id]/ComparaisonStatut.tsx': ['#7a5a2d', 'rgba(142,102,38,0.32)', 'rgba(190,145,66,0.09)'],
-  // Le CALQUE d'une modale : une forme que la charte prescrit, et qui ne se
-  // transpose pas. ⚠️ Le brun très sombre plutôt qu'un noir neutre, qui refroidirait
-  // la page qu'il assombrit — le site est chaud jusque dans son ombre.
-  'oeuvre/[id]/OeuvreClient.tsx': ['rgba(122,96,64,0.08)', 'rgba(198,184,158,0.08)'],
-  // ⚠️ 'rgba(30,25,20,0.4)' n'est PAS une teinte neuve : elle est dans ce fichier depuis
-  // l'origine, et la garde ne la voyait pas. Un « /* » écrit dans un commentaire de LIGNE
-  // — « italique <i>/* » — ouvrait pour le motif une région de bloc qui courait sur
-  // QUATRE CENTS lignes, et tout ce qu'elle contenait était lu comme du commentaire.
-  // Le commentaire est réécrit le 2026-09-07, et la teinte entre au registre : c'est le
-  // CALQUE d'une modale, la même forme et la même raison que celui de FicheEdition —
-  // brun très sombre plutôt que noir neutre, le site étant chaud jusque dans son ombre.
-  // ⛔ Corollaire de méthode : une garde qui LIT du texte au motif a des angles morts, et
-  // celui-ci n'a coûté qu'une teinte parce que la zone masquée était pauvre en couleurs.
-  'polyglotte/page.tsx': ['rgba(30,25,20,0.4)', 'rgba(90,75,156,0.22)'],
+  'oeuvre/[id]/OeuvreClient.tsx': ['rgba(122,96,64,0.08)'],
+  // Les CALQUES de fenêtre écrits en brun translucide (0,32 à 0,55 selon l'écran) lisent
+  // tous --cs-calque-modale depuis le 2026-09-23 : la polyglotte, la recherche, la
+  // bibliothèque, le sélecteur de citation, la messagerie, le lien biblique, le compte requis.
+  // Polyglotte et sélecteur de citation sortent ce jour-là du registre.
   'profil/[pseudo]/page.tsx': ['#e2ca91', '#e4cc91', '#e4d7b6', 'rgba(198,169,100,.42)', 'rgba(222,190,111,.18)', 'rgba(222,190,111,.20)', 'rgba(222,190,111,.34)', 'rgba(233,204,136,.24)', 'rgba(233,204,136,.28)', 'rgba(233,204,136,.30)', 'rgba(235,218,175,.46)', 'rgba(235,218,175,.7)'],
   // ⬇ Trois teintes retirées le 2026-08-28, avec la refonte des résultats de recherche :
   //    #4a453f (nom d'auteur d'une ligne de répartition) est passé à --cs-texte ;
@@ -132,6 +117,6 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // ⚠️ #6f8f7b, #7a1d16 et #a9bcb0 en sont sortis le 2026-09-04 : c'étaient les trois
   // teintes de la copie de la Polyglotte, laquelle est passée aux jetons de la page de
   // lecture (voir globals.css, « La colonne de la Polyglotte »).
-  'recherche/RechercheClient.tsx': ['#5a5248', '#b6ccbd', '#c8c0b8', 'rgba(30,28,24,0.38)'],
-  'soutenir/page.tsx': ['#b0a088', '#cfc6b6', '#fff'],
+  // La recherche en sort entièrement le 2026-09-23 (calque, bouton inactif, pastille, infobulle).
+  'soutenir/page.tsx': ['#fff'],
 }
