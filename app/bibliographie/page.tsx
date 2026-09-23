@@ -33,6 +33,9 @@ export default async function BibliographiePage() {
       .from('ouvrages_bibliographiques')
       .select('id, type_ouvrage, statut_scientifique, langue_normalisee, annee')
       .in('statut_scientifique', [...STATUTS_MONTRABLES])
+      // ⛔ Une seule base de références (charte § 47.8) : l'outil ne lit que ce qui
+      // le nomme. Les éditions du catalogue vivent dans la même table.
+      .contains('apparait_dans', ['bibliographie'])
       .order('id'),
     // ⚠️ 1 659 liens au 2026-09-06, au-delà du plafond d'une page PostgREST : on
     // charge toutes les pages, dans un ordre stable.
