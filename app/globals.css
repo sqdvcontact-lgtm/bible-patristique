@@ -96,11 +96,13 @@
   /* ── Le CORPS du texte biblique (décision de l'auteur, 2026-09-21) ──
      16 px et interligne 1,55 par défaut, sur la piste de 30 rem (≈ 60 signes).
      Trois crans, réglés par le lecteur dans le volet des livres et posés sur
-     <html> par `data-corps` (app/lib/corpsLecture.ts) : petit 15/1,50,
-     normal 16/1,55, grand 18/1,60. Le verset, la colonne en regard, le numéro
-     en gouttière et les gloses suivent ; l'appareil, les volets et la barre non. */
-  --cs-lecture-corps: 1rem;
-  --cs-lecture-interligne: 1.55;
+     <html> par `data-corps` (app/lib/corpsLecture.ts) : petit 14/1,44,
+     normal 15/1,48, grand 17/1,52. Le verset, la colonne en regard, le numéro
+     en gouttière et les gloses suivent ; l'appareil, les volets et la barre non.
+     ⚠️ Resserré d'un rang le 2026-09-23 (« un peu trop corps ») : il valait
+     16/1,55, 15/1,50 et 18/1,60. */
+  --cs-lecture-corps: 0.9375rem;
+  --cs-lecture-interligne: 1.48;
 
   /* ── Couleur d'accent : le vert du site ──
      Source unique de la teinte verte, jusqu'ici répétée en dur (~470 fois pour
@@ -626,12 +628,12 @@
    bouton destructif continue de se signaler sans qu'il faille lire son libellé.
    Ne pas la ramener au beige : c'est le seul endroit où la couleur travaille.  */
 :root[data-corps="petit"] {
-  --cs-lecture-corps: 0.9375rem;
-  --cs-lecture-interligne: 1.5;
+  --cs-lecture-corps: 0.875rem;
+  --cs-lecture-interligne: 1.44;
 }
 :root[data-corps="grand"] {
-  --cs-lecture-corps: 1.125rem;
-  --cs-lecture-interligne: 1.6;
+  --cs-lecture-corps: 1.0625rem;
+  --cs-lecture-interligne: 1.52;
 }
 
 :root[data-theme="sombre"] {

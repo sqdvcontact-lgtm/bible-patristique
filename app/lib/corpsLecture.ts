@@ -4,9 +4,11 @@
 // deux variables, `--cs-lecture-corps` et `--cs-lecture-interligne`, que lit
 // `styleTexteVerset` (décision de l'auteur, 2026-09-21, audit d'ergonomie) :
 //
-//   petit  : 0,9375 rem (15 px) · interligne 1,50
-//   normal : 1 rem (16 px)      · interligne 1,55  (défaut, sans règle propre)
-//   grand  : 1,125 rem (18 px)  · interligne 1,60
+//   petit  : 0,875 rem (14 px)  · interligne 1,44
+//   normal : 0,9375 rem (15 px) · interligne 1,48  (défaut, sans règle propre)
+//   grand  : 1,0625 rem (17 px) · interligne 1,52
+//
+// ⚠️ Resserré d'un rang le 2026-09-23 (« un peu trop corps ») : 15/16/18 px avant.
 //
 // ⛔ MÊME MÉCANIQUE QUE LE THÈME (`theme.ts`), pour les mêmes raisons : le serveur écrit
 // la valeur par DÉFAUT sur <html>, un script synchrone du <head> la remplace avant
@@ -34,9 +36,9 @@ export const CORPS_DEFAUT: CorpsLecture = 'normal'
 
 /** Les trois crans, dans l'ordre où le volet les montre. */
 export const CRANS_CORPS: readonly { cle: CorpsLecture; label: string; description: string }[] = [
-  { cle: 'petit', label: 'Petit', description: 'Le texte biblique à 15 px' },
-  { cle: 'normal', label: 'Normal', description: 'Le texte biblique à 16 px' },
-  { cle: 'grand', label: 'Grand', description: 'Le texte biblique à 18 px' },
+  { cle: 'petit', label: 'Petit', description: 'Le texte biblique à 14 px' },
+  { cle: 'normal', label: 'Normal', description: 'Le texte biblique à 15 px' },
+  { cle: 'grand', label: 'Grand', description: 'Le texte biblique à 17 px' },
 ]
 
 /** Script d'application AVANT peinture, écrit en ES5 et sous un try (voir `SCRIPT_THEME`).

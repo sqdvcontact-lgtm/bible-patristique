@@ -100,18 +100,33 @@ export const NUMERO_VERSET_REM = 1.4375
 
 /**
  * ⛔ LE CORPS DU TEXTE BIBLIQUE EST UNE VARIABLE (décision de l’auteur, 2026-09-21) :
- * 16 px et interligne 1,55 par défaut, et trois crans que le lecteur règle dans le volet
- * des livres (app/lib/corpsLecture.ts). Les valeurs vivent dans globals.css, sur :root ;
- * les replis ci-dessous sont celles du cran normal.
+ * trois crans que le lecteur règle dans le volet des livres (app/lib/corpsLecture.ts). Les
+ * valeurs vivent dans globals.css, sur :root ; les replis ci-dessous sont celles du cran
+ * normal.
+ * ⚠️ RESSERRÉ LE 2026-09-23 (demande de l'auteur : « un peu trop corps », « condenser un
+ * peu plus ») : 15 px et 1,48 au cran normal, pour 16 et 1,55 ; les deux autres crans
+ * suivent d'un rang. Les mots se rapprochent avec lui, voir `ESPACE_MOT_VERSET`.
  */
-export const CORPS_LECTURE_BIBLE = 'var(--cs-lecture-corps, 1rem)'
-export const INTERLIGNE_LECTURE_BIBLE = 'var(--cs-lecture-interligne, 1.55)'
+export const CORPS_LECTURE_BIBLE = 'var(--cs-lecture-corps, 0.9375rem)'
+export const INTERLIGNE_LECTURE_BIBLE = 'var(--cs-lecture-interligne, 1.48)'
+/**
+ * L'espace entre les mots d'un verset (l'espace OPTIMALE), et la césure qui borne ce que
+ * la justification lui ajoute (l'espace MAXIMALE). ⚠️ Aucune propriété CSS ne borne
+ * l'étirement d'une ligne justifiée : c'est une césure plus serrée (deux lettres de part
+ * et d'autre) qui en tient le plafond, en laissant moins de long mot à rejeter.
+ * ⛔ La colonne originale en regard (sans) ne descend pas sous −0,03 em : c'est le quart
+ * de cadratin, et sous le quart les mots se soudent (charte § 3.11).
+ */
+export const ESPACE_MOT_VERSET = '-0.035em'
+export const ESPACE_MOT_ORIGINAL = '-0.03em'
+export const CESURE_VERSET = '5 2 2'
 /** Le numéro en gouttière vaut 0,714 du verset : ses 0,625 rem pour les 0,875 d’hier. */
 export const RAPPORT_NUMERO_VERSET = 0.714
 /** La colonne ORIGINALE de la lecture en regard, un cran sous le verset (15 px pour 16). */
 export const RAPPORT_ORIGINAL_EN_REGARD = 0.9375
-/** Une glose, un point sous le texte de sa colonne (voir CORPS_GLOSE). */
-export const RAPPORT_GLOSE_VERSET = 0.917
+/** Une glose, un point sous le texte de sa colonne (voir CORPS_GLOSE). ⚠️ 0,9 depuis le
+ *  2026-09-23 (0,917 avant) : au cran normal de 15 px, 13,5 est le rang d'un point de moins. */
+export const RAPPORT_GLOSE_VERSET = 0.9
 export const RAPPORT_GLOSE_ORIGINAL = 0.85
 export const GOUTTIERE_NUMERO_VERSET_REM = 0.1875
 
@@ -279,11 +294,15 @@ export function styleTexteVerset({ mobile, enVers }: { mobile?: boolean; enVers?
     margin: 0,
     textAlign: mobile ? 'left' : 'justify',
     textJustify: 'inter-word',
-    // Une chasse à peine resserrée referme les blancs que la justification ouvre entre
-    // les mots. Même valeur que la colonne en langue originale d'une œuvre.
-    wordSpacing: '-0.02em',
+    // Une espace resserrée referme les blancs que la justification ouvre entre les mots,
+    // et la césure serrée borne ceux qu'elle ouvrirait encore. ⚠️ La chasse des lettres
+    // revient à zéro : le verset est un texte dense (charte § 3.11), et la légère
+    // ouverture que `body` donne à l'interface ne le concerne pas.
+    letterSpacing: 0,
+    wordSpacing: ESPACE_MOT_VERSET,
     hyphens: 'auto',
     WebkitHyphens: 'auto',
+    hyphenateLimitChars: CESURE_VERSET,
     overflowWrap: 'break-word',
   } as CSSProperties
 }

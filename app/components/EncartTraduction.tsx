@@ -133,6 +133,26 @@ export type TraductionEncart = {
   nombreTomes?: number | null
 }
 
+/**
+ * Le nom d'une bible en tête de carte : « Bible Fillion ❧ Français et latin ».
+ * ⛔ Le tiret qui sépare la bible de sa langue cède à un fleuron très léger, celui du
+ * titre « Genèse ❧ Chapitre 1 », en plus petit et plus pâle (demande de l'auteur,
+ * 2026-09-23). ⚠️ On ne coupe que sur un tiret CERNÉ D'ESPACES, jamais sur le trait
+ * d'union d'un nom composé. Le tiret reste pour la synthèse vocale.
+ */
+function nomAvecFleuron(label: string): ReactNode {
+  const m = /^(.+?)\s[–—]\s(.+)$/.exec(label)
+  if (!m) return rendreEnrichi(label)
+  return (
+    <>
+      {rendreEnrichi(m[1])}
+      <span aria-hidden="true" style={{ color: 'var(--cs-or-doux)', opacity: 0.75, fontSize: '0.85em', fontWeight: 400, margin: '0 0.3em', lineHeight: 1 }}>❧</span>
+      <span className="cs-hors-ecran"> – </span>
+      {rendreEnrichi(m[2])}
+    </>
+  )
+}
+
 export default function EncartTraduction({ trad, onReduire, reglage }: {
   trad: TraductionEncart
   /** Un réglage d'administration posé avant le chevron (la roue des niveaux de titre). */
@@ -147,6 +167,11 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
   // D'où vient le texte : une phrase, ou rien du tout quand la base ne donne pas
   // d'année à nommer (voir `libelleEditionTraduction`).
   const edition = libelleEditionTraduction(trad)
+  // ⛔ Les dates d'un ÉDITEUR scientifique (« Louis-Claude Fillion (éd.) ») sont, dans la
+  // donnée, celles du TEXTE qu'il édite (« IVe siècle » pour la Vulgate) : posées à côté
+  // de son nom, elles se liraient comme ses dates de vie. La carte les tait (demande de
+  // l'auteur, 2026-09-23) ; la fiche les garde, où elles datent le texte.
+  const datesDuTexte = /\(éd\.\)\s*$/.test(trad.auteur ?? '')
   // ⛔ LA PHRASE DE LA CARTE N'EST PAS LA RÉFÉRENCE : elle dit d'où vient le texte, la
   // référence dit les VOLUMES. C'est celle-ci qu'on met dans le presse-papiers, composée
   // par le moteur de la fiche (`texteReferenceEdition`) et non recomposée ici.
@@ -208,7 +233,7 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
             2026-09-22) : plus de menu des bibles ici, ni flèche, ni bouton « i ». Le
             choix des bibles se prend au menu central, sous le titre du chapitre. */}
         <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center' }}>
-          <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{rendreEnrichi(trad.label)}</NomVolet>
+          <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{nomAvecFleuron(trad.label)}</NomVolet>
         </div>
         {reglage}
         {onReduire && (
@@ -231,7 +256,7 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
             leurs petites capitales et leur exposant. La carte les rendait bruts, à un
             centimètre d'un menu qui les compose. */}
         {trad.auteur ? rendreEnrichi(trad.auteur) : '—'}
-        {trad.auteurDates && <span style={{ fontWeight: 400, color: 'var(--cs-texte-gris)' }}> {rendreEnrichi(`(${trad.auteurDates})`)}</span>}
+        {trad.auteurDates && !datesDuTexte && <span style={{ fontWeight: 400, color: 'var(--cs-texte-gris)' }}> {rendreEnrichi(`(${trad.auteurDates})`)}</span>}
       </span>
       {/* L'ÉDITION, dans le corps des pages de titre et le sans du volet. La phrase tient sur
           une ou deux lignes quel que soit le volet, et n'a donc ni budget ni mesure —
@@ -258,7 +283,7 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
               background: 'none', border: 'none', padding: 0, margin: 0,
               cursor: 'pointer',
               fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6875rem',
-              color: 'var(--cs-texte-second)', lineHeight: 1.35,
+              color: 'var(--cs-texte-second)', lineHeight: 1.2,
             }}>
             {edition}
             {/* ⚠️ Une mention posée au curseur ne se lit pas à la synthèse vocale : elle est
@@ -271,7 +296,7 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
           </button>
         )
         : (
-          <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.35 }}>{edition}</span>
+          <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.2 }}>{edition}</span>
         ))}
       <MentionCopiee mention={mention}>Référence bibliographique copiée</MentionCopiee>
       {modaleOuverte && <ModaleTraduction code={trad.code} nomFallback={trad.label || ''} onFermer={() => setModaleOuverte(false)} />}

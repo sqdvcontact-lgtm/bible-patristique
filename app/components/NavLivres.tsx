@@ -737,7 +737,9 @@ export default function NavLivres({
           style={{ flexShrink: 0 }}
           onglets={[
             { cle: 'livres', libelle: 'Livres' },
-            { cle: 'sommaire', libelle: 'Sommaire' },
+            // ⚠️ « Apparat », et non « Apparat critique » : l'onglet se partage un volet de
+            // 200 px avec « Livres », et le libellé long y passerait à la ligne (2026-09-23).
+            { cle: 'sommaire', libelle: 'Apparat' },
           ]}
         />
       )}

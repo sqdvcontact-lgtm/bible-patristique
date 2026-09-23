@@ -43,6 +43,7 @@ import ReglageTitresBible from './ReglageTitresBible'
 import { lireTitresMasques, type RangTitreBible } from '@/app/lib/titresMasquesBible'
 import { type EtapeVisite, type SceneVisite } from '@/app/lib/visiteGuidee'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
+import { enumererNoms } from '@/app/lib/traducteurs'
 import { modesLectureAlternatifs, nomLangue, type CibleLectureAlternative, type MembreFamilleLecture } from '@/app/lib/bibleModesAlternatifs'
 import type { BibleLue, ContexteNotesBible } from '@/app/lib/notesBibleInventaire'
 import type { LectureNotesEditoriales } from '@/app/lib/notesVersetsV2Inventaire'
@@ -999,6 +1000,24 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
       }))
   }, [membresEnRegard, traduction, libelleBibleLue, readingCapabilities, familleCle])
   const avecNotesEditoriales = biblesLues.some(b => b.notesEditoriales)
+  // ⛔ EN REGARD, LA CARTE DU VOLET NOMME LES DEUX LANGUES LUES (demande de l'auteur,
+  // 2026-09-23) : « Bible Fillion – Français et latin », non le seul membre ouvert.
+  // Les langues suivent l'ordre des colonnes, et le nom de la bible est ce qui précède
+  // le tiret cerné d'espaces. Seule la carte le reçoit : le menu central garde les noms.
+  const traductionsDuVolet = useMemo(() => {
+    const courante = listeTraductions[traductionIndex]
+    if (!courante || !membresEnRegard || membresEnRegard.length < 2) return listeTraductions
+    const rang = { left: 0, auto: 1, right: 2 } as const
+    const langues = [...membresEnRegard]
+      .sort((a, b) => rang[a.desktopPosition] - rang[b.desktopPosition] || a.displayOrder - b.displayOrder)
+      .map((m, i) => {
+        const nom = nomLangue(m.languageCode)
+        return i === 0 ? nom : nom.charAt(0).toLowerCase() + nom.slice(1)
+      })
+    const base = courante.label.split(/\s[–—]\s/)[0]
+    const label = `${base} – ${enumererNoms(langues)}`
+    return listeTraductions.map((t, i) => (i === traductionIndex ? { ...t, label } : t))
+  }, [listeTraductions, traductionIndex, membresEnRegard])
   const enRegard = !!lectureBilingue
   const pieceLue = pieceAffichee?.cle ?? null
   const notesBible = useMemo<ContexteNotesBible | null>(() => (familleLue === null && !avecNotesEditoriales) ? null : {
@@ -1186,7 +1205,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         livreActif={livreActif}
         chapitreActif={chapitreActif}
         traductionIndex={traductionIndex}
-        traductions={listeTraductions}
+        traductions={traductionsDuVolet}
         panelWidth={navWidth}
         onWidthChange={setNavWidth}
         livresVides={livresVides}

@@ -161,13 +161,13 @@ describe('le corps d’une glose : un point sous son texte', () => {
   const UN_POINT = 4 / 3
 
   // Le corps du verset est une VARIABLE (--cs-lecture-corps, trois crans) : on éprouve
-  // les rapports au cran normal, 16 px, et aux deux autres, 15 et 18.
-  const CRANS = [15, 16, 18]
+  // les rapports au cran normal, 15 px, et aux deux autres, 14 et 17.
+  const CRANS = [14, 15, 17]
   const rapport = (calc: string) => Number(calc.match(/\*\s*([0-9.]+)\)/)?.[1])
 
-  it('le verset lit la variable du réglage, au cran normal 16 px', () => {
+  it('le verset lit la variable du réglage, au cran normal 15 px', () => {
     expect(String(styleTexteVerset().fontSize)).toBe(CORPS_LECTURE_BIBLE)
-    expect(CORPS_LECTURE_BIBLE).toBe('var(--cs-lecture-corps, 1rem)')
+    expect(CORPS_LECTURE_BIBLE).toBe('var(--cs-lecture-corps, 0.9375rem)')
   })
 
   it('sous un verset, le rang le plus proche d’un point de moins, à chaque cran', () => {
@@ -176,7 +176,7 @@ describe('le corps d’une glose : un point sous son texte', () => {
     for (const verset of CRANS) {
       expect(Math.abs(verset * rapport(CORPS_GLOSE.sousVerset) - (verset - UN_POINT))).toBeLessThan(0.5)
     }
-    expect(rangLePlusProche(16 * rapport(CORPS_GLOSE.sousVerset))).toBe(rangLePlusProche(16 - UN_POINT))
+    expect(rangLePlusProche(15 * rapport(CORPS_GLOSE.sousVerset))).toBe(rangLePlusProche(15 - UN_POINT))
   })
 
   it('sous la colonne originale de la lecture en regard, de même', () => {

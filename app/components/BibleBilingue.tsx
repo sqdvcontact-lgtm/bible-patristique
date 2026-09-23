@@ -73,7 +73,7 @@ import {
   type NoteBilingue,
 } from '@/app/lib/bibleEditionBilingue'
 import {
-  CORPS_GLOSE, CORPS_LECTURE_BIBLE, INTERLIGNE_LECTURE_BIBLE, LIBELLE_GLOSE, RAPPORT_ORIGINAL_EN_REGARD,
+  CESURE_VERSET, CORPS_GLOSE, CORPS_LECTURE_BIBLE, ESPACE_MOT_ORIGINAL, ESPACE_MOT_VERSET, INTERLIGNE_LECTURE_BIBLE, LIBELLE_GLOSE, RAPPORT_ORIGINAL_EN_REGARD,
   STYLE_SIGNET_VERSET, STYLE_VERSET_VIDE,
 } from '@/app/lib/compositionBible'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
@@ -121,6 +121,11 @@ const STYLE_VERSET = {
   color: 'var(--cs-texte-fort)',
   textAlign: 'justify' as const,
   hyphens: 'auto' as const,
+  // Même espace et même césure que la lecture simple (compositionBible.ts), et la chasse
+  // des lettres à zéro : le verset est un texte dense.
+  letterSpacing: 0,
+  wordSpacing: ESPACE_MOT_VERSET,
+  hyphenateLimitChars: CESURE_VERSET,
   overflowWrap: 'break-word' as const,
   margin: '0 0 0.4rem',
 }
@@ -132,7 +137,7 @@ const STYLE_VERSET_ORIGINAL = {
   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
   fontSize: `calc(${CORPS_LECTURE_BIBLE} * ${RAPPORT_ORIGINAL_EN_REGARD})`,
   color: 'var(--cs-original)',
-  wordSpacing: '-0.025em',
+  wordSpacing: ESPACE_MOT_ORIGINAL,
 }
 
 // ⛔ UNE GLOSE — italique, un point sous le texte de SA colonne (décision de l'auteur,
