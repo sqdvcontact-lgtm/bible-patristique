@@ -38,6 +38,7 @@ import IconeCrayon from '@/app/components/IconeCrayon'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import IconePolyglotte from '@/app/components/IconePolyglotte'
 import IconeFacsimile from '@/app/components/IconeFacsimile'
+import { Bulle } from '@/app/components/Bulle'
 import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
 // ⛔ Les fenêtres ne se chargent qu'au CLIC (2026-09-22) : le fac-similé, le signalement,
 // l'édition d'un verset n'ont rien à peser sur la lecture tant qu'on ne les ouvre pas.
@@ -184,7 +185,8 @@ function BoutonCopie({ citation, numero }: { citation: CitationRendue; numero: n
     })
   }
   return (
-    <button onClick={handle} title={echec ? 'La copie a échoué' : 'Copier ce verset'} className={avecHoteEclat('bouton-action-verset')}
+    <Bulle texte={echec ? 'La copie a échoué' : 'Copier ce verset'} position="left">
+    <button onClick={handle} className={avecHoteEclat('bouton-action-verset')}
       style={{ ...VERSET_ACTION_BTN, opacity:0, color: echec ? 'var(--cs-danger)' : copie ? 'var(--cs-vert)' : 'var(--cs-bord)', ...(echec ? STYLE_HOTE_ECHEC : null) }}
       aria-label={`Copier le verset ${numero}`}>
       {/* ⚠️ Le glyphe vient d'`IconeCopier` : la VISITE le reproduit dans son
@@ -193,6 +195,7 @@ function BoutonCopie({ citation, numero }: { citation: CitationRendue; numero: n
       <IconeCopier />
       {echec ? <EclatEchec echec={echec} /> : <EclatCopie eclat={eclat} />}
     </button>
+    </Bulle>
   )
 }
 
@@ -235,12 +238,14 @@ function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; vers
   const ref = versetRef ? refFrBible(versetRef) : versetId
   return (
     <>
-      <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setOuvert(true) }}
-        className="bouton-action-verset"
-        title="Signaler une erreur" aria-label={`Signaler une erreur dans ${ref}`}
-        style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
-        <IconeSignalement />
-      </button>
+      <Bulle texte="Signaler une erreur" position="left">
+        <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setOuvert(true) }}
+          className="bouton-action-verset"
+          aria-label={`Signaler une erreur dans ${ref}`}
+          style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
+          <IconeSignalement />
+        </button>
+      </Bulle>
       {ouvert && <ModalSignalement titre={ref} texteObjet={texte} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   )
@@ -253,11 +258,13 @@ function BoutonSignaler({ versetId, versetRef, texte }: { versetId: string; vers
 // l'endroit où l'on lisait.
 function BoutonPolyglotte({ href }: { href: string }) {
   return (
-    <a href={href} target="_blank" rel="noopener" onClick={e => e.stopPropagation()}
-      className="bouton-action-verset" title="Voir dans la Polyglotte (nouvel onglet)" aria-label="Voir ce verset dans la Polyglotte (nouvel onglet)"
-      style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
-      <IconePolyglotte />
-    </a>
+    <Bulle texte="Voir dans la Polyglotte (nouvel onglet)" position="left">
+      <a href={href} target="_blank" rel="noopener" onClick={e => e.stopPropagation()}
+        className="bouton-action-verset" aria-label="Voir ce verset dans la Polyglotte (nouvel onglet)"
+        style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
+        <IconePolyglotte />
+      </a>
+    </Bulle>
   )
 }
 
@@ -269,11 +276,13 @@ function BoutonFacsimile({ reference, debut, fin }: { reference: string; debut: 
   const [ouvert, setOuvert] = useState(false)
   return (
     <>
-      <button type="button" onClick={e => { e.stopPropagation(); setOuvert(true) }}
-        className="bouton-action-verset" title="Voir le manuscrit" aria-label={`Voir ${reference} dans le manuscrit`}
-        style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
-        <IconeFacsimile />
-      </button>
+      <Bulle texte="Voir le manuscrit" position="left">
+        <button type="button" onClick={e => { e.stopPropagation(); setOuvert(true) }}
+          className="bouton-action-verset" aria-label={`Voir ${reference} dans le manuscrit`}
+          style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
+          <IconeFacsimile />
+        </button>
+      </Bulle>
       {ouvert && <ModaleFacsimile899 reference={reference} repereDebut={debut} repereFin={fin} onFermer={() => setOuvert(false)} />}
     </>
   )
@@ -326,13 +335,15 @@ function BoutonEnregistrer({
          une petite marque discrète (`STYLE_SIGNET_VERSET`), qui ne pèse pas sur la
          colonne d'actions. Au doigt, le pavé montre ses boutons pleins, comme avant.
          Même encre grise que la marque (reprise du 21 septembre 2026). */
-      <button onClick={supprimer} disabled={loading}
-        title={echec ? 'Le retrait a échoué' : 'Retirer de mes prélèvements'} className={avecHoteEclat('bouton-action-verset')}
-        style={{ ...VERSET_ACTION_BTN, opacity:0, color: echec ? 'var(--cs-danger)' : 'var(--cs-texte-doux)', ...styleEchec }}
-        aria-label={`Retirer le verset ${verset.verset} de mes prélèvements`}>
-        {loading ? '…' : <IconeSignet plein />}
-        <EclatEchec echec={echec} />
-      </button>
+      <Bulle texte={echec ? 'Le retrait a échoué' : 'Retirer de mes prélèvements'} position="left">
+        <button onClick={supprimer} disabled={loading}
+          className={avecHoteEclat('bouton-action-verset')}
+          style={{ ...VERSET_ACTION_BTN, opacity:0, color: echec ? 'var(--cs-danger)' : 'var(--cs-texte-doux)', ...styleEchec }}
+          aria-label={`Retirer le verset ${verset.verset} de mes prélèvements`}>
+          {loading ? '…' : <IconeSignet plein />}
+          <EclatEchec echec={echec} />
+        </button>
+      </Bulle>
     )
   }
 
@@ -360,14 +371,15 @@ function BoutonEnregistrer({
   }
 
   return (
-    <button onClick={enregistrer} disabled={loading}
-      title={echec ? 'Le prélèvement a échoué' : 'Ajouter à mes prélèvements'}
-      className={avecHoteEclat('bouton-action-verset')}
-      style={{ ...VERSET_ACTION_BTN, opacity:0, color: echec ? 'var(--cs-danger)' : 'var(--cs-bord)', ...styleEchec }}
-      aria-label={`Ajouter le verset ${verset.verset} (${traductionLabel}) à mes prélèvements`}>
-      {loading ? '…' : <IconeSignet />}
-      <EclatEchec echec={echec} />
-    </button>
+    <Bulle texte={echec ? 'Le prélèvement a échoué' : 'Ajouter à mes prélèvements'} position="left">
+      <button onClick={enregistrer} disabled={loading}
+        className={avecHoteEclat('bouton-action-verset')}
+        style={{ ...VERSET_ACTION_BTN, opacity:0, color: echec ? 'var(--cs-danger)' : 'var(--cs-bord)', ...styleEchec }}
+        aria-label={`Ajouter le verset ${verset.verset} (${traductionLabel}) à mes prélèvements`}>
+        {loading ? '…' : <IconeSignet />}
+        <EclatEchec echec={echec} />
+      </button>
+    </Bulle>
   )
 }
 
@@ -1165,10 +1177,12 @@ export default function TexteBible({
                       )}
                       <BoutonSignaler versetId={v.id_verset} versetRef={v.ref} texte={texteDuVerset(v)} />
                       {estAdmin && !modeUtilisateurStandard && !ligneSource && (
-                        <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
-                          style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
-                          <IconeCrayon size={14} />
-                        </button>
+                        <Bulle texte="Modifier ce verset" position="left">
+                          <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} aria-label="Modifier ce verset" className="bouton-action-verset"
+                            style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
+                            <IconeCrayon size={14} />
+                          </button>
+                        </Bulle>
                       )}
                     </>
                   {/* ⛔ La marque de densité FERME la rangée d'actions, et ne paraît qu'au

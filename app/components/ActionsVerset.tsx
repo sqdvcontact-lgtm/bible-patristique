@@ -17,6 +17,7 @@ import IconeSignalement from '@/app/components/IconeSignalement'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
+import { Bulle } from '@/app/components/Bulle'
 
 // ⛔ Le gabarit vient du module partagé (voir app/lib/celluleActions.ts).
 const BTN = STYLE_BOUTON_ACTION
@@ -122,26 +123,31 @@ export default function ActionsVerset({
           voisins ; l'état se dit à côté du numéro, par la marque discrète que la page
           hôte pose (`STYLE_SIGNET_VERSET`). */}
       {userId && (
-        <button onClick={basculerPrelevement} disabled={chargement}
-          className="bouton-action-verset"
-          title={preleve ? 'Retirer de mes prélèvements' : 'Ajouter à mes prélèvements'}
-          aria-label={preleve ? `Retirer ${refAffichee} de mes prélèvements` : `Ajouter ${refAffichee} à mes prélèvements`}
-          style={{ ...BTN, opacity: 0, color: preleve ? 'var(--cs-texte-doux)' : 'var(--cs-bord)' }}>
-          {chargement ? '…' : <IconeSignet plein={preleve} />}
-        </button>
+        <Bulle texte={preleve ? 'Retirer de mes prélèvements' : 'Ajouter à mes prélèvements'} position="left">
+          <button onClick={basculerPrelevement} disabled={chargement}
+            className="bouton-action-verset"
+            aria-label={preleve ? `Retirer ${refAffichee} de mes prélèvements` : `Ajouter ${refAffichee} à mes prélèvements`}
+            style={{ ...BTN, opacity: 0, color: preleve ? 'var(--cs-texte-doux)' : 'var(--cs-bord)' }}>
+            {chargement ? '…' : <IconeSignet plein={preleve} />}
+          </button>
+        </Bulle>
       )}
 
-      <button onClick={copier} className={avecHoteEclat('bouton-action-verset')} title={erreur?.startsWith('La copie') ? erreur : 'Copier ce verset'} aria-label="Copier"
-        style={{ ...BTN, opacity: 0, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
-        <IconeCopier />
-        <EclatCopie eclat={eclat} mention="Verset copié" />
-      </button>
+      <Bulle texte={erreur?.startsWith('La copie') ? erreur : 'Copier ce verset'} position="left">
+        <button onClick={copier} className={avecHoteEclat('bouton-action-verset')} aria-label="Copier"
+          style={{ ...BTN, opacity: 0, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
+          <IconeCopier />
+          <EclatCopie eclat={eclat} mention="Verset copié" />
+        </button>
+      </Bulle>
 
-      <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setSignalOuvert(true) }}
-        className="bouton-action-verset" title="Signaler une erreur" aria-label="Signaler"
-        style={{ ...BTN, opacity: 0, color: 'var(--cs-bord)' }}>
-        <IconeSignalement />
-      </button>
+      <Bulle texte="Signaler une erreur" position="left">
+        <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setSignalOuvert(true) }}
+          className="bouton-action-verset" aria-label="Signaler"
+          style={{ ...BTN, opacity: 0, color: 'var(--cs-bord)' }}>
+          <IconeSignalement />
+        </button>
+      </Bulle>
 
       {erreur && <span role="alert" style={{ position: 'absolute', right: 0, top: '100%', zIndex: 5, width: '15rem', padding: '5px 7px', borderRadius: '4px', background: 'var(--cs-surface)', border: '1px solid var(--cs-danger-bord)', color: 'var(--cs-danger-fonce)', fontSize: '0.6875rem', lineHeight: 1.35 }}>{erreur}</span>}
 

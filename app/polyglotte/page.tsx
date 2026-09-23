@@ -58,6 +58,7 @@ import { ABREV_FR } from "@/app/lib/bible";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 import ModalSignalement from "@/app/components/ModalSignalement";
 import BoutonCopierTexte from "@/app/components/BoutonCopierTexte";
+import { Bulle } from "@/app/components/Bulle";
 import { citationBiblique, copierCitation } from "@/app/lib/citation";
 import LassoLecture, { type RefusDeLasso } from "@/app/components/LassoLecture";
 import { colonnesTouchees } from "@/app/lib/lasso";
@@ -816,7 +817,8 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
   // sur l'autre, et c'est leur opacité qui passe de l'une à l'autre.
   const montrerCroix = !!saved && survol && !busy;
   return (
-    <button onClick={basculer} title={saved ? "Retirer de mes citations" : "Ajouter à mes citations"} className="poly-act"
+    <Bulle texte={saved ? "Retirer de mes citations" : "Ajouter à mes citations"}>
+    <button onClick={basculer} className="poly-act"
       onMouseEnter={() => setSurvol(true)} onMouseLeave={() => setSurvol(false)}
       onFocus={() => setSurvol(true)} onBlur={() => setSurvol(false)}
       style={{ ...ACT_BTN, color: saved ? VERT : "var(--cs-texte-doux)" }}
@@ -832,6 +834,7 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
         </span>
       )}
     </button>
+    </Bulle>
   );
 }
 
@@ -852,8 +855,10 @@ function BoutonSignalerVerset({ refLisible, texte }: { refLisible: string; texte
   };
   return (
     <>
-      <button onClick={e => { e.stopPropagation(); if (exigerCompte("signaler une erreur")) setOuvert(true); }} title="Signaler une erreur" className="poly-act"
-        style={{ ...ACT_BTN, color: "var(--cs-texte-doux)" }} aria-label="Signaler"><IconeSignalement /></button>
+      <Bulle texte="Signaler une erreur">
+        <button onClick={e => { e.stopPropagation(); if (exigerCompte("signaler une erreur")) setOuvert(true); }} className="poly-act"
+          style={{ ...ACT_BTN, color: "var(--cs-texte-doux)" }} aria-label="Signaler"><IconeSignalement /></button>
+      </Bulle>
       {ouvert && <ModalSignalement titre={refLisible} texteObjet={texte || undefined} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   );
@@ -3518,7 +3523,7 @@ export default function PolyglottePage() {
               tradId={celluleActions.ancre.donnees.citer.tradId}
               onSaved={marquerCite} onRemoved={retirerCite} />
           )}
-          <BoutonCopierTexte className="poly-act" style={ACT_BTN} titre="Copier ce verset"
+          <BoutonCopierTexte className="poly-act" style={ACT_BTN} titre="Copier ce verset" bulle
             texte={citationBiblique(celluleActions.ancre.donnees.texte, celluleActions.ancre.donnees.refLisible)} />
           <BoutonSignalerVerset refLisible={celluleActions.ancre.donnees.refLisible} texte={celluleActions.ancre.donnees.texte} />
         </CelluleActions>

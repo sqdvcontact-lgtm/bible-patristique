@@ -19,6 +19,7 @@ import { intituleDeLaNote, libelleDeLaNote, LIBELLE_NOTE_SANS_TYPE } from '@/app
 import { signesDeLaNote } from '@/app/lib/compositionNote'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import IconeCopier from '@/app/components/IconeCopier'
+import { Bulle } from '@/app/components/Bulle'
 import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
 import { EclatEchec, STYLE_HOTE_ECHEC, useEclatEchec } from '@/app/components/EclatEchec'
 import { anneeChronologique, comparerChronologie } from '@/app/lib/chronologiePatristique'
@@ -184,11 +185,13 @@ function BoutonCopieSegment({ texte, auteur, titre, sous_titre, trad_auteur, edi
   return (
     // « Copier ce passage » : le mot du site pour un extrait patristique (page d'œuvre,
     // cellule d'actions). « Segment » est un mot d'atelier, il ne se montre pas au lecteur.
-    <button onClick={handle} title="Copier ce passage" aria-label="Copier ce passage"
-      className={avecHoteEclat('cs-bouton-fin')} style={{ ...ACTION_BTN, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
-      <IconeCopier />
-      <EclatCopie eclat={eclat} />
-    </button>
+    <Bulle texte="Copier ce passage" position="left">
+      <button onClick={handle} aria-label="Copier ce passage"
+        className={avecHoteEclat('cs-bouton-fin')} style={{ ...ACTION_BTN, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
+        <IconeCopier />
+        <EclatCopie eclat={eclat} />
+      </button>
+    </Bulle>
   )
 }
 
@@ -259,13 +262,15 @@ function BoutonEnregistrerSegment({ segment, info, userId, enregistre, onChange 
   const libelle = echec ? `${echec.message} Réessayer.` : enregistre ? 'Retirer de mes prélèvements' : 'Ajouter à mes prélèvements'
   const couleur = echec ? 'var(--cs-danger)' : enregistre ? 'var(--cs-texte-doux)' : 'var(--cs-bord)'
   return (
-    <button onClick={enregistre ? supprimer : enregistrer} disabled={loading || enregistre === null}
-      title={libelle} aria-label={libelle} aria-pressed={enregistre === true}
-      className={avecHoteEclat('cs-bouton-fin')}
-      style={{ ...ACTION_BTN, color: couleur, ...(echec ? STYLE_HOTE_ECHEC : null) }}>
-      {loading ? '…' : <IconeSignet plein={enregistre === true} />}
-      <EclatEchec echec={echec} />
-    </button>
+    <Bulle texte={libelle} position="left">
+      <button onClick={enregistre ? supprimer : enregistrer} disabled={loading || enregistre === null}
+        aria-label={libelle} aria-pressed={enregistre === true}
+        className={avecHoteEclat('cs-bouton-fin')}
+        style={{ ...ACTION_BTN, color: couleur, ...(echec ? STYLE_HOTE_ECHEC : null) }}>
+        {loading ? '…' : <IconeSignet plein={enregistre === true} />}
+        <EclatEchec echec={echec} />
+      </button>
+    </Bulle>
   )
 }
 
@@ -432,10 +437,12 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
               collection={identite.collection ?? undefined} ville={identite.ville ?? undefined}
               date_publication={identite.datePublication ?? undefined} responsable={identite.responsable ?? undefined}
             />
-            <button onClick={e => { e.stopPropagation(); onSignaler(s, info?.titre) }} title="Signaler une erreur" aria-label="Signaler une erreur"
-              className="cs-bouton-fin" style={{ ...ACTION_BTN, color:'var(--cs-bord)' }}>
-              <IconeSignalement />
-            </button>
+            <Bulle texte="Signaler une erreur" position="left">
+              <button onClick={e => { e.stopPropagation(); onSignaler(s, info?.titre) }} aria-label="Signaler une erreur"
+                className="cs-bouton-fin" style={{ ...ACTION_BTN, color:'var(--cs-bord)' }}>
+                <IconeSignalement />
+              </button>
+            </Bulle>
           </div>
           {/* ⛔ LA SUPPRESSION VIT À PART (audit ergonomique du 2026-09-21) : collé à la
               copie, le « × » d'administration se prenait pour elle. Il descend sur sa

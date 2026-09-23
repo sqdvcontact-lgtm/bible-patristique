@@ -18,6 +18,7 @@ import { useState } from 'react'
 
 import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
 import IconeCopier from '@/app/components/IconeCopier'
+import { Bulle } from '@/app/components/Bulle'
 import { copierEnFormeRiche, type CitationRendue } from '@/app/lib/citation'
 
 /** Le temps que l'échec reste écrit, en millisecondes. Assez long pour être lu, assez
@@ -55,6 +56,7 @@ export default function BoutonCopierTexte({
   className,
   titre = 'Copier',
   mention,
+  bulle = false,
 }: {
   /** ⚠️ Une CITATION porte DEUX formes : le collage riche garde l'italique du corpus,
    *  quand le plein-texte emporterait ses balises en clair. Une chaîne reste admise
@@ -66,6 +68,10 @@ export default function BoutonCopierTexte({
   /** Ce que la mention au curseur dit avoir copié (« Référence bibliographique copiée »).
    *  Par défaut, celle d'`EclatCopie` : une citation. */
   mention?: string
+  /** Bouton d'action d'un verset ou d'un passage : l'infobulle est celle du site (`Bulle`),
+   *  comme la cellule d'actions d'une œuvre, et non l'infobulle native. Faux par défaut :
+   *  les fiches (« Copier la référence ») gardent la leur. */
+  bulle?: boolean
 }) {
   const { copie, eclat, briller } = useEclatCopie()
   const [erreur, setErreur] = useState(false)
@@ -90,12 +96,13 @@ export default function BoutonCopierTexte({
   // une région vivante, et un nom qui changerait le redirait une seconde fois.
   const libelle = erreur ? 'La copie a échoué. Réessayez.' : titre
 
-  return (
-    <button onClick={copier} title={libelle} aria-label={libelle} className={avecHoteEclat(className)}
+  const bouton = (
+    <button onClick={copier} title={bulle ? undefined : libelle} aria-label={libelle} className={avecHoteEclat(className)}
       style={{ ...style, color: copie ? 'var(--cs-vert)' : erreur ? 'var(--cs-danger)' : (style?.color ?? 'var(--cs-texte-doux)') }}>
       {erreur ? <span aria-hidden="true">!</span> : <IconeCopier />}
       <EclatCopie eclat={eclat} mention={mention} />
       {erreur ? <span>Réessayer</span> : null}
     </button>
   )
+  return bulle ? <Bulle texte={libelle}>{bouton}</Bulle> : bouton
 }

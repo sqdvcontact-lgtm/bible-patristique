@@ -88,8 +88,10 @@ export function BoutonSignalerVerset({ versetId, label, texte, segmentId }: { ve
   const { exigerCompte } = useCompte()
   return (
     <>
+      <Bulle texte="Signaler une erreur">
       <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setOuvert(true) }}
-        title="Signaler une erreur" className="cs-bouton-action" style={{ ...BTN_STYLE, color:'var(--cs-bord)' }}><IconeSignalement /></button>
+        aria-label="Signaler une erreur" className="cs-bouton-action" style={{ ...BTN_STYLE, color:'var(--cs-bord)' }}><IconeSignalement /></button>
+      </Bulle>
       {ouvert && (
         <ModalSignalement
           titre={label}

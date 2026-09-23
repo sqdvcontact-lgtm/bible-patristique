@@ -41,6 +41,7 @@ import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
 import IconeCopier from './IconeCopier'
 import IconeSignalement from './IconeSignalement'
 import IconeSignet from './IconeSignet'
+import { Bulle } from './Bulle'
 import type { EtatPrelevement } from '@/app/lib/prelevementsBibliques'
 import { libelleNumeroVerset } from '@/app/lib/libelleVerset'
 import { nomLangue } from '@/app/lib/bibleModesAlternatifs'
@@ -278,7 +279,8 @@ function CopieCellule({ copier, numero, langue, derniere, rang, enRangee = false
   const { copie, eclat, briller } = useEclatCopie()
   const { echec, signaler } = useEclatEchec()
   const objet = numero === null ? 'ce verset' : `le verset ${numero}`
-  return (
+  const infobulle = echec ? 'La copie a échoué' : `Copier ${objet} (${langue.toLowerCase()})`
+  const bouton = (
     <button
       type="button"
       className={avecHoteEclat('cs-regard-copier cs-regard-action')}
@@ -289,7 +291,7 @@ function CopieCellule({ copier, numero, langue, derniere, rang, enRangee = false
           signaler('La copie a échoué.')
         })
       }}
-      title={echec ? 'La copie a échoué' : `Copier ${objet} (${langue.toLowerCase()})`}
+      title={enRangee ? undefined : infobulle}
       aria-label={`Copier ${objet} (${langue.toLowerCase()})`}
       style={{
         ...(enRangee ? STYLE_BOUTON_ACTION : placeDansLaGouttiere(rang, derniere)),
@@ -301,6 +303,11 @@ function CopieCellule({ copier, numero, langue, derniere, rang, enRangee = false
       {echec ? <EclatEchec echec={echec} /> : <EclatCopie eclat={eclat} />}
     </button>
   )
+  // ⛔ L'infobulle du site (`Bulle`) dans la RANGÉE d'actions, comme la cellule d'actions
+  // d'une œuvre. Dans la gouttière (téléphone), le bouton est posé en absolu dans sa
+  // cellule : une enveloppe positionnée lui prendrait son bloc conteneur, et il garde
+  // l'infobulle native.
+  return enRangee ? <Bulle texte={infobulle} position="left">{bouton}</Bulle> : bouton
 }
 
 // ── LE PRÉLÈVEMENT D'UNE CELLULE (audit du 2026-09-22) ────────────────────────
@@ -324,7 +331,8 @@ function SignetCellule({ basculer, etat, langue, numero, derniere, rang, enRange
   const geste = preleve
     ? `Retirer ${objet} de mes prélèvements`
     : `Ajouter ${objet} à mes prélèvements`
-  return (
+  const infobulle = echec ? 'Le geste a échoué' : geste
+  const bouton = (
     <button
       type="button"
       className={avecHoteEclat('cs-regard-action')}
@@ -341,7 +349,7 @@ function SignetCellule({ basculer, etat, langue, numero, derniere, rang, enRange
           },
         )
       }}
-      title={echec ? 'Le geste a échoué' : geste}
+      title={enRangee ? undefined : infobulle}
       aria-label={geste}
       style={{
         ...(enRangee ? STYLE_BOUTON_ACTION : placeDansLaGouttiere(rang, derniere)),
@@ -353,6 +361,7 @@ function SignetCellule({ basculer, etat, langue, numero, derniere, rang, enRange
       <EclatEchec echec={echec} />
     </button>
   )
+  return enRangee ? <Bulle texte={infobulle} position="left">{bouton}</Bulle> : bouton
 }
 
 // ── LE SIGNALEMENT D'UNE CELLULE (demande de l'auteur, 2026-09-23) ────────────
@@ -371,18 +380,19 @@ function SignalerCellule({ signaler, numero, langue, derniere, rang, enRangee = 
 }) {
   const objet = numero === null ? 'ce verset' : `le verset ${numero}`
   const geste = `Signaler une erreur dans ${objet} (${langue.toLowerCase()})`
-  return (
+  const bouton = (
     <button
       type="button"
       className="cs-regard-action"
       onClick={(e) => { e.stopPropagation(); signaler() }}
-      title={geste}
+      title={enRangee ? undefined : geste}
       aria-label={geste}
       style={{ ...(enRangee ? STYLE_BOUTON_ACTION : placeDansLaGouttiere(rang, derniere)), color: 'var(--cs-bord)' }}
     >
       <IconeSignalement />
     </button>
   )
+  return enRangee ? <Bulle texte={geste} position="left">{bouton}</Bulle> : bouton
 }
 
 // ── LA RANGÉE D'ACTIONS D'UNE LECTURE EN REGARD ───────────────────────────────
