@@ -8,7 +8,6 @@
 // à la même heure. Le titre, le compte et le sol lui viennent donc du cadre ; ⛔ elle ne
 // pose plus de <main> ni de fond, que le cadre porte déjà.
 
-import IconeChevron from '@/app/components/IconeChevron'
 import IconeCopier from '@/app/components/IconeCopier'
 import { useEffect, useRef, useState } from "react";
 import { cssServi } from '@/app/lib/cssServi'
@@ -21,12 +20,11 @@ import { supabase } from "@/app/lib/supabase";
 import { useEspace } from "@/app/compte/EspaceCompte";
 import { BandeauLecteur, SommaireEspace } from "@/app/compte/piecesEspace";
 import { ancresCitations } from "@/app/lib/espaceLecteurNavigation";
-import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
+import { rendreTexteEnrichi } from "@/app/oeuvre/[id]/texteEnrichi";
 import { citationPatristique, citationBiblique, copierCitation, fragmentsReferenceCanoniqueOeuvre, preparerTexteCitation, type CitationRendue, type InfoCitation } from "@/app/lib/citation";
 import { COLONNES_IDENTITE_TEXTE, identiteCitee, parametreTexte, type LigneIdentiteTexte } from "@/app/lib/identiteCitee";
 import { indexEditeursNavigateur } from "@/app/lib/editeurs";
 import { colorMix } from "@/app/lib/couleurs";
-import { codesTraductionsLecture } from "@/app/lib/traductions";
 import { useSansSurvol } from "@/app/lib/useEstMobile";
 import {
   BoutonCitationPreferee, ModaleRemplacerCitation,
@@ -57,6 +55,8 @@ type Prelevement = {
   ref_livre?: string; ref_livre_abr?: string;
   ref_chapitre?: number; ref_verset?: number;
   texte: string; traduction?: string;
+  /** Le CODE de la traduction prélevée (`prelevements.trad_id`, depuis le 2026-09-23). */
+  trad_id?: string | null;
   auteur?: string; titre_oeuvre?: string;
   ref_niv1?: string; ref_niv2?: string;
   id_oeuvre?: string; segment_numero?: number;
@@ -64,11 +64,9 @@ type Prelevement = {
    *  ancienne ne le porte pas. */
   id_texte?: string | null;
   created_at: string;
-  /** Le texte vient de la traduction choisie dans le menu, non de celle du prélèvement. */
-  texteTraduit?: boolean;
 };
 
-type Traduction = { code: string; label: string };
+type Traduction = { code: string; label: string; langue?: string | null };
 
 type OeuvreInfo = {
   id_oeuvre: string; id_auteur?: string; sous_titre?: string
@@ -83,8 +81,8 @@ type GroupeBiblique = {
   ids: string[]; ref_livre: string; ref_livre_abr: string;
   ref_chapitre: number; verset_debut: number; verset_fin: number;
   textes: string[]; traduction?: string;
-  /** Tous ses versets se lisent dans la traduction du menu. */
-  traduit: boolean;
+  /** Le code de la traduction prélevée : tous les versets d'un groupe la partagent. */
+  tradId: string | null;
 };
 
 // ⚠️ Le type d'une citation favorite vit dans `app/lib/citationsFavorites.ts`, avec ce
@@ -158,10 +156,13 @@ function agglomererBibliques(sorted: Prelevement[]): GroupeBiblique[] {
     const ch = p.ref_chapitre ?? 0;
     const v = p.ref_verset ?? 0;
     const last = groupes[groupes.length - 1];
-    if (last && last.ref_livre_abr === abr && last.ref_chapitre === ch && last.verset_fin + 1 === v) {
-      last.ids.push(p.id); last.verset_fin = v; last.textes.push(p.texte); last.traduit = last.traduit && !!p.texteTraduit;
+    // ⛔ Deux versets ne se réunissent que s'ils viennent de la MÊME traduction : un passage
+    // se lit dans une seule langue, telle qu'on l'a prélevée (2026-09-23).
+    const memeTrad = last && (last.tradId ?? last.traduction ?? "") === (p.trad_id ?? p.traduction ?? "");
+    if (last && memeTrad && last.ref_livre_abr === abr && last.ref_chapitre === ch && last.verset_fin + 1 === v) {
+      last.ids.push(p.id); last.verset_fin = v; last.textes.push(p.texte);
     } else {
-      groupes.push({ ids: [p.id], ref_livre: p.ref_livre ?? "", ref_livre_abr: abr, ref_chapitre: ch, verset_debut: v, verset_fin: v, textes: [p.texte], traduction: p.traduction, traduit: !!p.texteTraduit });
+      groupes.push({ ids: [p.id], ref_livre: p.ref_livre ?? "", ref_livre_abr: abr, ref_chapitre: ch, verset_debut: v, verset_fin: v, textes: [p.texte], traduction: p.traduction, tradId: p.trad_id ?? null });
     }
   }
   return groupes;
@@ -182,13 +183,6 @@ function grouper<T>(list: T[], key: (item: T) => string): { label: string; items
     map.get(k)!.push(item);
   }
   return Array.from(map.entries()).map(([label, items]) => ({ label, items }));
-}
-
-/** La colonne de `versets_lecture` qu'on lit : celle du menu quand la vue la porte, la
- *  Bible de Sacy sinon. ⚠️ Une seule écriture : le chargement et l'affichage doivent
- *  parler de la même colonne, sans quoi la provenance se dirait d'une autre bible. */
-function colonneDeLecture(traductions: Traduction[], active: string): string {
-  return traductions.some(t => t.code === active) ? active : "TR0001";
 }
 
 // Citation patristique complète (titre en italique pour le collage riche), construite
@@ -359,10 +353,6 @@ export default function PagePrelevements() {
   // Les éditions des œuvres citées, pour citer un passage sous la sienne.
   const [editions, setEditions] = useState<Record<string, LigneIdentiteTexte>>({});
   const [traductions, setTraductions] = useState<Traduction[]>([]);
-  const [traductionActive, setTraductionActive] = useState("TR0001");
-  // ⚠️ La carte des textes traduits porte la COLONNE dont elle vient : tant qu'elle ne
-  // répond pas au menu, on ne sait pas encore quel verset la traduction choisie porte.
-  const [textesTraduits, setTextesTraduits] = useState<{ colonne: string | null; carte: Record<string, string> }>({ colonne: null, carte: {} });
   // ⛔ UNE FAVORITE PAR CORPUS : l'Écriture et les Pères ont chacun leur place, et en
   // choisir une ne touche jamais à l'autre (charte § 34.2).
   const [favorites, setFavorites] = useState<Record<TypeCitation, CitationPreferee | null>>({ biblique: null, patristique: null });
@@ -435,15 +425,14 @@ export default function PagePrelevements() {
       const uid = user.id;
       // ⚠️ `profils` n'est plus interrogé QUE pour les citations favorites : la traduction
       // par défaut vient du cadre, qui a déjà lu le profil une fois pour toutes.
-      const [{ data: rows }, { data: trads }, { data: pref }, lisibles] = await Promise.all([
+      const [{ data: rows }, { data: trads }, { data: pref }] = await Promise.all([
         supabase
-          .from("prelevements").select("id, type, ref_livre, ref_livre_abr, ref_chapitre, ref_verset, texte, traduction, auteur, titre_oeuvre, ref_niv1, ref_niv2, id_oeuvre, segment_numero, id_texte, created_at")
+          .from("prelevements").select("id, type, ref_livre, ref_livre_abr, ref_chapitre, ref_verset, texte, traduction, trad_id, auteur, titre_oeuvre, ref_niv1, ref_niv2, id_oeuvre, segment_numero, id_texte, created_at")
           .eq("user_id", uid)
           .order("created_at", { ascending: false }),
         // ⛔ `est_biblique` : voir le commentaire dans app/page.tsx.
-        supabase.from("traductions").select("trad_id, nom").eq("est_biblique", true).order("ordre", { ascending: true }),
+        supabase.from("traductions").select("trad_id, nom, langue").eq("est_biblique", true).order("ordre", { ascending: true }),
         supabase.from("profils").select("citation_favorite_biblique, citation_favorite_patristique").eq("id", uid).maybeSingle(),
-        codesTraductionsLecture(supabase),
       ]);
       // La base fait foi : c'est elle que la page publique lit.
       setFavorites({
@@ -453,19 +442,11 @@ export default function PagePrelevements() {
       try { localStorage.removeItem("cs_citation_preferee"); } catch {}
       const prelevsData = rows ?? [];
       setPrelevements(prelevsData);
-      // ⚠️ Le menu ne peut proposer que des traductions RÉELLEMENT présentes comme
-      // colonnes de `versets_lecture`. En nommer une autre (TR0009, dont le texte
-      // est recomposé ailleurs) fait échouer TOUTE la requête PostgREST : le texte
-      // de chaque verset prélevé retombait alors en silence sur celui d'origine.
-      // Charte, § Traductions lisibles vs colonnes de `versets_lecture`.
-      const codesLisibles = new Set(lisibles);
-      const listeTraductions = (trads ?? [])
-        .map(t => ({ code: t.trad_id, label: t.nom }))
-        .filter(t => codesLisibles.has(t.code));
-      setTraductions(listeTraductions);
-      const souhaitee = profil.traduction_defaut || (typeof window !== "undefined" ? localStorage.getItem("traduction_defaut") : null);
-      const defaut = (souhaitee && codesLisibles.has(souhaitee) ? souhaitee : null) || listeTraductions[0]?.code || "TR0001";
-      setTraductionActive(defaut);
+      // ⛔ PLUS DE MENU DE TRADUCTION (demande de l'auteur, 2026-09-23 : « le prélèvement doit
+      // apparaître sous sa forme prélevée telle qu'elle était au clic »). Chaque verset se
+      // montre dans le texte ENREGISTRÉ, et la liste des bibles ne sert plus qu'à NOMMER la
+      // traduction et la langue de chacun.
+      setTraductions((trads ?? []).map(t => ({ code: t.trad_id, label: t.nom, langue: t.langue })));
       setChargement(false);
 
       const ids = [...new Set(prelevsData.filter(p => p.id_oeuvre).map(p => p.id_oeuvre as string))];
@@ -485,40 +466,9 @@ export default function PagePrelevements() {
         setEditions(Object.fromEntries(((textes ?? []) as unknown as LigneIdentiteTexte[]).map(ligne => [ligne.id_texte, ligne])));
       }
     })();
-  }, [user.id, profil.traduction_defaut]);
+  }, [user.id]);
 
-  useEffect(() => {
-    let annule = false;
-    const chargerTextes = async () => {
-      const colonne = colonneDeLecture(traductions, traductionActive);
-      const bibliquesActuels = prelevements.filter(p => p.type === "biblique");
-      if (bibliquesActuels.length === 0) { setTextesTraduits({ colonne, carte: {} }); return; }
-      const clauses = bibliquesActuels
-        .map(p => {
-          const livre = CODE_PAR_ABREV[p.ref_livre_abr ?? ""] ?? "";
-          if (!livre || !p.ref_chapitre || !p.ref_verset) return "";
-          return `and(livre.eq.${livre},chapitre.eq.${p.ref_chapitre},verset.eq.${p.ref_verset})`;
-        })
-        .filter(Boolean);
-      if (clauses.length === 0) { setTextesTraduits({ colonne, carte: {} }); return; }
-      const batches: string[][] = [];
-      for (let i = 0; i < clauses.length; i += 80) batches.push(clauses.slice(i, i + 80));
-      const results = await Promise.all(
-        batches.map(batch => supabase.from("versets_lecture").select(`livre, chapitre, verset, "${colonne}"`).or(batch.join(",")))
-      );
-      const map: Record<string, string> = {};
-      results.forEach(({ data }) => {
-        // ⚠️ Le `select` porte une colonne CALCULÉE : PostgREST n'en infère pas le type.
-        ((data ?? []) as unknown as Record<string, unknown>[]).forEach(v => {
-          map[`${v.livre}:${v.chapitre}:${v.verset}`] = String(v[colonne] ?? "");
-        });
-      });
-      // ⚠️ Une réponse qui arrive après un changement de menu ne remplace pas la suivante.
-      if (!annule) setTextesTraduits({ colonne, carte: map });
-    };
-    chargerTextes();
-    return () => { annule = true; };
-  }, [prelevements, traductionActive, traductions]);
+
 
   const supprimerIds = async (ids: string[]) => {
     await supabase.from("prelevements").delete().in("id", ids);
@@ -639,19 +589,12 @@ export default function PagePrelevements() {
     return lieuDuPrelevement(duSegment, { n1: x.ref_niv1, n2: x.ref_niv2 });
   };
 
-  const bibliques = trierBibliques(prelevements.filter(p => p.type === "biblique").map(p => {
-    const livre = CODE_PAR_ABREV[p.ref_livre_abr ?? ""];
-    const texteTraduit = livre ? textesTraduits.carte[`${livre}:${p.ref_chapitre}:${p.ref_verset}`] : null;
-    return texteTraduit ? { ...p, texte: texteTraduit, texteTraduit: true } : p;
-  }));
+  // ⛔ Le texte montré est celui du PRÉLÈVEMENT, tel qu'au clic : la page ne le relit plus.
+  const bibliques = trierBibliques(prelevements.filter(p => p.type === "biblique"));
   const patristiques = trierPatristiques(prelevements.filter(p => p.type === "patristique"));
   const groupesBibliquesBruts = grouper(bibliques, p => p.ref_livre_abr ?? p.ref_livre ?? "");
   const groupesPatristiques = grouper(patristiques, p => `${p.auteur ?? ""}||${p.titre_oeuvre ?? ""}`);
 
-  // La colonne que le menu fait lire, et si la carte des textes lui répond déjà.
-  const colonneLue = colonneDeLecture(traductions, traductionActive);
-  const textesPrets = textesTraduits.colonne === colonneLue;
-  const nomColonneLue = nomTraduction(colonneLue);
 
   // ── Ce que la page montre, composé UNE fois ────────────────────────────────
   // La liste et l'extraction lisent les mêmes entrées : le document dit exactement ce que
@@ -660,22 +603,23 @@ export default function PagePrelevements() {
     label,
     nom: NOM_COMPLET[label] ?? items[0]?.ref_livre ?? label,
     entrees: agglomererBibliques(items).map(g => {
-      const nomTrad = nomTraduction(g.traduction);
+      // La traduction prélevée : par son code, et à défaut par le nom qu'elle portait.
+      const codeLu = g.tradId ?? codeTraduction(g.traduction);
+      const tradLue = nomTraduction(codeLu ?? g.traduction);
+      const langue = traductions.find(t => t.code === codeLu)?.langue ?? null;
       return {
         cle: g.ids.join("_"),
         ids: g.ids,
         groupe: g,
         texte: texteGroupe(g),
         ref: refBiblique(g),
-        // La favorite garde la traduction où on la LIT : celle dont vient le texte montré,
-        // quand tous ses versets s'y trouvent, celle du prélèvement sinon.
-        // La traduction dont vient le texte MONTRÉ : celle du menu quand tous ses versets s'y
-        // trouvent, celle du prélèvement sinon. C'est sa référence que le document porte.
-        codeLu: g.traduit ? (textesTraduits.colonne ?? traductionActive) : codeTraduction(g.traduction),
-        tradLue: g.traduit ? nomTraduction(textesTraduits.colonne ?? traductionActive) : nomTrad,
-        // ⛔ La provenance ne se dit que si elle nomme le texte MONTRÉ : un verset que la
-        // traduction du menu ne porte pas, lu dans celle du prélèvement.
-        provenance: nomTrad && textesPrets && !g.traduit && nomTrad !== nomColonneLue ? nomTrad : null,
+        // La traduction du texte MONTRÉ, qui est toujours celle du prélèvement : c'est elle
+        // que la favorite garde et que le document cite.
+        codeLu,
+        tradLue,
+        // ⛔ LA PROVENANCE SE DIT TOUJOURS (2026-09-23) : « on doit pouvoir identifier la
+        // langue et la traduction du prélèvement ». Le nom de la bible, puis sa langue.
+        provenance: tradLue ? [tradLue, langue ? langue.charAt(0).toLowerCase() + langue.slice(1) : null].filter(Boolean).join(" · ") : null,
       };
     }),
   }));
@@ -753,7 +697,7 @@ export default function PagePrelevements() {
   const nbChoisis = nbVersetsChoisis + nbPassagesChoisis;
   // ⚠️ On ne compose pas un document avant que la page ait fini de composer ce qu'elle
   // montre : la traduction des versets et la réunion des passages arrivent après la liste.
-  const pretPourExtraire = textesPrets && mesuresPatristiques.pret;
+  const pretPourExtraire = mesuresPatristiques.pret;
 
   const quitterSelection = () => { setSelection(null); setExtraction({ enCours: false, erreur: null }); };
 
@@ -943,11 +887,10 @@ export default function PagePrelevements() {
         /* ⚠️ La provenance est une GLOSE, non une rubrique : en petites capitales espacées
            elle appelait l'œil autant que la référence. L'italique dit qu'elle n'est pas du
            texte, le gris qu'elle vient en second.
-           ⛔ ET ELLE NE PARAÎT QUE SI ELLE NOMME LE TEXTE MONTRÉ (2026-09-14). « Prélevé
-           dans la Bible de Sacy » se posait sous chaque verset, y compris quand le menu le
-           faisait lire dans une autre traduction : la glose nommait alors un texte que la
-           page ne montrait pas. Elle ne dit plus que l'exception, le verset que la
-           traduction du menu ne porte pas et dont on montre alors le texte prélevé. */
+           ⛔ ELLE PARAÎT SOUS CHAQUE VERSET (2026-09-23) : le texte montré est TOUJOURS celui
+           du prélèvement, et elle dit sa traduction puis sa langue (« Vulgate clémentine ·
+           latin »). Elle ne paraissait que par exception tant qu'un menu faisait relire les
+           versets dans une autre bible. */
         .prel-provenance { font-size: 0.6875rem; font-style: italic;
           color: var(--cs-texte-second); margin: 4px 0 0; }
 
@@ -992,12 +935,9 @@ export default function PagePrelevements() {
         .prel-item.prel-pref .prel-ref { color: var(--cs-or-lisible); }
         .prel-item.prel-pref .prel-actions { opacity: 1; }
 
-        /* Le menu de traduction. ⛔ Son chevron est celui du site, et il prend l'encre du
-           thème : la flèche était une image en data-URI, d'une teinte écrite en dur que le
-           Cuir ne pouvait pas retourner. Il se ferre, comme toute la page (§ 40.11). */
-        .prel-trad { position: relative; display: flex; align-items: center; width: fit-content; }
 
-        /* La barre d'outils : la traduction au fer à gauche, l'extraction au fer à droite. */
+        /* La barre d'outils : l'extraction au fer à droite. ⛔ Plus de menu de traduction
+           (2026-09-23) : chaque verset se montre tel qu'il a été prélevé. */
         .prel-outils { display: flex; align-items: center; justify-content: space-between;
           gap: 12px; flex-wrap: wrap; margin-bottom: 16px; min-height: 1.75rem; }
         .prel-outil { display: inline-flex; align-items: center; gap: 6px; background: none;
@@ -1037,17 +977,6 @@ export default function PagePrelevements() {
 
         .prel-vide { text-align: center; padding: 64px 0; }
         .prel-vide p { font-size: 0.875rem; color: var(--cs-texte-second); margin: 0 0 14px; }
-        .prel-trad-sel {
-          appearance: none; -webkit-appearance: none;
-          font-family: var(--font-source-sans), Arial, sans-serif; font-size:0.75rem; font-style: normal;
-          color: var(--cs-texte-second); background: transparent; border: none;
-          border-bottom: 1px solid var(--cs-or-doux); padding: 3px 20px 3px 0;
-          cursor: pointer; outline: none; text-align: left;
-          letter-spacing: 0.01em;
-        }
-        .prel-trad-sel:focus { border-bottom-color: var(--cs-or); }
-        .prel-trad-chevron { position: absolute; right: 3px; top: 50%; transform: translateY(-50%);
-          display: inline-flex; color: var(--cs-texte-gris); pointer-events: none; }
 
         /* ⛔ SUR UN TÉLÉPHONE, LE TEXTE PREND TOUTE LA MESURE (2026-09-14). La référence
            montait au-dessus du texte, mais la gouttière d'actions restait à côté de lui :
@@ -1085,8 +1014,6 @@ export default function PagePrelevements() {
           .prel-onglets { margin-bottom: 8px; }
           .prel-onglets .cs-onglet { padding: 6px 4px; }
           .prel-outils { margin-bottom: 8px; min-height: 0; flex-wrap: nowrap; }
-          .prel-trad { flex: 1 1 0; min-width: 0; max-width: 100%; }
-          .prel-trad-sel { width: 100%; overflow: hidden; text-overflow: ellipsis; }
           .prel-outil { flex-shrink: 0; }
           .prel-vide { padding: 32px 0; }
           .prel-barre { margin-top: 14px; padding: 8px 10px; }
@@ -1115,20 +1042,12 @@ export default function PagePrelevements() {
           className="prel-onglets"
         />
 
-        {/* ── La barre d'outils : la traduction à gauche, l'extraction à droite ──
+        {/* ── La barre d'outils : l'extraction à droite ──
             ⚠️ Une seule rangée pour les deux : chacune tenait sa ligne, et la page
             descendait de deux rangs avant la première citation. */}
         {listeActive.length > 0 && (
           <div className="prel-outils">
-            {onglet === "biblique" && traductions.length > 0 ? (
-              <div className="prel-trad">
-                <select value={traductionActive} onChange={e => setTraductionActive(e.target.value)}
-                  className="prel-trad-sel" aria-label="Traduction des versets">
-                  {traductions.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}
-                </select>
-                <span className="prel-trad-chevron" aria-hidden="true"><IconeChevron dir="down" size={10} strokeWidth={1.6} /></span>
-              </div>
-            ) : <span />}
+            <span />
             {selection === null ? (
               <button type="button" className="prel-outil" onClick={() => setSelection(new Set())}>
                 <IconeDocument />Extraire en Word
@@ -1153,7 +1072,7 @@ export default function PagePrelevements() {
                     <CaseACocher etat={etatDes(entrees.map(e => e.ids), selection)}
                       onChange={() => basculer(entrees.map(e => e.ids))} libelle={`Tout ${nom}`} />
                   )}>
-                  {entrees.map(({ cle, ids, groupe: g, texte, ref, tradLue, provenance }) => {
+                  {entrees.map(({ cle, ids, groupe: g, texte, ref, codeLu, tradLue, provenance }) => {
                     const estPref = favorites.biblique != null && ids.includes(favorites.biblique.id);
                     const estChoisi = choisi(ids);
                     return (
@@ -1170,13 +1089,13 @@ export default function PagePrelevements() {
                           <p className="prel-texte">
                             «&#8201;{rendreTexteEnrichi(preparerTexteCitation(texte))}&#8201;»
                           </p>
-                          {provenance && <p className="prel-provenance">Texte de la {provenance}</p>}
+                          {provenance && <p className="prel-provenance">{provenance}</p>}
                         </div>
                         {!selection && (
                           <div className="prel-actions">
                             <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: ids[0], ids, texte, type: "biblique", ref, traduction: tradLue ?? undefined }); }} />
                             <BoutonCopie citation={citationBiblique(texte, ref)} />
-                            <BoutonLien href={`/?livre=${CODE_PAR_ABREV[g.ref_livre_abr] ?? g.ref_livre_abr}&chapitre=${g.ref_chapitre}&verset=${g.verset_debut}&trad=${traductionActive}`} />
+                            <BoutonLien href={`/?livre=${CODE_PAR_ABREV[g.ref_livre_abr] ?? g.ref_livre_abr}&chapitre=${g.ref_chapitre}&verset=${g.verset_debut}&trad=${codeLu ?? "TR0001"}`} />
                             <BoutonSuppr onSuppr={() => supprimerIds(ids)} />
                             <BoutonPlus ouvert={actionsOuvertes === cle} onBasculer={() => basculerActions(cle)} />
                           </div>

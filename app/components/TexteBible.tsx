@@ -19,7 +19,7 @@ import { useCompte } from "@/app/lib/contexteCompte"
 import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile"
 import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
 import { citationBiblique, copierCitation, type CitationRendue } from "@/app/lib/citation"
-import { canonIdDeLigne, cleVersetPreleve, prelevementDuVerset, usePrelevementsDuChapitre } from "@/app/lib/prelevementsBibliques"
+import { canonIdDeLigne, cleVersetPreleve, codeDeTraduction, etatDuVerset, prelevementDuVerset, usePrelevementsDuChapitre } from "@/app/lib/prelevementsBibliques"
 import { libelleNumeroVerset } from "@/app/lib/libelleVerset"
 export { libelleNumeroVerset }
 import {
@@ -282,7 +282,7 @@ function BoutonFacsimile({ reference, debut, fin }: { reference: string; debut: 
 // ── Bouton enregistrer ────────────────────────────────────────────────────────
 function BoutonEnregistrer({
   verset, texte, nomLivre, livreActif, chapitreActif, userId,
-  traductionLabel, canonId, dejaSauvegarde, idPrelevement, onSauvegarde, onSupprimer,
+  traductionLabel, trad, canonId, dejaSauvegarde, ailleurs, idPrelevement, onSauvegarde, onSupprimer,
 }: {
   verset: Verset
   /** Le texte tel que la page le montre, corrections de l'administrateur comprises
@@ -291,6 +291,11 @@ function BoutonEnregistrer({
   nomLivre: string; livreActif: string
   chapitreActif: number; userId: string
   traductionLabel: string
+  /** Le CODE de la traduction lue (`prelevements.trad_id`) : le prélèvement est celui de
+   *  CETTE bible, et le signet des autres ne se remplit pas (2026-09-23). */
+  trad: string | null
+  /** Le verset est prélevé dans une AUTRE traduction : signet intermédiaire. */
+  ailleurs: boolean
   /** Le créneau canonique de la ligne (« DAN.13.44+ »), ce qui distingue le verset
    *  « 8 » de la ligne propre à une édition « 8+ » (voir `prelevementsBibliques`). */
   canonId: string | null
@@ -343,7 +348,7 @@ function BoutonEnregistrer({
       ref_livre: nomLivre, ref_livre_abr: abr,
       ref_chapitre: chapitreActif, ref_verset: verset.verset,
       canon_id: canonId,
-      texte, traduction: traductionLabel,
+      texte, traduction: traductionLabel, trad_id: trad,
     }).select('id').single()
     setLoading(false)
     // ⛔ L'erreur se LIT : un prélèvement refusé laisse le signet vide, et le dit.
@@ -357,11 +362,12 @@ function BoutonEnregistrer({
   }
 
   return (
-    <button onClick={enregistrer} disabled={loading} title={echec ? 'Le prélèvement a échoué' : 'Ajouter à mes prélèvements'}
+    <button onClick={enregistrer} disabled={loading}
+      title={echec ? 'Le prélèvement a échoué' : ailleurs ? 'Prélevé dans une autre traduction — ajouter celle-ci' : 'Ajouter à mes prélèvements'}
       className={avecHoteEclat('bouton-action-verset')}
-      style={{ ...VERSET_ACTION_BTN, opacity:0, color: echec ? 'var(--cs-danger)' : 'var(--cs-bord)', ...styleEchec }}
-      aria-label={`Ajouter le verset ${verset.verset} à mes prélèvements`}>
-      {loading ? '…' : <IconeSignet />}
+      style={{ ...VERSET_ACTION_BTN, opacity:0, color: echec ? 'var(--cs-danger)' : ailleurs ? 'var(--cs-texte-doux)' : 'var(--cs-bord)', ...styleEchec }}
+      aria-label={`Ajouter le verset ${verset.verset} (${traductionLabel}) à mes prélèvements${ailleurs ? ', déjà prélevé dans une autre traduction' : ''}`}>
+      {loading ? '…' : <IconeSignet ailleurs={ailleurs} />}
       <EclatEchec echec={echec} />
     </button>
   )
@@ -639,6 +645,9 @@ export default function TexteBible({
   const traductionActive = traductions[traductionIndex]
   const tradCode = traductionActive?.code ?? 'TR0001'
   const traductionLabel = traductionActive?.label ?? tradCode
+  // ⛔ Le code qu'un prélèvement écrit et sous lequel on le cherche : un verset prélevé dans
+  // une autre bible ne se montre plus plein ici (demande de l'auteur, 2026-09-23).
+  const tradPrelevement = codeDeTraduction(tradCode)
 
 
   // TR0009 (Bible 899) et éditions à segmentation éditoriale : l'adaptateur marque ses
@@ -804,6 +813,7 @@ export default function TexteBible({
       numero: v.verset,
       texte: texteDuVerset(v),
       label: traductionLabel,
+      trad: tradPrelevement,
       canonId: canonIdDeLigne(v.id_verset),
     }))
   const contexteDuLasso = (): ContexteDuLasso => ({
@@ -1062,7 +1072,9 @@ export default function TexteBible({
             // ⛔ LE SIGNET SE CLÉ SUR LE CRÉNEAU, non sur le numéro : « 8 » et la ligne
             // propre à une édition « 8+ » le partagent (voir `prelevementsBibliques`).
             const canonVerset = canonIdDeLigne(v.id_verset)
-            const idPreleve = prelevementDuVerset(sauvegardes, canonVerset, v.verset)
+            const idPreleve = prelevementDuVerset(sauvegardes, canonVerset, v.verset, tradPrelevement)
+            // Prélevé dans une AUTRE bible seulement : le signet se dit intermédiaire.
+            const preleveAilleurs = idPreleve === null && etatDuVerset(sauvegardes, canonVerset, v.verset, tradPrelevement) === 'ailleurs'
             // ⛔ Un appel se pose à l'ANCRE que la donnée déclare ; sans ancre lisible, il suit le verset.
             const appelsDuVerset = repartirAppels(!lacune && !ligne899 ? texteDuVerset(v) : '', notesDuVerset)
             const dansLeLasso = (lassoActif || lassoTactileActif) && !lacune && Boolean(overrides[v.id_verset]?.[traduction] ?? v[traduction])
@@ -1129,11 +1141,13 @@ export default function TexteBible({
                           verset={v} texte={texteDuVerset(v)} nomLivre={nomLivre} livreActif={livreActif}
                           chapitreActif={chapitreActif} userId={userId}
                           traductionLabel={traductionLabel}
+                          trad={tradPrelevement}
                           canonId={canonVerset}
                           dejaSauvegarde={idPreleve !== null}
+                          ailleurs={preleveAilleurs}
                           idPrelevement={idPreleve}
-                          onSauvegarde={(id) => marquerSauvegarde(clePrelevementsCourante, cleVersetPreleve(canonVerset, v.verset), id)}
-                          onSupprimer={() => retirerSauvegarde(clePrelevementsCourante, cleVersetPreleve(canonVerset, v.verset))}
+                          onSauvegarde={(id) => marquerSauvegarde(clePrelevementsCourante, cleVersetPreleve(canonVerset, v.verset, tradPrelevement), id)}
+                          onSupprimer={() => retirerSauvegarde(clePrelevementsCourante, cleVersetPreleve(canonVerset, v.verset, tradPrelevement))}
                         />
                       )}
                       <BoutonCopie citation={citationBiblique(
@@ -1180,9 +1194,9 @@ export default function TexteBible({
                     aria-label={libelleNumeroVerset(v, idPreleve !== null)}
                     data-lasso-depart={lassoTactileActif ? '' : undefined}
                     onKeyDown={e => activerAuClavier(e, choisirVerset)}>
-                    {!mobile && idPreleve !== null && (
-                      <span aria-hidden="true" title="Dans mes prélèvements" style={STYLE_SIGNET_VERSET}>
-                        <IconeSignet plein taille="100%" />
+                    {!mobile && (idPreleve !== null || preleveAilleurs) && (
+                      <span aria-hidden="true" title={idPreleve !== null ? 'Dans mes prélèvements' : 'Prélevé dans une autre traduction'} style={STYLE_SIGNET_VERSET}>
+                        <IconeSignet plein={idPreleve !== null} ailleurs={preleveAilleurs} taille="100%" />
                       </span>
                     )}
                     {v.verset}

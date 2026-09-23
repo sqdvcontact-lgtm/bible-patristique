@@ -10,6 +10,7 @@ import { useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
 import IconeSignet from '@/app/components/IconeSignet'
+import { codeDeTraduction } from '@/app/lib/prelevementsBibliques'
 import IconeCopier from '@/app/components/IconeCopier'
 import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
 import IconeSignalement from '@/app/components/IconeSignalement'
@@ -29,6 +30,10 @@ export type ActionsVersetProps = {
   verset: number
   texte: string
   tradLabel: string
+  /** Le CODE de la traduction lue : le prélèvement est celui de CETTE bible (2026-09-23). */
+  trad: string | null
+  /** Le verset est prélevé dans une autre traduction : signet intermédiaire. */
+  ailleurs?: boolean
   userId: string | null
   prelevementId: string | null
   onPreleve: (cle: string, id: string) => void
@@ -37,9 +42,10 @@ export type ActionsVersetProps = {
 
 export default function ActionsVerset({
   idVerset, refAffichee, nomLivre, refLivreAbr, chapitre, verset, texte,
-  tradLabel, userId, prelevementId, onPreleve, onRetire,
+  tradLabel, trad, ailleurs = false, userId, prelevementId, onPreleve, onRetire,
 }: ActionsVersetProps) {
-  const cle = `${refLivreAbr}|${chapitre}|${verset}`
+  // ⛔ La clé porte la traduction : prélever la Vulgate ne coche pas la Bible de Sacy.
+  const cle = `${refLivreAbr}|${chapitre}|${verset}@${trad ?? ''}`
   const { copie, eclat, briller } = useEclatCopie()
   const [chargement, setChargement] = useState(false)
   const [signalOuvert, setSignalOuvert] = useState(false)
@@ -96,7 +102,7 @@ export default function ActionsVerset({
           user_id: userId, type: 'biblique',
           ref_livre: nomLivre, ref_livre_abr: refLivreAbr,
           ref_chapitre: chapitre, ref_verset: verset,
-          texte, traduction: tradLabel,
+          texte, traduction: tradLabel, trad_id: codeDeTraduction(trad),
         }).select('id').single()
         if (error || !data) {
           afficherErreur('Le verset n’a pas pu être ajouté à vos prélèvements. Réessayez.')
@@ -123,7 +129,7 @@ export default function ActionsVerset({
           title={preleve ? 'Retirer de mes prélèvements' : 'Ajouter à mes prélèvements'}
           aria-label={preleve ? `Retirer ${refAffichee} de mes prélèvements` : `Ajouter ${refAffichee} à mes prélèvements`}
           style={{ ...BTN, opacity: 0, color: preleve ? 'var(--cs-texte-doux)' : 'var(--cs-bord)' }}>
-          {chargement ? '…' : <IconeSignet plein={preleve} />}
+          {chargement ? '…' : <IconeSignet plein={preleve} ailleurs={ailleurs} />}
         </button>
       )}
 

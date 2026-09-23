@@ -41,6 +41,7 @@ import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
 import IconeCopier from './IconeCopier'
 import IconeSignalement from './IconeSignalement'
 import IconeSignet from './IconeSignet'
+import type { EtatPrelevement } from '@/app/lib/prelevementsBibliques'
 import { libelleNumeroVerset } from '@/app/lib/libelleVerset'
 import { nomLangue } from '@/app/lib/bibleModesAlternatifs'
 import { avecHoteEclat, EclatCopie, useEclatCopie } from './EclatCopie'
@@ -191,10 +192,13 @@ export type LectureBilingueProps = {
   /** Copier le verset d'UNE colonne, par sa clé de cellule (`cleDeCelluleBilingue`). Présent,
    *  chaque cellule qui porte un texte offre au survol un bouton de copie (bureau seul). */
   copierCellule?: (cle: string) => Promise<void>
-  /** L'identifiant du prélèvement d'un créneau, ou `null` s'il n'est pas prélevé. Présent
-   *  avec `basculerPrelevement`, chaque cellule qui porte un texte offre son signet, et le
-   *  numéro DIT l'état à qui ne voit pas la page. */
-  prelevementDe?: (canonId: string) => string | null
+  /** L'état du signet d'UNE cellule, par sa clé (`cleDeCelluleBilingue`) : `'plein'` si CE
+   *  texte est prélevé, `'ailleurs'` s'il ne l'est que dans une autre traduction (signet
+   *  intermédiaire), `null` sinon. Présent avec `basculerPrelevement`, chaque cellule qui
+   *  porte un texte offre son signet, et le numéro DIT l'état à qui ne voit pas la page.
+   *  ⛔ Par cellule, jamais par créneau : prélever le latin ne coche pas le français
+   *  (demande de l'auteur, 2026-09-23). */
+  etatPrelevement?: (cle: string) => EtatPrelevement
   /** Prélever ou retirer le verset d'UNE colonne, par sa clé de cellule
    *  (`cleDeCelluleBilingue`) : c'est elle qui dit quel texte et quelle bible on met de
    *  côté, comme pour la copie. */
@@ -280,9 +284,11 @@ function CopieCellule({ copier, numero, langue, derniere, rang, enRangee = false
 // La lecture en regard n'offrait AUCUN geste par verset — ni signet, ni copie — quand la
 // lecture simple en porte quatre. Le signet est le jumeau du bouton de copie : même
 // gabarit, même gouttière, rangé au-dessus de lui.
-function SignetCellule({ basculer, preleve, numero, derniere, rang, enRangee = false }: {
+function SignetCellule({ basculer, etat, langue, numero, derniere, rang, enRangee = false }: {
   basculer: () => Promise<void>
-  preleve: boolean
+  etat: EtatPrelevement
+  /** La langue de la colonne, pour que le nom du geste dise QUEL texte on prélève. */
+  langue: string
   numero: number | null
   derniere: boolean
   rang: number
@@ -290,8 +296,13 @@ function SignetCellule({ basculer, preleve, numero, derniere, rang, enRangee = f
 }) {
   const [attente, setAttente] = useState(false)
   const { echec, signaler } = useEclatEchec()
-  const objet = numero === null ? 'ce verset' : `le verset ${numero}`
-  const geste = preleve ? `Retirer ${objet} de mes prélèvements` : `Ajouter ${objet} à mes prélèvements`
+  const preleve = etat === 'plein'
+  const objet = `${numero === null ? 'ce verset' : `le verset ${numero}`} (${langue.toLowerCase()})`
+  const geste = preleve
+    ? `Retirer ${objet} de mes prélèvements`
+    : etat === 'ailleurs'
+      ? `Ajouter ${objet} à mes prélèvements — déjà prélevé dans une autre traduction`
+      : `Ajouter ${objet} à mes prélèvements`
   return (
     <button
       type="button"
@@ -313,11 +324,11 @@ function SignetCellule({ basculer, preleve, numero, derniere, rang, enRangee = f
       aria-label={geste}
       style={{
         ...(enRangee ? STYLE_BOUTON_ACTION : placeDansLaGouttiere(rang, derniere)),
-        color: echec ? 'var(--cs-danger)' : preleve ? 'var(--cs-texte-doux)' : 'var(--cs-bord)',
+        color: echec ? 'var(--cs-danger)' : etat ? 'var(--cs-texte-doux)' : 'var(--cs-bord)',
         ...(echec ? STYLE_HOTE_ECHEC : null),
       }}
     >
-      {attente ? '…' : <IconeSignet plein={preleve} />}
+      {attente ? '…' : <IconeSignet plein={preleve} ailleurs={etat === 'ailleurs'} />}
       <EclatEchec echec={echec} />
     </button>
   )
@@ -448,7 +459,7 @@ export default function BibleBilingue({
   canonSelectionne = null,
   onSelectionnerVerset,
   copierCellule,
-  prelevementDe,
+  etatPrelevement,
   basculerPrelevement,
   signalerCellule,
   mobile = false,
@@ -587,7 +598,11 @@ export default function BibleBilingue({
   // n'y a plus de « tout à droite des deux versets » : chaque cellule prend alors la pleine
   // largeur, et les boutons retournent dans sa gouttière, comme avant.
   const actionsEnRangee = !mobile && Boolean(basculer || copier || signaler)
-  const estPreleve = (canonId: string) => (prelevementDe ? prelevementDe(canonId) !== null : false)
+  const etatDe = (cle: string): EtatPrelevement => (etatPrelevement ? etatPrelevement(cle) : null)
+  // Le numéro d'une rangée se dit prélevé dès qu'UNE colonne l'est : il nomme le verset,
+  // non l'une de ses langues.
+  const estPreleve = (canonId: string) => colonnesOrdonnees.some(
+    ({ membre }) => etatDe(cleDeCelluleBilingue(membre.translationId, canonId)) === 'plein')
   const marquesDeRangee = (canonId: string) => {
     if (!choisir) return {}
     const retenue = canonId === canonSelectionne
@@ -701,7 +716,7 @@ export default function BibleBilingue({
               boutons: (
                 <>
                   {basculer && (
-                    <SignetCellule enRangee basculer={() => basculer(cle)} preleve={estPreleve(rangee.canonId)}
+                    <SignetCellule enRangee basculer={() => basculer(cle)} etat={etatDe(cle)} langue={langue}
                       numero={numero} derniere={false} rang={0} />
                   )}
                   {copier && (
@@ -784,11 +799,16 @@ export default function BibleBilingue({
                     aria-hidden={referenceRepetee || undefined}
                     data-lasso-depart={departLasso}
                     {...(estBouton && !referenceRepetee ? boutonDuNumero(glose ? (glose.canonHote as string) : rangee.canonId, glose ? LIBELLE_GLOSE : null) : {})}>
-                    {!referenceRepetee && estBouton && !glose && estPreleve(rangee.canonId) && (
-                      <span aria-hidden="true" title="Dans mes prélèvements" style={STYLE_SIGNET_VERSET}>
-                        <IconeSignet plein taille="100%" />
-                      </span>
-                    )}
+                    {!referenceRepetee && estBouton && !glose && (() => {
+                      // ⚠️ La marque du numéro dit l'état de SA colonne : pleine si ce texte est
+                      // prélevé, intermédiaire s'il ne l'est que dans l'autre langue.
+                      const etatMarque = etatDe(cleDeCelluleBilingue(membre.translationId, rangee.canonId))
+                      return etatMarque ? (
+                        <span aria-hidden="true" title={etatMarque === 'plein' ? 'Dans mes prélèvements' : 'Prélevé dans une autre traduction'} style={STYLE_SIGNET_VERSET}>
+                          <IconeSignet plein={etatMarque === 'plein'} ailleurs={etatMarque === 'ailleurs'} taille="100%" />
+                        </span>
+                      ) : null
+                    })()}
                     {referenceRepetee
                       ? <span style={{ visibility: 'hidden' as const }}>{libelleReference(rangee.cellules[0])}</span>
                       : libelleReference(cellule)}
@@ -850,7 +870,8 @@ export default function BibleBilingue({
                         {!actionsEnRangee && basculer && cleLasso && (
                           <SignetCellule
                             basculer={() => basculer(cleLasso)}
-                            preleve={estPreleve(rangee.canonId)}
+                            etat={etatDe(cleLasso)}
+                            langue={nomLangue(membre.languageCode)}
                             numero={numeroCanonique(rangee.canonId)}
                             derniere={index === rangee.cellules.length - 1}
                             rang={rangDuSignet}

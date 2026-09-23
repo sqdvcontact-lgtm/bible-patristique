@@ -28,6 +28,7 @@ import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } f
 import IconeCrayon from "@/app/components/IconeCrayon";
 import IconeSignalement from "@/app/components/IconeSignalement";
 import IconeSignet from "@/app/components/IconeSignet";
+import { codeDeTraduction } from "@/app/lib/prelevementsBibliques";
 // La cellule d'actions du site : au-dessus du texte survolé, jamais dessus.
 import { CelluleActions, useCelluleActions } from "@/app/components/CelluleActions";
 import { STYLE_BOUTON_ACTION } from "@/app/lib/celluleActions";
@@ -582,7 +583,7 @@ type ActionsDeCellule = {
   cle: string;
   refLisible: string;
   texte: string;
-  citer: { cle: string; refLivre: string; refAbr: string; chapitre: number; verset: number; traductionLabel: string } | null;
+  citer: { cle: string; refLivre: string; refAbr: string; chapitre: number; verset: number; traductionLabel: string; tradId: string } | null;
 };
 
 const hautDeLecture = (entete: HTMLElement | null) => entete?.getBoundingClientRect().bottom ?? hauteurNavbarPx();
@@ -672,9 +673,9 @@ const ACT_BTN = STYLE_BOUTON_ACTION;
 
 // Bouton « citer » à bascule : ajoute le verset à « mes citations » s'il n'y est pas,
 // l'en retire s'il y est déjà (signet plein = enregistré). Réservé aux comptes connectés.
-function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, verset, texte, traductionLabel, onSaved, onRemoved }: {
+function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, verset, texte, traductionLabel, tradId, onSaved, onRemoved }: {
   userId: string | null; saved: string | null; cle: string; refLivre: string; refAbr: string; chapitre: number; verset: number;
-  texte: string; traductionLabel: string; onSaved: (cle: string, id: string) => void; onRemoved: (cle: string) => void;
+  texte: string; traductionLabel: string; tradId: string; onSaved: (cle: string, id: string) => void; onRemoved: (cle: string) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [survol, setSurvol] = useState(false);
@@ -691,7 +692,7 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
         user_id: userId, type: "biblique",
         ref_livre: refLivre, ref_livre_abr: refAbr,
         ref_chapitre: chapitre, ref_verset: verset,
-        texte: texteSansEnrichissement(texte), traduction: traductionLabel,
+        texte: texteSansEnrichissement(texte), traduction: traductionLabel, trad_id: codeDeTraduction(tradId),
       }).select("id").single();
       if (!error && data) { onSaved(cle, data.id); signalerProgression(); }
     }
@@ -1932,12 +1933,14 @@ export default function PolyglottePage() {
   useEffect(() => {
     if (!userId || !livresAffiches.length) { setPrelevs(new Map()); return; }
     const abrs = livresAffiches.map(l => ABREV_FR[l.code] ?? l.code);
-    supabase.from("prelevements").select("id, ref_livre_abr, ref_chapitre, ref_verset, traduction")
+    supabase.from("prelevements").select("id, ref_livre_abr, ref_chapitre, ref_verset, traduction, trad_id")
       .eq("user_id", userId).eq("type", "biblique").in("ref_livre_abr", abrs)
       .then(({ data }) => {
         const m = new Map<string, string>();
-        // Clé étendue au nom d'édition : chaque colonne (traduction) a son propre signet.
-        for (const p of data ?? []) m.set(`${p.ref_livre_abr}|${p.ref_chapitre}|${p.ref_verset}|${p.traduction}`, p.id);
+        // Clé étendue au CODE de la traduction : chaque colonne a son propre signet. ⚠️ Le code
+        // plutôt que le nom : un nom d'édition change (« Vulgate publiée par Fillion » est
+        // devenue « Bible Fillion – Latin (Vulgate) »), le code non (2026-09-23).
+        for (const p of data ?? []) m.set(`${p.ref_livre_abr}|${p.ref_chapitre}|${p.ref_verset}|${p.trad_id ?? p.traduction}`, p.id);
         setPrelevs(m);
       });
   }, [userId, livresAffiches]);
@@ -2720,13 +2723,13 @@ export default function PolyglottePage() {
                         // TR0009 : une lacune du manuscrit se rend « [lacune du manuscrit] », sans
                         // lettrine ni actions (rien à citer), et non par la case « absente » générique.
                         const lacuneCell = cs.length > 0 && cs[0]?.estLacune899 === true;
-                        const cleCite = `${abr}|${r.ch_canon}|${r.v_canon}|${t.nom}`;
+                        const cleCite = `${abr}|${r.ch_canon}|${r.v_canon}|${codeDeTraduction(t.trad_id) ?? t.nom}`;
                         // ⚠️ Une lacune du témoin n'a rien à citer ni à copier : pas d'actions.
                         const actionsCell: ActionsDeCellule | null = cs.length > 0 && !lacuneCell ? {
                           cle: `${r.id}|${t.trad_id}`,
                           refLisible,
                           texte: texteCell,
-                          citer: { cle: cleCite, refLivre: l.nom_fr, refAbr: abr, chapitre: r.ch_canon, verset: r.v_canon, traductionLabel: t.nom },
+                          citer: { cle: cleCite, refLivre: l.nom_fr, refAbr: abr, chapitre: r.ch_canon, verset: r.v_canon, traductionLabel: t.nom, tradId: t.trad_id },
                         } : null;
                         return (
                           <div key={i} className="poly-texte-cell" lang={t.lang} onCopy={copierSansCesures}
@@ -2841,6 +2844,7 @@ export default function PolyglottePage() {
               verset={celluleActions.ancre.donnees.citer.verset}
               texte={celluleActions.ancre.donnees.texte}
               traductionLabel={celluleActions.ancre.donnees.citer.traductionLabel}
+              tradId={celluleActions.ancre.donnees.citer.tradId}
               onSaved={marquerCite} onRemoved={retirerCite} />
           )}
           <BoutonCopierTexte className="poly-act" style={ACT_BTN} titre="Copier ce verset"

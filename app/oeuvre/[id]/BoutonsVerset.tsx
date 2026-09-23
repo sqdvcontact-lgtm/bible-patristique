@@ -8,6 +8,7 @@ import { BTN_STYLE } from './BoutonsSegment'
 import ModalSignalement from './ModalSignalement'
 import { insererSignalement } from './signalements'
 import { Bulle } from '@/app/components/Bulle'
+import { codeDeTraduction } from '@/app/lib/prelevementsBibliques'
 import IconeSignet from '@/app/components/IconeSignet'
 import IconeCopier from '@/app/components/IconeCopier'
 import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
@@ -58,12 +59,16 @@ export function BoutonEnregistrerVerset({ verset, trad, userId }: { verset: VRef
     e.stopPropagation()
     if (!exigerCompte('prélever ce verset')) return
     setLoading(true)
-    const texte = verset.textes[trad] || verset.textes['TR0001'] || ''
+    // ⛔ Le prélèvement nomme la traduction DONT VIENT SON TEXTE (2026-09-23) : quand la bible
+    // choisie ne porte pas ce verset, le texte vient de la Bible de Sacy, et c'est elle qu'on
+    // écrit — sans quoi « Mes citations » montrerait du Sacy sous un autre nom.
+    const tradDuTexte = verset.textes[trad] ? trad : 'TR0001'
+    const texte = verset.textes[tradDuTexte] || ''
     const { data, error } = await supabase.from('prelevements').insert({
       user_id: userId, type: 'biblique',
       ref_livre: verset.label.split(' ')[0], ref_livre_abr: verset.label.split(' ')[0],
       ref_chapitre: parseInt(verset.chapitre), ref_verset: parseInt(verset.verset),
-      texte, traduction: trad,
+      texte, traduction: tradDuTexte, trad_id: codeDeTraduction(tradDuTexte),
     }).select('id').single()
     setLoading(false)
     if (!error && data) { setIdPrelev(data.id); signalerProgression() }

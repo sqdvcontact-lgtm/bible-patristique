@@ -28,6 +28,10 @@ export type PassageDuLasso = {
   texte: string
   /** Le nom de la bible d'où il vient, celui que `prelevements.traduction` porte. */
   label: string
+  /** Son CODE (« TR0004 »), celui que `prelevements.trad_id` porte : c'est lui qui dit
+   *  quelle colonne est prélevée. ⚠️ Facultatif pour les appelants anciens ; toute surface
+   *  de lecture le passe. */
+  trad?: string | null
   /** Son créneau canonique (« GEN.1.8 »), quand la ligne en a un. */
   canonId?: string | null
 }
@@ -54,8 +58,8 @@ export function passagesAPrelever(
 ): PassageDuLasso[] {
   const vus = new Set<string>()
   return passages.filter((p) => {
-    const cle = cleVersetPreleve(p.canonId, p.numero)
-    if (vus.has(cle) || prelevementDuVerset(sauvegardes, p.canonId, p.numero)) return false
+    const cle = cleVersetPreleve(p.canonId, p.numero, p.trad)
+    if (vus.has(cle) || prelevementDuVerset(sauvegardes, p.canonId, p.numero, p.trad)) return false
     vus.add(cle)
     return true
   })
@@ -69,14 +73,14 @@ export function prelevementsDesPassages(
   const vus = new Set<string>()
   const trouves: { cle: string; id: string }[] = []
   for (const p of passages) {
-    const id = prelevementDuVerset(sauvegardes, p.canonId, p.numero)
+    const id = prelevementDuVerset(sauvegardes, p.canonId, p.numero, p.trad)
     if (!id || vus.has(id)) continue
     vus.add(id)
     // ⚠️ La clé retirée est celle sous laquelle la liste le porte : un prélèvement ancien,
     // sans créneau, se range sous son numéro, et c'est là qu'il faut aller le chercher.
-    const cle = sauvegardes.get(cleVersetPreleve(p.canonId, p.numero)) === id
-      ? cleVersetPreleve(p.canonId, p.numero)
-      : cleVersetPreleve(null, p.numero)
+    const cle = sauvegardes.get(cleVersetPreleve(p.canonId, p.numero, p.trad)) === id
+      ? cleVersetPreleve(p.canonId, p.numero, p.trad)
+      : cleVersetPreleve(null, p.numero, p.trad)
     trouves.push({ cle, id })
   }
   return trouves
@@ -115,13 +119,13 @@ export async function enregistrerLeLasso(
     ref_livre: contexte.nomLivre, ref_livre_abr: contexte.livreAbrege,
     ref_chapitre: contexte.chapitre, ref_verset: p.numero,
     canon_id: p.canonId ?? null,
-    texte: p.texte, traduction: p.label,
-  }))).select('id, ref_verset, canon_id')
+    texte: p.texte, traduction: p.label, trad_id: p.trad ?? null,
+  }))).select('id, ref_verset, canon_id, trad_id')
   if (error) throw error
   contexte.modifierPour(contexte.cleDepart, (prev) => {
     const suite = new Map(prev)
-    for (const ligne of (data ?? []) as { id: string; ref_verset: number; canon_id: string | null }[]) {
-      suite.set(cleVersetPreleve(ligne.canon_id, ligne.ref_verset), ligne.id)
+    for (const ligne of (data ?? []) as { id: string; ref_verset: number; canon_id: string | null; trad_id: string | null }[]) {
+      suite.set(cleVersetPreleve(ligne.canon_id, ligne.ref_verset, ligne.trad_id), ligne.id)
     }
     return suite
   })

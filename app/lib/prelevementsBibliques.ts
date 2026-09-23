@@ -3,10 +3,9 @@
 // LES PRÉLÈVEMENTS BIBLIQUES DU CHAPITRE OUVERT — une seule recette, deux lectures.
 //
 // ⛔ LA CLÉ D'UN PRÉLÈVEMENT BIBLIQUE EST NATURELLE : ce lecteur, ce livre, ce chapitre, ce
-// verset. Un verset se montre prélevé quelle que soit la traduction retenue — c'est ce que
-// le signet de la page Bible montre depuis toujours. Les deux lectures peuvent donc
-// partager ce chargement : elles ne diffèrent que par la colonne qu'on lit, jamais par ce
-// qu'on a mis de côté.
+// verset, CETTE TRADUCTION (depuis le 2026-09-23 ; voir plus bas). Le chargement porte tout
+// le chapitre, toutes traductions confondues : les deux lectures le partagent, et chaque
+// colonne y cherche SA clé, les autres traductions ne donnant qu'un signet intermédiaire.
 //
 // ⛔ Ne pas recopier cette lecture dans une page : elle l'était dans `TexteBible`, et la
 // lecture en regard en aurait fait une seconde copie, que rien n'obligerait à rester
@@ -36,11 +35,22 @@
 // que la migration n'a pas su replacer n'en porte pas : il se range alors sous son numéro,
 // et ne se montre que sur le verset ordinaire, jamais sur la ligne surnuméraire.
 
+// ⛔ ET UN PRÉLÈVEMENT EST CELUI D'UNE TRADUCTION (2026-09-23). Demande de l'auteur : « dans
+// une bible bilingue, quand je coche un verset, le signet du texte latin et le signet du
+// texte français se valident ; il faudrait n'en valider qu'un, celui sur lequel on a
+// cliqué ». La clé porte donc le CODE de la traduction (`prelevements.trad_id`, migration
+// 20260923132719) : `c:GEN.1.3@TR0004`. Un verset prélevé dans une autre traduction ne se
+// montre plus plein, mais en signet intermédiaire (`tradsAilleurs`, `IconeSignet`).
+// ⚠️ La clé sans traduction (`@` seul) reste admise : elle sert les tests et un appelant
+// qui ne connaîtrait pas sa bible ; elle ne rencontre aucune ligne réelle, toutes portant
+// désormais leur code.
+
 import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import { ABREV_FR } from './bible'
 import { supabase } from './supabase'
 
-/** La clé d'un verset prélevé (`cleVersetPreleve`) → l'identifiant de son prélèvement. */
+/** La clé d'un verset prélevé dans une traduction (`cleVersetPreleve`) → l'identifiant de
+ *  son prélèvement. */
 export type PrelevementsDuChapitre = Map<string, string>
 
 /** Un créneau canonique tel que `versets_lecture` l'écrit : « GEN.1.8 », « DAN.13.44+ ». */
@@ -59,9 +69,14 @@ export function canonIdDeLigne(idVerset: string | null | undefined): string | nu
   return RE_CRENEAU.test(nu) ? nu : null
 }
 
-/** La clé d'affichage d'un verset : son créneau quand on le connaît, son numéro sinon. */
-export function cleVersetPreleve(canonId: string | null | undefined, numero: number): string {
+/** La base d'une clé : le créneau quand on le connaît, le numéro sinon. */
+function baseDuVerset(canonId: string | null | undefined, numero: number): string {
   return canonId ? `c:${canonId}` : `n:${numero}`
+}
+
+/** La clé d'un verset prélevé : son créneau (ou son numéro) et la traduction prise. */
+export function cleVersetPreleve(canonId: string | null | undefined, numero: number, trad: string | null = null): string {
+  return `${baseDuVerset(canonId, numero)}@${trad ?? ''}`
 }
 
 /**
@@ -74,11 +89,34 @@ export function prelevementDuVerset(
   liste: PrelevementsDuChapitre,
   canonId: string | null | undefined,
   numero: number,
+  trad: string | null = null,
 ): string | null {
-  const direct = liste.get(cleVersetPreleve(canonId, numero))
+  const direct = liste.get(cleVersetPreleve(canonId, numero, trad))
   if (direct) return direct
   if (!canonId || canonId.endsWith('+')) return null
-  return liste.get(cleVersetPreleve(null, numero)) ?? null
+  return liste.get(cleVersetPreleve(null, numero, trad)) ?? null
+}
+
+/**
+ * Les AUTRES traductions dans lesquelles ce verset est prélevé (codes, sans doublon), pour
+ * le signet intermédiaire. Même repli sur le numéro que `prelevementDuVerset`.
+ */
+export function tradsAilleurs(
+  liste: PrelevementsDuChapitre,
+  canonId: string | null | undefined,
+  numero: number,
+  trad: string | null,
+): string[] {
+  const bases = [baseDuVerset(canonId, numero)]
+  if (canonId && !canonId.endsWith('+')) bases.push(baseDuVerset(null, numero))
+  const vues = new Set<string>()
+  for (const cle of liste.keys()) {
+    const at = cle.lastIndexOf('@')
+    if (at < 0 || !bases.includes(cle.slice(0, at))) continue
+    const autre = cle.slice(at + 1)
+    if (autre !== (trad ?? '')) vues.add(autre)
+  }
+  return [...vues]
 }
 
 /** La clé d'une liste de prélèvements : ce lecteur, ce livre, ce chapitre. `null` sans
@@ -158,7 +196,7 @@ export function usePrelevementsDuChapitre(
     const abr = ABREV_FR[livreActif] || livreActif
     supabase
       .from('prelevements')
-      .select('id, ref_verset, canon_id')
+      .select('id, ref_verset, canon_id, trad_id')
       .eq('user_id', userId)
       .eq('type', 'biblique')
       .eq('ref_livre_abr', abr)
@@ -174,8 +212,8 @@ export function usePrelevementsDuChapitre(
           return
         }
         const m: PrelevementsDuChapitre = new Map()
-        ;(data ?? []).forEach((r: { ref_verset: number; canon_id: string | null; id: string }) => {
-          m.set(cleVersetPreleve(r.canon_id, r.ref_verset), r.id)
+        ;(data ?? []).forEach((r: { ref_verset: number; canon_id: string | null; trad_id: string | null; id: string }) => {
+          m.set(cleVersetPreleve(r.canon_id, r.ref_verset, r.trad_id), r.id)
         })
         setEtat(prev => ({ cle, liste: listeArrivee(m, cle, prev.enAttente), enAttente: null }))
       })
@@ -193,4 +231,29 @@ export function usePrelevementsDuChapitre(
 
   const liste = cle !== null && etat.cle === cle ? etat.liste : VIDE
   return [liste, modifier, cle, modifierPour]
+}
+
+/** L'état du signet d'un verset dans une traduction : prélevé ICI, prélevé dans une autre
+ *  traduction seulement (signet intermédiaire), ou pas du tout. */
+export type EtatPrelevement = 'plein' | 'ailleurs' | null
+
+export function etatDuVerset(
+  liste: PrelevementsDuChapitre,
+  canonId: string | null | undefined,
+  numero: number,
+  trad: string | null,
+): EtatPrelevement {
+  if (prelevementDuVerset(liste, canonId, numero, trad)) return 'plein'
+  return tradsAilleurs(liste, canonId, numero, trad).length > 0 ? 'ailleurs' : null
+}
+
+/**
+ * Le code de traduction qu'un prélèvement écrit (`prelevements.trad_id`, « TR0004 »), tiré
+ * du code que la page lit. ⚠️ La page peut porter un suffixe de couche ou de graphie
+ * (« TR0009#diplomatic », « TR0009:diplomatic ») : le prélèvement est celui de la BIBLE, et
+ * la base refuse tout ce qui n'a pas la forme d'un code. `null` quand rien n'y ressemble.
+ */
+export function codeDeTraduction(code: string | null | undefined): string | null {
+  const m = String(code ?? '').match(/^TR\d{4}/)
+  return m ? m[0] : null
 }

@@ -28,7 +28,7 @@ import dynamic from 'next/dynamic'
 import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { useSansSurvol } from '@/app/lib/useEstMobile'
-import { canonIdDeLigne, prelevementDuVerset, usePrelevementsDuChapitre } from '@/app/lib/prelevementsBibliques'
+import { canonIdDeLigne, codeDeTraduction, etatDuVerset, prelevementDuVerset, usePrelevementsDuChapitre } from '@/app/lib/prelevementsBibliques'
 import {
   compterDejaPreleves, copierLeLasso, enregistrerLeLasso, retirerDuLasso,
   type ContexteDuLasso, type PassageDuLasso,
@@ -274,6 +274,7 @@ export default function LectureBilingueBible({
           numero,
           texte: texteLisibleDeLaBible(cellule.texte, code),
           label: colonne.membre.label || code,
+          trad: codeDeTraduction(code),
           canonId: canonIdDeLigne(cellule.canonId),
         })
       }
@@ -353,16 +354,21 @@ export default function LectureBilingueBible({
   // geste par verset — quand la lecture simple en porte quatre. Le geste est celui du
   // lasso, réduit à une cellule : le texte et la bible mis de côté sont ceux de SA colonne,
   // et le créneau canonique est la clé, comme en lecture simple.
-  const prelevementDeLaRangee = (canonId: string) => {
-    // ⚠️ Un créneau sans numéro canonique n'a pas de clé sous laquelle se ranger : il ne
-    // se prélève pas, et il ne se montre donc jamais prélevé.
-    const numero = numeroCanonique(canonId)
-    return numero === null ? null : prelevementDuVerset(sauvegardes, canonIdDeLigne(canonId), numero)
+  // ⛔ ET CHAQUE COLONNE A SON SIGNET (demande de l'auteur, 2026-09-23 : « quand je coche
+  // un verset, le signet du texte latin et le signet du texte français se valident ; il
+  // faudrait n'en valider qu'un, celui sur lequel on a cliqué »). L'état se lit par la CLÉ
+  // de la cellule, donc par sa traduction : plein si CE texte est prélevé, intermédiaire
+  // s'il ne l'est que dans l'autre langue (`IconeSignet`, `ailleurs`).
+  const etatPrelevement = (cle: string) => {
+    // ⚠️ Une cellule sans numéro canonique, une glose ou un créneau vide n'ont pas de clé
+    // sous laquelle se ranger : ils ne se prélèvent pas.
+    const passage = cellulesDuLasso.get(cle)
+    return passage ? etatDuVerset(sauvegardes, passage.canonId, passage.numero, passage.trad ?? null) : null
   }
   const basculerPrelevement = async (cle: string) => {
     const passage = cellulesDuLasso.get(cle)
     if (!passage) return
-    const preleve = prelevementDuVerset(sauvegardes, passage.canonId, passage.numero) !== null
+    const preleve = prelevementDuVerset(sauvegardes, passage.canonId, passage.numero, passage.trad ?? null) !== null
     if (preleve) await retirerLasso([cle])
     else await enregistrerLasso([cle])
   }
@@ -509,7 +515,7 @@ export default function LectureBilingueBible({
           {/* ⚠️ `margeActions` porte la place qui reste à droite de la colonne, gouttière
               comprise : c'est elle, et elle seule, qui décide si la rangée d'actions se
               pose dans la marge ou se replie en carte. */}
-          <BibleBilingue {...contenu} mobile={mobile || colonnesEtroites} copierCellule={copierCellule} prelevementDe={prelevementDeLaRangee} basculerPrelevement={basculerPrelevement} signalerCellule={signalerCellule} margeActions={margeActions} />
+          <BibleBilingue {...contenu} mobile={mobile || colonnesEtroites} copierCellule={copierCellule} etatPrelevement={etatPrelevement} basculerPrelevement={basculerPrelevement} signalerCellule={signalerCellule} margeActions={margeActions} />
           {/* Sous le dernier verset, les chapitres voisins, nommés (audit du 2026-09-21).
               ⚠️ Dans la PREMIÈRE colonne de la grille : la seconde est la gouttière. */}
           <div style={mobile ? undefined : { gridColumn: 1 }}>

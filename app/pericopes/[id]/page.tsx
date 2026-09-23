@@ -128,7 +128,10 @@ function Etat({ children }: { children: React.ReactNode }) {
 type CtxActions = {
   livre: string
   tradLabel: string
+  /** Le code de la bible lue : un prélèvement est celui d'une traduction (2026-09-23). */
+  trad: string
   userId: string | null
+  /** « abréviation|chapitre|verset@traduction » → identifiant du prélèvement. */
   prelevements: Map<string, string>
   onPreleve: (cle: string, id: string) => void
   onRetire: (cle: string) => void
@@ -145,13 +148,16 @@ function BlocVersets({ vs, ctx }: { vs: VersetPericope[]; ctx: CtxActions }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
       {vs.map((v, i) => {
         const nouveauChapitre = multiChapitres && (i === 0 || v.chapitre !== vs[i - 1].chapitre)
-        const cle = `${abr}|${v.chapitre}|${v.verset}`
+        const base = `${abr}|${v.chapitre}|${v.verset}`
+        const cle = `${base}@${ctx.trad}`
+        // Prélevé dans une AUTRE bible seulement : signet intermédiaire.
+        const ailleurs = !ctx.prelevements.has(cle) && [...ctx.prelevements.keys()].some(k => k.startsWith(`${base}@`))
         const actions = (
           <ActionsVerset
             idVerset={v.id_verset} refAffichee={`${abr} ${v.chapitre}, ${v.verset}`}
             nomLivre={nomLivreReference(ctx.livre)} refLivreAbr={abr}
             chapitre={v.chapitre} verset={v.verset} texte={String(v.texte)}
-            tradLabel={ctx.tradLabel} userId={ctx.userId}
+            tradLabel={ctx.tradLabel} trad={ctx.trad} ailleurs={ailleurs} userId={ctx.userId}
             prelevementId={ctx.prelevements.get(cle) ?? null}
             onPreleve={ctx.onPreleve} onRetire={ctx.onRetire} />
         )
@@ -178,9 +184,9 @@ function BlocVersets({ vs, ctx }: { vs: VersetPericope[]; ctx: CtxActions }) {
                   la page Bible (`STYLE_SIGNET_VERSET`), au bureau ; au doigt, le pavé
                   d'actions dit l'état. */}
               <span style={{ fontFamily: SANS, fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-texte-gris)', minWidth: '1.1rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: 'calc(0.875rem * 1.55)', lineHeight: 1 }}>
-                {!ctx.auDoigt && ctx.prelevements.has(cle) && (
-                  <span aria-hidden="true" title="Dans mes prélèvements" style={STYLE_SIGNET_VERSET}>
-                    <IconeSignet plein taille="100%" />
+                {!ctx.auDoigt && (ctx.prelevements.has(cle) || ailleurs) && (
+                  <span aria-hidden="true" title={ailleurs ? 'Prélevé dans une autre traduction' : 'Dans mes prélèvements'} style={STYLE_SIGNET_VERSET}>
+                    <IconeSignet plein={!ailleurs} ailleurs={ailleurs} taille="100%" />
                   </span>
                 )}
                 {v.verset}
@@ -414,10 +420,10 @@ export default function PericopePage() {
       const b = bornes.get(abr)
       bornes.set(abr, { min: Math.min(b?.min ?? deb, deb, fin), max: Math.max(b?.max ?? fin, deb, fin) })
     }
-    type Ligne = { id: string; ref_livre_abr: string; ref_chapitre: number; ref_verset: number }
+    type Ligne = { id: string; ref_livre_abr: string; ref_chapitre: number; ref_verset: number; trad_id: string | null }
     Promise.all([...bornes.entries()].map(([abr, { min, max }]) =>
       chargerToutesPagesSupabase<Ligne>((a, b) => supabase.from('prelevements')
-        .select('id, ref_livre_abr, ref_chapitre, ref_verset')
+        .select('id, ref_livre_abr, ref_chapitre, ref_verset, trad_id')
         .eq('user_id', userId).eq('type', 'biblique').eq('ref_livre_abr', abr)
         .gte('ref_chapitre', min).lte('ref_chapitre', max)
         .order('id').range(a, b)),
@@ -425,7 +431,7 @@ export default function PericopePage() {
       .then(listes => {
         if (annule) return
         const m = new Map<string, string>()
-        listes.flat().forEach(r => m.set(`${r.ref_livre_abr}|${r.ref_chapitre}|${r.ref_verset}`, r.id))
+        listes.flat().forEach(r => m.set(`${r.ref_livre_abr}|${r.ref_chapitre}|${r.ref_verset}@${r.trad_id ?? ''}`, r.id))
         setPrelevements(m)
         setErreurPrelevements(false)
       })
@@ -456,7 +462,7 @@ export default function PericopePage() {
   const tradActive = TRADUCTIONS_BIBLE.find(t => t.code === trad) ?? TRADUCTIONS_BIBLE[0]
   const langAttr = tradActive.langue === 'la' ? 'la' : tradActive.langue === 'grc' ? 'grc' : 'fr'
   const chapPrincipale = principale ? (parsePointCanonique(principale.canon_id_debut)?.chapitre ?? 1) : 1
-  const ctxBase = { tradLabel: tradActive.nom, userId, prelevements, onPreleve, onRetire, auDoigt: mobile || sansSurvol }
+  const ctxBase = { tradLabel: tradActive.nom, trad, userId, prelevements, onPreleve, onRetire, auDoigt: mobile || sansSurvol }
 
   // ── Volet gauche : apparat patristique (doublon du volet de la page Bible) ──
   const panneauPatristique = principale ? (
