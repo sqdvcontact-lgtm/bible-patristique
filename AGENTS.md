@@ -13153,3 +13153,12 @@ Relevés de l'auteur sur la passe du jour. Doctrine : ⚠️ **reste à porter �
 # ⛔ PLUS DE SIGNET INTERMÉDIAIRE (2026-09-23, le soir)
 
 Décision de l’auteur, parmi trois partis proposés : un verset prélevé dans une AUTRE traduction ne se marque PLUS dans la colonne qu’on lit — ni signet à contour gras et fond teinté, ni marque près du numéro, ni encre du bouton, ni infobulle. « Le plus propre, mais on perd l’information » : c’est assumé, « Mes citations » la garde. `IconeSignet` n’a plus que deux états (`plein`, vide) et plus de propriété `ailleurs` ; `ActionsVerset`, `TexteBible` (`BoutonEnregistrer`), `BibleBilingue` et la page d’une péricope ne la passent plus. ⚠️ `etatDuVerset` (`prelevementsBibliques.ts`) rend toujours `ailleurs` : la donnée reste, seul l’affichage se tait.
+
+# ⛔ LA POLYGLOTTE : ni éclair ni rendu pendant le glissement d'une colonne (2026-09-23, le soir)
+
+Relevés de l'auteur : « un flash quand je change le nombre de colonnes » ; « en livre entier, ce n'est pas fluide du tout ». Doctrine : ⚠️ **reste à porter à `charte_ia`**.
+
+- ⛔ **Plus de fondu sur le texte qui se recompose** : `poly-reflux` (opacité 0,45 → 1 sur les colonnes stables) se lisait comme un éclair. Le texte se recompose d'un coup, à sa largeur d'arrivée, et glisse avec sa colonne.
+- ⛔ **Aucun rendu React pendant le glissement.** La colonne qui arrive s'ouvre par la TABLE : sa piste est `var(--poly-piste-entree, minmax(0, 0fr))` dans `tmpl`, l'effet de mise en page de `transit` pose la variable à 0fr puis, 34 ms plus tard, à 1fr avec `data-poly-entree-ouverte` (qui lève `contain` et l'opacité nulle de `.poly-col-entrante`). Le seul rendu qui reste range les colonnes (`setFantomes(null)`, `setEntree(null)`) à la fin, dans `startTransition`. `data-poly-transit` ne se retire qu'une fois ce rendu fait (effet sur `[fantomes, entree]`) : avant, une colonne sortante rendue à zéro recomposerait son texte mot à mot sur toutes les lignes.
+- ⛔ **Au-delà de 60 lignes, le tableau se peint par tranches** (`enBlocs`, 16 lignes par `.poly-bloc` en `content-visibility: auto`, hauteur estimée `26 + 18 × colonnes` px, retenue ensuite par `auto`). Le glissement ne recalcule que les lignes visibles. ⚠️ `getBoundingClientRect` sur une ligne hors écran force sa mise en page (lasso, passage) : c'est voulu. ⚠️ Une tranche porte `contain: paint` : rien d'une ligne ne doit déborder d'elle.
+- ⚠️ Non mesuré dans la page (session requise) : à juger sur le serveur local, livre entier de la Genèse, quatre colonnes ↔ trois.

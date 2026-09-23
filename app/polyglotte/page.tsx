@@ -16,7 +16,7 @@
 
 import { activerAuClavier } from '@/app/lib/activerAuClavier'
 import { Z_MENU_PORTE, Z_MODALE, Z_SOUS_MENU_PORTE } from '@/app/lib/empilement'
-import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Fragment, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { cesurerGrec, codeLangue, copierSansCesures } from "@/app/lib/grec";
@@ -598,6 +598,31 @@ function corrigerTexteEnCache(id: string, texte: string) {
 // surnuméraire, un bandeau de livre. Le haut de la lecture est le bas de l'en-tête
 // collant, sinon la barre.
 const SELECTEUR_BLOCS_POLYGLOTTE = ".poly-row, .poly-surnum-row, h2";
+
+// ── UN LONG TABLEAU SE PEINT PAR TRANCHES (audit du 2026-09-23) ──
+// Un livre entier compte jusqu'à 2 500 lignes, un grand chapitre près de 200. Au-delà de
+// `SEUIL_BLOCS`, les lignes se rangent par tranches de `LIGNES_PAR_BLOC` en
+// `content-visibility: auto` (`.poly-bloc`) : le navigateur ne compose ni ne peint ce qui
+// est loin de l'écran, si bien que le glissement d'une colonne ne recalcule que les lignes
+// qu'on voit, au lieu du livre entier à chaque image. ⚠️ La hauteur d'une tranche encore
+// jamais peinte s'ESTIME (`hauteurLigne`) ; `auto` retient ensuite la vraie. Le texte reste
+// cherchable (Ctrl+F) et atteignable par ancre, ce que `hidden` ne serait pas.
+const SEUIL_BLOCS = 60;
+const LIGNES_PAR_BLOC = 16;
+function enBlocs(lignes: React.ReactNode[], cle: string, hauteurLigne: number): React.ReactNode {
+  if (lignes.length <= SEUIL_BLOCS) return lignes;
+  const blocs: React.ReactNode[] = [];
+  for (let i = 0; i < lignes.length; i += LIGNES_PAR_BLOC) {
+    const tranche = lignes.slice(i, i + LIGNES_PAR_BLOC);
+    blocs.push(
+      <div key={`${cle}-${i / LIGNES_PAR_BLOC}`} className="poly-bloc"
+        style={{ containIntrinsicBlockSize: `auto ${tranche.length * hauteurLigne}px` }}>
+        {tranche}
+      </div>,
+    );
+  }
+  return blocs;
+}
 /** Ce qu'il faut pour composer les actions d'une cellule. ⚠️ Le TEXTE est celui de la
  *  cellule, versets d'origine réunis ; `citer` manque sur un surnuméraire, qui n'a pas
  *  de référence canonique où ranger un prélèvement. */
@@ -2140,6 +2165,9 @@ export default function PolyglottePage() {
   // d'une traduction, pour les calculs qui n'ont de sens que sur du texte réel.
   const slotCols = slotsDisponibles.map((id, i) => ({ slot: i, trad: trads.find(t => t.trad_id === id) ?? null }));
   const colonnes = slotCols.map(s => s.trad).filter((t): t is Trad => !!t);
+  // Hauteur d'une ligne jamais encore peinte (voir `enBlocs`) : plus il y a de colonnes,
+  // plus chacune est étroite, et plus son verset court sur de lignes.
+  const hauteurLigneEstimee = 26 + 18 * Math.max(1, colonnes.length);
 
   // ── UNE COLONNE S'OUVRE ET SE FERME, ELLE NE SAUTE PAS (demande de l'auteur, 2026-09-23) ──
   // « Je passe de 4 à 3 colonnes : la colonne de droite est poussée, écrasée par les autres,
@@ -2172,18 +2200,27 @@ export default function PolyglottePage() {
       setTransit(t => t + 1);
     }
   }
-  useEffect(() => {
-    if (!fantomes) return;
-    const fin = window.setTimeout(() => setFantomes(null), DUREE_COLONNE_MS + 40);
-    return () => window.clearTimeout(fin);
-  }, [fantomes]);
-  // ⚠️ Un minuteur et non une image d'animation : dans un onglet caché, une image ne se
+  // ⛔ AUCUN RENDU DE LA PAGE PENDANT LE GLISSEMENT (audit du 2026-09-23, « livre entier » :
+  // « pas fluide du tout »). L'ouverture de la colonne qui arrive se faisait par un second
+  // rendu React, 34 ms après le premier, c'est-à-dire en pleine animation : sur un livre
+  // entier, mille cinq cents lignes se recomposaient au moment même où la grille devait
+  // glisser. Elle passe désormais par la TABLE (variable `--poly-piste-entree` et attribut
+  // `data-poly-entree-ouverte`, posés par l'effet de mise en page ci-dessous), et le seul
+  // rendu qui reste — celui qui range les colonnes une fois le glissement fini — part en
+  // transition, qui cède la main au navigateur au lieu de la lui prendre.
+  // ⚠️ Des minuteurs et non des images d'animation : dans un onglet caché, une image ne se
   // joue jamais, et la colonne resterait à zéro jusqu'au retour du lecteur.
-  useEffect(() => {
-    if (!entree) return;
-    const depart = window.setTimeout(() => setEntree(null), 34);
-    return () => window.clearTimeout(depart);
-  }, [entree]);
+  const minuteurOuverture = useRef<number | null>(null);
+  // Le glissement fini ET les colonnes rangées : la table rend leur largeur aux textes.
+  // ⚠️ Pas avant : une colonne qui part, rendue à sa largeur réelle (zéro), recomposerait
+  // son texte mot à mot sur toutes les lignes pour rien.
+  useLayoutEffect(() => {
+    if (fantomes || entree) return;
+    const table = refTable.current;
+    if (!table) return;
+    table.removeAttribute("data-poly-transit");
+    table.removeAttribute("data-poly-entree-ouverte");
+  }, [fantomes, entree]);
   // ── LES LETTRES NE SAUTENT PAS D'UNE LIGNE À L'AUTRE (demande de l'auteur, 2026-09-23) ──
   // « Les lettres devraient se déplacer plus élégamment. » Tant que la piste d'une colonne
   // s'élargit ou se resserre, son texte se recomposait à CHAQUE image : les mots passaient
@@ -2212,13 +2249,27 @@ export default function PolyglottePage() {
     table.style.setProperty("--poly-col-depart", `${zone / avant}px`);
     table.style.setProperty("--poly-col-cible", `${zone / apres}px`);
     table.setAttribute("data-poly-transit", "");
+    // La colonne qui arrive naît fermée (piste à 0fr), et s'ouvre à la tâche suivante.
+    table.removeAttribute("data-poly-entree-ouverte");
+    table.style.setProperty("--poly-piste-entree", "minmax(0, 0fr)");
+    if (minuteurOuverture.current) window.clearTimeout(minuteurOuverture.current);
+    if (entrantes > 0) {
+      minuteurOuverture.current = window.setTimeout(() => {
+        minuteurOuverture.current = null;
+        table.style.setProperty("--poly-piste-entree", "minmax(0, 1fr)");
+        table.setAttribute("data-poly-entree-ouverte", "");
+      }, 34);
+    }
     if (minuteurTransit.current) window.clearTimeout(minuteurTransit.current);
     minuteurTransit.current = window.setTimeout(() => {
       minuteurTransit.current = null;
-      table.removeAttribute("data-poly-transit");
+      startTransition(() => { setFantomes(null); setEntree(null); });
     }, DUREE_COLONNE_MS + 60);
   }, [transit]);
-  useEffect(() => () => { if (minuteurTransit.current) window.clearTimeout(minuteurTransit.current); }, []);
+  useEffect(() => () => {
+    if (minuteurTransit.current) window.clearTimeout(minuteurTransit.current);
+    if (minuteurOuverture.current) window.clearTimeout(minuteurOuverture.current);
+  }, []);
   const colsRendues: ColRendue[] = [
     ...slotCols.map(c => ({ ...c, etat: entree && c.slot >= entree.depuis ? "entrante" as const : "stable" as const })),
     ...(fantomes?.cols ?? []).map(c => ({ ...c, etat: "sortante" as const })),
@@ -2420,7 +2471,9 @@ export default function PolyglottePage() {
   // partage `fr` des traductions). Enregistrées par verset sur le compte.
   const LARGEUR_NOTES = notesReduites ? "26px" : "13rem";
   // Une colonne en transit tient sa piste à `0fr` : c'est la grille qui l'ouvre ou la ferme.
-  const tmpl = `${LARGEUR_REF}px ${colsRendues.map(c => (c.etat === "stable" ? "minmax(0, 1fr)" : "minmax(0, 0fr)")).join(" ")} ${LARGEUR_NOTES}`;
+  // ⚠️ La piste d'une colonne qui ARRIVE se lit dans une variable de la table : c'est elle,
+  // non un nouveau rendu, qui l'ouvre (voir « Aucun rendu de la page pendant le glissement »).
+  const tmpl = `${LARGEUR_REF}px ${colsRendues.map(c => (c.etat === "stable" ? "minmax(0, 1fr)" : c.etat === "entrante" ? "var(--poly-piste-entree, minmax(0, 0fr))" : "minmax(0, 0fr)")).join(" ")} ${LARGEUR_NOTES}`;
   const HAUT_ENTETE = 52;   // titre et date de l'édition, sur deux lignes (ligne desserrée)
   const HAUT_NAV    = 10;   // blanc entre la NavBar et le haut de la page
   // Sommet du corps : sous la navbar, le blanc de séparation et la ligne des éditions.
@@ -2474,20 +2527,22 @@ export default function PolyglottePage() {
            irait à la ligne à chaque mot et gonflerait toute la rangée. */
         .poly-grille { transition: background .4s ease, grid-template-columns ${DUREE_COLONNE_MS}ms ${COURBE_COLONNE}; }
         .poly-col { transition: opacity ${Math.round(DUREE_COLONNE_MS * 0.75)}ms ease; }
+        .poly-bloc { content-visibility: auto; }
         .poly-col-entrante, .poly-col-sortante { contain: size; overflow: hidden; opacity: 0; pointer-events: none; }
+        /* La colonne qui arrive s'OUVRE sans nouveau rendu de la page : la table porte
+           « data-poly-entree-ouverte » et la piste passe à 1fr par une variable. */
+        [data-poly-entree-ouverte] .poly-col-entrante { contain: none; opacity: 1; }
         /* Pendant le transit, le texte d'une colonne est composé à sa largeur d'arrivée (celle
            qui part : à sa largeur de départ), et la cellule le rogne. La piste glisse, les
-           lignes ne bougent plus. Le texte qui vient de se recomposer remonte en fondu. */
+           lignes ne bougent plus. ⛔ Pas de fondu sur le texte qui se recompose : il se
+           lisait comme un éclair (relevé de l'auteur, 2026-09-23). */
         [data-poly-transit] .poly-texte-cell { overflow: hidden; }
         [data-poly-transit] .poly-col-stable > .poly-cell-corps,
         [data-poly-transit] .poly-col-entrante > .poly-cell-corps { width: calc(var(--poly-col-cible) - 1px - 2 * var(--poly-marge-x)); }
         [data-poly-transit] .poly-col-sortante > .poly-cell-corps { width: calc(var(--poly-col-depart) - 1px - 2 * var(--poly-marge-x)); }
-        [data-poly-transit] .poly-col-stable > .poly-cell-corps { animation: poly-reflux ${DUREE_COLONNE_MS}ms ${COURBE_COLONNE} both; }
-        @keyframes poly-reflux { from { opacity: .45; } to { opacity: 1; } }
         @media (prefers-reduced-motion: reduce) {
           .poly-grille { transition: background .4s ease; }
           .poly-col { transition: none; }
-          [data-poly-transit] .poly-col-stable > .poly-cell-corps { animation: none; }
         }
         .poly-act:hover { color: var(--cs-texte-second); }
         /* En-tête « Notes » : au survol de toute la cellule, « Notes » s'efface et
@@ -2968,7 +3023,7 @@ export default function PolyglottePage() {
               )}
               {debut.map((sr, i) => ligneSurnum(sr, `sd-${l.code}-${i}`))}
               {/* ⚠️ Le rang de la ligne ne sert plus : il ne servait qu'au zébrage. */}
-              {rows.map(r => {
+              {enBlocs(rows.map(r => {
                 const sensible = sens.estSensible(l.code, r.ch_canon, r.v_canon);
                 // UN DOUTE DE TRAVAIL N'EST PAS UNE INFORMATION DE LECTURE. Le rouge et le « ⚠ »
                 // disent « ce verset est peut-être mal aligné » : c'est une consigne d'atelier.
@@ -3125,7 +3180,7 @@ export default function PolyglottePage() {
                     {apres.map((sr, i) => ligneSurnum(sr, `sa-${r.id}-${i}`))}
                   </Fragment>
                 );
-              })}
+              }), l.code, hauteurLigneEstimee)}
             </section>
           );
         })}
