@@ -30,6 +30,14 @@
  * de papier qui rend le message lisible, jusqu'à ce que le
  * geste revienne dans une seule colonne. Aucune action n'est offerte sous un refus.
  *
+ * ⛔ DÉSÉLECTIONNER (demande de l'auteur, 23 septembre 2026 ; nommé d'abord « Évincer »,
+ * trop proche de « Retirer », qui ôte des PRÉLÈVEMENTS : l'un touche la sélection, l'autre
+ * la base). Un bouton de la barre fait passer
+ * le lasso en mode d'ÉVICTION : chaque verset ou passage cliqué sort de la sélection, et
+ * son survol l'annonce (un signe moins au pointeur, la surbrillance qui pâlit). Un lasso
+ * tracé dans ce mode RETRANCHE ce qu'il touche. Le mode se lève sur le même bouton, sur
+ * Échap, ou quand il n'y a plus rien à évincer.
+ *
  * ⚠️ Au bureau seulement : la page passe `actif` à faux au doigt, où glisser fait défiler.
  */
 
@@ -102,6 +110,8 @@ type Geste = {
   /** En coordonnées de contenu : un défilement ne le déplace pas. */
   departContenu: Point
   additif: boolean
+  /** Tracé en mode d'éviction : il retranche ce qu'il touche. */
+  soustractif: boolean
   base: readonly string[]
   lance: boolean
   cibles: CibleMesuree<string>[]
@@ -115,6 +125,9 @@ const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLa
 
 const DECLARATION_SURBRILLANCE = 'box-shadow: var(--cs-lasso-surbrillance);'
 const DECLARATION_SURBRILLANCE_REFUS = 'box-shadow: var(--cs-lasso-surbrillance-refus);'
+const DECLARATION_SURBRILLANCE_EVICTION = 'box-shadow: var(--cs-lasso-surbrillance-eviction); cursor: pointer;'
+/** L'indice suit le pointeur, en bas à droite de sa pointe. */
+const DECALAGE_INDICE_PX = { x: 14, y: 18 }
 const DUREE_MESSAGE_MS = 2600
 
 /**
@@ -197,6 +210,10 @@ export default function LassoLecture(props: LassoLectureProps) {
   // La bande où la lecture SE VOIT : elle porte l'axe de la barre et le centre du cri.
   const [cadre, setCadre] = useState<Rect | null>(null)
   const traceRef = useRef<HTMLDivElement>(null)
+  // Le mode d'éviction, et la cible qu'il survole : elle seule change d'état, non le pointeur.
+  const [eviction, setEviction] = useState(false)
+  const [survolee, setSurvolee] = useState<string | null>(null)
+  const indiceRef = useRef<HTMLDivElement>(null)
 
   // ⛔ La sélection ne survit pas à ce qui la rend fausse. Recalée PENDANT le rendu, et non
   // dans un effet : l'ancien chapitre ne s'éclaire pas une image de trop.
@@ -205,8 +222,13 @@ export default function LassoLecture(props: LassoLectureProps) {
     setContexteVu(contexte)
     setSelection([])
     setMessage(null)
+    setEviction(false)
   }
   if (!actif && selection.length > 0) setSelection([])
+  // ⛔ Le mode d'éviction ne survit pas à ce qu'il évince : plus rien de sélectionné, plus
+  // de mode, et le prochain lasso sélectionne à nouveau.
+  if (eviction && (!actif || selection.length === 0)) setEviction(false)
+  if (survolee !== null && (!eviction || !selection.includes(survolee))) setSurvolee(null)
   // ⚠️ Un geste interrompu parce que la page cesse d'être éligible (la fenêtre passe au
   // format du doigt) ne laisse pas sa trace en suspens : la barre ne reparaîtrait plus.
   if (!actif && trace) setTrace(false)
@@ -223,6 +245,7 @@ export default function LassoLecture(props: LassoLectureProps) {
     if (cles.length === 0 || enCours || refus) return
     setEnCours(action)
     setMessage(null)
+    setEviction(false)
     try {
       if (action === 'copier') {
         await props.onCopier(cles)
@@ -246,8 +269,8 @@ export default function LassoLecture(props: LassoLectureProps) {
 
   // Ce que les écoutes lisent sans se réabonner : les propriétés et la sélection du dernier
   // rendu. ⚠️ Rafraîchi APRÈS le rendu, jamais pendant.
-  const derniers = useRef({ props, selection, executer })
-  useEffect(() => { derniers.current = { props, selection, executer } })
+  const derniers = useRef({ props, selection, executer, eviction })
+  useEffect(() => { derniers.current = { props, selection, executer, eviction } })
 
   useEffect(() => {
     if (!message) return
@@ -307,7 +330,9 @@ export default function LassoLecture(props: LassoLectureProps) {
         }
       }
       const touchees = clesTouchees(lasso, g.cibles)
-      const suite = combinerSelection(g.additif ? g.base : [], touchees, g.ordre)
+      const suite = g.soustractif
+        ? g.base.filter(cle => !touchees.includes(cle))
+        : combinerSelection(g.additif ? g.base : [], touchees, g.ordre)
       if (!memesCles(suite, g.derniere)) {
         g.derniere = suite
         setSelection(suite)
@@ -358,6 +383,7 @@ export default function LassoLecture(props: LassoLectureProps) {
         courant: point,
         departContenu: { x: point.x + x, y: point.y + y },
         additif: e.shiftKey || e.ctrlKey || e.metaKey,
+        soustractif: derniers.current.eviction,
         base: derniers.current.selection,
         lance: false,
         cibles: [],
@@ -406,8 +432,9 @@ export default function LassoLecture(props: LassoLectureProps) {
       if (g.lance) {
         setTrace(false)
         avalerLeClic()
-      } else if (e.type === 'pointerup' && !g.additif && derniers.current.selection.length > 0) {
+      } else if (e.type === 'pointerup' && !g.additif && !g.soustractif && derniers.current.selection.length > 0) {
         // Un clic dans le blanc, sans geste : la sélection se défait, comme sur le bureau.
+        // ⚠️ Pas en mode d'éviction : un clic manqué entre deux versets perdrait tout.
         setSelection([])
       }
     }
@@ -424,7 +451,9 @@ export default function LassoLecture(props: LassoLectureProps) {
         }
         // ⚠️ Une fenêtre ouverte prend Échap pour elle : on ne défait pas la sélection derrière.
         if (derniers.current.selection.length > 0 && !document.querySelector('[aria-modal="true"]')) {
-          setSelection([])
+          // Le premier Échap lève le mode d'éviction, le second défait la sélection.
+          if (derniers.current.eviction) setEviction(false)
+          else setSelection([])
         }
         return
       }
@@ -454,6 +483,49 @@ export default function LassoLecture(props: LassoLectureProps) {
       if (geste) arreter(geste)
     }
   }, [actif, zone])
+
+  // ── L'ÉVICTION : survoler annonce, cliquer retire ─────────────────────────
+  // ⛔ Le clic est pris en CAPTURE, avant la page : un verset cliqué dans ce mode ne
+  // s'ouvre pas, ne se retient pas, il sort de la sélection. Hors de la sélection, le clic
+  // sur une cible est avalé lui aussi : le mode dit « évincer », il ne fait rien d'autre.
+  useEffect(() => {
+    if (!actif || !eviction) return
+    const zoneEl = zone.current
+    if (!zoneEl) return
+    const cleSous = (cible: EventTarget | null): string | null => {
+      if (!(cible instanceof Element)) return null
+      const { selecteurCibles, cleDe } = derniers.current.props
+      const element = cible.closest<HTMLElement>(selecteurCibles)
+      if (!element || !zoneEl.contains(element)) return null
+      const cle = cleDe(element)
+      return cle !== null && cleDeLassoValide(cle) ? cle : null
+    }
+    const auMouvement = (e: PointerEvent) => {
+      const cle = document.documentElement.hasAttribute('data-lasso-geste') ? null : cleSous(e.target)
+      const retenue = cle !== null && derniers.current.selection.includes(cle) ? cle : null
+      setSurvolee(prec => (prec === retenue ? prec : retenue))
+      const indice = indiceRef.current
+      if (indice) {
+        indice.style.transform = 'translate(' + (e.clientX + DECALAGE_INDICE_PX.x) + 'px, ' + (e.clientY + DECALAGE_INDICE_PX.y) + 'px)'
+      }
+    }
+    const auClic = (e: MouseEvent) => {
+      const cle = cleSous(e.target)
+      if (cle === null) return
+      e.preventDefault()
+      e.stopPropagation()
+      setSelection(prec => prec.filter(k => k !== cle))
+    }
+    const aLaSortie = () => setSurvolee(null)
+    window.addEventListener('pointermove', auMouvement)
+    window.addEventListener('click', auClic, { capture: true })
+    zoneEl.addEventListener('pointerleave', aLaSortie)
+    return () => {
+      window.removeEventListener('pointermove', auMouvement)
+      window.removeEventListener('click', auClic, { capture: true })
+      zoneEl.removeEventListener('pointerleave', aLaSortie)
+    }
+  }, [actif, eviction, zone])
 
   // ── LE CADRE DE LECTURE : l'axe de la barre, et le centre du cri ──────────
   // ⚠️ Mesuré sur la ZONE, que les volets rétrécissent sans que la fenêtre bouge.
@@ -497,7 +569,10 @@ export default function LassoLecture(props: LassoLectureProps) {
     // ⛔ La surbrillance d'un REFUS est rouge elle aussi : le lecteur doit voir CE QUI est
     // pris, non seulement qu'on lui refuse quelque chose.
     refus ? DECLARATION_SURBRILLANCE_REFUS : DECLARATION_SURBRILLANCE,
-  )
+  ) + (survolee !== null
+    // ⚠️ APRÈS la règle de la sélection, même sélecteur : c'est l'ordre qui la fait gagner.
+    ? ' ' + feuilleDeSurbrillance([props.surbrillance(survolee)], DECLARATION_SURBRILLANCE_EVICTION)
+    : '')
   const nombre = selection.length
   const enregistrable = nombre > 0 && (props.enregistrable?.(selection) ?? true)
   const deja = enregistrable ? Math.min(nombre, props.dejaEnregistres(selection)) : 0
@@ -540,6 +615,14 @@ export default function LassoLecture(props: LassoLectureProps) {
           </div>
         </div>
       )}
+      {/* L'indice de l'éviction : un signe moins au pointeur, sur ce qui sortira au clic. */}
+      {eviction && (
+        <div ref={indiceRef} className="cs-lasso-indice" style={{ zIndex: Z_FLOTTANT }}
+          data-visible={survolee !== null ? '' : undefined} aria-hidden="true">
+          <span className="cs-lasso-indice-moins">−</span>
+          Désélectionner
+        </div>
+      )}
       {nombre > 0 && !trace && (
         <div className="cs-lasso-barre" role="region" aria-label="Passages sélectionnés"
           style={{ zIndex: Z_FLOTTANT, left: gauche }}>
@@ -569,6 +652,16 @@ export default function LassoLecture(props: LassoLectureProps) {
               <button type="button" className="cs-lasso-action" disabled={enCours !== null}
                 onClick={() => void executer('copier')} title="Copier la citation (Ctrl+C)">
                 Copier
+              </button>
+            )}
+            {/* ⛔ Offert aussi sous un refus : c'est le moyen de le lever sans tout défaire. */}
+            {nombre > 1 && (
+              <button type="button" className="cs-lasso-action" aria-pressed={eviction}
+                disabled={enCours !== null} onClick={() => setEviction(v => !v)}
+                title={eviction
+                  ? 'Cesser de désélectionner (Échap)'
+                  : 'Désélectionner : cliquer ensuite chaque ' + unite[0] + ' à ôter de la sélection'}>
+                Désélectionner
               </button>
             )}
             <button type="button" className="cs-lasso-fermer" onClick={() => setSelection([])}
