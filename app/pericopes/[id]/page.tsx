@@ -231,9 +231,8 @@ function SelecteurTraduction({ trad, setTrad }: { trad: string; setTrad: (c: str
               const actif = t.code === trad
               return (
                 <button key={t.code} role="option" aria-selected={actif} onClick={() => { setTrad(t.code); setOuvert(false) }}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', width: '100%', textAlign: 'left', fontFamily: SANS, fontSize: '0.75rem', color: actif ? VERT : 'var(--cs-texte)', fontWeight: actif ? 600 : 400, background: actif ? 'rgba(var(--cs-vert-rgb),0.08)' : 'transparent', border: 'none', borderRadius: '4px', padding: '6px 9px', cursor: 'pointer' }}
-                  onMouseEnter={e => { if (!actif) e.currentTarget.style.background = 'rgba(var(--cs-vert-rgb),0.05)' }}
-                  onMouseLeave={e => { if (!actif) e.currentTarget.style.background = 'transparent' }}>
+                  className={actif ? undefined : 'cs-survol-fond'}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', width: '100%', textAlign: 'left', fontFamily: SANS, fontSize: '0.75rem', color: actif ? VERT : 'var(--cs-texte)', fontWeight: actif ? 600 : 400, ...(actif ? { background: 'rgba(var(--cs-vert-rgb),0.08)' } : { '--survol-fond': 'rgba(var(--cs-vert-rgb),0.05)' }), border: 'none', borderRadius: '4px', padding: '6px 9px', cursor: 'pointer' } as React.CSSProperties}>
                   <span>{t.nom}</span>
                   {actif && <span aria-hidden="true" style={{ color: VERT, fontSize: '0.71875rem' }}>✓</span>}
                 </button>

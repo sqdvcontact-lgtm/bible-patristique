@@ -126,10 +126,8 @@ export function BoutonVolet({ titre, onClick, children, refBouton, ...aria }: {
 }) {
   return (
     <button ref={refBouton} type="button" onClick={onClick} title={titre} aria-label={titre}
-      className="cs-bouton-volet" {...aria}
-      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-doux)', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, transition: 'color 0.15s' }}
-      onMouseEnter={e => { e.currentTarget.style.color = 'var(--cs-vert)' }}
-      onMouseLeave={e => { e.currentTarget.style.color = 'var(--cs-texte-doux)' }}>
+      className="cs-bouton-volet cs-survol-encre" {...aria}
+      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', '--repos-encre': 'var(--cs-texte-doux)', '--survol-encre': 'var(--cs-vert)', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, transition: 'color 0.15s' } as React.CSSProperties}>
       {children}
     </button>
   )

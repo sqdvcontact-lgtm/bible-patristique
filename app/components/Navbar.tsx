@@ -1345,9 +1345,8 @@ export default function Navbar() {
             fermerRechercheRapide();
             if (pathname.startsWith("/recherche")) { e.preventDefault(); window.location.assign("/recherche"); }
           }}
-          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "1.875rem", height: "1.875rem", boxSizing: "border-box", padding: 0, borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", textDecoration: "none", flexShrink: 0, transition: "background 0.13s, color 0.13s" }}
-          onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.20)"; e.currentTarget.style.color = "var(--cs-sur-aplat)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.10)"; e.currentTarget.style.color = "rgba(255,255,255,0.82)"; }}>
+          className="cs-survol-fond cs-survol-encre"
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "1.875rem", height: "1.875rem", boxSizing: "border-box", padding: 0, borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", "--repos-fond": "rgba(255,255,255,0.10)", "--survol-fond": "rgba(255,255,255,0.20)", "--repos-encre": "rgba(255,255,255,0.82)", "--survol-encre": "var(--cs-sur-aplat)", textDecoration: "none", flexShrink: 0, transition: "background 0.13s, color 0.13s" } as React.CSSProperties}>
           {/* Une loupe marquée d'une croix : la recherche, et qu'elle recommence. */}
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
             <circle cx="5.9" cy="5.9" r="4.1" stroke="currentColor" strokeWidth="1.25"/>
@@ -1558,9 +1557,8 @@ export default function Navbar() {
               {(auteursTrouves.length > 3 || oeuvresTrouvees.length > 3 || segmentsTrouves.length > 3 || essaisTrouves.length > 3 || livresTrouves.length > 3 || traductionsTrouvees.length > 3) && (
                 <div style={{ borderTop: "1px solid var(--cs-fond-doux)", padding: "4px 0" }}>
                   <Link href={`/recherche?q=${encodeURIComponent(requeteRapide.trim())}&mode=prefixe`} onClick={fermerRechercheRapide}
-                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", padding: "5px 12px", fontSize: "0.78125rem", color: "var(--cs-vert)", fontWeight: 600, textDecoration: "none", letterSpacing: "0.02em" }}
-                    onMouseEnter={e => (e.currentTarget.style.background = "rgba(var(--cs-vert-rgb),0.06)")}
-                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                    className="cs-survol-fond"
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", padding: "5px 12px", fontSize: "0.78125rem", color: "var(--cs-vert)", fontWeight: 600, textDecoration: "none", letterSpacing: "0.02em", "--survol-fond": "rgba(var(--cs-vert-rgb),0.06)" } as React.CSSProperties}>
                     Tout voir
                     <span style={{ fontSize: "0.875rem", lineHeight: 1 }}>→</span>
                   </Link>

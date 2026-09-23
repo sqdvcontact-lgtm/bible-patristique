@@ -297,10 +297,8 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
               <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 9px' }}>Sommaire</p>
               <nav style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
                 {sommaire.map(s => (
-                  <button key={s.id} onClick={() => allerAu(s.id)}
-                    style={{ textAlign: 'left', fontFamily: SERIF, fontSize: s.niveau === 2 ? '0.75rem' : '0.8125rem', fontStyle: s.niveau === 2 ? 'italic' : 'normal', color: s.niveau === 2 ? 'var(--cs-texte-second)' : 'var(--cs-texte)', background: 'none', border: 'none', padding: 0, paddingLeft: s.niveau === 2 ? '12px' : 0, cursor: 'pointer', lineHeight: 1.32 }}
-                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--cs-vert)' }}
-                    onMouseLeave={e => { e.currentTarget.style.color = s.niveau === 2 ? 'var(--cs-texte-second)' : 'var(--cs-texte)' }}>
+                  <button key={s.id} onClick={() => allerAu(s.id)} className="cs-survol-encre"
+                    style={{ textAlign: 'left', fontFamily: SERIF, fontSize: s.niveau === 2 ? '0.75rem' : '0.8125rem', fontStyle: s.niveau === 2 ? 'italic' : 'normal', '--repos-encre': s.niveau === 2 ? 'var(--cs-texte-second)' : 'var(--cs-texte)', '--survol-encre': 'var(--cs-vert)', background: 'none', border: 'none', padding: 0, paddingLeft: s.niveau === 2 ? '12px' : 0, cursor: 'pointer', lineHeight: 1.32 } as React.CSSProperties}>
                     {rendreTexteEnrichi(s.titre)}
                   </button>
                 ))}

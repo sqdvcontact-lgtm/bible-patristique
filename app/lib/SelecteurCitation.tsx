@@ -207,9 +207,7 @@ function refNoteBiblique(ref: string, tradNom?: string | null): string {
 
 function BoutonCiter({ onCiter }: { onCiter: () => void }) {
   return (
-    <button type="button" onClick={(e) => { e.stopPropagation(); onCiter() }} style={boutonCiterStyle}
-      onMouseEnter={e => { e.currentTarget.style.background = 'var(--cs-vert-aplat-fonce)' }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'var(--cs-vert-aplat)' }}>Citer</button>
+    <button type="button" onClick={(e) => { e.stopPropagation(); onCiter() }} className="cs-survol-fond" style={boutonCiterStyle}>Citer</button>
   )
 }
 
@@ -220,11 +218,12 @@ const petitChoixStyle: CSSProperties = {
 
 // Bouton « Citer » soigné : petite pastille verte pleine, calée en bout de ligne et
 // centrée verticalement.
-const boutonCiterStyle: CSSProperties = {
+// Le survol vit dans la feuille (.cs-survol-fond, globals.css).
+const boutonCiterStyle = {
   flexShrink: 0, alignSelf: 'center', fontSize: '0.6875rem', fontWeight: 600, padding: '4px 12px',
-  borderRadius: '999px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer',
+  borderRadius: '999px', border: 'none', '--repos-fond': 'var(--cs-vert-aplat)', '--survol-fond': 'var(--cs-vert-aplat-fonce)', color: 'var(--cs-sur-aplat)', cursor: 'pointer',
   whiteSpace: 'nowrap', letterSpacing: '0.02em', transition: 'background 0.15s',
-}
+} as CSSProperties
 
 // Bouton de retour : une flèche fine dans une pastille arrondie, plus soignée que le « ← ».
 function BoutonRetour({ onClick, children, inline = false }: { onClick: () => void; children: ReactNode; inline?: boolean }) {
@@ -362,10 +361,8 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
                 qu'une grille de cases où les noms longs cassaient les rangées. */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               {s.codes.map(l => (
-                <button key={l} onClick={() => setLivre(l)}
-                  style={{ fontSize: '0.71875rem', padding: '5px 12px', borderRadius: '999px', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-fond-clair)', color: 'var(--cs-encre)', cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1.35, transition: 'background 0.12s, border-color 0.12s, color 0.12s' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--cs-fond)'; e.currentTarget.style.borderColor = 'var(--cs-vert-clair)'; e.currentTarget.style.color = 'var(--cs-encre-fonce)' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'var(--cs-fond-clair)'; e.currentTarget.style.borderColor = 'var(--cs-bord-clair)'; e.currentTarget.style.color = 'var(--cs-encre)' }}>
+                <button key={l} onClick={() => setLivre(l)} className="cs-survol-fond cs-survol-bord cs-survol-encre"
+                  style={{ fontSize: '0.71875rem', padding: '5px 12px', borderRadius: '999px', borderWidth: '1px', borderStyle: 'solid', '--repos-bord': 'var(--cs-bord-clair)', '--survol-bord': 'var(--cs-vert-clair)', '--repos-fond': 'var(--cs-fond-clair)', '--survol-fond': 'var(--cs-fond)', '--repos-encre': 'var(--cs-encre)', '--survol-encre': 'var(--cs-encre-fonce)', cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1.35, transition: 'background 0.12s, border-color 0.12s, color 0.12s' } as React.CSSProperties}>
                   {NOM_LIVRE[l] ?? ABREV_FR[l]}
                 </button>
               ))}

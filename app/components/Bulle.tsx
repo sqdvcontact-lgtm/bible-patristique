@@ -136,14 +136,13 @@ export function Bulle({ texte, children, position = 'top', avecFixation = false 
           ) : (
             <button
               onClick={fermer}
-              aria-label="Fermer" className="cs-cible-fine"
+              aria-label="Fermer" className="cs-cible-fine cs-survol-encre"
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
-                color: 'rgba(242,237,230,0.55)', fontSize: '0.875rem', lineHeight: 1,
+                '--repos-encre': 'rgba(242,237,230,0.55)', '--survol-encre': 'var(--cs-sur-aplat-doux)',
+                fontSize: '0.875rem', lineHeight: 1,
                 padding: '0 0 0 1px', flexShrink: 0,
-              }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-sur-aplat-doux)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(242,237,230,0.55)')}
+              } as React.CSSProperties}
             >
               ×
             </button>

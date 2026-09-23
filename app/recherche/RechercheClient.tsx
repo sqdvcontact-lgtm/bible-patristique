@@ -1173,9 +1173,8 @@ export default function RechercheClient() {
                   {sugg.map(s => (
                     <li key={s.mot}
                       onMouseDown={e => { e.preventDefault(); setQuery(s.mot); setShowSugg(false); lancer(s.mot) }}
-                      style={{ padding:'7px 18px', fontSize:'0.875rem', color:'var(--cs-texte-fort)', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:SERIF }}
-                      onMouseEnter={e => (e.currentTarget.style.background='var(--cs-fond)')}
-                      onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
+                      className="cs-survol-fond"
+                      style={{ padding:'7px 18px', fontSize:'0.875rem', color:'var(--cs-texte-fort)', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:SERIF, '--survol-fond':'var(--cs-fond)' } as React.CSSProperties}>
                       <span>{s.mot}</span>
                       {s.freq > 0 && <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)' }}>{s.freq}</span>}
                     </li>
@@ -1185,9 +1184,8 @@ export default function RechercheClient() {
                       (ils commencent tous par le préfixe). Légèrement mis en évidence. */}
                   <li
                     onMouseDown={e => { e.preventDefault(); setShowSugg(false); setMode('prefixe'); lancer(query, 'prefixe') }}
-                    style={{ marginTop:'4px', borderTop:'1px solid var(--cs-fond-doux)', padding:'9px 18px', fontSize:'0.78125rem', fontWeight:600, color:'var(--cs-vert-fonce)', background:'var(--cs-vert-pale)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', letterSpacing:'0.01em' }}
-                    onMouseEnter={e => (e.currentTarget.style.background='var(--cs-fond-doux)')}
-                    onMouseLeave={e => (e.currentTarget.style.background='var(--cs-vert-pale)')}>
+                    style={{ marginTop:'4px', borderTop:'1px solid var(--cs-fond-doux)', padding:'9px 18px', fontSize:'0.78125rem', fontWeight:600, color:'var(--cs-vert-fonce)', '--repos-fond':'var(--cs-vert-pale)', '--survol-fond':'var(--cs-fond-doux)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', letterSpacing:'0.01em' } as React.CSSProperties}
+                    className="cs-survol-fond">
                     <span>Tout rechercher</span>
                     <span style={{ fontSize:'0.8125rem' }}>↵</span>
                   </li>
@@ -1269,9 +1267,8 @@ export default function RechercheClient() {
                 <div data-visite="recherche-garder" style={{ display:'flex', flexDirection:'column', gap:'3px', marginTop:'2px' }}>
                   {done && (versetsTotal + segmentsTotal + essaisRes.length) > 0 && (
                     <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
-                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'calc(100% + 14px)', margin:'0 -7px', boxSizing:'border-box', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', background:'transparent', border:'none', borderRadius:'4px', padding:'3px 7px', cursor:'pointer', transition:'background 0.12s' }}
-                      onMouseEnter={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.08)')}
-                      onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
+                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'calc(100% + 14px)', margin:'0 -7px', boxSizing:'border-box', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', '--survol-fond':'rgba(var(--cs-vert-rgb),0.08)', border:'none', borderRadius:'4px', padding:'3px 7px', cursor:'pointer', transition:'background 0.12s' } as React.CSSProperties}
+                      className="cs-survol-fond">
                       <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
                         <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none"/>
                       </svg>
@@ -1283,9 +1280,8 @@ export default function RechercheClient() {
                   {/* Reprendre : même hauteur que « Enregistrer », date d'enregistrement à droite. */}
                   {rechercheSauvee && (
                     <button onClick={reprendreRecherche} title={`Reprendre « ${rechercheSauvee.query} » là où vous en étiez`}
-                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'calc(100% + 14px)', margin:'0 -7px', boxSizing:'border-box', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', background:'transparent', border:'none', borderRadius:'4px', padding:'3px 7px', cursor:'pointer', transition:'background 0.12s' }}
-                      onMouseEnter={e => (e.currentTarget.style.background='rgba(var(--cs-vert-rgb),0.08)')}
-                      onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
+                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'calc(100% + 14px)', margin:'0 -7px', boxSizing:'border-box', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', '--survol-fond':'rgba(var(--cs-vert-rgb),0.08)', border:'none', borderRadius:'4px', padding:'3px 7px', cursor:'pointer', transition:'background 0.12s' } as React.CSSProperties}
+                      className="cs-survol-fond">
                       <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
                         <path d="M2.5 7a4.5 4.5 0 1 1 1.3 3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
                         <path d="M2.2 4.2v2.6h2.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>

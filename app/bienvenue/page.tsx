@@ -56,9 +56,7 @@ export default function BienvenuePage() {
               desc: 'Rédigez et publiez une méditation scripturaire.',
             },
           ].map(({ href, titre, desc }) => (
-            <a key={href} href={href} style={{ display: 'block', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '20px 24px', textAlign: 'left', textDecoration: 'none', transition: 'border-color 0.15s, box-shadow 0.15s' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--cs-vert-clair)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(var(--cs-vert-rgb),0.08)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--cs-bord)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
+            <a key={href} href={href} className="bienvenue-carte" style={{ display: 'block', background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 24px', textAlign: 'left', textDecoration: 'none', transition: 'border-color 0.15s, box-shadow 0.15s' }}>
               <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-encre)', margin: '0 0 4px' }}>{titre}</p>
               <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', margin: 0, lineHeight: 1.6 }}>{desc}</p>
             </a>

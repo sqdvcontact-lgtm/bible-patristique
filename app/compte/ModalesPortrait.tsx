@@ -88,10 +88,8 @@ export function ModalePortrait({ onChoisir, onClose }: { onChoisir: (choix: Port
 
 function Vignette({ portrait, onChoisir }: { portrait: Portrait; onChoisir: () => void }) {
   return (
-    <button onClick={onChoisir}
-      style={{ background: 'none', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '10px 8px 8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', transition: 'border-color 0.15s, background 0.15s' }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--cs-vert)'; (e.currentTarget as HTMLElement).style.background = 'var(--cs-fond)' }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--cs-bord-clair)'; (e.currentTarget as HTMLElement).style.background = '' }}>
+    <button onClick={onChoisir} className="cs-survol-fond cs-survol-bord"
+      style={{ borderWidth: '1px', borderStyle: 'solid', '--repos-bord': 'var(--cs-bord-clair)', '--survol-bord': 'var(--cs-vert)', '--survol-fond': 'var(--cs-fond)', borderRadius: '8px', padding: '10px 8px 8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', transition: 'border-color 0.15s, background 0.15s' } as React.CSSProperties}>
       <div style={{ width: '72px', height: '90px', position: 'relative', background: 'var(--cs-fond-doux)', borderRadius: '4px', overflow: 'hidden' }}>
         <Image src={portrait.url} alt="" fill sizes="72px" unoptimized
           style={{ objectFit: 'cover', objectPosition: `${portrait.cadrage.posX}% ${portrait.cadrage.posY}%` }} />

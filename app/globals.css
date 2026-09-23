@@ -3704,6 +3704,46 @@ html[data-lasso-geste] * {
     background: rgba(var(--cs-vert-rgb), 0.11) !important;
   }
 }
+/* ── LE SURVOL SE DÉCLARE EN FEUILLE (2026-09-23) ─────────────────────────────
+   Quatre-vingts gestionnaires onMouseEnter/onMouseLeave réécrivaient le style en
+   ligne : chaque site recopiait ses teintes, et le survol restait collé au doigt
+   sur un écran tactile. Ces utilitaires les remplacent. Le SITE donne ses teintes
+   par des variables (--repos-*, --survol-*), la feuille fait le reste, et le survol
+   ne vit que là où une souris survole.
+   ⛔ Le site ne pose plus la propriété elle-même en ligne (color, background,
+   border-color) : elle battrait la règle de survol, qui mourrait sans bruit. */
+.cs-survol-encre { color: var(--repos-encre); }
+.cs-survol-fond { background: var(--repos-fond, transparent); }
+.cs-survol-bord { border-color: var(--repos-bord); }
+@media (hover: hover) {
+  .cs-survol-encre:hover { color: var(--survol-encre); }
+  .cs-survol-fond:hover { background: var(--survol-fond); }
+  .cs-survol-bord:hover { border-color: var(--survol-bord); }
+  .cs-survol-souligne:hover { text-decoration: underline; text-underline-offset: 2px; }
+  /* Une ligne de menu non choisie (liste des Bibles, Polyglotte). ⚠️ Le point
+     d'exclamation bat le fond que `styleLigneMenu` pose EN LIGNE (lib/stylesMenuBibles.ts,
+     dont FOND_SURVOL_MENU porte la même teinte), comme pour STYLE_BOUTON_ACTION. */
+  .cs-ligne-menu:hover { background: rgba(var(--cs-vert-rgb), 0.04) !important; }
+  /* Les cartes qui montent au survol : auteur et collection Budé de la bibliothèque,
+     accès de la page de bienvenue. */
+  .bib-carte-auteur:hover {
+    border-color: rgba(var(--cs-vert-rgb), 0.34); background-color: var(--cs-fond-clair);
+    box-shadow: var(--cs-ombre-flottante); transform: translateY(-2px);
+  }
+  .bib-carte-bude:hover { border-color: var(--cs-or-clair); transform: translateY(-2px); }
+  .bienvenue-carte:hover { border-color: var(--cs-vert-clair); box-shadow: 0 2px 12px rgba(var(--cs-vert-rgb), 0.08); }
+  /* L'étoile des favoris grossit sous la main ; sa teinte passe par .cs-survol-encre. */
+  .etoile-favori:hover { transform: scale(1.18); }
+  /* La poignée qui redimensionne un volet : un voile d'or et un filet du côté du texte. */
+  .cs-poignee-volet:hover { background: color-mix(in srgb, var(--cs-or-doux) 8%, transparent); }
+  .cs-poignee-volet--droite:hover { box-shadow: inset -1px 0 var(--cs-poignee-trait); }
+  .cs-poignee-volet--gauche:hover { box-shadow: inset 1px 0 var(--cs-poignee-trait); }
+}
+.bib-carte-auteur { background: var(--cs-surface); border: 1px solid var(--cs-bord-clair); }
+.bib-carte-bude { border: 1px solid var(--cs-bord); }
+.bienvenue-carte { border: 1px solid var(--cs-bord); }
+.cs-poignee-volet { background: transparent; transition: background 0.14s, box-shadow 0.14s; }
+
 .cs-lasso-fermer {
   display: inline-flex;
   align-items: center;

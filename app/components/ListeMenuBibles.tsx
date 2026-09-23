@@ -190,8 +190,8 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
               ref={el => { lignes.current[rang] = el }}
               onClick={() => choisir(entree.index)}
               onKeyDown={e => { circuler(e, rang, lignes.current, entrees.length) }}
-              onMouseEnter={e => { if (deploye) setDeploye(null); if (!actif) e.currentTarget.style.background = FOND_SURVOL_MENU }}
-              onMouseLeave={e => { if (!actif) e.currentTarget.style.background = 'var(--cs-surface)' }}
+              onMouseEnter={() => { if (deploye) setDeploye(null) }}
+              className={actif ? undefined : 'cs-ligne-menu'}
               style={styleLigneMenu(actif, premiere, derniere)}>
               {rendreEnrichi(traductions[entree.index].label)}
             </button>
@@ -318,8 +318,7 @@ export default function ListeMenuBibles({ id, libelle, traductions, traductionIn
                           lignes.current[rang]?.focus()
                         }
                       }}
-                      onMouseEnter={e => { if (!courant) e.currentTarget.style.background = FOND_SURVOL_MENU }}
-                      onMouseLeave={e => { if (!courant) e.currentTarget.style.background = 'var(--cs-surface)' }}
+                      className={courant ? undefined : 'cs-ligne-menu'}
                       style={styleLigneMenu(courant, sousRang === 0, sousRang === sousLignesFamille.length - 1)}>
                       {rendreEnrichi(ligne.libelle)}
                     </button>

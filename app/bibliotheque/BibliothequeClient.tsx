@@ -275,9 +275,9 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
       // reste, mais posé — l'accent de la maison à 34 %, qui se fond dans le fond au
       // lieu de s'en détacher, et qui suit les deux thèmes puisqu'il se compose sur
       // --cs-vert-rgb (vert sur clair, or sur le Cuir).
-      style={{ background: 'var(--cs-surface)', borderRadius: '8px', border: '1px solid var(--cs-bord-clair)', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: 'none', transition: 'border-color 0.22s ease, background-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease' }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(var(--cs-vert-rgb),0.34)'; e.currentTarget.style.backgroundColor = 'var(--cs-fond-clair)'; e.currentTarget.style.boxShadow = 'var(--cs-ombre-flottante)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--cs-bord-clair)'; e.currentTarget.style.backgroundColor = 'var(--cs-surface)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none' }}>
+      // Le survol vit dans la feuille (.bib-carte-auteur, globals.css).
+      className="bib-carte-auteur"
+      style={{ borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.22s ease, background-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease' }}>
 
       {/* Hauteur d'en-tête CONSTANTE pour toutes les cartes (notice longue rognée) :
           la liste dépliée s'ajoute ensuite en dessous, hors de ce bloc. */}
@@ -312,10 +312,8 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                 juste dessous. */}
             <h2 style={{ fontFamily: SANS, fontSize: '0.875rem', fontWeight: 600, color: 'var(--cs-vert)', letterSpacing: '0.03em', textTransform: 'uppercase', margin: 0 }}>
               <button onClick={() => onOuvrirAuteur(auteur.id_auteur)} title="Voir la fiche de l’auteur"
-                className={compact ? undefined : 'cs-cible-fine'}
-                style={{ font: 'inherit', color: 'inherit', letterSpacing: 'inherit', textTransform: 'inherit', textAlign: 'left', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer' }}
-                onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; e.currentTarget.style.textUnderlineOffset = '2px' }}
-                onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none' }}>
+                className={compact ? 'cs-survol-souligne' : 'cs-cible-fine cs-survol-souligne'}
+                style={{ font: 'inherit', color: 'inherit', letterSpacing: 'inherit', textTransform: 'inherit', textAlign: 'left', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer' }}>
                 {auteur.nom}
               </button>
             </h2>
@@ -853,9 +851,8 @@ function BoutonSignalerNotice({ reference, texte }: { reference: string; texte?:
   return (
     <>
       <button onClick={e => { e.stopPropagation(); if (exigerCompte('signaler une erreur')) setOuvert(true) }} title="Signaler une erreur sur cette traduction"
-        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: '7px', color: 'var(--cs-or-doux)', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}
-        onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-danger)')}
-        onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-or-doux)')}><IconeSignalement /></button>
+        className="cs-survol-encre"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: '7px', '--repos-encre': 'var(--cs-or-doux)', '--survol-encre': 'var(--cs-danger)', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' } as React.CSSProperties}><IconeSignalement /></button>
       {ouvert && <ModalSignalement titre={reference} texteObjet={texte} avecNiveauImportance onClose={() => setOuvert(false)} onEnvoyer={envoyer} />}
     </>
   )
@@ -896,10 +893,8 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
   const encreSerie = serie === 'latin' ? 'var(--cs-bude-latin-encre)' : serie === 'grec' ? 'var(--cs-bude-grec-encre)' : 'var(--cs-bude-neutre-encre)'
 
   return (
-    <div
-      style={{ background: 'var(--cs-fond-clair)', borderRadius: '8px', border: '1px solid var(--cs-bord)', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease' }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--cs-or-clair)'; e.currentTarget.style.backgroundColor = 'var(--cs-fond-clair)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--cs-bord)'; e.currentTarget.style.backgroundColor = 'var(--cs-fond-clair)'; e.currentTarget.style.transform = 'none' }}>
+    <div className="bib-carte-bude"
+      style={{ background: 'var(--cs-fond-clair)', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease' }}>
 
       {/* En-tête auteur */}
       <div style={{ display: 'flex' }}>
@@ -989,9 +984,8 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                   <button
                     onClick={() => onProposer(nomAuteur, groupe.titreStable)}
                     title="Proposer cette œuvre à l'équipe éditoriale"
-                    style={{ ...BOUTON_ICONE, color: 'var(--cs-or-doux)' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-lacune)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--cs-or-doux)')}>
+                    className="cs-survol-encre"
+                    style={{ ...BOUTON_ICONE, '--repos-encre': 'var(--cs-or-doux)', '--survol-encre': 'var(--cs-lacune)' } as React.CSSProperties}>
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                       <path d="M8 3.5v9M3.5 8h9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
                     </svg>
@@ -1401,16 +1395,14 @@ function ComboAuteur({ value, onChange, onAuteurId }: {
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '4px', boxShadow: 'var(--cs-ombre-flottante)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
           {suggestions.map(s => (
             <div key={s.id_auteur} onMouseDown={() => choisir(s.nom, s.id_auteur)}
-              style={{ padding: '8px 12px', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', cursor: 'pointer', fontFamily: SERIF }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--cs-fond)')}
-              onMouseLeave={e => (e.currentTarget.style.background = '')}>
+              className="cs-survol-fond"
+              style={{ padding: '8px 12px', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', cursor: 'pointer', fontFamily: SERIF, '--survol-fond': 'var(--cs-fond)' } as React.CSSProperties}>
               {s.nom}
             </div>
           ))}
           <div onMouseDown={choisirAutre}
-            style={{ padding: '8px 12px', fontSize: '0.75rem', color: 'var(--cs-texte-gris)', cursor: 'pointer', borderTop: suggestions.length ? '1px solid var(--cs-fond-doux)' : 'none', fontStyle: 'italic' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'var(--cs-fond)')}
-            onMouseLeave={e => (e.currentTarget.style.background = '')}>
+            className="cs-survol-fond"
+            style={{ padding: '8px 12px', fontSize: '0.75rem', color: 'var(--cs-texte-gris)', cursor: 'pointer', borderTop: suggestions.length ? '1px solid var(--cs-fond-doux)' : 'none', fontStyle: 'italic', '--survol-fond': 'var(--cs-fond)' } as React.CSSProperties}>
             Autre auteur (saisie libre)
           </div>
         </div>
@@ -1479,16 +1471,14 @@ function ComboTitre({ value, onChange, auteurNom }: {
         <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '4px', boxShadow: 'var(--cs-ombre-flottante)', marginTop: '2px', maxHeight: '220px', overflowY: 'auto' }}>
           {suggestions.map((titre, i) => (
             <div key={i} onMouseDown={() => choisir(titre)}
-              style={{ padding: '8px 12px', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', cursor: 'pointer', fontFamily: SERIF }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--cs-fond)')}
-              onMouseLeave={e => (e.currentTarget.style.background = '')}>
+              className="cs-survol-fond"
+              style={{ padding: '8px 12px', fontSize: '0.8125rem', color: 'var(--cs-texte-fort)', cursor: 'pointer', fontFamily: SERIF, '--survol-fond': 'var(--cs-fond)' } as React.CSSProperties}>
               {titre}
             </div>
           ))}
           <div onMouseDown={choisirAutre}
-            style={{ padding: '8px 12px', fontSize: '0.75rem', color: 'var(--cs-texte-gris)', cursor: 'pointer', borderTop: suggestions.length ? '1px solid var(--cs-fond-doux)' : 'none', fontStyle: 'italic' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'var(--cs-fond)')}
-            onMouseLeave={e => (e.currentTarget.style.background = '')}>
+            className="cs-survol-fond"
+            style={{ padding: '8px 12px', fontSize: '0.75rem', color: 'var(--cs-texte-gris)', cursor: 'pointer', borderTop: suggestions.length ? '1px solid var(--cs-fond-doux)' : 'none', fontStyle: 'italic', '--survol-fond': 'var(--cs-fond)' } as React.CSSProperties}>
             Autre titre (saisie libre)
           </div>
         </div>

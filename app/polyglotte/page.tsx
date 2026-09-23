@@ -947,11 +947,9 @@ function RefOrigine({ ligne, note }: { ligne: V2Row; note: string | null }) {
 // cellule (voir « .poly-edit »). Son fond est celui de la ligne, qu'on lui passe.
 function BoutonEditionVerset({ ligne, fond, onEditer }: { ligne: V2Row; fond: string; onEditer: (ligne: V2Row) => void }) {
   return (
-    <button title="Modifier ce verset" aria-label="Modifier ce verset" className="poly-edit"
+    <button title="Modifier ce verset" aria-label="Modifier ce verset" className="poly-edit cs-survol-encre"
       onClick={() => onEditer(ligne)}
-      style={{ border: "none", cursor: "pointer", color: 'var(--cs-texte-second)', fontSize: '0.6875rem', lineHeight: 1, background: fond, transition: "color .15s" }}
-      onMouseEnter={e => { e.currentTarget.style.color = VERT; }}
-      onMouseLeave={e => { e.currentTarget.style.color = 'var(--cs-texte-second)'; }}>
+      style={{ border: "none", cursor: "pointer", '--repos-encre': 'var(--cs-texte-second)', '--survol-encre': VERT, fontSize: '0.6875rem', lineHeight: 1, background: fond, transition: "color .15s" } as React.CSSProperties}>
       <IconeCrayon size={11} />
     </button>
   );
@@ -1281,11 +1279,12 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
             lignes.current[rangDeploye]?.focus();
           }
         }}
-        onMouseEnter={e => {
+        onMouseEnter={() => {
           if (!dansVolet && volet) { retenirVolet(); setVolet(null); }
-          if (!actif) { e.currentTarget.style.background = FOND_SURVOL_MENU; setSurvolAutre(dansVolet ? "volet" : "menu"); }
+          if (!actif) setSurvolAutre(dansVolet ? "volet" : "menu");
         }}
-        onMouseLeave={e => { if (!actif) { e.currentTarget.style.background = "var(--cs-surface)"; setSurvolAutre(null); } }}
+        onMouseLeave={() => { if (!actif) setSurvolAutre(null); }}
+        className={actif ? undefined : "cs-ligne-menu"}
         onFocus={() => setSurvolAutre(actif ? null : dansVolet ? "volet" : "menu")}
         style={{ ...styleLigneMenu(actif, rang === 0, rang === total - 1), ...(aRemplacer ? STYLE_LIGNE_A_REMPLACER : null) }}>
         <span style={{ minWidth: 0 }}>{rendreEnrichi(libelle ?? t.nom)}</span>
