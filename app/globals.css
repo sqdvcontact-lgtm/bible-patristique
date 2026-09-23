@@ -4518,8 +4518,11 @@ main.lecture-entree [data-cs-bloc],
    un titre brun sur un aplat rose qui rendait 1,66 sur le cuir, et trois roses criards
    pour les niveaux. Elle prend désormais le CADRE des fiches (§ 38.33) — le sol de la
    page, un filet clair, le rayon d'une fenêtre, l'ombre modale, la croix verte — et
-   toutes ses couleurs viennent des jetons. Le rouge ne reste qu'à UN endroit, le filet
-   qui borde le passage cité, et au bouton qui envoie : c'est lui qui dit « erreur ».
+   toutes ses couleurs viennent des jetons.
+   Reprise du 2026-09-23, à la demande de l'auteur : la fenêtre est ROUGE D'UN BOUT À
+   L'AUTRE — bandeau d'aplat brique, fond de brique pâle, filets de brique — car elle ne
+   sert qu'à dire « erreur ». Seules les deux surfaces où l'on LIT et où l'on ÉCRIT gardent
+   le fond clair : le passage cité et le champ.
    ⛔ Toute la forme est ici : un style en ligne battrait le survol et le foyer. */
 .cs-signalement-calque {
   position: fixed;
@@ -4540,8 +4543,8 @@ main.lecture-entree [data-cs-bloc],
   width: 100%;
   max-width: 27rem;
   max-height: 100%;
-  background: var(--cs-fond);
-  border: 1px solid var(--cs-bord-clair);
+  background: var(--cs-danger-fond);
+  border: 1px solid var(--cs-danger-bord);
   border-radius: 12px;
   box-shadow: var(--cs-ombre-modale);
   overflow: hidden;
@@ -4553,7 +4556,7 @@ main.lecture-entree [data-cs-bloc],
   gap: 12px;
   flex-shrink: 0;
   padding: 16px 14px 13px 22px;
-  border-bottom: 1px solid var(--cs-bord-clair);
+  background: var(--cs-danger-aplat);
 }
 .cs-signalement-titre {
   display: flex;
@@ -4563,16 +4566,7 @@ main.lecture-entree [data-cs-bloc],
   font-family: var(--font-source-serif), Georgia, serif;
   font-size: 1.0625rem;
   line-height: 1.25;
-  color: var(--cs-encre-fonce);
-}
-/* La seule touche de brique de la tête : un filet vertical, non un fond. */
-.cs-signalement-titre::before {
-  content: '';
-  flex: 0 0 auto;
-  width: 3px;
-  height: 1.05em;
-  border-radius: 4px;
-  background: var(--cs-danger);
+  color: var(--cs-sur-aplat);
 }
 .cs-signalement-fermer {
   flex: 0 0 auto;
@@ -4585,26 +4579,56 @@ main.lecture-entree [data-cs-bloc],
   padding: 0;
   border: none;
   background: none;
-  color: var(--cs-vert);
+  color: var(--cs-sur-aplat);
+  opacity: 0.82;
   cursor: pointer;
-  transition: color 0.12s;
+  transition: opacity 0.12s;
 }
 .cs-signalement-fermer svg { width: 0.9375rem; height: 0.9375rem; }
 .cs-signalement-fermer:hover,
-.cs-signalement-fermer:focus-visible { color: var(--cs-vert-fonce); }
+.cs-signalement-fermer:focus-visible { opacity: 1; }
 .cs-signalement-corps {
   padding: 16px 22px 20px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+/* ⛔ L'ACCUSÉ DE RÉCEPTION : ni vert, ni italique (relevé de l'auteur, 2026-09-23). Le vert
+   félicitait quand il s'agissait d'une erreur signalée, et l'italique faisait murmurer la
+   seule phrase de la fenêtre. Il prend le rang d'un titre : une marque cochée, une ligne
+   droite en romaine, une seconde ligne en second. */
 .cs-signalement-merci {
-  margin: 0;
-  padding: 28px 22px;
-  font-family: var(--font-source-serif), Georgia, serif;
-  font-size: 0.875rem;
-  font-style: italic;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 30px 22px 32px;
   text-align: center;
-  color: var(--cs-vert);
+}
+.cs-signalement-merci-marque {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.375rem;
+  height: 2.375rem;
+  border: 1px solid var(--cs-danger-bord);
+  border-radius: 999px;
+  background: var(--cs-surface);
+  color: var(--cs-encre-fonce);
+}
+.cs-signalement-merci-marque svg { width: 1.0625rem; height: 1.0625rem; }
+.cs-signalement-merci-titre {
+  margin: 0;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 1.0625rem;
+  line-height: 1.3;
+  color: var(--cs-encre-fonce);
+}
+.cs-signalement-merci-note {
+  margin: 0;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--cs-texte-second);
 }
 /* Rubrique en capitales espacées : le rang des rubriques d'un volet, en second. */
 .cs-signalement-rubrique {
@@ -4631,8 +4655,8 @@ main.lecture-entree [data-cs-bloc],
   padding: 9px 12px 9px 13px;
   max-height: 150px;
   overflow-y: auto;
-  background: var(--cs-fond-doux);
-  border-left: 3px solid var(--cs-danger);
+  background: var(--cs-surface);
+  border-left: 3px solid var(--cs-danger-aplat);
   border-radius: 0 4px 4px 0;
   font-family: var(--font-source-serif), Georgia, serif;
   font-size: 0.8125rem;
@@ -4657,7 +4681,7 @@ main.lecture-entree [data-cs-bloc],
 .cs-signalement-niveau {
   min-height: 1.75rem;
   padding: 0 0.8125rem;
-  border: 1px solid var(--cs-bord);
+  border: 1px solid var(--cs-danger-bord);
   border-radius: 999px;
   background: none;
   font-family: var(--font-source-sans), Arial, sans-serif;
@@ -4686,7 +4710,7 @@ main.lecture-entree [data-cs-bloc],
   width: 100%;
   box-sizing: border-box;
   padding: 9px 11px;
-  border: 1px solid var(--cs-bord);
+  border: 1px solid var(--cs-danger-bord);
   border-radius: 4px;
   background: var(--cs-surface);
   font-family: var(--font-source-sans), Arial, sans-serif;
@@ -4697,7 +4721,10 @@ main.lecture-entree [data-cs-bloc],
   transition: border-color 0.12s;
 }
 .cs-signalement-champ::placeholder { color: var(--cs-texte-gris); opacity: 1; }
-.cs-signalement-champ:focus { border-color: var(--cs-vert); outline: none; }
+/* ⛔ Au foyer, RIEN : ni le vert d'autrefois, ni le cadre du navigateur (relevé de l'auteur,
+   2026-09-23). Le champ s'ouvre déjà au foyer (autoFocus) et porte le curseur ; un second
+   cadre par-dessus le filet ne disait rien de plus. */
+.cs-signalement-champ:focus { outline: none; }
 .cs-signalement-pied {
   display: flex;
   justify-content: flex-end;
@@ -4723,12 +4750,12 @@ main.lecture-entree [data-cs-bloc],
   transition: background-color 0.12s, border-color 0.12s, color 0.12s;
 }
 .cs-signalement-bouton--annuler {
-  border: 1px solid var(--cs-bord);
+  border: 1px solid var(--cs-danger-bord);
   background: none;
   color: var(--cs-texte-second);
 }
 .cs-signalement-bouton--annuler:hover,
-.cs-signalement-bouton--annuler:focus-visible { border-color: var(--cs-vert); color: var(--cs-vert); }
+.cs-signalement-bouton--annuler:focus-visible { border-color: var(--cs-danger-aplat); color: var(--cs-texte-fort); }
 .cs-signalement-bouton--envoyer {
   border: 1px solid transparent;
   background: var(--cs-danger-aplat);
@@ -4739,8 +4766,8 @@ main.lecture-entree [data-cs-bloc],
   background: color-mix(in srgb, var(--cs-danger-aplat) 86%, var(--cs-texte-fort));
 }
 .cs-signalement-bouton--envoyer:disabled {
-  background: var(--cs-fond-doux);
-  border-color: var(--cs-bord-clair);
+  background: none;
+  border-color: var(--cs-danger-bord);
   color: var(--cs-texte-gris);
   cursor: default;
 }

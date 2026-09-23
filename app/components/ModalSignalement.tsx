@@ -16,7 +16,8 @@ import IconeCroix from './IconeCroix'
 // ⛔ AUCUNE COULEUR N'EST ÉCRITE ICI (reprise du 2026-09-21, pour le Cuir) : toute la
 // forme vit dans globals.css, § « LA MODALE DE SIGNALEMENT » (`.cs-signalement-*`), et
 // les trois niveaux d'importance ont leurs jetons (`--cs-importance-*`), déclinés dans
-// les deux thèmes. Le cadre est celui des fiches (§ 38.33).
+// les deux thèmes. Depuis le 2026-09-23 la fenêtre est ROUGE d'un bout à l'autre : seuls
+// le passage cité et le champ gardent un fond clair, pour qu'on y lise et qu'on y écrive.
 
 const NIVEAUX = [
   { val: 'mineur', label: 'Mineur' },
@@ -72,7 +73,16 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
         </div>
 
         {statut === 'ok' ? (
-          <p className="cs-signalement-merci">Signalement envoyé. Merci.</p>
+          <div role="status" className="cs-signalement-merci">
+            <span aria-hidden="true" className="cs-signalement-merci-marque">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.6}
+                strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 8.4 6.4 11.8 13 5.2" />
+              </svg>
+            </span>
+            <p className="cs-signalement-merci-titre">Signalement envoyé</p>
+            <p className="cs-signalement-merci-note">Merci : il sera relu.</p>
+          </div>
         ) : (
           <div className="cs-signalement-corps">
             {(titre || texteObjet) && (
