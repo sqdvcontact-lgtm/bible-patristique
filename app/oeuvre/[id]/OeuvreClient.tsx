@@ -3727,7 +3727,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     {...gestesDeNavigation(edition.indisponible ? null : edition.url)}
                     title={edition.actif ? 'Édition affichée' : edition.indisponible ? 'Bientôt disponible (alignement en cours)' : 'Afficher cette édition'}
                     className="cs-option-volet"
-                    style={{ ...OPTION_VOLET(edition.actif), cursor: edition.actif ? 'default' : edition.indisponible ? 'not-allowed' : 'pointer', opacity: edition.indisponible ? 0.45 : 1 }}>
+                    style={{ ...OPTION_VOLET(edition.actif), cursor: edition.actif || edition.indisponible ? 'default' : 'pointer', opacity: edition.indisponible ? 'var(--cs-opacite-desactive)' : 1 }}>
                     {edition.libelle}
                   </button>
                 ))}

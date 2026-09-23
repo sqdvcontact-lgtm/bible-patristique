@@ -350,7 +350,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
         .biblio-lien-lettre:hover:not(:disabled) { color: ${VERT}; text-decoration: underline; text-underline-offset: 3px; }
         /* Une lettre que le filtre a vidée reste à sa place, en pâle : la grille ne
            se recompose pas sous la main, et l'on voit ce que le filtre a écarté. */
-        .biblio-lien-lettre:disabled { color: var(--cs-texte-doux); cursor: default; opacity: 0.55; }
+        .biblio-lien-lettre:disabled { color: var(--cs-texte-doux); cursor: default; opacity: var(--cs-opacite-desactive); }
         .biblio-lien-discret {
           background: none; border: none; padding: 4px 0; cursor: pointer;
           font-family: ${SERIF}; font-size: 0.6875rem; font-style: italic; color: var(--cs-texte-second);

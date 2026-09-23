@@ -971,7 +971,7 @@ export default function PagePrelevements() {
           padding: 6px 14px; border-radius: 4px; border: 1px solid var(--cs-vert-aplat);
           background: var(--cs-vert-aplat); color: var(--cs-sur-aplat); cursor: pointer; }
         .prel-bouton:hover:not(:disabled) { background: var(--cs-vert-aplat-fonce); }
-        .prel-bouton:disabled { opacity: 0.45; cursor: default; }
+        .prel-bouton:disabled { opacity: var(--cs-opacite-desactive); cursor: default; }
 
         .prel-onglets { margin-bottom: 14px; }
         .prel-plus { display: none; }

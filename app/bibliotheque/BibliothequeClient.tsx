@@ -756,12 +756,12 @@ function Pagination({ page, nbPages, onChanger, mobile }: {
     left: cote === 'gauche' ? '18px' : undefined, right: cote === 'droite' ? '18px' : undefined,
     width: '42px', height: '42px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
     background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-posee)',
-    cursor: inactive ? 'default' : 'pointer', opacity: inactive ? 0.35 : 1,
+    cursor: inactive ? 'default' : 'pointer', opacity: inactive ? 'var(--cs-opacite-desactive)' : 1,
     display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cs-etiquette)',
   })
   const flechePied = (inactive: boolean): React.CSSProperties => ({
     width: '30px', height: '30px', borderRadius: '50%', border: '1px solid var(--cs-bord)',
-    background: 'var(--cs-surface)', cursor: inactive ? 'default' : 'pointer', opacity: inactive ? 0.3 : 1,
+    background: 'var(--cs-surface)', cursor: inactive ? 'default' : 'pointer', opacity: inactive ? 'var(--cs-opacite-desactive)' : 1,
     display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cs-etiquette)', flexShrink: 0,
   })
   const chevron = (cote: 'gauche' | 'droite', taille: number) => (

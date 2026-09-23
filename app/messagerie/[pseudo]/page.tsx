@@ -117,8 +117,6 @@ export default function ConversationPage() {
       <style>{`
         .msg-bubble { transition: opacity 0.1s; }
         .msg-input:focus { outline: none; border-color: var(--cs-vert) !important; }
-        .msg-send:disabled { opacity: 0.4; cursor: not-allowed; }
-        .msg-send:not(:disabled):hover { background: var(--cs-vert-aplat-fonce) !important; }
       `}</style>
 
       {/* En-tête */}
@@ -223,22 +221,10 @@ export default function ConversationPage() {
               }}
             />
             <button
-              className="msg-send"
+              className="cs-bouton-plein"
               onClick={envoyer}
               disabled={!texte.trim() || envoi}
-              style={{
-                background: 'var(--cs-vert-aplat)',
-                color: 'var(--cs-sur-aplat)',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '10px 18px',
-                fontSize: '0.8125rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'background 0.14s',
-                flexShrink: 0,
-                height: '42px',
-              }}>
+              style={{ flexShrink: 0, height: '42px' }}>
               {envoi ? '…' : 'Envoyer'}
             </button>
           </div>
