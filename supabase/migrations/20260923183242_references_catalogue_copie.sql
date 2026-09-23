@@ -1,6 +1,6 @@
 -- Charte § 47.8, étape 3 : les notices du catalogue entrent dans la base de références.
 -- `catalogue_notices` devient l'annexe du catalogue : chaque notice porte `ouvrage_id`.
--- ⛔ À N'APPLIQUER qu'une fois en ligne le code qui filtre l'outil bibliographique
+-- Appliquée le 2026-09-23 (après déploiement de 175da85b). Écrite pour ne s’appliquer qu’une fois en ligne le code qui filtre l'outil bibliographique
 --    sur `apparait_dans` (commit « Fusion des références, étape 2 »).
 -- Sauvegardes : internal.backup_*_20260923. Décisions : internal.fusion_references_candidats
 -- (GPT, 581 paires) et internal.fusion_oeuvres_en_double (GPT, 6 paires).
