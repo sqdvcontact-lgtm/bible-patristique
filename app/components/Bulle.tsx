@@ -28,10 +28,10 @@ function posStyle(pos: Position): React.CSSProperties {
 function fleche(pos: Position): React.CSSProperties {
   const b: React.CSSProperties = { position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }
   switch (pos) {
-    case 'top':    return { ...b, top: '100%',    left: '50%', transform: 'translateX(-50%)', borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '5px solid var(--cs-encre)' }
-    case 'bottom': return { ...b, bottom: '100%', left: '50%', transform: 'translateX(-50%)', borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: '5px solid var(--cs-encre)' }
-    case 'left':   return { ...b, left: '100%',   top:  '50%', transform: 'translateY(-50%)', borderTop: '5px solid transparent', borderBottom: '5px solid transparent', borderLeft: '5px solid var(--cs-encre)' }
-    case 'right':  return { ...b, right: '100%',  top:  '50%', transform: 'translateY(-50%)', borderTop: '5px solid transparent', borderBottom: '5px solid transparent', borderRight: '5px solid var(--cs-encre)' }
+    case 'top':    return { ...b, top: '100%',    left: '50%', transform: 'translateX(-50%)', borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '5px solid var(--cs-vert-aplat-profond)' }
+    case 'bottom': return { ...b, bottom: '100%', left: '50%', transform: 'translateX(-50%)', borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: '5px solid var(--cs-vert-aplat-profond)' }
+    case 'left':   return { ...b, left: '100%',   top:  '50%', transform: 'translateY(-50%)', borderTop: '5px solid transparent', borderBottom: '5px solid transparent', borderLeft: '5px solid var(--cs-vert-aplat-profond)' }
+    case 'right':  return { ...b, right: '100%',  top:  '50%', transform: 'translateY(-50%)', borderTop: '5px solid transparent', borderBottom: '5px solid transparent', borderRight: '5px solid var(--cs-vert-aplat-profond)' }
   }
 }
 
@@ -99,7 +99,7 @@ export function Bulle({ texte, children, position = 'top', avecFixation = false 
           position: 'absolute',
           ...posStyle(position),
           background: 'var(--cs-vert-aplat-profond)',
-          color: 'var(--cs-fond-doux)',
+          color: 'var(--cs-sur-aplat-doux)',
           fontSize: '0.6875rem',
           lineHeight: 1.45,
           padding: '5px 9px',
@@ -125,7 +125,7 @@ export function Bulle({ texte, children, position = 'top', avecFixation = false 
               <circle
                 cx="8" cy="8" r={R}
                 fill="none"
-                stroke="#6a9a7a"
+                stroke="#6a9a7a" className="cs-bulle-anneau"
                 strokeWidth="1.8"
                 strokeDasharray={CIRC}
                 strokeDashoffset={dashoffset}
@@ -142,7 +142,7 @@ export function Bulle({ texte, children, position = 'top', avecFixation = false 
                 color: 'rgba(242,237,230,0.55)', fontSize: '0.875rem', lineHeight: 1,
                 padding: '0 0 0 1px', flexShrink: 0,
               }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-fond-doux)')}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--cs-sur-aplat-doux)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'rgba(242,237,230,0.55)')}
             >
               ×

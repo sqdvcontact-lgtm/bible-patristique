@@ -755,7 +755,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
           {statut === "erreur" && <span style={{ fontSize: '0.6875rem', color: ROUGE, marginRight: "auto" }}>échec de l’enregistrement</span>}
           <button onClick={onFermer} style={{ padding: "5px 12px", fontSize: '0.71875rem', borderRadius: 4, border: "1px solid var(--cs-bord)", background: "var(--cs-surface)", color: "var(--cs-texte-gris)", cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
           <button onClick={() => onEnregistrer(valeur)} disabled={statut === "envoi"}
-            style={{ padding: "5px 15px", fontSize: '0.71875rem', borderRadius: 4, border: "none", background: VERT, color: "var(--cs-sur-aplat)", cursor: statut === "envoi" ? "default" : "pointer", fontFamily: "inherit", fontWeight: 500 }}>
+            style={{ padding: "5px 15px", fontSize: '0.71875rem', borderRadius: 4, border: "none", background: "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", cursor: statut === "envoi" ? "default" : "pointer", fontFamily: "inherit", fontWeight: 500 }}>
             {statut === "envoi" ? "Enregistrement…" : "Enregistrer"}
           </button>
         </div>
@@ -2879,7 +2879,7 @@ export default function PolyglottePage() {
            son anneau : c'est la règle « focus-visible » globale de globals.css, qui pose
            un contour et non un cadre intérieur. */
         .poly-trad-pick:hover,
-        .poly-trad-pick[aria-expanded="true"] { background: rgba(var(--cs-vert-rgb),0.07); }
+        .poly-trad-pick[aria-expanded="true"] { background: var(--cs-lecture-survol); }
         /* ⛔ LA COMPOSITION DE LA COLONNE A QUITTÉ CETTE PAGE POUR « globals.css »
            (2026-09-04) — les mesures nommées, la marge de référence, la cellule de texte
            et la lettrine. Elle sert DEUX surfaces : cette page, et la Polyglotte de la

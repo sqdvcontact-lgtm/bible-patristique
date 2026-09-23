@@ -55,7 +55,7 @@ import {
 
 const FOND = 'var(--cs-fond)'
 const BORD = 'var(--cs-bord)'
-const SEP = 'var(--cs-fond-doux)'
+const SEP = 'var(--cs-bord-clair)'
 const VERT = 'var(--cs-vert)'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 const SANS = 'var(--font-source-sans), Arial, sans-serif'

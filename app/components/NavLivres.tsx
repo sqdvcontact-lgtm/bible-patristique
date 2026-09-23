@@ -588,7 +588,7 @@ export default function NavLivres({
     {/* Empilé (mobile) : en mode ONGLETS (presentation='inline'), le sommaire occupe
         toute la page sous la barre d'onglets, sans fond assombri. En mode tiroir, il
         se superpose au texte avec un fond assombri qui le referme au tap. */}
-    {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: Z_TIROIR_VOILE }} />}
+    {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_TIROIR_VOILE }} />}
     <div ref={refPanel} role={tiroirOuvert ? 'dialog' : undefined} aria-modal={tiroirOuvert || undefined} aria-label={tiroirOuvert ? 'Livres de la Bible' : undefined}
       style={mobile ? (presentation === 'inline' ? {
       width: '100%', background: 'var(--cs-fond-clair)', display: 'flex', flexDirection: 'column',
@@ -617,7 +617,7 @@ export default function NavLivres({
           style={{ position: 'absolute', right: '-4px', top: 0, bottom: 0, width: '9px', cursor: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex: 10, background: 'transparent', transition: 'background 0.14s, box-shadow 0.14s' }}
           onMouseEnter={e => {
             e.currentTarget.style.background = 'color-mix(in srgb, var(--cs-or-doux) 8%, transparent)'
-            e.currentTarget.style.boxShadow = 'inset -1px 0 rgba(122,96,64,0.08)'
+            e.currentTarget.style.boxShadow = 'inset -1px 0 var(--cs-poignee-trait)'
           }}
           onMouseLeave={e => {
             e.currentTarget.style.background = 'transparent'

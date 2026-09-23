@@ -51,7 +51,7 @@ export const RELIURES: Record<FamilleCorpus, Reliure> = {
   // garde le penchant rouge sans en avoir la saturation.
   peres: { clair: ['#5a2a26', '#3e1a17'], sombre: ['#63421f', '#4c3218'] },
 
-  // Vieil or — `or.fond` des couvertures. ⚠️ Ce n'est PAS `--cs-or` (#9a7a38) : la
+  // Vieil or — `or.fond` des couvertures. ⚠️ Ce n'est PAS `--cs-or` (#91722f) : la
   // charte a mesuré que l'or du site ne contraste pas assez en aplat, d'où ce vieil
   // or plus profond. Cuir : le fauve des couvertures (`vert.fondSombre`).
   communaute: { clair: ['#664b17', '#4e3811'], sombre: ['#4a3a25', '#3a2d1c'] },

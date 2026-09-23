@@ -136,7 +136,7 @@ export default function ModaleEditionVerset({ verset, traduction, traductionLabe
   // `Z_MODALE` : la fenêtre d'édition passe au-dessus des barres mobiles de la page
   // Bible (`Z_ONGLETS_LECTURE`, `Z_BANDEAU_LECTURE`), et sous la barre de navigation.
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:Z_MODALE, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }} onClick={onClose}>
+    <div style={{ position:'fixed', inset:0, background:'var(--cs-calque-modale)', zIndex:Z_MODALE, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }} onClick={onClose}>
       <div ref={boiteRef} role="dialog" aria-modal="true" aria-label={`Modifier ${refCourt} de la ${traductionLabel}`}
         onClick={e => e.stopPropagation()} style={{ background:'var(--cs-surface)', borderRadius:'8px', padding:'20px 22px', width:'30rem', maxWidth:'100%', boxShadow:'var(--cs-ombre-modale)' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px' }}>

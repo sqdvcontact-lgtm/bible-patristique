@@ -1448,7 +1448,7 @@ export default function PanneauPatristique({
 
   return (
     <>
-    {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: Z_TIROIR_VOILE }} />}
+    {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_TIROIR_VOILE }} />}
     {/* `data-visite` : le repère de la visite guidée (app/lib/visiteBibleClassique.ts). */}
     <div ref={refPanel} data-visite="peres" role={tiroirOuvert ? 'dialog' : undefined} aria-modal={tiroirOuvert || undefined} aria-label={tiroirOuvert ? 'Pères de l’Église' : undefined}
       style={mobile
@@ -1470,7 +1470,7 @@ export default function PanneauPatristique({
             background:'transparent', transition:'background 0.14s, box-shadow 0.14s' }}
           onMouseEnter={e => {
             e.currentTarget.style.background = 'color-mix(in srgb, var(--cs-or-doux) 8%, transparent)'
-            e.currentTarget.style.boxShadow = 'inset 1px 0 rgba(122,96,64,0.08)'
+            e.currentTarget.style.boxShadow = 'inset 1px 0 var(--cs-poignee-trait)'
           }}
           onMouseLeave={e => {
             e.currentTarget.style.background = 'transparent'

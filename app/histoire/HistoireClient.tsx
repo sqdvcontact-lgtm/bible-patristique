@@ -29,7 +29,7 @@ const FOND = 'var(--cs-fond)'
 const TEXTE = 'var(--cs-texte-fort)'
 const TEXTE2 = 'var(--cs-texte-doux)'
 const BORD = 'var(--cs-bord)'
-const SEP = 'var(--cs-fond-doux)'
+const SEP = 'var(--cs-bord-clair)'
 const VERT = 'var(--cs-vert)'
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 const SANS = 'var(--font-source-sans), Arial, sans-serif'
@@ -461,7 +461,7 @@ export default function HistoireClient(
           {mobile ? (
             <>
               <button onClick={() => setPanneauOuvert(o => !o)} aria-expanded={panneauOuvert} aria-controls="frise-filtres"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderBottom: panneauOuvert ? `1px solid ${SEP}` : 'none', background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem', color: '#5a5044' }}>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderBottom: panneauOuvert ? `1px solid ${SEP}` : 'none', background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-original)' }}>
                 <span>Filtres et lecture{filtresActifs ? ' (actifs)' : ''}</span>
                 <span aria-hidden style={{ display: 'inline-flex', color: TEXTE2 }}><IconeChevron dir={panneauOuvert ? 'up' : 'down'} size={11} strokeWidth={1.5} /></span>
               </button>

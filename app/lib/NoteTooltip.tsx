@@ -208,7 +208,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
             borderRadius: '4px',
             padding: '10px 12px',
             width: '13.75rem',
-            boxShadow: '0 6px 24px rgba(10,8,4,0.13), 0 1px 4px rgba(10,8,4,0.06), inset 0 0 0 1px rgba(255,248,235,0.7)',
+            boxShadow: 'var(--cs-ombre-flottante), inset 0 0 0 1px rgba(255,248,235,0.7)',
             position: 'relative',
             overflow: 'hidden',
             textIndent: 0,

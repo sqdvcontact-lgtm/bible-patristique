@@ -1345,7 +1345,7 @@ export default function Navbar() {
             if (pathname.startsWith("/recherche")) { e.preventDefault(); window.location.assign("/recherche"); }
           }}
           style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "1.875rem", height: "1.875rem", boxSizing: "border-box", padding: 0, borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", textDecoration: "none", flexShrink: 0, transition: "background 0.13s, color 0.13s" }}
-          onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.20)"; e.currentTarget.style.color = "var(--cs-surface)"; }}
+          onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.20)"; e.currentTarget.style.color = "var(--cs-sur-aplat)"; }}
           onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.10)"; e.currentTarget.style.color = "rgba(255,255,255,0.82)"; }}>
           {/* Une loupe marquée d'une croix : la recherche, et qu'elle recommence. */}
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
@@ -1368,7 +1368,7 @@ export default function Navbar() {
            la gauche, sur la place libre du milieu de la barre : c'est le seul côté où
            l'on est sûr de ne buter contre rien. La largeur reste en rem, donc accordée
            à la police racine, qui grandit avec la fenêtre au-delà de 1 440 px. */
-        <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: `calc(100% + ${SOUS_LA_BARRE})`, left: mobile ? 0 : "auto", right: 0, width: mobile ? "100%" : "min(32rem, calc(100vw - 3rem))", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: mobile ? "none" : "0 12px 36px rgba(0,0,0,0.16)", zIndex: 100, overflow: "hidden", maxHeight: mobile ? "70vh" : "min(72vh, 640px)", overflowY: "auto" }}>
+        <div style={{ position: mobile ? "static" : "absolute", marginTop: mobile ? "8px" : 0, top: `calc(100% + ${SOUS_LA_BARRE})`, left: mobile ? 0 : "auto", right: 0, width: mobile ? "100%" : "min(32rem, calc(100vw - 3rem))", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderRadius: "8px", boxShadow: mobile ? "none" : "var(--cs-ombre-modale)", zIndex: 100, overflow: "hidden", maxHeight: mobile ? "70vh" : "min(72vh, 640px)", overflowY: "auto" }}>
 
           {/* Barre de statut : nb résultats + spinner/smiley */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px 4px", borderBottom: "1px solid var(--cs-fond-doux)", background: "var(--cs-fond-clair)" }}>

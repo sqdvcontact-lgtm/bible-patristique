@@ -99,7 +99,7 @@ const s = StyleSheet.create({
   // embarquées ; on compose la marque avec des filets et un point médian.
   ornement: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: 130, marginBottom: 30 },
   ornementRule: { flex: 1, height: 0.6, backgroundColor: '#c8b89e' },
-  ornementDot: { fontFamily: 'Source Serif 4', fontSize: 12, color: '#9a7a38', marginLeft: 9, marginRight: 9, lineHeight: 1 },
+  ornementDot: { fontFamily: 'Source Serif 4', fontSize: 12, color: '#91722f', marginLeft: 9, marginRight: 9, lineHeight: 1 },
   // Mention de propriété — discrète, dans le style de l'auteur.
   mention: {
     fontFamily: 'Source Serif 4', fontStyle: 'italic', fontSize: 8.5, color: '#8a8268',
@@ -110,7 +110,7 @@ const s = StyleSheet.create({
   marqueRule: { flex: 1, height: 0.5, backgroundColor: '#c8b89e' },
   marqueTexte: {
     fontFamily: 'Source Sans 3', fontSize: 7.5, letterSpacing: 2.4,
-    textTransform: 'uppercase', color: '#9a7a38', marginLeft: 10, marginRight: 10,
+    textTransform: 'uppercase', color: '#91722f', marginLeft: 10, marginRight: 10,
   },
 
   // ── Corps ──

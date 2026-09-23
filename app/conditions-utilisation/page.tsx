@@ -57,7 +57,7 @@ export default function ConditionsUtilisationPage() {
 
           <Section titre="2. Hébergement">
             <p>
-              Le site est hébergé par <strong>Vercel Inc.</strong>, 440 N Barranca Ave #4133, Covina, CA 91723,
+              Le site est hébergé par <strong>Vercel Inc.</strong>, 440 N Barranca Ave &#35;4133, Covina, CA 91723,
               États-Unis. La base de données et les services d&rsquo;authentification sont fournis par{' '}
               <strong>Supabase Inc.</strong>, 970 Toa Payoh North #07-04, Singapour.
             </p>

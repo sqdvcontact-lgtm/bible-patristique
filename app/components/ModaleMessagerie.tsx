@@ -171,7 +171,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
         }
       `}</style>
       <div ref={panneauRef} role="dialog" aria-modal="true" aria-label="Messagerie" onClick={e => e.stopPropagation()} className="msg-panneau"
-        style={{ position: 'fixed', top: HAUTEUR_NAVBAR, right: 0, bottom: 0, width: 'min(27.5rem, 100vw)', background: 'var(--cs-fond)', borderLeft: '1px solid var(--cs-bord-clair)', borderTopLeftRadius: '12px', boxShadow: '-16px 0 50px rgba(40,30,15,0.26)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        style={{ position: 'fixed', top: HAUTEUR_NAVBAR, right: 0, bottom: 0, width: 'min(27.5rem, 100vw)', background: 'var(--cs-fond)', borderLeft: '1px solid var(--cs-bord-clair)', borderTopLeftRadius: '12px', boxShadow: 'var(--cs-ombre-modale)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* En-tête */}
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '10px', padding: '13px 16px', borderBottom: '1px solid var(--cs-bord-clair)', background: 'var(--cs-fond-clair)' }}>

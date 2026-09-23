@@ -444,7 +444,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
       {/* Sous la barre de navigation et bornée en hauteur, comme les autres fenêtres de
           cette page : le pied porte le bouton d'envoi, il ne peut pas sortir de l'écran. */}
       {ouvert && (
-        <div onClick={() => setOuvert(false)} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}>
+        <div onClick={() => setOuvert(false)} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}>
           {/* ⚠️ `aria-modal` dit à un lecteur d'écran que le reste de la page est hors jeu
               tant que la fenêtre est là ; `aria-label` la nomme, faute d'un titre à viser
               par `aria-labelledby` — le titre vit dans un `<p>`, non dans un rang de titre. */}
@@ -492,7 +492,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
                 {statut === 'err' && <span style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', marginRight: 'auto' }}>Erreur d’envoi.</span>}
                 <button onClick={() => setOuvert(false)} style={{ fontSize: '0.6875rem', padding: '5px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
                 <button onClick={envoyer} disabled={statut === 'envoi' || !peutEnvoyer}
-                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: peutEnvoyer ? 'pointer' : 'default', background: peutEnvoyer ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: peutEnvoyer ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-gris)', fontWeight: 500 }}>
+                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: peutEnvoyer ? 'pointer' : 'default', background: peutEnvoyer ? 'var(--cs-vert-aplat)' : 'var(--cs-desactive-fond)', color: peutEnvoyer ? 'var(--cs-sur-aplat)' : 'var(--cs-desactive-encre)', fontWeight: 500 }}>
                   {statut === 'envoi' ? 'Envoi…' : 'Envoyer'}
                 </button>
               </div>
@@ -3589,7 +3589,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         {navOuverte ? (
         <>
         {/* Mobile : tiroir par-dessus le texte, sous la navbar. */}
-        {mobile && <div onClick={() => setNavOuverte(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: Z_TIROIR_VOILE }} />}
+        {mobile && <div onClick={() => setNavOuverte(false)} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_TIROIR_VOILE }} />}
         <nav ref={refNav} data-sommaire-panneau style={mobile ? {
           position: 'fixed', top: `calc(${HAUTEUR_NAVBAR} + ${HAUTEUR_BARRE_VOLET})`, left: 0, right: 0, zIndex: Z_TIROIR, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - ${HAUTEUR_BARRE_VOLET} - 2.5rem)`, overflowY: 'auto', overflowX: 'hidden', background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)',
         } : { width: navWidth == null ? 'clamp(240px, 16vw, 380px)' : navWidth + 'px', flexShrink: 0, position: 'sticky', top: HAUTEUR_NAVBAR, alignSelf: 'flex-start', height: HAUTEUR_SOUS_NAVBAR, overflowY: 'auto', overflowX: 'hidden', borderRight: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -3604,7 +3604,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           }} style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '5px', cursor: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex: 10, background: 'transparent', transition: 'background 0.14s, box-shadow 0.14s' }}
             onMouseEnter={e => {
               e.currentTarget.style.background = 'color-mix(in srgb, var(--cs-or-doux) 8%, transparent)'
-              e.currentTarget.style.boxShadow = 'inset -1px 0 rgba(122,96,64,0.08)'
+              e.currentTarget.style.boxShadow = 'inset -1px 0 var(--cs-poignee-trait)'
             }}
             onMouseLeave={e => {
               e.currentTarget.style.background = 'transparent'
@@ -4988,7 +4988,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         {panneauOuvert ? (
         <>
         {/* Mobile : tiroir montant du bas, par-dessus le texte. */}
-        {mobile && <div onClick={() => setPanneauOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: Z_TIROIR_VOILE }} />}
+        {mobile && <div onClick={() => setPanneauOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_TIROIR_VOILE }} />}
         <aside ref={refAside} data-visite="oeuvre-bible" style={mobile ? {
           position: 'fixed', bottom: HAUTEUR_BARRE_VOLET, left: 0, right: 0, zIndex: Z_TIROIR, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - ${HAUTEUR_BARRE_VOLET} - 2rem)`, borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-modale-haut)',
         } : { width: pannWidth == null ? 'clamp(280px, 21vw, 480px)' : pannWidth + 'px', flexShrink: 0, position: 'sticky', top: HAUTEUR_NAVBAR, alignSelf: 'flex-start', height: HAUTEUR_SOUS_NAVBAR, borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', background: 'var(--cs-surface)' }}>
@@ -5003,7 +5003,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
           }} style={{ position: 'absolute', left: '-4px', top: 0, bottom: 0, width: '9px', cursor: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex: 10, background: 'transparent', transition: 'background 0.14s, box-shadow 0.14s' }}
             onMouseEnter={e => {
               e.currentTarget.style.background = 'color-mix(in srgb, var(--cs-or-doux) 8%, transparent)'
-              e.currentTarget.style.boxShadow = 'inset 1px 0 rgba(122,96,64,0.08)'
+              e.currentTarget.style.boxShadow = 'inset 1px 0 var(--cs-poignee-trait)'
             }}
             onMouseLeave={e => {
               e.currentTarget.style.background = 'transparent'
@@ -5367,7 +5367,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
 
             La largeur est en `min(25rem, 100%)` : elle suit la police racine, donc l'écran,
             et ne peut jamais dépasser la place disponible. */
-        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}
+        <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}
           onClick={() => setConfigOuverte(false)}>
           <div ref={boiteConfig} role="dialog" aria-modal="true" aria-label="Niveaux d'affichage"
             onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(25rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>

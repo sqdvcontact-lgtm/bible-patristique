@@ -327,7 +327,7 @@ function Prevenir() {
 
   if (etat === "fait") {
     return (
-      <div style={{ background: "rgba(var(--cs-vert-rgb),0.07)", border: "1px solid rgba(var(--cs-vert-rgb),0.22)", borderRadius: "8px", padding: "1rem 1.125rem" }}>
+      <div style={{ background: "var(--cs-lecture-survol)", border: "1px solid rgba(var(--cs-vert-rgb),0.22)", borderRadius: "8px", padding: "1rem 1.125rem" }}>
         <p style={{ fontSize: "0.8125rem", color: "var(--cs-vert-fonce)", margin: 0, lineHeight: 1.6 }}>
           C’est noté. Vous recevrez un message le jour de l’ouverture. Un seul, et rien d’autre.
         </p>
@@ -349,7 +349,7 @@ function Prevenir() {
           placeholder="vous@exemple.fr" aria-label="Votre adresse e-mail"
           style={{ ...inputStyle, flex: "1 1 11.25rem", width: "auto" }} />
         <button type="submit" disabled={etat === "envoi"}
-          style={{ padding: "0.5625rem 1.125rem", borderRadius: "8px", border: "none", background: etat === "envoi" ? "var(--cs-vert-clair)" : "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.8125rem", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
+          style={{ padding: "0.5625rem 1.125rem", borderRadius: "8px", border: "none", background: etat === "envoi" ? "var(--cs-desactive-fond)" : "var(--cs-vert-aplat)", color: etat === "envoi" ? "var(--cs-desactive-encre)" : "var(--cs-sur-aplat)", fontSize: "0.8125rem", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
           {etat === "envoi" ? "Envoi…" : "Me prévenir"}
         </button>
       </div>
@@ -656,7 +656,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
           </h2>
         </div>
         {erreur === "__confirm__" ? (
-          <div style={{ background: "rgba(var(--cs-vert-rgb),0.07)", border: "1px solid rgba(var(--cs-vert-rgb),0.2)", borderRadius: "8px", padding: "0.875rem 1rem", marginBottom: "1.25rem" }}>
+          <div style={{ background: "var(--cs-lecture-survol)", border: "1px solid rgba(var(--cs-vert-rgb),0.2)", borderRadius: "8px", padding: "0.875rem 1rem", marginBottom: "1.25rem" }}>
             <p style={{ fontSize: "0.8125rem", color: "var(--cs-vert-fonce)", lineHeight: 1.65, margin: 0 }}>Compte créé. Vérifiez votre boîte mail pour confirmer votre adresse, puis connectez-vous.</p>
           </div>
         ) : erreur ? (
@@ -686,7 +686,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             )}
           </div>
           <button type="submit" disabled={chargement}
-            style={{ marginTop: "0.375rem", padding: "0.625rem", borderRadius: "8px", border: "none", background: chargement ? "var(--cs-vert-clair)" : "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
+            style={{ marginTop: "0.375rem", padding: "0.625rem", borderRadius: "8px", border: "none", background: chargement ? "var(--cs-desactive-fond)" : "var(--cs-vert-aplat)", color: chargement ? "var(--cs-desactive-encre)" : "var(--cs-sur-aplat)", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
             {chargement ? "Chargement…" : mode === "connexion" ? "Se connecter" : "Créer le compte"}
           </button>
         </form>

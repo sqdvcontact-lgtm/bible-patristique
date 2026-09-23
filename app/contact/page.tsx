@@ -13,7 +13,7 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box", fontFamily: "inherit",
 };
 const labelStyle: React.CSSProperties = {
-  fontSize: "0.6875rem", fontWeight: 600, color: "#566150", letterSpacing: "0.06em",
+  fontSize: "0.6875rem", fontWeight: 600, color: "var(--cs-texte-second)", letterSpacing: "0.06em",
   display: "block", marginBottom: "5px",
 };
 
@@ -55,13 +55,13 @@ export default function ContactPage() {
         {/* ⚠️ Deux lignes seulement : ce chapeau ne relève pas de la composition dense,
             qui ne vise que les paragraphes. Seul l'interligne rentre dans le barème du
             site — 1,70 était le troisième plus ouvert (audit du 2026-09-05). */}
-        <p style={{ fontSize: "0.84375rem", color: "#566150", lineHeight: 1.52, marginBottom: "28px" }}>
+        <p style={{ fontSize: "0.84375rem", color: "var(--cs-texte-second)", lineHeight: 1.52, marginBottom: "28px" }}>
           Une question, un signalement d’erreur, l’exercice de vos droits sur vos données&#8239;: écrivez-nous
           par ce formulaire. Laissez votre adresse si vous souhaitez une réponse.
         </p>
 
         {etat === "fait" ? (
-          <div style={{ background: "rgba(var(--cs-vert-rgb),0.07)", border: "1px solid rgba(var(--cs-vert-rgb),0.22)", borderRadius: "8px", padding: "18px 20px" }}>
+          <div style={{ background: "var(--cs-lecture-survol)", border: "1px solid rgba(var(--cs-vert-rgb),0.22)", borderRadius: "8px", padding: "18px 20px" }}>
             <p style={{ fontSize: "0.84375rem", color: "var(--cs-vert-fonce)", margin: 0, lineHeight: 1.65 }}>
               Votre message a bien été envoyé. Merci. Nous vous répondrons si vous avez laissé une adresse.
             </p>
@@ -96,7 +96,7 @@ export default function ContactPage() {
             </div>
             <button type="submit" disabled={etat === "envoi"}
               style={{ alignSelf: "flex-start", padding: "10px 22px", borderRadius: "8px", border: "none",
-                background: etat === "envoi" ? "var(--cs-vert-clair)" : "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.84375rem",
+                background: etat === "envoi" ? "var(--cs-desactive-fond)" : "var(--cs-vert-aplat)", color: etat === "envoi" ? "var(--cs-desactive-encre)" : "var(--cs-sur-aplat)", fontSize: "0.84375rem",
                 fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer" }}>
               {etat === "envoi" ? "Envoi…" : "Envoyer"}
             </button>

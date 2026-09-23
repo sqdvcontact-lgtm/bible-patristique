@@ -89,7 +89,7 @@ export default function SoutenirPage() {
           fontSize: "clamp(0.875rem, 0.68rem + 0.28vw, 1.05rem)", fontWeight: 500,
           padding: "clamp(10px, 1.1vh, 14px) clamp(24px, 2vw, 38px)",
           borderRadius: "8px",
-          boxShadow: "0 3px 12px rgba(var(--cs-vert-rgb),0.22)",
+          boxShadow: "var(--cs-ombre-nette)",
           letterSpacing: "0.01em",
           flexShrink: 0,
         }}>

@@ -146,6 +146,10 @@
      papier devient brun. Le code employait `--cs-surface`, qui vire au brun sombre en
      Cuir : cent trente-huit libellés de bouton y disparaissaient. */
   --cs-sur-aplat: #fff;
+  /* Le rang DOUX de cette encre : le crème de l'infobulle et de l'initiale du
+     portrait. Le code y posait `--cs-fond-doux`, qui vaut ce crème au Clair mais
+     devient le sol sombre au Cuir : l'infobulle y rendait 1,01. */
+  --cs-sur-aplat-doux: #ede9e2;
 
   /* ── Palette harmonisée : tokens sémantiques ──
      Source unique des neutres, encres, danger et or, jusqu'ici éclatés en
@@ -518,6 +522,13 @@
      comme sur le cuir (charte, « Encre contre aplat »). Il était écrit en dur dans
      cinq fenêtres ; deux le lisent ici, les trois autres restent au registre. */
   --cs-calque-modale: rgba(30, 26, 20, 0.42);
+  /* Le filet de survol des poignées de redimensionnement des volets (quatre poignées). */
+  --cs-poignee-trait: rgba(122, 96, 64, 0.08);
+  /* L'état DÉSACTIVÉ d'un bouton plein : une seule recette, lisible dans les deux
+     thèmes. Les quatre qu'elle remplace posaient du blanc sur un fond clair
+     (`--cs-vert-clair`, `--cs-bord`, `--cs-danger-bord`) et rendaient 1,5 environ. */
+  --cs-desactive-fond: var(--cs-bord-clair);
+  --cs-desactive-encre: var(--cs-texte-doux);
 
   /* ── Le corps de l'APPARAT ──
      Le commentaire de Fillion se compose un cran sous le texte biblique. ⛔ Ce
@@ -700,6 +711,8 @@
   --cs-barre-fond: linear-gradient(180deg, #6a3a31 0%, #4e2823 100%);
   --cs-barre-fond-profond: #4a2721;
   --cs-sur-aplat: #fff;
+  /* 11,26 sur `--cs-vert-aplat-profond`, 7,97 sur `--cs-vert-aplat`. */
+  --cs-sur-aplat-doux: #e6ded0;
   /* Apparat : un doré plus SOURD que l'accent, pour ne pas lui disputer l'œil. */
   --cs-or: #c0a065;
   --cs-or-rgb: 192, 160, 101;
@@ -806,10 +819,11 @@
   --cs-vise-fond:#2e2614;
   /* ⛔ L'exception. Voir la note en tête du bloc. La famille du danger s'inverse
      comme celle du texte : le rang « foncé », qui dit le destructif CONFIRMÉ, est
-     le plus lumineux des deux. */
+     le plus lumineux des deux. Il valait #cf8570, à ΔE 2,8 du rang simple : le
+     survol du danger ne se voyait plus. Il rend 9,13 sur le sol, contre 6,43. */
   --cs-danger:#d18b73;
   --cs-danger-rgb:209, 139, 115;
-  --cs-danger-fonce: #cf8570;
+  --cs-danger-fonce: #e8ad98;
   --cs-danger-aplat: #8a3d29;
   --cs-danger-fond: #2f211b;
   --cs-danger-bord: #4a3a30;
@@ -1028,6 +1042,11 @@ button:focus-visible,
 :root[data-theme="sombre"] .cs-ornement {
   filter: invert(0.88) sepia(0.5) saturate(0.6);
 }
+
+/* L'anneau de fixation de l'infobulle (`Bulle.tsx`) garde au Clair son vert, écrit
+   dans le SVG ; au Cuir la règle l'emporte sur l'attribut, et l'anneau passe au clair
+   de l'accent, comme tout le reste de la bulle. */
+:root[data-theme="sombre"] .cs-bulle-anneau { stroke: var(--cs-vert-clair); }
 
 
 /* ── LE FLEURON — une planche, deux encres ───────────────────────────────────
@@ -3289,7 +3308,7 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 /* Les entrées du menu ⋮ : la forme d'une option de volet, en plus resserré — c'est
    une liste d'actions, non un axe où l'on retient un état. */
 .cs-entree-menu-volet:hover,
-.cs-entree-menu-volet:focus-visible { background: rgba(var(--cs-vert-rgb), 0.07); color: var(--cs-encre); }
+.cs-entree-menu-volet:focus-visible { background: var(--cs-lecture-survol); color: var(--cs-encre); }
 .cs-entree-menu-volet:hover span,
 .cs-entree-menu-volet:focus-visible span { color: var(--cs-vert); }
 
@@ -3473,7 +3492,7 @@ html[data-lasso-geste] * {
   pointer-events: none;
   border: 1px solid rgba(var(--cs-vert-rgb), 0.55);
   border-radius: 0;
-  background: rgba(var(--cs-vert-rgb), 0.07);
+  background: var(--cs-lecture-survol);
   will-change: transform, width, height;
 }
 /* ⛔ LE CHAMP DU LASSO DEVIENT ROUGE quand la page refuse ce qu'il tient (deux langues à

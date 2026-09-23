@@ -61,7 +61,7 @@ export default function AvisLivreEntier({ nomLivre, onConfirmer, onAnnuler }: {
   return createPortal(
     <div onClick={onAnnuler}
       /* ⚠️ Le calque est une OMBRE, non un jeton d'encre (charte, § Encre contre aplat). */
-      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.45)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div ref={boite} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cs-livre-entier-titre" aria-describedby="cs-livre-entier-propos"
         style={{ position: 'relative', background: 'var(--cs-surface)', borderRadius: '12px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '24rem', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)', padding: '20px 24px 20px' }}>
 

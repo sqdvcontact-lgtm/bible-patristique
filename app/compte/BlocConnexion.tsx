@@ -123,7 +123,7 @@ export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte,
 
       {modaleSuppression && (
         <div onClick={() => !suppressionEnCours && setModaleSuppression(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div ref={boiteSuppression} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="titre-suppression"
             style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '32px', width: '30rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h2 id="titre-suppression" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', fontWeight: 'normal', color: 'var(--cs-texte-fort)', margin: '0 0 16px' }}>Suppression du compte</h2>
@@ -153,7 +153,7 @@ export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte,
                 Annuler
               </button>
               <button onClick={supprimerCompte} disabled={suppressionEnCours || !consentSuppression}
-                style={{ fontSize: '0.78125rem', padding: '7px 16px', borderRadius: '8px', border: 'none', background: consentSuppression ? 'var(--cs-danger-aplat)' : 'var(--cs-danger-bord)', color: 'var(--cs-sur-aplat)', fontWeight: 500, cursor: consentSuppression ? 'pointer' : 'default', transition: 'background 0.15s' }}>
+                style={{ fontSize: '0.78125rem', padding: '7px 16px', borderRadius: '8px', border: 'none', background: consentSuppression ? 'var(--cs-danger-aplat)' : 'var(--cs-desactive-fond)', color: consentSuppression ? 'var(--cs-sur-aplat)' : 'var(--cs-desactive-encre)', fontWeight: 500, cursor: consentSuppression ? 'pointer' : 'default', transition: 'background 0.15s' }}>
                 {suppressionEnCours ? 'Suppression…' : 'Supprimer définitivement'}
               </button>
             </div>

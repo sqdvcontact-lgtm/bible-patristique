@@ -23,7 +23,7 @@ export const STYLE_ETIQUETTE: React.CSSProperties = {
 export function styleBouton(occupe: boolean): React.CSSProperties {
   return {
     marginTop: '0.375rem', padding: '0.625rem', borderRadius: '8px', border: 'none',
-    background: occupe ? 'var(--cs-vert-clair)' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)',
+    background: occupe ? 'var(--cs-desactive-fond)' : 'var(--cs-vert-aplat)', color: occupe ? 'var(--cs-desactive-encre)' : 'var(--cs-sur-aplat)',
     fontSize: '0.84375rem', fontWeight: 500, cursor: occupe ? 'default' : 'pointer',
   }
 }
@@ -33,7 +33,7 @@ export function Encart({ ton, children }: { ton: 'info' | 'erreur'; children: Re
   const erreur = ton === 'erreur'
   return (
     <div role={erreur ? 'alert' : 'status'} style={{
-      background: erreur ? 'var(--cs-danger-fond)' : 'rgba(var(--cs-vert-rgb),0.07)',
+      background: erreur ? 'var(--cs-danger-fond)' : 'var(--cs-lecture-survol)',
       border: `1px solid ${erreur ? 'var(--cs-danger-bord)' : 'rgba(var(--cs-vert-rgb),0.2)'}`,
       borderRadius: '8px', padding: '0.75rem 0.9375rem', marginBottom: '1.125rem',
     }}>

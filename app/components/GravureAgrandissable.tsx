@@ -86,7 +86,7 @@ export function GravureAgrandissable({
             position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0,
             // ⛔ Un calque est une OMBRE, jamais un jeton d'encre : sur le cuir,
             //    `--cs-texte-fort` est presque blanc et tirerait un rideau clair.
-            background: 'rgba(0, 0, 0, 0.55)', zIndex: Z_PLANCHE,
+            background: 'var(--cs-calque-modale)', zIndex: Z_PLANCHE,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '24px', overflow: 'hidden', cursor: 'zoom-out',
           }}

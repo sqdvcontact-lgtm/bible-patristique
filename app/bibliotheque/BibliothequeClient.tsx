@@ -367,7 +367,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
           <style>{`
             .bib-ligne { display: flex; align-items: stretch; transition: background-color 0.18s ease; }
             .bib-ligne:hover:not(.bib-correspond) { background-color: rgba(var(--cs-vert-rgb),0.055); }
-            .bib-correspond { background: rgba(var(--cs-vert-rgb),0.07); }
+            .bib-correspond { background: var(--cs-lecture-survol); }
             .bib-lire {
               display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0;
               font-size:0.6875rem; font-style: italic; letter-spacing: 0.03em; color: var(--cs-vert);

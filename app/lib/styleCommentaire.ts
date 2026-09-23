@@ -70,7 +70,7 @@ export function formeCommentaire({ reponse, suivie }: EtatCommentaire = {}): CSS
 export function carteCommentaire(etat: EtatCommentaire = {}): CSSProperties {
   const { certifie, enRevision } = etat
   const fond = certifie
-    ? 'rgba(var(--cs-vert-rgb),0.07)'
+    ? 'var(--cs-lecture-survol)'
     : enRevision
       ? 'var(--cs-danger-fond)'
       : 'var(--cs-surface)'

@@ -60,7 +60,6 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   'components/AccueilCards.tsx': ['#1e2e24', '#2a3d30', '#3a3125', '#3e1a17', '#4a3d2d', '#4e2823', '#5a2a26', '#6a3a31', 'rgba(10,18,8,0.30)', 'rgba(20,30,16,0.34)'],
   'components/Bulle.tsx': ['#6a9a7a', 'rgba(242,237,230,0.55)'],
   'components/EtoileFavori.tsx': ['#c8933a'],
-  'components/ModaleMessagerie.tsx': ['rgba(40,30,15,0.26)'],
   'components/ModalLienBiblique.tsx': ['#b07b65'],
   // ⬇ DIX teintes retirées le 2026-08-28, avec le passage de la recherche rapide aux
   //    familles de corpus : le bleu de la Bible (#3a5a8c et ses trois translucides), le
@@ -72,7 +71,6 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // Aucun jeton ne la porte dans les deux thèmes : --cs-peres est sombre en Clair, et
   // le panneau reste vert ou cuir en toutes circonstances. 4,80 sur le vert, 7,36 sur le cuir.
   'components/Navbar.tsx': ['#fff', '#f0b4a8'],
-  'components/NavLivres.tsx': ['rgba(122,96,64,0.08)'],
   // Les trois écritures d'une CARTE DE COMMENTAIRE ont perdu leurs teintes le 2026-09-08,
   // en même temps que leur bandeau de gauche et leur boîte dans la boîte : le rouge du
   // contrôle — onze valeurs de rgba(176,58,42,…), plus #b0392b et #6f3d35 — passe par
@@ -81,16 +79,13 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // et deux entrées disparaissent entièrement du registre.
   // L'or écrit en composantes de la pastille de période est parti le 2026-09-14 : le volet
   // de filtres des Pères parle l'or par jetons (`stylePastilleFiltre`).
-  'components/PanneauPatristique.tsx': ['rgba(122,96,64,0.08)'],
   // 'compte/page.tsx' : retiré le 2026-09-01. La page unique de 978 lignes a été
   // découpée en rubriques, et ses trois teintes ont été transposées au passage :
   // #3d7a3d → --cs-vert-aplat-fonce, #c8c0b8 → --cs-texte-faible, #c8d8cc → --cs-bord.
-  'conditions-utilisation/page.tsx': ['#4133'],
-  'contact/page.tsx': ['#566150'],
   'essais/[id]/EssaiClient.tsx': ['#e4c4a0'],
-  'essais/EditeurEssai.tsx': ['#7a5a30', '#a8564d', '#e8d5a0'],
+  'essais/EditeurEssai.tsx': ['#a8564d', '#e8d5a0'],
   'essais/EssaisListeClient.tsx': ['rgba(0,0,0,0)', 'rgba(255,255,255,0)', 'rgba(40,30,15,0.18)', 'rgba(40,30,15,0.22)', 'rgba(40,30,15,0.40)', 'rgba(40,30,15,0.48)'],
-  'histoire/HistoireClient.tsx': ['#5a5044', 'rgba(183,160,106,0.38)'],
+  'histoire/HistoireClient.tsx': ['rgba(183,160,106,0.38)'],
   // ⛔ Un dégradé et une encre posés SUR UNE PHOTOGRAPHIE, non sur le sol du site.
   // Un jeton se retourne avec le thème ; une image, non. `var(--cs-fond)` valait le
   // crème au Clair et devenait le brun sombre en Cuir, c'est-à-dire du brun écrit sur
@@ -100,11 +95,10 @@ export const COULEURS_EN_DUR: Record<string, readonly string[]> = {
   // sont ici pour mémoire, non comme dette.
   'lib/bandeauTraduction.ts': ['#f7f4ef', 'rgba(26,19,12,0)', 'rgba(26,19,12,0.06)', 'rgba(26,19,12,0.24)', 'rgba(26,19,12,0.50)', 'rgba(26,19,12,0.68)', 'rgba(247,244,239,0.58)', 'rgba(247,244,239,0.7)', 'rgba(247,244,239,0.82)'],
   'lib/frise.ts': ['#6d7d43', '#746187', '#83a06a', '#8a7440', '#b54d3f', '#c19a3e', '#c79a3a'],
-  'lib/NoteTooltip.tsx': ['#c0a878', 'rgba(10,8,4,0.06)', 'rgba(10,8,4,0.13)', 'rgba(185,165,120,0.35)', 'rgba(255,248,235,0.7)'],
+  'lib/NoteTooltip.tsx': ['#c0a878', 'rgba(185,165,120,0.35)', 'rgba(255,248,235,0.7)'],
   'librairies/page.tsx': ['#153f78', '#5d3a6e', '#5e3a1c', 'rgba(124,88,47,0.38)', 'rgba(151,30,37,0.36)', 'rgba(22,63,125,0.32)', 'rgba(31,90,90,0.34)', 'rgba(93,58,110,0.34)'],
   'manuscrits/bible-899/bible899.module.css': ['#4c4942', '#4f5e54', '#514a42', '#5e574e', '#5f503d', '#73664f', '#765718', '#777168', '#7d746a', '#8d432e', '#b57735', '#c9c1b6', '#f2e7c9', 'rgba(255,253,248,0.97)', 'rgba(53,44,32,0.1)', 'rgba(58,48,35,0.08)'],
-  'oeuvre/[id]/ComparaisonStatut.tsx': ['#7a5a2d', 'rgba(142,102,38,0.32)', 'rgba(190,145,66,0.09)'],
-  'oeuvre/[id]/OeuvreClient.tsx': ['rgba(122,96,64,0.08)'],
+  'oeuvre/[id]/ComparaisonStatut.tsx': ['rgba(142,102,38,0.32)', 'rgba(190,145,66,0.09)'],
   // Les CALQUES de fenêtre écrits en brun translucide (0,32 à 0,55 selon l'écran) lisent
   // tous --cs-calque-modale depuis le 2026-09-23 : la polyglotte, la recherche, la
   // bibliothèque, le sélecteur de citation, la messagerie, le lien biblique, le compte requis.

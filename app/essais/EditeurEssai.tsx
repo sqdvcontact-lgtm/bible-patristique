@@ -1119,7 +1119,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
           en a) piège le `position: fixed` et la fenêtre n'est plus centrée sur la page.
           Resserrée et épurée. */}
       {confirmPublier && typeof document !== 'undefined' && createPortal(
-        <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div ref={boiteConfirmPublier} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
               Soumettre cette publication ?
@@ -1169,7 +1169,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
           Même dessin et même mécanique que la fenêtre de soumission (portail,
           Échap, foyer piégé). */}
       {avertissement && typeof document !== 'undefined' && createPortal(
-        <div onClick={fermerAvertissement} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.34)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div onClick={fermerAvertissement} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div ref={boiteAvertissement} role="dialog" aria-modal="true" aria-labelledby="titre-avertissement-essai" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h3 id="titre-avertissement-essai" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
               {avertissement === 'retouche' ? 'Modifier un essai en ligne ?'
@@ -1213,12 +1213,12 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 </label>
               ))}
               {signature === 'nom_reel' && (
-                <p style={{ fontSize: '0.6875rem', color: '#7a5a30', background: 'var(--cs-fond-clair)', border: '1px solid #e8d5a0', borderRadius: '4px', padding: '6px 9px', margin: 0, lineHeight: 1.55 }}>
+                <p style={{ fontSize: '0.6875rem', color: 'var(--cs-importance-mineur-encre)', background: 'var(--cs-fond-clair)', border: '1px solid #e8d5a0', borderRadius: '4px', padding: '6px 9px', margin: 0, lineHeight: 1.55 }}>
                   Votre nom réel apparaîtra sur cet essai et sur votre profil public.
                 </p>
               )}
               {signature === 'anonyme' && (
-                <p style={{ fontSize: '0.6875rem', color: '#7a5a30', background: 'var(--cs-fond-clair)', border: '1px solid #e8d5a0', borderRadius: '4px', padding: '6px 9px', margin: 0, lineHeight: 1.55 }}>
+                <p style={{ fontSize: '0.6875rem', color: 'var(--cs-importance-mineur-encre)', background: 'var(--cs-fond-clair)', border: '1px solid #e8d5a0', borderRadius: '4px', padding: '6px 9px', margin: 0, lineHeight: 1.55 }}>
                   Rien ne reliera cette publication à votre compte : ni la liste, ni la page, ni votre page publique ne porteront votre nom. Seule l’administration sait qui écrit, pour la modération.
                 </p>
               )}

@@ -484,7 +484,7 @@ export default function VisiteGuidee({ visite, onScene, onSujet, onFin }: Visite
         aria-hidden="true"
         style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          background: 'rgba(0,0,0,0.5)',
+          background: 'var(--cs-calque-modale)',
           clipPath: etape && mesure
             ? `path("${decoupeDuVoile({ vue: mesure.vue, cadre: mesure.cadre, cadreBis: mesure.cadreBis })}")`
             : undefined,

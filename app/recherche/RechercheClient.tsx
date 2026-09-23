@@ -991,7 +991,7 @@ export default function RechercheClient() {
            « Fillion · 1904 », et c'est là qu'on compare des éditions. La barre, elle, n'a
            qu'à nommer celle qu'on lit. */
         .poly-hd-pick { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-width:0; padding:4px 16px 4px 6px; border-radius:4px; cursor:pointer; color:inherit; transition:background .15s; }
-        .poly-hd-pick:hover, .poly-hd-pick:has(select:focus-visible) { background:rgba(var(--cs-vert-rgb),0.07); }
+        .poly-hd-pick:hover, .poly-hd-pick:has(select:focus-visible) { background:var(--cs-lecture-survol); }
         .poly-hd-titre { min-width:0; text-align:center; line-height:1.12; }
         .poly-hd-nom { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--font-source-serif), Georgia, serif; font-size:0.8125rem; color:var(--cs-encre-fonce); }
         .poly-hd-chevron { position:absolute; right:6px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--cs-texte-doux); }

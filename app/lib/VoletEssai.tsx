@@ -193,7 +193,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
     <div style={{
       position: 'fixed', top: '3.5rem', right: 0, width: '20rem', height: 'calc(100dvh - 3.5rem)',
       background: 'var(--cs-fond-clair)', borderLeft: '1px solid var(--cs-bord)', padding: '20px', overflowY: 'auto',
-      zIndex: 50, boxShadow: '-4px 0 16px rgba(0,0,0,0.06)',
+      zIndex: 50, boxShadow: 'var(--cs-ombre-posee)',
     }}>
       {contenuVolet}
     </div>

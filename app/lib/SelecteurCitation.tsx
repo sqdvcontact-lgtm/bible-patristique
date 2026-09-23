@@ -207,8 +207,8 @@ function refNoteBiblique(ref: string, tradNom?: string | null): string {
 function BoutonCiter({ onCiter }: { onCiter: () => void }) {
   return (
     <button type="button" onClick={(e) => { e.stopPropagation(); onCiter() }} style={boutonCiterStyle}
-      onMouseEnter={e => { e.currentTarget.style.background = 'var(--cs-vert-fonce)' }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'var(--cs-vert)' }}>Citer</button>
+      onMouseEnter={e => { e.currentTarget.style.background = 'var(--cs-vert-aplat-fonce)' }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'var(--cs-vert-aplat)' }}>Citer</button>
   )
 }
 
@@ -581,7 +581,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
               const t = texteSansEnrichissement(s.segment_texte)
               return (
                 <button key={s.id} type="button" onClick={() => toggle(s.id)}
-                  style={{ display: 'flex', gap: '9px', textAlign: 'left', padding: '8px 10px', borderRadius: '4px', border: `1px solid ${sel ? 'var(--cs-vert)' : 'var(--cs-fond-doux)'}`, background: sel ? 'rgba(var(--cs-vert-rgb),0.07)' : 'var(--cs-surface)', cursor: 'pointer', alignItems: 'flex-start' }}>
+                  style={{ display: 'flex', gap: '9px', textAlign: 'left', padding: '8px 10px', borderRadius: '4px', border: `1px solid ${sel ? 'var(--cs-vert)' : 'var(--cs-fond-doux)'}`, background: sel ? 'var(--cs-lecture-survol)' : 'var(--cs-surface)', cursor: 'pointer', alignItems: 'flex-start' }}>
                   <span style={{ flexShrink: 0, width: '14px', height: '14px', marginTop: '1px', borderRadius: '4px', border: `1px solid ${sel ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: sel ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: 'var(--cs-sur-aplat)', fontSize: '0.6875rem', lineHeight: '13px', textAlign: 'center' }}>{sel ? '✓' : ''}</span>
                   <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--cs-vert)', flexShrink: 0 }}>§{s.segment_numero}</span>
                   <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-fort)', lineHeight: 1.5, flex: 1 }}>{t.slice(0, 200) + (t.length > 200 ? '…' : '')}</span>
@@ -598,7 +598,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
         </span>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
           <button type="button" disabled={!segsSelectionnes.length} onClick={() => insererSelection()}
-            style={{ ...petitChoixStyle, background: segsSelectionnes.length ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: segsSelectionnes.length ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', border: 'none', opacity: 1, cursor: segsSelectionnes.length ? 'pointer' : 'default' }}>Citer</button>
+            style={{ ...petitChoixStyle, background: segsSelectionnes.length ? 'var(--cs-vert-aplat)' : 'var(--cs-desactive-fond)', color: segsSelectionnes.length ? 'var(--cs-sur-aplat)' : 'var(--cs-desactive-encre)', border: 'none', opacity: 1, cursor: segsSelectionnes.length ? 'pointer' : 'default' }}>Citer</button>
         </span>
       </div>
     </div>
