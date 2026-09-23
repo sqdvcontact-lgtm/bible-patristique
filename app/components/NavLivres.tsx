@@ -456,22 +456,11 @@ export default function NavLivres({
           )}
         </button>
 
-        {montrerOptions && polyMode && onChoisirLivreEntier && (
-          <div style={{ padding: 'calc(var(--volet-air-fin) + 1px) 6px 0' }}>
-            {/* Mêmes couleurs que les cases de chapitre : allumé = vert plein, éteint = gris léger. */}
-            <button onClick={() => { setLivreActifLocal(livre.code); onChoisirLivreEntier(livre.code) }}
-              style={{
-                width: '100%', fontSize: '0.75rem', height: '1.5rem', padding: '0 6px', borderRadius: '4px',
-                border: 'none', cursor: 'pointer', textAlign: 'center', letterSpacing: '0.02em',
-                background: entierSel ? 'var(--cs-vert-aplat)' : 'var(--cs-fond-doux)',
-                color: entierSel ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)',
-                fontWeight: entierSel ? 600 : 400, lineHeight: 1,
-              }}>
-              Livre entier
-            </button>
-          </div>
-        )}
-
+        {/* ⛔ « LIVRE ENTIER » EST UNE CASE DE LA GRILLE, marquée ∞, en dernier (demande de
+            l'auteur, 2026-09-23). Le bouton pleine largeur qui la précédait se lisait grisé,
+            donc éteint, au-dessus des chapitres : une case de plus, au même dessin que ses
+            voisines, dit qu'on choisit l'étendue comme on choisit un chapitre. Le mot reste
+            dans l'infobulle et le nom accessible. */}
         {montrerOptions && (
           <div style={{
             display: 'grid',
@@ -524,6 +513,20 @@ export default function NavLivres({
                 </button>
               )
             })}
+            {polyMode && onChoisirLivreEntier && (
+              <button onClick={() => { setLivreActifLocal(livre.code); onChoisirLivreEntier(livre.code) }}
+                title="Livre entier" aria-label={`${livre.nom}, livre entier`}
+                aria-current={entierSel ? 'page' : undefined}
+                className="cs-case-chapitre"
+                style={{
+                  height: 'var(--volet-case)', borderRadius: '4px', border: 'none', cursor: 'pointer', padding: 0,
+                  background: entierSel ? 'var(--cs-vert-aplat)' : 'var(--cs-fond-doux)',
+                  color: entierSel ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)',
+                  lineHeight: 1, textAlign: 'center',
+                }}>
+                <span aria-hidden="true" style={{ fontSize: '1.2em', lineHeight: 1 }}>∞</span>
+              </button>
+            )}
           </div>
         )}
       </div>

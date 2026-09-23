@@ -28,6 +28,7 @@ import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } f
 import IconeCrayon from "@/app/components/IconeCrayon";
 import IconeSignalement from "@/app/components/IconeSignalement";
 import IconeSignet from "@/app/components/IconeSignet";
+import IconeCroix from "@/app/components/IconeCroix";
 import { codeDeTraduction } from "@/app/lib/prelevementsBibliques";
 // La cellule d'actions du site : au-dessus du texte survolé, jamais dessus.
 import { CelluleActions, useCelluleActions } from "@/app/components/CelluleActions";
@@ -53,7 +54,13 @@ import { ABREV_FR } from "@/app/lib/bible";
 import { rendreTexteEnrichi, texteSansEnrichissement } from "@/app/oeuvre/[id]/texteEnrichi";
 import ModalSignalement from "@/app/components/ModalSignalement";
 import BoutonCopierTexte from "@/app/components/BoutonCopierTexte";
-import { citationBiblique } from "@/app/lib/citation";
+import { citationBiblique, copierCitation } from "@/app/lib/citation";
+import LassoLecture, { type RefusDeLasso } from "@/app/components/LassoLecture";
+import { colonnesTouchees } from "@/app/lib/lasso";
+import { referenceDesVersets, texteDesVersets, UNITE_VERSETS } from "@/app/lib/selectionPassages";
+import { texteLisibleDeLaBible } from "@/app/lib/texteLisible899";
+import { enumererNoms } from "@/app/lib/traducteurs";
+import TraductionsAffichees, { type ColonneAffichee, type FicheTraductionPoly } from "./TraductionsAffichees";
 import { useCompte } from "@/app/lib/contexteCompte";
 import { aRevoir899, chargerVersets899, estGlose899, estTraductionModerne899, NOTE_ALIGNEMENT_A_REVOIR, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
 import { marquerLacunesDuTemoin, rendreMarqueurs899 } from "@/app/lib/marqueurs899";
@@ -82,7 +89,7 @@ type Livre = { code: string; nom_fr: string; ordre: number };
 // `sourceFillion` : la traduction ne vit pas dans `versets_v2` ; son texte se lit dans la
 // table de lecture de la Fillion (voir `TABLE_FILLION`).
 type Trad = { trad_id: string; nom: string; ordre: number | null; edition: string | null; lang: string; variante?: string; sourceFillion?: boolean };
-type TraductionCatalogue = { trad_id: string; nom: string; ordre: number | null; source_edition: string | null; publication_fin_annee: number | null; langue: string | null };
+type TraductionCatalogue = { trad_id: string; nom: string; ordre: number | null; source_edition: string | null; publication_fin_annee: number | null; langue: string | null; auteur?: string | null; dates?: string | null; date_publication?: string | null };
 
 // ── La Bible du XIIIe siècle porte DEUX états de son texte ────────────────────
 // TR0009 n'est pas une traduction de plus : c'est un manuscrit, dont on lit soit les
@@ -225,6 +232,18 @@ const FILET_COL = "var(--cs-bord-clair)";
 const SURNUM = 'var(--cs-surnum)';       // versets propres à la Septante (hors ossature canonique)
 const SURNUM_FOND = "var(--cs-fond)";
 const NB_SLOTS = 4;   // valeur de repli au premier rendu (avant mesure de l'écran)
+// Une colonne qui s'ouvre ou se ferme : la durée de la transition de sa piste.
+// ⚠️ Elle est écrite UNE fois et passée à la feuille (`.poly-grille`) : deux écritures,
+// l'une en millisecondes et l'autre en secondes, se désaccorderaient au premier réglage.
+const DUREE_COLONNE_MS = 280;
+type SlotCol = { slot: number; trad: Trad | null };
+type ColRendue = SlotCol & { etat: "stable" | "entrante" | "sortante" };
+// La clé de lasso d'une cellule : sa colonne, puis son créneau canonique.
+const cleLasso = (slot: number, canonId: string) => `${slot}:${canonId}`;
+const colonneDeLaCleLasso = (cle: string): number | null => {
+  const n = Number(cle.slice(0, cle.indexOf(":")));
+  return Number.isInteger(n) ? n : null;
+};
 const CLE_SLOTS = "polyglotte-slots2";  // choix des traductions, mémorisé (v2 : colonnes adaptatives)
 // Nombre de colonnes de traduction ADAPTATIF : calculé d'après la largeur réelle
 // du tableau (une colonne lisible ≈ MIN_COL_PX), plafonné à MAX_SLOTS sur grand
@@ -698,15 +717,30 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
     }
     setBusy(false);
   };
-  // Enregistré : signet plein (vert) ; au survol, il devient une croix pour signifier
-  // « cliquer = retirer de la liste ».
+  // Enregistré : signet plein (vert) ; au survol, il cède la place à une croix pour
+  // signifier « cliquer = retirer de la liste ».
+  // ⛔ UNE PETITE CROIX ROUGE TRACÉE, EN FONDU (demande de l'auteur, 2026-09-23 : « la croix
+  // est immonde, pas fluide ; faire une petite croix rouge sobre »). C'était le glyphe ✕,
+  // posé à la place du signet d'un coup : plus gros que lui, dessiné par la police, et le
+  // bouton changeait de contenu sous le curseur. Les deux marques vivent désormais l'une
+  // sur l'autre, et c'est leur opacité qui passe de l'une à l'autre.
   const montrerCroix = !!saved && survol && !busy;
   return (
     <button onClick={basculer} title={saved ? "Retirer de mes citations" : "Ajouter à mes citations"} className="poly-act"
       onMouseEnter={() => setSurvol(true)} onMouseLeave={() => setSurvol(false)}
-      style={{ ...ACT_BTN, color: montrerCroix ? "var(--cs-danger)" : saved ? VERT : "var(--cs-texte-doux)" }}
+      onFocus={() => setSurvol(true)} onBlur={() => setSurvol(false)}
+      style={{ ...ACT_BTN, color: saved ? VERT : "var(--cs-texte-doux)" }}
       aria-label={saved ? "Retirer de mes citations" : "Ajouter à mes citations"}>
-      {busy ? "…" : montrerCroix ? "✕" : <IconeSignet plein={!!saved} />}
+      {busy ? "…" : (
+        <span style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ display: "inline-flex", opacity: montrerCroix ? 0 : 1, transition: "opacity .15s ease" }}>
+            <IconeSignet plein={!!saved} />
+          </span>
+          <span aria-hidden="true" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cs-danger)", opacity: montrerCroix ? 1 : 0, transition: "opacity .15s ease", pointerEvents: "none" }}>
+            <IconeCroix size={8} />
+          </span>
+        </span>
+      )}
     </button>
   );
 }
@@ -1113,9 +1147,9 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
   // Une traduction, dans le menu ou dans le sous-menu d'une famille. Dans un sous-menu,
   // `libelle` dit ce que ce texte est DANS son édition (« Texte latin en regard ») : le nom de
   // l'édition est porté par la ligne de la famille.
-  // ⛔ Une traduction déjà affichée dans une autre colonne se grise par son ENCRE seule, et se
-  // choisit quand même. La ligne porte alors les deux noms, séparés par une flèche à double
-  // sens : on lit d'un coup d'œil ce qui va s'échanger.
+  // ⛔ Une traduction déjà affichée dans une autre colonne se choisit quand même. Son nom
+  // garde la forme de la ligne ; la flèche à double sens et le nom de la colonne courante,
+  // celui qu'elle va déplacer, la suivent en glose plus petite et grisée (2026-09-23).
   const optionTrad = (t: Trad, rang: number, total: number, dansVolet: boolean, libelle?: string, titre?: string) => {
     const actif = slots[index] === t.trad_id;
     const ailleurs = !actif && slots.some((x, idx) => idx !== index && x === t.trad_id);
@@ -1138,13 +1172,18 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
           if (!actif) e.currentTarget.style.background = FOND_SURVOL_MENU;
         }}
         onMouseLeave={e => { if (!actif) e.currentTarget.style.background = "var(--cs-surface)"; }}
-        style={{ ...styleLigneMenu(actif, rang === 0, rang === total - 1), ...(ailleurs ? { color: "var(--cs-texte-doux)" } : null) }}>
+        style={styleLigneMenu(actif, rang === 0, rang === total - 1)}>
+        {/* ⛔ LA TRADUCTION QU'ON CHOISIT GARDE LA FORME DE LA LIGNE ; celle dont elle prend la
+            place la suit, plus petite et grisée (demande de l'auteur, 2026-09-23 : « le
+            système pour intervertir deux traductions n'est pas clair »). Les deux noms
+            portaient la même encre pâle et le même corps : on ne lisait plus lequel on
+            choisissait. La flèche et le second nom forment désormais une glose. */}
         <span style={{ minWidth: 0 }}>{rendreEnrichi(libelle ?? t.nom)}</span>
         {ailleurs && courante && (
-          <>
-            <span role="img" aria-label="échange avec" style={{ display: "inline-flex", flexShrink: 0 }}><IconeEchange /></span>
+          <span style={{ display: "inline-flex", alignItems: "baseline", gap: "0.35em", minWidth: 0, fontSize: "0.85em", color: "var(--cs-texte-doux)" }}>
+            <span role="img" aria-label="échange avec" style={{ display: "inline-flex", flexShrink: 0, alignSelf: "center" }}><IconeEchange /></span>
             <span style={{ minWidth: 0 }}>{rendreEnrichi(courante.nom)}</span>
-          </>
+          </span>
         )}
       </button>
     );
@@ -1278,7 +1317,7 @@ function ensembleDeLivre(livres: Livre[], code: string): Onglet {
 
 export default function PolyglottePage() {
   // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
-  const { visiteFaite, oublierVisite, profilPret } = useCompte();
+  const { visiteFaite, oublierVisite, profilPret, exigerCompte } = useCompte();
   const [livres, setLivres] = useState<Livre[]>([]);
   // trad_id → code du livre → nom qu'il porte dans cette édition. Seuls les écarts au canon.
   const [livresEd, setLivresEd] = useState<Record<string, Record<string, { nom: string; abrege: string }>>>({});
@@ -1286,6 +1325,8 @@ export default function PolyglottePage() {
   // La Fillion n'est alignée que sur une partie du canon : le menu ne l'offre que là où
   // elle se lit vraiment (voir `traductionsDisponiblesPourLivres`).
   const [livresFillion, setLivresFillion] = useState<LivresParTraduction>(new Map());
+  // Ce que le volet « Traductions affichées » dit de chaque bible : auteur et édition.
+  const [fichesTrad, setFichesTrad] = useState<Map<string, FicheTraductionPoly>>(new Map());
   const [points, setPoints] = useState<Point[]>([]);
   // ⛔ LA PAGE NE S'OUVRE PLUS VIDE (demande de l'auteur, 2026-09-04 : « supprimer le
   // dessin et afficher soit le dernier emplacement de lecture de l'utilisateur — il faut
@@ -1608,14 +1649,29 @@ export default function PolyglottePage() {
       // de la Fillion dit, elle, où son texte est réellement aligné. Les deux se lisent
       // ensemble : aucune liste d'identifiants n'est codée en dur ici, et un livre qui
       // s'ajoute au chantier entre au menu sans toucher à la page.
-      const [catalogue, couvertureFillion] = await Promise.all([
-        supabase.from("traductions").select("trad_id, nom, ordre, source_edition, publication_fin_annee, langue").eq("est_biblique", true).order("ordre"),
+      // ⚠️ `auteur`, `dates`, `date_publication` et la fiche d'édition (`editions_sources`,
+      // sept lignes) servent le volet « Traductions affichées » (2026-09-23) : ils partent
+      // dans la même vague et ne coûtent pas un aller-retour de plus. Un échec n'ôte que
+      // ces lignes du volet, jamais une colonne.
+      const [catalogue, couvertureFillion, fichesEdition] = await Promise.all([
+        supabase.from("traductions").select("trad_id, nom, ordre, source_edition, publication_fin_annee, langue, auteur, dates, date_publication").eq("est_biblique", true).order("ordre"),
         supabase.from(COUVERTURE_FILLION).select("trad_id, livre, nb_versets"),
+        supabase.from("editions_sources").select("trad_id, lieu_edition, editeur, annee_edition, depot_manuscrit, cote_manuscrit"),
       ]);
       const { data: tr, error: erreurTr } = catalogue;
       if (erreurTr) console.error("Polyglotte : les traductions n’ont pas pu être lues.", erreurTr);
       if (couvertureFillion.error) console.error("Polyglotte : les livres alignés de la Fillion n’ont pas pu être lus.", couvertureFillion.error);
+      if (fichesEdition.error) console.error("Polyglotte : les fiches d’édition n’ont pas pu être lues.", fichesEdition.error);
       const liste = (tr ?? []) as TraductionCatalogue[];
+      const parEdition = new Map(((fichesEdition.data ?? []) as { trad_id: string; lieu_edition: string | null; editeur: string | null; annee_edition: string | null; depot_manuscrit: string | null; cote_manuscrit: string | null }[]).map(f => [f.trad_id, f]));
+      setFichesTrad(new Map(liste.map(t => {
+        const e = parEdition.get(t.trad_id);
+        return [t.trad_id, {
+          auteur: t.auteur ?? null, dates: t.dates ?? null, datePublication: t.date_publication ?? null,
+          lieuEdition: e?.lieu_edition ?? null, editeur: e?.editeur ?? null, anneeEdition: e?.annee_edition ?? null,
+          depotManuscrit: e?.depot_manuscrit ?? null, coteManuscrit: e?.cote_manuscrit ?? null,
+        }];
+      })));
       const couverture = indexerLivresFillion((couvertureFillion.data ?? []) as LivreFillion[]);
       setLivresFillion(couverture);
       // Une SONDE par traduction pour savoir laquelle est migrée dans versets_v2, toutes
@@ -2072,6 +2128,50 @@ export default function PolyglottePage() {
   const slotCols = slotsDisponibles.map((id, i) => ({ slot: i, trad: trads.find(t => t.trad_id === id) ?? null }));
   const colonnes = slotCols.map(s => s.trad).filter((t): t is Trad => !!t);
 
+  // ── UNE COLONNE S'OUVRE ET SE FERME, ELLE NE SAUTE PAS (demande de l'auteur, 2026-09-23) ──
+  // « Je passe de 4 à 3 colonnes : la colonne de droite est poussée, écrasée par les autres,
+  // qui gagnent progressivement en largeur. » La colonne qui part reste rendue le temps d'une
+  // transition (`fantomes`), sa piste passant de `1fr` à `0fr` ; celle qui arrive naît à
+  // `0fr` et gagne `1fr` à l'image suivante (`entree`). C'est la grille qui s'anime
+  // (`grid-template-columns`, interpolé tant que le nombre de pistes ne change pas), et la
+  // colonne en transit ne compte pas dans la hauteur des lignes (`contain: size`, voir
+  // `.poly-col-sortante`). ⛔ Rien ne se pose dans le corps d'un effet : la bascule se
+  // reconnaît PENDANT LE RENDU, sur la clé des colonnes, et seuls les minuteurs éteignent.
+  // ⚠️ Un échange de colonnes, qui garde leur nombre, ne s'anime pas : rien n'y part.
+  const cleCols = slotCols.map(c => c.trad?.trad_id ?? "").join("|");
+  const [colsPrec, setColsPrec] = useState<{ cle: string; cols: SlotCol[] }>({ cle: cleCols, cols: slotCols });
+  const [fantomes, setFantomes] = useState<{ jeton: number; cols: SlotCol[] } | null>(null);
+  const [entree, setEntree] = useState<{ jeton: number; depuis: number } | null>(null);
+  if (colsPrec.cle !== cleCols) {
+    const avant = colsPrec.cols.length;
+    const apres = slotCols.length;
+    const avaitDuTexte = colsPrec.cols.some(c => c.trad);
+    setColsPrec({ cle: cleCols, cols: slotCols });
+    if (avaitDuTexte && apres < avant) {
+      setFantomes(f => ({ jeton: (f?.jeton ?? 0) + 1, cols: colsPrec.cols.slice(apres) }));
+      setEntree(null);
+    } else if (avaitDuTexte && apres > avant) {
+      setEntree(e => ({ jeton: (e?.jeton ?? 0) + 1, depuis: avant }));
+      setFantomes(null);
+    }
+  }
+  useEffect(() => {
+    if (!fantomes) return;
+    const fin = window.setTimeout(() => setFantomes(null), DUREE_COLONNE_MS + 40);
+    return () => window.clearTimeout(fin);
+  }, [fantomes]);
+  // ⚠️ Un minuteur et non une image d'animation : dans un onglet caché, une image ne se
+  // joue jamais, et la colonne resterait à zéro jusqu'au retour du lecteur.
+  useEffect(() => {
+    if (!entree) return;
+    const depart = window.setTimeout(() => setEntree(null), 34);
+    return () => window.clearTimeout(depart);
+  }, [entree]);
+  const colsRendues: ColRendue[] = [
+    ...slotCols.map(c => ({ ...c, etat: entree && c.slot >= entree.depuis ? "entrante" as const : "stable" as const })),
+    ...(fantomes?.cols ?? []).map(c => ({ ...c, etat: "sortante" as const })),
+  ];
+
   // ── LA VISITE ──────────────────────────────────────────────────────────────
   // ⛔ ELLE NE S'OUVRE QUE LÀ OÙ LE TABLEAU EXISTE. Sous 820 px la page rend un
   // écran « largeur requise » et l'outil n'est pas peint : ses repères sont bien
@@ -2129,6 +2229,125 @@ export default function PolyglottePage() {
     if (plie !== null) setNotesReduites(plie);
   }, []);
 
+  // ── LE LASSO (demande de l'auteur, 2026-09-23) ─────────────────────────────────
+  // Le lasso des pages Bible et Œuvre (app/components/LassoLecture.tsx) : on tire depuis un
+  // blanc, et les cellules touchées se prélèvent ou se copient d'un coup. ⛔ UNE SEULE
+  // COLONNE : une citation ne mêle pas deux traductions, et un lasso tiré en travers se
+  // teinte de rouge et le crie au centre, comme la lecture en regard de la page Bible.
+  // ⚠️ Un chapitre à la fois : le prélèvement se range sous un chapitre, et le livre entier
+  // en mêlerait plusieurs dans une seule citation. Pas au doigt, où glisser fait défiler.
+  // ⚠️ La clé porte la COLONNE, non la traduction : l'identifiant de la transcription
+  // diplomatique du témoin (« TR0009#diplomatic ») n'entre pas dans un sélecteur.
+  const lassoActif = !sansSurvol && !ecranEtroit && chFiltre != null && !surnumOnly && colonnes.length > 0;
+  const livreLasso = livreChoisi ? livres.find(l => l.code === livreChoisi) ?? null : null;
+  const abrLasso = livreChoisi ? (ABREV_FR[livreChoisi] ?? livreChoisi) : "";
+  type PassagePoly = { numero: number; texte: string; label: string; trad: string | null; canonId: string; clePrelev: string };
+  const cellulesDuLasso = useMemo(() => {
+    const table = new Map<string, PassagePoly>();
+    if (!lassoActif || !livreChoisi) return table;
+    const colonnesDuLasso = slotsDisponibles.map(id => trads.find(t => t.trad_id === id) ?? null);
+    for (const r of parLivre.get(livreChoisi) ?? []) {
+      if (r.ch_canon !== chFiltre) continue;
+      colonnesDuLasso.forEach((t, slot) => {
+        if (!t) return;
+        const cs = cellule.get(`${r.id}|${t.trad_id}`) ?? [];
+        if (!cs.length || cs[0]?.estLacune899) return;
+        const brut = cs.map(c => c.texte).filter(Boolean).join(" ");
+        if (!brut.trim()) return;
+        const code = codeDeTraduction(t.trad_id);
+        table.set(cleLasso(slot, r.id), {
+          numero: r.v_canon,
+          texte: texteLisibleDeLaBible(brut, tradBase(t.trad_id)),
+          label: t.nom, trad: code, canonId: r.id,
+          clePrelev: `${abrLasso}|${r.ch_canon}|${r.v_canon}|${code ?? t.nom}`,
+        });
+      });
+    }
+    return table;
+  }, [lassoActif, livreChoisi, chFiltre, slotsDisponibles, trads, parLivre, cellule, abrLasso]);
+  const passagesDuLasso = (cles: readonly string[]) => cles
+    .map(cle => cellulesDuLasso.get(cle))
+    .filter((p): p is PassagePoly => p !== undefined);
+  const refusDuLasso = (cles: readonly string[]): RefusDeLasso | null => {
+    const touchees = colonnesTouchees(cles, colonneDeLaCleLasso);
+    if (touchees.length < 2) return null;
+    const noms = touchees.map(slot => trads.find(t => t.trad_id === slotsDisponibles[slot])?.nom ?? `colonne ${slot + 1}`);
+    return {
+      titre: "Une seule traduction à la fois",
+      detail: `Le lasso tient plusieurs traductions ensemble : ${enumererNoms(noms)}. Reprenez le geste dans une seule colonne.`,
+    };
+  };
+  // ⛔ Les gestes refusent eux aussi une sélection qui mêle deux colonnes.
+  const garderUneColonne = (cles: readonly string[]) => {
+    const refus = refusDuLasso(cles);
+    if (refus) throw new Error(refus.titre);
+  };
+  const dejaPreleves = (cles: readonly string[]) =>
+    new Set(passagesDuLasso(cles).map(p => prelevs.get(p.clePrelev)).filter(Boolean)).size;
+  // ⚠️ La clé des prélèvements est celle du signet de la cellule d'actions : le lasso et le
+  // signet disent donc la même chose d'un verset.
+  const enregistrerLasso = async (cles: readonly string[]): Promise<number | null> => {
+    garderUneColonne(cles);
+    if (!exigerCompte("prélever ces versets") || !userId || !livreLasso || chFiltre == null) return null;
+    const vus = new Set<string>();
+    const aEcrire = passagesDuLasso(cles).filter(p => {
+      if (vus.has(p.clePrelev) || prelevs.has(p.clePrelev)) return false;
+      vus.add(p.clePrelev);
+      return true;
+    });
+    if (!aEcrire.length) return 0;
+    const { data, error } = await supabase.from("prelevements").insert(aEcrire.map(p => ({
+      user_id: userId, type: "biblique",
+      ref_livre: livreLasso.nom_fr, ref_livre_abr: abrLasso,
+      ref_chapitre: chFiltre, ref_verset: p.numero, canon_id: p.canonId,
+      texte: p.texte, traduction: p.label, trad_id: p.trad,
+    }))).select("id, ref_verset, trad_id, traduction");
+    if (error) throw error;
+    setPrelevs(m => {
+      const n = new Map(m);
+      for (const l of (data ?? []) as { id: string; ref_verset: number; trad_id: string | null; traduction: string | null }[]) {
+        n.set(`${abrLasso}|${chFiltre}|${l.ref_verset}|${l.trad_id ?? l.traduction}`, l.id);
+      }
+      return n;
+    });
+    signalerProgression();
+    return aEcrire.length;
+  };
+  const retirerLasso = async (cles: readonly string[]): Promise<number | null> => {
+    garderUneColonne(cles);
+    if (!userId) return null;
+    const cibles = new Map<string, string>();   // identifiant du prélèvement → sa clé
+    for (const p of passagesDuLasso(cles)) {
+      const id = prelevs.get(p.clePrelev);
+      if (id) cibles.set(id, p.clePrelev);
+    }
+    if (!cibles.size) return 0;
+    const { error } = await supabase.from("prelevements").delete().eq("user_id", userId).in("id", [...cibles.keys()]);
+    if (error) throw error;
+    setPrelevs(m => {
+      const n = new Map(m);
+      for (const cle of cibles.values()) n.delete(cle);
+      return n;
+    });
+    return cibles.size;
+  };
+  // La citation d'une sélection : « … » (Gn 1, 3-5.7), une élision là où un verset manque.
+  const copierLasso = async (cles: readonly string[]) => {
+    garderUneColonne(cles);
+    const passages = passagesDuLasso(cles);
+    if (!passages.length || chFiltre == null) return;
+    await copierCitation(citationBiblique(
+      texteDesVersets(passages.map(p => ({ numero: p.numero, texte: p.texte }))),
+      `${abrLasso} ${chFiltre}, ${referenceDesVersets(passages.map(p => p.numero))}`,
+    ));
+  };
+
+  // Les colonnes du tableau, pour le volet « Traductions affichées ». ⚠️ La notice est celle
+  // de la bible : les deux états du témoin 899 ouvrent la même.
+  const colonnesAffichees: ColonneAffichee[] = slotCols
+    .filter((c): c is { slot: number; trad: Trad } => c.trad !== null)
+    .map(c => ({ cle: c.trad.trad_id, code: tradBase(c.trad.trad_id), nom: c.trad.nom, variante: c.trad.variante }));
+
   // Sous le titre canonique du livre, la désignation que lui donnent les éditions affichées
   // quand elle diffère. C'est la seule façon pour le lecteur de savoir que la Sacy de 1730
   // appelle « Rois, livre troisième » ce que le canon nomme « 1 Rois ».
@@ -2148,7 +2367,8 @@ export default function PolyglottePage() {
   // Dernière colonne : les NOTES personnelles du lecteur (largeur fixe, hors du
   // partage `fr` des traductions). Enregistrées par verset sur le compte.
   const LARGEUR_NOTES = notesReduites ? "26px" : "13rem";
-  const tmpl = `${LARGEUR_REF}px ${slotCols.map(() => "minmax(0, 1fr)").join(" ")} ${LARGEUR_NOTES}`;
+  // Une colonne en transit tient sa piste à `0fr` : c'est la grille qui l'ouvre ou la ferme.
+  const tmpl = `${LARGEUR_REF}px ${colsRendues.map(c => (c.etat === "stable" ? "minmax(0, 1fr)" : "minmax(0, 0fr)")).join(" ")} ${LARGEUR_NOTES}`;
   const HAUT_ENTETE = 52;   // titre et date de l'édition, sur deux lignes (ligne desserrée)
   const HAUT_NAV    = 10;   // blanc entre la NavBar et le haut de la page
   // Sommet du corps : sous la navbar, le blanc de séparation et la ligne des éditions.
@@ -2194,6 +2414,19 @@ export default function PolyglottePage() {
            l'ancien « .poly-act { opacity: 0 } » les aurait rendus invisibles dans le
            portail, où aucun sélecteur de cette page ne peut plus les atteindre. */
         .poly-act { transition: color .15s; }
+        /* ── UNE COLONNE S'OUVRE ET SE FERME ──
+           La piste passe de 1fr à 0fr (ou l'inverse), et les autres gagnent la place qu'elle
+           rend. ⚠️ Le fond d'une ligne garde sa propre transition, ici et non plus en ligne :
+           une déclaration en ligne battrait celle-ci. La colonne en transit s'efface et ne
+           compte pas dans la hauteur des lignes (« contain: size ») : écrasée, son texte
+           irait à la ligne à chaque mot et gonflerait toute la rangée. */
+        .poly-grille { transition: background .4s ease, grid-template-columns ${DUREE_COLONNE_MS}ms cubic-bezier(.3,.7,.2,1); }
+        .poly-col { transition: opacity ${Math.round(DUREE_COLONNE_MS * 0.7)}ms ease; }
+        .poly-col-entrante, .poly-col-sortante { contain: size; overflow: hidden; opacity: 0; pointer-events: none; }
+        @media (prefers-reduced-motion: reduce) {
+          .poly-grille { transition: background .4s ease; }
+          .poly-col { transition: none; }
+        }
         .poly-act:hover { color: var(--cs-texte-second); }
         /* En-tête « Notes » : au survol de toute la cellule, « Notes » s'efface et
            « Fermer » apparaît à sa place (fondu croisé). */
@@ -2345,6 +2578,8 @@ export default function PolyglottePage() {
               ))}
             </div>
           </div>
+          {/* Les colonnes du tableau, nommées avec leur édition ; le nom ouvre la notice. */}
+          <TraductionsAffichees colonnes={colonnesAffichees} fiches={fichesTrad} />
           {/* Les deux réglages de relecture de l'administrateur. Ils étaient posés en absolu
               sur le bandeau du livre, qui n'existe plus ; ils descendent auprès de « Traductions
               visibles », dont ils sont les voisins naturels — ce sont des réglages, non des
@@ -2445,7 +2680,7 @@ export default function PolyglottePage() {
                 porte le blanc de séparation dans le bloc collant lui-même, sur un fond
                 opaque, si bien que le texte ne défile jamais dans l'interstice. */}
             <div ref={enteteRef} style={{ position: "sticky", top: HAUTEUR_NAVBAR, zIndex: 5, background: FOND, paddingTop: HAUT_NAV }}>
-              <div data-visite="poly-entete" style={{ display: "grid", gridTemplateColumns: tmpl, fontSize: '0.75rem', minHeight: HAUT_ENTETE, borderBottom: "1px solid var(--cs-bord)" }}>
+              <div data-visite="poly-entete" className="poly-grille" style={{ display: "grid", gridTemplateColumns: tmpl, fontSize: '0.75rem', minHeight: HAUT_ENTETE, borderBottom: "1px solid var(--cs-bord)" }}>
                 {/* La marge de la référence : la réglure ne commence qu'après elle. */}
                 <div />
                 {/* Un en-tête par colonne de traduction, exactement : la numérotation
@@ -2453,8 +2688,17 @@ export default function PolyglottePage() {
                     piste à couvrir. ⚠️ Le filet de gauche est le HAUT de la réglure : il doit
                     tomber au même pixel que celui des cellules, sans quoi la verticale se
                     briserait sous l'en-tête. */}
-                {slotCols.map((sc, k) => {
+                {colsRendues.map((sc, k) => {
                   const i = sc.slot;
+                  // Une colonne qui part n'offre plus son menu : elle ne montre que son nom,
+                  // le temps de s'effacer.
+                  if (sc.etat === "sortante") return (
+                    <div key={k} className="poly-col poly-col-sortante" style={{ borderLeft: `1px solid ${FILET_COL}`, padding: "5px 6px", display: "flex", alignItems: "center", justifyContent: "center", minWidth: 0 }}>
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "var(--cs-encre-fonce)" }}>
+                        {sc.trad ? rendreEnrichi(sc.trad.nom) : null}
+                      </span>
+                    </div>
+                  );
                   return (
                     // Une seule colonne par traduction depuis que la référence d'origine est
                     // passée en lettrine : le « span 2 » d'avant faisait déborder chaque
@@ -2466,7 +2710,7 @@ export default function PolyglottePage() {
                     // bien que le fond du survol et du menu ouvert courait d'un filet à
                     // l'autre et venait toucher la réglure. Cinq pixels en haut et en bas,
                     // six sur les côtés : le bloc se pose DANS la case au lieu de la remplir.
-                    <div key={k} style={{ borderLeft: `1px solid ${FILET_COL}`, padding: "5px 6px", display: "flex", alignItems: "stretch", justifyContent: "center", minWidth: 0 }}>
+                    <div key={k} className={`poly-col poly-col-${sc.etat}`} style={{ borderLeft: `1px solid ${FILET_COL}`, padding: "5px 6px", display: "flex", alignItems: "stretch", justifyContent: "center", minWidth: 0 }}>
                       {/* Le nom est un menu déroulant : chevron pour qu'on voie qu'il se
                           clique. Une traduction déjà affichée ailleurs peut être choisie : les
                           deux colonnes s'échangent alors leur place (indiqué dans l'option). */}
@@ -2561,7 +2805,7 @@ export default function PolyglottePage() {
                 ? `Verset hors ossature canonique, porté par ${editions} éditions au même numéro (${g.ch}, ${g.v})`
                 : `Verset propre à cette édition — hors ossature canonique (${g.ch}, ${g.v})`;
             return (
-              <div key={cle} className="poly-surnum-row" style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid var(--cs-surnum-bord)", fontSize: '0.875rem' }}>
+              <div key={cle} className="poly-surnum-row poly-grille" style={{ display: "grid", gridTemplateColumns: tmpl, background: SURNUM_FOND, borderTop: "1px solid var(--cs-surnum-bord)", fontSize: '0.875rem' }}>
                 {/* « ✦ » plutôt que « ＋ » : le plus disait « on a ajouté quelque chose », ce qui
                     est faux et un peu comptable. L'étoile marque un verset qui existe hors de
                     l'ossature, sans porter de jugement sur sa légitimité.
@@ -2571,18 +2815,18 @@ export default function PolyglottePage() {
                 <div title={titre} className="poly-marge-ref" style={{ paddingRight: '6px', color: SURNUM, borderRight: `2px solid ${SURNUM}`, ...(glose ? { fontSize: CORPS_GLOSE.sousVerset } : {}) }}>
                   <span style={{ fontWeight: 700, fontSize: '0.71875rem' }}>✦</span>
                 </div>
-                {slotCols.map((sc, i) => {
+                {colsRendues.map((sc, i) => {
                   const r = sc.trad ? g.par.get(sc.trad.trad_id) : undefined;
                   // Un surnuméraire n'a pas de référence canonique : on signale sur sa
                   // numérotation d'origine, et l'on n'y prélève pas.
-                  const actionsSurnum: ActionsDeCellule | null = r && sc.trad ? {
+                  const actionsSurnum: ActionsDeCellule | null = r && sc.trad && sc.etat === "stable" ? {
                     cle: `surnum|${cle}|${sc.trad.trad_id}`,
                     refLisible: `${ABREV_FR[g.livre] ?? g.livre} ${g.ch}, ${g.v}${r.estGlose899 ? ', glose' : ''}`,
                     texte: r.texte ?? "",
                     citer: null,
                   } : null;
                   return (
-                    <div key={i} className="poly-texte-cell" lang={sc.trad?.lang} onCopy={copierSansCesures}
+                    <div key={i} className={`poly-texte-cell poly-col poly-col-${sc.etat}`} lang={sc.trad?.lang} onCopy={copierSansCesures}
                       onMouseEnter={actionsSurnum ? e => ancrerActions(e.currentTarget, actionsSurnum) : undefined}
                       onMouseLeave={actionsSurnum ? () => celluleActions.relacher(actionsSurnum.cle) : undefined}
                       onClick={actionsSurnum ? e => celluleActions.basculer(e.currentTarget, actionsSurnum.cle, celluleActions.ancre?.cle === actionsSurnum.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsSurnum }) : undefined}
@@ -2694,8 +2938,8 @@ export default function PolyglottePage() {
                 };
                 return (
                   <Fragment key={r.id}>
-                    <div className="poly-row" id={`poly-${l.code}-${r.ch_canon}-${r.v_canon}`}
-                      style={{ display: "grid", gridTemplateColumns: tmpl, background: ((versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) || (versetDesigne && versetDesigne.livre === livreChoisi && versetDesigne.ch === r.ch_canon && versetDesigne.v === r.v_canon)) ? 'rgba(var(--cs-vert-rgb),0.14)' : fond, fontSize: '0.875rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_ENTETE + 8}px)`, transition: "background .4s" }}>
+                    <div className="poly-row poly-grille" id={`poly-${l.code}-${r.ch_canon}-${r.v_canon}`}
+                      style={{ display: "grid", gridTemplateColumns: tmpl, background: ((versetCible && versetCible.ch === r.ch_canon && versetCible.v === r.v_canon) || (versetDesigne && versetDesigne.livre === livreChoisi && versetDesigne.ch === r.ch_canon && versetDesigne.v === r.v_canon)) ? 'rgba(var(--cs-vert-rgb),0.14)' : fond, fontSize: '0.875rem', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + ${HAUT_NAV + HAUT_ENTETE + 8}px)` }}>
                       {/* La référence canonique, EN MARGE : elle accompagne le verset au lieu
                           d'occuper une colonne bordée. Alignée à droite pour que les numéros
                           tombent tous au même fer, et calée sur la première ligne du texte.
@@ -2709,9 +2953,10 @@ export default function PolyglottePage() {
                         style={{ color: signaler ? ROUGE : ligneVide ? 'var(--cs-texte-doux)' : VERT, borderRight: signaler ? `2px solid ${ROUGE}` : undefined }}>
                         <span>{r.ch_canon}, {r.v_canon}{signaler ? " ⚠" : ""}</span>
                       </div>
-                      {slotCols.map((sc, i) => {
-                        if (!sc.trad) return <div key={i} style={{ borderLeft: `1px solid ${FILET_COL}` }} />;
+                      {colsRendues.map((sc, i) => {
+                        if (!sc.trad) return <div key={i} className={`poly-col poly-col-${sc.etat}`} style={{ borderLeft: `1px solid ${FILET_COL}` }} />;
                         const t = sc.trad;
+                        const enTransit = sc.etat !== "stable";
                         const cs = cellule.get(`${r.id}|${t.trad_id}`) ?? [];
                         // La case n'a pas de texte à elle : est-elle COUVERTE par un verset
                         // qu'on lit plus haut, ou l'édition ne la porte-t-elle pas du tout ?
@@ -2725,14 +2970,15 @@ export default function PolyglottePage() {
                         const lacuneCell = cs.length > 0 && cs[0]?.estLacune899 === true;
                         const cleCite = `${abr}|${r.ch_canon}|${r.v_canon}|${codeDeTraduction(t.trad_id) ?? t.nom}`;
                         // ⚠️ Une lacune du témoin n'a rien à citer ni à copier : pas d'actions.
-                        const actionsCell: ActionsDeCellule | null = cs.length > 0 && !lacuneCell ? {
+                        const actionsCell: ActionsDeCellule | null = cs.length > 0 && !lacuneCell && !enTransit ? {
                           cle: `${r.id}|${t.trad_id}`,
                           refLisible,
                           texte: texteCell,
                           citer: { cle: cleCite, refLivre: l.nom_fr, refAbr: abr, chapitre: r.ch_canon, verset: r.v_canon, traductionLabel: t.nom, tradId: t.trad_id },
                         } : null;
                         return (
-                          <div key={i} className="poly-texte-cell" lang={t.lang} onCopy={copierSansCesures}
+                          <div key={i} className={`poly-texte-cell poly-col poly-col-${sc.etat}`} lang={t.lang} onCopy={copierSansCesures}
+                            data-lasso-cellule={lassoActif && actionsCell && cellulesDuLasso.has(cleLasso(sc.slot, r.id)) ? cleLasso(sc.slot, r.id) : undefined}
                             onMouseEnter={actionsCell ? e => ancrerActions(e.currentTarget, actionsCell) : undefined}
                             onMouseLeave={actionsCell ? () => celluleActions.relacher(actionsCell.cle) : undefined}
                             onClick={actionsCell ? e => celluleActions.basculer(e.currentTarget, actionsCell.cle, celluleActions.ancre?.cle === actionsCell.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsCell }) : undefined}
@@ -2852,6 +3098,25 @@ export default function PolyglottePage() {
           <BoutonSignalerVerset refLisible={celluleActions.ancre.donnees.refLisible} texte={celluleActions.ancre.donnees.texte} />
         </CelluleActions>
       )}
+
+      {/* ⛔ Le lasso naît d'un BLANC : la marge de la page, une case sans texte. Une cellule
+          qui porte un verset se clique (elle ouvre ses actions) et n'en est pas un départ ;
+          l'en-tête des colonnes non plus. */}
+      <LassoLecture
+        zone={refTable}
+        actif={lassoActif}
+        contexte={`${livreChoisi}|${chFiltre}|${slotsDisponibles.join(",")}`}
+        selecteurCibles="[data-lasso-cellule]"
+        cleDe={element => element.getAttribute("data-lasso-cellule")}
+        surbrillance={cle => `[data-lasso-cellule="${cle}"]`}
+        horsLasso='[data-visite="poly-entete"]'
+        unite={UNITE_VERSETS}
+        refus={refusDuLasso}
+        dejaEnregistres={dejaPreleves}
+        onEnregistrer={enregistrerLasso}
+        onRetirer={retirerLasso}
+        onCopier={copierLasso}
+      />
 
       {/* La visite, en portail vers <body> : elle passe au-dessus de tout ce que la
           page peut ouvrir, la fenêtre d'édition d'un verset comprise. */}
