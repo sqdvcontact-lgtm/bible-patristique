@@ -264,6 +264,8 @@ const NB_SLOTS = 4;   // valeur de repli au premier rendu (avant mesure de l'éc
 // colonne part sans à-coup et se pose sans rebond.
 const DUREE_COLONNE_MS = 640;
 const COURBE_COLONNE = "cubic-bezier(.45,.05,.25,1)";
+// Les rangées qui changent de hauteur à la fin d'un élargissement se déplient en ce temps.
+const DUREE_DEPLI_MS = 420;
 type SlotCol = { slot: number; trad: Trad | null };
 type ColRendue = SlotCol & { etat: "stable" | "entrante" | "sortante" };
 // La clé de lasso d'une cellule : sa colonne, puis son créneau canonique.
@@ -2262,13 +2264,61 @@ export default function PolyglottePage() {
   // Le glissement fini ET les colonnes rangées : la table rend leur largeur aux textes.
   // ⚠️ Pas avant : une colonne qui part, rendue à sa largeur réelle (zéro), recomposerait
   // son texte mot à mot sur toutes les lignes pour rien.
+  // ── LA RECOMPOSITION FINALE SE DÉPLIE, ELLE NE SAUTE PAS (demande de l'auteur, 2026-09-23) ──
+  // Quand une colonne arrive, le texte des colonnes en place ne se recompose qu'à la fin du
+  // glissement, et les rangées prennent alors d'un coup leur nouvelle hauteur. Deux gestes
+  // l'adoucissent, sur les seules rangées À L'ÉCRAN : chacune garde un instant sa hauteur
+  // d'avant puis se déplie jusqu'à la nouvelle (le texte est rogné en bas le temps du
+  // dépli), et le défilement se corrige pour que la première rangée visible ne bouge pas.
+  // ⚠️ On cherche d'abord les TRANCHES visibles : interroger la géométrie de toutes les
+  // rangées d'un livre entier forcerait la mise en page de ce que « content-visibility »
+  // épargne. ⛔ Aucun état React : les hauteurs s'écrivent sur les rangées et se retirent.
+  const minuteurDepli = useRef<number | null>(null);
+  const rangeesDepliees = useRef<HTMLElement[]>([]);
+  const finirDepli = useCallback(() => {
+    if (minuteurDepli.current) { window.clearTimeout(minuteurDepli.current); minuteurDepli.current = null; }
+    for (const rg of rangeesDepliees.current) { rg.style.height = ""; rg.style.overflow = ""; rg.style.transition = ""; }
+    rangeesDepliees.current = [];
+  }, []);
   useLayoutEffect(() => {
     if (fantomes || entree) return;
     const table = refTable.current;
     if (!table) return;
+    const ouverture = table.getAttribute("data-poly-transit") === "ouvre";
+    const calme = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let rangees: HTMLElement[] = [];
+    if (ouverture && !calme) {
+      const sommet = hautDeLecture(enteteRef.current);
+      const pied = window.innerHeight;
+      const visible = (el: Element) => { const b = el.getBoundingClientRect(); return b.bottom > sommet && b.top < pied; };
+      const tranches = Array.from(table.querySelectorAll<HTMLElement>(".poly-bloc"));
+      const sources = tranches.length ? tranches.filter(visible) : [table];
+      rangees = sources.flatMap(t => Array.from(t.querySelectorAll<HTMLElement>(".poly-row, .poly-surnum-row"))).filter(visible);
+    }
+    const avant = rangees.map(rg => rg.getBoundingClientRect().height);
+    const repere = rangees[0];
+    const hautRepere = repere ? repere.getBoundingClientRect().top : 0;
     table.removeAttribute("data-poly-transit");
     table.removeAttribute("data-poly-entree-ouverte");
-  }, [fantomes, entree]);
+    if (!repere) return;
+    finirDepli();
+    const apres = rangees.map(rg => rg.getBoundingClientRect().height);
+    const aDeplier = rangees.filter((rg, i) => Math.abs(apres[i] - avant[i]) >= 1);
+    aDeplier.forEach(rg => { const i = rangees.indexOf(rg); rg.style.height = `${avant[i]}px`; rg.style.overflow = "hidden"; });
+    // La première rangée visible reste où l'œil l'avait laissée.
+    const decalage = repere.getBoundingClientRect().top - hautRepere;
+    if (Math.abs(decalage) >= 1) window.scrollBy(0, decalage);
+    if (!aDeplier.length) return;
+    void table.offsetHeight;   // les hauteurs d'avant sont posées avant que la transition parte
+    aDeplier.forEach(rg => {
+      const i = rangees.indexOf(rg);
+      rg.style.transition = `height ${DUREE_DEPLI_MS}ms ${COURBE_COLONNE}`;
+      rg.style.height = `${apres[i]}px`;
+    });
+    rangeesDepliees.current = aDeplier;
+    minuteurDepli.current = window.setTimeout(finirDepli, DUREE_DEPLI_MS + 60);
+  }, [fantomes, entree, finirDepli]);
+  useEffect(() => finirDepli, [finirDepli]);
   // ── LES LETTRES NE SAUTENT PAS D'UNE LIGNE À L'AUTRE (demande de l'auteur, 2026-09-23) ──
   // « Les lettres devraient se déplacer plus élégamment. » Tant que la piste d'une colonne
   // s'élargit ou se resserre, son texte se recomposait à CHAQUE image : les mots passaient
@@ -2283,6 +2333,7 @@ export default function PolyglottePage() {
   const minuteurTransit = useRef<number | null>(null);
   useLayoutEffect(() => {
     if (transit === 0) return;
+    finirDepli();
     const table = refTable.current;
     const grille = enteteRef.current?.querySelector<HTMLElement>('[data-visite="poly-entete"]');
     if (!table || !grille || grille.children.length < 3) return;
@@ -2313,7 +2364,7 @@ export default function PolyglottePage() {
       minuteurTransit.current = null;
       startTransition(() => { setFantomes(null); setEntree(null); });
     }, DUREE_COLONNE_MS + 60);
-  }, [transit]);
+  }, [transit, finirDepli]);
   useEffect(() => () => {
     if (minuteurTransit.current) window.clearTimeout(minuteurTransit.current);
     if (minuteurOuverture.current) window.clearTimeout(minuteurOuverture.current);
