@@ -56,7 +56,7 @@ const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLa
  *  AVANT le rendu, quand la feuille n'a encore rien posé ; `bullePartage.test.ts`
  *  confronte les deux écritures. ⚠️ La cible est au-dessus du plancher de 24 px de WCAG
  *  2.2 § 2.5.8 : sans libellé sous lui, un logo a besoin d'air pour se lire. */
-const CIBLE_REM = 2.125
+const CIBLE_REM = 1.875
 const ECART_REM = 0.25
 const AIR_REM = 0.375
 
@@ -85,8 +85,8 @@ export function hauteurDeLaBulle(racine: number): number {
 // celles de Simple Icons (CC0), pleines et posées un cran sous la boîte ; le lien, le
 // courriel et le SMS sont ceux de Lucide (ISC), au trait. Tout en `currentColor`.
 //
-// ⛔ ILS SE RENDENT À LEUR GRILLE NATIVE, 24 px à la racine 16 (relevé de l'auteur,
-// 2026-09-23 : « pixelisés »). Posés à 21 px, soit sept huitièmes de leur grille, et
+// ⛔ ILS SE RENDENT À LA MESURE DES ICÔNES DE LA TÊTE DU VOLET, 1 rem (relevés de
+// l'auteur, 2026-09-23 : « pixelisés », puis « trop gros » à 24 px). Posés à 21 px, soit sept huitièmes de leur grille, et
 // réduits encore de 15 % pour les marques pleines, chaque trait tombait entre deux
 // pixels, et le détail d'un logo (le combiné de WhatsApp) se brouillait en taches.
 // Les marques pleines se posent dans un carré de 20 décalé de 2 (`scale(5/6)`) : leurs
@@ -135,7 +135,7 @@ export function RangeeCanaux({ ligne, adresse, canaux, copie, erreur, onCopier, 
         const copieFaite = cle === 'lien' && copie
         const libelle = copieFaite ? 'Lien copié' : nom
         const contenu = (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             {copieFaite ? MARQUE_COPIE : MARQUES[cle]}
           </svg>
         )

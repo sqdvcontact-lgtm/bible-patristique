@@ -18,19 +18,19 @@ describe('la géométrie de la bulle est celle de la feuille', () => {
     // ⚠️ Si l'une de ces lignes change, ce sont `CIBLE_REM`, `ECART_REM` et `AIR_REM`
     // qu'il faut suivre, jamais ce test qu'il faut accorder.
     expect(CSS).toContain('gap: max(4px, 0.25rem);\n  padding: max(6px, 0.375rem);')
-    expect(CSS).toContain('min-width: max(34px, 2.125rem);\n  min-height: max(34px, 2.125rem);')
-    expect(CSS).toContain('.cs-canal-bulle svg { width: 1.5rem; height: 1.5rem; }')
+    expect(CSS).toContain('min-width: max(30px, 1.875rem);\n  min-height: max(30px, 1.875rem);')
+    expect(CSS).toContain('.cs-canal-bulle svg { width: 1rem; height: 1rem; }')
   })
 
   it('compte n cibles, n−1 écarts, deux airs et deux filets', () => {
-    // Racine 16 : le plancher absolu de la feuille et le rem coïncident — 34, 4 et 6.
-    expect(largeurDeLaBulle(1, 16)).toBe(34 + 12 + 2)
-    expect(largeurDeLaBulle(6, 16)).toBe(6 * 34 + 5 * 4 + 12 + 2)
-    expect(largeurDeLaBulle(7, 16)).toBe(7 * 34 + 6 * 4 + 12 + 2)
-    expect(hauteurDeLaBulle(16)).toBe(34 + 12 + 2)
+    // Racine 16 : le plancher absolu de la feuille et le rem coïncident — 30, 4 et 6.
+    expect(largeurDeLaBulle(1, 16)).toBe(30 + 12 + 2)
+    expect(largeurDeLaBulle(6, 16)).toBe(6 * 30 + 5 * 4 + 12 + 2)
+    expect(largeurDeLaBulle(7, 16)).toBe(7 * 30 + 6 * 4 + 12 + 2)
+    expect(hauteurDeLaBulle(16)).toBe(30 + 12 + 2)
     // Racine 22 (le plafond de la police fluide) : tout suit.
-    expect(largeurDeLaBulle(7, 22)).toBeCloseTo(7 * 46.75 + 6 * 5.5 + 2 * 8.25 + 2, 5)
-    expect(hauteurDeLaBulle(22)).toBeCloseTo(46.75 + 2 * 8.25 + 2, 5)
+    expect(largeurDeLaBulle(7, 22)).toBeCloseTo(7 * 41.25 + 6 * 5.5 + 2 * 8.25 + 2, 5)
+    expect(hauteurDeLaBulle(22)).toBeCloseTo(41.25 + 2 * 8.25 + 2, 5)
   })
 
   it('ne rend rien pour une bulle sans canal', () => {
@@ -40,7 +40,7 @@ describe('la géométrie de la bulle est celle de la feuille', () => {
   })
 
   it('tient dans la bande utile d’un téléphone', () => {
-    // ⛔ Sept logos sur un écran de 375 px : la bulle en demande 264, marges comprises
+    // ⛔ Sept logos sur un écran de 375 px : la bulle en demande 236, marges comprises
     // (`placerFenetre` en réserve 12 de chaque côté). Au-delà, elle serait bornée et
     // ses derniers logos passeraient à la ligne.
     expect(largeurDeLaBulle(7, 16)).toBeLessThanOrEqual(375 - 2 * 12)

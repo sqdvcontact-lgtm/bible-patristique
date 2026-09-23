@@ -3064,8 +3064,8 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: max(34px, 2.125rem);
-  min-height: max(34px, 2.125rem);
+  min-width: max(30px, 1.875rem);
+  min-height: max(30px, 1.875rem);
   padding: 0;
   border: none;
   background: none;
@@ -3076,11 +3076,12 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 }
 .cs-canal-bulle:hover { color: var(--cs-vert); background: var(--cs-fond-clair); }
 .cs-canal-bulle:focus-visible { outline: 2px solid var(--cs-vert); outline-offset: 1px; }
-/* ⚠️ Le dessin suit la cible : l'icône est en rem, elle aussi — 24 px à la racine 16,
-   la GRILLE NATIVE des marques (2026-09-23 : à 21 px elles se lisaient « pixelisées »),
-   33 px entiers à la racine 22. L'attribut `width`
+/* ⚠️ Le dessin suit la cible : l'icône est en rem, elle aussi — 16 px à la racine 16,
+   la mesure des icônes de la tête du volet (2026-09-23 : « trop gros » à 24 px). Sur un
+   écran à 125 % et une racine de 19,8 px, 1 rem vaut presque 25 pixels réels, soit
+   la grille native des marques. L'attribut `width`
    d'un SVG est une valeur de PRÉSENTATION, que cette règle bat sans le toucher en JSX. */
-.cs-canal-bulle svg { width: 1.5rem; height: 1.5rem; }
+.cs-canal-bulle svg { width: 1rem; height: 1rem; }
 /* Une erreur de presse-papiers, et elle seule, s'écrit dans la bulle : elle prend alors
    son propre rang, sous la rangée. */
 .cs-bulle-partage-erreur {
