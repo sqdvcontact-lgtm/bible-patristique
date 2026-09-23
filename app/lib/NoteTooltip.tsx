@@ -212,7 +212,7 @@ export default function NoteTooltip({ lettre, el, isRef }: {
             borderRadius: '4px',
             padding: '10px 12px',
             width: '13.75rem',
-            boxShadow: 'var(--cs-ombre-flottante), inset 0 0 0 1px rgba(255,248,235,0.7)',
+            boxShadow: 'var(--cs-ombre-nette), inset 0 0 0 1px rgba(255,248,235,0.7)',
             position: 'relative',
             overflow: 'hidden',
             textIndent: 0,

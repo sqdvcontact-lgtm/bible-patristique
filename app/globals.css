@@ -3080,7 +3080,7 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   padding: max(6px, 0.375rem);
   background: var(--cs-surface);
   border: 1px solid var(--cs-bord-clair);
-  border-radius: 8px;
+  border-radius: 4px;
   box-shadow: var(--cs-ombre-nette);
 }
 .cs-canal-bulle {

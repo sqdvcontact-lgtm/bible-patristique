@@ -95,7 +95,7 @@ export default function ReglageTitresBible({ familleId, masques, onChange }: {
           style={{
             position: 'fixed', top: place.top, left: place.left, width: '15rem', zIndex: Z_MODALE,
             background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px',
-            boxShadow: 'var(--cs-ombre-nette)', padding: '0.625rem 0.75rem',
+            boxShadow: 'var(--cs-ombre-flottante)', padding: '0.625rem 0.75rem',
             fontFamily: SANS,
           }}>
           <div style={RUBRIQUE_AXE}>Niveaux de titre affichés</div>
