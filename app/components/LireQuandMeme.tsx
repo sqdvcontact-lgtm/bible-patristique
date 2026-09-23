@@ -21,7 +21,7 @@ export default function LireQuandMeme() {
 /** La feuille de la carte repliée, commune aux trois surfaces de commentaires. */
 export const FEUILLE_COMMENTAIRE_RETRACTE = `
 .commentaire-retracte {
-  transition: background 160ms ease, border-color 160ms ease;
+  transition: background var(--cs-duree-courte) ease, border-color var(--cs-duree-courte) ease;
 }
 .commentaire-retracte:hover,
 .commentaire-retracte:focus-visible {
@@ -29,7 +29,7 @@ export const FEUILLE_COMMENTAIRE_RETRACTE = `
   border-color: var(--cs-danger) !important;
 }
 .commentaire-retracte-contenu {
-  transition: opacity 150ms ease;
+  transition: opacity var(--cs-duree-courte) ease;
 }
 .commentaire-retracte:hover .commentaire-retracte-contenu,
 .commentaire-retracte:focus-visible .commentaire-retracte-contenu {
@@ -48,12 +48,12 @@ export const FEUILLE_COMMENTAIRE_RETRACTE = `
   letter-spacing: 0.02em;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 160ms ease;
+  transition: opacity var(--cs-duree-courte) ease;
 }
 .commentaire-retracte-lire svg {
   width: 1.3em;
   height: auto;
-  transition: transform 220ms ease;
+  transition: transform var(--cs-duree-moyenne) ease;
 }
 .commentaire-retracte:hover .commentaire-retracte-lire,
 .commentaire-retracte:focus-visible .commentaire-retracte-lire {

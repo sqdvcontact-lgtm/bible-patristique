@@ -93,7 +93,7 @@ export default function FlecheChapitre({ sens, variante, cible, onAller }: Flech
     color: cible ? gabarit.couleur : 'var(--cs-bord)',
     cursor: cible ? 'pointer' : 'default',
     textDecoration: 'none',
-    transition: 'color 0.15s',
+    transition: 'color var(--cs-duree-courte)',
   } as const
 
   if (!cible) {

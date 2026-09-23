@@ -533,6 +533,19 @@
      avec le curseur par défaut ; il en portait six, de 0,3 à 0,6, et trois curseurs. */
   --cs-opacite-desactive: 0.45;
 
+  /* ── Mouvement ──
+     Le site écrivait une vingtaine de durées (0,1 à 0,26 s), tantôt en s, tantôt en
+     ms, et trois courbes de sortie que rien ne séparait à l'œil. Deux durées et une
+     courbe suffisent, ancrées sur les valeurs dominantes (harmonie, 2026-09-23) :
+     COURTE pour un survol, une teinte, un fondu d'icône (0,12 à 0,16 s) ;
+     MOYENNE pour un objet qui paraît, glisse ou pivote (0,18 à 0,24 s).
+     ⛔ Une durée ACCORDÉE à un minuteur JavaScript (sortie du signalement, passage
+     d'un texte à l'autre, `passageTexte.ts`) garde son chiffre : le jeton la
+     découplerait de son minuteur. */
+  --cs-duree-courte: 0.12s;
+  --cs-duree-moyenne: 0.18s;
+  --cs-courbe-sortie: cubic-bezier(0.22, 0.61, 0.36, 1);
+
   /* ── Le corps de l'APPARAT ──
      Le commentaire de Fillion se compose un cran sous le texte biblique. ⛔ Ce
      nombre vit ICI et nulle part ailleurs : il gouverne les paragraphes de
@@ -1107,7 +1120,7 @@ button:focus-visible,
   font: inherit; color: var(--cs-texte-second);
   text-decoration: underline; text-decoration-color: transparent;
   text-decoration-thickness: 1px; text-underline-offset: 3px;
-  transition: color 0.15s, text-decoration-color 0.15s;
+  transition: color var(--cs-duree-courte), text-decoration-color var(--cs-duree-courte);
 }
 .cs-gravure-version:hover { color: var(--cs-texte-fort); }
 .cs-gravure-version[aria-pressed="true"] { color: var(--cs-vert); text-decoration-color: currentColor; cursor: default; }
@@ -1178,13 +1191,13 @@ button:focus-visible,
    qu'on peut le toucher.
    ⛔ La couleur se déclare ICI : posée en style en ligne, elle battrait la règle
    de survol — piège déjà payé quatre fois dans ce dépôt. */
-.cs-volet-reduire { color: var(--cs-texte-doux); transition: color 0.14s; }
+.cs-volet-reduire { color: var(--cs-texte-doux); transition: color var(--cs-duree-courte); }
 /* Le « i » cerclé de la carte de traduction est une LETTRE à 11 px : il prend le gris,
    non le doux du chevron. Écrite avant le survol, qui garde la main. */
 .cs-volet-reduire:hover { color: var(--cs-vert); }
 
 /* ⛔ Le fond de repos se déclare ICI et non en ligne : il battait la règle de survol. */
-.cs-rail-volet { background: var(--cs-fond-clair); transition: background 0.14s, color 0.14s; }
+.cs-rail-volet { background: var(--cs-fond-clair); transition: background var(--cs-duree-courte), color var(--cs-duree-courte); }
 .cs-rail-volet:hover { background: var(--cs-fond-doux); }
 .cs-rail-volet:hover span { color: var(--cs-texte-second); }
 
@@ -2189,7 +2202,7 @@ button:focus-visible,
   border-radius: 4px;
   cursor: pointer;
 }
-.cs-regard-rangee { transition: background-color 0.12s ease; }
+.cs-regard-rangee { transition: background-color var(--cs-duree-courte) ease; }
 .cs-regard-rangee:hover { background: var(--cs-lecture-survol); }
 .cs-regard-rangee.cs-regard-rangee--retenue { background: var(--cs-lecture-retenu); }
 /* ⛔ Le verset de la lecture simple : le survol teint le BLOC du verset, la boîte même que
@@ -2743,7 +2756,7 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   hyphens: auto;
   -webkit-hyphens: auto;
   border-radius: 4px;
-  transition: background 0.12s;
+  transition: background var(--cs-duree-courte);
 }
 @media (max-width: 1023px) {
   .citation-sortie { margin-left: calc(5mm - 4px); margin-right: -4px; }
@@ -2789,7 +2802,7 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   border: 1px solid transparent;
   background-clip: padding-box;
   border-radius: 999px;
-  transition: background-color 160ms ease;
+  transition: background-color var(--cs-duree-courte) ease;
 }
 .cs-defilement-discret:hover::-webkit-scrollbar-thumb { background-color: rgba(var(--cs-vert-rgb), 0.42); }
 .cs-defilement-discret::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--cs-vert-rgb), 0.6); }
@@ -2870,7 +2883,7 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   border: none;
   border-bottom: 2px solid transparent;
   cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition: color var(--cs-duree-courte) ease, border-color var(--cs-duree-courte) ease;
 }
 .cs-onglet:hover { color: var(--cs-vert); }
 .cs-onglet[aria-selected='true'],
@@ -3095,7 +3108,7 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   border-radius: 4px;
   color: var(--cs-texte-second);
   cursor: pointer;
-  transition: color 0.14s, background 0.14s;
+  transition: color var(--cs-duree-courte), background var(--cs-duree-courte);
 }
 .cs-canal-bulle:hover { color: var(--cs-vert); background: var(--cs-fond-clair); }
 .cs-canal-bulle:focus-visible { outline: 2px solid var(--cs-vert); outline-offset: 1px; }
@@ -3459,7 +3472,7 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   font-weight: 400;
   line-height: 1.3;
   cursor: pointer;
-  transition: color 0.13s, border-color 0.13s;
+  transition: color var(--cs-duree-courte), border-color var(--cs-duree-courte);
 }
 .cs-bouton-proportions:hover { color: var(--cs-vert); border-color: var(--cs-vert); }
 /* ⛔ L'AXE EST LA CAPACITÉ DU POINTEUR, jamais la largeur : une tablette en paysage
@@ -3612,7 +3625,7 @@ html[data-lasso-geste] * {
   font-style: normal;
   line-height: 1.3;
   transform: translateX(-50%);
-  animation: cs-lasso-barre-paraitre 0.16s ease-out;
+  animation: cs-lasso-barre-paraitre var(--cs-duree-courte) ease-out;
 }
 @keyframes cs-lasso-barre-paraitre {
   from { opacity: 0; transform: translate(-50%, 6px); }
@@ -3639,7 +3652,7 @@ html[data-lasso-geste] * {
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color 0.12s, color 0.12s;
+  transition: background-color var(--cs-duree-courte), color var(--cs-duree-courte);
 }
 .cs-lasso-action:hover { background: rgba(var(--cs-vert-rgb), 0.09); }
 .cs-lasso-action--principale {
@@ -3698,7 +3711,7 @@ html[data-lasso-geste] * {
    ⚠️ Le point d'exclamation bat le `background: none` posé EN LIGNE par
    STYLE_BOUTON_ACTION (app/lib/celluleActions.ts). */
 .bouton-action-verset, .cs-bouton-fin, .seg-btn-enreg, .poly-act, .cs-bouton-action {
-  transition: color 0.15s, background-color 0.12s !important;
+  transition: color var(--cs-duree-courte), background-color var(--cs-duree-courte) !important;
 }
 @media (hover: hover) {
   .bouton-action-verset:hover:not(:disabled), .cs-bouton-fin:hover:not(:disabled),
@@ -3745,7 +3758,7 @@ html[data-lasso-geste] * {
 .bib-carte-auteur { background: var(--cs-surface); border: 1px solid var(--cs-bord-clair); }
 .bib-carte-bude { border: 1px solid var(--cs-bord); }
 .bienvenue-carte { border: 1px solid var(--cs-bord); }
-.cs-poignee-volet { background: transparent; transition: background 0.14s, box-shadow 0.14s; }
+.cs-poignee-volet { background: transparent; transition: background var(--cs-duree-courte), box-shadow var(--cs-duree-courte); }
 
 /* ── LE BOUTON PLEIN (2026-09-23) ──────────────────────────────────────────────
    Une seule composition pour le bouton d'action principale (envoyer, enregistrer,
@@ -3763,7 +3776,7 @@ html[data-lasso-geste] * {
   padding: 0.5625rem 1.125rem; border: none; border-radius: 8px;
   background: var(--cs-vert-aplat); color: var(--cs-sur-aplat);
   font-family: inherit; font-size: 0.8125rem; font-weight: 500; line-height: 1.25;
-  text-decoration: none; cursor: pointer; transition: background-color 0.15s, color 0.15s;
+  text-decoration: none; cursor: pointer; transition: background-color var(--cs-duree-courte), color var(--cs-duree-courte);
 }
 .cs-bouton-plein--compact { padding: 0.3125rem 0.875rem; border-radius: 4px; font-size: 0.71875rem; }
 .cs-bouton-plein:disabled, .cs-bouton-plein[aria-disabled="true"] {
@@ -3786,7 +3799,7 @@ html[data-lasso-geste] * {
   background: none;
   color: var(--cs-texte-second);
   cursor: pointer;
-  transition: background-color 0.12s, color 0.12s;
+  transition: background-color var(--cs-duree-courte), color var(--cs-duree-courte);
 }
 .cs-lasso-fermer:hover { background: var(--cs-fond-doux); color: var(--cs-texte-fort); }
 @media (prefers-reduced-motion: reduce) {
@@ -3851,7 +3864,7 @@ html[data-lasso-geste] * {
    déjà payée sur la gouttière d'actions des prélèvements. ⛔ Il garde sa PLACE quand il
    ne se voit pas (opacité, non « display ») : sans quoi l'en-tête de la rangée se
    recomposerait sous le curseur au moment où on le vise. */
-.cs-notif-archiver { opacity: 0; transition: opacity 0.12s; }
+.cs-notif-archiver { opacity: 0; transition: opacity var(--cs-duree-courte); }
 .cs-notif:hover .cs-notif-archiver,
 .cs-notif:focus-within .cs-notif-archiver,
 .cs-notif-archiver:focus-visible { opacity: 1; }
@@ -3980,7 +3993,7 @@ html[data-lasso-geste] * {
   border-radius: 0;
   background: transparent;
   outline: none;
-  transition: background 0.14s;
+  transition: background var(--cs-duree-courte);
 }
 .cs-volet-recherche::placeholder {
   color: var(--cs-texte-doux);
@@ -4086,7 +4099,7 @@ main.lecture-entree [data-cs-bloc],
    REMONTE à chaque passage — une clé par segment — si bien que l'ancien s'en va d'un
    coup et que le nouveau se pose doucement : c'est ce qu'on veut ici, un volet n'ayant
    pas la place de tenir deux états à la fois. */
-.cs-volet-echange { animation: cs-lecture-ouvrir 0.18s ease-out both; }
+.cs-volet-echange { animation: cs-lecture-ouvrir var(--cs-duree-moyenne) ease-out both; }
 @media (prefers-reduced-motion: reduce) { .cs-volet-echange { animation-duration: 0.01ms; } }
 /* Le mot de l'écran d'attente d'une œuvre (`app/oeuvre/[id]/loading.tsx`) : il ne
    vient qu'au bout d'un instant, une arrivée rapide ne montrant rien. */
@@ -4675,7 +4688,7 @@ main.lecture-entree [data-cs-bloc],
   color: var(--cs-vert);
   line-height: 1;
   cursor: pointer;
-  transition: color 0.12s;
+  transition: color var(--cs-duree-courte);
 }
 .cs-fiche-fermer svg { width: 0.9375rem; height: 0.9375rem; }
 .cs-fiche-fermer:hover,
@@ -4745,7 +4758,7 @@ main.lecture-entree [data-cs-bloc],
   border-radius: 999px;
   background: var(--cs-surface);
   box-shadow: var(--cs-ombre-nette);
-  animation: cs-fiche-confirmer-venir 0.18s ease-out;
+  animation: cs-fiche-confirmer-venir var(--cs-duree-moyenne) ease-out;
 }
 /* ⛔ L'ENTRÉE, elle, EST un ornement, et elle s'éteint sous le réglage de mouvement
    réduit — à la différence de l'anneau, qui porte une information. */
@@ -4779,7 +4792,7 @@ main.lecture-entree [data-cs-bloc],
   line-height: 1;
   color: var(--cs-texte-second);
   cursor: pointer;
-  transition: border-color 0.12s, color 0.12s, background-color 0.12s;
+  transition: border-color var(--cs-duree-courte), color var(--cs-duree-courte), background-color var(--cs-duree-courte);
 }
 .cs-fiche-confirmer button:hover,
 .cs-fiche-confirmer button:focus-visible {
@@ -4890,7 +4903,7 @@ main.lecture-entree [data-cs-bloc],
   color: var(--cs-sur-aplat);
   opacity: 0.82;
   cursor: pointer;
-  transition: opacity 0.12s;
+  transition: opacity var(--cs-duree-courte);
 }
 .cs-signalement-fermer svg { width: 0.9375rem; height: 0.9375rem; }
 .cs-signalement-fermer:hover,
@@ -5081,7 +5094,7 @@ main.lecture-entree [data-cs-bloc],
   line-height: 1;
   color: var(--cs-texte-second);
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  transition: background-color var(--cs-duree-courte), border-color var(--cs-duree-courte), color var(--cs-duree-courte);
 }
 .cs-signalement-niveau:hover { border-color: var(--cs-texte-gris); color: var(--cs-texte); }
 .cs-signalement-niveau[aria-pressed='true'] { font-weight: 600; border-color: transparent; }
@@ -5112,7 +5125,7 @@ main.lecture-entree [data-cs-bloc],
   line-height: 1.5;
   color: var(--cs-texte-fort);
   resize: vertical;
-  transition: border-color 0.12s, box-shadow 0.12s;
+  transition: border-color var(--cs-duree-courte), box-shadow var(--cs-duree-courte);
 }
 .cs-signalement-champ::placeholder { color: var(--cs-texte-gris); opacity: 1; }
 /* ⛔ Au foyer, AUCUN ANNEAU VERT (relevé de l'auteur, 2026-09-23, deux fois : « un cadre
@@ -5166,7 +5179,7 @@ main.lecture-entree [data-cs-bloc],
   font-size: 0.75rem;
   line-height: 1;
   cursor: pointer;
-  transition: background-color 0.12s, border-color 0.12s, color 0.12s;
+  transition: background-color var(--cs-duree-courte), border-color var(--cs-duree-courte), color var(--cs-duree-courte);
 }
 .cs-signalement-bouton--annuler {
   border: 1px solid var(--cs-danger-bord);
@@ -5294,7 +5307,7 @@ main.lecture-entree [data-cs-bloc],
   line-height: 1;
   color: var(--cs-texte-gris);
   cursor: pointer;
-  transition: color 0.12s;
+  transition: color var(--cs-duree-courte);
   /* ⛔ LE PICTOGRAMME SE CENTRE SUR L'ENCRE DU TITRE, non sur sa boîte de ligne : celle-ci
      descend sous la ligne de base, et « align-items: center » posait la marque 1,5 px trop
      bas à la racine 16. C'est la règle du chiffre de densité d'un verset, prise ici.
@@ -5448,7 +5461,7 @@ main.lecture-entree [data-cs-bloc],
   text-decoration-color: transparent;
   text-underline-offset: 2px;
   cursor: pointer;
-  transition: text-decoration-color 0.12s;
+  transition: text-decoration-color var(--cs-duree-courte);
 }
 .cs-fiche-lien:hover,
 .cs-fiche-lien:focus-visible { text-decoration-color: currentcolor; }
@@ -5696,7 +5709,7 @@ main.lecture-entree [data-cs-bloc],
   padding: 1px 8px;
   border-radius: 4px;
   text-decoration: none;
-  transition: background 0.12s;
+  transition: background var(--cs-duree-courte);
 }
 a.cs-fiche-oeuvre:hover { background: rgba(var(--cs-vert-rgb), 0.06); }
 .cs-fiche-oeuvre--absente { cursor: default; }
@@ -5769,7 +5782,7 @@ a.cs-fiche-oeuvre:hover { background: rgba(var(--cs-vert-rgb), 0.06); }
 }
 .cs-nav-bas-chapitre-fleche {
   font-size: 0.9375rem; line-height: 1; padding: 0 2px;
-  text-decoration: none; color: var(--cs-texte-second); transition: color 0.15s;
+  text-decoration: none; color: var(--cs-texte-second); transition: color var(--cs-duree-courte);
 }
 .cs-nav-bas-chapitre-fleche:hover, .cs-nav-bas-chapitre-fleche:focus-visible { color: var(--cs-vert); }
 .cs-nav-bas-chapitre-fleche--eteinte { color: var(--cs-bord); }

@@ -276,13 +276,13 @@ const DESSIN = `
    la grille se réagencerait au passage du curseur. */
 .hf-face { display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 4px; position: relative; z-index: 1;
-  transition: opacity 0.16s ease; }
+  transition: opacity var(--cs-duree-courte) ease; }
 .hf-explication { position: absolute; inset: 0; z-index: 2;
   display: flex; align-items: center; justify-content: center;
   padding: 6px 8px; text-align: center;
   font-family: ${SERIF}; font-size: 0.6875rem;
   line-height: 1.35; color: ${ENCRE_RELIURE_DOUCE};
-  opacity: 0; transition: opacity 0.16s ease; pointer-events: none; }
+  opacity: 0; transition: opacity var(--cs-duree-courte) ease; pointer-events: none; }
 /* ⚠️ Sous «(hover: hover)» seulement : au doigt il n'y a pas de survol, et la face
    reste. C'est la règle déjà posée pour la quatrième d'une couverture de
    publication, qui n'est pas même rendue sur un écran tactile. */

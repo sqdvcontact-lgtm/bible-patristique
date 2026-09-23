@@ -32,7 +32,7 @@ export function stylePastilleFiltre({ actif, eteinte = false, etroite = false, a
     color: actif ? 'var(--cs-sur-aplat)' : alerte ? 'var(--cs-danger-fonce)' : 'var(--cs-texte-second)',
     cursor: pale ? 'default' : 'pointer',
     fontFamily: SERIF, fontStyle: 'italic',
-    transition: 'all 0.12s', whiteSpace: 'nowrap', lineHeight: 1.4,
+    transition: 'all var(--cs-duree-courte)', whiteSpace: 'nowrap', lineHeight: 1.4,
     ...(pale ? { opacity: 'var(--cs-opacite-desactive)' } : null),
   }
 }

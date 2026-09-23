@@ -230,7 +230,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       <style>{`
         .commentaire-carte {
-          transition: opacity 180ms ease, box-shadow 180ms ease, margin 180ms ease;
+          transition: opacity var(--cs-duree-moyenne) ease, box-shadow var(--cs-duree-moyenne) ease, margin var(--cs-duree-moyenne) ease;
         }
         ${FEUILLE_COMMENTAIRE_RETRACTE}
       `}</style>

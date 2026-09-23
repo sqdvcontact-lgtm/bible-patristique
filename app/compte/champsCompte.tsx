@@ -110,8 +110,8 @@ export function PiedSection({ modifie, occupe, statut, onEnregistrer, onAnnuler 
  */
 export function PisteInterrupteur({ actif }: { actif: boolean }) {
   return (
-    <span aria-hidden style={{ display: 'inline-block', width: '32px', height: '18px', borderRadius: '999px', flexShrink: 0, background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', position: 'relative', transition: 'background 0.15s' }}>
-      <span style={{ position: 'absolute', top: '3px', left: actif ? '15px' : '3px', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left 0.15s' }} />
+    <span aria-hidden style={{ display: 'inline-block', width: '32px', height: '18px', borderRadius: '999px', flexShrink: 0, background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', position: 'relative', transition: 'background var(--cs-duree-courte)' }}>
+      <span style={{ position: 'absolute', top: '3px', left: actif ? '15px' : '3px', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left var(--cs-duree-courte)' }} />
     </span>
   )
 }

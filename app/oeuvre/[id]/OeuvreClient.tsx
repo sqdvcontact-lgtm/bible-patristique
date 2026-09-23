@@ -3455,7 +3455,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       <style>{`
         ${FEUILLE_CARTE_VOLET}
         .seg-wrapper { position: relative; }
-        .seg-p { transition: background 0.12s; }
+        .seg-p { transition: background var(--cs-duree-courte); }
         .seg-p:hover { background: rgba(var(--cs-vert-rgb),0.05) !important; }
         /* ⛔ Plus aucune règle d'opacité sur les actions d'un argument : elles ne vivent
            plus DANS le bloc (« .seg-actions », posé en absolu dans son coin haut droit,
@@ -3465,7 +3465,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            mortes, et la garde du tactile qu'elles portaient n'a plus d'objet — une
            cellule qui paraît est pleine, et elle ne paraît que si on la demande. */
         /* Segments coulant dans un même bloc, délimités au survol. */
-        .seg-inline { border-radius: 4px; padding: 0 0.5px; cursor: pointer; transition: background 0.12s; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+        .seg-inline { border-radius: 4px; padding: 0 0.5px; cursor: pointer; transition: background var(--cs-duree-courte); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
         .seg-inline:hover { background: var(--cs-lecture-survol); }
         .seg-inline--actif { background: var(--cs-lecture-retenu); }
         /* ⛔ Le rapport des colonnes se MESURE, il ne se devine pas. Le français a
@@ -3574,8 +3574,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            ligne d'édition ensemble (demande de l'auteur, 2026-09-15). La ligne d'édition
            garde son second rang par le corps et l'italique. ⚠️ Aucune couleur en ligne sur
            le lien : elle battrait ces règles. */
-        .lien-meme-auteur { color: var(--cs-texte); transition: color 0.12s; }
-        .lien-meme-auteur .lien-meme-auteur-edition { color: var(--cs-texte-gris); transition: color 0.12s; }
+        .lien-meme-auteur { color: var(--cs-texte); transition: color var(--cs-duree-courte); }
+        .lien-meme-auteur .lien-meme-auteur-edition { color: var(--cs-texte-gris); transition: color var(--cs-duree-courte); }
         .lien-meme-auteur:hover, .lien-meme-auteur:focus-visible,
         .lien-meme-auteur:hover .lien-meme-auteur-edition,
         .lien-meme-auteur:focus-visible .lien-meme-auteur-edition { color: var(--cs-vert); }
@@ -3706,7 +3706,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           ⚠️ C'est le seul écart avec le volet de la Bible, et il est motivé :
                           « Latin » vise une AUTRE adresse, donc un rendu serveur entier, quand
                           les axes de la Bible se règlent le plus souvent sur place. */}
-                      <span aria-hidden="true" style={{ width: '0.6rem', textAlign: 'right', color: 'var(--cs-texte-doux)', opacity: attend ? 1 : 0, transition: 'opacity 0.12s' }}>…</span>
+                      <span aria-hidden="true" style={{ width: '0.6rem', textAlign: 'right', color: 'var(--cs-texte-doux)', opacity: attend ? 1 : 0, transition: 'opacity var(--cs-duree-courte)' }}>…</span>
                     </button>
                   )
                 })}
@@ -5053,9 +5053,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     aria-haspopup="menu" aria-expanded={tradOuverte} aria-controls={tradOuverte ? idMenuTraductions : undefined}
                     aria-label={`${lecture.label}, choisir la traduction biblique`}
                     title="Choisir la traduction biblique"
-                    style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '4px', border: `1px solid ${tradOuverte ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: 'var(--cs-surface)', fontSize: '0.6875rem', color: 'var(--cs-encre)', cursor: 'pointer', transition: 'border-color 0.12s' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '4px', border: `1px solid ${tradOuverte ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: 'var(--cs-surface)', fontSize: '0.6875rem', color: 'var(--cs-encre)', cursor: 'pointer', transition: 'border-color var(--cs-duree-courte)' }}>
                     <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{lecture.label}</span>
-                    <span aria-hidden="true" style={{ display: 'flex', flexShrink: 0, color: 'var(--cs-texte-doux)', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><IconeChevron dir="down" taille="0.6rem" strokeWidth={2.2} /></span>
+                    <span aria-hidden="true" style={{ display: 'flex', flexShrink: 0, color: 'var(--cs-texte-doux)', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform var(--cs-duree-courte)' }}><IconeChevron dir="down" taille="0.6rem" strokeWidth={2.2} /></span>
                   </button>
                   {tradOuverte && (
                     <ListeMenuBibles id={idMenuTraductions} libelle="Traductions bibliques"
@@ -5588,7 +5588,7 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
             title="Page précédente"
             aria-label="Page précédente"
             className="cs-cible-fine"
-            style={{ background: 'none', border: 'none', cursor: peutReculer ? 'pointer' : 'default', color: peutReculer ? 'var(--cs-texte-second)' : 'var(--cs-bord)', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
+            style={{ background: 'none', border: 'none', cursor: peutReculer ? 'pointer' : 'default', color: peutReculer ? 'var(--cs-texte-second)' : 'var(--cs-bord)', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color var(--cs-duree-courte)' }}>
             ‹
           </button>
           {/* « sur » plutôt qu'une barre oblique. La barre est un signe de fraction : on y
@@ -5604,7 +5604,7 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
             title="Page suivante"
             aria-label="Page suivante"
             className="cs-cible-fine"
-            style={{ background: 'none', border: 'none', cursor: peutAvancer ? 'pointer' : 'default', color: peutAvancer ? 'var(--cs-texte-second)' : 'var(--cs-bord)', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color 0.15s' }}>
+            style={{ background: 'none', border: 'none', cursor: peutAvancer ? 'pointer' : 'default', color: peutAvancer ? 'var(--cs-texte-second)' : 'var(--cs-bord)', fontSize: '0.9375rem', padding: '0 2px', lineHeight: 1, transition: 'color var(--cs-duree-courte)' }}>
             ›
           </button>
         </div>

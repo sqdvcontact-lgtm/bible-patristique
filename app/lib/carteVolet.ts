@@ -30,9 +30,9 @@ export const CORPS_CARTE_VOLET = '0.75rem'
 export const INTERLIGNE_CARTE_VOLET = '1.32'
 
 export const FEUILLE_CARTE_VOLET = `
-  .cs-carte-volet { transition: background-color 0.12s ease; }
+  .cs-carte-volet { transition: background-color var(--cs-duree-courte) ease; }
   .cs-carte-volet:hover { background-color: rgba(var(--cs-vert-rgb), 0.05); }
-  .cs-carte-volet-actions { opacity: 0; transition: opacity 0.12s ease; }
+  .cs-carte-volet-actions { opacity: 0; transition: opacity var(--cs-duree-courte) ease; }
   .cs-carte-volet:hover .cs-carte-volet-actions,
   .cs-carte-volet:focus-within .cs-carte-volet-actions { opacity: 1; }
   @media (hover: none) { .cs-carte-volet-actions { opacity: 1; } }

@@ -25,7 +25,7 @@ const boutonOutil: React.CSSProperties = {
   color: 'var(--cs-texte-second)',
   cursor: 'pointer',
   lineHeight: 1.35,
-  transition: 'background 0.12s, border-color 0.12s, color 0.12s',
+  transition: 'background var(--cs-duree-courte), border-color var(--cs-duree-courte), color var(--cs-duree-courte)',
 }
 
 // Le bouton « enfoncé » quand la sélection porte déjà l'enrichissement correspondant :

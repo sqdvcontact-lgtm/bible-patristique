@@ -1346,7 +1346,7 @@ export default function Navbar() {
             if (pathname.startsWith("/recherche")) { e.preventDefault(); window.location.assign("/recherche"); }
           }}
           className="cs-survol-fond cs-survol-encre"
-          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "1.875rem", height: "1.875rem", boxSizing: "border-box", padding: 0, borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", "--repos-fond": "rgba(255,255,255,0.10)", "--survol-fond": "rgba(255,255,255,0.20)", "--repos-encre": "rgba(255,255,255,0.82)", "--survol-encre": "var(--cs-sur-aplat)", textDecoration: "none", flexShrink: 0, transition: "background 0.13s, color 0.13s" } as React.CSSProperties}>
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "1.875rem", height: "1.875rem", boxSizing: "border-box", padding: 0, borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", "--repos-fond": "rgba(255,255,255,0.10)", "--survol-fond": "rgba(255,255,255,0.20)", "--repos-encre": "rgba(255,255,255,0.82)", "--survol-encre": "var(--cs-sur-aplat)", textDecoration: "none", flexShrink: 0, transition: "background var(--cs-duree-courte), color var(--cs-duree-courte)" } as React.CSSProperties}>
           {/* Une loupe marquée d'une croix : la recherche, et qu'elle recommence. */}
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
             <circle cx="5.9" cy="5.9" r="4.1" stroke="currentColor" strokeWidth="1.25"/>
@@ -1614,11 +1614,11 @@ export default function Navbar() {
           width: "2rem", height: "1.125rem", borderRadius: "999px", cursor: "pointer", padding: 0, flexShrink: 0, position: "relative",
           border: mobile ? "1px solid rgba(255,255,255,0.35)" : "none",
           background: actif ? "var(--cs-vert-aplat)" : (mobile ? "rgba(255,255,255,0.22)" : "var(--cs-bord)"),
-          transition: "background 0.15s",
+          transition: "background var(--cs-duree-courte)",
         }}>
         {/* Le panneau mobile est vert sombre EN TOUTES CIRCONSTANCES : son pion ne peut
             pas prendre --cs-surface, qui virerait au brun en Cuir et disparaîtrait. */}
-        <span style={{ position: "absolute", top: "0.1875rem", left: actif ? "0.9375rem" : "0.1875rem", width: "0.75rem", height: "0.75rem", borderRadius: "50%", background: mobile ? "#fff" : "var(--cs-surface)", transition: "left 0.15s" }} />
+        <span style={{ position: "absolute", top: "0.1875rem", left: actif ? "0.9375rem" : "0.1875rem", width: "0.75rem", height: "0.75rem", borderRadius: "50%", background: mobile ? "#fff" : "var(--cs-surface)", transition: "left var(--cs-duree-courte)" }} />
       </button>
     </div>
   );
@@ -1941,7 +1941,7 @@ export default function Navbar() {
             width: 1.875rem; height: 1.875rem; border-radius: 8px; border: none; padding: 0;
             position: relative; flex-shrink: 0; cursor: pointer;
             background: transparent; color: rgba(255,255,255,0.82);
-            transition: background 0.13s, color 0.13s;
+            transition: background var(--cs-duree-courte), color var(--cs-duree-courte);
           }
           .cs-outil:hover, .cs-outil--actif {
             background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.95);
@@ -1955,7 +1955,7 @@ export default function Navbar() {
             height: 1.875rem; padding: 0 0.5rem 0 0.25rem; border-radius: 8px;
             border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.12);
             color: rgba(255,255,255,0.95); font-family: inherit; font-size: 0.78125rem;
-            cursor: pointer; flex-shrink: 0; transition: background 0.13s;
+            cursor: pointer; flex-shrink: 0; transition: background var(--cs-duree-courte);
           }
           .cs-outil-compte:hover { background: rgba(255,255,255,0.18); }
 
@@ -2010,13 +2010,13 @@ export default function Navbar() {
              Deux dessins sans rapport ne partagent pas un nom de classe. */
           .cs-nav-onglet {
             background: var(--fond, transparent);
-            transition: background 260ms cubic-bezier(.33,.68,.36,1),
+            transition: background 260ms var(--cs-courbe-sortie),
                         color 200ms cubic-bezier(.33,.68,.36,1);
           }
           .cs-nav-onglet:hover {
             background: var(--fond-survol, rgba(255,255,255,0.085));
             color: var(--cs-sur-aplat);
-            transition-duration: 140ms;
+            transition-duration: var(--cs-duree-courte);
           }
           /* Onglet « Bible » fendu — le SEUL palier « fendu » (cran 1), où l'intitulé dit
              « Les Saintes Écritures ». Au repos, un onglet plat comme les autres liens de la
@@ -2044,14 +2044,14 @@ export default function Navbar() {
           /* overflow:hidden — les surbrillances internes (survol des segments, segment
              actif) sont rognées par le rayon du conteneur : plus de coins carrés qui débordent
              sur les angles arrondis. */
-          .cs-bible { position: relative; display: inline-grid; grid-template-columns: auto; border-radius: 4px; overflow: hidden; transition: background 220ms ease-in-out; }
+          .cs-bible { position: relative; display: inline-grid; grid-template-columns: auto; border-radius: 4px; overflow: hidden; transition: background var(--cs-duree-moyenne) ease-in-out; }
           .cs-bible > * { grid-area: 1 / 1; }
           .cs-bible:hover, .cs-bible:focus-within { background: rgba(255,255,255,0.085); }
-          .cs-bible-face { display: inline-flex; align-items: center; justify-content: center; padding: 0.25rem 0.5rem; color: rgba(255,255,255,0.85); font-weight: 600; font-size: 0.9375rem; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; transition: opacity 220ms ease-in-out; }
+          .cs-bible-face { display: inline-flex; align-items: center; justify-content: center; padding: 0.25rem 0.5rem; color: rgba(255,255,255,0.85); font-weight: 600; font-size: 0.9375rem; letter-spacing: 0.01em; text-decoration: none; white-space: nowrap; transition: opacity var(--cs-duree-moyenne) ease-in-out; }
           .cs-bible:hover .cs-bible-face, .cs-bible:focus-within .cs-bible-face { opacity: 0; pointer-events: none; }
-          .cs-bible-split { display: flex; opacity: 0; pointer-events: none; transition: opacity 220ms ease-in-out; }
+          .cs-bible-split { display: flex; opacity: 0; pointer-events: none; transition: opacity var(--cs-duree-moyenne) ease-in-out; }
           .cs-bible:hover .cs-bible-split, .cs-bible:focus-within .cs-bible-split { opacity: 1; pointer-events: auto; }
-          .cs-bible-seg { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 0.375rem; color: rgba(255,255,255,0.82); font-size: 0.75rem; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background 160ms ease, color 160ms ease; }
+          .cs-bible-seg { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 0.375rem; color: rgba(255,255,255,0.82); font-size: 0.75rem; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background var(--cs-duree-courte) ease, color var(--cs-duree-courte) ease; }
           .cs-bible-seg:hover { background: rgba(255,255,255,0.13); color: var(--cs-sur-aplat); }
           .cs-bible-seg + .cs-bible-seg { box-shadow: inset 1px 0 0 rgba(255,255,255,0.16); }
           .cs-bible-seg--actif { color: var(--cs-sur-aplat); background: rgba(255,255,255,0.10); }
@@ -2270,7 +2270,7 @@ export default function Navbar() {
               {rechercheRepliee ? (
                 <button type="button" onClick={() => setRechercheDeployee(v => !v)}
                   aria-label="Rechercher" aria-expanded={rechercheDeployee}
-                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "1.875rem", height: "1.875rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: rechercheDeployee ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", cursor: "pointer", padding: 0, flexShrink: 0, transition: "background 0.13s" }}>
+                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "1.875rem", height: "1.875rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.22)", background: rechercheDeployee ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.82)", cursor: "pointer", padding: 0, flexShrink: 0, transition: "background var(--cs-duree-courte)" }}>
                   <svg width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                     <circle cx="5" cy="5" r="3.6" stroke="currentColor" strokeWidth="1.3" />
                     <path d="M7.7 7.7L10.6 10.6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />

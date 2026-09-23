@@ -70,7 +70,7 @@ function BoutonPartage({ label, onClick, children, loading }: { label: string; o
   }
   return (
     <button onClick={handleClick} title={label} disabled={loading}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: flash ? 'var(--cs-fond)' : 'var(--cs-surface)', color: flash ? 'var(--cs-vert)' : loading ? 'var(--cs-bord)' : 'var(--cs-texte-doux)', cursor: loading ? 'default' : 'pointer', transition: 'background 0.2s, color 0.2s', flexShrink: 0 }}>
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: flash ? 'var(--cs-fond)' : 'var(--cs-surface)', color: flash ? 'var(--cs-vert)' : loading ? 'var(--cs-bord)' : 'var(--cs-texte-doux)', cursor: loading ? 'default' : 'pointer', transition: 'background var(--cs-duree-moyenne), color var(--cs-duree-moyenne)', flexShrink: 0 }}>
       {children}
     </button>
   )

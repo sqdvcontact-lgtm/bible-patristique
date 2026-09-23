@@ -115,7 +115,7 @@ export default function LibrairiesPage() {
             align-items: center;
             flex: 1;
             min-width: 0;
-            transition: opacity 0.18s ease, transform 0.18s ease;
+            transition: opacity var(--cs-duree-moyenne) ease, transform var(--cs-duree-moyenne) ease;
           }
           .lib-row:hover .lib-contenu {
             opacity: 0.06;
@@ -130,7 +130,7 @@ export default function LibrairiesPage() {
             gap: 10px;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.18s ease;
+            transition: opacity var(--cs-duree-moyenne) ease;
             font-family: ${SERIF};
             font-size:0.9375rem;
             letter-spacing: 0.01em;

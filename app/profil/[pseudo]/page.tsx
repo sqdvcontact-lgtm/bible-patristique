@@ -181,7 +181,7 @@ export default function ProfilPublicPage() {
           min-height: 34px; border-radius: 999px; padding: 7px 16px;
           font-family: ${SERIF}; font-size: 11.5px;
           letter-spacing: .025em; text-decoration: none; cursor: pointer;
-          transition: background .14s, border-color .14s, color .14s;
+          transition: background var(--cs-duree-courte), border-color var(--cs-duree-courte), color var(--cs-duree-courte);
         }
         .profil-action-message { background: var(--cs-or-clair); border: 1px solid #e2ca91; color: var(--cs-encre); }
         .profil-action-message:hover { background: #e4cc91; }

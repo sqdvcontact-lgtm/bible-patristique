@@ -154,7 +154,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
         padding: '0', minHeight: t.photo ? '92px' : undefined,
         background: t.photo ? 'transparent' : estOuvert ? 'rgba(var(--cs-vert-rgb),0.04)' : 'var(--cs-surface)',
         border: 'none', cursor: 'pointer', textAlign: 'left',
-        transition: 'background 0.15s', overflow: 'hidden',
+        transition: 'background var(--cs-duree-courte)', overflow: 'hidden',
       }}
     >
       {t.photo && (() => {
@@ -170,7 +170,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
             objectFit: 'cover', objectPosition: `${px}% ${py}%`, display: 'block',
             transform: `scale(${ps})`, transformOrigin: `${px}% ${py}%`,
             filter: `brightness(${estOuvert ? BRILLANCE_BANDEAU.ouvert : BRILLANCE_BANDEAU.ferme})`,
-            transition: 'filter 0.2s',
+            transition: 'filter var(--cs-duree-moyenne)',
           }} />
         )
       })()}
@@ -193,7 +193,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
           fontSize: '1.0625rem', fontWeight: 'normal',
           color: couleurTexte, margin: 0, lineHeight: 1.25,
           textShadow: ombreTexte,
-          transition: 'color 0.2s, text-shadow 0.2s',
+          transition: 'color var(--cs-duree-moyenne), text-shadow var(--cs-duree-moyenne)',
         }}>
           {t.nom}
         </h2>
@@ -204,7 +204,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
             color: couleurMeta, letterSpacing: '0.02em',
             display: 'block', marginTop: '4px',
             textShadow: ombreTexte,
-            transition: 'color 0.2s',
+            transition: 'color var(--cs-duree-moyenne)',
           }}>
             {meta}
           </span>
@@ -220,7 +220,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
         position: 'relative', zIndex: 1, flexShrink: 0,
         marginRight: '18px', color: couleurChevron,
         filter: t.photo ? `drop-shadow(${ombreTexte})` : 'none',
-        display: 'inline-flex', transition: 'transform 0.18s, color 0.2s',
+        display: 'inline-flex', transition: 'transform var(--cs-duree-moyenne), color var(--cs-duree-moyenne)',
         transform: estOuvert ? 'rotate(180deg)' : 'none',
       }}><IconeChevron dir="down" taille="0.625rem" strokeWidth={1.6} /></span>
     </button>

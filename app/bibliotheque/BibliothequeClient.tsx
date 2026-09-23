@@ -281,7 +281,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
       // --cs-vert-rgb (vert sur clair, or sur le Cuir).
       // Le survol vit dans la feuille (.bib-carte-auteur, globals.css).
       className="bib-carte-auteur"
-      style={{ borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.22s ease, background-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease' }}>
+      style={{ borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color var(--cs-duree-moyenne) ease, background-color var(--cs-duree-moyenne) ease, box-shadow var(--cs-duree-moyenne) ease, transform var(--cs-duree-moyenne) ease' }}>
 
       {/* Hauteur d'en-tête CONSTANTE pour toutes les cartes (notice longue rognée) :
           la liste dépliée s'ajoute ensuite en dessous, hors de ce bloc. */}
@@ -368,18 +368,18 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
       {listeOuverte && (
         <div data-visite="bib-oeuvres" style={{ borderTop: '1px solid var(--cs-fond-doux)', padding: '8px 0 12px' }}>
           <style>{`
-            .bib-ligne { display: flex; align-items: stretch; transition: background-color 0.18s ease; }
+            .bib-ligne { display: flex; align-items: stretch; transition: background-color var(--cs-duree-moyenne) ease; }
             .bib-ligne:hover:not(.bib-correspond) { background-color: rgba(var(--cs-vert-rgb),0.055); }
             .bib-correspond { background: var(--cs-lecture-survol); }
             .bib-lire {
               display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0;
               font-size:0.6875rem; font-style: italic; letter-spacing: 0.03em; color: var(--cs-vert);
               font-family: ${SERIF};
-              opacity: 0; transform: translateX(4px); transition: opacity 0.22s ease, transform 0.22s ease;
+              opacity: 0; transform: translateX(4px); transition: opacity var(--cs-duree-moyenne) ease, transform var(--cs-duree-moyenne) ease;
               white-space: nowrap; pointer-events: none;
             }
             .bib-ligne:hover .bib-lire, .bib-correspond .bib-lire { opacity: 0.72; transform: translateX(0); }
-            .bib-fleche { transition: transform 0.22s ease; }
+            .bib-fleche { transition: transform var(--cs-duree-moyenne) ease; }
             .bib-ligne:hover .bib-fleche, .bib-correspond .bib-fleche { transform: translateX(3px); }
           `}</style>
           {/* UNE ligne par œuvre (titre), UNE sous-ligne cliquable par traduction : chaque
@@ -881,7 +881,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
 
   return (
     <div className="bib-carte-bude"
-      style={{ background: 'var(--cs-fond-clair)', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color 0.22s ease, background-color 0.22s ease, transform 0.22s ease' }}>
+      style={{ background: 'var(--cs-fond-clair)', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'border-color var(--cs-duree-moyenne) ease, background-color var(--cs-duree-moyenne) ease, transform var(--cs-duree-moyenne) ease' }}>
 
       {/* En-tête auteur */}
       <div style={{ display: 'flex' }}>
@@ -912,7 +912,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
       {ouvert && (
         <div style={{ borderTop: '1px solid var(--cs-bord-clair)', padding: '6px 0 10px' }}>
           <style>{`
-            .cat-ligne { display: flex; align-items: flex-start; padding: 8px 14px 8px 20px; transition: background-color 0.18s ease; gap: 10px; }
+            .cat-ligne { display: flex; align-items: flex-start; padding: 8px 14px 8px 20px; transition: background-color var(--cs-duree-moyenne) ease; gap: 10px; }
             .cat-ligne:hover { background-color: rgba(var(--cs-or-rgb), 0.05); }
           `}</style>
           {groupes.map((groupe, idx) => {

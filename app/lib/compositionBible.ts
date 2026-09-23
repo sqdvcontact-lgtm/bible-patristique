@@ -186,7 +186,7 @@ export function styleBlocVerset({ actif, mobile }: { actif?: boolean; mobile?: b
     // ⛔ Pas de fond au repos : le survol se pose par la feuille (`.verset-row:hover
     // .verset-bloc`), et un `transparent` en ligne le battrait.
     ...(actif ? { background: 'var(--cs-lecture-retenu)' } : null),
-    transition: 'background-color 0.12s ease',
+    transition: 'background-color var(--cs-duree-courte) ease',
   }
 }
 

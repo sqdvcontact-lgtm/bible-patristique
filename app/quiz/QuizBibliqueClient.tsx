@@ -413,7 +413,7 @@ export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boo
             <button key={o.id} onClick={() => changerMode(o.id)} style={{
               flex: 1, padding: '14px 8px 12px', border: 'none', background: 'none', cursor: 'pointer',
               borderBottom: mode === o.id ? '2.5px solid var(--cs-vert)' : '2.5px solid transparent',
-              transition: 'border-color 0.15s',
+              transition: 'border-color var(--cs-duree-courte)',
             }}>
               <p style={{ margin: 0, fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: mode === o.id ? 'var(--cs-vert)' : '#9aab9a', fontWeight: 800 }}>{o.sousTitre}</p>
               <p style={{ margin: '2px 0 0', fontSize: '0.8125rem', color: mode === o.id ? 'var(--cs-encre-fonce)' : '#6b8a70', fontWeight: mode === o.id ? 800 : 600 }}>{o.label}</p>
@@ -900,7 +900,7 @@ function EchelleJacob({ score, flash }: { score: number; flash: boolean }) {
         {Array.from({ length: 11 }).map((_, i) => { const yy = 255 - i * 22; return <line key={i} x1="62" y1={yy} x2="98" y2={yy} stroke="#f0d278" strokeWidth="3" strokeLinecap="round" opacity={0.85 + (i / 11) * 0.15} /> })}
         <ellipse cx="80" cy="14" rx="22" ry="10" fill="#f5e098" opacity={0.12 + progress * 0.25} filter="url(#lueur)" />
         <ellipse cx="80" cy="14" rx="10" ry="5" fill="#fff" opacity={0.08 + progress * 0.20} />
-        <g style={{ transform: `translateY(${yJacob - 248}px)`, transition: 'transform 0.8s cubic-bezier(.2,.8,.2,1)', animation: flash ? 'jacobClimb 0.18s ease-in-out 4 alternate' : 'none' }}>
+        <g style={{ transform: `translateY(${yJacob - 248}px)`, transition: 'transform 0.8s cubic-bezier(.2,.8,.2,1)', animation: flash ? 'jacobClimb var(--cs-duree-moyenne) ease-in-out 4 alternate' : 'none' }}>
           <circle cx="80" cy="232" r="8" fill="#f2c99a" stroke="#7a5228" strokeWidth="1.3" />
           <path d="M74 229 Q80 222 86 229" stroke="#5a3820" strokeWidth="2.5" fill="none" strokeLinecap="round" />
           <line x1="80" y1="240" x2="80" y2="260" stroke="#4a6e56" strokeWidth="4" strokeLinecap="round" />

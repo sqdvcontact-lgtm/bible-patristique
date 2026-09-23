@@ -223,7 +223,7 @@ export default function AccueilCards() {
           padding: 0;
           border: 1px solid rgba(255,255,255,0.10);
           box-shadow: 0 6px 24px rgba(10,18,8,0.30), inset 0 1px 0 rgba(255,255,255,0.08);
-          transition: transform 0.18s ease, box-shadow 0.18s ease;
+          transition: transform var(--cs-duree-moyenne) ease, box-shadow var(--cs-duree-moyenne) ease;
           position: relative;
           overflow: hidden;
         }
@@ -237,7 +237,7 @@ export default function AccueilCards() {
           justify-content: center;
           gap: 4px;
           text-decoration: none;
-          transition: opacity 0.16s ease, transform 0.18s ease;
+          transition: opacity var(--cs-duree-courte) ease, transform var(--cs-duree-moyenne) ease;
         }
         .ac-card::after {
           content: "";
@@ -378,7 +378,7 @@ export default function AccueilCards() {
           opacity: 0;
           transform: none;
           pointer-events: none;
-          transition: opacity 0.16s ease, transform 0.18s ease;
+          transition: opacity var(--cs-duree-courte) ease, transform var(--cs-duree-moyenne) ease;
         }
         .ac-card:hover .ac-hover-panel,
         .ac-card:focus-within .ac-hover-panel {
@@ -402,7 +402,7 @@ export default function AccueilCards() {
           color: rgba(255,255,255,0.96);
           text-decoration: none;
           box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
-          transition: background 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
+          transition: background var(--cs-duree-courte) ease, border-color var(--cs-duree-courte) ease, transform var(--cs-duree-courte) ease;
         }
         .ac-hover-choice:first-child {
           border-bottom: 1px solid rgba(255,255,255,0.22);

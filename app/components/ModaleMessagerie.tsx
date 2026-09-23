@@ -165,11 +165,11 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
       <style>{`
         @keyframes msg-fond { from { opacity: 0 } to { opacity: 1 } }
         @keyframes msg-glisser { from { transform: translateX(100%) } to { transform: none } }
-        .msg-backdrop { animation: msg-fond 0.18s ease-out }
-        .msg-panneau { animation: msg-glisser 0.26s cubic-bezier(0.2, 0.7, 0.3, 1) }
+        .msg-backdrop { animation: msg-fond var(--cs-duree-moyenne) ease-out }
+        .msg-panneau { animation: msg-glisser 0.26s var(--cs-courbe-sortie) }
         @media (prefers-reduced-motion: reduce) {
           .msg-backdrop { animation: none }
-          .msg-panneau { animation: msg-fond 0.18s ease-out }
+          .msg-panneau { animation: msg-fond var(--cs-duree-moyenne) ease-out }
         }
       `}</style>
       <div ref={panneauRef} role="dialog" aria-modal="true" aria-label="Messagerie" onClick={e => e.stopPropagation()} className="msg-panneau"

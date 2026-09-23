@@ -157,7 +157,7 @@ export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte,
                 Annuler
               </button>
               <button onClick={supprimerCompte} disabled={suppressionEnCours || !consentSuppression}
-                style={{ fontSize: '0.78125rem', padding: '7px 16px', borderRadius: '8px', border: 'none', background: consentSuppression ? 'var(--cs-danger-aplat)' : 'var(--cs-desactive-fond)', color: consentSuppression ? 'var(--cs-sur-aplat)' : 'var(--cs-desactive-encre)', fontWeight: 500, cursor: consentSuppression ? 'pointer' : 'default', transition: 'background 0.15s' }}>
+                style={{ fontSize: '0.78125rem', padding: '7px 16px', borderRadius: '8px', border: 'none', background: consentSuppression ? 'var(--cs-danger-aplat)' : 'var(--cs-desactive-fond)', color: consentSuppression ? 'var(--cs-sur-aplat)' : 'var(--cs-desactive-encre)', fontWeight: 500, cursor: consentSuppression ? 'pointer' : 'default', transition: 'background var(--cs-duree-courte)' }}>
                 {suppressionEnCours ? 'Suppression…' : 'Supprimer définitivement'}
               </button>
             </div>

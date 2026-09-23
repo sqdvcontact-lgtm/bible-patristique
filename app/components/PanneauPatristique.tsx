@@ -142,7 +142,7 @@ const ACTION_BTN: React.CSSProperties = {
   background:'none', border:'none', cursor:'pointer', padding:'4px',
   borderRadius:'4px', width:'24px', height:'24px', display:'inline-flex',
   alignItems:'center', justifyContent:'center', fontSize:'0.84375rem',
-  lineHeight:1, flexShrink:0, transition:'color 0.15s',
+  lineHeight:1, flexShrink:0, transition:'color var(--cs-duree-courte)',
 }
 
 /**
@@ -1501,7 +1501,7 @@ export default function PanneauPatristique({
                       cursor:'pointer', background:'none',
                       color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-gris)',
                       fontFamily: SANS,
-                      transition:'color 0.12s, border-color 0.12s',
+                      transition:'color var(--cs-duree-courte), border-color var(--cs-duree-courte)',
                       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
                     }}>
                     <span style={{ fontSize:'0.65625rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: actif ? 600 : 400, textAlign: 'center', lineHeight: 1.15 }}>{t.label}</span>
@@ -1572,7 +1572,7 @@ export default function PanneauPatristique({
                     en fondu, et leur PLACE reste. */}
                 <MarqueAttenteVolet enAttente={enAttente} />
                 <div id={idSousPanneau} role="tabpanel" aria-labelledby={idSousOnglet(sousOnglet)}
-                  style={{ opacity: enAttente ? 0 : 1, transition: 'opacity .16s ease', flex: '1 0 auto', display: 'flex', flexDirection: 'column' }}>
+                  style={{ opacity: enAttente ? 0 : 1, transition: 'opacity var(--cs-duree-courte) ease', flex: '1 0 auto', display: 'flex', flexDirection: 'column' }}>
                 {/* ⛔ UNE PANNE SE DIT, dans la voix du volet, avec de quoi réessayer. */}
                 {echec && (
                   <EtatVideVolet>

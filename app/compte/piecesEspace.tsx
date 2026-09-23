@@ -313,7 +313,7 @@ export const FEUILLE_ESPACE = `
 .esp-lien { display: block; width: calc(100% + 14px); margin: 0 -7px; box-sizing: border-box;
   padding: 2px 7px; border-radius: 4px; font-size: 0.71875rem; line-height: 1.3;
   color: var(--cs-texte-second); text-decoration: none;
-  transition: background 0.12s, color 0.12s; }
+  transition: background var(--cs-duree-courte), color var(--cs-duree-courte); }
 .esp-lien:hover, .esp-lien:focus-visible { background: rgba(var(--cs-vert-rgb), 0.05); color: var(--cs-texte); }
 .esp-lien[aria-current] { background: rgba(var(--cs-vert-rgb), 0.10); color: var(--cs-encre); font-weight: 600; }
 
@@ -337,7 +337,7 @@ export const FEUILLE_ESPACE = `
 /* Le portrait qui ouvre son menu : un anneau au survol dit qu'on peut le toucher. */
 .esp-portrait { position: relative; aspect-ratio: 1; min-width: 2.75rem; }
 .esp-portrait-bouton { display: block; width: 100%; height: 100%; padding: 0; border: none;
-  background: none; border-radius: 4px; cursor: pointer; transition: box-shadow 0.12s; }
+  background: none; border-radius: 4px; cursor: pointer; transition: box-shadow var(--cs-duree-courte); }
 .esp-portrait-bouton:hover, .esp-portrait-bouton[aria-expanded="true"] {
   box-shadow: 0 0 0 2px rgba(var(--cs-vert-rgb), 0.45); }
 .esp-menu-portrait { position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;

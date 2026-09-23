@@ -174,7 +174,7 @@ export const STYLE_BOUTON_ACTION: CSSProperties = {
   background: 'none', border: 'none', cursor: 'pointer', padding: '1px 2px',
   borderRadius: '4px', width: `${COTE_BOUTON}px`, height: `${COTE_BOUTON}px`,
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  fontSize: '0.84375rem', lineHeight: 1, flexShrink: 0, transition: 'color 0.15s',
+  fontSize: '0.84375rem', lineHeight: 1, flexShrink: 0, transition: 'color var(--cs-duree-courte)',
 }
 
 /** Le pavé qui les porte. Posé sur le texte, il doit être OPAQUE et se détacher :

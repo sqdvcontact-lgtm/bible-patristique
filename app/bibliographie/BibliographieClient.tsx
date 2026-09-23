@@ -95,12 +95,12 @@ function LigneCompte({ actif, onClick, label, n }: { actif: boolean; onClick: ()
       background: 'none', border: 'none', padding: '5px 0', margin: 0, minHeight: '26px',
       fontFamily: SERIF, fontSize: '0.75rem', lineHeight: 1.35,
       color: actif ? VERT : 'var(--cs-texte)', fontWeight: actif ? 600 : 400,
-      transition: 'color 0.12s',
+      transition: 'color var(--cs-duree-courte)',
     }}>
       <span aria-hidden style={{
         flexShrink: 0, width: '10px', height: '10px', borderRadius: '4px',
         border: `1px solid ${actif ? VERT : 'var(--cs-bord-clair)'}`,
-        background: actif ? VERT : 'transparent', transition: 'background 0.12s, border-color 0.12s',
+        background: actif ? VERT : 'transparent', transition: 'background var(--cs-duree-courte), border-color var(--cs-duree-courte)',
       }} />
       <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
       <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: actif ? VERT : 'var(--cs-texte-second)' }}>{n}</span>
@@ -334,7 +334,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
         .biblio-lien-lettre {
           display: flex; align-items: center; justify-content: center; min-height: 24px;
           font-family: ${SANS}; font-size: 0.6875rem; color: var(--cs-texte-second);
-          background: none; border: none; cursor: pointer; padding: 0; transition: color 0.12s;
+          background: none; border: none; cursor: pointer; padding: 0; transition: color var(--cs-duree-courte);
         }
         .biblio-lien-lettre:hover:not(:disabled) { color: ${VERT}; text-decoration: underline; text-underline-offset: 3px; }
         /* Une lettre que le filtre a vidée reste à sa place, en pâle : la grille ne
@@ -372,7 +372,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
            petit ; un catalogue se lit au corps du texte courant. */
         .biblio-entrees { display: flex; flex-direction: column; gap: 14px; }
         .biblio-entrees .${CLASSES_BIBLIOGRAPHIE.bloc} { font-family: ${SERIF}; font-size: 0.8125rem; color: var(--cs-texte-fort); margin: 0; }
-        .biblio-entree { padding: 2px 4px; border-radius: 4px; transition: background 0.14s ease; }
+        .biblio-entree { padding: 2px 4px; border-radius: 4px; transition: background var(--cs-duree-courte) ease; }
         .biblio-entree:hover { background: rgba(var(--cs-vert-rgb), 0.045); }
         .biblio-l2 {
           display: flex; align-items: baseline; gap: 6px 14px; flex-wrap: wrap;
@@ -395,7 +395,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
         .biblio-copier {
           margin-left: auto; background: none; border: 1px solid var(--cs-bord-clair); border-radius: 4px;
           padding: 1px 7px; cursor: pointer; font-family: ${SANS}; font-size: 0.6875rem; color: var(--cs-texte-second);
-          opacity: 0; transition: opacity 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+          opacity: 0; transition: opacity var(--cs-duree-courte) ease, color var(--cs-duree-courte) ease, border-color var(--cs-duree-courte) ease;
         }
         .biblio-entree:hover .biblio-copier, .biblio-entree:focus-within .biblio-copier { opacity: 1; }
         .biblio-copier:hover { color: ${VERT}; border-color: ${VERT}; }

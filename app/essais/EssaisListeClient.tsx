@@ -354,7 +354,7 @@ function OngletCommunaute({
           background: none; border: none; padding: 2px 0 2px 0.24em; cursor: pointer;
           font: inherit; font-size: 0.625rem; font-weight: 700; letter-spacing: 0.24em;
           text-transform: uppercase; color: var(--cs-lacune); opacity: 0.5;
-          transition: opacity 0.15s ease;
+          transition: opacity var(--cs-duree-courte) ease;
         }
         .publications-sommaire-ordres button:hover { opacity: 0.8; }
         .publications-sommaire-ordres button[aria-pressed="true"] { opacity: 1; cursor: default; }
@@ -412,7 +412,7 @@ function OngletCommunaute({
           font-kerning: normal; font-variant-ligatures: common-ligatures contextual;
           text-rendering: optimizeLegibility;
           box-shadow: 0 1px 2px rgba(40,30,15,0.18), 0 10px 22px -12px rgba(40,30,15,0.40);
-          transition: transform 0.24s cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 0.24s ease;
+          transition: transform var(--cs-duree-moyenne) var(--cs-courbe-sortie), box-shadow var(--cs-duree-moyenne) ease;
         }
         /* Vignette très douce : le papier prend du grain au lieu de rester un aplat.
            La lumière en haut à gauche, l'ombre au bord. C'est ce qui fait le
@@ -456,7 +456,7 @@ function OngletCommunaute({
           position: absolute; inset: 0;
           display: flex; flex-direction: column; align-items: center; text-align: center;
           padding: 6.5cqw 8cqw 7.5cqw;
-          transition: opacity 0.22s ease;
+          transition: opacity var(--cs-duree-moyenne) ease;
         }
         /* Cadre doublé, comme un cartonnage d'éditeur : un filet net au bord, un
            second en retrait. Le retrait vaut la moitié du blanc de tête, ce qui
@@ -547,7 +547,7 @@ function OngletCommunaute({
            n'en a qu'une. Vide, elle se tient en retrait ; pleine, elle est entière. */
         .couverture-etoile {
           position: absolute; top: 9.6cqw; right: 7cqw; z-index: 8; line-height: 1;
-          transition: transform 0.24s cubic-bezier(0.22, 0.61, 0.36, 1);
+          transition: transform var(--cs-duree-moyenne) var(--cs-courbe-sortie);
         }
         .couverture-case:hover .couverture-etoile { transform: translateY(-5px); }
         .couverture-etoile .etoile-favori { color: var(--couv-encre) !important; opacity: 0.62; }
@@ -564,7 +564,7 @@ function OngletCommunaute({
           position: absolute; inset: 0; z-index: 3;
           display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
           padding: 5cqw 11cqw 15cqw 11.8cqw;
-          opacity: 0; pointer-events: none; transition: opacity 0.22s ease;
+          opacity: 0; pointer-events: none; transition: opacity var(--cs-duree-moyenne) ease;
         }
         /* Au clavier aussi : le lien qui prend le focus se retourne comme au survol. */
         .couverture-case:hover .couverture-dos,
@@ -587,7 +587,7 @@ function OngletCommunaute({
           font-size: 3.4cqw; font-weight: 400; letter-spacing: 0.3em; text-transform: uppercase;
           padding-left: 0.3em; opacity: 0.88;
           font-variation-settings: "opsz" 9, "wght" 400;
-          transition: opacity 0.2s ease;
+          transition: opacity var(--cs-duree-moyenne) ease;
         }
         .couverture-lire::before {
           content: ""; position: absolute; left: 50%; top: -3.6cqw;
@@ -949,7 +949,7 @@ function OngletMesEcrits({
 
         /* Les actions se tiennent en retrait tant qu'on ne les regarde pas, comme le
            « Lire » de l'étagère ; au doigt, sans survol, elles restent pleines. */
-        .ecrit-actions { display: flex; align-items: center; gap: 10px; padding-top: 2px; opacity: 0.6; transition: opacity 0.18s; }
+        .ecrit-actions { display: flex; align-items: center; gap: 10px; padding-top: 2px; opacity: 0.6; transition: opacity var(--cs-duree-moyenne); }
         .ecrit-ligne:hover .ecrit-actions, .ecrit-ligne:focus-within .ecrit-actions { opacity: 1; }
         @media (hover: none) { .ecrit-actions { opacity: 1; } }
 
@@ -1146,7 +1146,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
             <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '14px' }}>
               {versets.map((_, i) => (
                 <button key={i} onClick={() => setIndex(i)}
-                  style={{ width: '6px', height: '6px', borderRadius: '50%', background: i === index ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', border: 'none', cursor: 'pointer', padding: 0, transition: 'background 0.13s' }} />
+                  style={{ width: '6px', height: '6px', borderRadius: '50%', background: i === index ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', border: 'none', cursor: 'pointer', padding: 0, transition: 'background var(--cs-duree-courte)' }} />
               ))}
             </div>
           )}
@@ -1171,7 +1171,7 @@ function tagFiltre(actif: boolean): React.CSSProperties {
     background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'color-mix(in srgb, var(--cs-texte-gris) 6%, transparent)',
     color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', cursor: 'pointer',
     fontWeight: actif ? 600 : 400, letterSpacing: '0.02em', lineHeight: 1.3,
-    transition: 'background 0.12s, color 0.12s',
+    transition: 'background var(--cs-duree-courte), color var(--cs-duree-courte)',
   }
 }
 function formatTimer(ms: number): string {

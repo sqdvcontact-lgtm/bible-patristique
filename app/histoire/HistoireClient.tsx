@@ -821,7 +821,7 @@ function BoutonFamille({ fam, actif, onClick }: { fam: string; actif: boolean; o
       padding: '6px 9px', borderRadius: '8px', cursor: 'pointer',
       border: `1px solid ${actif ? c : `${colorMix(c, 25)}`}`,
       background: actif ? `${colorMix(c, 13)}` : `${colorMix(c, 5)}`,
-      transition: 'background 0.12s, border-color 0.12s',
+      transition: 'background var(--cs-duree-courte), border-color var(--cs-duree-courte)',
     }}>
       <span aria-hidden style={{ width: '9px', height: '9px', borderRadius: '50%', background: c, flexShrink: 0 }} />
       <span style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: c, fontWeight: actif ? 600 : 500, lineHeight: 1.25 }}>{fam}</span>
@@ -837,7 +837,7 @@ function LigneCase({ actif, onClick, children }: { actif: boolean; onClick: () =
       padding: '2px 0 2px 9px', margin: 0,
       fontFamily: SERIF, fontSize: '0.75rem', lineHeight: 1.35,
       color: actif ? VERT : 'var(--cs-texte-gris)', fontWeight: actif ? 600 : 400,
-      transition: 'color 0.12s, border-color 0.12s',
+      transition: 'color var(--cs-duree-courte), border-color var(--cs-duree-courte)',
     }}>{children}</button>
   )
 }

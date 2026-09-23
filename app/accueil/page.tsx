@@ -354,7 +354,7 @@ export default async function AccueilPage() {
           text-decoration: none;
           border-bottom: 1px solid transparent;
           padding-bottom: 1px;
-          transition: color 0.18s ease, border-color 0.18s ease;
+          transition: color var(--cs-duree-moyenne) ease, border-color var(--cs-duree-moyenne) ease;
         }
         .seuil-noms a:hover,
         .seuil-noms a:focus-visible { color: var(--cs-vert); border-bottom-color: currentColor; }
@@ -439,7 +439,7 @@ export default async function AccueilPage() {
           margin-left: 0.85em;
           white-space: nowrap;
           opacity: 0; transform: translateX(-5px);
-          transition: opacity 0.24s ease, transform 0.34s cubic-bezier(0.22,0.61,0.36,1);
+          transition: opacity var(--cs-duree-moyenne) ease, transform 0.34s var(--cs-courbe-sortie);
           pointer-events: none;
         }
         .ajout-item:hover .ajout-lire { opacity: 1; transform: translateX(0); }
@@ -467,10 +467,10 @@ export default async function AccueilPage() {
           position: absolute; left: 0; right: 0; bottom: -2px; height: 1px;
           background: linear-gradient(to right, var(--cs-or), rgba(var(--cs-or-rgb),0.15));
           transform: scaleX(0); transform-origin: left;
-          transition: transform 0.36s cubic-bezier(0.22,0.61,0.36,1) 0.05s;
+          transition: transform 0.36s var(--cs-courbe-sortie) 0.05s;
         }
         .ajout-item:hover .ajout-lire-mot::after { transform: scaleX(1); }
-        .ajout-lire .fleche { color: var(--cs-or-lisible); transition: transform 0.28s cubic-bezier(0.22,0.61,0.36,1); }
+        .ajout-lire .fleche { color: var(--cs-or-lisible); transition: transform 0.28s var(--cs-courbe-sortie); }
         .ajout-item:hover .ajout-lire .fleche { transform: translateX(4px); }
 
         /* ── « Soutenir le projet » — l'or MONTE dans la pastille ─────────────
@@ -505,7 +505,7 @@ export default async function AccueilPage() {
           background-repeat: no-repeat;
           background-position: 50% 100%;
           background-size: 100% 0;
-          transition: background-size 0.3s cubic-bezier(0.22,0.61,0.36,1),
+          transition: background-size 0.3s var(--cs-courbe-sortie),
                       color 0.22s ease, border-color 0.3s ease;
         }
         .cs-bouton-soutenir:hover,

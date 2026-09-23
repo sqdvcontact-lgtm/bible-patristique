@@ -453,7 +453,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-suite { display: inline-flex; align-items: center; justify-content: center;
                     margin-top: 1.25rem; width: 2.75rem; height: 2.75rem; padding: 0;
                     border: none; background: none; color: var(--cs-texte-doux); cursor: pointer;
-                    border-radius: 50%; transition: color 0.2s ease;
+                    border-radius: 50%; transition: color var(--cs-duree-moyenne) ease;
                     animation: cs-suite-bob 2.4s ease-in-out infinite; }
         .cs-suite:hover { color: var(--cs-lacune); }
         .cs-suite:focus-visible { outline: 2px solid var(--cs-vert-clair); outline-offset: 0.125rem; }

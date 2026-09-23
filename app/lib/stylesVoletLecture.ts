@@ -93,7 +93,7 @@ export const OPTION_VOLET = (actif: boolean): CSSProperties => ({
   lineHeight: 1.3,
   fontFamily: SANS,
   cursor: actif ? 'default' : 'pointer',
-  transition: 'background 0.12s, color 0.12s',
+  transition: 'background var(--cs-duree-courte), color var(--cs-duree-courte)',
 })
 
 /** L'interligne d'une entrée qui peut s'enrouler sur plusieurs lignes : voir

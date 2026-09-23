@@ -141,7 +141,7 @@ const FEUILLE_FAVORITES = `
 .profil-favorite-attribution::before {
   content: ""; display: block; width: 1.5rem; height: 1px; margin: 0 auto 10px;
   background: var(--cs-or-doux);
-  transition: width 0.18s ease, background-color 0.18s ease;
+  transition: width var(--cs-duree-moyenne) ease, background-color var(--cs-duree-moyenne) ease;
 }
 /* La référence porte seule l'identité du passage : son encre tient le seuil de 4,5. */
 .profil-favorite-reference {

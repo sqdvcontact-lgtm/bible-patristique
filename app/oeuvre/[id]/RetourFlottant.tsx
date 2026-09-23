@@ -66,7 +66,7 @@ export default function RetourFlottant({ retour, filAriane, mobile }: {
           pointerEvents: visible ? 'auto' : 'none',
           opacity: visible ? 1 : 0,
           transform: visible ? 'none' : 'translateY(-0.25rem)',
-          transition: 'opacity 160ms ease, transform 160ms ease',
+          transition: 'opacity var(--cs-duree-courte) ease, transform var(--cs-duree-courte) ease',
           whiteSpace: 'nowrap',
           fontFamily: SANS,
           fontSize: '0.6875rem', lineHeight: 1.4,

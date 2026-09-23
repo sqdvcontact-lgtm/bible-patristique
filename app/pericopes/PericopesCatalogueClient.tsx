@@ -160,12 +160,12 @@ function LigneCompte({ actif, onClick, label, n }: { actif: boolean; onClick: ()
       background: 'none', border: 'none', padding: '5px 0', margin: 0, minHeight: '26px',
       fontFamily: SERIF, fontSize: '0.75rem', lineHeight: 1.35,
       color: actif ? VERT : 'var(--cs-texte)', fontWeight: actif ? 600 : 400,
-      transition: 'color 0.12s',
+      transition: 'color var(--cs-duree-courte)',
     }}>
       <span aria-hidden style={{
         flexShrink: 0, width: '10px', height: '10px', borderRadius: '4px',
         border: `1px solid ${actif ? VERT : 'var(--cs-bord-clair)'}`,
-        background: actif ? VERT : 'transparent', transition: 'background 0.12s, border-color 0.12s',
+        background: actif ? VERT : 'transparent', transition: 'background var(--cs-duree-courte), border-color var(--cs-duree-courte)',
       }} />
       <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
       <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: actif ? VERT : 'var(--cs-texte-second)' }}>{n}</span>
@@ -361,7 +361,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
           padding: 4px 6px; border-radius: 4px; box-sizing: border-box;
           font-family: ${SANS}; font-size: 0.84375rem; line-height: 1.4; color: var(--cs-texte-second);
           background: none; border: none; text-align: left; cursor: pointer;
-          transition: color 0.12s, background 0.12s;
+          transition: color var(--cs-duree-courte), background var(--cs-duree-courte);
         }
         .peri-lien-livre:hover { color: var(--cs-encre); background: rgba(var(--cs-vert-rgb),0.10); }
         .peri-lien-discret {
@@ -436,12 +436,12 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         .peri-entree {
           display: grid; grid-template-columns: 4.75rem minmax(0, 1fr); column-gap: 1.125rem; align-items: baseline;
           text-decoration: none; color: inherit;
-          padding: 3px 4px; border-radius: 4px; transition: background 0.14s ease;
+          padding: 3px 4px; border-radius: 4px; transition: background var(--cs-duree-courte) ease;
         }
         .peri-entree:hover, .peri-entree:focus-visible { background: rgba(var(--cs-vert-rgb), 0.055); }
         .peri-ref { font-family: ${SERIF}; font-size: 0.71875rem; color: var(--cs-or); font-variant-numeric: tabular-nums; white-space: nowrap; }
         .peri-corps { min-width: 0; }
-        .peri-titre { display: block; font-family: ${SERIF}; font-size: 0.875rem; font-weight: 500; color: var(--cs-encre-fonce); line-height: 1.26; transition: color 0.14s ease; }
+        .peri-titre { display: block; font-family: ${SERIF}; font-size: 0.875rem; font-weight: 500; color: var(--cs-encre-fonce); line-height: 1.26; transition: color var(--cs-duree-courte) ease; }
         .peri-entree:hover .peri-titre, .peri-entree:focus-visible .peri-titre { color: ${VERT}; }
         .peri-glose { margin-left: 6px; font-family: ${SERIF}; font-style: italic; font-size: 0.6875rem; font-weight: 400; color: var(--cs-texte-gris); }
         .peri-l2 { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 2px; }
@@ -455,7 +455,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         .peri-fleche {
           flex-shrink: 0; display: inline-flex; align-items: center; line-height: 0;
           color: var(--cs-or); opacity: 0; transform: translateX(-3px);
-          transition: opacity 0.16s ease, transform 0.16s ease;
+          transition: opacity var(--cs-duree-courte) ease, transform var(--cs-duree-courte) ease;
         }
         .peri-entree:hover .peri-fleche,
         .peri-entree:focus-visible .peri-fleche { opacity: 1; transform: translateX(0); }

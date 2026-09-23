@@ -1178,7 +1178,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
                 aria-selected={actif} aria-controls={idPanneau(o.cle)} tabIndex={actif ? 0 : -1}
                 onClick={() => changerOnglet(o.cle)} onKeyDown={e => surToucheOnglet(e, rang)}
                 aria-label={o.dire} title={o.dire}
-                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem', background: actif ? 'rgba(var(--cs-vert-rgb),0.05)' : 'none', border: 'none', borderBottom: actif ? '2px solid var(--cs-vert-aplat)' : '2px solid transparent', cursor: 'pointer', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-gris)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: actif ? 600 : 500, transition: 'color 0.12s, background 0.12s' }}>
+                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem', background: actif ? 'rgba(var(--cs-vert-rgb),0.05)' : 'none', border: 'none', borderBottom: actif ? '2px solid var(--cs-vert-aplat)' : '2px solid transparent', cursor: 'pointer', color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-gris)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: actif ? 600 : 500, transition: 'color var(--cs-duree-courte), background var(--cs-duree-courte)' }}>
                 {o.label}
                 {/* ⚠️ Le chiffre ne prend ni l'espacement des capitales ni la graisse de
                     l'onglet actif : c'est un nombre, pas un mot du libellé. Il garde sa

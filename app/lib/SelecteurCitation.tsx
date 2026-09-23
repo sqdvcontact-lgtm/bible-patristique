@@ -225,7 +225,7 @@ const petitChoixStyle: CSSProperties = {
 const boutonCiterStyle = {
   flexShrink: 0, alignSelf: 'center', fontSize: '0.6875rem', fontWeight: 600, padding: '4px 12px',
   borderRadius: '999px', border: 'none', '--repos-fond': 'var(--cs-vert-aplat)', '--survol-fond': 'var(--cs-vert-aplat-fonce)', color: 'var(--cs-sur-aplat)', cursor: 'pointer',
-  whiteSpace: 'nowrap', letterSpacing: '0.02em', transition: 'background 0.15s',
+  whiteSpace: 'nowrap', letterSpacing: '0.02em', transition: 'background var(--cs-duree-courte)',
 } as CSSProperties
 
 // Bouton de retour : une flèche fine dans une pastille arrondie, plus soignée que le « ← ».
@@ -365,7 +365,7 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               {s.codes.map(l => (
                 <button key={l} onClick={() => setLivre(l)} className="cs-survol-fond cs-survol-bord cs-survol-encre"
-                  style={{ fontSize: '0.71875rem', padding: '5px 12px', borderRadius: '4px', borderWidth: '1px', borderStyle: 'solid', '--repos-bord': 'var(--cs-bord-clair)', '--survol-bord': 'var(--cs-vert-clair)', '--repos-fond': 'var(--cs-fond-clair)', '--survol-fond': 'var(--cs-fond)', '--repos-encre': 'var(--cs-encre)', '--survol-encre': 'var(--cs-encre-fonce)', cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1.35, transition: 'background 0.12s, border-color 0.12s, color 0.12s' } as React.CSSProperties}>
+                  style={{ fontSize: '0.71875rem', padding: '5px 12px', borderRadius: '4px', borderWidth: '1px', borderStyle: 'solid', '--repos-bord': 'var(--cs-bord-clair)', '--survol-bord': 'var(--cs-vert-clair)', '--repos-fond': 'var(--cs-fond-clair)', '--survol-fond': 'var(--cs-fond)', '--repos-encre': 'var(--cs-encre)', '--survol-encre': 'var(--cs-encre-fonce)', cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1.35, transition: 'background var(--cs-duree-courte), border-color var(--cs-duree-courte), color var(--cs-duree-courte)' } as React.CSSProperties}>
                   {NOM_LIVRE[l] ?? ABREV_FR[l]}
                 </button>
               ))}

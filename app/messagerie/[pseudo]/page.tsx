@@ -217,7 +217,7 @@ export default function ConversationPage() {
                 color: 'var(--cs-encre-fonce)',
                 fontFamily: 'inherit',
                 lineHeight: 1.5,
-                transition: 'border-color 0.15s',
+                transition: 'border-color var(--cs-duree-courte)',
               }}
             />
             <button

@@ -981,7 +981,7 @@ export default function TexteBible({
             /* ⛔ La densité ne paraît qu'au SURVOL, avec les actions dont elle ferme la
                rangée (décision de l'auteur, 2026-09-13). Ni au repos, ni sur le verset
                retenu : c'est la ligne qu'on vise qui la demande. */
-            .marque-densite { opacity: 0; transition: opacity 0.12s; }
+            .marque-densite { opacity: 0; transition: opacity var(--cs-duree-courte); }
             .verset-row:hover .marque-densite { opacity: 1; }
             .verset-row:has(:focus-visible) .marque-densite { opacity: 1; }
             /* Les flèches encadrent le titre : elles prennent sa teinte, non le vert. */

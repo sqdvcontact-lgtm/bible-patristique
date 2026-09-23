@@ -233,7 +233,7 @@ function segmentDepuisRpc(r: Record<string, unknown>): SegmentResult {
 
 /** Le voile d'une liste dont la page demandée n'est pas encore là. */
 function styleAttente(attente: boolean): React.CSSProperties {
-  return { opacity: attente ? 0.55 : 1, transition: 'opacity .15s' }
+  return { opacity: attente ? 0.55 : 1, transition: 'opacity var(--cs-duree-courte)' }
 }
 
 // (Le décompte des occurrences par livre, œuvre ou publication passe par `compterMarque`,
@@ -958,14 +958,14 @@ export default function RechercheClient() {
            même travail, se voit mieux, et n'ajoute pas un objet à la page.
            (Les anciennes classes .ong-btn et .ong-count, d'une barre d'onglets
            HORIZONTALE qui n'existe plus, ont disparu avec elles.) */
-        .ong-vert { width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 20px; border:none; background:transparent; color:var(--cs-texte-second); font-weight:400; font-size:0.78125rem; cursor:pointer; text-align:left; font-family:${SERIF}; transition:background 0.12s, color 0.12s; }
+        .ong-vert { width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 20px; border:none; background:transparent; color:var(--cs-texte-second); font-weight:400; font-size:0.78125rem; cursor:pointer; text-align:left; font-family:${SERIF}; transition:background var(--cs-duree-courte), color var(--cs-duree-courte); }
         .ong-vert:hover { background:color-mix(in srgb, var(--fam) 8%, var(--cs-surface)); }
         .ong-vert--actif { background:color-mix(in srgb, var(--fam) 11%, var(--cs-surface)); color:var(--fam); font-weight:600; }
         .ong-vert .lib { display:flex; align-items:center; gap:8px; min-width:0; line-height:1.25; }
         .ong-vert .pastille { width:7px; height:7px; flex-shrink:0; border-radius:4px; background:var(--fam); }
         .ong-count { flex-shrink:0; font-size:0.6875rem; font-weight:400; color:var(--cs-texte-gris); font-variant-numeric:tabular-nums; }
         .ong-vert--actif .ong-count { color:var(--fam); }
-        .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:4px; background:var(--cs-surface); color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
+        .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:4px; background:var(--cs-surface); color:var(--cs-texte); cursor:pointer; transition:background var(--cs-duree-courte),color var(--cs-duree-courte); }
         .pag-btn:hover:not(:disabled) { background:var(--cs-vert-aplat); color:var(--cs-sur-aplat); border-color:var(--cs-vert-aplat); }
         .pag-btn:disabled { color:var(--cs-texte-faible); border-color:var(--cs-fond-doux); cursor:default; }
         /* (« .mode-btn » est parti avec le contrôle segmenté : le mode se prend désormais
@@ -991,7 +991,7 @@ export default function RechercheClient() {
            quand on choisit sa colonne. ⚠️ Il n'est pas perdu : le MENU le porte toujours,
            « Fillion · 1904 », et c'est là qu'on compare des éditions. La barre, elle, n'a
            qu'à nommer celle qu'on lit. */
-        .poly-hd-pick { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-width:0; padding:4px 16px 4px 6px; border-radius:4px; cursor:pointer; color:inherit; transition:background .15s; }
+        .poly-hd-pick { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-width:0; padding:4px 16px 4px 6px; border-radius:4px; cursor:pointer; color:inherit; transition:background var(--cs-duree-courte); }
         .poly-hd-pick:hover, .poly-hd-pick:has(select:focus-visible) { background:var(--cs-lecture-survol); }
         .poly-hd-titre { min-width:0; text-align:center; line-height:1.12; }
         .poly-hd-nom { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:${SERIF}; font-size:0.8125rem; color:var(--cs-encre-fonce); }
@@ -1027,7 +1027,7 @@ export default function RechercheClient() {
         /* ⚠️ Pas de filet entre les rangées, comme sur la page de lecture : le blanc entre
            versets vient de la cellule, et la réglure verticale court sans interruption.
            Le survol assombrit la rangée d'un cheveu, comme là-bas. */
-        .poly-row { display:grid; font-size:0.875rem; text-decoration:none; color:inherit; background:var(--cs-fond); transition:filter 0.12s; }
+        .poly-row { display:grid; font-size:0.875rem; text-decoration:none; color:inherit; background:var(--cs-fond); transition:filter var(--cs-duree-courte); }
         .poly-row:hover { filter:brightness(0.955); }
         .poly-texte-cell { border-left:1px solid var(--cs-bord-clair); color:var(--cs-encre-fonce); }
         /* La cellule dont la bible ne porte pas le mot : le fond d'absence, et rien
@@ -1070,7 +1070,7 @@ export default function RechercheClient() {
            prend l'encre et le corps d'une option, et le navigateur garde sa flèche, qui
            suffit à le dire cliquable. Un fond léger au survol et au foyer, comme le champ
            de recherche. */
-        .ctrl-sel { width:100%; font-size:0.71875rem; padding:2px 4px 2px 0; border:none; border-radius:4px; background:transparent; color:var(--cs-texte-second); outline:none; cursor:pointer; font-family:inherit; transition:background 0.12s, color 0.12s; }
+        .ctrl-sel { width:100%; font-size:0.71875rem; padding:2px 4px 2px 0; border:none; border-radius:4px; background:transparent; color:var(--cs-texte-second); outline:none; cursor:pointer; font-family:inherit; transition:background var(--cs-duree-courte), color var(--cs-duree-courte); }
         .ctrl-sel:hover { background:rgba(var(--cs-vert-rgb),0.05); color:var(--cs-texte); }
         .ctrl-sel:focus { background:var(--cs-fond-doux); color:var(--cs-encre); }
         /* Info-bulle « Explicitations » : au survol du « ? », les deux modes expliqués. */
@@ -1084,7 +1084,7 @@ export default function RechercheClient() {
           .expl-badge { width:1.5rem; height:1.5rem; font-size:0.6875rem; }
         }
         .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid rgba(var(--cs-vert-rgb),0.35); color:var(--cs-vert); background:var(--cs-vert-pale); font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
-        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:var(--cs-surface); border:1px solid var(--cs-bord); border-radius:8px; box-shadow:var(--cs-ombre-modale); padding:9px 11px; font-size:0.6875rem; line-height:1.5; color:var(--cs-texte-second); text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity 0.14s, transform 0.14s; pointer-events:none; }
+        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:var(--cs-surface); border:1px solid var(--cs-bord); border-radius:8px; box-shadow:var(--cs-ombre-modale); padding:9px 11px; font-size:0.6875rem; line-height:1.5; color:var(--cs-texte-second); text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity var(--cs-duree-courte), transform var(--cs-duree-courte); pointer-events:none; }
         .expl-wrap:hover .expl-tip { opacity:1; visibility:visible; transform:translateY(0); }
         /* Cachée, l'infobulle garde sa boîte : ses 250 px ouvraient un défilement
            horizontal sur un téléphone de 320 px (mesuré le 2026-09-21). Elle se borne
@@ -1267,7 +1267,7 @@ export default function RechercheClient() {
                 <div data-visite="recherche-garder" style={{ display:'flex', flexDirection:'column', gap:'3px', marginTop:'2px' }}>
                   {done && (versetsTotal + segmentsTotal + essaisRes.length) > 0 && (
                     <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
-                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'calc(100% + 14px)', margin:'0 -7px', boxSizing:'border-box', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', '--survol-fond':'rgba(var(--cs-vert-rgb),0.08)', border:'none', borderRadius:'4px', padding:'3px 7px', cursor:'pointer', transition:'background 0.12s' } as React.CSSProperties}
+                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'calc(100% + 14px)', margin:'0 -7px', boxSizing:'border-box', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', '--survol-fond':'rgba(var(--cs-vert-rgb),0.08)', border:'none', borderRadius:'4px', padding:'3px 7px', cursor:'pointer', transition:'background var(--cs-duree-courte)' } as React.CSSProperties}
                       className="cs-survol-fond">
                       <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
                         <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none"/>
@@ -1280,7 +1280,7 @@ export default function RechercheClient() {
                   {/* Reprendre : même hauteur que « Enregistrer », date d'enregistrement à droite. */}
                   {rechercheSauvee && (
                     <button onClick={reprendreRecherche} title={`Reprendre « ${rechercheSauvee.query} » là où vous en étiez`}
-                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'calc(100% + 14px)', margin:'0 -7px', boxSizing:'border-box', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', '--survol-fond':'rgba(var(--cs-vert-rgb),0.08)', border:'none', borderRadius:'4px', padding:'3px 7px', cursor:'pointer', transition:'background 0.12s' } as React.CSSProperties}
+                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'calc(100% + 14px)', margin:'0 -7px', boxSizing:'border-box', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', '--survol-fond':'rgba(var(--cs-vert-rgb),0.08)', border:'none', borderRadius:'4px', padding:'3px 7px', cursor:'pointer', transition:'background var(--cs-duree-courte)' } as React.CSSProperties}
                       className="cs-survol-fond">
                       <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
                         <path d="M2.5 7a4.5 4.5 0 1 1 1.3 3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>

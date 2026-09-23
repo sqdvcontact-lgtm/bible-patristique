@@ -826,10 +826,10 @@ function BoutonCiterVerset({ userId, saved, cle, refLivre, refAbr, chapitre, ver
       aria-label={saved ? "Retirer de mes citations" : "Ajouter à mes citations"}>
       {busy ? "…" : (
         <span style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ display: "inline-flex", opacity: montrerCroix ? 0 : 1, transition: "opacity .15s ease" }}>
+          <span style={{ display: "inline-flex", opacity: montrerCroix ? 0 : 1, transition: "opacity var(--cs-duree-courte) ease" }}>
             <IconeSignet plein={!!saved} />
           </span>
-          <span aria-hidden="true" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cs-danger)", opacity: montrerCroix ? 1 : 0, transition: "opacity .15s ease", pointerEvents: "none" }}>
+          <span aria-hidden="true" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cs-danger)", opacity: montrerCroix ? 1 : 0, transition: "opacity var(--cs-duree-courte) ease", pointerEvents: "none" }}>
             <IconeCroix size={8} />
           </span>
         </span>
@@ -949,7 +949,7 @@ function BoutonEditionVerset({ ligne, fond, onEditer }: { ligne: V2Row; fond: st
   return (
     <button title="Modifier ce verset" aria-label="Modifier ce verset" className="poly-edit cs-survol-encre"
       onClick={() => onEditer(ligne)}
-      style={{ border: "none", cursor: "pointer", '--repos-encre': 'var(--cs-texte-second)', '--survol-encre': VERT, fontSize: '0.6875rem', lineHeight: 1, background: fond, transition: "color .15s" } as React.CSSProperties}>
+      style={{ border: "none", cursor: "pointer", '--repos-encre': 'var(--cs-texte-second)', '--survol-encre': VERT, fontSize: '0.6875rem', lineHeight: 1, background: fond, transition: "color var(--cs-duree-courte)" } as React.CSSProperties}>
       <IconeCrayon size={11} />
     </button>
   );
@@ -1348,7 +1348,7 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
         // l'état ouvert. Une déclaration en ligne bat toujours une règle de feuille sans
         // « important », et le `background: none` qui se trouvait là rendait la règle de
         // survol MORTE depuis qu'elle avait été écrite — voir la note de la feuille.
-        style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minWidth: 0, padding: "7px 18px 7px 6px", borderRadius: 4, border: "none", cursor: "pointer", color: "inherit", transition: "background .15s" }}>
+        style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minWidth: 0, padding: "7px 18px 7px 6px", borderRadius: 4, border: "none", cursor: "pointer", color: "inherit", transition: "background var(--cs-duree-courte)" }}>
         {/* ⚠️ Les trois encres étaient du BLANC translucide, juste tant que ce nom se posait
             sur un aplat vert. Sur le papier, elles prennent l'échelle de gris du site : le nom
             en petites capitales de l'échelle haute, le millésime un rang plus bas, le chevron
@@ -1378,7 +1378,7 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
             </span>
           )}
         </span>
-        <span aria-hidden style={{ position: "absolute", right: 7, top: "50%", transform: `translateY(-50%) rotate(${ouvert ? 180 : 0}deg)`, transition: "transform .15s", pointerEvents: "none", color: "var(--cs-texte-doux)" }}>
+        <span aria-hidden style={{ position: "absolute", right: 7, top: "50%", transform: `translateY(-50%) rotate(${ouvert ? 180 : 0}deg)`, transition: "transform var(--cs-duree-courte)", pointerEvents: "none", color: "var(--cs-texte-doux)" }}>
           <IconeChevron dir="down" taille="0.6rem" strokeWidth={2.1} />
         </span>
       </button>
@@ -2790,7 +2790,7 @@ export default function PolyglottePage() {
            survol d'un bouton ; son opacité et sa boîte viennent du module partagé, et
            l'ancien « .poly-act { opacity: 0 } » les aurait rendus invisibles dans le
            portail, où aucun sélecteur de cette page ne peut plus les atteindre. */
-        .poly-act { transition: color .15s; }
+        .poly-act { transition: color var(--cs-duree-courte); }
         /* ── UNE COLONNE S'OUVRE ET SE FERME ──
            La piste passe de 1fr à 0fr (ou l'inverse), et les autres gagnent la place qu'elle
            rend. ⚠️ Le fond d'une ligne garde sa propre transition, ici et non plus en ligne :
@@ -2829,13 +2829,13 @@ export default function PolyglottePage() {
            de l'icône dit un état. L'ancienne règle était morte sous le style en ligne. */
         /* En-tête « Notes » : au survol de toute la cellule, « Notes » s'efface et
            « Fermer » apparaît à sa place (fondu croisé). */
-        .poly-notes-head .lbl-notes { transition: opacity .15s ease; }
-        .poly-notes-head .lbl-fermer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 3px; opacity: 0; transition: opacity .15s ease; pointer-events: none; }
+        .poly-notes-head .lbl-notes { transition: opacity var(--cs-duree-courte) ease; }
+        .poly-notes-head .lbl-fermer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 3px; opacity: 0; transition: opacity var(--cs-duree-courte) ease; pointer-events: none; }
         .poly-notes-head:hover .lbl-notes { opacity: 0; }
         .poly-notes-head:hover .lbl-fermer { opacity: 1; }
         /* Rail réduit : le crayon s'éclaire au survol. ⚠️ Sur le papier, un voile blanc
            translucide ne se remarquerait pas : c'est le fond doux du site qui le désigne. */
-        .poly-notes-rail { transition: background .14s ease, color .14s ease; }
+        .poly-notes-rail { transition: background var(--cs-duree-courte) ease, color var(--cs-duree-courte) ease; }
         .poly-notes-rail:hover { background: var(--cs-fond-doux) !important; color: var(--cs-vert) !important; }
         /* Surbrillance très légère de la ligne survolée. Elle passe par un filtre
            (et non par le background) pour agir par-dessus les fonds inline — zébrage,
@@ -2858,7 +2858,7 @@ export default function PolyglottePage() {
            survol du titre de colonne est resté mort pendant des semaines (note plus bas).
            ⚠️ La case retenue ne réagit pas au survol : elle porte déjà l'accent, et la
            faire changer d'encre laisserait croire qu'on va l'éteindre. */
-        .poly-case { background: transparent; color: var(--cs-texte-doux); font-weight: 400; transition: background .12s, color .12s; }
+        .poly-case { background: transparent; color: var(--cs-texte-doux); font-weight: 400; transition: background var(--cs-duree-courte), color var(--cs-duree-courte); }
         .poly-case:not([aria-pressed="true"]):hover { background: rgba(var(--cs-vert-rgb),0.06); color: var(--cs-texte-second); }
         .poly-case[aria-pressed="true"] { background: rgba(var(--cs-vert-rgb),0.12); color: var(--cs-vert); font-weight: 600; }
         /* Au doigt, une case d'échelle atteint le plancher de 24 px (charte, « LE DOIGT »). */

@@ -109,7 +109,7 @@ export default function SelecteurTraductionBible({ traductions, traductionIndex,
             fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', cursor: 'pointer',
             fontFamily: SERIF,
             fontStyle: 'italic', letterSpacing: '0.01em',
-            transition: 'color 0.15s',
+            transition: 'color var(--cs-duree-courte)',
           }}>
           {/* ⛔ Le chevron est DOUBLÉ, et le double de gauche est invisible : sans lui,
               le bouton se centrait chevron compris, et le NOM de la bible se trouvait

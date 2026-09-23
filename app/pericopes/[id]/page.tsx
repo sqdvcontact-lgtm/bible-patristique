@@ -220,7 +220,7 @@ function SelecteurTraduction({ trad, setTrad }: { trad: string; setTrad: (c: str
       <button onClick={() => setOuvert(o => !o)} aria-expanded={ouvert} aria-haspopup="listbox"
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%', fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: `1px solid ${BORD}`, borderRadius: '8px', padding: '6px 10px', cursor: 'pointer' }}>
         {active.nom}
-        <span aria-hidden="true" style={{ display: 'flex', opacity: 0.5, flexShrink: 0, transform: ouvert ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
+        <span aria-hidden="true" style={{ display: 'flex', opacity: 0.5, flexShrink: 0, transform: ouvert ? 'rotate(180deg)' : 'none', transition: 'transform var(--cs-duree-courte)' }}>
           <IconeChevron dir="down" taille="0.6rem" strokeWidth={2.1} />
         </span>
       </button>

@@ -101,7 +101,7 @@ export function styleLigneMenu(actif: boolean, premiere: boolean, derniere: bool
     color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-fort)',
     fontWeight: actif ? 600 : 400, cursor: 'pointer',
     fontFamily: SERIF, letterSpacing: '0.01em',
-    transition: 'background 0.12s',
+    transition: 'background var(--cs-duree-courte)',
   }
 }
 

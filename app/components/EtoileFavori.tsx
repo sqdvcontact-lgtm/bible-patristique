@@ -25,7 +25,7 @@ export default function EtoileFavori({ actif, onToggle, size = 16, style, title 
         alignItems: 'center', justifyContent: 'center',
         '--repos-encre': actif ? '#c8933a' : 'var(--cs-texte-doux)',
         '--survol-encre': actif ? 'var(--cs-or)' : 'var(--cs-etiquette)',
-        transition: 'color 0.15s, transform 0.12s',
+        transition: 'color var(--cs-duree-courte), transform var(--cs-duree-courte)',
         flexShrink: 0,
         ...style,
       } as React.CSSProperties}

@@ -863,7 +863,7 @@ export default function PagePrelevements() {
           padding: 10px calc(10px + var(--prel-debord)) 11px var(--prel-debord);
           border-radius: 8px;
           position: relative;
-          transition: background 0.12s;
+          transition: background var(--cs-duree-courte);
         }
         .prel-item:hover { background: rgba(var(--cs-vert-rgb),0.03); }
 
@@ -898,7 +898,7 @@ export default function PagePrelevements() {
         /* La gouttière d'actions ne paraissait qu'au survol : hors d'atteinte au
            doigt, et invisible au clavier. Elle vient donc aussi au focus, et
            reste posée en permanence sur un écran tactile (.prel-tactile). */
-        .prel-actions { display: flex; gap: 0; align-items: center; flex-shrink: 0; margin-left: 10px; opacity: 0; transition: opacity 0.15s; }
+        .prel-actions { display: flex; gap: 0; align-items: center; flex-shrink: 0; margin-left: 10px; opacity: 0; transition: opacity var(--cs-duree-courte); }
         .prel-item:hover .prel-actions,
         .prel-item:focus-within .prel-actions { opacity: 1; }
         .prel-tactile .prel-actions { opacity: 1; }
@@ -907,7 +907,7 @@ export default function PagePrelevements() {
            (--cs-texte-faible) ne rendait que 2,14 sur le papier, pour les 3 qu'une icône
            demande. --cs-texte-gris rend 3,45 sur le papier et 3,20 sur le lavis de la
            favorite. Au doigt, la cible prend la mesure d'une grappe (charte, « LE DOIGT »). */
-        .prel-action { background: none; border: none; cursor: pointer; color: var(--cs-texte-gris); padding: 0; line-height: 1; transition: color 0.12s; font-family: inherit; font-size:0.8125rem; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; box-sizing: border-box; text-decoration: none; border-radius: 4px; }
+        .prel-action { background: none; border: none; cursor: pointer; color: var(--cs-texte-gris); padding: 0; line-height: 1; transition: color var(--cs-duree-courte); font-family: inherit; font-size:0.8125rem; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; box-sizing: border-box; text-decoration: none; border-radius: 4px; }
         .prel-tactile .prel-action { width: 2.25rem; height: 2.25rem; }
         .prel-action:hover { color: var(--cs-vert); }
         /* La marque de la citation favorite est d'or, jamais du vert des actions :
@@ -943,7 +943,7 @@ export default function PagePrelevements() {
           gap: 12px; flex-wrap: wrap; margin-bottom: 16px; min-height: 1.75rem; }
         .prel-outil { display: inline-flex; align-items: center; gap: 6px; background: none;
           border: none; padding: 3px 0; cursor: pointer; font-family: inherit;
-          font-size: 0.75rem; color: var(--cs-texte-second); transition: color 0.12s; }
+          font-size: 0.75rem; color: var(--cs-texte-second); transition: color var(--cs-duree-courte); }
         .prel-outil:hover { color: var(--cs-vert); }
 
         /* ── Le mode sélection ──
