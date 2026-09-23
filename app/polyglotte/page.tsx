@@ -2296,7 +2296,7 @@ export default function PolyglottePage() {
     if (zone <= 0 || avant <= 0 || apres <= 0) return;
     table.style.setProperty("--poly-col-depart", `${zone / avant}px`);
     table.style.setProperty("--poly-col-cible", `${zone / apres}px`);
-    table.setAttribute("data-poly-transit", "");
+    table.setAttribute("data-poly-transit", entrantes > 0 ? "ouvre" : "ferme");
     // La colonne qui arrive naît fermée (piste à 0fr), et s'ouvre à la tâche suivante.
     table.removeAttribute("data-poly-entree-ouverte");
     table.style.setProperty("--poly-piste-entree", "minmax(0, 0fr)");
@@ -2579,7 +2579,7 @@ export default function PolyglottePage() {
         .poly-col-entrante, .poly-col-sortante { contain: size; overflow: hidden; opacity: 0; pointer-events: none; }
         /* La colonne qui arrive s'OUVRE sans nouveau rendu de la page : la table porte
            « data-poly-entree-ouverte » et la piste passe à 1fr par une variable. */
-        [data-poly-entree-ouverte] .poly-col-entrante { contain: none; opacity: 1; }
+        [data-poly-entree-ouverte] .poly-col-entrante { opacity: 1; }
         /* Pendant le transit, le texte d'une colonne est composé à sa largeur d'arrivée (celle
            qui part : à sa largeur de départ), et la cellule le rogne. La piste glisse, les
            lignes ne bougent plus. ⛔ Pas de fondu sur le texte qui se recompose : il se
@@ -2588,6 +2588,15 @@ export default function PolyglottePage() {
         [data-poly-transit] .poly-col-stable > .poly-cell-corps,
         [data-poly-transit] .poly-col-entrante > .poly-cell-corps { width: calc(var(--poly-col-cible) - 1px - 2 * var(--poly-marge-x)); }
         [data-poly-transit] .poly-col-sortante > .poly-cell-corps { width: calc(var(--poly-col-depart) - 1px - 2 * var(--poly-marge-x)); }
+        /* ⛔ QUAND UNE COLONNE ARRIVE, C'EST LE MIROIR DE LA RÉDUCTION (demande de l'auteur,
+           2026-09-23 : « quand on veut l'augmenter, le texte se replace de façon brutale »).
+           Les colonnes en place gardent leur texte composé à leur largeur de DÉPART et se font
+           recouvrir, comme la colonne qui part se fait recouvrir quand on en retire une ; la
+           colonne qui arrive, composée à sa largeur d'arrivée, entre par la droite. Elle garde
+           « contain: size » pendant tout le transit : sa hauteur ne compte pas, et les lignes
+           ne bougent pas pendant le glissement. Le texte ne se recompose qu'une fois, à la
+           fin, quand la table perd « data-poly-transit ». */
+        [data-poly-transit="ouvre"] .poly-col-stable > .poly-cell-corps { width: calc(var(--poly-col-depart) - 1px - 2 * var(--poly-marge-x)); }
         @media (prefers-reduced-motion: reduce) {
           .poly-grille { transition: background .4s ease; }
           .poly-col { transition: none; }
