@@ -105,6 +105,42 @@ export default function LectureBilingueBible({
   // les deux langues, et le passage qu'on copierait n'existe nulle part. La règle du refus
   // vit dans `refusDuLasso` ; le composant la crie.
   const refDefileur = useRef<HTMLDivElement>(null)
+  // ── LA MARGE QUI RESTE À DROITE DE LA COLONNE (2026-09-23) ──────────────────
+  // La rangée d'actions d'un verset se pose DANS cette marge quand elle y tient, et se
+  // replie en carte par-dessus la fin des lignes sinon (voir `ActionsDeLaRangee`).
+  // ⛔ ELLE SE MESURE SUR LE DÉFILEUR, jamais sur la fenêtre : les deux volets de la page
+  //    s'ouvrent, se ferment et se traînent à la poignée sans que la fenêtre bouge.
+  // ⚠️ Le bord droit UTILE du défileur est son bord CLIENT (`clientLeft + clientWidth`),
+  //    non celui de sa boîte : `scrollbar-gutter: stable both-edges` en réserve la
+  //    gouttière des deux côtés, et compter la boîte promettrait quinze pixels qui
+  //    n'existent pas. C'est le piège déjà payé par `surUneBarreDeDefilement`.
+  const refColonne = useRef<HTMLDivElement>(null)
+  const [margeActions, setMargeActions] = useState(0)
+  useEffect(() => {
+    const defileur = refDefileur.current
+    const colonne = refColonne.current
+    if (!defileur || !colonne) return
+    const mesurer = () => {
+      const boite = defileur.getBoundingClientRect()
+      const droiteUtile = boite.left + defileur.clientLeft + defileur.clientWidth
+      // ⛔ ON MESURE DEPUIS LE BORD DE LA RANGÉE, non de la colonne : la rangée occupe la
+      //    PREMIÈRE case de la grille, et la gouttière d'actions — la seconde — fait partie
+      //    de la place où le bloc peut se poser. Le premier enfant de la colonne est cette
+      //    case (`BibleBilingue`) ; à défaut, on retombe sur la colonne, ce qui ne peut que
+      //    sous-estimer la marge, donc replier une rangée qui aurait tenu.
+      const rangee = colonne.firstElementChild
+      const droiteRangee = (rangee ?? colonne).getBoundingClientRect().right
+      setMargeActions(m => {
+        const marge = Math.max(0, droiteUtile - droiteRangee)
+        return Math.abs(marge - m) < 0.5 ? m : marge
+      })
+    }
+    mesurer()
+    const observateur = new ResizeObserver(mesurer)
+    observateur.observe(defileur)
+    observateur.observe(colonne)
+    return () => observateur.disconnect()
+  }, [])
   const { userId, exigerCompte } = useCompte()
   // ⛔ L'axe du lasso est la CAPACITÉ du pointeur : au doigt, glisser fait défiler.
   const sansSurvol = useSansSurvol()
@@ -463,13 +499,17 @@ export default function LectureBilingueBible({
             dans la marge au lieu de couvrir le verset (`placerEnMarge`). La lecture en regard
             ne la portait pas, et ses notes s'ouvraient toutes sous leur appel. */}
         <div
+          ref={refColonne}
           className="cs-lecture-colonne"
           data-colonne-lecture=""
           style={mobile
             ? { maxWidth: '100%', margin: '0 auto' }
             : { width: `min(calc(var(--mesure-page) + ${GOUTTIERE_ACTIONS_VERSET}), 100%)`, margin: '0 auto', display: 'grid', gridTemplateColumns: `minmax(0, var(--mesure-page)) ${GOUTTIERE_ACTIONS_VERSET}` }}
         >
-          <BibleBilingue {...contenu} mobile={mobile || colonnesEtroites} copierCellule={copierCellule} prelevementDe={prelevementDeLaRangee} basculerPrelevement={basculerPrelevement} signalerCellule={signalerCellule} />
+          {/* ⚠️ `margeActions` porte la place qui reste à droite de la colonne, gouttière
+              comprise : c'est elle, et elle seule, qui décide si la rangée d'actions se
+              pose dans la marge ou se replie en carte. */}
+          <BibleBilingue {...contenu} mobile={mobile || colonnesEtroites} copierCellule={copierCellule} prelevementDe={prelevementDeLaRangee} basculerPrelevement={basculerPrelevement} signalerCellule={signalerCellule} margeActions={margeActions} />
           {/* Sous le dernier verset, les chapitres voisins, nommés (audit du 2026-09-21).
               ⚠️ Dans la PREMIÈRE colonne de la grille : la seconde est la gouttière. */}
           <div style={mobile ? undefined : { gridColumn: 1 }}>

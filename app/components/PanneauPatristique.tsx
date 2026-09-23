@@ -70,6 +70,11 @@ type Morceau = {
   id?: string; id_texte: string; segment_key: string | null
   longueur?: number | null
   segment_texte?: string; notes?: string | null
+  /** Le SÉPARATEUR que l'édition pose avant ce morceau (`join_before`), matérialisé par
+   *  `liantAvantSegment`. Il dit si deux segments qui se suivent forment un paragraphe ou
+   *  une seule phrase coupée par la segmentation ; sans lui, le volet imposait un saut de
+   *  ligne partout (relevé de l'auteur, 2026-09-23, sur la Cité de Dieu). */
+  join_before?: string | null
 }
 type Segment = {
   // ⛔ `id_texte` DÉCIDE des regroupements, `id_oeuvre` ne fait que nommer : une œuvre
@@ -92,6 +97,8 @@ type Segment = {
   /** Le texte et les notes héritées : absents tant que la page qui montre ce segment n'a
    *  pas été chargée (voir `hydrater`). */
   segment_texte?: string; notes?: string | null
+  /** Le séparateur que l'édition pose avant ce segment (voir `Morceau.join_before`). */
+  join_before?: string | null
   // ⚠️ Le segment qui PORTE le lien biblique, quand ce n'est pas celui qu'on montre :
   // un lien posé sur un latin s'affiche dans sa contrepartie française (voir
   // `contrepartieFrancaise`). Ce qu'on lit, ouvre et prélève est le français ; le
@@ -472,7 +479,18 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
           à chaque ligne. On redéfinit le jeton qu'ils lisent, sur ce seul paragraphe :
           l'appel et le séparateur « & » suivent ensemble. Encre `--cs-texte-second`, qui
           tient le seuil de 4,5 d'un signe qui porte seul son information. */}
-      <p lang="fr" style={{ '--cs-lacune':'var(--cs-texte-second)', fontSize:CORPS_CARTE_VOLET, lineHeight:INTERLIGNE_CARTE_VOLET, color:'var(--cs-texte-fort)', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
+      {/* ⛔ LA CHASSE DE L'EXTRAIT (reprise de l'auteur, 2026-09-23, devant le volet de
+          droite : « les caractères sont très légèrement trop serrés, mais vraiment très
+          légèrement ; et l'espace entre les mots est légèrement trop important ; revoir
+          harmonieusement »). Le bloc est JUSTIFIÉ dans une colonne de deux cents pixels :
+          la justification ajoute le même blanc absolu quelle que soit l'espace de départ,
+          si bien que les mots s'écartaient pendant que les lettres se touchaient. Les deux
+          se règlent ENSEMBLE — un centième de cadratin de chasse en plus, deux centièmes
+          d'espace en moins — et le texte reste condensé, ce que l'auteur demande partout.
+          ⚠️ Le bloc déclare donc sa PROPRE chasse : elle l'emporte sur celle du site
+          (`--cs-chasse-ui` / `--cs-espace-mot-ui`, posée sur `body`), une déclaration plus
+          proche gagnant, et c'est la règle de la charte § 3.11. */}
+      <p lang="fr" style={{ '--cs-lacune':'var(--cs-texte-second)', fontSize:CORPS_CARTE_VOLET, lineHeight:INTERLIGNE_CARTE_VOLET, color:'var(--cs-texte-fort)', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', letterSpacing:'0.018em', wordSpacing:'-0.1em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
         {/* ⚠️ La capitale et les appels projetés arrivent POSÉS (`composerExtrait`) : la
             capitale passe avant la projection, qui compte ses offsets dans le texte. */}
         {avecSautsDuVolet(rendreTexteAvecNotes(texteAffichage, notes, 'corps', {
@@ -682,7 +700,7 @@ const TYPES_DU_SOUS_ONGLET: Record<'citations' | 'doctrine' | 'echos', readonly 
 const cleTexteDe = (m: { id?: string; id_texte: string; segment_key?: string | null }) =>
   m.segment_key ? `${m.id_texte}|${m.segment_key}` : `id:${m.id}`
 
-type TexteDeSegment = { segment_texte: string; notes: string | null }
+type TexteDeSegment = { segment_texte: string; notes: string | null; join_before: string | null }
 
 /** Le texte et les notes héritées d'une page d'extraits, par (texte, clé) — jamais par
  *  l'identifiant, qu'un bigint au-delà de 2^53 arrondit dans le navigateur (`liensDeSegments`). */
@@ -697,19 +715,19 @@ async function chargerTextesDesSegments(cles: readonly string[]): Promise<Map<st
   }
   const taches: (() => PromiseLike<{ data: unknown; error: unknown }>)[] = []
   for (const [t, cles] of parTexte) for (const lot of lotsPourClauseIn(cles)) {
-    taches.push(() => supabase.from('segments').select('id_texte, segment_key, segment_texte, notes').eq('id_texte', t).in('segment_key', lot))
+    taches.push(() => supabase.from('segments').select('id_texte, segment_key, segment_texte, notes, join_before').eq('id_texte', t).in('segment_key', lot))
   }
   // ⛔ `id::text` : l'identifiant revient en chiffres exacts, faute de quoi la clé rendue
   // (`id:…`) ne serait pas celle qu'on a demandée (bigint arrondi, voir `Segment.id`).
   for (const lot of lotsPourClauseIn(parId)) {
-    taches.push(() => supabase.from('segments').select('id::text, id_texte, segment_key, segment_texte, notes').in('id', lot))
+    taches.push(() => supabase.from('segments').select('id::text, id_texte, segment_key, segment_texte, notes, join_before').in('id', lot))
   }
   const reponses = await lancerEnParallele(taches)
   const textes = new Map<string, TexteDeSegment>()
   for (const r of reponses) {
     if (r.error) throw r.error
-    for (const l of (r.data ?? []) as { id?: string; id_texte: string; segment_key: string | null; segment_texte: string | null; notes: string | null }[]) {
-      const valeur = { segment_texte: l.segment_texte ?? '', notes: l.notes ?? null }
+    for (const l of (r.data ?? []) as { id?: string; id_texte: string; segment_key: string | null; segment_texte: string | null; notes: string | null; join_before: string | null }[]) {
+      const valeur = { segment_texte: l.segment_texte ?? '', notes: l.notes ?? null, join_before: l.join_before ?? null }
       if (l.id !== undefined) textes.set(`id:${l.id}`, valeur)
       if (l.segment_key) textes.set(`${l.id_texte}|${l.segment_key}`, valeur)
     }
@@ -724,13 +742,13 @@ function hydrater(seg: Segment, textes: ReadonlyMap<string, TexteDeSegment>): Se
     for (const p of seg.parties) {
       const t = textes.get(cleTexteDe(p))
       if (!t) return null
-      parties.push({ ...p, segment_texte: t.segment_texte, notes: t.notes })
+      parties.push({ ...p, segment_texte: t.segment_texte, notes: t.notes, join_before: t.join_before })
     }
     // ⚠️ L'empan se recompose comme `chargerContrepartiesFrancaises` le recompose.
     return { ...seg, parties, segment_texte: parties.map(p => p.segment_texte).join(' '), notes: parties.map(p => p.notes).filter(Boolean).join('\n') || null }
   }
   const t = textes.get(cleTexteDe(seg))
-  return t ? { ...seg, parties: undefined, segment_texte: t.segment_texte, notes: t.notes } : null
+  return t ? { ...seg, parties: undefined, segment_texte: t.segment_texte, notes: t.notes, join_before: t.join_before } : null
 }
 
 /** Le numéro d'un verset visé, pour la confirmation d'un retrait : « 7 » dans un chapitre,

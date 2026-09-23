@@ -38,6 +38,7 @@
  */
 
 import { capitaliserInitiale } from './citation'
+import { liantAvantSegment } from './jonctionSegments'
 
 /**
  * Le plafond d'ÉLISION, en signes. Au delà, deux citations restent deux
@@ -65,6 +66,10 @@ export type CitationRegroupable = {
   idTexte: string | null
   numero: number
   texte: string
+  /** Ce que l'ÉDITION pose avant cette citation (`segments.join_before`), quand elle
+   *  suit immédiatement la précédente. Absent ou `null`, on retombe sur la jonction que
+   *  l'appelant demande. Voir `texteDuGroupe`. */
+  joinBefore?: string | null
 }
 
 /** Un écart entre deux citations voisines, dans un même texte. Les bornes sont
@@ -162,12 +167,25 @@ const PONCTUATION_FORTE = /[.!?…][\s»"'’)\]]*$/u
  * deux-points ou une virgule, rien ne change : la phrase n'était pas finie.
  * ⚠️ C'est la même règle que l'initiale d'un extrait, et la même fonction — elle ne
  * change jamais la longueur du texte, les appels de note s'y posant par offset.
+ *
+ * ⛔ DEUX SEGMENTS QUI SE SUIVENT SE JOIGNENT COMME L'ÉDITION LE DIT (2026-09-23) : c'est
+ * `join_before` qui tranche, matérialisé par `liantAvantSegment`, et `jointure` n'est plus
+ * que le liant par DÉFAUT — celui qu'on emploie quand la donnée ne dit rien. Le volet des
+ * Pères imposait un saut de ligne à toute paire consécutive : chez Augustin, la phrase
+ * « … les siècles qui demeurent immuables dans la sagesse de Dieu et qui sont, / pour ainsi
+ * dire, les causes efficientes… » se coupait en deux au milieu d'une proposition, et la
+ * seconde moitié s'ouvrait sur une minuscule après un blanc (relevé de l'auteur, qui
+ * demandait de trancher entre un défaut de donnée et un défaut d'affichage : c'est le
+ * second, la donnée disant bien « espace »).
+ * ⚠️ Un liant ne change pas la longueur du texte tant qu'il fait un signe — l'espace comme
+ * le saut de ligne — mais la SOUDURE (`''`) la raccourcit d'un : c'est pourquoi les appels
+ * de note se projettent AVANT la jonction, et non dessus.
  */
 export function texteDuGroupe<T>(groupe: readonly T[], cle: (item: T) => CitationRegroupable, jointure = ' '): string {
   return groupe.reduce((acc, item, i) => {
     const cet = cle(item)
     if (i === 0) return cet.texte
-    if (cet.numero === cle(groupe[i - 1]).numero + 1) return acc + jointure + cet.texte
+    if (cet.numero === cle(groupe[i - 1]).numero + 1) return acc + liantAvantSegment(cet.joinBefore, jointure) + cet.texte
     const suite = PONCTUATION_FORTE.test(acc) ? capitaliserInitiale(cet.texte) : cet.texte
     return `${acc} ${MARQUE_ELISION} ${suite}`
   }, '')

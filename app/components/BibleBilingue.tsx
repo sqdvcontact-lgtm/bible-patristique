@@ -205,6 +205,12 @@ export type LectureBilingueProps = {
    *  qui sait le texte et la référence de la cellule (voir `LectureBilingueBible`). */
   signalerCellule?: (cle: string) => void
   mobile?: boolean
+  /** La place, en pixels, qui reste À DROITE de la rangée dans le défileur — la marge que
+   *  la colonne de lecture laisse, gouttière d'actions comprise. Elle décide seule si la
+   *  rangée d'actions se pose DANS cette marge ou se replie en carte par-dessus la fin des
+   *  lignes : voir `ACTIONS_LARGEUR_PX`. ⚠️ `undefined` tant qu'on n'a pas mesuré, et l'on
+   *  se replie alors, ce qui ne peut jamais déborder. */
+  margeActions?: number
 }
 
 type ApparatColonne = {
@@ -231,13 +237,16 @@ const placeDansLaGouttiere = (rang: number, derniere: boolean) => ({
 // bouton par cellule, au survol de la rangée, posé HORS du texte : dans la gouttière entre
 // les deux colonnes, ou à droite de la dernière. ⛔ Il n'est pas cliquable au travers : le
 // clic s'arrête là, et ne retient pas le verset.
-function CopieCellule({ copier, numero, langue, derniere, rang }: {
+function CopieCellule({ copier, numero, langue, derniere, rang, enRangee = false }: {
   copier: () => Promise<void>
   numero: number | null
   langue: string
   derniere: boolean
   /** Le rang du bouton dans la gouttière : 0 quand il y est seul, 1 sous le signet. */
   rang: number
+  /** Posé dans la RANGÉE d'actions (bureau) : le bouton y est un article de flex ordinaire,
+   *  et c'est la rangée qui porte sa place et son opacité. */
+  enRangee?: boolean
 }) {
   const { copie, eclat, briller } = useEclatCopie()
   const { echec, signaler } = useEclatEchec()
@@ -256,7 +265,7 @@ function CopieCellule({ copier, numero, langue, derniere, rang }: {
       title={echec ? 'La copie a échoué' : `Copier ${objet} (${langue.toLowerCase()})`}
       aria-label={`Copier ${objet} (${langue.toLowerCase()})`}
       style={{
-        ...placeDansLaGouttiere(rang, derniere),
+        ...(enRangee ? STYLE_BOUTON_ACTION : placeDansLaGouttiere(rang, derniere)),
         color: echec ? 'var(--cs-danger)' : copie ? 'var(--cs-vert)' : 'var(--cs-bord)',
         ...(echec ? STYLE_HOTE_ECHEC : null),
       }}
@@ -271,12 +280,13 @@ function CopieCellule({ copier, numero, langue, derniere, rang }: {
 // La lecture en regard n'offrait AUCUN geste par verset — ni signet, ni copie — quand la
 // lecture simple en porte quatre. Le signet est le jumeau du bouton de copie : même
 // gabarit, même gouttière, rangé au-dessus de lui.
-function SignetCellule({ basculer, preleve, numero, derniere, rang }: {
+function SignetCellule({ basculer, preleve, numero, derniere, rang, enRangee = false }: {
   basculer: () => Promise<void>
   preleve: boolean
   numero: number | null
   derniere: boolean
   rang: number
+  enRangee?: boolean
 }) {
   const [attente, setAttente] = useState(false)
   const { echec, signaler } = useEclatEchec()
@@ -302,7 +312,7 @@ function SignetCellule({ basculer, preleve, numero, derniere, rang }: {
       title={echec ? 'Le geste a échoué' : geste}
       aria-label={geste}
       style={{
-        ...placeDansLaGouttiere(rang, derniere),
+        ...(enRangee ? STYLE_BOUTON_ACTION : placeDansLaGouttiere(rang, derniere)),
         color: echec ? 'var(--cs-danger)' : preleve ? 'var(--cs-texte-doux)' : 'var(--cs-bord)',
         ...(echec ? STYLE_HOTE_ECHEC : null),
       }}
@@ -319,12 +329,13 @@ function SignetCellule({ basculer, preleve, numero, derniere, rang }: {
 // geste avant le 22 septembre, en avait reçu deux et pas celui-là. ⛔ Il signale le verset
 // de SA colonne : c'est la langue lue qui porte la faute, et le modérateur doit savoir
 // laquelle. ⚠️ La fenêtre s'ouvre chez l'appelant, qui seul tient le texte de la cellule.
-function SignalerCellule({ signaler, numero, langue, derniere, rang }: {
+function SignalerCellule({ signaler, numero, langue, derniere, rang, enRangee = false }: {
   signaler: () => void
   numero: number | null
   langue: string
   derniere: boolean
   rang: number
+  enRangee?: boolean
 }) {
   const objet = numero === null ? 'ce verset' : `le verset ${numero}`
   const geste = `Signaler une erreur dans ${objet} (${langue.toLowerCase()})`
@@ -335,10 +346,91 @@ function SignalerCellule({ signaler, numero, langue, derniere, rang }: {
       onClick={(e) => { e.stopPropagation(); signaler() }}
       title={geste}
       aria-label={geste}
-      style={{ ...placeDansLaGouttiere(rang, derniere), color: 'var(--cs-bord)' }}
+      style={{ ...(enRangee ? STYLE_BOUTON_ACTION : placeDansLaGouttiere(rang, derniere)), color: 'var(--cs-bord)' }}
     >
       <IconeSignalement />
     </button>
+  )
+}
+
+// ── LA RANGÉE D'ACTIONS D'UNE LECTURE EN REGARD ───────────────────────────────
+//
+// Demande de l'auteur (2026-09-23) : « les symboles copier, signaler, etc., dans le mode
+// lecteur bilingue, sont immondes ! les placer tout à droite des deux versets, sur deux
+// lignes, avec indiqué : “Texte français”, “Texte latin” pour chaque ligne ».
+//
+// ⛔ ILS ÉTAIENT ÉPARPILLÉS DANS LES DEUX GOUTTIÈRES, et c'est là tout le défaut : ceux du
+//    français s'empilaient dans la gouttière du MILIEU — entre les deux colonnes, au beau
+//    milieu de ce qu'on lit — et ceux du latin à droite de la page. Trois pictogrammes nus,
+//    à deux endroits, sans un mot pour dire lequel commandait quelle langue.
+// ⛔ UNE LIGNE PAR LANGUE, ET ELLE SE NOMME : « Texte français », « Texte latin ». Le nom
+//    n'est pas un ornement — c'est lui qui fait qu'une rangée d'actions posée hors des
+//    colonnes dise encore à quoi elle s'applique.
+//
+// ⚠️ La composition vit ICI et non dans la feuille : les deux volets de la page se traînent
+//    à la poignée, et ce bloc n'a pas de classe à lui. Seule l'OPACITÉ passe par la feuille
+//    (`FEUILLE_COPIE_REGARD`), qui la bat en `!important` au survol de la rangée.
+const ACTIONS_LIBELLE: React.CSSProperties = {
+  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+  // ⛔ 0,6875 rem, LE PLANCHER DU SITE, et non un rang de moins : ce libellé se lit en bas
+  //    de casse, et les 0,625 rem ne sont accordés qu'aux capitales espacées (charte, audit
+  //    d'ergonomie du 2026-09-21). `echelleTypographique.test.ts` refuse l'autre.
+  fontSize: '0.6875rem',
+  lineHeight: 1,
+  letterSpacing: '0.01em',
+  color: 'var(--cs-texte-second)',
+  whiteSpace: 'nowrap',
+}
+
+/** La largeur que la rangée demande, en pixels à la racine 16 : les deux libellés (le plus
+ *  long, « Texte français », vaut environ 74 px à ce corps), l'écart, trois cibles de 21 px
+ *  et leurs deux jours, plus le pas qui la sépare du texte.
+ *  ⚠️ C'est une BORNE, non une mesure : on la veut un cheveu haute, une rangée qui déborde
+ *  coûtant un défilement horizontal quand une rangée repliée ne coûte qu'un fond. */
+const ACTIONS_LARGEUR_PX = 164
+
+/**
+ * Les actions d'une rangée : une ligne par colonne qui porte un texte, nommée par sa langue.
+ *
+ * ⛔ ELLE EST POSÉE EN ABSOLU et ne prend donc AUCUNE place dans la grille : les colonnes
+ *    gardent exactement la mesure qu'elles avaient, et la page ne bouge pas quand la rangée
+ *    paraît. Un article de grille absolu n'ouvre pas de rangée non plus.
+ * ⚠️ `repliee` : faute de marge, elle se pose PAR-DESSUS la fin des lignes, sur le sol de la
+ *    page et sous une ombre, où elle se lit comme un objet flottant. ⛔ Jamais de débord :
+ *    le défileur de la page rendrait une barre horizontale pour trois pictogrammes.
+ */
+function ActionsDeLaRangee({ lignes, repliee }: {
+  lignes: readonly { cle: string; libelle: string; boutons: ReactNode }[]
+  repliee: boolean
+}) {
+  if (lignes.length === 0) return null
+  return (
+    <div
+      className="cs-regard-action"
+      style={{
+        position: 'absolute',
+        top: '0.05rem',
+        ...(repliee
+          ? { right: 0, background: 'var(--cs-surface)', boxShadow: 'var(--cs-ombre-nette)', borderRadius: '4px', padding: '2px 4px' }
+          : { left: 'calc(100% + 0.75rem)' }),
+        display: 'grid',
+        gridTemplateColumns: 'auto auto',
+        alignItems: 'center',
+        columnGap: '0.375rem',
+        rowGap: '0.125rem',
+        opacity: 0,
+      }}
+    >
+      {lignes.map((ligne) => (
+        <Fragment key={ligne.cle}>
+          {/* ⚠️ Le libellé est `aria-hidden` : chaque bouton porte déjà sa langue dans son
+              propre nom accessible, et l'annoncer deux fois ferait lire « Texte latin,
+              copier le verset 3 (latin) ». */}
+          <span aria-hidden="true" style={ACTIONS_LIBELLE}>{ligne.libelle}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.125rem' }}>{ligne.boutons}</span>
+        </Fragment>
+      ))}
+    </div>
   )
 }
 
@@ -361,6 +453,7 @@ export default function BibleBilingue({
   signalerCellule,
   mobile = false,
   titresMasques,
+  margeActions,
 }: LectureBilingueProps): ReactNode {
   // ⚠️ MÉMORISÉS (audit du 2026-09-22) : la répartition, les index, l'appariement et les
   // notes retenues ne dépendent que de la matière du chapitre et de l'écran. Ils étaient
@@ -490,6 +583,10 @@ export default function BibleBilingue({
   const rangDuSignet = 0
   const rangDeLaCopie = basculer ? 1 : 0
   const rangDuDrapeau = (basculer ? 1 : 0) + (copier ? 1 : 0)
+  // ⛔ LA RANGÉE D'ACTIONS NE VAUT QUE LES COLONNES CÔTE À CÔTE (2026-09-23). Empilées, il
+  // n'y a plus de « tout à droite des deux versets » : chaque cellule prend alors la pleine
+  // largeur, et les boutons retournent dans sa gouttière, comme avant.
+  const actionsEnRangee = !mobile && Boolean(basculer || copier || signaler)
   const estPreleve = (canonId: string) => (prelevementDe ? prelevementDe(canonId) !== null : false)
   const marquesDeRangee = (canonId: string) => {
     if (!choisir) return {}
@@ -586,12 +683,46 @@ export default function BibleBilingue({
           : cellule.glose
             ? LIBELLE_GLOSE
             : referenceNativeLisible(cellule.referenceNative) ?? referenceCanoniqueLisible(rangee.canonId)
+        // ── LES ACTIONS DE LA RANGÉE (2026-09-23) ──
+        // ⛔ UNE LIGNE PAR COLONNE QUI PORTE UN TEXTE, nommée par sa langue, et l'ordre est
+        // celui des colonnes à l'écran : le lecteur retrouve « Texte français » à la hauteur
+        // de la colonne française. La règle du lasso décide de ce qui s'offre — un créneau
+        // qu'une édition ne porte pas, ou une glose, n'a rien à copier ni à prélever.
+        const lignesActions = actionsEnRangee
+          ? rangee.cellules.flatMap((cellule, index) => {
+            const membre = colonnesOrdonnees[index].membre
+            if (glose || cellule === null || cellule.glose || cellule.texte.trim() === '') return []
+            const cle = cleDeCelluleBilingue(membre.translationId, rangee.canonId)
+            const numero = numeroCanonique(rangee.canonId)
+            const langue = nomLangue(membre.languageCode)
+            return [{
+              cle,
+              libelle: `Texte ${langue.toLowerCase()}`,
+              boutons: (
+                <>
+                  {basculer && (
+                    <SignetCellule enRangee basculer={() => basculer(cle)} preleve={estPreleve(rangee.canonId)}
+                      numero={numero} derniere={false} rang={0} />
+                  )}
+                  {copier && (
+                    <CopieCellule enRangee copier={() => copier(cle)} numero={numero} langue={langue}
+                      derniere={false} rang={0} />
+                  )}
+                  {signaler && (
+                    <SignalerCellule enRangee signaler={() => signaler(cle)} numero={numero} langue={langue}
+                      derniere={false} rang={0} />
+                  )}
+                </>
+              ),
+            }]
+          })
+          : []
         return (
           <div key={rangee.canonId}>
             {rendreBlocs(commun.blocs.beforeByCanon.get(rangee.canonId) ?? [])}
             {rendreImages(commun.images.beforeByCanon.get(rangee.canonId) ?? [])}
             <div
-              style={styleGrille}
+              style={actionsEnRangee ? { ...styleGrille, position: 'relative' } : styleGrille}
               data-canon-id={glose ? undefined : rangee.canonId}
               data-glose={glose ? (glose.canonHote ?? '') : undefined}
               {...(glose ? {} : marquesDeRangee(rangee.canonId))}
@@ -716,7 +847,7 @@ export default function BibleBilingue({
                                 : undefined)}
                           {appeler(repartition.aLaSuite, membre.id)}
                         </p>
-                        {basculer && cleLasso && (
+                        {!actionsEnRangee && basculer && cleLasso && (
                           <SignetCellule
                             basculer={() => basculer(cleLasso)}
                             preleve={estPreleve(rangee.canonId)}
@@ -725,7 +856,7 @@ export default function BibleBilingue({
                             rang={rangDuSignet}
                           />
                         )}
-                        {copier && cleLasso && (
+                        {!actionsEnRangee && copier && cleLasso && (
                           <CopieCellule
                             copier={() => copier(cleLasso)}
                             numero={numeroCanonique(rangee.canonId)}
@@ -734,7 +865,7 @@ export default function BibleBilingue({
                             rang={rangDeLaCopie}
                           />
                         )}
-                        {signaler && cleLasso && (
+                        {!actionsEnRangee && signaler && cleLasso && (
                           <SignalerCellule
                             signaler={() => signaler(cleLasso)}
                             numero={numeroCanonique(rangee.canonId)}
@@ -748,6 +879,7 @@ export default function BibleBilingue({
                   </div>
                 )
               })}
+              <ActionsDeLaRangee lignes={lignesActions} repliee={(margeActions ?? 0) < ACTIONS_LARGEUR_PX} />
             </div>
             {rendreImages(commun.images.afterByCanon.get(rangee.canonId) ?? [])}
             {rendreBlocs(commun.blocs.afterByCanon.get(rangee.canonId) ?? [])}

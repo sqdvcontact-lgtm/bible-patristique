@@ -100,7 +100,7 @@
 import { useState, type ReactNode } from 'react'
 import { libelleEditionTraduction } from '@/app/lib/editionTraduction'
 import { texteReferenceEdition, type EditionServie } from '@/app/lib/referenceEditionServie'
-import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
+import { MentionCopiee, useMentionCopiee } from '@/app/components/MentionCopiee'
 import dynamic from 'next/dynamic'
 import NomVolet from '@/app/components/NomVolet'
 import IconeChevron from '@/app/components/IconeChevron'
@@ -143,7 +143,7 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
   onReduire?: () => void
 }) {
   const [modaleOuverte, setModaleOuverte] = useState(false)
-  const { copie, eclat, briller } = useEclatCopie()
+  const { mention, signaler } = useMentionCopiee()
   // D'où vient le texte : une phrase, ou rien du tout quand la base ne donne pas
   // d'année à nommer (voir `libelleEditionTraduction`).
   const edition = libelleEditionTraduction(trad)
@@ -158,9 +158,12 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
     depotManuscrit: trad.depotManuscrit, coteManuscrit: trad.coteManuscrit,
   }
   const reference = texteReferenceEdition(editionServie)
-  const copierLaReference = () => {
+  // ⚠️ Le POINT du clic se prend AVANT l'aller-retour du presse-papiers : l'événement React
+  // est rendu au pool, et ses coordonnées ne se lisent plus dans la promesse.
+  const copierLaReference = (e: React.MouseEvent) => {
     if (!reference) return
-    navigator.clipboard?.writeText(reference).then(briller, (erreur: unknown) => {
+    const point = { clientX: e.clientX, clientY: e.clientY }
+    navigator.clipboard?.writeText(reference).then(() => signaler(point), (erreur: unknown) => {
       console.error('[carte] référence non copiée :', erreur)
     })
   }
@@ -238,29 +241,39 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
         // pictogramme, ni infobulle — SEUL le curseur change au survol, et le clic met
         // la référence bibliographique dans le presse-papiers. Une carte de volet n'a
         // pas la place d'annoncer un geste qui ne sert qu'une fois.
-        // ⚠️ L'ACCUSÉ reste : un éclat, celui de tous les boutons de copie du site. Ne
-        // rien dire après le clic laisserait croire que rien n'a porté.
+        // ⚠️ L'ACCUSÉ reste, et ce n'est PAS l'éclat des six boutons de copie du site
+        // (reprise de l'auteur, 2026-09-23) : ceux-là s'allument DANS un pictogramme qu'on
+        // vient de viser, quand la cible est ici une phrase de trois lignes que rien
+        // n'annonce. La mention se pose donc au CURSEUR, dit ce qu'elle a copié, et jette
+        // quelques étincelles — voir `MentionCopiee`.
         ? (
           <button type="button" onClick={copierLaReference}
-            className={avecHoteEclat()}
             aria-label="Copier la référence bibliographique de cette édition"
             style={{
               // La ligne garde EXACTEMENT sa composition : un bouton qui se dessinerait
-              // en annoncerait un, et c'est ce qu'on refuse.
+              // en annoncerait un, et c'est ce qu'on refuse. ⛔ Son encre ne bouge pas non
+              // plus au clic : la mention dit tout, et une ligne qui verdirait ferait un
+              // second signal pour un geste qui n'en demande qu'un.
               display: 'block', width: '100%', textAlign: 'left',
               background: 'none', border: 'none', padding: 0, margin: 0,
               cursor: 'pointer',
               fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6875rem',
-              color: copie ? 'var(--cs-vert)' : 'var(--cs-texte-second)', lineHeight: 1.35,
-              transition: 'color 0.12s',
+              color: 'var(--cs-texte-second)', lineHeight: 1.35,
             }}>
             {edition}
-            <EclatCopie eclat={eclat} />
+            {/* ⚠️ Une mention posée au curseur ne se lit pas à la synthèse vocale : elle est
+                `aria-hidden`, et une région vivante la dit à sa place. ⛔ Le bouton garde
+                donc un `aria-label` STABLE, faute de quoi ce texte lui servirait de nom au
+                lieu de s'annoncer. */}
+            <span className="cs-hors-ecran" role="status">
+              {mention ? 'Référence bibliographique copiée' : ''}
+            </span>
           </button>
         )
         : (
           <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.35 }}>{edition}</span>
         ))}
+      <MentionCopiee mention={mention}>Référence bibliographique copiée</MentionCopiee>
       {modaleOuverte && <ModaleTraduction code={trad.code} nomFallback={trad.label || ''} onFermer={() => setModaleOuverte(false)} />}
     </div>
   )

@@ -3159,6 +3159,84 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   to { opacity: 0; }
 }
 
+/* ── LA MENTION D'UNE COPIE ────────────────────────────────────────────────────
+   Demande de l'auteur (2026-09-23) pour la ligne d'édition de la carte d'une bible :
+   « afficher “Référence bibliographique copiée” à côté du curseur, en petite, avec un
+   petit effet d'étincelles vertes autour ».
+   ⛔ ELLE SE POSE AU POINT DU GESTE, en `fixed` : c'est là que l'œil se trouve, et la ligne
+   cliquée, qui court sur trois lignes, ne dit pas où l'on a visé.
+   ⚠️ La translation de moitié la CENTRE sur le curseur, puis le décalage la pose au-dessus
+   et à droite, où la main ne la couvre pas. */
+.cs-mention-copiee {
+  position: fixed;
+  z-index: var(--cs-z-infobulle);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  margin: -1.25rem 0 0 3.5rem;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--cs-surface);
+  box-shadow: var(--cs-ombre-nette);
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--cs-vert);
+  /* ⛔ LA MENTION MONTE D'UN CHEVEU EN S'EFFAÇANT, elle ne glisse pas : un accusé qui
+     voyagerait à travers la page se lirait comme un objet qu'on déplace. */
+  animation: cs-mention-copiee 1.25s ease-out forwards;
+}
+@keyframes cs-mention-copiee {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 4px)); }
+  18% { opacity: 1; transform: translate(-50%, -50%); }
+  72% { opacity: 1; transform: translate(-50%, -50%); }
+  to { opacity: 0; transform: translate(-50%, calc(-50% - 5px)); }
+}
+/* ⛔ LES ÉTINCELLES SONT DES LOSANGES, non des ronds : un rond de trois pixels se lit comme
+   une puce, un losange comme un éclat. Elles partent du centre de la mention et filent vers
+   six places ÉCRITES — tirées au hasard, l'accusé ne serait jamais deux fois le même. */
+.cs-mention-etincelle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  background: var(--cs-vert);
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  opacity: 0;
+  animation: cs-mention-etincelle 0.7s ease-out forwards;
+}
+.cs-mention-etincelle[data-etincelle='1'] { --cs-etincelle-x: -34px; --cs-etincelle-y: -14px; animation-delay: 0s; }
+.cs-mention-etincelle[data-etincelle='2'] { --cs-etincelle-x: -18px; --cs-etincelle-y: 17px; animation-delay: 0.08s; }
+.cs-mention-etincelle[data-etincelle='3'] { --cs-etincelle-x: 8px; --cs-etincelle-y: -19px; animation-delay: 0.04s; }
+.cs-mention-etincelle[data-etincelle='4'] { --cs-etincelle-x: 31px; --cs-etincelle-y: 15px; animation-delay: 0.14s; }
+.cs-mention-etincelle[data-etincelle='5'] { --cs-etincelle-x: 46px; --cs-etincelle-y: -12px; animation-delay: 0.1s; }
+.cs-mention-etincelle[data-etincelle='6'] { --cs-etincelle-x: -2px; --cs-etincelle-y: 21px; animation-delay: 0.19s; }
+@keyframes cs-mention-etincelle {
+  from { opacity: 0; transform: translate(0, 0) scale(0.2) rotate(0deg); }
+  30% { opacity: 1; transform: translate(calc(var(--cs-etincelle-x) * 0.6), calc(var(--cs-etincelle-y) * 0.6)) scale(1) rotate(35deg); }
+  to { opacity: 0; transform: translate(var(--cs-etincelle-x), var(--cs-etincelle-y)) scale(0.35) rotate(80deg); }
+}
+/* ⛔ L'ACCUSÉ RESTE, LE MOUVEMENT PART : sous le réglage de mouvement réduit, la mention
+   garde son fondu et perd sa montée, et les étincelles ne s'écartent plus. Les éteindre
+   retirerait la réponse au geste au lieu du mouvement — c'est la règle de l'éclat d'une
+   copie et de l'anneau du compte à rebours. */
+@media (prefers-reduced-motion: reduce) {
+  .cs-mention-copiee { animation-name: cs-mention-copiee-calme; }
+  .cs-mention-etincelle { animation-name: cs-mention-etincelle-calme; }
+}
+@keyframes cs-mention-copiee-calme {
+  from { opacity: 0; }
+  18%, 72% { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes cs-mention-etincelle-calme {
+  from { opacity: 0; transform: translate(var(--cs-etincelle-x), var(--cs-etincelle-y)); }
+  30% { opacity: 1; transform: translate(var(--cs-etincelle-x), var(--cs-etincelle-y)); }
+  to { opacity: 0; transform: translate(var(--cs-etincelle-x), var(--cs-etincelle-y)); }
+}
+
 /* Les entrées du menu ⋮ : la forme d'une option de volet, en plus resserré — c'est
    une liste d'actions, non un axe où l'on retient un état. */
 .cs-entree-menu-volet:hover,
@@ -4615,7 +4693,44 @@ main.lecture-entree [data-cs-bloc],
   background: var(--cs-surface);
   color: var(--cs-encre-fonce);
 }
-.cs-signalement-merci-marque svg { width: 1.0625rem; height: 1.0625rem; }
+.cs-signalement-merci-marque { position: relative; }
+.cs-signalement-merci-marque > svg { width: 1.0625rem; height: 1.0625rem; }
+/* ⛔ L'ANNEAU DU REBOURS SE POSE SUR LE FILET DE LA MARQUE, dont il prend exactement la
+   place : `inset: -1px` le fait tomber sur le bord de la boîte, filet compris. ⚠️ Sa TAILLE
+   n'est donc écrite nulle part — elle est celle de la marque — et il suit la police fluide
+   sans qu'on ait à le dire.
+   ⛔ Il ne s'éteint PAS sous `prefers-reduced-motion` : il n'orne rien, il dit le temps qui
+   reste avant que la fenêtre ne parte, et l'arrêter retirerait l'information au lieu du
+   mouvement. C'est la règle de l'anneau de confirmation d'une fiche. */
+.cs-signalement-rebours {
+  position: absolute;
+  inset: -1px;
+  width: auto;
+  height: auto;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+.cs-signalement-rebours circle {
+  fill: none;
+  stroke: var(--cs-danger-aplat);
+  stroke-width: 2;
+  stroke-linecap: round;
+  animation-name: cs-signalement-rebours;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes cs-signalement-rebours {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: 56.55; }
+}
+.cs-signalement-merci-rebours {
+  margin: 2px 0 0;
+  font-family: var(--font-source-sans), Arial, sans-serif;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--cs-texte-second);
+  font-variant-numeric: tabular-nums;
+}
 .cs-signalement-merci-titre {
   margin: 0;
   font-family: var(--font-source-serif), Georgia, serif;
@@ -4718,13 +4833,38 @@ main.lecture-entree [data-cs-bloc],
   line-height: 1.5;
   color: var(--cs-texte-fort);
   resize: vertical;
-  transition: border-color 0.12s;
+  transition: border-color 0.12s, box-shadow 0.12s;
 }
 .cs-signalement-champ::placeholder { color: var(--cs-texte-gris); opacity: 1; }
-/* ⛔ Au foyer, RIEN : ni le vert d'autrefois, ni le cadre du navigateur (relevé de l'auteur,
-   2026-09-23). Le champ s'ouvre déjà au foyer (autoFocus) et porte le curseur ; un second
-   cadre par-dessus le filet ne disait rien de plus. */
-.cs-signalement-champ:focus { outline: none; }
+/* ⛔ Au foyer, AUCUN ANNEAU VERT (relevé de l'auteur, 2026-09-23, deux fois : « un cadre
+   vert immonde s'affiche toujours »). La première reprise n'avait posé que
+   `outline: none`, et elle ne pouvait pas suffire : l'anneau d'accessibilité du site
+   (« input, textarea… :focus-visible ») est écrit `!important` pour battre les
+   `outline: none` en ligne, et il battait aussi celui-ci. ⚠️ Un `:focus` sans `!important`
+   ne dispute rien à un `:focus-visible` qui en porte un — c'est la déclaration la plus
+   forte qui gagne, non la plus proche. Le champ s'ouvre AU FOYER (autoFocus), si bien que
+   l'anneau paraissait dès l'ouverture de la fenêtre, avant tout geste.
+   ⚠️ ET LE FOYER SE VOIT ENCORE, dans la famille de la fenêtre : le filet passe à la brique
+   et un halo d'un cheveu s'ouvre autour. On ne retire pas l'information, on lui donne la
+   couleur du lieu. */
+.cs-signalement-champ:focus,
+.cs-signalement-champ:focus-visible {
+  outline: none !important;
+  border-color: var(--cs-danger-aplat);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--cs-danger-aplat) 20%, transparent);
+}
+/* ⛔ ET L'ANNEAU DU CLAVIER PREND LA BRIQUE DANS TOUTE LA FENÊTRE, pour la même raison
+   que le champ : le vert d'accent est l'encre des gestes du site, et il n'a rien à faire
+   sur une fenêtre qui ne dit que « erreur ». ⚠️ L'anneau ne disparaît pas — il se voit
+   aussi bien, et il reste à deux pixels : c'est sa COULEUR qu'on accorde au lieu. */
+.cs-signalement-boite button:focus-visible,
+.cs-signalement-boite [tabindex]:focus-visible {
+  outline: 2px solid var(--cs-danger-fonce) !important;
+  outline-offset: 2px;
+}
+.cs-signalement-tete button:focus-visible {
+  outline-color: var(--cs-sur-aplat) !important;
+}
 .cs-signalement-pied {
   display: flex;
   justify-content: flex-end;
@@ -4840,7 +4980,11 @@ main.lecture-entree [data-cs-bloc],
 .cs-fiche-section-tete {
   display: flex;
   align-items: center;
-  gap: 8px;
+  /* ⛔ QUATORZE PIXELS, NI HUIT NI LE FER À DROITE (reprise de l'auteur, 2026-09-23 :
+     « tu l'as trop éloigné, il doit être près du texte, mais pas collé comme il l'était »).
+     À huit pixels le geste se lisait comme une part du titre ; renvoyé au bout de la tête,
+     il n'appartenait plus à rien. Il se tient donc à la distance d'un mot. */
+  gap: 14px;
   margin: 0 0 5px;
 }
 .cs-fiche-section-tete > .cs-fiche-titre-section { margin-bottom: 0; }
@@ -4852,16 +4996,17 @@ main.lecture-entree [data-cs-bloc],
    fiche quand le premier en rend 3,45 (8,24 en Cuir). */
 .cs-fiche-copier {
   flex: 0 0 auto;
-  /* ⛔ IL SE TIENT AU BOUT DE LA TÊTE, non contre le titre (reprise de l'auteur,
-     2026-09-23 : « trop gros, trop près du texte »). Un geste secondaire posé à huit
-     pixels du titre se lit comme une part du titre ; au fer à droite, il occupe le blanc
-     que la tête laissait, et rien ne le dispute.
-     ⚠️ LE FER SE POSE DANS LE RACCOURCI, jamais dans une déclaration à côté : `margin: 0`
-     écrit après le remettrait à zéro, et le geste reviendrait se coller au titre. */
+  /* ⛔ IL RESTE CONTRE LE TITRE, à la distance que la tête pose (reprise de l'auteur,
+     2026-09-23 : « tu l'as trop éloigné, il doit être près du texte, mais pas collé comme
+     il l'était ; la taille est parfaite »). Le fer à droite (`margin-left: auto`), essayé
+     le matin même, l'envoyait à l'autre bout d'une tête presque vide : un geste qui ne
+     touche plus à rien ne se rattache à rien. C'est l'ÉCART qui se règle, et il se règle
+     UNE FOIS, sur la tête (`.cs-fiche-section-tete`, 14 px).
+     ⚠️ LA MESURE DU PICTOGRAMME NE BOUGE PLUS : celle du matin, jugée parfaite. */
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin: 0 0 0 auto;
+  margin: 0;
   padding: 0;
   border: none;
   background: none;

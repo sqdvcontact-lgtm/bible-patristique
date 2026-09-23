@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
@@ -18,6 +18,24 @@ import IconeCroix from './IconeCroix'
 // les trois niveaux d'importance ont leurs jetons (`--cs-importance-*`), déclinés dans
 // les deux thèmes. Depuis le 2026-09-23 la fenêtre est ROUGE d'un bout à l'autre : seuls
 // le passage cité et le champ gardent un fond clair, pour qu'on y lise et qu'on y écrive.
+
+/**
+ * Le temps que l'accusé de réception reste sous les yeux avant que la fenêtre ne se ferme
+ * d'elle-même (demande de l'auteur, 2026-09-23 : « la fenêtre qui s'ouvre se ferme trop
+ * vite ; ajouter un symbole de chargement (rond) pour signaler que la fenêtre se ferme
+ * dans… N secondes »). Elle se fermait au bout de 1,8 s, sans rien annoncer : on n'avait
+ * pas fini de lire qu'elle était partie.
+ *
+ * ⛔ IL N'EST ÉCRIT QU'UNE FOIS, et c'est la règle de `DELAI_CONFIRMATION_MS` (FicheModele) :
+ *    l'anneau reçoit sa durée EN LIGNE depuis cette constante, et la feuille ne pose que le
+ *    mouvement. Deux écritures d'un même délai — l'une en millisecondes ici, l'autre en
+ *    secondes dans une règle CSS — se désaccorderaient au premier réglage, et la fenêtre se
+ *    fermerait avant que l'anneau n'ait fini son tour.
+ */
+const DELAI_FERMETURE_MS = 6000
+
+/** Le tour de l'anneau, en unités du tracé (2 π r, r = 9). */
+const TOUR_ANNEAU = 2 * Math.PI * 9
 
 const NIVEAUX = [
   { val: 'mineur', label: 'Mineur' },
@@ -43,15 +61,32 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
   const [statut, setStatut] = useState<'idle' | 'sending' | 'ok' | 'err'>('idle')
   const [importance, setImportance] = useState<Niveau>('important')
 
+  // ⚠️ Le compte à rebours ne part QU'APRÈS l'envoi : il n'existe pas tant que `statut`
+  // ne vaut pas 'ok', et il se retire avec la fenêtre. `null` dit qu'il ne tourne pas.
+  const [reste, setReste] = useState<number | null>(null)
+
   const envoyer = async () => {
     if (!message.trim()) return
     setStatut('sending')
     try {
       await onEnvoyer(message.trim(), avecNiveauImportance ? importance : undefined)
       setStatut('ok')
-      setTimeout(onClose, 1800)
+      setReste(Math.round(DELAI_FERMETURE_MS / 1000))
     } catch (error) { console.error('Erreur signalement:', error); setStatut('err') }
   }
+
+  // ⛔ UN SEUL MINUTEUR POUR LE COMPTE ET POUR LA FERMETURE : deux minuteurs indépendants
+  //    — l'un qui décompte de seconde en seconde, l'autre qui ferme au bout du délai — se
+  //    désaccorderaient de quelques dizaines de millisecondes, et la fenêtre se fermerait
+  //    tantôt sur « 1 », tantôt sur « 0 ». Ici, c'est le compte qui ferme quand il tombe.
+  // ⚠️ Le minuteur se retire au démontage : une fenêtre fermée à la croix pendant le
+  //    rebours ne doit pas rappeler `onClose` une seconde plus tard.
+  useEffect(() => {
+    if (reste === null) return
+    if (reste <= 0) { onClose(); return }
+    const t = setTimeout(() => setReste(n => (n === null ? null : n - 1)), 1000)
+    return () => clearTimeout(t)
+  }, [reste, onClose])
 
   if (typeof document === 'undefined') return null
   return createPortal(
@@ -74,14 +109,34 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
 
         {statut === 'ok' ? (
           <div role="status" className="cs-signalement-merci">
+            {/* ⛔ L'ANNEAU DU REBOURS EST LA MARQUE ELLE-MÊME, et non un objet de plus posé à
+                côté : le filet de la marque cochée devient la piste, et un arc se vide dessus.
+                Une seconde rondelle sous un rond déjà là aurait fait deux cercles pour une
+                seule information. ⚠️ Sa DURÉE vient de `DELAI_FERMETURE_MS`, en style en ligne :
+                la feuille ne pose que le mouvement (globals.css, `.cs-signalement-rebours`). */}
             <span aria-hidden="true" className="cs-signalement-merci-marque">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.6}
                 strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 8.4 6.4 11.8 13 5.2" />
               </svg>
+              {reste !== null && (
+                <svg className="cs-signalement-rebours" viewBox="0 0 20 20" role="presentation">
+                  <circle cx="10" cy="10" r="9"
+                    style={{ strokeDasharray: TOUR_ANNEAU, animationDuration: `${DELAI_FERMETURE_MS}ms` }} />
+                </svg>
+              )}
             </span>
             <p className="cs-signalement-merci-titre">Signalement envoyé</p>
             <p className="cs-signalement-merci-note">Merci : il sera relu.</p>
+            {/* ⚠️ Le compte se dit EN CHIFFRES, et il est le seul objet mouvant de la fenêtre :
+                l'anneau ne se lit pas à la synthèse vocale, et une région vivante le dit à sa
+                place. ⛔ Elle n'est PAS assertive : elle ne doit pas couper l'annonce de
+                « Signalement envoyé », qui est ce qu'on est venu lire. */}
+            {reste !== null && (
+              <p className="cs-signalement-merci-rebours">
+                Cette fenêtre se ferme dans {reste}&nbsp;seconde{reste > 1 ? 's' : ''}.
+              </p>
+            )}
           </div>
         ) : (
           <div className="cs-signalement-corps">

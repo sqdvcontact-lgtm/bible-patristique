@@ -39,6 +39,7 @@
  */
 import { capitaliserInitiale } from '@/app/lib/citation'
 import { parseNotes } from '@/app/lib/notes'
+import { liantAvantSegment } from '@/app/lib/jonctionSegments'
 import { texteDuGroupe } from '@/app/lib/regrouperCitations'
 import { normaliserPonctuationCitations } from '@/app/lib/typographie'
 import { projeterAppelsNotesStructureesEnSignalant } from '@/app/lib/appelsNotesStructurees'
@@ -51,6 +52,9 @@ type Morceau = {
   segment_key?: string | null
   segment_texte: string
   notes?: string | null
+  /** Le séparateur que l'édition pose avant ce morceau (`segments.join_before`), qui décide
+   *  de la jonction avec celui qui le précède. Voir `liantAvantSegment`. */
+  join_before?: string | null
 }
 
 /** Ce que le module lit d'un segment du volet : la forme de sa ligne dans `segments`. */
@@ -92,7 +96,7 @@ export function composerExtrait(
   let enAttente = false
   const notes: Record<string, NoteAffichee> = {}
   // Chaque morceau rend son texte ET ses notes ; les notes ne s'enregistrent qu'ensuite.
-  const rendus: { texte: string; propres: Record<string, NoteAffichee> }[][] = groupe.map(({ seg }, rang) =>
+  const rendus: { texte: string; propres: Record<string, NoteAffichee>; joinBefore: string | null }[][] = groupe.map(({ seg }, rang) =>
     morceauxDe(seg).map((morceau, i) => {
       const cle = morceau.segment_key ? cleNotesDuSegment(morceau.id_texte, morceau.segment_key) : null
       const charge = cle === null ? null : charges.get(cle)
@@ -106,7 +110,7 @@ export function composerExtrait(
       const projete = charge && charge.ancres.length > 0 ? projeterAppelsNotesStructureesEnSignalant(brut, charge.ancres) : brut
       // La coupe éditoriale AVANT la jonction : la fin du morceau est une fin de texte.
       const texte = normaliserPonctuationCitations(projete)
-      return { texte, propres }
+      return { texte, propres, joinBefore: morceau.join_before ?? null }
     }))
   // ⛔ UN MARQUEUR APPARTIENT D'ABORD AU MORCEAU QUI LE PORTE DANS SON TEXTE (2026-09-22).
   // Les notes d'un segment, telles que le chargeur les range par marqueur, comprennent
@@ -127,12 +131,19 @@ export function composerExtrait(
       }
     }
   }
-  // ⚠️ Les morceaux d'un empan se joignent comme `chargerContrepartiesFrancaises` les joint.
-  const textes = rendus.map(morceaux => morceaux.map(m => m.texte).join(' '))
+  // ⛔ LES MORCEAUX D'UN EMPAN SE JOIGNENT COMME L'ÉDITION LE DIT (2026-09-23), l'espace
+  // restant le liant par défaut — c'est ce que fait déjà `chargerContrepartiesFrancaises`
+  // quand elle réunit les paragraphes français d'un groupe d'alignement inégal.
+  const textes = rendus.map(morceaux => morceaux.reduce(
+    (acc, m, i) => (i === 0 ? m.texte : acc + liantAvantSegment(m.joinBefore, ' ') + m.texte), ''))
   const texte = texteDuGroupe(
-    groupe.map(({ seg }, rang) => ({ seg, texte: textes[rang] })),
-    ({ seg, texte: t }) => ({ idOeuvre: seg.id_oeuvre, idTexte: seg.id_texte, numero: seg.segment_numero, texte: t }),
-    // Deux paragraphes qui se suivent gardent leur saut : le volet le rend par un blanc léger.
+    groupe.map(({ seg }, rang) => ({ seg, texte: textes[rang], joinBefore: rendus[rang][0]?.joinBefore ?? null })),
+    ({ seg, texte: t, joinBefore }) => ({ idOeuvre: seg.id_oeuvre, idTexte: seg.id_texte, numero: seg.segment_numero, texte: t, joinBefore }),
+    // ⛔ LE SAUT DE LIGNE N'EST QUE LE LIANT PAR DÉFAUT : deux segments qui se suivent le
+    // prennent quand la donnée ne dit rien, et le volet le rend par un blanc léger. Quand
+    // elle dit « espace », la phrase se lit d'un trait — voir `texteDuGroupe`.
+    // ⚠️ Pour un groupe dont les textes sont ceux d'un EMPAN, la jonction se juge sur le
+    // PREMIER morceau français de l'empan suivant : c'est lui qui suit le texte déjà composé.
     '\n',
   )
   return { texte, notes, enAttente }
