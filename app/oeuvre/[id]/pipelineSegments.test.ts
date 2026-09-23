@@ -124,11 +124,11 @@ describe('detailsRefBiblique', () => {
   it('compose « Jn 4, 1 » depuis « JHN 4:1 »', () => {
     // ⚠️ L'ABRÉVIATION, non le nom entier : c'est `ABREV_FR` que la fonction consulte,
     // et le volet de droite compose des étiquettes courtes.
-    expect(detailsRefBiblique('JHN 4:1')).toEqual({ label: 'Jn 4, 1', livre: 'JHN', chapitre: '4', verset: '1' })
+    expect(detailsRefBiblique('JHN 4:1')).toEqual({ label: 'Jean 4, 1', livre: 'JHN', chapitre: '4', verset: '1' })
   })
 
   it('rend le chapitre seul quand il n’y a pas de verset', () => {
-    expect(detailsRefBiblique('JHN 4').label).toBe('Jn 4')
+    expect(detailsRefBiblique('JHN 4').label).toBe('Jean 4')
   })
 
   it('garde le code du livre quand il est inconnu du canon', () => {

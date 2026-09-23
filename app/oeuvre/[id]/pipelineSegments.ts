@@ -22,6 +22,7 @@
  * seul le serveur tire les notices bibliographiques.
  */
 import { ABREV_FR } from '@/app/lib/bible'
+import { nomLivreReference } from '@/app/lib/referencesBibliques'
 import { mesureAlinea, marqueStrophe } from '@/app/lib/compositionVers'
 import { numeroVersetLisible } from '@/app/lib/compositionVersets'
 import { parseNotes } from '@/app/lib/notes'
@@ -234,7 +235,10 @@ export function detailsRefBiblique(ref: string): DetailRefBiblique {
   const p = ref.trim().split(' ')
   if (p.length < 2) return { label: ref, livre: '', chapitre: '', verset: '' }
   const cv = p[1].split(':')
-  const label = cv[1] ? `${ABREV_FR[p[0]] ?? p[0]} ${cv[0]}, ${cv[1]}` : `${ABREV_FR[p[0]] ?? p[0]} ${cv[0]}`
+  // ⛔ Le NOM ENTIER du livre, jamais l'abréviation (décision de l'auteur, 2026-09-23 :
+  // « pas “Jn 1, 5”, mais “Jean 1, 5” »). Le Psautier se cite au singulier.
+  const nom = nomLivreReference(p[0])
+  const label = cv[1] ? `${nom} ${cv[0]}, ${cv[1]}` : `${nom} ${cv[0]}`
   return { label, livre: p[0], chapitre: cv[0] || '', verset: cv[1] || '' }
 }
 

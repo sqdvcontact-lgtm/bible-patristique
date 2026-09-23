@@ -3799,7 +3799,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                               blanc entre deux œuvres reste cinq fois plus large. */}
                           {distinction && (
                             <span className="lien-meme-auteur-edition"
-                              style={{ display: 'block', fontSize: '0.6875rem', fontStyle: 'italic', lineHeight: 1.1, marginTop: '0.0625rem', ...(courante ? { color: 'var(--cs-vert)' } : null) }}>
+                              style={{ display: 'block', fontSize: '0.6875rem', fontStyle: 'italic', lineHeight: 1.1, marginTop: '0.0625rem', ...(courante ? { color: 'var(--cs-vert)', fontWeight: 400 } : null) }}>
                               {distinction}
                             </span>
                           )}
@@ -5098,7 +5098,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           const premier = groupe[0]
                           const dernier = groupe[groupe.length - 1]
                           const multiple = groupe.length > 1
-                          // Versets réunis : label en fourchette (« Gn 1, 1-3 ») et corps mis à la suite.
+                          // Versets réunis : label en fourchette (« Genèse 1, 1-3 ») et corps mis à la suite.
                           const labelGroupe = multiple
                             ? `${premier.label.replace(/\d+\s*$/, '')}${premier.verset}-${dernier.verset}`
                             : premier.label
@@ -5141,19 +5141,21 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                             // fond au survol, actions au survol seulement, un filet entre deux cases.
                             <div key={key} className={CLASSE_CARTE_VOLET} style={STYLE_CARTE_VOLET}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: note ? '2px' : '6px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
+                                {/* ⚠️ Ligne de BASE, non milieu : le lien et « Supprimer le lien » n'ont pas le même corps,
+                                    et centrés sur leur boîte ils ne tombaient pas sur la même ligne. */}
+                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', minWidth: 0 }}>
                                   {/* ⚠️ La graphie part AVEC l'adresse : on ouvre la page Bible sur
                                       le texte qu'on avait sous les yeux, et non sur un autre état du
                                       même témoin. La page Bible la normalise contre les graphies
                                       qu'elle expose vraiment, et ne s'en trouble pas si elle ne la
                                       connaît pas (`normaliserCouche899`). */}
-                                  <a href={`/?livre=${encodeURIComponent(premier.livre)}&chapitre=${encodeURIComponent(premier.chapitre)}&verset=${encodeURIComponent(premier.verset)}&trad=${encodeURIComponent(trad)}${lecture.couche ? `&couche=${encodeURIComponent(lecture.couche)}` : ''}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0, textDecoration: 'none' }}>{labelGroupe}{/* Il garde son nouvel onglet (on ne perd pas sa page de lecture) et le DIT (audit ergonomique, 2026-09-21). */}<svg width="8" height="8" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ marginLeft: '0.25em', opacity: 0.55, verticalAlign: 'baseline' }}><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg><span className="cs-hors-ecran"> (nouvel onglet)</span></a>
+                                  <a href={`/?livre=${encodeURIComponent(premier.livre)}&chapitre=${encodeURIComponent(premier.chapitre)}&verset=${encodeURIComponent(premier.verset)}&trad=${encodeURIComponent(trad)}${lecture.couche ? `&couche=${encodeURIComponent(lecture.couche)}` : ''}`} target="_blank" rel="noopener noreferrer" className="ref-lien" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0, textDecoration: 'none' }}>{labelGroupe}{/* Nouvel onglet dit à la synthèse vocale seulement : le pictogramme qui le montrait est retiré (décision de l'auteur, 2026-09-23). */}<span className="cs-hors-ecran"> (nouvel onglet)</span></a>
                                   {/* ⛔ La nature du rapport (citation, reprise…) ne s'affiche plus
                                       (décision de l'auteur, 21 septembre 2026), comme dans le volet
                                       des Pères. */}
                                   {estAdmin && (
                                     <button onClick={() => supprimerLiensBibliques(segActifData.id, groupe.map(v => v.id))} title="Supprimer ce lien biblique"
-                                      style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: '1px 0', lineHeight: 1.1, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                      style={{ fontSize: '0.6875rem', fontFamily: 'inherit', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 'inherit', fontWeight: 600, whiteSpace: 'nowrap' }}>
                                       {multiple ? 'Supprimer les liens' : 'Supprimer le lien'}
                                     </button>
                                   )}

@@ -91,6 +91,15 @@ export function useMentionCopiee() {
  *    montée, avant la peinture, et se décale d'autant — par une propriété de la feuille, sans
  *    état ni second rendu.
  */
+/** TROIS DESSINS D'ÉTINCELLES, et deux clics voisins n'ont jamais le même (demande de
+ *  l'auteur, 2026-09-23 : « pour éviter la redondance »). Le rang du clic les fait tourner,
+ *  1, 2, 3, 1… : un tirage au hasard pourrait redonner le même. Les places vivent dans la
+ *  feuille (`[data-modele]`). */
+export const MODELES_ETINCELLES = 3
+export function modeleDEtincelles(rang: number): number {
+  return ((Math.max(1, Math.floor(rang)) - 1) % MODELES_ETINCELLES) + 1
+}
+
 export function MentionCopiee({ mention, children }: { mention: MentionAuCurseur | null; children: React.ReactNode }) {
   const ref = useRef<HTMLSpanElement>(null)
   const rang = mention?.rang ?? 0
@@ -108,6 +117,7 @@ export function MentionCopiee({ mention, children }: { mention: MentionAuCurseur
   if (typeof document === 'undefined' || mention === null) return null
   return createPortal(
     <span ref={ref} key={mention.rang} className="cs-mention-copiee" aria-hidden="true"
+      data-modele={modeleDEtincelles(mention.rang)}
       style={{ left: mention.x, top: mention.y }}>
       {children}
       {Array.from({ length: ETINCELLES }, (_, i) => (

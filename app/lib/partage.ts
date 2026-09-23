@@ -90,39 +90,57 @@ export function messagePartage(ligne: string, url: string): string {
   return `${ligne}\n${url}`
 }
 
-export type CleCanal = 'lien' | 'courriel' | 'whatsapp' | 'facebook' | 'x' | 'telegram' | 'natif'
+export type CleCanal = 'lien' | 'courriel' | 'sms' | 'whatsapp' | 'facebook' | 'x'
 
 /**
- * LES CANAUX, dans l'ordre où ils se montrent.
+ * LES CANAUX, dans l'ordre où ils se montrent sur un ORDINATEUR.
  *
  * ⛔ Le lien nu vient EN TÊTE : il est le seul qui marche partout, y compris là où
- * l'on partage vraiment — un SMS, un carnet, un courriel écrit à la main.
- * ⚠️ `natif` ne paraît que sur un appareil qui a une feuille de partage système
- * (un téléphone) : elle porte alors tout ce que cette liste ne nomme pas — Signal,
- * Messenger, Instagram, Bluesky, le presse-papiers du système.
+ * l'on partage vraiment — un carnet, un courriel écrit à la main.
+ * ⛔ Ni Telegram ni la feuille de partage du système (« Autres ») : retirés sur décision
+ * de l'auteur (2026-09-23). Le SMS ne paraît qu'au doigt (`canauxPour`).
  */
 export const CANAUX: { cle: CleCanal; nom: string }[] = [
   { cle: 'lien', nom: 'Copier le lien' },
   { cle: 'courriel', nom: 'Courriel' },
+  { cle: 'sms', nom: 'SMS' },
   { cle: 'whatsapp', nom: 'WhatsApp' },
   { cle: 'facebook', nom: 'Facebook' },
   { cle: 'x', nom: 'X' },
-  { cle: 'telegram', nom: 'Telegram' },
-  { cle: 'natif', nom: 'Autres' },
 ]
+
+/** Ce que l'appareil permet, lu une fois au navigateur. */
+export type Appareil = { mobile: boolean; ios: boolean }
+
+/**
+ * LES CANAUX D'UN APPAREIL. Sur un téléphone, les messageries passent devant le
+ * courriel, et le SMS s'offre ; sur un ordinateur, le SMS n'a pas de sens.
+ */
+export function canauxPour({ mobile }: Appareil): { cle: CleCanal; nom: string }[] {
+  if (!mobile) return CANAUX.filter(c => c.cle !== 'sms')
+  const ordre: CleCanal[] = ['lien', 'sms', 'whatsapp', 'courriel', 'facebook', 'x']
+  return ordre.map(cle => CANAUX.find(c => c.cle === cle)!)
+}
+
+/** iPhone et iPad, iPadOS compris (qui se dit « Macintosh » avec un écran tactile). */
+export function estIos(userAgent: string, pointsTactiles: number): boolean {
+  return /iPad|iPhone|iPod/.test(userAgent) || (/Macintosh/.test(userAgent) && pointsTactiles > 1)
+}
 
 /**
  * L'adresse qu'ouvre un canal, ou `null` quand le canal n'est pas une destination
- * (`lien` copie, `natif` appelle le système).
+ * (`lien` copie).
  *
  * ⚠️ FACEBOOK NE PREND QUE L'ADRESSE. Son partageur a cessé d'accepter un texte
  * prérempli en 2017 (politique de la plateforme) : la ligne y est donc perdue, et
  * c'est l'aperçu Open Graph qui parle seul. Rien à corriger ; c'est à savoir avant
  * de croire à un défaut.
  * ⚠️ X veut son texte et son adresse SÉPARÉS, sans quoi il compte l'adresse deux
- * fois. Même chose pour Telegram.
+ * fois.
+ * ⚠️ LE SMS s'écrit `sms:&body=` sur iOS et `sms:?body=` ailleurs : chacun ignore
+ * la forme de l'autre.
  */
-export function adressePartage(canal: CleCanal, ligne: string, url: string): string | null {
+export function adressePartage(canal: CleCanal, ligne: string, url: string, { ios = false }: { ios?: boolean } = {}): string | null {
   const texte = encodeURIComponent(ligne)
   const adresse = encodeURIComponent(url)
   switch (canal) {
@@ -136,10 +154,9 @@ export function adressePartage(canal: CleCanal, ligne: string, url: string): str
       return `https://www.facebook.com/sharer/sharer.php?u=${adresse}`
     case 'x':
       return `https://x.com/intent/post?text=${texte}&url=${adresse}`
-    case 'telegram':
-      return `https://t.me/share/url?url=${adresse}&text=${texte}`
+    case 'sms':
+      return `sms:${ios ? '&' : '?'}body=${encodeURIComponent(messagePartage(ligne, url))}`
     case 'lien':
-    case 'natif':
       return null
   }
 }

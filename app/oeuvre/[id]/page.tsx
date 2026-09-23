@@ -854,7 +854,10 @@ export default async function OeuvrePage({
       alignmentSetIdInitial={alignementDemande?.alignmentSetId ?? null}
       comparaisonLivreInitial={Number(sp.book ?? '1')}
       comparaisonDivisionInitiale={Number(sp.division ?? '1')}
-      filAriane={<FilAriane elements={filAriane.slice(1)} retour={retour} />}
+      // ⛔ Le chemin « Patristique › Auteur › Œuvre » n'est plus AFFICHÉ (refusé par
+      // l'auteur le 2026-09-23) : il reste déclaré aux moteurs (JSON-LD ci-dessus), et la
+      // ligne ne porte plus que le retour vers le verset d'où l'on vient.
+      filAriane={<FilAriane elements={[]} retour={retour} />}
       retour={retour}
     />
     </IndiceTelephoneServeur>

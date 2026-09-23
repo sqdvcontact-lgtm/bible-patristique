@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  ligneDePartage, sujetEnClair, messagePartage, adressePartage, CANAUX, MARQUE_PARTAGE,
+  ligneDePartage, sujetEnClair, messagePartage, adressePartage, CANAUX, MARQUE_PARTAGE, canauxPour, estIos,
 } from './partage'
 import { NOM_SITE } from './metadonneesSeo'
 
@@ -57,9 +57,26 @@ describe('les canaux', () => {
   const ligne = 'CS — Boèce, La Consolation de la philosophie'
   const url = 'https://corpus-scriptura.fr/oeuvre/A0064O0001?edition=2'
 
-  it('ne s’ouvrent pas tous : copier et la feuille système sont des gestes', () => {
+  it('ne s’ouvrent pas tous : copier est un geste', () => {
     expect(adressePartage('lien', ligne, url)).toBeNull()
-    expect(adressePartage('natif', ligne, url)).toBeNull()
+  })
+
+  it('écrivent le SMS selon le système', () => {
+    expect(adressePartage('sms', ligne, url)!.startsWith('sms:?body=')).toBe(true)
+    expect(adressePartage('sms', ligne, url, { ios: true })!.startsWith('sms:&body=')).toBe(true)
+    expect(decodeURIComponent(adressePartage('sms', ligne, url)!.split('body=')[1])).toBe(messagePartage(ligne, url))
+  })
+
+  it('offrent le SMS au seul téléphone, et y font passer les messageries devant', () => {
+    expect(canauxPour({ mobile: false, ios: false }).map(c => c.cle)).toEqual(['lien', 'courriel', 'whatsapp', 'facebook', 'x'])
+    expect(canauxPour({ mobile: true, ios: false }).map(c => c.cle)).toEqual(['lien', 'sms', 'whatsapp', 'courriel', 'facebook', 'x'])
+  })
+
+  it('reconnaissent un iPad qui se dit Macintosh', () => {
+    expect(estIos('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)', 5)).toBe(true)
+    expect(estIos('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 5)).toBe(true)
+    expect(estIos('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 0)).toBe(false)
+    expect(estIos('Mozilla/5.0 (Linux; Android 14)', 5)).toBe(false)
   })
 
   it('emportent la ligne ET l’adresse, chacun à sa façon', () => {
@@ -75,9 +92,6 @@ describe('les canaux', () => {
     expect(decodeURIComponent(x.split('text=')[1].split('&')[0])).toBe(ligne)
     expect(decodeURIComponent(x.split('url=')[1])).toBe(url)
 
-    const telegram = adressePartage('telegram', ligne, url)!
-    expect(decodeURIComponent(telegram.split('url=')[1].split('&')[0])).toBe(url)
-    expect(decodeURIComponent(telegram.split('text=')[1])).toBe(ligne)
   })
 
   it('n’envoie que l’adresse à Facebook, qui refuse tout texte prérempli', () => {
@@ -98,9 +112,10 @@ describe('les canaux', () => {
     }
   })
 
-  it('range le lien nu en tête, et la feuille système en queue', () => {
+  it('range le lien nu en tête, sans Telegram ni feuille système', () => {
     expect(CANAUX[0].cle).toBe('lien')
-    expect(CANAUX[CANAUX.length - 1].cle).toBe('natif')
+    expect(CANAUX.map(c => c.cle as string)).not.toContain('telegram')
+    expect(CANAUX.map(c => c.cle as string)).not.toContain('natif')
     expect(new Set(CANAUX.map(c => c.cle)).size).toBe(CANAUX.length)
   })
 })

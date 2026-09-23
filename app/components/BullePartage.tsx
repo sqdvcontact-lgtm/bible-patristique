@@ -34,7 +34,7 @@ import {
   type Ancre, type PlacementFenetre,
 } from '@/app/lib/fenetreContextuelle'
 import {
-  CANAUX, adressePartage, ligneDePartage, messagePartage,
+  adressePartage, canauxPour, estIos, ligneDePartage, messagePartage,
   type CleCanal, type SujetPartage,
 } from '@/app/lib/partage'
 
@@ -80,61 +80,29 @@ export function hauteurDeLaBulle(racine: number): number {
 // redessine donc rien de mémoire. C'est là, et là seulement, qu'on a vu la croix de X,
 // posée dans un carré arrondi, se lire « fermer » (voir sous `x`).
 
-const TRAIT = { stroke: 'currentColor', strokeWidth: 1.4, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
+// ⛔ DES PICTOGRAMMES GÉNÉRIQUES, NON DES DESSINS À NOUS (décision de l'auteur,
+// 2026-09-23 : « ils sont laids ; trouve des génériques »). Les marques de réseaux sont
+// celles de Simple Icons (CC0), pleines et posées un cran sous la boîte ; le lien, le
+// courriel et le SMS sont ceux de Lucide (ISC), au trait. Tout en `currentColor`.
+const TRAIT = { stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' } as const
+const PLEIN = { fill: 'currentColor', transform: 'translate(1.8 1.8) scale(0.85)' } as const
 
 const MARQUES: Record<CleCanal, React.ReactNode> = {
-  // ⚠️ Le maillon est ÉTENDU d’un cinquième sur le tracé d’origine (rayons et
-  // décalages multipliés par 1,2 autour du centre) : mesuré à la taille servie, il
-  // n’occupait que 15,6 de sa boîte de 24 quand ses voisines en occupent 18,4 à 19,7, et
-  // il posait 11,9 % d’encre contre 17 à 21,5 — le plus petit et le plus pâle du rang,
-  // sur le geste qu’on fait le plus souvent. Le trait, lui, ne bouge pas : c’est
-  // l’ÉTENDUE qu’on accorde, non la boîte.
   lien: <>
-    <path d="M9.6 14.4a4.2 4.2 0 0 0 6 0l3.6-3.6a4.2 4.2 0 0 0-6-6l-1.8 1.8" {...TRAIT} />
-    <path d="M14.4 9.6a4.2 4.2 0 0 0-6 0l-3.6 3.6a4.2 4.2 0 0 0 6 6l1.8-1.8" {...TRAIT} />
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" {...TRAIT} />
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" {...TRAIT} />
   </>,
   courriel: <>
-    <rect x="3.2" y="5.8" width="17.6" height="12.4" rx="1.8" {...TRAIT} />
-    <path d="m3.8 7.2 8.2 5.8 8.2-5.8" {...TRAIT} />
+    <rect x="2.5" y="4.5" width="19" height="15" rx="2" {...TRAIT} />
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" {...TRAIT} />
   </>,
-  whatsapp: <>
-    <path d="M20.6 11.7a8.5 8.5 0 0 1-12.5 7.5l-4.7 1.4 1.5-4.5A8.5 8.5 0 1 1 20.6 11.7Z" {...TRAIT} />
-    {/* Le combiné, à part et RÉDUIT : c'est le tracé du téléphone du site, posé au
-        centre de la bulle. Son trait est divisé par l'échelle pour rendre le même. */}
-    <path transform="translate(6.55 5.95) scale(0.43)" strokeWidth={3.1} stroke="currentColor" fill="none"
-      strokeLinecap="round" strokeLinejoin="round"
-      d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.1 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7 12.8 12.8 0 0 0 .7 2.8 2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4 12.8 12.8 0 0 0 2.8.7 2 2 0 0 1 1.7 2Z" />
-  </>,
-  facebook: <>
-    <rect x="3.5" y="3.5" width="17" height="17" rx="3.6" {...TRAIT} />
-    <path d="M14.9 7.7h-1.6a1.9 1.9 0 0 0-1.9 1.9v7.9" {...TRAIT} />
-    <path d="M9.6 12.3h4.6" {...TRAIT} />
-  </>,
-  // ⛔ LE GLYPHE NU, ÉPAIS, D'ANGLE À ANGLE, À BOUTS FRANCS — jamais une croix fine dans
-  // un carré : jugée rastérisée à 21 px (`tmp/banc-x-partage.mjs`), celle-là se lit
-  // « fermer », qui est le contraire de ce que le bouton propose. La marque de X EST une
-  // croix, et ce sont sa graisse et ses bouts coupés qui la distinguent d'une croix de
-  // fermeture. ⚠️ Facebook garde son carré : un « f » nu ne dit rien.
-  x: <>
-    <path d="M4.6 4.6 19.4 19.4" stroke="currentColor" strokeWidth={2.5} strokeLinecap="butt" />
-    <path d="M19.4 4.6 4.6 19.4" stroke="currentColor" strokeWidth={2.5} strokeLinecap="butt" />
-  </>,
-  telegram: <>
-    <path d="M21.2 4.3 2.9 11.4l5.6 2.1 1.9 5.7 2.6-3.1 4.6 3.3z" {...TRAIT} />
-    <path d="m8.5 13.5 12.7-9.2" {...TRAIT} />
-  </>,
-  // ⚠️ Resserrée du huitième, pour la raison inverse du maillon : ses trois nœuds
-  // montaient à 21 de haut dans une boîte de 24, où tout le reste du rang tient sous
-  // 19,7.
-  natif: <>
-    <circle cx="17.4" cy="6" r="2.5" {...TRAIT} />
-    <circle cx="17.4" cy="18" r="2.5" {...TRAIT} />
-    <circle cx="6.6" cy="12" r="2.5" {...TRAIT} />
-    <path d="m9.31 10.49 5.38-2.98m-5.38 6 5.38 2.98" {...TRAIT} />
-  </>,
+  sms: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" {...TRAIT} />,
+  whatsapp: <path {...PLEIN} d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />,
+  facebook: <path {...PLEIN} d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z" />,
+  x: <path {...PLEIN} d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />,
 }
 
-const MARQUE_COPIE = <path d="m5.5 12.4 4.3 4.3 8.7-9.4" {...TRAIT} strokeWidth={1.7} />
+const MARQUE_COPIE = <path d="m5.5 12.4 4.3 4.3 8.7-9.4" {...TRAIT} />
 
 /**
  * LA RANGÉE DE LOGOS, séparée de la bulle qui la porte.
@@ -143,19 +111,20 @@ const MARQUE_COPIE = <path d="m5.5 12.4 4.3 4.3 8.7-9.4" {...TRAIT} strokeWidth=
  * serveur, et sans cette coupure aucune planche de contrôle ne pourrait rendre la bulle
  * hors session — c'est le parti de `ContenuFicheTraduction` et de `ProposVisite`.
  */
-export function RangeeCanaux({ ligne, adresse, canaux, copie, erreur, onCopier, onNatif }: {
+export function RangeeCanaux({ ligne, adresse, canaux, copie, erreur, onCopier, ios = false }: {
   ligne: string
   adresse: string
   canaux: { cle: CleCanal; nom: string }[]
   copie: boolean
   erreur: string | null
   onCopier: () => void
-  onNatif: () => void
+  /** Le SMS ne s'écrit pas de la même façon sur iOS. */
+  ios?: boolean
 }) {
   return (
     <>
       {canaux.map(({ cle, nom }) => {
-        const destination = adressePartage(cle, ligne, adresse)
+        const destination = adressePartage(cle, ligne, adresse, { ios })
         const copieFaite = cle === 'lien' && copie
         const libelle = copieFaite ? 'Lien copié' : nom
         const contenu = (
@@ -165,13 +134,13 @@ export function RangeeCanaux({ ligne, adresse, canaux, copie, erreur, onCopier, 
         )
         const teinte = copieFaite ? 'var(--cs-vert)' : cle === 'lien' && erreur ? 'var(--cs-danger-fonce)' : undefined
 
-        // ⚠️ Un geste (copier, appeler la feuille du système) est un BOUTON ; une
+        // ⚠️ Un geste (copier) est un BOUTON ; une
         // destination est un LIEN, qu'on doit pouvoir ouvrir dans un autre onglet.
         if (destination === null) {
           return (
             <button key={cle} type="button" className="cs-canal-bulle" title={libelle} aria-label={libelle}
               style={teinte ? { color: teinte } : undefined}
-              onClick={cle === 'lien' ? onCopier : onNatif}>
+              onClick={onCopier}>
               {contenu}
             </button>
           )
@@ -202,11 +171,11 @@ export default function BullePartage({ sujet, url, ancre, onFermer }: {
   const [adresse] = useState(() => url ?? (typeof window === 'undefined' ? '' : window.location.href))
   const [copie, setCopie] = useState(false)
   const [erreur, setErreur] = useState<string | null>(null)
-  // ⚠️ La feuille de partage du système ne s'annonce qu'au NAVIGATEUR, et la question se
-  // pose UNE fois, à la pose. ⛔ Pas dans un effet, qui déclencherait un rendu en cascade
-  // (le linter le refuse) : la bulle ne se monte qu'après un clic, donc jamais au rendu
-  // serveur, et l'initialiseur paresseux ne peut pas faire diverger les deux.
-  const [feuilleSysteme] = useState(() => typeof navigator !== 'undefined' && typeof navigator.share === 'function')
+  // ⚠️ L'appareil ne s'annonce qu'au NAVIGATEUR, et la question se pose UNE fois, à la
+  // pose. ⛔ Pas dans un effet, qui déclencherait un rendu en cascade (le linter le
+  // refuse) : la bulle ne se monte qu'après un clic, donc jamais au rendu serveur.
+  // Le téléphone se lit au POINTEUR (pas de survol), jamais à la largeur.
+  const [ios] = useState(() => typeof navigator !== 'undefined' && estIos(navigator.userAgent, navigator.maxTouchPoints ?? 0))
   const [placement, setPlacement] = useState<PlacementFenetre | null>(null)
   const refBoite = useRef<HTMLDivElement>(null)
   const sansSurvol = useSansSurvol()
@@ -214,7 +183,7 @@ export default function BullePartage({ sujet, url, ancre, onFermer }: {
   useFermerAEchap(true, onFermer)
 
   const ligne = ligneDePartage(sujet)
-  const canaux = CANAUX.filter(c => c.cle !== 'natif' || feuilleSysteme)
+  const canaux = canauxPour({ mobile: sansSurvol, ios })
 
   // Le placement se prend AVANT la peinture, sur le rectangle du bouton.
   useMesureAvantPeinture(() => {
@@ -273,18 +242,13 @@ export default function BullePartage({ sujet, url, ancre, onFermer }: {
     }
   }, [ligne, adresse])
 
-  const partageSysteme = useCallback(async () => {
-    // Un partage abandonné n'est pas une erreur : on ne dit rien, on ne ferme pas.
-    await navigator.share({ title: ligne, text: ligne, url: adresse }).catch(() => {})
-  }, [ligne, adresse])
-
   if (typeof document === 'undefined' || !placement) return null
 
   return createPortal(
     <div ref={refBoite} role="group" aria-label="Partager" className="cs-bulle-partage"
       style={{ position: 'fixed', top: placement.top, left: placement.left, zIndex: Z_MODALE }}>
       <RangeeCanaux ligne={ligne} adresse={adresse} canaux={canaux} copie={copie} erreur={erreur}
-        onCopier={copierLien} onNatif={partageSysteme} />
+        onCopier={copierLien} ios={ios} />
       {/* ⚠️ L'accusé se DIT à la synthèse vocale, où la coche ne se voit pas. Il ne
           s'écrit à l'écran que sur un ÉCHEC : une erreur qui ne se dit nulle part est
           pire qu'une bulle qui s'allonge d'une ligne, et le cas est rare. */}

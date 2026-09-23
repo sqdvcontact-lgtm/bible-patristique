@@ -256,7 +256,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
           appartenir à autre chose. En em, chaque blanc suit le corps qu'il
           accompagne et la composition garde ses proportions à toute taille. */}
       <div style={{ position: 'relative', alignSelf: 'stretch' }}>
-        <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(2.0625rem, 4.7vw, 3.125rem)', fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.18, maxWidth: MESURE_TITRE, marginLeft: 'auto', marginRight: 'auto', marginBottom: oeuvre.sous_titre ? '0.2em' : titreOriginalVisible ? '0.26em' : '0.42em', whiteSpace: 'pre-line' }}>
+        <h1 style={{ fontFamily: SERIF, fontSize: 'clamp(2.0625rem, 4.7vw, 3.125rem)', fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.12, maxWidth: MESURE_TITRE, marginLeft: 'auto', marginRight: 'auto', marginBottom: oeuvre.sous_titre ? '0.2em' : titreOriginalVisible ? '0.26em' : '0.42em', whiteSpace: 'pre-line' }}>
           {/* Affichage = titre_affichage (avec sauts de ligne éditoriaux) si présent,
               sinon le titre canonique. L'édition admin ci-dessous vise le titre canonique. */}
           {rendreIntitule(sansPointFinal(titreAffiche))}

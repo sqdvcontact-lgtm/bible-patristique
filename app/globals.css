@@ -913,11 +913,16 @@ h6 {
    inline) sans le remplacer : la navigation au clavier devenait invisible. On
    restaure un anneau de focus, UNIQUEMENT au clavier (`:focus-visible`) — l'aspect
    au clic/tap souris ne change donc pas. Anneau à la couleur d'accent du site.
-   Le `!important` est nécessaire pour l'emporter sur les `outline: none` en ligne. */
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible,
-[contenteditable="true"]:focus-visible {
+   Le `!important` est nécessaire pour l'emporter sur les `outline: none` en ligne.
+   ⛔ Jamais sur un champ de SAISIE (texte, recherche, zone de texte, contenteditable) :
+   le navigateur y déclenche `:focus-visible` au clic de souris aussi, et l'anneau vert
+   cernait chaque champ cliqué (refusé le 2026-09-23). Le curseur clignotant y dit
+   déjà où l'on est ; l'anneau reste aux cases, boutons radio, curseurs et listes. */
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible,
+input[type="range"]:focus-visible,
+input[type="file"]:focus-visible,
+select:focus-visible {
   outline: 2px solid var(--cs-vert) !important;
   outline-offset: 1px;
 }
@@ -938,7 +943,6 @@ button:focus-visible,
    c'est le trait clair qui se lit ; sur un menu, c'est le trait d'accent. */
 [data-cs-navbar] a:focus-visible,
 [data-cs-navbar] button:focus-visible,
-[data-cs-navbar] input:focus-visible,
 [data-cs-navbar] select:focus-visible,
 [data-cs-navbar] [role="button"]:focus-visible,
 [data-cs-navbar] [tabindex="0"]:focus-visible {
@@ -3230,6 +3234,32 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 /* ⚠️ Une étincelle sur deux est plus petite : dix losanges de même taille font un cadre
    pointillé, non un éclat. */
 .cs-mention-etincelle:nth-child(even) { width: 4px; height: 4px; margin: -2px 0 0 -2px; }
+/* ⛔ DEUX AUTRES DESSINS : les mêmes dix losanges, posés et poussés autrement, et
+   `modeleDEtincelles` les fait tourner d'un clic à l'autre. Le modèle 2 se décale d'un
+   demi-pas sur le pourtour ; le modèle 3 tient les quatre coins et jette plus loin. Et
+   dans le modèle 3 c'est l'étincelle IMPAIRE qui rapetisse. */
+.cs-mention-copiee[data-modele='2'] .cs-mention-etincelle[data-etincelle='1'] { --cs-etincelle-l: 18%; --cs-etincelle-t: 0; --cs-etincelle-x: -4px; --cs-etincelle-y: -12px; animation-delay: 0.04s; }
+.cs-mention-copiee[data-modele='2'] .cs-mention-etincelle[data-etincelle='2'] { --cs-etincelle-l: 44%; --cs-etincelle-t: 0; --cs-etincelle-x: 0px; --cs-etincelle-y: -13px; animation-delay: 0.1s; }
+.cs-mention-copiee[data-modele='2'] .cs-mention-etincelle[data-etincelle='3'] { --cs-etincelle-l: 72%; --cs-etincelle-t: 0; --cs-etincelle-x: 5px; --cs-etincelle-y: -10px; animation-delay: 0s; }
+.cs-mention-copiee[data-modele='2'] .cs-mention-etincelle[data-etincelle='4'] { --cs-etincelle-l: 96%; --cs-etincelle-t: 0; --cs-etincelle-x: 10px; --cs-etincelle-y: -7px; animation-delay: 0.14s; }
+.cs-mention-copiee[data-modele='2'] .cs-mention-etincelle[data-etincelle='5'] { --cs-etincelle-l: 100%; --cs-etincelle-t: 78%; --cs-etincelle-x: 13px; --cs-etincelle-y: 5px; animation-delay: 0.06s; }
+.cs-mention-copiee[data-modele='2'] .cs-mention-etincelle[data-etincelle='6'] { --cs-etincelle-l: 78%; --cs-etincelle-t: 100%; --cs-etincelle-x: 6px; --cs-etincelle-y: 11px; animation-delay: 0.12s; }
+.cs-mention-copiee[data-modele='2'] .cs-mention-etincelle[data-etincelle='7'] { --cs-etincelle-l: 50%; --cs-etincelle-t: 100%; --cs-etincelle-x: 0px; --cs-etincelle-y: 13px; animation-delay: 0.02s; }
+.cs-mention-copiee[data-modele='2'] .cs-mention-etincelle[data-etincelle='8'] { --cs-etincelle-l: 22%; --cs-etincelle-t: 100%; --cs-etincelle-x: -5px; --cs-etincelle-y: 11px; animation-delay: 0.15s; }
+.cs-mention-copiee[data-modele='2'] .cs-mention-etincelle[data-etincelle='9'] { --cs-etincelle-l: 0; --cs-etincelle-t: 72%; --cs-etincelle-x: -13px; --cs-etincelle-y: 5px; animation-delay: 0.08s; }
+.cs-mention-copiee[data-modele='2'] .cs-mention-etincelle[data-etincelle='10'] { --cs-etincelle-l: 0; --cs-etincelle-t: 22%; --cs-etincelle-x: -12px; --cs-etincelle-y: -6px; animation-delay: 0.11s; }
+.cs-mention-copiee[data-modele='3'] .cs-mention-etincelle[data-etincelle='1'] { --cs-etincelle-l: 0; --cs-etincelle-t: 0; --cs-etincelle-x: -10px; --cs-etincelle-y: -10px; animation-delay: 0.09s; }
+.cs-mention-copiee[data-modele='3'] .cs-mention-etincelle[data-etincelle='2'] { --cs-etincelle-l: 24%; --cs-etincelle-t: 0; --cs-etincelle-x: -3px; --cs-etincelle-y: -14px; animation-delay: 0.02s; }
+.cs-mention-copiee[data-modele='3'] .cs-mention-etincelle[data-etincelle='3'] { --cs-etincelle-l: 62%; --cs-etincelle-t: 0; --cs-etincelle-x: 2px; --cs-etincelle-y: -9px; animation-delay: 0.15s; }
+.cs-mention-copiee[data-modele='3'] .cs-mention-etincelle[data-etincelle='4'] { --cs-etincelle-l: 100%; --cs-etincelle-t: 0; --cs-etincelle-x: 10px; --cs-etincelle-y: -10px; animation-delay: 0.05s; }
+.cs-mention-copiee[data-modele='3'] .cs-mention-etincelle[data-etincelle='5'] { --cs-etincelle-l: 100%; --cs-etincelle-t: 40%; --cs-etincelle-x: 15px; --cs-etincelle-y: -2px; animation-delay: 0.12s; }
+.cs-mention-copiee[data-modele='3'] .cs-mention-etincelle[data-etincelle='6'] { --cs-etincelle-l: 100%; --cs-etincelle-t: 100%; --cs-etincelle-x: 10px; --cs-etincelle-y: 10px; animation-delay: 0s; }
+.cs-mention-copiee[data-modele='3'] .cs-mention-etincelle[data-etincelle='7'] { --cs-etincelle-l: 70%; --cs-etincelle-t: 100%; --cs-etincelle-x: 3px; --cs-etincelle-y: 14px; animation-delay: 0.08s; }
+.cs-mention-copiee[data-modele='3'] .cs-mention-etincelle[data-etincelle='8'] { --cs-etincelle-l: 30%; --cs-etincelle-t: 100%; --cs-etincelle-x: -2px; --cs-etincelle-y: 9px; animation-delay: 0.13s; }
+.cs-mention-copiee[data-modele='3'] .cs-mention-etincelle[data-etincelle='9'] { --cs-etincelle-l: 0; --cs-etincelle-t: 100%; --cs-etincelle-x: -10px; --cs-etincelle-y: 10px; animation-delay: 0.03s; }
+.cs-mention-copiee[data-modele='3'] .cs-mention-etincelle[data-etincelle='10'] { --cs-etincelle-l: 0; --cs-etincelle-t: 50%; --cs-etincelle-x: -15px; --cs-etincelle-y: 1px; animation-delay: 0.1s; }
+.cs-mention-copiee[data-modele='3'] .cs-mention-etincelle:nth-child(even) { width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; }
+.cs-mention-copiee[data-modele='3'] .cs-mention-etincelle:nth-child(odd) { width: 4px; height: 4px; margin: -2px 0 0 -2px; }
 @keyframes cs-mention-etincelle {
   from { opacity: 0; transform: translate(0, 0) scale(0.2) rotate(0deg); }
   35% { opacity: 1; transform: translate(calc(var(--cs-etincelle-x) * 0.55), calc(var(--cs-etincelle-y) * 0.55)) scale(1) rotate(30deg); }
