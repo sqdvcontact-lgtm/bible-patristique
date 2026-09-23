@@ -10,11 +10,12 @@
 // ⛔ LA POLARITÉ. Une couverture sur deux porte une encre claire sur un fond sombre :
 // le fleuron s'y lit en NÉGATIF. Une silhouette le supporte ; une gravure à hachures
 // ou à reflets, non, ses ombres devenant des lumières. Le registre a été jugé planche
-// par planche dans les deux encres, et quatorze fleurons sont EXCLUS des couvertures
-// pour cette raison : Œil fleurdelisé, Poisson, Grappe de raisin, Rayon de miel,
-// Encensoir, Épée feuillagée, Cognée, Ailes déployées, Soleil, Corbeau, Aigle,
-// Pélican, Fournaise, Ange déchu. Avant d'en attribuer un nouveau à un genre, le
-// poser sur un fond sombre.
+// par planche dans les deux encres, et seules les SILHOUETTES PLEINES y ont droit :
+// ni hachures, ni ombres, ni yeux ou orbites qui s'inversent. Sont exclus Œil
+// fleurdelisé, Poisson, Grappe de raisin, Rayon de miel, Encensoir, Épée feuillagée,
+// Cognée, Ailes déployées, Soleil, Corbeau, Aigle, Pélican, Fournaise, Ange déchu,
+// Main feuillagée, Cerf, Taureau, Memento mori et Trompette (décision de l'auteur,
+// 2026-09-23). Avant d'en attribuer un nouveau à un genre, le poser sur les deux sols.
 
 import type { CSSProperties } from 'react'
 import { adresseFleuron, fleuronDe } from './fleurons'
@@ -22,18 +23,18 @@ import { adresseFleuron, fleuronDe } from './fleurons'
 /** Le fleuron de chaque catégorie de publication (`CATEGORIES_ESSAIS`), par CLÉ du
  *  registre. Une clé inconnue retombe sur le fleuron du site : jamais de couverture nue. */
 const FLEURON_PAR_GENRE: Record<string, string> = {
-  // La main qui désigne le passage, celle des marges des livres anciens.
-  'Exégèse': 'main',
-  // La trompette de la renommée : le récit qu'on clame.
-  'Fiction': 'trompette',
+  // L'entrelacs : le texte et son commentaire noués l'un à l'autre.
+  'Exégèse': 'entrelacs',
+  // Les volutes : l'arabesque du récit.
+  'Fiction': 'volutes',
   // La roue : les temps qui tournent, et la fortune des empires.
   'Histoire': 'roue',
-  // « Comme le cerf altéré cherche les eaux vives » (Ps 42).
-  'Méditation': 'cerf',
+  // Le brin de lavande : ce qu'on laisse infuser.
+  'Méditation': 'lavande',
   // « Je suis le froment de Dieu » (Ignace d'Antioche).
   'Patristique': 'epis-croises',
-  // « Philosopher, c'est apprendre à mourir. »
-  'Philosophie': 'memento-mori',
+  // « Prudents comme les serpents » (Mt 10, 16).
+  'Philosophie': 'serpent',
   'Poésie': 'lyre',
   'Prière': 'calice',
   'Spiritualité': 'lys-flamboyant',

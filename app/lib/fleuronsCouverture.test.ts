@@ -19,7 +19,8 @@ describe('les catégories et leurs fleurons', () => {
     // Jugés dans les deux encres (2026-09-23) : ils se lisent en négatif sur un fond
     // sombre. Voir l'en-tête du module.
     const exclus = ['oeil', 'poisson', 'raisin', 'rayon-miel', 'encensoir', 'epee', 'cognee',
-      'ailes', 'soleil', 'corbeau', 'aigle', 'pelican', 'fournaise', 'ange-dechu']
+      'ailes', 'soleil', 'corbeau', 'aigle', 'pelican', 'fournaise', 'ange-dechu',
+      'main', 'cerf', 'taureau', 'memento-mori', 'trompette']
     expect(CATEGORIES_ESSAIS.map(cleFleuronDe).filter(c => exclus.includes(c ?? ''))).toEqual([])
   })
 
