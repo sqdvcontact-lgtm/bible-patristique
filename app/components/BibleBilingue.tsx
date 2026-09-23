@@ -802,16 +802,15 @@ export default function BibleBilingue({
                     aria-hidden={referenceRepetee || undefined}
                     data-lasso-depart={departLasso}
                     {...(estBouton && !referenceRepetee ? boutonDuNumero(glose ? (glose.canonHote as string) : rangee.canonId, glose ? LIBELLE_GLOSE : null) : {})}>
-                    {!referenceRepetee && estBouton && !glose && (() => {
-                      // ⚠️ La marque du numéro dit l'état de SA colonne, et de SA colonne seule :
-                      // prélevé dans l'autre langue, rien ne paraît ici (2026-09-23).
-                      const etatMarque = etatDe(cleDeCelluleBilingue(membre.translationId, rangee.canonId))
-                      return etatMarque === 'plein' ? (
-                        <span aria-hidden="true" title="Dans mes prélèvements" style={STYLE_SIGNET_VERSET}>
-                          <IconeSignet plein taille="100%" />
-                        </span>
-                      ) : null
-                    })()}
+                    {/* ⛔ La marque du numéro dit l'état du VERSET : elle paraît dès qu'UNE des
+                        colonnes est prélevée, à gauche du verset (demande de l'auteur,
+                        2026-09-23 : un prélèvement du latin, à droite, ne se voyait nulle
+                        part, son numéro étant tu). C'est aussi ce que dit le nom du bouton. */}
+                    {!referenceRepetee && estBouton && !glose && estPreleve(rangee.canonId) && (
+                      <span aria-hidden="true" title="Dans mes prélèvements" style={STYLE_SIGNET_VERSET}>
+                        <IconeSignet plein taille="100%" />
+                      </span>
+                    )}
                     {referenceRepetee
                       ? <span style={{ visibility: 'hidden' as const }}>{libelleReference(rangee.cellules[0])}</span>
                       : libelleReference(cellule)}
