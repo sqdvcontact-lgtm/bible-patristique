@@ -21,7 +21,6 @@ import { OPTION_VOLET, RUBRIQUE_AXE, styleEntreeListeVolet } from '@/app/lib/sty
 import { chargerChapitresParLivre, estLivreOuvrable, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
 import { supabase } from '@/app/lib/supabase'
 import { analyserRechercheVolet, libellePassage, type VersetsConnus } from '@/app/lib/rechercheVoletLivres'
-import { sommetDeLecture } from '@/app/lib/defilementLecture'
 import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
@@ -36,6 +35,10 @@ import { useFenetreModale } from '@/app/lib/useFenetreModale'
 // qui avait dérivé sur ceux qu'elle portait. Il vient de l'ossature (`chapitresCanon`).
 // ⛔ LA TABLE DES ABRÉVIATIONS NON PLUS (2026-09-22) : la recherche lit une référence
 // par la grammaire commune du site (`rechercheVoletLivres`), sur `LIVRES` et `ABREV_FR`.
+
+/** Ce qu'une demande de défilement vaut avant de se périmer : le temps d'ouvrir un volet
+ *  ou de déplier une section, jamais celui de changer d'avis. */
+const DELAI_DEMANDE_DEFILEMENT_MS = 3000
 
 /** Aucune densité connue : une seule carte vide, pour ne pas en fabriquer une par rendu. */
 const DENSITES_VIDES: ReadonlyMap<number, DensiteChapitre> = new Map()
@@ -156,14 +159,16 @@ export default function NavLivres({
   // l'autre se replie, sa section s'ouvre, et la liste l'amène sous les yeux. Il restait
   // sur le livre d'avant, replié, et le livre lu pouvait être hors de vue.
   const [demandeRecue, setDemandeRecue] = useState(demandeLivreCourant)
-  const [defilementDemande, setDefilementDemande] = useState<{ code: string; rang: number }>({ code: livreActif, rang: 1 })
+  const [defilementDemande, setDefilementDemande] = useState<{ code: string; rang: number; emisLe: number }>(
+    () => ({ code: livreActif, rang: 1, emisLe: Date.now() }),
+  )
   const suivreLivre = (code: string) => {
     setLivreOuvert(code)
     const testament = livres.find(l => l.code === code)?.testament
     if (testament === 'AT') setAtOuvert(true)
     else if (testament === 'NT') setNtOuvert(true)
     else if (testament === 'AUTRES') setAutresOuvert(true)
-    setDefilementDemande(d => ({ code, rang: d.rang + 1 }))
+    setDefilementDemande(d => ({ code, rang: d.rang + 1, emisLe: Date.now() }))
   }
   if (livreRecu !== livreActif) { setLivreRecu(livreActif); setLivreActifLocal(livreActif); suivreLivre(livreActif) }
   if (demandeRecue !== demandeLivreCourant) {
@@ -239,23 +244,29 @@ export default function NavLivres({
   // replié, un onglet caché ou une référence en cours de saisie la retirent, et la demande
   // attend alors. Le dernier rang servi vit dans une référence, jamais dans l'état.
   const defilementServiRef = useRef(0)
+  // ⛔ UNE DEMANDE DE DÉFILEMENT SE PÉRIME (audit du 2026-09-22). L'effet n'a pas de
+  // tableau de dépendances — il faut qu'il se rejoue quand la liste DEVIENT visible, ce
+  // qu'aucune valeur ne dit —, si bien qu'une demande jamais servie attendait
+  // indéfiniment et se servait au premier rendu venu, des minutes plus tard, sous les
+  // yeux d'un lecteur qui lisait tout autre chose. Elle vaut trois secondes : le temps
+  // d'ouvrir un volet, jamais celui de changer d'avis.
   useEffect(() => {
-    const { code, rang } = defilementDemande
+    const { code, rang, emisLe } = defilementDemande
     if (defilementServiRef.current === rang) return
+    if (Date.now() - emisLe > DELAI_DEMANDE_DEFILEMENT_MS) { defilementServiRef.current = rang; return }
     const liste = scrollRef.current
     const el = liste?.querySelector<HTMLElement>(`[data-livre="${code}"]`)
     if (!liste || !el || el.getClientRects().length === 0) return
     defilementServiRef.current = rang
+    // ⛔ ON NE DÉPLACE QUE LE CONTENEUR DE LA LISTE, jamais la fenêtre : sur un téléphone,
+    // le volet est un tiroir posé SUR la lecture, et `window.scrollBy` y faisait défiler le
+    // chapitre qu'on est en train de lire, derrière le tiroir. Quand la liste tient tout
+    // entière dans sa boîte, il n'y a rien à faire : le livre y est déjà visible.
+    if (liste.scrollHeight <= liste.clientHeight + 1) return
     const air = 8
     const r = el.getBoundingClientRect()
-    if (liste.scrollHeight > liste.clientHeight + 1) {
-      const cadre = liste.getBoundingClientRect()
-      if (r.top < cadre.top || r.bottom > cadre.bottom) liste.scrollTop += r.top - cadre.top - air
-    } else {
-      // Sur un téléphone la page entière défile : le haut utile est sous les barres fixes.
-      const haut = sommetDeLecture()
-      if (r.top < haut || r.bottom > window.innerHeight) window.scrollBy(0, r.top - haut - air)
-    }
+    const cadre = liste.getBoundingClientRect()
+    if (r.top < cadre.top || r.bottom > cadre.bottom) liste.scrollTop += r.top - cadre.top - air
   })
   // Le tiroir d'un téléphone est une fenêtre : le foyer y entre, y reste, et en revient.
   useFenetreModale(refPanel, tiroirOuvert)
@@ -416,7 +427,8 @@ export default function NavLivres({
     return (
       <div key={livre.code} data-livre={livre.code}>
         <button onClick={() => handleLivre(livre.code)}
-          title={vide ? 'Absent de cette traduction — voir où le lire' : undefined}
+          title={vide ? `${livre.nom} est absent de cette traduction. Voir où le lire.` : undefined}
+          aria-label={vide ? `${livre.nom}, absent de cette traduction` : undefined}
           // Le bouton déplie la grille des chapitres : il le dit. Un livre grisé, ou sans
           // grille (la Polyglotte sans chapitres), n'a rien à déplier.
           aria-expanded={!vide && !sansChapitres ? montrerOptions : undefined}
@@ -882,7 +894,7 @@ export default function NavLivres({
         )}
 
         {AT.length === 0 && NT.length === 0 && AUTRES.length === 0 && (
-          <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', textAlign: 'center', padding: '16px 0' }}>Aucun résultat</p>
+          <p role="status" style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-second)', textAlign: 'center', padding: '16px 0' }}>Aucun livre ne correspond.</p>
         )}
       </div>
       )}

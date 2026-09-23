@@ -17,7 +17,6 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { anneeChronologique } from './chronologiePatristique'
-import { estOeuvrePubliee } from './oeuvresPublication'
 
 type Client = Pick<SupabaseClient, 'from' | 'rpc'>
 
@@ -33,53 +32,60 @@ export type PresencePatristique = {
 
 const AUCUNE: PresencePatristique = { types: [], auteurs: [] }
 
-/** Une ligne de `presence_patristique_plage` : une œuvre liée, et les types de ses liens. */
-type LignePresence = { id_oeuvre: string; types: number[] | null }
-type Catalogue = Map<string, { nom: string; annee: number | null }>
-
-/** Auteur et repère chronologique, par œuvre PUBLIÉE. Cinquante lignes, donc on
- *  les prend toutes plutôt que de filtrer sur des identifiants qu'on ne connaît
- *  pas encore : c'est ce qui permet à cette lecture de partir dans la même vague
- *  que celle des liens.
+/** Une ligne de `presence_patristique_plage` : une œuvre PUBLIÉE qui renvoie à la plage,
+ *  les types de ses liens, et de quoi la dater.
  *
- *  ⚠️ `oeuvres.id_auteur` ne porte que le premier signataire d'une œuvre à
- *  plusieurs mains ; c'est assez pour une description, qui nomme quatre auteurs
- *  au plus. Les œuvres dépubliées sont écartées, comme dans le volet : on ne
- *  nomme pas dans un titre un auteur que la page ne montrera pas. */
-async function lireCatalogue(client: Client): Promise<Catalogue | null> {
-  type LigneCatalogue = {
-    id_oeuvre: string; acces_public: boolean | null; date_composition: string | null
-    auteurs: { nom: string; date_mort: string | null; siecle: string | null } | null
+ *  ⛔ LE NOM DE L'AUTEUR VIENT DE LA FONCTION (2026-09-22, migration
+ *  `20260922173644_volet_peres_surnumeraires_et_auteurs`). Chaque page lisait auparavant
+ *  TOUT le catalogue des œuvres, jointure `auteurs` comprise, pour n'en garder que des
+ *  noms — une vague de plus par page, cinquante lignes pour en nommer quatre. La jointure
+ *  se fait désormais en base, sur les lignes déjà agrégées.
+ *  ⚠️ `oeuvres.id_auteur` ne porte que le premier signataire d'une œuvre à plusieurs
+ *  mains ; c'est assez pour une description, qui nomme quatre auteurs au plus. */
+type LignePresence = {
+  id_oeuvre: string; types: number[] | null
+  auteur: string | null
+  date_composition: string | null
+  auteur_date_mort: string | null
+  auteur_siecle: string | null
+}
+
+/** LE CATALOGUE, CINQ MINUTES AU MODULE, comme l'index des éditeurs
+ *  (`editeursServeur.ts`) : le repère chronologique d'une œuvre se lit dans de la prose
+ *  (« Carême 387 », « Fin du IVe siècle »), et deux pages voisines nomment les mêmes
+ *  œuvres. On garde donc ce qu'on en a tiré, et une date corrigée en base se voit à la
+ *  visite suivante, sans redéploiement. */
+const DUREE_CATALOGUE_MS = 5 * 60_000
+type RepereOeuvre = { nom: string; annee: number | null }
+const catalogue = new Map<string, RepereOeuvre & { expireA: number }>()
+
+/** Ce qu'une ligne dit de son œuvre : l'auteur, et l'année où le volet la range. */
+function repereDeLOeuvre(ligne: LignePresence): RepereOeuvre | null {
+  if (!ligne.auteur) return null
+  const connu = catalogue.get(ligne.id_oeuvre)
+  const maintenant = Date.now()
+  if (connu && connu.expireA > maintenant && connu.nom === ligne.auteur) return connu
+  const repere: RepereOeuvre = {
+    nom: ligne.auteur,
+    annee: anneeChronologique({
+      dateComposition: ligne.date_composition,
+      auteurDateMort: ligne.auteur_date_mort,
+      auteurSiecle: ligne.auteur_siecle,
+    }),
   }
-  const { data, error } = await client.from('oeuvres')
-    .select('id_oeuvre, acces_public, date_composition, auteurs!oeuvres_id_auteur_fkey(nom, date_mort, siecle)')
-  if (error) { console.error('[métadonnées] catalogue des œuvres illisible :', error); return null }
-  const parOeuvre: Catalogue = new Map()
-  for (const o of (data ?? []) as unknown as LigneCatalogue[]) {
-    if (!estOeuvrePubliee(o)) continue
-    const auteur = Array.isArray(o.auteurs) ? o.auteurs[0] : o.auteurs
-    if (!auteur?.nom) continue
-    parOeuvre.set(o.id_oeuvre, {
-      nom: auteur.nom,
-      annee: anneeChronologique({
-        dateComposition: o.date_composition,
-        auteurDateMort: auteur.date_mort,
-        auteurSiecle: auteur.siecle,
-      }),
-    })
-  }
-  return parOeuvre
+  catalogue.set(ligne.id_oeuvre, { ...repere, expireA: maintenant + DUREE_CATALOGUE_MS })
+  return repere
 }
 
 /** Des œuvres liées (agrégées en base) aux natures présentes et aux auteurs rangés dans
  *  le temps. */
-function depouiller(lignes: readonly LignePresence[], catalogue: Catalogue): PresencePatristique {
+function depouiller(lignes: readonly LignePresence[]): PresencePatristique {
   const types = new Set<number>()
   // Un auteur est daté par la PLUS ANCIENNE de ses œuvres liées ici : c'est la
   // place que le volet patristique lui donne dans le fil du temps.
   const anneeParAuteur = new Map<string, number | null>()
   for (const ligne of lignes) {
-    const oeuvre = catalogue.get(ligne.id_oeuvre)
+    const oeuvre = repereDeLOeuvre(ligne)
     if (!oeuvre) continue
     for (const t of ligne.types ?? []) types.add(t)
     const connue = anneeParAuteur.get(oeuvre.nom)
@@ -106,6 +112,9 @@ function depouiller(lignes: readonly LignePresence[], catalogue: Catalogue): Pre
  *  `20260922155227_volet_peres_audit`, INVOKER : la politique de lecture du visiteur
  *  s'applique) rend une ligne par œuvre, avec ses types — vingt-quatre lignes sur
  *  Genèse 1, 102 ms sous `authenticated`.
+ *  ⚠️ Elle rend aussi, depuis le 2026-09-22, le NOM de l'auteur et de quoi dater l'œuvre,
+ *  et elle compte les liens posés sur un verset SURNUMÉRAIRE (migration
+ *  `20260922173644_volet_peres_surnumeraires_et_auteurs`).
  *  ⛔ Un échec se JOURNALISE avant de rendre `null` : un titre qui retombe sur sa forme
  *  la plus simple sans que rien ne le dise ne se corrige jamais. */
 async function lirePresence(
@@ -121,26 +130,22 @@ async function lirePresence(
   return (data ?? []) as LignePresence[]
 }
 
-/** Les auteurs dont un texte renvoie à l'un des versets d'un chapitre, ou au
- *  chapitre entier. Même recherche inverse que le volet patristique
- *  (`app/lib/liens.ts`), mais réduite à ce qu'un titre a besoin de savoir.
+/** Les auteurs dont un texte renvoie à l'un des versets d'un chapitre, au chapitre
+ *  entier, ou à l'un de ses versets surnuméraires. Même recherche inverse que le volet
+ *  patristique (`app/lib/liens.ts`), mais réduite à ce qu'un titre a besoin de savoir.
  *
- *  UNE seule vague : l'agrégat en base (liens au verset et au chapitre) et le
- *  catalogue des œuvres partent ensemble. */
+ *  UN seul aller-retour : la fonction rend les types ET les auteurs. */
 export async function chargerPresencePatristique(
   client: Client,
   livre: string,
   chapitre: number,
 ): Promise<PresencePatristique> {
   try {
-    const [lignes, catalogue] = await Promise.all([
-      lirePresence(client, `${livre} ${chapitre}`, {
-        p_livre: livre, p_chapitre_debut: chapitre, p_verset_debut: null, p_chapitre_fin: chapitre, p_verset_fin: null,
-      }),
-      lireCatalogue(client),
-    ])
-    if (!lignes || !catalogue) return AUCUNE
-    return depouiller(lignes, catalogue)
+    const lignes = await lirePresence(client, `${livre} ${chapitre}`, {
+      p_livre: livre, p_chapitre_debut: chapitre, p_verset_debut: null, p_chapitre_fin: chapitre, p_verset_fin: null,
+    })
+    if (!lignes) return AUCUNE
+    return depouiller(lignes)
   } catch (erreur) {
     console.error(`[métadonnées] présence patristique illisible (${livre} ${chapitre}) :`, erreur)
     return AUCUNE
@@ -151,8 +156,8 @@ export async function chargerPresencePatristique(
  *  verset s'appliquent aux chapitres extrêmes, comme dans `segmentsLiesAPlage`
  *  (`app/lib/liens.ts`), dont c'est la même recherche inverse.
  *
- *  Une vague : l'agrégat en base et le catalogue partent ensemble. Les péricopes du
- *  corpus tiennent en un ou deux chapitres ; une plage aberrante est bornée à seize. */
+ *  Un aller-retour. Les péricopes du corpus tiennent en un ou deux chapitres ; une plage
+ *  aberrante est bornée à seize. */
 export async function chargerPresencePatristiquePlage(
   client: Client,
   livre: string,
@@ -171,17 +176,14 @@ export async function chargerPresencePatristiquePlage(
   const verset = (v: number | null) => (v != null && Number.isFinite(v) ? v : null)
 
   try {
-    const [lignes, catalogue] = await Promise.all([
-      lirePresence(client, `${livre} ${canonDebut}–${canonFin ?? ''}`, {
-        p_livre: livre, p_chapitre_debut: c1, p_verset_debut: verset(d.verset),
-        // ⚠️ Une plage aberrante est bornée à seize chapitres : la borne de verset ne
-        // vaut alors que si le chapitre de fin n'a pas été rabattu.
-        p_chapitre_fin: c2, p_verset_fin: c2 === f.chapitre ? verset(f.verset) : null,
-      }),
-      lireCatalogue(client),
-    ])
-    if (!lignes || !catalogue) return AUCUNE
-    return depouiller(lignes, catalogue)
+    const lignes = await lirePresence(client, `${livre} ${canonDebut}–${canonFin ?? ''}`, {
+      p_livre: livre, p_chapitre_debut: c1, p_verset_debut: verset(d.verset),
+      // ⚠️ Une plage aberrante est bornée à seize chapitres : la borne de verset ne
+      // vaut alors que si le chapitre de fin n'a pas été rabattu.
+      p_chapitre_fin: c2, p_verset_fin: c2 === f.chapitre ? verset(f.verset) : null,
+    })
+    if (!lignes) return AUCUNE
+    return depouiller(lignes)
   } catch (erreur) {
     console.error(`[métadonnées] présence patristique illisible (${livre} ${canonDebut}) :`, erreur)
     return AUCUNE

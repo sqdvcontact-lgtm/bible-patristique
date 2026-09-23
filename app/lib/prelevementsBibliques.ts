@@ -26,12 +26,60 @@
 // arrivée. ⚠️ Elles sont idempotentes (poser un identifiant, retirer un numéro) : qu'une
 // lecture partie avant l'écriture la contienne déjà ou non, le résultat est le même.
 
+// ⛔ MAIS UN NUMÉRO NE DÉSIGNE PAS UNE LIGNE (audit du 2026-09-22). Sept cent une paires de
+// `versets_lecture` portent le même numéro : le verset « 8 » et la ligne propre à une
+// édition « 8+ » (DAN 13, LJE, PSA 106…). Clée sur le seul numéro, la liste montrait le
+// signet de l'un sur l'autre, et le retrait supprimait les deux. La clé est désormais le
+// CRÉNEAU CANONIQUE (`prelevements.canon_id`, migration 20260922173520), qui vaut pour les
+// deux lectures et pour les deux membres de l'édition du témoin — une ligne recomposée
+// « 899:GEN.29.3 » désigne le même créneau que « GEN.29.3 ». ⚠️ Un prélèvement ANTÉRIEUR
+// que la migration n'a pas su replacer n'en porte pas : il se range alors sous son numéro,
+// et ne se montre que sur le verset ordinaire, jamais sur la ligne surnuméraire.
+
 import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import { ABREV_FR } from './bible'
 import { supabase } from './supabase'
 
-/** Le numéro d'un verset prélevé → l'identifiant de son prélèvement. */
-export type PrelevementsDuChapitre = Map<number, string>
+/** La clé d'un verset prélevé (`cleVersetPreleve`) → l'identifiant de son prélèvement. */
+export type PrelevementsDuChapitre = Map<string, string>
+
+/** Un créneau canonique tel que `versets_lecture` l'écrit : « GEN.1.8 », « DAN.13.44+ ». */
+const RE_CRENEAU = /^[0-9]?[A-Z]{2,5}\.\d+\.\d+\+?$/u
+
+/**
+ * Le créneau canonique d'une ligne de lecture, ou `null` quand elle n'en a pas.
+ *
+ * ⚠️ Une ligne recomposée porte le préfixe de son édition (« 899:GEN.29.3 ») : on l'ôte,
+ * pour qu'un verset se montre prélevé quelle que soit la bible qu'on lit. Une GLOSE n'a
+ * pas de créneau (charte § 15.4) : son identifiant ne prend pas cette forme, et elle
+ * retombe sur le numéro de son hôte, comme avant.
+ */
+export function canonIdDeLigne(idVerset: string | null | undefined): string | null {
+  const nu = String(idVerset ?? '').replace(/^[^:]*:/, '')
+  return RE_CRENEAU.test(nu) ? nu : null
+}
+
+/** La clé d'affichage d'un verset : son créneau quand on le connaît, son numéro sinon. */
+export function cleVersetPreleve(canonId: string | null | undefined, numero: number): string {
+  return canonId ? `c:${canonId}` : `n:${numero}`
+}
+
+/**
+ * L'identifiant du prélèvement d'un verset, ou `null` s'il n'est pas prélevé.
+ *
+ * ⚠️ Le repli sur le numéro ne vaut que pour un verset ORDINAIRE : une ligne surnuméraire
+ * (« 8+ ») ne prend jamais à son compte un prélèvement ancien qui ne dit pas son créneau.
+ */
+export function prelevementDuVerset(
+  liste: PrelevementsDuChapitre,
+  canonId: string | null | undefined,
+  numero: number,
+): string | null {
+  const direct = liste.get(cleVersetPreleve(canonId, numero))
+  if (direct) return direct
+  if (!canonId || canonId.endsWith('+')) return null
+  return liste.get(cleVersetPreleve(null, numero)) ?? null
+}
 
 /** La clé d'une liste de prélèvements : ce lecteur, ce livre, ce chapitre. `null` sans
  *  session — il n'y a alors rien à montrer. */
@@ -110,7 +158,7 @@ export function usePrelevementsDuChapitre(
     const abr = ABREV_FR[livreActif] || livreActif
     supabase
       .from('prelevements')
-      .select('id, ref_verset')
+      .select('id, ref_verset, canon_id')
       .eq('user_id', userId)
       .eq('type', 'biblique')
       .eq('ref_livre_abr', abr)
@@ -126,7 +174,9 @@ export function usePrelevementsDuChapitre(
           return
         }
         const m: PrelevementsDuChapitre = new Map()
-        ;(data ?? []).forEach((r: { ref_verset: number; id: string }) => m.set(r.ref_verset, r.id))
+        ;(data ?? []).forEach((r: { ref_verset: number; canon_id: string | null; id: string }) => {
+          m.set(cleVersetPreleve(r.canon_id, r.ref_verset), r.id)
+        })
         setEtat(prev => ({ cle, liste: listeArrivee(m, cle, prev.enAttente), enAttente: null }))
       })
     return () => { vivant = false }

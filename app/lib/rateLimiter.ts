@@ -16,15 +16,20 @@
 // compte celles qui tombent dans la fenêtre. Une fenêtre fixe laisse passer deux
 // fois le quota à cheval sur sa frontière.
 
-const visites = new Map<string, number[]>()
+// ⛔ CHAQUE CLÉ GARDE SA PROPRE FENÊTRE (2026-09-22). Le balayage prenait celle de
+// l'appel qui le déclenche : une vérification à la minute effaçait alors une clé
+// JOURNALIÈRE dont plus aucune visite ne datait de la dernière minute, c'est-à-dire
+// qu'un quota du jour repartait de zéro sans que rien ne le dise. Une clé n'est
+// désormais balayée que sur SA fenêtre.
+const visites = new Map<string, { fenetreMs: number; instants: number[] }>()
 
 // Au-delà, on balaie les clés dont plus aucune visite n'est dans sa fenêtre. Le
 // seuil est haut exprès : le balayage coûte, et il ne doit pas être la règle.
 const SEUIL_PURGE = 5_000
 
-function purger(maintenant: number, fenetreMs: number): void {
-  for (const [cle, instants] of visites) {
-    if (instants.every(t => maintenant - t >= fenetreMs)) visites.delete(cle)
+function purger(maintenant: number): void {
+  for (const [cle, suivi] of visites) {
+    if (suivi.instants.every(t => maintenant - t >= suivi.fenetreMs)) visites.delete(cle)
   }
 }
 
@@ -38,11 +43,11 @@ function purger(maintenant: number, fenetreMs: number): void {
  */
 export function checkRateLimit(cle: string, maximum: number, fenetreMs: number): boolean {
   const maintenant = Date.now()
-  const recentes = (visites.get(cle) ?? []).filter(t => maintenant - t < fenetreMs)
+  const recentes = (visites.get(cle)?.instants ?? []).filter(t => maintenant - t < fenetreMs)
   recentes.push(maintenant)
-  visites.set(cle, recentes)
+  visites.set(cle, { fenetreMs, instants: recentes })
 
-  if (visites.size > SEUIL_PURGE) purger(maintenant, fenetreMs)
+  if (visites.size > SEUIL_PURGE) purger(maintenant)
 
   return recentes.length <= maximum
 }

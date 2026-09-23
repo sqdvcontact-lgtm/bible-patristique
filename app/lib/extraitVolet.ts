@@ -17,6 +17,17 @@
  * ses offsets en points de code dans le texte de SON segment ; elle se fait donc AVANT la
  * jonction du groupe, jamais sur le texte joint.
  *
+ * ⛔ ET LA COUPE ÉDITORIALE SE COMPOSE AVANT LA JONCTION (2026-09-22). La règle du
+ * « […] » (charte §3.8, `normaliserPonctuationCitations`) ne reconnaît une omission que
+ * devant un guillemet ouvrant, une fin de ligne ou la FIN DU TEXTE. Or le volet joint les
+ * morceaux d'un empan par une espace, puis les segments d'un groupe, avant de composer :
+ * ce qui finissait un morceau se retrouvait au milieu d'une phrase, et trois passages
+ * (A0044O0003TFR-V11 n° 1860, Bareille Jonas n° 257 et 289, A0051O0043 n° 239) gardaient
+ * leurs « ;... » là où la page d'œuvre, qui rend chaque segment seul, écrivait bien
+ * « […] ». Chaque morceau passe donc la règle POUR SON COMPTE, sa fin étant sa fin.
+ * ⚠️ Après la projection des ancres, jamais avant : cette règle CHANGE la longueur du
+ * texte, quand les appels positionnels se posent par offset.
+ *
  * ⛔ ET UN EMPAN FRANÇAIS SE COMPOSE MORCEAU PAR MORCEAU. Un lien posé sur un latin se lit
  * dans sa contrepartie française, et quand le groupe d'alignement est aux effectifs
  * inégaux, cette contrepartie réunit TOUS les paragraphes français du groupe
@@ -29,6 +40,7 @@
 import { capitaliserInitiale } from '@/app/lib/citation'
 import { parseNotes } from '@/app/lib/notes'
 import { texteDuGroupe } from '@/app/lib/regrouperCitations'
+import { normaliserPonctuationCitations } from '@/app/lib/typographie'
 import { projeterAppelsNotesStructureesEnSignalant } from '@/app/lib/appelsNotesStructurees'
 import { cleNotesDuSegment, type NotesDuSegment } from '@/app/lib/notesStructureesChargement'
 import type { NoteAffichee } from '@/app/oeuvre/[id]/oeuvreTypes'
@@ -50,7 +62,9 @@ export type SegmentDuVolet = Morceau & {
   parties?: readonly Morceau[] | null
 }
 
-export type ExtraitCompose = {
+/** Ce que `composerExtrait` rend. ⚠️ Type INTERNE : personne ne le nomme au dehors, on
+ *  le lit par inférence. */
+type ExtraitCompose = {
   /** Le texte lu : l'initiale capitalisée, les appels structurés projetés, les segments
    *  joints (et l'élision marquée d'un « […] »). */
   texte: string
@@ -89,7 +103,9 @@ export function composerExtrait(
       // un extrait commence souvent au milieu d'une phrase de l'édition). `capitaliserInitiale`
       // ne change jamais la longueur du texte, et les offsets des ancres restent justes.
       const brut = rang === 0 && i === 0 ? capitaliserInitiale(morceau.segment_texte) : morceau.segment_texte
-      const texte = charge && charge.ancres.length > 0 ? projeterAppelsNotesStructureesEnSignalant(brut, charge.ancres) : brut
+      const projete = charge && charge.ancres.length > 0 ? projeterAppelsNotesStructureesEnSignalant(brut, charge.ancres) : brut
+      // La coupe éditoriale AVANT la jonction : la fin du morceau est une fin de texte.
+      const texte = normaliserPonctuationCitations(projete)
       return { texte, propres }
     }))
   // ⛔ UN MARQUEUR APPARTIENT D'ABORD AU MORCEAU QUI LE PORTE DANS SON TEXTE (2026-09-22).

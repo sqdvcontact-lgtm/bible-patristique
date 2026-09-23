@@ -30,7 +30,7 @@
 // Le composant ne décide de rien : la répartition, l'appariement et l'indexation
 // viennent de modules purs et testés.
 
-import { Fragment, useMemo, type KeyboardEvent, type ReactNode } from 'react'
+import { Fragment, useMemo, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
 import { activerAuClavier } from '@/app/lib/activerAuClavier'
 import { cesurerSelonLangue } from '@/app/lib/langueBible'
 import { copierSansCesures } from '@/app/lib/grec'
@@ -39,6 +39,8 @@ import { fondreAppelsDansLaMarque, marquerLacunesDuTemoin, rendreMarqueurs899 } 
 import { estTraductionModerne899, TRAD_ID_BIBLE899 } from '@/app/lib/bible899'
 import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
 import IconeCopier from './IconeCopier'
+import IconeSignet from './IconeSignet'
+import { libelleNumeroVerset } from '@/app/lib/libelleVerset'
 import { nomLangue } from '@/app/lib/bibleModesAlternatifs'
 import { avecHoteEclat, EclatCopie, useEclatCopie } from './EclatCopie'
 import { EclatEchec, STYLE_HOTE_ECHEC, useEclatEchec } from './EclatEchec'
@@ -84,7 +86,19 @@ import {
 // Le bouton de copie d'une cellule ne paraît qu'au survol de sa rangée, au foyer, ou
 // sur un écran sans survol. ⚠️ Son opacité est posée en ligne : la feuille la bat par
 // « !important », comme les actions d'un verset en lecture simple.
-const FEUILLE_COPIE_REGARD = '[data-canon-id]:hover .cs-regard-copier, [data-canon-id]:focus-within .cs-regard-copier { opacity: 1 !important; } @media (hover: none) { .cs-regard-copier { opacity: 1 !important; } }'
+const FEUILLE_COPIE_REGARD = '[data-canon-id]:hover .cs-regard-action, [data-canon-id]:focus-within .cs-regard-action { opacity: 1 !important; } @media (hover: none) { .cs-regard-action { opacity: 1 !important; } }'
+
+// ⛔ LE SIGNET D'UN VERSET PRÉLEVÉ, à gauche de son numéro, comme en lecture simple
+// (`STYLE_SIGNET_VERSET`) : l'état se dit sur la ligne, il ne pèse pas sur la gouttière
+// d'actions, et il paraît même quand la souris est ailleurs.
+const STYLE_SIGNET_REGARD = {
+  display: 'inline-block' as const,
+  width: '0.5em',
+  height: '0.65em',
+  marginRight: '0.2em',
+  color: 'var(--cs-texte-doux)',
+  verticalAlign: 'baseline' as const,
+}
 
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 
@@ -177,6 +191,14 @@ export type LectureBilingueProps = {
   /** Copier le verset d'UNE colonne, par sa clé de cellule (`cleDeCelluleBilingue`). Présent,
    *  chaque cellule qui porte un texte offre au survol un bouton de copie (bureau seul). */
   copierCellule?: (cle: string) => Promise<void>
+  /** L'identifiant du prélèvement d'un créneau, ou `null` s'il n'est pas prélevé. Présent
+   *  avec `basculerPrelevement`, chaque cellule qui porte un texte offre son signet, et le
+   *  numéro DIT l'état à qui ne voit pas la page. */
+  prelevementDe?: (canonId: string) => string | null
+  /** Prélever ou retirer le verset d'UNE colonne, par sa clé de cellule
+   *  (`cleDeCelluleBilingue`) : c'est elle qui dit quel texte et quelle bible on met de
+   *  côté, comme pour la copie. */
+  basculerPrelevement?: (cle: string) => Promise<void>
   mobile?: boolean
 }
 
@@ -190,11 +212,13 @@ type ApparatColonne = {
 // bouton par cellule, au survol de la rangée, posé HORS du texte : dans la gouttière entre
 // les deux colonnes, ou à droite de la dernière. ⛔ Il n'est pas cliquable au travers : le
 // clic s'arrête là, et ne retient pas le verset.
-function CopieCellule({ copier, numero, langue, derniere }: {
+function CopieCellule({ copier, numero, langue, derniere, rang }: {
   copier: () => Promise<void>
   numero: number | null
   langue: string
   derniere: boolean
+  /** Le rang du bouton dans la gouttière : 0 quand il y est seul, 1 sous le signet. */
+  rang: number
 }) {
   const { copie, eclat, briller } = useEclatCopie()
   const { echec, signaler } = useEclatEchec()
@@ -202,7 +226,7 @@ function CopieCellule({ copier, numero, langue, derniere }: {
   return (
     <button
       type="button"
-      className={avecHoteEclat('cs-regard-copier')}
+      className={avecHoteEclat('cs-regard-copier cs-regard-action')}
       onClick={(e) => {
         e.stopPropagation()
         copier().then(briller, (erreur: unknown) => {
@@ -215,7 +239,7 @@ function CopieCellule({ copier, numero, langue, derniere }: {
       style={{
         ...STYLE_BOUTON_ACTION,
         position: 'absolute',
-        top: '0.15rem',
+        top: rang === 0 ? '0.15rem' : `calc(0.15rem + ${STYLE_BOUTON_ACTION.height})`,
         left: derniere ? 'calc(100% + 0.3rem)' : `calc(100% + 0.55rem - ${STYLE_BOUTON_ACTION.width} / 2)`,
         opacity: 0,
         color: echec ? 'var(--cs-danger)' : copie ? 'var(--cs-vert)' : 'var(--cs-bord)',
@@ -224,6 +248,55 @@ function CopieCellule({ copier, numero, langue, derniere }: {
     >
       <IconeCopier />
       {echec ? <EclatEchec echec={echec} /> : <EclatCopie eclat={eclat} />}
+    </button>
+  )
+}
+
+// ── LE PRÉLÈVEMENT D'UNE CELLULE (audit du 2026-09-22) ────────────────────────
+// La lecture en regard n'offrait AUCUN geste par verset — ni signet, ni copie — quand la
+// lecture simple en porte quatre. Le signet est le jumeau du bouton de copie : même
+// gabarit, même gouttière, rangé au-dessus de lui.
+function SignetCellule({ basculer, preleve, numero, derniere }: {
+  basculer: () => Promise<void>
+  preleve: boolean
+  numero: number | null
+  derniere: boolean
+}) {
+  const [attente, setAttente] = useState(false)
+  const { echec, signaler } = useEclatEchec()
+  const objet = numero === null ? 'ce verset' : `le verset ${numero}`
+  const geste = preleve ? `Retirer ${objet} de mes prélèvements` : `Ajouter ${objet} à mes prélèvements`
+  return (
+    <button
+      type="button"
+      className={avecHoteEclat('cs-regard-action')}
+      disabled={attente}
+      onClick={(e) => {
+        e.stopPropagation()
+        setAttente(true)
+        basculer().then(
+          () => setAttente(false),
+          (erreur: unknown) => {
+            setAttente(false)
+            console.error('[prélèvements] verset en regard', erreur)
+            signaler(preleve ? 'Le retrait a échoué. Réessayez.' : 'Le prélèvement a échoué. Réessayez.')
+          },
+        )
+      }}
+      title={echec ? 'Le geste a échoué' : geste}
+      aria-label={geste}
+      style={{
+        ...STYLE_BOUTON_ACTION,
+        position: 'absolute',
+        top: '0.15rem',
+        left: derniere ? 'calc(100% + 0.3rem)' : `calc(100% + 0.55rem - ${STYLE_BOUTON_ACTION.width} / 2)`,
+        opacity: 0,
+        color: echec ? 'var(--cs-danger)' : preleve ? 'var(--cs-texte-doux)' : 'var(--cs-bord)',
+        ...(echec ? STYLE_HOTE_ECHEC : null),
+      }}
+    >
+      {attente ? '…' : <IconeSignet plein={preleve} />}
+      <EclatEchec echec={echec} />
     </button>
   )
 }
@@ -242,6 +315,8 @@ export default function BibleBilingue({
   canonSelectionne = null,
   onSelectionnerVerset,
   copierCellule,
+  prelevementDe,
+  basculerPrelevement,
   mobile = false,
   titresMasques,
 }: LectureBilingueProps): ReactNode {
@@ -362,6 +437,10 @@ export default function BibleBilingue({
   const choisir = onSelectionnerVerset
   // La copie d'une colonne : au bureau seulement ; au doigt, le lasso tactile la porte.
   const copier = mobile ? undefined : copierCellule
+  // ⛔ Le signet reste offert AU DOIGT, à la différence de la copie : le lasso tactile
+  // enregistre une sélection, il ne bascule pas un verset seul.
+  const basculer = basculerPrelevement
+  const estPreleve = (canonId: string) => (prelevementDe ? prelevementDe(canonId) !== null : false)
   const marquesDeRangee = (canonId: string) => {
     if (!choisir) return {}
     const retenue = canonId === canonSelectionne
@@ -378,14 +457,29 @@ export default function BibleBilingue({
     }
   }
   // Le numéro, bouton du verset pour le clavier : rôle, état et nom, comme dans TexteBible.
-  const boutonDuNumero = (canonId: string) => {
+  const boutonDuNumero = (canonId: string, libelleGlose: string | null = null) => {
     if (!choisir) return {}
     const numero = numeroCanonique(canonId)
+    if (libelleGlose !== null) {
+      return {
+        role: 'button' as const,
+        tabIndex: 0,
+        'aria-pressed': canonId === canonSelectionne,
+        'aria-label': numero === null ? libelleGlose : `${libelleGlose}, verset ${numero}`,
+        // ⚠️ La rangée d'une glose ne porte PAS de clic : elle n'a pas de créneau à elle.
+        // Le libellé est donc son seul bouton, et il doit répondre à la souris comme au
+        // clavier — sans quoi l'apparat de son hôte resterait inatteignable.
+        onClick: (e: MouseEvent<HTMLSpanElement>) => { e.stopPropagation(); choisir(canonId) },
+        onKeyDown: (e: KeyboardEvent<HTMLSpanElement>) => activerAuClavier(e, () => choisir(canonId)),
+      }
+    }
     return {
       role: 'button' as const,
       tabIndex: 0,
       'aria-pressed': canonId === canonSelectionne,
-      'aria-label': numero === null ? 'Verset' : `Verset ${numero}`,
+      // ⛔ Le nom dit tout ce que le numéro MONTRE, l'état prélevé compris : même
+      // écriture qu'en lecture simple (`libelleNumeroVerset`).
+      'aria-label': numero === null ? 'Verset' : libelleNumeroVerset({ verset: numero }, estPreleve(canonId)),
       onKeyDown: (e: KeyboardEvent<HTMLSpanElement>) => activerAuClavier(e, () => choisir(canonId)),
     }
   }
@@ -423,7 +517,7 @@ export default function BibleBilingue({
 
   return (
     <div data-lecture="bilingue">
-      {copier && <style>{FEUILLE_COPIE_REGARD}</style>}
+      {(copier || basculer) && <style>{FEUILLE_COPIE_REGARD}</style>}
       {rendreBlocs(commun.blocs.opening)}
       {rendreImages(commun.images.opening)}
 
@@ -485,7 +579,12 @@ export default function BibleBilingue({
                 // ⛔ LE NUMÉRO EST LE BOUTON DU VERSET POUR LE CLAVIER, comme en lecture simple :
                 // la rangée porte des appels de note, on ne la rend pas focalisable. Un seul
                 // bouton par rangée, sur la première cellule qui dit son numéro.
-                const estBouton = !glose && index === indexBouton
+                // ⛔ UNE GLOSE S'OUVRE COMME UN VERSET, ET AU CLAVIER AUSSI (audit du
+                // 2026-09-22). Elle n'a pas de créneau à elle (charte § 15.4) : c'est celui
+                // de son HÔTE que le clic ouvre, comme la rangée qui la porte. Son libellé
+                // est alors le bouton, sans quoi l'apparat d'une glose n'était atteignable
+                // qu'à la souris — et pas même à la souris, la rangée ne portant aucun clic.
+                const estBouton = index === indexBouton && (!glose || glose.canonHote !== null)
                 // ⚠️ `data-lasso-depart` : le lasso du doigt ne naît que sur la marge d'un
                 // verset (contrat de `LassoTactile`), et il y apprend sa COLONNE. Le numéro
                 // répété, invisible, garde sa boîte : l'enveloppe reste touchable.
@@ -494,7 +593,12 @@ export default function BibleBilingue({
                   <span style={STYLE_REFERENCE}
                     aria-hidden={referenceRepetee || undefined}
                     data-lasso-depart={departLasso}
-                    {...(estBouton && !referenceRepetee ? boutonDuNumero(rangee.canonId) : {})}>
+                    {...(estBouton && !referenceRepetee ? boutonDuNumero(glose ? (glose.canonHote as string) : rangee.canonId, glose ? LIBELLE_GLOSE : null) : {})}>
+                    {!referenceRepetee && estBouton && !glose && estPreleve(rangee.canonId) && (
+                      <span aria-hidden="true" title="Dans mes prélèvements" style={STYLE_SIGNET_REGARD}>
+                        <IconeSignet plein taille="100%" />
+                      </span>
+                    )}
                     {referenceRepetee
                       ? <span style={{ visibility: 'hidden' as const }}>{libelleReference(rangee.cellules[0])}</span>
                       : libelleReference(cellule)}
@@ -506,7 +610,7 @@ export default function BibleBilingue({
                     lang={membre.languageCode}
                     data-membre={membre.id}
                     data-lasso-cellule={cleLasso}
-                    style={seule ? { minWidth: 0, gridColumn: '1 / -1' } : { minWidth: 0, ...(copier && cleLasso ? { position: 'relative' as const } : {}) }}
+                    style={seule ? { minWidth: 0, gridColumn: '1 / -1' } : { minWidth: 0, ...((copier || basculer) && cleLasso ? { position: 'relative' as const } : {}) }}
                   >
                     {cellule === null ? (appels.length === 0 ? (
                       // Un créneau que cette édition ne porte pas reste vide :
@@ -553,12 +657,21 @@ export default function BibleBilingue({
                                 : undefined)}
                           {appeler(repartition.aLaSuite, membre.id)}
                         </p>
+                        {basculer && cleLasso && (
+                          <SignetCellule
+                            basculer={() => basculer(cleLasso)}
+                            preleve={estPreleve(rangee.canonId)}
+                            numero={numeroCanonique(rangee.canonId)}
+                            derniere={index === rangee.cellules.length - 1}
+                          />
+                        )}
                         {copier && cleLasso && (
                           <CopieCellule
                             copier={() => copier(cleLasso)}
                             numero={numeroCanonique(rangee.canonId)}
                             langue={nomLangue(membre.languageCode)}
                             derniere={index === rangee.cellules.length - 1}
+                            rang={basculer ? 1 : 0}
                           />
                         )}
                       </div>

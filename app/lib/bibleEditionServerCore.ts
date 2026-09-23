@@ -432,6 +432,15 @@ export async function loadBibleEditionChapter(
      * notes de verset et le calcul des bornes exactes attendent les créneaux.
      */
     canonIds: string[] | Promise<string[]>
+    /**
+     * Les LIGNES du canon du chapitre, quand l'appelant les a déjà lues
+     * (`canonDuChapitre`, en tête de page). Elles portent l'ordre de chaque
+     * créneau, seule chose que la lecture de `versets_canon` venait chercher ici :
+     * un aller-retour de moins, sur une table que la page vient d'interroger.
+     * ⚠️ Un filet reste tendu : si aucun créneau demandé ne s'y retrouve alors
+     * qu'on en demande, la base est relue plutôt que le chapitre rendu vide.
+     */
+    canonRows?: readonly { id: string; ordre: number }[]
     includeBookFrontMatter?: boolean
     includeBookBackMatter?: boolean
   },
@@ -516,11 +525,21 @@ export async function loadBibleEditionChapter(
   // Les bornes exactes se prennent sur les créneaux que l'ÉDITION porte, non sur
   // ceux du chapitre : elles peuvent être plus étroites, et c'est ce filtre-ci
   // qui décide. Les blocs et les illustrations, eux, sont déjà en route.
+  // ⛔ LE CANON NE SE RELIT PAS S'IL EST DÉJÀ LU (2026-09-22). La page l'interroge en
+  // tête (`canonDuChapitre`) pour poser les bornes du chapitre, puis ce chargeur
+  // redemandait les MÊMES lignes à `versets_canon` pour en tirer l'ordre. Les lignes
+  // reçues suffisent ; la base n'est relue que si aucun créneau demandé ne s'y trouve.
+  const demandes = new Set(canonIds)
+  const ordresConnus = (options.canonRows ?? [])
+    .filter((row) => demandes.has(row.id))
+    .map((row) => row.ordre)
   const [canonResult, bodyResult, notesResult, assetsResult, ancresResult] = await Promise.all([
-    client
-      .from('versets_canon')
-      .select('id,ordre')
-      .in('id', canonIds),
+    ordresConnus.length > 0
+      ? Promise.resolve({ data: null, error: null } as { data: CanonOrderRow[] | null; error: { message: string } | null })
+      : client
+        .from('versets_canon')
+        .select('id,ordre')
+        .in('id', canonIds),
     blocsDemandes,
     client
       .from('v_bible_verse_notes')
@@ -544,7 +563,9 @@ export async function loadBibleEditionChapter(
   ])
 
   if (canonResult.error) throw new Error(`Bornes canoniques illisibles : ${canonResult.error.message}`)
-  const orders = ((canonResult.data ?? []) as CanonOrderRow[]).map((row) => row.ordre)
+  const orders = ordresConnus.length > 0
+    ? ordresConnus
+    : ((canonResult.data ?? []) as CanonOrderRow[]).map((row) => row.ordre)
   if (orders.length === 0) return { bodyBlocks: [], notes: [], assets: [] }
   const firstOrder = Math.min(...orders)
   const lastOrder = Math.max(...orders)

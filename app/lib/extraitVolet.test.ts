@@ -89,6 +89,33 @@ describe('composerExtrait', () => {
     expect(r.notes).toEqual({ 4: 'héritée' })
   })
 
+  // ⛔ La coupe éditoriale se compose AVANT la jonction (2026-09-22) : la règle du « […] »
+  // ne reconnaît une omission que devant un guillemet ouvrant ou la FIN DU TEXTE, et la
+  // jonction des morceaux la privait de sa fin. Cas réels : Bareille, Jonas 2, segments
+  // 257 et 289 ; A0044O0003TFR-V11 n° 1860 ; A0051O0043 n° 239.
+  it('rend « […] » en fin de morceau, que la jonction masquait', () => {
+    const NBSP = String.fromCharCode(0x00a0)
+    const empan = seg(1, 'x', {
+      segment_key: 'P1',
+      parties: [
+        { id_texte: 'T1', segment_key: 'P1', segment_texte: 'mon âme[[109]] » ;...' },
+        { id_texte: 'T1', segment_key: 'P2', segment_texte: '« et notre âme a traversé le torrent' },
+      ],
+    })
+    const r = composerExtrait([empan], new Map())
+    expect(r.texte).toBe(`Mon âme[[109]] »${NBSP}[…] « et notre âme a traversé le torrent`)
+  })
+
+  it('rend « […] » à la fin d’un segment que le groupe ne ferme pas', () => {
+    const NBSP = String.fromCharCode(0x00a0)
+    // A0051O0043 n° 239 : les points d'omission suivent le guillemet, l'espace comprise.
+    const r = composerExtrait([
+      seg(1, 'les hommes et les bêtes[[74]] » …'),
+      seg(2, 'et voici la suite'),
+    ], new Map())
+    expect(r.texte).toBe(`Les hommes et les bêtes[[74]] »${NBSP}[…] et voici la suite`)
+  })
+
   it('joint un groupe, et marque l’élision entre deux segments qui ne se suivent pas', () => {
     expect(composerExtrait([seg(1, 'Premier'), seg(2, 'second')], new Map()).texte).toBe('Premier second')
     const elide = composerExtrait([seg(1, 'Premier.'), seg(3, 'suite')], new Map()).texte

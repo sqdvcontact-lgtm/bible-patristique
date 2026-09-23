@@ -156,7 +156,7 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       // ⚠️ Le lasso se présente ICI depuis le 22 septembre 2026 : il agit sur les mêmes
       // passages que les actions, plusieurs à la fois, et il naît du blanc de la page.
       texte: [
-        'Au survol d’un passage, les actions apparaissent dans la marge : le prélever, le copier ou le signaler. Vous les retrouverez partout où le site donne à lire un texte.',
+        'Au survol d’un passage, les actions apparaissent dans la marge : le prélever, le copier ou le signaler. Prélever demande un compte ; les retrouver ensuite se fait depuis « Mes citations ».',
         'Quand la place le permet, un nombre les suit : celui des œuvres en ligne qui commentent le passage.',
         'Tirer un cadre à la souris depuis le blanc de la page sélectionne plusieurs versets d’un coup.',
       ],
@@ -210,7 +210,7 @@ const TEXTES_AU_DOIGT: Readonly<Record<string, readonly string[]>> = {
   ],
   actions: [
     'Touchez un verset : ses actions paraissent à côté de lui.',
-    'Elles permettent de le prélever, de le copier ou de le signaler. Vous les retrouverez partout où le site donne à lire un texte.',
+    'Elles permettent de le prélever, de le copier ou de le signaler. Prélever demande un compte ; les retrouver ensuite se fait depuis « Mes citations ».',
     'Un appui long sur le numéro d’un verset passe en mode lasso : on choisit alors plusieurs versets d’un seul geste.',
   ],
   peres: [

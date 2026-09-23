@@ -290,7 +290,7 @@ export async function chargerNotificationsUtilisateur(userId: string): Promise<N
 
   const [likesRes, reponsesCommentairesRes, commentairesEssaisRes, appreciationsEssaisRes] = await Promise.all([
     idsCommentaires.length
-      // ⛔ `commentaires_likes` ne rend plus que SA PROPRE ligne (migration 20260922190000) :
+      // ⛔ `commentaires_likes` ne rend plus que SA PROPRE ligne (migration 20260922164940) :
       // qui a réagi à MES commentaires se lit par la fonction dédiée, qui ne rend que les
       // réactions des autres sur les commentaires du lecteur connecté.
       ? supabase.rpc('reactions_a_mes_commentaires', { p_ids: idsCommentaires })

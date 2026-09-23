@@ -22,8 +22,7 @@ import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import FleuronDiscret from '@/app/components/FleuronDiscret'
 import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
-import { avecHoteEclat } from '@/app/components/EclatCopie'
-import { EclatEchec, STYLE_HOTE_ECHEC, useEclatEchec } from '@/app/components/EclatEchec'
+import BoutonSupprimerCommentaire from '@/app/components/BoutonSupprimerCommentaire'
 import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, formeCommentaire } from '@/app/lib/styleCommentaire'
 
 type Verset = { id_verset: string }
@@ -59,32 +58,6 @@ const CIBLE_VOTE: React.CSSProperties = {
   padding:'6px', margin:'-6px', minHeight:'24px', minWidth:'24px', boxSizing:'border-box',
 }
 
-/** Un bouton de suppression qui DIT son échec (2026-09-22) : l'éclat rouge du site
- *  (`EclatEchec`), l'annonce aux lecteurs d'écran, et un libellé qui invite à réessayer.
- *  Un refus ne se consignait qu'à la console, et le commentaire restait là sans un mot. */
-function BoutonSupprimer({ libelle, titre, couleur, marge, onSupprimer }: {
-  libelle: string; titre: string; couleur: string; marge: string | number
-  /** Rend `false` si la suppression a échoué. */
-  onSupprimer: () => Promise<boolean>
-}) {
-  const { echec, signaler } = useEclatEchec()
-  const [enCours, setEnCours] = useState(false)
-  return (
-    <button disabled={enCours} className={avecHoteEclat()}
-      onClick={async () => {
-        setEnCours(true)
-        const ok = await onSupprimer().catch(() => false)
-        setEnCours(false)
-        if (!ok) signaler('La suppression a échoué.')
-      }}
-      title={echec ? 'La suppression a échoué : réessayer' : titre}
-      style={{ ...ACTION_COMMENTAIRE, color: echec ? 'var(--cs-danger)' : couleur, marginLeft: marge, ...(echec ? STYLE_HOTE_ECHEC : null) }}>
-      {enCours ? '…' : echec ? 'Échec : réessayer' : libelle}
-      <EclatEchec echec={echec} />
-    </button>
-  )
-}
-
 export default function OngletCommentaires({ verset, userId, isAdmin, onCount }: {
   verset: Verset; userId: string | null; isAdmin: boolean; onCount?: (n: number) => void
 }) {
@@ -99,6 +72,10 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
   const [demandeValidation, setDemandeValidation] = useState(false)
   const [envoi, setEnvoi] = useState(false)
   const [erreur, setErreur] = useState('')
+  // ⛔ UN ENVOI RÉUSSI SE DIT (2026-09-22) : rien ne répondait au lecteur, et son
+  // commentaire paraissait replié sous la bande rouge « Commentaire en attente de
+  // contrôle » — on lisait un refus là où il n'y avait qu'une relecture à venir.
+  const [envoye, setEnvoye] = useState(false)
   const [revelees, setRevelees] = useState<Set<number>>(new Set())
   const [cibleReponse, setCibleReponse] = useState<Commentaire | null>(null)
   const [commentaireSignale, setCommentaireSignale] = useState<Commentaire | null>(null)
@@ -123,7 +100,7 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
           // ⛔ LES VOTES D'AUTRUI NE SE LISENT PLUS (2026-09-22) : les TOTAUX viennent de
           // `totaux_votes_commentaires` (qui ne dit ni qui ni quoi), et l'on ne lit dans
           // `commentaires_likes` que SA PROPRE ligne. Voir la migration
-          // `20260922155227_volet_peres_audit` (fonction) et `20260922190000` (politique).
+          // `20260922155227_volet_peres_audit` (fonction) et `20260922164940_votes_prives_index_redondant` (politique).
           ids.length > 0 ? supabase.rpc('totaux_votes_commentaires', { p_ids: ids }) : Promise.resolve({ data: [], error: null }),
           idsUtilisateurs.length > 0 ? supabase.from('lecture_utilisateurs').select('user_id, pseudo, nb_auteurs, total_auteurs').in('user_id', idsUtilisateurs) : Promise.resolve({ data: [], error: null }),
           idsUtilisateurs.length > 0 ? supabase.from('mecenes_publics').select('user_id').in('user_id', idsUtilisateurs) : Promise.resolve({ data: [], error: null }),
@@ -209,7 +186,7 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
       return { ...x, nbLikes, nbDislikes, monVote: retire ? null : valeur }
     }))
     // L'upsert change un vote existant grâce à la politique UPDATE `likes_modification`
-    // (migration 20260922190000) : une seule écriture, sans fenêtre où le vote disparaît.
+    // (migration 20260922164940_votes_prives_index_redondant) : une seule écriture, sans fenêtre où le vote disparaît.
     const { error } = retire
       ? await supabase.from('commentaires_likes').delete().eq('id_commentaire', c.id).eq('user_id', userId)
       : await supabase.from('commentaires_likes').upsert({ id_commentaire: c.id, user_id: userId, valeur }, { onConflict: 'id_commentaire,user_id' })
@@ -226,7 +203,7 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
     const nbReponses = commentaires.filter(x => x.reponse_a === c.id).length
     const question = nbReponses === 0
       ? 'Supprimer définitivement ce commentaire ?'
-      : `Supprimer définitivement ce commentaire et ${nbReponses === 1 ? 'sa réponse' : `ses ${nbReponses} réponses`} ?`
+      : `Supprimer définitivement ce commentaire ? ${nbReponses === 1 ? 'Sa réponse part' : `Ses ${nbReponses} réponses partent`} avec lui.`
     if (!confirm(question)) return true
     const { data: session } = await supabase.auth.getSession()
     const token = session.session?.access_token
@@ -243,8 +220,17 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
   }
 
   // Suppression par son propre auteur : la ligne reste (fil des réponses préservé).
+  // ⛔ LA QUESTION DIT CE QUI S'AFFICHERA (2026-09-22) : la carte ne porte pas la mention
+  // « commentaire supprimé », elle écrit « X a supprimé un commentaire ». Et l'on dit ce
+  // qu'il advient des réponses — ici elles RESTENT, à la différence d'une suppression par
+  // la modération, qui les emporte.
   const supprimerMonCommentaire = async (c: Commentaire): Promise<boolean> => {
-    if (!confirm('Supprimer ce commentaire ? Il restera visible en tant que « commentaire supprimé ».')) return true
+    const nom = c.pseudo ?? c.auteur_nom ?? 'Un utilisateur'
+    const nbReponses = commentaires.filter(x => x.reponse_a === c.id).length
+    const sortDesReponses = nbReponses === 0 ? ''
+      : nbReponses === 1 ? ' Sa réponse restera.'
+      : ` Ses ${nbReponses} réponses resteront.`
+    if (!confirm(`Supprimer ce commentaire ? À sa place, on lira « ${nom} a supprimé un commentaire ».${sortDesReponses}`)) return true
     const { error } = await supabase.from('commentaires').update({ supprime: true }).eq('id', c.id)
     if (!error) { setCommentaires(prev => prev.map(x => x.id === c.id ? { ...x, supprime: true } : x)); return true }
     console.error('[discussion] suppression refusée :', error)
@@ -254,7 +240,7 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
   const mailValide = (m: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m)
 
   const envoyer = async () => {
-    setErreur('')
+    setErreur(''); setEnvoye(false)
     if (!exigerCompte('commenter ce passage')) return
     if (!texte.trim()) { setErreur('Le commentaire est vide.'); return }
     if (REGEX_CAPS_ABUSIVES.test(texte)) { setErreur('Pas plus de cinq lettres capitales à la suite.'); return }
@@ -276,6 +262,7 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
     if (!error && data) {
       setCommentaires(prev => [...prev, { ...(data as LigneCommentaire), pseudo: userId ? pseudoMoi : null, lecture: null, mecene: !!userId && estMecene, nbLikes: 0, nbDislikes: 0, monVote: null }])
       setTexte(''); setNom(''); setMail(''); setCibleReponse(null); setDemandeValidation(false)
+      setEnvoye(true)
     } else {
       console.error('[discussion] envoi refusé :', error)
       setErreur(motifDuRefus(error))
@@ -286,7 +273,12 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
 
   const renderCommentaire = (c: Commentaire, estReponse: boolean, suivie = false) => {
     const forme = formeCommentaire({ reponse: estReponse, suivie })
-    const cache = !c.supprime && !c.valide && !revelees.has(c.id)
+    // ⛔ SON PROPRE COMMENTAIRE EN ATTENTE SE MONTRE (2026-09-22) : replié sous la bande
+    // rouge du contrôle, il se lisait comme un refus. Il paraît déplié, en teinte neutre,
+    // et son badge dit ce qu'il attend. La bande rouge ne vaut que pour ce qu'on n'a pas
+    // écrit soi-même.
+    const estMien = !!userId && c.user_id === userId
+    const cache = !c.supprime && !c.valide && !estMien && !revelees.has(c.id)
     if (cache) {
       return (
         <div key={c.id} style={{ marginLeft: forme.marginLeft, marginBottom: forme.marginBottom }}>
@@ -306,7 +298,7 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
     const aDesActionsADroite = userId === c.user_id || (isAdmin && userId !== c.user_id)
     return (
       <div className="commentaire-carte" key={c.id}
-        style={{ ...carteCommentaire({ certifie: estCertifie, enRevision: estRevision, reponse: estReponse, suivie }), viewTransitionName: `commentaire-bible-${c.id}` }}>
+        style={{ ...carteCommentaire({ certifie: estCertifie, enRevision: estRevision && !estMien, reponse: estReponse, suivie }), viewTransitionName: `commentaire-bible-${c.id}` }}>
         {c.supprime ? (
           <p style={EFFACE_COMMENTAIRE}>{c.pseudo ?? c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire</p>
         ) : (
@@ -321,7 +313,10 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
               <span style={{ ...BADGE_RANG, color:couleurs.texte, background:couleurs.fond }}>{rangInfo.rang}</span>
             )}
             {estCertifie && <span style={{ ...BADGE_ETAT, color:'var(--cs-vert)', background:'rgba(var(--cs-vert-rgb),0.14)' }}>CERTIFIÉ</span>}
-            {estRevision && <span style={{ ...BADGE_ETAT, color:'var(--cs-danger-fonce)', background:'rgba(var(--cs-danger-rgb),0.10)' }}>EN RÉVISION</span>}
+            {estRevision && (estMien
+              ? <span style={{ ...BADGE_ETAT, color:'var(--cs-texte-second)', background:'var(--cs-fond-doux)' }}>EN ATTENTE DE RELECTURE</span>
+              : <span style={{ ...BADGE_ETAT, color:'var(--cs-danger-fonce)', background:'rgba(var(--cs-danger-rgb),0.10)' }}>EN RÉVISION</span>
+            )}
           </div>
           <span style={DATE_COMMENTAIRE}>{dateHeureCommentaire(c.created_at)}</span>
         </div>
@@ -348,11 +343,11 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
             <button onClick={() => setCibleReponse(c)} style={ACTION_COMMENTAIRE}>Répondre</button>
           )}
           {userId === c.user_id && (
-            <BoutonSupprimer libelle="Supprimer" titre="Supprimer mon commentaire" couleur={ACTION_COMMENTAIRE.color as string}
+            <BoutonSupprimerCommentaire libelle="Supprimer" titre="Supprimer mon commentaire" couleur={ACTION_COMMENTAIRE.color as string}
               marge="auto" onSupprimer={() => supprimerMonCommentaire(c)} />
           )}
           {isAdmin && userId !== c.user_id && (
-            <BoutonSupprimer libelle="Supprimer (admin)" titre="Supprimer ce commentaire et ses réponses" couleur="var(--cs-danger)"
+            <BoutonSupprimerCommentaire libelle="Supprimer (admin)" titre="Supprimer ce commentaire et ses réponses" couleur="var(--cs-danger)"
               marge="auto" onSupprimer={() => supprimerCommentaire(c)} />
           )}
           <button onClick={() => { if (exigerCompte('signaler ce commentaire')) setCommentaireSignale(c) }} title="Signaler ce commentaire" aria-label="Signaler ce commentaire"
@@ -415,7 +410,12 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
             </button>
           </div>
         )}
-        <EditeurCommentaire value={texte} onChange={setTexte} placeholder={cibleReponse ? 'Votre réponse…' : 'Votre commentaire…'} minHeight={62} />
+        <EditeurCommentaire value={texte} onChange={t => { setTexte(t); if (envoye) setEnvoye(false) }} placeholder={cibleReponse ? 'Votre réponse…' : 'Votre commentaire…'} minHeight={62} />
+        {envoye && (
+          <p role="status" style={{ fontSize:'0.6875rem', color:'var(--cs-vert)', margin:0 }}>
+            Merci. Votre commentaire paraîtra après relecture.
+          </p>
+        )}
         {!userId && (
           <>
             <input aria-label="Nom" type="text" value={nom} onChange={e => setNom(e.target.value)} placeholder="Nom *"

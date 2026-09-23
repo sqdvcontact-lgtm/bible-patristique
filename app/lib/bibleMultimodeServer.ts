@@ -1,5 +1,7 @@
 import 'server-only'
 
+import { createHash } from 'node:crypto'
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import {
@@ -14,6 +16,7 @@ import {
 } from './bibleMultimode'
 import type { BibleReadingMode, TranslationReadingCapabilities } from './bibleReadingModes'
 import { FILTRE_BIBLE_PUBLIABLE } from './etatsPublication'
+import { chargerToutesPagesSupabase } from './paginationSupabase'
 
 export type BibleReadingCatalog = {
   capabilities: Record<string, TranslationReadingCapabilities>
@@ -29,12 +32,71 @@ export type SourceReadingPayload = {
 }
 
 const BIBLE_CATALOG_CACHE_MS = 60_000
+/**
+ * TR0009 (le témoin de 1260) n'entre pas dans le catalogue comme les autres : la page
+ * Bible doit le lire AU VERSET, sans sélecteur de graphie ni mode source, le lecteur
+ * dédié `/manuscrits/bible-899` restant la surface d'étude (voir
+ * `withEditorialVerseCapability`).
+ * ⚠️ Ce n'est plus un RUSTINAGE du cache depuis que la vue annonce elle-même sa
+ * segmentation « verse » : c'est une décision de PRÉSENTATION, et la retirer rendrait au
+ * témoin ses modes `diplomatic`, `expanded` et `native` sur la page Bible.
+ */
 const PRIVATE_EDITORIAL_VERSE_TRANSLATION_IDS = ['TR0009'] as const
-let bibleCatalogCache: { expiresAt: number; promise: Promise<BibleReadingCatalog> } | null = null
+
+/** Au-delà, on balaie les clés périmées : quelques lecteurs suffisent à la remplir. */
+const CATALOGUE_MAX_ENTREES = 32
+
+/** Ce qu'une lecture paginée rend en cas d'échec : la forme d'une erreur PostgREST. */
+type ErreurLecture = { code?: string | null; message?: string } | null
+const bibleCatalogCache = new Map<string, { expiresAt: number; promise: Promise<BibleReadingCatalog> }>()
+
+/**
+ * La CLÉ du catalogue mis en cache : l'empreinte du jeton de session, ou « sans-session ».
+ *
+ * ⛔ `v_bible_reading_capabilities` est en `security_invoker` : ses trois tables de base
+ * portent, à côté de leur politique publique, une politique `is_admin()`. Ce qu'un
+ * administrateur y lit n'est donc pas ce qu'un lecteur y lit, et un cache de module SANS
+ * clé servait à tous ce que le PREMIER visiteur avait vu — capacités d'une source privée
+ * annoncées à tout le monde si l'admin passait en tête, bible manquante à l'admin sinon.
+ * ⚠️ Aujourd'hui les deux rôles voient les mêmes 834 lignes : la fuite est LATENTE, elle
+ * s'ouvrira au premier `test_only` ou à la première source non publiée.
+ *
+ * ⛔ La clé se prend sur le JETON, jamais sur le `sub` décodé : un cookie forgé porterait
+ * le `sub` d'un administrateur et se ferait servir SON catalogue. Deux requêtes qui
+ * portent le même jeton sont le même mandant, et un jeton forgé n'ouvre que sa propre
+ * entrée, que PostgREST refusera de toute façon.
+ * ⚠️ `getSession()` lit les cookies, sans aller-retour réseau — à la différence de
+ * `getUser()`.
+ */
+async function cleDuCatalogue(client: SupabaseClient): Promise<string> {
+  try {
+    const { data } = await client.auth.getSession()
+    const jeton = data.session?.access_token
+    if (!jeton) return 'sans-session'
+    return createHash('sha256').update(jeton).digest('base64url').slice(0, 24)
+  } catch {
+    return 'sans-session'
+  }
+}
 
 async function fetchBibleReadingCatalog(client: SupabaseClient): Promise<BibleReadingCatalog> {
   const [capabilitiesResult, sampleResult] = await Promise.all([
-    client.from('v_bible_reading_capabilities').select('*').order('display_order'),
+    // ⛔ PAGINÉE (2026-09-22) : la vue rendait 834 lignes pour un plafond PostgREST de
+    // 1 000, et la prochaine édition segmentée aurait fait disparaître une bible du menu
+    // SANS un mot. L'ordre est stable (`display_order` ne départage pas : la vue en a une
+    // ligne par source ET par mode), sinon deux pages pourraient se recouvrir.
+    chargerToutesPagesSupabase<ReadingCapabilityRow>((debut, fin) => client
+      .from('v_bible_reading_capabilities')
+      .select('*')
+      .order('display_order')
+      .order('source_id')
+      .order('mode_code')
+      .range(debut, fin) as unknown as PromiseLike<{ data: ReadingCapabilityRow[] | null; error: unknown }>)
+      .then((data) => ({ data, error: null as ErreurLecture }))
+      // ⚠️ `chargerToutesPagesSupabase` LÈVE l'erreur PostgREST telle quelle : on la
+      // rattrape pour garder la forme d'un résultat, `code` compris — c'est lui que
+      // `isMissingReadingCapabilitiesRelation` interroge.
+      .catch((error: unknown) => ({ data: null as ReadingCapabilityRow[] | null, error: error as ErreurLecture })),
     client.from('versets_lecture').select('*').limit(1),
   ])
   if (capabilitiesResult.error && !isMissingReadingCapabilitiesRelation(capabilitiesResult.error)) {
@@ -43,7 +105,7 @@ async function fetchBibleReadingCatalog(client: SupabaseClient): Promise<BibleRe
   if (sampleResult.error) {
     throw new Error(`Vue canonique illisible: ${sampleResult.error.message}`)
   }
-  const rows = (capabilitiesResult.data ?? []) as ReadingCapabilityRow[]
+  const rows = capabilitiesResult.data ?? []
   const canonicalIds = canonicalTranslationIdsFromSample(
     ((sampleResult.data ?? [])[0] as Record<string, unknown> | undefined) ?? null,
   )
@@ -57,15 +119,26 @@ async function fetchBibleReadingCatalog(client: SupabaseClient): Promise<BibleRe
 }
 
 export async function loadBibleReadingCatalog(client: SupabaseClient): Promise<BibleReadingCatalog> {
+  const cle = await cleDuCatalogue(client)
   const now = Date.now()
-  if (bibleCatalogCache && bibleCatalogCache.expiresAt > now) return bibleCatalogCache.promise
+  const enCache = bibleCatalogCache.get(cle)
+  if (enCache && enCache.expiresAt > now) return enCache.promise
+
+  for (const [autre, entree] of bibleCatalogCache) {
+    if (entree.expiresAt <= now) bibleCatalogCache.delete(autre)
+  }
 
   const promise = fetchBibleReadingCatalog(client)
-  bibleCatalogCache = { expiresAt: now + BIBLE_CATALOG_CACHE_MS, promise }
+  bibleCatalogCache.set(cle, { expiresAt: now + BIBLE_CATALOG_CACHE_MS, promise })
+  if (bibleCatalogCache.size > CATALOGUE_MAX_ENTREES) {
+    // La plus ancienne d'abord : une `Map` garde l'ordre d'insertion.
+    const [plusVieille] = bibleCatalogCache.keys()
+    if (plusVieille !== undefined && plusVieille !== cle) bibleCatalogCache.delete(plusVieille)
+  }
   try {
     return await promise
   } catch (error) {
-    if (bibleCatalogCache?.promise === promise) bibleCatalogCache = null
+    if (bibleCatalogCache.get(cle)?.promise === promise) bibleCatalogCache.delete(cle)
     throw error
   }
 }

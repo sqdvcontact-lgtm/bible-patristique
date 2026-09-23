@@ -24,13 +24,17 @@ import { lireRepere, PARAMETRE_REPERE } from '@/app/lib/repriseLecture'
 import { amenerAuCentre, annoncerReprise, poserEnHaut, positionDuDefileur, terminerReprise } from '@/app/lib/defilementLecture'
 import { signalerProgression } from './AnnonceHautsFaits'
 import { useEffect, useMemo, useRef } from 'react'
-import { supabase } from '@/app/lib/supabase'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { useSansSurvol } from '@/app/lib/useEstMobile'
-import { usePrelevementsDuChapitre } from '@/app/lib/prelevementsBibliques'
-import { ABREV_FR } from '@/app/lib/bible'
-import { citationBiblique, copierCitation } from '@/app/lib/citation'
-import { referenceDesVersets, texteDesVersets, UNITE_VERSETS } from '@/app/lib/selectionPassages'
+import { canonIdDeLigne, prelevementDuVerset, usePrelevementsDuChapitre } from '@/app/lib/prelevementsBibliques'
+import {
+  compterDejaPreleves, copierLeLasso, enregistrerLeLasso, retirerDuLasso,
+  type ContexteDuLasso, type PassageDuLasso,
+} from '@/app/lib/prelevementsLasso'
+import { texteLisibleDeLaBible } from '@/app/lib/texteLisible899'
+import { ABREV_FR, estLivreNonCanonique } from '@/app/lib/bible'
+import MarqueNonCanonique from './MarqueNonCanonique'
+import { UNITE_VERSETS } from '@/app/lib/selectionPassages'
 import { colonnesTouchees } from '@/app/lib/lasso'
 import { nomLangue } from '@/app/lib/bibleModesAlternatifs'
 import {
@@ -213,8 +217,13 @@ export default function LectureBilingueBible({
   // ⛔ Ne s'y sélectionne que ce qui s'enregistre un par un : un verset qui porte un texte
   // dans SA colonne et un numéro canonique. Une glose n'a pas de créneau (charte § 15.4),
   // et un créneau qu'une édition ne porte pas n'a rien à copier.
+  // ⛔ LE TEXTE EST CELUI QUE L'ÉCRAN MONTRE, marqueurs éditoriaux du témoin ôtés
+  // (charte § 50.3) : la cellule porte le texte BRUT, et copier ou prélever emportait
+  // « [lecture difficile : … ] » dans le presse-papiers et dans la base. Chaque colonne se
+  // normalise selon SA traduction (`texteLisibleDeLaBible`), le témoin recomposé comme sa
+  // traduction moderne.
   const cellulesDuLasso = useMemo(() => {
-    const table = new Map<string, { langue: string; label: string; texte: string; numero: number }>()
+    const table = new Map<string, PassageDuLasso>()
     for (const colonne of contenu.colonnes) {
       const code = colonne.membre.translationId
       for (const cellule of colonne.cellules) {
@@ -222,19 +231,19 @@ export default function LectureBilingueBible({
         const numero = numeroCanonique(cellule.canonId)
         if (numero === null) continue
         table.set(cleDeCelluleBilingue(code, cellule.canonId), {
-          langue: nomLangue(colonne.membre.languageCode),
-          label: colonne.membre.label || code,
-          texte: cellule.texte,
           numero,
+          texte: texteLisibleDeLaBible(cellule.texte, code),
+          label: colonne.membre.label || code,
+          canonId: canonIdDeLigne(cellule.canonId),
         })
       }
     }
     return table
   }, [contenu.colonnes])
 
-  const cellulesChoisies = (cles: readonly string[]) => cles
+  const passagesDuLasso = (cles: readonly string[]): PassageDuLasso[] => cles
     .map(cle => cellulesDuLasso.get(cle))
-    .filter((c): c is NonNullable<typeof c> => c !== undefined)
+    .filter((c): c is PassageDuLasso => c !== undefined)
 
   // ⛔ UNE CITATION NE MÊLE PAS DEUX LANGUES (demande de l'auteur, 20 septembre 2026).
   // ⚠️ La colonne se lit dans la CLÉ, non dans la table : une clé que la table ne connaît
@@ -248,15 +257,27 @@ export default function LectureBilingueBible({
     })
     return {
       titre: 'Une seule traduction à la fois',
-      detail: `Le lasso tient ${langues.join(' et ')} ensemble ; reprenez le geste dans une seule colonne.`,
+      detail: `Le lasso tient ${langues.join(' et ')} ensemble ; reprenez le geste dans une seule colonne.`,
     }
   }
 
-  // ⚠️ Le prélèvement vise la clé NATURELLE — ce lecteur, ce chapitre, ces versets —, comme
-  // en lecture simple : un verset se montre prélevé quelle que soit la colonne qu'on lit.
+  // ⚠️ Le prélèvement vise le CRÉNEAU CANONIQUE — ce lecteur, ce chapitre, ce créneau —,
+  // comme en lecture simple : un verset se montre prélevé quelle que soit la colonne qu'on
+  // lit, et « 8 » ne se confond pas avec la ligne propre à une édition « 8+ ».
   const abreviationLivre = ABREV_FR[livreActif] || livreActif
-  const numerosEnregistres = (cles: readonly string[]) =>
-    [...new Set(cellulesChoisies(cles).map(c => c.numero).filter(n => sauvegardes.has(n)))]
+  // ⛔ LES TROIS GESTES VIVENT DANS `prelevementsLasso.ts` (dette levée le 2026-09-22) :
+  // ils étaient recopiés mot pour mot depuis la lecture simple, et cette copie-ci avait
+  // déjà divergé — elle emportait le texte BRUT du témoin.
+  const contexteDuLasso = (): ContexteDuLasso => ({
+    userId, nomLivre, livreAbrege: abreviationLivre, chapitre: chapitreActif,
+    sauvegardes,
+    // La clé de la liste au DÉPART du geste : la réponse ne s'inscrit que sous elle.
+    cleDepart: clePrelevementsCourante,
+    modifierPour: modifierPrelevementsPour,
+    exigerCompte,
+  })
+  const dejaPreleves = (cles: readonly string[]) =>
+    compterDejaPreleves(sauvegardes, passagesDuLasso(cles))
 
   // ⛔ Les gestes REFUSENT eux aussi une sélection qui mêle deux colonnes : le lasso de la
   // souris n'offre alors aucune action, mais celui du doigt n'a pas de règle de refus à lui.
@@ -267,64 +288,44 @@ export default function LectureBilingueBible({
 
   const enregistrerLasso = async (cles: readonly string[]): Promise<number | null> => {
     garderUneColonne(cles)
-    if (!exigerCompte('prélever ces versets') || !userId) return null
-    const cleDepart = clePrelevementsCourante
-    const vus = new Set<number>()
-    const aEcrire = cellulesChoisies(cles).filter(c => {
-      if (sauvegardes.has(c.numero) || vus.has(c.numero)) return false
-      vus.add(c.numero)
-      return true
-    })
-    if (aEcrire.length === 0) return 0
-    const { data, error } = await supabase.from('prelevements').insert(aEcrire.map(c => ({
-      user_id: userId, type: 'biblique',
-      ref_livre: nomLivre, ref_livre_abr: abreviationLivre,
-      ref_chapitre: chapitreActif, ref_verset: c.numero,
-      texte: c.texte, traduction: c.label,
-    }))).select('id, ref_verset')
-    if (error) throw error
-    modifierPrelevementsPour(cleDepart, prev => {
-      const suite = new Map(prev)
-      for (const ligne of (data ?? []) as { id: string; ref_verset: number }[]) suite.set(ligne.ref_verset, ligne.id)
-      return suite
-    })
-    signalerProgression()
-    return aEcrire.length
+    const faits = await enregistrerLeLasso(contexteDuLasso(), passagesDuLasso(cles))
+    if (faits) signalerProgression()
+    return faits
   }
 
-  const retirerLasso = async (cles: readonly string[]): Promise<number | null> => {
+  const retirerLasso = (cles: readonly string[]): Promise<number | null> => {
     garderUneColonne(cles)
-    if (!userId) return null
-    const cleDepart = clePrelevementsCourante
-    const numeros = numerosEnregistres(cles)
-    if (numeros.length === 0) return 0
-    const { error } = await supabase.from('prelevements').delete()
-      .eq('user_id', userId).eq('type', 'biblique')
-      .eq('ref_livre_abr', abreviationLivre).eq('ref_chapitre', chapitreActif)
-      .in('ref_verset', numeros)
-    if (error) throw error
-    modifierPrelevementsPour(cleDepart, prev => {
-      const suite = new Map(prev)
-      for (const n of numeros) suite.delete(n)
-      return suite
-    })
-    return numeros.length
+    return retirerDuLasso(contexteDuLasso(), passagesDuLasso(cles))
   }
 
   // La citation d'une sélection : « … » (Gn 1, 3-5.7), une élision là où un verset manque.
-  const copierLasso = async (cles: readonly string[]) => {
+  const copierLasso = (cles: readonly string[]) => {
     garderUneColonne(cles)
-    const choisies = cellulesChoisies(cles)
-    if (choisies.length === 0) return
-    await copierCitation(citationBiblique(
-      texteDesVersets(choisies.map(c => ({ numero: c.numero, texte: c.texte }))),
-      `${abreviationLivre || nomLivre} ${chapitreActif}, ${referenceDesVersets(choisies.map(c => c.numero))}`,
-    ))
+    return copierLeLasso(contexteDuLasso(), passagesDuLasso(cles))
   }
 
   // La copie d’une seule cellule, depuis son bouton au survol (bureau) : la citation du
   // lasso, réduite à un verset.
   const copierCellule = (cle: string) => copierLasso([cle])
+
+  // ⛔ LE SIGNET D'UNE CELLULE (audit du 2026-09-22) : la lecture en regard chargeait les
+  // prélèvements du chapitre sans jamais les MONTRER — aucun signet sur le numéro, aucun
+  // geste par verset — quand la lecture simple en porte quatre. Le geste est celui du
+  // lasso, réduit à une cellule : le texte et la bible mis de côté sont ceux de SA colonne,
+  // et le créneau canonique est la clé, comme en lecture simple.
+  const prelevementDeLaRangee = (canonId: string) => {
+    // ⚠️ Un créneau sans numéro canonique n'a pas de clé sous laquelle se ranger : il ne
+    // se prélève pas, et il ne se montre donc jamais prélevé.
+    const numero = numeroCanonique(canonId)
+    return numero === null ? null : prelevementDuVerset(sauvegardes, canonIdDeLigne(canonId), numero)
+  }
+  const basculerPrelevement = async (cle: string) => {
+    const passage = cellulesDuLasso.get(cle)
+    if (!passage) return
+    const preleve = prelevementDuVerset(sauvegardes, passage.canonId, passage.numero) !== null
+    if (preleve) await retirerLasso([cle])
+    else await enregistrerLasso([cle])
+  }
 
   return (
     <div
@@ -356,7 +357,7 @@ export default function LectureBilingueBible({
             {/* Mêmes flèches qu'en lecture simple : à une borne, chevron en place, grisé, inerte. */}
             <FlecheChapitre sens="precedent" variante="entete" cible={voisins.precedent} onAller={naviguer} />
             <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px', lineHeight: INTERLIGNE_TITRE_CHAPITRE }}>
-              <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>{nomLivre}</span>
+              <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>{nomLivre}{estLivreNonCanonique(livreActif) && <MarqueNonCanonique />}</span>
               <span aria-hidden="true" style={{ color: 'var(--cs-or-doux)', fontSize: '1.25rem', lineHeight: 1 }}>❧</span>
               {/* Même voix éditoriale que la lecture simple : le chapitre ne
                   redevient pas vert parce que le texte passe en deux colonnes. */}
@@ -418,7 +419,7 @@ export default function LectureBilingueBible({
             ? { maxWidth: '100%', margin: '0 auto' }
             : { width: `min(calc(var(--mesure-page) + ${GOUTTIERE_ACTIONS_VERSET}), 100%)`, margin: '0 auto', display: 'grid', gridTemplateColumns: `minmax(0, var(--mesure-page)) ${GOUTTIERE_ACTIONS_VERSET}` }}
         >
-          <BibleBilingue {...contenu} mobile={mobile || colonnesEtroites} copierCellule={copierCellule} />
+          <BibleBilingue {...contenu} mobile={mobile || colonnesEtroites} copierCellule={copierCellule} prelevementDe={prelevementDeLaRangee} basculerPrelevement={basculerPrelevement} />
           {/* Sous le dernier verset, les chapitres voisins, nommés (audit du 2026-09-21).
               ⚠️ Dans la PREMIÈRE colonne de la grille : la seconde est la gouttière. */}
           <div style={mobile ? undefined : { gridColumn: 1 }}>
@@ -442,7 +443,7 @@ export default function LectureBilingueBible({
         unite={UNITE_VERSETS}
         gouttiere={GOUTTIERE_ACTIONS_VERSET}
         refus={refusDuLasso}
-        dejaEnregistres={cles => numerosEnregistres(cles).length}
+        dejaEnregistres={dejaPreleves}
         onEnregistrer={enregistrerLasso}
         onRetirer={retirerLasso}
         onCopier={copierLasso}
@@ -457,7 +458,7 @@ export default function LectureBilingueBible({
         cleDe={cleTactile}
         surbrillance={cle => `[data-lasso-cellule="${cle}"]`}
         unite={UNITE_VERSETS}
-        dejaEnregistres={cles => numerosEnregistres(cles).length}
+        dejaEnregistres={dejaPreleves}
         onEnregistrer={enregistrerLasso}
         onRetirer={retirerLasso}
         onCopier={copierLasso}

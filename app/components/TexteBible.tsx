@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic'
 import { useSearchParams } from 'next/navigation'
 import { amenerAuCentre, annoncerReprise, poserEnHaut, positionDuDefileur, terminerReprise } from '@/app/lib/defilementLecture'
 import { lireRepere, PARAMETRE_REPERE } from '@/app/lib/repriseLecture'
-import { texteLisible899 } from '@/app/lib/texteLisible899'
+import { texteLisible899, texteLisibleModerne899 } from '@/app/lib/texteLisible899'
 import { cesurerSelonLangue, useLangueBible } from '@/app/lib/langueBible'
 import { copierSansCesures } from '@/app/lib/grec'
 import { EclatEchec, STYLE_HOTE_ECHEC, useEclatEchec } from '@/app/components/EclatEchec'
@@ -18,9 +18,15 @@ import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin"
 import { useCompte } from "@/app/lib/contexteCompte"
 import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile"
 import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
-import { citationBiblique, copierCitation } from "@/app/lib/citation"
-import { usePrelevementsDuChapitre } from "@/app/lib/prelevementsBibliques"
-import { referenceDesVersets, texteDesVersets, UNITE_VERSETS } from "@/app/lib/selectionPassages"
+import { citationBiblique } from "@/app/lib/citation"
+import { canonIdDeLigne, cleVersetPreleve, prelevementDuVerset, usePrelevementsDuChapitre } from "@/app/lib/prelevementsBibliques"
+import { libelleNumeroVerset } from "@/app/lib/libelleVerset"
+export { libelleNumeroVerset }
+import {
+  compterDejaPreleves, copierLeLasso, enregistrerLeLasso, retirerDuLasso,
+  type ContexteDuLasso, type PassageDuLasso,
+} from "@/app/lib/prelevementsLasso"
+import { UNITE_VERSETS } from "@/app/lib/selectionPassages"
 import LassoLecture from '@/app/components/LassoLecture'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 
@@ -274,7 +280,7 @@ function BoutonFacsimile({ reference, debut, fin }: { reference: string; debut: 
 // ── Bouton enregistrer ────────────────────────────────────────────────────────
 function BoutonEnregistrer({
   verset, texte, nomLivre, livreActif, chapitreActif, userId,
-  traductionLabel, dejaSauvegarde, idPrelevement, onSauvegarde, onSupprimer,
+  traductionLabel, canonId, dejaSauvegarde, idPrelevement, onSauvegarde, onSupprimer,
 }: {
   verset: Verset
   /** Le texte tel que la page le montre, corrections de l'administrateur comprises
@@ -283,6 +289,9 @@ function BoutonEnregistrer({
   nomLivre: string; livreActif: string
   chapitreActif: number; userId: string
   traductionLabel: string
+  /** Le créneau canonique de la ligne (« DAN.13.44+ »), ce qui distingue le verset
+   *  « 8 » de la ligne propre à une édition « 8+ » (voir `prelevementsBibliques`). */
+  canonId: string | null
   dejaSauvegarde: boolean; idPrelevement: string | null
   onSauvegarde: (id: string) => void; onSupprimer: () => void
 }) {
@@ -331,6 +340,7 @@ function BoutonEnregistrer({
       user_id: userId, type: 'biblique',
       ref_livre: nomLivre, ref_livre_abr: abr,
       ref_chapitre: chapitreActif, ref_verset: verset.verset,
+      canon_id: canonId,
       texte, traduction: traductionLabel,
     }).select('id').single()
     setLoading(false)
@@ -355,18 +365,17 @@ function BoutonEnregistrer({
   )
 }
 
-/** Le nom du numéro d'un verset, pour qui ne voit pas la page : son numéro, la
- *  numérotation d'une autre tradition s'il en porte une, et l'état prélevé. */
-export function libelleNumeroVerset(
-  v: { verset: number; chapitre_alternatif?: number | null; verset_alternatif?: number | null },
-  preleve: boolean,
-): string {
-  let libelle = `Verset ${v.verset}`
-  if (v.chapitre_alternatif != null) {
-    libelle += ` (autre numérotation : ${v.chapitre_alternatif}${v.verset_alternatif != null ? `, ${v.verset_alternatif}` : ''})`
-  }
-  return preleve ? `${libelle}, prélevé` : libelle
-}
+// ── LE COMPTEUR DE LECTURES ───────────────────────────────────────────────────
+// ⛔ LE COMPTEUR NE COMPTE QUE LES LECTEURS CONNECTÉS (décision de l'auteur,
+// 2026-09-22) : un visiteur sans compte n'appelle pas la route du tout. Elle exige
+// une session depuis l'audit du même jour et répondrait 401.
+// ⛔ ET UNE LECTURE NE SE COMPTE QU'UNE FOIS PAR SESSION : la route dédoublonne en
+// base sur vingt-quatre heures, mais chaque sélection de verset partait quand même,
+// si bien qu'un aller-retour entre deux versets en envoyait autant que de clics. La
+// mémoire vit au niveau du MODULE : elle survit au remontage du composant qu'un
+// changement de chapitre provoque.
+const LECTURES_ENVOYEES = new Set<string>()
+
 
 // ── Composant principal ───────────────────────────────────────────────────────
 export default function TexteBible({
@@ -413,6 +422,34 @@ export default function TexteBible({
   // au-dessus, il passerait dessous, et ses boutons seraient couverts. Il descend
   // alors sous le verset. Mesuré au tap : la place ne change qu'en défilant.
   const [actionsDessous, setActionsDessous] = useState(false)
+
+  // ⛔ LE PAVÉ SE FERME PAR TOUT CE QUI DIT « JE PASSE À AUTRE CHOSE » (audit du
+  // 2026-09-22). Il ne se refermait qu'en RETOUCHANT le même verset : un tap à côté, un
+  // défilement, Échap le laissaient ouvert, posé sur la ligne du dessus, et le lecteur
+  // n'avait aucun moyen de s'en défaire sans revenir à son point de départ.
+  // ⚠️ Un tap sur une AUTRE rangée n'est pas traité ici : la rangée elle-même ouvre son
+  // propre pavé, et fermer d'abord ferait clignoter le pavé entre les deux.
+  useEffect(() => {
+    if (!actionsMobileId) return
+    const fermer = () => { setActionsMobileId(null); setVersetSelectionne(null) }
+    const dehors = (e: PointerEvent) => {
+      const cible = e.target instanceof Element ? e.target : null
+      // La barre du lasso vit hors des rangées : la toucher n'est pas « passer à autre chose ».
+      if (cible?.closest('.verset-row, .verset-actions, .cs-lasso-barre')) return
+      fermer()
+    }
+    const auClavier = (e: KeyboardEvent) => { if (e.key === 'Escape') fermer() }
+    // ⚠️ En CAPTURE : un défilement ne remonte pas, mais il descend, et c'est le seul moyen
+    // d'entendre le défileur interne de la colonne comme celui de la page.
+    window.addEventListener('pointerdown', dehors, true)
+    window.addEventListener('scroll', fermer, { capture: true, passive: true })
+    window.addEventListener('keydown', auClavier)
+    return () => {
+      window.removeEventListener('pointerdown', dehors, true)
+      window.removeEventListener('scroll', fermer, true)
+      window.removeEventListener('keydown', auClavier)
+    }
+  }, [actionsMobileId, setVersetSelectionne])
 
   // ── OÙ LES PÈRES PARLENT ───────────────────────────────────────────────────
   // 37 % du canon porte un renvoi patristique, et la page n'en laissait rien voir : on
@@ -557,12 +594,33 @@ export default function TexteBible({
 
   // Les gestes retiennent la clé de la liste AU MOMENT DU RENDU qui les a portés : une
   // réponse arrivée après un changement de chapitre ne touche pas la liste suivante.
-  const marquerSauvegarde = (cle: string | null, numVerset: number, id: string) => {
-    modifierPrelevementsPour(cle, prev => new Map([...prev, [numVerset, id]]))
+  const marquerSauvegarde = (cle: string | null, cleVerset: string, id: string) => {
+    modifierPrelevementsPour(cle, prev => new Map([...prev, [cleVerset, id]]))
   }
 
-  const retirerSauvegarde = (cle: string | null, numVerset: number) => {
-    modifierPrelevementsPour(cle, prev => { const n = new Map(prev); n.delete(numVerset); return n })
+  const retirerSauvegarde = (cle: string | null, cleVerset: string) => {
+    modifierPrelevementsPour(cle, prev => { const n = new Map(prev); n.delete(cleVerset); return n })
+  }
+
+  // Le compteur de lectures : une fois par verset et par session, avec le jeton, et
+  // seulement pour un lecteur connecté (voir `LECTURES_ENVOYEES`).
+  const compterLecture = async (idVerset: string) => {
+    if (!userId || LECTURES_ENVOYEES.has(idVerset)) return
+    LECTURES_ENVOYEES.add(idVerset)
+    try {
+      const { data } = await supabase.auth.getSession()
+      const jeton = data.session?.access_token
+      const res = await fetch('/api/versets/incrementer-lecture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(jeton ? { Authorization: `Bearer ${jeton}` } : {}) },
+        body: JSON.stringify({ id_verset: idVerset }),
+      })
+      // ⚠️ Un 429 se DIT : avalé, un freinage se confond avec un compteur qui marche.
+      if (res.status === 429) console.warn('[lecture] compteur freiné (429)', idVerset)
+      else if (!res.ok) console.error('[lecture] compteur', res.status, idVerset)
+    } catch (erreur) {
+      console.error('[lecture] compteur', erreur)
+    }
   }
 
   const traductionActive = traductions[traductionIndex]
@@ -695,9 +753,15 @@ export default function TexteBible({
   // ⛔ Ce qui SORT de la page (copie, prélèvement, lasso, signalement) est le texte qu'elle
   // MONTRE. Une ligne du témoin porte ses marqueurs éditoriaux bruts (« [lecture
   // incertaine : …] »), que l'écran rend d'une teinte : `texteLisible899` en rend le texte.
+  // ⛔ ET SA TRADUCTION MODERNE AUSSI (audit du 2026-09-22) : 1 811 versets de TR0013
+  // portent les mêmes marqueurs en clair, que `marquerLacunesDuTemoin` met en forme à
+  // l'écran et que la copie emportait bruts, termes d'atelier compris. La ligne recomposée
+  // se reconnaît à `_est899`, la traduction moderne au code de la bible : ce ne sont pas
+  // les mêmes automates (voir `texteLisibleModerne899`).
   const texteDuVerset = (v: Verset) => {
     const brut = String(overrides[v.id_verset]?.[traduction] ?? v[traduction] ?? '')
-    return estLigne899(v) ? texteLisible899(brut) : brut
+    if (estLigne899(v)) return texteLisible899(brut)
+    return lacunesEnClair ? texteLisibleModerne899(brut) : brut
   }
   const versetsParId = useMemo(() => new Map(versets.map(v => [v.id_verset, v])), [versets])
   // ⛔ L'IDENTIFIANT `verset-N` NE SE DONNE QU'AU VERSET HÔTE : une glose partage le
@@ -718,65 +782,40 @@ export default function TexteBible({
   const versetsDuLasso = (cles: readonly string[]) =>
     cles.map(cle => versetsParId.get(cle)).filter((v): v is Verset => v !== undefined)
   const abreviationLivre = ABREV_FR[livreActif] || livreActif
-  const numerosEnregistres = (cles: readonly string[]) =>
-    [...new Set(versetsDuLasso(cles).map(v => v.verset).filter(n => sauvegardes.has(n)))]
+  // ⛔ LES TROIS GESTES VIVENT DANS `prelevementsLasso.ts` (dette levée le 2026-09-22) :
+  // ils étaient recopiés mot pour mot en lecture en regard, et la copie avait déjà
+  // divergé. La page ne garde que la CUEILLETTE — ce qu'elle sait, et elle seule : quelles
+  // lignes ces clés désignent, et quel texte l'écran en montre.
+  const passagesDuLasso = (cles: readonly string[]): PassageDuLasso[] =>
+    versetsDuLasso(cles).map(v => ({
+      numero: v.verset,
+      texte: texteDuVerset(v),
+      label: traductionLabel,
+      canonId: canonIdDeLigne(v.id_verset),
+    }))
+  const contexteDuLasso = (): ContexteDuLasso => ({
+    userId, nomLivre, livreAbrege: abreviationLivre, chapitre: chapitreActif,
+    sauvegardes,
+    // La clé de la liste au DÉPART du geste : la réponse ne s'inscrit que sous elle.
+    cleDepart: clePrelevementsCourante,
+    modifierPour: modifierPrelevementsPour,
+    exigerCompte,
+  })
+  const dejaPreleves = (cles: readonly string[]) =>
+    compterDejaPreleves(sauvegardes, passagesDuLasso(cles))
 
   const enregistrerLasso = async (cles: readonly string[]): Promise<number | null> => {
-    if (!exigerCompte('prélever ces versets') || !userId) return null
-    // La clé de la liste au DÉPART du geste : la réponse ne s'inscrit que sous elle.
-    const cleDepart = clePrelevementsCourante
-    const vus = new Set<number>()
-    const aEcrire = versetsDuLasso(cles).filter(v => {
-      if (sauvegardes.has(v.verset) || vus.has(v.verset)) return false
-      vus.add(v.verset)
-      return true
-    })
-    if (aEcrire.length === 0) return 0
-    const { data, error } = await supabase.from('prelevements').insert(aEcrire.map(v => ({
-      user_id: userId, type: 'biblique',
-      ref_livre: nomLivre, ref_livre_abr: abreviationLivre,
-      ref_chapitre: chapitreActif, ref_verset: v.verset,
-      texte: texteDuVerset(v), traduction: traductionLabel,
-    }))).select('id, ref_verset')
-    if (error) throw error
-    modifierPrelevementsPour(cleDepart, prev => {
-      const suite = new Map(prev)
-      for (const ligne of (data ?? []) as { id: string; ref_verset: number }[]) suite.set(ligne.ref_verset, ligne.id)
-      return suite
-    })
-    signalerProgression()
-    return aEcrire.length
+    const faits = await enregistrerLeLasso(contexteDuLasso(), passagesDuLasso(cles))
+    if (faits) signalerProgression()
+    return faits
   }
 
-  // ⚠️ Le retrait vise la clé NATURELLE — ce lecteur, ce chapitre, ces versets —, comme le
-  // signet le montre : un verset se montre prélevé quelle que soit la traduction retenue.
-  const retirerLasso = async (cles: readonly string[]): Promise<number | null> => {
-    if (!userId) return null
-    const cleDepart = clePrelevementsCourante
-    const numeros = numerosEnregistres(cles)
-    if (numeros.length === 0) return 0
-    const { error } = await supabase.from('prelevements').delete()
-      .eq('user_id', userId).eq('type', 'biblique')
-      .eq('ref_livre_abr', abreviationLivre).eq('ref_chapitre', chapitreActif)
-      .in('ref_verset', numeros)
-    if (error) throw error
-    modifierPrelevementsPour(cleDepart, prev => {
-      const suite = new Map(prev)
-      for (const n of numeros) suite.delete(n)
-      return suite
-    })
-    return numeros.length
-  }
+  const retirerLasso = (cles: readonly string[]): Promise<number | null> =>
+    retirerDuLasso(contexteDuLasso(), passagesDuLasso(cles))
 
   // La citation d'une sélection : « … » (Gn 1, 3-5.7), une élision là où un verset manque.
-  const copierLasso = async (cles: readonly string[]) => {
-    const choisis = versetsDuLasso(cles)
-    if (choisis.length === 0) return
-    await copierCitation(citationBiblique(
-      texteDesVersets(choisis.map(v => ({ numero: v.verset, texte: texteDuVerset(v) }))),
-      `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${referenceDesVersets(choisis.map(v => v.verset))}`,
-    ))
-  }
+  const copierLasso = (cles: readonly string[]) =>
+    copierLeLasso(contexteDuLasso(), passagesDuLasso(cles))
 
   return (
     <div className={mobile ? 'flex flex-col' : 'flex-1 flex flex-col h-full overflow-hidden'} style={{ background: 'var(--cs-fond)', ...(mobile ? { width: '100%', paddingTop: '2.875rem', paddingBottom: `calc(0.75rem + ${BANDEAU_NAV_MOBILE})` } : {}) }}>
@@ -1007,15 +1046,16 @@ export default function TexteBible({
             const notesDuVerset = notesParCanon.get(v.id_verset) ?? []
             // Une seule lecture de la densité par rangée.
             const densite = densites.get(v.id_verset)
+            // ⛔ LE SIGNET SE CLÉ SUR LE CRÉNEAU, non sur le numéro : « 8 » et la ligne
+            // propre à une édition « 8+ » le partagent (voir `prelevementsBibliques`).
+            const canonVerset = canonIdDeLigne(v.id_verset)
+            const idPreleve = prelevementDuVerset(sauvegardes, canonVerset, v.verset)
             // ⛔ Un appel se pose à l'ANCRE que la donnée déclare ; sans ancre lisible, il suit le verset.
             const appelsDuVerset = repartirAppels(!lacune && !ligne899 ? texteDuVerset(v) : '', notesDuVerset)
             const dansLeLasso = (lassoActif || lassoTactileActif) && !lacune && Boolean(overrides[v.id_verset]?.[traduction] ?? v[traduction])
             // Retenir le verset : au clic sur la rangée, ou au clavier sur son numéro.
             const choisirVerset = (e?: { currentTarget: Element }) => {
-              const incrementer = () => fetch('/api/versets/incrementer-lecture', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id_verset: v.id_verset }),
-              }).catch(() => {})
+              const incrementer = () => compterLecture(v.id_verset)
               if (mobile) {
                 // Sur mobile, un tap sélectionne le verset ET fait apparaître
                 // immédiatement le pavé d'actions ; un second tap referme.
@@ -1076,10 +1116,11 @@ export default function TexteBible({
                           verset={v} texte={texteDuVerset(v)} nomLivre={nomLivre} livreActif={livreActif}
                           chapitreActif={chapitreActif} userId={userId}
                           traductionLabel={traductionLabel}
-                          dejaSauvegarde={sauvegardes.has(v.verset)}
-                          idPrelevement={sauvegardes.get(v.verset) ?? null}
-                          onSauvegarde={(id) => marquerSauvegarde(clePrelevementsCourante, v.verset, id)}
-                          onSupprimer={() => retirerSauvegarde(clePrelevementsCourante, v.verset)}
+                          canonId={canonVerset}
+                          dejaSauvegarde={idPreleve !== null}
+                          idPrelevement={idPreleve}
+                          onSauvegarde={(id) => marquerSauvegarde(clePrelevementsCourante, cleVersetPreleve(canonVerset, v.verset), id)}
+                          onSupprimer={() => retirerSauvegarde(clePrelevementsCourante, cleVersetPreleve(canonVerset, v.verset))}
                         />
                       )}
                       <BoutonCopie texte={citationBiblique(
@@ -1123,10 +1164,10 @@ export default function TexteBible({
                       ici, que naît le lasso (`LassoTactile`) ; l'appui long sur le texte reste
                       à la sélection native, pour copier une demi-phrase. */}
                   <span style={STYLE_NUMERO_VERSET} role="button" tabIndex={0} aria-pressed={actif}
-                    aria-label={libelleNumeroVerset(v, sauvegardes.has(v.verset))}
+                    aria-label={libelleNumeroVerset(v, idPreleve !== null)}
                     data-lasso-depart={lassoTactileActif ? '' : undefined}
                     onKeyDown={e => activerAuClavier(e, choisirVerset)}>
-                    {!mobile && sauvegardes.has(v.verset) && (
+                    {!mobile && idPreleve !== null && (
                       <span aria-hidden="true" title="Dans mes prélèvements" style={STYLE_SIGNET_VERSET}>
                         <IconeSignet plein taille="100%" />
                       </span>
@@ -1210,7 +1251,7 @@ export default function TexteBible({
         horsLasso=".verset-row, .cs-bible-bloc"
         unite={UNITE_VERSETS}
         gouttiere={GOUTTIERE_ACTIONS_VERSET}
-        dejaEnregistres={cles => numerosEnregistres(cles).length}
+        dejaEnregistres={dejaPreleves}
         onEnregistrer={enregistrerLasso}
         onRetirer={retirerLasso}
         onCopier={copierLasso}
@@ -1223,7 +1264,7 @@ export default function TexteBible({
         cleDe={element => element.getAttribute('data-lasso-verset')}
         surbrillance={cle => `[data-lasso-verset="${cle}"]`}
         unite={UNITE_VERSETS}
-        dejaEnregistres={cles => numerosEnregistres(cles).length}
+        dejaEnregistres={dejaPreleves}
         onEnregistrer={enregistrerLasso}
         onRetirer={retirerLasso}
         onCopier={copierLasso}

@@ -71,13 +71,13 @@ export function BoutonEnregistrerSegment({
 
   if (dejaSauvegarde) {
     return (
-      <Bulle texte="Retirer des prélèvements">
+      <Bulle texte="Retirer de mes prélèvements">
         <button onClick={supprimer} disabled={loading}
           className="seg-btn-enreg"
           // Visible dans la cellule d'actions : le signet plein constate un état. Il est
           // GRIS, comme sur la page Bible (décision de l'auteur, 21 septembre 2026).
           style={{ ...BTN_STYLE, color:'var(--cs-texte-doux)', opacity:1 }}
-          aria-label="Retirer des prélèvements">{loading ? '…' : <IconeSignet plein />}</button>
+          aria-label="Retirer de mes prélèvements">{loading ? '…' : <IconeSignet plein />}</button>
       </Bulle>
     )
   }
@@ -97,11 +97,11 @@ export function BoutonEnregistrerSegment({
   }
 
   return (
-    <Bulle texte="Enregistrer dans mes prélèvements">
+    <Bulle texte="Ajouter à mes prélèvements">
       <button onClick={enregistrer} disabled={loading}
         className="seg-btn-enreg"
         style={{ ...BTN_STYLE, color:'var(--cs-bord)' }}
-        aria-label="Enregistrer">
+        aria-label="Ajouter à mes prélèvements">
         {loading ? '…' : <IconeSignet />}
       </button>
     </Bulle>

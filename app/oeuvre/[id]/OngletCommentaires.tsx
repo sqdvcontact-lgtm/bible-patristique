@@ -18,6 +18,7 @@ import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, formeCommentaire } from '@/app/lib/styleCommentaire'
 import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
+import BoutonSupprimerCommentaire from '@/app/components/BoutonSupprimerCommentaire'
 
 // Pas plus de 5 majuscules consécutives (accentuées comprises).
 const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
@@ -164,7 +165,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     // vue ne rend que des identifiants, et elle filtre déjà sur le choix du lecteur de
     // la montrer ou non. Voir app/components/MarqueMecene.tsx.
     // ⛔ La table `commentaires_likes` ne rend plus que SA PROPRE ligne (migration
-    // 20260922190000) : les totaux viennent de `totaux_votes_commentaires`, qui ne dit ni
+    // 20260922164940_votes_prives_index_redondant) : les totaux viennent de `totaux_votes_commentaires`, qui ne dit ni
     // qui a voté ni quoi, et le vote du lecteur se lit à part.
     const [classementRes, totauxRes, mesVotesRes, mecenesRes] = await Promise.all([
       idsUtilisateurs.length > 0
@@ -245,7 +246,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
       return { ...x, nbLikes, nbDislikes, monVote: retire ? null : valeur }
     }))
     // L'upsert change un vote existant grâce à la politique UPDATE `likes_modification`
-    // (migration 20260922190000) ; avant elle, il échouait sans bruit.
+    // (migration 20260922164940_votes_prives_index_redondant) ; avant elle, il échouait sans bruit.
     const { error } = retire
       ? await supabase.from('commentaires_likes').delete().eq('id_commentaire', c.id).eq('user_id', userId)
       : await supabase.from('commentaires_likes').upsert({ id_commentaire: c.id, user_id: userId, valeur }, { onConflict: 'id_commentaire,user_id' })
@@ -256,23 +257,44 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
     }
   }
 
-  const supprimerCommentaire = async (c: CommentaireAvecAuteur) => {
-    if (!confirm('Supprimer définitivement ce commentaire ?')) return
+  // ⛔ La route retire le commentaire ET SES RÉPONSES (elles revenaient sinon au premier
+  // niveau, orphelines) ; la question le dit, et un refus se dit à l'écran.
+  const supprimerCommentaire = async (c: CommentaireAvecAuteur): Promise<boolean> => {
+    const nbReponses = commentaires.filter(x => x.reponse_a === c.id).length
+    const question = nbReponses === 0
+      ? 'Supprimer définitivement ce commentaire ?'
+      : `Supprimer définitivement ce commentaire ? ${nbReponses === 1 ? 'Sa réponse part' : `Ses ${nbReponses} réponses partent`} avec lui.`
+    if (!confirm(question)) return true
     const { data: session } = await supabase.auth.getSession()
     const token = session.session?.access_token
     const res = await fetch('/api/admin/commentaire-supprimer', {
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ id: c.id }),
-    })
-    if (res.ok) setCommentaires(prev => prev.filter(x => x.id !== c.id && x.reponse_a !== c.id))
+    }).catch(() => null)
+    if (res?.ok && !res.redirected) {
+      setCommentaires(prev => prev.filter(x => x.id !== c.id && x.reponse_a !== c.id))
+      return true
+    }
+    console.error('[discussion] suppression refusée :', res?.status ?? 'réseau')
+    return false
   }
 
-  // Suppression par son propre auteur : la ligne reste (fil des réponses
-  // préservé), seul le texte est remplacé par une mention grisée.
-  const supprimerMonCommentaire = async (c: CommentaireAvecAuteur) => {
-    if (!confirm('Supprimer ce commentaire ? Il restera visible en tant que « commentaire supprimé ».')) return
+  // Suppression par son propre auteur : la ligne reste (fil des réponses préservé).
+  // ⛔ LA QUESTION DIT CE QUI S'AFFICHERA (2026-09-22) : la carte ne porte pas la mention
+  // « commentaire supprimé », elle écrit « X a supprimé un commentaire ». Et l'on dit ce
+  // qu'il advient des réponses — ici elles RESTENT, à la différence d'une suppression par
+  // la modération, qui les emporte.
+  const supprimerMonCommentaire = async (c: CommentaireAvecAuteur): Promise<boolean> => {
+    const nom = c.pseudo ?? 'Un utilisateur'
+    const nbReponses = commentaires.filter(x => x.reponse_a === c.id).length
+    const sortDesReponses = nbReponses === 0 ? ''
+      : nbReponses === 1 ? ' Sa réponse restera.'
+      : ` Ses ${nbReponses} réponses resteront.`
+    if (!confirm(`Supprimer ce commentaire ? À sa place, on lira « ${nom} a supprimé un commentaire ».${sortDesReponses}`)) return true
     const { error } = await supabase.from('commentaires').update({ supprime: true }).eq('id', c.id)
-    if (!error) setCommentaires(prev => prev.map(x => x.id === c.id ? { ...x, supprime: true } : x))
+    if (!error) { setCommentaires(prev => prev.map(x => x.id === c.id ? { ...x, supprime: true } : x)); return true }
+    console.error('[discussion] suppression refusée :', error)
+    return false
   }
 
   const soumettre = async () => {
@@ -389,16 +411,12 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
             </button>
           )}
           {userId === c.user_id && (
-            <button onClick={() => supprimerMonCommentaire(c)} title="Supprimer mon commentaire"
-              style={{ ...ACTION_COMMENTAIRE, marginLeft: 'auto' }}>
-              Supprimer
-            </button>
+            <BoutonSupprimerCommentaire libelle="Supprimer" titre="Supprimer mon commentaire" couleur={ACTION_COMMENTAIRE.color as string}
+              marge="auto" onSupprimer={() => supprimerMonCommentaire(c)} />
           )}
           {estAdmin && userId !== c.user_id && (
-            <button onClick={() => supprimerCommentaire(c)} title="Supprimer ce commentaire"
-              style={{ ...ACTION_COMMENTAIRE, color: 'var(--cs-danger)', marginLeft: 'auto' }}>
-              Supprimer (admin)
-            </button>
+            <BoutonSupprimerCommentaire libelle="Supprimer (admin)" titre="Supprimer ce commentaire et ses réponses" couleur="var(--cs-danger)"
+              marge="auto" onSupprimer={() => supprimerCommentaire(c)} />
           )}
           <button onClick={() => { if (exigerCompte('signaler ce commentaire')) setCommentaireSignale(c) }} title="Signaler ce commentaire"
             style={{ ...ACTION_COMMENTAIRE, color: 'var(--cs-bord)', marginLeft: aDesActionsADroite ? 0 : 'auto', display: 'inline-flex', alignItems: 'center' }}>

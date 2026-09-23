@@ -85,10 +85,10 @@ export function libelleSelection(nombre: number, unite: readonly [string, string
   return `${compter(nombre, unite)} sélectionné${nombre > 1 ? 's' : ''}`
 }
 
-/** « 7 versets enregistrés », « 1 passage retiré ». */
+/** « 7 versets prélevés », « 1 passage retiré ». */
 export function libelleResultat(
   nombre: number, unite: readonly [string, string], action: 'enregistre' | 'retire',
 ): string {
-  const participe = action === 'enregistre' ? 'enregistré' : 'retiré'
+  const participe = action === 'enregistre' ? 'prélevé' : 'retiré'
   return `${compter(nombre, unite)} ${participe}${nombre > 1 ? 's' : ''}`
 }

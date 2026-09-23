@@ -6,7 +6,7 @@
 // (ce qui reste sélectionnable sous les autres facettes) et le volet dépliant. Le volet de
 // droite ne garde que la liste qu'on filtre.
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 // ── LE FILTRE ET SON VOLET PARLENT L'OR ─────────────────────────────────────
 //
@@ -263,28 +263,67 @@ export function useFiltresPatristiques<T extends { seg: { id_oeuvre: string } }>
 export type PanneauFiltresProps = ReturnType<typeof useFiltresPatristiques>['panneau']
 
 // ── La recherche d'un auteur ───────────────────────────────────────────────────
+//
+// ⛔ LA LISTE SE PARCOURT AU CLAVIER (audit d'accessibilité, 2026-09-22). Elle ne
+// s'atteignait qu'à la souris : le foyer restait dans la saisie, et les propositions,
+// qui naissent sous elle, n'étaient annoncées par rien. C'est une liste de choix
+// (`combobox` + `listbox`) : ↓ et ↑ passent d'un nom à l'autre, Entrée retient celui
+// qui est désigné, Échap referme la liste sans effacer la saisie.
 function RechercheAuteur({ auteurs, exclus, onChoisir }: {
   auteurs: readonly { id_auteur: string; nom: string }[]
   exclus: Set<string>
   onChoisir: (a: { id_auteur: string; nom: string }) => void
 }) {
   const [saisie, setSaisie] = useState('')
+  const [rang, setRang] = useState(0)
+  const [fermee, setFermee] = useState(false)
+  const idBase = useId()
+  const idOption = (i: number) => `${idBase}-auteur-${i}`
   const liste = useMemo(() => auteursQuiRepondent(auteurs, saisie, exclus), [auteurs, saisie, exclus])
+  const ouverte = liste.length > 0 && !fermee
+  // Le rang désigné ne sort jamais de la liste : elle se raccourcit à chaque frappe.
+  const designe = Math.min(rang, Math.max(liste.length - 1, 0))
+  const retenir = (a: { id_auteur: string; nom: string }) => {
+    onChoisir(a)
+    setSaisie(''); setRang(0); setFermee(false)
+  }
+  const auClavier = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      if (!ouverte) return
+      e.preventDefault(); e.stopPropagation()
+      setFermee(true)
+      return
+    }
+    if (!ouverte) return
+    if (e.key === 'ArrowDown') { e.preventDefault(); setRang((designe + 1) % liste.length) }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setRang((designe - 1 + liste.length) % liste.length) }
+    else if (e.key === 'Home') { e.preventDefault(); setRang(0) }
+    else if (e.key === 'End') { e.preventDefault(); setRang(liste.length - 1) }
+    else if (e.key === 'Enter') { e.preventDefault(); retenir(liste[designe]) }
+  }
   return (
-    <div style={{ position: 'relative', marginBottom: liste.length ? '0' : '4px' }}>
-      <input aria-label="Chercher un auteur" type="text" value={saisie} onChange={e => setSaisie(e.target.value)}
+    <div style={{ position: 'relative', marginBottom: ouverte ? '0' : '4px' }}>
+      <input aria-label="Chercher un auteur" type="text" value={saisie}
+        onChange={e => { setSaisie(e.target.value); setRang(0); setFermee(false) }}
+        onKeyDown={auClavier}
+        role="combobox" aria-expanded={ouverte} aria-controls={`${idBase}-liste`} aria-autocomplete="list"
+        aria-activedescendant={ouverte ? idOption(designe) : undefined}
         placeholder="Chercher un auteur…"
         style={{ width: '100%', fontSize: '0.75rem', padding: '4px 7px', borderRadius: '4px', border: '1px solid var(--cs-or-doux)', background: 'var(--cs-surface)', color: 'var(--cs-encre)', boxSizing: 'border-box', outline: 'none' }} />
-      {liste.length > 0 && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--cs-surface)', border: '1px solid var(--cs-or-doux)', borderTop: 'none', borderRadius: '0 0 4px 4px', zIndex: 20, boxShadow: 'var(--cs-ombre-nette)' }}>
-          {liste.map(a => (
-            <button key={a.id_auteur} onClick={() => { onChoisir(a); setSaisie('') }}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '5px 8px', fontSize: '0.75rem', color: 'var(--cs-encre)', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
-              onMouseEnter={e => (e.currentTarget.style.background = OR_SURVOL)}
-              onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
+      {ouverte && (
+        <div id={`${idBase}-liste`} role="listbox" aria-label="Auteurs proposés"
+          style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--cs-surface)', border: '1px solid var(--cs-or-doux)', borderTop: 'none', borderRadius: '0 0 4px 4px', zIndex: 20, boxShadow: 'var(--cs-ombre-nette)' }}>
+          {liste.map((a, i) => (
+            // ⚠️ Le foyer reste dans la saisie : l'option se désigne par
+            // `aria-activedescendant`, et ne se prend pas en tabulation.
+            <div key={a.id_auteur} id={idOption(i)} role="option" aria-selected={i === designe}
+              onMouseDown={e => e.preventDefault()}
+              onClick={() => retenir(a)}
+              onMouseEnter={() => setRang(i)}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '5px 8px', fontSize: '0.75rem', color: 'var(--cs-encre)', background: i === designe ? OR_SURVOL : 'none', cursor: 'pointer', textAlign: 'left' }}>
               {a.nom}
-              <span style={{ fontSize: '0.84375rem', color: OR_ENCRE, lineHeight: 1 }}>+</span>
-            </button>
+              <span aria-hidden="true" style={{ fontSize: '0.84375rem', color: OR_ENCRE, lineHeight: 1 }}>+</span>
+            </div>
           ))}
         </div>
       )}
@@ -310,7 +349,11 @@ export default function FiltresPatristiques(p: PanneauFiltresProps) {
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'center', padding: '8px 0 0' }}>
-        <button onClick={p.basculerOuvert} aria-expanded={p.ouvert} style={{
+        {/* ⛔ LE BOUTON DIT CE QU'IL COMPTE (audit d'accessibilité, 2026-09-22) : la pastille
+            portait un chiffre nu, que rien ne rattachait au mot « Filtres ». */}
+        <button onClick={p.basculerOuvert} aria-expanded={p.ouvert}
+          aria-label={p.nombreActifs > 0 ? `Filtres, ${p.nombreActifs} ${p.nombreActifs > 1 ? 'actifs' : 'actif'}` : 'Filtres'}
+          style={{
           position: 'relative',
           display: 'flex', width: '100%', justifyContent: 'center', alignItems: 'center', gap: '4px',
           fontSize: '0.6875rem', padding: '5px 9px', borderRadius: '8px', cursor: 'pointer',
@@ -323,7 +366,7 @@ export default function FiltresPatristiques(p: PanneauFiltresProps) {
           </svg>
           Filtres
           {p.nombreActifs > 0 && (
-            <span style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: OR_ENCRE, color: 'var(--cs-surface)', borderRadius: '8px', fontSize: '0.6875rem', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
+            <span aria-hidden="true" style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: OR_ENCRE, color: 'var(--cs-surface)', borderRadius: '8px', fontSize: '0.6875rem', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
               {p.nombreActifs}
             </span>
           )}
@@ -339,8 +382,13 @@ export default function FiltresPatristiques(p: PanneauFiltresProps) {
               {p.auteursChoisis.map(a => (
                 <span key={a.id_auteur} style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '0.6875rem', padding: '1px 5px 1px 7px', background: OR_SELECTION, color: OR_ENCRE, border: '1px solid var(--cs-or)', borderRadius: '8px', fontWeight: 500 }}>
                   {a.nom}
+                  {/* ⛔ 24 PX DE CIBLE, LE DESSIN INCHANGÉ (audit d'accessibilité, 2026-09-22) :
+                      la croix faisait une boîte de douze pixels, sous le plancher AA, et un
+                      clic manqué retombait sur la pastille. Le rembourrage l'étend et une
+                      marge négative de même valeur la rend, si bien que la pastille ne bouge
+                      pas d'un pixel. */}
                   <button onClick={() => p.retirerAuteur(a.id_auteur)} aria-label={`Retirer ${a.nom} des filtres`}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: OR_ENCRE, fontSize: '0.78125rem', lineHeight: 1, display: 'flex', alignItems: 'center' }}>×</button>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: OR_ENCRE, fontSize: '0.78125rem', lineHeight: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '6px', margin: '-6px -4px -6px -6px', minWidth: '24px', minHeight: '24px', boxSizing: 'border-box' }}>×</button>
                 </span>
               ))}
             </div>

@@ -71,7 +71,8 @@ describe('les mots de la barre', () => {
     expect(compter(1, versets)).toBe('1 verset')
     expect(libelleSelection(1, versets)).toBe('1 verset sélectionné')
     expect(libelleSelection(7, versets)).toBe('7 versets sélectionnés')
-    expect(libelleResultat(3, ['passage', 'passages'], 'enregistre')).toBe('3 passages enregistrés')
+    // ⛔ Le site PRÉLÈVE : le participe dit le geste des boutons, non celui d'un autre vocabulaire.
+    expect(libelleResultat(3, ['passage', 'passages'], 'enregistre')).toBe('3 passages prélevés')
     expect(libelleResultat(1, ['passage', 'passages'], 'retire')).toBe('1 passage retiré')
   })
 })

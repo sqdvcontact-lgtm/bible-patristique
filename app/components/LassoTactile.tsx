@@ -293,7 +293,7 @@ export default function LassoTactile(props: Props) {
       {feuille && <style>{feuille}</style>}
       {trace && <div ref={traceRef} className="cs-lasso-trace" style={{ zIndex: Z_FLOTTANT }} aria-hidden="true" />}
       {nombre > 0 && !trace && (
-        <div className="cs-lasso-barre" role="region" aria-label="Versets sélectionnés"
+        <div className="cs-lasso-barre" role="region" aria-label="Passages sélectionnés"
           style={{ zIndex: Z_FLOTTANT, left: '50%', bottom: `calc(${BANDEAU_NAV_MOBILE} + 0.75rem)` }}>
           <span className={'cs-lasso-compte' + (message?.erreur ? ' cs-lasso-compte--erreur' : '')} role="status" aria-live="polite">
             {message ? message.texte : libelleSelection(nombre, unite)}
@@ -302,18 +302,18 @@ export default function LassoTactile(props: Props) {
             {aPrelever > 0 && (
               <button type="button" className="cs-lasso-action cs-lasso-action--principale"
                 disabled={enCours !== null} onClick={() => void executer('enregistrer')}
-                aria-label={`Ajouter ${aPrelever > 1 ? `ces ${aPrelever} versets` : 'ce verset'} à mes prélèvements`}>
+                title={`Ajouter ${aPrelever > 1 ? `ces ${aPrelever} versets` : 'ce verset'} à mes prélèvements`}>
                 {enCours === 'enregistrer' ? 'Prélèvement…' : 'Prélever'}
               </button>
             )}
             {deja > 0 && (
               <button type="button" className="cs-lasso-action" disabled={enCours !== null}
-                onClick={() => void executer('retirer')} aria-label="Retirer de mes prélèvements">
+                onClick={() => void executer('retirer')} title="Retirer de mes prélèvements">
                 {enCours === 'retirer' ? 'Retrait…' : 'Retirer'}
               </button>
             )}
             <button type="button" className="cs-lasso-action" disabled={enCours !== null}
-              onClick={() => void executer('copier')}>
+              onClick={() => void executer('copier')} title="Copier la citation">
               Copier
             </button>
             <button type="button" className="cs-lasso-fermer" onClick={() => setSelection([])} aria-label="Défaire la sélection">

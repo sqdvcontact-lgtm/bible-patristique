@@ -1,6 +1,19 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { erreur500 } from '@/app/lib/apiErreur'
+import { checkRateLimit } from '@/app/lib/rateLimiter'
+
+// ⛔ LA ROUTE ÉCRIT AVEC LA CLÉ DE SERVICE, ELLE SE BORNE DONC ELLE-MÊME (audit du
+// 2026-09-22). Elle exige une session depuis le 2026-09-07, mais un compte suffisait
+// ensuite à remplir la file de modération : quatre mille signes par envoi, sans aucune
+// limite de débit. Deux freins, et ils ne disent pas la même chose — la CADENCE, contre
+// la rafale, et le DOUBLON, contre le même signalement réenvoyé par impatience.
+const SIGNALEMENTS_PAR_MINUTE = 5
+const SIGNALEMENTS_PAR_JOUR = 50
+const MINUTE_MS = 60_000
+const JOUR_MS = 24 * 60 * 60_000
+/** Au-delà, le même texte sur le même objet est une reprise, non un doublon. */
+const FENETRE_DOUBLON_MINUTES = 30
 
 export async function POST(request: Request) {
   try {
@@ -63,6 +76,23 @@ export async function POST(request: Request) {
     // n'importe qui pouvait appeler la route sans session et remplir la file.
     if (!userId) return NextResponse.json({ error: 'Connexion requise.' }, { status: 401 })
 
+    // ⚠️ Le débit se compte PAR COMPTE, jamais par adresse : la route n'accepte que des
+    // lecteurs identifiés, et deux d'entre eux peuvent partager une adresse.
+    // ⛔ Les deux fenêtres se consultent l'une après l'autre, et la minute d'abord : elle
+    // coupe la rafale sans entamer le quota du jour.
+    if (!checkRateLimit(`signalement-min:${userId}`, SIGNALEMENTS_PAR_MINUTE, MINUTE_MS)) {
+      return NextResponse.json(
+        { error: 'Vous envoyez trop de signalements à la fois. Réessayez dans une minute.' },
+        { status: 429 },
+      )
+    }
+    if (!checkRateLimit(`signalement-jour:${userId}`, SIGNALEMENTS_PAR_JOUR, JOUR_MS)) {
+      return NextResponse.json(
+        { error: 'Vous avez atteint le nombre de signalements permis pour aujourd’hui.' },
+        { status: 429 },
+      )
+    }
+
     let referenceStockee = reference
     if (profilPseudo) {
       const { data: profilCible } = await supabaseAdmin
@@ -110,6 +140,32 @@ export async function POST(request: Request) {
     if (idVerset !== null) insertPayload.id_verset = idVerset
     if (userId !== null) insertPayload.user_id = userId
     if (urlSource !== null) insertPayload.url_source = urlSource
+
+    // ⛔ UN DOUBLON EXACT ET RÉCENT SUR LE MÊME OBJET NE S'INSCRIT PAS DEUX FOIS. C'est le
+    // geste ordinaire de qui n'a pas vu l'accusé et reclique : la file de modération y
+    // gagnait deux fois le même texte, et le modérateur devait trancher lequel traiter.
+    // ⚠️ Le contrôle porte sur le message STOCKÉ (référence en tête comprise) et sur
+    // l'objet, non sur le seul texte : le même signalement sur deux versets est deux
+    // signalements. Sa fenêtre est celle d'une reprise, pas celle d'un quota.
+    // ⚠️ Son échec ne ferme pas la route : mieux vaut un doublon qu'un signalement perdu.
+    const depuis = new Date(Date.now() - FENETRE_DOUBLON_MINUTES * MINUTE_MS).toISOString()
+    let doublon = supabaseAdmin
+      .from('signalements')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('message', messageStocke)
+      .gte('created_at', depuis)
+      .limit(1)
+    doublon = idSegment !== null ? doublon.eq('id_segment', idSegment) : doublon.is('id_segment', null)
+    doublon = idVerset !== null ? doublon.eq('id_verset', idVerset) : doublon.is('id_verset', null)
+    const { data: dejaVu, error: erreurDoublon } = await doublon
+    if (erreurDoublon) {
+      console.error('[signalement] contrôle du doublon impossible :', erreurDoublon)
+    } else if ((dejaVu?.length ?? 0) > 0) {
+      // ⚠️ On répond OK : le lecteur a bien signalé, et le dire en erreur lui ferait croire
+      // que son premier envoi s'est perdu.
+      return NextResponse.json({ ok: true, doublon: true })
+    }
 
     const { error } = await supabaseAdmin.from('signalements').insert(insertPayload)
 

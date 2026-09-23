@@ -241,7 +241,7 @@ const STYLE_INCERTAINE_TRADUCTION: React.CSSProperties = { ...STYLE_MENTION_DANS
  * guillemet OUVRANT en tête et le FERMANT en fin, chacun pour son compte : une marque à
  * cheval sur deux versets porte l'un dans le premier, l'autre dans le second.
  */
-function sansGuillemetsDeCitation(texte: string): string {
+export function sansGuillemetsDeCitation(texte: string): string {
   return texte.replace(/^\s*«\s*/u, '').replace(/\s*»\s*$/u, '')
 }
 

@@ -20,10 +20,11 @@ import { signesDeLaNote } from '@/app/lib/compositionNote'
 import IconeSignalement from '@/app/components/IconeSignalement'
 import IconeCopier from '@/app/components/IconeCopier'
 import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
+import { EclatEchec, STYLE_HOTE_ECHEC, useEclatEchec } from '@/app/components/EclatEchec'
 import { anneeChronologique, comparerChronologie } from '@/app/lib/chronologiePatristique'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
-import { segmentsLiesAuVerset, segmentsLiesAuChapitre, segmentsLiesAPlage, type TypeLien } from '@/app/lib/liens'
+import { segmentsDesLiens, segmentsLiesAuVerset, segmentsLiesAuChapitre, segmentsLiesAPlage, type TypeLien } from '@/app/lib/liens'
 import IconeSignet from '@/app/components/IconeSignet'
 import { HAUTEUR_NAVBAR, BANDEAU_NAV_MOBILE } from '@/app/lib/mesures'
 import ModalSignalement from '@/app/components/ModalSignalement'
@@ -66,7 +67,7 @@ type Verset = { id_verset: string; ref: string; verset: number; chapitre: number
 /** Un morceau d'extrait tel que le volet le lit : sa clé, et — une fois la page connue —
  *  son texte et ses notes héritées. */
 type Morceau = {
-  id?: number; id_texte: string; segment_key: string | null
+  id?: string; id_texte: string; segment_key: string | null
   longueur?: number | null
   segment_texte?: string; notes?: string | null
 }
@@ -74,7 +75,12 @@ type Segment = {
   // ⛔ `id_texte` DÉCIDE des regroupements, `id_oeuvre` ne fait que nommer : une œuvre
   // porte plusieurs textes (La Cité de Dieu son latin et son français, tous deux liés
   // à des versets) et leurs `segment_numero` se recouvrent.
-  id: number; id_oeuvre: string; id_texte: string; segment_numero: number
+  // ⛔ L'IDENTIFIANT EST UNE CHAÎNE DE CHIFFRES (2026-09-22) : `segments.id` est un bigint
+  // de dix-neuf chiffres, que `JSON.parse` arrondit au-delà de 2^53. Le volet le reprenait
+  // arrondi dans son `in('id', …)`, et 2 771 liens — quatre œuvres de Cyrille de Jérusalem,
+  // l'Homélie sur la Présentation — ne paraissaient jamais. Il se demande `id::text` et
+  // repart tel quel : requêtes, prélèvements, adresse du passage.
+  id: string; id_oeuvre: string; id_texte: string; segment_numero: number
   ref_niv1: string; ref_niv2: string
   ref_niv3: string; ref_niv4?: string | null
   segment_key?: string | null
@@ -90,7 +96,7 @@ type Segment = {
   // un lien posé sur un latin s'affiche dans sa contrepartie française (voir
   // `contrepartieFrancaise`). Ce qu'on lit, ouvre et prélève est le français ; le
   // retrait d'un lien, lui, vise toujours le segment d'origine.
-  idLien: number
+  idLien: string
   /** Les segments français d'un EMPAN, quand la contrepartie d'un latin en réunit
    *  plusieurs (`chargerContrepartiesFrancaises`) : le volet pose les appels et lit les
    *  notes de chacun (`composerExtrait`). */
@@ -100,6 +106,8 @@ type Segment = {
 type SegmentHydrate = Segment & { segment_texte: string; parties?: (Morceau & { segment_texte: string })[] }
 /** Une ligne de `liens_bibliques`, gardée pour le RETRAIT : son type et sa cible. */
 type LigneLien = { id: number; type: TypeLien; canon_id: string | null; livre: string | null; chapitre: number | null }
+/** Le texte caché d'un lecteur d'écran : la classe du site (`globals.css`). */
+const HORS_ECRAN = 'cs-hors-ecran'
 type OeuvreInfo = {
   titre: string; sous_titre?: string; auteur_nom: string; id_auteur?: string
   trad_auteur: string | null; editeur: string | null
@@ -167,7 +175,9 @@ function BoutonCopieSegment({ texte, auteur, titre, sous_titre, trad_auteur, edi
     copierCitation(citation).then(briller)
   }
   return (
-    <button onClick={handle} title="Copier ce segment" aria-label="Copier ce segment"
+    // « Copier ce passage » : le mot du site pour un extrait patristique (page d'œuvre,
+    // cellule d'actions). « Segment » est un mot d'atelier, il ne se montre pas au lecteur.
+    <button onClick={handle} title="Copier ce passage" aria-label="Copier ce passage"
       className={avecHoteEclat('cs-bouton-fin')} style={{ ...ACTION_BTN, color: copie ? 'var(--cs-vert)' : 'var(--cs-bord)' }}>
       <IconeCopier />
       <EclatCopie eclat={eclat} />
@@ -184,23 +194,21 @@ function BoutonEnregistrerSegment({ segment, info, userId, enregistre, onChange 
   segment: SegmentHydrate; info?: OeuvreInfo; userId: string | null
   /** `null` : l'état n'est pas encore connu, le bouton attend. */
   enregistre: boolean | null
-  onChange: (segmentId: number, enregistre: boolean) => void
+  onChange: (segmentId: string, enregistre: boolean) => void
 }) {
   const [loading, setLoading] = useState(false)
-  const [echec, setEchec] = useState<string | null>(null)
+  // ⛔ UN PRÉLÈVEMENT REFUSÉ SE DIT COMME AILLEURS (2026-09-22) : l'éclat rouge du site et
+  // son annonce vivante (`EclatEchec`), non plus une infobulle et une teinte, que personne
+  // ne survole et qu'aucun lecteur d'écran n'annonce.
+  const { echec, signaler } = useEclatEchec()
   const { exigerCompte } = useCompte()
-  useEffect(() => {
-    if (!echec) return
-    const t = setTimeout(() => setEchec(null), 4000)
-    return () => clearTimeout(t)
-  }, [echec])
   if (!userId) return null
 
   const enregistrer = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (enregistre !== false || loading) return
     if (!exigerCompte('prélever ce passage')) return
-    setLoading(true); setEchec(null)
+    setLoading(true)
     onChange(segment.id, true)
     const { error } = await supabase.from('prelevements').insert({
       user_id: userId, type: 'patristique',
@@ -220,7 +228,7 @@ function BoutonEnregistrerSegment({ segment, info, userId, enregistre, onChange 
     if (error) {
       console.error('[volet] prélèvement refusé :', error)
       onChange(segment.id, false)
-      setEchec('Le passage n’a pas pu être ajouté à vos prélèvements.')
+      signaler('Le passage n’a pas pu être ajouté à vos prélèvements.')
       return
     }
     signalerProgression()
@@ -230,24 +238,26 @@ function BoutonEnregistrerSegment({ segment, info, userId, enregistre, onChange 
   const supprimer = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (enregistre !== true || loading) return
-    setLoading(true); setEchec(null)
+    setLoading(true)
     onChange(segment.id, false)
     const { error } = await supabase.from('prelevements').delete().eq('user_id', userId).eq('segment_id', segment.id)
     setLoading(false)
     if (error) {
       console.error('[volet] retrait refusé :', error)
       onChange(segment.id, true)
-      setEchec('Le passage n’a pas pu être retiré de vos prélèvements.')
+      signaler('Le passage n’a pas pu être retiré de vos prélèvements.')
     }
   }
 
-  const libelle = echec ?? (enregistre ? 'Retirer de mes prélèvements' : 'Ajouter à mes prélèvements')
+  const libelle = echec ? `${echec.message} Réessayer.` : enregistre ? 'Retirer de mes prélèvements' : 'Ajouter à mes prélèvements'
   const couleur = echec ? 'var(--cs-danger)' : enregistre ? 'var(--cs-texte-doux)' : 'var(--cs-bord)'
   return (
     <button onClick={enregistre ? supprimer : enregistrer} disabled={loading || enregistre === null}
       title={libelle} aria-label={libelle} aria-pressed={enregistre === true}
-      className="cs-bouton-fin" style={{ ...ACTION_BTN, color: couleur }}>
+      className={avecHoteEclat('cs-bouton-fin')}
+      style={{ ...ACTION_BTN, color: couleur, ...(echec ? STYLE_HOTE_ECHEC : null) }}>
       {loading ? '…' : <IconeSignet plein={enregistre === true} />}
+      <EclatEchec echec={echec} />
     </button>
   )
 }
@@ -319,8 +329,11 @@ function BoutonSupprimerLien({ lienIds, confirmation, isAdmin, onSupprime }: {
 const libelleNoteVolet = (contenu: NoteAffichee | undefined) =>
   !contenu || typeof contenu === 'string' ? LIBELLE_NOTE_SANS_TYPE : libelleDeLaNote(contenu)
 
-function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, userId, isAdmin, lienIds, confirmationSuppression, enregistre, onEnregistre, retour, onSignaler, onSupprimeLien }: {
+function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, userId, isAdmin, lienIds, confirmationSuppression, enregistre, onEnregistre, retour, onSignaler, onSupprimeLien, refFoyer }: {
   s: SegmentHydrate; info?: OeuvreInfo; userId: string | null; isAdmin: boolean
+  /** Le premier extrait de la page le reçoit : c'est lui qui prend le foyer quand on
+   *  tourne la page (voir la pagination). */
+  refFoyer?: React.Ref<HTMLDivElement>
   /** Le chemin du verset (ou de la péricope) d'où l'on ouvre le passage : la page
    *  d'œuvre en fait un lien « Retour à … » (`?depuis=`, voir `retourLecture`). */
   retour: string | null
@@ -339,7 +352,7 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
   confirmationSuppression: string | null
   /** Le passage est-il dans les prélèvements du lecteur ? `null` : pas encore lu. */
   enregistre: boolean | null
-  onEnregistre: (segmentId: number, enregistre: boolean) => void
+  onEnregistre: (segmentId: string, enregistre: boolean) => void
   onSignaler: (s: SegmentHydrate, titreOeuvre?: string) => void
   onSupprimeLien: (retires: number[]) => void
 }) {
@@ -364,7 +377,9 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
 
   return (
     // La case : même forme que celle du volet biblique d'une œuvre (`carteVolet.ts`).
-    <div className={CLASSE_CARTE_VOLET} style={STYLE_CARTE_VOLET}>
+    // ⚠️ `tabIndex={-1}` sur le premier extrait : il ne s'ajoute pas à l'ordre de
+    // tabulation, mais il peut RECEVOIR le foyer quand on tourne la page.
+    <div ref={refFoyer} tabIndex={refFoyer ? -1 : undefined} className={CLASSE_CARTE_VOLET} style={STYLE_CARTE_VOLET}>
 
       {/* Ligne méta : auteur + titre + niveaux (gauche), badge + actions (droite) */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px', marginBottom:'6px' }}>
@@ -392,7 +407,7 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
               d'œuvre un lien de retour. */}
           <a href={`/oeuvre/${s.id_oeuvre}?${[parametreTexte(edition), `segment=${s.id}`, retour ? `depuis=${encodeURIComponent(retour)}` : ''].filter(Boolean).join('&')}#segment-${s.id}`}
             className="cs-fiche-lien"
-            title={niveaux ? `${niveaux} — accéder au passage` : 'Accéder au passage exact dans l’œuvre'}
+            title={niveaux ? `Accéder au passage exact dans l’œuvre : ${niveaux}` : 'Accéder au passage exact dans l’œuvre'}
             style={{ display:'block', fontSize:'0.75rem', fontStyle:'italic', margin:0, lineHeight:1.2, letterSpacing:'0.02em' }}>
             {info?.titre || ''}
           </a>
@@ -479,6 +494,27 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
   )
 }
 
+// ── LE SQUELETTE D'UN SEUL EXTRAIT ────────────────────────────────────────────
+//
+// ⛔ ON N'ÉTEINT PAS LA LISTE POUR UNE CARTE (2026-09-22). Le panneau entier passait à
+// `opacity: 0` dès qu'un morceau de texte manquait ; depuis que le texte se charge page
+// par page, la liste clignotait à chaque page et à chaque filtre. Ce qui est déjà servi
+// reste lisible, et seule la carte en attente montre sa place — trois filets, l'encre des
+// fonds doux, ni mouvement ni promesse.
+const FILET_SQUELETTE: React.CSSProperties = {
+  display: 'block', height: '0.5rem', borderRadius: '999px', background: 'var(--cs-fond-doux)',
+}
+function SqueletteExtrait() {
+  return (
+    <div className={CLASSE_CARTE_VOLET} style={STYLE_CARTE_VOLET} aria-hidden="true">
+      <span style={{ ...FILET_SQUELETTE, width: '45%', marginBottom: '10px' }} />
+      <span style={{ ...FILET_SQUELETTE, width: '100%', marginBottom: '6px' }} />
+      <span style={{ ...FILET_SQUELETTE, width: '100%', marginBottom: '6px' }} />
+      <span style={{ ...FILET_SQUELETTE, width: '72%' }} />
+    </div>
+  )
+}
+
 // ── LA LIGNE DU COMPTE SOUS UN ONGLET DU VOLET ──────────────────────────────
 //
 // Demande de l'auteur (14 septembre 2026) : pendant que le volet se recharge, « le nombre
@@ -494,21 +530,36 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
 // ⚠️ Demande de l'auteur (21 septembre 2026) : ∅ remplace « Aucune occurrence » sous tous
 // les onglets. Il prend le corps du compte et l'encre faible, et dit la mention en toutes
 // lettres au survol et aux lecteurs d'écran.
+// ⛔ ET UN GLYPHE NE SE NOMME PAS PAR `aria-label` (audit d'accessibilité, 2026-09-22) :
+// sur un `span`, qui ne porte aucun rôle, l'attribut n'est pas garanti d'être lu. Le signe
+// est donc `aria-hidden`, et la mention s'écrit en toutes lettres dans un texte caché.
 const STYLE_COMPTE_NUL: React.CSSProperties = { fontWeight: 400, color: 'var(--cs-texte-doux)' }
 
-function LigneCompte({ enAttente, compte, style, videDit }: {
+function LigneCompte({ enAttente, compte, style, videDit, unite }: {
   enAttente: boolean
   compte: number | null | undefined
   /** Corps, interligne, HAUTEUR et encre de la ligne. */
   style: React.CSSProperties
   /** Ce qui s'écrit quand le compte est nul ; rien, s'il n'est pas donné. */
   videDit?: string
+  /** ⛔ UN COMPTE PORTE SON UNITÉ pour qui ne voit pas l'onglet : « 12 extraits », et non
+   *  « 12 » seul, que rien ne rattache à son intitulé. */
+  unite?: (n: number) => string
 }) {
   return (
     <span style={{ display: 'block', whiteSpace: 'nowrap', ...style }}>
       {enAttente ? <CompteEnAttente />
-        : compte != null && compte > 0 ? compte
-        : compte === 0 && videDit ? <span style={STYLE_COMPTE_NUL} title="Aucune occurrence" aria-label="Aucune occurrence">{videDit}</span>
+        : compte != null && compte > 0 ? (
+          unite
+            ? <><span aria-hidden="true">{compte}</span><span className={HORS_ECRAN}>{unite(compte)}</span></>
+            : compte
+        )
+        : compte === 0 && videDit ? (
+          <span style={STYLE_COMPTE_NUL} title="Aucune occurrence">
+            <span aria-hidden="true">{videDit}</span>
+            <span className={HORS_ECRAN}>aucune occurrence</span>
+          </span>
+        )
         : null}
     </span>
   )
@@ -608,10 +659,6 @@ type Categorie = 'citation_directe' | 'paraphrase' | 'commentaire' | 'echo'
 type ItemAffiche = { seg: Segment; col: string; categorie: Categorie; categories: Categorie[] }
 const estCitation = (cats: Categorie[]) => cats.includes('citation_directe') || cats.includes('paraphrase')
 
-/** Le type de lien qu'une colonne héritée désignait (la carte le garde pour savoir quoi
- *  supprimer). */
-const TYPE_DE_COLONNE: Record<string, TypeLien> = { lien_1: 1, lien_2: 2, lien_3: 3, lien_4: 4 }
-
 /** Les types de lien que MONTRE un sous-onglet, donc ceux que son « × » retire (charte §9) :
  *  Citations = citation (1) et reprise (2), Commentaires = doctrine (3), Échos = écho (4).
  *  ⛔ Le type retiré se dérive de l'onglet REGARDÉ, jamais de la première rubrique de
@@ -622,7 +669,7 @@ const TYPES_DU_SOUS_ONGLET: Record<'citations' | 'doctrine' | 'echos', readonly 
 }
 
 /** La clé d'un morceau pour la carte des textes chargés : sa clé stable, sinon son id. */
-const cleTexteDe = (m: { id?: number; id_texte: string; segment_key?: string | null }) =>
+const cleTexteDe = (m: { id?: string; id_texte: string; segment_key?: string | null }) =>
   m.segment_key ? `${m.id_texte}|${m.segment_key}` : `id:${m.id}`
 
 type TexteDeSegment = { segment_texte: string; notes: string | null }
@@ -642,14 +689,16 @@ async function chargerTextesDesSegments(cles: readonly string[]): Promise<Map<st
   for (const [t, cles] of parTexte) for (const lot of lotsPourClauseIn(cles)) {
     taches.push(() => supabase.from('segments').select('id_texte, segment_key, segment_texte, notes').eq('id_texte', t).in('segment_key', lot))
   }
+  // ⛔ `id::text` : l'identifiant revient en chiffres exacts, faute de quoi la clé rendue
+  // (`id:…`) ne serait pas celle qu'on a demandée (bigint arrondi, voir `Segment.id`).
   for (const lot of lotsPourClauseIn(parId)) {
-    taches.push(() => supabase.from('segments').select('id, id_texte, segment_key, segment_texte, notes').in('id', lot))
+    taches.push(() => supabase.from('segments').select('id::text, id_texte, segment_key, segment_texte, notes').in('id', lot))
   }
   const reponses = await lancerEnParallele(taches)
   const textes = new Map<string, TexteDeSegment>()
   for (const r of reponses) {
     if (r.error) throw r.error
-    for (const l of (r.data ?? []) as { id?: number; id_texte: string; segment_key: string | null; segment_texte: string | null; notes: string | null }[]) {
+    for (const l of (r.data ?? []) as { id?: string; id_texte: string; segment_key: string | null; segment_texte: string | null; notes: string | null }[]) {
       const valeur = { segment_texte: l.segment_texte ?? '', notes: l.notes ?? null }
       if (l.id !== undefined) textes.set(`id:${l.id}`, valeur)
       if (l.segment_key) textes.set(`${l.id_texte}|${l.segment_key}`, valeur)
@@ -786,7 +835,7 @@ export default function PanneauPatristique({
   const [segsCharges, setSegsCharges] = useState<Segment[]>([])
   // Les lignes de `liens_bibliques` de chaque segment porteur (`idLien`) : elles disent
   // ses rubriques, et c'est elles que le « × » d'administration retire.
-  const [liensParSegment, setLiensParSegment] = useState<Map<number, LigneLien[]>>(new Map())
+  const [liensParSegment, setLiensParSegment] = useState<Map<string, LigneLien[]>>(new Map())
   const [oeuvres, setOeuvres] = useState<Record<string, OeuvreInfo>>(instantaneOeuvres)
   const [auteurMeta, setAuteurMeta] = useState<Record<string, MetaAuteur>>(instantaneAuteurs)
   // Les éditions, pour citer un passage sous la sienne.
@@ -872,7 +921,8 @@ export default function PanneauPatristique({
     // qu'à compter, filtrer, trier et regrouper ; le texte d'un extrait se charge avec la
     // page qui le montre (`chargerTextesDesSegments`). La longueur voyage, par le champ
     // calculé `longueur_texte` : c'est elle qui juge une élision.
-    const SEG_COLS = 'id, id_oeuvre, id_texte, segment_key, segment_numero, ref_niv1, ref_niv2, ref_niv3, ref_niv4, longueur:longueur_texte'
+    // ⛔ `id::text` : l'identifiant ne repart jamais en nombre (voir `Segment.id`).
+    const SEG_COLS = 'id::text, id_oeuvre, id_texte, segment_key, segment_numero, ref_niv1, ref_niv2, ref_niv3, ref_niv4, longueur:longueur_texte'
     ;(async () => {
       try {
         const liens = demande.type === 'plage'
@@ -883,7 +933,7 @@ export default function PanneauPatristique({
         if (annule) return
         // UN SEGMENT PEUT RELEVER DE PLUSIEURS RUBRIQUES À LA FOIS, et il le doit : chez un
         // commentateur, le même passage est cité (type 1) PUIS commenté (type 3).
-        const lignes = new Map<number, LigneLien[]>()
+        const lignes = new Map<string, LigneLien[]>()
         for (const l of liens) {
           if (!lignes.has(l.segment_id)) lignes.set(l.segment_id, [])
           lignes.get(l.segment_id)!.push({ id: l.id, type: l.type, canon_id: l.canon_id, livre: l.livre, chapitre: l.chapitre })
@@ -893,19 +943,37 @@ export default function PanneauPatristique({
           setSegsCharges([]); setLiensParSegment(new Map()); setSegmentsPour(cle)
           return
         }
-        // ⛔ Lots d'OCTETS D'ADRESSE, lancés en parallèle bornée : jamais un lot de 500 en série.
-        const reponses = await lancerEnParallele(lotsPourClauseIn(ids.map(String)).map(lot => () =>
-          supabase.from('segments').select(SEG_COLS).in('id', lot)))
-        for (const r of reponses) if (r.error) throw r.error
-        const bruts = reponses.flatMap(r => (r.data ?? []) as unknown as Omit<Segment, 'idLien'>[])
+        // ⛔ LES IDENTIFIANTS PARTENT EN CHIFFRES EXACTS (`segmentsDesLiens`, qui lève si
+        // l'un d'eux est un nombre) : c'est ici que 2 771 liens se perdaient.
+        const bruts = await segmentsDesLiens<Omit<Segment, 'idLien'>>(ids, SEG_COLS)
         if (annule) return
         // ⛔ ON LIT TOUJOURS UNE TRADUCTION FRANÇAISE (2026-09-04) : le segment AFFICHÉ
         // devient sa contrepartie française ; seul `idLien` garde celui qui porte le lien.
-        const contreparties = await chargerContrepartiesFrancaises(supabase, bruts, { texte: false })
+        // ⚠️ `chargerContrepartiesFrancaises` transporte encore l'identifiant par un
+        // NOMBRE : on ne lui donne donc pas le nôtre, mais le RANG du segment dans la
+        // liste — une clé de correspondance, que rien n'arrondit.
+        const contreparties = await chargerContrepartiesFrancaises(
+          supabase, bruts.map((s, rang) => ({ ...s, id: rang })), { texte: false })
         if (annule) return
-        const segs: Segment[] = bruts.map(s => {
-          const fr = contreparties.get(s.id)
-          return fr ? { ...s, ...fr, id_oeuvre: s.id_oeuvre, idLien: s.id } : { ...s, idLien: s.id }
+        const segs: Segment[] = bruts.map((s, rang) => {
+          const fr = contreparties.get(rang)
+          if (!fr) return { ...s, idLien: s.id }
+          // ⚠️ La contrepartie rend l'identifiant de son segment français en NOMBRE. Aucun
+          // des six textes qui en ont une ne porte d'identifiant au-delà de 2^53 (mesuré
+          // le 2026-09-22) ; si cela changeait, on garderait le segment d'origine plutôt
+          // que d'afficher un passage qu'on ne saurait ni prélever ni ouvrir.
+          const numeriques = [fr.id, ...(fr.parties ?? []).map(p => p.id)]
+          if (!numeriques.every(n => Number.isSafeInteger(n))) {
+            console.error('[volet] contrepartie française à l’identifiant non représentable, segment d’origine gardé :', s.id_texte, s.segment_numero)
+            return { ...s, idLien: s.id }
+          }
+          return {
+            ...s, ...fr,
+            id: String(fr.id),
+            parties: fr.parties?.map(p => ({ ...p, id: String(p.id) })),
+            id_oeuvre: s.id_oeuvre,
+            idLien: s.id,
+          }
         })
         await chargerMetadonnees(segs.map(s => s.id_oeuvre), segs.map(s => s.id_texte), userId)
         if (annule) return
@@ -950,7 +1018,7 @@ export default function PanneauPatristique({
   // Les segments PORTEURS de chaque segment montré : deux latins d'un même paragraphe
   // rendent la même contrepartie française, et le retrait doit viser les deux.
   const porteursDuSegment = useMemo(() => {
-    const m = new Map<number, Set<number>>()
+    const m = new Map<string, Set<string>>()
     for (const seg of segsCharges) {
       if (!m.has(seg.id)) m.set(seg.id, new Set())
       m.get(seg.id)!.add(seg.idLien)
@@ -1022,7 +1090,7 @@ export default function PanneauPatristique({
   const retirerLiens = useCallback((retires: readonly number[]) => {
     const partis = new Set(retires)
     setLiensParSegment(prev => {
-      const apres = new Map<number, LigneLien[]>()
+      const apres = new Map<string, LigneLien[]>()
       for (const [id, lignes] of prev) apres.set(id, lignes.filter(l => !partis.has(l.id)))
       return apres
     })
@@ -1035,7 +1103,7 @@ export default function PanneauPatristique({
   // segment vers TOUS les versets du chapitre, sans le dire.
   const cibleDuRetrait = useCallback((groupe: readonly ItemAffiche[]): { ids: number[]; confirmation: string | null } => {
     const types = TYPES_DU_SOUS_ONGLET[sousOnglet]
-    const porteurs = new Set<number>()
+    const porteurs = new Set<string>()
     for (const it of groupe) for (const p of porteursDuSegment.get(it.seg.id) ?? [it.seg.idLien]) porteurs.add(p)
     const lignes = [...porteurs].flatMap(p => liensParSegment.get(p) ?? []).filter(l => types.includes(l.type))
     if (demande?.type === 'verset') {
@@ -1057,7 +1125,7 @@ export default function PanneauPatristique({
       ...segmentsDoctrine.map(seg => ({ seg, col: 'lien_3', categorie: 'commentaire' as const })),
       ...segmentsEcho.map(seg => ({ seg, col: 'lien_4', categorie: 'echo' as const })),
     ].filter(({ seg }) => Boolean(oeuvres[seg.id_oeuvre]))
-    const parSegment = new Map<number, ItemAffiche>()
+    const parSegment = new Map<string, ItemAffiche>()
     for (const it of brut) {
       const deja = parSegment.get(it.seg.id)
       if (deja) { if (!deja.categories.includes(it.categorie)) deja.categories.push(it.categorie) }
@@ -1103,26 +1171,31 @@ export default function PanneauPatristique({
     || (onglet === 'semantique' && !semantiqueOfferte)
     ? 'patristique'
     : onglet
-  const ONGLETS: { code: Onglet; label: string; count?: number | null; enAttente: boolean }[] = [
-    { code: 'patristique',  label: 'Pères de l’Église', count: comptesSousOnglets.peres, enAttente },
+  // ⛔ UN COMPTE PORTE SON UNITÉ pour qui ne voit pas l'onglet (audit d'accessibilité,
+  // 2026-09-22) : le chiffre seul, lu à la suite de l'intitulé, ne dit pas ce qu'il compte.
+  const pluriel = (n: number, un: string, plusieurs: string) => `${n} ${n > 1 ? plusieurs : un}`
+  const ONGLETS: { code: Onglet; label: string; count?: number | null; enAttente: boolean; unite: (n: number) => string }[] = [
+    { code: 'patristique',  label: 'Pères de l’Église', count: comptesSousOnglets.peres, enAttente, unite: n => pluriel(n, 'extrait', 'extraits') },
     // L'onglet des commentaires de LECTEURS s'appelle « Discussion » : « Commentaires » est
     // le sous-onglet des commentaires PATRISTIQUES, et les deux se confondaient.
-    ...(verset ? [{ code: 'commentaires' as Onglet, label: 'Discussion', count: nbCommentairesBible, enAttente: attenteCommentaires }] : []),
+    ...(verset ? [{ code: 'commentaires' as Onglet, label: 'Discussion', count: nbCommentairesBible, enAttente: attenteCommentaires, unite: (n: number) => pluriel(n, 'commentaire', 'commentaires') }] : []),
     ...(notesOffertes ? [{
       code: 'notes' as Onglet, label: 'Notes',
       count: compteNotes !== null && compteNotes.pour === cleNotes ? compteNotes.n : null,
       enAttente: ongletAffiche === 'notes' && compteNotes?.pour !== cleNotes,
+      unite: (n: number) => pluriel(n, 'note', 'notes'),
     }] : []),
     ...(semantiqueOfferte ? [{
       code: 'semantique' as Onglet, label: 'Sémantique',
       count: compteSemantique !== null && compteSemantique.pour === cleSemantique ? compteSemantique.n : null,
       enAttente: ongletAffiche === 'semantique' && compteSemantique?.pour !== cleSemantique,
+      unite: (n: number) => pluriel(n, 'annotation', 'annotations'),
     }] : []),
   ]
-  const SOUS_ONGLETS: [SousOnglet, string, number][] = [
-    ['citations', 'Citations', comptesSousOnglets.citations],
-    ['doctrine', 'Commentaires', comptesSousOnglets.doctrine],
-    ['echos', 'Échos', comptesSousOnglets.echos],
+  const SOUS_ONGLETS: [SousOnglet, string, number, (n: number) => string][] = [
+    ['citations', 'Citations', comptesSousOnglets.citations, n => pluriel(n, 'citation', 'citations')],
+    ['doctrine', 'Commentaires', comptesSousOnglets.doctrine, n => pluriel(n, 'commentaire', 'commentaires')],
+    ['echos', 'Échos', comptesSousOnglets.echos, n => pluriel(n, 'écho', 'échos')],
   ]
 
   // Changer de sous-onglet revient à la première page (ajusté pendant le rendu).
@@ -1216,11 +1289,17 @@ export default function PanneauPatristique({
     for (const cle of manquantes) textesDemandes.current.add(cle)
     const pour = clesTextesPage
     chargerTextesDesSegments(manquantes)
-      .then(charges => setTextes(avant => {
-        const apres = new Map(avant)
-        for (const [cle, t] of charges) apres.set(cle, t)
-        return apres
-      }))
+      .then(charges => {
+        // ⛔ UNE RÉUSSITE EFFACE L'ÉCHEC PRÉCÉDENT (2026-09-22) : sans cela, une panne
+        // passagère laissait « Les textes de cette page n'ont pas pu être chargés » au-dessus
+        // d'extraits pourtant affichés, jusqu'au changement de page.
+        setEchecTextesPour(null)
+        setTextes(avant => {
+          const apres = new Map(avant)
+          for (const [cle, t] of charges) apres.set(cle, t)
+          return apres
+        })
+      })
       .catch(erreur => {
         // Une clé en échec se redemandera au prochain essai.
         for (const cle of manquantes) textesDemandes.current.delete(cle)
@@ -1234,35 +1313,57 @@ export default function PanneauPatristique({
     return h.every(x => x !== null) ? h as (ItemAffiche & { seg: SegmentHydrate })[] : null
   }), [itemsPage, textes])
   const echecTextes = echecTextesPour !== null && echecTextesPour === clesTextesPage
-  const attenteTextes = !echecTextes && groupesHydrates.some(g => g === null)
-  // Le fondu couvre aussi l'arrivée des textes ; les comptes, eux, n'en dépendent pas.
-  const enAttenteListe = enAttente || attenteTextes
+  // ⛔ LE PANNEAU NE S'ÉTEINT PLUS QUAND UN TEXTE MANQUE (2026-09-22). Le fondu couvrait
+  // aussi l'arrivée des textes : depuis qu'ils se chargent PAGE PAR PAGE, la liste
+  // clignotait à chaque page et à chaque filtre. Ce qui est servi reste lu ; seule la carte
+  // dont le texte manque attend, sous son propre squelette.
+  const premierGroupePret = groupesHydrates.length === 0 || groupesHydrates[0] !== null
+
+  // ── TOURNER LA PAGE : LA LISTE REMONTE, LE FOYER SUIT ──────────────────────
+  // ⛔ Changer de page laissait le défilement où il était et le foyer sur la flèche : on
+  // arrivait au milieu de la page suivante, et au clavier rien ne disait qu'elle avait
+  // changé. Le panneau revient en tête, et le premier extrait prend le foyer dès qu'il est
+  // servi (son texte peut arriver après).
+  const refDefilement = useRef<HTMLDivElement>(null)
+  const refPremierExtrait = useRef<HTMLDivElement>(null)
+  const [foyerADonner, setFoyerADonner] = useState(false)
+  const allerAPage = useCallback((p: number) => { setPageItems(p); setFoyerADonner(true) }, [])
+  useEffect(() => {
+    if (!foyerADonner) return
+    refDefilement.current?.scrollTo({ top: 0 })
+    const premier = refPremierExtrait.current
+    if (!premier) return
+    premier.focus({ preventScroll: true })
+    setFoyerADonner(false)
+  }, [foyerADonner, premierGroupePret])
 
   // ── LES PRÉLÈVEMENTS DE LA PAGE ────────────────────────────────────────────
   // ⛔ Le bouton d'un extrait partait toujours de « non prélevé » : on lit ceux de la page,
   // par la clé naturelle (ce lecteur, ces segments). Retenus avec la demande qu'ils servent.
   const idsSegmentsPage = itemsPage.map(g => g[0].seg.id).join(',')
   const clePrelevements = userId && idsSegmentsPage ? `${userId}|${idsSegmentsPage}` : null
-  const [preleves, setPreleves] = useState<{ pour: string; ids: Set<number> } | null>(null)
+  const [preleves, setPreleves] = useState<{ pour: string; ids: Set<string> } | null>(null)
   useEffect(() => {
     if (!clePrelevements || !userId) return
     const pour = clePrelevements
     let annule = false
+    // ⛔ `segment_id::text` des deux côtés : on interroge avec des chiffres exacts, et l'on
+    // compare à des chiffres exacts (voir `Segment.id`).
     lancerEnParallele(lotsPourClauseIn(idsSegmentsPage.split(',')).map(lot => () =>
-      supabase.from('prelevements').select('segment_id').eq('user_id', userId).in('segment_id', lot)))
+      supabase.from('prelevements').select('segment_id::text').eq('user_id', userId).in('segment_id', lot)))
       .then(reponses => {
         if (annule) return
         const enEchec = reponses.find(r => r.error)
         if (enEchec) { console.error('[volet] prélèvements illisibles :', enEchec.error); return }
-        const ids = new Set<number>()
-        for (const r of reponses) for (const l of (r.data ?? []) as { segment_id: number | null }[]) if (l.segment_id != null) ids.add(l.segment_id)
+        const ids = new Set<string>()
+        for (const r of reponses) for (const l of (r.data ?? []) as unknown as { segment_id: string | null }[]) if (l.segment_id != null) ids.add(l.segment_id)
         setPreleves({ pour, ids })
       })
       .catch(e => console.error('[volet] prélèvements illisibles :', e))
     return () => { annule = true }
   }, [clePrelevements, userId, idsSegmentsPage])
   const prelevesPage = preleves && preleves.pour === clePrelevements ? preleves.ids : null
-  const marquerPreleve = useCallback((segmentId: number, oui: boolean) => {
+  const marquerPreleve = useCallback((segmentId: string, oui: boolean) => {
     setPreleves(prev => {
       if (!prev) return prev
       const ids = new Set(prev.ids)
@@ -1378,7 +1479,7 @@ export default function PanneauPatristique({
                     }}>
                     <span style={{ fontSize:'0.65625rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: actif ? 600 : 400, textAlign: 'center', lineHeight: 1.15 }}>{t.label}</span>
                     {/* ⛔ Une ligne de compte, toujours, et d'une hauteur écrite : voir `LigneCompte`. */}
-                    <LigneCompte enAttente={t.enAttente} compte={t.count} videDit="∅"
+                    <LigneCompte enAttente={t.enAttente} compte={t.count} videDit="∅" unite={t.unite}
                       style={{ fontSize: '0.6875rem', lineHeight: 1, height: '1em', fontWeight: 500, color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)' }} />
                   </button>
                 )
@@ -1388,7 +1489,7 @@ export default function PanneauPatristique({
 
           {/* Contenu (la discussion et les notes défilent en interne, pour épingler la
               saisie ou les filtres en tête du volet). */}
-          <div id={idPanneau} role="tabpanel" aria-labelledby={idOnglet(ongletAffiche)}
+          <div id={idPanneau} role="tabpanel" aria-labelledby={idOnglet(ongletAffiche)} ref={refDefilement}
             style={(ongletAffiche === 'commentaires' && verset) || ongletAffiche === 'notes'
             ? { flex:1, minHeight:0, overflow:'hidden', padding:'0 12px', display:'flex', flexDirection:'column' }
             : { overflowY:'auto', flex:1, padding:'0 12px', display:'flex', flexDirection:'column' }}>
@@ -1406,7 +1507,7 @@ export default function PanneauPatristique({
                 <div role="tablist" aria-label="Nature du rapport au texte biblique"
                   style={{ display: 'flex', borderBottom: '1px solid var(--cs-fond-doux)', margin: '6px -12px 0', padding: 0 }}
                   onKeyDown={e => circulerAuxFleches(e, SOUS_ONGLETS.map(s => s[0]), sousOnglet, setSousOnglet, idSousOnglet)}>
-                  {SOUS_ONGLETS.map(([key, label, nb]) => {
+                  {SOUS_ONGLETS.map(([key, label, nb, unite]) => {
                     const actif = sousOnglet === key
                     return (
                       <button key={key} id={idSousOnglet(key)} role="tab" aria-selected={actif} aria-controls={idSousPanneau}
@@ -1421,7 +1522,7 @@ export default function PanneauPatristique({
                           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px',
                         }}>
                         <span>{label}</span>
-                        <LigneCompte enAttente={enAttente} compte={nb} videDit="∅"
+                        <LigneCompte enAttente={enAttente} compte={nb} videDit="∅" unite={unite}
                           style={{ fontSize: '0.6875rem', lineHeight: 1.2, height: '1.2em', color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)' }} />
                       </button>
                     )
@@ -1432,9 +1533,9 @@ export default function PanneauPatristique({
 
                 {/* ⛔ LES RÉFÉRENCES DU PASSAGE QU'ON QUITTE S'EFFACENT AUSSITÔT (2026-09-04),
                     en fondu, et leur PLACE reste. */}
-                <MarqueAttenteVolet enAttente={enAttenteListe} />
+                <MarqueAttenteVolet enAttente={enAttente} />
                 <div id={idSousPanneau} role="tabpanel" aria-labelledby={idSousOnglet(sousOnglet)}
-                  style={{ opacity: enAttenteListe ? 0 : 1, transition: 'opacity .16s ease', flex: '1 0 auto', display: 'flex', flexDirection: 'column' }}>
+                  style={{ opacity: enAttente ? 0 : 1, transition: 'opacity .16s ease', flex: '1 0 auto', display: 'flex', flexDirection: 'column' }}>
                 {/* ⛔ UNE PANNE SE DIT, dans la voix du volet, avec de quoi réessayer. */}
                 {echec && (
                   <EtatVideVolet>
@@ -1461,7 +1562,8 @@ export default function PanneauPatristique({
                 <div style={{ marginTop: '6px' }}>
                 {itemsPage.map((groupeLeger, rang) => {
                   const groupe = groupesHydrates[rang]
-                  if (!groupe) return null
+                  // Le texte de cette carte n'est pas encore là : sa place l'attend.
+                  if (!groupe) return <SqueletteExtrait key={groupeLeger.map(g => g.seg.id).join('_')} />
                   const premier = groupe[0]
                   // Occurrence réunie : les textes des segments consécutifs en un seul
                   // paragraphe. Métadonnées = premier segment ; liens = TOUS ses segments.
@@ -1473,6 +1575,7 @@ export default function PanneauPatristique({
                   return (
                     <SegmentCard
                       key={groupe.map(g => g.seg.id).join('_')} s={segFusionne} info={oeuvres[premier.seg.id_oeuvre]}
+                      refFoyer={rang === 0 ? refPremierExtrait : undefined}
                       edition={editions[premier.seg.id_texte]}
                       texteAffichage={extrait.texte} notes={extrait.notes} notesEnAttente={extrait.enAttente}
                       userId={userId} isAdmin={isAdmin}
@@ -1497,7 +1600,7 @@ export default function PanneauPatristique({
               la page sur le nombre de pages. */}
           {ongletAffiche === 'patristique' && !enAttente && nbPagesItems > 1 && (
             <nav aria-label="Pages des textes des Pères" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'4px', padding:'6px 0 8px', borderTop:'1px solid var(--cs-bord-clair)', background:'var(--cs-surface)', flexShrink:0 }}>
-              <button onClick={() => setPageItems(Math.max(pageCouranteItems - 1, 0))} disabled={!precedentePossible}
+              <button onClick={() => allerAPage(Math.max(pageCouranteItems - 1, 0))} disabled={!precedentePossible}
                 aria-label="Page précédente" title="Page précédente"
                 style={{ ...STYLE_FLECHE_PAGE, color: precedentePossible ? 'var(--cs-texte-second)' : 'var(--cs-bord)', cursor: precedentePossible ? 'pointer' : 'default' }}>
                 ‹
@@ -1505,7 +1608,7 @@ export default function PanneauPatristique({
               <span aria-live="polite" style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', whiteSpace:'nowrap', padding:'0 2px' }}>
                 {pageCouranteItems + 1} sur {nbPagesItems}
               </span>
-              <button onClick={() => setPageItems(Math.min(pageCouranteItems + 1, nbPagesItems - 1))} disabled={!suivantePossible}
+              <button onClick={() => allerAPage(Math.min(pageCouranteItems + 1, nbPagesItems - 1))} disabled={!suivantePossible}
                 aria-label="Page suivante" title="Page suivante"
                 style={{ ...STYLE_FLECHE_PAGE, color: suivantePossible ? 'var(--cs-texte-second)' : 'var(--cs-bord)', cursor: suivantePossible ? 'pointer' : 'default' }}>
                 ›

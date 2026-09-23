@@ -656,6 +656,9 @@ export default async function Home({
     // ⚠️ Calculées plus bas, dans la vague des versets. La fonction n'étant
     // appelée qu'après, la constante est déjà posée quand elle s'exécute.
     bornesChapitre: canonChapitre.bornes,
+    // Le canon LU : le chargeur n'a plus à redemander `versets_canon` pour l'ordre
+    // de chaque créneau, que la page vient de lire.
+    canonRows: canonChapitre.lignes,
     includeBookFrontMatter: chapitre === 1,
   }), canonChapitre.bornes)
 
@@ -731,6 +734,7 @@ export default async function Home({
           bookCode: livre,
           canonIds: chargeePromise.then((c) => c?.axeCanonique ?? []),
           bornesChapitre: canonChapitre.bornes,
+          canonRows: canonChapitre.lignes,
           includeBookFrontMatter: chapitre === 1,
         }).catch((erreur: unknown): BibleEditionChapterPayload | null => {
           console.error(`[lecture] ${livre} ${chapitre} en regard servi sans l’appareil :`, erreur)
@@ -870,24 +874,33 @@ export default async function Home({
         ? []
         : Object.keys(catalog.capabilities).filter((code) => estVerseSurColonnes(catalog.capabilities[code]))
   const notesVersetsV2Promis = lancerNotesVersetsV2(codesNotesVersetsV2)
-  // ⚠️ L'APPAREIL part avec les versets, non derrière eux : ses blocs ne
-  // dépendent que des bornes du chapitre, connues d'avance, et seules ses notes
-  // de verset attendent les créneaux — d'où la promesse passée telle quelle.
-  // Attendu, il ajoutait sa vague à celles du texte. ⛔ La condition se lit sur
-  // l'ADRESSE (`params.piece`) et non sur la pièce résolue, qui n'est connue
-  // qu'après le sommaire : une pièce demandée remplace le chapitre, et son
+  // ⚠️ L'APPAREIL ne dépend que du CANON, déjà lu en tête de page : ses blocs tiennent
+  // aux bornes du chapitre, ses notes aux créneaux, et ni les uns ni les autres n'ont
+  // besoin des versets. Il attendait `versetsPromis` pour en tirer des identifiants que
+  // `canonChapitre.lignes` porte déjà — et qui valaient mieux : la lecture du témoin 899
+  // y glisse des clés de glose (« 899:… ») qu'aucun `canon_id` ne connaît.
+  // ⛔ ET IL NE PART QUE SI LA FAMILLE EN A UN (2026-09-22). Il était demandé pour TOUT
+  // membre d'édition, donc pour les cinq bibles historiques dont la famille est en
+  // chantier : cinq requêtes parallèles puis une seconde vague, pour ZÉRO ligne — mesuré
+  // sous `authenticated` sur Sacy / Matthieu 5, 129 ms de base à elles cinq, plus deux
+  // allers-retours de latence. La sonde `paratexteDisponiblePromis` part
+  // dans la même vague que les versets, sous la RLS du lecteur — elle ne voit donc que ce
+  // qui est publié —, et c'est elle qui ouvre la porte.
+  // ⛔ La condition se lit sur l'ADRESSE (`params.piece`) et non sur la pièce résolue, qui
+  // n'est connue qu'après le sommaire : une pièce demandée remplace le chapitre, et son
   // appareil n'a alors pas à être chargé.
   // ⛔ Son échec ne ferme pas la page : `null`, au journal, et le texte se sert sans lui.
   const appareilPromis: Promise<BibleEditionChapterDisplay | null> | null = (editionMember && !lectureBilingue && !texteSeul && !params.piece)
     ? (appareilDuRegard
       ? Promise.resolve(appareilDuRegard)
-      : chargerAppareilDuChapitre(
-        editionMember,
-        versetsPromis.then((versets) => versets.map((verset) => verset.id_verset)),
-      ).catch((erreur: unknown) => {
-        console.error(`[lecture] ${livre} ${chapitre} servi sans l’appareil :`, erreur)
-        return null
-      }))
+      : paratexteDisponiblePromis
+        .then((disponible) => (disponible
+          ? chargerAppareilDuChapitre(editionMember, canonChapitre.lignes.map((ligne) => ligne.id))
+          : null))
+        .catch((erreur: unknown) => {
+          console.error(`[lecture] ${livre} ${chapitre} servi sans l’appareil :`, erreur)
+          return null
+        }))
     : null
   const [versetsCharges, liminaires, tradsV2, paratexteDisponible, titresMasques] = await Promise.all([
     versetsPromis,

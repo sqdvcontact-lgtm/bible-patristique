@@ -24,11 +24,17 @@ export const TYPES_LIEN: Record<TypeLien, { cle: string; libelle: string; descri
 }
 
 export type Fiabilite = 'à constituer' | 'douteux' | 'probable' | 'vérifié'
-export const FIABILITES: Fiabilite[] = ['à constituer', 'douteux', 'probable', 'vérifié']
 
 export type Lien = {
   id: number
-  segment_id: number
+  /** ⛔ L'IDENTIFIANT DU SEGMENT EST UNE CHAÎNE DE CHIFFRES, JAMAIS UN NOMBRE (2026-09-22).
+   *  `segments.id` est un bigint à dix-neuf chiffres : PostgREST l'encode en nombre JSON et
+   *  `JSON.parse` l'arrondit au-delà de 2^53. Le volet reprenait cette valeur arrondie dans
+   *  un `in('id', …)` : 1 472 des 1 473 segments concernés n'étaient plus représentables et
+   *  2 771 liens (Cyrille de Jérusalem, l'Homélie sur la Présentation) ne paraissaient
+   *  jamais, alors que la densité, comptée en base, les annonçait. On demande donc
+   *  `segment_id::text` : les chiffres exacts, tels qu'ils repartiront dans la requête. */
+  segment_id: string
   canon_id: string | null
   verset_v2_id: string | null
   livre: string | null
@@ -40,7 +46,7 @@ export type Lien = {
   arbitrage_requis: boolean
 }
 
-const COLS = 'id, segment_id, canon_id, verset_v2_id, livre, chapitre, type, fiabilite, motif, provenance, arbitrage_requis'
+const COLS = 'id, segment_id::text, canon_id, verset_v2_id, livre, chapitre, type, fiabilite, motif, provenance, arbitrage_requis'
 
 type SegmentPourLiens = {
   id: number
@@ -173,20 +179,59 @@ async function lireLiensParCurseur(filtrer: (q: RequeteLiens) => RequeteLiens): 
   }
 }
 
+/** Le verset SURNUMÉRAIRE qu'un lien vise : hors ossature, il n'a pas de créneau
+ *  canonique et ne se range que par la numérotation de son édition. */
+type VersetSurnumeraire = { livre: string | null; ch_orig: number | null; canon_id: string | null }
+type LienAvecVerset = Lien & { verset: VersetSurnumeraire | null }
+
+/** Les liens posés sur un verset SURNUMÉRAIRE (`verset_v2_id` seul), retenus par ce
+ *  qu'ils visent : dix lignes en base le 2026-09-22, et l'index partiel
+ *  `liens_bib_surnum_unique` les tient seules. Ils ne remontaient ni dans le volet ni
+ *  dans les métadonnées, faute d'un troisième filtre — la charte §9 compte pourtant
+ *  trois cibles de lien.
+ *
+ *  ⛔ On filtre sur une colonne de `liens_bibliques` (`verset_v2_id`), jamais sur la
+ *  ressource embarquée : filtrer un embarqué compile une jointure latérale bornée, donc
+ *  un parcours complet de la table (voir `liensDeSegments`). Le verset ne dit QUE l'endroit
+ *  où le lien se pose, et le tri se fait ici.
+ *  ⚠️ Une panne ne ferme pas le volet : dix liens manqueraient là où une exception
+ *  emporterait les deux mille huit cents autres. Elle se consigne. */
+async function lireLiensSurnumeraires(retenir: (v: VersetSurnumeraire) => boolean): Promise<Lien[]> {
+  const { data, error } = await supabase
+    .from('liens_bibliques')
+    .select(`${COLS}, verset:versets_v2!liens_bibliques_verset_v2_id_fkey(livre, ch_orig, canon_id)`)
+    .not('verset_v2_id', 'is', null)
+  if (error) {
+    console.error('[liens] liens aux versets surnuméraires illisibles :', error)
+    return []
+  }
+  const retenus: Lien[] = []
+  for (const ligne of (data ?? []) as unknown as LienAvecVerset[]) {
+    const { verset, ...lien } = ligne
+    if (verset && retenir(verset)) retenus.push(lien)
+  }
+  return retenus
+}
+
 /** Recherche inverse : les segments qui renvoient à un verset donné.
  *
  *  Un lien peut viser trois choses — un créneau du canon, un verset surnuméraire
  *  (hors ossature), ou un chapitre entier. Un segment rattaché au chapitre répond
  *  donc aussi pour chacun de ses versets : c'est voulu, et c'était impossible à
  *  exprimer du temps des colonnes texte.
+ *
+ *  ⚠️ Un verset surnuméraire ne répond ici que s'il porte le MÊME créneau canonique :
+ *  un verset hors ossature n'est pas celui que le lecteur a choisi, et il ne se montre
+ *  qu'à l'échelle du chapitre.
  */
 export async function segmentsLiesAuVerset(canonId: string): Promise<Lien[]> {
   const [livre, chapitre] = canonId.split('.')
-  const [parVerset, parChapitre] = await lancerEnParallele([
+  const [parVerset, parChapitre, surnumeraires] = await lancerEnParallele([
     () => lireLiensEnSerie(q => q.eq('canon_id', canonId)),
     () => lireLiensEnSerie(q => q.eq('livre', livre).eq('chapitre', Number(chapitre))),
+    () => lireLiensSurnumeraires(v => v.canon_id === canonId),
   ])
-  return [...parVerset, ...parChapitre]
+  return [...parVerset, ...parChapitre, ...surnumeraires]
 }
 
 /** Recherche inverse à l'échelle d'un CHAPITRE entier : tous les segments qui
@@ -209,11 +254,14 @@ export async function segmentsLiesAuVerset(canonId: string): Promise<Lien[]> {
  *  retient d'abord les lignes du chapitre, la politique ne s'évalue que sur elles.
  */
 export async function segmentsLiesAuChapitre(livre: string, chapitre: number): Promise<Lien[]> {
-  const [parVerset, parChapitre] = await lancerEnParallele([
+  const [parVerset, parChapitre, surnumeraires] = await lancerEnParallele([
     () => lireLiensParCurseur(q => q.eq('canon_livre', livre).eq('canon_chapitre', chapitre)),
     () => lireLiensEnSerie(q => q.eq('livre', livre).eq('chapitre', chapitre)),
+    // Le TROISIÈME filtre : un verset surnuméraire se lit dans son chapitre, où son
+    // édition le pose (`livre`, `ch_orig`).
+    () => lireLiensSurnumeraires(v => v.livre === livre && v.ch_orig === chapitre),
   ])
-  return [...parVerset, ...parChapitre]
+  return [...parVerset, ...parChapitre, ...surnumeraires]
 }
 
 /** Recherche inverse sur une PLAGE canonique (péricope) : les segments qui renvoient
@@ -238,6 +286,9 @@ export async function segmentsLiesAPlage(livre: string, canonDebut: string, cano
   const resultats = await lancerEnParallele([
     ...chapitres.map(c => () => lireLiensParCurseur(q => q.eq('canon_livre', livre).eq('canon_chapitre', c))),
     () => lireLiensEnSerie(q => q.is('canon_id', null).eq('livre', livre).in('chapitre', chapitres)),
+    // Le TROISIÈME filtre : les versets surnuméraires des chapitres de la plage. Les
+    // bornes de verset ne s'y appliquent pas — leur numérotation n'est pas celle du canon.
+    () => lireLiensSurnumeraires(v => v.livre === livre && v.ch_orig != null && chapitres.includes(v.ch_orig)),
   ])
   const out: Lien[] = []
   resultats.forEach((liens, idx) => {
@@ -255,14 +306,33 @@ export async function segmentsLiesAPlage(livre: string, canonDebut: string, cano
   return out
 }
 
-/** Les versets visés par un segment, dans l'ordre des types — pour l'affichage. */
-export function versetsDuLien(liens: Lien[], type: TypeLien): string[] {
-  return liens.filter(l => l.type === type && l.canon_id).map(l => l.canon_id!)
+/** Les SEGMENTS que des liens désignent, lus par leur identifiant EXACT.
+ *
+ *  ⛔ LES IDENTIFIANTS NE PASSENT JAMAIS PAR UN NOMBRE (2026-09-22) : un bigint de
+ *  dix-neuf chiffres arrondi par `JSON.parse` désigne une ligne qui n'existe pas, et la
+ *  requête revient vide sans rien dire — 2 771 liens invisibles, quatre œuvres entières
+ *  absentes du volet. La garde lève plutôt que de chercher un autre segment.
+ *  ⛔ Lots d'OCTETS D'ADRESSE (`lotsPourClauseIn`), lancés en parallèle bornée : jamais
+ *  un lot de 500 en série, jamais toute la liste d'un coup. */
+export async function segmentsDesLiens<T>(
+  ids: readonly string[],
+  colonnes: string,
+  client: Pick<typeof supabase, 'from'> = supabase,
+): Promise<T[]> {
+  for (const id of ids) {
+    if (typeof id !== 'string' || !/^\d+$/.test(id)) {
+      throw new Error(`Un identifiant de segment se transporte en chiffres exacts, jamais en nombre : « ${String(id)} ».`)
+    }
+  }
+  const reponses = await lancerEnParallele(lotsPourClauseIn([...ids]).map(lot => () =>
+    client.from('segments').select(colonnes).in('id', lot)))
+  const lignes: T[] = []
+  for (const r of reponses) {
+    if (r.error) throw r.error
+    lignes.push(...((r.data ?? []) as unknown as T[]))
+  }
+  return lignes
 }
-
-/** Un lien sans cible est un lien à constituer : la référence est connue de
- *  l'éditeur (elle est dans `motif`) mais n'a pas encore été résolue au canon. */
-export const estAConstituer = (l: Lien) => !l.canon_id && !l.verset_v2_id && !l.livre
 
 /** ADAPTATEUR TRANSITOIRE. Reconstitue `lien_1 … lien_4` en mémoire, au format
  *  hérité (« GEN.1.1;GEN.1.2 »), à partir de la table.

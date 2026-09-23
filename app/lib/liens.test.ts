@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/app/lib/supabase', () => ({ supabase: { from: vi.fn() } }))
 
-import { hydraterLiensHerites, segmentsLiesAuChapitre } from './liens'
+import { hydraterLiensHerites, segmentsDesLiens, segmentsLiesAuChapitre } from './liens'
 import { REQUETES_EN_VOL } from './paginationSupabase'
 import { supabase } from './supabase'
 
@@ -119,6 +119,7 @@ describe('segmentsLiesAuChapitre', () => {
       select: vi.fn(),
       eq: vi.fn(),
       like: vi.fn(),
+      not: vi.fn(),
       order: vi.fn(),
       range: vi.fn(),
       // La chaîne est « thenable » : `await` la résout comme une réponse PostgREST.
@@ -127,6 +128,7 @@ describe('segmentsLiesAuChapitre', () => {
     chaine.select.mockReturnValue(chaine)
     chaine.eq.mockImplementation((...args: unknown[]) => { appels.eq.push(args); return chaine })
     chaine.like.mockImplementation((...args: unknown[]) => { appels.like.push(args); return chaine })
+    chaine.not.mockReturnValue(chaine)
     chaine.order.mockReturnValue(chaine)
     chaine.range.mockReturnValue(chaine)
     ;(supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValue(chaine)
@@ -159,6 +161,7 @@ describe('segmentsLiesAuChapitre', () => {
         select: () => chaine,
         eq: (...args: unknown[]) => { r.eq.push(args); return chaine },
         gt: (...args: unknown[]) => { r.gt.push(args); return chaine },
+        not: () => chaine,
         order: (...args: unknown[]) => { r.order.push(args); return chaine },
         range: (debut: number, fin: number) => { r.range = [debut, fin]; return chaine },
         then: (resoudre: (v: unknown) => unknown) => {
@@ -185,18 +188,76 @@ describe('segmentsLiesAuChapitre', () => {
     }
     // Trois pages pour 2 773 liens, et pas une de plus.
     expect(auVerset.map(r => r.gt[0]?.[1] ?? null)).toEqual([null, 999, 1999])
-    // Deux lectures (au verset, au chapitre), chacune en série : deux requêtes en vol au plus.
-    expect(volMax).toBeLessThanOrEqual(2)
+    // Trois lectures (au verset, au chapitre, aux versets surnuméraires), chacune en
+    // série : trois requêtes en vol au plus.
+    expect(volMax).toBeLessThanOrEqual(3)
   })
 
   it('lève sur une erreur de la base au lieu de rendre une liste tronquée', async () => {
     ;(supabase.from as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => {
       const chaine = {
-        select: () => chaine, eq: () => chaine, gt: () => chaine, order: () => chaine, range: () => chaine,
+        select: () => chaine, eq: () => chaine, gt: () => chaine, not: () => chaine, order: () => chaine, range: () => chaine,
         then: (resoudre: (v: unknown) => unknown) => Promise.resolve({ data: null, error: { message: 'délai dépassé' } }).then(resoudre),
       }
       return chaine
     })
     await expect(segmentsLiesAuChapitre('GEN', 1)).rejects.toEqual({ message: 'délai dépassé' })
+  })
+})
+
+// ⛔ LE DÉFAUT QUE CETTE GARDE FERME (2026-09-22) : `liens_bibliques.segment_id` est un
+// bigint, et 1 472 des 1 473 segments que le volet vise dépassent 2^53. Transportés en
+// NOMBRE, `JSON.parse` les arrondit, `in('id', …)` cherche alors une ligne qui n'existe
+// pas, et la requête revient vide SANS ERREUR : 2 771 liens n'ouvraient aucun extrait.
+// La garde est symétrique du `::text` de `COLS` : l'un écrit les chiffres exacts,
+// l'autre refuse tout ce qui n'en est pas.
+describe('segmentsDesLiens', () => {
+  /** Un client qui ÉCHOUE si un identifiant lui arrive en nombre — c'est-à-dire ce que
+   *  PostgREST ferait sans le dire, mais à voix haute. */
+  const clientQuiRefuseUnNombre = (vus: unknown[][]) => ({
+    from: () => {
+      const chaine = {
+        select: () => chaine,
+        in: (colonne: string, valeurs: unknown[]) => {
+          vus.push(valeurs)
+          if (colonne === 'id') {
+            for (const v of valeurs) {
+              if (typeof v !== 'string') {
+                throw new Error(`in('id', …) a reçu un ${typeof v} : ${String(v)}`)
+              }
+            }
+          }
+          return Promise.resolve({ data: [], error: null })
+        },
+      }
+      return chaine
+    },
+  })
+
+  it('transporte les identifiants en chiffres exacts, jamais en nombre', async () => {
+    const vus: unknown[][] = []
+    const ids = ['9214674596299208749', '2852178520832810497']
+
+    await segmentsDesLiens(ids, 'id::text', clientQuiRefuseUnNombre(vus) as never)
+
+    expect(vus.flat()).toEqual(ids)
+    // Le second identifiant ne survivrait pas à un aller-retour par `Number`.
+    expect(Number.isSafeInteger(Number(ids[0]))).toBe(false)
+    expect(String(Number(ids[0]))).not.toBe(ids[0])
+  })
+
+  it('lève plutôt que d’aller chercher un autre segment', async () => {
+    const vus: unknown[][] = []
+    const arrondi = 9_214_674_596_299_209_000 as unknown as string
+
+    await expect(segmentsDesLiens([arrondi], 'id::text', clientQuiRefuseUnNombre(vus) as never))
+      .rejects.toThrow(/chiffres exacts/)
+    // ⛔ Rien n'est parti : on ne demande pas à la base une ligne qu'on sait fausse.
+    expect(vus).toEqual([])
+  })
+
+  it('refuse aussi une chaîne qui n’est pas faite de chiffres', async () => {
+    await expect(segmentsDesLiens(['9214674596299208749n'], 'id::text', clientQuiRefuseUnNombre([]) as never))
+      .rejects.toThrow(/chiffres exacts/)
   })
 })

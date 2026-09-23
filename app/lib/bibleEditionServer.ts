@@ -22,6 +22,9 @@ type OptionsChapitreEdition = {
   bookCode: string
   bornesChapitre?: { premier: number; dernier: number } | null
   canonIds: string[] | Promise<string[]>
+  /** Les lignes du canon déjà lues par la page : elles épargnent au noyau la
+   *  relecture de `versets_canon` (voir `loadBibleEditionChapter` du noyau). */
+  canonRows?: readonly { id: string; ordre: number }[]
   includeBookFrontMatter?: boolean
   includeBookBackMatter?: boolean
 }
