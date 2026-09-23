@@ -56,7 +56,7 @@ const useMesureAvantPeinture = typeof window === 'undefined' ? useEffect : useLa
  *  AVANT le rendu, quand la feuille n'a encore rien posé ; `bullePartage.test.ts`
  *  confronte les deux écritures. ⚠️ La cible est au-dessus du plancher de 24 px de WCAG
  *  2.2 § 2.5.8 : sans libellé sous lui, un logo a besoin d'air pour se lire. */
-const CIBLE_REM = 1.875
+const CIBLE_REM = 2.125
 const ECART_REM = 0.25
 const AIR_REM = 0.375
 
@@ -84,8 +84,15 @@ export function hauteurDeLaBulle(racine: number): number {
 // 2026-09-23 : « ils sont laids ; trouve des génériques »). Les marques de réseaux sont
 // celles de Simple Icons (CC0), pleines et posées un cran sous la boîte ; le lien, le
 // courriel et le SMS sont ceux de Lucide (ISC), au trait. Tout en `currentColor`.
-const TRAIT = { stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' } as const
-const PLEIN = { fill: 'currentColor', transform: 'translate(1.8 1.8) scale(0.85)' } as const
+//
+// ⛔ ILS SE RENDENT À LEUR GRILLE NATIVE, 24 px à la racine 16 (relevé de l'auteur,
+// 2026-09-23 : « pixelisés »). Posés à 21 px, soit sept huitièmes de leur grille, et
+// réduits encore de 15 % pour les marques pleines, chaque trait tombait entre deux
+// pixels, et le détail d'un logo (le combiné de WhatsApp) se brouillait en taches.
+// Les marques pleines se posent dans un carré de 20 décalé de 2 (`scale(5/6)`) : leurs
+// bords tombent sur des pixels entiers ; le trait vaut 2, celui de Lucide.
+const TRAIT = { stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' } as const
+const PLEIN = { fill: 'currentColor', transform: 'translate(2 2) scale(0.8333333)' } as const
 
 const MARQUES: Record<CleCanal, React.ReactNode> = {
   lien: <>
@@ -128,7 +135,7 @@ export function RangeeCanaux({ ligne, adresse, canaux, copie, erreur, onCopier, 
         const copieFaite = cle === 'lien' && copie
         const libelle = copieFaite ? 'Lien copié' : nom
         const contenu = (
-          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             {copieFaite ? MARQUE_COPIE : MARQUES[cle]}
           </svg>
         )
@@ -186,9 +193,12 @@ export default function BullePartage({ sujet, url, ancre, onFermer }: {
   const canaux = canauxPour({ mobile: sansSurvol, ios })
 
   // Le placement se prend AVANT la peinture, sur le rectangle du bouton.
+  // ⛔ Il se pose au PIXEL ENTIER (2026-09-23) : une bulle posée à une abscisse
+  // fractionnaire peint tous ses logos entre deux pixels, et leurs traits s'y brouillent.
   useMesureAvantPeinture(() => {
     const racine = tailleRacinePx()
-    setPlacement(placerFenetre({
+    const au_pixel = (p: ReturnType<typeof placerFenetre>) => ({ ...p, top: Math.round(p.top), left: Math.round(p.left) })
+    setPlacement(au_pixel(placerFenetre({
       ancre,
       largeur: largeurDeLaBulle(canaux.length, racine),
       hauteurSouhaitee: hauteurDeLaBulle(racine),
@@ -196,7 +206,7 @@ export default function BullePartage({ sujet, url, ancre, onFermer }: {
       hautNavbar: hauteurNavbarPx(),
       // ⛔ AU DOIGT, elle s'ouvre AU-DESSUS : sous le point de frappe il y a la main.
       prefereDessus: sansSurvol,
-    }))
+    })))
   }, [ancre, canaux.length, sansSurvol])
 
   // ⛔ Une bulle ANCRÉE ne suit pas son ancre : le volet défile sous elle, et la fenêtre

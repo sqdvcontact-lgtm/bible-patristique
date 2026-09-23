@@ -34,6 +34,8 @@ export const FLEURONS_DES_VIDES = {
   recherche: 'croix-volutes',
   /** « Elle demande un écran large » — Polyglotte sur un petit écran. */
   polyglotte: 'croix-volutes',
+  /** « … ne comporte pas ce livre » — page Bible, entre le constat et les bibles qui le donnent. */
+  livreAbsent: 'croix-volutes',
 } as const
 
 export type VideFleuronne = keyof typeof FLEURONS_DES_VIDES

@@ -39,6 +39,8 @@ import IconeSignalement from '@/app/components/IconeSignalement'
 import IconePolyglotte from '@/app/components/IconePolyglotte'
 import IconeFacsimile from '@/app/components/IconeFacsimile'
 import { Bulle } from '@/app/components/Bulle'
+import FleuronDiscret from '@/app/components/FleuronDiscret'
+import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { STYLE_BOUTON_ACTION } from '@/app/lib/celluleActions'
 // ⛔ Les fenêtres ne se chargent qu'au CLIC (2026-09-22) : le fac-similé, le signalement,
 // l'édition d'un verset n'ont rien à peser sur la lecture tant qu'on ne les ouvre pas.
@@ -88,9 +90,38 @@ const VERSET_ACTION_BTN = STYLE_BOUTON_ACTION
 /** La ligne qui dit où en est la recherche des bibles d'un livre absent : la mesure de la
  *  liste qui la remplacera, pour que rien ne saute quand elle arrive. */
 const STYLE_ETAT_RECHERCHE: React.CSSProperties = {
-  margin: '14px auto 0', maxWidth: '21.25rem', padding: '0 16px', textAlign: 'center',
-  fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', lineHeight: 1.65,
+  margin: 0, maxWidth: '21.25rem', textAlign: 'center', textWrap: 'balance',
+  fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', lineHeight: 1.6,
   color: 'var(--cs-texte-second)',
+}
+
+/** Le LIVRE ABSENT se compose comme une petite page de titre (demande de l'auteur,
+ *  2026-09-23) : le nom de la bible en titre, ce qu'il en est en mention, un fleuron qui
+ *  sépare le constat de l'issue, puis les bibles qui donnent le livre. Le tout sur l'axe
+ *  du texte, comme le titre du chapitre et la mention d'une lacune. */
+const STYLE_LIVRE_ABSENT: React.CSSProperties = {
+  display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+  minHeight: '50vh', padding: '15vh 16px 0',
+}
+const STYLE_ABSENT_NOM: React.CSSProperties = {
+  margin: 0, maxWidth: '24rem', textWrap: 'balance',
+  fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', lineHeight: 1.3,
+  color: 'var(--cs-encre)',
+}
+const STYLE_ABSENT_MENTION: React.CSSProperties = {
+  margin: '0.3125rem 0 0',
+  fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', fontStyle: 'italic',
+  letterSpacing: '0.02em', lineHeight: 1.4, color: 'var(--cs-mention)',
+}
+const STYLE_ABSENT_FLEURON: React.CSSProperties = { display: 'flex', justifyContent: 'center', margin: '1.375rem 0 1.25rem' }
+const STYLE_ABSENT_ISSUE: React.CSSProperties = {
+  margin: '0 0 0.375rem',
+  fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', fontStyle: 'italic',
+  lineHeight: 1.4, color: 'var(--cs-texte-second)',
+}
+const STYLE_ABSENT_LISTE: React.CSSProperties = {
+  listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.1875rem',
+  fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', lineHeight: 1.45,
 }
 
 /** La reprise de lecture (`repere=N`) : combien de temps la page s'abstient de retenir une
@@ -986,61 +1017,67 @@ export default function TexteBible({
 
           {rendreFluxEditorial(indexBlocs.opening, indexIllustrations.opening)}
 
+          {/* LE LIVRE ABSENT (refondu le 2026-09-23, demande de l'auteur : « au plus
+              propre, au plus élégant ; un fleuron de la liste des fleurons »). Le nom de la
+              bible se pose en titre, le constat en mention, et le fleuron des vides (la
+              croix à volutes, `FleuronDiscret`) sépare le constat de l'issue.
+              ⛔ Toujours PAS DE GRAVURE (décision du 2026-09-04) : un état qu'on traverse
+              ne prend pas une planche ; un fleuron de trois rem n'en est pas une.
+              ⛔ Sur l'axe du TEXTE : même grille que le titre du chapitre et la mention
+              d'une lacune, la colonne d'actions exclue du centrage. */}
           {texteAbsent && (
-            /* ⛔ PLUS DE GRAVURE ICI (demande de l'auteur, 2026-09-04 : « supprimer le
-               dessin »). La cité ruinée occupait soixante pour cent de la hauteur pour dire
-               ce qu'une phrase dit mieux, et l'écran se rencontre désormais plus souvent :
-               la barre rouvre la Bible sur le DERNIER livre lu, qui n'est pas toujours dans
-               la bible qu'on retrouve. Un état qu'on traverse ne se compose pas comme une
-               page de titre. La planche passe en réserve (voir l'inventaire des
-               illustrations). ⚠️ La mention, elle, reste : c'est elle qu'on lisait. */
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-doux)', textAlign: 'center', lineHeight: 1.65, margin: '0 auto', padding: '18vh 16px 0', maxWidth: '21.25rem' }}>
-              La traduction <em style={{ fontStyle: 'normal', color: 'var(--cs-texte-second)' }}>{traductionLabel}</em> ne comporte pas ce livre.
-            </p>
-          )}
-          {/* ⛔ L'ATTENTE ET L'ÉCHEC SE DISENT (2026-09-22) : rien ne paraissait pendant la
-              recherche, ni quand elle échouait, et la page restait sur sa seule phrase.
-              ⚠️ Un échec n'est pas « aucune bible ne le donne » : on ne le sait pas. */}
-          {texteAbsent && rechercheBiblesAbsent === 'en-cours' && (
-            <p role="status" style={{ ...STYLE_ETAT_RECHERCHE, fontStyle: 'italic', color: 'var(--cs-texte-gris)' }}>
-              Recherche des bibles qui le donnent…
-            </p>
-          )}
-          {texteAbsent && rechercheBiblesAbsent === 'echec' && (
-            <div role="status" style={STYLE_ETAT_RECHERCHE}>
-              <p style={{ margin: 0 }}>Les autres bibles n’ont pas pu être consultées.</p>
-              {onReessayerBiblesAbsent && (
-                <button type="button" className="cs-bouton-lien" onClick={onReessayerBiblesAbsent} style={{ marginTop: '6px' }}>
-                  Réessayer
-                </button>
-              )}
+            <div style={{ width: mobile ? '100%' : 'min(var(--mesure-ligne), 100%)', margin: '0 auto', display: mobile ? 'block' : 'grid', gridTemplateColumns: `minmax(0, var(--mesure-bloc)) ${GOUTTIERE_ACTIONS_VERSET}` }}>
+              <div style={STYLE_LIVRE_ABSENT}>
+                <p style={STYLE_ABSENT_NOM}>{rendreEnrichi(traductionLabel)}</p>
+                <p style={STYLE_ABSENT_MENTION}>ne comporte pas ce livre.</p>
+                <div style={STYLE_ABSENT_FLEURON}><FleuronDiscret vide="livreAbsent" /></div>
+                {/* ⛔ L'ATTENTE ET L'ÉCHEC SE DISENT (2026-09-22) : rien ne paraissait pendant
+                    la recherche, ni quand elle échouait. ⚠️ Un échec n'est pas « aucune bible
+                    ne le donne » : on ne le sait pas. */}
+                {rechercheBiblesAbsent === 'en-cours' && (
+                  <p role="status" style={{ ...STYLE_ETAT_RECHERCHE, fontStyle: 'italic', color: 'var(--cs-texte-gris)' }}>
+                    Recherche des bibles qui le donnent…
+                  </p>
+                )}
+                {rechercheBiblesAbsent === 'echec' && (
+                  <div role="status" style={STYLE_ETAT_RECHERCHE}>
+                    <p style={{ margin: 0 }}>Les autres bibles n’ont pas pu être consultées.</p>
+                    {onReessayerBiblesAbsent && (
+                      <button type="button" className="cs-bouton-lien" onClick={onReessayerBiblesAbsent} style={{ marginTop: '6px' }}>
+                        Réessayer
+                      </button>
+                    )}
+                  </div>
+                )}
+                {rechercheBiblesAbsent === 'faite' && biblesDuLivreAbsent?.length === 0 && (
+                  <p style={STYLE_ETAT_RECHERCHE}>
+                    Aucune des bibles publiées sur Corpus Scriptura ne le donne pour l’instant.
+                  </p>
+                )}
+                {/* L'issue : les bibles qui le portent, en liens directs (audit ergonomique,
+                    2026-09-21), un nom par ligne, composés comme partout (`rendreEnrichi`). */}
+                {biblesDuLivreAbsent && biblesDuLivreAbsent.length > 0 && (
+                  <nav aria-label="Bibles qui comportent ce livre">
+                    <p style={STYLE_ABSENT_ISSUE}>On le lit dans</p>
+                    <ul style={STYLE_ABSENT_LISTE}>
+                      {biblesDuLivreAbsent.map(b => (
+                        <li key={b.code}>
+                          <a href={b.href} className="cs-lien-phrase" style={{ color: 'var(--cs-vert)' }}
+                            onClick={e => {
+                              if (!onChoisirBible || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+                              e.preventDefault()
+                              onChoisirBible(b.code)
+                            }}>
+                            {rendreEnrichi(b.label)}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+                )}
+              </div>
+              <div />
             </div>
-          )}
-          {texteAbsent && rechercheBiblesAbsent === 'faite' && biblesDuLivreAbsent?.length === 0 && (
-            <p style={STYLE_ETAT_RECHERCHE}>
-              Aucune des bibles publiées sur Corpus Scriptura ne le donne pour l’instant.
-            </p>
-          )}
-          {/* L'issue : les bibles qui le portent, en liens directs (audit ergonomique,
-              2026-09-21). La phrase seule laissait le lecteur chercher le menu et deviner. */}
-          {texteAbsent && biblesDuLivreAbsent && biblesDuLivreAbsent.length > 0 && (
-            <nav aria-label="Bibles qui comportent ce livre" style={{ margin: '14px auto 0', maxWidth: '21.25rem', padding: '0 16px', textAlign: 'center', fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', lineHeight: 1.65, color: 'var(--cs-texte-second)' }}>
-              <p style={{ margin: '0 0 4px' }}>{'On le lit dans\u00A0:'}</p>
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                {biblesDuLivreAbsent.map(b => (
-                  <li key={b.code}>
-                    <a href={b.href} className="cs-lien-phrase" style={{ color: 'var(--cs-vert)' }}
-                      onClick={e => {
-                        if (!onChoisirBible || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
-                        e.preventDefault()
-                        onChoisirBible(b.code)
-                      }}>
-                      {b.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
           )}
 
           {/* Chapitre entièrement absent du témoin : une mention unique, sobre, au lieu
