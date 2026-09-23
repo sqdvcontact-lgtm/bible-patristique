@@ -7,6 +7,7 @@
 // droite ne garde que la liste qu'on filtre.
 
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { STYLE_ORDINAL } from '@/app/lib/siecles'
 
 // ── LE FILTRE ET SON VOLET PARLENT L'OR ─────────────────────────────────────
 //
@@ -100,7 +101,7 @@ function rendreSiecle(str: string): React.ReactNode {
   while ((m = re.exec(str)) !== null) {
     if (m.index > last) parts.push(str.slice(last, m.index))
     parts.push(<span key={k++} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{m[1].toLowerCase()}</span>)
-    if (m[2]) parts.push(<sup key={k++} style={{ fontSize: '0.68em', lineHeight: 0, verticalAlign: 'baseline', position: 'relative', top: '-0.5em' }}>{m[2]}</sup>)
+    if (m[2]) parts.push(<sup key={k++} style={STYLE_ORDINAL}>{m[2]}</sup>)
     last = re.lastIndex
   }
   if (last < str.length) parts.push(str.slice(last))
@@ -366,7 +367,7 @@ export default function FiltresPatristiques(p: PanneauFiltresProps) {
           </svg>
           Filtres
           {p.nombreActifs > 0 && (
-            <span aria-hidden="true" style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: OR_ENCRE, color: 'var(--cs-surface)', borderRadius: '8px', fontSize: '0.6875rem', padding: '0 4px', lineHeight: '14px', fontWeight: 700 }}>
+            <span aria-hidden="true" style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: OR_ENCRE, color: 'var(--cs-surface)', borderRadius: '8px', fontSize: '0.6875rem', padding: '0 4px', lineHeight: 1.27, fontWeight: 700 }}>
               {p.nombreActifs}
             </span>
           )}

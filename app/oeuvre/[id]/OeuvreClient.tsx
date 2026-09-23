@@ -200,6 +200,8 @@ import {
   libelleDivisionComparaison,
   type DivisionAlignee,
 } from './comparaisonTraductionsUtils'
+import { SERIF, SANS } from '@/app/lib/polices'
+import { STYLE_POSITION_PAGE, STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
 const CHARS_PAR_PAGE = 15000
 
@@ -470,7 +472,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
 
                 {selection && versets.length > 0 && (
                   <div style={{ marginTop: '8px', padding: '8px 10px', background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-fond-doux)', borderRadius: '4px' }}>
-                    <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 4px' }}>{libelleTypeLien(selection.champ)}</p>
+                    <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 4px' }}>{libelleTypeLien(selection.champ)}</p>
                     {versets.map(v => (
                       <p key={v.id} style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-fort)', margin: '2px 0 0', lineHeight: 1.4 }}>{v.label}</p>
                     ))}
@@ -3538,7 +3540,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            blanc de paragraphe : on lit un passage continu, non une suite de sujets.
            Les mesures vivent dans app/lib/compositionVersets.ts, que la comparaison
            des traductions emploie aussi : une seule composition, deux surfaces. */
-        .citation-versets { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.8125rem; color: var(--cs-texte-fort); margin: 0 0 0.72rem; word-spacing: -0.025em; letter-spacing: 0; }
+        .citation-versets { font-family: ${SERIF}; font-size: 0.8125rem; color: var(--cs-texte-fort); margin: 0 0 0.72rem; word-spacing: -0.025em; letter-spacing: 0; }
         .citation-verset { display: block; margin: 0 0 ${BLANC_ENTRE_VERSETS} ${RETRAIT_VERSET}; font-size: 0.95em; line-height: 1.62; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; white-space: pre-line; }
         .citation-verset:last-child { margin-bottom: 0; }
         @media(max-width: 1023px){ .citation-verset { margin-left: ${RETRAIT_VERSET_ETROIT}; } }
@@ -3554,8 +3556,8 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            calage par top, jamais vertical-align:super, qui gonfle la boîte de ligne —
            et le blanc entre versets, qui est léger, s'en trouverait rouvert. */
         .num-verset { font-size: 0.71em; font-weight: 600; color: var(--cs-texte-doux); line-height: 0; vertical-align: baseline; position: relative; top: -0.5em; margin-right: 0.25em; user-select: none; }
-        .texte-original { color: var(--cs-original); font-family: var(--font-source-serif), Georgia, serif; }
-        .para-bilingue > .texte-original { font-family: var(--font-source-sans), Arial, sans-serif; }
+        .texte-original { color: var(--cs-original); font-family: ${SERIF}; }
+        .para-bilingue > .texte-original { font-family: ${SANS}; }
         @media(max-width: 1023px){
           .seg-wrapper::after { display: none !important; width: 0 !important; right: 0 !important; }
           .titre-colophon{max-width:100%!important;line-height:1.32!important;word-spacing:normal!important;letter-spacing:0!important;}
@@ -4170,9 +4172,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: prev ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: prev ? 'pointer' : 'default', padding: 0, pointerEvents: prev ? 'auto' : 'none' }}>
                   {prev ? '‹' : ''}
                 </button>
-                <span style={{ fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3 }}>
+                <span style={{ fontSize: TITRE_CARTE, fontWeight: 500, color: 'var(--cs-encre)', fontFamily: SERIF, textAlign: 'center', minWidth: 0, lineHeight: 1.3 }}>
                   {titreLivre}
-                  <span style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{titreDivision}</span>
+                  <span style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: SERIF }}>{titreDivision}</span>
                 </span>
                 <button onClick={() => next && naviguerComparaison(next.book, next.division)} disabled={!next} aria-label="Division suivante"
                   style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: next ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: next ? 'pointer' : 'default', padding: 0, pointerEvents: next ? 'auto' : 'none' }}>
@@ -4207,7 +4209,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                   niveau 1 en lecture ordinaire — le corps ne le rend qu'en texte entier —,
                   et elle le composait en SPAN : le plan de la page sautait du titre de
                   l'œuvre au niveau 2, et la division qu'on lit n'y figurait pas du tout. */}
-              <h2 style={{ fontSize: '1.4375rem', fontWeight: 500, color: 'var(--cs-encre)', fontFamily: "var(--font-source-serif), Georgia, serif", textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'pre-line', overflowWrap: 'break-word' }}>
+              <h2 style={{ fontSize: TITRE_CARTE, fontWeight: 500, color: 'var(--cs-encre)', fontFamily: SERIF, textAlign: 'center', minWidth: 0, lineHeight: 1.3, whiteSpace: 'pre-line', overflowWrap: 'break-word' }}>
                 {niv1Erreur ? (
                   <span style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     Erreur de chargement.{' '}
@@ -4240,7 +4242,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                       const notesTitre = notesDuTitre([txt], segMap.get(groupes[0]?.itemIds[0] ?? -1)?.notes)
                       const composeTexte = groupes[0] ? titreComposeDe(titresComposes, 'niv1_texte', groupes[0]) : undefined
                       return (composeTexte || txt) && configNiveaux.txtCorps[0]
-                        ? <span style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{rendreTexteAvecNotes(preparerTitreColophon(composeTexte ?? groupes[0]?.titresAffichage?.niv1_texte ?? txt), notesTitre)}</span>
+                        ? <span style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 400, color: 'var(--cs-texte-second)', fontStyle: 'italic', marginTop: '4px', fontFamily: SERIF }}>{rendreTexteAvecNotes(preparerTitreColophon(composeTexte ?? groupes[0]?.titresAffichage?.niv1_texte ?? txt), notesTitre)}</span>
                         : null
                     })()}
                     {/* ⚠️ Au téléphone il n'y a pas de marge : un crayon à −52 px y sortait de
@@ -5468,7 +5470,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               )
             })}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.10em', color: 'var(--cs-texte-second)', margin: 0, textTransform: 'uppercase' }}>Numéros de segments</p>
+              <p style={{ ...STYLE_RUBRIQUE, margin: 0 }}>Numéros de segments</p>
               <button onClick={() => setConfigNiveaux(prev => ({ ...prev, afficherNumeros: !prev.afficherNumeros }))}
                 style={{ fontSize: '0.6875rem', padding: '4px 12px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: configNiveaux.afficherNumeros ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: configNiveaux.afficherNumeros ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-gris)', cursor: 'pointer' }}>
                 {configNiveaux.afficherNumeros ? 'Affichés' : 'Masqués'}
@@ -5606,7 +5608,7 @@ function NavPages({ pages, pageActuelle, setPageActuelle, bas = false }: {
               lit d'abord un quart de quelque chose, et il faut un temps pour comprendre
               qu'il s'agit d'une page dans un tout. Le rapport se lit, il ne se calcule
               pas. */}
-          <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: 'italic', fontSize: '0.75rem', color: 'var(--cs-texte-doux)', letterSpacing: '0.02em', userSelect: 'none', minWidth: '5.5rem', textAlign: 'center', whiteSpace: 'nowrap' }}>
+          <span style={{ ...STYLE_POSITION_PAGE, minWidth: '5.5rem', textAlign: 'center' }}>
             {pageActuelle + 1} sur {total}
           </span>
           <button

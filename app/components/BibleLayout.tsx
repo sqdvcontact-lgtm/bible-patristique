@@ -47,6 +47,7 @@ import { enumererNoms } from '@/app/lib/traducteurs'
 import { modesLectureAlternatifs, nomLangue, type CibleLectureAlternative, type MembreFamilleLecture } from '@/app/lib/bibleModesAlternatifs'
 import type { BibleLue, ContexteNotesBible } from '@/app/lib/notesBibleInventaire'
 import type { LectureNotesEditoriales } from '@/app/lib/notesVersetsV2Inventaire'
+import { SERIF } from '@/app/lib/polices'
 
 type Livre = { code: string; nom: string; testament: string }
 type Verset = {
@@ -1335,7 +1336,7 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
           <button type="button" className="cs-cible-fine"
             onClick={() => { setDemandeLivreCourant(n => n + 1); changerOnglet('livres') }}
             aria-label={`Ouvrir la liste des livres (${nomLivre}, chapitre ${chapitreActif})`}
-            style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', display: 'inline-flex', alignItems: 'baseline', gap: '8px', fontSize: '0.875rem', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', color: 'inherit' }}>
+            style={{ fontFamily: SERIF, display: 'inline-flex', alignItems: 'baseline', gap: '8px', fontSize: '0.875rem', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', color: 'inherit' }}>
             <span style={{ fontWeight: 500, color: 'var(--cs-encre)' }}>{ABREV_FR[livreActif] ?? livreActif}</span>
             {/* Le fleuron prend le rang d'ORNEMENT de la palette (`--cs-texte-faible`, qui
                 se retourne avec le Cuir), et se tait au lecteur d'écran. */}

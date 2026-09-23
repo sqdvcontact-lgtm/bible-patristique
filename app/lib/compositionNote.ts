@@ -38,6 +38,7 @@ import type { CSSProperties } from 'react'
 import { MARGE_FENETRE } from './fenetreContextuelle'
 import { estExplicationCorpus } from './explicationCorpus'
 import { SEUIL_CITATION_SORTIE } from './citationSortie'
+import { SANS } from './polices'
 
 /** La largeur de l'encart. Un peu moins que la colonne de lecture (31,25 rem) : il
  *  se pose PAR-DESSUS elle, et doit se lire comme un objet, non comme une colonne.
@@ -291,7 +292,7 @@ export const STYLE_DISCRET_ENCART: CSSProperties = {
 export const MARGE_LIBELLE_EXPLICATION_REM = 0.1875
 export const STYLE_LIBELLE_EXPLICATION: CSSProperties = {
   display: 'block',
-  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+  fontFamily: SANS,
   fontSize: CORPS_ENCART,
   lineHeight: INTERLIGNE_ENCART,
   fontStyle: 'normal',
@@ -478,8 +479,8 @@ export function sequencesDeLaNote(blocs: readonly { bibliographyListItem?: boole
 /** Le corps du NUMÉRO de la tête, celui de son INTITULÉ, l'écart qui les sépare et le
  *  blanc qui les suit. ⛔ Écrits UNE fois : la tête les pose (`FACE_NUMERO`,
  *  `STYLE_INTITULE_ENCART`, `STYLE_TETE_ENCART`) et l'estimation de hauteur les relit. */
-const CORPS_NUMERO_TETE = '0.625rem'
-const CORPS_INTITULE = '0.5625rem'
+const CORPS_NUMERO_TETE = '0.6875rem'
+const CORPS_INTITULE = '0.625rem'
 const ECART_TETE = '0.4375rem'
 const MARGE_TETE = '0.25rem'
 /** La tête et son blanc, quand la note déclare un type. ⚠️ DÉRIVÉE, non recopiée :
@@ -828,7 +829,7 @@ export function styleCorpsEncart(signes: number): CSSProperties {
     // qu'un filet ferait ailleurs : il dit qu'on a quitté la page pour l'appareil.
     // ⚠️ Il emporte l'apparat critique et tout ce que l'encart contient, qui héritent —
     // aucun d'eux ne déclare sa propre police, et c'est ce qui les tient d'accord.
-    fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+    fontFamily: SANS,
     fontSize: CORPS_ENCART,
     lineHeight: INTERLIGNE_ENCART,
     color: 'var(--cs-texte-fort)',
@@ -880,7 +881,7 @@ export function styleCorpsEncart(signes: number): CSSProperties {
  */
 /** La face du numéro, commune à ses deux poses. */
 const FACE_NUMERO: CSSProperties = {
-  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+  fontFamily: SANS,
   fontSize: CORPS_NUMERO_TETE,
   fontWeight: 600,
   color: 'var(--cs-texte-doux)',
@@ -911,7 +912,7 @@ export const STYLE_NUMERO_SEUL: CSSProperties = {
   // ⛔ IL SUIT DONC LE PROPOS QUAND LE PROPOS CHANGE DE POLICE, et la garde tient les
   // deux d'accord plutôt que la valeur : c'est la RELATION qui compte, non le nom de la
   // famille — écrite en dur des deux côtés, elle se serait redéfaite au premier réglage.
-  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+  fontFamily: SANS,
   fontSize: CORPS_ENCART,
   lineHeight: INTERLIGNE_ENCART,
 }
@@ -945,7 +946,7 @@ export const STYLE_TETE_ENCART: CSSProperties = {
 }
 
 export const STYLE_INTITULE_ENCART: CSSProperties = {
-  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+  fontFamily: SANS,
   fontSize: CORPS_INTITULE,
   fontWeight: 700,
   letterSpacing: '0.09em',

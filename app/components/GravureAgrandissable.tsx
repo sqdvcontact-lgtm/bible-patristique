@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { SERIF } from '@/app/lib/polices'
 
 /**
  * ⛔ UNE PLANCHE EST UNE PAGE ENTIÈRE DU VOLUME, ET ELLE NE SE LIT PAS À 440 px.
@@ -29,7 +30,6 @@ import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
  * barre, qui est peinte par-dessus (charte, § Fenêtres contextuelles).
  */
 
-const SERIF = 'var(--font-source-serif), Georgia, serif'
 /** Au-dessus de la barre de navigation et des volets, sous rien d'autre. */
 // ⛔ AU-DESSUS des barres mobiles de la page Bible (onglets 1300, bandeau 1250) et
 // du tiroir des commentaires d'un essai (2401), SOUS la barre de navigation (3000).

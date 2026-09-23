@@ -15,6 +15,7 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import { SERIF } from '@/app/lib/polices'
 
 // `retry` relance le chargement serveur ; `reset` ne fait que redessiner l'arbre déjà en défaut.
 export default function Erreur({ error, reset, retry }: { error: Error & { digest?: string }; reset: () => void; retry?: () => void }) {
@@ -25,22 +26,22 @@ export default function Erreur({ error, reset, retry }: { error: Error & { diges
   return (
     <main style={{ minHeight: 'calc(100dvh - 3.5rem)', display: 'grid', placeItems: 'start center', padding: '14vh 1.5rem 4rem', background: 'var(--cs-fond)' }}>
       <div style={{ maxWidth: '30rem', textAlign: 'center' }}>
-        <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: 0 }}>
+        <h1 style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: 0 }}>
           Cette page n’a pas pu s’afficher
         </h1>
-        <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.65, margin: '0.9rem 0 1.6rem' }}>
+        <p style={{ fontFamily: SERIF, fontSize: '0.9375rem', fontStyle: 'italic', color: 'var(--cs-texte-second)', lineHeight: 1.65, margin: '0.9rem 0 1.6rem' }}>
           Le défaut vient du site, non de votre adresse. Vous pouvez réessayer, ou
           rejoindre l’accueil et reprendre votre lecture.
         </p>
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
           <button
             onClick={retry ?? reset}
-            style={{ padding: '7px 16px', borderRadius: '999px', border: '1px solid rgba(var(--cs-vert-rgb),0.35)', background: 'rgba(var(--cs-vert-rgb),0.06)', color: 'var(--cs-vert)', cursor: 'pointer', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem' }}>
+            style={{ padding: '7px 16px', borderRadius: '999px', border: '1px solid rgba(var(--cs-vert-rgb),0.35)', background: 'rgba(var(--cs-vert-rgb),0.06)', color: 'var(--cs-vert)', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem' }}>
             Réessayer
           </button>
           <Link
             href="/accueil"
-            style={{ padding: '7px 16px', borderRadius: '999px', border: '1px solid var(--cs-bord)', color: 'var(--cs-texte-second)', textDecoration: 'none', fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem' }}>
+            style={{ padding: '7px 16px', borderRadius: '999px', border: '1px solid var(--cs-bord)', color: 'var(--cs-texte-second)', textDecoration: 'none', fontFamily: SERIF, fontSize: '0.8125rem' }}>
             Retour à l’accueil
           </Link>
         </div>

@@ -24,6 +24,7 @@ import { analyserRechercheVolet, libellePassage, type VersetsConnus } from '@/ap
 import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibleModesAlternatifs'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
+import { SERIF } from '@/app/lib/polices'
 
 // Encart d'informations sur la traduction actuellement lue (volet gauche, Bible
 // classique). Taille FIXE (hauteur constante, contenu rogné) pour ne jamais faire
@@ -528,7 +529,7 @@ export default function NavLivres({
                     c'est-à-dire le livre d'un bout à l'autre. Une fine insécable les sépare et les
                     garde ensemble. En VERT SOMBRE (`--cs-vert-fonce`), non plus en or : décision
                     de l'auteur, le même soir. Allumée, la case prend l'aplat vert de ses voisines. */}
-                <span aria-hidden="true" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontWeight: 600, lineHeight: 1, whiteSpace: 'nowrap' }}>α&#8239;ω</span>
+                <span aria-hidden="true" style={{ fontFamily: SERIF, fontWeight: 600, lineHeight: 1, whiteSpace: 'nowrap' }}>α&#8239;ω</span>
               </button>
             )}
           </div>

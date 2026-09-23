@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
-import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { SERIF } from '@/app/lib/polices'
 
 const NOM_LIVRE: Record<string, string> = {
   GEN: 'Genèse', EXO: 'Exode', LEV: 'Lévitique', NUM: 'Nombres', DEU: 'Deutéronome', JOS: 'Josué', JDG: 'Juges', RUT: 'Ruth',
@@ -37,7 +38,7 @@ const statTexte: React.CSSProperties = { fontSize: '0.75rem', color: 'var(--cs-t
 function EnteteStat({ titre, intro, style }: { titre: string; intro: string; style?: React.CSSProperties }) {
   return (
     <div style={{ marginBottom: '12px', ...style }}>
-      <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 4px' }}>{titre}</h2>
+      <h2 style={{ fontFamily: SERIF, fontSize: '1.0625rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 4px' }}>{titre}</h2>
       <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', lineHeight: 1.55, margin: 0 }}>{intro}</p>
     </div>
   )
@@ -90,7 +91,7 @@ export default function StatistiquesClient() {
     }}>
       <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '18px' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.15, marginBottom: '8px' }}>
+          <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: INTERLIGNE_TITRE_PAGE, marginBottom: '8px' }}>
             Statistiques
           </h1>
           <div style={{ width: '36px', height: '1px', background: 'var(--cs-bord)', margin: '0 auto 12px' }} />

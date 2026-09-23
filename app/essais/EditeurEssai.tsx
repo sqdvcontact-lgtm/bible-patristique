@@ -17,10 +17,11 @@ import SelecteurCitation from '@/app/lib/SelecteurCitation'
 import { CATEGORIES_ESSAIS, CONDITIONS, RESUME_MAX, RESUME_MIN, type Metadonnees } from './EtapeMetadonnees'
 import { COUVERTURES, couvertureDe } from '@/app/lib/couverturesEssai'
 import { FleuronGenre } from '@/app/lib/fleuronsCouverture'
-import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import { NOM_ANONYME, colonnesSignature, nomReel, nomSigne, signatureDe, type Signature } from '@/app/lib/signatureEssai'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
+import { SERIF, SANS } from '@/app/lib/polices'
 
 const MAX_CARACTERES = 8000
 const MIN_CARACTERES_PUBLICATION = 2000
@@ -727,8 +728,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   if (mobile) {
     return (
       <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100dvh - 3.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
-        <div style={{ maxWidth: '32.5rem', textAlign: 'center', color: 'var(--cs-texte-second)', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: '0 0 14px' }}>Écrire</h1>
+        <div style={{ maxWidth: '32.5rem', textAlign: 'center', color: 'var(--cs-texte-second)', fontFamily: SANS }}>
+          <h1 style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: '0 0 14px' }}>Écrire</h1>
           <p style={{ fontSize: '0.9375rem', lineHeight: 1.6, margin: 0 }}>
             L’éditeur demande un écran large : il réunit la mise en forme, les notes et les citations.
             <br /><br />
@@ -749,8 +750,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         .editeur-essai h3,
         .editeur-essai p,
         .editeur-essai blockquote { margin: 0; }
-        .editeur-essai h2 { font-family: var(--font-source-serif), Georgia, serif; font-weight: 600; font-size: 1.06em; line-height: 1.25; color: var(--cs-encre-fonce); }
-        .editeur-essai h3 { font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-weight: 400; font-size: 1em; color: var(--cs-texte); }
+        .editeur-essai h2 { font-family: ${SERIF}; font-weight: ${GRAISSE_TITRE}; font-size: 1.06em; line-height: 1.25; color: var(--cs-encre-fonce); }
+        .editeur-essai h3 { font-family: ${SERIF}; font-style: italic; font-weight: 400; font-size: 1em; color: var(--cs-texte); }
         /* ⛔ La composition du corps vient du module compositionEssai, la MÊME écriture
            que la page de lecture, au lieu d'être recopiée ici. Elle n'était pas « calquée
            exactement » comme le disait ce commentaire : la sérialisation posait ses
@@ -855,7 +856,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '12px', marginBottom: '12px' }}>
                   <div>
-                    <label style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-second)', textTransform: 'uppercase' }}>Titre *</label>
+                    <label style={{ ...STYLE_RUBRIQUE }}>Titre *</label>
                     <input aria-label="Titre"
                       aria-invalid={!!erreursAffichees.titre}
                       aria-describedby={erreursAffichees.titre ? 'erreur-titre' : undefined}
@@ -863,12 +864,12 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                       onChange={e => setMeta(prev => ({ ...prev, titre: e.target.value }))}
                       autoComplete="off"
                       placeholder="Titre"
-                      style={{ width: '100%', fontSize: '1rem', fontFamily: 'var(--font-source-serif), Georgia, serif', padding: '7px 0 5px', border: 'none', borderBottom: `1px solid ${erreursAffichees.titre ? 'var(--cs-danger)' : 'var(--cs-bord)'}`, outline: 'none', color: 'var(--cs-encre-fonce)', background: 'transparent', boxSizing: 'border-box' }}
+                      style={{ width: '100%', fontSize: '1rem', fontFamily: SERIF, padding: '7px 0 5px', border: 'none', borderBottom: `1px solid ${erreursAffichees.titre ? 'var(--cs-danger)' : 'var(--cs-bord)'}`, outline: 'none', color: 'var(--cs-encre-fonce)', background: 'transparent', boxSizing: 'border-box' }}
                     />
                     {erreursAffichees.titre && <MessageChamp id="erreur-titre">{erreursAffichees.titre}</MessageChamp>}
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-second)', textTransform: 'uppercase' }}>Sous-titre</label>
+                    <label style={{ ...STYLE_RUBRIQUE }}>Sous-titre</label>
                     <input aria-label="Sous-titre"
                       value={meta.sousTitre}
                       onChange={e => setMeta(prev => ({ ...prev, sousTitre: e.target.value }))}
@@ -881,7 +882,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
                 <div style={{ marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', marginBottom: '5px' }}>
-                    <label style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-second)', textTransform: 'uppercase' }}>Résumé *</label>
+                    <label style={{ ...STYLE_RUBRIQUE }}>Résumé *</label>
                     <span style={{ fontSize: '0.6875rem', color: meta.resume.length > 0 && !resumeOk ? ROUGE_COMPTE : 'var(--cs-texte-gris)', fontVariantNumeric: 'tabular-nums' }}>
                       {resumeLen.toLocaleString('fr')} / {RESUME_MAX.toLocaleString('fr')} caractères
                     </span>
@@ -903,7 +904,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                     quatrième, qui se retourne au survol. */}
                 <div style={{ marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', marginBottom: '5px' }}>
-                    <label style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-second)', textTransform: 'uppercase' }}>Couverture</label>
+                    <label style={{ ...STYLE_RUBRIQUE }}>Couverture</label>
                     <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)' }}>
                       {couverture ? couvertureDe(couverture).libelle : 'Au hasard'}
                     </span>
@@ -937,7 +938,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-second)', textTransform: 'uppercase', display: 'block', marginBottom: '7px' }}>Catégories *</label>
+                  <label style={{ ...STYLE_RUBRIQUE, display: 'block', marginBottom: '7px' }}>Catégories *</label>
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                     {CATEGORIES_ESSAIS.map(categorie => {
                       const actif = meta.categories.includes(categorie)
@@ -960,7 +961,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                   {meta.categories.length > 1 && (
                     <div style={{ marginTop: '14px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', marginBottom: '5px' }}>
-                        <label style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--cs-texte-second)', textTransform: 'uppercase' }}>Catégorie principale *</label>
+                        <label style={{ ...STYLE_RUBRIQUE }}>Catégorie principale *</label>
                         <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-second)' }}>
                           {embleme && meta.categories.includes(embleme) ? embleme : 'À choisir'}
                         </span>
@@ -1022,14 +1023,14 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 <div style={{ border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', background: 'var(--cs-surface)', overflow: 'hidden' }}>
                   {/* En-tête non modifiable — auteur, titre, sous-titre, catégories */}
                   <div style={{ textAlign: 'center', padding: '26px 24px 20px', borderBottom: '1px solid var(--cs-fond-doux)' }}>
-                    <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 12px', fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>
+                    <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 12px', fontFamily: SANS }}>
                       {nomAffiche}
                     </p>
-                    <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.5rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 6px' }}>{meta.titre}</h1>
-                    {meta.sousTitre && <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', margin: '0 0 12px', fontFamily: "var(--font-source-serif), Georgia, serif" }}>{meta.sousTitre}</p>}
+                    <h1 style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 6px' }}>{meta.titre}</h1>
+                    {meta.sousTitre && <p style={{ fontSize: '0.875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', margin: '0 0 12px', fontFamily: SERIF }}>{meta.sousTitre}</p>}
                     <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '8px' }}>
                       {meta.categories.map(c => (
-                        <span key={c} style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.08)', padding: '1px 8px', borderRadius: '8px', fontWeight: 600, fontFamily: "var(--font-source-sans), Arial, sans-serif" }}>{c}</span>
+                        <span key={c} style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.08)', padding: '1px 8px', borderRadius: '8px', fontWeight: 600, fontFamily: SANS }}>{c}</span>
                       ))}
                     </div>
                   </div>
@@ -1037,10 +1038,10 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                   {/* Verset en tête — non modifiable */}
                   {versetEnTete && (
                     <div style={{ borderBottom: '1px solid var(--cs-fond-doux)', padding: '28px 40px 24px', textAlign: 'center', background: 'var(--cs-surface)' }}>
-                      <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.875rem', lineHeight: 1.8, color: 'var(--cs-texte)', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
+                      <p style={{ fontFamily: SERIF, fontSize: '0.875rem', lineHeight: 1.8, color: 'var(--cs-texte)', fontStyle: 'italic', margin: '0 0 10px', letterSpacing: '0.01em' }}>
                         {'« '}{rendreTexteEnrichi(versetEnTete.texte)}{' »'}
                       </p>
-                      <p style={{ fontSize: '0.65625rem', letterSpacing: '0.1em', color: 'var(--cs-texte-second)', margin: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif", textTransform: 'uppercase' }}>
+                      <p style={{ fontSize: '0.65625rem', letterSpacing: '0.1em', color: 'var(--cs-texte-second)', margin: 0, fontFamily: SANS, textTransform: 'uppercase' }}>
                         {versetEnTete.ref}
                       </p>
                     </div>
@@ -1121,7 +1122,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       {confirmPublier && typeof document !== 'undefined' && createPortal(
         <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div ref={boiteConfirmPublier} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
-            <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
+            <h3 style={{ fontFamily: SERIF, fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
               Soumettre cette publication ?
             </h3>
             <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte)', lineHeight: 1.5, margin: '0 0 4px' }}>
@@ -1171,7 +1172,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
       {avertissement && typeof document !== 'undefined' && createPortal(
         <div onClick={fermerAvertissement} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div ref={boiteAvertissement} role="dialog" aria-modal="true" aria-labelledby="titre-avertissement-essai" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
-            <h3 id="titre-avertissement-essai" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
+            <h3 id="titre-avertissement-essai" style={{ fontFamily: SERIF, fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
               {avertissement === 'retouche' ? 'Modifier un essai en ligne ?'
                 : avertissement === 'brouillon' ? 'Remettre cet essai en brouillon ?'
                 : 'Quitter sans enregistrer ?'}
@@ -1205,7 +1206,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {profil && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: 0 }}>Signature</p>
+              <p style={{ ...STYLE_RUBRIQUE, margin: 0 }}>Signature</p>
               {choixSignature.map(c => (
                 <label key={c.valeur} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', cursor: 'pointer', lineHeight: 1.4 }}>
                   <input type="radio" name="signature" value={c.valeur} checked={signature === c.valeur} onChange={() => setSignature(c.valeur)} style={{ marginTop: '2px' }} />

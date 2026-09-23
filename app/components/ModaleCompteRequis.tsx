@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useRef } from 'react'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
+import { SERIF } from '@/app/lib/polices'
+import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
 // Destination du bouton « Créer un compte ». L'inscription libre n'existe pas
 // encore : on renvoie pour l'instant vers /chantier (connexion + liste d'attente),
@@ -50,7 +52,7 @@ export default function ModaleCompteRequis({ contexte = '', onClose }: { context
             </svg>
           </div>
           <h2 id="cs-compte-titre"
-            style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', color: 'var(--cs-encre)', margin: 0, lineHeight: 1.3 }}>
+            style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: 0, lineHeight: 1.3 }}>
             Rejoignez Corpus Scriptura
           </h2>
         </div>

@@ -40,6 +40,7 @@ import { lotsPourClauseIn } from "@/app/lib/paginationSupabase";
 import { replier } from "@/app/lib/bibleBibliographieOuvrages";
 import { HAUTEUR_NAVBAR } from "@/app/lib/mesures";
 import OngletsPage from "@/app/components/OngletsPage";
+import { SERIF } from '@/app/lib/polices'
 
 // ⛔ « Les appels de note ne doivent pas paraître dans les citations » : la règle
 // était ÉCRITE ICI, et elle ne valait que pour l'affichage — les deux boutons de
@@ -832,7 +833,7 @@ export default function PagePrelevements() {
         .prel-groupe + .prel-groupe { margin-top: 28px; padding-top: 22px;
           border-top: 1px solid var(--cs-bord-clair); }
         .prel-groupe-tete { display: flex; align-items: baseline; gap: 10px; padding: 0 0 9px; }
-        .prel-groupe-tete h2 { font-family: var(--font-source-serif), Georgia, serif;
+        .prel-groupe-tete h2 { font-family: ${SERIF};
           font-style: italic; font-weight: normal; font-size: 0.84375rem;
           color: var(--cs-vert); margin: 0; }
 
@@ -869,7 +870,7 @@ export default function PagePrelevements() {
         /* La manchette NOMME, elle ne mène nulle part : la gouttière d'actions porte déjà
            le chemin vers le passage, et deux façons d'y aller en font une de trop. Sur
            « Mes annotations », qui n'a pas de gouttière, la même manchette est un lien. */
-        .prel-ref { font-family: var(--font-source-serif), Georgia, serif;
+        .prel-ref { font-family: ${SERIF};
           font-size: 0.8125rem; font-weight: 600; line-height: 1.35;
           color: var(--cs-texte-fort); padding-top: 1px; }
         /* ⛔ UNE MANCHETTE VIDE NE GARDE SA COLONNE QUE SI UN VOISIN LA REMPLIT. Elle la
@@ -881,7 +882,7 @@ export default function PagePrelevements() {
         /* ⛔ Le texte cité est du CORPUS : il se compose en sérif, comme le verset de la
            page Bible et comme le lemme de la chaîne. Il était en sans, si bien que deux
            pages voisines rendaient le même texte dans deux polices. */
-        .prel-texte { font-family: var(--font-source-serif), Georgia, serif;
+        .prel-texte { font-family: ${SERIF};
           font-size: 0.875rem; line-height: 1.42; color: var(--cs-texte-fort); margin: 0;
           text-align: left; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; }
         /* ⚠️ La provenance est une GLOSE, non une rubrique : en petites capitales espacées

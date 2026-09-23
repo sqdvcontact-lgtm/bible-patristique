@@ -17,9 +17,10 @@ import { couvertureDe } from '@/app/lib/couverturesEssai'
 import { categoriePrincipale, FleuronGenre } from '@/app/lib/fleuronsCouverture'
 import { normaliserSaisie } from '@/app/lib/typographie'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
-import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
+import { SERIF, SANS } from '@/app/lib/polices'
 
 const CATEGORIES = CATEGORIES_ESSAIS
 
@@ -228,7 +229,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
             deux façons. Il tenait à lui seul l'écart entre le titre et les onglets,
             qui est maintenant une marge chiffrée. */}
         <div style={{ textAlign: 'center', marginBottom: '14px' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, letterSpacing: '0.01em', margin: 0, lineHeight: 1.1 }}>
+          <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: 0, lineHeight: INTERLIGNE_TITRE_PAGE }}>
             Communauté
           </h1>
         </div>
@@ -406,7 +407,7 @@ function OngletCommunaute({
           position: relative; display: flex; flex-direction: column;
           aspect-ratio: 2 / 3; overflow: hidden;
           border-radius: 2px; text-decoration: none; isolation: isolate;
-          font-family: var(--font-source-serif), Georgia, serif;
+          font-family: ${SERIF};
           font-kerning: normal; font-variant-ligatures: common-ligatures contextual;
           text-rendering: optimizeLegibility;
           box-shadow: 0 1px 2px rgba(40,30,15,0.18), 0 10px 22px -12px rgba(40,30,15,0.40);
@@ -629,7 +630,7 @@ function OngletCommunaute({
           .couverture-legende {
             display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden;
             margin: 0.7rem 0.15rem 0;
-            font-family: var(--font-source-serif), Georgia, serif;
+            font-family: ${SERIF};
             font-size: 0.8125rem; line-height: 1.5; color: var(--cs-texte-second); text-wrap: pretty;
           }
           .couverture-legende-marque {
@@ -789,7 +790,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
       <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 8px' }}>
         Espace de rédaction
       </p>
-      <h2 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 10px' }}>
+      <h2 style={{ fontFamily: SERIF, fontSize: '1.375rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 10px' }}>
         Écrire une publication
       </h2>
       <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.65, margin: '0 auto 20px', maxWidth: '27.5rem' }}>
@@ -939,10 +940,10 @@ function OngletMesEcrits({
         .ecrit-ligne { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; column-gap: 6px; align-items: start; padding: 7px 0 8px; border-top: 1px solid var(--cs-fond); }
         .ecrit-ligne:first-child { border-top: none; }
         .ecrit-etat { display: block; width: 7px; height: 7px; border-radius: 50%; margin: 6px 0 0 3px; }
-        .ecrit-titre { font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-size: 0.875rem; font-weight: 500; color: var(--cs-encre); line-height: 1.3; text-decoration: none; }
+        .ecrit-titre { font-family: ${SERIF}; font-style: italic; font-size: 0.875rem; font-weight: 500; color: var(--cs-encre); line-height: 1.3; text-decoration: none; }
         .ecrit-titre:hover { color: var(--cs-vert-fonce); }
-        .ecrit-sous-titre { margin-left: 6px; font-family: var(--font-source-serif), Georgia, serif; font-style: italic; font-size: 0.75rem; color: var(--cs-texte-gris); }
-        .ecrit-meta { display: flex; flex-wrap: wrap; align-items: baseline; margin-top: 2px; font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.6875rem; color: var(--cs-texte-gris); }
+        .ecrit-sous-titre { margin-left: 6px; font-family: ${SERIF}; font-style: italic; font-size: 0.75rem; color: var(--cs-texte-gris); }
+        .ecrit-meta { display: flex; flex-wrap: wrap; align-items: baseline; margin-top: 2px; font-family: ${SANS}; font-size: 0.6875rem; color: var(--cs-texte-gris); }
         .ecrit-meta > span + span::before { content: "·"; margin: 0 6px; color: var(--cs-bord); }
 
         /* Les actions se tiennent en retrait tant qu'on ne les regarde pas, comme le
@@ -1106,7 +1107,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
             <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '0 0 20px' }}>
               Verset proposé à la méditation
             </p>
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', lineHeight: 1.8, color: 'var(--cs-encre-fonce)', fontStyle: 'italic', margin: '0 0 18px' }}>
+            <p style={{ fontFamily: SERIF, fontSize: '1rem', lineHeight: 1.8, color: 'var(--cs-encre-fonce)', fontStyle: 'italic', margin: '0 0 18px' }}>
               «&#8201;{rendreTexteEnrichi(verset.texte)}&#8201;»
             </p>
             <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-gris)', margin: 0 }}>

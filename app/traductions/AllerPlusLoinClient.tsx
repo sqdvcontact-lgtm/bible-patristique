@@ -5,13 +5,14 @@ import { ContenuFicheTraduction, useDonneesFicheTraduction } from '@/app/compone
 import { useEffect, useState, type CSSProperties } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { allerAElement } from '@/app/lib/defilement'
-import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { portraitTraduction, type PositionsPhotoTraduction } from '@/app/lib/portraitTraduction'
 import {
   VOILE_BANDEAU, ENCRE_SUR_PHOTO, META_SUR_PHOTO,
   CHEVRON_SUR_PHOTO, OMBRE_SUR_PHOTO, BRILLANCE_BANDEAU, MESURE_TEXTE_BANDEAU,
 } from '@/app/lib/bandeauTraduction'
+import { SERIF } from '@/app/lib/polices'
 
 /** Ce que la LISTE lit : le bandeau et le ton de l'image. ⚠️ La notice dépliée, elle, se
  *  charge par la fiche (`useDonneesFicheTraduction`) : la page ne compose plus rien de
@@ -188,7 +189,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
         padding: t.photo ? '18px 14px 18px 20px' : '14px 18px',
       }}>
         <h2 style={{
-          fontFamily: "var(--font-source-serif), Georgia, serif",
+          fontFamily: SERIF,
           fontSize: '1.0625rem', fontWeight: 'normal',
           color: couleurTexte, margin: 0, lineHeight: 1.25,
           textShadow: ombreTexte,
@@ -198,7 +199,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
         </h2>
         {meta && (
           <span style={{
-            fontFamily: "var(--font-source-serif), Georgia, serif",
+            fontFamily: SERIF,
             fontSize: '0.6875rem', fontStyle: 'italic',
             color: couleurMeta, letterSpacing: '0.02em',
             display: 'block', marginTop: '4px',
@@ -301,9 +302,9 @@ export default function AllerPlusLoinClient() {
       <div style={{ maxWidth: '52rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '4px' }}>
           <h1 style={{
-            fontFamily: "var(--font-source-serif), Georgia, serif",
+            fontFamily: SERIF,
             fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE,
-            color: ENCRE_TITRE, lineHeight: 1.15, marginBottom: '8px',
+            color: ENCRE_TITRE, lineHeight: INTERLIGNE_TITRE_PAGE, marginBottom: '8px',
           }}>
             Les traductions
           </h1>

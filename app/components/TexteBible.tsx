@@ -81,6 +81,7 @@ import {
   type BibleEditionDisplayBodyBlock,
   type BibleEditionDisplayNote,
 } from '@/app/lib/bibleEdition'
+import { SERIF } from '@/app/lib/polices'
 
 // ⛔ Le gabarit vient du module partagé : un bouton d'action a la même boîte sur les
 // cinq surfaces, qu'il vive dans la gouttière d'un verset, dans le pavé flottant du
@@ -91,7 +92,7 @@ const VERSET_ACTION_BTN = STYLE_BOUTON_ACTION
  *  liste qui la remplacera, pour que rien ne saute quand elle arrive. */
 const STYLE_ETAT_RECHERCHE: React.CSSProperties = {
   margin: 0, maxWidth: '21.25rem', textAlign: 'center', textWrap: 'balance',
-  fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', lineHeight: 1.6,
+  fontFamily: SERIF, fontSize: '0.8125rem', lineHeight: 1.6,
   color: 'var(--cs-texte-second)',
 }
 
@@ -105,23 +106,23 @@ const STYLE_LIVRE_ABSENT: React.CSSProperties = {
 }
 const STYLE_ABSENT_NOM: React.CSSProperties = {
   margin: 0, maxWidth: '24rem', textWrap: 'balance',
-  fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', lineHeight: 1.3,
+  fontFamily: SERIF, fontSize: '1.125rem', lineHeight: 1.3,
   color: 'var(--cs-encre)',
 }
 const STYLE_ABSENT_MENTION: React.CSSProperties = {
   margin: '0.3125rem 0 0',
-  fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', fontStyle: 'italic',
+  fontFamily: SERIF, fontSize: '0.9375rem', fontStyle: 'italic',
   letterSpacing: '0.02em', lineHeight: 1.4, color: 'var(--cs-mention)',
 }
 const STYLE_ABSENT_FLEURON: React.CSSProperties = { display: 'flex', justifyContent: 'center', margin: '1.375rem 0 1.25rem' }
 const STYLE_ABSENT_ISSUE: React.CSSProperties = {
   margin: '0 0 0.375rem',
-  fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', fontStyle: 'italic',
+  fontFamily: SERIF, fontSize: '0.8125rem', fontStyle: 'italic',
   lineHeight: 1.4, color: 'var(--cs-texte-second)',
 }
 const STYLE_ABSENT_LISTE: React.CSSProperties = {
   listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.1875rem',
-  fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', lineHeight: 1.45,
+  fontFamily: SERIF, fontSize: '0.9375rem', lineHeight: 1.45,
 }
 
 /** La reprise de lecture (`repere=N`) : combien de temps la page s'abstient de retenir une
@@ -919,7 +920,7 @@ export default function TexteBible({
               par la provision d'attente : les volets gardent leur état. */}
           <FlecheChapitre sens="precedent" variante="entete" cible={voisins.precedent} onAller={naviguer} />
 
-          <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px', lineHeight: INTERLIGNE_TITRE_CHAPITRE }}>
+          <h1 style={{ fontFamily: SERIF, fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px', lineHeight: INTERLIGNE_TITRE_CHAPITRE }}>
             {/* La marque suit le titre du chapitre comme elle suit le nom au volet : un
                 lecteur qui arrive par un lien direct n'a jamais vu le volet. */}
             <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>
@@ -1092,7 +1093,7 @@ export default function TexteBible({
                 {/* La voix des mentions, encre comprise (décision du 14 septembre 2026) : le
                     chapitre perdu se dit comme la case « Absent de cette traduction », à la
                     taille près, qui reste celle d'une mention de page. */}
-                <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontStyle: 'italic', letterSpacing: '0.02em', color: 'var(--cs-mention)', margin: 0 }}>
+                <p style={{ fontFamily: SERIF, fontSize: '1rem', fontStyle: 'italic', letterSpacing: '0.02em', color: 'var(--cs-mention)', margin: 0 }}>
                   Lacune du manuscrit
                 </p>
               </div>

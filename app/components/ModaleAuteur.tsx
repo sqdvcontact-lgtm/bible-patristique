@@ -36,9 +36,9 @@ import { chargerNoticesBibliographiques } from '@/app/lib/referencesBibliographi
 import { rendreSiecles } from '@/app/lib/siecles'
 import { supabase } from '@/app/lib/supabase'
 import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
+import { SERIF, SANS } from '@/app/lib/polices'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const SERIF = 'var(--font-source-serif), Georgia, serif'
 
 type OeuvreResumee = {
   id_oeuvre: string; titre: string; sous_titre: string | null
@@ -158,7 +158,7 @@ export function FriseAuteur({ evenements, oeuvreEnRelief = null }: { evenements:
       {brins.length > 1 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', marginBottom: '13px', justifyContent: 'flex-start' }}>
           {brins.map(t => (
-            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>
+            <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: SANS, fontSize: '0.625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>
               <span aria-hidden style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0, ...stylePuce(t) }} />
               {LIB_TYPE[t] ?? t}
             </span>
@@ -198,11 +198,11 @@ export function FriseAuteur({ evenements, oeuvreEnRelief = null }: { evenements:
               <div style={{ paddingBottom: pb, fontSize: '0.6875rem', lineHeight: 1.18 }}>
                 {aDetail ? (
                   <button onClick={() => basculer(cle)} aria-expanded={ouvert}
-                    style={{ display: 'inline', textAlign: 'left', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1em', lineHeight: 'inherit', color: encre, fontWeight: enRelief ? 600 : undefined, fontStyle: italique ? 'italic' : 'normal' }}>
+                    style={{ display: 'inline', textAlign: 'left', background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', fontFamily: SANS, fontSize: '1em', lineHeight: 'inherit', color: encre, fontWeight: enRelief ? 600 : undefined, fontStyle: italique ? 'italic' : 'normal' }}>
                     {rendreMarquesNote(a.titre)}
                   </button>
                 ) : (
-                  <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '1em', lineHeight: 'inherit', color: encre, fontWeight: enRelief ? 600 : undefined, fontStyle: italique ? 'italic' : 'normal' }}>
+                  <span style={{ fontFamily: SANS, fontSize: '1em', lineHeight: 'inherit', color: encre, fontWeight: enRelief ? 600 : undefined, fontStyle: italique ? 'italic' : 'normal' }}>
                     {rendreMarquesNote(a.titre)}
                   </span>
                 )}
@@ -225,7 +225,7 @@ export function FriseAuteur({ evenements, oeuvreEnRelief = null }: { evenements:
 // deux lignes suffisent à le voir (audit de densité, 2026-09-05).
 function DetailChrono({ label, children }: { label?: string; children: ReactNode }) {
   return (
-    <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6875rem', lineHeight: 1.3, letterSpacing: '-0.005em', color: 'var(--cs-texte-gris)', margin: '0 0 2px', textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto' } as CSSProperties}>
+    <p style={{ fontFamily: SANS, fontSize: '0.6875rem', lineHeight: 1.3, letterSpacing: '-0.005em', color: 'var(--cs-texte-gris)', margin: '0 0 2px', textAlign: 'justify', textJustify: 'inter-word', hyphens: 'auto', WebkitHyphens: 'auto' } as CSSProperties}>
       {label && <span style={{ color: 'var(--cs-texte-doux)' }}>{label} : </span>}{children}
     </p>
   )

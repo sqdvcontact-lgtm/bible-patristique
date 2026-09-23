@@ -6,6 +6,8 @@ import { supabase } from '@/app/lib/supabase'
 import { rendreMarquesNote, type ElementPanneau } from './texteEnrichiEssai'
 import { inlineVersHtml, htmlVersSyntaxe } from './serialisationEssai'
 import { raccourcisEditeur, collageTexteBrut } from './raccourcisEditeur'
+import { SERIF } from './polices'
+import { STYLE_RUBRIQUE } from './hierarchieTitres'
 
 // ── Zone de rédaction d'une note : UNE seule zone, éditable et WYSIWYG ─────────
 // On y écrit, on enrichit (gras, italique, petites capitales, exposant) et l'on
@@ -67,7 +69,7 @@ function EditeurNoteWysiwyg({ valeur, mode, onChange, onEnregistrer }: {
         onKeyDown={e => raccourcisEditeur(e, { apresChangement: synchroniser, exposant: true })}
         onPaste={e => collageTexteBrut(e, synchroniser)}
         data-placeholder="Texte de la note…"
-        style={{ minHeight: '5.5em', fontSize: '0.8125rem', lineHeight: 1.55, color: 'var(--cs-texte-fort)', fontFamily: 'var(--font-source-serif), Georgia, serif', border: '1px solid var(--cs-bord)', borderRadius: '8px', background: 'var(--cs-surface)', padding: '9px 10px', outline: 'none', overflowY: 'auto' }} />
+        style={{ minHeight: '5.5em', fontSize: '0.8125rem', lineHeight: 1.55, color: 'var(--cs-texte-fort)', fontFamily: SERIF, border: '1px solid var(--cs-bord)', borderRadius: '8px', background: 'var(--cs-surface)', padding: '9px 10px', outline: 'none', overflowY: 'auto' }} />
       <button onClick={() => onEnregistrer(valeurCourante())}
         style={{ alignSelf: 'flex-end', fontSize: '0.71875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 600 }}>
         {mode === 'creation' ? 'Insérer la note' : 'Enregistrer la note'}
@@ -145,7 +147,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
     <>
       {enTete && <div style={{ marginBottom: '18px', paddingBottom: '16px', borderBottom: '1px solid var(--cs-fond-doux)' }}>{enTete}</div>}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-        <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>
+        <span style={{ ...STYLE_RUBRIQUE }}>
           {!elementActif ? 'Notes et citations' : elementActif.type === 'note' ? 'Note' : elementActif.type === 'verset' ? 'Référence biblique' : 'Référence patristique'}
         </span>
         {elementActif && !toujoursVisible && <button onClick={onFermer} style={{ background: 'none', border: 'none', color: 'var(--cs-texte-doux)', cursor: 'pointer', fontSize: '0.875rem' }}>×</button>}

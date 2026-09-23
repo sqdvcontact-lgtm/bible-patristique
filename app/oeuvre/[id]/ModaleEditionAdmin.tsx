@@ -6,6 +6,7 @@ import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import type { ChampTitre, EditionCible, VarianteTitre } from './oeuvreTypes'
 import { cleTitreCompose } from './compositionTitres'
+import { SANS } from '@/app/lib/polices'
 
 const BTN_MODAL: React.CSSProperties = { fontSize: '0.6875rem', padding: '4px 9px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }
 
@@ -255,7 +256,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
           </div>
           <textarea aria-label="Texte en cours d’édition" ref={taRef} value={valeur} onChange={e => setValeur(e.target.value)}
             rows={cible.type === 'segment' ? 8 : varianteActive?.compose || champActif === 'titre' ? 3 : 2} autoFocus
-            style={{ width: '100%', fontSize: '0.78125rem', padding: '8px 10px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.55, boxSizing: 'border-box', fontFamily: cible.type === 'segment' ? 'var(--font-source-sans), Arial, sans-serif' : 'inherit' }} />
+            style={{ width: '100%', fontSize: '0.78125rem', padding: '8px 10px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.55, boxSizing: 'border-box', fontFamily: cible.type === 'segment' ? SANS : 'inherit' }} />
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
             {cible.type === 'titre' ? (

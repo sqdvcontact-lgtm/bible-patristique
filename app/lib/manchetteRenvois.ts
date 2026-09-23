@@ -42,6 +42,7 @@
  * Module PUR, testé dans `manchetteRenvois.test.ts`.
  */
 import type { CSSProperties } from 'react'
+import { SANS } from './polices'
 
 /** La largeur de la manchette. ⚠️ MESURÉE sur le pire cas servi : à 1280 px de
  *  fenêtre, les deux volets ouverts, il reste 116 px de marge libre de chaque côté
@@ -56,17 +57,21 @@ export const GOUTTIERE_MANCHETTE = '0.75rem'
 export const PLACE_MINIMALE_MANCHETTE =
   Number.parseFloat(LARGEUR_MANCHETTE) + Number.parseFloat(GOUTTIERE_MANCHETTE)
 
-/** Le corps d'un renvoi en manchette et son interligne. ⚠️ Le rang de l'échelle
- *  qu'emploie déjà le numéro de verset de la page Bible : une coordonnée qui
- *  accompagne un texte sans lui appartenir se compose ainsi partout sur le site. */
-export const CORPS_MANCHETTE = '0.625rem'
+/** Le corps d'un renvoi en manchette et son interligne. ⚠️ Le plancher des petits corps
+ *  (11 px, audit d'harmonie du 2026-09-23) : il valait 0,625 rem, que la garde ne voyait
+ *  pas, la taille passant par cette constante. C'est aussi le plancher du numéro de
+ *  verset de la page Bible : une coordonnée qui accompagne un texte sans lui appartenir
+ *  se compose ainsi partout sur le site. */
+export const CORPS_MANCHETTE = '0.6875rem'
 export const INTERLIGNE_MANCHETTE = 1.35
 
 /** Ce qu'un renvoi peut compter de signes pour tenir sur UNE ligne de manchette.
  *  ⚠️ MESURÉ en ligne le 13 septembre 2026 : au corps de 0,625 rem, la colonne de
  *  6,5 rem compose « IV Reg. XIV, 23 et seqq. », vingt-quatre signes, sur une seule
  *  ligne. Vingt laissent la marge des capitales et des chiffres, plus larges que la
- *  moyenne, et du point final que la note reçoit au rendu. ⛔ Les deux mesures sont
+ *  moyenne, et du point final que la note reçoit au rendu. ⚠️ Au corps de 0,6875 rem,
+ *  la même colonne en compose environ vingt et un : vingt tiennent encore, avec moins
+ *  de marge (calculé, non remesuré). ⛔ Les deux mesures sont
  *  en rem : le compte ne dépend donc pas de l'écran, et le critère reste la note. */
 export const SIGNES_MANCHETTE = 20
 
@@ -205,7 +210,7 @@ export const STYLE_RENVOI_MANCHETTE: CSSProperties = {
   position: 'absolute',
   right: `calc(100% + ${GOUTTIERE_MANCHETTE})`,
   width: 'max-content',
-  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+  fontFamily: SANS,
   fontSize: CORPS_MANCHETTE,
   lineHeight: INTERLIGNE_MANCHETTE,
   // ⛔ `--cs-texte-second`, et non l'un des deux rangs plus ténus. Un renvoi en

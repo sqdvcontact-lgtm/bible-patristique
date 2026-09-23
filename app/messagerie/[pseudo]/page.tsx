@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import MarqueMecene from '@/app/components/MarqueMecene'
+import { SERIF } from '@/app/lib/polices'
 
 type Message = {
   id: string
@@ -135,7 +136,7 @@ export default function ConversationPage() {
         </button>
         <div>
           <Link href={`/profil/${encodeURIComponent(pseudo)}`}
-            style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-encre-fonce)', textDecoration: 'none', fontWeight: 400 }}>
+            style={{ fontFamily: SERIF, fontSize: '1rem', color: 'var(--cs-encre-fonce)', textDecoration: 'none', fontWeight: 400 }}>
             {pseudo}
             {mecene && <>{' '}<MarqueMecene /></>}
           </Link>

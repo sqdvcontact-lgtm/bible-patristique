@@ -24,8 +24,7 @@
  */
 
 import type { CSSProperties } from 'react'
-
-const SERIF = 'var(--font-source-serif), Georgia, serif'
+import { SERIF } from './polices'
 
 /** Déclarations CSS, écrites une fois, en kebab-case. */
 type Declarations = Record<string, string>

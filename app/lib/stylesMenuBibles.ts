@@ -12,6 +12,7 @@
  */
 
 import type { CSSProperties } from 'react'
+import { SERIF } from './polices'
 
 /**
  * Le chevron d'une famille. Il prend l'encre du NOM, pâlie d'un rang : c'est une marque
@@ -99,7 +100,7 @@ export function styleLigneMenu(actif: boolean, premiere: boolean, derniere: bool
     background: actif ? 'rgba(var(--cs-vert-rgb),0.08)' : 'var(--cs-surface)',
     color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-fort)',
     fontWeight: actif ? 600 : 400, cursor: 'pointer',
-    fontFamily: "var(--font-source-serif), Georgia, serif", letterSpacing: '0.01em',
+    fontFamily: SERIF, letterSpacing: '0.01em',
     transition: 'background 0.12s',
   }
 }

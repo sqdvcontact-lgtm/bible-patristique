@@ -27,11 +27,20 @@
  * fait partie du dessin. Ils ne sont donc pas tokenisés, seulement recensés ici.
  */
 
+import type { CSSProperties } from 'react'
+import { SANS, SERIF } from './polices'
+
 /** Titre d'une page de contenu. Ancré sur `.cc-titre` (centre de contrôle). */
 export const TITRE_PAGE = '1.75rem'
+/** Son interligne, UN seul : il en portait cinq (1,1 à 1,3) et trois interlettrages
+ *  (audit d'harmonie, 2026-09-23). 1,15 est le plus répandu ; la chasse reste celle
+ *  de la police, que la plupart des titres ne touchaient pas. */
+export const INTERLIGNE_TITRE_PAGE = 1.15
 
-/** Titre du volet latéral d'une page à colonnes. Ancré sur `NavLivres`. */
-export const TITRE_VOLET = '1.15rem'
+/** Titre du volet latéral d'une page à colonnes. Ancré sur l'ancien titre de `NavLivres`.
+ *  ⚠️ 18 px, rang de l'échelle : il valait 1,15 rem (18,4 px), hors grille, ce que la garde
+ *  ne voyait pas, la taille passant par cette constante (audit d'harmonie, 2026-09-23). */
+export const TITRE_VOLET = '1.125rem'
 
 /** Titre d'une carte centrée : écran réservé, « écran large requis », formulaire court. */
 export const TITRE_CARTE = '1.375rem'
@@ -47,3 +56,44 @@ export const GRAISSE_TITRE_VOLET = 500
  */
 export const ENCRE_TITRE = 'var(--cs-encre-fonce)'
 export const ENCRE_TITRE_CARTE = 'var(--cs-encre)'
+
+/**
+ * LA RUBRIQUE — l'étiquette en capitales espacées qui coiffe une section.
+ *
+ * Le site en composait 138, en dix-sept interlettrages (0,04 à 0,24 em), trois graisses et
+ * trois encres : la page d'une péricope en montrait six formes, la lecture d'un essai quatre
+ * (audit d'harmonie, 2026-09-23). La forme retenue est la DOMINANTE, mesurée sur les étiquettes
+ * à 10 px : sans, graisse 700, chasse 0,08 em, encre `--cs-texte-second` (5,24 sur le papier,
+ * le seuil de 4,5 s'appliquant à un texte qui porte seul son information).
+ *
+ * ⛔ 0,625 rem est le plancher des capitales espacées (garde `echelleTypographique.test.ts`).
+ * Un appelant n'y ajoute que sa MISE EN PAGE (marge, alignement) ; il ne redéfinit ni corps,
+ * ni graisse, ni chasse, ni encre.
+ */
+export const STYLE_RUBRIQUE: CSSProperties = {
+  fontFamily: SANS,
+  fontSize: '0.625rem',
+  fontWeight: 700,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  color: 'var(--cs-texte-second)',
+}
+
+/**
+ * « N SUR M » — la position dans une pagination, UNE composition.
+ *
+ * Elle en avait trois : sérif italique 11 px (bibliothèque), sans romain 11 px (volet des
+ * Pères), sérif italique 12 px (lecture d'une œuvre). La plus répandue est celle de l'œuvre,
+ * que le bas d'un chapitre de la Bible reprend déjà (`.cs-nav-bas-chapitre-position`) :
+ * sérif italique, 0,75 rem, chasse 0,02 em, encre `--cs-texte-doux`. Le rapport se lit,
+ * il ne se calcule pas. Un appelant n'y ajoute que sa mise en page (largeur, rembourrage).
+ */
+export const STYLE_POSITION_PAGE: CSSProperties = {
+  fontFamily: SERIF,
+  fontStyle: 'italic',
+  fontSize: '0.75rem',
+  letterSpacing: '0.02em',
+  color: 'var(--cs-texte-doux)',
+  whiteSpace: 'nowrap',
+  userSelect: 'none',
+}

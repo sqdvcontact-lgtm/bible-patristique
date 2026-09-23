@@ -48,6 +48,7 @@ import {
   STYLE_INTITULE_LIGNE_NOTE,
   STYLE_RANG_FACETTES,
 } from './InventaireNotes'
+import { SERIF } from '@/app/lib/polices'
 
 /** Au-delà, une note visée dans un autre chapitre n'est plus attendue : la page n'y est
  *  pas arrivée, et l'on se contente de ce qu'elle montre. Un départ à froid de la fonction
@@ -292,7 +293,7 @@ const LigneNoteBible = memo(function LigneNoteBible({ note, courante, nommerLaBi
         {!atteignable && <MarqueNote alerte>absente</MarqueNote>}
         {note.origine === 'bloc' && note.reperes && (
           <span style={{
-            flexBasis: '100%', fontFamily: 'var(--font-source-serif), Georgia, serif', fontStyle: 'italic',
+            flexBasis: '100%', fontFamily: SERIF, fontStyle: 'italic',
             fontSize: '0.6875rem', lineHeight: 1.3, color: 'var(--cs-texte-second)',
           }}>
             {note.reperes}

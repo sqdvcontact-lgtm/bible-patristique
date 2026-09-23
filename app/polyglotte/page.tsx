@@ -70,7 +70,7 @@ import TraductionsAffichees, { type ColonneAffichee, type FicheTraductionPoly } 
 import { useCompte } from "@/app/lib/contexteCompte";
 import { aRevoir899, chargerVersets899, estGlose899, estTraductionModerne899, NOTE_ALIGNEMENT_A_REVOIR, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
 import { marquerLacunesDuTemoin, rendreMarqueurs899 } from "@/app/lib/marqueurs899";
-import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import {
   CORPS_GLOSE, LIBELLE_GLOSE,
@@ -90,6 +90,7 @@ import {
   type LivreFillion,
   type LivresParTraduction,
 } from '@/app/lib/polyglotteFillion'
+import { SERIF, SANS } from '@/app/lib/polices'
 
 type Livre = { code: string; nom_fr: string; ordre: number };
 // `sourceFillion` : la traduction ne vit pas dans `versets_v2` ; son texte se lit dans la
@@ -743,11 +744,11 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
         <textarea aria-label="Texte du verset" ref={ta} autoFocus value={valeur} onChange={e => setValeur(e.target.value)}
           onKeyDown={e => { if (e.key === "Escape") onFermer(); if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) onEnregistrer(valeur); }}
           rows={5}
-          style={{ width: "100%", boxSizing: "border-box", fontSize: '0.84375rem', lineHeight: 1.5, fontFamily: "var(--font-source-serif), Georgia, serif", padding: "9px 11px", border: "1px solid var(--cs-bord)", borderRadius: 4, background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", resize: "vertical" }} />
+          style={{ width: "100%", boxSizing: "border-box", fontSize: '0.84375rem', lineHeight: 1.5, fontFamily: SERIF, padding: "9px 11px", border: "1px solid var(--cs-bord)", borderRadius: 4, background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", resize: "vertical" }} />
         {/* Aperçu en direct : l'apparence enrichie du verset, telle qu'elle s'affichera. */}
         <div style={{ marginTop: 8 }}>
-          <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: "var(--cs-texte-second)" }}>Aperçu</span>
-          <div style={{ marginTop: 3, minHeight: "2.4em", fontSize: '0.84375rem', lineHeight: 1.55, fontFamily: "var(--font-source-serif), Georgia, serif", color: "var(--cs-texte-fort)", padding: "8px 11px", border: "1px solid var(--cs-fond-doux)", borderRadius: 4, background: "var(--cs-surface)" }}>
+          <span style={{ ...STYLE_RUBRIQUE }}>Aperçu</span>
+          <div style={{ marginTop: 3, minHeight: "2.4em", fontSize: '0.84375rem', lineHeight: 1.55, fontFamily: SERIF, color: "var(--cs-texte-fort)", padding: "8px 11px", border: "1px solid var(--cs-fond-doux)", borderRadius: 4, background: "var(--cs-surface)" }}>
             {valeur.trim() ? texteEnrichi(valeur) : <span style={{ color: "var(--cs-bord)", fontStyle: "italic" }}>—</span>}
           </div>
         </div>
@@ -980,7 +981,7 @@ function CelluleNote({ valeur, refLisible, onChange, cleFoyer }: {
       ref={el => { if (el && demarrer.current) { el.focus(); demarrer.current = false; } }}
       onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
       style={{ width: "100%", resize: "none", minHeight: "1.9rem", boxSizing: "border-box", border: "1px solid var(--cs-bord-clair)", borderRadius: 4,
-        background: "var(--cs-surface)", padding: "3px 6px", fontFamily: "var(--font-source-sans), Arial, sans-serif",
+        background: "var(--cs-surface)", padding: "3px 6px", fontFamily: SANS,
         fontSize: "0.71875rem", lineHeight: 1.35, color: "var(--cs-texte-fort)", outline: "none" }} />
   );
 }
@@ -1081,7 +1082,7 @@ function entreesParLangue(trads: Trad[]): Map<string, Entree[]> {
 // qu'on éteint, et longs : une option par ligne, comme le volet de la page Bible.
 const CHOIX_DISCRET = (actif: boolean, teinte: string): React.CSSProperties => ({
   background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left",
-  fontFamily: "var(--font-source-sans), Arial, sans-serif",
+  fontFamily: SANS,
   fontSize: "0.6875rem", lineHeight: 1.4,
   fontWeight: actif ? 600 : 400,
   color: actif ? teinte : "var(--cs-texte-gris)",
@@ -1113,7 +1114,7 @@ const RANGEE_CASES: React.CSSProperties = {
 const CASE_ECHELLE = (premiere: boolean): React.CSSProperties => ({
   flex: 1, minWidth: 0, padding: "4px 0", textAlign: "center", cursor: "pointer",
   border: "none", borderLeft: premiere ? "none" : "1px solid var(--cs-bord)", borderRadius: 0,
-  fontFamily: "var(--font-source-sans), Arial, sans-serif",
+  fontFamily: SANS,
   fontSize: "0.6875rem", lineHeight: 1.4,
 });
 
@@ -1141,7 +1142,7 @@ const STYLE_LIGNE_A_REMPLACER: React.CSSProperties = { background: "var(--cs-dan
 
 function MentionRemplacer() {
   return (
-    <span style={{ marginLeft: "auto", flexShrink: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.6875rem", fontWeight: 600, fontStyle: "italic", letterSpacing: "0.01em", color: "var(--cs-danger-fonce)" }}>
+    <span style={{ marginLeft: "auto", flexShrink: 0, fontFamily: SANS, fontSize: "0.6875rem", fontWeight: 600, fontStyle: "italic", letterSpacing: "0.01em", color: "var(--cs-danger-fonce)" }}>
       Remplacer ?
     </span>
   );
@@ -1356,7 +1357,7 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
         <span aria-hidden style={{ minWidth: 0, textAlign: "center", lineHeight: 1.12 }}>
           {/* ⚠️ Le nom se COMPOSE (`rendreEnrichi`) : « Bible française du XIIIe siècle »
               y prend ses petites capitales et son exposant. */}
-          <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "var(--cs-encre-fonce)" }}>
+          <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: SERIF, fontSize: "0.875rem", color: "var(--cs-encre-fonce)" }}>
             {courante ? rendreEnrichi(courante.nom) : "Choisir une traduction"}
           </span>
           {/* ⛔ SOUS LE NOM, IL N'Y A QUE LA DATE (décision de l'auteur, 2026-09-04 :
@@ -1373,7 +1374,7 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
               en-tête. Le cas ne se présente que si l'on ouvre deux états du témoin 899
               côte à côte, et l'auteur l'a tranché. */}
           {courante?.edition && (
-            <span style={{ display: "block", marginTop: 3, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.15em", textIndent: "0.15em", color: "var(--cs-texte-second)" }}>
+            <span style={{ display: "block", marginTop: 3, fontFamily: SANS, fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.15em", textIndent: "0.15em", color: "var(--cs-texte-second)" }}>
               {courante.edition}
             </span>
           )}
@@ -2909,8 +2910,8 @@ export default function PolyglottePage() {
         .poly-texte-cell[dir="rtl"] { text-align: right; text-align-last: right; }
       `}</style>
 
-      <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "56px 22px 48px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: 'var(--cs-texte-second)' }}>
-        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: "0 0 16px" }}>Polyglotte</h1>
+      <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "56px 22px 48px", fontFamily: SANS, textAlign: "center", color: 'var(--cs-texte-second)' }}>
+        <h1 style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: "0 0 16px" }}>Polyglotte</h1>
         <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: 0 }}>
           Cette page compare plusieurs traductions côte à côte : elle demande un écran large, et ne tient pas sur un téléphone.
           <br /><br />
@@ -2951,7 +2952,7 @@ export default function PolyglottePage() {
           {/* Titre de la page, en tête du volet de gauche, avec le bouton de repli à sa droite. */}
           <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "12px 14px 11px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
-              <h1 style={{ margin: 0, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', fontWeight: 600, color: VERT, letterSpacing: "0.01em", lineHeight: 1.2 }}>Bible polyglotte</h1>
+              <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: '1rem', fontWeight: 600, color: VERT, letterSpacing: "0.01em", lineHeight: 1.2 }}>Bible polyglotte</h1>
               {/* Même bouton « réduire » que la page Bible et les pages d'œuvre : nu, sans
                   cadre, chevron discret. */}
               <button onClick={() => setVoletReduit(true)} title="Rabattre le volet" aria-label="Rabattre le volet"
@@ -2967,7 +2968,7 @@ export default function PolyglottePage() {
                 ⚠️ Pas de `nowrap` : « Ecclésiastique 44 » ne tient pas dans un volet de
                 200 px, et il vaut mieux deux lignes qu'un nom coupé. */}
             {nomPassage && (
-              <div style={{ marginTop: "3px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.8125rem', color: "var(--cs-texte-second)", lineHeight: 1.3, letterSpacing: "0.01em" }}>
+              <div style={{ marginTop: "3px", fontFamily: SERIF, fontSize: '0.8125rem', color: "var(--cs-texte-second)", lineHeight: 1.3, letterSpacing: "0.01em" }}>
                 {nomPassage}
                 {chapitrePassage != null && (
                   <span style={{ color: "var(--cs-texte-doux)", fontVariantNumeric: "tabular-nums" }}> {chapitrePassage}</span>
@@ -2977,7 +2978,7 @@ export default function PolyglottePage() {
           </div>
           {/* Choix du nombre de traductions affichées (Auto = selon la largeur d'écran). */}
           <div data-visite="poly-colonnes" style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
-            <span style={{ display: "block", fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-second)", marginBottom: "5px" }}>Nombre de colonnes</span>
+            <span style={{ ...STYLE_RUBRIQUE, display: "block", marginBottom: "5px" }}>Nombre de colonnes</span>
             <div role="group" aria-label="Nombre de traductions visibles" style={RANGEE_CASES}>
               {([["Auto", null], ["2", 2], ["3", 3], ["4", 4], ["5", 5]] as const).map(([lbl, val], rang) => (
                 <button key={lbl} onClick={() => startTransition(() => setNbTradPref(val))} aria-pressed={nbTradPref === val}
@@ -2995,7 +2996,7 @@ export default function PolyglottePage() {
               titres. ⚠️ Ils s'excluent l'un l'autre : activer l'un éteint l'autre. */}
           {estAdmin && (
             <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
-              <span style={{ display: "block", fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-texte-second)", marginBottom: "5px" }}>Relecture</span>
+              <span style={{ ...STYLE_RUBRIQUE, display: "block", marginBottom: "5px" }}>Relecture</span>
               {/* Deux interrupteurs INDÉPENDANTS, donc une option par ligne : leurs
                   libellés sont longs, et un rang les ferait retomber en escalier dans un
                   volet de 200 px. La teinte reste celle de chacun — c'est elle qui dit
@@ -3040,7 +3041,7 @@ export default function PolyglottePage() {
       {/* ⚠️ Le rembourrage latéral est celui d'une marge de page, non celui d'une carte : il
           valait 18 px de chaque côté pour dégager l'ombre du bloc, qui n'existe plus. Toute
           largeur reprise ici revient au texte, et le calcul de largeur adaptative la compte. */}
-      <div ref={refTable} onFocus={surFoyerDuTableau} onKeyDown={surToucheDuTableau} style={{ flex: 1, minWidth: 0, padding: "0 12px 60px", fontFamily: "var(--font-source-sans), Arial, sans-serif", color: "var(--cs-texte-fort)" }}>
+      <div ref={refTable} onFocus={surFoyerDuTableau} onKeyDown={surToucheDuTableau} style={{ flex: 1, minWidth: 0, padding: "0 12px 60px", fontFamily: SANS, color: "var(--cs-texte-fort)" }}>
         {/* ⛔ PLUS DE GRAVURE NI D'INVITE « Ouvrez un livre » (demande de l'auteur,
             2026-09-04 : « supprimer le dessin et afficher soit le dernier emplacement de
             lecture de l'utilisateur, soit la Genèse »). La tour de Babel ruinée occupait
@@ -3051,7 +3052,7 @@ export default function PolyglottePage() {
             n'a pas pu être lue. Un panneau discret journalise son erreur — un centre vide
             et muet se lirait comme une page qui charge encore. */}
         {!onglet && livresLus && (
-          <div role="alert" style={{ minHeight: "calc(100dvh - 3.5rem - 6rem)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-mention)", letterSpacing: "0.02em", textAlign: "center" }}>
+          <div role="alert" style={{ minHeight: "calc(100dvh - 3.5rem - 6rem)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: SERIF, fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-mention)", letterSpacing: "0.02em", textAlign: "center" }}>
             La liste des livres n’a pas pu être lue.
           </div>
         )}
@@ -3103,7 +3104,7 @@ export default function PolyglottePage() {
                   // le temps de s'effacer.
                   if (sc.etat === "sortante") return (
                     <div key={k} className="poly-col poly-col-sortante" style={{ borderLeft: `1px solid ${FILET_COL}`, padding: "5px 6px", display: "flex", alignItems: "center", justifyContent: "center", minWidth: 0 }}>
-                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "var(--cs-encre-fonce)" }}>
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: SERIF, fontSize: "0.875rem", color: "var(--cs-encre-fonce)" }}>
                         {sc.trad ? rendreEnrichi(sc.trad.nom) : null}
                       </span>
                     </div>
@@ -3146,8 +3147,8 @@ export default function PolyglottePage() {
                        laisse place à « Fermer ». */
                     <button onClick={() => setNotesReduites(true)} title="Fermer la colonne Notes" className="poly-notes-head"
                       style={{ background: "none", border: "none", cursor: "pointer", width: "100%", height: "100%", padding: 0, position: "relative", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cs-texte-second)" }}>
-                      <span className="lbl-notes" style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.16em", textIndent: "0.16em", textTransform: "uppercase" }}>Notes</span>
-                      <span className="lbl-fermer" style={{ fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--cs-texte-second)" }}>
+                      <span className="lbl-notes" style={{ fontFamily: SANS, fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.16em", textIndent: "0.16em", textTransform: "uppercase" }}>Notes</span>
+                      <span className="lbl-fermer" style={{ ...STYLE_RUBRIQUE }}>
                         Fermer
                         <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M3.5 2L6.5 5L3.5 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </span>
@@ -3194,7 +3195,7 @@ export default function PolyglottePage() {
                   est signalé paraissait tronqué. La mention nomme le filtre et rend le livre entier
                   d'un clic. */}
               {(sensiblesOnly || surnumOnly) && (
-                <div role="status" style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", justifyContent: "center", gap: "4px 14px", padding: "10px 12px", fontFamily: "var(--font-source-serif), Georgia, serif", fontStyle: "italic", fontSize: "0.8125rem", letterSpacing: "0.02em", color: "var(--cs-mention)" }}>
+                <div role="status" style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", justifyContent: "center", gap: "4px 14px", padding: "10px 12px", fontFamily: SERIF, fontStyle: "italic", fontSize: "0.8125rem", letterSpacing: "0.02em", color: "var(--cs-mention)" }}>
                   <span>{sensiblesOnly ? "Filtre de relecture : seules les lignes problématiques sont affichées." : "Filtre de relecture : seuls les versets surnuméraires sont affichés."}</span>
                   <button type="button" className="cs-bouton-lien" onClick={() => { setSensiblesOnly(false); setSurnumOnly(false); }}>Tout afficher</button>
                 </div>
@@ -3283,7 +3284,7 @@ export default function PolyglottePage() {
             if (!srs.length) return null;
             return (
               <section key={l.code} style={{ contentVisibility: "auto", containIntrinsicSize: `0 ${srs.length * 34 + 40}px` } as React.CSSProperties}>
-                <h2 style={{ margin: 0, padding: "10px 12px 10px 44px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: VERT, background: "var(--cs-fond)", borderTop: "1px solid var(--cs-vert-pale)", borderBottom: "1px solid var(--cs-vert-pale)", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
+                <h2 style={{ margin: 0, padding: "10px 12px 10px 44px", fontFamily: SERIF, fontSize: '1rem', color: VERT, background: "var(--cs-fond)", borderTop: "1px solid var(--cs-vert-pale)", borderBottom: "1px solid var(--cs-vert-pale)", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
                   {l.nom_fr} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: SURNUM }}>· {srs.length} surnuméraire{srs.length > 1 ? "s" : ""}</span>
                 {titresEdition(l.code).map(({ id, trad, ed }) => (
                   <span key={id} style={{ display: "block", fontSize: '0.71875rem', fontWeight: 400, fontStyle: "italic", color: "var(--cs-texte-gris)", marginTop: 2 }}>
@@ -3313,7 +3314,7 @@ export default function PolyglottePage() {
                   en dessous le donnait à lire deux fois. Les désignations propres aux éditions,
                   elles, restent dans tous les cas — l'en-tête ne les porte pas. */}
               {(toutAfficher || titresEdition(l.code).length > 0) && (
-                <h2 style={{ margin: 0, padding: "10px 12px 10px 44px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: VERT, background: "var(--cs-fond)", borderTop: "1px solid var(--cs-vert-pale)", borderBottom: "1px solid var(--cs-vert-pale)", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
+                <h2 style={{ margin: 0, padding: "10px 12px 10px 44px", fontFamily: SERIF, fontSize: '1rem', color: VERT, background: "var(--cs-fond)", borderTop: "1px solid var(--cs-vert-pale)", borderBottom: "1px solid var(--cs-vert-pale)", position: "sticky", top: SOMMET_CORPS, zIndex: 3, textAlign: "center" }}>
                   {toutAfficher && l.nom_fr}
                   {titresEdition(l.code).map(({ id, trad, ed }) => (
                     <span key={id} style={{ display: "block", fontSize: '0.71875rem', fontWeight: 400, fontStyle: "italic", color: "var(--cs-texte-gris)", marginTop: 2 }}>

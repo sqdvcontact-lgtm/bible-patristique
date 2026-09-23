@@ -19,6 +19,7 @@
  */
 import type React from 'react'
 import { GRAISSE_TITRE } from '@/app/lib/hierarchieTitres'
+import { SERIF } from './polices'
 
 /** Largeur de la case, message d'ouverture et arrêt. ⚠️ La borne basse suit l'écran :
  *  sur un téléphone de 320 px la case ne fait plus que 292, et c'est cette largeur-là
@@ -66,7 +67,7 @@ export const STYLE_TETE: React.CSSProperties = {
 
 export const STYLE_TITRE: React.CSSProperties = {
   flex: 1, minWidth: 0, margin: 0,
-  fontFamily: 'var(--font-source-serif), Georgia, serif',
+  fontFamily: SERIF,
   fontSize: '1.0625rem', fontWeight: GRAISSE_TITRE, color: 'var(--cs-encre)', lineHeight: 1.3,
 }
 
@@ -91,13 +92,13 @@ export const STYLE_PIED: React.CSSProperties = {
 // ── Le message d'ouverture ───────────────────────────────────────────────────
 
 export const STYLE_FLEURON: React.CSSProperties = {
-  fontFamily: 'var(--font-source-serif), Georgia, serif',
+  fontFamily: SERIF,
   fontSize: '1.5rem', color: 'var(--cs-or)', lineHeight: 1, marginBottom: '14px',
 }
 
 export const STYLE_TITRE_MESSAGE: React.CSSProperties = {
   margin: '0 0 12px',
-  fontFamily: 'var(--font-source-serif), Georgia, serif',
+  fontFamily: SERIF,
   fontWeight: GRAISSE_TITRE, lineHeight: 1.3,
 }
 

@@ -20,6 +20,7 @@ import { baliseFragments, fragmentsSansPointFinal } from '@/app/lib/referenceBib
 import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } from '@/app/lib/chapitresCanon'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
+import { STYLE_RUBRIQUE } from './hierarchieTitres'
 
 const NOM_FR: Record<string, string> = {
   GEN:'Genèse',EXO:'Exode',LEV:'Lévitique',NUM:'Nombres',DEU:'Deutéronome',JOS:'Josué',JDG:'Juges',RUT:'Ruth',
@@ -336,7 +337,7 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
   // Sélecteur de traduction, présent à toutes les étapes du parcours biblique.
   const selecteurTrad = trads.length > 1 && (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-      <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>Traduction</span>
+      <span style={{ ...STYLE_RUBRIQUE }}>Traduction</span>
       <select value={trad} onChange={e => setTrad(e.target.value)} aria-label="Traduction de la Bible"
         style={{ fontSize: '0.71875rem', padding: '5px 8px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-encre)', cursor: 'pointer' }}>
         {trads.map(t => <option key={t.trad_id} value={t.trad_id}>{t.nom}{t.langue && t.langue !== 'Français' ? ` (${t.langue})` : ''}</option>)}
@@ -356,7 +357,7 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {sections.map(s => (
           <div key={s.titre}>
-            <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 9px' }}>{s.titre}</p>
+            <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 9px' }}>{s.titre}</p>
             {/* Pastilles ajustées au contenu (flex-wrap) : plus souple et régulier
                 qu'une grille de cases où les noms longs cassaient les rangées. */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -558,7 +559,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
           œuvres sœurs. Un texte original est une édition à part entière, et il se cite. */}
       {choixEditions.length > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-          <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', flexShrink: 0 }}>Édition</span>
+          <span style={{ ...STYLE_RUBRIQUE, flexShrink: 0 }}>Édition</span>
           <select value={editionCourante} aria-label="Édition du texte"
             onChange={e => {
               const [genre, cle] = e.target.value.split(/:(.*)/su)
@@ -725,7 +726,7 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {auteurs.map(auteur => (
             <div key={auteur}>
-              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 8px' }}>{auteur}</p>
+              <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 8px' }}>{auteur}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {groupes.get(auteur)!.map(it => Ligne(it, String(it.titre_oeuvre ?? '')))}
               </div>

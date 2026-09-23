@@ -44,6 +44,7 @@ import {
   colonneDeLaCleBilingue,
   numeroCanonique,
 } from '@/app/lib/bibleEditionBilingue'
+import { SERIF } from '@/app/lib/polices'
 
 // La reprise (`repere=N`) repose son verset tant que polices et gravures arrivent : la
 // première seconde et demie, et seulement tant que le lecteur n'a pas bougé. Mêmes délais
@@ -454,7 +455,7 @@ export default function LectureBilingueBible({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
             {/* Mêmes flèches qu'en lecture simple : à une borne, chevron en place, grisé, inerte. */}
             <FlecheChapitre sens="precedent" variante="entete" cible={voisins.precedent} onAller={naviguer} />
-            <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px', lineHeight: INTERLIGNE_TITRE_CHAPITRE }}>
+            <h1 style={{ fontFamily: SERIF, fontWeight: 'normal', margin: 0, display: 'flex', alignItems: 'baseline', gap: '10px', lineHeight: INTERLIGNE_TITRE_CHAPITRE }}>
               <span style={{ fontSize: '1.25rem', color: 'var(--cs-encre-fonce)', letterSpacing: '0.01em' }}>{nomLivre}{estLivreNonCanonique(livreActif) && <MarqueNonCanonique />}</span>
               <span aria-hidden="true" style={{ color: 'var(--cs-or-doux)', fontSize: '1.25rem', lineHeight: 1 }}>❧</span>
               {/* Même voix éditoriale que la lecture simple : le chapitre ne

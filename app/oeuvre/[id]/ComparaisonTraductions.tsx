@@ -47,6 +47,7 @@ import {
   type FiltreAlignement,
   type MembreComparable,
 } from './comparaisonTraductionsUtils'
+import { SERIF, SANS } from '@/app/lib/polices'
 
 // Métadonnées d'édition d'une œuvre, pour la citation au copier/prélever (chaque
 // colonne = une traduction distincte, donc sa propre attribution).
@@ -193,7 +194,7 @@ function renderSegmentTexte(texte: string, notes: NoteStructuree[]) {
       const note = parNumero.get(appel)
       appels.push(note
         ? <AppelNote key={k++} note={note} />
-        : <sup key={k++} style={{ color: 'var(--cs-texte-doux)', fontSize: '0.62em' }}>{appel}</sup>)
+        : <sup key={k++} style={{ ...styleAppelNote(), cursor: 'default', color: 'var(--cs-texte-doux)' }}>{appel}</sup>)
     })
     noeuds.push(<span key={k++} style={{ whiteSpace: 'nowrap' }}>{appels}{ponctuation}</span>)
   }
@@ -207,7 +208,7 @@ function renderSegmentTexte(texte: string, notes: NoteStructuree[]) {
 // français, passe en sans-serif (voir `POLICE_ORIGINALE` plus bas).
 const STYLE_TEXTE_PARALLELE = {
   margin: 0,
-  fontFamily: 'var(--font-source-serif), Georgia, serif',
+  fontFamily: SERIF,
   fontSize: '0.8125rem',
   lineHeight: 1.62,
   color: 'var(--cs-texte-fort)',
@@ -222,7 +223,7 @@ type BlocLecture = { type: 'prose' | 'vers' | 'versets' | 'rubrique' | 'exergue'
 // Une colonne = une traduction. Les segments sont cliquables comme en lecture
 // (survol/clic → cellule d'actions flottante : prélever, copier, signaler). Le CSS
 // de `.seg-inline` vient du bloc <style> parent (OeuvreClient).
-const POLICE_ORIGINALE = 'var(--font-source-sans), Arial, sans-serif'
+const POLICE_ORIGINALE = SANS
 
 function ColonneLecture({ membres, segments, notes, ancres, vide, segActif, onSurvol, onQuitter, onClic, onFoyer, onQuitterFoyer, mobile, langue }: {
   membres: MembreComparable[]
@@ -679,7 +680,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
       { label: alignement.alignedLabel, members: alnMembres, empty: `Pas de correspondant dans ${alignement.alignedLabel}`, langue: alignement.alignedLangue },
     ] as const).map(colonne => (
       <div key={colonne.label} data-colonne-comparaison="" style={{ minWidth: 0 }}>
-        {mobile && <h3 style={{ margin: '0 0 6px', fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-second)', fontWeight: 600 }}>{colonne.label}</h3>}
+        {mobile && <h3 style={{ margin: '0 0 6px', fontFamily: SANS, fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--cs-texte-second)', fontWeight: 600 }}>{colonne.label}</h3>}
         <ColonneLecture membres={colonne.members} segments={segments} notes={notes} ancres={ancresNotes} vide={colonne.empty} langue={colonne.langue}
           segActif={segActif} onSurvol={positionnerToolbar} onQuitter={masquerToolbar} onClic={clicSegment}
           onFoyer={foyerSegment} onQuitterFoyer={cellule.quitterFoyer} mobile={mobile} />

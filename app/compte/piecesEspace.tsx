@@ -13,6 +13,8 @@ import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { PAGES_ESPACE, type GroupeAncres, type PageEspace } from '@/app/lib/espaceLecteurNavigation'
 import PortraitLecteur from '@/app/components/PortraitLecteur'
 import { CADRAGE_PAR_DEFAUT } from '@/app/lib/portraits'
+import { SERIF } from '@/app/lib/polices'
+import { TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
 // ── Le sommaire ──────────────────────────────────────────────────────────────
 
@@ -324,7 +326,7 @@ export const FEUILLE_ESPACE = `
    pseudonyme de quarante signes le portait à 147 px sur un téléphone de 320. */
 .esp-bandeau { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: stretch;
   gap: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--cs-bord-clair); margin-bottom: 20px; }
-.esp-bandeau h1 { font-family: var(--font-source-serif), Georgia, serif; font-size: 1.4375rem;
+.esp-bandeau h1 { font-family: ${SERIF}; font-size: ${TITRE_CARTE};
   font-weight: normal; color: var(--cs-encre-fonce); margin: 0; line-height: 1.1;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
   overflow: hidden; overflow-wrap: anywhere; }
@@ -354,7 +356,7 @@ export const FEUILLE_ESPACE = `
 .esp-section { scroll-margin-top: calc(${HAUTEUR_NAVBAR} + 1.5rem); }
 .esp-section + .esp-section { margin-top: 34px; padding-top: 26px;
   border-top: 1px solid var(--cs-bord-clair); }
-.esp-section > h2, .esp-section-tete h2 { font-family: var(--font-source-serif), Georgia, serif;
+.esp-section > h2, .esp-section-tete h2 { font-family: ${SERIF};
   font-style: italic; font-weight: normal; font-size: 0.84375rem; color: var(--cs-vert); margin: 0 0 14px; }
 /* Un titre et son renvoi sur la même ligne, le renvoi au fer à droite. */
 .esp-section-tete { display: flex; align-items: baseline; justify-content: space-between;

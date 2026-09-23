@@ -15,10 +15,11 @@ import {
   libelleSource, estUrl, siecleDe,
 } from '@/app/lib/frise'
 import HistoricalDate from '@/app/components/HistoricalDate'
-import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, STYLE_RUBRIQUE, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 import { RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import { colorMix } from '@/app/lib/couleurs'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { SERIF, SANS } from '@/app/lib/polices'
 
 // Frise générale de l'histoire de l'Église.
 // Les champs riches viennent de `v_frise_generale`, triée par `ordre_affichage`.
@@ -31,8 +32,6 @@ const TEXTE2 = 'var(--cs-texte-doux)'
 const BORD = 'var(--cs-bord)'
 const SEP = 'var(--cs-bord-clair)'
 const VERT = 'var(--cs-vert)'
-const SERIF = 'var(--font-source-serif), Georgia, serif'
-const SANS = 'var(--font-source-sans), Arial, sans-serif'
 
 // ⛔ LE MODE « À L'ÉCHELLE » EST SUPPRIMÉ (décision de l'auteur, 2026-09-05 :
 // « à l'échelle, on pourra jamais l'utiliser ; supprime ça »). La frise se lit en
@@ -529,12 +528,7 @@ function ListeFrise({ items, mobile, toutesNotes, recherche, liensParEvenement, 
             /* ⚠️ Collant sous la BARRE, dont la hauteur se compose et ne se recopie
                jamais en pixels (charte, Responsive). Le repère porte le fond de la
                page : sans lui, les cartes défileraient au travers. */
-            <h2 style={{
-              position: 'sticky', top: HAUTEUR_NAVBAR, zIndex: 2, margin: 0,
-              padding: '9px 0 5px', background: FOND,
-              fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700,
-              letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-second)',
-            }}>
+            <h2 style={{ ...STYLE_RUBRIQUE, position: 'sticky', top: HAUTEUR_NAVBAR, zIndex: 2, margin: 0, padding: '9px 0 5px', background: FOND }}>
               {t.nom}
             </h2>
           )}
@@ -670,7 +664,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
           remonter son origine avant son événement principal quelle que soit l'année. */}
       {afficheNotice && filVisible && places.map(pl => (
         <div key={pl.code} style={{ marginTop: '6px' }}>
-          <p style={{ margin: 0, fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>
+          <p style={{ ...STYLE_RUBRIQUE, margin: 0 }}>
             {pl.titre} · {pl.rang} sur {pl.total}{pl.role ? ` · ${pl.role}` : ''}
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px', marginTop: '2px' }}>
@@ -690,7 +684,7 @@ function CarteEvenement({ e, mobile, toutesNotes, recherche, liens, places, titr
           trente nœuds, et elle ne dirait rien de plus que la phrase. */}
       {afficheNotice && filVisible && liens.length > 0 && (
         <div style={{ marginTop: '6px' }}>
-          <p style={{ margin: 0, fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)' }}>Autour</p>
+          <p style={{ ...STYLE_RUBRIQUE, margin: 0 }}>Autour</p>
           <ul style={{ listStyle: 'none', margin: '2px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {liens.map((l, i) => (
               <li key={`${l.autreId}-${i}`} style={{ fontFamily: SERIF, fontSize: '0.71875rem', lineHeight: 1.35, color: 'var(--cs-texte-second)' }}>

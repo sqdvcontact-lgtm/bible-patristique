@@ -25,6 +25,7 @@ import { referenceBiblique } from "@/app/lib/rechercheRequete";
 import { FAMILLES_ADMIN, entreesDeFamille } from "@/app/lib/adminNavigation";
 import PortraitLecteur from "@/app/components/PortraitLecteur";
 import { cssServi } from "@/app/lib/cssServi";
+import { SERIF } from '@/app/lib/polices'
 
 const ModaleMessagerie = dynamic(() => import("@/app/components/ModaleMessagerie"), { ssr: false });
 const VoletNotifications = dynamic(() => import("@/app/components/VoletNotifications"), { ssr: false });
@@ -1421,7 +1422,7 @@ export default function Navbar() {
                   <div className="rr-corps">
                     <Link id="nav-ref" href={refBiblique.href} onClick={fermerRechercheRapide}
                       className="rr-ligne"
-                      style={{ padding: "4px 12px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>
+                      style={{ padding: "4px 12px", fontFamily: SERIF, fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>
                       Ouvrir {refBiblique.libelle}
                     </Link>
                   </div>
@@ -1440,7 +1441,7 @@ export default function Navbar() {
                     return (
                     <Link key={o.id_oeuvre} id={`nav-oe:${o.id_oeuvre}`} href={`/oeuvre/${o.id_oeuvre}`} onClick={fermerRechercheRapide}
                       className="rr-ligne" style={{ padding: "4px 12px" }}>
-                      <span style={{ display: "block", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>{surlignerMatch(o.titre, requeteRapide.trim())}</span>
+                      <span style={{ display: "block", fontFamily: SERIF, fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>{surlignerMatch(o.titre, requeteRapide.trim())}</span>
                       {o.auteurs?.nom && <span style={{ display: "block", fontSize: "0.71875rem", fontStyle: "italic", color: "var(--cs-texte-second)", lineHeight: 1.25, marginTop: "1px" }}>{o.auteurs.nom}</span>}
                       {edition && <span style={{ display: "block", fontSize: "0.6875rem", color: "var(--cs-texte-gris)", lineHeight: 1.3, marginTop: "1px" }}>{edition}</span>}
                     </Link>
@@ -1456,7 +1457,7 @@ export default function Navbar() {
                   {livresTrouves.slice(0, 3).map(l => (
                     <Link key={l.code} id={`nav-li:${l.code}`} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}
                       className="rr-ligne"
-                      style={{ padding: "4px 12px", fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>
+                      style={{ padding: "4px 12px", fontFamily: SERIF, fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>
                       {surlignerMatch(l.nom, requeteRapide.trim())}
                     </Link>
                   ))}
@@ -2162,7 +2163,7 @@ export default function Navbar() {
           .cs-plus-riche-nom { font-size: 0.875rem; line-height: 1.3; color: var(--cs-encre); }
           /* Un TITRE D'ŒUVRE, non un nom de page : il prend le romain à empattements du
              site, comme partout ailleurs où une œuvre est nommée. */
-          .cs-plus-riche-nom--oeuvre { font-family: var(--font-source-serif), Georgia, serif; }
+          .cs-plus-riche-nom--oeuvre { font-family: ${SERIF}; }
           /* L'entrée par laquelle on entre presque toujours. ⛔ Ni couleur, ni puce,
              ni place à part : la graisse SEULE la lève, comme les deux entrées fortes
              du menu d'administration. Un menu ne fabrique pas de bouton. */
@@ -2229,11 +2230,11 @@ export default function Navbar() {
                 infobulle sur le lien, posée plus haut. */}
             {!nomSiteMasque && (
               <>
-                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.1875rem", fontWeight: 600, letterSpacing: "0.01em" }}>Corpus Scriptura</span>
+                <span style={{ fontFamily: SERIF, fontSize: "1.1875rem", fontWeight: 600, letterSpacing: "0.01em" }}>Corpus Scriptura</span>
                 {/* « bêta » sobre : un petit mot en italique, posé contre le nom, sans cercle
                     ni capitales — un simple murmure de version. */}
                 <span title="Version bêta" aria-label="Version bêta"
-                  style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.72)", position: "relative", top: "1.5px" }}>bêta</span>
+                  style={{ fontFamily: SERIF, fontSize: "0.8125rem", fontStyle: "italic", lineHeight: 1, color: "rgba(255,255,255,0.72)", position: "relative", top: "1.5px" }}>bêta</span>
               </>
             )}
           </Link>
@@ -2423,7 +2424,7 @@ export default function Navbar() {
           <div key={toastNotification.id} role="button" tabIndex={0} onClick={() => { setToastNotification(null); setNotifsOuvertes(true); }}
             style={{ position: "fixed", top: `calc(${HAUTEUR_NAVBAR} + 0.75rem)`, right: "18px", width: "17.5rem", background: "var(--cs-surface)", border: "1px solid var(--cs-bord)", borderLeft: "3px solid var(--cs-vert-aplat)", borderRadius: "8px", boxShadow: "var(--cs-ombre-modale)", padding: "11px 13px 13px", zIndex: Z_NOTIFICATION, cursor: "pointer", overflow: "hidden" }}>
             <p style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--cs-vert)", margin: "0 0 4px" }}>Nouvelle notification</p>
-            <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem", color: "var(--cs-encre-fonce)", margin: "0 0 4px" }}>{toastNotification.titre}</p>
+            <p style={{ fontFamily: SERIF, fontSize: "1rem", color: "var(--cs-encre-fonce)", margin: "0 0 4px" }}>{toastNotification.titre}</p>
             <p style={{ fontSize: "0.8125rem", color: "var(--cs-texte-second)", lineHeight: 1.35, margin: 0 }}>{toastNotification.message}</p>
             {/* Jauge du temps restant : elle court sur toute la largeur, en pied de
                 vignette, et se retire vers la gauche pendant les trois secondes. */}

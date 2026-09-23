@@ -18,8 +18,7 @@
 import type { CSSProperties } from 'react'
 import { NATURE_EXERGUE, RAPPORT_CORPS_EXERGUE, RETRAIT_EXERGUE } from './compositionExergue'
 import { FORME_VERS, styleLigneDeVers } from './compositionVers'
-
-const SERIF = 'var(--font-source-serif), Georgia, serif'
+import { SERIF } from './polices'
 
 /** Le corps de la lecture, et l'espace entre ses mots. */
 export const CORPS_LECTURE = '0.8125rem'

@@ -20,6 +20,7 @@ import { useEffect, useState, type RefObject } from 'react'
 import { HAUTEUR_BARRE_VOLET, HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { hauteurNavbarPx, tailleRacinePx } from '@/app/lib/fenetreContextuelle'
 import type { RetourLecture } from '@/app/lib/retourLecture'
+import { SANS } from '@/app/lib/polices'
 
 /** La barre de volet d'un téléphone, en rem (`HAUTEUR_BARRE_VOLET`). */
 const BARRE_VOLET_REM = parseFloat(HAUTEUR_BARRE_VOLET)
@@ -67,7 +68,7 @@ export default function RetourFlottant({ retour, filAriane, mobile }: {
           transform: visible ? 'none' : 'translateY(-0.25rem)',
           transition: 'opacity 160ms ease, transform 160ms ease',
           whiteSpace: 'nowrap',
-          fontFamily: 'var(--font-source-sans), sans-serif',
+          fontFamily: SANS,
           fontSize: '0.6875rem', lineHeight: 1.4,
           color: 'var(--cs-texte-second)',
           background: 'color-mix(in srgb, var(--cs-fond) 92%, transparent)',

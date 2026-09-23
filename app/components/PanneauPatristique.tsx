@@ -50,6 +50,8 @@ import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { adresseRetourBible } from '@/app/lib/retourLecture'
+import { SANS } from '@/app/lib/polices'
+import { STYLE_POSITION_PAGE } from '@/app/lib/hierarchieTitres'
 
 // ⛔ L'inventaire des notes d'une bible ne se charge qu'avec son onglet : il ne sert qu'à
 // l'administrateur, et le lecteur n'a pas à en payer le poids.
@@ -1508,7 +1510,7 @@ export default function PanneauPatristique({
                       borderBottom: actif ? '2px solid var(--cs-vert)' : '2px solid transparent',
                       cursor:'pointer', background:'none',
                       color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-gris)',
-                      fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+                      fontFamily: SANS,
                       transition:'color 0.12s, border-color 0.12s',
                       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
                     }}>
@@ -1650,7 +1652,7 @@ export default function PanneauPatristique({
                 style={{ ...STYLE_FLECHE_PAGE, color: precedentePossible ? 'var(--cs-texte-second)' : 'var(--cs-bord)', cursor: precedentePossible ? 'pointer' : 'default' }}>
                 ‹
               </button>
-              <span aria-live="polite" style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', whiteSpace:'nowrap', padding:'0 2px' }}>
+              <span aria-live="polite" style={{ ...STYLE_POSITION_PAGE, padding:'0 2px' }}>
                 {pageCouranteItems + 1} sur {nbPagesItems}
               </span>
               <button onClick={() => allerAPage(Math.min(pageCouranteItems + 1, nbPagesItems - 1))} disabled={!suivantePossible}

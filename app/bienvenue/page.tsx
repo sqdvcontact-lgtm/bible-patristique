@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { EcranAttente } from '@/app/lib/attenteEnCreux'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
-import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { SERIF } from '@/app/lib/polices'
 
 export default function BienvenuePage() {
   const router = useRouter()
@@ -29,7 +30,7 @@ export default function BienvenuePage() {
         <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-vert-clair)', margin: '0 0 18px' }}>
           Corpus Scriptura
         </p>
-        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: '0 0 10px', lineHeight: 1.3 }}>
+        <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: '0 0 10px', lineHeight: INTERLIGNE_TITRE_PAGE }}>
           Bienvenue.
         </h1>
         <p style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-gris)', lineHeight: 1.75, margin: '0 0 52px', maxWidth: '21.25rem', marginLeft: 'auto', marginRight: 'auto' }}>

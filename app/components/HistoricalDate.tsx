@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { decouperSiecles } from '../lib/siecles'
+import { decouperSiecles, STYLE_ORDINAL } from '../lib/siecles'
 import { espacerIntervallesHistoriques } from '../lib/datesHistoriques'
 
 export type HistoricalDateVariant = 'long' | 'short'
@@ -9,20 +9,16 @@ type HistoricalDateProps = {
   variant: HistoricalDateVariant
 }
 
+// ⚠️ Pas de `fontFeatureSettings: "smcp"` : Source Serif 4, telle que la sert next/font,
+// ne porte pas la fonction `smcp`, et la déclaration était sans effet (audit d'harmonie,
+// 2026-09-23). Les petites capitales sont celles que le navigateur synthétise.
 export const STYLE_DATE_ROMAIN: CSSProperties = {
   fontVariantCaps: 'all-small-caps',
-  fontFeatureSettings: '"smcp" 1, "c2sc" 1',
 }
 
-// Décalage maîtrisé plutôt que `vertical-align: super` (qui montait le « e » beaucoup
-// trop haut, au-dessus de la casse du chiffre). Accordé au module `siecles.tsx`.
-export const STYLE_DATE_ORDINAL: CSSProperties = {
-  fontSize: '0.68em',
-  lineHeight: 0,
-  verticalAlign: 'baseline',
-  position: 'relative',
-  top: '-0.5em',
-}
+// ⛔ UN SEUL RÉGLAGE POUR L'ORDINAL D'UN SIÈCLE : celui de `siecles.tsx`. Ce module s'y
+// disait « accordé » et valait 0,68 em contre 0,62 (audit d'harmonie, 2026-09-23).
+export const STYLE_DATE_ORDINAL: CSSProperties = STYLE_ORDINAL
 
 // L'espacement d'un intervalle vit désormais dans `datesHistoriques`, auprès du
 // formateur qui l'écrit : une seule règle pour la date qu'on compose et pour celle

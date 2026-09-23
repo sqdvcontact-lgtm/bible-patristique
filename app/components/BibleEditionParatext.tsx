@@ -46,6 +46,7 @@ import AppelNoteBiblique, { type FiguresDeNote } from './NoteBibliqueFenetre'
 import BibliographieBible from './BibleBibliographie'
 import BibliographieOuvrages from './BibliographieOuvrages'
 import DefilementVersAncre from './DefilementVersAncre'
+import { SERIF, SANS } from '@/app/lib/polices'
 
 export type BlocTexteBiblique = BibleEditionDisplayTextBlock
 
@@ -73,7 +74,6 @@ export type IllustrationBibliqueAffichable = BibleEditionDisplayAsset
 // la page d'œuvre pour ce qui surmonte. Les encadrés à fond teinté qui
 // tenaient lieu de style au premier jet ont disparu — un commentaire de Fillion
 // n'est pas une alerte, c'est du texte d'édition.
-const SERIF = 'var(--font-source-serif), Georgia, serif'
 
 
 /** Sous ce nombre de signes, le paragraphe voisin d'une manchette ne l'habille pas. */
@@ -259,7 +259,7 @@ const COMPOSITIONS: Record<CompositionParagraphe, CSSProperties> = {
   // famille — c'est le même appareil — d'un cran plus petit, d'une encre
   // discrète, et se collent au repère au lieu de flotter entre lui et le texte.
   'renvois-bible': {
-    fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+    fontFamily: SANS,
     fontSize: '0.75rem',
     lineHeight: 1.45,
     color: 'var(--cs-texte-second)',
@@ -1064,7 +1064,7 @@ export function PieceLiminaire({
       <header style={{ textAlign: 'center', margin: '0 0 2rem' }}>
         {portee && (
           <p style={{
-            fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+            fontFamily: SANS,
             fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.09em',
             textTransform: 'uppercase', color: 'var(--cs-texte-gris)', margin: '0 0 0.5rem',
           }}>
@@ -1092,7 +1092,7 @@ export function PieceLiminaire({
       {urlRetour && (
         <p style={{ textAlign: 'center', margin: '2.5rem 0 0.5rem' }}>
           <a href={urlRetour} style={{
-            fontFamily: 'var(--font-source-serif), Georgia, serif',
+            fontFamily: SERIF,
             fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-vert)',
             textDecoration: 'none', borderBottom: '1px solid var(--cs-or-doux)',
             paddingBottom: '1px',

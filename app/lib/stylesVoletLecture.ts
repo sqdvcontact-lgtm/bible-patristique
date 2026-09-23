@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { SANS } from './polices'
 
 /**
  * La forme des menus de choix du VOLET DE LECTURE — la rubrique d’un axe, et ses
@@ -90,7 +91,7 @@ export const OPTION_VOLET = (actif: boolean): CSSProperties => ({
   fontWeight: actif ? 600 : 400,
   fontSize: '0.71875rem',
   lineHeight: 1.3,
-  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+  fontFamily: SANS,
   cursor: actif ? 'default' : 'pointer',
   transition: 'background 0.12s, color 0.12s',
 })

@@ -34,6 +34,7 @@ import {
   type SemantiqueDuChapitre,
 } from '@/app/lib/semantiqueVerset'
 import { CompteFacette, MarqueNote, PastilleFacette, STYLE_RANG_FACETTES } from './InventaireNotes'
+import { SERIF } from '@/app/lib/polices'
 
 /** Un chapitre lu se garde le temps de la session ; un échec ne se garde pas. */
 const chapitresLus = new Map<string, Promise<SemantiqueDuChapitre>>()
@@ -58,7 +59,7 @@ function chargerChapitre(livre: string, chapitre: number): Promise<SemantiqueDuC
 }
 
 const STYLE_TEXTE: CSSProperties = {
-  fontFamily: 'var(--font-source-serif), Georgia, serif',
+  fontFamily: SERIF,
   fontSize: '0.6875rem', lineHeight: 1.42, color: 'var(--cs-texte)', overflowWrap: 'anywhere',
 }
 const STYLE_DISCRET: CSSProperties = { fontSize: '0.6875rem', lineHeight: 1.4, color: 'var(--cs-texte-second)' }

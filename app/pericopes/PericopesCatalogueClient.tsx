@@ -69,13 +69,12 @@ import {
   type PericopeCatalogueItem,
 } from '@/app/lib/pericopes'
 import { filtrerCatalogue, TESTAMENT_LIVRE } from '@/app/lib/pericopesRecherche'
+import { SERIF, SANS } from '@/app/lib/polices'
 
 const FOND = 'var(--cs-fond)'
 const BORD = 'var(--cs-bord)'
 const SEP = 'var(--cs-bord-clair)'
 const VERT = 'var(--cs-vert)'
-const SERIF = 'var(--font-source-serif), Georgia, serif'
-const SANS = 'var(--font-source-sans), Arial, sans-serif'
 
 /** Hauteur de la barre d'onglets. Elle sert DEUX fois de plus : le nom du livre vient
  *  se garer dessous (marge collante) et le saut à un livre s'en écarte d'autant

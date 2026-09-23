@@ -158,4 +158,56 @@ describe('plancher des petits corps', () => {
     }
     expect(fautives, 'Corps sous le plancher (charte, audit d’ergonomie du 2026-09-21)').toEqual([])
   })
+
+  // ⛔ UNE TAILLE PASSÉE PAR CONSTANTE NE LUI ÉCHAPPE PLUS (audit d'harmonie, 2026-09-23).
+  // La garde ne lisait que les déclarations écrites en clair : `fontSize: CORPS_INVITE`
+  // laissait passer 10 px, et l'intitulé d'un encart de note vivait à 9 px. On relève donc
+  // les CONSTANTES de taille (`const NOM = '0.625rem'`, exportées ou non) et l'on juge
+  // chaque EMPLOI (`fontSize: NOM`, ou `font-size:` suivi de NOM interpolé) dans l'objet
+  // qui l'enveloppe, par les mêmes règles que ci-dessus. Une constante exportée se résout
+  // d'un fichier à l'autre, pourvu que son nom soit unique sur le site.
+  it('ni par une constante de taille', () => {
+    const CONSTANTE = /(?:export\s+)?const\s+([A-Z][A-Z0-9_]*)\s*=\s*['"`]([0-9]*\.?[0-9]+)rem['"`]/g
+    const EMPLOI = /(?:fontSize|font-size)\s*:\s*(?:\$\{\s*)?([A-Z][A-Z0-9_]*)\b/g
+    const fichiers = fichiersDeStyle(RACINE).filter(chemin => {
+      const relatif = relative(RACINE, chemin)
+      return !/\.test\.tsx?$/.test(relatif) && !/899/.test(relatif)
+        && !EXEMPTS.some(e => relatif.endsWith(e))
+        && !DOSSIERS_HORS_PLANCHER.includes(relatif.split(sep)[0])
+    })
+    const sources = new Map(fichiers.map(f => [f, sansCommentaires(readFileSync(f, 'utf8'))]))
+    const globales = new Map<string, number[]>()
+    for (const source of sources.values()) {
+      for (const m of source.matchAll(CONSTANTE)) {
+        globales.set(m[1], [...(globales.get(m[1]) ?? []), parseFloat(m[2])])
+      }
+    }
+    const fautives: string[] = []
+    let emplois = 0
+    for (const [chemin, source] of sources) {
+      const locales = new Map([...source.matchAll(CONSTANTE)].map(m => [m[1], parseFloat(m[2])]))
+      for (const emploi of source.matchAll(EMPLOI)) {
+        const nom = emploi[1]
+        const partout = globales.get(nom)
+        const valeur = locales.get(nom) ?? (partout?.length === 1 ? partout[0] : undefined)
+        if (valeur === undefined) continue
+        emplois++
+        const relatif = relative(RACINE, chemin)
+        if (!estSurLEchelle(valeur)) {
+          fautives.push(`${relatif} · ${nom} = ${valeur}rem, hors échelle`)
+          continue
+        }
+        if (valeur >= PLANCHER_REM) continue
+        const [a, b] = enveloppe(source, emploi.index ?? 0)
+        const objet = source.slice(a, b + 1)
+        const tete = source.slice(source.lastIndexOf('\n', a - 1) + 1, a)
+        if (EST_HORS_PLANCHER(`${tete} ${nom}`, objet)) continue
+        const plancher = EST_CAPITALE_ESPACEE(objet) ? PLANCHER_CAPITALES_REM : PLANCHER_REM
+        if (valeur < plancher) fautives.push(`${relatif} · ${emploi[0].trim()} (${valeur}rem)`)
+      }
+    }
+    // La garde doit voir quelque chose : un motif cassé la rendrait muette et verte.
+    expect(emplois).toBeGreaterThan(20)
+    expect(fautives, 'Corps sous le plancher, passés par une constante').toEqual([])
+  })
 })

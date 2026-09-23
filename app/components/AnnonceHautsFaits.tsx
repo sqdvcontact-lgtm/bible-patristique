@@ -27,6 +27,7 @@ import {
 import { ENCRE_RELIURE, degradeReliure } from '@/app/lib/reliuresHautsFaits'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { cssServi } from '@/app/lib/cssServi'
+import { SERIF } from '@/app/lib/polices'
 
 /** La petite vignette dure ce que dure celle de la barre. La belle annonce reste
  *  plus longtemps : elle porte une notice à lire, non une ligne à voir passer.
@@ -232,7 +233,7 @@ export function CorpsAnnonce({ annonce, onFermer }: { annonce: Annonce; onFermer
                 }),
           }}>
           <span style={{
-            fontFamily: 'var(--font-source-serif), Georgia, serif',
+            fontFamily: SERIF,
             fontSize: grande ? '0.75rem' : '0.6875rem',
             lineHeight: 1.25, color: 'inherit',
           }}>
@@ -246,7 +247,7 @@ export function CorpsAnnonce({ annonce, onFermer }: { annonce: Annonce; onFermer
               <p style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: encre, margin: '0 0 2px' }}>
                 Haut fait obtenu
               </p>
-              <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.6875rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', margin: '0 0 7px' }}>
+              <p style={{ fontFamily: SERIF, fontSize: '0.6875rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', margin: '0 0 7px' }}>
                 {courante.c.points} points
               </p>
               {/* ⛔ La notice EST la récompense : elle paraît ici, au moment où la case

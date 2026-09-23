@@ -1,4 +1,5 @@
-import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { SERIF } from '@/app/lib/polices'
 export const metadata = {
   title: { absolute: "Conditions d’utilisation · Corpus Scriptura" },
   description: "Conditions générales d’utilisation du site Corpus Scriptura (corpus-scriptura.fr).",
@@ -7,7 +8,7 @@ export const metadata = {
 export default function ConditionsUtilisationPage() {
   return (
     <main style={{ background: "var(--cs-fond)", minHeight: "calc(100dvh - 3.5rem)", padding: "56px 24px 80px" }}>
-      <div style={{ maxWidth: "42.5rem", margin: "0 auto" }}>
+      <div style={{ maxWidth: "var(--mesure-page)", margin: "0 auto" }}>
 
         <p style={{
           fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.16em",
@@ -17,8 +18,8 @@ export default function ConditionsUtilisationPage() {
         </p>
 
         <h1 style={{
-          fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_PAGE,
-          fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, marginBottom: "8px", lineHeight: 1.25,
+          fontFamily: SERIF, fontSize: TITRE_PAGE,
+          fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, marginBottom: "8px", lineHeight: INTERLIGNE_TITRE_PAGE,
         }}>
           Conditions d&rsquo;utilisation
         </h1>
@@ -229,7 +230,7 @@ function Section({ id, titre, children }: { id?: string; titre: string; children
   return (
     <section id={id} style={{ marginBottom: "32px", scrollMarginTop: "72px" }}>
       <h2 style={{
-        fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1rem",
+        fontFamily: SERIF, fontSize: "1rem",
         fontWeight: "normal", color: "var(--cs-encre)", marginBottom: "10px",
         borderBottom: "1px solid var(--cs-bord)", paddingBottom: "6px",
       }}>

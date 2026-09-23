@@ -13,6 +13,7 @@
 
 import Image from 'next/image'
 import { CADRAGE_PAR_DEFAUT, urlPortrait, type Cadrage } from '@/app/lib/portraits'
+import { SERIF } from '@/app/lib/polices'
 
 export default function PortraitLecteur({ refPortrait: ref, cadrage, initiale, taille, carre = false, alt = '' }: {
   refPortrait: string | null | undefined
@@ -57,7 +58,7 @@ export default function PortraitLecteur({ refPortrait: ref, cadrage, initiale, t
       <div style={{ ...commun, background: 'linear-gradient(135deg,var(--cs-vert-aplat),var(--cs-vert-aplat-profond))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {/* ⚠️ L'initiale suit le rond, donc la racine : elle se dit en rem comme lui, et
             non plus en pixels arrondis. */}
-        <span aria-hidden="true" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: `${(taille * 0.42) / 16}rem`, color: 'var(--cs-sur-aplat-doux)' }}>
+        <span aria-hidden="true" style={{ fontFamily: SERIF, fontSize: `${(taille * 0.42) / 16}rem`, color: 'var(--cs-sur-aplat-doux)' }}>
           {initiale.charAt(0).toUpperCase()}
         </span>
       </div>

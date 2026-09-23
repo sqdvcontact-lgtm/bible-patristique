@@ -41,6 +41,7 @@ import {
   type NotificationItem,
   type TonNotification,
 } from '@/app/lib/notificationsClient'
+import { SERIF } from '@/app/lib/polices'
 
 type Onglet = 'nouvelles' | 'archivees'
 
@@ -127,7 +128,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '12px 14px 10px', borderBottom: '1px solid var(--cs-fond-doux)' }}>
-          <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.9375rem', color: 'var(--cs-encre-fonce)' }}>Notifications</span>
+          <span style={{ fontFamily: SERIF, fontSize: '0.9375rem', color: 'var(--cs-encre-fonce)' }}>Notifications</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {onglet === 'nouvelles' && nouvelles.length > 0 && (
               <button onClick={archiverTout} style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, letterSpacing: '0.01em' }}>
@@ -176,7 +177,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
                     </button>
                   )}
                 </div>
-                <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.8125rem', lineHeight: 1.35, color: ENCRE_TON[n.ton], margin: '2px 0 0' }}>{n.objet}</p>
+                <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', lineHeight: 1.35, color: ENCRE_TON[n.ton], margin: '2px 0 0' }}>{n.objet}</p>
                 {n.message && (
                   <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', lineHeight: 1.45, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', margin: '4px 0 0' }}>{n.message}</p>
                 )}

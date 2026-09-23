@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { SERIF } from "@/app/lib/polices";
 
 // Point de contact du site. Public par nature — il vit hors du verrou (le proxy
 // le laisse passer), pour que les mentions légales puissent y renvoyer même
@@ -49,7 +50,7 @@ export default function ContactPage() {
         <p style={{ fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--cs-vert)", marginBottom: "10px" }}>
           Nous écrire
         </p>
-        <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, marginBottom: "12px", lineHeight: 1.25 }}>
+        <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, marginBottom: "12px", lineHeight: INTERLIGNE_TITRE_PAGE }}>
           Contact
         </h1>
         {/* ⚠️ Deux lignes seulement : ce chapeau ne relève pas de la composition dense,

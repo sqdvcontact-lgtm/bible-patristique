@@ -12,6 +12,7 @@
 // `app/error.tsx`, l’encre est `--cs-attente` (un état de file, ni danger ni or).
 
 import type { DegradationChargement } from '@/app/lib/chargementTolerant'
+import { SERIF } from '@/app/lib/polices'
 
 const AUCUNE: DegradationChargement[] = []
 
@@ -42,7 +43,7 @@ export default function BandeauDegradations({
         borderTop: '1px solid var(--cs-bord)',
         borderBottom: '1px solid var(--cs-bord)',
         textAlign: 'center',
-        fontFamily: 'var(--font-source-serif), Georgia, serif',
+        fontFamily: SERIF,
         fontSize: '0.8125rem',
         fontStyle: 'italic',
         lineHeight: 1.6,
@@ -65,7 +66,7 @@ export default function BandeauDegradations({
             background: 'rgba(var(--cs-vert-rgb),0.06)',
             color: 'var(--cs-vert)',
             cursor: 'pointer',
-            fontFamily: 'var(--font-source-serif), Georgia, serif',
+            fontFamily: SERIF,
             fontStyle: 'normal',
             fontSize: '0.8125rem',
           }}

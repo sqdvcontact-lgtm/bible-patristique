@@ -40,13 +40,14 @@ import { hoteDeLAdresse } from '@/app/lib/sourceNumerique'
 import PanneauPatristique from '@/app/components/PanneauPatristique'
 import ActionsVerset from '@/app/components/ActionsVerset'
 import { ABREV_FR } from '@/app/lib/bible'
-import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, STYLE_RUBRIQUE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import {
   libelleCategoriePericope,
   chargerTextePericope,
   TRADUCTIONS_BIBLE,
   type VersetPericope,
 } from '@/app/lib/pericopes'
+import { SERIF, SANS } from '@/app/lib/polices'
 
 type Pericope = {
   id: string; nom: string; categorie: string | null; est_collection: boolean | null
@@ -113,8 +114,6 @@ const BORD = 'var(--cs-bord)'
 const SEP = 'var(--cs-bord-clair)'
 const VERT = 'var(--cs-vert)'
 const TEXTE = 'var(--cs-texte-fort)'
-const SERIF = 'var(--font-source-serif), Georgia, serif'
-const SANS = 'var(--font-source-sans), Arial, sans-serif'
 
 function Etat({ children }: { children: React.ReactNode }) {
   return (
@@ -171,7 +170,7 @@ function BlocVersets({ vs, ctx }: { vs: VersetPericope[]; ctx: CtxActions }) {
           <div key={v.id_verset} className="peri-verset-row" onClick={taper} style={ctx.auDoigt ? { cursor: 'pointer' } : undefined}>
             {nouveauChapitre && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: i === 0 ? '0 0 8px' : '15px 0 8px' }}>
-                <span style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', whiteSpace: 'nowrap' }}>Chapitre {v.chapitre}</span>
+                <span style={{ ...STYLE_RUBRIQUE, whiteSpace: 'nowrap' }}>Chapitre {v.chapitre}</span>
                 <span style={{ flex: 1, height: '1px', background: 'var(--cs-bord)' }} />
               </div>
             )}
@@ -496,11 +495,11 @@ export default function PericopePage() {
       `}</style>
       <header style={{ textAlign: 'center', paddingBottom: '1rem', marginBottom: '1.3rem', borderBottom: `1px solid ${SEP}` }}>
         {categorie && (
-          <p style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', margin: '0 0 7px' }}>
+          <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 7px' }}>
             {categorie}{peri.est_collection ? ' · Ensemble' : ''}
           </p>
         )}
-        <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: 0, lineHeight: 1.13, textWrap: 'balance' } as React.CSSProperties}>{rendreTexteEnrichi(typo(peri.nom))}</h1>
+        <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: 0, lineHeight: INTERLIGNE_TITRE_PAGE, textWrap: 'balance' } as React.CSSProperties}>{rendreTexteEnrichi(typo(peri.nom))}</h1>
         {principale && (
           <p style={{ fontFamily: SERIF, fontSize: '0.9375rem', color: 'var(--cs-texte-second)', margin: '6px 0 0' }}>
             {formaterPlageCanonique(principale.canon_id_debut, principale.canon_id_fin)}
@@ -559,7 +558,7 @@ export default function PericopePage() {
 
       {/* Informations */}
       <section>
-        <p style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 8px' }}>Informations</p>
+        <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 8px' }}>Informations</p>
         <dl style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: '7px' }}>
           {categorie && <LigneInfo label="Registre">{categorie}{peri.est_collection ? ' · Ensemble' : ''}</LigneInfo>}
           {principale && <LigneInfo label="Référence">{formaterPlageCanonique(principale.canon_id_debut, principale.canon_id_fin)}</LigneInfo>}
@@ -571,7 +570,7 @@ export default function PericopePage() {
         </dl>
         {occurrences.length > 1 && (
           <div style={{ marginTop: '10px' }}>
-            <p style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 5px' }}>Occurrences</p>
+            <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 5px' }}>Occurrences</p>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {occurrences.map(o => (
                 <li key={o.id} style={{ fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-texte)', display: 'flex', alignItems: 'baseline', gap: '7px' }}>
@@ -586,14 +585,14 @@ export default function PericopePage() {
 
       {/* Options : choix de la traduction (menu déroulant) */}
       <section style={{ borderTop: `1px solid ${SEP}`, paddingTop: '14px' }}>
-        <p style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 8px' }}>Traduction</p>
+        <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 8px' }}>Traduction</p>
         <SelecteurTraduction trad={trad} setTrad={setTrad} />
       </section>
 
       {/* Notices — toutes les catégories rédigées, denses, suivies des notes bibliographiques. */}
       {(peri.notice || peri.notice_contexte || peri.notice_exegetique || peri.notice_theologique || peri.notice_tradition) && (
         <section style={{ borderTop: `1px solid ${SEP}`, paddingTop: '14px' }}>
-          <p style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 8px' }}>Notice</p>
+          <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 8px' }}>Notice</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {peri.notice && (
               <p style={{ fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte)', lineHeight: 1.4, textAlign: 'justify', hyphens: 'auto', wordSpacing: '-0.03em', letterSpacing: '-0.01em', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(peri.notice))}</p>
@@ -605,7 +604,7 @@ export default function PericopePage() {
               { label: 'Réception et tradition', v: peri.notice_tradition },
             ] as const).filter(b => b.v).map(b => (
               <div key={b.label}>
-                <p style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 3px' }}>{b.label}</p>
+                <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 3px' }}>{b.label}</p>
                 <p style={{ fontFamily: SANS, fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.4, textAlign: 'justify', hyphens: 'auto', wordSpacing: '-0.03em', letterSpacing: '-0.01em', margin: 0 } as React.CSSProperties}>{rendreTexteEnrichi(typo(b.v as string))}</p>
               </div>
             ))}
@@ -625,7 +624,7 @@ export default function PericopePage() {
           que rien d'externe n'atteste ne paraît pas ici (voir app/lib/provenanceNoms.ts). */}
       {attestations.length > 0 && (
         <section style={{ borderTop: `1px solid ${SEP}`, paddingTop: '14px' }}>
-          <p style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 10px' }}>Attestation des noms</p>
+          <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 10px' }}>Attestation des noms</p>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '13px' }}>
             {attestations.map(n => (
               <li key={n.nomId}>
@@ -637,7 +636,7 @@ export default function PericopePage() {
                 <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {n.liens.map((l, i) => (
                     <li key={`${l.source.code}-${i}`} style={{ borderLeft: `2px solid ${SEP}`, paddingLeft: '8px' }}>
-                      <p style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 3px' }}>
+                      <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 3px' }}>
                         {libelleDuLien(l)}
                       </p>
                       <div style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.4 }}>
@@ -698,7 +697,7 @@ export default function PericopePage() {
           nom se rangeaient sinon au hasard de la déduplication. */}
       {groupesBiblio.length > 0 && (
         <section style={{ borderTop: `1px solid ${SEP}`, paddingTop: '14px' }}>
-          <p style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 10px' }}>Bibliographie</p>
+          <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 10px' }}>Bibliographie</p>
           <ul className={`${CLASSES_BIBLIOGRAPHIE.bloc} ${CLASSES_BIBLIOGRAPHIE.sansHote} ${CLASSES_BIBLIOGRAPHIE.liste}`}>
             {(() => {
               const vus = new Set<string>()

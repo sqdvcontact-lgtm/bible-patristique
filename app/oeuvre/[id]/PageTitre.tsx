@@ -13,6 +13,7 @@ import { identiteEdition } from './versionTextuelle'
 // ré-exportée ici pour les appelants historiques.
 import { libelleTrad } from '@/app/lib/traducteurs'
 import { ENCRE_TITRE, GRAISSE_TITRE } from '@/app/lib/hierarchieTitres'
+import { SERIF } from '@/app/lib/polices'
 export { enumererNoms, libelleTrad } from '@/app/lib/traducteurs'
 
 /** Affichage d'un éditeur : « / » pour les co-éditeurs (jamais le « ; » brut du catalogue),
@@ -144,7 +145,6 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
   // titre est composé très large). Vide tant qu'aucun intitulé n'appelle de note.
   notes?: Record<string, NoteAffichee>
 }) {
-  const SERIF = "var(--font-source-serif), Georgia, serif"
   // Le titre, le sous-titre et le titre original passent par le rendu à notes ;
   // il enrichit le texte exactement comme rendreTexteEnrichi et sait en plus
   // résoudre les appels [[n]].

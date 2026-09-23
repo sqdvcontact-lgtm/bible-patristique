@@ -23,6 +23,7 @@ import { sansAppelsDeNote } from '@/app/lib/appelsDeNote'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { normaliserEspaces } from '@/app/lib/typographie'
 import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
+import { SERIF } from '@/app/lib/polices'
 
 /** Ce qu'on montre au plus d'un passage. Deux colonnes se lisent plus courtes qu'une. */
 export const EXTRAIT_A_DEUX = 320
@@ -120,7 +121,7 @@ const FEUILLE_FAVORITES = `
    seul en dernière ligne. */
 .profil-favorite-texte {
   margin: 0;
-  font-family: var(--font-source-serif), Georgia, serif;
+  font-family: ${SERIF};
   font-size: 0.9375rem; font-style: italic; line-height: 1.5;
   color: var(--cs-texte-fort);
   overflow-wrap: break-word;
@@ -135,7 +136,7 @@ const FEUILLE_FAVORITES = `
    filet se centre avec elle, et grandit des deux côtés au survol. */
 .profil-favorite-attribution {
   margin: auto 0 0; padding-top: 16px;
-  font-family: var(--font-source-serif), Georgia, serif; line-height: 1.4;
+  font-family: ${SERIF}; line-height: 1.4;
 }
 .profil-favorite-attribution::before {
   content: ""; display: block; width: 1.5rem; height: 1px; margin: 0 auto 10px;

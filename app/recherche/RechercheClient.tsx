@@ -35,9 +35,10 @@ import VisiteGuidee from '@/app/components/VisiteGuidee'
 import { CLE_VISITE_RECHERCHE, VISITE_RECHERCHE } from '@/app/lib/visiteRecherche'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
-import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, STYLE_RUBRIQUE, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 import { siglesTraductions } from '@/app/lib/sigleTraduction'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
+import { SERIF, SANS } from '@/app/lib/polices'
 
 // (`normaliser` et `graphiesVariantes`, hérités de la concordance, vivent désormais dans
 // `app/lib/rechercheRequete.ts`, avec les tests qui leur manquaient. Les graphies
@@ -918,7 +919,7 @@ export default function RechercheClient() {
            la charte l'exige d'un carton posé sur un fond sombre. */
         .grp { border-radius:8px; }
         .grp + .grp { margin-top:4px; }
-        .grp-hd { display:flex; align-items:baseline; gap:8px; padding:1px 10px 2px; line-height:1.25; border-radius:8px 8px 0 0; background:var(--fam-aplat); color:var(--cs-sur-aplat); font-family:var(--font-source-serif), Georgia, serif; }
+        .grp-hd { display:flex; align-items:baseline; gap:8px; padding:1px 10px 2px; line-height:1.25; border-radius:8px 8px 0 0; background:var(--fam-aplat); color:var(--cs-sur-aplat); font-family:${SERIF}; }
         .grp-hd .nom { font-size:0.75rem; font-weight:600; letter-spacing:0.035em; }
         .grp-hd .compl { min-width:0; font-size:0.6875rem; font-style:italic; opacity:0.84; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .grp-hd .n { margin-left:auto; flex-shrink:0; font-size:0.6875rem; font-weight:400; font-variant-numeric:tabular-nums; opacity:0.74; }
@@ -957,7 +958,7 @@ export default function RechercheClient() {
            même travail, se voit mieux, et n'ajoute pas un objet à la page.
            (Les anciennes classes .ong-btn et .ong-count, d'une barre d'onglets
            HORIZONTALE qui n'existe plus, ont disparu avec elles.) */
-        .ong-vert { width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 20px; border:none; background:transparent; color:var(--cs-texte-second); font-weight:400; font-size:0.78125rem; cursor:pointer; text-align:left; font-family:var(--font-source-serif), Georgia, serif; transition:background 0.12s, color 0.12s; }
+        .ong-vert { width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 20px; border:none; background:transparent; color:var(--cs-texte-second); font-weight:400; font-size:0.78125rem; cursor:pointer; text-align:left; font-family:${SERIF}; transition:background 0.12s, color 0.12s; }
         .ong-vert:hover { background:color-mix(in srgb, var(--fam) 8%, var(--cs-surface)); }
         .ong-vert--actif { background:color-mix(in srgb, var(--fam) 11%, var(--cs-surface)); color:var(--fam); font-weight:600; }
         .ong-vert .lib { display:flex; align-items:center; gap:8px; min-width:0; line-height:1.25; }
@@ -993,7 +994,7 @@ export default function RechercheClient() {
         .poly-hd-pick { position:relative; display:flex; align-items:center; justify-content:center; width:100%; min-width:0; padding:4px 16px 4px 6px; border-radius:4px; cursor:pointer; color:inherit; transition:background .15s; }
         .poly-hd-pick:hover, .poly-hd-pick:has(select:focus-visible) { background:var(--cs-lecture-survol); }
         .poly-hd-titre { min-width:0; text-align:center; line-height:1.12; }
-        .poly-hd-nom { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--font-source-serif), Georgia, serif; font-size:0.8125rem; color:var(--cs-encre-fonce); }
+        .poly-hd-nom { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:${SERIF}; font-size:0.8125rem; color:var(--cs-encre-fonce); }
         .poly-hd-chevron { position:absolute; right:6px; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--cs-texte-doux); }
         /* Le menu natif couvre le titre, invisible : c'est lui qu'on clique, et c'est lui
            que le clavier atteint. */
@@ -1050,7 +1051,9 @@ export default function RechercheClient() {
            lecture, et c'est une décision du 2026-09-04. On resserre le BLANC : la
            gouttière, l'air du haut, l'interligne. La lettrine suit d'elle-même,
            puisqu'elle tire la hauteur de son étui de « --poly-interligne ». */
-        .poly-outer .poly-row { --poly-marge-x:11px; --poly-air-haut:6px; --poly-interligne:1.28; }
+        .poly-outer .poly-row { --poly-marge-x:11px; --poly-air-haut:6px; }
+        /* ⛔ L'INTERLIGNE, lui, est celui de la Polyglotte (1,34), que la colonne des résultats
+           reproduit (charte) : il valait 1,28 ici (audit d'harmonie, 2026-09-23). */
         .poly-outer .poly-texte-cell { padding-bottom:7px; }
         /* Le sigle du livre, devant la référence : il dit le livre que la bande retirée
            nommait, et il ne prend pas un rang à lui. ⚠️ Un cran SOUS le numéro en encre —
@@ -1113,7 +1116,7 @@ export default function RechercheClient() {
                   portent déjà l'Histoire, les péricopes et la page d'œuvre. Composé en
                   0,75 rem gris pâle, il pesait moins que la première rubrique d'en dessous.
                   ⚠️ La page n'avait AUCUN titre de niveau 1 : c'en est un maintenant. */}
-              <h1 style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:TITRE_VOLET, fontWeight:GRAISSE_TITRE_VOLET, color:ENCRE_TITRE, margin:0, lineHeight:1.2 }}>Recherche</h1>
+              <h1 style={{ fontFamily:SERIF, fontSize:TITRE_VOLET, fontWeight:GRAISSE_TITRE_VOLET, color:ENCRE_TITRE, margin:0, lineHeight:1.2 }}>Recherche</h1>
               {done && (() => {
                 const total = versetsTotal + segmentsTotal + essaisRes.length
                 return <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
@@ -1151,7 +1154,7 @@ export default function RechercheClient() {
                 autoCorrect="off"
                 spellCheck={false}
                 className="cs-volet-recherche"
-                style={{ fontSize:'0.84375rem', padding:'7px 26px 7px 0', color:'var(--cs-texte-fort)', fontFamily:"var(--font-source-serif), Georgia, serif", boxSizing:'border-box' }} />
+                style={{ fontSize:'0.84375rem', padding:'7px 26px 7px 0', color:'var(--cs-texte-fort)', fontFamily:SERIF, boxSizing:'border-box' }} />
               {query && (
                 <button type="button" onClick={() => { setQuery(''); setSugg([]); setDone(false); setRequete(null); setRepartitionLivres([]); setRepartitionOeuvres([]); setEssaisRes([]); setShowSugg(false) }}
                   style={{ position:'absolute', right:'2px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--cs-texte-doux)', fontSize:'1rem', lineHeight:1, padding:0 }} title="Effacer" aria-label="Effacer la saisie">×</button>
@@ -1170,7 +1173,7 @@ export default function RechercheClient() {
                   {sugg.map(s => (
                     <li key={s.mot}
                       onMouseDown={e => { e.preventDefault(); setQuery(s.mot); setShowSugg(false); lancer(s.mot) }}
-                      style={{ padding:'7px 18px', fontSize:'0.875rem', color:'var(--cs-texte-fort)', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:"var(--font-source-serif), Georgia, serif" }}
+                      style={{ padding:'7px 18px', fontSize:'0.875rem', color:'var(--cs-texte-fort)', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:SERIF }}
                       onMouseEnter={e => (e.currentTarget.style.background='var(--cs-fond)')}
                       onMouseLeave={e => (e.currentTarget.style.background='transparent')}>
                       <span>{s.mot}</span>
@@ -1202,7 +1205,7 @@ export default function RechercheClient() {
                   <span className="expl-wrap">
                     <span className="expl-badge">?</span>
                     <span className="expl-tip">
-                      <span style={{ display:'block', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', fontSize:'0.625rem', color:'var(--cs-texte-second)', marginBottom:'7px' }}>Les trois modes</span>
+                      <span style={{ ...STYLE_RUBRIQUE, display:'block', marginBottom:'7px' }}>Les trois modes</span>
 
                       <span style={{ display:'block', marginBottom:'8px' }}>
                         <span style={{ display:'block', fontWeight:700, color:'var(--cs-vert-fonce)', marginBottom:'1px' }}>Début de mot</span>
@@ -1443,7 +1446,7 @@ export default function RechercheClient() {
                 {/* Une invite, puis un fleuron du registre (21 septembre 2026 : le désert et la fosse
                     ont cédé leur place). Centrée sur PC, où la colonne fait toute la hauteur sous
                     la barre ; en mobile, le groupe reprend des marges. Voir `FleuronDiscret`. */}
-                <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.9375rem', fontStyle:'italic', color:'var(--cs-texte-second)', letterSpacing:'0.02em', margin:'0 0 0.875rem' }}>Lancez une recherche</p>
+                <p style={{ fontFamily:SERIF, fontSize:'0.9375rem', fontStyle:'italic', color:'var(--cs-texte-second)', letterSpacing:'0.02em', margin:'0 0 0.875rem' }}>Lancez une recherche</p>
                 <FleuronDiscret vide="recherche" />
               </div>
             )}
@@ -1474,7 +1477,7 @@ export default function RechercheClient() {
                   <div className="grp-hd"><span className="nom">Passage biblique</span></div>
                   <div className="grp-corps">
                     <a href={reference.href} className="grp-ligne" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'10px' }}>
-                      <span style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.9375rem', fontWeight:600, color:'var(--cs-encre)' }}>Ouvrir {reference.libelle}</span>
+                      <span style={{ fontFamily:SERIF, fontSize:'0.9375rem', fontWeight:600, color:'var(--cs-encre)' }}>Ouvrir {reference.libelle}</span>
                       <span style={{ color:'var(--fam)', display:'inline-flex' }}><IconeChevron dir="right" size={13} strokeWidth={1.5} /></span>
                     </a>
                   </div>
@@ -1540,7 +1543,7 @@ export default function RechercheClient() {
                                   Le mot n’est pas dans {labelDisplay}. Texte de {temoin.label}.
                                 </p>
                               )}
-                              <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
+                              <p style={{ fontFamily:SANS, fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
                                 {texteMontre
                                   ? rendreEtSurligner(texteMontre, marque)
                                   : <span style={{ color:'var(--cs-texte-doux)', fontStyle:'italic' }}>Ce verset n’existe pas dans {labelDisplay}.</span>}
@@ -1582,14 +1585,14 @@ export default function RechercheClient() {
                             {/* Résultat latin/grec : on n'affiche QUE l'original (badge de langue,
                                 latin en italiques, grec en romain). Sinon, le texte français. */}
                             {s.matchOrig && s.texte_original ? (
-                              <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
+                              <p style={{ fontFamily:SANS, fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
                                 <span style={{ display:'inline-block', fontStyle:'normal', fontSize:'0.625rem', fontWeight:700, letterSpacing:'0.05em', textTransform:'uppercase', color:'var(--fam)', background:'color-mix(in srgb, var(--fam) 14%, var(--cs-surface))', borderRadius:'4px', padding:'0 5px', marginRight:'6px', verticalAlign:'1px' }}>{s.langue || 'Original'}</span>
                                 <span style={{ fontStyle: s.langue === 'Latin' ? 'italic' : 'normal' }}>
                                   {rendreEtSurligner(nettoyerFin(s.texte_original), marqueOriginal)}
                                 </span>
                               </p>
                             ) : (
-                              <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
+                              <p style={{ fontFamily:SANS, fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
                                 {/* Un appel de note matériel « [[1772]] » n'a pas de note à ouvrir
                                     ici : il s'efface de l'extrait, avec l'espace qui le précède. */}
                                 {rendreEtSurligner(nettoyerFin(s.segment_texte.replace(/[ \t]*\[\[\d+\]\]/g, '')), marque)}
@@ -1622,7 +1625,7 @@ export default function RechercheClient() {
                         <div className="grp-corps">
                           <a href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer" className="grp-ligne">
                             {e.sous_titre && <p style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', fontStyle:'italic', margin:'0 0 2px' }}>{e.sous_titre}</p>}
-                            <p style={{ fontFamily:"var(--font-source-sans), Arial, sans-serif", fontSize:'0.78125rem', lineHeight:1.42, color:'var(--cs-texte-fort)', margin:0 }}>
+                            <p style={{ fontFamily:SANS, fontSize:'0.78125rem', lineHeight:1.42, color:'var(--cs-texte-fort)', margin:0 }}>
                               {highlighter(texteAffiche, marque)}
                             </p>
                           </a>
@@ -1747,7 +1750,7 @@ export default function RechercheClient() {
           style={{ position:'fixed', top: HAUTEUR_NAVBAR, left:0, right:0, bottom:0, background:'var(--cs-calque-modale)', display:'flex', alignItems:'center', justifyContent:'center', zIndex: Z_MODALE, padding:'20px', overflow:'hidden' }}>
           <div onClick={e => e.stopPropagation()}
             style={{ background:'var(--cs-fond-clair)', border:'1px solid var(--cs-bord)', borderRadius:'8px', boxShadow:'var(--cs-ombre-modale)', padding:'20px 22px', maxWidth:'21.25rem', width:'100%', maxHeight:'100%', overflowY:'auto' }}>
-            <p style={{ fontFamily:"var(--font-source-serif), Georgia, serif", fontSize:'0.875rem', fontWeight:600, color:'var(--cs-encre)', margin:'0 0 8px' }}>Écraser la recherche précédente ?</p>
+            <p style={{ fontFamily:SERIF, fontSize:'0.875rem', fontWeight:600, color:'var(--cs-encre)', margin:'0 0 8px' }}>Écraser la recherche précédente ?</p>
             <p style={{ fontSize:'0.75rem', color:'var(--cs-texte-second)', lineHeight:1.5, margin:'0 0 16px' }}>
               Une recherche est déjà enregistrée (« {rechercheSauvee.query} », {formatDateCourt(rechercheSauvee.ts)}).
               L’enregistrer maintenant remplacera cette sauvegarde par « {lastQuery} ».

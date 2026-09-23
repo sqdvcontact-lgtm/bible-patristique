@@ -10,6 +10,8 @@ import type { CitationFavoritePublique } from '@/app/lib/citationsFavorites'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import CitationsFavorites from './CitationsFavorites'
+import { SERIF, SANS } from '@/app/lib/polices'
+import { TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
 type ProfilPublic = {
   pseudo: string
@@ -43,7 +45,7 @@ function Filet({ couleur = 'var(--cs-or-doux)', symbole = '✦', maxWidth = '200
 // ── Étiquette de section ──────────────────────────────────────────────────────
 function Etiquette({ children }: { children: React.ReactNode }) {
   return (
-    <h2 style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', margin: '0 0 16px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+    <h2 style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--cs-etiquette)', margin: '0 0 16px', fontFamily: SANS }}>
       {children}
     </h2>
   )
@@ -108,7 +110,7 @@ export default function ProfilPublicPage() {
   if (erreur) return (
     <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
-        <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', color: 'var(--cs-texte-doux)', marginBottom: '8px' }}>Profil introuvable</p>
+        <p style={{ fontFamily: SERIF, fontSize: '1.125rem', color: 'var(--cs-texte-doux)', marginBottom: '8px' }}>Profil introuvable</p>
         <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)' }}>@{pseudo}</p>
         <Link href="/" style={{ fontSize: '0.75rem', color: 'var(--cs-vert-fonce)', textDecoration: 'none', marginTop: '16px', display: 'inline-block' }}>← Accueil</Link>
       </div>
@@ -177,7 +179,7 @@ export default function ProfilPublicPage() {
         .profil-action {
           display: inline-flex; align-items: center; justify-content: center; gap: 7px;
           min-height: 34px; border-radius: 999px; padding: 7px 16px;
-          font-family: var(--font-source-serif), Georgia, serif; font-size: 11.5px;
+          font-family: ${SERIF}; font-size: 11.5px;
           letter-spacing: .025em; text-decoration: none; cursor: pointer;
           transition: background .14s, border-color .14s, color .14s;
         }
@@ -238,7 +240,7 @@ export default function ProfilPublicPage() {
               </div>
             ) : (
               <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(145deg, var(--cs-vert-aplat), var(--cs-vert-aplat-profond))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '2px solid var(--cs-vert-clair)', boxShadow: 'var(--cs-ombre-flottante)' }}>
-                <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.375rem', color: 'var(--cs-vert-pale)', fontWeight: 'normal', lineHeight: 1 }}>
+                <span style={{ fontFamily: SERIF, fontSize: '1.375rem', color: 'var(--cs-vert-pale)', fontWeight: 'normal', lineHeight: 1 }}>
                   {profil.pseudo.charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -247,7 +249,7 @@ export default function ProfilPublicPage() {
 
           {/* Pseudo — et, pour un mécène, le rameau à sa suite. ⚠️ Sur cet en-tête vert
               sombre, l'or de la charte est illisible : c'est sa version pâle qui sert. */}
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', fontWeight: 'normal', color: 'var(--cs-vert-clair)', margin: '0 0 4px', letterSpacing: '0.01em' }}>
+          <h1 style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: 'normal', color: 'var(--cs-vert-clair)', margin: '0 0 4px', letterSpacing: '0.01em' }}>
             {profil.pseudo}
             {profil.mecene_depuis && (
               <>
@@ -261,7 +263,7 @@ export default function ProfilPublicPage() {
               rangé dans la famille du danger, et le vrai nom paraissait en rose sur
               le vert sombre. C'est l'or doux qui porte les mentions de cet en-tête. */}
           {profil.nom_reel && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.75rem', color: 'var(--cs-or-clair)', margin: '0 0 6px', fontStyle: 'italic' }}>
+            <p style={{ fontFamily: SERIF, fontSize: '0.75rem', color: 'var(--cs-or-clair)', margin: '0 0 6px', fontStyle: 'italic' }}>
               {profil.nom_reel}
             </p>
           )}
@@ -301,13 +303,13 @@ export default function ProfilPublicPage() {
           {/* Rang */}
           {rang && couleurs && (
             <div style={{ marginBottom: profil.bio ? '14px' : '0' }}>
-              <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.6875rem', fontStyle: 'normal', color: 'var(--cs-or-clair)' }}>
+              <span style={{ fontFamily: SERIF, fontSize: '0.6875rem', fontStyle: 'normal', color: 'var(--cs-or-clair)' }}>
                 {rang.rang}
               </span>
               {/* ⚠️ Le point médian sépare à lui seul : la marge de 8 px qu'il portait
                   en plus ouvrait un blanc d'un côté et pas de l'autre, et le titre
                   paraissait détaché de son compte. */}
-              <span style={{ fontSize: '0.6875rem', color: 'var(--cs-or-clair)', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+              <span style={{ fontSize: '0.6875rem', color: 'var(--cs-or-clair)', fontFamily: SERIF }}>
                 {' · '}{profil.lecture!.nb_auteurs} Père{profil.lecture!.nb_auteurs !== 1 ? 's' : ''} retenu{profil.lecture!.nb_auteurs !== 1 ? 's' : ''}
               </span>
             </div>
@@ -321,7 +323,7 @@ export default function ProfilPublicPage() {
               portrait devait se composer en paragraphe, c'est le centrage qu'il faudrait
               lui retirer d'abord. */}
           {profil.bio && (
-            <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', color: 'var(--cs-vert-clair)', lineHeight: 1.52, margin: rang ? '18px 0 0' : '0', fontStyle: 'italic', maxWidth: '27.5rem', marginLeft: 'auto', marginRight: 'auto' }}>
+            <p style={{ fontFamily: SERIF, fontSize: '0.875rem', color: 'var(--cs-vert-clair)', lineHeight: 1.52, margin: rang ? '18px 0 0' : '0', fontStyle: 'italic', maxWidth: '27.5rem', marginLeft: 'auto', marginRight: 'auto' }}>
               {profil.bio}
             </p>
           )}
@@ -357,10 +359,10 @@ export default function ProfilPublicPage() {
             <div>
               {profil.bibliotheque!.map((o) => (
                 <Link key={o.id + (o.mt ?? '')} href={`/oeuvre/${o.id}${o.mt ? '?mt=la' : ''}`} className="profil-livre-link">
-                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', color: 'var(--cs-encre-fonce)', flex: 1, lineHeight: 1.4 }}>
+                  <span style={{ fontFamily: SERIF, fontSize: '0.84375rem', color: 'var(--cs-encre-fonce)', flex: 1, lineHeight: 1.4 }}>
                     {o.titre}
                   </span>
-                  <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', flexShrink: 0, marginLeft: '12px', fontStyle: 'italic', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                  <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', flexShrink: 0, marginLeft: '12px', fontStyle: 'italic', fontFamily: SERIF }}>
                     {o.auteur}
                   </span>
                 </Link>
@@ -381,11 +383,11 @@ export default function ProfilPublicPage() {
             <div>
               {profil.essais!.map(e => (
                 <Link key={e.id} href={`/essais/${e.id}`} className="profil-essai-link">
-                  <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.84375rem', fontStyle: 'italic', color: 'var(--cs-encre-fonce)', flex: 1, lineHeight: 1.4 }}>
+                  <span style={{ fontFamily: SERIF, fontSize: '0.84375rem', fontStyle: 'italic', color: 'var(--cs-encre-fonce)', flex: 1, lineHeight: 1.4 }}>
                     {e.titre}
                   </span>
                   {e.publie_at && (
-                    <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', flexShrink: 0, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+                    <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', flexShrink: 0, fontFamily: SERIF }}>
                       {new Date(e.publie_at).getFullYear()}
                     </span>
                   )}
@@ -397,7 +399,7 @@ export default function ProfilPublicPage() {
 
         {/* Rien de public */}
         {rienDePublic && (
-          <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', paddingTop: '32px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+          <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', textAlign: 'center', paddingTop: '32px', fontFamily: SERIF }}>
             Ce profil ne partage pas encore d&apos;informations publiques.
           </p>
         )}

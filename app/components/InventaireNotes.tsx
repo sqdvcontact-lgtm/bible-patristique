@@ -12,6 +12,7 @@
  * Module sans crochet : il se rend hors du navigateur.
  */
 import type { CSSProperties, ReactNode } from 'react'
+import { SERIF } from '@/app/lib/polices'
 
 /** Le type d'une note, en tête de sa ligne : « Critique textuelle », « Note de l'édition ». */
 export const STYLE_INTITULE_LIGNE_NOTE: CSSProperties = {
@@ -20,7 +21,7 @@ export const STYLE_INTITULE_LIGNE_NOTE: CSSProperties = {
 
 /** Ce qu'une note dit, ramené à une ligne d'aperçu. */
 const STYLE_APERCU_NOTE: CSSProperties = {
-  display: 'block', fontFamily: 'var(--font-source-serif), Georgia, serif',
+  display: 'block', fontFamily: SERIF,
   fontSize: '0.6875rem', lineHeight: 1.42, color: 'var(--cs-texte)',
   overflowWrap: 'anywhere',
 }

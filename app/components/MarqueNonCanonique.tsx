@@ -1,3 +1,4 @@
+import { SANS } from '@/app/lib/polices'
 // ── La marque des écrits non canoniques ────────────────────────────────────────
 //
 // Deux mots en petit, à côté du nom du livre. La Septante porte des écrits que le canon
@@ -28,7 +29,7 @@ export default function MarqueNonCanonique({ taille = '0.5625rem' }: { taille?: 
       style={{
         marginLeft: '0.4em',
         fontSize: taille,
-        fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+        fontFamily: SANS,
         fontWeight: 400,
         fontStyle: 'normal',
         letterSpacing: '0.04em',

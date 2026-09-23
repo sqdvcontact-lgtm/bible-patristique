@@ -33,6 +33,7 @@ import { styleTexteVerset } from '@/app/lib/compositionBible'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
+import { SERIF } from '@/app/lib/polices'
 
 type Etat = {
   /** La DEMANDE que cet état satisfait. ⛔ L'attente se DÉDUIT de sa comparaison avec la
@@ -287,7 +288,7 @@ const FEUILLE_CHAINE = `
 /* ⚠️ Le fer en tête, jamais l'étirement : un item de grille prend toute la hauteur de sa
    rangée, et le lien couvrait les cent soixante-dix pixels d'une entrée entière. Un
    soulignement qui s'allume à deux centimètres du mot ne désigne plus rien. */
-.chn-ref { align-self: start; font-family: var(--font-source-serif), Georgia, serif;
+.chn-ref { align-self: start; font-family: ${SERIF};
   font-size: 0.8125rem; font-weight: 600; line-height: 1.35; color: var(--cs-vert);
   text-decoration: none; padding-top: 2px; }
 .chn-ref:hover, .chn-ref:focus-visible { text-decoration: underline; }
@@ -296,7 +297,7 @@ const FEUILLE_CHAINE = `
 /* ⚠️ La marge basse ne sert QUE la mention d’absence : le lemme, lui, la reçoit en
    ligne, son style en ligne écrasant toute règle de feuille. */
 .chn-lemme { margin: 0 0 15px; }
-.chn-absent { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.78125rem;
+.chn-absent { font-family: ${SERIF}; font-size: 0.78125rem;
   font-style: italic; color: var(--cs-mention); }
 
 /* ⛔ LA SCHOLIE RENTRE SOUS SON LEMME. C'est la composition d'une chaîne imprimée : le
@@ -321,7 +322,7 @@ const FEUILLE_CHAINE = `
 .chn-vide { max-width: 30rem; }
 .chn-vide p { font-size: 0.78125rem; line-height: 1.5; color: var(--cs-texte-second);
   margin: 0 0 10px; }
-.chn-vide p:first-child { font-family: var(--font-source-serif), Georgia, serif;
+.chn-vide p:first-child { font-family: ${SERIF};
   font-size: 0.875rem; color: var(--cs-texte-fort); }
 .chn-portes { display: flex; gap: 18px; flex-wrap: wrap; }
 .chn-portes a { font-size: 0.71875rem; color: var(--cs-vert); text-decoration: none; }

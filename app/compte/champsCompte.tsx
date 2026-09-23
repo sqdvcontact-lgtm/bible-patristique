@@ -8,7 +8,8 @@
 // barres du site (charte § 36.2) : on prend le modèle, on ne le redessine pas.
 
 import React, { useEffect, useState } from 'react'
-import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { SERIF, SANS } from '@/app/lib/polices'
 
 export const inputStyle: React.CSSProperties = {
   width: '100%', padding: '9px 12px', fontSize: '0.84375rem',
@@ -32,7 +33,7 @@ export type Statut = { ok: boolean; msg: string } | null
 export function EnTeteRubrique({ titre, children }: { titre: string; children?: React.ReactNode }) {
   return (
     <header style={{ marginBottom: '20px' }}>
-      <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: '0 0 6px', letterSpacing: '-0.01em' }}>
+      <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: '0 0 6px', lineHeight: INTERLIGNE_TITRE_PAGE }}>
         {titre}
       </h1>
       {children && (
@@ -49,7 +50,7 @@ export function Carte({ titre, danger, children }: { titre?: string; danger?: bo
   return (
     <section style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '24px 26px', marginBottom: '16px' }}>
       {titre && (
-        <p style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: danger ? 'var(--cs-danger)' : 'var(--cs-texte-second)', margin: '0 0 18px' }}>
+        <p style={{ fontFamily: SANS, fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: danger ? 'var(--cs-danger)' : 'var(--cs-texte-second)', margin: '0 0 18px' }}>
           {titre}
         </p>
       )}
@@ -120,7 +121,7 @@ export function Interrupteur({ actif, onChange, libelle, detail }: { actif: bool
         style={{ width: '32px', height: '18px', borderRadius: '999px', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0, background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', position: 'relative', transition: 'background 0.15s' }}>
         <span style={{ position: 'absolute', top: '3px', left: actif ? '15px' : '3px', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left 0.15s' }} />
       </button>
-      <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: detail ? '18px' : undefined }}>
+      <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: detail ? 1.44 : undefined }}>
         {libelle}
         {detail && <span style={{ display: 'block', fontSize: '0.6875rem', lineHeight: 1.4, color: 'var(--cs-texte-second)' }}>{detail}</span>}
       </span>

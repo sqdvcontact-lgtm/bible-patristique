@@ -29,6 +29,7 @@ import { useCallback, useId, useRef, useState } from 'react'
 
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { nomCommun, type BibleDuMenu } from '@/app/lib/menuTraductionsBible'
+import { SERIF } from '@/app/lib/polices'
 
 /**
  * Le chevron du menu.
@@ -106,7 +107,7 @@ export default function SelecteurTraductionBible({ traductions, traductionIndex,
             display: 'flex', alignItems: 'center', gap: '5px',
             padding: '0', border: 'none', background: 'transparent',
             fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', cursor: 'pointer',
-            fontFamily: "var(--font-source-serif), Georgia, serif",
+            fontFamily: SERIF,
             fontStyle: 'italic', letterSpacing: '0.01em',
             transition: 'color 0.15s',
           }}>

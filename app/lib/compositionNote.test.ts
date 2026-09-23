@@ -111,6 +111,9 @@ describe('la hauteur que l’encart demanderait', () => {
   // Le 13 septembre, le blanc intérieur porté à 0,875/1 rem et la première ligne comptée
   // avec ce que le numéro et la croix lui prennent : 40 · 88 · 58 sont devenus **46 · 93 ·
   // 64**, estimés 46 · 110 · 80, mesurés sur `tmp/planche-notes-2026-09-13.tsx`.
+  // Le 23 septembre, la tête portée au plancher des petits corps (numéro 11 px, intitulé
+  // 10 px) : la ligne du numéro gagne 1,38 px, d'où 65 et 81 pour le troisième cas.
+  // ⚠️ RECALCULÉ sur la géométrie de la tête, non remesuré sur la planche.
   // Une demande périmée ne rendrait pas le test faux, elle le rendrait MOU — il passerait
   // sur une boîte deux fois trop haute sans rien dire.
   // ⚠️ Les trois demandes sont la hauteur RÉELLE de la boîte, mesurée sur le module même
@@ -129,7 +132,7 @@ describe('la hauteur que l’encart demanderait', () => {
     //                                                signes  intitulé  réelle  estimée
     ['la médiane du corpus, 29 signes',                   29,   false,     46,     46],
     ['une note moyenne, 340 signes',                     340,   false,     93,    110],
-    ['un apparat critique de 90 signes, avec intitulé',    90,    true,     64,     80],
+    ['un apparat critique de 90 signes, avec intitulé',    90,    true,     65,     81],
   ])('couvre %s', (_nom, signes, avecIntitule, reelle, attendue) => {
     const estimee = haut(signes as number, 16, avecIntitule as boolean)
     // ⛔ Ce que le module CALCULE, au pixel : toute dérive du corps, de l'interligne, du
@@ -175,8 +178,8 @@ describe('l’intitulé de la tête', () => {
   it('donne à la boîte la ligne qu’il prend de plus', () => {
     const une = hauteurSouhaiteeNote({ signes: 90, racine: 16, largeur: ETROIT, intitule: 'Note du traducteur' })
     const deux = hauteurSouhaiteeNote({ signes: 90, racine: 16, largeur: ETROIT, intitule: COMPOSE })
-    // Au moins une ligne de l'intitulé (0,5625 rem sur l'interligne de l'encart).
-    expect(deux - une).toBeGreaterThanOrEqual(Math.floor(0.5625 * INTERLIGNE_ENCART * 16))
+    // Au moins une ligne de l'intitulé (0,625 rem sur l'interligne de l'encart).
+    expect(deux - une).toBeGreaterThanOrEqual(Math.floor(0.625 * INTERLIGNE_ENCART * 16))
     // ⚠️ L'ancienne écriture compte toujours une ligne, et l'intitulé nul n'en compte aucune.
     expect(hauteurSouhaiteeNote({ signes: 90, racine: 16, largeur: ETROIT, avecIntitule: true })).toBe(une)
     expect(hauteurSouhaiteeNote({ signes: 90, racine: 16, largeur: ETROIT, intitule: null }))
@@ -330,7 +333,7 @@ describe('le numéro de la note', () => {
   // ⚠️ La FACE du chiffre est à part, et elle se pose EN LIGNE dans ce strut : c'est ce
   // qui lui laisse son propre corps sans déplacer la ligne de base.
   it('laisse sa face au chiffre, en ligne', () => {
-    expect(STYLE_FACE_NUMERO.fontSize).toBe('0.625rem')
+    expect(STYLE_FACE_NUMERO.fontSize).toBe('0.6875rem')
     expect(String(STYLE_FACE_NUMERO.fontFamily)).toContain('font-source-sans')
     expect(STYLE_FACE_NUMERO.float).toBeUndefined()
     expect(STYLE_FACE_NUMERO.width).toBeUndefined()

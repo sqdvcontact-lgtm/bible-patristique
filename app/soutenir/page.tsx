@@ -1,3 +1,4 @@
+import { SERIF } from '@/app/lib/polices'
 export const metadata = {
   title: "Soutenir le projet",
   description: "Lectures bibliques et patristiques.",
@@ -46,7 +47,7 @@ export default function SoutenirPage() {
 
       {/* Titre */}
       <h1 style={{
-        fontFamily: "var(--font-source-serif), Georgia, serif",
+        fontFamily: SERIF,
         fontSize: "clamp(1.4rem, 0.95rem + 0.85vw, 1.95rem)",
         fontWeight: "normal",
         color: "var(--cs-encre-fonce)",
@@ -66,7 +67,7 @@ export default function SoutenirPage() {
 
       {/* Colophon pyramide */}
       <div style={{
-        fontFamily: "var(--font-source-serif), Georgia, serif",
+        fontFamily: SERIF,
         fontSize: "clamp(0.85rem, 0.6rem + 0.35vw, 1.08rem)",
         fontStyle: "italic",
         color: "var(--cs-vert-fonce)",
@@ -85,7 +86,7 @@ export default function SoutenirPage() {
         style={{
           display: "inline-flex", alignItems: "center", gap: "0.6em",
           background: "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", textDecoration: "none",
-          fontFamily: "var(--font-source-serif), Georgia, serif",
+          fontFamily: SERIF,
           fontSize: "clamp(0.875rem, 0.68rem + 0.28vw, 1.05rem)", fontWeight: 500,
           padding: "clamp(10px, 1.1vh, 14px) clamp(24px, 2vw, 38px)",
           borderRadius: "8px",

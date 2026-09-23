@@ -33,6 +33,8 @@ import {
 } from '@/app/lib/extractionOeuvre'
 import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
 import { rendreIntituleDeSommaire } from './appelNote'
+import { SERIF, SANS } from '@/app/lib/polices'
+import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
 // ⛔ `Z_MODALE`, ET NON LE RANG DES FENÊTRES DE PAGE. L'échelle le dit déjà en toutes
 // lettres : une modale « couvre le tiroir d'où elle s'ouvre, et à Z_FENETRE elle s'y
@@ -166,7 +168,7 @@ export default function MenuExtraction({ donnees, onFermer }: {
         <button onClick={onFermer} aria-label="Fermer" className="cs-cible-fine" title="Fermer"
           style={{ position: 'sticky', float: 'right', top: 0, marginRight: '-6px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
 
-        <h2 id="extraction-titre" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 500, color: 'var(--cs-encre-fonce)', margin: '0 0 4px' }}>
+        <h2 id="extraction-titre" style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: '0 0 4px' }}>
           Extraire cette œuvre
         </h2>
         <p style={{ fontSize: '0.71875rem', lineHeight: 1.5, color: 'var(--cs-texte-second)', margin: '0 0 2px' }}>
@@ -247,7 +249,7 @@ export default function MenuExtraction({ donnees, onFermer }: {
         )}
 
         <button type="button" onClick={extraire} disabled={enCours}
-          style={{ display: 'block', width: '100%', marginTop: '18px', padding: '9px 12px', borderRadius: '4px', border: 'none', background: enCours ? 'var(--cs-desactive-fond)' : 'var(--cs-vert-aplat)', color: enCours ? 'var(--cs-desactive-encre)' : 'var(--cs-sur-aplat)', fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.78125rem', fontWeight: 600, cursor: enCours ? 'progress' : 'pointer', transition: 'background 0.14s' }}>
+          style={{ display: 'block', width: '100%', marginTop: '18px', padding: '9px 12px', borderRadius: '4px', border: 'none', background: enCours ? 'var(--cs-desactive-fond)' : 'var(--cs-vert-aplat)', color: enCours ? 'var(--cs-desactive-encre)' : 'var(--cs-sur-aplat)', fontFamily: SANS, fontSize: '0.78125rem', fontWeight: 600, cursor: enCours ? 'progress' : 'pointer', transition: 'background 0.14s' }}>
           {enCours ? 'Préparation du document…' : 'Extraire en Word'}
         </button>
         <p style={{ fontSize: '0.6875rem', lineHeight: 1.45, color: 'var(--cs-texte-gris)', margin: '10px 0 0', textAlign: 'center' }}>

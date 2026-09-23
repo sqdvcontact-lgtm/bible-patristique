@@ -94,6 +94,7 @@ import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import {
   hauteurNavbarPx, placerFenetre, tailleRacinePx, type PlacementFenetre,
 } from '@/app/lib/fenetreContextuelle'
+import { SERIF } from '@/app/lib/polices'
 
 /**
  * UN BOUTON DE LA TÊTE DU VOLET — et la SEULE forme qu'ils prennent tous.
@@ -184,7 +185,7 @@ export function TitreVolet({ children, onOuvrir, titre, inactif = false }: {
       onMouseEnter={() => setSurvol(true)} onMouseLeave={() => setSurvol(false)}
       onFocus={() => setSurvol(true)} onBlur={() => setSurvol(false)}
       style={{
-        fontFamily: 'var(--font-source-serif), Georgia, serif',
+        fontFamily: SERIF,
         fontSize: `${CORPS_TITRE_VOLET_REM}rem`, fontWeight: 400, color: 'var(--cs-encre)',
         lineHeight: INTERLIGNE_TITRE_VOLET, margin: 0, padding: 0, background: 'none', border: 'none',
         textAlign: 'left', cursor: inactif ? 'default' : 'pointer',

@@ -3,6 +3,8 @@ import NoteTooltip from './NoteTooltip'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { hrefSur } from '@/app/lib/liensSurs'
 import { PARAGRAPHE_ESSAI, CITATION_ESSAI, enReact } from '@/app/lib/compositionEssai'
+import { SERIF } from './polices'
+import { GRAISSE_TITRE } from './hierarchieTitres'
 
 export type ElementPanneau =
   | { type: 'note'; texte: string }
@@ -123,13 +125,13 @@ export function rendreEssai(texte: string, options: RenduOptions = {}): React.Re
     if (ligne.startsWith('## ')) {
       flush()
       const id = `essai-h-${indexTitre++}`
-      blocs.push(<h3 id={id} key={blocs.length} style={{ fontStyle: 'italic', fontWeight: 400, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1em', color: 'var(--cs-texte)', marginTop: '4mm', marginBottom: '1mm', paddingLeft: '3mm', textIndent: 0, textAlign: 'left', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>{rendreInline(ligne.slice(3), cleNote, options)}</h3>)
+      blocs.push(<h3 id={id} key={blocs.length} style={{ fontStyle: 'italic', fontWeight: 400, fontFamily: SERIF, fontSize: '1em', color: 'var(--cs-texte)', marginTop: '4mm', marginBottom: '1mm', paddingLeft: '3mm', textIndent: 0, textAlign: 'left', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>{rendreInline(ligne.slice(3), cleNote, options)}</h3>)
       return
     }
     if (ligne.startsWith('# ')) {
       flush()
       const id = `essai-h-${indexTitre++}`
-      blocs.push(<h2 id={id} key={blocs.length} style={{ fontWeight: 600, fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.06em', lineHeight: 1.25, color: 'var(--cs-encre-fonce)', marginTop: '6mm', marginBottom: '4mm', paddingLeft: 0, textIndent: 0, textAlign: 'left', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)`, letterSpacing: '0.01em' }}>{rendreInline(ligne.slice(2), cleNote, options)}</h2>)
+      blocs.push(<h2 id={id} key={blocs.length} style={{ fontWeight: GRAISSE_TITRE, fontFamily: SERIF, fontSize: '1.06em', lineHeight: 1.25, color: 'var(--cs-encre-fonce)', marginTop: '6mm', marginBottom: '4mm', paddingLeft: 0, textIndent: 0, textAlign: 'left', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)`, letterSpacing: '0.01em' }}>{rendreInline(ligne.slice(2), cleNote, options)}</h2>)
       return
     }
     paragraphe.push(ligne)

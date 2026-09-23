@@ -8,6 +8,7 @@
 // tous vers la connexion. Le masquage se fait en CSS, dès le HTML du serveur.
 
 import Link from 'next/link'
+import { SERIF } from '@/app/lib/polices'
 
 export const STYLE_CHAMP: React.CSSProperties = {
   width: '100%', padding: '0.5625rem 0.75rem', fontSize: '0.84375rem',
@@ -53,7 +54,7 @@ export function CadreRecuperation({ titre, children }: { titre: string; children
         body:has(.cs-page-auth) #cs-corps { padding-top: 0 !important; }
       `}</style>
       <div style={{ width: '100%', maxWidth: '23.75rem', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '12px', padding: '1.875rem 2rem 2rem', boxSizing: 'border-box' }}>
-        <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 1.25rem', textAlign: 'center' }}>
+        <h1 style={{ fontFamily: SERIF, fontSize: '1.125rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: '0 0 1.25rem', textAlign: 'center' }}>
           {titre}
         </h1>
         {children}

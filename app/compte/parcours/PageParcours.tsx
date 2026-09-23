@@ -20,6 +20,7 @@ import { ancresParcours } from '@/app/lib/espaceLecteurNavigation'
 import type { MarquesLecteur } from '@/app/lib/parcoursLecteur'
 import ParcoursDecouverte from '@/app/compte/ParcoursDecouverte'
 import { ContenuHautsFaits, type Reponse } from './TableauHautsFaits'
+import { SERIF } from '@/app/lib/polices'
 
 type Lecture = { nb_auteurs: number; total_auteurs: number }
 
@@ -138,10 +139,10 @@ function BarreRang({ nbAuteurs, totalAuteurs }: { nbAuteurs: number; totalAuteur
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.875rem', fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: '3px 12px', borderRadius: '8px' }}>
+        <span style={{ fontFamily: SERIF, fontSize: '0.875rem', fontWeight: 600, color: couleurs.texte, background: couleurs.fond, padding: '3px 12px', borderRadius: '8px' }}>
           {rang}
         </span>
-        <span style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.75rem', color: 'var(--cs-texte-gris)' }}>
+        <span style={{ fontFamily: SERIF, fontSize: '0.75rem', color: 'var(--cs-texte-gris)' }}>
           {nbAuteurs} Père{nbAuteurs !== 1 ? 's' : ''} retenu{nbAuteurs !== 1 ? 's' : ''}
           {totalAuteurs > 0 && <> sur {totalAuteurs}</>}
         </span>

@@ -86,6 +86,7 @@ import {
   figuresDeLaNote,
   IllustrationBible,
 } from './BibleEditionParatext'
+import { SERIF, SANS } from '@/app/lib/polices'
 
 // Le bouton de copie d'une cellule ne paraît qu'au survol de sa rangée, au foyer, ou
 // sur un écran sans survol. ⚠️ Son opacité est posée en ligne : la feuille la bat par
@@ -102,7 +103,6 @@ const FEUILLE_COPIE_REGARD = '[data-canon-id]:hover .cs-regard-action, [data-can
 // ⚠️ Ce qu'il pend au-delà de la rangée, c'est la SÉLECTION qui va le chercher
 // (`--regard-signet`, globals.css), non le signet qui rentre.
 
-const SERIF = 'var(--font-source-serif), Georgia, serif'
 
 // Composition des deux colonnes, reprise de la lecture bilingue des œuvres.
 //
@@ -135,7 +135,7 @@ const STYLE_VERSET = {
 // les deux lectures en regard du site se ressemblent.
 const STYLE_VERSET_ORIGINAL = {
   ...STYLE_VERSET,
-  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+  fontFamily: SANS,
   fontSize: `calc(${CORPS_LECTURE_BIBLE} * ${RAPPORT_ORIGINAL_EN_REGARD})`,
   color: 'var(--cs-original)',
   wordSpacing: ESPACE_MOT_ORIGINAL,
@@ -413,7 +413,7 @@ function SignalerCellule({ signaler, numero, langue, derniere, rang, enRangee = 
 //    à la poignée, et ce bloc n'a pas de classe à lui. Seule l'OPACITÉ passe par la feuille
 //    (`FEUILLE_COPIE_REGARD`), qui la bat en `!important` au survol de la rangée.
 const ACTIONS_LIBELLE: React.CSSProperties = {
-  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+  fontFamily: SANS,
   // ⛔ 0,6875 rem, LE PLANCHER DU SITE, et non un rang de moins : ce libellé se lit en bas
   //    de casse, et les 0,625 rem ne sont accordés qu'aux capitales espacées (charte, audit
   //    d'ergonomie du 2026-09-21). `echelleTypographique.test.ts` refuse l'autre.

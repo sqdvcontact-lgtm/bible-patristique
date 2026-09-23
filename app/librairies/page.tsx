@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import IconeChevron from '@/app/components/IconeChevron'
-import { ENCRE_TITRE, GRAISSE_TITRE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
+import { SERIF } from '@/app/lib/polices'
 export const metadata = {
   title: 'Acheter des livres',
   description: 'Où trouver les éditions bibliques et patristiques, neuves, anciennes ou critiques.',
@@ -62,7 +63,7 @@ export default function LibrairiesPage() {
     }}>
       <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '18px' }}>
-          <h1 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: 1.15, marginBottom: '8px' }}>
+          <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: INTERLIGNE_TITRE_PAGE, marginBottom: '8px' }}>
             Acheter des livres
           </h1>
           {/* ⛔ PLUS DE GLOSE SOUS LE TITRE (demande de l'auteur, 2026-09-08). « Où trouver
@@ -130,7 +131,7 @@ export default function LibrairiesPage() {
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.18s ease;
-            font-family: var(--font-source-serif), Georgia, serif;
+            font-family: ${SERIF};
             font-size:0.9375rem;
             letter-spacing: 0.01em;
           }
@@ -149,7 +150,7 @@ export default function LibrairiesPage() {
             margin: 0 1.5rem;
           }
           .lib-nom {
-            font-family: var(--font-source-serif), Georgia, serif;
+            font-family: ${SERIF};
             font-size:1.0625rem;
             font-weight: normal;
             margin: 0 0 6px;
@@ -225,7 +226,7 @@ export default function LibrairiesPage() {
                 {lib.logo ? (
                   <img src={lib.logo} alt="" aria-hidden style={{ width: '52px', height: 'auto', maxHeight: '48px', objectFit: 'contain' }} />
                 ) : (
-                  <span aria-hidden style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.5rem', fontWeight: 'normal', letterSpacing: '0.04em', color: lib.couleur, opacity: 0.9 }}>{lib.monogramme}</span>
+                  <span aria-hidden style={{ fontFamily: SERIF, fontSize: '1.5rem', fontWeight: 'normal', letterSpacing: '0.04em', color: lib.couleur, opacity: 0.9 }}>{lib.monogramme}</span>
                 )}
               </div>
               <div className="lib-sep" style={{ background: lib.sep }} />

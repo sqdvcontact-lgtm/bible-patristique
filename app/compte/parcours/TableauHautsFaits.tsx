@@ -37,6 +37,7 @@ import {
 import {
   ENCRE_RELIURE, ENCRE_RELIURE_DOUCE, OR_FLEURON, degradeReliure,
 } from '@/app/lib/reliuresHautsFaits'
+import { SERIF, SANS } from '@/app/lib/polices'
 
 export type Reponse = {
   series: SerieEtat[]
@@ -206,16 +207,16 @@ function CaseHautFait({ c, dernier, nouveau, proche }: {
 // guillemets français, jamais entre accents graves, qui fermeraient la chaîne.
 const DESSIN = `
 .hf-tete { margin: 0 0 26px; }
-.hf-score { font-family: var(--font-source-serif), Georgia, serif; font-size: 1.75rem;
+.hf-score { font-family: ${SERIF}; font-size: 1.75rem;
   line-height: 1; color: var(--cs-encre); margin: 0 0 8px; }
-.hf-score span { font-family: var(--font-source-sans), Arial, sans-serif;
+.hf-score span { font-family: ${SANS};
   font-size: 0.8125rem; color: var(--cs-texte); }
-.hf-phrase { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.875rem;
+.hf-phrase { font-family: ${SERIF}; font-size: 0.875rem;
   font-style: italic; color: var(--cs-texte-second); margin: 0; line-height: 1.6; }
 .hf-phrase em { font-style: normal; color: var(--cs-encre); }
 
 .hf-serie { margin: 0 0 22px; }
-.hf-rubrique { font-family: var(--font-source-sans), Arial, sans-serif; font-size: 0.625rem;
+.hf-rubrique { font-family: ${SANS}; font-size: 0.625rem;
   font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--cs-texte-second); margin: 0 0 9px; }
 
@@ -279,7 +280,7 @@ const DESSIN = `
 .hf-explication { position: absolute; inset: 0; z-index: 2;
   display: flex; align-items: center; justify-content: center;
   padding: 6px 8px; text-align: center;
-  font-family: var(--font-source-serif), Georgia, serif; font-size: 0.6875rem;
+  font-family: ${SERIF}; font-size: 0.6875rem;
   line-height: 1.35; color: ${ENCRE_RELIURE_DOUCE};
   opacity: 0; transition: opacity 0.16s ease; pointer-events: none; }
 /* ⚠️ Sous «(hover: hover)» seulement : au doigt il n'y a pas de survol, et la face
@@ -293,11 +294,11 @@ const DESSIN = `
   .hf-face, .hf-explication { transition: none; }
 }
 
-.hf-nom { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.84375rem;
+.hf-nom { font-family: ${SERIF}; font-size: 0.84375rem;
   line-height: 1.25; }
-.hf-pts { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.6875rem;
+.hf-pts { font-family: ${SERIF}; font-size: 0.6875rem;
   font-style: italic; }
-.hf-mesure { font-family: var(--font-source-serif), Georgia, serif; font-size: 0.6875rem;
+.hf-mesure { font-family: ${SERIF}; font-size: 0.6875rem;
   font-style: italic; color: var(--cs-texte-gris); }
 /* ⚠️ Le filet ne court plus d'un bord à l'autre : sur une carte centrée, un trait
    qui touche les deux marges tire l'œil hors du groupe. Il en prend la moitié. */

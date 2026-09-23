@@ -105,6 +105,7 @@ import dynamic from 'next/dynamic'
 import NomVolet from '@/app/components/NomVolet'
 import IconeChevron from '@/app/components/IconeChevron'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
+import { SANS } from '@/app/lib/polices'
 
 // ⛔ La fiche ne se charge qu'au CLIC (2026-09-22) : elle tire la chronologie, les ouvrages
 // cités et l'assainisseur de notices, que la lecture n'a pas à payer tant qu'on ne l'ouvre pas.
@@ -250,7 +251,7 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
           haut depuis le 2026-08-31, et la ligne du traducteur le redisait alors mot
           pour mot. Sans traducteur nommé, elle porte un tiret, qui dit au moins que
           la place existe et qu'on ne l'a pas remplie. */}
-      <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.35 }}>
+      <span style={{ fontFamily: SANS, fontSize: '0.8125rem', fontWeight: 500, color: 'var(--cs-encre)', lineHeight: 1.35 }}>
         {/* ⚠️ Le nom et les dates se COMPOSENT, comme dans le menu central et dans la
             fiche : « Bible française du XIIIe siècle » et « (XIIIe siècle) » y prennent
             leurs petites capitales et leur exposant. La carte les rendait bruts, à un
@@ -282,7 +283,7 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
               display: 'block', width: '100%', textAlign: 'left',
               background: 'none', border: 'none', padding: 0, margin: 0,
               cursor: 'pointer',
-              fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6875rem',
+              fontFamily: SANS, fontSize: '0.6875rem',
               color: 'var(--cs-texte-second)', lineHeight: 1.2,
             }}>
             {edition}
@@ -296,7 +297,7 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
           </button>
         )
         : (
-          <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.2 }}>{edition}</span>
+          <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.2 }}>{edition}</span>
         ))}
       <MentionCopiee mention={mention}>Référence bibliographique copiée</MentionCopiee>
       {modaleOuverte && <ModaleTraduction code={trad.code} nomFallback={trad.label || ''} onFermer={() => setModaleOuverte(false)} />}

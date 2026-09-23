@@ -34,6 +34,8 @@ import { colorMix } from '@/app/lib/couleurs'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import type { CitationPreferee } from '@/app/lib/citationsFavorites'
+import { SERIF } from '@/app/lib/polices'
+import { STYLE_RUBRIQUE } from '@/app/lib/hierarchieTitres'
 
 // ⚠️ Le TYPE vit dans app/lib/citationsFavorites.ts depuis le 2026-09-14, avec ce qu'on
 // écrit d'une favorite : l'API du profil public le lit aussi, et un module serveur n'a
@@ -98,14 +100,14 @@ const source = (c: CitationPreferee): string =>
 function CitationEnRegard({ c, etat, vive }: { c: CitationPreferee; etat: string; vive: boolean }) {
   return (
     <div style={{ borderLeft: `2px solid ${colorMix('var(--cs-or)', vive ? 70 : 26)}`, padding: '1px 0 1px 10px' }}>
-      <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 4px', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
+      <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 4px' }}>
         {etat}
       </p>
-      <p style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte)', lineHeight: 1.4, margin: 0 }}>
+      <p style={{ fontFamily: SERIF, fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte)', lineHeight: 1.4, margin: 0 }}>
         «&#8201;{extrait(c)}&#8201;»
       </p>
       {source(c) && (
-        <p style={{ fontSize: '0.625rem', color: 'var(--cs-or)', margin: '4px 0 0', letterSpacing: '0.08em', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>
+        <p style={{ fontSize: '0.625rem', color: 'var(--cs-or)', margin: '4px 0 0', letterSpacing: '0.08em', fontFamily: SERIF }}>
           {source(c)}
         </p>
       )}
@@ -183,7 +185,7 @@ export function ModaleRemplacerCitation({ actuelle, nouvelle, onConfirmer, onAnn
             <MarqueCitation taille={18} plein />
           </div>
           <h2 id="cs-remplacer-titre"
-            style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', color: 'var(--cs-encre)', margin: 0, lineHeight: 1.3 }}>
+            style={{ fontFamily: SERIF, fontSize: '1rem', color: 'var(--cs-encre)', margin: 0, lineHeight: 1.3 }}>
             Voulez-vous remplacer votre citation favorite {nouvelle.type === 'biblique' ? 'de l’Écriture' : 'des Pères'}&#8239;?
           </h2>
           <button onClick={onAnnuler} aria-label="Fermer" className="cs-cible-fine"

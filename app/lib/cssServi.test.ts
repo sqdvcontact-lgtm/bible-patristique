@@ -39,6 +39,10 @@ function blocsDeStyle(src: string): string[] {
     if (corps.startsWith('cssServi(')) corps = corps.slice('cssServi('.length, -1).trim()
     // Le gabarit de chaîne qui reste porte ses accents graves aux deux bouts.
     if (corps.startsWith('`') && corps.endsWith('`')) corps = corps.slice(1, -1)
+    // Une valeur INTERPOLÉE (`${SERIF}`, la pile de app/lib/polices.ts) est une chaîne au
+    // service : on la remplace par une valeur neutre, sans quoi PostCSS lirait le nom de la
+    // constante comme un mot inconnu.
+    corps = corps.replace(/\$\{[^}]*\}/g, 'var(--interpolation)')
     out.push(corps)
     i = f + 1
   }

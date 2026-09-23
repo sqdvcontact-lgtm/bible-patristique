@@ -15,8 +15,7 @@
  */
 
 import type { CSSProperties } from 'react'
-
-const SERIF = 'var(--font-source-serif), Georgia, serif'
+import { SERIF } from './polices'
 
 /**
  * La GOUTTIÈRE D'ACTIONS : la seconde colonne de la grille, où se tiennent les boutons d'un verset.
@@ -206,14 +205,18 @@ export const STYLE_NUMERO_VERSET: CSSProperties = {
   // ⛔ EN RAPPORT AU VERSET, non en rem (2026-09-21, plancher des petits corps) : il
   // valait 0,625 rem pour un verset de 0,875, soit 0,714 du verset, et il suit
   // désormais le corps du verset quand le lecteur le règle.
-  fontSize: `calc(${CORPS_LECTURE_BIBLE} * ${RAPPORT_NUMERO_VERSET})`,
+  // ⛔ ET JAMAIS SOUS LE PLANCHER (2026-09-23, audit d'harmonie) : 0,714 d'un verset de
+  // 14 px (cran petit) rendait 10 px, et 10,7 px au cran normal. `max()` le tient à
+  // 11 px ; au cran grand il reste en rapport (12,1 px).
+  fontSize: `max(0.6875rem, calc(${CORPS_LECTURE_BIBLE} * ${RAPPORT_NUMERO_VERSET}))`,
   fontWeight: 600,
   color: 'var(--cs-texte-doux)',
   // ⚠️ L'interligne SUIT celui du verset, pour que le numéro reste posé sur la capitale
   // de la première ligne quel que soit le cran : son milieu doit tomber 0,31 corps de
-  // verset au-dessus du milieu de la ligne, ce que (interligne − 0,42) / 0,714 donne
-  // (1,40 pour l'ancien 1,42 ; 1,58 pour 1,55).
-  lineHeight: `calc((${INTERLIGNE_LECTURE_BIBLE} - 0.42) / ${RAPPORT_NUMERO_VERSET})`,
+  // verset au-dessus du milieu de la ligne, soit une boîte de (interligne − 0,42) corps
+  // de verset. ⛔ Écrite en LONGUEUR, non en rapport au corps du numéro : le plancher
+  // ci-dessus peut hausser ce corps, et la boîte de ligne ne doit pas grandir avec lui.
+  lineHeight: `calc(${CORPS_LECTURE_BIBLE} * (${INTERLIGNE_LECTURE_BIBLE} - 0.42))`,
   whiteSpace: 'nowrap',
   // ⛔ Relevé sur la CAPITALE de la première ligne, non posé sur sa ligne de base
   // (décision de l'auteur, 21 septembre 2026 : « réaligner un peu mieux le numéro face
@@ -451,8 +454,10 @@ export const STYLE_CORPS: CSSProperties = {
 }
 
 export const CORPS_MENTION = '0.6875rem'
-/** L'invite est d'un rang encore plus fin : elle propose, elle ne constate pas. */
-export const CORPS_INVITE = '0.625rem'
+/** L'invite propose, elle ne constate pas. ⚠️ Elle valait un rang de moins que la mention
+ *  (0,625 rem) ; le plancher des petits corps (11 px) la ramène au rang de la mention, et
+ *  c'est l'italique et l'encre qui la distinguent désormais (audit d'harmonie, 2026-09-23). */
+export const CORPS_INVITE = '0.6875rem'
 
 /**
  * ⛔ UNE GLOSE DU TÉMOIN SE COMPOSE EN ITALIQUE, UN POINT SOUS LE TEXTE QU'ELLE

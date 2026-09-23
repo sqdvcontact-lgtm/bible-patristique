@@ -8,6 +8,7 @@ import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile";
 import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
 import { adresseDeReprise, lirePositionBible, type PositionBible } from '@/app/lib/repriseLecture'
 import { cssServi } from "@/app/lib/cssServi";
+import { SERIF } from "@/app/lib/polices";
 
 // ⛔ PLUS DE TROISIÈME CARTE (décision de l'auteur, 2026-08-31). La Communauté est
 // retirée de l'accueil : les portes de la page sont la Bible et les Pères, et rien
@@ -341,7 +342,7 @@ export default function AccueilCards() {
           min-height: 3.9rem;
         }
         .ac-title {
-          font-family: var(--font-source-serif), Georgia, serif;
+          font-family: ${SERIF};
           font-size: 1.25rem;
           font-weight: normal;
           color: rgba(255,255,255,0.90);
@@ -353,7 +354,7 @@ export default function AccueilCards() {
            ⚠️ Le blanc à 0,74 et non 0,62 : mesuré sur le carton le plus clair
            (« Communauté » au Cuir), 0,62 tombait sous 4,5:1 à ce corps. */
         .ac-sous-titre {
-          font-family: var(--font-source-serif), Georgia, serif;
+          font-family: ${SERIF};
           font-size: 0.78125rem;
           font-style: italic;
           line-height: 1.3;
@@ -438,7 +439,7 @@ export default function AccueilCards() {
           max-width: 100%;
           padding: 0 10px;
           box-sizing: border-box;
-          font-family: var(--font-source-serif), Georgia, serif;
+          font-family: ${SERIF};
           font-size: 0.8125rem;
           font-style: italic;
           line-height: 1.25;

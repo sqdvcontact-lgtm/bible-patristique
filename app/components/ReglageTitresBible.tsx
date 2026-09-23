@@ -21,6 +21,7 @@ import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { Z_MODALE } from '@/app/lib/empilement'
 import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import { LIBELLES_RANG_TITRE, RANGS_TITRE_BIBLE, type RangTitreBible } from '@/app/lib/titresMasquesBible'
+import { SANS } from '@/app/lib/polices'
 
 const ICONE_ROUE = (
   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2.1"/></svg>
@@ -95,7 +96,7 @@ export default function ReglageTitresBible({ familleId, masques, onChange }: {
             position: 'fixed', top: place.top, left: place.left, width: '15rem', zIndex: Z_MODALE,
             background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px',
             boxShadow: 'var(--cs-ombre-nette)', padding: '0.625rem 0.75rem',
-            fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+            fontFamily: SANS,
           }}>
           <div style={RUBRIQUE_AXE}>Niveaux de titre affichés</div>
           <div role="group" style={{ display: 'flex', flexDirection: 'column', marginTop: '0.25rem' }}>

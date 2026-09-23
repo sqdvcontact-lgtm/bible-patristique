@@ -38,6 +38,7 @@
 // finirait par diverger, et c'est précisément ce que ce fichier a réuni.
 
 import IconeChevron from '@/app/components/IconeChevron'
+import { SERIF } from '@/app/lib/polices'
 
 /** ⛔ LA BANDE ET SON FILET S'ÉCRIVENT UNE FOIS, ET ILS VALENT POUR LES DEUX CÔTÉS :
  *  c'est ce qui rend impossible qu'un rail paraisse plus épais que son frère. */
@@ -110,7 +111,7 @@ export default function RailVolet({ cote, libelle, complement, onOuvrir }: {
         {complement && (
           <span aria-hidden style={{
             writingMode: 'vertical-rl', transform: versLeCentre,
-            fontFamily: 'var(--font-source-serif), Georgia, serif',
+            fontFamily: SERIF,
             fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', letterSpacing: '0.04em',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxHeight: '32%',
           }}>

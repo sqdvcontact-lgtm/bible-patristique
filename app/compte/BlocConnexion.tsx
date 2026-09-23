@@ -8,6 +8,8 @@ import { inputStyle, type Statut } from '@/app/compte/champsCompte'
 import { Rangee } from '@/app/compte/piecesEspace'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
+import { SERIF } from '@/app/lib/polices'
+import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
 /** Le bouton d'une action secondaire, à côté d'un champ. */
 const BTN_DISCRET: React.CSSProperties = {
@@ -126,7 +128,7 @@ export default function BlocConnexion({ ouvrirSuppression, onSuppressionOuverte,
           style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div ref={boiteSuppression} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="titre-suppression"
             style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '32px', width: '30rem', maxWidth: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
-            <h2 id="titre-suppression" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.125rem', fontWeight: 'normal', color: 'var(--cs-texte-fort)', margin: '0 0 16px' }}>Suppression du compte</h2>
+            <h2 id="titre-suppression" style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: '0 0 16px' }}>Suppression du compte</h2>
             <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.65, margin: '0 0 14px' }}>
               Cette action est <strong>irrémédiable</strong>. Elle entraînera la suppression immédiate et définitive de :
             </p>

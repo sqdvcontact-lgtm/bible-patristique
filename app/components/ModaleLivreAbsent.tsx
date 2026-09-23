@@ -37,8 +37,8 @@ import { createPortal } from 'react-dom'
 import { useEffect, useRef, useState } from 'react'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
-
-const SERIF = 'var(--font-source-serif), Georgia, serif'
+import { SERIF } from '@/app/lib/polices'
+import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
 export type TraductionProposee = { code: string; label: string }
 
@@ -131,7 +131,7 @@ export default function ModaleLivreAbsent({
           Absent de cette traduction
         </p>
         <h2 id="cs-livre-absent-titre"
-          style={{ fontFamily: SERIF, fontSize: '1.25rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.2 }}>
+          style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: 0, lineHeight: 1.2 }}>
           {nomLivre}
         </h2>
         <div style={{ height: '1px', background: 'var(--cs-bord-clair)', margin: '14px 0 13px' }} />
@@ -161,7 +161,7 @@ export default function ModaleLivreAbsent({
           </p>
         ) : (
           <>
-            <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '17px 0 2px' }}>
+            <p style={{ ...STYLE_RUBRIQUE, margin: '17px 0 2px' }}>
               On le lit dans
             </p>
             <div style={{ display: 'flex', flexDirection: 'column' }}>

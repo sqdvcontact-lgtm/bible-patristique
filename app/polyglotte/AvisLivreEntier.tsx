@@ -20,8 +20,8 @@ import { createPortal } from 'react-dom'
 import { useEffect, useRef, useState } from 'react'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
-
-const SERIF = 'var(--font-source-serif), Georgia, serif'
+import { SERIF } from '@/app/lib/polices'
+import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
 export const CLE_AVIS_LIVRE_ENTIER = 'polyglotte-avis-livre-entier'
 
@@ -69,7 +69,7 @@ export default function AvisLivreEntier({ nomLivre, onConfirmer, onAnnuler }: {
           Livre entier
         </p>
         <h2 id="cs-livre-entier-titre"
-          style={{ fontFamily: SERIF, fontSize: '1.25rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.2 }}>
+          style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: 0, lineHeight: 1.2 }}>
           {nomLivre}
         </h2>
         <div style={{ height: '1px', background: 'var(--cs-bord-clair)', margin: '14px 0 13px' }} />

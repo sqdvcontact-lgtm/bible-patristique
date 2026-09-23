@@ -7,6 +7,7 @@ import { auteurDeLigne, auteursDuCorpus, type AuteurDuCorpus } from "@/app/lib/a
 import { cssServi } from "@/app/lib/cssServi";
 import { enTetesPartage } from "@/app/lib/metadonneesSeo";
 import IndiceTelephoneServeur from '@/app/lib/IndiceTelephoneServeur'
+import { SERIF, SANS } from "@/app/lib/polices";
 
 // La devise du frontispice, mot pour mot. « Lectures bibliques et patristiques »
 // décrivait un rayon de bibliothèque ; la phrase dit ce que le site FAIT, et que
@@ -285,7 +286,7 @@ export default async function AccueilPage() {
            navigue par titres ne trouvait ni les auteurs ni les ajouts. Le corps ne
            change pas, la marge du titre se reprend. */
         .accueil-rubrique h2 {
-          font-family: var(--font-source-serif), Georgia, serif;
+          font-family: ${SERIF};
           font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.2em;
           text-transform: uppercase; color: var(--cs-vert); white-space: nowrap;
           margin: 0;
@@ -313,7 +314,7 @@ export default async function AccueilPage() {
            en prend sept — il s'efface de lui-même et l'enroulement ordinaire
            reprend, sans que rien ne casse. */
         .seuil-noms p {
-          font-family: var(--font-source-serif), Georgia, serif;
+          font-family: ${SERIF};
           font-size: 0.8125rem;
           line-height: 1.95;
           letter-spacing: 0.015em;
@@ -396,7 +397,7 @@ export default async function AccueilPage() {
            coiffe une prose qui est tout entière de cette encre. Chacun dans le ton de
            sa bande ; c'est le CORPS qui dit le rang, pas la couleur. */
         .accueil-mot h2 {
-          font-family: var(--font-source-serif), Georgia, serif;
+          font-family: ${SERIF};
           font-size: clamp(1.1875rem, 2.8vw, 1.5rem);
           font-weight: normal;
           color: var(--cs-encre-fonce);
@@ -455,7 +456,7 @@ export default async function AccueilPage() {
         }
         .ajout-lire-mot {
           position: relative;
-          font-family: var(--font-source-serif), Georgia, serif;
+          font-family: ${SERIF};
           font-style: italic;
           font-size: 0.875rem;
           letter-spacing: 0.03em;
@@ -491,7 +492,7 @@ export default async function AccueilPage() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          font-family: var(--font-source-serif), Georgia, serif;
+          font-family: ${SERIF};
           font-size: 0.8125rem;
           letter-spacing: 0.03em;
           color: var(--cs-or-lisible);
@@ -642,7 +643,7 @@ export default async function AccueilPage() {
             dessous, dit de quoi le site est fait : des SOURCES, non des commentaires. */}
         <header style={{ textAlign: "center", maxWidth: "40rem" }}>
           <h1 style={{
-            fontFamily: "var(--font-source-serif), Georgia, serif",
+            fontFamily: SERIF,
             /* Bornes en rem, jamais en px : celles d'un clamp sont ABSOLUES et ne
                suivent pas la police racine fluide, si bien qu'un titre en px se fige
                pendant que le corps du texte grandit autour de lui. */
@@ -679,7 +680,7 @@ export default async function AccueilPage() {
               faut celle de TITRAGE. ⛔ `font-variation-settings` écrase `font-weight` :
               toujours redonner « wght » dans la même déclaration. */}
           <p style={{
-            fontFamily: "var(--font-source-serif), Georgia, serif",
+            fontFamily: SERIF,
             fontSize: "clamp(1rem, 1.5vw, 1.1875rem)",
             fontStyle: "italic",
             /* ⛔ PLUS DE VERT AU FRONTISPICE (décision de l'auteur, 2026-08-31). La
@@ -714,7 +715,7 @@ export default async function AccueilPage() {
               500 compense le trait plus fin qui en résulte, et `opsz` 10 donne à ces
               capitales espacées la coupe de LABEUR, la seule qui les tienne à ce corps. */}
           <p style={{
-            fontFamily: "var(--font-source-serif), Georgia, serif",
+            fontFamily: SERIF,
             fontSize: "0.75rem",
             fontVariantCaps: "small-caps",
             fontWeight: 500,
@@ -787,7 +788,7 @@ export default async function AccueilPage() {
           margin: "0 auto",
           padding: "72px 32px 44px",
           textAlign: "center",
-          fontFamily: "var(--font-source-serif), Georgia, serif",
+          fontFamily: SERIF,
           color: "var(--cs-texte-fort)",
         }}>
           {/* En-tête colophon. ⛔ PAS DE FLEURON AU-DESSUS DU TITRE (décision de
@@ -873,7 +874,7 @@ export default async function AccueilPage() {
           margin: "0 auto",
           padding: "0 32px 80px",
           textAlign: "center",
-          fontFamily: "var(--font-source-serif), Georgia, serif",
+          fontFamily: SERIF,
           color: "var(--cs-texte-fort)",
         }}>
           <div>
@@ -950,6 +951,7 @@ function ColophonSection({ titre, children }: { titre: string; children: React.R
   return (
     <section>
       <h3 style={{
+        fontFamily: SANS,
         fontSize: "0.6875rem",
         fontWeight: 600,
         letterSpacing: "0.22em",
@@ -988,7 +990,7 @@ const paraStyle: React.CSSProperties = {
 // que l'une était serrée dans une carte. Le resserrement de chasse qui allait avec
 // (-0,004em) tombe avec le cadre : rien ne l'étrangle plus.
 const motStyle: React.CSSProperties = {
-  fontFamily: "var(--font-source-serif), Georgia, serif",
+  fontFamily: SERIF,
   fontSize: "0.9375rem",
   lineHeight: 1.6,
   color: "var(--cs-texte)",
@@ -1004,8 +1006,8 @@ function VoletUnMot() {
         <p style={motStyle}><em>Corpus Scriptura</em> est un chantier mené seul, lentement, texte après texte. Mon intention est de rendre accessibles les Écritures et les écrits des Pères de l’Église, anciens ou difficiles d’accès, en les établissant, en les contrôlant et en les reliant entre eux.</p>
         <p style={motStyle}>L’accès au site restera gratuit. Si ce travail vous paraît utile, tout soutien, même modeste, est bienvenu : il permet de consacrer davantage de temps à la lecture, à l’édition des textes, à leur vérification et à leur mise en ordre.</p>
       </div>
-      <p className="accueil-mot-merci" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "var(--cs-texte)" }}>Merci.</p>
-      <p className="accueil-mot-sqdv" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.875rem", color: "var(--cs-or-lisible)", letterSpacing: "0.14em" }}>SQDV</p>
+      <p className="accueil-mot-merci" style={{ fontFamily: SERIF, fontSize: "0.875rem", color: "var(--cs-texte)" }}>Merci.</p>
+      <p className="accueil-mot-sqdv" style={{ fontFamily: SERIF, fontSize: "0.875rem", color: "var(--cs-or-lisible)", letterSpacing: "0.14em" }}>SQDV</p>
       <Link href="/soutenir" className="cs-bouton-soutenir">Soutenir le projet</Link>
     </section>
   )
@@ -1058,7 +1060,7 @@ function formaterDateAjout(iso: string | null): string {
    qui la priverait de sa boîte : c'est elle qui porte le survol. */
 function ListeAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
   if (recentes.length === 0) {
-    return <p style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.8125rem", color: "var(--cs-texte-second)", fontStyle: "italic", margin: 0, textAlign: "center" }}>Aucun ajout pour l’instant.</p>
+    return <p style={{ fontFamily: SERIF, fontSize: "0.8125rem", color: "var(--cs-texte-second)", fontStyle: "italic", margin: 0, textAlign: "center" }}>Aucun ajout pour l’instant.</p>
   }
   return (
     <ul style={{ listStyle: "none", margin: "0 auto", padding: 0, display: "grid", gridTemplateColumns: "max-content minmax(0, 1fr)", columnGap: "0.75rem", rowGap: "0.5rem", alignItems: "baseline", width: "fit-content", maxWidth: "100%", textAlign: "left" }}>
@@ -1067,8 +1069,8 @@ function ListeAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
           {/* ⛔ La date rendait 2,61 sur le papier — la plus mauvaise encre du volet sur
               la seule information qui date l'ajout. On garde sa chaleur, on la fonce :
               `--cs-or-lisible`, et 11 px au lieu de 10,5. Mesuré : 5,14. */}
-          <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "0.6875rem", color: "var(--cs-or-lisible)", whiteSpace: "nowrap" }}>{formaterDateAjout(o.date_mise_en_ligne)}</span>
-          <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ position: "relative", minWidth: 0, display: "block", textDecoration: "none", color: "inherit", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
+          <span style={{ fontFamily: SERIF, fontSize: "0.6875rem", color: "var(--cs-or-lisible)", whiteSpace: "nowrap" }}>{formaterDateAjout(o.date_mise_en_ligne)}</span>
+          <Link href={`/oeuvre/${o.id_oeuvre}`} style={{ position: "relative", minWidth: 0, display: "block", textDecoration: "none", color: "inherit", fontFamily: SERIF }}>
             {/* « Lire » vit DANS le titre, à la suite du texte : c'est ce qui le pose à
                 sa droite quelle que soit la longueur de la ligne, et sur la même ligne
                 de base, sans qu'aucune position absolue ait à deviner où le texte

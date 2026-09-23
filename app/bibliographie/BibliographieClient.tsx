@@ -36,6 +36,7 @@ import {
   type FiltresBibliographie,
   type NomsPericopes,
 } from '@/app/lib/bibliographieCatalogue'
+import { SERIF, SANS } from '@/app/lib/polices'
 
 /**
  * L'OUTIL BIBLIOGRAPHIQUE — la page « Bibliographie » d'« Aller plus loin ».
@@ -57,8 +58,6 @@ const FOND = 'var(--cs-fond)'
 const BORD = 'var(--cs-bord)'
 const SEP = 'var(--cs-bord-clair)'
 const VERT = 'var(--cs-vert)'
-const SERIF = 'var(--font-source-serif), Georgia, serif'
-const SANS = 'var(--font-source-sans), Arial, sans-serif'
 
 /** Nombre de péricopes nommées avant le repli « et N autres » : au-delà, la ligne
  *  fait un paragraphe, et un commentaire de Luc en cite vingt-sept. */

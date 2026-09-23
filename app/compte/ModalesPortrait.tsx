@@ -10,6 +10,8 @@ import Image from 'next/image'
 import { CADRAGE_PAR_DEFAUT, urlPortrait, ZOOM_MAX, ZOOM_MIN, type Cadrage } from '@/app/lib/portraits'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
+import { SERIF } from '@/app/lib/polices'
+import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 
 export type PortraitChoisi = { ref: string; nom: string; cadrage: Cadrage }
 
@@ -49,7 +51,7 @@ export function ModalePortrait({ onChoisir, onClose }: { onChoisir: (choix: Port
       <div onClick={e => e.stopPropagation()} ref={boite} role="dialog" aria-modal="true" aria-labelledby="titre-portrait"
         style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '28px', width: '37.5rem', maxWidth: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexShrink: 0 }}>
-          <h2 id="titre-portrait" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1.0625rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>Choisir un visage</h2>
+          <h2 id="titre-portrait" style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: 0 }}>Choisir un visage</h2>
           <button onClick={onClose} aria-label="Fermer" className="cs-cible-fine" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--cs-texte-doux)', padding: '2px' }}>✕</button>
         </div>
         <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', margin: '0 0 18px', flexShrink: 0, lineHeight: 1.55 }}>
@@ -67,7 +69,7 @@ export function ModalePortrait({ onChoisir, onClose }: { onChoisir: (choix: Port
           <div style={{ overflowY: 'auto', paddingRight: '4px' }}>
             {familles.map((famille, rang) => (
               <section key={famille.cle} style={rang > 0 ? { marginTop: '22px', paddingTop: '18px', borderTop: '1px solid var(--cs-fond-doux)' } : undefined}>
-                <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', margin: '0 0 12px' }}>
+                <p style={{ ...STYLE_RUBRIQUE, margin: '0 0 12px' }}>
                   {famille.titre}
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '12px' }}>
@@ -94,7 +96,7 @@ function Vignette({ portrait, onChoisir }: { portrait: Portrait; onChoisir: () =
         <Image src={portrait.url} alt="" fill sizes="72px" unoptimized
           style={{ objectFit: 'cover', objectPosition: `${portrait.cadrage.posX}% ${portrait.cadrage.posY}%` }} />
       </div>
-      <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte)', textAlign: 'center', lineHeight: 1.3, fontFamily: 'var(--font-source-serif), Georgia, serif' }}>{portrait.nom}</span>
+      <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte)', textAlign: 'center', lineHeight: 1.3, fontFamily: SERIF }}>{portrait.nom}</span>
       {portrait.detail && (
         <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', textAlign: 'center', lineHeight: 1.3, marginTop: '-4px' }}>{portrait.detail}</span>
       )}
@@ -148,7 +150,7 @@ export function ModaleCadrage({ refPortrait: ref, nom, cadrage, onSauvegarder, o
       <div onClick={e => e.stopPropagation()} ref={boite} role="dialog" aria-modal="true" aria-labelledby="titre-cadrage"
         style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '28px', width: '21.25rem', maxWidth: '100%', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
-          <h2 id="titre-cadrage" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>Recadrer</h2>
+          <h2 id="titre-cadrage" style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: 0 }}>Recadrer</h2>
           <button onClick={onClose} aria-label="Fermer" className="cs-cible-fine" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--cs-texte-doux)', padding: '2px' }}>✕</button>
         </div>
         <div
@@ -162,7 +164,7 @@ export function ModaleCadrage({ refPortrait: ref, nom, cadrage, onSauvegarder, o
               style={{ objectFit: 'cover', objectPosition: `${posX}% ${posY}%`, transform: `scale(${zoom})`, transformOrigin: 'center center', userSelect: 'none', pointerEvents: 'none' }} />
           )}
         </div>
-        {nom && <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', textAlign: 'center', margin: '0 0 4px', fontFamily: 'var(--font-source-serif), Georgia, serif' }}>{nom}</p>}
+        {nom && <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', textAlign: 'center', margin: '0 0 4px', fontFamily: SERIF }}>{nom}</p>}
         <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', textAlign: 'center', margin: '0 0 16px', fontStyle: 'italic' }}>
           Le cadrage retenu par la bibliothèque est déjà posé. Faites glisser pour le changer.
         </p>

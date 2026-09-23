@@ -21,6 +21,8 @@ import { indexEditeursNavigateur, useEditeursCharges } from '@/app/lib/editeurs'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { texteReferenceEdition } from '@/app/lib/referenceEditionServie'
 import { MentionCopiee, useMentionCopiee } from '@/app/components/MentionCopiee'
+import { SANS } from '@/app/lib/polices'
+import { STYLE_RUBRIQUE } from '@/app/lib/hierarchieTitres'
 
 const ModaleTraduction = dynamic(() => import('@/app/components/ModaleTraduction'), { ssr: false })
 
@@ -45,7 +47,7 @@ export type FicheTraductionPoly = {
 export type ColonneAffichee = { cle: string; code: string; nom: string; variante?: string }
 
 const LIGNE: React.CSSProperties = {
-  fontFamily: 'var(--font-source-sans), Arial, sans-serif',
+  fontFamily: SANS,
   fontSize: '0.6875rem', lineHeight: 1.3, color: 'var(--cs-texte-second)',
   overflowWrap: 'break-word', hyphens: 'auto',
 }
@@ -84,7 +86,7 @@ export default function TraductionsAffichees({ colonnes, fiches }: {
     // `contain: inline-size` retire le contenu du calcul, et la section s'étire à la largeur que
     // les autres blocs donnent au volet ; ses lignes s'y enroulent.
     <div style={{ flexShrink: 0, contain: 'inline-size', minWidth: 0, background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', borderBottom: '1px solid var(--cs-bord)', padding: '8px 14px 9px' }}>
-      <span style={{ display: 'block', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '6px' }}>
+      <span style={{ ...STYLE_RUBRIQUE, display: 'block', marginBottom: '6px' }}>
         Traductions affichées
       </span>
       {/* ⚠️ La liste se borne et défile en dedans : elle partage la hauteur du volet avec la

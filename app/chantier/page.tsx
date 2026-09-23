@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import Image from "next/image";
 import { STYLE_ROMAIN, STYLE_ORDINAL, enChiffresRomains } from "@/app/lib/siecles";
+import { SERIF } from "@/app/lib/polices";
 
 type Mode = "connexion" | "inscription";
 
@@ -136,7 +137,7 @@ function Colophon({ lignes, couleur, taille = "0.78125rem", interligne = 1.7 }: 
   lignes: [string, string][]; couleur: string; taille?: string; interligne?: number;
 }) {
   return (
-    <div style={{ textAlign: "center", fontFamily: "var(--font-source-serif), Georgia, serif" }}>
+    <div style={{ textAlign: "center", fontFamily: SERIF }}>
       {lignes.map(([texte, largeur]) => (
         <p key={texte} style={{ maxWidth: largeur, margin: "0 auto", color: couleur, fontSize: taille, lineHeight: interligne }}>
           {texte}
@@ -289,7 +290,7 @@ function Chiffres() {
     <div className="cs-chiffres">
       {cases.map(([valeur, libelle]) => (
         <div key={libelle} style={{ textAlign: "center" }}>
-          <div className="cs-chiffre-valeur" style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.875rem", color: "var(--cs-vert)", lineHeight: 1 }}>
+          <div className="cs-chiffre-valeur" style={{ fontFamily: SERIF, fontSize: "1.875rem", color: "var(--cs-vert)", lineHeight: 1 }}>
             {valeur}
           </div>
           <div className="cs-chiffre-libelle" style={{ fontSize: "0.625rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--cs-texte-second)", marginTop: "0.375rem" }}>
@@ -432,10 +433,10 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-ecran { min-height: 100dvh; display: flex; flex-direction: column;
                     align-items: center; justify-content: center;
                     text-align: center; padding: 2rem 1.25rem 1.625rem; }
-        .cs-enseigne { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
+        .cs-enseigne { font-family: ${SERIF}; font-weight: normal;
                        color: var(--cs-vert); letter-spacing: 0.16em; text-transform: uppercase;
                        font-size: 1.875rem; line-height: 1.1; margin: 1rem 0 0.25rem; }
-        .cs-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
+        .cs-titre { font-family: ${SERIF}; font-weight: normal;
                     color: var(--cs-encre-fonce); line-height: 1.3; letter-spacing: -0.005em;
                     font-size: 1.25rem; font-style: italic; margin: 0.625rem 0 1rem; }
         /* ⚠️ La classe cs-chapeau a été retirée le 2026-09-05 : elle n'était posée sur
@@ -478,7 +479,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-encart--mordore .cs-encart-ico { color: var(--cs-lacune); background: var(--cs-fond-doux); border-color: var(--cs-or-doux); }
         .cs-encart--mordore .cs-encart-titre { color: var(--cs-texte); }
         .cs-encart--vert .cs-encart-titre::after { background: var(--cs-vert-clair); }
-        .cs-encart-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
+        .cs-encart-titre { font-family: ${SERIF}; font-weight: normal;
                            font-size: 1.0625rem; color: var(--cs-encre); margin: 0 0 0.625rem; padding-bottom: 0.625rem;
                            position: relative; }
         .cs-encart-titre::after { content: ""; position: absolute; left: 50%; bottom: 0;
@@ -492,7 +493,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         .cs-carte, .cs-connexion { background: var(--cs-fond); border: 1px solid var(--cs-bord-clair);
                      border-radius: 8px; box-shadow: var(--cs-ombre-posee); }
         /* Titre de bloc : sérif, sobre, centré — la voix des titres du site. */
-        .cs-bloc-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
+        .cs-bloc-titre { font-family: ${SERIF}; font-weight: normal;
                          font-size: 1rem; color: var(--cs-encre); text-align: center; margin: 0 0 1rem; }
 
         /* ── Feuille de route ─────────────────────────────────────────────────
@@ -504,14 +505,14 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
            l'herbe sous le pied. L'espace seul délimite désormais la feuille de
            route, en haut comme en bas. */
         .cs-route { padding: 0.75rem 0 0.5rem; margin-bottom: 2.75rem; }
-        .cs-route-kicker { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
+        .cs-route-kicker { font-family: ${SERIF}; font-weight: normal;
                            font-size: 1.375rem; color: var(--cs-encre); margin: 0 0 0.625rem;
                            text-align: center; }
         .cs-route-chapeau { font-size: 0.84375rem; color: var(--cs-texte-second); line-height: 1.7;
                             max-width: 34rem; margin: 0 auto 2rem; text-align: center; }
         .cs-route-phases { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
                            gap: 2rem 2.25rem; max-width: 46rem; margin: 0 auto; }
-        .cs-phase-titre { font-family: var(--font-source-serif), Georgia, serif; font-weight: normal;
+        .cs-phase-titre { font-family: ${SERIF}; font-weight: normal;
                           font-size: 1.1875rem; color: var(--cs-encre); text-align: center;
                           margin: 0 0 1rem; padding-bottom: 0.625rem; border-bottom: 1px solid var(--cs-bord-clair); }
         .cs-route-liste { list-style: none; margin: 0; padding: 0;
@@ -651,7 +652,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
         {/* ── Connexion ── */}
         <div className="cs-connexion" style={{ padding: "1.875rem 2rem 2.125rem", width: "100%", maxWidth: "23.75rem", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: "1.125rem", fontWeight: "normal", color: "var(--cs-encre)", margin: 0 }}>
+          <h2 style={{ fontFamily: SERIF, fontSize: "1.125rem", fontWeight: "normal", color: "var(--cs-encre)", margin: 0 }}>
             {mode === "connexion" ? "Connexion" : "Créer un compte"}
           </h2>
         </div>
@@ -734,7 +735,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
 
         {/* ── Démarchage ── */}
         <aside style={{ marginTop: "2.125rem", border: "1px solid var(--cs-bord)", background: "var(--cs-fond-clair)", borderRadius: "8px", padding: "1.375rem 1.625rem", maxWidth: "41.25rem", marginLeft: "auto", marginRight: "auto" }}>
-          <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontWeight: "normal", fontSize: "0.9375rem", color: "var(--cs-danger-fonce)", margin: "0 0 0.5rem" }}>
+          <h2 style={{ fontFamily: SERIF, fontWeight: "normal", fontSize: "0.9375rem", color: "var(--cs-danger-fonce)", margin: "0 0 0.5rem" }}>
             Aucun démarchage
           </h2>
           {/* ⛔ Deux paragraphes de cinq à six lignes sur une mesure de 41 rem : de la
