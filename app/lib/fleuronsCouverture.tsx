@@ -53,7 +53,7 @@ export function FleuronGenre({ categorie, echelle, className, style }: {
   const adresse = `url(${adresseFleuron(f)})`
   return (
     <span className={className} aria-hidden="true" style={{
-      display: 'block', flex: 'none', backgroundColor: 'currentColor',
+      display: 'block', backgroundColor: 'currentColor',
       height: h,
       // La largeur s'écrit depuis les deux nombres du registre, comme au frontispice.
       width: `calc(${h} * ${f.planche.largeur} / ${f.planche.hauteur})`,

@@ -980,7 +980,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                                 border: actif ? '2px solid var(--cs-vert)' : '1px solid var(--cs-bord)',
                                 boxShadow: actif ? '0 0 0 2px rgba(var(--cs-vert-rgb),0.18)' : 'none',
                               }}>
-                              <FleuronGenre categorie={categorie} echelle="0.62rem" style={{ color: 'var(--cs-encre)' }} />
+                              <FleuronGenre categorie={categorie} echelle="0.62rem" style={{ color: 'var(--cs-encre)', flex: 'none' }} />
                               <span>{categorie}</span>
                             </button>
                           )

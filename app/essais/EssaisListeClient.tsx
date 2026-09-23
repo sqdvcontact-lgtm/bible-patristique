@@ -390,7 +390,8 @@ function OngletCommunaute({
 
         /* Une couverture : proportion d'un petit livre, couleur pleine, composition
            CENTRÉE et EN EMPATTEMENT, comme une page de titre gravée. La face
-           s'ordonne en six temps du haut vers le bas : auteur, catégorie, titre,
+           s'ordonne en six temps du haut vers le bas, ponctués de deux filets courts :
+           auteur, catégorie, titre,
            sous-titre, fleuron, date. C'est cette suite, non un cadre, qui fait le
            livre ancien. Deux losanges filetés séparaient jadis ces temps ; ils ont
            été retirés ; le fleuron de genre tient désormais leur rôle.
@@ -446,13 +447,13 @@ function OngletCommunaute({
            mesure ait à être recopiée d'une règle à l'autre. */
         .couverture-corps { position: relative; z-index: 2; flex: 1; min-height: 0; }
         /* La suite verticale. Rien n'est posé en absolu : chaque temps pousse le
-           suivant, et le fleuron, seul à porter des marges automatiques, absorbe la
-           hauteur qui reste. Un titre de quatre lignes serre donc la composition au
-           lieu de la faire déborder. */
+           suivant, et les deux souffles qui encadrent le fleuron absorbent la hauteur
+           qui reste. Un titre de quatre lignes serre donc la composition au lieu de
+           la faire déborder : les souffles tombent, puis le fleuron se resserre. */
         .couverture-face {
           position: absolute; inset: 0;
           display: flex; flex-direction: column; align-items: center; text-align: center;
-          padding: 0 8cqw 7.5cqw;
+          padding: 6.5cqw 8cqw 7.5cqw;
           transition: opacity 0.22s ease;
         }
         /* Cadre doublé, comme un cartonnage d'éditeur : un filet net au bord, un
@@ -483,7 +484,7 @@ function OngletCommunaute({
         /* La catégorie, en capitales espacées : elle annonce le genre avant le titre,
            comme la mention de collection d'un éditeur. */
         .couverture-categorie {
-          margin: 4.4cqw 0 4.6cqw;
+          margin: 0 0 3.6cqw; flex-shrink: 0;
           font-size: 4cqw; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.84;
           font-variation-settings: "opsz" 9, "wght" 400;
           padding-left: 0.28em;
@@ -491,7 +492,7 @@ function OngletCommunaute({
         /* Le titre : la seule grande chose de la couverture. Ecrêté à quatre lignes,
            faute de quoi un titre-fleuve chasserait la date hors du carton. */
         .couverture-titre {
-          font-size: 10.4cqw; font-weight: 400; line-height: 1.08; letter-spacing: -0.012em;
+          font-size: 10.4cqw; font-weight: 400; line-height: 1.08; letter-spacing: -0.012em; flex-shrink: 0;
           font-variation-settings: "opsz" 44, "wght" 400;
           text-wrap: balance;
           overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4;
@@ -499,18 +500,23 @@ function OngletCommunaute({
         /* Pas de largeur bornée : le retrait de la face suffit à tenir la mesure, et
            un plafond en em coupait le sous-titre trop court, sur un mot esseulé. */
         .couverture-soustitre {
-          margin-top: 3.4cqw;
+          margin-top: 2.8cqw; flex-shrink: 0;
           font-size: 4.4cqw; font-weight: 400; line-height: 1.42; opacity: 0.84; text-wrap: balance;
           font-variation-settings: "opsz" 14, "wght" 400;
           overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
         }
         /* Le fleuron (2026-09-23) : un fleuron du registre de l'auteur par genre, en
            lieu et place des gravures (app/lib/fleuronsCouverture.tsx). Ses marges
-           automatiques le centrent dans le blanc qui reste entre le sous-titre et la
-           date, où le compositeur posait la vignette d'une page de titre. Sa taille
-           est posée par le composant : la hauteur de pose du registre, un rem de
-           pose valant 8cqw, soit 20 à 28cqw selon la planche. C'est le titre qui
-           tient la page, le fleuron la ponctue.
+           deux SOUFFLES qui l'encadrent le posent dans le blanc qui reste entre le
+           sous-titre et la date, où le compositeur posait la vignette d'une page de
+           titre, et un peu au-dessus du milieu : le souffle du bas vaut 1,45 fois
+           celui du haut, c'est le centre OPTIQUE. Sa taille est posée par le
+           composant : la hauteur de pose du registre, un rem de pose valant
+           10,5cqw, soit 26 à 37cqw selon la planche.
+           ⛔ Ni le titre, ni le sous-titre, ni la catégorie ne rétrécissent
+           (flex-shrink: 0) : quand la place manque, les souffles tombent d'abord,
+           puis le FLEURON se resserre, jusqu'à 12cqw. Un titre de quatre lignes
+           suivi d'un sous-titre de trois tient ainsi, mesuré sur planche.
 
            Sur l'OPACITÉ, qui revient dans tout ce bloc et n'est pas un bricolage. La
            couverture n'a qu'une encre, celle que l'auteur a choisie, prise partout
@@ -519,10 +525,17 @@ function OngletCommunaute({
            0.78, filet du cadre 0.42. Le fleuron est posé en masque sur l'encre de
            la couverture ; seuls ceux qui supportent le négatif y ont droit, si bien
            qu'il n'a pas besoin de la plaque que réclamaient les gravures. */
-        .couverture-fleuron { margin: auto 0; opacity: 0.86; }
-        /* Le pied garde son blanc au-dessus même quand le titre remplit tout : la
-           date ne se colle jamais au fleuron. */
-        .couverture-pied { margin-top: 4cqw; display: flex; flex-direction: column; align-items: center; }
+        .couverture-fleuron { flex: 0 1 auto; min-height: 12cqw; opacity: 0.86; }
+        .couverture-souffle { display: block; flex: 1 1 0; min-height: 3cqw; }
+        .couverture-souffle--bas { flex-grow: 1.45; }
+        /* Deux filets courts, de l'encre à mi-intensité : sous le nom de l'auteur,
+           et au-dessus de la date, comme le filet qui sépare l'adresse d'une page
+           de titre. Ils ne séparent pas des blocs, ils ponctuent la page. */
+        .couverture-filet { display: block; width: 9cqw; height: 0; border-top: 1px solid currentColor; opacity: 0.5; margin: 3.4cqw auto 0; }
+        .couverture-pied .couverture-filet { margin: 0 auto 3cqw; }
+        /* Le pied ne porte plus de marge : le souffle du bas et le filet font son
+           blanc, et le filet ne laisse jamais la date se coller au fleuron. */
+        .couverture-pied { margin-top: 0; display: flex; flex-direction: column; align-items: center; }
         .couverture-date {
           font-size: 3.3cqw; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.78;
           padding-left: 0.24em; font-variation-settings: "opsz" 9, "wght" 400;
@@ -710,6 +723,7 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
           {e.auteur}
           {e.mecene && <>{' '}<MarqueMecene couleur="currentColor" taille="1em" /></>}
         </span>
+        <span className="couverture-filet" aria-hidden="true" />
       </span>
 
       <span className="couverture-corps">
@@ -719,8 +733,11 @@ function CouvertureEssai({ essai: e, plusLu, favorisEssais, toggleFavoriEssai }:
           {sousTitre && <span className="couverture-soustitre">{sousTitre}</span>}
           {/* Le fleuron est un ornement, pas une information : il double la catégorie,
               déjà écrite au-dessus, et n'a donc rien à annoncer. */}
-          <FleuronGenre categorie={categorie} echelle="8cqw" className="couverture-fleuron" />
+          <span className="couverture-souffle" aria-hidden="true" />
+          <FleuronGenre categorie={categorie} echelle="10.5cqw" className="couverture-fleuron" />
+          <span className="couverture-souffle couverture-souffle--bas" aria-hidden="true" />
           <span className="couverture-pied">
+            <span className="couverture-filet" aria-hidden="true" />
             {e.publie_at && <span className="couverture-date">{formaterDateLongue(e.publie_at)}</span>}
           </span>
         </span>
