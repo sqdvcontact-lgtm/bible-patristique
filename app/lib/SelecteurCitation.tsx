@@ -22,6 +22,8 @@ import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { STYLE_RUBRIQUE } from './hierarchieTitres'
 import IconeCroix from '@/app/components/IconeCroix'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { Z_MODALE } from '@/app/lib/empilement'
 
 const NOM_FR: Record<string, string> = {
   GEN:'Genèse',EXO:'Exode',LEV:'Lévitique',NUM:'Nombres',DEU:'Deutéronome',JOS:'Josué',JDG:'Juges',RUT:'Ruth',
@@ -256,8 +258,8 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
   useFenetreModale(boite)
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div ref={boite} role="dialog" aria-modal="true" aria-label="Outil de citation" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: '100%', maxWidth: '45rem', height: '78vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
+    <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <div ref={boite} role="dialog" aria-modal="true" aria-label="Outil de citation" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '12px', width: '100%', maxWidth: '45rem', height: '78vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 12px', borderBottom: '1px solid var(--cs-bord-clair)' }}>
           <div style={{ display: 'flex', gap: '6px' }}>

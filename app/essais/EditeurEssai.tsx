@@ -22,6 +22,7 @@ import { NOM_ANONYME, colonnesSignature, nomReel, nomSigne, signatureDe, type Si
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { SERIF, SANS } from '@/app/lib/polices'
+import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 
 const MAX_CARACTERES = 8000
 const MIN_CARACTERES_PUBLICATION = 2000
@@ -1120,8 +1121,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
           en a) piège le `position: fixed` et la fenêtre n'est plus centrée sur la page.
           Resserrée et épurée. */}
       {confirmPublier && typeof document !== 'undefined' && createPortal(
-        <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div ref={boiteConfirmPublier} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
+        <div onClick={() => setConfirmPublier(false)} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div ref={boiteConfirmPublier} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h3 style={{ fontFamily: SERIF, fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
               Soumettre cette publication ?
             </h3>
@@ -1170,8 +1171,8 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
           Même dessin et même mécanique que la fenêtre de soumission (portail,
           Échap, foyer piégé). */}
       {avertissement && typeof document !== 'undefined' && createPortal(
-        <div onClick={fermerAvertissement} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div ref={boiteAvertissement} role="dialog" aria-modal="true" aria-labelledby="titre-avertissement-essai" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
+        <div onClick={fermerAvertissement} style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div ref={boiteAvertissement} role="dialog" aria-modal="true" aria-labelledby="titre-avertissement-essai" onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '20px 22px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h3 id="titre-avertissement-essai" style={{ fontFamily: SERIF, fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre-fonce)', margin: '0 0 8px' }}>
               {avertissement === 'retouche' ? 'Modifier un essai en ligne ?'
                 : avertissement === 'brouillon' ? 'Remettre cet essai en brouillon ?'

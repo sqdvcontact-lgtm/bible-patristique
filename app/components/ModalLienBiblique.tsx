@@ -198,8 +198,8 @@ export default function ModalLienBiblique({
   }
 
   return (
-    <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: mobile ? '10px' : '22px', background: 'var(--cs-calque-modale)', backdropFilter: 'blur(2px)', overflow: 'hidden' }}>
-      <div ref={boite} role="dialog" aria-modal="true" aria-label={titre} style={{ width: 'min(940px, 100%)', maxHeight: mobile ? '100%' : 'min(760px, 100%)', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr) auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '8px', boxShadow: 'var(--cs-ombre-modale)', overflow: 'hidden' }}>
+    <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: mobile ? '10px' : '22px', background: 'var(--cs-calque-modale)', overflow: 'hidden' }}>
+      <div ref={boite} role="dialog" aria-modal="true" aria-label={titre} style={{ width: 'min(940px, 100%)', maxHeight: mobile ? '100%' : 'min(760px, 100%)', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr) auto', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '12px', boxShadow: 'var(--cs-ombre-modale)', overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px 13px', borderBottom: '1px solid var(--cs-bord-clair)', display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'flex-start' }}>
           <div>
             <p style={{ margin: '0 0 4px', fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '.12em', color: 'var(--cs-etiquette)', fontWeight: 700 }}>Lien biblique</p>

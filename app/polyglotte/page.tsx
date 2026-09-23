@@ -724,8 +724,8 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
     setTimeout(() => { el.focus(); el.setSelectionRange(d + t.length, d + t.length); }, 0);
   };
   return (
-    <div onClick={onFermer} style={{ position: "fixed", inset: 0, background: "var(--cs-calque-modale)", zIndex: Z_MODALE, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div ref={boite} role="dialog" aria-modal="true" aria-label={`Modifier ${reference}`} onClick={e => e.stopPropagation()} style={{ background: "var(--cs-surface)", borderRadius: 8, padding: "18px 20px", width: 520, maxWidth: "100%", boxShadow: "var(--cs-ombre-modale)" }}>
+    <div onClick={onFermer} style={{ position: "fixed", top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: "var(--cs-calque-modale)", zIndex: Z_MODALE, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <div ref={boite} role="dialog" aria-modal="true" aria-label={`Modifier ${reference}`} onClick={e => e.stopPropagation()} style={{ background: "var(--cs-surface)", borderRadius: 12, padding: "20px 22px", width: 520, maxWidth: "100%", boxShadow: "var(--cs-ombre-modale)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
           <p style={{ margin: 0, fontSize: '0.78125rem', fontWeight: 600, color: VERT }}>Modifier — {reference}</p>
           <button onClick={onFermer} aria-label="Fermer" title="Fermer" className="cs-croix-fermer"><IconeCroix /></button>

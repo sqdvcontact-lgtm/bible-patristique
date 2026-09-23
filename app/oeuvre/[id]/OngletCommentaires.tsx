@@ -75,7 +75,7 @@ function ModalSignalerCommentaire({ titre, onClose, onEnvoyer }: {
     //    tiroirs mobiles compris (2400/2401), et cette fenêtre s'ouvre depuis l'un d'eux.
     <div ref={boite} onClick={onClose} role="dialog" aria-modal="true" aria-labelledby={idTitre}
       style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflow: 'hidden' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', width: 'min(21.25rem, 100%)', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '20px 22px', width: 'min(21.25rem, 100%)', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
           <p id={idTitre} style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-danger)', margin: 0 }}>Signaler</p>
           <button onClick={onClose} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>

@@ -45,6 +45,7 @@ import { ORIGINAUX_VIDES, composerOriginauxDisponibles, traductionAvecOriginal, 
 import { FAMILLES_TRADITION, famillesDesTraditions } from '@/app/lib/traditions'
 import { SERIF, SANS } from '@/app/lib/polices'
 import IconeCroix from '@/app/components/IconeCroix'
+import { Z_MODALE } from '@/app/lib/empilement'
 
 type Oeuvre = {
   id_oeuvre: string; id_auteur: string; titre: string; sous_titre: string | null
@@ -1029,9 +1030,9 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
 
   return (
     <div onMouseDown={tenterFermer}
-      style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'var(--cs-calque-modale)', display: 'flex', padding: '20px', overflowY: 'auto' }}>
+      style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, zIndex: Z_MODALE, background: 'var(--cs-calque-modale)', display: 'flex', padding: '20px', overflowY: 'auto' }}>
       <div onMouseDown={e => e.stopPropagation()} onInput={() => { toucheRef.current = true }}
-        style={{ margin: 'auto', background: 'var(--cs-fond)', borderRadius: '8px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '41.25rem', boxShadow: 'var(--cs-ombre-modale)' }}>
+        style={{ margin: 'auto', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '41.25rem', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 22px 12px', borderBottom: '1px solid var(--cs-bord-clair)' }}>
           <h3 style={{ fontFamily: SERIF, fontSize: '1rem', color: 'var(--cs-texte)', margin: 0 }}>{(auteur || titre) ? 'Proposer cette œuvre' : 'Proposer une œuvre'}</h3>
           <button onClick={tenterFermer} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
@@ -1045,9 +1046,9 @@ function ModaleProposerOeuvre({ auteur, titre, onClose }: {
           qu'une saisie est en cours, pour éviter une perte accidentelle. */}
       {demandeFermeture && (
         <div onMouseDown={e => { e.stopPropagation(); setDemandeFermeture(false) }}
-          style={{ position: 'fixed', inset: 0, zIndex: 110, background: 'var(--cs-calque-modale)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, zIndex: 110, background: 'var(--cs-calque-modale)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div onMouseDown={e => e.stopPropagation()}
-            style={{ background: 'var(--cs-surface)', borderRadius: '8px', border: '1px solid var(--cs-bord-clair)', width: '100%', maxWidth: '23.75rem', padding: '20px 22px', boxShadow: 'var(--cs-ombre-modale)' }}>
+            style={{ background: 'var(--cs-surface)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', width: '100%', maxWidth: '23.75rem', padding: '20px 22px', boxShadow: 'var(--cs-ombre-modale)' }}>
             <h4 style={{ fontFamily: SERIF, fontSize: '0.9375rem', color: 'var(--cs-texte)', margin: '0 0 8px' }}>Fermer sans enregistrer ?</h4>
             <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.55, margin: '0 0 18px' }}>
               Les informations que vous avez saisies seront perdues.

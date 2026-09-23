@@ -43,6 +43,7 @@ import {
 } from '@/app/lib/notificationsClient'
 import { SERIF } from '@/app/lib/polices'
 import IconeCroix from '@/app/components/IconeCroix'
+import { Z_TIROIR_VOILE } from '@/app/lib/empilement'
 
 type Onglet = 'nouvelles' | 'archivees'
 
@@ -119,7 +120,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
 
   return createPortal(
     <>
-      <div onClick={onFermer} style={{ position: 'fixed', inset: 0, zIndex: 2400 }} />
+      <div onClick={onFermer} style={{ position: 'fixed', inset: 0, zIndex: Z_TIROIR_VOILE }} />
       <div ref={boite} role="dialog" aria-modal="true" aria-label="Notifications"
         style={{
           position: 'fixed', top: `calc(${HAUTEUR_NAVBAR} + 6px)`, right: '12px',

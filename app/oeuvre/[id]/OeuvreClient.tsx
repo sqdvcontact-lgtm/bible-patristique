@@ -452,7 +452,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
               tant que la fenêtre est là ; `aria-label` la nomme, faute d'un titre à viser
               par `aria-labelledby` — le titre vit dans un `<p>`, non dans un rang de titre. */}
           <div ref={boiteLien} role="dialog" aria-modal="true" aria-label="Proposer un lien biblique"
-            onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(22.5rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
+            onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '12px', width: 'min(22.5rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 22px 10px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Proposer un lien biblique</p>
               <button onClick={() => setOuvert(false)} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
@@ -5359,7 +5359,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
         <div style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MODALE, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}
           onClick={() => setConfigOuverte(false)}>
           <div ref={boiteConfig} role="dialog" aria-modal="true" aria-label="Niveaux d'affichage"
-            onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(25rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
+            onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '12px', width: 'min(25rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 22px 12px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Niveaux d'affichage</p>
               <button onClick={() => setConfigOuverte(false)} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
