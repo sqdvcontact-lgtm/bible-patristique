@@ -1063,7 +1063,7 @@ export default function TexteBible({
                     <ul style={STYLE_ABSENT_LISTE}>
                       {biblesDuLivreAbsent.map(b => (
                         <li key={b.code}>
-                          <a href={b.href} className="cs-lien-phrase" style={{ color: 'var(--cs-vert)' }}
+                          <a href={b.href} className="cs-lien-phrase"
                             onClick={e => {
                               if (!onChoisirBible || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
                               e.preventDefault()

@@ -1180,7 +1180,8 @@ button:focus-visible,
    non le doux du chevron. Écrite avant le survol, qui garde la main. */
 .cs-volet-reduire:hover { color: var(--cs-vert); }
 
-.cs-rail-volet { transition: background 0.14s, color 0.14s; }
+/* ⛔ Le fond de repos se déclare ICI et non en ligne : il battait la règle de survol. */
+.cs-rail-volet { background: var(--cs-fond-clair); transition: background 0.14s, color 0.14s; }
 .cs-rail-volet:hover { background: var(--cs-fond-doux); }
 .cs-rail-volet:hover span { color: var(--cs-texte-second); }
 
@@ -3400,7 +3401,15 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   padding: 0;
   cursor: pointer;
 }
+/* ⛔ Une teinte particulière passe par une VARIANTE, jamais par un `color` en ligne,
+   qui battait le survol (2026-09-23) : --herite prend l'encre de sa phrase (un message
+   d'erreur), --discret le gris des mentions de formulaire, --sur-aplat l'or clair d'un
+   bandeau vert, qui s'éclaircit au survol au lieu de foncer dans son fond. */
+.cs-lien-phrase--herite { color: inherit; }
+.cs-lien-phrase--discret { color: var(--cs-texte-second); }
+.cs-lien-phrase--sur-aplat { color: var(--cs-or-clair); }
 .cs-lien-phrase:hover { color: var(--cs-vert-fonce); }
+.cs-lien-phrase--sur-aplat:hover { color: var(--cs-sur-aplat); }
 
 /* ── RÉTABLIR LES PROPORTIONS — la pastille des volets ────────────────────────
    Elle paraît au coin bas gauche de la lecture dès qu'on a traîné une poignée, et

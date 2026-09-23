@@ -1274,7 +1274,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
         <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-danger-fonce)', fontStyle: 'italic', fontFamily: SERIF }}>
           Le catalogue n’a pas pu être chargé.{' '}
           <button onClick={() => { void charger() }}
-            className="cs-lien-phrase" style={{ color: 'inherit' }}>
+            className="cs-lien-phrase cs-lien-phrase--herite">
             Réessayer
           </button>
         </p>

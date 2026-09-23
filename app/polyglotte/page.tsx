@@ -2826,7 +2826,8 @@ export default function PolyglottePage() {
           .poly-grille { transition: background .4s ease; }
           .poly-col { transition: none; }
         }
-        .poly-act:hover { color: var(--cs-texte-second); }
+        /* ⛔ Pas de teinte de survol : c'est le FOND qui change (globals.css), la couleur
+           de l'icône dit un état. L'ancienne règle était morte sous le style en ligne. */
         /* En-tête « Notes » : au survol de toute la cellule, « Notes » s'efface et
            « Fermer » apparaît à sa place (fondu croisé). */
         .poly-notes-head .lbl-notes { transition: opacity .15s ease; }

@@ -70,7 +70,7 @@ export default function RailVolet({ cote, libelle, complement, onOuvrir }: {
       className="cs-rail-volet"
       style={{
         width: LARGEUR_RAIL, flexShrink: 0, height: '100%',
-        background: 'var(--cs-fond-clair)', border: 'none',
+        border: 'none',
         [gauche ? 'borderRight' : 'borderLeft']: FILET_RAIL,
         cursor: 'pointer', color: 'var(--cs-texte-doux)',
         display: 'flex', flexDirection: 'column', alignItems: 'center',

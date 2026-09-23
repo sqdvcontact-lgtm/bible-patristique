@@ -680,8 +680,8 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             <label htmlFor="cs-mdp" style={labelStyle}>MOT DE PASSE</label>
             <input id="cs-mdp" autoComplete={mode === "connexion" ? "current-password" : "new-password"} type="password" value={mdp} onChange={e => setMdp(e.target.value)} required minLength={6} placeholder="··········" style={inputStyle} />
             {mode === "connexion" && (
-              <a href="/auth/mot-de-passe-oublie" className="cs-lien-phrase"
-                style={{ display: "inline-block", marginTop: "0.4375rem", fontSize: "0.75rem", color: "var(--cs-texte-second)" }}>
+              <a href="/auth/mot-de-passe-oublie" className="cs-lien-phrase cs-lien-phrase--discret"
+                style={{ display: "inline-block", marginTop: "0.4375rem", fontSize: "0.75rem" }}>
                 Mot de passe oublié ?
               </a>
             )}
