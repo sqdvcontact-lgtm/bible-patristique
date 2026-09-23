@@ -6355,6 +6355,24 @@ Cette obligation vaut aussi pour les œuvres antiques, médiévales ou anciennes
 
 ⚠️ **LA FINE EST LÀ, ET ELLE EST FINE : ELLE SE JUGE À LA MESURE, NON À L’ŒIL** (demande de l’auteur, le soir même : « il faut des espaces fines de part et d’autre de la barre oblique ; et j’aimerais que cet affichage soit automatique, en fonction des données liées à la trad »). La barre porte ses deux espaces fines insécables, et la phrase se compose d’elle-même depuis les lieux que la base porte pour l’édition : aucune adresse n’est écrite à la main. Dans le caractère de la carte, la fine vaut un dixième de cadratin, la moitié d’une espace de mot : présente, elle reste à peine visible à cette taille. ⛔ Avant de conclure qu’une fine manque, on la mesure dans la police servie.
 
+### 47.8. UNE SEULE BASE DE RÉFÉRENCES, et une colonne dit où chacune paraît
+
+**Décision de l’auteur du 23 septembre 2026 : « fusionner les bases de données et ajouter une ligne qui détermine où apparaît la référence ».** Le catalogue (`catalogue_notices`) et la bibliographie (`ouvrages_bibliographiques`) deviennent une seule table de références. Les deux surfaces demeurent : le catalogue de la page Bibliothèque, et l’outil bibliographique d’« Aller plus loin ».
+
+⛔ **LA TABLE COMMUNE EST `ouvrages_bibliographiques`, qui garde son nom et ses identifiants.** Huit tables pointent déjà vers elle par clé étrangère, et les notes, les segments et l’apparat de Fillion la citent dans leurs métadonnées sans clé étrangère. Les notices du catalogue y entrent avec des identifiants neufs, et une table de correspondance garde leur ancien identifiant et leur `id_ligne`.
+
+⛔ **`apparait_dans` DIT LA SURFACE, ET ELLE SEULE.** Elle vaut `catalogue`, `bibliographie`, ou les deux. Une surface ne lit que les références qui la nomment ; aucune ne déduit sa liste d’un autre champ (type d’ouvrage, statut, présence sur le site).
+
+⛔ **UNE RÉFÉRENCE A UN NIVEAU : l’ŒUVRE ou l’ÉDITION.** Une notice du catalogue décrit une édition ou une traduction d’une œuvre des Pères ; une « source primaire » de la bibliographie désigne le plus souvent l’œuvre elle-même, sans traducteur ni année. Les deux niveaux ne se fondent pas en une ligne : une édition pointe vers son œuvre (`oeuvre_ouvrage_id`), et la fiche d’une œuvre liste ainsi toutes ses traductions.
+
+⛔ **CE QUI N’APPARTIENT QU’AU CATALOGUE VIT DANS UNE TABLE ANNEXE**, jointe par l’identifiant de la référence : identifiants `A0000O0000`, suivi d’import, statuts de vérification, dates normalisées. Ses contrôles et ses déclencheurs y restent. Ceux de la bibliographie (statut scientifique calculé, usage francophone, projection éditoriale de Fillion) ne s’appliquent pas aux lignes du catalogue qui ne paraissent pas dans la bibliographie.
+
+⛔ **LES RAPPROCHEMENTS SE DÉCIDENT À LA LECTURE, jamais par le seul calcul.** Un titre et un auteur communs ne disent pas si deux lignes sont la même référence, une œuvre et son édition, ou deux choses distinctes. Les candidats sont dans `internal.fusion_references_candidats` (581 paires au 23 septembre 2026), et chacun reçoit une `decision` : `meme_edition` (fusion), `edition_de_oeuvre` (lien), `distincts`. Seule une décision prise ouvre une fusion ou un lien.
+
+⚠️ **L’ORDRE DE LA MIGRATION EST UNE RÈGLE, la base étant partagée avec le site en ligne.** Sauvegarde des deux tables ; colonnes et table annexe ajoutées sans rien retirer ; surfaces du site filtrées sur `apparait_dans` et déployées ; copie des notices et application des décisions ; `catalogue_notices` remplacée par une vue du même nom ; retrait de l’ancienne table en dernier. ⛔ Aucune étape destructive avant que le code qui s’en passe soit en ligne.
+
+⚠️ **PENDANT LA MIGRATION, RIEN NE S’ÉCRIT DANS LES DEUX TABLES D’ORIGINE** sans que l’auteur l’ait dit. L’état de départ est sauvegardé dans `internal.backup_*_20260923` (notices, ouvrages, leurs éditeurs, les contributeurs, les votes, les liens des textes vers le catalogue). Le suivi vit au centre de contrôle, mission `fusion_references`.
+
 ## 48. Le protocole d’océrisation d’une bible
 
 Le protocole de traitement, de correction et de clôture d’une édition biblique. Il tenait au quatrième rang sous un chapitre nommé d’après un chantier : un protocole doit se trouver.
