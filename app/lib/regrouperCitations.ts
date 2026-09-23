@@ -163,11 +163,11 @@ const PONCTUATION_FORTE = /[.!?…][\s»"'’)\]]*$/u
  * ⚠️ C'est la même règle que l'initiale d'un extrait, et la même fonction — elle ne
  * change jamais la longueur du texte, les appels de note s'y posant par offset.
  */
-export function texteDuGroupe<T>(groupe: readonly T[], cle: (item: T) => CitationRegroupable): string {
+export function texteDuGroupe<T>(groupe: readonly T[], cle: (item: T) => CitationRegroupable, jointure = ' '): string {
   return groupe.reduce((acc, item, i) => {
     const cet = cle(item)
     if (i === 0) return cet.texte
-    if (cet.numero === cle(groupe[i - 1]).numero + 1) return acc + ' ' + cet.texte
+    if (cet.numero === cle(groupe[i - 1]).numero + 1) return acc + jointure + cet.texte
     const suite = PONCTUATION_FORTE.test(acc) ? capitaliserInitiale(cet.texte) : cet.texte
     return `${acc} ${MARQUE_ELISION} ${suite}`
   }, '')

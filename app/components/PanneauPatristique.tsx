@@ -475,7 +475,7 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
       <p lang="fr" style={{ '--cs-lacune':'var(--cs-texte-second)', fontSize:CORPS_CARTE_VOLET, lineHeight:INTERLIGNE_CARTE_VOLET, color:'var(--cs-texte-fort)', textAlign:'justify', textJustify:'inter-word', margin:'0 0 1px', wordSpacing:'-0.08em', hyphens:'auto', WebkitHyphens:'auto', overflowWrap:'break-word' } as React.CSSProperties}>
         {/* ⚠️ La capitale et les appels projetés arrivent POSÉS (`composerExtrait`) : la
             capitale passe avant la projection, qui compte ses offsets dans le texte. */}
-        {rendreTexteAvecNotes(texteAffichage, notes, 'corps', {
+        {avecSautsDuVolet(rendreTexteAvecNotes(texteAffichage, notes, 'corps', {
           appel: ({ marqueur, contenu, numeroVisible }) => (
             <AppelDuVolet
               numero={numeroVisible}
@@ -488,10 +488,20 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
               }}
             />
           ),
-        })}
+        }))}
       </p>
     </div>
   )
+}
+
+/** Les SAUTS DE LIGNE de l'extrait, rendus par un blanc léger (décision de l'auteur,
+ *  2026-09-23) : ils se fondaient dans le paragraphe justifié. ⚠️ On découpe le RENDU,
+ *  non le texte : les appels de note se numérotent sur l'extrait entier. */
+function avecSautsDuVolet(noeuds: React.ReactNode): React.ReactNode {
+  if (!Array.isArray(noeuds)) return noeuds
+  return noeuds.flatMap((n, i) => typeof n === 'string' && n.includes('\n')
+    ? n.split(/\s*\n\s*/).flatMap((t, j) => j ? [<span key={`saut-${i}-${j}`} className="cs-saut-volet" aria-hidden="true" />, t] : [t])
+    : [n])
 }
 
 // ── LE SQUELETTE D'UN SEUL EXTRAIT ────────────────────────────────────────────

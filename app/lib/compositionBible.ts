@@ -116,7 +116,12 @@ export const RAPPORT_GLOSE_ORIGINAL = 0.85
 export const GOUTTIERE_NUMERO_VERSET_REM = 0.1875
 
 /** Ce que le bloc sélectionné déborde du texte, à gauche comme à droite : 1,625 rem. */
-export const DEBORD_BLOC_VERSET_REM = NUMERO_VERSET_REM + GOUTTIERE_NUMERO_VERSET_REM
+/** L'air ajouté À GAUCHE du numéro pour que le signet d'un verset enregistré tombe DANS le
+ *  cadre de survol et de sélection (décision de l'auteur, 2026-09-23) : il en dépassait.
+ *  Rendu à droite aussi, pour que le bloc reste symétrique. Le texte ne bouge pas. */
+export const AIR_SIGNET_VERSET_REM = 0.625
+
+export const DEBORD_BLOC_VERSET_REM = NUMERO_VERSET_REM + GOUTTIERE_NUMERO_VERSET_REM + AIR_SIGNET_VERSET_REM
 
 /** Le débord droit d'avant, que garde la lecture au doigt, où rien ne le borde. */
 const DEBORD_DROIT_ETROIT_REM = 0.25
@@ -156,8 +161,8 @@ export function styleBlocVerset({ actif, mobile }: { actif?: boolean; mobile?: b
     columnGap: `${GOUTTIERE_NUMERO_VERSET_REM}rem`,
     alignItems: 'baseline',
     borderRadius: '4px',
-    padding: `0.0625rem ${symetrique ? DEBORD_BLOC_VERSET_REM : DEBORD_DROIT_ETROIT_REM}rem 0.0625rem 0`,
-    ...(symetrique ? { marginRight: `-${EMPIETEMENT_BLOC_VERSET_REM}rem` } : null),
+    padding: `0.0625rem ${symetrique ? DEBORD_BLOC_VERSET_REM : DEBORD_DROIT_ETROIT_REM}rem 0.0625rem ${symetrique ? `${AIR_SIGNET_VERSET_REM}rem` : 0}`,
+    ...(symetrique ? { marginRight: `-${EMPIETEMENT_BLOC_VERSET_REM}rem`, marginLeft: `-${AIR_SIGNET_VERSET_REM}rem` } : null),
     // ⛔ AU DOIGT, LE BLOC NE DÉPASSE PAS SA MESURE (relevé du 2026-09-21, Dt 33 sur
     // Chrome Android). La piste de texte est bornée à 29,5 rem et la colonne du numéro
     // est en `auto` : sur une rangée pleine largeur de 520 à 900 px, c'est le NUMÉRO qui

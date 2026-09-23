@@ -132,6 +132,8 @@ export function composerExtrait(
   const texte = texteDuGroupe(
     groupe.map(({ seg }, rang) => ({ seg, texte: textes[rang] })),
     ({ seg, texte: t }) => ({ idOeuvre: seg.id_oeuvre, idTexte: seg.id_texte, numero: seg.segment_numero, texte: t }),
+    // Deux paragraphes qui se suivent gardent leur saut : le volet le rend par un blanc léger.
+    '\n',
   )
   return { texte, notes, enAttente }
 }

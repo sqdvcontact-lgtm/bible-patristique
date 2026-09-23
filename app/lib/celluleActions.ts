@@ -22,10 +22,10 @@
 import { Z_FLOTTANT } from '@/app/lib/empilement'
 import type { CSSProperties } from 'react'
 
-/** Côté d'un bouton d'action, et gabarit de toutes les icônes du site (11×12).
+/** Côté d'un bouton d'action, et gabarit de toutes les icônes du site (13×14 depuis le 2026-09-23 ; 11×12 se lisait trop menu).
  *  Une seule valeur pour les quatre surfaces : la Bible, l'œuvre, la Polyglotte et
  *  les péricopes montraient le même drapeau dans des boîtes de 16, 18 et 19 px. */
-export const COTE_BOUTON = 18
+export const COTE_BOUTON = 21
 /** Blanc entre deux boutons de la cellule. */
 export const GOUTTIERE_BOUTON = 2
 /** Rembourrage horizontal de la cellule, et son filet. */

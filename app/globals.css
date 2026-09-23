@@ -1908,6 +1908,26 @@ button:focus-visible,
   font-weight: 500;
 }
 
+/* ── DEUX RÈGLES CONTRE LA LAIDEUR DU JUSTIFIÉ (décision de l'auteur, 2026-09-23) ──
+   ① PAS DE REJET SOUS LA MANCHETTE. Le paragraphe COURT (moins de 360 signes) qui la côtoie ne passe plus sous
+   elle : il reste tout entier dans sa colonne (`flow-root` en fait un contexte de
+   bloc, qui se range À CÔTÉ du flottant au lieu de l'habiller). Relevé sur « Plan et
+   division » de la Genèse : « minutieusement. » tombait seul sous le repère, à
+   pleine mesure, et se lisait comme un débris. Les paragraphes suivants reprennent
+   toute la mesure.
+   ② PAS DE LÉZARDES. Tout le texte justifié de la Bible se césure et se compose
+   « joliment » : sans césure, une ligne de cinq mots longs étirait ses espaces
+   jusqu'au double (« dévoilant une œuvre bien proportionnée »). */
+.cs-bible-bloc[data-manchette-court] > .cs-bible-info-label--manchette + :is(p, div) {
+  display: flow-root;
+}
+.cs-bible-bloc {
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  text-wrap: pretty;
+}
+
 /* Sur une mesure étroite, la manchette ne laisserait au commentaire qu'une
    trentaine de signes par ligne, et le justifié s'y creuserait de lézardes. Le
    repère reprend alors toute la mesure et le texte le suit, au lieu de
@@ -5238,3 +5258,7 @@ a.cs-fiche-oeuvre:hover { background: rgba(var(--cs-vert-rgb), 0.06); }
   font-size: 0.75rem; letter-spacing: 0.02em; color: var(--cs-texte-doux);
   user-select: none; min-width: 5.5rem; text-align: center; white-space: nowrap;
 }
+
+/* Un saut de ligne d'extrait, dans le volet patristique : un blanc LÉGER, le tiers
+   d'une ligne, qui sépare sans ouvrir un nouveau paragraphe (2026-09-23). */
+.cs-saut-volet { display: block; height: 0.35em; }

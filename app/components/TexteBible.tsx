@@ -1139,7 +1139,7 @@ export default function TexteBible({
                       {estAdmin && !modeUtilisateurStandard && !ligneSource && (
                         <button onClick={e => { e.stopPropagation(); setEditionCible(v) }} title="Modifier ce verset" className="bouton-action-verset"
                           style={{ ...VERSET_ACTION_BTN, opacity:0, color:'var(--cs-bord)' }}>
-                          <IconeCrayon size={12} />
+                          <IconeCrayon size={14} />
                         </button>
                       )}
                     </>

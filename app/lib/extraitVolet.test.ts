@@ -50,7 +50,7 @@ describe('composerExtrait', () => {
         ancres: [{ noteKey: 'N3', marker: '[[3]]', segmentOffsetUnicode: 1, sourceTarget: 'segment_texte' }],
       }],
     ]))
-    expect(r.texte).toBe('Un 𝔄[[3]]b')
+    expect(r.texte).toBe('Un\n𝔄[[3]]b')
   })
 
   it('compose un EMPAN morceau par morceau : chaque partie garde ses notes et ses ancres', () => {
@@ -113,11 +113,11 @@ describe('composerExtrait', () => {
       seg(1, 'les hommes et les bêtes[[74]] » …'),
       seg(2, 'et voici la suite'),
     ], new Map())
-    expect(r.texte).toBe(`Les hommes et les bêtes[[74]] »${NBSP}[…] et voici la suite`)
+    expect(r.texte).toBe(`Les hommes et les bêtes[[74]] »${NBSP}[…]\net voici la suite`)
   })
 
   it('joint un groupe, et marque l’élision entre deux segments qui ne se suivent pas', () => {
-    expect(composerExtrait([seg(1, 'Premier'), seg(2, 'second')], new Map()).texte).toBe('Premier second')
+    expect(composerExtrait([seg(1, 'Premier'), seg(2, 'second')], new Map()).texte).toBe('Premier\nsecond')
     const elide = composerExtrait([seg(1, 'Premier.'), seg(3, 'suite')], new Map()).texte
     expect(elide).toMatch(/^Premier\. .*….* Suite$/u)
   })

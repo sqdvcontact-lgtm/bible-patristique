@@ -76,6 +76,9 @@ export type IllustrationBibliqueAffichable = BibleEditionDisplayAsset
 const SERIF = 'var(--font-source-serif), Georgia, serif'
 
 
+/** Sous ce nombre de signes, le paragraphe voisin d'une manchette ne l'habille pas. */
+const SIGNES_PARAGRAPHE_COURT = 360
+
 function positionAppelDansTexte(
   text: string,
   note: BibleEditionDisplayInternalNote,
@@ -962,6 +965,10 @@ export function BlocEditorialBible({
     // manchette, et la feuille lui donne le blanc d'une subdivision — non celui
     // d'un rang de titre, qui valait vingt fois plus (charte § 35.27).
     'data-manchette': manchette ? '' : undefined,
+    // Paragraphe COURT à côté de la manchette : il reste tout entier dans sa colonne,
+    // sans quoi sa dernière ligne tombe seule sous le repère (« minutieusement. »,
+    // relevé de l'auteur, 2026-09-23). Un paragraphe long garde son habillage.
+    'data-manchette-court': manchette && (bloc.textBlocks.find(t => t.kind !== 'heading')?.text.length ?? 0) < SIGNES_PARAGRAPHE_COURT ? '' : undefined,
     // ⛔ LE DÉFAUT DE DONNÉE SE VOIT. Le bloc n'est ici que parce que le rendu
     // l'a adopté faute de parent déclaré ; sans ce drapeau — et le fluo que la
     // feuille y accroche —, l'adoption ferait passer pour saine une donnée qui

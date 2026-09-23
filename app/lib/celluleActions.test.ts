@@ -197,10 +197,10 @@ describe('la bande laissée par le chrome fixe d’une page', () => {
   const TELEPHONE = { droite: 375, sommet: 97, pied: 626 }
 
   // ⛔ Le cas qui a imposé la règle : sans le bas de la barre haute, la cellule se pose
-  //    à 66 — c’est-à-dire DANS la bande 56-97, derrière la barre. Avec, elle descend.
+  //    juste au-dessus de la ligne — c’est-à-dire DANS la bande 56-97, derrière la barre.
   it('ne se pose pas derrière la barre haute', () => {
     const ligne = { top: 100, right: 359, bottom: 140 }
-    expect(positionCellule(ligne, { ...TELEPHONE, sommet: 56 }).top).toBe(66)
+    expect(positionCellule(ligne, { ...TELEPHONE, sommet: 56 }).top).toBe(100 - HAUTEUR_CELLULE - MARGE_CELLULE)
     expect(positionCellule(ligne, TELEPHONE).top).toBeGreaterThanOrEqual(97)
   })
 

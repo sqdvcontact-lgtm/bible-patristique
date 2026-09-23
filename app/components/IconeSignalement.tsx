@@ -25,7 +25,7 @@
  *
  *  `size` = hauteur en px ; la largeur suit la proportion 11/12, comme le signet.
  */
-export default function IconeSignalement({ size = 12 }: { size?: number }) {
+export default function IconeSignalement({ size = 14 }: { size?: number }) {
   const w = Math.round((size * 11) / 12)
   return (
     <svg width={w} height={size} viewBox="0 0 12 13" aria-hidden="true" style={{ display: 'block' }} fill="none">

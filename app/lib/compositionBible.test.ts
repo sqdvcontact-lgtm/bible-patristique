@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import {
   AIR_MARQUE_DENSITE_REM, CORPS_GLOSE, CORPS_LECTURE_BIBLE, RAPPORT_ORIGINAL_EN_REGARD, ECART_MARQUE_DENSITE_REM, LARGEUR_MARQUE_DENSITE_REM, LIBELLE_GLOSE,
   compositionSousTitre, marqueDensiteTient, styleDensiteVerset, styleTexteVerset,
-  DEBORD_BLOC_VERSET_REM, EMPIETEMENT_BLOC_VERSET_REM, GOUTTIERE_NUMERO_VERSET_REM, NUMERO_VERSET_REM,
+  AIR_SIGNET_VERSET_REM, DEBORD_BLOC_VERSET_REM, EMPIETEMENT_BLOC_VERSET_REM, GOUTTIERE_NUMERO_VERSET_REM, NUMERO_VERSET_REM,
   RETRAIT_ACTIONS_VERSET, STYLE_NUMERO_VERSET, styleBlocVerset,
   BLANC_TITRE_MENU, GOUTTIERE_ACTIONS_VERSET, INTERLIGNE_TITRE_CHAPITRE, styleAxeTexte, styleGrilleRangee,
 } from './compositionBible'
@@ -28,11 +28,11 @@ import { rangLePlusProche } from './echelleTypographique'
  */
 describe('le bloc sélectionné d’un verset déborde le texte des deux côtés', () => {
   it('le débord droit vaut la colonne du numéro et sa gouttière, qui font le débord gauche', () => {
-    expect(DEBORD_BLOC_VERSET_REM).toBe(NUMERO_VERSET_REM + GOUTTIERE_NUMERO_VERSET_REM)
+    expect(DEBORD_BLOC_VERSET_REM).toBe(NUMERO_VERSET_REM + GOUTTIERE_NUMERO_VERSET_REM + AIR_SIGNET_VERSET_REM)
     expect(STYLE_NUMERO_VERSET.minWidth).toBe(`${NUMERO_VERSET_REM}rem`)
     const bloc = styleBlocVerset()
     expect(bloc.columnGap).toBe(`${GOUTTIERE_NUMERO_VERSET_REM}rem`)
-    expect(bloc.padding).toBe(`0.0625rem ${DEBORD_BLOC_VERSET_REM}rem 0.0625rem 0`)
+    expect(bloc.padding).toBe(`0.0625rem ${DEBORD_BLOC_VERSET_REM}rem 0.0625rem ${AIR_SIGNET_VERSET_REM}rem`)
   })
 
   it('⛔ la piste de texte ne bouge pas : la marge négative rend ce que le rembourrage prend', () => {
@@ -43,7 +43,7 @@ describe('le bloc sélectionné d’un verset déborde le texte des deux côtés
 
   it('les actions reculent de ce que le vert prend sur leur gouttière', () => {
     expect(RETRAIT_ACTIONS_VERSET).toBe(`${0.5 + EMPIETEMENT_BLOC_VERSET_REM}rem`)
-    expect(RETRAIT_ACTIONS_VERSET).toBe('1.875rem')
+    expect(RETRAIT_ACTIONS_VERSET).toBe('2.5rem')
     const page = readFileSync(join(process.cwd(), 'app/components/TexteBible.tsx'), 'utf8')
     expect(page).toContain('paddingLeft: RETRAIT_ACTIONS_VERSET')
     expect(page).toContain('styleBlocVerset({ actif: actif || dansPlage, mobile })')

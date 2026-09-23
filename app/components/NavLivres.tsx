@@ -778,7 +778,7 @@ export default function NavLivres({
         <input aria-label="Livre ou référence biblique"
           type="text"
           className="cs-volet-recherche"
-          placeholder="Livre ou référence (Jn 3, 16)"
+          placeholder="Rechercher un livre"
           value={recherche}
           onChange={e => setRecherche(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') validerRecherche() }}
