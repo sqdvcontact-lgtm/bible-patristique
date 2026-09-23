@@ -65,6 +65,11 @@ type Traduction = {
   code: string; label: string; auteur?: string | null; auteurDates?: string | null
   datePublication?: string | null; lieuEdition?: string | null; editeur?: string | null
   anneeEdition?: string | null; depotManuscrit?: string | null; coteManuscrit?: string | null
+  /** ⚠️ Le titre, la mention et le nombre de tomes ne servent PAS la phrase de la carte :
+   *  ils composent la référence des volumes servis, que la ligne d'édition met dans le
+   *  presse-papiers au clic (voir `EncartTraduction`). */
+  titreEdition?: string | null; sousTitreEdition?: string | null
+  mentionEdition?: string | null; nombreTomes?: number | null
   /** La famille d'édition, lue au catalogue : le menu central y réunit ses membres. */
   famille?: import('@/app/lib/menuTraductionsBible').AppartenanceFamille | null
 }

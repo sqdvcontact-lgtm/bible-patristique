@@ -66,7 +66,7 @@ describe('citationDuLasso', () => {
       [p(3, 'GEN.1.3', 'Que la lumière soit'), p(5, 'GEN.1.5', 'Et la lumière fut')],
       { livreAbrege: 'Gn', nomLivre: 'Genèse', chapitre: 1 },
     )
-    expect(citation).toContain('(Gn 1, 3.5)')
-    expect(citation).toContain('[…]')
+    expect(citation.texte).toContain('(Gn 1, 3.5)')
+    expect(citation.texte).toContain('[…]')
   })
 })

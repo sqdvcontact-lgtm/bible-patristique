@@ -5,7 +5,7 @@ import MarqueNonCanonique from '@/app/components/MarqueNonCanonique'
 import { Fragment, useState, useEffect, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { useSearchParams } from 'next/navigation'
-import { amenerAuCentre, annoncerReprise, poserEnHaut, positionDuDefileur, terminerReprise } from '@/app/lib/defilementLecture'
+import { amenerAuCentre, annoncerReprise, ATTRIBUT_BARRE_LECTURE, poserEnHaut, positionDuDefileur, terminerReprise } from '@/app/lib/defilementLecture'
 import { lireRepere, PARAMETRE_REPERE } from '@/app/lib/repriseLecture'
 import { texteLisible899, texteLisibleModerne899 } from '@/app/lib/texteLisible899'
 import { cesurerSelonLangue, useLangueBible } from '@/app/lib/langueBible'
@@ -18,7 +18,7 @@ import { useAffichageAdmin } from "@/app/lib/contexteAffichageAdmin"
 import { useCompte } from "@/app/lib/contexteCompte"
 import { useEstMobile, useSansSurvol } from "@/app/lib/useEstMobile"
 import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
-import { citationBiblique } from "@/app/lib/citation"
+import { citationBiblique, copierCitation, type CitationRendue } from "@/app/lib/citation"
 import { canonIdDeLigne, cleVersetPreleve, prelevementDuVerset, usePrelevementsDuChapitre } from "@/app/lib/prelevementsBibliques"
 import { libelleNumeroVerset } from "@/app/lib/libelleVerset"
 export { libelleNumeroVerset }
@@ -167,7 +167,7 @@ export function texteAbsentDuChapitre(versets: readonly object[], traduction: st
 export type BiblePorteuse = { code: string; label: string; href: string }
 
 // ── Bouton copie ──────────────────────────────────────────────────────────────
-function BoutonCopie({ texte, numero }: { texte: string; numero: number }) {
+function BoutonCopie({ citation, numero }: { citation: CitationRendue; numero: number }) {
   const { copie, eclat, briller } = useEclatCopie()
   const { echec, signaler } = useEclatEchec()
   const handle = (e: React.MouseEvent) => {
@@ -176,7 +176,9 @@ function BoutonCopie({ texte, numero }: { texte: string; numero: number }) {
     // passait en silence, et le lecteur croyait avoir copié.
     const presse = typeof navigator !== 'undefined' ? navigator.clipboard : undefined
     if (!presse) { signaler('La copie a échoué.'); return }
-    presse.writeText(texte).then(briller, (erreur: unknown) => {
+    // ⚠️ `copierCitation` porte les DEUX formes : sans elle, le verset emportait les
+    // balises d'italique de Sacy en clair dans le document du lecteur.
+    copierCitation(citation).then(briller, (erreur: unknown) => {
       console.error('[copie] verset', erreur)
       signaler('La copie a échoué.')
     })
@@ -436,6 +438,17 @@ export default function TexteBible({
       const cible = e.target instanceof Element ? e.target : null
       // La barre du lasso vit hors des rangées : la toucher n'est pas « passer à autre chose ».
       if (cible?.closest('.verset-row, .verset-actions, .cs-lasso-barre')) return
+      // ⛔ LA BARRE D'ONGLETS AGIT SUR LE VERSET CHOISI, elle ne le quitte pas (relevé de
+      // l'auteur, 2026-09-23 : « quand je clique sur un verset et que je veux ensuite
+      // cliquer sur Pères, le verset se déselectionne, et Pères affiche l'intégralité des
+      // commentaires du livre »). L'onglet « Pères » ouvre précisément l'apparat DU verset
+      // qu'on vient de choisir : le toucher n'est pas passer à autre chose, c'est s'en
+      // servir. Le pavé d'actions se referme — il recouvre la ligne, et l'onglet va
+      // prendre l'écran — mais le CHOIX demeure.
+      // ⚠️ Le pavé fermé, cet effet se démonte et ses écoutes partent avec lui : le
+      // défilement que provoquera le changement d'onglet n'a donc plus personne pour
+      // l'entendre, et c'est ce qui défaisait le choix par l'autre bout.
+      if (cible?.closest(`[${ATTRIBUT_BARRE_LECTURE}]`)) { setActionsMobileId(null); return }
       fermer()
     }
     const auClavier = (e: KeyboardEvent) => { if (e.key === 'Escape') fermer() }
@@ -1123,7 +1136,7 @@ export default function TexteBible({
                           onSupprimer={() => retirerSauvegarde(clePrelevementsCourante, cleVersetPreleve(canonVerset, v.verset))}
                         />
                       )}
-                      <BoutonCopie texte={citationBiblique(
+                      <BoutonCopie citation={citationBiblique(
                         texteDuVerset(v),
                         `${ABREV_FR[livreActif] || nomLivre} ${chapitreActif}, ${v.verset}`,
                       )} numero={v.verset} />

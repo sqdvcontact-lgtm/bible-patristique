@@ -3,6 +3,7 @@ import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import CitationsFavorites, { EXTRAIT_A_DEUX, SEUIL_GRIS, extraitFavorite, motsComposesInsecables } from './CitationsFavorites'
 import type { CitationFavoritePublique } from '../../lib/citationsFavorites'
+import { normaliserEspaces } from '../../lib/typographie'
 
 const FINE = String.fromCharCode(0x202f)
 
@@ -50,7 +51,7 @@ describe('CitationsFavorites', () => {
   it('encadre le passage de guillemets à fines insécables, sans appel de note', () => {
     const html = rendre([PERE])
     expect(html).toContain(`«${FINE}Tu nous as faits pour toi`)
-    expect(html).toContain(`toi.${FINE}»`)
+    expect(html).toContain(`toi${FINE}»`)
     expect(html).not.toContain('[[3]]')
   })
 
@@ -90,13 +91,20 @@ describe('motsComposesInsecables', () => {
 })
 
 describe('extraitFavorite', () => {
-  it('un passage court se ponctue comme une citation, entier', () => {
+  // ⛔ La ponctuation finale TOMBE et rien ne la remplace (règle de l'auteur,
+  // 23 septembre 2026) : la favorite se lit entre guillemets, son attribution dessous,
+  // et un point y fermerait une phrase que la référence continue.
+  it('un passage court se donne entier, sans point final', () => {
     const extrait = extraitFavorite('au commencement était le Verbe', EXTRAIT_A_DEUX)
-    expect(extrait).toEqual({ texte: 'Au commencement était le Verbe.', tronque: false, dense: false })
+    expect(extrait).toEqual({ texte: 'Au commencement était le Verbe', tronque: false, dense: false })
+  })
+
+  it('garde le point d’interrogation, qui appartient à la phrase citée', () => {
+    expect(extraitFavorite('où es-tu ?', EXTRAIT_A_DEUX).texte).toBe(normaliserEspaces('Où es-tu ?'))
   })
 
   it('garde l’enrichissement d’un passage entier', () => {
-    expect(extraitFavorite('Et la lumière <i>fut</i>', EXTRAIT_A_DEUX).texte).toBe('Et la lumière <i>fut</i>.')
+    expect(extraitFavorite('Et la lumière <i>fut</i>', EXTRAIT_A_DEUX).texte).toBe('Et la lumière <i>fut</i>')
   })
 
   it('un passage trop long se coupe au mot, sans point après les points de suspension', () => {
@@ -121,6 +129,6 @@ describe('extraitFavorite', () => {
   })
 
   it('les guillemets internes deviennent anglais', () => {
-    expect(extraitFavorite('Il dit « viens »', 100).texte).toBe('Il dit “viens”.')
+    expect(extraitFavorite('Il dit « viens »', 100).texte).toBe('Il dit “viens”')
   })
 })

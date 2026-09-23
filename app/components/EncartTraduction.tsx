@@ -99,6 +99,8 @@
 
 import { useState, type ReactNode } from 'react'
 import { libelleEditionTraduction } from '@/app/lib/editionTraduction'
+import { texteReferenceEdition, type EditionServie } from '@/app/lib/referenceEditionServie'
+import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
 import dynamic from 'next/dynamic'
 import NomVolet from '@/app/components/NomVolet'
 import IconeChevron from '@/app/components/IconeChevron'
@@ -122,6 +124,13 @@ export type TraductionEncart = {
   anneeEdition?: string | null
   depotManuscrit?: string | null
   coteManuscrit?: string | null
+  /** Ce que la phrase de la carte NE DIT PAS, et que la référence des volumes servis
+   *  demande : le titre de l'édition, sa mention, le nombre de tomes. Voir
+   *  `texteReferenceEdition`. */
+  titreEdition?: string | null
+  sousTitreEdition?: string | null
+  mentionEdition?: string | null
+  nombreTomes?: number | null
 }
 
 export default function EncartTraduction({ trad, onReduire, reglage }: {
@@ -134,9 +143,27 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
   onReduire?: () => void
 }) {
   const [modaleOuverte, setModaleOuverte] = useState(false)
+  const { copie, eclat, briller } = useEclatCopie()
   // D'où vient le texte : une phrase, ou rien du tout quand la base ne donne pas
   // d'année à nommer (voir `libelleEditionTraduction`).
   const edition = libelleEditionTraduction(trad)
+  // ⛔ LA PHRASE DE LA CARTE N'EST PAS LA RÉFÉRENCE : elle dit d'où vient le texte, la
+  // référence dit les VOLUMES. C'est celle-ci qu'on met dans le presse-papiers, composée
+  // par le moteur de la fiche (`texteReferenceEdition`) et non recomposée ici.
+  const editionServie: EditionServie = {
+    titreEdition: trad.titreEdition, sousTitreEdition: trad.sousTitreEdition,
+    mentionEdition: trad.mentionEdition,
+    lieuEdition: trad.lieuEdition, editeur: trad.editeur,
+    anneeEdition: trad.anneeEdition, nombreTomes: trad.nombreTomes,
+    depotManuscrit: trad.depotManuscrit, coteManuscrit: trad.coteManuscrit,
+  }
+  const reference = texteReferenceEdition(editionServie)
+  const copierLaReference = () => {
+    if (!reference) return
+    navigator.clipboard?.writeText(reference).then(briller, (erreur: unknown) => {
+      console.error('[carte] référence non copiée :', erreur)
+    })
+  }
   return (
     // ⚠️ Plus de `minHeight` : la carte valait 6,75 rem pour ne jamais faire bouger
     // la mise en page, ce qui laissait un blanc de deux lignes dès que la référence
@@ -206,9 +233,34 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
       {/* L'ÉDITION, dans le corps des pages de titre et le sans du volet. La phrase tient sur
           une ou deux lignes quel que soit le volet, et n'a donc ni budget ni mesure —
           c'est tout le bénéfice d'un texte court (voir l'en-tête). */}
-      {edition && (
-        <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.35 }}>{edition}</span>
-      )}
+      {edition && (reference
+        // ⛔ AUCUN INDICE (demande de l'auteur, 23 septembre 2026) : ni filet, ni
+        // pictogramme, ni infobulle — SEUL le curseur change au survol, et le clic met
+        // la référence bibliographique dans le presse-papiers. Une carte de volet n'a
+        // pas la place d'annoncer un geste qui ne sert qu'une fois.
+        // ⚠️ L'ACCUSÉ reste : un éclat, celui de tous les boutons de copie du site. Ne
+        // rien dire après le clic laisserait croire que rien n'a porté.
+        ? (
+          <button type="button" onClick={copierLaReference}
+            className={avecHoteEclat()}
+            aria-label="Copier la référence bibliographique de cette édition"
+            style={{
+              // La ligne garde EXACTEMENT sa composition : un bouton qui se dessinerait
+              // en annoncerait un, et c'est ce qu'on refuse.
+              display: 'block', width: '100%', textAlign: 'left',
+              background: 'none', border: 'none', padding: 0, margin: 0,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6875rem',
+              color: copie ? 'var(--cs-vert)' : 'var(--cs-texte-second)', lineHeight: 1.35,
+              transition: 'color 0.12s',
+            }}>
+            {edition}
+            <EclatCopie eclat={eclat} />
+          </button>
+        )
+        : (
+          <span style={{ fontFamily: 'var(--font-source-sans), Arial, sans-serif', fontSize: '0.6875rem', color: 'var(--cs-texte-second)', lineHeight: 1.35 }}>{edition}</span>
+        ))}
       {modaleOuverte && <ModaleTraduction code={trad.code} nomFallback={trad.label || ''} onFermer={() => setModaleOuverte(false)} />}
     </div>
   )

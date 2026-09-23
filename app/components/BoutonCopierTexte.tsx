@@ -18,6 +18,7 @@ import { useState } from 'react'
 
 import { avecHoteEclat, EclatCopie, useEclatCopie } from '@/app/components/EclatCopie'
 import IconeCopier from '@/app/components/IconeCopier'
+import { copierEnFormeRiche, type CitationRendue } from '@/app/lib/citation'
 
 /** Le temps que l'échec reste écrit, en millisecondes. Assez long pour être lu, assez
  *  court pour ne pas laisser croire que le bouton est resté enfoncé. */
@@ -54,7 +55,10 @@ export default function BoutonCopierTexte({
   className,
   titre = 'Copier',
 }: {
-  texte: string
+  /** ⚠️ Une CITATION porte DEUX formes : le collage riche garde l'italique du corpus,
+   *  quand le plein-texte emporterait ses balises en clair. Une chaîne reste admise
+   *  pour tout ce qui n'est pas du texte enrichi. */
+  texte: string | CitationRendue
   style?: React.CSSProperties
   className?: string
   titre?: string
@@ -65,7 +69,14 @@ export default function BoutonCopierTexte({
   const copier = (e: React.MouseEvent) => {
     e.stopPropagation()
     setErreur(false)
-    copierPleinTexte(texte).then(briller).catch(() => {
+    const plain = typeof texte === 'string' ? texte : texte.texte
+    const html = typeof texte === 'string' ? null : texte.html
+    // ⚠️ La forme riche d'abord, le plein-texte ensuite : `copierEnFormeRiche` ne
+    // remplace aucun repli, elle dit seulement si elle a porté.
+    const ecrire = html
+      ? copierEnFormeRiche(plain, html).then(ok => (ok ? undefined : copierPleinTexte(plain)))
+      : copierPleinTexte(plain)
+    Promise.resolve(ecrire).then(briller).catch(() => {
       setErreur(true)
       setTimeout(() => setErreur(false), DUREE_ERREUR_MS)
     })

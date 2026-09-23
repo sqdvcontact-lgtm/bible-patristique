@@ -1175,7 +1175,7 @@ export default function PagePrelevements() {
                         {!selection && (
                           <div className="prel-actions">
                             <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: ids[0], ids, texte, type: "biblique", ref, traduction: tradLue ?? undefined }); }} />
-                            <BoutonCopie citation={citationBiblique(texteSansEnrichissement(texte), ref)} />
+                            <BoutonCopie citation={citationBiblique(texte, ref)} />
                             <BoutonLien href={`/?livre=${CODE_PAR_ABREV[g.ref_livre_abr] ?? g.ref_livre_abr}&chapitre=${g.ref_chapitre}&verset=${g.verset_debut}&trad=${traductionActive}`} />
                             <BoutonSuppr onSuppr={() => supprimerIds(ids)} />
                             <BoutonPlus ouvert={actionsOuvertes === cle} onBasculer={() => basculerActions(cle)} />
@@ -1237,7 +1237,7 @@ export default function PagePrelevements() {
                         {!selection && (
                           <div className="prel-actions">
                             <BoutonCitationPreferee actif={estPref} onClick={e => { e.stopPropagation(); choisirPreferee({ id: p.id, ids, texte, type: "patristique", auteur: p.auteur, titre_oeuvre: p.titre_oeuvre }); }} />
-                            <BoutonCopie citation={citationPatristiqueDepuisInfo(texteSansEnrichissement(texte), auteur, titre, info, edition)} />
+                            <BoutonCopie citation={citationPatristiqueDepuisInfo(texte, auteur, titre, info, edition)} />
                             {p.id_oeuvre && (
                               // ⚠️ `?texte=` rouvre l'édition du passage : sans lui, un passage latin
                               // rouvrait la traduction française, texte par défaut de l'œuvre.

@@ -61,6 +61,16 @@
      réglé en sombre reçoit des contrôles sombres sur les pages crème. */
   color-scheme: light;
 
+  /* ── La chasse du site ──
+     ⛔ DEUX NOMBRES, ET UN SEUL ENDROIT. La règle qui les pose vit sur `body` (voir
+     « LA CHASSE DU SITE SE RÈGLE ICI »), et les revenir en arrière ne demande que de
+     rendre ces deux valeurs à `normal`.
+     ⚠️ `--cs-espace-mot-ui` n'est PAS une valeur neuve : c'est celle que la charte
+     § 3.11 prescrit déjà au texte dense en sans, mesurée pour ramener l'espace de la
+     Source Sans au quart de cadratin. Elle cesse seulement d'être un cas particulier. */
+  --cs-chasse-ui: 0.008em;
+  --cs-espace-mot-ui: -0.03em;
+
   /* ── Mesure de lecture (responsive) ──
      Famille couplée exprimée en rem pour qu'elle grandisse au même rythme que
      la police racine fluide (voir la règle `html` plus bas) : la colonne de
@@ -854,6 +864,29 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-source-sans), Arial, sans-serif;
+  /* ⛔ LA CHASSE DU SITE SE RÈGLE ICI, ET NULLE PART AILLEURS (demande de l'auteur,
+     2026-09-23, devant la liste des livres : « les caractères sont très légèrement trop
+     serrés, mais vraiment très légèrement ; et l'espace entre les mots est légèrement
+     trop important ; revoir harmonieusement — corriger ailleurs aussi »).
+
+     ⚠️ CE N'EST PAS UN GOÛT, C'EST UNE DISPROPORTION PROPRE À LA POLICE. L'espace de la
+     Source Sans chasse 0,279 em quand ses lettres se touchent presque : les mots s'y
+     détachent plus que les caractères ne se lient, et le gris du texte s'en trouve
+     troué. Le site avait déjà mesuré le retrait juste — « ce retrait la ramène au QUART
+     DE CADRATIN, la mesure demandée » — mais il ne le posait qu'au cas par cas, sur les
+     seuls blocs denses. Il devient le DÉFAUT ; les blocs qui l'écrivaient déjà ne
+     bougent pas d'un centième.
+
+     ⛔ Ne pas serrer davantage l'espace : sous le quart de cadratin, les mots se
+     soudent. Et la chasse ne monte pas non plus : au-delà d'un centième de cadratin,
+     un texte condensé cesse de l'être, et l'auteur les aime condensés.
+
+     ⚠️ Les deux se lisent ENSEMBLE et se règlent ensemble : ouvrir les caractères sans
+     resserrer les mots ne ferait qu'ajouter du blanc. Tout bloc qui déclare sa propre
+     chasse — l'apparat, la manchette, les capitales espacées d'un rail — garde la
+     sienne, une déclaration plus proche l'emportant. */
+  letter-spacing: var(--cs-chasse-ui);
+  word-spacing: var(--cs-espace-mot-ui);
 }
 
 /* Toute hiérarchie de titre appartient à la voix éditoriale du site. */

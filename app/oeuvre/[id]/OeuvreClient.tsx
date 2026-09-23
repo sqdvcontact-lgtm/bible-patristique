@@ -3381,7 +3381,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     const textes = citationsDeLaSelection(cles.filter(cle => parCle.has(cle)), ordre, cle => ouvrentUnTitre.has(cle))
       .map(citation => texteDesSuites(citation.map(suite => suite
         .map(cle => parCle.get(cle)!)
-        .map(s => ({ texte: texteSansEnrichissement(s.texte), joinBefore: s.joinBefore })))))
+        .map(s => ({ texte: s.texte, joinBefore: s.joinBefore })))))
       .filter(texte => texte !== '')
     if (textes.length === 0) return
     await copierCitation(citationPatristique(textes, {
@@ -5276,7 +5276,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             onFermer={cellule.fermer} sansSurvol={sansSurvol} onQuitterFoyer={cellule.quitterFoyer}
             boutons={(userId ? 1 : 0) + 2 + (estAdmin ? 1 : 0)}>
             {userId && <BoutonEnregistrerSegment seg={s} auteur={auteur} titreOeuvre={oeuvre.titre} idOeuvre={idOeuvre} userId={userId} dejaSauvegarde={sauvegardesSegs.has(s.id)} onChangement={preleve => marquerSauvegardeSeg(s.id, preleve)} />}
-            <BoutonCopieSegment texte={texteSansEnrichissement(s.texte)} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} responsable={versionActive?.responsableEdition ?? undefined} />
+            <BoutonCopieSegment texte={s.texte} auteur={auteur} titre={oeuvreAffichee.titre} sousTitre={oeuvreAffichee.sous_titre} tradAuteur={oeuvreAffichee.trad_auteur} editeur={oeuvreAffichee.editeur} collection={oeuvreAffichee.collection} ville={oeuvreAffichee.ville} datePublication={oeuvreAffichee.date_publication} responsable={versionActive?.responsableEdition ?? undefined} />
             <BoutonSignalerSegment segId={s.id} texteObjet={texteSansEnrichissement(s.texte)} titreOeuvre={oeuvre.titre} />
             {estAdmin && (
               <button onClick={() => setEditionCible({ type: 'segment', seg: s })} title="Modifier ce segment (admin)" aria-label="Modifier ce segment"

@@ -22,12 +22,27 @@
 // sur une bande fermée décrit ce qu'on ne voit pas ; « Ouvrir les commentaires » dit
 // ce qu'un clic fera. C'est la seule chose qu'un rail ait à dire.
 //
-// ⚠️ Le texte se lit de HAUT EN BAS, comme un dos de livre français, et c'est le
-// modèle de la Polyglotte : `writing-mode: vertical-rl` sans rotation. Le volet des
-// livres l'écrivait à l'envers (une rotation d'un demi-tour), si bien que les deux
-// rails d'une même page se lisaient en sens contraire.
+// ⛔ LES DEUX RAILS D'UNE PAGE SE TOURNENT VERS SON CENTRE (demande de l'auteur,
+// 2026-09-23 : « doivent être tournés vers le centre de la page — changer, donc,
+// “Ouvrir les livres” de sens »). Ce qui se tourne n'est pas le sens de LECTURE mais
+// l'assise des lettres : leur PIED regarde la colonne de texte, et leur tête le bord de
+// l'écran. À droite, `writing-mode: vertical-rl` le fait seul ; à gauche il faut le
+// demi-tour, faute de quoi le rail de gauche pose ses lettres à l'envers de son frère.
+// ⚠️ Le rail de gauche se lit donc de BAS EN HAUT, et c'est la disposition ordinaire
+// d'une bande latérale gauche. ⛔ Ce commentaire renverse celui du 2026-09-04, qui
+// tenait les deux rails pour accordés parce qu'ils lisaient dans le même sens : lire
+// dans le même sens et se tourner vers le même bord sont deux choses différentes.
+//
+// ⛔ ET LES DEUX RAILS N'ONT QU'UNE SEULE ÉPAISSEUR, parce qu'ils n'ont qu'un seul
+// composant : trente pixels de bande, un filet d'un pixel. Une mesure écrite deux fois
+// finirait par diverger, et c'est précisément ce que ce fichier a réuni.
 
 import IconeChevron from '@/app/components/IconeChevron'
+
+/** ⛔ LA BANDE ET SON FILET S'ÉCRIVENT UNE FOIS, ET ILS VALENT POUR LES DEUX CÔTÉS :
+ *  c'est ce qui rend impossible qu'un rail paraisse plus épais que son frère. */
+const LARGEUR_RAIL = '30px'
+const FILET_RAIL = '1px solid var(--cs-bord)'
 
 /** Un rail, sur le bord qu'il occupe. Le chevron pointe VERS LA PAGE : c'est le
  *  sens dans lequel le volet va s'ouvrir. */
@@ -43,6 +58,9 @@ export default function RailVolet({ cote, libelle, complement, onOuvrir }: {
   onOuvrir: () => void
 }) {
   const gauche = cote === 'gauche'
+  // ⛔ Les lettres se tournent vers la colonne de texte : voir l'en-tête. Le demi-tour
+  // ne porte que sur le TEXTE — le chevron, lui, pointe déjà vers la page.
+  const versLeCentre = gauche ? 'rotate(180deg)' : undefined
   return (
     <button
       onClick={onOuvrir}
@@ -50,9 +68,9 @@ export default function RailVolet({ cote, libelle, complement, onOuvrir }: {
       aria-label={libelle}
       className="cs-rail-volet"
       style={{
-        width: '30px', flexShrink: 0, height: '100%',
+        width: LARGEUR_RAIL, flexShrink: 0, height: '100%',
         background: 'var(--cs-fond-clair)', border: 'none',
-        [gauche ? 'borderRight' : 'borderLeft']: '1px solid var(--cs-bord)',
+        [gauche ? 'borderRight' : 'borderLeft']: FILET_RAIL,
         cursor: 'pointer', color: 'var(--cs-texte-doux)',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         // Le chevron se pose EN HAUT du rail, là où l'œil arrive, et non au milieu
@@ -78,7 +96,12 @@ export default function RailVolet({ cote, libelle, complement, onOuvrir }: {
             une bande de trente pixels, il est le seul contenu, et il doit se lire sans
             qu'on s'en approche. */}
         <span aria-hidden style={{
-          writingMode: 'vertical-rl', fontSize: '0.65625rem', letterSpacing: '0.12em',
+          writingMode: 'vertical-rl', transform: versLeCentre,
+          // ⚠️ UN RANG DE CORPS DE PLUS (2026-09-23) : le libellé valait 10,5 px, sous
+          // le plancher de 11 que la charte donne au texte — et une capitale espacée
+          // couchée sur trente pixels est ce qui se lit le moins bien du site. La chasse
+          // s'ouvre d'autant : à 0,12 em les capitales se touchaient presque.
+          fontSize: '0.6875rem', letterSpacing: '0.14em',
           textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxHeight: '58%',
         }}>
@@ -86,7 +109,8 @@ export default function RailVolet({ cote, libelle, complement, onOuvrir }: {
         </span>
         {complement && (
           <span aria-hidden style={{
-            writingMode: 'vertical-rl', fontFamily: 'var(--font-source-serif), Georgia, serif',
+            writingMode: 'vertical-rl', transform: versLeCentre,
+            fontFamily: 'var(--font-source-serif), Georgia, serif',
             fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', letterSpacing: '0.04em',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxHeight: '32%',
           }}>

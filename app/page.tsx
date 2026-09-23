@@ -233,7 +233,7 @@ export default async function Home({
     // ne porte pas `est_biblique`, sur quoi le sélecteur de bibles se filtre, et
     // elle traîne la notice éditoriale entière — deux kilo-octets par bible, à
     // chaque chapitre ouvert, pour deux mots.
-    supabase.from('editions_sources').select('trad_id, lieu_edition, editeur, annee_edition, depot_manuscrit, cote_manuscrit'),
+    supabase.from('editions_sources').select('trad_id, titre_edition, sous_titre_edition, mention_edition, lieu_edition, editeur, annee_edition, nombre_tomes, depot_manuscrit, cote_manuscrit'),
     // Le profil ne sert QUE la première visite d'un navigateur, avant qu'il porte le
     // cookie : la page le repose ensuite elle-même à chaque lecture. Interrogé dans
     // la même vague que les trois autres, il ne coûte pas un aller-retour de plus.
@@ -291,8 +291,10 @@ export default async function Home({
   // seules dates, et son séparateur part avec le champ absent.
   const adressesEdition = new Map(
     ((rawEditions ?? []) as {
-      trad_id: string; lieu_edition: string | null; editeur: string | null
-      annee_edition: string | null; depot_manuscrit: string | null; cote_manuscrit: string | null
+      trad_id: string; titre_edition: string | null; sous_titre_edition: string | null
+      mention_edition: string | null; lieu_edition: string | null; editeur: string | null
+      annee_edition: string | null; nombre_tomes: number | null
+      depot_manuscrit: string | null; cote_manuscrit: string | null
     }[]).map(e => [e.trad_id, e]),
   )
   const toutesTraductions = (rawTranslations || [])
@@ -301,6 +303,10 @@ export default async function Home({
       return {
         code: t.trad_id, label: t.nom, auteur: t.auteur, auteurDates: t.dates ?? null,
         datePublication: t.date_publication,
+        titreEdition: fiche?.titre_edition ?? null,
+        sousTitreEdition: fiche?.sous_titre_edition ?? null,
+        mentionEdition: fiche?.mention_edition ?? null,
+        nombreTomes: fiche?.nombre_tomes ?? null,
         lieuEdition: fiche?.lieu_edition ?? null,
         // ⚠️ L'éditeur part d'ici DÉJÀ NORMALISÉ : chaque maison sous son nom
         // répertorié, et « et » entre elles au lieu du point-virgule du catalogue.

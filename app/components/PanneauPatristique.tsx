@@ -419,7 +419,7 @@ function SegmentCard({ s, texteAffichage, notes, notesEnAttente, info, edition, 
           <div style={{ display:'flex', gap:'4px', alignItems:'center', justifyContent:'flex-end' }}>
             <BoutonEnregistrerSegment segment={s} info={info} userId={userId} enregistre={enregistre} onChange={onEnregistre} />
             <BoutonCopieSegment
-              texte={texteSansEnrichissement(s.segment_texte)} auteur={info?.auteur_nom || s.id_oeuvre} titre={info?.titre || ''}
+              texte={s.segment_texte} auteur={info?.auteur_nom || s.id_oeuvre} titre={info?.titre || ''}
               sous_titre={info?.sous_titre}
               trad_auteur={identite.tradAuteur ?? undefined} editeur={identite.editeur ?? undefined}
               collection={identite.collection ?? undefined} ville={identite.ville ?? undefined}
@@ -1499,10 +1499,20 @@ export default function PanneauPatristique({
 
           {/* Contenu (la discussion et les notes défilent en interne, pour épingler la
               saisie ou les filtres en tête du volet). */}
+          {/* ⛔ `scrollbar-gutter: stable` : les SOUS-ONGLETS vivent DANS ce défileur, et
+              ils se partagent sa largeur à parts égales. Un sous-onglet moins fourni que
+              les autres — « Échos » le plus souvent — faisait disparaître la barre, la
+              largeur utile gagnait quinze pixels, et toute la rangée sautait de sept vers
+              la gauche. Ce n'était pas les onglets, c'était la barre de défilement.
+              ⚠️ `stable` seul, non `both-edges` : la barre est à DROITE, et réserver sa
+              seule gouttière suffit à ce que la page ne bouge jamais. ⛔ Rien au doigt :
+              une barre superposée n'y prend aucune place, et la gouttière y serait un
+              blanc perdu sur une colonne déjà étroite. */}
           <div id={idPanneau} role="tabpanel" aria-labelledby={idOnglet(ongletAffiche)} ref={refDefilement}
             style={(ongletAffiche === 'commentaires' && verset) || ongletAffiche === 'notes'
             ? { flex:1, minHeight:0, overflow:'hidden', padding:'0 12px', display:'flex', flexDirection:'column' }
-            : { overflowY:'auto', flex:1, padding:'0 12px', display:'flex', flexDirection:'column' }}>
+            : { overflowY:'auto', flex:1, padding:'0 12px', display:'flex', flexDirection:'column',
+                ...(mobile ? {} : { scrollbarGutter: 'stable' }) }}>
             {ongletAffiche === 'commentaires' && verset ? (
               <OngletCommentaires key={verset.id_verset} verset={verset} userId={userId} isAdmin={isAdmin} onCount={reporterCompteCommentaires} />
             ) : ongletAffiche === 'notes' && notesBible ? (

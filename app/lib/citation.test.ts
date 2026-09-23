@@ -13,6 +13,7 @@ import {
 import { SEPARATEUR_COEDITEURS } from './editeursNormalisation'
 import { GUILLEMET_FERMANT, GUILLEMET_OUVRANT } from './referenceBibliographique'
 import { texteFragments } from './referenceBibliographiqueSorties'
+import { normaliserEspaces } from './typographie'
 
 describe('convertirGuillemetsInternes', () => {
   it('remplace les guillemets français internes par des guillemets anglais', () => {
@@ -37,29 +38,37 @@ describe('resserrerTiretsAnnees', () => {
 })
 
 describe('normaliserPonctuationFinale', () => {
-  it('remplace une virgule finale par un point', () => {
-    expect(normaliserPonctuationFinale('au commencement,')).toBe('au commencement.')
+  // ⛔ Règle arrêtée par l'auteur le 23 septembre 2026 : la ponctuation finale TOMBE et
+  // RIEN ne la remplace ; le point de la phrase se pose après la référence.
+  it('retire une virgule finale sans rien mettre à la place', () => {
+    expect(normaliserPonctuationFinale('au commencement,')).toBe('au commencement')
   })
-  it('remplace un point-virgule et un deux-points finals par un point', () => {
-    expect(normaliserPonctuationFinale('ainsi ;')).toBe('ainsi.')
-    expect(normaliserPonctuationFinale('ceci :')).toBe('ceci.')
+  it('retire un point-virgule et un deux-points finals', () => {
+    expect(normaliserPonctuationFinale('ainsi ;')).toBe('ainsi')
+    expect(normaliserPonctuationFinale('ceci :')).toBe('ceci')
   })
-  it('remplace des points de suspension finals par un point', () => {
-    expect(normaliserPonctuationFinale('la fin…')).toBe('la fin.')
+  it('retire des points de suspension finals', () => {
+    expect(normaliserPonctuationFinale('la fin…')).toBe('la fin')
   })
   it('conserve le point d’interrogation et d’exclamation', () => {
     expect(normaliserPonctuationFinale('vraiment ?')).toBe('vraiment ?')
     expect(normaliserPonctuationFinale('quelle joie !')).toBe('quelle joie !')
   })
-  it('ajoute un point en l’absence de ponctuation', () => {
-    expect(normaliserPonctuationFinale('la paix')).toBe('la paix.')
+  it('⛔ n’ajoute AUCUN point en l’absence de ponctuation', () => {
+    expect(normaliserPonctuationFinale('la paix')).toBe('la paix')
   })
-  it('conserve la parenthèse/le crochet fermant et ajoute un point', () => {
-    expect(normaliserPonctuationFinale('(cf. Jn 1)')).toBe('(cf. Jn 1).')
-    expect(normaliserPonctuationFinale('[sic]')).toBe('[sic].')
+  it('conserve la parenthèse et le crochet fermants, sans rien ajouter', () => {
+    expect(normaliserPonctuationFinale('(cf. Jn 1)')).toBe('(cf. Jn 1)')
+    expect(normaliserPonctuationFinale('[sic]')).toBe('[sic]')
   })
-  it('n’ajoute pas de point en double', () => {
-    expect(normaliserPonctuationFinale('déjà.')).toBe('déjà.')
+  it('retire le point final', () => {
+    expect(normaliserPonctuationFinale('déjà.')).toBe('déjà')
+  })
+  // ⚠️ La ponctuation se juge SOUS les marques d'enrichissement, qui se reposent telles
+  // quelles : chez Sacy, un verset s'achève souvent sur un mot ajouté, en italique.
+  it('juge la ponctuation sous une balise d’italique fermante', () => {
+    expect(normaliserPonctuationFinale('le verset <i>ajouté.</i>')).toBe('le verset <i>ajouté</i>')
+    expect(normaliserPonctuationFinale('le verset <i>ajouté</i>.')).toBe('le verset <i>ajouté</i>')
   })
 })
 
@@ -83,13 +92,13 @@ describe('citationPatristique', () => {
   })
   it('normalise la ponctuation finale ET capitalise l’initiale du passage cité', () => {
     const { texte } = citationPatristique('au commencement,', info)
-    expect(texte.endsWith('Au commencement. »')).toBe(true)
+    expect(texte.endsWith('Au commencement ».')).toBe(true)
   })
   it('⛔ met les passages qu’un titre sépare sous la même référence, chacun entre ses guillemets', () => {
     const { texte, html } = citationPatristique(['fin du livre premier,', 'début du second'], info)
-    expect(texte.endsWith('« Fin du livre premier. »\n\n« Début du second. »')).toBe(true)
+    expect(texte.endsWith('« Fin du livre premier ».\n\n« Début du second ».')).toBe(true)
     expect(texte.split('Augustin')).toHaveLength(2)
-    expect(html).toContain(' »<br><br>« ')
+    expect(html).toContain(' ».<br><br>« ')
   })
   it('un seul passage en liste rend la forme d’un passage seul', () => {
     expect(citationPatristique(['au commencement,'], info)).toEqual(citationPatristique('au commencement,', info))
@@ -130,7 +139,7 @@ describe('citationPatristique', () => {
   })
   it('sans titre, la citation garde sa provenance et son passage', () => {
     const { texte } = citationPatristique('paix', {})
-    expect(texte).toBe('disponible sur le site Corpus Scriptura : « Paix. »')
+    expect(texte).toBe('disponible sur le site Corpus Scriptura : « Paix ».')
   })
 })
 
@@ -212,14 +221,29 @@ describe('capitaliserInitiale', () => {
 
 describe('preparerTexteCitation', () => {
   it('convertit, normalise la fin ET capitalise l’initiale', () => {
-    expect(preparerTexteCitation('au commencement Dieu créa')).toBe('Au commencement Dieu créa.')
+    expect(preparerTexteCitation('au commencement Dieu créa')).toBe('Au commencement Dieu créa')
   })
 })
 
 describe('citationBiblique', () => {
-  it('encadre le verset et ajoute la référence, ponctuation normalisée', () => {
-    expect(citationBiblique('Au commencement Dieu créa', 'Gn 1, 1'))
-      .toBe('« Au commencement Dieu créa. » (Gn 1, 1)')
+  it('⛔ encadre le verset, et pose le point APRÈS la référence', () => {
+    expect(citationBiblique('Au commencement Dieu créa', 'Gn 1, 1').texte)
+      .toBe('« Au commencement Dieu créa » (Gn 1, 1).')
+  })
+  // ⚠️ L'attente se COMPOSE par `normaliserEspaces`, jamais tapée : la fine insécable
+  // devant le point d'interrogation ne se distingue pas d'une espace ordinaire à la
+  // lecture, et le dépôt en a déjà perdu ainsi.
+  it('garde le point d’interrogation dans les guillemets, et ferme après la référence', () => {
+    const source = 'Où es-tu ?'
+    expect(citationBiblique(source, 'Gn 3, 9').texte)
+      .toBe('« ' + normaliserEspaces(source) + ' » (Gn 3, 9).')
+  })
+  // ⛔ Le texte biblique porte son italique en BALISES : en plein-texte elles tombent,
+  // en collage riche elles deviennent une vraie italique. Jamais de balise en clair.
+  it('⛔ n’emporte aucune balise en plein-texte, et rend l’italique en HTML', () => {
+    const { texte, html } = citationBiblique('Et <i>Dieu</i> vit que cela était bon.', 'Gn 1, 4')
+    expect(texte).toBe('« Et Dieu vit que cela était bon » (Gn 1, 4).')
+    expect(html).toBe('« Et <i>Dieu</i> vit que cela était bon » (Gn 1, 4).')
   })
 })
 
@@ -235,19 +259,19 @@ describe('les appels de note ne partent pas dans le presse-papiers', () => {
   const info = { auteur: 'Augustin', titre: 'Confessions' }
 
   it('retire l’appel du texte préparé', () => {
-    expect(preparerTexteCitation('il le dit[[12]].')).toBe('Il le dit.')
+    expect(preparerTexteCitation('il le dit[[12]].')).toBe('Il le dit')
   })
 
   it('n’en laisse aucun dans une citation patristique, plein-texte comme HTML', () => {
     const { texte, html } = citationPatristique('au commencement[[3]], Dieu créa[[4]].', info)
     expect(texte).not.toMatch(/\[\[/)
     expect(html).not.toMatch(/\[\[/)
-    expect(texte).toContain('Au commencement, Dieu créa.')
+    expect(texte).toContain('Au commencement, Dieu créa ».')
   })
 
   it('n’en laisse aucun dans une citation biblique', () => {
-    expect(citationBiblique('au commencement[[1]]', 'Gn 1, 1'))
-      .toBe('« Au commencement. » (Gn 1, 1)')
+    expect(citationBiblique('au commencement[[1]]', 'Gn 1, 1').texte)
+      .toBe('« Au commencement » (Gn 1, 1).')
   })
 
   // ⛔ L'ORDRE compte, et ces deux gardes le tiennent : l'appel tombe JUSTE AVANT la
@@ -255,10 +279,10 @@ describe('les appels de note ne partent pas dans le presse-papiers', () => {
   // dernier signe (un point s'ajouterait APRÈS le marqueur), et le crochet de tête
   // ferait manquer l'initiale à capitaliser.
   it('capitalise l’initiale même quand un appel ouvre le passage', () => {
-    expect(preparerTexteCitation('[[7]]au commencement')).toBe('Au commencement.')
+    expect(preparerTexteCitation('[[7]]au commencement')).toBe('Au commencement')
   })
 
-  it('pose le point à la place de l’appel, non après lui', () => {
-    expect(preparerTexteCitation('il le dit[[12]]')).toBe('Il le dit.')
+  it('⛔ ne laisse pas l’appel tenir lieu de fin de phrase', () => {
+    expect(preparerTexteCitation('il le dit[[12]]')).toBe('Il le dit')
   })
 })
