@@ -4814,10 +4814,16 @@ main.lecture-entree [data-cs-bloc],
    fiche quand le premier en rend 3,45 (8,24 en Cuir). */
 .cs-fiche-copier {
   flex: 0 0 auto;
+  /* ⛔ IL SE TIENT AU BOUT DE LA TÊTE, non contre le titre (reprise de l'auteur,
+     2026-09-23 : « trop gros, trop près du texte »). Un geste secondaire posé à huit
+     pixels du titre se lit comme une part du titre ; au fer à droite, il occupe le blanc
+     que la tête laissait, et rien ne le dispute.
+     ⚠️ LE FER SE POSE DANS LE RACCOURCI, jamais dans une déclaration à côté : `margin: 0`
+     écrit après le remettrait à zéro, et le geste reviendrait se coller au titre. */
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin: 0;
+  margin: 0 0 0 auto;
   padding: 0;
   border: none;
   background: none;
@@ -4843,8 +4849,8 @@ main.lecture-entree [data-cs-bloc],
    On les redit en rem, à la même mesure à la racine 16, pour que la marque grandisse avec
    le titre qu'elle accompagne. */
 .cs-fiche-copier svg {
-  width: 0.6875rem;
-  height: 0.75rem;
+  width: 0.5625rem;
+  height: 0.625rem;
 }
 .cs-fiche-copier:hover,
 .cs-fiche-copier:focus-visible { color: var(--cs-vert) !important; }
@@ -5074,13 +5080,6 @@ main.lecture-entree [data-cs-bloc],
   color: var(--cs-texte);
 }
 .cs-fiche-identite .cs-fiche-champ { padding: 0; }
-.cs-fiche-edition .cs-notice-prose { line-height: 1.44; }
-/* La référence à citer : une PHRASE, qui prend toute la mesure. Le geste de copie ne
-   la borde plus, il se tient contre le titre de la section (`.cs-fiche-copier`). */
-.cs-fiche-edition-citation-texte {
-  margin: 0;
-  font-family: var(--font-source-serif), Georgia, serif;
-  font-size: 0.71875rem;
 /* ⛔ DANS L'EN-TÊTE, UNE VALEUR QUI PASSE À LA LIGNE REVIENT AU FER À GAUCHE
    (demande de l'auteur, 2026-09-21). En flex, la suite des traditions s'alignait sous
    leur premier mot, à droite du libellé, et creusait un retrait brutal sous le nom.
@@ -5089,6 +5088,30 @@ main.lecture-entree [data-cs-bloc],
 .cs-fiche-identite .cs-fiche-champ dt,
 .cs-fiche-identite .cs-fiche-champ dd { display: inline; }
 .cs-fiche-identite .cs-fiche-champ dt { margin-right: 5px; }
+/* ⛔ UNE LISTE QUI HABILLE UN PORTRAIT PREND LA MÊME FORME, et pour une raison de plus
+   (demande de l'auteur, 2026-09-23 : « il faut que le texte revienne au fer, à gauche, aux
+   secondes lignes »). Une rangée en FLEX est un contexte de formatage : elle se range
+   ENTIÈRE à côté du flottant ou ENTIÈRE dessous, d'où les deux fers qui avaient fait
+   dégager la section « Édition du texte ». Rendue en BLOC, ce sont ses LIGNES qui se
+   raccourcissent le long du portrait, et chacune repart du fer de la colonne.
+   ⚠️ L'interligne et la césure sont ceux d'un PARAGRAPHE : « Particularités » porte de la
+   prose, et elle les portait jusqu'ici dans un bloc posé au creux de sa valeur. */
+.cs-fiche-champs--habille .cs-fiche-champ {
+  display: block;
+  line-height: 1.45;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.cs-fiche-champs--habille .cs-fiche-champ dt,
+.cs-fiche-champs--habille .cs-fiche-champ dd { display: inline; }
+.cs-fiche-champs--habille .cs-fiche-champ dt { margin-right: 5px; }
+.cs-fiche-edition .cs-notice-prose { line-height: 1.44; }
+/* La référence à citer : une PHRASE, qui prend toute la mesure. Le geste de copie ne
+   la borde plus, il se tient contre le titre de la section (`.cs-fiche-copier`). */
+.cs-fiche-edition-citation-texte {
+  margin: 0;
+  font-family: var(--font-source-serif), Georgia, serif;
+  font-size: 0.71875rem;
   line-height: 1.42;
   color: var(--cs-texte);
 }

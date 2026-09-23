@@ -359,20 +359,22 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
               ⛔ La référence composée ne se perd pas : le geste de copie, contre le titre de
               la section, la rend telle qu'on la cite. */}
           {aEdition && (
-            /* ⛔ ELLE DÉGAGE LE PORTRAIT (`cs-fiche-section--degagee`), et ce n'est pas un
-               ornement : ses rangées sont des CONTEXTES DE FORMATAGE, et chacune se range
-               où elle peut — les premières à côté du portrait, les suivantes en pleine
-               mesure. Une liste « libellé : valeur » y prenait DEUX FERS, et l'œil ne
-               retrouvait plus la colonne des libellés. ⚠️ La faire tenir ENTIÈRE à côté du
-               portrait (`flow-root`) est pire : « Particularités » y court sur vingt
-               lignes de vingt-cinq signes. La liste se pose donc SOUS le portrait, à sa
-               pleine mesure — et une bible sans portrait ne bouge pas d'un pixel. */
-            <SectionFiche titre="Édition du texte" className="cs-fiche-section--degagee"
+            /* ⛔ ELLE HABILLE LE PORTRAIT, elle ne se range plus dessous (reprise de
+               l'auteur, 2026-09-23 : « il faut le placer, comme avant, à droite de
+               l'illustration »). Le dégagement (`cs-fiche-section--degagee`) laissait un
+               grand blanc à droite du portrait, puis la liste entière sous lui.
+               ⛔ C'EST LA FORME DES RANGÉES QUI LE PERMET : une rangée en FLEX est un
+               CONTEXTE DE FORMATAGE, et se range ENTIÈRE là où elle tient — d'où les deux
+               fers qui avaient fait dégager la section. Rendues en BLOC, leurs LIGNES se
+               raccourcissent le long du flottant et reprennent la pleine mesure sous lui :
+               c'est l'habillage ordinaire, et le fer de chaque ligne est celui de la
+               colonne de texte (`cs-fiche-champs--habille`, globals.css). */
+            <SectionFiche titre="Édition du texte"
               action={referenceACopier ? (
                 <BoutonCopierTexte texte={referenceACopier} titre="Copier la référence"
                   className="cs-fiche-copier cs-cible-fine" />
               ) : null}>
-              <dl className="cs-fiche-champs">
+              <dl className="cs-fiche-champs cs-fiche-champs--habille">
                 <ChampFiche libelle="Titre" italique>{enProse(i.titre_edition)}</ChampFiche>
                 <ChampFiche libelle="Sous-titre" italique>{enProse(i.sous_titre_edition)}</ChampFiche>
                 <ChampFiche libelle="Édition">{mentionEdition}</ChampFiche>
@@ -387,11 +389,11 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
                 <ChampFiche libelle="Graphie">{enProse(i.graphie)}</ChampFiche>
                 <ChampFiche libelle="Numérotation">{numerotation}</ChampFiche>
                 {/* ⚠️ « PARTICULARITÉS » PORTE DE LA PROSE : l'interligne et la césure d'un
-                    paragraphe. La valeur d'une rangée est une cellule de flex : le bloc s'y
-                    range sans rien déplacer. */}
-                <ChampFiche libelle="Particularités">{i.particularites
-                  ? <span style={{ display: 'block', lineHeight: 1.45, hyphens: 'auto' }}>{enProse(i.particularites)}</span>
-                  : null}</ChampFiche>
+                    paragraphe, portés par `cs-fiche-champs--habille` sur la rangée entière.
+                    ⛔ PLUS DE BLOC DANS LA VALEUR : la rangée est devenue une LIGNE DE
+                    TEXTE, et un enfant de bloc y rouvrirait un second fer — exactement ce
+                    que l'auteur a refusé le 2026-09-23. */}
+                <ChampFiche libelle="Particularités">{enProse(i.particularites)}</ChampFiche>
                 <ChampFiche libelle="Texte mis à jour le">{miseAJour}</ChampFiche>
               </dl>
             </SectionFiche>
