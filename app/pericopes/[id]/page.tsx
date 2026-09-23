@@ -150,14 +150,12 @@ function BlocVersets({ vs, ctx }: { vs: VersetPericope[]; ctx: CtxActions }) {
         const nouveauChapitre = multiChapitres && (i === 0 || v.chapitre !== vs[i - 1].chapitre)
         const base = `${abr}|${v.chapitre}|${v.verset}`
         const cle = `${base}@${ctx.trad}`
-        // Prélevé dans une AUTRE bible seulement : signet intermédiaire.
-        const ailleurs = !ctx.prelevements.has(cle) && [...ctx.prelevements.keys()].some(k => k.startsWith(`${base}@`))
         const actions = (
           <ActionsVerset
             idVerset={v.id_verset} refAffichee={`${abr} ${v.chapitre}, ${v.verset}`}
             nomLivre={nomLivreReference(ctx.livre)} refLivreAbr={abr}
             chapitre={v.chapitre} verset={v.verset} texte={String(v.texte)}
-            tradLabel={ctx.tradLabel} trad={ctx.trad} ailleurs={ailleurs} userId={ctx.userId}
+            tradLabel={ctx.tradLabel} trad={ctx.trad} userId={ctx.userId}
             prelevementId={ctx.prelevements.get(cle) ?? null}
             onPreleve={ctx.onPreleve} onRetire={ctx.onRetire} />
         )
@@ -184,9 +182,9 @@ function BlocVersets({ vs, ctx }: { vs: VersetPericope[]; ctx: CtxActions }) {
                   la page Bible (`STYLE_SIGNET_VERSET`), au bureau ; au doigt, le pavé
                   d'actions dit l'état. */}
               <span style={{ fontFamily: SANS, fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-texte-gris)', minWidth: '1.1rem', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: 'calc(0.875rem * 1.55)', lineHeight: 1 }}>
-                {!ctx.auDoigt && (ctx.prelevements.has(cle) || ailleurs) && (
-                  <span aria-hidden="true" title={ailleurs ? 'Prélevé dans une autre traduction' : 'Dans mes prélèvements'} style={STYLE_SIGNET_VERSET}>
-                    <IconeSignet plein={!ailleurs} ailleurs={ailleurs} taille="100%" />
+                {!ctx.auDoigt && ctx.prelevements.has(cle) && (
+                  <span aria-hidden="true" title="Dans mes prélèvements" style={STYLE_SIGNET_VERSET}>
+                    <IconeSignet plein taille="100%" />
                   </span>
                 )}
                 {v.verset}

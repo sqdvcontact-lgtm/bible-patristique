@@ -32,8 +32,6 @@ export type ActionsVersetProps = {
   tradLabel: string
   /** Le CODE de la traduction lue : le prélèvement est celui de CETTE bible (2026-09-23). */
   trad: string | null
-  /** Le verset est prélevé dans une autre traduction : signet intermédiaire. */
-  ailleurs?: boolean
   userId: string | null
   prelevementId: string | null
   onPreleve: (cle: string, id: string) => void
@@ -42,7 +40,7 @@ export type ActionsVersetProps = {
 
 export default function ActionsVerset({
   idVerset, refAffichee, nomLivre, refLivreAbr, chapitre, verset, texte,
-  tradLabel, trad, ailleurs = false, userId, prelevementId, onPreleve, onRetire,
+  tradLabel, trad, userId, prelevementId, onPreleve, onRetire,
 }: ActionsVersetProps) {
   // ⛔ La clé porte la traduction : prélever la Vulgate ne coche pas la Bible de Sacy.
   const cle = `${refLivreAbr}|${chapitre}|${verset}@${trad ?? ''}`
@@ -129,7 +127,7 @@ export default function ActionsVerset({
           title={preleve ? 'Retirer de mes prélèvements' : 'Ajouter à mes prélèvements'}
           aria-label={preleve ? `Retirer ${refAffichee} de mes prélèvements` : `Ajouter ${refAffichee} à mes prélèvements`}
           style={{ ...BTN, opacity: 0, color: preleve ? 'var(--cs-texte-doux)' : 'var(--cs-bord)' }}>
-          {chargement ? '…' : <IconeSignet plein={preleve} ailleurs={ailleurs} />}
+          {chargement ? '…' : <IconeSignet plein={preleve} />}
         </button>
       )}
 

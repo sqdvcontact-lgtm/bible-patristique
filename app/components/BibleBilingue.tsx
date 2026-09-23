@@ -198,8 +198,8 @@ export type LectureBilingueProps = {
    *  chaque cellule qui porte un texte offre au survol un bouton de copie (bureau seul). */
   copierCellule?: (cle: string) => Promise<void>
   /** L'état du signet d'UNE cellule, par sa clé (`cleDeCelluleBilingue`) : `'plein'` si CE
-   *  texte est prélevé, `'ailleurs'` s'il ne l'est que dans une autre traduction (signet
-   *  intermédiaire), `null` sinon. Présent avec `basculerPrelevement`, chaque cellule qui
+   *  texte est prélevé ; `'ailleurs'` (prélevé dans une autre traduction seulement) ne se
+   *  montre pas (décision de l'auteur, 2026-09-23 : rien sur l'autre colonne). Présent avec `basculerPrelevement`, chaque cellule qui
    *  porte un texte offre son signet, et le numéro DIT l'état à qui ne voit pas la page.
    *  ⛔ Par cellule, jamais par créneau : prélever le latin ne coche pas le français
    *  (demande de l'auteur, 2026-09-23). */
@@ -305,9 +305,7 @@ function SignetCellule({ basculer, etat, langue, numero, derniere, rang, enRange
   const objet = `${numero === null ? 'ce verset' : `le verset ${numero}`} (${langue.toLowerCase()})`
   const geste = preleve
     ? `Retirer ${objet} de mes prélèvements`
-    : etat === 'ailleurs'
-      ? `Ajouter ${objet} à mes prélèvements — déjà prélevé dans une autre traduction`
-      : `Ajouter ${objet} à mes prélèvements`
+    : `Ajouter ${objet} à mes prélèvements`
   return (
     <button
       type="button"
@@ -329,11 +327,11 @@ function SignetCellule({ basculer, etat, langue, numero, derniere, rang, enRange
       aria-label={geste}
       style={{
         ...(enRangee ? STYLE_BOUTON_ACTION : placeDansLaGouttiere(rang, derniere)),
-        color: echec ? 'var(--cs-danger)' : etat ? 'var(--cs-texte-doux)' : 'var(--cs-bord)',
+        color: echec ? 'var(--cs-danger)' : preleve ? 'var(--cs-texte-doux)' : 'var(--cs-bord)',
         ...(echec ? STYLE_HOTE_ECHEC : null),
       }}
     >
-      {attente ? '…' : <IconeSignet plein={preleve} ailleurs={etat === 'ailleurs'} />}
+      {attente ? '…' : <IconeSignet plein={preleve} />}
       <EclatEchec echec={echec} />
     </button>
   )
@@ -805,12 +803,12 @@ export default function BibleBilingue({
                     data-lasso-depart={departLasso}
                     {...(estBouton && !referenceRepetee ? boutonDuNumero(glose ? (glose.canonHote as string) : rangee.canonId, glose ? LIBELLE_GLOSE : null) : {})}>
                     {!referenceRepetee && estBouton && !glose && (() => {
-                      // ⚠️ La marque du numéro dit l'état de SA colonne : pleine si ce texte est
-                      // prélevé, intermédiaire s'il ne l'est que dans l'autre langue.
+                      // ⚠️ La marque du numéro dit l'état de SA colonne, et de SA colonne seule :
+                      // prélevé dans l'autre langue, rien ne paraît ici (2026-09-23).
                       const etatMarque = etatDe(cleDeCelluleBilingue(membre.translationId, rangee.canonId))
-                      return etatMarque ? (
-                        <span aria-hidden="true" title={etatMarque === 'plein' ? 'Dans mes prélèvements' : 'Prélevé dans une autre traduction'} style={STYLE_SIGNET_VERSET}>
-                          <IconeSignet plein={etatMarque === 'plein'} ailleurs={etatMarque === 'ailleurs'} taille="100%" />
+                      return etatMarque === 'plein' ? (
+                        <span aria-hidden="true" title="Dans mes prélèvements" style={STYLE_SIGNET_VERSET}>
+                          <IconeSignet plein taille="100%" />
                         </span>
                       ) : null
                     })()}
