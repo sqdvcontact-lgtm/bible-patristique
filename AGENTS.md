@@ -12890,3 +12890,144 @@ Doctrine : charte `parametres.charte_ia`, § 12.1. Décision de l'auteur : « je
 - ⛔ **La bibliothèque ne lit plus `v_oeuvres_texte_original`** : l'original offert sous une traduction se reconnaît à ses textes seuls (`composerOriginauxDisponibles(textes)`).
 - ⚠️ **Ce qui reste en base, et pourquoi** : la colonne `segments.texte_original`, la vue `v_oeuvres_texte_original` et la clé `original_segment_key`. La RECHERCHE lit encore la colonne (`recherche_segments_v2`, `recherche_segments_v2_corresp`, `recherche_segments_original*`, champ `match_orig`), et des fonctions d'import et `rafraichir_projection_texte_original` y écrivent. ⛔ Les retirer demande d'abord de faire chercher le latin dans les textes originaux, puis un déploiement, puis seulement la migration : la base est partagée avec le site en ligne.
 - ⚠️ **Ce qui n'est PAS un second mode latin-français** : la comparaison de traductions (`ComparaisonTraductions`, `COMPARAISON_ACTIVE = false`) met deux traductions face à face par les MÊMES tables ; et la Bible a son propre axe (`bible_canonical_alignments`).
+
+# ⛔ UNE CITATION NE GARDE QUE « ? » ET « ! » — le point ferme APRÈS la référence (2026-09-23)
+
+Demande de l'auteur, « pour le copier-coller [partout] ». Doctrine : charte § 3.8 et la
+règle 2 de l'en-tête de `app/lib/citation.ts` — ⚠️ **reste à porter à `charte_ia`**. Ici,
+ce qu'il faut savoir pour y toucher :
+
+- ⛔ **LA RÈGLE VIT DANS `normaliserPonctuationFinale`, ET NULLE PART AILLEURS** : toute
+  ponctuation finale TOMBE, et RIEN ne la remplace — sauf « ? » et « ! », qui appartiennent
+  à la phrase citée. Le point ferme la phrase APRÈS la référence : « … » (Gn 1, 1). Les six
+  boutons de copie du site, la note d'un essai, l'affichage d'un prélèvement et la citation
+  favorite d'un profil passent par cette porte, et suivent donc ensemble.
+- ⚠️ **LA PONCTUATION SE JUGE SOUS LES MARQUES D'ENRICHISSEMENT** (`MARQUES_FINALES`), qui
+  se mettent de côté puis se reposent telles quelles : chez Sacy, un verset s'achève tantôt
+  par « … <i>ajouté</i>. », tantôt par « … <i>ajouté.</i> », et le dernier signe de la
+  chaîne est alors un chevron fermant. Sans cette garde, un point s'ajoutait APRÈS la balise.
+- ⚠️ **UNE PARENTHÈSE ET UN CROCHET FERMANTS NE REÇOIVENT PLUS DE POINT** : ils ne sont pas
+  une ponctuation de phrase, et la phrase se ferme ailleurs.
+
+## ⛔ LE PRESSE-PAPIERS N'EMPORTE JAMAIS LE BALISAGE DU CORPUS
+
+- ⛔ **`citationBiblique` rend DEUX formes, comme `citationPatristique`.** Le texte biblique
+  porte son italique en `<i>…</i>` — chez Sacy, elle marque les mots ajoutés par le
+  traducteur, absents de la Vulgate — et le reste du corpus en `*…*`, `**…**`, `++…++`,
+  `^^…^^` : copié tel quel, un verset emportait ses balises EN CLAIR dans le document du
+  lecteur. C'est le défaut que l'auteur a relevé le 23 septembre 2026.
+- ⛔ **LES DEUX FORMES VIENNENT DU MÊME DÉCOUPAGE** (`citeEnrichi`, sur `fragmentsEnrichis`,
+  la grammaire d'enrichissement du corpus) : le plein-texte et le collage riche ne peuvent
+  donc pas dire deux choses différentes. ⚠️ Un texte DÉJÀ dépouillé le traverse sans rien
+  changer — c'est ce qui a permis de brancher les six surfaces sans en réécrire aucune.
+- ⛔ **ET LES COPIES PATRISTIQUES CESSENT DE DÉPOUILLER LEUR TEXTE EN AMONT** : le volet des
+  Pères, « Mes citations » et le lasso d'une œuvre passaient par `texteSansEnrichissement`,
+  si bien que leur italique était perdue avant même d'atteindre le presse-papiers. Elles
+  passent le texte du corpus tel quel. ⚠️ Le SIGNALEMENT, lui, garde le dépouillement : ce
+  qu'on rapporte est du texte nu.
+- ⛔ **`copierEnFormeRiche(plain, html)` EST PARTAGÉE** avec `BoutonCopierTexte`, et elle ne
+  REMPLACE aucun repli : elle dit seulement si elle a porté, et l'appelant choisit le sien —
+  `writeText` pour `copierCitation`, le champ temporaire pour le bouton. Une seconde
+  écriture du collage riche ferait emporter l'italique à une surface et pas à l'autre.
+- ⚠️ **Hors du site il n'y a plus de feuille** : la petite capitale se pose en style EN LIGNE,
+  comme `htmlFragments` le fait déjà pour la notice. C'est la seule exception à la règle qui
+  veut que la composition vienne de la feuille.
+
+# ⛔ LES DEUX RAILS D'UNE PAGE SE TOURNENT VERS SON CENTRE (2026-09-23)
+
+Demande de l'auteur : « doivent être tournés vers le centre de la page — changer, donc,
+“Ouvrir les livres” de sens ; améliorer la police ; les deux barres doivent avoir la même
+épaisseur ». Doctrine : charte § 38.5 — ⚠️ **reste à porter à `charte_ia`**.
+
+- ⛔ **CE QUI SE TOURNE N'EST PAS LE SENS DE LECTURE, MAIS L'ASSISE DES LETTRES** : leur PIED
+  regarde la colonne de texte, leur tête le bord de l'écran. À droite, `writing-mode:
+  vertical-rl` le fait seul ; à gauche il faut le demi-tour (`rotate(180deg)`), faute de quoi
+  le rail de gauche pose ses lettres à l'envers de son frère. Le rail de gauche se lit donc
+  de BAS EN HAUT, et c'est la disposition ordinaire d'une bande latérale gauche.
+  ⛔ Cela RENVERSE la note du 2026-09-04, qui tenait les deux rails pour accordés parce
+  qu'ils lisaient dans le même sens : **lire dans le même sens et se tourner vers le même
+  bord sont deux choses différentes.**
+- ⛔ **LES DEUX RAILS N'ONT QU'UNE SEULE ÉPAISSEUR, parce qu'ils n'ont qu'un seul composant** :
+  `LARGEUR_RAIL` (30 px) et `FILET_RAIL` (1 px) se nomment dans `RailVolet`, et valent pour
+  les deux côtés. Une mesure écrite deux fois finirait par diverger.
+- ⚠️ **UN RANG DE CORPS DE PLUS** : le libellé valait 10,5 px, sous le plancher de 11 que la
+  charte donne au texte, et une capitale espacée COUCHÉE sur trente pixels est ce qui se lit
+  le moins bien du site. Chasse ouverte d'autant (0,14 em) : à 0,12 les capitales se
+  touchaient presque.
+- ⚠️ **La barre MOBILE n'est pas un rail** : horizontale, pleine largeur, elle garde son corps.
+
+# ⛔ LA CHASSE DU SITE SE RÈGLE SUR `body`, ET NULLE PART AILLEURS (2026-09-23)
+
+Relevé de l'auteur sur la liste des livres : « les caractères sont très légèrement trop
+serrés, mais vraiment très légèrement ; et l'espace entre les mots est légèrement trop
+important ; revoir harmonieusement — corriger ailleurs aussi ». Doctrine : charte § 3.11 —
+⚠️ **reste à porter à `charte_ia`**.
+
+- ⛔ **CE N'EST PAS UN GOÛT, C'EST UNE DISPROPORTION PROPRE À LA POLICE.** L'espace de la
+  Source Sans chasse **0,279 em** quand ses lettres se touchent presque : les mots s'y
+  détachent plus que les caractères ne se lient, et le gris du texte s'en trouve troué.
+- ⛔ **LA VALEUR N'EST PAS NEUVE, ELLE ÉTAIT DÉJÀ MESURÉE** : `--cs-espace-mot-ui` vaut
+  `-0.03em`, le retrait que la charte § 3.11 prescrit au texte dense en sans pour ramener
+  cette espace au QUART DE CADRATIN. Elle cesse seulement d'être un cas particulier.
+  `--cs-chasse-ui` ouvre la chasse d'un centième de cadratin, et pas davantage : au-delà,
+  un texte condensé cesse de l'être, et l'auteur les aime condensés.
+- ⚠️ **LES DEUX SE RÈGLENT ENSEMBLE** : ouvrir les caractères sans resserrer les mots ne
+  ferait qu'ajouter du blanc. Tout bloc qui déclare sa propre chasse — l'apparat, la
+  manchette, les capitales espacées d'un rail — garde la sienne, une déclaration plus proche
+  l'emportant ; les blocs denses qui posaient déjà `-0.03em` ne bougent pas d'un centième.
+- ⚠️ **Revenir en arrière ne demande que de rendre les deux jetons à `normal`.**
+
+# ⛔ LA BARRE D'ONGLETS MOBILE AGIT SUR LE VERSET CHOISI, ELLE NE LE QUITTE PAS (2026-09-23)
+
+Relevé de l'auteur : « quand je clique sur un verset et que je veux ensuite cliquer sur
+“Pères”, le verset se déselectionne, et “Pères” affiche l'intégralité des commentaires du
+livre biblique en cours. »
+
+- ⛔ **LE PAVÉ D'ACTIONS SE FERME PAR TOUT CE QUI DIT “JE PASSE À AUTRE CHOSE”** (règle du
+  2026-09-22), et il emportait la SÉLECTION avec lui. Or l'onglet « Pères » ouvre précisément
+  l'apparat DU verset qu'on vient de choisir : le toucher n'est pas passer à autre chose,
+  c'est s'en servir. `TexteBible` reconnaît donc `[data-barre-lecture]` — l'attribut que la
+  barre d'onglets porte déjà (`ATTRIBUT_BARRE_LECTURE`), et qu'aucune classe neuve n'a eu à
+  doubler — ferme le pavé, et GARDE le choix.
+- ⚠️ **LE DÉFILEMENT ÉTAIT LE SECOND BOUT DU MÊME DÉFAUT** : masquer la colonne de texte
+  (`display: none`) fait tomber la hauteur du document, donc émettre un `scroll`, que le même
+  effet écoutait pour défaire le choix. Le pavé fermé, l'effet se DÉMONTE et ses écoutes
+  partent avec lui — un événement discret se vidant de façon synchrone, le démontage précède
+  toujours le clic qui change d'onglet. **Devant une sélection qui se défait, chercher les
+  DEUX chemins : le pointeur et le défilement.**
+
+# ⛔ `scrollbar-gutter: stable` SUR LE DÉFILEUR DU VOLET DES PÈRES (2026-09-23)
+
+Relevé de l'auteur : « quand je clique sur “Écho”, y'a moins de résultats ; la barre de
+défilement disparaît, ce qui crée un décalage immonde ».
+
+- ⛔ **LES SOUS-ONGLETS VIVENT DANS LE DÉFILEUR, et se partagent sa largeur à parts égales.**
+  Un sous-onglet moins fourni que les autres faisait disparaître la barre, la largeur utile
+  gagnait quinze pixels, et toute la rangée sautait de sept vers la gauche. Ce n'était pas
+  les onglets, c'était la barre de défilement — le même défaut que `html` avait réglé pour
+  les pages du site, pris un cran plus bas.
+- ⚠️ `stable` seul, non `both-edges` : la barre est à DROITE, et réserver sa seule gouttière
+  suffit à ce que rien ne bouge. ⛔ Rien au doigt : une barre superposée n'y prend aucune
+  place, et la gouttière y serait un blanc perdu sur une colonne déjà étroite.
+
+# ⛔ LA LIGNE D'ÉDITION DE LA CARTE MET SA RÉFÉRENCE DANS LE PRESSE-PAPIERS (2026-09-23)
+
+Demande de l'auteur : « ne pas donner d'indice, seulement un changement de curseur au
+survol, mais quand on clique dessus, copier la référence bibliographique ».
+
+- ⛔ **AUCUN INDICE** : ni filet, ni pictogramme, ni infobulle — SEUL le curseur change. Une
+  carte de volet n'a pas la place d'annoncer un geste qui ne sert qu'une fois. ⚠️ L'ACCUSÉ
+  reste, et c'est l'éclat de tous les boutons de copie du site : ne rien dire après le clic
+  laisserait croire que rien n'a porté.
+- ⛔ **LA PHRASE DE LA CARTE N'EST PAS LA RÉFÉRENCE.** Elle dit d'où vient le texte
+  (`libelleEditionTraduction`, « D'après l'édition de Paris, … ») ; la référence dit les
+  VOLUMES, et c'est elle qu'on copie, composée par `texteReferenceEdition` — le moteur de la
+  fiche — et jamais recomposée dans la carte.
+- ⚠️ **QUATRE COLONNES DE PLUS DANS LA MÊME VAGUE** : `titre_edition`, `sous_titre_edition`,
+  `mention_edition` et `nombre_tomes` traversent `app/page.tsx` et `BibleLayout` jusqu'à
+  `TraductionEncart`. `editions_sources` fait sept lignes : elles ne coûtent rien, et sans
+  elles la carte n'aurait offert qu'une référence tronquée là où la fiche en donne une
+  complète.
+- ⛔ **La ligne garde EXACTEMENT sa composition** : un bouton qui se dessinerait en
+  annoncerait un, et c'est ce qu'on refuse. Sans référence à copier, elle redevient un
+  `<span>`.
