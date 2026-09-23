@@ -13117,3 +13117,11 @@ Doctrine : charte `parametres.charte_ia`, **§§ 6.1.2, 3.11.7, 51.11, 51.12, 38
   chaque cellule, la marge d'une colonne n'existant pas sur un téléphone.
 - ⚠️ **Les deux fichiers sont en CRLF** quand leurs voisins sont en LF : un script de reprise
   normalise en mémoire et rend la fin de ligne d'origine, sinon l'ancre ne s'apparie pas.
+
+# ⛔ BIBLE CLASSIQUE : le verset condensé, la carte de la Fillion (2026-09-23)
+
+- **Corps du verset** : 15 px / 1,48 au cran normal (14/1,44, 17/1,52), pour 16/1,55. Espace des mots `ESPACE_MOT_VERSET` (−0,035 em), `ESPACE_MOT_ORIGINAL` (−0,03 em, le quart de cadratin, plancher), `letterSpacing: 0` (le verset ne prend pas la chasse de `body`) et `CESURE_VERSET` (`5 2 2`), dans `styleTexteVerset` ET `STYLE_VERSET` de `BibleBilingue`. ⚠️ `RAPPORT_GLOSE_VERSET` passe à 0,9 pour garder « un point de moins » au nouveau cran ; `glosses899.css` suit.
+- **La carte du volet** (`EncartTraduction`) : `nomAvecFleuron` remplace le tiret cerné d'espaces par un ❧ discret ; les dates d'un auteur qui finit par « (éd.) » se taisent (ce sont celles du texte) ; interligne 1,2 sous « D'après l'édition… ».
+- **En regard**, `BibleLayout` passe à `NavLivres` `traductionsDuVolet` : « Bible Fillion – Français et latin », langues dans l'ordre des colonnes. Le menu central garde les noms.
+- **Donnée** : TR0011 s'appelle « Bible Fillion – Latin » (« (Vulgate) » retiré).
+- **Onglet du volet gauche** : « Apparat » (non « Apparat critique », qui passerait à la ligne dans 200 px).
