@@ -218,14 +218,23 @@ function porteDuTexte(noeud: NoeudDom): boolean {
  * aucun de ses ancêtres jusqu'à la zone n'est un contenu (`SELECTEUR_CONTENU`) ou une cible
  * du lasso (`horsLasso`, que la page nomme) ; et elle est un conteneur de mise en page qui
  * ne porte lui-même aucun texte.
+ *
+ * ⚠️ Une boîte que la page déclare FOND (`[data-lasso-fond]`) n'est pas un contenu, même
+ * focalisable. C'est la cellule de la Polyglotte (2026-09-23) : elle porte `tabindex` pour
+ * s'ouvrir au clavier, ce qui l'excluait tout entière, et le tableau n'offrait plus au lasso
+ * que douze pixels de marge — l'auteur ne le trouvait pas. Son blanc (rembourrage, fin de
+ * ligne, bas d'une cellule plus courte que sa rangée) en redevient un ; son TEXTE reste du
+ * texte, les lignes étant des `span`.
  */
+export const SELECTEUR_FOND_DECLARE = '[data-lasso-fond]'
+
 export function peutOuvrirLeLasso(cible: NoeudDom | null, zone: NoeudDom, horsLasso = ''): boolean {
   if (!cible) return false
   const exclus = horsLasso ? `${SELECTEUR_CONTENU}, ${horsLasso}` : SELECTEUR_CONTENU
   let dedans = false
   for (let n: NoeudDom | null = cible; n; n = n.parentElement) {
     if (n === zone) { dedans = true; break }
-    if (n.matches(exclus)) return false
+    if (!n.matches(SELECTEUR_FOND_DECLARE) && n.matches(exclus)) return false
   }
   if (!dedans) return false
   if (!BALISES_DE_FOND.has(cible.tagName)) return false

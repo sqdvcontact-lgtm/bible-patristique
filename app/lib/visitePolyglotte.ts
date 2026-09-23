@@ -80,7 +80,7 @@ export const VISITE_POLYGLOTTE: Visite = {
       titre: 'Passage',
       texte: [
         'Choisissez un livre puis un chapitre pour l’afficher.',
-        'La dernière case, marquée **∞**, présente tout le livre d’un seul tenant dans les différentes colonnes.',
+        'La dernière case, marquée **α ω**, présente tout le livre d’un seul tenant dans les différentes colonnes.',
       ],
       cote: 'droite',
     },

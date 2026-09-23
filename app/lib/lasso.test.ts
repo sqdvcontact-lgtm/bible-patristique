@@ -241,6 +241,19 @@ describe('peutOuvrirLeLasso', () => {
     expect(peutOuvrirLeLasso(grille, zone)).toBe(true)
   })
 
+  it('s’ouvre dans le blanc d’une boîte que la page déclare fond, même focalisable', () => {
+    // La cellule de la Polyglotte : `tabindex` pour le clavier, mais son blanc est du blanc.
+    const cellule = noeud('div', { parent: colonne, attributs: { tabindex: '0', 'data-lasso-fond': '' } })
+    expect(peutOuvrirLeLasso(cellule, zone)).toBe(true)
+    // Son texte reste du texte.
+    expect(peutOuvrirLeLasso(noeud('span', { parent: cellule, texte: 'In principio' }), zone)).toBe(false)
+    // Sans la déclaration, la même cellule est un contenu.
+    expect(peutOuvrirLeLasso(noeud('div', { parent: colonne, attributs: { tabindex: '0' } }), zone)).toBe(false)
+    // Et un bouton posé dedans reste un bouton.
+    const bouton = noeud('button', { parent: cellule })
+    expect(peutOuvrirLeLasso(noeud('div', { parent: bouton }), zone)).toBe(false)
+  })
+
   it('ne s’ouvre pas hors de la zone', () => {
     const ailleurs = noeud('div', { parent: noeud('body') })
     expect(peutOuvrirLeLasso(ailleurs, zone)).toBe(false)

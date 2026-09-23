@@ -34,7 +34,6 @@ import { codeDeTraduction } from "@/app/lib/prelevementsBibliques";
 import { CelluleActions, useCelluleActions } from "@/app/components/CelluleActions";
 import { STYLE_BOUTON_ACTION } from "@/app/lib/celluleActions";
 import IconeChevron from "@/app/components/IconeChevron";
-import IconeEchange from "@/app/components/IconeEchange";
 import { DELAI_REPLI_MS, FOND_SURVOL_MENU, LARGEUR_SOUS_MENU_REM, rangDeCirculation, STYLE_CADRE_MENU, STYLE_CHEVRON_MENU, styleLigneMenu, TAILLE_CHEVRON_MENU } from "@/app/lib/stylesMenuBibles";
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from "@/app/lib/mesures";
 import { MarqueAttente } from "@/app/lib/attenteNavigation";
@@ -235,7 +234,11 @@ const NB_SLOTS = 4;   // valeur de repli au premier rendu (avant mesure de l'éc
 // Une colonne qui s'ouvre ou se ferme : la durée de la transition de sa piste.
 // ⚠️ Elle est écrite UNE fois et passée à la feuille (`.poly-grille`) : deux écritures,
 // l'une en millisecondes et l'autre en secondes, se désaccorderaient au premier réglage.
-const DUREE_COLONNE_MS = 280;
+// ⚠️ 640 ms et non plus 280 (demande de l'auteur, 2026-09-23 : « l'animation doit être plus
+// lente, plus smooth »). L'accélération est une ease-in-out douce (`COURBE_COLONNE`) : la
+// colonne part sans à-coup et se pose sans rebond.
+const DUREE_COLONNE_MS = 640;
+const COURBE_COLONNE = "cubic-bezier(.45,.05,.25,1)";
 type SlotCol = { slot: number; trad: Trad | null };
 type ColRendue = SlotCol & { etat: "stable" | "entrante" | "sortante" };
 // La clé de lasso d'une cellule : sa colonne, puis son créneau canonique.
@@ -1035,9 +1038,21 @@ const LARGEUR_MAX_MENU_REM = 24;
 //
 // ⚠️ Deux choses restent propres à cette page, et elles tiennent à la grille. Le menu vit
 // dans un PORTAIL : l'en-tête collant rognerait sinon sa boîte. Et une traduction déjà
-// affichée dans une autre colonne se choisit quand même, les deux colonnes s'échangeant ; la
-// ligne le dit par une flèche à double sens entre les deux noms, non plus par une phrase
-// (voir `IconeEchange`).
+// affichée dans une autre colonne se choisit quand même, les deux colonnes s'échangeant.
+// ⛔ Le nom de celle qu'on déplace n'est plus écrit (décision de l'auteur, 2026-09-23 : « je
+// veux qu'on y renonce ») : au survol d'une autre traduction, c'est la ligne de la traduction
+// RETENUE qui passe au rouge, avec « Remplacer ? ». Elle dit ce qui va partir.
+// La ligne de la traduction RETENUE, quand la main se pose sur une autre : elle va partir.
+const STYLE_LIGNE_A_REMPLACER: React.CSSProperties = { background: "var(--cs-danger-fond)", color: "var(--cs-danger-fonce)" };
+
+function MentionRemplacer() {
+  return (
+    <span style={{ marginLeft: "auto", flexShrink: 0, fontFamily: "var(--font-source-sans), Arial, sans-serif", fontSize: "0.6875rem", fontWeight: 600, fontStyle: "italic", letterSpacing: "0.01em", color: "var(--cs-danger-fonce)" }}>
+      Remplacer ?
+    </span>
+  );
+}
+
 function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
   trads: Trad[]; disponibles: Trad[]; slots: string[]; index: number; onChoisir: (index: number, val: string) => void;
 }) {
@@ -1056,6 +1071,9 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
   // n'appartiennent ni à l'une ni à l'autre. Sans ce délai, le sous-menu se replierait au
   // moment même où l'on tend la main pour le prendre.
   const fermeture = useRef<number | null>(null);
+  // La liste où la main se pose sur une AUTRE traduction que la retenue : la ligne retenue de
+  // cette liste passe alors au rouge, avec « Remplacer ? » (2026-09-23).
+  const [survolAutre, setSurvolAutre] = useState<"menu" | "volet" | null>(null);
   const courante = trads.find(t => t.trad_id === slots[index]) ?? null;
   const entrees = useMemo(() => {
     const parLangue = entreesParLangue(disponibles);
@@ -1085,6 +1103,7 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
   const fermer = useCallback((rendreLeFoyer: boolean) => {
     retenirVolet();
     setVolet(null);
+    setSurvolAutre(null);
     setOuvert(false);
     if (rendreLeFoyer) btnRef.current?.focus();
   }, [retenirVolet]);
@@ -1152,7 +1171,7 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
   // celui qu'elle va déplacer, la suivent en glose plus petite et grisée (2026-09-23).
   const optionTrad = (t: Trad, rang: number, total: number, dansVolet: boolean, libelle?: string, titre?: string) => {
     const actif = slots[index] === t.trad_id;
-    const ailleurs = !actif && slots.some((x, idx) => idx !== index && x === t.trad_id);
+    const aRemplacer = actif && survolAutre === (dansVolet ? "volet" : "menu");
     const liste = dansVolet ? sousLignes : lignes;
     return (
       <button key={t.trad_id} type="button" role="menuitemradio" aria-checked={actif} title={titre}
@@ -1169,22 +1188,13 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
         }}
         onMouseEnter={e => {
           if (!dansVolet && volet) { retenirVolet(); setVolet(null); }
-          if (!actif) e.currentTarget.style.background = FOND_SURVOL_MENU;
+          if (!actif) { e.currentTarget.style.background = FOND_SURVOL_MENU; setSurvolAutre(dansVolet ? "volet" : "menu"); }
         }}
-        onMouseLeave={e => { if (!actif) e.currentTarget.style.background = "var(--cs-surface)"; }}
-        style={styleLigneMenu(actif, rang === 0, rang === total - 1)}>
-        {/* ⛔ LA TRADUCTION QU'ON CHOISIT GARDE LA FORME DE LA LIGNE ; celle dont elle prend la
-            place la suit, plus petite et grisée (demande de l'auteur, 2026-09-23 : « le
-            système pour intervertir deux traductions n'est pas clair »). Les deux noms
-            portaient la même encre pâle et le même corps : on ne lisait plus lequel on
-            choisissait. La flèche et le second nom forment désormais une glose. */}
+        onMouseLeave={e => { if (!actif) { e.currentTarget.style.background = "var(--cs-surface)"; setSurvolAutre(null); } }}
+        onFocus={() => setSurvolAutre(actif ? null : dansVolet ? "volet" : "menu")}
+        style={{ ...styleLigneMenu(actif, rang === 0, rang === total - 1), ...(aRemplacer ? STYLE_LIGNE_A_REMPLACER : null) }}>
         <span style={{ minWidth: 0 }}>{rendreEnrichi(libelle ?? t.nom)}</span>
-        {ailleurs && courante && (
-          <span style={{ display: "inline-flex", alignItems: "baseline", gap: "0.35em", minWidth: 0, fontSize: "0.85em", color: "var(--cs-texte-doux)" }}>
-            <span role="img" aria-label="échange avec" style={{ display: "inline-flex", flexShrink: 0, alignSelf: "center" }}><IconeEchange /></span>
-            <span style={{ minWidth: 0 }}>{rendreEnrichi(courante.nom)}</span>
-          </span>
-        )}
+        {aRemplacer && <MentionRemplacer />}
       </button>
     );
   };
@@ -1196,6 +1206,7 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
   const optionFamille = (f: Famille, rang: number, total: number) => {
     const actif = f.membres.some(m => m.trad.trad_id === slots[index]);
     const deploye = volet?.cle === f.cle;
+    const aRemplacer = actif && survolAutre === "menu";
     const defaut = (f.membres.find(m => m.source) ?? f.membres[0])?.trad.trad_id;
     const nom = nomCommun(f.principal.nom);
     return (
@@ -1203,8 +1214,9 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
         ref={el => { lignes.current[rang] = el; }}
         title={`${nom} : ${f.membres.map(m => m.libelle).join(", ")}`}
         onClick={() => { if (defaut) choisir(defaut); }}
-        onMouseEnter={e => deployer(f.cle, e.currentTarget, f.membres.length)}
-        onMouseLeave={replierBientot}
+        onMouseEnter={e => { deployer(f.cle, e.currentTarget, f.membres.length); setSurvolAutre(actif ? null : "menu"); }}
+        onMouseLeave={() => { replierBientot(); if (!actif) setSurvolAutre(null); }}
+        onFocus={() => setSurvolAutre(actif ? null : "menu")}
         onKeyDown={e => {
           if (circuler(e, rang, lignes.current, total)) return;
           if (e.key === "ArrowRight") {
@@ -1217,8 +1229,9 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
             setVolet(null);
           }
         }}
-        style={{ ...styleLigneMenu(actif, rang === 0, rang === total - 1), ...(deploye && !actif ? { background: FOND_SURVOL_MENU } : null) }}>
+        style={{ ...styleLigneMenu(actif, rang === 0, rang === total - 1), ...(deploye && !actif ? { background: FOND_SURVOL_MENU } : null), ...(aRemplacer ? STYLE_LIGNE_A_REMPLACER : null) }}>
         <span style={{ flex: 1, minWidth: 0 }}>{rendreEnrichi(nom)}</span>
+        {aRemplacer && <MentionRemplacer />}
         {/* ⚠️ Le chevron déploie SANS choisir : au doigt, la main ne survole pas, et c'est lui
             qui donne accès aux autres textes. */}
         <span aria-hidden="true" style={STYLE_CHEVRON_MENU}
@@ -2142,6 +2155,8 @@ export default function PolyglottePage() {
   const [colsPrec, setColsPrec] = useState<{ cle: string; cols: SlotCol[] }>({ cle: cleCols, cols: slotCols });
   const [fantomes, setFantomes] = useState<{ jeton: number; cols: SlotCol[] } | null>(null);
   const [entree, setEntree] = useState<{ jeton: number; depuis: number } | null>(null);
+  // Chaque ouverture ou fermeture de colonne : c'est sur lui que se mesure le texte figé.
+  const [transit, setTransit] = useState(0);
   if (colsPrec.cle !== cleCols) {
     const avant = colsPrec.cols.length;
     const apres = slotCols.length;
@@ -2150,9 +2165,11 @@ export default function PolyglottePage() {
     if (avaitDuTexte && apres < avant) {
       setFantomes(f => ({ jeton: (f?.jeton ?? 0) + 1, cols: colsPrec.cols.slice(apres) }));
       setEntree(null);
+      setTransit(t => t + 1);
     } else if (avaitDuTexte && apres > avant) {
       setEntree(e => ({ jeton: (e?.jeton ?? 0) + 1, depuis: avant }));
       setFantomes(null);
+      setTransit(t => t + 1);
     }
   }
   useEffect(() => {
@@ -2167,6 +2184,41 @@ export default function PolyglottePage() {
     const depart = window.setTimeout(() => setEntree(null), 34);
     return () => window.clearTimeout(depart);
   }, [entree]);
+  // ── LES LETTRES NE SAUTENT PAS D'UNE LIGNE À L'AUTRE (demande de l'auteur, 2026-09-23) ──
+  // « Les lettres devraient se déplacer plus élégamment. » Tant que la piste d'une colonne
+  // s'élargit ou se resserre, son texte se recomposait à CHAQUE image : les mots passaient
+  // d'une ligne à l'autre sans cesse, et c'est ce va-et-vient qui se lisait comme un défaut.
+  // Le texte se compose donc UNE fois, à la largeur qu'il aura à l'arrivée, dans une
+  // enveloppe de largeur fixe (`.poly-cell-corps`) : la colonne le découvre en s'ouvrant, et
+  // il glisse d'un bloc avec elle. Celle qui part garde la largeur qu'elle avait, et se fait
+  // recouvrir. Les deux largeurs se MESURENT ici, avant la peinture : la zone des traductions
+  // est la grille moins sa marge de référence et sa colonne de notes, partagée à parts égales.
+  // ⚠️ Écrites dans le document (variables et attribut sur la table), jamais dans l'état : elles
+  // ne changent rien au rendu React, seulement à la feuille.
+  const minuteurTransit = useRef<number | null>(null);
+  useLayoutEffect(() => {
+    if (transit === 0) return;
+    const table = refTable.current;
+    const grille = enteteRef.current?.querySelector<HTMLElement>('[data-visite="poly-entete"]');
+    if (!table || !grille || grille.children.length < 3) return;
+    const cases = Array.from(grille.children) as HTMLElement[];
+    const zone = grille.getBoundingClientRect().width - cases[0].getBoundingClientRect().width - cases[cases.length - 1].getBoundingClientRect().width;
+    const colonnes = cases.slice(1, -1);
+    const sortantes = colonnes.filter(c => c.classList.contains("poly-col-sortante")).length;
+    const entrantes = colonnes.filter(c => c.classList.contains("poly-col-entrante")).length;
+    const avant = colonnes.length - entrantes;
+    const apres = colonnes.length - sortantes;
+    if (zone <= 0 || avant <= 0 || apres <= 0) return;
+    table.style.setProperty("--poly-col-depart", `${zone / avant}px`);
+    table.style.setProperty("--poly-col-cible", `${zone / apres}px`);
+    table.setAttribute("data-poly-transit", "");
+    if (minuteurTransit.current) window.clearTimeout(minuteurTransit.current);
+    minuteurTransit.current = window.setTimeout(() => {
+      minuteurTransit.current = null;
+      table.removeAttribute("data-poly-transit");
+    }, DUREE_COLONNE_MS + 60);
+  }, [transit]);
+  useEffect(() => () => { if (minuteurTransit.current) window.clearTimeout(minuteurTransit.current); }, []);
   const colsRendues: ColRendue[] = [
     ...slotCols.map(c => ({ ...c, etat: entree && c.slot >= entree.depuis ? "entrante" as const : "stable" as const })),
     ...(fantomes?.cols ?? []).map(c => ({ ...c, etat: "sortante" as const })),
@@ -2420,12 +2472,22 @@ export default function PolyglottePage() {
            une déclaration en ligne battrait celle-ci. La colonne en transit s'efface et ne
            compte pas dans la hauteur des lignes (« contain: size ») : écrasée, son texte
            irait à la ligne à chaque mot et gonflerait toute la rangée. */
-        .poly-grille { transition: background .4s ease, grid-template-columns ${DUREE_COLONNE_MS}ms cubic-bezier(.3,.7,.2,1); }
-        .poly-col { transition: opacity ${Math.round(DUREE_COLONNE_MS * 0.7)}ms ease; }
+        .poly-grille { transition: background .4s ease, grid-template-columns ${DUREE_COLONNE_MS}ms ${COURBE_COLONNE}; }
+        .poly-col { transition: opacity ${Math.round(DUREE_COLONNE_MS * 0.75)}ms ease; }
         .poly-col-entrante, .poly-col-sortante { contain: size; overflow: hidden; opacity: 0; pointer-events: none; }
+        /* Pendant le transit, le texte d'une colonne est composé à sa largeur d'arrivée (celle
+           qui part : à sa largeur de départ), et la cellule le rogne. La piste glisse, les
+           lignes ne bougent plus. Le texte qui vient de se recomposer remonte en fondu. */
+        [data-poly-transit] .poly-texte-cell { overflow: hidden; }
+        [data-poly-transit] .poly-col-stable > .poly-cell-corps,
+        [data-poly-transit] .poly-col-entrante > .poly-cell-corps { width: calc(var(--poly-col-cible) - 1px - 2 * var(--poly-marge-x)); }
+        [data-poly-transit] .poly-col-sortante > .poly-cell-corps { width: calc(var(--poly-col-depart) - 1px - 2 * var(--poly-marge-x)); }
+        [data-poly-transit] .poly-col-stable > .poly-cell-corps { animation: poly-reflux ${DUREE_COLONNE_MS}ms ${COURBE_COLONNE} both; }
+        @keyframes poly-reflux { from { opacity: .45; } to { opacity: 1; } }
         @media (prefers-reduced-motion: reduce) {
           .poly-grille { transition: background .4s ease; }
           .poly-col { transition: none; }
+          [data-poly-transit] .poly-col-stable > .poly-cell-corps { animation: none; }
         }
         .poly-act:hover { color: var(--cs-texte-second); }
         /* En-tête « Notes » : au survol de toute la cellule, « Notes » s'efface et
@@ -2836,6 +2898,7 @@ export default function PolyglottePage() {
                       {/* Même lettrine que les versets canoniques, au violet des surnuméraires :
                           la référence d'origine est ici la seule qui existe. Une glose y porte
                           son libellé, non le numéro de son hôte. */}
+                      <div className="poly-cell-corps">
                       {r && (
                         <span className="poly-lettrine" style={{ color: SURNUM, borderRightColor: "rgba(90,75,156,0.22)" }}>
                           <span className="poly-lettrine-item">
@@ -2848,6 +2911,7 @@ export default function PolyglottePage() {
                         </span>
                       )}
                       {!sc.trad ? "" : r ? texteCesure(r.texte, sc.trad.lang) : <CelluleAbsente />}
+                      </div>
                     </div>
                   );
                 })}
@@ -2979,6 +3043,9 @@ export default function PolyglottePage() {
                         return (
                           <div key={i} className={`poly-texte-cell poly-col poly-col-${sc.etat}`} lang={t.lang} onCopy={copierSansCesures}
                             data-lasso-cellule={lassoActif && actionsCell && cellulesDuLasso.has(cleLasso(sc.slot, r.id)) ? cleLasso(sc.slot, r.id) : undefined}
+                            // ⛔ Le BLANC d'une cellule ouvre le lasso, bien qu'elle soit focalisable
+                            // (voir `SELECTEUR_FOND_DECLARE`) : sans quoi le tableau n'en offrait nulle part.
+                            data-lasso-fond={lassoActif ? "" : undefined}
                             onMouseEnter={actionsCell ? e => ancrerActions(e.currentTarget, actionsCell) : undefined}
                             onMouseLeave={actionsCell ? () => celluleActions.relacher(actionsCell.cle) : undefined}
                             onClick={actionsCell ? e => celluleActions.basculer(e.currentTarget, actionsCell.cle, celluleActions.ancre?.cle === actionsCell.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsCell }) : undefined}
@@ -2991,6 +3058,9 @@ export default function PolyglottePage() {
                                 partagent un créneau du canon, chacun pose sa référence EN LIGNE,
                                 devant son propre texte (voir « .poly-ref-en-ligne »). Empilées, elles
                                 laissaient un numéro seul sur sa ligne en face d'un texte court. */}
+                            {/* L'enveloppe ne compte que pendant qu'une colonne s'ouvre ou se ferme :
+                                elle y reçoit la largeur d'arrivée (voir `data-poly-transit`). */}
+                            <div className="poly-cell-corps">
                             {cs.length > 0 && !lacuneCell && (
                               <span className="poly-lettrine">
                                 <span className="poly-lettrine-item">
@@ -3039,6 +3109,7 @@ export default function PolyglottePage() {
                                   : texteCesure(c.texte, t.lang, estTraductionModerne899(t.trad_id) ? marquerLacunesDuTemoin : undefined)}
                               </span>
                             ))}
+                            </div>
                           </div>
                         );
                       })}

@@ -40,6 +40,7 @@ export type ColonneAffichee = { cle: string; code: string; nom: string; variante
 const LIGNE: React.CSSProperties = {
   fontFamily: 'var(--font-source-sans), Arial, sans-serif',
   fontSize: '0.6875rem', lineHeight: 1.3, color: 'var(--cs-texte-second)',
+  overflowWrap: 'break-word', hyphens: 'auto',
 }
 
 export default function TraductionsAffichees({ colonnes, fiches }: {
@@ -52,7 +53,12 @@ export default function TraductionsAffichees({ colonnes, fiches }: {
   const [ouverte, setOuverte] = useState<{ code: string; nom: string } | null>(null)
   if (colonnes.length === 0) return null
   return (
-    <div style={{ flexShrink: 0, background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', borderBottom: '1px solid var(--cs-bord)', padding: '8px 14px 9px' }}>
+    // ⛔ LA SECTION NE DONNE PAS SA LARGEUR AU VOLET (relevé de l'auteur, 2026-09-23 : « cette
+    // sélection déborde ! »). Le volet est une colonne flexible sans largeur propre, qui prend
+    // celle de son enfant le plus large : une ligne d'édition longue l'élargissait d'autant.
+    // `contain: inline-size` retire le contenu du calcul, et la section s'étire à la largeur que
+    // les autres blocs donnent au volet ; ses lignes s'y enroulent.
+    <div style={{ flexShrink: 0, contain: 'inline-size', minWidth: 0, background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', borderBottom: '1px solid var(--cs-bord)', padding: '8px 14px 9px' }}>
       <span style={{ display: 'block', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--cs-texte-second)', marginBottom: '6px' }}>
         Traductions affichées
       </span>

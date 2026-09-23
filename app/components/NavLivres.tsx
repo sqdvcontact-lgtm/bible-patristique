@@ -456,7 +456,7 @@ export default function NavLivres({
           )}
         </button>
 
-        {/* ⛔ « LIVRE ENTIER » EST UNE CASE DE LA GRILLE, marquée ∞, en dernier (demande de
+        {/* ⛔ « LIVRE ENTIER » EST UNE CASE DE LA GRILLE, marquée α ω, en dernier (demande de
             l'auteur, 2026-09-23). Le bouton pleine largeur qui la précédait se lisait grisé,
             donc éteint, au-dessus des chapitres : une case de plus, au même dessin que ses
             voisines, dit qu'on choisit l'étendue comme on choisit un chapitre. Le mot reste
@@ -521,10 +521,14 @@ export default function NavLivres({
                 style={{
                   height: 'var(--volet-case)', borderRadius: '4px', border: 'none', cursor: 'pointer', padding: 0,
                   background: entierSel ? 'var(--cs-vert-aplat)' : 'var(--cs-fond-doux)',
-                  color: entierSel ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)',
+                  color: entierSel ? 'var(--cs-sur-aplat)' : 'var(--cs-or-lisible)',
                   lineHeight: 1, textAlign: 'center',
                 }}>
-                <span aria-hidden="true" style={{ fontSize: '1.2em', lineHeight: 1 }}>∞</span>
+                {/* ⛔ α ω, DORÉS, ET NON PLUS ∞ (demande de l'auteur, 2026-09-23) : le début et la
+                    fin, c'est-à-dire le livre d'un bout à l'autre. Une fine insécable les sépare
+                    et les garde ensemble. L'or est `--cs-or-lisible`, l'or du site mesuré pour du
+                    texte ; allumée, la case prend l'aplat vert de ses voisines. */}
+                <span aria-hidden="true" style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontWeight: 600, lineHeight: 1, whiteSpace: 'nowrap' }}>α&#8239;ω</span>
               </button>
             )}
           </div>
