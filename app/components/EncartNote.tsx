@@ -18,6 +18,7 @@
  * rend hors du navigateur. C'est ce qui permet à une planche de le juger.
  */
 import type { CSSProperties, KeyboardEventHandler, ReactNode, Ref } from 'react'
+import IconeCroix from '@/app/components/IconeCroix'
 import {
   STYLE_CADRE_ENCART_DANS_LE_FLUX,
   STYLE_FACE_NUMERO, STYLE_FERMER_ENCART, STYLE_INTITULE_ENCART, STYLE_NUMERO_SEUL,
@@ -119,8 +120,8 @@ export function EncartNote({
       {onFermer && (
         <button
           type="button" onClick={onFermer} aria-label="Fermer la note"
-          className="cs-cible-fine" style={STYLE_FERMER_ENCART}
-        >×</button>
+          className="cs-croix-fermer cs-croix-fermer--petite" style={STYLE_FERMER_ENCART}
+        ><IconeCroix /></button>
       )}
       {/* ⛔ LA BARRE DE DÉFILEMENT EST CELLE DU SITE (`.cs-defilement-discret`, six
           pixels), et ce n'est pas un ornement : la croix se pose au coin du CADRE,

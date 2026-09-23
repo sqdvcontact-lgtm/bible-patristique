@@ -2,6 +2,7 @@
 
 import { Z_INFOBULLE } from '@/app/lib/empilement'
 import { useState, useRef, useCallback, useEffect } from 'react'
+import IconeCroix from '@/app/components/IconeCroix'
 
 const DELAI_MS = 4000
 const R = 6
@@ -136,15 +137,13 @@ export function Bulle({ texte, children, position = 'top', avecFixation = false 
           ) : (
             <button
               onClick={fermer}
-              aria-label="Fermer" className="cs-cible-fine cs-survol-encre"
+              aria-label="Fermer" className="cs-croix-fermer cs-croix-fermer--petite cs-survol-encre"
               style={{
-                background: 'none', border: 'none', cursor: 'pointer',
                 '--repos-encre': 'rgba(242,237,230,0.55)', '--survol-encre': 'var(--cs-sur-aplat-doux)',
-                fontSize: '0.875rem', lineHeight: 1,
-                padding: '0 0 0 1px', flexShrink: 0,
+                padding: '0 0 0 1px',
               } as React.CSSProperties}
             >
-              ×
+              <IconeCroix />
             </button>
           ))}
         </span>

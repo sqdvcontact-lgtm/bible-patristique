@@ -6,6 +6,7 @@ import { useFenetreModale } from '@/app/lib/useFenetreModale'
 
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { SERIF } from '@/app/lib/polices'
+import IconeCroix from '@/app/components/IconeCroix'
 
 /**
  * ⛔ UNE PLANCHE EST UNE PAGE ENTIÈRE DU VOLUME, ET ELLE NE SE LIT PAS À 440 px.
@@ -104,15 +105,15 @@ export function GravureAgrandissable({
                 fait min(100%, 60rem), donc toute la largeur sur un téléphone, et il ne
                 restait que les 24px de marge du calque pour toucher hors d'elle. Échap
                 n'existe pas au doigt (audit de responsiveness, 2026-09-06). */}
-            <button type="button" onClick={() => setOuvert(false)} aria-label="Fermer"
+            <button type="button" onClick={() => setOuvert(false)} aria-label="Fermer" className="cs-croix-fermer"
               style={{
                 position: 'sticky', top: 0, float: 'right', zIndex: 1,
                 width: '2.75rem', height: '2.75rem', display: 'inline-flex',
                 alignItems: 'center', justifyContent: 'center',
                 background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)',
                 borderRadius: '999px', color: 'var(--cs-texte-doux)',
-                fontSize: '0.9375rem', lineHeight: 1, cursor: 'pointer',
-              }}>✕</button>
+                cursor: 'pointer',
+              }}><IconeCroix /></button>
             {/* ⛔ LA FENÊTRE NE CHANGE PAS DE TAILLE D'UNE VERSION À L'AUTRE (demande de
                 l'auteur, 2026-09-21). La version servie reste dans le flux et mesure la
                 boîte — cachée, non retirée, quand on regarde l'originale ; celle-ci se pose

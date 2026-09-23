@@ -10,6 +10,7 @@ import { useCompte } from '@/app/lib/contexteCompte'
 import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, CITATION_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, formeCommentaire } from '@/app/lib/styleCommentaire'
+import IconeCroix from '@/app/components/IconeCroix'
 
 type CommentaireEssai = {
   id: number; texte: string; passage_cite: string | null; reponse_a: number | null
@@ -252,7 +253,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
                 <path d="M7 4 3.5 7.5 7 11M3.5 7.5H10a2.5 2.5 0 0 1 2.5 2.5V12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               En réponse à <strong>{cibleReponse.auteur_nom}</strong>{' '}
-              <button onClick={() => setCibleReponse(null)} style={{ color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.6875rem', padding: 0 }}>✕</button>
+              <button onClick={() => setCibleReponse(null)} aria-label="Annuler la réponse" title="Annuler la réponse" className="cs-croix-fermer cs-croix-fermer--petite"><IconeCroix /></button>
             </p>
           )}
           <EditeurCommentaire value={texte} onChange={setTexte} placeholder="Votre commentaire…" minHeight={64} />

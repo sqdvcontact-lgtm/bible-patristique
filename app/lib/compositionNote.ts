@@ -980,15 +980,8 @@ export const STYLE_FERMER_ENCART: CSSProperties = {
   position: 'absolute',
   top: '0.5rem',
   right: '0.5rem',
-  background: 'none',
-  border: 'none',
-  cursor: 'pointer',
-  // ⛔ `#b0a08a` était écrit en dur dans deux des trois encarts, et gelé au
-  // registre des couleurs en dur. Le jeton le remplace, et le registre décroît.
-  color: 'var(--cs-texte-doux)',
-  fontSize: '0.9375rem',
-  lineHeight: 1,
-  padding: '0 2px',
+  // ⛔ Le reste (tracé `IconeCroix`, encre douce, cible) vient de `.cs-croix-fermer`,
+  // la croix unique du site (harmonie, 2026-09-23) : ce style ne pose que la PLACE.
 }
 
 /**

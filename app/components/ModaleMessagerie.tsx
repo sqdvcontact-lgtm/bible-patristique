@@ -17,6 +17,7 @@ import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
 import { SERIF } from '@/app/lib/polices'
+import IconeCroix from '@/app/components/IconeCroix'
 
 type Conversation = { partenaire_pseudo: string; partenaire_mecene?: boolean; dernier_message: string; dernier_at: string; nb_non_lus: number }
 type Message = { id: string; de_moi: boolean; contenu: string; lu: boolean; created_at: string }
@@ -184,7 +185,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
           <span style={{ flex: 1, fontFamily: SERIF, fontSize: '0.9375rem', color: 'var(--cs-encre-fonce)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {pseudoActif ?? 'Messages'}
           </span>
-          <button onClick={onClose} aria-label="Fermer" className="cs-cible-fine" style={{ width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="cs-croix-fermer" style={{ width: '26px', height: '26px' }}><IconeCroix /></button>
         </div>
 
         {connecte === false ? (

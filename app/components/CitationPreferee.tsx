@@ -36,6 +36,7 @@ import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
 import type { CitationPreferee } from '@/app/lib/citationsFavorites'
 import { SERIF } from '@/app/lib/polices'
 import { STYLE_RUBRIQUE } from '@/app/lib/hierarchieTitres'
+import IconeCroix from '@/app/components/IconeCroix'
 
 // ⚠️ Le TYPE vit dans app/lib/citationsFavorites.ts depuis le 2026-09-14, avec ce qu'on
 // écrit d'une favorite : l'API du profil public le lit aussi, et un module serveur n'a
@@ -188,8 +189,8 @@ export function ModaleRemplacerCitation({ actuelle, nouvelle, onConfirmer, onAnn
             style={{ fontFamily: SERIF, fontSize: '1rem', color: 'var(--cs-encre)', margin: 0, lineHeight: 1.3 }}>
             Voulez-vous remplacer votre citation favorite {nouvelle.type === 'biblique' ? 'de l’Écriture' : 'des Pères'}&#8239;?
           </h2>
-          <button onClick={onAnnuler} aria-label="Fermer" className="cs-cible-fine"
-            style={{ position: 'absolute', top: '11px', right: '13px', fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+          <button onClick={onAnnuler} aria-label="Fermer" className="cs-croix-fermer"
+            style={{ position: 'absolute', top: '11px', right: '13px' }}><IconeCroix /></button>
         </div>
 
         <div style={{ padding: '14px 22px 18px' }}>

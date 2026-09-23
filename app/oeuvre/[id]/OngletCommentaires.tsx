@@ -19,6 +19,7 @@ import MarqueMecene from '@/app/components/MarqueMecene'
 import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, formeCommentaire } from '@/app/lib/styleCommentaire'
 import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
 import BoutonSupprimerCommentaire from '@/app/components/BoutonSupprimerCommentaire'
+import IconeCroix from '@/app/components/IconeCroix'
 
 // Pas plus de 5 majuscules consécutives (accentuées comprises).
 const REGEX_CAPS_ABUSIVES = /[A-ZÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]{6,}/
@@ -77,7 +78,7 @@ function ModalSignalerCommentaire({ titre, onClose, onEnvoyer }: {
       <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', padding: '20px 22px', width: 'min(21.25rem, 100%)', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
           <p id={idTitre} style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-danger)', margin: 0 }}>Signaler</p>
-          <button onClick={onClose} aria-label="Fermer" style={{ fontSize: '0.875rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
         </div>
         <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', marginBottom: '10px', lineHeight: 1.4 }}>{titre}</p>
         {statut === 'ok' ? (
@@ -484,7 +485,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
                   </svg>
                   Réponse à <strong>{cibleReponse.pseudo ?? 'Anonyme'}</strong>
                 </span>
-                <button onClick={() => setCibleReponse(null)} style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
+                <button onClick={() => setCibleReponse(null)} aria-label="Annuler la réponse" title="Annuler la réponse" className="cs-croix-fermer cs-croix-fermer--petite" style={{ marginLeft: 'auto' }}><IconeCroix /></button>
               </div>
             )}
             <EditeurCommentaire value={texte} onChange={setTexte} placeholder={cibleReponse ? 'Votre réponse…' : 'Votre commentaire sur ce passage…'} minHeight={70} />

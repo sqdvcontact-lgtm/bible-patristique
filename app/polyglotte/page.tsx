@@ -728,7 +728,7 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
       <div ref={boite} role="dialog" aria-modal="true" aria-label={`Modifier ${reference}`} onClick={e => e.stopPropagation()} style={{ background: "var(--cs-surface)", borderRadius: 8, padding: "18px 20px", width: 520, maxWidth: "100%", boxShadow: "var(--cs-ombre-modale)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
           <p style={{ margin: 0, fontSize: '0.78125rem', fontWeight: 600, color: VERT }}>Modifier — {reference}</p>
-          <button onClick={onFermer} aria-label="Fermer" title="Fermer" style={{ border: "none", background: "none", cursor: "pointer", fontSize: '0.9375rem', color: "var(--cs-texte-doux)", lineHeight: 1, padding: 0 }}>✕</button>
+          <button onClick={onFermer} aria-label="Fermer" title="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
         </div>
         <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap", alignItems: "center" }}>
           <button onClick={() => entourer("**", "**")} title="Gras" style={{ ...outil, fontWeight: 700 }}>G</button>

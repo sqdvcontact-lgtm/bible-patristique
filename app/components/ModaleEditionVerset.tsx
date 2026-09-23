@@ -15,6 +15,7 @@ import { hrefSur } from '@/app/lib/liensSurs'
 import { raccourcisEditeur, collageTexteBrut } from '@/app/lib/raccourcisEditeur'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
+import IconeCroix from '@/app/components/IconeCroix'
 
 // Conversions markup ↔ HTML pour la zone éditable WYSIWYG du verset. Le markup est
 // EXACTEMENT celui que lit `rendreTexteEnrichi` : **gras**, *ital*, ^^exp^^, ++petites
@@ -143,7 +144,7 @@ export default function ModaleEditionVerset({ verset, traduction, traductionLabe
           <p style={{ fontSize:'0.75rem', fontWeight:600, color:'var(--cs-attente)', margin:0 }}>
             Modifier {refCourt} de la {traductionLabel}
           </p>
-          <button type="button" onClick={onClose} aria-label="Fermer" style={{ fontSize:'0.875rem', color:'var(--cs-texte-doux)', background:'none', border:'none', cursor:'pointer', padding:0, lineHeight:1 }}>✕</button>
+          <button type="button" onClick={onClose} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
         </div>
         <div style={{ display:'flex', gap:'6px', marginBottom:'8px', flexWrap:'wrap' }}>
           <button onMouseDown={gardeSel} onClick={() => commande('bold')} style={{ ...btnEd, fontWeight:700 }}>G</button>

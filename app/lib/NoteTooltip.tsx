@@ -5,6 +5,7 @@ import { supabase } from '@/app/lib/supabase'
 import { rendreMarquesNote, type ElementPanneau } from './texteEnrichiEssai'
 import { SERIF, SANS } from './polices'
 import { styleAppelNote } from './appelsDeNote'
+import IconeCroix from '@/app/components/IconeCroix'
 
 // La bulle devient fixe après 2,3 secondes de survol continu.
 const DUREE_FIXATION = 2_300
@@ -236,9 +237,9 @@ export default function NoteTooltip({ lettre, el, isRef }: {
 
             {/* Bouton fermeture (fixe seulement) */}
             {fixe && (
-              <button onClick={fermerComplet}
-                style={{ position: 'absolute', top: '5px', right: '7px', background: 'none', border: 'none', color: 'var(--cs-or-doux)', cursor: 'pointer', fontSize: '0.75rem', lineHeight: 1, fontFamily: SANS }}>
-                ×
+              <button onClick={fermerComplet} aria-label="Fermer" className="cs-croix-fermer cs-croix-fermer--petite"
+                style={{ position: 'absolute', top: '5px', right: '7px', color: 'var(--cs-or-doux)' }}>
+                <IconeCroix />
               </button>
             )}
 

@@ -42,6 +42,7 @@ import {
   type TonNotification,
 } from '@/app/lib/notificationsClient'
 import { SERIF } from '@/app/lib/polices'
+import IconeCroix from '@/app/components/IconeCroix'
 
 type Onglet = 'nouvelles' | 'archivees'
 
@@ -135,7 +136,7 @@ export default function VoletNotifications({ uid, onFermer }: { uid: string; onF
                 Tout archiver
               </button>
             )}
-            <button onClick={onFermer} aria-label="Fermer" className="cs-cible-fine" style={{ background: 'none', border: 'none', color: 'var(--cs-texte-doux)', cursor: 'pointer', fontSize: '0.9375rem', lineHeight: 1, padding: 0 }}>✕</button>
+            <button onClick={onFermer} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
           </div>
         </div>
 

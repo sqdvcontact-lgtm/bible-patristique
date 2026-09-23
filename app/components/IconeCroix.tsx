@@ -15,9 +15,11 @@
  *  en rem sur les surfaces qui suivent la police racine — les attributs `width` et
  *  `height` ne sont que des valeurs de PRÉSENTATION, que toute règle bat.
  *
- *  ⚠️ Le site écrit encore le ✕ en clair sur une quinzaine de surfaces (administration,
- *  fenêtres de la bibliothèque, du compte, de la messagerie). Elles se convertissent au
- *  prochain passage sur ces boutons ; un seizième exemplaire du glyphe ne s'écrit pas.
+ *  ⛔ Hors de la fiche et du signalement, qui ont leur classe, elle se pose dans un bouton
+ *  `.cs-croix-fermer` (globals.css), qui en fait la croix UNIQUE du site : encre douce,
+ *  cible uniforme, `aria-label`. Les fenêtres, encarts et volets publics y sont passés
+ *  le 23 septembre 2026 ; seule l'administration écrit encore le ✕ en clair, et un
+ *  exemplaire de plus du glyphe ne s'écrit pas.
  */
 export default function IconeCroix({ size = 14 }: { size?: number }) {
   return (

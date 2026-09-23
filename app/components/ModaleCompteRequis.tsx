@@ -9,6 +9,7 @@ import { useRef } from 'react'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { SERIF } from '@/app/lib/polices'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import IconeCroix from '@/app/components/IconeCroix'
 
 // Destination du bouton « Créer un compte ». L'inscription libre n'existe pas
 // encore : on renvoie pour l'instant vers /chantier (connexion + liste d'attente),
@@ -42,8 +43,8 @@ export default function ModaleCompteRequis({ contexte = '', onClose }: { context
 
         {/* Bandeau — teinte vert d'encre, emblème discret (plume). */}
         <div style={{ position: 'relative', padding: '22px 24px 18px', background: 'linear-gradient(180deg, var(--cs-vert-pale) 0%, var(--cs-fond-clair) 100%)', borderBottom: '1px solid var(--cs-bord-clair)' }}>
-          <button onClick={onClose} aria-label="Fermer" className="cs-cible-fine"
-            style={{ position: 'absolute', top: '12px', right: '14px', fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="cs-croix-fermer"
+            style={{ position: 'absolute', top: '12px', right: '14px' }}><IconeCroix /></button>
           <div aria-hidden="true"
             style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'var(--cs-surface)', border: '1px solid rgba(var(--cs-vert-rgb),0.30)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '11px' }}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none">

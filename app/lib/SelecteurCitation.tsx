@@ -21,6 +21,7 @@ import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } f
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { STYLE_RUBRIQUE } from './hierarchieTitres'
+import IconeCroix from '@/app/components/IconeCroix'
 
 const NOM_FR: Record<string, string> = {
   GEN:'Genèse',EXO:'Exode',LEV:'Lévitique',NUM:'Nombres',DEU:'Deutéronome',JOS:'Josué',JDG:'Juges',RUT:'Ruth',
@@ -275,7 +276,7 @@ export default function SelecteurCitation({ onChoisir, onFermer }: Props) {
               </button>
             ))}
           </div>
-          <button onClick={demanderFermeture} style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+          <button onClick={demanderFermeture} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>

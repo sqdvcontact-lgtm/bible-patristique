@@ -4681,6 +4681,42 @@ main.lecture-entree [data-cs-bloc],
 .cs-fiche-fermer:hover,
 .cs-fiche-fermer:focus-visible { color: var(--cs-vert-fonce); }
 
+/* ⛔ LA CROIX DE FERMETURE, UNE SEULE (harmonie, 2026-09-23). Le site en écrivait six :
+   le tracé `IconeCroix`, le glyphe ✕ (une vingtaine), le ×, une pastille ronde de
+   26 px, une croix nue, de 0,6875 à 1,125 rem. Il n'en reste qu'une : le TRACÉ, dans
+   un bouton sans fond ni filet, à l'encre douce, avec `aria-label`. Le site ne pose
+   que la PLACE de la croix (coin, rangée d'en-tête), jamais son dessin.
+   ⚠️ Écrite sous `:where()` : sa spécificité est nulle, et une encre voulue par le
+   site (l'or d'une infobulle, `.cs-survol-encre` d'une bulle sur aplat) l'emporte.
+   ⛔ LA CIBLE EST UNIFORME, LE DESSIN NE BOUGE PAS : le pseudo-élément porte la zone
+   de frappe à `max(26px, 1.625rem)`, la boîte de la fiche et du signalement, quelle
+   que soit la taille du tracé ; au doigt, 12 px de plus de chaque côté.
+   `--petite` : l'encart de note, l'infobulle, la bulle, « annuler la réponse ». */
+:where(.cs-croix-fermer) {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  line-height: 0;
+  color: var(--cs-texte-doux);
+  cursor: pointer;
+}
+.cs-croix-fermer::after {
+  content: '';
+  position: absolute;
+  inset: calc((100% - max(26px, 1.625rem)) / 2);
+}
+@media (hover: none) {
+  .cs-croix-fermer::after { inset: calc((100% - max(26px, 1.625rem)) / 2 - 12px); }
+}
+.cs-croix-fermer svg { width: 0.9375rem; height: 0.9375rem; }
+.cs-croix-fermer--petite svg { width: 0.6875rem; height: 0.6875rem; }
+
 /* ⛔ La question qu'un clic HORS DE LA FENÊTRE pose ──────────────────────────────
    Demande de l'auteur (2026-09-20) : « demander avec un message bref si l'utilisateur
    est sûr de vouloir fermer ; lui laisser cinq secondes pour réfléchir ; une barre de

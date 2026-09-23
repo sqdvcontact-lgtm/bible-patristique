@@ -35,6 +35,7 @@ import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
 import { rendreIntituleDeSommaire } from './appelNote'
 import { SERIF, SANS } from '@/app/lib/polices'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import IconeCroix from '@/app/components/IconeCroix'
 
 // ⛔ `Z_MODALE`, ET NON LE RANG DES FENÊTRES DE PAGE. L'échelle le dit déjà en toutes
 // lettres : une modale « couvre le tiroir d'où elle s'ouvre, et à Z_FENETRE elle s'y
@@ -165,8 +166,8 @@ export default function MenuExtraction({ donnees, onFermer }: {
       style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, bottom: 0, background: 'var(--cs-calque-modale)', zIndex: Z_MENU, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', overflow: 'hidden' }}>
       <div ref={boite} role="dialog" aria-modal="true" aria-labelledby="extraction-titre" onClick={e => e.stopPropagation()}
         style={{ position: 'relative', width: '100%', maxWidth: '26rem', maxHeight: '100%', overflowY: 'auto', overscrollBehavior: 'contain', background: 'var(--cs-fond)', borderRadius: '12px', border: '1px solid var(--cs-bord-clair)', boxShadow: 'var(--cs-ombre-modale)', padding: '24px 26px 22px' }}>
-        <button onClick={onFermer} aria-label="Fermer" className="cs-cible-fine" title="Fermer"
-          style={{ position: 'sticky', float: 'right', top: 0, marginRight: '-6px', width: '26px', height: '26px', borderRadius: '50%', border: '1px solid var(--cs-bord-clair)', background: 'var(--cs-surface)', color: 'var(--cs-texte-doux)', fontSize: '0.875rem', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+        <button onClick={onFermer} aria-label="Fermer" className="cs-croix-fermer" title="Fermer"
+          style={{ position: 'sticky', float: 'right', top: 0, marginRight: '-6px', width: '26px', height: '26px', display: 'flex' }}><IconeCroix /></button>
 
         <h2 id="extraction-titre" style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: '0 0 4px' }}>
           Extraire cette œuvre

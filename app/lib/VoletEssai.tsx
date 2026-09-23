@@ -8,6 +8,7 @@ import { inlineVersHtml, htmlVersSyntaxe } from './serialisationEssai'
 import { raccourcisEditeur, collageTexteBrut } from './raccourcisEditeur'
 import { SERIF } from './polices'
 import { STYLE_RUBRIQUE } from './hierarchieTitres'
+import IconeCroix from '@/app/components/IconeCroix'
 
 // ── Zone de rédaction d'une note : UNE seule zone, éditable et WYSIWYG ─────────
 // On y écrit, on enrichit (gras, italique, petites capitales, exposant) et l'on
@@ -150,7 +151,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
         <span style={{ ...STYLE_RUBRIQUE }}>
           {!elementActif ? 'Notes et citations' : elementActif.type === 'note' ? 'Note' : elementActif.type === 'verset' ? 'Référence biblique' : 'Référence patristique'}
         </span>
-        {elementActif && !toujoursVisible && <button onClick={onFermer} style={{ background: 'none', border: 'none', color: 'var(--cs-texte-doux)', cursor: 'pointer', fontSize: '0.875rem' }}>×</button>}
+        {elementActif && !toujoursVisible && <button onClick={onFermer} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>}
       </div>
 
       {!elementActif ? (

@@ -39,6 +39,7 @@ import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { SERIF } from '@/app/lib/polices'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import IconeCroix from '@/app/components/IconeCroix'
 
 export type TraductionProposee = { code: string; label: string }
 
@@ -122,8 +123,8 @@ export default function ModaleLivreAbsent({
       <div ref={boite} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cs-livre-absent-titre"
         style={{ position: 'relative', background: 'var(--cs-surface)', borderRadius: '12px', border: '1px solid var(--cs-bord)', width: '100%', maxWidth: '22rem', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)', padding: '20px 24px 22px' }}>
 
-        <button onClick={onFermer} aria-label="Fermer" className="cs-cible-fine" title="Fermer"
-          style={{ position: 'absolute', top: '14px', right: '16px', fontSize: '0.875rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+        <button onClick={onFermer} aria-label="Fermer" className="cs-croix-fermer" title="Fermer"
+          style={{ position: 'absolute', top: '14px', right: '16px' }}><IconeCroix /></button>
 
         {/* La tête : rubrique, nom du livre, filet. C'est celle de la fiche
             « À propos de cette traduction », à la mesure d'une petite fenêtre. */}

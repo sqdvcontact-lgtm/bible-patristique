@@ -11,6 +11,7 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { useEstMobile } from '@/app/lib/useEstMobile'
 import { SERIF } from '@/app/lib/polices'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import IconeCroix from '@/app/components/IconeCroix'
 
 export type ChampLienBiblique = 'lien_1' | 'lien_2' | 'lien_3' | 'lien_4'
 
@@ -205,7 +206,7 @@ export default function ModalLienBiblique({
             <h2 style={{ margin: 0, fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE }}>{titre}</h2>
             {erreur && <p style={{ margin: '7px 0 0', color: 'var(--cs-danger)', fontSize: '0.75rem' }}>{erreur}</p>}
           </div>
-          <button onClick={onFermer} style={{ border: 0, background: 'transparent', color: 'var(--cs-texte-doux)', cursor: 'pointer', fontSize: '1.125rem', lineHeight: 1, padding: '2px 4px' }}>×</button>
+          <button onClick={onFermer} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
         </div>
 
         <div style={{ minHeight: 0, display: 'grid', gridTemplateColumns: mobile ? '1fr' : '210px minmax(0, 1fr) 250px', gridTemplateRows: mobile ? 'auto minmax(0, 1fr) auto' : undefined }}>

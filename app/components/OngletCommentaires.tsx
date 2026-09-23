@@ -405,8 +405,8 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
               Réponse à <strong>{cibleReponse.pseudo ?? cibleReponse.auteur_nom}</strong>
             </span>
             <button onClick={() => setCibleReponse(null)} aria-label="Annuler la réponse" title="Annuler la réponse"
-              style={{ marginLeft:'auto', width:'24px', height:'24px', display:'inline-flex', alignItems:'center', justifyContent:'center', color:'var(--cs-texte-gris)', background:'none', border:'none', cursor:'pointer', padding:0 }}>
-              <IconeCroix size={10} />
+              className="cs-croix-fermer cs-croix-fermer--petite" style={{ marginLeft:'auto', width:'24px', height:'24px' }}>
+              <IconeCroix />
             </button>
           </div>
         )}

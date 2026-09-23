@@ -12,6 +12,7 @@ import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { SERIF } from '@/app/lib/polices'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import IconeCroix from '@/app/components/IconeCroix'
 
 export type PortraitChoisi = { ref: string; nom: string; cadrage: Cadrage }
 
@@ -52,7 +53,7 @@ export function ModalePortrait({ onChoisir, onClose }: { onChoisir: (choix: Port
         style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '28px', width: '37.5rem', maxWidth: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexShrink: 0 }}>
           <h2 id="titre-portrait" style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: 0 }}>Choisir un visage</h2>
-          <button onClick={onClose} aria-label="Fermer" className="cs-cible-fine" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--cs-texte-doux)', padding: '2px' }}>✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
         </div>
         <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', margin: '0 0 18px', flexShrink: 0, lineHeight: 1.55 }}>
           Prenez le visage d’un Père de l’Église ou d’un traducteur du corpus. C’est lui qui vous représentera sur le site.
@@ -149,7 +150,7 @@ export function ModaleCadrage({ refPortrait: ref, nom, cadrage, onSauvegarder, o
         style={{ background: 'var(--cs-surface)', borderRadius: '12px', padding: '28px', width: '21.25rem', maxWidth: '100%', maxHeight: '100%', overflowY: 'auto', boxShadow: 'var(--cs-ombre-modale)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
           <h2 id="titre-cadrage" style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: 0 }}>Recadrer</h2>
-          <button onClick={onClose} aria-label="Fermer" className="cs-cible-fine" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--cs-texte-doux)', padding: '2px' }}>✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
         </div>
         <div
           style={{ width: '10rem', height: '160px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 8px', border: '2px solid var(--cs-bord)', cursor: dragging ? 'grabbing' : 'grab', position: 'relative' }}

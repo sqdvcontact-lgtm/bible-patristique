@@ -202,6 +202,7 @@ import {
 } from './comparaisonTraductionsUtils'
 import { SERIF, SANS } from '@/app/lib/polices'
 import { STYLE_POSITION_PAGE, STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import IconeCroix from '@/app/components/IconeCroix'
 
 const CHARS_PAR_PAGE = 15000
 
@@ -454,7 +455,7 @@ function ProposerLienBiblique({ segId }: { segId: number }) {
             onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(22.5rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 22px 10px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Proposer un lien biblique</p>
-              <button onClick={() => setOuvert(false)} style={{ fontSize: '0.875rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>✕</button>
+              <button onClick={() => setOuvert(false)} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
             </div>
             <div className="cs-defilement-discret" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '0 22px' }}>
             {statut === 'ok' ? (
@@ -5361,7 +5362,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-surface)', borderRadius: '8px', width: 'min(25rem, 100%)', maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2.5rem)`, display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale)' }}>
             <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 22px 12px' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--cs-vert)', margin: 0 }}>Niveaux d'affichage</p>
-              <button onClick={() => setConfigOuverte(false)} style={{ fontSize: '0.9375rem', color: 'var(--cs-texte-doux)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+              <button onClick={() => setConfigOuverte(false)} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
             </div>
             {/* `minHeight: 0` est ce qui autorise un enfant de flexbox à devenir plus court
                 que son contenu : sans lui, le corps refuse de rétrécir et la carte déborde
