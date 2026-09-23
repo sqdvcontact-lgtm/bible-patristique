@@ -778,7 +778,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
     return (
       <div style={{ textAlign: 'center', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px', padding: '28px 24px', maxWidth: '32.5rem', margin: '0 auto' }}>
         <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-second)', marginBottom: '14px' }}>Connectez-vous pour écrire un essai ou une méditation.</p>
-        <Link href="/chantier" style={{ display: 'inline-block', padding: '8px 18px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '4px', textDecoration: 'none' }}>
+        <Link href="/chantier" className="cs-bouton-plein" style={{ display: 'inline-block' }}>
           Se connecter
         </Link>
       </div>
@@ -796,7 +796,7 @@ function OngletEcrire({ connecte }: { connecte: boolean | null }) {
       <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-second)', lineHeight: 1.65, margin: '0 auto 20px', maxWidth: '27.5rem' }}>
         Le titre, le résumé, les catégories et le texte se renseignent désormais dans la même page.
       </p>
-      <Link href="/essais/nouveau?depuis=publications" style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '4px', textDecoration: 'none' }}>
+      <Link href="/essais/nouveau?depuis=publications" className="cs-bouton-plein" style={{ display: 'inline-block' }}>
         Ouvrir la rédaction
       </Link>
     </div>
@@ -1122,7 +1122,7 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
                 const ref = `${LIVRES.find(l => l.code === verset.livre)?.nom ?? verset.livre} ${verset.chapitre},${verset.verset}`
                 sessionStorage.setItem('suggestion-verset-en-tete', JSON.stringify({ ref, texte: verset.texte }))
               }}
-              style={{ display: 'inline-block', padding: '9px 22px', fontSize: '0.78125rem', fontWeight: 600, background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '4px', textDecoration: 'none' }}>
+              className="cs-bouton-plein" style={{ display: 'inline-block' }}>
               Écrire sur ce verset
             </Link>
             <Link

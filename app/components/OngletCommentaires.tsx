@@ -436,7 +436,7 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
             </span>
           </label>
           <button onClick={envoyer} disabled={envoi}
-            style={{ fontSize:'0.71875rem', minHeight:'24px', padding:'4px 12px', borderRadius:'4px', border:'none', background:'var(--cs-vert-aplat)', color:'var(--cs-sur-aplat)', cursor:'pointer', fontWeight:500, flexShrink:0 }}>
+            className="cs-bouton-plein cs-bouton-plein--compact" style={{ flexShrink:0 }}>
             {envoi ? '…' : 'Envoyer'}
           </button>
         </div>

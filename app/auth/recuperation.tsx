@@ -21,13 +21,10 @@ export const STYLE_ETIQUETTE: React.CSSProperties = {
   letterSpacing: '0.06em', display: 'block', marginBottom: '0.3125rem',
 }
 
-export function styleBouton(occupe: boolean): React.CSSProperties {
-  return {
-    marginTop: '0.375rem', padding: '0.625rem', borderRadius: '8px', border: 'none',
-    background: occupe ? 'var(--cs-desactive-fond)' : 'var(--cs-vert-aplat)', color: occupe ? 'var(--cs-desactive-encre)' : 'var(--cs-sur-aplat)',
-    fontSize: '0.84375rem', fontWeight: 500, cursor: occupe ? 'default' : 'pointer',
-  }
-}
+// Le bouton prend la composition partagée (.cs-bouton-plein, globals.css) : fond,
+// encre, désactivé et survol y vivent. Il ne garde ici que sa place.
+export const CLASSE_BOUTON = 'cs-bouton-plein'
+export const STYLE_BOUTON: React.CSSProperties = { marginTop: '0.375rem' }
 
 /** Un message au-dessus du formulaire : une information, ou une erreur. */
 export function Encart({ ton, children }: { ton: 'info' | 'erreur'; children: React.ReactNode }) {

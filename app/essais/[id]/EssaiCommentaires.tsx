@@ -268,7 +268,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
               Merci. Votre commentaire paraîtra après relecture.
             </p>
           )}
-          <button onClick={envoyer} disabled={envoi || !texte.trim()} style={{ alignSelf: 'flex-end', fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', background: texte.trim() ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: texte.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-gris)', cursor: texte.trim() ? 'pointer' : 'default', fontWeight: 500 }}>
+          <button onClick={envoyer} disabled={envoi || !texte.trim()} className="cs-bouton-plein cs-bouton-plein--compact" style={{ alignSelf: 'flex-end' }}>
             {envoi ? 'Envoi…' : 'Envoyer'}
           </button>
         </div>

@@ -3744,6 +3744,32 @@ html[data-lasso-geste] * {
 .bienvenue-carte { border: 1px solid var(--cs-bord); }
 .cs-poignee-volet { background: transparent; transition: background 0.14s, box-shadow 0.14s; }
 
+/* ── LE BOUTON PLEIN (2026-09-23) ──────────────────────────────────────────────
+   Une seule composition pour le bouton d'action principale (envoyer, enregistrer,
+   valider, créer) et pour le lien qui en tient lieu. Il en existait dix-sept
+   combinaisons pour une vingtaine d'emplois. Deux tailles, et deux seulement :
+   la NORMALE des formulaires et des fenêtres (9 × 18 px, rayon 8, 13 px), la
+   COMPACTE des volets et des réponses (5 × 14 px, rayon 4, 11,5 px) : chacune
+   est la forme la plus répandue relevée dans le code pour sa taille. Graisse 500.
+   ⛔ Fond, encre, rayon, corps et curseur vivent ICI : posés en ligne, ils
+   battraient le survol et l'état désactivé. Le site ne garde que sa mise en page
+   (largeur, marges, alignement). L'état désactivé est celui du lot 1
+   (--cs-desactive-fond / -encre), et il suit l'attribut disabled. */
+.cs-bouton-plein {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.5625rem 1.125rem; border: none; border-radius: 8px;
+  background: var(--cs-vert-aplat); color: var(--cs-sur-aplat);
+  font-family: inherit; font-size: 0.8125rem; font-weight: 500; line-height: 1.25;
+  text-decoration: none; cursor: pointer; transition: background-color 0.15s, color 0.15s;
+}
+.cs-bouton-plein--compact { padding: 0.3125rem 0.875rem; border-radius: 4px; font-size: 0.71875rem; }
+.cs-bouton-plein:disabled, .cs-bouton-plein[aria-disabled="true"] {
+  background: var(--cs-desactive-fond); color: var(--cs-desactive-encre); cursor: default;
+}
+@media (hover: hover) {
+  .cs-bouton-plein:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--cs-vert-aplat-fonce); }
+}
+
 .cs-lasso-fermer {
   display: inline-flex;
   align-items: center;

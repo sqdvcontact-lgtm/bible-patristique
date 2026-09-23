@@ -496,7 +496,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px', gap: '8px', alignItems: 'center' }}>
               {statut === 'err' && motifErreur && <span role="alert" style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)' }}>{motifErreur}</span>}
               <button onClick={soumettre} disabled={statut === 'sending' || !texte.trim()}
-                style={{ fontSize: '0.71875rem', padding: '5px 14px', borderRadius: '4px', border: 'none', cursor: texte.trim() ? 'pointer' : 'default', background: texte.trim() ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: texte.trim() ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-gris)', fontWeight: 500 }}>
+                className="cs-bouton-plein cs-bouton-plein--compact">
                 {statut === 'sending' ? 'Envoi…' : 'Soumettre'}
               </button>
             </div>

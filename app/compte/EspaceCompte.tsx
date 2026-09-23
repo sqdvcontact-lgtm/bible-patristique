@@ -182,7 +182,7 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
           <input aria-label="Pseudonyme" type="text" value={pseudo} onChange={e => setPseudo(e.target.value)} maxLength={32} autoFocus placeholder="Pseudonyme"
             style={{ width: '100%', padding: '9px 12px', fontSize: '0.84375rem', border: '1px solid var(--cs-bord)', borderRadius: '8px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
           <button type="submit" disabled={envoi}
-            style={{ padding: '10px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', fontSize: '0.84375rem', fontWeight: 500, cursor: 'pointer' }}>
+            className="cs-bouton-plein">
             {envoi ? 'Enregistrement…' : 'Valider'}
           </button>
         </form>

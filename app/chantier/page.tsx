@@ -350,7 +350,7 @@ function Prevenir() {
           placeholder="vous@exemple.fr" aria-label="Votre adresse e-mail"
           style={{ ...inputStyle, flex: "1 1 11.25rem", width: "auto" }} />
         <button type="submit" disabled={etat === "envoi"}
-          style={{ padding: "0.5625rem 1.125rem", borderRadius: "8px", border: "none", background: etat === "envoi" ? "var(--cs-desactive-fond)" : "var(--cs-vert-aplat)", color: etat === "envoi" ? "var(--cs-desactive-encre)" : "var(--cs-sur-aplat)", fontSize: "0.8125rem", fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer", whiteSpace: "nowrap" }}>
+          className="cs-bouton-plein" style={{ whiteSpace: "nowrap" }}>
           {etat === "envoi" ? "Envoi…" : "Me prévenir"}
         </button>
       </div>
@@ -639,7 +639,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
               éditions, numérisation. Un don avance le chantier.
             </p>
             <a href={LIEN_PAYPAL} target="_blank" rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.5625rem 1.125rem", borderRadius: "8px", border: "none", background: "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", fontSize: "0.8125rem", fontWeight: 500, textDecoration: "none" }}>
+              className="cs-bouton-plein" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
               <svg width="14" height="14" viewBox="0 0 40 40" fill="none" aria-hidden="true">
                 <path d="M20 34S4 23 4 13a8 8 0 0 1 16-2 8 8 0 0 1 16 2c0 10-16 21-16 21z"
                   stroke="currentColor" strokeWidth="2.5" fill="rgba(255,255,255,0.15)" strokeLinejoin="round" />
@@ -687,7 +687,7 @@ function ConnexionInscription({ router }: { router: ReturnType<typeof useRouter>
             )}
           </div>
           <button type="submit" disabled={chargement}
-            style={{ marginTop: "0.375rem", padding: "0.625rem", borderRadius: "8px", border: "none", background: chargement ? "var(--cs-desactive-fond)" : "var(--cs-vert-aplat)", color: chargement ? "var(--cs-desactive-encre)" : "var(--cs-sur-aplat)", fontSize: "0.84375rem", fontWeight: 500, cursor: chargement ? "default" : "pointer" }}>
+            className="cs-bouton-plein" style={{ marginTop: "0.375rem" }}>
             {chargement ? "Chargement…" : mode === "connexion" ? "Se connecter" : "Créer le compte"}
           </button>
         </form>

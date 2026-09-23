@@ -1098,7 +1098,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             {!(modeAdmin && essaiExistant?.statut === 'publie') && (
               <button
                 onClick={enregistrerBrouillon}
-                style={{ fontSize: '0.78125rem', padding: '7px 18px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
+                style={{ fontSize: '0.8125rem', padding: '0.5625rem 1.125rem', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
                 Enregistrer comme brouillon
               </button>
             )}
@@ -1107,7 +1107,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             {!(enLigne && !retoucheAcceptee) && (
               <button
                 onClick={modeAdmin && essaiExistant?.statut === 'publie' ? publier : ouvrirConfirmationPublication}
-                style={{ fontSize: '0.78125rem', padding: '7px 20px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 600 }}>
+                className="cs-bouton-plein">
                 {modeAdmin && essaiExistant?.statut === 'publie' ? 'Enregistrer les corrections' : enLigne ? 'Soumettre les corrections' : 'Soumettre la publication'}
               </button>
             )}
@@ -1145,7 +1145,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '12px' }}>
               <button
                 onClick={() => { setConfirmPublier(false); setErreurConditions(null) }}
-                style={{ fontSize: '0.75rem', padding: '7px 16px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
+                style={{ fontSize: '0.8125rem', padding: '0.5625rem 1.125rem', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }}>
                 Annuler
               </button>
               <button
@@ -1157,7 +1157,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                   setConfirmPublier(false)
                   await publier()
                 }}
-                style={{ fontSize: '0.75rem', padding: '7px 18px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 600 }}>
+                className="cs-bouton-plein">
                 Confirmer
               </button>
             </div>

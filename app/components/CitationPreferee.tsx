@@ -204,11 +204,11 @@ export function ModaleRemplacerCitation({ actuelle, nouvelle, onConfirmer, onAnn
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '9px', marginTop: '16px' }}>
             <button type="button" onClick={onAnnuler}
-              style={{ fontSize: '0.75rem', padding: '9px 16px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer', fontFamily: 'inherit' }}>
+              style={{ fontSize: '0.8125rem', padding: '0.5625rem 1.125rem', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer', fontFamily: 'inherit' }}>
               Garder l’actuelle
             </button>
             <button ref={boutonRef} type="button" onClick={onConfirmer}
-              style={{ fontSize: '0.75rem', fontWeight: 600, padding: '9px 20px', borderRadius: '8px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+              className="cs-bouton-plein">
               Remplacer
             </button>
           </div>

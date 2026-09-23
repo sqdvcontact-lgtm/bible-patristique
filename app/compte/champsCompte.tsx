@@ -90,9 +90,7 @@ export function PiedSection({ modifie, occupe, statut, onEnregistrer, onAnnuler 
   return (
     <div className="esp-actions">
       <button type="button" onClick={onEnregistrer} disabled={occupe || !modifie}
-        style={{ padding: '7px 16px', borderRadius: '8px', border: 'none', fontSize: '0.78125rem', fontWeight: 500,
-          background: modifie ? 'var(--cs-vert-aplat)' : 'var(--cs-desactive-fond)', color: modifie ? 'var(--cs-sur-aplat)' : 'var(--cs-desactive-encre)',
-          cursor: occupe || !modifie ? 'default' : 'pointer' }}>
+        className="cs-bouton-plein">
         {occupe ? 'Enregistrement…' : 'Enregistrer'}
       </button>
       {modifie && !occupe && (

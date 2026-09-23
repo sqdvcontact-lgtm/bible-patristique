@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
-import { CadreRecuperation, Encart, STYLE_CHAMP, STYLE_ETIQUETTE, styleBouton } from '../recuperation'
+import { CadreRecuperation, Encart, STYLE_CHAMP, STYLE_ETIQUETTE, CLASSE_BOUTON, STYLE_BOUTON } from '../recuperation'
 
 // ⛔ LE MÊME MESSAGE, que l'adresse ait un compte ou non. Dire « aucun compte ne
 // porte cette adresse » apprendrait à n'importe qui quelles adresses sont inscrites.
@@ -47,7 +47,7 @@ export default function MotDePasseOubliePage() {
           <input id="cs-email-oubli" type="email" autoComplete="email" required value={email}
             onChange={e => setEmail(e.target.value)} placeholder="vous@exemple.fr" style={STYLE_CHAMP} />
         </div>
-        <button type="submit" disabled={occupe} style={styleBouton(occupe)}>
+        <button type="submit" disabled={occupe} className={CLASSE_BOUTON} style={STYLE_BOUTON}>
           {occupe ? 'Envoi…' : envoye ? 'Renvoyer le lien' : 'Recevoir le lien'}
         </button>
       </form>

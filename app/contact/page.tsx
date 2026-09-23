@@ -96,9 +96,7 @@ export default function ContactPage() {
                 style={{ ...inputStyle, resize: "vertical", lineHeight: 1.55 }} />
             </div>
             <button type="submit" disabled={etat === "envoi"}
-              style={{ alignSelf: "flex-start", padding: "10px 22px", borderRadius: "8px", border: "none",
-                background: etat === "envoi" ? "var(--cs-desactive-fond)" : "var(--cs-vert-aplat)", color: etat === "envoi" ? "var(--cs-desactive-encre)" : "var(--cs-sur-aplat)", fontSize: "0.84375rem",
-                fontWeight: 500, cursor: etat === "envoi" ? "default" : "pointer" }}>
+              className="cs-bouton-plein" style={{ alignSelf: "flex-start" }}>
               {etat === "envoi" ? "Envoi…" : "Envoyer"}
             </button>
           </form>

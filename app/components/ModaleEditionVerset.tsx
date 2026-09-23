@@ -164,7 +164,7 @@ export default function ModaleEditionVerset({ verset, traduction, traductionLabe
         <div style={{ display:'flex', justifyContent:'flex-end', gap:'8px', marginTop:'12px' }}>
           {statut === 'erreur' && <span style={{ fontSize:'0.6875rem', color:'var(--cs-danger)', alignSelf:'center' }}>Erreur d’enregistrement.</span>}
           <button onClick={onClose} style={{ fontSize:'0.6875rem', padding:'5px 14px', borderRadius:'4px', border:'1px solid var(--cs-bord)', background:'var(--cs-surface)', color:'var(--cs-texte-second)', cursor:'pointer' }}>Annuler</button>
-          <button onClick={enregistrer} disabled={statut === 'envoi'} style={{ fontSize:'0.6875rem', padding:'5px 16px', borderRadius:'4px', border:'none', background:'var(--cs-vert-aplat)', color:'var(--cs-sur-aplat)', cursor:'pointer', fontWeight:500 }}>
+          <button onClick={enregistrer} disabled={statut === 'envoi'} className="cs-bouton-plein cs-bouton-plein--compact">
             {statut === 'envoi' ? 'Enregistrement…' : 'Enregistrer'}
           </button>
         </div>

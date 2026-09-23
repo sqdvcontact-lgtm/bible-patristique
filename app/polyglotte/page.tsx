@@ -754,9 +754,9 @@ function ModaleEditionVerset({ reference, valeurInitiale, statut, onEnregistrer,
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
           {statut === "erreur" && <span style={{ fontSize: '0.6875rem', color: ROUGE, marginRight: "auto" }}>échec de l’enregistrement</span>}
-          <button onClick={onFermer} style={{ padding: "5px 12px", fontSize: '0.71875rem', borderRadius: 4, border: "1px solid var(--cs-bord)", background: "var(--cs-surface)", color: "var(--cs-texte-gris)", cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
+          <button onClick={onFermer} style={{ padding: "0.3125rem 0.875rem", fontSize: '0.71875rem', borderRadius: 4, border: "1px solid var(--cs-bord)", background: "var(--cs-surface)", color: "var(--cs-texte-gris)", cursor: "pointer", fontFamily: "inherit" }}>Annuler</button>
           <button onClick={() => onEnregistrer(valeur)} disabled={statut === "envoi"}
-            style={{ padding: "5px 15px", fontSize: '0.71875rem', borderRadius: 4, border: "none", background: "var(--cs-vert-aplat)", color: "var(--cs-sur-aplat)", cursor: statut === "envoi" ? "default" : "pointer", fontFamily: "inherit", fontWeight: 500 }}>
+            className="cs-bouton-plein cs-bouton-plein--compact">
             {statut === "envoi" ? "Enregistrement…" : "Enregistrer"}
           </button>
         </div>

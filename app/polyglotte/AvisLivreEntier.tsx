@@ -54,7 +54,7 @@ export default function AvisLivreEntier({ nomLivre, onConfirmer, onAnnuler }: {
   if (typeof document === 'undefined') return null
 
   const bouton: React.CSSProperties = {
-    padding: '6px 14px', fontSize: '0.75rem', borderRadius: '4px', cursor: 'pointer',
+    padding: '0.3125rem 0.875rem', fontSize: '0.71875rem', borderRadius: '4px', cursor: 'pointer',
     fontFamily: 'inherit', lineHeight: 1.2,
   }
 
@@ -91,7 +91,7 @@ export default function AvisLivreEntier({ nomLivre, onConfirmer, onAnnuler }: {
             Rester au chapitre
           </button>
           <button type="button" onClick={confirmer}
-            style={{ ...bouton, border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', fontWeight: 500 }}>
+            className="cs-bouton-plein cs-bouton-plein--compact">
             Afficher le livre entier
           </button>
         </div>

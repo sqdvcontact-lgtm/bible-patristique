@@ -176,7 +176,7 @@ export function ModaleCadrage({ refPortrait: ref, nom, cadrage, onSauvegarder, o
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <button onClick={() => onSauvegarder({ posX, posY, zoom })}
-            style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', fontSize: '0.8125rem', fontWeight: 500, cursor: 'pointer' }}>
+            className="cs-bouton-plein">
             Appliquer
           </button>
           <button onClick={onChanger}

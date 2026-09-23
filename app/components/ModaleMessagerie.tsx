@@ -226,7 +226,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                   placeholder="Écrire un message… (Entrée pour envoyer)" rows={2} maxLength={2000}
                   style={{ flex: 1, resize: 'none', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '8px 11px', fontSize: '0.78125rem', background: 'var(--cs-surface)', color: 'var(--cs-encre-fonce)', fontFamily: 'inherit', lineHeight: 1.45, outline: 'none' }} />
                 <button onClick={envoyer} disabled={!sansEmoticones(texte).trim() || envoi}
-                  style={{ flexShrink: 0, height: '38px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', border: 'none', borderRadius: '8px', padding: '0 15px', fontSize: '0.78125rem', fontWeight: 600, cursor: (!sansEmoticones(texte).trim() || envoi) ? 'default' : 'pointer', opacity: (!sansEmoticones(texte).trim() || envoi) ? 0.5 : 1 }}>
+                  className="cs-bouton-plein" style={{ flexShrink: 0, height: '38px' }}>
                   {envoi ? '…' : 'Envoyer'}
                 </button>
               </div>

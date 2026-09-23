@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
-import { CadreRecuperation, Encart, STYLE_CHAMP, STYLE_ETIQUETTE, styleBouton } from '../recuperation'
+import { CadreRecuperation, Encart, STYLE_CHAMP, STYLE_ETIQUETTE, CLASSE_BOUTON, STYLE_BOUTON } from '../recuperation'
 
 // La page où mène le lien du courriel de récupération.
 //
@@ -144,7 +144,7 @@ export default function NouveauMotDePassePage() {
           <input id="cs-mdp-confirmation" type="password" autoComplete="new-password" required
             value={confirmation} onChange={e => { setConfirmation(e.target.value); setErreur(null) }} style={STYLE_CHAMP} />
         </div>
-        <button type="submit" disabled={occupe} style={styleBouton(occupe)}>
+        <button type="submit" disabled={occupe} className={CLASSE_BOUTON} style={STYLE_BOUTON}>
           {occupe ? 'Enregistrement…' : 'Enregistrer le mot de passe'}
         </button>
       </form>

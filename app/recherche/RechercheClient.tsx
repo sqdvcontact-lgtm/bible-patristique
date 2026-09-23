@@ -1753,9 +1753,9 @@ export default function RechercheClient() {
             </p>
             <div style={{ display:'flex', gap:'8px', justifyContent:'flex-end' }}>
               <button onClick={() => setConfirmEcrasement(false)}
-                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'1px solid var(--cs-bord)', borderRadius:'8px', background:'var(--cs-surface)', color:'var(--cs-texte-second)', cursor:'pointer' }}>Annuler</button>
+                style={{ fontSize:'0.71875rem', padding:'0.3125rem 0.875rem', border:'1px solid var(--cs-bord)', borderRadius:'4px', background:'var(--cs-surface)', color:'var(--cs-texte-second)', cursor:'pointer' }}>Annuler</button>
               <button onClick={() => { ecrireRecherche(); setConfirmEcrasement(false) }}
-                style={{ fontSize:'0.71875rem', padding:'6px 14px', border:'none', borderRadius:'8px', background:'var(--cs-vert-aplat)', color:'var(--cs-sur-aplat)', fontWeight:600, cursor:'pointer' }}>Écraser</button>
+                className="cs-bouton-plein cs-bouton-plein--compact">Écraser</button>
             </div>
           </div>
         </div>

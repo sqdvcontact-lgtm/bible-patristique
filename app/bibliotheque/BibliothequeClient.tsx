@@ -1585,7 +1585,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
       <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-gris)', lineHeight: 1.65, marginBottom: '22px' }}>
         Seuls les membres de Corpus Scriptura peuvent proposer un texte.<br/>Connectez-vous pour contribuer à la bibliothèque.
       </p>
-      <a href="/chantier" style={{ display: 'inline-block', padding: '9px 22px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', borderRadius: '8px', fontSize: '0.8125rem', textDecoration: 'none', fontWeight: 500 }}>
+      <a href="/chantier" className="cs-bouton-plein" style={{ display: 'inline-block' }}>
         Se connecter
       </a>
     </div>
@@ -1764,7 +1764,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
             const pret = !!form.auteur_nom.trim() && !!form.titre.trim() && !!form.texte.trim() && droitsGarantis
             return (
               <button onClick={envoyer} disabled={statut === 'envoi' || !pret}
-                style={{ padding: '10px 28px', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', border: 'none', borderRadius: '8px', fontSize: '0.8125rem', fontWeight: 500, cursor: pret ? 'pointer' : 'default', opacity: pret ? 1 : 0.45, transition: 'opacity 0.15s' }}>
+                className="cs-bouton-plein">
                 {statut === 'envoi' ? 'Envoi…' : 'Envoyer la proposition'}
               </button>
             )

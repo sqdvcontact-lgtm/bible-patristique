@@ -71,7 +71,7 @@ function EditeurNoteWysiwyg({ valeur, mode, onChange, onEnregistrer }: {
         data-placeholder="Texte de la note…"
         style={{ minHeight: '5.5em', fontSize: '0.8125rem', lineHeight: 1.55, color: 'var(--cs-texte-fort)', fontFamily: SERIF, border: '1px solid var(--cs-bord)', borderRadius: '8px', background: 'var(--cs-surface)', padding: '9px 10px', outline: 'none', overflowY: 'auto' }} />
       <button onClick={() => onEnregistrer(valeurCourante())}
-        style={{ alignSelf: 'flex-end', fontSize: '0.71875rem', padding: '6px 14px', borderRadius: '4px', border: 'none', background: 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: 'pointer', fontWeight: 600 }}>
+        className="cs-bouton-plein cs-bouton-plein--compact" style={{ alignSelf: 'flex-end' }}>
         {mode === 'creation' ? 'Insérer la note' : 'Enregistrer la note'}
       </button>
     </div>
