@@ -37,6 +37,7 @@ import {
   type NomsPericopes,
 } from '@/app/lib/bibliographieCatalogue'
 import { SERIF, SANS } from '@/app/lib/polices'
+import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 
 /**
  * L'OUTIL BIBLIOGRAPHIQUE — la page « Bibliographie » d'« Aller plus loin ».
@@ -240,20 +241,8 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
   // un bouton, et l'index des lettres, qui n'y servait qu'à descendre, disparaît.
   const recherche = (
     <>
-      <div data-visite="biblio-recherche" style={{ position: 'relative', marginTop: '2px' }}>
-        <input value={filtres.q} onChange={e => poser({ q: e.target.value })} type="text"
-          placeholder="Un auteur, un titre, une collection…" aria-label="Rechercher un ouvrage par auteur, titre, collection, maison ou année"
-          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.75rem', padding: '7px 24px 7px 28px', borderRadius: '8px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)', outline: 'none' }} />
-        <svg width="12" height="12" viewBox="0 0 13 13" fill="none" aria-hidden
-          style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', stroke: 'var(--cs-texte-second)', opacity: 0.75 }}>
-          <circle cx="5.5" cy="5.5" r="4.5" strokeWidth="1.2" />
-          <line x1="9" y1="9" x2="12" y2="12" strokeWidth="1.2" strokeLinecap="round" />
-        </svg>
-        {filtres.q && (
-          <button type="button" onClick={() => poser({ q: '' })} aria-label="Effacer la recherche"
-            style={{ position: 'absolute', right: '7px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-second)', fontSize: '0.8125rem', lineHeight: 1, padding: 0 }}>✕</button>
-        )}
-      </div>
+      <ChampRechercheVolet dataVisite="biblio-recherche" valeur={filtres.q} surChangement={q => poser({ q })}
+        placeholder="Un auteur, un titre, une collection…" ariaLabel="Rechercher un ouvrage par auteur, titre, collection, maison ou année" />
 
       <p aria-live="polite" style={{ margin: '7px 0 0', fontFamily: SANS, fontSize: '0.6875rem', letterSpacing: '0.04em', color: actifs ? VERT : 'var(--cs-texte-second)' }}>
         {libelleCompte(entrees.length, retenues.length, actifs)}

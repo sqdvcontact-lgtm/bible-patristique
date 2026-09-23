@@ -13,6 +13,7 @@
  */
 import type { CSSProperties, ReactNode } from 'react'
 import { SERIF } from '@/app/lib/polices'
+import { SUFFIXE_PASTILLE } from './PastilleFiltre'
 
 /** Le type d'une note, en tête de sa ligne : « Critique textuelle », « Note de l'édition ». */
 export const STYLE_INTITULE_LIGNE_NOTE: CSSProperties = {
@@ -29,30 +30,16 @@ const STYLE_APERCU_NOTE: CSSProperties = {
 /** Le rang de pastilles d'un axe de filtre. */
 export const STYLE_RANG_FACETTES: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px' }
 
+/** Le compte d'une facette : il prend l'encre de sa pastille, pâlie. */
 export function CompteFacette({ n }: { n: number }) {
-  return <span style={{ color: 'var(--cs-texte-doux)', fontVariantNumeric: 'tabular-nums' }}>{n}</span>
+  return <span style={SUFFIXE_PASTILLE}>{n}</span>
 }
 
-export function PastilleFacette({ actif, alerte, onClick, children }: {
-  actif: boolean
-  alerte?: boolean
-  onClick: () => void
-  children: ReactNode
-}) {
-  const teinte = alerte ? 'var(--cs-danger-fonce)' : 'var(--cs-vert)'
-  return (
-    <button type="button" onClick={onClick} aria-pressed={actif}
-      style={{
-        fontSize: '0.6875rem', lineHeight: 1.2, padding: '4px 8px', borderRadius: '4px',
-        border: `1px solid ${actif ? teinte : 'var(--cs-bord)'}`,
-        background: actif ? 'var(--cs-vert-pale)' : 'var(--cs-surface)',
-        color: actif ? teinte : 'var(--cs-texte-second)',
-        cursor: 'pointer', display: 'flex', gap: '5px', alignItems: 'baseline',
-      }}>
-      {children}
-    </button>
-  )
-}
+/**
+ * La pastille d'une facette est celle de tout filtre du site (PastilleFiltre) : il y en
+ * avait deux dessins, celui-ci et celui de la bibliothèque.
+ */
+export { default as PastilleFacette } from './PastilleFiltre'
 
 export function MarqueNote({ alerte, children }: { alerte?: boolean; children: ReactNode }) {
   return (

@@ -965,7 +965,7 @@ export default function RechercheClient() {
         .ong-vert .pastille { width:7px; height:7px; flex-shrink:0; border-radius:4px; background:var(--fam); }
         .ong-count { flex-shrink:0; font-size:0.6875rem; font-weight:400; color:var(--cs-texte-gris); font-variant-numeric:tabular-nums; }
         .ong-vert--actif .ong-count { color:var(--fam); }
-        .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:999px; background:var(--cs-surface); color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
+        .pag-btn { font-size:0.6875rem; padding:5px 16px; border:1px solid var(--cs-bord); border-radius:4px; background:var(--cs-surface); color:var(--cs-texte); cursor:pointer; transition:background 0.12s,color 0.12s; }
         .pag-btn:hover:not(:disabled) { background:var(--cs-vert-aplat); color:var(--cs-sur-aplat); border-color:var(--cs-vert-aplat); }
         .pag-btn:disabled { color:var(--cs-texte-faible); border-color:var(--cs-fond-doux); cursor:default; }
         /* (« .mode-btn » est parti avec le contrôle segmenté : le mode se prend désormais

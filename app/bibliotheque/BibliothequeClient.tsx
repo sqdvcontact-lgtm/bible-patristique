@@ -22,6 +22,8 @@ import { mentionsAdresseEdition, SEPARATEUR_ADRESSE } from '@/app/lib/adresseEdi
 import { useEditeursCharges } from '@/app/lib/editeurs'
 import { Siecle, SiecleNumero, SIECLE_INCONNU, rangDuSiecle, siecleEnTexte } from '@/app/lib/siecles'
 import { rendreEnrichi } from '@/app/lib/enrichissements'
+import { STYLE_CHAMP } from '@/app/lib/compositionChamp'
+import PastilleFiltre, { stylePastilleFiltre, SUFFIXE_PASTILLE } from '@/app/components/PastilleFiltre'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
 import VisiteGuidee from '@/app/components/VisiteGuidee'
 import { CLE_VISITE_BIBLIOTHEQUE, VISITE_BIBLIOTHEQUE } from '@/app/lib/visiteBibliotheque'
@@ -609,25 +611,8 @@ const SIECLE_DERNIER_PLANCHER = 13
  * rang de siècles est une FRISE, elle se lit d'un trait ou elle ne dit plus l'échelle.
  * Mesuré : 759 px demandés pour 703 disponibles, 655 après.
  */
-function stylePastille(actif: boolean, vide = false, etroite = false): React.CSSProperties {
-  const eteinte = vide && !actif
-  return {
-    display: 'inline-flex', alignItems: 'baseline', gap: etroite ? '5px' : '7px',
-    padding: etroite ? '3px 6px' : '3px 10px', borderRadius: '4px', fontSize: '0.71875rem',
-    border: `1px solid ${actif ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)'}`,
-    background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)',
-    color: actif ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-second)',
-    cursor: eteinte ? 'default' : 'pointer',
-    fontFamily: SERIF, fontStyle: 'italic',
-    transition: 'all 0.12s', whiteSpace: 'nowrap', lineHeight: 1.4,
-    ...(eteinte ? { opacity: 0.42 } : null),
-  }
-}
-
-/** Le COMPTE, ou la croix : ce qui suit le libellé se compose toujours de la même façon. */
-const SUFFIXE_PASTILLE: React.CSSProperties = {
-  fontStyle: 'normal', fontSize: '0.6875rem', fontVariantNumeric: 'tabular-nums', opacity: 0.68,
-}
+// Le dessin vit dans PastilleFiltre (app/components/PastilleFiltre.tsx), partagé avec
+// les inventaires de notes, avec ce qui suit le libellé (le compte, la croix).
 
 /**
  * Le COMPTE d'une pastille GARDE LA PLACE DE SON PLAFOND (demande de l'auteur, 2026-09-13 :
@@ -687,11 +672,11 @@ function Chip({ actif, compte, plafond, onClick, titreVide, etroite, children }:
 }) {
   const vide = compte === 0 && !actif
   return (
-    <button onClick={onClick} aria-pressed={actif} disabled={vide} style={stylePastille(actif, compte === 0, etroite)}
+    <PastilleFiltre actif={actif} onClick={onClick} desactivee={vide} eteinte={compte === 0} etroite={etroite}
       title={vide ? (titreVide ?? 'Aucun auteur ici') : undefined}>
       {children}
       <ComptePastille compte={compte} plafond={plafond} />
-    </button>
+    </PastilleFiltre>
   )
 }
 
@@ -704,7 +689,7 @@ function Chip({ actif, compte, plafond, onClick, titreVide, etroite, children }:
  */
 function Jeton({ onRetirer, children }: { onRetirer: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onRetirer} title="Retirer ce filtre" style={stylePastille(true)}>
+    <button type="button" onClick={onRetirer} title="Retirer ce filtre" style={stylePastilleFiltre({ actif: true })}>
       {children}
       <span style={SUFFIXE_PASTILLE} aria-hidden="true">×</span>
     </button>
@@ -1309,11 +1294,9 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
 }
 
 // ── Onglet Proposer ───────────────────────────────────────────────────────────
-const CHAMP_STYLE: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box', fontSize: '0.8125rem', padding: '8px 11px',
-  border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)',
-  color: 'var(--cs-texte-fort)', outline: 'none', fontFamily: SERIF,
-}
+// Le champ prend la composition partagée (app/lib/compositionChamp.ts) : il était en
+// sérif, au rayon d'une puce, sans que rien n'en dise la raison.
+const CHAMP_STYLE: React.CSSProperties = STYLE_CHAMP
 
 /**
  * Un champ PRÉREMPLI, donc figé : il porte ce que la notice du catalogue dit, et
@@ -1984,7 +1967,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   const plafondLangue = (l: string) => auteurs.filter(a => a.langue_principale === l).length
   const plafondFamille = (c: string) => auteurs.filter(a => famillesDesTraditions(a.traditions).includes(c)).length
   // ⛔ PLUS AUCUN FILTRAGE ICI : les trois rangs se rendent ENTIERS, et une facette à zéro
-  // se pâlit au lieu de s'effacer (voir `stylePastille`). Le tri qui vivait là — « une
+  // se pâlit au lieu de s'effacer (voir `stylePastilleFiltre`). Le tri qui vivait là — « une
   // facette qui ne rendrait rien ne se montre pas » — faisait danser les rangs à chaque
   // clic et cachait les creux du fonds, qui sont un renseignement comme les pleins.
   const sieclesVus = siecles.map(n => ({ n, compte: compteSiecle(n), plafond: plafondSiecle(n) }))

@@ -29,7 +29,7 @@ const STYLE_RUBRIQUE_FILTRE: React.CSSProperties = {
 /** Une pastille de facette : retenue, offerte, ou indisponible sous le tri en cours. */
 function stylePastilleFiltre(sel: boolean, dispo: boolean): React.CSSProperties {
   return {
-    fontSize: '0.6875rem', padding: '2px 7px', borderRadius: '8px', cursor: dispo ? 'pointer' : 'default',
+    fontSize: '0.6875rem', padding: '2px 7px', borderRadius: '4px', cursor: dispo ? 'pointer' : 'default',
     border: `1px solid ${sel ? 'var(--cs-or)' : dispo ? 'var(--cs-or-doux)' : 'var(--cs-bord-clair)'}`,
     background: sel ? OR_SELECTION : dispo ? 'var(--cs-surface)' : 'transparent',
     color: sel ? OR_ENCRE : dispo ? 'var(--cs-texte-second)' : 'var(--cs-or-doux)',

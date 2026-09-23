@@ -5065,12 +5065,14 @@ main.lecture-entree [data-cs-bloc],
   display: block;
   width: 100%;
   box-sizing: border-box;
-  padding: 9px 11px;
+  /* La géométrie est celle de tout champ du site (app/lib/compositionChamp.ts) ; seuls
+     le filet et le sol restent ceux de la fenêtre de signalement. */
+  padding: 0.5625rem 0.75rem;
   border: 1px solid var(--cs-danger-bord);
-  border-radius: 4px;
+  border-radius: 8px;
   background: var(--cs-surface);
   font-family: var(--font-source-sans), Arial, sans-serif;
-  font-size: 0.8125rem;
+  font-size: 0.84375rem;
   line-height: 1.5;
   color: var(--cs-texte-fort);
   resize: vertical;

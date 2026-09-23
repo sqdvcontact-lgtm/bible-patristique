@@ -10,16 +10,8 @@
 import Link from 'next/link'
 import { SERIF } from '@/app/lib/polices'
 
-export const STYLE_CHAMP: React.CSSProperties = {
-  width: '100%', padding: '0.5625rem 0.75rem', fontSize: '0.84375rem',
-  border: '1px solid var(--cs-bord)', borderRadius: '8px', background: 'var(--cs-fond-clair)',
-  color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box',
-}
-
-export const STYLE_ETIQUETTE: React.CSSProperties = {
-  fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-texte-second)',
-  letterSpacing: '0.06em', display: 'block', marginBottom: '0.3125rem',
-}
+// Le champ et son étiquette prennent la composition partagée (app/lib/compositionChamp.ts).
+export { STYLE_CHAMP, STYLE_ETIQUETTE_CHAMP as STYLE_ETIQUETTE } from '@/app/lib/compositionChamp'
 
 // Le bouton prend la composition partagée (.cs-bouton-plein, globals.css) : fond,
 // encre, désactivé et survol y vivent. Il ne garde ici que sa place.

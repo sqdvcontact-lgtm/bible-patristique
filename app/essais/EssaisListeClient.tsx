@@ -20,6 +20,7 @@ import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
+import { PisteInterrupteur } from '@/app/compte/champsCompte'
 import { SERIF, SANS } from '@/app/lib/polices'
 
 const CATEGORIES = CATEGORIES_ESSAIS
@@ -273,7 +274,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
                 { key: 'suggestion' as const, label: 'Commenter un verset' },
               ]).map(s => (
                 <button key={s.key} onClick={() => setSousEcrire(s.key)}
-                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '999px', border: `1px solid ${sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: sousEcrire === s.key ? 'rgba(var(--cs-vert-rgb),0.09)' : 'var(--cs-surface)', color: sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', fontWeight: sousEcrire === s.key ? 600 : 400, cursor: 'pointer' }}>
+                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: `1px solid ${sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: sousEcrire === s.key ? 'rgba(var(--cs-vert-rgb),0.09)' : 'var(--cs-surface)', color: sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', fontWeight: sousEcrire === s.key ? 600 : 400, cursor: 'pointer' }}>
                   {s.label}
                 </button>
               ))}
@@ -1012,13 +1013,12 @@ function OngletMesEcrits({
                 )}
               </div>
               <div className="ecrit-actions">
-                <button onClick={() => basculerPublication(e)} disabled={!peutBasculer || verrouille}
+                <button type="button" role="switch" aria-checked={e.statut === 'publie'} aria-label={timer ? `Publication de l’écrit, ${timer}` : "Publication de l’écrit"}
+                  onClick={() => basculerPublication(e)} disabled={!peutBasculer || verrouille}
                   title={!dejaValide ? "Publication possible après validation par l'administration." : verrouille ? 'Interrupteur disponible une heure après le dernier changement.' : e.statut === 'publie' ? 'Dépublier' : 'Publier'}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.6875rem', color: e.statut === 'publie' ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 0.4 : 1, fontWeight: 600 }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.6875rem', color: e.statut === 'publie' ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', background: 'transparent', border: 'none', padding: 0, cursor: !peutBasculer || verrouille ? 'default' : 'pointer', opacity: !peutBasculer ? 'var(--cs-opacite-desactive)' : 1, fontWeight: 600 }}>
                   {timer && <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontWeight: 600 }}>{timer}</span>}
-                  <span style={{ width: '26px', height: '14px', borderRadius: '999px', background: e.statut === 'publie' ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', position: 'relative', display: 'inline-block', transition: 'background 0.15s' }}>
-                    <span style={{ position: 'absolute', top: '2px', left: e.statut === 'publie' ? '14px' : '2px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left 0.15s', boxShadow: 'var(--cs-ombre-posee)' }} />
-                  </span>
+                  <PisteInterrupteur actif={e.statut === 'publie'} />
                 </button>
                 <Link href={`/essais/${e.id}/modifier`} style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', textDecoration: 'none', fontWeight: 600 }}>Modifier</Link>
                 <button onClick={() => supprimer(e.id)} style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Supprimer</button>

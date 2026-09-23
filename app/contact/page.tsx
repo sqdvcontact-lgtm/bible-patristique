@@ -3,20 +3,15 @@
 import React, { useState } from "react";
 import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { SERIF } from "@/app/lib/polices";
+import { STYLE_CHAMP, STYLE_ETIQUETTE_CHAMP } from "@/app/lib/compositionChamp";
 
 // Point de contact du site. Public par nature — il vit hors du verrou (le proxy
 // le laisse passer), pour que les mentions légales puissent y renvoyer même
 // quand le reste du site est fermé.
 
-const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "9px 12px", fontSize: "0.84375rem", border: "1px solid var(--cs-bord)",
-  borderRadius: "8px", background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none",
-  boxSizing: "border-box", fontFamily: "inherit",
-};
-const labelStyle: React.CSSProperties = {
-  fontSize: "0.6875rem", fontWeight: 600, color: "var(--cs-texte-second)", letterSpacing: "0.06em",
-  display: "block", marginBottom: "5px",
-};
+// Le champ et son étiquette prennent la composition partagée.
+const inputStyle = STYLE_CHAMP;
+const labelStyle = STYLE_ETIQUETTE_CHAMP;
 
 export default function ContactPage() {
   const [nom, setNom] = useState("");

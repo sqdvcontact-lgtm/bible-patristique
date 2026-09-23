@@ -20,6 +20,7 @@ import { RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import { colorMix } from '@/app/lib/couleurs'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { SERIF, SANS } from '@/app/lib/polices'
+import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 
 // Frise générale de l'histoire de l'Église.
 // Les champs riches viennent de `v_frise_generale`, triée par `ordre_affichage`.
@@ -311,19 +312,8 @@ export default function HistoireClient(
   const contenuFiltres = (
     <>
       {/* Recherche en direct : titre ou notice, combinée aux filtres. */}
-      <div style={{ position: 'relative', marginTop: '2px' }}>
-        <input value={recherche} onChange={e => setRecherche(e.target.value)} type="text"
-          placeholder="Rechercher un événement…" aria-label="Rechercher dans la frise"
-          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.75rem', padding: '7px 10px 7px 28px', borderRadius: '8px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)', outline: 'none' }} />
-        <svg width="12" height="12" viewBox="0 0 13 13" fill="none" style={{ color: 'var(--cs-texte-fort)', position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }}>
-          <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" strokeWidth="1.2" />
-          <line x1="9" y1="9" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-        </svg>
-        {recherche && (
-          <button onClick={() => setRecherche('')} aria-label="Effacer la recherche"
-            style={{ position: 'absolute', right: '7px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: TEXTE2, fontSize: '0.8125rem', lineHeight: 1, padding: 0 }}>✕</button>
-        )}
-      </div>
+      <ChampRechercheVolet valeur={recherche} surChangement={setRecherche}
+        placeholder="Rechercher un événement…" ariaLabel="Rechercher dans la frise" />
 
       {/* Afficher/masquer les notices (et l'accès aux « Sources et détail »). */}
       <button onClick={() => setToutesNotes(o => !o)} aria-pressed={toutesNotes}

@@ -12,6 +12,7 @@ import { supabase } from "@/app/lib/supabase";
 import Image from "next/image";
 import { STYLE_ROMAIN, STYLE_ORDINAL, enChiffresRomains } from "@/app/lib/siecles";
 import { SERIF } from "@/app/lib/polices";
+import { STYLE_CHAMP, STYLE_ETIQUETTE_CHAMP } from "@/app/lib/compositionChamp";
 
 type Mode = "connexion" | "inscription";
 
@@ -21,8 +22,9 @@ const LIEN_PAYPAL = "https://www.paypal.com/donate/?hosted_button_id=9M463NPH2RQ
 // Mordoré : le brun doré des reliures, entre l'or des filets et le brun du texte.
 const MORDORE = "var(--cs-lacune)";
 
-const inputStyle: React.CSSProperties = { width: "100%", padding: "0.5625rem 0.75rem", fontSize: "0.84375rem", border: "1px solid var(--cs-bord)", borderRadius: "8px", background: "var(--cs-fond-clair)", color: "var(--cs-texte-fort)", outline: "none", boxSizing: "border-box" };
-const labelStyle: React.CSSProperties = { fontSize: "0.6875rem", fontWeight: 600, color: "var(--cs-texte-second)", letterSpacing: "0.06em", display: "block", marginBottom: "0.3125rem" };
+// Le champ et son étiquette prennent la composition partagée.
+const inputStyle = STYLE_CHAMP;
+const labelStyle = STYLE_ETIQUETTE_CHAMP;
 
 /** Où revenir après avoir confirmé son adresse par courriel. */
 function urlCompte(): string {

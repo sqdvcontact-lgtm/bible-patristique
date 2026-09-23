@@ -255,7 +255,7 @@ export default function ModalLienBiblique({
                 }
               }}
               placeholder="Rechercher un mot, une expression ou une référence..."
-              style={{ width: '100%', boxSizing: 'border-box', border: '1px solid var(--cs-bord)', borderRadius: '999px', padding: '8px 13px', fontSize: '0.75rem', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', marginBottom: '12px' }}
+              style={{ width: '100%', boxSizing: 'border-box', border: '1px solid var(--cs-bord)', borderRadius: '8px', padding: '8px 13px', fontSize: '0.75rem', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', marginBottom: '12px' }}
             />
 
             {recherche.trim().length >= 2 ? (
@@ -278,7 +278,7 @@ export default function ModalLienBiblique({
                 <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginBottom: '13px' }}>
                   {chapitres.map(ch => (
                     <button key={ch} onClick={() => setChapitre(ch)}
-                      style={{ minWidth: '30px', border: '1px solid var(--cs-bord)', borderRadius: '999px', padding: '4px 8px', cursor: 'pointer', background: chapitre === ch ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: chapitre === ch ? 'var(--cs-sur-aplat)' : 'var(--cs-texte)', fontSize: '0.6875rem' }}>
+                      style={{ minWidth: '30px', border: '1px solid var(--cs-bord)', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer', background: chapitre === ch ? 'var(--cs-vert-aplat)' : 'var(--cs-surface)', color: chapitre === ch ? 'var(--cs-sur-aplat)' : 'var(--cs-texte)', fontSize: '0.6875rem' }}>
                       {ch}
                     </button>
                   ))}

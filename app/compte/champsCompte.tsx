@@ -11,17 +11,8 @@ import React, { useEffect, useState } from 'react'
 import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { SERIF, SANS } from '@/app/lib/polices'
 
-export const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '9px 12px', fontSize: '0.84375rem',
-  border: '1px solid var(--cs-bord)', borderRadius: '8px',
-  background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)',
-  outline: 'none', boxSizing: 'border-box',
-}
-
-export const labelStyle: React.CSSProperties = {
-  fontSize: '0.6875rem', fontWeight: 600, color: 'var(--cs-texte-gris)',
-  letterSpacing: '0.06em', display: 'block', marginBottom: '5px',
-}
+// Le champ et son étiquette prennent la composition partagée (app/lib/compositionChamp.ts).
+export { STYLE_CHAMP as inputStyle, STYLE_ETIQUETTE_CHAMP as labelStyle } from '@/app/lib/compositionChamp'
 
 export type Statut = { ok: boolean; msg: string } | null
 
@@ -112,12 +103,25 @@ export function PiedSection({ modifie, occupe, statut, onEnregistrer, onAnnuler 
 /** L'interrupteur des réglages de visibilité. */
 /** ⚠️ `detail` dit en une phrase ce que la bascule gouverne ; il se pose sous le libellé,
  *  et la bascule s'aligne alors sur la première ligne. */
+/**
+ * La PISTE d'un interrupteur, et elle seule : l'interrupteur du compte et celui qui
+ * publie un écrit (Communauté) la partagent. Deux dessins voisins s'étaient écartés
+ * (32 × 18 ici, 26 × 14 là, une ombre d'un côté) ; c'est celui-ci qui fait foi.
+ */
+export function PisteInterrupteur({ actif }: { actif: boolean }) {
+  return (
+    <span aria-hidden style={{ display: 'inline-block', width: '32px', height: '18px', borderRadius: '999px', flexShrink: 0, background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', position: 'relative', transition: 'background 0.15s' }}>
+      <span style={{ position: 'absolute', top: '3px', left: actif ? '15px' : '3px', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left 0.15s' }} />
+    </span>
+  )
+}
+
 export function Interrupteur({ actif, onChange, libelle, detail }: { actif: boolean; onChange: (v: boolean) => void; libelle: string; detail?: string }) {
   return (
     <label style={{ display: 'flex', alignItems: detail ? 'flex-start' : 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
       <button type="button" role="switch" aria-checked={actif} onClick={() => onChange(!actif)}
-        style={{ width: '32px', height: '18px', borderRadius: '999px', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0, background: actif ? 'var(--cs-vert-aplat)' : 'var(--cs-bord)', position: 'relative', transition: 'background 0.15s' }}>
-        <span style={{ position: 'absolute', top: '3px', left: actif ? '15px' : '3px', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--cs-surface)', transition: 'left 0.15s' }} />
+        style={{ display: 'inline-flex', border: 'none', background: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}>
+        <PisteInterrupteur actif={actif} />
       </button>
       <span style={{ fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: detail ? 1.44 : undefined }}>
         {libelle}

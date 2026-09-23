@@ -70,6 +70,7 @@ import {
 } from '@/app/lib/pericopes'
 import { filtrerCatalogue, TESTAMENT_LIVRE } from '@/app/lib/pericopesRecherche'
 import { SERIF, SANS } from '@/app/lib/polices'
+import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 
 const FOND = 'var(--cs-fond)'
 const BORD = 'var(--cs-bord)'
@@ -276,20 +277,8 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
 
   const contenuFiltres = (
     <>
-      <div data-visite="peri-recherche" style={{ position: 'relative', marginTop: '2px' }}>
-        <input value={q} onChange={e => setQ(e.target.value)} type="text"
-          placeholder="Un titre, « Mt 5 », « Genèse »…" aria-label="Rechercher une péricope, un livre ou une référence"
-          style={{ width: '100%', boxSizing: 'border-box', fontFamily: SERIF, fontSize: '0.75rem', padding: '7px 24px 7px 28px', borderRadius: '8px', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte)', outline: 'none' }} />
-        <svg width="12" height="12" viewBox="0 0 13 13" fill="none" aria-hidden
-          style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', stroke: 'var(--cs-texte-second)', opacity: 0.75 }}>
-          <circle cx="5.5" cy="5.5" r="4.5" strokeWidth="1.2" />
-          <line x1="9" y1="9" x2="12" y2="12" strokeWidth="1.2" strokeLinecap="round" />
-        </svg>
-        {q && (
-          <button type="button" onClick={() => setQ('')} aria-label="Effacer la recherche"
-            style={{ position: 'absolute', right: '7px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-second)', fontSize: '0.8125rem', lineHeight: 1, padding: 0 }}>✕</button>
-        )}
-      </div>
+      <ChampRechercheVolet dataVisite="peri-recherche" valeur={q} surChangement={setQ}
+        placeholder="Un titre, « Mt 5 », « Genèse »…" ariaLabel="Rechercher une péricope, un livre ou une référence" />
 
       {/* ⛔ LE SOMMAIRE PREND LE MODÈLE DU VOLET DE LA BIBLE CLASSIQUE (demande de
           l'auteur, 2026-09-08) : le testament se donne en capitales vertes au fer à

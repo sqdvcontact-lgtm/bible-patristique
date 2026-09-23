@@ -362,7 +362,7 @@ function ParcourirBible({ onChoisir }: { onChoisir: (c: Choix) => void }) {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               {s.codes.map(l => (
                 <button key={l} onClick={() => setLivre(l)} className="cs-survol-fond cs-survol-bord cs-survol-encre"
-                  style={{ fontSize: '0.71875rem', padding: '5px 12px', borderRadius: '999px', borderWidth: '1px', borderStyle: 'solid', '--repos-bord': 'var(--cs-bord-clair)', '--survol-bord': 'var(--cs-vert-clair)', '--repos-fond': 'var(--cs-fond-clair)', '--survol-fond': 'var(--cs-fond)', '--repos-encre': 'var(--cs-encre)', '--survol-encre': 'var(--cs-encre-fonce)', cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1.35, transition: 'background 0.12s, border-color 0.12s, color 0.12s' } as React.CSSProperties}>
+                  style={{ fontSize: '0.71875rem', padding: '5px 12px', borderRadius: '4px', borderWidth: '1px', borderStyle: 'solid', '--repos-bord': 'var(--cs-bord-clair)', '--survol-bord': 'var(--cs-vert-clair)', '--repos-fond': 'var(--cs-fond-clair)', '--survol-fond': 'var(--cs-fond)', '--repos-encre': 'var(--cs-encre)', '--survol-encre': 'var(--cs-encre-fonce)', cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1.35, transition: 'background 0.12s, border-color 0.12s, color 0.12s' } as React.CSSProperties}>
                   {NOM_LIVRE[l] ?? ABREV_FR[l]}
                 </button>
               ))}
@@ -693,7 +693,7 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
   const barre = (
     <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', position: 'sticky', top: 0, background: 'var(--cs-surface)', zIndex: 1, paddingBottom: '2px' }}>
       <input aria-label="Rechercher un mot" value={recherche} onChange={e => setRecherche(e.target.value)} placeholder="Rechercher un mot…"
-        style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontSize: '0.75rem', padding: '7px 10px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', outline: 'none' }} />
+        style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontSize: '0.75rem', padding: '7px 10px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', outline: 'none' }} />
       {source === 'patristique' && oeuvresListe.length > 1 && (
         <select value={oeuvreSel} onChange={e => setOeuvreSel(e.target.value)} aria-label="Limiter à une œuvre"
           style={{ flexShrink: 0, maxWidth: '11rem', fontSize: '0.71875rem', padding: '6px 8px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)' }}>
