@@ -4044,9 +4044,11 @@ main.lecture-entree [data-cs-bloc],
   line-height: var(--poly-interligne);
   text-align: right;
 }
+/* ⚠️ Un cran sous le plancher, décision de l'auteur (2026-09-23) : la référence canonique
+   redit le numéro que chaque cellule porte, et elle doit peser moins que lui. */
 .poly-marge-ref > span {
   font-family: var(--font-source-sans), Arial, sans-serif;
-  font-size: 0.6875rem;
+  font-size: 0.65625rem;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;

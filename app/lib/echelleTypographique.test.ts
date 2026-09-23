@@ -113,6 +113,9 @@ const EST_CAPITALE_ESPACEE = (objet: string) =>
 const EST_HORS_PLANCHER = (tete: string, objet: string) =>
   /verticalAlign\s*:\s*['"](super|top)|vertical-align\s*:\s*(super|top)|[Aa]ppel|[Ee]xposant/.test(tete + objet) ||
   /losange|fleuron|ornement/i.test(tete + objet) ||
+  // Décision de l'auteur (2026-09-23) : la référence canonique de la Polyglotte, un cran sous
+  // le plancher, parce qu'elle redit le numéro que la cellule porte déjà.
+  /poly-marge-ref/.test(tete) ||
   (/border-?[rR]adius\s*:\s*['"]?50%/.test(objet) && /(^|[\s{;,])height\s*:\s*['"]?1\dpx/.test(objet))
 
 /** L'objet de style (ou la règle CSS) qui enveloppe la position `i`. */

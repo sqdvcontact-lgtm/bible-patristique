@@ -22,6 +22,11 @@ import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { cesurerGrec, codeLangue, copierSansCesures } from "@/app/lib/grec";
 import { cesurerLatin } from "@/app/lib/cesuresLatines";
 import { supabase } from "@/app/lib/supabase";
+import { chargerToutesPagesSupabase, lancerEnParallele } from "@/app/lib/paginationSupabase";
+import { codeLangueBible } from "@/app/lib/langueBible";
+import { chapitreVoisin, sensDeLaTouche, type PlaceChapitre } from "@/app/lib/chapitresVoisins";
+import NavigationBasChapitre from "@/app/components/NavigationBasChapitre";
+import { nomLivreReference } from "@/app/lib/referencesBibliques";
 import FleuronDiscret from "@/app/components/FleuronDiscret";
 import NavLivres from "@/app/components/NavLivres";
 import { chargerChapitresParLivre, nombreDeChapitres, type ChapitresParLivre } from "@/app/lib/chapitresCanon";
@@ -88,7 +93,11 @@ import {
 type Livre = { code: string; nom_fr: string; ordre: number };
 // `sourceFillion` : la traduction ne vit pas dans `versets_v2` ; son texte se lit dans la
 // table de lecture de la Fillion (voir `TABLE_FILLION`).
-type Trad = { trad_id: string; nom: string; ordre: number | null; edition: string | null; lang: string; variante?: string; sourceFillion?: boolean };
+// ⚠️ `lang` range la colonne dans le menu (`GROUPES_LANG`) et choisit sa césure ; `langHtml`
+// est la langue que la cellule DÉCLARE (`codeLangueBible`) : l'ancien français du témoin
+// (« fro ») et l'hébreu (« he ») n'ont pas de groupe à eux, mais ils ne se composent pas
+// comme le français (audit du 2026-09-23).
+type Trad = { trad_id: string; nom: string; ordre: number | null; edition: string | null; lang: string; langHtml?: string; variante?: string; sourceFillion?: boolean };
 type TraductionCatalogue = { trad_id: string; nom: string; ordre: number | null; source_edition: string | null; publication_fin_annee: number | null; langue: string | null; auteur?: string | null; dates?: string | null; date_publication?: string | null };
 
 // ── La Bible du XIIIe siècle porte DEUX états de son texte ────────────────────
@@ -376,7 +385,10 @@ async function fetchPaged<T>(table: string, cols: string, addFilters: (q: any) =
   const lignes = (premiere.data ?? []) as T[];
   const total = premiere.count ?? lignes.length;
   if (total <= lignes.length) return lignes;
-  const suite = await Promise.all(Array.from({ length: Math.ceil(total / PAGE) - 1 }, (_, i) => page(i + 1)));
+  // ⚠️ Les pages suivantes partent BORNÉES (`lancerEnParallele`, six en vol) : un livre
+  // entier en demande une douzaine par source, et toutes ensemble elles occupaient le
+  // pool au détriment des requêtes voisines (règle des lectures découpées en lots).
+  const suite = await lancerEnParallele<{ data: unknown[] | null; error: unknown }>(Array.from({ length: Math.ceil(total / PAGE) - 1 }, (_, i) => () => page(i + 1)));
   for (const r of suite) if (r.error) throw r.error;
   return [...lignes, ...suite.flatMap(r => (r.data ?? []) as T[])];
 }
@@ -432,7 +444,17 @@ function lireCanon(livre: string, scope: Scope): CanonRow[] | undefined {
 // canon est dans ce chapitre ; les surnuméraires, sans créneau, restent au livre entier.
 function lireTexte(trad: string, livre: string, scope: Scope): V2Row[] | undefined {
   return cacheTexte.get(`${trad}|${cleLivre(livre, scope)}`)
-    ?? (scope === "*" ? undefined : cacheTexte.get(`${trad}|${cleLivre(livre, "*")}`)?.filter(r => r.canon_id?.startsWith(`${livre}.${scope}.`)));
+    ?? (scope === "*" ? undefined : cacheTexte.get(`${trad}|${cleLivre(livre, "*")}`)?.filter(r => ligneDuChapitre(r, livre, scope)));
+}
+// ⛔ UN CHAPITRE PORTE AUSSI SES VERSETS HORS OSSATURE (audit du 2026-09-23). Le filtre ne
+// retenait que les lignes dont le créneau du canon tombe dans le chapitre : les 1 369
+// lignes sans créneau (additions de la Septante à Judith, à Esther, à Daniel…) ne
+// paraissaient qu'en livre entier, et le chapitre les taisait sans un mot. Une ligne sans
+// créneau appartient au chapitre de sa numérotation d'édition ; un prologue (chapitre 0)
+// s'ouvre avec le chapitre 1.
+function ligneDuChapitre(r: V2Row, livre: string, ch: number): boolean {
+  if (r.canon_id) return r.canon_id.startsWith(`${livre}.${ch}.`);
+  return r.ch_orig === ch || (ch === 1 && r.ch_orig === 0);
 }
 function lire899(livre: string, scope: Scope): Brutes899 | undefined {
   return cache899.get(cleLivre(livre, scope))
@@ -578,7 +600,11 @@ async function completerCache(demande: Portee): Promise<void> {
             if (scope === "*") return x;
             // La table de la Fillion porte son chapitre canonique en clair, et un entier
             // indexé vaut mieux qu'un préfixe : `versets_v2` n'a que le `canon_id`.
-            return g.fillion ? x.eq("ch_canon", scope) : x.like("canon_id", `${livres[0]}.${scope}.%`);
+            // ⚠️ Les lignes sans créneau du chapitre viennent avec lui (`ligneDuChapitre`) :
+            // mesuré sous la RLS du lecteur, le `or` ne coûte rien (19 ms sur Esther 1).
+            if (g.fillion) return x.eq("ch_canon", scope);
+            const chapitres = scope === 1 ? "(0,1)" : `(${scope})`;
+            return x.or(`canon_id.like.${livres[0]}.${scope}.*,and(canon_id.is.null,ch_orig.in.${chapitres})`);
           })
           .then(brutes => {
             // ⛔ Le crayon d'édition ne se pose jamais sur la Fillion : ses lignes sont
@@ -1382,7 +1408,10 @@ function ensembleDeLivre(livres: Livre[], code: string): Onglet {
 
 export default function PolyglottePage() {
   // La mémoire des visites vit sur le COMPTE, miroitée sur ce poste : une seule porte.
-  const { visiteFaite, oublierVisite, profilPret, exigerCompte } = useCompte();
+  // ⛔ LA SESSION ET LES DROITS VIENNENT DE LA PROVISION DU COMPTE (audit du 2026-09-23) :
+  // la page relisait la session et le profil pour son compte, une fois, au montage, et ne
+  // suivait ni une déconnexion ni un changement de compte.
+  const { visiteFaite, oublierVisite, profilPret, exigerCompte, userId, estAdmin: estAdminCompte, aUnCompte } = useCompte();
   const [livres, setLivres] = useState<Livre[]>([]);
   // trad_id → code du livre → nom qu'il porte dans cette édition. Seuls les écarts au canon.
   const [livresEd, setLivresEd] = useState<Record<string, Record<string, { nom: string; abrege: string }>>>({});
@@ -1433,6 +1462,10 @@ export default function PolyglottePage() {
   // colonne se ferme d'un clic, se souvient de son état d'une visite à l'autre, et la place
   // qu'elle rend va aux traductions.
   const [notesReduites, setNotesReduites] = useState(false);   // colonne Notes repliée en rail
+  // ⛔ LA COLONNE « NOTES » N'EXISTE PAS SANS COMPTE PERSONNEL (décision de l'auteur,
+  // 2026-09-23) : ni en-tête, ni cellule, ni rail. Le compte de démonstration partagé n'en a
+  // pas non plus : ses notes seraient celles de tous ses visiteurs.
+  const notesVisibles = aUnCompte;
   useEffect(() => {
     try { if (window.localStorage.getItem("polyglotte-notes-reduites") === "1") setNotesReduites(true); } catch { /* stockage indisponible */ }
   }, []);
@@ -1457,7 +1490,7 @@ export default function PolyglottePage() {
       // ne coûte que son rail quand elle est fermée. ⚠️ La fermer rend donc de la place, et
       // parfois une colonne de traduction entière : c'est la raison de la dépendance
       // ci-dessous, un lecteur qui ne prend pas de notes lit une édition de plus.
-      const dispo = el.clientWidth - 24 - LARGEUR_REF - (notesReduites ? 26 : 208);
+      const dispo = el.clientWidth - 24 - LARGEUR_REF - (!notesVisibles ? 0 : notesReduites ? 26 : 208);
       const n = Math.max(MIN_SLOTS, Math.min(MAX_SLOTS, Math.floor(dispo / MIN_COL_PX)));
       // La préférence utilisateur prime sur la mesure (`maxSlots`, déduit) ; on ne retient
       // ici que ce que l'écran permet.
@@ -1467,7 +1500,7 @@ export default function PolyglottePage() {
     const ro = new ResizeObserver(calc);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [notesReduites]);
+  }, [notesReduites, notesVisibles]);
   // ⛔ LE GARDE-FOU DU CURSEUR EN MOUVEMENT EST RETIRÉ (2026-09-07), et ce n'est pas un
   // oubli. Une classe « poly-curseur-actif » allumait les actions au survol TANT QUE le
   // curseur bougeait, et les effaçait après une seconde d'immobilité « pour ne pas
@@ -1515,7 +1548,7 @@ export default function PolyglottePage() {
   // `estAdminReel` = les droits ; `estAdmin` = ce qu'on montre. Un admin qui bascule
   // en « mode utilisateur standard » doit voir la page comme un lecteur : les réglages
   // de relecture et les crayons disparaissent, ses droits ne changent pas.
-  const [estAdminReel, setEstAdmin] = useState(false);
+  const estAdminReel = estAdminCompte;
   const { modeUtilisateurStandard } = useAffichageAdmin();
   const estAdmin = estAdminReel && !modeUtilisateurStandard;
   // ⛔ UN FILTRE DE RELECTURE NE SURVIT PAS À L'AFFICHAGE STANDARD. Ses interrupteurs ne
@@ -1523,7 +1556,6 @@ export default function PolyglottePage() {
   // lecteur, ils gardaient la page réduite aux lignes filtrées, sans plus rien pour les éteindre.
   // On les éteint pendant le rendu, dès qu'ils n'ont plus de maître.
   if (!estAdmin && (sensiblesOnly || surnumOnly)) { setSensiblesOnly(false); setSurnumOnly(false); }
-  const [userId, setUserId] = useState<string | null>(null);   // pour « mes citations »
   // Versets déjà dans « mes citations » : clé « ABR|ch|v » → id du prélèvement (pour retirer).
   const [prelevs, setPrelevs] = useState<Map<string, string>>(new Map());
   const marquerCite = useCallback((cle: string, id: string) => setPrelevs(m => new Map(m).set(cle, id)), []);
@@ -1539,6 +1571,10 @@ export default function PolyglottePage() {
   // retrouver au-dehors demanderait autant d'index. L'ancre l'emporte avec elle.
   const celluleActions = useCelluleActions<string, ActionsDeCellule>();
   const sansSurvol = useSansSurvol();
+  // ⛔ SOUS 820 PX, RIEN NE SE CHARGE (audit du 2026-09-23) : la page y rend l'écran
+  // « largeur requise », et le tableau n'est pas peint. Déclaré ICI, avant la demande,
+  // pour qu'elle le lise ; la visite et le lasso le lisent aussi.
+  const ecranEtroit = useEstMobile(POINTS_DE_RUPTURE.tablette);
   // Le haut de la lecture est le BAS de l'en-tête collant, non celui de la barre de
   // navigation : une cellule qui monterait plus haut passerait derrière les noms
   // d'édition. Mesuré à l'ancrage, la racine du site étant fluide.
@@ -1791,6 +1827,7 @@ export default function PolyglottePage() {
           ordre: t.ordre,
           edition: editionTrad(t),
           lang: codeLangue(t.langue),
+          langHtml: codeLangueBible(t.langue),
           sourceFillion: !presentesDansV2[i] && surFillion,
         });
       });
@@ -1799,7 +1836,7 @@ export default function PolyglottePage() {
       // explicitement, comme n'importe quelle autre traduction comparable.
       const t899 = liste.find(t => t.trad_id === TRAD_ID_BIBLE899);
       if (t899) {
-        const commun = { nom: t899.nom, ordre: t899.ordre, edition: editionTrad(t899), lang: codeLangue((t899 as { langue?: string | null }).langue) };
+        const commun = { nom: t899.nom, ordre: t899.ordre, edition: editionTrad(t899), lang: codeLangue((t899 as { langue?: string | null }).langue), langHtml: codeLangueBible((t899 as { langue?: string | null }).langue) ?? "fro" };
         if (!migres.some(m => m.trad_id === TRAD_ID_BIBLE899)) migres.push({ trad_id: TRAD_ID_BIBLE899, ...commun, variante: "Texte du manuscrit" });
         // La transcription diplomatique est une colonne à part entière (voir
         // TRAD_ID_899_DIPLO) : même édition, même langue, autre état du texte.
@@ -1823,22 +1860,21 @@ export default function PolyglottePage() {
       } catch { /* localStorage indisponible ou corrompu : on retombe sur le défaut */ }
       setSlots(init ?? Array.from({ length: NB_SLOTS }, (_, i) => migres[i]?.trad_id ?? ""));
     })();
-    // l'utilisateur connecté est-il admin ? (affichage seulement — le serveur revérifie)
-    (async () => {
-      const { data: s } = await supabase.auth.getSession();
-      const uid = s.session?.user?.id ?? null;
-      setUserId(uid);
-      if (!uid) return;
-      const { data: p } = await supabase.from("profils").select("est_admin").eq("id", uid).maybeSingle();
-      setEstAdmin(p?.est_admin === true);
-      // Les points sensibles ne servent qu'à la RELECTURE (lignes en rouge, en rose,
-      // filtre « Lignes problématiques »), c'est-à-dire à l'administrateur : le lecteur
-      // n'a pas à les charger.
-      if (p?.est_admin === true) {
-        supabase.from("points_sensibles").select("livre, reference, type, description, statut, notes").then(({ data }) => setPoints(data ?? []));
-      }
-    })();
   }, []);
+
+  // Les points sensibles ne servent qu'à la RELECTURE (lignes en rouge, en rose, filtre
+  // « Lignes problématiques »), c'est-à-dire à l'administrateur : le lecteur n'a pas à les
+  // charger. ⚠️ Un échec se dit au journal : la relecture n'en montre alors aucun.
+  useEffect(() => {
+    if (!estAdminReel) return;
+    let vivant = true;
+    supabase.from("points_sensibles").select("livre, reference, type, description, statut, notes").then(({ data, error }) => {
+      if (!vivant) return;
+      if (error) { console.error("[polyglotte] points sensibles illisibles :", error); return; }
+      setPoints(data ?? []);
+    });
+    return () => { vivant = false; };
+  }, [estAdminReel]);
 
   // Enregistrement d'un verset modifié
   const enregistrerVerset = useCallback(async (id: string, texte: string) => {
@@ -1931,7 +1967,7 @@ export default function PolyglottePage() {
   // Le numéro de la dernière demande partie : une réponse qui n'est plus la dernière
   // est jetée (deux chapitres cliqués coup sur coup, le premier répondant en second).
   const numeroDemandeRef = useRef(0);
-  const demandeVide = !demande.codes.length || !demande.tradIds.length;
+  const demandeVide = ecranEtroit || !demande.codes.length || !demande.tradIds.length;
   // Servi du CACHE sans attendre. L'ajustement se fait PENDANT le rendu, comme le retour
   // à la première page de la Bibliothèque : l'attente n'est jamais vraie, rien ne
   // s'efface pour reparaître aussitôt, et le tableau change avant la peinture.
@@ -1967,6 +2003,9 @@ export default function PolyglottePage() {
   }, [attenteColonneSeule, demande]);
   useEffect(() => {
     if (demandeVide || couvre(porteeChargee, demande) || erreurRef.current === demande) return;
+    // ⚠️ À l'hydratation, `ecranEtroit` suit l'indice du serveur (faux sur une page
+    // prérendue) le temps d'un rendu : on relit la fenêtre, pour ne rien charger pour rien.
+    if (typeof window.matchMedia === "function" && window.matchMedia(`(max-width: ${POINTS_DE_RUPTURE.tablette}px)`).matches) return;
     const numero = ++numeroDemandeRef.current;
     chargerPortee(demande, ordreDe).then(({ canon, lignes }) => {
       if (numero !== numeroDemandeRef.current) return;
@@ -2075,11 +2114,16 @@ export default function PolyglottePage() {
   // Charge les citations déjà enregistrées par l'utilisateur pour le(s) livre(s) affiché(s),
   // afin que le signet apparaisse plein sur les versets favoris et qu'un clic les retire.
   useEffect(() => {
-    if (!userId || !livresAffiches.length) { setPrelevs(new Map()); return; }
+    if (!userId || !livresAffiches.length || ecranEtroit) { setPrelevs(new Map()); return; }
+    let vivant = true;
     const abrs = livresAffiches.map(l => ABREV_FR[l.code] ?? l.code);
     supabase.from("prelevements").select("id, ref_livre_abr, ref_chapitre, ref_verset, traduction, trad_id")
       .eq("user_id", userId).eq("type", "biblique").in("ref_livre_abr", abrs)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        // ⚠️ Une réponse d'un autre livre est jetée ; un échec se dit au journal et laisse
+        // les signets tels qu'ils étaient, au lieu de les vider en silence.
+        if (!vivant) return;
+        if (error) { console.error("[polyglotte] citations enregistrées illisibles :", error); return; }
         const m = new Map<string, string>();
         // Clé étendue au CODE de la traduction : chaque colonne a son propre signet. ⚠️ Le code
         // plutôt que le nom : un nom d'édition change (« Vulgate publiée par Fillion » est
@@ -2087,19 +2131,27 @@ export default function PolyglottePage() {
         for (const p of data ?? []) m.set(`${p.ref_livre_abr}|${p.ref_chapitre}|${p.ref_verset}|${p.trad_id ?? p.traduction}`, p.id);
         setPrelevs(m);
       });
-  }, [userId, livresAffiches]);
+    return () => { vivant = false; };
+  }, [userId, livresAffiches, ecranEtroit]);
 
   // Charge toutes les notes personnelles de l'utilisateur (peu volumineuses), indexées
   // par canon_id, pour remplir la colonne « Notes » des versets déjà annotés.
   useEffect(() => {
-    if (!userId) { setNotes(new Map()); return; }
-    supabase.from("polyglotte_notes").select("canon_id, texte").eq("user_id", userId)
-      .then(({ data }) => {
+    if (!userId || ecranEtroit) { setNotes(new Map()); return; }
+    let vivant = true;
+    // ⚠️ PAGINÉ : PostgREST plafonne à mille lignes, et un lecteur assidu les dépasse ;
+    // les notes d'au-delà se seraient montrées vides, et réécrites vides au premier geste.
+    chargerToutesPagesSupabase<{ canon_id: string; texte: string | null }>((debut, fin) =>
+      supabase.from("polyglotte_notes").select("canon_id, texte").eq("user_id", userId).order("canon_id").range(debut, fin))
+      .then(lignes => {
+        if (!vivant) return;
         const m = new Map<string, string>();
-        for (const n of data ?? []) if (n.texte) m.set(n.canon_id, n.texte);
+        for (const n of lignes) if (n.texte) m.set(n.canon_id, n.texte);
         setNotes(m);
-      });
-  }, [userId]);
+      })
+      .catch((e: unknown) => { if (vivant) console.error("[polyglotte] notes personnelles illisibles :", e); });
+    return () => { vivant = false; };
+  }, [userId, ecranEtroit]);
 
   // Verset ciblé (barre de recherche du volet) : une fois le chapitre chargé, on y défile
   // et l'on efface le surlignage après un instant. Dépend de `canon` pour attendre le rendu.
@@ -2336,10 +2388,12 @@ export default function PolyglottePage() {
     finirDepli();
     const table = refTable.current;
     const grille = enteteRef.current?.querySelector<HTMLElement>('[data-visite="poly-entete"]');
-    if (!table || !grille || grille.children.length < 3) return;
-    const cases = Array.from(grille.children) as HTMLElement[];
-    const zone = grille.getBoundingClientRect().width - cases[0].getBoundingClientRect().width - cases[cases.length - 1].getBoundingClientRect().width;
-    const colonnes = cases.slice(1, -1);
+    // ⚠️ La dernière case n'est la colonne des notes que si elle est rendue (`data-notes`).
+    const cases = Array.from(grille?.children ?? []) as HTMLElement[];
+    const avecNotes = cases.at(-1)?.hasAttribute("data-notes") ?? false;
+    if (!table || !grille || cases.length < (avecNotes ? 3 : 2)) return;
+    const colonnes = cases.slice(1, avecNotes ? -1 : undefined);
+    const zone = grille.getBoundingClientRect().width - cases[0].getBoundingClientRect().width - (avecNotes ? cases[cases.length - 1].getBoundingClientRect().width : 0);
     const sortantes = colonnes.filter(c => c.classList.contains("poly-col-sortante")).length;
     const entrantes = colonnes.filter(c => c.classList.contains("poly-col-entrante")).length;
     const avant = colonnes.length - entrantes;
@@ -2382,7 +2436,6 @@ export default function PolyglottePage() {
   // aussitôt. Et elle attend que les colonnes soient venues : le texte de cette
   // page est chargé par le NAVIGATEUR, à la différence de la Bible classique, dont
   // le serveur rend le chapitre.
-  const ecranEtroit = useEstMobile(POINTS_DE_RUPTURE.tablette);
   const visitePrete = !ecranEtroit && colonnes.length > 0 && !attenteGlobale;
 
   // ⚠️ Un COMPTEUR, non un drapeau : rappelée par la barre alors qu'elle est déjà
@@ -2429,6 +2482,51 @@ export default function PolyglottePage() {
     const plie = pliDesNotesRef.current;
     pliDesNotesRef.current = null;
     if (plie !== null) setNotesReduites(plie);
+  }, []);
+
+  // ── LES CHAPITRES VOISINS (audit du 2026-09-23) ────────────────────────────────
+  // Sous le tableau, ‹ « N sur M » ›, et les touches ← et →, sur le modèle de la page Bible
+  // (`NavigationBasChapitre`, `chapitreVoisin`, `sensDeLaTouche`). Au bout d'un livre, le
+  // livre voisin. ⚠️ Aucun livre n'est tenu pour absent (`absents` vide) : la Polyglotte
+  // ne lit pas UNE bible, et l'absence d'un livre se dit dans sa colonne.
+  // ⛔ En vue d'un chapitre seulement : ni livre entier, ni relecture filtrée.
+  const enVueDeChapitre = !!livreChoisi && chFiltre != null && !surnumOnly && !sensiblesOnly && !ecranEtroit;
+  const voisinsPoly = useMemo(() => {
+    if (!enVueDeChapitre || !livreChoisi || chapitreChoisi == null) return null;
+    const ctx = { ordre: livres.map(l => l.code), chapitres: chapitresParLivre, absents: new Set<string>() };
+    const cible = (place: PlaceChapitre | null) => place && {
+      ...place,
+      nom: `${nomLivreReference(place.livre)} ${place.chapitre}`,
+      href: urlEtatPolyglotte({ livre: place.livre, chapitre: place.chapitre, colonnes: slots, verset: null }),
+    };
+    return {
+      precedent: cible(chapitreVoisin(livreChoisi, chapitreChoisi, "precedent", ctx)),
+      suivant: cible(chapitreVoisin(livreChoisi, chapitreChoisi, "suivant", ctx)),
+      position: { actuel: chapitreChoisi, total: nombreDeChapitres(livreChoisi, chapitresParLivre) },
+    };
+  }, [enVueDeChapitre, livreChoisi, chapitreChoisi, livres, chapitresParLivre, slots]);
+  const allerAuChapitre = useCallback((href: string) => {
+    const place = placePolyglotteDemandee(new URL(href, window.location.origin).search);
+    if (!place) return;
+    if (place.livre !== livreChoisi) choisirLivre(place.livre);
+    setChapitreChoisi(place.chapitre); setToutAfficher(false); setVersetCible(null);
+  }, [livreChoisi, choisirLivre]);
+  // ⚠️ L'écoute ne se repose pas à chaque rendu : elle lit les voisins dans une référence.
+  const toucheChapitreRef = useRef({ voisinsPoly, allerAuChapitre, attenteGlobale });
+  useEffect(() => { toucheChapitreRef.current = { voisinsPoly, allerAuChapitre, attenteGlobale }; });
+  useEffect(() => {
+    const surTouche = (e: KeyboardEvent) => {
+      const { voisinsPoly: v, allerAuChapitre: aller, attenteGlobale: attente } = toucheChapitreRef.current;
+      if (!v || attente) return;
+      const modale = document.querySelector('[aria-modal="true"], [role="dialog"]') !== null;
+      const sensTouche = sensDeLaTouche(e, document.activeElement, modale);
+      const cible = sensTouche ? v[sensTouche] : null;
+      if (!cible) return;
+      e.preventDefault();
+      aller(cible.href);
+    };
+    window.addEventListener("keydown", surTouche);
+    return () => window.removeEventListener("keydown", surTouche);
   }, []);
 
   // ── LE LASSO (demande de l'auteur, 2026-09-23) ─────────────────────────────────
@@ -2568,11 +2666,11 @@ export default function PolyglottePage() {
   // ce qu'occupait la colonne étroite revient donc au texte.
   // Dernière colonne : les NOTES personnelles du lecteur (largeur fixe, hors du
   // partage `fr` des traductions). Enregistrées par verset sur le compte.
-  const LARGEUR_NOTES = notesReduites ? "26px" : "13rem";
+  const LARGEUR_NOTES = !notesVisibles ? "" : notesReduites ? "26px" : "13rem";
   // Une colonne en transit tient sa piste à `0fr` : c'est la grille qui l'ouvre ou la ferme.
   // ⚠️ La piste d'une colonne qui ARRIVE se lit dans une variable de la table : c'est elle,
   // non un nouveau rendu, qui l'ouvre (voir « Aucun rendu de la page pendant le glissement »).
-  const tmpl = `${LARGEUR_REF}px ${colsRendues.map(c => (c.etat === "stable" ? "minmax(0, 1fr)" : c.etat === "entrante" ? "var(--poly-piste-entree, minmax(0, 0fr))" : "minmax(0, 0fr)")).join(" ")} ${LARGEUR_NOTES}`;
+  const tmpl = `${LARGEUR_REF}px ${colsRendues.map(c => (c.etat === "stable" ? "minmax(0, 1fr)" : c.etat === "entrante" ? "var(--poly-piste-entree, minmax(0, 0fr))" : "minmax(0, 0fr)")).join(" ")}${LARGEUR_NOTES ? ` ${LARGEUR_NOTES}` : ""}`;
   const HAUT_ENTETE = 52;   // titre et date de l'édition, sur deux lignes (ligne desserrée)
   const HAUT_NAV    = 10;   // blanc entre la NavBar et le haut de la page
   // Sommet du corps : sous la navbar, le blanc de séparation et la ligne des éditions.
@@ -2731,15 +2829,28 @@ export default function PolyglottePage() {
         }
         .poly-texte-cell:hover .poly-edit,
         .poly-edit:focus-visible { opacity: 1; pointer-events: auto; }
+        /* ⛔ L'ANCIEN FRANÇAIS NE SE JUSTIFIE PAS (audit du 2026-09-23) : aucun navigateur n'a
+           de dictionnaire de coupure pour lui, et un texte justifié sans césure s'y creuse de
+           lézardes. Il se ferre, comme le lecteur du témoin (charte § 3.11). */
+        .poly-texte-cell:lang(fro) { text-align: left; text-align-last: left; hyphens: manual; -webkit-hyphens: manual; }
+        .poly-texte-cell[dir="rtl"] { text-align: right; text-align-last: right; }
       `}</style>
 
       <div className="poly-mobile" style={{ maxWidth: '32.5rem', margin: "0 auto", padding: "56px 22px 48px", fontFamily: "var(--font-source-sans), Arial, sans-serif", textAlign: "center", color: 'var(--cs-texte-second)' }}>
         <h1 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: "0 0 16px" }}>Polyglotte</h1>
         <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: 0 }}>
-          Cette page compare plusieurs traductions côte à côte : elle demande un écran large.
+          Cette page compare plusieurs traductions côte à côte : elle demande un écran large, et ne tient pas sur un téléphone.
           <br /><br />
-          <strong>Ouvrez-la depuis un ordinateur ou une tablette.</strong>
+          <strong>Ouvrez-la sur un écran plus large.</strong>
         </p>
+        {/* Le renvoi vers la Bible classique, qui se lit au téléphone (audit du 2026-09-23). */}
+        {livreChoisi && (
+          <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: "18px 0 0" }}>
+            <a className="cs-lien-phrase" href={`/?livre=${livreChoisi}&chapitre=${chapitreChoisi ?? 1}`}>
+              Lire {nomLivreReference(livreChoisi)} {chapitreChoisi ?? 1} dans la Bible classique
+            </a>
+          </p>
+        )}
         {/* Un fleuron du registre ferme le message (21 septembre 2026 : l'ordinateur ardent a
             cédé sa place). Voir `FleuronDiscret`, qui dit quel fleuron ferme quel vide. */}
         <div style={{ display: "flex", justifyContent: "center", marginTop: "34px" }}><FleuronDiscret vide="polyglotte" /></div>
@@ -2947,7 +3058,7 @@ export default function PolyglottePage() {
                     n'écriront jamais de note : la colonne se ferme d'un clic, et la place
                     qu'elle rend peut aller jusqu'à ouvrir une colonne de traduction de plus
                     (voir le calcul de largeur adaptative). */}
-                <div data-visite="poly-notes" style={{ borderLeft: `1px solid ${FILET_COL}`, padding: notesReduites ? 0 : "0 6px", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, minWidth: 0 }}>
+                {notesVisibles && <div data-visite="poly-notes" data-notes="" style={{ borderLeft: `1px solid ${FILET_COL}`, padding: notesReduites ? 0 : "0 6px", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, minWidth: 0 }}>
                   {notesReduites ? (
                     /* Colonne fermée : un simple crayon, propre et discret, pour rouvrir. */
                     <button onClick={() => setNotesReduites(false)} title="Afficher la colonne Notes" aria-label="Afficher la colonne Notes" className="poly-notes-rail"
@@ -2969,7 +3080,7 @@ export default function PolyglottePage() {
                       </span>
                     </button>
                   )}
-                </div>
+                </div>}
               </div>
             </div>
 
@@ -3051,7 +3162,7 @@ export default function PolyglottePage() {
                     citer: null,
                   } : null;
                   return (
-                    <div key={i} className={`poly-texte-cell poly-col poly-col-${sc.etat}`} lang={sc.trad?.lang} onCopy={copierSansCesures}
+                    <div key={i} className={`poly-texte-cell poly-col poly-col-${sc.etat}`} lang={sc.trad?.langHtml ?? sc.trad?.lang} dir={sc.trad?.langHtml === "he" ? "rtl" : undefined} onCopy={copierSansCesures}
                       onMouseEnter={actionsSurnum ? e => ancrerActions(e.currentTarget, actionsSurnum) : undefined}
                       onMouseLeave={actionsSurnum ? () => celluleActions.relacher(actionsSurnum.cle) : undefined}
                       onClick={actionsSurnum ? e => celluleActions.basculer(e.currentTarget, actionsSurnum.cle, sansSurvol && celluleActions.ancre?.cle === actionsSurnum.cle, { borne: e.currentTarget, sommet: hautDeLecture(enteteRef.current), donnees: actionsSurnum }) : undefined}
@@ -3079,7 +3190,7 @@ export default function PolyglottePage() {
                   );
                 })}
                 {/* Colonne Notes : pas de note sur un surnuméraire (hors ossature du canon). */}
-                <div style={{ borderLeft: "1px solid var(--cs-surnum-bord)" }} />
+                {notesVisibles && <div style={{ borderLeft: "1px solid var(--cs-surnum-bord)" }} />}
               </div>
             );
           };
@@ -3204,7 +3315,7 @@ export default function PolyglottePage() {
                           citer: { cle: cleCite, refLivre: l.nom_fr, refAbr: abr, chapitre: r.ch_canon, verset: r.v_canon, traductionLabel: t.nom, tradId: t.trad_id },
                         } : null;
                         return (
-                          <div key={i} className={`poly-texte-cell poly-col poly-col-${sc.etat}`} lang={t.lang} onCopy={copierSansCesures}
+                          <div key={i} className={`poly-texte-cell poly-col poly-col-${sc.etat}`} lang={t.langHtml ?? t.lang} dir={t.langHtml === "he" ? "rtl" : undefined} onCopy={copierSansCesures}
                             data-lasso-cellule={lassoActif && actionsCell && cellulesDuLasso.has(cleLasso(sc.slot, r.id)) ? cleLasso(sc.slot, r.id) : undefined}
                             // ⛔ Le BLANC d'une cellule ouvre le lasso, bien qu'elle soit focalisable
                             // (voir `SELECTEUR_FOND_DECLARE`) : sans quoi le tableau n'en offrait nulle part.
@@ -3277,13 +3388,11 @@ export default function PolyglottePage() {
                         );
                       })}
                       {/* Colonne Notes : note personnelle du verset (enregistrée sur le compte). */}
-                      <div style={{ borderLeft: `1px solid ${FILET_COL}`, padding: notesReduites ? 0 : "3px 5px", display: "flex" }} onClick={e => e.stopPropagation()}>
-                        {notesReduites ? null : userId ? (
-                          <CelluleNote valeur={notes.get(r.id) ?? ""} refLisible={refLisible} onChange={t => majNote(r.id, t)} />
-                        ) : (
-                          <span style={{ ...STYLE_INVITE, alignSelf: "center", margin: "0 auto" }}>Connectez-vous pour noter</span>
-                        )}
-                      </div>
+                      {notesVisibles && (
+                        <div style={{ borderLeft: `1px solid ${FILET_COL}`, padding: notesReduites ? 0 : "3px 5px", display: "flex" }} onClick={e => e.stopPropagation()}>
+                          {notesReduites ? null : <CelluleNote valeur={notes.get(r.id) ?? ""} refLisible={refLisible} onChange={t => majNote(r.id, t)} />}
+                        </div>
+                      )}
                     </div>
                     {apres.map((sr, i) => ligneSurnum(sr, `sa-${r.id}-${i}`))}
                   </Fragment>
@@ -3292,6 +3401,9 @@ export default function PolyglottePage() {
             </section>
           );
         })}
+            {voisinsPoly && colonnes.length > 0 && !attenteGlobale && (
+              <NavigationBasChapitre precedent={voisinsPoly.precedent} suivant={voisinsPoly.suivant} position={voisinsPoly.position} onAller={allerAuChapitre} />
+            )}
             </div>
             </div>
             <MarqueAttente enAttente={attenteGlobale} sommet={SOMMET_CORPS} />
