@@ -1441,6 +1441,9 @@ export default function PolyglottePage() {
   // Les livres ont-ils été demandés ET rendus ? Sert au seul cas où la liste revient vide :
   // sans elle, un échec de lecture et une page qui charge se ressemblent trait pour trait.
   const [livresLus, setLivresLus] = useState(false);
+  // ⚠️ Le catalogue des traductions a-t-il échoué ? Sans lui, aucune colonne ne se choisit,
+  // et la page disait « Choisir au moins une traduction », ce qui est faux (audit du 2026-09-23).
+  const [catalogueEnPanne, setCatalogueEnPanne] = useState(false);
   const [slots, setSlots] = useState<string[]>([]);
   // Nombre de colonnes tenant à l'écran (mesuré), et conteneur du tableau observé.
   // ⛔ LE NOMBRE DE COLONNES SE DÉDUIT, IL NE SE RECOPIE PAS (audit du 2026-09-23, « livre
@@ -1792,7 +1795,7 @@ export default function PolyglottePage() {
         supabase.from("editions_sources").select("trad_id, titre_edition, sous_titre_edition, mention_edition, lieu_edition, editeur, annee_edition, nombre_tomes, depot_manuscrit, cote_manuscrit"),
       ]);
       const { data: tr, error: erreurTr } = catalogue;
-      if (erreurTr) console.error("Polyglotte : les traductions n’ont pas pu être lues.", erreurTr);
+      if (erreurTr) { console.error("Polyglotte : les traductions n’ont pas pu être lues.", erreurTr); setCatalogueEnPanne(true); }
       if (couvertureFillion.error) console.error("Polyglotte : les livres alignés de la Fillion n’ont pas pu être lus.", couvertureFillion.error);
       if (fichesEdition.error) console.error("Polyglotte : les fiches d’édition n’ont pas pu être lues.", fichesEdition.error);
       const liste = (tr ?? []) as TraductionCatalogue[];
@@ -2852,6 +2855,8 @@ export default function PolyglottePage() {
         .poly-case { background: transparent; color: var(--cs-texte-doux); font-weight: 400; transition: background .12s, color .12s; }
         .poly-case:not([aria-pressed="true"]):hover { background: rgba(var(--cs-vert-rgb),0.06); color: var(--cs-texte-second); }
         .poly-case[aria-pressed="true"] { background: rgba(var(--cs-vert-rgb),0.12); color: var(--cs-vert); font-weight: 600; }
+        /* Au doigt, une case d'échelle atteint le plancher de 24 px (charte, « LE DOIGT »). */
+        @media (hover: none) { .poly-case { min-height: 24px; } }
         /* ⛔ LE FOND DU TITRE SE DÉCLARE ICI, ET NULLE PART EN LIGNE. Le bouton portait
            « background: none » dans son style en ligne : une déclaration en ligne bat
            toujours une règle de feuille sans « important », si bien que ce survol-ci ne
@@ -3160,7 +3165,15 @@ export default function PolyglottePage() {
                 portait une carte blanche bordée, qui s'arrêtait avant le bord du bloc et
                 donnait à lire un objet posé sur le papier plutôt qu'une page imprimée. */}
             <div ref={corpsRef} className="cs-lecture-colonne" style={{ minHeight: attenteGlobale ? HAUTEUR_CORPS : undefined }}>
-              {colonnes.length === 0 && <div style={{ padding: 20, color: "var(--cs-texte-doux)" }}>Choisir au moins une traduction dans l’en-tête ci-dessus.</div>}
+              {colonnes.length === 0 && (catalogueEnPanne ? (
+                <div role="alert" style={{ padding: 20, display: "flex", alignItems: "center", gap: 12, fontSize: "0.8125rem", color: "var(--cs-danger)" }}>
+                  Les traductions n’ont pas pu être lues.
+                  <button onClick={() => window.location.reload()}
+                    style={{ fontSize: "0.6875rem", padding: "2px 8px", borderRadius: 4, border: "1px solid var(--cs-danger-bord)", background: "var(--cs-surface)", color: "var(--cs-danger)", cursor: "pointer", fontFamily: "inherit" }}>
+                    Réessayer
+                  </button>
+                </div>
+              ) : <div style={{ padding: 20, color: "var(--cs-texte-second)" }}>Choisir au moins une traduction dans l’en-tête ci-dessus.</div>)}
               {erreurChargement && !attenteGlobale && (
                 <div role="alert" style={{ padding: 20, display: "flex", alignItems: "center", gap: 12, fontSize: "0.8125rem", color: "var(--cs-danger)" }}>
                   Le chargement a échoué.
@@ -3375,7 +3388,8 @@ export default function PolyglottePage() {
                         const actionsCell: ActionsDeCellule | null = cs.length > 0 && !lacuneCell && !enTransit ? {
                           cle: `${r.id}|${t.trad_id}`,
                           refLisible,
-                          texte: texteCell,
+                          // Le texte qu'on copie, cite ou signale est le texte LISIBLE : sans les marqueurs du témoin.
+                          texte: texteLisibleDeLaBible(texteCell, tradBase(t.trad_id)),
                           citer: { cle: cleCite, refLivre: l.nom_fr, refAbr: abr, chapitre: r.ch_canon, verset: r.v_canon, traductionLabel: t.nom, tradId: t.trad_id },
                         } : null;
                         return (
