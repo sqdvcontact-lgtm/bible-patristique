@@ -237,7 +237,7 @@ export default function LibrairiesPage() {
               <span className="lib-fleche" aria-hidden="true" style={{ color: lib.couleur }}><IconeChevron dir="right" strokeWidth={1.6} /></span>
             </div>
             <span className="lib-survol" style={{ color: lib.couleur }}>
-              Visiter la librairie <span style={{ display: 'inline-flex', opacity: 0.7 }}><IconeChevron dir="right" size={12} strokeWidth={1.5} /></span>
+              Visiter la librairie <span style={{ display: 'inline-flex', opacity: 0.7 }}><IconeChevron dir="right" taille="0.75rem" strokeWidth={1.5} /></span>
             </span>
           </a>
         ))}

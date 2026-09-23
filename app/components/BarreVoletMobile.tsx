@@ -37,7 +37,7 @@ export default function BarreVoletMobile({ cote, ouvert, libelle, titre, onBascu
   const dir: 'up' | 'down' = haut ? (ouvert ? 'up' : 'down') : (ouvert ? 'down' : 'up')
   const marque = (invisible: boolean) => (
     <span aria-hidden style={{ display: 'inline-flex', flexShrink: 0, color: 'var(--cs-texte-doux)', visibility: invisible ? 'hidden' : undefined }}>
-      <IconeChevron dir={dir} size={14} strokeWidth={1.5} />
+      <IconeChevron dir={dir} taille="0.875rem" strokeWidth={1.5} />
     </span>
   )
   return (

@@ -1411,9 +1411,9 @@ export default function RechercheClient() {
                       <span aria-hidden="true" className="poly-hd-titre">
                         <span className="poly-hd-nom">{trad ? rendreEnrichi(trad.label) : 'Choisir une traduction'}</span>
                       </span>
-                      <svg aria-hidden="true" className="poly-hd-chevron" width="9" height="9" viewBox="0 0 10 10" fill="none">
-                        <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
+                      <span aria-hidden="true" className="poly-hd-chevron">
+                        <IconeChevron dir="down" taille="0.6rem" strokeWidth={2.1} />
+                      </span>
                       <select className="poly-hd-select" value={code} aria-label="Bible de cette colonne"
                         onChange={e => setColTrads(prev => prev.map((c, j) => j === i ? e.target.value : c))}>
                         {groupes.map(g => (
@@ -1474,7 +1474,7 @@ export default function RechercheClient() {
                   <div className="grp-corps">
                     <a href={reference.href} className="grp-ligne" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'10px' }}>
                       <span style={{ fontFamily:SERIF, fontSize:'0.9375rem', fontWeight:600, color:'var(--cs-encre)' }}>Ouvrir {reference.libelle}</span>
-                      <span style={{ color:'var(--fam)', display:'inline-flex' }}><IconeChevron dir="right" size={13} strokeWidth={1.5} /></span>
+                      <span style={{ color:'var(--fam)', display:'inline-flex' }}><IconeChevron dir="right" taille="0.8125rem" strokeWidth={1.5} /></span>
                     </a>
                   </div>
                 </div>
@@ -1729,11 +1729,11 @@ export default function RechercheClient() {
               {/* Maintien enfoncé = défilement rapide (souris ET tactile). */}
               <button className="pag-btn" disabled={pageActive===0} style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}
                 onMouseDown={()=>demarrerDefilement(-1)} onMouseUp={arreterDefilement} onMouseLeave={arreterDefilement}
-                onTouchStart={e=>{e.preventDefault();demarrerDefilement(-1)}} onTouchEnd={arreterDefilement}><IconeChevron dir="left" size={12} />Précédent</button>
+                onTouchStart={e=>{e.preventDefault();demarrerDefilement(-1)}} onTouchEnd={arreterDefilement}><IconeChevron dir="left" taille="0.75rem" />Précédent</button>
               <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)' }}>{debut}–{fin} <span style={{ color:'var(--cs-bord)' }}>sur</span> {totalActive}</span>
               <button className="pag-btn" disabled={pageActive>=pagesTotal-1} style={{ display:'inline-flex', alignItems:'center', gap:'5px' }}
                 onMouseDown={()=>demarrerDefilement(1)} onMouseUp={arreterDefilement} onMouseLeave={arreterDefilement}
-                onTouchStart={e=>{e.preventDefault();demarrerDefilement(1)}} onTouchEnd={arreterDefilement}>Suivant<IconeChevron dir="right" size={12} /></button>
+                onTouchStart={e=>{e.preventDefault();demarrerDefilement(1)}} onTouchEnd={arreterDefilement}>Suivant<IconeChevron dir="right" taille="0.75rem" /></button>
             </div>
           )}
         </main>

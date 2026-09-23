@@ -79,7 +79,7 @@ export default function RailVolet({ cote, libelle, complement, onOuvrir }: {
         justifyContent: 'flex-start', paddingTop: '12px',
         overflow: 'hidden',
       }}>
-      <IconeChevron dir={gauche ? 'right' : 'left'} size={14} strokeWidth={1.5} />
+      <IconeChevron dir={gauche ? 'right' : 'left'} taille="0.875rem" strokeWidth={1.5} />
       {/* ⚠️ LE TEXTE SE CENTRE DANS LA HAUTEUR, le chevron restant en tête (demande de
           l'auteur, 2026-09-04 : « centrer verticalement le texte ; réduire un peu la
           taille de police »). Un rail fait toute la hauteur de la lecture : le libellé

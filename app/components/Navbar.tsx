@@ -366,7 +366,7 @@ function OngletMenu({ href, label, style, actif, classeMenu, auSurvol, repere, c
         {/* Le chevron dit qu'il y a un menu là-dessous. Les quatre onglets le
             portent — un seul qui s'en passerait ferait douter des trois autres. */}
         <span style={{ display: 'inline-flex', opacity: 0.55, flexShrink: 0 }}>
-          <IconeChevron dir="down" size={8} strokeWidth={1.4} />
+          <IconeChevron dir="down" taille="0.5rem" strokeWidth={1.4} />
         </span>
       </Link>
       {children ? (
@@ -1663,7 +1663,7 @@ export default function Navbar() {
           <span style={{ display: "inline-flex", opacity: 0.6, flexShrink: 0 }}>
             {/* ⚠️ En REM : `size` compte en pixels, et le chevron serait resté à 9 px à
                 côté d'un pseudonyme qui monte à 17 sur un grand écran. */}
-            <IconeChevron dir="down" size={9} strokeWidth={1.5} taille="0.5625rem" />
+            <IconeChevron dir="down" strokeWidth={1.5} taille="0.5625rem" />
           </span>
         </button>
       )}

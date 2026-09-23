@@ -222,7 +222,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
         filter: t.photo ? `drop-shadow(${ombreTexte})` : 'none',
         display: 'inline-flex', transition: 'transform 0.18s, color 0.2s',
         transform: estOuvert ? 'rotate(180deg)' : 'none',
-      }}><IconeChevron dir="down" size={10} strokeWidth={1.6} /></span>
+      }}><IconeChevron dir="down" taille="0.625rem" strokeWidth={1.6} /></span>
     </button>
   )
 }

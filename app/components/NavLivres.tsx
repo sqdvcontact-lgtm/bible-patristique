@@ -452,7 +452,7 @@ export default function NavLivres({
           <span>{livre.nom}{estLivreNonCanonique(livre.code) && <MarqueNonCanonique />}</span>
           {!vide && !sansChapitres && (
             <span style={{ display: 'inline-flex', color: 'var(--cs-texte-doux)', flexShrink: 0, opacity: 0.75 }}>
-              <IconeChevron dir={ouvert ? 'up' : 'down'} size={9} strokeWidth={1.5} />
+              <IconeChevron dir={ouvert ? 'up' : 'down'} taille="0.5625rem" strokeWidth={1.5} />
             </span>
           )}
         </button>
@@ -550,9 +550,7 @@ export default function NavLivres({
       return (
         <button onClick={() => setOuvert(true)} title="Ouvrir le sommaire des livres"
           style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: Z_FENETRE, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(90deg)', color: 'var(--cs-texte-doux)' }}>
-            <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <span aria-hidden="true" style={{ display: 'flex', color: 'var(--cs-texte-doux)' }}><IconeChevron dir="down" taille="0.875rem" strokeWidth={1.5} /></span>
           <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>{libelleDuRail}</span>
         </button>
       )
@@ -865,7 +863,7 @@ export default function NavLivres({
               padding: 'calc(var(--volet-air-fin) + 3px) 6px var(--volet-air-fin)', textAlign: 'left',
             }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', color: 'var(--cs-vert-fonce)', textTransform: 'uppercase' }}>Ancien Testament</span>
-              <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={atOuvert ? 'up' : 'down'} size={10} strokeWidth={1.5} /></span>
+              <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={atOuvert ? 'up' : 'down'} taille="0.625rem" strokeWidth={1.5} /></span>
             </button>
             {atOuvert && AT.map(renderLivre)}
           </>
@@ -879,7 +877,7 @@ export default function NavLivres({
               padding: 'calc(var(--volet-air-fin) + 5px) 6px var(--volet-air-fin)', textAlign: 'left',
             }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', color: 'var(--cs-vert-fonce)', textTransform: 'uppercase' }}>Nouveau Testament</span>
-              <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={ntOuvert ? 'up' : 'down'} size={10} strokeWidth={1.5} /></span>
+              <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={ntOuvert ? 'up' : 'down'} taille="0.625rem" strokeWidth={1.5} /></span>
             </button>
             {ntOuvert && NT.map(renderLivre)}
           </>
@@ -893,7 +891,7 @@ export default function NavLivres({
               padding: 'calc(var(--volet-air-fin) + 5px) 6px var(--volet-air-fin)', textAlign: 'left',
             }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', color: 'var(--cs-texte-gris)', textTransform: 'uppercase' }}>Écrits non canoniques</span>
-              <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={autresOuvert ? 'up' : 'down'} size={10} strokeWidth={1.5} /></span>
+              <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={autresOuvert ? 'up' : 'down'} taille="0.625rem" strokeWidth={1.5} /></span>
             </button>
             {autresOuvert && AUTRES.map(renderLivre)}
           </>

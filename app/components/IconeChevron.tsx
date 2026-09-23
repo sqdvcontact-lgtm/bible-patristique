@@ -10,7 +10,9 @@ const D: Record<Dir, string> = {
 // ⚠️ `taille` prend une LONGUEUR CSS quand le chevron doit suivre le corps de ce
 // qu'il accompagne — `0.85em` du nom d'une bible, par exemple. La police racine du
 // site étant fluide, un dessin posé en pixels rapetisse à mesure que son voisin
-// grandit : c'est la leçon payée sur l'emblème des menus de la barre.
+// grandit : c'est la leçon payée sur l'emblème des menus de la barre. ⛔ Hors de
+// l'administration, tous les chevrons sont posés en `taille` depuis le 23 septembre
+// 2026 (`size` N devenu N/16 rem), et les copies en ligne du dessin sont retirées.
 export default function IconeChevron({ dir = 'right', size = 14, strokeWidth = 1.6, taille }: { dir?: Dir; size?: number; strokeWidth?: number; taille?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor"

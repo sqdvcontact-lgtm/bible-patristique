@@ -1079,7 +1079,7 @@ function ListeAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
               {o.auteur}{o.auteur && o.titre ? ", " : ""}<em>{o.titre}</em>
               <span className="ajout-lire" aria-hidden="true">
                 <span className="ajout-lire-mot">Lire</span>
-                <span className="fleche" style={{ display: "inline-flex" }}><IconeChevron dir="right" size={11} strokeWidth={1.4} /></span>
+                <span className="fleche" style={{ display: "inline-flex" }}><IconeChevron dir="right" taille="0.6875rem" strokeWidth={1.4} /></span>
               </span>
             </span>
           </Link>

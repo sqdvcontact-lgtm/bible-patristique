@@ -433,7 +433,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
               <button type="button" onClick={() => setPanneauOuvert(o => !o)} aria-expanded={panneauOuvert} aria-controls="bibliographie-filtres"
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderTop: `1px solid ${SEP}`, background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-texte)' }}>
                 <span>Filtres{filtresActifs({ ...filtres, q: '' }) ? ' (actifs)' : ''}</span>
-                <span aria-hidden style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={panneauOuvert ? 'up' : 'down'} size={11} strokeWidth={1.5} /></span>
+                <span aria-hidden style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={panneauOuvert ? 'up' : 'down'} taille="0.6875rem" strokeWidth={1.5} /></span>
               </button>
               {panneauOuvert && <div id="bibliographie-filtres" style={{ padding: '0 15px 18px' }}>{axes}</div>}
             </>
@@ -495,7 +495,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
                 <p style={{ marginTop: '2.5rem', fontFamily: SERIF, fontSize: '0.71875rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   Les librairies et collections où trouver ces ouvrages
                   <Link href="/librairies" style={{ color: 'var(--cs-vert)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                    sont réunies ici <IconeChevron dir="right" size={11} strokeWidth={1.5} />
+                    sont réunies ici <IconeChevron dir="right" taille="0.6875rem" strokeWidth={1.5} />
                   </Link>
                 </p>
               </div>

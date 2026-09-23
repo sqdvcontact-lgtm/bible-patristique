@@ -23,6 +23,7 @@ import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { SERIF, SANS } from '@/app/lib/polices'
 import { GRAISSE_TITRE_VOLET, STYLE_RUBRIQUE } from '@/app/lib/hierarchieTitres'
 import { Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
+import IconeChevron from '@/app/components/IconeChevron'
 
 const ABREV_VERS_NOM: Record<string, string> = Object.fromEntries(
   Object.entries(ABREV_FR).map(([code, abrev]) => [abrev, LIVRES.find(l => l.code === code)?.nom ?? abrev])
@@ -426,9 +427,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           <div style={{ minHeight: '41px', padding: '6px 8px 6px 6px', borderBottom: '1px solid var(--cs-fond-doux)', flexShrink: 0, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '6px' }}>
             <button onClick={() => setVoletOuvert(false)} title="Réduire le volet"
               style={{ justifySelf: 'start', background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-doux)', display: 'flex', alignItems: 'center' }}>
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <IconeChevron dir="right" taille="0.875rem" strokeWidth={1.5} />
             </button>
             <span style={{ ...STYLE_RUBRIQUE, textAlign: 'center', whiteSpace: 'nowrap' }}>Commentaires</span>
             {/* En desktop, les actions vivent dans le volet gauche ; en mobile, ici. */}
@@ -452,9 +451,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         /* Volet droit — réduit (tab vertical) */
         <button onClick={() => setVoletOuvert(true)} title="Ouvrir le panneau"
           style={{ width: '22px', flexShrink: 0, background: 'var(--cs-fond-clair)', border: 'none', borderLeft: '1px solid var(--cs-bord)', cursor: 'pointer', color: 'var(--cs-texte-doux)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '100%' }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M10 4l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <IconeChevron dir="left" taille="0.875rem" strokeWidth={1.5} />
           <span style={{ writingMode: 'vertical-rl', fontSize: '0.625rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Commentaires</span>
         </button>
       )}

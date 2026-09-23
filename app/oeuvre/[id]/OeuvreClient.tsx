@@ -3664,7 +3664,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     barre « Sommaire » qui ferme, et elle reste posée pour cela. */}
                 {!mobile && (
                   <BoutonVolet titre="Réduire le sommaire" onClick={() => setNavOuverte(false)}>
-                    <IconeChevron dir="left" size={14} strokeWidth={1.5} />
+                    <IconeChevron dir="left" taille="0.875rem" strokeWidth={1.5} />
                   </BoutonVolet>
                 )}
               </div>
@@ -3748,7 +3748,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 16px', textAlign: 'left' }}>
                 <span style={RUBRIQUE_AXE}>Du même auteur</span>
                 <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)', flexShrink: 0 }}>
-                  <IconeChevron dir={auteurOuvert ? 'up' : 'down'} size={11} strokeWidth={1.5} />
+                  <IconeChevron dir={auteurOuvert ? 'up' : 'down'} taille="0.6875rem" strokeWidth={1.5} />
                 </span>
               </button>
               {auteurOuvert && (
@@ -3878,7 +3878,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                             title={deployee ? 'Replier les opuscules' : 'Les textes brefs de cet auteur'}
                             style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '0.3125rem 0', textAlign: 'left' }}>
                             <span style={{ display: 'inline-flex', color: 'var(--cs-texte-doux)' }}>
-                              <IconeChevron dir={deployee ? 'down' : 'right'} size={11} strokeWidth={1.4} />
+                              <IconeChevron dir={deployee ? 'down' : 'right'} taille="0.6875rem" strokeWidth={1.4} />
                             </span>
                             <span style={{ fontSize: '0.6875rem', fontStyle: 'italic', color: 'var(--cs-texte-second)' }}>Opuscules</span>
                             <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)' }}>{opuscules.length}</span>
@@ -3932,7 +3932,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         style={TETE_RUBRIQUE}>
                         <span style={RUBRIQUE_AXE}>{LIBELLE_SECTION_APPARAT[section]}</span>
                         <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)', flexShrink: 0 }}>
-                          <IconeChevron dir={ouvert ? 'up' : 'down'} size={11} strokeWidth={1.5} />
+                          <IconeChevron dir={ouvert ? 'up' : 'down'} taille="0.6875rem" strokeWidth={1.5} />
                         </span>
                       </button>
                       {ouvert && (
@@ -3979,7 +3979,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
               <button type="button" onClick={revenirAuTexte} style={TETE_RUBRIQUE}>
                 <span style={RUBRIQUE_AXE}>Revenir au texte</span>
                 <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)', flexShrink: 0 }}>
-                  <IconeChevron dir="right" size={11} strokeWidth={1.5} />
+                  <IconeChevron dir="right" taille="0.6875rem" strokeWidth={1.5} />
                 </span>
               </button>
             )}
@@ -3990,7 +3990,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 style={TETE_RUBRIQUE}>
                 <span style={RUBRIQUE_AXE}>Sommaire</span>
                 <span style={{ display: 'inline-flex', color: 'var(--cs-texte-second)', flexShrink: 0 }}>
-                  <IconeChevron dir={sommaireOuvert ? 'up' : 'down'} size={11} strokeWidth={1.5} />
+                  <IconeChevron dir={sommaireOuvert ? 'up' : 'down'} taille="0.6875rem" strokeWidth={1.5} />
                 </span>
               </button>
 
@@ -5014,7 +5014,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                 rail de BUREAU qui n’existe pas là. C’est la barre du bas qui ferme. */}
             {!mobile && <button onClick={() => setPanneauOuvert(false)} title="Réduire le panneau" aria-label="Réduire le panneau"
               style={{ position: 'absolute', left: 0, top: 0, bottom: 0, zIndex: 1, minWidth: '24px', padding: '0 6px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cs-texte-doux)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <IconeChevron dir="right" size={14} strokeWidth={1.5} />
+              <IconeChevron dir="right" taille="0.875rem" strokeWidth={1.5} />
             </button>}
             <OngletsPage
               className="cs-onglets--volet"
@@ -5055,7 +5055,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                     title="Choisir la traduction biblique"
                     style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '5px 10px', borderRadius: '4px', border: `1px solid ${tradOuverte ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: 'var(--cs-surface)', fontSize: '0.6875rem', color: 'var(--cs-encre)', cursor: 'pointer', transition: 'border-color 0.12s' }}>
                     <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{lecture.label}</span>
-                    <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, color: 'var(--cs-texte-doux)', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <span aria-hidden="true" style={{ display: 'flex', flexShrink: 0, color: 'var(--cs-texte-doux)', transform: tradOuverte ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><IconeChevron dir="down" taille="0.6rem" strokeWidth={2.2} /></span>
                   </button>
                   {tradOuverte && (
                     <ListeMenuBibles id={idMenuTraductions} libelle="Traductions bibliques"

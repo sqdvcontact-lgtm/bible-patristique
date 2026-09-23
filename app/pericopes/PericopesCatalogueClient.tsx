@@ -306,7 +306,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
                 <button type="button" onClick={() => basculerSection(grp.code)} aria-expanded={ouvert}
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '9px 6px 5px', textAlign: 'left' }}>
                   <span style={{ fontFamily: SANS, fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-vert-fonce)' }}>{grp.label}</span>
-                  <span aria-hidden style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={ouvert ? 'up' : 'down'} size={10} strokeWidth={1.5} /></span>
+                  <span aria-hidden style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={ouvert ? 'up' : 'down'} taille="0.625rem" strokeWidth={1.5} /></span>
                 </button>
                 {ouvert && livres.map(g => (
                   <button key={g.livre} type="button" className="peri-lien-livre" onClick={() => allerAuLivre(g.livre)}
@@ -506,7 +506,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
               <button type="button" onClick={() => setPanneauOuvert(o => !o)} aria-expanded={panneauOuvert} aria-controls="pericopes-filtres"
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderBottom: panneauOuvert ? `1px solid ${SEP}` : 'none', background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-texte)' }}>
                 <span>Rechercher et filtrer{filtresActifs ? ' (actifs)' : ''}</span>
-                <span aria-hidden style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={panneauOuvert ? 'up' : 'down'} size={11} strokeWidth={1.5} /></span>
+                <span aria-hidden style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={panneauOuvert ? 'up' : 'down'} taille="0.6875rem" strokeWidth={1.5} /></span>
               </button>
               {panneauOuvert && <div id="pericopes-filtres" style={{ padding: '0 15px 18px' }}>{contenuFiltres}</div>}
             </>
@@ -582,7 +582,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
                               <div className="peri-l2">
                                 <span className="peri-notice">{it.notice_debut ? rendreTexteEnrichi(it.notice_debut) : ''}</span>
                                 <span className="peri-fleche" aria-hidden="true">
-                                  <IconeChevron dir="right" size={13} strokeWidth={1.5} />
+                                  <IconeChevron dir="right" taille="0.8125rem" strokeWidth={1.5} />
                                 </span>
                               </div>
                               {via && <span className="peri-via">trouvé via «&#8239;{via}&#8239;»</span>}

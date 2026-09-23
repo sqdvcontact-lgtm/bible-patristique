@@ -159,7 +159,7 @@ function SectionOpuscules({ nombre, ouverteDeForce, children }: {
         title={deployee ? 'Replier les opuscules' : 'Les textes brefs de cet auteur'}
         style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '100%', padding: '6px 18px 6px 20px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: SERIF }}>
         <span style={{ display: 'inline-flex', color: 'var(--cs-texte-doux)' }}>
-          <IconeChevron dir={deployee ? 'down' : 'right'} size={11} strokeWidth={1.4} />
+          <IconeChevron dir={deployee ? 'down' : 'right'} taille="0.6875rem" strokeWidth={1.4} />
         </span>
         <span style={{ fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-second)' }}>Opuscules</span>
         <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)' }}>{nombre}</span>
@@ -358,7 +358,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
           <div style={{ marginTop: 'auto', paddingTop: compact ? '2px' : '6px', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
             <button onClick={() => setOuvert(!ouvert)}
               style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'baseline', gap: '4px', lineHeight: 1 }}>
-              <span style={{ display: 'inline-flex', alignSelf: 'center' }}><IconeChevron dir={listeOuverte ? 'up' : 'down'} size={9} strokeWidth={1.5} /></span>
+              <span style={{ display: 'inline-flex', alignSelf: 'center' }}><IconeChevron dir={listeOuverte ? 'up' : 'down'} taille="0.5625rem" strokeWidth={1.5} /></span>
               <span>{nbMot.charAt(0).toUpperCase() + nbMot.slice(1)} œuvre{nb > 1 ? 's' : ''} disponible{nb > 1 ? 's' : ''}</span>
             </button>
           </div>
@@ -500,7 +500,7 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
                             </span>
                             <span className="bib-lire">
                               Lire
-                              <span className="bib-fleche" style={{ display: 'inline-flex' }}><IconeChevron dir="right" size={11} strokeWidth={1.4} /></span>
+                              <span className="bib-fleche" style={{ display: 'inline-flex' }}><IconeChevron dir="right" taille="0.6875rem" strokeWidth={1.4} /></span>
                             </span>
                           </Link>
                         </div>
@@ -902,7 +902,7 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
 
           <button onClick={() => setOuvert(!ouvert)}
             style={{ fontSize: '0.6875rem', color: 'var(--cs-etiquette)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}>
-            <span style={{ display: 'inline-flex' }}><IconeChevron dir={ouvert ? 'up' : 'down'} size={9} strokeWidth={1.5} /></span>
+            <span style={{ display: 'inline-flex' }}><IconeChevron dir={ouvert ? 'up' : 'down'} taille="0.5625rem" strokeWidth={1.5} /></span>
             {nbMot.charAt(0).toUpperCase() + nbMot.slice(1)} œuvre{nb > 1 ? 's' : ''} répertoriée{nb > 1 ? 's' : ''}
           </button>
         </div>

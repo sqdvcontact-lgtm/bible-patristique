@@ -1419,9 +1419,7 @@ export default function PanneauPatristique({
       return (
         <button onClick={() => setOuvert(true)} title={LIBELLE_RAIL} aria-label={LIBELLE_RAIL}
           style={{ position: 'fixed', bottom: BANDEAU_NAV_MOBILE, left: 0, right: 0, zIndex: Z_FENETRE, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ transform: 'rotate(-90deg)', color: 'var(--cs-texte-doux)' }}>
-            <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <span aria-hidden="true" style={{ display: 'flex', color: 'var(--cs-texte-doux)' }}><IconeChevron dir="up" taille="0.875rem" strokeWidth={1.5} /></span>
           <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>{LIBELLE_RAIL}</span>
           {/* ⛔ Le chevron DOUBLÉ, son double invisible de l'autre côté. */}
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ visibility: 'hidden', flexShrink: 0 }} />
@@ -1487,7 +1485,7 @@ export default function PanneauPatristique({
               <button onClick={() => setOuvert(false)} title="Réduire le volet" aria-label="Réduire le volet"
                 className="cs-volet-reduire"
                 style={{ position:'absolute', left:0, top:0, bottom:0, zIndex:1, width:'1.75rem', background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                <IconeChevron dir="right" size={14} strokeWidth={1.5} />
+                <IconeChevron dir="right" taille="0.875rem" strokeWidth={1.5} />
               </button>
             )}
             <div role="tablist" aria-label="Volet des Pères" style={{ display:'flex', flex:1, alignItems:'stretch' }}

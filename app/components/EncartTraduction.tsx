@@ -241,7 +241,7 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
           <button onClick={onReduire} title="Réduire le volet" aria-label="Réduire le volet"
             className="cs-volet-reduire"
             style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '2px', margin: '-2px', display: 'flex', alignItems: 'center' }}>
-            <IconeChevron dir="left" size={14} strokeWidth={1.5} />
+            <IconeChevron dir="left" taille="0.875rem" strokeWidth={1.5} />
           </button>
         )}
       </div>

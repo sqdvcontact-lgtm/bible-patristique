@@ -452,7 +452,7 @@ export default function HistoireClient(
               <button onClick={() => setPanneauOuvert(o => !o)} aria-expanded={panneauOuvert} aria-controls="frise-filtres"
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderBottom: panneauOuvert ? `1px solid ${SEP}` : 'none', background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-original)' }}>
                 <span>Filtres et lecture{filtresActifs ? ' (actifs)' : ''}</span>
-                <span aria-hidden style={{ display: 'inline-flex', color: TEXTE2 }}><IconeChevron dir={panneauOuvert ? 'up' : 'down'} size={11} strokeWidth={1.5} /></span>
+                <span aria-hidden style={{ display: 'inline-flex', color: TEXTE2 }}><IconeChevron dir={panneauOuvert ? 'up' : 'down'} taille="0.6875rem" strokeWidth={1.5} /></span>
               </button>
               {panneauOuvert && <div id="frise-filtres" style={{ padding: '0 15px 18px' }}>{contenuFiltres}</div>}
             </>

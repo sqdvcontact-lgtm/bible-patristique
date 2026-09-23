@@ -48,6 +48,7 @@ import {
   type VersetPericope,
 } from '@/app/lib/pericopes'
 import { SERIF, SANS } from '@/app/lib/polices'
+import IconeChevron from '@/app/components/IconeChevron'
 
 type Pericope = {
   id: string; nom: string; categorie: string | null; est_collection: boolean | null
@@ -219,9 +220,9 @@ function SelecteurTraduction({ trad, setTrad }: { trad: string; setTrad: (c: str
       <button onClick={() => setOuvert(o => !o)} aria-expanded={ouvert} aria-haspopup="listbox"
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%', fontFamily: SANS, fontSize: '0.75rem', color: 'var(--cs-texte)', background: 'var(--cs-surface)', border: `1px solid ${BORD}`, borderRadius: '8px', padding: '6px 10px', cursor: 'pointer' }}>
         {active.nom}
-        <svg width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ opacity: 0.5, flexShrink: 0, transform: ouvert ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
-          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <span aria-hidden="true" style={{ display: 'flex', opacity: 0.5, flexShrink: 0, transform: ouvert ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
+          <IconeChevron dir="down" taille="0.6rem" strokeWidth={2.1} />
+        </span>
       </button>
       {ouvert && (
         <>

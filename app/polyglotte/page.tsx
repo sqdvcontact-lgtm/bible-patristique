@@ -1378,9 +1378,9 @@ function ChoixTraduction({ trads, disponibles, slots, index, onChoisir }: {
             </span>
           )}
         </span>
-        <svg aria-hidden width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ position: "absolute", right: 7, top: "50%", transform: `translateY(-50%) rotate(${ouvert ? 180 : 0}deg)`, transition: "transform .15s", pointerEvents: "none", color: "var(--cs-texte-doux)" }}>
-          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
+        <span aria-hidden style={{ position: "absolute", right: 7, top: "50%", transform: `translateY(-50%) rotate(${ouvert ? 180 : 0}deg)`, transition: "transform .15s", pointerEvents: "none", color: "var(--cs-texte-doux)" }}>
+          <IconeChevron dir="down" taille="0.6rem" strokeWidth={2.1} />
+        </span>
       </button>
 
       {ouvert && rect && createPortal(
@@ -2957,7 +2957,7 @@ export default function PolyglottePage() {
                   cadre, chevron discret. */}
               <button onClick={() => setVoletReduit(true)} title="Rabattre le volet" aria-label="Rabattre le volet"
                 style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: "3px", color: "var(--cs-texte-doux)", display: "flex", alignItems: "center" }}>
-                <IconeChevron dir="left" size={14} strokeWidth={1.5} />
+                <IconeChevron dir="left" taille="0.875rem" strokeWidth={1.5} />
               </button>
             </div>
             {/* Le passage lu, sous le nom de la page : il tenait dans un bandeau vert en tête
@@ -3150,7 +3150,7 @@ export default function PolyglottePage() {
                       <span className="lbl-notes" style={{ fontFamily: SANS, fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.16em", textIndent: "0.16em", textTransform: "uppercase" }}>Notes</span>
                       <span className="lbl-fermer" style={{ ...STYLE_RUBRIQUE }}>
                         Fermer
-                        <svg width="8" height="8" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M3.5 2L6.5 5L3.5 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <IconeChevron dir="right" taille="0.53125rem" strokeWidth={2.1} />
                       </span>
                     </button>
                   )}
