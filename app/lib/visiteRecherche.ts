@@ -101,13 +101,13 @@ export const VISITE_RECHERCHE: Visite = {
     },
     {
       cle: 'resultat',
-      // ⚠️ La classe existait déjà : une ligne de résultat, dans son groupe. Aucun
-      // repère à poser dans la page pour cet arrêt.
-      sujet: ['.grp-corps .grp-ligne', '.grp-ligne'],
+      // ⚠️ La classe existait déjà : une rangée de résultat (`.res-row`), ou de la
+      // Polyglotte. Aucun repère à poser dans la page pour cet arrêt.
+      sujet: ['.res-row', '.poly-row'],
       titre: 'Résultat',
       texte: [
         'Le mot recherché apparaît en gras dans son passage.',
-        'Le titre indique le livre ou l’œuvre dont il est tiré.',
+        'La marge en donne la référence ; l’œuvre dont il est tiré coiffe ses passages.',
         'Un clic ouvre directement le texte à cet endroit.',
       ],
       cote: 'gauche',

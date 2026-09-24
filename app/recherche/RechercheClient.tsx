@@ -35,7 +35,7 @@ import VisiteGuidee from '@/app/components/VisiteGuidee'
 import { CLE_VISITE_RECHERCHE, VISITE_RECHERCHE } from '@/app/lib/visiteRecherche'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
-import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, STYLE_RUBRIQUE, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 import { siglesTraductions } from '@/app/lib/sigleTraduction'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import { SERIF, SANS } from '@/app/lib/polices'
@@ -94,6 +94,14 @@ type Mode = ModeRecherche
 type Onglet = 'bible' | 'patristique' | 'essais' | 'polyglotte'
 
 const PAGE = 20
+
+/** La loupe des deux champs : c'est le bouton qui lance la recherche. */
+const LOUPE = (
+  <svg aria-hidden="true" width="14" height="14" viewBox="0 0 20 20" fill="none">
+    <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.7"/>
+    <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+  </svg>
+)
 
 // ── Recherche enregistrée ────────────────────────────────────────────────────
 // Une seule recherche mémorisée à la fois (localStorage, donc valable aussi pour un
@@ -328,6 +336,10 @@ export default function RechercheClient() {
   const [sugg, setSugg]         = useState<{ mot: string; freq: number }[]>([])
   const [showSugg, setShowSugg] = useState(false)
   const inputRef   = useRef<HTMLInputElement>(null)
+  // Le champ CENTRAL, offert tant qu'aucune recherche n'est lancée : les suggestions
+  // s'ouvrent sous le champ où l'on tape, jamais sous l'autre.
+  const inputCentreRef = useRef<HTMLInputElement>(null)
+  const [champActif, setChampActif] = useState<'volet' | 'centre'>('volet')
   const suggTimer  = useRef<ReturnType<typeof setTimeout>>(undefined)
   const suggRef    = useRef<HTMLUListElement>(null)
   // Recherche enregistrée : présence d'une sauvegarde (pour révéler « Reprendre »), zone
@@ -394,7 +406,7 @@ export default function RechercheClient() {
   // Fermer suggestions au clic extérieur
   useEffect(() => {
     const h = (e: MouseEvent) => {
-      if (!suggRef.current?.contains(e.target as Node) && e.target !== inputRef.current) setShowSugg(false)
+      if (!suggRef.current?.contains(e.target as Node) && e.target !== inputRef.current && e.target !== inputCentreRef.current) setShowSugg(false)
     }
     document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
@@ -899,47 +911,73 @@ export default function RechercheClient() {
     return offrirLaVisite(() => setVisite(n => n + 1))
   }, [resultatsPrets])
 
+  // La liste des suggestions, posée sous le champ où l'on tape (volet ou centre).
+  const listeSuggestions = (
+    <ul ref={suggRef} style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, background:'var(--cs-surface)', border:'1px solid var(--cs-bord)', borderRadius:'8px', boxShadow:'var(--cs-ombre-flottante)', margin:0, padding:'5px 0 0', listStyle:'none', zIndex:100, maxHeight:'300px', overflowY:'auto', textAlign:'left' }}>
+      {sugg.map(s => (
+        <li key={s.mot}
+          onMouseDown={e => { e.preventDefault(); setQuery(s.mot); setShowSugg(false); lancer(s.mot) }}
+          className="cs-survol-fond"
+          style={{ padding:'7px 18px', fontSize:'0.875rem', color:'var(--cs-texte-fort)', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:SERIF, '--survol-fond':'var(--cs-fond)' } as React.CSSProperties}>
+          <span>{s.mot}</span>
+          {s.freq > 0 && <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)' }}>{s.freq}</span>}
+        </li>
+      ))}
+      {/* Tout rechercher : lance la recherche par DÉBUT DE MOT sur ce qui est tapé, ce
+          qui couvre d'un coup tous les mots proposés (ils commencent tous par le préfixe). */}
+      <li
+        onMouseDown={e => { e.preventDefault(); setShowSugg(false); setMode('prefixe'); lancer(query, 'prefixe') }}
+        style={{ marginTop:'4px', borderTop:'1px solid var(--cs-fond-doux)', padding:'9px 18px', fontSize:'0.78125rem', fontWeight:600, color:'var(--cs-vert-fonce)', '--repos-fond':'var(--cs-vert-pale)', '--survol-fond':'var(--cs-fond-doux)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', letterSpacing:'0.01em' } as React.CSSProperties}
+        className="cs-survol-fond">
+        <span>Tout rechercher</span>
+        <span style={{ fontSize:'0.8125rem' }}>↵</span>
+      </li>
+    </ul>
+  )
+
   return (
     <>
       <style>{`
-        /* ── UN GROUPE, PAS DES CARTES ──────────────────────────────────────────────
-           Les résultats étaient vingt cartes indépendantes, chacune avec son cadre, son
-           rayon, son ombre et son survol, et toutes de la même couleur. Elles répétaient
-           en outre à chaque ligne ce que le TRI disait déjà : le même livre vingt fois,
-           le même auteur et la même œuvre à chaque passage.
-
-           Un groupe est désormais UN SEUL objet : une rubrique en aplat qui porte le
-           commun (le livre, l'auteur et l'œuvre, la publication), puis un bloc lavé de la
-           même famille dont les lignes se séparent d'un filet. Rien n'est retranché ;
-           ce qui était répété est REMONTÉ d'un cran.
-
-           ⛔ Pas de liseré au flanc des lignes. Il a été essayé et refusé : un trait de
-           trois pixels dit moins bien la famille qu'un fond qui la porte sur toute la
-           hauteur du groupe, et il ajoute un objet là où l'on en retire.
-
-           La famille se pose UNE fois, par --fam et --fam-aplat (voir styleFamille).
-           Le lavis et le filet s'en dérivent par color-mix : ils suivent donc les deux
-           thèmes sans être nommés, et montent tout seuls sur le sol sombre du Cuir, comme
-           la charte l'exige d'un carton posé sur un fond sombre. */
-        .grp { border-radius:8px; }
-        .grp + .grp { margin-top:4px; }
-        .grp-hd { display:flex; align-items:baseline; gap:8px; padding:1px 10px 2px; line-height:1.25; border-radius:8px 8px 0 0; background:var(--fam-aplat); color:var(--cs-sur-aplat); font-family:${SERIF}; }
-        .grp-hd .nom { font-size:0.75rem; font-weight:600; letter-spacing:0.035em; }
-        .grp-hd .compl { min-width:0; font-size:0.6875rem; font-style:italic; opacity:0.84; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .grp-hd .n { margin-left:auto; flex-shrink:0; font-size:0.6875rem; font-weight:400; font-variant-numeric:tabular-nums; opacity:0.74; }
-        .grp-corps { border:1px solid color-mix(in srgb, var(--fam) 22%, var(--cs-surface)); border-top:none; border-radius:0 0 8px 8px; background:color-mix(in srgb, var(--fam) 7%, var(--cs-surface)); overflow:hidden; }
-        .grp-ligne { display:block; text-decoration:none; padding:4px 10px 5px; transition:background 0.1s; }
-        .grp-ligne + .grp-ligne { border-top:1px solid color-mix(in srgb, var(--fam) 22%, var(--cs-surface)); }
-        .grp-ligne:hover { background:color-mix(in srgb, var(--fam) 14%, var(--cs-surface)); }
-        /* Le verset dont la traduction AFFICHÉE ne porte pas le mot : le fond d'absence,
-           et le sigle barré sur la ligne du haut disent lequel.
-           ⛔ « --cs-absence-fond » et non « --cs-danger-fond » : le second est le fond
-           d'un encart d'alerte, trop pâle pour parler seul, et l'absence n'est pas une
-           alerte. Le jeton est le MÊME que celui de la cellule polyglotte : c'est le
-           même constat, sur la même page, et il ne se dit pas de deux façons. */
-        .grp-ligne--absent { background:var(--cs-absence-fond); }
-        .grp-ligne--absent:hover { background:var(--cs-absence-fond); }
-        .grp-glose-absent { margin:0 0 2px; font-size:0.6875rem; font-style:italic; color:var(--cs-texte-second); }
+        /* ── LES RÉSULTATS EN RANGÉES, SUR LE MODÈLE DE LA POLYGLOTTE ─────────────
+           Demande de l'auteur, 2026-09-24 : « renoncer au mode bloc dans bloc ». Les
+           groupes étaient une rubrique en aplat sur un bloc lavé et encadré, posés dans le
+           bloc central : un bloc dans un bloc. Ni aplat, ni lavis, ni cadre désormais : la
+           rangée est posée sur le sol de la page, une marge de référence à gauche
+           (--res-marge : 4 rem comme la Polyglotte, 6,5 rem pour les Pères et les
+           publications), une cellule ouverte par le filet de la réglure. Le blanc entre
+           deux rangées vient de la cellule, comme là-bas, et la réglure court sans
+           interruption.
+           ⛔ La référence EMPRUNTE LE STRUT de la première ligne de sa cellule (même
+           police, même corps, même interligne, même blanc du haut) et se compose plus
+           petit DANS cette boîte : c'est ce qui pose sa ligne de base sur celle du texte,
+           à toute taille de police racine (la règle de .poly-marge-ref).
+           La famille se pose toujours par --fam (voir styleFamille) : la référence, la
+           ligne de tête, les sigles et le survol en dérivent. */
+        .res-row { display:grid; grid-template-columns:var(--res-marge, 4rem) minmax(0, 1fr); text-decoration:none; color:inherit; background:var(--cs-fond); transition:filter var(--cs-duree-courte); }
+        .res-row:hover { filter:brightness(0.955); }
+        .res-ref { display:block; min-width:0; padding:7px 8px 0 0; text-align:right; color:var(--fam); font-family:${SANS}; font-weight:600; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+        .res-ref--sigles { font-size:0.6875rem; line-height:1.55; white-space:nowrap; }
+        .res-ref--texte { font-size:0.78125rem; line-height:1.32; }
+        .res-ref--titre { font-family:${SERIF}; font-size:0.875rem; line-height:1.3; }
+        .res-ref--texte > span, .res-ref--titre > span { font-family:${SANS}; font-size:0.6875rem; line-height:1.3; }
+        /* Le sigle du livre, un cran sous le chiffre : il se répète de rangée en rangée. */
+        .res-livre { font-weight:500; opacity:0.78; }
+        .res-cell { display:block; min-width:0; border-left:1px solid var(--cs-bord-clair); padding:7px 11px 8px; }
+        /* La cellule dont la bible affichée ne porte pas le mot : le fond d'absence, le
+           jeton de la cellule polyglotte, et le sigle barré sur la ligne du haut. */
+        .res-cell--absent { background:var(--cs-absence-fond); }
+        .res-cell .sigles { display:flex; margin-bottom:1px; }
+        .res-texte { display:block; font-family:${SANS}; font-size:0.78125rem; line-height:1.32; color:var(--cs-texte-fort); }
+        .res-titre { display:block; font-family:${SERIF}; font-size:0.875rem; line-height:1.3; font-weight:600; color:var(--cs-encre); }
+        .res-sous-titre { display:block; margin:1px 0 2px; font-size:0.6875rem; font-style:italic; color:var(--cs-texte-gris); }
+        .res-langue { display:inline-block; font-size:0.625rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--fam); background:color-mix(in srgb, var(--fam) 14%, var(--cs-surface)); border-radius:4px; padding:0 5px; margin-right:6px; vertical-align:1px; }
+        /* La ligne de tête d'une œuvre : l'auteur à l'encre de la famille, le titre en
+           italique, un filet dessous. Sans aplat ni cadre. */
+        .res-tete { display:flex; align-items:baseline; gap:8px; padding:4px 0 3px; border-bottom:1px solid var(--cs-bord-clair); font-family:${SERIF}; }
+        .res-row + .res-tete { margin-top:14px; }
+        .res-tete .nom { font-size:0.8125rem; font-weight:600; color:var(--fam); }
+        .res-tete .compl { min-width:0; font-size:0.75rem; font-style:italic; color:var(--cs-texte-second); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .grp-glose-absent { display:block; margin:0 0 2px; font-size:0.6875rem; font-style:italic; color:var(--cs-texte-second); }
         /* ── Sigles de bible ──
            Sept noms entiers ne tiennent pas sur une ligne et repoussaient le verset à un
            troisième rang ; sept sigles y tiennent. Le nom entier reste en title. */
@@ -1077,8 +1115,46 @@ export default function RechercheClient() {
         .ctrl-sel { width:100%; font-size:0.71875rem; padding:2px 4px 2px 0; border:none; border-radius:4px; background:transparent; color:var(--cs-texte-second); outline:none; cursor:pointer; font-family:inherit; transition:background var(--cs-duree-courte), color var(--cs-duree-courte); }
         .ctrl-sel:hover { background:rgba(var(--cs-vert-rgb),0.05); color:var(--cs-texte); }
         .ctrl-sel:focus { background:var(--cs-fond-doux); color:var(--cs-encre); }
-        /* Info-bulle « Explicitations » : au survol du « ? », les deux modes expliqués. */
-        .expl-wrap { position:relative; display:inline-flex; }
+        /* ── LE HAUT DU VOLET ─────────────────────────────────────────────────────
+           Le champ est son bloc (.cs-volet-recherche) : un filet en pied, un fond léger
+           au foyer, qui prend aussi la loupe. La loupe est le bouton qui lance. */
+        .rch-champ { position:relative; display:flex; align-items:center; border-bottom:1px solid var(--cs-bord); transition:background var(--cs-duree-courte); }
+        .rch-champ:focus-within { background:var(--cs-fond-doux); }
+        .rch-champ .cs-volet-recherche:focus { background:transparent; }
+        .rch-loupe { flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; width:1.75rem; height:1.75rem; padding:0; border:none; border-radius:4px; background:transparent; color:var(--cs-vert); cursor:pointer; transition:background var(--cs-duree-courte), color var(--cs-duree-courte); }
+        .rch-champ .rch-loupe { margin-left:-6px; }
+        .rch-loupe:disabled { color:var(--cs-texte-doux); cursor:default; }
+        @media (hover: hover) { .rch-loupe:hover:not(:disabled) { background:rgba(var(--cs-vert-rgb),0.08); color:var(--cs-vert-fonce); } }
+        /* Le champ CENTRAL de la page vide : une seule ligne, un filet, la loupe à droite. */
+        .rch-centre { position:relative; display:flex; align-items:center; width:min(30rem, 100%); margin:0 0 1.25rem; padding:0 4px 0 14px; box-sizing:border-box; border:1px solid var(--cs-bord); border-radius:8px; background:var(--cs-surface); box-shadow:var(--cs-ombre-posee); transition:border-color var(--cs-duree-courte); }
+        .rch-centre:focus-within { border-color:rgba(var(--cs-vert-rgb),0.55); }
+        .rch-centre-champ { flex:1; min-width:0; border:none; outline:none; background:transparent; padding:0.6875rem 0; font-family:${SERIF}; font-size:0.9375rem; color:var(--cs-texte-fort); }
+        .rch-centre-champ::placeholder { color:var(--cs-texte-doux); opacity:1; }
+        .rch-loupe--centre { width:2.25rem; height:2.25rem; }
+        /* Les bibles : une étiquette, un menu, sur une ligne. */
+        .rch-ligne { display:grid; grid-template-columns:5.25rem minmax(0, 1fr); align-items:baseline; gap:6px; }
+        .rch-ligne > span { font-size:0.6875rem; color:var(--cs-texte-second); }
+        /* Enregistrer et reprendre : la forme d'une option de volet. */
+        .rch-garder { display:flex; align-items:center; gap:7px; width:calc(100% + 14px); margin:0 -7px; box-sizing:border-box; text-align:left; font-family:inherit; font-size:0.6875rem; color:var(--cs-vert); --survol-fond:rgba(var(--cs-vert-rgb),0.08); border:none; border-radius:4px; padding:3px 7px; cursor:pointer; transition:background var(--cs-duree-courte); }
+        /* ── L'AIDE DES MODES ────────────────────────────────────────────────────
+           Demande de l'auteur, 2026-09-24 : « la revoir et la rendre plus claire, plus
+           lisible ». Une bulle de la largeur du bloc des modes, au survol ou au foyer du
+           « ? » : pour chaque mode, son nom, ce qu'il trouve en une phrase, un exemple
+           (la saisie en gras, ce qu'elle ramène). Une note dit ce que valent plusieurs
+           mots. Ancrée au BLOC et non au « ? », elle ne déborde jamais du volet,
+           téléphone compris ; et le « ? » est un bouton, que le clavier atteint. */
+        .rch-modes { position:relative; }
+        .expl-wrap { display:inline-flex; }
+        .expl-badge { width:13px; height:13px; padding:0; border-radius:50%; border:1px solid rgba(var(--cs-vert-rgb),0.35); color:var(--cs-vert); background:var(--cs-vert-pale); font-family:inherit; font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
+        .expl-tip { position:absolute; top:1.125rem; left:-8px; right:-8px; box-sizing:border-box; background:var(--cs-surface); border:1px solid var(--cs-bord); border-radius:4px; box-shadow:var(--cs-ombre-nette); padding:10px 12px 11px; font-family:${SANS}; font-size:0.71875rem; line-height:1.4; color:var(--cs-texte-second); font-weight:400; letter-spacing:0; text-transform:none; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity var(--cs-duree-courte), transform var(--cs-duree-courte), visibility var(--cs-duree-courte); pointer-events:none; }
+        .expl-wrap:hover .expl-tip, .expl-wrap:focus-within .expl-tip { opacity:1; visibility:visible; transform:translateY(0); }
+        .expl-mode { display:block; }
+        .expl-mode + .expl-mode { margin-top:7px; padding-top:7px; border-top:1px solid var(--cs-bord-clair); }
+        .expl-nom { display:block; font-family:${SERIF}; font-size:0.8125rem; font-weight:600; color:var(--cs-encre); }
+        .expl-def { display:block; }
+        .expl-ex { display:block; margin-top:2px; color:var(--cs-texte-gris); }
+        .expl-ex b { font-weight:600; color:var(--cs-texte); }
+        .expl-note { display:block; margin-top:9px; font-style:italic; color:var(--cs-texte-gris); }
         /* ⛔ Au doigt, ces trois contrôles se haussent au-dessus du plancher WCAG
            (24px) : la rangée de ventilation faisait 19,4px de haut, la pagination 27,
            et l'aide des modes 13. Le corps ne bouge pas, seule la boîte grandit. */
@@ -1087,14 +1163,7 @@ export default function RechercheClient() {
           .pag-btn { padding:10px 16px; }
           .expl-badge { width:1.5rem; height:1.5rem; font-size:0.6875rem; }
         }
-        .expl-badge { width:13px; height:13px; border-radius:50%; border:1px solid rgba(var(--cs-vert-rgb),0.35); color:var(--cs-vert); background:var(--cs-vert-pale); font-size:0.53125rem; font-weight:700; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:help; }
-        .expl-tip { position:absolute; top:calc(100% + 7px); left:-4px; width:250px; background:var(--cs-surface); border:1px solid var(--cs-bord); border-radius:8px; box-shadow:var(--cs-ombre-modale); padding:9px 11px; font-size:0.6875rem; line-height:1.5; color:var(--cs-texte-second); text-transform:none; letter-spacing:0; font-weight:400; z-index:200; opacity:0; visibility:hidden; transform:translateY(-3px); transition:opacity var(--cs-duree-courte), transform var(--cs-duree-courte); pointer-events:none; }
-        .expl-wrap:hover .expl-tip { opacity:1; visibility:visible; transform:translateY(0); }
-        /* Cachée, l'infobulle garde sa boîte : ses 250 px ouvraient un défilement
-           horizontal sur un téléphone de 320 px (mesuré le 2026-09-21). Elle se borne
-           à la fenêtre, et ne se pose pas du tout là où rien ne se survole. */
-        .expl-tip { max-width: calc(100vw - 8rem); }
-        @media (hover: none) { .expl-tip { display: none; } }
+        @media (prefers-reduced-motion: reduce) { .expl-tip, .res-row { transition:none; } }
         ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--cs-bord);border-radius:4px}
       `}</style>
 
@@ -1111,45 +1180,37 @@ export default function RechercheClient() {
         <aside style={mobile
           ? { width:'100%', borderBottom:'1px solid var(--cs-bord)', background:'var(--cs-fond-clair)', display:'flex', flexDirection:'column' }
           : { width:'clamp(300px, 22vw, 440px)', flexShrink:0, borderRight:'1px solid var(--cs-bord)', background:'var(--cs-fond-clair)', display:'flex', flexDirection:'column', overflow:'hidden' }}>
-          <div style={{ flexShrink:0, padding:'9px 20px 12px', display:'flex', flexDirection:'column', alignItems:'stretch', gap:'9px' }}>
+          {/* ── LA TÊTE DU VOLET : le titre de la page et le compte des résultats, sous un
+              filet, comme la tête des volets de page (`TETE_VOLET_PAGE`). ── */}
+          <div style={{ flexShrink:0, padding:'13px 20px 12px', borderBottom:'1px solid var(--cs-bord)', display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'8px' }}>
+            {/* ⛔ La page n'avait AUCUN titre de niveau 1 : c'en est un, au rang que la charte
+                donne à un titre de volet. */}
+            <h1 style={{ fontFamily:SERIF, fontSize:TITRE_VOLET, fontWeight:GRAISSE_TITRE_VOLET, color:ENCRE_TITRE, margin:0, lineHeight:1.2 }}>Recherche</h1>
+            {done && (() => {
+              const total = versetsTotal + segmentsTotal + essaisRes.length
+              return <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
+            })()}
+          </div>
 
-            {/* Titre + nombre total de résultats, sur la même ligne, en tête du volet. */}
-            <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:'8px' }}>
-              {/* ⛔ PLUS DE CAPITALES ESPACÉES en tête du volet : c'est le TITRE de la page,
-                  et il prend le rang que la charte donne à un titre de volet — celui que
-                  portent déjà l'Histoire, les péricopes et la page d'œuvre. Composé en
-                  0,75 rem gris pâle, il pesait moins que la première rubrique d'en dessous.
-                  ⚠️ La page n'avait AUCUN titre de niveau 1 : c'en est un maintenant. */}
-              <h1 style={{ fontFamily:SERIF, fontSize:TITRE_VOLET, fontWeight:GRAISSE_TITRE_VOLET, color:ENCRE_TITRE, margin:0, lineHeight:1.2 }}>Recherche</h1>
-              {done && (() => {
-                const total = versetsTotal + segmentsTotal + essaisRes.length
-                return <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', fontStyle:'italic', flexShrink:0 }}>{total} résultat{total > 1 ? 's' : ''}</span>
-              })()}
-            </div>
+          {/* ── LE HAUT DU VOLET, DÉPOUILLÉ (demande de l'auteur, 2026-09-24 : « minimaliste,
+              propre et élégant ; s'inspirer des autres volets »). Quatre blocs au même blanc,
+              aucun cadre : le champ, qui EST son bloc (`.cs-volet-recherche`, un filet en
+              pied), puis trois axes coiffés d'une rubrique (`RUBRIQUE_AXE`), comme dans le
+              volet de la Bible. La loupe, à gauche du champ, est le bouton qui lance : elle
+              remplace le bouton encadré « Chercher », et Entrée reste la voie ordinaire. */}
+          <div style={{ flexShrink:0, padding:'10px 20px 14px', display:'flex', flexDirection:'column', gap:'14px' }}>
 
-            {/* ── LE CHAMP EST SON PROPRE BLOC ──────────────────────────────────────
-                Il portait un filet, un rayon, un fond de surface et une ombre posée :
-                un objet encadré dans un volet où plus rien ne l'est. Il prend la forme
-                des volets de lecture (`.cs-volet-recherche`, globals.css) — rembourrage
-                DANS le champ, rien autour, un filet en pied qui le sépare de ce qu'il
-                commande, et un fond léger au seul foyer. */}
-            {/* Champ principal */}
-            {/* ⛔ UN FORMULAIRE, ET UN BOUTON QUI SE VOIT (audit ergonomique 2026-09-21) :
-                Entrée n'était pas la seule voie à connaître, et le clavier d'un téléphone
-                affiche maintenant « Rechercher » (`role="search"`, `enterKeyHint`). */}
-            <form role="search" data-visite="recherche-champ"
-              onSubmit={e => { e.preventDefault(); setShowSugg(false); void lancer() }}
-              style={{ position:'relative', width:'100%', borderBottom:'1px solid var(--cs-bord)', display:'flex', alignItems:'center', gap:'8px' }}>
-              <div style={{ position:'relative', flex:1, minWidth:0 }}>
+            <form role="search" data-visite="recherche-champ" className="rch-champ"
+              onSubmit={e => { e.preventDefault(); setShowSugg(false); void lancer() }}>
+              <button type="submit" className="rch-loupe" disabled={!query.trim()} aria-label="Rechercher" title="Rechercher">
+                {LOUPE}
+              </button>
               <input aria-label="Rechercher un mot, une expression ou une référence" ref={inputRef} value={query}
                 onChange={e => setQuery(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Escape') setShowSugg(false)
-                }}
-                onFocus={() => sugg.length > 0 && setShowSugg(true)}
-                placeholder="Un mot, une expression ou Jn 3, 16…"
+                onKeyDown={e => { if (e.key === 'Escape') setShowSugg(false) }}
+                onFocus={() => { setChampActif('volet'); if (sugg.length > 0) setShowSugg(true) }}
+                placeholder="Rechercher…"
                 enterKeyHint="search"
-                autoFocus
                 /* Sans cela le navigateur pré-remplissait le champ avec une saisie passée
                    (« Am imp »…). `type=search` + autoComplete off + name neutre le coupent. */
                 type="search"
@@ -1158,148 +1219,104 @@ export default function RechercheClient() {
                 autoCorrect="off"
                 spellCheck={false}
                 className="cs-volet-recherche"
-                style={{ fontSize:'0.84375rem', padding:'7px 26px 7px 0', color:'var(--cs-texte-fort)', fontFamily:SERIF, boxSizing:'border-box' }} />
+                style={{ flex:1, minWidth:0, fontSize:'0.84375rem', padding:'7px 24px 7px 2px', color:'var(--cs-texte-fort)', fontFamily:SERIF, boxSizing:'border-box' }} />
               {query && (
                 <button type="button" onClick={() => { setQuery(''); setSugg([]); setDone(false); setRequete(null); setRepartitionLivres([]); setRepartitionOeuvres([]); setEssaisRes([]); setShowSugg(false) }}
                   style={{ position:'absolute', right:'2px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--cs-texte-doux)', fontSize:'1rem', lineHeight:1, padding:0 }} title="Effacer" aria-label="Effacer la saisie">×</button>
               )}
-              </div>
-              <button type="submit" disabled={!query.trim()}
-                style={{ flexShrink:0, display:'inline-flex', alignItems:'center', gap:'5px', padding:'4px 10px', border:'1px solid var(--cs-bord)', borderRadius:'4px', background:'var(--cs-surface)', color:'var(--cs-vert-fonce)', fontSize:'0.75rem', fontWeight:600, cursor: query.trim() ? 'pointer' : 'default', opacity: query.trim() ? 1 : 0.55 }}>
-                <svg aria-hidden="true" width="13" height="13" viewBox="0 0 20 20" fill="none">
-                  <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.8"/>
-                  <path d="M13 13l3.5 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                </svg>
-                Chercher
-              </button>
-              {showSugg && sugg.length > 0 && (
-                <ul ref={suggRef} style={{ position:'absolute', top:'calc(100% + 6px)', left:0, right:0, background:'var(--cs-surface)', border:'1px solid var(--cs-bord)', borderRadius:'8px', boxShadow:'var(--cs-ombre-flottante)', margin:0, padding:'5px 0 0', listStyle:'none', zIndex:100, maxHeight:'300px', overflowY:'auto' }}>
-                  {sugg.map(s => (
-                    <li key={s.mot}
-                      onMouseDown={e => { e.preventDefault(); setQuery(s.mot); setShowSugg(false); lancer(s.mot) }}
-                      className="cs-survol-fond"
-                      style={{ padding:'7px 18px', fontSize:'0.875rem', color:'var(--cs-texte-fort)', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', fontFamily:SERIF, '--survol-fond':'var(--cs-fond)' } as React.CSSProperties}>
-                      <span>{s.mot}</span>
-                      {s.freq > 0 && <span style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)' }}>{s.freq}</span>}
-                    </li>
-                  ))}
-                  {/* Tout rechercher : lance la recherche par DÉBUT DE MOT sur ce qui est
-                      tapé, ce qui couvre d'un coup tous les mots proposés dans la liste
-                      (ils commencent tous par le préfixe). Légèrement mis en évidence. */}
-                  <li
-                    onMouseDown={e => { e.preventDefault(); setShowSugg(false); setMode('prefixe'); lancer(query, 'prefixe') }}
-                    style={{ marginTop:'4px', borderTop:'1px solid var(--cs-fond-doux)', padding:'9px 18px', fontSize:'0.78125rem', fontWeight:600, color:'var(--cs-vert-fonce)', '--repos-fond':'var(--cs-vert-pale)', '--survol-fond':'var(--cs-fond-doux)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', letterSpacing:'0.01em' } as React.CSSProperties}
-                    className="cs-survol-fond">
-                    <span>Tout rechercher</span>
-                    <span style={{ fontSize:'0.8125rem' }}>↵</span>
-                  </li>
-                </ul>
-              )}
+              {showSugg && champActif === 'volet' && listeSuggestions}
             </form>
 
-            {/* Contrôles, en colonne dans le volet */}
-            <div style={{ display:'flex', flexDirection:'column', gap:'11px' }}>
-              {/* Mode + « Explicitations » en INFO-BULLE au survol du « ? » : les deux
-                  explications ensemble, ce qui évite l'encart qui alourdissait le volet. */}
-              <div data-visite="recherche-mode">
-                <p style={{ ...RUBRIQUE_AXE, margin:'0 0 3px', display:'flex', alignItems:'center', gap:'4px' }}>
-                  Mode de recherche
-                  <span className="expl-wrap">
-                    <span className="expl-badge">?</span>
-                    <span className="expl-tip">
-                      <span style={{ ...STYLE_RUBRIQUE, display:'block', marginBottom:'7px' }}>Les trois modes</span>
-
-                      <span style={{ display:'block', marginBottom:'8px' }}>
-                        <span style={{ display:'block', fontWeight:700, color:'var(--cs-vert-fonce)', marginBottom:'1px' }}>Début de mot</span>
-                        <span style={{ display:'block' }}>Trouve les mots qui commencent par ce que vous tapez&#8239;; plusieurs termes à la fois sont admis.</span>
-                        <span style={{ display:'block', fontStyle:'italic', color:'var(--cs-texte-gris)', marginTop:'2px' }}>« glo » ramène gloire, glorieux, glorifier&#8239;; « glo mis » ramène les passages où figurent ensemble un mot en glo- et un mot en mis-.</span>
-                      </span>
-
-                      <span style={{ display:'block', marginBottom:'8px' }}>
-                        <span style={{ display:'block', fontWeight:700, color:'var(--cs-vert-fonce)', marginBottom:'1px' }}>Mot exact</span>
-                        <span style={{ display:'block' }}>Ne trouve que le mot entier&#8239;; plusieurs mots entiers, non consécutifs, sont admis.</span>
-                        <span style={{ display:'block', fontStyle:'italic', color:'var(--cs-texte-gris)', marginTop:'2px' }}>« gloire » ne ramène ni glorieux ni gloires&#8239;; « gloire Dieu » ramène les passages contenant l’un et l’autre.</span>
-                      </span>
-
-                      <span style={{ display:'block' }}>
-                        <span style={{ display:'block', fontWeight:700, color:'var(--cs-vert-fonce)', marginBottom:'1px' }}>Famille de mots</span>
-                        <span style={{ display:'block' }}>Trouve le mot sous toutes ses formes, conjugué ou dérivé, en français seulement.</span>
-                        <span style={{ display:'block', fontStyle:'italic', color:'var(--cs-texte-gris)', marginTop:'2px' }}>« aimer » ramène aime, aimait, aimé&#8239;; « espérance » ramène aussi espérer et espéré.</span>
-                      </span>
+            {/* ── Le MODE, et son aide ──
+                L'aide des trois modes se lit au survol ou au foyer du « ? », dans une bulle
+                de la largeur du bloc : un nom, ce qu'il trouve, un exemple. */}
+            <div data-visite="recherche-mode" className="rch-modes">
+              <p style={{ ...RUBRIQUE_AXE, margin:'0 0 3px', display:'flex', alignItems:'center', gap:'5px' }}>
+                Mode de recherche
+                <span className="expl-wrap">
+                  <button type="button" className="expl-badge" aria-label="Aide sur les modes de recherche" aria-describedby="rch-aide-modes">?</button>
+                  <span id="rch-aide-modes" role="tooltip" className="expl-tip">
+                    <span className="expl-mode">
+                      <span className="expl-nom">Début de mot</span>
+                      <span className="expl-def">Les mots qui commencent par ce que vous tapez.</span>
+                      <span className="expl-ex"><b>glo</b> → gloire, glorieux, glorifier</span>
                     </span>
+                    <span className="expl-mode">
+                      <span className="expl-nom">Mot exact</span>
+                      <span className="expl-def">Le mot entier, et lui seul.</span>
+                      <span className="expl-ex"><b>gloire</b> → ni glorieux, ni gloires</span>
+                    </span>
+                    <span className="expl-mode">
+                      <span className="expl-nom">Famille de mots</span>
+                      <span className="expl-def">Toutes les formes du mot, conjuguées ou dérivées, en français seulement.</span>
+                      <span className="expl-ex"><b>aimer</b> → aime, aimait, aimé</span>
+                    </span>
+                    <span className="expl-note">Plusieurs mots&nbsp;: chaque passage trouvé les porte tous, pas forcément côte à côte.</span>
                   </span>
-                </p>
-                {/* ⛔ Les deux boutons encadrés d'un filet — un contrôle segmenté — cèdent
-                    aux options en LIGNE du volet de lecture : une par rang, celle qui est
-                    retenue sur la pastille verte. C'est le geste des axes « Lecture » et
-                    « Commentaires » de la page Bible, et ce sont les mêmes objets de style.
-                    ⚠️ Un troisième rang depuis le 2026-09-06, la famille de mots : l'index
-                    plein texte français existait sur les segments, rien ne le lisait. */}
-                <div>
-                  {([['prefixe','Début de mot'],['exact','Mot exact'],['famille','Famille de mots']] as [Mode, string][]).map(([k, lib]) => (
-                    <button key={k} className="cs-option-volet" style={OPTION_VOLET(mode === k)}
-                      aria-pressed={mode === k} onClick={() => setMode(k)}>{lib}</button>
-                  ))}
-                </div>
+                </span>
+              </p>
+              <div>
+                {([['prefixe','Début de mot'],['exact','Mot exact'],['famille','Famille de mots']] as [Mode, string][]).map(([k, lib]) => (
+                  <button key={k} className="cs-option-volet" style={OPTION_VOLET(mode === k)}
+                    aria-pressed={mode === k} onClick={() => setMode(k)}>{lib}</button>
+                ))}
               </div>
-              {/* « Chercher dans » (périmètre) et « Afficher en » (traduction montrée),
-                  côte à côte pour tenir sur une seule ligne. « Afficher en » ne disparaît
-                  jamais : il commande l'affichage quel que soit le périmètre. */}
-              <div data-visite="recherche-perimetre" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
-                <div>
-                  <p style={{ ...RUBRIQUE_AXE, margin:'0 0 2px' }}>Chercher dans</p>
-                  <select aria-label="Chercher dans" className="ctrl-sel" style={{ width:'100%' }} value={tradScope}
-                    onChange={e => { const v=e.target.value; setTradScope(v); if(v!=='ALL') setTradAffichage(v) }}>
-                    <option value="ALL">Toutes les bibles</option>
-                    {traductions.map(t=><option key={t.code} value={t.code}>{t.label}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <p style={{ ...RUBRIQUE_AXE, margin:'0 0 2px' }}>Afficher en</p>
-                  <select aria-label="Afficher en" className="ctrl-sel" style={{ width:'100%' }} value={tradAffichage} onChange={e=>setTradAffichage(e.target.value)}>
-                    {traductions.map(t=><option key={t.code} value={t.code}>{t.label}</option>)}
-                  </select>
-                </div>
-              </div>
-              {/* Enregistrer ma recherche : dès qu'il y a des résultats. Un clic mémorise
-                  mot(s), page et position ; « Reprendre » (juste dessous) y ramène. Le libellé
-                  passe brièvement à « Recherche enregistrée » en accusé de réception. */}
-              {/* Enregistrer / Reprendre : deux boutons de même hauteur, resserrés. Un clic
-                  « Enregistrer » mémorise mot(s), page et position ; si une AUTRE recherche est
-                  déjà mémorisée, une fenêtre demande d'abord confirmation d'écrasement. */}
-              {((done && (versetsTotal + segmentsTotal + essaisRes.length) > 0) || rechercheSauvee) && (
-                <div data-visite="recherche-garder" style={{ display:'flex', flexDirection:'column', gap:'3px', marginTop:'2px' }}>
-                  {done && (versetsTotal + segmentsTotal + essaisRes.length) > 0 && (
-                    <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
-                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'calc(100% + 14px)', margin:'0 -7px', boxSizing:'border-box', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', '--survol-fond':'rgba(var(--cs-vert-rgb),0.08)', border:'none', borderRadius:'4px', padding:'3px 7px', cursor:'pointer', transition:'background var(--cs-duree-courte)' } as React.CSSProperties}
-                      className="cs-survol-fond">
-                      <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
-                        <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none"/>
-                      </svg>
-                      <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                        {vientDEnregistrer ? 'Recherche enregistrée' : 'Enregistrer ma recherche'}
-                      </span>
-                    </button>
-                  )}
-                  {/* Reprendre : même hauteur que « Enregistrer », date d'enregistrement à droite. */}
-                  {rechercheSauvee && (
-                    <button onClick={reprendreRecherche} title={`Reprendre « ${rechercheSauvee.query} » là où vous en étiez`}
-                      style={{ display:'flex', alignItems:'center', gap:'7px', width:'calc(100% + 14px)', margin:'0 -7px', boxSizing:'border-box', textAlign:'left', fontSize:'0.6875rem', color:'var(--cs-vert)', '--survol-fond':'rgba(var(--cs-vert-rgb),0.08)', border:'none', borderRadius:'4px', padding:'3px 7px', cursor:'pointer', transition:'background var(--cs-duree-courte)' } as React.CSSProperties}
-                      className="cs-survol-fond">
-                      <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
-                        <path d="M2.5 7a4.5 4.5 0 1 1 1.3 3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
-                        <path d="M2.2 4.2v2.6h2.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                      </svg>
-                      <span style={{ flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                        Reprendre ma recherche
-                        <span style={{ color:'var(--cs-texte-doux)', fontStyle:'italic' }}> {rechercheSauvee.query}</span>
-                      </span>
-                      {rechercheSauvee.ts ? <span style={{ flexShrink:0, color:'var(--cs-texte-gris)', fontStyle:'italic', fontSize:'0.6875rem' }}>{formatDateCourt(rechercheSauvee.ts)}</span> : null}
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
+
+            {/* ── Les BIBLES : où chercher, en quoi afficher. Une rubrique, deux lignes
+                « étiquette · menu », au lieu de deux colonnes qui tronquaient les noms.
+                « Afficher en » ne disparaît jamais : il commande l'affichage quel que soit
+                le périmètre. */}
+            <div data-visite="recherche-perimetre">
+              <p style={{ ...RUBRIQUE_AXE, margin:'0 0 3px' }}>Bibles</p>
+              <label className="rch-ligne">
+                <span>Chercher dans</span>
+                <select className="ctrl-sel" value={tradScope}
+                  onChange={e => { const v=e.target.value; setTradScope(v); if(v!=='ALL') setTradAffichage(v) }}>
+                  <option value="ALL">Toutes les bibles</option>
+                  {traductions.map(t=><option key={t.code} value={t.code}>{sansEnrichissements(t.label)}</option>)}
+                </select>
+              </label>
+              <label className="rch-ligne">
+                <span>Afficher en</span>
+                <select className="ctrl-sel" value={tradAffichage} onChange={e=>setTradAffichage(e.target.value)}>
+                  {traductions.map(t=><option key={t.code} value={t.code}>{sansEnrichissements(t.label)}</option>)}
+                </select>
+              </label>
+            </div>
+
+            {/* Enregistrer / Reprendre : deux lignes discrètes, de la forme des options. Un
+                clic « Enregistrer » mémorise mot(s), page et position ; si une AUTRE recherche
+                est déjà mémorisée, une fenêtre demande d'abord confirmation d'écrasement. */}
+            {((done && (versetsTotal + segmentsTotal + essaisRes.length) > 0) || rechercheSauvee) && (
+              <div data-visite="recherche-garder" style={{ display:'flex', flexDirection:'column', gap:'1px' }}>
+                {done && (versetsTotal + segmentsTotal + essaisRes.length) > 0 && (
+                  <button onClick={enregistrerRecherche} title="Mémoriser cette recherche pour la reprendre plus tard, au même endroit"
+                    className="cs-survol-fond rch-garder">
+                    <svg width="11" height="12" viewBox="0 0 12 13" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
+                      <path d="M3 2.2C3 1.75 3.35 1.4 3.8 1.4H8.2C8.65 1.4 9 1.75 9 2.2V11L6 9.15L3 11V2.2Z" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" fill="none"/>
+                    </svg>
+                    <span style={{ minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      {vientDEnregistrer ? 'Recherche enregistrée' : 'Enregistrer ma recherche'}
+                    </span>
+                  </button>
+                )}
+                {rechercheSauvee && (
+                  <button onClick={reprendreRecherche} title={`Reprendre « ${rechercheSauvee.query} » là où vous en étiez`}
+                    className="cs-survol-fond rch-garder">
+                    <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true" style={{ flexShrink:0 }}>
+                      <path d="M2.5 7a4.5 4.5 0 1 1 1.3 3.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
+                      <path d="M2.2 4.2v2.6h2.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                    </svg>
+                    <span style={{ flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      Reprendre ma recherche
+                      <span style={{ color:'var(--cs-texte-doux)', fontStyle:'italic' }}> {rechercheSauvee.query}</span>
+                    </span>
+                    {rechercheSauvee.ts ? <span style={{ flexShrink:0, color:'var(--cs-texte-gris)', fontStyle:'italic', fontSize:'0.6875rem' }}>{formatDateCourt(rechercheSauvee.ts)}</span> : null}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Onglets VERTICAUX : prennent tout l'espace restant (flex:1, minHeight:0) et
@@ -1446,6 +1463,28 @@ export default function RechercheClient() {
                 {/* Une invite, puis un fleuron du registre (21 septembre 2026 : le désert et la fosse
                     ont cédé leur place). Centrée sur PC, où la colonne fait toute la hauteur sous
                     la barre ; en mobile, le groupe reprend des marges. Voir `FleuronDiscret`. */}
+                {/* ⛔ UN CHAMP AU CENTRE, TANT QU'AUCUNE RECHERCHE N'EST LANCÉE (demande de
+                    l'auteur, 2026-09-24) : la page vide s'ouvre là où l'on regarde. Il porte
+                    la même saisie que le champ du volet, et ses propres suggestions. ⚠️ Pas
+                    sur téléphone : le volet y est juste au-dessus, et deux champs se
+                    suivraient à l'écran. */}
+                {!mobile && (
+                  <form role="search" className="rch-centre"
+                    onSubmit={e => { e.preventDefault(); setShowSugg(false); void lancer() }}>
+                    <input ref={inputCentreRef} value={query}
+                      aria-label="Rechercher un mot, une expression ou une référence"
+                      onChange={e => setQuery(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Escape') setShowSugg(false) }}
+                      onFocus={() => { setChampActif('centre'); if (sugg.length > 0) setShowSugg(true) }}
+                      placeholder="Rechercher…" enterKeyHint="search" autoFocus
+                      type="search" name="cs-recherche-centre" autoComplete="off" autoCorrect="off" spellCheck={false}
+                      className="rch-centre-champ" />
+                    <button type="submit" className="rch-loupe rch-loupe--centre" disabled={!query.trim()} aria-label="Rechercher" title="Rechercher">
+                      {LOUPE}
+                    </button>
+                    {showSugg && champActif === 'centre' && listeSuggestions}
+                  </form>
+                )}
                 <p style={{ fontFamily:SERIF, fontSize:'0.9375rem', fontStyle:'italic', color:'var(--cs-texte-second)', letterSpacing:'0.02em', margin:'0 0 0.875rem' }}>Lancez une recherche</p>
                 <FleuronDiscret vide="recherche" />
               </div>
@@ -1473,87 +1512,77 @@ export default function RechercheClient() {
                 grammaire est celle des péricopes (audit du 2026-09-06). */}
             {reference && !loading && (
               <div style={{ ...styleFamille('bible'), marginBottom:'10px' }}>
-                <div className="grp">
-                  <div className="grp-hd"><span className="nom">Passage biblique</span></div>
-                  <div className="grp-corps">
-                    <a href={reference.href} className="grp-ligne" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'10px' }}>
-                      <span style={{ fontFamily:SERIF, fontSize:'0.9375rem', fontWeight:600, color:'var(--cs-encre)' }}>Ouvrir {reference.libelle}</span>
-                      <span style={{ color:'var(--fam)', display:'inline-flex' }}><IconeChevron dir="right" taille="0.8125rem" strokeWidth={1.5} /></span>
-                    </a>
-                  </div>
-                </div>
+                <div className="res-tete"><span className="nom">Passage biblique</span></div>
+                <a href={reference.href} className="res-row">
+                  <span className="res-ref res-ref--titre" />
+                  <span className="res-cell" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'10px' }}>
+                    <span style={{ fontFamily:SERIF, fontSize:'0.9375rem', fontWeight:600, color:'var(--cs-encre)' }}>Ouvrir {reference.libelle}</span>
+                    <span style={{ color:'var(--fam)', display:'inline-flex' }}><IconeChevron dir="right" taille="0.8125rem" strokeWidth={1.5} /></span>
+                  </span>
+                </a>
               </div>
             )}
+
+            {/* ── LES RÉSULTATS SE POSENT À MÊME LA PAGE, sur le modèle de la Polyglotte
+                (demande de l'auteur, 2026-09-24 : « renoncer au mode bloc dans bloc »).
+                Plus de rubrique en aplat ni de bloc lavé : une rangée par résultat, une
+                marge de référence à gauche, une cellule de texte ouverte par un filet, et
+                la réglure verticale court sans interruption. Ce que le groupe portait reste
+                dit : le livre passe dans la marge, comme dans la Polyglotte ; l'auteur et
+                l'œuvre coiffent leurs passages d'une ligne de tête, sans cadre ; la
+                catégorie d'une publication passe dans la marge. ── */}
 
             {/* ── Bible ── */}
             {done && onglet==='bible' && (
               versetsTotalFiltre===0
                 ? rendreVide('Aucun verset trouvé.')
                 : <div style={{ ...styleFamille('bible'), ...styleAttente(versetsEnAttente) }}>
-                  {/* Un groupe par LIVRE. Les versets arrivant dans l'ordre canonique, une
-                      tranche consécutive est exactement un livre. Le nom du livre monte donc
-                      dans la rubrique et la référence de chaque ligne retombe à « 18, 2 ».
-                      ⛔ Aucun COMPTE dans la rubrique : celui de la page mentirait sur le
-                      livre, celui du livre mentirait sur la page. Les comptes complets vivent
-                      dans le volet gauche, et le total sous la pagination. */}
-                  {grouperConsecutifs(versetsPage.lignes, v => v.livre).map(tranche => (
-                    <div className="grp" key={tranche.cle}>
-                      <div className="grp-hd">
-                        <span className="nom">{NOMS_LIVRES[tranche.cle] ?? tranche.cle}</span>
-                      </div>
-                      <div className="grp-corps">
-                        {tranche.items.map(v => {
-                          const texte = String((v as any)[tradBible]??'')
-                          const labelDisplay = traductions.find(t=>t.code===tradBible)?.label ?? tradBible
-                          const displayLeMot = !!(lastQuery && contientMarque(texte, marque))
-                          // TOUTES les bibles qui portent le mot, en SIGLES sur la ligne du haut.
-                          // Celle qui est affichée porte un filet ; elle est barrée quand le mot
-                          // n'y figure pas, et la ligne prend alors le fond d'absence.
-                          const contientDans = lastQuery
-                            ? traductions.filter(t => contientMarque(String((v as any)[t.code]??''), marque))
-                            : []
-                          // ⛔ LE MOT EST AILLEURS (audit ergonomique 2026-09-21) : la base cherche
-                          // dans TOUTES les bibles du périmètre, et « charité » répond par Sacy là où
-                          // Segond ou Crampon écrivent « amour ». Montrer le texte de la bible
-                          // affichée laissait le lecteur devant un verset sans le mot. On montre
-                          // donc le texte d'une bible qui le porte, et la ligne le dit.
-                          const temoin = !displayLeMot ? contientDans.find(t => t.code !== tradBible) : undefined
-                          const texteMontre = temoin ? String((v as unknown as Record<string, unknown>)[temoin.code] ?? '') : texte
-                          const tradLien = temoin ? temoin.code : tradBible
-                          return (
-                            <a key={v.id_verset}
-                              // Lien vers la page Bible : livre, chapitre, verset ET la traduction
-                              // choisie, avec l'ancre du verset pour l'y amener et l'y sélectionner.
-                              href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradLien}#verset-${v.verset}`}
-                              target="_blank" rel="noopener noreferrer"
-                              className={`grp-ligne${!displayLeMot && contientDans.length ? ' grp-ligne--absent' : ''}`}>
-                              <div style={{ display:'flex', alignItems:'baseline', gap:'7px', flexWrap:'wrap' }}>
-                                <span style={{ fontSize:'0.6875rem', fontWeight:600, color:'var(--cs-texte-second)', letterSpacing:'0.01em', fontVariantNumeric:'tabular-nums' }}>{v.chapitre}, {v.verset}</span>
-                                <span className="sigles">
-                                  <span className={`sigle ${displayLeMot ? 'sigle--affichee' : 'sigle--absente'}`} title={labelDisplay}>{siglesParCode[tradBible] ?? tradBible}</span>
-                                  {contientDans.filter(t => t.code !== tradBible).map(t => (
-                                    <span key={t.code} className="sigle" title={t.label}>{siglesParCode[t.code] ?? rendreEnrichi(t.label)}</span>
-                                  ))}
-                                </span>
-                              </div>
-                              {/* Toujours le texte de la traduction CHOISIE, SANS SÉRIF. Surligné si le
-                                  mot y est ; sinon montré tel quel (la ligne du haut dit où il se trouve). */}
-                              {temoin && (
-                                <p className="grp-glose-absent">
-                                  Le mot n’est pas dans {rendreEnrichi(labelDisplay)}. Texte de {rendreEnrichi(temoin.label)}.
-                                </p>
-                              )}
-                              <p style={{ fontFamily:SANS, fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
-                                {texteMontre
-                                  ? rendreEtSurligner(texteMontre, marque)
-                                  : <span style={{ color:'var(--cs-texte-doux)', fontStyle:'italic' }}>Ce verset n’existe pas dans {rendreEnrichi(labelDisplay)}.</span>}
-                              </p>
-                            </a>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  ))}
+                  {versetsPage.lignes.map(v => {
+                    const texte = String((v as any)[tradBible]??'')
+                    const labelDisplay = traductions.find(t=>t.code===tradBible)?.label ?? tradBible
+                    const displayLeMot = !!(lastQuery && contientMarque(texte, marque))
+                    // TOUTES les bibles qui portent le mot, en SIGLES sur la ligne du haut.
+                    // Celle qui est affichée porte un filet ; elle est barrée quand le mot
+                    // n'y figure pas, et la cellule prend alors le fond d'absence.
+                    const contientDans = lastQuery
+                      ? traductions.filter(t => contientMarque(String((v as any)[t.code]??''), marque))
+                      : []
+                    // ⛔ LE MOT EST AILLEURS (audit ergonomique 2026-09-21) : la base cherche
+                    // dans TOUTES les bibles du périmètre. On montre donc le texte d'une bible
+                    // qui le porte, et la ligne le dit.
+                    const temoin = !displayLeMot ? contientDans.find(t => t.code !== tradBible) : undefined
+                    const texteMontre = temoin ? String((v as unknown as Record<string, unknown>)[temoin.code] ?? '') : texte
+                    const tradLien = temoin ? temoin.code : tradBible
+                    return (
+                      <a key={v.id_verset}
+                        href={`/?livre=${encodeURIComponent(v.livre)}&chapitre=${v.chapitre}&verset=${v.verset}&trad=${tradLien}#verset-${v.verset}`}
+                        target="_blank" rel="noopener noreferrer" className="res-row">
+                        {/* La marge porte le SIGLE DU LIVRE et la référence, comme la
+                            Polyglotte ; le nom entier reste en « title ». */}
+                        <span className="res-ref res-ref--sigles" title={`${NOMS_LIVRES[v.livre] ?? v.livre} ${v.chapitre}, ${v.verset}`}>
+                          <span className="res-livre">{ABREV_FR[v.livre] ?? v.livre}</span> {v.chapitre}, {v.verset}
+                        </span>
+                        <span className={`res-cell${!displayLeMot && contientDans.length ? ' res-cell--absent' : ''}`}>
+                          <span className="sigles">
+                            <span className={`sigle ${displayLeMot ? 'sigle--affichee' : 'sigle--absente'}`} title={labelDisplay}>{siglesParCode[tradBible] ?? tradBible}</span>
+                            {contientDans.filter(t => t.code !== tradBible).map(t => (
+                              <span key={t.code} className="sigle" title={t.label}>{siglesParCode[t.code] ?? rendreEnrichi(t.label)}</span>
+                            ))}
+                          </span>
+                          {temoin && (
+                            <span className="grp-glose-absent">
+                              Le mot n’est pas dans {rendreEnrichi(labelDisplay)}. Texte de {rendreEnrichi(temoin.label)}.
+                            </span>
+                          )}
+                          <span className="res-texte">
+                            {texteMontre
+                              ? rendreEtSurligner(texteMontre, marque)
+                              : <span style={{ color:'var(--cs-texte-doux)', fontStyle:'italic' }}>Ce verset n’existe pas dans {rendreEnrichi(labelDisplay)}.</span>}
+                          </span>
+                        </span>
+                      </a>
+                    )
+                  })}
                 </div>
             )}
 
@@ -1561,49 +1590,41 @@ export default function RechercheClient() {
             {done && onglet==='patristique' && (
               segmentsTotalFiltre===0
                 ? rendreVide('Aucun passage trouvé.')
-                : <div style={{ ...styleFamille('patristique'), ...styleAttente(segmentsEnAttente) }}>
-                  {/* Un groupe par ŒUVRE. La base range les passages par auteur puis par
-                      œuvre : une tranche consécutive est exactement une œuvre. L'auteur et
-                      le titre cessent donc d'être répétés à chaque passage, et la ligne ne
-                      porte plus que sa cote. */}
+                : <div style={{ ...styleFamille('patristique'), '--res-marge':'6.5rem', ...styleAttente(segmentsEnAttente) } as React.CSSProperties}>
+                  {/* La base range les passages par auteur puis par œuvre : une tranche
+                      consécutive est exactement une œuvre, que coiffe une ligne de tête. */}
                   {grouperConsecutifs(segmentsPage.lignes, s => s.id_oeuvre).map(tranche => (
-                    <div className="grp" key={tranche.cle}>
-                      <div className="grp-hd">
+                    <Fragment key={tranche.cle}>
+                      <div className="res-tete">
                         <span className="nom">{tranche.items[0].auteur_nom}</span>
                         {tranche.items[0].oeuvre_titre && <span className="compl">{tranche.items[0].oeuvre_titre}</span>}
                       </div>
-                      <div className="grp-corps">
-                        {tranche.items.map(s=>(
-                          <a key={s.id} href={`/oeuvre/${encodeURIComponent(s.id_oeuvre)}?texte=${encodeURIComponent(s.id_texte)}${s.matchOrig && s.enRegard ? '&mt=bilingue' : ''}&segment=${s.id}#segment-${s.id}`}
-                            target="_blank" rel="noopener noreferrer" className="grp-ligne">
-                            {/* Le niveau 1 seul, et seulement s'il existe : le reste est dans la rubrique. */}
-                            {s.ref_niv1 && (
-                              <div style={{ display:'flex', alignItems:'baseline', gap:'7px', flexWrap:'wrap' }}>
-                                <span style={{ fontSize:'0.6875rem', fontWeight:600, color:'var(--cs-texte-second)' }}>{s.ref_niv1}</span>
-                              </div>
-                            )}
-                            {/* Résultat latin/grec : on n'affiche QUE l'original (badge de langue,
-                                latin en italiques, grec en romain). Sinon, le texte français.
-                                L'extrait vient du texte original lui-même ; rattaché à la
-                                traduction par l'alignement, le lien ouvre la page en regard. */}
+                      {tranche.items.map(s=>(
+                        <a key={s.id} href={`/oeuvre/${encodeURIComponent(s.id_oeuvre)}?texte=${encodeURIComponent(s.id_texte)}${s.matchOrig && s.enRegard ? '&mt=bilingue' : ''}&segment=${s.id}#segment-${s.id}`}
+                          target="_blank" rel="noopener noreferrer" className="res-row">
+                          {/* Le niveau 1, en marge : le reste est dans la ligne de tête. */}
+                          <span className="res-ref res-ref--texte">{s.ref_niv1 && <span>{s.ref_niv1}</span>}</span>
+                          {/* Résultat latin/grec : on n'affiche QUE l'original (badge de langue,
+                              latin en italiques, grec en romain). Sinon, le texte français. */}
+                          <span className="res-cell">
                             {s.matchOrig && s.extraitOriginal ? (
-                              <p style={{ fontFamily:SANS, fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
-                                <span style={{ display:'inline-block', fontStyle:'normal', fontSize:'0.625rem', fontWeight:700, letterSpacing:'0.05em', textTransform:'uppercase', color:'var(--fam)', background:'color-mix(in srgb, var(--fam) 14%, var(--cs-surface))', borderRadius:'4px', padding:'0 5px', marginRight:'6px', verticalAlign:'1px' }}>{s.langue || 'Original'}</span>
+                              <span className="res-texte">
+                                <span className="res-langue">{s.langue || 'Original'}</span>
                                 <span style={{ fontStyle: s.langue === 'Latin' ? 'italic' : 'normal' }}>
                                   {rendreEtSurligner(nettoyerFin(s.extraitOriginal.replace(/[ \t]*\[\[\d+\]\]/g, '')), marqueOriginal)}
                                 </span>
-                              </p>
+                              </span>
                             ) : (
-                              <p style={{ fontFamily:SANS, fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
+                              <span className="res-texte">
                                 {/* Un appel de note matériel « [[1772]] » n'a pas de note à ouvrir
                                     ici : il s'efface de l'extrait, avec l'espace qui le précède. */}
                                 {rendreEtSurligner(nettoyerFin(s.segment_texte.replace(/[ \t]*\[\[\d+\]\]/g, '')), marque)}
-                              </p>
+                              </span>
                             )}
-                          </a>
-                        ))}
-                      </div>
-                    </div>
+                          </span>
+                        </a>
+                      ))}
+                    </Fragment>
                   ))}
                 </div>
             )}
@@ -1612,27 +1633,21 @@ export default function RechercheClient() {
             {done && onglet==='essais' && (
               essaisFiltres.length===0
                 ? rendreVide('Aucun essai trouvé.')
-                : <div style={styleFamille('essais')}>
-                  {/* Une publication est déjà un groupe à elle seule : son titre monte dans la
-                      rubrique avec sa catégorie, et la ligne garde le sous-titre et l'extrait. */}
+                : <div style={{ ...styleFamille('essais'), '--res-marge':'6.5rem' } as React.CSSProperties}>
+                  {/* Une publication, une rangée : sa catégorie en marge, son titre en tête
+                      de la cellule, le sous-titre et l'extrait dessous. */}
                   {essaisPage.map(e=>{
                     const extrait = snippetEssai(e.contenu, lastQuery)
                     const texteAffiche = (e.resume && contientMarque(e.resume, marque)) ? e.resume : extrait
                     return (
-                      <div className="grp" key={e.id}>
-                        <div className="grp-hd">
-                          <span className="nom">{e.titre}</span>
-                          {e.categories?.[0] && <span className="compl">{e.categories[0]}</span>}
-                        </div>
-                        <div className="grp-corps">
-                          <a href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer" className="grp-ligne">
-                            {e.sous_titre && <p style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', fontStyle:'italic', margin:'0 0 2px' }}>{e.sous_titre}</p>}
-                            <p style={{ fontFamily:SANS, fontSize:'0.78125rem', lineHeight:1.42, color:'var(--cs-texte-fort)', margin:0 }}>
-                              {highlighter(texteAffiche, marque)}
-                            </p>
-                          </a>
-                        </div>
-                      </div>
+                      <a key={e.id} href={`/essais/${e.id}`} target="_blank" rel="noopener noreferrer" className="res-row">
+                        <span className="res-ref res-ref--titre">{e.categories?.[0] && <span>{e.categories[0]}</span>}</span>
+                        <span className="res-cell">
+                          <span className="res-titre">{e.titre}</span>
+                          {e.sous_titre && <span className="res-sous-titre">{e.sous_titre}</span>}
+                          <span className="res-texte" style={{ lineHeight:1.42 }}>{highlighter(texteAffiche, marque)}</span>
+                        </span>
+                      </a>
                     )
                   })}
                 </div>
