@@ -13242,3 +13242,13 @@ Audit d’harmonie du 23 septembre 2026 (`audit/AUDIT_HARMONIE_2026-09-23.md`), 
 - La notice d’une traduction suit l’ordre de l’œuvre : « Texte établi par » avant « Édition », puis « Source ».
 
 ⚠️ **Laissé à l’auteur, et donc pas encore une règle** : les deux volets d’une même page n’ont pas des largeurs en miroir (200 à 320 px à gauche, 260 à 460 à droite sur la Bible ; 240 à 380 et 280 à 480 sur l’œuvre). Rien ne dit encore si c’est voulu, et l’on n’aligne pas avant qu’il l’ait dit.
+
+# ⛔ LA COMMUNAUTÉ PREND LE VOLET DES PAGES SŒURS (2026-09-24)
+
+Doctrine : charte `parametres.charte_ia`, **§ 38.39**. Règles de code, dans `app/essais/EssaisListeClient.tsx` :
+
+- ⛔ **Le titre vit dans `VoletPage`**, comme sur les Péricopes, l'Histoire et la Bibliographie : plus de `<h1>` centré. La colonne de droite porte `OngletsPage` puis la section.
+- **Le volet suit l'onglet** : recherche (`ChampRechercheVolet`), ordre (`OptionVolet`) et catégories (`LigneCompte`, compte pris sur la recherche) sous « Écrits de la communauté » ; « Afficher » et « Trier par » sous « Mes écrits », dont l'état (`filtreEcrits`, `triEcrits`) est remonté au parent et passé à `OngletMesEcrits` ; les deux façons d'écrire sous « Écrire ».
+- ⛔ **`.essais-corps` porte la paire `--couv` / `--couv-ecart` et la mesure de trois couvertures** ; `.rayon` est en `repeat(auto-fill, var(--couv))`, et plus aucune requête de largeur n'en change le nombre de colonnes. ⚠️ Les sections antérieures de ce fichier qui parlent de 71 rem, de deux couvertures sous 900 px et d'une sous 520 décrivent l'état d'avant.
+- **`VoletPage` accepte des `children` absents** : au téléphone, aucun bouton de repli ne paraît alors. Sous « Écrire », les deux options passent en `horsRepli`.
+- ⚠️ La visite (`visiteCommunaute.ts`) descend le volet d'abord (`communaute-recherche`, qui enveloppe recherche, ordre et catégories), puis les onglets et une couverture.

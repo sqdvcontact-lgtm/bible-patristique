@@ -5122,7 +5122,7 @@ Une barre d’onglets de PAGE se compose partout de la même façon. Elles étai
 
 ⛔ **Aucun ornement ne s’intercale entre le titre et la barre.** La Communauté portait un losange d’or sous le sien, la Bibliothèque n’en portait pas : deux pages sœurs ne s’annoncent pas de deux façons. Le losange a été retiré le 27 août 2026. ⚠️ Il tenait à lui seul l’écart entre le titre et la barre — un ornement qui sert de cale n’est plus un ornement ; l’écart est désormais une marge chiffrée, et il se lit dans le code.
 
-⚠️ **La MESURE, elle, ne se copie pas.** La Communauté range trois couvertures de front et prend 71 rem ; la Bibliothèque n’a que du texte à ranger et en prend 56,25. C’est le rythme vertical qui est commun aux deux, non la largeur — chaque page prend la mesure de ce qu’elle contient, et sa barre la mesure de ce qu’elle commande.
+⚠️ **La MESURE, elle, ne se copie pas.** La Communauté range trois couvertures de front et prend 71 rem ; la Bibliothèque n’a que du texte à ranger et en prend 56,25. C’est le rythme vertical qui est commun aux deux, non la largeur — chaque page prend la mesure de ce qu’elle contient, et sa barre la mesure de ce qu’elle commande. ⚠️ Depuis le 24 septembre 2026, la Communauté porte le volet des pages sœurs (§ 38.39) : sa colonne prend la mesure de trois couvertures, et sa barre la suit.
 
 ### 36.1. La gouttière de défilement se réserve toujours
 
@@ -9997,3 +9997,12 @@ en cause, non la taille.
 
 ⛔ **LE FER SE POSE DANS LE RACCOURCI, jamais dans une déclaration écrite à côté** : une marge
 remise à zéro après lui ramènerait le geste contre le titre sans qu’on l’ait demandé.
+
+### 38.39 La Communauté prend le volet des pages sœurs
+
+⛔ **La page de la Communauté se compose comme les Péricopes, l’Histoire et la Bibliographie** (décision de l’auteur, 24 septembre 2026). Un volet à gauche porte le titre de la page, son chapeau et tout ce qui règle la liste ; la colonne de droite porte les onglets et le rayon. Il n’y a plus de titre centré au-dessus des onglets, ni de recherche et d’étiquettes centrées sous eux.
+
+- **Le volet suit la section ouverte.** Sous « Écrits de la communauté », il porte la recherche, l’ordre (les plus récents, les plus lus) et les catégories, chacune avec son compte pris sur la recherche. Sous « Mes écrits », il porte les axes « Afficher » et « Trier par », qui vivaient dans un second volet propre à la section. Sous « Écrire », il porte les deux façons d’écrire, qui étaient deux boutons centrés.
+- **Les couvertures ne changent pas.** Leur largeur et leur écart restent une seule paire de valeurs ; la colonne en tire sa mesure, celle de trois couvertures de front, et le rayon y range autant de couvertures qu’elle en tient (« auto-fill »). Aucune requête de largeur ne change plus leur nombre : c’est la place laissée par le volet qui en décide.
+- ⚠️ **Au téléphone, le volet devient le bandeau replié des pages sœurs.** La recherche reste visible au-dessus du repli ; les deux façons d’écrire aussi, un repli qui ne cacherait que deux lignes faisant chercher le second choix.
+- ⚠️ **L’ordre et le compte ont quitté la liste.** La tête « Les plus récents ◆ Les plus lus » et la ligne « N publications sur M » disaient ce que le volet dit désormais ; une recherche sans réponse le dit toujours en clair, à la place du rayon.

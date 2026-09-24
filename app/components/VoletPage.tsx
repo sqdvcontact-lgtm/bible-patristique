@@ -45,7 +45,8 @@ type Props = {
   surBascule: () => void
   /** Au téléphone, ce qui reste visible AU-DESSUS du repli (la recherche de la bibliographie). */
   horsRepli?: ReactNode
-  children: ReactNode
+  /** Absent, le volet n’a rien à replier : au téléphone, aucun bouton de repli ne paraît. */
+  children?: ReactNode
 }
 
 export default function VoletPage({ mobile, titre, chapeau, idContenu, libelleRepli, actifs, ouvert, surBascule, horsRepli, children }: Props) {
@@ -59,6 +60,7 @@ export default function VoletPage({ mobile, titre, chapeau, idContenu, libelleRe
       {mobile ? (
         <>
           {horsRepli && <div style={{ padding: '12px 15px 10px' }}>{horsRepli}</div>}
+          {children != null && <>
           <button type="button" onClick={surBascule} aria-expanded={ouvert} aria-controls={idContenu}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px',
@@ -71,6 +73,7 @@ export default function VoletPage({ mobile, titre, chapeau, idContenu, libelleRe
             </span>
           </button>
           {ouvert && <div id={idContenu} style={{ padding: '10px 15px 18px' }}>{children}</div>}
+          </>}
         </>
       ) : (
         <div id={idContenu} className="cs-defilement-discret" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '10px 15px 22px' }}>

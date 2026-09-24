@@ -17,13 +17,15 @@ import { couvertureDe } from '@/app/lib/couverturesEssai'
 import { categoriePrincipale, FleuronGenre } from '@/app/lib/fleuronsCouverture'
 import { normaliserSaisie } from '@/app/lib/typographie'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
-import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import MarqueMecene from '@/app/components/MarqueMecene'
-import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
+import { OPTION_VOLET } from '@/app/lib/stylesVoletLecture'
 import { PisteInterrupteur } from '@/app/compte/champsCompte'
 import { SERIF, SANS } from '@/app/lib/polices'
 import { MentionVide } from '@/app/components/EtatVideVolet'
 import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
+import { useEstMobile } from '@/app/lib/useEstMobile'
+import VoletPage, { BoutonReinitialiser, GroupeFiltre, LigneCompte } from '@/app/components/VoletPage'
+import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 
 const CATEGORIES = CATEGORIES_ESSAIS
 
@@ -174,12 +176,30 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
   }
 
   const q = plier(recherche.trim())
-  const essaisFiltres = useMemo(() => essais.filter(e => {
-    if (filtreCategorie && !e.categories.includes(filtreCategorie)) return false
-    if (!q) return true
-    // Le sous-titre est cherché : il est écrit sur la face, le lecteur le lit.
-    return [e.auteur, e.titre, e.sous_titre, e.resume].some(x => !!x && plier(x).includes(q))
-  }), [essais, filtreCategorie, q])
+  // Le sous-titre est cherché : il est écrit sur la face, le lecteur le lit.
+  const essaisCherches = useMemo(() => q
+    ? essais.filter(e => [e.auteur, e.titre, e.sous_titre, e.resume].some(x => !!x && plier(x).includes(q)))
+    : essais, [essais, q])
+  const essaisFiltres = useMemo(() => filtreCategorie
+    ? essaisCherches.filter(e => e.categories.includes(filtreCategorie))
+    : essaisCherches, [essaisCherches, filtreCategorie])
+  // Le compte d'une catégorie se prend sur la recherche, jamais sur la catégorie
+  // retenue : il dit ce qu'elle rendrait si on la choisissait.
+  const comptesCategories = useMemo(() => {
+    const m = new Map<string, number>()
+    essaisCherches.forEach(e => e.categories.forEach(c => m.set(c, (m.get(c) ?? 0) + 1)))
+    return m
+  }, [essaisCherches])
+  // Seules les catégories que le rayon porte paraissent ; celle qui agit reste toujours.
+  const categoriesPresentes = CATEGORIES.filter(c => c === filtreCategorie || essais.some(e => e.categories.includes(c)))
+  const filtreActif = !!filtreCategorie || !!recherche.trim()
+  const toutAfficher = () => { setFiltreCategorie(null); setRecherche('') }
+
+  // ── Le volet de gauche (charte § 38.39, modèle des pages sœurs : VoletPage) ──
+  const mobile = useEstMobile()
+  const [panneauOuvert, setPanneauOuvert] = useState(false)
+  const [filtreEcrits, setFiltreEcrits] = useState<FiltreEcrits>('tous')
+  const [triEcrits, setTriEcrits] = useState<TriEcrits>('modification')
 
   // ⛔ Les plus lus se comptent sur TOUT le rayon, jamais sur ce que le filtre a
   // laissé : une recherche qui ne retenait que deux publications les sacrait toutes
@@ -210,80 +230,122 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
   // La barre n'offre son bouton que là où la visite peut se donner.
   useEffect(() => { if (!visitePossible) return; return offrirLaVisite(() => setVisite(n => n + 1)) }, [visitePossible])
 
+  // Ce que le volet porte suit la section ouverte : l'ordre et les catégories du
+  // rayon, les axes de « Mes écrits », les deux façons d'écrire.
+  const ORDRES: { cle: Ordre; libelle: string }[] = [
+    { cle: 'recents', libelle: 'Les plus récents' },
+    { cle: 'lus', libelle: 'Les plus lus' },
+  ]
+  const ECRIRE: { cle: 'rediger' | 'suggestion'; libelle: string }[] = [
+    { cle: 'rediger', libelle: 'Rédiger un texte' },
+    { cle: 'suggestion', libelle: 'Commenter un verset' },
+  ]
+  const champRecherche = (
+    <ChampRechercheVolet dataVisite={mobile ? 'communaute-recherche' : undefined}
+      valeur={recherche} surChangement={setRecherche}
+      placeholder="Auteur, titre, résumé…" ariaLabel="Chercher parmi les auteurs, les titres et les résumés" />
+  )
+  const axesEcrire = (
+    <GroupeFiltre label="Écrire">
+      {ECRIRE.map(s => <OptionVolet key={s.cle} actif={sousEcrire === s.cle} onClick={() => setSousEcrire(s.cle)} libelle={s.libelle} />)}
+    </GroupeFiltre>
+  )
+  const mesEcritsListes = (mesEcrits ?? []).length > 0 ? mesEcrits ?? [] : null
+
+  let contenuVolet: React.ReactNode = undefined
+  let horsRepli: React.ReactNode = undefined
+  let libelleRepli = 'Filtrer'
+  if (onglet === 'communaute') {
+    libelleRepli = 'Ordre et catégories'
+    horsRepli = mobile ? champRecherche : undefined
+    contenuVolet = (
+      <div data-visite={mobile ? undefined : 'communaute-recherche'}>
+        {!mobile && champRecherche}
+        <GroupeFiltre label="Ordre">
+          {ORDRES.map(o => <OptionVolet key={o.cle} actif={ordre === o.cle} onClick={() => setOrdre(o.cle)} libelle={o.libelle} />)}
+        </GroupeFiltre>
+        {categoriesPresentes.length > 0 && (
+          <GroupeFiltre label="Catégorie">
+            {categoriesPresentes.map(c => (
+              // Un second clic sur la catégorie retenue la relâche.
+              <LigneCompte key={c} actif={filtreCategorie === c} onClick={() => setFiltreCategorie(filtreCategorie === c ? null : c)}
+                label={c} n={comptesCategories.get(c) ?? 0} />
+            ))}
+          </GroupeFiltre>
+        )}
+        {filtreActif && <BoutonReinitialiser onClick={toutAfficher} />}
+      </div>
+    )
+  } else if (onglet === 'mes-ecrits') {
+    libelleRepli = 'Afficher et trier'
+    contenuVolet = mesEcritsListes ? (
+      <>
+        <GroupeFiltre label="Afficher">
+          {FILTRES_ECRITS.filter(f => f.cle !== 'a_revoir' || filtreEcrits === 'a_revoir' || mesEcritsListes.some(estARevoir)).map(f => (
+            <OptionVolet key={f.cle} actif={filtreEcrits === f.cle} onClick={() => setFiltreEcrits(f.cle)} libelle={f.libelle} nombre={mesEcritsListes.filter(f.test).length} />
+          ))}
+        </GroupeFiltre>
+        <GroupeFiltre label="Trier par">
+          {TRIS_ECRITS.map(t => <OptionVolet key={t.cle} actif={triEcrits === t.cle} onClick={() => setTriEcrits(t.cle)} libelle={t.libelle} />)}
+        </GroupeFiltre>
+      </>
+    ) : undefined
+  } else {
+    // Au téléphone, les deux façons d'écrire restent visibles : un repli qui ne
+    // cacherait que deux lignes ferait chercher le second choix.
+    if (mobile) horsRepli = axesEcrire
+    else contenuVolet = axesEcrire
+  }
+
   return (
     <main style={{
       background: 'var(--cs-fond)',
       // AUCUN paddingTop ici. Le décalage sous la navbar fixe est posé UNE SEULE fois
-      // pour tout le site, par #cs-corps dans app/layout.tsx. Le répéter le comptait
-      // deux fois — c'est la règle déjà appliquée à la Bibliothèque et aux traductions.
+      // pour tout le site, par #cs-corps dans app/layout.tsx.
       minHeight: HAUTEUR_SOUS_NAVBAR,
     }}>
-      {/* ⛔ La MESURE reste celle de la Communauté, 71rem : elle porte trois
-          couvertures de front, quand la Bibliothèque n'a que du texte à ranger sur
-          56,25. Une page prend la mesure de ce qu'elle contient (charte, § 36).
-          Le RYTHME VERTICAL, lui, est celui de la Bibliothèque, au pixel près :
-          22 px au-dessus du titre, 14 entre le titre et les onglets, 14 sous eux. */}
-      <div className="essais-corps" style={{ maxWidth: '71rem', margin: '0 auto', padding: '22px 32px 40px' }}>
+      {/* ⚠️ La largeur d'une couverture et l'écart entre deux vivent ICI, en une seule
+          paire de valeurs : le rayon les emploie, et la colonne en DÉRIVE sa mesure,
+          celle de trois couvertures de front. */}
+      <style>{`
+        .essais-corps { --couv: 14.5rem; --couv-ecart: 1.6rem; max-width: calc(3 * var(--couv) + 2 * var(--couv-ecart)); margin: 0 auto; }
+      `}</style>
+      <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: 'stretch', width: '100%' }}>
 
-        {/* En-tête : titre, onglets et recherche, avec une même respiration verticale
-            (≈14 px) entre chaque strate pour former un bloc au rythme régulier.
-            ⛔ Le losange d'or qui se tenait sous le titre a été retiré le 27 août 2026 :
-            la Bibliothèque n'en porte pas, et deux pages sœurs ne s'annoncent pas de
-            deux façons. Il tenait à lui seul l'écart entre le titre et les onglets,
-            qui est maintenant une marge chiffrée. */}
-        <div style={{ textAlign: 'center', marginBottom: '14px' }}>
-          <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: 0, lineHeight: INTERLIGNE_TITRE_PAGE }}>
-            Communauté
-          </h1>
-        </div>
+        {/* ⛔ Le titre de la page vit dans le volet, comme sur les pages sœurs
+            (Péricopes, Histoire, Bibliographie) : plus de titre central. */}
+        <VoletPage mobile={mobile} titre="Communauté"
+          chapeau={<>Les études, notes de lecture et essais publiés par les lecteurs du site.</>}
+          idContenu="communaute-volet" libelleRepli={libelleRepli} actifs={onglet === 'communaute' && filtreActif}
+          ouvert={panneauOuvert} surBascule={() => setPanneauOuvert(o => !o)} horsRepli={horsRepli}>
+          {contenuVolet}
+        </VoletPage>
 
-        {/* Onglets navigation — trois entrées : les écrits de la communauté, les siens,
-            et « Écrire » (qui se subdivise en deux sous-onglets). Modèle commun du
-            site, cf. `.cs-onglets` dans globals.css. */}
-        <OngletsPage
-          className="essais-onglets"
-          intitule="Sections de la communauté"
-          actif={onglet}
-          choisir={setOnglet}
-          style={{ marginBottom: '14px' }}
-          onglets={[
-            { cle: 'communaute' as Onglet, libelle: 'Écrits de la communauté' },
-            { cle: 'mes-ecrits' as Onglet, libelle: 'Mes écrits' },
-            { cle: 'ecrire' as Onglet, libelle: 'Écrire' },
-          ]}
-        />
+        <section style={{ flex: 1, minWidth: 0, padding: mobile ? '16px 14px 56px' : '20px 2.5rem 64px' }}>
+          <div className="essais-corps">
+            {/* Trois sections : les écrits de la communauté, les siens, et « Écrire ».
+                Modèle commun du site, cf. `.cs-onglets` dans globals.css. */}
+            <OngletsPage
+              className="essais-onglets"
+              intitule="Sections de la communauté"
+              actif={onglet}
+              choisir={setOnglet}
+              style={{ marginBottom: '18px' }}
+              onglets={[
+                { cle: 'communaute' as Onglet, libelle: 'Écrits de la communauté' },
+                { cle: 'mes-ecrits' as Onglet, libelle: 'Mes écrits' },
+                { cle: 'ecrire' as Onglet, libelle: 'Écrire' },
+              ]}
+            />
 
-        {onglet === 'communaute' ? (
-          <OngletCommunaute
-            recherche={recherche}
-            setRecherche={setRecherche}
-            filtreCategorie={filtreCategorie}
-            setFiltreCategorie={setFiltreCategorie}
-            ordre={ordre}
-            setOrdre={setOrdre}
-            essais={essaisFiltres}
-            total={essais.length}
-            plusLus={plusLus}
-          />
-        ) : onglet === 'mes-ecrits' ? (
-          <OngletMesEcrits connecte={connecte} essais={mesEcrits} changerStatut={changerStatut} supprimer={supprimer} />
-        ) : (
-          <>
-            {/* Deux sous-onglets sous « Écrire ». */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', margin: '14px 0 18px' }}>
-              {([
-                { key: 'rediger' as const, label: 'Rédiger un texte' },
-                { key: 'suggestion' as const, label: 'Commenter un verset' },
-              ]).map(s => (
-                <button key={s.key} onClick={() => setSousEcrire(s.key)}
-                  style={{ fontSize: '0.6875rem', padding: '5px 14px', borderRadius: '4px', border: `1px solid ${sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: sousEcrire === s.key ? 'rgba(var(--cs-vert-rgb),0.09)' : 'var(--cs-surface)', color: sousEcrire === s.key ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', fontWeight: sousEcrire === s.key ? 600 : 400, cursor: 'pointer' }}>
-                  {s.label}
-                </button>
-              ))}
-            </div>
-            {sousEcrire === 'rediger' ? <OngletEcrire connecte={connecte} /> : <OngletSuggestion connecte={connecte} />}
-          </>
-        )}
+            {onglet === 'communaute' ? (
+              <OngletCommunaute ordre={ordre} essais={essaisFiltres} total={essais.length} plusLus={plusLus} />
+            ) : onglet === 'mes-ecrits' ? (
+              <OngletMesEcrits connecte={connecte} essais={mesEcrits} filtre={filtreEcrits} tri={triEcrits}
+                changerStatut={changerStatut} supprimer={supprimer} />
+            ) : sousEcrire === 'rediger' ? <OngletEcrire connecte={connecte} /> : <OngletSuggestion connecte={connecte} />}
+          </div>
+        </section>
       </div>
       {visite > 0 && <VisiteGuidee key={visite} visite={VISITE_COMMUNAUTE} onFin={() => setVisite(0)} />}
     </main>
@@ -299,13 +361,8 @@ function formaterDateLongue(publie_at: string | null): string {
   return new Date(publie_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' })
 }
 
-function OngletCommunaute({
-  recherche, setRecherche, filtreCategorie, setFiltreCategorie, ordre, setOrdre, essais, total, plusLus,
-}: {
-  recherche: string; setRecherche: (v: string) => void
-  filtreCategorie: string | null; setFiltreCategorie: (v: string | null) => void
-  ordre: Ordre; setOrdre: (v: Ordre) => void
-  essais: EssaiResume[]; total: number; plusLus: Set<number>
+function OngletCommunaute({ ordre, essais, total, plusLus }: {
+  ordre: Ordre; essais: EssaiResume[]; total: number; plusLus: Set<number>
 }) {
   const { favoris: favorisEssais, toggle: toggleFavoriEssai } = useFavoris('essai')
 
@@ -317,80 +374,21 @@ function OngletCommunaute({
     : (a, b) => (b.publie_at ?? '').localeCompare(a.publie_at ?? '')),
   [essais, ordre])
 
-  const filtre = !!filtreCategorie || !!recherche.trim()
-  const toutAfficher = () => { setFiltreCategorie(null); setRecherche('') }
-
   return (
     <>
-      {/* Recherche + filtres de catégorie, centrés ; les tags passent à la ligne. */}
-      <div data-visite="communaute-recherche" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '18px' }}>
-        <div style={{ position: 'relative', width: '13.75rem', flexShrink: 0 }}>
-          <input type="text" value={recherche} onChange={e => setRecherche(e.target.value)}
-            aria-label="Chercher parmi les auteurs, les titres et les résumés"
-            placeholder="Auteur, titre, résumé…"
-            style={{ width: '100%', fontSize: '0.6875rem', padding: '5px 12px 5px 28px', border: '1px solid var(--cs-bord)', borderRadius: '999px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }} />
-          <svg width="11" height="11" viewBox="0 0 13 13" fill="none" style={{ color: 'var(--cs-texte-fort)', position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', opacity: 0.32 }}>
-            <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" strokeWidth="1.2"/>
-            <line x1="9" y1="9" x2="12" y2="12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-          </svg>
-        </div>
-        <div role="group" aria-label="Catégories" style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <button type="button" aria-pressed={!filtreCategorie} onClick={() => setFiltreCategorie(null)} style={tagFiltre(!filtreCategorie)}>Tout</button>
-          {/* Un second clic sur l'étiquette active la relâche : on n'a pas à viser « Tout ». */}
-          {CATEGORIES.map(c => <button type="button" key={c} aria-pressed={filtreCategorie === c} onClick={() => setFiltreCategorie(filtreCategorie === c ? null : c)} style={tagFiltre(filtreCategorie === c)}>{c}</button>)}
-        </div>
-      </div>
-
       <style>{`
-        .publications-sommaire-tete { display: flex; align-items: center; gap: 14px; margin: 0 0 14px; }
-        .publications-sommaire-tete::before,
-        .publications-sommaire-tete::after {
-          content: ""; height: 1px; flex: 1;
-          background: linear-gradient(90deg, rgba(var(--cs-or-rgb),0.04), rgba(var(--cs-or-rgb),0.34), rgba(var(--cs-or-rgb),0.04));
-        }
-        /* La tête du sommaire porte les deux ordres du rayon, séparés d'un losange.
-           Elle garde le dessin de l'ancien « Au sommaire » : on y lit l'ordre en
-           cours, et l'autre se tient en retrait, à un clic. */
-        .publications-sommaire-ordres { display: flex; align-items: baseline; gap: 10px; }
-        .publications-sommaire-ordres button {
-          background: none; border: none; padding: 2px 0 2px 0.24em; cursor: pointer;
-          font: inherit; font-size: 0.625rem; font-weight: 700; letter-spacing: 0.24em;
-          text-transform: uppercase; color: var(--cs-lacune); opacity: 0.5;
-          transition: opacity var(--cs-duree-courte) ease;
-        }
-        .publications-sommaire-ordres button:hover { opacity: 0.8; }
-        .publications-sommaire-ordres button[aria-pressed="true"] { opacity: 1; cursor: default; }
-        .publications-sommaire-losange { font-size: 0.5rem; color: var(--cs-lacune); opacity: 0.45; }
-        /* Sous la tête, quand un filtre retient : combien, sur combien, et de quoi
-           tout rendre. Une ligne, en italique, sans cadre. */
-        .publications-compte {
-          margin: -4px 0 18px; text-align: center;
-          font-size: 0.75rem; font-style: italic; color: var(--cs-texte-doux);
-        }
-        .publications-compte button {
-          background: none; border: none; padding: 0; margin-left: 4px; cursor: pointer;
-          font: inherit; font-style: normal; color: var(--cs-vert); text-decoration: underline;
-          text-underline-offset: 2px; text-decoration-thickness: 1px;
-        }
-
-        /* Trois couvertures par rang, comme une table d'étalage. */
+        /* Trois couvertures par rang au plus, comme une table d'étalage : la colonne
+           (.essais-corps) en porte la mesure, et le rayon y range autant de
+           couvertures qu'elle en tient, sans jamais toucher à leur largeur. */
         /* La largeur est bornée sur les COLONNES, pas sur la couverture : celle-ci
            doit rester étirée par sa case. Toute tentative de la brider elle-même
            (marge automatique ou justify-self) lui retire l'étirement, et comme tous
            ses enfants sont hors flux, sa largeur retombe à ZÉRO : elle disparaît
            sans que rien ne le signale. */
-        /* ⚠️ La largeur d'une couverture et l'écart entre deux vivent ICI, en une
-           seule paire de valeurs : le rayon les emploie, et la barre d'onglets en
-           DÉRIVE sa mesure. Écrites deux fois, elles dériveraient, et la barre
-           surmonterait de nouveau autre chose que ce qu'elle commande. */
-        .essais-corps { --couv: 14.5rem; --couv-ecart: 1.6rem; }
         .rayon {
-          display: grid; grid-template-columns: repeat(3, var(--couv));
+          display: grid; grid-template-columns: repeat(auto-fill, var(--couv));
           justify-content: center; gap: 2rem var(--couv-ecart);
         }
-        /* La barre se borne au rayon qu'elle surmonte et s'y centre. En deçà, le
-           conteneur est déjà plus étroit qu'elle et le maximum ne mord pas. */
-        .essais-onglets { max-width: calc(3 * var(--couv) + 2 * var(--couv-ecart)); }
 
         /* Une couverture : proportion d'un petit livre, couleur pleine, composition
            CENTRÉE et EN EMPATTEMENT, comme une page de titre gravée. La face
@@ -609,20 +607,11 @@ function OngletCommunaute({
           font-variation-settings: "opsz" 9, "wght" 400;
         }
 
-        /* ⚠️ Les requêtes ne changent que le NOMBRE de colonnes : largeur et écart
-           restent « --couv » et « --couv-ecart ». Elles réécrivaient 14,5rem et leur
-           propre gouttière (1,2rem), si bien que la paire « écrite une seule fois »
-           l'était trois (audit d'harmonie, 2026-09-23, § 5.3). */
-        @media (max-width: 900px) { .rayon { grid-template-columns: repeat(2, var(--couv)); row-gap: 1.4rem; } }
-        @media (max-width: 640px) { .rayon { grid-template-columns: var(--couv); } }
-        /* ⛔ Deux couvertures de 14,5rem et leur gouttière font 490px ; avec les 64px
-           de rembourrage de la page, le rayon en réclamait 554 quand il ne passe à une
-           colonne qu'à 520. Entre les deux, jusqu'à 34px de débordement. Le rembourrage
-           tombe à 16px sous 640, comme celui de la Bibliothèque, et les deux colonnes
-           tiennent alors dès 522px. Le point d'exclamation : il est posé en ligne. */
-        @media (max-width: 640px) {
-          .essais-corps { padding-left: 16px !important; padding-right: 16px !important; }
-        }
+        /* ⚠️ Plus aucune requête de largeur sur le rayon : « auto-fill » y range deux
+           couvertures, puis une, à mesure que la colonne se resserre, que le volet
+           soit ouvert à côté ou empilé au-dessus. La largeur d'une couverture et son
+           écart restent la paire unique de .essais-corps. */
+        @media (max-width: 900px) { .rayon { row-gap: 1.4rem; } }
 
         /* La légende : ce que la quatrième dit au survol, écrit SOUS le livre là où
            rien ne se survole. Absente partout ailleurs. */
@@ -655,30 +644,20 @@ function OngletCommunaute({
       {total === 0 ? (
         <div style={{ textAlign: 'center', margin: '0.8125rem 0' }}><MentionVide>Aucune publication pour l’instant.</MentionVide></div>
       ) : (
-        <>
-          <div className="publications-sommaire-tete">
-            <div className="publications-sommaire-ordres" role="group" aria-label="Ordre du sommaire">
-              <button type="button" aria-pressed={ordre === 'recents'} onClick={() => setOrdre('recents')}>Les plus récents</button>
-              <span className="publications-sommaire-losange" aria-hidden="true">◆</span>
-              <button type="button" aria-pressed={ordre === 'lus'} onClick={() => setOrdre('lus')}>Les plus lus</button>
-            </div>
+        tries.length === 0 ? (
+          // Le compte des catégories vit dans le volet : sous la liste ne reste que ce
+          // qu'une recherche sans réponse doit dire, en clair et à la place du rayon.
+          <div role="status" style={{ textAlign: 'center', margin: '0.8125rem 0' }}>
+            <MentionVide>Aucune publication ne correspond aux filtres retenus.</MentionVide>
           </div>
-          {/* Le compte est annoncé aux lecteurs d'écran à chaque frappe (aria-live). */}
-          <p className="publications-compte" aria-live="polite">
-            {filtre && <>
-              {tries.length === 0
-                ? 'Aucune publication ne répond à cette recherche.'
-                : `${tries.length} publication${tries.length > 1 ? 's' : ''} sur ${total}.`}
-              <button type="button" onClick={toutAfficher}>Tout afficher</button>
-            </>}
-          </p>
-          {tries.length > 0 && <div className="rayon">
+        ) : (
+          <div className="rayon">
             {tries.map(e => (
               <CouvertureEssai key={e.id} essai={e} plusLu={plusLus.has(e.id)}
                 favorisEssais={favorisEssais} toggleFavoriEssai={toggleFavoriEssai} />
             ))}
-          </div>}
-        </>
+          </div>
+        )
       )}
     </>
   )
@@ -876,13 +855,12 @@ function OptionVolet({ actif, onClick, libelle, nombre }: { actif: boolean; onCl
 }
 
 function OngletMesEcrits({
-  connecte, essais, changerStatut, supprimer,
+  connecte, essais, filtre, tri, changerStatut, supprimer,
 }: {
   connecte: boolean | null; essais: EssaiPerso[] | null
+  filtre: FiltreEcrits; tri: TriEcrits
   changerStatut: (id: number, statut: string) => Promise<void>; supprimer: (id: number) => Promise<void>
 }) {
-  const [filtre, setFiltre] = useState<FiltreEcrits>('tous')
-  const [tri, setTri] = useState<TriEcrits>('modification')
   const [toggles, setToggles] = useState<Record<number, number>>({})
   const [maintenant, setMaintenant] = useState(Date.now())
 
@@ -936,12 +914,9 @@ function OngletMesEcrits({
   return (
     <div className="mes-ecrits">
       <style>{`
-        /* Le volet prend 12,5 rem, la liste la mesure de l'ancienne colonne (42,5 rem) ;
-           l'ensemble se centre dans les 71 rem de la page, comme le rayon. */
-        .mes-ecrits { display: grid; grid-template-columns: 12.5rem minmax(0, 42.5rem); justify-content: center; column-gap: 2.25rem; }
-        .mes-ecrits-volet { align-self: start; position: sticky; top: calc(3.5rem + 14px); border-right: 1px solid var(--cs-bord-clair); padding: 2px 1.25rem 4px 7px; }
-        .mes-ecrits-axe { margin-top: 12px; }
-        .mes-ecrits-liste { min-width: 0; }
+        /* Les axes « Afficher » et « Trier par » vivent dans le volet de la page ; la
+           liste garde la mesure d'une colonne de lecture, centrée sous les onglets. */
+        .mes-ecrits { max-width: 42.5rem; margin: 0 auto; }
 
         /* Une ligne par écrit : la puce d'état, le titre et sa ligne de sans, les actions. */
         .ecrit-ligne { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; column-gap: 6px; align-items: start; padding: 7px 0 8px; border-top: 1px solid var(--cs-fond); }
@@ -960,32 +935,12 @@ function OngletMesEcrits({
         @media (hover: none) { .ecrit-actions { opacity: 1; } }
 
         @media (max-width: 640px) {
-          .mes-ecrits { grid-template-columns: minmax(0, 1fr); row-gap: 12px; }
-          .mes-ecrits-volet { position: static; border-right: none; border-bottom: 1px solid var(--cs-bord-clair); padding: 0 7px 10px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
-          .mes-ecrits-axe { margin-top: 0; }
-        }
-        @media (max-width: 640px) {
           .ecrit-ligne { grid-template-columns: 14px minmax(0, 1fr); }
           .ecrit-actions { grid-column: 2; padding-top: 4px; }
         }
       `}</style>
 
-      <aside className="mes-ecrits-volet" aria-label="Afficher et trier mes écrits">
-        <div>
-          <span style={RUBRIQUE_AXE}>Afficher</span>
-          {FILTRES_ECRITS.filter(f => f.cle !== 'a_revoir' || filtre === 'a_revoir' || essais.some(estARevoir)).map(f => (
-            <OptionVolet key={f.cle} actif={filtre === f.cle} onClick={() => setFiltre(f.cle)} libelle={f.libelle} nombre={essais.filter(f.test).length} />
-          ))}
-        </div>
-        <div className="mes-ecrits-axe">
-          <span style={RUBRIQUE_AXE}>Trier par</span>
-          {TRIS_ECRITS.map(t => (
-            <OptionVolet key={t.cle} actif={tri === t.cle} onClick={() => setTri(t.cle)} libelle={t.libelle} />
-          ))}
-        </div>
-      </aside>
-
-      <div className="mes-ecrits-liste">
+      <div>
         {visibles.length === 0 ? (
           <div style={{ margin: '6px 0' }}><MentionVide>Aucun écrit dans cette vue.</MentionVide></div>
         ) : visibles.map(e => {
@@ -1168,18 +1123,6 @@ function OngletSuggestion({ connecte }: { connecte: boolean | null }) {
   )
 }
 
-function tagFiltre(actif: boolean): React.CSSProperties {
-  // Tags resserrés et plus légers : pastilles fines, sans bordure au repos ; l'actif se
-  // marque d'un aplat vert discret. Plus élégant que les anciens contours gris.
-  return {
-    fontSize: '0.6875rem', padding: '3px 10px', borderRadius: '999px',
-    border: '1px solid ' + (actif ? 'var(--cs-vert)' : 'transparent'),
-    background: actif ? 'rgba(var(--cs-vert-rgb),0.10)' : 'color-mix(in srgb, var(--cs-texte-gris) 6%, transparent)',
-    color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', cursor: 'pointer',
-    fontWeight: actif ? 600 : 400, letterSpacing: '0.02em', lineHeight: 1.3,
-    transition: 'background var(--cs-duree-courte), color var(--cs-duree-courte)',
-  }
-}
 function formatTimer(ms: number): string {
   const total = Math.ceil(ms / 1000)
   const minutes = Math.floor(total / 60)

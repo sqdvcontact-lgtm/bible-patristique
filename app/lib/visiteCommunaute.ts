@@ -1,8 +1,9 @@
 /**
  * LA VISITE DE LA COMMUNAUTÉ — la septième (2026-09-21).
  *
- * Trois arrêts, de haut en bas : la page n'a qu'une colonne. Les sections, ce qui
- * restreint le sommaire, une couverture.
+ * Trois arrêts, colonne par colonne : le volet d'abord (la recherche, l'ordre et
+ * les catégories), puis la page (les sections, une couverture). Depuis le
+ * 2026-09-24, la Communauté prend le volet des pages sœurs.
  *
  * ⛔ CE QUE LA VISITE DOIT DIRE, et que la page ne dit pas : qu'« Écrire » cache deux
  * façons d'écrire, qu'une couverture se RETOURNE au survol pour donner son résumé, et
@@ -30,6 +31,16 @@ export const VISITE_COMMUNAUTE: Visite = {
   ],
   etapes: [
     {
+      cle: 'recherche',
+      sujet: ['[data-visite="communaute-recherche"]'],
+      titre: 'Recherche et filtres',
+      texte: [
+        'Le champ cherche parmi les auteurs, les titres et les résumés.',
+        'Le volet règle aussi l’ordre des publications, et limite le sommaire à une catégorie de texte.',
+      ],
+      cote: 'droite',
+    },
+    {
       cle: 'sections',
       // La classe existait déjà : `OngletsPage` la reçoit de la page.
       sujet: ['.essais-onglets'],
@@ -38,16 +49,6 @@ export const VISITE_COMMUNAUTE: Visite = {
         '**Écrits de la communauté** présente les textes publiés.',
         '**Mes écrits** rassemble les vôtres, publiés ou non.',
         '**Écrire** permet de rédiger un texte, ou de commenter un verset tiré au hasard.',
-      ],
-      cote: 'dessous',
-    },
-    {
-      cle: 'recherche',
-      sujet: ['[data-visite="communaute-recherche"]'],
-      titre: 'Recherche',
-      texte: [
-        'Le champ cherche parmi les auteurs, les titres et les résumés.',
-        'Les étiquettes limitent le sommaire à une catégorie de texte.',
       ],
       cote: 'dessous',
     },
