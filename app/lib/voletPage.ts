@@ -13,7 +13,8 @@ import { GOUTTIERE_PAGE, HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from './mesures'
  */
 /** La largeur du volet sur un écran large. Une page qui centre son contenu sur la
  *  FENÊTRE (la Communauté) en a besoin pour ne jamais passer dessous. */
-export const LARGEUR_VOLET_PAGE = '15.5rem'
+export const LARGEUR_VOLET_PAGE_REM = 15.5
+export const LARGEUR_VOLET_PAGE = `${LARGEUR_VOLET_PAGE_REM}rem`
 
 export function styleVoletPage(mobile: boolean): CSSProperties {
   return {
@@ -43,7 +44,19 @@ export const CHAPEAU_VOLET_PAGE: CSSProperties = {
 }
 
 /** Le blanc de part et d’autre de la colonne, sur un écran large. */
-export const MARGE_COLONNE_PAGE = '2.5rem'
+export const MARGE_COLONNE_PAGE_REM = 2.5
+export const MARGE_COLONNE_PAGE = `${MARGE_COLONNE_PAGE_REM}rem`
+
+/**
+ * Le PENDANT du volet, à droite : même largeur, même fond, même filet, collant comme
+ * lui, et vide. Il ne se rend que sur un écran assez large (`usePendantVolet`).
+ */
+export const STYLE_PENDANT_VOLET: CSSProperties = {
+  flexShrink: 0, width: LARGEUR_VOLET_PAGE,
+  position: 'sticky', top: HAUTEUR_NAVBAR, height: HAUTEUR_SOUS_NAVBAR,
+  background: 'var(--cs-fond-clair)',
+  borderLeft: '1px solid var(--cs-bord)',
+}
 
 /**
  * La colonne de droite des pages à volet : Communauté, bibliographie, histoire de

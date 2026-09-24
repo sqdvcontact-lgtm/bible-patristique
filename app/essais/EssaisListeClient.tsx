@@ -24,11 +24,15 @@ import { SERIF, SANS } from '@/app/lib/polices'
 import { MentionVide } from '@/app/components/EtatVideVolet'
 import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { useEstMobile } from '@/app/lib/useEstMobile'
-import { styleColonnePage, styleMesureCentree } from '@/app/lib/voletPage'
+import { STYLE_PENDANT_VOLET, styleColonnePage, styleMesureCentree } from '@/app/lib/voletPage'
+import { usePendantVolet } from '@/app/lib/usePendantVolet'
 import VoletPage, { BoutonReinitialiser, GroupeFiltre, LigneCompte } from '@/app/components/VoletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 
 const CATEGORIES = CATEGORIES_ESSAIS
+/** La mesure du rayon, en rem : trois couvertures de 14,5 rem et deux écarts de 1,6 rem,
+ *  la paire que .essais-corps écrit en CSS. */
+const MESURE_REM_COMMUNAUTE = 3 * 14.5 + 2 * 1.6
 
 type Onglet = 'communaute' | 'mes-ecrits' | 'ecrire' | 'suggestion'
 
@@ -198,6 +202,8 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
 
   // ── Le volet de gauche (charte § 38.39, modèle des pages sœurs : VoletPage) ──
   const mobile = useEstMobile()
+  // Le pendant vide du volet, à droite, sur un grand écran (charte § 38.39).
+  const pendant = usePendantVolet(MESURE_REM_COMMUNAUTE, !mobile)
   const [panneauOuvert, setPanneauOuvert] = useState(false)
   const [filtreEcrits, setFiltreEcrits] = useState<FiltreEcrits>('tous')
   const [triEcrits, setTriEcrits] = useState<TriEcrits>('modification')
@@ -348,6 +354,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
             ) : sousEcrire === 'rediger' ? <OngletEcrire connecte={connecte} /> : <OngletSuggestion connecte={connecte} />}
           </div>
         </section>
+        {pendant && <div aria-hidden style={STYLE_PENDANT_VOLET} />}
       </div>
       {visite > 0 && <VisiteGuidee key={visite} visite={VISITE_COMMUNAUTE} onFin={() => setVisite(0)} />}
     </main>

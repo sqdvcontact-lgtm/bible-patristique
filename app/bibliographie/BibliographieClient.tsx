@@ -34,7 +34,8 @@ import {
   type NomsPericopes,
 } from '@/app/lib/bibliographieCatalogue'
 import { SERIF, SANS } from '@/app/lib/polices'
-import { styleColonnePage, styleMesureCentree } from '@/app/lib/voletPage'
+import { STYLE_PENDANT_VOLET, styleColonnePage, styleMesureCentree } from '@/app/lib/voletPage'
+import { usePendantVolet } from '@/app/lib/usePendantVolet'
 import VoletPage, { BoutonReinitialiser, GroupeFiltre, LienDiscret, LigneCompte } from '@/app/components/VoletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 import { MentionVide } from '@/app/components/EtatVideVolet'
@@ -140,6 +141,8 @@ function PericopesCitantes({ entree, noms }: { entree: EntreeBibliographie; noms
 
 export default function BibliographieClient({ entrees: servies, nomsPericopes }: { entrees: EntreeBibliographie[]; nomsPericopes: NomsPericopes }) {
   const mobile = useEstMobile()
+  // Le pendant vide du volet, à droite, sur un grand écran (charte § 38.39).
+  const pendant = usePendantVolet(48, !mobile)
   const [filtres, setFiltres] = useState<FiltresBibliographie>(FILTRES_VIDES)
   const [tousSiecles, setTousSiecles] = useState(false)
   const [panneauOuvert, setPanneauOuvert] = useState(false)
@@ -403,6 +406,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
             )}
           </div>
         </section>
+        {pendant && <div aria-hidden style={STYLE_PENDANT_VOLET} />}
       </div>
       {visite > 0 && <VisiteGuidee key={visite} visite={VISITE_BIBLIOGRAPHIE} onFin={() => setVisite(0)} />}
     </main>

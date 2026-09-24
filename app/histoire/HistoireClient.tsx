@@ -18,7 +18,8 @@ import { STYLE_RUBRIQUE } from '@/app/lib/hierarchieTitres'
 import { colorMix } from '@/app/lib/couleurs'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { SERIF, SANS } from '@/app/lib/polices'
-import { styleColonnePage, styleMesureCentree } from '@/app/lib/voletPage'
+import { STYLE_PENDANT_VOLET, styleColonnePage, styleMesureCentree } from '@/app/lib/voletPage'
+import { usePendantVolet } from '@/app/lib/usePendantVolet'
 import VoletPage, { BoutonReinitialiser, GroupeFiltre, LigneCompte } from '@/app/components/VoletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 
@@ -137,6 +138,8 @@ export default function HistoireClient(
   { evs, series, relations }: { evs: RangFrise[]; series: SerieFrise[]; relations: RelationFrise[] },
 ) {
   const mobile = useEstMobile()
+  // Le pendant vide du volet, à droite, sur un grand écran (charte § 38.39).
+  const pendant = usePendantVolet(48, !mobile)
   const [mode, setMode] = useState<ModeLecture>('reperes')
   const [f, setF] = useState<Filtres>(FILTRES_VIDES)
   const [panneauOuvert, setPanneauOuvert] = useState(false)
@@ -454,6 +457,7 @@ export default function HistoireClient(
             )}
           </div>
         </section>
+        {pendant && <div aria-hidden style={STYLE_PENDANT_VOLET} />}
       </div>
     </main>
   )

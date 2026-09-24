@@ -68,7 +68,8 @@ import {
 } from '@/app/lib/pericopes'
 import { filtrerCatalogue, TESTAMENT_LIVRE } from '@/app/lib/pericopesRecherche'
 import { SERIF, SANS } from '@/app/lib/polices'
-import { styleColonnePage, styleMesureCentree } from '@/app/lib/voletPage'
+import { STYLE_PENDANT_VOLET, styleColonnePage, styleMesureCentree } from '@/app/lib/voletPage'
+import { usePendantVolet } from '@/app/lib/usePendantVolet'
 import VoletPage, { BoutonReinitialiser, GroupeFiltre, LienDiscret, LigneCompte, RubriqueVolet } from '@/app/components/VoletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 import { MentionVide } from '@/app/components/EtatVideVolet'
@@ -131,6 +132,8 @@ function gloseEntree(it: PericopeCatalogueItem): string {
 
 export default function PericopesCatalogueClient({ items }: { items: PericopeCatalogueItem[] }) {
   const mobile = useEstMobile()
+  // Le pendant vide du volet, à droite, sur un grand écran (charte § 38.39).
+  const pendant = usePendantVolet(52, !mobile)
   const [q, setQ] = useState('')
   const [testament, setTestament] = useState<ChoixTestament>('TOUT')
   const [registres, setRegistres] = useState<Set<string>>(new Set())
@@ -503,6 +506,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
             )}
           </div>
         </section>
+        {pendant && <div aria-hidden style={STYLE_PENDANT_VOLET} />}
       </div>
       {visite > 0 && <VisiteGuidee key={visite} visite={VISITE_PERICOPES} onFin={() => setVisite(0)} />}
     </main>
