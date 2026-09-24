@@ -152,8 +152,8 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
   // Le titre original ne paraît que s'il dit autre chose que le titre affiché.
   // Quand l'œuvre est nommée par son intitulé d'origine (« Confessiones »), le
   // répéter en italique juste dessous ne renseigne personne et fait bégayer le
-  // frontispice. L'administrateur, lui, le garde sous les yeux : c'est le champ
-  // qu'il doit pouvoir corriger.
+  // frontispice. L'administrateur ne le voit pas davantage (2026-09-24) : il garde
+  // seulement le crayon, et une mention discrète qui dit pourquoi le champ se tait.
   const titreAffiche = oeuvre.titre_affichage || titre
   // ⛔ CHAQUE ÉLÉMENT DU FRONTISPICE A SES DEUX FACES (2026-09-20), sur le modèle du
   // titre : le champ de CATALOGUE nomme la chose partout ailleurs et s'écrit d'un seul
@@ -165,7 +165,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
   const sousTitreAffiche = oeuvre.sous_titre_affichage || oeuvre.sous_titre || ''
   const titreOriginal = oeuvre.titre_original ?? ''
   const titreOriginalVisible = titreOriginal !== ''
-    && (!memeIntitule(titreOriginal, titreAffiche) || estAdmin)
+    && !memeIntitule(titreOriginal, titreAffiche)
   // ⛔ L'identité de l'édition ne se compose pas de deux éditions : elle se prend à la
   //    version active, silence compris (voir `identiteEdition`).
   const identite = identiteEdition(oeuvre, versionActive)
@@ -284,7 +284,7 @@ export default function PageTitre({ auteur, oeuvre, versionActive, versionEnRega
       {(titreOriginalVisible || estAdmin) && (
         <div style={{ position: 'relative', alignSelf: 'stretch' }}>
           <p style={{ fontFamily: SERIF, fontSize: 'clamp(1rem, 2.1vw, 1.3125rem)', fontStyle: 'italic', color: 'var(--cs-texte-second)', maxWidth: MESURE_TITRE, margin: '0 auto 1em', letterSpacing: 0, whiteSpace: 'pre-line' }}>
-            {titreOriginalVisible ? rendreIntitule(oeuvre.titre_original_affichage || titreOriginal) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontSize: '0.8125rem' }}>Titre original…</span> : null}
+            {titreOriginalVisible ? rendreIntitule(oeuvre.titre_original_affichage || titreOriginal) : estAdmin ? <span style={{ color: 'var(--cs-bord)', fontSize: '0.8125rem' }}>{titreOriginal ? 'Titre original identique au titre, masqué' : 'Titre original…'}</span> : null}
           </p>
           {estAdmin && (
             <button onClick={() => onModifier('titre_original', titreOriginal)} title="Modifier le titre original"
