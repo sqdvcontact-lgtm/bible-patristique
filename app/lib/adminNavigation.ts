@@ -65,6 +65,10 @@ export const ENTREES_ADMIN: EntreeAdmin[] = [
   // un lien qu'on constitue rejoint la file qu'on vérifie. Ce sont les deux temps d'un même
   // travail sur le corpus, et non un geste de la Communauté, où ils vivaient.
   { href: '/admin?onglet=liens',                label: 'Liens bibliques',     famille: 'corpus', onglet: 'liens' },
+  // L'atelier d'alignement (2026-09-24) : couper et fusionner les groupes d'un ensemble
+  // latin-français, au grain de la charte (§ 12.2). Seule page du site qui ÉCRIT dans
+  // les trois tables d'alignement.
+  { href: '/admin/alignements',                 label: 'Alignements',         famille: 'corpus' },
   // Les styles sous leur nom propre, et l'attribution d'un style à un segment ou à un
   // bloc biblique (2026-09-03). Il vit dans le corpus, avec ce qu'il modifie ; la
   // « Planche des styles », dans le Système, montre chacun d'eux composé.
