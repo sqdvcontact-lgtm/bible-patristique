@@ -155,6 +155,7 @@ const OngletNotes = dynamic(() => import('./OngletNotes'))
 import type { SourceInventaire } from './OngletNotes'
 import { BTN_STYLE, BoutonEnregistrerSegment, BoutonCopieSegment, BoutonSignalerSegment } from './BoutonsSegment'
 import { useEstMobile, useSansSurvol } from '@/app/lib/useEstMobile'
+import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { COMPOSITION_INTITULE, cleTriTitre, complementDeTitre } from '@/app/lib/titres'
@@ -1224,7 +1225,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       if (s?.nav) setNavWidth(s.nav)
       if (s?.pann) setPannWidth(s.pann)
     } catch {}
-    if (typeof window !== 'undefined' && window.innerWidth < 900) {
+    if (typeof window !== 'undefined' && window.innerWidth < POINTS_DE_RUPTURE.tiroirs) {
       setNavOuverte(false)
       setPanneauOuvert(false)
       // ⛔ ET LE SOMMAIRE AVEC EUX (décision de l’auteur, 2026-09-09 : « par défaut,

@@ -54,6 +54,7 @@ import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { adresseRetourBible } from '@/app/lib/retourLecture'
 import { SANS } from '@/app/lib/polices'
 import { STYLE_POSITION_PAGE } from '@/app/lib/hierarchieTitres'
+import { POINTS_DE_RUPTURE } from '@/app/lib/pointsDeRupture'
 
 // ⛔ L'inventaire des notes d'une bible ne se charge qu'avec son onglet : il ne sert qu'à
 // l'administrateur, et le lecteur n'a pas à en payer le poids.
@@ -854,7 +855,7 @@ export default function PanneauPatristique({
   const [ouvertLocal, setOuvertLocal] = useState(true)
   const refPanel = useRef<HTMLElement>(null)
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 900) setOuvertLocal(false)
+    if (typeof window !== 'undefined' && window.innerWidth < POINTS_DE_RUPTURE.tiroirs) setOuvertLocal(false)
   }, [])
   // Mobile : accordéon piloté par le parent (un seul volet ouvert). Desktop : local.
   const ouvert = mobile ? voletMobile === 'commentaires' : ouvertLocal

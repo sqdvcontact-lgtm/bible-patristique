@@ -402,7 +402,7 @@ export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boo
         @keyframes bibleGamesSpark { 0%{opacity:0;transform:scale(0.6) translateY(8px)} 35%{opacity:1} 100%{opacity:0;transform:scale(1.35) translateY(-20px)} }
         @keyframes jacobClimb { 0%{transform:translateY(3px)} 100%{transform:translateY(-3px)} }
         @keyframes chassePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.7;transform:scale(0.97)} }
-        @media (max-width:880px) { .bg-layout{grid-template-columns:1fr !important} .bg-score{min-height:auto !important} .bg-ladder{display:none !important} .bg-answer{grid-template-columns:1fr !important} }
+        @media (max-width:900px) { .bg-layout{grid-template-columns:1fr !important} .bg-score{min-height:auto !important} .bg-ladder{display:none !important} .bg-answer{grid-template-columns:1fr !important} }
       `}</style>
 
       <div style={{ background: 'linear-gradient(135deg, var(--cs-fond-clair) 0%, var(--cs-fond) 46%, var(--cs-vert-pale) 100%)', border: '1px solid rgba(var(--cs-vert-rgb),0.24)', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--cs-ombre-modale)', position: 'relative' }}>
