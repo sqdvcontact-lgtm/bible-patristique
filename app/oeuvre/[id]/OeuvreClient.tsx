@@ -1754,6 +1754,19 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
     }
   }, [pages, pageActuelle])
 
+  // ⛔ EN TEXTE ENTIER, UNE DIVISION DEMANDÉE AVANT LA FIN DE LA COMPLÉTION SE REJOINT À
+  // SON ARRIVÉE : le sommaire nomme toutes les divisions (`niv1List`), la première
+  // tranche n'en porte que le début (2026-09-24).
+  const niv1AViserRef = useRef<string | null>(null)
+  useEffect(() => {
+    const n1 = niv1AViserRef.current
+    if (!n1) return
+    const ancre = groupes.find(g => g.niv1 === n1)?.anchor
+    if (!ancre) return
+    niv1AViserRef.current = null
+    naviguerVersAncre(ancre)
+  }, [groupes, naviguerVersAncre])
+
   // Deep link : aller à la bonne page de pagination puis scroller sur le segment
   useEffect(() => {
     if (!segmentCibleId) return
@@ -2134,6 +2147,9 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       setNiv2Actif(null)
       setVue('texte')
       const ancre = groupes.find(g => g.niv1 === n1)?.anchor
+      // ⚠️ Une division que la première tranche ne porte pas encore s'atteint quand la
+      // complétion arrive (`niv1AViserRef`), au lieu de ne rien faire.
+      niv1AViserRef.current = ancre ? null : n1
       if (ancre) naviguerVersAncre(ancre)
       return
     }
@@ -2202,8 +2218,11 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       try {
         const donnees = await chargerNiv1Data(n1)
         cacheNiv1Ref.current.set(n1, donnees)
-        // N'appliquer que si le lecteur est toujours sur ce niv1.
-        if (!annule && niv1ActifRef.current === n1) {
+        // N'appliquer que si le lecteur est toujours sur ce niv1. ⚠️ En TEXTE ENTIER, la
+        // tranche est le début de toute l'œuvre et la complétion la rapporte entière :
+        // le niveau actif y suit le défilement, et le lecteur qui a lu plus bas
+        // pendant le chargement ne doit pas perdre la suite pour autant.
+        if (!annule && (lectureTexteEntier || niv1ActifRef.current === n1)) {
           setGroupes(donnees.groupes)
           setSegments(donnees.segments)
         }
