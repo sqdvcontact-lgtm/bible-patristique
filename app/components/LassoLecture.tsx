@@ -53,8 +53,8 @@ import {
 } from '@/app/lib/lasso'
 import { compter, libelleSelection } from '@/app/lib/selectionPassages'
 
-/** La planche du fleuron de l'alarme : le memento mori, pris au registre. */
-const FLEURON_ALARME = fleuronDe('memento-mori')
+/** La planche du fleuron de l'alarme : le serpent, pris au registre. */
+const FLEURON_ALARME = fleuronDe('serpent')
 const MASQUE_FLEURON_ALARME = `url('${adresseFleuron(FLEURON_ALARME)}')`
 
 type Action = 'enregistrer' | 'retirer' | 'copier'
@@ -620,7 +620,7 @@ export default function LassoLecture(props: LassoLectureProps) {
               une pastille opaque, on voyait un ovale blanc posé dessus (globals.css). */}
           <div className="cs-lasso-alarme-plaque">
             {/* Un fleuron MENAÇANT, à l'encre du refus (demande de l'auteur, 2026-09-24) :
-                le memento mori du registre, posé en masque au-dessus du cri. */}
+                le serpent du registre, posé en masque au-dessus du cri. */}
             <span className="cs-fleuron cs-lasso-alarme-fleuron" aria-hidden="true"
               style={{
                 // ⛔ La largeur s'écrit depuis les deux nombres de la planche : un enfant de

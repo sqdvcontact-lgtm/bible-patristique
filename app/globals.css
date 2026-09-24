@@ -3678,7 +3678,7 @@ html[data-lasso-geste] * {
 @keyframes cs-lasso-alarme-clignote {
   50% { opacity: 0.62; }
 }
-/* Le fleuron MENAÇANT (demande de l'auteur, 2026-09-24) : le memento mori du registre,
+/* Le fleuron MENAÇANT (demande de l'auteur, 2026-09-24) : le serpent du registre,
    en masque, à l'encre du refus. ⚠️ Sa hauteur plafonne à 2,75 rem, sa pose au registre :
    la planche est servie au double de cette taille, et au-delà le trait se brouillerait. */
 .cs-lasso-alarme-fleuron {
