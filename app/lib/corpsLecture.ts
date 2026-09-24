@@ -36,9 +36,9 @@ export const CORPS_DEFAUT: CorpsLecture = 'normal'
 
 /** Les trois crans, dans l'ordre où le volet les montre. */
 export const CRANS_CORPS: readonly { cle: CorpsLecture; label: string; description: string }[] = [
-  { cle: 'petit', label: 'Petit', description: 'Le texte biblique à 14 px' },
-  { cle: 'normal', label: 'Normal', description: 'Le texte biblique à 15 px' },
-  { cle: 'grand', label: 'Grand', description: 'Le texte biblique à 17 px' },
+  { cle: 'petit', label: 'Petit', description: 'Texte biblique à 14 px, texte des Pères à 12 px' },
+  { cle: 'normal', label: 'Normal', description: 'Texte biblique à 15 px, texte des Pères à 13 px' },
+  { cle: 'grand', label: 'Grand', description: 'Texte biblique à 17 px, texte des Pères à 15 px' },
 ]
 
 /** Script d'application AVANT peinture, écrit en ES5 et sous un try (voir `SCRIPT_THEME`).

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  CORPS_LECTURE, NATURE_SIGNATURE, accepteLaLettrine, estBlocDeSignatures,
+  CORPS_LECTURE, CORPS_LECTURE_REGLABLE, NATURE_SIGNATURE, accepteLaLettrine, estBlocDeSignatures,
   paragraphesDeSegments, placeDeLExergue, placeDeLaSignature,
   styleHoteBibliographieApparat, styleParagrapheApparat, styleParagrapheLecture,
 } from './compositionOeuvre'
@@ -101,7 +101,7 @@ describe('le bloc de signatures', () => {
     // Quand la pièce reprend, une COUPURE : une ligne de prose entière, plus large que
     // le blanc de paragraphe. C'est ce qui manquait le 6 septembre 2026 au matin, et
     // « Signé Du Bray. » se collait à l'acte qui suit.
-    expect(styleParagrapheLecture({ signature: 'fin' }).margin).toBe('0 0 1.32rem')
+    expect(styleParagrapheLecture({ signature: 'fin' }).margin).toBe('0 0 1.26rem')
     expect(styleParagrapheLecture().margin).toBe('0 0 0.72rem')
   })
 
@@ -174,7 +174,7 @@ describe('l’exergue', () => {
     expect(styleParagrapheLecture({ exergue: 'suite' }).margin).toBe(`0 0 0.36rem ${RETRAIT_EXERGUE}`)
     // Quand le texte s'ouvre, une ligne de prose entière — le même blanc que celui qui
     // ferme un bloc de signatures.
-    expect(styleParagrapheLecture({ exergue: 'fin' }).margin).toBe(`0 0 1.32rem ${RETRAIT_EXERGUE}`)
+    expect(styleParagrapheLecture({ exergue: 'fin' }).margin).toBe(`0 0 1.26rem ${RETRAIT_EXERGUE}`)
   })
 
   it('la couture vaut la MOITIÉ du blanc de paragraphe, et se recalcule avec lui', () => {
@@ -185,8 +185,8 @@ describe('l’exergue', () => {
 
   it('prend le corps de la citation sortie, dérivé de celui du fil', () => {
     expect(styleParagrapheLecture({ exergue: 'fin' }).fontSize)
-      .toBe(`calc(${CORPS_LECTURE} * ${RAPPORT_CORPS_EXERGUE})`)
-    expect(styleParagrapheLecture().fontSize).toBe(CORPS_LECTURE)
+      .toBe(`calc(${CORPS_LECTURE_REGLABLE} * ${RAPPORT_CORPS_EXERGUE})`)
+    expect(styleParagrapheLecture().fontSize).toBe(CORPS_LECTURE_REGLABLE)
   })
 
   it('l’apparat porte la dérogation, comme la lecture', () => {
@@ -241,7 +241,7 @@ describe('l’hôte d’une bibliographie de l’apparat', () => {
     const paragraphe = styleParagrapheApparat()
     expect(styleHoteBibliographieApparat()).toEqual({
       fontFamily: paragraphe.fontFamily,
-      fontSize: CORPS_LECTURE,
+      fontSize: CORPS_LECTURE_REGLABLE,
       color: paragraphe.color,
     })
   })

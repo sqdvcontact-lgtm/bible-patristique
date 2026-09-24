@@ -120,6 +120,10 @@
      16/1,55, 15/1,50 et 18/1,60. */
   --cs-lecture-corps: 0.9375rem;
   --cs-lecture-interligne: 1.48;
+  /* Le corps du texte des PÈRES, au même réglage : 12, 13 et 15 px, soit les mêmes écarts
+     en pixels que la Bible (−1, +2). Normal = `CORPS_LECTURE` (compositionOeuvre.ts),
+     validé par l'auteur le 2026-09-24 ; l'interligne, lui, ne bouge pas. */
+  --cs-lecture-corps-oeuvre: 0.8125rem;
 
   /* ── Couleur d'accent : le vert du site ──
      Source unique de la teinte verte, jusqu'ici répétée en dur (~470 fois pour
@@ -683,10 +687,12 @@
 :root[data-corps="petit"] {
   --cs-lecture-corps: 0.875rem;
   --cs-lecture-interligne: 1.44;
+  --cs-lecture-corps-oeuvre: 0.75rem;
 }
 :root[data-corps="grand"] {
   --cs-lecture-corps: 1.0625rem;
   --cs-lecture-interligne: 1.52;
+  --cs-lecture-corps-oeuvre: 0.9375rem;
 }
 
 :root[data-theme="sombre"] {

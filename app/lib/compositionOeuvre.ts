@@ -23,6 +23,11 @@ import { SERIF } from './polices'
 /** Le corps de la lecture, et l'espace entre ses mots. */
 export const CORPS_LECTURE = '0.8125rem'
 
+/** Le corps tel que le règle le lecteur (« Taille du texte » du menu de compte, `data-corps`
+ *  sur <html>) : `CORPS_LECTURE` en est la valeur NORMALE, et le repli quand la variable
+ *  manque. Les crans vivent dans `globals.css` (`--cs-lecture-corps-oeuvre`). */
+export const CORPS_LECTURE_REGLABLE = `var(--cs-lecture-corps-oeuvre, ${CORPS_LECTURE})`
+
 /** L'ordinal du segment dans l'œuvre : un repère et une ancre de prélèvement.
  *  ⛔ Il s'efface dans un bloc de versets, où le numéro de VERSET prend sa place. */
 export const STYLE_NUMERO_SEGMENT: CSSProperties = {
@@ -41,13 +46,13 @@ const COUTURE_SIGNATURE = '0.3rem'
 
 /**
  * Le blanc qui FERME un bloc dérogeant, quand la prose reprend : une ligne de prose
- * entière, `1,62 × 0,8125 rem`. La dernière signature d'une liste le prend, et
+ * entière, `1,55 × 0,8125 rem` au corps normal. La dernière signature d'une liste le prend, et
  * l'exergue aussi, qui est un seuil et doit laisser voir qu'on le franchit.
  *
- * ⚠️ 1,32 rem est ici une HAUTEUR DE LIGNE, non l'interligne 1,32 de la signature : les
- * deux nombres se ressemblent et ne disent pas la même chose.
+ * ⚠️ C'est une HAUTEUR DE LIGNE, non un interligne. Elle suit `INTERLIGNE_LECTURE` au corps
+ * normal ; elle ne suit pas le réglage de taille, qui ne change que le corps.
  */
-const LIGNE_DE_PROSE = '1.32rem'
+const LIGNE_DE_PROSE = '1.26rem'
 
 /** Le blanc ordinaire entre deux paragraphes de prose. */
 const BLANC_PARAGRAPHE = '0.72rem'
@@ -147,7 +152,7 @@ export function styleParagrapheLecture({ signature, exergue, rubrique, masque }:
   return {
     display: masque ? 'none' : undefined,
     fontFamily: SERIF,
-    fontSize: exergue ? `calc(${CORPS_LECTURE} * ${RAPPORT_CORPS_EXERGUE})` : CORPS_LECTURE,
+    fontSize: exergue ? `calc(${CORPS_LECTURE_REGLABLE} * ${RAPPORT_CORPS_EXERGUE})` : CORPS_LECTURE_REGLABLE,
     color: 'var(--cs-texte-fort)',
     lineHeight: signature ? '1.32' : String(INTERLIGNE_LECTURE),
     textAlign: signature ? 'right' : rubrique ? 'center' : 'justify',
@@ -301,7 +306,7 @@ export function styleBlocDeVers({ masque }: { masque?: boolean } = {}): CSSPrope
   return {
     display: masque ? 'none' : undefined,
     fontFamily: SERIF,
-    fontSize: CORPS_LECTURE,
+    fontSize: CORPS_LECTURE_REGLABLE,
     color: 'var(--cs-texte-fort)',
     margin: '0 0 0.72rem',
     wordSpacing: 'var(--cs-corps-espace-mot)',
@@ -485,7 +490,7 @@ export function styleColonneOriginale(
     // Le gabarit du français qu'on remplace, ou un rang au-dessous quand on l'accompagne.
     fontSize: argument
       ? (seul ? '0.75rem' : '0.71875rem')
-      : (seul ? CORPS_LECTURE : '0.78125rem'),
+      : (seul ? CORPS_LECTURE_REGLABLE : `calc(${CORPS_LECTURE_REGLABLE} * 0.96154)`),
     // ⚠️ `undefined` laisse parler `.texte-original`, qui pose `--cs-original`.
     color: argument ? 'var(--cs-texte-second)' : seul ? 'var(--cs-texte-fort)' : undefined,
     margin: `0 0 ${argument ? BLANC_ARGUMENT : '0.72rem'}`,

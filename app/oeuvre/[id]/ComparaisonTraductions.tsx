@@ -48,7 +48,7 @@ import {
   type MembreComparable,
 } from './comparaisonTraductionsUtils'
 import { SERIF, SANS } from '@/app/lib/polices'
-import { INTERLIGNE_LECTURE } from '@/app/lib/compositionOeuvre'
+import { CORPS_LECTURE_REGLABLE, INTERLIGNE_LECTURE } from '@/app/lib/compositionOeuvre'
 import { TEXTE_ERREUR } from '@/app/lib/texteErreur'
 
 // Métadonnées d'édition d'une œuvre, pour la citation au copier/prélever (chaque
@@ -211,7 +211,7 @@ function renderSegmentTexte(texte: string, notes: NoteStructuree[]) {
 const STYLE_TEXTE_PARALLELE = {
   margin: 0,
   fontFamily: SERIF,
-  fontSize: '0.8125rem',
+  fontSize: CORPS_LECTURE_REGLABLE,
   lineHeight: INTERLIGNE_LECTURE,
   color: 'var(--cs-texte-fort)',
   wordSpacing: 'var(--cs-corps-espace-mot)',
