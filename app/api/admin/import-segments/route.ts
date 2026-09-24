@@ -5,6 +5,7 @@ import { estAdmin } from '@/app/lib/verifAdmin'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
 import { erreur500 } from '@/app/lib/apiErreur'
 import { NATURE_VALIDES as NATURES_SEGMENTS_IMPORT, declarationDeSegment } from '@/app/lib/naturesSegments'
+import { composerLignesImport, lireRegimeTypographique } from '@/app/lib/typographieEdition'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
-  let body: { lignes: Record<string, string>[]; deleteFirst?: boolean }
+  let body: { lignes: Record<string, string>[]; deleteFirst?: boolean; regime_typographique?: unknown }
   try {
     body = await req.json()
   } catch {
@@ -29,6 +30,12 @@ export async function POST(req: NextRequest) {
   const { lignes, deleteFirst } = body
   if (!Array.isArray(lignes) || lignes.length === 0) {
     return NextResponse.json({ error: 'Aucune ligne à importer' }, { status: 400 })
+  }
+  // Charte § 3.2 : le texte d'une édition non médiévale entre composé. Le régime est
+  // DÉCLARÉ par celui qui importe ; sans déclaration, on ne compose pas par défaut.
+  const regime = lireRegimeTypographique(body.regime_typographique)
+  if (!regime) {
+    return NextResponse.json({ error: "Déclarez le régime de l'édition : édition moderne ou transcription diplomatique." }, { status: 400 })
   }
 
   const idOeuvre = lignes[0]?.id_oeuvre
@@ -53,7 +60,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const rows = lignes
+  const lignesBrutes = lignes
     .map(l => {
       const num = parseInt(l.segment_numero, 10)
       return {
@@ -88,6 +95,11 @@ export async function POST(req: NextRequest) {
       }
     })
     .filter(r => r.segment_numero !== null && r.segment_texte !== null)
+  const rows = composerLignesImport(
+    lignesBrutes,
+    ['segment_texte', 'ref_niv1_texte', 'ref_niv2_texte', 'ref_niv3_texte', 'ref_niv4_texte', 'ref_niv5_texte'],
+    regime,
+  )
 
   if (rows.length === 0) {
     return NextResponse.json({ error: 'Aucune ligne valide' }, { status: 400 })

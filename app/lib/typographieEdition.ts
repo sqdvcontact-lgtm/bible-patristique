@@ -104,7 +104,9 @@ export function normaliserTypographieEdition(texte: string): string {
  */
 export function composerLignesImport<T extends Record<string, unknown>>(
   lignes: readonly T[],
-  champs: readonly (keyof T & string)[],
+  // Des noms de colonnes, non des clés de T : une ligne bâtie par `Object.fromEntries`
+  // n'expose pas ses clés au type, et un champ absent d'une ligne est simplement ignoré.
+  champs: readonly string[],
   regime: RegimeTypographique,
 ): T[] {
   if (!lireRegimeTypographique(regime)) {

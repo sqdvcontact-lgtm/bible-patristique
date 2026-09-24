@@ -6,6 +6,8 @@ import React, { useState, useRef } from 'react'
 import { supabase, parseCSV, headersAdmin } from './adminShared'
 import SectionRemplacerSegments from './SectionRemplacerSegments'
 import SectionAjouterOeuvre from './SectionAjouterOeuvre'
+import ChoixRegimeTypographique from './ChoixRegimeTypographique'
+import type { RegimeTypographique } from '@/app/lib/typographieEdition'
 import EtatTexteAdmin, { type ReponseEtatTexte } from './EtatTexteAdmin'
 import type { Auteur, Oeuvre, LignePreview, TexteEtatAdmin } from './adminTypes'
 import {
@@ -43,8 +45,11 @@ async function exporterOeuvre(idOeuvre: string, titreOeuvre: string) {
   a.download = `segments_${idOeuvre}_${titreOeuvre.slice(0, 30).replace(/\s/g, '_')}.csv`
   a.click(); URL.revokeObjectURL(url)
 }
-function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }: { lignes: LignePreview[]; nomFichier: string; onConfirmer: () => void; onAnnuler: () => void; importing: boolean }) {
+function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }: { lignes: LignePreview[]; nomFichier: string; onConfirmer: (regime: RegimeTypographique) => void; onAnnuler: () => void; importing: boolean }) {
   const modifiees = lignes.filter(l => l._modifie)
+  // Le régime de l'édition se déclare à chaque import, rien n'est coché d'avance (charte § 3.2).
+  const [regime, setRegime] = useState<RegimeTypographique | null>(null)
+  const pret = modifiees.length > 0 && regime !== null
   const inchangees = lignes.length - modifiees.length
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: Z_MODALE, background: 'var(--cs-calque-modale)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
@@ -85,10 +90,13 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
             </table>
           )}
         </div>
+        <div style={{ padding: '14px 24px', borderTop: '1px solid var(--cs-bord-clair)', flexShrink: 0 }}>
+          <ChoixRegimeTypographique nom="regime-import-segments" valeur={regime} onChange={setRegime} desactive={importing} />
+        </div>
         <div style={{ padding: '16px 24px', borderTop: '1px solid var(--cs-bord-clair)', display: 'flex', justifyContent: 'flex-end', gap: '10px', flexShrink: 0 }}>
           <button onClick={onAnnuler} disabled={importing} style={{ fontSize: '0.875rem', padding: '7px 18px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>Annuler</button>
-          <button onClick={onConfirmer} disabled={importing || modifiees.length === 0}
-            style={{ fontSize: '0.875rem', padding: '7px 18px', borderRadius: '4px', border: 'none', cursor: modifiees.length > 0 ? 'pointer' : 'default', background: modifiees.length > 0 ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: modifiees.length > 0 ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
+          <button onClick={() => { if (regime) onConfirmer(regime) }} disabled={importing || !pret}
+            style={{ fontSize: '0.875rem', padding: '7px 18px', borderRadius: '4px', border: 'none', cursor: pret ? 'pointer' : 'default', background: pret ? 'var(--cs-vert-aplat)' : 'var(--cs-bord-clair)', color: pret ? 'var(--cs-sur-aplat)' : 'var(--cs-texte-doux)', fontWeight: 500 }}>
             {importing ? 'Import en cours…' : `Confirmer l'import (${modifiees.length} ligne${modifiees.length > 1 ? 's' : ''})`}
           </button>
         </div>
@@ -1523,7 +1531,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
     setPreview({ lignes: lignesPreview, nomFichier: fichier.name, idOeuvre })
   }
 
-  const handleConfirmerImport = async () => {
+  const handleConfirmerImport = async (regime: RegimeTypographique) => {
     if (!preview) return
     setImporting(true)
     try {
@@ -1539,7 +1547,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
         const res = await fetch('/api/admin/import-segments', {
           method: 'POST',
           headers,
-          body: JSON.stringify({ lignes: batch, deleteFirst: i === 0 }),
+          body: JSON.stringify({ lignes: batch, deleteFirst: i === 0, regime_typographique: regime }),
         })
         const json = await res.json()
         if (!res.ok) {

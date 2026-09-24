@@ -5,6 +5,8 @@ import { supabase, parseCSV, telechargerCSVModele, headersAdmin } from './adminS
 import type { Auteur } from './adminTypes'
 import { formaterDateHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
 import { mentionTraducteurs } from '@/app/lib/traducteurs'
+import type { RegimeTypographique } from '@/app/lib/typographieEdition'
+import ChoixRegimeTypographique from './ChoixRegimeTypographique'
 
 const lbl: React.CSSProperties = { fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-texte-doux)', display: 'block', marginBottom: '3px' }
 const inp: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '0.875rem', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
@@ -403,10 +405,12 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
 
   // Import
   const [importing, setImporting] = React.useState(false)
+  const [regime, setRegime] = React.useState<RegimeTypographique | null>(null)
   const [resultat, setResultat] = React.useState<{ ok: boolean; msg: string; idOeuvre?: string } | null>(null)
 
   const confirmerImport = async () => {
     if (!meta.id_auteur || !meta.titre.trim()) { setCsvErreur('Titre et auteur sont requis.'); return }
+    if (!regime) { setResultat({ ok: false, msg: 'Déclarez le régime de l’édition avant d’importer.' }); return }
     setImporting(true)
     const { data: sessionData } = await supabase.auth.getSession()
     const token = sessionData.session?.access_token
@@ -415,7 +419,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
     const res = await fetch('/api/admin/import-oeuvre', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ meta: { ...meta, titre: meta.titre.trim(), date_publication: normaliserDateHistoriqueTexte(meta.date_publication), date_composition: dateComp }, segments }),
+      body: JSON.stringify({ meta: { ...meta, titre: meta.titre.trim(), date_publication: normaliserDateHistoriqueTexte(meta.date_publication), date_composition: dateComp }, segments, regime_typographique: regime }),
     })
     const json = await res.json().catch(() => ({}))
     if (!res.ok || !json.ok) { setResultat({ ok: false, msg: json.error ?? `Erreur (${res.status})` }); setImporting(false); return }
@@ -425,7 +429,7 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
 
   const reset = () => {
     setEtape('selection'); setMeta(VIDE_META); setNoticeSelectionnee(null)
-    setSegments([]); setNomFichier(''); setCsvErreur(null); setResultat(null); setAjoutAuteur(false)
+    setSegments([]); setNomFichier(''); setCsvErreur(null); setResultat(null); setAjoutAuteur(false); setRegime(null)
   }
 
   // ── Indicateur d'étapes
@@ -663,10 +667,13 @@ export default function SectionAjouterOeuvre({ auteurs }: { auteurs: Auteur[] })
             </table>
             {segments.length > 10 && <p style={{ padding: '8px 12px', fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>… et {segments.length - 10} autres</p>}
           </div>
+          <div style={{ padding: '14px 20px', borderTop: '1px solid var(--cs-bord-clair)' }}>
+            <ChoixRegimeTypographique nom="regime-import-oeuvre" valeur={regime} onChange={setRegime} desactive={importing} />
+          </div>
           <div style={{ padding: '14px 20px', borderTop: '1px solid var(--cs-bord-clair)', display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
             <button onClick={() => setEtape('csv')} disabled={importing} style={{ fontSize: '0.875rem', padding: '7px 14px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', cursor: 'pointer' }}>← Retour</button>
-            <button onClick={confirmerImport} disabled={importing}
-              style={{ fontSize: '0.875rem', padding: '7px 20px', borderRadius: '4px', border: 'none', background: importing ? 'var(--cs-vert-clair)' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: importing ? 'default' : 'pointer', fontWeight: 500 }}>
+            <button onClick={confirmerImport} disabled={importing || !regime}
+              style={{ fontSize: '0.875rem', padding: '7px 20px', borderRadius: '4px', border: 'none', background: importing || !regime ? 'var(--cs-vert-clair)' : 'var(--cs-vert-aplat)', color: 'var(--cs-sur-aplat)', cursor: importing || !regime ? 'default' : 'pointer', fontWeight: 500 }}>
               {importing ? 'Import en cours…' : `Confirmer (${segments.length} segments)`}
             </button>
           </div>

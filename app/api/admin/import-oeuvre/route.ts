@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
 import { colonnesPeriodeHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
 import { NATURE_VALIDES as NATURES_SEGMENTS_IMPORT, declarationDeSegment } from '@/app/lib/naturesSegments'
+import { composerLignesImport, lireRegimeTypographique } from '@/app/lib/typographieEdition'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -100,12 +101,18 @@ export async function POST(request: Request) {
   const body = await request.json()
   const meta = body?.meta as MetaOeuvre | undefined
   const segments = body?.segments as SegmentCsv[] | undefined
+  // Charte § 3.2 : le texte d'une édition non médiévale entre composé. Le régime est
+  // DÉCLARÉ par celui qui importe ; sans déclaration, on ne compose pas par défaut.
+  const regime = lireRegimeTypographique(body?.regime_typographique)
 
   if (!meta?.id_auteur || !meta?.titre?.trim()) {
     return NextResponse.json({ error: 'Titre et auteur sont requis.' }, { status: 400 })
   }
   if (!Array.isArray(segments) || segments.length === 0) {
     return NextResponse.json({ error: 'Aucun segment à importer.' }, { status: 400 })
+  }
+  if (!regime) {
+    return NextResponse.json({ error: "Déclarez le régime de l'édition : édition moderne ou transcription diplomatique." }, { status: 400 })
   }
 
   const idOeuvre = meta.id_oeuvre?.trim() || await prochainIdOeuvre(meta.id_auteur)
@@ -170,10 +177,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const rows = segments
-      .map((s, i) => normaliserSegment(s, idOeuvre, idTexte, i))
-      .filter(segmentUtile)
-      .map((row, i) => ({ ...row, segment_numero: i + 1 }))
+    const rows = composerLignesImport(
+      segments
+        .map((s, i) => normaliserSegment(s, idOeuvre, idTexte, i))
+        .filter(segmentUtile)
+        .map((row, i) => ({ ...row, segment_numero: i + 1 })),
+      ['segment_texte'],
+      regime,
+    )
     if (rows.length === 0) {
       throw new Error('Aucun segment non vide à importer.')
     }

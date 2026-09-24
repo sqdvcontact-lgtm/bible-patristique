@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   composerLignesImport,
@@ -82,5 +84,24 @@ describe('composerLignesImport : l’utilitaire d’écriture des importeurs', (
     expect(lireRegimeTypographique(undefined)).toBeNull()
     expect(lireRegimeTypographique('moderne')).toBeNull()
     expect(() => composerLignesImport(lignes, ['segment_texte'], undefined as never)).toThrow()
+  })
+})
+
+// Les importeurs de l'administration passent par l'utilitaire commun, et le régime y est
+// exigé. Une garde de source : un import qui écrirait sans composer, ou qui composerait
+// sans déclaration, ferait entrer un texte que rien ne signalerait.
+describe('les importeurs de l’administration composent à l’écriture', () => {
+  const lire = (chemin: string) => readFileSync(join(__dirname, '..', chemin), 'utf8')
+  for (const route of ['api/admin/import-oeuvre/route.ts', 'api/admin/import-segments/route.ts']) {
+    it(route, () => {
+      const source = lire(route)
+      expect(source).toContain('composerLignesImport(')
+      expect(source).toMatch(/lireRegimeTypographique\((?:body\??\.)regime_typographique\)/)
+      expect(source).toMatch(/if \(!regime\)/)
+    })
+  }
+  it('les deux écrans d’import déclarent le régime', () => {
+    expect(lire('admin/SectionAjouterOeuvre.tsx')).toContain('regime_typographique: regime')
+    expect(lire('admin/SectionBibliotheque.tsx')).toContain('regime_typographique: regime')
   })
 })
