@@ -81,6 +81,11 @@ export type SegmentOriginal = {
   segment_texte: string
   nature: string | null
   join_before: string | null
+  /** La grande division de l'édition originale. Elle borne les lacunes visibles : une
+   *  traduction progressive du chapitre I ne doit pas aspirer les chapitres II et
+   *  suivants dans le dernier groupe bilingue sous prétexte qu'ils ne sont pas encore
+   *  alignés. */
+  ref_niv1?: string | null
   /**
    * Le paragraphe de l'édition. Il ne découpe pas l'alignement : il empêche
    * seulement qu'un groupe qui ENJAMBE deux paragraphes n'en colle les textes
@@ -375,6 +380,29 @@ export type SegmentVoisin = {
   segment_numero: number
   nature?: string | null
   espace_textuel?: string | null
+  ref_niv1?: string | null
+}
+
+/**
+ * Borne les passages originaux non alignés aux grandes divisions effectivement
+ * couvertes par les groupes chargés.
+ *
+ * Une omission au milieu d'un chapitre doit continuer de paraître, grisée, dans la
+ * colonne originale. En revanche, quand la traduction est publiée chapitre après
+ * chapitre, l'absence d'alignement après la dernière phrase traduite ne signifie pas
+ * que tout le reste de l'œuvre appartient à cette phrase. Si l'édition ne porte aucun
+ * premier niveau, on conserve le comportement historique.
+ */
+export function bornerVoisinageAuxDivisionsChargees(
+  segmentsCharges: readonly SegmentOriginal[],
+  voisinage: readonly SegmentVoisin[],
+): SegmentVoisin[] {
+  const divisions = new Set(segmentsCharges
+    .filter(s => estCorpsLisible(s))
+    .map(s => (s.ref_niv1 ?? '').trim())
+    .filter(Boolean))
+  if (divisions.size === 0) return [...voisinage]
+  return voisinage.filter(s => divisions.has((s.ref_niv1 ?? '').trim()))
 }
 
 /** Joint au bloc d'un groupe les segments non alignés qui le suivent ou le précèdent. */
@@ -664,7 +692,7 @@ async function completerNonAlignes(
   const max = Math.max(...numeros)
 
   const segments = () => (client.from('segments') as RequeteVoisinage)
-    .select('segment_key,segment_numero,nature,espace_textuel')
+    .select('segment_key,segment_numero,nature,espace_textuel,ref_niv1')
     .eq('id_texte', params.idTexteOriginal)
   const lire = async (requete: RequeteVoisinage) => {
     const { data, error } = await requete
@@ -685,7 +713,15 @@ async function completerNonAlignes(
     lire(segments().lt('segment_numero', min).order('segment_numero', { ascending: false }).limit(VOISINAGE)),
     lire(segments().gt('segment_numero', max).order('segment_numero', { ascending: true }).limit(VOISINAGE)),
   ])
-  const voisinage = [...avant, ...empan, ...apres]
+  // ⛔ Une traduction progressive s'arrête à la division publiée. Sans cette borne,
+  // les quarante voisins qui suivent son dernier groupe — parfois quarante énormes
+  // segments provisoires — se collaient tous à sa dernière phrase comme « passage sans
+  // correspondance ». Les omissions internes restent visibles ; les chapitres encore
+  // hors chantier restent dans leur propre division.
+  const voisinage = bornerVoisinageAuxDivisionsChargees(
+    segmentsCharges,
+    [...avant, ...empan, ...apres],
+  )
 
   // Les clés chargées appartiennent à des groupes qui ont un membre traduit : c'est par
   // eux que la projection les a trouvées.
@@ -743,7 +779,9 @@ async function completerNonAlignes(
       groupeAligneDe,
       nonAlignes,
       // Le bord d'avant n'a pas rempli sa mesure : il a touché le début du texte.
-      debutDuTexte: avant.length < VOISINAGE,
+      // Après la borne ci-dessus, « début » signifie aussi début de la division
+      // couverte : un passage omis en tête de chapitre rejoint bien le premier groupe.
+      debutDuTexte: voisinage.filter(s => s.segment_numero < min).length < VOISINAGE,
       notesOriginales: params.notesOriginales,
       ancresOriginales: params.ancresOriginales,
     }),
@@ -791,7 +829,7 @@ export async function chargerProjectionBilingue(
 
   const clesOriginales = [...new Set(membresOriginaux.map(m => m.segment_key))]
   const pagesSegments = await Promise.all(lots(clesOriginales).map(lot =>
-    table('segments').select('segment_key,segment_texte,nature,join_before,paragraphe,forme:segment_metadata->>forme,segment_numero,espace_textuel')
+    table('segments').select('segment_key,segment_texte,nature,join_before,paragraphe,forme:segment_metadata->>forme,segment_numero,espace_textuel,ref_niv1')
       .eq('id_texte', params.idTexteOriginal)
       .in('segment_key', lot)))
   const segmentsOriginaux = pagesSegments.flatMap(r => (r.data ?? []) as SegmentOriginal[])

@@ -13,6 +13,7 @@ import {
   marquerNonAligne,
   sansMarqueNonAligne,
   estCorpsLisible,
+  bornerVoisinageAuxDivisionsChargees,
   type BlocOriginal,
   type SegmentVoisin,
   type MembreAlignement,
@@ -615,6 +616,27 @@ describe('le texte original que l’alignement ne met en face de rien', () => {
     })
     expect(sortie.get('g1')).toBe(entree.get('g1'))
     expect(sortie.get('g2')).toBe(entree.get('g2'))
+  })
+
+  it('borne le voisinage à la division couverte par une traduction progressive', () => {
+    const charges: SegmentOriginal[] = [
+      { ...segmentGrec('el-1', 'Carmina qui'), segment_numero: 1, ref_niv1: 'I' },
+    ]
+    const voisinage: SegmentVoisin[] = [
+      { ...voisin('el-1', 1), ref_niv1: 'I' },
+      { ...voisin('el-2', 2), ref_niv1: 'I' },
+      { ...voisin('el-3', 3), ref_niv1: 'II' },
+    ]
+    expect(bornerVoisinageAuxDivisionsChargees(charges, voisinage).map(s => s.segment_key))
+      .toEqual(['el-1', 'el-2'])
+  })
+
+  it('conserve le voisinage historique quand le texte n’a pas de premier niveau', () => {
+    const charges: SegmentOriginal[] = [
+      { ...segmentGrec('el-1', 'Carmina qui'), segment_numero: 1, ref_niv1: null },
+    ]
+    const voisinage = [voisin('el-1', 1), voisin('el-2', 2)]
+    expect(bornerVoisinageAuxDivisionsChargees(charges, voisinage)).toEqual(voisinage)
   })
 
   it('borne ligne à ligne, et se retire sans reste', () => {
