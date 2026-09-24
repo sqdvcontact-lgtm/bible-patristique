@@ -82,7 +82,10 @@ type SegmentResult = {
   id: number; segment_texte: string; id_oeuvre: string; id_texte: string
   ref_niv1: string | null; ref_niv3: string | null
   auteur_nom: string; oeuvre_titre: string
-  texte_original?: string | null; langue?: string | null; matchFr?: boolean; matchOrig?: boolean
+  // `extraitOriginal` est lu dans les segments du TEXTE ORIGINAL (latin, grec), jamais
+  // dans une copie recollée à la traduction. `enRegard` : le passage original a été
+  // rattaché à ce segment traduit par l'alignement, et la page s'ouvre en regard.
+  extraitOriginal?: string | null; langue?: string | null; matchFr?: boolean; matchOrig?: boolean; enRegard?: boolean
 }
 type EssaiResult = {
   id: number; titre: string; sous_titre: string | null; resume: string | null; contenu: string; categories: string[]
@@ -227,8 +230,8 @@ function segmentDepuisRpc(r: Record<string, unknown>): SegmentResult {
     id: Number(r.id), segment_texte: String(r.segment_texte ?? ''), id_oeuvre: String(r.id_oeuvre ?? ''), id_texte: String(r.id_texte ?? ''),
     ref_niv1: (r.ref_niv1 as string | null) ?? null, ref_niv3: (r.ref_niv3 as string | null) ?? null,
     auteur_nom: String(r.auteur_nom ?? ''), oeuvre_titre: String(r.oeuvre_titre ?? ''),
-    texte_original: (r.texte_original as string | null) ?? null, langue: (r.langue as string | null) ?? null,
-    matchFr: !!r.match_fr, matchOrig: !!r.match_orig,
+    extraitOriginal: (r.extrait_original as string | null) ?? null, langue: (r.langue as string | null) ?? null,
+    matchFr: !!r.match_fr, matchOrig: !!r.match_orig, enRegard: !!r.en_regard,
   }
 }
 
@@ -1571,7 +1574,7 @@ export default function RechercheClient() {
                       </div>
                       <div className="grp-corps">
                         {tranche.items.map(s=>(
-                          <a key={s.id} href={`/oeuvre/${encodeURIComponent(s.id_oeuvre)}?texte=${encodeURIComponent(s.id_texte)}&segment=${s.id}#segment-${s.id}`}
+                          <a key={s.id} href={`/oeuvre/${encodeURIComponent(s.id_oeuvre)}?texte=${encodeURIComponent(s.id_texte)}${s.matchOrig && s.enRegard ? '&mt=bilingue' : ''}&segment=${s.id}#segment-${s.id}`}
                             target="_blank" rel="noopener noreferrer" className="grp-ligne">
                             {/* Le niveau 1 seul, et seulement s'il existe : le reste est dans la rubrique. */}
                             {s.ref_niv1 && (
@@ -1580,12 +1583,14 @@ export default function RechercheClient() {
                               </div>
                             )}
                             {/* Résultat latin/grec : on n'affiche QUE l'original (badge de langue,
-                                latin en italiques, grec en romain). Sinon, le texte français. */}
-                            {s.matchOrig && s.texte_original ? (
+                                latin en italiques, grec en romain). Sinon, le texte français.
+                                L'extrait vient du texte original lui-même ; rattaché à la
+                                traduction par l'alignement, le lien ouvre la page en regard. */}
+                            {s.matchOrig && s.extraitOriginal ? (
                               <p style={{ fontFamily:SANS, fontSize:'0.78125rem', lineHeight:1.32, color:'var(--cs-texte-fort)', margin:0 }}>
                                 <span style={{ display:'inline-block', fontStyle:'normal', fontSize:'0.625rem', fontWeight:700, letterSpacing:'0.05em', textTransform:'uppercase', color:'var(--fam)', background:'color-mix(in srgb, var(--fam) 14%, var(--cs-surface))', borderRadius:'4px', padding:'0 5px', marginRight:'6px', verticalAlign:'1px' }}>{s.langue || 'Original'}</span>
                                 <span style={{ fontStyle: s.langue === 'Latin' ? 'italic' : 'normal' }}>
-                                  {rendreEtSurligner(nettoyerFin(s.texte_original), marqueOriginal)}
+                                  {rendreEtSurligner(nettoyerFin(s.extraitOriginal.replace(/[ \t]*\[\[\d+\]\]/g, '')), marqueOriginal)}
                                 </span>
                               </p>
                             ) : (
