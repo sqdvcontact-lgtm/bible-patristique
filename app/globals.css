@@ -86,7 +86,7 @@
   /* Le RETRAIT DE PREMIÈRE LIGNE du paragraphe de lecture, léger (demande de l'auteur,
      2026-09-24). ⛔ Ce n'est PAS l'alinéa à la française : le blanc entre paragraphes
      reste, ce retrait ne fait qu'amorcer la ligne. Règle : `.cs-corps-paragraphe`. */
-  --cs-retrait-premiere-ligne: 0.6em;
+  --cs-retrait-premiere-ligne: 1.2em; /* 0,6 em d’abord, doublé le jour même */
 
   /* ── Mesure de lecture (responsive) ──
      Famille couplée exprimée en rem pour qu'elle grandisse au même rythme que
