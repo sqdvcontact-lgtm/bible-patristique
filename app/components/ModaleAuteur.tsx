@@ -29,7 +29,7 @@ import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { type RangChrono, cleTypeAffichage, coulType, LIB_TYPE } from '@/app/lib/frise'
 import { libelleLangue } from '@/app/lib/langues'
 import { colonneDesDates, ordonnerOeuvresAuteur, type CelluleDeDate } from '@/app/lib/listeOeuvresAuteur'
-import { noticeDuCatalogue } from '@/app/lib/noticeOeuvre'
+import { noticeDuCatalogueSelonReference, referencesParNotice, signalerRepliCatalogue, SELECTION_REFERENCE_CATALOGUE, type LigneReferenceCatalogue } from '@/app/lib/catalogueReference'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import { chargerNoticesBibliographiques } from '@/app/lib/referencesBibliographiquesChargement'
@@ -72,6 +72,9 @@ type EditionCataloguee = {
   traducteur: string | null; collection_nom: string | null
   lieu_edition: string | null; editeur: string | null
   annee_edition: number | null; date_edition_affichage_courte: string | null
+  /** La RÉFÉRENCE de la notice (charte § 47.8), qui fait foi pour tout ce qui est
+   *  bibliographique ; absente, les champs ci-dessus parlent en repli. */
+  reference?: NoticeBibliographique | null
 }
 type PiedFiche = {
   empreinte: Empreinte | null
@@ -284,18 +287,19 @@ function PiedDeFiche({ pied }: { pied: PiedFiche }) {
             <TitreSection>Éditions répertoriées</TitreSection>
             {/* ⛔ La notice se compose par le MOTEUR bibliographique, comme partout
                 ailleurs sur le site (charte § 47.5) : ordre, liants et ponctuation
-                viennent de lui, et `noticeDuCatalogue` ne fait que nommer les champs.
+                viennent de lui, et `noticeDuCatalogueSelonReference` ne fait que nommer les champs,
+                la référence faisant foi (charte § 47.8).
                 ⚠️ `avecAuteur={false}` : la fiche porte déjà le nom en tête. */}
             <ul className="cs-apparat-bibliographie cs-apparat-bibliographie--sans-hote pied-biblio"
               style={{ listStyle: 'none', margin: 0, padding: 0 }}>
               {pied.editions.map(e => (
                 <li key={e.id} className="cs-apparat-bibliographie__entree">
                   <ReferenceBibliographique
-                    notice={noticeDuCatalogue({
+                    notice={noticeDuCatalogueSelonReference({
                       id: e.id, titreStable: e.titre_stable, traducteur: e.traducteur,
                       collection: e.collection_nom, lieu: e.lieu_edition, editeur: e.editeur,
                       dateAffichee: e.date_edition_affichage_courte, annee: e.annee_edition,
-                    })}
+                    }, e.reference)}
                     avecAuteur={false}
                   />
                 </li>
@@ -563,10 +567,27 @@ export default function ModaleAuteur({ id, onClose, filAriane = false }: { id: s
           console.error('[fiche auteur] bibliographie savante illisible', err)
         }
       }
+      // La RÉFÉRENCE des éditions retenues (charte § 47.8) : trois lignes au plus, jointes
+      // par `ouvrage_id`, que la vue des dates ne porte pas. ⛔ Son échec ne vide pas le
+      // pied : les éditions retombent sur l'annexe, et le repli part à la console.
+      let editions = catalogueRes.error ? [] : ((catalogueRes.data ?? []) as EditionCataloguee[])
+      if (editions.length > 0) {
+        const { data: lignesRef, error: erreurRef } = await supabase
+          .from('catalogue_notices')
+          .select(SELECTION_REFERENCE_CATALOGUE)
+          .in('id', editions.map(e => e.id))
+        if (erreurRef) {
+          console.error('[fiche auteur] références du catalogue illisibles', erreurRef)
+        } else {
+          const table = referencesParNotice((lignesRef ?? []) as unknown as LigneReferenceCatalogue[])
+          editions = editions.map(e => ({ ...e, reference: table.get(e.id) ?? null }))
+          signalerRepliCatalogue('fiche auteur', editions.filter(e => !e.reference).map(e => e.id))
+        }
+      }
       if (annule) return
       setPied({
         empreinte: empreinteRes.error ? null : brut,
-        editions: catalogueRes.error ? [] : ((catalogueRes.data ?? []) as EditionCataloguee[]),
+        editions,
         nbEditions: catalogueRes.error ? 0 : (catalogueRes.count ?? 0),
         ouvrages: notices,
         nbOuvrages: notices.length === 0 ? 0 : (biblioRes.count ?? 0),

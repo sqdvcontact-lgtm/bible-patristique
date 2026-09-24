@@ -35,6 +35,8 @@ import { useCompte } from '@/app/lib/contexteCompte'
 // une initiale déjà capitale. Une seconde écriture ici divergerait au premier réglage.
 import { capitaliserInitiale } from '@/app/lib/citation'
 import { chargerPagesEnParallele, chargerToutesPagesSupabase } from '@/app/lib/paginationSupabase'
+import { mentionsEditionCatalogue, referencesParNotice, signalerRepliCatalogue, SELECTION_REFERENCE_LISTE, type LigneReferenceCatalogue } from '@/app/lib/catalogueReference'
+import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import HistoricalDate from '@/app/components/HistoricalDate'
 import { chargerAuteursParOeuvre, grouperOeuvresParAuteur, libelleAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, STYLE_POSITION_PAGE, STYLE_RUBRIQUE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
@@ -785,6 +787,9 @@ type NoticeCompacte = {
   titre_edition: string | null
   traducteur: string | null
   editeur: string | null
+  /** L'année brute de l'annexe : on la compare à celle de la référence avant de
+   *  prendre la forme rédigée de la date (voir `dateSelonReference`). */
+  annee_edition: number | null
   date_edition_affichage_courte: string | null
   date_edition_precision_affichage: string | null
   siecle_edition_affichage: string | null
@@ -846,8 +851,10 @@ function BoutonSignalerNotice({ reference, texte }: { reference: string; texte?:
   )
 }
 
-function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter, onProposer }: {
+function PanneauCatalogue({ nomAuteur, groupes, references, votes, mesVotes, userId, onVoter, onProposer }: {
   nomAuteur: string
+  /** La référence de chaque notice, par identifiant de NOTICE (charte § 47.8). */
+  references: Map<number, NoticeBibliographique>
   groupes: GroupeCatalogue[]
   votes: Record<number, number>
   mesVotes: Set<number>
@@ -941,22 +948,27 @@ function PanneauCatalogue({ nomAuteur, groupes, votes, mesVotes, userId, onVoter
                       // Une phrase, pas une suite d'abréviations : même modèle
                       // que la page de titre de l'œuvre — « Traduction par A et
                       // B, éditeur, année ». Les virgules suffisent à séparer.
-                      const dateEdition = n.date_edition_affichage_courte ?? n.siecle_edition_affichage
+                      // ⛔ Traducteurs, éditeurs et année viennent de la RÉFÉRENCE de la
+                      // notice (charte § 47.8, `catalogueReference.ts`) ; l'annexe ne
+                      // parle qu'en repli, et ce repli se dit à la console, jamais ici.
+                      const m = mentionsEditionCatalogue(n, references.get(n.id))
+                      const dateEdition = m.date
+                      const titreDecline = m.titreEdition || titreDeclineCatalogue(n)
                       const metaAvantDate = [
-                        libelleTrad(n.traducteur),
-                        formaterEditeur(n.editeur),
+                        libelleTrad(m.traducteur),
+                        formaterEditeur(m.editeur),
                       ].filter(Boolean).join(', ')
                       const meta = [metaAvantDate, dateEdition].filter(Boolean).join(', ')
                       const dp = n.domaine_public?.includes('oui')
                       return (
                         <span key={n.id} style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', lineHeight: 1.4 }}>
-                          {meta ? <>{metaAvantDate}{metaAvantDate && dateEdition ? ', ' : null}{dateEdition && <span title={n.date_edition_precision_affichage ?? undefined}><HistoricalDate value={dateEdition} variant="short" /></span>}</> : titreDeclineCatalogue(n)}
+                          {meta ? <>{metaAvantDate}{metaAvantDate && dateEdition ? ', ' : null}{dateEdition && <span title={m.precisionDate ?? undefined}><HistoricalDate value={dateEdition} variant="short" /></span>}</> : titreDecline}
                           {/* ⛔ « Domaine public » EN TOUTES LETTRES, et sans infobulle
                               (décision de l'auteur, 2026-09-04). « DP » demandait qu'on
                               survole pour le comprendre, et l'infobulle ne faisait que
                               développer le sigle : deux gestes pour deux mots. */}
                           {dp && <span style={{ marginLeft: '5px', fontSize: '0.6875rem', color: '#7a8a6a', fontWeight: 700, letterSpacing: '0.04em' }}>Domaine public</span>}
-                          <BoutonSignalerNotice reference={`${nomAuteur} — ${groupe.titreStable}`} texte={meta || titreDeclineCatalogue(n)} />
+                          <BoutonSignalerNotice reference={`${nomAuteur} — ${groupe.titreStable}`} texte={meta || titreDecline} />
                         </span>
                       )
                     })}
@@ -1087,6 +1099,9 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
     return m
   }, [auteurs])
   const [notices, setNotices] = useState<NoticeCompacte[]>([])
+  // La référence de chaque notice (charte § 47.8). Vide tant qu'elle n'est pas lue, ou
+  // si sa lecture échoue : chaque ligne retombe alors sur l'annexe, et le dit.
+  const [references, setReferences] = useState<Map<number, NoticeBibliographique>>(() => new Map())
   const [chargement, setChargement] = useState(false)
   const [chargé, setChargé] = useState(false)
   // ⛔ Une liste vide et une requête en échec ne se ressemblent pas, et le catalogue
@@ -1114,11 +1129,11 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
       //    la précédente rapporte. Mesuré le 2026-09-05 : 1 807 ms en série, 932 ms
       //    ensemble. Le plafond de PostgREST étant de mille lignes, les trois pages sont
       //    inévitables ; rien ne les obligeait à s’attendre.
-      const [seance, data, voteData] = await Promise.all([
+      const [seance, data, voteData, lignesReferences] = await Promise.all([
         supabase.auth.getSession(),
         chargerPagesEnParallele<NoticeCompacte>((debut, fin) => supabase
           .from('v_catalogue_notices_dates')
-          .select('id, auteur, id_oeuvre_stable, titre_stable, titre_original, titre_edition, traducteur, editeur, date_edition_affichage_courte, date_edition_precision_affichage, siecle_edition_affichage, domaine_public, langue_originale')
+          .select('id, auteur, id_oeuvre_stable, titre_stable, titre_original, titre_edition, traducteur, editeur, annee_edition, date_edition_affichage_courte, date_edition_precision_affichage, siecle_edition_affichage, domaine_public, langue_originale')
           .eq('presence_sur_le_site', false)
           .eq('refuse_admin', false)
           .order('auteur')
@@ -1134,11 +1149,31 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
         //    `lotsPourClauseIn`, qui porte la règle.
         chargerToutesPagesSupabase<LigneVote>((debut, fin) => supabase
           .from('catalogue_votes').select('id_notice, user_id').order('id').range(debut, fin)),
+        // La RÉFÉRENCE de chaque notice (charte § 47.8), jointe par PostgREST sur
+        // `ouvrage_id` : la vue des dates ne porte pas la clé, la table si. Mêmes filtres
+        // que la liste. ⛔ Couche secondaire : son échec ne ferme pas le catalogue, il
+        // fait parler l'annexe et part au journal.
+        chargerPagesEnParallele<LigneReferenceCatalogue>((debut, fin) => supabase
+          .from('catalogue_notices')
+          .select(SELECTION_REFERENCE_LISTE)
+          .eq('presence_sur_le_site', false)
+          .eq('refuse_admin', false)
+          .order('id')
+          .range(debut, fin))
+          .catch((e: unknown) => {
+            console.error('[catalogue] références illisibles : champs de l’annexe en repli', e)
+            return null
+          }),
       ])
 
       const session = seance.data.session
       setUserId(session?.user.id ?? null)
       if (data.length) setNotices(data)
+      if (lignesReferences) {
+        const table = referencesParNotice(lignesReferences)
+        setReferences(table)
+        signalerRepliCatalogue('catalogue', data.filter(n => !table.has(n.id)).map(n => n.id))
+      }
 
       // ⚠️ Les votes ne sont plus filtrés sur les notices affichées : les quelques
       //    entrées d’une notice absente de la liste ne sont jamais lues, la carte d’un
@@ -1272,6 +1307,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
                 key={nomAuteur}
                 nomAuteur={nomAuteur}
                 groupes={parAuteur[nomAuteur]}
+                references={references}
                 votes={votes}
                 mesVotes={mesVotes}
                 userId={userId}
