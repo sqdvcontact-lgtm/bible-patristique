@@ -4741,7 +4741,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           })}
                         </div>
                       ) : (
-                      <p lang={langueCorps} style={styleParagrapheLecture({ signature: placeSignature, exergue: placeExergue, rubrique: toutRubrique, masque: afficherOriginalSeul })}>
+                      <p lang={langueCorps} className="cs-corps-paragraphe" style={styleParagrapheLecture({ signature: placeSignature, exergue: placeExergue, rubrique: toutRubrique, masque: afficherOriginalSeul })}>
                         {regrouperCitationsStructurelles(
                           chunk.ids,
                           sid => segMap.get(sid)?.nature === 'citation',
@@ -5043,7 +5043,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         )
                         return (
                         <div key={`apparat-para-${chunk.ids[0]}`}>
-                          <p lang={langueCorps} style={styleParagrapheApparat({ signature: placeDeLaSignature(toutSignature, signatureSuit), exergue: placeDeLExergue(toutExergue, exergueSuit) })}>
+                          <p lang={langueCorps} className="cs-corps-paragraphe" style={styleParagrapheApparat({ signature: placeDeLaSignature(toutSignature, signatureSuit), exergue: placeDeLExergue(toutExergue, exergueSuit) })}>
                             {chunk.ids.map(segmentDApparat)}
                           </p>
                         </div>

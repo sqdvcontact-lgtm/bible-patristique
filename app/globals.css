@@ -83,6 +83,10 @@
      relire une colonne justifiée étroite. */
   --cs-corps-espace-mot: -0.045em;
   --cs-corps-chasse: 0;
+  /* Le RETRAIT DE PREMIÈRE LIGNE du paragraphe de lecture, léger (demande de l'auteur,
+     2026-09-24). ⛔ Ce n'est PAS l'alinéa à la française : le blanc entre paragraphes
+     reste, ce retrait ne fait qu'amorcer la ligne. Règle : `.cs-corps-paragraphe`. */
+  --cs-retrait-premiere-ligne: 0.6em;
 
   /* ── Mesure de lecture (responsive) ──
      Famille couplée exprimée en rem pour qu'elle grandisse au même rythme que
@@ -2774,6 +2778,17 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   font-size: 0.95em;
   /* ⛔ JUSTIFIÉE, DONC CÉSURÉE (charte § 3.11.2, posée le 2026-09-05). Elle se justifiait
      nue : sur les quatre cent trente-huit signes qui ont fait naître cette règle, rien
+/* Le RETRAIT DE PREMIÈRE LIGNE du corps (jeton `--cs-retrait-premiere-ligne`).
+   ⚠️ `text-indent` S'HÉRITE, et tout bloc ou bloc en ligne posé dans le paragraphe
+   (verset cité, citation sortie, appel, bouton) renfoncerait sa propre première
+   ligne : les descendants le rendent à zéro.
+   ⛔ Pas de retrait sous une LETTRINE : il creuserait un blanc entre la capitale
+   ornée et le texte. L'exergue, la signature et la rubrique l'annulent dans
+   `styleParagrapheLecture`, leur composition étant ailleurs. */
+.cs-corps-paragraphe { text-indent: var(--cs-retrait-premiere-ligne); }
+.cs-corps-paragraphe * { text-indent: 0; }
+.cs-corps-paragraphe:has(> .seg-inline > .cs-lettrine) { text-indent: 0; }
+
      ne bornait l'étirement des espaces, et la citation se lisait plus lâche que le
      paragraphe qui la porte. Le retrait de 8 mm de chaque côté lui laisse une mesure
      plus étroite que celle du fil, ce qui creuse la lézarde d'autant plus vite. */

@@ -153,6 +153,8 @@ export function styleParagrapheLecture({ signature, exergue, rubrique, masque }:
     textAlign: signature ? 'right' : rubrique ? 'center' : 'justify',
     textJustify: 'inter-word',
     fontStyle: rubrique ? 'italic' : undefined,
+    // Le retrait de première ligne vient de `.cs-corps-paragraphe` ; ces trois-là le refusent.
+    textIndent: signature || exergue || rubrique ? 0 : undefined,
     margin: `0 0 ${blancDeSortie}${exergue ? ` ${RETRAIT_EXERGUE}` : ''}`,
     wordSpacing: 'var(--cs-corps-espace-mot)',
     letterSpacing: 'var(--cs-corps-chasse)',
