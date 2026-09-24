@@ -63,7 +63,17 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
    *  locale (`titresComposes`) sans recharger la division. */
   onTitreComposeModifie?: (cle: string, valeur: string) => void
 }) {
-  const [valeur, setValeur] = useState(cible.type === 'segment' ? cible.seg.texte : cible.texteActuel)
+  // ⛔ LA MODALE S'OUVRE SUR LA FACE QUE L'ÉCRAN MONTRE. Dès qu'une composition est
+  // renseignée, c'est elle qui paraît (frontispice comme intertitre) : ouvrir sur la face
+  // de catalogue faisait retoucher une colonne invisible — la correction partait en base
+  // sans jamais paraître, et la composition qu'on croyait reprendre (sauts de ligne
+  // compris) semblait perdue à la réouverture (relevé de l'auteur, 2026-09-24).
+  const varianteInitiale = cible.type === 'segment'
+    ? null
+    : (cible.variantes ?? []).find(v => v.compose && v.texte.trim()) ?? null
+  const [valeur, setValeur] = useState(
+    cible.type === 'segment' ? cible.seg.texte : varianteInitiale?.texte ?? cible.texteActuel,
+  )
   const [etape, setEtape] = useState<'edition' | 'confirmation' | 'confirmation-suppression'>('edition')
   const [statut, setStatut] = useState<'idle' | 'envoi' | 'erreur'>('idle')
   const [erreurMsg, setErreurMsg] = useState<string | null>(null)
@@ -89,7 +99,8 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
   // variante composée d'intertitre porte un nom suffixé, que `variante.compose` distingue.
   const variantes = cible.type === 'segment' ? [] : cible.variantes ?? []
   const [champActif, setChampActif] = useState<string | null>(
-    cible.type === 'titre_oeuvre' ? cible.champ
+    varianteInitiale ? varianteInitiale.champ
+      : cible.type === 'titre_oeuvre' ? cible.champ
       : cible.type === 'titre' ? (cible.variantes?.[0]?.champ ?? null)
       : null,
   )

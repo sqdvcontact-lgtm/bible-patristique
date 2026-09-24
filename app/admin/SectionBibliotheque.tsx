@@ -1211,9 +1211,16 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
     { key: 'note_acces_public', label: 'Motif de publication ou de retenue' },
   ]
 
+  // ⛔ L'ÉTAT DU FORMULAIRE À SON OUVERTURE. L'enregistrement n'envoie que les champs qui
+  // en DIFFÈRENT : le formulaire porte des colonnes qu'il n'affiche pas (les compositions
+  // du frontispice, réglées depuis la page de l'œuvre), et les renvoyer depuis l'instantané
+  // chargé avec /admin rétablissait une composition périmée — ou l'EFFAÇAIT — dès qu'on
+  // corrigeait un éditeur dans un onglet ouvert avant la retouche (2026-09-24).
+  const formOeuvreInitial = useRef<{ champs: Record<string, string>; genres: string[] }>({ champs: {}, genres: [] })
+
   const ouvrirEditionOeuvre = (o: Oeuvre) => {
     setEditionOeuvre(o.id_oeuvre)
-    setFormOeuvre({
+    const valeurs: Record<string, string> = {
       titre: o.titre ?? '', titre_affichage: o.titre_affichage ?? '',
       auteur_affichage: o.auteur_affichage ?? '',
       sous_titre: o.sous_titre ?? '', sous_titre_affichage: o.sous_titre_affichage ?? '',
@@ -1230,8 +1237,11 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
       note_editoriale_titre: o.note_editoriale_titre ?? '',
       commentaire_prive: o.commentaire_prive ?? '',
       note_acces_public: o.note_acces_public ?? '',
-    })
-    setFormOeuvreGenres(Array.isArray(o.genres) ? o.genres : [])
+    }
+    const genres = Array.isArray(o.genres) ? o.genres : []
+    formOeuvreInitial.current = { champs: valeurs, genres }
+    setFormOeuvre(valeurs)
+    setFormOeuvreGenres(genres)
     setStatutOeuvre(null)
     setCoAuteurAAjouter(''); setStatutAuteursOeuvre(null)
     setAuteursOeuvre([])
@@ -1271,19 +1281,23 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
     if (!formOeuvre.titre?.trim()) { setStatutOeuvre({ id: idOeuvre, ok: false, msg: 'Le titre est requis.' }); return }
     try {
       const headers = await headersAdmin({ 'Content-Type': 'application/json' })
+      // Seuls les champs MODIFIÉS partent : voir `formOeuvreInitial`.
+      const initial = formOeuvreInitial.current
+      const modifie = (cle: string) => (formOeuvre[cle] ?? '') !== (initial.champs[cle] ?? '')
+      const genresModifies = JSON.stringify(formOeuvreGenres) !== JSON.stringify(initial.genres)
       const requetes = [
-        ...CHAMPS_OEUVRE_TEXTE.map(c => fetch('/api/admin/update-oeuvre', {
+        ...CHAMPS_OEUVRE_TEXTE.filter(c => modifie(c.key)).map(c => fetch('/api/admin/update-oeuvre', {
           method: 'POST', headers,
           body: JSON.stringify({ id_oeuvre: idOeuvre, champ: c.key, valeur: formOeuvre[c.key] || null }),
         })),
-        fetch('/api/admin/update-oeuvre', {
+        ...(modifie('langue_originale') ? [fetch('/api/admin/update-oeuvre', {
           method: 'POST', headers,
           body: JSON.stringify({ id_oeuvre: idOeuvre, champ: 'langue_originale', valeur: formOeuvre.langue_originale || null }),
-        }),
-        fetch('/api/admin/update-oeuvre', {
+        })] : []),
+        ...(genresModifies ? [fetch('/api/admin/update-oeuvre', {
           method: 'POST', headers,
           body: JSON.stringify({ id_oeuvre: idOeuvre, champ: 'genres', valeur: formOeuvreGenres }),
-        }),
+        })] : []),
       ]
       const resultats = await Promise.all(requetes)
       if (resultats.some(r => !r.ok)) { setStatutOeuvre({ id: idOeuvre, ok: false, msg: 'Erreur lors de l\u2019enregistrement.' }); return }
