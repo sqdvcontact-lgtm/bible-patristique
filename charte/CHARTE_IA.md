@@ -9934,6 +9934,27 @@ chasse plus ouverte cesse de l’être.
 plus proche l’emporte sur les jetons d’interface, et les blocs denses qui posent déjà leur
 propre espace de mot ne bougent pas.
 
+#### 3.11.8 Le gris PAR DÉFAUT du corps de lecture
+
+⛔ **Le gris du texte qu’on lit d’un bout à l’autre est UN, et il vit dans quatre jetons.** Arrêté par l’auteur le 24 septembre 2026 sur la lecture des Pères (« c’est le mode normal »), puis étendu le même jour à toutes les surfaces de lecture continue.
+
+| Propriété | Valeur | Jeton (`app/globals.css`, `:root`) |
+| --- | --- | --- |
+| espace des mots | −0,045 em | `--cs-corps-espace-mot` |
+| chasse des lettres | 0 | `--cs-corps-chasse` |
+| interligne | 1,55 | `--cs-corps-interligne` |
+| retrait de première ligne | 1,2 em | `--cs-retrait-premiere-ligne` |
+
+⛔ **Il s’applique à quatre surfaces** : la prose des Pères (avec ses vers, ses exergues, le texte original lu seul ou en regard, la comparaison de traductions), les versets de la Bible en une colonne et en regard, le corps d’un essai, les versets de la Polyglotte. Chaque surface LIT les jetons ; aucune ne recopie leurs valeurs. Changer le gris, c’est changer les jetons, et rien d’autre.
+
+⚠️ **Le retrait ne vaut que pour la prose en paragraphes** (Pères, essais). Un verset ne le prend pas, et ni la lettrine, ni l’exergue, ni la signature, ni la rubrique ne le prennent. Le blanc entre deux paragraphes demeure : le retrait amorce la ligne, il ne fait pas alinéa à la française.
+
+⚠️ **Le corps reste propre à chaque surface et suit « Taille du texte »** : 12, 13 et 15 px pour les Pères, 14, 15 et 17 px pour la Bible. Le gris est un rapport, il vaut à tout corps, et l’interligne ne change pas d’un cran à l’autre.
+
+⚠️ **Ce qui déroge, et pourquoi.** La Polyglotte ne prend que l’espace et la chasse : son interligne de tableau (1,34) est calé sur la lettrine d’une ligne, et l’on y compare les colonnes rangée à rangée. Si ses colonnes étroites ouvrent de trop grands blancs de justification (§ 3.11.7), c’est son espace de mot qu’on rend à −0,02 em, non les jetons. Le texte original composé en sans en regard du français garde −0,03 em, plancher du sans. Les citations détachées gardent leur composition propre.
+
+⚠️ **Pour ces surfaces, il remplace** la valeur sérif du § 3.11.2 (−0,025 em) et la ligne « Lecture continue » du barème du § 3.11.3 (1,62, désormais 1,55). `INTERLIGNE_LECTURE` (`compositionOeuvre.ts`) porte l’interligne en nombre pour la lettrine, et un test le confronte au jeton.
+
 ### 51.11 La fenêtre de SIGNALEMENT — aucun anneau au foyer, et un rebours qui dit le temps
 
 ⛔ **AUCUN ANNEAU VERT SUR LA ZONE DE SAISIE.** L’anneau d’accessibilité du site est écrit
