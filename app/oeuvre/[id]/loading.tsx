@@ -17,7 +17,7 @@ import { Barre, Blanc, MotAttente, StyleVoletsEnCreux, VoletEnCreux } from '@/ap
 // ⛔ Pas de rembourrage sous la barre : `#cs-corps` le pose déjà (AGENTS.md).
 export default function OeuvreLoading() {
   return (
-    <main aria-busy="true" style={{ display: 'flex', minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)' }}>
+    <main aria-busy="true" style={{ display: 'flex', height: HAUTEUR_SOUS_NAVBAR, overflow: 'hidden', background: 'var(--cs-fond)' }}>
       <StyleVoletsEnCreux />
       <VoletEnCreux largeur="clamp(240px, 16vw, 380px)" fond="var(--cs-fond-clair)" cote="gauche">
         <Barre largeur="62%" />
