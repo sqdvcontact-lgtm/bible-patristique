@@ -51,7 +51,8 @@ import { AUCUNE_NOTE, chargerNotesStructurees } from '@/app/lib/notesStructurees
 import { noterDegradation, tolerer, type DegradationChargement } from '@/app/lib/chargementTolerant'
 import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import { chargerNoticesBibliographiques, identifiantsOuvrages, tableDesNotices } from '@/app/lib/referencesBibliographiquesChargement'
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
+import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { cache } from 'react'
 
 // Base fermée au rôle anonyme : chaque entrée serveur (métadonnées, page) crée
@@ -285,16 +286,14 @@ export default async function OeuvrePage({
   ])
   const { oeuvreResult, textesResult, auteursOeuvre } = partagee
   const oeuvre = oeuvreResult.data
-  if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre))) return (
-    <div className="min-h-screen flex items-center justify-center" style={{background:'var(--cs-fond)'}}>
-      <p style={{color:'var(--cs-texte-gris)'}}>Œuvre introuvable.</p>
-    </div>
-  )
+  // Une œuvre absente, ou non publiée pour qui n’administre pas, n’existe pas : la page
+  // répond 404 par l’écran commun (`not-found.tsx`), et non plus 200 par un écran fait main.
+  if (!oeuvre || (!estAdmin && !estOeuvrePubliee(oeuvre))) notFound()
   const textesAccessibles = (textesResult.data ?? []) as TexteVersionRow[]
   const texteDemande = sp.texte ? textesAccessibles.find(t => t.id_texte === sp.texte) : null
   const texteActif = texteDemande ?? textesAccessibles.find(t => t.is_default) ?? textesAccessibles[0]
   if (!texteActif) return (
-    <div className="min-h-screen flex items-center justify-center" style={{background:'var(--cs-fond)'}}>
+    <div className="flex items-center justify-center" style={{minHeight: HAUTEUR_SOUS_NAVBAR, background:'var(--cs-fond)'}}>
       <p style={{color:'var(--cs-texte-gris)'}}>Aucun texte accessible pour cette œuvre.</p>
     </div>
   )

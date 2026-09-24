@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { createClient } from '@supabase/supabase-js'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import { couperDescription, enTetesPartage } from '@/app/lib/metadonneesSeo'
@@ -39,13 +41,8 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
   const { id } = await params
 
   const { data: essai } = await supabaseAdmin.from('essais').select('id, titre, sous_titre, resume, categories, contenu, statut, nb_vues, user_id, created_at, publie_at, afficher_nom_reel, anonyme, couverture, embleme, verset_en_tete, note_admin').eq('id', id).single()
-  if (!essai) {
-    return (
-      <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: 'var(--cs-texte-gris)' }}>Essai introuvable.</p>
-      </main>
-    )
-  }
+  // Absent : 404 par l’écran commun (`not-found.tsx`), et non plus 200 par un écran fait main.
+  if (!essai) notFound()
 
   if (essai.statut !== 'publie') {
     const supabase = await creerSupabaseServeur()
@@ -54,7 +51,7 @@ export default async function EssaiPage({ params }: { params: Promise<{ id: stri
     const autorise = estProprietaire || await estAdmin()
     if (!autorise) {
       return (
-        <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <main style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <p style={{ color: 'var(--cs-texte-gris)' }}>Cet essai n’est pas encore publié.</p>
         </main>
       )

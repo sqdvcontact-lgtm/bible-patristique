@@ -112,7 +112,7 @@ export default function ProfilPublicPage() {
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontFamily: SERIF, fontSize: '1.125rem', color: 'var(--cs-texte-doux)', marginBottom: '8px' }}>Profil introuvable</p>
         <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)' }}>@{pseudo}</p>
-        <Link href="/" style={{ fontSize: '0.75rem', color: 'var(--cs-vert-fonce)', textDecoration: 'none', marginTop: '16px', display: 'inline-block' }}>← Accueil</Link>
+        <Link href="/accueil" style={{ fontSize: '0.75rem', color: 'var(--cs-vert-fonce)', textDecoration: 'none', marginTop: '16px', display: 'inline-block' }}>← Accueil</Link>
       </div>
     </main>
   )

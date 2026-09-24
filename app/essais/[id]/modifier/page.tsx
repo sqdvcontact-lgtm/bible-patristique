@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
+import { notFound } from 'next/navigation'
+import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import { estAdmin as verifierEstAdmin } from '@/app/lib/verifAdmin'
 import EditeurEssai from '../../EditeurEssai'
@@ -16,20 +18,14 @@ export default async function ModifierEssaiPage({ params }: { params: Promise<{ 
 
   const { data: essai } = await supabaseAdmin.from('essais').select('*').eq('id', id).single()
 
-  if (!essai) {
-    return (
-      <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: 'var(--cs-texte-gris)' }}>Essai introuvable.</p>
-      </main>
-    )
-  }
+  if (!essai) notFound()
 
   const estProprietaire = !!user && user.id === essai.user_id
   const estAdminConnecte = !estProprietaire && await verifierEstAdmin()
 
   if (!estProprietaire && !estAdminConnecte) {
     return (
-      <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <main style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <p style={{ color: 'var(--cs-texte-gris)' }}>Vous ne pouvez modifier que vos propres essais.</p>
       </main>
     )
