@@ -3069,7 +3069,12 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
 .cs-tete-volet-actions .etoile-favori { min-width: max(24px, 1.5rem); min-height: max(24px, 1.5rem); }
 /* ⚠️ Le dessin suit la cible : l'icône est en rem, elle aussi. Elle vaut 13 px à la
    racine 16 — la mesure d'hier —, et l'attribut `width` d'un SVG est une valeur de
-   PRÉSENTATION, que cette règle bat sans avoir besoin de le toucher en JSX. */
+   PRÉSENTATION, que cette règle bat sans avoir besoin de le toucher en JSX.
+   ⛔ Elle se pend AUSSI à la classe du bouton, qui est leur règle commune : hors de la
+   rangée (l'en-tête des commentaires d'une publication, sur téléphone), un SVG sans
+   attribut de taille prenait la mesure par défaut du navigateur. Un chevron qui pose
+   sa taille en ligne (IconeChevron) la garde. */
+.cs-bouton-volet svg,
 .cs-tete-volet-actions svg { width: 0.8125rem; height: 0.8125rem; }
 @media (hover: none) {
   .cs-tete-volet-actions .etoile-favori::after { content: none; }
