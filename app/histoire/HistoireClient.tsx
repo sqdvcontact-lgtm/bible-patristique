@@ -503,7 +503,7 @@ function ListeFrise({ items, periodes, mobile, toutesNotes, recherche, liensParE
             /* ⚠️ Collant sous la BARRE, dont la hauteur se compose et ne se recopie
                jamais en pixels (charte, Responsive). Le repère porte le fond de la
                page : sans lui, les cartes défileraient au travers. */
-            <h2 className="histoire-periode">
+            <h2 className={i === 0 ? 'histoire-periode histoire-periode--premiere' : 'histoire-periode'}>
               <span className="histoire-periode-titre">
                 <span className="histoire-periode-nom">{t.nom}</span>
                 {t.code && bornesParCode.get(t.code) && (
@@ -531,10 +531,13 @@ function ListeFrise({ items, periodes, mobile, toutesNotes, recherche, liensParE
           cartes défileraient au travers. */}
       <style>{`
         .histoire-periode {
-          position: sticky; top: ${HAUTEUR_NAVBAR}; z-index: 2; margin: 0; padding: 14px 0 10px;
+          position: sticky; top: ${HAUTEUR_NAVBAR}; z-index: 2; margin: 2.25rem 0 0; padding: 12px 0 16px;
           background: ${FOND}; display: flex; justify-content: center; text-align: center;
           font-weight: 400;
         }
+        /* Le blanc AVANT sépare deux périodes : une marge, hors de la bande collante, pour
+           qu'un repère resté en haut de l'écran ne traîne pas ce blanc avec lui. */
+        .histoire-periode--premiere { margin-top: 0; }
         .histoire-periode-titre { display: flex; flex-direction: column; align-items: center; max-width: 90%; }
         .histoire-periode-nom {
           font-family: ${SERIF}; font-size: 1rem; line-height: 1.25; letter-spacing: 0.01em; color: var(--cs-encre);
