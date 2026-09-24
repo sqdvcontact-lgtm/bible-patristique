@@ -135,23 +135,16 @@ export type TraductionEncart = {
 }
 
 /**
- * Le nom d'une bible en tête de carte : « Bible Fillion ❧ Français et latin ».
- * ⛔ Le tiret qui sépare la bible de sa langue cède à un fleuron très léger, celui du
- * titre « Genèse ❧ Chapitre 1 », en plus petit et plus pâle (demande de l'auteur,
- * 2026-09-23). ⚠️ On ne coupe que sur un tiret CERNÉ D'ESPACES, jamais sur le trait
- * d'union d'un nom composé. Le tiret reste pour la synthèse vocale.
+ * Le nom d'une bible en tête de carte : « Bible Fillion », sans sa langue.
+ * ⛔ LA LANGUE NE S'ÉCRIT PLUS EN TÊTE DU VOLET (décision de l'auteur, 2026-09-24) :
+ * « Bible du XIIIe siècle ❧ Français » devient « Bible du XIIIe siècle ». Elle se lit dans
+ * la fiche que le nom ouvre. ⚠️ On ne coupe que sur un tiret CERNÉ D'ESPACES, jamais sur le
+ * trait d'union d'un nom composé ; c'est la règle de la fiche (nomEtQualite, ModaleTraduction),
+ * recopiée ici parce que la fiche ne se charge qu'au clic.
  */
-function nomAvecFleuron(label: string): ReactNode {
+function nomSansLangue(label: string): ReactNode {
   const m = /^(.+?)\s[–—]\s(.+)$/.exec(label)
-  if (!m) return rendreEnrichi(label)
-  return (
-    <>
-      {rendreEnrichi(m[1])}
-      <span aria-hidden="true" style={{ color: 'var(--cs-or-doux)', opacity: 0.75, fontSize: '0.85em', fontWeight: 400, margin: '0 0.3em', lineHeight: 1 }}>❧</span>
-      <span className="cs-hors-ecran"> – </span>
-      {rendreEnrichi(m[2])}
-    </>
-  )
+  return rendreEnrichi(m ? m[1] : label)
 }
 
 export default function EncartTraduction({ trad, onReduire, reglage, controle }: {
@@ -235,7 +228,7 @@ export default function EncartTraduction({ trad, onReduire, reglage, controle }:
             2026-09-22) : plus de menu des bibles ici, ni flèche, ni bouton « i ». Le
             choix des bibles se prend au menu central, sous le titre du chapitre. */}
         <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center' }}>
-          <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{nomAvecFleuron(trad.label)}</NomVolet>
+          <NomVolet onOuvrir={() => setModaleOuverte(true)} titre="Voir la fiche de cette traduction">{nomSansLangue(trad.label)}</NomVolet>
         </div>
         {reglage}
         {onReduire && (
