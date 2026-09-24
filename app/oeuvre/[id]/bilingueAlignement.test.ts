@@ -8,6 +8,13 @@ import {
   originalEnRegard,
   bornesDesGroupes,
   projeterBilingue,
+  rattacherNonAlignes,
+  partiesNonAlignees,
+  marquerNonAligne,
+  sansMarqueNonAligne,
+  estCorpsLisible,
+  type BlocOriginal,
+  type SegmentVoisin,
   type MembreAlignement,
   type SegmentOriginal,
 } from './bilingueAlignement'
@@ -486,5 +493,124 @@ describe('les originaux fondus dans un même bloc', () => {
   // ⛔ Un bloc COUVERT qui ne compose rien garde sa colonne vide : l'empan est plus haut.
   it('ne compose rien quand l’empan est composé plus haut', () => {
     expect(originalEnRegard({ groupes: [], blocs })).toBeNull()
+  })
+})
+
+describe('le texte original que l’alignement ne met en face de rien', () => {
+  // Deux groupes alignés, g1 (el-1) et g2 (el-4), et deux vers laissés sans vis-à-vis.
+  const bloc = (id: string, texte: string, toutVers = false): BlocOriginal => ({
+    alignmentId: id, texte, texteAffichage: texte, notes: {}, toutVers, joinBefore: null,
+  })
+  const voisin = (cle: string, numero: number, nature = 'texte', espace = 'corps'): SegmentVoisin =>
+    ({ segment_key: cle, segment_numero: numero, nature, espace_textuel: espace })
+  const blocs = () => new Map([['g1', bloc('g1', 'Carmina qui')], ['g2', bloc('g2', 'Flebilis heu')]])
+  const aligne = new Map([['el-1', 'g1'], ['el-4', 'g2']])
+  const orphelins = new Map([
+    ['el-2', segmentGrec('el-2', 'quondam studio', 'texte', ' ')],
+    ['el-3', segmentGrec('el-3', 'florente peregi', 'texte', ' ')],
+  ])
+
+  it('compose le passage à sa place, à la suite du groupe qui le précède', () => {
+    const sortie = rattacherNonAlignes({
+      blocParGroupe: blocs(),
+      voisinage: [voisin('el-4', 4), voisin('el-2', 2), voisin('el-1', 1), voisin('el-3', 3)],
+      groupeAligneDe: aligne,
+      nonAlignes: orphelins,
+      debutDuTexte: true,
+    })
+    expect(sortie.get('g1')?.texte).toBe('Carmina qui quondam studio florente peregi')
+    expect(sortie.get('g2')?.texte).toBe('Flebilis heu')
+  })
+
+  it('grise le passage, et lui seul', () => {
+    const sortie = rattacherNonAlignes({
+      blocParGroupe: blocs(),
+      voisinage: [voisin('el-1', 1), voisin('el-2', 2), voisin('el-4', 4)],
+      groupeAligneDe: aligne,
+      nonAlignes: orphelins,
+      debutDuTexte: true,
+    })
+    expect(partiesNonAlignees(sortie.get('g1')!.texteAffichage)).toEqual([
+      { texte: 'Carmina qui ', nonAligne: false },
+      { texte: 'quondam studio', nonAligne: true },
+    ])
+    // Le texte canonique, qu’on copie, ne porte aucune borne.
+    expect(sortie.get('g1')!.texte).toBe('Carmina qui quondam studio')
+  })
+
+  it('place en TÊTE du premier groupe ce qui ouvre le texte', () => {
+    const sortie = rattacherNonAlignes({
+      blocParGroupe: blocs(),
+      voisinage: [voisin('el-2', 2), voisin('el-4', 4)],
+      groupeAligneDe: aligne,
+      nonAlignes: orphelins,
+      debutDuTexte: true,
+    })
+    expect(sortie.get('g2')?.texte).toBe('quondam studio Flebilis heu')
+    expect(sortie.get('g2')?.joinBefore).toBe(' ')
+  })
+
+  it('laisse au groupe d’avant, hors de l’écran, ce qui ne précède que la page', () => {
+    const sortie = rattacherNonAlignes({
+      blocParGroupe: blocs(),
+      voisinage: [voisin('el-0', 0), voisin('el-2', 2), voisin('el-4', 4)],
+      groupeAligneDe: new Map([...aligne, ['el-0', 'g0']]),
+      nonAlignes: orphelins,
+      debutDuTexte: false,
+    })
+    expect(sortie.get('g2')?.texte).toBe('Flebilis heu')
+    expect(sortie.has('g0')).toBe(false)
+  })
+
+  it('n’y mêle ni titre, ni signature, ni apparat', () => {
+    expect(estCorpsLisible({ espace_textuel: 'corps', nature: 'texte' })).toBe(true)
+    expect(estCorpsLisible({ espace_textuel: 'corps', nature: 'citation' })).toBe(true)
+    expect(estCorpsLisible({ espace_textuel: 'corps', nature: 'signature' })).toBe(false)
+    expect(estCorpsLisible({ espace_textuel: 'introduction', nature: 'texte' })).toBe(false)
+    expect(estCorpsLisible({ espace_textuel: 'apparat_critique', nature: 'apparat_editeur' })).toBe(false)
+    const sortie = rattacherNonAlignes({
+      blocParGroupe: blocs(),
+      voisinage: [voisin('el-1', 1), voisin('el-2', 2, 'signature'), voisin('el-4', 4)],
+      groupeAligneDe: aligne,
+      nonAlignes: orphelins,
+      debutDuTexte: true,
+    })
+    expect(sortie.get('g1')?.texte).toBe('Carmina qui')
+  })
+
+  it('garde le poème en vers, et grise chaque vers pour lui-même', () => {
+    const sortie = rattacherNonAlignes({
+      blocParGroupe: new Map([['g1', bloc('g1', 'Carmina qui', true)]]),
+      voisinage: [voisin('el-1', 1), voisin('el-2', 2)],
+      groupeAligneDe: aligne,
+      nonAlignes: new Map([['el-2', versGrec('el-2', 'Et fluctibus\nCurat spernere')]]),
+      debutDuTexte: true,
+    })
+    const g1 = sortie.get('g1')!
+    expect(g1.toutVers).toBe(true)
+    const lignes = g1.texteAffichage.split('\n')
+    expect(lignes).toHaveLength(3)
+    expect(partiesNonAlignees(lignes[0])).toEqual([{ texte: 'Carmina qui', nonAligne: false }])
+    expect(partiesNonAlignees(lignes[2])).toEqual([{ texte: 'Curat spernere', nonAligne: true }])
+  })
+
+  it('ne touche à rien quand tout est aligné', () => {
+    const entree = blocs()
+    const sortie = rattacherNonAlignes({
+      blocParGroupe: entree,
+      voisinage: [voisin('el-1', 1), voisin('el-4', 4)],
+      groupeAligneDe: aligne,
+      nonAlignes: new Map(),
+      debutDuTexte: true,
+    })
+    expect(sortie.get('g1')).toBe(entree.get('g1'))
+    expect(sortie.get('g2')).toBe(entree.get('g2'))
+  })
+
+  it('borne ligne à ligne, et se retire sans reste', () => {
+    const marque = marquerNonAligne('un\n\ndeux')
+    expect(marque.split('\n')).toHaveLength(3)
+    expect(sansMarqueNonAligne(marque)).toBe('un\n\ndeux')
+    expect(partiesNonAlignees('sans borne')).toEqual([{ texte: 'sans borne', nonAligne: false }])
   })
 })

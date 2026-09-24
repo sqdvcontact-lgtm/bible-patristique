@@ -30,7 +30,7 @@ import { supabase } from "@/app/lib/supabase"
 import type { ChampTitre, SegData, GroupeData, Props, EditionCible, OeuvreResumee, NoteAffichee, NoteStructuree, VersionTextuelle } from './oeuvreTypes'
 import { variantesFrontispice, variantesIntertitre, titreComposeDe, cleTitreCompose, type TitresComposes } from './compositionTitres'
 import type { BlocOriginal } from './bilingueAlignement'
-import { repartirGroupes, chargerProjectionBilingue, chargerPlaceEnRegard, fondreOriginaux, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, type BlocEnRegard } from './bilingueAlignement'
+import { repartirGroupes, chargerProjectionBilingue, chargerPlaceEnRegard, fondreOriginaux, fusionnerBlocsDeVers, originalEnRegard, bornesDesGroupes, partiesNonAlignees, LIBELLE_NON_ALIGNE, type BlocEnRegard } from './bilingueAlignement'
 import { choisirPaireDeLecture, estVersionEnLangueOriginale, modeDeLectureEffectif } from './paireDeLecture'
 import { ALIGNEMENT_ACTIONS, BoutonVolet, MenuVolet, STYLE_RANGEE_TETE_VOLET, TitreVolet, useRangeeCondensee, type ActionVolet } from './TeteVolet'
 import { construireNavigationApparat } from './apparatNavigation'
@@ -3225,6 +3225,23 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       blocs: blocsOriginalEtat,
     })
 
+  /** Compose le texte original d'un bloc. ⛔ Le passage que l'alignement ne met en face
+   *  de rien paraît à sa place, GRISÉ par son encre de rôle et jamais par une opacité, et
+   *  la synthèse vocale l'annonce (voir `rattacherNonAlignes`). L'annonce ne se copie
+   *  pas avec une sélection : elle n'appartient pas au texte. */
+  const composerOriginal = (texte: string, notes: Record<string, NoteAffichee>) =>
+    partiesNonAlignees(texte).map((partie, i) => {
+      const rendu = rendreTexteAvecNotes(estGrec ? cesurerGrec(partie.texte) : cesurerLatin(normaliserEspacesOriginal(partie.texte)), notes)
+      return partie.nonAligne
+        ? (
+          <span key={i} title={LIBELLE_NON_ALIGNE} style={{ color: 'var(--cs-original-non-aligne)' }}>
+            <span className="cs-hors-ecran" style={{ userSelect: 'none' }}>{LIBELLE_NON_ALIGNE}. </span>
+            {rendu}
+          </span>
+        )
+        : <Fragment key={i}>{rendu}</Fragment>
+    })
+
   // Survol d'un segment : la règle de position vit dans app/lib/celluleActions.ts, avec
   // ses tests, et le suivi au défilement, la grâce de sortie et la fermeture au tap
   // dehors vivent dans app/components/CelluleActions.tsx. Il ne reste ici que le
@@ -4416,14 +4433,14 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           style={styleColonneOriginale({ surface: 'argument', seul: afficherOriginalSeul, grec: estGrec, vers: true })}>
                           {lignesDeVers(original.affichage).map((ligne, i) => (
                             <span key={i} style={styleLigneDeVers({ rang: 0 })}>
-                              {rendreTexteAvecNotes(estGrec ? cesurerGrec(ligne) : cesurerLatin(normaliserEspacesOriginal(ligne)), original.notes)}
+                              {composerOriginal(ligne, original.notes)}
                             </span>
                           ))}
                         </div>
                       ) : (
                         <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original" {...marqueOriginal}
                           style={styleColonneOriginale({ surface: 'argument', seul: afficherOriginalSeul, grec: estGrec })}>
-                          {rendreTexteAvecNotes(estGrec ? cesurerGrec(original.affichage) : cesurerLatin(normaliserEspacesOriginal(original.affichage)), original.notes)}
+                          {composerOriginal(original.affichage, original.notes)}
                         </p>
                       )
                     )}
@@ -4763,7 +4780,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                           <div lang={codeLangue(oeuvre.langue_originale)} className="texte-original" {...marqueOriginal} style={styleColonneOriginale({ surface: 'lecture', seul: afficherOriginalSeul, grec: estGrec, vers: true })}>
                             {lignesDeVers(original.affichage).map((ligne, i) => (
                               <span key={i} style={{ display: 'block', lineHeight: 1.4, marginLeft: `${retraitVers(0)}em`, paddingLeft: `${RETRAIT_SUITE}em`, textIndent: `-${RETRAIT_SUITE}em`, hyphens: 'none', WebkitHyphens: 'none' } as React.CSSProperties}>
-                                {rendreTexteAvecNotes(estGrec ? cesurerGrec(ligne) : cesurerLatin(normaliserEspacesOriginal(ligne)), original.notes)}
+                                {composerOriginal(ligne, original.notes)}
                               </span>
                             ))}
                           </div>
@@ -4773,7 +4790,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
                         // césure (latine ou grecque) et l'attribut `lang` : un texte grec composé
                         // avec le syllabateur latin coupait faux et se déclarait à tort « la ».
                         <p lang={codeLangue(oeuvre.langue_originale)} className="texte-original" {...marqueOriginal} style={styleColonneOriginale({ surface: 'lecture', seul: afficherOriginalSeul, grec: estGrec })}>
-                          {rendreTexteAvecNotes(estGrec ? cesurerGrec(original.affichage) : cesurerLatin(normaliserEspacesOriginal(original.affichage)), original.notes)}
+                          {composerOriginal(original.affichage, original.notes)}
                         </p>
                         )
                       )}

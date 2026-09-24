@@ -30,7 +30,7 @@ import { chargerIndexEditeurs } from '@/app/lib/editeursServeur'
 import { normaliserNomEditeur } from '@/app/lib/editeursNormalisation'
 import { projeterAppelsNotesStructureesSansFaillir } from '@/app/lib/appelsNotesStructurees'
 import { tolerer, type DegradationChargement } from '@/app/lib/chargementTolerant'
-import { chargerProjectionBilingue } from '@/app/oeuvre/[id]/bilingueAlignement'
+import { chargerProjectionBilingue, sansMarqueNonAligne } from '@/app/oeuvre/[id]/bilingueAlignement'
 import { choisirPaireDeLecture, ensemblesUtilisables, type EnsembleLisible, type VersionLisible } from '@/app/oeuvre/[id]/paireDeLecture'
 import {
   identiteEdition,
@@ -239,7 +239,8 @@ export async function GET(requete: NextRequest, contexte: { params: Promise<{ id
     for (const [cle, groupe] of projection.groupeParCle) groupeParCle.set(cle, groupe)
     for (const [groupe, bloc] of projection.blocParGroupe) {
       originaux.set(groupe, {
-        texte: bloc.texteAffichage || bloc.texte,
+        // Le passage non aligné part au document sans ses bornes de grisé.
+        texte: sansMarqueNonAligne(bloc.texteAffichage || bloc.texte),
         toutVers: bloc.toutVers,
         notes: notesExtraites(bloc.notes),
       })

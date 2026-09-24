@@ -496,6 +496,12 @@
      un gris de service : elle vaut 65 % du contraste du corps, et les trois thèmes
      gardent ce rapport. Elle était écrite en dur dans trois fichiers, et TESTÉE. */
   --cs-original: #575048;
+  /* Le passage de l'original que l'alignement ne met en face de RIEN : il paraît à sa
+     place, grisé (bilingueAlignement.ts, rattacherNonAlignes). Une encre, jamais une
+     opacité, qui ruinerait le seuil. Au Clair le gris de texte, 4,57 sur --cs-fond
+     contre 7,23 pour l'original ; le gris du Cuir ne s'en distingue pas (8,24 contre
+     8,51), d'où le rang doux, 6,69. */
+  --cs-original-non-aligne: var(--cs-texte-gris);
 
   /* ── Teintes posées sur le panneau mobile, qui est vert sombre EN TOUTES CIRCONSTANCES ──
      Elles n'ont donc pas de surcouche de thème : leur fond ne change pas. Ce sont les
@@ -832,6 +838,7 @@
   --cs-surnum-doux:#a89a7d;
   --cs-surnum-bord: #3f362a;
   --cs-original: #bdb3a0;
+  --cs-original-non-aligne: var(--cs-texte-doux);
   --cs-vise-fond:#2e2614;
   /* ⛔ L'exception. Voir la note en tête du bloc. La famille du danger s'inverse
      comme celle du texte : le rang « foncé », qui dit le destructif CONFIRMÉ, est

@@ -83,6 +83,11 @@ export type SegmentOriginal = {
   join_before: string | null
   /** La forme, à plat : `forme:segment_metadata->>forme`. Voir `compositionVers`. */
   forme?: string | null
+  /** Rang du segment dans SON texte, d'un bout à l'autre (unique par `id_texte`). Il
+   *  sert à retrouver la place d'un passage que l'alignement ne met en face de rien. */
+  segment_numero?: number | null
+  /** L’espace textuel (`corps`, `introduction`, `apparat_critique`). */
+  espace_textuel?: string | null
 }
 
 /** L'original d'un groupe d'alignement, prêt à composer dans la colonne de droite. */
@@ -261,6 +266,189 @@ export function projeterBilingue(params: {
   return { groupeParCle, blocParGroupe }
 }
 
+// ── LE TEXTE ORIGINAL QUE L'ALIGNEMENT NE MET EN FACE DE RIEN ─────────────────────
+//
+// ⛔ Un passage de l'original n'est jamais TU. La lecture en regard part des segments
+// TRADUITS et remonte à leurs groupes : un segment de l'original qu'aucun groupe ne met
+// en face d'un segment traduit n'y paraissait donc pas, et le lecteur lisait un latin
+// troué sans le savoir. Relevé sur la Consolation de Boèce en regard de Ceriziers, qui a
+// sauté six vers de Migne (II, m. 4 ; III, m. 6 et 12 ; IV, m. 3).
+//
+// La règle est générale : un segment de l'original est NON ALIGNÉ quand, dans l'ensemble
+// retenu, aucun groupe ne le met en face d'un segment traduit, soit qu'il n'appartienne
+// à aucun groupe, soit que son groupe n'ait pas de membre traduit (cardinalité 0:n). Il
+// se compose À SA PLACE, à la suite de l'original du groupe qui le PRÉCÈDE dans l'ordre
+// du texte original, et en tête du suivant quand rien ne le précède. Il est GRISÉ par une
+// encre de rôle, `--cs-original-non-aligne`, jamais par une opacité, et il porte une
+// indication lisible par la synthèse vocale.
+//
+// ⚠️ Seul le CORPS lisible s'y prête : un titre, une signature, une préface d'éditeur ou
+// une ligne d'apparat que l'alignement laisse de côté n'ont rien à faire dans la colonne.
+
+/** L'indication que porte un passage grisé, en infobulle et pour la synthèse vocale. */
+export const LIBELLE_NON_ALIGNE = 'Passage sans correspondance dans la traduction'
+
+// Deux caractères d'usage privé bornent, dans `texteAffichage`, ce qui est à griser.
+// ⚠️ Écrits par leur point de code : un `\u` dans ce fichier se ferait réinterpréter par
+// les outils d'édition. Ils ne quittent jamais la page, voir `sansMarqueNonAligne`.
+const MARQUE_DEBUT = String.fromCharCode(0xe000)
+const MARQUE_FIN = String.fromCharCode(0xe001)
+
+/**
+ * Borne un texte à griser. ⛔ LIGNE PAR LIGNE : la colonne recompose un poème vers à vers
+ * (`lignesDeVers`), et une borne ouverte sur un vers et fermée trois vers plus bas
+ * laisserait chaque ligne avec une moitié de marque.
+ */
+export function marquerNonAligne(texte: string): string {
+  // Les blancs de bord restent HORS des bornes : `lignesDeVers` rogne chaque ligne, et
+  // une borne posée devant une espace la protégerait du rognage.
+  return texte.split('\n').map(l => {
+    const m = /^(\s*)([\s\S]*?)(\s*)$/.exec(l)
+    return m && m[2] ? m[1] + MARQUE_DEBUT + m[2] + MARQUE_FIN + m[3] : l
+  }).join('\n')
+}
+
+/** Le texte découpé en passages alignés et non alignés, dans l'ordre. */
+export function partiesNonAlignees(texte: string): { texte: string; nonAligne: boolean }[] {
+  const parties: { texte: string; nonAligne: boolean }[] = []
+  let courant = ''
+  let dedans = false
+  const pousser = () => {
+    if (courant) parties.push({ texte: courant, nonAligne: dedans })
+    courant = ''
+  }
+  for (const c of texte) {
+    if (c === MARQUE_DEBUT) { pousser(); dedans = true }
+    else if (c === MARQUE_FIN) { pousser(); dedans = false }
+    else courant += c
+  }
+  pousser()
+  return parties
+}
+
+/** Retire les bornes : pour tout texte qui QUITTE la page (export, copie). */
+export function sansMarqueNonAligne(texte: string): string {
+  return texte.split(MARQUE_DEBUT).join('').split(MARQUE_FIN).join('')
+}
+
+/** Les natures du corps qu'un lecteur lit : le texte, et ce que l'auteur y a écrit. */
+const NATURES_LISIBLES = new Set(['texte', 'dialogue', 'citation', 'lemme', 'apparat_auteur'])
+
+/** Le segment appartient au corps lisible, seul à pouvoir paraître grisé. */
+export function estCorpsLisible(s: { espace_textuel?: string | null; nature?: string | null }): boolean {
+  const espace = (s.espace_textuel ?? 'corps').trim() || 'corps'
+  const nature = (s.nature ?? 'texte').trim() || 'texte'
+  return espace === 'corps' && NATURES_LISIBLES.has(nature)
+}
+
+/** Un segment du voisinage : ce qu'il faut pour le ranger, sans son texte. */
+export type SegmentVoisin = {
+  segment_key: string
+  segment_numero: number
+  nature?: string | null
+  espace_textuel?: string | null
+}
+
+/** Joint au bloc d'un groupe les segments non alignés qui le suivent ou le précèdent. */
+function adjoindreNonAlignes(
+  bloc: BlocOriginal,
+  segments: readonly SegmentOriginal[],
+  position: 'apres' | 'avant',
+  notesOriginales: Record<string, Record<string, NoteStructuree>>,
+  ancresOriginales: Record<string, AncreNoteStructureeProjection[]>,
+): BlocOriginal {
+  const enVers = estBlocDeVers(segments)
+  const toutVers = bloc.toutVers && enVers
+  const texte = joindreSegmentsOriginaux(segments.map(s => ({
+    texte: s.segment_texte, joinBefore: s.join_before, estVers: enVers,
+  })))
+  const affichage = marquerNonAligne(joindreSegmentsOriginaux(segments.map(s => ({
+    texte: projeterAppelsNotesStructurees(s.segment_texte, ancresOriginales[s.segment_key]),
+    joinBefore: s.join_before,
+    estVers: enVers,
+  }))))
+  const notes: Record<string, NoteStructuree> = { ...bloc.notes }
+  for (const s of segments) Object.assign(notes, notesOriginales[s.segment_key] ?? {})
+  if (position === 'apres') {
+    const liant = toutVers ? '\n' : liantAvantSegment(segments[0].join_before)
+    return {
+      ...bloc,
+      texte: bloc.texte + liant + texte,
+      texteAffichage: bloc.texteAffichage + liant + affichage,
+      notes,
+      toutVers,
+    }
+  }
+  const liant = toutVers ? '\n' : liantAvantSegment(bloc.joinBefore)
+  return {
+    ...bloc,
+    texte: texte + liant + bloc.texte,
+    texteAffichage: affichage + liant + bloc.texteAffichage,
+    notes,
+    toutVers,
+    joinBefore: segments[0].join_before,
+  }
+}
+
+/**
+ * Range les segments NON ALIGNÉS du voisinage dans le bloc du groupe qui les précède
+ * dans l'ordre du texte original, grisés.
+ *
+ * - `voisinage` : les segments de l'original autour de ce qui est chargé, sans texte,
+ *   dans n'importe quel ordre ; ils sont triés sur `segment_numero`.
+ * - `groupeAligneDe` : clé de l'original → groupe qui la met en face d'un segment
+ *   traduit. Une clé absente est non alignée.
+ * - `nonAlignes` : le texte des segments non alignés, par clé.
+ * - `debutDuTexte` : le voisinage part du premier segment du texte. Ce qui précède alors
+ *   le premier segment aligné se compose en TÊTE de son groupe ; sinon il appartient au
+ *   groupe d'avant, qui n'est pas à l'écran, et il s'y composera.
+ *
+ * ⚠️ Un passage dont le groupe d'accueil n'est pas chargé est laissé de côté, sans
+ * erreur : il paraîtra avec son groupe, sur la page qui le porte.
+ */
+export function rattacherNonAlignes(params: {
+  blocParGroupe: ReadonlyMap<string, BlocOriginal>
+  voisinage: readonly SegmentVoisin[]
+  groupeAligneDe: ReadonlyMap<string, string>
+  nonAlignes: ReadonlyMap<string, SegmentOriginal>
+  debutDuTexte: boolean
+  notesOriginales?: Record<string, Record<string, NoteStructuree>>
+  ancresOriginales?: Record<string, AncreNoteStructureeProjection[]>
+}): Map<string, BlocOriginal> {
+  const notesOriginales = params.notesOriginales ?? {}
+  const ancresOriginales = params.ancresOriginales ?? {}
+  const sortie = new Map(params.blocParGroupe)
+  const ordonnes = [...params.voisinage].sort((a, b) => a.segment_numero - b.segment_numero)
+
+  let groupeCourant: string | null = null
+  let enAttente: SegmentOriginal[] = []
+  const deposer = (groupe: string, position: 'apres' | 'avant') => {
+    const bloc = sortie.get(groupe)
+    if (bloc && enAttente.length > 0) {
+      sortie.set(groupe, adjoindreNonAlignes(bloc, enAttente, position, notesOriginales, ancresOriginales))
+    }
+    enAttente = []
+  }
+
+  for (const s of ordonnes) {
+    const groupe = params.groupeAligneDe.get(s.segment_key)
+    if (groupe) {
+      if (enAttente.length > 0) {
+        if (groupeCourant) deposer(groupeCourant, 'apres')
+        else if (params.debutDuTexte) deposer(groupe, 'avant')
+        else enAttente = []
+      }
+      groupeCourant = groupe
+      continue
+    }
+    if (!estCorpsLisible(s)) continue
+    const complet = params.nonAlignes.get(s.segment_key)
+    if (complet) enAttente.push(complet)
+  }
+  if (enAttente.length > 0 && groupeCourant) deposer(groupeCourant, 'apres')
+  return sortie
+}
+
 /**
  * Le premier et le dernier segment traduit de chaque groupe, dans l'ordre de lecture.
  *
@@ -396,6 +584,144 @@ type RequeteLecture = {
   in: (colonne: string, valeurs: readonly string[]) => PromiseLike<{ data: unknown[] | null; error?: { message: string } | null }>
 }
 
+/** Une lecture du voisinage : bornes et tri sur `segment_numero`, puis `await`. */
+type RequeteVoisinage = PromiseLike<{ data: unknown[] | null; error?: { message: string } | null }> & {
+  select: (colonnes: string) => RequeteVoisinage
+  eq: (colonne: string, valeur: string) => RequeteVoisinage
+  gte: (colonne: string, valeur: number) => RequeteVoisinage
+  lte: (colonne: string, valeur: number) => RequeteVoisinage
+  gt: (colonne: string, valeur: number) => RequeteVoisinage
+  lt: (colonne: string, valeur: number) => RequeteVoisinage
+  order: (colonne: string, options: { ascending: boolean }) => RequeteVoisinage
+  limit: (n: number) => RequeteVoisinage
+  range: (de: number, a: number) => RequeteVoisinage
+}
+
+/** Segments lus AVANT et APRÈS ce qui est chargé, pour trouver les non-alignés du bord. */
+const VOISINAGE = 40
+/** Taille d'une page PostgREST (`max-rows`) : au-delà, la réponse est tronquée. */
+const PAGE_LIGNES = 1000
+
+/**
+ * Charge les segments non alignés de l'original autour des groupes chargés, et les range
+ * dans leurs blocs (voir `rattacherNonAlignes`).
+ *
+ * ⚠️ Rien ne se paie d'avance : trois lectures légères (clé, rang, nature) sur l'empan
+ * chargé et ses deux bords, puis les membres des clés inconnues. Le TEXTE n'est lu que
+ * pour les segments effectivement non alignés, c'est-à-dire presque jamais.
+ * ⚠️ Toute erreur rend la projection intacte : un passage grisé qui manque vaut mieux
+ * qu'une colonne originale qui tombe.
+ */
+async function completerNonAlignes(
+  client: ClientLecture,
+  params: {
+    alignmentSetId: string
+    idTexteTraduit: string
+    idTexteOriginal: string
+    notesOriginales?: Record<string, Record<string, NoteStructuree>>
+    ancresOriginales?: Record<string, AncreNoteStructureeProjection[]>
+  },
+  projection: ProjectionBilingue,
+  segmentsCharges: readonly SegmentOriginal[],
+  membresOriginaux: readonly MembreAlignement[],
+): Promise<ProjectionBilingue> {
+  // Le voisinage se borne au CORPS chargé : un groupe d’apparat aligné, loin dans le
+  // texte, étendrait sinon l’empan à tout le texte.
+  const numeros = segmentsCharges
+    .filter(s => estCorpsLisible(s))
+    .map(s => s.segment_numero)
+    .filter((n): n is number => typeof n === 'number' && Number.isFinite(n))
+  if (numeros.length === 0 || projection.blocParGroupe.size === 0) return projection
+  const min = Math.min(...numeros)
+  const max = Math.max(...numeros)
+
+  const segments = () => (client.from('segments') as RequeteVoisinage)
+    .select('segment_key,segment_numero,nature,espace_textuel')
+    .eq('id_texte', params.idTexteOriginal)
+  const lire = async (requete: RequeteVoisinage) => {
+    const { data, error } = await requete
+    if (error) throw new Error(error.message)
+    return (data ?? []) as SegmentVoisin[]
+  }
+  const lireEmpan = async () => {
+    const lignes: SegmentVoisin[] = []
+    for (let de = 0; ; de += PAGE_LIGNES) {
+      const page = await lire(segments().gte('segment_numero', min).lte('segment_numero', max)
+        .order('segment_numero', { ascending: true }).range(de, de + PAGE_LIGNES - 1))
+      lignes.push(...page)
+      if (page.length < PAGE_LIGNES) return lignes
+    }
+  }
+  const [empan, avant, apres] = await Promise.all([
+    lireEmpan(),
+    lire(segments().lt('segment_numero', min).order('segment_numero', { ascending: false }).limit(VOISINAGE)),
+    lire(segments().gt('segment_numero', max).order('segment_numero', { ascending: true }).limit(VOISINAGE)),
+  ])
+  const voisinage = [...avant, ...empan, ...apres]
+
+  // Les clés chargées appartiennent à des groupes qui ont un membre traduit : c'est par
+  // eux que la projection les a trouvées.
+  const groupeAligneDe = new Map<string, string>()
+  for (const m of membresOriginaux) {
+    if (projection.blocParGroupe.has(m.alignment_id) && !groupeAligneDe.has(m.segment_key)) {
+      groupeAligneDe.set(m.segment_key, m.alignment_id)
+    }
+  }
+  const inconnues = voisinage.map(s => s.segment_key).filter(cle => !groupeAligneDe.has(cle))
+  if (inconnues.length === 0) return projection
+
+  const table = (nom: string) => client.from(nom) as RequeteLecture
+  const lireMembres = async (idTexte: string, colonne: 'segment_key' | 'alignment_id', valeurs: readonly string[]) => {
+    const pages = await Promise.all(lots(valeurs).map(lot =>
+      table('texte_alignement_membres').select('alignment_id,segment_key')
+        .eq('alignment_set_id', params.alignmentSetId)
+        .eq('id_texte', idTexte)
+        .in(colonne, lot)))
+    return pages.flatMap(({ data, error }) => {
+      if (error) throw new Error(error.message)
+      return (data ?? []) as Pick<MembreAlignement, 'alignment_id' | 'segment_key'>[]
+    })
+  }
+  const membresInconnus = await lireMembres(params.idTexteOriginal, 'segment_key', inconnues)
+  const groupesInconnus = [...new Set(membresInconnus.map(m => m.alignment_id))]
+  const traduits = groupesInconnus.length > 0
+    ? new Set((await lireMembres(params.idTexteTraduit, 'alignment_id', groupesInconnus)).map(m => m.alignment_id))
+    : new Set<string>()
+  for (const m of membresInconnus) {
+    if (traduits.has(m.alignment_id) && !groupeAligneDe.has(m.segment_key)) {
+      groupeAligneDe.set(m.segment_key, m.alignment_id)
+    }
+  }
+
+  const aLire = voisinage
+    .filter(s => !groupeAligneDe.has(s.segment_key) && estCorpsLisible(s))
+    .map(s => s.segment_key)
+  if (aLire.length === 0) return projection
+  const pagesTexte = await Promise.all(lots(aLire).map(lot =>
+    table('segments').select('segment_key,segment_texte,nature,join_before,forme:segment_metadata->>forme,segment_numero')
+      .eq('id_texte', params.idTexteOriginal)
+      .in('segment_key', lot)))
+  const nonAlignes = new Map<string, SegmentOriginal>()
+  for (const { data, error } of pagesTexte) {
+    if (error) throw new Error(error.message)
+    for (const s of (data ?? []) as SegmentOriginal[]) nonAlignes.set(s.segment_key, s)
+  }
+
+  return {
+    groupeParCle: projection.groupeParCle,
+    blocParGroupe: rattacherNonAlignes({
+      blocParGroupe: projection.blocParGroupe,
+      voisinage,
+      groupeAligneDe,
+      nonAlignes,
+      // Le bord d'avant n'a pas rempli sa mesure : il a touché le début du texte.
+      debutDuTexte: avant.length < VOISINAGE,
+      notesOriginales: params.notesOriginales,
+      ancresOriginales: params.ancresOriginales,
+    }),
+  }
+}
+
 /**
  * Charge la projection bilingue pour les segments traduits actuellement à l'écran.
  *
@@ -437,12 +763,12 @@ export async function chargerProjectionBilingue(
 
   const clesOriginales = [...new Set(membresOriginaux.map(m => m.segment_key))]
   const pagesSegments = await Promise.all(lots(clesOriginales).map(lot =>
-    table('segments').select('segment_key,segment_texte,nature,join_before,forme:segment_metadata->>forme')
+    table('segments').select('segment_key,segment_texte,nature,join_before,forme:segment_metadata->>forme,segment_numero,espace_textuel')
       .eq('id_texte', params.idTexteOriginal)
       .in('segment_key', lot)))
   const segmentsOriginaux = pagesSegments.flatMap(r => (r.data ?? []) as SegmentOriginal[])
 
-  return projeterBilingue({
+  const projection = projeterBilingue({
     membres: [...membresTraduits, ...membresOriginaux],
     idTexteTraduit: params.idTexteTraduit,
     idTexteOriginal: params.idTexteOriginal,
@@ -450,6 +776,12 @@ export async function chargerProjectionBilingue(
     notesOriginales: params.notesOriginales,
     ancresOriginales: params.ancresOriginales,
   })
+  // ⛔ Le texte original que l'alignement ne met en face de rien paraît quand même, grisé.
+  try {
+    return await completerNonAlignes(client, params, projection, segmentsOriginaux, membresOriginaux)
+  } catch {
+    return projection
+  }
 }
 
 /** Ce qu'on sait, dans le texte LU, de l'endroit qui fait face à un segment original. */
