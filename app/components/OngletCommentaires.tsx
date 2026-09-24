@@ -274,19 +274,16 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
 
   const renderCommentaire = (c: Commentaire, estReponse: boolean, suivie = false) => {
     const forme = formeCommentaire({ reponse: estReponse, suivie })
-    // ⛔ SON PROPRE COMMENTAIRE EN ATTENTE SE MONTRE (2026-09-22) : replié sous la bande
-    // rouge du contrôle, il se lisait comme un refus. Il paraît déplié, en teinte neutre,
-    // et son badge dit ce qu'il attend. La bande rouge ne vaut que pour ce qu'on n'a pas
-    // écrit soi-même.
-    const estMien = !!userId && c.user_id === userId
-    const cache = !c.supprime && !c.valide && !estMien && !revelees.has(c.id)
+    // ⛔ TOUT COMMENTAIRE EN ATTENTE SE REPLIE, le sien compris (demande de l'auteur,
+    // 2026-09-24) : « EN ATTENTE DE RELECTURE », et le survol propose de le lire.
+    const cache = !c.supprime && !c.valide && !revelees.has(c.id)
     if (cache) {
       return (
         <div key={c.id} style={{ marginLeft: forme.marginLeft, marginBottom: forme.marginBottom }}>
           <button className="commentaire-retracte" onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
             style={{ width:'100%', display:'block', position:'relative', overflow:'hidden', background:'var(--cs-danger-fond)', borderStyle:'solid', borderColor:'var(--cs-danger-bord)', borderWidth: forme.borderWidth, borderRadius: forme.borderRadius, cursor:'pointer', padding:'9px 12px', textAlign:'left' }}>
             <span className="commentaire-retracte-contenu" style={{ display:'block', fontSize:'0.71875rem', color:'var(--cs-danger-fonce)', fontWeight:600 }}>
-              Commentaire en attente de contrôle.
+              EN ATTENTE DE RELECTURE
             </span><LireQuandMeme />
           </button>
         </div>
@@ -299,7 +296,7 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
     const aDesActionsADroite = userId === c.user_id || (isAdmin && userId !== c.user_id)
     return (
       <div className="commentaire-carte" key={c.id}
-        style={{ ...carteCommentaire({ certifie: estCertifie, enRevision: estRevision && !estMien, reponse: estReponse, suivie }), viewTransitionName: `commentaire-bible-${c.id}` }}>
+        style={{ ...carteCommentaire({ certifie: estCertifie, enRevision: estRevision, reponse: estReponse, suivie }), viewTransitionName: `commentaire-bible-${c.id}` }}>
         {c.supprime ? (
           <p style={EFFACE_COMMENTAIRE}>{c.pseudo ?? c.auteur_nom ?? 'Un utilisateur'} a supprimé un commentaire</p>
         ) : (
@@ -314,10 +311,7 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
               <span style={{ ...BADGE_RANG, color:couleurs.texte, background:couleurs.fond }}>{rangInfo.rang}</span>
             )}
             {estCertifie && <span style={{ ...BADGE_ETAT, color:'var(--cs-vert)', background:'rgba(var(--cs-vert-rgb),0.14)' }}>CERTIFIÉ</span>}
-            {estRevision && (estMien
-              ? <span style={{ ...BADGE_ETAT, color:'var(--cs-texte-second)', background:'var(--cs-fond-doux)' }}>EN ATTENTE DE RELECTURE</span>
-              : <span style={{ ...BADGE_ETAT, color:'var(--cs-danger-fonce)', background:'rgba(var(--cs-danger-rgb),0.10)' }}>EN RÉVISION</span>
-            )}
+            {estRevision && <span style={{ ...BADGE_ETAT, color:'var(--cs-danger-fonce)', background:'rgba(var(--cs-danger-rgb),0.10)' }}>EN ATTENTE DE RELECTURE</span>}
           </div>
           <span style={DATE_COMMENTAIRE}>{dateHeureCommentaire(c.created_at)}</span>
         </div>

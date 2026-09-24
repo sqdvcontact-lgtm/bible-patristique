@@ -369,7 +369,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
           <button className="commentaire-retracte" onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
             style={{ width: '100%', display: 'block', position: 'relative', overflow: 'hidden', background: 'var(--cs-danger-fond)', borderStyle: 'solid', borderColor: 'var(--cs-danger-bord)', borderWidth: forme.borderWidth, borderRadius: forme.borderRadius, cursor: 'pointer', padding: '9px 12px', textAlign: 'left' }}>
             <span className="commentaire-retracte-contenu" style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--cs-danger-fonce)', fontWeight: 600 }}>
-              Commentaire en attente de contrôle.
+              EN ATTENTE DE RELECTURE
             </span><LireQuandMeme />
           </button>
         </div>
@@ -399,7 +399,7 @@ export default function OngletCommentaires({ segActif, estAdmin }: { segActif: n
               <span style={{ ...BADGE_RANG, color: couleurs.texte, background: couleurs.fond }}>{rangInfo.rang}</span>
             )}
             {estCertifie && <span style={{ ...BADGE_ETAT, color: 'var(--cs-vert)', background: 'rgba(var(--cs-vert-rgb),0.14)' }}>CERTIFIÉ</span>}
-            {estRevision && <span style={{ ...BADGE_ETAT, color: 'var(--cs-danger-fonce)', background: 'rgba(var(--cs-danger-rgb),0.10)' }}>EN RÉVISION</span>}
+            {estRevision && <span style={{ ...BADGE_ETAT, color: 'var(--cs-danger-fonce)', background: 'rgba(var(--cs-danger-rgb),0.10)' }}>EN ATTENTE DE RELECTURE</span>}
           </div>
           <span style={DATE_COMMENTAIRE}>{dateHeureCommentaire(c.created_at)}</span>
         </div>

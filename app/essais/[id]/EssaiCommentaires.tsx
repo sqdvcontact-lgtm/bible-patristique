@@ -156,7 +156,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
       <button className="commentaire-retracte" onClick={() => setRevelees(prev => new Set(prev).add(c.id))}
         style={{ width: '100%', display: 'block', position: 'relative', overflow: 'hidden', background: 'var(--cs-danger-fond)', borderStyle: 'solid', borderColor: 'var(--cs-danger-bord)', borderWidth: formeCommentaire({ reponse, suivie }).borderWidth, borderRadius: formeCommentaire({ reponse, suivie }).borderRadius, cursor: 'pointer', padding: '9px 12px', textAlign: 'left' }}>
         <span className="commentaire-retracte-contenu" style={{ display: 'block', fontSize: '0.71875rem', color: 'var(--cs-danger-fonce)', fontWeight: 600 }}>
-          Commentaire en attente de contrôle.
+          EN ATTENTE DE RELECTURE
         </span><LireQuandMeme />
       </button>
     </div>
@@ -174,8 +174,8 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const CorpsCommentaire = ({ c, reponse, suivie = false }: { c: CommentaireEssai; reponse: boolean; suivie?: boolean }) => {
     const rang = c.lecture ? calculerRang(c.lecture.nb_auteurs, c.lecture.total_auteurs).rang : null
     const rangCouleur = rang ? couleurRang(rang) : null
-    // Son PROPRE commentaire en attente se lit déplié, avec la raison de l'attente.
-    // ⚠️ Mais sa carte est ROUGE, comme au volet d'un verset et à l'onglet d'une
+    // Son PROPRE commentaire en attente se replie comme les autres (2026-09-24) ;
+    // déplié, il dit la raison de l'attente. ⚠️ Sa carte est ROUGE, comme au volet d'un verset et à l'onglet d'une
     // œuvre (demande de l'auteur, 2026-09-22) : un commentaire non contrôlé se
     // reconnaît partout à la même teinte, y compris sous les yeux de qui l'écrit.
     const monAttente = !c.valide && !!userId && c.user_id === userId
@@ -190,7 +190,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
             {rang && rangCouleur && <span style={{ ...BADGE_RANG, color: rangCouleur.texte, background: rangCouleur.fond }}>{rang}</span>}
             {!c.valide && (
               <span style={{ ...BADGE_ETAT, color: 'var(--cs-danger-fonce)', background: 'rgba(var(--cs-danger-rgb),0.10)' }}>
-                {monAttente ? 'EN ATTENTE DE RELECTURE' : 'EN RÉVISION'}
+                EN ATTENTE DE RELECTURE
               </span>
             )}
           </div>
@@ -213,7 +213,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
   const Carte = ({ c }: { c: CommentaireEssai }) => {
     const rendre = (x: CommentaireEssai, reponse: boolean, suivie = false) => {
       if (x.supprime) return <CommentaireEfface key={x.id} c={x} reponse={reponse} suivie={suivie} />
-      if (!x.valide && x.user_id !== userId && !revelees.has(x.id)) return <CommentaireRetracte key={x.id} c={x} reponse={reponse} suivie={suivie} />
+      if (!x.valide && !revelees.has(x.id)) return <CommentaireRetracte key={x.id} c={x} reponse={reponse} suivie={suivie} />
       return <CorpsCommentaire key={x.id} c={x} reponse={reponse} suivie={suivie} />
     }
     // Le fil se sépare du suivant par un BLANC un peu plus large que celui qui règne
