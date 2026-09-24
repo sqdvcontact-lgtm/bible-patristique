@@ -537,10 +537,22 @@ export default async function OeuvrePage({
     console.error('Résolution du passage visé impossible :', error)
     return null
   })
-  // En texte entier, le corps se charge d'un seul tenant et ne dépend d'aucun niveau :
-  // il n'a donc pas à attendre la vague 2. Son rejet éventuel remonte plus bas, à
-  // l'endroit où on le lit.
-  const promesseTexteEntier = lectureTexteEntier ? chargerTousSegments({ nature: 'texte' }) : null
+  // En texte entier, le corps ne dépend d'aucun niveau : il n'a donc pas à attendre la
+  // vague 2. Son rejet éventuel remonte plus bas, à l'endroit où on le lit.
+  // ⛔ UNE OUVERTURE ORDINAIRE NE REÇOIT QUE LA PREMIÈRE TRANCHE (2026-09-24), comme une
+  // grosse division : les Homélies sur la Genèse, qui se lisent en texte entier,
+  // envoyaient leurs 6 931 segments d'un bloc (4,4 Mo de charge) pour une page de lecture
+  // qui en montre quinze mille signes. Le client complète le reste en tâche de fond
+  // (`niv1InitialPartiel`). ⚠️ Un passage VISÉ (`?segment=`, `?groupe=`, `?cle=`) ou une
+  // division nommée (`?niv1=`) garde le chargement entier : la cible peut tomber loin
+  // dans le texte, et l'on ne fait pas attendre un lien profond.
+  const texteEntierVise = (Number.isFinite(segmentCibleId) && segmentCibleId > 0)
+    || Boolean(sp.groupe?.trim() || sp.cle?.trim() || sp.niv1?.trim())
+  const promesseTexteEntier: Promise<{ segments: Segment[]; partiel: boolean }> | null = lectureTexteEntier
+    ? (texteEntierVise
+        ? chargerTousSegments({ nature: 'texte' }).then(segments => ({ segments: segments as Segment[], partiel: false }))
+        : chargerTrancheTexte({ nature: 'texte' }))
+    : null
   promesseTexteEntier?.catch(() => {})
   // La première tranche du niveau 1 part elle aussi dès qu'on sait lequel : le niveau
   // du passage repris, sinon celui que l'adresse nomme (`?niv1=`). La vague 2 dira si
@@ -640,7 +652,7 @@ export default async function OeuvrePage({
   // charge celui-là, comme avant.
   const trancheAnticipee = await promesseTranche
   const trancheInitiale = promesseTexteEntier
-    ? { segments: await promesseTexteEntier as Segment[], partiel: false }
+    ? await promesseTexteEntier
     : texteSansNiveaux
       ? await chargerTrancheTexte({ nature: 'texte' })
       : premierNiv1
