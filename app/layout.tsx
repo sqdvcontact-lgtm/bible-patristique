@@ -8,6 +8,7 @@ import { SCRIPT_THEME, THEME_DEFAUT } from "./lib/theme";
 import { CORPS_DEFAUT, SCRIPT_CORPS } from "./lib/corpsLecture";
 import { ProvisionCompte } from "./lib/contexteCompte";
 import AnnonceHautsFaits from "./components/AnnonceHautsFaits";
+import ClavierVirtuel from "./components/ClavierVirtuel";
 import { HAUTEUR_NAVBAR } from "./lib/mesures";
 import { JsonLd, donneesSite } from "./lib/donneesStructurees";
 import "./globals.css";
@@ -118,6 +119,9 @@ export default function RootLayout({
                 à dire, et ne partent en vérification qu'une fois par session — puis
                 sur le geste d'un lecteur, jamais à chaque page tournée. */}
             <AnnonceHautsFaits />
+            {/* Le clavier grec et hébreu des zones de rédaction : il ne rend rien tant
+                qu'aucune n'a le foyer (app/components/ClavierVirtuel.tsx). */}
+            <ClavierVirtuel />
           </ProvisionCompte>
         </ProvisionAffichageAdmin>
       </body>

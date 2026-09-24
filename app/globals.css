@@ -5801,3 +5801,81 @@ a.cs-fiche-oeuvre:hover { background: rgba(var(--cs-vert-rgb), 0.06); }
 /* Un saut de ligne d'extrait, dans le volet patristique : un blanc LÉGER, le tiers
    d'une ligne, qui sépare sans ouvrir un nouveau paragraphe (2026-09-23). */
 .cs-saut-volet { display: block; height: 0.35em; }
+
+/* ── LE CLAVIER VIRTUEL GREC ET HÉBREU ──────────────────────────────────────────
+   Demande de l'auteur, 2026-09-24 : un clavier grec et hébreu pour les commentaires
+   et toute zone de rédaction (hors signalements). Composant : app/components/
+   ClavierVirtuel.tsx, monté une fois dans le gabarit ; règle : app/lib/clavierVirtuel.ts.
+   ⛔ La pastille se pose DANS le coin de la zone, discrète au repos : elle ne doit rien
+   masquer de ce qu'on écrit. La palette est un menu porté : rayon 8px, ombre flottante.
+   ⛔ Les formes vivent ici, non en ligne : le survol et l'état retenu seraient morts. */
+.cs-clavier-pastille {
+  position: fixed;
+  display: inline-flex; align-items: center; gap: 1px;
+  min-width: max(24px, 1.5rem); min-height: max(20px, 1.25rem);
+  padding: 0 5px;
+  font-family: var(--font-source-serif), Georgia, 'Times New Roman', serif;
+  font-size: 0.75rem; line-height: 1;
+  color: var(--cs-texte-second);
+  background: var(--cs-surface);
+  border: 1px solid var(--cs-bord-clair);
+  border-radius: 999px;
+  opacity: 0.7;
+  cursor: pointer;
+  transition: opacity var(--cs-duree-courte), color var(--cs-duree-courte), border-color var(--cs-duree-courte);
+}
+@media (hover: hover) {
+  .cs-clavier-pastille:hover { opacity: 1; color: var(--cs-vert); border-color: var(--cs-vert); }
+}
+.cs-clavier-pastille[data-ouvert] { opacity: 1; color: var(--cs-vert); border-color: var(--cs-vert); }
+.cs-clavier-palette {
+  position: fixed;
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 8px;
+  background: var(--cs-surface);
+  border: 1px solid var(--cs-bord);
+  border-radius: 8px;
+  box-shadow: var(--cs-ombre-flottante);
+}
+.cs-clavier-tete { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cs-clavier-alphabets { display: flex; gap: 2px; }
+.cs-clavier-alphabet,
+.cs-clavier-maj {
+  font-family: var(--font-source-sans), system-ui, sans-serif;
+  font-size: 0.6875rem; line-height: 1.2;
+  padding: 4px 9px;
+  color: var(--cs-texte-gris);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.cs-clavier-alphabet[aria-pressed='true'],
+.cs-clavier-maj[aria-pressed='true'] { color: var(--cs-vert); font-weight: 600; background: rgba(var(--cs-vert-rgb), 0.08); }
+@media (hover: hover) {
+  .cs-clavier-alphabet:hover, .cs-clavier-maj:hover { color: var(--cs-vert); }
+}
+.cs-clavier-maj { border-color: var(--cs-bord-clair); }
+.cs-clavier-rangees { display: flex; flex-direction: column; gap: 3px; }
+.cs-clavier-rangee { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
+.cs-clavier-rangee[data-signes] { margin-top: 3px; padding-top: 6px; border-top: 1px solid var(--cs-bord-clair); }
+.cs-clavier-touche {
+  min-width: max(26px, 1.75rem); min-height: max(28px, 1.875rem);
+  padding: 0 4px;
+  font-family: var(--font-source-serif), 'SBL Hebrew', 'Ezra SIL', 'Times New Roman', serif;
+  font-size: 1rem; line-height: 1;
+  color: var(--cs-texte);
+  background: var(--cs-fond-clair);
+  border: 1px solid var(--cs-bord-clair);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background var(--cs-duree-courte), color var(--cs-duree-courte), border-color var(--cs-duree-courte);
+}
+@media (hover: hover) {
+  .cs-clavier-touche:hover { color: var(--cs-vert); border-color: var(--cs-vert); background: rgba(var(--cs-vert-rgb), 0.06); }
+}
+.cs-clavier-touche:active { background: rgba(var(--cs-vert-rgb), 0.14); }
+.cs-clavier-rangee[data-signes] .cs-clavier-touche { color: var(--cs-texte-second); }
+@media (prefers-reduced-motion: reduce) {
+  .cs-clavier-pastille, .cs-clavier-touche { transition: none; }
+}

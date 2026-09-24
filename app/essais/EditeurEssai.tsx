@@ -859,7 +859,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '12px', marginBottom: '12px' }}>
                   <div>
                     <label style={{ ...STYLE_RUBRIQUE }}>Titre *</label>
-                    <input aria-label="Titre"
+                    <input data-clavier aria-label="Titre"
                       aria-invalid={!!erreursAffichees.titre}
                       aria-describedby={erreursAffichees.titre ? 'erreur-titre' : undefined}
                       value={meta.titre}
@@ -872,7 +872,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
                   </div>
                   <div>
                     <label style={{ ...STYLE_RUBRIQUE }}>Sous-titre</label>
-                    <input aria-label="Sous-titre"
+                    <input data-clavier aria-label="Sous-titre"
                       value={meta.sousTitre}
                       onChange={e => setMeta(prev => ({ ...prev, sousTitre: e.target.value }))}
                       autoComplete="off"

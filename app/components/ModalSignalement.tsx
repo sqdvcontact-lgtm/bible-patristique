@@ -187,7 +187,7 @@ export default function ModalSignalement({ titre, texteObjet, onClose, onEnvoyer
               </fieldset>
             )}
 
-            <textarea aria-label="Description du problème" value={message} onChange={e => setMessage(e.target.value)}
+            <textarea data-sans-clavier aria-label="Description du problème" value={message} onChange={e => setMessage(e.target.value)}
               placeholder={placeholder} rows={4} autoFocus className="cs-signalement-champ" />
 
             <div className="cs-signalement-pied">

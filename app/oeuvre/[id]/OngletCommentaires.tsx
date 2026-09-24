@@ -85,7 +85,7 @@ function ModalSignalerCommentaire({ titre, onClose, onEnvoyer }: {
           <p style={{ fontSize: '0.71875rem', color: 'var(--cs-vert)', fontStyle: 'italic', textAlign: 'center', padding: '8px 0' }}>Signalement envoyé, merci&#8239;!</p>
         ) : (
           <>
-            <textarea aria-label="Description du problème" value={message} onChange={e => setMessage(e.target.value)} placeholder="Décrivez le problème…" rows={4} autoFocus
+            <textarea data-sans-clavier aria-label="Description du problème" value={message} onChange={e => setMessage(e.target.value)} placeholder="Décrivez le problème…" rows={4} autoFocus
               style={{ width: '100%', fontSize: '0.6875rem', padding: '7px 9px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', resize: 'vertical', outline: 'none', lineHeight: 1.5, boxSizing: 'border-box' }} />
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px', gap: '8px' }}>
               {statut === 'err' && <span style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', alignSelf: 'center' }}>Erreur d’envoi.</span>}
