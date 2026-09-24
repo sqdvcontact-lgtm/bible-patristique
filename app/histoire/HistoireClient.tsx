@@ -504,14 +504,12 @@ function ListeFrise({ items, periodes, mobile, toutesNotes, recherche, liensParE
                jamais en pixels (charte, Responsive). Le repère porte le fond de la
                page : sans lui, les cartes défileraient au travers. */
             <h2 className="histoire-periode">
-              <span className="histoire-periode-filet" aria-hidden />
               <span className="histoire-periode-titre">
                 <span className="histoire-periode-nom">{t.nom}</span>
                 {t.code && bornesParCode.get(t.code) && (
                   <span className="histoire-periode-bornes">{bornesParCode.get(t.code)}</span>
                 )}
               </span>
-              <span className="histoire-periode-filet" aria-hidden />
             </h2>
           )}
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
@@ -527,18 +525,17 @@ function ListeFrise({ items, periodes, mobile, toutesNotes, recherche, liensParE
         )
       })}
       {/* ⛔ LE REPÈRE D'UNE PÉRIODE SE COMPOSE COMME LA FRISE : nom centré en sérif, dates
-          en italique elzévirienne dessous, un filet de part et d'autre, à la manière d'un
-          intertitre de livre ancien (demande de l'auteur, 2026-09-24). Il reste collant sous
+          en italique elzévirienne dessous, à la manière d'un intertitre de livre ancien ; sans
+          filets, la page en porte déjà assez (demande de l'auteur, 2026-09-24). Il reste collant sous
           la barre, dont la hauteur se compose, et porte le fond de la page : sans lui, les
           cartes défileraient au travers. */}
       <style>{`
         .histoire-periode {
           position: sticky; top: ${HAUTEUR_NAVBAR}; z-index: 2; margin: 0; padding: 14px 0 10px;
-          background: ${FOND}; display: flex; align-items: flex-start; gap: 0.875rem; text-align: center;
+          background: ${FOND}; display: flex; justify-content: center; text-align: center;
           font-weight: 400;
         }
-        .histoire-periode-filet { flex: 1 1 0; height: 1px; margin-top: 0.625rem; background: var(--cs-bord); }
-        .histoire-periode-titre { display: flex; flex-direction: column; align-items: center; max-width: 80%; }
+        .histoire-periode-titre { display: flex; flex-direction: column; align-items: center; max-width: 90%; }
         .histoire-periode-nom {
           font-family: ${SERIF}; font-size: 1rem; line-height: 1.25; letter-spacing: 0.01em; color: var(--cs-encre);
           text-wrap: balance;
