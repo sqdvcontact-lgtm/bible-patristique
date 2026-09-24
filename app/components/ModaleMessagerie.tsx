@@ -19,6 +19,7 @@ import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
 import { SERIF } from '@/app/lib/polices'
 import IconeCroix from '@/app/components/IconeCroix'
 import { MentionVide } from '@/app/components/EtatVideVolet'
+import PastilleFiltre from '@/app/components/PastilleFiltre'
 
 type Conversation = { partenaire_pseudo: string; partenaire_mecene?: boolean; dernier_message: string; dernier_at: string; nb_non_lus: number }
 type Message = { id: string; de_moi: boolean; contenu: string; lu: boolean; created_at: string }
@@ -258,8 +259,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
             </div>
             <div style={{ flexShrink: 0, display: 'flex', gap: '4px', padding: '8px 14px 4px' }}>
               {([['tous', 'Toutes'], ['non-lus', 'Non lues']] as const).map(([k, lab]) => (
-                <button key={k} onClick={() => setFiltre(k)}
-                  style={{ fontSize: '0.6875rem', padding: '3px 11px', borderRadius: '999px', border: `1px solid ${filtre === k ? 'var(--cs-vert)' : 'var(--cs-bord)'}`, background: filtre === k ? 'rgba(var(--cs-vert-rgb),0.09)' : 'var(--cs-surface)', color: filtre === k ? 'var(--cs-vert)' : 'var(--cs-texte-gris)', fontWeight: filtre === k ? 600 : 400, cursor: 'pointer' }}>{lab}</button>
+                <PastilleFiltre key={k} actif={filtre === k} onClick={() => setFiltre(k)}>{lab}</PastilleFiltre>
               ))}
             </div>
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '4px 12px 14px' }}>
@@ -268,9 +268,9 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
               ) : erreurConversations ? (
                 <p role="alert" style={{ textAlign: 'center', fontSize: '0.78125rem', color: 'var(--cs-danger-fonce)', marginTop: '24px' }}>{erreurConversations}</p>
               ) : convsFiltrees.length === 0 ? (
-                <p style={{ textAlign: 'center', fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', marginTop: '24px' }}>
+                <div style={{ textAlign: 'center', marginTop: '24px' }}><MentionVide>
                   {filtre === 'non-lus' ? 'Aucun message non lu.' : 'Aucune conversation. Cherchez un pseudonyme ci-dessus pour écrire.'}
-                </p>
+                </MentionVide></div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                   {convsFiltrees.map(c => (
