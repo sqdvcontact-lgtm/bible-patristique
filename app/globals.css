@@ -520,7 +520,7 @@
   /* Le VOILE d'une fenêtre. Une seule valeur pour les deux thèmes, et c'est la règle :
      un calque est une OMBRE, non une couleur, et il rend la même chose sur le papier
      comme sur le cuir (charte, « Encre contre aplat »). Il était écrit en dur dans
-     cinq fenêtres ; deux le lisent ici, les trois autres restent au registre. */
+     cinq fenêtres ; toutes celles du lecteur le lisent ici, seul l'administrateur garde les siens. */
   --cs-calque-modale: rgba(30, 26, 20, 0.42);
   /* Le filet de survol des poignées de redimensionnement des volets (quatre poignées). */
   --cs-poignee-trait: rgba(122, 96, 64, 0.08);
