@@ -139,6 +139,8 @@ export type BilanGrain = {
   tropLong: number
   /** Combien atteignent déjà le repère de brièveté. */
   sousLeRepere: number
+  /** Combien dépassent le repère : à regarder, sans être encore une faute. Comprend `tropLong`. */
+  auDessusDuRepere: number
   /** ⚠️ Combien reposent sur une donnée qui ne dit pas où sont les paragraphes. */
   paragrapheInconnu: number
   medianeSignes: number
@@ -168,6 +170,7 @@ export function bilanDuGrain(empans: readonly EmpanMesure[]): BilanGrain {
     aCheval,
     tropLong: empans.filter(e => e.tropLong).length,
     sousLeRepere: empans.filter(e => e.signes <= REPERE_EMPAN).length,
+    auDessusDuRepere: empans.filter(e => e.signes > REPERE_EMPAN).length,
     paragrapheInconnu: empans.filter(e => e.paragrapheInconnu).length,
     medianeSignes: signes.length === 0 ? 0 : signes[Math.max(0, Math.ceil(signes.length / 2) - 1)],
     maxSignes: signes.length === 0 ? 0 : signes[signes.length - 1],

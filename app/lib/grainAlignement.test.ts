@@ -181,7 +181,7 @@ describe('bilanDuGrain', () => {
 
   it('compte ce qui franchit et ce qui dépasse', () => {
     const bilan = bilanDuGrain(empansDe([100, REPERE_EMPAN, LIMITE_EMPAN + 1, 9000]))
-    expect(bilan).toMatchObject({ empans: 4, tropLong: 2, sousLeRepere: 2, maxSignes: 9000 })
+    expect(bilan).toMatchObject({ empans: 4, tropLong: 2, sousLeRepere: 2, auDessusDuRepere: 2, maxSignes: 9000 })
     expect(bilan.frontieresTenues).toBe(true)
   })
 
