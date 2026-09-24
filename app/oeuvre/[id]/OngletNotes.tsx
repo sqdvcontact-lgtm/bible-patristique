@@ -22,7 +22,7 @@
  */
 import { memo, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
-import { lotsPourClauseIn } from '@/app/lib/paginationSupabase'
+import { lancerEnParallele, lotsPourClauseIn } from '@/app/lib/paginationSupabase'
 import { MotAttente } from '@/app/lib/attenteEnCreux'
 import { RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import { surfaceDuSegment } from '@/app/lib/oeuvreSelects'
@@ -98,23 +98,29 @@ async function situerLaSource(source: SourceInventaire): Promise<{ pour: SourceD
   // 32 367. On ne situe que les clés qu'une ancre désigne, par lots d'octets d'adresse
   // (`lotsPourClauseIn`) — une clause `in` non découpée franchit les ~25 ko que la
   // passerelle accepte, et se fait refuser d'un « 400 » nu.
-  const lignes: LigneSegment[] = []
-  for (const lot of lotsPourClauseIn(clesDesNotes(source.notesStructurees))) {
-    const { data, error } = await supabase
+  // ⚠️ Les lots partent ENSEMBLE, six en vol au plus (`lancerEnParallele`), et le compte
+  // avec eux : en série, les Homélies sur la Genèse (1 205 clés, douze lots) coûtaient
+  // plus d'une seconde d'attente avant que l'onglet n'affiche rien (2026-09-24).
+  // Le compte des notes que le texte porte, toutes ancres confondues : la différence
+  // avec le recensement dit combien n'ont AUCUNE ancre, donc ne paraissent nulle part.
+  const compte = supabase
+    .from('texte_notes')
+    .select('note_key', { count: 'exact', head: true })
+    .eq('id_texte', source.idTexte)
+  const [lots, { count, error: erreurCompte }] = await Promise.all([
+    lancerEnParallele(lotsPourClauseIn(clesDesNotes(source.notesStructurees)).map(lot => () => supabase
       .from('segments')
       .select('id,segment_key,ref_niv1,ref_niv1_texte,segment_numero,espace_textuel,nature')
       .eq('id_texte', source.idTexte)
       .in('segment_key', lot)
-    if (error) throw error
-    lignes.push(...((data ?? []) as LigneSegment[]))
-  }
-  // Le compte des notes que le texte porte, toutes ancres confondues : la différence
-  // avec le recensement dit combien n'ont AUCUNE ancre, donc ne paraissent nulle part.
-  const { count, error: erreurCompte } = await supabase
-    .from('texte_notes')
-    .select('note_key', { count: 'exact', head: true })
-    .eq('id_texte', source.idTexte)
+      .then(({ data, error }) => {
+        if (error) throw error
+        return (data ?? []) as LigneSegment[]
+      }))),
+    compte,
+  ])
   if (erreurCompte) throw erreurCompte
+  const lignes = lots.flat()
 
   const places = new Map<string, PlaceSegment>()
   for (const l of lignes) {
