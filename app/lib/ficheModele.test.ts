@@ -144,6 +144,16 @@ describe('les trois fenêtres « À propos » prennent le modèle commun', () =>
     expect(feuille).not.toContain('.trad-notice')
     expect(feuille).not.toContain('.trad-fiche-encart')
   })
+
+  // ⛔ LE RYTHME DE LA COLONNE EST COMMUN (2026-09-24) : la notice d'une traduction, seule
+  // à garder 14 px, serrait ses sections. Il s'écrit une fois, et aucune fiche ne le
+  // réécrit pour son compte.
+  it('le blanc entre deux blocs de la colonne s’écrit une fois, à 22 px', () => {
+    const feuille = lire('../globals.css')
+    const regles = feuille.match(/[^\n{}]*\.cs-fiche-principal > \* \+ \*\s*\{[^}]*\}/g) ?? []
+    expect(regles).toHaveLength(1)
+    expect(regles[0].trim()).toBe('.cs-fiche-principal > * + * { margin-top: 22px; }')
+  })
 })
 
 // ── LA CROIX DE FERMETURE, ET LES FILETS DU CORPS (2026-09-20) ─────────────────

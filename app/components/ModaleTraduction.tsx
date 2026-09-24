@@ -37,6 +37,14 @@
 // ⚠️ « Ouvrages cités dans cette édition » passe en SECTION, comme sur la fiche d'une
 //    œuvre : deux listes d'ouvrages ne se composent pas de deux façons (charte § 38.25.2).
 //
+// Ce qui l'a alignée sur les deux autres fiches, le 2026-09-24 :
+// ⚠️ le blanc entre deux blocs de la colonne vaut 22 px, comme chez l'auteur et l'œuvre ;
+//    il valait 14 px ici seulement. La mesure est commune (`.cs-fiche-principal`,
+//    globals.css), et aucune fiche ne la réécrit pour son compte.
+// ⛔ elle ne demande PAS de confirmation au clic dehors (`confirmerFermeture`) : c'est une
+//    demande de la seule fiche d'une œuvre, et la fiche d'un auteur, qui fait modèle,
+//    ferme au premier clic. Ce serait un changement de conduite, non de mise en forme.
+//
 // ⚠️ Le CONTENU est séparé de la fenêtre : `createPortal` n'existe pas au rendu serveur,
 // et une planche de contrôle hors session ne pourrait pas rendre la fiche autrement.
 

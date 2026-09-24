@@ -5242,17 +5242,18 @@ main.lecture-entree [data-cs-bloc],
 }
 .cs-fiche-complement > * + * { margin-top: 22px; }
 
-.cs-fiche-principal > * + * { margin-top: 14px; }
-/* ── La fiche d'un AUTEUR prend le rythme des deux autres ── Ses blocs s'écartent de
-   22 px comme ceux d'une œuvre, et non de 14 (demande de l'auteur, 2026-09-20 :
-   « reprendre le modèle des notices bible et œuvre ») : sous un en-tête devenu sobre,
-   quatorze pixels ne distinguaient plus une section de la prose qu'elle suit.
-   ⚠️ ET L'ANECDOTE PREND PLUS DE BLANC ENCORE : elle n'a pas de titre, et c'est le blanc,
-   seul, qui dit qu'on y change de voix. Trente pixels en faisaient trop (2026-09-21) :
-   vingt-six suffisent à le dire.
-   ⛔ Ces deux règles vivent AVANT celle du portrait : à spécificité égale, la dernière
-   écrite l'emporte, et l'en-tête reprendrait sinon une marge en haut du portrait. */
-.cs-fiche-auteur .cs-fiche-principal > * + * { margin-top: 22px; }
+/* ── Le RYTHME de la colonne principale : 22 px entre deux blocs, pour les trois fiches ──
+   Il valait 14 px, et la fiche d'un auteur puis celle d'une œuvre le relevaient chacune
+   pour son compte (demande de l'auteur, 2026-09-20 : « reprendre le modèle des notices
+   bible et œuvre ») ; la notice d'une traduction, seule à ne pas le faire, serrait ses
+   sections contre la prose qu'elles suivent. Une mesure commune s'écrit une fois, ici
+   (2026-09-24), et l'aperçu d'administration d'une traduction la reçoit avec elle.
+   ⚠️ ET L'ANECDOTE D'UN AUTEUR PREND PLUS DE BLANC ENCORE : elle n'a pas de titre, et
+   c'est le blanc, seul, qui dit qu'on y change de voix. Trente pixels en faisaient trop
+   (2026-09-21) : vingt-six suffisent à le dire.
+   ⛔ Ces règles vivent AVANT celle du portrait : le bloc qui suit un portrait ne prend
+   aucune marge, puisqu'il l'habille. */
+.cs-fiche-principal > * + * { margin-top: 22px; }
 .cs-fiche-auteur .cs-fiche-principal > .cs-fiche-anecdote { margin-top: 26px; }
 .cs-fiche-principal > .cs-fiche-portrait + * { margin-top: 0; }
 /* Une section qui ferme la colonne reprend la mesure sous le portrait, jamais à côté. */
@@ -5501,10 +5502,8 @@ main.lecture-entree [data-cs-bloc],
       italique vert des deux autres fiches (décision de l'auteur, 2026-09-20 : « j'aimerais
       que ce niveau de titre soit en vert »). Ils avaient été dégrisés en sans-serif, si
       bien que la même rubrique se composait de deux façons d'une fiche à l'autre.
-   ⚠️ Et le BLANC QUI LES PRÉCÈDE double (11 px → 22 px, la mesure de la colonne de
-      droite) : un titre qui ouvre une section ne se distingue pas du paragraphe qu'il
-      ferme quand onze pixels les séparent tous les deux. */
-.cs-fiche-edition .cs-fiche-principal > * + * { margin-top: 22px; }
+   ⚠️ Le BLANC QUI LES PRÉCÈDE (22 px, la mesure de la colonne de droite) est désormais
+      celui des trois fiches, posé une fois sur `.cs-fiche-principal` (2026-09-24). */
 .cs-fiche-edition .cs-fiche-titre { color: var(--cs-texte-fort); }
 /* ⛔ LE NOM DE L'AUTEUR SE COMPOSE EN SANS (décision de l'auteur, 2026-09-20 : « comme
    sur la page de lecture de l'œuvre, en haut du volet de gauche »), c'est-à-dire comme
