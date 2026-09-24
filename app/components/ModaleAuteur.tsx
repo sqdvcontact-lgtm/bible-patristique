@@ -543,7 +543,7 @@ export default function ModaleAuteur({ id, onClose, filAriane = false }: { id: s
         .eq('ouvrage_contributeurs_scientifiques.role_contributeur', 'auteur_source')
         .neq('statut_editorial', 'rejete')
         .in('statut_scientifique', ['retenu', 'secondaire'])
-        // ⛔ Charte § 47.8 : seules les références de la bibliographie.
+        // ⛔ Charte § 47.8 : seules les références qui paraissent dans la bibliographie
         .contains('apparait_dans', ['bibliographie'])
         .order('annee', { ascending: false, nullsFirst: false })
         .limit(3),
