@@ -65,8 +65,10 @@ type Annexe = {
   refuse_admin: boolean | null
 }
 
-function filtrer<T extends { eq: (c: string, v: unknown) => T }>(q: T): T {
-  return VISIBLES ? q.eq('presence_sur_le_site', false).eq('refuse_admin', false) : q
+type Filtrable = { eq: (c: string, v: unknown) => Filtrable }
+// Le type du constructeur de requête est trop profond pour être inféré ici.
+function filtrer<T>(q: T): T {
+  return VISIBLES ? ((q as unknown as Filtrable).eq('presence_sur_le_site', false).eq('refuse_admin', false) as unknown as T) : q
 }
 
 const [annexes, lignesRef, liens, apparait] = await Promise.all([
@@ -74,7 +76,7 @@ const [annexes, lignesRef, liens, apparait] = await Promise.all([
     .select('id, id_ligne, auteur, titre_stable, titre_edition, traducteur, editeur, annee_edition, date_edition_affichage_courte, date_edition_precision_affichage, siecle_edition_affichage, presence_sur_le_site, refuse_admin'))
     .order('id').range(d, f)),
   chargerPagesEnParallele<LigneReferenceCatalogue>((d, f) => filtrer(sb.from('catalogue_notices')
-    .select(SELECTION_REFERENCE_CATALOGUE)).order('id').range(d, f)),
+    .select(SELECTION_REFERENCE_CATALOGUE)).order('id').range(d, f) as unknown as PromiseLike<never>),
   chargerPagesEnParallele<{ id: number; ouvrage_id: number | null }>((d, f) => filtrer(sb.from('catalogue_notices')
     .select('id, ouvrage_id')).order('id').range(d, f)),
   chargerPagesEnParallele<{ id: number; apparait_dans: string[] | null }>((d, f) => sb.from('ouvrages_bibliographiques')

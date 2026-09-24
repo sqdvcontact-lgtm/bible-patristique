@@ -152,7 +152,7 @@ describe('les trois fenêtres « À propos » prennent le modèle commun', () =>
     const feuille = lire('../globals.css')
     const regles = feuille.match(/[^\n{}]*\.cs-fiche-principal > \* \+ \*\s*\{[^}]*\}/g) ?? []
     expect(regles).toHaveLength(1)
-    expect(regles[0].trim()).toBe('.cs-fiche-principal > * + * { margin-top: 22px; }')
+    expect(regles[0]?.trim()).toBe('.cs-fiche-principal > * + * { margin-top: 22px; }')
   })
 })
 
