@@ -20,7 +20,7 @@ import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import { OPTION_VOLET } from '@/app/lib/stylesVoletLecture'
 import { PisteInterrupteur } from '@/app/compte/champsCompte'
-import { SERIF, SANS } from '@/app/lib/polices'
+import { SERIF } from '@/app/lib/polices'
 import { MentionVide } from '@/app/components/EtatVideVolet'
 import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { useEstMobile } from '@/app/lib/useEstMobile'
@@ -927,31 +927,45 @@ function OngletMesEcrits({
            liste garde la mesure d'une colonne de lecture, centrée sous les onglets. */
         .mes-ecrits { max-width: 42.5rem; margin: 0 auto; }
 
-        /* Une ligne par écrit : la puce d'état, le titre et sa ligne de sans, les actions. */
-        .ecrit-ligne { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; column-gap: 6px; align-items: start; padding: 7px 0 8px; border-top: 1px solid var(--cs-fond); }
-        .ecrit-ligne:first-child { border-top: none; }
-        .ecrit-etat { display: block; width: 7px; height: 7px; border-radius: 50%; margin: 6px 0 0 3px; }
-        .ecrit-titre { font-family: ${SERIF}; font-style: italic; font-size: 0.875rem; font-weight: 500; color: var(--cs-encre); line-height: 1.3; text-decoration: none; }
+        /* La carte de l'étagère (.bib-carte-auteur) : même surface, même filet. */
+        .ecrits-carte { background: var(--cs-surface); border: 1px solid var(--cs-bord-clair); border-radius: 8px; padding: 8px 0 12px; }
+
+        /* Un groupe par écrit, comme une œuvre sur l'étagère : le titre en italique à
+           empattements, décroché de 20 px, puis ses sous-lignes de sans, chacune avec
+           sa puce dans la colonne de l'étoile. */
+        .ecrit { padding: 4px 0 5px; border-top: 1px solid var(--cs-fond); }
+        .ecrit:first-child { border-top: none; }
+        .ecrit-titre { display: block; padding: 0 18px 0 20px; font-family: ${SERIF}; font-style: italic; font-size: 0.875rem; font-weight: 500; color: var(--cs-encre); line-height: 1.3; text-decoration: none; }
         .ecrit-titre:hover { color: var(--cs-vert-fonce); }
-        .ecrit-sous-titre { margin-left: 6px; font-family: ${SERIF}; font-style: italic; font-size: 0.75rem; color: var(--cs-texte-gris); }
-        .ecrit-meta { display: flex; flex-wrap: wrap; align-items: baseline; margin-top: 2px; font-family: ${SANS}; font-size: 0.6875rem; color: var(--cs-texte-gris); }
-        .ecrit-meta > span + span::before { content: "·"; margin: 0 6px; color: var(--cs-bord); }
+        .ecrit-sous-titre { margin-left: 6px; font-size: 0.75rem; font-weight: 400; color: var(--cs-texte-gris); }
+
+        .ecrit-ligne { display: flex; align-items: center; margin-top: 5px; transition: background-color var(--cs-duree-moyenne) ease; }
+        .ecrit-ligne + .ecrit-ligne { margin-top: 0; }
+        .ecrit-ligne:hover { background-color: rgba(var(--cs-vert-rgb), 0.055); }
+        .ecrit-puce { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 16px; margin-left: 20px; }
+        .ecrit-etat { display: block; width: 7px; height: 7px; border-radius: 50%; }
+        .ecrit-corps { flex: 1; min-width: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 7px; padding: 2px 12px 2px 9px; }
+        .ecrit-libelle { font-size: 0.71875rem; color: var(--cs-texte); }
+        .ecrit-detail { font-size: 0.6875rem; color: var(--cs-texte-gris); }
+        .ecrit-detail > span + span::before { content: "·"; margin: 0 6px; color: var(--cs-bord); }
 
         /* Les actions se tiennent en retrait tant qu'on ne les regarde pas, comme le
            « Lire » de l'étagère ; au doigt, sans survol, elles restent pleines. */
-        .ecrit-actions { display: flex; align-items: center; gap: 10px; padding-top: 2px; opacity: 0.6; transition: opacity var(--cs-duree-moyenne); }
+        .ecrit-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; padding-right: 12px; opacity: 0.6; transition: opacity var(--cs-duree-moyenne); }
         .ecrit-ligne:hover .ecrit-actions, .ecrit-ligne:focus-within .ecrit-actions { opacity: 1; }
         @media (hover: none) { .ecrit-actions { opacity: 1; } }
 
         @media (max-width: 640px) {
-          .ecrit-ligne { grid-template-columns: 14px minmax(0, 1fr); }
-          .ecrit-actions { grid-column: 2; padding-top: 4px; }
+          .ecrit-ligne { flex-wrap: wrap; }
+          .ecrit-puce { margin-left: 10px; align-self: flex-start; padding-top: 7px; }
+          .ecrit-corps { padding: 2px 8px 2px 6px; }
+          .ecrit-actions { flex-basis: 100%; padding: 2px 8px 4px 32px; }
         }
       `}</style>
 
-      <div>
+      <div className="ecrits-carte">
         {visibles.length === 0 ? (
-          <div style={{ margin: '6px 0' }}><MentionVide>Aucun écrit dans cette vue.</MentionVide></div>
+          <div style={{ margin: '6px 0', padding: '0 20px' }}><MentionVide>Aucun écrit dans cette vue.</MentionVide></div>
         ) : visibles.map(e => {
           const st = STATUTS[e.statut] ?? { label: e.statut, couleur: 'var(--cs-texte-doux)' }
           const date = e.publie_at ?? e.updated_at
@@ -963,26 +977,26 @@ function OngletMesEcrits({
           const timer = verrouille ? formatTimer(restant) : ''
           const nbVues = e.nb_vues ?? 0
           return (
-            <div key={e.id} className="ecrit-ligne">
-              <span aria-hidden className="ecrit-etat" style={{ background: st.couleur }} />
-              <div style={{ minWidth: 0 }}>
-                <Link href={`/essais/${e.id}`} className="ecrit-titre">{e.titre}</Link>
+            <div key={e.id} className="ecrit">
+              <Link href={`/essais/${e.id}`} className="ecrit-titre">
+                {e.titre}
                 {e.sous_titre && <span className="ecrit-sous-titre">{e.sous_titre}</span>}
-                <div className="ecrit-meta">
-                  <span style={{ color: st.couleur, fontWeight: 700 }}>{st.label}</span>
-                  <span>{date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Sans date'}</span>
-                  <span>{nbVues} vue{nbVues > 1 ? 's' : ''}</span>
-                  <span>♥ {e.nb_likes ?? 0}</span>
-                  {e.anonyme && <span style={{ fontStyle: 'italic' }}>anonyme</span>}
-                  {e.statut === 'en_attente' && <span style={{ color: 'var(--cs-attente)', fontWeight: 600 }}>révision en cours</span>}
-                </div>
-                {(e.statut === 'a_reviser' || e.statut === 'refuse') && e.note_admin && (
-                  <p style={{ margin: '4px 0 0', fontSize: '0.6875rem', color: 'var(--cs-texte-second)' }}>
-                    Motif de la modération&nbsp;: {e.note_admin}
-                  </p>
-                )}
-              </div>
-              <div className="ecrit-actions">
+              </Link>
+              {/* La ligne de l'état tient la place de la ligne d'édition : la pastille
+                  dans la colonne de l'étoile, l'état en libellé, le reste en gris. */}
+              <div className="ecrit-ligne">
+                <span className="ecrit-puce"><span aria-hidden className="ecrit-etat" style={{ background: st.couleur }} /></span>
+                <span className="ecrit-corps">
+                  <span className="ecrit-libelle">{st.label}</span>
+                  <span className="ecrit-detail">
+                    <span>{date ? new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Sans date'}</span>
+                    <span>{nbVues} vue{nbVues > 1 ? 's' : ''}</span>
+                    <span>♥ {e.nb_likes ?? 0}</span>
+                    {e.anonyme && <span style={{ fontStyle: 'italic' }}>anonyme</span>}
+                    {e.statut === 'en_attente' && <span>révision en cours</span>}
+                  </span>
+                </span>
+                <div className="ecrit-actions">
                 <button type="button" role="switch" aria-checked={e.statut === 'publie'} aria-label={timer ? `Publication de l’écrit, ${timer}` : "Publication de l’écrit"}
                   onClick={() => basculerPublication(e)} disabled={!peutBasculer || verrouille}
                   title={!dejaValide ? "Publication possible après validation par l’administration." : verrouille ? 'Interrupteur disponible une heure après le dernier changement.' : e.statut === 'publie' ? 'Dépublier' : 'Publier'}
@@ -992,7 +1006,17 @@ function OngletMesEcrits({
                 </button>
                 <Link href={`/essais/${e.id}/modifier`} style={{ fontSize: '0.6875rem', color: 'var(--cs-vert)', textDecoration: 'none', fontWeight: 600 }}>Modifier</Link>
                 <button onClick={() => supprimer(e.id)} style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}>Supprimer</button>
+                </div>
               </div>
+              {(e.statut === 'a_reviser' || e.statut === 'refuse') && e.note_admin && (
+                <div className="ecrit-ligne">
+                  <span aria-hidden className="ecrit-puce" />
+                  <span className="ecrit-corps">
+                    <span className="ecrit-libelle">Motif de la modération</span>
+                    <span className="ecrit-detail">{e.note_admin}</span>
+                  </span>
+                </div>
+              )}
             </div>
           )
         })}
