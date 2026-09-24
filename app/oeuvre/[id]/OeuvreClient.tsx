@@ -1225,7 +1225,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
       if (s?.nav) setNavWidth(s.nav)
       if (s?.pann) setPannWidth(s.pann)
     } catch {}
-    if (typeof window !== 'undefined' && window.innerWidth < POINTS_DE_RUPTURE.tiroirs) {
+    if (typeof window !== 'undefined' && window.innerWidth <= POINTS_DE_RUPTURE.tiroirs) {
       setNavOuverte(false)
       setPanneauOuvert(false)
       // ⛔ ET LE SOMMAIRE AVEC EUX (décision de l’auteur, 2026-09-09 : « par défaut,

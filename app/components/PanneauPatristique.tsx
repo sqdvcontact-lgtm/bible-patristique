@@ -855,7 +855,7 @@ export default function PanneauPatristique({
   const [ouvertLocal, setOuvertLocal] = useState(true)
   const refPanel = useRef<HTMLElement>(null)
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < POINTS_DE_RUPTURE.tiroirs) setOuvertLocal(false)
+    if (typeof window !== 'undefined' && window.innerWidth <= POINTS_DE_RUPTURE.tiroirs) setOuvertLocal(false)
   }, [])
   // Mobile : accordéon piloté par le parent (un seul volet ouvert). Desktop : local.
   const ouvert = mobile ? voletMobile === 'commentaires' : ouvertLocal

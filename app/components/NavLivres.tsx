@@ -232,7 +232,7 @@ export default function NavLivres({
   // pas être satisfaite ici : elle est levée pour cette ligne, et pour elle seule.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (typeof window !== 'undefined' && window.innerWidth < POINTS_DE_RUPTURE.tiroirs) setOuvertLocal(false)
+    if (typeof window !== 'undefined' && window.innerWidth <= POINTS_DE_RUPTURE.tiroirs) setOuvertLocal(false)
   }, [])
   // Sur mobile, l'ouverture est pilotée par le parent (accordéon : un seul volet
   // ouvert à la fois). Sur desktop, état local du volet.
