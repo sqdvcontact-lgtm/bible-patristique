@@ -1214,7 +1214,6 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         mobile={mobile}
         voletMobile={voletMobile}
         setVoletMobile={setVoletMobile}
-        barreMobile={false}
         presentation="inline"
         maniereDeLire={maniereDeLire}
         reglageEdition={reglageTitres}
@@ -1316,7 +1315,6 @@ function PageBible({ livres, versets, traductions, livreActif, chapitreActif, no
         mobile={mobile}
         voletMobile={voletMobile}
         setVoletMobile={setVoletMobile}
-        barreMobile={false}
         presentation="inline"
         notesBible={notesBible}
         onChoisirVerset={choisirCanon}

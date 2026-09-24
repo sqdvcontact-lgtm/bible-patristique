@@ -154,7 +154,7 @@ function nomAvecFleuron(label: string): ReactNode {
   )
 }
 
-export default function EncartTraduction({ trad, onReduire, reglage }: {
+export default function EncartTraduction({ trad, onReduire, reglage, controle }: {
   trad: TraductionEncart
   /** Un réglage d'administration posé avant le chevron (la roue des niveaux de titre). */
   reglage?: ReactNode
@@ -162,6 +162,8 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
    *  volet de la Polyglotte, qui gère son repli lui-même, et du téléphone en
    *  onglets, où les onglets font office de navigation. */
   onReduire?: () => void
+  /** Le volet que le chevron replie (`aria-controls`). */
+  controle?: string
 }) {
   const [modaleOuverte, setModaleOuverte] = useState(false)
   const { mention, signaler } = useMentionCopiee()
@@ -239,8 +241,11 @@ export default function EncartTraduction({ trad, onReduire, reglage }: {
         {reglage}
         {onReduire && (
           <button onClick={onReduire} title="Réduire le volet" aria-label="Réduire le volet"
+            aria-expanded={true} aria-controls={controle}
             className="cs-volet-reduire"
-            style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '2px', margin: '-2px', display: 'flex', alignItems: 'center' }}>
+            /* ⚠️ 24 px de cible (le plancher de WCAG 2.2), et le glyphe ne bouge pas : la zone
+               grandit par le rembourrage, que la marge négative rend aussitôt à la ligne. */
+            style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '5px', margin: '-5px', display: 'flex', alignItems: 'center' }}>
             <IconeChevron dir="left" taille="0.875rem" strokeWidth={1.5} />
           </button>
         )}

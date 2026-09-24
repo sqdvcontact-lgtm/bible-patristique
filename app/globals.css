@@ -1198,6 +1198,8 @@ button:focus-visible,
 
 /* ⛔ Le fond de repos se déclare ICI et non en ligne : il battait la règle de survol. */
 .cs-rail-volet { background: var(--cs-fond-clair); transition: background var(--cs-duree-courte), color var(--cs-duree-courte); }
+/* Le rail prend le fond du volet qu'il remplace : la surface à droite (RailVolet, fond). */
+.cs-rail-volet--surface { background: var(--cs-surface); }
 .cs-rail-volet:hover { background: var(--cs-fond-doux); }
 .cs-rail-volet:hover span { color: var(--cs-texte-second); }
 
@@ -3758,7 +3760,7 @@ html[data-lasso-geste] * {
 .bib-carte-auteur { background: var(--cs-surface); border: 1px solid var(--cs-bord-clair); }
 .bib-carte-bude { border: 1px solid var(--cs-bord); }
 .bienvenue-carte { border: 1px solid var(--cs-bord); }
-.cs-poignee-volet { background: transparent; transition: background var(--cs-duree-courte), box-shadow var(--cs-duree-courte); }
+.cs-poignee-volet { background: transparent; transition: background var(--cs-duree-courte), box-shadow var(--cs-duree-courte); touch-action: none; }
 
 /* ── LE BOUTON PLEIN (2026-09-23) ──────────────────────────────────────────────
    Une seule composition pour le bouton d'action principale (envoyer, enregistrer,

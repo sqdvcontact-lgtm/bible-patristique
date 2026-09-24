@@ -1,8 +1,8 @@
 'use client'
 
-import { Z_FENETRE, Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
+import { Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
 import IconeChevron from '@/app/components/IconeChevron'
-import { useState, useRef, useEffect, type ReactNode } from 'react'
+import { useState, useRef, useEffect, useId, type ReactNode } from 'react'
 import { useNaviguer } from '@/app/lib/attenteNavigation'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import EncartTraduction, { type TraductionEncart } from '@/app/components/EncartTraduction'
@@ -25,6 +25,8 @@ import type { CibleLectureAlternative, GroupeLectureBible } from '@/app/lib/bibl
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { SERIF } from '@/app/lib/polices'
+import { usePoigneeVolet } from '@/app/lib/poigneeVolet'
+import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
 
 // Encart d'informations sur la traduction actuellement lue (volet gauche, Bible
 // classique). Taille FIXE (hauteur constante, contenu rogné) pour ne jamais faire
@@ -92,7 +94,6 @@ type Props = {
   // Mobile : accordéon des trois volets piloté par le parent (un seul ouvert à la fois).
   voletMobile?: 'livres' | 'commentaires' | null
   setVoletMobile?: (v: 'livres' | 'commentaires' | null) => void
-  barreMobile?: boolean                     // afficher la barre fixe mobile (false : sans barre)
   presentation?: 'drawer' | 'inline'        // mobile : tiroir superposé, ou page pleine (onglets)
   sansReduire?: boolean                     // masque la flèche « Réduire » (Polyglotte gère le repli du volet entier)
   // Le volet navigue par URL : sans ce report, changer de chapitre ferait sortir
@@ -135,7 +136,7 @@ export default function NavLivres({
   panelWidth = null, onWidthChange,
   livresVides, onLivreAbsent, onChoisirLivre, sansChapitres, titre, libelleRail,
   onChoisirChapitre, onChoisirLivreEntier, onChoisirVerset, onPreparerChapitre, entierActif,
-  mobile = false, voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer',
+  mobile = false, voletMobile = null, setVoletMobile, presentation = 'drawer',
   sansReduire = false, maniereDeLire, reglageEdition,
   modesLecture = [], onChoisirModeLecture, onPreparerModeLecture,
   sommaireEdition = [], pieceActive = null, demandeLivreCourant = 0, versetsConnus,
@@ -239,8 +240,9 @@ export default function NavLivres({
   // Le tiroir d'un téléphone se ferme à Échap, comme une fenêtre.
   const tiroirOuvert = mobile && presentation !== 'inline' && ouvert
   useFermerAEchap(tiroirOuvert, () => setOuvert(false))
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const refPanel = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLElement>(null)
+  const refPanel = useRef<HTMLElement>(null)
+  const idVolet = useId()
   // Le défilement demandé (`suivreLivre`) se fait quand la liste est VISIBLE : un volet
   // replié, un onglet caché ou une référence en cours de saisie la retirent, et la demande
   // attend alors. Le dernier rang servi vit dans une référence, jamais dans l'état.
@@ -328,11 +330,8 @@ export default function NavLivres({
   // ⚠️ Le défilement se rend à l'image suivante ; l'image se retire au démontage et quand
   // un nouveau clic la remplace, sans quoi elle écrirait dans un volet déjà parti.
   const imageDefilementRef = useRef<number | null>(null)
-  // Un glissement de la poignée en cours : ses écouteurs se retirent au démontage.
-  const finGlissementRef = useRef<(() => void) | null>(null)
   useEffect(() => () => {
     if (imageDefilementRef.current !== null) cancelAnimationFrame(imageDefilementRef.current)
-    finGlissementRef.current?.()
   }, [])
 
   const handleLivre = (code: string) => {
@@ -538,48 +537,21 @@ export default function NavLivres({
     )
   }
 
+  // La poignée : un séparateur, au clavier comme au pointeur (voir `poigneeVolet`).
+  // ⚠️ Le hook vit AVANT le retour du volet replié : un hook ne se pose pas sous condition.
+  const poignee = usePoigneeVolet({
+    largeur: panelWidth ?? null, mesurer: () => refPanel.current?.getBoundingClientRect().width,
+    changer: w => onWidthChange?.(w), min: 120, max: 400, cote: 'gauche', controle: idVolet,
+  })
+
   if (!ouvert) {
-    // Empilé (mobile) : une barre horizontale pleine largeur, et non le rail
-    // vertical du desktop — on est en haut de la pile, pas sur un côté.
-    if (mobile) {
-      // En mode swipe (barreMobile=false), pas de barre fixe : le tiroir s'ouvre
-      // par glissement (géré dans BibleLayout) ou via l'indice en haut de l'écran.
-      if (!barreMobile) return null
-      // Barre TOUJOURS visible, fixée juste sous la navbar. Fermée par défaut ;
-      // au tap, elle ouvre le tiroir des livres (branche dépliée ci-dessous).
-      return (
-        <button onClick={() => setOuvert(true)} title="Ouvrir le sommaire des livres"
-          style={{ position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, right: 0, zIndex: Z_FENETRE, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderBottom: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
-          <span aria-hidden="true" style={{ display: 'flex', color: 'var(--cs-texte-doux)' }}><IconeChevron dir="down" taille="0.875rem" strokeWidth={1.5} /></span>
-          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>{libelleDuRail}</span>
-        </button>
-      )
-    }
+    // Sur un téléphone, le volet replié ne laisse rien : les onglets de la page, ou le
+    // glissement (BibleLayout), le rouvrent. ⚠️ La barre fixe qui le faisait jadis n'était
+    // plus appelée par aucune page : elle est retirée.
+    if (mobile) return null
     // Le rail du volet replié : le composant partagé avec le volet des Pères et
     // celui de la Polyglotte. ⚠️ Il nomme l'ACTION, non le contenu.
     return <RailVolet cote="gauche" libelle={libelleDuRail} onOuvrir={() => setOuvert(true)} />
-  }
-
-  // La poignée existe dès que le parent sait recevoir une largeur. Le geste, lui,
-  // mesure le volet : cette mesure appartient au GESTIONNAIRE, jamais au rendu — une
-  // fonction qui lit une référence ne doit pas servir de condition d'affichage.
-  const handleDrag = (e: React.MouseEvent) => {
-    if (!onWidthChange) return
-    e.preventDefault()
-    const startW = panelWidth ?? refPanel.current?.getBoundingClientRect().width ?? 220
-    const startX = e.clientX
-    const onMove = (ev: MouseEvent) => onWidthChange(Math.max(120, Math.min(400, startW + ev.clientX - startX)))
-    // ⚠️ La fin du glissement retire les DEUX écouteurs, et elle est retenue : un volet
-    // démonté pendant qu'on glisse les retire aussi (effet de démontage, plus haut).
-    finGlissementRef.current?.()
-    const finir = () => {
-      document.removeEventListener('mousemove', onMove)
-      document.removeEventListener('mouseup', finir)
-      if (finGlissementRef.current === finir) finGlissementRef.current = null
-    }
-    finGlissementRef.current = finir
-    document.addEventListener('mousemove', onMove)
-    document.addEventListener('mouseup', finir)
   }
 
   return (
@@ -588,7 +560,7 @@ export default function NavLivres({
         toute la page sous la barre d'onglets, sans fond assombri. En mode tiroir, il
         se superpose au texte avec un fond assombri qui le referme au tap. */}
     {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_TIROIR_VOILE }} />}
-    <div ref={refPanel} role={tiroirOuvert ? 'dialog' : undefined} aria-modal={tiroirOuvert || undefined} aria-label={tiroirOuvert ? 'Livres de la Bible' : undefined}
+    <aside ref={refPanel} id={idVolet} role={tiroirOuvert ? 'dialog' : undefined} aria-modal={tiroirOuvert || undefined} aria-label="Livres de la Bible"
       style={mobile ? (presentation === 'inline' ? {
       width: '100%', background: 'var(--cs-fond-clair)', display: 'flex', flexDirection: 'column',
       paddingTop: '2.875rem', minHeight: `calc(100dvh - ${HAUTEUR_NAVBAR})`,
@@ -612,7 +584,7 @@ export default function NavLivres({
       containerName: 'volet',
     }}>
       {!mobile && onWidthChange && (
-        <div onMouseDown={handleDrag} title="Glisser pour redimensionner"
+        <div {...poignee} title="Glisser pour redimensionner"
           style={{ position: 'absolute', right: '-4px', top: 0, bottom: 0, width: '9px', cursor: 'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex: 10 }}
           className="cs-poignee-volet cs-poignee-volet--droite"
         />
@@ -631,7 +603,7 @@ export default function NavLivres({
       {/* Encart traduction (Bible classique, desktop) — au-dessus de la recherche. */}
       {!polyMode && !sansChapitres && !mobile && traductions[traductionIndex] && (
         <EncartTraduction trad={traductions[traductionIndex]} reglage={reglageEdition}
-          onReduire={peutSeReduire ? () => setOuvert(false) : undefined} />
+          onReduire={peutSeReduire ? () => setOuvert(false) : undefined} controle={idVolet} />
       )}
 
       {/* Menu OCCASIONNEL des manières de lire — entre la fiche de la traduction et la
@@ -854,7 +826,7 @@ export default function NavLivres({
       /* `data-visite` : le repère de la visite guidée. Le DÉFILEUR entier, non le
          premier livre : l'étape parle de la liste et de la teinte de ses cases de
          chapitre, c'est-à-dire de tout ce bloc. */
-      <div ref={scrollRef} data-visite="livres" style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: 'calc(var(--volet-air-fin) + 2px) calc(var(--volet-gouttiere) - 6px)' }}>
+      <nav ref={scrollRef} aria-label="Liste des livres" data-visite="livres" style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: 'calc(var(--volet-air-fin) + 2px) calc(var(--volet-gouttiere) - 6px)' }}>
         {AT.length > 0 && (
           <>
             <button onClick={() => setAtOuvert(!atOuvert)} aria-expanded={atOuvert} style={{
@@ -897,13 +869,17 @@ export default function NavLivres({
           </>
         )}
 
+        {/* L'état vide du volet, où tous les volets du site posent le leur. ⚠️ La
+            région vivante reste : la mention paraît sous la frappe, et doit s'entendre. */}
         {AT.length === 0 && NT.length === 0 && AUTRES.length === 0 && (
-          <p role="status" style={{ fontSize: '0.84375rem', color: 'var(--cs-texte-second)', textAlign: 'center', padding: '16px 0' }}>Aucun livre ne correspond.</p>
+          <EtatVideVolet>
+            <div role="status"><MentionVide>Aucun livre ne correspond.</MentionVide></div>
+          </EtatVideVolet>
         )}
-      </div>
+      </nav>
       )}
       </div>
-    </div>
+    </aside>
     </>
   )
 }

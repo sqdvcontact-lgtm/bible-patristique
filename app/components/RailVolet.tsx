@@ -37,6 +37,7 @@
 // composant : trente pixels de bande, un filet d'un pixel. Une mesure écrite deux fois
 // finirait par diverger, et c'est précisément ce que ce fichier a réuni.
 
+import type { Ref } from 'react'
 import IconeChevron from '@/app/components/IconeChevron'
 import { SERIF } from '@/app/lib/polices'
 
@@ -47,7 +48,7 @@ const FILET_RAIL = '1px solid var(--cs-bord)'
 
 /** Un rail, sur le bord qu'il occupe. Le chevron pointe VERS LA PAGE : c'est le
  *  sens dans lequel le volet va s'ouvrir. */
-export default function RailVolet({ cote, libelle, complement, onOuvrir }: {
+export default function RailVolet({ cote, libelle, complement, onOuvrir, fond, ref }: {
   /** Le bord de la page où le volet vit. */
   cote: 'gauche' | 'droite'
   /** L'ACTION, jamais le contenu : « Ouvrir les commentaires ». */
@@ -57,17 +58,26 @@ export default function RailVolet({ cote, libelle, complement, onOuvrir }: {
    *  lecture : ce n'est pas une seconde action, c'est un repère. */
   complement?: string | null
   onOuvrir: () => void
+  /** ⚠️ Le fond du rail est celui du volet qu'il REMPLACE, sans quoi la teinte change au
+   *  repli : le fond clair à gauche, la surface à droite. Une page dont le volet de droite
+   *  porte le fond clair (la publication) le dit. */
+  fond?: 'clair' | 'surface'
+  /** Le rail, pour qu'une page lui rende le foyer quand elle replie son volet. */
+  ref?: Ref<HTMLButtonElement>
 }) {
   const gauche = cote === 'gauche'
   // ⛔ Les lettres se tournent vers la colonne de texte : voir l'en-tête. Le demi-tour
   // ne porte que sur le TEXTE — le chevron, lui, pointe déjà vers la page.
   const versLeCentre = gauche ? 'rotate(180deg)' : undefined
+  const surface = (fond ?? (gauche ? 'clair' : 'surface')) === 'surface'
   return (
     <button
+      ref={ref}
       onClick={onOuvrir}
       title={libelle}
       aria-label={libelle}
-      className="cs-rail-volet"
+      aria-expanded={false}
+      className={surface ? 'cs-rail-volet cs-rail-volet--surface' : 'cs-rail-volet'}
       style={{
         width: LARGEUR_RAIL, flexShrink: 0, height: '100%',
         border: 'none',
