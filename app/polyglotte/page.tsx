@@ -70,7 +70,7 @@ import TraductionsAffichees, { type ColonneAffichee, type FicheTraductionPoly } 
 import { useCompte } from "@/app/lib/contexteCompte";
 import { aRevoir899, chargerVersets899, estGlose899, estTraductionModerne899, NOTE_ALIGNEMENT_A_REVOIR, rendu899, texteCouche899, TRAD_ID_BIBLE899, type Couche899 } from "@/app/lib/bible899";
 import { marquerLacunesDuTemoin, rendreMarqueurs899 } from "@/app/lib/marqueurs899";
-import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import { ENCRE_TITRE, ENCRE_TITRE_CARTE, GRAISSE_TITRE, GRAISSE_TITRE_VOLET, STYLE_RUBRIQUE, TITRE_CARTE, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import {
   CORPS_GLOSE, LIBELLE_GLOSE,
@@ -83,6 +83,7 @@ import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { nomCommun } from "@/app/lib/menuTraductionsBible";
 import { comparerParMillesime, millesimeEdition, type RangeableParMillesime } from '@/app/lib/millesimeEdition'
 import RailVolet from "@/app/components/RailVolet";
+import { useFoyerAuRepli } from "@/app/lib/useFoyerAuRepli";
 import {
   indexerLivresFillion,
   masquerTraductionsIndisponibles,
@@ -1602,6 +1603,10 @@ export default function PolyglottePage() {
   // sur le compte (table polyglotte_notes, RLS par utilisateur). Écriture débouncée.
   const [notes, setNotes] = useState<Map<string, string>>(new Map());
   const [voletReduit, setVoletReduit] = useState(false);       // volet de navigation gauche rabattu
+  // Replier rend le foyer au rail, déplier au chevron (voir `useFoyerAuRepli`).
+  const refRailVolet = useRef<HTMLButtonElement>(null);
+  const refChevronVolet = useRef<HTMLButtonElement>(null);
+  useFoyerAuRepli(!voletReduit, refRailVolet, refChevronVolet);
   const timersNotes = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const majNote = useCallback((canonId: string, texte: string) => {
     setNotes(m => new Map(m).set(canonId, texte));
@@ -2938,25 +2943,36 @@ export default function PolyglottePage() {
             navbar fixe : sa barre de recherche disparaissait sous elle dès qu'on
             descendait. Le volet se cale donc sous la navbar, et n'occupe que la
             hauteur restante. */}
-        <div style={{ position: "sticky", top: HAUTEUR_NAVBAR, height: HAUTEUR_SOUS_NAVBAR, flexShrink: 0, display: "flex", flexDirection: "column" }}>
+        {/* ⚠️ Volet ouvert, la colonne est un CONTENEUR à la largeur du volet des livres
+            (`NavLivres`, `clamp(200px, 14vw, 320px)`) et porte l'échelle du volet
+            (`cs-volet-echelle`) : ses blocs de tête prennent alors la même gouttière FLUIDE
+            que la liste des livres, au lieu de quatorze pixels fixes au-dessus d'elle (audit
+            d'harmonie, 2026-09-23). */}
+        <div id="poly-volet" className={voletReduit ? undefined : "cs-volet-echelle"}
+          style={{ position: "sticky", top: HAUTEUR_NAVBAR, height: HAUTEUR_SOUS_NAVBAR, flexShrink: 0, display: "flex", flexDirection: "column", ...(voletReduit ? {} : { width: "clamp(200px, 14vw, 320px)", containerType: "inline-size" }) }}>
           {voletReduit ? (
             // ⚠️ Le rail de ce volet a servi de MODÈLE aux deux volets de la page Bible
             // (demande de l'auteur, 2026-09-04) : les trois passent désormais par le même
             // composant, plutôt que par trois dessins voisins qui divergeaient déjà.
             // ⚠️ Il porte en complément le passage qu'on lit : sans lui, replier le volet
             // ferait perdre de vue le chapitre ouvert, que le tableau ne nomme plus.
-            <RailVolet cote="gauche" libelle="Ouvrir les livres" complement={libellePassage}
+            <RailVolet ref={refRailVolet} cote="gauche" libelle="Ouvrir les livres" complement={libellePassage}
               onOuvrir={() => setVoletReduit(false)} />
           ) : (
             <>
           {/* Titre de la page, en tête du volet de gauche, avec le bouton de repli à sa droite. */}
-          <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "12px 14px 11px" }}>
+          <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "12px var(--volet-gouttiere) 11px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
-              <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: '1rem', fontWeight: 600, color: VERT, letterSpacing: "0.01em", lineHeight: 1.2 }}>Bible polyglotte</h1>
+              {/* Le rang de TITRE DE VOLET, celui de la Bibliographie, de l'Histoire, des Péricopes
+                  et de la Recherche (`TITRE_VOLET`, audit d'harmonie, 2026-09-23). */}
+              <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: TITRE_VOLET, fontWeight: GRAISSE_TITRE_VOLET, color: ENCRE_TITRE, letterSpacing: "0.01em", lineHeight: 1.15 }}>Bible polyglotte</h1>
               {/* Même bouton « réduire » que la page Bible et les pages d'œuvre : nu, sans
                   cadre, chevron discret. */}
-              <button onClick={() => setVoletReduit(true)} title="Rabattre le volet" aria-label="Rabattre le volet"
-                style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: "3px", color: "var(--cs-texte-doux)", display: "flex", alignItems: "center" }}>
+              {/* ⚠️ 24 px de cible sans que le glyphe bouge : la marge négative rend à la ligne
+                  ce que le rembourrage ajoute. L'encre et le survol viennent de `.cs-volet-reduire`. */}
+              <button ref={refChevronVolet} onClick={() => setVoletReduit(true)} title="Réduire le volet" aria-label="Réduire le volet"
+                aria-expanded={true} aria-controls="poly-volet" className="cs-volet-reduire"
+                style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: "5px", margin: "-2px", display: "flex", alignItems: "center" }}>
                 <IconeChevron dir="left" taille="0.875rem" strokeWidth={1.5} />
               </button>
             </div>
@@ -2977,7 +2993,7 @@ export default function PolyglottePage() {
             )}
           </div>
           {/* Choix du nombre de traductions affichées (Auto = selon la largeur d'écran). */}
-          <div data-visite="poly-colonnes" style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
+          <div data-visite="poly-colonnes" style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px var(--volet-gouttiere) 9px" }}>
             <span style={{ ...STYLE_RUBRIQUE, display: "block", marginBottom: "5px" }}>Nombre de colonnes</span>
             <div role="group" aria-label="Nombre de traductions visibles" style={RANGEE_CASES}>
               {([["Auto", null], ["2", 2], ["3", 3], ["4", 4], ["5", 5]] as const).map(([lbl, val], rang) => (
@@ -2995,7 +3011,7 @@ export default function PolyglottePage() {
               visibles », dont ils sont les voisins naturels — ce sont des réglages, non des
               titres. ⚠️ Ils s'excluent l'un l'autre : activer l'un éteint l'autre. */}
           {estAdmin && (
-            <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px 14px 9px" }}>
+            <div style={{ flexShrink: 0, background: "var(--cs-fond-clair)", borderRight: "1px solid var(--cs-bord)", borderBottom: "1px solid var(--cs-bord)", padding: "8px var(--volet-gouttiere) 9px" }}>
               <span style={{ ...STYLE_RUBRIQUE, display: "block", marginBottom: "5px" }}>Relecture</span>
               {/* Deux interrupteurs INDÉPENDANTS, donc une option par ligne : leurs
                   libellés sont longs, et un rang les ferait retomber en escalier dans un

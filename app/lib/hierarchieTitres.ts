@@ -10,7 +10,8 @@
  *
  * Les valeurs ci-dessous ne sont pas inventées : chacune est ANCRÉE sur celle qui
  * dominait déjà son rang, exactement comme les tokens de couleur. Le rang « page »
- * reprend `.cc-titre` du centre de contrôle, le rang « volet » reprend `NavLivres`,
+ * reprend `.cc-titre` du centre de contrôle, le rang « volet » reprend les titres des
+ * volets de la Bibliographie, de l’Histoire, des Péricopes et de la Recherche,
  * le rang « carte » reprend les écrans d'exception centrés.
  *
  * ⚠️ Pas de `clamp(…vw…)` sur ces rangs, et c'est délibéré. La police racine est déjà
@@ -37,7 +38,9 @@ export const TITRE_PAGE = '1.75rem'
  *  de la police, que la plupart des titres ne touchaient pas. */
 export const INTERLIGNE_TITRE_PAGE = 1.15
 
-/** Titre du volet latéral d'une page à colonnes. Ancré sur l'ancien titre de `NavLivres`.
+/** Titre du volet latéral d'une page à colonnes. Ancré sur les titres de volet de la
+ *  Bibliographie, de l'Histoire, des Péricopes et de la Recherche (`NavLivres`, qui en
+ *  portait un jadis, n'a plus de titre : sa carte nomme la bible).
  *  ⚠️ 18 px, rang de l'échelle : il valait 1,15 rem (18,4 px), hors grille, ce que la garde
  *  ne voyait pas, la taille passant par cette constante (audit d'harmonie, 2026-09-23). */
 export const TITRE_VOLET = '1.125rem'

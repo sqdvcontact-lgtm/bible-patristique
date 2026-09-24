@@ -24,6 +24,8 @@ import { SERIF, SANS } from '@/app/lib/polices'
 import { GRAISSE_TITRE_VOLET, STYLE_RUBRIQUE } from '@/app/lib/hierarchieTitres'
 import { Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
 import IconeChevron from '@/app/components/IconeChevron'
+import RailVolet from '@/app/components/RailVolet'
+import { useFoyerAuRepli } from '@/app/lib/useFoyerAuRepli'
 
 const ABREV_VERS_NOM: Record<string, string> = Object.fromEntries(
   Object.entries(ABREV_FR).map(([code, abrev]) => [abrev, LIVRES.find(l => l.code === code)?.nom ?? abrev])
@@ -83,7 +85,11 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   const [voletOuvert, setVoletOuvert] = useState(true)
   // Le tiroir d'un téléphone se ferme à Échap, comme une fenêtre.
   useFermerAEchap(mobile && voletOuvert, () => setVoletOuvert(false))
-  const refVolet = useRef<HTMLDivElement>(null)
+  const refVolet = useRef<HTMLElement>(null)
+  // Replier rend le foyer au rail, déplier au chevron (voir `useFoyerAuRepli`).
+  const refRailVolet = useRef<HTMLButtonElement>(null)
+  const refChevronVolet = useRef<HTMLButtonElement>(null)
+  useFoyerAuRepli(voletOuvert, refRailVolet, refChevronVolet)
   useFenetreModale(refVolet, mobile && voletOuvert)
   // ⛔ Fermé d'office sous 1100 px, non sous 900. Volet gauche 15rem, volet droit
   //    18,75rem et 112 px de rembourrage : à 901 px il ne restait que 249 px de mesure
@@ -408,7 +414,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
       {voletOuvert ? (
         <>
         {mobile && <div onClick={() => setVoletOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_TIROIR_VOILE }} />}
-        <div ref={refVolet} role={mobile ? 'dialog' : undefined} aria-modal={mobile || undefined} aria-label={mobile ? 'Commentaires' : undefined}
+        <aside ref={refVolet} id="essai-volet-commentaires" role={mobile ? 'dialog' : undefined} aria-modal={mobile || undefined} aria-label="Commentaires"
           style={mobile
           ? { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: Z_TIROIR, maxHeight: `calc(100dvh - ${HAUTEUR_NAVBAR} - 2rem)`, background: 'var(--cs-fond-clair)', borderTop: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', boxShadow: 'var(--cs-ombre-modale-haut)' }
           : { width: '18.75rem', flexShrink: 0, background: 'var(--cs-fond-clair)', borderLeft: '1px solid var(--cs-bord)', display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -417,8 +423,12 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
               deux bords sont à parts égales : le titre tient l'axe du volet quelle que
               soit la largeur des boutons qui l'encadrent (même règle que le chevron doublé). */}
           <div style={{ minHeight: '41px', padding: '6px 8px 6px 6px', borderBottom: '1px solid var(--cs-fond-doux)', flexShrink: 0, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '6px' }}>
-            <button onClick={() => setVoletOuvert(false)} title="Réduire le volet"
-              style={{ justifySelf: 'start', background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: 'var(--cs-texte-doux)', display: 'flex', alignItems: 'center' }}>
+            {/* Le chevron de repli de tout le site (`.cs-volet-reduire`) : nommé, 24 px de
+                cible sans que le glyphe bouge (la marge négative rend ce que le rembourrage
+                ajoute). */}
+            <button ref={refChevronVolet} onClick={() => setVoletOuvert(false)} title="Réduire le volet" aria-label="Réduire le volet"
+              aria-expanded={true} aria-controls="essai-volet-commentaires" className="cs-volet-reduire"
+              style={{ justifySelf: 'start', background: 'none', border: 'none', cursor: 'pointer', padding: '5px', margin: '-2px', display: 'flex', alignItems: 'center' }}>
               <IconeChevron dir="right" taille="0.875rem" strokeWidth={1.5} />
             </button>
             <span style={{ ...STYLE_RUBRIQUE, textAlign: 'center', whiteSpace: 'nowrap' }}>Commentaires</span>
@@ -432,7 +442,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             <EssaiCommentaires idEssai={essai.id} />
           </div>
-        </div>
+        </aside>
         </>
       ) : mobile ? (
         /* Volet droit — barre fixe en bas (mobile). La même barre que celle d'une
@@ -440,12 +450,10 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
         <BarreVoletMobile cote="bas" ouvert={false} libelle="Commentaires" titre="Ouvrir les commentaires"
           onBasculer={() => setVoletOuvert(true)} />
       ) : (
-        /* Volet droit — réduit (tab vertical) */
-        <button onClick={() => setVoletOuvert(true)} title="Ouvrir le panneau"
-          style={{ width: '22px', flexShrink: 0, background: 'var(--cs-fond-clair)', border: 'none', borderLeft: '1px solid var(--cs-bord)', cursor: 'pointer', color: 'var(--cs-texte-doux)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', height: '100%' }}>
-          <IconeChevron dir="left" taille="0.875rem" strokeWidth={1.5} />
-          <span style={{ writingMode: 'vertical-rl', fontSize: '0.625rem', letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>Commentaires</span>
-        </button>
+        /* Volet droit — réduit : le RAIL de tout le site (`RailVolet`), qui nomme l'action.
+           Il valait vingt-deux pixels dessinés à la main et portait le nom du contenu
+           (audit d'harmonie, 2026-09-23). Son fond est celui du volet qu'il remplace. */
+        <RailVolet ref={refRailVolet} cote="droite" fond="clair" libelle="Ouvrir les commentaires" onOuvrir={() => setVoletOuvert(true)} />
       )}
 
       {signalerOuvert && (

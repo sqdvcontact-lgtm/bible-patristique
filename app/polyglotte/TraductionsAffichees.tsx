@@ -85,7 +85,7 @@ export default function TraductionsAffichees({ colonnes, fiches }: {
     // celle de son enfant le plus large : une ligne d'édition longue l'élargissait d'autant.
     // `contain: inline-size` retire le contenu du calcul, et la section s'étire à la largeur que
     // les autres blocs donnent au volet ; ses lignes s'y enroulent.
-    <div style={{ flexShrink: 0, contain: 'inline-size', minWidth: 0, background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', borderBottom: '1px solid var(--cs-bord)', padding: '8px 14px 9px' }}>
+    <div style={{ flexShrink: 0, contain: 'inline-size', minWidth: 0, background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', borderBottom: '1px solid var(--cs-bord)', padding: '8px var(--volet-gouttiere) 9px' }}>
       <span style={{ ...STYLE_RUBRIQUE, display: 'block', marginBottom: '6px' }}>
         Traductions affichées
       </span>
