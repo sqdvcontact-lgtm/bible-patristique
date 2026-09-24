@@ -81,6 +81,12 @@ export type SegmentOriginal = {
   segment_texte: string
   nature: string | null
   join_before: string | null
+  /**
+   * Le paragraphe de l'édition. Il ne découpe pas l'alignement : il empêche
+   * seulement qu'un groupe qui ENJAMBE deux paragraphes n'en colle les textes
+   * lorsque le premier segment du second paragraphe porte `join_before = ''`.
+   */
+  paragraphe?: number | null
   /** La forme, à plat : `forme:segment_metadata->>forme`. Voir `compositionVers`. */
   forme?: string | null
   /** Rang du segment dans SON texte, d'un bout à l'autre (unique par `id_texte`). Il
@@ -179,11 +185,31 @@ export function choisirEnsembleBilingue(
  * jeton `space` en toutes lettres au milieu du latin de Zycha.
  */
 export function joindreSegmentsOriginaux(
-  segments: readonly { texte: string; joinBefore: string | null; estVers: boolean }[],
+  segments: readonly {
+    texte: string
+    joinBefore: string | null
+    estVers: boolean
+    paragraphe?: number | null
+  }[],
 ): string {
   return segments.reduce((acc, s, i) => {
     if (i === 0) return s.texte
-    const liant = s.estVers ? '\n' : liantAvantSegment(s.joinBefore)
+    const precedent = segments[i - 1]
+    const changeDeParagraphe =
+      !s.estVers
+      && precedent?.paragraphe != null
+      && s.paragraphe != null
+      && precedent.paragraphe !== s.paragraphe
+
+    // Un groupe d'alignement peut traverser une frontière de paragraphe. Le
+    // premier segment du nouveau paragraphe porte alors légitimement
+    // `join_before = ''` : l'appliquer aveuglément collait les deux phrases
+    // (« sunt :Deum » dans l'Octavius). Le saut est une marque de composition ;
+    // dans un <p> de prose il se réduit visuellement à une espace, sans altérer
+    // aucune donnée source ni fabriquer une frontière d'alignement.
+    const liant = s.estVers || changeDeParagraphe
+      ? '\n'
+      : liantAvantSegment(s.joinBefore)
     return acc + liant + s.texte
   }, '')
 }
@@ -239,12 +265,14 @@ export function projeterBilingue(params: {
       texte: s.segment_texte,
       joinBefore: s.join_before,
       estVers: toutVers,
+      paragraphe: s.paragraphe,
     }))
     const texte = joindreSegmentsOriginaux(parts)
     const texteAffichage = joindreSegmentsOriginaux(segments.map(s => ({
       texte: projeterAppelsNotesStructurees(s.segment_texte, ancresOriginales[s.segment_key]),
       joinBefore: s.join_before,
       estVers: toutVers,
+      paragraphe: s.paragraphe,
     })))
 
     const notes: Record<string, NoteStructuree> = {}
@@ -763,7 +791,7 @@ export async function chargerProjectionBilingue(
 
   const clesOriginales = [...new Set(membresOriginaux.map(m => m.segment_key))]
   const pagesSegments = await Promise.all(lots(clesOriginales).map(lot =>
-    table('segments').select('segment_key,segment_texte,nature,join_before,forme:segment_metadata->>forme,segment_numero,espace_textuel')
+    table('segments').select('segment_key,segment_texte,nature,join_before,paragraphe,forme:segment_metadata->>forme,segment_numero,espace_textuel')
       .eq('id_texte', params.idTexteOriginal)
       .in('segment_key', lot)))
   const segmentsOriginaux = pagesSegments.flatMap(r => (r.data ?? []) as SegmentOriginal[])

@@ -7,7 +7,7 @@ import { normaliserTitreTechnique } from '@/app/lib/titres'
 import { terminerNote } from '@/app/lib/referenceNote'
 import { normaliserTypographieLecture } from '@/app/lib/typographie'
 import { ContenuNoteStructuree } from './ContenuNoteStructuree'
-import { rendreTexteEnrichi } from './texteEnrichi'
+import { rendreTexteEnrichi, STYLE_INTERVENTION_EDITORIALE } from './texteEnrichi'
 import { hrefSur } from '@/app/lib/liensSurs'
 import { intituleDeLaNote, libelleDeLaNote, LIBELLE_NOTE_SANS_TYPE } from '@/app/lib/typeNote'
 import type { NoteAffichee } from './oeuvreTypes'
@@ -405,7 +405,7 @@ export function rendreTexteAvecNotes(
   }
   // Même syntaxe que rendreTexteEnrichi (les ++petites capitales++ comprises,
   // en fin d'alternance pour ne pas renuméroter les groupes), plus les [[appels]].
-  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]+)\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>|\+\+(.+?)\+\+/g
+  const regex = /\*\*(.+?)\*\*|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\[\[([A-Z0-9]+)\]\]|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>|\+\+(.+?)\+\+|\[impr\.\s+([^\]\n]+)\]/g
   let dernierIndex = 0, k = 0, m: RegExpExecArray | null
   while ((m = regex.exec(texteRendu))) {
     if (m.index > dernierIndex) noeuds.push(texteRendu.slice(dernierIndex, m.index))
@@ -499,6 +499,13 @@ export function rendreTexteAvecNotes(
     }
     else if (m[11] !== undefined) {
       noeuds.push(<span key={k++} style={{ fontVariant: 'small-caps', letterSpacing: '0.02em' }}>{rendreTexteAvecNotes(m[11], notes, variante, options)}</span>)
+    }
+    else if (m[12] !== undefined) {
+      noeuds.push(
+        <span key={k++} data-intervention-editoriale="" style={STYLE_INTERVENTION_EDITORIALE}>
+          [<em>impr.</em>{' '}{rendreTexteAvecNotes(m[12], notes, variante, options)}]
+        </span>
+      )
     }
     dernierIndex = regex.lastIndex
   }

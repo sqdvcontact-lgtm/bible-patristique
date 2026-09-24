@@ -124,6 +124,16 @@ describe('jonction des segments originaux', () => {
     expect(joindreSegmentsOriginaux([{ texte: 'seul', joinBefore: ', ', estVers: false }])).toBe('seul')
   })
 
+  // Un même groupe peut enjamber deux paragraphes de l'original. Le second
+  // paragraphe commence alors légitimement avec join_before = '' : cette absence
+  // de liant ne doit jamais coller deux mots qui appartiennent à deux paragraphes.
+  it('garde une couture entre deux paragraphes à l’intérieur d’un groupe', () => {
+    expect(joindreSegmentsOriginaux([
+      { texte: 'haec enim vera [impr. verba] sunt :', joinBefore: ' ', estVers: false, paragraphe: 37 },
+      { texte: 'Deum namque ire per omnes', joinBefore: '', estVers: false, paragraphe: 38 },
+    ])).toBe('haec enim vera [impr. verba] sunt :\nDeum namque ire per omnes')
+  })
+
   // La colonne originale rendait le JETON `space` en toutes lettres au milieu du latin
   // de Zycha (« gignerent?spacenon enim et Adam ipse »). `join_before` est une
   // instruction, elle ne se concatène jamais telle quelle.

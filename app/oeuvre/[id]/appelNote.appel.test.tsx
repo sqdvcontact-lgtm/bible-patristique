@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { ContenuDeLaNote, rendreTexteAvecNotes } from './appelNote'
+import { rendreTexteEnrichi } from './texteEnrichi'
 import type { NoteStructuree } from './oeuvreTypes'
 
 // ── L'APPEL D'UNE SURFACE, ET LE PROPOS D'UNE NOTE ───────────────────────────
@@ -45,6 +46,23 @@ describe('rendreTexteAvecNotes, option `appel`', () => {
     const html = renderToStaticMarkup(<p>{rendreTexteAvecNotes('mot[[12]]', { 12: note(12, 'x') })}</p>)
     expect(html).toContain('role="button"')
     expect(html).toContain('aria-expanded="false"')
+  })
+})
+
+describe('interventions éditoriales en ligne', () => {
+  it('rend [impr. …] comme une intervention discrète sans retirer les crochets', () => {
+    const html = renderToStaticMarkup(
+      <p>{rendreTexteAvecNotes('haec enim vera [impr. verba] sunt.', {})}</p>,
+    )
+    expect(html).toContain('data-intervention-editoriale=""')
+    expect(html).toContain('[<em>impr.</em> verba]')
+    expect(html).toContain('font-size:0.875em')
+  })
+
+  it('applique le même rendu sur une surface enrichie sans notes', () => {
+    const html = renderToStaticMarkup(<p>{rendreTexteEnrichi('lege [impr. potest] hic')}</p>)
+    expect(html).toContain('data-intervention-editoriale=""')
+    expect(html).toContain('[<em>impr.</em> potest]')
   })
 })
 
