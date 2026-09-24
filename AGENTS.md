@@ -11335,8 +11335,7 @@ Doctrine : charte `parametres.charte_ia`, **§ 38.33**. Demande de l’auteur : 
 
 # ⛔ LA NOTICE D'UN AUTEUR FAIT MODÈLE — deux lignes de repères, deux rangs de dates (2026-09-20)
 
-Doctrine : charte § 38.33.2 — ⚠️ **reste à porter à la charte** ; le verrou de `--push`,
-qui l'en empêchait, est levé depuis le 20 septembre 2026 (voir la fin de ce paragraphe). Demande de l'auteur : « Revoir et
+Doctrine : charte § 38.33.2, portée le 24 septembre 2026. Demande de l'auteur : « Revoir et
 harmoniser les notices ; mise en forme seulement. […] Occupe-toi seulement de la notice
 auteur pour l'instant ; on mettra ensuite les autres à jour pour correspondre à la notice
 auteur. » Elle est donc le CANON, et la fiche d'une traduction comme celle d'une édition
@@ -12150,8 +12149,8 @@ normative** : on ne corrige pas le registre pour l'accorder à elle.
 
 # ⛔ LA NOTICE D'UNE ŒUVRE — le titre seul, la citation composée, le vert des sections (2026-09-20)
 
-Doctrine : charte § 38.25.2 — ⚠️ **reste à porter à la charte** ; le verrou de `--push`
-est levé depuis le 20 septembre 2026 (voir « LA NOTICE D'UN AUTEUR FAIT MODÈLE »). Sept
+Doctrine : charte § 38.25.3, portée le 24 septembre 2026 (numérotée 38.25.3 : le 38.25.2,
+« Les sections de la fiche ont un RANG », existait depuis le 18 septembre). Sept
 demandes de l'auteur sur « À propos de cette édition », mise en forme seulement. Règles de
 code, dans `app/oeuvre/[id]/FicheEdition.tsx`, `app/components/FicheModele.tsx` et
 `globals.css` :
@@ -12438,7 +12437,7 @@ ait à les toucher.
   et dans la croix d'effacement de `ChampRechercheVolet`, laissée à l'auteur.
 - ⛔ **NI CERCLE, NI FILET, NI FOND.** Le rond faisait, au coin d'une fenêtre de lecture,
   un objet là où l'on n'attend qu'une marque — c'est la règle déjà posée pour le geste de
-  copie d'une section (§ 38.25.2). L'encre passe à `--cs-vert`, `--cs-vert-fonce` au
+  copie d'une section (§ 38.25.3). L'encre passe à `--cs-vert`, `--cs-vert-fonce` au
   survol et au foyer ; en Cuir le jeton vaut l'or, donc la croix suit le thème sans être
   déclinée deux fois.
 - ⛔ **LA BOÎTE RESTE UNE CIBLE, ET EN REM** : `max(26px, 1.625rem)` — la mesure d'hier en
@@ -12491,7 +12490,7 @@ l'auteur sur « À propos de cette traduction », mise en forme seulement. Règl
 
 - ⛔ **AUCUN SURTITRE.** La fenêtre porte déjà son nom accessible (`ModaleFiche`, `libelle`),
   et l'écrire au-dessus du nom de la bible ne l'apprenait à personne : c'est la décision
-  prise le même jour pour la fiche d'une œuvre (§ 38.25.2), appliquée ici. ⚠️ Sur la page
+  prise le même jour pour la fiche d'une œuvre (§ 38.25.3), appliquée ici. ⚠️ Sur la page
   « Les traductions » (`surPage`), l'en-tête ne se rend plus DU TOUT : son bandeau nomme
   déjà la bible, et `EnTeteFiche` sans rien rend `null`.
 - ⛔ **LE NOM SE LIT SUR DEUX LIGNES**, et la coupure vit dans `nomEtQualite`
@@ -12526,7 +12525,7 @@ l'auteur sur « À propos de cette traduction », mise en forme seulement. Règl
   Sans elle, la Bible du XIIIe siècle affichait « Édition : Témoin manuscrit » sous un titre
   qui dit déjà « manuscrit Français 899 ».
 - ⚠️ **« Ouvrages cités dans cette édition » passe de RUBRIQUE en SECTION**, comme sur la fiche
-  d'une œuvre (§ 38.25.2) : deux listes d'ouvrages ne se composent pas de deux façons. Les
+  d'une œuvre (§ 38.25.3.2) : deux listes d'ouvrages ne se composent pas de deux façons. Les
   conditions d'usage ferment seules la fiche, en rubrique.
 
 ## ⛔ UNE LISTE « libellé : valeur » NE STRADDLE PAS UN FLOTTANT
@@ -13051,8 +13050,8 @@ Doctrine : charte `parametres.charte_ia`, **§§ 6.1.2, 3.11.7, 51.11, 51.12, 38
 - ⛔ **LA DURÉE DU REBOURS S'ÉCRIT UNE FOIS** (`DELAI_FERMETURE_MS`) et se passe EN LIGNE à
   l'animation (`animationDuration`) : la feuille ne pose que le MOUVEMENT. Deux écritures,
   l'une en millisecondes et l'autre en secondes dans une règle CSS, se désaccorderaient au
-  premier réglage — c'est la règle de l'anneau de confirmation d'une fiche (§ 38.25.2 du
-  présent fichier).
+  premier réglage — c'est la règle de l'anneau de confirmation d'une fiche (charte
+  § 38.25.3.1).
 - ⚠️ **L'ANNEAU PREND LA TAILLE DE LA MARQUE** (`inset: -1px` sur `.cs-signalement-merci-marque`,
   qui passe en `position: relative`) : sa mesure n'est donc écrite nulle part, et il suit la
   police fluide sans qu'on ait à le dire. ⛔ `TOUR_ANNEAU` est `2πr` du rayon du cercle, et
@@ -13253,6 +13252,8 @@ Doctrine : charte `parametres.charte_ia`, **§ 38.39**. Règles de code, dans `a
 - ⚠️ La visite (`visiteCommunaute.ts`) descend le volet d'abord (`communaute-recherche`, qui enveloppe recherche, ordre et catégories), puis les onglets et une couverture.
 
 ## Chantiers moyens du 2026-09-24 : règles posées
+
+Doctrine portée à la charte le 24 septembre 2026 : §§ 3 (import), 12.2 (atelier), 12.4 (original sans correspondance, clavier), 16.1 (catalogue), 18 (texte entier), 38.4 (nom d'une bible), 38.33 (fiches), 43.5 (originaux), 46 (visite). Ce qui suit en garde les règles de code.
 
 - **Fiches « À propos »** : le blanc entre deux blocs de la colonne principale vaut 22 px pour les trois fiches (auteur, œuvre, traduction). Il s'écrit une seule fois, sur `.cs-fiche-principal`, et aucune fiche ne le réécrit pour son compte (ba122681). Les ouvrages cités d'une traduction sont une SECTION, comme sur la notice d'œuvre ; « Conditions d'usage » ferme seule la fiche, en rubrique.
 - **Nom d'une bible** (charte § 38.4) : il passe par `rendreEnrichi` partout où il s'affiche dans une page, y compris dans une phrase ou un message d'erreur. Seuls les attributs (`title`, `aria-label`) et les `<option>` gardent le texte brut, qui doit rester lisible (421c4e7b, 92e285f0).

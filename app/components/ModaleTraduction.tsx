@@ -35,7 +35,7 @@
 //    celles de « Édition de référence » sur la fiche d'une œuvre, et un geste de copie se
 //    tient contre son titre — il rend la RÉFÉRENCE composée des volumes servis ;
 // ⚠️ « Ouvrages cités dans cette édition » passe en SECTION, comme sur la fiche d'une
-//    œuvre : deux listes d'ouvrages ne se composent pas de deux façons (charte § 38.25.2).
+//    œuvre : deux listes d'ouvrages ne se composent pas de deux façons (charte § 38.25.3.2).
 //
 // Ce qui l'a alignée sur les deux autres fiches, le 2026-09-24 :
 // ⚠️ le blanc entre deux blocs de la colonne vaut 22 px, comme chez l'auteur et l'œuvre ;
