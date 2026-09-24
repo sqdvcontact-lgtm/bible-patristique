@@ -272,7 +272,7 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
   // domaine public : la réserve qu'elle porte tomberait avec elle.
   const licenceTexte = (i.licence_traduction ?? '').trim()
   const licenceDetaillee = licenceTexte.toLowerCase() === 'domaine public'
-    ? 'Le texte de cette édition relève du domaine public : il se lit, se cite et se reproduit librement.'
+    ? 'Le texte de cette édition relève du domaine public\u00A0: il se lit, se cite et se reproduit librement.'
     : licenceTexte
       ? (licenceDP ? licenceTexte : `Le texte de cette édition est diffusé sous la mention « ${licenceTexte} ».`)
       : 'Les droits sur le texte de cette édition ne sont pas précisés.'
@@ -341,7 +341,7 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
               et les liens établis entre versets et textes patristiques constituent en revanche
               un travail éditorial original, protégé par le droit d’auteur. Toute reproduction
               substantielle de cette structuration à des fins commerciales est soumise à
-              autorisation préalable ; une citation reprise publiquement garde la mention de sa
+              autorisation préalable&#8239;; une citation reprise publiquement garde la mention de sa
               source.
             </p>
           </RubriqueFiche>
@@ -377,15 +377,17 @@ export function ContenuFicheTraduction({ info, chrono, ouvragesCites, nomFallbac
               <dl className="cs-fiche-champs cs-fiche-champs--habille">
                 <ChampFiche libelle="Titre" italique>{enProse(i.titre_edition)}</ChampFiche>
                 <ChampFiche libelle="Sous-titre" italique>{enProse(i.sous_titre_edition)}</ChampFiche>
-                <ChampFiche libelle="Édition">{mentionEdition}</ChampFiche>
+                {/* ⚠️ L'ordre est celui de la fiche d'une œuvre et d'une notice : le
+                    responsable du texte, puis la mention d'édition, puis l'adresse. */}
                 <ChampFiche libelle="Texte établi par">{enProse(i.responsable_edition)}</ChampFiche>
+                <ChampFiche libelle="Édition">{mentionEdition}</ChampFiche>
                 <ChampFiche libelle="Lieu">{joindreLieux(i.lieu_edition)}</ChampFiche>
                 <ChampFiche libelle="Dépôt">{cote ? i.depot_manuscrit : null}</ChampFiche>
                 <ChampFiche libelle="Cote">{cote}</ChampFiche>
                 <ChampFiche libelle="Éditeur">{editeurCompose}</ChampFiche>
                 <ChampFiche libelle="Année">{i.annee_edition}</ChampFiche>
                 <ChampFiche libelle="Volumes">{tomes}</ChampFiche>
-                <ChampFiche libelle="Source numérique">{sourceNumerique(i.source_numerique_nom, i.source_numerique_url)}</ChampFiche>
+                <ChampFiche libelle="Source">{sourceNumerique(i.source_numerique_nom, i.source_numerique_url)}</ChampFiche>
                 <ChampFiche libelle="Graphie">{enProse(i.graphie)}</ChampFiche>
                 <ChampFiche libelle="Numérotation">{numerotation}</ChampFiche>
                 {/* ⚠️ « PARTICULARITÉS » PORTE DE LA PROSE : l'interligne et la césure d'un
