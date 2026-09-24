@@ -52,7 +52,8 @@ export async function POST(request: Request) {
   if (!mime) return NextResponse.json({ error: 'Format non supporté. Utilisez JPEG, PNG, GIF ou WebP.' }, { status: 415 })
 
   const { error: uploadError } = await supabaseAdmin.storage.from('traductions').upload(chemin, buffer, {
-    upsert: true, contentType: mime,
+    // Un jour, non un an : le rond d'un lecteur lit l'encart sans version (portraits.ts).
+    upsert: true, contentType: mime, cacheControl: '86400',
   })
   if (uploadError) return erreur500(uploadError)
 

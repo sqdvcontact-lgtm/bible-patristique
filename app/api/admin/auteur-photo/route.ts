@@ -64,9 +64,9 @@ export async function POST(request: Request) {
 
   const version = Date.now()
   const { error } = await supabaseAdmin.storage.from(SEAU_PORTRAITS_AUTEURS).upload(`${idAuteur}.jpg`, buffer, {
-    // Une heure de cache : l'adresse porte la version du dépôt (?v=), si bien qu'un
+    // Un an de cache : l'adresse porte la version du dépôt (?v=), si bien qu'un
     // portrait remplacé est une adresse neuve.
-    upsert: true, contentType: 'image/jpeg', cacheControl: '3600',
+    upsert: true, contentType: 'image/jpeg', cacheControl: '31536000',
   })
   if (error) return erreur500(error)
 
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
 
   if (bufferVignette) {
     const { error: errVignette } = await supabaseAdmin.storage.from(SEAU_VIGNETTES_AUTEURS).upload(`${idAuteur}.jpg`, bufferVignette, {
-      upsert: true, contentType: 'image/jpeg', cacheControl: '3600',
+      upsert: true, contentType: 'image/jpeg', cacheControl: '31536000',
     })
     if (errVignette) return erreur500(errVignette, 'Le portrait est déposé, mais pas sa vignette.')
   }
