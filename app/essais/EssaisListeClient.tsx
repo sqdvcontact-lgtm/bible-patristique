@@ -610,7 +610,7 @@ function OngletCommunaute({
         }
 
         /* ⚠️ Les requêtes ne changent que le NOMBRE de colonnes : largeur et écart
-           restent `--couv` et `--couv-ecart`. Elles réécrivaient 14,5rem et leur
+           restent « --couv » et « --couv-ecart ». Elles réécrivaient 14,5rem et leur
            propre gouttière (1,2rem), si bien que la paire « écrite une seule fois »
            l'était trois (audit d'harmonie, 2026-09-23, § 5.3). */
         @media (max-width: 900px) { .rayon { grid-template-columns: repeat(2, var(--couv)); row-gap: 1.4rem; } }
