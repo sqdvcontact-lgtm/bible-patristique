@@ -1,7 +1,7 @@
 /**
  * LA VISITE DE LA BIBLIOGRAPHIE — la huitième (2026-09-21).
  *
- * Quatre arrêts, colonne par colonne (charte § 46) : le volet de gauche entier, du
+ * Trois arrêts (l'index des lettres est retiré le 2026-09-24), colonne par colonne (charte § 46) : le volet de gauche entier, du
  * haut vers le bas, puis la liste.
  *
  * ⛔ CE QUE LA VISITE DOIT DIRE, et que la page ne dit pas : que « Cité pour » classe
@@ -22,7 +22,7 @@ export const VISITE_BIBLIOGRAPHIE: Visite = {
   cle: CLE_VISITE_BIBLIOGRAPHIE,
   titre: 'La Bibliographie',
   accroche: [
-    'La recherche et les filtres sont à gauche, les ouvrages à droite, par ordre alphabétique.',
+    'La recherche est en tête de la liste, les filtres à gauche. Les ouvrages se suivent par ordre alphabétique.',
   ],
   etapes: [
     {
@@ -31,19 +31,9 @@ export const VISITE_BIBLIOGRAPHIE: Visite = {
       titre: 'Recherche',
       texte: [
         'Le champ cherche par auteur, titre, collection, maison d’édition ou année.',
-        'Il se combine avec les filtres placés dessous.',
+        'Il se combine avec les filtres du volet de gauche.',
       ],
-      cote: 'droite',
-    },
-    {
-      cle: 'lettres',
-      sujet: ['[data-visite="biblio-lettres"]'],
-      titre: 'Lettres',
-      texte: [
-        'Chaque lettre mène directement à sa partie de la liste.',
-        'Une lettre pâlie n’a plus d’ouvrage une fois les filtres appliqués.',
-      ],
-      cote: 'droite',
+      cote: 'dessous',
     },
     {
       cle: 'filtres',

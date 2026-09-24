@@ -14,7 +14,6 @@ import VisiteGuidee from '@/app/components/VisiteGuidee'
 import { CLE_VISITE_BIBLIOGRAPHIE, VISITE_BIBLIOGRAPHIE } from '@/app/lib/visiteBibliographie'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { useCompte } from '@/app/lib/contexteCompte'
-import { allerAAncre } from '@/app/lib/defilement'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 import { RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
@@ -70,14 +69,6 @@ const PERICOPES_VISIBLES = 3
  *  2026-09-06, les trois premiers de quelques ouvrages seulement. */
 const SIECLES_VISIBLES = 5
 
-function Rubrique({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginTop: '18px', marginBottom: '2px' }}>
-      <span style={RUBRIQUE_AXE}>{children}</span>
-      <span aria-hidden style={{ flex: 1, height: '1px', background: SEP }} />
-    </div>
-  )
-}
 function GroupeFiltre({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ marginTop: '12px' }}>
@@ -95,7 +86,7 @@ function LigneCompte({ actif, onClick, label, n }: { actif: boolean; onClick: ()
     <button type="button" onClick={onClick} aria-pressed={actif} style={{
       display: 'flex', alignItems: 'center', gap: '8px', width: '100%', textAlign: 'left', cursor: 'pointer',
       background: 'none', border: 'none', padding: '5px 0', margin: 0, minHeight: '26px',
-      fontFamily: SERIF, fontSize: '0.75rem', lineHeight: 1.35,
+      fontFamily: SANS, fontSize: '0.75rem', lineHeight: 1.35,
       color: actif ? VERT : 'var(--cs-texte)', fontWeight: actif ? 600 : 400,
       transition: 'color var(--cs-duree-courte)',
     }}>
@@ -200,7 +191,6 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
   const langues = useMemo(() => compterAxe(entrees, e => (e.langue ? [e.langue] : [])), [entrees])
   const siecles = useMemo(() => compterAxe(entrees, e => (e.siecle != null ? [e.siecle] : [])).sort((a, b) => b.valeur - a.valeur), [entrees])
   const rubriques = useMemo(() => compterAxe(entrees, e => e.rubriques, ORDRE_RUBRIQUES), [entrees])
-  const lettres = useMemo(() => grouperParLettre(entrees).map(g => g.lettre), [entrees])
 
   const poser = (partie: Partial<FiltresBibliographie>) => setFiltres(f => ({ ...f, ...partie }))
   const basculer = <T extends string | number>(cle: 'genres' | 'langues' | 'siecles' | 'rubriques', valeur: T) => {
@@ -234,13 +224,8 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
   const sieclesMontres = tousSiecles ? siecles : siecles.filter((s, i) => i < SIECLES_VISIBLES || filtres.siecles.has(s.valeur))
   const sieclesCaches = siecles.length - sieclesMontres.length
 
-  const lettresPresentes = new Set(groupes.map(g => g.lettre))
-  const allerALaLettre = (lettre: string) => {
-    requestAnimationFrame(() => { allerAAncre(`lettre-${lettre}`) })
-  }
-
   // Au téléphone, le résultat vient sous le champ : les axes se replient derrière
-  // un bouton, et l'index des lettres, qui n'y servait qu'à descendre, disparaît.
+  // un bouton. En écran large, le champ quitte le volet pour la tête de la liste.
   const recherche = (
     <>
       <ChampRechercheVolet dataVisite="biblio-recherche" valeur={filtres.q} surChangement={q => poser({ q })}
@@ -254,24 +239,6 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
 
   const axes = (
     <>
-      {!mobile && groupes.length > 0 && (
-        <>
-          <Rubrique>Parcourir</Rubrique>
-          <GroupeFiltre label="Aller à une lettre">
-            <div data-visite="biblio-lettres" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px 4px' }}>
-              {lettres.map(l => (
-                <button key={l} type="button" className="biblio-lien-lettre" onClick={() => allerALaLettre(l)}
-                  disabled={!lettresPresentes.has(l)} aria-label={`Aller à la lettre ${l}`}>
-                  {l}
-                </button>
-              ))}
-            </div>
-          </GroupeFiltre>
-        </>
-      )}
-
-      <Rubrique>Filtrer</Rubrique>
-
       {/* Le repère de la visite cerne les quatre axes ensemble. */}
       <div data-visite="biblio-filtres">
       {genres.length > 0 && (
@@ -322,7 +289,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
 
       {actifs && (
         <button type="button" onClick={reinitialiser}
-          style={{ marginTop: '16px', width: '100%', padding: '7px 9px', borderRadius: '8px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.75rem' }}>
+          style={{ marginTop: '16px', width: '100%', padding: '7px 9px', borderRadius: '8px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SANS, fontSize: '0.75rem' }}>
           Réinitialiser les filtres
         </button>
       )}
@@ -333,18 +300,9 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
     <main style={{ background: FOND, minHeight: HAUTEUR_SOUS_NAVBAR }}>
       <style>{`
         /* ── Le volet ───────────────────────────────────────────────────────── */
-        .biblio-lien-lettre {
-          display: flex; align-items: center; justify-content: center; min-height: 24px;
-          font-family: ${SANS}; font-size: 0.6875rem; color: var(--cs-texte-second);
-          background: none; border: none; cursor: pointer; padding: 0; transition: color var(--cs-duree-courte);
-        }
-        .biblio-lien-lettre:hover:not(:disabled) { color: ${VERT}; text-decoration: underline; text-underline-offset: 3px; }
-        /* Une lettre que le filtre a vidée reste à sa place, en pâle : la grille ne
-           se recompose pas sous la main, et l'on voit ce que le filtre a écarté. */
-        .biblio-lien-lettre:disabled { color: var(--cs-texte-doux); cursor: default; opacity: var(--cs-opacite-desactive); }
         .biblio-lien-discret {
           background: none; border: none; padding: 4px 0; cursor: pointer;
-          font-family: ${SERIF}; font-size: 0.6875rem; font-style: italic; color: var(--cs-texte-second);
+          font-family: ${SANS}; font-size: 0.6875rem; font-style: italic; color: var(--cs-texte-second);
         }
         .biblio-lien-discret:hover { color: ${VERT}; }
 
@@ -373,12 +331,15 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
            modificateur « sans hôte » de la famille : celui-ci sert un apparat, plus
            petit ; un catalogue se lit au corps du texte courant. */
         .biblio-entrees { display: flex; flex-direction: column; gap: 14px; }
-        .biblio-entrees .${CLASSES_BIBLIOGRAPHIE.bloc} { font-family: ${SERIF}; font-size: 0.8125rem; color: var(--cs-texte-fort); margin: 0; }
+        .biblio-entrees.${CLASSES_BIBLIOGRAPHIE.bloc} { font-family: ${SERIF}; font-size: 0.8125rem; color: var(--cs-texte-fort); margin: 0; }
         .biblio-entree { padding: 2px 4px; border-radius: 4px; transition: background var(--cs-duree-courte) ease; }
         .biblio-entree:hover { background: rgba(var(--cs-vert-rgb), 0.045); }
         .biblio-l2 {
           display: flex; align-items: baseline; gap: 6px 14px; flex-wrap: wrap;
           margin: 4px 0 0 1.1em;
+          /* ⚠️ Le retrait suspendu de l'entrée (text-indent négatif) s'hérite : chaque
+             pièce de cette ligne flexible le reprenait et chevauchait sa voisine. */
+          text-indent: 0;
           font-family: ${SANS}; font-size: 0.6875rem; line-height: 1.45; color: var(--cs-texte-second);
         }
         .biblio-l2 > * { min-width: 0; }
@@ -404,7 +365,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
         @media (hover: none) { .biblio-copier { opacity: 1; } }
         @media (max-width: 640px) { .biblio-l2 { margin-left: 0.7em; } }
         @media (prefers-reduced-motion: reduce) {
-          .biblio-entree, .biblio-copier, .biblio-lien-lettre { transition: none; }
+          .biblio-entree, .biblio-copier { transition: none; }
         }
       `}</style>
       <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: 'stretch', width: '100%' }}>
@@ -415,9 +376,9 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
             <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: TITRE_VOLET, fontWeight: GRAISSE_TITRE_VOLET, color: ENCRE_TITRE, lineHeight: 1.15, letterSpacing: '0.01em' }}>Bibliographie</h1>
             {/* Le chapeau : ce que la liste contient, et rien d'autre. Deux lignes,
                 resserrées comme celles du catalogue des péricopes. */}
-            <p style={{ margin: '6px 0 0', fontFamily: SERIF, fontSize: '0.71875rem', lineHeight: 1.4, color: 'var(--cs-texte-second)' }}>
+            <p style={{ margin: '6px 0 0', fontFamily: SANS, fontSize: '0.71875rem', lineHeight: 1.4, color: 'var(--cs-texte-second)' }}>
               Les ouvrages sur lesquels s’appuient les notices du site&nbsp;:{' '}
-              <span style={{ fontStyle: 'italic', color: 'var(--cs-texte-gris)' }}>commentaires, éditions, études</span>.
+              commentaires, éditions, études.
             </p>
           </div>
 
@@ -425,7 +386,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
             <>
               <div style={{ padding: '12px 15px 10px' }}>{recherche}</div>
               <button type="button" onClick={() => setPanneauOuvert(o => !o)} aria-expanded={panneauOuvert} aria-controls="bibliographie-filtres"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderTop: `1px solid ${SEP}`, background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-texte)' }}>
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderTop: `1px solid ${SEP}`, background: 'transparent', cursor: 'pointer', fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte)' }}>
                 <span>Filtres{filtresActifs({ ...filtres, q: '' }) ? ' (actifs)' : ''}</span>
                 <span aria-hidden style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={panneauOuvert ? 'up' : 'down'} taille="0.6875rem" strokeWidth={1.5} /></span>
               </button>
@@ -433,7 +394,6 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
             </>
           ) : (
             <div id="bibliographie-filtres" className="cs-defilement-discret" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '10px 15px 22px' }}>
-              {recherche}
               {axes}
             </div>
           )}
@@ -442,6 +402,8 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
         {/* ── La liste ── */}
         <section style={{ flex: 1, minWidth: 0, padding: mobile ? '16px 14px 56px' : '22px 2.5rem 64px' }}>
           <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
+            {/* En écran large, la recherche tient la tête de la liste (demande de l'auteur, 2026-09-24). */}
+            {!mobile && <div style={{ maxWidth: '30rem', margin: '0 auto 1.75rem', textAlign: 'center' }}>{recherche}</div>}
             {groupes.length === 0 ? (
               <div style={{ paddingTop: '8px' }}>
                 <MentionVide>Aucun ouvrage ne correspond aux filtres retenus.</MentionVide>
