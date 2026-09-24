@@ -11,9 +11,13 @@ import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from './mesures'
  * 2026-09-23, § 5.1). Sur un téléphone, le volet cesse d’être collant et devient un
  * bandeau pleine largeur au-dessus de la liste.
  */
+/** La largeur du volet sur un écran large. Une page qui centre son contenu sur la
+ *  FENÊTRE (la Communauté) en a besoin pour ne jamais passer dessous. */
+export const LARGEUR_VOLET_PAGE = '15.5rem'
+
 export function styleVoletPage(mobile: boolean): CSSProperties {
   return {
-    flexShrink: 0, width: mobile ? '100%' : '15.5rem',
+    flexShrink: 0, width: mobile ? '100%' : LARGEUR_VOLET_PAGE,
     position: mobile ? 'static' : 'sticky', top: HAUTEUR_NAVBAR,
     height: mobile ? 'auto' : HAUTEUR_SOUS_NAVBAR,
     display: 'flex', flexDirection: 'column',
