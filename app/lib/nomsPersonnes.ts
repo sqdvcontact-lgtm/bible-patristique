@@ -211,3 +211,31 @@ export function vedetteDuNom(nom: string | null | undefined): string {
   if (mots.length > 1 && PARTICULES_REJETEES.has(mots[0].toLowerCase())) return mots.slice(1).join(' ')
   return propre
 }
+
+/** Le nom d'une personne moderne à la forme d'un CATALOGUE : sa vedette, puis le reste. */
+export type NomEnVedette = {
+  /** Le mot sous lequel le nom se range (`vedetteDuNom`) : « Musset », « La Taille ». */
+  vedette: string
+  /** Ce qui suit la virgule : le prénom, puis la particule rejetée. « Alfred de ». */
+  suite: string | null
+}
+
+/**
+ * La forme « NOM, Prénom » d'un catalogue, en deux morceaux pour que la page compose
+ * la vedette (petites capitales) autrement que la suite (bas de casse).
+ *
+ * ⛔ La vedette est celle du CLASSEMENT (`vedetteDuNom`), et la particule rejetée passe
+ * après le prénom, comme au catalogue de la BnF : « Musset, Alfred de »,
+ * « Alembert, Jean d’ ». Le nom se lit ainsi sous la lettre où il est rangé. La
+ * particule qui fait la vedette y reste : « La Taille, Jean de ».
+ * ⛔ Réservée à une personne MODERNE dont les rubriques sont connues : un ancien n'a pas
+ * de nom de famille, et rien ici ne découpe une chaîne. Sans nom, elle rend `null`.
+ */
+export function nomEnVedette(n: Partial<NomStructure> | null | undefined): NomEnVedette | null {
+  const nom = nettoyerNom(n?.nom ?? '')
+  if (!nom) return null
+  const vedette = vedetteDuNom(nom)
+  const particule = nom.slice(0, nom.length - vedette.length).trim()
+  const suite = [nettoyerNom(n?.prenom ?? ''), particule].filter(Boolean).join(' ')
+  return { vedette, suite: suite || null }
+}

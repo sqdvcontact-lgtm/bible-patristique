@@ -1,6 +1,5 @@
 'use client'
 
-import IconeChevron from '@/app/components/IconeChevron'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 // ⚠️ `rendreSiecles` et `Siecle` sont partis avec le mode « à l'échelle », qui seul les
 // employait : la liste compose ses siècles par `decouperSiecles` (voir `rendreTexteLibre`).
@@ -15,12 +14,11 @@ import {
   libelleSource, estUrl, siecleDe,
 } from '@/app/lib/frise'
 import HistoricalDate from '@/app/components/HistoricalDate'
-import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, STYLE_RUBRIQUE, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
-import { RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
+import { STYLE_RUBRIQUE } from '@/app/lib/hierarchieTitres'
 import { colorMix } from '@/app/lib/couleurs'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { SERIF, SANS } from '@/app/lib/polices'
-import { styleVoletPage, TETE_VOLET_PAGE } from '@/app/lib/voletPage'
+import VoletPage, { BoutonReinitialiser, GroupeFiltre, LigneCompte } from '@/app/components/VoletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 
 // Frise générale de l'histoire de l'Église.
@@ -30,7 +28,6 @@ import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 
 const FOND = 'var(--cs-fond)'
 const TEXTE = 'var(--cs-texte-fort)'
-const TEXTE2 = 'var(--cs-texte-doux)'
 const BORD = 'var(--cs-bord)'
 const SEP = 'var(--cs-bord-clair)'
 const VERT = 'var(--cs-vert)'
@@ -318,7 +315,7 @@ export default function HistoireClient(
 
       {/* Afficher/masquer les notices (et l'accès aux « Sources et détail »). */}
       <button onClick={() => setToutesNotes(o => !o)} aria-pressed={toutesNotes}
-        style={{ marginTop: '10px', width: '100%', fontFamily: SERIF, fontSize: '0.75rem', padding: '7px 10px', borderRadius: '8px', cursor: 'pointer',
+        style={{ marginTop: '10px', width: '100%', fontFamily: SANS, fontSize: '0.75rem', padding: '7px 10px', borderRadius: '8px', cursor: 'pointer',
           border: `1px solid ${toutesNotes ? VERT : BORD}`, background: toutesNotes ? 'rgba(var(--cs-vert-rgb),0.10)' : 'var(--cs-surface)', color: toutesNotes ? VERT : 'var(--cs-texte-second)' }}>
         {toutesNotes ? 'Masquer toutes les notes' : 'Afficher toutes les notes'}
       </button>
@@ -349,11 +346,9 @@ export default function HistoireClient(
 
       {rep.traditions.length > 1 && (
         <GroupeFiltre label="Tradition">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {rep.traditions.map(t => (
-              <LigneCase key={t.nom} actif={f.traditions.has(t.nom)} onClick={() => basculer('traditions', t.nom)}>
-                {t.nom}
-              </LigneCase>
+              <LigneCompte key={t.nom} actif={f.traditions.has(t.nom)} onClick={() => basculer('traditions', t.nom)} label={t.nom} />
             ))}
           </div>
         </GroupeFiltre>
@@ -361,7 +356,7 @@ export default function HistoireClient(
 
       {rep.siecles.length > 1 && (
         <GroupeFiltre label="Période">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '0.71875rem', color: TEXTE2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '0.71875rem', color: 'var(--cs-texte-second)' }}>
             <label htmlFor="frise-de" style={{ flexShrink: 0 }}>Du</label>
             <SelectSiecle id="frise-de" valeur={f.sDe} siecles={rep.siecles} tout="Début"
               onChange={v => setF(p => ({ ...p, sDe: v }))} />
@@ -382,9 +377,9 @@ export default function HistoireClient(
 
       {genresDispo.length > 0 && (
         <GroupeFiltre label="Genre">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {genresDispo.map(g => (
-              <LigneCase key={g} actif={f.genres.has(g)} onClick={() => basculer('genres', g)}>{g}</LigneCase>
+              <LigneCompte key={g} actif={f.genres.has(g)} onClick={() => basculer('genres', g)} label={g} />
             ))}
           </div>
         </GroupeFiltre>
@@ -392,9 +387,9 @@ export default function HistoireClient(
 
       {rep.zones.length > 0 && (
         <GroupeFiltre label="Zone géographique">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {rep.zones.map(z => (
-              <LigneCase key={z} actif={f.zones.has(z)} onClick={() => basculer('zones', z)}>{z}</LigneCase>
+              <LigneCompte key={z} actif={f.zones.has(z)} onClick={() => basculer('zones', z)} label={z} />
             ))}
           </div>
         </GroupeFiltre>
@@ -414,12 +409,7 @@ export default function HistoireClient(
         </GroupeFiltre>
       )}
 
-      {filtresActifs && (
-        <button onClick={reinitialiser}
-          style={{ marginTop: '14px', width: '100%', padding: '6px 9px', borderRadius: '8px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.75rem' }}>
-          Réinitialiser les filtres
-        </button>
-      )}
+      {filtresActifs && <BoutonReinitialiser onClick={reinitialiser} />}
     </>
   )
 
@@ -428,33 +418,11 @@ export default function HistoireClient(
       <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: 'stretch', width: '100%' }}>
 
         {/* ── Volet des filtres. Sur mobile, un panneau repliable. ───────── */}
-        <aside style={styleVoletPage(mobile)}>
-          <div style={TETE_VOLET_PAGE}>
-          {/* ⛔ PLUS DE SUR-TITRE EN CAPITALES ESPACÉES (demande de l'auteur, 2026-09-04 :
-              « pour l'ensemble des volets de gauche, reprendre le style et la méthode des
-              volets de la page bible classique et œuvres patristiques »). Les volets de
-              lecture n'en portent aucun : le titre ouvre le volet, et la barre de
-              navigation dit déjà d'où l'on vient. Trois formes d'étiquette coexistaient
-              ici — 0,5 rem à 0,14 em, 0,5 à 0,16, 0,53125 à 0,1 — là où les volets de
-              lecture n'en ont qu'UNE, « RUBRIQUE_AXE », en casse ordinaire. */}
-            <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: TITRE_VOLET, fontWeight: GRAISSE_TITRE_VOLET, color: ENCRE_TITRE, lineHeight: 1.15, letterSpacing: '0.01em' }}>Histoire de l’Église</h1>
-          </div>
-
-          {mobile ? (
-            <>
-              <button onClick={() => setPanneauOuvert(o => !o)} aria-expanded={panneauOuvert} aria-controls="frise-filtres"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderBottom: panneauOuvert ? `1px solid ${SEP}` : 'none', background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-original)' }}>
-                <span>Filtres et lecture{filtresActifs ? ' (actifs)' : ''}</span>
-                <span aria-hidden style={{ display: 'inline-flex', color: TEXTE2 }}><IconeChevron dir={panneauOuvert ? 'up' : 'down'} taille="0.6875rem" strokeWidth={1.5} /></span>
-              </button>
-              {panneauOuvert && <div id="frise-filtres" style={{ padding: '0 15px 18px' }}>{contenuFiltres}</div>}
-            </>
-          ) : (
-            <div id="frise-filtres" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '10px 15px 22px' }}>
-              {contenuFiltres}
-            </div>
-          )}
-        </aside>
+        <VoletPage mobile={mobile} titre="Histoire de l’Église"
+          idContenu="frise-filtres" libelleRepli="Filtres et lecture" actifs={filtresActifs}
+          ouvert={panneauOuvert} surBascule={() => setPanneauOuvert(o => !o)}>
+          {contenuFiltres}
+        </VoletPage>
 
         {/* ── Frise ──────────────────────────────────────────────────────── */}
         <section style={{ flex: 1, minWidth: 0, padding: mobile ? '16px 14px 56px' : '16px 32px 64px' }}>
@@ -797,15 +765,6 @@ function SelectSiecle({ id, valeur, siecles, tout, onChange }: {
   )
 }
 
-function GroupeFiltre({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div style={{ marginTop: '13px', paddingTop: '13px', borderTop: `1px solid ${SEP}` }}>
-      <div style={{ ...RUBRIQUE_AXE, marginBottom: '7px' }}>{label}</div>
-      {children}
-    </div>
-  )
-}
-
 function BoutonFamille({ fam, actif, onClick }: { fam: string; actif: boolean; onClick: () => void }) {
   const c = coulFamille(fam)
   return (
@@ -817,20 +776,7 @@ function BoutonFamille({ fam, actif, onClick }: { fam: string; actif: boolean; o
       transition: 'background var(--cs-duree-courte), border-color var(--cs-duree-courte)',
     }}>
       <span aria-hidden style={{ width: '9px', height: '9px', borderRadius: '50%', background: c, flexShrink: 0 }} />
-      <span style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: c, fontWeight: actif ? 600 : 500, lineHeight: 1.25 }}>{fam}</span>
+      <span style={{ fontFamily: SANS, fontSize: '0.75rem', color: c, fontWeight: actif ? 600 : 500, lineHeight: 1.25 }}>{fam}</span>
     </button>
-  )
-}
-
-function LigneCase({ actif, onClick, children }: { actif: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button onClick={onClick} aria-pressed={actif} style={{
-      display: 'block', width: '100%', textAlign: 'left', cursor: 'pointer',
-      background: 'none', border: 'none', borderLeft: `2px solid ${actif ? VERT : 'transparent'}`,
-      padding: '2px 0 2px 9px', margin: 0,
-      fontFamily: SERIF, fontSize: '0.75rem', lineHeight: 1.35,
-      color: actif ? VERT : 'var(--cs-texte-gris)', fontWeight: actif ? 600 : 400,
-      transition: 'color var(--cs-duree-courte), border-color var(--cs-duree-courte)',
-    }}>{children}</button>
   )
 }

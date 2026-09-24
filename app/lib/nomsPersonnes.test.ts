@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   decouperNom, nomAncien, nomCollectif, composerNom, composerNomIndex, cleTriNom,
-  nomStructure, separerNoms, nettoyerNom, listeDepuisVirgules, vedetteDuNom,
+  nomStructure, separerNoms, nettoyerNom, listeDepuisVirgules, vedetteDuNom, nomEnVedette,
 } from './nomsPersonnes'
 
 describe('decouperNom — personnes modernes', () => {
@@ -196,5 +196,21 @@ describe('vedetteDuNom — sous quel mot un nom se classe', () => {
     expect(vedetteDuNom('Boèce')).toBe('Boèce')
     expect(vedetteDuNom(null)).toBe('')
     expect(vedetteDuNom('   ')).toBe('')
+  })
+})
+
+describe('nomEnVedette — la forme « NOM, Prénom » d’un catalogue', () => {
+  it('met la vedette devant, le prénom et la particule rejetée derrière', () => {
+    expect(nomEnVedette({ prenom: 'Henri-Irénée', nom: 'Marrou' })).toEqual({ vedette: 'Marrou', suite: 'Henri-Irénée' })
+    expect(nomEnVedette({ prenom: 'Adalbert', nom: 'de Vogüé' })).toEqual({ vedette: 'Vogüé', suite: 'Adalbert de' })
+    expect(nomEnVedette({ prenom: 'Jean', nom: 'd’Alembert' })).toEqual({ vedette: 'Alembert', suite: 'Jean d’' })
+    expect(nomEnVedette({ prenom: 'Jean', nom: 'de La Taille' })).toEqual({ vedette: 'La Taille', suite: 'Jean de' })
+    expect(nomEnVedette({ prenom: 'Pierre', nom: 'Van Dyck' })).toEqual({ vedette: 'Van Dyck', suite: 'Pierre' })
+  })
+
+  it('ne rend rien sans nom de famille, et rien après la virgule sans prénom', () => {
+    expect(nomEnVedette({ prenom: 'Jean', nom: null })).toBeNull()
+    expect(nomEnVedette(null)).toBeNull()
+    expect(nomEnVedette({ prenom: null, nom: 'Marrou' })).toEqual({ vedette: 'Marrou', suite: null })
   })
 })

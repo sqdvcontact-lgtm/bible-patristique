@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import ReferenceBibliographique from '@/app/components/ReferenceBibliographique'
 import IconeChevron from '@/app/components/IconeChevron'
-import { CLASSES_BIBLIOGRAPHIE } from '@/app/lib/apparatBibliographie'
+import { CLASSE_CARACTERE_BIBLIOGRAPHIE, CLASSES_BIBLIOGRAPHIE } from '@/app/lib/apparatBibliographie'
 import { fragmentsReference } from '@/app/lib/referenceBibliographique'
 import { htmlFragments, texteFragments } from '@/app/lib/referenceBibliographiqueSorties'
 import { rendreSiecles, siecleEnTexte } from '@/app/lib/siecles'
@@ -15,8 +15,6 @@ import { CLE_VISITE_BIBLIOGRAPHIE, VISITE_BIBLIOGRAPHIE } from '@/app/lib/visite
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import { useCompte } from '@/app/lib/contexteCompte'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
-import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
-import { RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import {
   compterAxe,
   FILTRES_VIDES,
@@ -36,7 +34,7 @@ import {
   type NomsPericopes,
 } from '@/app/lib/bibliographieCatalogue'
 import { SERIF, SANS } from '@/app/lib/polices'
-import { styleVoletPage, TETE_VOLET_PAGE } from '@/app/lib/voletPage'
+import VoletPage, { BoutonReinitialiser, GroupeFiltre, LienDiscret, LigneCompte } from '@/app/components/VoletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 import { MentionVide } from '@/app/components/EtatVideVolet'
 
@@ -58,7 +56,6 @@ import { MentionVide } from '@/app/components/EtatVideVolet'
 
 const FOND = 'var(--cs-fond)'
 const BORD = 'var(--cs-bord)'
-const SEP = 'var(--cs-bord-clair)'
 const VERT = 'var(--cs-vert)'
 
 /** Nombre de péricopes nommées avant le repli « et N autres » : au-delà, la ligne
@@ -68,38 +65,6 @@ const PERICOPES_VISIBLES = 3
 /** Nombre de siècles montrés avant le repli. Huit siècles sont peuplés au
  *  2026-09-06, les trois premiers de quelques ouvrages seulement. */
 const SIECLES_VISIBLES = 5
-
-function GroupeFiltre({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div style={{ marginTop: '12px' }}>
-      <div style={{ ...RUBRIQUE_AXE, marginBottom: '6px' }}>{label}</div>
-      {children}
-    </div>
-  )
-}
-
-/** Une case de filtre : marqueur carré à gauche, qui se remplit quand elle est retenue.
- *  ⚠️ La même que celle du catalogue des péricopes, au pixel : deux pages-outil ne se
- *  cochent pas de deux façons. */
-function LigneCompte({ actif, onClick, label, n }: { actif: boolean; onClick: () => void; label: React.ReactNode; n: number }) {
-  return (
-    <button type="button" onClick={onClick} aria-pressed={actif} style={{
-      display: 'flex', alignItems: 'center', gap: '8px', width: '100%', textAlign: 'left', cursor: 'pointer',
-      background: 'none', border: 'none', padding: '5px 0', margin: 0, minHeight: '26px',
-      fontFamily: SANS, fontSize: '0.75rem', lineHeight: 1.35,
-      color: actif ? VERT : 'var(--cs-texte)', fontWeight: actif ? 600 : 400,
-      transition: 'color var(--cs-duree-courte)',
-    }}>
-      <span aria-hidden style={{
-        flexShrink: 0, width: '10px', height: '10px', borderRadius: '4px',
-        border: `1px solid ${actif ? VERT : 'var(--cs-bord-clair)'}`,
-        background: actif ? VERT : 'transparent', transition: 'background var(--cs-duree-courte), border-color var(--cs-duree-courte)',
-      }} />
-      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-      <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: actif ? VERT : 'var(--cs-texte-second)' }}>{n}</span>
-    </button>
-  )
-}
 
 /**
  * « Copier la référence » : au presse-papiers en RICHE (l'italique et les petites
@@ -279,33 +244,21 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
             ))}
           </div>
           {(sieclesCaches > 0 || tousSiecles) && (
-            <button type="button" onClick={() => setTousSiecles(o => !o)} className="biblio-lien-discret" style={{ marginTop: '4px' }}>
+            <LienDiscret onClick={() => setTousSiecles(o => !o)}>
               {tousSiecles ? 'Afficher moins' : `Afficher les ${sieclesCaches} autres`}
-            </button>
+            </LienDiscret>
           )}
         </GroupeFiltre>
       )}
       </div>
 
-      {actifs && (
-        <button type="button" onClick={reinitialiser}
-          style={{ marginTop: '16px', width: '100%', padding: '7px 9px', borderRadius: '8px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SANS, fontSize: '0.75rem' }}>
-          Réinitialiser les filtres
-        </button>
-      )}
+      {actifs && <BoutonReinitialiser onClick={reinitialiser} />}
     </>
   )
 
   return (
     <main style={{ background: FOND, minHeight: HAUTEUR_SOUS_NAVBAR }}>
       <style>{`
-        /* ── Le volet ───────────────────────────────────────────────────────── */
-        .biblio-lien-discret {
-          background: none; border: none; padding: 4px 0; cursor: pointer;
-          font-family: ${SANS}; font-size: 0.6875rem; font-style: italic; color: var(--cs-texte-second);
-        }
-        .biblio-lien-discret:hover { color: ${VERT}; }
-
         /* ── La liste ───────────────────────────────────────────────────────── */
         /* Une lettre = une rangée de deux cases : la lettre dans la marge, ses
            ouvrages à droite. La lettre est COLLANTE, comme le nom d'un livre dans le
@@ -344,6 +297,17 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
         }
         .biblio-l2 > * { min-width: 0; }
         .biblio-nature { white-space: nowrap; color: var(--cs-texte-gris); }
+        /* Le genre en GRAS (demande de l'auteur, 2026-09-24) : c'est lui qu'on parcourt
+           de l'oeil pour trier une lettre ; la langue qui le suit reste maigre. */
+        .biblio-genre { font-weight: 700; color: var(--cs-texte-second); }
+        /* L'auteur à la forme d'un catalogue (moteur, option ordreIndex) : le nom de
+           famille en PETITES CAPITALES vraies, jamais par text-transform, qui perdrait
+           la casse d'autorité ; le prénom en bas de casse après la virgule. La chasse
+           s'ouvre d'un rien, comme toute petite capitale. Propre à cette page : les
+           autres surfaces composent le nom en romain. */
+        .biblio-entrees .${CLASSES_BIBLIOGRAPHIE.reference} .${CLASSE_CARACTERE_BIBLIOGRAPHIE['bibliographie-nom-auteur']} {
+          font-style: normal; font-variant-caps: small-caps; letter-spacing: 0.03em;
+        }
         .biblio-citations { flex: 1 1 18rem; }
         .biblio-citations-mot { color: var(--cs-texte-gris); }
         .biblio-pericope { color: var(--cs-encre); text-decoration: none; }
@@ -371,33 +335,13 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
       <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: 'stretch', width: '100%' }}>
 
         {/* ── Volet de recherche et de filtres (repliable en mobile). ── */}
-        <aside style={styleVoletPage(mobile)}>
-          <div style={TETE_VOLET_PAGE}>
-            <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: TITRE_VOLET, fontWeight: GRAISSE_TITRE_VOLET, color: ENCRE_TITRE, lineHeight: 1.15, letterSpacing: '0.01em' }}>Bibliographie</h1>
-            {/* Le chapeau : ce que la liste contient, et rien d'autre. Deux lignes,
-                resserrées comme celles du catalogue des péricopes. */}
-            <p style={{ margin: '6px 0 0', fontFamily: SANS, fontSize: '0.71875rem', lineHeight: 1.4, color: 'var(--cs-texte-second)' }}>
-              Les ouvrages sur lesquels s’appuient les notices du site&nbsp;:{' '}
-              commentaires, éditions, études.
-            </p>
-          </div>
-
-          {mobile ? (
-            <>
-              <div style={{ padding: '12px 15px 10px' }}>{recherche}</div>
-              <button type="button" onClick={() => setPanneauOuvert(o => !o)} aria-expanded={panneauOuvert} aria-controls="bibliographie-filtres"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderTop: `1px solid ${SEP}`, background: 'transparent', cursor: 'pointer', fontFamily: SANS, fontSize: '0.8125rem', color: 'var(--cs-texte)' }}>
-                <span>Filtres{filtresActifs({ ...filtres, q: '' }) ? ' (actifs)' : ''}</span>
-                <span aria-hidden style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={panneauOuvert ? 'up' : 'down'} taille="0.6875rem" strokeWidth={1.5} /></span>
-              </button>
-              {panneauOuvert && <div id="bibliographie-filtres" style={{ padding: '0 15px 18px' }}>{axes}</div>}
-            </>
-          ) : (
-            <div id="bibliographie-filtres" className="cs-defilement-discret" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '10px 15px 22px' }}>
-              {axes}
-            </div>
-          )}
-        </aside>
+        {/* Le chapeau : ce que la liste contient, en une phrase (condensé le 2026-09-24). */}
+        <VoletPage mobile={mobile} titre="Bibliographie"
+          chapeau={<>Les sources des notices du site&nbsp;: commentaires, éditions, études.</>}
+          idContenu="bibliographie-filtres" libelleRepli="Filtres" actifs={filtresActifs({ ...filtres, q: '' })}
+          ouvert={panneauOuvert} surBascule={() => setPanneauOuvert(o => !o)} horsRepli={recherche}>
+          {axes}
+        </VoletPage>
 
         {/* ── La liste ── */}
         <section style={{ flex: 1, minWidth: 0, padding: mobile ? '16px 14px 56px' : '22px 2.5rem 64px' }}>
@@ -432,10 +376,10 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
                           const langue = e.langue && e.langue !== 'fr' ? libelleLangueCode(e.langue) : null
                           return (
                             <li key={e.id} id={`ouvrage-${e.id}`} className={`biblio-entree ${CLASSES_BIBLIOGRAPHIE.entree}`} data-ouvrage-id={e.id} style={{ margin: 0 }}>
-                              <ReferenceBibliographique notice={e.notice} />
+                              <ReferenceBibliographique notice={e.notice} ordreIndex />
                               <div className="biblio-l2">
                                 <span className="biblio-nature">
-                                  {libelleGenre(e.genre)}
+                                  <span className="biblio-genre">{libelleGenre(e.genre)}</span>
                                   {langue && <> · {langue}</>}
                                 </span>
                                 <PericopesCitantes entree={e} noms={nomsPericopes} />

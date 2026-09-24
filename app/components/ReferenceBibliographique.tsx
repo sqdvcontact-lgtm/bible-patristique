@@ -28,14 +28,17 @@ import {
 export default function ReferenceBibliographique({
   notice,
   avecAuteur = true,
+  ordreIndex = false,
   className,
 }: {
   notice: NoticeBibliographique
   /** L'auteur paraît en tête. Faux quand le titre de la pièce l'établit déjà. */
   avecAuteur?: boolean
+  /** Auteurs à la forme d'un catalogue, « NOM, Prénom » (l'outil `/bibliographie` seul). */
+  ordreIndex?: boolean
   className?: string
 }) {
-  const fragments = fragmentsReference(notice, { avecAuteur })
+  const fragments = fragmentsReference(notice, { avecAuteur, ordreIndex })
   if (fragments.length === 0) return null
   const classe = className
     ? `${CLASSES_BIBLIOGRAPHIE.reference} ${className}`

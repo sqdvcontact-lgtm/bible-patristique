@@ -62,21 +62,18 @@ import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { allerAAncre } from '@/app/lib/defilement'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import IconeChevron from '@/app/components/IconeChevron'
-import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
-import { RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import {
   libelleCategoriePericope,
   type PericopeCatalogueItem,
 } from '@/app/lib/pericopes'
 import { filtrerCatalogue, TESTAMENT_LIVRE } from '@/app/lib/pericopesRecherche'
 import { SERIF, SANS } from '@/app/lib/polices'
-import { styleVoletPage, TETE_VOLET_PAGE } from '@/app/lib/voletPage'
+import VoletPage, { BoutonReinitialiser, GroupeFiltre, LienDiscret, LigneCompte, RubriqueVolet } from '@/app/components/VoletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 import { MentionVide } from '@/app/components/EtatVideVolet'
 
 const FOND = 'var(--cs-fond)'
 const BORD = 'var(--cs-bord)'
-const SEP = 'var(--cs-bord-clair)'
 const VERT = 'var(--cs-vert)'
 
 /** Hauteur de la barre d'onglets. Elle sert DEUX fois de plus : le nom du livre vient
@@ -129,50 +126,6 @@ function gloseEntree(it: PericopeCatalogueItem): string {
   if (it.categorie && it.categorie !== REGISTRE_ORDINAIRE) parts.push(libelleCategoriePericope(it.categorie).toLowerCase())
   if (it.est_collection) parts.push('ensemble')
   return parts.join(', ')
-}
-
-// ── Le volet : deux registres visuels, et ils ne se ressemblent pas ──────────
-// Une RUBRIQUE ouvre un registre (parcourir / filtrer) ; un GROUPE nomme une liste à
-// l'intérieur. C'est ce qui manquait : l'index des livres et les cases de filtre
-// portaient le même gris et la même graisse, donc rien n'annonçait ce qu'un clic ferait.
-function Rubrique({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginTop: '18px', marginBottom: '2px' }}>
-      <span style={RUBRIQUE_AXE}>{children}</span>
-      <span aria-hidden style={{ flex: 1, height: '1px', background: SEP }} />
-    </div>
-  )
-}
-function GroupeFiltre({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div style={{ marginTop: '12px' }}>
-      <div style={{ ...RUBRIQUE_AXE, marginBottom: '6px' }}>{label}</div>
-      {children}
-    </div>
-  )
-}
-
-/** Une case de filtre : marqueur carré à gauche, qui se remplit quand elle est retenue.
- *  Le marqueur n'est pas un ornement — c'est lui qui dit « ceci se coche ». Hauteur
- *  portée à 26 px : les rangées d'avant en faisaient 20, sous la cible minimale. */
-function LigneCompte({ actif, onClick, label, n }: { actif: boolean; onClick: () => void; label: string; n: number }) {
-  return (
-    <button type="button" onClick={onClick} aria-pressed={actif} style={{
-      display: 'flex', alignItems: 'center', gap: '8px', width: '100%', textAlign: 'left', cursor: 'pointer',
-      background: 'none', border: 'none', padding: '5px 0', margin: 0, minHeight: '26px',
-      fontFamily: SERIF, fontSize: '0.75rem', lineHeight: 1.35,
-      color: actif ? VERT : 'var(--cs-texte)', fontWeight: actif ? 600 : 400,
-      transition: 'color var(--cs-duree-courte)',
-    }}>
-      <span aria-hidden style={{
-        flexShrink: 0, width: '10px', height: '10px', borderRadius: '4px',
-        border: `1px solid ${actif ? VERT : 'var(--cs-bord-clair)'}`,
-        background: actif ? VERT : 'transparent', transition: 'background var(--cs-duree-courte), border-color var(--cs-duree-courte)',
-      }} />
-      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-      <span style={{ fontFamily: SANS, fontSize: '0.6875rem', color: actif ? VERT : 'var(--cs-texte-second)' }}>{n}</span>
-    </button>
-  )
 }
 
 export default function PericopesCatalogueClient({ items }: { items: PericopeCatalogueItem[] }) {
@@ -322,7 +275,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         </div>
       )}
 
-      <Rubrique>Filtrer</Rubrique>
+      <RubriqueVolet>Filtrer</RubriqueVolet>
 
       {registresPresents.length > 0 && (
         <div data-visite="peri-filtres"><GroupeFiltre label="Registre">
@@ -332,19 +285,14 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
             ))}
           </div>
           {(registresCaches > 0 || tousRegistres) && (
-            <button type="button" onClick={() => setTousRegistres(o => !o)} className="peri-lien-discret" style={{ marginTop: '4px' }}>
+            <LienDiscret onClick={() => setTousRegistres(o => !o)}>
               {tousRegistres ? 'Afficher moins' : `Afficher les ${registresCaches} autres`}
-            </button>
+            </LienDiscret>
           )}
         </GroupeFiltre></div>
       )}
 
-      {filtresActifs && (
-        <button type="button" onClick={reinitialiser}
-          style={{ marginTop: '16px', width: '100%', padding: '7px 9px', borderRadius: '8px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.75rem' }}>
-          Réinitialiser les filtres
-        </button>
-      )}
+      {filtresActifs && <BoutonReinitialiser onClick={reinitialiser} />}
     </>
   )
 
@@ -366,11 +314,6 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
           transition: color var(--cs-duree-courte), background var(--cs-duree-courte);
         }
         .peri-lien-livre:hover { color: var(--cs-encre); background: rgba(var(--cs-vert-rgb),0.10); }
-        .peri-lien-discret {
-          background: none; border: none; padding: 4px 0; cursor: pointer;
-          font-family: ${SERIF}; font-size: 0.6875rem; font-style: italic; color: var(--cs-texte-second);
-        }
-        .peri-lien-discret:hover { color: ${VERT}; }
 
         /* ── La liste ───────────────────────────────────────────────────────── */
         /* Un livre = une rangée de deux cases : son nom dans la marge, ses entrées à
@@ -471,45 +414,14 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
       <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: 'stretch', width: '100%' }}>
 
         {/* ── Volet des filtres (repliable en mobile). ── */}
-        <aside style={styleVoletPage(mobile)}>
-          <div style={TETE_VOLET_PAGE}>
-          {/* ⛔ PLUS DE SUR-TITRE EN CAPITALES ESPACÉES (demande de l'auteur, 2026-09-04 :
-              « pour l'ensemble des volets de gauche, reprendre le style et la méthode des
-              volets de la page bible classique et œuvres patristiques »). Les volets de
-              lecture n'en portent aucun : le titre ouvre le volet, et la barre de
-              navigation dit déjà d'où l'on vient. Trois formes d'étiquette coexistaient
-              ici — 0,5 rem à 0,14 em, 0,5 à 0,16, 0,53125 à 0,1 — là où les volets de
-              lecture n'en ont qu'UNE, « RUBRIQUE_AXE », en casse ordinaire. */}
-            <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: TITRE_VOLET, fontWeight: GRAISSE_TITRE_VOLET, color: ENCRE_TITRE, lineHeight: 1.15, letterSpacing: '0.01em' }}>Les péricopes</h1>
-            {/* Chapeau : la définition, et rien d'autre. Énumération par deux-points
-                (pas d'incise entre tirets).
-                ⛔ « Ce catalogue les rassemble, livre après livre » est SUPPRIMÉ (demande
-                de l'auteur, 2026-09-04) : la ligne ne disait rien que la liste ne montre
-                aussitôt, et elle ajoutait un troisième rang de texte à un bloc de tête qui
-                en portait déjà deux.
-                ⚠️ La définition se resserre : 1,55 → 1,4 d'interligne, six pixels de blanc
-                au lieu de huit. */}
-            <p style={{ margin: '6px 0 0', fontFamily: SERIF, fontSize: '0.71875rem', lineHeight: 1.4, color: 'var(--cs-texte-second)' }}>
-              Une péricope est un passage biblique formant une unité de sens&nbsp;:{' '}
-              <span style={{ fontStyle: 'italic', color: 'var(--cs-texte-gris)' }}>récit, parabole, discours ou psaume</span>.
-            </p>
-          </div>
-
-          {mobile ? (
-            <>
-              <button type="button" onClick={() => setPanneauOuvert(o => !o)} aria-expanded={panneauOuvert} aria-controls="pericopes-filtres"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '10px 15px', border: 'none', borderBottom: panneauOuvert ? `1px solid ${SEP}` : 'none', background: 'transparent', cursor: 'pointer', fontFamily: SERIF, fontSize: '0.8125rem', color: 'var(--cs-texte)' }}>
-                <span>Rechercher et filtrer{filtresActifs ? ' (actifs)' : ''}</span>
-                <span aria-hidden style={{ display: 'inline-flex', color: 'var(--cs-texte-second)' }}><IconeChevron dir={panneauOuvert ? 'up' : 'down'} taille="0.6875rem" strokeWidth={1.5} /></span>
-              </button>
-              {panneauOuvert && <div id="pericopes-filtres" style={{ padding: '0 15px 18px' }}>{contenuFiltres}</div>}
-            </>
-          ) : (
-            <div id="pericopes-filtres" className="cs-defilement-discret" style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '10px 15px 22px' }}>
-              {contenuFiltres}
-            </div>
-          )}
-        </aside>
+        {/* Chapeau : la définition, et rien d’autre, composée par le volet commun. Énumération
+            par deux-points, pas d'incise entre tirets. */}
+        <VoletPage mobile={mobile} titre="Les péricopes"
+          chapeau={<>Une péricope est un passage biblique formant une unité de sens&nbsp;: récit, parabole, discours ou psaume.</>}
+          idContenu="pericopes-filtres" libelleRepli="Rechercher et filtrer" actifs={filtresActifs}
+          ouvert={panneauOuvert} surBascule={() => setPanneauOuvert(o => !o)}>
+          {contenuFiltres}
+        </VoletPage>
 
         {/* ── La liste ── */}
         {/* La mesure se CENTRE dans la colonne (2026-08-23, sur décision de l'auteur).

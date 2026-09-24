@@ -27,6 +27,7 @@
 import { joindreLieux } from './adresseEdition'
 import type { StyleCaractereBibliographie } from './apparatBibliographie'
 import { SEPARATEUR_COEDITEURS } from './editeursNormalisation'
+import { decouperNom, nomEnVedette } from './nomsPersonnes'
 import { cleTriTitre } from './titres'
 
 /**
@@ -222,6 +223,55 @@ function composerAuteur(c: ContributeurNotice): FragmentNotice[] {
   ], c)
 }
 
+/**
+ * Les rubriques prénom / nom d'une personne MODERNE : celles de l'autorité, sinon le
+ * découpage de sa forme entière quand il n'est pas douteux. ⛔ Jamais pour un ancien,
+ * un collectif ou un nom libre (`inconnue`) : leur nom n'a pas de patronyme à isoler.
+ */
+function rubriquesModernes(c: ContributeurNotice): { prenom: string; nom: string } | null {
+  if (c.nature !== 'chercheur') return null
+  const prenom = propre(c.prenom)
+  const nom = propre(c.nomFamille)
+  if (prenom && nom) return { prenom, nom }
+  const entier = propre(c.nomAutorite) ?? propre(c.nomAffiche)
+  if (!entier) return null
+  const d = decouperNom(entier)
+  return !d.douteux && d.prenom && d.nom ? { prenom: d.prenom, nom: d.nom } : null
+}
+
+const nomEnPetitesCapitales = (texte: string): FragmentNotice =>
+  ({ champ: 'nom_famille', style: 'bibliographie-nom-auteur', composition: 'petites-capitales', texte })
+
+/**
+ * Un auteur à la forme d'INDEX (option `ordreIndex`, l'outil `/bibliographie` seul).
+ *
+ * Le PREMIER auteur se renverse, « NOM, Prénom », vedette en petites capitales et
+ * particule rejetée après le prénom (`nomEnVedette`) : c'est sous lui que l'ouvrage se
+ * range. Les suivants gardent l'ordre « Prénom NOM », leur nom de famille entier en
+ * petites capitales ; renversés aussi, les virgules ne diraient plus où finit un nom.
+ * ⛔ Une personne dont on ne connaît pas les rubriques se compose comme partout.
+ */
+function composerAuteurIndex(c: ContributeurNotice, rang: number): FragmentNotice[] {
+  const parties = rubriquesModernes(c)
+  if (!parties) return composerAuteur(c)
+  if (rang === 0) {
+    const index = nomEnVedette(parties)
+    if (index) {
+      return avecTitrePersonnel([
+        nomEnPetitesCapitales(index.vedette),
+        ...(index.suite
+          ? [ponctuation(SEPARATEUR), { champ: 'prenom', style: 'bibliographie-auteur', composition: 'romain', texte: index.suite } as FragmentNotice]
+          : []),
+      ], c)
+    }
+  }
+  return avecTitrePersonnel([
+    { champ: 'prenom', style: 'bibliographie-auteur', composition: 'romain', texte: parties.prenom },
+    ponctuation(' '),
+    nomEnPetitesCapitales(parties.nom),
+  ], c)
+}
+
 /** Une personne citée APRÈS le titre (éd., trad., dir.) : « Prénom Nom » en romain. */
 function nomDePersonne(c: ContributeurNotice): string {
   const prenom = propre(c.prenom)
@@ -292,6 +342,10 @@ export type OptionsReference = {
   /** L'auteur paraît en tête. Faux quand le titre de la pièce l'établit déjà pour toutes
    *  ses entrées (« Du même auteur », charte § 47.1). */
   avecAuteur?: boolean
+  /** Les auteurs de tête à la forme d'un CATALOGUE : « NOM, Prénom » pour le premier,
+   *  noms de famille en petites capitales. Réservé à l'outil `/bibliographie`, qui
+   *  range ses ouvrages par lettre : ⛔ toute autre surface compose « Prénom Nom ». */
+  ordreIndex?: boolean
 }
 
 /**
@@ -318,7 +372,7 @@ export function fragmentsReference(
     const auteurs = notice.contributeurs
       .filter(c => c.role === 'auteur_scientifique' || c.role === 'auteur_source')
       .sort((a, b) => a.ordre - b.ordre)
-      .map(composerAuteur)
+      .map((c, rang) => (options.ordreIndex ? composerAuteurIndex(c, rang) : composerAuteur(c)))
       .filter(f => f.length > 0)
     const auteursTexte = propre(notice.auteursTexte)
     if (auteurs.length > 0) {

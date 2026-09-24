@@ -349,3 +349,30 @@ describe('la clé de classement d’une notice', () => {
     expect(cleAuteurNotice(vide(1, 'La Cité de Dieu'))).toBe('cite de dieu')
   })
 })
+
+describe('ordreIndex — la forme « NOM, Prénom » de l’outil bibliographique', () => {
+  it('renverse le premier auteur, vedette en petites capitales, particule rejetée après le prénom', () => {
+    const notice: NoticeBibliographique = {
+      ...vide(1, 'La Règle de saint Benoît'),
+      contributeurs: [
+        chercheur('auteur_scientifique', 1, 'Adalbert', 'de Vogüé'),
+        chercheur('auteur_scientifique', 2, 'Jean', 'Neufville'),
+      ],
+    }
+    expect(texteReference(notice, { ordreIndex: true })).toBe('Vogüé, Adalbert de et Jean Neufville, La Règle de saint Benoît.')
+    const fragments = fragmentsReference(notice, { ordreIndex: true })
+    expect(fragments[0]).toEqual({ champ: 'nom_famille', style: 'bibliographie-nom-auteur', composition: 'petites-capitales', texte: 'Vogüé' })
+    expect(fragments.filter(f => f.composition === 'petites-capitales').map(f => f.texte)).toEqual(['Vogüé', 'Neufville'])
+  })
+
+  it('ne touche ni aux autres surfaces, ni aux anciens, ni aux noms libres', () => {
+    expect(texteReference(BAUR)).toBe(texteReference(BAUR, { ordreIndex: false }))
+    const ancien: NoticeBibliographique = {
+      ...vide(2, 'De Trinitate'),
+      contributeurs: [{ role: 'auteur_source', nature: 'auteur_ancien', ordre: 1, nomAffiche: 'Hilaire de Poitiers', nomAutorite: 'Hilaire de Poitiers' }],
+    }
+    expect(texteReference(ancien, { ordreIndex: true })).toBe('Hilaire de Poitiers, De Trinitate.')
+    const libre: NoticeBibliographique = { ...vide(3, 'Titre'), auteursTexte: 'Jean Daniélou' }
+    expect(texteReference(libre, { ordreIndex: true })).toBe('Jean Daniélou, Titre.')
+  })
+})

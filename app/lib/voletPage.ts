@@ -27,3 +27,13 @@ export function styleVoletPage(mobile: boolean): CSSProperties {
 export const TETE_VOLET_PAGE: CSSProperties = {
   flexShrink: 0, borderBottom: '1px solid var(--cs-bord)', padding: '13px 15px 13px',
 }
+
+/**
+ * Le chapeau sous le titre : ce que la page contient, en une ou deux lignes. CONDENSÉ
+ * (demande de l'auteur, 2026-09-24) : un cran sous les cases, interligne serré, quatre
+ * pixels sous le titre. ⚠️ Sous le seuil du gris (charte § 3.11), il se FERRE à gauche,
+ * sans justification ni césure : un texte de deux lignes n'a pas de gris à régler.
+ */
+export const CHAPEAU_VOLET_PAGE: CSSProperties = {
+  margin: '4px 0 0', fontSize: '0.6875rem', lineHeight: 1.3, color: 'var(--cs-texte-second)',
+}
