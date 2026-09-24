@@ -232,14 +232,14 @@ export function ContenuFicheEdition({ donnees, chrono = [], onOuvrirAuteur, ouvr
         )}
 
       {/* Les points de détail de l'œuvre parcourue (note_editoriale_complement). */}
-         {noteComplement && (
+        {noteComplement && (
           <SectionFiche titre="Notes éditoriales">
             {/* ⚠️ La NOTATION du § 5.6.1, comme les informations complémentaires : une note
                 éditoriale porte souvent sa bibliographie (« + » par référence). Sans marque,
                 elle se rend en prose, exactement comme avant. */}
             <NotationEdition texte={noteComplement} resserre />
-           </SectionFiche>
-         )}
+          </SectionFiche>
+        )}
 
         {/* Bibliographie propre à l'œuvre : une section sœur des notes éditoriales. */}
         {bibliographieSelective && (
