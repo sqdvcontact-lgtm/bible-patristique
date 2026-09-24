@@ -7,6 +7,7 @@
 
 import { useRouter, useParams } from 'next/navigation'
 import ModaleAuteur from '@/app/components/ModaleAuteur'
+import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 
 export default function PageAuteur() {
   const router = useRouter()
@@ -14,7 +15,7 @@ export default function PageAuteur() {
   const id = params.id as string
   const fermer = () => { if (window.history.length > 1) router.back(); else router.push('/bibliotheque') }
   return (
-    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)' }}>
+    <main style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)' }}>
       <ModaleAuteur id={id} onClose={fermer} filAriane />
     </main>
   )

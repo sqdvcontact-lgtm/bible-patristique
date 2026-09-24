@@ -19,6 +19,7 @@ import {
 import BibleReadingModeSelector from './BibleReadingModeSelector'
 import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, TITRE_VOLET } from '@/app/lib/hierarchieTitres'
 import { SERIF } from '@/app/lib/polices'
+import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 
 type Translation = { code: string; label: string }
 
@@ -72,7 +73,7 @@ export default function BibleSourceReader({
   }
 
   return (
-    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', padding: '1.25rem clamp(1rem, 4vw, 3rem) 3rem' }}>
+    <main style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)', padding: '1.25rem clamp(1rem, 4vw, 3rem) 3rem' }}>
       <header style={{ maxWidth: '58rem', margin: '0 auto 1rem', display: 'grid', gap: '0.875rem' }}>
         <p style={{ margin: 0, color: 'var(--cs-texte-gris)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           Lecture du témoin

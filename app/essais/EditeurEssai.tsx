@@ -22,7 +22,7 @@ import { NOM_ANONYME, colonnesSignature, nomReel, nomSigne, signatureDe, type Si
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { SERIF, SANS } from '@/app/lib/polices'
-import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { TEXTE_ERREUR } from '@/app/lib/texteErreur'
 
 const MAX_CARACTERES = 8000
@@ -729,7 +729,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
 
   if (mobile) {
     return (
-      <main style={{ background: 'var(--cs-fond)', minHeight: 'calc(100dvh - 3.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
+      <main style={{ background: 'var(--cs-fond)', minHeight: HAUTEUR_SOUS_NAVBAR, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
         <div style={{ maxWidth: '32.5rem', textAlign: 'center', color: 'var(--cs-texte-second)', fontFamily: SANS }}>
           <h1 style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: '0 0 14px' }}>Écrire</h1>
           <p style={{ fontSize: '0.9375rem', lineHeight: 1.6, margin: 0 }}>
@@ -743,7 +743,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
   }
 
   return (
-    <main ref={mainRef} style={{ background: 'var(--cs-fond)', minHeight: 'calc(100dvh - 3.5rem)', paddingRight: '320px' }}>
+    <main ref={mainRef} style={{ background: 'var(--cs-fond)', minHeight: HAUTEUR_SOUS_NAVBAR, paddingRight: '320px' }}>
       <style>{`
         /* La pastille de choix montre la couverture TELLE QU'ELLE PARAÎTRA : en Cuir
            le rayon est en reliures de cuir, et un nuancier vert y mentirait. */
@@ -999,7 +999,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
             {/* Barre d'outils et zone de rédaction */}
             <div style={{ display: 'flex', gap: '20px', paddingLeft: '128px' }}>
               <div onClickCapture={retenirClicSiVerrouille} style={{
-                position: 'fixed', top: '3.5rem', left: 0, width: '8rem', height: 'calc(100dvh - 3.5rem)',
+                position: 'fixed', top: HAUTEUR_NAVBAR, left: 0, width: '8rem', height: HAUTEUR_SOUS_NAVBAR,
                 background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', padding: '20px 14px', overflowY: 'auto',
                 zIndex: 50, display: 'flex', flexDirection: 'column', gap: '5px',
               }}>

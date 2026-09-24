@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import IconeChevron from '@/app/components/IconeChevron'
 import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { SERIF } from '@/app/lib/polices'
+import { HAUTEUR_SOUS_NAVBAR, GOUTTIERE_PAGE } from '@/app/lib/mesures'
 export const metadata = {
   title: 'Acheter des livres',
   description: 'Où trouver les éditions bibliques et patristiques, neuves, anciennes ou critiques.',
@@ -59,9 +60,9 @@ export default function LibrairiesPage() {
       // AUCUN paddingTop ici. Le décalage sous la navbar fixe est posé UNE SEULE fois
       // pour tout le site, par #cs-corps dans app/layout.tsx. Le répéter le comptait
       // deux fois : 107px entre la barre et le titre au lieu de 38.
-      minHeight: 'calc(100dvh - 3.5rem)',
+      minHeight: HAUTEUR_SOUS_NAVBAR,
     }}>
-      <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
+      <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: `22px ${GOUTTIERE_PAGE} 0` }}>
         <div style={{ textAlign: 'center', marginBottom: '18px' }}>
           <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: INTERLIGNE_TITRE_PAGE, marginBottom: '8px' }}>
             Acheter des livres
@@ -89,7 +90,7 @@ export default function LibrairiesPage() {
         </p>
       </div>
 
-      <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: '2px 24px 60px' }}>
+      <div style={{ maxWidth: '41.25rem', margin: '0 auto', padding: `2px ${GOUTTIERE_PAGE} 60px` }}>
         <style>{`
           /* La hauteur de rangée se mesure en rem, jamais en pixels. La police racine
              du site grandit avec la fenêtre, jusqu'à un tiers de plus sur un grand

@@ -28,6 +28,13 @@ export const HAUTEUR_NAVBAR = '3.5rem'
  *  cette barre tant qu'elle est déployée (audit de responsiveness, 2026-09-06). */
 export const HAUTEUR_SOUS_NAVBAR = `calc(100dvh - ${HAUTEUR_NAVBAR})`
 
+/** La gouttière latérale d’une page centrée (contact, légales, profil, pages
+ *  d’« Aller plus loin »…). Elle ne se voit que lorsque l’écran est plus étroit que
+ *  la mesure de la page, c’est-à-dire sur un téléphone : 16 px à 400 px de large,
+ *  24 px dès 600. On relevait 14, 16, 20 et 24 px d’une page à l’autre (audit
+ *  d’harmonie, 2026-09-23, § 5.1). */
+export const GOUTTIERE_PAGE = 'clamp(16px, 4vw, 24px)'
+
 /** La barre fixe d’un volet sur TÉLÉPHONE — « Sommaire » sous la barre de
  *  navigation, « Références & commentaires » en pied de page d’œuvre.
  *

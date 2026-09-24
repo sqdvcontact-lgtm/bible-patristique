@@ -38,7 +38,7 @@ import { chargerPagesEnParallele, chargerToutesPagesSupabase } from '@/app/lib/p
 import HistoricalDate from '@/app/components/HistoricalDate'
 import { chargerAuteursParOeuvre, grouperOeuvresParAuteur, libelleAuteurs, type AuteurOeuvre } from '@/app/lib/auteursOeuvre'
 import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, STYLE_POSITION_PAGE, STYLE_RUBRIQUE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
-import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { libelleLangue, libelleTexteOriginal, preciserLangueTraduction } from '@/app/lib/langues'
 import { libelleLangueEdition } from '@/app/lib/editionOeuvre'
 import { ORIGINAUX_VIDES, composerOriginauxDisponibles, traductionAvecOriginal, type OriginauxDisponibles } from '@/app/lib/originauxDisponibles'
@@ -2093,7 +2093,7 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
       // AUCUN paddingTop ici. Le décalage sous la navbar fixe est posé UNE SEULE fois
       // pour tout le site, par #cs-corps dans app/layout.tsx. Le répéter le comptait
       // deux fois : 107px entre la barre et le titre au lieu de 38.
-      minHeight: 'calc(100dvh - 3.5rem)',
+      minHeight: HAUTEUR_SOUS_NAVBAR,
     }}>
       {erreurChargement && (
         <div role="alert" style={{ background: 'var(--cs-danger-fond)', borderBottom: '1px solid var(--cs-danger-bord)', color: 'var(--cs-danger-fonce)', fontSize: '0.8125rem', padding: '10px 20px', textAlign: 'center' }}>

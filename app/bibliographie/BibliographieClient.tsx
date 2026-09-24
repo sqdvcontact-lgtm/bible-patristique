@@ -37,6 +37,7 @@ import {
   type NomsPericopes,
 } from '@/app/lib/bibliographieCatalogue'
 import { SERIF, SANS } from '@/app/lib/polices'
+import { styleVoletPage, TETE_VOLET_PAGE } from '@/app/lib/voletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 import { MentionVide } from '@/app/components/EtatVideVolet'
 
@@ -409,16 +410,8 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
       <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: 'stretch', width: '100%' }}>
 
         {/* ── Volet de recherche et de filtres (repliable en mobile). ── */}
-        <aside style={{
-          flexShrink: 0, width: mobile ? '100%' : '15.5rem',
-          position: mobile ? 'static' : 'sticky', top: HAUTEUR_NAVBAR,
-          height: mobile ? 'auto' : HAUTEUR_SOUS_NAVBAR,
-          display: 'flex', flexDirection: 'column',
-          background: 'var(--cs-fond-clair)',
-          borderRight: mobile ? 'none' : `1px solid ${BORD}`,
-          borderBottom: mobile ? `1px solid ${BORD}` : 'none',
-        }}>
-          <div style={{ flexShrink: 0, borderBottom: `1px solid ${BORD}`, padding: '13px 15px 13px' }}>
+        <aside style={styleVoletPage(mobile)}>
+          <div style={TETE_VOLET_PAGE}>
             <h1 style={{ margin: 0, fontFamily: SERIF, fontSize: TITRE_VOLET, fontWeight: GRAISSE_TITRE_VOLET, color: ENCRE_TITRE, lineHeight: 1.15, letterSpacing: '0.01em' }}>Bibliographie</h1>
             {/* Le chapeau : ce que la liste contient, et rien d'autre. Deux lignes,
                 resserrées comme celles du catalogue des péricopes. */}

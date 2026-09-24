@@ -2780,7 +2780,7 @@ export default function PolyglottePage() {
     : chapitrePassage != null ? `${nomPassage} ${chapitrePassage}` : nomPassage;
 
   return (
-    <div style={{ background: FOND, minHeight: "calc(100dvh - 3.5rem)" }}>
+    <div style={{ background: FOND, minHeight: HAUTEUR_SOUS_NAVBAR }}>
       {/* La comparaison en colonnes exige une largeur d'écran : indisponible sur téléphone. */}
       <style>{`
         .poly-outil { display: block; }
@@ -2938,7 +2938,7 @@ export default function PolyglottePage() {
       {/* Le MÊME volet que la page Bible — pas un cousin qui lui ressemble. Un seul composant
           pour les deux pages, donc une seule navigation à maintenir et à apprendre. */}
       <div className="poly-outil">
-        <div style={{ display: "flex", alignItems: "flex-start", minHeight: "calc(100dvh - 3.5rem)" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", minHeight: HAUTEUR_SOUS_NAVBAR }}>
         {/* `top: 0` collait le volet au bord du viewport, c'est-à-dire DERRIÈRE la
             navbar fixe : sa barre de recherche disparaissait sous elle dès qu'on
             descendait. Le volet se cale donc sous la navbar, et n'occupe que la
@@ -3068,7 +3068,7 @@ export default function PolyglottePage() {
             n'a pas pu être lue. Un panneau discret journalise son erreur — un centre vide
             et muet se lirait comme une page qui charge encore. */}
         {!onglet && livresLus && (
-          <div role="alert" style={{ minHeight: "calc(100dvh - 3.5rem - 6rem)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: SERIF, fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-mention)", letterSpacing: "0.02em", textAlign: "center" }}>
+          <div role="alert" style={{ minHeight: `calc(${HAUTEUR_SOUS_NAVBAR} - 6rem)`, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: SERIF, fontSize: '0.9375rem', fontStyle: "italic", color: "var(--cs-mention)", letterSpacing: "0.02em", textAlign: "center" }}>
             La liste des livres n’a pas pu être lue.
           </div>
         )}

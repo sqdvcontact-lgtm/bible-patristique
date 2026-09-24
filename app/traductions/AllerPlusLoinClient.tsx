@@ -6,7 +6,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import { allerAElement } from '@/app/lib/defilement'
 import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
-import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR, GOUTTIERE_PAGE } from '@/app/lib/mesures'
 import { portraitTraduction, type PositionsPhotoTraduction } from '@/app/lib/portraitTraduction'
 import {
   VOILE_BANDEAU, ENCRE_SUR_PHOTO, META_SUR_PHOTO,
@@ -297,9 +297,9 @@ export default function AllerPlusLoinClient() {
       background: 'var(--cs-fond)',
       // AUCUN paddingTop ici. Le décalage sous la navbar fixe est posé UNE SEULE fois
       // pour tout le site, par #cs-corps dans app/layout.tsx.
-      minHeight: 'calc(100dvh - 3.5rem)',
+      minHeight: HAUTEUR_SOUS_NAVBAR,
     }}>
-      <div style={{ maxWidth: '52rem', margin: '0 auto', padding: '22px 24px 0' }}>
+      <div style={{ maxWidth: '52rem', margin: '0 auto', padding: `22px ${GOUTTIERE_PAGE} 0` }}>
         <div style={{ textAlign: 'center', marginBottom: '4px' }}>
           <h1 style={{
             fontFamily: SERIF,
@@ -314,7 +314,7 @@ export default function AllerPlusLoinClient() {
 
       {/* ⚠️ 52 rem, la mesure de la fenêtre : la notice dépliée y est la même fiche, et
           ses deux colonnes demandent la même place. */}
-      <div style={{ maxWidth: '52rem', margin: '0 auto', padding: '10px 24px 80px' }}>
+      <div style={{ maxWidth: '52rem', margin: '0 auto', padding: `10px ${GOUTTIERE_PAGE} 80px` }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {traductions.map((t) => {
             const estOuvert = ouvert === t.trad_id

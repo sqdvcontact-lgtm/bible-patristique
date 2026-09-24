@@ -8,6 +8,7 @@ import { supabase } from '@/app/lib/supabase'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import { SERIF } from '@/app/lib/polices'
 import { TEXTE_ERREUR } from '@/app/lib/texteErreur'
+import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 
 type Message = {
   id: string
@@ -108,20 +109,20 @@ export default function ConversationPage() {
   }
 
   if (connecte === false) return (
-    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <main style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Connectez-vous pour accéder à votre messagerie.</p>
     </main>
   )
 
   return (
-    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)', display: 'flex', flexDirection: 'column' }}>
       <style>{`
         .msg-bubble { transition: opacity 0.1s; }
         .msg-input:focus { outline: none; border-color: var(--cs-vert) !important; }
       `}</style>
 
       {/* En-tête */}
-      <div style={{ background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord-clair)', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: '14px', position: 'sticky', top: '3.5rem', zIndex: 10 }}>
+      <div style={{ background: 'var(--cs-fond-clair)', borderBottom: '1px solid var(--cs-bord-clair)', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: '14px', position: 'sticky', top: HAUTEUR_NAVBAR, zIndex: 10 }}>
         {/* ⛔ Retour EN ARRIÈRE, et non vers une boîte de réception : la messagerie
             n'est plus une page depuis le 27 juillet 2026, c'est la fenêtre flottante
             de la barre de navigation (cf. app/components/ModaleMessagerie.tsx). Cette

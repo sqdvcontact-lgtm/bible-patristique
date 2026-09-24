@@ -1,21 +1,15 @@
 import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { SERIF } from '@/app/lib/polices'
+import { HAUTEUR_SOUS_NAVBAR, GOUTTIERE_PAGE } from '@/app/lib/mesures'
 export const metadata = {
-  title: { absolute: "Conditions d’utilisation · Corpus Scriptura" },
+  title: "Conditions d’utilisation",
   description: "Conditions générales d’utilisation du site Corpus Scriptura (corpus-scriptura.fr).",
 };
 
 export default function ConditionsUtilisationPage() {
   return (
-    <main style={{ background: "var(--cs-fond)", minHeight: "calc(100dvh - 3.5rem)", padding: "56px 24px 80px" }}>
+    <main style={{ background: "var(--cs-fond)", minHeight: HAUTEUR_SOUS_NAVBAR, padding: `22px ${GOUTTIERE_PAGE} 80px` }}>
       <div style={{ maxWidth: "var(--mesure-page)", margin: "0 auto" }}>
-
-        <p style={{
-          fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.16em",
-          textTransform: "uppercase", color: "var(--cs-vert)", marginBottom: "10px",
-        }}>
-          Informations légales
-        </p>
 
         <h1 style={{
           fontFamily: SERIF, fontSize: TITRE_PAGE,

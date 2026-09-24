@@ -7,6 +7,7 @@ import { supabase } from '@/app/lib/supabase'
 import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { SERIF } from '@/app/lib/polices'
 import { MentionVide } from '@/app/components/EtatVideVolet'
+import { HAUTEUR_SOUS_NAVBAR, GOUTTIERE_PAGE } from '@/app/lib/mesures'
 
 const NOM_LIVRE: Record<string, string> = {
   GEN: 'Genèse', EXO: 'Exode', LEV: 'Lévitique', NUM: 'Nombres', DEU: 'Deutéronome', JOS: 'Josué', JDG: 'Juges', RUT: 'Ruth',
@@ -88,9 +89,9 @@ export default function StatistiquesClient() {
       // AUCUN paddingTop ici. Le décalage sous la navbar fixe est posé UNE SEULE fois
       // pour tout le site, par #cs-corps dans app/layout.tsx. Le répéter le comptait
       // deux fois : 107px entre la barre et le titre au lieu de 38.
-      minHeight: 'calc(100dvh - 3.5rem)',
+      minHeight: HAUTEUR_SOUS_NAVBAR,
     }}>
-      <div style={{ maxWidth: '45rem', margin: '0 auto', padding: '22px 24px 0' }}>
+      <div style={{ maxWidth: '40rem', margin: '0 auto', padding: `22px ${GOUTTIERE_PAGE} 0` }}>
         <div style={{ textAlign: 'center', marginBottom: '18px' }}>
           <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, lineHeight: INTERLIGNE_TITRE_PAGE, marginBottom: '8px' }}>
             Statistiques
@@ -99,7 +100,7 @@ export default function StatistiquesClient() {
         </div>
       </div>
 
-      <div style={{ maxWidth: '40rem', margin: '0 auto', padding: '4px 24px 80px' }}>
+      <div style={{ maxWidth: '40rem', margin: '0 auto', padding: `4px ${GOUTTIERE_PAGE} 80px` }}>
         <EnteteStat
           titre="Les plus cités et commentés par les Pères"
           intro="Classement établi à partir des liens patristiques, comptés par œuvre (un même texte ne pèse qu'une fois, même s'il revient longuement sur un verset) : un commentaire pèse davantage qu'une citation, une citation davantage qu'une simple allusion. Le score grandira à mesure que les liens sont constitués." />

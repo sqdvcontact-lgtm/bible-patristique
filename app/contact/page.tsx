@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { SERIF } from "@/app/lib/polices";
 import { STYLE_CHAMP, STYLE_ETIQUETTE_CHAMP } from "@/app/lib/compositionChamp";
+import { HAUTEUR_SOUS_NAVBAR, GOUTTIERE_PAGE } from "@/app/lib/mesures";
 
 // Point de contact du site. Public par nature — il vit hors du verrou (le proxy
 // le laisse passer), pour que les mentions légales puissent y renvoyer même
@@ -40,11 +41,10 @@ export default function ContactPage() {
   };
 
   return (
-    <main style={{ background: "var(--cs-fond)", minHeight: "calc(100dvh - 3.5rem)", padding: "56px 24px 80px" }}>
-      <div style={{ maxWidth: "35rem", margin: "0 auto" }}>
-        <p style={{ fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--cs-vert)", marginBottom: "10px" }}>
-          Nous écrire
-        </p>
+    <main style={{ background: "var(--cs-fond)", minHeight: HAUTEUR_SOUS_NAVBAR, padding: `22px ${GOUTTIERE_PAGE} 80px` }}>
+      {/* La mesure des pages légales, sa voisine de pied de page : les deux partageaient
+          déjà tout le reste (audit d'harmonie, 2026-09-23). */}
+      <div style={{ maxWidth: "var(--mesure-page)", margin: "0 auto" }}>
         <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, marginBottom: "12px", lineHeight: INTERLIGNE_TITRE_PAGE }}>
           Contact
         </h1>

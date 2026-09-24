@@ -19,7 +19,7 @@ import { PARAMETRE_REPERE } from '@/app/lib/repriseLecture'
 import IconeSignet from '@/app/components/IconeSignet'
 import { STYLE_SIGNET_VERSET } from '@/app/lib/compositionBible'
 import { useEstMobile, useSansSurvol } from '@/app/lib/useEstMobile'
-import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { formaterPlageCanonique, parsePointCanonique, nomLivreReference } from '@/app/lib/referencesBibliques'
 import { rendreTexteEnrichi } from '@/app/oeuvre/[id]/texteEnrichi'
 import { normaliserEspacesOriginal } from '@/app/lib/typographie'
@@ -118,7 +118,7 @@ const TEXTE = 'var(--cs-texte-fort)'
 
 function Etat({ children }: { children: React.ReactNode }) {
   return (
-    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: FOND, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+    <main style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: FOND, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <p style={{ color: 'var(--cs-texte-doux)', fontSize: '0.875rem' }}>{children}</p>
     </main>
   )
@@ -735,7 +735,7 @@ export default function PericopePage() {
   if (mobile) {
     // Empilé : titre + texte, puis infos/options/notices, puis apparat patristique.
     return (
-      <main style={{ background: FOND, minHeight: 'calc(100dvh - 3.5rem)', padding: '1.5rem 1.1rem 3rem' }}>
+      <main style={{ background: FOND, minHeight: HAUTEUR_SOUS_NAVBAR, padding: '1.5rem 1.1rem 3rem' }}>
         <div style={{ maxWidth: '44rem', margin: '0 auto' }}>
           {centre}
           <div style={{ marginTop: '1.5rem', background: PANEL, border: `1px solid ${BORD}`, borderRadius: '8px' }}>{voletGauche}</div>

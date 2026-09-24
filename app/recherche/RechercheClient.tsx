@@ -1,5 +1,5 @@
 'use client'
-import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { Z_MODALE } from '@/app/lib/empilement'
 import { ABREV_FR, LIVRES } from '@/app/lib/bible'
 
@@ -1100,7 +1100,7 @@ export default function RechercheClient() {
           blanc en haut) : on prend simplement toute la hauteur restante sous la navbar. */}
       <div style={mobile
         ? { background:'var(--cs-fond)', display:'flex', flexDirection:'column' }
-        : { background:'var(--cs-fond)', height:'calc(100dvh - 3.5rem)', display:'flex', overflow:'hidden' }}>
+        : { background:'var(--cs-fond)', height:HAUTEUR_SOUS_NAVBAR, display:'flex', overflow:'hidden' }}>
 
         {/* ── VOLET GAUCHE : intitulé · recherche · options · onglets. Collé sous la
             navbar, pleine hauteur. Le bloc du haut est fixe ; les onglets, en dessous,

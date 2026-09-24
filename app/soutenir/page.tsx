@@ -1,4 +1,5 @@
 import { SERIF } from '@/app/lib/polices'
+import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 export const metadata = {
   title: "Soutenir le projet",
   description: "Lectures bibliques et patristiques.",
@@ -28,7 +29,7 @@ export default function SoutenirPage() {
     // (plutôt qu'une hauteur figée) + `overflow: visible` laissent le contenu déborder en
     // défilement plutôt que d'être rogné sur les écrans très courts.
     <section style={{
-      minHeight: "calc(100dvh - 3.5rem)",
+      minHeight: HAUTEUR_SOUS_NAVBAR,
       boxSizing: "border-box",
       background: "var(--cs-fond)",
       display: "flex",

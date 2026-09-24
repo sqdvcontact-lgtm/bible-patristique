@@ -12,6 +12,7 @@ import ModalSignalement from '@/app/components/ModalSignalement'
 import CitationsFavorites from './CitationsFavorites'
 import { SERIF, SANS } from '@/app/lib/polices'
 import { TITRE_CARTE } from '@/app/lib/hierarchieTitres'
+import { HAUTEUR_SOUS_NAVBAR, GOUTTIERE_PAGE } from '@/app/lib/mesures'
 
 type ProfilPublic = {
   pseudo: string
@@ -108,7 +109,7 @@ export default function ProfilPublicPage() {
   }, [pseudo])
 
   if (erreur) return (
-    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <main style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
         <p style={{ fontFamily: SERIF, fontSize: '1.125rem', color: 'var(--cs-texte-doux)', marginBottom: '8px' }}>Profil introuvable</p>
         <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)' }}>@{pseudo}</p>
@@ -148,7 +149,7 @@ export default function ProfilPublicPage() {
   }
 
   return (
-    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', padding: '48px 20px 96px' }}>
+    <main style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)', padding: `22px ${GOUTTIERE_PAGE} 96px` }}>
       <style>{`
         /* ⚠️ Le cadre était en --cs-danger-bord, c'est-à-dire ROSE : la passe de
            jetons du 19 août 2026 avait rangé le sable #d8cdb0 dans la famille du

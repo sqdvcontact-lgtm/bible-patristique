@@ -9,6 +9,7 @@ import { enTetesPartage } from "@/app/lib/metadonneesSeo";
 import IndiceTelephoneServeur from '@/app/lib/IndiceTelephoneServeur'
 import { SERIF, SANS } from "@/app/lib/polices";
 import { MentionVide } from '@/app/components/EtatVideVolet'
+import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 
 // La devise du frontispice, mot pour mot. « Lectures bibliques et patristiques »
 // décrivait un rayon de bibliothèque ; la phrase dit ce que le site FAIT, et que
@@ -233,7 +234,7 @@ export default async function AccueilPage() {
            puis sommer les enfants de « .accueil-seuil » avec leurs marges et les
            rembourrages. Une mesure prise à une seule largeur ne dit rien des autres. */
         .accueil-seuil {
-          min-height: calc(100dvh - 3.5rem);
+          min-height: ${HAUTEUR_SOUS_NAVBAR};
           background: var(--cs-fond);
           display: flex;
           flex-direction: column;

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { SERIF } from '@/app/lib/polices'
+import { HAUTEUR_SOUS_NAVBAR, GOUTTIERE_PAGE } from '@/app/lib/mesures'
 
 export default function BienvenuePage() {
   const router = useRouter()
@@ -23,13 +24,10 @@ export default function BienvenuePage() {
   if (!pret) return <EcranAttente />
 
   return (
-    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+    <main style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: `22px ${GOUTTIERE_PAGE} 40px` }}>
       <div style={{ width: '100%', maxWidth: '30rem', textAlign: 'center' }}>
 
         {/* En-tête */}
-        <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--cs-vert-clair)', margin: '0 0 18px' }}>
-          Corpus Scriptura
-        </p>
         <h1 style={{ fontFamily: SERIF, fontSize: TITRE_PAGE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE, margin: '0 0 10px', lineHeight: INTERLIGNE_TITRE_PAGE }}>
           Bienvenue.
         </h1>

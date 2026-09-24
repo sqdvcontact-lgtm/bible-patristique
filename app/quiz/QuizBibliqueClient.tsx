@@ -396,7 +396,7 @@ export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boo
   }
 
   return (
-    <section style={{ maxWidth: '65rem', margin: '0 auto', padding: '24px 20px 82px', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
+    <section style={{ maxWidth: '65rem', margin: '0 auto', padding: '22px 20px 82px', fontFamily: 'var(--font-source-sans), Arial, sans-serif' }}>
       <style>{`
         @keyframes bibleGamesGlow { 0%{box-shadow:var(--cs-ombre-posee);transform:scale(1)} 35%{box-shadow:var(--cs-ombre-modale);transform:scale(1.035)} 100%{box-shadow:var(--cs-ombre-posee);transform:scale(1)} }
         @keyframes bibleGamesSpark { 0%{opacity:0;transform:scale(0.6) translateY(8px)} 35%{opacity:1} 100%{opacity:0;transform:scale(1.35) translateY(-20px)} }

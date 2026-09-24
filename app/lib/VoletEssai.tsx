@@ -9,6 +9,7 @@ import { raccourcisEditeur, collageTexteBrut } from './raccourcisEditeur'
 import { SERIF } from './polices'
 import { STYLE_RUBRIQUE } from './hierarchieTitres'
 import IconeCroix from '@/app/components/IconeCroix'
+import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 
 // ── Zone de rédaction d'une note : UNE seule zone, éditable et WYSIWYG ─────────
 // On y écrit, on enrichit (gras, italique, petites capitales, exposant) et l'on
@@ -194,7 +195,7 @@ export default function VoletEssai({ element, onFermer, toujoursVisible, inline,
 
   return (
     <div style={{
-      position: 'fixed', top: '3.5rem', right: 0, width: '20rem', height: 'calc(100dvh - 3.5rem)',
+      position: 'fixed', top: HAUTEUR_NAVBAR, right: 0, width: '20rem', height: HAUTEUR_SOUS_NAVBAR,
       background: 'var(--cs-fond-clair)', borderLeft: '1px solid var(--cs-bord)', padding: '20px', overflowY: 'auto',
       zIndex: 50, boxShadow: 'var(--cs-ombre-posee)',
     }}>

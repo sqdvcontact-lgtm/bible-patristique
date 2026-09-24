@@ -15,6 +15,7 @@
 import Link from 'next/link'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import { SERIF } from '@/app/lib/polices'
+import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 
 export default function ChapitreIndisponible({
   adresse,
@@ -27,7 +28,7 @@ export default function ChapitreIndisponible({
   explication?: string
 }) {
   return (
-    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', display: 'grid', placeItems: 'start center', padding: '14vh 1.5rem 4rem', background: 'var(--cs-fond)' }}>
+    <main style={{ minHeight: HAUTEUR_SOUS_NAVBAR, display: 'grid', placeItems: 'start center', padding: '14vh 1.5rem 4rem', background: 'var(--cs-fond)' }}>
       <div role="alert" style={{ maxWidth: '30rem', textAlign: 'center' }}>
         <h1 style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, margin: 0 }}>
           {titre}

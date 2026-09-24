@@ -70,6 +70,7 @@ import {
 } from '@/app/lib/pericopes'
 import { filtrerCatalogue, TESTAMENT_LIVRE } from '@/app/lib/pericopesRecherche'
 import { SERIF, SANS } from '@/app/lib/polices'
+import { styleVoletPage, TETE_VOLET_PAGE } from '@/app/lib/voletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 import { MentionVide } from '@/app/components/EtatVideVolet'
 
@@ -470,16 +471,8 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
       <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', alignItems: 'stretch', width: '100%' }}>
 
         {/* ── Volet des filtres (repliable en mobile). ── */}
-        <aside style={{
-          flexShrink: 0, width: mobile ? '100%' : '15.5rem',
-          position: mobile ? 'static' : 'sticky', top: HAUTEUR_NAVBAR,
-          height: mobile ? 'auto' : HAUTEUR_SOUS_NAVBAR,
-          display: 'flex', flexDirection: 'column',
-          background: 'var(--cs-fond-clair)',
-          borderRight: mobile ? 'none' : `1px solid ${BORD}`,
-          borderBottom: mobile ? `1px solid ${BORD}` : 'none',
-        }}>
-          <div style={{ flexShrink: 0, borderBottom: `1px solid ${BORD}`, padding: '13px 15px 13px' }}>
+        <aside style={styleVoletPage(mobile)}>
+          <div style={TETE_VOLET_PAGE}>
           {/* ⛔ PLUS DE SUR-TITRE EN CAPITALES ESPACÉES (demande de l'auteur, 2026-09-04 :
               « pour l'ensemble des volets de gauche, reprendre le style et la méthode des
               volets de la page bible classique et œuvres patristiques »). Les volets de

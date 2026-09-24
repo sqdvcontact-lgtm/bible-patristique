@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { useEstMobile } from '@/app/lib/useEstMobile'
-import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { supabase } from '@/app/lib/supabase'
 import { rendreEssai, extraireSommaire } from '@/app/lib/texteEnrichiEssai'
 import { PARAGRAPHE_ESSAI, CITATION_ESSAI, enCss } from '@/app/lib/compositionEssai'
@@ -235,7 +235,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   return (
     <div style={mobile
       ? { display: 'flex', flexDirection: 'column', background: 'var(--cs-fond)' }
-      : { display: 'flex', height: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)' }}>
+      : { display: 'flex', height: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)' }}>
       <style>{`
         /* ⛔ La composition du corps vient du module compositionEssai, jamais d'ici :
            la lecture, l'éditeur et le composeur en dérivent tous les trois. Trois copies

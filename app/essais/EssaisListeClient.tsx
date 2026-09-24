@@ -23,6 +23,7 @@ import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import { PisteInterrupteur } from '@/app/compte/champsCompte'
 import { SERIF, SANS } from '@/app/lib/polices'
 import { MentionVide } from '@/app/components/EtatVideVolet'
+import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 
 const CATEGORIES = CATEGORIES_ESSAIS
 
@@ -215,7 +216,7 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
       // AUCUN paddingTop ici. Le décalage sous la navbar fixe est posé UNE SEULE fois
       // pour tout le site, par #cs-corps dans app/layout.tsx. Le répéter le comptait
       // deux fois — c'est la règle déjà appliquée à la Bibliothèque et aux traductions.
-      minHeight: 'calc(100dvh - 3.5rem)',
+      minHeight: HAUTEUR_SOUS_NAVBAR,
     }}>
       {/* ⛔ La MESURE reste celle de la Communauté, 71rem : elle porte trois
           couvertures de front, quand la Bibliothèque n'a que du texte à ranger sur

@@ -173,7 +173,7 @@ function ChoixPseudoInitial({ userId, onCree }: { userId: string; onCree: (p: Pr
   }
 
   return (
-    <main style={{ minHeight: 'calc(100dvh - 3.5rem)', background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+    <main style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
       <div style={{ background: 'var(--cs-surface)', border: '1px solid var(--cs-bord)', borderRadius: '12px', padding: '32px 36px', width: '100%', maxWidth: '23.75rem' }}>
         <h1 style={{ fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE, marginBottom: '8px' }}>Choisissez votre pseudonyme</h1>
         <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte-doux)', marginBottom: '20px', lineHeight: 1.5 }}>Il vous identifie sur le site et doit être unique.</p>

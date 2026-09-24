@@ -286,7 +286,7 @@ export function Rangee({ label, pour, children, note }: {
 // français, jamais entre accents graves, qui fermeraient la chaîne.
 export const FEUILLE_ESPACE = `
 .esp-cadre { display: flex; gap: 34px; max-width: 54rem; margin: 0 auto;
-  padding: 28px 24px 90px; align-items: flex-start; }
+  padding: 22px 24px 90px; align-items: flex-start; }
 /* ⚠️ 13,5rem et non 12,5 depuis que les onglets sont TROIS : « Mon compte » et
    « Mon parcours » en demandaient 135 px à eux deux, « Mes annotations » en ajoute une
    soixantaine, et les libellés se coupaient en deux lignes. On élargit la colonne
