@@ -7,6 +7,17 @@ import { hrefSur } from '@/app/lib/liensSurs'
 // app/lib/typographie.ts. Ré-exportée ici pour les nombreux appelants historiques.
 export { normaliserEspaces, normaliserEspacesOriginal } from '@/app/lib/typographie'
 
+// Une intervention éditoriale courte imprimée entre crochets appartient au texte
+// transmis, mais pas à la voix de l'auteur. Elle reste en romain et en ligne ; le
+// gris et le léger retrait de corps suffisent à la distinguer sans la transformer
+// en note ni en apparat autonome. L'abréviation éditoriale, elle, est en italique.
+export const STYLE_INTERVENTION_EDITORIALE = {
+  color: 'var(--cs-texte-gris)',
+  fontSize: '0.875em',
+  fontStyle: 'normal',
+  letterSpacing: 0,
+} as const
+
 // ── Enrichissement minimal : **gras**, *italique*, ^^exposant^^, [texte](url).
 // Syntaxe volontairement réduite, stockée directement dans
 // segment_texte (ou les colonnes ref_nivX / ref_nivX_texte, ou oeuvres.titre).
@@ -40,7 +51,7 @@ export function rendreTexteEnrichi(
   // `++petites capitales++` : même convention que les commentaires et les essais
   // (EditeurCommentaire, texteEnrichiEssai). Ajouté ici pour que le texte biblique en
   // porte aussi, l'éditeur de verset produisant désormais ce balisage.
-  const regex = /\*\*(.+?)\*\*|\+\+(.+?)\+\+|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>/g
+  const regex = /\*\*(.+?)\*\*|\+\+(.+?)\+\+|\^\^(.+?)\^\^|\*(.+?)\*|\[(.+?)\]\((.+?)\)|\b([IVXLCDM]+)(e|er|ère|ème|ième)(\s+siècles?)|<i>([\s\S]*?)<\/i>|\[impr\.\s+([^\]\n]+)\]/g
   let dernierIndex = 0, k = 0, m: RegExpExecArray | null
   // La clé est FIGÉE avant de construire l'élément (const key = k++). Sous le runtime JSX
   // automatique, l'attribut `key` est évalué APRÈS les enfants : mélanger `key={k}` (avec
@@ -66,6 +77,14 @@ export function rendreTexteEnrichi(
       noeuds.push(<Fragment key={k++}>{m[9]}</Fragment>)
     }
     else if (m[10] !== undefined) { if (m[10]) { const key = k++; noeuds.push(<em key={key}>{tf(m[10], `e${key}`)}</em>) } }
+    else if (m[11] !== undefined) {
+      const key = k++
+      noeuds.push(
+        <span key={key} data-intervention-editoriale="" style={STYLE_INTERVENTION_EDITORIALE}>
+          [<em>impr.</em>{' '}{rendreTexteEnrichi(m[11], transform)}]
+        </span>
+      )
+    }
     dernierIndex = regex.lastIndex
   }
   if (dernierIndex < texte.length) { const key = k++; noeuds.push(<Fragment key={key}>{tf(texte.slice(dernierIndex), `t${key}`)}</Fragment>) }
