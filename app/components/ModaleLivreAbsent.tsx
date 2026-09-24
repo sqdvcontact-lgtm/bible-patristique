@@ -40,6 +40,7 @@ import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { SERIF } from '@/app/lib/polices'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import IconeCroix from '@/app/components/IconeCroix'
+import { rendreEnrichi } from '@/app/lib/enrichissements'
 
 export type TraductionProposee = { code: string; label: string }
 
@@ -71,7 +72,7 @@ function RangeeBible({ label, premiere, onChoisir }: {
         fontFamily: SERIF, fontSize: '0.8125rem', lineHeight: 1.3,
         color: survol ? 'var(--cs-vert)' : 'var(--cs-encre)',
       }}>
-      <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+      <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rendreEnrichi(label)}</span>
       <svg width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden="true"
         style={{ flexShrink: 0, color: 'var(--cs-vert)', opacity: survol ? 1 : 0.5, transform: survol ? 'translateX(1px)' : 'none' }}>
         <path d="M1.6 5h6.8M5.6 2.2 8.4 5 5.6 7.8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
@@ -138,7 +139,7 @@ export default function ModaleLivreAbsent({
         <div style={{ height: '1px', background: 'var(--cs-bord-clair)', margin: '14px 0 13px' }} />
 
         <p style={{ fontSize: '0.78125rem', color: 'var(--cs-texte)', lineHeight: 1.6, margin: 0 }}>
-          Ce livre ne figure pas dans <span style={{ fontStyle: 'italic' }}>{nomTraduction}</span> telle
+          Ce livre ne figure pas dans <span style={{ fontStyle: 'italic' }}>{rendreEnrichi(nomTraduction)}</span> telle
           qu’elle est publiée ici.
         </p>
 

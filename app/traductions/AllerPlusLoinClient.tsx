@@ -13,6 +13,7 @@ import {
   CHEVRON_SUR_PHOTO, OMBRE_SUR_PHOTO, BRILLANCE_BANDEAU, MESURE_TEXTE_BANDEAU,
 } from '@/app/lib/bandeauTraduction'
 import { SERIF } from '@/app/lib/polices'
+import { rendreEnrichi } from '@/app/lib/enrichissements'
 
 /** Ce que la LISTE lit : le bandeau et le ton de l'image. ⚠️ La notice dépliée, elle, se
  *  charge par la fiche (`useDonneesFicheTraduction`) : la page ne compose plus rien de
@@ -195,7 +196,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
           textShadow: ombreTexte,
           transition: 'color var(--cs-duree-moyenne), text-shadow var(--cs-duree-moyenne)',
         }}>
-          {t.nom}
+          {rendreEnrichi(t.nom)}
         </h2>
         {meta && (
           <span style={{
@@ -206,7 +207,7 @@ function BandeauTraduction({ t, estOuvert, onToggle }: {
             textShadow: ombreTexte,
             transition: 'color var(--cs-duree-moyenne)',
           }}>
-            {meta}
+            {rendreEnrichi(meta)}
           </span>
         )}
         {/* ⛔ LA DATE DE MISE À JOUR N'EST PLUS ICI (demande de l'auteur, 2026-09-04 :

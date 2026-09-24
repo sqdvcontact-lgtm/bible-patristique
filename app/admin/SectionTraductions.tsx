@@ -21,6 +21,7 @@ import {
 import { revaliderTraductions } from '@/app/actions/revalider'
 import { colonnesPeriodeHistorique, formaterDateHistorique, normaliserDateHistoriqueTexte } from '@/app/lib/datesHistoriques'
 import { mentionEdition } from '@/app/lib/mentionEdition'
+import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { rangerEnBlocs, type Appartenance } from '@/app/lib/blocsTraductions'
 
 type PhotoPos = { x: number; y: number; scale: number }
@@ -154,7 +155,7 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
         {/* En-tête */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
           <h3 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>
-            Positionner les images · <em style={{ color: 'var(--cs-texte-second)' }}>{t.nom}</em>
+            Positionner les images · <em style={{ color: 'var(--cs-texte-second)' }}>{rendreEnrichi(t.nom)}</em>
           </h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.0625rem', color: 'var(--cs-texte-faible)', padding: 0, lineHeight: 1 }}>✕</button>
         </div>
@@ -202,11 +203,11 @@ function ModalPositionPhoto({ t, posInit, onClose, onSauvegarde }: {
             )}
             <div style={{ position: 'relative', zIndex: 1, flex: 1, minWidth: 0, maxWidth: imageBandeau ? MESURE_TEXTE_BANDEAU : undefined, padding: '18px 14px 18px 20px' }}>
               <h2 style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1.25rem', fontWeight: 'normal', color: imageBandeau ? ENCRE_SUR_PHOTO : 'var(--cs-encre-fonce)', margin: 0, lineHeight: 1.25, textShadow: imageBandeau ? ombre : 'none' }}>
-                {t.nom}
+                {rendreEnrichi(t.nom)}
               </h2>
               {meta && (
                 <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '0.78125rem', fontStyle: 'italic', color: imageBandeau ? META_SUR_PHOTO : 'var(--cs-texte-second)', display: 'block', marginTop: '4px', textShadow: imageBandeau ? ombre : 'none' }}>
-                  {meta}
+                  {rendreEnrichi(meta)}
                 </span>
               )}
             </div>
@@ -1154,7 +1155,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
                 d'actions commence au même endroit (2026-09-13). */}
             <div style={{ display: 'grid', gridTemplateColumns: COLONNES_IDENTITE, columnGap: '12px', alignItems: 'baseline', flex: '0 1 auto', minWidth: 0 }}>
               <span style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '4px 8px', minWidth: 0 }}>
-                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: 'var(--cs-encre)' }}>{t.nom}</span>
+                <span style={{ fontFamily: "var(--font-source-serif), Georgia, serif", fontSize: '1rem', color: 'var(--cs-encre)' }}>{rendreEnrichi(t.nom)}</span>
                 {!t.est_biblique && (
                   <span title="Notice d’une traduction patristique : elle ne paraît dans aucun sélecteur de traduction biblique, ni sur la page publique."
                     style={{ fontSize: '0.625rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--cs-or)', border: '1px solid var(--cs-or-doux)', borderRadius: '4px', padding: '1px 6px', whiteSpace: 'nowrap' }}>
@@ -1378,7 +1379,7 @@ export default function SectionTraductions({ traductions: init }: { traductions:
             <div onClick={e => e.stopPropagation()} style={{ background: 'var(--cs-fond)', borderRadius: '8px', padding: '22px 24px', maxWidth: '27.5rem', width: '100%', boxShadow: 'var(--cs-ombre-modale)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                 <h3 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif', fontSize: '1rem', fontWeight: 'normal', color: 'var(--cs-encre)', margin: 0 }}>
-                  Remplacer · <em style={{ color: 'var(--cs-texte-second)' }}>{t.nom}</em>
+                  Remplacer · <em style={{ color: 'var(--cs-texte-second)' }}>{rendreEnrichi(t.nom)}</em>
                   <code style={{ fontSize: '0.71875rem', background: 'var(--cs-fond-doux)', padding: '1px 5px', borderRadius: '4px', marginLeft: '8px', color: 'var(--cs-texte-second)' }}>{t.trad_id}</code>
                 </h3>
                 <button onClick={() => setReplaceModal(null)} disabled={replaceStatut === 'loading'} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.0625rem', color: 'var(--cs-texte-faible)', padding: 0, lineHeight: 1 }}>✕</button>

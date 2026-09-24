@@ -3304,7 +3304,7 @@ export default function PolyglottePage() {
                   {l.nom_fr} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: SURNUM }}>· {srs.length} surnuméraire{srs.length > 1 ? "s" : ""}</span>
                 {titresEdition(l.code).map(({ id, trad, ed }) => (
                   <span key={id} style={{ display: "block", fontSize: '0.71875rem', fontWeight: 400, fontStyle: "italic", color: "var(--cs-texte-gris)", marginTop: 2 }}>
-                    {trad} : {ed.nom}
+                    {rendreEnrichi(trad)} : {rendreEnrichi(ed.nom)}
                   </span>
                 ))}
                 </h2>
@@ -3334,7 +3334,7 @@ export default function PolyglottePage() {
                   {toutAfficher && l.nom_fr}
                   {titresEdition(l.code).map(({ id, trad, ed }) => (
                     <span key={id} style={{ display: "block", fontSize: '0.71875rem', fontWeight: 400, fontStyle: "italic", color: "var(--cs-texte-gris)", marginTop: 2 }}>
-                      {trad} : {ed.nom}
+                      {rendreEnrichi(trad)} : {rendreEnrichi(ed.nom)}
                     </span>
                   ))}
                 </h2>
