@@ -44,6 +44,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import { Z_FLOTTANT } from '@/app/lib/empilement'
+import { adresseFleuron, fleuronDe } from '@/app/lib/fleurons'
 import { hauteurNavbarPx } from '@/app/lib/fenetreContextuelle'
 import {
   cleDeLassoValide, clesTouchees, combinerSelection, depasseLeSeuil, feuilleDeSurbrillance, ombreDeSurbrillance,
@@ -51,6 +52,10 @@ import {
   vitesseDeDefilement, type CibleMesuree, type Point, type Rect,
 } from '@/app/lib/lasso'
 import { compter, libelleSelection } from '@/app/lib/selectionPassages'
+
+/** La planche du fleuron de l'alarme : le memento mori, pris au registre. */
+const FLEURON_ALARME = fleuronDe('memento-mori')
+const MASQUE_FLEURON_ALARME = `url('${adresseFleuron(FLEURON_ALARME)}')`
 
 type Action = 'enregistrer' | 'retirer' | 'copier'
 
@@ -614,6 +619,15 @@ export default function LassoLecture(props: LassoLectureProps) {
               petit texte se lisait sur la page qu'il couvrait, et ne se lisait pas ; avec
               une pastille opaque, on voyait un ovale blanc posé dessus (globals.css). */}
           <div className="cs-lasso-alarme-plaque">
+            {/* Un fleuron MENAÇANT, à l'encre du refus (demande de l'auteur, 2026-09-24) :
+                le memento mori du registre, posé en masque au-dessus du cri. */}
+            <span className="cs-fleuron cs-lasso-alarme-fleuron" aria-hidden="true"
+              style={{
+                // ⛔ La largeur s'écrit depuis les deux nombres de la planche : un enfant de
+                // flex dont la largeur se déduirait d'un rapport CSS pourrait s'effondrer.
+                width: `calc(var(--cs-lasso-fleuron-h) * ${FLEURON_ALARME.planche.largeur} / ${FLEURON_ALARME.planche.hauteur})`,
+                WebkitMaskImage: MASQUE_FLEURON_ALARME, maskImage: MASQUE_FLEURON_ALARME,
+              }} />
             <span className="cs-lasso-alarme-cri">{refus.titre}</span>
             {refus.detail && <span className="cs-lasso-alarme-detail">{refus.detail}</span>}
           </div>

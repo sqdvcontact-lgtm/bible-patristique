@@ -901,6 +901,10 @@ export default function Navbar() {
   const [nbResultatsProgressif, setNbResultatsProgressif] = useState(0);
   const [rechercheTerminee, setRechercheTerminee] = useState(false);
   const [nbTotalReel, setNbTotalReel] = useState(0);
+  // La saisie à laquelle répondent les rubriques de `recherche_globale` (œuvres, auteurs,
+  // chronologie, essais), posée AVEC elles : c'est ce qui permet de ne jamais montrer
+  // une rubrique d'une autre saisie comme si elle répondait à celle-ci.
+  const [pourRpc, setPourRpc] = useState<string | null>(null);
 
   // ── Recherche de péricodes (RPC `rechercher_pericopes`, authentifié) ─────────
   // Menée EN PARALLÈLE de la recherche rapide, dans son propre effet, pour qu'elle ne
@@ -908,8 +912,9 @@ export default function Navbar() {
   // chaque frappe annule la requête précédente (abort), donc aucune réponse obsolète.
   const [pericopes, setPericopes] = useState<PericopeSearchResult[]>([]);
   const [pericopesLoading, setPericopesLoading] = useState(false);
-  const [pericopesFait, setPericopesFait] = useState(false);
+  const [, setPericopesFait] = useState(false);
   const [pericopesErreur, setPericopesErreur] = useState(false);
+  const [pourPericopes, setPourPericopes] = useState<string | null>(null);
   const [actifIndex, setActifIndex] = useState(-1);
 
   // L'interrupteur ne retient plus rien de lui-même : le thème est une préférence de
@@ -927,15 +932,15 @@ export default function Navbar() {
   useEffect(() => {
     setActifIndex(-1);
     const q = requeteRapide.trim();
-    if (q.length < 2) { setPericopes([]); setPericopesLoading(false); setPericopesFait(false); setPericopesErreur(false); return; }
+    if (q.length < 2) { setPericopes([]); setPericopesLoading(false); setPericopesFait(false); setPericopesErreur(false); setPourPericopes(null); return; }
     setPericopesLoading(true); setPericopesErreur(false);
     const ctrl = new AbortController();
     const timer = setTimeout(() => {
       chercherPericopes(q, ctrl.signal)
-        .then(res => { if (!ctrl.signal.aborted) { setPericopes(res); setPericopesFait(true); setPericopesLoading(false); } })
+        .then(res => { if (!ctrl.signal.aborted) { setPericopes(res); setPourPericopes(q); setPericopesFait(true); setPericopesLoading(false); } })
         .catch(err => {
           if (ctrl.signal.aborted || err?.name === 'AbortError') return;
-          setPericopes([]); setPericopesErreur(true); setPericopesFait(true); setPericopesLoading(false);
+          setPericopes([]); setPourPericopes(q); setPericopesErreur(true); setPericopesFait(true); setPericopesLoading(false);
         });
     }, 200);
     return () => { clearTimeout(timer); ctrl.abort(); };
@@ -944,7 +949,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const q = requeteRapide.trim();
-    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); setOeuvresTrouvees([]); setEditionsOeuvres({}); setSegmentsTrouves([]); setEvenementsTrouves([]); setRechercheRapideLoading(false); setNbResultatsProgressif(0); setNbTotalReel(0); setRechercheTerminee(false); return; }
+    if (!q) { setAuteursTrouves([]); setEssaisTrouves([]); setOeuvresTrouvees([]); setEditionsOeuvres({}); setSegmentsTrouves([]); setEvenementsTrouves([]); setRechercheRapideLoading(false); setNbResultatsProgressif(0); setNbTotalReel(0); setRechercheTerminee(false); setPourRpc(null); return; }
     setRechercheRapideLoading(true);
     setNbResultatsProgressif(0);
     setNbTotalReel(0);
@@ -999,20 +1004,52 @@ export default function Navbar() {
           setEssaisTrouves(es.map(r => ({ id: Number(r.id), titre: r.titre })));
           setEvenementsTrouves(ev.slice(0, 4).map(r => ({ id: r.id, titre: r.titre, date_affichage: r.sous_titre ?? '' })));
           setNbTotalReel(totalCat(au) + totalCat(oe) + totalCat(es) + totalCat(ev));
+          setPourRpc(q);
           setNbResultatsProgressif(0);
           setRechercheRapideLoading(false);
           setRechercheTerminee(true);
-        }, () => { if (!signal.aborted) { setRechercheRapideLoading(false); setRechercheTerminee(true); } });
+        }, () => {
+          if (signal.aborted) return;
+          // Un échec VIDE les rubriques de cette saisie au lieu de laisser celles d'une
+          // autre : la liste se poursuit sans elles, et Entrée mène toujours à la page.
+          setAuteursTrouves([]); setOeuvresTrouvees([]); setEssaisTrouves([]); setEvenementsTrouves([]); setNbTotalReel(0);
+          setPourRpc(q); setRechercheRapideLoading(false); setRechercheTerminee(true);
+        });
       // Les « Extraits patristiques » (plein texte des segments) restent réservés à la
       // page /recherche (touche Entrée) : trop volumineux pour le menu déroulant.
     }, 250);
     return () => { clearTimeout(timer); abortRef.current?.abort(); setRechercheRapideLoading(false); };
   }, [requeteRapide]);
 
-  const qNorm = sansAccents(requeteRapide.trim());
+  // ── CE QUE LA LISTE MONTRE, ET DANS QUEL ORDRE (demande de l'auteur, 2026-09-24 :
+  // « charger progressivement, dans l'ordre d'importance ») ──────────────────────
+  // ⛔ Une rubrique ne paraît que si toutes celles qui la PRÉCÈDENT sont venues : la
+  // liste se remplit de haut en bas, et rien ne s'insère jamais au-dessus de ce qu'on
+  // lit déjà. Les livres de la Bible, connus d'avance, attendaient pourtant moins que
+  // les œuvres qui les surmontent : ils paraissaient les premiers, puis les œuvres se
+  // glissaient au-dessus et poussaient tout le reste vers le bas sous le curseur.
+  // ⚠️ Tant que la saisie neuve n'a pas de réponse, la liste d'AVANT reste entière sous
+  // un voile, composée tout entière sur la saisie à laquelle elle répond (`qAffiche`) :
+  // elle ne se vide pas à chaque lettre tapée, et ne mêle jamais deux saisies.
+  const qTape = requeteRapide.trim();
+  const qAffiche = !qTape ? '' : (pourRpc === qTape || pourRpc === null ? qTape : pourRpc);
+  const listeVoilee = qAffiche !== qTape;
+  const qNorm = sansAccents(qAffiche);
   // Le PASSAGE que la saisie désigne (« Jn 3, 16 », « Genèse 22 ») : il s'ouvre, il ne se
   // cherche pas. La grammaire est celle des péricopes, la même que la page des résultats.
+  // ⚠️ Entrée suit ce qui est TAPÉ (`refBiblique`), la liste ce qui est MONTRÉ (`refAffichee`).
   const refBiblique = referenceBiblique(requeteRapide);
+  const refAffichee = qAffiche === qTape ? refBiblique : referenceBiblique(qAffiche);
+  const rubriquesPretes = pourRpc === qAffiche;
+  const pericopesPretes = qAffiche.length < 2 || pourPericopes === qAffiche;
+  // L'ordre d'importance, celui du rendu : on s'arrête à la première rubrique en attente.
+  const ORDRE_RUBRIQUES = ['ref', 'oeuvres', 'livres', 'auteurs', 'pericopes', 'chronologie', 'essais', 'traductions'] as const;
+  const pretes: Record<(typeof ORDRE_RUBRIQUES)[number], boolean> = {
+    ref: true, oeuvres: rubriquesPretes, livres: true, auteurs: rubriquesPretes,
+    pericopes: pericopesPretes, chronologie: rubriquesPretes, essais: rubriquesPretes, traductions: true,
+  };
+  const rangAttente = ORDRE_RUBRIQUES.findIndex(r => !pretes[r]);
+  const visible = (r: (typeof ORDRE_RUBRIQUES)[number]) => rangAttente < 0 || ORDRE_RUBRIQUES.indexOf(r) < rangAttente;
   // Préfixe de MOT (comme le reste de la recherche rapide) : « am » trouve « Amos »,
   // jamais « Samuel » (am au milieu). On teste le début de chaque mot du nom.
   const motCommencePar = (nom: string) => sansAccents(nom).split(/[\s'’-]+/).some(w => w.startsWith(qNorm));
@@ -1024,14 +1061,14 @@ export default function Navbar() {
   // ⛔ L'ordre suit EXACTEMENT celui du rendu, sinon la flèche descend dans une liste
   // et le surlignage se pose dans une autre : les œuvres ouvrent, leurs auteurs suivent.
   const itemsNavigables: { cle: string; href: string }[] = [];
-  if (refBiblique) itemsNavigables.push({ cle: 'ref', href: refBiblique.href });
-  oeuvresTrouvees.slice(0, 3).forEach(o => itemsNavigables.push({ cle: `oe:${o.id_oeuvre}`, href: `/oeuvre/${o.id_oeuvre}` }));
-  livresTrouves.slice(0, 3).forEach(l => itemsNavigables.push({ cle: `li:${l.code}`, href: `/?livre=${l.code}&chapitre=1` }));
-  auteursTrouves.slice(0, 3).forEach(a => itemsNavigables.push({ cle: `au:${a.id_auteur}`, href: `/auteur/${a.id_auteur}` }));
-  pericopes.forEach(p => itemsNavigables.push({ cle: `p:${p.pericope_id}`, href: `/pericopes/${p.pericope_id}` }));
-  evenementsTrouves.forEach(e => itemsNavigables.push({ cle: `ev:${e.id}`, href: `/histoire#${e.id}` }));
-  essaisTrouves.slice(0, 3).forEach(e => itemsNavigables.push({ cle: `es:${e.id}`, href: `/essais/${e.id}` }));
-  traductionsTrouvees.slice(0, 3).forEach(t => itemsNavigables.push({ cle: `tr:${t.code}`, href: `/traductions#${t.code}` }));
+  if (refAffichee) itemsNavigables.push({ cle: 'ref', href: refAffichee.href });
+  if (visible('oeuvres')) oeuvresTrouvees.slice(0, 3).forEach(o => itemsNavigables.push({ cle: `oe:${o.id_oeuvre}`, href: `/oeuvre/${o.id_oeuvre}` }));
+  if (visible('livres')) livresTrouves.slice(0, 3).forEach(l => itemsNavigables.push({ cle: `li:${l.code}`, href: `/?livre=${l.code}&chapitre=1` }));
+  if (visible('auteurs')) auteursTrouves.slice(0, 3).forEach(a => itemsNavigables.push({ cle: `au:${a.id_auteur}`, href: `/auteur/${a.id_auteur}` }));
+  if (visible('pericopes')) pericopes.forEach(p => itemsNavigables.push({ cle: `p:${p.pericope_id}`, href: `/pericopes/${p.pericope_id}` }));
+  if (visible('chronologie')) evenementsTrouves.forEach(e => itemsNavigables.push({ cle: `ev:${e.id}`, href: `/histoire#${e.id}` }));
+  if (visible('essais')) essaisTrouves.slice(0, 3).forEach(e => itemsNavigables.push({ cle: `es:${e.id}`, href: `/essais/${e.id}` }));
+  if (visible('traductions')) traductionsTrouvees.slice(0, 3).forEach(t => itemsNavigables.push({ cle: `tr:${t.code}`, href: `/traductions#${t.code}` }));
   const cleActive = actifIndex >= 0 ? (itemsNavigables[actifIndex]?.cle ?? null) : null;
   useEffect(() => {
     document.querySelectorAll('[data-nav-actif]').forEach(el => el.removeAttribute('data-nav-actif'));
@@ -1040,7 +1077,7 @@ export default function Navbar() {
       if (el) { el.setAttribute('data-nav-actif', 'true'); el.scrollIntoView({ block: 'nearest' }); }
     }
   }, [cleActive]);
-  const aucunResultat = !rechercheRapideLoading && !pericopesLoading && qNorm.length > 0 && !refBiblique && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0 && pericopes.length === 0 && evenementsTrouves.length === 0;
+  const aucunResultat = !listeVoilee && rangAttente < 0 && qNorm.length > 0 && !refAffichee && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && essaisTrouves.length === 0 && pericopes.length === 0 && evenementsTrouves.length === 0;
 
   const fermerRechercheRapide = () => { setRechercheOuverte(false); setRequeteRapide(""); setMobileOuvert(false); };
   const validerRechercheRapide = () => {
@@ -1267,11 +1304,13 @@ export default function Navbar() {
   };
 
   // ── Bloc recherche rapide, réutilisé en version desktop et mobile ────────────
-  const nbLocalStatique = livresTrouves.length + traductionsTrouvees.length;
+  const nbLocalStatique = (visible('livres') ? livresTrouves.length : 0) + (visible('traductions') ? traductionsTrouvees.length : 0);
   // Le total AFFICHÉ est le compte réel des sources en base (non plafonné) + les
   // résultats locaux. Tant que le compte réel n'est pas revenu, on retombe sur la somme
   // des aperçus, pour ne jamais afficher un nombre INFÉRIEUR à ce qu'on montre déjà.
-  const nbTotalResultats = Math.max(nbTotalReel, nbResultatsProgressif) + nbLocalStatique;
+  const nbTotalResultats = (rubriquesPretes ? Math.max(nbTotalReel, nbResultatsProgressif) : 0) + nbLocalStatique;
+  const nbPericopesAffichees = visible('pericopes') ? pericopes.length : 0;
+  const nbAffiches = nbTotalResultats + nbPericopesAffichees;
 
   const blocRecherche = (mobile: boolean) => (
     <div style={{ position: "relative", width: mobile ? "100%" : "fit-content" }}>
@@ -1374,13 +1413,13 @@ export default function Navbar() {
           {/* Barre de statut : nb résultats + spinner/smiley */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 12px 4px", borderBottom: "1px solid var(--cs-fond-doux)", background: "var(--cs-fond-clair)" }}>
             <span style={{ fontSize: "0.71875rem", color: "var(--cs-texte-second)", fontWeight: 500 }}>
-              {(rechercheRapideLoading || pericopesLoading) && (nbTotalResultats + pericopes.length) === 0
+              {nbAffiches === 0 && (rangAttente >= 0 || listeVoilee)
                 ? "Recherche…"
-                : (nbTotalResultats + pericopes.length) === 0 && rechercheTerminee && pericopesFait
+                : nbAffiches === 0
                   ? "Aucun résultat"
-                  : <>{nbTotalResultats + pericopes.length} <span style={{ color: "var(--cs-texte-doux)", fontWeight: 400 }}>résultat{(nbTotalResultats + pericopes.length) > 1 ? 's' : ''}</span></>}
+                  : <>{nbAffiches} <span style={{ color: "var(--cs-texte-doux)", fontWeight: 400 }}>résultat{nbAffiches > 1 ? 's' : ''}</span></>}
             </span>
-            {(rechercheRapideLoading || pericopesLoading) ? (
+            {(rechercheRapideLoading || pericopesLoading || rangAttente >= 0 || listeVoilee) ? (
               <span role="status" aria-label="Chargement"><Anneau taille="0.875rem" /></span>
             ) : rechercheTerminee ? (
               /* Smiley au trait, épuré comme les autres symboles du site. Son cercle
@@ -1396,12 +1435,12 @@ export default function Navbar() {
             ) : null}
           </div>
 
-          {rechercheRapideLoading && pericopes.length === 0 && !pericopesLoading && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && essaisTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && evenementsTrouves.length === 0 ? (
-            <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-doux)", textAlign: "center", padding: "11px 12px", margin: 0 }}>…</p>
-          ) : aucunResultat ? (
+          {aucunResultat ? (
             <div style={{ textAlign: "center", padding: "11px 12px" }}><MentionVide>Aucun résultat. Entrée lance une recherche complète.</MentionVide></div>
           ) : (
-            <>
+            /* ⚠️ Le voile ne dit pas une erreur : il dit que la liste répond encore à la
+               saisie d'avant, le temps que la neuve revienne. */
+            <div aria-busy={listeVoilee || rangAttente >= 0} style={{ opacity: listeVoilee ? 0.5 : 1, transition: "opacity var(--cs-duree-moyenne)" }}>
               {/* ── EN TÊTE, et au premier plan : les TITRES, c'est-à-dire ce qu'on ouvre
                      pour lire — une œuvre patristique, un livre de la Bible. C'est ce qu'on
                      vient chercher le plus souvent dans cette barre, et cela passait après
@@ -1413,19 +1452,19 @@ export default function Navbar() {
                      filet de gauche continue de dire le domaine de chacun. ── */}
               {/* Avant tout : le PASSAGE que la saisie désigne, s'il y en a un. « Jn 3, 16 »
                   n'est pas un titre à chercher, c'est un endroit où aller (2026-09-06). */}
-              {refBiblique && (
+              {refAffichee && (
                 <div style={styleDomaine("bible")}>
                   <p className="rr-hd" style={{ margin: 0 }}>Passage biblique</p>
                   <div className="rr-corps">
-                    <Link id="nav-ref" href={refBiblique.href} onClick={fermerRechercheRapide}
+                    <Link id="nav-ref" href={refAffichee.href} onClick={fermerRechercheRapide}
                       className="rr-ligne"
                       style={{ padding: "4px 12px", fontFamily: SERIF, fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>
-                      Ouvrir {refBiblique.libelle}
+                      Ouvrir {refAffichee.libelle}
                     </Link>
                   </div>
                 </div>
               )}
-              {oeuvresTrouvees.length > 0 && (
+              {visible('oeuvres') && oeuvresTrouvees.length > 0 && (
                 <div style={styleDomaine("patristique")}>
                   <p className="rr-hd" style={{ margin: 0 }}>Œuvres patristiques</p>
                   <div className="rr-corps">
@@ -1438,7 +1477,7 @@ export default function Navbar() {
                     return (
                     <Link key={o.id_oeuvre} id={`nav-oe:${o.id_oeuvre}`} href={`/oeuvre/${o.id_oeuvre}`} onClick={fermerRechercheRapide}
                       className="rr-ligne" style={{ padding: "4px 12px" }}>
-                      <span style={{ display: "block", fontFamily: SERIF, fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>{surlignerMatch(o.titre, requeteRapide.trim())}</span>
+                      <span style={{ display: "block", fontFamily: SERIF, fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>{surlignerMatch(o.titre, qAffiche)}</span>
                       {o.auteurs?.nom && <span style={{ display: "block", fontSize: "0.71875rem", fontStyle: "italic", color: "var(--cs-texte-second)", lineHeight: 1.25, marginTop: "1px" }}>{o.auteurs.nom}</span>}
                       {edition && <span style={{ display: "block", fontSize: "0.6875rem", color: "var(--cs-texte-gris)", lineHeight: 1.3, marginTop: "1px" }}>{edition}</span>}
                     </Link>
@@ -1447,7 +1486,7 @@ export default function Navbar() {
                   </div>
                 </div>
               )}
-              {livresTrouves.length > 0 && (
+              {visible('livres') && livresTrouves.length > 0 && (
                 <div style={styleDomaine("bible")}>
                   <p className="rr-hd" style={{ margin: 0 }}>Livres bibliques</p>
                   <div className="rr-corps">
@@ -1455,27 +1494,27 @@ export default function Navbar() {
                     <Link key={l.code} id={`nav-li:${l.code}`} href={`/?livre=${l.code}&chapitre=1`} onClick={fermerRechercheRapide}
                       className="rr-ligne"
                       style={{ padding: "4px 12px", fontFamily: SERIF, fontSize: "1rem", fontWeight: 600, lineHeight: 1.24, color: "var(--cs-encre)" }}>
-                      {surlignerMatch(l.nom, requeteRapide.trim())}
+                      {surlignerMatch(l.nom, qAffiche)}
                     </Link>
                   ))}
                   </div>
                 </div>
               )}
-              {auteursTrouves.length > 0 && (
+              {visible('auteurs') && auteursTrouves.length > 0 && (
                 <div style={styleDomaine("patristique")}>
                   <p className="rr-hd" style={{ margin: 0 }}>Auteurs</p>
                   <div className="rr-corps">
                   {auteursTrouves.slice(0, 3).map(a => (
                     <Link key={a.id_auteur} id={`nav-au:${a.id_auteur}`} href={`/auteur/${a.id_auteur}`} onClick={fermerRechercheRapide}
                       className="rr-ligne" style={{ fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>
-                      {surlignerMatch(a.nom, requeteRapide.trim())}
+                      {surlignerMatch(a.nom, qAffiche)}
                     </Link>
                   ))}
                   </div>
                 </div>
               )}
               {/* ── Péricopes (RPC) : section distincte, famille de l'Écriture. ── */}
-              {(pericopesLoading || pericopes.length > 0 || (pericopesFait && !pericopesErreur) || pericopesErreur) && (
+              {visible('pericopes') && qAffiche.length >= 2 && (
                 <div style={styleDomaine("bible")}>
                   <p className="rr-hd" style={{ margin: 0 }}>Péricopes</p>
                   <div className="rr-corps">
@@ -1499,8 +1538,6 @@ export default function Navbar() {
                         </Link>
                       );
                     })
-                  ) : pericopesLoading ? (
-                    <p className="rr-vide" style={{ color: "var(--cs-texte-doux)", fontStyle: "normal" }}>…</p>
                   ) : pericopesErreur ? (
                     <p className="rr-vide" style={{ color: "var(--cs-texte-doux)" }}>Recherche de péricopes momentanément indisponible.</p>
                   ) : (
@@ -1510,7 +1547,7 @@ export default function Navbar() {
                 </div>
               )}
               {/* La CHRONOLOGIE porte la famille des Pères : voir la note de DOMAINE. */}
-              {evenementsTrouves.length > 0 && (
+              {visible('chronologie') && evenementsTrouves.length > 0 && (
                 <div style={styleDomaine("patristique")}>
                   <p className="rr-hd" style={{ margin: 0 }}>Chronologie</p>
                   <div className="rr-corps">
@@ -1518,7 +1555,7 @@ export default function Navbar() {
                     const titrePropre = e.titre.replace(/\*{1,2}|\+\+|\^\^/g, '');
                     return (
                       <Link key={e.id} id={`nav-ev:${e.id}`} href={`/histoire#${e.id}`} onClick={fermerRechercheRapide} className="rr-ligne">
-                        <span style={{ display: "block", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>{surlignerMatch(titrePropre, requeteRapide.trim())}</span>
+                        <span style={{ display: "block", fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>{surlignerMatch(titrePropre, qAffiche)}</span>
                         {e.date_affichage && <span style={{ display: "block", fontSize: "0.71875rem", color: "var(--cs-texte-gris)", lineHeight: 1.25 }}>{e.date_affichage}</span>}
                       </Link>
                     );
@@ -1526,33 +1563,33 @@ export default function Navbar() {
                   </div>
                 </div>
               )}
-              {essaisTrouves.length > 0 && (
+              {visible('essais') && essaisTrouves.length > 0 && (
                 <div style={styleDomaine("publications")}>
                   <p className="rr-hd" style={{ margin: 0 }}>Essais et méditations</p>
                   <div className="rr-corps">
                   {essaisTrouves.slice(0, 3).map(e => (
                     <Link key={e.id} id={`nav-es:${e.id}`} href={`/essais/${e.id}`} onClick={fermerRechercheRapide}
                       className="rr-ligne" style={{ fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>
-                      {surlignerMatch(e.titre, requeteRapide.trim())}
+                      {surlignerMatch(e.titre, qAffiche)}
                     </Link>
                   ))}
                   </div>
                 </div>
               )}
-              {traductionsTrouvees.length > 0 && (
+              {visible('traductions') && traductionsTrouvees.length > 0 && (
                 <div style={styleDomaine("bible")}>
                   <p className="rr-hd" style={{ margin: 0 }}>Traductions</p>
                   <div className="rr-corps">
                   {traductionsTrouvees.slice(0, 3).map(t => (
                     <Link key={t.code} id={`nav-tr:${t.code}`} href={`/traductions#${t.code}`} onClick={fermerRechercheRapide}
                       className="rr-ligne" style={{ fontSize: "0.84375rem", lineHeight: 1.28, color: "var(--cs-encre)" }}>
-                      {surlignerMatch(t.nom, requeteRapide.trim())}
+                      {surlignerMatch(t.nom, qAffiche)}
                     </Link>
                   ))}
                   </div>
                 </div>
               )}
-              {(auteursTrouves.length > 3 || oeuvresTrouvees.length > 3 || segmentsTrouves.length > 3 || essaisTrouves.length > 3 || livresTrouves.length > 3 || traductionsTrouvees.length > 3) && (
+              {rangAttente < 0 && (auteursTrouves.length > 3 || oeuvresTrouvees.length > 3 || segmentsTrouves.length > 3 || essaisTrouves.length > 3 || livresTrouves.length > 3 || traductionsTrouvees.length > 3) && (
                 <div style={{ borderTop: "1px solid var(--cs-fond-doux)", padding: "4px 0" }}>
                   <Link href={`/recherche?q=${encodeURIComponent(requeteRapide.trim())}&mode=prefixe`} onClick={fermerRechercheRapide}
                     className="cs-survol-fond"
@@ -1562,7 +1599,11 @@ export default function Navbar() {
                   </Link>
                 </div>
               )}
-            </>
+              {/* La rubrique qu'on attend, à sa place : rien ne paraît sous elle. */}
+              {rangAttente >= 0 && (
+                <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-doux)", textAlign: "center", padding: "7px 12px", margin: 0 }}>…</p>
+              )}
+            </div>
           )}
         </div>
       )}
