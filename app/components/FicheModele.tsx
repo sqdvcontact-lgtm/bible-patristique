@@ -292,11 +292,13 @@ const TOUR_ANNEAU = 2 * Math.PI * 8
  *    l'emporte dès que l'en-tête est rendu.
  * ⚠️ `avantCorps` se pose dans le défileur, au-dessus du corps : la barre d'onglets
  *    d'une fiche à plusieurs volets.
- * ⚠️ `confirmerFermeture` est une DEMANDE DE LA SURFACE, jamais un défaut du cadre : la
- *    fiche d'une œuvre la pose depuis le 20 septembre 2026, les deux autres ferment au
- *    premier clic comme avant.
+ * ⛔ UN CLIC DEHORS DEMANDE CONFIRMATION SUR TOUTES LES FICHES (décision de l'auteur,
+ *    2026-09-24) : posée d'abord sur la seule fiche d'édition (2026-09-20), la question
+ *    vaut pour toute fenêtre-notice, auteur, traduction et profil compris. C'est donc le
+ *    DÉFAUT du cadre ; `confirmerFermeture={false}` ne se pose que pour une surface qui
+ *    n'est pas une notice.
  */
-export function ModaleFiche({ titreId, libelle, onFermer, avantCorps, confirmerFermeture = false, children }: {
+export function ModaleFiche({ titreId, libelle, onFermer, avantCorps, confirmerFermeture = true, children }: {
   titreId: string
   libelle?: string
   onFermer: () => void
