@@ -51,32 +51,24 @@ export default function ModaleProfilLecteur({ pseudo, onClose }: { pseudo: strin
   return (
     <ModaleFiche titreId={titreId} libelle="À propos de cet auteur" onFermer={onClose}>
       {erreur ? (
-        <p style={{ fontFamily: SERIF, fontSize: '1rem', color: 'var(--cs-texte-doux)', textAlign: 'center', margin: '30px 0' }}>Profil introuvable</p>
+        <p style={{ fontFamily: SERIF, fontSize: '1rem', color: 'var(--cs-texte-second)', textAlign: 'center', margin: '30px 0' }}>Profil introuvable.</p>
       ) : !profil ? (
         <MotAttente centre marge="30px 0" />
       ) : (
         <CorpsFiche
+          className="cs-fiche-auteur"
           entete={
             <div className="cs-fiche-tete">
               <EnTeteFiche titre={profil.pseudo} titreId={titreId} sousTitre={profil.nom_reel || undefined} />
               <dl className="cs-fiche-identite" aria-label="Repères sur l’auteur">
                 <ChampFiche libelle="Membre depuis">{String(new Date(profil.membre_depuis).getFullYear())}</ChampFiche>
                 <ChampFiche libelle="Rang">{rang}</ChampFiche>
+                <ChampFiche libelle="Lectures">{profil.lecture ? `${profil.lecture.nb_auteurs} auteur${profil.lecture.nb_auteurs > 1 ? 's' : ''} sur ${profil.lecture.total_auteurs}` : null}</ChampFiche>
               </dl>
             </div>
           }
-          pied={
-            <Link href={`/profil/${encodeURIComponent(profil.pseudo)}`} onClick={onClose}
-              style={{ fontFamily: SANS, fontSize: '0.71875rem', color: 'var(--cs-vert-fonce)', textDecoration: 'none' }}>
-              Voir la page de {profil.pseudo}
-            </Link>
-          }
-        >
-          {profil.bio && (
-            <SectionFiche titre="Présentation"><p className="cs-notice-prose" style={{ whiteSpace: 'pre-line' }}>{profil.bio}</p></SectionFiche>
-          )}
-          {essais.length > 0 && (
-            <SectionFiche titre={essais.length > 1 ? 'Essais' : 'Essai'}>
+          complement={essais.length > 0 ? (
+            <SectionFiche titre={essais.length > 1 ? 'Publications' : 'Publication'}>
               <ul className="cs-fiche-liste-colonne">
                 {essais.map(e => (
                   <li key={e.id} className="cs-fiche-rangee-colonne">
@@ -86,12 +78,26 @@ export default function ModaleProfilLecteur({ pseudo, onClose }: { pseudo: strin
                     <span style={{ lineHeight: 1.38 }}>
                       <Link href={`/essais/${e.id}`} onClick={onClose} className="cs-fiche-oeuvre"
                         style={{ fontFamily: SERIF, fontSize: '0.78125rem', color: 'var(--cs-texte)' }}>{e.titre}</Link>
+                      {e.sous_titre && (
+                        <span style={{ display: 'block', fontFamily: SERIF, fontStyle: 'italic', fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', lineHeight: 1.3 }}>{e.sous_titre}</span>
+                      )}
                     </span>
                   </li>
                 ))}
               </ul>
             </SectionFiche>
-          )}
+          ) : null}
+          pied={
+            <Link href={`/profil/${encodeURIComponent(profil.pseudo)}`} onClick={onClose} className="cs-bouton-lien">
+              Voir la page de {profil.pseudo}
+            </Link>
+          }
+        >
+          <SectionFiche titre="Présentation">
+            {profil.bio
+              ? <p className="cs-notice-prose" style={{ whiteSpace: 'pre-line' }}>{profil.bio}</p>
+              : <p className="cs-notice-prose" style={{ color: 'var(--cs-texte-gris)', fontStyle: 'italic' }}>{profil.pseudo} n’a pas encore écrit de présentation.</p>}
+          </SectionFiche>
         </CorpsFiche>
       )}
     </ModaleFiche>

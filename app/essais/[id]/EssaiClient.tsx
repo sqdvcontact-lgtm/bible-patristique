@@ -21,13 +21,14 @@ import MarqueMecene from '@/app/components/MarqueMecene'
 import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { SERIF, SANS } from '@/app/lib/polices'
-import { GRAISSE_TITRE_VOLET, STYLE_RUBRIQUE } from '@/app/lib/hierarchieTitres'
+import { STYLE_RUBRIQUE } from '@/app/lib/hierarchieTitres'
 import { Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
 import IconeChevron from '@/app/components/IconeChevron'
 import RailVolet from '@/app/components/RailVolet'
 import { useFoyerAuRepli } from '@/app/lib/useFoyerAuRepli'
-import { BoutonVolet } from '@/app/oeuvre/[id]/TeteVolet'
-import { poserEnHaut } from '@/app/lib/defilementLecture'
+import { ALIGNEMENT_ACTIONS, BoutonVolet, CORPS_TITRE_VOLET_REM, INTERLIGNE_TITRE_VOLET, STYLE_RANGEE_TETE_VOLET } from '@/app/oeuvre/[id]/TeteVolet'
+import NomVolet from '@/app/components/NomVolet'
+import { glisserEnHaut } from '@/app/lib/defilementLecture'
 import ModaleProfilLecteur from '@/app/components/ModaleProfilLecteur'
 
 const ABREV_VERS_NOM: Record<string, string> = Object.fromEntries(
@@ -188,16 +189,29 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
   const versetParse = (() => { try { return essai.verset_en_tete ? JSON.parse(essai.verset_en_tete) as { ref: string; texte: string } : null } catch { return null } })()
   const sommaire = extraireSommaire(essai.contenu)
   // ⛔ Le texte défile dans SON bloc, non dans la fenêtre : `scrollIntoView` faisait
-  // aussi défiler la page et posait le titre sous la barre. `poserEnHaut` vise le
-  // défileur qui porte le titre, et le pose en haut de sa bande (2026-09-24).
-  const allerAu = (id: string) => { const cible = document.getElementById(id); if (cible) poserEnHaut(cible) }
+  // aussi défiler la page et posait le titre sous la barre. `glisserEnHaut` vise le
+  // défileur qui porte le titre, et l'y amène en glissant, en haut de sa bande (2026-09-24).
+  const allerAu = (id: string) => { const cible = document.getElementById(id); if (cible) glisserEnHaut(cible) }
   const [profilOuvert, setProfilOuvert] = useState(false)
 
-  // Boutons télécharger / partager / signaler, en tête du volet gauche (desktop), sur le
+  // Favori, partager, télécharger, signaler : l’ordre de la tête du volet d’une œuvre (étoile,
+  // partage, extraction), en tête du volet gauche (desktop), sur le
   // modèle de la tête du volet d'une œuvre (`BoutonVolet`), et, en mobile, dans l'en-tête
   // du volet des commentaires.
   const boutonsPartage = (
     <>
+      {!mobile && favorisPret && (
+        <EtoileFavori actif={favorisEssais.has(String(essai.id))} onToggle={() => toggleFavoriEssai(String(essai.id))} size={13}
+          title={favorisEssais.has(String(essai.id)) ? 'Retirer des favoris' : 'Ajouter aux favoris'} />
+      )}
+      <BoutonVolet titre="Partager" onClick={e => setAncrePartage(e.currentTarget.getBoundingClientRect())}>
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4.8 7.3l6.4-3.4M4.8 8.7l6.4 3.4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+          <circle cx="12" cy="3.5" r="2.2" fill="currentColor"/>
+          <circle cx="12" cy="12.5" r="2.2" fill="currentColor"/>
+          <circle cx="4" cy="8" r="2.2" fill="currentColor"/>
+        </svg>
+      </BoutonVolet>
       <BoutonVolet titre={pdfEnCours ? 'Génération du PDF…' : 'Télécharger en PDF'} onClick={() => { if (!pdfEnCours) telechargerPDF() }}>
         {pdfEnCours ? (
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
@@ -211,14 +225,6 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
             <path d="M2.6 12.1v1.1a1 1 0 0 0 1 1h8.8a1 1 0 0 0 1-1v-1.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
         )}
-      </BoutonVolet>
-      <BoutonVolet titre="Partager" onClick={e => setAncrePartage(e.currentTarget.getBoundingClientRect())}>
-        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path d="M4.8 7.3l6.4-3.4M4.8 8.7l6.4 3.4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-          <circle cx="12" cy="3.5" r="2.2" fill="currentColor"/>
-          <circle cx="12" cy="12.5" r="2.2" fill="currentColor"/>
-          <circle cx="4" cy="8" r="2.2" fill="currentColor"/>
-        </svg>
       </BoutonVolet>
       <BoutonVolet titre="Signaler" onClick={() => { if (exigerCompte('signaler cette publication')) setSignalerOuvert(true) }}>
         <IconeSignalement size={14} />
@@ -260,41 +266,37 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
           margin-bottom: 1mm !important;
           text-indent: 0 !important;
         }
-        /* Le nom de l'auteur ouvre sa fiche : le survol le souligne, comme le crédit
-           d'une œuvre en tête de son volet. */
-        .essai-nom-auteur { text-decoration: none; }
-        .essai-nom-auteur:hover, .essai-nom-auteur:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
         @keyframes essai-note-progress { from { width: 0% } to { width: 100% } }
       `}</style>
 
       {/* Volet gauche (desktop) : titre, date, actions, sommaire — sur le modèle du
           volet de lecture des Pères. Les boutons télécharger/partager/lien y vivent. */}
       {!mobile && (
-        <aside style={{ width: '15rem', flexShrink: 0, background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', height: '100%', overflowY: 'auto', padding: '22px 16px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            {/* La tête du volet d'une œuvre : le titre, et ses actions au fer à droite,
-                alignées sur sa première ligne (2026-09-24). */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-              <h2 style={{ flex: 1, minWidth: 0, fontFamily: SERIF, fontSize: '1.0625rem', fontWeight: GRAISSE_TITRE_VOLET, color: 'var(--cs-encre-fonce)', lineHeight: 1.28, margin: 0 }}>{essai.titre}</h2>
-              <div className="cs-tete-volet-actions" style={{ marginTop: 'calc((1.36rem - max(24px, 1.5rem)) / 2)' }}>
+        <aside style={{ width: '15rem', flexShrink: 0, background: 'var(--cs-fond-clair)', borderRight: '1px solid var(--cs-bord)', height: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+          {/* La tête du volet d'une œuvre, reprise telle quelle : le titre en tête, les
+              actions au fer à droite sur sa première ligne, puis l'auteur en crédit
+              (`NomVolet`, variante `credit`), qui ouvre sa fiche (2026-09-24). */}
+          <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--cs-bord)', flexShrink: 0 }}>
+            <div style={STYLE_RANGEE_TETE_VOLET}>
+              <h2 style={{ flex: '1 1 auto', minWidth: 0, fontFamily: SERIF, fontSize: `${CORPS_TITRE_VOLET_REM}rem`, fontWeight: 400, color: 'var(--cs-encre)', lineHeight: INTERLIGNE_TITRE_VOLET, margin: 0, textWrap: 'balance', overflowWrap: 'break-word' }}>{essai.titre}</h2>
+              <div className="cs-tete-volet-actions" style={{ marginTop: ALIGNEMENT_ACTIONS }}>
                 {boutonsPartage}
               </div>
             </div>
             {essai.sous_titre && (
-              <p style={{ fontFamily: SERIF, fontSize: '0.8125rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', margin: '5px 0 0', lineHeight: 1.35 }}>{essai.sous_titre}</p>
+              <p style={{ fontFamily: SERIF, fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--cs-texte-gris)', margin: '2px 0 0', lineHeight: 1.3 }}>{essai.sous_titre}</p>
             )}
             {essai.auteur_pseudo && (
-              <p style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--cs-vert)', margin: '10px 0 0', fontFamily: SANS }}>
-                {essai.auteur_profil ? (
-                  <button type="button" onClick={() => setProfilOuvert(true)} className="essai-nom-auteur" title={`Voir la fiche : ${essai.auteur_pseudo}`}
-                    style={{ font: 'inherit', letterSpacing: 'inherit', textTransform: 'inherit', color: 'inherit', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}>
-                    {essai.auteur_pseudo}
-                  </button>
-                ) : essai.auteur_pseudo}
-                {essai.auteur_mecene && <>{' '}<MarqueMecene taille="1.1em" /></>}
-              </p>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '3px', minWidth: 0 }}>
+                <NomVolet variante="credit" inactif={!essai.auteur_profil} onOuvrir={() => setProfilOuvert(true)}
+                  titre={`Voir la fiche : ${essai.auteur_pseudo}`}>{essai.auteur_pseudo}</NomVolet>
+                {essai.auteur_mecene && <MarqueMecene taille="1em" />}
+              </span>
             )}
-            <p style={{ fontSize: '0.6875rem', letterSpacing: '0.04em', color: 'var(--cs-texte-gris)', margin: '12px 0 0', fontFamily: SANS }}>Publié le {dateFormatee}</p>
+          </div>
+          <div style={{ padding: '12px 16px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <p style={{ fontSize: '0.6875rem', letterSpacing: '0.04em', color: 'var(--cs-texte-gris)', margin: 0, fontFamily: SANS }}>Publié le {dateFormatee}</p>
             <p style={{ fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', margin: '3px 0 0', fontFamily: SANS }}>Lu {nbVues} fois</p>
           </div>
 
@@ -311,6 +313,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
               </nav>
             </div>
           )}
+          </div>
         </aside>
       )}
 
@@ -391,7 +394,7 @@ export default function EssaiClient({ essai }: { essai: Essai }) {
                   ? `${chiffreEnLettres(nbAppreciations).charAt(0).toUpperCase() + chiffreEnLettres(nbAppreciations).slice(1)} personne${nbAppreciations > 1 ? 's aiment' : ' aime'} cette publication`
                   : 'Aucune appréciation'}
               </button>
-              {favorisPret && (
+              {mobile && favorisPret && (
                 <EtoileFavori actif={favorisEssais.has(String(essai.id))} onToggle={() => toggleFavoriEssai(String(essai.id))} size={13}
                   title={favorisEssais.has(String(essai.id)) ? 'Retirer des favoris' : 'Ajouter aux favoris'} />
               )}

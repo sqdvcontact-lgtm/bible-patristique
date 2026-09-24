@@ -92,6 +92,28 @@ export function poserEnHaut(element: HTMLElement): number {
   return delta
 }
 
+/**
+ * Le même geste que `poserEnHaut`, mais en GLISSANT : le sommaire d'un essai amène son
+ * titre en haut de la bande, doucement, comme les autres pages. Vérifié comme
+ * `amenerAuCentre` : si rien n'a bougé au bout de 150 ms, on y va d'un coup.
+ */
+export function glisserEnHaut(element: HTMLElement): () => void {
+  const defileur = defileurDe(element)
+  const haut = defileur ? defileur.getBoundingClientRect().top + defileur.clientTop : sommetDeLecture()
+  const depart = positionDe(defileur)
+  const but = Math.max(0, depart + element.getBoundingClientRect().top - haut - ecartRepere())
+  if (Math.abs(but - depart) < SEUIL_IMMOBILE_PX) return () => {}
+  const aller = (behavior: ScrollBehavior) => {
+    if (defileur) defileur.scrollTo({ top: but, behavior })
+    else window.scrollTo({ top: but, behavior })
+  }
+  aller('smooth')
+  const minuteur = window.setTimeout(() => {
+    if (Math.abs(positionDe(defileur) - depart) < SEUIL_IMMOBILE_PX) aller('auto')
+  }, DELAI_CONSTAT_MS)
+  return () => window.clearTimeout(minuteur)
+}
+
 /** La position de défilement de la bande qui porte l'élément (pour savoir si le lecteur
  *  a bougé entre deux reposes). */
 export function positionDuDefileur(element: HTMLElement): number {
