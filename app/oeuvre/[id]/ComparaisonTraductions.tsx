@@ -48,6 +48,7 @@ import {
   type MembreComparable,
 } from './comparaisonTraductionsUtils'
 import { SERIF, SANS } from '@/app/lib/polices'
+import { INTERLIGNE_LECTURE } from '@/app/lib/compositionOeuvre'
 import { TEXTE_ERREUR } from '@/app/lib/texteErreur'
 
 // Métadonnées d'édition d'une œuvre, pour la citation au copier/prélever (chaque
@@ -204,14 +205,14 @@ function renderSegmentTexte(texte: string, notes: NoteStructuree[]) {
 }
 
 // Gabarit d'un paragraphe, aligné sur la colonne française du mode Français-Latin
-// (sérif 0.82rem, interligne 1.62, mots resserrés, justifié). Un texte d'œuvre se
+// (sérif 0.82rem, interligne de la lecture, mots resserrés, justifié). Un texte d'œuvre se
 // lit toujours en sérif ; seule une colonne en LANGUE ORIGINALE, mise en regard du
 // français, passe en sans-serif (voir `POLICE_ORIGINALE` plus bas).
 const STYLE_TEXTE_PARALLELE = {
   margin: 0,
   fontFamily: SERIF,
   fontSize: '0.8125rem',
-  lineHeight: 1.62,
+  lineHeight: INTERLIGNE_LECTURE,
   color: 'var(--cs-texte-fort)',
   wordSpacing: 'var(--cs-corps-espace-mot)',
   letterSpacing: 'var(--cs-corps-chasse)',

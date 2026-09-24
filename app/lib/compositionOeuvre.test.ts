@@ -156,7 +156,7 @@ describe('l’exergue', () => {
     for (const place of ['suite', 'fin'] as const) {
       const style = styleParagrapheLecture({ exergue: place })
       expect(style.textAlign).toBe('justify')
-      expect(style.lineHeight).toBe('1.62')
+      expect(style.lineHeight).toBe('1.55')
     }
   })
 

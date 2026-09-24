@@ -123,8 +123,10 @@ function placeDansSonBloc(dedans: boolean, suiviDuMeme: boolean): 'suite' | 'fin
 
 /** L’interligne de la prose de lecture. ⛔ Il se NOMME depuis le 2026-09-09 : le
  *  préfixe de la lettrine descend d’exactement une ligne pour se poser sur la
- *  première, et deux écritures du même nombre divergeraient au premier réglage. */
-export const INTERLIGNE_LECTURE = 1.62
+ *  première, et deux écritures du même nombre divergeraient au premier réglage.
+ *  ⚠️ Il valait 1,62 ; resserré le 2026-09-24 avec les mots (« réduis légèrement
+ *  l’interligne ») : c’est l’interligne du gris par défaut du corps. */
+export const INTERLIGNE_LECTURE = 1.55
 
 /** Le corps de la LETTRINE, en em du texte. Le préfixe s’y rapporte : posé DANS le
  *  flottant, son `font-size` se compte en em de la lettrine, et `1 / 3.4` lui rend
@@ -492,7 +494,7 @@ export function styleColonneOriginale(
   if (vers) return commun as CSSProperties
   return {
     ...commun,
-    lineHeight: argument ? 1.6 : seul ? 1.62 : 1.58,
+    lineHeight: argument ? 1.6 : seul ? INTERLIGNE_LECTURE : 1.58,
     textAlign: 'justify',
     textJustify: 'inter-word',
     hyphens: 'auto',

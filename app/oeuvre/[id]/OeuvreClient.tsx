@@ -85,7 +85,7 @@ import { paginerBlocs } from '@/app/lib/paginationLecture'
 import {
   LIBELLE_SECTION_APPARAT,
   STYLE_LETTRINE, STYLE_NUMERO_SEGMENT, STYLE_PREFIXE_LETTRINE,
-  accepteLaLettrine, estBlocDeSignatures, margeArgument, paragraphesDeSegments,
+  accepteLaLettrine, INTERLIGNE_LECTURE, estBlocDeSignatures, margeArgument, paragraphesDeSegments,
   placeDeLExergue, placeDeLaSignature,
   styleArgument, styleBlocArgumentEnVers, styleBlocDeVers, styleEnteteSectionApparat,
   styleLigneArgumentEnVers,
@@ -3619,7 +3619,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
            Les mesures vivent dans app/lib/compositionVersets.ts, que la comparaison
            des traductions emploie aussi : une seule composition, deux surfaces. */
         .citation-versets { font-family: ${SERIF}; font-size: 0.8125rem; color: var(--cs-texte-fort); margin: 0 0 0.72rem; word-spacing: -0.025em; letter-spacing: 0; }
-        .citation-verset { display: block; margin: 0 0 ${BLANC_ENTRE_VERSETS} ${RETRAIT_VERSET}; font-size: 0.95em; line-height: 1.62; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; white-space: pre-line; }
+        .citation-verset { display: block; margin: 0 0 ${BLANC_ENTRE_VERSETS} ${RETRAIT_VERSET}; font-size: 0.95em; line-height: ${INTERLIGNE_LECTURE}; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; white-space: pre-line; }
         .citation-verset:last-child { margin-bottom: 0; }
         @media(max-width: 1023px){ .citation-verset { margin-left: ${RETRAIT_VERSET_ETROIT}; } }
         /* Les crayons d'administration des titres pendent à 52 px hors de la colonne :
