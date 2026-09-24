@@ -29,7 +29,7 @@ import { rendreEnrichi } from '@/app/lib/enrichissements'
 import { type RangChrono, cleTypeAffichage, coulType, LIB_TYPE } from '@/app/lib/frise'
 import { libelleLangue } from '@/app/lib/langues'
 import { colonneDesDates, ordonnerOeuvresAuteur, type CelluleDeDate } from '@/app/lib/listeOeuvresAuteur'
-import { noticeDuCatalogueSelonReference, referencesParNotice, signalerRepliCatalogue, SELECTION_REFERENCE_CATALOGUE, type LigneReferenceCatalogue } from '@/app/lib/catalogueReference'
+import { noticeDuCatalogueSelonReference, ouvrageDeLaLigne, ouvragesPartages, referencesParNotice, signalerRepliCatalogue, SELECTION_REFERENCE_CATALOGUE, type LigneReferenceCatalogue, type ReferenceCatalogue } from '@/app/lib/catalogueReference'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import type { NoticeBibliographique } from '@/app/lib/referenceBibliographique'
 import { chargerNoticesBibliographiques } from '@/app/lib/referencesBibliographiquesChargement'
@@ -74,7 +74,7 @@ type EditionCataloguee = {
   annee_edition: number | null; date_edition_affichage_courte: string | null
   /** La RÉFÉRENCE de la notice (charte § 47.8), qui fait foi pour tout ce qui est
    *  bibliographique ; absente, les champs ci-dessus parlent en repli. */
-  reference?: NoticeBibliographique | null
+  reference?: ReferenceCatalogue | null
 }
 type PiedFiche = {
   empreinte: Empreinte | null
@@ -579,7 +579,19 @@ export default function ModaleAuteur({ id, onClose, filAriane = false }: { id: s
         if (erreurRef) {
           console.error('[fiche auteur] références du catalogue illisibles', erreurRef)
         } else {
-          const table = referencesParNotice((lignesRef ?? []) as unknown as LigneReferenceCatalogue[])
+          const lignes = (lignesRef ?? []) as unknown as LigneReferenceCatalogue[]
+          // ⚠️ Trois notices ne disent pas si leur référence est un VOLUME partagé : on le
+          // demande au catalogue, sur les seules références en jeu. Un échec ne coûte que
+          // cette nuance (le traducteur propre à l'œuvre dans un recueil).
+          const ouvrages = [...new Set(lignes.map(ouvrageDeLaLigne).filter((o): o is number => o != null))]
+          let partagees: Set<number> | undefined
+          if (ouvrages.length > 0) {
+            const { data: freres, error: erreurFreres } = await supabase
+              .from('catalogue_notices').select('ouvrage_id').in('ouvrage_id', ouvrages)
+            if (erreurFreres) console.error('[fiche auteur] partage des références illisible', erreurFreres)
+            else partagees = ouvragesPartages(((freres ?? []) as { ouvrage_id: number | null }[]).map(f => f.ouvrage_id))
+          }
+          const table = referencesParNotice(lignes, { partagees })
           editions = editions.map(e => ({ ...e, reference: table.get(e.id) ?? null }))
           signalerRepliCatalogue('fiche auteur', editions.filter(e => !e.reference).map(e => e.id))
         }

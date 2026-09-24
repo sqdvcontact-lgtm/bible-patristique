@@ -274,6 +274,9 @@ type NoticeCatalogueAdmin = {
   titre_stable: string
   titre_original: string | null
   titre_edition: string | null
+  /** La référence de la notice (`ouvrages_bibliographiques`), qui porte depuis le
+   *  24 septembre 2026 tout ce qui est bibliographique (charte § 47.8). */
+  ouvrage_id: number | null
   traducteur: string | null
   annee_edition: number | null
   siecle_edition: string | null
@@ -392,6 +395,22 @@ function ChampCatalogue({ label, valeur, accent = false, transform, lien = false
         )}
       </div>
     </div>
+  )
+}
+
+// ⛔ Titre d'édition, éditeur, collection et date d'une notice du catalogue se LISENT
+// dans sa référence (`v_references_bibliographiques`, charte § 47.8) : les champs de
+// l'annexe ne servent plus qu'au repli, et les corriger ici ne changerait rien pour le
+// lecteur. Ils sont donc en lecture seule, et la correction se fait dans l'onglet
+// « Ouvrages », qui édite la référence.
+function MentionReferenceCatalogue({ ouvrageId }: { ouvrageId: number | null }) {
+  return (
+    <p style={{ margin: '6px 0 2px', fontSize: '0.6875rem', lineHeight: 1.4, color: 'var(--cs-texte-second)' }}>
+      {ouvrageId == null
+        ? 'Cette notice n’a pas de référence\u00A0: ses champs d’édition parlent en repli.'
+        : <>Ces champs se lisent dans la référence n°&nbsp;{ouvrageId}, qui se corrige dans l’onglet{' '}
+          <a href="/admin?onglet=ouvrages" className="cs-lien-phrase">Ouvrages</a>.</>}
+    </p>
   )
 }
 
@@ -583,13 +602,14 @@ function BlocCatalogueOeuvre({ oeuvre, notices, datesAuteur, onValiderAdmin, onR
             <LigneCatalogue titre="Titres">
               <ChampCatalogue label="Stable" valeur={n.titre_stable} edit={ed('titre_stable', n.titre_stable)} />
               <ChampCatalogue label="Original" valeur={n.titre_original ?? oeuvre.titre_original} edit={ed('titre_original', n.titre_original)} />
-              <ChampCatalogue label="Édition" valeur={n.titre_edition} edit={ed('titre_edition', n.titre_edition)} />
+              <ChampCatalogue label="Édition" valeur={n.titre_edition} />
             </LigneCatalogue>
             <LigneCatalogue titre="Édition">
-              <ChampCatalogue label="Éditeur" valeur={n.editeur ?? oeuvre.editeur} edit={ed('editeur', n.editeur)} />
+              <ChampCatalogue label="Éditeur" valeur={n.editeur ?? oeuvre.editeur} />
               <ChampCatalogue label="Ville" valeur={oeuvre.ville} />
-              <ChampCatalogue label="Collection" valeur={n.collection_nom ?? oeuvre.collection} edit={ed('collection_nom', n.collection_nom)} />
-              <ChampCatalogue label="Publication" valeur={dateCatalogue(n) || formaterDateHistorique(oeuvre.date_publication)} edit={ed('annee_edition', n.annee_edition)} />
+              <ChampCatalogue label="Collection" valeur={n.collection_nom ?? oeuvre.collection} />
+              <ChampCatalogue label="Publication" valeur={dateCatalogue(n) || formaterDateHistorique(oeuvre.date_publication)} />
+              <MentionReferenceCatalogue ouvrageId={n.ouvrage_id} />
             </LigneCatalogue>
             <LigneCatalogue titre="Classement">
               <ChampCatalogue label="Genre" valeur={n.genre ?? oeuvre.genres?.[0]} transform={majPremierMotCatalogue} edit={ed('genre', n.genre)} />

@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   let q = supabaseAdmin
     .from('catalogue_notices')
     .select(
-      'id, id_ligne, id_auteur, auteur, dates_auteur, id_oeuvre_stable, titre_stable, titre_original, ' +
+      'id, id_ligne, ouvrage_id, id_auteur, auteur, dates_auteur, id_oeuvre_stable, titre_stable, titre_original, ' +
       'titre_edition, traducteur, annee_edition, siecle_edition, editeur, collection_nom, domaine_public, ' +
       'url_source, url_texte_integral, decision_import, niveau_verification, score_fiabilite, presence_sur_le_site, ' +
       'verifie, verifie_admin, refuse_admin, genre, langue_originale, date_oeuvre, authenticite, created_at',
@@ -74,10 +74,13 @@ export async function PATCH(req: Request) {
   // on n'écrit que ces colonnes-là. Le déclencheur `protect_verified_notice` refusera
   // encore `titre_stable`/`titre_original` sur une fiche déjà vérifiée — l'erreur est
   // remontée telle quelle au client, qui l'affiche.
-  const TEXTE_OK = new Set(['auteur', 'authenticite', 'titre_stable', 'titre_original', 'titre_edition',
-    'editeur', 'collection_nom', 'siecle_edition', 'genre', 'langue_originale', 'date_oeuvre',
+  // ⛔ Plus de titre_edition, editeur, collection_nom ni annee_edition (2026-09-24) :
+  // le lecteur les lit dans la RÉFÉRENCE (charte § 47.8), qui se corrige dans l'onglet
+  // « Ouvrages ». Les écrire ici ne changerait rien à l'écran.
+  const TEXTE_OK = new Set(['auteur', 'authenticite', 'titre_stable', 'titre_original',
+    'siecle_edition', 'genre', 'langue_originale', 'date_oeuvre',
     'decision_import', 'niveau_verification', 'url_source', 'url_texte_integral', 'dates_auteur'])
-  const NUM_OK = new Set(['annee_edition', 'score_fiabilite'])
+  const NUM_OK = new Set(['score_fiabilite'])
   const champs = body.champs
   if (champs && typeof champs === 'object') {
     for (const [col, valBrute] of Object.entries(champs as Record<string, unknown>)) {

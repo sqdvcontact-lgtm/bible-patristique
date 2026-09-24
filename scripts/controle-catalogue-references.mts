@@ -10,20 +10,29 @@
  *   2. les références qui ne disent pas `catalogue` dans `apparait_dans` ;
  *   3. les références PARTAGÉES par plusieurs notices, où la référence peut dire autre
  *      chose que chacune ;
- *   4. les DIVERGENCES entre l'annexe et la référence, champ par champ, telles que la
+ *   4. les notices d'EXCEPTION (`EXCEPTIONS_REFERENCE_CATALOGUE`), qui retombent sur
+ *      leurs propres champs parce que leur référence est fausse ou incomplète, et celles
+ *      dont la référence ne diverge plus (l'exception est alors à retirer) ;
+ *   5. les DIVERGENCES entre l'annexe et la référence, champ par champ, telles que la
  *      liste les rend (`mentionsEditionCatalogue`, la fonction de la page).
  *
  * ⛔ Il n'écrit RIEN. Corriger une divergence est un travail de donnée, sur décision.
  *
- *   node --env-file=.env.local node_modules/tsx/dist/cli.mjs scripts/controle-catalogue-references.mts [--visibles] [--exemples=8]
+ *   node --env-file=.env.local node_modules/tsx/dist/cli.mjs scripts/controle-catalogue-references.mts [--visibles] [--exemples=8] [--exceptions]
  *
  * `--visibles` borne le relevé aux notices que la Bibliothèque montre (ni sur le site,
- * ni refusées). Sort en 1 s'il reste une orpheline parmi elles.
+ * ni refusées). `--exceptions` liste TOUTES les notices d'exception, avec ce que
+ * l'annexe et la référence disent : c'est la liste à transmettre pour corriger les
+ * références. Sort en 1 s'il reste une orpheline parmi les notices visibles.
  */
 import { createClient } from '@supabase/supabase-js'
 
 import {
+  EXCEPTIONS_REFERENCE_CATALOGUE,
+  LIBELLES_MOTIF_EXCEPTION,
   mentionsEditionCatalogue,
+  motifDException,
+  type MotifException,
   referencesParNotice,
   SELECTION_REFERENCE_CATALOGUE,
   type LigneReferenceCatalogue,
@@ -38,6 +47,7 @@ const sb = createClient(url, cle, { auth: { persistSession: false } })
 const argument = (nom: string) => process.argv.find(a => a.startsWith(`--${nom}=`))?.split('=').slice(1).join('=')
 const VISIBLES = process.argv.includes('--visibles')
 const EXEMPLES = Number(argument('exemples') ?? 8)
+const LISTER_EXCEPTIONS = process.argv.includes('--exceptions')
 
 type Annexe = {
   id: number
@@ -72,6 +82,7 @@ const [annexes, lignesRef, liens, apparait] = await Promise.all([
 ])
 
 const references = referencesParNotice(lignesRef)
+const referencesBrutes = referencesParNotice(lignesRef, { avecExceptions: true })
 const ouvrageDe = new Map(liens.map(l => [l.id, l.ouvrage_id]))
 const surfaces = new Map(apparait.map(o => [o.id, o.apparait_dans ?? []]))
 
@@ -79,7 +90,7 @@ const nom = (a: Annexe) => `${a.id} ${a.id_ligne ?? ''} — ${a.auteur ?? '?'}, 
 
 // 1. Orphelines
 const sansCle = annexes.filter(a => ouvrageDe.get(a.id) == null)
-const sansVue = annexes.filter(a => ouvrageDe.get(a.id) != null && !references.has(a.id))
+const sansVue = annexes.filter(a => ouvrageDe.get(a.id) != null && !referencesBrutes.has(a.id))
 
 // 2. Références qui ne se déclarent pas au catalogue
 const horsCatalogue = annexes.filter(a => {
@@ -94,11 +105,29 @@ for (const a of annexes) {
   if (o != null) parOuvrage.set(o, [...(parOuvrage.get(o) ?? []), a.id])
 }
 const partagees = [...parOuvrage.values()].filter(ids => ids.length > 1)
+const tradPropre = annexes.filter(a => references.get(a.id)?.partagee && (a.traducteur ?? '').trim()
+  && mentionsEditionCatalogue(a, references.get(a.id)).traducteur !== mentionsEditionCatalogue(a, { ...references.get(a.id)!, partagee: false }).traducteur)
 
-// 4. Divergences, telles que la liste les rend
+// 4. Exceptions
+const parId = new Map(annexes.map(a => [a.id, a]))
+type EtatException = { id: number; motif: MotifException; a: Annexe | undefined; diverge: boolean | null; ref: string; annexe: string }
+const exceptions: EtatException[] = (Object.entries(EXCEPTIONS_REFERENCE_CATALOGUE) as [MotifException, readonly number[]][])
+  .flatMap(([motif, ids]) => ids.map(id => {
+    const a = parId.get(id)
+    const brute = referencesBrutes.get(id)
+    if (!a || !brute) return { id, motif, a, diverge: null, ref: '∅', annexe: '∅' }
+    const av = mentionsEditionCatalogue(a, null)
+    // La référence se juge ELLE-MÊME : la règle du volume partagé ne la corrige pas.
+    const ap = mentionsEditionCatalogue(a, { ...brute, partagee: false })
+    const diverge = av.traducteur !== ap.traducteur || av.editeur !== ap.editeur
+    return { id, motif, a, diverge, ref: `${ap.traducteur ?? '∅'} · ${ap.editeur ?? '∅'}`, annexe: `${av.traducteur ?? '∅'} · ${av.editeur ?? '∅'}` }
+  }))
+
+// 5. Divergences, telles que la liste les rend
 type Champ = 'traducteur' | 'editeur' | 'date'
 const divergences: Record<Champ, { a: Annexe; avant: string | null; apres: string | null }[]> = { traducteur: [], editeur: [], date: [] }
 for (const a of annexes) {
+  if (motifDException(a.id)) continue
   const reference = references.get(a.id)
   if (!reference) continue
   const avant = mentionsEditionCatalogue(a, null)
@@ -119,7 +148,26 @@ if (sansVue.length) console.log(`  référence absente de la vue : ${sansVue.len
 console.log(`\n2. Références sans « catalogue » dans apparait_dans : ${horsCatalogue.length}`)
 if (horsCatalogue.length) console.log(exemples(horsCatalogue, a => `${nom(a)} → ouvrage ${ouvrageDe.get(a.id)}`))
 console.log(`\n3. Références partagées : ${partagees.length} (${partagees.reduce((n, ids) => n + ids.length, 0)} notices)`)
-console.log('\n4. Ce que la lecture de la référence change à l’écran :')
+console.log(`  dont traducteur propre à l’œuvre (annexe) sur une référence partagée : ${tradPropre.length}`)
+if (tradPropre.length) console.log(exemples(tradPropre, nom))
+const inutiles = exceptions.filter(e => e.diverge === false)
+const absentes = exceptions.filter(e => e.diverge === null)
+console.log(`\n4. Notices d’exception, sur leurs propres champs : ${exceptions.length}`)
+for (const motif of Object.keys(EXCEPTIONS_REFERENCE_CATALOGUE) as MotifException[]) {
+  console.log(`  ${motif} (${LIBELLES_MOTIF_EXCEPTION[motif]}) : ${exceptions.filter(e => e.motif === motif).length}`)
+}
+console.log(`  devenues inutiles (la référence ne diverge plus) : ${inutiles.length}`)
+if (inutiles.length) console.log(exemples(inutiles, e => String(e.id)))
+console.log(`  hors du relevé (notice absente ou sans référence) : ${absentes.length}`)
+if (absentes.length) console.log(exemples(absentes, e => String(e.id)))
+if (LISTER_EXCEPTIONS) {
+  for (const e of exceptions) {
+    console.log(`    · ${e.motif} ${e.a ? nom(e.a) : e.id} → ouvrage ${ouvrageDe.get(e.id) ?? '∅'}`)
+    console.log(`        annexe : ${e.annexe}`)
+    console.log(`        référence : ${e.ref}`)
+  }
+}
+console.log('\n5. Ce que la lecture de la référence change à l’écran (hors exceptions) :')
 for (const champ of ['traducteur', 'editeur', 'date'] as const) {
   const liste = divergences[champ]
   console.log(`  ${champ} : ${liste.length}`)
