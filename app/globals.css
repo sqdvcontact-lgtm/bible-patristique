@@ -73,9 +73,12 @@
 
   /* ── Le GRIS du corps de lecture ──
      Le gris typographique PAR DÉFAUT du texte qu'on lit, en Source Serif : prose des
-     Pères, versets, essais, Polyglotte. Posé d'abord sur la lecture des Pères
-     (demande de l'auteur, 2026-09-24 : « les mots légèrement plus serrés ») ; les
-     autres surfaces le reprendront en lisant ces deux jetons au lieu de leurs valeurs.
+     Pères, versets de la Bible (une colonne et en regard), essais, Polyglotte.
+     Réglé sur la lecture des Pères, validé par l'auteur le 2026-09-24 (« c'est le mode
+     normal »), puis étendu le même jour : chaque surface LIT ces jetons, et aucune ne
+     recopie leurs valeurs. Seul le CORPS reste propre à chaque surface (13 px pour les
+     Pères, 15 px pour la Bible, au cran normal) ; le gris est un rapport, il vaut pour
+     tous les corps. Charte § 3.11.8.
      ⚠️ Il valait -0,025 em. Le serif garde sa chasse de dessin : c'est l'ESPACE qui
      fait le gris, la lettre resserrée épaissirait la tache sans l'unifier.
      ⚠️ Plus l'espace naturelle est étroite, plus un blanc de justification se voit
@@ -83,6 +86,12 @@
      relire une colonne justifiée étroite. */
   --cs-corps-espace-mot: -0.045em;
   --cs-corps-chasse: 0;
+  /* L'interligne du gris : 1,55, le même à tous les crans de « Taille du texte ».
+     ⚠️ `INTERLIGNE_LECTURE` (compositionOeuvre.ts) en porte la valeur en NOMBRE, parce
+     que la lettrine calcule avec lui : un test confronte les deux écritures.
+     ⛔ La Polyglotte garde le sien (`--poly-interligne`) : c'est un tableau, dont la
+     lettrine est calée sur une ligne et dont on compare les colonnes rangée à rangée. */
+  --cs-corps-interligne: 1.55;
   /* Le RETRAIT DE PREMIÈRE LIGNE du paragraphe de lecture, léger (demande de l'auteur,
      2026-09-24). ⛔ Ce n'est PAS l'alinéa à la française : le blanc entre paragraphes
      reste, ce retrait ne fait qu'amorcer la ligne. Règle : `.cs-corps-paragraphe`. */
@@ -119,7 +128,7 @@
      ⚠️ Resserré d'un rang le 2026-09-23 (« un peu trop corps ») : il valait
      16/1,55, 15/1,50 et 18/1,60. */
   --cs-lecture-corps: 0.9375rem;
-  --cs-lecture-interligne: 1.48;
+  --cs-lecture-interligne: var(--cs-corps-interligne);
   /* Le corps du texte des PÈRES, au même réglage : 12, 13 et 15 px, soit les mêmes écarts
      en pixels que la Bible (−1, +2). Normal = `CORPS_LECTURE` (compositionOeuvre.ts),
      validé par l'auteur le 2026-09-24 ; l'interligne, lui, ne bouge pas. */
@@ -686,12 +695,10 @@
    Ne pas la ramener au beige : c'est le seul endroit où la couleur travaille.  */
 :root[data-corps="petit"] {
   --cs-lecture-corps: 0.875rem;
-  --cs-lecture-interligne: 1.44;
   --cs-lecture-corps-oeuvre: 0.75rem;
 }
 :root[data-corps="grand"] {
   --cs-lecture-corps: 1.0625rem;
-  --cs-lecture-interligne: 1.52;
   --cs-lecture-corps-oeuvre: 0.9375rem;
 }
 
@@ -4273,8 +4280,13 @@ main.lecture-entree [data-cs-bloc],
      plus étroite rend l'écart plus criant. Mesuré sur Jean : l'espace naturelle
      passe de 3,38 à 3,72 px, le plus grand blanc de 7,5 à 5,6 fois cette espace, et
      les blancs de plus du double tombent de 1 235 à 894. La page n'y perd rien : la
-     lettrine rendue au texte la raccourcit de 350 px. */
-  word-spacing: -0.02em;
+     lettrine rendue au texte la raccourcit de 350 px.
+     ⛔ LE GRIS DU SITE S'Y APPLIQUE DEPUIS LE 2026-09-24 (décision de l'auteur) : l'espace
+     et la chasse viennent des jetons, et le prix mesuré ci-dessus est ACCEPTÉ. Si une
+     colonne étroite ouvre de trop grands blancs, c'est cette ligne qu'on rend à -0,02 em,
+     non les jetons. */
+  word-spacing: var(--cs-corps-espace-mot);
+  letter-spacing: var(--cs-corps-chasse);
   line-height: var(--poly-interligne);
 }
 .poly-texte-cell::after { content: ""; display: block; clear: both; }

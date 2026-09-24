@@ -40,11 +40,15 @@ export const PARAGRAPHE_ESSAI: Declarations = {
   // texte »). L'espace optimale descend d'un cran, et la césure plus hardie
   // (`hyphenate-limit-chars`) coupe plus tôt les mots longs, ce qui borne les
   // blancs les plus larges d'une ligne justifiée.
-  'line-height': '1.44',
-  'word-spacing': '-0.045em',
+  //
+  // ⛔ Depuis le 2026-09-24 au soir, le GRIS du site (charte § 3.11.8) : espace, chasse,
+  // interligne et retrait de première ligne sont ceux de la lecture des Pères, lus dans
+  // les jetons de `globals.css`. Ils valaient 1,44, -0,045 em, 0 et 0,9 em.
+  'line-height': 'var(--cs-corps-interligne, 1.55)',
+  'word-spacing': 'var(--cs-corps-espace-mot, -0.045em)',
   'hyphenate-limit-chars': '5 2 2',
-  'letter-spacing': '0',
-  'text-indent': '0.9em',
+  'letter-spacing': 'var(--cs-corps-chasse, 0)',
+  'text-indent': 'var(--cs-retrait-premiere-ligne, 1.2em)',
   'margin-top': '0',
   'margin-bottom': '1.6mm',
 }

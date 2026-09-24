@@ -107,7 +107,7 @@ export const NUMERO_VERSET_REM = 1.4375
  * suivent d'un rang. Les mots se rapprochent avec lui, voir `ESPACE_MOT_VERSET`.
  */
 export const CORPS_LECTURE_BIBLE = 'var(--cs-lecture-corps, 0.9375rem)'
-export const INTERLIGNE_LECTURE_BIBLE = 'var(--cs-lecture-interligne, 1.48)'
+export const INTERLIGNE_LECTURE_BIBLE = 'var(--cs-lecture-interligne, 1.55)'
 /**
  * L'espace entre les mots d'un verset (l'espace OPTIMALE), et la césure qui borne ce que
  * la justification lui ajoute (l'espace MAXIMALE). ⚠️ Aucune propriété CSS ne borne
@@ -116,7 +116,11 @@ export const INTERLIGNE_LECTURE_BIBLE = 'var(--cs-lecture-interligne, 1.48)'
  * ⛔ La colonne originale en regard (sans) ne descend pas sous −0,03 em : c'est le quart
  * de cadratin, et sous le quart les mots se soudent (charte § 3.11).
  */
-export const ESPACE_MOT_VERSET = '-0.035em'
+/** ⛔ Depuis le 2026-09-24, le GRIS du site (charte § 3.11.8) : l'espace et la chasse du
+ *  verset sont les jetons `--cs-corps-espace-mot` et `--cs-corps-chasse`, et son
+ *  interligne `--cs-corps-interligne`, par `--cs-lecture-interligne`. */
+export const ESPACE_MOT_VERSET = 'var(--cs-corps-espace-mot, -0.045em)'
+export const CHASSE_VERSET = 'var(--cs-corps-chasse, 0)'
 export const ESPACE_MOT_ORIGINAL = '-0.03em'
 export const CESURE_VERSET = '5 2 2'
 /** Le numéro en gouttière vaut 0,714 du verset : ses 0,625 rem pour les 0,875 d’hier. */
@@ -301,7 +305,7 @@ export function styleTexteVerset({ mobile, enVers }: { mobile?: boolean; enVers?
     // et la césure serrée borne ceux qu'elle ouvrirait encore. ⚠️ La chasse des lettres
     // revient à zéro : le verset est un texte dense (charte § 3.11), et la légère
     // ouverture que `body` donne à l'interface ne le concerne pas.
-    letterSpacing: 0,
+    letterSpacing: CHASSE_VERSET,
     wordSpacing: ESPACE_MOT_VERSET,
     hyphens: 'auto',
     WebkitHyphens: 'auto',

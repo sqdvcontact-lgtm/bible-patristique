@@ -28,11 +28,11 @@ describe('la taille du texte biblique, en trois crans', () => {
     expect(gabarit).toContain('SCRIPT_THEME + SCRIPT_CORPS')
   })
 
-  it('la feuille déclare les trois crans : 14/1,44, 15/1,48, 17/1,52', () => {
+  it('la feuille déclare les trois crans : 14, 15 et 17 px, à l’interligne du gris', () => {
     const feuille = readFileSync(join(process.cwd(), 'app/globals.css'), 'utf8')
     expect(feuille).toContain('--cs-lecture-corps: 0.9375rem;')
-    expect(feuille).toContain('--cs-lecture-interligne: 1.48;')
-    expect(feuille).toMatch(/:root\[data-corps="petit"\] \{\s*--cs-lecture-corps: 0\.875rem;\s*--cs-lecture-interligne: 1\.44;/)
-    expect(feuille).toMatch(/:root\[data-corps="grand"\] \{\s*--cs-lecture-corps: 1\.0625rem;\s*--cs-lecture-interligne: 1\.52;/)
+    expect(feuille).toContain('--cs-lecture-interligne: var(--cs-corps-interligne);')
+    expect(feuille).toMatch(/:root\[data-corps="petit"\] \{\s*--cs-lecture-corps: 0\.875rem;/)
+    expect(feuille).toMatch(/:root\[data-corps="grand"\] \{\s*--cs-lecture-corps: 1\.0625rem;/)
   })
 })

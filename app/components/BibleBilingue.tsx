@@ -74,7 +74,7 @@ import {
   type NoteBilingue,
 } from '@/app/lib/bibleEditionBilingue'
 import {
-  CESURE_VERSET, CORPS_GLOSE, CORPS_LECTURE_BIBLE, ESPACE_MOT_ORIGINAL, ESPACE_MOT_VERSET, INTERLIGNE_LECTURE_BIBLE, LIBELLE_GLOSE, RAPPORT_ORIGINAL_EN_REGARD,
+  CESURE_VERSET, CORPS_GLOSE, CORPS_LECTURE_BIBLE, ESPACE_MOT_ORIGINAL, CHASSE_VERSET, ESPACE_MOT_VERSET, INTERLIGNE_LECTURE_BIBLE, LIBELLE_GLOSE, RAPPORT_ORIGINAL_EN_REGARD,
   STYLE_SIGNET_VERSET, STYLE_VERSET_VIDE,
 } from '@/app/lib/compositionBible'
 import AppelNoteBiblique from './NoteBibliqueFenetre'
@@ -124,7 +124,7 @@ const STYLE_VERSET = {
   hyphens: 'auto' as const,
   // Même espace et même césure que la lecture simple (compositionBible.ts), et la chasse
   // des lettres à zéro : le verset est un texte dense.
-  letterSpacing: 0,
+  letterSpacing: CHASSE_VERSET,
   wordSpacing: ESPACE_MOT_VERSET,
   hyphenateLimitChars: CESURE_VERSET,
   overflowWrap: 'break-word' as const,

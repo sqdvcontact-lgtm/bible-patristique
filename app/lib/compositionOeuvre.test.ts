@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  CORPS_LECTURE, CORPS_LECTURE_REGLABLE, NATURE_SIGNATURE, accepteLaLettrine, estBlocDeSignatures,
+  CORPS_LECTURE, CORPS_LECTURE_REGLABLE, INTERLIGNE_LECTURE, NATURE_SIGNATURE, accepteLaLettrine, estBlocDeSignatures,
   paragraphesDeSegments, placeDeLExergue, placeDeLaSignature,
   styleHoteBibliographieApparat, styleParagrapheApparat, styleParagrapheLecture,
 } from './compositionOeuvre'
@@ -253,5 +253,15 @@ describe('l’hôte d’une bibliographie de l’apparat', () => {
     for (const propriete of ['textAlign', 'lineHeight', 'textIndent', 'margin', 'whiteSpace', 'hyphens'] as const) {
       expect(hote[propriete], propriete).toBeUndefined()
     }
+  })
+})
+
+describe('le gris du site (charte § 3.11.8)', () => {
+  it('l’interligne de la feuille est celui que la lettrine calcule', async () => {
+    const { readFileSync } = await import('node:fs')
+    const { join } = await import('node:path')
+    const feuille = readFileSync(join(process.cwd(), 'app/globals.css'), 'utf8')
+    const m = feuille.match(/--cs-corps-interligne:\s*([\d.]+);/)
+    expect(m?.[1]).toBe(String(INTERLIGNE_LECTURE))
   })
 })
