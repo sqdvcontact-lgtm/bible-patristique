@@ -827,7 +827,7 @@ export default function NavLivres({
       /* `data-visite` : le repère de la visite guidée. Le DÉFILEUR entier, non le
          premier livre : l'étape parle de la liste et de la teinte de ses cases de
          chapitre, c'est-à-dire de tout ce bloc. */
-      <nav ref={scrollRef} aria-label="Liste des livres" data-visite="livres" style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: 'calc(var(--volet-air-fin) + 2px) calc(var(--volet-gouttiere) - 6px)' }}>
+      <nav ref={scrollRef} aria-label="Liste des livres" data-visite="livres" className="cs-defilement-discret" style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: 'calc(var(--volet-air-fin) + 2px) calc(var(--volet-gouttiere) - 6px)' }}>
         {AT.length > 0 && (
           <>
             <button onClick={() => setAtOuvert(!atOuvert)} aria-expanded={atOuvert} style={{
