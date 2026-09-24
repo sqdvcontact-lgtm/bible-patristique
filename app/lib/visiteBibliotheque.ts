@@ -64,10 +64,12 @@ export const VISITE_BIBLIOTHEQUE: Visite = {
     {
       cle: 'recherche',
       sujet: ['[data-visite="bib-recherche"]'],
-      titre: 'Recherche',
+      // ⚠️ RELU LE 2026-09-24 : le champ dit déjà ce qu’il cherche dans son invite,
+      // l’arrêt ne parle plus que de ce qui se cache derrière le bouton.
+      titre: 'Recherche et filtres',
       texte: [
-        'Le champ recherche un auteur ou un titre d’œuvre.',
-        'Le bouton **Filtres** limite la liste par siècle, par langue ou par tradition.',
+        'Le bouton **Filtres** ouvre un panneau qui limite la liste par siècle, par langue ou par tradition.',
+        'Chaque pastille dit combien d’auteurs elle retiendrait.',
       ],
       cote: 'dessous',
     },

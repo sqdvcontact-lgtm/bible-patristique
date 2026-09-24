@@ -112,9 +112,9 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       cle: 'entete',
       sujet: ['[data-visite="entete-lecture"]'],
       titre: 'Traduction',
+      // ⚠️ RELU LE 2026-09-24 : le titre se lit de lui-même, l’arrêt ne le redit pas.
       texte: [
-        'Le titre indique le livre et le chapitre ouverts.',
-        'Le menu placé dessous permet de changer de traduction sans quitter le passage.',
+        'Le menu placé sous le titre change de traduction sans quitter le passage.',
       ],
       cote: 'dessous',
       scene: { volet: 'texte' },
@@ -156,7 +156,8 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
       // ⚠️ Le lasso se présente ICI depuis le 22 septembre 2026 : il agit sur les mêmes
       // passages que les actions, plusieurs à la fois, et il naît du blanc de la page.
       texte: [
-        'Au survol d’un passage, les actions apparaissent dans la marge : le prélever, le copier ou le signaler. Prélever demande un compte ; les retrouver ensuite se fait depuis « Mes citations ».',
+        // ⚠️ RELU LE 2026-09-24 : la page s’appelle « Mes prélèvements » dans le menu de compte.
+        'Au survol d’un passage, les actions apparaissent dans la marge : le prélever, le copier ou le signaler. Prélever demande un compte, et l’on retrouve ses passages dans « Mes prélèvements ».',
         'Quand la place le permet, un nombre les suit : celui des œuvres en ligne qui commentent le passage.',
         'Tirer un cadre à la souris depuis le blanc de la page sélectionne plusieurs versets d’un coup.',
       ],
@@ -201,8 +202,7 @@ export const VISITE_BIBLE_CLASSIQUE: Visite = {
  */
 const TEXTES_AU_DOIGT: Readonly<Record<string, readonly string[]>> = {
   entete: [
-    'Le menu indique la traduction affichée.',
-    'Il permet d’en changer sans quitter le passage.',
+    'Ce menu change de traduction sans quitter le passage.',
   ],
   verset: [
     'Touchez un verset pour le choisir.',
@@ -210,7 +210,7 @@ const TEXTES_AU_DOIGT: Readonly<Record<string, readonly string[]>> = {
   ],
   actions: [
     'Touchez un verset : ses actions paraissent à côté de lui.',
-    'Elles permettent de le prélever, de le copier ou de le signaler. Prélever demande un compte ; les retrouver ensuite se fait depuis « Mes citations ».',
+    'Elles permettent de le prélever, de le copier ou de le signaler. Prélever demande un compte, et l’on retrouve ses passages dans « Mes prélèvements ».',
     'Un appui long sur le numéro d’un verset passe en mode lasso : on choisit alors plusieurs versets d’un seul geste.',
   ],
   peres: [

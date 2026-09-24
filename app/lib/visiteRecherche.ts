@@ -45,9 +45,11 @@ export const VISITE_RECHERCHE: Visite = {
       cle: 'champ',
       sujet: ['[data-visite="recherche-champ"]'],
       titre: 'Recherche',
+      // ⚠️ RELU LE 2026-09-24 : le nombre de résultats s’écrit à droite du titre, l’arrêt ne
+      // le redit plus ; il dit ce qui ne paraît qu’à la frappe.
       texte: [
-        'Vous pouvez chercher un mot ou plusieurs à la fois.',
-        'Le nombre de résultats apparaît à droite du titre et se met à jour avec chaque recherche.',
+        'Le champ cherche un mot ou plusieurs à la fois.',
+        'Pendant la frappe, il propose des mots du corpus ; **Tout rechercher** les réunit en une seule recherche.',
       ],
       cote: 'droite',
     },

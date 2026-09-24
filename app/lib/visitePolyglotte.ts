@@ -45,7 +45,8 @@ export const VISITE_POLYGLOTTE: Visite = {
   cle: CLE_VISITE_POLYGLOTTE,
   titre: 'La Bible polyglotte',
   accroche: [
-    'Plusieurs traductions sont placées côte à côte. Chaque ligne présente le même verset.',
+    // ⚠️ RELU LE 2026-09-24 : l’accroche situe la page, la rangée des versets a son arrêt.
+    'Les réglages et les livres sont à gauche, les traductions côte à côte au centre.',
   ],
   etapes: [
     {
@@ -67,7 +68,7 @@ export const VISITE_POLYGLOTTE: Visite = {
       sujet: ['[data-visite="recherche-livre"]'],
       titre: 'Recherche',
       texte: [
-        'Tapez le nom d’un livre pour le retrouver.',
+        'Ce champ cherche parmi les livres.',
         'Vous pouvez aussi saisir une référence complète, comme « Jean 3, 16 », pour ouvrir directement le passage.',
       ],
       cote: 'droite',
@@ -125,7 +126,7 @@ export const VISITE_POLYGLOTTE: Visite = {
       titre: 'Notes',
       texte: [
         'La dernière colonne permet d’écrire une note sur chaque verset.',
-        'Vos notes sont conservées avec votre compte et restent disponibles d’une visite à l’autre.',
+        'Vos notes sont conservées avec votre compte.',
         'Vous pouvez fermer cette colonne et la rouvrir avec le bouton en forme de crayon.',
       ],
       // ⚠️ L'étape OUVRE la colonne, que le lecteur garde souvent repliée : sans
