@@ -15,7 +15,8 @@ import {
   bornerPos, deplacerPos, parseAuteurPhotoPositions,
   type AuteurPhotoPos, type AuteurPhotoPositions, type SurfacePortrait,
 } from '@/app/lib/photoAuteur'
-import { preparerPortrait } from '@/app/lib/preparerPortrait'
+import { preparerPortraitEtVignette } from '@/app/lib/preparerPortrait'
+import { urlPortraitAuteur } from '@/app/lib/photoAuteur'
 import CadreAuteur from '@/app/components/CadreAuteur'
 import { revaliderBibliotheque } from '@/app/actions/revalider'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
@@ -108,7 +109,6 @@ function ModaleImport({ lignes, nomFichier, onConfirmer, onAnnuler, importing }:
 const inputStyleAuteur: React.CSSProperties = { width: '100%', padding: '6px 9px', fontSize: '0.875rem', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte-fort)', outline: 'none', boxSizing: 'border-box' }
 const lbl: React.CSSProperties = { fontSize: '0.65625rem', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--cs-texte-faible)', display: 'block', marginBottom: '2px' }
 const sepOeuvre: React.CSSProperties = { borderTop: '1px solid var(--cs-fond-doux)', gridColumn: '1 / -1', margin: '2px 0' }
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
 const BTN_ROND: React.CSSProperties = {
   width: 27, height: 27, borderRadius: '50%', border: '1px solid var(--cs-bord)',
@@ -192,7 +192,7 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
         </div>
 
         <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', margin: '0 0 12px', lineHeight: 1.5 }}>
-          Le portrait paraît sur trois surfaces, dont les cadres n’ont pas les mêmes proportions : la carte et la fiche gardent donc chacune son réglage. Glissez l’image, ou tournez la molette pour agrandir. Les trois aperçus ci-dessous sont composés avec les mesures RÉELLES des pages.
+          Le portrait paraît sur deux surfaces, dont les cadres n’ont pas les mêmes proportions : la carte et la fiche gardent donc chacune son réglage. Glissez l’image, ou tournez la molette pour agrandir. Les deux aperçus ci-dessous sont composés avec les mesures RÉELLES des pages.
         </p>
 
         {/* Quel réglage l'on modifie. L'aperçu au survol emprunte celui de la fiche. */}
@@ -238,9 +238,9 @@ function ModalPositionAuteur({ auteur, photoUrl, posInit, onClose, onSauvegarde 
           </div>
         </div>
 
-        {/* Les trois surfaces, ensemble : on voit d'un coup ce que le réglage donne
+        {/* Les deux surfaces, ensemble : on voit d'un coup ce que le réglage donne
             partout, y compris là où on ne le modifie pas. */}
-        <p style={{ fontSize: '0.65625rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cs-texte-faible)', margin: '16px 0 8px' }}>Les trois surfaces, en direct</p>
+        <p style={{ fontSize: '0.65625rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cs-texte-faible)', margin: '16px 0 8px' }}>Les deux surfaces, en direct</p>
         <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-end', flexWrap: 'wrap', padding: '14px', background: 'var(--cs-surface)', border: '1px solid var(--cs-bord-clair)', borderRadius: '8px' }}>
           {(Object.keys(CADRES_PORTRAIT) as SurfacePortrait[]).map(surface => (
             <div key={surface} style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
@@ -1122,10 +1122,13 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
   }, [besoinCatalogue, catalogueParAuteur])
 
   const uploadPhoto = async (idAuteur: string, fichier: File) => {
-    const fichierRedim = await preparerPortrait(fichier)
+    // Le portrait et sa VIGNETTE (copie réduite pour les petits ronds des lecteurs)
+    // partent ensemble : une vignette qui ne suivrait pas son portrait montrerait l'ancien.
+    const { portrait, vignette } = await preparerPortraitEtVignette(fichier)
     const formData = new FormData()
     formData.append('id_auteur', idAuteur)
-    formData.append('fichier', fichierRedim)
+    formData.append('fichier', portrait)
+    formData.append('vignette', vignette)
     const res = await fetch('/api/admin/auteur-photo', { method: 'POST', headers: await headersAdmin(), body: formData })
     if (res.ok) {
       const json = await res.json().catch(() => ({}))
@@ -1135,8 +1138,10 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
     else { const json = await res.json().catch(() => ({})); alert('Erreur upload : ' + (json.error ?? 'erreur inconnue')) }
   }
 
-  const photoUrlAuteur = (idAuteur: string) =>
-    `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg?v=${photoVersions[idAuteur] ?? Date.now()}`
+  // ⛔ La version vient de la base (`photo_version`), ou du dépôt qu'on vient de faire :
+  // jamais de l'horloge, qui retéléchargeait l'image à chaque rendu de la section.
+  const photoUrlAuteur = (idAuteur: string, versionEnBase?: number | null) =>
+    urlPortraitAuteur(idAuteur, photoVersions[idAuteur] ?? versionEnBase)
 
   const sauvegarderPositionAuteur = async (idAuteur: string, pos: AuteurPhotoPositions) => {
     const res = await fetch('/api/admin/update-auteur', {
@@ -1637,7 +1642,7 @@ export default function SectionBibliotheque({ auteurs: auteursInit, textes: text
         return (
           <ModalPositionAuteur
             auteur={auteur}
-            photoUrl={photoUrlAuteur(auteur.id_auteur)}
+            photoUrl={photoUrlAuteur(auteur.id_auteur, auteur.photo_version)}
             posInit={parseAuteurPhotoPositions(auteur.photo_position)}
             onClose={() => setPositionAuteur(null)}
             onSauvegarde={pos => sauvegarderPositionAuteur(auteur.id_auteur, pos)}

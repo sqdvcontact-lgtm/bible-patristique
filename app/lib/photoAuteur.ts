@@ -1,15 +1,16 @@
 // Cadrage des portraits d'auteur. Module PUR, testé dans photoAuteur.test.ts.
 //
-// Un portrait paraît sur TROIS surfaces, dont les cadres n'ont ni la même taille
-// ni les mêmes proportions. Un cadrage juste sur l'une ne l'est pas sur l'autre :
-// c'est pourquoi `photo_position` porte deux réglages, `carte` et `fiche`, et non
-// un seul.
+// Un portrait paraît sur DEUX surfaces, la carte de la bibliothèque et la fiche de
+// l'auteur, dont les cadres n'ont ni la même taille ni les mêmes proportions (0,60 et
+// 2/3). Un cadrage juste sur l'une ne l'est pas sur l'autre : c'est pourquoi
+// `photo_position` porte deux réglages, `carte` et `fiche`, et non un seul. Les ronds
+// des lecteurs reprennent le réglage `fiche` (app/lib/portraits.ts).
 //
-// ⚠️ Ce module est la SEULE définition de cette géométrie. Elle était jusqu'ici
-// recopiée dans quatre fichiers — la bibliothèque, la fiche, l'aperçu et l'écran
-// de cadrage de l'admin — avec des valeurs qui avaient déjà divergé. Un aperçu
-// d'administration qui recopie les mesures de la page qu'il imite finit toujours
-// par mentir : il doit lire les mêmes.
+// ⛔ Ce module est la SEULE définition de cette géométrie, de l'ADRESSE d'un portrait
+// et de ses initiales de repli. La carte et la fiche en portaient chacune une copie,
+// avec des défauts différents, et la fiche composait son adresse sans version
+// (audit du 24 septembre 2026). `photoAuteur.test.ts` refuse qu'une adresse du seau
+// soit écrite ailleurs.
 
 export type AuteurPhotoPos = {
   /** Point de l'image amené au centre du cadre, en pourcentage. */
@@ -49,9 +50,8 @@ export type CadrePortrait = {
   hauteur: string
   /** Marge blanche autour de l'image, s'il y en a une (la fiche en porte une). */
   passePartout: string
-  /** Réglage employé par cette surface. L'aperçu emprunte celui de la fiche : son
-   *  cadre lui ressemble, et lui donner un troisième réglage à tenir n'apporterait
-   *  rien à personne. */
+  /** Réglage employé par cette surface. Les ronds des lecteurs empruntent celui de la
+   *  fiche (app/lib/portraits.ts), dont le cadre est le plus proche du carré. */
   reglage: keyof AuteurPhotoPositions
 }
 
@@ -59,10 +59,12 @@ export type CadrePortrait = {
  *  composant correspondant DOIT être répercutée ici, sans quoi l'écran de cadrage
  *  se remet à mentir. */
 export const CADRES_PORTRAIT: Record<SurfacePortrait, CadrePortrait> = {
-  // app/bibliotheque/BibliothequeClient.tsx : bandeau `height: 200px`, colonne
+  // app/bibliotheque/BibliothequeClient.tsx : bandeau `height: 12.5rem`, colonne
   // photo `width: 7.5rem`. La photo est étirée par la rangée, elle fait donc
-  // toute la hauteur du bandeau.
-  carte: { libelle: 'Carte de la bibliothèque', largeur: '7.5rem', hauteur: '200px', passePartout: '0', reglage: 'carte' },
+  // toute la hauteur du bandeau. ⛔ Les deux mesures en REM : la proportion (0,60)
+  // est la même sur tous les écrans, et le cadrage réglé ici vaut partout. La hauteur
+  // était en pixels jusqu'au 2026-09-24, et la carte passait de 0,60 à 0,825.
+  carte: { libelle: 'Carte de la bibliothèque', largeur: '7.5rem', hauteur: '12.5rem', passePartout: '0', reglage: 'carte' },
   // app/components/FicheModele.tsx (`PortraitFiche`) : zone d'image de 8,75 rem au
   // rapport 2/3, sous un passe-partout de 5 px. C'est le cadre des fiches d'auteur et de
   // traduction depuis le 15 septembre 2026 (« uniformiser toutes ces fenêtres ») : la
@@ -136,9 +138,42 @@ export function deplacerPos(base: AuteurPhotoPos, dx: number, dy: number, largeu
   })
 }
 
-/** URL publique du portrait. Une seule composition pour tout le site : le portrait
- *  vit dans le seau `auteurs`, sous `<id_auteur>.jpg` (voir AGENTS.md). */
-export function urlPortrait(baseSupabase: string, idAuteur: string, versionCache?: number): string {
-  const v = versionCache === undefined ? '' : `?v=${versionCache}`
-  return `${baseSupabase}/storage/v1/object/public/auteurs/${idAuteur}.jpg${v}`
+/** Le seau des portraits : l'ORIGINAL déposé, 600 × 750 au plus, qu'on ne retouche pas. */
+export const SEAU_PORTRAITS_AUTEURS = 'auteurs'
+/** Le seau des VIGNETTES : copies réduites (280 × 350 au plus, même proportion, donc
+ *  même cadrage), pour les petits ronds. Fabriquées au dépôt, jamais à la main. */
+export const SEAU_VIGNETTES_AUTEURS = 'auteurs-vignettes'
+
+/** Adresse publique d'un fichier de portrait. `version` est `auteurs.photo_version` :
+ *  l'instant du dernier dépôt. L'adresse reste donc STABLE tant que le fichier ne
+ *  change pas (le navigateur la garde en cache), et devient neuve dès qu'il change. */
+function adresse(seau: string, idAuteur: string, version: number | null | undefined, base: string): string {
+  const v = typeof version === 'number' && Number.isFinite(version) ? `?v=${version}` : ''
+  return `${base}/storage/v1/object/public/${seau}/${idAuteur}.jpg${v}`
+}
+
+export function urlPortraitAuteur(idAuteur: string, version?: number | null, base = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''): string {
+  return adresse(SEAU_PORTRAITS_AUTEURS, idAuteur, version, base)
+}
+
+export function urlVignetteAuteur(idAuteur: string, version?: number | null, base = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''): string {
+  return adresse(SEAU_VIGNETTES_AUTEURS, idAuteur, version, base)
+}
+
+/** Ce qui ne compte pas dans les initiales d'un nom : les particules et les liaisons. */
+const MOTS_MUETS = new Set(['de', 'du', 'des', 'la', 'le', 'les', 'et', 'von', 'van', 'di', 'da'])
+
+/** Les deux initiales qui tiennent lieu de portrait : « Victorin de Poetovio » donne
+ *  « VP », « Augustin d’Hippone » « AH », « Anonyme / Conciles… » « AC ». Les particules,
+ *  les élisions (d’, l’) et les signes ne comptent pas. */
+export function initialesDuNom(nom: string): string {
+  return nom
+    .split(/[\s/,;:()–—-]+/)
+    .map(m => m.replace(/^[dl][’']/i, ''))
+    .filter(m => m && !MOTS_MUETS.has(m.toLowerCase()))
+    .map(m => (m.match(/\p{L}/u) ?? [''])[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
 }

@@ -16,7 +16,7 @@ import { creerSupabaseServeur } from '@/app/lib/supabaseServeur'
 import { erreur500 } from '@/app/lib/apiErreur'
 import {
   auteurDuPortrait, cadrageDepuisPhotoPosition, CADRAGE_PAR_DEFAUT,
-  refPortrait, SEAU_AUTEURS, SEAU_TRADUCTIONS, traductionDeLEncart, urlPortrait,
+  refPortrait, SEAU_AUTEURS, SEAU_TRADUCTIONS, traductionDeLEncart, urlPortrait, urlVignettePortrait,
   type Cadrage,
 } from '@/app/lib/portraits'
 
@@ -31,6 +31,8 @@ export type Portrait = {
   /** Le siècle pour un Père, l'ouvrage pour un traducteur. */
   detail: string
   url: string
+  /** La vignette, pour la grille du choix ; le recadrage prend le portrait entier. */
+  vignette: string
   cadrage: Cadrage
 }
 
@@ -91,6 +93,7 @@ export async function GET() {
           nom: (a.nom as string) ?? '',
           detail: (a.siecle as string | null) ?? '',
           url: urlPortrait(ref) ?? '',
+          vignette: urlVignettePortrait(ref) ?? '',
           cadrage: cadrageDepuisPhotoPosition(a.photo_position),
           rang: rangDuSiecle(a.siecle as string | null),
         }
@@ -108,6 +111,7 @@ export async function GET() {
           nom: (t.auteur as string) || (t.nom as string) || '',
           detail: (t.nom as string) ?? '',
           url: urlPortrait(ref) ?? '',
+          vignette: urlVignettePortrait(ref) ?? '',
           // Un encart de traduction n'a pas de cadrage réglé pour un rond : il est
           // déjà debout et cadré serré, le centre haut lui va.
           cadrage: CADRAGE_PAR_DEFAUT,

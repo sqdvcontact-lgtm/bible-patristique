@@ -83,6 +83,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ pseudo:
   // aussi falsifiable que l'ancienne adresse. Voir app/lib/portraits.ts.
   const avatar = refPortraitValide(profil.avatar_ref)
     ? {
+        ref: profil.avatar_ref,
         imageUrl: urlPortrait(profil.avatar_ref) ?? '',
         nom: await nomDuPortrait(profil.avatar_ref),
         posX: profil.avatar_pos_x, posY: profil.avatar_pos_y, zoom: profil.avatar_zoom,

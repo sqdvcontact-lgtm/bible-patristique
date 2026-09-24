@@ -31,6 +31,7 @@ import { type SceneVisite } from '@/app/lib/visiteGuidee'
 import { offrirLaVisite } from '@/app/lib/demandeDeVisite'
 import ModalSignalement from '@/app/components/ModalSignalement'
 import { useCompte } from '@/app/lib/contexteCompte'
+import { parseAuteurPhotoPositions, stylePhotoAuteur, urlPortraitAuteur } from '@/app/lib/photoAuteur'
 // ⚠️ La même fonction que la citation : elle saute les marques de tête et ne touche pas
 // une initiale déjà capitale. Une seconde écriture ici divergerait au premier réglage.
 import { capitaliserInitiale } from '@/app/lib/citation'
@@ -65,53 +66,20 @@ type Oeuvre = {
   // Une œuvre à deux auteurs paraît sur les deux étagères, et porte les deux noms.
   auteurs?: AuteurOeuvre[]
 }
-type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
-type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }
 type Auteur = {
   id_auteur: string; nom: string; nom_original?: string | null; titre?: string | null
   dates: string | null; date_naissance?: string | null; date_mort?: string | null
   siecle: string | null; langue_principale?: string | null
   traditions?: string[] | null
   note?: string | null; note_biographique?: string | null; note_theologique?: string | null
-  photo_position?: AuteurPhotoPositions | null
+  photo_position?: unknown
+  photo_version?: number | null
   imageUrl: string
   oeuvres: Oeuvre[]
 }
 
-const POS_AUTEUR_CARTE: AuteurPhotoPos = { x: 50, y: 14, scale: 1, scaleX: 1, scaleY: 1 }
-const POS_AUTEUR_FICHE: AuteurPhotoPos = { x: 50, y: 24, scale: 1, scaleX: 1, scaleY: 1 }
-
-function normaliserPhotoPos(pos: Partial<AuteurPhotoPos> | null | undefined, defaut: AuteurPhotoPos): AuteurPhotoPos {
-  return {
-    x: typeof pos?.x === 'number' ? pos.x : defaut.x,
-    y: typeof pos?.y === 'number' ? pos.y : defaut.y,
-    scale: typeof pos?.scale === 'number' ? pos.scale : defaut.scale,
-    scaleX: typeof pos?.scaleX === 'number' ? pos.scaleX : defaut.scaleX,
-    scaleY: typeof pos?.scaleY === 'number' ? pos.scaleY : defaut.scaleY,
-  }
-}
-
-function parseAuteurPhotoPositions(raw: Auteur['photo_position']): AuteurPhotoPositions {
-  const r = raw as any
-  if (!r) return { carte: { ...POS_AUTEUR_CARTE }, fiche: { ...POS_AUTEUR_FICHE } }
-  if (typeof r.x === 'number') {
-    const plat = normaliserPhotoPos(r, POS_AUTEUR_CARTE)
-    return { carte: plat, fiche: { ...plat } }
-  }
-  return {
-    carte: normaliserPhotoPos(r.carte, POS_AUTEUR_CARTE),
-    fiche: normaliserPhotoPos(r.fiche, POS_AUTEUR_FICHE),
-  }
-}
-
-function stylePhotoAuteur(pos: AuteurPhotoPos): React.CSSProperties {
-  return {
-    objectFit: 'cover',
-    objectPosition: `${pos.x}% ${pos.y}%`,
-    transform: `scale(${pos.scale})`,
-    transformOrigin: `${pos.x}% ${pos.y}%`,
-  }
-}
+// ⛔ Le cadrage et l'adresse du portrait viennent de app/lib/photoAuteur.ts, et de lui
+// seul : la copie qui vivait ici avait ses propres défauts (audit du 2026-09-24).
 
 function sansAccents(s: string): string { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase() }
 
@@ -288,13 +256,18 @@ function PanneauAuteur({ auteur, recherche, favorisOeuvres, toggleFavoriOeuvre, 
 
       {/* Hauteur d'en-tête CONSTANTE pour toutes les cartes (notice longue rognée) :
           la liste dépliée s'ajoute ensuite en dessous, hors de ce bloc. */}
-      <div className="bib-carte-haut" style={{ display: 'flex', ...(compact ? {} : { height: '200px', overflow: 'hidden' }) }}>
+      {/* ⛔ La hauteur est en REM, comme la largeur de la photo : la carte garde ainsi la
+          même proportion (0,60) sur tous les écrans, et le cadrage réglé dans
+          l'administration vaut partout. En pixels, elle passait de 0,60 à 0,825 quand la
+          police racine grandissait (audit du 2026-09-24). */}
+      <div className="bib-carte-haut" style={{ display: 'flex', ...(compact ? {} : { height: '12.5rem', overflow: 'hidden' }) }}>
         {!compact && (
-          <div className="bib-photo" style={{ width: '7.5rem', flexShrink: 0, background: 'var(--cs-fond-doux)', position: 'relative', minHeight: '170px', overflow: 'hidden' }}>
+          <div className="bib-photo" style={{ width: '7.5rem', flexShrink: 0, background: 'var(--cs-fond-doux)', position: 'relative', minHeight: '10.625rem', overflow: 'hidden' }}>
             {!imgErreur && (
-              <Image src={auteur.imageUrl} alt={auteur.nom} fill sizes="120px" unoptimized
+              /* alt vide : le nom est écrit à côté, un lecteur d'écran l'entendrait deux fois. */
+              <Image src={auteur.imageUrl} alt="" fill unoptimized
                 onError={() => setImgErreur(true)}
-                style={{ ...stylePhotoAuteur(photoPos), imageRendering: 'auto' }} />
+                style={stylePhotoAuteur(photoPos)} />
             )}
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
               <svg width="36" height="44" viewBox="0 0 40 48" fill="none" opacity={imgErreur ? 0.2 : 0} style={{ color: 'var(--cs-encre)' }}>
@@ -1868,18 +1841,9 @@ function OngletFavoris({ auteurs, favorisOeuvres, favorisPret, toggleFavoriOeuvr
   )
 }
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 // Colonnes partagées avec le rendu serveur : voir app/lib/bibliothequeSelects.ts.
-// Bucket HORAIRE (identique au serveur, app/bibliotheque/page.tsx) : le paramètre
-// ?v= reste stable au sein d'une heure, donc le navigateur met les photos en cache
-// au lieu de les retélécharger à chaque montage/refetch (auparavant : bucket à la
-// seconde, qui cassait le cache en permanence).
-const imageVersionAuteur = () => Math.floor(Date.now() / (3600 * 1000))
-const urlImageAuteur = (idAuteur: string, version = imageVersionAuteur()) =>
-  `${SUPABASE_URL}/storage/v1/object/public/auteurs/${idAuteur}.jpg?v=${version}`
 
 function normaliserAuteurs(data: any[], oeuvres: Oeuvre[], auteursParOeuvre: Record<string, AuteurOeuvre[]>): Auteur[] {
-  const version = imageVersionAuteur()
   // Même règle qu'au rendu serveur (app/bibliotheque/page.tsx) : une œuvre se
   // range sous CHACUN de ses auteurs, et emporte leur liste.
   const publiees = oeuvres.filter(estOeuvrePubliee)
@@ -1888,7 +1852,7 @@ function normaliserAuteurs(data: any[], oeuvres: Oeuvre[], auteursParOeuvre: Rec
   return data
     .map(a => ({ ...a, oeuvres: oeuvresParAuteur.get(String(a.id_auteur)) ?? [] }))
     .filter(a => a.oeuvres?.length > 0)
-    .map(a => ({ ...a, imageUrl: urlImageAuteur(String(a.id_auteur), version) }))
+    .map(a => ({ ...a, imageUrl: urlPortraitAuteur(String(a.id_auteur), a.photo_version) }))
 }
 
 export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurChargement = false }: { auteurs: Auteur[]; erreurChargement?: boolean }) {
@@ -1917,11 +1881,6 @@ export default function BibliothequeClient({ auteurs: auteursInitiaux, erreurCha
   const originaux = useMemo(() => new Set(auteurs.flatMap(auteur => auteur.oeuvres
     .filter(oeuvre => traductionAvecOriginal(oeuvre, sourcesOriginaux))
     .map(oeuvre => oeuvre.id_oeuvre))), [auteurs, sourcesOriginaux])
-
-  useEffect(() => {
-    const version = imageVersionAuteur()
-    setAuteurs(prev => prev.map(a => ({ ...a, imageUrl: urlImageAuteur(String(a.id_auteur), version) })))
-  }, [])
 
   const refetch = useCallback(async () => {
     const [auteursResultat, oeuvresResultat, auteursParOeuvre] = await Promise.all([

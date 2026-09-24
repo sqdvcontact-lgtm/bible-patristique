@@ -1,8 +1,8 @@
-// Préparation d'un portrait avant dépôt. Une seule définition pour les trois écrans
-// d'administration qui en déposent (bibliothèque, auteurs, traductions).
+// Préparation d'un portrait avant dépôt. Une seule définition pour les écrans
+// d'administration qui en déposent (bibliothèque, traductions).
 //
-// ⛔ ON NE ROGNE PAS. Un portrait paraît sur trois surfaces dont les cadres n'ont pas
-// les mêmes proportions — carte 0,60, fiche 0,80, aperçu 0,765 — et l'administrateur
+// ⛔ ON NE ROGNE PAS. Un portrait paraît sur deux surfaces dont les cadres n'ont pas
+// les mêmes proportions (carte 0,60, fiche 2/3), plus les ronds des lecteurs, et l'administrateur
 // les cadre lui-même par `photo_position`, avec un zoom jusqu'à 3,5×. Rogner au dépôt
 // jetterait définitivement les parties de l'image que ce cadrage pourrait vouloir
 // montrer. C'était le défaut du code précédent, qui rognait en 2:3 centré avant même
@@ -37,6 +37,13 @@ export const PORTRAIT_LARGEUR_MAX = BOITE_AUTEUR.largeur
 export const PORTRAIT_HAUTEUR_MAX = BOITE_AUTEUR.hauteur
 export const PORTRAIT_QUALITE = 0.9
 
+/** La VIGNETTE d'un portrait d'auteur : copie réduite, MÊME proportion (donc même
+ *  cadrage), pour les petits ronds des lecteurs — 22 à 72 px, zoom de 1,8 au plus,
+ *  au double pour les écrans denses. Elle pèse 10 à 20 Ko là où le portrait en pèse
+ *  60 à 160. Déposée dans le seau `auteurs-vignettes` avec son portrait. */
+export const BOITE_VIGNETTE_AUTEUR: Dimensions = { largeur: 280, hauteur: 350 }
+export const VIGNETTE_QUALITE = 0.84
+
 
 /** Réduction à l'intérieur de la boîte, proportions conservées. Une image déjà plus
  *  petite n'est jamais agrandie : on ne fabrique pas de la définition qui n'existe pas.
@@ -67,17 +74,55 @@ export async function preparerPortrait(fichier: File, boite: Dimensions = BOITE_
   const bitmap = await createImageBitmap(fichier, { imageOrientation: 'from-image' })
   const { largeur, hauteur } = dimensionsPortrait({ largeur: bitmap.width, hauteur: bitmap.height }, boite)
 
+  try {
+    return await reduireEnJpeg(bitmap, largeur, hauteur, PORTRAIT_QUALITE, nomJpeg(fichier.name))
+  } finally {
+    bitmap.close()
+  }
+}
+
+/** Le portrait d'un AUTEUR et sa vignette, tirés du même fichier. */
+export async function preparerPortraitEtVignette(fichier: File): Promise<{ portrait: File; vignette: File }> {
+  const bitmap = await createImageBitmap(fichier, { imageOrientation: 'from-image' })
+  try {
+    const source = { largeur: bitmap.width, hauteur: bitmap.height }
+    const p = dimensionsPortrait(source, BOITE_AUTEUR)
+    const v = dimensionsPortrait(source, BOITE_VIGNETTE_AUTEUR)
+    const portrait = await reduireEnJpeg(bitmap, p.largeur, p.hauteur, PORTRAIT_QUALITE, nomJpeg(fichier.name))
+    const vignette = await reduireEnJpeg(bitmap, v.largeur, v.hauteur, VIGNETTE_QUALITE, 'vignette.jpg')
+    return { portrait, vignette }
+  } finally {
+    bitmap.close()
+  }
+}
+
+/** Réduit une image par PALIERS de moitié, puis au format voulu, en lissage de haute
+ *  qualité, et l'encode en JPEG.
+ *  ⛔ Un seul `drawImage` d'une source de plusieurs milliers de pixels vers 750 se fait
+ *  en bilinéaire simple, qui amollit et crénelle : c'est la cause probable des portraits
+ *  les plus doux du seau (audit du 2026-09-24). Chaque palier ne divise que par deux. */
+async function reduireEnJpeg(source: ImageBitmap, largeur: number, hauteur: number, qualite: number, nom: string): Promise<File> {
+  let image: CanvasImageSource = source
+  let l = source.width
+  let h = source.height
+  while (l / 2 >= largeur && h / 2 >= hauteur) {
+    l = Math.round(l / 2); h = Math.round(h / 2)
+    image = dessiner(image, l, h)
+  }
+  const canvas = dessiner(image, largeur, hauteur)
+  const blob = await new Promise<Blob | null>(resoudre => canvas.toBlob(resoudre, 'image/jpeg', qualite))
+  if (!blob) throw new Error('Conversion JPEG impossible')
+  return new File([blob], nom, { type: 'image/jpeg' })
+}
+
+function dessiner(image: CanvasImageSource, largeur: number, hauteur: number): HTMLCanvasElement {
   const canvas = document.createElement('canvas')
   canvas.width = largeur
   canvas.height = hauteur
   const ctx = canvas.getContext('2d')
-  if (!ctx) { bitmap.close(); throw new Error('Contexte 2D indisponible') }
-  ctx.drawImage(bitmap, 0, 0, largeur, hauteur)
-  bitmap.close()
-
-  const blob = await new Promise<Blob | null>(resoudre =>
-    canvas.toBlob(resoudre, 'image/jpeg', PORTRAIT_QUALITE))
-  if (!blob) throw new Error('Conversion JPEG impossible')
-
-  return new File([blob], nomJpeg(fichier.name), { type: 'image/jpeg' })
+  if (!ctx) throw new Error('Contexte 2D indisponible')
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(image, 0, 0, largeur, hauteur)
+  return canvas
 }

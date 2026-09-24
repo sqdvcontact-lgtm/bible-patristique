@@ -83,6 +83,16 @@ export function urlPortrait(ref: string | null | undefined, base = process.env.N
   return `${base}/storage/v1/object/public/${chemin.seau}/${chemin.fichier}`
 }
 
+/** L'adresse de la VIGNETTE d'un portrait : copie réduite, même proportion, pour les
+ *  petits ronds (seau `auteurs-vignettes`, voir app/lib/photoAuteur.ts). Un portrait
+ *  de traducteur n'en a pas : on rend son encart. Le rond retombe sur le portrait
+ *  entier si la vignette manque. */
+export function urlVignettePortrait(ref: string | null | undefined, base = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''): string | null {
+  if (!refPortraitValide(ref) || !base) return null
+  if (familleDeRef(ref) !== 'auteur') return urlPortrait(ref, base)
+  return `${base}/storage/v1/object/public/auteurs-vignettes/${identifiantDeRef(ref)}.jpg`
+}
+
 // ── Le cadrage ───────────────────────────────────────────────────────────────
 
 export type Cadrage = { posX: number; posY: number; zoom: number }
@@ -100,7 +110,7 @@ export const ZOOM_MAX = 1.8
 /** Le cadrage de départ d'un portrait d'auteur, repris de celui que l'administration
  *  a déjà réglé pour sa fiche.
  *
- *  ⚠️ On prend « fiche » et non « carte » : la fiche est en 0,80 de proportion, la
+ *  ⚠️ On prend « fiche » et non « carte » : la fiche est en 2/3 de proportion, la
  *  carte en 0,60, et le rond du profil est carré. C'est la fiche qui en est la plus
  *  proche, donc celle dont le point d'intérêt tombe le mieux. Personne n'a à recadrer
  *  ce qui l'a déjà été. */

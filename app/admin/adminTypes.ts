@@ -79,7 +79,7 @@ export type TexteEtatAdmin = {
 export type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 export type AuteurPhotoPositions = { carte: AuteurPhotoPos; fiche: AuteurPhotoPos }
 
-export type Auteur       = { id_auteur: string; nom: string; nom_original?: string | null; titre?: string | null; dates: string | null; date_naissance?: string | null; date_mort?: string | null; siecle?: string | null; traditions?: string[] | null; note?: string | null; note_biographique?: string | null; note_theologique?: string | null; langue_principale?: string | null; chronologie?: string | null; anecdotes?: string | null; influence?: string | null; photo_position?: AuteurPhotoPositions | null; oeuvres: Oeuvre[] }
+export type Auteur       = { id_auteur: string; nom: string; nom_original?: string | null; titre?: string | null; dates: string | null; date_naissance?: string | null; date_mort?: string | null; siecle?: string | null; traditions?: string[] | null; note?: string | null; note_biographique?: string | null; note_theologique?: string | null; langue_principale?: string | null; chronologie?: string | null; anecdotes?: string | null; influence?: string | null; photo_position?: AuteurPhotoPositions | null; photo_version?: number | null; oeuvres: Oeuvre[] }
 
 export type Traduction = {
   trad_id: string

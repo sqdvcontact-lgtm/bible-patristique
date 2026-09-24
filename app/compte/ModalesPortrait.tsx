@@ -16,7 +16,7 @@ import IconeCroix from '@/app/components/IconeCroix'
 
 export type PortraitChoisi = { ref: string; nom: string; cadrage: Cadrage }
 
-type Portrait = { ref: string; nom: string; detail: string; url: string; cadrage: Cadrage }
+type Portrait = { ref: string; nom: string; detail: string; url: string; vignette?: string; cadrage: Cadrage }
 type Famille = { cle: string; titre: string; portraits: Portrait[] }
 
 // ── Choix de l'illustration ──────────────────────────────────────────────────
@@ -92,8 +92,9 @@ function Vignette({ portrait, onChoisir }: { portrait: Portrait; onChoisir: () =
     <button onClick={onChoisir} className="cs-survol-fond cs-survol-bord"
       style={{ borderWidth: '1px', borderStyle: 'solid', '--repos-bord': 'var(--cs-bord-clair)', '--survol-bord': 'var(--cs-vert)', '--survol-fond': 'var(--cs-fond)', borderRadius: '8px', padding: '10px 8px 8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', transition: 'border-color var(--cs-duree-courte), background var(--cs-duree-courte)' } as React.CSSProperties}>
       <div style={{ width: '72px', height: '90px', position: 'relative', background: 'var(--cs-fond-doux)', borderRadius: '4px', overflow: 'hidden' }}>
-        <Image src={portrait.url} alt="" fill sizes="72px" unoptimized
-          style={{ objectFit: 'cover', objectPosition: `${portrait.cadrage.posX}% ${portrait.cadrage.posY}%` }} />
+        {/* La vignette, et le zoom avec le point cadré : l'aperçu dit ce que le rond montrera. */}
+        <Image src={portrait.vignette || portrait.url} alt="" fill unoptimized
+          style={{ objectFit: 'cover', objectPosition: `${portrait.cadrage.posX}% ${portrait.cadrage.posY}%`, transform: `scale(${portrait.cadrage.zoom})`, transformOrigin: `${portrait.cadrage.posX}% ${portrait.cadrage.posY}%` }} />
       </div>
       <span style={{ fontSize: '0.6875rem', color: 'var(--cs-texte)', textAlign: 'center', lineHeight: 1.3, fontFamily: SERIF }}>{portrait.nom}</span>
       {portrait.detail && (
@@ -159,8 +160,8 @@ export function ModaleCadrage({ refPortrait: ref, nom, cadrage, onSauvegarder, o
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}>
           {url && (
-            <Image src={url} alt="" fill sizes="160px" unoptimized
-              style={{ objectFit: 'cover', objectPosition: `${posX}% ${posY}%`, transform: `scale(${zoom})`, transformOrigin: 'center center', userSelect: 'none', pointerEvents: 'none' }} />
+            <Image src={url} alt="" fill unoptimized
+              style={{ objectFit: 'cover', objectPosition: `${posX}% ${posY}%`, transform: `scale(${zoom})`, transformOrigin: `${posX}% ${posY}%`, userSelect: 'none', pointerEvents: 'none' }} />
           )}
         </div>
         {nom && <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte)', textAlign: 'center', margin: '0 0 4px', fontFamily: SERIF }}>{nom}</p>}

@@ -7,15 +7,15 @@
  * fenêtre, comme une notice auteur, sans illustration toutefois ». Elle prend donc le
  * cadre des fiches (`ModaleFiche`, `CorpsFiche`, `EnTeteFiche`).
  * Revirement de l'auteur : « ajoute, finalement, la photo choisie, en petit ». Le
- * portrait choisi par le lecteur se pose en PASTILLE ronde devant son nom, jamais dans
+ * portrait choisi par le lecteur se pose en PASTILLE ronde (PortraitLecteur) devant son nom, jamais dans
  * le grand cadre flottant des fiches (`PortraitFiche`) : ce n'est pas une illustration.
- * Sans portrait, ou si l'image ne vient pas, rien ne la remplace.
+ * Sans portrait, rien ne se pose ; si l'image ne vient pas, l'initiale la remplace.
  *
  * ⚠️ Les données viennent de `/api/profil/[pseudo]`, la même source que la page
  * publique : ce que la fenêtre montre, la page le montre aussi, et rien de plus.
  */
 
-import Image from 'next/image'
+import PortraitLecteur from '@/app/components/PortraitLecteur'
 import Link from 'next/link'
 import { useEffect, useId, useState } from 'react'
 import { ChampFiche, CorpsFiche, EnTeteFiche, ModaleFiche, SectionFiche } from '@/app/components/FicheModele'
@@ -30,26 +30,7 @@ type ProfilFiche = {
   membre_depuis: string
   lecture?: { nb_auteurs: number; total_auteurs: number }
   essais?: { id: number; titre: string; sous_titre: string | null; publie_at: string | null }[]
-  avatar?: { imageUrl: string; nom: string; posX: number | null; posY: number | null; zoom: number | null } | null
-}
-
-/** Le portrait du lecteur, en petit, avec le recadrage qu'il a choisi. */
-function PastillePortrait({ avatar }: { avatar: NonNullable<ProfilFiche['avatar']> }) {
-  const [casse, setCasse] = useState(false)
-  if (casse) return null
-  return (
-    <div title={avatar.nom} style={{ flex: 'none', width: '2.75rem', height: '2.75rem', borderRadius: '50%', overflow: 'hidden', border: '1.5px solid var(--cs-or-doux)', position: 'relative' }}>
-      <Image
-        src={avatar.imageUrl} alt={avatar.nom} fill sizes="64px" unoptimized onError={() => setCasse(true)}
-        style={{
-          objectFit: 'cover',
-          objectPosition: `${avatar.posX ?? 50}% ${avatar.posY ?? 20}%`,
-          transform: `scale(${avatar.zoom ?? 1})`,
-          transformOrigin: 'center center',
-        }}
-      />
-    </div>
-  )
+  avatar?: { ref: string; imageUrl: string; nom: string; posX: number | null; posY: number | null; zoom: number | null } | null
 }
 
 export default function ModaleProfilLecteur({ pseudo, onClose }: { pseudo: string | null; onClose: () => void }) {
@@ -84,9 +65,13 @@ export default function ModaleProfilLecteur({ pseudo, onClose }: { pseudo: strin
           className="cs-fiche-auteur"
           entete={
             <div className="cs-fiche-tete">
-              {profil.avatar?.imageUrl ? (
+              {profil.avatar?.ref ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <PastillePortrait avatar={profil.avatar} />
+                  <div title={profil.avatar.nom} style={{ flex: 'none', display: 'flex' }}>
+                    <PortraitLecteur refPortrait={profil.avatar.ref} alt={profil.avatar.nom} initiale={profil.pseudo} taille={44}
+                      couleurFilet="var(--cs-or-doux)"
+                      cadrage={{ posX: profil.avatar.posX ?? 50, posY: profil.avatar.posY ?? 20, zoom: profil.avatar.zoom ?? 1 }} />
+                  </div>
                   <EnTeteFiche titre={profil.pseudo} titreId={titreId} sousTitre={profil.nom_reel || undefined} />
                 </div>
               ) : (

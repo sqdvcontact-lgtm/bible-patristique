@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { EcranAttente } from '@/app/lib/attenteEnCreux'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import PortraitLecteur from '@/app/components/PortraitLecteur'
 import { calculerRang, couleurRang } from '@/app/lib/classement'
 import type { CitationFavoritePublique } from '@/app/lib/citationsFavorites'
 import MarqueMecene from '@/app/components/MarqueMecene'
@@ -23,14 +23,14 @@ type ProfilPublic = {
   lecture?: { nb_auteurs: number; total_auteurs: number }
   bibliotheque?: { id: string; mt?: 'la'; titre: string; auteur: string }[]
   essais?: { id: number; titre: string; sous_titre: string | null; categories: string[]; publie_at: string | null; nb_vues: number }[]
-  avatar?: { imageUrl: string; nom: string; posX: number | null; posY: number | null; zoom: number | null } | null
+  avatar?: { ref: string; imageUrl: string; nom: string; posX: number | null; posY: number | null; zoom: number | null } | null
   /** Les deux citations favorites, l'Écriture d'abord : composées par l'API, jamais ici. */
   citations_favorites?: CitationFavoritePublique[]
   /** L'année du premier don, ou nul. Voir app/components/MarqueMecene.tsx. */
   mecene_depuis?: number | null
 }
 
-type PhotoProfil = { id_auteur: string; nom: string; imageUrl: string; posX?: number; posY?: number; zoom?: number }
+type PhotoProfil = { ref: string; nom: string; posX?: number; posY?: number; zoom?: number }
 
 // ── Filet ornemental ─────────────────────────────────────────────────────────
 function Filet({ couleur = 'var(--cs-or-doux)', symbole = '✦', maxWidth = '200px' }: { couleur?: string; symbole?: React.ReactNode; maxWidth?: string }) {
@@ -73,8 +73,8 @@ export default function ProfilPublicPage() {
         setProfil(p); document.title = `${p.pseudo} · Corpus Scriptura`
         // Le portrait (recadrage compris) est servi par l'API pour TOUS les visiteurs,
         // plus seulement lu du localStorage du propriétaire.
-        if (p.avatar?.imageUrl) setPhotoProfil({
-          id_auteur: '', nom: p.avatar.nom ?? '', imageUrl: p.avatar.imageUrl,
+        if (p.avatar?.ref) setPhotoProfil({
+          ref: p.avatar.ref, nom: p.avatar.nom ?? '',
           posX: p.avatar.posX ?? undefined, posY: p.avatar.posY ?? undefined, zoom: p.avatar.zoom ?? undefined,
         })
       })
@@ -226,18 +226,12 @@ export default function ProfilPublicPage() {
           {/* Photo ou monogramme */}
           <div style={{ marginBottom: '12px' }}>
             {photoProfil ? (
-              <div title={photoProfil.nom} style={{ width: '72px', height: '72px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto', border: '2px solid var(--cs-or-doux)', position: 'relative', cursor: 'default' }}>
-                <Image
-                  src={photoProfil.imageUrl}
-                  alt={photoProfil.nom}
-                  fill sizes="72px" unoptimized
-                  style={{
-                    objectFit: 'cover',
-                    objectPosition: `${photoProfil.posX ?? 50}% ${photoProfil.posY ?? 20}%`,
-                    transform: `scale(${photoProfil.zoom ?? 1})`,
-                    transformOrigin: 'center center',
-                  }}
-                />
+              /* ⛔ Le rond de la page publique est CELUI des autres surfaces (PortraitLecteur) :
+                 il en composait un à lui, sans vignette, sans repli, et zoomait autour du centre. */
+              <div title={photoProfil.nom} style={{ display: 'flex', justifyContent: 'center' }}>
+                <PortraitLecteur refPortrait={photoProfil.ref} alt={photoProfil.nom} initiale={profil.pseudo} taille={72}
+                  couleurFilet="var(--cs-or-doux)"
+                  cadrage={{ posX: photoProfil.posX ?? 50, posY: photoProfil.posY ?? 20, zoom: photoProfil.zoom ?? 1 }} />
               </div>
             ) : (
               <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(145deg, var(--cs-vert-aplat), var(--cs-vert-aplat-profond))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '2px solid var(--cs-vert-clair)', boxShadow: 'var(--cs-ombre-flottante)' }}>

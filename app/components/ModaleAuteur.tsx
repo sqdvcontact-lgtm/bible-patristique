@@ -37,8 +37,7 @@ import { rendreSiecles } from '@/app/lib/siecles'
 import { supabase } from '@/app/lib/supabase'
 import { rendreMarquesNote } from '@/app/lib/texteEnrichiEssai'
 import { SERIF, SANS } from '@/app/lib/polices'
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+import { initialesDuNom, parseAuteurPhotoPositions, stylePhotoAuteur, urlPortraitAuteur } from '@/app/lib/photoAuteur'
 
 type OeuvreResumee = {
   id_oeuvre: string; titre: string; sous_titre: string | null
@@ -49,7 +48,6 @@ type OeuvreResumee = {
   composition_debut_annee: number | null
   auteurs?: AuteurOeuvre[]
 }
-type AuteurPhotoPos = { x: number; y: number; scale: number; scaleX?: number; scaleY?: number }
 type Auteur = {
   id_auteur: string; nom: string; nom_original: string | null
   titre: string | null; dates: string | null; siecle: number | null
@@ -57,6 +55,7 @@ type Auteur = {
   note_theologique: string | null; langue_principale: string | null
   anecdotes: string | null; influence: string | null
   photo_position?: unknown
+  photo_version?: number | null
   oeuvres: OeuvreResumee[]
 }
 
@@ -91,8 +90,6 @@ function partDuFilet(liens: number, tete: number): number {
   return Math.max(6, Math.round((liens / tete) * 100))
 }
 
-const POS_DEFAUT: AuteurPhotoPos = { x: 50, y: 24, scale: 1, scaleX: 1, scaleY: 1 }
-
 /** Les auteurs d'une œuvre écrite à plusieurs, en mention discrète après le titre.
  *  Rien pour une œuvre à auteur unique : la fiche répéterait son propre nom. */
 function MentionCoAuteurs({ auteurs }: { auteurs?: AuteurOeuvre[] }) {
@@ -103,24 +100,9 @@ function MentionCoAuteurs({ auteurs }: { auteurs?: AuteurOeuvre[] }) {
     </span>
   )
 }
-function parsePhotoPos(raw: unknown): AuteurPhotoPos {
-  const r = raw as { x?: unknown; fiche?: Partial<AuteurPhotoPos> } | null | undefined
-  const src = (r && typeof r.x === 'number' ? r : r?.fiche) as Partial<AuteurPhotoPos> | undefined
-  return {
-    x: typeof src?.x === 'number' ? src.x : POS_DEFAUT.x,
-    y: typeof src?.y === 'number' ? src.y : POS_DEFAUT.y,
-    scale: typeof src?.scale === 'number' ? src.scale : POS_DEFAUT.scale,
-    scaleX: typeof src?.scaleX === 'number' ? src.scaleX : POS_DEFAUT.scaleX,
-    scaleY: typeof src?.scaleY === 'number' ? src.scaleY : POS_DEFAUT.scaleY,
-  }
-}
-function stylePhoto(pos: AuteurPhotoPos): CSSProperties {
-  return {
-    objectFit: 'cover', objectPosition: `${pos.x}% ${pos.y}%`,
-    transform: `scale(${pos.scale}) scaleX(${pos.scaleX ?? 1}) scaleY(${pos.scaleY ?? 1})`,
-    transformOrigin: `${pos.x}% ${pos.y}%`,
-  }
-}
+// ⛔ Le cadrage, l'adresse et les initiales du portrait viennent de
+// app/lib/photoAuteur.ts : la copie qui vivait ici n'avait pas de version d'adresse,
+// gardait scaleX/scaleY et coupait les initiales sur les particules (« Vd »).
 
 // ── Frise agrégée de l'auteur ──────────────────────────────────────────────────
 // Trois brins, distingués par la couleur du point : Vie (le parcours de l'auteur),
@@ -371,7 +353,7 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
   const aOeuvres = oeuvresPresentes.length > 0 || oeuvresAbsentes.length > 0
   const anecdotes = auteur.anecdotes?.trim() || null
   const influence = auteur.influence?.trim() || null
-  const initiales = auteur.nom.split(/\s+/).map(m => m[0]).filter(Boolean).slice(0, 2).join('')
+  const initiales = initialesDuNom(auteur.nom)
 
   // La colonne des dates est COMMUNE à toutes les rangées, et mesurée : voir
   // `useColonneCommune` — une grille alignait les titres, mais se rangeait tout entière
@@ -383,8 +365,8 @@ function Contenu({ auteur, onClose, evenements, pied, titreId }: {
       className="cs-fiche-auteur"
       portrait={
         <PortraitFiche
-          src={`${SUPABASE_URL}/storage/v1/object/public/auteurs/${auteur.id_auteur}.jpg`}
-          styleImage={stylePhoto(parsePhotoPos(auteur.photo_position))}
+          src={urlPortraitAuteur(auteur.id_auteur, auteur.photo_version)}
+          styleImage={stylePhotoAuteur(parseAuteurPhotoPositions(auteur.photo_position).fiche)}
           initiales={initiales}
           cle={`${auteur.id_auteur}·${auteur.nom}`} />
       }
@@ -496,7 +478,7 @@ export default function ModaleAuteur({ id, onClose, filAriane = false }: { id: s
         : supabase.from('v_oeuvres_dates').select(COLONNES).eq('id_auteur', id)
       return Promise.all([
         supabase.from('auteurs')
-          .select('id_auteur, nom, nom_original, titre, dates, siecle, traditions, photo_position, note_biographique, note_theologique, langue_principale, anecdotes, influence')
+          .select('id_auteur, nom, nom_original, titre, dates, siecle, traditions, photo_position, photo_version, note_biographique, note_theologique, langue_principale, anecdotes, influence')
           .eq('id_auteur', id).maybeSingle(),
         requeteOeuvres,
         Promise.resolve(auteursParOeuvre),

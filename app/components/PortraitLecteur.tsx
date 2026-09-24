@@ -11,11 +11,12 @@
 // c'est ainsi qu'aucune adresse venue d'ailleurs ne peut se glisser dans une page
 // (voir app/lib/portraits.ts).
 
+import { useState } from 'react'
 import Image from 'next/image'
-import { CADRAGE_PAR_DEFAUT, urlPortrait, type Cadrage } from '@/app/lib/portraits'
+import { CADRAGE_PAR_DEFAUT, urlPortrait, urlVignettePortrait, type Cadrage } from '@/app/lib/portraits'
 import { SERIF } from '@/app/lib/polices'
 
-export default function PortraitLecteur({ refPortrait: ref, cadrage, initiale, taille, carre = false, alt = '' }: {
+export default function PortraitLecteur({ refPortrait: ref, cadrage, initiale, taille, carre = false, alt = '', couleurFilet = 'var(--cs-bord)' }: {
   refPortrait: string | null | undefined
   cadrage?: Cadrage | null
   /** La lettre qui tient lieu de portrait tant qu'aucun n'est choisi. */
@@ -43,15 +44,21 @@ export default function PortraitLecteur({ refPortrait: ref, cadrage, initiale, t
    */
   carre?: boolean
   alt?: string
+  /** La couleur du filet : la page publique le veut doré. */
+  couleurFilet?: string
 }) {
-  const url = urlPortrait(ref)
+  // ⛔ La VIGNETTE d'abord (10 à 20 Ko), le portrait entier s'il manque, l'initiale si
+  // rien ne vient : le rond de la barre chargeait le portrait entier (60 à 160 Ko) pour
+  // 22 px, et montrait une image cassée si le fichier disparaissait.
+  const [echecs, setEchecs] = useState<readonly string[]>([])
+  const url = [urlVignettePortrait(ref), urlPortrait(ref)].find(u => u && !echecs.includes(u)) ?? null
   const cadre = cadrage ?? CADRAGE_PAR_DEFAUT
   // ⛔ EN REM, jamais en pixels : voir la note de `taille`. Le nombre reçu dit la mesure
   // à la racine 16, et le rond suit la racine partout ailleurs.
   const mesure = `${taille / 16}rem`
   const commun = carre
-    ? { width: '100%', height: '100%', borderRadius: '4px', border: '1px solid var(--cs-bord)', flexShrink: 0 } as const
-    : { width: mesure, height: mesure, borderRadius: '50%', border: '2px solid var(--cs-bord)', flexShrink: 0 } as const
+    ? { width: '100%', height: '100%', borderRadius: '4px', border: `1px solid ${couleurFilet}`, flexShrink: 0 } as const
+    : { width: mesure, height: mesure, borderRadius: '50%', border: `2px solid ${couleurFilet}`, flexShrink: 0 } as const
 
   if (!url) {
     return (
@@ -67,12 +74,16 @@ export default function PortraitLecteur({ refPortrait: ref, cadrage, initiale, t
 
   return (
     <div style={{ ...commun, overflow: 'hidden', position: 'relative' }}>
-      <Image src={url} alt={alt} fill sizes={`${taille}px`} unoptimized
+      {/* ⛔ Le zoom tourne autour du POINT CADRÉ, comme sur la carte et la fiche
+          (app/lib/photoAuteur.ts) : les mêmes nombres désignent alors la même région.
+          Autour du centre, le visage sortait du rond de Tertullien, Boèce ou Dhuoda. */}
+      <Image src={url} alt={alt} fill unoptimized
+        onError={() => setEchecs(prev => [...prev, url])}
         style={{
           objectFit: 'cover',
           objectPosition: `${cadre.posX}% ${cadre.posY}%`,
           transform: `scale(${cadre.zoom})`,
-          transformOrigin: 'center center',
+          transformOrigin: `${cadre.posX}% ${cadre.posY}%`,
         }} />
     </div>
   )

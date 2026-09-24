@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest'
+import fs from 'node:fs'
+import path from 'node:path'
 import {
   CADRES_PORTRAIT, POS_CARTE_DEFAUT, POS_FICHE_DEFAUT, ZOOM_MAX, ZOOM_MIN,
-  bornerPos, deplacerPos, parseAuteurPhotoPositions, stylePhotoAuteur, urlPortrait,
+  bornerPos, deplacerPos, parseAuteurPhotoPositions, stylePhotoAuteur,
+  initialesDuNom, urlPortraitAuteur, urlVignetteAuteur,
 } from './photoAuteur'
 
 describe('lecture de photo_position', () => {
@@ -111,8 +114,42 @@ describe('cadres des surfaces', () => {
 
 describe('adresse du portrait', () => {
   it('compose l’adresse du seau, avec ou sans version de cache', () => {
-    expect(urlPortrait('https://x.supabase.co', 'A0047'))
+    expect(urlPortraitAuteur('A0047', undefined, 'https://x.supabase.co'))
       .toBe('https://x.supabase.co/storage/v1/object/public/auteurs/A0047.jpg')
-    expect(urlPortrait('https://x.supabase.co', 'A0047', 12)).toMatch(/\.jpg\?v=12$/)
+    expect(urlPortraitAuteur('A0047', 12, 'https://x.supabase.co')).toMatch(/\.jpg\?v=12$/)
+    expect(urlPortraitAuteur('A0047', null, 'https://x.supabase.co')).toMatch(/\.jpg$/)
+  })
+
+  it('tire la vignette de son propre seau, à la même version', () => {
+    expect(urlVignetteAuteur('A0047', 12, 'https://x.supabase.co'))
+      .toBe('https://x.supabase.co/storage/v1/object/public/auteurs-vignettes/A0047.jpg?v=12')
+  })
+
+  // Audit du 24 septembre 2026 : la fiche composait son adresse sans version, et le
+  // navigateur gardait l'ancien portrait après un nouveau dépôt.
+  it('n’est composée nulle part ailleurs', () => {
+    const racine = path.resolve(__dirname, '../..')
+    const permis = new Set(['app/lib/photoAuteur.ts', 'app/lib/portraits.ts'])
+    const fautifs: string[] = []
+    const parcourir = (dossier: string) => {
+      for (const e of fs.readdirSync(path.join(racine, dossier), { withFileTypes: true })) {
+        const rel = `${dossier}/${e.name}`
+        if (e.isDirectory()) { if (e.name !== 'node_modules') parcourir(rel); continue }
+        if (!/\.tsx?$/.test(e.name) || /\.test\.tsx?$/.test(e.name) || permis.has(rel)) continue
+        if (/object\/public\/auteurs/.test(fs.readFileSync(path.join(racine, rel), 'utf8'))) fautifs.push(rel)
+      }
+    }
+    parcourir('app')
+    expect(fautifs).toEqual([])
+  })
+})
+
+describe('initiales de repli', () => {
+  it('passe les particules, les élisions et les signes', () => {
+    expect(initialesDuNom('Victorin de Poetovio')).toBe('VP')
+    expect(initialesDuNom('Augustin d’Hippone')).toBe('AH')
+    expect(initialesDuNom('Anonyme / Conciles, règles monastiques')).toBe('AC')
+    expect(initialesDuNom('Boèce')).toBe('B')
+    expect(initialesDuNom('Éphrem le Syrien')).toBe('ÉS')
   })
 })

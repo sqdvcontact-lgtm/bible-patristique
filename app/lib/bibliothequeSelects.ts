@@ -7,7 +7,7 @@
 // page rendue par le serveur ne portait aucune mesure et que la section
 // « Opuscules » ne se déclenchait JAMAIS en ligne (voir `app/lib/opuscules.ts`).
 export const SELECT_AUTEURS_BIBLIOTHEQUE =
-  'id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, langue_principale, traditions, note, note_biographique, note_theologique, photo_position'
+  'id_auteur, nom, nom_original, titre, dates, date_naissance, date_mort, siecle, langue_principale, traditions, note, note_biographique, note_theologique, photo_position, photo_version'
 
 // `nb_signes` commande le partage entre œuvres longues et opuscules : ne pas le retirer.
 export const SELECT_OEUVRES_BIBLIOTHEQUE =

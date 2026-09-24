@@ -4,6 +4,7 @@ import { creerSupabaseServeur } from "@/app/lib/supabaseServeur"
 import { chargerAuteursParOeuvre, grouperOeuvresParAuteur } from "@/app/lib/auteursOeuvre"
 import { SELECT_AUTEURS_BIBLIOTHEQUE, SELECT_OEUVRES_BIBLIOTHEQUE } from "@/app/lib/bibliothequeSelects"
 import IndiceTelephoneServeur from '@/app/lib/IndiceTelephoneServeur'
+import { urlPortraitAuteur } from "@/app/lib/photoAuteur"
 
 // Base fermée au rôle anonyme : on interroge avec la session du visiteur. La
 // page devient dynamique (elle lit les cookies) et perd donc son cache d'une
@@ -41,10 +42,8 @@ export default async function BibliothequePage() {
     .map(oeuvre => ({ ...oeuvre, auteurs: auteursParOeuvre[oeuvre.id_oeuvre] ?? [] }))
   const oeuvresParAuteur = grouperOeuvresParAuteur(oeuvres, auteursParOeuvre, oeuvre => String(oeuvre.id_auteur))
 
-  const base = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/auteurs`
-  const cacheV = Math.floor(Date.now() / (3600 * 1000))
   const auteurs = (((auteursResultat.data ?? []) as AuteurBibliotheque[])
-    .map(a => ({ ...a, oeuvres: oeuvresParAuteur.get(String(a.id_auteur)) ?? [], imageUrl: `${base}/${a.id_auteur}.jpg?v=${cacheV}` }))
+    .map(a => ({ ...a, oeuvres: oeuvresParAuteur.get(String(a.id_auteur)) ?? [], imageUrl: urlPortraitAuteur(String(a.id_auteur), a.photo_version as number | null) }))
     .filter(a => a.oeuvres.length > 0)) as ComponentProps<typeof BibliothequeClient>["auteurs"]
 
   // Si le chargement des auteurs échoue, on le signale plutôt que d'afficher une
