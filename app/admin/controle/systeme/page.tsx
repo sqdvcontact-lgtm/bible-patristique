@@ -3,6 +3,7 @@ import { estAdminDeLaRequete } from '../chargementsControle'
 import { EcranReserve } from '../piecesControle'
 import { CSS_SYSTEME } from '../stylesCentre'
 import VueSysteme from './VueSysteme'
+import GrainEnsembles from './GrainEnsembles'
 
 export const metadata = { title: 'État du contrôle v2 · Centre de contrôle' }
 export const dynamic = 'force-dynamic'
@@ -29,6 +30,17 @@ export default async function PageSysteme() {
         }
       >
         <VueSysteme />
+      </Suspense>
+      {/* Le grain des alignements se mesure en TypeScript, par la fonction de l'atelier :
+          il ne peut pas entrer dans le contrat SQL, et attend dans sa propre frontière. */}
+      <Suspense
+        fallback={
+          <div className="cc-carte">
+            <p className="cv-vide">Le grain des alignements se mesure, ensemble par ensemble.</p>
+          </div>
+        }
+      >
+        <GrainEnsembles />
       </Suspense>
     </>
   )
