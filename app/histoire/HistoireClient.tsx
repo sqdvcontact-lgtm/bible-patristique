@@ -22,6 +22,7 @@ import { STYLE_PENDANT_VOLET, styleColonnePage, styleMesureCentree } from '@/app
 import { usePendantVolet } from '@/app/lib/usePendantVolet'
 import VoletPage, { BoutonReinitialiser, GroupeFiltre, LigneCompte } from '@/app/components/VoletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
+import FrisePeriodes, { ancrePeriode, MARGE_SAUT_PERIODE, type PeriodeFrise } from './FrisePeriodes'
 
 // Frise générale de l'histoire de l'Église.
 // Les champs riches viennent de `v_frise_generale`, triée par `ordre_affichage`.
@@ -135,7 +136,7 @@ function rendreFrise(texte: string | null | undefined, q: string): React.ReactNo
 }
 
 export default function HistoireClient(
-  { evs, series, relations }: { evs: RangFrise[]; series: SerieFrise[]; relations: RelationFrise[] },
+  { evs, series, relations, periodes }: { evs: RangFrise[]; series: SerieFrise[]; relations: RelationFrise[]; periodes: PeriodeFrise[] },
 ) {
   const mobile = useEstMobile()
   // Le pendant vide du volet, à droite, sur un grand écran (charte § 38.39).
@@ -242,6 +243,13 @@ export default function HistoireClient(
     }
     return true
   }), [evs, mode, f, q])
+  // Le compte de chaque période, sur la liste rendue : la frise du pendant s'y
+  // proportionne, et une période sans événement retenu s'y éteint.
+  const comptesPeriodes = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const e of visibles) if (e.periode_code) m.set(e.periode_code, (m.get(e.periode_code) ?? 0) + 1)
+    return m
+  }, [visibles])
 
   // Le graphe et les fils, indexés une seule fois : 616 relations et 181 séries pour
   // 1 170 événements, et une carte n'a plus qu'à demander les siens.
@@ -457,7 +465,13 @@ export default function HistoireClient(
             )}
           </div>
         </section>
-        {pendant && <div aria-hidden style={STYLE_PENDANT_VOLET} />}
+        {/* Le pendant porte ici la frise des périodes, proportionnée à la liste
+            rendue (charte § 38.39). Il ne paraît pas sur un écran étroit. */}
+        {pendant && (
+          <div style={STYLE_PENDANT_VOLET}>
+            <FrisePeriodes periodes={periodes} comptes={comptesPeriodes} />
+          </div>
+        )}
       </div>
     </main>
   )
@@ -476,10 +490,14 @@ function ListeFrise({ items, mobile, toutesNotes, recherche, liensParEvenement, 
   allerAEvenement: (id: string) => void
 }) {
   const tranches = decouperEnPeriodes(items)
+  // La frise saute à la PREMIÈRE section d'une période : seule elle porte l'ancre.
+  const ancrees = new Set<string>()
   return (
     <>
-      {tranches.map((t, i) => (
-        <section key={`${t.code ?? 'sans'}-${i}`}>
+      {tranches.map((t, i) => {
+        const ancre = t.code && !ancrees.has(t.code) ? (ancrees.add(t.code), ancrePeriode(t.code)) : undefined
+        return (
+        <section key={`${t.code ?? 'sans'}-${i}`} id={ancre} data-periode={t.code ?? undefined} style={{ scrollMarginTop: MARGE_SAUT_PERIODE }}>
           {t.nom && (
             /* ⚠️ Collant sous la BARRE, dont la hauteur se compose et ne se recopie
                jamais en pixels (charte, Responsive). Le repère porte le fond de la
@@ -498,7 +516,8 @@ function ListeFrise({ items, mobile, toutesNotes, recherche, liensParEvenement, 
             ))}
           </ul>
         </section>
-      ))}
+        )
+      })}
     </>
   )
 }

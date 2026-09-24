@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import HistoireClient from './HistoireClient'
+import type { PeriodeFrise } from './FrisePeriodes'
 import {
   fusionnerDatesFrise,
   type RangFrise, type RangFriseDates, type RelationFrise, type SerieFrise,
@@ -67,7 +68,7 @@ export default async function HistoirePage() {
     { p_date_debut: 1500, p_date_fin: 1799 },
     { p_date_debut: 1800 },
   ]
-  const [rangs, series, relations, ...resultatsDates] = await Promise.all([
+  const [rangs, series, relations, periodes, ...resultatsDates] = await Promise.all([
     supabaseAdmin.from('v_frise_generale').select(COLONNES_FRISE).order('ordre_affichage'),
     // 181 séries, l'ordre et le rôle de leurs 924 membres.
     supabaseAdmin.from('v_series_evenements').select('code, titre, type_serie, membres'),
@@ -77,6 +78,8 @@ export default async function HistoirePage() {
     supabaseAdmin.from('v_evenements_relations')
       .select('evenement_source_id, source_titre, source_date_debut, type_relation, evenement_cible_id, cible_titre, cible_date_debut')
       .eq('est_affiche', true),
+    // Les quinze périodes, pour la frise du pendant (charte § 38.39).
+    supabaseAdmin.from('v_frise_periodes').select('code, nom, date_debut, date_fin').order('ordre'),
     ...plages.map(plage => supabaseAdmin.rpc('rechercher_frise_v2', {
       p_mode: 'tout',
       p_limite: 500,
@@ -90,6 +93,7 @@ export default async function HistoirePage() {
       evs={evs}
       series={compacterSeries((series.data ?? []) as unknown as LigneSerie[])}
       relations={(relations.data ?? []) as unknown as RelationFrise[]}
+      periodes={(periodes.data ?? []) as PeriodeFrise[]}
     />
   )
 }
