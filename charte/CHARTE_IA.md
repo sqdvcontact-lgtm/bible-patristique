@@ -9953,6 +9953,8 @@ propre espace de mot ne bougent pas.
 
 ⚠️ **Ce qui déroge, et pourquoi.** La Polyglotte ne prend que l’espace et la chasse : son interligne de tableau (1,34) est calé sur la lettrine d’une ligne, et l’on y compare les colonnes rangée à rangée. Si ses colonnes étroites ouvrent de trop grands blancs de justification (§ 3.11.7), c’est son espace de mot qu’on rend à −0,02 em, non les jetons. Le texte original composé en sans en regard du français garde −0,03 em, plancher du sans. Les citations détachées gardent leur composition propre.
 
+⛔ **LE GREC A SON GRIS, plus léger.** Le grec polytonique porte ses esprits et ses accents au-dessus des lettres, et au gris du latin et du français il se tasse (relevé de l’auteur sur la Septante, 24 septembre 2026). Sous `:lang(grc)`, les jetons se redéfinissent : espace des mots −0,01 em, chasse +0,01 em. L’interligne et le retrait ne changent pas. Toute surface qui lit les jetons suit, pourvu que le texte déclare sa langue (`lang="grc"`).
+
 ⚠️ **Pour ces surfaces, il remplace** la valeur sérif du § 3.11.2 (−0,025 em) et la ligne « Lecture continue » du barème du § 3.11.3 (1,62, désormais 1,55). `INTERLIGNE_LECTURE` (`compositionOeuvre.ts`) porte l’interligne en nombre pour la lettrine, et un test le confronte au jeton.
 
 ### 51.11 La fenêtre de SIGNALEMENT — aucun anneau au foyer, et un rebours qui dit le temps

@@ -693,6 +693,18 @@
    encore à la famille chaude, elle ne se lit pas comme « une couleur », mais un
    bouton destructif continue de se signaler sans qu'il faille lire son libellé.
    Ne pas la ramener au beige : c'est le seul endroit où la couleur travaille.  */
+/* ── Le gris du GREC (charte § 3.11.8) ──
+   Le grec polytonique porte ses esprits et ses accents AU-DESSUS des lettres : au gris du
+   latin et du français, il se tasse (relevé de l’auteur sur la Septante, 2026-09-24).
+   L’espace revient à −0,01 em, la valeur que la colonne grecque d’une œuvre portait déjà,
+   et la chasse s’ouvre d’un centième de cadratin. ⚠️ Les JETONS se redéfinissent sous
+   `:lang(grc)`, si bien que toute surface qui les lit (Bible, Polyglotte, Pères) suit sans
+   une ligne de plus ; la déclaration de langue (`lang="grc"`) est la seule condition. */
+:lang(grc) {
+  --cs-corps-espace-mot: -0.01em;
+  --cs-corps-chasse: 0.01em;
+}
+
 :root[data-corps="petit"] {
   --cs-lecture-corps: 0.875rem;
   --cs-lecture-corps-oeuvre: 0.75rem;
