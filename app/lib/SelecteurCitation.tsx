@@ -24,6 +24,7 @@ import { STYLE_RUBRIQUE } from './hierarchieTitres'
 import IconeCroix from '@/app/components/IconeCroix'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
 import { Z_MODALE } from '@/app/lib/empilement'
+import { MentionVide } from '@/app/components/EtatVideVolet'
 
 const NOM_FR: Record<string, string> = {
   GEN:'Genèse',EXO:'Exode',LEV:'Lévitique',NUM:'Nombres',DEU:'Deutéronome',JOS:'Josué',JDG:'Juges',RUT:'Ruth',
@@ -624,7 +625,7 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
   }, [source])
 
   if (items === null) return <MotAttente />
-  if (items.length === 0) return <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun passage enregistré dans « Mes prélèvements » pour l’instant.</p>
+  if (items.length === 0) return <div style={{ margin: '0.75rem 0' }}><MentionVide>Aucun passage enregistré dans « Mes prélèvements » pour l’instant.</MentionVide></div>
 
   const choisir = async (it: any) => {
     if (source === 'bible') {
@@ -708,7 +709,7 @@ function MesCitations({ source, onChoisir }: { source: 'bible' | 'patristique'; 
   )
 
   if (!itemsFiltres.length) {
-    return <div>{barre}<p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucune citation ne correspond.</p></div>
+    return <div>{barre}<div style={{ margin: '0.75rem 0' }}><MentionVide>Aucune citation ne correspond.</MentionVide></div></div>
   }
 
   // Patristique : regroupé par auteur (le § de paragraphe n'est plus affiché).

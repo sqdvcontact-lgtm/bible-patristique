@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import { SERIF } from '@/app/lib/polices'
+import { TEXTE_ERREUR } from '@/app/lib/texteErreur'
 
 type Message = {
   id: string
@@ -229,7 +230,7 @@ export default function ConversationPage() {
             </button>
           </div>
           {erreurEnvoi && (
-            <p role="alert" style={{ fontSize: '0.71875rem', color: 'var(--cs-danger)', margin: '6px 0 0' }}>{erreurEnvoi}</p>
+            <p role="alert" style={{ ...TEXTE_ERREUR, margin: '6px 0 0' }}>{erreurEnvoi}</p>
           )}
           <p style={{ fontSize: '0.6875rem', color: 'var(--cs-bord)', margin: '5px 0 0', textAlign: 'right' }}>
             {texte.length}/2000

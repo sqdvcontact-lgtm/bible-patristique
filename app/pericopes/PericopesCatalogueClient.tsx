@@ -71,6 +71,7 @@ import {
 import { filtrerCatalogue, TESTAMENT_LIVRE } from '@/app/lib/pericopesRecherche'
 import { SERIF, SANS } from '@/app/lib/polices'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
+import { MentionVide } from '@/app/components/EtatVideVolet'
 
 const FOND = 'var(--cs-fond)'
 const BORD = 'var(--cs-bord)'
@@ -545,7 +546,7 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
 
             {groupes.length === 0 ? (
               <div style={{ paddingTop: '20px' }}>
-                <p style={{ fontFamily: SERIF, fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Aucune péricope ne correspond aux filtres retenus.</p>
+                <MentionVide>Aucune péricope ne correspond aux filtres retenus.</MentionVide>
                 {filtresActifs && (
                   <button type="button" onClick={reinitialiser}
                     style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.78125rem' }}>

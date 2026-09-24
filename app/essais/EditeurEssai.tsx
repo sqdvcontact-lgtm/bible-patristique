@@ -23,6 +23,7 @@ import { useFermerAEchap } from '@/app/lib/useFermerAEchap'
 import { useFenetreModale } from '@/app/lib/useFenetreModale'
 import { SERIF, SANS } from '@/app/lib/polices'
 import { HAUTEUR_NAVBAR } from '@/app/lib/mesures'
+import { TEXTE_ERREUR } from '@/app/lib/texteErreur'
 
 const MAX_CARACTERES = 8000
 const MIN_CARACTERES_PUBLICATION = 2000
@@ -1142,7 +1143,7 @@ export default function EditeurEssai({ essaiExistant, modeAdmin, metadonneesInit
               />
               Je certifie respecter ces conditions de publication.
             </label>
-            {erreurConditions && <p style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', margin: '0 0 8px' }}>{erreurConditions}</p>}
+            {erreurConditions && <p style={{ ...TEXTE_ERREUR, margin: '0 0 8px' }}>{erreurConditions}</p>}
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '12px' }}>
               <button
                 onClick={() => { setConfirmPublier(false); setErreurConditions(null) }}

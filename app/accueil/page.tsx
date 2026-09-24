@@ -8,6 +8,7 @@ import { cssServi } from "@/app/lib/cssServi";
 import { enTetesPartage } from "@/app/lib/metadonneesSeo";
 import IndiceTelephoneServeur from '@/app/lib/IndiceTelephoneServeur'
 import { SERIF, SANS } from "@/app/lib/polices";
+import { MentionVide } from '@/app/components/EtatVideVolet'
 
 // La devise du frontispice, mot pour mot. « Lectures bibliques et patristiques »
 // décrivait un rayon de bibliothèque ; la phrase dit ce que le site FAIT, et que
@@ -1060,7 +1061,7 @@ function formaterDateAjout(iso: string | null): string {
    qui la priverait de sa boîte : c'est elle qui porte le survol. */
 function ListeAjouts({ recentes }: { recentes: OeuvreRecente[] }) {
   if (recentes.length === 0) {
-    return <p style={{ fontFamily: SERIF, fontSize: "0.8125rem", color: "var(--cs-texte-second)", fontStyle: "italic", margin: 0, textAlign: "center" }}>Aucun ajout pour l’instant.</p>
+    return <div style={{ textAlign: "center" }}><MentionVide>Aucun ajout pour l’instant.</MentionVide></div>
   }
   return (
     <ul style={{ listStyle: "none", margin: "0 auto", padding: 0, display: "grid", gridTemplateColumns: "max-content minmax(0, 1fr)", columnGap: "0.75rem", rowGap: "0.5rem", alignItems: "baseline", width: "fit-content", maxWidth: "100%", textAlign: "left" }}>

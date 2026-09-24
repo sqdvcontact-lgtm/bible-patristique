@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/app/lib/supabase'
 import { ENCRE_TITRE, GRAISSE_TITRE, INTERLIGNE_TITRE_PAGE, TITRE_PAGE } from '@/app/lib/hierarchieTitres'
 import { SERIF } from '@/app/lib/polices'
+import { MentionVide } from '@/app/components/EtatVideVolet'
 
 const NOM_LIVRE: Record<string, string> = {
   GEN: 'Genèse', EXO: 'Exode', LEV: 'Lévitique', NUM: 'Nombres', DEU: 'Deutéronome', JOS: 'Josué', JDG: 'Juges', RUT: 'Ruth',
@@ -109,7 +110,7 @@ export default function StatistiquesClient() {
             Le classement n&apos;a pas pu être chargé.
           </p>
         ) : cites.length === 0 ? (
-          <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun lien pour l&apos;instant.</p>
+          <div style={{ textAlign: 'center', margin: '0.8125rem 0' }}><MentionVide>Aucun lien pour l’instant.</MentionVide></div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {cites.map((v, i) => (

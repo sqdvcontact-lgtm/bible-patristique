@@ -18,6 +18,7 @@ import MarqueMecene from '@/app/components/MarqueMecene'
 import { verrouillerLeDefilement } from '@/app/lib/verrouDefilement'
 import { SERIF } from '@/app/lib/polices'
 import IconeCroix from '@/app/components/IconeCroix'
+import { MentionVide } from '@/app/components/EtatVideVolet'
 
 type Conversation = { partenaire_pseudo: string; partenaire_mecene?: boolean; dernier_message: string; dernier_at: string; nb_non_lus: number }
 type Message = { id: string; de_moi: boolean; contenu: string; lu: boolean; created_at: string }
@@ -245,7 +246,7 @@ export default function ModaleMessagerie({ ouvert, onClose }: { ouvert: boolean;
                   {erreurRecherche ? (
                     <p role="alert" style={{ fontSize: '0.71875rem', color: 'var(--cs-danger-fonce)', padding: '8px 12px', margin: 0 }}>{erreurRecherche}</p>
                   ) : resultats.length === 0 ? (
-                    <p style={{ fontSize: '0.71875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic', padding: '8px 12px', margin: 0 }}>Aucun pseudonyme trouvé.</p>
+                    <div style={{ padding: '8px 12px' }}><MentionVide>Aucun pseudonyme trouvé.</MentionVide></div>
                   ) : resultats.map(p => (
                     <button key={p} onClick={() => ouvrirConversation(p)}
                       style={{ display: 'block', width: '100%', textAlign: 'left', fontSize: '0.78125rem', padding: '8px 12px', border: 'none', borderBottom: '1px solid var(--cs-fond-doux)', background: 'var(--cs-surface)', color: 'var(--cs-encre)', cursor: 'pointer' }}>

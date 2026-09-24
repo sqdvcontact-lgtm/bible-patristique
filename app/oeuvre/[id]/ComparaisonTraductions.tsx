@@ -48,6 +48,7 @@ import {
   type MembreComparable,
 } from './comparaisonTraductionsUtils'
 import { SERIF, SANS } from '@/app/lib/polices'
+import { TEXTE_ERREUR } from '@/app/lib/texteErreur'
 
 // Métadonnées d'édition d'une œuvre, pour la citation au copier/prélever (chaque
 // colonne = une traduction distincte, donc sa propre attribution).
@@ -707,7 +708,7 @@ export default function ComparaisonTraductions({ alignement, estAdmin, book, div
         </div>
       )}
       {chargement && <MotAttente>Chargement de la division…</MotAttente>}
-      {erreur && <p role="alert" style={{ color: 'var(--cs-danger)', fontSize: '0.75rem' }}>{erreur}</p>}
+      {erreur && <p role="alert" style={TEXTE_ERREUR}>{erreur}</p>}
       {!chargement && !erreur && groupesAffiches.length === 0 && (
         <p style={{ color: 'var(--cs-texte-doux)', fontSize: '0.75rem' }}>{filtre === 'uncertain' ? 'Aucun groupe à relire dans cette division.' : 'Aucun passage aligné dans cette division.'}</p>
       )}

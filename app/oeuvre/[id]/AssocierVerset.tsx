@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { supabase } from '@/app/lib/supabase'
 import type { ChampLienBiblique, VersetLienBiblique } from '@/app/components/ModalLienBiblique'
 import type { VRef } from './oeuvreTypes'
+import { TEXTE_ERREUR } from '@/app/lib/texteErreur'
 
 /**
  * ⛔ C'EST LA FENÊTRE QUI SE CHARGE À LA DEMANDE, PLUS LE BOUTON (2026-09-10).
@@ -81,7 +82,7 @@ export default function AssocierVerset({ segId, onAssocie }: {
           Ajouter un lien biblique
         </button>
       </p>
-      {erreur && <p style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', margin: 0, textAlign: 'center' }}>{erreur}</p>}
+      {erreur && <p style={{ ...TEXTE_ERREUR, margin: 0, textAlign: 'center' }}>{erreur}</p>}
       {ouvert && (
         <ModalLienBiblique
           ouvert={ouvert}

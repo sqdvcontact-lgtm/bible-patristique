@@ -11,6 +11,8 @@ import InvitationCompteInline from '@/app/components/InvitationCompteInline'
 import MarqueMecene from '@/app/components/MarqueMecene'
 import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, CITATION_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, formeCommentaire } from '@/app/lib/styleCommentaire'
 import IconeCroix from '@/app/components/IconeCroix'
+import { TEXTE_ERREUR } from '@/app/lib/texteErreur'
+import { MentionVide } from '@/app/components/EtatVideVolet'
 
 type CommentaireEssai = {
   id: number; texte: string; passage_cite: string | null; reponse_a: number | null
@@ -239,7 +241,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
           disait rien que la liste ne montre. Le vide seul se dit. */}
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 14px' }}>
         {racines.length === 0 && (
-          <p style={{ margin: 0, fontSize: '0.6875rem', color: 'var(--cs-texte-gris)', fontStyle: 'italic' }}>Aucun commentaire</p>
+          <MentionVide>Aucun commentaire.</MentionVide>
         )}
         {racinesTriees.map(c => <Carte key={c.id} c={c} />)}
       </div>
@@ -263,7 +265,7 @@ export default function EssaiCommentaires({ idEssai }: { idEssai: number }) {
             <textarea aria-label="Passage cité" value={passageCite} onChange={e => setPassageCite(e.target.value)} rows={2} placeholder="Passage exact à commenter…"
               style={{ width: '100%', fontSize: '0.71875rem', fontStyle: 'italic', padding: '6px 8px', border: '1px solid var(--cs-bord)', borderRadius: '4px', background: 'var(--cs-surface)', color: 'var(--cs-texte)', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
           )}
-          {erreur && <p role="alert" style={{ margin: 0, fontSize: '0.6875rem', color: 'var(--cs-danger)' }}>{erreur}</p>}
+          {erreur && <p role="alert" style={{ ...TEXTE_ERREUR, margin: 0 }}>{erreur}</p>}
           {accuse && !erreur && (
             <p role="status" style={{ margin: 0, fontSize: '0.6875rem', color: 'var(--cs-texte-second)' }}>
               Merci. Votre commentaire paraîtra après relecture.

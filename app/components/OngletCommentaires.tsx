@@ -24,6 +24,7 @@ import FleuronDiscret from '@/app/components/FleuronDiscret'
 import EtatVideVolet, { MentionVide } from '@/app/components/EtatVideVolet'
 import BoutonSupprimerCommentaire from '@/app/components/BoutonSupprimerCommentaire'
 import { carteCommentaire, ENTETE_COMMENTAIRE, NOM_COMMENTAIRE, DATE_COMMENTAIRE, BADGE_RANG, BADGE_ETAT, TEXTE_COMMENTAIRE, PIED_COMMENTAIRE, ACTION_COMMENTAIRE, EFFACE_COMMENTAIRE, formeCommentaire } from '@/app/lib/styleCommentaire'
+import { TEXTE_ERREUR } from '@/app/lib/texteErreur'
 
 type Verset = { id_verset: string }
 
@@ -425,7 +426,7 @@ export default function OngletCommentaires({ verset, userId, isAdmin, onCount }:
             <p style={{ fontSize:'0.6875rem', color:'var(--cs-texte-gris)', margin:0 }}>* L’adresse ne sera pas publiée.</p>
           </>
         )}
-        {erreur && <p role="alert" style={{ fontSize:'0.6875rem', color:'var(--cs-danger)', margin:0 }}>{erreur}</p>}
+        {erreur && <p role="alert" style={{ ...TEXTE_ERREUR, margin:0 }}>{erreur}</p>}
         <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'8px' }}>
           <label style={{ display:'flex', alignItems:'flex-start', gap:'7px', fontSize:'0.6875rem', color:'var(--cs-texte-second)', cursor:'pointer', lineHeight:1.3, minHeight:'24px' }}>
             <input type="checkbox" checked={demandeValidation} onChange={e => setDemandeValidation(e.target.checked)}

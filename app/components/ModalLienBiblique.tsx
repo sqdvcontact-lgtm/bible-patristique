@@ -12,6 +12,7 @@ import { useEstMobile } from '@/app/lib/useEstMobile'
 import { SERIF } from '@/app/lib/polices'
 import { ENCRE_TITRE_CARTE, GRAISSE_TITRE, STYLE_RUBRIQUE, TITRE_CARTE } from '@/app/lib/hierarchieTitres'
 import IconeCroix from '@/app/components/IconeCroix'
+import { TEXTE_ERREUR } from '@/app/lib/texteErreur'
 
 export type ChampLienBiblique = 'lien_1' | 'lien_2' | 'lien_3' | 'lien_4'
 
@@ -204,7 +205,7 @@ export default function ModalLienBiblique({
           <div>
             <p style={{ margin: '0 0 4px', fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '.12em', color: 'var(--cs-etiquette)', fontWeight: 700 }}>Lien biblique</p>
             <h2 style={{ margin: 0, fontFamily: SERIF, fontSize: TITRE_CARTE, fontWeight: GRAISSE_TITRE, color: ENCRE_TITRE_CARTE }}>{titre}</h2>
-            {erreur && <p style={{ margin: '7px 0 0', color: 'var(--cs-danger)', fontSize: '0.75rem' }}>{erreur}</p>}
+            {erreur && <p style={{ ...TEXTE_ERREUR, margin: '7px 0 0' }}>{erreur}</p>}
           </div>
           <button onClick={onFermer} aria-label="Fermer" className="cs-croix-fermer"><IconeCroix /></button>
         </div>

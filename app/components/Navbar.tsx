@@ -27,6 +27,7 @@ import PortraitLecteur from "@/app/components/PortraitLecteur";
 import { cssServi } from "@/app/lib/cssServi";
 import { SERIF } from '@/app/lib/polices'
 import { Anneau } from '@/app/lib/attenteEnCreux'
+import { MentionVide } from '@/app/components/EtatVideVolet'
 
 const ModaleMessagerie = dynamic(() => import("@/app/components/ModaleMessagerie"), { ssr: false });
 const VoletNotifications = dynamic(() => import("@/app/components/VoletNotifications"), { ssr: false });
@@ -1398,7 +1399,7 @@ export default function Navbar() {
           {rechercheRapideLoading && pericopes.length === 0 && !pericopesLoading && auteursTrouves.length === 0 && oeuvresTrouvees.length === 0 && segmentsTrouves.length === 0 && essaisTrouves.length === 0 && livresTrouves.length === 0 && traductionsTrouvees.length === 0 && evenementsTrouves.length === 0 ? (
             <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-doux)", textAlign: "center", padding: "11px 12px", margin: 0 }}>…</p>
           ) : aucunResultat ? (
-            <p style={{ fontSize: "0.78125rem", color: "var(--cs-texte-doux)", fontStyle: "italic", textAlign: "center", padding: "11px 12px", margin: 0 }}>Aucun résultat — Entrée pour une recherche complète.</p>
+            <div style={{ textAlign: "center", padding: "11px 12px" }}><MentionVide>Aucun résultat — Entrée pour une recherche complète.</MentionVide></div>
           ) : (
             <>
               {/* ── EN TÊTE, et au premier plan : les TITRES, c'est-à-dire ce qu'on ouvre

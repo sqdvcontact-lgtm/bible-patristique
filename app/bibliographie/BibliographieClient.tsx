@@ -38,6 +38,7 @@ import {
 } from '@/app/lib/bibliographieCatalogue'
 import { SERIF, SANS } from '@/app/lib/polices'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
+import { MentionVide } from '@/app/components/EtatVideVolet'
 
 /**
  * L'OUTIL BIBLIOGRAPHIQUE — la page « Bibliographie » d'« Aller plus loin ».
@@ -450,7 +451,7 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
           <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
             {groupes.length === 0 ? (
               <div style={{ paddingTop: '8px' }}>
-                <p style={{ fontFamily: SERIF, fontSize: '0.84375rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: 0 }}>Aucun ouvrage ne correspond à la recherche et aux filtres retenus.</p>
+                <MentionVide>Aucun ouvrage ne correspond à la recherche et aux filtres retenus.</MentionVide>
                 {actifs && (
                   <button type="button" onClick={reinitialiser}
                     style={{ marginTop: '12px', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', border: `1px solid ${BORD}`, background: 'var(--cs-surface)', color: 'var(--cs-texte-second)', fontFamily: SERIF, fontSize: '0.78125rem' }}>

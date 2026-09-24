@@ -22,6 +22,7 @@ import MarqueMecene from '@/app/components/MarqueMecene'
 import { OPTION_VOLET, RUBRIQUE_AXE } from '@/app/lib/stylesVoletLecture'
 import { PisteInterrupteur } from '@/app/compte/champsCompte'
 import { SERIF, SANS } from '@/app/lib/polices'
+import { MentionVide } from '@/app/components/EtatVideVolet'
 
 const CATEGORIES = CATEGORIES_ESSAIS
 
@@ -647,7 +648,7 @@ function OngletCommunaute({
       `}</style>
 
       {total === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucune publication pour l’instant.</p>
+        <div style={{ textAlign: 'center', margin: '0.8125rem 0' }}><MentionVide>Aucune publication pour l’instant.</MentionVide></div>
       ) : (
         <>
           <div className="publications-sommaire-tete">
@@ -897,7 +898,7 @@ function OngletMesEcrits({
     return <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-danger-fonce)', fontStyle: 'italic' }}>Connectez-vous pour voir vos écrits.</p>
   }
   if (essais === null) return <MotAttente />
-  if (essais.length === 0) return <p style={{ fontSize: '0.8125rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>Aucun écrit pour l&apos;instant.</p>
+  if (essais.length === 0) return <div style={{ margin: '0.8125rem 0' }}><MentionVide>Aucun écrit pour l’instant.</MentionVide></div>
 
   const filtreActif = FILTRES_ECRITS.find(f => f.cle === filtre) ?? FILTRES_ECRITS[0]
   const visibles = essais.filter(filtreActif.test).sort(comparerEcrits(tri))
@@ -981,7 +982,7 @@ function OngletMesEcrits({
 
       <div className="mes-ecrits-liste">
         {visibles.length === 0 ? (
-          <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic', margin: '6px 0' }}>Aucun écrit dans cette vue.</p>
+          <div style={{ margin: '6px 0' }}><MentionVide>Aucun écrit dans cette vue.</MentionVide></div>
         ) : visibles.map(e => {
           const st = STATUTS[e.statut] ?? { label: e.statut, couleur: 'var(--cs-texte-doux)' }
           const date = e.publie_at ?? e.updated_at

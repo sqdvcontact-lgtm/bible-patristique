@@ -46,6 +46,7 @@ import { FAMILLES_TRADITION, famillesDesTraditions } from '@/app/lib/traditions'
 import { SERIF, SANS } from '@/app/lib/polices'
 import IconeCroix from '@/app/components/IconeCroix'
 import { Z_MODALE } from '@/app/lib/empilement'
+import { TEXTE_ERREUR } from '@/app/lib/texteErreur'
 
 type Oeuvre = {
   id_oeuvre: string; id_auteur: string; titre: string; sous_titre: string | null
@@ -1741,7 +1742,7 @@ function OngletProposer({ valeursInitiales, onDirtyChange }: {
         </p>
 
         {statut === 'erreur' && (
-          <p style={{ fontSize: '0.75rem', color: 'var(--cs-danger)', margin: 0 }}>Une erreur est survenue. Veuillez réessayer.</p>
+          <p style={{ ...TEXTE_ERREUR, margin: 0 }}>Une erreur est survenue. Veuillez réessayer.</p>
         )}
 
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

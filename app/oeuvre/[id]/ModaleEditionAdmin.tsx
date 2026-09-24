@@ -8,6 +8,7 @@ import type { ChampTitre, EditionCible, VarianteTitre } from './oeuvreTypes'
 import { cleTitreCompose } from './compositionTitres'
 import { SANS } from '@/app/lib/polices'
 import IconeCroix from '@/app/components/IconeCroix'
+import { TEXTE_ERREUR } from '@/app/lib/texteErreur'
 
 const BTN_MODAL: React.CSSProperties = { fontSize: '0.6875rem', padding: '4px 9px', borderRadius: '4px', border: '1px solid var(--cs-bord)', background: 'var(--cs-surface)', color: 'var(--cs-texte)', cursor: 'pointer' }
 
@@ -285,7 +286,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             </div>
           </div>
           {statut === 'erreur' && (
-            <p style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', marginTop: '8px' }}>
+            <p style={{ ...TEXTE_ERREUR, marginTop: '8px' }}>
               Erreur d&rsquo;enregistrement{erreurMsg ? ` — ${erreurMsg}` : ' — rien n’a été modifié.'}
             </p>
           )}
@@ -301,7 +302,7 @@ export default function ModaleEditionAdmin({ cible, idOeuvre, onClose, onEnregis
             </button>
           </div>
         </> : <>
-          <p style={{ fontSize: '0.6875rem', color: 'var(--cs-danger)', marginBottom: '10px' }}>Supprimer définitivement ce segment ? La numérotation des segments suivants sera décalée automatiquement.</p>
+          <p style={{ ...TEXTE_ERREUR, marginBottom: '10px' }}>Supprimer définitivement ce segment ? La numérotation des segments suivants sera décalée automatiquement.</p>
           <div style={{ background: 'var(--cs-fond-clair)', border: '1px solid var(--cs-fond-doux)', borderRadius: '4px', padding: '8px 10px', fontSize: '0.71875rem', color: 'var(--cs-texte-fort)', marginBottom: '12px', maxHeight: '160px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
             {valeur}
           </div>
