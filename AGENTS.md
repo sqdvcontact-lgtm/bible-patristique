@@ -261,7 +261,7 @@ Quatre rangs, chacun **ancré sur celui qui dominait déjà** :
 |---|---|---|---|---|
 | **Frontispice** | `clamp(…rem…)` propre à chaque surface | normal | `--cs-encre-fonce` | page de titre d'œuvre, ouverture d'essai, accroche d'accueil |
 | **Titre de page** | `TITRE_PAGE` = `1.75rem` | normal | `--cs-encre-fonce` | `.cc-titre` du centre de contrôle |
-| **Titre de volet** | `TITRE_VOLET` = `1.15rem` | 500 | `--cs-encre-fonce` | `NavLivres` |
+| **Titre de volet** | `TITRE_VOLET` = `1.125rem` (18 px) | 500 | `--cs-encre-fonce` | volets de la Bibliographie, de l’Histoire, des Péricopes et de la Recherche (`NavLivres` n’a plus de titre) |
 | **Titre de carte** | `TITRE_CARTE` = `1.375rem` | normal | `--cs-encre` | écrans d'exception centrés, formulaires courts |
 
 ⚠️ **Pas de `clamp(…vw…)` sur ces rangs, et c'est délibéré.** La police racine est déjà fluide : un `rem` grandit tout seul. Un `clamp` par-dessus ne faisait que poser un plafond (voir le piège ci-dessus). Les **frontispices** gardent le leur, en rem : ce sont des compositions à part, où la taille fait partie du dessin.
@@ -1667,7 +1667,7 @@ Cuir et beiges, une seule famille chaude. La première version transposait chaqu
 
 Toute la palette tient dans une bande de **26° de teinte**, chaque séparation qui porte du sens vaut au moins **ΔE 9,9**. ⛔ Avant de retoucher une valeur du bloc Cuir, refaire tourner la mesure : ces écarts ne se jugent pas à l'œil.
 
-⛔ **Une seule exception, et elle est fonctionnelle** : l'AVERTISSEMENT garde une terre de Sienne brûlée, à 42° quand tout le reste est entre 67° et 93°. Ne pas la ramener au beige : c'est le seul endroit où la couleur travaille.
+⛔ **Quatre dérogations, toutes fonctionnelles, car chacune encode une catégorie** : l'AVERTISSEMENT garde une terre de Sienne brûlée, à 42° quand tout le reste est entre 67° et 93° ; l'explication de Corpus Scriptura garde une sauge (`--cs-explication-corpus`, et `--cs-ecriture`) ; les Pères gardent un maroquin fané (`--cs-peres`), que porte aussi la barre (`--cs-barre-fond`) ; les deux séries du Budé gardent leur teinte. Ne pas les ramener au beige : ce sont les seuls endroits où la couleur travaille, et chacun se commente dans le bloc Cuir de `globals.css`.
 
 ⚠️ **La barre et le panneau mobile cessent d'être verts en Cuir.** Ils seraient sinon la seule tache de couleur d'une page qui n'en a plus. Corollaire : les trois familles du panneau (`--cs-*-clair`), que la charte déclarait hors thème parce que son fond ne changeait jamais, reçoivent une surcouche — son fond change maintenant.
 
@@ -1727,7 +1727,7 @@ Doctrine dans la charte, ` 18 (couleurs et corps) et ` 51.10 (clavier et adresse
 
 - **Contraste au Clair : 4,5 sur la carte.** Jetons foncés à teinte et chroma OKLCH constantes : `--cs-texte-gris` #766e65, `--cs-texte-doux` #7b766f, `--cs-or` #91722f, `--cs-etiquette` #857552, `--cs-date` #8a743f, `--cs-danger` #b95023 (4,52 sur le fond de page ; l'aplat reste #c0562a). ⛔ `--cs-texte-faible` est un rang d'ORNEMENT (filets, séparateurs, puces) : jamais sur du texte.
 - **Plancher : 11 px (0,6875 rem), 10 px (0,625 rem) pour les capitales espacées**, hors administration ; `echelleTypographique.test.ts` le verrouille. Sous 0,75 rem, l'encre est `--cs-texte-gris`, jamais doux ni faible ; une capitale espacée à 10 px prend `--cs-texte-second`. Hors plancher : appels de note et exposants en em, pastilles à boîte fixe.
-- **Texte biblique : 16 px, interligne 1,55**, par `--cs-lecture-corps` et `--cs-lecture-interligne` que règle `data-corps` sur `<html>` (petit 15/1,50, normal 16/1,55, grand 18/1,60). Le cran se mémorise comme le thème : `profils.corps_lecture` fait foi, `cs-corps` en est le miroir local, `ProvisionCompte` rapproche les deux (`accorderCorps`). ⛔ Changer le cran par `changerCorps` du contexte, jamais par `appliquerCorps` seul, qui oublierait le compte.
+- **Texte biblique : 15 px, interligne 1,48**, par `--cs-lecture-corps` et `--cs-lecture-interligne` que règle `data-corps` sur `<html>` (petit 14/1,44, normal 15/1,48, grand 17/1,52 ; un rang plus bas depuis le 2026-09-23, commenté dans `app/lib/corpsLecture.ts`). Le cran se mémorise comme le thème : `profils.corps_lecture` fait foi, `cs-corps` en est le miroir local, `ProvisionCompte` rapproche les deux (`accorderCorps`). ⛔ Changer le cran par `changerCorps` du contexte, jamais par `appliquerCorps` seul, qui oublierait le compte.
 - **Une fenêtre n'écrit aucune couleur** : modèle `ModalSignalement` (`.cs-signalement-*`, jetons `--cs-importance-*` dans les deux thèmes, garde `ModalSignalement.test.ts`).
 - **Navigation de chapitre** : flèches en liens, zone de frappe 2,75 rem (`.cs-fleche-chapitre`), livre voisin au bout d'un livre, touches ← → hors champ, menu, modale et modificateur ; bas de chapitre au format ‹ « N sur M » › de la pagination des œuvres.
 - ⛔ **Toute modale ou tout tiroir passe par `useFenetreModale`** (piège de tabulation, retour du foyer, `role="dialog"` et `aria-modal`).
@@ -6417,7 +6417,7 @@ Elle prend donc les jetons des trois familles et le dessin des groupes — rubri
 
 ⚠️ **La CHRONOLOGIE a perdu son violet**, qui faisait un quatrième domaine vivant dans cette seule liste. Elle rejoint les Pères, dont elle raconte le monde. ⛔ Ne pas la ressortir sans décision : ce serait une couleur de plus dans la palette pour une section qui paraît trois fois sur dix.
 
-⚠️ **La rubrique garde sa TYPOGRAPHIE** — petites capitales espacées, même corps qu’avant. Ce n’est pas un titre : elle nomme un genre de résultat, non une œuvre. Seule la couleur a changé de place, du texte vers la bande. C’est la différence avec la page de résultats, où la rubrique porte un nom de livre ou d’auteur et se compose en sérif.
+⚠️ **La rubrique garde sa TYPOGRAPHIE** : capitales espacées, même corps qu’avant. Ce n’est pas un titre : elle nomme un genre de résultat, non une œuvre. Seule la couleur a changé de place, du texte vers la bande. C’est la différence avec la page de résultats, où la rubrique porte un nom de livre ou d’auteur et se compose en sérif.
 
 ⚠️ **Le rang atteint au CLAVIER prend la teinte de SA famille**, et non plus un gris commun (`[data-nav-actif]` compose désormais sur `--fam`, avec repli). La flèche descend d’un domaine à l’autre, et le surlignage doit le dire.
 
@@ -6979,8 +6979,11 @@ Doctrine : charte `parametres.charte_ia`, § 38.5. Règles de code :
   des Pères (`PanneauPatristique`) et celui de la Polyglotte. Ils étaient trois dessins
   voisins qui avaient déjà divergé — la Polyglotte portait le passage lu, les livres
   écrivaient leur nom de bas en haut, les Pères de haut en bas et deux crans plus petit.
-  Trente pixels, le chevron en tête, le libellé en `writing-mode: vertical-rl` SANS
-  rotation (le sens d'un dos de livre français).
+  Trente pixels, le chevron en tête, le libellé en `writing-mode: vertical-rl`, ses
+  lettres tournées vers le centre de la page : le rail de gauche prend un demi-tour
+  (`rotate(180deg)`) et se lit de bas en haut (demande de l'auteur, 2026-09-23, qui
+  renverse la règle « sans rotation » du 2026-09-04). Le fond du rail est celui du volet
+  qu'il remplace (`fond`).
 - ⚠️ **Le rail nomme l'ACTION** : « Ouvrir les commentaires », « Ouvrir les livres ». Un
   repère peut s'y ajouter en second (`complement`), dans le sérif et sans capitales : la
   Polyglotte y garde le passage ouvert, que le tableau ne nomme plus une fois replié.
@@ -6995,10 +6998,10 @@ Doctrine : charte `parametres.charte_ia`, § 38.5. Règles de code :
   et c'est la cible qu'on vise, non le mot. ⚠️ Le groupe se centre d'un BLOC — une
   enveloppe en `flex: 1` qui porte le libellé ET le complément — sans quoi le passage lu
   de la Polyglotte se détacherait du nom qu'il accompagne.
-- ⚠️ **Le texte descend d'un rang** : libellé `0.65625rem` (11 → 10,5 px), complément
-  `0.6875rem` (11,5 → 11). Sur une bande de trente pixels, la contrainte n'est pas la
-  lisibilité mais l'encombrement — un rail doit se faire oublier tant qu'on ne le cherche
-  pas. ⚠️ Les `maxHeight` en pourcentage se résolvent désormais contre l'enveloppe, non
+- ⚠️ **Le texte tient au plancher** : libellé et complément à `0.6875rem` (11 px), le
+  libellé en capitales, chasse 0,14 em, graisse 600, `--cs-texte-second`. Il était
+  descendu à 10,5 px le 2026-09-04 pour peser moins, et il est remonté le 2026-09-23 :
+  sous le plancher, une capitale couchée sur trente pixels ne se lisait plus. ⚠️ Les `maxHeight` en pourcentage se résolvent désormais contre l'enveloppe, non
   contre le bouton ; leur somme (58 % + 32 %) reste sous la mesure, et l'enveloppe est en
   `overflow: hidden` de toute façon.
 - ⚠️ **La barre MOBILE n'est pas un rail** (`NavLivres`, branche `barreMobile`) : elle est
@@ -8973,7 +8976,7 @@ n'est pas très claire ». Ce qu'il faut savoir pour composer une page de l'espa
 | une RÉFÉRENCE | manchette, colonne fixe de 7 rem, sérif 0,8125 rem | `.chn-ref`, `.prel-ref` |
 | le CORPUS (verset, citation) | sérif, `styleTexteVerset` ou sa copie | `.chn-lemme`, `.prel-texte` |
 | ce que le LECTEUR a écrit | sans 0,78125 rem, RENTRÉ sous son texte | `.chn-scholie` |
-| un REPÈRE (nature, date, état) | rubrique : petites capitales, `--cs-texte-second` | `.chn-tete` |
+| un REPÈRE (nature, date, état) | rubrique : capitales espacées, `--cs-texte-second` | `.chn-tete` |
 | une glose qui SE RÉPÈTE | italique grise, sans capitales | `.prel-provenance` |
 
 - ⛔ **Le VERT ne dit qu'une chose à la fois.** Il portait trois objets sur « Ma chaîne » :
@@ -9238,9 +9241,10 @@ un titre accentué se perd sans la seconde.
 `--cs-calque-modale` (`globals.css`) : **une seule valeur pour les deux thèmes**, parce
 qu'un calque est une OMBRE et non une couleur. Il était écrit en dur dans cinq fenêtres ;
 `FicheEdition` et le menu d'extraction le lisent, et l'entrée de la première a QUITTÉ
-`couleursEnDurInventaire.ts` — le registre décroît, comme la charte l'exige. ⛔ Les trois
-autres (`BibliothequeClient`, `ModaleAuteur`, `ModaleMessagerie`) restent au registre : les
-migrer est un rangement à part, non un effet de bord d'un chantier voisin.
+`couleursEnDurInventaire.ts` — le registre décroît, comme la charte l'exige. Depuis le
+lot 1 de l'harmonie (2026-09-23, d91de104), tout voile du site public le lit, les trois
+autres (`BibliothequeClient`, `ModaleAuteur`, `ModaleMessagerie`) compris ; seule
+l'administration garde des voiles noirs écrits en dur.
 
 # ⛔ LE ROUGE DE LA POLYGLOTTE SUIT LE STATUT, et le relevé structurel (2026-09-07)
 
@@ -12432,9 +12436,10 @@ ait à les toucher.
   posé dans une boîte carrée, il n'y est jamais tout à fait centré. `IconeCroix`
   (`app/components/IconeCroix.tsx`) le remplace — deux traits, `currentColor`, viewBox de
   14. Mesuré après : **écart des centres 0,00 px** aux racines 16 et 22, au Clair comme en
-  Cuir. ⚠️ Le site écrit encore le glyphe sur une quinzaine de surfaces (administration,
-  bibliothèque, compte, messagerie) : elles se convertissent au prochain passage sur ces
-  boutons, et un seizième exemplaire ne s'écrit pas.
+  Cuir. ⚠️ Depuis le lot 4 de l'harmonie
+  (2026-09-23), le site public ne ferme plus rien par le glyphe : toute croix de fermeture
+  est `IconeCroix` dans `.cs-croix-fermer`. Le glyphe ne survit que dans l'administration
+  et dans la croix d'effacement de `ChampRechercheVolet`, laissée à l'auteur.
 - ⛔ **NI CERCLE, NI FILET, NI FOND.** Le rond faisait, au coin d'une fenêtre de lecture,
   un objet là où l'on n'attend qu'une marque — c'est la règle déjà posée pour le geste de
   copie d'une section (§ 38.25.2). L'encre passe à `--cs-vert`, `--cs-vert-fonce` au
@@ -13162,3 +13167,78 @@ Relevés de l'auteur : « un flash quand je change le nombre de colonnes » ; «
 - ⛔ **Aucun rendu React pendant le glissement.** La colonne qui arrive s'ouvre par la TABLE : sa piste est `var(--poly-piste-entree, minmax(0, 0fr))` dans `tmpl`, l'effet de mise en page de `transit` pose la variable à 0fr puis, 34 ms plus tard, à 1fr avec `data-poly-entree-ouverte` (qui lève `contain` et l'opacité nulle de `.poly-col-entrante`). Le seul rendu qui reste range les colonnes (`setFantomes(null)`, `setEntree(null)`) à la fin, dans `startTransition`. `data-poly-transit` ne se retire qu'une fois ce rendu fait (effet sur `[fantomes, entree]`) : avant, une colonne sortante rendue à zéro recomposerait son texte mot à mot sur toutes les lignes.
 - ⛔ **Au-delà de 60 lignes, le tableau se peint par tranches** (`enBlocs`, 16 lignes par `.poly-bloc` en `content-visibility: auto`, hauteur estimée `26 + 18 × colonnes` px, retenue ensuite par `auto`). Le glissement ne recalcule que les lignes visibles. ⚠️ `getBoundingClientRect` sur une ligne hors écran force sa mise en page (lasso, passage) : c'est voulu. ⚠️ Une tranche porte `contain: paint` : rien d'une ligne ne doit déborder d'elle.
 - ⚠️ Non mesuré dans la page (session requise) : à juger sur le serveur local, livre entier de la Genèse, quatre colonnes ↔ trois.
+
+# ⛔ HARMONIE (2026-09-23/24) : une écriture par forme
+
+Doctrine : charte `parametres.charte_ia`, **§ 51.13**. Ici, la même liste, pour qui écrit du code : avant de composer une forme sur place, chercher sa pièce ci-dessous.
+
+Audit d’harmonie du 23 septembre 2026 (`audit/AUDIT_HARMONIE_2026-09-23.md`), corrigé en sept lots les 23 et 24 septembre. ⛔ **UNE FORME DU SITE S’ÉCRIT UNE FOIS.** Ce qui suit nomme, pour chaque forme, la pièce unique qui la porte, le fichier où elle vit et la garde qui la tient quand il y en a une. Une surface nouvelle emploie la pièce ; elle ne la recompose pas sur place, fût-ce à l’identique, parce qu’une copie exacte diverge au premier réglage. ⚠️ L’harmonisation va vers la forme la plus sobre et la plus répandue, jamais vers la plus chargée, et elle n’ajoute aucun élément visible. Ce qui relève du goût reste à l’auteur.
+
+**Couleurs** (lot 1, commit d91de104). Garde : `app/lib/couleursEnDur.test.ts`, dont le registre `app/lib/couleursEnDurInventaire.ts` ne fait que décroître.
+
+- Un bouton plein désactivé prend `--cs-desactive-fond` et `--cs-desactive-encre`.
+- Une encre douce posée sur un aplat prend `--cs-sur-aplat-doux`. Jamais `--cs-fond-doux`, qui est un fond : crème au Clair, il devient sombre au Cuir et disparaît sur l’aplat.
+- Tout voile de fenêtre prend `--cs-calque-modale` (0,42, une seule valeur pour les deux thèmes).
+- Tout séparateur prend `--cs-bord-clair`.
+- Un trait SVG écrit en littéral pour le Clair se transpose au Cuir par une classe de feuille, sur le modèle de `.cs-bulle-anneau`.
+- Le trait d’une poignée prend `--cs-poignee-trait`.
+- Au Cuir, `--cs-danger-fonce` est plus clair que `--cs-danger` : sur un sol sombre, le rang le plus appuyé est le plus lumineux, et l’échelle s’inverse.
+
+**Typographie** (lot 2, commit ca81de79). Gardes : `app/lib/polices.test.ts`, `app/lib/echelleTypographique.test.ts`, `app/lib/cssServi.test.ts`.
+
+- Une pile de polices ne s’écrit que dans `app/lib/polices.ts`.
+- Toute étiquette en capitales espacées est `STYLE_RUBRIQUE` (`app/lib/hierarchieTitres.ts`) : sans, 10 px, graisse 700, chasse 0,08 em, encre `--cs-texte-second`. L’appelant n’y ajoute que sa mise en page. ⚠️ Ce sont des CAPITALES (`text-transform: uppercase`), non des petites capitales, et toute description d’une rubrique d’interface en petites capitales est périmée.
+- La garde de l’échelle lit aussi les constantes : une taille qui passe par un nom ne lui échappe plus.
+- `TITRE_VOLET` vaut 18 px (1,125 rem), rang de l’échelle. Il n’est plus ancré sur `NavLivres`, qui n’a plus de titre, mais sur les volets de la Bibliographie, de l’Histoire, des Péricopes et de la Recherche.
+- `INTERLIGNE_TITRE_PAGE` (1,15) est le seul interligne d’un titre de page, et `STYLE_POSITION_PAGE` la seule composition d’une position « N sur M ».
+- Le titre d’une fenêtre prend `TITRE_CARTE`.
+- L’exposant d’un siècle vaut 0,62 em (`app/lib/siecles.tsx`).
+- `cssServi.test.ts` remplace une valeur interpolée (`${…}`) par une valeur neutre avant de lire la feuille.
+
+**Boutons et champs** (lot 3, commits 24b4aaad, a3f5b017, a1bf46fa, 37899322, 8874f52f).
+
+- Le survol s’écrit dans la feuille, sous `@media (hover: hover)`, jamais en JavaScript ni en style en ligne. Les utilitaires `.cs-survol-encre`, `.cs-survol-fond` et `.cs-survol-bord` se règlent par variables (`app/globals.css`).
+- `.cs-bouton-plein` est le seul bouton plein du site : rayon de 8 px à la taille normale, de 4 px à la compacte.
+- Un contrôle désactivé prend `--cs-opacite-desactive` (0,45) et le curseur par défaut.
+- Un champ se compose par `app/lib/compositionChamp.ts`, et un champ de recherche prend un rayon de 8 px. ⚠️ Son `outline: none` est voulu : l’anneau du foyer ne vise pas les champs de texte, et le filet suffit.
+- La recherche d’un volet est `ChampRechercheVolet`.
+- Une pastille de filtre est `PastilleFiltre`, rayon de 4 px.
+- Un interrupteur est `PisteInterrupteur` (`app/compte/champsCompte.tsx`).
+
+**Fenêtres, icônes, mouvement et états** (lot 4, commits e10d5f09, 89ab0555, 3be6d60e, f2795ee0, 34dbee3d, 234d0769, 40f2c59f, e78a242a).
+
+- Une croix de fermeture est `IconeCroix` dans `.cs-croix-fermer`, ou `.cs-croix-fermer--petite`. Aucun glyphe ✕ ni × ne ferme une fenêtre du site public.
+- Une fenêtre a un rayon de 12 px, un calque qui part de `HAUTEUR_NAVBAR` (`app/lib/mesures.ts`), le rang `Z_MODALE` (`app/lib/empilement.ts`) et un intérieur de 20 px sur 22.
+- Un menu prend un rayon de 8 px et l’ombre flottante ; une bulle, un rayon de 4 px et l’ombre nette.
+- Un chevron est `IconeChevron`, sa taille écrite en rem.
+- Le mouvement tient en trois jetons : `--cs-duree-courte` (0,12 s), `--cs-duree-moyenne` (0,18 s) et `--cs-courbe-sortie`. Un minuteur JavaScript garde son chiffre, qu’aucune variable de feuille ne peut lui donner.
+- Un état vide est `MentionVide` (`app/components/EtatVideVolet.tsx`), un texte d’échec `TEXTE_ERREUR` (`app/lib/texteErreur.ts`), une attente `Anneau` (`app/lib/attenteEnCreux.tsx`).
+
+**Volets** (lot 5, commits ea8a5ddb, 72d58d3d, e1aac866, 8c8f1c06). Gardes : `app/components/OngletsPage.test.tsx`, `app/lib/symetrieVolets.test.ts`.
+
+- Les deux rails se tournent vers le centre de la page (§ 38.5), et le fond d’un rail est celui du volet qu’il remplace.
+- Toute barre à panneaux est `OngletsPage` : un seul onglet dans l’ordre de tabulation, les flèches pour passer de l’un à l’autre, `aria-controls` vers le panneau.
+- La poignée d’un volet est un séparateur focalisable, réglable aux flèches (`usePoigneeVolet`, `app/lib/poigneeVolet.ts`).
+- Le chevron de repli offre 24 px de cible par son rembourrage et une marge négative, et son libellé est unique : « Réduire le volet ».
+- Le nom accessible d’une barre de volet est « Ce que montre le volet ».
+- Le foyer ne retombe pas sur le document quand un volet se replie ou se déplie (`app/lib/useFoyerAuRepli.ts`).
+- Un volet est un `aside`, un sommaire un `nav`.
+
+**Pages et libellés** (lot 6, commits 6b043299, dcf2e4b0, f907f443, be208d9b, c3c2b621, 45575c7e, 7221502f).
+
+- La gouttière d’une page est `GOUTTIERE_PAGE`, `clamp(16px, 4vw, 24px)` (`app/lib/mesures.ts`).
+- Une page centrée laisse 22 px au-dessus de son titre ; les pages d’erreur (`not-found`, `error`) le posent à 14 vh.
+- Le volet des pages sœurs se compose par `app/lib/voletPage.ts`, et ses seuils de fermeture se lisent dans `POINTS_DE_RUPTURE` (`app/lib/pointsDeRupture.ts`).
+- Un écran d’attente en creux a le même châssis sur l’œuvre, la Bible et l’essai : hauteur fixe sous la barre, débord masqué.
+- Une requête média change le NOMBRE de colonnes d’une grille, jamais la largeur des couvertures (`--couv`).
+- Les libellés sont uniques : « Réinitialiser les filtres » ; « Afficher les N autres » et « Afficher moins » ; « Rechercher… » ; « Précédent » et « Suivant » ; « Aucun X ne correspond aux filtres retenus. » ; « Voir la fiche : … ».
+- ⛔ Aucun accent grave dans un commentaire écrit à l’intérieur d’une feuille en littéral de gabarit : il fermerait le littéral.
+- Une œuvre ou un essai introuvable répond par `notFound()`.
+
+**Micro-typographie** (lot 7, commits 6f375b13, 8f16855a, 688a4ad3). Garde : `app/lib/ponctuationHauteInterface.test.ts`.
+
+- Dans le JSX, la ponctuation haute prend son espace : `&nbsp;` devant le deux-points, `&#8239;` devant le point-virgule, le point d’interrogation et le point d’exclamation. Dans une chaîne JavaScript, les mêmes espaces : U+00A0 devant le deux-points, U+202F devant les trois autres.
+- Un seuil de bascule écrit en JavaScript se compare par `<=`, équivalent exact du `max-width` de `useEstMobile` (`app/lib/useEstMobile.ts`) : à 900 px, les volets et le mode mobile basculent ensemble.
+- La notice d’une traduction suit l’ordre de l’œuvre : « Texte établi par » avant « Édition », puis « Source ».
+
+⚠️ **Laissé à l’auteur, et donc pas encore une règle** : les deux volets d’une même page n’ont pas des largeurs en miroir (200 à 320 px à gauche, 260 à 460 à droite sur la Bible ; 240 à 380 et 280 à 480 sur l’œuvre). Rien ne dit encore si c’est voulu, et l’on n’aligne pas avant qu’il l’ait dit.
