@@ -39,15 +39,17 @@ export function lireRepere899(valeur: unknown): RepereFacsimile899 | null {
   return m ? { colonne: m[1], ligne: Number(m[2]) } : null
 }
 
-// Même base que le lecteur de chantier (`app/manuscrits/bible-899/_lib/manifest.ts`) : le
-// seau public `manuscrits`, lu DIRECTEMENT par le navigateur. ⛔ Jamais par `next/image` :
+// Le seau public `manuscrits`, lu DIRECTEMENT par le navigateur. ⛔ Jamais par `next/image` :
 // l'optimisation d'images de Vercel compte chaque colonne à chaque largeur, sur un quota.
-const BASE_FACSIMILES_899 =
-  process.env.NEXT_PUBLIC_BIBLE899_IMAGES?.replace(/\/+$/u, '')
-  ?? `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''}/storage/v1/object/public/manuscrits/bible-899`
+// ⛔ La fenêtre lit les COPIES D'AFFICHAGE (`bible-899-web/`, WebP qualité 88, même
+// définition, cinq fois plus légères : 300 Ko contre 1,6 Mo), jamais les maîtres PNG, qui
+// restent au lecteur de chantier et gardent les empreintes du manifeste. Une colonne
+// nouvelle reçoit sa copie par `tmp/reduction-images/facsimiles899-web.mjs`.
+const BASE_COPIES_899 =
+  `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''}/storage/v1/object/public/manuscrits/bible-899-web`
 
 export function urlColonneFacsimile899(colonne: Pick<ColonneFacsimile899, 'fichier'>): string {
-  return `${BASE_FACSIMILES_899}/${colonne.fichier}`
+  return `${BASE_COPIES_899}/${colonne.fichier.replace(/\.png$/iu, '.webp')}`
 }
 
 export type TableFacsimiles899 = {

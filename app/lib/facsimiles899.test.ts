@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import lignes from './facsimiles899.json'
 import {
-  construireTableFacsimiles899, libelleColonne899, lireRepere899,
+  construireTableFacsimiles899, libelleColonne899, lireRepere899, urlColonneFacsimile899,
   type LigneTableFacsimiles899,
 } from './facsimiles899'
 
@@ -35,5 +35,13 @@ describe('la table des colonnes', () => {
   })
   it('range les colonnes dans l’ordre du manuscrit', () => {
     expect(table.colonnes.slice(0, 4).map((c) => c.cle)).toEqual(['f1r_a', 'f1r_b', 'f1v_a', 'f1v_b'])
+  })
+})
+
+describe('urlColonneFacsimile899', () => {
+  // La fenêtre lit la copie d'affichage WebP, jamais le maître PNG du lecteur de chantier.
+  it('vise la copie WebP de bible-899-web', () => {
+    const url = urlColonneFacsimile899({ fichier: 'f001v_b.png' })
+    expect(url.endsWith('/storage/v1/object/public/manuscrits/bible-899-web/f001v_b.webp')).toBe(true)
   })
 })
