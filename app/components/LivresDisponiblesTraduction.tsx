@@ -7,7 +7,7 @@
 // lecteur apprend dans la fiche ce que la navigation ne lui montrait qu'en grisant.
 //
 // ⛔ UNE BIBLE COMPLÈTE NE LISTE RIEN : soixante-treize noms qui disent « tout » n'apprennent
-//    rien. La section ne paraît que s'il manque au moins un livre CANONIQUE.
+//    rien. La section ne paraît que si un testament porté a un trou (`livresParTestament`).
 // ⛔ LA LISTE SE LIT AUX MÊMES SOURCES QUE LA NAVIGATION (`BibleLayout`) : `livres_bible899`
 //    pour le témoin 899, `livres_par_traduction` pour les bibles au verset, les divisions
 //    éditoriales pour les autres. Deux juges de la présence d'un livre se contrediraient.
@@ -36,11 +36,22 @@ const GROUPES: { testament: LivreBible['testament']; libelle: string }[] = [
   { testament: 'AUTRES', libelle: 'Autres écrits' },
 ]
 
-/** Les livres portés, par testament et dans l'ordre du canon ; `null` pour une bible complète. */
+/** Les deutérocanoniques : une bible protestante (Segond) ne les porte pas, et n'en est pas moins complète. */
+const DEUTEROCANONIQUES: ReadonlySet<string> = new Set(['TOB', 'JDT', '1MA', '2MA', 'WIS', 'SIR', 'BAR'])
+
+/**
+ * Les livres portés, par testament et dans l'ordre du canon ; `null` pour une bible complète.
+ * ⛔ COMPLÈTE s'entend DANS SON CANON (2026-09-24) : un testament absent en entier (la
+ *    Septante n'a pas de Nouveau Testament) ou les seuls deutérocanoniques manquants (la
+ *    Segond) ne font pas une bible partielle. Seul un trou dans un testament porté l'est.
+ */
 export function livresParTestament(portes: ReadonlySet<string>): { libelle: string; noms: string[] }[] | null {
   if (portes.size === 0) return null
-  const complete = LIVRES.every(l => l.testament === 'AUTRES' || l.canonique === false || portes.has(l.code))
-  if (complete) return null
+  const troue = (['AT', 'NT'] as const).some(t => {
+    const attendus = LIVRES.filter(l => l.testament === t && l.canonique !== false && !DEUTEROCANONIQUES.has(l.code))
+    return attendus.some(l => portes.has(l.code)) && attendus.some(l => !portes.has(l.code))
+  })
+  if (!troue) return null
   return GROUPES
     .map(g => ({ libelle: g.libelle, noms: LIVRES.filter(l => l.testament === g.testament && portes.has(l.code)).map(l => l.nom) }))
     .filter(g => g.noms.length > 0)
