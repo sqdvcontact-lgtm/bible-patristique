@@ -22,7 +22,7 @@ import { STYLE_PENDANT_VOLET, styleColonnePage, styleMesureCentree } from '@/app
 import { usePendantVolet } from '@/app/lib/usePendantVolet'
 import VoletPage, { BoutonReinitialiser, GroupeFiltre, LigneCompte } from '@/app/components/VoletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
-import FrisePeriodes, { ancrePeriode, MARGE_SAUT_PERIODE, type PeriodeFrise } from './FrisePeriodes'
+import FrisePeriodes, { ancrePeriode, bornesPeriode, MARGE_SAUT_PERIODE, type PeriodeFrise } from './FrisePeriodes'
 
 // Frise générale de l'histoire de l'Église.
 // Les champs riches viennent de `v_frise_generale`, triée par `ordre_affichage`.
@@ -459,7 +459,7 @@ export default function HistoireClient(
                 )}
               </div>
             ) : (
-              <ListeFrise items={visibles} mobile={mobile} toutesNotes={notesOuvertes} recherche={recherche.trim()}
+              <ListeFrise items={visibles} periodes={periodes} mobile={mobile} toutesNotes={notesOuvertes} recherche={recherche.trim()}
                 liensParEvenement={liensParEvenement} placesParEvenement={placesParEvenement}
                 titresParId={titresParId} allerAEvenement={allerAEvenement} />
             )}
@@ -482,14 +482,15 @@ export default function HistoireClient(
 // ⛔ Le séparateur se pose au CHANGEMENT de période dans la liste rendue, jamais depuis
 // des bornes de dates : la liste suit l'ordre éditorial de la vue (voir
 // decouperEnPeriodes). Quinze bornes qui donnent au lecteur le sentiment d'où il est.
-function ListeFrise({ items, mobile, toutesNotes, recherche, liensParEvenement, placesParEvenement, titresParId, allerAEvenement }: {
-  items: RangFrise[]; mobile: boolean; toutesNotes: boolean; recherche: string
+function ListeFrise({ items, periodes, mobile, toutesNotes, recherche, liensParEvenement, placesParEvenement, titresParId, allerAEvenement }: {
+  items: RangFrise[]; periodes: PeriodeFrise[]; mobile: boolean; toutesNotes: boolean; recherche: string
   liensParEvenement: Map<string, LienDEvenement[]>
   placesParEvenement: Map<string, PlaceDansSerie[]>
   titresParId: Map<string, string>
   allerAEvenement: (id: string) => void
 }) {
   const tranches = decouperEnPeriodes(items)
+  const bornesParCode = new Map(periodes.map(p => [p.code, bornesPeriode(p.date_debut, p.date_fin)]))
   // La frise saute à la PREMIÈRE section d'une période : seule elle porte l'ancre.
   const ancrees = new Set<string>()
   return (
@@ -502,8 +503,15 @@ function ListeFrise({ items, mobile, toutesNotes, recherche, liensParEvenement, 
             /* ⚠️ Collant sous la BARRE, dont la hauteur se compose et ne se recopie
                jamais en pixels (charte, Responsive). Le repère porte le fond de la
                page : sans lui, les cartes défileraient au travers. */
-            <h2 style={{ ...STYLE_RUBRIQUE, position: 'sticky', top: HAUTEUR_NAVBAR, zIndex: 2, margin: 0, padding: '9px 0 5px', background: FOND }}>
-              {t.nom}
+            <h2 className="histoire-periode">
+              <span className="histoire-periode-filet" aria-hidden />
+              <span className="histoire-periode-titre">
+                <span className="histoire-periode-nom">{t.nom}</span>
+                {t.code && bornesParCode.get(t.code) && (
+                  <span className="histoire-periode-bornes">{bornesParCode.get(t.code)}</span>
+                )}
+              </span>
+              <span className="histoire-periode-filet" aria-hidden />
             </h2>
           )}
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
@@ -518,6 +526,28 @@ function ListeFrise({ items, mobile, toutesNotes, recherche, liensParEvenement, 
         </section>
         )
       })}
+      {/* ⛔ LE REPÈRE D'UNE PÉRIODE SE COMPOSE COMME LA FRISE : nom centré en sérif, dates
+          en italique elzévirienne dessous, un filet de part et d'autre, à la manière d'un
+          intertitre de livre ancien (demande de l'auteur, 2026-09-24). Il reste collant sous
+          la barre, dont la hauteur se compose, et porte le fond de la page : sans lui, les
+          cartes défileraient au travers. */}
+      <style>{`
+        .histoire-periode {
+          position: sticky; top: ${HAUTEUR_NAVBAR}; z-index: 2; margin: 0; padding: 14px 0 10px;
+          background: ${FOND}; display: flex; align-items: flex-start; gap: 0.875rem; text-align: center;
+          font-weight: 400;
+        }
+        .histoire-periode-filet { flex: 1 1 0; height: 1px; margin-top: 0.625rem; background: var(--cs-bord); }
+        .histoire-periode-titre { display: flex; flex-direction: column; align-items: center; max-width: 80%; }
+        .histoire-periode-nom {
+          font-family: ${SERIF}; font-size: 1rem; line-height: 1.25; letter-spacing: 0.01em; color: var(--cs-encre);
+          text-wrap: balance;
+        }
+        .histoire-periode-bornes {
+          margin-top: 2px; font-family: ${SERIF}; font-size: 0.6875rem; line-height: 1.2; font-style: italic;
+          color: var(--cs-texte-second); font-variant-numeric: oldstyle-nums proportional-nums; white-space: nowrap;
+        }
+      `}</style>
     </>
   )
 }

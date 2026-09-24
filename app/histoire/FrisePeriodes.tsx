@@ -17,7 +17,7 @@
 // des durées se lit toujours : un bloc plus long dure plus longtemps.
 //
 // ⛔ LA COMPOSITION EST CELLE D'UNE PAGE DE TITRE ANCIENNE (demande de l'auteur) : le
-// nom centré en sérif, un filet court, les dates en italique aux chiffres elzéviriens,
+// nom centré en sérif, les dates en italique aux chiffres elzéviriens dessous,
 // un filet gravé autour du bloc. Le socle garde des marges propres même au plus court.
 // Les dates paraissent quand le bloc en a la place, le nom passe sur deux lignes quand
 // il y a la hauteur (requêtes de conteneur sur la hauteur du CONTENU, rembourrage
@@ -45,13 +45,15 @@ export const ancrePeriode = (code: string) => `periode-${code}`
 const ANNEE_COURANTE = new Date().getFullYear()
 const FIN_OUVERTE = 2100
 
-/** « 313-476 », « 2000-301 av. J.-C. », « 300 av.-29 apr. J.-C. », « depuis 1979 ». */
+/** « 313 – 476 », « 2000 – 301 av. J.-C. », « 300 av. – 29 apr. J.-C. », « depuis 1979 ».
+ *  Le tiret demi-cadratin entre deux dates est cerné de deux espaces (décision de
+ *  l'auteur), comme celui des dates d'événement de la même page. */
 export function bornesPeriode(debut: number | null, fin: number | null): string {
   if (debut == null) return ''
   if (fin == null || fin >= FIN_OUVERTE) return debut < 0 ? `depuis ${-debut} av. J.-C.` : `depuis ${debut}`
-  if (fin < 0) return `${-debut}-${-fin} av. J.-C.`
-  if (debut < 0) return `${-debut} av.-${fin} apr. J.-C.`
-  return `${debut}-${fin}`
+  if (fin < 0) return `${-debut} – ${-fin} av. J.-C.`
+  if (debut < 0) return `${-debut} av. – ${fin} apr. J.-C.`
+  return `${debut} – ${fin}`
 }
 
 /** La durée d'une période, en années, jamais moins d'une. */
@@ -132,20 +134,15 @@ export default function FrisePeriodes({ periodes, comptes }: {
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .frise-periode-bornes {
-          font-size: 0.6875rem; line-height: 1.2; font-style: italic; color: var(--cs-texte-second);
+          margin-top: 1px; font-size: 0.6875rem; line-height: 1.2; font-style: italic; color: var(--cs-texte-second);
           font-variant-numeric: oldstyle-nums proportional-nums; white-space: nowrap;
-        }
-        /* Un filet court entre le nom et ses dates, à la manière d'une page de titre. */
-        .frise-periode-bornes::before {
-          content: ''; display: block; width: 1rem; height: 1px; margin: 3px auto 2px;
-          background: currentColor; opacity: 0.35;
         }
         /* Assez de hauteur : le nom peut passer sur deux lignes au lieu d'être coupé. */
         @container (min-height: 3rem) {
           .frise-periode-nom { white-space: normal; text-wrap: balance; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
         }
-        /* Trop peu de hauteur pour les dates et leur filet : le nom seul. */
-        @container (max-height: 2.0625rem) { .frise-periode-bornes { display: none; } }
+        /* Trop peu de hauteur pour les dates : le nom seul. */
+        @container (max-height: 1.8125rem) { .frise-periode-bornes { display: none; } }
         .frise-periode[aria-current='true'] {
           background: color-mix(in srgb, var(--cs-fond-doux) 86%, var(--cs-vert));
           box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cs-vert) 70%, transparent);
