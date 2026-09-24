@@ -50,7 +50,8 @@ export const VISITE_OEUVRE: Visite = {
   cle: CLE_VISITE_OEUVRE,
   titre: 'Une œuvre',
   accroche: [
-    'Le texte se lit au centre. Les informations sur l’œuvre sont à gauche. Les références liées au passage choisi sont à droite.',
+    // ⚠️ RELU LE 2026-09-24 : une phrase, comme les autres accroches.
+    'L’œuvre et son sommaire sont à gauche, le texte au centre, les références du passage choisi à droite.',
   ],
   etapes: [
     {
@@ -70,7 +71,8 @@ export const VISITE_OEUVRE: Visite = {
     {
       cle: 'lecture',
       sujet: ['[data-visite="oeuvre-lecture"]'],
-      titre: 'Langues',
+      // ⚠️ RELU LE 2026-09-24 : le titre reprend la rubrique que le volet affiche.
+      titre: 'Mode de lecture',
       texte: [
         'Lorsque l’édition comprend le texte original, vous pouvez lire la traduction seule, l’original seul ou les deux en regard.',
         'Le changement de mode conserve votre place dans le texte.',

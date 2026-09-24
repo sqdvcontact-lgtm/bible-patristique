@@ -27,7 +27,9 @@ export const VISITE_COMMUNAUTE: Visite = {
   cle: CLE_VISITE_COMMUNAUTE,
   titre: 'La Communauté',
   accroche: [
-    'La Communauté rassemble les études, notes de lecture et essais publiés par les lecteurs du site.',
+    // ⚠️ RELU LE 2026-09-24 : le chapeau du volet dit désormais ce que la page rassemble ;
+    // l’accroche situe la page au lieu de le redire.
+    'La recherche et les filtres sont dans le volet, les publications dans la page.',
   ],
   etapes: [
     {
@@ -36,7 +38,7 @@ export const VISITE_COMMUNAUTE: Visite = {
       titre: 'Recherche et filtres',
       texte: [
         'Le champ cherche parmi les auteurs, les titres et les résumés.',
-        'Le volet règle aussi l’ordre des publications, et limite le sommaire à une catégorie de texte.',
+        'Le volet règle aussi l’ordre des publications et peut les limiter à une catégorie.',
       ],
       cote: 'droite',
     },

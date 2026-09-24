@@ -1,8 +1,10 @@
 /**
  * LA VISITE DE LA BIBLIOGRAPHIE — la huitième (2026-09-21).
  *
- * Trois arrêts (l'index des lettres est retiré le 2026-09-24), colonne par colonne (charte § 46) : le volet de gauche entier, du
- * haut vers le bas, puis la liste.
+ * Trois arrêts (l'index des lettres est retiré le 2026-09-24), colonne par colonne
+ * (charte § 46) : le volet de gauche d'abord, puis la colonne de la liste, de sa recherche
+ * à sa première entrée. ⚠️ Depuis le 2026-09-24 la recherche vit en TÊTE DE LA LISTE, non
+ * plus dans le volet : l'arrêt des filtres passe donc devant elle (relu le même jour).
  *
  * ⛔ CE QUE LA VISITE DOIT DIRE, et que la page ne dit pas : que « Cité pour » classe
  * les ouvrages selon l'USAGE qu'en font les notices, et non selon leur sujet ; qu'une
@@ -10,7 +12,7 @@
  * MISE EN FORME, italique et petites capitales comprises.
  *
  * ⚠️ ELLE NE S'OUVRE QU'EN ÉCRAN LARGE : sous 900 px le volet est un panneau replié,
- * et trois arrêts sur quatre y perdraient leur sujet. Même parti que la page d'œuvre.
+ * et les filtres y perdraient leur sujet. Même parti que la page d'œuvre.
  */
 
 import type { Visite } from './visiteGuidee'
@@ -22,19 +24,9 @@ export const VISITE_BIBLIOGRAPHIE: Visite = {
   cle: CLE_VISITE_BIBLIOGRAPHIE,
   titre: 'La Bibliographie',
   accroche: [
-    'La recherche est en tête de la liste, les filtres à gauche. Les ouvrages se suivent par ordre alphabétique.',
+    'Les filtres sont à gauche, la recherche en tête de la liste. Les ouvrages se suivent par ordre alphabétique.',
   ],
   etapes: [
-    {
-      cle: 'recherche',
-      sujet: ['[data-visite="biblio-recherche"]'],
-      titre: 'Recherche',
-      texte: [
-        'Le champ cherche par auteur, titre, collection, maison d’édition ou année.',
-        'Il se combine avec les filtres du volet de gauche.',
-      ],
-      cote: 'dessous',
-    },
     {
       cle: 'filtres',
       sujet: ['[data-visite="biblio-filtres"]'],
@@ -45,6 +37,16 @@ export const VISITE_BIBLIOGRAPHIE: Visite = {
         'Le nombre en regard de chaque case dit combien d’ouvrages elle retient.',
       ],
       cote: 'droite',
+    },
+    {
+      cle: 'recherche',
+      sujet: ['[data-visite="biblio-recherche"]'],
+      titre: 'Recherche',
+      texte: [
+        'Le champ cherche par auteur, titre, collection, maison d’édition ou année.',
+        'Il se combine avec les filtres du volet.',
+      ],
+      cote: 'dessous',
     },
     {
       cle: 'ouvrage',

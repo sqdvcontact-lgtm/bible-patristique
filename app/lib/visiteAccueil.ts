@@ -72,7 +72,7 @@ export const VISITE_ACCUEIL: Visite = {
       cle: 'patristique',
       sujet: ['[data-visite="nav-patristique"]'],
       sujetBis: ['.ac-patristique'],
-      titre: 'Pères de l’Église',
+      titre: 'Patristique',
       texte: [
         'La Patristique rassemble les auteurs, leurs œuvres et les éditions disponibles.',
         'Le menu conserve les dernières œuvres que vous avez ouvertes. La carte de l’accueil y mène également.',
@@ -96,7 +96,7 @@ export const VISITE_ACCUEIL: Visite = {
       // SIX pages (la bibliographie manquait), et un clic sur son nom mène aux traductions.
       titre: 'Aller plus loin',
       texte: [
-        'Cet onglet réunit les traductions, la bibliographie, les librairies, les statistiques, les péricopes et l’histoire de l’Église.',
+        'Cet onglet réunit les traductions, la bibliographie, l’achat de livres, les statistiques, les péricopes et l’histoire de l’Église.',
         'Le menu s’ouvre au survol et présente brièvement chacune de ces pages. Un clic sur l’onglet ouvre la page des traductions.',
       ],
       cote: 'dessous',
@@ -115,12 +115,13 @@ export const VISITE_ACCUEIL: Visite = {
       cle: 'compte',
       sujet: ['[data-visite="nav-compte"]'],
       // ⚠️ RELU LE 2026-09-21 : la rangée ouvre sur la BOUSSOLE, qui rejoue la visite, et
-      // le menu de compte ne porte plus que la page publique, les réglages et les citations.
+      // le menu de compte ne porte plus que la page publique, les réglages et les prélèvements
+      // (« Mes citations » s'appelle « Mes prélèvements », relu le 2026-09-24).
       // Messages et notifications n'y paraissent qu'avec une session.
       titre: 'Outils et compte',
       texte: [
         'La boussole rejoue la visite de la page ouverte. Le cœur mène au soutien du projet.',
-        'Une fois connecté, vous trouvez ici vos messages, vos notifications et le menu de votre compte : votre page publique, vos réglages et vos citations.',
+        'Une fois connecté, vous trouvez ici vos messages, vos notifications et le menu de votre compte : votre page publique, vos réglages et vos prélèvements.',
       ],
       cote: 'gauche',
     },

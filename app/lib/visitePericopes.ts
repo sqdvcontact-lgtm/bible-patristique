@@ -22,7 +22,8 @@ export const VISITE_PERICOPES: Visite = {
   cle: CLE_VISITE_PERICOPES,
   titre: 'Les péricopes',
   accroche: [
-    'La recherche et le sommaire des livres sont à gauche, le catalogue à droite, dans l’ordre du texte biblique.',
+    // ⚠️ RELU LE 2026-09-24 : la liste se centre sur la fenêtre depuis ce jour (charte § 38.39).
+    'La recherche et le sommaire des livres sont à gauche, le catalogue au centre, dans l’ordre du texte biblique.',
   ],
   etapes: [
     {
