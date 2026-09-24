@@ -26,6 +26,7 @@ import { FAMILLES_ADMIN, entreesDeFamille } from "@/app/lib/adminNavigation";
 import PortraitLecteur from "@/app/components/PortraitLecteur";
 import { cssServi } from "@/app/lib/cssServi";
 import { SERIF } from '@/app/lib/polices'
+import { Anneau } from '@/app/lib/attenteEnCreux'
 
 const ModaleMessagerie = dynamic(() => import("@/app/components/ModaleMessagerie"), { ssr: false });
 const VoletNotifications = dynamic(() => import("@/app/components/VoletNotifications"), { ssr: false });
@@ -1275,7 +1276,6 @@ export default function Navbar() {
     <div style={{ position: "relative", width: mobile ? "100%" : "fit-content" }}>
       <style>{cssServi(`
         .recherche-rapide-input::placeholder { color: rgba(255,255,255,0.45); }
-        .spinner-search { animation: spin 0.7s linear infinite; }
         /* ── LES GROUPES DE LA LISTE, au modèle de la page de résultats ──────────
            Une rubrique en aplat, puis un bloc lavé de la même famille dont les
            lignes se séparent d'un filet. La famille se pose une fois, par --fam
@@ -1380,10 +1380,7 @@ export default function Navbar() {
                   : <>{nbTotalResultats + pericopes.length} <span style={{ color: "var(--cs-texte-doux)", fontWeight: 400 }}>résultat{(nbTotalResultats + pericopes.length) > 1 ? 's' : ''}</span></>}
             </span>
             {(rechercheRapideLoading || pericopesLoading) ? (
-              <svg className="spinner-search" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-label="Chargement" style={{ color: 'var(--cs-vert)' }}>
-                <circle cx="7" cy="7" r="5.5" stroke="var(--cs-bord)" strokeWidth="1.6" fill="none"/>
-                <path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none"/>
-              </svg>
+              <span role="status" aria-label="Chargement"><Anneau taille="0.875rem" /></span>
             ) : rechercheTerminee ? (
               /* Smiley au trait, épuré comme les autres symboles du site. Son cercle
                  extérieur reprend EXACTEMENT celui du spinner (r 5.5, centre 7,7, même

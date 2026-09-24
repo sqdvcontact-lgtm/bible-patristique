@@ -6,6 +6,7 @@ import { rendreMarquesNote, type ElementPanneau } from './texteEnrichiEssai'
 import { SERIF, SANS } from './polices'
 import { styleAppelNote } from './appelsDeNote'
 import IconeCroix from '@/app/components/IconeCroix'
+import { Anneau } from '@/app/lib/attenteEnCreux'
 
 // La bulle devient fixe après 2,3 secondes de survol continu.
 const DUREE_FIXATION = 2_300
@@ -55,7 +56,7 @@ function ContenuNote({ el, onNaviguer }: {
 
   if (chargement) return (
     <span style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
-      <span className="essai-note-spinner" />
+      <Anneau taille="0.875rem" />
     </span>
   )
 

@@ -5,6 +5,7 @@ import { supabase } from '@/app/lib/supabase'
 import { useAffichageAdmin } from '@/app/lib/contexteAffichageAdmin'
 import { estOeuvrePubliee } from '@/app/lib/oeuvresPublication'
 import { rendreTexteEnrichi, texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
 type Mode = 'biblique' | 'patristique' | 'chasse'
@@ -442,7 +443,7 @@ export default function QuizBibliqueClient({ estAdminReel }: { estAdminReel: boo
             {mode === 'chasse' ? (
               <JeuChasse />
             ) : chargement ? (
-              <p style={etatTexte}>Chargement…</p>
+              <MotAttente centre />
             ) : erreur ? (
               <p style={{ ...etatTexte, color: 'var(--cs-danger)' }}>{erreur}</p>
             ) : mode === 'biblique' && verset && livreCorrect ? (

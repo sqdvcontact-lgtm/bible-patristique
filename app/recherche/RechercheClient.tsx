@@ -39,6 +39,7 @@ import { ENCRE_TITRE, GRAISSE_TITRE_VOLET, STYLE_RUBRIQUE, TITRE_VOLET } from '@
 import { siglesTraductions } from '@/app/lib/sigleTraduction'
 import { codesTraductionsLecture } from '@/app/lib/traductions'
 import { SERIF, SANS } from '@/app/lib/polices'
+import { MotAttente } from '@/app/lib/attenteEnCreux'
 
 // (`normaliser` et `graphiesVariantes`, hérités de la concordance, vivent désormais dans
 // `app/lib/rechercheRequete.ts`, avec les tests qui leur manquaient. Les graphies
@@ -1448,7 +1449,7 @@ export default function RechercheClient() {
             )}
             {loading && (
               <div style={{ textAlign:'center', marginTop:'80px' }}>
-                <p style={{ fontSize:'0.8125rem', color:'var(--cs-texte-doux)', fontStyle:'italic' }}>Recherche en cours…</p>
+                <MotAttente>Recherche en cours…</MotAttente>
               </div>
             )}
             {/* Une panne se DIT, et propose de réessayer : un échec rendu « aucun
