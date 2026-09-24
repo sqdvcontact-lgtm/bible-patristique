@@ -17,9 +17,10 @@ export type Dimensions = { largeur: number; hauteur: number }
 /** Deux usages, deux boîtes — la même image réduite au même gabarit servirait mal
  *  l'un des deux.
  *
- *  AUTEUR : vignette verticale. Le plus grand cadre est la carte, 120 × 200 ; la
- *  charte retient 600 × 750, soit le double environ, pour rester net en HiDPI sans
- *  peser sur une page qui affiche quinze portraits à la suite.
+ *  AUTEUR : portrait vertical. Le plus grand cadre est la fiche, 140 × 210 à la racine
+ *  16 et 193 × 289 à la racine 22, zoomé jusqu'à 1,6 : 800 × 1000 le garde net en HiDPI
+ *  (600 × 750 tombait sous le double dès qu'on zoomait, audit du 2026-09-24), pour un
+ *  poids de 100 à 240 Ko en JPEG.
  *
  *  TRADUCTION — BANDEAU : bandeau PLEINE LARGEUR (app/traductions/AllerPlusLoinClient.tsx,
  *  `width: 100%`, 92 px de haut). C'est la largeur qui commande, pas la hauteur :
@@ -29,7 +30,7 @@ export type Dimensions = { largeur: number; hauteur: number }
  *  8,75rem de large, soit 140 px, 280 en HiDPI. La boîte est donnée en PORTRAIT,
  *  parce que la réduction se fait à l'intérieur d'un rectangle et qu'une boîte
  *  couchée n'accueillerait qu'une bande de l'image debout qu'on lui donne. */
-export const BOITE_AUTEUR: Dimensions = { largeur: 600, hauteur: 750 }
+export const BOITE_AUTEUR: Dimensions = { largeur: 800, hauteur: 1000 }
 export const BOITE_TRADUCTION: Dimensions = { largeur: 1600, hauteur: 1200 }
 export const BOITE_TRADUCTION_ENCART: Dimensions = { largeur: 600, hauteur: 900 }
 

@@ -4,9 +4,9 @@ import { BOITE_TRADUCTION, dimensionsPortrait, nomJpeg, PORTRAIT_HAUTEUR_MAX, PO
 describe('préparation d’un portrait', () => {
   it('réduit sans changer les proportions', () => {
     // Un portrait vertical courant : la hauteur commande.
-    expect(dimensionsPortrait({ largeur: 1200, hauteur: 1600 })).toEqual({ largeur: 563, hauteur: 750 })
+    expect(dimensionsPortrait({ largeur: 1200, hauteur: 1600 })).toEqual({ largeur: 750, hauteur: 1000 })
     // Un cliché horizontal : la largeur commande, et rien n’est rogné.
-    expect(dimensionsPortrait({ largeur: 2000, hauteur: 1000 })).toEqual({ largeur: 600, hauteur: 300 })
+    expect(dimensionsPortrait({ largeur: 2000, hauteur: 1000 })).toEqual({ largeur: 800, hauteur: 400 })
   })
 
   it('n’agrandit jamais une image déjà petite', () => {
@@ -36,7 +36,7 @@ describe('préparation d’un portrait', () => {
     // qui commande, et la boîte des auteurs le rendrait deux fois trop petit.
     const source = { largeur: 3000, hauteur: 2000 }
     expect(dimensionsPortrait(source, BOITE_TRADUCTION)).toEqual({ largeur: 1600, hauteur: 1067 })
-    expect(dimensionsPortrait(source).largeur).toBe(600)
+    expect(dimensionsPortrait(source).largeur).toBe(800)
   })
 
   it('donne au fichier l’extension du format produit', () => {

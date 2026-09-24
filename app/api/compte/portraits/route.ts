@@ -69,7 +69,21 @@ export async function GET() {
     if (seauAuteurs.error) return erreur500(seauAuteurs.error, 'Les portraits d’auteurs n’ont pas pu être listés.')
     if (seauTraductions.error) return erreur500(seauTraductions.error, 'Les portraits de traducteurs n’ont pas pu être listés.')
 
-    const idsAuteurs = (seauAuteurs.data ?? []).map(o => auteurDuPortrait(o.name)).filter((v): v is string => !!v)
+    // ⛔ Une même IMAGE ne se propose qu'une fois : deux auteurs collectifs ou anonymes
+    // partagent volontairement la leur (Douze Apôtres et Anonyme / Conciles, les deux
+    // Pseudo-), et le lecteur voyait deux vignettes identiques sous deux noms. L'empreinte
+    // du fichier (eTag) les reconnaît ; le premier identifiant l'emporte.
+    const empreintesVues = new Set<string>()
+    const idsAuteurs = (seauAuteurs.data ?? [])
+      .slice().sort((x, y) => x.name.localeCompare(y.name))
+      .filter(o => {
+        const empreinte = (o.metadata as { eTag?: string } | null)?.eTag
+        if (!empreinte) return true
+        if (empreintesVues.has(empreinte)) return false
+        empreintesVues.add(empreinte)
+        return true
+      })
+      .map(o => auteurDuPortrait(o.name)).filter((v): v is string => !!v)
     // ⛔ Seuls les ENCARTS. Un bandeau est couché (charte § 37) : dans un rond, il ne
     // donnerait qu'une bande de ciel. Une traduction sans encart n'est pas proposée.
     const idsTraductions = (seauTraductions.data ?? []).map(o => traductionDeLEncart(o.name)).filter((v): v is string => !!v)

@@ -3,7 +3,7 @@ import { erreur500 } from '@/app/lib/apiErreur'
 import { createClient } from '@supabase/supabase-js'
 import { estAdminServeur } from '@/app/lib/verifAdmin'
 import { estAdminUtilisateur } from '@/app/lib/verifAdminUtilisateur'
-import { SEAU_PORTRAITS_AUTEURS, SEAU_VIGNETTES_AUTEURS } from '@/app/lib/photoAuteur'
+import { SEAU_ORIGINAUX_AUTEURS, SEAU_PORTRAITS_AUTEURS, SEAU_VIGNETTES_AUTEURS } from '@/app/lib/photoAuteur'
 
 function detecterMimeImage(buf: Buffer): string | null {
   if (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) return 'image/jpeg'
@@ -69,6 +69,14 @@ export async function POST(request: Request) {
     upsert: true, contentType: 'image/jpeg', cacheControl: '3600',
   })
   if (error) return erreur500(error)
+
+  // Le fichier déposé est aussi ARCHIVÉ tel quel dans le seau privé des originaux :
+  // le seau servi peut ensuite être retravaillé (source plus grande, retouche) sans
+  // perdre ce qui avait été déposé.
+  const { error: errArchive } = await supabaseAdmin.storage.from(SEAU_ORIGINAUX_AUTEURS).upload(`${idAuteur}.jpg`, buffer, {
+    upsert: true, contentType: 'image/jpeg',
+  })
+  if (errArchive) return erreur500(errArchive, 'Le portrait est déposé, mais pas son archive.')
 
   if (bufferVignette) {
     const { error: errVignette } = await supabaseAdmin.storage.from(SEAU_VIGNETTES_AUTEURS).upload(`${idAuteur}.jpg`, bufferVignette, {

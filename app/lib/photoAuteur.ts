@@ -138,8 +138,14 @@ export function deplacerPos(base: AuteurPhotoPos, dx: number, dy: number, largeu
   })
 }
 
-/** Le seau des portraits : l'ORIGINAL déposé, 600 × 750 au plus, qu'on ne retouche pas. */
+/** Le seau des portraits SERVIS : 800 × 1000 au plus. Depuis le 2026-09-24, ils sont
+ *  refaits depuis leurs sources Midjourney (ou retravaillés quand il n'y en a pas) ;
+ *  ce qui avait été déposé vit dans le seau privé des originaux, et le dépôt y écrit
+ *  aussi. */
 export const SEAU_PORTRAITS_AUTEURS = 'auteurs'
+/** Le seau PRIVÉ des originaux : les fichiers tels qu'ils avaient été déposés. Rien ne
+ *  s'y lit depuis une page. */
+export const SEAU_ORIGINAUX_AUTEURS = 'auteurs-originaux'
 /** Le seau des VIGNETTES : copies réduites (280 × 350 au plus, même proportion, donc
  *  même cadrage), pour les petits ronds. Fabriquées au dépôt, jamais à la main. */
 export const SEAU_VIGNETTES_AUTEURS = 'auteurs-vignettes'
