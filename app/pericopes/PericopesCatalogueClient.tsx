@@ -68,6 +68,7 @@ import {
 } from '@/app/lib/pericopes'
 import { filtrerCatalogue, TESTAMENT_LIVRE } from '@/app/lib/pericopesRecherche'
 import { SERIF, SANS } from '@/app/lib/polices'
+import { styleColonnePage, styleMesureCentree } from '@/app/lib/voletPage'
 import VoletPage, { BoutonReinitialiser, GroupeFiltre, LienDiscret, LigneCompte, RubriqueVolet } from '@/app/components/VoletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 import { MentionVide } from '@/app/components/EtatVideVolet'
@@ -424,13 +425,12 @@ export default function PericopesCatalogueClient({ items }: { items: PericopeCat
         </VoletPage>
 
         {/* ── La liste ── */}
-        {/* La mesure se CENTRE dans la colonne (2026-08-23, sur décision de l'auteur).
-            Le fer à gauche tenait tant que la liste occupait seule la colonne ; sous une
-            barre d'onglets, il rendait la page bancale — tout le bloc collé au volet et
-            un tiers de l'écran vide à droite. Ce n'est pas un retour aux 39rem centrées
-            de l'audit : la mesure reste à 52rem, c'est elle qui rendait la page creuse. */}
-        <section style={{ flex: 1, minWidth: 0, padding: mobile ? '16px 14px 56px' : '20px 2.5rem 64px' }}>
-          <div style={{ maxWidth: '52rem', margin: '0 auto' }}>
+        {/* La mesure se CENTRE sur la FENÊTRE depuis le 2026-09-24 (charte § 38.39), non
+            plus dans la colonne ; elle ne passe jamais sous le volet. Le fer à gauche du
+            2026-08-22 rendait la page bancale, le centrage dans la colonne la décalait
+            d'une demi-largeur de volet. La mesure reste à 52rem. */}
+        <section style={styleColonnePage(mobile)}>
+          <div style={styleMesureCentree('52rem', mobile)}>
 
             {/* Le partage du corpus, en tête et à demeure. Ce sont des FILTRES, non des
                 panneaux : d'où aria-pressed dans un groupe nommé, et non un tablist. */}

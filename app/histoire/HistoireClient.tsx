@@ -18,6 +18,7 @@ import { STYLE_RUBRIQUE } from '@/app/lib/hierarchieTitres'
 import { colorMix } from '@/app/lib/couleurs'
 import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { SERIF, SANS } from '@/app/lib/polices'
+import { styleColonnePage, styleMesureCentree } from '@/app/lib/voletPage'
 import VoletPage, { BoutonReinitialiser, GroupeFiltre, LigneCompte } from '@/app/components/VoletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 
@@ -425,8 +426,8 @@ export default function HistoireClient(
         </VoletPage>
 
         {/* ── Frise ──────────────────────────────────────────────────────── */}
-        <section style={{ flex: 1, minWidth: 0, padding: mobile ? '16px 14px 56px' : '16px 32px 64px' }}>
-          <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
+        <section style={styleColonnePage(mobile)}>
+          <div style={styleMesureCentree('48rem', mobile)}>
 
             {/* ⛔ NI COMPTE DE REPÈRES, NI FILET (demande de l'auteur, 2026-09-04 : « y'a un
                 double filet en haut de page ; supprimer. Y'a le nombre de repères en haut

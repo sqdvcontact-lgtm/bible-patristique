@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from './mesures'
+import { GOUTTIERE_PAGE, HAUTEUR_NAVBAR, HAUTEUR_SOUS_NAVBAR } from './mesures'
 
 /**
  * Le volet de gauche des trois pages sœurs à filtres : bibliographie, histoire de
@@ -40,4 +40,45 @@ export const TETE_VOLET_PAGE: CSSProperties = {
  */
 export const CHAPEAU_VOLET_PAGE: CSSProperties = {
   margin: '4px 0 0', fontSize: '0.6875rem', lineHeight: 1.3, color: 'var(--cs-texte-second)',
+}
+
+/** Le blanc de part et d’autre de la colonne, sur un écran large. */
+export const MARGE_COLONNE_PAGE = '2.5rem'
+
+/**
+ * La colonne de droite des pages à volet : Communauté, bibliographie, histoire de
+ * l’Église, catalogue des péricopes. Une seule écriture de ses blancs, qui avaient
+ * dérivé d’une page à l’autre (16, 20 ou 22 px en tête, 32 px ou 2,5 rem sur les
+ * côtés). Au téléphone, la gouttière du site.
+ */
+export function styleColonnePage(mobile: boolean): CSSProperties {
+  return {
+    flex: 1, minWidth: 0,
+    padding: mobile ? `16px ${GOUTTIERE_PAGE} 56px` : `20px ${MARGE_COLONNE_PAGE} 64px`,
+  }
+}
+
+/**
+ * La mesure d’une page à volet, CENTRÉE SUR LA FENÊTRE (décision de l’auteur,
+ * 2026-09-24, charte § 38.39). Le lecteur assis devant son écran attend l’élément
+ * central face à lui ; centré sur la colonne, il tombait une demi-largeur de volet
+ * plus à droite, et l’œil devait sans cesse corriger cet écart.
+ *
+ * La marge gauche est l’écart entre le milieu de la fenêtre et le début de la
+ * colonne, moins la moitié de la mesure, bornée des deux côtés :
+ * - jamais sous zéro : le contenu ne passe jamais sous le volet ; quand la place
+ *   manque, il se range contre lui, c’est-à-dire au plus près du milieu possible ;
+ * - jamais au-delà de la place libre (« 100 % » d’une marge se lit sur la largeur
+ *   de la colonne) : le contenu ne rétrécit jamais pour se centrer.
+ * ⚠️ La fonction clamp rend son minimum quand son maximum lui est inférieur : une
+ * colonne plus étroite que la mesure garde une marge nulle, et la mesure s’y réduit.
+ * Au téléphone, le volet est au-dessus : la colonne EST la fenêtre, on centre.
+ */
+export function styleMesureCentree(mesure: string, mobile: boolean): CSSProperties {
+  if (mobile) return { maxWidth: mesure, marginLeft: 'auto', marginRight: 'auto' }
+  return {
+    maxWidth: mesure,
+    marginLeft: `clamp(0px, calc(50vw - ${mesure} / 2 - ${LARGEUR_VOLET_PAGE} - ${MARGE_COLONNE_PAGE}), max(0px, calc(100% - ${mesure})))`,
+    marginRight: 0,
+  }
 }

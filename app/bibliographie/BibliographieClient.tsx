@@ -34,6 +34,7 @@ import {
   type NomsPericopes,
 } from '@/app/lib/bibliographieCatalogue'
 import { SERIF, SANS } from '@/app/lib/polices'
+import { styleColonnePage, styleMesureCentree } from '@/app/lib/voletPage'
 import VoletPage, { BoutonReinitialiser, GroupeFiltre, LienDiscret, LigneCompte } from '@/app/components/VoletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 import { MentionVide } from '@/app/components/EtatVideVolet'
@@ -344,8 +345,8 @@ export default function BibliographieClient({ entrees: servies, nomsPericopes }:
         </VoletPage>
 
         {/* ── La liste ── */}
-        <section style={{ flex: 1, minWidth: 0, padding: mobile ? '16px 14px 56px' : '22px 2.5rem 64px' }}>
-          <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
+        <section style={styleColonnePage(mobile)}>
+          <div style={styleMesureCentree('48rem', mobile)}>
             {/* En écran large, la recherche tient la tête de la liste (demande de l'auteur, 2026-09-24). */}
             {!mobile && <div style={{ maxWidth: '30rem', margin: '0 auto 1.75rem', textAlign: 'center' }}>{recherche}</div>}
             {groupes.length === 0 ? (

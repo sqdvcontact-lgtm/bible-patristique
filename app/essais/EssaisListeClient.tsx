@@ -24,13 +24,11 @@ import { SERIF, SANS } from '@/app/lib/polices'
 import { MentionVide } from '@/app/components/EtatVideVolet'
 import { HAUTEUR_SOUS_NAVBAR } from '@/app/lib/mesures'
 import { useEstMobile } from '@/app/lib/useEstMobile'
-import { LARGEUR_VOLET_PAGE } from '@/app/lib/voletPage'
+import { styleColonnePage, styleMesureCentree } from '@/app/lib/voletPage'
 import VoletPage, { BoutonReinitialiser, GroupeFiltre, LigneCompte } from '@/app/components/VoletPage'
 import ChampRechercheVolet from '@/app/components/ChampRechercheVolet'
 
 const CATEGORIES = CATEGORIES_ESSAIS
-/** Le blanc de part et d'autre de la colonne, sur un écran large. */
-const MARGE_COLONNE = '2.5rem'
 
 type Onglet = 'communaute' | 'mes-ecrits' | 'ecrire' | 'suggestion'
 
@@ -324,16 +322,9 @@ export default function EssaisListeClient({ essais }: { essais: EssaiResume[] })
           {contenuVolet}
         </VoletPage>
 
-        <section style={{ flex: 1, minWidth: 0, padding: mobile ? '16px 14px 56px' : `20px ${MARGE_COLONNE} 64px` }}>
-          {/* ⛔ Sur un écran large, le rayon se centre sur la FENÊTRE, face au lecteur,
-              non sur la colonne (décision de l'auteur, 2026-09-24, charte § 38.39).
-              La marge gauche est l'écart entre le milieu de la fenêtre et le début de
-              la colonne, moins la moitié du rayon ; elle ne descend jamais sous zéro,
-              si bien que le rayon ne passe jamais sous le volet. */}
-          <div className="essais-corps" style={mobile ? undefined : {
-            marginLeft: `max(0px, calc(50vw - var(--corps) / 2 - ${LARGEUR_VOLET_PAGE} - ${MARGE_COLONNE}))`,
-            marginRight: 0,
-          }}>
+        <section style={styleColonnePage(mobile)}>
+          {/* Le rayon se centre sur la FENÊTRE, jamais sous le volet (charte § 38.39). */}
+          <div className="essais-corps" style={styleMesureCentree('var(--corps)', mobile)}>
             {/* Trois sections : les écrits de la communauté, les siens, et « Écrire ».
                 Modèle commun du site, cf. `.cs-onglets` dans globals.css. */}
             <OngletsPage
