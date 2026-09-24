@@ -773,6 +773,14 @@ export default function BibleBilingue({
               data-glose={glose ? (glose.canonHote ?? '') : undefined}
               {...(glose ? {} : marquesDeRangee(rangee.canonId))}
             >
+              {/* ⛔ LES ACTIONS PRÉCÈDENT LES CELLULES DANS LE DOCUMENT, comme en lecture
+                  simple (TexteBible, audit ergonomique du 2026-09-21) : à la tabulation, on
+                  rencontre d'abord les boutons du verset, puis son numéro, puis son texte et
+                  ses appels de note. Rendues après les cellules, elles passaient derrière
+                  les appels et semblaient appartenir au verset suivant. ⚠️ Le DESSIN ne
+                  bouge pas : la rangée d'actions est posée en absolu et ne prend aucune
+                  case de la grille. */}
+              <ActionsDeLaRangee lignes={lignesActions} repliee={(margeActions ?? 0) < ACTIONS_LARGEUR_PX} />
               {rangee.cellules.map((cellule, index) => {
                 const membre = colonnesOrdonnees[index].membre
                 if (glose && cellule === null) return null
@@ -930,7 +938,6 @@ export default function BibleBilingue({
                   </div>
                 )
               })}
-              <ActionsDeLaRangee lignes={lignesActions} repliee={(margeActions ?? 0) < ACTIONS_LARGEUR_PX} />
             </div>
             {rendreImages(commun.images.afterByCanon.get(rangee.canonId) ?? [])}
             {rendreBlocs(commun.blocs.afterByCanon.get(rangee.canonId) ?? [])}

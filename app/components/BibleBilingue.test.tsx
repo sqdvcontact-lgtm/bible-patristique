@@ -590,4 +590,13 @@ describe('la lecture en regard, mise à niveau de la lecture simple', () => {
     expect(renderToStaticMarkup(<BibleBilingue {...COMMUN} copierCellule={copier} mobile />)).not.toContain('cs-regard-copier')
     expect(renderToStaticMarkup(<BibleBilingue {...COMMUN} />)).not.toContain('cs-regard-copier')
   })
+
+  it('pose les actions d’une rangée AVANT ses cellules, pour la tabulation', () => {
+    const html = renderToStaticMarkup(<BibleBilingue {...cliquable} copierCellule={async () => {}} />)
+    const rangee = html.slice(html.indexOf('data-canon-id="MRK.1.1"'), html.indexOf('data-canon-id="MRK.1.2"'))
+    const actions = rangee.indexOf('aria-label="Copier le verset 1 (français)"')
+    expect(actions).toBeGreaterThan(-1)
+    expect(actions).toBeLessThan(rangee.indexOf('aria-label="Verset 1"'))
+    expect(actions).toBeLessThan(rangee.indexOf('lang="fr"'))
+  })
 })
