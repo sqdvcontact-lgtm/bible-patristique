@@ -1024,7 +1024,7 @@ export default function PagePrelevements() {
 
         <BandeauLecteur lecteur={profil} reperes={reperes} />
 
-        {chargement && <MotAttente />}
+        {chargement && <MotAttente anneau />}
         {!chargement && (<>
 
         {/* ── Onglets ──

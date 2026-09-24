@@ -44,7 +44,7 @@ function AttenteBible() {
           <Barre largeur="7rem" />
         </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <MotAttente />
+          <MotAttente anneau marge="0" />
         </div>
       </div>
       <VoletEnCreux largeur="clamp(260px, 20vw, 460px)" fond="var(--cs-surface)" cote="droite">

@@ -163,7 +163,7 @@ export default function PageChaine() {
           </p>
         )}
 
-        {!enEchec && !pret && <MotAttente />}
+        {!enEchec && !pret && <MotAttente anneau />}
 
         {pret && pret.groupes.length === 0 && <ChaineVide />}
 

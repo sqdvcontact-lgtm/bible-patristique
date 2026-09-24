@@ -156,7 +156,7 @@ export default function OngletNotesBible({ contexte, onCompte, onAvantOuvrir }: 
     })
   }, [contexte, naviguer, onAvantOuvrir])
 
-  if (etat.statut === 'attente') return <MotAttente />
+  if (etat.statut === 'attente') return <MotAttente anneau />
   if (etat.statut === 'erreur') {
     return (
       <p role="alert" style={{ fontSize: '0.6875rem', lineHeight: 1.5, color: 'var(--cs-danger-fonce)', padding: '12px 0' }}>

@@ -891,7 +891,7 @@ function OngletMesEcrits({
   if (connecte === false) {
     return <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-danger-fonce)', fontStyle: 'italic' }}>Connectez-vous pour voir vos écrits.</p>
   }
-  if (essais === null) return <MotAttente />
+  if (essais === null) return <MotAttente anneau />
   if (essais.length === 0) return <div style={{ margin: '0.8125rem 0' }}><MentionVide>Aucun écrit pour l’instant.</MentionVide></div>
 
   const filtreActif = FILTRES_ECRITS.find(f => f.cle === filtre) ?? FILTRES_ECRITS[0]

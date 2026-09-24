@@ -30,7 +30,7 @@ export default function OeuvreLoading() {
         <Barre largeur="66%" />
       </VoletEnCreux>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <MotAttente />
+        <MotAttente anneau marge="0" />
       </div>
       <VoletEnCreux largeur="clamp(280px, 21vw, 480px)" fond="var(--cs-surface)" cote="droite">
         <Barre largeur="40%" />

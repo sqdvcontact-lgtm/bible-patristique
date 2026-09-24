@@ -1286,7 +1286,7 @@ function SectionCatalogueManquant({ auteurs }: { auteurs: Auteur[] }) {
       </div>
 
       {chargement ? (
-        <MotAttente />
+        <MotAttente anneau />
       ) : erreur ? (
         <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--cs-danger-fonce)', fontStyle: 'italic', fontFamily: SERIF }}>
           Le catalogue n’a pas pu être chargé.{' '}

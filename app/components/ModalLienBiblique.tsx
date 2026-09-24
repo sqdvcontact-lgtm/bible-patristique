@@ -286,7 +286,7 @@ export default function ModalLienBiblique({
                   ))}
                 </div>
                 {chargementLivre ? (
-                  <MotAttente>Chargement du livre…</MotAttente>
+                  <MotAttente anneau>Chargement du livre…</MotAttente>
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '7px' }}>
                     {versetsChapitre.map(v => (

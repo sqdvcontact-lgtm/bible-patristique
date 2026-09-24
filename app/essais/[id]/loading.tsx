@@ -25,7 +25,7 @@ export default function EssaiLoading() {
         <Barre largeur="66%" />
       </VoletEnCreux>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <MotAttente />
+        <MotAttente anneau marge="0" />
       </div>
     </main>
   )

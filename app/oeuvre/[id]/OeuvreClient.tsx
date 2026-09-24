@@ -4244,7 +4244,7 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             const titreLivre = rendreIntituleDeSommaire(courante?.niv1 || `LIVRE ${libelleLivreComparaison(comparaisonBook)}`)
             const titreDivision = rendreIntituleDeSommaire(courante?.niv2 || libelleDivisionComparaison(comparaisonDivision))
             return (
-              <div id="barre-nav-division" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
+              <div id="barre-nav-division" style={{ display: 'flex', alignItems: 'last baseline', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
                 <button onClick={() => prev && naviguerComparaison(prev.book, prev.division)} disabled={!prev} aria-label="Division précédente"
                   style={{ flexShrink: 0, width: '1.1em', textAlign: 'center', fontSize: '1.125rem', lineHeight: 1, color: prev ? 'var(--cs-texte-doux)' : 'transparent', background: 'none', border: 'none', cursor: prev ? 'pointer' : 'default', padding: 0, pointerEvents: prev ? 'auto' : 'none' }}>
                   {prev ? '‹' : ''}
@@ -4269,9 +4269,13 @@ export default function OeuvreClient({ auteur, auteurId, auteurs: auteursOeuvre 
             <div id={ANCRE_DEBUT_LECTURE} aria-hidden="true" style={{ scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }} />
           )}
 
-          {/* Navigation précédent/suivant — toujours au niveau 1 */}
+          {/* Navigation précédent/suivant, toujours au niveau 1. Les flèches se posent sur la
+              ligne de base de la DERNIÈRE ligne du titre (`last baseline`, demande de l'auteur,
+              2026-09-24) : sans sous-titre, elles tombent sur le titre et son numéro ; avec un
+              sous-titre, elles descendent sur la ligne grisée. Centrées, elles flottaient entre
+              les deux. */}
           {vue === 'texte' && !modeComparaisonActif && !texteSansNiveaux && !lectureTexteEntier && (
-            <div id="barre-nav-niv1" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
+            <div id="barre-nav-niv1" style={{ position: 'relative', display: 'flex', alignItems: 'last baseline', justifyContent: 'center', gap: '16px', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--cs-fond-doux)', minHeight: '32px', scrollMarginTop: `calc(${HAUTEUR_NAVBAR} + 4px)` }}>
               {/* ⛔ ELLES SE NOMMENT. Leur nom accessible était le GLYPHE : un lecteur
                   d’écran annonçait « guillemet simple gauche », ou rien. Ce sont les
                   contrôles les plus employés de la page après le texte lui-même, et le

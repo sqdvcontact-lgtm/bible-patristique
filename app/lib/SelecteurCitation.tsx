@@ -488,7 +488,7 @@ function ParcourirPatristique({ onChoisir }: { onChoisir: (c: Choix) => void }) 
           placeholder="Rechercher une œuvre (titre ou auteur)…"
           style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.8125rem', padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--cs-bord)', background: 'var(--cs-fond-clair)', color: 'var(--cs-texte-fort)', marginBottom: '12px', outline: 'none' }} />
         {oeuvres === null ? (
-          <MotAttente>Chargement du catalogue…</MotAttente>
+          <MotAttente anneau>Chargement du catalogue…</MotAttente>
         ) : resultats.length === 0 ? (
           <p style={{ fontSize: '0.75rem', color: 'var(--cs-texte-doux)', fontStyle: 'italic' }}>{q ? 'Aucune œuvre ne correspond.' : 'Aucune œuvre disponible.'}</p>
         ) : (

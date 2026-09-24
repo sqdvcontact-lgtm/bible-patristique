@@ -38,7 +38,7 @@ export const MOT_ATTENTE: CSSProperties = {
 
 /** Le mot d'attente. Il hérite la police de son bloc, comme sur la Bible : ce sont
  *  le corps, l'encre, l'italique et le délai qui font son apparence, pas la fonte. */
-export function MotAttente({ children = 'Chargement…', centre = false, marge, enLigne = false }: {
+export function MotAttente({ children = 'Chargement…', centre = false, marge, enLigne = false, anneau = false }: {
   children?: ReactNode
   /** Centré dans la largeur de son bloc. */
   centre?: boolean
@@ -46,7 +46,20 @@ export function MotAttente({ children = 'Chargement…', centre = false, marge, 
   marge?: CSSProperties['margin']
   /** Un `<span>` au lieu d'un paragraphe, là où un paragraphe n'a pas sa place (un titre). */
   enLigne?: boolean
+  /** L'anneau qui tourne au-dessus du mot, pour une page entière ou un gros volume
+   *  (demande de l'auteur, 2026-09-24). Il paraît avec le mot, au même délai, et le
+   *  groupe se centre dans son bloc. ⛔ Pas sur un chargement bref ni dans une ligne :
+   *  un anneau qui s'allume pour un dixième de seconde clignote. */
+  anneau?: boolean
 }) {
+  if (anneau && !enLigne) {
+    return (
+      <div role="status" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', margin: marge ?? '2.5rem 0' }}>
+        <span aria-hidden="true" style={{ animation: MOT_ATTENTE.animation }}><Anneau taille="1.75rem" /></span>
+        <p style={{ ...MOT_ATTENTE, margin: 0, textAlign: 'center' }}>{children}</p>
+      </div>
+    )
+  }
   const style: CSSProperties = { ...MOT_ATTENTE, margin: marge, textAlign: centre ? 'center' : undefined }
   if (enLigne) return <span style={style}>{children}</span>
   return <p style={style}>{children}</p>
@@ -75,7 +88,7 @@ export function Anneau({ taille = '2.25rem', enRelief = false }: { taille?: stri
 }
 
 /** L'écran d'attente entier, pour une page sans volets à dessiner en creux : le
- *  fond du site sous la barre, et le mot au centre. C'est l'écran de route des pages
+ *  fond du site sous la barre, et l'anneau et le mot au centre. C'est l'écran de route des pages
  *  qui n'en ont pas de propre (`app/loading.tsx`), et celui que montrent les pages
  *  CLIENT le temps de leur première lecture (compte, profil, prélèvements, péricope),
  *  pour que le passage de l'un à l'autre ne se voie pas.
@@ -83,7 +96,7 @@ export function Anneau({ taille = '2.25rem', enRelief = false }: { taille?: stri
 export function EcranAttente({ children }: { children?: ReactNode }) {
   return (
     <main aria-busy="true" style={{ minHeight: HAUTEUR_SOUS_NAVBAR, background: 'var(--cs-fond)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <MotAttente>{children}</MotAttente>
+      <MotAttente anneau marge="0">{children}</MotAttente>
     </main>
   )
 }
