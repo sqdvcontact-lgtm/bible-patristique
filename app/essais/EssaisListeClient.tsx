@@ -57,8 +57,8 @@ type EssaiPerso = {
 
 const STATUTS: Record<string, { label: string; couleur: string }> = {
   // Un orange doré : le gris se confondait avec le vert du « Publié » (relevé de
-  // l'auteur, 2026-09-24). Posé sur la liste (.mes-ecrits), pour les deux thèmes.
-  brouillon: { label: 'Brouillon', couleur: 'var(--ecrit-brouillon)' },
+  // l'auteur, 2026-09-24). Jeton --cs-brouillon, défini dans les deux thèmes.
+  brouillon: { label: 'Brouillon', couleur: 'var(--cs-brouillon)' },
   en_attente: { label: 'En attente', couleur: 'var(--cs-attente)' },
   publie: { label: 'Publié', couleur: 'var(--cs-vert)' },
   a_reviser: { label: 'À revoir', couleur: 'var(--cs-danger)' },
@@ -927,8 +927,7 @@ function OngletMesEcrits({
       <style>{`
         /* Les axes « Afficher » et « Trier par » vivent dans le volet de la page ; la
            liste garde la mesure d'une colonne de lecture, centrée sous les onglets. */
-        .mes-ecrits { max-width: 42.5rem; margin: 0 auto; --ecrit-brouillon: #c98f1c; }
-        :root[data-theme="sombre"] .mes-ecrits { --ecrit-brouillon: #e8963a; }
+        .mes-ecrits { max-width: 42.5rem; margin: 0 auto; }
 
         /* La carte de l'étagère (.bib-carte-auteur) : même surface, même filet. */
         .ecrits-carte { background: var(--cs-surface); border: 1px solid var(--cs-bord-clair); border-radius: 8px; padding: 8px 0 12px; }

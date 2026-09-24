@@ -261,6 +261,9 @@
      alerte : le danger est destructif, l'or est un accent d'apparat, et l'ocre de lacune
      dit l'absence d'un témoin. Aucun ne convenait, d'où ce terre de Sienne dédié. */
   --cs-attente: #9a5a2a;
+  /* Brouillon — un orange doré, distinct du vert du « Publié » et du terre de Sienne de
+     l'attente (pastille de « Mes écrits », relevé de l'auteur, 2026-09-24). */
+  --cs-brouillon: #c98f1c;
   /* Or — accent doré (références, fleurons, favoris) */
   /* 4,51 sur la carte (2026-09-21 ; 4,03 avant). */
   --cs-or: #91722f;
@@ -773,6 +776,7 @@
      brun plutôt que recopiée : 9,24 sur --cs-fond, 8,56 sur --cs-surface. */
   --cs-explication-corpus: #9ec5a6;
   --cs-attente:#d29a63;
+  --cs-brouillon: #e8963a;
   --cs-etiquette:#b8a179;
   /* « Système & doctrine » perd son bleu, seule teinte froide du site : un beige
      neutre, de chroma basse, qui le distingue des deux autres familles par sa
