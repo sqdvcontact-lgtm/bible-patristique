@@ -461,7 +461,7 @@ export default function PericopePage() {
   const chapPrincipale = principale ? (parsePointCanonique(principale.canon_id_debut)?.chapitre ?? 1) : 1
   const ctxBase = { tradLabel: tradActive.nom, trad, userId, prelevements, onPreleve, onRetire, auDoigt: mobile || sansSurvol }
 
-  // ── Volet gauche : apparat patristique (doublon du volet de la page Bible) ──
+  // ── Volet droit : apparat patristique (doublon du volet de la page Bible) ──
   const panneauPatristique = principale ? (
     <PanneauPatristique
       verset={null}
@@ -478,7 +478,6 @@ export default function PericopePage() {
       mobile={mobile}
       presentation={mobile ? 'inline' : 'drawer'}
       sousBarres={false}
-      barreMobile={false}
       voletMobile={voletMobile}
       setVoletMobile={setVoletMobile}
     />
@@ -552,8 +551,8 @@ export default function PericopePage() {
     </div>
   )
 
-  // ── Volet droit : informations, options (traduction), notices ──
-  const voletDroit = (
+  // ── Volet gauche : informations, options (traduction), notices ──
+  const voletGauche = (
     <div style={{ padding: mobile ? '16px 2px 4px' : '18px 18px 40px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
 
       {/* Informations */}
@@ -739,7 +738,7 @@ export default function PericopePage() {
       <main style={{ background: FOND, minHeight: 'calc(100dvh - 3.5rem)', padding: '1.5rem 1.1rem 3rem' }}>
         <div style={{ maxWidth: '44rem', margin: '0 auto' }}>
           {centre}
-          <div style={{ marginTop: '1.5rem', background: PANEL, border: `1px solid ${BORD}`, borderRadius: '8px' }}>{voletDroit}</div>
+          <div style={{ marginTop: '1.5rem', background: PANEL, border: `1px solid ${BORD}`, borderRadius: '8px' }}>{voletGauche}</div>
           <div style={{ marginTop: '1.5rem', border: `1px solid ${BORD}`, borderRadius: '8px', overflow: 'hidden', background: 'var(--cs-surface)' }}>{panneauPatristique}</div>
         </div>
       </main>
@@ -754,11 +753,13 @@ export default function PericopePage() {
         {/* ⛔ La colonne SUIT l'écran au lieu d'être posée : à 20rem fixes, entre 901
             et 1024 px il ne restait que 257 px au texte des versets, le panneau
             patristique prenant 260 px de plus. */}
-        <aside style={{ width: 'clamp(14rem, 22vw, 20rem)', flexShrink: 0, height: '100%', overflowY: 'auto', background: PANEL, borderRight: `1px solid ${BORD}` }}>{voletDroit}</aside>
+        <aside style={{ width: 'clamp(14rem, 22vw, 20rem)', flexShrink: 0, height: '100%', overflowY: 'auto', background: PANEL, borderRight: `1px solid ${BORD}` }}>{voletGauche}</aside>
         {/* Centre : le texte défile */}
         <section style={{ flex: 1, minWidth: 0, overflowY: 'auto', padding: '1.75rem 2rem 3rem' }}>{centre}</section>
-        {/* Droite : apparat patristique (poignée et repli sur son bord gauche : c'est son côté naturel) */}
-        <div style={{ flexShrink: 0, height: '100%', borderLeft: `1px solid ${BORD}` }}>{panneauPatristique}</div>
+        {/* Droite : apparat patristique, replié sur son bord gauche (c'est son côté naturel).
+            ⛔ Le FILET est celui du volet, ou de son rail : l'enveloppe n'en porte pas, sans
+            quoi les deux se doublaient en un trait de deux pixels. */}
+        <div style={{ flexShrink: 0, height: '100%' }}>{panneauPatristique}</div>
       </div>
     </main>
   )

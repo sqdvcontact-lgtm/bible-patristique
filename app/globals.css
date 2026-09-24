@@ -2911,6 +2911,10 @@ p:has(> .seg-inline > .cs-lettrine) { display: flow-root; }
   pointer-events: none;
 }
 
+/* Un onglet qui porte une ligne SOUS son libellé (le compte du volet des Pères) :
+   OngletsPage pose la classe quand la page donne cette ligne. */
+.cs-onglet--sous { flex-direction: column; gap: 2px; }
+
 @media (prefers-reduced-motion: reduce) {
   .cs-onglet { transition: none; }
 }

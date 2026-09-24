@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment } from 'react'
+import { Fragment, type KeyboardEvent, type ReactNode } from 'react'
 
 /**
  * La barre d'onglets d'une PAGE — une seule définition pour tout le site.
@@ -20,6 +20,10 @@ import { Fragment } from 'react'
 export type OngletPage<K extends string> = {
   cle: K
   libelle: string
+  /** Ce qui se lit SOUS le libellé : le compte du volet des Pères. Il se range
+   *  dans l'onglet, et c'est la page qui le compose ; le modèle ne fait que lui
+   *  donner sa ligne (`.cs-onglet--sous`, globals.css). */
+  sous?: ReactNode
 }
 
 /**
@@ -40,6 +44,8 @@ export default function OngletsPage<K extends string>({
   intitule,
   className,
   style,
+  idPanneau,
+  idOnglet,
 }: {
   onglets: readonly OngletPage<K>[]
   actif: K
@@ -58,14 +64,38 @@ export default function OngletsPage<K extends string>({
   /** Le PLACEMENT de la barre dans sa page — son blanc alentour, et rien d'autre.
    *  Le dessin appartient au modèle ; l'écart à ce qui suit appartient à la page. */
   style?: React.CSSProperties
+  /** Le `tabpanel` que la barre commande : chaque onglet le nomme par
+   *  `aria-controls`. */
+  idPanneau?: string
+  /** L'identifiant de chaque onglet, que le panneau reprend dans
+   *  `aria-labelledby`. */
+  idOnglet?: (cle: K) => string
 }) {
   const panneaux = nature === 'panneaux'
+  // ⚠️ Un seul onglet dans l'ordre de tabulation, les flèches pour passer au voisin
+  // (ARIA, « tabs ») : le volet des Pères l'avait seul, il vit ici pour toutes les
+  // barres. Un groupe de FILTRES garde ses boutons ordinaires.
+  const rangRetenu = Math.max(0, onglets.findIndex(o => o.cle === actif))
+  const circuler = (e: KeyboardEvent<HTMLDivElement>) => {
+    const n = onglets.length
+    if (n === 0) return
+    const rang = e.key === 'ArrowRight' ? (rangRetenu + 1) % n
+      : e.key === 'ArrowLeft' ? (rangRetenu - 1 + n) % n
+      : e.key === 'Home' ? 0
+      : e.key === 'End' ? n - 1
+      : null
+    if (rang === null) return
+    e.preventDefault()
+    choisir(onglets[rang].cle)
+    e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[rang]?.focus()
+  }
   return (
     <div
       className={className ? `cs-onglets ${className}` : 'cs-onglets'}
       style={style}
       role={panneaux ? 'tablist' : 'group'}
       aria-label={intitule}
+      onKeyDown={panneaux ? circuler : undefined}
     >
       {onglets.map((onglet, rang) => {
         const retenu = onglet.cle === actif
@@ -74,15 +104,19 @@ export default function OngletsPage<K extends string>({
             {rang > 0 && <span className="cs-onglets-sep" aria-hidden="true" />}
             <button
               type="button"
-              className="cs-onglet"
+              id={idOnglet?.(onglet.cle)}
+              className={onglet.sous == null ? 'cs-onglet' : 'cs-onglet cs-onglet--sous'}
               role={panneaux ? 'tab' : undefined}
               aria-selected={panneaux ? retenu : undefined}
+              aria-controls={panneaux ? idPanneau : undefined}
               aria-pressed={panneaux ? undefined : retenu}
+              tabIndex={panneaux ? (rang === rangRetenu ? 0 : -1) : undefined}
               onClick={() => choisir(onglet.cle)}
             >
               <span className="cs-onglet-libelle" data-libelle={onglet.libelle}>
                 {onglet.libelle}
               </span>
+              {onglet.sous}
             </button>
           </Fragment>
         )

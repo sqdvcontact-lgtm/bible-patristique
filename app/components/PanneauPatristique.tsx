@@ -1,7 +1,7 @@
 'use client'
 
 import { CLASSE_ACTIONS_CARTE_VOLET, CLASSE_CARTE_VOLET, CORPS_CARTE_VOLET, FEUILLE_CARTE_VOLET, INTERLIGNE_CARTE_VOLET, STYLE_CARTE_VOLET } from '@/app/lib/carteVolet'
-import { Z_FENETRE, Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
+import { Z_TIROIR, Z_TIROIR_VOILE } from '@/app/lib/empilement'
 import { useState, useEffect, useId, useMemo, useRef, useCallback } from 'react'
 import { supabase } from "@/app/lib/supabase"
 import { texteSansEnrichissement } from '@/app/oeuvre/[id]/texteEnrichi'
@@ -35,6 +35,8 @@ import { COLONNES_IDENTITE_TEXTE, identiteCitee, parametreTexte, type LigneIdent
 import { indexEditeursNavigateur } from '@/app/lib/editeurs'
 import { signalerProgression } from '@/app/components/AnnonceHautsFaits'
 import RailVolet from '@/app/components/RailVolet'
+import OngletsPage from '@/app/components/OngletsPage'
+import { usePoigneeVolet } from '@/app/lib/poigneeVolet'
 import IconeChevron from '@/app/components/IconeChevron'
 import { ecartsAMesurer, numerosDeLEcart, regrouperCitations, texteDuGroupe, type Ecart } from '@/app/lib/regrouperCitations'
 import { niveauxDuSegment, titreEntrePassages, type NiveauxDuPassage } from '@/app/lib/titresDeDivision'
@@ -800,7 +802,7 @@ function circulerAuxFleches<C extends string>(e: React.KeyboardEvent, codes: C[]
 export default function PanneauPatristique({
   verset, livreActif, chapitreActif,
   panelWidth = null, onWidthChange, mobile = false,
-  voletMobile = null, setVoletMobile, barreMobile = true, presentation = 'drawer', sousBarres = true,
+  voletMobile = null, setVoletMobile, presentation = 'drawer', sousBarres = true,
   plage, notesBible = null, onChoisirVerset,
 }: {
   verset: Verset | null
@@ -815,7 +817,6 @@ export default function PanneauPatristique({
   mobile?: boolean
   voletMobile?: 'livres' | 'commentaires' | null
   setVoletMobile?: (v: 'livres' | 'commentaires' | null) => void
-  barreMobile?: boolean
   presentation?: 'drawer' | 'inline'
   /** ⛔ En mode ONGLETS, le panneau réserve la barre d'onglets au-dessus (2,875rem)
    *  et le bandeau de chapitre en dessous. Ces deux barres n'existent QUE sur la page
@@ -837,6 +838,7 @@ export default function PanneauPatristique({
   const idBase = useId()
   const idOnglet = (c: string) => `${idBase}-onglet-${c}`
   const idPanneau = `${idBase}-panneau`
+  const idVolet = `${idBase}-volet`
   const idSousOnglet = (c: string) => `${idBase}-sous-onglet-${c}`
   const idSousPanneau = `${idBase}-sous-panneau`
   // Le chemin de retour d'un passage ouvert depuis ce volet (voir `SegmentCard`). ⚠️ Lu
@@ -850,7 +852,7 @@ export default function PanneauPatristique({
   const [sousOnglet, setSousOnglet] = useState<SousOnglet>('citations')
   const [pageItems, setPageItems] = useState(0)
   const [ouvertLocal, setOuvertLocal] = useState(true)
-  const refPanel = useRef<HTMLDivElement>(null)
+  const refPanel = useRef<HTMLElement>(null)
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 900) setOuvertLocal(false)
   }, [])
@@ -1409,35 +1411,22 @@ export default function PanneauPatristique({
     })
   }, [])
 
+  // La poignée : un séparateur, au clavier comme au pointeur (voir `poigneeVolet`).
+  const poignee = usePoigneeVolet({
+    largeur: panelWidth, mesurer: () => refPanel.current?.getBoundingClientRect().width,
+    changer: w => onWidthChange?.(w), min: 200, max: 560, cote: 'droite', controle: idVolet,
+  })
+
   // Le volet se replie partout, SAUF en onglets sur un téléphone.
   const peutSeReduire = !mobile || presentation !== 'inline'
 
   if (!ouvert) {
-    // Empilé (mobile) : barre horizontale pleine largeur en bas de la pile.
-    if (mobile) {
-      if (!barreMobile) return null
-      return (
-        <button onClick={() => setOuvert(true)} title={LIBELLE_RAIL} aria-label={LIBELLE_RAIL}
-          style={{ position: 'fixed', bottom: BANDEAU_NAV_MOBILE, left: 0, right: 0, zIndex: Z_FENETRE, width: '100%', background: 'var(--cs-fond-clair)', border: 'none', borderTop: '1px solid var(--cs-bord)', boxShadow: 'var(--cs-ombre-posee-haut)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px', padding: '0.6875rem 1rem' }}>
-          <span aria-hidden="true" style={{ display: 'flex', color: 'var(--cs-texte-doux)' }}><IconeChevron dir="up" taille="0.875rem" strokeWidth={1.5} /></span>
-          <span style={{ fontSize: '0.8125rem', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--cs-texte-second)' }}>{LIBELLE_RAIL}</span>
-          {/* ⛔ Le chevron DOUBLÉ, son double invisible de l'autre côté. */}
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ visibility: 'hidden', flexShrink: 0 }} />
-        </button>
-      )
-    }
+    // Sur un téléphone, le volet replié ne laisse rien : les onglets de la page, ou le
+    // glissement, le rouvrent. ⚠️ La barre fixe qui le faisait jadis n'était plus appelée
+    // par aucune page : elle est retirée.
+    if (mobile) return null
     return <RailVolet cote="droite" libelle={LIBELLE_RAIL} onOuvrir={() => setOuvert(true)} />
   }
-
-  const handleDrag = onWidthChange ? (e: React.MouseEvent) => {
-    e.preventDefault()
-    const startW = panelWidth ?? refPanel.current?.getBoundingClientRect().width ?? 320
-    const startX = e.clientX
-    const onMove = (ev: MouseEvent) => onWidthChange(Math.max(200, Math.min(560, startW - (ev.clientX - startX))))
-    const onUp = () => document.removeEventListener('mousemove', onMove)
-    document.addEventListener('mousemove', onMove)
-    document.addEventListener('mouseup', onUp, { once: true })
-  } : undefined
 
   const precedentePossible = pageCouranteItems > 0
   const suivantePossible = pageCouranteItems < nbPagesItems - 1
@@ -1450,7 +1439,7 @@ export default function PanneauPatristique({
     <>
     {mobile && presentation !== 'inline' && <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'var(--cs-calque-modale)', zIndex: Z_TIROIR_VOILE }} />}
     {/* `data-visite` : le repère de la visite guidée (app/lib/visiteBibleClassique.ts). */}
-    <div ref={refPanel} data-visite="peres" role={tiroirOuvert ? 'dialog' : undefined} aria-modal={tiroirOuvert || undefined} aria-label={tiroirOuvert ? 'Pères de l’Église' : undefined}
+    <aside ref={refPanel} id={idVolet} data-visite="peres" role={tiroirOuvert ? 'dialog' : undefined} aria-modal={tiroirOuvert || undefined} aria-label="Pères de l’Église"
       style={mobile
       ? (presentation === 'inline'
         ? { width:'100%', background:'var(--cs-surface)', display:'flex', flexDirection:'column', ...(sousBarres ? { paddingTop:'2.875rem', minHeight:`calc(100dvh - ${HAUTEUR_NAVBAR})`, paddingBottom:BANDEAU_NAV_MOBILE } : {}) }
@@ -1464,8 +1453,8 @@ export default function PanneauPatristique({
         ${FEUILLE_CARTE_VOLET}
         ${mobile ? ACTIONS_CARTE_MOBILE : ''}
       `}</style>
-      {!mobile && handleDrag && (
-        <div onMouseDown={handleDrag} title="Glisser pour redimensionner"
+      {!mobile && onWidthChange && (
+        <div {...poignee} title="Glisser pour redimensionner"
           style={{ position:'absolute', left:'-4px', top:0, bottom:0, width:'9px', cursor:'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%235f574b%27 stroke-width=%271.7%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M8 7L3 12l5 5%27/%3E%3Cpath d=%27M3 12h18%27/%3E%3Cpath d=%27M16 7l5 5-5 5%27/%3E%3C/svg%3E") 12 12, ew-resize', zIndex:10 }}
           className="cs-poignee-volet cs-poignee-volet--gauche"
         />
@@ -1474,44 +1463,42 @@ export default function PanneauPatristique({
       <div style={{ display:'flex', flexDirection:'column', flex:1, minHeight:0 }}>
 
           {/* Onglets pleine largeur, la flèche de repli HORS DU FLUX au bord gauche
-              (décision de l'auteur, 2026-09-20). ⛔ LA BARRE PORTE SON FOND, PAS L'ONGLET
-              RETENU (2026-09-10) ; l'onglet retenu se distingue par son trait vert, sa
-              graisse et son encre, comme le modèle partagé.
-              ⚠️ Une vraie barre d'onglets : `role="tablist"`, circulation aux flèches, et un
-              seul onglet dans l'ordre de tabulation. */}
-          <div style={{ position:'relative', display:'flex', alignItems:'stretch', borderBottom:'1px solid var(--cs-bord)', background:'rgba(var(--cs-vert-rgb),0.04)' }}>
+              (décision de l'auteur, 2026-09-20).
+              ⛔ LA BARRE EST LE MODÈLE DU SITE (`OngletsPage`, audit d'harmonie, 2026-09-23) :
+              elle était composée ici en capitales espacées sur un fond vert, quand la barre
+              du volet de gauche, celle de la page d'une œuvre et les autres barres du site
+              sont en casse ordinaire (charte : les capitales sont refusées sur une barre
+              d'onglets). Le COMPTE de chaque onglet reste sous son libellé, dans la ligne
+              que le modèle lui donne (`sous`), à l'encre de son onglet. La circulation aux
+              flèches et `aria-controls` vivent désormais dans le modèle. */}
+          <div style={{ position:'relative', flexShrink:0, display:'flex', alignItems:'stretch' }}>
             {/* ⛔ Un réglage de disposition MOBILE ne décide jamais d'un contrôle de BUREAU. */}
             {peutSeReduire && (
               <button onClick={() => setOuvert(false)} title="Réduire le volet" aria-label="Réduire le volet"
+                aria-expanded={true} aria-controls={idVolet}
                 className="cs-volet-reduire"
                 style={{ position:'absolute', left:0, top:0, bottom:0, zIndex:1, width:'1.75rem', background:'none', border:'none', cursor:'pointer', padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <IconeChevron dir="right" taille="0.875rem" strokeWidth={1.5} />
               </button>
             )}
-            <div role="tablist" aria-label="Volet des Pères" style={{ display:'flex', flex:1, alignItems:'stretch' }}
-              onKeyDown={e => circulerAuxFleches(e, ONGLETS.map(t => t.code), ongletAffiche, setOnglet, idOnglet)}>
-              {ONGLETS.map(t => {
-                const actif = ongletAffiche === t.code
-                return (
-                  <button key={t.code} id={idOnglet(t.code)} role="tab" aria-selected={actif} aria-controls={idPanneau}
-                    tabIndex={actif ? 0 : -1} onClick={() => setOnglet(t.code)}
-                    style={{
-                      flex:1, padding:'8px 6px 7px', border:'none',
-                      borderBottom: actif ? '2px solid var(--cs-vert)' : '2px solid transparent',
-                      cursor:'pointer', background:'none',
-                      color: actif ? 'var(--cs-encre)' : 'var(--cs-texte-gris)',
-                      fontFamily: SANS,
-                      transition:'color var(--cs-duree-courte), border-color var(--cs-duree-courte)',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
-                    }}>
-                    <span style={{ fontSize:'0.65625rem', letterSpacing:'0.08em', textTransform:'uppercase', fontWeight: actif ? 600 : 400, textAlign: 'center', lineHeight: 1.15 }}>{t.label}</span>
-                    {/* ⛔ Une ligne de compte, toujours, et d'une hauteur écrite : voir `LigneCompte`. */}
-                    <LigneCompte enAttente={t.enAttente} compte={t.count} videDit="∅" unite={t.unite}
-                      style={{ fontSize: '0.6875rem', lineHeight: 1, height: '1em', fontWeight: 500, color: actif ? 'var(--cs-vert)' : 'var(--cs-texte-gris)' }} />
-                  </button>
-                )
-              })}
-            </div>
+            <OngletsPage
+              className="cs-onglets--volet"
+              style={{ flex: 1, minWidth: 0 }}
+              intitule="Ce que montre le volet"
+              onglets={ONGLETS.map(t => ({
+                cle: t.code,
+                libelle: t.label,
+                // ⛔ Une ligne de compte, toujours, et d'une hauteur écrite : voir `LigneCompte`.
+                // Son encre est celle de l'onglet (le modèle la pose), si bien que le compte de
+                // l'onglet retenu prend son vert, comme avant.
+                sous: <LigneCompte enAttente={t.enAttente} compte={t.count} videDit="∅" unite={t.unite}
+                  style={{ fontSize: '0.6875rem', lineHeight: 1, height: '1em', fontWeight: 500 }} />,
+              }))}
+              actif={ongletAffiche}
+              choisir={setOnglet}
+              idPanneau={idPanneau}
+              idOnglet={idOnglet}
+            />
           </div>
 
           {/* Contenu (la discussion et les notes défilent en interne, pour épingler la
@@ -1673,7 +1660,7 @@ export default function PanneauPatristique({
             />
           )}
       </div>
-    </div>
+    </aside>
     </>
   )
 }
